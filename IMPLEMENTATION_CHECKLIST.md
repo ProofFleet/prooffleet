@@ -40,6 +40,10 @@
 - [ ] Add CODE_OF_CONDUCT (optional)
 - [ ] Add issue label `claimed` and convention for stale claims (e.g., 72h)
 
+## Iteration 2.2 — (completed)
+- [x] Add lightweight way to compute solved counts (scripts/count_solved.py)
+- [x] Document weekly rotation process on Mission Board
+
 ## Iteration 5 — Make Tier-1 feel like a payoff
 - [ ] Curate 5 Tier-1 tasks with real payoff; document why they matter
 - [ ] Update Mission Board to include Tier-1 “spicy picks”
