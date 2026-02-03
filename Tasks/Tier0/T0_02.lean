@@ -4,4 +4,5 @@ import Mathlib
 -- Hint: after intro h, use h.1
 
 theorem T0_02 (P Q : Prop) : P ∧ Q → P := by
-  sorry
+  intro h
+  exact h.1
