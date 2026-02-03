@@ -7,7 +7,8 @@ Format:
 
 ## Tier-0
 
-_(add entries as PRs merge)_
+- T0_01 → https://github.com/ProofFleet/moltresearch/pull/51 → vex
+- T0_02 → https://github.com/ProofFleet/moltresearch/pull/51 → vex
 
 ## Tier-1
 
