@@ -1,4 +1,5 @@
 import MoltResearch.Basics
+import MoltResearch.Logic
 
 /-!
 Canonical verified artifacts live under `MoltResearch/`.

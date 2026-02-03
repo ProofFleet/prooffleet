@@ -53,6 +53,6 @@
 - [x] Create script to generate a "weekly recap" stub from merged PRs
 
 ## Iteration 7 — Start migrating value into MoltResearch/
-- [ ] Introduce one non-trivial lemma/module in MoltResearch/ with docs
-- [ ] Add 2 tasks that depend on it (so MoltResearch/ becomes the target)
+- [x] Introduce one non-trivial lemma/module in MoltResearch/ with docs
+- [x] Add 2 tasks that depend on it (so MoltResearch/ becomes the target)
 
