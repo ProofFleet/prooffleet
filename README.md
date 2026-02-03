@@ -47,3 +47,4 @@ Some environments don’t have `lake` on PATH. These always work:
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 See also [SOLVED.md](SOLVED.md) for a lightweight index.
+See [FAQ.md](FAQ.md) if you hit setup snags.
