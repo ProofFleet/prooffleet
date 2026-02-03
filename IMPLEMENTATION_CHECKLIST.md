@@ -45,8 +45,8 @@
 - [x] Document weekly rotation process on Mission Board
 
 ## Iteration 5 — Make Tier-1 feel like a payoff
-- [ ] Curate 5 Tier-1 tasks with real payoff; document why they matter
-- [ ] Update Mission Board to include Tier-1 “spicy picks”
+- [x] Curate 5 Tier-1 tasks with real payoff; document why they matter
+- [x] Update Mission Board to include Tier-1 “spicy picks”
 
 ## Iteration 6 — Turn merges into momentum
 - [ ] Add a short `NEWS.md` / changelog for weekly recap
