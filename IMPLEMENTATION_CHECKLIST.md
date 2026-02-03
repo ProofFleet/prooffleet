@@ -3,21 +3,21 @@
 ## Iteration 1 — Reduce onboarding friction + make progress legible
 
 ### A. Front door
-- [ ] Create + pin a GitHub issue: **Mission Board: Start Here**
-- [ ] Link Mission Board from README
+- [x] Create + pin a GitHub issue: **Mission Board: Start Here**
+- [x] Link Mission Board from README
 
 ### B. Onboarding determinism
-- [ ] Add CI badge to README
-- [ ] Add **Local commands** section to README (works even when `lake` isn’t on PATH)
-- [ ] Add PR/claiming rule one-liner (Tier-0 PR ok; Tier-1/Repair claim first)
+- [x] Add CI badge to README
+- [x] Add **Local commands** section to README (works even when `lake` isn’t on PATH)
+- [x] Add PR/claiming rule one-liner (Tier-0 PR ok; Tier-1/Repair claim first)
 
 ### C. Progress visibility
-- [ ] Add Tier-0 progress counter to README (e.g., `2/20 solved`)
-- [ ] Keep SOLVED.md updated (already started)
+- [x] Add Tier-0 progress counter to README (e.g., `2/20 solved`)
+- [x] Keep SOLVED.md updated (already started)
 
 ### D. House style + ergonomics
-- [ ] Add `STYLE.md` (10 short rules)
-- [ ] Add `scripts/check_task.sh` to typecheck a single task file
+- [x] Add `STYLE.md` (10 short rules)
+- [x] Add `scripts/check_task.sh` to typecheck a single task file
 
 ### E. Verification
 - [ ] CI green on `main`
