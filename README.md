@@ -44,6 +44,12 @@ Some environments don’t have `lake` on PATH. These always work:
 ### Progress
 - Tier-0: **2/20 solved** (see SOLVED.md)
 
+Tip: if you’re maintaining the counter, you can compute counts via:
+
+```bash
+python3 scripts/count_solved.py
+```
+
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 See also [SOLVED.md](SOLVED.md) for a lightweight index.

@@ -31,7 +31,24 @@
 - [ ] Add a curated Tier-1 set with stronger payoff
 - [ ] Start moving generalized results into `MoltResearch/`
 ## Iteration 2.1 — Flywheel polish
-- [ ] Add README note about SOLVED helper scripts
-- [ ] Add a pinned comment to Mission Board about weekly rotation (optional)
-- [ ] Consider auto-updating Tier-0 counter (script or manual cadence)
+- [x] Add README note about SOLVED helper scripts
+- [x] Add a pinned comment to Mission Board about weekly rotation (optional)
+- [x] Consider auto-updating Tier-0 counter (script or manual cadence)
+
+## Iteration 4 — Repo hygiene + contributor UX
+- [ ] Add CODEOWNERS (optional)
+- [ ] Add CODE_OF_CONDUCT (optional)
+- [ ] Add issue label `claimed` and convention for stale claims (e.g., 72h)
+
+## Iteration 5 — Make Tier-1 feel like a payoff
+- [ ] Curate 5 Tier-1 tasks with real payoff; document why they matter
+- [ ] Update Mission Board to include Tier-1 “spicy picks”
+
+## Iteration 6 — Turn merges into momentum
+- [ ] Add a short `NEWS.md` / changelog for weekly recap
+- [ ] Create script to generate a "weekly recap" stub from merged PRs
+
+## Iteration 7 — Start migrating value into MoltResearch/
+- [ ] Introduce one non-trivial lemma/module in MoltResearch/ with docs
+- [ ] Add 2 tasks that depend on it (so MoltResearch/ becomes the target)
 
