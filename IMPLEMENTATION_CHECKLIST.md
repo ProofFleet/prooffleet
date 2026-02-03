@@ -20,7 +20,7 @@
 - [x] Add `scripts/check_task.sh` to typecheck a single task file
 
 ### E. Verification
-- [ ] CI green on `main`
+- [x] CI green on `main`
 
 ## Iteration 2 — Automation + contributor flywheel
 - [ ] Add weekly “Top 5 Missions” section to Mission Board
