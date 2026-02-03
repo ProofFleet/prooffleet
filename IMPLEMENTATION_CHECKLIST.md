@@ -23,10 +23,15 @@
 - [x] CI green on `main`
 
 ## Iteration 2 — Automation + contributor flywheel
-- [ ] Add weekly “Top 5 Missions” section to Mission Board
-- [ ] Add lightweight script to append SOLVED.md entries
-- [ ] Add a short FAQ (toolchain mismatch, cache, stuck workflow)
+- [x] Add weekly “Top 5 Missions” section to Mission Board
+- [x] Add lightweight script to append SOLVED.md entries
+- [x] Add a short FAQ (toolchain mismatch, cache, stuck workflow)
 
 ## Iteration 3 — Upgrade to “real math”
 - [ ] Add a curated Tier-1 set with stronger payoff
 - [ ] Start moving generalized results into `MoltResearch/`
+## Iteration 2.1 — Flywheel polish
+- [ ] Add README note about SOLVED helper scripts
+- [ ] Add a pinned comment to Mission Board about weekly rotation (optional)
+- [ ] Consider auto-updating Tier-0 counter (script or manual cadence)
+
