@@ -49,8 +49,8 @@
 - [x] Update Mission Board to include Tier-1 “spicy picks”
 
 ## Iteration 6 — Turn merges into momentum
-- [ ] Add a short `NEWS.md` / changelog for weekly recap
-- [ ] Create script to generate a "weekly recap" stub from merged PRs
+- [x] Add a short `NEWS.md` / changelog for weekly recap
+- [x] Create script to generate a "weekly recap" stub from merged PRs
 
 ## Iteration 7 — Start migrating value into MoltResearch/
 - [ ] Introduce one non-trivial lemma/module in MoltResearch/ with docs
