@@ -51,4 +51,17 @@ lemma IsSignSequence.ne_zero {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ)
 @[simp] lemma apSum_zero (f : ℕ → ℤ) (d : ℕ) : apSum f d 0 = 0 := by
   simp [apSum]
 
+lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
+  classical
+  -- `Finset.range (n+1)` is `insert n (range n)`
+  simp [apSum, Finset.range_add_one, Finset.sum_insert]
+  -- remaining goal is just commutativity
+  simp [add_comm]
+
+lemma apSum_zero_d (f : ℕ → ℤ) (n : ℕ) : apSum f 0 n = n • f 0 := by
+  classical
+  -- along step size 0, the AP is constant at 0
+  simp [apSum]
+
 end MoltResearch
