@@ -1,10 +1,11 @@
-.PHONY: build update bootstrap task help
+.PHONY: build update bootstrap task backlog help
 
 help:
 	@echo "Targets:" 
 	@echo "  make bootstrap   # first-time setup: lake update + build (requires ~/.elan/bin/lake)"
 	@echo "  make update      # lake update"
-	@echo "  make build       # lake build"
+	@echo "  make build       # lake build (verified artifacts)"
+	@echo "  make backlog     # build Tasks + Conjectures libs (backlog)"
 	@echo "  make task FILE=Tasks/Tier0/T0_07.lean   # run check_task on a task"
 
 bootstrap:
@@ -15,6 +16,10 @@ update:
 
 build:
 	@~/.elan/bin/lake build
+
+backlog:
+	@~/.elan/bin/lake build Tasks
+	@~/.elan/bin/lake build Conjectures
 
 task:
 	@test -n "$(FILE)" || (echo "FILE is required" && exit 2)
