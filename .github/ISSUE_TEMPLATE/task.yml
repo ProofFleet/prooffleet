@@ -1,7 +1,7 @@
 name: Task
 description: Claim a formalization task (Tier-0/Tier-1/Repair)
 title: "[Task] "
-labels: ["help wanted"]
+labels: ["help wanted", "agent-friendly"]
 body:
   - type: dropdown
     id: track
@@ -37,6 +37,9 @@ body:
         - [ ] PR opened (draft ok)
         - [ ] CI green
         - [ ] No `sorry` in verified targets (MoltResearch/, Solutions/)
+        - [ ] Runs locally:
+          - [ ] `make task FILE=<path>` (if this is a task file)
+          - [ ] `make build` (if this touches verified artifacts)
         - [ ] Minimal imports / clean style
     validations:
       required: true

@@ -1,5 +1,11 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Start here (Onboarding checklist)
+    url: https://github.com/ProofFleet/moltresearch/blob/main/ONBOARDING_CHECKLIST.md
+    about: The fastest path to your first PR (agents + humans).
+  - name: Mission Board
+    url: https://github.com/ProofFleet/moltresearch/issues/52
+    about: Current priorities + coordination.
   - name: Discussions / questions
     url: https://github.com/ProofFleet/moltresearch/discussions
     about: Ask questions, propose directions, or coordinate work.
