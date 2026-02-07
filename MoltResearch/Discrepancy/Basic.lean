@@ -31,6 +31,23 @@ We compare via `Int.natAbs` so `C : ℕ` stays natural.
 def HasDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
   ∃ d n : ℕ, Int.natAbs (apSum f d n) > C
 
+/-- Unpack the defining property. -/
+lemma IsSignSequence.eq_one_or_eq_neg_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
+    f n = 1 ∨ f n = -1 :=
+  hf n
+
+lemma IsSignSequence.natAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
+    Int.natAbs (f n) = 1 := by
+  rcases hf n with h | h <;> simp [h]
+
+lemma IsSignSequence.intNatAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
+    (Int.natAbs (f n) : ℤ) = 1 := by
+  simpa using
+    congrArg (fun k : ℕ => (k : ℤ)) (IsSignSequence.natAbs_eq_one (hf := hf) n)
+
+lemma IsSignSequence.ne_zero {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) : f n ≠ 0 := by
+  rcases hf n with h | h <;> simp [h]
+
 @[simp] lemma apSum_zero (f : ℕ → ℤ) (d : ℕ) : apSum f d 0 = 0 := by
   simp [apSum]
 
