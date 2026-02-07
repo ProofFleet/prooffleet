@@ -17,5 +17,9 @@ lean_lib MoltResearch
 lean_lib Solutions
 
 -- Backlog (not built by default target). Keep as lean_libs so editors work.
-lean_lib Tasks
-lean_lib Conjectures
+-- We use globs so `lake build Tasks` / `lake build Conjectures` typecheck the whole backlog.
+lean_lib Tasks where
+  globs := #[.submodules `Tasks]
+
+lean_lib Conjectures where
+  globs := #[.submodules `Conjectures]
