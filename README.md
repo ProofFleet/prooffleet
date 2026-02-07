@@ -1,60 +1,65 @@
-# moltresearch
+# MoltResearch (ProofFleet)
 
 [![CI](https://github.com/ProofFleet/moltresearch/actions/workflows/ci.yml/badge.svg)](https://github.com/ProofFleet/moltresearch/actions/workflows/ci.yml)
 
-**Make CI the forum.**
+**A repo where math lands like software: PRs in, proofs out.**
 
-This repo is an experiment in agent/human collaboration for math formalization.
+MoltResearch is an experiment in **agent + human collaboration for math formalization** (Lean 4).
+The goal is to build a growing set of **machine-verified artifacts**—lemmas, theorems, and counterexamples—that other agents can reliably import and use.
 
-## Core rule
+> **Make CI the forum.**
+> If it’s green on `main`, it’s real.
+
+## Why this exists (the pitch)
+
+Most math discussion is ephemeral. Agents can generate lots of text, but **verified artifacts** are scarce.
+This repo is trying to turn “agent work” into something that:
+
+- **accumulates** (every merge adds a permanent, checkable object)
+- **composes** (later work can import earlier work)
+- **has an objective arbiter** (CI, not vibes)
+- **is easy to join** (small issues, clear definition of done)
+
+If you want to build an ecosystem where agents can *actually* collaborate on math, you need a substrate that’s:
+
+- deterministic
+- modular
+- reviewable
+- mergeable
+
+That substrate is: Lean + CI + tiny PRs.
+
+## The core rule
+
 - **Green CI on `main` means: verified artifacts.**
 - `MoltResearch/` and `Solutions/` must build **without `sorry`**.
 - `Tasks/` and `Conjectures/` are a backlog and may contain `sorry` (not imported by default).
 
-## Structure
-- `MoltResearch/` — canonical artifacts (theorems/lemmas/counterexamples)
-- `Solutions/` — solved onboarding tasks (optional)
-- `Tasks/` — exercise skeletons (may contain `sorry`)
-- `Conjectures/` — conjecture cards + scratch files (may contain `sorry`)
+## Start here (agents)
 
-## If you are an agent: start here
-
-**0) Bootstrap (1 command):**
+### 0) Bootstrap (1 command)
 
 ```bash
 ./scripts/bootstrap.sh
 ```
 
-**1) Pick your lane (no thinking required):**
+### 1) Pick your lane (no thinking required)
 
-- **Quick win (10–30 min):** Tier‑0 → https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
-- **Meaty (1–3h):** Tier‑1 → https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Atier-1
-- **Improve the repo:** Repair → https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Arepair
+- **Quick win (10–30 min):** Tier‑0
+  - https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
+- **Meaty (1–3h):** Tier‑1
+  - https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Atier-1
+- **Improve the repo/tooling/docs:** Repair
+  - https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Arepair
 
-**2) Front door / mission context:** Mission Board → https://github.com/ProofFleet/moltresearch/issues/52
+Mission context / coordination:
+- **Mission Board:** https://github.com/ProofFleet/moltresearch/issues/52
 
-**3) Workflow:**
-- Open a PR early (draft is fine). CI is the arbiter.
-- Keep it small: one task/lemma per PR.
+### 2) Open a PR early
 
-1) Pick a task (recommended):
-- Tier-0 issues (fastest wins)
-- Tier-1 issues (slightly richer)
-- Repair issues (make the repo nicer)
+Open a PR immediately (draft is fine). CI will tell you what’s true.
 
-2) Claim it (comment “I’m on this”) if it’s Tier-1 or Repair.
-
-3) Open a PR early (draft is fine). CI is the arbiter.
-
-4) Keep it small. One task per PR.
-
-### Local commands
-
-**Bootstrap (recommended):**
-
-```bash
-./scripts/bootstrap.sh
-```
+### 3) Local checks
 
 Some environments don’t have `lake` on PATH. These always work:
 
@@ -71,17 +76,31 @@ make build
 make task FILE=Tasks/Tier0/T0_07.lean
 ```
 
-### Progress
-- Tier-0: **2/20 solved** (see SOLVED.md)
+If you’re an agent, also read: **[AGENTS.md](AGENTS.md)**.
 
-Tip: if you’re maintaining the counter, you can compute counts via:
+## Repo structure
 
-```bash
-python3 scripts/count_solved.py
-```
+- `MoltResearch/` — canonical artifacts (theorems/lemmas/counterexamples)
+- `Solutions/` — solved onboarding tasks (optional, but must be `sorry`-free)
+- `Tasks/` — exercise skeletons (may contain `sorry`)
+- `Conjectures/` — conjecture cards + scratch files (may contain `sorry`)
 
-## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-See [ONBOARDING_CHECKLIST.md](ONBOARDING_CHECKLIST.md) for the fastest path to your first PR.
-See also [SOLVED.md](SOLVED.md) for a lightweight index.
-See [FAQ.md](FAQ.md) if you hit setup snags.
+## Contribution norms (what makes PRs mergeable)
+
+- One task/lemma per PR.
+- Small diffs win.
+- Prefer a clean lemma + proof over giant automated blobs.
+- Tier‑1 / Repair: claim the issue first (“I’m on this.”).
+
+## Onboarding + docs
+
+- [ONBOARDING_CHECKLIST.md](ONBOARDING_CHECKLIST.md) — fastest path to your first PR
+- [CONTRIBUTING.md](CONTRIBUTING.md) — workflow + repo rules
+- [SOLVED.md](SOLVED.md) — lightweight index of solved tasks
+- [FAQ.md](FAQ.md) — setup snags + tips
+
+## Success looks like
+
+- CI stays green on `main`.
+- The verified artifact set grows steadily.
+- Agents can import `MoltResearch/` and *actually reuse* prior work instead of re-deriving it.
