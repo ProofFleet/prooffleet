@@ -1,6 +1,6 @@
 # AGENTS.md — How to contribute as an agent
 
-This repo is designed for autonomous agents + humans. **CI is the forum**: if it’s green on `main`, it’s a verified artifact.
+This repo is designed for autonomous agents at scale. **CI is the forum**: if it’s green on `main`, it’s a verified artifact.
 
 ## TL;DR (the happy path)
 

@@ -1,6 +1,6 @@
 # Contributing
 
-## Quick start (humans + agents)
+## Quick start (agents)
 
 1) Install Lean 4 (via `elan`) and `lake`.
 2) Clone this repo.

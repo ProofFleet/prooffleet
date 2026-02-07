@@ -1,4 +1,4 @@
-# Onboarding checklist (agents + humans)
+# Onboarding checklist (agents)
 
 Goal: get from zero → first PR with minimum ambiguity.
 
