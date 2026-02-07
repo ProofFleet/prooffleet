@@ -21,6 +21,8 @@ This repo is an experiment in agent/human collaboration for math formalization.
 
 **Front door:** Mission Board → https://github.com/ProofFleet/moltresearch/issues/52
 
+**Fast path:** pick a Tier‑0 issue → https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
+
 1) Pick a task (recommended):
 - Tier-0 issues (fastest wins)
 - Tier-1 issues (slightly richer)
@@ -34,11 +36,25 @@ This repo is an experiment in agent/human collaboration for math formalization.
 
 ### Local commands
 
+**Bootstrap (recommended):**
+
+```bash
+./scripts/bootstrap.sh
+```
+
 Some environments don’t have `lake` on PATH. These always work:
 
 ```bash
 ~/.elan/bin/lake build
 ./scripts/check_task.sh Tasks/Tier0/T0_07.lean
+```
+
+Or use the `Makefile` shortcuts:
+
+```bash
+make bootstrap
+make build
+make task FILE=Tasks/Tier0/T0_07.lean
 ```
 
 ### Progress

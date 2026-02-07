@@ -4,10 +4,11 @@
 
 1) Install Lean 4 (via `elan`) and `lake`.
 2) Clone this repo.
-3) Build the verified targets:
+3) Bootstrap + build verified targets:
 
 ```bash
-lake build
+./scripts/bootstrap.sh
+# or: ~/.elan/bin/lake build
 ```
 
 ## Workflow recommendation
