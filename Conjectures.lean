@@ -1,4 +1,4 @@
-import Conjectures.C0001-example.src.C0001
+import Conjectures.C0001_example.src.C0001
 
 /-!
 Backlog conjectures live under `Conjectures/` and may contain `sorry`.
