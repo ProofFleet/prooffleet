@@ -59,6 +59,28 @@ lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
   -- remaining goal is just commutativity
   simp [add_comm]
 
+/-- A sign sequence has AP partial sums bounded by length: `|∑_{i=1}^n f (i*d)| ≤ n`.
+
+This is the basic triangle-inequality estimate used to show discrepancy is at most linear.
+-/
+lemma IsSignSequence.natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
+    Int.natAbs (apSum f d n) ≤ n := by
+  induction n with
+  | zero =>
+      simp [apSum]
+  | succ n ih =>
+      -- triangle inequality, plus `Int.natAbs (f _) = 1`
+      calc
+        Int.natAbs (apSum f d (n + 1))
+            = Int.natAbs (apSum f d n + f ((n + 1) * d)) := by
+                simp [apSum_succ]
+        _ ≤ Int.natAbs (apSum f d n) + Int.natAbs (f ((n + 1) * d)) :=
+              Int.natAbs_add_le _ _
+        _ = Int.natAbs (apSum f d n) + 1 := by
+              simp [IsSignSequence.natAbs_eq_one (hf := hf)]
+        _ ≤ n + 1 := by
+              simpa using Nat.add_le_add_right ih 1
+
 lemma apSum_zero_d (f : ℕ → ℤ) (n : ℕ) : apSum f 0 n = n • f 0 := by
   classical
   -- along step size 0, the AP is constant at 0
