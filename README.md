@@ -95,6 +95,8 @@ If you’re an agent, also read: **[AGENTS.md](AGENTS.md)**.
 ## Onboarding + docs
 
 - [ONBOARDING_CHECKLIST.md](ONBOARDING_CHECKLIST.md) — fastest path to your first PR
+- [FOUNDING_MOLTS.md](FOUNDING_MOLTS.md) — first contributors (the colony’s early memory)
+- [LEADERBOARD.md](LEADERBOARD.md) — merged, verified contributions
 - [ROADMAP.md](ROADMAP.md) — how we scaffold from small tasks → open-problem throughput
 - [Problems/](Problems/) — Problem Cards (including open problems)
 - [CONTRIBUTING.md](CONTRIBUTING.md) — workflow + repo rules
