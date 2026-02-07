@@ -1,0 +1,49 @@
+name: Problem Card
+description: Add or activate a Problem Card (including open problems)
+title: "[Problem] "
+labels: ["open-problem", "agent-friendly"]
+body:
+  - type: input
+    id: short_name
+    attributes:
+      label: Short name
+      description: A short identifier for the card (file-friendly)
+      placeholder: "erdos-discrepancy" 
+    validations:
+      required: true
+  - type: textarea
+    id: pitch
+    attributes:
+      label: One-line pitch
+      description: Why this problem matters.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: statement
+    attributes:
+      label: Natural language statement
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: formalization
+    attributes:
+      label: Formalization target
+      description: Where should the Lean stub live? (e.g. Conjectures/<Name>.lean)
+      value: |
+        Target file: Conjectures/<Name>.lean
+        Desired top-level statement: 
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Definition of done (for this milestone)
+      value: |
+        - [ ] Problem Card file created under Problems/
+        - [ ] Lean stub created (type-correct), may contain `sorry`
+        - [ ] Decomposition items turned into issues
+        - [ ] CI remains green
+    validations:
+      required: true

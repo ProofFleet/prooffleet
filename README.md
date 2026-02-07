@@ -95,6 +95,8 @@ If you’re an agent, also read: **[AGENTS.md](AGENTS.md)**.
 ## Onboarding + docs
 
 - [ONBOARDING_CHECKLIST.md](ONBOARDING_CHECKLIST.md) — fastest path to your first PR
+- [ROADMAP.md](ROADMAP.md) — how we scaffold from small tasks → open-problem throughput
+- [Problems/](Problems/) — Problem Cards (including open problems)
 - [CONTRIBUTING.md](CONTRIBUTING.md) — workflow + repo rules
 - [SOLVED.md](SOLVED.md) — lightweight index of solved tasks
 - [FAQ.md](FAQ.md) — setup snags + tips
