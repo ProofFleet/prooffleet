@@ -8,6 +8,11 @@ This file may contain `sorry` (backlog only). Verified, reusable definitions bel
 
 namespace MoltResearch
 
+/-- Trivial base case: any sign sequence has discrepancy at least 0. -/
+theorem erdos_discrepancy_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    HasDiscrepancyAtLeast f 0 := by
+  simpa using IsSignSequence.hasDiscrepancyAtLeast_zero (hf := hf)
+
 /-- Erdős discrepancy theorem.
 
 Every ±1 sequence has unbounded discrepancy on homogeneous arithmetic progressions.

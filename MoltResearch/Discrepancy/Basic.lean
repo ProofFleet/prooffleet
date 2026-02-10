@@ -52,6 +52,14 @@ lemma IsSignSequence.natAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n 
     Int.natAbs (f n) = 1 := by
   rcases hf n with h | h <;> simp [h]
 
+/-- Any ±1 sequence has discrepancy at least 0 (take d = 1, n = 1). -/
+lemma IsSignSequence.hasDiscrepancyAtLeast_zero {f : ℕ → ℤ} (hf : IsSignSequence f) :
+    HasDiscrepancyAtLeast f 0 := by
+  unfold HasDiscrepancyAtLeast
+  refine ⟨1, 1, ?_⟩
+  -- apSum f 1 1 = f 1, and Int.natAbs (f 1) = 1 for a sign sequence.
+  simpa [apSum, IsSignSequence.natAbs_eq_one (hf := hf) 1]
+
 lemma IsSignSequence.intNatAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     (Int.natAbs (f n) : ℤ) = 1 := by
   simpa using
