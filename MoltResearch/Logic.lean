@@ -21,4 +21,9 @@ theorem and_left (P Q : Prop) : P ∧ Q → P := by
   intro h
   exact h.1
 
+/-- Right projection of conjunction. -/
+theorem and_right (P Q : Prop) : P ∧ Q → Q := by
+  intro h
+  exact h.2
+
 end MoltResearch.Logic
