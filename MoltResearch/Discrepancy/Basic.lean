@@ -86,6 +86,25 @@ lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
 @[simp] lemma apSum_two (f : ℕ → ℤ) (d : ℕ) : apSum f d 2 = f d + f (2 * d) := by
   simpa [apSum_one] using (apSum_succ (f := f) (d := d) (n := 1))
 
+-- Algebraic properties of `apSum`
+lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
+    apSum (fun k => f k + g k) d n = apSum f d n + apSum g d n := by
+  classical
+  unfold apSum
+  simp [Finset.sum_add_distrib]
+
+lemma apSum_neg (f : ℕ → ℤ) (d n : ℕ) :
+    apSum (fun k => - f k) d n = - apSum f d n := by
+  classical
+  unfold apSum
+  simp [Finset.sum_neg_distrib]
+
+lemma apSum_sub (f g : ℕ → ℤ) (d n : ℕ) :
+    apSum (fun k => f k - g k) d n = apSum f d n - apSum g d n := by
+  classical
+  unfold apSum
+  simp [Finset.sum_sub_distrib]
+
 /-- A sign sequence has AP partial sums bounded by length: `|∑_{i=1}^n f (i*d)| ≤ n`.
 
 This is the basic triangle-inequality estimate used to show discrepancy is at most linear.
@@ -107,6 +126,26 @@ lemma IsSignSequence.natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (
               simp [IsSignSequence.natAbs_eq_one (hf := hf)]
         _ ≤ n + 1 := by
               simpa using Nat.add_le_add_right ih 1
+
+lemma IsSignSequence.neg {f : ℕ → ℤ} (hf : IsSignSequence f) :
+    IsSignSequence (fun n => - f n) := by
+  intro n
+  rcases hf n with h | h
+  · right
+    simp [h]
+  · left
+    simp [h]
+
+lemma HasDiscrepancyAtLeast.neg_iff {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast (fun n => - f n) C ↔ HasDiscrepancyAtLeast f C := by
+  unfold HasDiscrepancyAtLeast
+  constructor
+  · rintro ⟨d, n, hd, h⟩
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSum_neg] using h
+  · rintro ⟨d, n, hd, h⟩
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSum_neg] using h
 
 lemma IsSignSequence.exists_length_gt_of_hasDiscrepancyAtLeast {f : ℕ → ℤ}
     (hf : IsSignSequence f) {C : ℕ}
