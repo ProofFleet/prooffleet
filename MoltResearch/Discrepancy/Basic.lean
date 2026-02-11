@@ -86,6 +86,23 @@ lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
 @[simp] lemma apSum_two (f : ℕ → ℤ) (d : ℕ) : apSum f d 2 = f d + f (2 * d) := by
   simpa [apSum_one] using (apSum_succ (f := f) (d := d) (n := 1))
 
+/-- Split `apSum` over a sum of lengths: `apSum f d (m + n)` equals the sum over the first `m` terms plus the sum over the next `n` terms. -/
+lemma apSum_add_length (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) = apSum f d m + (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
+  induction n with
+  | zero =>
+      simp [apSum]
+  | succ n ih =>
+      have hsucc := (apSum_succ (f := f) (d := d) (n := m + n))
+      calc
+        apSum f d (m + n + 1)
+            = apSum f d (m + n) + f ((m + n + 1) * d) := by
+              simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using hsucc
+        _ = (apSum f d m + (Finset.range n).sum (fun i => f ((m + i + 1) * d))) + f ((m + n + 1) * d) := by
+              simp [ih]
+        _ = apSum f d m + (Finset.range (n + 1)).sum (fun i => f ((m + i + 1) * d)) := by
+              simp [Finset.sum_range_succ, add_comm, add_left_comm, add_assoc]
+
 -- Algebraic properties of `apSum`
 lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => f k + g k) d n = apSum f d n + apSum g d n := by
