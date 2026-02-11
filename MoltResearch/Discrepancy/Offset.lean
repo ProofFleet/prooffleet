@@ -15,6 +15,11 @@ lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [add_comm] using h0
   exact eq_sub_of_add_eq h
 
+/-- Split an offset AP sum over a sum of lengths. -/
+lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simp [apSumOffset_eq_sub, Nat.add_assoc]
+
 lemma IsSignSequence.natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
     Int.natAbs (apSumOffset f d m n) ≤ n := by
   induction n with
