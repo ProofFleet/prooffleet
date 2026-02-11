@@ -241,6 +241,17 @@ lemma IsSignSequence.natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (
         _ ≤ n + 1 := by
               simpa using Nat.add_le_add_right ih 1
 
+/-- For a sign sequence, a discrepancy witness at level `C` forces a length `n > C`
+(and can be chosen with step `d ≥ 1`). -/
+lemma IsSignSequence.exists_witness_d_ge_one_and_length_gt {f : ℕ → ℤ} (hf : IsSignSequence f)
+    {C : ℕ} (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n, d ≥ 1 ∧ n > C ∧ Int.natAbs (apSum f d n) > C := by
+  rcases h with ⟨d, n, hd, hgt⟩
+  refine ⟨d, n, Nat.succ_le_of_lt hd, ?_, hgt⟩
+  have hle : Int.natAbs (apSum f d n) ≤ n :=
+    IsSignSequence.natAbs_apSum_le (hf := hf) (d := d) (n := n)
+  exact lt_of_lt_of_le hgt hle
+
 lemma IsSignSequence.neg {f : ℕ → ℤ} (hf : IsSignSequence f) :
     IsSignSequence (fun n => - f n) := by
   intro n
