@@ -151,6 +151,41 @@ lemma apSum_add_length (f : ℕ → ℤ) (d m n : ℕ) :
         _ = apSum f d m + apSumOffset f d m (n + 1) := by
               simp [apSumOffset_succ (f := f) (d := d) (m := m) (n := n)]
 
+/-- Split an offset AP sum over a sum of lengths. -/
+lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  classical
+  induction n₂ with
+  | zero =>
+      simp [apSumOffset]
+  | succ n₂ ih =>
+      -- expand the left via `apSumOffset_succ` at length `n₁ + n₂`
+      -- and the right via `apSumOffset_succ` at offset `m + n₁`
+      have hL :
+          apSumOffset f d m (n₁ + n₂ + 1) =
+            apSumOffset f d m (n₁ + n₂) + f ((m + (n₁ + n₂) + 1) * d) := by
+        simpa [Nat.add_assoc] using (apSumOffset_succ (f := f) (d := d) (m := m) (n := n₁ + n₂))
+      have hR :
+          apSumOffset f d (m + n₁) (n₂ + 1) =
+            apSumOffset f d (m + n₁) n₂ + f (((m + n₁) + n₂ + 1) * d) := by
+        simpa [Nat.add_assoc] using (apSumOffset_succ (f := f) (d := d) (m := m + n₁) (n := n₂))
+      -- now rewrite and use the induction hypothesis
+      -- note: `((m + (n₁ + n₂) + 1) * d)` and `(((m + n₁) + n₂ + 1) * d)` are definitional equal up to associativity
+      calc
+        apSumOffset f d m (n₁ + (n₂ + 1))
+            = apSumOffset f d m (n₁ + n₂ + 1) := by
+                simp [Nat.add_assoc]
+        _ = apSumOffset f d m (n₁ + n₂) + f ((m + (n₁ + n₂) + 1) * d) := by
+                simpa using hL
+        _ = (apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂) +
+              f ((m + (n₁ + n₂) + 1) * d) := by
+                simpa [Nat.add_assoc] using congrArg (fun t => t + f ((m + (n₁ + n₂) + 1) * d)) ih
+        _ = apSumOffset f d m n₁ +
+              (apSumOffset f d (m + n₁) n₂ + f (((m + n₁) + n₂ + 1) * d)) := by
+                simp [add_assoc, Nat.add_assoc]
+        _ = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) (n₂ + 1) := by
+                simpa [hR, add_assoc, Nat.add_assoc]
+
 -- Algebraic properties of `apSum`
 lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => f k + g k) d n = apSum f d n + apSum g d n := by

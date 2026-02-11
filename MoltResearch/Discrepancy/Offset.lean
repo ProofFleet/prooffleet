@@ -22,10 +22,7 @@ lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
   -- `simp` reduces `((i+1)*1)` and normalizes `(m + (i+1))`.
   simp [Nat.add_assoc]
 
-/-- Split an offset AP sum over a sum of lengths. -/
-lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
-    apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
-  simp [apSumOffset_eq_sub, Nat.add_assoc]
+-- (lemma `apSumOffset_add_length` moved to `MoltResearch/Discrepancy/Basic.lean`)
 
 /-- First term of an offset AP sum. -/
 lemma apSumOffset_succ_length (f : ℕ → ℤ) (d m n : ℕ) :
