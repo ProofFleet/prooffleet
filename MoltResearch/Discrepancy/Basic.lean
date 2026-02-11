@@ -219,4 +219,10 @@ lemma apSum_zero_d (f : ℕ → ℤ) (n : ℕ) : apSum f 0 n = n • f 0 := by
   -- along step size 0, the AP is constant at 0
   simp [apSum]
 
+@[simp] lemma apSumOffset_zero_d (f : ℕ → ℤ) (m n : ℕ) :
+    apSumOffset f 0 m n = n • f 0 := by
+  classical
+  unfold apSumOffset
+  simp
+
 end MoltResearch
