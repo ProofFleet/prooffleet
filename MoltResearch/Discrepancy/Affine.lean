@@ -42,4 +42,11 @@ lemma apSumOffset_eq_apSumFrom (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [Nat.add_assoc] using (Nat.add_mul m (i + 1) d)
   simp [h]
 
+lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
+  apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
+  unfold apSumFrom
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc, Nat.add_mul, Nat.mul_add,
+        Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (Finset.sum_range_add (fun i => f (a + (i + 1) * d)) m n)
+
 end MoltResearch
