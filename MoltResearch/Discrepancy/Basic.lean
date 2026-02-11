@@ -31,6 +31,18 @@ We compare via `Int.natAbs` so `C : ℕ` stays natural.
 def HasDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
   ∃ d n : ℕ, Int.natAbs (apSum f d n) > C
 
+/-- Monotonicity of `HasDiscrepancyAtLeast` in the bound. -/
+lemma HasDiscrepancyAtLeast.mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
+    (h : HasDiscrepancyAtLeast f C₂) (hC : C₁ ≤ C₂) : HasDiscrepancyAtLeast f C₁ := by
+  rcases h with ⟨d, n, hn⟩
+  exact ⟨d, n, lt_of_le_of_lt hC hn⟩
+
+/-- Decrease the bound by one. -/
+lemma HasDiscrepancyAtLeast.of_succ {f : ℕ → ℤ} {C : ℕ}
+    (h : HasDiscrepancyAtLeast f (C + 1)) : HasDiscrepancyAtLeast f C := by
+  exact
+    HasDiscrepancyAtLeast.mono (f := f) (C₁ := C) (C₂ := C + 1) h (Nat.le_succ C)
+
 /-- Unpack the defining property. -/
 lemma IsSignSequence.eq_one_or_eq_neg_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     f n = 1 ∨ f n = -1 :=
