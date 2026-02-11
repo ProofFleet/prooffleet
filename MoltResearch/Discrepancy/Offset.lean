@@ -15,6 +15,13 @@ lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [add_comm] using h0
   exact eq_sub_of_add_eq h
 
+/-- Express `apSumOffset` as an `apSum` with step `1`. -/
+lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
+  unfold apSumOffset apSum
+  -- `simp` reduces `((i+1)*1)` and normalizes `(m + (i+1))`.
+  simp [Nat.add_assoc]
+
 /-- Split an offset AP sum over a sum of lengths. -/
 lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
