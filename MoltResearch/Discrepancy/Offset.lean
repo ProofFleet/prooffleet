@@ -20,6 +20,20 @@ lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
   simp [apSumOffset_eq_sub, Nat.add_assoc]
 
+/-- First term of an offset AP sum. -/
+lemma apSumOffset_succ_length (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
+  have h := apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := 1) (n₂ := n)
+  simpa [Nat.add_comm, apSumOffset_one, add_comm] using h
+
+/-- Rearranged version of `apSumOffset_succ_length`. -/
+lemma apSumOffset_succ_offset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d (m + 1) n = apSumOffset f d m (n + 1) - f ((m + 1) * d) := by
+  have h : apSumOffset f d (m + 1) n + f ((m + 1) * d) = apSumOffset f d m (n + 1) := by
+    simpa [add_comm, add_left_comm, add_assoc] using
+      (apSumOffset_succ_length (f := f) (d := d) (m := m) (n := n)).symm
+  simpa using eq_sub_of_add_eq h
+
 /-- Sum of offset AP sums over a pointwise sum of functions. -/
 lemma apSumOffset_add (f g : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f k + g k) d m n = apSumOffset f d m n + apSumOffset g d m n := by
