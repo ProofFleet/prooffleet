@@ -72,6 +72,9 @@ lemma IsSignSequence.ne_zero {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ)
 @[simp] lemma apSum_zero (f : ℕ → ℤ) (d : ℕ) : apSum f d 0 = 0 := by
   simp [apSum]
 
+@[simp] lemma apSum_one (f : ℕ → ℤ) (d : ℕ) : apSum f d 1 = f d := by
+  simp [apSum]
+
 lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
     apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
   classical
@@ -79,6 +82,9 @@ lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
   simp [apSum, Finset.range_add_one, Finset.sum_insert]
   -- remaining goal is just commutativity
   simp [add_comm]
+
+@[simp] lemma apSum_two (f : ℕ → ℤ) (d : ℕ) : apSum f d 2 = f d + f (2 * d) := by
+  simpa [apSum_one] using (apSum_succ (f := f) (d := d) (n := 1))
 
 /-- A sign sequence has AP partial sums bounded by length: `|∑_{i=1}^n f (i*d)| ≤ n`.
 
@@ -101,6 +107,17 @@ lemma IsSignSequence.natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (
               simp [IsSignSequence.natAbs_eq_one (hf := hf)]
         _ ≤ n + 1 := by
               simpa using Nat.add_le_add_right ih 1
+
+lemma IsSignSequence.exists_length_gt_of_hasDiscrepancyAtLeast {f : ℕ → ℤ}
+    (hf : IsSignSequence f) {C : ℕ}
+    (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n, d > 0 ∧ n > C := by
+  rcases h with ⟨d, n, hd, hn⟩
+  have hle := IsSignSequence.natAbs_apSum_le (hf := hf) d n
+  have hC : C < n := by
+    have : C < Int.natAbs (apSum f d n) := hn
+    exact lt_of_lt_of_le this hle
+  exact ⟨d, n, hd, hC⟩
 
 lemma apSum_zero_d (f : ℕ → ℤ) (n : ℕ) : apSum f 0 n = n • f 0 := by
   classical
