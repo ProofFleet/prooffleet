@@ -49,4 +49,22 @@ lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
         Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
     (Finset.sum_range_add (fun i => f (a + (i + 1) * d)) m n)
 
+/-- A sign sequence has affine AP partial sums bounded by length: `|∑_{i=1}^n f (a + i*d)| ≤ n`. -/
+lemma IsSignSequence.natAbs_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence f) (a d n : ℕ) :
+    Int.natAbs (apSumFrom f a d n) ≤ n := by
+  induction n with
+  | zero =>
+      simp [apSumFrom]
+  | succ n ih =>
+      calc
+        Int.natAbs (apSumFrom f a d (n + 1))
+            = Int.natAbs (apSumFrom f a d n + f (a + (n + 1) * d)) := by
+                simp [apSumFrom_succ]
+        _ ≤ Int.natAbs (apSumFrom f a d n) + Int.natAbs (f (a + (n + 1) * d)) :=
+              Int.natAbs_add_le _ _
+        _ = Int.natAbs (apSumFrom f a d n) + 1 := by
+              simp [IsSignSequence.natAbs_eq_one (hf := hf)]
+        _ ≤ n + 1 := by
+              simpa using Nat.add_le_add_right ih 1
+
 end MoltResearch
