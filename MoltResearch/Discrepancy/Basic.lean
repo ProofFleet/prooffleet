@@ -24,6 +24,12 @@ We use `Finset.range n` with `i+1` so the progression starts at `d`.
 def apSum (f : ℕ → ℤ) (d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((i + 1) * d))
 
+/-- Sum of `f` over the next `n` terms of the arithmetic progression after skipping `m` terms.
+
+It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
+def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
+  (Finset.range n).sum (fun i => f ((m + i + 1) * d))
+
 /-- `f` has discrepancy at least `C` if some AP partial sum exceeds `C` in absolute value,
 with a **positive** step size `d ≥ 1`.
 
@@ -75,6 +81,23 @@ lemma IsSignSequence.ne_zero {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ)
 @[simp] lemma apSum_one (f : ℕ → ℤ) (d : ℕ) : apSum f d 1 = f d := by
   simp [apSum]
 
+@[simp] lemma apSumOffset_zero (f : ℕ → ℤ) (d m : ℕ) : apSumOffset f d m 0 = 0 := by
+  simp [apSumOffset]
+
+@[simp] lemma apSumOffset_one (f : ℕ → ℤ) (d m : ℕ) : apSumOffset f d m 1 = f ((m + 1) * d) := by
+  simp [apSumOffset]
+
+lemma apSumOffset_succ (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
+  classical
+  -- expand definition and use `Finset.range_add_one`
+  unfold apSumOffset
+  simp [Finset.range_add_one, Finset.sum_insert, add_comm, add_assoc]
+
+lemma apSum_eq_apSumOffset (f : ℕ → ℤ) (d n : ℕ) : apSum f d n = apSumOffset f d 0 n := by
+  unfold apSum apSumOffset
+  simp
+
 lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
     apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
   classical
@@ -88,20 +111,22 @@ lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
 
 /-- Split `apSum` over a sum of lengths: `apSum f d (m + n)` equals the sum over the first `m` terms plus the sum over the next `n` terms. -/
 lemma apSum_add_length (f : ℕ → ℤ) (d m n : ℕ) :
-    apSum f d (m + n) = apSum f d m + (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
+    apSum f d (m + n) = apSum f d m + apSumOffset f d m n := by
   induction n with
   | zero =>
-      simp [apSum]
+      simp [apSumOffset, apSum]
   | succ n ih =>
       have hsucc := (apSum_succ (f := f) (d := d) (n := m + n))
       calc
         apSum f d (m + n + 1)
             = apSum f d (m + n) + f ((m + n + 1) * d) := by
               simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using hsucc
-        _ = (apSum f d m + (Finset.range n).sum (fun i => f ((m + i + 1) * d))) + f ((m + n + 1) * d) := by
+        _ = (apSum f d m + apSumOffset f d m n) + f ((m + n + 1) * d) := by
               simp [ih]
-        _ = apSum f d m + (Finset.range (n + 1)).sum (fun i => f ((m + i + 1) * d)) := by
-              simp [Finset.sum_range_succ, add_comm, add_left_comm, add_assoc]
+        _ = apSum f d m + (apSumOffset f d m n + f ((m + n + 1) * d)) := by
+              simp [add_assoc]
+        _ = apSum f d m + apSumOffset f d m (n + 1) := by
+              simp [apSumOffset_succ (f := f) (d := d) (m := m) (n := n)]
 
 -- Algebraic properties of `apSum`
 lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
