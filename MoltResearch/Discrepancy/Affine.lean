@@ -67,4 +67,36 @@ lemma IsSignSequence.natAbs_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence 
         _ ≤ n + 1 := by
               simpa using Nat.add_le_add_right ih 1
 
+/-! ### Algebraic properties of `apSumFrom` -/
+
+@[simp] lemma apSumFrom_add (f g : ℕ → ℤ) (a d n : ℕ) :
+  apSumFrom (fun k => f k + g k) a d n = apSumFrom f a d n + apSumFrom g a d n := by
+  classical
+  unfold apSumFrom
+  simpa [Finset.sum_add_distrib]
+
+@[simp] lemma apSumFrom_neg (f : ℕ → ℤ) (a d n : ℕ) :
+  apSumFrom (fun k => - f k) a d n = - apSumFrom f a d n := by
+  classical
+  unfold apSumFrom
+  simpa [Finset.sum_neg_distrib]
+
+@[simp] lemma apSumFrom_sub (f g : ℕ → ℤ) (a d n : ℕ) :
+  apSumFrom (fun k => f k - g k) a d n = apSumFrom f a d n - apSumFrom g a d n := by
+  classical
+  unfold apSumFrom
+  simpa [Finset.sum_sub_distrib]
+
+@[simp] lemma apSumFrom_mul_left (c : ℤ) (f : ℕ → ℤ) (a d n : ℕ) :
+  apSumFrom (fun k => c * f k) a d n = c * apSumFrom f a d n := by
+  classical
+  unfold apSumFrom
+  simpa [Finset.mul_sum]
+
+@[simp] lemma apSumFrom_mul_right (c : ℤ) (f : ℕ → ℤ) (a d n : ℕ) :
+  apSumFrom (fun k => f k * c) a d n = apSumFrom f a d n * c := by
+  classical
+  unfold apSumFrom
+  simpa [Finset.sum_mul]
+
 end MoltResearch
