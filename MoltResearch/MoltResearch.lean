@@ -1,6 +1,7 @@
 import MoltResearch.Basics
 import MoltResearch.Logic
 import MoltResearch.Discrepancy.Basic
+import MoltResearch.Discrepancy.Affine
 import MoltResearch.Discrepancy.Offset
 import MoltResearch.Discrepancy.Const
 
