@@ -24,18 +24,19 @@ We use `Finset.range n` with `i+1` so the progression starts at `d`.
 def apSum (f : ℕ → ℤ) (d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((i + 1) * d))
 
-/-- `f` has discrepancy at least `C` if some AP partial sum exceeds `C` in absolute value.
+/-- `f` has discrepancy at least `C` if some AP partial sum exceeds `C` in absolute value,
+with a **positive** step size `d ≥ 1`.
 
 We compare via `Int.natAbs` so `C : ℕ` stays natural.
 -/
 def HasDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
-  ∃ d n : ℕ, Int.natAbs (apSum f d n) > C
+  ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSum f d n) > C
 
 /-- Monotonicity of `HasDiscrepancyAtLeast` in the bound. -/
 lemma HasDiscrepancyAtLeast.mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
     (h : HasDiscrepancyAtLeast f C₂) (hC : C₁ ≤ C₂) : HasDiscrepancyAtLeast f C₁ := by
-  rcases h with ⟨d, n, hn⟩
-  exact ⟨d, n, lt_of_le_of_lt hC hn⟩
+  rcases h with ⟨d, n, hd, hn⟩
+  exact ⟨d, n, hd, lt_of_le_of_lt hC hn⟩
 
 /-- Decrease the bound by one. -/
 lemma HasDiscrepancyAtLeast.of_succ {f : ℕ → ℤ} {C : ℕ}
@@ -56,9 +57,9 @@ lemma IsSignSequence.natAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n 
 lemma IsSignSequence.hasDiscrepancyAtLeast_zero {f : ℕ → ℤ} (hf : IsSignSequence f) :
     HasDiscrepancyAtLeast f 0 := by
   unfold HasDiscrepancyAtLeast
-  refine ⟨1, 1, ?_⟩
-  -- apSum f 1 1 = f 1, and Int.natAbs (f 1) = 1 for a sign sequence.
-  simpa [apSum, IsSignSequence.natAbs_eq_one (hf := hf) 1]
+  refine ⟨1, 1, ?_, ?_⟩
+  · decide
+  · simp [apSum, IsSignSequence.natAbs_eq_one (hf := hf) 1]
 
 lemma IsSignSequence.intNatAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     (Int.natAbs (f n) : ℤ) = 1 := by
