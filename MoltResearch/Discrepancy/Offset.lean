@@ -20,6 +20,27 @@ lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
   simp [apSumOffset_eq_sub, Nat.add_assoc]
 
+/-- Sum of offset AP sums over a pointwise sum of functions. -/
+lemma apSumOffset_add (f g : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f k + g k) d m n = apSumOffset f d m n + apSumOffset g d m n := by
+  classical
+  unfold apSumOffset
+  simp [Finset.sum_add_distrib]
+
+/-- Offset AP sum of a negated function. -/
+lemma apSumOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => - f k) d m n = - apSumOffset f d m n := by
+  classical
+  unfold apSumOffset
+  simp [Finset.sum_neg_distrib]
+
+/-- Offset AP sum of a pointwise subtraction of functions. -/
+lemma apSumOffset_sub (f g : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f k - g k) d m n = apSumOffset f d m n - apSumOffset g d m n := by
+  classical
+  unfold apSumOffset
+  simp [Finset.sum_sub_distrib]
+
 lemma IsSignSequence.natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
     Int.natAbs (apSumOffset f d m n) ≤ n := by
   induction n with
