@@ -50,6 +50,29 @@ lemma HasDiscrepancyAtLeast.of_succ {f : ℕ → ℤ} {C : ℕ}
   exact
     HasDiscrepancyAtLeast.mono (f := f) (C₁ := C) (C₂ := C + 1) h (Nat.le_succ C)
 
+/-- From a discrepancy witness obtain `d` and `n` both positive. -/
+lemma HasDiscrepancyAtLeast.exists_witness_pos {f : ℕ → ℤ} {C : ℕ}
+    (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  rcases h with ⟨d, n, hd, hgt⟩
+  cases n with
+  | zero =>
+      -- `apSum f d 0 = 0`, so `natAbs` cannot be strictly greater than `C`.
+      exfalso
+      have hgt' : (C : ℕ) < 0 := by
+        simpa [apSum] using hgt
+      exact Nat.not_lt_zero C hgt'
+  | succ n' =>
+      refine ⟨d, Nat.succ n', hd, Nat.succ_pos n', ?_⟩
+      exact hgt
+
+/-- From a discrepancy witness obtain a step size `d ≥ 1`. -/
+lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one {f : ℕ → ℤ} {C : ℕ}
+    (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n, d ≥ 1 ∧ Int.natAbs (apSum f d n) > C := by
+  rcases h with ⟨d, n, hd, hgt⟩
+  exact ⟨d, n, Nat.succ_le_of_lt hd, hgt⟩
+
 /-- Unpack the defining property. -/
 lemma IsSignSequence.eq_one_or_eq_neg_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     f n = 1 ∨ f n = -1 :=
@@ -152,14 +175,14 @@ lemma apSum_mul_left (c : ℤ) (f : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => c * f k) d n = c * apSum f d n := by
   classical
   unfold apSum
-  simpa [Finset.mul_sum]
+  simp [Finset.mul_sum]
 
 /-- Multiplication by a fixed integer on the right commutes with `apSum`. -/
 lemma apSum_mul_right (f : ℕ → ℤ) (c : ℤ) (d n : ℕ) :
     apSum (fun k => f k * c) d n = apSum f d n * c := by
   classical
   unfold apSum
-  simpa [Finset.sum_mul]
+  simp [Finset.sum_mul]
 
 /-- A sign sequence has AP partial sums bounded by length: `|∑_{i=1}^n f (i*d)| ≤ n`.
 
