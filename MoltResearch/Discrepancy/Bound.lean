@@ -71,4 +71,13 @@ lemma natAbs_apSumFrom_le_mul (f : ℕ → ℤ) (B : ℕ)
         Nat.le_trans hsum hbound
       simpa [Nat.succ_mul] using this
 
+lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one_and_length_mul_bound_gt {f : ℕ → ℤ} {C B : ℕ}
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n, d ≥ 1 ∧ n * B > C ∧ Int.natAbs (apSum f d n) > C := by
+  rcases h.exists_witness_d_ge_one with ⟨d, n, hd, hgt⟩
+  have hle : Int.natAbs (apSum f d n) ≤ n * B :=
+    natAbs_apSum_le_mul (f := f) (B := B) (hB := hB) (d := d) (n := n)
+  have hnB : n * B > C := lt_of_lt_of_le hgt hle
+  exact ⟨d, n, hd, hnB, hgt⟩
+
 end MoltResearch
