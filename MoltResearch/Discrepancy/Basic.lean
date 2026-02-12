@@ -98,6 +98,13 @@ lemma IsSignSequence.intNatAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) 
 lemma IsSignSequence.ne_zero {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) : f n ≠ 0 := by
   rcases hf n with h | h <;> simp [h]
 
+/-- Helper lemmas for `Int.natAbs`. -/
+lemma natAbs_pos_of_ne_zero {c : ℤ} (hc : c ≠ 0) : 0 < Int.natAbs c := by
+  exact Int.natAbs_pos.2 hc
+
+lemma one_le_natAbs_of_ne_zero {c : ℤ} (hc : c ≠ 0) : 1 ≤ Int.natAbs c := by
+  exact Nat.succ_le_iff.2 (natAbs_pos_of_ne_zero (c := c) hc)
+
 @[simp] lemma apSum_zero (f : ℕ → ℤ) (d : ℕ) : apSum f d 0 = 0 := by
   simp [apSum]
 

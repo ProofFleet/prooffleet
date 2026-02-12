@@ -15,13 +15,7 @@ lemma HasDiscrepancyAtLeast.mul_left_of_ne_zero {f : ℕ → ℤ} {C : ℕ} (c :
   rintro ⟨d, n, hd, hgt⟩
   refine ⟨d, n, hd, ?_⟩
   -- derive `1 ≤ |c|`
-  have hk : 1 ≤ Int.natAbs c := by
-    have hne : Int.natAbs c ≠ 0 := by
-      intro h
-      have : c = 0 := (Int.natAbs_eq_zero).mp h
-      exact hc this
-    have hpos : 0 < Int.natAbs c := Nat.pos_of_ne_zero hne
-    exact Nat.succ_le_iff.mpr hpos
+  have hk : 1 ≤ Int.natAbs c := one_le_natAbs_of_ne_zero (c := c) hc
   let A := Int.natAbs (apSum f d n)
   have hCA : C < A := by
     dsimp [A] at *
@@ -36,13 +30,7 @@ lemma HasDiscrepancyAtLeast.mul_right_of_ne_zero {f : ℕ → ℤ} {C : ℕ} (c 
     HasDiscrepancyAtLeast f C → HasDiscrepancyAtLeast (fun n => f n * c) C := by
   rintro ⟨d, n, hd, hgt⟩
   refine ⟨d, n, hd, ?_⟩
-  have hk : 1 ≤ Int.natAbs c := by
-    have hne : Int.natAbs c ≠ 0 := by
-      intro h
-      have : c = 0 := (Int.natAbs_eq_zero).mp h
-      exact hc this
-    have hpos : 0 < Int.natAbs c := Nat.pos_of_ne_zero hne
-    exact Nat.succ_le_iff.mpr hpos
+  have hk : 1 ≤ Int.natAbs c := one_le_natAbs_of_ne_zero (c := c) hc
   let A := Int.natAbs (apSum f d n)
   have hCA : C < A := by
     dsimp [A] at *
@@ -59,11 +47,7 @@ lemma HasDiscrepancyAtLeast.mul_left_scale {f : ℕ → ℤ} {C : ℕ} (c : ℤ)
   refine ⟨d, n, hd, ?_⟩
   let k := Int.natAbs c
   have hkpos : 0 < k := by
-    have hne : k ≠ 0 := by
-      intro h
-      have : c = 0 := (Int.natAbs_eq_zero).mp h
-      exact hc this
-    exact Nat.pos_of_ne_zero hne
+    simpa [k] using (natAbs_pos_of_ne_zero (c := c) hc)
   have hC_mul : k * C < k * Int.natAbs (apSum f d n) := by
     have := Nat.mul_lt_mul_of_pos_left hgt hkpos
     simpa using this
@@ -75,11 +59,7 @@ lemma HasDiscrepancyAtLeast.mul_right_scale {f : ℕ → ℤ} {C : ℕ} (c : ℤ
   refine ⟨d, n, hd, ?_⟩
   let k := Int.natAbs c
   have hkpos : 0 < k := by
-    have hne : k ≠ 0 := by
-      intro h
-      have : c = 0 := (Int.natAbs_eq_zero).mp h
-      exact hc this
-    exact Nat.pos_of_ne_zero hne
+    simpa [k] using (natAbs_pos_of_ne_zero (c := c) hc)
   have hC_mul : k * C < k * Int.natAbs (apSum f d n) := by
     have := Nat.mul_lt_mul_of_pos_left hgt hkpos
     simpa using this
@@ -89,13 +69,7 @@ lemma HasAffineDiscrepancyAtLeast.mul_left_of_ne_zero {f : ℕ → ℤ} {C : ℕ
     HasAffineDiscrepancyAtLeast f C → HasAffineDiscrepancyAtLeast (fun n => c * f n) C := by
   rintro ⟨a, d, n, hd, hgt⟩
   refine ⟨a, d, n, hd, ?_⟩
-  have hk : 1 ≤ Int.natAbs c := by
-    have hne : Int.natAbs c ≠ 0 := by
-      intro h
-      have : c = 0 := (Int.natAbs_eq_zero).mp h
-      exact hc this
-    have hpos : 0 < Int.natAbs c := Nat.pos_of_ne_zero hne
-    exact Nat.succ_le_iff.mpr hpos
+  have hk : 1 ≤ Int.natAbs c := one_le_natAbs_of_ne_zero (c := c) hc
   let A := Int.natAbs (apSumFrom f a d n)
   have hCA : C < A := by
     dsimp [A] at *
@@ -110,13 +84,7 @@ lemma HasAffineDiscrepancyAtLeast.mul_right_of_ne_zero {f : ℕ → ℤ} {C : �
     HasAffineDiscrepancyAtLeast f C → HasAffineDiscrepancyAtLeast (fun n => f n * c) C := by
   rintro ⟨a, d, n, hd, hgt⟩
   refine ⟨a, d, n, hd, ?_⟩
-  have hk : 1 ≤ Int.natAbs c := by
-    have hne : Int.natAbs c ≠ 0 := by
-      intro h
-      have : c = 0 := (Int.natAbs_eq_zero).mp h
-      exact hc this
-    have hpos : 0 < Int.natAbs c := Nat.pos_of_ne_zero hne
-    exact Nat.succ_le_iff.mpr hpos
+  have hk : 1 ≤ Int.natAbs c := one_le_natAbs_of_ne_zero (c := c) hc
   let A := Int.natAbs (apSumFrom f a d n)
   have hCA : C < A := by
     dsimp [A] at *
@@ -133,11 +101,7 @@ lemma HasAffineDiscrepancyAtLeast.mul_left_scale {f : ℕ → ℤ} {C : ℕ} (c 
   refine ⟨a, d, n, hd, ?_⟩
   let k := Int.natAbs c
   have hkpos : 0 < k := by
-    have hne : k ≠ 0 := by
-      intro h
-      have : c = 0 := (Int.natAbs_eq_zero).mp h
-      exact hc this
-    exact Nat.pos_of_ne_zero hne
+    simpa [k] using (natAbs_pos_of_ne_zero (c := c) hc)
   have hC_mul : k * C < k * Int.natAbs (apSumFrom f a d n) := by
     have := Nat.mul_lt_mul_of_pos_left hgt hkpos
     simpa using this
@@ -149,11 +113,7 @@ lemma HasAffineDiscrepancyAtLeast.mul_right_scale {f : ℕ → ℤ} {C : ℕ} (c
   refine ⟨a, d, n, hd, ?_⟩
   let k := Int.natAbs c
   have hkpos : 0 < k := by
-    have hne : k ≠ 0 := by
-      intro h
-      have : c = 0 := (Int.natAbs_eq_zero).mp h
-      exact hc this
-    exact Nat.pos_of_ne_zero hne
+    simpa [k] using (natAbs_pos_of_ne_zero (c := c) hc)
   have hC_mul : k * C < k * Int.natAbs (apSumFrom f a d n) := by
     have := Nat.mul_lt_mul_of_pos_left hgt hkpos
     simpa using this
