@@ -30,4 +30,11 @@ lemma apSumFrom_map_mul (f : ℕ → ℤ) (k a d n : ℕ) :
   intro i hi
   simp [Nat.add_mul, Nat.mul_assoc]
 
+lemma HasDiscrepancyAtLeast.of_map_mul {f : ℕ → ℤ} {k C : ℕ} (hk : k > 0)
+    (h : HasDiscrepancyAtLeast (fun x => f (x * k)) C) : HasDiscrepancyAtLeast f C := by
+  rcases h with ⟨d, n, hd, hsum⟩
+  refine ⟨d * k, n, ?_, ?_⟩
+  · exact Nat.mul_pos hd hk
+  · simpa [apSum_map_mul] using hsum
+
 end MoltResearch
