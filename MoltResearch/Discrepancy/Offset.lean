@@ -115,4 +115,10 @@ lemma IsSignSequence.natAbs_apSum_sub_le {f : ℕ → ℤ} (hf : IsSignSequence 
   have h := hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n)
   simpa [apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n)] using h
 
+lemma IsSignSequence.natAbs_apSum_sub_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    Int.natAbs (apSum f d n - apSum f d m) ≤ n - m := by
+  have h := hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n - m)
+  simpa [apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (hmn := hmn)] using h
+
 end MoltResearch

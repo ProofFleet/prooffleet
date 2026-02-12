@@ -20,4 +20,12 @@ lemma apSumFrom_eq_add_apSumFrom_tail (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} 
   simpa [Nat.add_sub_of_le hmn] using
     (apSumFrom_add_length (f:=f) (a:=a) (d:=d) (m:=m) (n:=n - m))
 
+/-- Sign-sequence bound on the difference of two affine AP partial sums when `m ≤ n`. -/
+lemma IsSignSequence.natAbs_apSumFrom_sub_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ n - m := by
+  have h := IsSignSequence.natAbs_apSumFrom_le (hf := hf) (a := a + m * d) (d := d) (n := n - m)
+  have hEq := apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (hmn := hmn)
+  simpa [hEq] using h
+
 end MoltResearch
