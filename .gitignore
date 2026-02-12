@@ -1,3 +1,5 @@
 .lake/
 .lakefile.lean
 lake-packages/
+scripts/__pycache__/
+*.pyc
