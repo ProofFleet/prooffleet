@@ -7,6 +7,7 @@ import MoltResearch.Discrepancy.Reindex
 import MoltResearch.Discrepancy.Offset
 import MoltResearch.Discrepancy.Const
 import MoltResearch.Discrepancy.Scale
+import MoltResearch.Discrepancy.Witness
 
 /-!
 Canonical verified artifacts live under `MoltResearch/`.
