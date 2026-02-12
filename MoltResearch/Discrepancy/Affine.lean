@@ -134,6 +134,43 @@ lemma HasAffineDiscrepancyAtLeast.of_succ {f : ℕ → ℤ} {C : ℕ}
   exact
     HasAffineDiscrepancyAtLeast.mono (f := f) (C₁ := C) (C₂ := C + 1) h (Nat.le_succ C)
 
+/-- Extract a witness with positive `n`. -/
+lemma HasAffineDiscrepancyAtLeast.exists_witness_pos {f : ℕ → ℤ} {C : ℕ}
+    (h : HasAffineDiscrepancyAtLeast f C) :
+    ∃ a d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSumFrom f a d n) > C := by
+  rcases h with ⟨a, d, n, hd, hgt⟩
+  cases n with
+  | zero =>
+      exfalso
+      have : (C : ℕ) < 0 := by
+        simpa [apSumFrom_zero] using hgt
+      exact Nat.not_lt_zero C this
+  | succ n' =>
+      refine ⟨a, d, Nat.succ n', hd, ?_, ?_⟩
+      · exact Nat.succ_pos _
+      · simpa using hgt
+
+/-- Negating the function does not change affine discrepancy. -/
+lemma HasAffineDiscrepancyAtLeast.neg_iff {f : ℕ → ℤ} {C : ℕ} :
+    HasAffineDiscrepancyAtLeast (fun n => - f n) C ↔ HasAffineDiscrepancyAtLeast f C := by
+  constructor
+  · intro h
+    rcases h with ⟨a, d, n, hd, hgt⟩
+    refine ⟨a, d, n, hd, ?_⟩
+    simpa [apSumFrom_neg] using hgt
+  · intro h
+    rcases h with ⟨a, d, n, hd, hgt⟩
+    refine ⟨a, d, n, hd, ?_⟩
+    simpa [apSumFrom_neg] using hgt
+
+/-- A sign sequence has affine discrepancy at least zero. -/
+lemma IsSignSequence.hasAffineDiscrepancyAtLeast_zero {f : ℕ → ℤ}
+    (hf : IsSignSequence f) :
+    HasAffineDiscrepancyAtLeast f 0 := by
+  refine ⟨0, 1, 1, ?_, ?_⟩
+  · exact Nat.succ_pos 0
+  · simpa [apSumFrom_one, IsSignSequence.natAbs_eq_one (hf := hf)] using Nat.succ_pos 0
+
 /-- Homogeneous discrepancy implies affine discrepancy (take offset `a = 0`). -/
 lemma HasDiscrepancyAtLeast.to_affine {f : ℕ → ℤ} {C : ℕ} (h : HasDiscrepancyAtLeast f C) :
     HasAffineDiscrepancyAtLeast f C := by
