@@ -29,15 +29,15 @@ def main() -> None:
     tasks = load_tasks()
     solved = solved_task_ids()
 
-    tier_counts = Counter(t["tier"] for t in tasks)
-    tier_solved = Counter(t["tier"] for t in tasks if t["id"] in solved)
+    tier_counts = Counter(t.get("tier", "?") for t in tasks)
+    tier_solved = Counter(t.get("tier", "?") for t in tasks if t.get("id") in solved)
 
     concept_counts = Counter()
     solved_concept_counts = Counter()
     for t in tasks:
-        for c in t["concepts"]:
+        for c in (t.get("concepts") or []):
             concept_counts[c] += 1
-            if t["id"] in solved:
+            if t.get("id") in solved:
                 solved_concept_counts[c] += 1
 
     print("# Learning Dashboard")
@@ -58,9 +58,11 @@ def main() -> None:
     print("\n## Suggested Readiness Signal")
     unsolved_unlocked = 0
     for t in tasks:
-        if t["id"] in solved:
+        tid = t.get("id")
+        if not tid or tid in solved:
             continue
-        if all(pr in solved for pr in t["prerequisites"]):
+        prereqs = t.get("prerequisites") or []
+        if all(pr in solved for pr in prereqs):
             unsolved_unlocked += 1
     print(f"- Unlocked unsolved tasks in metadata: {unsolved_unlocked}")
 

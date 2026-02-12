@@ -32,20 +32,22 @@ def solved_task_ids() -> set[str]:
 
 
 def unlocked(task: dict, solved: set[str]) -> bool:
-    return all(pr in solved for pr in task["prerequisites"])
+    prereqs = task.get("prerequisites") or []
+    return all(pr in solved for pr in prereqs)
 
 
 def score(task: dict, strategy: str) -> float:
+    # Defaults keep the system honest even when metadata is partial.
+    diff = int(task.get("difficulty") or 3)
+    eta = float(task.get("expected_minutes") or 30)
+    rel = float(task.get("downstream_relevance") or 1)
+
     if strategy == "easiest":
-        return 100 - (task["difficulty"] * 10 + task["expected_minutes"] / 10)
+        return 100 - (diff * 10 + eta / 10)
     if strategy == "impact":
-        return task["downstream_relevance"] * 10 - task["difficulty"]
+        return rel * 10 - diff
     # blended
-    return (
-        task["downstream_relevance"] * 4
-        + (7 - task["difficulty"]) * 3
-        + max(0, 60 - task["expected_minutes"]) / 15
-    )
+    return rel * 4 + (7 - diff) * 3 + max(0, 60 - eta) / 15
 
 
 def main() -> None:
@@ -65,7 +67,8 @@ def main() -> None:
         if not unlocked(task, solved):
             continue
         s = score(task, args.strategy)
-        if args.focus and args.focus not in task["concepts"]:
+        concepts = task.get("concepts") or []
+        if args.focus and args.focus not in concepts:
             s -= 2
         candidates.append((s, task))
 
@@ -78,10 +81,14 @@ def main() -> None:
     print("\nTop recommendations:")
 
     for rank, (s, task) in enumerate(candidates[: args.top], start=1):
+        concepts = task.get("concepts") or []
+        hint = (task.get("hint") or "").strip()
         print(
-            f"{rank}. {task['id']} ({task['tier']}) score={s:.1f} "
-            f"difficulty={task['difficulty']} eta={task['expected_minutes']}m "
-            f"relevance={task['downstream_relevance']} concepts={','.join(task['concepts'])}"
+            f"{rank}. {task['id']} ({task.get('tier','?')}) score={s:.1f} "
+            f"difficulty={task.get('difficulty','?')} eta={task.get('expected_minutes','?')}m "
+            f"relevance={task.get('downstream_relevance','?')}"
+            + (f" hint={hint}" if hint else "")
+            + (f" concepts={','.join(concepts)}" if concepts else "")
         )
 
     if not candidates:

@@ -108,16 +108,17 @@ If you’re an agent, also read: **[AGENTS.md](AGENTS.md)**.
 
 The repo now includes a lightweight learning graph + recommender loop:
 
-- `Learning/task_metadata.json` — task metadata (prereqs, techniques, difficulty, ETA, relevance, concepts)
+- `Learning/task_metadata.json` — task metadata (currently generated from Tasks/ + hints; safe defaults)
 - `scripts/next_task_recommender.py` — picks next unlocked tasks by easiest/impact/blended strategy
 - `scripts/learning_dashboard.py` — prints tier progress and concept coverage
-- `MoltResearch/EDUCATIONAL_OVERLAYS.md` — concise intuition/proof-pattern notes for canonical modules
+- `Learning/EDUCATIONAL_OVERLAYS.md` — concise intuition/proof-pattern notes for canonical modules
+- `scripts/generate_task_metadata.py` — regenerates baseline metadata from the repo
 
 Run:
 
 ```bash
-python scripts/next_task_recommender.py --top 5
-python scripts/learning_dashboard.py
+python3 scripts/next_task_recommender.py --top 5
+python3 scripts/learning_dashboard.py
 ```
 
 ## Success looks like
