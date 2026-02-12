@@ -147,6 +147,8 @@ lemma apSum_add_length (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (fun i => f ((i + 1) * d)) m n)
 
+-- (See `MoltResearch/Discrepancy/Offset.lean` for `apSumOffset_eq_sub` and related lemmas.)
+
 /-- Split an offset AP sum over a sum of lengths. -/
 lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by

@@ -57,6 +57,15 @@ lemma apSumOffset_succ_offset (f : ℕ → ℤ) (d m n : ℕ) :
       (apSumOffset_succ_length (f := f) (d := d) (m := m) (n := n)).symm
   simpa using eq_sub_of_add_eq h
 
+/-- Tail of an offset AP sum as a difference of a longer sum and its initial segment. -/
+lemma apSumOffset_tail_eq_sub (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d (m + n₁) n₂ = apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ := by
+  have h := apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+  have hsub := congrArg (fun z : ℤ => z - apSumOffset f d m n₁) h
+  have : apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
+    simpa [add_sub_cancel_left] using hsub
+  simpa using this.symm
+
 /-- Sum of offset AP sums over a pointwise sum of functions. -/
 lemma apSumOffset_add (f g : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f k + g k) d m n = apSumOffset f d m n + apSumOffset g d m n := by
