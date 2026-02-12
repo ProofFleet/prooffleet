@@ -111,4 +111,34 @@ lemma IsSignSequence.natAbs_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence 
   unfold apSumFrom
   simpa [Finset.sum_mul]
 
+/-! ## Affine discrepancy -/
+
+/-- `f` has affine discrepancy at least `C` if some affine AP partial sum exceeds `C` in absolute
+value, with a positive step size `d`.
+
+This is the natural analogue of `HasDiscrepancyAtLeast` where we also allow an offset `a`.
+-/
+def HasAffineDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
+  ∃ a d n : ℕ, d > 0 ∧ Int.natAbs (apSumFrom f a d n) > C
+
+/-- Monotonicity of `HasAffineDiscrepancyAtLeast` in the bound. -/
+lemma HasAffineDiscrepancyAtLeast.mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
+    (h : HasAffineDiscrepancyAtLeast f C₂) (hC : C₁ ≤ C₂) :
+    HasAffineDiscrepancyAtLeast f C₁ := by
+  rcases h with ⟨a, d, n, hd, hgt⟩
+  exact ⟨a, d, n, hd, lt_of_le_of_lt hC hgt⟩
+
+/-- Decrease the bound by one. -/
+lemma HasAffineDiscrepancyAtLeast.of_succ {f : ℕ → ℤ} {C : ℕ}
+    (h : HasAffineDiscrepancyAtLeast f (C + 1)) : HasAffineDiscrepancyAtLeast f C := by
+  exact
+    HasAffineDiscrepancyAtLeast.mono (f := f) (C₁ := C) (C₂ := C + 1) h (Nat.le_succ C)
+
+/-- Homogeneous discrepancy implies affine discrepancy (take offset `a = 0`). -/
+lemma HasDiscrepancyAtLeast.to_affine {f : ℕ → ℤ} {C : ℕ} (h : HasDiscrepancyAtLeast f C) :
+    HasAffineDiscrepancyAtLeast f C := by
+  rcases h with ⟨d, n, hd, hgt⟩
+  refine ⟨0, d, n, hd, ?_⟩
+  simpa [apSum_eq_apSumFrom] using hgt
+
 end MoltResearch
