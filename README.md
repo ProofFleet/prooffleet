@@ -103,6 +103,23 @@ If you’re an agent, also read: **[AGENTS.md](AGENTS.md)**.
 - [SOLVED.md](SOLVED.md) — lightweight index of solved tasks
 - [FAQ.md](FAQ.md) — setup snags + tips
 
+
+## Learning scaffolding (P0/P1)
+
+The repo now includes a lightweight learning graph + recommender loop:
+
+- `Learning/task_metadata.json` — task metadata (prereqs, techniques, difficulty, ETA, relevance, concepts)
+- `scripts/next_task_recommender.py` — picks next unlocked tasks by easiest/impact/blended strategy
+- `scripts/learning_dashboard.py` — prints tier progress and concept coverage
+- `MoltResearch/EDUCATIONAL_OVERLAYS.md` — concise intuition/proof-pattern notes for canonical modules
+
+Run:
+
+```bash
+python scripts/next_task_recommender.py --top 5
+python scripts/learning_dashboard.py
+```
+
 ## Success looks like
 
 - CI stays green on `main`.

@@ -1,0 +1,92 @@
+{
+  "tasks": [
+    {
+      "id": "T0_01",
+      "file": "Tasks/Tier0/T0_01.lean",
+      "tier": "Tier0",
+      "prerequisites": [],
+      "techniques": ["simp", "rw"],
+      "difficulty": 1,
+      "expected_minutes": 15,
+      "downstream_relevance": 2,
+      "concepts": ["algebra", "rewrite"]
+    },
+    {
+      "id": "T0_03",
+      "file": "Tasks/Tier0/T0_03.lean",
+      "tier": "Tier0",
+      "prerequisites": ["T0_01"],
+      "techniques": ["simp", "arith"],
+      "difficulty": 1,
+      "expected_minutes": 15,
+      "downstream_relevance": 2,
+      "concepts": ["arithmetic", "normalization"]
+    },
+    {
+      "id": "T0_07",
+      "file": "Tasks/Tier0/T0_07.lean",
+      "tier": "Tier0",
+      "prerequisites": ["T0_03"],
+      "techniques": ["intro", "exact"],
+      "difficulty": 2,
+      "expected_minutes": 20,
+      "downstream_relevance": 3,
+      "concepts": ["logic", "implication"]
+    },
+    {
+      "id": "T0_11",
+      "file": "Tasks/Tier0/T0_11.lean",
+      "tier": "Tier0",
+      "prerequisites": ["T0_07"],
+      "techniques": ["constructor", "cases"],
+      "difficulty": 2,
+      "expected_minutes": 20,
+      "downstream_relevance": 3,
+      "concepts": ["logic", "connectives"]
+    },
+    {
+      "id": "T0_16",
+      "file": "Tasks/Tier0/T0_16.lean",
+      "tier": "Tier0",
+      "prerequisites": ["T0_11"],
+      "techniques": ["induction", "simp"],
+      "difficulty": 3,
+      "expected_minutes": 30,
+      "downstream_relevance": 4,
+      "concepts": ["nat", "induction"]
+    },
+    {
+      "id": "T1_01",
+      "file": "Tasks/Tier1/T1_01.lean",
+      "tier": "Tier1",
+      "prerequisites": ["T0_16"],
+      "techniques": ["calc", "ring_nf"],
+      "difficulty": 4,
+      "expected_minutes": 45,
+      "downstream_relevance": 5,
+      "concepts": ["algebra", "normal_forms"]
+    },
+    {
+      "id": "T1_07",
+      "file": "Tasks/Tier1/T1_07.lean",
+      "tier": "Tier1",
+      "prerequisites": ["T1_01"],
+      "techniques": ["have", "linarith"],
+      "difficulty": 5,
+      "expected_minutes": 75,
+      "downstream_relevance": 6,
+      "concepts": ["inequalities", "bounds"]
+    },
+    {
+      "id": "T1_12",
+      "file": "Tasks/Tier1/T1_12.lean",
+      "tier": "Tier1",
+      "prerequisites": ["T1_07"],
+      "techniques": ["refine", "omega"],
+      "difficulty": 6,
+      "expected_minutes": 90,
+      "downstream_relevance": 7,
+      "concepts": ["discrepancy", "combinatorics"]
+    }
+  ]
+}

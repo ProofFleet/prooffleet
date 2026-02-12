@@ -56,3 +56,8 @@
 - [x] Introduce one non-trivial lemma/module in MoltResearch/ with docs
 - [x] Add 2 tasks that depend on it (so MoltResearch/ becomes the target)
 
+## Iteration 8 — Learning scaffolding P0/P1
+- [x] Add machine-readable task metadata with prerequisites + techniques + difficulty + ETA + relevance
+- [x] Add next-task recommender script (easiest/impact/blended)
+- [x] Add learning dashboard script (tier progress + concept coverage)
+- [x] Add educational overlays for canonical modules
