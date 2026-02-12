@@ -33,23 +33,49 @@ jobs:
 
           BODY=$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")
 
+          CARD=$(printf "%s\n" "$BODY" | sed -n 's/^Card:[[:space:]]*//Ip' | head -n 1 | tr -d '\r')
+          TRACK=$(printf "%s\n" "$BODY" | sed -n 's/^Track:[[:space:]]*//Ip' | head -n 1 | tr -d '\r')
+          ITEM=$(printf "%s\n" "$BODY" | sed -n 's/^Checklist item:[[:space:]]*//Ip' | head -n 1 | tr -d '\r')
+
           MISSING=0
-          if ! printf "%s" "$BODY" | grep -qiE '^Card:'; then
+          if [[ -z "$CARD" ]]; then
             echo "::warning::PR body missing 'Card: Problems/<card>.md' (use N/A if not applicable)."
             MISSING=1
           fi
-          if ! printf "%s" "$BODY" | grep -qiE '^Track:'; then
+          if [[ -z "$TRACK" ]]; then
             echo "::warning::PR body missing 'Track: A|B|C' (use N/A if not applicable)."
             MISSING=1
           fi
-          if ! printf "%s" "$BODY" | grep -qiE '^Checklist item:'; then
+          if [[ -z "$ITEM" ]]; then
             echo "::warning::PR body missing 'Checklist item:' (use N/A if not applicable)."
             MISSING=1
           fi
 
+          # Hard gate for nucleus work.
           if [[ "$NUCLEUS" == "1" && "$MISSING" == "1" ]]; then
             echo "::error::This PR touches MoltResearch/ (verified nucleus). Please add Card/Track/Checklist item lines to the PR body (N/A allowed)."
             exit 1
+          fi
+
+          # Additional validation (only when nucleus + fields present).
+          if [[ "$NUCLEUS" == "1" && "$MISSING" == "0" ]]; then
+            if [[ "$TRACK" != "A" && "$TRACK" != "B" && "$TRACK" != "C" && "$TRACK" != "N/A" && "$TRACK" != "n/a" ]]; then
+              echo "::error::Track must be A, B, C, or N/A (got: $TRACK)"
+              exit 1
+            fi
+
+            if [[ "$CARD" != "N/A" && "$CARD" != "n/a" ]]; then
+              if [[ ! -f "$CARD" ]]; then
+                echo "::error::Card file not found: $CARD"
+                exit 1
+              fi
+              if [[ "$ITEM" != "N/A" && "$ITEM" != "n/a" ]]; then
+                if ! grep -qF "- [ ] $ITEM" "$CARD" && ! grep -qF "- [x] $ITEM" "$CARD"; then
+                  echo "::error::Checklist item not found as a checkbox in $CARD: $ITEM"
+                  exit 1
+                fi
+              fi
+            fi
           fi
 
       - uses: leanprover/lean-action@v1

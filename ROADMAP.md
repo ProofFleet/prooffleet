@@ -47,6 +47,7 @@ Output of this phase:
 - a `Problems/` directory with curated cards
 - issue template for new cards
 - scripts to generate cards + stubs
+- **Card maintenance loop:** merged PRs check off card boxes (or explicitly mark N/A)
 
 ## Phase 3 — Decomposition pipeline (agents don’t step on each other)
 
