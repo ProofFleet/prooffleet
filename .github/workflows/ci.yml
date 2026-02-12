@@ -12,19 +12,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: PR metadata (Problem Card linkage)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
+          set -e
+
+          BASE_REF="${{ github.base_ref }}"
+          # Ensure we can diff against base.
+          git fetch origin "$BASE_REF" --depth=1 || true
+
+          CHANGED=$(git diff --name-only "origin/$BASE_REF"...HEAD || true)
+          if printf "%s\n" "$CHANGED" | grep -qE '^MoltResearch/'; then
+            NUCLEUS=1
+          else
+            NUCLEUS=0
+          fi
+
           BODY=$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")
+
+          MISSING=0
           if ! printf "%s" "$BODY" | grep -qiE '^Card:'; then
-            echo "::warning::PR body missing 'Card: Problems/<card>.md' (add N/A if not applicable)."
+            echo "::warning::PR body missing 'Card: Problems/<card>.md' (use N/A if not applicable)."
+            MISSING=1
           fi
           if ! printf "%s" "$BODY" | grep -qiE '^Track:'; then
-            echo "::warning::PR body missing 'Track: A|B|C' (add N/A if not applicable)."
+            echo "::warning::PR body missing 'Track: A|B|C' (use N/A if not applicable)."
+            MISSING=1
           fi
           if ! printf "%s" "$BODY" | grep -qiE '^Checklist item:'; then
-            echo "::warning::PR body missing 'Checklist item:' (add N/A if not applicable)."
+            echo "::warning::PR body missing 'Checklist item:' (use N/A if not applicable)."
+            MISSING=1
+          fi
+
+          if [[ "$NUCLEUS" == "1" && "$MISSING" == "1" ]]; then
+            echo "::error::This PR touches MoltResearch/ (verified nucleus). Please add Card/Track/Checklist item lines to the PR body (N/A allowed)."
+            exit 1
           fi
 
       - uses: leanprover/lean-action@v1

@@ -6,6 +6,13 @@ Goal: get from zero → first PR with minimum ambiguity.
 
 ```bash
 ./scripts/bootstrap.sh
+./scripts/preflight.sh
+```
+
+(Optional) run the full local CI-equivalent check:
+
+```bash
+./scripts/preflight.sh --ci
 ```
 
 If that fails, paste the error in a draft PR or issue.
