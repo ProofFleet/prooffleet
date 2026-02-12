@@ -87,6 +87,21 @@ lemma HasDiscrepancyAtLeast_iff_exists_witness_pos {f : ℕ → ℤ} {C : ℕ} :
   · rintro ⟨d, n, hd, hn, hgt⟩
     exact ⟨d, n, hd, hgt⟩
 
+/-- The “unbounded discrepancy” statement `∀ C, HasDiscrepancyAtLeast f C` is equivalent to
+the more explicit witness form `∀ C, ∃ d n > 0, …`.
+
+This is the intended bridge for conjecture stubs: state the theorem using the nucleus predicate,
+and rewrite to the quantifier-heavy version only when needed.
+-/
+theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_witness_pos (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C) := by
+  constructor
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_witness_pos (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_witness_pos (f := f) (C := C)).2 (h C)
+
 /-- The step-size side condition `d > 0` can be written as `d ≥ 1`. -/
 lemma HasDiscrepancyAtLeast_iff_exists_d_ge_one {f : ℕ → ℤ} {C : ℕ} :
     HasDiscrepancyAtLeast f C ↔ ∃ d n, d ≥ 1 ∧ Int.natAbs (apSum f d n) > C := by
