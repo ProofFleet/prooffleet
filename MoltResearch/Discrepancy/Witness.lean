@@ -55,6 +55,24 @@ noncomputable def HasDiscrepancyAtLeast.toWitnessPos {f C} (h : HasDiscrepancyAt
     , hn := h₂.2.1
     , hgt := h₂.2.2 }
 
+/-- Equivalence between `HasDiscrepancyAtLeast` and a nonempty `DiscrepancyWitness`. -/
+theorem HasDiscrepancyAtLeast.iff_nonempty_witness {f C} :
+    HasDiscrepancyAtLeast f C ↔ Nonempty (DiscrepancyWitness f C) := by
+  constructor
+  · intro h
+    exact ⟨h.toWitness⟩
+  · rintro ⟨w⟩
+    exact w.toHas
+
+/-- Equivalence between `HasDiscrepancyAtLeast` and a nonempty `DiscrepancyWitnessPos`. -/
+theorem HasDiscrepancyAtLeast.iff_nonempty_witnessPos {f C} :
+    HasDiscrepancyAtLeast f C ↔ Nonempty (DiscrepancyWitnessPos f C) := by
+  constructor
+  · intro h
+    exact ⟨h.toWitnessPos⟩
+  · rintro ⟨w⟩
+    exact w.toHas
+
 /-- The `d` component of a `DiscrepancyWitnessPos` is at least `1`. -/
 lemma DiscrepancyWitnessPos.d_ge_one {f C} (w : DiscrepancyWitnessPos f C) :
     w.d ≥ 1 := by
@@ -117,6 +135,24 @@ noncomputable def HasAffineDiscrepancyAtLeast.toWitnessPos {f C} (h : HasAffineD
     , hd := h₃.1
     , hn := h₃.2.1
     , hgt := h₃.2.2 }
+
+/-- Equivalence between `HasAffineDiscrepancyAtLeast` and a nonempty `AffineDiscrepancyWitness`. -/
+theorem HasAffineDiscrepancyAtLeast.iff_nonempty_witness {f C} :
+    HasAffineDiscrepancyAtLeast f C ↔ Nonempty (AffineDiscrepancyWitness f C) := by
+  constructor
+  · intro h
+    exact ⟨h.toWitness⟩
+  · rintro ⟨w⟩
+    exact w.toHas
+
+/-- Equivalence between `HasAffineDiscrepancyAtLeast` and a nonempty `AffineDiscrepancyWitnessPos`. -/
+theorem HasAffineDiscrepancyAtLeast.iff_nonempty_witnessPos {f C} :
+    HasAffineDiscrepancyAtLeast f C ↔ Nonempty (AffineDiscrepancyWitnessPos f C) := by
+  constructor
+  · intro h
+    exact ⟨h.toWitnessPos⟩
+  · rintro ⟨w⟩
+    exact w.toHas
 
 /-- The `d` component of an `AffineDiscrepancyWitnessPos` is at least `1`. -/
 lemma AffineDiscrepancyWitnessPos.d_ge_one {f C} (w : _root_.MoltResearch.AffineDiscrepancyWitnessPos f C) :
