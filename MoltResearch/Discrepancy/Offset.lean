@@ -22,6 +22,17 @@ lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
   -- `simp` reduces `((i+1)*1)` and normalizes `(m + (i+1))`.
   simp [Nat.add_assoc]
 
+/-- Express `apSumOffset` as an `apSum` with the same step on a shifted function. -/
+lemma apSumOffset_eq_apSum_shift (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
+  unfold apSumOffset apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hmul : (m + i + 1) * d = m * d + (i + 1) * d := by
+    simpa [Nat.add_assoc] using (Nat.add_mul m (i + 1) d)
+  -- rewrite the AP index in the summand
+  simp [hmul]
+
 -- (lemma `apSumOffset_add_length` moved to `MoltResearch/Discrepancy/Basic.lean`)
 
 /-- First term of an offset AP sum. -/
@@ -75,14 +86,11 @@ lemma apSumOffset_mul_right (f : ℕ → ℤ) (c : ℤ) (d m n : ℕ) :
 
 lemma IsSignSequence.natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
     Int.natAbs (apSumOffset f d m n) ≤ n := by
-  -- Define the shifted sign sequence.
-  have hf' : IsSignSequence (fun k => f ((m + k) * d)) := by
+  have hf' : IsSignSequence (fun k => f (m * d + k)) := by
     intro k
-    exact hf ((m + k) * d)
-  -- Rewrite the offset sum as an `apSum` with step `1`.
-  have h_eq := apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)
-  -- Apply the existing bound for `apSum`.
-  have h_le := (IsSignSequence.natAbs_apSum_le (hf := hf') (d := 1) (n := n))
+    exact hf (m * d + k)
+  have h_eq := apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n)
+  have h_le := (IsSignSequence.natAbs_apSum_le (hf := hf') (d := d) (n := n))
   simpa [h_eq] using h_le
 
 lemma IsSignSequence.natAbs_apSum_sub_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
