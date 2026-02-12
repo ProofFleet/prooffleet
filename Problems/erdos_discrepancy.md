@@ -78,7 +78,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Translation lemmas (shift indices / offset handling)
 
 **Remaining (choose next boxes from here)**
-- [ ] Write a short “normal forms” section in `MoltResearch/Discrepancy.lean` documenting preferred rewrite targets
+- [x] Write a short “normal forms” section in `MoltResearch/Discrepancy.lean` documenting preferred rewrite targets
 - [ ] Add a minimal set of lemmas bridging the Conjectures statement to the nucleus API (so the theorem statement reads cleanly)
 
 Definition of done:
