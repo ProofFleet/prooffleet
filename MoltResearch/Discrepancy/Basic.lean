@@ -135,56 +135,18 @@ lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
 /-- Split `apSum` over a sum of lengths: `apSum f d (m + n)` equals the sum over the first `m` terms plus the sum over the next `n` terms. -/
 lemma apSum_add_length (f : ℕ → ℤ) (d m n : ℕ) :
     apSum f d (m + n) = apSum f d m + apSumOffset f d m n := by
-  induction n with
-  | zero =>
-      simp [apSumOffset, apSum]
-  | succ n ih =>
-      have hsucc := (apSum_succ (f := f) (d := d) (n := m + n))
-      calc
-        apSum f d (m + n + 1)
-            = apSum f d (m + n) + f ((m + n + 1) * d) := by
-              simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using hsucc
-        _ = (apSum f d m + apSumOffset f d m n) + f ((m + n + 1) * d) := by
-              simp [ih]
-        _ = apSum f d m + (apSumOffset f d m n + f ((m + n + 1) * d)) := by
-              simp [add_assoc]
-        _ = apSum f d m + apSumOffset f d m (n + 1) := by
-              simp [apSumOffset_succ (f := f) (d := d) (m := m) (n := n)]
+  classical
+  unfold apSum apSumOffset
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (Finset.sum_range_add (fun i => f ((i + 1) * d)) m n)
 
 /-- Split an offset AP sum over a sum of lengths. -/
 lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
   classical
-  induction n₂ with
-  | zero =>
-      simp [apSumOffset]
-  | succ n₂ ih =>
-      -- expand the left via `apSumOffset_succ` at length `n₁ + n₂`
-      -- and the right via `apSumOffset_succ` at offset `m + n₁`
-      have hL :
-          apSumOffset f d m (n₁ + n₂ + 1) =
-            apSumOffset f d m (n₁ + n₂) + f ((m + (n₁ + n₂) + 1) * d) := by
-        simpa [Nat.add_assoc] using (apSumOffset_succ (f := f) (d := d) (m := m) (n := n₁ + n₂))
-      have hR :
-          apSumOffset f d (m + n₁) (n₂ + 1) =
-            apSumOffset f d (m + n₁) n₂ + f (((m + n₁) + n₂ + 1) * d) := by
-        simpa [Nat.add_assoc] using (apSumOffset_succ (f := f) (d := d) (m := m + n₁) (n := n₂))
-      -- now rewrite and use the induction hypothesis
-      -- note: `((m + (n₁ + n₂) + 1) * d)` and `(((m + n₁) + n₂ + 1) * d)` are definitional equal up to associativity
-      calc
-        apSumOffset f d m (n₁ + (n₂ + 1))
-            = apSumOffset f d m (n₁ + n₂ + 1) := by
-                simp [Nat.add_assoc]
-        _ = apSumOffset f d m (n₁ + n₂) + f ((m + (n₁ + n₂) + 1) * d) := by
-                simpa using hL
-        _ = (apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂) +
-              f ((m + (n₁ + n₂) + 1) * d) := by
-                simpa [Nat.add_assoc] using congrArg (fun t => t + f ((m + (n₁ + n₂) + 1) * d)) ih
-        _ = apSumOffset f d m n₁ +
-              (apSumOffset f d (m + n₁) n₂ + f (((m + n₁) + n₂ + 1) * d)) := by
-                simp [add_assoc, Nat.add_assoc]
-        _ = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) (n₂ + 1) := by
-                simpa [hR, add_assoc, Nat.add_assoc]
+  unfold apSumOffset
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (Finset.sum_range_add (fun i => f ((m + i + 1) * d)) n₁ n₂)
 
 -- Algebraic properties of `apSum`
 lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
