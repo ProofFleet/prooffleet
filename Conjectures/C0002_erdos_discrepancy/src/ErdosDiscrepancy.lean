@@ -1,4 +1,4 @@
-import MoltResearch.Discrepancy.Basic
+import MoltResearch.Discrepancy
 
 /-!
 A conjecture-style stub for the Erdős discrepancy theorem (Tao 2015).
@@ -28,5 +28,17 @@ theorem erdos_discrepancy_of_succ (f : ℕ → ℤ) :
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   sorry
+
+/-- Surface form of `erdos_discrepancy`, matching the usual notation `∑_{i=1}^n f (i*d)`.
+
+This is a thin wrapper around the nucleus predicate `HasDiscrepancyAtLeast`, via
+`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc`.
+-/
+theorem erdos_discrepancy_sum_Icc (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc f).1
+      (erdos_discrepancy (f := f) (hf := hf))
 
 end MoltResearch

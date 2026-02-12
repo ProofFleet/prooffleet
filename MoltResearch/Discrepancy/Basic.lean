@@ -192,6 +192,24 @@ lemma HasDiscrepancyAtLeast_iff_exists_sum_Icc {f : ℕ → ℤ} {C : ℕ} :
     refine ⟨d, n, hd, ?_⟩
     simpa [apSum_eq_sum_Icc] using hgt
 
+/-- Bridge: the unbounded discrepancy statement phrased using `HasDiscrepancyAtLeast`
+is equivalent to the more explicit “interval sum” form `∑ i ∈ Icc 1 n, f (i*d)`.
+
+This is intended for conjecture/theorem statements: downstream files can keep the nucleus
+predicate as a normalization boundary, and then rewrite to the quantifier-heavy surface form
+without unfolding definitions.
+-/
+theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ d n : ℕ,
+          d > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
+  constructor
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc (f := f) (C := C)).2 (h C)
+
 @[simp] lemma apSumOffset_zero (f : ℕ → ℤ) (d m : ℕ) : apSumOffset f d m 0 = 0 := by
   simp [apSumOffset]
 
