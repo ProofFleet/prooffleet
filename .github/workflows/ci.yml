@@ -70,7 +70,7 @@ jobs:
                 exit 1
               fi
               if [[ "$ITEM" != "N/A" && "$ITEM" != "n/a" ]]; then
-                if ! grep -qF "- [ ] $ITEM" "$CARD" && ! grep -qF "- [x] $ITEM" "$CARD"; then
+                if ! grep -qF -- "- [ ] $ITEM" "$CARD" && ! grep -qF -- "- [x] $ITEM" "$CARD"; then
                   echo "::error::Checklist item not found as a checkbox in $CARD: $ITEM"
                   exit 1
                 fi
