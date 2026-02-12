@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.Affine
+import MoltResearch.Discrepancy.Offset
 
 /-!
 # Discrepancy bounds
@@ -51,6 +52,12 @@ lemma natAbs_apSumOffset_le_mul (f : ℕ → ℤ) (B : ℕ)
         Nat.le_trans hsum hbound
       simpa [Nat.succ_mul] using this
 
+lemma natAbs_apSum_sub_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m n : ℕ) :
+    Int.natAbs (apSum f d (m + n) - apSum f d m) ≤ n * B := by
+  have h := natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n)
+  simpa [apSumOffset_eq_sub] using h
+
 lemma natAbs_apSumFrom_le_mul (f : ℕ → ℤ) (B : ℕ)
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (a d n : ℕ) :
     Int.natAbs (apSumFrom f a d n) ≤ n * B := by
@@ -70,6 +77,13 @@ lemma natAbs_apSumFrom_le_mul (f : ℕ → ℤ) (B : ℕ)
       have : Int.natAbs (apSumFrom f a d (Nat.succ n)) ≤ n * B + B :=
         Nat.le_trans hsum hbound
       simpa [Nat.succ_mul] using this
+
+lemma natAbs_apSumFrom_sub_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (a d m n : ℕ) :
+    Int.natAbs (apSumFrom f a d (m + n) - apSumFrom f a d m) ≤ n * B := by
+  have h := natAbs_apSumFrom_le_mul (f := f) (B := B) (hB := hB)
+    (a := a + m * d) (d := d) (n := n)
+  simpa [apSumFrom_tail_eq_sub] using h
 
 lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one_and_length_mul_bound_gt {f : ℕ → ℤ} {C B : ℕ}
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (h : HasDiscrepancyAtLeast f C) :
