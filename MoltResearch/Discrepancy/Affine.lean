@@ -175,6 +175,14 @@ lemma HasAffineDiscrepancyAtLeast.exists_witness_pos {f : ℕ → ℤ} {C : ℕ}
       · exact Nat.succ_pos _
       · simpa using hgt
 
+/-- Extract a witness with `d ≥ 1`. -/
+lemma HasAffineDiscrepancyAtLeast.exists_witness_d_ge_one {f : ℕ → ℤ} {C : ℕ}
+    (h : HasAffineDiscrepancyAtLeast f C) :
+    ∃ a d n, d ≥ 1 ∧ Int.natAbs (apSumFrom f a d n) > C := by
+  rcases h with ⟨a, d, n, hd, hgt⟩
+  refine ⟨a, d, n, ?_, hgt⟩
+  exact Nat.succ_le_of_lt hd
+
 /-- Negating the function does not change affine discrepancy. -/
 lemma HasAffineDiscrepancyAtLeast.neg_iff {f : ℕ → ℤ} {C : ℕ} :
     HasAffineDiscrepancyAtLeast (fun n => - f n) C ↔ HasAffineDiscrepancyAtLeast f C := by
@@ -216,5 +224,17 @@ lemma HasAffineDiscrepancyAtLeast_iff_exists_shift (f : ℕ → ℤ) (C : ℕ) :
     rcases h with ⟨d, n, hd, hgt⟩
     refine ⟨a, d, n, hd, ?_⟩
     simpa [apSumFrom_eq_apSum_shift] using hgt
+
+/-- Extract a witness with `d ≥ 1` and length `n > C`. -/
+lemma IsSignSequence.exists_affine_witness_d_ge_one_and_length_gt {f : ℕ → ℤ}
+    (hf : IsSignSequence f) {C : ℕ} (h : HasAffineDiscrepancyAtLeast f C) :
+    ∃ a d n, d ≥ 1 ∧ n > C ∧ Int.natAbs (apSumFrom f a d n) > C := by
+  rcases h with ⟨a, d, n, hd, hgt⟩
+  have hd1 : d ≥ 1 := Nat.succ_le_of_lt hd
+  have hlen : n > C := by
+    have hle : Int.natAbs (apSumFrom f a d n) ≤ n :=
+      IsSignSequence.natAbs_apSumFrom_le (hf := hf) a d n
+    exact lt_of_lt_of_le hgt hle
+  exact ⟨a, d, n, hd1, hlen, hgt⟩
 
 end MoltResearch
