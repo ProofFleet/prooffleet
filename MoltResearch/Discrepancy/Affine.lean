@@ -42,6 +42,12 @@ lemma apSumOffset_eq_apSumFrom (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [Nat.add_assoc] using (Nat.add_mul m (i + 1) d)
   simp [h]
 
+/-- Shifted version of `apSumFrom`. -/
+lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
+  apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
+  unfold apSumFrom apSum
+  rfl
+
 lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
   apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
   unfold apSumFrom
@@ -177,5 +183,19 @@ lemma HasDiscrepancyAtLeast.to_affine {f : ℕ → ℤ} {C : ℕ} (h : HasDiscre
   rcases h with ⟨d, n, hd, hgt⟩
   refine ⟨0, d, n, hd, ?_⟩
   simpa [apSum_eq_apSumFrom] using hgt
+
+/-- Relate affine discrepancy to shifted homogeneous discrepancy. -/
+lemma HasAffineDiscrepancyAtLeast_iff_exists_shift (f : ℕ → ℤ) (C : ℕ) :
+  HasAffineDiscrepancyAtLeast f C ↔ ∃ a, HasDiscrepancyAtLeast (fun k => f (a + k)) C := by
+  constructor
+  · intro h
+    rcases h with ⟨a, d, n, hd, hgt⟩
+    refine ⟨a, ?_⟩
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSumFrom_eq_apSum_shift] using hgt
+  · rintro ⟨a, h⟩
+    rcases h with ⟨d, n, hd, hgt⟩
+    refine ⟨a, d, n, hd, ?_⟩
+    simpa [apSumFrom_eq_apSum_shift] using hgt
 
 end MoltResearch
