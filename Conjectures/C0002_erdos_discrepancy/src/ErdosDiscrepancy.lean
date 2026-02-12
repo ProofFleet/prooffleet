@@ -26,7 +26,7 @@ theorem erdos_discrepancy_of_succ (f : ℕ → ℤ) :
   exact HasDiscrepancyAtLeast.of_succ (h C)
 
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
   sorry
 
 end MoltResearch

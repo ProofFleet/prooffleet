@@ -73,6 +73,30 @@ lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one {f : ℕ → ℤ} {C : ℕ}
   rcases h with ⟨d, n, hd, hgt⟩
   exact ⟨d, n, Nat.succ_le_of_lt hd, hgt⟩
 
+/-- `HasDiscrepancyAtLeast` can be stated with `d` and `n` both positive.
+
+This is often the most readable form for conjecture statements, and it lets you
+convert back to the nucleus predicate without unfolding definitions.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_witness_pos {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  constructor
+  · intro h
+    exact HasDiscrepancyAtLeast.exists_witness_pos (h := h)
+  · rintro ⟨d, n, hd, hn, hgt⟩
+    exact ⟨d, n, hd, hgt⟩
+
+/-- The step-size side condition `d > 0` can be written as `d ≥ 1`. -/
+lemma HasDiscrepancyAtLeast_iff_exists_d_ge_one {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔ ∃ d n, d ≥ 1 ∧ Int.natAbs (apSum f d n) > C := by
+  constructor
+  · intro h
+    exact HasDiscrepancyAtLeast.exists_witness_d_ge_one (h := h)
+  · rintro ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, ?_, hgt⟩
+    exact (Nat.succ_le_iff).1 hd
+
 /-- Unpack the defining property. -/
 lemma IsSignSequence.eq_one_or_eq_neg_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     f n = 1 ∨ f n = -1 :=
