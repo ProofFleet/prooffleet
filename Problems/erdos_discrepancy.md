@@ -46,16 +46,49 @@ Definition of done:
 
 ### Track B — Lemma library (verified artifacts)
 
-- [ ] Lemmas about `IsSignSequence` (range, abs, etc.)
-- [ ] Rewriting lemmas for `apSum`
-- [ ] Small bounds / monotonicity facts
+Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should correspond to a reusable normal form.
+
+**Core nucleus (definitions + basic API)**
+- [x] `IsSignSequence` API: `natAbs_eq_one`, `ne_zero`, etc. (`Discrepancy/Basic.lean`)
+- [x] `HasDiscrepancyAtLeast` API: monotonicity + witness extraction (`Discrepancy/Basic.lean` + `Witness.lean`)
+
+**Homogeneous AP sums (`apSum`)**
+- [x] Basic simp/succ lemmas for `apSum` (`apSum_zero`, `apSum_one`, `apSum_succ`)
+- [x] Split `apSum` over lengths (`apSum_add_length`)
+- [x] Algebraic lemmas (`apSum` respects add/sub/neg/mul)
+
+**Offset AP sums (`apSumOffset`) and differences**
+- [x] Relate offset sums to differences of `apSum` (`apSumOffset_eq_sub` and rewrites)
+- [x] Split `apSumOffset` over lengths + first-term/succ decompositions
+- [x] Algebraic lemmas (`apSumOffset` respects add/sub/neg/mul)
+- [x] Bounds: `natAbs (apSumOffset …) ≤ n` and bounds for differences of AP sums
+
+**Affine AP sums (`apSumFrom`)**
+- [x] Define `apSumFrom` and basic simp lemmas (`Discrepancy/Affine.lean`)
+- [x] Split over lengths (`apSumFrom_add_length`) (normal form)
+- [x] Bounds for affine sums of sign sequences (carryover of triangle inequality scaffold)
+
+**Witness structures / normalization (mergeable decomposition)**
+- [x] Introduce structured witnesses + helper lemmas to normalize witness forms (`Witness.lean`)
+- [x] Equivalences: witness existence ↔ `Nonempty` wrappers (to ease composition)
+
+**Reindexing / scaling / translation (canonical transforms)**
+- [x] Reindexing lemmas (undo `map_mul` etc. under divisibility) (`Reindex.lean`)
+- [x] Scaling lemmas (multiply sequence, scale bounds)
+- [x] Translation lemmas (shift indices / offset handling)
+
+**Remaining (choose next boxes from here)**
+- [ ] Write a short “normal forms” section in `MoltResearch/Discrepancy.lean` documenting preferred rewrite targets
+- [ ] Add a minimal set of lemmas bridging the Conjectures statement to the nucleus API (so the theorem statement reads cleanly)
 
 Definition of done:
-- each PR adds 1–3 lemmas, minimal imports
+- each PR adds 1–3 lemmas OR consolidates/normalizes existing ones
+- minimal imports; prefer `import MoltResearch.Discrepancy` as stable surface
 
 ### Track C — Conjecture stub + equivalences (backlog)
 
-- [ ] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
+- [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
+- [ ] Prove the main theorem (long-horizon)
 - [ ] Alternate formulations/equivalences recorded in the card + notes
 
 ## 5. References / links
