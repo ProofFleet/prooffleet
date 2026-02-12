@@ -37,4 +37,12 @@ lemma HasDiscrepancyAtLeast.of_map_mul {f : ℕ → ℤ} {k C : ℕ} (hk : k > 0
   · exact Nat.mul_pos hd hk
   · simpa [apSum_map_mul] using hsum
 
+lemma HasAffineDiscrepancyAtLeast.of_map_mul {f : ℕ → ℤ} {k C : ℕ} (hk : k > 0)
+    (h : HasAffineDiscrepancyAtLeast (fun x => f (x * k)) C) :
+    HasAffineDiscrepancyAtLeast f C := by
+  rcases h with ⟨a, d, n, hd, hsum⟩
+  refine ⟨a * k, d * k, n, ?_, ?_⟩
+  · exact Nat.mul_pos hd hk
+  · simpa [apSumFrom_map_mul] using hsum
+
 end MoltResearch
