@@ -14,6 +14,24 @@ lemma apSumFrom_sub_apSumFrom_eq_apSumFrom (f : ℕ → ℤ) (a d : ℕ) {m n : 
   simpa [Nat.add_sub_of_le hmn] using
     (apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n - m)).symm
 
+/-- Difference of a longer affine AP partial sum and its initial segment, in the `(m + n) - m`
+normal form.
+
+This lemma is a convenience wrapper around `apSumFrom_tail_eq_sub`, oriented so that rewriting
+turns a subtraction into an explicit tail sum.
+-/
+lemma apSumFrom_sub_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+  simpa using (apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
+/-- Sign-sequence bound on `apSumFrom` in the `(m + n) - m` normal form. -/
+lemma IsSignSequence.natAbs_apSumFrom_sub_le {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (a d m n : ℕ) :
+    Int.natAbs (apSumFrom f a d (m + n) - apSumFrom f a d m) ≤ n := by
+  have h := IsSignSequence.natAbs_apSumFrom_le (hf := hf) (a := a + m * d) (d := d) (n := n)
+  have hEq := apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+  simpa [hEq] using h
+
 /-- Split an affine AP partial sum at `m` when `m ≤ n`. -/
 lemma apSumFrom_eq_add_apSumFrom_tail (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSumFrom f a d n = apSumFrom f a d m + apSumFrom f (a + m * d) d (n - m) := by

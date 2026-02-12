@@ -32,8 +32,10 @@ Arithmetic progression sums:
   `apSum_sub_apSum_eq_apSumOffset`. For paper notation, rewrite to an interval sum via
   `apSumOffset_eq_sum_Icc`.
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
-  Split lengths via `apSumFrom_add_length`, rewrite tails via `apSumFrom_tail_eq_sub`, and
-  rewrite to an interval sum via `apSumFrom_eq_sum_Icc`.
+  Split lengths via `apSumFrom_add_length`.
+  For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
+  `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).
+  Rewrite to an interval sum via `apSumFrom_eq_sum_Icc` when matching paper notation.
 
 Discrepancy predicates / witnesses:
 - Treat `HasDiscrepancyAtLeast` and `HasAffineDiscrepancyAtLeast` as normalization boundaries
