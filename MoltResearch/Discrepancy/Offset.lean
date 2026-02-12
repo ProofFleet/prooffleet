@@ -15,6 +15,14 @@ lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [add_comm] using h0
   exact eq_sub_of_add_eq h
 
+/-- Difference of two homogeneous AP partial sums as an offset AP sum when `m ≤ n`. -/
+lemma apSum_sub_apSum_eq_apSumOffset (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+  -- use apSumOffset_eq_sub with length (n-m)
+  have h := (apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n - m)).symm
+  have hmn' : m + (n - m) = n := Nat.add_sub_of_le hmn
+  simpa [hmn'] using h
+
 /-- Express `apSumOffset` as an `apSum` with step `1`. -/
 lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
