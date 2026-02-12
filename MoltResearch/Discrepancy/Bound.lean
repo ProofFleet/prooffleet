@@ -94,4 +94,13 @@ lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one_and_length_mul_bound_gt {f :
   have hnB : n * B > C := lt_of_lt_of_le hgt hle
   exact ⟨d, n, hd, hnB, hgt⟩
 
+lemma HasAffineDiscrepancyAtLeast.exists_witness_d_ge_one_and_length_mul_bound_gt {f : ℕ → ℤ} {C B : ℕ}
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (h : HasAffineDiscrepancyAtLeast f C) :
+    ∃ a d n, d ≥ 1 ∧ n * B > C ∧ Int.natAbs (apSumFrom f a d n) > C := by
+  rcases h.exists_witness_d_ge_one with ⟨a, d, n, hd, hgt⟩
+  have hle : Int.natAbs (apSumFrom f a d n) ≤ n * B :=
+    natAbs_apSumFrom_le_mul (f := f) (B := B) (hB := hB) (a := a) (d := d) (n := n)
+  have hnB : n * B > C := lt_of_lt_of_le hgt hle
+  exact ⟨a, d, n, hd, hnB, hgt⟩
+
 end MoltResearch
