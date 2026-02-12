@@ -150,6 +150,48 @@ lemma one_le_natAbs_of_ne_zero {c : ℤ} (hc : c ≠ 0) : 1 ≤ Int.natAbs c := 
 @[simp] lemma apSum_one (f : ℕ → ℤ) (d : ℕ) : apSum f d 1 = f d := by
   simp [apSum]
 
+/-- Rewrite `apSum` as the more familiar sum `∑ i ∈ Icc 1 n, f (i*d)`.
+
+This is intended for conjecture/theorem statements: it matches the usual notation
+`∑_{i=1}^n f(i*d)` while the nucleus API continues to use `apSum`.
+-/
+lemma apSum_eq_sum_Icc (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
+  classical
+  unfold apSum
+  -- `Icc 1 n` is `Ico 1 (n+1)`; convert interval sums to `Finset.range`.
+  have h :=
+    (Finset.sum_Ico_eq_sum_range (f := fun i => f (i * d)) (m := 1) (n := n + 1))
+  -- `h` is oriented from `Ico` to `range`; we use it backwards.
+  calc
+    (Finset.range n).sum (fun i => f ((i + 1) * d))
+        = (Finset.range n).sum (fun i => f ((1 + i) * d)) := by
+            refine Finset.sum_congr rfl ?_
+            intro i hi
+            -- `i + 1 = 1 + i`
+            simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+    _ = (Finset.Ico 1 (n + 1)).sum (fun i => f (i * d)) := by
+            simpa [Nat.add_sub_cancel] using h.symm
+    _ = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
+            simpa [Finset.Ico_add_one_right_eq_Icc]
+
+/-- `HasDiscrepancyAtLeast` can be stated using the more familiar interval sum
+`∑ i ∈ Icc 1 n, f (i*d)`.
+
+This is a convenience lemma for conjecture/theorem statements: keep the nucleus
+predicate as the normalization boundary, and rewrite to this form only at the surface.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_sum_Icc {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  constructor
+  · rintro ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSum_eq_sum_Icc] using hgt
+  · rintro ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSum_eq_sum_Icc] using hgt
+
 @[simp] lemma apSumOffset_zero (f : ℕ → ℤ) (d m : ℕ) : apSumOffset f d m 0 = 0 := by
   simp [apSumOffset]
 
