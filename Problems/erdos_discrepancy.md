@@ -34,9 +34,11 @@ Goal: a *type-correct* Lean statement (even if unproved initially).
 
 ### Track A — Definitions (verified artifacts)
 
-- [ ] Define `IsSignSequence (f : ℕ → ℤ)`
-- [ ] Define the partial sum on a homogeneous AP: `apSum f d n`
-- [ ] Define a predicate `HasDiscrepancyAtLeast f C`
+- [x] Define `IsSignSequence (f : ℕ → ℤ)`
+- [x] Define the partial sum on a homogeneous AP: `apSum f d n`
+- [x] Define a predicate `HasDiscrepancyAtLeast f C`
+
+(Implemented in `MoltResearch/Discrepancy/Basic.lean`.)
 
 Definition of done:
 - lands under `MoltResearch/Discrepancy/Basic.lean`

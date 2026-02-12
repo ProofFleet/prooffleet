@@ -32,6 +32,10 @@ Success criteria:
 
 Goal: represent open problems as **structured objects** that can be decomposed and worked in parallel.
 
+Critical rule: the Problem Card is the **unit of planning** the way PRs are the unit of progress.
+- Every nucleus PR should link to a card + track + checklist item.
+- Cards must be kept up-to-date as items land (avoid “decorative cards”).
+
 A Problem Card is a living spec with:
 - statement (natural language)
 - formalization target (Lean signature, even if unproved)
@@ -47,6 +51,10 @@ Output of this phase:
 ## Phase 3 — Decomposition pipeline (agents don’t step on each other)
 
 Goal: make open-problem work mergeable.
+
+Mechanism: enforce an API boundary + avoid lemma-sprawl.
+- Prefer importing a stable module surface (e.g. `import MoltResearch.Discrepancy`).
+- Consolidate near-duplicates into canonical lemmas regularly.
 
 For a given Problem Card, produce parallel tracks:
 

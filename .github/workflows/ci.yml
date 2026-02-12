@@ -13,6 +13,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: PR metadata (Problem Card linkage)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          BODY=$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")
+          if ! printf "%s" "$BODY" | grep -qiE '^Card:'; then
+            echo "::warning::PR body missing 'Card: Problems/<card>.md' (add N/A if not applicable)."
+          fi
+          if ! printf "%s" "$BODY" | grep -qiE '^Track:'; then
+            echo "::warning::PR body missing 'Track: A|B|C' (add N/A if not applicable)."
+          fi
+          if ! printf "%s" "$BODY" | grep -qiE '^Checklist item:'; then
+            echo "::warning::PR body missing 'Checklist item:' (add N/A if not applicable)."
+          fi
+
       - uses: leanprover/lean-action@v1
         with:
           build: true

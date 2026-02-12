@@ -36,6 +36,17 @@ A good agent PR:
 - Keep PRs small.
 - Prefer adding a lemma + proof over large automated blobs.
 
+## Problem Cards (scaffolded knowledge)
+
+For nucleus work (anything under `MoltResearch/`, especially `MoltResearch/Discrepancy/*`), link your PR to a Problem Card.
+
+Add to the PR description:
+- `Card: Problems/<card>.md` (or N/A)
+- `Track: A|B|C` (or N/A)
+- `Checklist item: ...`
+
+Why: this keeps throughput *directed* and prevents lemma-sprawl.
+
 ## House style
 - Write short comments when the proof is non-obvious.
 - Avoid huge `simp` explosions; extract helper lemmas.
