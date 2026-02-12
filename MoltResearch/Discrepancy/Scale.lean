@@ -52,4 +52,36 @@ lemma HasDiscrepancyAtLeast.mul_right_of_ne_zero {f : ℕ → ℤ} {C : ℕ} (c 
   have hC_mul : C < A * (Int.natAbs c) := lt_of_lt_of_le hCA hA_mul
   simpa [apSum_mul_right, Int.natAbs_mul, A] using hC_mul
 
+lemma HasDiscrepancyAtLeast.mul_left_scale {f : ℕ → ℤ} {C : ℕ} (c : ℤ) (hc : c ≠ 0) :
+    HasDiscrepancyAtLeast f C → HasDiscrepancyAtLeast (fun n => c * f n) (Int.natAbs c * C) := by
+  rintro ⟨d, n, hd, hgt⟩
+  refine ⟨d, n, hd, ?_⟩
+  let k := Int.natAbs c
+  have hkpos : 0 < k := by
+    have hne : k ≠ 0 := by
+      intro h
+      have : c = 0 := (Int.natAbs_eq_zero).mp h
+      exact hc this
+    exact Nat.pos_of_ne_zero hne
+  have hC_mul : k * C < k * Int.natAbs (apSum f d n) := by
+    have := Nat.mul_lt_mul_of_pos_left hgt hkpos
+    simpa using this
+  simpa [apSum_mul_left, Int.natAbs_mul, k] using hC_mul
+
+lemma HasDiscrepancyAtLeast.mul_right_scale {f : ℕ → ℤ} {C : ℕ} (c : ℤ) (hc : c ≠ 0) :
+    HasDiscrepancyAtLeast f C → HasDiscrepancyAtLeast (fun n => f n * c) (Int.natAbs c * C) := by
+  rintro ⟨d, n, hd, hgt⟩
+  refine ⟨d, n, hd, ?_⟩
+  let k := Int.natAbs c
+  have hkpos : 0 < k := by
+    have hne : k ≠ 0 := by
+      intro h
+      have : c = 0 := (Int.natAbs_eq_zero).mp h
+      exact hc this
+    exact Nat.pos_of_ne_zero hne
+  have hC_mul : k * C < k * Int.natAbs (apSum f d n) := by
+    have := Nat.mul_lt_mul_of_pos_left hgt hkpos
+    simpa using this
+  simpa [apSum_mul_right, Int.natAbs_mul, k, Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using hC_mul
+
 end MoltResearch
