@@ -75,28 +75,15 @@ lemma apSumOffset_mul_right (f : ℕ → ℤ) (c : ℤ) (d m n : ℕ) :
 
 lemma IsSignSequence.natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
     Int.natAbs (apSumOffset f d m n) ≤ n := by
-  induction n with
-  | zero =>
-      simp [apSumOffset]
-  | succ n ih =>
-      have hsucc := (apSumOffset_succ (f := f) (d := d) (m := m) (n := n))
-      have hsucc_natAbs :
-          Int.natAbs (apSumOffset f d m (Nat.succ n)) =
-            Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
-        simpa [Nat.succ_eq_add_one] using congrArg Int.natAbs hsucc
-      calc
-        Int.natAbs (apSumOffset f d m (Nat.succ n))
-            = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
-              simpa using hsucc_natAbs
-        _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
-              simpa using Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d))
-        _ ≤ n + 1 := by
-              have h1 := ih
-              have h2 : Int.natAbs (f ((m + n + 1) * d)) = 1 := by
-                simpa using hf.natAbs_eq_one (n := (m + n + 1) * d)
-              have h3 := add_le_add_right h1 (Int.natAbs (f ((m + n + 1) * d)))
-              simpa [h2] using h3
-        _ = Nat.succ n := rfl
+  -- Define the shifted sign sequence.
+  have hf' : IsSignSequence (fun k => f ((m + k) * d)) := by
+    intro k
+    exact hf ((m + k) * d)
+  -- Rewrite the offset sum as an `apSum` with step `1`.
+  have h_eq := apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)
+  -- Apply the existing bound for `apSum`.
+  have h_le := (IsSignSequence.natAbs_apSum_le (hf := hf') (d := 1) (n := n))
+  simpa [h_eq] using h_le
 
 lemma IsSignSequence.natAbs_apSum_sub_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
     Int.natAbs (apSum f d (m + n) - apSum f d m) ≤ n := by
