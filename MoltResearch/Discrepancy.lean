@@ -38,4 +38,6 @@ Discrepancy predicates / witnesses:
   for existence statements; use the structured witness API in `Witness.lean` when convenient.
 - When the sequence is reindexed, prefer the dedicated transforms (`…of_map_mul`, `…of_map_add`)
   instead of re-proving the bookkeeping from scratch.
+- When scaling the sequence by a nonzero integer, prefer the dedicated scaling lemmas
+  (`HasDiscrepancyAtLeast.mul_left_scale`, etc.) rather than unfolding definitions.
 -/
