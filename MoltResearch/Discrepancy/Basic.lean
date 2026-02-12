@@ -192,6 +192,24 @@ lemma HasDiscrepancyAtLeast_iff_exists_sum_Icc {f : ℕ → ℤ} {C : ℕ} :
     refine ⟨d, n, hd, ?_⟩
     simpa [apSum_eq_sum_Icc] using hgt
 
+/-- Variant of `HasDiscrepancyAtLeast_iff_exists_sum_Icc` writing the step-size side condition
+as `d ≥ 1` instead of `d > 0`.
+
+This is often the most readable surface form when `d : ℕ`.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d ≥ 1 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  constructor
+  · intro h
+    rcases (HasDiscrepancyAtLeast_iff_exists_d_ge_one (f := f) (C := C)).1 h with ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSum_eq_sum_Icc] using hgt
+  · rintro ⟨d, n, hd, hgt⟩
+    refine (HasDiscrepancyAtLeast_iff_exists_d_ge_one (f := f) (C := C)).2 ?_
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSum_eq_sum_Icc] using hgt
+
 /-- Bridge: the unbounded discrepancy statement phrased using `HasDiscrepancyAtLeast`
 is equivalent to the more explicit “interval sum” form `∑ i ∈ Icc 1 n, f (i*d)`.
 
