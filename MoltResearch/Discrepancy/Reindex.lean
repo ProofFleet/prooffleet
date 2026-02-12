@@ -30,6 +30,19 @@ lemma apSumFrom_map_mul (f : ℕ → ℤ) (k a d n : ℕ) :
   intro i hi
   simp [Nat.add_mul, Nat.mul_assoc]
 
+/-- Undo the `(· * k)` reindexing when `a` and `d` are multiples of `k`. -/
+lemma apSumFrom_map_mul_div_of_dvd (f : ℕ → ℤ) (k a d n : ℕ) (hk : k > 0)
+    (ha : k ∣ a) (hd : k ∣ d) :
+  apSumFrom (fun x => f (x * k)) (a / k) (d / k) n = apSumFrom f a d n := by
+  rcases ha with ⟨a0, rfl⟩
+  rcases hd with ⟨d0, rfl⟩
+  have ha' : k * a0 / k = a0 := Nat.mul_div_right a0 hk
+  have hd' : k * d0 / k = d0 := Nat.mul_div_right d0 hk
+  have ha0 : a0 * k = k * a0 := Nat.mul_comm a0 k
+  have hd0 : d0 * k = k * d0 := Nat.mul_comm d0 k
+  simpa [ha', hd', ha0, hd0] using
+    (apSumFrom_map_mul (f := f) (k := k) (a := a0) (d := d0) (n := n))
+
 lemma HasDiscrepancyAtLeast.of_map_mul {f : ℕ → ℤ} {k C : ℕ} (hk : k > 0)
     (h : HasDiscrepancyAtLeast (fun x => f (x * k)) C) : HasDiscrepancyAtLeast f C := by
   rcases h with ⟨d, n, hd, hsum⟩
