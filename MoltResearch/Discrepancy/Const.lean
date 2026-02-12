@@ -63,4 +63,36 @@ lemma hasDiscrepancyAtLeast_const_of_ne_zero (c : ℤ) (hc : c ≠ 0) (C : ℕ) 
   -- finish
   simpa [hnatAbs] using hgt
 
+/-- A constant zero function never has discrepancy at least `C`. -/
+lemma not_hasDiscrepancyAtLeast_const_zero (C : ℕ) :
+    ¬ HasDiscrepancyAtLeast (fun _ : ℕ => (0 : ℤ)) C := by
+  intro h
+  rcases h with ⟨d, n, hdn, hgt⟩
+  have hsum : apSum (fun _ => (0 : ℤ)) d n = 0 := by
+    simpa using (apSum_const_zero d n)
+  have hnat : Int.natAbs (apSum (fun _ => (0 : ℤ)) d n) = 0 := by
+    simpa [hsum]
+  have hzero : (0 : ℕ) > C := by
+    simpa [hnat] using hgt
+  cases C with
+  | zero =>
+      have : (0 : ℕ) > 0 := hzero
+      exact (Nat.not_lt_zero 0) this
+  | succ C' =>
+      have : Nat.succ C' < 0 := by
+        simpa using hzero
+      exact (Nat.not_lt_zero (Nat.succ C')) this
+
+/-- A constant function has discrepancy at least `C` iff it is non‑zero. -/
+lemma hasDiscrepancyAtLeast_const_iff (c : ℤ) (C : ℕ) :
+    HasDiscrepancyAtLeast (fun _ : ℕ => c) C ↔ c ≠ 0 := by
+  constructor
+  · intro h
+    by_contra hc
+    have h0 : HasDiscrepancyAtLeast (fun _ : ℕ => (0 : ℤ)) C := by
+      simpa [hc] using h
+    exact not_hasDiscrepancyAtLeast_const_zero (C := C) h0
+  · intro hc
+    exact hasDiscrepancyAtLeast_const_of_ne_zero c hc C
+
 end MoltResearch
