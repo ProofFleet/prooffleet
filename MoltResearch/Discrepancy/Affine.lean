@@ -22,6 +22,29 @@ def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   unfold apSumFrom
   simp
 
+/-- Rewrite `apSumFrom` as the familiar interval sum `∑ i ∈ Icc 1 n, f (a + i*d)`.
+
+This is intended for surface statements: keep the nucleus API in terms of `apSumFrom`, and
+rewrite to this form only when matching paper notation.
+-/
+lemma apSumFrom_eq_sum_Icc (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
+  classical
+  unfold apSumFrom
+  have h := (Finset.sum_Ico_eq_sum_range (f := fun i => f (a + i * d)) (m := 1) (n := n + 1))
+  calc
+    (Finset.range n).sum (fun i => f (a + (i + 1) * d))
+        = (Finset.range n).sum (fun i => f (a + (1 + i) * d)) := by
+            refine Finset.sum_congr rfl ?_
+            intro i hi
+            -- `i + 1 = 1 + i`
+            simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+    _ = (Finset.Ico 1 (n + 1)).sum (fun i => f (a + i * d)) := by
+            -- `h` is oriented from `Ico` to `range`; we use it backwards.
+            simpa [Nat.add_sub_cancel] using h.symm
+    _ = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
+            simpa [Finset.Ico_add_one_right_eq_Icc]
+
 lemma apSumFrom_succ (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d (n + 1) = apSumFrom f a d n + f (a + (n + 1) * d) := by
   unfold apSumFrom

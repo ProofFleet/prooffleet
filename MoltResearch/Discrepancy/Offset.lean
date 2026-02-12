@@ -15,6 +15,43 @@ lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [add_comm] using h0
   exact eq_sub_of_add_eq h
 
+/-- Rewrite `apSumOffset` as the familiar interval sum `∑ i ∈ Icc (m+1) (m+n), f (i*d)`.
+
+This is intended for surface statements: keep the nucleus API in terms of `apSumOffset`, and
+rewrite to this form only when matching paper notation.
+-/
+lemma apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+  classical
+  unfold apSumOffset
+  have h :=
+    (Finset.sum_Ico_eq_sum_range (f := fun i => f (i * d)) (m := m + 1) (n := m + (n + 1)))
+  have hlen : (m + (n + 1)) - (m + 1) = n := by
+    -- `(m+1+n) - (m+1) = n`, and `m+1+n = m+(n+1)`.
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (Nat.add_sub_cancel_left (m + 1) n)
+  calc
+    (Finset.range n).sum (fun i => f ((m + i + 1) * d))
+        = (Finset.range n).sum (fun i => f ((m + (i + 1)) * d)) := by
+            refine Finset.sum_congr rfl ?_
+            intro i hi
+            -- `m + i + 1 = m + (i + 1)`
+            simp [Nat.add_assoc]
+    _ = (Finset.Ico (m + 1) (m + (n + 1))).sum (fun i => f (i * d)) := by
+            -- `h` is oriented from `Ico` to `range`; we use it backwards.
+            simpa [hlen, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h.symm
+    _ = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+            -- Convert the upper endpoint to the canonical `(m+n)+1` form.
+            have hend : m + (n + 1) = (m + n) + 1 := by
+              simp [Nat.add_assoc]
+            have hsum :
+                (Finset.Ico (m + 1) ((m + n) + 1)).sum (fun i => f (i * d)) =
+                  (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+              simpa using
+                congrArg (fun s : Finset ℕ => s.sum (fun i => f (i * d)))
+                  (Finset.Ico_add_one_right_eq_Icc (a := m + 1) (b := m + n))
+            simpa [hend] using hsum
+
 /-- Difference of two homogeneous AP partial sums as an offset AP sum when `m ≤ n`. -/
 lemma apSum_sub_apSum_eq_apSumOffset (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
