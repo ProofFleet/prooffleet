@@ -23,6 +23,20 @@ lemma apSumOffset_map_mul (f : ℕ → ℤ) (k d m n : ℕ) :
   intro i hi
   simp [Nat.mul_assoc]
 
+lemma apSum_map_mul_div_of_dvd (f : ℕ → ℤ) (k d n : ℕ) (hk : k > 0) (hd : k ∣ d) :
+  apSum (fun x => f (x * k)) (d / k) n = apSum f d n := by
+  rcases hd with ⟨d0, rfl⟩
+  have hd' : k * d0 / k = d0 := Nat.mul_div_right d0 hk
+  have d0k : d0 * k = k * d0 := Nat.mul_comm d0 k
+  simpa [hd', d0k] using (apSum_map_mul (f := f) (k := k) (d := d0) (n := n))
+
+lemma apSumOffset_map_mul_div_of_dvd (f : ℕ → ℤ) (k d m n : ℕ) (hk : k > 0) (hd : k ∣ d) :
+  apSumOffset (fun x => f (x * k)) (d / k) m n = apSumOffset f d m n := by
+  rcases hd with ⟨d0, rfl⟩
+  have hd' : k * d0 / k = d0 := Nat.mul_div_right d0 hk
+  have d0k : d0 * k = k * d0 := Nat.mul_comm d0 k
+  simpa [hd', d0k] using (apSumOffset_map_mul (f := f) (k := k) (d := d0) (m := m) (n := n))
+
 lemma apSumFrom_map_mul (f : ℕ → ℤ) (k a d n : ℕ) :
   apSumFrom (fun x => f (x * k)) a d n = apSumFrom f (a * k) (d * k) n := by
   unfold apSumFrom
