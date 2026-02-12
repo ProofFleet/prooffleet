@@ -50,10 +50,29 @@ lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
 
 lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
   apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
-  unfold apSumFrom
-  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc, Nat.add_mul, Nat.mul_add,
-        Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
-    (Finset.sum_range_add (fun i => f (a + (i + 1) * d)) m n)
+  classical
+  let g : ℕ → ℤ := fun k => f (a + k)
+  have hsplit : apSum g d (m + n) = apSum g d m + apSumOffset g d m n :=
+    apSum_add_length (f := g) (d := d) (m := m) (n := n)
+  have hL : apSumFrom f a d (m + n) = apSum g d (m + n) := by
+    simpa [g] using
+      (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := m + n))
+  have hM : apSum g d m = apSumFrom f a d m := by
+    simpa [g] using
+      (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := m)).symm
+  have hN : apSumOffset g d m n = apSumFrom f (a + m * d) d n := by
+    unfold apSumOffset apSumFrom
+    refine Finset.sum_congr rfl ?_
+    intro i hi
+    have hmul : (m + (i + 1)) * d = m * d + (i + 1) * d := by
+      simpa using (Nat.add_mul m (i + 1) d)
+    -- `simp` uses `Nat.add_assoc` to rewrite `m + i + 1` as `m + (i + 1)` first.
+    simp [g, Nat.add_assoc, hmul]
+  calc
+    apSumFrom f a d (m + n) = apSum g d (m + n) := hL
+    _ = apSum g d m + apSumOffset g d m n := hsplit
+    _ = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
+        simpa [hM, hN]
 
 lemma apSumFrom_succ_length (f : ℕ → ℤ) (a d n : ℕ) :
     apSumFrom f a d (n + 1) = f (a + d) + apSumFrom f (a + d) d n := by
