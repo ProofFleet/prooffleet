@@ -70,4 +70,47 @@ Discrepancy predicates / witnesses:
   instead of re-proving the bookkeeping from scratch.
 - When scaling the sequence by a nonzero integer, prefer the dedicated scaling lemmas
   (`HasDiscrepancyAtLeast.mul_left_scale`, etc.) rather than unfolding definitions.
+
+## Worked rewrite recipe (quick mental model)
+
+When you see a sum in “paper notation”, try to normalize it into the nucleus API first,
+*then* apply bounds/triangle inequality, and only at the end rewrite back to `Icc` sums.
+
+A typical rewrite pipeline:
+1. Convert paper notation to nucleus notation:
+   - `∑ i ∈ Icc 1 n, f (i*d)` ↔ `apSum f d n` via `apSum_eq_sum_Icc`.
+   - `∑ i ∈ Icc (m+1) (m+n), f (i*d)` ↔ `apSumOffset f d m n` via `apSumOffset_eq_sum_Icc`.
+2. Normalize differences of partial sums into tails:
+   - `apSum f d (m+n) - apSum f d m` ↦ `apSumOffset f d m n` via `apSum_sub_eq_apSumOffset`.
+   - `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁` ↦ `apSumOffset f d (m+n₁) n₂` via
+     `apSumOffset_sub_eq_apSumOffset_tail`.
+3. Split sums by length (canonical “one cut” normal form):
+   - `apSum_add_length`, `apSumOffset_add_length`, `apSumFrom_add_length`.
+4. Only when you want to match the literature, rewrite back to interval sums:
+   - `apSumOffset_eq_sum_Icc`, `apSum_sub_eq_sum_Icc`, `apSumOffset_sub_eq_sum_Icc`, etc.
+
+The small “example” blocks below are regression tests that these normal-form lemmas remain usable
+from the stable surface import `MoltResearch.Discrepancy`.
 -/
+
+namespace MoltResearch
+
+section NormalFormExamples
+
+variable (f : ℕ → ℤ) (d m n : ℕ)
+
+example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
+  simpa using apSum_eq_sum_Icc (f := f) (d := d) (n := n)
+
+example :
+    apSum f d (m + n) - apSum f d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+  simpa using apSum_sub_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)
+
+example :
+    apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+  simpa using apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)
+
+end NormalFormExamples
+
+end MoltResearch
