@@ -228,10 +228,12 @@ theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc (f : ℕ → ℤ)
   · intro h C
     exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc (f := f) (C := C)).2 (h C)
 
-/-- Variant of `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc` writing the step-size side
-condition as `d ≥ 1` instead of `d > 0`.
+/-- Bridge: the unbounded discrepancy statement `∀ C, HasDiscrepancyAtLeast f C` is equivalent to
+an explicit witness form using the interval sum `∑ i ∈ Icc 1 n, f (i*d)` with side condition
+`d ≥ 1` (instead of `d > 0`).
 
-This is often the most readable surface form when `d : ℕ`.
+This is intended as a surface rewrite lemma: keep `HasDiscrepancyAtLeast` as the normalization
+boundary and only expand to quantifiers when needed.
 -/
 theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one (f : ℕ → ℤ) :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
