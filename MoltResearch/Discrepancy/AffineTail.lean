@@ -132,6 +132,17 @@ lemma sum_Icc_eq_apSumFrom_tail_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} 
   simpa [Nat.add_sub_of_le hmn] using
     (sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n - m))
 
+/-- Surface form: when `m ≤ n`, rewrite the affine tail sum `apSumFrom f (a + m*d) d (n - m)` as
+an interval sum `∑ i ∈ Icc (m+1) n, f (a + i*d)`.
+
+This is the affine analogue of `apSumOffset_eq_sum_Icc_of_le`.
+-/
+lemma apSumFrom_tail_eq_sum_Icc_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f (a + m * d) d (n - m) =
+      (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) := by
+  simpa [Nat.add_sub_of_le hmn] using
+    (apSumFrom_tail_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
 /-- Difference of two affine AP partial sums as an offset AP sum on the shifted sequence
 `k ↦ f (a + k)` when `m ≤ n`.
 
