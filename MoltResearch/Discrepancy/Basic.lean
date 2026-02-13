@@ -213,6 +213,14 @@ lemma apSum_eq_sum_Icc (f : ℕ → ℤ) (d n : ℕ) :
     _ = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
             simpa [Finset.Ico_add_one_right_eq_Icc]
 
+/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (i*d)` back to `apSum`.
+
+This is useful when starting from a surface statement and normalizing into the nucleus API.
+-/
+lemma sum_Icc_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
+  simpa using (apSum_eq_sum_Icc (f := f) (d := d) (n := n)).symm
+
 /-- `HasDiscrepancyAtLeast` can be stated using the more familiar interval sum
 `∑ i ∈ Icc 1 n, f (i*d)`.
 

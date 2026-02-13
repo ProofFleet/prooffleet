@@ -78,9 +78,15 @@ When you see a sum in “paper notation”, try to normalize it into the nucleus
 *then* apply bounds/triangle inequality, and only at the end rewrite back to `Icc` sums.
 
 A typical rewrite pipeline:
-1. Convert paper notation to nucleus notation:
-   - `∑ i ∈ Icc 1 n, f (i*d)` ↔ `apSum f d n` via `apSum_eq_sum_Icc`.
-   - `∑ i ∈ Icc (m+1) (m+n), f (i*d)` ↔ `apSumOffset f d m n` via `apSumOffset_eq_sum_Icc`.
+1. Convert paper notation to nucleus notation (and back):
+   - Paper → nucleus:
+     - `∑ i ∈ Icc 1 n, f (i*d)` ↦ `apSum f d n` via `sum_Icc_eq_apSum`.
+     - `∑ i ∈ Icc (m+1) (m+n), f (i*d)` ↦ `apSumOffset f d m n` via `sum_Icc_eq_apSumOffset`.
+     - `∑ i ∈ Icc 1 n, f (a + i*d)` ↦ `apSumFrom f a d n` via `sum_Icc_eq_apSumFrom`.
+   - Nucleus → paper:
+     - `apSum f d n` ↦ `∑ i ∈ Icc 1 n, f (i*d)` via `apSum_eq_sum_Icc`.
+     - `apSumOffset f d m n` ↦ `∑ i ∈ Icc (m+1) (m+n), f (i*d)` via `apSumOffset_eq_sum_Icc`.
+     - `apSumFrom f a d n` ↦ `∑ i ∈ Icc 1 n, f (a + i*d)` via `apSumFrom_eq_sum_Icc`.
 2. Normalize differences of partial sums into tails:
    - `apSum f d (m+n) - apSum f d m` ↦ `apSumOffset f d m n` via `apSum_sub_eq_apSumOffset`.
    - `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁` ↦ `apSumOffset f d (m+n₁) n₂` via
@@ -103,6 +109,9 @@ variable (f : ℕ → ℤ) (a d m n : ℕ)
 example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
   simpa using apSum_eq_sum_Icc (f := f) (d := d) (n := n)
 
+example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
+  simpa using sum_Icc_eq_apSum (f := f) (d := d) (n := n)
+
 example :
     apSum f d (m + n) - apSum f d m =
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
@@ -111,6 +120,14 @@ example :
 example :
     apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
   simpa using apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)
+
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+example :
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+  simpa using sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
 
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =

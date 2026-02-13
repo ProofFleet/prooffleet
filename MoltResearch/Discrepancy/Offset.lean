@@ -52,6 +52,15 @@ lemma apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
                   (Finset.Ico_add_one_right_eq_Icc (a := m + 1) (b := m + n))
             simpa [hend] using hsum
 
+/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc (m+1) (m+n), f (i*d)` back
+to `apSumOffset`.
+
+This is useful when starting from a surface statement and normalizing into the nucleus API.
+-/
+lemma sum_Icc_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Difference of two homogeneous AP partial sums as an offset AP sum when `m ≤ n`. -/
 lemma apSum_sub_apSum_eq_apSumOffset (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by

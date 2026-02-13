@@ -45,6 +45,15 @@ lemma apSumFrom_eq_sum_Icc (f : ℕ → ℤ) (a d n : ℕ) :
     _ = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
             simpa [Finset.Ico_add_one_right_eq_Icc]
 
+/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (a + i*d)` back to
+`apSumFrom`.
+
+This is useful when starting from a surface statement and normalizing into the nucleus API.
+-/
+lemma sum_Icc_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)).symm
+
 lemma apSumFrom_succ (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d (n + 1) = apSumFrom f a d n + f (a + (n + 1) * d) := by
   unfold apSumFrom
