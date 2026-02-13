@@ -118,6 +118,17 @@ lemma apSumFrom_tail_eq_sub (f : ℕ → ℤ) (a d m n : ℕ) :
     simpa [add_comm] using h
   exact eq_sub_of_add_eq h'
 
+/-- Convenience: when `m ≤ n`, rewrite the affine tail sum of length `n - m` as a difference of
+affine AP partial sums.
+
+This is a wrapper around `apSumFrom_tail_eq_sub` that avoids the intermediate endpoint
+`m + (n - m)`.
+-/
+lemma apSumFrom_tail_eq_sub_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f (a + m * d) d (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa [Nat.add_sub_of_le hmn] using
+    (apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
 /-! A sign sequence has affine AP partial sums bounded by length: `|∑_{i=1}^n f (a + i*d)| ≤ n`. -/
 lemma IsSignSequence.natAbs_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence f) (a d n : ℕ) :
     Int.natAbs (apSumFrom f a d n) ≤ n := by

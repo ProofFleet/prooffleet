@@ -89,6 +89,17 @@ lemma apSum_sub_apSum_eq_apSumOffset (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hm
   have hmn' : m + (n - m) = n := Nat.add_sub_of_le hmn
   simpa [hmn'] using h
 
+/-- Convenience: when `m ≤ n`, rewrite an offset sum of length `n - m` as a difference of
+homogeneous AP partial sums.
+
+This is the inverse orientation of `apSum_sub_apSum_eq_apSumOffset`. It avoids the intermediate
+endpoint `m + (n - m)` that appears when expanding `apSumOffset` via `apSumOffset_eq_sub`.
+-/
+lemma apSumOffset_eq_apSum_sub_apSum_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = apSum f d n - apSum f d m := by
+  simpa [Nat.add_sub_of_le hmn] using
+    (apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n - m))
+
 /-- Difference of a longer homogeneous AP partial sum and its initial segment, in the `(m + n) - m`
 normal form.
 

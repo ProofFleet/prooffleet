@@ -165,6 +165,10 @@ example (hmn : m ≤ n) :
     (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
   simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
+example (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = apSum f d n - apSum f d m := by
+  simpa using apSumOffset_eq_apSum_sub_apSum_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
 example :
     (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
   simpa using sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
@@ -182,6 +186,10 @@ example (hmn : m ≤ n) :
     (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d (n - m) := by
   simpa using
     (sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn)
+
+example (hmn : m ≤ n) :
+    apSumFrom f (a + m * d) d (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using apSumFrom_tail_eq_sub_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn
 
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
