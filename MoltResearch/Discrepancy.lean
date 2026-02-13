@@ -36,7 +36,11 @@ Arithmetic progression sums:
   `apSumOffset_zero_m`.
   If `d = 1`, you can also rewrite directly to the plain interval sum
   `∑ i ∈ Icc 1 n, f i` via `apSum_one_d`.
+  If `d = 0`, simp to the expected “degenerate constant AP” form
+  `apSum f 0 n = n • f 0` via `apSum_zero_d`.
 - Prefer `apSumOffset f d m n` for “tail starting after `m` steps of length `n`”.
+  If `d = 0`, simp to the expected “degenerate constant AP” form
+  `apSumOffset f 0 m n = n • f 0` via `apSumOffset_zero_d`.
   For a head+tail decomposition, use `apSumOffset_succ_length`.
   For a right-end “append one term” decomposition, use `apSumOffset_succ`.
   Rewrite between tails and differences using `apSumOffset_eq_sub` and
@@ -190,6 +194,10 @@ example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
 example : apSum f 1 n = (Finset.Icc 1 n).sum f := by
   simpa using apSum_one_d (f := f) (n := n)
 
+-- Degenerate constant APs.
+example : apSum f 0 n = n • f 0 := by
+  simp
+
 example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
   simpa using apSum_eq_apSum_step_one (f := f) (d := d) (n := n)
 
@@ -203,6 +211,10 @@ example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
 example : apSumOffset f d m 0 = 0 := by
+  simp
+
+-- Degenerate constant AP tails.
+example : apSumOffset f 0 m n = n • f 0 := by
   simp
 
 example : apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
