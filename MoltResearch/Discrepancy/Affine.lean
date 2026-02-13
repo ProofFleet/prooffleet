@@ -86,6 +86,35 @@ lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
   unfold apSumFrom apSum
   rfl
 
+/-- Normal form: express an affine AP sum as a homogeneous sum with step size `1` by bundling the
+step size `d` into the summand.
+
+This is occasionally convenient when you want to reuse lemmas stated for `apSum` without first
+rewriting to `apSumFrom_eq_apSum_shift`.
+-/
+lemma apSumFrom_eq_apSum_step_one (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
+  unfold apSumFrom apSum
+  simp
+
+/-- Tail version of `apSumFrom_eq_apSum_step_one`.
+
+In “paper” notation, this rewrites
+`∑_{i=1}^n f ((a + m*d) + i*d)`
+into the step-one homogeneous sum
+`∑_{k=1}^n f (a + (m+k)*d)`.
+-/
+lemma apSumFrom_tail_eq_apSum_step_one (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n := by
+  classical
+  unfold apSumFrom apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hmul : m * d + (i + 1) * d = (m + (i + 1)) * d := by
+    simpa using (Nat.add_mul m (i + 1) d).symm
+  -- `simp` also reduces `((i+1) * 1)`.
+  simp [Nat.add_assoc, hmul]
+
 lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
   apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
   classical
