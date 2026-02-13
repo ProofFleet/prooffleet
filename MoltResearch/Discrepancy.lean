@@ -213,6 +213,19 @@ example :
 example : apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   simpa using apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n)
 
+-- Variable upper endpoints often appear in surface statements. When `m ≤ n`, normalize
+-- `∑ i ∈ Icc (m+1) n, ...` into the canonical tail length `n - m`.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
+  simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) := by
+  simpa using apSumOffset_eq_sum_Icc_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+  simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
+
 example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
   simpa using apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)
 
