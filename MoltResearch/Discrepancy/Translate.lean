@@ -74,10 +74,28 @@ lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   refine ⟨k, d, n, hd, ?_⟩
   simpa [apSum_map_add] using hgt
 
+/-- Variant of `HasDiscrepancyAtLeast.of_map_add` for translated functions written in the `k + x`
+form. -/
+lemma HasDiscrepancyAtLeast.of_map_add_left {f : ℕ → ℤ} {k C : ℕ} :
+  HasDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
+  have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
+    funext x
+    simp [Nat.add_comm]
+  simpa [hfun] using (HasDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C))
+
 lemma HasAffineDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   HasAffineDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   rintro ⟨a, d, n, hd, hgt⟩
   refine ⟨a + k, d, n, hd, ?_⟩
   simpa [apSumFrom_map_add] using hgt
+
+/-- Variant of `HasAffineDiscrepancyAtLeast.of_map_add` for translated functions written in the
+`k + x` form. -/
+lemma HasAffineDiscrepancyAtLeast.of_map_add_left {f : ℕ → ℤ} {k C : ℕ} :
+  HasAffineDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
+  have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
+    funext x
+    simp [Nat.add_comm]
+  simpa [hfun] using (HasAffineDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C))
 
 end MoltResearch
