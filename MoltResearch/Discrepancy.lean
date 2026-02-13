@@ -60,7 +60,8 @@ Arithmetic progression sums:
   `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_map_add`.
   If you want an offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, rewrite
   `apSumFrom f a d n` ↦ `apSumOffset (fun k => f (a + k)) d 0 n` via
-  `apSumFrom_eq_apSumOffset_shift`.
+  `apSumFrom_eq_apSumOffset_shift`. If you prefer the translation-friendly `k ↦ f (k + a)` form,
+  use `apSumFrom_eq_apSumOffset_shift_add`.
   If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
   `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).
@@ -68,6 +69,8 @@ Arithmetic progression sums:
   If you want the canonical offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, use
   `apSumFrom_sub_eq_apSumOffset_shift` for the `(m + n) - m` normal form, and
   `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift` for the general `m ≤ n` case.
+  If you prefer the `k ↦ f (k + a)` form, use the `_shift_add` variants:
+  `apSumFrom_sub_eq_apSumOffset_shift_add` and `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add`.
   For tail-of-tail differences with the same start `a + m*d`, prefer
   `apSumFrom_tail_sub_eq_apSumFrom_tail` (tail difference → later tail) or, if you want the offset
   normal form on the shifted sequence `k ↦ f (a + k)`,
