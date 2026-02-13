@@ -319,6 +319,13 @@ example : apSumFrom f a d 0 = 0 := by
 example : apSumFrom f a d (n + 1) = f (a + d) + apSumFrom f (a + d) d n := by
   simpa using apSumFrom_succ_length (f := f) (a := a) (d := d) (n := n)
 
+example :
+    apSumFrom f a d (n₁ + n₂) = apSumFrom f a d n₁ + apSumFrom f (a + n₁ * d) d n₂ := by
+  simpa using apSumFrom_add_length (f := f) (a := a) (d := d) (m := n₁) (n := n₂)
+
+example : apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
+  simpa using apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := n)
+
 example : apSumFrom f a 0 n = n • f a := by
   simp
 
