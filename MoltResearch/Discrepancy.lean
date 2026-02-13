@@ -28,7 +28,9 @@ canonical shapes that downstream files can rewrite into and then work with.
 Arithmetic progression sums:
 - Prefer `apSum f d n` for homogeneous AP sums. Split lengths via `apSum_add_length`.
   For a head+tail decomposition, use `apSum_succ_length`. For a right-end “append one term”
-  decomposition, use `apSum_succ`.
+  decomposition, use `apSum_succ`. For a “step-one” normalization (bundle the step size `d`
+  into the summand), rewrite
+  `apSum f d n` ↦ `apSum (fun k => f (k * d)) 1 n` via `apSum_eq_apSum_step_one`.
   If an `apSumOffset` appears with `m = 0`, rewrite it back to `apSum` via
   `apSumOffset_zero_m`.
   If `d = 1`, you can also rewrite directly to the plain interval sum
@@ -171,6 +173,9 @@ example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
 
 example : apSum f 1 n = (Finset.Icc 1 n).sum f := by
   simpa using apSum_one_d (f := f) (n := n)
+
+example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
+  simpa using apSum_eq_apSum_step_one (f := f) (d := d) (n := n)
 
 example : apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
   simpa using apSum_succ (f := f) (d := d) (n := n)

@@ -384,6 +384,17 @@ lemma apSum_eq_apSumOffset (f : ℕ → ℤ) (d n : ℕ) : apSum f d n = apSumOf
   unfold apSum apSumOffset
   simp
 
+/-- Normal form (“step-one”): express a homogeneous AP sum as an `apSum` with step size `1`
+by bundling the step size `d` into the summand.
+
+This is the homogeneous analogue of `apSumOffset_eq_apSum_step_one` and
+`apSumFrom_eq_apSum_step_one`.
+-/
+lemma apSum_eq_apSum_step_one (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d n = apSum (fun k => f (k * d)) 1 n := by
+  unfold apSum
+  simp
+
 /-- Normal form: an offset sum with `m = 0` is just the homogeneous sum `apSum`.
 
 Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
