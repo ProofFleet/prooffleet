@@ -359,13 +359,26 @@ lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
 @[simp] lemma apSum_two (f : ℕ → ℤ) (d : ℕ) : apSum f d 2 = f d + f (2 * d) := by
   simpa [apSum_one] using (apSum_succ (f := f) (d := d) (n := 1))
 
-/-- Split `apSum` over a sum of lengths: `apSum f d (m + n)` equals the sum over the first `m` terms plus the sum over the next `n` terms. -/
+/-- Split `apSum` over a sum of lengths: `apSum f d (m + n)` equals the sum over the first `m`
+terms plus the sum over the next `n` terms. -/
 lemma apSum_add_length (f : ℕ → ℤ) (d m n : ℕ) :
     apSum f d (m + n) = apSum f d m + apSumOffset f d m n := by
   classical
   unfold apSum apSumOffset
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (fun i => f ((i + 1) * d)) m n)
+
+/-- First-term decomposition for a homogeneous AP sum.
+
+This is a convenient “head + tail” normal form, pairing the first term `f d` with an offset sum.
+Compare `apSumOffset_succ_length` for the analogous lemma on `apSumOffset`.
+-/
+lemma apSum_succ_length (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (n + 1) = f d + apSumOffset f d 1 n := by
+  -- rewrite using the length-splitting lemma at `m = 1`
+  have h := apSum_add_length (f := f) (d := d) (m := 1) (n := n)
+  -- normalize `1 + n` to `n + 1` and `apSum f d 1` to `f d`
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using h
 
 -- (See `MoltResearch/Discrepancy/Offset.lean` for `apSumOffset_eq_sub` and related lemmas.)
 
