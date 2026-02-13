@@ -290,6 +290,40 @@ theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_
   · intro h C
     exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one_witness_pos (f := f) (C := C)).2 (h C)
 
+/-- Variant of `HasDiscrepancyAtLeast_iff_exists_sum_Icc` that also records the (automatic)
+side condition `n > 0`.
+
+This is the closest match to the usual “paper statement” of the Erdős discrepancy problem: a
+positive step size `d > 0`, a positive length, and an interval sum exceeding the bound.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_sum_Icc_witness_pos {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ,
+        d > 0 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  constructor
+  · intro h
+    rcases
+        (HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one_witness_pos (f := f) (C := C)).1 h with
+      ⟨d, n, hd, hn, hgt⟩
+    exact ⟨d, n, lt_of_lt_of_le Nat.zero_lt_one hd, hn, hgt⟩
+  · rintro ⟨d, n, hd, hn, hgt⟩
+    refine (HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one_witness_pos (f := f) (C := C)).2 ?_
+    exact ⟨d, n, Nat.succ_le_of_lt hd, hn, hgt⟩
+
+/-- Bridge: `∀ C, HasDiscrepancyAtLeast f C` written in the interval-sum witness normal form
+with side conditions `d > 0` and `n > 0`.
+-/
+theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ d n : ℕ,
+          d > 0 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
+  constructor
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc_witness_pos (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc_witness_pos (f := f) (C := C)).2 (h C)
+
 /-- Bridge: the unbounded discrepancy statement phrased using `HasDiscrepancyAtLeast`
 is equivalent to the more explicit “interval sum” form `∑ i ∈ Icc 1 n, f (i*d)`.
 

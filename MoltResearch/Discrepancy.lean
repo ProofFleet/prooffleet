@@ -92,6 +92,8 @@ Discrepancy predicates / witnesses:
   `forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos`.
   If you want paper notation, further rewrite to an explicit interval-sum witness form via
   `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos`.
+  If you prefer a strict-positivity step-size side condition `d > 0` (instead of `d ≥ 1`), use
+  `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`.
 - For affine discrepancy, the analogous “paper notation” witness normal form is
   `forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos`.
   If you want to eliminate affine sums entirely, you can also rewrite affine unbounded discrepancy to
@@ -285,6 +287,13 @@ example :
         ∃ d n : ℕ,
           d ≥ 1 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
   simpa using forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos (f := f)
+
+example :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ d n : ℕ,
+          d > 0 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
+  simpa using forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos (f := f)
 
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ (∀ C : ℕ, Nonempty (DiscrepancyWitnessPos f C)) := by
