@@ -60,6 +60,28 @@ lemma apSum_sub_apSum_eq_apSumOffset (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hm
   have hmn' : m + (n - m) = n := Nat.add_sub_of_le hmn
   simpa [hmn'] using h
 
+/-- Difference of a longer homogeneous AP partial sum and its initial segment, in the `(m + n) - m`
+normal form.
+
+This lemma is a convenience wrapper around `apSumOffset_eq_sub`, oriented so that rewriting
+turns a subtraction into an explicit offset sum.
+-/
+lemma apSum_sub_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Rewrite the normal-form difference `apSum f d (m+n) - apSum f d m` as an interval sum
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`.
+
+This is intended for surface statements: keep the nucleus API in terms of `apSumOffset` and use
+this lemma only when matching paper notation.
+-/
+lemma apSum_sub_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+  -- Rewrite subtraction to an offset sum, then to an interval sum.
+  simp [apSum_sub_eq_apSumOffset, apSumOffset_eq_sum_Icc]
+
 /-- Express `apSumOffset` as an `apSum` with step `1`. -/
 lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by

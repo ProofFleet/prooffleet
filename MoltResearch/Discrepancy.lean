@@ -29,8 +29,10 @@ Arithmetic progression sums:
 - Prefer `apSum f d n` for homogeneous AP sums. Split lengths via `apSum_add_length`.
 - Prefer `apSumOffset f d m n` for “tail starting after `m` steps of length `n`”.
   Rewrite between tails and differences using `apSumOffset_eq_sub` and
-  `apSum_sub_apSum_eq_apSumOffset`. For paper notation, rewrite to an interval sum via
-  `apSumOffset_eq_sum_Icc`.
+  `apSum_sub_apSum_eq_apSumOffset`. When you are already in the canonical `(m + n) - m` form,
+  prefer `apSum_sub_eq_apSumOffset` (subtraction → tail) for rewriting.
+  For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc` (or directly via
+  `apSum_sub_eq_sum_Icc` when starting from a difference).
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
   Split lengths via `apSumFrom_add_length`.
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
