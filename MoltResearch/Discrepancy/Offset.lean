@@ -113,6 +113,18 @@ lemma apSumOffset_eq_apSum_shift (f : ℕ → ℤ) (d m n : ℕ) :
 
 -- (lemma `apSumOffset_add_length` moved to `MoltResearch/Discrepancy/Basic.lean`)
 
+/-- Split an offset AP sum at an intermediate length `n₁` when `n₁ ≤ n₂`.
+
+This is the offset-sum analogue of `apSumFrom_eq_add_apSumFrom_tail`.
+-/
+lemma apSumOffset_eq_add_apSumOffset_tail (f : ℕ → ℤ) (d m : ℕ) {n₁ n₂ : ℕ}
+    (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) (n₂ - n₁) := by
+  -- Rewrite `n₂` as `n₁ + (n₂ - n₁)` and apply `apSumOffset_add_length`.
+  simpa [Nat.add_sub_of_le hn] using
+    (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂ - n₁))
+
 /-- First term of an offset AP sum. -/
 lemma apSumOffset_succ_length (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
