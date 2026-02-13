@@ -40,8 +40,9 @@ Arithmetic progression sums:
   `apSumOffset_sub_eq_apSumOffset_tail` (normal form) or `apSumOffset_sub_apSumOffset_eq_apSumOffset`
   (when a length inequality `n₁ ≤ n₂` is available). To split an offset sum at an intermediate
   length, use `apSumOffset_eq_add_apSumOffset_tail`.
-  For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc`; for the normal-form
-  difference of offset sums, use `apSumOffset_sub_eq_sum_Icc`. If your surface statement uses a
+  For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc` (and split such
+  interval sums into consecutive blocks via `sum_Icc_add_length`); for the normal-form difference
+  of offset sums, use `apSumOffset_sub_eq_sum_Icc`. If your surface statement uses a
   “variable” upper endpoint `n` (with a hypothesis `m ≤ n`), normalize using
   `sum_Icc_eq_apSumOffset_of_le` (paper → nucleus) and `apSumOffset_eq_sum_Icc_of_le` (nucleus →
   paper). (Or rewrite directly via `apSum_sub_eq_sum_Icc` when starting from a difference, and

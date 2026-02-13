@@ -61,6 +61,29 @@ lemma sum_Icc_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Split the “paper notation” interval sum
+`∑ i ∈ Icc (m+1) (m+(n₁+n₂)), f (i*d)` into the first `n₁` terms and the next `n₂` terms.
+
+This is the interval-sum counterpart of the nucleus normal form `apSumOffset_add_length`.
+-/
+lemma sum_Icc_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+  classical
+  -- Normalize to offset sums, split by length, then rewrite back to interval sums.
+  calc
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))
+        = apSumOffset f d m (n₁ + n₂) := by
+            simpa using
+              (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n₁ + n₂))
+    _ = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+            simpa using
+              (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+    _ = (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) +
+          (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+            simp [apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-- Normal form: when `m ≤ n`, rewrite the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) n, f (i*d)` back to `apSumOffset f d m (n - m)`.
 
