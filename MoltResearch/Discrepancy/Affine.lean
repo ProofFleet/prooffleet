@@ -51,6 +51,15 @@ lemma apSumFrom_eq_sum_Icc (f : ℕ → ℤ) (a d n : ℕ) :
     _ = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
             simpa [Finset.Ico_add_one_right_eq_Icc]
 
+/-- Special case: step size `d = 1` turns `apSumFrom` into the plain interval sum
+`∑ i ∈ Icc 1 n, f (a + i)`.
+
+This is often a convenient normal form when the AP step is already normalized.
+-/
+lemma apSumFrom_one_d (f : ℕ → ℤ) (a n : ℕ) :
+    apSumFrom f a 1 n = (Finset.Icc 1 n).sum (fun i => f (a + i)) := by
+  simpa using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := 1) (n := n))
+
 /-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (a + i*d)` back to
 `apSumFrom`.
 

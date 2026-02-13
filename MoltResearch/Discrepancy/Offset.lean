@@ -52,6 +52,15 @@ lemma apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
                   (Finset.Ico_add_one_right_eq_Icc (a := m + 1) (b := m + n))
             simpa [hend] using hsum
 
+/-- Special case: step size `d = 1` turns `apSumOffset` into the plain interval sum
+`∑ i ∈ Icc (m+1) (m+n), f i`.
+
+This is a small convenience wrapper around `apSumOffset_eq_sum_Icc`.
+-/
+lemma apSumOffset_one_d (f : ℕ → ℤ) (m n : ℕ) :
+    apSumOffset f 1 m n = (Finset.Icc (m + 1) (m + n)).sum f := by
+  simpa using (apSumOffset_eq_sum_Icc (f := f) (d := 1) (m := m) (n := n))
+
 /-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc (m+1) (m+n), f (i*d)` back
 to `apSumOffset`.
 

@@ -221,6 +221,13 @@ lemma sum_Icc_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
     (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
   simpa using (apSum_eq_sum_Icc (f := f) (d := d) (n := n)).symm
 
+/-- Special case: step size `d = 1` turns `apSum` into the plain interval sum `∑ i ∈ Icc 1 n, f i`.
+
+This is often the most readable surface form when you have already normalized the step size.
+-/
+lemma apSum_one_d (f : ℕ → ℤ) (n : ℕ) : apSum f 1 n = (Finset.Icc 1 n).sum f := by
+  simpa using (apSum_eq_sum_Icc (f := f) (d := 1) (n := n))
+
 /-- `HasDiscrepancyAtLeast` can be stated using the more familiar interval sum
 `∑ i ∈ Icc 1 n, f (i*d)`.
 
