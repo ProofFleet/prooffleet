@@ -183,6 +183,25 @@ lemma sum_Icc_eq_apSum_sub_apSum_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (
     (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSum f d n - apSum f d m := by
   simpa using (apSum_sub_apSum_eq_sum_Icc (f := f) (d := d) (m := m) (n := n) hmn).symm
 
+/-- Normal form (“step-one”): express an offset AP sum as an `apSumOffset` with step size `1`
+by bundling the step size `d` into the summand.
+
+This is the offset-sum analogue of `apSum_eq_apSum_step_one`.
+-/
+lemma apSumOffset_eq_apSumOffset_step_one (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (k * d)) 1 m n := by
+  unfold apSumOffset
+  simp
+
+/-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+-/
+lemma apSumOffset_step_one_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (k * d)) 1 m n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSumOffset_step_one (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Express `apSumOffset` as an `apSum` with step `1`. -/
 lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
