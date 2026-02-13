@@ -73,6 +73,16 @@ lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one {f : ℕ → ℤ} {C : ℕ}
   rcases h with ⟨d, n, hd, hgt⟩
   exact ⟨d, n, Nat.succ_le_of_lt hd, hgt⟩
 
+/-- From a discrepancy witness obtain `d ≥ 1` *and* `n > 0`.
+
+This is a common “surface statement” normal form when working with natural step sizes.
+-/
+lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one_pos {f : ℕ → ℤ} {C : ℕ}
+    (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  rcases HasDiscrepancyAtLeast.exists_witness_pos (h := h) with ⟨d, n, hd, hn, hgt⟩
+  exact ⟨d, n, Nat.succ_le_of_lt hd, hn, hgt⟩
+
 /-- `HasDiscrepancyAtLeast` can be stated with `d` and `n` both positive.
 
 This is often the most readable form for conjecture statements, and it lets you
