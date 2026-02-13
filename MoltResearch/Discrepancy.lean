@@ -48,6 +48,7 @@ Arithmetic progression sums:
   `apSum_sub_apSum_eq_sum_Icc` when starting from `apSum … n - apSum … m` with `m ≤ n`).
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
   Split lengths via `apSumFrom_add_length`.
+  If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
   `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).
   For differences with an inequality `m ≤ n`, use `apSumFrom_sub_apSumFrom_eq_apSumFrom`.
@@ -193,6 +194,9 @@ example :
 
 example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
   simpa using apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a 0 n = n • f a := by
+  simp
 
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =

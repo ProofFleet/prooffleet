@@ -22,6 +22,12 @@ def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   unfold apSumFrom
   simp
 
+/-- Corner case: step size `d = 0` collapses the affine AP to the constant value `a`. -/
+@[simp] lemma apSumFrom_zero_d (f : ℕ → ℤ) (a n : ℕ) :
+    apSumFrom f a 0 n = n • f a := by
+  classical
+  simp [apSumFrom]
+
 /-- Rewrite `apSumFrom` as the familiar interval sum `∑ i ∈ Icc 1 n, f (a + i*d)`.
 
 This is intended for surface statements: keep the nucleus API in terms of `apSumFrom`, and
