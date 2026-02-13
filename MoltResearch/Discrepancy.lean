@@ -40,9 +40,11 @@ Arithmetic progression sums:
   (when a length inequality `n₁ ≤ n₂` is available). To split an offset sum at an intermediate
   length, use `apSumOffset_eq_add_apSumOffset_tail`.
   For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc`; for the normal-form
-  difference of offset sums, use `apSumOffset_sub_eq_sum_Icc`. (Or rewrite directly via
-  `apSum_sub_eq_sum_Icc` when starting from a difference, and `apSum_sub_apSum_eq_sum_Icc` when
-  starting from `apSum … n - apSum … m` with `m ≤ n`).
+  difference of offset sums, use `apSumOffset_sub_eq_sum_Icc`. If your surface statement uses a
+  “variable” upper endpoint `n` (with a hypothesis `m ≤ n`), normalize using
+  `sum_Icc_eq_apSumOffset_of_le` (paper → nucleus) and `apSumOffset_eq_sum_Icc_of_le` (nucleus →
+  paper). (Or rewrite directly via `apSum_sub_eq_sum_Icc` when starting from a difference, and
+  `apSum_sub_apSum_eq_sum_Icc` when starting from `apSum … n - apSum … m` with `m ≤ n`).
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
   Split lengths via `apSumFrom_add_length`.
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
@@ -158,6 +160,10 @@ example :
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
   simpa using sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
+  simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
 example :
     (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by

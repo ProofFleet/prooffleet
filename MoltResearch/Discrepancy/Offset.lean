@@ -61,6 +61,26 @@ lemma sum_Icc_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Normal form: when `m ≤ n`, rewrite the “paper notation” interval sum
+`∑ i ∈ Icc (m+1) n, f (i*d)` back to `apSumOffset f d m (n - m)`.
+
+This is a convenience wrapper around `sum_Icc_eq_apSumOffset` that normalizes the upper endpoint
+into the canonical `(m + (n - m))` form.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
+  simpa [Nat.add_sub_of_le hmn] using
+    (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n - m))
+
+/-- Surface form: when `m ≤ n`, rewrite the offset sum `apSumOffset f d m (n - m)` as the
+interval sum `∑ i ∈ Icc (m+1) n, f (i*d)`.
+
+This is the inverse orientation of `sum_Icc_eq_apSumOffset_of_le`.
+-/
+lemma apSumOffset_eq_sum_Icc_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) := by
+  simpa using (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn).symm
+
 /-- Difference of two homogeneous AP partial sums as an offset AP sum when `m ≤ n`. -/
 lemma apSum_sub_apSum_eq_apSumOffset (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
