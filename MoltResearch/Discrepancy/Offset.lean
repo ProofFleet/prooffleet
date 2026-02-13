@@ -157,6 +157,26 @@ lemma apSumOffset_sub_eq_apSumOffset_tail (f : ℕ → ℤ) (d m n₁ n₂ : ℕ
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
   simpa using (apSumOffset_tail_eq_sub (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)).symm
 
+/-- Rewrite the normal-form difference `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁`
+as the “paper notation” interval sum `∑ i ∈ Icc (m+n₁+1) (m+n₁+n₂), f (i*d)`.
+
+This is intended for surface statements: keep the nucleus API in terms of `apSumOffset` and use
+this lemma only when matching paper notation.
+-/
+lemma apSumOffset_sub_eq_sum_Icc (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+  -- First rewrite the subtraction to a tail sum, then rewrite that tail to an interval sum.
+  calc
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁
+        = apSumOffset f d (m + n₁) n₂ := by
+            simpa using
+              (apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁)
+                (n₂ := n₂))
+    _ = (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+            simpa [Nat.add_assoc] using
+              (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m + n₁) (n := n₂))
+
 /-- Difference of two offset sums over the same start `m` as a tail sum when `n₁ ≤ n₂`. -/
 lemma apSumOffset_sub_apSumOffset_eq_apSumOffset (f : ℕ → ℤ) (d m : ℕ) {n₁ n₂ : ℕ}
     (hn : n₁ ≤ n₂) :
