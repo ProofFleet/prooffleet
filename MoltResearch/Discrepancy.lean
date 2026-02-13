@@ -261,6 +261,14 @@ example (hn : n₁ ≤ n₂) :
     apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁)
       (n₂ := n₂) (hn := hn)
 
+-- Splitting a longer tail into an initial segment plus a (normalized) later tail.
+example (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) (n₂ - n₁) := by
+  simpa using
+    apSumOffset_eq_add_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+      (hn := hn)
+
 example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
       (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
