@@ -64,6 +64,8 @@ Arithmetic progression sums:
   For a right-end “append one term” decomposition, use `apSumFrom_succ`.
   For a translation-friendly homogeneous-sum view, rewrite
   `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_map_add`.
+  If you prefer the “constant on the left” convention, use
+  `apSumFrom_eq_apSum_map_add_left` to get `apSum (fun k => f (a + k)) d n`.
   For a “step-one” normalization (useful when you want to treat the AP step as part of the
   summand), rewrite
   `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k * d)) 1 n` via `apSumFrom_eq_apSum_step_one`,
@@ -272,6 +274,9 @@ example : apSumFrom f a 0 n = n • f a := by
 
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
   simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)
