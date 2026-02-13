@@ -145,6 +145,22 @@ lemma IsSignSequence.eq_one_or_eq_neg_one {f : ℕ → ℤ} (hf : IsSignSequence
     f n = 1 ∨ f n = -1 :=
   hf n
 
+/-- A sign sequence stays a sign sequence after reindexing by any function `g : ℕ → ℕ`. -/
+lemma IsSignSequence.comp {f : ℕ → ℤ} (g : ℕ → ℕ) (hf : IsSignSequence f) :
+    IsSignSequence (fun n => f (g n)) := by
+  intro n
+  simpa using hf (g n)
+
+/-- Reindexing a sign sequence by a fixed additive shift preserves the sign-sequence property. -/
+lemma IsSignSequence.map_add {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequence f) :
+    IsSignSequence (fun n => f (n + k)) :=
+  IsSignSequence.comp (f := f) (fun n => n + k) hf
+
+/-- Reindexing a sign sequence by a fixed multiplicative map preserves the sign-sequence property. -/
+lemma IsSignSequence.map_mul {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequence f) :
+    IsSignSequence (fun n => f (n * k)) :=
+  IsSignSequence.comp (f := f) (fun n => n * k) hf
+
 lemma IsSignSequence.natAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     Int.natAbs (f n) = 1 := by
   rcases hf n with h | h <;> simp [h]
