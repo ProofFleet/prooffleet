@@ -312,14 +312,35 @@ lemma apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
 
 This can be a convenient normal form when you want to treat offset sums as homogeneous sums on a
 shifted sequence, so that subsequent rewriting/simp lemmas only have to handle the `m = 0` case.
+
+We provide both an `m*d + k` variant (constant on the left) and a translation-friendly `k + m*d`
+variant (constant on the right).
 -/
-lemma apSumOffset_eq_apSumOffset_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
-    apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+lemma apSumOffset_eq_apSumOffset_shift (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (m * d + k)) d 0 n := by
   unfold apSumOffset
   refine Finset.sum_congr rfl ?_
   intro i hi
   -- Both sides simplify to the same shifted index `m*d + (i+1)*d`.
   simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul]
+
+/-- Translation-friendly variant of `apSumOffset_eq_apSumOffset_shift` written in the `k + const` form.
+
+This can be convenient when composing with lemmas that are oriented as `x ↦ x + k`.
+-/
+lemma apSumOffset_eq_apSumOffset_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+  -- Start from the `m*d + k` form and commute the addition in the summand.
+  have h := apSumOffset_eq_apSumOffset_shift (f := f) (d := d) (m := m) (n := n)
+  -- Rewrite `m*d + k` to `k + m*d` pointwise.
+  unfold apSumOffset at h ⊢
+  -- `simp` can now do the pointwise arithmetic normalization.
+  simpa [Nat.add_comm] using h
+
+/-- Inverse orientation of `apSumOffset_eq_apSumOffset_shift`. -/
+lemma apSumOffset_shift_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (m * d + k)) d 0 n = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_apSumOffset_shift (f := f) (d := d) (m := m) (n := n)).symm
 
 /-- Inverse orientation of `apSumOffset_eq_apSumOffset_shift_add`.
 
@@ -328,8 +349,7 @@ shifted-sequence view and eliminate the offset parameter `m`.
 -/
 lemma apSumOffset_shift_add_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f (k + m * d)) d 0 n = apSumOffset f d m n := by
-  simpa using
-    (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)).symm
+  simpa using (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)).symm
 
 -- (lemma `apSumOffset_add_length` moved to `MoltResearch/Discrepancy/Basic.lean`)
 

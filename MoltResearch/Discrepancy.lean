@@ -70,8 +70,10 @@ Arithmetic progression sums:
       `apSumOffset_eq_apSum_shift_add` (translation-friendly `k + const` form).
     - If you want to keep an `apSumOffset` shape while eliminating the explicit offset parameter,
       rewrite
-      `apSumOffset f d m n` ↦ `apSumOffset (fun k => f (k + m * d)) d 0 n` via
-      `apSumOffset_eq_apSumOffset_shift_add`.
+      `apSumOffset f d m n` ↦ `apSumOffset (fun k => f (m * d + k)) d 0 n` via
+      `apSumOffset_eq_apSumOffset_shift`.
+      If you prefer the translation-friendly `k + m*d` form, use
+      `apSumOffset_eq_apSumOffset_shift_add` instead.
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
   Split lengths via `apSumFrom_add_length`.
   For a right-end “append one term” decomposition, use `apSumFrom_succ`.
@@ -254,6 +256,9 @@ example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
 
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSumOffset (fun k => f (m * d + k)) d 0 n := by
+  simpa using apSumOffset_eq_apSumOffset_shift (f := f) (d := d) (m := m) (n := n)
 
 example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
   simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
