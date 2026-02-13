@@ -42,6 +42,23 @@ lemma apSumFrom_tail_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
     _ = f (a + ((m + i + 1) * d)) := by
       simp [hmul]
 
+/-- Normal form: rewrite the canonical affine difference `(m+n) - m` as an offset AP sum on the
+shifted sequence `k ↦ f (a + k)`.
+
+This is the `apSumFrom` analogue of `apSum_sub_eq_apSumOffset`, oriented so that rewriting turns a
+subtraction into an explicit `apSumOffset` tail.
+-/
+lemma apSumFrom_sub_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (a + k)) d m n := by
+  calc
+    apSumFrom f a d (m + n) - apSumFrom f a d m
+        = apSumFrom f (a + m * d) d n := by
+            simpa using
+              (apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = apSumOffset (fun k => f (a + k)) d m n := by
+            simpa using
+              (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Rewrite the affine tail sum `apSumFrom f (a + m*d) d n` as the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)`.
 

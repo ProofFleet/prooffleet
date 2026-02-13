@@ -47,7 +47,8 @@ Arithmetic progression sums:
   `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).
   For differences with an inequality `m ≤ n`, use `apSumFrom_sub_apSumFrom_eq_apSumFrom`.
   If you want the canonical offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, use
-  `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift`.
+  `apSumFrom_sub_eq_apSumOffset_shift` for the `(m + n) - m` normal form, and
+  `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift` for the general `m ≤ n` case.
   For paper notation, rewrite:
   - `apSumFrom f a d n` via `apSumFrom_eq_sum_Icc`,
   - tails `apSumFrom f (a + m*d) d n` via `apSumFrom_tail_eq_sum_Icc`,
@@ -97,7 +98,7 @@ namespace MoltResearch
 
 section NormalFormExamples
 
-variable (f : ℕ → ℤ) (d m n : ℕ)
+variable (f : ℕ → ℤ) (a d m n : ℕ)
 
 example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
   simpa using apSum_eq_sum_Icc (f := f) (d := d) (n := n)
@@ -110,6 +111,11 @@ example :
 example :
     apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
   simpa using apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
 
 end NormalFormExamples
 
