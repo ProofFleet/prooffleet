@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.Affine
+import MoltResearch.Discrepancy.Offset
 
 /-!
 # Discrepancy: tail/splitting lemmas for `apSumFrom`
@@ -23,6 +24,67 @@ turns a subtraction into an explicit tail sum.
 lemma apSumFrom_sub_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
   simpa using (apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
+/-- Tail affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (a + k)`. -/
+lemma apSumFrom_tail_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  classical
+  unfold apSumFrom apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hmul : m * d + (i + 1) * d = (m + i + 1) * d := by
+    -- `Nat.add_mul` gives `(m + (i+1)) * d = m*d + (i+1)*d`.
+    -- We use it backwards and normalize `m + (i+1)` to `m + i + 1`.
+    simpa [Nat.add_assoc] using (Nat.add_mul m (i + 1) d).symm
+  calc
+    f ((a + m * d) + (i + 1) * d) = f (a + (m * d + (i + 1) * d)) := by
+      simp [Nat.add_assoc]
+    _ = f (a + ((m + i + 1) * d)) := by
+      simp [hmul]
+
+/-- Rewrite the normal-form difference `apSumFrom f a d (m+n) - apSumFrom f a d m` as an
+interval sum `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)`.
+
+This is intended for surface statements: keep the nucleus API in terms of `apSumFrom` and use
+this lemma only when matching paper notation.
+-/
+lemma apSumFrom_sub_eq_sum_Icc (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) := by
+  calc
+    apSumFrom f a d (m + n) - apSumFrom f a d m
+        = apSumFrom f (a + m * d) d n := by
+            simpa using
+              (apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = apSumOffset (fun k => f (a + k)) d m n := by
+            simpa using
+              (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) := by
+            simpa using
+              (apSumOffset_eq_sum_Icc (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
+
+/-- When `m ≤ n`, rewrite `apSumFrom f a d n - apSumFrom f a d m` as an interval sum
+`∑ i ∈ Icc (m+1) n, f (a + i*d)`.
+
+This is the “paper notation” counterpart of `apSumFrom_sub_apSumFrom_eq_apSumFrom`.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_sum_Icc (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) := by
+  calc
+    apSumFrom f a d n - apSumFrom f a d m
+        = apSumFrom f (a + m * d) d (n - m) := by
+            simpa using
+              (apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (hmn := hmn))
+    _ = apSumOffset (fun k => f (a + k)) d m (n - m) := by
+            simpa using
+              (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m)
+                (n := n - m))
+    _ = (Finset.Icc (m + 1) (m + (n - m))).sum (fun i => f (a + i * d)) := by
+            simpa using
+              (apSumOffset_eq_sum_Icc (f := fun k => f (a + k)) (d := d) (m := m) (n := n - m))
+    _ = (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) := by
+            simp [Nat.add_sub_of_le hmn]
 
 /-- Sign-sequence bound on `apSumFrom` in the `(m + n) - m` normal form. -/
 lemma IsSignSequence.natAbs_apSumFrom_sub_le {f : ℕ → ℤ} (hf : IsSignSequence f)
