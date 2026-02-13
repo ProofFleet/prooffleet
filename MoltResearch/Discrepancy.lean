@@ -27,6 +27,8 @@ canonical shapes that downstream files can rewrite into and then work with.
 
 Arithmetic progression sums:
 - Prefer `apSum f d n` for homogeneous AP sums. Split lengths via `apSum_add_length`.
+  If an `apSumOffset` appears with `m = 0`, rewrite it back to `apSum` via
+  `apSumOffset_zero_m`.
 - Prefer `apSumOffset f d m n` for “tail starting after `m` steps of length `n`”.
   Rewrite between tails and differences using `apSumOffset_eq_sub` and
   `apSum_sub_apSum_eq_apSumOffset`. When you are already in the canonical `(m + n) - m` form,

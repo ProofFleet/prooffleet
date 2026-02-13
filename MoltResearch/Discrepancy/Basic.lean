@@ -261,6 +261,11 @@ lemma apSum_eq_apSumOffset (f : ℕ → ℤ) (d n : ℕ) : apSum f d n = apSumOf
   unfold apSum apSumOffset
   simp
 
+/-- Normal form: an offset sum with `m = 0` is just the homogeneous sum `apSum`. -/
+lemma apSumOffset_zero_m (f : ℕ → ℤ) (d n : ℕ) : apSumOffset f d 0 n = apSum f d n := by
+  unfold apSumOffset apSum
+  simp
+
 lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
     apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
   classical
