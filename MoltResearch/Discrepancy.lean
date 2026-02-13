@@ -116,6 +116,9 @@ A typical rewrite pipeline:
    - Paper → nucleus:
      - `∑ i ∈ Icc 1 n, f (i*d)` ↦ `apSum f d n` via `sum_Icc_eq_apSum`.
      - `∑ i ∈ Icc (m+1) (m+n), f (i*d)` ↦ `apSumOffset f d m n` via `sum_Icc_eq_apSumOffset`.
+       If you want a difference-of-partial-sums normal form directly, use `sum_Icc_eq_apSum_sub`.
+       If your surface statement uses `Icc (m+1) n` with a hypothesis `m ≤ n`, prefer
+       `sum_Icc_eq_apSumOffset_of_le` (tail form) or `sum_Icc_eq_apSum_sub_apSum_of_le` (difference form).
      - `∑ i ∈ Icc 1 n, f (a + i*d)` ↦ `apSumFrom f a d n` via `sum_Icc_eq_apSumFrom`.
      - `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` ↦ `apSumFrom f (a + m*d) d n` via
        `sum_Icc_eq_apSumFrom_tail`.
@@ -205,9 +208,17 @@ example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
   simpa using sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSum f d (m + n) - apSum f d m := by
+  simpa using sum_Icc_eq_apSum_sub (f := f) (d := d) (m := m) (n := n)
+
 example (hmn : m ≤ n) :
     (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
   simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSum f d n - apSum f d m := by
+  simpa using sum_Icc_eq_apSum_sub_apSum_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
 example (hmn : m ≤ n) :
     apSumOffset f d m (n - m) = apSum f d n - apSum f d m := by

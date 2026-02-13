@@ -133,6 +133,24 @@ lemma apSum_sub_apSum_eq_sum_Icc (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : 
   -- Rewrite the offset tail to an interval sum and simplify the endpoint `m + (n - m) = n`.
   simpa [apSumOffset_eq_sum_Icc, Nat.add_sub_of_le hmn] using h
 
+/-- Normal form (paper → nucleus, difference): rewrite the interval sum
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)` as the difference of homogeneous AP partial sums.
+
+This is the inverse orientation of `apSum_sub_eq_sum_Icc`.
+-/
+lemma sum_Icc_eq_apSum_sub (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSum f d (m + n) - apSum f d m := by
+  simpa using (apSum_sub_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Normal form (paper → nucleus, difference): when `m ≤ n`, rewrite
+`∑ i ∈ Icc (m+1) n, f (i*d)` as a difference of homogeneous AP partial sums.
+
+This is the inverse orientation of `apSum_sub_apSum_eq_sum_Icc`.
+-/
+lemma sum_Icc_eq_apSum_sub_apSum_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSum f d n - apSum f d m := by
+  simpa using (apSum_sub_apSum_eq_sum_Icc (f := f) (d := d) (m := m) (n := n) hmn).symm
+
 /-- Express `apSumOffset` as an `apSum` with step `1`. -/
 lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
