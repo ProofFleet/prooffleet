@@ -238,6 +238,40 @@ lemma HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one {f : ℕ → ℤ} {C : �
     refine ⟨d, n, hd, ?_⟩
     simpa [apSum_eq_sum_Icc] using hgt
 
+/-- Variant of `HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one` that also records the (automatic)
+side condition `n > 0`.
+
+This is often the cleanest “paper notation” witness normal form: a positive step size `d ≥ 1`,
+a positive length, and an interval sum exceeding the bound.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one_witness_pos {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ,
+        d ≥ 1 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  constructor
+  · intro h
+    rcases HasDiscrepancyAtLeast.exists_witness_pos (h := h) with ⟨d, n, hd, hn, hgt⟩
+    refine ⟨d, n, Nat.succ_le_of_lt hd, hn, ?_⟩
+    simpa [apSum_eq_sum_Icc] using hgt
+  · rintro ⟨d, n, hd, _hn, hgt⟩
+    refine ⟨d, n, ?_, ?_⟩
+    · exact lt_of_lt_of_le Nat.zero_lt_one hd
+    · simpa [apSum_eq_sum_Icc] using hgt
+
+/-- Bridge: `∀ C, HasDiscrepancyAtLeast f C` written in the interval-sum witness normal form
+with side conditions `d ≥ 1` and `n > 0`.
+-/
+theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ d n : ℕ,
+          d ≥ 1 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
+  constructor
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one_witness_pos (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one_witness_pos (f := f) (C := C)).2 (h C)
+
 /-- Bridge: the unbounded discrepancy statement phrased using `HasDiscrepancyAtLeast`
 is equivalent to the more explicit “interval sum” form `∑ i ∈ Icc 1 n, f (i*d)`.
 

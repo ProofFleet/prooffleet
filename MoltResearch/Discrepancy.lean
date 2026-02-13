@@ -54,7 +54,7 @@ Discrepancy predicates / witnesses:
   `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ …` via
   `forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos`.
   If you want paper notation, further rewrite to an explicit interval-sum witness form via
-  `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one`.
+  `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos`.
 - When the sequence is reindexed, prefer the dedicated transforms (`…of_map_mul`, `…of_map_add`)
   instead of re-proving the bookkeeping from scratch.
 - When scaling the sequence by a nonzero integer, prefer the dedicated scaling lemmas
