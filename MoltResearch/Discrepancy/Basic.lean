@@ -228,6 +228,22 @@ theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc (f : ℕ → ℤ)
   · intro h C
     exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc (f := f) (C := C)).2 (h C)
 
+/-- Variant of `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc` writing the step-size side
+condition as `d ≥ 1` instead of `d > 0`.
+
+This is often the most readable surface form when `d : ℕ`.
+-/
+theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ d n : ℕ,
+          d ≥ 1 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
+  constructor
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one (f := f) (C := C)).2 (h C)
+
 @[simp] lemma apSumOffset_zero (f : ℕ → ℤ) (d m : ℕ) : apSumOffset f d m 0 = 0 := by
   simp [apSumOffset]
 

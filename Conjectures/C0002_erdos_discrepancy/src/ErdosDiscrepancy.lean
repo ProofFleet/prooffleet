@@ -41,4 +41,15 @@ theorem erdos_discrepancy_sum_Icc (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc f).1
       (erdos_discrepancy (f := f) (hf := hf))
 
+/-- Variant of `erdos_discrepancy_sum_Icc` writing the step-size side condition as `d ≥ 1`.
+
+This is often the most readable surface form when `d : ℕ`.
+-/
+theorem erdos_discrepancy_sum_Icc_d_ge_one (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one f).1
+      (erdos_discrepancy (f := f) (hf := hf))
+
 end MoltResearch
