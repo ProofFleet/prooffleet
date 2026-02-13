@@ -53,6 +53,10 @@ Arithmetic progression sums:
   If you want the canonical offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, use
   `apSumFrom_sub_eq_apSumOffset_shift` for the `(m + n) - m` normal form, and
   `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift` for the general `m ≤ n` case.
+  For tail-of-tail differences with the same start `a + m*d`, prefer
+  `apSumFrom_tail_sub_eq_apSumFrom_tail` (tail difference → later tail) or, if you want the offset
+  normal form on the shifted sequence `k ↦ f (a + k)`,
+  `apSumFrom_tail_sub_eq_apSumOffset_shift_tail`.
   For paper notation, rewrite:
   - `apSumFrom f a d n` via `apSumFrom_eq_sum_Icc`,
   - tails `apSumFrom f (a + m*d) d n` via `apSumFrom_tail_eq_sum_Icc`,
@@ -190,6 +194,20 @@ example (hmn : m ≤ n) :
 example (hmn : m ≤ n) :
     apSumFrom f (a + m * d) d (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
   simpa using apSumFrom_tail_eq_sub_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumFrom f (a + (m + n₁) * d) d n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n1 := n₁)
+      (n2 := n₂)
+
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (a + k)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_tail (f := f) (a := a) (d := d) (m := m) (n1 := n₁)
+      (n2 := n₂)
 
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
