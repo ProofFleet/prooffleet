@@ -35,6 +35,7 @@ Arithmetic progression sums:
   `∑ i ∈ Icc 1 n, f i` via `apSum_one_d`.
 - Prefer `apSumOffset f d m n` for “tail starting after `m` steps of length `n`”.
   For a head+tail decomposition, use `apSumOffset_succ_length`.
+  For a right-end “append one term” decomposition, use `apSumOffset_succ`.
   Rewrite between tails and differences using `apSumOffset_eq_sub` and
   `apSum_sub_apSum_eq_apSumOffset`. When you are already in the canonical `(m + n) - m` form,
   prefer `apSum_sub_eq_apSumOffset` (subtraction → tail) for rewriting.
@@ -60,6 +61,7 @@ Arithmetic progression sums:
       `apSumOffset_eq_apSum_shift_add` (translation-friendly `k + const` form).
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
   Split lengths via `apSumFrom_add_length`.
+  For a right-end “append one term” decomposition, use `apSumFrom_succ`.
   For a translation-friendly homogeneous-sum view, rewrite
   `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_map_add`.
   For a “step-one” normalization (useful when you want to treat the AP step as part of the
@@ -180,6 +182,9 @@ example : apSumOffset f d 0 n = apSum f d n := by
 example : apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
   simpa using apSumOffset_succ_length (f := f) (d := d) (m := m) (n := n)
 
+example : apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
+  simpa using apSumOffset_succ (f := f) (d := d) (m := m) (n := n)
+
 example :
     apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
   simpa using apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
@@ -258,6 +263,9 @@ example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := b
 
 example : apSumFrom f a 1 n = (Finset.Icc 1 n).sum (fun i => f (a + i)) := by
   simpa using apSumFrom_one_d (f := f) (a := a) (n := n)
+
+example : apSumFrom f a d (n + 1) = apSumFrom f a d n + f (a + (n + 1) * d) := by
+  simpa using apSumFrom_succ (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a 0 n = n • f a := by
   simp
