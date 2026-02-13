@@ -48,6 +48,34 @@ Definition of done:
 
 Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should correspond to a reusable normal form.
 
+#### Track B normal-form guide (what we rewrite *to*)
+
+If you’re unsure “what shape should this lemma end in?”, default to the stable import surface:
+
+- Prefer `import MoltResearch.Discrepancy` in downstream files.
+- Prefer nucleus objects (`apSum`, `apSumOffset`, `apSumFrom`) internally.
+- Rewrite to paper notation (`Finset.Icc` sums) only at statement boundaries.
+
+Canonical shapes we try to normalize into:
+
+- Homogeneous AP sum: `apSum f d n` (paper: `∑ i ∈ Icc 1 n, f (i*d)`).
+- Offset/tail sum: `apSumOffset f d m n` (paper: `∑ i ∈ Icc (m+1) (m+n), f (i*d)`).
+- Affine AP sum: `apSumFrom f a d n` (paper: `∑ i ∈ Icc 1 n, f (a + i*d)`).
+
+Typical rewrite pipeline:
+
+1) Paper → nucleus (normalize endpoints)
+   - `sum_Icc_eq_apSum`, `sum_Icc_eq_apSumOffset`, `sum_Icc_eq_apSumFrom`.
+   - For variable upper endpoints with `m ≤ n`, prefer the `_of_le` lemmas.
+2) Differences → tails
+   - Rewrite `apSum … (m+n) - apSum … m` to `apSumOffset … m n`.
+3) Split by length (one-cut normal form)
+   - `apSum_add_length`, `apSumOffset_add_length`, `apSumFrom_add_length`.
+4) Only at the end: nucleus → paper
+   - `apSum_eq_sum_Icc`, `apSumOffset_eq_sum_Icc`, `apSumFrom_eq_sum_Icc`.
+
+(See `MoltResearch/Discrepancy.lean` for an expanded “normal forms” section with regression-test examples.)
+
 **Core nucleus (definitions + basic API)**
 - [x] `IsSignSequence` API: `natAbs_eq_one`, `ne_zero`, etc. (`Discrepancy/Basic.lean`)
 - [x] `HasDiscrepancyAtLeast` API: monotonicity + witness extraction (`Discrepancy/Basic.lean` + `Witness.lean`)
