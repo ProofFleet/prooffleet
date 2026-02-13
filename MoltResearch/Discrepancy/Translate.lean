@@ -46,27 +46,7 @@ lemma apSum_map_add_left (f : ℕ → ℤ) (k d n : ℕ) :
     simp [Nat.add_comm]
   simpa [hfun] using (apSum_map_add (f := f) (k := k) (d := d) (n := n))
 
-/-- Convenience: rewrite `apSumFrom` as an `apSum` on the additively shifted function
-`x ↦ f (x + a)`.
-
-This is just `apSum_map_add` with the symmetry flipped. It can be handy when a goal is already
-phrased as a translated homogeneous sum.
--/
-lemma apSumFrom_eq_apSum_map_add (f : ℕ → ℤ) (a d n : ℕ) :
-    apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
-  simpa using (apSum_map_add (f := f) (k := a) (d := d) (n := n)).symm
-
-/-- Variant of `apSumFrom_eq_apSum_map_add` where the translation is written in the `a + x` form.
-
-This is occasionally convenient when downstream rewriting prefers a “constant on the left” normal
-form (e.g. to match `simp [Nat.add_assoc]` patterns).
--/
-lemma apSumFrom_eq_apSum_map_add_left (f : ℕ → ℤ) (a d n : ℕ) :
-    apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
-  have hfun : (fun x => f (x + a)) = fun x => f (a + x) := by
-    funext x
-    simp [Nat.add_comm]
-  simpa [hfun] using (apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n))
+-- (moved to `Discrepancy/Affine.lean`)
 
 lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (m * d + k) d n := by
