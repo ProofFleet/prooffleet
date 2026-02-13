@@ -200,6 +200,9 @@ example : apSum f d (n + 1) = f d + apSumOffset f d 1 n := by
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
+example : apSumOffset f d m 0 = 0 := by
+  simp
+
 example : apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
   simpa using apSumOffset_succ_length (f := f) (d := d) (m := m) (n := n)
 
@@ -309,6 +312,12 @@ example : apSumFrom f a 1 n = (Finset.Icc 1 n).sum (fun i => f (a + i)) := by
 
 example : apSumFrom f a d (n + 1) = apSumFrom f a d n + f (a + (n + 1) * d) := by
   simpa using apSumFrom_succ (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d 0 = 0 := by
+  simp
+
+example : apSumFrom f a d (n + 1) = f (a + d) + apSumFrom f (a + d) d n := by
+  simpa using apSumFrom_succ_length (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a 0 n = n • f a := by
   simp
