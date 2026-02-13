@@ -27,7 +27,8 @@ canonical shapes that downstream files can rewrite into and then work with.
 
 Arithmetic progression sums:
 - Prefer `apSum f d n` for homogeneous AP sums. Split lengths via `apSum_add_length`.
-  For a head+tail decomposition, use `apSum_succ_length`.
+  For a head+tail decomposition, use `apSum_succ_length`. For a right-end “append one term”
+  decomposition, use `apSum_succ`.
   If an `apSumOffset` appears with `m = 0`, rewrite it back to `apSum` via
   `apSumOffset_zero_m`.
 - Prefer `apSumOffset f d m n` for “tail starting after `m` steps of length `n`”.
@@ -128,6 +129,9 @@ example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
 example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
   simpa using sum_Icc_eq_apSum (f := f) (d := d) (n := n)
 
+example : apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
+  simpa using apSum_succ (f := f) (d := d) (n := n)
+
 example : apSum f d (n + 1) = f d + apSumOffset f d 1 n := by
   simpa using apSum_succ_length (f := f) (d := d) (n := n)
 
@@ -140,6 +144,9 @@ example : apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) 
 example :
     apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
   simpa using apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+example : apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
+  simpa using apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n)
 
 example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
@@ -173,9 +180,19 @@ example (hmn : m ≤ n) :
     apSumOffset f d m (n - m) = apSum f d n - apSum f d m := by
   simpa using apSumOffset_eq_apSum_sub_apSum_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
+example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+  simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) := by
+  simpa using apSum_sub_apSum_eq_sum_Icc (f := f) (d := d) (m := m) (n := n) hmn
+
 example :
     (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
   simpa using sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
+  simpa using apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)
 
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =
