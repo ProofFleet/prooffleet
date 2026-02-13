@@ -185,6 +185,21 @@ lemma apSumOffset_sub_apSumOffset_eq_apSumOffset (f : ℕ → ℤ) (d m : ℕ) {
     apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂ - n₁)
   simpa [Nat.add_sub_of_le hn] using h
 
+/-- When `n₁ ≤ n₂`, rewrite the difference of two offset sums as the “paper notation” interval sum
+`∑ i ∈ Icc (m+n₁+1) (m+n₂), f (i*d)`.
+
+This is the “paper notation” counterpart of `apSumOffset_sub_apSumOffset_eq_apSumOffset`.
+-/
+lemma apSumOffset_sub_apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m : ℕ) {n₁ n₂ : ℕ}
+    (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      (Finset.Icc (m + n₁ + 1) (m + n₂)).sum (fun i => f (i * d)) := by
+  have hEq :=
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+      (hn := hn)
+  -- Rewrite the tail to an interval sum and simplify `m + n₁ + (n₂ - n₁) = m + n₂`.
+  simpa [apSumOffset_eq_sum_Icc, Nat.add_sub_of_le hn, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hEq
+
 /-- Sign-sequence bound on the difference of two offset sums when `n₁ ≤ n₂`. -/
 lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f)
     (d m : ℕ) {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
