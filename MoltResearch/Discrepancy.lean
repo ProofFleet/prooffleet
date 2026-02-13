@@ -81,8 +81,12 @@ Discrepancy predicates / witnesses:
   If you want to eliminate affine sums entirely, you can also rewrite affine unbounded discrepancy to
   “some shift has large homogeneous discrepancy” via
   `forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_shift`.
-- When the sequence is reindexed, prefer the dedicated transforms (`…of_map_mul`, `…of_map_add`)
-  instead of re-proving the bookkeeping from scratch.
+- When the sequence is reindexed, prefer the dedicated transforms instead of re-proving the
+  bookkeeping from scratch:
+  - multiplicative reindexing `x ↦ x * k`: `HasDiscrepancyAtLeast.of_map_mul`,
+    `HasAffineDiscrepancyAtLeast.of_map_mul` (and sum-level rewrites like `apSum_map_mul`).
+  - additive reindexing `x ↦ x + k`: `HasDiscrepancyAtLeast.of_map_add`,
+    `HasAffineDiscrepancyAtLeast.of_map_add` (and sum-level rewrites like `apSumFrom_map_add`).
 - When scaling the sequence by a nonzero integer, prefer the dedicated scaling lemmas
   (`HasDiscrepancyAtLeast.mul_left_scale`, etc.) rather than unfolding definitions.
 
@@ -245,6 +249,29 @@ example :
     (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
       (∀ C : ℕ, Nonempty (AffineDiscrepancyWitnessPos f C)) := by
   simpa using forall_hasAffineDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f := f)
+
+/-! ### Transform / reindexing regression tests -/
+
+example (k : ℕ) : apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
+  simpa using apSum_map_mul (f := f) (k := k) (d := d) (n := n)
+
+example (k : ℕ) : apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
+  simpa using apSum_map_add (f := f) (k := k) (d := d) (n := n)
+
+example (k C : ℕ) (hk : k > 0) :
+    HasDiscrepancyAtLeast (fun x => f (x * k)) C → HasDiscrepancyAtLeast f C := by
+  intro h
+  exact HasDiscrepancyAtLeast.of_map_mul (f := f) (hk := hk) (h := h)
+
+example (k C : ℕ) :
+    HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
+  intro h
+  exact HasDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C) h
+
+example (c : ℤ) (hc : c ≠ 0) (C : ℕ) :
+    HasDiscrepancyAtLeast f C → HasDiscrepancyAtLeast (fun n => c * f n) C := by
+  intro h
+  exact HasDiscrepancyAtLeast.mul_left_of_ne_zero (f := f) (C := C) c hc h
 
 end NormalFormExamples
 
