@@ -112,6 +112,34 @@ lemma HasDiscrepancyAtLeast_iff_exists_d_ge_one {f : ℕ → ℤ} {C : ℕ} :
     refine ⟨d, n, ?_, hgt⟩
     exact (Nat.succ_le_iff).1 hd
 
+/-- Convenience witness normal form: `HasDiscrepancyAtLeast f C` has a witness with
+`d ≥ 1` and `n > 0`.
+
+The `n > 0` side condition is automatic from `Int.natAbs (apSum f d n) > C`, but it is often
+useful to keep it explicit in “surface” statements.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_d_ge_one_witness_pos {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  constructor
+  · intro h
+    rcases HasDiscrepancyAtLeast.exists_witness_pos (h := h) with ⟨d, n, hd, hn, hgt⟩
+    exact ⟨d, n, Nat.succ_le_of_lt hd, hn, hgt⟩
+  · rintro ⟨d, n, hd, _hn, hgt⟩
+    refine ⟨d, n, (Nat.succ_le_iff).1 hd, hgt⟩
+
+/-- Bridge: the unbounded discrepancy statement `∀ C, HasDiscrepancyAtLeast f C` is equivalent to
+an explicit witness form with side conditions `d ≥ 1` and `n > 0`.
+-/
+theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C) := by
+  constructor
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_d_ge_one_witness_pos (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (HasDiscrepancyAtLeast_iff_exists_d_ge_one_witness_pos (f := f) (C := C)).2 (h C)
+
 /-- Unpack the defining property. -/
 lemma IsSignSequence.eq_one_or_eq_neg_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     f n = 1 ∨ f n = -1 :=
