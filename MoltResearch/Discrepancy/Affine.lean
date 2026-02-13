@@ -206,6 +206,47 @@ lemma HasAffineDiscrepancyAtLeast.exists_witness_d_ge_one {f : ℕ → ℤ} {C :
   refine ⟨a, d, n, ?_, hgt⟩
   exact Nat.succ_le_of_lt hd
 
+/-- Normal form: `HasAffineDiscrepancyAtLeast f C` has a witness with `d ≥ 1` and `n > 0`.
+
+The `n > 0` side condition is automatic from `Int.natAbs (apSumFrom …) > C`, but it is often
+useful to keep it explicit in “surface” statements.
+-/
+lemma HasAffineDiscrepancyAtLeast_iff_exists_d_ge_one_witness_pos {f : ℕ → ℤ} {C : ℕ} :
+    HasAffineDiscrepancyAtLeast f C ↔
+      ∃ a d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSumFrom f a d n) > C := by
+  constructor
+  · intro h
+    rcases h.exists_witness_pos with ⟨a, d, n, hd, hn, hgt⟩
+    exact ⟨a, d, n, Nat.succ_le_of_lt hd, hn, hgt⟩
+  · rintro ⟨a, d, n, hd, _hn, hgt⟩
+    refine ⟨a, d, n, ?_, hgt⟩
+    exact (Nat.succ_le_iff).1 hd
+
+/-- Surface form of affine unbounded discrepancy, matching the usual notation
+`∑_{i=1}^n f (a + i*d)`.
+
+This is a thin wrapper around the nucleus predicate `HasAffineDiscrepancyAtLeast`, via
+`apSumFrom_eq_sum_Icc`.
+-/
+theorem forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos
+    (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ a d n : ℕ, d ≥ 1 ∧ n > 0 ∧
+          Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) > C) := by
+  constructor
+  · intro h C
+    rcases (HasAffineDiscrepancyAtLeast_iff_exists_d_ge_one_witness_pos (f := f) (C := C)).1 (h C)
+        with ⟨a, d, n, hd, hn, hgt⟩
+    refine ⟨a, d, n, hd, hn, ?_⟩
+    simpa [apSumFrom_eq_sum_Icc] using hgt
+  · intro h C
+    rcases h C with ⟨a, d, n, hd, hn, hgt⟩
+    have hgt' : Int.natAbs (apSumFrom f a d n) > C := by
+      simpa [← apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)] using hgt
+    exact (HasAffineDiscrepancyAtLeast_iff_exists_d_ge_one_witness_pos (f := f) (C := C)).2
+      ⟨a, d, n, hd, hn, hgt'⟩
+
 /-- Negating the function does not change affine discrepancy. -/
 lemma HasAffineDiscrepancyAtLeast.neg_iff {f : ℕ → ℤ} {C : ℕ} :
     HasAffineDiscrepancyAtLeast (fun n => - f n) C ↔ HasAffineDiscrepancyAtLeast f C := by
