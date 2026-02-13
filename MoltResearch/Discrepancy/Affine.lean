@@ -106,6 +106,19 @@ lemma apSumFrom_eq_apSum_step_one (f : ℕ → ℤ) (a d n : ℕ) :
   unfold apSumFrom apSum
   simp
 
+/-- Translation-friendly variant of `apSumFrom_eq_apSum_step_one`.
+
+This lemma packages the affine AP sum into step-one form where the summand is written as
+`k * d + a` rather than `a + k * d`.
+
+This is often the more convenient normal form when rewriting under `fun k => …` where the
+offset `a` is syntactically on the right.
+-/
+lemma apSumFrom_eq_apSum_step_one_add_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
+  simpa [Nat.add_comm] using
+    (apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n))
+
 /-- Inverse orientation of `apSumFrom_eq_apSum_step_one`.
 
 We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.

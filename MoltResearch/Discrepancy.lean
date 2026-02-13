@@ -82,7 +82,9 @@ Arithmetic progression sums:
   For a “step-one” normalization (useful when you want to treat the AP step as part of the
   summand), rewrite
   `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k * d)) 1 n` via `apSumFrom_eq_apSum_step_one`
-  (and back via `apSum_step_one_eq_apSumFrom`),
+  (and back via `apSum_step_one_eq_apSumFrom`).
+  If you prefer the offset on the right, use the translation-friendly variant
+  `apSumFrom_eq_apSum_step_one_add_left` to get `apSum (fun k => f (k * d + a)) 1 n`.
   and tails `apSumFrom f (a + m*d) d n` ↦ `apSum (fun k => f (a + (m + k) * d)) 1 n` via
   `apSumFrom_tail_eq_apSum_step_one` (and back via `apSum_step_one_eq_apSumFrom_tail`).
   If you want an offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, rewrite
