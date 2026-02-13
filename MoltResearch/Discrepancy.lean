@@ -356,6 +356,14 @@ example :
   simpa using apSumFrom_sub_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
 
 example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+  simpa using apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f (a + m * d) d n = apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =
       apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
