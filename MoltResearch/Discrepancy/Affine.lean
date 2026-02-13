@@ -289,6 +289,21 @@ lemma HasAffineDiscrepancyAtLeast_iff_exists_shift (f : ℕ → ℤ) (C : ℕ) :
     refine ⟨a, d, n, hd, ?_⟩
     simpa [apSumFrom_eq_apSum_shift] using hgt
 
+/-- Normal form for “affine unbounded discrepancy”: for each `C`, some shift of `f` has
+homogeneous discrepancy at least `C`.
+
+This is just `HasAffineDiscrepancyAtLeast_iff_exists_shift` with the quantifier `∀ C` moved
+outside.
+-/
+theorem forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_shift (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ, ∃ a : ℕ, HasDiscrepancyAtLeast (fun k => f (a + k)) C) := by
+  constructor
+  · intro h C
+    exact (HasAffineDiscrepancyAtLeast_iff_exists_shift (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (HasAffineDiscrepancyAtLeast_iff_exists_shift (f := f) (C := C)).2 (h C)
+
 /-- Extract a witness with `d ≥ 1` and length `n > C`. -/
 lemma IsSignSequence.exists_affine_witness_d_ge_one_and_length_gt {f : ℕ → ℤ}
     (hf : IsSignSequence f) {C : ℕ} (h : HasAffineDiscrepancyAtLeast f C) :

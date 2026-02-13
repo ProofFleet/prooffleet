@@ -57,6 +57,9 @@ Discrepancy predicates / witnesses:
   `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos`.
 - For affine discrepancy, the analogous “paper notation” witness normal form is
   `forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos`.
+  If you want to eliminate affine sums entirely, you can also rewrite affine unbounded discrepancy to
+  “some shift has large homogeneous discrepancy” via
+  `forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_shift`.
 - When the sequence is reindexed, prefer the dedicated transforms (`…of_map_mul`, `…of_map_add`)
   instead of re-proving the bookkeeping from scratch.
 - When scaling the sequence by a nonzero integer, prefer the dedicated scaling lemmas
