@@ -277,6 +277,16 @@ lemma apSumOffset_eq_apSumOffset_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
   -- Both sides simplify to the same shifted index `m*d + (i+1)*d`.
   simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul]
 
+/-- Inverse orientation of `apSumOffset_eq_apSumOffset_shift_add`.
+
+We do *not* mark this as `[simp]`: our normal forms usually prefer to *introduce* the explicit
+shifted-sequence view and eliminate the offset parameter `m`.
+-/
+lemma apSumOffset_shift_add_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (k + m * d)) d 0 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)).symm
+
 -- (lemma `apSumOffset_add_length` moved to `MoltResearch/Discrepancy/Basic.lean`)
 
 /-- Split an offset AP sum at an intermediate length `n₁` when `n₁ ≤ n₂`.
