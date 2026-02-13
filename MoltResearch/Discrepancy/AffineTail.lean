@@ -123,6 +123,20 @@ lemma apSumFrom_tail_sub_eq_apSumOffset_shift_tail (f : ℕ → ℤ) (a d m n1 n
               (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m + n1)
                 (n := n2))
 
+/-- Tail-of-tail normal form, expressed as an offset AP sum on the shifted sequence `k ↦ f (k + a)`.
+
+This is the translation-friendly `k + a` variant of `apSumFrom_tail_sub_eq_apSumOffset_shift_tail`.
+-/
+lemma apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (a + m * d) d (n1 + n2) - apSumFrom f (a + m * d) d n1 =
+      apSumOffset (fun k => f (k + a)) d (m + n1) n2 := by
+  have hshift : (fun k => f (a + k)) = (fun k => f (k + a)) := by
+    funext k
+    simpa using congrArg f (Nat.add_comm a k)
+  simpa [hshift] using
+    (apSumFrom_tail_sub_eq_apSumOffset_shift_tail (f := f) (a := a) (d := d) (m := m) (n1 := n1)
+      (n2 := n2))
+
 /-- Normal form: rewrite the canonical affine difference `(m+n) - m` as an offset AP sum on the
 shifted sequence `k ↦ f (a + k)`.
 
