@@ -361,6 +361,12 @@ example (k : ℕ) : apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
 example (k : ℕ) : apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
   simpa using apSum_map_add (f := f) (k := k) (d := d) (n := n)
 
+example (k : ℕ) : apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
+  simpa using apSum_map_add_left (f := f) (k := k) (d := d) (n := n)
+
+example (k : ℕ) : apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (k + m * d) d n := by
+  simpa using apSumOffset_map_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
+
 example (k C : ℕ) (hk : k > 0) :
     HasDiscrepancyAtLeast (fun x => f (x * k)) C → HasDiscrepancyAtLeast f C := by
   intro h

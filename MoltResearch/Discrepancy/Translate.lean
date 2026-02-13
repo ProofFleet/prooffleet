@@ -13,7 +13,20 @@ lemma apSumFrom_map_add (f : ℕ → ℤ) (k a d n : ℕ) :
   unfold apSumFrom
   refine Finset.sum_congr rfl ?_
   intro i hi
-  simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+  simp [Nat.add_comm, Nat.add_assoc]
+
+/-- Variant of `apSumFrom_map_add` for translated functions written in the `k + x` form.
+
+This is occasionally convenient when the ambient goal prefers a “constant on the left” convention.
+-/
+lemma apSumFrom_map_add_left (f : ℕ → ℤ) (k a d n : ℕ) :
+  apSumFrom (fun x => f (k + x)) a d n = apSumFrom f (k + a) d n := by
+  have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
+    funext x
+    simp [Nat.add_comm]
+  -- Reduce to `apSumFrom_map_add` and then normalize `a + k` ↔ `k + a`.
+  simpa [hfun, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumFrom_map_add (f := f) (k := k) (a := a) (d := d) (n := n))
 
 lemma apSum_map_add (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
@@ -24,6 +37,14 @@ lemma apSum_map_add (f : ℕ → ℤ) (k d n : ℕ) :
     _ = apSumFrom f (0 + k) d n := by
             simpa using (apSumFrom_map_add (f := f) (k := k) (a := 0) (d := d) (n := n))
     _ = apSumFrom f k d n := by simp
+
+/-- Variant of `apSum_map_add` for translated functions written in the `k + x` form. -/
+lemma apSum_map_add_left (f : ℕ → ℤ) (k d n : ℕ) :
+  apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
+  have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
+    funext x
+    simp [Nat.add_comm]
+  simpa [hfun] using (apSum_map_add (f := f) (k := k) (d := d) (n := n))
 
 /-- Convenience: rewrite `apSumFrom` as an `apSum` on the additively shifted function
 `x ↦ f (x + a)`.
@@ -44,6 +65,16 @@ lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
               (apSumOffset_eq_apSumFrom (f := fun x => f (x + k)) (d := d) (m := m) (n := n))
     _ = apSumFrom f (m * d + k) d n := by
             simpa using (apSumFrom_map_add (f := f) (k := k) (a := m * d) (d := d) (n := n))
+
+/-- Variant of `apSumOffset_map_add` for translated functions written in the `k + x` form. -/
+lemma apSumOffset_map_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (k + m * d) d n := by
+  have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
+    funext x
+    simp [Nat.add_comm]
+  -- Reduce to `apSumOffset_map_add` and then normalize `m*d + k` ↔ `k + m*d`.
+  simpa [hfun, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n))
 
 lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
