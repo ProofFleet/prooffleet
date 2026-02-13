@@ -255,11 +255,32 @@ lemma apSumOffset_eq_apSumOffset_step_one_zero_m (f : ℕ → ℤ) (d m n : ℕ)
       simpa using
         (apSumOffset_zero_m (f := fun k => f ((m + k) * d)) (d := 1) (n := n)).symm
 
+/-- Variant of `apSumOffset_eq_apSumOffset_step_one_zero_m` written in the translation-friendly
+`k * d + m * d` form.
+
+This eliminates both the offset parameter and the AP step size as explicit arguments of
+`apSumOffset`, at the cost of moving them into the summand.
+-/
+lemma apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (k * d + m * d)) 1 0 n := by
+  calc
+    apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
+      simpa using apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n)
+    _ = apSumOffset (fun k => f (k * d + m * d)) 1 0 n := by
+      simpa using
+        (apSumOffset_zero_m (f := fun k => f (k * d + m * d)) (d := 1) (n := n)).symm
+
 /-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one_zero_m`. -/
 lemma apSumOffset_step_one_zero_m_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f ((m + k) * d)) 1 0 n = apSumOffset f d m n := by
   simpa using
     (apSumOffset_eq_apSumOffset_step_one_zero_m (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one_zero_m_add_left`. -/
+lemma apSumOffset_step_one_zero_m_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (k * d + m * d)) 1 0 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n)).symm
 
 /-- Express `apSumOffset` as an `apSum` with the same step on a shifted function. -/
 lemma apSumOffset_eq_apSum_shift (f : ℕ → ℤ) (d m n : ℕ) :
