@@ -96,6 +96,15 @@ lemma apSumOffset_eq_apSumFrom (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [Nat.add_assoc] using (Nat.add_mul m (i + 1) d)
   simp [h]
 
+/-- Normal form: an affine AP sum whose start is a multiple of the step size can be rewritten as an
+offset AP sum.
+
+This is the inverse orientation of `apSumOffset_eq_apSumFrom`.
+-/
+lemma apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumFrom f (m * d) d n = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Shifted version of `apSumFrom`. -/
 lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
