@@ -243,6 +243,19 @@ lemma apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
     simp [Nat.add_comm]
   exact h.trans hswap
 
+/-- Normalize an offset AP sum by shifting the underlying sequence and resetting the offset `m = 0`.
+
+This can be a convenient normal form when you want to treat offset sums as homogeneous sums on a
+shifted sequence, so that subsequent rewriting/simp lemmas only have to handle the `m = 0` case.
+-/
+lemma apSumOffset_eq_apSumOffset_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Both sides simplify to the same shifted index `m*d + (i+1)*d`.
+  simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul]
+
 -- (lemma `apSumOffset_add_length` moved to `MoltResearch/Discrepancy/Basic.lean`)
 
 /-- Split an offset AP sum at an intermediate length `n₁` when `n₁ ≤ n₂`.
