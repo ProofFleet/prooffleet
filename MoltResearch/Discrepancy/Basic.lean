@@ -149,6 +149,16 @@ lemma IsSignSequence.natAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n 
     Int.natAbs (f n) = 1 := by
   rcases hf n with h | h <;> simp [h]
 
+/-- Normal form: for a sign sequence, the integer absolute value satisfies `|f n| = 1`. -/
+lemma IsSignSequence.abs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
+    abs (f n) = 1 := by
+  rcases hf n with h | h <;> simp [h]
+
+/-- A sign sequence is pointwise bounded by `1` in absolute value. -/
+lemma IsSignSequence.abs_le_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
+    abs (f n) ≤ 1 := by
+  simpa [hf.abs_eq_one n]
+
 /-- Any ±1 sequence has discrepancy at least 0 (take d = 1, n = 1). -/
 lemma IsSignSequence.hasDiscrepancyAtLeast_zero {f : ℕ → ℤ} (hf : IsSignSequence f) :
     HasDiscrepancyAtLeast f 0 := by
