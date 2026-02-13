@@ -73,6 +73,11 @@ theorem HasDiscrepancyAtLeast.iff_nonempty_witnessPos {f C} :
   · rintro ⟨w⟩
     exact w.toHas
 
+/-- Normal form: “unbounded discrepancy” as a `Nonempty` witness family. -/
+theorem forall_hasDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ (∀ C : ℕ, Nonempty (DiscrepancyWitnessPos f C)) := by
+  simp [HasDiscrepancyAtLeast.iff_nonempty_witnessPos]
+
 /-- The `d` component of a `DiscrepancyWitnessPos` is at least `1`. -/
 lemma DiscrepancyWitnessPos.d_ge_one {f C} (w : DiscrepancyWitnessPos f C) :
     w.d ≥ 1 := by
@@ -153,6 +158,12 @@ theorem HasAffineDiscrepancyAtLeast.iff_nonempty_witnessPos {f C} :
     exact ⟨h.toWitnessPos⟩
   · rintro ⟨w⟩
     exact w.toHas
+
+/-- Normal form: “unbounded affine discrepancy” as a `Nonempty` witness family. -/
+theorem forall_hasAffineDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ, Nonempty (AffineDiscrepancyWitnessPos f C)) := by
+  simp [HasAffineDiscrepancyAtLeast.iff_nonempty_witnessPos]
 
 /-- The `d` component of an `AffineDiscrepancyWitnessPos` is at least `1`. -/
 lemma AffineDiscrepancyWitnessPos.d_ge_one {f C} (w : _root_.MoltResearch.AffineDiscrepancyWitnessPos f C) :

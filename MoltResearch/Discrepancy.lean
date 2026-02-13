@@ -59,6 +59,10 @@ Arithmetic progression sums:
 Discrepancy predicates / witnesses:
 - Treat `HasDiscrepancyAtLeast` and `HasAffineDiscrepancyAtLeast` as normalization boundaries
   for existence statements; use the structured witness API in `Witness.lean` when convenient.
+- If you want to keep witnesses structured, rewrite unbounded discrepancy to a `Nonempty` witness
+  family:
+  - homogeneous: `forall_hasDiscrepancyAtLeast_iff_forall_nonempty_witnessPos`
+  - affine: `forall_hasAffineDiscrepancyAtLeast_iff_forall_nonempty_witnessPos`
 - For surface statements, rewrite `∀ C, HasDiscrepancyAtLeast f C` to an explicit witness form
   `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ …` via
   `forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos`.
@@ -159,6 +163,15 @@ example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =
       apSumOffset (fun k => f (a + k)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ (∀ C : ℕ, Nonempty (DiscrepancyWitnessPos f C)) := by
+  simpa using forall_hasDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f := f)
+
+example :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ, Nonempty (AffineDiscrepancyWitnessPos f C)) := by
+  simpa using forall_hasAffineDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f := f)
 
 end NormalFormExamples
 
