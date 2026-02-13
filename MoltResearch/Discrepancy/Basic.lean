@@ -181,6 +181,22 @@ lemma isSignSequence_iff_forall_natAbs_eq_one (f : ℕ → ℤ) :
     have h' : f n = (1 : ℤ) ∨ f n = - (1 : ℤ) := (Int.natAbs_eq_iff (a := f n) (n := 1)).1 hn
     simpa using h'
 
+/-- Normal form: a function is a sign sequence iff all its values have `abs = 1`.
+
+This is a sibling of `isSignSequence_iff_forall_natAbs_eq_one` that can be convenient when you
+want to stay in `ℤ` instead of converting through `Int.natAbs`.
+-/
+lemma isSignSequence_iff_forall_abs_eq_one (f : ℕ → ℤ) :
+    IsSignSequence f ↔ ∀ n, abs (f n) = (1 : ℤ) := by
+  constructor
+  · intro hf n
+    rcases hf n with h | h <;> simp [h]
+  · intro h n
+    -- `abs x = 1` implies `x = 1 ∨ x = -1`.
+    have h' : f n = (1 : ℤ) ∨ f n = - (1 : ℤ) :=
+      (abs_eq (zero_le_one' ℤ)).1 (h n)
+    simpa using h'
+
 /-- Normal form: for a sign sequence, the integer absolute value satisfies `|f n| = 1`. -/
 lemma IsSignSequence.abs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     abs (f n) = 1 := by
