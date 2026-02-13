@@ -151,6 +151,25 @@ lemma natAbs_sum_Icc_add_mul_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
   simpa [sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using
     h
 
+/-- Bound a difference of two offset sums over the same start `m` when `n₁ ≤ n₂`.
+
+This is the `B`-bounded analogue of `IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le`.
+It is aligned with the canonical tail normal form
+`apSumOffset f d m n₂ - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) (n₂ - n₁)`.
+-/
+lemma natAbs_apSumOffset_sub_apSumOffset_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m : ℕ) {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+    Int.natAbs (apSumOffset f d m n₂ - apSumOffset f d m n₁) ≤ (n₂ - n₁) * B := by
+  have hTail :
+      Int.natAbs (apSumOffset f d (m + n₁) (n₂ - n₁)) ≤ (n₂ - n₁) * B :=
+    natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m + n₁)
+      (n := n₂ - n₁)
+  have hEq :
+      apSumOffset f d m n₂ - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) (n₂ - n₁) :=
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+      (hn := hn)
+  simpa [hEq] using hTail
+
 lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one_and_length_mul_bound_gt {f : ℕ → ℤ} {C B : ℕ}
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (h : HasDiscrepancyAtLeast f C) :
     ∃ d n, d ≥ 1 ∧ n * B > C ∧ Int.natAbs (apSum f d n) > C := by
