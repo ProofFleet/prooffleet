@@ -108,6 +108,30 @@ lemma apSumFrom_tail_eq_sum_Icc (f : ℕ → ℤ) (a d m n : ℕ) :
       simpa using
         (apSumOffset_eq_sum_Icc (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
 
+/-- Normal form: rewrite the “paper notation” interval sum
+`∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` back to the affine tail sum `apSumFrom f (a + m*d) d n`.
+
+This is useful when normalizing a surface statement into the nucleus API.
+-/
+lemma sum_Icc_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
+/-- Normal form: when `m ≤ n`, rewrite the “paper notation” interval sum
+`∑ i ∈ Icc (m+1) n, f (a + i*d)` to the affine tail sum `apSumFrom f (a + m*d) d (n - m)`.
+
+This is the affine analogue of `sum_Icc_eq_apSumOffset`.
+-/
+lemma sum_Icc_eq_apSumFrom_tail_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumFrom f (a + m * d) d (n - m) := by
+  -- Put the interval endpoint into the canonical `(m + (n - m))` form and use
+  -- `sum_Icc_eq_apSumFrom_tail`.
+  simpa [Nat.add_sub_of_le hmn] using
+    (sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
 /-- Difference of two affine AP partial sums as an offset AP sum on the shifted sequence
 `k ↦ f (a + k)` when `m ≤ n`.
 

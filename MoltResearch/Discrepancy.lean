@@ -89,6 +89,10 @@ A typical rewrite pipeline:
      - `∑ i ∈ Icc 1 n, f (i*d)` ↦ `apSum f d n` via `sum_Icc_eq_apSum`.
      - `∑ i ∈ Icc (m+1) (m+n), f (i*d)` ↦ `apSumOffset f d m n` via `sum_Icc_eq_apSumOffset`.
      - `∑ i ∈ Icc 1 n, f (a + i*d)` ↦ `apSumFrom f a d n` via `sum_Icc_eq_apSumFrom`.
+     - `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` ↦ `apSumFrom f (a + m*d) d n` via
+       `sum_Icc_eq_apSumFrom_tail`.
+       If your surface statement uses `Icc (m+1) n` with an inequality `m ≤ n`, prefer
+       `sum_Icc_eq_apSumFrom_tail_of_le`.
    - Nucleus → paper:
      - `apSum f d n` ↦ `∑ i ∈ Icc 1 n, f (i*d)` via `apSum_eq_sum_Icc`.
      - `apSumOffset f d m n` ↦ `∑ i ∈ Icc (m+1) (m+n), f (i*d)` via `apSumOffset_eq_sum_Icc`.
@@ -163,6 +167,22 @@ example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =
       apSumOffset (fun k => f (a + k)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
+  simpa using sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn)
+
+example :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ d n : ℕ,
+          d ≥ 1 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
+  simpa using forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos (f := f)
 
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ (∀ C : ℕ, Nonempty (DiscrepancyWitnessPos f C)) := by
