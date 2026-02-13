@@ -136,6 +136,41 @@ lemma apSumOffset_tail_eq_sub (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     simpa [add_sub_cancel_left] using hsub
   simpa using this.symm
 
+/-- Rewrite the normal-form difference `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁`
+ as the tail `apSumOffset f d (m+n₁) n₂`.
+
+This is the offset-sum analogue of `apSum_sub_eq_apSumOffset` / `apSumFrom_sub_eq_apSumFrom_tail`.
+-/
+lemma apSumOffset_sub_eq_apSumOffset_tail (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
+  simpa using (apSumOffset_tail_eq_sub (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)).symm
+
+/-- Difference of two offset sums over the same start `m` as a tail sum when `n₁ ≤ n₂`. -/
+lemma apSumOffset_sub_apSumOffset_eq_apSumOffset (f : ℕ → ℤ) (d m : ℕ) {n₁ n₂ : ℕ}
+    (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) (n₂ - n₁) := by
+  have h :=
+    apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂ - n₁)
+  simpa [Nat.add_sub_of_le hn] using h
+
+/-- Sign-sequence bound on the difference of two offset sums when `n₁ ≤ n₂`. -/
+lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d m : ℕ) {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+    Int.natAbs (apSumOffset f d m n₂ - apSumOffset f d m n₁) ≤ n₂ - n₁ := by
+  have hEq :=
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+      (hn := hn)
+  have hf' : IsSignSequence (fun k => f ((m + n₁) * d + k)) := by
+    intro k
+    exact hf (((m + n₁) * d) + k)
+  have hle :
+      Int.natAbs (apSum (fun k => f ((m + n₁) * d + k)) d (n₂ - n₁)) ≤ n₂ - n₁ :=
+    IsSignSequence.natAbs_apSum_le (hf := hf') (d := d) (n := n₂ - n₁)
+  have hShift := apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m + n₁) (n := n₂ - n₁)
+  have htail : Int.natAbs (apSumOffset f d (m + n₁) (n₂ - n₁)) ≤ n₂ - n₁ := by
+    simpa [hShift] using hle
+  simpa [hEq] using htail
+
 /-- Sum of offset AP sums over a pointwise sum of functions. -/
 lemma apSumOffset_add (f g : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f k + g k) d m n = apSumOffset f d m n + apSumOffset g d m n := by

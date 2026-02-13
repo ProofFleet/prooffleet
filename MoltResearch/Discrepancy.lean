@@ -31,6 +31,9 @@ Arithmetic progression sums:
   Rewrite between tails and differences using `apSumOffset_eq_sub` and
   `apSum_sub_apSum_eq_apSumOffset`. When you are already in the canonical `(m + n) - m` form,
   prefer `apSum_sub_eq_apSumOffset` (subtraction → tail) for rewriting.
+  For “tail-of-tail” decompositions, rewrite differences of offset sums via
+  `apSumOffset_sub_eq_apSumOffset_tail` (normal form) or `apSumOffset_sub_apSumOffset_eq_apSumOffset`
+  (when a length inequality `n₁ ≤ n₂` is available).
   For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc` (or directly via
   `apSum_sub_eq_sum_Icc` when starting from a difference, and `apSum_sub_apSum_eq_sum_Icc` when
   starting from `apSum … n - apSum … m` with `m ≤ n`).
