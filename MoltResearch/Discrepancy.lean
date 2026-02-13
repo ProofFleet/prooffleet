@@ -201,6 +201,9 @@ example : apSum f 0 n = n • f 0 := by
 example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
   simpa using apSum_eq_apSum_step_one (f := f) (d := d) (n := n)
 
+example : apSum (fun k => f (k * d)) 1 n = apSum f d n := by
+  simpa using apSum_step_one_eq_apSum (f := f) (d := d) (n := n)
+
 example : apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
   simpa using apSum_succ (f := f) (d := d) (n := n)
 
@@ -249,8 +252,14 @@ example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
 example : apSumOffset f d m n = apSumOffset (fun k => f (k * d)) 1 m n := by
   simpa using apSumOffset_eq_apSumOffset_step_one (f := f) (d := d) (m := m) (n := n)
 
+example : apSumOffset (fun k => f (k * d)) 1 m n = apSumOffset f d m n := by
+  simpa using apSumOffset_step_one_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
 example : apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
   simpa using apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)
+
+example : apSum (fun k => f ((m + k) * d)) 1 n = apSumOffset f d m n := by
+  simpa using apSum_step_one_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 
 -- A translation-friendly variant of the step-one form: `k ↦ f (k*d + m*d)`.
 example : apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
@@ -383,11 +392,17 @@ example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
 example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)
 
+example : apSum (fun k => f (a + k * d)) 1 n = apSumFrom f a d n := by
+  simpa using apSum_step_one_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
+
 example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n := by
   simpa using apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example : apSum (fun k => f (a + (m + k) * d)) 1 n = apSumFrom f (a + m * d) d n := by
+  simpa using apSum_step_one_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
 
 example : apSumFrom f a d n = apSumOffset (fun k => f (a + k)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (n := n)
