@@ -1,5 +1,4 @@
-import MoltResearch.Discrepancy.Affine
-import MoltResearch.Discrepancy.Offset
+import MoltResearch.Discrepancy.AffineTail
 
 /-!
 # Discrepancy bounds
@@ -111,6 +110,46 @@ lemma natAbs_sum_Icc_add_mul_le_mul (f : ℕ → ℤ) (B : ℕ)
     Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) ≤ n * B := by
   simpa [apSumFrom_eq_sum_Icc] using
     (natAbs_apSumFrom_le_mul (f := f) (B := B) (hB := hB) (a := a) (d := d) (n := n))
+
+/-!
+### Bounds with a variable upper endpoint
+
+Many surface statements (and intermediate steps) naturally produce sums indexed by `Icc (m+1) n`
+under a hypothesis `m ≤ n`. The normal forms in `Offset.lean` / `AffineTail.lean` rewrite such
+interval sums to tail sums of length `n - m`; the lemmas below are bound wrappers aligned with
+those normal forms.
+-/
+
+lemma natAbs_apSum_sub_apSum_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    Int.natAbs (apSum f d n - apSum f d m) ≤ (n - m) * B := by
+  have h :=
+    natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n - m)
+  simpa [apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn] using h
+
+lemma natAbs_sum_Icc_mul_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (i * d))) ≤ (n - m) * B := by
+  have h :=
+    natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n - m)
+  simpa [sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn] using h
+
+lemma natAbs_apSumFrom_sub_apSumFrom_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ (n - m) * B := by
+  have h :=
+    natAbs_apSumFrom_le_mul (f := f) (B := B) (hB := hB) (a := a + m * d) (d := d)
+      (n := n - m)
+  simpa [apSumFrom_tail_eq_sub_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+
+lemma natAbs_sum_Icc_add_mul_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ (n - m) * B := by
+  have h :=
+    natAbs_apSumFrom_le_mul (f := f) (B := B) (hB := hB) (a := a + m * d) (d := d)
+      (n := n - m)
+  simpa [sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using
+    h
 
 lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one_and_length_mul_bound_gt {f : ℕ → ℤ} {C B : ℕ}
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (h : HasDiscrepancyAtLeast f C) :
