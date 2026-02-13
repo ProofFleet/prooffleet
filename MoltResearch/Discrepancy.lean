@@ -58,6 +58,9 @@ Arithmetic progression sums:
   Split lengths via `apSumFrom_add_length`.
   For a translation-friendly homogeneous-sum view, rewrite
   `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_map_add`.
+  If you want an offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, rewrite
+  `apSumFrom f a d n` ↦ `apSumOffset (fun k => f (a + k)) d 0 n` via
+  `apSumFrom_eq_apSumOffset_shift`.
   If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
   `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).
@@ -226,6 +229,9 @@ example : apSumFrom f a 0 n = n • f a := by
 
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
   simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSumOffset (fun k => f (a + k)) d 0 n := by
+  simpa using apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (n := n)
 
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =

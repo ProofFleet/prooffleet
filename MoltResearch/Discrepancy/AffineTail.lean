@@ -56,6 +56,15 @@ lemma apSumFrom_tail_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
     _ = f (a + ((m + i + 1) * d)) := by
       simp [hmul]
 
+/-- Affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (a + k)`.
+
+This is the `m = 0` case of `apSumFrom_tail_eq_apSumOffset_shift`.
+-/
+lemma apSumFrom_eq_apSumOffset_shift (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (a + k)) d 0 n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := 0) (n := n))
+
 /-- Tail-of-tail normal form, expressed as an offset AP sum on the shifted sequence `k ↦ f (a + k)`.
 
 This is the `apSumFrom` analogue of `apSumOffset_sub_eq_apSumOffset_tail`.
