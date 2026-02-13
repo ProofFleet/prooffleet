@@ -31,6 +31,7 @@ Arithmetic progression sums:
   If an `apSumOffset` appears with `m = 0`, rewrite it back to `apSum` via
   `apSumOffset_zero_m`.
 - Prefer `apSumOffset f d m n` for “tail starting after `m` steps of length `n`”.
+  For a head+tail decomposition, use `apSumOffset_succ_length`.
   Rewrite between tails and differences using `apSumOffset_eq_sub` and
   `apSum_sub_apSum_eq_apSumOffset`. When you are already in the canonical `(m + n) - m` form,
   prefer `apSum_sub_eq_apSumOffset` (subtraction → tail) for rewriting.
@@ -105,7 +106,7 @@ namespace MoltResearch
 
 section NormalFormExamples
 
-variable (f : ℕ → ℤ) (a d m n : ℕ)
+variable (f : ℕ → ℤ) (a d m n n₁ n₂ : ℕ)
 
 example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
   simpa using apSum_eq_sum_Icc (f := f) (d := d) (n := n)
@@ -118,6 +119,24 @@ example : apSum f d (n + 1) = f d + apSumOffset f d 1 n := by
 
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
+
+example : apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
+  simpa using apSumOffset_succ_length (f := f) (d := d) (m := m) (n := n)
+
+example :
+    apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simpa using apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+example :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+example (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) (n₂ - n₁) := by
+  simpa using
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn)
 
 example :
     apSum f d (m + n) - apSum f d m =
