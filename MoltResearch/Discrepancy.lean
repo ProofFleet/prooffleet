@@ -48,7 +48,10 @@ Arithmetic progression sums:
   For differences with an inequality `m ≤ n`, use `apSumFrom_sub_apSumFrom_eq_apSumFrom`.
   If you want the canonical offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, use
   `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift`.
-  Rewrite to an interval sum via `apSumFrom_eq_sum_Icc` when matching paper notation.
+  For paper notation, rewrite:
+  - `apSumFrom f a d n` via `apSumFrom_eq_sum_Icc`,
+  - tails `apSumFrom f (a + m*d) d n` via `apSumFrom_tail_eq_sum_Icc`,
+  - and differences via `apSumFrom_sub_eq_sum_Icc` / `apSumFrom_sub_apSumFrom_eq_sum_Icc`.
 
 Discrepancy predicates / witnesses:
 - Treat `HasDiscrepancyAtLeast` and `HasAffineDiscrepancyAtLeast` as normalization boundaries

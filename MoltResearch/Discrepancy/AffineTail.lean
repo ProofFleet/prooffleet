@@ -42,6 +42,23 @@ lemma apSumFrom_tail_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
     _ = f (a + ((m + i + 1) * d)) := by
       simp [hmul]
 
+/-- Rewrite the affine tail sum `apSumFrom f (a + m*d) d n` as the “paper notation” interval sum
+`∑ i ∈ Icc (m+1) (m+n), f (a + i*d)`.
+
+This is intended for surface statements: keep the nucleus API in terms of `apSumFrom` and use
+this lemma only when matching paper notation.
+-/
+lemma apSumFrom_tail_eq_sum_Icc (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) := by
+  calc
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) := by
+      simpa using
+        (apSumOffset_eq_sum_Icc (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
+
 /-- Difference of two affine AP partial sums as an offset AP sum on the shifted sequence
 `k ↦ f (a + k)` when `m ≤ n`.
 
