@@ -551,7 +551,7 @@ lemma IsSignSequence.exists_length_gt_of_hasDiscrepancyAtLeast {f : ℕ → ℤ}
     exact lt_of_lt_of_le this hle
   exact ⟨d, n, hd, hC⟩
 
-lemma apSum_zero_d (f : ℕ → ℤ) (n : ℕ) : apSum f 0 n = n • f 0 := by
+@[simp] lemma apSum_zero_d (f : ℕ → ℤ) (n : ℕ) : apSum f 0 n = n • f 0 := by
   classical
   -- along step size 0, the AP is constant at 0
   simp [apSum]
