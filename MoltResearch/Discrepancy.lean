@@ -331,6 +331,9 @@ example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
 example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)
 
+example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
+  simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
+
 example : apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n := by
   simpa using apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
 
