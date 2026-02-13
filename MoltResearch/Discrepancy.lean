@@ -61,6 +61,9 @@ Arithmetic progression sums:
       `apSumOffset_eq_apSumOffset_step_one` (and back via `apSumOffset_step_one_eq_apSumOffset`).
     - or switch to an `apSum` shape: `apSumOffset f d m n` ↦ `apSum (fun k => f ((m + k) * d)) 1 n` via
       `apSumOffset_eq_apSum_step_one` (and back via `apSum_step_one_eq_apSumOffset`).
+    - if you want to keep an offset-sum normal form *and* eliminate the explicit offset and step,
+      rewrite `apSumOffset f d m n` ↦ `apSumOffset (fun k => f ((m + k) * d)) 1 0 n` via
+      `apSumOffset_eq_apSumOffset_step_one_zero_m`.
   - shifted-sequence normalization:
     - `apSumOffset f d m n` ↦ `apSum (fun k => f (m * d + k)) d n` via `apSumOffset_eq_apSum_shift`.
     - `apSumOffset f d m n` ↦ `apSum (fun k => f (k + m * d)) d n` via
@@ -216,6 +219,9 @@ example : apSumOffset f d m n = apSumOffset (fun k => f (k * d)) 1 m n := by
 
 example : apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
   simpa using apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSumOffset (fun k => f ((m + k) * d)) 1 0 n := by
+  simpa using apSumOffset_eq_apSumOffset_step_one_zero_m (f := f) (d := d) (m := m) (n := n)
 
 example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
   simpa using apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n)
