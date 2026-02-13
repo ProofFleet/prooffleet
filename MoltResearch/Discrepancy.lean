@@ -30,7 +30,8 @@ Arithmetic progression sums:
   For a head+tail decomposition, use `apSum_succ_length`. For a right-end “append one term”
   decomposition, use `apSum_succ`. For a “step-one” normalization (bundle the step size `d`
   into the summand), rewrite
-  `apSum f d n` ↦ `apSum (fun k => f (k * d)) 1 n` via `apSum_eq_apSum_step_one`.
+  `apSum f d n` ↦ `apSum (fun k => f (k * d)) 1 n` via `apSum_eq_apSum_step_one`
+  (and back via `apSum_step_one_eq_apSum`).
   If an `apSumOffset` appears with `m = 0`, rewrite it back to `apSum` via
   `apSumOffset_zero_m`.
   If `d = 1`, you can also rewrite directly to the plain interval sum
@@ -56,7 +57,7 @@ Arithmetic progression sums:
   Sometimes it is useful to change viewpoint on offset sums:
   - offset ↔ affine: `apSumOffset f d m n` ↔ `apSumFrom f (m * d) d n` via `apSumOffset_eq_apSumFrom`.
   - “step-one” normalization: `apSumOffset f d m n` ↦ `apSum (fun k => f ((m + k) * d)) 1 n` via
-    `apSumOffset_eq_apSum_step_one`.
+    `apSumOffset_eq_apSum_step_one` (and back via `apSum_step_one_eq_apSumOffset`).
   - shifted-sequence normalization:
     - `apSumOffset f d m n` ↦ `apSum (fun k => f (m * d + k)) d n` via `apSumOffset_eq_apSum_shift`.
     - `apSumOffset f d m n` ↦ `apSum (fun k => f (k + m * d)) d n` via
@@ -70,9 +71,10 @@ Arithmetic progression sums:
   `apSumFrom_eq_apSum_map_add_left` to get `apSum (fun k => f (a + k)) d n`.
   For a “step-one” normalization (useful when you want to treat the AP step as part of the
   summand), rewrite
-  `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k * d)) 1 n` via `apSumFrom_eq_apSum_step_one`,
+  `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k * d)) 1 n` via `apSumFrom_eq_apSum_step_one`
+  (and back via `apSum_step_one_eq_apSumFrom`),
   and tails `apSumFrom f (a + m*d) d n` ↦ `apSum (fun k => f (a + (m + k) * d)) 1 n` via
-  `apSumFrom_tail_eq_apSum_step_one`.
+  `apSumFrom_tail_eq_apSum_step_one` (and back via `apSum_step_one_eq_apSumFrom_tail`).
   If you want an offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, rewrite
   `apSumFrom f a d n` ↦ `apSumOffset (fun k => f (a + k)) d 0 n` via
   `apSumFrom_eq_apSumOffset_shift`. If you prefer the translation-friendly `k ↦ f (k + a)` form,

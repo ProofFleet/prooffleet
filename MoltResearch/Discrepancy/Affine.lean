@@ -106,6 +106,14 @@ lemma apSumFrom_eq_apSum_step_one (f : ℕ → ℤ) (a d n : ℕ) :
   unfold apSumFrom apSum
   simp
 
+/-- Inverse orientation of `apSumFrom_eq_apSum_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+-/
+lemma apSum_step_one_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    apSum (fun k => f (a + k * d)) 1 n = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)).symm
+
 /-- Tail version of `apSumFrom_eq_apSum_step_one`.
 
 In “paper” notation, this rewrites
@@ -123,6 +131,14 @@ lemma apSumFrom_tail_eq_apSum_step_one (f : ℕ → ℤ) (a d m n : ℕ) :
     simpa using (Nat.add_mul m (i + 1) d).symm
   -- `simp` also reduces `((i+1) * 1)`.
   simp [Nat.add_assoc, hmul]
+
+/-- Inverse orientation of `apSumFrom_tail_eq_apSum_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+-/
+lemma apSum_step_one_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSum (fun k => f (a + (m + k) * d)) 1 n = apSumFrom f (a + m * d) d n := by
+  simpa using (apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
 lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
   apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by

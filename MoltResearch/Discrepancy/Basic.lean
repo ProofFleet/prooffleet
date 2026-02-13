@@ -395,6 +395,14 @@ lemma apSum_eq_apSum_step_one (f : ℕ → ℤ) (d n : ℕ) :
   unfold apSum
   simp
 
+/-- Inverse orientation of `apSum_eq_apSum_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+-/
+lemma apSum_step_one_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
+    apSum (fun k => f (k * d)) 1 n = apSum f d n := by
+  simpa using (apSum_eq_apSum_step_one (f := f) (d := d) (n := n)).symm
+
 /-- Normal form: an offset sum with `m = 0` is just the homogeneous sum `apSum`.
 
 Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
