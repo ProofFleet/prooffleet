@@ -386,6 +386,19 @@ example :
       (∀ C : ℕ, Nonempty (AffineDiscrepancyWitnessPos f C)) := by
   simpa using forall_hasAffineDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f := f)
 
+example :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ a d n : ℕ,
+          d ≥ 1 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) > C) := by
+  simpa using
+    forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos (f := f)
+
+example :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ, ∃ a : ℕ, HasDiscrepancyAtLeast (fun k => f (a + k)) C) := by
+  simpa using forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_shift (f := f)
+
 /-! ### Transform / reindexing regression tests -/
 
 example (k : ℕ) : apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
