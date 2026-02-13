@@ -170,6 +170,45 @@ lemma apSum_step_one_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
     apSum (fun k => f (a + k * d)) 1 n = apSumFrom f a d n := by
   simpa using (apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)).symm
 
+/-- Normal form (“step-one”, `apSumFrom`-native): express an affine AP sum as an `apSumFrom`
+with step size `1` by bundling the original step size `d` into the summand.
+
+This is the affine analogue of `apSumOffset_eq_apSumOffset_step_one`.
+
+The right-hand side is often convenient when you want to stay in the `apSumFrom` API
+(e.g. to use `apSumFrom_add_length`) while normalizing away an explicit step size.
+-/
+lemma apSumFrom_eq_apSumFrom_step_one (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumFrom (fun k => f (a + k * d)) 0 1 n := by
+  unfold apSumFrom
+  simp
+
+/-- Translation-friendly variant of `apSumFrom_eq_apSumFrom_step_one`.
+
+This packages the summand as `k * d + a` rather than `a + k * d`.
+-/
+lemma apSumFrom_eq_apSumFrom_step_one_add_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumFrom (fun k => f (k * d + a)) 0 1 n := by
+  simpa [Nat.add_comm] using
+    (apSumFrom_eq_apSumFrom_step_one (f := f) (a := a) (d := d) (n := n))
+
+/-- Inverse orientation of `apSumFrom_eq_apSumFrom_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+-/
+lemma apSumFrom_step_one_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom (fun k => f (a + k * d)) 0 1 n = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_apSumFrom_step_one (f := f) (a := a) (d := d) (n := n)).symm
+
+/-- Inverse orientation of `apSumFrom_eq_apSumFrom_step_one_add_left`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+-/
+lemma apSumFrom_step_one_add_left_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom (fun k => f (k * d + a)) 0 1 n = apSumFrom f a d n := by
+  simpa using
+    (apSumFrom_eq_apSumFrom_step_one_add_left (f := f) (a := a) (d := d) (n := n)).symm
+
 /-- Tail version of `apSumFrom_eq_apSum_step_one`.
 
 In “paper” notation, this rewrites
