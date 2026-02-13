@@ -82,6 +82,17 @@ lemma apSum_sub_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
   -- Rewrite subtraction to an offset sum, then to an interval sum.
   simp [apSum_sub_eq_apSumOffset, apSumOffset_eq_sum_Icc]
 
+/-- When `m ≤ n`, rewrite `apSum f d n - apSum f d m` as an interval sum
+`∑ i ∈ Icc (m+1) n, f (i*d)`.
+
+This is the “paper notation” counterpart of `apSum_sub_apSum_eq_apSumOffset`.
+-/
+lemma apSum_sub_apSum_eq_sum_Icc (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) := by
+  have h := apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (hmn := hmn)
+  -- Rewrite the offset tail to an interval sum and simplify the endpoint `m + (n - m) = n`.
+  simpa [apSumOffset_eq_sum_Icc, Nat.add_sub_of_le hmn] using h
+
 /-- Express `apSumOffset` as an `apSum` with step `1`. -/
 lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
