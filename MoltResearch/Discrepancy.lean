@@ -346,6 +346,16 @@ example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
   simpa using sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
 
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) := by
+  simpa using apSumFrom_sub_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using sum_Icc_eq_apSumFrom_sub (f := f) (a := a) (d := d) (m := m) (n := n)
+
 example (hmn : m ≤ n) :
     (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d (n - m) := by
   simpa using
@@ -354,6 +364,15 @@ example (hmn : m ≤ n) :
 example (hmn : m ≤ n) :
     apSumFrom f (a + m * d) d (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
   simpa using apSumFrom_tail_eq_sub_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) := by
+  simpa using apSumFrom_sub_apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn
 
 example :
     apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
