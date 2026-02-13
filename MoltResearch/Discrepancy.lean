@@ -80,7 +80,8 @@ Arithmetic progression sums:
   For tail-of-tail differences with the same start `a + m*d`, prefer
   `apSumFrom_tail_sub_eq_apSumFrom_tail` (tail difference → later tail) or, if you want the offset
   normal form on the shifted sequence `k ↦ f (a + k)`,
-  `apSumFrom_tail_sub_eq_apSumOffset_shift_tail`.
+  `apSumFrom_tail_sub_eq_apSumOffset_shift_tail`. If you prefer the translation-friendly
+  `k ↦ f (k + a)` form, use `apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail`.
   For paper notation, rewrite:
   - `apSumFrom f a d n` via `apSumFrom_eq_sum_Icc`,
   - tails `apSumFrom f (a + m*d) d n` via `apSumFrom_tail_eq_sum_Icc`,
@@ -261,10 +262,19 @@ example : apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n
 example : apSumFrom f a d n = apSumOffset (fun k => f (a + k)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (n := n)
 
+example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
+  simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
+
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =
       apSumOffset (fun k => f (a + k)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
@@ -292,6 +302,13 @@ example :
   simpa using
     apSumFrom_tail_sub_eq_apSumOffset_shift_tail (f := f) (a := a) (d := d) (m := m) (n1 := n₁)
       (n2 := n₂)
+
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
 
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
