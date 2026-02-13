@@ -85,6 +85,33 @@ lemma natAbs_apSumFrom_sub_le_mul (f : ℕ → ℤ) (B : ℕ)
     (a := a + m * d) (d := d) (n := n)
   simpa [apSumFrom_tail_eq_sub] using h
 
+/-!
+## Paper-notation wrappers
+
+The nucleus APIs are `apSum`, `apSumOffset`, and `apSumFrom`. For surface statements it is often
+convenient to work with the interval-sum normal forms `(Finset.Icc …).sum (fun i => …)`.
+
+The lemmas below are thin wrappers around the nucleus bounds.
+-/
+
+lemma natAbs_sum_Icc_mul_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d n : ℕ) :
+    Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) ≤ n * B := by
+  simpa [apSum_eq_sum_Icc] using
+    (natAbs_apSum_le_mul (f := f) (B := B) (hB := hB) (d := d) (n := n))
+
+lemma natAbs_sum_Icc_mul_offset_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m n : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ n * B := by
+  simpa [apSumOffset_eq_sum_Icc] using
+    (natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n))
+
+lemma natAbs_sum_Icc_add_mul_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (a d n : ℕ) :
+    Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) ≤ n * B := by
+  simpa [apSumFrom_eq_sum_Icc] using
+    (natAbs_apSumFrom_le_mul (f := f) (B := B) (hB := hB) (a := a) (d := d) (n := n))
+
 lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one_and_length_mul_bound_gt {f : ℕ → ℤ} {C B : ℕ}
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (h : HasDiscrepancyAtLeast f C) :
     ∃ d n, d ≥ 1 ∧ n * B > C ∧ Int.natAbs (apSum f d n) > C := by
