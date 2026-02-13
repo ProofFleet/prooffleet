@@ -25,6 +25,16 @@ lemma apSum_map_add (f : ℕ → ℤ) (k d n : ℕ) :
             simpa using (apSumFrom_map_add (f := f) (k := k) (a := 0) (d := d) (n := n))
     _ = apSumFrom f k d n := by simp
 
+/-- Convenience: rewrite `apSumFrom` as an `apSum` on the additively shifted function
+`x ↦ f (x + a)`.
+
+This is just `apSum_map_add` with the symmetry flipped. It can be handy when a goal is already
+phrased as a translated homogeneous sum.
+-/
+lemma apSumFrom_eq_apSum_map_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
+  simpa using (apSum_map_add (f := f) (k := a) (d := d) (n := n)).symm
+
 lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (m * d + k) d n := by
   calc

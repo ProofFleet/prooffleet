@@ -50,10 +50,14 @@ Arithmetic progression sums:
   - offset ↔ affine: `apSumOffset f d m n` ↔ `apSumFrom f (m * d) d n` via `apSumOffset_eq_apSumFrom`.
   - “step-one” normalization: `apSumOffset f d m n` ↦ `apSum (fun k => f ((m + k) * d)) 1 n` via
     `apSumOffset_eq_apSum_step_one`.
-  - shifted-sequence normalization: `apSumOffset f d m n` ↦ `apSum (fun k => f (m * d + k)) d n` via
-    `apSumOffset_eq_apSum_shift`.
+  - shifted-sequence normalization:
+    - `apSumOffset f d m n` ↦ `apSum (fun k => f (m * d + k)) d n` via `apSumOffset_eq_apSum_shift`.
+    - `apSumOffset f d m n` ↦ `apSum (fun k => f (k + m * d)) d n` via
+      `apSumOffset_eq_apSum_shift_add` (translation-friendly `k + const` form).
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
   Split lengths via `apSumFrom_add_length`.
+  For a translation-friendly homogeneous-sum view, rewrite
+  `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_map_add`.
   If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
   `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).
@@ -168,6 +172,9 @@ example : apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
 example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
   simpa using apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n)
 
+example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
 example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
   simpa using
@@ -216,6 +223,9 @@ example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := b
 
 example : apSumFrom f a 0 n = n • f a := by
   simp
+
+example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
 
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =

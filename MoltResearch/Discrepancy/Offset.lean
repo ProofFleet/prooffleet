@@ -151,6 +151,21 @@ lemma apSumOffset_eq_apSum_shift (f : ℕ → ℤ) (d m n : ℕ) :
   -- rewrite the AP index in the summand
   simp [hmul]
 
+/-- Variant of `apSumOffset_eq_apSum_shift` written in the translation-friendly `k + const` form.
+
+This can be convenient when composing with lemmas that are oriented as `x ↦ x + k`.
+-/
+lemma apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  have h := apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n)
+  have hswap :
+      apSum (fun k => f (m * d + k)) d n = apSum (fun k => f (k + m * d)) d n := by
+    unfold apSum
+    refine Finset.sum_congr rfl ?_
+    intro i hi
+    simp [Nat.add_comm]
+  exact h.trans hswap
+
 -- (lemma `apSumOffset_add_length` moved to `MoltResearch/Discrepancy/Basic.lean`)
 
 /-- Split an offset AP sum at an intermediate length `n₁` when `n₁ ≤ n₂`.
