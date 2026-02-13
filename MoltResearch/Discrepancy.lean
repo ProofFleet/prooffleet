@@ -116,6 +116,9 @@ example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
 example : apSum f d (n + 1) = f d + apSumOffset f d 1 n := by
   simpa using apSum_succ_length (f := f) (d := d) (n := n)
 
+example : apSumOffset f d 0 n = apSum f d n := by
+  simp
+
 example :
     apSum f d (m + n) - apSum f d m =
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
