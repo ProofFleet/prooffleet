@@ -42,6 +42,24 @@ lemma apSumFrom_tail_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
     _ = f (a + ((m + i + 1) * d)) := by
       simp [hmul]
 
+/-- Difference of two affine AP partial sums as an offset AP sum on the shifted sequence
+`k ↦ f (a + k)` when `m ≤ n`.
+
+This is the affine analogue of `apSum_sub_apSum_eq_apSumOffset`.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  calc
+    apSumFrom f a d n - apSumFrom f a d m
+        = apSumFrom f (a + m * d) d (n - m) := by
+            simpa using
+              (apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (hmn := hmn))
+    _ = apSumOffset (fun k => f (a + k)) d m (n - m) := by
+            simpa using
+              (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m)
+                (n := n - m))
+
 /-- Rewrite the normal-form difference `apSumFrom f a d (m+n) - apSumFrom f a d m` as an
 interval sum `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)`.
 

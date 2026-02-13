@@ -45,6 +45,9 @@ Arithmetic progression sums:
   Split lengths via `apSumFrom_add_length`.
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
   `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).
+  For differences with an inequality `m ≤ n`, use `apSumFrom_sub_apSumFrom_eq_apSumFrom`.
+  If you want the canonical offset-sum normal form on the shifted sequence `k ↦ f (a + k)`, use
+  `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift`.
   Rewrite to an interval sum via `apSumFrom_eq_sum_Icc` when matching paper notation.
 
 Discrepancy predicates / witnesses:
