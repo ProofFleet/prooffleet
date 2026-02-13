@@ -62,6 +62,17 @@ Canonical shapes we try to normalize into:
 - Offset/tail sum: `apSumOffset f d m n` (paper: `∑ i ∈ Icc (m+1) (m+n), f (i*d)`).
 - Affine AP sum: `apSumFrom f a d n` (paper: `∑ i ∈ Icc 1 n, f (a + i*d)`).
 
+Quick start (when you just want a stable normal form and to avoid “lemma sprawl”):
+- If you see paper notation, rewrite it into nucleus form using `sum_Icc_eq_apSum`,
+  `sum_Icc_eq_apSumOffset`, or `sum_Icc_eq_apSumFrom`.
+- If you see a difference of partial sums `apSum … (m+n) - apSum … m`, rewrite it to an offset sum
+  using `apSum_sub_eq_apSumOffset`.
+- If you want to “bundle the step into the summand” (step-one normalization), rewrite `apSum f d n`
+  to `apSum (fun k => f (k*d)) 1 n` via `apSum_eq_apSum_step_one` (and similarly for offset/affine).
+
+(For a curated list plus regression-test examples, see the `## Normal forms` and
+`section NormalFormExamples` blocks in `MoltResearch/Discrepancy.lean`.)
+
 Typical rewrite pipeline:
 
 1) Paper → nucleus (normalize endpoints)
