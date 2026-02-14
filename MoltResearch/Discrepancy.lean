@@ -329,6 +329,15 @@ example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n :
   simpa using
     apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- If you prefer to keep the shifted summand in the `a + k` form, use the corresponding wrappers.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_shift_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example : apSumOffset (fun k => f (a + k)) d m n = apSumFrom f (m * d + a) d n := by
+  simpa using
+    apSumOffset_shift_eq_apSumFrom_tail_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
 example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
 
