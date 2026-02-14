@@ -326,6 +326,18 @@ example : apSumFrom (fun x => f (m + x)) a d n = apSumFrom f (m + a) d n := by
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Inequality normal form: subtracting two affine partial sums as a tail sum.
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (m := m) (n := n)
+    hmn
+
+-- Paper-notation inequality normal form: `Icc (m+1) n` tails for affine sums.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumFrom_tail_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
 example :
     apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
       apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
