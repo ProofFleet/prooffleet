@@ -373,6 +373,30 @@ lemma apSumOffset_shift_add_shift_add_eq_apSumOffset_shift_add (f : ℕ → ℤ)
   simpa using (apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
     (n := n)).symm
 
+/-- Normal form (add-left variant): push an offset parameter into a translation constant.
+
+This is the `a + k` analogue of `apSumOffset_shift_add_eq_apSumOffset_shift_add`.
+
+Concretely:
+`apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f ((a + m*d) + k)) d 0 n`.
+
+We keep both `… + k` and `k + …` flavors available since `simp` often behaves better when we avoid
+commuting addition under binders.
+-/
+lemma apSumOffset_shift_add_left_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f ((a + m * d) + k)) d 0 n := by
+  -- Eliminate the offset parameter using the generic `m*d + k` shifted-sequence view.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumOffset_eq_apSumOffset_shift (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumOffset_shift_add_left_eq_apSumOffset_shift_add_left`. -/
+lemma apSumOffset_shift_add_left_shift_add_left_eq_apSumOffset_shift_add_left (f : ℕ → ℤ)
+    (a d m n : ℕ) :
+    apSumOffset (fun k => f ((a + m * d) + k)) d 0 n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_left_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n)).symm
+
 -- (lemma `apSumOffset_add_length` moved to `MoltResearch/Discrepancy/Basic.lean`)
 
 /-- Split an offset AP sum at an intermediate length `n₁` when `n₁ ≤ n₂`.
