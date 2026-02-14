@@ -259,6 +259,11 @@ example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n :
 example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
 
+-- If you have already shifted the summand `k ↦ f (k + a)`, normalize back to the canonical
+-- `apSumFrom f a d n` form.
+example : apSumFrom (fun k => f (k + a)) 0 d n = apSumFrom f a d n := by
+  simpa using apSumFrom_shift_add_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
+
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 

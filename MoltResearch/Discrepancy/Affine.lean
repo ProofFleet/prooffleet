@@ -124,6 +124,15 @@ lemma apSumFrom_eq_apSumFrom_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
   -- Normalize `a + (i+1)*d` into the translation-friendly form `(i+1)*d + a`.
   simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
 
+/-- Inverse orientation of `apSumFrom_eq_apSumFrom_shift_add`.
+
+This lemma is handy when you have already shifted the summand and want to normalize back to the
+canonical `apSumFrom f a d n` form.
+-/
+lemma apSumFrom_shift_add_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom (fun k => f (k + a)) 0 d n = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_apSumFrom_shift_add (f := f) (a := a) (d := d) (n := n)).symm
+
 /-- Normal form: an affine AP sum starting at `a = 0` is just a homogeneous AP sum.
 
 This is the inverse orientation of `apSum_eq_apSumFrom`.
