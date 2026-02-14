@@ -319,19 +319,6 @@ example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
   simpa using apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
-example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
-  simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
-
-example : apSumOffset f d m n = apSumOffset (fun k => f (m * d + k)) d 0 n := by
-  simpa using apSumOffset_eq_apSumOffset_shift (f := f) (d := d) (m := m) (n := n)
-
-example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
-  simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
-
-example :
-    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
-  simpa using
-    apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
 example (hn : n₁ ≤ n₂) :
     apSumOffset f d m n₂ - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) (n₂ - n₁) := by
