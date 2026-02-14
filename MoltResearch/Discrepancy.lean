@@ -326,6 +326,14 @@ example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
 
+-- A convenient normal form: eliminate the explicit offset parameter by shifting the underlying
+-- sequence and resetting the offset to `0`.
+example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+  simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset (fun k => f (k + m * d)) d 0 n = apSumOffset f d m n := by
+  simpa using apSumOffset_shift_add_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
 -- Splitting a paper-notation tail sum into consecutive blocks matches the nucleus split lemma.
 example :
     (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) =
