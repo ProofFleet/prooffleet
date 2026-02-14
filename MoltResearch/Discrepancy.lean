@@ -458,6 +458,15 @@ example :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Variable upper endpoints appear in surface statements.
+-- When `m ≤ n`, normalize the difference `apSumFrom … n - apSumFrom … m` into the canonical tail
+-- length `n - m` (in translation-friendly `k + a` form).
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn)
+
 -- “Paper notation” for affine tails, in the translation-friendly `i*d + a` form.
 example :
     apSumFrom f (a + m * d) d n =
