@@ -682,33 +682,6 @@ lemma sum_Icc_add_length_affine_add (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
     simpa [Nat.add_comm] using congrArg f (Nat.add_comm a (i * d))
   simpa [hsummand] using h
 
-/-- Split the “paper notation” affine interval sum with multiplication written as `d * i`:
-`∑ i ∈ Icc (m+1) (m+(n₁+n₂)), f (a + d*i)` into the first `n₁` terms and the next `n₂` terms.
-
-This is the `d*i` analogue of `sum_Icc_add_length_affine`.
--/
-lemma sum_Icc_add_length_affine_mul_left (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
-    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + d * i)) =
-      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + d * i)) +
-        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (a + d * i)) := by
-  -- Reduce to the non-affine `mul_left` splitting lemma by viewing `i ↦ f (a + i)` as the summand.
-  simpa using
-    (MoltResearch.sum_Icc_add_length_mul_left (f := fun i => f (a + i)) (d := d) (m := m)
-      (n₁ := n₁) (n₂ := n₂))
-
-/-- Translation-friendly variant of `sum_Icc_add_length_affine_mul_left`, with the summand written as
-`f (d*i + a)`.
--/
-lemma sum_Icc_add_length_affine_mul_left_add (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
-    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i + a)) =
-      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i + a)) +
-        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i + a)) := by
-  have h :=
-    sum_Icc_add_length_affine_mul_left (f := f) (a := a) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
-  have hsummand : (fun i => f (a + d * i)) = (fun i => f (d * i + a)) := by
-    funext i
-    simpa [Nat.add_comm] using congrArg f (Nat.add_comm a (d * i))
-  simpa [hsummand] using h
 
 /-- Split the affine interval sum `∑ i ∈ Icc (m+1) n, f (a + i*d)` at an intermediate index `k`,
 assuming `m ≤ k ≤ n`.
