@@ -28,6 +28,27 @@ lemma apSumFrom_tail_succ_length (f : ℕ → ℤ) (a d m n : ℕ) :
         simpa [Nat.add_assoc, Nat.one_mul] using congrArg (fun t => a + t) (Nat.add_mul m 1 d).symm
   simpa [hstart] using h
 
+/-- Right-end “append one term” normal form for affine tails.
+
+This is the affine-tail analogue of `apSumOffset_succ`: it splits off the *last* term of the tail.
+It is convenient when you want to induct on the length `n` while keeping the tail parameter `m`
+fixed.
+-/
+lemma apSumFrom_tail_succ (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d (n + 1) = apSumFrom f (a + m * d) d n + f (a + (m + n + 1) * d) := by
+  -- Start from the generic `apSumFrom_succ` and normalize the start point.
+  have h := apSumFrom_succ (f := f) (a := a + m * d) (d := d) (n := n)
+  -- Normalize `(a + m*d) + (n+1)*d` to `a + (m+n+1)*d`.
+  have hlast : (a + m * d) + (n + 1) * d = a + (m + n + 1) * d := by
+    calc
+      (a + m * d) + (n + 1) * d = a + (m * d + (n + 1) * d) := by
+        simp [Nat.add_assoc]
+      _ = a + ((m + (n + 1)) * d) := by
+        simpa using congrArg (fun t => a + t) (Nat.add_mul m (n + 1) d).symm
+      _ = a + (m + n + 1) * d := by
+        simp [Nat.add_assoc]
+  simpa [hlast, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
 /-- Difference of two affine AP partial sums as a tail sum when `m ≤ n`. -/
 lemma apSumFrom_sub_apSumFrom_eq_apSumFrom (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (a + m * d) d (n - m) := by
