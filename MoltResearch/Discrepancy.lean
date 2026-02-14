@@ -128,6 +128,11 @@ Arithmetic progression sums:
   - `apSumFrom_tail_eq_apSumOffset_shift_add_zero_m`
   - `apSumFrom_sub_eq_apSumOffset_shift_add_zero_m`
   - `apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m`
+  If you want to go one step further and eliminate the now-trivial offset sum (`m = 0`) into a
+  homogeneous AP sum, use:
+  - `apSumFrom_tail_eq_apSum_shift_add`
+  - `apSumFrom_sub_eq_apSum_shift_add`
+  - `apSumFrom_add_length_eq_add_apSum_shift_add`
   If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
   If `a = 0`, rewrite to a homogeneous AP sum via `apSumFrom_zero_a` (and back via
   `apSum_eq_apSumFrom`).
@@ -349,6 +354,12 @@ example :
     apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
   simpa using
     apSumFrom_tail_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same normalization, but eliminate the now-trivial offset sum (`m = 0`) into a homogeneous AP sum.
+example :
+    apSumFrom f (a + m * d) d n = apSum (fun k => f (k + (a + m * d))) d n := by
+  simpa using
+    apSumFrom_tail_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
 -- Same idea, but for the standard `m+n` splitting normal form.
 example :
