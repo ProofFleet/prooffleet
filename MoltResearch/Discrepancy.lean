@@ -452,6 +452,14 @@ example :
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
   simpa using apSumFrom_tail_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Variable upper endpoints appear often in surface statements.
+-- When `m ≤ n`, normalize `∑ i ∈ Icc (m+1) n, f (i*d + a)` into the canonical tail length `n - m`.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) =
+      apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumFrom_tail_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
 example : apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n := by
   simpa using apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
 
