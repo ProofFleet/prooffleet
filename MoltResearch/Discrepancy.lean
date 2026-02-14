@@ -460,6 +460,13 @@ example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
   simpa using sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
 
+example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ m + n) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (a + i * d)) +
+        (Finset.Icc (k + 1) (m + n)).sum (fun i => f (a + i * d)) := by
+  simpa using
+    (sum_Icc_split_affine_of_le (f := f) (a := a) (d := d) (m := m) (k := k) (n := m + n) hmk hkn)
+
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) := by
