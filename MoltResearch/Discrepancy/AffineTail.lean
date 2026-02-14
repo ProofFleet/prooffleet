@@ -211,6 +211,22 @@ lemma apSumFrom_tail_eq_sum_Icc (f : ℕ → ℤ) (a d m n : ℕ) :
       simpa using
         (apSumOffset_eq_sum_Icc (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
 
+/-- Translation-friendly variant of `apSumFrom_tail_eq_sum_Icc`, with the summand written as
+`f (i*d + a)` instead of `f (a + i*d)`.
+
+This is useful when `simp`-normal forms or rewriting lemmas prefer `i*d + a`.
+-/
+lemma apSumFrom_tail_eq_sum_Icc_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
+  -- Start from the `a + i*d` version and normalize the summand.
+  have h := apSumFrom_tail_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n)
+  -- `simp` can rewrite under the binder once we identify the two summand functions.
+  have hsummand : (fun i => f (a + i * d)) = (fun i => f (i * d + a)) := by
+    funext i
+    simpa [Nat.add_comm] using congrArg f (Nat.add_comm a (i * d))
+  simpa [hsummand] using h
+
 /-- Normal form: rewrite the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` back to the affine tail sum `apSumFrom f (a + m*d) d n`.
 
