@@ -632,6 +632,22 @@ example (hmn : m ≤ n) :
     apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
       (hmn := hmn)
 
+-- Inverse orientation: normalize an `apSumOffset` tail sum on a shifted sequence back into a
+-- difference of affine partial sums.
+example (hmn : m ≤ n) :
+    apSumOffset (fun k => f (k + a)) d m (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    apSumOffset_shift_add_eq_apSumFrom_sub_apSumFrom_of_le (f := f) (a := a) (d := d) (m := m)
+      (n := n) (hmn := hmn)
+
+-- Splitting an affine partial sum at an intermediate point, with the tail normalized into the
+-- `apSumOffset` API on a shifted sequence.
+example (hmn : m ≤ n) :
+    apSumFrom f a d n = apSumFrom f a d m + apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    apSumFrom_eq_add_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn)
+
 -- “Paper notation” for affine tails, in the translation-friendly `i*d + a` form.
 example :
     apSumFrom f (a + m * d) d n =

@@ -550,6 +550,31 @@ lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d : 
   simpa [hshift] using
     (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (hmn := hmn))
 
+/-- Inverse orientation of `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift`.
+
+This is a convenience normal form: if you already have an `apSumOffset` tail sum on the shifted
+sequence `k ↦ f (a + k)`, you can rewrite it back into a difference of affine partial sums.
+-/
+lemma apSumOffset_shift_eq_apSumFrom_sub_apSumFrom_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumOffset (fun k => f (a + k)) d m (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn)).symm
+
+/-- Inverse orientation of `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add`.
+
+This is a convenience normal form: if you already have an `apSumOffset` tail sum on the
+translation-friendly shifted sequence `k ↦ f (k + a)`, you can rewrite it back into a difference
+of affine partial sums.
+-/
+lemma apSumOffset_shift_add_eq_apSumFrom_sub_apSumFrom_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumOffset (fun k => f (k + a)) d m (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+      (n := n) (hmn := hmn)).symm
+
 /-- Rewrite the normal-form difference `apSumFrom f a d (m+n) - apSumFrom f a d m` as an
 interval sum `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)`.
 
@@ -679,6 +704,22 @@ lemma apSumFrom_eq_add_apSumFrom_tail (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} 
     apSumFrom f a d n = apSumFrom f a d m + apSumFrom f (a + m * d) d (n - m) := by
   simpa [Nat.add_sub_of_le hmn] using
     (apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
+/-- Split an affine AP partial sum at `m` when `m ≤ n`, with the tail normalized into the
+`apSumOffset` API on the shifted sequence `k ↦ f (a + k)`.
+
+This is often the most composable normal form downstream: once the tail is an `apSumOffset`,
+bounds/splitting/difference lemmas can be applied without carrying affine start bookkeeping.
+-/
+lemma apSumFrom_eq_add_apSumOffset_shift (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f a d n =
+      apSumFrom f a d m + apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  calc
+    apSumFrom f a d n
+        = apSumFrom f a d m + apSumFrom f (a + m * d) d (n - m) := by
+            simpa using (apSumFrom_eq_add_apSumFrom_tail (f := f) (a := a) (d := d) (hmn := hmn))
+    _ = apSumFrom f a d m + apSumOffset (fun k => f (a + k)) d m (n - m) := by
+            simp [apSumFrom_tail_eq_apSumOffset_shift]
 
 /-- Split an affine AP partial sum at `m` when `m ≤ n`, with the tail normalized into the
 `apSumOffset` API on the translation-friendly shifted sequence `k ↦ f (k + a)`.
