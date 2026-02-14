@@ -58,6 +58,26 @@ lemma apSumFrom_eq_sum_Icc (f : ℕ → ℤ) (a d n : ℕ) :
     _ = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
             simpa [Finset.Ico_add_one_right_eq_Icc]
 
+/-- Translation-friendly paper notation: rewrite `apSumFrom` as
+`∑ i ∈ Icc 1 n, f (i*d + a)`.
+
+This variant avoids commuting an `a + …` under a binder in downstream proofs.
+-/
+lemma apSumFrom_eq_sum_Icc_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (i * d + a)) := by
+  classical
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n))
+
+/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (i*d + a)` back to
+`apSumFrom`.
+
+This is the inverse orientation of `apSumFrom_eq_sum_Icc_add`.
+-/
+lemma sum_Icc_eq_apSumFrom_add (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_sum_Icc_add (f := f) (a := a) (d := d) (n := n)).symm
+
 /-- Special case: step size `d = 1` turns `apSumFrom` into the plain interval sum
 `∑ i ∈ Icc 1 n, f (a + i)`.
 
