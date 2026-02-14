@@ -122,6 +122,18 @@ lemma apSumFrom_tail_sub_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n1 n2 : ℕ)
         simpa using congrArg (fun t => a + t) (Nat.add_mul m n1 d).symm
   simpa [hstart] using h
 
+/-- Tail-of-tail normal form with the affine start written as `m*d + a`.
+
+This is a convenience wrapper around `apSumFrom_tail_sub_eq_apSumFrom_tail` that avoids a manual
+commutativity rewrite of the affine start at the call site.
+-/
+lemma apSumFrom_tail_sub_eq_apSumFrom_tail_start_add_left (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (m * d + a) d (n1 + n2) - apSumFrom f (m * d + a) d n1 =
+      apSumFrom f ((m + n1) * d + a) d n2 := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n1 := n1)
+      (n2 := n2))
+
 /-- Tail affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (a + k)`. -/
 lemma apSumFrom_tail_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
@@ -280,6 +292,18 @@ lemma apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f : ℕ → ℤ) (a d m 
   simpa [hshift] using
     (apSumFrom_tail_sub_eq_apSumOffset_shift_tail (f := f) (a := a) (d := d) (m := m) (n1 := n1)
       (n2 := n2))
+
+/-- Tail-of-tail normal form in the translation-friendly shifted-sequence form, with the affine
+start written as `m*d + a`.
+
+This wrapper avoids commuting `a + m*d` at the call site.
+-/
+lemma apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail_start_add_left (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (m * d + a) d (n1 + n2) - apSumFrom f (m * d + a) d n1 =
+      apSumOffset (fun k => f (k + a)) d (m + n1) n2 := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n1) (n2 := n2))
 
 /-- Normal form: rewrite the canonical affine difference `(m+n) - m` as an offset AP sum on the
 shifted sequence `k ↦ f (a + k)`.
