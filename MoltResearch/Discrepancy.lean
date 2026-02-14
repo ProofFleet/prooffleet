@@ -273,6 +273,13 @@ example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
   simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
 
+-- Affine paper notation: multiplication-on-the-left variants (avoid commuting `i*d` under binders).
+example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + d * i)) := by
+  simpa using apSumFrom_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (d * i + a)) := by
+  simpa using apSumFrom_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (n := n)
+
 -- Affine differences: normalize to an offset sum on a shifted sequence.
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by

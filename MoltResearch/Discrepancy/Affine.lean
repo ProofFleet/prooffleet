@@ -78,6 +78,48 @@ lemma sum_Icc_eq_apSumFrom_add (f : ℕ → ℤ) (a d n : ℕ) :
     (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumFrom f a d n := by
   simpa using (apSumFrom_eq_sum_Icc_add (f := f) (a := a) (d := d) (n := n)).symm
 
+/-- Multiplication-on-the-left paper notation: rewrite `apSumFrom` as
+`∑ i ∈ Icc 1 n, f (a + d*i)`.
+
+This variant avoids commuting multiplication under binders in downstream proofs.
+-/
+lemma apSumFrom_eq_sum_Icc_mul_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + d * i)) := by
+  classical
+  refine (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_comm]
+
+/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (a + d*i)` back to
+`apSumFrom`.
+
+This is the inverse orientation of `apSumFrom_eq_sum_Icc_mul_left`.
+-/
+lemma sum_Icc_eq_apSumFrom_mul_left (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + d * i)) = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (n := n)).symm
+
+/-- Multiplication-on-the-left + translation-friendly paper notation: rewrite `apSumFrom` as
+`∑ i ∈ Icc 1 n, f (d*i + a)`.
+
+This combines `apSumFrom_eq_sum_Icc_mul_left` with commuting addition outside the binder.
+-/
+lemma apSumFrom_eq_sum_Icc_mul_left_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (d * i + a)) := by
+  classical
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumFrom_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (n := n))
+
+/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (d*i + a)` back to
+`apSumFrom`.
+
+This is the inverse orientation of `apSumFrom_eq_sum_Icc_mul_left_add`.
+-/
+lemma sum_Icc_eq_apSumFrom_mul_left_add (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (d * i + a)) = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (n := n)).symm
+
 /-- Special case: step size `d = 1` turns `apSumFrom` into the plain interval sum
 `∑ i ∈ Icc 1 n, f (a + i)`.
 
