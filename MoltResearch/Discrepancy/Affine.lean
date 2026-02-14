@@ -149,6 +149,28 @@ lemma apSumFrom_eq_apSum_step_one (f : ℕ → ℤ) (a d n : ℕ) :
   unfold apSumFrom apSum
   simp
 
+/-- Normal form (“step-one”, offset-sum view): express an affine AP sum as an `apSumOffset` with
+step size `1` and zero offset.
+
+This is a small wrapper around `apSumFrom_eq_apSum_step_one`. It is useful when you want to apply
+lemmas stated for `apSumOffset` (e.g. tail/difference normal forms) without first going through an
+`apSum` intermediate.
+-/
+lemma apSumFrom_eq_apSumOffset_step_one_zero_m (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+  -- `apSumOffset g 1 0 n` simp-normalizes to `apSum g 1 n`.
+  simpa [apSumFrom_eq_apSum_step_one] using
+    (apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n))
+
+/-- Translation-friendly variant of `apSumFrom_eq_apSumOffset_step_one_zero_m`.
+
+This packages the summand as `k * d + a` rather than `a + k * d`.
+-/
+lemma apSumFrom_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa [Nat.add_comm] using
+    (apSumFrom_eq_apSumOffset_step_one_zero_m (f := f) (a := a) (d := d) (n := n))
+
 /-- Translation-friendly variant of `apSumFrom_eq_apSum_step_one`.
 
 This lemma packages the affine AP sum into step-one form where the summand is written as
