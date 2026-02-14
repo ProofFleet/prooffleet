@@ -399,6 +399,18 @@ lemma apSumFrom_tail_eq_sum_Icc_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} 
   simpa [Nat.add_sub_of_le hmn] using
     (apSumFrom_tail_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n - m))
 
+/-- Translation-friendly surface form: when `m ≤ n`, rewrite the affine tail sum
+`apSumFrom f (a + m*d) d (n - m)` as an interval sum `∑ i ∈ Icc (m+1) n, f (i*d + a)`.
+
+This is the `i*d + a` analogue of `apSumFrom_tail_eq_sum_Icc_of_le`.
+-/
+lemma apSumFrom_tail_eq_sum_Icc_of_le_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f (a + m * d) d (n - m) =
+      (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) := by
+  -- Convert to the fixed-length `(m + (n - m))` form, then use the fixed-length add-left lemma.
+  simpa [Nat.add_sub_of_le hmn] using
+    (apSumFrom_tail_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
 /-- Difference of two affine AP partial sums as an offset AP sum on the shifted sequence
 `k ↦ f (a + k)` when `m ≤ n`.
 
@@ -476,6 +488,26 @@ lemma apSumFrom_sub_apSumFrom_eq_sum_Icc (f : ℕ → ℤ) (a d : ℕ) {m n : �
     _ = (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) := by
             simp [Nat.add_sub_of_le hmn]
 
+/-- Translation-friendly variant of `apSumFrom_sub_apSumFrom_eq_sum_Icc`, with the summand written
+as `f (i*d + a)`.
+
+This is useful when rewriting surface goals in a normal form compatible with downstream
+translation lemmas.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_sum_Icc_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) := by
+  calc
+    apSumFrom f a d n - apSumFrom f a d m
+        = apSumFrom f (a + m * d) d (n - m) := by
+            simpa using
+              (apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (hmn := hmn))
+    _ = (Finset.Icc (m + 1) (m + (n - m))).sum (fun i => f (i * d + a)) := by
+            simpa using
+              (apSumFrom_tail_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n - m))
+    _ = (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) := by
+            simp [Nat.add_sub_of_le hmn]
+
 /-- Normal form (paper → nucleus, difference): rewrite the interval sum
 `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` as the difference of affine AP partial sums.
 
@@ -496,6 +528,18 @@ lemma sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le (f : ℕ → ℤ) (a d : ℕ) {m 
       apSumFrom f a d n - apSumFrom f a d m := by
   simpa using (apSumFrom_sub_apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n)
     hmn).symm
+
+/-- Translation-friendly variant of `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le`, with the summand
+written as `f (i*d + a)`.
+
+This is the inverse orientation of `apSumFrom_sub_apSumFrom_eq_sum_Icc_add`.
+-/
+lemma sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) =
+      apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_apSumFrom_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn).symm
 
 /-- Sign-sequence bound on `apSumFrom` in the `(m + n) - m` normal form. -/
 lemma IsSignSequence.natAbs_apSumFrom_sub_le {f : ℕ → ℤ} (hf : IsSignSequence f)
