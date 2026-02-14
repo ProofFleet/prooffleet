@@ -172,6 +172,20 @@ lemma apSumFrom_tail_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
     _ = f (a + ((m + i + 1) * d)) := by
       simp [hmul]
 
+/-- Head+tail splitting normal form for affine sums, with the tail expressed as an `apSumOffset`
+on the shifted sequence `k ↦ f (a + k)`.
+
+This is a convenience wrapper around `apSumFrom_add_length` and
+`apSumFrom_tail_eq_apSumOffset_shift` that puts the tail into the offset-sum nucleus API directly.
+-/
+lemma apSumFrom_add_length_eq_add_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) = apSumFrom f a d m + apSumOffset (fun k => f (a + k)) d m n := by
+  calc
+    apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
+      simpa using apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSumFrom f a d m + apSumOffset (fun k => f (a + k)) d m n := by
+      simp [apSumFrom_tail_eq_apSumOffset_shift]
+
 /-- Tail affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (a + k)`, with the
 starting point written as `m*d + a`.
 
@@ -217,6 +231,20 @@ lemma apSumFrom_tail_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) 
     simpa using congrArg f (Nat.add_comm a k)
   simpa [hshift] using
     (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Translation-friendly variant of `apSumFrom_add_length_eq_add_apSumOffset_shift`, with the tail
+expressed as an `apSumOffset` on the shifted sequence `k ↦ f (k + a)`.
+
+This is a convenience wrapper around `apSumFrom_add_length` and
+`apSumFrom_tail_eq_apSumOffset_shift_add`.
+-/
+lemma apSumFrom_add_length_eq_add_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) = apSumFrom f a d m + apSumOffset (fun k => f (k + a)) d m n := by
+  calc
+    apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
+      simpa using apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSumFrom f a d m + apSumOffset (fun k => f (k + a)) d m n := by
+      simp [apSumFrom_tail_eq_apSumOffset_shift_add]
 
 /-- Tail affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (k + a)`, with the
 starting point written as `m*d + a`.
