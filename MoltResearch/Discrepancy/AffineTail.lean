@@ -39,6 +39,18 @@ lemma apSumFrom_tail_succ_length_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
   simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
     (apSumFrom_tail_succ_length (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Head+tail normal form for affine tails, with the start written as `m*d + a`.
+
+This is a convenience wrapper around `apSumFrom_tail_succ_length_add_left` that avoids commuting
+`a + m*d` at the call site.
+-/
+lemma apSumFrom_tail_succ_length_start_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d (n + 1) =
+      f ((m + 1) * d + a) + apSumFrom f ((m + 1) * d + a) d n := by
+  -- Normalize the affine start into the `a + m*d` form, apply the tail lemma, then normalize back.
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumFrom_tail_succ_length_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Right-end “append one term” normal form for affine tails.
 
 This is the affine-tail analogue of `apSumOffset_succ`: it splits off the *last* term of the tail.
@@ -69,6 +81,16 @@ lemma apSumFrom_tail_succ_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f (a + m * d) d (n + 1) = apSumFrom f (a + m * d) d n + f ((m + n + 1) * d + a) := by
   simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
     (apSumFrom_tail_succ (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Right-end “append one term” normal form for affine tails, with the start written as `m*d + a`.
+
+This is a convenience wrapper around `apSumFrom_tail_succ_add_left` that avoids commuting
+`a + m*d` at the call site.
+-/
+lemma apSumFrom_tail_succ_start_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d (n + 1) = apSumFrom f (m * d + a) d n + f ((m + n + 1) * d + a) := by
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumFrom_tail_succ_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
 /-- Difference of two affine AP partial sums as a tail sum when `m ≤ n`. -/
 lemma apSumFrom_sub_apSumFrom_eq_apSumFrom (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
