@@ -113,6 +113,28 @@ lemma apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumFrom f (m * d) d n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Convenience wrapper: if the affine start `a` is *definitionally* a multiple of `d`, rewrite
+`apSumFrom f a d n` to an offset sum.
+
+This is a small normal-form helper when your context already contains a fact `a = m * d`.
+-/
+lemma apSumFrom_eq_apSumOffset_of_eq_mul (f : ℕ → ℤ) {a d m n : ℕ} (ha : a = m * d) :
+    apSumFrom f a d n = apSumOffset f d m n := by
+  simpa [ha] using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
+/-- Convenience wrapper: if the affine start `a` is a multiple of `d`, rewrite `apSumFrom` to an
+offset sum.
+
+This lemma is intentionally existential: downstream goals often know only “`d ∣ a`” (or an
+explicit witness `∃ m, a = m*d`) and want to normalize into an `apSumOffset` form.
+-/
+lemma apSumFrom_exists_eq_apSumOffset_of_exists_eq_mul (f : ℕ → ℤ) {a d n : ℕ}
+    (h : ∃ m, a = m * d) :
+    ∃ m, apSumFrom f a d n = apSumOffset f d m n := by
+  rcases h with ⟨m, rfl⟩
+  refine ⟨m, ?_⟩
+  simpa using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
 /-- Shifted version of `apSumFrom`. -/
 lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
