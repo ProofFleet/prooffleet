@@ -118,6 +118,16 @@ lemma apSumFrom_tail_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) 
   simpa [hshift] using
     (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_shift_add`.
+
+This is useful when you have already normalized into the translation-friendly shifted-sequence
+form `apSumOffset (fun k => f (k + a)) …` but want to return to the affine nucleus API.
+-/
+lemma apSumOffset_shift_add_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-- Affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (k + a)`.
 
 This is the `m = 0` case of `apSumFrom_tail_eq_apSumOffset_shift_add`.
@@ -126,6 +136,14 @@ lemma apSumFrom_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
     apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := 0) (n := n))
+
+/-- Inverse orientation of `apSumFrom_eq_apSumOffset_shift_add`.
+
+This is the `m = 0` case of `apSumOffset_shift_add_eq_apSumFrom_tail`.
+-/
+lemma apSumOffset_shift_add_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d 0 n = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)).symm
 
 /-- Normal form: rewrite the canonical affine difference `(m+n) - m` as an offset AP sum on the
 shifted sequence `k ↦ f (k + a)`.
