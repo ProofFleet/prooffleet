@@ -833,6 +833,22 @@ example :
       f (a + (m + 1) * d) + apSumFrom f (a + (m + 1) * d) d n := by
   simpa using apSumFrom_tail_succ_length (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Same head+tail normal form, but with the remaining tail expressed as an `apSumOffset`.
+example :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f (a + (m + 1) * d) + apSumOffset (fun k => f (a + k)) d (m + 1) n := by
+  simpa using
+    apSumFrom_tail_succ_length_eq_add_apSumOffset_shift (f := f) (a := a) (d := d) (m := m)
+      (n := n)
+
+-- Translation-friendly variant (`k + a` inside binders, and `(m+1)*d + a` for the head term).
+example :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f ((m + 1) * d + a) + apSumOffset (fun k => f (k + a)) d (m + 1) n := by
+  simpa using
+    apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+      (n := n)
+
 example : apSumFrom f a d n = apSumOffset (fun k => f (a + k)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (n := n)
 

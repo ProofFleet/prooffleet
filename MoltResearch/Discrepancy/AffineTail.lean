@@ -335,6 +335,35 @@ lemma apSumFrom_tail_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (a d m n : 
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Head+tail normal form for affine tails, with the tail expressed as an `apSumOffset`
+on the shifted sequence `k ↦ f (a + k)`.
+
+This is convenient when you want to increment the tail parameter `m` while keeping the remaining
+tail in the offset-sum nucleus API.
+-/
+lemma apSumFrom_tail_succ_length_eq_add_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f (a + (m + 1) * d) + apSumOffset (fun k => f (a + k)) d (m + 1) n := by
+  calc
+    apSumFrom f (a + m * d) d (n + 1) =
+        f (a + (m + 1) * d) + apSumFrom f (a + (m + 1) * d) d n := by
+          simpa using apSumFrom_tail_succ_length (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = f (a + (m + 1) * d) + apSumOffset (fun k => f (a + k)) d (m + 1) n := by
+          simp [apSumFrom_tail_eq_apSumOffset_shift]
+
+/-- Translation-friendly variant of `apSumFrom_tail_succ_length_eq_add_apSumOffset_shift`, where the
+head term is written as `(m+1)*d + a` and the shifted sequence is `k ↦ f (k + a)`. -/
+lemma apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f ((m + 1) * d + a) + apSumOffset (fun k => f (k + a)) d (m + 1) n := by
+  calc
+    apSumFrom f (a + m * d) d (n + 1) =
+        f ((m + 1) * d + a) + apSumFrom f ((m + 1) * d + a) d n := by
+          simpa using
+            apSumFrom_tail_succ_length_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = f ((m + 1) * d + a) + apSumOffset (fun k => f (k + a)) d (m + 1) n := by
+          simp [apSumFrom_tail_eq_apSumOffset_shift_add_left]
+
 /-- Tail affine AP sum as a homogeneous AP sum on the further-shifted sequence `k ↦ f (k + (m*d + a))`,
 with the starting point written as `m*d + a`.
 
