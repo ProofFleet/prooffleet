@@ -316,6 +316,26 @@ example :
   simpa using
     apSumFrom_tail_succ_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Regression: tail normal forms when the affine start is already written as `m*d + a`.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example : apSumFrom f (m * d + a) d n = apSum (fun k => f (k + (m * d + a))) d n := by
+  simpa using
+    apSumFrom_tail_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f (m * d + a) d (n + 1) =
+      f ((m + 1) * d + a) + apSumFrom f ((m + 1) * d + a) d n := by
+  simpa using
+    apSumFrom_tail_succ_length_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f (m * d + a) d (n + 1) = apSumFrom f (m * d + a) d n + f ((m + n + 1) * d + a) := by
+  simpa using
+    apSumFrom_tail_succ_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Step-one normalization that stays inside the offset nucleus API (`m = 0`) in the
 -- translation-friendly `k*d + const` presentation.
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k * d + (a + m * d))) 1 0 n := by
