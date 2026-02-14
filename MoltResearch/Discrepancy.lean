@@ -64,10 +64,11 @@ Arithmetic progression sums:
   Rewrite between tails and differences using `apSumOffset_eq_sub` and
   `apSum_sub_apSum_eq_apSumOffset`. When you are already in the canonical `(m + n) - m` form,
   prefer `apSum_sub_eq_apSumOffset` (subtraction → tail) for rewriting.
-  For “tail-of-tail” decompositions, rewrite differences of offset sums via
-  `apSumOffset_sub_eq_apSumOffset_tail` (normal form) or `apSumOffset_sub_apSumOffset_eq_apSumOffset`
-  (when a length inequality `n₁ ≤ n₂` is available). To split an offset sum at an intermediate
-  length, use `apSumOffset_eq_add_apSumOffset_tail`.
+  For “tail-of-tail” decompositions, move between tails and differences of offset sums using
+  `apSumOffset_tail_eq_sub` (tail → difference) and `apSumOffset_sub_eq_apSumOffset_tail`
+  (difference → tail, normal form). When a length inequality `n₁ ≤ n₂` is available, use
+  `apSumOffset_sub_apSumOffset_eq_apSumOffset`. To split an offset sum at an intermediate length,
+  use `apSumOffset_eq_add_apSumOffset_tail`.
   For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc` (or, if `d = 1`,
   via `apSumOffset_one_d`) and split such interval sums into consecutive blocks via
   `sum_Icc_add_length`; for the normal-form difference of offset sums, use
@@ -462,6 +463,11 @@ example :
       (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) +
         (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
   simpa using sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Normal form: a later tail as a difference of a longer tail and its initial segment.
+example :
+    apSumOffset f d (m + n₁) n₂ = apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ := by
+  simpa using apSumOffset_tail_eq_sub (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
 -- Normal form: difference of offset sums with the same `m` becomes a later tail.
 example :
