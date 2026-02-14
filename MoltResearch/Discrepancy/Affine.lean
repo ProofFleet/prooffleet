@@ -133,6 +133,26 @@ lemma apSumFrom_shift_add_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
     apSumFrom (fun k => f (k + a)) 0 d n = apSumFrom f a d n := by
   simpa using (apSumFrom_eq_apSumFrom_shift_add (f := f) (a := a) (d := d) (n := n)).symm
 
+/-- Add-left variant of `apSumFrom_eq_apSumFrom_shift_add`.
+
+This is the same normal form, but with the shifted function written in the `a + k` convention
+instead of `k + a`. Keeping both orientations avoids commuting addition under binders in
+downstream proofs.
+-/
+lemma apSumFrom_eq_apSumFrom_shift_add_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumFrom (fun k => f (a + k)) 0 d n := by
+  have hfun : (fun k => f (k + a)) = fun k => f (a + k) := by
+    funext k
+    simp [Nat.add_comm]
+  simpa [hfun] using
+    (apSumFrom_eq_apSumFrom_shift_add (f := f) (a := a) (d := d) (n := n))
+
+/-- Inverse orientation of `apSumFrom_eq_apSumFrom_shift_add_left`. -/
+lemma apSumFrom_shift_add_left_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom (fun k => f (a + k)) 0 d n = apSumFrom f a d n := by
+  simpa using
+    (apSumFrom_eq_apSumFrom_shift_add_left (f := f) (a := a) (d := d) (n := n)).symm
+
 /-- Normal form: an affine AP sum starting at `a = 0` is just a homogeneous AP sum.
 
 This is the inverse orientation of `apSum_eq_apSumFrom`.
