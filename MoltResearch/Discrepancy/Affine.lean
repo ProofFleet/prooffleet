@@ -410,6 +410,50 @@ lemma apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (
       simpa using
         (apSumOffset_zero_m (f := fun k => f (k * d + (a + m * d))) (d := 1) (n := n)).symm
 
+/-- Tail step-one normal form that *keeps* the tail parameter `m` in the offset nucleus API.
+
+This is often the most convenient bridge when you want to work uniformly with `apSumOffset` tails
+(and still package the step size `d` into the summand), without first forcing `m = 0`.
+
+It presents the affine tail
+`apSumFrom f (a + m*d) d n`
+as the offset sum
+`apSumOffset (fun k => f (k*d + a)) 1 m n`.
+-/
+lemma apSumFrom_tail_eq_apSumOffset_step_one_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k * d + a)) 1 m n := by
+  classical
+  unfold apSumFrom apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Compare the `i`th term on each side.
+  -- LHS term: `f ((a + m*d) + (i+1)*d)`.
+  -- RHS term: `f (((m+i+1)*1)*d + a)`.
+  have hmul : m * d + (i + 1) * d = (m + (i + 1)) * d := by
+    -- `Nat.add_mul` gives `(m + (i+1)) * d = m*d + (i+1)*d`.
+    simpa using (Nat.add_mul m (i + 1) d).symm
+  -- Now just normalize associativity/commutativity of `+` and `*`.
+  calc
+    f ((a + m * d) + (i + 1) * d)
+        = f (a + (m * d + (i + 1) * d)) := by
+            simp [Nat.add_assoc]
+    _ = f (a + (m + (i + 1)) * d) := by
+            simp [hmul]
+    _ = f ((m + i + 1) * d + a) := by
+            simp [Nat.add_assoc, Nat.add_comm]
+    _ = f (((m + i + 1) * 1) * d + a) := by
+            simp
+
+/-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_step_one_add_left`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the `apSumOffset … 1 m n` presentation
+once we have decided to work in the step-one world.
+-/
+lemma apSumOffset_step_one_add_left_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k * d + a)) 1 m n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSum_step_one_add_left`.
 
 We do *not* mark this as `[simp]`: our normal forms prefer the `k*d + const` presentation when
