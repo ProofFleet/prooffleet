@@ -465,6 +465,14 @@ example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
 example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
   simpa using apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n)
 
+-- Sometimes you want to package the translation as a map on the sequence `f` itself.
+-- These lemmas commute the `+ a` past the multiplication inside the binder.
+example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n)
+
 example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)
 
