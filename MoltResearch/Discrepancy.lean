@@ -28,9 +28,17 @@ canonical shapes that downstream files can rewrite into and then work with.
 Two conventions that pay for themselves quickly:
 - **Translation-friendly summands:** prefer the `… + const` shape *inside binders* (e.g. `i * d + a` or
   `k + a`) because `simp` and `ring_nf` tend to cooperate better without needing `Nat.add_comm` under
-  lambdas. Many rewrite lemmas come in both `a + i*d` and `i*d + a` flavors; when in doubt, reach
-  for the `_add` / `_add_left` variants (e.g. `apSumFrom_tail_eq_sum_Icc_add`,
-  `sum_Icc_eq_apSumFrom_tail_of_le_add`, `apSumOffset_eq_apSum_shift_add`).
+  lambdas.
+
+  Many rewrite lemmas come in both `a + …` and `… + a` flavors. In this folder we try to follow a
+  consistent naming convention:
+  - suffix `_add` usually means the bound variable is on the **left**: `fun k => f (k + a)`;
+  - suffix `_add_left` usually means the constant is on the **left**: `fun k => f (a + k)`;
+  - when multiplication is involved, `_add_left` often corresponds to the paper-friendly `k * d + a`.
+
+  When in doubt, reach for the `_add` / `_add_left` variants (e.g. `apSumFrom_tail_eq_sum_Icc_add`,
+  `sum_Icc_eq_apSumFrom_tail_of_le_add`, `apSumFrom_tail_succ_length_add_left`,
+  `apSumOffset_eq_apSum_shift_add`).
 - **Difference → tail early:** when you see a subtraction like `apSum … (m+n) - apSum … m` (or the
   affine analogue), rewrite it to an explicit tail sum (`apSumOffset … m n` / `apSumFrom …` tail)
   *before* doing algebra. This keeps subsequent splitting/bounding lemmas in the nucleus API.
