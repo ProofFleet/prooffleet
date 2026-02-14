@@ -62,6 +62,16 @@ Canonical shapes we try to normalize into:
 - Offset/tail sum: `apSumOffset f d m n` (paper: `∑ i ∈ Icc (m+1) (m+n), f (i*d)`).
 - Affine AP sum: `apSumFrom f a d n` (paper: `∑ i ∈ Icc 1 n, f (a + i*d)`).
 
+Two practical conventions (to reduce “almost-the-same” lemmas):
+
+- **Translation-friendly summands:** when you see `a + i*d` vs `i*d + a`, prefer using the `…_add`
+  variants (e.g. `apSumFrom_tail_eq_sum_Icc_add`, `sum_Icc_eq_apSumFrom_tail_of_le_add`) so `simp`
+  doesn’t fight you on `Nat.add_comm` under binders.
+- **Canonical difference normal form:** when a goal has a subtraction like
+  `apSum…(m+n) - apSum…m` (or the affine analogue), rewrite it to an explicit tail sum
+  (`apSum_sub_eq_apSumOffset` / `apSumFrom_sub_eq_apSumFrom_tail`) *before* doing any algebra.
+  This keeps subsequent splitting/bounding lemmas in the nucleus API.
+
 Quick start (when you just want a stable normal form and to avoid “lemma sprawl”):
 - If you see paper notation, rewrite it into nucleus form using `sum_Icc_eq_apSum`,
   `sum_Icc_eq_apSumOffset`, or `sum_Icc_eq_apSumFrom`.
