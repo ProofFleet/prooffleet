@@ -218,6 +218,14 @@ example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
 example : apSum (fun k => f (k * d)) 1 n = apSum f d n := by
   simpa using apSum_step_one_eq_apSum (f := f) (d := d) (n := n)
 
+-- Translation-friendly affine “step-one” normal forms.
+example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
+  simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f (a + m * d) d n = apSum (fun k => f (k * d + (a + m * d))) 1 n := by
+  simpa using
+    apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Differences of partial sums: normalize to tails early.
 example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
   simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
