@@ -361,6 +361,10 @@ example :
 example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
   simpa using apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)
 
+-- Affine start `a = 0` recovers the homogeneous AP sum.
+example : apSumFrom f 0 d n = apSum f d n := by
+  simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
+
 example : apSumFrom f a 1 n = (Finset.Icc 1 n).sum (fun i => f (a + i)) := by
   simpa using apSumFrom_one_d (f := f) (a := a) (n := n)
 

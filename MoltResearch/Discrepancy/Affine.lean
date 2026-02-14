@@ -87,6 +87,14 @@ lemma apSum_eq_apSumFrom (f : ℕ → ℤ) (d n : ℕ) :
   unfold apSum apSumFrom
   simp [Nat.zero_add]
 
+/-- Normal form: an affine AP sum starting at `a = 0` is just a homogeneous AP sum.
+
+This is the inverse orientation of `apSum_eq_apSumFrom`.
+-/
+lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
+    apSumFrom f 0 d n = apSum f d n := by
+  simpa using (apSum_eq_apSumFrom (f := f) (d := d) (n := n)).symm
+
 lemma apSumOffset_eq_apSumFrom (f : ℕ → ℤ) (d m n : ℕ) :
   apSumOffset f d m n = apSumFrom f (m * d) d n := by
   unfold apSumOffset apSumFrom
