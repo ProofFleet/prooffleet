@@ -257,6 +257,44 @@ lemma apSumFrom_tail_eq_apSum_step_one (f : ℕ → ℤ) (a d m n : ℕ) :
   -- `simp` also reduces `((i+1) * 1)`.
   simp [Nat.add_assoc, hmul]
 
+/-- Translation-friendly variant of `apSumFrom_tail_eq_apSum_step_one`.
+
+This keeps the step-one homogeneous sum normal form, but writes the summand as
+`k * d + (a + m * d)` rather than `a + (m + k) * d`.
+
+This can be convenient when other rewrite lemmas (or `simp` normal forms) prefer `k*d + const`.
+-/
+lemma apSumFrom_tail_eq_apSum_step_one_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSum (fun k => f (k * d + (a + m * d))) 1 n := by
+  classical
+  -- First normalize to the canonical tail step-one form.
+  have h := apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
+  -- Then rewrite the summand into the `k*d + const` presentation.
+  -- (Here `k` ranges over `1..n` inside `apSum _ 1 n`.)
+  refine h.trans ?_
+  unfold apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Inside `apSum _ 1 n`, the summand is evaluated at `k = (i+1)`.
+  -- We normalize `a + (m + (i+1)) * d` into `(i+1) * d + (a + m*d)`.
+  have hadd : a + (m + (i + 1)) * d = (i + 1) * d + (a + m * d) := by
+    calc
+      a + (m + (i + 1)) * d = a + (m * d + (i + 1) * d) := by
+        simpa using congrArg (fun t => a + t) (Nat.add_mul m (i + 1) d)
+      _ = (i + 1) * d + (a + m * d) := by
+        simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  simp [hadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-- Inverse orientation of `apSumFrom_tail_eq_apSum_step_one_add_left`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the `k*d + const` presentation when
+using the `_add_left` lemmas.
+-/
+lemma apSum_step_one_add_left_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSum (fun k => f (k * d + (a + m * d))) 1 n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSum_step_one`.
 
 We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
