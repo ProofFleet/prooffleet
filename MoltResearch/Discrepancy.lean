@@ -91,10 +91,12 @@ Arithmetic progression sums:
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
   Split lengths via `apSumFrom_add_length`.
   For a right-end “append one term” decomposition, use `apSumFrom_succ`.
-  For a translation-friendly homogeneous-sum view, rewrite
-  `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_map_add`.
-  If you prefer the “constant on the left” convention, use
-  `apSumFrom_eq_apSum_map_add_left` to get `apSum (fun k => f (a + k)) d n`.
+  For a homogeneous-sum view (shift the sequence, keep the step size `d`), rewrite
+  - `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_shift_add`.
+  - or `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k)) d n` via `apSumFrom_eq_apSum_shift`.
+  If you instead want to *commute the translation past the multiplication* (i.e. package the
+  translation as `x ↦ f (x + a)` under the `apSum` binder), use `apSumFrom_eq_apSum_map_add`
+  (or the `_left` variant `apSumFrom_eq_apSum_map_add_left`).
   For a “step-one” normalization (useful when you want to treat the AP step as part of the
   summand), rewrite
   `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k * d)) 1 n` via `apSumFrom_eq_apSum_step_one`
@@ -429,10 +431,10 @@ example : apSum f d n = apSumFrom f 0 d n := by
   simpa using apSum_eq_apSumFrom (f := f) (d := d) (n := n)
 
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
-  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
-  simpa using apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)

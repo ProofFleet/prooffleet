@@ -147,11 +147,22 @@ lemma apSumFrom_exists_eq_apSumOffset_of_dvd (f : ℕ → ℤ) {a d n : ℕ} (h 
   refine ⟨m, ?_⟩
   simp [Nat.mul_comm]
 
-/-- Shifted version of `apSumFrom`. -/
+/-- Shifted version of `apSumFrom`.
+
+This views the affine AP sum as a homogeneous AP sum on the shifted function `k ↦ f (a + k)`.
+-/
 lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
   unfold apSumFrom apSum
   rfl
+
+/-- Translation-friendly variant of `apSumFrom_eq_apSum_shift`.
+
+This writes the shift as `k + a` rather than `a + k`.
+-/
+lemma apSumFrom_eq_apSum_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
+  apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
+  simpa [Nat.add_comm] using (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n))
 
 /-- Convenience: rewrite `apSumFrom` as an `apSum` on the additively shifted function
 `x ↦ f (x + a)`.
