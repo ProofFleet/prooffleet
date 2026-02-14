@@ -279,6 +279,22 @@ lemma apSumFrom_tail_eq_apSum_step_one (f : ℕ → ℤ) (a d m n : ℕ) :
   -- `simp` also reduces `((i+1) * 1)`.
   simp [Nat.add_assoc, hmul]
 
+/-- Tail version of `apSumFrom_eq_apSum_step_one`, but expressed as an `apSumOffset` with
+`m = 0`.
+
+This is convenient when your downstream normal form wants to uniformly work with tails
+(`apSumOffset`) even after switching to step-one (`d = 1`).
+-/
+lemma apSumFrom_tail_eq_apSumOffset_step_one_zero_m (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n =
+      apSumOffset (fun k => f (a + (m + k) * d)) 1 0 n := by
+  calc
+    apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n := by
+      simpa using apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSumOffset (fun k => f (a + (m + k) * d)) 1 0 n := by
+      simpa using
+        (apSumOffset_zero_m (f := fun k => f (a + (m + k) * d)) (d := 1) (n := n)).symm
+
 /-- Translation-friendly variant of `apSumFrom_tail_eq_apSum_step_one`.
 
 This keeps the step-one homogeneous sum normal form, but writes the summand as
