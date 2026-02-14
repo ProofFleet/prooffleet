@@ -98,6 +98,8 @@ Arithmetic progression sums:
   `apSumFrom_eq_apSumOffset_shift`. If you prefer the translation-friendly `k ↦ f (k + a)` form,
   use `apSumFrom_eq_apSumOffset_shift_add`.
   If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
+  If `a = 0`, rewrite to a homogeneous AP sum via `apSumFrom_zero_a` (and back via
+  `apSum_eq_apSumFrom`).
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
   `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).
   For differences with an inequality `m ≤ n`, use `apSumFrom_sub_apSumFrom_eq_apSumFrom`.
@@ -386,6 +388,13 @@ example : apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) 
 
 example : apSumFrom f a 0 n = n • f a := by
   simp
+
+-- Affine sums at `a = 0` are just homogeneous AP sums.
+example : apSumFrom f 0 d n = apSum f d n := by
+  simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
+
+example : apSum f d n = apSumFrom f 0 d n := by
+  simpa using apSum_eq_apSumFrom (f := f) (d := d) (n := n)
 
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
   simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
