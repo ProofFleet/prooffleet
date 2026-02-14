@@ -201,6 +201,20 @@ lemma sum_Icc_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
   simpa using
     (apSumFrom_tail_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-- Split the “paper notation” affine interval sum
+`∑ i ∈ Icc (m+1) (m+(n₁+n₂)), f (a + i*d)` into the first `n₁` terms and the next `n₂` terms.
+
+This is the affine counterpart of `Discrepancy.sum_Icc_add_length`.
+-/
+lemma sum_Icc_add_length_affine (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + i * d)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (a + i * d)) := by
+  -- Reduce to the non-affine splitting lemma by viewing `i ↦ f (a + i*d)` as the summand.
+  simpa using
+    (MoltResearch.sum_Icc_add_length (f := fun i => f (a + i)) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂))
+
 /-- Normal form: when `m ≤ n`, rewrite the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) n, f (a + i*d)` to the affine tail sum `apSumFrom f (a + m*d) d (n - m)`.
 
