@@ -288,6 +288,12 @@ example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k * d + (a + m 
     apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (m := m)
       (n := n)
 
+-- Step-one normalization that keeps the offset parameter `m`, with the summand written as
+-- `a + k*d`.
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k * d)) 1 m n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Offset ↔ affine normal forms.
 example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
   simpa using apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)

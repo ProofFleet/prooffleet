@@ -464,6 +464,35 @@ lemma apSumFrom_tail_eq_apSumOffset_step_one_add_left (f : ℕ → ℤ) (a d m n
     _ = f (((m + i + 1) * 1) * d + a) := by
             simp
 
+/-- Tail step-one normal form that keeps the tail parameter `m` in the offset nucleus API,
+with the summand written in the `a + k*d` form.
+
+It presents the affine tail
+`apSumFrom f (a + m*d) d n`
+as the offset sum
+`apSumOffset (fun k => f (a + k*d)) 1 m n`.
+
+This is the `a + k*d` analogue of `apSumFrom_tail_eq_apSumOffset_step_one_add_left`.
+-/
+lemma apSumFrom_tail_eq_apSumOffset_step_one (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k * d)) 1 m n := by
+  have h :=
+    apSumFrom_tail_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+  have hs : (fun k => f (k * d + a)) = (fun k => f (a + k * d)) := by
+    funext k
+    simpa using congrArg f (Nat.add_comm (k * d) a)
+  simpa [hs] using h
+
+/-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms usually prefer to *introduce* the step-one
+`apSumOffset … 1 m n` shape, not eliminate it.
+-/
+lemma apSumOffset_step_one_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (a + k * d)) 1 m n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_step_one_add_left`.
 
 We do *not* mark this as `[simp]`: our normal forms prefer the `apSumOffset … 1 m n` presentation
