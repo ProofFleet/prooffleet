@@ -264,6 +264,15 @@ example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
 example : apSumFrom (fun k => f (k + a)) 0 d n = apSumFrom f a d n := by
   simpa using apSumFrom_shift_add_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
 
+-- Translation (additive reindexing) normal forms.
+-- These are lightweight but practical: they let you commute a shift through the nucleus APIs
+-- without needing to unfold `apSumFrom` and fight `Nat.add_*` under binders.
+example : apSumFrom (fun x => f (x + m)) a d n = apSumFrom f (a + m) d n := by
+  simpa using apSumFrom_map_add (f := f) (k := m) (a := a) (d := d) (n := n)
+
+example : apSumFrom (fun x => f (m + x)) a d n = apSumFrom f (m + a) d n := by
+  simpa using apSumFrom_map_add_left (f := f) (k := m) (a := a) (d := d) (n := n)
+
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
