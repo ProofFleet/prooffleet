@@ -132,6 +132,17 @@ lemma apSumOffset_eq_apSum_sub_apSum_of_le (f : ℕ → ℤ) (d : ℕ) {m n : �
   simpa [Nat.add_sub_of_le hmn] using
     (apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n - m))
 
+/-- Convenience: when `m ≤ n`, split `apSum f d n` into its first `m` terms and the remaining
+`n - m` terms as an `apSumOffset`.
+
+This is a small wrapper around `apSum_add_length` that normalizes the upper endpoint into the
+canonical `m + (n - m)` form.
+-/
+lemma apSum_eq_add_apSumOffset_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSum f d n = apSum f d m + apSumOffset f d m (n - m) := by
+  -- Normalize `n` as `m + (n - m)` and apply the length-splitting lemma.
+  simpa [Nat.add_sub_of_le hmn] using (apSum_add_length (f := f) (d := d) (m := m) (n := n - m))
+
 /-- Difference of a longer homogeneous AP partial sum and its initial segment, in the `(m + n) - m`
 normal form.
 
