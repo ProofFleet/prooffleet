@@ -62,6 +62,17 @@ Canonical shapes we try to normalize into:
 - Offset/tail sum: `apSumOffset f d m n` (paper: `∑ i ∈ Icc (m+1) (m+n), f (i*d)`).
 - Affine AP sum: `apSumFrom f a d n` (paper: `∑ i ∈ Icc 1 n, f (a + i*d)`).
 
+A common “glue” normal form (especially when you want to use the *offset* API even for affine
+statements) is to shift the sequence and rewrite affine tails/differences as an `apSumOffset`:
+
+- Tail: `apSumFrom f (a + m*d) d n` ↦ `apSumOffset (fun k => f (k + a)) d m n`
+  via `apSumFrom_tail_eq_apSumOffset_shift_add`.
+- Difference: `apSumFrom f a d (m+n) - apSumFrom f a d m` ↦
+  `apSumOffset (fun k => f (k + a)) d m n` via `apSumFrom_sub_eq_apSumOffset_shift_add`.
+
+This keeps downstream algebra/bounding lemmas uniform: once everything is an `apSumOffset`, you can
+split/compare/bound tails without carrying around the affine-start bookkeeping.
+
 Two practical conventions (to reduce “almost-the-same” lemmas):
 
 - **Translation-friendly summands:** when you see `a + i*d` vs `i*d + a`, prefer using the `…_add`
