@@ -412,6 +412,33 @@ lemma apSumFrom_sub_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_sub_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Translation-friendly step-one normal form: rewrite the canonical affine difference `(m+n) - m`
+as a step-one homogeneous AP sum with summand `k*d + (a + m*d)`.
+
+This is `apSumFrom_sub_eq_apSumFrom_tail` followed by `apSumFrom_tail_eq_apSum_step_one_add_left`.
+-/
+lemma apSumFrom_sub_eq_apSum_step_one_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSum (fun k => f (k * d + (a + m * d))) 1 n := by
+  calc
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+      simpa using
+        apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSum (fun k => f (k * d + (a + m * d))) 1 n := by
+      simpa using
+        apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+/-- Variant of `apSumFrom_sub_eq_apSum_step_one_add_left` with the affine tail start written as
+`m*d + a`.
+
+This wrapper avoids a commutativity rewrite at the call site.
+-/
+lemma apSumFrom_sub_eq_apSum_step_one_add_left_start_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSum (fun k => f (k * d + (m * d + a))) 1 n := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_shift`.
 
 This is useful when you have already normalized into the shifted-sequence form

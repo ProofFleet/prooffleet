@@ -453,6 +453,12 @@ example : apSumFrom (fun x => f (m + x)) a d n = apSumFrom f (m + a) d n := by
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Step-one normal form: package the step size `d` into the summand.
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k * d + (a + m * d))) 1 n := by
+  simpa using
+    apSumFrom_sub_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Inequality normal form: subtracting two affine partial sums as a tail sum.
 example (hmn : m ≤ n) :
     apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (a + m * d) d (n - m) := by
