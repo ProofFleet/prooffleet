@@ -419,6 +419,17 @@ example : apSum (fun k => f (a + k * d)) 1 n = apSumFrom f a d n := by
 example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
 
+-- Canonical affine difference `(m+n) - m` as an offset sum on the shifted sequence.
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- “Paper notation” for affine tails, in the translation-friendly `i*d + a` form.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
+  simpa using apSumFrom_tail_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
 example : apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n := by
   simpa using apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
 
