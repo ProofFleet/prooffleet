@@ -303,6 +303,21 @@ lemma sum_Icc_add_length_affine (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
     (MoltResearch.sum_Icc_add_length (f := fun i => f (a + i)) (d := d) (m := m) (n₁ := n₁)
       (n₂ := n₂))
 
+/-- Translation-friendly variant of `sum_Icc_add_length_affine`, with the summand written as
+`f (i*d + a)` instead of `f (a + i*d)`.
+
+This is useful when you want to avoid commuting `a + …` under binders.
+-/
+lemma sum_Icc_add_length_affine_add (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d + a)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d + a)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d + a)) := by
+  have h := sum_Icc_add_length_affine (f := f) (a := a) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+  have hsummand : (fun i => f (a + i * d)) = (fun i => f (i * d + a)) := by
+    funext i
+    simpa [Nat.add_comm] using congrArg f (Nat.add_comm a (i * d))
+  simpa [hsummand] using h
+
 /-- Split the affine interval sum `∑ i ∈ Icc (m+1) n, f (a + i*d)` at an intermediate index `k`,
 assuming `m ≤ k ≤ n`.
 
