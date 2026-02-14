@@ -323,6 +323,11 @@ example :
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Same normal form, but with the affine start written as `m*d + a` (avoids a commutativity rewrite).
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
 example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
 

@@ -139,6 +139,18 @@ lemma apSumFrom_tail_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) 
   simpa [hshift] using
     (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Tail affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (k + a)`, with the
+starting point written as `m*d + a`.
+
+This is a convenience wrapper around `apSumFrom_tail_eq_apSumOffset_shift_add` that avoids a manual
+commutativity rewrite of the affine start.
+-/
+lemma apSumFrom_tail_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  -- Reassociate/commute the affine start into the `a + m*d` normal form.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_shift`.
 
 This is useful when you have already normalized into the shifted-sequence form
