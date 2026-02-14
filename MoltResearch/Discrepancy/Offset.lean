@@ -319,6 +319,22 @@ lemma apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
     simp [Nat.add_comm]
   exact h.trans hswap
 
+/-- Commute a translation in the shifted-sequence view of `apSumOffset`.
+
+This is a convenience lemma: the two shifted sequences `k ↦ f (a + k)` and `k ↦ f (k + a)` are
+definitionally different, and without this lemma you often need a `funext` + `Nat.add_comm` rewrite
+to swap between them.
+
+We do *not* mark this as `[simp]`: it is meant as an explicit normal-form rewrite when you want to
+standardize on the translation-friendly `k + a` presentation.
+-/
+lemma apSumOffset_shift_comm (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f (k + a)) d m n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+
 /-- Normalize an offset AP sum by shifting the underlying sequence and resetting the offset `m = 0`.
 
 This can be a convenient normal form when you want to treat offset sums as homogeneous sums on a
