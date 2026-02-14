@@ -9,6 +9,25 @@ import MoltResearch.Discrepancy.Offset
 
 namespace MoltResearch
 
+/-- Head+tail normal form for affine tails: the first term is `f (a + (m+1)*d)`.
+
+This is the affine-tail analogue of `apSumOffset_succ_length`, convenient when you want to
+increment the tail parameter `m` explicitly.
+-/
+lemma apSumFrom_tail_succ_length (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f (a + (m + 1) * d) + apSumFrom f (a + (m + 1) * d) d n := by
+  -- Start from the generic `apSumFrom_succ_length` and normalize the start point.
+  have h := apSumFrom_succ_length (f := f) (a := a + m * d) (d := d) (n := n)
+  -- Normalize `(a + m*d) + d` to `a + (m+1)*d`.
+  have hstart : (a + m * d) + d = a + (m + 1) * d := by
+    calc
+      (a + m * d) + d = a + (m * d + d) := by
+        simp [Nat.add_assoc]
+      _ = a + (m + 1) * d := by
+        simpa [Nat.add_assoc, Nat.one_mul] using congrArg (fun t => a + t) (Nat.add_mul m 1 d).symm
+  simpa [hstart] using h
+
 /-- Difference of two affine AP partial sums as a tail sum when `m ≤ n`. -/
 lemma apSumFrom_sub_apSumFrom_eq_apSumFrom (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (a + m * d) d (n - m) := by

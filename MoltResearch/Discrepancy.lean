@@ -416,6 +416,12 @@ example : apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n
 example : apSum (fun k => f (a + (m + k) * d)) 1 n = apSumFrom f (a + m * d) d n := by
   simpa using apSum_step_one_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Head+tail normal form for affine tails: increment the tail parameter `m`.
+example :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f (a + (m + 1) * d) + apSumFrom f (a + (m + 1) * d) d n := by
+  simpa using apSumFrom_tail_succ_length (f := f) (a := a) (d := d) (m := m) (n := n)
+
 example : apSumFrom f a d n = apSumOffset (fun k => f (a + k)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (n := n)
 
