@@ -337,6 +337,12 @@ example :
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Further normalize affine tails by absorbing `m` into the translation constant (so the offset is `0`).
+example :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Same normal form, but with the affine start written as `m*d + a` (avoids a commutativity rewrite).
 example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
