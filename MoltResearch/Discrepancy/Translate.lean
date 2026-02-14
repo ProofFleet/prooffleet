@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.Affine
+import MoltResearch.Discrepancy.Offset
 
 /-!
 # Discrepancy: translation (additive reindexing) lemmas
@@ -67,6 +68,20 @@ lemma apSumOffset_map_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
   -- Reduce to `apSumOffset_map_add` and then normalize `m*d + k` ↔ `k + m*d`.
   simpa [hfun, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
     (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n))
+
+/-- Compose the “shift-add” translation `k ↦ k + a` with the offset-to-shift normal form.
+
+This is a convenience lemma: it rewrites an offset sum on a shifted sequence
+`apSumOffset (fun k => f (k + a)) d m n` into a homogeneous AP sum on a further-shifted sequence
+with the *same* step size `d`.
+
+The resulting summand is written in the translation-friendly `k + const` form.
+-/
+lemma apSumOffset_shift_add_eq_apSum_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d m n = apSum (fun k => f (k + (a + m * d))) d n := by
+  -- Start from the generic offset → shifted-homogeneous normal form.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumOffset_eq_apSum_shift_add (f := fun k => f (k + a)) (d := d) (m := m) (n := n))
 
 lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
