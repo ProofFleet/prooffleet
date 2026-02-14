@@ -245,6 +245,23 @@ example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) 
   simpa using
     apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Affine tails/differences as offset sums on a shifted sequence (translation-friendly `k + a`).
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
+  simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
 example : apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
   simpa using apSum_succ (f := f) (d := d) (n := n)
 
