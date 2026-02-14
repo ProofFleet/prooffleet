@@ -688,6 +688,35 @@ lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d : 
   simpa [hshift] using
     (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (hmn := hmn))
 
+/-- Normal form: eliminate the offset parameter `m` in the affine difference
+`apSumFrom f a d n - apSumFrom f a d m` (with `m ≤ n`) by absorbing it into the translation
+constant.
+
+This produces an `apSumOffset` tail with `m = 0` on the further-shifted sequence
+`k ↦ f (k + (a + m*d))`.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_zero_m_of_le (f : ℕ → ℤ) (a d : ℕ)
+    {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      apSumOffset (fun k => f (k + (a + m * d))) d 0 (n - m) := by
+  calc
+    apSumFrom f a d n - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m (n - m) := by
+      simpa using
+        (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+          (n := n) (hmn := hmn))
+    _ = apSumOffset (fun k => f (k + (a + m * d))) d 0 (n - m) := by
+      simpa using
+        (apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+          (n := n - m))
+
+/-- Inverse orientation of `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_zero_m_of_le`. -/
+lemma apSumOffset_shift_add_zero_m_eq_apSumFrom_sub_apSumFrom_of_le (f : ℕ → ℤ) (a d : ℕ)
+    {m n : ℕ} (hmn : m ≤ n) :
+    apSumOffset (fun k => f (k + (a + m * d))) d 0 (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_zero_m_of_le (f := f) (a := a) (d := d)
+      (m := m) (n := n) (hmn := hmn)).symm
+
 /-- Inverse orientation of `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift`.
 
 This is a convenience normal form: if you already have an `apSumOffset` tail sum on the shifted
