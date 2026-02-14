@@ -194,6 +194,17 @@ lemma apSumFrom_sub_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
               (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
                 (n := n))
 
+/-- Inverse orientation of `apSumFrom_sub_eq_apSumOffset_shift_add`.
+
+This is a convenience normal form: if you already have an `apSumOffset` tail sum on the
+translation-friendly shifted sequence `k ↦ f (k + a)`, you can rewrite it back into a
+difference of affine partial sums.
+-/
+lemma apSumOffset_shift_add_eq_apSumFrom_sub (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d m n = apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-- Tail-of-tail normal form, expressed as an offset AP sum on the shifted sequence `k ↦ f (a + k)`.
 
 This is the `apSumFrom` analogue of `apSumOffset_sub_eq_apSumOffset_tail`.
@@ -242,6 +253,16 @@ lemma apSumFrom_sub_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
     _ = apSumOffset (fun k => f (a + k)) d m n := by
             simpa using
               (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumFrom_sub_eq_apSumOffset_shift`.
+
+This is a convenience normal form: if you already have an `apSumOffset` tail sum on the shifted
+sequence `k ↦ f (a + k)`, you can rewrite it back into a difference of affine partial sums.
+-/
+lemma apSumOffset_shift_eq_apSumFrom_sub (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (a + k)) d m n = apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
 /-- Rewrite the affine tail sum `apSumFrom f (a + m*d) d n` as the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)`.
