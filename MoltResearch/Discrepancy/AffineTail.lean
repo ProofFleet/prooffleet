@@ -98,6 +98,17 @@ lemma apSumFrom_sub_apSumFrom_eq_apSumFrom (f : ℕ → ℤ) (a d : ℕ) {m n : 
   simpa [Nat.add_sub_of_le hmn] using
     (apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n - m)).symm
 
+/-- Convenience wrapper around `apSumFrom_sub_apSumFrom_eq_apSumFrom` with the tail start written as
+`m*d + a`.
+
+This avoids commuting `a + m*d` at the call site.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSumFrom_start_add_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (m * d + a) d (n - m) := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (hmn := hmn))
+
 /-- Difference of a longer affine AP partial sum and its initial segment, in the `(m + n) - m`
 normal form.
 
@@ -107,6 +118,16 @@ turns a subtraction into an explicit tail sum.
 lemma apSumFrom_sub_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
   simpa using (apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
+/-- Convenience wrapper around `apSumFrom_sub_eq_apSumFrom_tail` with the tail start written as
+`m*d + a`.
+
+This avoids commuting `a + m*d` at the call site.
+-/
+lemma apSumFrom_sub_eq_apSumFrom_tail_start_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (m * d + a) d n := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
 
 /-- Tail-of-tail normal form: subtracting two affine tail sums yields a later tail sum. -/
 lemma apSumFrom_tail_sub_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
