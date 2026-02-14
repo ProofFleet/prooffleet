@@ -98,6 +98,23 @@ lemma apSumOffset_shift_add_left_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d 
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumOffset_eq_apSum_shift (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
 
+/-- Inverse orientation of `apSumOffset_shift_add_eq_apSum_shift_add`.
+
+This rewrites a homogeneous AP sum on a shifted sequence back into an `apSumOffset` on the
+less-shifted sequence.
+-/
+lemma apSum_shift_add_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSum (fun k => f (k + (a + m * d))) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_shift_add_left_eq_apSum_shift_add_left`. -/
+lemma apSum_shift_add_left_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSum (fun k => f ((a + m * d) + k)) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_left_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n)).symm
+
 lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   rintro ⟨d, n, hd, hgt⟩

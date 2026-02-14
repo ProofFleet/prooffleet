@@ -824,6 +824,17 @@ example (k : ℕ) :
   simpa using apSumOffset_shift_add_eq_apSum_shift_add (f := f) (a := k) (d := d) (m := m)
     (n := n)
 
+-- Add-left (`k + x`) variant of the same regression.
+example (k : ℕ) :
+    apSumOffset (fun x => f (k + x)) d m n = apSum (fun x => f ((k + m * d) + x)) d n := by
+  simpa using
+    apSumOffset_shift_add_left_eq_apSum_shift_add_left (f := f) (a := k) (d := d) (m := m) (n := n)
+
+-- Regression: inverse orientation (rewrite a shifted homogeneous sum back into an offset sum).
+example (k : ℕ) :
+    apSum (fun x => f (x + (k + m * d))) d n = apSumOffset (fun x => f (x + k)) d m n := by
+  simpa using apSum_shift_add_eq_apSumOffset_shift_add (f := f) (a := k) (d := d) (m := m) (n := n)
+
 example (k C : ℕ) (hk : k > 0) :
     HasDiscrepancyAtLeast (fun x => f (x * k)) C → HasDiscrepancyAtLeast f C := by
   intro h
