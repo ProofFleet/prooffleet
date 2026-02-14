@@ -121,6 +121,11 @@ Arithmetic progression sums:
   `apSumFrom f a d n` ↦ `apSumOffset (fun k => f (a + k)) d 0 n` via
   `apSumFrom_eq_apSumOffset_shift`. If you prefer the translation-friendly `k ↦ f (k + a)` form,
   use `apSumFrom_eq_apSumOffset_shift_add`.
+  If you want to eliminate an explicit tail/offset parameter `m` by absorbing it into the
+  translation constant (i.e. produce an `apSumOffset … 0 n` tail), use:
+  - `apSumFrom_tail_eq_apSumOffset_shift_add_zero_m`
+  - `apSumFrom_sub_eq_apSumOffset_shift_add_zero_m`
+  - `apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m`
   If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
   If `a = 0`, rewrite to a homogeneous AP sum via `apSumFrom_zero_a` (and back via
   `apSum_eq_apSumFrom`).
@@ -342,6 +347,14 @@ example :
     apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
   simpa using
     apSumFrom_tail_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same idea, but for the standard `m+n` splitting normal form.
+example :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+  simpa using
+    apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m)
+      (n := n)
 
 -- Same normal form, but with the affine start written as `m*d + a` (avoids a commutativity rewrite).
 example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by

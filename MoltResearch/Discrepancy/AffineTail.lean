@@ -273,6 +273,24 @@ lemma apSumFrom_add_length_eq_add_apSumOffset_shift_add (f : ℕ → ℤ) (a d m
     _ = apSumFrom f a d m + apSumOffset (fun k => f (k + a)) d m n := by
       simp [apSumFrom_tail_eq_apSumOffset_shift_add]
 
+/-- Normal form: split an affine AP sum by length and eliminate the offset parameter `m` by
+absorbing it into the translation constant.
+
+Concretely, this rewrites the tail
+`apSumOffset (fun k => f (k + a)) d m n` as an `m = 0` offset sum on the further-shifted sequence
+`k ↦ f (k + (a + m*d))`.
+-/
+lemma apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+  calc
+    apSumFrom f a d (m + n) = apSumFrom f a d m + apSumOffset (fun k => f (k + a)) d m n := by
+      simpa using
+        apSumFrom_add_length_eq_add_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+          (n := n)
+    _ = apSumFrom f a d m + apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+      simp [apSumOffset_shift_add_eq_apSumOffset_shift_add]
+
 /-- Tail affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (k + a)`, with the
 starting point written as `m*d + a`.
 
