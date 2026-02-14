@@ -226,6 +226,13 @@ example : apSumFrom f (a + m * d) d n = apSum (fun k => f (k * d + (a + m * d)))
   simpa using
     apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Step-one normalization that stays inside the offset nucleus API (`m = 0`) in the
+-- translation-friendly `k*d + const` presentation.
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k * d + (a + m * d))) 1 0 n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n)
+
 -- Offset ↔ affine normal forms.
 example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
   simpa using apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)

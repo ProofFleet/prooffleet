@@ -363,8 +363,26 @@ lemma apSumFrom_tail_eq_apSum_step_one_add_left (f : ℕ → ℤ) (a d m n : ℕ
       a + (m + (i + 1)) * d = a + (m * d + (i + 1) * d) := by
         simpa using congrArg (fun t => a + t) (Nat.add_mul m (i + 1) d)
       _ = (i + 1) * d + (a + m * d) := by
-        simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
-  simp [hadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+        simp [Nat.add_assoc, Nat.add_comm]
+  simp [hadd, Nat.add_assoc, Nat.add_comm]
+
+
+/-- Translation-friendly variant of `apSumFrom_tail_eq_apSumOffset_step_one_zero_m`.
+
+This is the `apSumFrom` analogue of `apSumOffset_eq_apSumOffset_step_one_zero_m_add_left`: it
+pushes both the tail parameter `m` and the step size `d` into the summand *and* writes the summand
+in the `k*d + const` normal form.
+-/
+lemma apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n =
+      apSumOffset (fun k => f (k * d + (a + m * d))) 1 0 n := by
+  calc
+    apSumFrom f (a + m * d) d n = apSum (fun k => f (k * d + (a + m * d))) 1 n := by
+      simpa using
+        apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSumOffset (fun k => f (k * d + (a + m * d))) 1 0 n := by
+      simpa using
+        (apSumOffset_zero_m (f := fun k => f (k * d + (a + m * d))) (d := 1) (n := n)).symm
 
 /-- Inverse orientation of `apSumFrom_tail_eq_apSum_step_one_add_left`.
 
