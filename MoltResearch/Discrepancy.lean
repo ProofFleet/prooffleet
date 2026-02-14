@@ -235,6 +235,13 @@ example :
 example : apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   simpa using apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n)
 
+-- Canonical “difference of partial sums” normal form: rewrite subtraction into a tail.
+example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+  simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
+  simpa using (apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)).symm
+
 -- Variable upper endpoints often appear in surface statements. When `m ≤ n`, normalize
 -- `∑ i ∈ Icc (m+1) n, ...` into the canonical tail length `n - m`.
 example (hmn : m ≤ n) :
