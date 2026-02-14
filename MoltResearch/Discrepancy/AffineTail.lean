@@ -537,6 +537,25 @@ lemma apSumFrom_sub_eq_sum_Icc (f : ℕ → ℤ) (a d m n : ℕ) :
             simpa using
               (apSumOffset_eq_sum_Icc (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
 
+/-- Translation-friendly surface form: rewrite the normal-form difference
+`apSumFrom f a d (m+n) - apSumFrom f a d m` as an interval sum with summand written as
+`f (i*d + a)`.
+
+This is the `i*d + a` analogue of `apSumFrom_sub_eq_sum_Icc`.
+-/
+lemma apSumFrom_sub_eq_sum_Icc_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumFrom_sub_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumFrom_sub_eq_sum_Icc_add`. -/
+lemma sum_Icc_eq_apSumFrom_sub_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) =
+      apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-- When `m ≤ n`, rewrite `apSumFrom f a d n - apSumFrom f a d m` as an interval sum
 `∑ i ∈ Icc (m+1) n, f (a + i*d)`.
 
