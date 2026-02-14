@@ -70,13 +70,15 @@ Arithmetic progression sums:
   `apSumOffset_sub_apSumOffset_eq_apSumOffset`. To split an offset sum at an intermediate length,
   use `apSumOffset_eq_add_apSumOffset_tail`.
   For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc` (or, if `d = 1`,
-  via `apSumOffset_one_d`) and split such interval sums into consecutive blocks via
-  `sum_Icc_add_length`; for the normal-form difference of offset sums, use
-  `apSumOffset_sub_eq_sum_Icc`. If your surface statement uses a
+  via `apSumOffset_one_d`). If you want the translation-friendly `d * i` binder form, use
+  `apSumOffset_eq_sum_Icc_mul_left`.
+  Split such interval sums into consecutive blocks via `sum_Icc_add_length`; for the normal-form
+  difference of offset sums, use `apSumOffset_sub_eq_sum_Icc`. If your surface statement uses a
   “variable” upper endpoint `n` (with a hypothesis `m ≤ n`), normalize using
   `sum_Icc_eq_apSumOffset_of_le` (paper → nucleus) and `apSumOffset_eq_sum_Icc_of_le` (nucleus →
-  paper). (Or rewrite directly via `apSum_sub_eq_sum_Icc` when starting from a difference, and
-  `apSum_sub_apSum_eq_sum_Icc` when starting from `apSum … n - apSum … m` with `m ≤ n`).
+  paper). (Or rewrite directly via `apSum_sub_eq_sum_Icc` / `apSum_sub_eq_sum_Icc_mul_left` when
+  starting from a difference, and `apSum_sub_apSum_eq_sum_Icc` /
+  `apSum_sub_apSum_eq_sum_Icc_mul_left` when starting from `apSum … n - apSum … m` with `m ≤ n`).
   Sometimes it is useful to change viewpoint on offset sums:
   - offset ↔ affine: `apSumOffset f d m n` ↔ `apSumFrom f (m * d) d n` via `apSumOffset_eq_apSumFrom`.
   - “step-one” normalization (bundle `d` into the summand):
@@ -555,9 +557,20 @@ example :
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
   simpa using apSum_sub_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)
 
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example :
+    apSum f d (m + n) - apSum f d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  simpa using apSum_sub_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)
+
 example :
     apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
   simpa using apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)
+
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example :
+    apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  simpa using apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)
 
 example : apSumOffset f 1 m n = (Finset.Icc (m + 1) (m + n)).sum f := by
   simpa using apSumOffset_one_d (f := f) (m := m) (n := n)

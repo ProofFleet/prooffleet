@@ -70,6 +70,28 @@ lemma sum_Icc_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Translation-friendly variant of `apSumOffset_eq_sum_Icc` using `d * i` (step size on the left).
+
+This is occasionally convenient when you want to share a summand shape with affine sums, which are
+commonly written as `i * d + a`.
+-/
+lemma apSumOffset_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  classical
+  refine (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_comm]
+
+/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc (m+1) (m+n), f (d*i)` back to
+`apSumOffset`.
+
+This is the inverse orientation of `apSumOffset_eq_sum_Icc_mul_left`.
+-/
+lemma sum_Icc_eq_apSumOffset_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Split the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) (m+(n₁+n₂)), f (i*d)` into the first `n₁` terms and the next `n₂` terms.
 
@@ -164,6 +186,51 @@ lemma apSum_sub_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
   -- Rewrite subtraction to an offset sum, then to an interval sum.
   simp [apSum_sub_eq_apSumOffset, apSumOffset_eq_sum_Icc]
+
+/-- Translation-friendly variant of `apSum_sub_eq_sum_Icc` using `d * i` (step size on the left). -/
+lemma apSum_sub_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  classical
+  refine (apSum_sub_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_comm]
+
+/-- Translation-friendly variant of `apSum_sub_apSum_eq_sum_Icc` using `d * i` (step size on the
+left).
+
+This is occasionally convenient when you want to share a summand shape with affine sums.
+-/
+lemma apSum_sub_apSum_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) := by
+  classical
+  calc
+    apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+        simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
+    _ = (Finset.Icc (m + 1) (m + (n - m))).sum (fun i => f (d * i)) := by
+        simpa using
+          (apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n - m))
+    _ = (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) := by
+        simp [Nat.add_sub_of_le hmn]
+
+/-- Normal form (paper → nucleus, difference): rewrite the interval sum
+`∑ i ∈ Icc (m+1) (m+n), f (d*i)` as the difference of homogeneous AP partial sums.
+
+This is the inverse orientation of `apSum_sub_eq_sum_Icc_mul_left`.
+-/
+lemma sum_Icc_eq_apSum_sub_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSum f d (m + n) - apSum f d m := by
+  simpa using (apSum_sub_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Normal form (paper → nucleus, difference): when `m ≤ n`, rewrite
+`∑ i ∈ Icc (m+1) n, f (d*i)` as a difference of homogeneous AP partial sums.
+
+This is the inverse orientation of `apSum_sub_apSum_eq_sum_Icc_mul_left`.
+-/
+lemma sum_Icc_eq_apSum_sub_apSum_of_le_mul_left (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSum f d n - apSum f d m := by
+  simpa using (apSum_sub_apSum_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n) hmn).symm
 
 /-- When `m ≤ n`, rewrite `apSum f d n - apSum f d m` as an interval sum
 `∑ i ∈ Icc (m+1) n, f (i*d)`.
