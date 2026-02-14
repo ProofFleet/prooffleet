@@ -640,6 +640,33 @@ lemma sum_Icc_add_length_affine (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
     (MoltResearch.sum_Icc_add_length (f := fun i => f (a + i)) (d := d) (m := m) (n₁ := n₁)
       (n₂ := n₂))
 
+/-- Variant of `sum_Icc_add_length_affine` with the step written as `d * i` (mul-left form).
+
+This matches the “mul-left” paper normal forms (`a + d*i`) and avoids commuting multiplication
+under binders.
+-/
+lemma sum_Icc_add_length_affine_mul_left (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + d * i)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + d * i)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (a + d * i)) := by
+  classical
+  simpa [Nat.mul_comm] using
+    (sum_Icc_add_length_affine (f := f) (a := a) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
+/-- Variant of `sum_Icc_add_length_affine_mul_left` with the affine term written as `d*i + a`.
+
+This is convenient when downstream normal forms standardize on the translation-friendly `… + a`
+presentation.
+-/
+lemma sum_Icc_add_length_affine_mul_left_add (f : ℕ → ℤ) (a d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i + a)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i + a)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i + a)) := by
+  classical
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (sum_Icc_add_length_affine_mul_left (f := f) (a := a) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂))
+
 /-- Translation-friendly variant of `sum_Icc_add_length_affine`, with the summand written as
 `f (i*d + a)` instead of `f (a + i*d)`.
 

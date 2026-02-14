@@ -115,6 +115,19 @@ lemma sum_Icc_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
           (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
             simp [apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- Translation-friendly variant of `sum_Icc_add_length` using `d * i` (step size on the left).
+
+This is occasionally convenient when you want to avoid commuting multiplication under binders.
+-/
+lemma sum_Icc_add_length_mul_left (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  classical
+  -- Reduce to the `i * d` statement via commutativity.
+  simpa [Nat.mul_comm] using
+    (sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
 /-- Normal form: when `m ≤ n`, rewrite the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) n, f (i*d)` back to `apSumOffset f d m (n - m)`.
 

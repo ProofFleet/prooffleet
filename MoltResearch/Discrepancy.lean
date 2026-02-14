@@ -567,6 +567,31 @@ example :
         (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
   simpa using sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  simpa using
+    sum_Icc_add_length_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Affine paper splitting: mul-left form `a + d*i`.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + d * i)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + d * i)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (a + d * i)) := by
+  simpa using
+    sum_Icc_add_length_affine_mul_left (f := f) (a := a) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Affine paper splitting: mul-left + translation-friendly form `d*i + a`.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i + a)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i + a)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i + a)) := by
+  simpa using
+    sum_Icc_add_length_affine_mul_left_add (f := f) (a := a) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂)
+
 -- Normal form: a later tail as a difference of a longer tail and its initial segment.
 example :
     apSumOffset f d (m + n₁) n₂ = apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ := by
