@@ -25,6 +25,16 @@ Rule of thumb:
 The Track B lemma library is intended to be *directed*: we want a small set of
 canonical shapes that downstream files can rewrite into and then work with.
 
+Two conventions that pay for themselves quickly:
+- **Translation-friendly summands:** prefer the `… + const` shape *inside binders* (e.g. `i * d + a` or
+  `k + a`) because `simp` and `ring_nf` tend to cooperate better without needing `Nat.add_comm` under
+  lambdas. Many rewrite lemmas come in both `a + i*d` and `i*d + a` flavors; when in doubt, reach
+  for the `_add` / `_add_left` variants (e.g. `apSumFrom_tail_eq_sum_Icc_add`,
+  `sum_Icc_eq_apSumFrom_tail_of_le_add`, `apSumOffset_eq_apSum_shift_add`).
+- **Difference → tail early:** when you see a subtraction like `apSum … (m+n) - apSum … m` (or the
+  affine analogue), rewrite it to an explicit tail sum (`apSumOffset … m n` / `apSumFrom …` tail)
+  *before* doing algebra. This keeps subsequent splitting/bounding lemmas in the nucleus API.
+
 Arithmetic progression sums:
 - Prefer `apSum f d n` for homogeneous AP sums. Split lengths via `apSum_add_length`.
   For a head+tail decomposition, use `apSum_succ_length`. For a right-end “append one term”
