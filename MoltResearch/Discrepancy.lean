@@ -289,6 +289,12 @@ example : apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
 
+-- Eliminate an offset parameter `m` by absorbing it into a translation constant.
+example :
+    apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+  simpa using
+    apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Affine tails/differences as offset sums on a shifted sequence (translation-friendly `k + a`).
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
