@@ -131,7 +131,9 @@ Arithmetic progression sums:
   If you want to go one step further and eliminate the now-trivial offset sum (`m = 0`) into a
   homogeneous AP sum, use:
   - `apSumFrom_tail_eq_apSum_shift_add`
+  - `apSumFrom_tail_eq_apSum_shift_add_left` (if your affine start is written as `m*d + a`)
   - `apSumFrom_sub_eq_apSum_shift_add`
+  - `apSumFrom_sub_eq_apSum_shift_add_left` (if you prefer the translation constant `m*d + a`)
   - `apSumFrom_add_length_eq_add_apSum_shift_add`
   If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
   If `a = 0`, rewrite to a homogeneous AP sum via `apSumFrom_zero_a` (and back via
@@ -286,6 +288,13 @@ example :
   simpa using
     apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Same difference normal form, but eliminate the tail parameter into a homogeneous AP sum.
+-- Writing the translation constant as `m*d + a` avoids a commutativity rewrite.
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (m * d + a))) d n := by
+  simpa using
+    apSumFrom_sub_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Translation-friendly affine “step-one” normal forms.
 example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
@@ -380,6 +389,11 @@ example :
 example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
     apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same normalization, but eliminate the tail parameter entirely into a homogeneous AP sum.
+example : apSumFrom f (m * d + a) d n = apSum (fun k => f (k + (m * d + a))) d n := by
+  simpa using
+    apSumFrom_tail_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
 -- If you prefer to keep the shifted summand in the `a + k` form, use the corresponding wrappers.
 example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (a + k)) d m n := by

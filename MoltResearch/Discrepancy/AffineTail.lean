@@ -315,6 +315,23 @@ lemma apSumFrom_tail_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (a d m n : 
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Tail affine AP sum as a homogeneous AP sum on the further-shifted sequence `k ↦ f (k + (m*d + a))`,
+with the starting point written as `m*d + a`.
+
+This is a convenience wrapper around `apSumFrom_tail_eq_apSumOffset_shift_add_left` followed by
+`apSumOffset_eq_apSum_shift_add`.
+-/
+lemma apSumFrom_tail_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d n = apSum (fun k => f (k + (m * d + a))) d n := by
+  calc
+    apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
+      simpa using
+        apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSum (fun k => f (k + (m * d + a))) d n := by
+      -- Compose with the shifted-sequence view of `apSumOffset`.
+      simpa [Nat.add_assoc] using
+        (apSumOffset_eq_apSum_shift_add (f := fun k => f (k + a)) (d := d) (m := m) (n := n))
+
 /-- Normal form: eliminate the tail parameter `m` by absorbing it into a translation constant.
 
 Concretely, the affine tail sum `apSumFrom f (a + m*d) d n` can be rewritten as an offset sum
@@ -385,6 +402,15 @@ lemma apSumFrom_sub_eq_apSum_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (a + m * d))) d n := by
   simpa using
     (apSumFrom_sub_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Variant of `apSumFrom_sub_eq_apSum_shift_add` with the translation constant written as `m*d + a`.
+
+This wrapper avoids a commutativity rewrite at the call site.
+-/
+lemma apSumFrom_sub_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (m * d + a))) d n := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
 /-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_shift`.
 
