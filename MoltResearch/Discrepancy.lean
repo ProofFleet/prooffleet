@@ -217,6 +217,13 @@ example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
 example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
   simpa using sum_Icc_eq_apSum (f := f) (d := d) (n := n)
 
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by
+  simpa using apSum_eq_sum_Icc_mul_left (f := f) (d := d) (n := n)
+
+example : (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
+  simpa using sum_Icc_eq_apSum_mul_left (f := f) (d := d) (n := n)
+
 example : apSum f 1 n = (Finset.Icc 1 n).sum f := by
   simpa using apSum_one_d (f := f) (n := n)
 

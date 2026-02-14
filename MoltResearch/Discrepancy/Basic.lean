@@ -279,6 +279,27 @@ lemma sum_Icc_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
     (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
   simpa using (apSum_eq_sum_Icc (f := f) (d := d) (n := n)).symm
 
+/-- Translation-friendly variant of `apSum_eq_sum_Icc` using `d * i` (step size on the left).
+
+This is occasionally convenient when you want to share a summand shape with affine sums, which are
+commonly written as `i * d + a`.
+-/
+lemma apSum_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by
+  classical
+  refine (apSum_eq_sum_Icc (f := f) (d := d) (n := n)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_comm]
+
+/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (d*i)` back to `apSum`.
+
+This is the inverse orientation of `apSum_eq_sum_Icc_mul_left`.
+-/
+lemma sum_Icc_eq_apSum_mul_left (f : ℕ → ℤ) (d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
+  simpa using (apSum_eq_sum_Icc_mul_left (f := f) (d := d) (n := n)).symm
+
 /-- Special case: step size `d = 1` turns `apSum` into the plain interval sum `∑ i ∈ Icc 1 n, f i`.
 
 This is often the most readable surface form when you have already normalized the step size.
