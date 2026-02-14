@@ -252,6 +252,13 @@ example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) 
   simpa using
     apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Offset sums: additional normal forms that tend to compose well.
+example : apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
+  simpa using apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
 -- Affine tails/differences as offset sums on a shifted sequence (translation-friendly `k + a`).
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
