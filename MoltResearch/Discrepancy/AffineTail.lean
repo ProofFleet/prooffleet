@@ -395,6 +395,23 @@ lemma sum_Icc_split_affine_of_le (f : ℕ → ℤ) (a d : ℕ) {m k n : ℕ}
             simp [Nat.add_sub_of_le hmk, Nat.add_sub_of_le hkn, Nat.add_assoc, Nat.add_left_comm,
               Nat.add_comm]
 
+/-- Translation-friendly variant of `sum_Icc_split_affine_of_le`, with the summand written as
+`f (i*d + a)` instead of `f (a + i*d)`.
+
+This is useful when downstream normal forms are expressed in the `i*d + a` convention.
+-/
+lemma sum_Icc_split_affine_of_le_add (f : ℕ → ℤ) (a d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (i * d + a)) +
+        (Finset.Icc (k + 1) n).sum (fun i => f (i * d + a)) := by
+  have h := sum_Icc_split_affine_of_le (f := f) (a := a) (d := d) (m := m) (k := k) (n := n)
+    (hmk := hmk) (hkn := hkn)
+  have hsummand : (fun i => f (a + i * d)) = (fun i => f (i * d + a)) := by
+    funext i
+    simpa [Nat.add_comm] using congrArg f (Nat.add_comm a (i * d))
+  simpa [hsummand] using h
+
 
 /-- Normal form: when `m ≤ n`, rewrite the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) n, f (a + i*d)` to the affine tail sum `apSumFrom f (a + m*d) d (n - m)`.
