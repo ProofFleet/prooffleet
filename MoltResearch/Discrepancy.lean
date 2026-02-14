@@ -153,7 +153,8 @@ Arithmetic progression sums:
   `k ↦ f (k + a)` form, use `apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail`.
   For paper notation, rewrite:
   - `apSumFrom f a d n` via `apSumFrom_eq_sum_Icc` (or, if `d = 1`, via `apSumFrom_one_d`),
-  - tails `apSumFrom f (a + m*d) d n` via `apSumFrom_tail_eq_sum_Icc`,
+  - tails `apSumFrom f (a + m*d) d n` via `apSumFrom_tail_eq_sum_Icc`
+    (or the mul-left variants `apSumFrom_tail_eq_sum_Icc_mul_left` / `apSumFrom_tail_eq_sum_Icc_mul_left_add`),
   - and differences via `apSumFrom_sub_eq_sum_Icc` / `apSumFrom_sub_apSumFrom_eq_sum_Icc`.
 
 Discrepancy predicates / witnesses:
@@ -792,6 +793,19 @@ example :
     apSumFrom f (a + m * d) d n =
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
   simpa using apSumFrom_tail_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same tail paper notation, but in the mul-left `a + d*i` form.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) := by
+  simpa using apSumFrom_tail_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same tail paper notation, in the mul-left + translation-friendly `d*i + a` form.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) := by
+  simpa using
+    apSumFrom_tail_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
 -- Variable upper endpoints appear often in surface statements.
 -- When `m ≤ n`, normalize `∑ i ∈ Icc (m+1) n, f (i*d + a)` into the canonical tail length `n - m`.
