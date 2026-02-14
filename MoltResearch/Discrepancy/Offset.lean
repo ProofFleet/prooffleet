@@ -117,7 +117,9 @@ lemma sum_Icc_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
 
 /-- Translation-friendly variant of `sum_Icc_add_length` using `d * i` (step size on the left).
 
-This is occasionally convenient when you want to avoid commuting multiplication under binders.
+This is occasionally convenient when the surrounding development is already using the
+`apSumOffset_eq_sum_Icc_mul_left` / `apSum_sub_eq_sum_Icc_mul_left` normal forms (so you don’t need
+to commute multiplication under binders).
 -/
 lemma sum_Icc_add_length_mul_left (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) =
