@@ -135,6 +135,18 @@ lemma apSumFrom_exists_eq_apSumOffset_of_exists_eq_mul (f : ℕ → ℤ) {a d n 
   refine ⟨m, ?_⟩
   simpa using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
+/-- Convenience wrapper: if the affine start `a` is a multiple of `d` in the form `d ∣ a`, rewrite
+`apSumFrom` to an offset sum.
+
+This is a small normal-form helper when your context contains a divisibility hypothesis.
+-/
+lemma apSumFrom_exists_eq_apSumOffset_of_dvd (f : ℕ → ℤ) {a d n : ℕ} (h : d ∣ a) :
+    ∃ m, apSumFrom f a d n = apSumOffset f d m n := by
+  refine apSumFrom_exists_eq_apSumOffset_of_exists_eq_mul (f := f) (a := a) (d := d) (n := n) ?_
+  rcases h with ⟨m, rfl⟩
+  refine ⟨m, ?_⟩
+  simp [Nat.mul_comm]
+
 /-- Shifted version of `apSumFrom`. -/
 lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
