@@ -83,6 +83,21 @@ lemma apSumOffset_shift_add_eq_apSum_shift_add (f : ℕ → ℤ) (a d m n : ℕ)
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumOffset_eq_apSum_shift_add (f := fun k => f (k + a)) (d := d) (m := m) (n := n))
 
+/-- Add-left variant of `apSumOffset_shift_add_eq_apSum_shift_add`.
+
+This is the same convenience lemma, but in the `a + k` convention:
+
+`apSumOffset (fun k => f (a + k)) d m n = apSum (fun k => f ((a + m*d) + k)) d n`.
+
+We keep both orientations available since `simp` often behaves better when we avoid commuting
+addition under binders.
+-/
+lemma apSumOffset_shift_add_left_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (a + k)) d m n = apSum (fun k => f ((a + m * d) + k)) d n := by
+  -- Start from the generic offset → shifted-homogeneous normal form (`m*d + k`) and reassociate.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumOffset_eq_apSum_shift (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
+
 lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   rintro ⟨d, n, hd, hgt⟩
