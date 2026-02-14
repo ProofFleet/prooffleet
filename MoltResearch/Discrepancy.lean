@@ -225,6 +225,13 @@ example : apSum (fun k => f (k * d)) 1 n = apSum f d n := by
 example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
   simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 
+-- Offset sums: shifted-sequence normal forms (translation-friendly `k + const`).
+example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+  simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
+
 -- Affine sums: shift-add normal form (translation-friendly `k + a`).
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
   simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
