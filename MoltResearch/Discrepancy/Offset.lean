@@ -319,6 +319,20 @@ lemma apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
     simp [Nat.add_comm]
   exact h.trans hswap
 
+/-- Inverse orientation of `apSumOffset_eq_apSum_shift`. -/
+lemma apSum_shift_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (m * d + k)) d n = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_eq_apSum_shift_add`.
+
+We do *not* mark this as `[simp]`: our normal forms generally prefer to *introduce* the
+translation-friendly shifted-sequence view.
+-/
+lemma apSum_shift_add_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (k + m * d)) d n = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Commute a translation in the shifted-sequence view of `apSumOffset`.
 
 This is a convenience lemma: the two shifted sequences `k ↦ f (a + k)` and `k ↦ f (k + a)` are
