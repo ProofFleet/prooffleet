@@ -875,6 +875,39 @@ lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_zero_m_of_le (f : ℕ →
         (apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
           (n := n - m))
 
+/-- Normal form: when `m ≤ n`, rewrite the difference of affine AP partial sums as a homogeneous
+AP sum on a further-shifted sequence.
+
+Concretely, this eliminates the offset parameter by absorbing it into the translation constant,
+then rewrites the resulting `m = 0` offset sum as a homogeneous `apSum`.
+
+This is the `m ≤ n` analogue of `apSumFrom_sub_eq_apSum_shift_add`.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSum (fun k => f (k + (a + m * d))) d (n - m) := by
+  calc
+    apSumFrom f a d n - apSumFrom f a d m =
+        apSumOffset (fun k => f (k + (a + m * d))) d 0 (n - m) := by
+          simpa using
+            (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_zero_m_of_le (f := f) (a := a)
+              (d := d) (m := m) (n := n) (hmn := hmn))
+    _ = apSum (fun k => f (k + (a + m * d))) d (n - m) := by
+          simpa using
+            (apSumOffset_zero_m (f := fun k => f (k + (a + m * d))) (d := d) (n := n - m))
+
+/-- Variant of `apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le` with the translation constant
+written as `m*d + a`.
+
+This wrapper avoids a commutativity rewrite at the call site.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSum_shift_add_left_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSum (fun k => f (k + (m * d + a))) d (n - m) := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le (f := f) (a := a) (d := d) (m := m)
+      (n := n) (hmn := hmn))
+
 /-- Inverse orientation of `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_zero_m_of_le`. -/
 lemma apSumOffset_shift_add_zero_m_eq_apSumFrom_sub_apSumFrom_of_le (f : ℕ → ℤ) (a d : ℕ)
     {m n : ℕ} (hmn : m ≤ n) :
