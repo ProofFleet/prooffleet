@@ -92,6 +92,33 @@ lemma apSumFrom_tail_succ_start_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
   simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
     (apSumFrom_tail_succ_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Split an affine tail sum by length.
+
+This is the affine-tail analogue of `apSum_add_length`/`apSumOffset_add_length`, expressed with an
+explicit tail parameter `m`.
+-/
+lemma apSumFrom_tail_add_length (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (a + m * d) d (n1 + n2) =
+      apSumFrom f (a + m * d) d n1 + apSumFrom f (a + (m + n1) * d) d n2 := by
+  have h := apSumFrom_add_length (f := f) (a := a + m * d) (d := d) (m := n1) (n := n2)
+  have hstart : (a + m * d) + n1 * d = a + (m + n1) * d := by
+    calc
+      (a + m * d) + n1 * d = a + (m * d + n1 * d) := by
+        simp [Nat.add_assoc]
+      _ = a + (m + n1) * d := by
+        simpa using congrArg (fun t => a + t) (Nat.add_mul m n1 d).symm
+  simpa [hstart] using h
+
+/-- Split an affine tail sum by length, with the affine start written as `m*d + a`.
+
+This wrapper avoids commuting `a + m*d` at the call site.
+-/
+lemma apSumFrom_tail_add_length_start_add_left (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (m * d + a) d (n1 + n2) =
+      apSumFrom f (m * d + a) d n1 + apSumFrom f ((m + n1) * d + a) d n2 := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_add_length (f := f) (a := a) (d := d) (m := m) (n1 := n1) (n2 := n2))
+
 /-- Difference of two affine AP partial sums as a tail sum when `m ≤ n`. -/
 lemma apSumFrom_sub_apSumFrom_eq_apSumFrom (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (a + m * d) d (n - m) := by
