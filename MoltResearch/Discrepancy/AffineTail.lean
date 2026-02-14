@@ -193,6 +193,16 @@ lemma apSumOffset_shift_add_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) 
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-- Variant of `apSumOffset_shift_add_eq_apSumFrom_tail` with the affine start written as `m*d + a`.
+
+This wrapper avoids a commutativity rewrite at the call site.
+-/
+lemma apSumOffset_shift_add_eq_apSumFrom_tail_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (m * d + a) d n := by
+  -- Normalize the affine start from `a + m*d` to `m*d + a`.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (k + a)`.
 
 This is the `m = 0` case of `apSumFrom_tail_eq_apSumOffset_shift_add`.
