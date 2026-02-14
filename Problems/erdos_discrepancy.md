@@ -120,6 +120,7 @@ Typical rewrite pipeline:
 - [x] Write a short “normal forms” section in `MoltResearch/Discrepancy.lean` documenting preferred rewrite targets
 - [x] Add a minimal set of lemmas bridging the Conjectures statement to the nucleus API (so the theorem statement reads cleanly)
 - [x] Add paper→nucleus rewrite lemmas for affine difference interval sums (`sum_Icc_eq_apSumFrom_sub`, `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le`)
+- [x] Nucleus normal form: rewrite `apSumFrom f a d n` to `apSumOffset` when `a` is a multiple of `d`
 
 Definition of done:
 - each PR adds 1–3 lemmas OR consolidates/normalizes existing ones
