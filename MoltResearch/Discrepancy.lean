@@ -91,6 +91,9 @@ Arithmetic progression sums:
 - Prefer `apSumFrom f a d n` for affine AP sums `a + d, a + 2d, …, a + nd`.
   Split lengths via `apSumFrom_add_length`.
   For a right-end “append one term” decomposition, use `apSumFrom_succ`.
+  For affine *tails* `apSumFrom f (a + m*d) d n`, you can split by length using the tail-focused lemmas
+  `apSumFrom_tail_succ_length`/`apSumFrom_tail_succ_length_add_left` (head+tail) and
+  `apSumFrom_tail_succ`/`apSumFrom_tail_succ_add_left` (append-one-term).
   For a homogeneous-sum view (shift the sequence, keep the step size `d`), rewrite
   - `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_shift_add`.
   - or `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k)) d n` via `apSumFrom_eq_apSum_shift`.
@@ -239,6 +242,19 @@ example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
 example : apSumFrom f (a + m * d) d n = apSum (fun k => f (k * d + (a + m * d))) 1 n := by
   simpa using
     apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Regression: tail head+tail normal form (translation-friendly add-left form).
+example :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f ((m + 1) * d + a) + apSumFrom f ((m + 1) * d + a) d n := by
+  simpa using
+    apSumFrom_tail_succ_length_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Regression: tail append-one-term normal form (translation-friendly add-left form).
+example :
+    apSumFrom f (a + m * d) d (n + 1) = apSumFrom f (a + m * d) d n + f ((m + n + 1) * d + a) := by
+  simpa using
+    apSumFrom_tail_succ_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
 -- Step-one normalization that stays inside the offset nucleus API (`m = 0`) in the
 -- translation-friendly `k*d + const` presentation.
