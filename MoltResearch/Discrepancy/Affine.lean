@@ -107,6 +107,23 @@ lemma apSum_eq_apSumFrom (f : ℕ → ℤ) (d n : ℕ) :
   unfold apSum apSumFrom
   simp [Nat.zero_add]
 
+/-- Normal form: eliminate the explicit start parameter `a` by shifting the underlying sequence.
+
+This is useful when you want to reduce affine AP sums to the `a = 0` case while keeping the step
+size `d` unchanged.
+
+It is the affine analogue of rewriting a translated sum `∑ f (a + ·)` into a sum of the shifted
+function `fun k => f (k + a)`.
+-/
+lemma apSumFrom_eq_apSumFrom_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumFrom (fun k => f (k + a)) 0 d n := by
+  classical
+  unfold apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Normalize `a + (i+1)*d` into the translation-friendly form `(i+1)*d + a`.
+  simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+
 /-- Normal form: an affine AP sum starting at `a = 0` is just a homogeneous AP sum.
 
 This is the inverse orientation of `apSum_eq_apSumFrom`.
