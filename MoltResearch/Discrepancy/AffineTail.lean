@@ -28,6 +28,17 @@ lemma apSumFrom_tail_succ_length (f : ℕ → ℤ) (a d m n : ℕ) :
         simpa [Nat.add_assoc, Nat.one_mul] using congrArg (fun t => a + t) (Nat.add_mul m 1 d).symm
   simpa [hstart] using h
 
+/-- Translation-friendly variant of `apSumFrom_tail_succ_length`, with the affine term written as
+`(m+1)*d + a`.
+
+This avoids needing `Nat.add_comm` under `simp` goals in downstream proof scripts.
+-/
+lemma apSumFrom_tail_succ_length_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f ((m + 1) * d + a) + apSumFrom f ((m + 1) * d + a) d n := by
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumFrom_tail_succ_length (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Right-end “append one term” normal form for affine tails.
 
 This is the affine-tail analogue of `apSumOffset_succ`: it splits off the *last* term of the tail.
@@ -48,6 +59,16 @@ lemma apSumFrom_tail_succ (f : ℕ → ℤ) (a d m n : ℕ) :
       _ = a + (m + n + 1) * d := by
         simp [Nat.add_assoc]
   simpa [hlast, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
+/-- Translation-friendly variant of `apSumFrom_tail_succ`, with the affine term written as
+`(m+n+1)*d + a`.
+
+This is convenient when rewriting goals so that `simp` doesn't need to commute addition inside `f`.
+-/
+lemma apSumFrom_tail_succ_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d (n + 1) = apSumFrom f (a + m * d) d n + f ((m + n + 1) * d + a) := by
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (apSumFrom_tail_succ (f := f) (a := a) (d := d) (m := m) (n := n))
 
 /-- Difference of two affine AP partial sums as a tail sum when `m ≤ n`. -/
 lemma apSumFrom_sub_apSumFrom_eq_apSumFrom (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
