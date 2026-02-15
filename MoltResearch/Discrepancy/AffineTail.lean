@@ -109,6 +109,7 @@ lemma apSumFrom_tail_add_length (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
         simpa using congrArg (fun t => a + t) (Nat.add_mul m n1 d).symm
   simpa [hstart] using h
 
+
 /-- Split an affine tail sum by length, with the affine start written as `m*d + a`.
 
 This wrapper avoids commuting `a + m*d` at the call site.
@@ -258,6 +259,45 @@ lemma apSumFrom_tail_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) 
     simpa using congrArg f (Nat.add_comm a k)
   simpa [hshift] using
     (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+/-- Split an affine tail sum by length, with the *second* tail expressed as an `apSumOffset`
+on the shifted sequence `k ↦ f (a + k)`.
+
+This is a convenience normal form when downstream work wants to use the offset-sum nucleus API
+for tail-of-tail bounds/splitting lemmas.
+-/
+lemma apSumFrom_tail_add_length_eq_add_apSumOffset_shift (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (a + m * d) d (n1 + n2) =
+      apSumFrom f (a + m * d) d n1 + apSumOffset (fun k => f (a + k)) d (m + n1) n2 := by
+  calc
+    apSumFrom f (a + m * d) d (n1 + n2) =
+        apSumFrom f (a + m * d) d n1 + apSumFrom f (a + (m + n1) * d) d n2 := by
+          simpa using
+            apSumFrom_tail_add_length (f := f) (a := a) (d := d) (m := m) (n1 := n1) (n2 := n2)
+    _ = apSumFrom f (a + m * d) d n1 + apSumOffset (fun k => f (a + k)) d (m + n1) n2 := by
+          have h2 :
+              apSumFrom f (a + (m + n1) * d) d n2 = apSumOffset (fun k => f (a + k)) d (m + n1) n2 := by
+            simpa using
+              (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m + n1)
+                (n := n2))
+          simpa [h2]
+
+/-- Translation-friendly variant of `apSumFrom_tail_add_length_eq_add_apSumOffset_shift`, with the
+shifted sequence written as `k ↦ f (k + a)`.
+-/
+lemma apSumFrom_tail_add_length_eq_add_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (a + m * d) d (n1 + n2) =
+      apSumFrom f (a + m * d) d n1 + apSumOffset (fun k => f (k + a)) d (m + n1) n2 := by
+  calc
+    apSumFrom f (a + m * d) d (n1 + n2) =
+        apSumFrom f (a + m * d) d n1 + apSumOffset (fun k => f (a + k)) d (m + n1) n2 := by
+          simpa using
+            apSumFrom_tail_add_length_eq_add_apSumOffset_shift (f := f) (a := a) (d := d) (m := m)
+              (n1 := n1) (n2 := n2)
+    _ = apSumFrom f (a + m * d) d n1 + apSumOffset (fun k => f (k + a)) d (m + n1) n2 := by
+          have hfun : (fun k => f (a + k)) = (fun k => f (k + a)) := by
+            funext k
+            simpa using congrArg f (Nat.add_comm a k)
+          simpa [hfun]
 
 /-- Translation-friendly variant of `apSumFrom_add_length_eq_add_apSumOffset_shift`, with the tail
 expressed as an `apSumOffset` on the shifted sequence `k ↦ f (k + a)`.
