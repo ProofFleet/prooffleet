@@ -331,6 +331,11 @@ example : apSumOffset f d m n = apSum (fun k => f (k + d * m)) d n := by
 example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
   simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
 
+-- Same normal form, but write the translation constant as `d*m` (mul-left convention).
+example : apSumOffset f d m n = apSumOffset (fun k => f (k + d * m)) d 0 n := by
+  simpa using
+    apSumOffset_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m) (n := n)
+
 -- Paper normal form: rewrite `Icc (m+1) (m+n)` tails to the fixed-lower-endpoint `Icc 1 n` form.
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
