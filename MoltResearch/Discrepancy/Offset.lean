@@ -130,6 +130,37 @@ lemma sum_Icc_add_length_mul_left (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa [Nat.mul_comm] using
     (sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Difference normal form for “paper notation” interval sums.
+
+Subtracting the first `n₁` terms from the first `n₁ + n₂` terms leaves exactly the tail block.
+This is the subtraction-oriented counterpart of `sum_Icc_add_length`.
+-/
+lemma sum_Icc_sub_sum_Icc_eq_sum_Icc (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+  classical
+  have h := sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+  calc
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d))
+        = ((Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) +
+            (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d))) -
+            (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) := by
+            simpa [h]
+    _ = (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+            simp [add_sub_cancel_left]
+
+/-- Translation-friendly variant of `sum_Icc_sub_sum_Icc_eq_sum_Icc` using `d * i` (step size on the
+left). -/
+lemma sum_Icc_sub_sum_Icc_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  classical
+  simpa [Nat.mul_comm] using
+    (sum_Icc_sub_sum_Icc_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
 /-- Split the interval sum `∑ i ∈ Icc (m+1) n, f (i*d)` at an intermediate index `k`, assuming
 `m ≤ k ≤ n`.
 

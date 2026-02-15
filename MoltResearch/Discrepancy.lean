@@ -684,8 +684,24 @@ example :
   simpa using
     sum_Icc_add_length_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- Paper difference normal form: subtracting the first block leaves the tail block.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+  simpa using
+    sum_Icc_sub_sum_Icc_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  simpa using
+    sum_Icc_sub_sum_Icc_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 -- Variable upper endpoints often appear in surface statements. When `m ≤ k ≤ n`, split the
--- interval sum at `k`.
+-- interval sum at `k`. 
 example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
     (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) =
       (Finset.Icc (m + 1) k).sum (fun i => f (i * d)) +
