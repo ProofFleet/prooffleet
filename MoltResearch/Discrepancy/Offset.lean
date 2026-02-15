@@ -501,6 +501,38 @@ lemma apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
     simp [Nat.add_comm]
   exact h.trans hswap
 
+/-- Normal form: rewrite the normal-form difference `apSum f d (m+n) - apSum f d m` as a
+homogeneous AP sum on a shifted sequence.
+
+Concretely:
+`apSum f d (m+n) - apSum f d m = apSum (fun k => f (k + m*d)) d n`.
+
+This is `apSum_sub_eq_apSumOffset` followed by `apSumOffset_eq_apSum_shift_add`.
+-/
+lemma apSum_sub_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n := by
+  calc
+    apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+      simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+    _ = apSum (fun k => f (k + m * d)) d n := by
+      simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
+/-- Normal form: when `m ≤ n`, rewrite `apSum f d n - apSum f d m` as a homogeneous AP sum on the
+shifted sequence `k ↦ f (k + m*d)`.
+
+Concretely:
+`apSum f d n - apSum f d m = apSum (fun k => f (k + m*d)) d (n-m)`.
+
+This is `apSum_sub_apSum_eq_apSumOffset` followed by `apSumOffset_eq_apSum_shift_add`.
+-/
+lemma apSum_sub_apSum_eq_apSum_shift_add_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = apSum (fun k => f (k + m * d)) d (n - m) := by
+  calc
+    apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+      simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSum (fun k => f (k + m * d)) d (n - m) := by
+      simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n - m)
+
 /-- Inverse orientation of `apSumOffset_eq_apSum_shift`. -/
 lemma apSum_shift_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSum (fun k => f (m * d + k)) d n = apSumOffset f d m n := by

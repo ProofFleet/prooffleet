@@ -260,8 +260,13 @@ example : apSum (fun k => f (k * d)) 1 n = apSum f d n := by
 example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
   simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 
+-- Same difference normal form, but eliminate the explicit offset sum into a homogeneous AP sum
+-- on a shifted sequence.
+example : apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n := by
+  simpa using apSum_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
 example : apSumOffset f d 0 n = apSum f d n := by
-  simpa using apSumOffset_zero_m (f := f) (d := d) (n := n)
+  simp
 
 example : apSumFrom f 0 d n = apSum f d n := by
   simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
@@ -593,6 +598,10 @@ example (hmn : m ≤ n) :
 
 example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
   simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
+
+-- Same difference normal form, but rewrite the tail into a homogeneous AP sum on a shifted sequence.
+example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSum (fun k => f (k + m * d)) d (n - m) := by
+  simpa using apSum_sub_apSum_eq_apSum_shift_add_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
 -- Same difference normal form, but eliminate the offset parameter by shifting the underlying
 -- sequence so the offset is `0`.
