@@ -853,6 +853,17 @@ lemma apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
     simp [Nat.add_comm]
   exact h.trans hswap
 
+/-- Mul-left variant of `apSumOffset_eq_apSum_shift_add` with translation constant written as `d*m`.
+
+This avoids an extra commutativity rewrite when your surrounding development already prefers
+multiplication-on-the-left forms (`d * i`) and hence naturally produces constants as `d*m`.
+-/
+lemma apSumOffset_eq_apSum_shift_add_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (k + d * m)) d n := by
+  -- Start from the canonical `k + m*d` normal form and rewrite `m*d` as `d*m`.
+  simpa [Nat.mul_comm] using
+    (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
+
 /-- Normal form: rewrite the normal-form difference `apSum f d (m+n) - apSum f d m` as a
 homogeneous AP sum on a shifted sequence.
 
@@ -868,6 +879,17 @@ lemma apSum_sub_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
       simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
     _ = apSum (fun k => f (k + m * d)) d n := by
       simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
+/-- Mul-left variant of `apSum_sub_eq_apSum_shift_add` with translation constant written as `d*m`.
+
+This wrapper is useful when a downstream goal is already in the binder convention `d * i` and the
+natural “shift” constant appears as `d*m` rather than `m*d`.
+-/
+lemma apSum_sub_eq_apSum_shift_add_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + d * m)) d n := by
+  -- Rewrite the shift constant `m*d` as `d*m`.
+  simpa [Nat.mul_comm] using
+    (apSum_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
 
 /-- Variant of `apSum_sub_eq_apSum_shift_add` with the translation constant written as `m*d + k`.
 

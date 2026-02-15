@@ -289,6 +289,10 @@ example : apSum f d n = apSumFrom f 0 d n := by
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
 
+-- Same normal form, but write the translation constant as `d*m` (mul-left convention).
+example : apSumOffset f d m n = apSum (fun k => f (k + d * m)) d n := by
+  simpa using apSumOffset_eq_apSum_shift_add_mul_left (f := f) (d := d) (m := m) (n := n)
+
 example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
   simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
 
