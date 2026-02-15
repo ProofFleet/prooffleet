@@ -789,6 +789,39 @@ theorem forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_wi
     exact (HasAffineDiscrepancyAtLeast_iff_exists_d_ge_one_witness_pos (f := f) (C := C)).2
       ⟨a, d, n, hd, hn, hgt'⟩
 
+/-- Surface form of affine unbounded discrepancy, with the step-size side condition written as
+`d > 0`.
+
+This is often the most natural surface form when connecting to statements phrased with a strict
+positivity hypothesis.
+
+It is a convenience wrapper around
+`forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos`, using the
+equivalence `d > 0 ↔ d ≥ 1` for natural numbers.
+-/
+theorem forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ a d n : ℕ, d > 0 ∧ n > 0 ∧
+          Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) > C) := by
+  constructor
+  · intro h C
+    rcases
+        (forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos
+              (f := f)).1 h C with
+      ⟨a, d, n, hd, hn, hgt⟩
+    refine ⟨a, d, n, ?_, hn, hgt⟩
+    -- `d ≥ 1` implies `d > 0`.
+    exact (Nat.succ_le_iff).1 hd
+  · intro h
+    -- Convert the strict-positivity side condition to `d ≥ 1` and reuse the `d ≥ 1` normal form.
+    refine
+      (forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos
+            (f := f)).2 ?_
+    intro C
+    rcases h C with ⟨a, d, n, hd, hn, hgt⟩
+    exact ⟨a, d, n, Nat.succ_le_of_lt hd, hn, hgt⟩
+
 /-- Negating the function does not change affine discrepancy. -/
 lemma HasAffineDiscrepancyAtLeast.neg_iff {f : ℕ → ℤ} {C : ℕ} :
     HasAffineDiscrepancyAtLeast (fun n => - f n) C ↔ HasAffineDiscrepancyAtLeast f C := by

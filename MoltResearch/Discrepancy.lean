@@ -1066,6 +1066,14 @@ example :
 
 example :
     (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ a d n : ℕ,
+          d > 0 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) > C) := by
+  simpa using
+    forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos (f := f)
+
+example :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
       (∀ C : ℕ, ∃ a : ℕ, HasDiscrepancyAtLeast (fun k => f (a + k)) C) := by
   simpa using forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_shift (f := f)
 
