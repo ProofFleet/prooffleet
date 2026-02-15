@@ -1,4 +1,3 @@
-import MoltResearch.Discrepancy.Basic
 import MoltResearch.Discrepancy.Affine
 
 /-!
