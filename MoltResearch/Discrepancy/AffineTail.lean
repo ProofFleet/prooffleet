@@ -260,6 +260,17 @@ lemma apSumFrom_tail_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) 
         (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
     _ = apSumOffset (fun k => f (k + a)) d m n := by
       simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n)
+
+/-- Convenience wrapper for `apSumFrom_tail_eq_apSumOffset_shift_add` when the affine start is
+written using the mul-left convention `a + d*m`.
+
+This avoids a manual `Nat.mul_comm` rewrite when normalizing goals into the canonical
+`apSumOffset (fun k => f (k + a)) d m n` form.
+-/
+lemma apSumFrom_tail_eq_apSumOffset_shift_add_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + d * m) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa [Nat.mul_comm] using
+    (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 /-- Split an affine tail sum by length, with the *second* tail expressed as an `apSumOffset`
 on the shifted sequence `k ↦ f (a + k)`.
 
