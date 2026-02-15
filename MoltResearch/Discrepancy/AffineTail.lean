@@ -966,6 +966,52 @@ lemma sum_Icc_eq_apSumFrom_tail_mul_left_add (f : ℕ → ℤ) (a d m n : ℕ) :
   simpa using
     (apSumFrom_tail_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-- Rewrite an affine tail sum as a length-indexed interval sum over `Icc 1 n`.
+
+Concretely, this is the normal form
+`∑ i ∈ Icc 1 n, f (a + (m+i)*d)`.
+
+This is sometimes convenient when you want a *fixed* lower endpoint (1) and you prefer to keep the
+tail bookkeeping inside the summand, analogous to `apSumOffset_eq_sum_Icc_length`.
+-/
+lemma apSumFrom_tail_eq_sum_Icc_length (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f (a + (m + i) * d)) := by
+  calc
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = (Finset.Icc 1 n).sum (fun i => f (a + (m + i) * d)) := by
+      simpa using
+        (apSumOffset_eq_sum_Icc_length (f := fun k => f (a + k)) (d := d) (m := m) (n := n))
+
+/-- Translation-friendly variant of `apSumFrom_tail_eq_sum_Icc_length`, with the summand written as
+`f ((m+i)*d + a)` instead of `f (a + (m+i)*d)`. -/
+lemma apSumFrom_tail_eq_sum_Icc_length_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f ((m + i) * d + a)) := by
+  have h := apSumFrom_tail_eq_sum_Icc_length (f := f) (a := a) (d := d) (m := m) (n := n)
+  have hsummand : (fun i => f (a + (m + i) * d)) = (fun i => f ((m + i) * d + a)) := by
+    funext i
+    have hcomm : a + (m + i) * d = (m + i) * d + a := by
+      simpa using Nat.add_comm a ((m + i) * d)
+    simpa [hcomm] using congrArg f hcomm
+  simpa [hsummand] using h
+
+/-- Inverse orientation of `apSumFrom_tail_eq_sum_Icc_length`. -/
+lemma sum_Icc_length_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + (m + i) * d)) =
+      apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_sum_Icc_length (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumFrom_tail_eq_sum_Icc_length_add`. -/
+lemma sum_Icc_length_eq_apSumFrom_tail_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f ((m + i) * d + a)) =
+      apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_sum_Icc_length_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-- Normal form (paper → nucleus, tail, translation-friendly): when `m ≤ n`, rewrite the interval sum
 `∑ i ∈ Icc (m+1) n, f (i*d + a)` to the affine tail sum `apSumFrom f (a + m*d) d (n - m)`.
 

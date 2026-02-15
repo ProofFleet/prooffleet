@@ -1019,6 +1019,19 @@ example :
   simpa using
     apSumFrom_tail_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Length-indexed paper notation for affine tails (fixed lower endpoint `1`).
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f (a + (m + i) * d)) := by
+  simpa using apSumFrom_tail_eq_sum_Icc_length (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Translation-friendly length-indexed variant, with the summand written as `(m+i)*d + a`.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f ((m + i) * d + a)) := by
+  simpa using
+    apSumFrom_tail_eq_sum_Icc_length_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Variable upper endpoints appear often in surface statements.
 -- When `m ≤ n`, normalize `∑ i ∈ Icc (m+1) n, f (i*d + a)` into the canonical tail length `n - m`.
 example (hmn : m ≤ n) :
