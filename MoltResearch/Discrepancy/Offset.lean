@@ -203,6 +203,43 @@ lemma sum_Icc_eq_sum_Icc_length_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Nat.mul_comm] using
     (sum_Icc_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n))
 
+/-- Variant of `sum_Icc_eq_sum_Icc_length` that makes the translation by `m*d` explicit.
+
+Concretely, this rewrites
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`
+into
+`∑ i ∈ Icc 1 n, f (i*d + m*d)`.
+
+This can be a useful intermediate normal form when you want an explicit `x + const` summand shape
+before applying translation lemmas.
+-/
+lemma sum_Icc_eq_sum_Icc_length_add (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+      (Finset.Icc 1 n).sum (fun i => f (i * d + m * d)) := by
+  classical
+  calc
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))
+        = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+            simpa using sum_Icc_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)
+    _ = (Finset.Icc 1 n).sum (fun i => f (i * d + m * d)) := by
+            refine Finset.sum_congr rfl ?_
+            intro i hi
+            have hmul : (m + i) * d = m * d + i * d := Nat.add_mul m i d
+            have hcomm : m * d + i * d = i * d + m * d := by
+              simpa using Nat.add_comm (m * d) (i * d)
+            simpa using congrArg f (hmul.trans hcomm)
+
+/-- Mul-left variant of `sum_Icc_eq_sum_Icc_length_add` using `d * i` and `d * m`.
+
+This avoids commuting multiplication under binders.
+-/
+lemma sum_Icc_eq_sum_Icc_length_mul_left_add (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) =
+      (Finset.Icc 1 n).sum (fun i => f (d * i + d * m)) := by
+  classical
+  simpa [Nat.mul_comm] using
+    (sum_Icc_eq_sum_Icc_length_add (f := f) (d := d) (m := m) (n := n))
+
 /-- Special case: step size `d = 1` turns `apSumOffset` into the plain interval sum
 `∑ i ∈ Icc (m+1) (m+n), f i`.
 
