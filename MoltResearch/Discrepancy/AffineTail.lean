@@ -581,6 +581,30 @@ lemma apSumFrom_sub_eq_apSum_step_one_add_left_start_add_left (f : ℕ → ℤ) 
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_sub_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Translation-friendly tail step-one normal form with the affine start written as `m*d + a`.
+
+This is the `m*d + a` wrapper of `apSumFrom_tail_eq_apSum_step_one_add_left`, and avoids a
+commutativity rewrite at the call site.
+-/
+lemma apSumFrom_tail_eq_apSum_step_one_add_left_start_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d n = apSum (fun k => f (k * d + (m * d + a))) 1 n := by
+  -- Normalize the affine start from `m*d + a` to `a + m*d` and apply the canonical lemma.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Translation-friendly tail step-one normal form, but expressed as an `apSumOffset` with `m = 0`,
+with the affine start written as `m*d + a`.
+
+This is the `m*d + a` wrapper of `apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left`.
+-/
+lemma apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left_start_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d n =
+      apSumOffset (fun k => f (k * d + (m * d + a))) 1 0 n := by
+  -- Normalize the affine start from `m*d + a` to `a + m*d` and apply the canonical lemma.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n))
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_shift`.
 
 This is useful when you have already normalized into the shifted-sequence form

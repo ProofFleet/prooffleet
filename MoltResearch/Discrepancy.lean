@@ -317,6 +317,12 @@ example : apSumFrom f (a + m * d) d n = apSum (fun k => f (k * d + (a + m * d)))
   simpa using
     apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Same tail step-one normal form, but with the affine start already written as `m*d + a`.
+example : apSumFrom f (m * d + a) d n = apSum (fun k => f (k * d + (m * d + a))) 1 n := by
+  simpa using
+    apSumFrom_tail_eq_apSum_step_one_add_left_start_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n)
+
 -- Regression: tail head+tail normal form (translation-friendly add-left form).
 example :
     apSumFrom f (a + m * d) d (n + 1) =
@@ -356,6 +362,12 @@ example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k * d + (a + m 
   simpa using
     apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (m := m)
       (n := n)
+
+-- Same step-one offset-sum normal form, but with the affine start already written as `m*d + a`.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k * d + (m * d + a))) 1 0 n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left_start_add_left (f := f) (a := a) (d := d)
+      (m := m) (n := n)
 
 -- Step-one normalization that keeps the offset parameter `m`, with the summand written as
 -- `a + k*d`.
