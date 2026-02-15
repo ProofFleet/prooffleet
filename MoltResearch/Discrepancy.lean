@@ -290,9 +290,19 @@ example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n :
 example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
--- Switching between `a + k` and `k + a` inside the shifted-sequence view of `apSumOffset`. 
+-- Switching between `a + k` and `k + a` inside the shifted-sequence view of `apSumOffset`.
 example : apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Commuting `a + k` ↔ `k + a` under the nucleus sums.
+--
+-- These are small but useful “normalization” steps when you want a translation-friendly `k + const`
+-- summand shape without doing a manual `funext` rewrite.
+example : apSum (fun k => f (a + k)) d n = apSum (fun k => f (k + a)) d n := by
+  simpa using apSum_shift_comm (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom (fun x => f (a + x)) m d n = apSumFrom (fun x => f (x + a)) m d n := by
+  simpa using apSumFrom_shift_comm (f := f) (a := a) (k := m) (d := d) (n := n)
 
 -- “Push the translation into the function” normal forms.
 --
