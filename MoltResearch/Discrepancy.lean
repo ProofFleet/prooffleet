@@ -481,6 +481,23 @@ example :
     apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m)
       (n := n)
 
+-- Same splitting normal form, but eliminate the now-trivial offset sum (`m = 0`) into a
+-- homogeneous AP sum on a shifted sequence.
+example :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSum (fun k => f (k + (a + m * d))) d n := by
+  simpa using
+    apSumFrom_add_length_eq_add_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same, with the translation constant written as `m*d + a` (often avoids commutativity rewrites).
+example :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSum (fun k => f (k + (m * d + a))) d n := by
+  -- `AffineTail` has the main lemma in the `(a + m*d)` presentation; this wrapper just
+  -- reassociates/commutes the translation constant.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_add_length_eq_add_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
 -- Same normal form, but with the affine start written as `m*d + a` (avoids a commutativity rewrite).
 example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
