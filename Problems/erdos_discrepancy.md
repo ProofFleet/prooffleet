@@ -91,6 +91,34 @@ Quick start (when you just want a stable normal form and to avoid “lemma spraw
 - If you want to “bundle the step into the summand” (step-one normalization), rewrite `apSum f d n`
   to `apSum (fun k => f (k*d)) 1 n` via `apSum_eq_apSum_step_one` (and similarly for offset/affine).
 
+Mini playbook (common rewrite goal states)
+
+A lot of Track B work boils down to getting the goal into one of these *canonical shapes*, and then
+only doing algebra/bounds afterwards.
+
+1) Turn an affine tail into an offset sum on a shifted sequence:
+
+- Start: `apSumFrom f (a + m*d) d n`
+- Normalize to: `apSumOffset (fun k => f (k + a)) d m n`
+  via `apSumFrom_tail_eq_apSumOffset_shift_add`.
+
+2) Turn a difference into an explicit tail (do this early):
+
+- Start: `apSumFrom f a d (m+n) - apSumFrom f a d m`
+- Normalize to: `apSumFrom f (a + m*d) d n`
+  via `apSumFrom_sub_eq_apSumFrom_tail`, and optionally further to an offset-sum normal form via
+  `apSumFrom_sub_eq_apSumOffset_shift_add`.
+
+3) Eliminate the explicit tail parameter when you want a homogeneous-AP view:
+
+- Start: `apSumOffset f d m n`
+- Normalize to: `apSum (fun k => f (k + m*d)) d n`
+  via `apSumOffset_eq_apSum_shift_add`.
+
+These three steps cover most “get it into nucleus normal form” moments; they also keep downstream
+proof scripts uniform (everything becomes `apSumOffset` on a shifted sequence, or a homogeneous
+`apSum` when you want to use bounds that are stated that way).
+
 (For a curated list plus regression-test examples, see the `## Normal forms` and
 `section NormalFormExamples` blocks in `MoltResearch/Discrepancy.lean`.)
 
