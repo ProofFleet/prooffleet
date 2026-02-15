@@ -308,6 +308,13 @@ example :
       (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
   simpa using sum_Icc_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)
 
+-- Offset paper notation: multiplication-on-the-left variants (avoid commuting `i*d` under binders).
+example : apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  simpa using apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)
+
+example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n)
+
 -- Offset sums on a shifted sequence: return to the affine-tail nucleus API.
 example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
   simpa using apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m)
