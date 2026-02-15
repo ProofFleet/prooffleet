@@ -221,6 +221,16 @@ lemma apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumFrom f (m * d) d n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Mul-left variant of `apSumFrom_mul_eq_apSumOffset`.
+
+This is a tiny normal-form helper when your affine start is already written as `d * m`, so you can
+rewrite to an `apSumOffset` without first commuting multiplication.
+-/
+lemma apSumFrom_mul_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumFrom f (d * m) d n = apSumOffset f d m n := by
+  -- Reuse the `m * d` lemma, but keep the statement in the `d * m` orientation.
+  simpa [Nat.mul_comm] using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
 /-- Convenience wrapper: if the affine start `a` is *definitionally* a multiple of `d`, rewrite
 `apSumFrom f a d n` to an offset sum.
 
@@ -229,6 +239,14 @@ This is a small normal-form helper when your context already contains a fact `a 
 lemma apSumFrom_eq_apSumOffset_of_eq_mul (f : ℕ → ℤ) {a d m n : ℕ} (ha : a = m * d) :
     apSumFrom f a d n = apSumOffset f d m n := by
   simpa [ha] using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
+/-- Mul-left variant of `apSumFrom_eq_apSumOffset_of_eq_mul`.
+
+This is a small normal-form helper when your context already contains a fact `a = d * m`.
+-/
+lemma apSumFrom_eq_apSumOffset_of_eq_mul_left (f : ℕ → ℤ) {a d m n : ℕ} (ha : a = d * m) :
+    apSumFrom f a d n = apSumOffset f d m n := by
+  simpa [ha] using (apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
 /-- Convenience wrapper: if the affine start `a` is a multiple of `d`, rewrite `apSumFrom` to an
 offset sum.
