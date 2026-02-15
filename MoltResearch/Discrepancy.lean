@@ -67,8 +67,12 @@ Arithmetic progression sums:
   For “tail-of-tail” decompositions, move between tails and differences of offset sums using
   `apSumOffset_tail_eq_sub` (tail → difference) and `apSumOffset_sub_eq_apSumOffset_tail`
   (difference → tail, normal form). When a length inequality `n₁ ≤ n₂` is available, use
-  `apSumOffset_sub_apSumOffset_eq_apSumOffset`. To split an offset sum at an intermediate length,
-  use `apSumOffset_eq_add_apSumOffset_tail`.
+  `apSumOffset_sub_apSumOffset_eq_apSumOffset`.
+  If you want to further eliminate the explicit offset parameter in the resulting tail, normalize
+  to an `m = 0` offset sum on a shifted sequence using `apSumOffset_sub_eq_apSumOffset_shift_add`
+  (canonical `n₁ + n₂` form) or `apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add` (inequality
+  form).
+  To split an offset sum at an intermediate length, use `apSumOffset_eq_add_apSumOffset_tail`.
   For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc` (or, if `d = 1`,
   via `apSumOffset_one_d`). If you want the translation-friendly `d * i` binder form, use
   `apSumOffset_eq_sum_Icc_mul_left`.
@@ -820,6 +824,14 @@ example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
   simpa using apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- Same difference normal form, but eliminate the tail offset parameter by shifting the underlying
+-- sequence and resetting the offset to `0`.
+example :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      apSumOffset (fun k => f (k + (m + n₁) * d)) d 0 n₂ := by
+  simpa using
+    apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 -- Same difference normal form, but eliminate the explicit `apSumOffset` into an `apSum` on a
 -- shifted sequence.
 example :
@@ -830,6 +842,15 @@ example (hn : n₁ ≤ n₂) :
     apSumOffset f d m n₂ - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) (n₂ - n₁) := by
   simpa using
     apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn)
+
+-- Same inequality normal form, but eliminate the offset parameter by shifting the underlying
+-- sequence and resetting the offset to `0`.
+example (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      apSumOffset (fun k => f (k + (m + n₁) * d)) d 0 (n₂ - n₁) := by
+  simpa using
+    apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁)
       (n₂ := n₂) (hn := hn)
 
 -- Same inequality normal form, but eliminate the explicit `apSumOffset` into an `apSum` on a
