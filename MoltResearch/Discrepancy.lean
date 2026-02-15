@@ -82,6 +82,9 @@ Arithmetic progression sums:
   `apSum_sub_apSum_eq_sum_Icc_mul_left` when starting from `apSum … n - apSum … m` with `m ≤ n`).
   Sometimes it is useful to change viewpoint on offset sums:
   - offset ↔ affine: `apSumOffset f d m n` ↔ `apSumFrom f (m * d) d n` via `apSumOffset_eq_apSumFrom`.
+  - shifted-sequence offset ↔ affine tail:
+    `apSumOffset (fun k => f (k + a)) d m n` ↔ `apSumFrom f (a + m * d) d n` via
+    `apSumFrom_tail_eq_apSumOffset_shift_add` / `apSumOffset_shift_add_eq_apSumFrom_tail`.
   - “step-one” normalization (bundle `d` into the summand):
     - keep an `apSumOffset` shape: `apSumOffset f d m n` ↦ `apSumOffset (fun k => f (k * d)) 1 m n` via
       `apSumOffset_eq_apSumOffset_step_one` (and back via `apSumOffset_step_one_eq_apSumOffset`).
@@ -272,6 +275,15 @@ example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
 
 example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
   simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
+
+-- Offset sums on a shifted sequence: return to the affine-tail nucleus API.
+example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m)
+    (n := n)
+
+example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (m * d + a) d n := by
+  simpa using apSumOffset_shift_add_eq_apSumFrom_tail_left (f := f) (a := a) (d := d) (m := m)
+    (n := n)
 
 -- Affine sums: shift-add normal form (translation-friendly `k + a`).
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
