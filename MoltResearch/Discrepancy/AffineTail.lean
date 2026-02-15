@@ -1187,6 +1187,30 @@ lemma sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add (f : ℕ → ℤ) (a d
             (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
               (n := n - m))
 
+/-- Normal form (nucleus → paper, tail): when `m ≤ n`, rewrite the offset AP sum on the shifted
+sequence `k ↦ f (k + a)` into the affine interval sum `∑ i ∈ Icc (m+1) n, f (i*d + a)`.
+
+This is the inverse orientation of `sum_Icc_eq_apSumOffset_shift_add_of_le_add`.
+-/
+lemma apSumOffset_shift_add_eq_sum_Icc_of_le_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumOffset (fun k => f (k + a)) d m (n - m) =
+      (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn)).symm
+
+/-- Mul-left + translation-friendly variant of `apSumOffset_shift_add_eq_sum_Icc_of_le_add`, with
+summand written as `f (d*i + a)`.
+-/
+lemma apSumOffset_shift_add_eq_sum_Icc_of_le_mul_left_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumOffset (fun k => f (k + a)) d m (n - m) =
+      (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m)
+      (n := n) (hmn := hmn)).symm
+
+
 /-- Split the “paper notation” affine interval sum
 `∑ i ∈ Icc (m+1) (m+(n₁+n₂)), f (a + i*d)` into the first `n₁` terms and the next `n₂` terms.
 
