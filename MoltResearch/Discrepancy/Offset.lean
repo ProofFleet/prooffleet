@@ -864,6 +864,28 @@ lemma apSumOffset_eq_apSum_shift_add_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Nat.mul_comm] using
     (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
 
+/-- Length-splitting normal form: split an offset sum into a prefix offset sum and a shifted
+homogeneous AP sum.
+
+Concretely:
+
+`apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂`.
+
+This is just `apSumOffset_add_length` followed by the shifted-sequence normal form
+`apSumOffset_eq_apSum_shift_add` on the tail.
+-/
+lemma apSumOffset_add_length_eq_add_apSum_shift_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) =
+      apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by
+  calc
+    apSumOffset f d m (n₁ + n₂)
+        = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+            simpa using
+              (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+    _ = apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by
+            -- Normalize the tail offset sum into a homogeneous AP sum on a shifted sequence.
+            simp [apSumOffset_eq_apSum_shift_add]
+
 /-- Normal form: rewrite the normal-form difference `apSum f d (m+n) - apSum f d m` as a
 homogeneous AP sum on a shifted sequence.
 
