@@ -596,6 +596,15 @@ lemma apSumFrom_sub_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_sub_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Variant of `apSumFrom_sub_eq_apSum_shift_add` with the translation constant written as `d*m + a`.
+
+This wrapper avoids a commutativity rewrite at the call site when working in a mul-left convention.
+-/
+lemma apSumFrom_sub_eq_apSum_shift_add_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (d * m + a))) d n := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Translation-friendly step-one normal form: rewrite the canonical affine difference `(m+n) - m`
 as a step-one homogeneous AP sum with summand `k*d + (a + m*d)`.
 
@@ -623,6 +632,18 @@ lemma apSumFrom_sub_eq_apSum_step_one_add_left_start_add_left (f : ℕ → ℤ) 
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_sub_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Variant of `apSumFrom_sub_eq_apSum_step_one_add_left` with the affine tail start written as
+`d*m + a`.
+
+This wrapper avoids a commutativity rewrite at the call site when working in a mul-left convention.
+-/
+lemma apSumFrom_sub_eq_apSum_step_one_add_left_start_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSum (fun k => f (k * d + (d * m + a))) 1 n := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_eq_apSum_step_one_add_left_start_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n))
+
 /-- Translation-friendly tail step-one normal form with the affine start written as `m*d + a`.
 
 This is the `m*d + a` wrapper of `apSumFrom_tail_eq_apSum_step_one_add_left`, and avoids a
@@ -633,6 +654,17 @@ lemma apSumFrom_tail_eq_apSum_step_one_add_left_start_add_left (f : ℕ → ℤ)
   -- Normalize the affine start from `m*d + a` to `a + m*d` and apply the canonical lemma.
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Translation-friendly tail step-one normal form with the affine start written as `d*m + a`.
+
+This is the mul-left wrapper of `apSumFrom_tail_eq_apSum_step_one_add_left_start_add_left`, and
+avoids a commutativity rewrite at the call site.
+-/
+lemma apSumFrom_tail_eq_apSum_step_one_add_left_start_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (d * m + a) d n = apSum (fun k => f (k * d + (d * m + a))) 1 n := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_eq_apSum_step_one_add_left_start_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n))
 
 /-- Translation-friendly tail step-one normal form, but expressed as an `apSumOffset` with `m = 0`,
 with the affine start written as `m*d + a`.
