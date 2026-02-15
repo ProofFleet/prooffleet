@@ -1254,6 +1254,18 @@ lemma apSumOffset_sub_eq_apSum_shift_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ)
     _ = apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by
       simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m + n₁) (n := n₂)
 
+/-- Mul-left variant of `apSumOffset_sub_eq_apSum_shift_add` with the translation constant written as
+`d * (m + n₁)`.
+
+This wrapper avoids a commutativity rewrite under binders when a downstream development already
+prefers the `d * i` convention for arithmetic progression points.
+-/
+lemma apSumOffset_sub_eq_apSum_shift_add_mul_left (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      apSum (fun k => f (k + d * (m + n₁))) d n₂ := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
 /-- Normal form: when `n₁ ≤ n₂`, rewrite the difference of two offset sums over the same start `m`
 into a homogeneous AP sum on a shifted sequence.
 
