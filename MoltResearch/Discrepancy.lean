@@ -681,6 +681,14 @@ example : apSumOffset f d 0 n = apSum f d n := by
 example : apSumOffset f d m 0 = 0 := by
   simp
 
+-- Single-term normal forms (useful when you want to peel a tail down to one summand).
+example : apSumOffset f d m 1 = f ((m + 1) * d) := by
+  simpa using apSumOffset_one (f := f) (d := d) (m := m)
+
+example : apSumFrom f a d 1 = f (a + d) := by
+  -- `apSumFrom` is the affine AP sum over `a + d, a + 2d, ...`.
+  simpa using apSumFrom_one (f := f) (a := a) (d := d)
+
 -- Degenerate constant AP tails.
 example : apSumOffset f 0 m n = n • f 0 := by
   simp
