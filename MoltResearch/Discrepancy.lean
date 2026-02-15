@@ -501,6 +501,14 @@ example : apSumFrom (fun k => f (a + k)) 0 d n = apSumFrom f a d n := by
 example : apSum (fun x => f (a + x)) d n = apSum (fun x => f (x + a)) d n := by
   simpa using apSum_shift_comm (f := f) (a := a) (d := d) (n := n)
 
+-- Same commutation normal form, but inside `apSumOffset`.
+example : apSumOffset (fun x => f (a + x)) d m n = apSumOffset (fun x => f (x + a)) d m n := by
+  simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same commutation normal form, but inside `apSumFrom`.
+example : apSumFrom (fun x => f (a + x)) m d n = apSumFrom (fun x => f (x + a)) m d n := by
+  simpa using apSumFrom_shift_comm (f := f) (a := a) (k := m) (d := d) (n := n)
+
 example : apSumFrom (fun x => f (x + m)) a d n = apSumFrom f (a + m) d n := by
   simpa using apSumFrom_map_add (f := f) (k := m) (a := a) (d := d) (n := n)
 

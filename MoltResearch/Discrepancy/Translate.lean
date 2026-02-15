@@ -60,7 +60,22 @@ lemma apSum_shift_comm (f : ℕ → ℤ) (a d n : ℕ) :
   unfold apSum
   refine Finset.sum_congr rfl ?_
   intro i hi
-  simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+  simp [Nat.add_comm]
+
+/-- Commute an additive translation under `apSumFrom`.
+
+This is the affine analogue of `apSum_shift_comm`: it lets you switch between the binder
+conventions `fun x => f (a + x)` and `fun x => f (x + a)` without doing a manual `funext` rewrite.
+
+We do *not* mark this as `[simp]`: it is intended as an explicit normalization step when you want
+a translation-friendly `x + const` summand shape.
+-/
+lemma apSumFrom_shift_comm (f : ℕ → ℤ) (a k d n : ℕ) :
+    apSumFrom (fun x => f (a + x)) k d n = apSumFrom (fun x => f (x + a)) k d n := by
+  unfold apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.add_comm]
 
 -- (moved to `Discrepancy/Affine.lean`)
 
