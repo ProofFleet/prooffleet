@@ -281,7 +281,7 @@ example :
   -- Two-step “difference → affine tail → offset on a shifted sequence” normal form.
   --
   -- This is a regression test for the Track B glue lemma
-  -- `apSumFrom_sub_eq_apSumOffset_shift_add`: even if that lemma gets refactored,
+  -- apSumFrom_sub_eq_apSumOffset_shift_add: even if that lemma gets refactored,
   -- we want this common rewrite pipeline to keep working from the stable import
   -- surface `import MoltResearch.Discrepancy`.
   calc
