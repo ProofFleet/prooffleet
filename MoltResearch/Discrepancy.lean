@@ -538,6 +538,20 @@ example : apSumFrom (fun x => f (x + m)) a d n = apSumFrom f (a + m) d n := by
 example : apSumFrom (fun x => f (m + x)) a d n = apSumFrom f (m + a) d n := by
   simpa using apSumFrom_map_add_left (f := f) (k := m) (a := a) (d := d) (n := n)
 
+-- Translation under the homogeneous nucleus API.
+example : apSum (fun x => f (x + a)) d n = apSumFrom f a d n := by
+  simpa using apSum_map_add (f := f) (k := a) (d := d) (n := n)
+
+example : apSum (fun x => f (a + x)) d n = apSumFrom f a d n := by
+  simpa using apSum_map_add_left (f := f) (k := a) (d := d) (n := n)
+
+-- Translation under the offset nucleus API.
+example : apSumOffset (fun x => f (x + a)) d m n = apSumFrom f (m * d + a) d n := by
+  simpa using apSumOffset_map_add (f := f) (k := a) (d := d) (m := m) (n := n)
+
+example : apSumOffset (fun x => f (a + x)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using apSumOffset_map_add_left (f := f) (k := a) (d := d) (m := m) (n := n)
+
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
