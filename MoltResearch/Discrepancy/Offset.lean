@@ -474,6 +474,24 @@ lemma apSumOffset_shift_add_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f (k + m * d)) d 0 n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Normal form: when `m ≤ n`, rewrite a difference of homogeneous AP partial sums
+as an offset sum with `m = 0` on a shifted sequence.
+
+Concretely:
+`apSum f d n - apSum f d m = apSumOffset (fun k => f (k + m*d)) d 0 (n - m)`.
+
+This combines `apSum_sub_apSum_eq_apSumOffset` with `apSumOffset_eq_apSumOffset_shift_add`.
+-/
+lemma apSum_sub_apSum_eq_apSumOffset_shift_add_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = apSumOffset (fun k => f (k + m * d)) d 0 (n - m) := by
+  calc
+    apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+      simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSumOffset (fun k => f (k + m * d)) d 0 (n - m) := by
+      simpa using
+        (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n - m))
+
 /-- Normal form: push an offset parameter into a translation of the underlying sequence.
 
 Concretely, an offset sum on the shifted sequence `k ↦ f (k + a)` can be rewritten as an offset sum

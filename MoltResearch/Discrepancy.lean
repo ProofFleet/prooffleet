@@ -527,6 +527,13 @@ example (hmn : m ≤ n) :
 example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
   simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
 
+-- Same difference normal form, but eliminate the offset parameter by shifting the underlying
+-- sequence so the offset is `0`.
+example (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = apSumOffset (fun k => f (k + m * d)) d 0 (n - m) := by
+  simpa using
+    apSum_sub_apSum_eq_apSumOffset_shift_add_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
 example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
   simpa using apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)
 
