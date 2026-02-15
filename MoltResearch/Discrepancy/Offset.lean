@@ -52,6 +52,26 @@ lemma apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
                   (Finset.Ico_add_one_right_eq_Icc (a := m + 1) (b := m + n))
             simpa [hend] using hsum
 
+/-- Rewrite `apSumOffset` as a length-indexed interval sum over `Icc 1 n`.
+
+Concretely, this is the form
+`∑ i ∈ Icc 1 n, f ((m+i)*d)`.
+
+This is sometimes convenient when you want an interval with a *fixed* lower endpoint and the
+offset bookkeeping moved into the summand.
+-/
+lemma apSumOffset_eq_sum_Icc_length (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  classical
+  unfold apSumOffset
+  -- Convert `Icc 1 n` to `Ico 1 (n+1)`, then use `sum_Ico_eq_sum_range`.
+  have h :=
+    (Finset.sum_Ico_eq_sum_range (f := fun i => f ((m + i) * d)) (m := 1) (n := n + 1))
+  -- `h` is oriented `Ico → range`; we use it backwards and simplify.
+  -- The key simplifications are `(n+1) - 1 = n` and `m + (1 + i) = m + i + 1`.
+  simpa [Finset.Ico_add_one_right_eq_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    h.symm
+
 /-- Special case: step size `d = 1` turns `apSumOffset` into the plain interval sum
 `∑ i ∈ Icc (m+1) (m+n), f i`.
 
