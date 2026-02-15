@@ -72,6 +72,38 @@ lemma apSumOffset_eq_sum_Icc_length (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Finset.Ico_add_one_right_eq_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     h.symm
 
+/-- Normal form: rewrite the “paper notation” length-indexed interval sum
+`∑ i ∈ Icc 1 n, f ((m+i)*d)` back to `apSumOffset`.
+
+This is the inverse orientation of `apSumOffset_eq_sum_Icc_length`.
+-/
+lemma sum_Icc_eq_apSumOffset_length (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Translation-friendly variant of `apSumOffset_eq_sum_Icc_length` using `d * (m+i)`.
+
+This avoids commuting multiplication under binders when your surrounding development already uses
+`d * i` summand shapes.
+-/
+lemma apSumOffset_eq_sum_Icc_length_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  classical
+  refine (apSumOffset_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_comm]
+
+/-- Normal form: rewrite the “paper notation” length-indexed interval sum
+`∑ i ∈ Icc 1 n, f (d*(m+i))` back to `apSumOffset`.
+
+This is the inverse orientation of `apSumOffset_eq_sum_Icc_length_mul_left`.
+-/
+lemma sum_Icc_eq_apSumOffset_length_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Special case: step size `d = 1` turns `apSumOffset` into the plain interval sum
 `∑ i ∈ Icc (m+1) (m+n), f i`.
 

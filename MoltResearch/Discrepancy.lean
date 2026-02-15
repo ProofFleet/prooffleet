@@ -72,6 +72,10 @@ Arithmetic progression sums:
   For paper notation, rewrite to an interval sum via `apSumOffset_eq_sum_Icc` (or, if `d = 1`,
   via `apSumOffset_one_d`). If you want the translation-friendly `d * i` binder form, use
   `apSumOffset_eq_sum_Icc_mul_left`.
+  If you prefer a *fixed* lower endpoint, rewrite to the length-indexed interval sum
+  `(Finset.Icc 1 n).sum (fun i => f ((m + i) * d))` via `apSumOffset_eq_sum_Icc_length` (or use
+  the `d * (m+i)` summand convention via `apSumOffset_eq_sum_Icc_length_mul_left`). Normalize back
+  to the nucleus API via `sum_Icc_eq_apSumOffset_length` / `sum_Icc_eq_apSumOffset_length_mul_left`.
   Split such interval sums into consecutive blocks via `sum_Icc_add_length`; for the normal-form
   difference of offset sums, use `apSumOffset_sub_eq_sum_Icc`. If your surface statement uses a
   “variable” upper endpoint `n` (with a hypothesis `m ≤ n`), normalize using
@@ -875,6 +879,20 @@ example :
 example :
     apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
   simpa using apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- Fixed-lower-endpoint (“length-indexed”) paper notation.
+example : apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  simpa using apSumOffset_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)
+
+example : (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset_length (f := f) (d := d) (m := m) (n := n)
+
+-- Translation-friendly `d * (m+i)` variant.
+example : apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  simpa using apSumOffset_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)
+
+example : (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset_length_mul_left (f := f) (d := d) (m := m) (n := n)
 
 example : apSumOffset f 1 m n = (Finset.Icc (m + 1) (m + n)).sum f := by
   simpa using apSumOffset_one_d (f := f) (m := m) (n := n)
