@@ -522,6 +522,21 @@ example (hmn : m ≤ n) :
   simpa using apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (m := m) (n := n)
     hmn
 
+-- Paper-notation fixed-length tail → nucleus offset normal form: rewrite
+-- `∑ i ∈ Icc (m+1) (m+n), f (i*d + a)` directly to an `apSumOffset` on the shifted sequence.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    sum_Icc_eq_apSumOffset_shift_add_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Mul-left + translation-friendly variant: `f (d*i + a)`.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Paper-notation inequality normal form: `Icc (m+1) n` tails for affine sums.
 example (hmn : m ≤ n) :
     (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) = apSumFrom f (a + m * d) d (n - m) := by
