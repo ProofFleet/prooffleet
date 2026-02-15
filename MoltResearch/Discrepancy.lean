@@ -278,7 +278,19 @@ example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) 
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m =
       apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+  -- Two-step “difference → affine tail → offset on a shifted sequence” normal form.
+  --
+  -- This is a regression test for the Track B glue lemma
+  -- `apSumFrom_sub_eq_apSumOffset_shift_add`: even if that lemma gets refactored,
+  -- we want this common rewrite pipeline to keep working from the stable import
+  -- surface `import MoltResearch.Discrepancy`.
+  calc
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+      simpa using
+        apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSumOffset (fun k => f (k + a)) d m n := by
+      simpa using
+        apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
 -- Degenerate constant APs.
 example : apSum f 0 n = n • f 0 := by
