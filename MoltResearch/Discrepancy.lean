@@ -273,6 +273,13 @@ example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
   simpa using apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- If you prefer the canonical offset-sum normal form on the shifted sequence `k ↦ f (k + a)`,
+-- rewrite the same difference directly to `apSumOffset`.
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Degenerate constant APs.
 example : apSum f 0 n = n • f 0 := by
   simp
