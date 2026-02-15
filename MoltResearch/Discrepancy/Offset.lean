@@ -403,6 +403,32 @@ lemma apSum_sub_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
   intro i hi
   simp [Nat.mul_comm]
 
+/-- Rewrite the normal-form difference `apSum f d (m+n) - apSum f d m` as a length-indexed
+interval sum over `Icc 1 n`.
+
+Concretely, this is the normal form
+`∑ i ∈ Icc 1 n, f ((m+i)*d)`.
+
+This is sometimes convenient when you want a *fixed* lower endpoint (1) and you prefer to keep the
+offset bookkeeping inside the summand, analogous to `apSumOffset_eq_sum_Icc_length`.
+-/
+lemma apSum_sub_eq_sum_Icc_length (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m =
+      (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  -- Rewrite subtraction to an offset sum, then to a length-indexed interval sum.
+  simp [apSum_sub_eq_apSumOffset, apSumOffset_eq_sum_Icc_length]
+
+/-- Translation-friendly variant of `apSum_sub_eq_sum_Icc_length` using `d * (m+i)` (step size on
+the left). -/
+lemma apSum_sub_eq_sum_Icc_length_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m =
+      (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  classical
+  refine (apSum_sub_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_comm]
+
 /-- Translation-friendly variant of `apSum_sub_apSum_eq_sum_Icc` using `d * i` (step size on the
 left).
 

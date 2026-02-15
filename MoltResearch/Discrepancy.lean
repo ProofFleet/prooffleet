@@ -74,8 +74,11 @@ Arithmetic progression sums:
   `apSumOffset_eq_sum_Icc_mul_left`.
   If you prefer a *fixed* lower endpoint, rewrite to the length-indexed interval sum
   `(Finset.Icc 1 n).sum (fun i => f ((m + i) * d))` via `apSumOffset_eq_sum_Icc_length` (or use
-  the `d * (m+i)` summand convention via `apSumOffset_eq_sum_Icc_length_mul_left`). Normalize back
-  to the nucleus API via `sum_Icc_eq_apSumOffset_length` / `sum_Icc_eq_apSumOffset_length_mul_left`.
+  the `d * (m+i)` summand convention via `apSumOffset_eq_sum_Icc_length_mul_left`).
+  If you start from the canonical difference normal form `apSum f d (m+n) - apSum f d m`, rewrite
+  directly to this fixed-lower-endpoint paper form via `apSum_sub_eq_sum_Icc_length`
+  (or `apSum_sub_eq_sum_Icc_length_mul_left`).
+  Normalize back to the nucleus API via `sum_Icc_eq_apSumOffset_length` / `sum_Icc_eq_apSumOffset_length_mul_left`.
   Split such interval sums into consecutive blocks via `sum_Icc_add_length`; for the normal-form
   difference of offset sums, use `apSumOffset_sub_eq_sum_Icc`. If your surface statement uses a
   “variable” upper endpoint `n` (with a hypothesis `m ≤ n`), normalize using
