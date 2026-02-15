@@ -286,7 +286,11 @@ example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n :
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
--- Switching between `a + k` and `k + a` inside the shifted-sequence view of `apSumOffset`.
+-- Same normal form, but with the affine start written as `m*d + a`.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Switching between `a + k` and `k + a` inside the shifted-sequence view of `apSumOffset`. 
 example : apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n)
 
