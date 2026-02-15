@@ -15,6 +15,20 @@ lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [add_comm] using h0
   exact eq_sub_of_add_eq h
 
+/-- Prefix + tail = total, with the tail written as `apSumOffset`. -/
+lemma apSumOffset_add_apSum_eq (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n + apSum f d m = apSum f d (m + n) := by
+  -- This is just `apSum_add_length`, in a convenient orientation.
+  simpa [add_comm] using (apSum_add_length (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Prefix + tail = total, with the prefix on the left.
+
+This is the commuted variant of `apSumOffset_add_apSum_eq`.
+-/
+lemma apSum_add_apSumOffset_eq (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d m + apSumOffset f d m n = apSum f d (m + n) := by
+  simpa [add_comm] using apSumOffset_add_apSum_eq (f := f) (d := d) (m := m) (n := n)
+
 /-- Rewrite `apSumOffset` as the familiar interval sum `∑ i ∈ Icc (m+1) (m+n), f (i*d)`.
 
 This is intended for surface statements: keep the nucleus API in terms of `apSumOffset`, and
