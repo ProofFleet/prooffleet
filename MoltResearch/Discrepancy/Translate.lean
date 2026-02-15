@@ -77,6 +77,20 @@ lemma apSumFrom_shift_comm (f : ℕ → ℤ) (a k d n : ℕ) :
   intro i hi
   simp [Nat.add_comm]
 
+/-- Commute the argument order in a translated function under `apSumOffset`.
+
+This is a tiny normalization lemma: it avoids a separate `funext` rewrite when you want to switch
+between the binder conventions `fun x => f (x + k)` and `fun x => f (k + x)`.
+
+We do *not* mark this as `[simp]`: it is intended as an explicit rewrite step.
+-/
+lemma apSumOffset_map_add_comm (f : ℕ → ℤ) (k d m n : ℕ) :
+    apSumOffset (fun x => f (x + k)) d m n = apSumOffset (fun x => f (k + x)) d m n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+
 -- (moved to `Discrepancy/Affine.lean`)
 
 lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
