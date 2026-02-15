@@ -105,6 +105,41 @@ lemma natAbs_sum_Icc_mul_offset_le_mul (f : ℕ → ℤ) (B : ℕ)
   simpa [apSumOffset_eq_sum_Icc] using
     (natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n))
 
+/-!
+### Fixed-lower-endpoint tail bounds
+
+The normal forms in `Offset.lean` often rewrite tails into a fixed-lower-endpoint interval sum
+`∑ i ∈ Icc 1 n, ...` with the offset carried in the summand (see
+`apSumOffset_eq_sum_Icc_length` and its variants).
+
+The lemmas below are thin wrappers around `natAbs_apSumOffset_le_mul`, aligned with those normal
+forms.
+-/
+
+lemma natAbs_sum_Icc_length_mul_offset_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m n : ℕ) :
+    Int.natAbs ((Finset.Icc 1 n).sum (fun i => f ((m + i) * d))) ≤ n * B := by
+  simpa [apSumOffset_eq_sum_Icc_length] using
+    (natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n))
+
+lemma natAbs_sum_Icc_length_mul_left_offset_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m n : ℕ) :
+    Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (d * (m + i)))) ≤ n * B := by
+  simpa [apSumOffset_eq_sum_Icc_length_mul_left] using
+    (natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n))
+
+lemma natAbs_sum_Icc_length_add_offset_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m n : ℕ) :
+    Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d + m * d))) ≤ n * B := by
+  simpa [apSumOffset_eq_sum_Icc_length_add] using
+    (natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n))
+
+lemma natAbs_sum_Icc_length_mul_left_add_offset_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m n : ℕ) :
+    Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (d * i + d * m))) ≤ n * B := by
+  simpa [apSumOffset_eq_sum_Icc_length_mul_left_add] using
+    (natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n))
+
 lemma natAbs_sum_Icc_add_mul_le_mul (f : ℕ → ℤ) (B : ℕ)
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (a d n : ℕ) :
     Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) ≤ n * B := by
