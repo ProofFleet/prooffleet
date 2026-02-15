@@ -655,6 +655,13 @@ example : apSumOffset f d m n = apSumOffset (fun k => f (k * d + m * d)) 1 0 n :
   simpa using
     apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n)
 
+-- Multiplication-on-the-left, translation-friendly step-one normal form that stays inside the
+-- offset nucleus API (`m = 0`).
+example : apSumOffset f d m n = apSumOffset (fun k => f (d * k + d * m)) 1 0 n := by
+  simpa using
+    apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f := f) (d := d) (m := m)
+      (n := n)
+
 example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
   simpa using apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n)
 

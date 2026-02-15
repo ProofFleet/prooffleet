@@ -494,6 +494,30 @@ lemma apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (d m
       simpa using
         (apSumOffset_zero_m (f := fun k => f (k * d + m * d)) (d := 1) (n := n)).symm
 
+/-- Multiplication-on-the-left, translation-friendly variant of
+`apSumOffset_eq_apSumOffset_step_one_zero_m_add_left`.
+
+This rewrites the summand index from `k * d + m * d` into `d * k + d * m`.
+
+This can be convenient when you want to share summand shapes with the `d * i` paper notation
+(`apSumOffset_eq_sum_Icc_mul_left`) without commuting multiplication under binders.
+-/
+lemma apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (d * k + d * m)) 1 0 n := by
+  have h :=
+    apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n)
+  have hfun : (fun k => f (k * d + m * d)) = (fun k => f (d * k + d * m)) := by
+    funext k
+    simp [Nat.mul_comm]
+  simpa [hfun] using h
+
+/-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left`. -/
+lemma apSumOffset_step_one_zero_m_mul_left_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (d * k + d * m)) 1 0 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f := f) (d := d) (m := m)
+      (n := n)).symm
+
 /-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one_zero_m`. -/
 lemma apSumOffset_step_one_zero_m_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f ((m + k) * d)) 1 0 n = apSumOffset f d m n := by
