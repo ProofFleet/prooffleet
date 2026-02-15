@@ -151,6 +151,28 @@ lemma natAbs_sum_Icc_add_mul_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
   simpa [sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using
     h
 
+/-- Bound a difference of two affine tail sums over the same start `a + m*d` when `n₁ ≤ n₂`.
+
+This is aligned with the canonical tail normal form
+`apSumFrom f (a + m*d) d n₂ - apSumFrom f (a + m*d) d n₁ =
+  apSumFrom f (a + (m + n₁) * d) d (n₂ - n₁)`.
+-/
+lemma natAbs_apSumFrom_tail_sub_apSumFrom_tail_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (a d m : ℕ) {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+    Int.natAbs (apSumFrom f (a + m * d) d n₂ - apSumFrom f (a + m * d) d n₁) ≤ (n₂ - n₁) * B := by
+  have hn2 : n₁ + (n₂ - n₁) = n₂ := Nat.add_sub_of_le hn
+  have hEq :
+      apSumFrom f (a + m * d) d n₂ - apSumFrom f (a + m * d) d n₁ =
+        apSumFrom f (a + (m + n₁) * d) d (n₂ - n₁) := by
+    simpa [hn2] using
+      (apSumFrom_tail_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n1 := n₁)
+        (n2 := n₂ - n₁))
+  have hTail :
+      Int.natAbs (apSumFrom f (a + (m + n₁) * d) d (n₂ - n₁)) ≤ (n₂ - n₁) * B :=
+    natAbs_apSumFrom_le_mul (f := f) (B := B) (hB := hB) (a := a + (m + n₁) * d) (d := d)
+      (n := n₂ - n₁)
+  simpa [hEq] using hTail
+
 /-- Bound a difference of two offset sums over the same start `m` when `n₁ ≤ n₂`.
 
 This is the `B`-bounded analogue of `IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le`.
