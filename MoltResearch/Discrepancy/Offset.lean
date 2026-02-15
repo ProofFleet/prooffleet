@@ -104,6 +104,40 @@ lemma sum_Icc_eq_apSumOffset_length_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
   simpa using
     (apSumOffset_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Normal form: relate the paper-notation tail interval sum over `Icc (m+1) (m+n)` to the
+length-indexed `Icc 1 n` version.
+
+Concretely, this rewrites
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`
+into
+`∑ i ∈ Icc 1 n, f ((m+i)*d)`.
+
+This is just `(apSumOffset_eq_sum_Icc …).symm` followed by `apSumOffset_eq_sum_Icc_length`.
+-/
+lemma sum_Icc_eq_sum_Icc_length (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+      (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  classical
+  calc
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))
+        = apSumOffset f d m n := by
+            simpa using
+              (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
+    _ = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+            simpa using (apSumOffset_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n))
+
+/-- Translation-friendly variant of `sum_Icc_eq_sum_Icc_length` using `d * i` and `d * (m+i)`.
+
+This avoids commuting multiplication under binders.
+-/
+lemma sum_Icc_eq_sum_Icc_length_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) =
+      (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  classical
+  -- Reduce to the `i * d` statement via commutativity.
+  simpa [Nat.mul_comm] using
+    (sum_Icc_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n))
+
 /-- Special case: step size `d = 1` turns `apSumOffset` into the plain interval sum
 `∑ i ∈ Icc (m+1) (m+n), f i`.
 

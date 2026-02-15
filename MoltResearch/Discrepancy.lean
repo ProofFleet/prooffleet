@@ -288,6 +288,18 @@ example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
 example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
   simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
 
+-- Paper normal form: rewrite `Icc (m+1) (m+n)` tails to the fixed-lower-endpoint `Icc 1 n` form.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+      (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  simpa using sum_Icc_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)
+
+-- Translation-friendly `d * i` variant.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) =
+      (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  simpa using sum_Icc_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)
+
 -- Offset sums on a shifted sequence: return to the affine-tail nucleus API.
 example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
   simpa using apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m)
