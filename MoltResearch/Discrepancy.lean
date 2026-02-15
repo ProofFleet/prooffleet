@@ -387,6 +387,23 @@ example :
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Split affine tails by length, with the second block expressed as an `apSumOffset` on the
+-- shifted sequence `k ↦ f (k + a)`.
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) =
+      apSumFrom f (a + m * d) d n₁ + apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_add_length_eq_add_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
+-- Same normal form, but keep the shifted sequence in the `a + k` shape.
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) =
+      apSumFrom f (a + m * d) d n₁ + apSumOffset (fun k => f (a + k)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_add_length_eq_add_apSumOffset_shift (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
 -- Further normalize affine tails by absorbing `m` into the translation constant (so the offset is `0`).
 example :
     apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
