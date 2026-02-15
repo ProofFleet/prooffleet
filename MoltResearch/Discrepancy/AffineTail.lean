@@ -661,6 +661,48 @@ lemma apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail_start_add_left (f : ℕ �
     (apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
       (n1 := n1) (n2 := n2))
 
+/-- Normal form: eliminate the explicit offset parameter in a tail-of-tail affine difference.
+
+Concretely, the tail difference
+
+`apSumFrom f (a + m*d) d (n1+n2) - apSumFrom f (a + m*d) d n1`
+
+can be rewritten as an `apSumOffset` tail with `m = 0` on the further-shifted sequence
+`k ↦ f (k + (a + (m+n1)*d))`.
+
+This is `apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail` followed by
+`apSumOffset_shift_add_eq_apSumOffset_shift_add` (absorbing the offset into the translation).
+-/
+lemma apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (a + m * d) d (n1 + n2) - apSumFrom f (a + m * d) d n1 =
+      apSumOffset (fun k => f (k + (a + (m + n1) * d))) d 0 n2 := by
+  calc
+    apSumFrom f (a + m * d) d (n1 + n2) - apSumFrom f (a + m * d) d n1 =
+        apSumOffset (fun k => f (k + a)) d (m + n1) n2 := by
+          simpa using
+            (apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+              (n1 := n1) (n2 := n2))
+    _ = apSumOffset (fun k => f (k + (a + (m + n1) * d))) d 0 n2 := by
+          simpa using
+            (apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d)
+              (m := m + n1) (n := n2))
+
+/-- Convenience wrapper around `apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail` with the
+affine start written as `m*d + a`.
+
+This avoids commuting `a + m*d` at the call site.
+-/
+lemma apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail_start_add_left (f : ℕ → ℤ)
+    (a d m n1 n2 : ℕ) :
+    apSumFrom f (m * d + a) d (n1 + n2) - apSumFrom f (m * d + a) d n1 =
+      apSumOffset (fun k => f (k + ((m + n1) * d + a))) d 0 n2 := by
+  have hfun : (fun k => f (k + (a + (m + n1) * d))) = (fun k => f (k + ((m + n1) * d + a))) := by
+    funext k
+    simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, hfun] using
+    (apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n1) (n2 := n2))
+
 /-- Normal form: rewrite the canonical affine difference `(m+n) - m` as an offset AP sum on the
 shifted sequence `k ↦ f (a + k)`.
 

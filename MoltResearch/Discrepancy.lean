@@ -962,6 +962,14 @@ example :
     apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
       (n1 := n₁) (n2 := n₂)
 
+-- Further normalize tail-of-tail differences by absorbing the explicit offset into the translation.
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + (a + (m + n₁) * d))) d 0 n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
       (∀ C : ℕ,
