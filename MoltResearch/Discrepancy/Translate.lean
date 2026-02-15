@@ -103,6 +103,11 @@ lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
     _ = apSumFrom f (m * d + k) d n := by
             simpa using (apSumFrom_map_add (f := f) (k := k) (a := m * d) (d := d) (n := n))
 
+/-- Inverse orientation of `apSumOffset_map_add`. -/
+lemma apSumFrom_start_add_left_eq_apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumFrom f (m * d + k) d n = apSumOffset (fun x => f (x + k)) d m n := by
+  simpa using (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+
 /-- Variant of `apSumOffset_map_add` with the affine start written in the `k + m*d` form.
 
 This is a small normal-form lemma: it avoids a separate rewrite step commuting `m*d + k` into
@@ -123,6 +128,17 @@ lemma apSumOffset_map_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
   -- Reduce to `apSumOffset_map_add` and then normalize `m*d + k` ↔ `k + m*d`.
   simpa [hfun, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
     (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumOffset_map_add_start_add_left`. -/
+lemma apSumFrom_start_add_left_eq_apSumOffset_map_add_start_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumFrom f (k + m * d) d n = apSumOffset (fun x => f (x + k)) d m n := by
+  simpa using
+    (apSumOffset_map_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_map_add_left`. -/
+lemma apSumFrom_start_add_left_eq_apSumOffset_map_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumFrom f (k + m * d) d n = apSumOffset (fun x => f (k + x)) d m n := by
+  simpa using (apSumOffset_map_add_left (f := f) (k := k) (d := d) (m := m) (n := n)).symm
 
 /-- Compose the “shift-add” translation `k ↦ k + a` with the offset-to-shift normal form.
 

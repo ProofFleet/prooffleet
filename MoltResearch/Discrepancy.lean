@@ -590,6 +590,12 @@ example : apSum (fun x => f (a + x)) d n = apSumFrom f a d n := by
 example : apSumOffset (fun x => f (x + a)) d m n = apSumFrom f (m * d + a) d n := by
   simpa using apSumOffset_map_add (f := f) (k := a) (d := d) (m := m) (n := n)
 
+-- Inverse orientation: normalize an affine tail with start `m*d + a` back into an offset sum
+-- on a shifted sequence.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun x => f (x + a)) d m n := by
+  simpa using apSumFrom_start_add_left_eq_apSumOffset_map_add (f := f) (k := a) (d := d) (m := m)
+    (n := n)
+
 example : apSumOffset (fun x => f (a + x)) d m n = apSumFrom f (a + m * d) d n := by
   simpa using apSumOffset_map_add_left (f := f) (k := a) (d := d) (m := m) (n := n)
 
