@@ -275,6 +275,26 @@ lemma sum_Icc_eq_sum_Icc_length_mul_left_add (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Nat.mul_comm] using
     (sum_Icc_eq_sum_Icc_length_add (f := f) (d := d) (m := m) (n := n))
 
+/-- Mul-left + `const + x` variant of `sum_Icc_eq_sum_Icc_length_mul_left_add`.
+
+This is convenient when downstream goals prefer the translation-friendly summand shape
+`d * m + d * i`.
+-/
+lemma sum_Icc_eq_sum_Icc_length_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) =
+      (Finset.Icc 1 n).sum (fun i => f (d * m + d * i)) := by
+  classical
+  calc
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))
+        = (Finset.Icc 1 n).sum (fun i => f (d * i + d * m)) := by
+            simpa using
+              (sum_Icc_eq_sum_Icc_length_mul_left_add (f := f) (d := d) (m := m) (n := n))
+    _ = (Finset.Icc 1 n).sum (fun i => f (d * m + d * i)) := by
+            refine Finset.sum_congr rfl ?_
+            intro i hi
+            -- Commute the translation constant past the variable term.
+            simp [Nat.add_comm]
+
 /-- Special case: step size `d = 1` turns `apSumOffset` into the plain interval sum
 `∑ i ∈ Icc (m+1) (m+n), f i`.
 
