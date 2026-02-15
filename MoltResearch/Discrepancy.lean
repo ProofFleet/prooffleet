@@ -613,6 +613,15 @@ example : apSumOffset (fun k => f (k * d)) 1 m n = apSumOffset f d m n := by
 example : apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
   simpa using apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)
 
+-- Multiplication-on-the-left variant (avoids commuting `(_ * d)` under binders).
+example : apSumOffset f d m n = apSum (fun k => f (d * (m + k))) 1 n := by
+  simpa using apSumOffset_eq_apSum_step_one_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- Multiplication-on-the-left + translation-friendly variant: `k ↦ f (d*k + d*m)`.
+example : apSumOffset f d m n = apSum (fun k => f (d * k + d * m)) 1 n := by
+  simpa using
+    apSumOffset_eq_apSum_step_one_mul_left_add_left (f := f) (d := d) (m := m) (n := n)
+
 example : apSum (fun k => f ((m + k) * d)) 1 n = apSumOffset f d m n := by
   simpa using apSum_step_one_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 

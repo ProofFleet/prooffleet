@@ -366,6 +366,15 @@ lemma apSumOffset_eq_apSum_step_one (f : ℕ → ℤ) (d m n : ℕ) :
   -- `simp` reduces `((i+1)*1)` and normalizes `(m + (i+1))`.
   simp [Nat.add_assoc]
 
+/-- Multiplication-on-the-left variant of `apSumOffset_eq_apSum_step_one`.
+
+This rewrites the summand index from `((m + k) * d)` into `d * (m + k)`.
+-/
+lemma apSumOffset_eq_apSum_step_one_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (d * (m + k))) 1 n := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n))
+
 /-- Translation-friendly variant of `apSumOffset_eq_apSum_step_one`.
 
 This rewrites the summand index from `((m + k) * d)` into the “constant on the right” form
@@ -380,6 +389,15 @@ lemma apSumOffset_eq_apSum_step_one_add_left (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Nat.add_mul, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
     (apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n))
 
+/-- Multiplication-on-the-left, translation-friendly variant of `apSumOffset_eq_apSum_step_one_add_left`.
+
+This rewrites the summand index from `k * d + m * d` into `d * k + d * m`.
+-/
+lemma apSumOffset_eq_apSum_step_one_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (d * k + d * m)) 1 n := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n))
+
 /-- Inverse orientation of `apSumOffset_eq_apSum_step_one`.
 
 We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
@@ -387,6 +405,15 @@ We do *not* mark this as `[simp]`: our normal forms prefer the step-one presenta
 lemma apSum_step_one_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSum (fun k => f ((m + k) * d)) 1 n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_eq_apSum_step_one_mul_left`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+-/
+lemma apSum_step_one_mul_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (d * (m + k))) 1 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSum_step_one_mul_left (f := f) (d := d) (m := m) (n := n)).symm
 
 /-- Inverse orientation of `apSumOffset_eq_apSum_step_one_add_left`.
 
@@ -396,6 +423,15 @@ lemma apSum_step_one_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSum (fun k => f (k * d + m * d)) 1 n = apSumOffset f d m n := by
   simpa using
     (apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_eq_apSum_step_one_mul_left_add_left`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+-/
+lemma apSum_step_one_mul_left_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (d * k + d * m)) 1 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSum_step_one_mul_left_add_left (f := f) (d := d) (m := m) (n := n)).symm
 
 /-- Normal form: rewrite an offset AP sum to a step-one offset sum with zero offset by bundling the
 offset `m` and step size `d` into the summand.
