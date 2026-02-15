@@ -257,6 +257,22 @@ example : (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
 example : apSum f 1 n = (Finset.Icc 1 n).sum f := by
   simpa using apSum_one_d (f := f) (n := n)
 
+-- Affine tails as offset sums (both summand conventions).
+
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Differences → tails (canonical normal form).
+
+example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+  simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+  simpa using apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Degenerate constant APs.
 example : apSum f 0 n = n • f 0 := by
   simp
