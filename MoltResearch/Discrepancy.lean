@@ -286,6 +286,17 @@ example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n :
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- “Push the translation into the function” normal forms.
+--
+-- These are mathematically the same as the `…_shift` / `…_shift_add` family, but the `map_add`
+-- naming makes it easier to spot (in a proof script) that the translation has been packaged into
+-- the function itself.
+example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n)
+
 -- Differences → tails (canonical normal form).
 
 example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
