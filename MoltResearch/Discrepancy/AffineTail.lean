@@ -1063,6 +1063,44 @@ lemma sum_Icc_split_affine_of_le_add (f : ℕ → ℤ) (a d : ℕ) {m k n : ℕ}
   simpa [hsummand] using h
 
 
+/-- Mul-left variant of `sum_Icc_split_affine_of_le`, with the summand written as `f (a + d*i)`.
+
+This avoids commuting multiplication under binders when downstream normal forms use the `d * i`
+convention.
+-/
+lemma sum_Icc_split_affine_of_le_mul_left (f : ℕ → ℤ) (a d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (a + d * i)) +
+        (Finset.Icc (k + 1) n).sum (fun i => f (a + d * i)) := by
+  have h :=
+    sum_Icc_split_affine_of_le (f := f) (a := a) (d := d) (m := m) (k := k) (n := n)
+      (hmk := hmk) (hkn := hkn)
+  have hsummand : (fun i => f (a + i * d)) = (fun i => f (a + d * i)) := by
+    funext i
+    simpa [Nat.mul_comm] using congrArg (fun t => f (a + t)) (Nat.mul_comm i d)
+  simpa [hsummand] using h
+
+/-- Mul-left + translation-friendly variant of `sum_Icc_split_affine_of_le_add`, with the summand
+written as `f (d*i + a)`.
+
+This avoids commuting multiplication under binders when downstream normal forms use the `d * i`
+convention.
+-/
+lemma sum_Icc_split_affine_of_le_mul_left_add (f : ℕ → ℤ) (a d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (d * i + a)) +
+        (Finset.Icc (k + 1) n).sum (fun i => f (d * i + a)) := by
+  have h :=
+    sum_Icc_split_affine_of_le_add (f := f) (a := a) (d := d) (m := m) (k := k) (n := n)
+      (hmk := hmk) (hkn := hkn)
+  have hsummand : (fun i => f (i * d + a)) = (fun i => f (d * i + a)) := by
+    funext i
+    simpa [Nat.mul_comm] using congrArg (fun t => f (t + a)) (Nat.mul_comm i d)
+  simpa [hsummand] using h
+
+
 /-- Normal form: when `m ≤ n`, rewrite the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) n, f (a + i*d)` to the affine tail sum `apSumFrom f (a + m*d) d (n - m)`.
 
