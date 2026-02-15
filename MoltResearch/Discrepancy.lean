@@ -1379,6 +1379,24 @@ example (c : ℤ) (hc : c ≠ 0) (C : ℕ) :
   intro h
   exact HasDiscrepancyAtLeast.mul_left_of_ne_zero (f := f) (C := C) c hc h
 
+
+
+-- A few regression-test examples for the affine/offset “glue” normal forms.
+-- These are intentionally small: they protect the stable import surface
+-- `import MoltResearch.Discrepancy` against accidental breakage.
+
+variable (a d m n : ℕ)
+
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset (fun k => f (k + (m + n₁) * d)) d 0 n₂ := by
+  simpa using apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 end NormalFormExamples
 
 end MoltResearch
