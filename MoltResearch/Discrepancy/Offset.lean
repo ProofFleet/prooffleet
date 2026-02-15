@@ -181,6 +181,50 @@ lemma sum_Icc_sub_sum_Icc_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m n₁ n₂ :
   simpa [Nat.mul_comm] using
     (sum_Icc_sub_sum_Icc_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Normal form (paper → nucleus, difference → tail): subtracting the first block from a longer
+block yields the corresponding `apSumOffset` tail.
+
+This is a convenience wrapper around `sum_Icc_sub_sum_Icc_eq_sum_Icc` followed by
+`sum_Icc_eq_apSumOffset`.
+-/
+lemma sum_Icc_sub_sum_Icc_eq_apSumOffset (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) =
+      apSumOffset f d (m + n₁) n₂ := by
+  classical
+  calc
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) =
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+          simpa using
+            (sum_Icc_sub_sum_Icc_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+    _ = apSumOffset f d (m + n₁) n₂ := by
+          -- Normalize to the canonical `Icc ((m+n₁)+1) ((m+n₁)+n₂)` endpoint shape.
+          simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+            (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m + n₁) (n := n₂))
+
+/-- Translation-friendly variant of `sum_Icc_sub_sum_Icc_eq_apSumOffset` using `d * i` (step size on
+the left).
+
+This is a convenience wrapper around `sum_Icc_sub_sum_Icc_eq_sum_Icc_mul_left` followed by
+`sum_Icc_eq_apSumOffset_mul_left`.
+-/
+lemma sum_Icc_sub_sum_Icc_eq_apSumOffset_mul_left (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) =
+      apSumOffset f d (m + n₁) n₂ := by
+  classical
+  calc
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) =
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+          simpa using
+            (sum_Icc_sub_sum_Icc_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n₁ := n₁)
+              (n₂ := n₂))
+    _ = apSumOffset f d (m + n₁) n₂ := by
+          simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+            (sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m + n₁) (n := n₂))
+
 /-- Split the interval sum `∑ i ∈ Icc (m+1) n, f (i*d)` at an intermediate index `k`, assuming
 `m ≤ k ≤ n`.
 

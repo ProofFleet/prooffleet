@@ -707,6 +707,22 @@ example :
   simpa using
     sum_Icc_sub_sum_Icc_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- Paper difference → nucleus normal form: convert directly to an `apSumOffset` tail.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) =
+      apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    sum_Icc_sub_sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) =
+      apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    sum_Icc_sub_sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 -- Variable upper endpoints often appear in surface statements. When `m ≤ k ≤ n`, split the
 -- interval sum at `k`. 
 example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
