@@ -790,6 +790,31 @@ lemma sum_Icc_eq_apSumFrom_tail_of_le_add (f : ℕ → ℤ) (a d : ℕ) {m n : �
   simpa [Nat.add_sub_of_le hmn] using
     (sum_Icc_eq_apSumFrom_tail_add (f := f) (a := a) (d := d) (m := m) (n := n - m))
 
+/-- Mul-left variant of `sum_Icc_eq_apSumFrom_tail_of_le`, with the summand written as
+`f (a + d*i)`.
+
+This avoids commuting multiplication under binders when working in a `d * i` convention.
+-/
+lemma sum_Icc_eq_apSumFrom_tail_of_le_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      apSumFrom f (a + m * d) d (n - m) := by
+  -- Convert to the fixed-length `(m + (n - m))` form, then use the fixed-length mul-left lemma.
+  simpa [Nat.add_sub_of_le hmn] using
+    (sum_Icc_eq_apSumFrom_tail_mul_left (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
+/-- Mul-left + translation-friendly variant of `sum_Icc_eq_apSumFrom_tail_of_le_add`, with the
+summand written as `f (d*i + a)`.
+
+This avoids commuting multiplication under binders when working in a `d * i` convention.
+-/
+lemma sum_Icc_eq_apSumFrom_tail_of_le_mul_left_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) =
+      apSumFrom f (a + m * d) d (n - m) := by
+  -- Convert to the fixed-length `(m + (n - m))` form, then use the fixed-length mul-left lemma.
+  simpa [Nat.add_sub_of_le hmn] using
+    (sum_Icc_eq_apSumFrom_tail_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
 /-- Split the “paper notation” affine interval sum
 `∑ i ∈ Icc (m+1) (m+(n₁+n₂)), f (a + i*d)` into the first `n₁` terms and the next `n₂` terms.
 
@@ -935,6 +960,28 @@ lemma apSumFrom_tail_eq_sum_Icc_of_le_add (f : ℕ → ℤ) (a d : ℕ) {m n : �
   -- Convert to the fixed-length `(m + (n - m))` form, then use the fixed-length add-left lemma.
   simpa [Nat.add_sub_of_le hmn] using
     (apSumFrom_tail_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
+/-- Mul-left variant of `apSumFrom_tail_eq_sum_Icc_of_le`, with the summand written as `f (a + d*i)`.
+
+This avoids commuting multiplication under binders when working in a `d * i` convention.
+-/
+lemma apSumFrom_tail_eq_sum_Icc_of_le_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f (a + m * d) d (n - m) =
+      (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) := by
+  simpa [Nat.add_sub_of_le hmn] using
+    (apSumFrom_tail_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
+/-- Mul-left + translation-friendly variant of `apSumFrom_tail_eq_sum_Icc_of_le_add`, with the
+summand written as `f (d*i + a)`.
+
+This avoids commuting multiplication under binders when working in a `d * i` convention.
+-/
+lemma apSumFrom_tail_eq_sum_Icc_of_le_mul_left_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f (a + m * d) d (n - m) =
+      (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) := by
+  simpa [Nat.add_sub_of_le hmn] using
+    (apSumFrom_tail_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n - m))
 
 /-- Difference of two affine AP partial sums as an offset AP sum on the shifted sequence
 `k ↦ f (a + k)` when `m ≤ n`.

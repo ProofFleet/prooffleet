@@ -472,6 +472,17 @@ example (hmn : m ≤ n) :
   simpa using
     sum_Icc_eq_apSumFrom_tail_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn
 
+-- Mul-left variants: `d * i` binder form.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumFrom_tail_of_le_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumFrom_tail_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
 example :
     apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
       apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
