@@ -704,6 +704,20 @@ lemma apSumOffset_sub_eq_sum_Icc (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
             simpa [Nat.add_assoc] using
               (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m + n₁) (n := n₂))
 
+/-- Translation-friendly variant of `apSumOffset_sub_eq_sum_Icc` using `d * i` (step size on the left).
+
+This avoids commuting multiplication under binders when your surrounding development already uses
+`d * i` summand shapes.
+-/
+lemma apSumOffset_sub_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  classical
+  refine (apSumOffset_sub_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_comm]
+
 /-- Difference of two offset sums over the same start `m` as a tail sum when `n₁ ≤ n₂`. -/
 lemma apSumOffset_sub_apSumOffset_eq_apSumOffset (f : ℕ → ℤ) (d m : ℕ) {n₁ n₂ : ℕ}
     (hn : n₁ ≤ n₂) :
@@ -726,6 +740,24 @@ lemma apSumOffset_sub_apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m : ℕ) {n₁
       (hn := hn)
   -- Rewrite the tail to an interval sum and simplify `m + n₁ + (n₂ - n₁) = m + n₂`.
   simpa [apSumOffset_eq_sum_Icc, Nat.add_sub_of_le hn, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hEq
+
+/-- Translation-friendly variant of `apSumOffset_sub_apSumOffset_eq_sum_Icc` using `d * i` (step size
+on the left).
+
+This avoids commuting multiplication under binders when your surrounding development already uses
+`d * i` summand shapes.
+-/
+lemma apSumOffset_sub_apSumOffset_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m : ℕ) {n₁ n₂ : ℕ}
+    (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      (Finset.Icc (m + n₁ + 1) (m + n₂)).sum (fun i => f (d * i)) := by
+  classical
+  refine
+    (apSumOffset_sub_apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+        (hn := hn)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_comm]
 
 /-- Sign-sequence bound on the difference of two offset sums when `n₁ ≤ n₂`. -/
 lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f)

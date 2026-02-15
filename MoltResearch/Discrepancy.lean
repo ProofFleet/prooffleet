@@ -735,6 +735,20 @@ example (hn : n₁ ≤ n₂) :
     apSumOffset_sub_apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
       (hn := hn)
 
+-- Translation-friendly `d * i` variants (avoid commuting multiplication under binders).
+example :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  simpa using
+    apSumOffset_sub_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+example (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      (Finset.Icc (m + n₁ + 1) (m + n₂)).sum (fun i => f (d * i)) := by
+  simpa using
+    apSumOffset_sub_apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn)
+
 example :
     apSum f d (m + n) - apSum f d m =
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
