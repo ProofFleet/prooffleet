@@ -1068,6 +1068,23 @@ lemma apSumOffset_shift_add_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f (k + m * d)) d 0 n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Mul-left variant of `apSumOffset_eq_apSumOffset_shift_add` using the translation constant `d*m`.
+
+This avoids commuting multiplication in the shift constant when downstream development prefers
+`d * m` over `m * d`.
+-/
+lemma apSumOffset_eq_apSumOffset_shift_add_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (k + d * m)) d 0 n := by
+  -- Start from the canonical `k + m*d` normal form and rewrite `m*d` as `d*m`.
+  simpa [Nat.mul_comm] using
+    (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumOffset_eq_apSumOffset_shift_add_mul_left`. -/
+lemma apSumOffset_shift_add_mul_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (k + d * m)) d 0 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Normal form: when `m ≤ n`, rewrite a difference of homogeneous AP partial sums
 as an offset sum with `m = 0` on a shifted sequence.
 
