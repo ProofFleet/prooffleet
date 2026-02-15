@@ -935,6 +935,19 @@ example :
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) := by
   simpa using apSumFrom_sub_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Translation-friendly `d*i + a` surface form (avoid commuting multiplication under binders).
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) := by
+  simpa using
+    apSumFrom_sub_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) =
+      apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using
+    sum_Icc_eq_apSumFrom_sub_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
       apSumFrom f a d (m + n) - apSumFrom f a d m := by
