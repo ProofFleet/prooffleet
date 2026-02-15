@@ -39,6 +39,27 @@ Two conventions that pay for themselves quickly:
   When in doubt, reach for the `_add` / `_add_left` variants (e.g. `apSumFrom_tail_eq_sum_Icc_add`,
   `sum_Icc_eq_apSumFrom_tail_of_le_add`, `apSumFrom_tail_succ_length_add_left`,
   `apSumOffset_eq_apSum_shift_add`).
+
+### Choosing a translation normal form (`_shift` vs `_shift_add` vs `_map_add`)
+
+When you “shift the sequence” or “shift the index”, there are three recurring normal forms. They’re
+mathematically equivalent, but *proof automation* tends to prefer one depending on what you’re doing:
+
+- **`_shift_add`**: translation-friendly binder form `k ↦ f (k + a)`.
+  Use this when you want `simp`/`ring_nf` to behave without rewriting `Nat.add_comm` under a lambda.
+  This is the default convention in this folder.
+
+- **`_shift`**: constant-on-the-left binder form `k ↦ f (a + k)`.
+  Use this when your goal statement already has `a + …` everywhere (e.g. it came from rewriting a
+  paper statement `a + i*d`) and you want to avoid commutativity steps.
+
+- **`_map_add` / `_map_add_left`**: “push the translation into the function” form `x ↦ f (x + a)`.
+  Use this when you want to *commute the translation past multiplication* (e.g. normalize
+  `a + (m+k)*d` into something like `(m+k)*d` under `apSum` while shifting the sequence).
+
+Practical rule: if you’re not sure which one to pick, normalize to `_shift_add` first; it composes
+well with the offset/tail API and keeps later splitting/bounding lemmas uniform.
+
 - **Difference → tail early:** when you see a subtraction like `apSum … (m+n) - apSum … m` (or the
   affine analogue), rewrite it to an explicit tail sum (`apSumOffset … m n` / `apSumFrom …` tail)
   *before* doing algebra. This keeps subsequent splitting/bounding lemmas in the nucleus API.
@@ -389,6 +410,11 @@ example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (m * d + a) d n :
 -- Affine sums: shift-add normal form (translation-friendly `k + a`).
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
   simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
+
+-- Same affine sum, but with the translation “pushed into the function” form `x ↦ f (x + a)`.
+-- This is handy when you want to reuse translation lemmas stated for homogeneous `apSum`.
+example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
 
 -- Affine paper notation: multiplication-on-the-left variants (avoid commuting `i*d` under binders).
 example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + d * i)) := by
