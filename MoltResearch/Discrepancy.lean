@@ -286,6 +286,10 @@ example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n :
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Switching between `a + k` and `k + a` inside the shifted-sequence view of `apSumOffset`.
+example : apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- “Push the translation into the function” normal forms.
 --
 -- These are mathematically the same as the `…_shift` / `…_shift_add` family, but the `map_add`
