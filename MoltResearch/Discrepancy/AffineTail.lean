@@ -743,6 +743,48 @@ lemma apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail_start_add_left (f 
     (apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f := f) (a := a) (d := d) (m := m)
       (n1 := n1) (n2 := n2))
 
+/-- Normal form: eliminate the explicit offset parameter in a tail-of-tail affine difference,
+and then eliminate the now-trivial offset sum (`m = 0`) into a homogeneous AP sum.
+
+Concretely:
+
+`apSumFrom f (a + m*d) d (n1+n2) - apSumFrom f (a + m*d) d n1`
+
+can be rewritten as
+
+`apSum (fun k => f (k + (a + (m+n1)*d))) d n2`.
+-/
+lemma apSumFrom_tail_sub_eq_apSum_shift_add_zero_m_tail (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (a + m * d) d (n1 + n2) - apSumFrom f (a + m * d) d n1 =
+      apSum (fun k => f (k + (a + (m + n1) * d))) d n2 := by
+  calc
+    apSumFrom f (a + m * d) d (n1 + n2) - apSumFrom f (a + m * d) d n1 =
+        apSumOffset (fun k => f (k + (a + (m + n1) * d))) d 0 n2 := by
+          simpa using
+            (apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f := f) (a := a) (d := d)
+              (m := m) (n1 := n1) (n2 := n2))
+    _ = apSum (fun k => f (k + (a + (m + n1) * d))) d n2 := by
+          simpa using
+            (apSumOffset_zero_m (f := fun k => f (k + (a + (m + n1) * d))) (d := d) (n := n2))
+
+/-- Convenience wrapper around `apSumFrom_tail_sub_eq_apSum_shift_add_zero_m_tail` with the affine
+start written as `m*d + a`.
+
+This avoids commuting `a + m*d` at the call site.
+-/
+lemma apSumFrom_tail_sub_eq_apSum_shift_add_zero_m_tail_start_add_left (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    apSumFrom f (m * d + a) d (n1 + n2) - apSumFrom f (m * d + a) d n1 =
+      apSum (fun k => f (k + ((m + n1) * d + a))) d n2 := by
+  calc
+    apSumFrom f (m * d + a) d (n1 + n2) - apSumFrom f (m * d + a) d n1 =
+        apSumOffset (fun k => f (k + ((m + n1) * d + a))) d 0 n2 := by
+          simpa using
+            (apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail_start_add_left (f := f)
+              (a := a) (d := d) (m := m) (n1 := n1) (n2 := n2))
+    _ = apSum (fun k => f (k + ((m + n1) * d + a))) d n2 := by
+          simpa using
+            (apSumOffset_zero_m (f := fun k => f (k + ((m + n1) * d + a))) (d := d) (n := n2))
+
 /-- Normal form: rewrite the canonical affine difference `(m+n) - m` as an offset AP sum on the
 shifted sequence `k ↦ f (a + k)`.
 
