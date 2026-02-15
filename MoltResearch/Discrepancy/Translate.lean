@@ -47,6 +47,21 @@ lemma apSum_map_add_left (f : ℕ → ℤ) (k d n : ℕ) :
     simp [Nat.add_comm]
   simpa [hfun] using (apSum_map_add (f := f) (k := k) (d := d) (n := n))
 
+/-- Commute an additive translation under `apSum`.
+
+This is a lightweight normal-form lemma: it lets you switch between the binder conventions
+`fun k => f (a + k)` and `fun k => f (k + a)` without doing a manual `funext` rewrite.
+
+We do *not* mark this as `[simp]`: it is intended as an explicit normalization step when you want
+a translation-friendly `k + const` summand shape.
+-/
+lemma apSum_shift_comm (f : ℕ → ℤ) (a d n : ℕ) :
+    apSum (fun k => f (a + k)) d n = apSum (fun k => f (k + a)) d n := by
+  unfold apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+
 -- (moved to `Discrepancy/Affine.lean`)
 
 lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :

@@ -496,6 +496,11 @@ example : apSumFrom (fun k => f (a + k)) 0 d n = apSumFrom f a d n := by
 -- Translation (additive reindexing) normal forms.
 -- These are lightweight but practical: they let you commute a shift through the nucleus APIs
 -- without needing to unfold `apSumFrom` and fight `Nat.add_*` under binders.
+
+-- Commute a translation in the binder convention for `apSum` (normal-form helper).
+example : apSum (fun x => f (a + x)) d n = apSum (fun x => f (x + a)) d n := by
+  simpa using apSum_shift_comm (f := f) (a := a) (d := d) (n := n)
+
 example : apSumFrom (fun x => f (x + m)) a d n = apSumFrom f (a + m) d n := by
   simpa using apSumFrom_map_add (f := f) (k := m) (a := a) (d := d) (n := n)
 
