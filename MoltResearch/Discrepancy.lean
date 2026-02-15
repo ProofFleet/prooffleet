@@ -292,6 +292,21 @@ example :
       simpa using
         apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Tail-of-tail differences → offset-sum tails (and the `m = 0` shifted-sequence normal form).
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + (a + (m + n₁) * d))) d 0 n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
 -- Degenerate constant APs.
 example : apSum f 0 n = n • f 0 := by
   simp
