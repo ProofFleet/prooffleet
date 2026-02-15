@@ -1418,6 +1418,16 @@ lemma apSumFrom_eq_add_apSumFrom_tail (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} 
   simpa [Nat.add_sub_of_le hmn] using
     (apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := n - m))
 
+/-- Variant of `apSumFrom_eq_add_apSumFrom_tail` with the tail start written as `m*d + a`.
+
+This wrapper avoids commuting `a + m*d` at the call site.
+-/
+lemma apSumFrom_eq_add_apSumFrom_tail_start_add_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n = apSumFrom f a d m + apSumFrom f (m * d + a) d (n - m) := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_eq_add_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n) (hmn := hmn))
+
 /-- Split an affine AP partial sum at `m` when `m ≤ n`, with the tail normalized into the
 `apSumOffset` API on the shifted sequence `k ↦ f (a + k)`.
 
