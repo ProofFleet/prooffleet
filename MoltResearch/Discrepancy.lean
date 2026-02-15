@@ -75,8 +75,9 @@ Arithmetic progression sums:
   Split such interval sums into consecutive blocks via `sum_Icc_add_length`; for the normal-form
   difference of offset sums, use `apSumOffset_sub_eq_sum_Icc`. If your surface statement uses a
   “variable” upper endpoint `n` (with a hypothesis `m ≤ n`), normalize using
-  `sum_Icc_eq_apSumOffset_of_le` (paper → nucleus) and `apSumOffset_eq_sum_Icc_of_le` (nucleus →
-  paper). (Or rewrite directly via `apSum_sub_eq_sum_Icc` / `apSum_sub_eq_sum_Icc_mul_left` when
+  `sum_Icc_eq_apSumOffset_of_le` / `sum_Icc_eq_apSumOffset_of_le_mul_left` (paper → nucleus) and
+  `apSumOffset_eq_sum_Icc_of_le` / `apSumOffset_eq_sum_Icc_of_le_mul_left` (nucleus → paper).
+  (Or rewrite directly via `apSum_sub_eq_sum_Icc` / `apSum_sub_eq_sum_Icc_mul_left` when
   starting from a difference, and `apSum_sub_apSum_eq_sum_Icc` /
   `apSum_sub_apSum_eq_sum_Icc_mul_left` when starting from `apSum … n - apSum … m` with `m ≤ n`).
   Sometimes it is useful to change viewpoint on offset sums:
@@ -523,6 +524,15 @@ example (hmn : m ≤ n) :
 example (hmn : m ≤ n) :
     apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) := by
   simpa using apSumOffset_eq_sum_Icc_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+-- Translation-friendly `d * i` variants (avoid commuting multiplication under binders).
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSumOffset f d m (n - m) := by
+  simpa using sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) := by
+  simpa using apSumOffset_eq_sum_Icc_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
 
 example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
   simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn

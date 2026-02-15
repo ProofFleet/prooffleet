@@ -141,6 +141,18 @@ lemma sum_Icc_eq_apSumOffset_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn 
   simpa [Nat.add_sub_of_le hmn] using
     (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n - m))
 
+/-- Translation-friendly variant of `sum_Icc_eq_apSumOffset_of_le` using `d * i` (step size on the
+left).
+
+This avoids a commutativity rewrite under binders when you are working in a `d * i` convention.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le_mul_left (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSumOffset f d m (n - m) := by
+  classical
+  -- Reduce to the `i * d` statement via commutativity.
+  simpa [Nat.mul_comm] using
+    (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn)
+
 /-- Surface form: when `m ≤ n`, rewrite the offset sum `apSumOffset f d m (n - m)` as the
 interval sum `∑ i ∈ Icc (m+1) n, f (i*d)`.
 
@@ -149,6 +161,16 @@ This is the inverse orientation of `sum_Icc_eq_apSumOffset_of_le`.
 lemma apSumOffset_eq_sum_Icc_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) := by
   simpa using (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn).symm
+
+/-- Translation-friendly variant of `apSumOffset_eq_sum_Icc_of_le` using `d * i` (step size on the
+left).
+
+This is the inverse orientation of `sum_Icc_eq_apSumOffset_of_le_mul_left`.
+-/
+lemma apSumOffset_eq_sum_Icc_of_le_mul_left (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn).symm
 
 /-- Difference of two homogeneous AP partial sums as an offset AP sum when `m ≤ n`. -/
 lemma apSum_sub_apSum_eq_apSumOffset (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
