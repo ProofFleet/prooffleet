@@ -89,6 +89,17 @@ lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
     _ = apSumFrom f (m * d + k) d n := by
             simpa using (apSumFrom_map_add (f := f) (k := k) (a := m * d) (d := d) (n := n))
 
+/-- Variant of `apSumOffset_map_add` with the affine start written in the `k + m*d` form.
+
+This is a small normal-form lemma: it avoids a separate rewrite step commuting `m*d + k` into
+`k + m*d` when you want the start parameter to match a “shift-then-offset” reading.
+-/
+lemma apSumOffset_map_add_start_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (k + m * d) d n := by
+  have h := apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n)
+  -- Normalize the affine start parameter `m*d + k` into `k + m*d`.
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using h
+
 /-- Variant of `apSumOffset_map_add` for translated functions written in the `k + x` form. -/
 lemma apSumOffset_map_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (k + m * d) d n := by
