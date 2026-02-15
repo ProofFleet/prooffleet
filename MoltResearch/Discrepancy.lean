@@ -700,6 +700,13 @@ example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
   simpa using
     sum_Icc_split_of_le_mul_left (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
 
+-- Nucleus counterpart: when `m ≤ k ≤ n`, split the tail `apSumOffset f d m (n - m)` at `k`.
+example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
+    apSumOffset f d m (n - m) =
+      apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
+  simpa using
+    apSumOffset_eq_add_apSumOffset_of_le (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
+
 -- Affine paper splitting: mul-left form `a + d*i`.
 example :
     (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + d * i)) =

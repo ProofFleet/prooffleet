@@ -709,6 +709,29 @@ lemma apSumOffset_eq_add_apSumOffset_tail (f : ℕ → ℤ) (d m : ℕ) {n₁ n�
   simpa [Nat.add_sub_of_le hn] using
     (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂ - n₁))
 
+/-- Split the tail `apSumOffset f d m (n - m)` at an intermediate index `k`, assuming `m ≤ k ≤ n`.
+
+Concretely, the tail from `m+1` to `n` splits into the tail from `m+1` to `k` and the tail from
+`k+1` to `n`:
+
+`apSumOffset f d m (n - m) = apSumOffset f d m (k - m) + apSumOffset f d k (n - k)`.
+-/
+lemma apSumOffset_eq_add_apSumOffset_of_le (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ n) :
+    apSumOffset f d m (n - m) =
+      apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
+  have hkm : k - m ≤ n - m := Nat.sub_le_sub_right hkn m
+  have h :=
+    apSumOffset_eq_add_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := k - m) (n₂ := n - m)
+      hkm
+  have hdiff : (n - m) - (k - m) = n - k := by
+    calc
+      (n - m) - (k - m) = n - (m + (k - m)) := by
+        simpa [Nat.sub_sub]
+      _ = n - k := by
+        simpa [Nat.add_sub_of_le hmk]
+  simpa [Nat.add_sub_of_le hmk, hdiff] using h
+
 /-- First term of an offset AP sum. -/
 lemma apSumOffset_succ_length (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
