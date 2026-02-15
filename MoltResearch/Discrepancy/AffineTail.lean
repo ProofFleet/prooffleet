@@ -364,6 +364,20 @@ lemma apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add (f : ℕ → ℤ) 
     _ = f ((m + 1) * d + a) + apSumOffset (fun k => f (k + a)) d (m + 1) n := by
           simp [apSumFrom_tail_eq_apSumOffset_shift_add_left]
 
+/-- Convenience wrapper around `apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add` with the
+affine start written as `m*d + a`.
+
+This avoids commuting `a + m*d` at the call site.
+-/
+lemma apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add_start_add_left (f : ℕ → ℤ)
+    (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d (n + 1) =
+      f ((m + 1) * d + a) + apSumOffset (fun k => f (k + a)) d (m + 1) n := by
+  -- Normalize the affine start into the `a + m*d` form and apply the existing lemma.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+      (n := n))
+
 /-- Tail affine AP sum as a homogeneous AP sum on the further-shifted sequence `k ↦ f (k + (m*d + a))`,
 with the starting point written as `m*d + a`.
 
