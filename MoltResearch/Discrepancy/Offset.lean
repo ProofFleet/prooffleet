@@ -169,6 +169,27 @@ lemma sum_Icc_eq_apSumOffset_length_mul_left_add (f : ℕ → ℤ) (d m n : ℕ)
   simpa using
     (apSumOffset_eq_sum_Icc_length_mul_left_add (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Mul-left + translation-friendly variant of `apSumOffset_eq_sum_Icc_length_mul_left_add` with the
+constant on the left: `f (d*m + d*i)`.
+
+This avoids an extra commutativity rewrite under binders when your downstream development prefers
+`const + x` summand shapes.
+-/
+lemma apSumOffset_eq_sum_Icc_length_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (d * m + d * i)) := by
+  classical
+  refine (apSumOffset_eq_sum_Icc_length_mul_left_add (f := f) (d := d) (m := m) (n := n)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Commute the summand shape.
+  simp [Nat.add_comm]
+
+/-- Inverse orientation of `apSumOffset_eq_sum_Icc_length_mul_left_add_left`. -/
+lemma sum_Icc_eq_apSumOffset_length_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (d * m + d * i)) = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_sum_Icc_length_mul_left_add_left (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Normal form: relate the paper-notation tail interval sum over `Icc (m+1) (m+n)` to the
 length-indexed `Icc 1 n` version.
 
