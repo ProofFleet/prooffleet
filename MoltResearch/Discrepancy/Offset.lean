@@ -883,6 +883,40 @@ lemma apSumOffset_sub_eq_apSumOffset_tail (f : ℕ → ℤ) (d m n₁ n₂ : ℕ
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
   simpa using (apSumOffset_tail_eq_sub (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)).symm
 
+/-- Normal form: rewrite the difference of two offset sums (in the canonical `n₁ + n₂` form)
+into a homogeneous AP sum on a shifted sequence.
+
+Concretely:
+`apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSum (fun k => f (k + (m + n₁) * d)) d n₂`.
+
+This is `apSumOffset_sub_eq_apSumOffset_tail` followed by `apSumOffset_eq_apSum_shift_add`.
+-/
+lemma apSumOffset_sub_eq_apSum_shift_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by
+  calc
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
+      simpa using
+        apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+    _ = apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by
+      simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m + n₁) (n := n₂)
+
+/-- Normal form: when `n₁ ≤ n₂`, rewrite the difference of two offset sums over the same start `m`
+into a homogeneous AP sum on a shifted sequence.
+
+Concretely:
+`apSumOffset f d m n₂ - apSumOffset f d m n₁ = apSum (fun k => f (k + (m + n₁) * d)) d (n₂ - n₁)`.
+
+This is `apSumOffset_sub_eq_apSum_shift_add` applied after rewriting `n₂` as `n₁ + (n₂ - n₁)`.
+-/
+lemma apSumOffset_sub_apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m : ℕ) {n₁ n₂ : ℕ}
+    (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      apSum (fun k => f (k + (m + n₁) * d)) d (n₂ - n₁) := by
+  have h :=
+    apSumOffset_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂ - n₁)
+  simpa [Nat.add_sub_of_le hn] using h
+
 /-- Rewrite the normal-form difference `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁`
 as the “paper notation” interval sum `∑ i ∈ Icc (m+n₁+1) (m+n₁+n₂), f (i*d)`.
 
