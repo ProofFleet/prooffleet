@@ -130,6 +130,48 @@ lemma sum_Icc_add_length_mul_left (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa [Nat.mul_comm] using
     (sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Split the interval sum `∑ i ∈ Icc (m+1) n, f (i*d)` at an intermediate index `k`, assuming
+`m ≤ k ≤ n`.
+
+This is a convenience wrapper around `sum_Icc_add_length` that avoids manual arithmetic when your
+surface statement uses a variable upper endpoint.
+-/
+lemma sum_Icc_split_of_le (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (i * d)) +
+        (Finset.Icc (k + 1) n).sum (fun i => f (i * d)) := by
+  have hupper : m + ((k - m) + (n - k)) = n := by
+    calc
+      m + ((k - m) + (n - k)) = (m + (k - m)) + (n - k) := by
+        simp [Nat.add_assoc]
+      _ = k + (n - k) := by
+        simp [Nat.add_sub_of_le hmk, Nat.add_assoc]
+      _ = n := by
+        simp [Nat.add_sub_of_le hkn]
+  calc
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) =
+        (Finset.Icc (m + 1) (m + ((k - m) + (n - k)))).sum (fun i => f (i * d)) := by
+          simpa [hupper]
+    _ = (Finset.Icc (m + 1) (m + (k - m))).sum (fun i => f (i * d)) +
+          (Finset.Icc (m + (k - m) + 1) (m + (k - m) + (n - k))).sum (fun i => f (i * d)) := by
+          simpa using
+            (sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := k - m) (n₂ := n - k))
+    _ = (Finset.Icc (m + 1) k).sum (fun i => f (i * d)) +
+          (Finset.Icc (k + 1) n).sum (fun i => f (i * d)) := by
+          simp [Nat.add_sub_of_le hmk, Nat.add_sub_of_le hkn, Nat.add_assoc, Nat.add_left_comm,
+            Nat.add_comm]
+
+/-- Translation-friendly variant of `sum_Icc_split_of_le` using `d * i` (step size on the left). -/
+lemma sum_Icc_split_of_le_mul_left (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (d * i)) +
+        (Finset.Icc (k + 1) n).sum (fun i => f (d * i)) := by
+  -- Reduce to the `i * d` statement via commutativity.
+  simpa [Nat.mul_comm] using
+    (sum_Icc_split_of_le (f := f) (d := d) (m := m) (k := k) (n := n) (hmk := hmk) (hkn := hkn))
+
 /-- Normal form: when `m ≤ n`, rewrite the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) n, f (i*d)` back to `apSumOffset f d m (n - m)`.
 
