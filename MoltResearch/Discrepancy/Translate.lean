@@ -126,6 +126,33 @@ lemma apSumOffset_shift_add_eq_apSum_shift_add (f : ℕ → ℤ) (a d m n : ℕ)
 
 /-- Add-left variant of `apSumOffset_shift_add_eq_apSum_shift_add`.
 
+This is the same convenience lemma, but in the `const + k` convention on the resulting `apSum`:
+
+`apSumOffset (fun k => f (k + a)) d m n = apSum (fun k => f ((a + m*d) + k)) d n`.
+
+This avoids an extra rewrite step commuting the translation constant under binders when your
+surrounding development already prefers `const + x` summand shapes.
+-/
+lemma apSumOffset_shift_add_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d m n = apSum (fun k => f ((a + m * d) + k)) d n := by
+  calc
+    apSumOffset (fun k => f (k + a)) d m n
+        = apSum (fun k => f (k + (a + m * d))) d n := by
+            simpa using
+              (apSumOffset_shift_add_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m)
+                (n := n))
+    _ = apSum (fun k => f ((a + m * d) + k)) d n := by
+            simpa using (apSum_shift_comm (f := f) (a := a + m * d) (d := d) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_shift_add_eq_apSum_shift_add_left`. -/
+lemma apSum_shift_add_left_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSum (fun k => f ((a + m * d) + k)) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n)).symm
+
+/-- Add-left variant of `apSumOffset_shift_add_eq_apSum_shift_add`.
+
 This is the same convenience lemma, but in the `a + k` convention:
 
 `apSumOffset (fun k => f (a + k)) d m n = apSum (fun k => f ((a + m*d) + k)) d n`.
