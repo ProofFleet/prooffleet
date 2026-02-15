@@ -121,10 +121,31 @@ lemma apSumOffset_eq_sum_Icc_length_add (f : ℕ → ℤ) (d m n : ℕ) :
     simpa using Nat.add_comm (m * d) (i * d)
   simpa using congrArg f (hmul.trans hcomm)
 
+/-- Translation-friendly variant of `apSumOffset_eq_sum_Icc_length` with the constant on the left:
+`f (m*d + i*d)`.
+
+Compared to `apSumOffset_eq_sum_Icc_length_add`, this avoids an extra commutativity rewrite when
+your surrounding development already prefers the `const + x` summand shape.
+-/
+lemma apSumOffset_eq_sum_Icc_length_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (m * d + i * d)) := by
+  classical
+  refine (apSumOffset_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)).trans ?_
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `(m+i)*d = m*d + i*d`.
+  simpa using congrArg f (Nat.add_mul m i d)
+
 /-- Inverse orientation of `apSumOffset_eq_sum_Icc_length_add`. -/
 lemma sum_Icc_eq_apSumOffset_length_add (f : ℕ → ℤ) (d m n : ℕ) :
     (Finset.Icc 1 n).sum (fun i => f (i * d + m * d)) = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_sum_Icc_length_add (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_eq_sum_Icc_length_add_left`. -/
+lemma sum_Icc_eq_apSumOffset_length_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (m * d + i * d)) = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_sum_Icc_length_add_left (f := f) (d := d) (m := m) (n := n)).symm
 
 /-- Mul-left + translation-friendly variant of `apSumOffset_eq_sum_Icc_length_mul_left`, with the
 summand written as `f (d*i + d*m)` instead of `f (d*(m+i))`.
