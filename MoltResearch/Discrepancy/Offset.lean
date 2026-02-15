@@ -869,6 +869,19 @@ lemma apSum_sub_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
     _ = apSum (fun k => f (k + m * d)) d n := by
       simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
 
+/-- Variant of `apSum_sub_eq_apSum_shift_add` with the translation constant written as `m*d + k`.
+
+This often avoids a commutativity rewrite when your downstream development already prefers the
+`const + x` summand shape.
+-/
+lemma apSum_sub_eq_apSum_shift (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m = apSum (fun k => f (m * d + k)) d n := by
+  calc
+    apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+      simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+    _ = apSum (fun k => f (m * d + k)) d n := by
+      simpa using apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n)
+
 /-- Normal form: when `m ≤ n`, rewrite `apSum f d n - apSum f d m` as a homogeneous AP sum on the
 shifted sequence `k ↦ f (k + m*d)`.
 
@@ -884,6 +897,20 @@ lemma apSum_sub_apSum_eq_apSum_shift_add_of_le (f : ℕ → ℤ) (d : ℕ) {m n 
       simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
     _ = apSum (fun k => f (k + m * d)) d (n - m) := by
       simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n - m)
+
+/-- Variant of `apSum_sub_apSum_eq_apSum_shift_add_of_le` with the translation constant written as
+`m*d + k`.
+
+This can avoid a commutativity rewrite when composing with lemmas that expect the `const + x`
+shape.
+-/
+lemma apSum_sub_apSum_eq_apSum_shift_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = apSum (fun k => f (m * d + k)) d (n - m) := by
+  calc
+    apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+      simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSum (fun k => f (m * d + k)) d (n - m) := by
+      simpa using apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n - m)
 
 /-- Inverse orientation of `apSumOffset_eq_apSum_shift`. -/
 lemma apSum_shift_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
