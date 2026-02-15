@@ -797,6 +797,24 @@ lemma apSumOffset_step_one_zero_m_mul_left_add_left_eq_apSumOffset (f : ℕ → 
     (apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f := f) (d := d) (m := m)
       (n := n)).symm
 
+
+/-- Normal form: rewrite the canonical difference `apSum f d (m+n) - apSum f d m` as a *step-one*
+`apSumOffset` with `m = 0`, by bundling the step size `d` and offset `m` into the summand.
+
+Concretely, this produces the translation-friendly summand shape `d * k + d * m`.
+
+This is the `apSum`-difference analogue of `apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left`.
+-/
+lemma apSum_sub_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m = apSumOffset (fun k => f (d * k + d * m)) 1 0 n := by
+  calc
+    apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+      simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+    _ = apSumOffset (fun k => f (d * k + d * m)) 1 0 n := by
+      simpa using
+        apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f := f) (d := d) (m := m)
+          (n := n)
+
 /-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one_zero_m`. -/
 lemma apSumOffset_step_one_zero_m_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f ((m + k) * d)) 1 0 n = apSumOffset f d m n := by
