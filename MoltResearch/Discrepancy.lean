@@ -596,6 +596,16 @@ example (hmn : m ≤ n) :
     apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) := by
   simpa using apSumOffset_eq_sum_Icc_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
 
+-- If you want to eliminate `apSumOffset` entirely, normalize paper tails directly into an
+-- `apSum` on a shifted sequence.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSum (fun k => f (k + m * d)) d (n - m) := by
+  simpa using sum_Icc_eq_apSum_shift_add_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSum (fun k => f (k + m * d)) d (n - m) := by
+  simpa using sum_Icc_eq_apSum_shift_add_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
+
 example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
   simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
 

@@ -547,6 +547,31 @@ lemma apSum_shift_add_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSum (fun k => f (k + m * d)) d n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Normal form (paper → nucleus, shifted-sum): when `m ≤ n`, rewrite the interval sum
+`∑ i ∈ Icc (m+1) n, f (i*d)` as a homogeneous AP sum on a shifted sequence.
+
+Concretely:
+`(Finset.Icc (m+1) n).sum (fun i => f (i*d)) = apSum (fun k => f (k + m*d)) d (n - m)`.
+
+This is `sum_Icc_eq_apSumOffset_of_le` followed by `apSumOffset_eq_apSum_shift_add`.
+-/
+lemma sum_Icc_eq_apSum_shift_add_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSum (fun k => f (k + m * d)) d (n - m) := by
+  calc
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
+      simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSum (fun k => f (k + m * d)) d (n - m) := by
+      simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n - m)
+
+/-- Translation-friendly `d * i` variant of `sum_Icc_eq_apSum_shift_add_of_le`. -/
+lemma sum_Icc_eq_apSum_shift_add_of_le_mul_left (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSum (fun k => f (k + m * d)) d (n - m) := by
+  calc
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSumOffset f d m (n - m) := by
+      simpa using sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSum (fun k => f (k + m * d)) d (n - m) := by
+      simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n - m)
+
 /-- Commute a translation in the shifted-sequence view of `apSumOffset`.
 
 This is a convenience lemma: the two shifted sequences `k ↦ f (a + k)` and `k ↦ f (k + a)` are
