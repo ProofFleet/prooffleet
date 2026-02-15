@@ -423,6 +423,19 @@ example : apSumFrom f a d n = apSumFrom (fun k => f (a + k * d)) 0 1 n := by
 example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
   simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 
+-- If you want the *fixed lower endpoint* paper normal form (useful for splitting by length),
+-- rewrite the same difference directly to an `Icc 1 n` interval sum.
+example : apSum f d (m + n) - apSum f d m = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  simpa using apSum_sub_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)
+
+-- Same paper normal form, but in the translation-friendly `d * (m+i)` binder convention.
+example : apSum f d (m + n) - apSum f d m = (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  simpa using apSum_sub_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- And you can normalize back into the nucleus API without carrying a variable upper endpoint.
+example : (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset_length (f := f) (d := d) (m := m) (n := n)
+
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
   simpa using
     apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
