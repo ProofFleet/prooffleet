@@ -9,6 +9,7 @@ import MoltResearch.Discrepancy.Translate
 import MoltResearch.Discrepancy.Reindex
 import MoltResearch.Discrepancy.Bound
 import MoltResearch.Discrepancy.Witness
+import MoltResearch.Discrepancy.Examples
 
 /-!
 # Discrepancy (module aggregator)

@@ -181,6 +181,7 @@ Definition of done:
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
 - [ ] Prove the main theorem (long-horizon)
 - [ ] Alternate formulations/equivalences recorded in the card + notes
+- [x] Sanity check: exhibit a sign sequence with unbounded discrepancy (constant +1 sequence)
 
 ## 5. References / links
 
