@@ -180,8 +180,20 @@ Definition of done:
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
 - [ ] Prove the main theorem (long-horizon)
-- [ ] Alternate formulations/equivalences recorded in the card + notes
+- [x] Alternate formulations/equivalences recorded in the card + notes
 - [x] Sanity check: exhibit a sign sequence with unbounded discrepancy (constant +1 sequence)
+
+Equivalences / surface forms (proved lemmas; use these instead of unfolding defs):
+- `apSum_eq_sum_Icc` / `sum_Icc_eq_apSum` (paper interval sum ↔ nucleus `apSum`)
+- `HasDiscrepancyAtLeast_iff_exists_witness_pos`
+- `HasDiscrepancyAtLeast_iff_exists_sum_Icc_witness_pos`
+- `HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one_witness_pos`
+- `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`
+- `forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos`
+- `HasDiscrepancyAtLeast.iff_nonempty_witness` / `.iff_nonempty_witnessPos`
+
+(See `MoltResearch/Discrepancy/Basic.lean` and `MoltResearch/Discrepancy/Witness.lean`, plus
+`Conjectures/C0002_erdos_discrepancy/notes.md`.)
 
 ## 5. References / links
 
