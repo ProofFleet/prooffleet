@@ -41,6 +41,20 @@ example :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: commute the affine translation into the *function* (map-add normal form).
+
+This exercises `apSumFrom_eq_apSum_map_add`.
+-/
+example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
+  simpa using (apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n))
+
+/-- Regression: `a + x` variant of the map-add normal form.
+
+This exercises `apSumFrom_eq_apSum_map_add_left`.
+-/
+example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
+  simpa using (apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n))
+
 /-- Regression: affine tails normalize to `apSumOffset` on the shifted sequence `k ↦ f (k + a)`.
 
 This is a common glue step when downstream lemmas are stated for `apSumOffset` only.
