@@ -202,6 +202,24 @@ This exercises `apSumFrom_mul_left_eq_apSumOffset`.
 example : apSumFrom f (d * m) d n = apSumOffset f d m n := by
   simpa using (apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
+/-- Regression: rewrite `apSumFrom` to `apSumOffset` when the affine start is definitionally a
+multiple of the step size.
+
+This exercises `apSumFrom_eq_apSumOffset_of_eq_mul`.
+-/
+example (ha : a = m * d) : apSumFrom f a d n = apSumOffset f d m n := by
+  simpa [ha] using
+    (apSumFrom_eq_apSumOffset_of_eq_mul (f := f) (a := a) (d := d) (m := m) (n := n) (ha := ha))
+
+/-- Regression: rewrite `apSumFrom` to an `apSumOffset` form when the affine start is a multiple of
+the step size, expressed as a divisibility hypothesis.
+
+This exercises `apSumFrom_exists_eq_apSumOffset_of_dvd`.
+-/
+example (h : d ∣ a) : ∃ m, apSumFrom f a d n = apSumOffset f d m n := by
+  simpa using
+    (apSumFrom_exists_eq_apSumOffset_of_dvd (f := f) (a := a) (d := d) (n := n) (h := h))
+
 /-! ### Additional paper↔nucleus regression examples (`m ≤ n` normalization)
 
 These are compile-time checks for the convenience lemmas that normalize an interval-sum with a
