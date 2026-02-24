@@ -158,6 +158,27 @@ example :
     apSumFrom f (a + m * d) d n = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d + a)) := by
   simpa using (apSumFrom_tail_eq_sum_Icc_length_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: rewrite an offset sum as an affine sum starting at a multiple of the step size.
+
+This exercises `apSumOffset_eq_apSumFrom`.
+-/
+example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
+  simpa using (apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n))
+
+/-- Regression: inverse orientation of `apSumOffset_eq_apSumFrom`.
+
+This exercises `apSumFrom_mul_eq_apSumOffset`.
+-/
+example : apSumFrom f (m * d) d n = apSumOffset f d m n := by
+  simpa using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
+/-- Regression: mul-left variant of the previous lemma.
+
+This exercises `apSumFrom_mul_left_eq_apSumOffset`.
+-/
+example : apSumFrom f (d * m) d n = apSumOffset f d m n := by
+  simpa using (apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
