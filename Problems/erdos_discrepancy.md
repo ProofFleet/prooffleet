@@ -119,6 +119,11 @@ These three steps cover most “get it into nucleus normal form” moments; they
 proof scripts uniform (everything becomes `apSumOffset` on a shifted sequence, or a homogeneous
 `apSum` when you want to use bounds that are stated that way).
 
+Practical tip (regression tests): if you add or refactor any normal-form lemmas, prefer adding a
+small `example` block under `section NormalFormExamples` in `MoltResearch/Discrepancy.lean`.
+Those examples are intended to be “compile-time sanity checks” that the stable surface import
+`import MoltResearch.Discrepancy` still supports the intended rewrite pipelines.
+
 (For a curated list plus regression-test examples, see the `## Normal forms` and
 `section NormalFormExamples` blocks in `MoltResearch/Discrepancy.lean`.)
 
