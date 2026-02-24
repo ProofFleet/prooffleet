@@ -146,6 +146,30 @@ example :
   simpa using
     (apSum_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-! ### Predicate-level translation regression examples
+
+These are tiny compile-time checks for the translation lemmas on discrepancy predicates
+(`HasDiscrepancyAtLeast` / `HasAffineDiscrepancyAtLeast`).
+-/
+
+variable (C k : ℕ)
+
+example :
+    HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
+  simpa using (HasDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C))
+
+example :
+    HasDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
+  simpa using (HasDiscrepancyAtLeast.of_map_add_left (f := f) (k := k) (C := C))
+
+example :
+    HasAffineDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
+  simpa using (HasAffineDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C))
+
+example :
+    HasAffineDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
+  simpa using (HasAffineDiscrepancyAtLeast.of_map_add_left (f := f) (k := k) (C := C))
+
 /-- Regression: rewrite the canonical difference `apSum f d (m+n) - apSum f d m` to the fixed-lower-endpoint
 length-indexed interval-sum form over `Icc 1 n`.
 
