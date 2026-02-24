@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.Offset
 import MoltResearch.Discrepancy.AffineTail
+import MoltResearch.Discrepancy.Translate
 
 /-!
 # Discrepancy: normal-form regression examples
@@ -59,6 +60,24 @@ This exercises `apSumOffset_eq_apSum_shift_add`.
 -/
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
+
+/-- Regression: compose a shift-add translation with the offset-to-homogeneous normal form.
+
+This exercises `apSumOffset_shift_add_eq_apSum_shift_add`.
+-/
+example :
+    apSumOffset (fun k => f (k + a)) d m n = apSum (fun k => f (k + (a + m * d))) d n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: inverse orientation of `apSumOffset_shift_add_eq_apSum_shift_add`.
+
+This exercises `apSum_shift_add_eq_apSumOffset_shift_add`.
+-/
+example :
+    apSum (fun k => f (k + (a + m * d))) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (apSum_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
 end NormalFormExamples
 
