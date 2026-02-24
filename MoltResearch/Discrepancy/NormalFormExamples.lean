@@ -70,6 +70,15 @@ example (n₁ n₂ : ℕ) :
   simpa using
     (apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Regression: “step-one” normalization for offset AP sums, using the translation-friendly
+`k * d + const` summand convention.
+
+This exercises `apSumOffset_eq_apSum_step_one_add_left`.
+-/
+example : apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
+  simpa using
+    (apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n))
+
 /-- Regression: eliminate the explicit offset parameter by rewriting to a homogeneous `apSum` on a
 shifted sequence (translation-friendly `k + const` form).
 
