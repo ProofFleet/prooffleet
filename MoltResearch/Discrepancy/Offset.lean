@@ -936,6 +936,24 @@ lemma apSum_sub_eq_apSum_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
     _ = apSum (fun k => f (k + m * d)) d n := by
       simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
 
+/-- Normal form: rewrite the canonical difference `apSum f d (m+n) - apSum f d m` as an offset sum
+with zero offset on the shifted sequence.
+
+Concretely:
+`apSum f d (m+n) - apSum f d m = apSumOffset (fun k => f (k + m*d)) d 0 n`.
+
+This is `apSum_sub_eq_apSumOffset` followed by `apSumOffset_eq_apSumOffset_shift_add`.
+-/
+lemma apSum_sub_eq_apSumOffset_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+  calc
+    apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n := by
+      simpa using apSum_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+    _ = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+      -- `apSumOffset g d 0 n` simp-normalizes to `apSum g d n`.
+      simpa using
+        (apSumOffset_eq_apSum_shift_add (f := fun k => f (k + m * d)) (d := d) (m := 0) (n := n)).symm
+
 /-- Mul-left variant of `apSum_sub_eq_apSum_shift_add` with translation constant written as `d*m`.
 
 This wrapper is useful when a downstream goal is already in the binder convention `d * i` and the

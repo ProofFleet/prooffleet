@@ -119,6 +119,15 @@ This exercises `apSumOffset_eq_apSum_shift_add`.
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
 
+/-- Regression: normalize a difference of homogeneous partial sums into an offset sum with
+zero offset on a shifted sequence.
+
+This exercises `apSum_sub_eq_apSumOffset_shift_add`.
+-/
+example :
+    apSum f d (m + n) - apSum f d m = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+  simpa using (apSum_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n))
+
 /-- Regression: compose a shift-add translation with the offset-to-homogeneous normal form.
 
 This exercises `apSumOffset_shift_add_eq_apSum_shift_add`.
