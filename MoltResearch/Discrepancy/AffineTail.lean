@@ -157,6 +157,16 @@ lemma apSumFrom_sub_eq_apSumFrom_tail_start_add_left (f : ℕ → ℤ) (a d m n 
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Convenience wrapper around `apSumFrom_sub_eq_apSumFrom_tail` with the tail start written as
+`a + d*m`.
+
+This avoids commuting `m*d` into the mul-left orientation at the call site.
+-/
+lemma apSumFrom_sub_eq_apSumFrom_tail_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + d * m) d n := by
+  simpa [Nat.mul_comm] using
+    (apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Tail-of-tail normal form: subtracting two affine tail sums yields a later tail sum. -/
 lemma apSumFrom_tail_sub_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
     apSumFrom f (a + m * d) d (n1 + n2) - apSumFrom f (a + m * d) d n1 =
