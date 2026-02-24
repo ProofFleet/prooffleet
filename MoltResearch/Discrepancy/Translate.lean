@@ -108,6 +108,30 @@ lemma apSumFrom_start_add_left_eq_apSumOffset_map_add (f : ℕ → ℤ) (k d m n
   apSumFrom f (m * d + k) d n = apSumOffset (fun x => f (x + k)) d m n := by
   simpa using (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n)).symm
 
+/-- Variant of `apSumOffset_map_add` where the translated function is written in the `k + x` form.
+
+This is a convenience lemma: it avoids an extra `funext` rewrite step (to commute `k + x` into
+`x + k`) while keeping the affine start parameter in the `m*d + k` normal form.
+
+Proof: commute the translation under `apSumOffset` using `apSumOffset_map_add_comm`, then apply
+`apSumOffset_map_add`.
+-/
+lemma apSumOffset_map_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (m * d + k) d n := by
+  calc
+    apSumOffset (fun x => f (k + x)) d m n
+        = apSumOffset (fun x => f (x + k)) d m n := by
+            simpa using
+              (apSumOffset_map_add_comm (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+    _ = apSumFrom f (m * d + k) d n := by
+            simpa using (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumOffset_map_add_left_start_mul`. -/
+lemma apSumFrom_start_mul_eq_apSumOffset_map_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumFrom f (m * d + k) d n = apSumOffset (fun x => f (k + x)) d m n := by
+  simpa using
+    (apSumOffset_map_add_left_start_mul (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+
 /-- Variant of `apSumOffset_map_add` with the affine start written in the `k + m*d` form.
 
 This is a small normal-form lemma: it avoids a separate rewrite step commuting `m*d + k` into
