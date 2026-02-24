@@ -52,6 +52,14 @@ example (n₁ n₂ : ℕ) :
   simpa using
     (apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Regression: eliminate the explicit offset parameter by rewriting to a homogeneous `apSum` on a
+shifted sequence (translation-friendly `k + const` form).
+
+This exercises `apSumOffset_eq_apSum_shift_add`.
+-/
+example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
