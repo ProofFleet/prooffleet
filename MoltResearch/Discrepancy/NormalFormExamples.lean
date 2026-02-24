@@ -253,6 +253,36 @@ example :
   simpa using
     (apSumOffset_eq_sum_Icc_of_le_mul_left (f := f) (d := d) (m := m1) (n := n1) hmn)
 
+/-! ### Mul-left paper↔nucleus regression examples
+
+These cover the `d * i` binder convention for the core paper normal forms.
+-/
+
+/-- Regression: rewrite an offset sum to paper notation using the `d * i` summand convention.
+
+This exercises `apSumOffset_eq_sum_Icc_mul_left`.
+-/
+example :
+    apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  simpa using (apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n))
+
+/-- Regression: rewrite the `d * i` paper interval sum back to the nucleus offset-sum API.
+
+This exercises `sum_Icc_eq_apSumOffset_mul_left`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simpa using (sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n))
+
+/-- Regression: rewrite a canonical difference of partial sums to the length-indexed paper form
+with the `d * (m+i)` summand convention.
+
+This exercises `apSum_sub_eq_sum_Icc_length_mul_left`.
+-/
+example :
+    apSum f d (m + n) - apSum f d m = (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  simpa using (apSum_sub_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
