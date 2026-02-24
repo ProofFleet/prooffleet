@@ -202,6 +202,39 @@ This exercises `apSumFrom_mul_left_eq_apSumOffset`.
 example : apSumFrom f (d * m) d n = apSumOffset f d m n := by
   simpa using (apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
+/-! ### Additional paper↔nucleus regression examples (`m ≤ n` normalization)
+
+These are compile-time checks for the convenience lemmas that normalize an interval-sum with a
+variable upper endpoint `n` (under a hypothesis `m ≤ n`) into the canonical nucleus offset-sum form
+`apSumOffset f d m (n - m)` (and back).
+-/
+
+variable (m1 n1 : ℕ) (hmn : m1 ≤ n1)
+
+/-- Regression: normalize a paper interval sum with variable upper endpoint into an offset sum. -/
+example :
+    (Finset.Icc (m1 + 1) n1).sum (fun i => f (i * d)) = apSumOffset f d m1 (n1 - m1) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m1) (n := n1) hmn)
+
+/-- Regression: translation-friendly `d * i` variant of the previous normalization lemma. -/
+example :
+    (Finset.Icc (m1 + 1) n1).sum (fun i => f (d * i)) = apSumOffset f d m1 (n1 - m1) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m1) (n := n1) hmn)
+
+/-- Regression: inverse orientation (offset sum → paper interval sum) under `m ≤ n`. -/
+example :
+    apSumOffset f d m1 (n1 - m1) = (Finset.Icc (m1 + 1) n1).sum (fun i => f (i * d)) := by
+  simpa using
+    (apSumOffset_eq_sum_Icc_of_le (f := f) (d := d) (m := m1) (n := n1) hmn)
+
+/-- Regression: translation-friendly `d * i` variant of the previous inverse-orientation lemma. -/
+example :
+    apSumOffset f d m1 (n1 - m1) = (Finset.Icc (m1 + 1) n1).sum (fun i => f (d * i)) := by
+  simpa using
+    (apSumOffset_eq_sum_Icc_of_le_mul_left (f := f) (d := d) (m := m1) (n := n1) hmn)
+
 end NormalFormExamples
 
 end MoltResearch
