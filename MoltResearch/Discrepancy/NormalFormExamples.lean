@@ -41,6 +41,14 @@ example :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: canonical affine difference normalizes to a homogeneous sum on a shifted sequence.
+
+This exercises `apSumFrom_sub_eq_apSum_shift_add`.
+-/
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (a + m * d))) d n := by
+  simpa using (apSumFrom_sub_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: commute the affine translation into the *function* (map-add normal form).
 
 This exercises `apSumFrom_eq_apSum_map_add`.
