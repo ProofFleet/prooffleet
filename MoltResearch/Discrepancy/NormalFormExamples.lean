@@ -123,6 +123,23 @@ example :
   simpa using
     (apSum_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: rewrite the canonical difference `apSum f d (m+n) - apSum f d m` to the fixed-lower-endpoint
+length-indexed interval-sum form over `Icc 1 n`.
+
+This exercises `apSum_sub_eq_sum_Icc_length`.
+-/
+example :
+    apSum f d (m + n) - apSum f d m = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  simpa using (apSum_sub_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n))
+
+/-- Regression: rewrite the length-indexed paper interval sum back to the nucleus offset-sum API.
+
+This exercises `sum_Icc_eq_apSumOffset_length`.
+-/
+example :
+    (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) = apSumOffset f d m n := by
+  simpa using (sum_Icc_eq_apSumOffset_length (f := f) (d := d) (m := m) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
