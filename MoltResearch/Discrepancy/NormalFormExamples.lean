@@ -140,6 +140,24 @@ example :
     (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) = apSumOffset f d m n := by
   simpa using (sum_Icc_eq_apSumOffset_length (f := f) (d := d) (m := m) (n := n))
 
+/-- Regression: rewrite the paper affine-tail interval sum (translation-friendly `i*d + a`) back
+into the nucleus affine tail normal form.
+
+This exercises `sum_Icc_eq_apSumFrom_tail_add`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) = apSumFrom f (a + m * d) d n := by
+  simpa using (sum_Icc_eq_apSumFrom_tail_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: rewrite the nucleus affine tail sum to the fixed-lower-endpoint (1) length-indexed
+interval-sum form, using the translation-friendly `((m+i)*d + a)` summand convention.
+
+This exercises `apSumFrom_tail_eq_sum_Icc_length_add`.
+-/
+example :
+    apSumFrom f (a + m * d) d n = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d + a)) := by
+  simpa using (apSumFrom_tail_eq_sum_Icc_length_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
