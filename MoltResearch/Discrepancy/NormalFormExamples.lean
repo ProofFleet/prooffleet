@@ -1,4 +1,6 @@
+import MoltResearch.Discrepancy.Basic
 import MoltResearch.Discrepancy.Offset
+import MoltResearch.Discrepancy.Affine
 import MoltResearch.Discrepancy.AffineTail
 import MoltResearch.Discrepancy.Translate
 
@@ -17,6 +19,21 @@ namespace MoltResearch
 section NormalFormExamples
 
 variable (f : ℕ → ℤ) (a d m n : ℕ)
+
+/-- Regression: “step-one” normalization for homogeneous AP sums.
+
+This exercises `apSum_eq_apSum_step_one`.
+-/
+example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
+  simpa using (apSum_eq_apSum_step_one (f := f) (d := d) (n := n))
+
+/-- Regression: “step-one” normalization for affine AP sums, using the translation-friendly
+`k * d + a` summand convention.
+
+This exercises `apSumFrom_eq_apSum_step_one_add_left`.
+-/
+example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
+  simpa using (apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n))
 
 /-- Regression: canonical affine difference normalizes to an offset sum on a shifted sequence
 (translation-friendly `k + a` form). -/
