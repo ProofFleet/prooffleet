@@ -438,6 +438,27 @@ This exercises `apSumOffset_zero_d`.
 example : apSumOffset f 0 m n = n • f 0 := by
   simpa using (apSumOffset_zero_d (f := f) (m := m) (n := n))
 
+/-- Regression: an affine AP sum starting at `a = 0` is just a homogeneous AP sum.
+
+This exercises `apSumFrom_zero_a`.
+-/
+example : apSumFrom f 0 d n = apSum f d n := by
+  simpa using (apSumFrom_zero_a (f := f) (d := d) (n := n))
+
+/-- Regression: an affine AP sum with step size `d = 0` collapses to repeated evaluation at the start.
+
+This exercises `apSumFrom_zero_d`.
+-/
+example : apSumFrom f a 0 n = n • f a := by
+  simpa using (apSumFrom_zero_d (f := f) (a := a) (n := n))
+
+/-- Regression: inverse orientation of `apSumFrom_zero_a`.
+
+This exercises `apSum_eq_apSumFrom`.
+-/
+example : apSum f d n = apSumFrom f 0 d n := by
+  simpa using (apSum_eq_apSumFrom (f := f) (d := d) (n := n))
+
 /-- Regression: rewrite the canonical difference `apSum f d (m+n) - apSum f d m` to the fixed-lower-endpoint
 length-indexed interval-sum form over `Icc 1 n`.
 
