@@ -94,6 +94,36 @@ example :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: same affine-tail normal form, with the shifted sequence written as `k ↦ f (a + k)`.
+
+This exercises `apSumFrom_tail_eq_apSumOffset_shift`.
+-/
+example :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: split an affine AP sum by length and normalize the tail as an offset sum on the
+shifted sequence `k ↦ f (a + k)`.
+
+This exercises `apSumFrom_add_length_eq_add_apSumOffset_shift`.
+-/
+example :
+    apSumFrom f a d (m + n) = apSumFrom f a d m + apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    (apSumFrom_add_length_eq_add_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: split off the *last* term of an affine tail sum, with the affine start written as
+`m*d + a`.
+
+This exercises `apSumFrom_tail_succ_start_add_left`.
+-/
+example :
+    apSumFrom f (m * d + a) d (n + 1) =
+      apSumFrom f (m * d + a) d n + f ((m + n + 1) * d + a) := by
+  simpa using
+    (apSumFrom_tail_succ_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: paper-notation affine tails normalize directly into the offset-sum nucleus API,
 using the translation-friendly `i*d + a` summand convention.
 
