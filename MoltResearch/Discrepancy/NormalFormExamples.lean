@@ -94,6 +94,26 @@ example :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: add-left start variant of `apSumFrom_tail_eq_apSumOffset_shift_add`.
+
+This exercises `apSumFrom_tail_eq_apSumOffset_shift_add_left`.
+-/
+example :
+    apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: head+tail normal form for affine tails, with the affine start written as `m*d + a`.
+
+This exercises `apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add_start_add_left`.
+-/
+example :
+    apSumFrom f (m * d + a) d (n + 1) =
+      f ((m + 1) * d + a) + apSumOffset (fun k => f (k + a)) d (m + 1) n := by
+  simpa using
+    (apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add_start_add_left
+      (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: the `m = 0` inverse direction of the previous normalization (offset sum on a shifted
 sequence ↦ affine sum).
 
