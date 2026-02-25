@@ -395,6 +395,26 @@ lemma apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_left (f : ℕ →
             simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
           simpa [hfun]
 
+/-- Variant of `apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m` with the translation
+constant written as `d*m + a`.
+
+This is convenient when downstream work prefers the `d*m` multiplication-on-the-left convention.
+-/
+lemma apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSumOffset (fun k => f (k + (d * m + a))) d 0 n := by
+  calc
+    apSumFrom f a d (m + n) =
+        apSumFrom f a d m + apSumOffset (fun k => f (k + (m * d + a))) d 0 n := by
+          simpa using
+            apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_left (f := f) (a := a)
+              (d := d) (m := m) (n := n)
+    _ = apSumFrom f a d m + apSumOffset (fun k => f (k + (d * m + a))) d 0 n := by
+          have hfun : (fun k => f (k + (m * d + a))) = (fun k => f (k + (d * m + a))) := by
+            funext k
+            simp [Nat.mul_comm]
+          simpa [hfun]
+
 /-- Normal form: split an affine AP sum by length, absorb the tail parameter `m` into the affine
 start, and eliminate the now-trivial offset sum (`m = 0`) by rewriting it as a homogeneous AP sum.
 

@@ -403,6 +403,14 @@ example :
     apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m)
       (n := n)
 
+-- Same splitting normal form, but write the translation constant as `d*m + a` (mul-left convention).
+example :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSumOffset (fun k => f (k + (d * m + a))) d 0 n := by
+  simpa using
+    apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_mul_left (f := f) (a := a) (d := d)
+      (m := m) (n := n)
+
 -- Same splitting normal form, but eliminate the now-trivial offset sum (`m = 0`) into a
 -- homogeneous AP sum on a shifted sequence.
 example :
