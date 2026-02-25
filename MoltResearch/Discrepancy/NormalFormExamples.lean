@@ -251,6 +251,44 @@ example :
   simpa using
     (apSumOffset_shift_add_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-! ### Paper ↔ nucleus regression examples (homogeneous)
+
+These are compile-time checks that the basic paper-notation interval sums normalize cleanly
+into the nucleus `apSum` API (and back).
+-/
+
+/-- Regression: normalize the paper homogeneous AP interval sum into `apSum`.
+
+This exercises `sum_Icc_eq_apSum`.
+-/
+example :
+    (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
+  simpa using (sum_Icc_eq_apSum (f := f) (d := d) (n := n))
+
+/-- Regression: translation-friendly `d * i` variant of the previous normalization lemma.
+
+This exercises `sum_Icc_eq_apSum_mul_left`.
+-/
+example :
+    (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
+  simpa using (sum_Icc_eq_apSum_mul_left (f := f) (d := d) (n := n))
+
+/-- Regression: rewrite `apSum` back to paper interval-sum notation.
+
+This exercises `apSum_eq_sum_Icc`.
+-/
+example :
+    apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
+  simpa using (apSum_eq_sum_Icc (f := f) (d := d) (n := n))
+
+/-- Regression: mul-left variant of `apSum_eq_sum_Icc`.
+
+This exercises `apSum_eq_sum_Icc_mul_left`.
+-/
+example :
+    apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by
+  simpa using (apSum_eq_sum_Icc_mul_left (f := f) (d := d) (n := n))
+
 /-- Regression: normalize a paper affine-tail interval sum directly into an offset sum on the
 shifted sequence `k ↦ f (a + k)`.
 
