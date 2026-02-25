@@ -1114,6 +1114,51 @@ lemma sum_Icc_length_eq_apSumFrom_tail_add (f : ℕ → ℤ) (a d m n : ℕ) :
   simpa using
     (apSumFrom_tail_eq_sum_Icc_length_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-- Mul-left variant of `apSumFrom_tail_eq_sum_Icc_length`, with the summand written as
+`f (a + d * (m+i))` instead of `f (a + (m+i) * d)`.
+
+This avoids commuting multiplication under binders when you are working in a `d * i` convention.
+-/
+lemma apSumFrom_tail_eq_sum_Icc_length_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f (a + d * (m + i))) := by
+  calc
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = (Finset.Icc 1 n).sum (fun i => f (a + d * (m + i))) := by
+      simpa using
+        (apSumOffset_eq_sum_Icc_length_mul_left (f := fun k => f (a + k)) (d := d) (m := m)
+          (n := n))
+
+/-- Mul-left + translation-friendly variant of `apSumFrom_tail_eq_sum_Icc_length_mul_left`,
+with the summand written as `f (d * (m+i) + a)`.
+-/
+lemma apSumFrom_tail_eq_sum_Icc_length_mul_left_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f (d * (m + i) + a)) := by
+  have h := apSumFrom_tail_eq_sum_Icc_length_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+  have hsummand : (fun i => f (a + d * (m + i))) = (fun i => f (d * (m + i) + a)) := by
+    funext i
+    have hcomm : a + d * (m + i) = d * (m + i) + a := by
+      simpa using Nat.add_comm a (d * (m + i))
+    simpa [hcomm] using congrArg f hcomm
+  simpa [hsummand] using h
+
+/-- Inverse orientation of `apSumFrom_tail_eq_sum_Icc_length_mul_left`. -/
+lemma sum_Icc_length_eq_apSumFrom_tail_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + d * (m + i))) =
+      apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_sum_Icc_length_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumFrom_tail_eq_sum_Icc_length_mul_left_add`. -/
+lemma sum_Icc_length_eq_apSumFrom_tail_mul_left_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (d * (m + i) + a)) =
+      apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumFrom_tail_eq_sum_Icc_length_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-- Normal form (paper → nucleus, tail, translation-friendly): when `m ≤ n`, rewrite the interval sum
 `∑ i ∈ Icc (m+1) n, f (i*d + a)` to the affine tail sum `apSumFrom f (a + m*d) d (n - m)`.
 

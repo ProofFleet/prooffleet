@@ -1061,6 +1061,20 @@ example :
   simpa using
     apSumFrom_tail_eq_sum_Icc_length_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Mul-left length-indexed variant (avoid commuting multiplication under binders): `a + d*(m+i)`.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f (a + d * (m + i))) := by
+  simpa using
+    apSumFrom_tail_eq_sum_Icc_length_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Mul-left + translation-friendly length-indexed variant: `d*(m+i) + a`.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f (d * (m + i) + a)) := by
+  simpa using
+    apSumFrom_tail_eq_sum_Icc_length_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Variable upper endpoints appear often in surface statements.
 -- When `m ≤ n`, normalize `∑ i ∈ Icc (m+1) n, f (i*d + a)` into the canonical tail length `n - m`.
 example (hmn : m ≤ n) :
