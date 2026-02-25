@@ -94,6 +94,38 @@ example :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: paper-notation affine tails normalize directly into the offset-sum nucleus API,
+using the translation-friendly `i*d + a` summand convention.
+
+This exercises `sum_Icc_eq_apSumOffset_shift_add_add`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using (sum_Icc_eq_apSumOffset_shift_add_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: inequality-endpoint companion of the previous paper → nucleus normalization.
+
+This exercises `sum_Icc_eq_apSumOffset_shift_add_of_le_add`.
+-/
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
+/-- Regression: mul-left variant of `sum_Icc_eq_apSumOffset_shift_add_of_le_add`, avoiding `i*d`.
+
+This exercises `sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add`.
+-/
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
 /-- Regression: add-left start variant of `apSumFrom_tail_eq_apSumOffset_shift_add`.
 
 This exercises `apSumFrom_tail_eq_apSumOffset_shift_add_left`.
