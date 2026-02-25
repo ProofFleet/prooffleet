@@ -214,6 +214,18 @@ example (n₁ n₂ : ℕ) :
   simpa using
     (apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Regression: mul-left variant of the previous normal form, with the translation constant written
+as `d * (m + n₁)`.
+
+This exercises `apSumOffset_sub_eq_apSumOffset_shift_add_mul_left`.
+-/
+example (n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      apSumOffset (fun k => f (k + d * (m + n₁))) d 0 n₂ := by
+  simpa using
+    (apSumOffset_sub_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂))
+
 /-- Regression: “step-one” normalization for offset AP sums, using the translation-friendly
 `k * d + const` summand convention.
 
