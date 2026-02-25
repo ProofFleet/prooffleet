@@ -876,6 +876,17 @@ lemma apSumOffset_eq_apSum_shift (f : ℕ → ℤ) (d m n : ℕ) :
   -- rewrite the AP index in the summand
   simp [hmul]
 
+/-- Mul-left variant of `apSumOffset_eq_apSum_shift` with translation constant written as `d*m`.
+
+This avoids an extra commutativity rewrite when your surrounding development already prefers
+multiplication-on-the-left forms (`d * i`) and hence naturally produces constants as `d*m`.
+-/
+lemma apSumOffset_eq_apSum_shift_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (d * m + k)) d n := by
+  -- Start from the canonical `m*d + k` normal form and rewrite `m*d` as `d*m`.
+  simpa [Nat.mul_comm] using
+    (apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n))
+
 /-- Variant of `apSumOffset_eq_apSum_shift` written in the translation-friendly `k + const` form.
 
 This can be convenient when composing with lemmas that are oriented as `x ↦ x + k`.
