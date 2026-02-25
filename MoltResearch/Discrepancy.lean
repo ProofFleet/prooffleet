@@ -40,6 +40,15 @@ Two conventions that pay for themselves quickly:
   - suffix `_add_left` usually means the constant is on the **left**: `fun k => f (a + k)`;
   - when multiplication is involved, `_add_left` often corresponds to the paper-friendly `k * d + a`.
 
+  A small but practical consequence: when you are trying to normalize *affine tails* into an
+  `apSumOffset` on a shifted sequence, the `_shift_add` lemma family keeps the binder in the
+  translation-friendly `k + a` form:
+
+  - `apSumFrom f (a + m*d) d n` ↦ `apSumOffset (fun k => f (k + a)) d m n` via
+    `apSumFrom_tail_eq_apSumOffset_shift_add`.
+
+  This avoids having to commute `Nat.add_comm` under a lambda later.
+
   When in doubt, reach for the `_add` / `_add_left` variants (e.g. `apSumFrom_tail_eq_sum_Icc_add`,
   `sum_Icc_eq_apSumFrom_tail_of_le_add`, `apSumFrom_tail_succ_length_add_left`,
   `apSumOffset_eq_apSum_shift_add`).
