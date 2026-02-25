@@ -16,6 +16,18 @@ section NormalFormExamples
 
 variable (f : ℕ → ℤ) (a d m n : ℕ)
 
+/-- Regression: `apSum` at `n = 0` (simp lemma `apSum_zero`). -/
+example : apSum f d 0 = 0 := by
+  simpa using (apSum_zero (f := f) (d := d))
+
+/-- Regression: `apSumOffset` at `n = 0` (simp lemma `apSumOffset_zero`). -/
+example : apSumOffset f d m 0 = 0 := by
+  simpa using (apSumOffset_zero (f := f) (d := d) (m := m))
+
+/-- Regression: `apSumFrom` at `n = 0` (simp lemma `apSumFrom_zero`). -/
+example : apSumFrom f a d 0 = 0 := by
+  simpa using (apSumFrom_zero (f := f) (a := a) (d := d))
+
 /-- Regression: “step-one” normalization for homogeneous AP sums.
 
 This exercises `apSum_eq_apSum_step_one`.
