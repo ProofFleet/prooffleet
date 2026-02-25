@@ -264,6 +264,32 @@ example :
     HasAffineDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
   simpa using (HasAffineDiscrepancyAtLeast.of_map_add_left (f := f) (k := k) (C := C))
 
+/-! ### Degenerate normal form regression examples
+
+These are tiny compile-time checks for common “degenerate” simp normal forms.
+-/
+
+/-- Regression: rewrite the `m = 0` offset sum back to the homogeneous sum.
+
+This exercises `apSumOffset_zero_m`.
+-/
+example : apSumOffset f d 0 n = apSum f d n := by
+  simpa using (apSumOffset_zero_m (f := f) (d := d) (n := n))
+
+/-- Regression: simplify a homogeneous AP sum when the step size is zero.
+
+This exercises `apSum_zero_d`.
+-/
+example : apSum f 0 n = n • f 0 := by
+  simpa using (apSum_zero_d (f := f) (n := n))
+
+/-- Regression: simplify an offset AP sum when the step size is zero.
+
+This exercises `apSumOffset_zero_d`.
+-/
+example : apSumOffset f 0 m n = n • f 0 := by
+  simpa using (apSumOffset_zero_d (f := f) (m := m) (n := n))
+
 /-- Regression: rewrite the canonical difference `apSum f d (m+n) - apSum f d m` to the fixed-lower-endpoint
 length-indexed interval-sum form over `Icc 1 n`.
 
