@@ -1,1009 +1,1297 @@
 import MoltResearch.Discrepancy
 
 /-!
-# Discrepancy: normal-form regression examples
+# Discrepancy normal-form regression examples
 
-This file contains small `example` blocks intended as *compile-time regression tests*
-for the preferred normal-form rewrite pipelines described in `MoltResearch/Discrepancy.lean`.
+This module is a standalone compilation test-bed for the preferred “normal form” rewrite pipelines.
 
-These are not meant to be deep theorems; they are here to keep the stable lemma names and
-orientations from accidentally drifting.
+It intentionally imports only the **stable surface** `MoltResearch.Discrepancy`.
+Downstream developments should not need to import this file.
 -/
 
 namespace MoltResearch
 
 section NormalFormExamples
 
-variable (f : ℕ → ℤ) (a d m n : ℕ)
+variable (f : ℕ → ℤ) (a d m n n₁ n₂ : ℕ)
 
-/-- Regression: `apSum` at `n = 0` (simp lemma `apSum_zero`). -/
-example : apSum f d 0 = 0 := by
-  simpa using (apSum_zero (f := f) (d := d))
+example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
+  simpa using apSum_eq_sum_Icc (f := f) (d := d) (n := n)
 
-/-- Regression: `apSumOffset` at `n = 0` (simp lemma `apSumOffset_zero`). -/
-example : apSumOffset f d m 0 = 0 := by
-  simpa using (apSumOffset_zero (f := f) (d := d) (m := m))
+example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
+  simpa using sum_Icc_eq_apSum (f := f) (d := d) (n := n)
 
-/-- Regression: `apSumFrom` at `n = 0` (simp lemma `apSumFrom_zero`). -/
-example : apSumFrom f a d 0 = 0 := by
-  simpa using (apSumFrom_zero (f := f) (a := a) (d := d))
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by
+  simpa using apSum_eq_sum_Icc_mul_left (f := f) (d := d) (n := n)
 
-/-- Regression: “step-one” normalization for homogeneous AP sums.
+example : (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
+  simpa using sum_Icc_eq_apSum_mul_left (f := f) (d := d) (n := n)
 
-This exercises `apSum_eq_apSum_step_one`.
--/
-example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
-  simpa using (apSum_eq_apSum_step_one (f := f) (d := d) (n := n))
+example : apSum f 1 n = (Finset.Icc 1 n).sum f := by
+  simpa using apSum_one_d (f := f) (n := n)
 
-/-- Regression: “step-one” normalization for affine AP sums, using the translation-friendly
-`k * d + a` summand convention.
+-- Affine tails as offset sums (both summand conventions).
 
-This exercises `apSumFrom_eq_apSum_step_one_add_left`.
--/
-example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
-  simpa using (apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n))
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: “step-one” normalization for affine AP sums directly into the `apSumOffset` API.
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
-This exercises `apSumFrom_eq_apSumOffset_step_one_zero_m_add_left`.
--/
-example : apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+-- Same normal form, but with the affine start written as `m*d + a`.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Switching between `a + k` and `k + a` inside the shifted-sequence view of `apSumOffset`.
+example : apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Commuting `a + k` ↔ `k + a` under the nucleus sums.
+--
+-- These are small but useful “normalization” steps when you want a translation-friendly `k + const`
+-- summand shape without doing a manual `funext` rewrite.
+example : apSum (fun k => f (a + k)) d n = apSum (fun k => f (k + a)) d n := by
+  simpa using apSum_shift_comm (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom (fun x => f (a + x)) m d n = apSumFrom (fun x => f (x + a)) m d n := by
+  simpa using apSumFrom_shift_comm (f := f) (a := a) (k := m) (d := d) (n := n)
+
+-- “Push the translation into the function” normal forms.
+--
+-- These are mathematically the same as the `…_shift` / `…_shift_add` family, but the `map_add`
+-- naming makes it easier to spot (in a proof script) that the translation has been packaged into
+-- the function itself.
+example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n)
+
+-- Differences → tails (canonical normal form).
+
+example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+  simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+  simpa using apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- If you prefer the canonical offset-sum normal form on the shifted sequence `k ↦ f (k + a)`,
+-- rewrite the same difference directly to `apSumOffset`.
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  -- Two-step “difference → affine tail → offset on a shifted sequence” normal form.
+  --
+  -- This is a regression test for the Track B glue lemma
+  -- apSumFrom_sub_eq_apSumOffset_shift_add: even if that lemma gets refactored,
+  -- we want this common rewrite pipeline to keep working from the stable import
+  -- surface `import MoltResearch.Discrepancy`.
+  calc
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+      simpa using
+        apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSumOffset (fun k => f (k + a)) d m n := by
+      simpa using
+        apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Tail-of-tail differences → offset-sum tails (and the `m = 0` shifted-sequence normal form).
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
   simpa using
-    (apSumFrom_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (n := n))
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
 
-/-- Regression: canonical affine difference normalizes to an offset sum on a shifted sequence
-(translation-friendly `k + a` form). -/
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + (a + (m + n₁) * d))) d 0 n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
+-- Degenerate constant APs.
+example : apSum f 0 n = n • f 0 := by
+  simp
+
+example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
+  simpa using apSum_eq_apSum_step_one (f := f) (d := d) (n := n)
+
+example : apSum (fun k => f (k * d)) 1 n = apSum f d n := by
+  simpa using apSum_step_one_eq_apSum (f := f) (d := d) (n := n)
+
+-- Offset/tail normal forms.
+example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+  simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+-- Same difference normal form, but eliminate the explicit offset sum into a homogeneous AP sum
+-- on a shifted sequence.
+example : apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n := by
+  simpa using apSum_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d 0 n = apSum f d n := by
+  simp
+
+example : apSumFrom f 0 d n = apSum f d n := by
+  simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
+
+example : apSum f d n = apSumFrom f 0 d n := by
+  simpa using apSum_eq_apSumFrom (f := f) (d := d) (n := n)
+
+-- Offset sums: shifted-sequence normal forms (translation-friendly `k + const`).
+example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
+-- Same normal form, but write the translation constant as `d*m` (mul-left convention).
+example : apSumOffset f d m n = apSum (fun k => f (k + d * m)) d n := by
+  simpa using apSumOffset_eq_apSum_shift_add_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- Differences of offset sums: mul-left translation constant variant.
+example :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      apSum (fun k => f (k + d * (m + n₁))) d n₂ := by
+  simpa using
+    apSumOffset_sub_eq_apSum_shift_add_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+  simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
+
+-- Same normal form, but write the translation constant as `d*m` (mul-left convention).
+example : apSumOffset f d m n = apSumOffset (fun k => f (k + d * m)) d 0 n := by
+  simpa using
+    apSumOffset_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- Paper normal form: rewrite `Icc (m+1) (m+n)` tails to the fixed-lower-endpoint `Icc 1 n` form.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+      (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  simpa using sum_Icc_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)
+
+-- Translation-friendly `d * i` variant.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) =
+      (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  simpa using sum_Icc_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- Offset paper notation: multiplication-on-the-left variants (avoid commuting `i*d` under binders).
+example : apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  simpa using apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)
+
+example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- Offset sums on a shifted sequence: return to the affine-tail nucleus API.
+example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m)
+    (n := n)
+
+example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (m * d + a) d n := by
+  simpa using apSumOffset_shift_add_eq_apSumFrom_tail_left (f := f) (a := a) (d := d) (m := m)
+    (n := n)
+
+-- Affine sums: shift-add normal form (translation-friendly `k + a`).
+example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
+  simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
+
+-- Same affine sum, but with the translation “pushed into the function” form `x ↦ f (x + a)`.
+-- This is handy when you want to reuse translation lemmas stated for homogeneous `apSum`.
+example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+
+-- Affine paper notation: multiplication-on-the-left variants (avoid commuting `i*d` under binders).
+example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + d * i)) := by
+  simpa using apSumFrom_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (d * i + a)) := by
+  simpa using apSumFrom_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (n := n)
+
+-- Affine differences: normalize to an offset sum on a shifted sequence.
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+  simpa using
+    apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: canonical affine difference normalizes to a homogeneous sum on a shifted sequence.
-
-This exercises `apSumFrom_sub_eq_apSum_shift_add`.
--/
-example :
-    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (a + m * d))) d n := by
-  simpa using (apSumFrom_sub_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: add-left variant of the previous normal form (translation constant written as `m*d + a`).
-
-This exercises `apSumFrom_sub_eq_apSum_shift_add_left`.
--/
+-- Same difference normal form, but eliminate the tail parameter into a homogeneous AP sum.
+-- Writing the translation constant as `m*d + a` avoids a commutativity rewrite.
 example :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (m * d + a))) d n := by
   simpa using
-    (apSumFrom_sub_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_sub_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: mul-left variant of the add-left normal form (translation constant written as `d*m + a`).
+-- Translation-friendly affine “step-one” normal forms.
+example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
+  simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
 
-This exercises `apSumFrom_sub_eq_apSum_shift_add_mul_left`.
--/
-example :
-    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (d * m + a))) d n := by
+example : apSumFrom f (a + m * d) d n = apSum (fun k => f (k * d + (a + m * d))) 1 n := by
   simpa using
-    (apSumFrom_sub_eq_apSum_shift_add_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: mul-left translation-constant wrapper for splitting affine sums by length.
-
-This exercises `apSumFrom_add_length_eq_add_apSum_shift_add_mul_left`.
--/
-example :
-    apSumFrom f a d (m + n) =
-      apSumFrom f a d m + apSum (fun k => f (k + (d * m + a))) d n := by
+-- Same tail step-one normal form, but with the affine start already written as `m*d + a`.
+example : apSumFrom f (m * d + a) d n = apSum (fun k => f (k * d + (m * d + a))) 1 n := by
   simpa using
-    (apSumFrom_add_length_eq_add_apSum_shift_add_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_tail_eq_apSum_step_one_add_left_start_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n)
 
-/-- Regression: commute the affine translation into the *function* (map-add normal form).
-
-This exercises `apSumFrom_eq_apSum_map_add`.
--/
-example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
-  simpa using (apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n))
-
-/-- Regression: `a + x` variant of the map-add normal form.
-
-This exercises `apSumFrom_eq_apSum_map_add_left`.
--/
-example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
-  simpa using (apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n))
-
-/-- Regression: affine AP sums normalize to homogeneous sums on a shifted sequence, using the
-`a + k` summand convention.
-
-This exercises `apSumFrom_eq_apSum_shift`.
--/
-example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
-  simpa using (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n))
-
-/-- Regression: offset sums normalize to homogeneous sums on a shifted sequence, using the
-`m*d + k` summand convention.
-
-This exercises `apSumOffset_eq_apSum_shift`.
--/
-example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
-  simpa using (apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: offset sums on a shifted sequence normalize to a homogeneous sum on a further-shifted
-sequence, using the `a + k` binder convention.
-
-This exercises `apSumOffset_shift_add_left_eq_apSum_shift_add_left`.
--/
+-- Regression: tail head+tail normal form (translation-friendly add-left form).
 example :
-    apSumOffset (fun k => f (a + k)) d m n = apSum (fun k => f ((a + m * d) + k)) d n := by
+    apSumFrom f (a + m * d) d (n + 1) =
+      f ((m + 1) * d + a) + apSumFrom f ((m + 1) * d + a) d n := by
   simpa using
-    (apSumOffset_shift_add_left_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m)
-      (n := n))
+    apSumFrom_tail_succ_length_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: inverse orientation of the previous normal form.
-
-This exercises `apSum_shift_add_left_eq_apSumOffset_shift_add_left`.
--/
+-- Regression: tail append-one-term normal form (translation-friendly add-left form).
 example :
-    apSum (fun k => f ((a + m * d) + k)) d n = apSumOffset (fun k => f (a + k)) d m n := by
+    apSumFrom f (a + m * d) d (n + 1) = apSumFrom f (a + m * d) d n + f ((m + n + 1) * d + a) := by
   simpa using
-    (apSum_shift_add_left_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m)
-      (n := n))
+    apSumFrom_tail_succ_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: affine tails normalize to `apSumOffset` on the shifted sequence `k ↦ f (k + a)`.
-
-This is a common glue step when downstream lemmas are stated for `apSumOffset` only.
--/
-example :
-    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+-- Regression: tail normal forms when the affine start is already written as `m*d + a`.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
-    (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: same affine-tail normal form, with the shifted sequence written as `k ↦ f (a + k)`.
-
-This exercises `apSumFrom_tail_eq_apSumOffset_shift`.
--/
-example :
-    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+example : apSumFrom f (m * d + a) d n = apSum (fun k => f (k + (m * d + a))) d n := by
   simpa using
-    (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_tail_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: split an affine AP sum by length and normalize the tail as an offset sum on the
-shifted sequence `k ↦ f (a + k)`.
-
-This exercises `apSumFrom_add_length_eq_add_apSumOffset_shift`.
--/
-example :
-    apSumFrom f a d (m + n) = apSumFrom f a d m + apSumOffset (fun k => f (a + k)) d m n := by
-  simpa using
-    (apSumFrom_add_length_eq_add_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: split off the *last* term of an affine tail sum, with the affine start written as
-`m*d + a`.
-
-This exercises `apSumFrom_tail_succ_start_add_left`.
--/
 example :
     apSumFrom f (m * d + a) d (n + 1) =
-      apSumFrom f (m * d + a) d n + f ((m + n + 1) * d + a) := by
+      f ((m + 1) * d + a) + apSumFrom f ((m + 1) * d + a) d n := by
   simpa using
-    (apSumFrom_tail_succ_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_tail_succ_length_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: split off the *last* term of an affine tail sum, using the translation-friendly
-`(n+1)*d + a` convention.
-
-This exercises `apSumFrom_tail_succ_length_add_left`.
--/
 example :
-    apSumFrom f a d (n + 1) = apSumFrom f a d n + f ((n + 1) * d + a) := by
+    apSumFrom f (m * d + a) d (n + 1) = apSumFrom f (m * d + a) d n + f ((m + n + 1) * d + a) := by
   simpa using
-    (apSumFrom_tail_succ_length_add_left (f := f) (a := a) (d := d) (m := 0) (n := n))
+    apSumFrom_tail_succ_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: split off the *last* term of an affine tail sum, with the affine start written as
-`m*d + a`, using the translation-friendly `(m+n+1)*d + a` convention.
+-- Step-one normalization that stays inside the offset nucleus API (`m = 0`) in the
+-- translation-friendly `k*d + const` presentation.
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k * d + (a + m * d))) 1 0 n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n)
 
-This exercises `apSumFrom_tail_succ_length_start_add_left`.
--/
+-- Same step-one offset-sum normal form, but with the affine start already written as `m*d + a`.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k * d + (m * d + a))) 1 0 n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left_start_add_left (f := f) (a := a) (d := d)
+      (m := m) (n := n)
+
+-- Step-one normalization that keeps the offset parameter `m`, with the summand written as
+-- `a + k*d`.
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k * d)) 1 m n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Offset ↔ affine normal forms.
+example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
+  simpa using apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)
+
+example : apSumFrom f (m * d) d n = apSumOffset f d m n := by
+  simpa using apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+-- Same offset normal form, but with the affine start written as `d*m` (avoids a commutativity
+-- rewrite in downstream goals).
+example : apSumFrom f (d * m) d n = apSumOffset f d m n := by
+  simpa using apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+-- Step-one normalization that stays inside the affine nucleus API.
+example : apSumFrom f a d n = apSumFrom (fun k => f (a + k * d)) 0 1 n := by
+  simpa using apSumFrom_eq_apSumFrom_step_one (f := f) (a := a) (d := d) (n := n)
+
+-- Differences of partial sums: normalize to tails early.
+example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+  simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+-- If you want the *fixed lower endpoint* paper normal form (useful for splitting by length),
+-- rewrite the same difference directly to an `Icc 1 n` interval sum.
+example : apSum f d (m + n) - apSum f d m = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  simpa using apSum_sub_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)
+
+-- Same paper normal form, but in the translation-friendly `d * (m+i)` binder convention.
+example : apSum f d (m + n) - apSum f d m = (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  simpa using apSum_sub_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- And you can normalize back into the nucleus API without carrying a variable upper endpoint.
+example : (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset_length (f := f) (d := d) (m := m) (n := n)
+
+example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+  simpa using
+    apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Offset sums: additional normal forms that tend to compose well.
+example : apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
+  simpa using apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
+-- Eliminate an offset parameter `m` by absorbing it into a translation constant.
 example :
-    apSumFrom f (m * d + a) d (n + 1) =
-      apSumFrom f (m * d + a) d n + f ((m + n + 1) * d + a) := by
+    apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
   simpa using
-    (apSumFrom_tail_succ_length_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: paper-notation affine tails normalize directly into the offset-sum nucleus API,
-using the translation-friendly `i*d + a` summand convention.
+-- Affine tails/differences as offset sums on a shifted sequence (translation-friendly `k + a`).
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
-This exercises `sum_Icc_eq_apSumOffset_shift_add_add`.
--/
+-- Split affine tails by length, with the second block expressed as an `apSumOffset` on the
+-- shifted sequence `k ↦ f (k + a)`.
 example :
-    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) =
-      apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using (sum_Icc_eq_apSumOffset_shift_add_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: inverse orientation of `sum_Icc_eq_apSumOffset_shift_add_add`.
-
-This exercises `apSumOffset_shift_add_eq_sum_Icc_add`.
--/
-example :
-    apSumOffset (fun k => f (k + a)) d m n =
-      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
-  simpa using
-    (apSumOffset_shift_add_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left variant of `apSumOffset_shift_add_eq_sum_Icc_add`, avoiding `i*d`.
-
-This exercises `apSumOffset_shift_add_eq_sum_Icc_mul_left_add`.
--/
-example :
-    apSumOffset (fun k => f (k + a)) d m n =
-      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) := by
-  simpa using
-    (apSumOffset_shift_add_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: inequality-endpoint companion of the previous paper → nucleus normalization.
-
-This exercises `sum_Icc_eq_apSumOffset_shift_add_of_le_add`.
--/
-example (hmn : m ≤ n) :
-    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) =
-      apSumOffset (fun k => f (k + a)) d m (n - m) := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_shift_add_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n)
-      (hmn := hmn))
-
-/-- Regression: mul-left variant of `sum_Icc_eq_apSumOffset_shift_add_of_le_add`, avoiding `i*d`.
-
-This exercises `sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add`.
--/
-example (hmn : m ≤ n) :
-    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) =
-      apSumOffset (fun k => f (k + a)) d m (n - m) := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
-      (hmn := hmn))
-
-/-- Regression: add-left start variant of `apSumFrom_tail_eq_apSumOffset_shift_add`.
-
-This exercises `apSumFrom_tail_eq_apSumOffset_shift_add_left`.
--/
-example :
-    apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using
-    (apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: head+tail normal form for affine tails, with the affine start written as `m*d + a`.
-
-This exercises `apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add_start_add_left`.
--/
-example :
-    apSumFrom f (m * d + a) d (n + 1) =
-      f ((m + 1) * d + a) + apSumOffset (fun k => f (k + a)) d (m + 1) n := by
-  simpa using
-    (apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add_start_add_left
-      (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: the `m = 0` inverse direction of the previous normalization (offset sum on a shifted
-sequence ↦ affine sum).
-
-This exercises `apSumOffset_shift_add_eq_apSumFrom`.
--/
-example : apSumOffset (fun k => f (k + a)) d 0 n = apSumFrom f a d n := by
-  simpa using (apSumOffset_shift_add_eq_apSumFrom (f := f) (a := a) (d := d) (n := n))
-
-/-- Regression: inverse normal form for *general* offset sums on a shifted sequence.
-
-This exercises `apSumOffset_shift_add_eq_apSumFrom_tail`.
--/
-example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
-  simpa using
-    (apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: `m*d + a` wrapper of the previous inverse normal form.
-
-This exercises `apSumOffset_shift_add_eq_apSumFrom_tail_left`.
--/
-example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (m * d + a) d n := by
-  simpa using
-    (apSumOffset_shift_add_eq_apSumFrom_tail_left (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left variant of the previous normal form (affine start written as `a + d*m`).
-
-This exercises `apSumFrom_tail_eq_apSumOffset_shift_add_mul_left`.
--/
-example :
-    apSumFrom f (a + d * m) d n = apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using
-    (apSumFrom_tail_eq_apSumOffset_shift_add_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: split an affine tail by length, with the second part normalized as an offset sum on
-`k ↦ f (k + a)`.
-
-This exercises `apSumFrom_tail_add_length_eq_add_apSumOffset_shift_add`.
--/
-example (n₁ n₂ : ℕ) :
     apSumFrom f (a + m * d) d (n₁ + n₂) =
       apSumFrom f (a + m * d) d n₁ + apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
   simpa using
-    (apSumFrom_tail_add_length_eq_add_apSumOffset_shift_add
-      (f := f) (a := a) (d := d) (m := m) (n1 := n₁) (n2 := n₂))
+    apSumFrom_tail_add_length_eq_add_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
 
-/-- Regression: tail affine AP sum as a homogeneous AP sum on a further-shifted sequence, with the
-starting point written as `m*d + a`.
-
-This exercises `apSumFrom_tail_eq_apSum_shift_add_left`.
--/
+-- Same normal form, but keep the shifted sequence in the `a + k` shape.
 example :
-    apSumFrom f (m * d + a) d n = apSum (fun k => f (k + (m * d + a))) d n := by
+    apSumFrom f (a + m * d) d (n₁ + n₂) =
+      apSumFrom f (a + m * d) d n₁ + apSumOffset (fun k => f (a + k)) d (m + n₁) n₂ := by
   simpa using
-    (apSumFrom_tail_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_tail_add_length_eq_add_apSumOffset_shift (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
 
-/-- Regression: eliminate the tail parameter by absorbing it into the translation constant.
-
-This exercises `apSumFrom_tail_eq_apSumOffset_shift_add_zero_m`.
--/
+-- Further normalize affine tails by absorbing `m` into the translation constant (so the offset is `0`).
 example :
     apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
   simpa using
-    (apSumFrom_tail_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_tail_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: split an affine AP sum by length and eliminate the offset parameter by absorbing it
-into the translation constant.
+-- Same normalization, but eliminate the now-trivial offset sum (`m = 0`) into a homogeneous AP sum.
+example :
+    apSumFrom f (a + m * d) d n = apSum (fun k => f (k + (a + m * d))) d n := by
+  simpa using
+    apSumFrom_tail_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
-This exercises `apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m`.
--/
+-- Same idea, but for the standard `m+n` splitting normal form.
 example :
     apSumFrom f a d (m + n) =
       apSumFrom f a d m + apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
   simpa using
-    (apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m)
-      (n := n))
+    apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m)
+      (n := n)
 
-/-- Regression: `m*d + a` variant of the previous normal form.
-
-This exercises `apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_left`.
--/
+-- Same splitting normal form, but eliminate the now-trivial offset sum (`m = 0`) into a
+-- homogeneous AP sum on a shifted sequence.
 example :
     apSumFrom f a d (m + n) =
-      apSumFrom f a d m + apSumOffset (fun k => f (k + (m * d + a))) d 0 n := by
+      apSumFrom f a d m + apSum (fun k => f (k + (a + m * d))) d n := by
   simpa using
-    (apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_left (f := f) (a := a) (d := d)
-      (m := m) (n := n))
+    apSumFrom_add_length_eq_add_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: canonical affine difference normal form, with the offset parameter eliminated.
-
-This exercises `apSumFrom_sub_eq_apSumOffset_shift_add_zero_m`.
--/
+-- Same, with the translation constant written as `m*d + a` (often avoids commutativity rewrites).
 example :
-    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSum (fun k => f (k + (m * d + a))) d n := by
+  -- `AffineTail` has the main lemma in the `(a + m*d)` presentation; this wrapper just
+  -- reassociates/commutes the translation constant.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_add_length_eq_add_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+-- Same normal form, but with the affine start written as `m*d + a` (avoids a commutativity rewrite).
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
-    (apSumFrom_sub_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: `m*d + a` variant of the previous canonical affine difference normal form.
+-- Same normalization, but eliminate the tail parameter entirely into a homogeneous AP sum.
+example : apSumFrom f (m * d + a) d n = apSum (fun k => f (k + (m * d + a))) d n := by
+  simpa using
+    apSumFrom_tail_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-This exercises `apSumFrom_sub_eq_apSumOffset_shift_add_zero_m_left`.
--/
+-- If you prefer to keep the shifted summand in the `a + k` form, use the corresponding wrappers.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    apSumFrom_tail_eq_apSumOffset_shift_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example : apSumOffset (fun k => f (a + k)) d m n = apSumFrom f (m * d + a) d n := by
+  simpa using
+    apSumOffset_shift_eq_apSumFrom_tail_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
+  simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
+
+-- If you have already shifted the summand `k ↦ f (k + a)`, normalize back to the canonical
+-- `apSumFrom f a d n` form.
+example : apSumFrom (fun k => f (k + a)) 0 d n = apSumFrom f a d n := by
+  simpa using apSumFrom_shift_add_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
+
+-- Same normal form, but with the shifted summand written as `a + k` (avoids a commutativity rewrite
+-- under binders).
+example : apSumFrom f a d n = apSumFrom (fun k => f (a + k)) 0 d n := by
+  simpa using apSumFrom_eq_apSumFrom_shift_add_left (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom (fun k => f (a + k)) 0 d n = apSumFrom f a d n := by
+  simpa using apSumFrom_shift_add_left_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
+
+-- Translation (additive reindexing) normal forms.
+-- These are lightweight but practical: they let you commute a shift through the nucleus APIs
+-- without needing to unfold `apSumFrom` and fight `Nat.add_*` under binders.
+
+-- Commute a translation in the binder convention for `apSum` (normal-form helper).
+example : apSum (fun x => f (a + x)) d n = apSum (fun x => f (x + a)) d n := by
+  simpa using apSum_shift_comm (f := f) (a := a) (d := d) (n := n)
+
+-- Same commutation normal form, but inside `apSumOffset`.
+example : apSumOffset (fun x => f (a + x)) d m n = apSumOffset (fun x => f (x + a)) d m n := by
+  simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same commutation normal form, but inside `apSumFrom`.
+example : apSumFrom (fun x => f (a + x)) m d n = apSumFrom (fun x => f (x + a)) m d n := by
+  simpa using apSumFrom_shift_comm (f := f) (a := a) (k := m) (d := d) (n := n)
+
+example : apSumFrom (fun x => f (x + m)) a d n = apSumFrom f (a + m) d n := by
+  simpa using apSumFrom_map_add (f := f) (k := m) (a := a) (d := d) (n := n)
+
+example : apSumFrom (fun x => f (m + x)) a d n = apSumFrom f (m + a) d n := by
+  simpa using apSumFrom_map_add_left (f := f) (k := m) (a := a) (d := d) (n := n)
+
+-- Translation under the homogeneous nucleus API.
+example : apSum (fun x => f (x + a)) d n = apSumFrom f a d n := by
+  simpa using apSum_map_add (f := f) (k := a) (d := d) (n := n)
+
+example : apSum (fun x => f (a + x)) d n = apSumFrom f a d n := by
+  simpa using apSum_map_add_left (f := f) (k := a) (d := d) (n := n)
+
+-- Translation under the offset nucleus API.
+example : apSumOffset (fun x => f (x + a)) d m n = apSumFrom f (m * d + a) d n := by
+  simpa using apSumOffset_map_add (f := f) (k := a) (d := d) (m := m) (n := n)
+
+-- Inverse orientation: normalize an affine tail with start `m*d + a` back into an offset sum
+-- on a shifted sequence.
+example : apSumFrom f (m * d + a) d n = apSumOffset (fun x => f (x + a)) d m n := by
+  simpa using apSumFrom_start_add_left_eq_apSumOffset_map_add (f := f) (k := a) (d := d) (m := m)
+    (n := n)
+
+example : apSumOffset (fun x => f (a + x)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using apSumOffset_map_add_left (f := f) (k := a) (d := d) (m := m) (n := n)
+
+example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Step-one normal form: package the step size `d` into the summand.
 example :
-    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + (m * d + a))) d 0 n := by
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k * d + (a + m * d))) 1 n := by
   simpa using
-    (apSumFrom_sub_eq_apSumOffset_shift_add_zero_m_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumFrom_sub_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: canonical difference of offset sums normalizes to an `m = 0` offset sum on a shifted
-sequence.
+-- Inequality normal form: subtracting two affine partial sums as a tail sum.
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (m := m) (n := n)
+    hmn
 
-This exercises `apSumOffset_sub_eq_apSumOffset_shift_add`.
--/
-example (n₁ n₂ : ℕ) :
+-- Paper-notation fixed-length tail → nucleus offset normal form: rewrite
+-- `∑ i ∈ Icc (m+1) (m+n), f (i*d + a)` directly to an `apSumOffset` on the shifted sequence.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    sum_Icc_eq_apSumOffset_shift_add_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Mul-left + translation-friendly variant: `f (d*i + a)`.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Paper-notation inequality normal form: `Icc (m+1) n` tails for affine sums.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumFrom_tail_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+-- Mul-left variants: `d * i` binder form.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumFrom_tail_of_le_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) = apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumFrom_tail_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
+example : apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
+  simpa using apSum_succ (f := f) (d := d) (n := n)
+
+example : apSum f d (n + 1) = f d + apSumOffset f d 1 n := by
+  simpa using apSum_succ_length (f := f) (d := d) (n := n)
+
+example : apSumOffset f d 0 n = apSum f d n := by
+  simp
+
+example : apSumOffset f d m 0 = 0 := by
+  simp
+
+-- Single-term normal forms (useful when you want to peel a tail down to one summand).
+example : apSumOffset f d m 1 = f ((m + 1) * d) := by
+  simpa using apSumOffset_one (f := f) (d := d) (m := m)
+
+example : apSumFrom f a d 1 = f (a + d) := by
+  -- `apSumFrom` is the affine AP sum over `a + d, a + 2d, ...`.
+  simpa using apSumFrom_one (f := f) (a := a) (d := d)
+
+-- Degenerate constant AP tails.
+example : apSumOffset f 0 m n = n • f 0 := by
+  simp
+
+example : apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
+  simpa using apSumOffset_succ_length (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
+  simpa using apSumOffset_succ (f := f) (d := d) (m := m) (n := n)
+
+example :
+    apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simpa using apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+example : apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
+  simpa using apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n)
+
+-- Canonical “difference of partial sums” normal form: rewrite subtraction into a tail.
+example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+  simpa using apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
+  simpa using (apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)).symm
+
+-- Variable upper endpoints often appear in surface statements. When `m ≤ n`, normalize
+-- `∑ i ∈ Icc (m+1) n, ...` into the canonical tail length `n - m`.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
+  simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) := by
+  simpa using apSumOffset_eq_sum_Icc_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+-- Translation-friendly `d * i` variants (avoid commuting multiplication under binders).
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSumOffset f d m (n - m) := by
+  simpa using sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) := by
+  simpa using apSumOffset_eq_sum_Icc_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
+
+-- If you want to eliminate `apSumOffset` entirely, normalize paper tails directly into an
+-- `apSum` on a shifted sequence.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSum (fun k => f (k + m * d)) d (n - m) := by
+  simpa using sum_Icc_eq_apSum_shift_add_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSum (fun k => f (k + m * d)) d (n - m) := by
+  simpa using sum_Icc_eq_apSum_shift_add_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+  simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
+
+-- Same difference normal form, but rewrite the tail into a homogeneous AP sum on a shifted sequence.
+example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSum (fun k => f (k + m * d)) d (n - m) := by
+  simpa using apSum_sub_apSum_eq_apSum_shift_add_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+-- Same difference normal form, but eliminate the offset parameter by shifting the underlying
+-- sequence so the offset is `0`.
+example (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = apSumOffset (fun k => f (k + m * d)) d 0 (n - m) := by
+  simpa using
+    apSum_sub_apSum_eq_apSumOffset_shift_add_of_le (f := f) (d := d) (m := m) (n := n) hmn
+
+example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
+  simpa using apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSumOffset (fun k => f (k * d)) 1 m n := by
+  simpa using apSumOffset_eq_apSumOffset_step_one (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset (fun k => f (k * d)) 1 m n = apSumOffset f d m n := by
+  simpa using apSumOffset_step_one_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSum (fun k => f ((m + k) * d)) 1 n := by
+  simpa using apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)
+
+-- Multiplication-on-the-left variant (avoids commuting `(_ * d)` under binders).
+example : apSumOffset f d m n = apSum (fun k => f (d * (m + k))) 1 n := by
+  simpa using apSumOffset_eq_apSum_step_one_mul_left (f := f) (d := d) (m := m) (n := n)
+
+-- Multiplication-on-the-left + translation-friendly variant: `k ↦ f (d*k + d*m)`.
+example : apSumOffset f d m n = apSum (fun k => f (d * k + d * m)) 1 n := by
+  simpa using
+    apSumOffset_eq_apSum_step_one_mul_left_add_left (f := f) (d := d) (m := m) (n := n)
+
+example : apSum (fun k => f ((m + k) * d)) 1 n = apSumOffset f d m n := by
+  simpa using apSum_step_one_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+-- A translation-friendly variant of the step-one form: `k ↦ f (k*d + m*d)`.
+example : apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
+  simpa using apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSumOffset (fun k => f ((m + k) * d)) 1 0 n := by
+  simpa using apSumOffset_eq_apSumOffset_step_one_zero_m (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSumOffset (fun k => f (k * d + m * d)) 1 0 n := by
+  simpa using
+    apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n)
+
+-- Multiplication-on-the-left, translation-friendly step-one normal form that stays inside the
+-- offset nucleus API (`m = 0`).
+example : apSumOffset f d m n = apSumOffset (fun k => f (d * k + d * m)) 1 0 n := by
+  simpa using
+    apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f := f) (d := d) (m := m)
+      (n := n)
+
+example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
+  simpa using apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
+
+-- A convenient normal form: eliminate the explicit offset parameter by shifting the underlying
+-- sequence and resetting the offset to `0`.
+example : apSumOffset f d m n = apSumOffset (fun k => f (k + m * d)) d 0 n := by
+  simpa using apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset (fun k => f (k + m * d)) d 0 n = apSumOffset f d m n := by
+  simpa using apSumOffset_shift_add_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
+
+-- Splitting a paper-notation tail sum into consecutive blocks matches the nucleus split lemma.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+  simpa using sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  simpa using
+    sum_Icc_add_length_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Paper difference normal form: subtracting the first block leaves the tail block.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+  simpa using
+    sum_Icc_sub_sum_Icc_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  simpa using
+    sum_Icc_sub_sum_Icc_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Paper difference → nucleus normal form: convert directly to an `apSumOffset` tail.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) =
+      apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    sum_Icc_sub_sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) =
+      apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    sum_Icc_sub_sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Variable upper endpoints often appear in surface statements. When `m ≤ k ≤ n`, split the
+-- interval sum at `k`. 
+example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (i * d)) +
+        (Finset.Icc (k + 1) n).sum (fun i => f (i * d)) := by
+  simpa using sum_Icc_split_of_le (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
+
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
+example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (d * i)) +
+        (Finset.Icc (k + 1) n).sum (fun i => f (d * i)) := by
+  simpa using
+    sum_Icc_split_of_le_mul_left (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
+
+-- Nucleus counterpart: when `m ≤ k ≤ n`, split the tail `apSumOffset f d m (n - m)` at `k`.
+example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
+    apSumOffset f d m (n - m) =
+      apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
+  simpa using
+    apSumOffset_eq_add_apSumOffset_of_le (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
+
+-- Affine paper splitting: mul-left form `a + d*i`.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + d * i)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + d * i)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (a + d * i)) := by
+  simpa using
+    sum_Icc_add_length_affine_mul_left (f := f) (a := a) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Affine paper splitting: mul-left + translation-friendly form `d*i + a`.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i + a)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i + a)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i + a)) := by
+  simpa using
+    sum_Icc_add_length_affine_mul_left_add (f := f) (a := a) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂)
+
+-- Normal form: a later tail as a difference of a longer tail and its initial segment.
+example :
+    apSumOffset f d (m + n₁) n₂ = apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ := by
+  simpa using apSumOffset_tail_eq_sub (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Normal form: difference of offset sums with the same `m` becomes a later tail.
+example :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
+  simpa using apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+-- Same difference normal form, but eliminate the tail offset parameter by shifting the underlying
+-- sequence and resetting the offset to `0`.
+example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
       apSumOffset (fun k => f (k + (m + n₁) * d)) d 0 n₂ := by
   simpa using
-    (apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+    apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
-/-- Regression: mul-left variant of the previous normal form, with the translation constant written
-as `d * (m + n₁)`.
+-- Same difference normal form, but eliminate the explicit `apSumOffset` into an `apSum` on a
+-- shifted sequence.
+example :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by
+  simpa using apSumOffset_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
-This exercises `apSumOffset_sub_eq_apSumOffset_shift_add_mul_left`.
--/
-example (n₁ n₂ : ℕ) :
+example (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) (n₂ - n₁) := by
+  simpa using
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn)
+
+-- Same inequality normal form, but eliminate the offset parameter by shifting the underlying
+-- sequence and resetting the offset to `0`.
+example (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      apSumOffset (fun k => f (k + (m + n₁) * d)) d 0 (n₂ - n₁) := by
+  simpa using
+    apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn)
+
+-- Same inequality normal form, but eliminate the explicit `apSumOffset` into an `apSum` on a
+-- shifted sequence.
+example (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      apSum (fun k => f (k + (m + n₁) * d)) d (n₂ - n₁) := by
+  simpa using
+    apSumOffset_sub_apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn)
+
+-- Splitting a longer tail into an initial segment plus a (normalized) later tail.
+example (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) (n₂ - n₁) := by
+  simpa using
+    apSumOffset_eq_add_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+      (hn := hn)
+
+example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
-      apSumOffset (fun k => f (k + d * (m + n₁))) d 0 n₂ := by
-  simpa using
-    (apSumOffset_sub_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m) (n₁ := n₁)
-      (n₂ := n₂))
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+  simpa using apSumOffset_sub_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
-/-- Regression: mul-left normal form for the inequality version `n₁ ≤ n₂`. -/
-example {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+example (hn : n₁ ≤ n₂) :
     apSumOffset f d m n₂ - apSumOffset f d m n₁ =
-      apSumOffset (fun k => f (k + d * (m + n₁))) d 0 (n₂ - n₁) := by
+      (Finset.Icc (m + n₁ + 1) (m + n₂)).sum (fun i => f (i * d)) := by
   simpa using
-    (apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m)
-      (n₁ := n₁) (n₂ := n₂) (hn := hn))
+    apSumOffset_sub_apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+      (hn := hn)
 
-/-- Regression: mul-left normal form for the inequality version `n₁ ≤ n₂`, into a homogeneous sum. -/
-example {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+-- Translation-friendly `d * i` variants (avoid commuting multiplication under binders).
+example :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (d * i)) := by
+  simpa using
+    apSumOffset_sub_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+example (hn : n₁ ≤ n₂) :
     apSumOffset f d m n₂ - apSumOffset f d m n₁ =
-      apSum (fun k => f (k + d * (m + n₁))) d (n₂ - n₁) := by
+      (Finset.Icc (m + n₁ + 1) (m + n₂)).sum (fun i => f (d * i)) := by
   simpa using
-    (apSumOffset_sub_apSumOffset_eq_apSum_shift_add_mul_left (f := f) (d := d) (m := m)
-      (n₁ := n₁) (n₂ := n₂) (hn := hn))
+    apSumOffset_sub_apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn)
 
-/-- Regression: “step-one” normalization for offset AP sums, using the translation-friendly
-`k * d + const` summand convention.
-
-This exercises `apSumOffset_eq_apSum_step_one_add_left`.
--/
-example : apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
-  simpa using
-    (apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: tail affine AP sum as a step-one offset sum that *keeps* the tail parameter.
-
-This exercises `apSumFrom_tail_eq_apSumOffset_step_one_add_left`.
--/
 example :
-    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k * d + a)) 1 m n := by
-  simpa using
-    (apSumFrom_tail_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSum f d (m + n) - apSum f d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+  simpa using apSum_sub_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)
 
-/-- Regression: “step-one” normalization for offset AP sums, keeping an `apSumOffset` shape and
-eliminating the explicit offset parameter.
-
-This exercises `apSumOffset_eq_apSumOffset_step_one_zero_m`.
--/
-example : apSumOffset f d m n = apSumOffset (fun k => f ((m + k) * d)) 1 0 n := by
-  simpa using
-    (apSumOffset_eq_apSumOffset_step_one_zero_m (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: variant of the previous lemma using the translation-friendly `k * d + const`
-convention.
-
-This exercises `apSumOffset_eq_apSumOffset_step_one_zero_m_add_left`.
--/
-example : apSumOffset f d m n = apSumOffset (fun k => f (k * d + m * d)) 1 0 n := by
-  simpa using
-    (apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: eliminate the explicit offset parameter by rewriting to a homogeneous `apSum` on a
-shifted sequence (translation-friendly `k + const` form).
-
-This exercises `apSumOffset_eq_apSum_shift_add`.
--/
-example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
-  simpa using (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left variant of the previous normal form (translation constant written as `d*m`).
-
-This exercises `apSumOffset_eq_apSum_shift_add_mul_left`.
--/
-example : apSumOffset f d m n = apSum (fun k => f (k + d * m)) d n := by
-  simpa using
-    (apSumOffset_eq_apSum_shift_add_mul_left (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: normalize a difference of homogeneous partial sums into an offset sum with
-zero offset on a shifted sequence.
-
-This exercises `apSum_sub_eq_apSumOffset_shift_add`.
--/
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
 example :
-    apSum f d (m + n) - apSum f d m = apSumOffset (fun k => f (k + m * d)) d 0 n := by
-  simpa using (apSum_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n))
+    apSum f d (m + n) - apSum f d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  simpa using apSum_sub_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)
 
-/-- Regression: mul-left variant of the previous normal form (translation constant written as `d*m`).
-
-This exercises `apSum_sub_eq_apSum_shift_add_mul_left`.
--/
 example :
-    apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + d * m)) d n := by
-  simpa using (apSum_sub_eq_apSum_shift_add_mul_left (f := f) (d := d) (m := m) (n := n))
+    apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+  simpa using apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n)
 
-/-- Regression: compose a shift-add translation with the offset-to-homogeneous normal form.
-
-This exercises `apSumOffset_shift_add_eq_apSum_shift_add`.
--/
+-- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
 example :
-    apSumOffset (fun k => f (k + a)) d m n = apSum (fun k => f (k + (a + m * d))) d n := by
-  simpa using
-    (apSumOffset_shift_add_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+    apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
+  simpa using apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)
 
-/-! ### Paper ↔ nucleus regression examples (homogeneous)
+-- Fixed-lower-endpoint (“length-indexed”) paper notation.
+example : apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
+  simpa using apSumOffset_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n)
 
-These are compile-time checks that the basic paper-notation interval sums normalize cleanly
-into the nucleus `apSum` API (and back).
--/
+example : (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset_length (f := f) (d := d) (m := m) (n := n)
 
-/-- Regression: normalize the paper homogeneous AP interval sum into `apSum`.
+-- Translation-friendly `d * (m+i)` variant.
+example : apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
+  simpa using apSumOffset_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n)
 
-This exercises `sum_Icc_eq_apSum`.
--/
+example : (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset_length_mul_left (f := f) (d := d) (m := m) (n := n)
+
+example : apSumOffset f 1 m n = (Finset.Icc (m + 1) (m + n)).sum f := by
+  simpa using apSumOffset_one_d (f := f) (m := m) (n := n)
+
 example :
-    (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
-  simpa using (sum_Icc_eq_apSum (f := f) (d := d) (n := n))
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simpa using sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 
-/-- Regression: translation-friendly `d * i` variant of the previous normalization lemma.
-
-This exercises `sum_Icc_eq_apSum_mul_left`.
--/
 example :
-    (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
-  simpa using (sum_Icc_eq_apSum_mul_left (f := f) (d := d) (n := n))
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSum f d (m + n) - apSum f d m := by
+  simpa using sum_Icc_eq_apSum_sub (f := f) (d := d) (m := m) (n := n)
 
-/-- Regression: rewrite `apSum` back to paper interval-sum notation.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
+  simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
-This exercises `apSum_eq_sum_Icc`.
--/
-example :
-    apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
-  simpa using (apSum_eq_sum_Icc (f := f) (d := d) (n := n))
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSum f d n - apSum f d m := by
+  simpa using sum_Icc_eq_apSum_sub_apSum_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
-/-- Regression: mul-left variant of `apSum_eq_sum_Icc`.
+example (hmn : m ≤ n) :
+    apSumOffset f d m (n - m) = apSum f d n - apSum f d m := by
+  simpa using apSumOffset_eq_apSum_sub_apSum_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
-This exercises `apSum_eq_sum_Icc_mul_left`.
--/
-example :
-    apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by
-  simpa using (apSum_eq_sum_Icc_mul_left (f := f) (d := d) (n := n))
+example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) := by
+  simpa using apSum_sub_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hmn
 
-/-! ### Paper ↔ nucleus regression examples (homogeneous, `m ≤ n` offset intervals)
+example (hmn : m ≤ n) :
+    apSum f d n - apSum f d m = (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) := by
+  simpa using apSum_sub_apSum_eq_sum_Icc (f := f) (d := d) (m := m) (n := n) hmn
 
-These are compile-time checks that the `m ≤ n` paper-notation tail interval sums normalize cleanly
-into the nucleus `apSumOffset` API (and back).
--/
-
-variable (m₁ n₁ : ℕ) (hmn₁ : m₁ ≤ n₁)
-
-/-- Regression: `m ≤ n` paper tail interval sum normalizes to `apSumOffset`. 
-
-This exercises `sum_Icc_eq_apSumOffset_of_le`.
--/
-example :
-    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (i * d)) = apSumOffset f d m₁ (n₁ - m₁) := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m₁) (n := n₁) hmn₁)
-
-/-- Regression: mul-left variant of the previous normalization lemma.
-
-This exercises `sum_Icc_eq_apSumOffset_of_le_mul_left`.
--/
-example :
-    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (d * i)) = apSumOffset f d m₁ (n₁ - m₁) := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m₁) (n := n₁) hmn₁)
-
-/-- Regression: rewrite `apSumOffset` back to paper interval-sum notation.
-
-This exercises `apSumOffset_eq_sum_Icc_of_le`.
--/
-example :
-    apSumOffset f d m₁ (n₁ - m₁) = (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (i * d)) := by
-  simpa using
-    (apSumOffset_eq_sum_Icc_of_le (f := f) (d := d) (m := m₁) (n := n₁) hmn₁)
-
-/-- Regression: mul-left variant of the previous rewrite lemma.
-
-This exercises `apSumOffset_eq_sum_Icc_of_le_mul_left`.
--/
-example :
-    apSumOffset f d m₁ (n₁ - m₁) = (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (d * i)) := by
-  simpa using
-    (apSumOffset_eq_sum_Icc_of_le_mul_left (f := f) (d := d) (m := m₁) (n := n₁) hmn₁)
-
-/-! ### Paper ↔ nucleus regression examples (affine)
-
-These are compile-time checks that the paper-notation interval sums for affine APs normalize
-cleanly into the nucleus `apSumFrom` API (and back).
--/
-
-/-- Regression: normalize the paper affine AP interval sum into `apSumFrom`.
-
-This exercises `sum_Icc_eq_apSumFrom`.
--/
 example :
     (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
-  simpa using (sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n))
+  simpa using sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
 
-/-- Regression: translation-friendly `i*d + a` variant of the previous normalization lemma.
+example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
+  simpa using apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)
 
-This exercises `sum_Icc_eq_apSumFrom_add`.
--/
+-- Translation-friendly paper notation: avoid commuting `a + …` under binders.
+example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (i * d + a)) := by
+  simpa using apSumFrom_eq_sum_Icc_add (f := f) (a := a) (d := d) (n := n)
+
+example : (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumFrom f a d n := by
+  simpa using sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n)
+
+-- Affine start `a = 0` recovers the homogeneous AP sum.
+example : apSumFrom f 0 d n = apSum f d n := by
+  simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
+
+example : apSumFrom f a 1 n = (Finset.Icc 1 n).sum (fun i => f (a + i)) := by
+  simpa using apSumFrom_one_d (f := f) (a := a) (n := n)
+
+example : apSumFrom f a d (n + 1) = apSumFrom f a d n + f (a + (n + 1) * d) := by
+  simpa using apSumFrom_succ (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d 0 = 0 := by
+  simp
+
+example : apSumFrom f a d (n + 1) = f (a + d) + apSumFrom f (a + d) d n := by
+  simpa using apSumFrom_succ_length (f := f) (a := a) (d := d) (n := n)
+
 example :
-    (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumFrom f a d n := by
-  simpa using (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n))
+    apSumFrom f a d (n₁ + n₂) = apSumFrom f a d n₁ + apSumFrom f (a + n₁ * d) d n₂ := by
+  simpa using apSumFrom_add_length (f := f) (a := a) (d := d) (m := n₁) (n := n₂)
 
-/-- Regression: mul-left variant of the previous normalization lemma.
+example : apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
+  simpa using apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := n)
 
-This exercises `sum_Icc_eq_apSumFrom_mul_left`.
--/
+example : apSumFrom f a 0 n = n • f a := by
+  simp
+
+-- Affine sums at `a = 0` are just homogeneous AP sums.
+example : apSumFrom f 0 d n = apSum f d n := by
+  simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
+
+example : apSum f d n = apSumFrom f 0 d n := by
+  simpa using apSum_eq_apSumFrom (f := f) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
+  simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
+  simpa using apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n)
+
+-- Sometimes you want to package the translation as a map on the sequence `f` itself.
+-- These lemmas commute the `+ a` past the multiplication inside the binder.
+example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
+  simpa using apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
+  simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+  simpa using
+    apSumFrom_eq_apSumOffset_step_one_zero_m (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa using
+    apSumFrom_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (n := n)
+
+example : apSum (fun k => f (a + k * d)) 1 n = apSumFrom f a d n := by
+  simpa using apSum_step_one_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
+  simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
+
+-- Canonical affine difference `(m+n) - m` as an offset sum on the shifted sequence.
 example :
-    (Finset.Icc 1 n).sum (fun i => f (a + d * i)) = apSumFrom f a d n := by
-  simpa using (sum_Icc_eq_apSumFrom_mul_left (f := f) (a := a) (d := d) (n := n))
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: rewrite `apSumFrom` back to paper interval-sum notation.
+-- Variable upper endpoints appear in surface statements.
+-- When `m ≤ n`, normalize the difference `apSumFrom … n - apSumFrom … m` into the canonical tail
+-- length `n - m` (in translation-friendly `k + a` form).
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn)
 
-This exercises `apSumFrom_eq_sum_Icc`.
--/
+-- Inverse orientation: normalize an `apSumOffset` tail sum on a shifted sequence back into a
+-- difference of affine partial sums.
+example (hmn : m ≤ n) :
+    apSumOffset (fun k => f (k + a)) d m (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    apSumOffset_shift_add_eq_apSumFrom_sub_apSumFrom_of_le (f := f) (a := a) (d := d) (m := m)
+      (n := n) (hmn := hmn)
+
+-- Splitting an affine partial sum at an intermediate point, with the tail normalized into the
+-- `apSumOffset` API on a shifted sequence.
+example (hmn : m ≤ n) :
+    apSumFrom f a d n = apSumFrom f a d m + apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    apSumFrom_eq_add_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn)
+
+-- “Paper notation” for affine tails, in the translation-friendly `i*d + a` form.
 example :
-    apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
-  simpa using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n))
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
+  simpa using apSumFrom_tail_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
-/-- Regression: normalize the paper affine *difference* interval sum into a difference of nucleus
-`apSumFrom` partial sums.
+-- Same tail paper notation, but in the mul-left `a + d*i` form.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) := by
+  simpa using apSumFrom_tail_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
-This exercises `sum_Icc_eq_apSumFrom_sub`.
--/
+-- Same tail paper notation, in the mul-left + translation-friendly `d*i + a` form.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) := by
+  simpa using
+    apSumFrom_tail_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Length-indexed paper notation for affine tails (fixed lower endpoint `1`).
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f (a + (m + i) * d)) := by
+  simpa using apSumFrom_tail_eq_sum_Icc_length (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Translation-friendly length-indexed variant, with the summand written as `(m+i)*d + a`.
+example :
+    apSumFrom f (a + m * d) d n =
+      (Finset.Icc 1 n).sum (fun i => f ((m + i) * d + a)) := by
+  simpa using
+    apSumFrom_tail_eq_sum_Icc_length_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Variable upper endpoints appear often in surface statements.
+-- When `m ≤ n`, normalize `∑ i ∈ Icc (m+1) n, f (i*d + a)` into the canonical tail length `n - m`.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) =
+      apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumFrom_tail_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example : apSumFrom f (a + m * d) d n = apSum (fun k => f (a + (m + k) * d)) 1 n := by
+  simpa using apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example : apSum (fun k => f (a + (m + k) * d)) 1 n = apSumFrom f (a + m * d) d n := by
+  simpa using apSum_step_one_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Head+tail normal form for affine tails: increment the tail parameter `m`.
+example :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f (a + (m + 1) * d) + apSumFrom f (a + (m + 1) * d) d n := by
+  simpa using apSumFrom_tail_succ_length (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Same head+tail normal form, but with the remaining tail expressed as an `apSumOffset`.
+example :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f (a + (m + 1) * d) + apSumOffset (fun k => f (a + k)) d (m + 1) n := by
+  simpa using
+    apSumFrom_tail_succ_length_eq_add_apSumOffset_shift (f := f) (a := a) (d := d) (m := m)
+      (n := n)
+
+-- Translation-friendly variant (`k + a` inside binders, and `(m+1)*d + a` for the head term).
+example :
+    apSumFrom f (a + m * d) d (n + 1) =
+      f ((m + 1) * d + a) + apSumOffset (fun k => f (k + a)) d (m + 1) n := by
+  simpa using
+    apSumFrom_tail_succ_length_eq_add_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+      (n := n)
+
+example : apSumFrom f a d n = apSumOffset (fun k => f (a + k)) d 0 n := by
+  simpa using apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
+  simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
+
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+  simpa using apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f (a + m * d) d n = apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
+  simpa using sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ m + n) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      (Finset.Icc (m + 1) k).sum (fun i => f (a + i * d)) +
+        (Finset.Icc (k + 1) (m + n)).sum (fun i => f (a + i * d)) := by
+  simpa using
+    (sum_Icc_split_affine_of_le (f := f) (a := a) (d := d) (m := m) (k := k) (n := m + n) hmk hkn)
+
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) := by
+  simpa using apSumFrom_sub_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Translation-friendly `d*i + a` surface form (avoid commuting multiplication under binders).
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) := by
+  simpa using
+    apSumFrom_sub_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) =
+      apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using
+    sum_Icc_eq_apSumFrom_sub_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
+
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
       apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using sum_Icc_eq_apSumFrom_sub (f := f) (a := a) (d := d) (m := m) (n := n)
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d (n - m) := by
   simpa using
-    (sum_Icc_eq_apSumFrom_sub (f := f) (a := a) (d := d) (m := m) (n := n))
+    (sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn)
 
-/-- Regression: `m ≤ n` variant of paper affine difference normalization.
+example (hmn : m ≤ n) :
+    apSumFrom f (a + m * d) d (n - m) = apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using apSumFrom_tail_eq_sub_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn
 
-This exercises `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le`.
--/
-example :
-    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (a + i * d)) =
-      apSumFrom f a d n₁ - apSumFrom f a d m₁ := by
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) := by
+  simpa using apSumFrom_sub_apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) = apSumFrom f a d n - apSumFrom f a d m := by
   simpa using
-    (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le (f := f) (a := a) (d := d) (m := m₁) (n := n₁) hmn₁)
-
-/-- Regression: translation-friendly `i*d + a` variant of the `m ≤ n` paper affine difference normalization.
-
-This exercises `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_add`.
--/
-example :
-    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (i * d + a)) =
-      apSumFrom f a d n₁ - apSumFrom f a d m₁ := by
-  simpa using
-    (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_add (f := f) (a := a) (d := d) (m := m₁) (n := n₁) hmn₁)
-
-/-- Regression: mul-left `a + d*i` variant of the `m ≤ n` paper affine difference normalization.
-
-This exercises `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left`.
--/
-example :
-    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (a + d * i)) =
-      apSumFrom f a d n₁ - apSumFrom f a d m₁ := by
-  simpa using
-    (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left (f := f) (a := a) (d := d) (m := m₁)
-      (n := n₁) hmn₁)
-
-/-- Regression: mul-left + translation-friendly `d*i + a` variant of the `m ≤ n` paper affine
- difference normalization.
-
-This exercises `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left_add`.
--/
-example :
-    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (d * i + a)) =
-      apSumFrom f a d n₁ - apSumFrom f a d m₁ := by
-  simpa using
-    (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m₁)
-      (n := n₁) hmn₁)
-
-/-- Regression: normalize a paper affine-tail interval sum directly into an offset sum on the
-shifted sequence `k ↦ f (a + k)`.
-
-This exercises `sum_Icc_eq_apSumOffset_shift`.
--/
-example :
-    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (a + k)) d m n := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left variant of the previous normalization lemma.
-
-This exercises `sum_Icc_eq_apSumOffset_shift_mul_left`.
--/
-example :
-    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) = apSumOffset (fun k => f (a + k)) d m n := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_shift_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: translation-friendly `i*d + a` variant of the affine-tail normalization.
-
-This exercises `sum_Icc_eq_apSumOffset_shift_add_add`.
--/
-example :
-    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) = apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_shift_add_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left + translation-friendly `d*i + a` variant of the affine-tail normalization.
-
-This exercises `sum_Icc_eq_apSumOffset_shift_add_mul_left_add`.
--/
-example :
-    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) = apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: inverse orientation of `apSumOffset_shift_add_eq_apSum_shift_add`.
-
-This exercises `apSum_shift_add_eq_apSumOffset_shift_add`.
--/
-example :
-    apSum (fun k => f (k + (a + m * d))) d n = apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using
-    (apSum_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: eliminate an explicit offset parameter in a shifted-sequence offset sum.
-
-This exercises `apSumOffset_shift_add_eq_apSumOffset_shift_add`.
--/
-example :
-    apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
-  simpa using
-    (apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: add-left variant of the previous normal form.
-
-This exercises `apSumOffset_shift_add_left_eq_apSumOffset_shift_add_left`.
--/
-example :
-    apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f ((a + m * d) + k)) d 0 n := by
-  simpa using
-    (apSumOffset_shift_add_left_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m)
-      (n := n))
-
-/-! ### Predicate-level translation regression examples
-
-These are tiny compile-time checks for the translation lemmas on discrepancy predicates
-(`HasDiscrepancyAtLeast` / `HasAffineDiscrepancyAtLeast`).
--/
-
-variable (C k : ℕ)
+    sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn
 
 example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumFrom f (a + (m + n₁) * d) d n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n1 := n₁)
+      (n2 := n₂)
+
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (a + k)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_tail (f := f) (a := a) (d := d) (m := m) (n1 := n₁)
+      (n2 := n₂)
+
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
+-- Further normalize tail-of-tail differences by absorbing the explicit offset into the translation.
+example :
+    apSumFrom f (a + m * d) d (n₁ + n₂) - apSumFrom f (a + m * d) d n₁ =
+      apSumOffset (fun k => f (k + (a + (m + n₁) * d))) d 0 n₂ := by
+  simpa using
+    apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂)
+
+example :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ d n : ℕ,
+          d ≥ 1 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
+  simpa using forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos (f := f)
+
+example :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ d n : ℕ,
+          d > 0 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C) := by
+  simpa using forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos (f := f)
+
+example :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ (∀ C : ℕ, Nonempty (DiscrepancyWitnessPos f C)) := by
+  simpa using forall_hasDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f := f)
+
+example :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ, Nonempty (AffineDiscrepancyWitnessPos f C)) := by
+  simpa using forall_hasAffineDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f := f)
+
+example :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ a d n : ℕ,
+          d ≥ 1 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) > C) := by
+  simpa using
+    forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos (f := f)
+
+example :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ,
+        ∃ a d n : ℕ,
+          d > 0 ∧ n > 0 ∧ Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) > C) := by
+  simpa using
+    forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos (f := f)
+
+example :
+    (∀ C : ℕ, HasAffineDiscrepancyAtLeast f C) ↔
+      (∀ C : ℕ, ∃ a : ℕ, HasDiscrepancyAtLeast (fun k => f (a + k)) C) := by
+  simpa using forall_hasAffineDiscrepancyAtLeast_iff_forall_exists_shift (f := f)
+
+/-! ### Transform / reindexing regression tests -/
+
+example (k : ℕ) : apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
+  simpa using apSum_map_mul (f := f) (k := k) (d := d) (n := n)
+
+example (k : ℕ) : apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
+  simpa using apSum_map_add (f := f) (k := k) (d := d) (n := n)
+
+example (k : ℕ) : apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
+  simpa using apSum_map_add_left (f := f) (k := k) (d := d) (n := n)
+
+example (k : ℕ) : apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (k + m * d) d n := by
+  simpa using apSumOffset_map_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
+
+example (k : ℕ) : apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (k + m * d) d n := by
+  simpa using apSumOffset_map_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
+
+-- Regression: compose a shift-add reindexing with the offset→shift normal form.
+example (k : ℕ) :
+    apSumOffset (fun x => f (x + k)) d m n = apSum (fun x => f (x + (k + m * d))) d n := by
+  simpa using apSumOffset_shift_add_eq_apSum_shift_add (f := f) (a := k) (d := d) (m := m)
+    (n := n)
+
+-- Add-left (`k + x`) variant of the same regression.
+example (k : ℕ) :
+    apSumOffset (fun x => f (k + x)) d m n = apSum (fun x => f ((k + m * d) + x)) d n := by
+  simpa using
+    apSumOffset_shift_add_left_eq_apSum_shift_add_left (f := f) (a := k) (d := d) (m := m) (n := n)
+
+-- Regression: inverse orientation (rewrite a shifted homogeneous sum back into an offset sum).
+example (k : ℕ) :
+    apSum (fun x => f (x + (k + m * d))) d n = apSumOffset (fun x => f (x + k)) d m n := by
+  simpa using apSum_shift_add_eq_apSumOffset_shift_add (f := f) (a := k) (d := d) (m := m) (n := n)
+
+example (k C : ℕ) (hk : k > 0) :
+    HasDiscrepancyAtLeast (fun x => f (x * k)) C → HasDiscrepancyAtLeast f C := by
+  intro h
+  exact HasDiscrepancyAtLeast.of_map_mul (f := f) (hk := hk) (h := h)
+
+example (k C : ℕ) :
     HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
-  simpa using (HasDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C))
+  intro h
+  exact HasDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C) h
+
+example (c : ℤ) (hc : c ≠ 0) (C : ℕ) :
+    HasDiscrepancyAtLeast f C → HasDiscrepancyAtLeast (fun n => c * f n) C := by
+  intro h
+  exact HasDiscrepancyAtLeast.mul_left_of_ne_zero (f := f) (C := C) c hc h
+
+
+
+-- A few regression-test examples for the affine/offset “glue” normal forms.
+-- These are intentionally small: they protect the stable import surface
+-- `import MoltResearch.Discrepancy` against accidental breakage.
+
+variable (a d m n : ℕ)
+
+example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
 example :
-    HasDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
-  simpa using (HasDiscrepancyAtLeast.of_map_add_left (f := f) (k := k) (C := C))
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
 example :
-    HasAffineDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
-  simpa using (HasAffineDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C))
-
-example :
-    HasAffineDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
-  simpa using (HasAffineDiscrepancyAtLeast.of_map_add_left (f := f) (k := k) (C := C))
-
-/-! ### Degenerate normal form regression examples
-
-These are tiny compile-time checks for common “degenerate” simp normal forms.
--/
-
-/-- Regression: rewrite the `m = 0` offset sum back to the homogeneous sum.
-
-This exercises `apSumOffset_zero_m`.
--/
-example : apSumOffset f d 0 n = apSum f d n := by
-  simpa using (apSumOffset_zero_m (f := f) (d := d) (n := n))
-
-/-- Regression: simplify a homogeneous AP sum when the step size is zero.
-
-This exercises `apSum_zero_d`.
--/
-example : apSum f 0 n = n • f 0 := by
-  simpa using (apSum_zero_d (f := f) (n := n))
-
-/-- Regression: simplify an offset AP sum when the step size is zero.
-
-This exercises `apSumOffset_zero_d`.
--/
-example : apSumOffset f 0 m n = n • f 0 := by
-  simpa using (apSumOffset_zero_d (f := f) (m := m) (n := n))
-
-/-- Regression: an affine AP sum starting at `a = 0` is just a homogeneous AP sum.
-
-This exercises `apSumFrom_zero_a`.
--/
-example : apSumFrom f 0 d n = apSum f d n := by
-  simpa using (apSumFrom_zero_a (f := f) (d := d) (n := n))
-
-/-- Regression: an affine AP sum with step size `d = 0` collapses to repeated evaluation at the start.
-
-This exercises `apSumFrom_zero_d`.
--/
-example : apSumFrom f a 0 n = n • f a := by
-  simpa using (apSumFrom_zero_d (f := f) (a := a) (n := n))
-
-/-- Regression: inverse orientation of `apSumFrom_zero_a`.
-
-This exercises `apSum_eq_apSumFrom`.
--/
-example : apSum f d n = apSumFrom f 0 d n := by
-  simpa using (apSum_eq_apSumFrom (f := f) (d := d) (n := n))
-
-/-- Regression: rewrite the canonical difference `apSum f d (m+n) - apSum f d m` to the fixed-lower-endpoint
-length-indexed interval-sum form over `Icc 1 n`.
-
-This exercises `apSum_sub_eq_sum_Icc_length`.
--/
-example :
-    apSum f d (m + n) - apSum f d m = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) := by
-  simpa using (apSum_sub_eq_sum_Icc_length (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: rewrite the length-indexed paper interval sum back to the nucleus offset-sum API.
-
-This exercises `sum_Icc_eq_apSumOffset_length`.
--/
-example :
-    (Finset.Icc 1 n).sum (fun i => f ((m + i) * d)) = apSumOffset f d m n := by
-  simpa using (sum_Icc_eq_apSumOffset_length (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: rewrite the paper affine-tail interval sum (translation-friendly `i*d + a`) back
-into the nucleus affine tail normal form.
-
-This exercises `sum_Icc_eq_apSumFrom_tail_add`.
--/
-example :
-    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) = apSumFrom f (a + m * d) d n := by
-  simpa using (sum_Icc_eq_apSumFrom_tail_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left + translation-friendly variant of the previous normalization lemma.
-
-This exercises `sum_Icc_eq_apSumFrom_tail_mul_left_add`.
--/
-example :
-    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) = apSumFrom f (a + m * d) d n := by
-  simpa using
-    (sum_Icc_eq_apSumFrom_tail_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: rewrite the nucleus affine tail sum to the fixed-lower-endpoint (1) length-indexed
-interval-sum form, using the translation-friendly `((m+i)*d + a)` summand convention.
-
-This exercises `apSumFrom_tail_eq_sum_Icc_length_add`.
--/
-example :
-    apSumFrom f (a + m * d) d n = (Finset.Icc 1 n).sum (fun i => f ((m + i) * d + a)) := by
-  simpa using (apSumFrom_tail_eq_sum_Icc_length_add (f := f) (a := a) (d := d) (m := m) (n := n))
-
-/-- Regression: rewrite an offset sum as an affine sum starting at a multiple of the step size.
-
-This exercises `apSumOffset_eq_apSumFrom`.
--/
-example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
-  simpa using (apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: inverse orientation of `apSumOffset_eq_apSumFrom`.
-
-This exercises `apSumFrom_mul_eq_apSumOffset`.
--/
-example : apSumFrom f (m * d) d n = apSumOffset f d m n := by
-  simpa using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left variant of the previous lemma.
-
-This exercises `apSumFrom_mul_left_eq_apSumOffset`.
--/
-example : apSumFrom f (d * m) d n = apSumOffset f d m n := by
-  simpa using (apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: rewrite `apSumFrom` to `apSumOffset` when the affine start is definitionally a
-multiple of the step size.
-
-This exercises `apSumFrom_eq_apSumOffset_of_eq_mul`.
--/
-example (ha : a = m * d) : apSumFrom f a d n = apSumOffset f d m n := by
-  simpa [ha] using
-    (apSumFrom_eq_apSumOffset_of_eq_mul (f := f) (a := a) (d := d) (m := m) (n := n) (ha := ha))
-
-/-- Regression: rewrite `apSumFrom` to an `apSumOffset` form when the affine start is a multiple of
-the step size, expressed as a divisibility hypothesis.
-
-This exercises `apSumFrom_exists_eq_apSumOffset_of_dvd`.
--/
-example (h : d ∣ a) : ∃ m, apSumFrom f a d n = apSumOffset f d m n := by
-  simpa using
-    (apSumFrom_exists_eq_apSumOffset_of_dvd (f := f) (a := a) (d := d) (n := n) (h := h))
-
-/-! ### Additional paper↔nucleus regression examples (`m ≤ n` normalization)
-
-These are compile-time checks for the convenience lemmas that normalize an interval-sum with a
-variable upper endpoint `n` (under a hypothesis `m ≤ n`) into the canonical nucleus offset-sum form
-`apSumOffset f d m (n - m)` (and back).
--/
-
-variable (m1 n1 : ℕ) (hmn : m1 ≤ n1)
-
-/-- Regression: normalize a paper interval sum with variable upper endpoint into an offset sum. -/
-example :
-    (Finset.Icc (m1 + 1) n1).sum (fun i => f (i * d)) = apSumOffset f d m1 (n1 - m1) := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m1) (n := n1) hmn)
-
-/-- Regression: translation-friendly `d * i` variant of the previous normalization lemma. -/
-example :
-    (Finset.Icc (m1 + 1) n1).sum (fun i => f (d * i)) = apSumOffset f d m1 (n1 - m1) := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m1) (n := n1) hmn)
-
-/-- Regression: inverse orientation (offset sum → paper interval sum) under `m ≤ n`. -/
-example :
-    apSumOffset f d m1 (n1 - m1) = (Finset.Icc (m1 + 1) n1).sum (fun i => f (i * d)) := by
-  simpa using
-    (apSumOffset_eq_sum_Icc_of_le (f := f) (d := d) (m := m1) (n := n1) hmn)
-
-/-- Regression: translation-friendly `d * i` variant of the previous inverse-orientation lemma. -/
-example :
-    apSumOffset f d m1 (n1 - m1) = (Finset.Icc (m1 + 1) n1).sum (fun i => f (d * i)) := by
-  simpa using
-    (apSumOffset_eq_sum_Icc_of_le_mul_left (f := f) (d := d) (m := m1) (n := n1) hmn)
-
-/-! ### Mul-left paper↔nucleus regression examples
-
-These cover the `d * i` binder convention for the core paper normal forms.
--/
-
-/-- Regression: rewrite an offset sum to paper notation using the `d * i` summand convention.
-
-This exercises `apSumOffset_eq_sum_Icc_mul_left`.
--/
-example :
-    apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) := by
-  simpa using (apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: rewrite the `d * i` paper interval sum back to the nucleus offset-sum API.
-
-This exercises `sum_Icc_eq_apSumOffset_mul_left`.
--/
-example :
-    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
-  simpa using (sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: rewrite a canonical difference of partial sums to the length-indexed paper form
-with the `d * (m+i)` summand convention.
-
-This exercises `apSum_sub_eq_sum_Icc_length_mul_left`.
--/
-example :
-    apSum f d (m + n) - apSum f d m = (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) := by
-  simpa using (apSum_sub_eq_sum_Icc_length_mul_left (f := f) (d := d) (m := m) (n := n))
-
-/-! ### Length-indexed offset-sum regression examples
-
-These exercise the “fixed lower endpoint” normal forms for `apSumOffset`.
--/
-
-/-- Regression: rewrite an offset sum to the length-indexed paper form using the translation-friendly
-`i*d + m*d` summand convention.
-
-This exercises `apSumOffset_eq_sum_Icc_length_add`.
--/
-example :
-    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (i * d + m * d)) := by
-  simpa using (apSumOffset_eq_sum_Icc_length_add (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: rewrite an offset sum to the length-indexed paper form using the translation-friendly
-`m*d + i*d` summand convention.
-
-This exercises `apSumOffset_eq_sum_Icc_length_add_left`.
--/
-example :
-    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (m * d + i * d)) := by
-  simpa using (apSumOffset_eq_sum_Icc_length_add_left (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left + translation-friendly length-indexed paper form for offset sums.
-
-This exercises `apSumOffset_eq_sum_Icc_length_mul_left_add`.
--/
-example :
-    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (d * i + d * m)) := by
-  simpa using (apSumOffset_eq_sum_Icc_length_mul_left_add (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: mul-left + translation-friendly length-indexed paper form for offset sums, with the
-constant written on the left (`d*m + d*i`).
-
-This exercises `apSumOffset_eq_sum_Icc_length_mul_left_add_left`.
--/
-example :
-    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (d * m + d * i)) := by
-  simpa using
-    (apSumOffset_eq_sum_Icc_length_mul_left_add_left (f := f) (d := d) (m := m) (n := n))
-
-/-- Regression: inverse orientation of `apSumOffset_eq_sum_Icc_length_mul_left_add_left`.
-
-This exercises `sum_Icc_eq_apSumOffset_length_mul_left_add_left`.
--/
-example :
-    (Finset.Icc 1 n).sum (fun i => f (d * m + d * i)) = apSumOffset f d m n := by
-  simpa using
-    (sum_Icc_eq_apSumOffset_length_mul_left_add_left (f := f) (d := d) (m := m) (n := n))
-
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset (fun k => f (k + (m + n₁) * d)) d 0 n₂ := by
+  simpa using apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 end NormalFormExamples
 
 end MoltResearch
