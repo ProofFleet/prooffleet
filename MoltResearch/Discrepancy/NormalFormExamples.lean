@@ -273,6 +273,15 @@ example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) = apSumFrom f (a + m * d) d n := by
   simpa using (sum_Icc_eq_apSumFrom_tail_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: mul-left + translation-friendly variant of the previous normalization lemma.
+
+This exercises `sum_Icc_eq_apSumFrom_tail_mul_left_add`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (sum_Icc_eq_apSumFrom_tail_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: rewrite the nucleus affine tail sum to the fixed-lower-endpoint (1) length-indexed
 interval-sum form, using the translation-friendly `((m+i)*d + a)` summand convention.
 
