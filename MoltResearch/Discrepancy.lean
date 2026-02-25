@@ -64,6 +64,16 @@ mathematically equivalent, but *proof automation* tends to prefer one depending 
 Practical rule: if you’re not sure which one to pick, normalize to `_shift_add` first; it composes
 well with the offset/tail API and keeps later splitting/bounding lemmas uniform.
 
+### Multiplication-left variants (`*_mul_left`)
+
+Many paper statements prefer `i * d`, but sometimes it’s better to keep the binder in the form
+`d * i` to avoid commuting multiplication *under a lambda*.
+
+The `*_mul_left` lemma families (e.g. `apSumOffset_eq_sum_Icc_mul_left`,
+`sum_Icc_eq_apSumOffset_of_le_mul_left`, `apSum_sub_eq_sum_Icc_mul_left`) keep summands as `d * i`.
+Downstream developments should pick one multiplication-side convention and stick to it; the
+`*_mul_left` variants pair well with the translation-friendly `_shift_add` convention.
+
 - **Difference → tail early:** when you see a subtraction like `apSum … (m+n) - apSum … m` (or the
   affine analogue), rewrite it to an explicit tail sum (`apSumOffset … m n` / `apSumFrom …` tail)
   *before* doing algebra. This keeps subsequent splitting/bounding lemmas in the nucleus API.
