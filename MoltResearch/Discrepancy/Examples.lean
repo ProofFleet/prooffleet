@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.Basic
 import MoltResearch.Discrepancy.Offset
+import MoltResearch.Discrepancy.Witness
 
 /-!
 # Discrepancy: sanity-check examples
@@ -105,5 +106,30 @@ theorem exists_signSequence_unbounded_discrepancy_neg :
         simpa using (Int.natAbs_natCast (C + 1))
   rw [hsum, hnatAbs]
   exact Nat.lt_succ_self C
+
+/-! ### Witness normal-form API illustration -/
+
+/-- The constant `+1` sign sequence has unbounded discrepancy, expressed in the structured
+`DiscrepancyWitnessPos` normal form.
+
+This is a small regression test for the normalization boundary
+`HasDiscrepancyAtLeast f C ↔ Nonempty (DiscrepancyWitnessPos f C)`.
+-/
+theorem exists_signSequence_unbounded_discrepancy_witnessPos :
+    ∃ f : ℕ → ℤ, IsSignSequence f ∧ ∀ C : ℕ, Nonempty (DiscrepancyWitnessPos f C) := by
+  -- We reuse the constant `+1` construction from `exists_signSequence_unbounded_discrepancy`.
+  refine ⟨fun _ => (1 : ℤ), isSignSequence_const_one, ?_⟩
+  intro C
+  -- First prove the `HasDiscrepancyAtLeast` form, then convert using the witness equivalence.
+  have h : HasDiscrepancyAtLeast (fun _ => (1 : ℤ)) C := by
+    -- take d = 1 and n = C+1
+    refine ⟨1, C + 1, by decide, ?_⟩
+    have hsum : apSum (fun _k : ℕ => (1 : ℤ)) 1 (C + 1) = ((C + 1 : ℕ) : ℤ) := by
+      simpa using apSum_const_one (d := 1) (n := C + 1)
+    have hnatAbs : Int.natAbs (((C + 1 : ℕ) : ℤ)) = C + 1 := by
+      simpa using (Int.natAbs_natCast (C + 1))
+    rw [hsum, hnatAbs]
+    exact Nat.lt_succ_self C
+  exact (HasDiscrepancyAtLeast.iff_nonempty_witnessPos (f := fun _ => (1 : ℤ)) (C := C)).1 h
 
 end MoltResearch
