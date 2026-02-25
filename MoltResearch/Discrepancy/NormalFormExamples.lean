@@ -330,6 +330,50 @@ example :
     apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by
   simpa using (apSum_eq_sum_Icc_mul_left (f := f) (d := d) (n := n))
 
+/-! ### Paper ↔ nucleus regression examples (homogeneous, `m ≤ n` offset intervals)
+
+These are compile-time checks that the `m ≤ n` paper-notation tail interval sums normalize cleanly
+into the nucleus `apSumOffset` API (and back).
+-/
+
+variable (m₁ n₁ : ℕ) (hmn₁ : m₁ ≤ n₁)
+
+/-- Regression: `m ≤ n` paper tail interval sum normalizes to `apSumOffset`. 
+
+This exercises `sum_Icc_eq_apSumOffset_of_le`.
+-/
+example :
+    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (i * d)) = apSumOffset f d m₁ (n₁ - m₁) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m₁) (n := n₁) hmn₁)
+
+/-- Regression: mul-left variant of the previous normalization lemma.
+
+This exercises `sum_Icc_eq_apSumOffset_of_le_mul_left`.
+-/
+example :
+    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (d * i)) = apSumOffset f d m₁ (n₁ - m₁) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m₁) (n := n₁) hmn₁)
+
+/-- Regression: rewrite `apSumOffset` back to paper interval-sum notation.
+
+This exercises `apSumOffset_eq_sum_Icc_of_le`.
+-/
+example :
+    apSumOffset f d m₁ (n₁ - m₁) = (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (i * d)) := by
+  simpa using
+    (apSumOffset_eq_sum_Icc_of_le (f := f) (d := d) (m := m₁) (n := n₁) hmn₁)
+
+/-- Regression: mul-left variant of the previous rewrite lemma.
+
+This exercises `apSumOffset_eq_sum_Icc_of_le_mul_left`.
+-/
+example :
+    apSumOffset f d m₁ (n₁ - m₁) = (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (d * i)) := by
+  simpa using
+    (apSumOffset_eq_sum_Icc_of_le_mul_left (f := f) (d := d) (m := m₁) (n := n₁) hmn₁)
+
 /-! ### Paper ↔ nucleus regression examples (affine)
 
 These are compile-time checks that the paper-notation interval sums for affine APs normalize
@@ -378,8 +422,6 @@ example :
       apSumFrom f a d (m + n) - apSumFrom f a d m := by
   simpa using
     (sum_Icc_eq_apSumFrom_sub (f := f) (a := a) (d := d) (m := m) (n := n))
-
-variable (m₁ n₁ : ℕ) (hmn₁ : m₁ ≤ n₁)
 
 /-- Regression: `m ≤ n` variant of paper affine difference normalization.
 
