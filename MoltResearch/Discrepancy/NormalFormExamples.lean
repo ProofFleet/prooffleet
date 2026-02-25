@@ -232,6 +232,12 @@ example :
   simpa using
     apSumFrom_sub_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Same normal form, but write the translation constant as `d*m + a` (mul-left convention).
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (d * m + a))) d n := by
+  simpa using
+    apSumFrom_sub_eq_apSum_shift_add_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Difference → tail, then absorb the tail offset into the translation constant so the offset is `0`.
 -- This is often a good “don’t carry extra parameters” normal form before bounding/splitting.
 example :
