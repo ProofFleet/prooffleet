@@ -162,6 +162,47 @@ example :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: split an affine AP sum by length and eliminate the offset parameter by absorbing it
+into the translation constant.
+
+This exercises `apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m`.
+-/
+example :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+  simpa using
+    (apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m)
+      (n := n))
+
+/-- Regression: `m*d + a` variant of the previous normal form.
+
+This exercises `apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_left`.
+-/
+example :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSumOffset (fun k => f (k + (m * d + a))) d 0 n := by
+  simpa using
+    (apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_left (f := f) (a := a) (d := d)
+      (m := m) (n := n))
+
+/-- Regression: canonical affine difference normal form, with the offset parameter eliminated.
+
+This exercises `apSumFrom_sub_eq_apSumOffset_shift_add_zero_m`.
+-/
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+  simpa using
+    (apSumFrom_sub_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: `m*d + a` variant of the previous canonical affine difference normal form.
+
+This exercises `apSumFrom_sub_eq_apSumOffset_shift_add_zero_m_left`.
+-/
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + (m * d + a))) d 0 n := by
+  simpa using
+    (apSumFrom_sub_eq_apSumOffset_shift_add_zero_m_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: canonical difference of offset sums normalizes to an `m = 0` offset sum on a shifted
 sequence.
 
