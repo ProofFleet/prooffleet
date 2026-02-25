@@ -1310,6 +1310,23 @@ example :
 example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset (fun k => f (k + (m + n₁) * d)) d 0 n₂ := by
   simpa using apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+
+-- Bounds (regression tests): sign sequences give the expected triangle-inequality-style estimates.
+
+variable (hf : IsSignSequence f)
+
+example (hn : n₁ ≤ n₂) :
+    Int.natAbs (apSumOffset f d m n₂ - apSumOffset f d m n₁) ≤ n₂ - n₁ := by
+  simpa using
+    hf.natAbs_apSumOffset_sub_apSumOffset_le (d := d) (m := m) (n₁ := n₁) (n₂ := n₂) hn
+
+example : Int.natAbs (apSumOffset f d m n) ≤ n := by
+  simpa using hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n)
+
+example : Int.natAbs (apSum f d (m + n) - apSum f d m) ≤ n := by
+  simpa using hf.natAbs_apSum_sub_le (d := d) (m := m) (n := n)
+
 end NormalFormExamples
 
 end MoltResearch
