@@ -1167,6 +1167,63 @@ lemma sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f : ℕ → ℤ) (a d m n :
           simpa using
             (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Normal form (paper → nucleus, tail, glue, fixed-length): rewrite the affine interval sum
+`∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` directly as an offset AP sum on the shifted sequence
+`k ↦ f (a + k)`.
+
+This is a convenience wrapper: it combines `sum_Icc_eq_apSumFrom_tail` with
+`apSumFrom_tail_eq_apSumOffset_shift`.
+
+This lemma is the “constant-on-the-left” companion to `sum_Icc_eq_apSumOffset_shift_add_add`.
+-/
+lemma sum_Icc_eq_apSumOffset_shift (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m n := by
+  calc
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
+      simpa using (sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = apSumOffset (fun k => f (a + k)) d m n := by
+      simpa using (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Mul-left variant of `sum_Icc_eq_apSumOffset_shift`, with summand written as `f (a + d*i)`.
+
+This avoids commuting multiplication under binders when working in a `d * i` convention.
+-/
+lemma sum_Icc_eq_apSumOffset_shift_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (a + k)) d m n := by
+  calc
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) = apSumFrom f (a + m * d) d n := by
+      simpa using
+        (sum_Icc_eq_apSumFrom_tail_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = apSumOffset (fun k => f (a + k)) d m n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Normal form (paper → nucleus, tail, glue): when `m ≤ n`, rewrite the affine interval sum
+`∑ i ∈ Icc (m+1) n, f (a + i*d)` directly as an offset AP sum on the shifted sequence
+`k ↦ f (a + k)`.
+
+This is the inequality-endpoint companion to `sum_Icc_eq_apSumOffset_shift`.
+-/
+lemma sum_Icc_eq_apSumOffset_shift_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  -- Convert to the fixed-length `(m + (n - m))` form, then use the fixed-length glue lemma.
+  simpa [Nat.add_sub_of_le hmn] using
+    (sum_Icc_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
+/-- Mul-left variant of `sum_Icc_eq_apSumOffset_shift_of_le`, with summand written as `f (a + d*i)`.
+
+This avoids commuting multiplication under binders when working in a `d * i` convention.
+-/
+lemma sum_Icc_eq_apSumOffset_shift_of_le_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  -- Convert to the fixed-length `(m + (n - m))` form, then use the fixed-length glue lemma.
+  simpa [Nat.add_sub_of_le hmn] using
+    (sum_Icc_eq_apSumOffset_shift_mul_left (f := f) (a := a) (d := d) (m := m) (n := n - m))
+
 /-- Normal form (paper → nucleus, tail, glue): when `m ≤ n`, rewrite the affine interval sum
 `∑ i ∈ Icc (m+1) n, f (i*d + a)` directly as an offset AP sum on the shifted sequence `k ↦ f (k + a)`.
 

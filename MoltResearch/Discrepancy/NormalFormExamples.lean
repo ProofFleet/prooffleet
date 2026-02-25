@@ -251,6 +251,25 @@ example :
   simpa using
     (apSumOffset_shift_add_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: normalize a paper affine-tail interval sum directly into an offset sum on the
+shifted sequence `k ↦ f (a + k)`.
+
+This exercises `sum_Icc_eq_apSumOffset_shift`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: mul-left variant of the previous normalization lemma.
+
+This exercises `sum_Icc_eq_apSumOffset_shift_mul_left`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: inverse orientation of `apSumOffset_shift_add_eq_apSum_shift_add`.
 
 This exercises `apSum_shift_add_eq_apSumOffset_shift_add`.
