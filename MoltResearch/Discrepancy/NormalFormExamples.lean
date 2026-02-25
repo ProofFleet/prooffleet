@@ -228,6 +228,14 @@ example :
   simpa using
     apSumFrom_sub_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Difference → tail, then absorb the tail offset into the translation constant so the offset is `0`.
+-- This is often a good “don’t carry extra parameters” normal form before bounding/splitting.
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+  simpa using
+    apSumFrom_sub_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Translation-friendly affine “step-one” normal forms.
 example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
