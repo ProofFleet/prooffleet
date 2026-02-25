@@ -207,6 +207,11 @@ example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
 example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
 
+-- Normal form when the affine start is a multiple of the step.
+example (h : d ∣ a) : ∃ m, apSumFrom f a d n = apSumOffset f d m n := by
+  simpa using
+    (apSumFrom_exists_eq_apSumOffset_of_dvd (f := f) (a := a) (d := d) (n := n) h)
+
 -- Same affine sum, but with the translation “pushed into the function” form `x ↦ f (x + a)`.
 -- This is handy when you want to reuse translation lemmas stated for homogeneous `apSum`.
 example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
