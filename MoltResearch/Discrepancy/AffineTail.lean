@@ -1167,6 +1167,37 @@ lemma sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f : ℕ → ℤ) (a d m n :
           simpa using
             (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Normal form (nucleus → paper, tail, glue, fixed-length): rewrite an offset AP sum on the shifted
+sequence `k ↦ f (k + a)` as an affine interval sum with the summand written as `f (i*d + a)`.
+
+This is the inverse orientation companion to `sum_Icc_eq_apSumOffset_shift_add_add`.
+-/
+lemma apSumOffset_shift_add_eq_sum_Icc_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d m n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
+  calc
+    apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
+      simpa using
+        (apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) := by
+      simpa using
+        (apSumFrom_tail_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Mul-left + translation-friendly variant of `apSumOffset_shift_add_eq_sum_Icc_add`.
+
+This avoids commuting multiplication under binders when working in a `d * i` convention.
+-/
+lemma apSumOffset_shift_add_eq_sum_Icc_mul_left_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d m n =
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) := by
+  calc
+    apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
+      simpa using
+        (apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) := by
+      simpa using
+        (apSumFrom_tail_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Normal form (paper → nucleus, tail, glue, fixed-length): rewrite the affine interval sum
 `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` directly as an offset AP sum on the shifted sequence
 `k ↦ f (a + k)`.
