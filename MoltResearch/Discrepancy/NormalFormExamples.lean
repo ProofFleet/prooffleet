@@ -124,6 +124,27 @@ example :
   simpa using
     (apSumFrom_tail_succ_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: split off the *last* term of an affine tail sum, using the translation-friendly
+`(n+1)*d + a` convention.
+
+This exercises `apSumFrom_tail_succ_length_add_left`.
+-/
+example :
+    apSumFrom f a d (n + 1) = apSumFrom f a d n + f ((n + 1) * d + a) := by
+  simpa using
+    (apSumFrom_tail_succ_length_add_left (f := f) (a := a) (d := d) (m := 0) (n := n))
+
+/-- Regression: split off the *last* term of an affine tail sum, with the affine start written as
+`m*d + a`, using the translation-friendly `(m+n+1)*d + a` convention.
+
+This exercises `apSumFrom_tail_succ_length_start_add_left`.
+-/
+example :
+    apSumFrom f (m * d + a) d (n + 1) =
+      apSumFrom f (m * d + a) d n + f ((m + n + 1) * d + a) := by
+  simpa using
+    (apSumFrom_tail_succ_length_start_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: paper-notation affine tails normalize directly into the offset-sum nucleus API,
 using the translation-friendly `i*d + a` summand convention.
 
