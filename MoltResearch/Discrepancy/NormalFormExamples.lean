@@ -49,6 +49,24 @@ example :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (a + m * d))) d n := by
   simpa using (apSumFrom_sub_eq_apSum_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: add-left variant of the previous normal form (translation constant written as `m*d + a`).
+
+This exercises `apSumFrom_sub_eq_apSum_shift_add_left`.
+-/
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (m * d + a))) d n := by
+  simpa using
+    (apSumFrom_sub_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: mul-left variant of the add-left normal form (translation constant written as `d*m + a`).
+
+This exercises `apSumFrom_sub_eq_apSum_shift_add_mul_left`.
+-/
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (d * m + a))) d n := by
+  simpa using
+    (apSumFrom_sub_eq_apSum_shift_add_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: commute the affine translation into the *function* (map-add normal form).
 
 This exercises `apSumFrom_eq_apSum_map_add`.
@@ -71,6 +89,16 @@ example :
     apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: tail affine AP sum as a homogeneous AP sum on a further-shifted sequence, with the
+starting point written as `m*d + a`.
+
+This exercises `apSumFrom_tail_eq_apSum_shift_add_left`.
+-/
+example :
+    apSumFrom f (m * d + a) d n = apSum (fun k => f (k + (m * d + a))) d n := by
+  simpa using
+    (apSumFrom_tail_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
 /-- Regression: eliminate the tail parameter by absorbing it into the translation constant.
 
