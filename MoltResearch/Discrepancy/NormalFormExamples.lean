@@ -490,6 +490,24 @@ example :
   simpa using
     (sum_Icc_eq_apSumOffset_shift_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: translation-friendly `i*d + a` variant of the affine-tail normalization.
+
+This exercises `sum_Icc_eq_apSumOffset_shift_add_add`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: mul-left + translation-friendly `d*i + a` variant of the affine-tail normalization.
+
+This exercises `sum_Icc_eq_apSumOffset_shift_add_mul_left_add`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: inverse orientation of `apSumOffset_shift_add_eq_apSum_shift_add`.
 
 This exercises `apSum_shift_add_eq_apSumOffset_shift_add`.
