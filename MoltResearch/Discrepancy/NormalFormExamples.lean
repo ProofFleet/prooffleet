@@ -747,6 +747,25 @@ example :
     apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (d * i + d * m)) := by
   simpa using (apSumOffset_eq_sum_Icc_length_mul_left_add (f := f) (d := d) (m := m) (n := n))
 
+/-- Regression: mul-left + translation-friendly length-indexed paper form for offset sums, with the
+constant written on the left (`d*m + d*i`).
+
+This exercises `apSumOffset_eq_sum_Icc_length_mul_left_add_left`.
+-/
+example :
+    apSumOffset f d m n = (Finset.Icc 1 n).sum (fun i => f (d * m + d * i)) := by
+  simpa using
+    (apSumOffset_eq_sum_Icc_length_mul_left_add_left (f := f) (d := d) (m := m) (n := n))
+
+/-- Regression: inverse orientation of `apSumOffset_eq_sum_Icc_length_mul_left_add_left`.
+
+This exercises `sum_Icc_eq_apSumOffset_length_mul_left_add_left`.
+-/
+example :
+    (Finset.Icc 1 n).sum (fun i => f (d * m + d * i)) = apSumOffset f d m n := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_length_mul_left_add_left (f := f) (d := d) (m := m) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
