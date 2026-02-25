@@ -172,6 +172,7 @@ Typical rewrite pipeline:
 
 **Remaining (choose next boxes from here)**
 - [x] Add regression example: affine difference → offset normal form (apSumFrom_sub_eq_apSumOffset_shift_add)
+- [x] Add regression example: mul-left affine difference → shifted homogeneous normal form (apSumFrom_sub_eq_apSum_shift_add_mul_left)
 - [x] Write a short “normal forms” section in `MoltResearch/Discrepancy.lean` documenting preferred rewrite targets
 - [x] Add a minimal set of lemmas bridging the Conjectures statement to the nucleus API (so the theorem statement reads cleanly)
 - [x] Add paper→nucleus rewrite lemmas for affine difference interval sums (`sum_Icc_eq_apSumFrom_sub`, `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le`)
