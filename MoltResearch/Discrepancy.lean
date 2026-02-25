@@ -9,7 +9,9 @@ import MoltResearch.Discrepancy.Translate
 import MoltResearch.Discrepancy.Reindex
 import MoltResearch.Discrepancy.Bound
 import MoltResearch.Discrepancy.Witness
-import MoltResearch.Discrepancy.NormalFormExamples
+-- Note: `MoltResearch.Discrepancy.NormalFormExamples` is a standalone regression-test module.
+-- It should import `MoltResearch.Discrepancy` (the stable surface) rather than being imported here,
+-- to avoid an import cycle.
 import MoltResearch.Discrepancy.Examples
 
 /-!

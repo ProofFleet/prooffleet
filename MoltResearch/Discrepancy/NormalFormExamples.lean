@@ -1,8 +1,4 @@
-import MoltResearch.Discrepancy.Basic
-import MoltResearch.Discrepancy.Offset
-import MoltResearch.Discrepancy.Affine
-import MoltResearch.Discrepancy.AffineTail
-import MoltResearch.Discrepancy.Translate
+import MoltResearch.Discrepancy
 
 /-!
 # Discrepancy: normal-form regression examples
