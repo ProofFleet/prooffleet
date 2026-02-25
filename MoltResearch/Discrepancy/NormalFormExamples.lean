@@ -549,6 +549,25 @@ example :
   simpa using
     (apSum_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: eliminate an explicit offset parameter in a shifted-sequence offset sum.
+
+This exercises `apSumOffset_shift_add_eq_apSumOffset_shift_add`.
+-/
+example :
+    apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a + m * d))) d 0 n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: add-left variant of the previous normal form.
+
+This exercises `apSumOffset_shift_add_left_eq_apSumOffset_shift_add_left`.
+-/
+example :
+    apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f ((a + m * d) + k)) d 0 n := by
+  simpa using
+    (apSumOffset_shift_add_left_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n))
+
 /-! ### Predicate-level translation regression examples
 
 These are tiny compile-time checks for the translation lemmas on discrepancy predicates
