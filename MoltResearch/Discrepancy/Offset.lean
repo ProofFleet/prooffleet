@@ -8,6 +8,10 @@ Extra lemmas about `apSumOffset` and its relation to differences of `apSum`.
 
 namespace MoltResearch
 
+@[simp] lemma apSumOffset_zero_n (f : ℕ → ℤ) (d m : ℕ) :
+    apSumOffset f d m 0 = 0 := by
+  simp [apSumOffset]
+
 lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   have h0 := (apSum_add_length (f := f) (d := d) (m := m) (n := n)).symm
