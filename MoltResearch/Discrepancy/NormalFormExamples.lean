@@ -90,6 +90,27 @@ example :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: mul-left variant of the previous normal form (affine start written as `a + d*m`).
+
+This exercises `apSumFrom_tail_eq_apSumOffset_shift_add_mul_left`.
+-/
+example :
+    apSumFrom f (a + d * m) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_shift_add_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: split an affine tail by length, with the second part normalized as an offset sum on
+`k ↦ f (k + a)`.
+
+This exercises `apSumFrom_tail_add_length_eq_add_apSumOffset_shift_add`.
+-/
+example (n₁ n₂ : ℕ) :
+    apSumFrom f (a + m * d) d (n₁ + n₂) =
+      apSumFrom f (a + m * d) d n₁ + apSumOffset (fun k => f (k + a)) d (m + n₁) n₂ := by
+  simpa using
+    (apSumFrom_tail_add_length_eq_add_apSumOffset_shift_add
+      (f := f) (a := a) (d := d) (m := m) (n1 := n₁) (n2 := n₂))
+
 /-- Regression: tail affine AP sum as a homogeneous AP sum on a further-shifted sequence, with the
 starting point written as `m*d + a`.
 
