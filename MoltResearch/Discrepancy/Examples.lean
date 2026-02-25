@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.Basic
+import MoltResearch.Discrepancy.Offset
 
 /-!
 # Discrepancy: sanity-check examples
@@ -22,6 +23,17 @@ lemma apSum_const_one (d n : ℕ) : apSum (fun _k : ℕ => (1 : ℤ)) d n = (n :
   -- sum of `n` copies of 1 in ℤ
   simpa using (Finset.sum_const_one : (Finset.range n).sum (fun _ => (1 : ℤ)) = n)
 
+/-- For the constant `+1` sequence, `apSumOffset` is also just the length `n`.
+
+This is a tiny regression test that `apSumOffset` really is “the next `n` terms after skipping `m`”,
+not something that accidentally depends on `d` or `m` for constant sequences.
+-/
+lemma apSumOffset_const_one (d m n : ℕ) :
+    apSumOffset (fun _k : ℕ => (1 : ℤ)) d m n = (n : ℤ) := by
+  classical
+  unfold apSumOffset
+  simpa using (Finset.sum_const_one : (Finset.range n).sum (fun _ => (1 : ℤ)) = n)
+
 /-! ### Constant `-1` sequence -/
 
 /-- The constant `-1` sequence is a sign sequence. -/
@@ -35,6 +47,16 @@ lemma apSum_const_neg_one (d n : ℕ) : apSum (fun _k : ℕ => (-1 : ℤ)) d n =
   classical
   unfold apSum
   -- sum of `n` copies of -1 in ℤ
+  simp
+
+/-- For the constant `-1` sequence, `apSumOffset` is `-n`.
+
+This pairs with `apSumOffset_const_one` as a sanity check for offset sums on constant sequences.
+-/
+lemma apSumOffset_const_neg_one (d m n : ℕ) :
+    apSumOffset (fun _k : ℕ => (-1 : ℤ)) d m n = -(n : ℤ) := by
+  classical
+  unfold apSumOffset
   simp
 
 /-- Sanity check: there exists a sign sequence with unbounded discrepancy.
