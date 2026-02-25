@@ -1037,6 +1037,14 @@ example (hmn : m ≤ n) :
     apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
       (hmn := hmn)
 
+-- Same normalization, but eliminate the offset sum entirely into a homogeneous `apSum` on a
+-- further-shifted sequence.
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSum (fun k => f (k + (a + m * d))) d (n - m) := by
+  simpa using
+    apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn)
+
 -- Inverse orientation: normalize an `apSumOffset` tail sum on a shifted sequence back into a
 -- difference of affine partial sums.
 example (hmn : m ≤ n) :
