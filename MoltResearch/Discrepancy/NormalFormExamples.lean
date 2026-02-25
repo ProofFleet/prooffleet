@@ -319,6 +319,11 @@ example : apSumOffset f d m n = apSumFrom f (m * d) d n := by
 example : apSumFrom f (m * d) d n = apSumOffset f d m n := by
   simpa using apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 
+-- Divisibility normal form: if `d ∣ a`, rewrite the affine sum to an offset sum using the
+-- canonical quotient `a / d`.
+example (h : d ∣ a) : apSumFrom f a d n = apSumOffset f d (a / d) n := by
+  simpa using (apSumFrom_eq_apSumOffset_of_dvd (f := f) (a := a) (d := d) (n := n) h)
+
 -- Same offset normal form, but with the affine start written as `d*m` (avoids a commutativity
 -- rewrite in downstream goals).
 example : apSumFrom f (d * m) d n = apSumOffset f d m n := by

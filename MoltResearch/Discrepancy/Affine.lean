@@ -273,6 +273,28 @@ lemma apSumFrom_exists_eq_apSumOffset_of_dvd (f : ℕ → ℤ) {a d n : ℕ} (h 
   refine ⟨m, ?_⟩
   simp [Nat.mul_comm]
 
+/-- Normal form: if the affine start `a` is a multiple of the step `d` (i.e. `d ∣ a`), rewrite
+`apSumFrom f a d n` directly to an `apSumOffset` with the quotient `a / d`.
+
+This is a convenient shortcut when you want a canonical `apSumOffset` normal form without going
+through the existential wrapper `apSumFrom_exists_eq_apSumOffset_of_dvd`.
+-/
+lemma apSumFrom_eq_apSumOffset_of_dvd (f : ℕ → ℤ) {a d n : ℕ} (h : d ∣ a) :
+    apSumFrom f a d n = apSumOffset f d (a / d) n := by
+  rcases h with ⟨m, rfl⟩
+  -- Now `a = d*m`.
+  by_cases hd : d = 0
+  · subst hd
+    -- Here `a = 0*m = 0` and `0/0 = 0`, so both sides are the same constant AP sum.
+    simp [apSumFrom, apSumOffset]
+  · have hdpos : d > 0 := Nat.pos_of_ne_zero hd
+    have hdiv : d * m / d = m := by
+      -- Reduce to the standard `m*d / d = m` lemma.
+      simpa [Nat.mul_comm] using (Nat.mul_div_left m hdpos)
+    -- Reduce to the `a = d*m` normal form and compute the quotient.
+    simpa [hdiv] using
+      (apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
 /-- Shifted version of `apSumFrom`.
 
 This views the affine AP sum as a homogeneous AP sum on the shifted function `k ↦ f (a + k)`.
