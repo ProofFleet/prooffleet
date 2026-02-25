@@ -129,6 +129,16 @@ example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
 example : apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n := by
   simpa using apSum_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)
 
+-- Length-splitting normal forms for `apSumOffset`.
+example : apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simpa using apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
+example :
+    apSumOffset f d m (n₁ + n₂) =
+      apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by
+  simpa using
+    apSumOffset_add_length_eq_add_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
