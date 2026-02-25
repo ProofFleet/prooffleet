@@ -519,6 +519,29 @@ example :
   simpa using
     (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_add (f := f) (a := a) (d := d) (m := m₁) (n := n₁) hmn₁)
 
+/-- Regression: mul-left `a + d*i` variant of the `m ≤ n` paper affine difference normalization.
+
+This exercises `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left`.
+-/
+example :
+    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (a + d * i)) =
+      apSumFrom f a d n₁ - apSumFrom f a d m₁ := by
+  simpa using
+    (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left (f := f) (a := a) (d := d) (m := m₁)
+      (n := n₁) hmn₁)
+
+/-- Regression: mul-left + translation-friendly `d*i + a` variant of the `m ≤ n` paper affine
+ difference normalization.
+
+This exercises `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left_add`.
+-/
+example :
+    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (d * i + a)) =
+      apSumFrom f a d n₁ - apSumFrom f a d m₁ := by
+  simpa using
+    (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m₁)
+      (n := n₁) hmn₁)
+
 /-- Regression: normalize a paper affine-tail interval sum directly into an offset sum on the
 shifted sequence `k ↦ f (a + k)`.
 

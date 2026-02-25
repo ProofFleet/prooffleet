@@ -1746,6 +1746,34 @@ lemma apSumFrom_sub_apSumFrom_eq_sum_Icc_add (f : ℕ → ℤ) (a d : ℕ) {m n 
     _ = (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) := by
             simp [Nat.add_sub_of_le hmn]
 
+/-- Mul-left variant of `apSumFrom_sub_apSumFrom_eq_sum_Icc`, with the summand written as
+`f (a + d*i)`.
+
+This avoids commuting multiplication under binders when your surface statement uses the paper form
+`a + d*i`.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_sum_Icc_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) := by
+  have h := apSumFrom_sub_apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+  have hsummand : (fun i => f (a + i * d)) = (fun i => f (a + d * i)) := by
+    funext i
+    simpa [Nat.mul_comm] using congrArg (fun t => f (a + t)) (Nat.mul_comm i d)
+  simpa [hsummand] using h
+
+/-- Mul-left variant of `apSumFrom_sub_apSumFrom_eq_sum_Icc_add`, with the summand written as
+`f (d*i + a)`.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_sum_Icc_mul_left_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) := by
+  have h := apSumFrom_sub_apSumFrom_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+  have hsummand : (fun i => f (i * d + a)) = (fun i => f (d * i + a)) := by
+    funext i
+    simpa [Nat.mul_comm] using congrArg (fun t => f (t + a)) (Nat.mul_comm i d)
+  simpa [hsummand] using h
+
 /-- Normal form (paper → nucleus, difference): rewrite the interval sum
 `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` as the difference of affine AP partial sums.
 
@@ -1778,6 +1806,32 @@ lemma sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_add (f : ℕ → ℤ) (a d : ℕ)
       apSumFrom f a d n - apSumFrom f a d m := by
   simpa using
     (apSumFrom_sub_apSumFrom_eq_sum_Icc_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn).symm
+
+/-- Mul-left variant of `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le`, with the summand written as
+`f (a + d*i)`.
+
+This is the inverse orientation of `apSumFrom_sub_apSumFrom_eq_sum_Icc_mul_left`.
+-/
+lemma sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_apSumFrom_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+      hmn).symm
+
+/-- Mul-left + translation-friendly variant of `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_add`, with
+the summand written as `f (d*i + a)`.
+
+This is the inverse orientation of `apSumFrom_sub_apSumFrom_eq_sum_Icc_mul_left_add`.
+-/
+lemma sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_mul_left_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) =
+      apSumFrom f a d n - apSumFrom f a d m := by
+  simpa using
+    (apSumFrom_sub_apSumFrom_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (m := m)
+      (n := n) hmn).symm
 
 /-- Sign-sequence bound on `apSumFrom` in the `(m + n) - m` normal form. -/
 lemma IsSignSequence.natAbs_apSumFrom_sub_le {f : ℕ → ℤ} (hf : IsSignSequence f)
