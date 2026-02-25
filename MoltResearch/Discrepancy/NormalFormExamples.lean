@@ -203,6 +203,10 @@ example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (m * d + a) d n :
 example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
   simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
 
+-- Affine sums: offset-sum normal form on the shifted sequence.
+example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
+  simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
+
 -- Same affine sum, but with the translation “pushed into the function” form `x ↦ f (x + a)`.
 -- This is handy when you want to reuse translation lemmas stated for homogeneous `apSum`.
 example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
