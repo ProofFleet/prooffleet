@@ -154,6 +154,22 @@ This exercises `apSumOffset_shift_add_eq_apSumFrom`.
 example : apSumOffset (fun k => f (k + a)) d 0 n = apSumFrom f a d n := by
   simpa using (apSumOffset_shift_add_eq_apSumFrom (f := f) (a := a) (d := d) (n := n))
 
+/-- Regression: inverse normal form for *general* offset sums on a shifted sequence.
+
+This exercises `apSumOffset_shift_add_eq_apSumFrom_tail`.
+-/
+example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Regression: `m*d + a` wrapper of the previous inverse normal form.
+
+This exercises `apSumOffset_shift_add_eq_apSumFrom_tail_left`.
+-/
+example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (m * d + a) d n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSumFrom_tail_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: mul-left variant of the previous normal form (affine start written as `a + d*m`).
 
 This exercises `apSumFrom_tail_eq_apSumOffset_shift_add_mul_left`.
