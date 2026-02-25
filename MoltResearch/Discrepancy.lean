@@ -44,6 +44,22 @@ Two conventions that pay for themselves quickly:
   `sum_Icc_eq_apSumFrom_tail_of_le_add`, `apSumFrom_tail_succ_length_add_left`,
   `apSumOffset_eq_apSum_shift_add`).
 
+## NormalFormExamples
+
+`MoltResearch.Discrepancy.NormalFormExamples` is a **standalone regression-test module**.
+It imports the stable surface `MoltResearch.Discrepancy` and contains a collection of `example`
+blocks that act as compile-time checks for the preferred normal-form rewrite pipelines.
+
+It is not imported here (in the stable surface) for two reasons:
+- avoid an import cycle (`NormalFormExamples` should depend on the stable surface, not vice versa)
+- keep downstream compile costs low for users who only need the API
+
+If you want to run these locally or use them as a reference, you can import the module directly:
+
+```lean
+import MoltResearch.Discrepancy.NormalFormExamples
+```
+
 ### Choosing a translation normal form (`_shift` vs `_shift_add` vs `_map_add`)
 
 When you “shift the sequence” or “shift the index”, there are three recurring normal forms. They’re
