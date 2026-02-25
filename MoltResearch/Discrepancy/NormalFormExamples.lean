@@ -85,6 +85,22 @@ This exercises `apSumFrom_eq_apSum_map_add_left`.
 example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
   simpa using (apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n))
 
+/-- Regression: affine AP sums normalize to homogeneous sums on a shifted sequence, using the
+`a + k` summand convention.
+
+This exercises `apSumFrom_eq_apSum_shift`.
+-/
+example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
+  simpa using (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n))
+
+/-- Regression: offset sums normalize to homogeneous sums on a shifted sequence, using the
+`m*d + k` summand convention.
+
+This exercises `apSumOffset_eq_apSum_shift`.
+-/
+example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
+  simpa using (apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n))
+
 /-- Regression: affine tails normalize to `apSumOffset` on the shifted sequence `k ↦ f (k + a)`.
 
 This is a common glue step when downstream lemmas are stated for `apSumOffset` only.
