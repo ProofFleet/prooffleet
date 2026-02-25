@@ -237,6 +237,15 @@ lemma apSum_shift_add_left_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (a d 
     (apSumOffset_shift_add_left_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m)
       (n := n)).symm
 
+/-!
+Note: the common `a = 0` specializations of the inverse shift-add lemmas (e.g.
+`apSum (fun k => f (k + m*d)) d n = apSumOffset f d m n`) live in `Discrepancy/Offset.lean`
+as `apSum_shift_add_eq_apSumOffset` / `apSum_shift_eq_apSumOffset`.
+
+We keep the more general `a`-parameterized versions here since they are the natural glue for
+composing translations.
+-/
+
 lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   rintro ⟨d, n, hd, hgt⟩
