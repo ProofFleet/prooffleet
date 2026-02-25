@@ -1332,6 +1332,20 @@ lemma apSumOffset_sub_apSumOffset_eq_apSum_shift_add (f : ℕ → ℤ) (d m : �
     apSumOffset_sub_eq_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂ - n₁)
   simpa [Nat.add_sub_of_le hn] using h
 
+/-- Mul-left variant of `apSumOffset_sub_apSumOffset_eq_apSum_shift_add` with the translation constant
+written as `d * (m + n₁)`.
+
+This wrapper avoids a commutativity rewrite under binders when a downstream development already
+prefers the `d * i` convention for arithmetic progression points.
+-/
+lemma apSumOffset_sub_apSumOffset_eq_apSum_shift_add_mul_left (f : ℕ → ℤ) (d m : ℕ) {n₁ n₂ : ℕ}
+    (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      apSum (fun k => f (k + d * (m + n₁))) d (n₂ - n₁) := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_sub_apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn))
+
 /-- Rewrite the normal-form difference `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁`
 as the “paper notation” interval sum `∑ i ∈ Icc (m+n₁+1) (m+n₁+n₂), f (i*d)`.
 
@@ -1387,8 +1401,23 @@ lemma apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add (f : ℕ → ℤ) (d 
     apSumOffset f d m n₂ - apSumOffset f d m n₁ =
       apSumOffset (fun k => f (k + (m + n₁) * d)) d 0 (n₂ - n₁) := by
   have h :=
-    apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂ - n₁)
+    apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂ - n₁)
   simpa [Nat.add_sub_of_le hn] using h
+
+/-- Mul-left variant of `apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add` with the translation
+constant written as `d * (m + n₁)`.
+
+This wrapper avoids a commutativity rewrite under binders when a downstream development already
+prefers the `d * i` convention for arithmetic progression points.
+-/
+lemma apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add_mul_left (f : ℕ → ℤ) (d m : ℕ)
+    {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      apSumOffset (fun k => f (k + d * (m + n₁))) d 0 (n₂ - n₁) := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn))
 
 /-- When `n₁ ≤ n₂`, rewrite the difference of two offset sums as the “paper notation” interval sum
 `∑ i ∈ Icc (m+n₁+1) (m+n₂), f (i*d)`.

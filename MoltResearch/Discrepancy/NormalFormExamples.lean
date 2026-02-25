@@ -226,6 +226,22 @@ example (n₁ n₂ : ℕ) :
     (apSumOffset_sub_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m) (n₁ := n₁)
       (n₂ := n₂))
 
+/-- Regression: mul-left normal form for the inequality version `n₁ ≤ n₂`. -/
+example {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      apSumOffset (fun k => f (k + d * (m + n₁))) d 0 (n₂ - n₁) := by
+  simpa using
+    (apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n₂) (hn := hn))
+
+/-- Regression: mul-left normal form for the inequality version `n₁ ≤ n₂`, into a homogeneous sum. -/
+example {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+    apSumOffset f d m n₂ - apSumOffset f d m n₁ =
+      apSum (fun k => f (k + d * (m + n₁))) d (n₂ - n₁) := by
+  simpa using
+    (apSumOffset_sub_apSumOffset_eq_apSum_shift_add_mul_left (f := f) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n₂) (hn := hn))
+
 /-- Regression: “step-one” normalization for offset AP sums, using the translation-friendly
 `k * d + const` summand convention.
 
