@@ -426,6 +426,25 @@ lemma apSumFrom_add_length_eq_add_apSum_shift_add_left (f : ℕ → ℤ) (a d m 
         simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
       simpa [hfun]
 
+/-- Variant of `apSumFrom_add_length_eq_add_apSum_shift_add` with the translation constant written as
+`d*m + a`.
+
+This is convenient when downstream work prefers the `d*m` multiplication-on-the-left convention,
+so you can avoid commuting multiplication under binders or inside larger expressions.
+-/
+lemma apSumFrom_add_length_eq_add_apSum_shift_add_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSum (fun k => f (k + (d * m + a))) d n := by
+  calc
+    apSumFrom f a d (m + n) = apSumFrom f a d m + apSum (fun k => f (k + (m * d + a))) d n := by
+      simpa using
+        (apSumFrom_add_length_eq_add_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = apSumFrom f a d m + apSum (fun k => f (k + (d * m + a))) d n := by
+      have hfun : (fun k => f (k + (m * d + a))) = (fun k => f (k + (d * m + a))) := by
+        funext k
+        simp [Nat.mul_comm]
+      simpa [hfun]
+
 /-- Tail affine AP sum as an offset AP sum on the shifted sequence `k ↦ f (k + a)`, with the
 starting point written as `m*d + a`.
 

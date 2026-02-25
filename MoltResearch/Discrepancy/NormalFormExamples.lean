@@ -71,6 +71,16 @@ example :
   simpa using
     (apSumFrom_sub_eq_apSum_shift_add_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: mul-left translation-constant wrapper for splitting affine sums by length.
+
+This exercises `apSumFrom_add_length_eq_add_apSum_shift_add_mul_left`.
+-/
+example :
+    apSumFrom f a d (m + n) =
+      apSumFrom f a d m + apSum (fun k => f (k + (d * m + a))) d n := by
+  simpa using
+    (apSumFrom_add_length_eq_add_apSum_shift_add_mul_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Regression: commute the affine translation into the *function* (map-add normal form).
 
 This exercises `apSumFrom_eq_apSum_map_add`.
