@@ -498,6 +498,17 @@ lemma apSumFrom_tail_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
       simpa [Nat.add_assoc] using
         (apSumOffset_eq_apSum_shift_add (f := fun k => f (k + a)) (d := d) (m := m) (n := n))
 
+/-- Mul-left convenience wrapper for `apSumFrom_tail_eq_apSum_shift_add_left`.
+
+This avoids rewriting `m * d` into `d * m` at the call site when your goal uses the
+`d * m + a` presentation of the affine start.
+-/
+lemma apSumFrom_tail_eq_apSum_shift_add_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (d * m + a) d n = apSum (fun k => f (k + (d * m + a))) d n := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc,
+    Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Normal form: eliminate the tail parameter `m` by absorbing it into a translation constant.
 
 Concretely, the affine tail sum `apSumFrom f (a + m*d) d n` can be rewritten as an offset sum
