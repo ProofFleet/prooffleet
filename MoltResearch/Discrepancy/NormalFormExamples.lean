@@ -31,6 +31,14 @@ This exercises `apSumFrom_eq_apSum_step_one_add_left`.
 example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
   simpa using (apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n))
 
+/-- Regression: “step-one” normalization for affine AP sums directly into the `apSumOffset` API.
+
+This exercises `apSumFrom_eq_apSumOffset_step_one_zero_m_add_left`.
+-/
+example : apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa using
+    (apSumFrom_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (n := n))
+
 /-- Regression: canonical affine difference normalizes to an offset sum on a shifted sequence
 (translation-friendly `k + a` form). -/
 example :
@@ -153,6 +161,15 @@ This exercises `apSumOffset_eq_apSum_step_one_add_left`.
 example : apSumOffset f d m n = apSum (fun k => f (k * d + m * d)) 1 n := by
   simpa using
     (apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n))
+
+/-- Regression: tail affine AP sum as a step-one offset sum that *keeps* the tail parameter.
+
+This exercises `apSumFrom_tail_eq_apSumOffset_step_one_add_left`.
+-/
+example :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k * d + a)) 1 m n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
 /-- Regression: “step-one” normalization for offset AP sums, keeping an `apSumOffset` shape and
 eliminating the explicit offset parameter.
