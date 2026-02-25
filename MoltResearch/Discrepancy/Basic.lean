@@ -268,7 +268,7 @@ lemma apSum_eq_sum_Icc (f : ℕ → ℤ) (d n : ℕ) :
             refine Finset.sum_congr rfl ?_
             intro i hi
             -- `i + 1 = 1 + i`
-            simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+            simp [Nat.add_comm]
     _ = (Finset.Ico 1 (n + 1)).sum (fun i => f (i * d)) := by
             simpa [Nat.add_sub_cancel] using h.symm
     _ = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by

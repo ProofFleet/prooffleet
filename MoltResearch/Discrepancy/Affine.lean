@@ -51,12 +51,12 @@ lemma apSumFrom_eq_sum_Icc (f : ℕ → ℤ) (a d n : ℕ) :
             refine Finset.sum_congr rfl ?_
             intro i hi
             -- `i + 1 = 1 + i`
-            simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+            simp [Nat.add_comm]
     _ = (Finset.Ico 1 (n + 1)).sum (fun i => f (a + i * d)) := by
             -- `h` is oriented from `Ico` to `range`; we use it backwards.
             simpa [Nat.add_sub_cancel] using h.symm
     _ = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
-            simpa [Finset.Ico_add_one_right_eq_Icc]
+            simp [Finset.Ico_add_one_right_eq_Icc]
 
 /-- Translation-friendly paper notation: rewrite `apSumFrom` as
 `∑ i ∈ Icc 1 n, f (i*d + a)`.
