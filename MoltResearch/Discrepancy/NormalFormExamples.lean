@@ -111,6 +111,27 @@ This exercises `apSumOffset_eq_apSum_shift`.
 example : apSumOffset f d m n = apSum (fun k => f (m * d + k)) d n := by
   simpa using (apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n))
 
+/-- Regression: offset sums on a shifted sequence normalize to a homogeneous sum on a further-shifted
+sequence, using the `a + k` binder convention.
+
+This exercises `apSumOffset_shift_add_left_eq_apSum_shift_add_left`.
+-/
+example :
+    apSumOffset (fun k => f (a + k)) d m n = apSum (fun k => f ((a + m * d) + k)) d n := by
+  simpa using
+    (apSumOffset_shift_add_left_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n))
+
+/-- Regression: inverse orientation of the previous normal form.
+
+This exercises `apSum_shift_add_left_eq_apSumOffset_shift_add_left`.
+-/
+example :
+    apSum (fun k => f ((a + m * d) + k)) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    (apSum_shift_add_left_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m)
+      (n := n))
+
 /-- Regression: affine tails normalize to `apSumOffset` on the shifted sequence `k ↦ f (k + a)`.
 
 This is a common glue step when downstream lemmas are stated for `apSumOffset` only.
