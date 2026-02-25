@@ -327,6 +327,39 @@ example :
     apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + i * d)) := by
   simpa using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n))
 
+/-- Regression: normalize the paper affine *difference* interval sum into a difference of nucleus
+`apSumFrom` partial sums.
+
+This exercises `sum_Icc_eq_apSumFrom_sub`.
+-/
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumFrom f a d (m + n) - apSumFrom f a d m := by
+  simpa using
+    (sum_Icc_eq_apSumFrom_sub (f := f) (a := a) (d := d) (m := m) (n := n))
+
+variable (m₁ n₁ : ℕ) (hmn₁ : m₁ ≤ n₁)
+
+/-- Regression: `m ≤ n` variant of paper affine difference normalization.
+
+This exercises `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le`.
+-/
+example :
+    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (a + i * d)) =
+      apSumFrom f a d n₁ - apSumFrom f a d m₁ := by
+  simpa using
+    (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le (f := f) (a := a) (d := d) (m := m₁) (n := n₁) hmn₁)
+
+/-- Regression: translation-friendly `i*d + a` variant of the `m ≤ n` paper affine difference normalization.
+
+This exercises `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_add`.
+-/
+example :
+    (Finset.Icc (m₁ + 1) n₁).sum (fun i => f (i * d + a)) =
+      apSumFrom f a d n₁ - apSumFrom f a d m₁ := by
+  simpa using
+    (sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le_add (f := f) (a := a) (d := d) (m := m₁) (n := n₁) hmn₁)
+
 /-- Regression: normalize a paper affine-tail interval sum directly into an offset sum on the
 shifted sequence `k ↦ f (a + k)`.
 
