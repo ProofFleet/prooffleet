@@ -466,6 +466,11 @@ theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one (f : ℕ
 @[simp] lemma apSumOffset_one (f : ℕ → ℤ) (d m : ℕ) : apSumOffset f d m 1 = f ((m + 1) * d) := by
   simp [apSumOffset]
 
+-- A variant of `apSumOffset_one` with the multiplication order flipped.
+lemma apSumOffset_one_mul_left (f : ℕ → ℤ) (d m : ℕ) :
+    apSumOffset f d m 1 = f (d * (m + 1)) := by
+  simp [Nat.mul_comm]
+
 lemma apSumOffset_succ (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
   classical
