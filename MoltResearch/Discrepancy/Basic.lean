@@ -59,8 +59,11 @@ lemma HasDiscrepancyAtLeast.exists_witness_pos {f : ℕ → ℤ} {C : ℕ}
   | zero =>
       -- `apSum f d 0 = 0`, so `natAbs` cannot be strictly greater than `C`.
       exfalso
-      have hgt' : (C : ℕ) < 0 := by
-        simpa [apSum] using hgt
+      have hgt' : C < 0 := by
+        -- Lint-friendly: simplify the witness first, then flip `>` to `<`.
+        have : 0 > C := by
+          simpa [apSum] using hgt
+        simpa [gt_iff_lt] using this
       exact Nat.not_lt_zero C hgt'
   | succ n' =>
       refine ⟨d, Nat.succ n', hd, Nat.succ_pos n', ?_⟩
@@ -215,7 +218,7 @@ lemma IsSignSequence.abs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : �
 /-- A sign sequence is pointwise bounded by `1` in absolute value. -/
 lemma IsSignSequence.abs_le_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     abs (f n) ≤ 1 := by
-  simpa [hf.abs_eq_one n]
+  simp [hf.abs_eq_one n]
 
 /-- Any ±1 sequence has discrepancy at least 0 (take d = 1, n = 1). -/
 lemma IsSignSequence.hasDiscrepancyAtLeast_zero {f : ℕ → ℤ} (hf : IsSignSequence f) :
@@ -265,11 +268,11 @@ lemma apSum_eq_sum_Icc (f : ℕ → ℤ) (d n : ℕ) :
             refine Finset.sum_congr rfl ?_
             intro i hi
             -- `i + 1 = 1 + i`
-            simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+            simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
     _ = (Finset.Ico 1 (n + 1)).sum (fun i => f (i * d)) := by
             simpa [Nat.add_sub_cancel] using h.symm
     _ = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
-            simpa [Finset.Ico_add_one_right_eq_Icc]
+            simp [Finset.Ico_add_one_right_eq_Icc]
 
 /-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (i*d)` back to `apSum`.
 
