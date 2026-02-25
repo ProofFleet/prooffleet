@@ -90,6 +90,14 @@ example :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Regression: the `m = 0` inverse direction of the previous normalization (offset sum on a shifted
+sequence ↦ affine sum).
+
+This exercises `apSumOffset_shift_add_eq_apSumFrom`.
+-/
+example : apSumOffset (fun k => f (k + a)) d 0 n = apSumFrom f a d n := by
+  simpa using (apSumOffset_shift_add_eq_apSumFrom (f := f) (a := a) (d := d) (n := n))
+
 /-- Regression: mul-left variant of the previous normal form (affine start written as `a + d*m`).
 
 This exercises `apSumFrom_tail_eq_apSumOffset_shift_add_mul_left`.
