@@ -50,6 +50,17 @@ lemma HasDiscrepancyAtLeast.of_succ {f : ℕ → ℤ} {C : ℕ}
   exact
     HasDiscrepancyAtLeast.mono (f := f) (C₁ := C) (C₂ := C + 1) h (Nat.le_succ C)
 
+/-- If we can beat every bound by one, we can beat every bound.
+
+This is a small but frequently useful “quantifier-level” normal form: it lets you assume a
+strictly-stronger hypothesis `HasDiscrepancyAtLeast f (C+1)` and immediately obtain the standard
+unbounded-discrepancy statement.
+-/
+theorem forall_hasDiscrepancyAtLeast_of_succ (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f (C + 1)) → (∀ C : ℕ, HasDiscrepancyAtLeast f C) := by
+  intro h C
+  exact HasDiscrepancyAtLeast.of_succ (h C)
+
 /-- From a discrepancy witness obtain `d` and `n` both positive. -/
 lemma HasDiscrepancyAtLeast.exists_witness_pos {f : ℕ → ℤ} {C : ℕ}
     (h : HasDiscrepancyAtLeast f C) :
