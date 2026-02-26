@@ -178,6 +178,16 @@ Typical rewrite pipeline:
 - [x] Add paper→nucleus rewrite lemmas for affine difference interval sums (`sum_Icc_eq_apSumFrom_sub`, `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le`)
 - [x] Nucleus normal form: rewrite `apSumFrom f a d n` to `apSumOffset` when `a` is a multiple of `d`
 
+#### Auto-generated backlog (needs triage)
+- [ ] Affine: for sign sequences, a witness for `HasAffineDiscrepancyAtLeast f C` can be taken with `d ≥ 1` and `n > C`.
+- [ ] Normal form: rewrite `HasAffineDiscrepancyAtLeast f C` into an offset-sum witness `Int.natAbs (apSumOffset (fun k => f (k + a)) d 0 n) > C`.
+- [ ] Normal form: rewrite `HasDiscrepancyAtLeast f C` into an offset-sum witness `Int.natAbs (apSumOffset f d 0 n) > C`.
+- [ ] Add mul-left variant of the affine difference normal form for `m ≤ n` (rewrite `apSumFrom … n - apSumFrom … m` to a shifted `apSum` with summand `fun k => f (d * k + const)`).
+- [ ] Introduce `discrepancy (f d n : …) : ℕ := Int.natAbs (apSum f d n)` and prove the basic API (bounds, simp lemmas, and `HasDiscrepancyAtLeast` witness reformulation).
+- [ ] Introduce `affineDiscrepancy (f a d n : …) : ℕ := Int.natAbs (apSumFrom f a d n)` and prove the basic API + reformulation for `HasAffineDiscrepancyAtLeast`.
+- [ ] Regression example: reindexing via `map_mul` compiles under `import MoltResearch.Discrepancy` (`apSum_map_mul`, `apSumOffset_map_mul`, `apSumFrom_map_mul`).
+- [ ] Regression example: translation via `map_add` compiles under `import MoltResearch.Discrepancy` (`apSumFrom_map_add`, `apSum_map_add`, plus the `_left` variants).
+
 Definition of done:
 - each PR adds 1–3 lemmas OR consolidates/normalizes existing ones
 - minimal imports; prefer `import MoltResearch.Discrepancy` as stable surface
