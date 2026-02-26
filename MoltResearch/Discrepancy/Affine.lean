@@ -733,6 +733,26 @@ This is the natural analogue of `HasDiscrepancyAtLeast` where we also allow an o
 def HasAffineDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
   ∃ a d n : ℕ, d > 0 ∧ Int.natAbs (apSumFrom f a d n) > C
 
+/-- Normal form: rewrite `HasAffineDiscrepancyAtLeast f C` into an offset-sum witness on the
+shifted sequence `k ↦ f (k + a)`.
+
+This is the `m = 0` case of the general “tail/offset” normal form, expressed using only lemmas
+available in this file.
+-/
+lemma HasAffineDiscrepancyAtLeast_iff_exists_apSumOffset_shift_add_zero {f : ℕ → ℤ} {C : ℕ} :
+    HasAffineDiscrepancyAtLeast f C ↔
+      ∃ a d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset (fun k => f (k + a)) d 0 n) > C := by
+  constructor
+  · rintro ⟨a, d, n, hd, hgt⟩
+    refine ⟨a, d, n, hd, ?_⟩
+    -- Rewrite the affine sum as a homogeneous sum on the shifted sequence,
+    -- then repackage as an offset sum with `m = 0`.
+    simpa [apSumFrom_eq_apSum_shift_add, apSumFrom_zero_a, apSumFrom_mul_eq_apSumOffset] using hgt
+  · rintro ⟨a, d, n, hd, hgt⟩
+    refine ⟨a, d, n, hd, ?_⟩
+    -- Same rewrite, in the reverse direction.
+    simpa [apSumFrom_eq_apSum_shift_add, apSumFrom_zero_a, apSumFrom_mul_eq_apSumOffset] using hgt
+
 /-- Monotonicity of `HasAffineDiscrepancyAtLeast` in the bound. -/
 lemma HasAffineDiscrepancyAtLeast.mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
     (h : HasAffineDiscrepancyAtLeast f C₂) (hC : C₁ ≤ C₂) :
