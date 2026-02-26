@@ -239,6 +239,9 @@ Discrepancy predicates / witnesses:
   family:
   - homogeneous: `forall_hasDiscrepancyAtLeast_iff_forall_nonempty_witnessPos`
   - affine: `forall_hasAffineDiscrepancyAtLeast_iff_forall_nonempty_witnessPos`
+- For sign sequences, you can strengthen the length side-condition: the lemma
+  `IsSignSequence.exists_affine_witness_d_ge_one_and_length_gt` shows that any witness of
+  `HasAffineDiscrepancyAtLeast f C` can be chosen with `d ≥ 1` and `n > C`.
 - For surface statements, rewrite `∀ C, HasDiscrepancyAtLeast f C` to an explicit witness form
   `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ …` via
   `forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos`.
