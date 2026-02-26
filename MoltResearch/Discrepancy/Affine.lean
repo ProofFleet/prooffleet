@@ -742,16 +742,18 @@ available in this file.
 lemma HasAffineDiscrepancyAtLeast_iff_exists_apSumOffset_shift_add_zero {f : ℕ → ℤ} {C : ℕ} :
     HasAffineDiscrepancyAtLeast f C ↔
       ∃ a d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset (fun k => f (k + a)) d 0 n) > C := by
+  classical
   constructor
   · rintro ⟨a, d, n, hd, hgt⟩
     refine ⟨a, d, n, hd, ?_⟩
-    -- Rewrite the affine sum as a homogeneous sum on the shifted sequence,
-    -- then repackage as an offset sum with `m = 0`.
-    simpa [apSumFrom_eq_apSum_shift_add, apSumFrom_zero_a, apSumFrom_mul_eq_apSumOffset] using hgt
+    -- `apSumFrom f a d n` is definitionally the same as an offset sum of the shifted sequence
+    -- `k ↦ f (k + a)` with `m = 0`.
+    simpa [HasAffineDiscrepancyAtLeast, apSumFrom, apSumOffset, Nat.add_assoc, Nat.add_left_comm,
+      Nat.add_comm] using hgt
   · rintro ⟨a, d, n, hd, hgt⟩
     refine ⟨a, d, n, hd, ?_⟩
-    -- Same rewrite, in the reverse direction.
-    simpa [apSumFrom_eq_apSum_shift_add, apSumFrom_zero_a, apSumFrom_mul_eq_apSumOffset] using hgt
+    simpa [HasAffineDiscrepancyAtLeast, apSumFrom, apSumOffset, Nat.add_assoc, Nat.add_left_comm,
+      Nat.add_comm] using hgt
 
 /-- Monotonicity of `HasAffineDiscrepancyAtLeast` in the bound. -/
 lemma HasAffineDiscrepancyAtLeast.mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
