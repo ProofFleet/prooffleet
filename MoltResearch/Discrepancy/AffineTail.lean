@@ -1719,6 +1719,34 @@ lemma apSumFrom_sub_apSumFrom_eq_apSum_shift_add_left_of_le (f : ℕ → ℤ) (a
     (apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le (f := f) (a := a) (d := d) (m := m)
       (n := n) (hmn := hmn))
 
+/-- Mul-left + step-one variant of `apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le`.
+
+When `m ≤ n`, this rewrites the difference of affine AP partial sums into a step-one homogeneous
+AP sum, with the multiplication written as `d * k`.
+
+This avoids commuting multiplication under binders when your downstream statements prefer the
+`d * k + const` convention.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_add_left_of_le (f : ℕ → ℤ) (a d : ℕ)
+    {m n : ℕ} (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      apSum (fun k => f (d * k + (d * m + a))) 1 (n - m) := by
+  calc
+    apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (a + m * d) d (n - m) := by
+      simpa using
+        (apSumFrom_sub_apSumFrom_eq_apSumFrom (f := f) (a := a) (d := d) (m := m) (n := n)
+          (hmn := hmn))
+    _ = apSum (fun k => f (k * d + (a + m * d))) 1 (n - m) := by
+      simpa using
+        (apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m)
+          (n := n - m))
+    _ = apSum (fun k => f (d * k + (d * m + a))) 1 (n - m) := by
+      -- Normalize to the mul-left convention `d*k + (d*m + a)`.
+      have hsummand : (fun k => f (k * d + (a + m * d))) = (fun k => f (d * k + (d * m + a))) := by
+        funext k
+        simp [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+      simpa [hsummand]
+
 /-- Inverse orientation of `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_zero_m_of_le`. -/
 lemma apSumOffset_shift_add_zero_m_eq_apSumFrom_sub_apSumFrom_of_le (f : ℕ → ℤ) (a d : ℕ)
     {m n : ℕ} (hmn : m ≤ n) :
