@@ -24,6 +24,25 @@ We use `Finset.range n` with `i+1` so the progression starts at `d`.
 def apSum (f : ℕ → ℤ) (d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((i + 1) * d))
 
+/-! ### Discrepancy definition and basic API -/
+
+/-- A convenient wrapper for the absolute value of an arithmetic-progression sum.
+
+It is defined as the natural absolute value of `apSum f d n`.
+-/
+def discrepancy (f : ℕ → ℤ) (d n : ℕ) : ℕ :=
+  Int.natAbs (apSum f d n)
+
+/-- Simplification lemma exposing the definition. -/
+@[simp] lemma discrepancy_eq_natAbs_apSum (f : ℕ → ℤ) (d n : ℕ) :
+    discrepancy f d n = Int.natAbs (apSum f d n) :=
+  rfl
+
+/-- The discrepancy of an empty progression is zero. -/
+@[simp] lemma discrepancy_zero (f : ℕ → ℤ) (d : ℕ) : discrepancy f d 0 = 0 := by
+  unfold discrepancy apSum
+  simp
+
 /-- Sum of `f` over the next `n` terms of the arithmetic progression after skipping `m` terms.
 
 It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
@@ -141,6 +160,25 @@ lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m {f : ℕ → ℤ} {C :
     HasDiscrepancyAtLeast f C ↔
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
   simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C))
+
+/-- Restate `HasDiscrepancyAtLeast` using the `discrepancy` wrapper. -/
+lemma HasDiscrepancyAtLeast_iff_exists_discrepancy (f : ℕ → ℤ) (C : ℕ) :
+    HasDiscrepancyAtLeast f C ↔ ∃ d n, d > 0 ∧ discrepancy f d n > C := by
+  unfold HasDiscrepancyAtLeast discrepancy
+  constructor
+  · rintro ⟨d, n, hd, hgt⟩
+    exact ⟨d, n, hd, hgt⟩
+  · rintro ⟨d, n, hd, hgt⟩
+    exact ⟨d, n, hd, hgt⟩
+
+/-- Variant with the step-size side condition written as `d ≥ 1`. -/
+lemma HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one (f : ℕ → ℤ) (C : ℕ) :
+    HasDiscrepancyAtLeast f C ↔ ∃ d n, d ≥ 1 ∧ discrepancy f d n > C := by
+  constructor
+  · rintro ⟨d, n, hd, hgt⟩
+    exact ⟨d, n, Nat.succ_le_of_lt hd, hgt⟩
+  · rintro ⟨d, n, hd, hgt⟩
+    exact ⟨d, n, (Nat.succ_le_iff).1 hd, hgt⟩
 
 /-- The “unbounded discrepancy” statement `∀ C, HasDiscrepancyAtLeast f C` is equivalent to
 the more explicit witness form `∀ C, ∃ d n > 0, …`.
