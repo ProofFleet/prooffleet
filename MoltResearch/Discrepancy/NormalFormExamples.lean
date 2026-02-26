@@ -1045,6 +1045,13 @@ example (hmn : m ≤ n) :
     apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le (f := f) (a := a) (d := d) (m := m) (n := n)
       (hmn := hmn)
 
+-- Same `m ≤ n` normalization, but in step-one mul-left form (summand `d * k + const`).
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSum (fun k => f (d * k + (d * m + a))) 1 (n - m) := by
+  simpa using
+    apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_add_left_of_le (f := f) (a := a) (d := d)
+      (m := m) (n := n) (hmn := hmn)
+
 -- Inverse orientation: normalize an `apSumOffset` tail sum on a shifted sequence back into a
 -- difference of affine partial sums.
 example (hmn : m ≤ n) :
