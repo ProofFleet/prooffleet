@@ -156,6 +156,19 @@ lemma apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left (f : ℕ → ℤ) (a d 
             (apSumFrom_eq_apSum_step_one_add_left (f := f) (a := m * d + a) (d := d)
               (n := n - m))
 
+/-- Convenience wrapper around `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left` with the
+constant written as `a + d*m` (mul-left orientation).
+
+This is convenient when downstream goals already use the `a + d*m` normal form.
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      apSum (fun k => f (d * k + (a + d * m))) 1 (n - m) := by
+  simpa [Nat.mul_comm, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left (f := f) (a := a) (d := d)
+      (m := m) (n := n) hmn)
+
 /-- Difference of a longer affine AP partial sum and its initial segment, in the `(m + n) - m`
 normal form.
 
