@@ -1052,6 +1052,13 @@ example (hmn : m ≤ n) :
     apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_add_left_of_le (f := f) (a := a) (d := d)
       (m := m) (n := n) (hmn := hmn)
 
+-- Regression example for the plain step-one mul-left lemma.
+example (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSum (fun k => f (d * k + (m * d + a))) 1 (n - m) := by
+  simpa using
+    apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left (f := f) (a := a) (d := d)
+      (m := m) (n := n) (hmn := hmn)
+
 -- Inverse orientation: normalize an `apSumOffset` tail sum on a shifted sequence back into a
 -- difference of affine partial sums.
 example (hmn : m ≤ n) :
