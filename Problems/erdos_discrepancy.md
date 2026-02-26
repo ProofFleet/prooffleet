@@ -183,7 +183,8 @@ Typical rewrite pipeline:
   - proved as `IsSignSequence.exists_affine_witness_d_ge_one_and_length_gt`
 - [x] Normal form: rewrite `HasAffineDiscrepancyAtLeast f C` into an offset-sum witness `Int.natAbs (apSumOffset (fun k => f (k + a)) d 0 n) > C`.
   - proved as `HasAffineDiscrepancyAtLeast_iff_exists_apSumOffset_shift_add_zero` in `MoltResearch/Discrepancy/Affine.lean`.
-- [ ] Normal form: rewrite `HasDiscrepancyAtLeast f C` into an offset-sum witness `Int.natAbs (apSumOffset f d 0 n) > C`.
+- [x] Normal form: rewrite `HasDiscrepancyAtLeast f C` into an offset-sum witness `Int.natAbs (apSumOffset f d 0 n) > C`.
+  - proved as `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` in `MoltResearch/Discrepancy/Basic.lean`.
 - [ ] Add mul-left variant of the affine difference normal form for `m ≤ n` (rewrite `apSumFrom … n - apSumFrom … m` to a shifted `apSum` with summand `fun k => f (d * k + const)`).
 - [ ] Introduce `discrepancy (f d n : …) : ℕ := Int.natAbs (apSum f d n)` and prove the basic API (bounds, simp lemmas, and `HasDiscrepancyAtLeast` witness reformulation).
 - [ ] Introduce `affineDiscrepancy (f a d n : …) : ℕ := Int.natAbs (apSumFrom f a d n)` and prove the basic API + reformulation for `HasAffineDiscrepancyAtLeast`.

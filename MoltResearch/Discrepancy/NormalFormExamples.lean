@@ -13,7 +13,7 @@ namespace MoltResearch
 
 section NormalFormExamples
 
-variable (f : ℕ → ℤ) (a d m n n₁ n₂ : ℕ)
+variable (f : ℕ → ℤ) (a d m n n₁ n₂ C : ℕ)
 
 example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
   simpa using apSum_eq_sum_Icc (f := f) (d := d) (n := n)
@@ -1248,6 +1248,11 @@ example :
   simpa using
     apSumFrom_tail_sub_eq_apSumOffset_shift_add_zero_m_tail (f := f) (a := a) (d := d) (m := m)
       (n1 := n₁) (n2 := n₂)
+
+example :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
+  simpa using HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C)
 
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
