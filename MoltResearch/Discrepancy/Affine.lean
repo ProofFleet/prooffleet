@@ -673,6 +673,31 @@ lemma apSumFrom_tail_eq_sub_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn
   simpa [Nat.add_sub_of_le hmn] using
     (apSumFrom_tail_eq_sub (f := f) (a := a) (d := d) (m := m) (n := n - m))
 
+/-- Mul-left variant of the difference normal form: when `m ≤ n`, normalize
+`apSumFrom f a d n - apSumFrom f a d m` into a step-one `apSum` whose summand is written as
+`d*k + const`.
+
+This is a small wrapper around `apSumFrom_tail_eq_sub_of_le` and
+`apSumFrom_tail_eq_apSum_step_one_add_left`.
+-/
+lemma apSumFrom_sub_eq_apSum_step_one_mul_left_add_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      apSum (fun k => f (d * k + (d * m + a))) 1 (n - m) := by
+  classical
+  -- Rewrite the difference as the canonical tail, then package the tail into step-one form.
+  calc
+    apSumFrom f a d n - apSumFrom f a d m
+        = apSumFrom f (a + m * d) d (n - m) := by
+            simpa using (apSumFrom_tail_eq_sub_of_le (f := f) (a := a) (d := d) (m := m) (n := n)
+              hmn).symm
+    _ = apSum (fun k => f (k * d + (a + m * d))) 1 (n - m) := by
+            simpa using
+              (apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m)
+                (n := n - m))
+    _ = apSum (fun k => f (d * k + (d * m + a))) 1 (n - m) := by
+            simp [Nat.mul_comm, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+
 /-! A sign sequence has affine AP partial sums bounded by length: `|∑_{i=1}^n f (a + i*d)| ≤ n`. -/
 lemma IsSignSequence.natAbs_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence f) (a d n : ℕ) :
     Int.natAbs (apSumFrom f a d n) ≤ n := by
