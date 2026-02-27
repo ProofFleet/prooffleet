@@ -1660,6 +1660,18 @@ lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f : ℕ → ℤ) (a d : ℕ)
               (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m)
                 (n := n - m))
 
+/-- `_of_le`-named wrapper for `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift`.
+
+This matches the naming convention of the interval-sum normal-form lemmas (e.g.
+`sum_Icc_eq_apSumOffset_of_le`).
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
 /-- Difference of two affine AP partial sums as an offset AP sum on the shifted sequence
 `k ↦ f (k + a)` when `m ≤ n`.
 
@@ -1675,6 +1687,18 @@ lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d : 
         (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (hmn := hmn))
     _ = apSumOffset (fun k => f (k + a)) d m (n - m) := by
       simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n - m)
+
+/-- `_of_le`-named wrapper for `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add`.
+
+This matches the naming convention of the interval-sum normal-form lemmas (e.g.
+`sum_Icc_eq_apSumOffset_of_le`).
+-/
+lemma apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
 
 /-- Normal form: eliminate the offset parameter `m` in the affine difference
 `apSumFrom f a d n - apSumFrom f a d m` (with `m ≤ n`) by absorbing it into the translation
