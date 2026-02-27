@@ -323,34 +323,58 @@ We keep the more general `a`-parameterized versions here since they are the natu
 composing translations.
 -/
 
-lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
+lemma HasDiscrepancyAtLeast.of_shift_add {f : ℕ → ℤ} {k C : ℕ} :
   HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   rintro ⟨d, n, hd, hgt⟩
   refine ⟨k, d, n, hd, ?_⟩
   simpa [apSum_shift_add] using hgt
 
-/-- Variant of `HasDiscrepancyAtLeast.of_map_add` for translated functions written in the `k + x`
+/-- Variant of `HasDiscrepancyAtLeast.of_shift_add` for translated functions written in the `k + x`
 form. -/
-lemma HasDiscrepancyAtLeast.of_map_add_left {f : ℕ → ℤ} {k C : ℕ} :
+lemma HasDiscrepancyAtLeast.of_shift_add_left {f : ℕ → ℤ} {k C : ℕ} :
   HasDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
   have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
     funext x
     simp [Nat.add_comm]
-  simpa [hfun] using (HasDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C))
+  simpa [hfun] using (HasDiscrepancyAtLeast.of_shift_add (f := f) (k := k) (C := C))
 
-lemma HasAffineDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
+lemma HasAffineDiscrepancyAtLeast.of_shift_add {f : ℕ → ℤ} {k C : ℕ} :
   HasAffineDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   rintro ⟨a, d, n, hd, hgt⟩
   refine ⟨a + k, d, n, hd, ?_⟩
   simpa [apSumFrom_shift_add] using hgt
 
-/-- Variant of `HasAffineDiscrepancyAtLeast.of_map_add` for translated functions written in the
+/-- Variant of `HasAffineDiscrepancyAtLeast.of_shift_add` for translated functions written in the
 `k + x` form. -/
-lemma HasAffineDiscrepancyAtLeast.of_map_add_left {f : ℕ → ℤ} {k C : ℕ} :
+lemma HasAffineDiscrepancyAtLeast.of_shift_add_left {f : ℕ → ℤ} {k C : ℕ} :
   HasAffineDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
   have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
     funext x
     simp [Nat.add_comm]
-  simpa [hfun] using (HasAffineDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C))
+  simpa [hfun] using (HasAffineDiscrepancyAtLeast.of_shift_add (f := f) (k := k) (C := C))
+
+@[deprecated "Use `HasDiscrepancyAtLeast.of_shift_add`." (since := "2026-02-27")]
+lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
+  HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
+  intro h
+  exact HasDiscrepancyAtLeast.of_shift_add (f := f) (k := k) (C := C) h
+
+@[deprecated "Use `HasDiscrepancyAtLeast.of_shift_add_left`." (since := "2026-02-27")]
+lemma HasDiscrepancyAtLeast.of_map_add_left {f : ℕ → ℤ} {k C : ℕ} :
+  HasDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
+  intro h
+  exact HasDiscrepancyAtLeast.of_shift_add_left (f := f) (k := k) (C := C) h
+
+@[deprecated "Use `HasAffineDiscrepancyAtLeast.of_shift_add`." (since := "2026-02-27")]
+lemma HasAffineDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
+  HasAffineDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
+  intro h
+  exact HasAffineDiscrepancyAtLeast.of_shift_add (f := f) (k := k) (C := C) h
+
+@[deprecated "Use `HasAffineDiscrepancyAtLeast.of_shift_add_left`." (since := "2026-02-27")]
+lemma HasAffineDiscrepancyAtLeast.of_map_add_left {f : ℕ → ℤ} {k C : ℕ} :
+  HasAffineDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C := by
+  intro h
+  exact HasAffineDiscrepancyAtLeast.of_shift_add_left (f := f) (k := k) (C := C) h
 
 end MoltResearch

@@ -1410,7 +1410,7 @@ example (k C : ℕ) (hk : k > 0) :
 example (k C : ℕ) :
     HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   intro h
-  exact HasDiscrepancyAtLeast.of_map_add (f := f) (k := k) (C := C) h
+  exact HasDiscrepancyAtLeast.of_shift_add (f := f) (k := k) (C := C) h
 
 example (c : ℤ) (hc : c ≠ 0) (C : ℕ) :
     HasDiscrepancyAtLeast f C → HasDiscrepancyAtLeast (fun n => c * f n) C := by
