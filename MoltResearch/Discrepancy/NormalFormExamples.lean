@@ -379,6 +379,12 @@ example :
   simpa using
     apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Normalize an *added* offset `m + b` by pushing `b` into the translation constant.
+example :
+    apSumOffset (fun k => f (k + a)) d (m + b) n = apSumOffset (fun k => f (k + (a + b * d))) d m n := by
+  simpa using
+    apSumOffset_shift_add_add_offset_eq (f := f) (a := a) (d := d) (m := m) (b := b) (n := n)
+
 -- Affine tails/differences as offset sums on a shifted sequence (translation-friendly `k + a`).
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)

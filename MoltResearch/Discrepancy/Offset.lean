@@ -1178,6 +1178,21 @@ lemma apSumOffset_shift_add_shift_add_eq_apSumOffset_shift_add (f : ℕ → ℤ)
   simpa using (apSumOffset_shift_add_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
     (n := n)).symm
 
+/-- Normal form: normalize an *added* offset parameter on a shifted sequence.
+
+Concretely, shifting the offset from `m` to `m + b` can be absorbed into the translation constant:
+
+`apSumOffset (fun k => f (k + a)) d (m + b) n = apSumOffset (fun k => f (k + (a + b*d))) d m n`.
+
+This keeps the binder in the translation-friendly `k + const` shape while preventing “shift
+bookkeeping” from proliferating.
+-/
+lemma apSumOffset_shift_add_add_offset_eq (f : ℕ → ℤ) (a d m b n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d (m + b) n =
+      apSumOffset (fun k => f (k + (a + b * d))) d m n := by
+  -- Rewrite both sides using the `apSum` shifted-sequence normal form and simplify.
+  simp [apSumOffset_eq_apSum_shift_add, Nat.add_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-- Normal form (add-left variant): push an offset parameter into a translation constant.
 
 This is the `a + k` analogue of `apSumOffset_shift_add_eq_apSumOffset_shift_add`.
