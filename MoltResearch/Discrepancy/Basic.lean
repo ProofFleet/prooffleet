@@ -49,6 +49,48 @@ It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
 def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
+/-! ### Basic inequalities for sign sequences -/
+
+/-- A sign sequence has `Int.natAbs` bounded by length on any offset AP sum. -/
+lemma natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
+    Int.natAbs (apSumOffset f d m n) ≤ n := by
+  induction n with
+  | zero =>
+      simp [apSumOffset]
+  | succ n ih =>
+      -- Peel off the last term of the range sum.
+      have hterm : Int.natAbs (f ((m + n + 1) * d)) = 1 := by
+        rcases hf ((m + n + 1) * d) with h | h <;> simp [h]
+      -- `range (n+1)` sum is `range n` sum plus the last term.
+      have :
+          apSumOffset f d m (n + 1) =
+            apSumOffset f d m n + f ((m + n + 1) * d) := by
+        simp [apSumOffset, Finset.sum_range_succ, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+      -- Now use triangle inequality (`natAbs_add_le`) and the inductive hypothesis.
+      calc
+        Int.natAbs (apSumOffset f d m (n + 1))
+            = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
+                simpa [this]
+        _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
+                simpa using (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))
+        _ ≤ n + 1 := by
+                have hterm_le : Int.natAbs (f ((m + n + 1) * d)) ≤ 1 := by
+                  simpa [hterm]
+                exact Nat.add_le_add ih hterm_le
+
+/-- Bounding a *difference of discrepancies* (offset AP sums) by total length.
+
+Useful for triangle-inequality pipelines: `|Sₙ - Sₙ'| ≤ |Sₙ| + |Sₙ'| ≤ n + n'`.
+-/
+lemma natAbs_apSumOffset_sub_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n n' : ℕ) :
+    Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤ n + n' := by
+  have hn : Int.natAbs (apSumOffset f d m n) ≤ n := natAbs_apSumOffset_le (hf := hf) d m n
+  have hn' : Int.natAbs (apSumOffset f d m n') ≤ n' := natAbs_apSumOffset_le (hf := hf) d m n'
+  -- `natAbs_sub_le` is the triangle inequality for subtraction.
+  refine le_trans (Int.natAbs_sub_le (apSumOffset f d m n) (apSumOffset f d m n')) ?_
+  -- Push the bound through addition.
+  exact Nat.add_le_add hn hn'
+
 /-- `f` has discrepancy at least `C` if some AP partial sum exceeds `C` in absolute value,
 with a **positive** step size `d ≥ 1`.
 
