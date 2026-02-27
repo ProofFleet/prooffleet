@@ -200,7 +200,8 @@ Typical rewrite pipeline:
 - [x] Difference normal form (affine): add the `m ≤ n` variants rewriting `apSumFrom f a d n - apSumFrom f a d m` directly to an `apSumOffset` normal form on a shifted sequence (no intermediate tail), with `…_of_le` lemma names consistent with the `sum_Icc_…_of_le` family (implemented as `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_of_le` and `apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add_of_le` in `MoltResearch/Discrepancy/AffineTail.lean`).
 - [x] Translation associativity: prove a lemma normalizing nested shifts, e.g. `apSumOffset (fun k => f (k + a)) d (m + b) n` to `apSumOffset (fun k => f (k + (a + b*d))) d m n` (and the corresponding homogeneous `apSum` version), so shift bookkeeping doesn’t proliferate.
 - [x] Bounding lemma: for `IsSignSequence f`, prove a reusable inequality bounding a *difference of discrepancies* by length, e.g. `Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤ n + n'` (or a tighter canonical statement), to support later triangle-inequality pipelines.
-- [ ] Stable surface test: add one or two “pipeline examples” showing paper interval sums with variable endpoints (`m ≤ n`) normalize all the way to `apSumOffset` and then split via `…_add_length`, compiling under `import MoltResearch.Discrepancy`.
+- [x] Stable surface test: add one or two “pipeline examples” showing paper interval sums with variable endpoints (`m ≤ n`) normalize all the way to `apSumOffset` and then split via `…_add_length`, compiling under `import MoltResearch.Discrepancy`.
+  - Implemented as pipeline examples in `MoltResearch/Discrepancy/NormalFormExamples.lean` (split at `k` for `m ≤ k ≤ n`).
 - [ ] Consolidation PR: audit the existing normal-form lemma names for `*_shift_add` vs `*_map_add` and standardize the preferred ones (keeping old names as deprecated aliases if needed), to keep the nucleus surface coherent.
 
 Definition of done:
