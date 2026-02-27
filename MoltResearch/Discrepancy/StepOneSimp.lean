@@ -21,4 +21,9 @@ namespace MoltResearch
 -- Prefer the step-one normal form for `apSumOffset` when simplifying.
 attribute [simp] apSumOffset_eq_apSumOffset_step_one
 
+-- Regression test: importing this module should let `simp` push the step into the summand.
+example (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (k * d)) 1 m n := by
+  simp
+
 end MoltResearch
