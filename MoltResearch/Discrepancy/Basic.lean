@@ -541,11 +541,19 @@ theorem forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one (f : ℕ
   · intro h C
     exact (HasDiscrepancyAtLeast_iff_exists_sum_Icc_d_ge_one (f := f) (C := C)).2 (h C)
 
+/-! ### Degenerate length simp lemmas
+
+These mirror `apSum_zero` / `apSum_one` for the offset nucleus `apSumOffset`.
+-/
+section apSumOffset_degenerate
+
 @[simp] lemma apSumOffset_zero (f : ℕ → ℤ) (d m : ℕ) : apSumOffset f d m 0 = 0 := by
   simp [apSumOffset]
 
 @[simp] lemma apSumOffset_one (f : ℕ → ℤ) (d m : ℕ) : apSumOffset f d m 1 = f ((m + 1) * d) := by
   simp [apSumOffset]
+
+end apSumOffset_degenerate
 
 -- A variant of `apSumOffset_one` with the multiplication order flipped.
 lemma apSumOffset_one_mul_left (f : ℕ → ℤ) (d m : ℕ) :

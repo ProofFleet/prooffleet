@@ -19,6 +19,12 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-! ### Degenerate length simp lemmas
+
+These mirror `apSum_zero` / `apSum_one` for the affine nucleus `apSumFrom`.
+-/
+section apSumFrom_degenerate
+
 @[simp] lemma apSumFrom_zero (f : ℕ → ℤ) (a d : ℕ) :
   apSumFrom f a d 0 = 0 := by
   unfold apSumFrom
@@ -28,6 +34,8 @@ def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   apSumFrom f a d 1 = f (a + d) := by
   unfold apSumFrom
   simp
+
+end apSumFrom_degenerate
 
 /-- Corner case: step size `d = 0` collapses the affine AP to the constant value `a`. -/
 @[simp] lemma apSumFrom_zero_d (f : ℕ → ℤ) (a n : ℕ) :
