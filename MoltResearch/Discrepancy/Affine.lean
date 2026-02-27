@@ -750,6 +750,23 @@ lemma IsSignSequence.natAbs_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence 
 
 /-! ## Affine discrepancy -/
 
+/-- A convenient wrapper for the absolute value of an affine arithmetic-progression sum.
+
+It is defined as the natural absolute value of `apSumFrom f a d n`.
+-/
+def affineDiscrepancy (f : ℕ → ℤ) (a d n : ℕ) : ℕ :=
+  Int.natAbs (apSumFrom f a d n)
+
+/-- Simplification lemma exposing the definition. -/
+@[simp] lemma affineDiscrepancy_eq_natAbs_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) :=
+  rfl
+
+/-- The affine discrepancy of an empty progression is zero. -/
+@[simp] lemma affineDiscrepancy_zero (f : ℕ → ℤ) (a d : ℕ) :
+    affineDiscrepancy f a d 0 = 0 := by
+  simp [affineDiscrepancy]
+
 /-- `f` has affine discrepancy at least `C` if some affine AP partial sum exceeds `C` in absolute
 value, with a positive step size `d`.
 
@@ -757,6 +774,22 @@ This is the natural analogue of `HasDiscrepancyAtLeast` where we also allow an o
 -/
 def HasAffineDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
   ∃ a d n : ℕ, d > 0 ∧ Int.natAbs (apSumFrom f a d n) > C
+
+/-- Restate `HasAffineDiscrepancyAtLeast` using the `affineDiscrepancy` wrapper. -/
+lemma HasAffineDiscrepancyAtLeast_iff_exists_affineDiscrepancy (f : ℕ → ℤ) (C : ℕ) :
+    HasAffineDiscrepancyAtLeast f C ↔ ∃ a d n, d > 0 ∧ affineDiscrepancy f a d n > C := by
+  unfold HasAffineDiscrepancyAtLeast affineDiscrepancy
+  constructor <;> rintro ⟨a, d, n, hd, hgt⟩ <;> exact ⟨a, d, n, hd, hgt⟩
+
+/-- Variant with the step-size side condition written as `d ≥ 1`. -/
+lemma HasAffineDiscrepancyAtLeast_iff_exists_affineDiscrepancy_ge_one (f : ℕ → ℤ) (C : ℕ) :
+    HasAffineDiscrepancyAtLeast f C ↔ ∃ a d n, d ≥ 1 ∧ affineDiscrepancy f a d n > C := by
+  constructor
+  · rintro ⟨a, d, n, hd, hgt⟩
+    exact ⟨a, d, n, Nat.succ_le_of_lt hd, by simpa [affineDiscrepancy] using hgt⟩
+  · rintro ⟨a, d, n, hd, hgt⟩
+    refine ⟨a, d, n, (Nat.succ_le_iff).1 hd, ?_⟩
+    simpa [affineDiscrepancy] using hgt
 
 /-- Normal form: rewrite `HasAffineDiscrepancyAtLeast f C` into an offset-sum witness on the
 shifted sequence `k ↦ f (k + a)`.
