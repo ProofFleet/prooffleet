@@ -1412,6 +1412,9 @@ example (hn : n₁ ≤ n₂) :
 example : Int.natAbs (apSumOffset f d m n) ≤ n := by
   simpa using hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n)
 
+example : Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤ n + n' := by
+  simpa using hf.natAbs_apSumOffset_sub_le (d := d) (m := m) (n := n) (n' := n')
+
 example : Int.natAbs (apSum f d (m + n) - apSum f d m) ≤ n := by
   simpa using hf.natAbs_apSum_sub_le (d := d) (m := m) (n := n)
 
