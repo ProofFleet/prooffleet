@@ -575,6 +575,35 @@ lemma apSumOffset_step_one_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-- Two-way bridge between the affine nucleus `apSumFrom` (starting at `m*d`) and the step-one
+offset nucleus `apSumOffset`.
+
+This rewrites
+`apSumFrom f (m*d) d n`
+into
+`apSumOffset (fun k => f (d*k)) 1 m n`.
+
+It is essentially `apSumFrom_tail_eq_apSumOffset_step_one` specialized to `a = 0`, plus a
+multiplication-commutation normalization in the summand.
+-/
+lemma apSumFrom_eq_apSumOffset_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumFrom f (m * d) d n = apSumOffset (fun k => f (d * k)) 1 m n := by
+  have h :=
+    apSumFrom_tail_eq_apSumOffset_step_one (f := f) (a := 0) (d := d) (m := m) (n := n)
+  have hs : (fun k => f (k * d)) = (fun k => f (d * k)) := by
+    funext k
+    simp [Nat.mul_comm]
+  simpa [Nat.zero_add, hs] using h
+
+/-- Inverse orientation of `apSumFrom_eq_apSumOffset_mul_left`.
+
+We do *not* mark this as `[simp]`: our normal forms usually prefer to *introduce* the
+`apSumOffset … 1 m n` shape.
+-/
+lemma apSumOffset_eq_apSumFrom_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (d * k)) 1 m n = apSumFrom f (m * d) d n := by
+  simpa using (apSumFrom_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_step_one_add_left`.
 
 We do *not* mark this as `[simp]`: our normal forms prefer the `apSumOffset … 1 m n` presentation
