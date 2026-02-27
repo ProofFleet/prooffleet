@@ -9,43 +9,63 @@ import MoltResearch.Discrepancy.Offset
 
 namespace MoltResearch
 
-lemma apSumFrom_map_add (f : ℕ → ℤ) (k a d n : ℕ) :
+lemma apSumFrom_shift_add (f : ℕ → ℤ) (k a d n : ℕ) :
   apSumFrom (fun x => f (x + k)) a d n = apSumFrom f (a + k) d n := by
   unfold apSumFrom
   refine Finset.sum_congr rfl ?_
   intro i hi
   simp [Nat.add_comm, Nat.add_assoc]
 
-/-- Variant of `apSumFrom_map_add` for translated functions written in the `k + x` form.
+@[deprecated "Use `apSumFrom_shift_add`." (since := "2026-02-27")]
+lemma apSumFrom_map_add (f : ℕ → ℤ) (k a d n : ℕ) :
+  apSumFrom (fun x => f (x + k)) a d n = apSumFrom f (a + k) d n := by
+  simpa using (apSumFrom_shift_add (f := f) (k := k) (a := a) (d := d) (n := n))
+
+/-- Variant of `apSumFrom_shift_add` for translated functions written in the `k + x` form.
 
 This is occasionally convenient when the ambient goal prefers a “constant on the left” convention.
 -/
-lemma apSumFrom_map_add_left (f : ℕ → ℤ) (k a d n : ℕ) :
+lemma apSumFrom_shift_add_left (f : ℕ → ℤ) (k a d n : ℕ) :
   apSumFrom (fun x => f (k + x)) a d n = apSumFrom f (k + a) d n := by
   have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
     funext x
     simp [Nat.add_comm]
-  -- Reduce to `apSumFrom_map_add` and then normalize `a + k` ↔ `k + a`.
+  -- Reduce to `apSumFrom_shift_add` and then normalize `a + k` ↔ `k + a`.
   simpa [hfun, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
-    (apSumFrom_map_add (f := f) (k := k) (a := a) (d := d) (n := n))
+    (apSumFrom_shift_add (f := f) (k := k) (a := a) (d := d) (n := n))
 
-lemma apSum_map_add (f : ℕ → ℤ) (k d n : ℕ) :
+@[deprecated "Use `apSumFrom_shift_add_left`." (since := "2026-02-27")]
+lemma apSumFrom_map_add_left (f : ℕ → ℤ) (k a d n : ℕ) :
+  apSumFrom (fun x => f (k + x)) a d n = apSumFrom f (k + a) d n := by
+  simpa using (apSumFrom_shift_add_left (f := f) (k := k) (a := a) (d := d) (n := n))
+
+lemma apSum_shift_add (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
   calc
     apSum (fun x => f (x + k)) d n
         = apSumFrom (fun x => f (x + k)) 0 d n := by
             simpa using (apSum_eq_apSumFrom (f := fun x => f (x + k)) (d := d) (n := n))
     _ = apSumFrom f (0 + k) d n := by
-            simpa using (apSumFrom_map_add (f := f) (k := k) (a := 0) (d := d) (n := n))
+            simpa using (apSumFrom_shift_add (f := f) (k := k) (a := 0) (d := d) (n := n))
     _ = apSumFrom f k d n := by simp
 
-/-- Variant of `apSum_map_add` for translated functions written in the `k + x` form. -/
-lemma apSum_map_add_left (f : ℕ → ℤ) (k d n : ℕ) :
+@[deprecated "Use `apSum_shift_add`." (since := "2026-02-27")]
+lemma apSum_map_add (f : ℕ → ℤ) (k d n : ℕ) :
+  apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
+  simpa using (apSum_shift_add (f := f) (k := k) (d := d) (n := n))
+
+/-- Variant of `apSum_shift_add` for translated functions written in the `k + x` form. -/
+lemma apSum_shift_add_left (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
   have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
     funext x
     simp [Nat.add_comm]
-  simpa [hfun] using (apSum_map_add (f := f) (k := k) (d := d) (n := n))
+  simpa [hfun] using (apSum_shift_add (f := f) (k := k) (d := d) (n := n))
+
+@[deprecated "Use `apSum_shift_add_left`." (since := "2026-02-27")]
+lemma apSum_map_add_left (f : ℕ → ℤ) (k d n : ℕ) :
+  apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
+  simpa using (apSum_shift_add_left (f := f) (k := k) (d := d) (n := n))
 
 /-- Commute an additive translation under `apSum`.
 
@@ -84,16 +104,22 @@ between the binder conventions `fun x => f (x + k)` and `fun x => f (k + x)`.
 
 We do *not* mark this as `[simp]`: it is intended as an explicit rewrite step.
 -/
-lemma apSumOffset_map_add_comm (f : ℕ → ℤ) (k d m n : ℕ) :
+lemma apSumOffset_shift_add_comm (f : ℕ → ℤ) (k d m n : ℕ) :
     apSumOffset (fun x => f (x + k)) d m n = apSumOffset (fun x => f (k + x)) d m n := by
   unfold apSumOffset
   refine Finset.sum_congr rfl ?_
   intro i hi
   simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
 
+@[deprecated "Use `apSumOffset_shift_add_comm`." (since := "2026-02-27")]
+lemma apSumOffset_map_add_comm (f : ℕ → ℤ) (k d m n : ℕ) :
+    apSumOffset (fun x => f (x + k)) d m n = apSumOffset (fun x => f (k + x)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_comm (f := f) (k := k) (d := d) (m := m) (n := n))
+
 -- (moved to `Discrepancy/Affine.lean`)
 
-lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
+lemma apSumOffset_shift_add (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (m * d + k) d n := by
   calc
     apSumOffset (fun x => f (x + k)) d m n
@@ -101,12 +127,24 @@ lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
             simpa using
               (apSumOffset_eq_apSumFrom (f := fun x => f (x + k)) (d := d) (m := m) (n := n))
     _ = apSumFrom f (m * d + k) d n := by
-            simpa using (apSumFrom_map_add (f := f) (k := k) (a := m * d) (d := d) (n := n))
+            simpa using (apSumFrom_shift_add (f := f) (k := k) (a := m * d) (d := d) (n := n))
 
-/-- Inverse orientation of `apSumOffset_map_add`. -/
+@[deprecated "Use `apSumOffset_shift_add`." (since := "2026-02-27")]
+lemma apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (m * d + k) d n := by
+  simpa using (apSumOffset_shift_add (f := f) (k := k) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumOffset_shift_add`. -/
+lemma apSumFrom_start_add_left_eq_apSumOffset_shift_add (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumFrom f (m * d + k) d n = apSumOffset (fun x => f (x + k)) d m n := by
+  simpa using (apSumOffset_shift_add (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+
+@[deprecated "Use `apSumFrom_start_add_left_eq_apSumOffset_shift_add`." (since := "2026-02-27")]
 lemma apSumFrom_start_add_left_eq_apSumOffset_map_add (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumFrom f (m * d + k) d n = apSumOffset (fun x => f (x + k)) d m n := by
-  simpa using (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+  simpa using
+    (apSumFrom_start_add_left_eq_apSumOffset_shift_add (f := f) (k := k) (d := d) (m := m)
+      (n := n))
 
 /-- Variant of `apSumOffset_map_add` where the translated function is written in the `k + x` form.
 
@@ -116,53 +154,92 @@ This is a convenience lemma: it avoids an extra `funext` rewrite step (to commut
 Proof: commute the translation under `apSumOffset` using `apSumOffset_map_add_comm`, then apply
 `apSumOffset_map_add`.
 -/
-lemma apSumOffset_map_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+lemma apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (m * d + k) d n := by
   calc
     apSumOffset (fun x => f (k + x)) d m n
         = apSumOffset (fun x => f (x + k)) d m n := by
             simpa using
-              (apSumOffset_map_add_comm (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+              (apSumOffset_shift_add_comm (f := f) (k := k) (d := d) (m := m) (n := n)).symm
     _ = apSumFrom f (m * d + k) d n := by
-            simpa using (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n))
+            simpa using (apSumOffset_shift_add (f := f) (k := k) (d := d) (m := m) (n := n))
 
-/-- Inverse orientation of `apSumOffset_map_add_left_start_mul`. -/
+@[deprecated "Use `apSumOffset_shift_add_left_start_mul`." (since := "2026-02-27")]
+lemma apSumOffset_map_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (m * d + k) d n := by
+  simpa using
+    (apSumOffset_shift_add_left_start_mul (f := f) (k := k) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumOffset_shift_add_left_start_mul`. -/
+lemma apSumFrom_start_mul_eq_apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumFrom f (m * d + k) d n = apSumOffset (fun x => f (k + x)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_left_start_mul (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+
+@[deprecated "Use `apSumFrom_start_mul_eq_apSumOffset_shift_add_left_start_mul`." (since := "2026-02-27")]
 lemma apSumFrom_start_mul_eq_apSumOffset_map_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumFrom f (m * d + k) d n = apSumOffset (fun x => f (k + x)) d m n := by
   simpa using
-    (apSumOffset_map_add_left_start_mul (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+    (apSumFrom_start_mul_eq_apSumOffset_shift_add_left_start_mul (f := f) (k := k) (d := d) (m := m)
+      (n := n))
 
-/-- Variant of `apSumOffset_map_add` with the affine start written in the `k + m*d` form.
+/-- Variant of `apSumOffset_shift_add` with the affine start written in the `k + m*d` form.
 
 This is a small normal-form lemma: it avoids a separate rewrite step commuting `m*d + k` into
 `k + m*d` when you want the start parameter to match a “shift-then-offset” reading.
 -/
-lemma apSumOffset_map_add_start_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+lemma apSumOffset_shift_add_start_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (k + m * d) d n := by
-  have h := apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n)
+  have h := apSumOffset_shift_add (f := f) (k := k) (d := d) (m := m) (n := n)
   -- Normalize the affine start parameter `m*d + k` into `k + m*d`.
   simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using h
 
-/-- Variant of `apSumOffset_map_add` for translated functions written in the `k + x` form. -/
-lemma apSumOffset_map_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+@[deprecated "Use `apSumOffset_shift_add_start_add_left`." (since := "2026-02-27")]
+lemma apSumOffset_map_add_start_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (k + m * d) d n := by
+  simpa using
+    (apSumOffset_shift_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n))
+
+/-- Variant of `apSumOffset_shift_add` for translated functions written in the `k + x` form. -/
+lemma apSumOffset_shift_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (k + m * d) d n := by
   have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
     funext x
     simp [Nat.add_comm]
-  -- Reduce to `apSumOffset_map_add` and then normalize `m*d + k` ↔ `k + m*d`.
+  -- Reduce to `apSumOffset_shift_add` and then normalize `m*d + k` ↔ `k + m*d`.
   simpa [hfun, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
-    (apSumOffset_map_add (f := f) (k := k) (d := d) (m := m) (n := n))
+    (apSumOffset_shift_add (f := f) (k := k) (d := d) (m := m) (n := n))
 
-/-- Inverse orientation of `apSumOffset_map_add_start_add_left`. -/
+@[deprecated "Use `apSumOffset_shift_add_left`." (since := "2026-02-27")]
+lemma apSumOffset_map_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (k + m * d) d n := by
+  simpa using (apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `apSumOffset_shift_add_start_add_left`. -/
+lemma apSumFrom_start_add_left_eq_apSumOffset_shift_add_start_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumFrom f (k + m * d) d n = apSumOffset (fun x => f (x + k)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+
+@[deprecated "Use `apSumFrom_start_add_left_eq_apSumOffset_shift_add_start_add_left`." (since := "2026-02-27")]
 lemma apSumFrom_start_add_left_eq_apSumOffset_map_add_start_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumFrom f (k + m * d) d n = apSumOffset (fun x => f (x + k)) d m n := by
   simpa using
-    (apSumOffset_map_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+    (apSumFrom_start_add_left_eq_apSumOffset_shift_add_start_add_left (f := f) (k := k) (d := d)
+      (m := m) (n := n))
 
-/-- Inverse orientation of `apSumOffset_map_add_left`. -/
+/-- Inverse orientation of `apSumOffset_shift_add_left`. -/
+lemma apSumFrom_start_add_left_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
+  apSumFrom f (k + m * d) d n = apSumOffset (fun x => f (k + x)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+
+@[deprecated "Use `apSumFrom_start_add_left_eq_apSumOffset_shift_add_left`." (since := "2026-02-27")]
 lemma apSumFrom_start_add_left_eq_apSumOffset_map_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumFrom f (k + m * d) d n = apSumOffset (fun x => f (k + x)) d m n := by
-  simpa using (apSumOffset_map_add_left (f := f) (k := k) (d := d) (m := m) (n := n)).symm
+  simpa using
+    (apSumFrom_start_add_left_eq_apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m)
+      (n := n))
 
 /-- Compose the “shift-add” translation `k ↦ k + a` with the offset-to-shift normal form.
 
@@ -250,7 +327,7 @@ lemma HasDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   HasDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   rintro ⟨d, n, hd, hgt⟩
   refine ⟨k, d, n, hd, ?_⟩
-  simpa [apSum_map_add] using hgt
+  simpa [apSum_shift_add] using hgt
 
 /-- Variant of `HasDiscrepancyAtLeast.of_map_add` for translated functions written in the `k + x`
 form. -/
@@ -265,7 +342,7 @@ lemma HasAffineDiscrepancyAtLeast.of_map_add {f : ℕ → ℤ} {k C : ℕ} :
   HasAffineDiscrepancyAtLeast (fun x => f (x + k)) C → HasAffineDiscrepancyAtLeast f C := by
   rintro ⟨a, d, n, hd, hgt⟩
   refine ⟨a + k, d, n, hd, ?_⟩
-  simpa [apSumFrom_map_add] using hgt
+  simpa [apSumFrom_shift_add] using hgt
 
 /-- Variant of `HasAffineDiscrepancyAtLeast.of_map_add` for translated functions written in the
 `k + x` form. -/

@@ -508,30 +508,30 @@ example : apSumFrom (fun x => f (a + x)) m d n = apSumFrom (fun x => f (x + a)) 
   simpa using apSumFrom_shift_comm (f := f) (a := a) (k := m) (d := d) (n := n)
 
 example : apSumFrom (fun x => f (x + m)) a d n = apSumFrom f (a + m) d n := by
-  simpa using apSumFrom_map_add (f := f) (k := m) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_shift_add (f := f) (k := m) (a := a) (d := d) (n := n)
 
 example : apSumFrom (fun x => f (m + x)) a d n = apSumFrom f (m + a) d n := by
-  simpa using apSumFrom_map_add_left (f := f) (k := m) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_shift_add_left (f := f) (k := m) (a := a) (d := d) (n := n)
 
 -- Translation under the homogeneous nucleus API.
 example : apSum (fun x => f (x + a)) d n = apSumFrom f a d n := by
-  simpa using apSum_map_add (f := f) (k := a) (d := d) (n := n)
+  simpa using apSum_shift_add (f := f) (k := a) (d := d) (n := n)
 
 example : apSum (fun x => f (a + x)) d n = apSumFrom f a d n := by
-  simpa using apSum_map_add_left (f := f) (k := a) (d := d) (n := n)
+  simpa using apSum_shift_add_left (f := f) (k := a) (d := d) (n := n)
 
 -- Translation under the offset nucleus API.
 example : apSumOffset (fun x => f (x + a)) d m n = apSumFrom f (m * d + a) d n := by
-  simpa using apSumOffset_map_add (f := f) (k := a) (d := d) (m := m) (n := n)
+  simpa using apSumOffset_shift_add (f := f) (k := a) (d := d) (m := m) (n := n)
 
 -- Inverse orientation: normalize an affine tail with start `m*d + a` back into an offset sum
 -- on a shifted sequence.
 example : apSumFrom f (m * d + a) d n = apSumOffset (fun x => f (x + a)) d m n := by
-  simpa using apSumFrom_start_add_left_eq_apSumOffset_map_add (f := f) (k := a) (d := d) (m := m)
+  simpa using apSumFrom_start_add_left_eq_apSumOffset_shift_add (f := f) (k := a) (d := d) (m := m)
     (n := n)
 
 example : apSumOffset (fun x => f (a + x)) d m n = apSumFrom f (a + m * d) d n := by
-  simpa using apSumOffset_map_add_left (f := f) (k := a) (d := d) (m := m) (n := n)
+  simpa using apSumOffset_shift_add_left (f := f) (k := a) (d := d) (m := m) (n := n)
 
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
@@ -1374,16 +1374,16 @@ example (k : ℕ) : apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   simpa using apSum_map_mul (f := f) (k := k) (d := d) (n := n)
 
 example (k : ℕ) : apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
-  simpa using apSum_map_add (f := f) (k := k) (d := d) (n := n)
+  simpa using apSum_shift_add (f := f) (k := k) (d := d) (n := n)
 
 example (k : ℕ) : apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
-  simpa using apSum_map_add_left (f := f) (k := k) (d := d) (n := n)
+  simpa using apSum_shift_add_left (f := f) (k := k) (d := d) (n := n)
 
 example (k : ℕ) : apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (k + m * d) d n := by
-  simpa using apSumOffset_map_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
+  simpa using apSumOffset_shift_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
 
 example (k : ℕ) : apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (k + m * d) d n := by
-  simpa using apSumOffset_map_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
+  simpa using apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
 
 -- Regression: compose a shift-add reindexing with the offset→shift normal form.
 example (k : ℕ) :
