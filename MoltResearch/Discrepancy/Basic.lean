@@ -180,6 +180,18 @@ lemma HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one (f : ℕ → ℤ) (C :
   · rintro ⟨d, n, hd, hgt⟩
     exact ⟨d, n, (Nat.succ_le_iff).1 hd, hgt⟩
 
+/-- Variant with side conditions `d ≥ 1` and `n > 0` (useful for “surface statement” witnesses). -/
+lemma HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f : ℕ → ℤ) (C : ℕ) :
+    HasDiscrepancyAtLeast f C ↔ ∃ d n, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
+  constructor
+  · intro h
+    rcases HasDiscrepancyAtLeast.exists_witness_d_ge_one_pos (h := h) with ⟨d, n, hd, hn, hgt⟩
+    refine ⟨d, n, hd, hn, ?_⟩
+    simpa [discrepancy] using hgt
+  · rintro ⟨d, n, hd, _hn, hgt⟩
+    refine ⟨d, n, (Nat.succ_le_iff).1 hd, ?_⟩
+    simpa [discrepancy] using hgt
+
 /-- The “unbounded discrepancy” statement `∀ C, HasDiscrepancyAtLeast f C` is equivalent to
 the more explicit witness form `∀ C, ∃ d n > 0, …`.
 

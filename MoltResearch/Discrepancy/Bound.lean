@@ -23,13 +23,28 @@ lemma natAbs_apSum_le_mul (f : ℕ → ℤ) (B : ℕ)
             Int.natAbs (apSum f d n) + Int.natAbs (f ((n + 1) * d)) := by
         simpa [apSum_succ] using
           (Int.natAbs_add_le (apSum f d n) (f ((n + 1) * d)))
-      have hfn : Int.natAbs (f ((n + 1) * d)) ≤ B := hB ((n + 1) * d)
+      have hfn : Int.natAbs (f ((n + 1) * d)) ≤ B := hB ((n +  1) * d)
       have hbound :
           Int.natAbs (apSum f d n) + Int.natAbs (f ((n + 1) * d)) ≤ n * B + B :=
         Nat.add_le_add ih hfn
       have : Int.natAbs (apSum f d (Nat.succ n)) ≤ n * B + B :=
         Nat.le_trans hsum hbound
       simpa [Nat.succ_mul] using this
+
+/-- Bound the `discrepancy` wrapper using a pointwise absolute bound. -/
+lemma discrepancy_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (f n) ≤ B) (d n : ℕ) :
+    discrepancy f d n ≤ n * B := by
+  simpa [discrepancy] using (natAbs_apSum_le_mul (f := f) (B := B) (hB := hB) (d := d) (n := n))
+
+/-- For a sign sequence `f` (each entry is `±1`), the discrepancy on an interval of length `n`
+is at most `n`. -/
+lemma IsSignSequence.discrepancy_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
+    discrepancy f d n ≤ n := by
+  have hB : ∀ k, Int.natAbs (f k) ≤ (1 : ℕ) := by
+    intro k
+    rcases hf k with hk | hk <;> simp [hk]
+  simpa using (discrepancy_le_mul (f := f) (B := 1) (hB := hB) (d := d) (n := n))
 
 lemma natAbs_apSumOffset_le_mul (f : ℕ → ℤ) (B : ℕ)
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m n : ℕ) :
