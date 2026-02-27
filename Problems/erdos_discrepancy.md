@@ -192,7 +192,9 @@ Typical rewrite pipeline:
 - [x] Regression example: reindexing via `map_mul` compiles under `import MoltResearch.Discrepancy` (`apSum_map_mul`, `apSumOffset_map_mul`, `apSumFrom_map_mul`).
 - [x] Regression example: translation via `map_add` compiles under `import MoltResearch.Discrepancy` (`apSumFrom_map_add`, `apSum_map_add`, plus the `_left` variants).
 
-- [ ] Normal form (two-way bridge): add lemmas `apSumFrom_eq_apSumOffset_mul_left` and `apSumOffset_eq_apSumFrom_mul_left` rewriting between `apSumFrom f (m*d) d n` and `apSumOffset (fun k => f (d*k)) 1 m n` (step-one + offset), with regression examples under `import MoltResearch.Discrepancy`.
+- [x] Normal form (two-way bridge): add lemmas `apSumFrom_eq_apSumOffset_mul_left` and `apSumOffset_eq_apSumFrom_mul_left` rewriting between `apSumFrom f (m*d) d n` and `apSumOffset (fun k => f (d*k)) 1 m n` (step-one + offset), with regression examples under `import MoltResearch.Discrepancy`.
+  - Implemented in `MoltResearch/Discrepancy/Affine.lean`.
+  - Regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [ ] Reindexing glue: prove a canonical lemma rewriting `apSumOffset f d m n` to `apSumOffset (fun k => f (k*d)) 1 m n` (`…_step_one`) and make it the preferred simp-normal form for proofs that want to “push the step into the summand”.
 - [ ] API coherence: add a small `section` of `[simp]` lemmas for degenerate lengths (`n=0`, `n=1`) for `apSumOffset` and `apSumFrom` that match the existing `apSum_zero/apSum_one` naming, to reduce boilerplate in later bounds.
 - [ ] Difference normal form (affine): add the `m ≤ n` variants rewriting `apSumFrom f a d n - apSumFrom f a d m` directly to an `apSumOffset` normal form on a shifted sequence (no intermediate tail), with `…_of_le` lemma names consistent with the `sum_Icc_…_of_le` family.
