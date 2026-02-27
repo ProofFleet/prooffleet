@@ -66,14 +66,13 @@ example : apSumFrom (fun x => f (a + x)) m d n = apSumFrom (fun x => f (x + a)) 
 
 -- “Push the translation into the function” normal forms.
 --
--- These are mathematically the same as the `…_shift` / `…_shift_add` family, but the `map_add`
--- naming makes it easier to spot (in a proof script) that the translation has been packaged into
--- the function itself.
+-- These are mathematically the same as the `…_shift` / `…_shift_add` family.
+-- (The older `*_map_add` names are now deprecated wrappers.)
 example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
-  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
-  simpa using apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n)
 
 -- Differences → tails (canonical normal form).
 
@@ -222,7 +221,7 @@ example (h : d ∣ a) : ∃ m, apSumFrom f a d n = apSumOffset f d m n := by
 -- Same affine sum, but with the translation “pushed into the function” form `x ↦ f (x + a)`.
 -- This is handy when you want to reuse translation lemmas stated for homogeneous `apSum`.
 example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
-  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
 
 -- Affine paper notation: multiplication-on-the-left variants (avoid commuting `i*d` under binders).
 example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + d * i)) := by
@@ -1058,10 +1057,10 @@ example : apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
 -- Sometimes you want to package the translation as a map on the sequence `f` itself.
 -- These lemmas commute the `+ a` past the multiplication inside the binder.
 example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
-  simpa using apSumFrom_eq_apSum_map_add (f := f) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
-  simpa using apSumFrom_eq_apSum_map_add_left (f := f) (a := a) (d := d) (n := n)
+  simpa using apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
   simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)
