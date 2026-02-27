@@ -801,6 +801,44 @@ example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
   simpa using
     apSumOffset_eq_add_apSumOffset_of_le (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
 
+-- Pipeline example: paper interval sum → `apSumOffset`, then split via `apSumOffset_add_length`.
+example (k : ℕ) (hmn : m ≤ n) (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) =
+      apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
+  calc
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
+      simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSumOffset f d m ((k - m) + (n - k)) := by
+      have hlen : n - m = (k - m) + (n - k) := by
+        -- `n - k + (k - m) = n - m`; commute the LHS to match our `k - m + (n - k)` ordering.
+        simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+          (Nat.sub_add_sub_cancel hkn hmk).symm
+      simpa [hlen]
+    _ = apSumOffset f d m (k - m) + apSumOffset f d (m + (k - m)) (n - k) := by
+      simpa using
+        (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := k - m) (n₂ := n - k))
+    _ = apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
+      simpa [Nat.add_sub_cancel hmk]
+
+-- Same pipeline, but in the translation-friendly `d * i` binder convention.
+example (k : ℕ) (hmn : m ≤ n) (hmk : m ≤ k) (hkn : k ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) =
+      apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
+  calc
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSumOffset f d m (n - m) := by
+      simpa using
+        sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSumOffset f d m ((k - m) + (n - k)) := by
+      have hlen : n - m = (k - m) + (n - k) := by
+        simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+          (Nat.sub_add_sub_cancel hkn hmk).symm
+      simpa [hlen]
+    _ = apSumOffset f d m (k - m) + apSumOffset f d (m + (k - m)) (n - k) := by
+      simpa using
+        (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := k - m) (n₂ := n - k))
+    _ = apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
+      simpa [Nat.add_sub_cancel hmk]
+
 -- Affine paper splitting: mul-left form `a + d*i`.
 example :
     (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + d * i)) =
