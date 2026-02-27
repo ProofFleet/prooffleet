@@ -188,9 +188,9 @@ Typical rewrite pipeline:
 - [x] Add mul-left variant of the affine difference normal form for `m ≤ n` (rewrite `apSumFrom … n - apSumFrom … m` to a shifted `apSum` with summand `fun k => f (d * k + const)`).
   - proved as `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left` in `MoltResearch/Discrepancy/AffineTail.lean`.
 - [x] Introduce `discrepancy (f d n : …) : ℕ := Int.natAbs (apSum f d n)` and prove the basic API (bounds, simp lemmas, and `HasDiscrepancyAtLeast` witness reformulation).
-- [ ] Introduce `affineDiscrepancy (f a d n : …) : ℕ := Int.natAbs (apSumFrom f a d n)` and prove the basic API + reformulation for `HasAffineDiscrepancyAtLeast`.
-- [ ] Regression example: reindexing via `map_mul` compiles under `import MoltResearch.Discrepancy` (`apSum_map_mul`, `apSumOffset_map_mul`, `apSumFrom_map_mul`).
-- [ ] Regression example: translation via `map_add` compiles under `import MoltResearch.Discrepancy` (`apSumFrom_map_add`, `apSum_map_add`, plus the `_left` variants).
+- [x] Introduce `affineDiscrepancy (f a d n : …) : ℕ := Int.natAbs (apSumFrom f a d n)` and prove the basic API + reformulation for `HasAffineDiscrepancyAtLeast`.
+- [x] Regression example: reindexing via `map_mul` compiles under `import MoltResearch.Discrepancy` (`apSum_map_mul`, `apSumOffset_map_mul`, `apSumFrom_map_mul`).
+- [x] Regression example: translation via `map_add` compiles under `import MoltResearch.Discrepancy` (`apSumFrom_map_add`, `apSum_map_add`, plus the `_left` variants).
 
 Definition of done:
 - each PR adds 1–3 lemmas OR consolidates/normalizes existing ones
