@@ -1544,6 +1544,25 @@ lemma IsSignSequence.natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequenc
   have h_le := (IsSignSequence.natAbs_apSum_le (hf := hf') (d := d) (n := n))
   simpa [h_eq] using h_le
 
+/-- Order-free sign-sequence bound on the difference of two offset sums.
+
+This is a convenient triangle-inequality estimate when you do not want to case-split on `n ≤ n'`.
+A tighter bound under `n ≤ n'` is `IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le`.
+-/
+lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le_add {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d m n n' : ℕ) :
+    Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤ n + n' := by
+  have htri :
+      Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤
+        Int.natAbs (apSumOffset f d m n) + Int.natAbs (apSumOffset f d m n') := by
+    -- `x - y = x + (-y)` and apply triangle inequality.
+    simpa [sub_eq_add_neg, Int.natAbs_neg, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+      (Int.natAbs_add_le (apSumOffset f d m n) (- apSumOffset f d m n'))
+  exact
+    le_trans htri
+      (Nat.add_le_add (hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n))
+        (hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n')))
+
 lemma IsSignSequence.natAbs_apSum_sub_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
     Int.natAbs (apSum f d (m + n) - apSum f d m) ≤ n := by
   have h := hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n)
