@@ -120,6 +120,30 @@ lemma apSumFrom_tail_add_length_start_add_left (f : ℕ → ℤ) (a d m n1 n2 : 
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_tail_add_length (f := f) (a := a) (d := d) (m := m) (n1 := n1) (n2 := n2))
 
+/-! ### Triangle inequality (tail sums)
+
+These lemmas avoid having to redo `Finset.sum` algebra when bounding discrepancy-style quantities.
+-/
+
+/-- Triangle inequality for `Int.natAbs` after splitting an affine tail sum by length. -/
+lemma natAbs_apSumFrom_tail_add_length_le (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    Int.natAbs (apSumFrom f (a + m * d) d (n1 + n2)) ≤
+      Int.natAbs (apSumFrom f (a + m * d) d n1) +
+        Int.natAbs (apSumFrom f (a + (m + n1) * d) d n2) := by
+  simpa [apSumFrom_tail_add_length] using
+    (Int.natAbs_add_le (apSumFrom f (a + m * d) d n1)
+      (apSumFrom f (a + (m + n1) * d) d n2))
+
+/-- Translation-friendly wrapper for `natAbs_apSumFrom_tail_add_length_le`,
+with the affine start written as `m*d + a`. -/
+lemma natAbs_apSumFrom_tail_add_length_start_add_left_le (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
+    Int.natAbs (apSumFrom f (m * d + a) d (n1 + n2)) ≤
+      Int.natAbs (apSumFrom f (m * d + a) d n1) +
+        Int.natAbs (apSumFrom f ((m + n1) * d + a) d n2) := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (natAbs_apSumFrom_tail_add_length_le (f := f) (a := a) (d := d) (m := m) (n1 := n1)
+      (n2 := n2))
+
 /-- Difference of two affine AP partial sums as a tail sum when `m ≤ n`. -/
 lemma apSumFrom_sub_apSumFrom_eq_apSumFrom (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     apSumFrom f a d n - apSumFrom f a d m = apSumFrom f (a + m * d) d (n - m) := by
