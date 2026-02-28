@@ -186,11 +186,11 @@ Arithmetic progression sums:
   - `apSumFrom f a d n` ↦ `apSum (fun k => f (k + a)) d n` via `apSumFrom_eq_apSum_shift_add`.
   - or `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k)) d n` via `apSumFrom_eq_apSum_shift_add_left`.
   If you instead want to *commute the translation past the multiplication* (i.e. package the
-  translation as `x ↦ f (x + a)` under the `apSum` binder), you can use the legacy names
-  `apSumFrom_eq_apSum_map_add` / `apSumFrom_eq_apSum_map_add_left`.
+  translation as `x ↦ f (x + a)` under the `apSum` binder), there are **deprecated legacy wrapper
+  names** `apSumFrom_eq_apSum_map_add` / `apSumFrom_eq_apSum_map_add_left`.
 
-  These are now deprecated wrappers for the canonical `apSumFrom_eq_apSum_shift_add` /
-  `apSumFrom_eq_apSum_shift_add_left` lemmas.
+  Prefer the canonical `apSumFrom_eq_apSum_shift_add` / `apSumFrom_eq_apSum_shift_add_left` lemmas
+  (the `*_map_add` versions are thin deprecated aliases).
   For a “step-one” normalization (useful when you want to treat the AP step as part of the
   summand), rewrite
   `apSumFrom f a d n` ↦ `apSum (fun k => f (a + k * d)) 1 n` via `apSumFrom_eq_apSum_step_one`
