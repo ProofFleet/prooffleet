@@ -894,6 +894,17 @@ lemma IsSignSequence.natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (
         _ ≤ n + 1 := by
               simpa using Nat.add_le_add_right ih 1
 
+/-- `discrepancy` is invariant under pointwise negation (as a method on `IsSignSequence`). -/
+lemma IsSignSequence.discrepancy_neg {f : ℕ → ℤ} (_hf : IsSignSequence f) (d n : ℕ) :
+    discrepancy (fun k => -f k) d n = discrepancy f d n := by
+  simpa using (_root_.MoltResearch.discrepancy_neg (f := f) (d := d) (n := n))
+
+/-- Normal form for discrepancy after shifting by `a*d` (as a method on `IsSignSequence`). -/
+lemma IsSignSequence.discrepancy_shift_mul {f : ℕ → ℤ} (_hf : IsSignSequence f)
+    (a d n : ℕ) :
+    discrepancy (fun k => f (k + a * d)) d n = Int.natAbs (apSumOffset f d a n) := by
+  simpa using (_root_.MoltResearch.discrepancy_shift_mul (f := f) (a := a) (d := d) (n := n))
+
 /-- For a sign sequence, a discrepancy witness at level `C` forces a length `n > C`
 (and can be chosen with step `d ≥ 1`). -/
 lemma IsSignSequence.exists_witness_d_ge_one_and_length_gt {f : ℕ → ℤ} (hf : IsSignSequence f)
