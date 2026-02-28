@@ -31,8 +31,11 @@ lemma apSum_shift_add_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
   -- `((i+1)*d) + a = a + (i+1)*d`.
   simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
 
-/-- Corresponding discrepancy normal form: a shift by `a` is the `natAbs` of an affine AP sum. -/
-lemma discrepancy_shift_add_eq_natAbs_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+/-- Corresponding discrepancy normal form: a shift by `a` is the `natAbs` of an affine AP sum.
+
+Marked `[simp]` since it is a one-way expansion of `discrepancy` into a `natAbs` normal form.
+-/
+@[simp] lemma discrepancy_shift_add_eq_natAbs_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
     discrepancy (fun k => f (k + a)) d n = Int.natAbs (apSumFrom f a d n) := by
   unfold discrepancy
   simpa [apSum_shift_add_eq_apSumFrom]
