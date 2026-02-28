@@ -20,6 +20,23 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-! ### Normal-form lemmas relating homogeneous and affine AP sums -/
+
+/-- Shifting the sequence by `a` turns a homogeneous AP sum into an affine AP sum. -/
+lemma apSum_shift_add_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    apSum (fun k => f (k + a)) d n = apSumFrom f a d n := by
+  unfold apSum apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `((i+1)*d) + a = a + (i+1)*d`.
+  simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+
+/-- Corresponding discrepancy normal form: a shift by `a` is the `natAbs` of an affine AP sum. -/
+lemma discrepancy_shift_add_eq_natAbs_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    discrepancy (fun k => f (k + a)) d n = Int.natAbs (apSumFrom f a d n) := by
+  unfold discrepancy
+  simpa [apSum_shift_add_eq_apSumFrom]
+
 /-! ### Triangle-inequality API for affine AP sums -/
 
 /-- `apSumFrom` splits over addition of lengths. -/
