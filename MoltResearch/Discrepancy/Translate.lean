@@ -146,13 +146,13 @@ lemma apSumFrom_start_add_left_eq_apSumOffset_map_add (f : ℕ → ℤ) (k d m n
     (apSumFrom_start_add_left_eq_apSumOffset_shift_add (f := f) (k := k) (d := d) (m := m)
       (n := n))
 
-/-- Variant of `apSumOffset_map_add` where the translated function is written in the `k + x` form.
+/-- Variant of `apSumOffset_shift_add` where the translated function is written in the `k + x` form.
 
 This is a convenience lemma: it avoids an extra `funext` rewrite step (to commute `k + x` into
 `x + k`) while keeping the affine start parameter in the `m*d + k` normal form.
 
-Proof: commute the translation under `apSumOffset` using `apSumOffset_map_add_comm`, then apply
-`apSumOffset_map_add`.
+Proof: commute the translation under `apSumOffset` using `apSumOffset_shift_add_comm`, then apply
+`apSumOffset_shift_add`.
 -/
 lemma apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (m * d + k) d n := by
