@@ -49,6 +49,35 @@ It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
 def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
+/-! ### Invariance / normal-form lemmas -/
+
+/-- Shifting the input by `a*d` converts an `apSum` into an `apSumOffset`.
+
+This is the natural “invariance normal form” for arithmetic progressions: the *sequence* shift
+by `a*d` corresponds to an *offset* `a` in the progression index.
+-/
+lemma apSum_shift_mul (f : ℕ → ℤ) (a d n : ℕ) :
+    apSum (fun k => f (k + a * d)) d n = apSumOffset f d a n := by
+  unfold apSum apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `((i+1)*d) + a*d = (a+i+1)*d`.
+  have h : (i + 1) * d + a * d = (a + i + 1) * d := by
+    calc
+      (i + 1) * d + a * d = a * d + (i + 1) * d := by
+        simpa [Nat.add_comm]
+      _ = (a + (i + 1)) * d := by
+        simpa [Nat.add_mul]
+      _ = (a + i + 1) * d := by
+        simp [Nat.add_assoc]
+  simp [h, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-- Normal form for discrepancy of a shift by `a*d`: it is the `natAbs` of an offset AP sum. -/
+lemma discrepancy_shift_mul (f : ℕ → ℤ) (a d n : ℕ) :
+    discrepancy (fun k => f (k + a * d)) d n = Int.natAbs (apSumOffset f d a n) := by
+  unfold discrepancy
+  simpa [apSum_shift_mul]
+
 /-! ### Triangle-inequality API for AP sums -/
 
 /-- `apSumOffset` splits over addition of lengths. -/
