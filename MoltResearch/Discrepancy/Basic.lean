@@ -78,6 +78,16 @@ lemma discrepancy_shift_mul (f : ℕ → ℤ) (a d n : ℕ) :
   unfold discrepancy
   simpa [apSum_shift_mul]
 
+/-- Normal form: shifting by `m*d` becomes `apSumOffset`. (Not a `[simp]` lemma: it can loop.) -/
+lemma apSum_shift_mul_simp (f : ℕ → ℤ) (m d n : ℕ) :
+    apSum (fun k => f (k + m * d)) d n = apSumOffset f d m n := by
+  simpa using (apSum_shift_mul (f := f) (a := m) (d := d) (n := n))
+
+/-- Normal form: discrepancy of a shift by `m*d` becomes `natAbs (apSumOffset ...)`. (Not `[simp]`.) -/
+lemma discrepancy_shift_mul_simp (f : ℕ → ℤ) (m d n : ℕ) :
+    discrepancy (fun k => f (k + m * d)) d n = Int.natAbs (apSumOffset f d m n) := by
+  simpa using (discrepancy_shift_mul (f := f) (a := m) (d := d) (n := n))
+
 /-! ### Shifts by a known multiple of `d` -/
 
 /-- If `a` is (definitionally) a multiple of `d`, shifting by `a` is the same normal form
