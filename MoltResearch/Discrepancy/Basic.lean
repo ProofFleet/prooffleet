@@ -712,6 +712,22 @@ lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (fun i => f ((m + i + 1) * d)) n₁ n₂)
 
+/-- Triangle inequality API for splitting an offset AP sum by length. -/
+lemma natAbs_apSumOffset_add_length_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    Int.natAbs (apSumOffset f d m (n₁ + n₂)) ≤
+      Int.natAbs (apSumOffset f d m n₁) + Int.natAbs (apSumOffset f d (m + n₁) n₂) := by
+  -- Normalize the LHS to a sum of two offset sums, then apply `natAbs_add_le`.
+  simpa [apSumOffset_add_length] using
+    (Int.natAbs_add_le (apSumOffset f d m n₁) (apSumOffset f d (m + n₁) n₂))
+
+/-- Triangle inequality API for splitting a homogeneous AP sum by length. -/
+lemma natAbs_apSum_add_length_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
+    Int.natAbs (apSum f d (n₁ + n₂)) ≤
+      Int.natAbs (apSum f d n₁) + Int.natAbs (apSumOffset f d n₁ n₂) := by
+  -- `apSum_add_length` (with `m = n₁`) is the canonical length-splitting normal form.
+  simpa [apSum_add_length] using
+    (Int.natAbs_add_le (apSum f d n₁) (apSumOffset f d n₁ n₂))
+
 -- Algebraic properties of `apSum`
 lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => f k + g k) d n = apSum f d n + apSum g d n := by

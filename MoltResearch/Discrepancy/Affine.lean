@@ -685,6 +685,13 @@ lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
     _ = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
         simpa [hM, hN]
 
+/-- Triangle inequality API for splitting an affine AP sum by length. -/
+lemma natAbs_apSumFrom_add_length_le (f : ℕ → ℤ) (a d n₁ n₂ : ℕ) :
+    Int.natAbs (apSumFrom f a d (n₁ + n₂)) ≤
+      Int.natAbs (apSumFrom f a d n₁) + Int.natAbs (apSumFrom f (a + n₁ * d) d n₂) := by
+  simpa [apSumFrom_add_length, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (Int.natAbs_add_le (apSumFrom f a d n₁) (apSumFrom f (a + n₁ * d) d n₂))
+
 lemma apSumFrom_succ_length (f : ℕ → ℤ) (a d n : ℕ) :
     apSumFrom f a d (n + 1) = f (a + d) + apSumFrom f (a + d) d n := by
   have h := apSumFrom_add_length (f := f) (a := a) (d := d) (m := 1) (n := n)
