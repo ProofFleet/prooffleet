@@ -1254,6 +1254,22 @@ lemma apSumOffset_eq_add_apSumOffset_of_le (f : ℕ → ℤ) (d : ℕ) {m k n : 
         simpa [Nat.add_sub_of_le hmk]
   simpa [Nat.add_sub_of_le hmk, hdiff] using h
 
+/-- Split an offset AP sum `apSumOffset f d m n` at an interior cut `k`, assuming `m ≤ k ≤ m+n`.
+
+Concretely, the tail from `m+1` to `m+n` splits into the tail from `m+1` to `k` and the tail from
+`k+1` to `m+n`:
+
+`apSumOffset f d m n = apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k)`.
+-/
+lemma apSumOffset_split_at (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ m + n) :
+    apSumOffset f d m n =
+      apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
+  -- Use the existing split lemma on the canonical tail form `apSumOffset f d m ((m+n) - m)`.
+  simpa [Nat.add_sub_cancel] using
+    (apSumOffset_eq_add_apSumOffset_of_le (f := f) (d := d) (m := m) (k := k) (n := m + n)
+      hmk hkn)
+
 /-- First term of an offset AP sum. -/
 lemma apSumOffset_succ_length (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
