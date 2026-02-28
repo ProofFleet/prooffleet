@@ -72,7 +72,7 @@ lemma natAbs_apSumOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
 @[simp] lemma apSumOffset_zero_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
     apSumOffset f d 0 n = apSum f d n := by
   unfold apSumOffset apSum
-  simp [Nat.zero_add]
+  simp
 
 /-- Triangle inequality for `apSum` by splitting into a prefix and a shifted suffix. -/
 lemma natAbs_apSum_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
@@ -80,7 +80,7 @@ lemma natAbs_apSum_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
       Int.natAbs (apSum f d n₁) + Int.natAbs (apSumOffset f d n₁ n₂) := by
   -- This is `natAbs_apSumOffset_add_le` at `m = 0`, with the definitional rewrite
   -- `apSumOffset f d 0 _ = apSum f d _`.
-  simpa [apSumOffset_zero_eq_apSum, Nat.zero_add] using
+  simpa [apSumOffset_zero_eq_apSum] using
     (natAbs_apSumOffset_add_le (f := f) (d := d) (m := 0) (n₁ := n₁) (n₂ := n₂))
 
 /-! ### Basic inequalities for sign sequences -/
@@ -99,17 +99,17 @@ lemma natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : �
       have :
           apSumOffset f d m (n + 1) =
             apSumOffset f d m n + f ((m + n + 1) * d) := by
-        simp [apSumOffset, Finset.sum_range_succ, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+        simp [apSumOffset, Finset.sum_range_succ, Nat.add_assoc]
       -- Now use triangle inequality (`natAbs_add_le`) and the inductive hypothesis.
       calc
         Int.natAbs (apSumOffset f d m (n + 1))
             = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
-                simpa [this]
+                simp [this]
         _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
-                simpa using (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))
+                exact Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d))
         _ ≤ n + 1 := by
                 have hterm_le : Int.natAbs (f ((m + n + 1) * d)) ≤ 1 := by
-                  simpa [hterm]
+                  simp [hterm]
                 exact Nat.add_le_add ih hterm_le
 
 /-- Bounding a *difference of discrepancies* (offset AP sums) by total length.
@@ -165,10 +165,9 @@ lemma HasDiscrepancyAtLeast.exists_witness_pos {f : ℕ → ℤ} {C : ℕ}
   | zero =>
       -- `apSum f d 0 = 0`, so `natAbs` cannot be strictly greater than `C`.
       exfalso
+      have : (0 : ℕ) > C := by
+        simpa [apSum] using hgt
       have hgt' : C < 0 := by
-        -- Lint-friendly: simplify the witness first, then flip `>` to `<`.
-        have : 0 > C := by
-          simpa [apSum] using hgt
         simpa [gt_iff_lt] using this
       exact Nat.not_lt_zero C hgt'
   | succ n' =>
