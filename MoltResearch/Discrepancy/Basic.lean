@@ -840,7 +840,7 @@ lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
   unfold apSum
   simp [Finset.sum_add_distrib]
 
-lemma apSum_neg (f : ℕ → ℤ) (d n : ℕ) :
+@[simp] lemma apSum_neg (f : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => - f k) d n = - apSum f d n := by
   classical
   unfold apSum
