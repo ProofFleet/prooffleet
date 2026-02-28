@@ -331,16 +331,16 @@ lemma apSumFrom_eq_apSum_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
 
 Use the canonical `apSumFrom_eq_apSum_shift_add` lemma instead.
 -/
-@[deprecated "Use `apSumFrom_eq_apSum_shift_add`." (since := "2026-02-27")]
+@[deprecated "Use `apSumFrom_eq_apSum_shift_add`." (since := "2026-02-28")]
 lemma apSumFrom_eq_apSum_map_add (f : ℕ → ℤ) (a d n : ℕ) :
     apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
   simpa using (apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n))
 
 /-- Deprecated wrapper for the older `*_map_add_left` naming.
 
-Use the canonical `apSumFrom_eq_apSum_shift` lemma instead.
+Use the canonical `apSumFrom_eq_apSum_shift_add_left` lemma instead.
 -/
-@[deprecated "Use `apSumFrom_eq_apSum_shift_add_left`." (since := "2026-02-27")]
+@[deprecated "Use `apSumFrom_eq_apSum_shift_add_left`." (since := "2026-02-28")]
 lemma apSumFrom_eq_apSum_map_add_left (f : ℕ → ℤ) (a d n : ℕ) :
     apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
   simpa using (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := n))
