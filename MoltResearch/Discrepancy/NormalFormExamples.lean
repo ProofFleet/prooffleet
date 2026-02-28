@@ -916,6 +916,11 @@ example (hn : n₁ ≤ n₂) :
     apSumOffset_eq_add_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
       (hn := hn)
 
+-- Split an offset sum at an interior cut `k` with `m ≤ k ≤ m+n`.
+example {k : ℕ} (hmk : m ≤ k) (hkn : k ≤ m + n) :
+    apSumOffset f d m n = apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
+  simpa using apSumOffset_split_at (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
+
 example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
       (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
