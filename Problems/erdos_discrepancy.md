@@ -205,6 +205,15 @@ Typical rewrite pipeline:
 - [x] Consolidation PR: audit the existing normal-form lemma names for `*_shift_add` vs `*_map_add` and standardize the preferred ones (keeping old names as deprecated aliases if needed), to keep the nucleus surface coherent.
   - Done in `MoltResearch/Discrepancy/Translate.lean` (shift lemmas are canonical; `*_map_add` are deprecated wrappers), plus related wrappers in `Discrepancy/Affine.lean` and `Discrepancy/Basic.lean`.
 
+- [ ] Split normal form (two-cut): add a canonical lemma splitting an offset sum at an interior cut `k` (with `m ≤ k ≤ m+n`) into two offset sums, with a stable name like `apSumOffset_split_at` and a regression example under `import MoltResearch.Discrepancy`.
+- [ ] Triangle inequality API: prove `Int.natAbs (apSumOffset f d m (n₁+n₂)) ≤ Int.natAbs (apSumOffset f d m n₁) + Int.natAbs (apSumOffset f d (m+n₁) n₂)` (and the analogous `apSum`/`apSumFrom` statements), so later discrepancy bounds can be stated without redoing `Finset.sum` algebra.
+- [ ] Invariance normal form: for `IsSignSequence f`, add lemmas `discrepancy (fun k => -f k) d n = discrepancy f d n` and `discrepancy (fun k => f (k+a)) d n = discrepancy f d n` (where appropriate as a definitional rewrite to an `apSumOffset` on a shifted sequence), plus `simp` tags where safe.
+- [ ] “Step into summand” coherence: provide the affine analogue of step-one normalization (`apSumFrom …` to step-one + shifted/offset normal form) with names aligned to the existing `…_step_one` family, and add one regression example showing paper affine sums normalize via this route.
+- [ ] Endpoint normalization: add a small, consistent family of `…_of_le` lemmas that rewrite paper interval sums with variable endpoints (`m ≤ n`) directly into nucleus `apSumOffset`/`apSumFrom` forms without intermediate commutativity rewrites (reduce `Nat.add_comm` noise under binders).
+- [ ] Degenerate-step API: prove and `simp`-tag the `d = 0` behavior for `apSum`, `apSumOffset`, and `apSumFrom` (and show how to rewrite such cases to a length-multiple of a constant term), so downstream proofs can safely normalize away impossible/degenerate progressions.
+- [ ] Shift-composition simp lemma set: add a minimal `[simp]` lemma set that normalizes nested shifts in summands (`fun k => f (k + a + b)` and `fun k => f (k + (a + b))`) specifically for the nucleus rewrite pipeline, without causing simp loops.
+- [ ] Stable surface audit: create a tiny “API surface checklist” file (or section) ensuring `import MoltResearch.Discrepancy` exposes exactly the intended normal-form lemmas (with deprecated aliases hidden behind a separate import), and add compile-time tests that fail if the surface regresses.
+
 Definition of done:
 - each PR adds 1–3 lemmas OR consolidates/normalizes existing ones
 - minimal imports; prefer `import MoltResearch.Discrepancy` as stable surface
