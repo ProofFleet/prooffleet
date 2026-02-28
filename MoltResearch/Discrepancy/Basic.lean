@@ -49,6 +49,40 @@ It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
 def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
+/-! ### Triangle-inequality API for AP sums -/
+
+/-- `apSumOffset` splits over addition of lengths. -/
+lemma apSumOffset_add_len (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  unfold apSumOffset
+  -- `range (n₁ + n₂)` splits into `range n₁` and a shifted `range n₂`.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (Finset.sum_range_add (f := fun i => f ((m + i + 1) * d)) n₁ n₂)
+
+/-- Triangle inequality for concatenating two offset AP sums. -/
+lemma natAbs_apSumOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    Int.natAbs (apSumOffset f d m (n₁ + n₂)) ≤
+      Int.natAbs (apSumOffset f d m n₁) + Int.natAbs (apSumOffset f d (m + n₁) n₂) := by
+  -- `Int.natAbs` satisfies `|x + y| ≤ |x| + |y|`.
+  simpa [apSumOffset_add_len] using
+    (Int.natAbs_add_le (apSumOffset f d m n₁) (apSumOffset f d (m + n₁) n₂))
+
+/-- `apSumOffset` with zero offset is definitionaly the same as `apSum`. -/
+@[simp] lemma apSumOffset_zero_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
+    apSumOffset f d 0 n = apSum f d n := by
+  unfold apSumOffset apSum
+  simp [Nat.zero_add]
+
+/-- Triangle inequality for `apSum` by splitting into a prefix and a shifted suffix. -/
+lemma natAbs_apSum_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
+    Int.natAbs (apSum f d (n₁ + n₂)) ≤
+      Int.natAbs (apSum f d n₁) + Int.natAbs (apSumOffset f d n₁ n₂) := by
+  -- This is `natAbs_apSumOffset_add_le` at `m = 0`, with the definitional rewrite
+  -- `apSumOffset f d 0 _ = apSum f d _`.
+  simpa [apSumOffset_zero_eq_apSum, Nat.zero_add] using
+    (natAbs_apSumOffset_add_le (f := f) (d := d) (m := 0) (n₁ := n₁) (n₂ := n₂))
+
 /-! ### Basic inequalities for sign sequences -/
 
 /-- A sign sequence has `Int.natAbs` bounded by length on any offset AP sum. -/

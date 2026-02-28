@@ -20,6 +20,25 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-! ### Triangle-inequality API for affine AP sums -/
+
+/-- `apSumFrom` splits over addition of lengths. -/
+lemma apSumFrom_add_len (f : ℕ → ℤ) (a d n₁ n₂ : ℕ) :
+    apSumFrom f a d (n₁ + n₂) =
+      apSumFrom f a d n₁ + apSumFrom f (a + n₁ * d) d n₂ := by
+  unfold apSumFrom
+  -- Split `range (n₁ + n₂)` into `range n₁` and a shifted `range n₂`.
+  -- Then simplify the shifted index arithmetic.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_add, Nat.add_mul] using
+    (Finset.sum_range_add (f := fun i => f (a + (i + 1) * d)) n₁ n₂)
+
+/-- Triangle inequality for concatenating two affine AP sums. -/
+lemma natAbs_apSumFrom_add_len_le (f : ℕ → ℤ) (a d n₁ n₂ : ℕ) :
+    Int.natAbs (apSumFrom f a d (n₁ + n₂)) ≤
+      Int.natAbs (apSumFrom f a d n₁) + Int.natAbs (apSumFrom f (a + n₁ * d) d n₂) := by
+  simpa [apSumFrom_add_len] using
+    (Int.natAbs_add_le (apSumFrom f a d n₁) (apSumFrom f (a + n₁ * d) d n₂))
+
 /-! ### Degenerate length simp lemmas
 
 These mirror `apSum_zero` / `apSum_one` for the affine nucleus `apSumFrom`.
