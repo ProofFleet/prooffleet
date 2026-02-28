@@ -694,6 +694,24 @@ lemma apSum_step_one_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => f (k * d)) 1 n = apSum f d n := by
   simpa using (apSum_eq_apSum_step_one (f := f) (d := d) (n := n)).symm
 
+/-! ### Normal forms for shifts (step-one presentation) -/
+
+/-- Normal form: shifting the index in the step-one presentation corresponds to `apSumOffset`.
+
+This is the key rewrite used when we first normalize `apSum f d n` into the step-one form
+`apSum (fun k => f (k*d)) 1 n`, then want to skip an initial segment.
+-/
+lemma apSum_step_one_shift_eq_apSumOffset (f : ℕ → ℤ) (d a n : ℕ) :
+    apSum (fun k => f ((k + a) * d)) 1 n = apSumOffset f d a n := by
+  unfold apSum apSumOffset
+  simp [Nat.add_assoc, Nat.add_comm]
+
+/-- The corresponding `discrepancy` normal form. -/
+@[simp] lemma discrepancy_step_one_shift (f : ℕ → ℤ) (d a n : ℕ) :
+    discrepancy (fun k => f ((k + a) * d)) 1 n = Int.natAbs (apSumOffset f d a n) := by
+  unfold discrepancy
+  simp [apSum_step_one_shift_eq_apSumOffset]
+
 /-- Normal form: an offset sum with `m = 0` is just the homogeneous sum `apSum`.
 
 Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
@@ -773,6 +791,12 @@ lemma apSum_neg (f : ℕ → ℤ) (d n : ℕ) :
   classical
   unfold apSum
   simp [Finset.sum_neg_distrib]
+
+/-- `discrepancy` is invariant under pointwise negation. -/
+@[simp] lemma discrepancy_neg (f : ℕ → ℤ) (d n : ℕ) :
+    discrepancy (fun k => -f k) d n = discrepancy f d n := by
+  unfold discrepancy
+  simp [apSum_neg]
 
 lemma apSum_sub (f g : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => f k - g k) d n = apSum f d n - apSum g d n := by
