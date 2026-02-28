@@ -69,7 +69,7 @@ If you want to run these locally or use them as a reference, you can import the 
 import MoltResearch.Discrepancy.NormalFormExamples
 ```
 
-### Choosing a translation normal form (`_shift` vs `_shift_add` vs `_map_add`)
+### Choosing a translation normal form (`_shift_add` vs `_shift_add_left` vs `_map_add`)
 
 When you “shift the sequence” or “shift the index”, there are three recurring normal forms. They’re
 mathematically equivalent, but *proof automation* tends to prefer one depending on what you’re doing:
@@ -78,13 +78,14 @@ mathematically equivalent, but *proof automation* tends to prefer one depending 
   Use this when you want `simp`/`ring_nf` to behave without rewriting `Nat.add_comm` under a lambda.
   This is the default convention in this folder.
 
-- **`_shift`**: constant-on-the-left binder form `k ↦ f (a + k)`.
+- **`_shift_add_left`** (or **`_shift`**): constant-on-the-left binder form `k ↦ f (a + k)`.
   Use this when your goal statement already has `a + …` everywhere (e.g. it came from rewriting a
   paper statement `a + i*d`) and you want to avoid commutativity steps.
 
 - **`_map_add` / `_map_add_left`**: “push the translation into the function” form `x ↦ f (x + a)`.
-  Use this when you want to *commute the translation past multiplication* (e.g. normalize
-  `a + (m+k)*d` into something like `(m+k)*d` under `apSum` while shifting the sequence).
+  These are legacy names kept as deprecated aliases. Use this style when you need the
+  *commute-the-translation-past-multiplication* form (e.g. normalize `a + (m+k)*d` into something
+  like `(m+k)*d` under `apSum` while shifting the sequence).
 
 Practical rule: if you’re not sure which one to pick, normalize to `_shift_add` first; it composes
 well with the offset/tail API and keeps later splitting/bounding lemmas uniform.
