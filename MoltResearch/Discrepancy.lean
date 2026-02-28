@@ -83,7 +83,8 @@ mathematically equivalent, but *proof automation* tends to prefer one depending 
   paper statement `a + i*d`) and you want to avoid commutativity steps.
 
 - **`_map_add` / `_map_add_left`**: “push the translation into the function” form `x ↦ f (x + a)`.
-  These are legacy names kept as deprecated aliases. Use this style when you need the
+  These are deprecated legacy wrappers. The preferred names are the `_shift_add` and
+  `_shift_add_left` families above. Use the `_map_add`/`_map_add_left` style only when you need the
   *commute-the-translation-past-multiplication* form (e.g. normalize `a + (m+k)*d` into something
   like `(m+k)*d` under `apSum` while shifting the sequence).
 
