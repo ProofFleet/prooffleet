@@ -667,10 +667,10 @@ lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
     apSum_add_length (f := g) (d := d) (m := m) (n := n)
   have hL : apSumFrom f a d (m + n) = apSum g d (m + n) := by
     simpa [g] using
-      (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := m + n))
+      (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := m + n))
   have hM : apSum g d m = apSumFrom f a d m := by
     simpa [g] using
-      (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := m)).symm
+      (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := m)).symm
   have hN : apSumOffset g d m n = apSumFrom f (a + m * d) d n := by
     unfold apSumOffset apSumFrom
     refine Finset.sum_congr rfl ?_
@@ -995,11 +995,11 @@ lemma HasAffineDiscrepancyAtLeast_iff_exists_shift (f : ℕ → ℤ) (C : ℕ) :
     rcases h with ⟨a, d, n, hd, hgt⟩
     refine ⟨a, ?_⟩
     refine ⟨d, n, hd, ?_⟩
-    simpa [apSumFrom_eq_apSum_shift] using hgt
+    simpa [apSumFrom_eq_apSum_shift_add_left] using hgt
   · rintro ⟨a, h⟩
     rcases h with ⟨d, n, hd, hgt⟩
     refine ⟨a, d, n, hd, ?_⟩
-    simpa [apSumFrom_eq_apSum_shift] using hgt
+    simpa [apSumFrom_eq_apSum_shift_add_left] using hgt
 
 /-- Normal form for “affine unbounded discrepancy”: for each `C`, some shift of `f` has
 homogeneous discrepancy at least `C`.
