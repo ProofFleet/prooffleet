@@ -261,8 +261,9 @@ Discrepancy predicates / witnesses:
   bookkeeping from scratch:
   - multiplicative reindexing `x ↦ x * k`: `HasDiscrepancyAtLeast.of_map_mul`,
     `HasAffineDiscrepancyAtLeast.of_map_mul` (and sum-level rewrites like `apSum_map_mul`).
-  - additive reindexing `x ↦ x + k`: `HasDiscrepancyAtLeast.of_map_add`,
-    `HasAffineDiscrepancyAtLeast.of_map_add` (and sum-level rewrites like `apSumFrom_map_add`).
+  - additive reindexing `x ↦ x + k`: `HasDiscrepancyAtLeast.of_shift_add`,
+    `HasAffineDiscrepancyAtLeast.of_shift_add` (and sum-level rewrites like `apSum_shift_add` /
+    `apSumFrom_shift_add`).
 - When scaling the sequence by a nonzero integer, prefer the dedicated scaling lemmas
   (`HasDiscrepancyAtLeast.mul_left_scale`, etc.) rather than unfolding definitions.
 
