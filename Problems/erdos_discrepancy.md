@@ -202,7 +202,8 @@ Typical rewrite pipeline:
 - [x] Bounding lemma: for `IsSignSequence f`, prove a reusable inequality bounding a *difference of discrepancies* by length, e.g. `Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤ n + n'` (or a tighter canonical statement), to support later triangle-inequality pipelines.
 - [x] Stable surface test: add one or two “pipeline examples” showing paper interval sums with variable endpoints (`m ≤ n`) normalize all the way to `apSumOffset` and then split via `…_add_length`, compiling under `import MoltResearch.Discrepancy`.
   - Implemented as pipeline examples in `MoltResearch/Discrepancy/NormalFormExamples.lean` (split at `k` for `m ≤ k ≤ n`).
-- [ ] Consolidation PR: audit the existing normal-form lemma names for `*_shift_add` vs `*_map_add` and standardize the preferred ones (keeping old names as deprecated aliases if needed), to keep the nucleus surface coherent.
+- [x] Consolidation PR: audit the existing normal-form lemma names for `*_shift_add` vs `*_map_add` and standardize the preferred ones (keeping old names as deprecated aliases if needed), to keep the nucleus surface coherent.
+  - Done in `MoltResearch/Discrepancy/Translate.lean` (shift lemmas are canonical; `*_map_add` are deprecated wrappers), plus related wrappers in `Discrepancy/Affine.lean` and `Discrepancy/Basic.lean`.
 
 Definition of done:
 - each PR adds 1–3 lemmas OR consolidates/normalizes existing ones
