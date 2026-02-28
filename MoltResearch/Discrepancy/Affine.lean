@@ -10,7 +10,7 @@ Normal-form philosophy (Track B):
 - Prefer `apSumFrom f a d n` as the canonical object for sums along `a + d, a + 2d, …, a + nd`.
 - Rewrite to paper notation (`Finset.Icc`) only at the boundary of a statement.
 - When you want to view an affine AP sum as a translated homogeneous AP sum, rewrite via
-  `apSumFrom_eq_apSum_shift_add` (or the `_left` / constant-on-the-left variant `apSumFrom_eq_apSum_shift`).
+  `apSumFrom_eq_apSum_shift_add` (or the `_left` / constant-on-the-left variant `apSumFrom_eq_apSum_shift_add_left`).
   (The older `*_map_add` names are deprecated wrappers.)
 -/
 
@@ -308,18 +308,24 @@ lemma apSumFrom_eq_apSumOffset_of_dvd (f : ℕ → ℤ) {a d n : ℕ} (h : d ∣
 
 This views the affine AP sum as a homogeneous AP sum on the shifted function `k ↦ f (a + k)`.
 -/
-lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
+lemma apSumFrom_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
   unfold apSumFrom apSum
   rfl
 
-/-- Translation-friendly variant of `apSumFrom_eq_apSum_shift`.
+@[deprecated "Use `apSumFrom_eq_apSum_shift_add_left`." (since := "2026-02-28")]
+lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
+  apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
+  simpa using (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := n))
+
+/-- Translation-friendly variant of `apSumFrom_eq_apSum_shift_add_left`.
 
 This writes the shift as `k + a` rather than `a + k`.
 -/
 lemma apSumFrom_eq_apSum_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
-  simpa [Nat.add_comm] using (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n))
+  simpa [Nat.add_comm] using
+    (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := n))
 
 /-- Deprecated wrapper for the older `*_map_add` naming.
 
@@ -334,10 +340,10 @@ lemma apSumFrom_eq_apSum_map_add (f : ℕ → ℤ) (a d n : ℕ) :
 
 Use the canonical `apSumFrom_eq_apSum_shift` lemma instead.
 -/
-@[deprecated "Use `apSumFrom_eq_apSum_shift`." (since := "2026-02-27")]
+@[deprecated "Use `apSumFrom_eq_apSum_shift_add_left`." (since := "2026-02-27")]
 lemma apSumFrom_eq_apSum_map_add_left (f : ℕ → ℤ) (a d n : ℕ) :
     apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
-  simpa using (apSumFrom_eq_apSum_shift (f := f) (a := a) (d := d) (n := n))
+  simpa using (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := n))
 
 /-- Normal form: express an affine AP sum as a homogeneous sum with step size `1` by bundling the
 step size `d` into the summand.
