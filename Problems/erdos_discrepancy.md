@@ -205,7 +205,9 @@ Typical rewrite pipeline:
 - [x] Consolidation PR: audit the existing normal-form lemma names for `*_shift_add` vs `*_map_add` and standardize the preferred ones (keeping old names as deprecated aliases if needed), to keep the nucleus surface coherent.
   - Done in `MoltResearch/Discrepancy/Translate.lean` (shift lemmas are canonical; `*_map_add` are deprecated wrappers), plus related wrappers in `Discrepancy/Affine.lean` and `Discrepancy/Basic.lean`.
 
-- [ ] Split normal form (two-cut): add a canonical lemma splitting an offset sum at an interior cut `k` (with `m ≤ k ≤ m+n`) into two offset sums, with a stable name like `apSumOffset_split_at` and a regression example under `import MoltResearch.Discrepancy`.
+- [x] Split normal form (two-cut): add a canonical lemma splitting an offset sum at an interior cut `k` (with `m ≤ k ≤ m+n`) into two offset sums, with a stable name like `apSumOffset_split_at` and a regression example under `import MoltResearch.Discrepancy`.
+  - Implemented as `apSumOffset_split_at` in `MoltResearch/Discrepancy/Offset.lean`.
+  - Regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean` (imports `MoltResearch.Discrepancy`).
 - [ ] Triangle inequality API: prove `Int.natAbs (apSumOffset f d m (n₁+n₂)) ≤ Int.natAbs (apSumOffset f d m n₁) + Int.natAbs (apSumOffset f d (m+n₁) n₂)` (and the analogous `apSum`/`apSumFrom` statements), so later discrepancy bounds can be stated without redoing `Finset.sum` algebra.
 - [ ] Invariance normal form: for `IsSignSequence f`, add lemmas `discrepancy (fun k => -f k) d n = discrepancy f d n` and `discrepancy (fun k => f (k+a)) d n = discrepancy f d n` (where appropriate as a definitional rewrite to an `apSumOffset` on a shifted sequence), plus `simp` tags where safe.
 - [ ] “Step into summand” coherence: provide the affine analogue of step-one normalization (`apSumFrom …` to step-one + shifted/offset normal form) with names aligned to the existing `…_step_one` family, and add one regression example showing paper affine sums normalize via this route.
