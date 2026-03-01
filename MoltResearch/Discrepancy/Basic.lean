@@ -49,6 +49,28 @@ It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
 def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
+/-! ### Congruence lemmas -/
+
+/-- If two functions agree pointwise on the indices used in `apSum`, then the AP sums are equal. -/
+lemma apSum_congr (f g : ℕ → ℤ) (d n : ℕ)
+    (h : ∀ i, i < n → f ((i + 1) * d) = g ((i + 1) * d)) :
+    apSum f d n = apSum g d n := by
+  unfold apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hi' : i < n := Finset.mem_range.mp hi
+  exact h i hi'
+
+/-- If two functions agree pointwise on the indices used in `apSumOffset`, then the offset sums are equal. -/
+lemma apSumOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i < n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hi' : i < n := Finset.mem_range.mp hi
+  exact h i hi'
+
 /-! ### Invariance / normal-form lemmas -/
 
 /-- Shifting the input by `a*d` converts an `apSum` into an `apSumOffset`.

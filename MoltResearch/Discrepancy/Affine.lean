@@ -20,6 +20,18 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-! ### Congruence lemmas -/
+
+/-- If two functions agree pointwise on the indices used in `apSumFrom`, then the affine AP sums are equal. -/
+lemma apSumFrom_congr (f g : ℕ → ℤ) (a d n : ℕ)
+    (h : ∀ i, i < n → f (a + (i + 1) * d) = g (a + (i + 1) * d)) :
+    apSumFrom f a d n = apSumFrom g a d n := by
+  unfold apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hi' : i < n := Finset.mem_range.mp hi
+  exact h i hi'
+
 /-! ### Normal-form lemmas relating homogeneous and affine AP sums -/
 
 /-- Shifting the sequence by `a` turns a homogeneous AP sum into an affine AP sum. -/
