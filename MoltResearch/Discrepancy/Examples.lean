@@ -37,6 +37,18 @@ lemma apSumOffset_const_one (d m n : ℕ) :
   unfold apSumOffset
   simpa using (Finset.sum_const_one : (Finset.range n).sum (fun _ => (1 : ℤ)) = n)
 
+/-! ### Offset/affine bridge regression -/
+
+/-- Regression test for `apSumOffset_shift_add_eq_apSumFrom` (constant `+1` sequence).
+
+This ensures the bridge lemma keeps typechecking and reduces correctly in a simple case.
+-/
+lemma apSumOffset_shift_add_eq_apSumFrom_const_one (d m n : ℕ) :
+    apSumOffset (fun _t : ℕ => (1 : ℤ)) d m n = apSumFrom (fun _t : ℕ => (1 : ℤ)) (m * d) d n := by
+  -- The bridge lemma with `a = 0`.
+  simpa [Nat.zero_add] using
+    (apSumOffset_shift_add_eq_apSumFrom_bridge (f := fun _t : ℕ => (1 : ℤ)) (a := 0) (d := d) (m := m) (n := n))
+
 /-! ### Constant `-1` sequence -/
 
 /-- The constant `-1` sequence is a sign sequence. -/

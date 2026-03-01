@@ -20,6 +20,31 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-! ### Bridge lemmas: `apSumOffset` vs `apSumFrom` -/
+
+/-- Offset sum of a shifted sequence is an affine AP sum.
+
+This is a convenient “two-way bridge” between the older offset nucleus
+`apSumOffset` (homogeneous progression with a skipped prefix) and the Track B
+preferred affine nucleus `apSumFrom`.
+
+Concretely, the left-hand side expands to
+`∑ i in range n, f (a + (m + i + 1) * d)`.
+-/
+lemma apSumOffset_shift_add_eq_apSumFrom_bridge (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun t => f (t + a)) d m n = apSumFrom f (a + m * d) d n := by
+  unfold apSumOffset apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `((m+i+1)*d) + a = (a + m*d) + (i+1)*d`.
+  simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul]
+
+/-- Symmetric form of `apSumOffset_shift_add_eq_apSumFrom_bridge`. -/
+lemma apSumFrom_eq_apSumOffset_shift_add_bridge (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun t => f (t + a)) d m n := by
+  simpa [apSumOffset_shift_add_eq_apSumFrom_bridge] using
+    (apSumOffset_shift_add_eq_apSumFrom_bridge (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 /-! ### Congruence lemmas -/
 
 /-- If two functions agree pointwise on the indices used in `apSumFrom`, then the affine AP sums are equal. -/
