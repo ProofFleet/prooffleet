@@ -1238,6 +1238,18 @@ lemma apSumOffset_shift_start_add_left (f : ℕ → ℤ) (d m k n : ℕ) :
   simpa [Nat.add_comm] using
     (apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
 
+/-- Normal form (mul-left variant): shift in the *start index* using the translation constant `d*k`.
+
+`apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + d*k)) d m n`.
+
+This is a thin wrapper around `apSumOffset_shift_start_add` that avoids commuting multiplication
+in downstream developments that prefer the `d * k` convention.
+-/
+lemma apSumOffset_shift_start_add_mul_left (f : ℕ → ℤ) (d m k n : ℕ) :
+    apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + d * k)) d m n := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
+
 /-- Normal form (add-left variant): push an offset parameter into a translation constant.
 
 This is the `a + k` analogue of `apSumOffset_shift_add_eq_apSumOffset_shift_add`.
