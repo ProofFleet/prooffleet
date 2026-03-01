@@ -218,7 +218,10 @@ Typical rewrite pipeline:
   - Implemented in:
     - `MoltResearch/Discrepancy/Offset.lean`: `sum_Icc_eq_apSumOffset_of_le` (+ `…_mul_left` variants)
     - `MoltResearch/Discrepancy/AffineTail.lean`: `sum_Icc_eq_apSumFrom_tail_of_le` and translation-friendly `…_add` / `…_mul_left` variants
-- [ ] Degenerate-step API: prove and `simp`-tag the `d = 0` behavior for `apSum`, `apSumOffset`, and `apSumFrom` (and show how to rewrite such cases to a length-multiple of a constant term), so downstream proofs can safely normalize away impossible/degenerate progressions.
+- [x] Degenerate-step API: prove and `simp`-tag the `d = 0` behavior for `apSum`, `apSumOffset`, and `apSumFrom` (and show how to rewrite such cases to a length-multiple of a constant term), so downstream proofs can safely normalize away impossible/degenerate progressions.
+  - Implemented as:
+    - `apSum_zero_d` and `apSumOffset_zero_d` in `MoltResearch/Discrepancy/Basic.lean`
+    - `apSumFrom_zero_d` in `MoltResearch/Discrepancy/Affine.lean`
 - [ ] Shift-composition simp lemma set: add a minimal `[simp]` lemma set that normalizes nested shifts in summands (`fun k => f (k + a + b)` and `fun k => f (k + (a + b))`) specifically for the nucleus rewrite pipeline, without causing simp loops.
 - [ ] Stable surface audit: create a tiny “API surface checklist” file (or section) ensuring `import MoltResearch.Discrepancy` exposes exactly the intended normal-form lemmas (with deprecated aliases hidden behind a separate import), and add compile-time tests that fail if the surface regresses.
 
