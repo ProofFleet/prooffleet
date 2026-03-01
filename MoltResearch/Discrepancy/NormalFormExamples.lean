@@ -249,6 +249,12 @@ example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n :
   simpa using apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m)
     (n := n)
 
+-- Regression example: same statement via the “first term” bridge lemma.
+example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    apSumOffset_shift_add_eq_apSumFrom_tail_firstTerm (f := f) (a := a) (d := d) (m := m)
+      (n := n)
+
 example : apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (m * d + a) d n := by
   simpa using apSumOffset_shift_add_eq_apSumFrom_tail_left (f := f) (a := a) (d := d) (m := m)
     (n := n)
