@@ -1470,6 +1470,31 @@ lemma sum_Icc_eq_apSumOffset_shift_of_le_mul_left (f : ℕ → ℤ) (a d : ℕ) 
   simpa [Nat.add_sub_of_le hmn] using
     (sum_Icc_eq_apSumOffset_shift_mul_left (f := f) (a := a) (d := d) (m := m) (n := n - m))
 
+/-! ### Alias lemma names (endpoint normalization, `m ≤ n`, affine tails)
+
+For plain offset sums, we have the endpoint-normalization family
+`sum_Icc_eq_apSumOffset_of_le…` in `Discrepancy/Offset.lean`.
+
+For affine tails, the corresponding lemmas are `…_shift_of_le…` / `…_shift_add_of_le…`.
+The following lemmas are simple aliases that align with the `…_of_le…` naming convention.
+-/
+
+/-- Alias for `sum_Icc_eq_apSumOffset_shift_of_le` (same statement, naming aligned with
+`sum_Icc_eq_apSumOffset_of_le`). -/
+lemma sum_Icc_eq_apSumOffset_of_le_shift (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_of_le (f := f) (a := a) (d := d) (m := m) (n := n) (hmn := hmn))
+
+/-- Mul-left alias for `sum_Icc_eq_apSumOffset_shift_of_le_mul_left`. -/
+lemma sum_Icc_eq_apSumOffset_of_le_shift_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_of_le_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
 /-- Normal form (paper → nucleus, tail, glue): when `m ≤ n`, rewrite the affine interval sum
 `∑ i ∈ Icc (m+1) n, f (i*d + a)` directly as an offset AP sum on the shifted sequence `k ↦ f (k + a)`.
 
@@ -1563,6 +1588,24 @@ lemma sum_Icc_eq_apSumOffset_shift_add_of_le_left_mul_left (f : ℕ → ℤ) (a 
     (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
       apSumOffset (fun k => f (k + a)) d m (n - m) := by
   simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc, Nat.mul_comm] using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
+/-- Alias for `sum_Icc_eq_apSumOffset_shift_add_of_le` (same statement, naming aligned with
+`sum_Icc_eq_apSumOffset_of_le`). -/
+lemma sum_Icc_eq_apSumOffset_of_le_shift_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
+/-- Mul-left alias for `sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left`. -/
+lemma sum_Icc_eq_apSumOffset_of_le_shift_add_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
     (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
       (hmn := hmn))
 
