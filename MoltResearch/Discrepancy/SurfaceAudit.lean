@@ -3,17 +3,21 @@ import MoltResearch.Discrepancy
 /-!
 # Discrepancy: stable surface audit (compile-time regression tests)
 
-This file is intended to be a tiny, explicit checklist that the **stable import surface**
+This file is a tiny, explicit **API surface checklist** for the stable import surface
 
 ```lean
 import MoltResearch.Discrepancy
 ```
 
-still exposes the core normal-form rewrite pipeline we expect downstream proofs to use.
+It aims to enforce two things:
+
+1. **Presence:** the normal-form “nucleus” lemmas we want downstream proofs to use remain exported.
+2. **Absence:** deprecated legacy wrappers (e.g. older `*_map_add` names) are **not** exported by
+   default; they live behind an explicit opt-in import.
 
 Guiding principle: prefer a few high-leverage checks over a huge brittle list.
 
-If you need backwards-compatible / deprecated aliases (e.g. older `*_map_add` names), use
+If you need backwards-compatible / deprecated aliases, import:
 
 ```lean
 import MoltResearch.Discrepancy.Deprecated
@@ -24,6 +28,12 @@ namespace MoltResearch
 
 section
   variable (f : ℕ → ℤ) (a d m n : ℕ)
+
+  /-!
+  ## Presence checks (stable surface)
+
+  These are the objects/lemmas we consider part of the “stable normal-form toolkit”.
+  -/
 
   -- Nucleus objects should be present.
   #check apSum
@@ -45,6 +55,22 @@ section
   -- Paper ↔ nucleus rewrite entrypoints should be present.
   #check sum_Icc_eq_apSum
   #check apSum_eq_sum_Icc
+
+  /-!
+  ## Absence checks (deprecated names must NOT be in the stable surface)
+
+  We deliberately assert these names are *not* available under `import MoltResearch.Discrepancy`.
+  If any of these starts typechecking here, the stable surface has regressed.
+  -/
+
+  #guard_msgs (error) in
+    #check IsSignSequence.map_add
+
+  #guard_msgs (error) in
+    #check apSumFrom_eq_apSum_map_add
+
+  #guard_msgs (error) in
+    #check apSumFrom_map_add
 end
 
 end MoltResearch
