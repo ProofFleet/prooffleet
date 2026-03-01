@@ -88,6 +88,13 @@ mathematically equivalent, but *proof automation* tends to prefer one depending 
   *commute-the-translation-past-multiplication* form (e.g. normalize `a + (m+k)*d` into something
   like `(m+k)*d` under `apSum` while shifting the sequence).
 
+  These deprecated aliases are **not** part of the stable surface `import MoltResearch.Discrepancy`.
+  If you need backwards-compatible names, import:
+
+  ```lean
+  import MoltResearch.Discrepancy.Deprecated
+  ```
+
 Practical rule: if you’re not sure which one to pick, normalize to `_shift_add` first; it composes
 well with the offset/tail API and keeps later splitting/bounding lemmas uniform.
 

@@ -417,24 +417,6 @@ lemma IsSignSequence.shift_add_left {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequ
     IsSignSequence (fun n => f (k + n)) :=
   IsSignSequence.comp (f := f) (fun n => k + n) hf
 
-/-- Deprecated name for `IsSignSequence.shift_add`.
-
-Reindexing a sign sequence by a fixed additive shift preserves the sign-sequence property.
--/
-@[deprecated "Use `IsSignSequence.shift_add`." (since := "2026-02-28")]
-lemma IsSignSequence.map_add {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequence f) :
-    IsSignSequence (fun n => f (n + k)) :=
-  IsSignSequence.shift_add (f := f) k hf
-
-/-- Deprecated name for `IsSignSequence.shift_add_left`.
-
-Reindexing a sign sequence by a fixed additive shift preserves the sign-sequence property.
--/
-@[deprecated "Use `IsSignSequence.shift_add_left`." (since := "2026-02-28")]
-lemma IsSignSequence.map_add_left {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequence f) :
-    IsSignSequence (fun n => f (k + n)) :=
-  IsSignSequence.shift_add_left (f := f) k hf
-
 /-- Reindexing a sign sequence by a fixed multiplicative map preserves the sign-sequence property. -/
 lemma IsSignSequence.map_mul {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequence f) :
     IsSignSequence (fun n => f (n * k)) :=

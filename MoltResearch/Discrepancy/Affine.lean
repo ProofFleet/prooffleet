@@ -354,10 +354,6 @@ lemma apSumFrom_eq_apSum_shift_add_left (f : ℕ → ℤ) (a d n : ℕ) :
   unfold apSumFrom apSum
   rfl
 
-@[deprecated "Use `apSumFrom_eq_apSum_shift_add_left`." (since := "2026-02-28")]
-lemma apSumFrom_eq_apSum_shift (f : ℕ → ℤ) (a d n : ℕ) :
-  apSumFrom f a d n = apSum (fun k => f (a + k)) d n := by
-  simpa using (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := n))
 
 /-- Translation-friendly variant of `apSumFrom_eq_apSum_shift_add_left`.
 
@@ -368,23 +364,7 @@ lemma apSumFrom_eq_apSum_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
   simpa [Nat.add_comm] using
     (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := n))
 
-/-- Deprecated wrapper for the older `*_map_add` naming.
 
-Use the canonical `apSumFrom_eq_apSum_shift_add` lemma instead.
--/
-@[deprecated "Use `apSumFrom_eq_apSum_shift_add`." (since := "2026-02-28")]
-lemma apSumFrom_eq_apSum_map_add (f : ℕ → ℤ) (a d n : ℕ) :
-    apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
-  simpa using (apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n))
-
-/-- Deprecated wrapper for the older `*_map_add_left` naming.
-
-Use the canonical `apSumFrom_eq_apSum_shift_add_left` lemma instead.
--/
-@[deprecated "Use `apSumFrom_eq_apSum_shift_add_left`." (since := "2026-02-28")]
-lemma apSumFrom_eq_apSum_map_add_left (f : ℕ → ℤ) (a d n : ℕ) :
-    apSumFrom f a d n = apSum (fun x => f (a + x)) d n := by
-  simpa using (apSumFrom_eq_apSum_shift_add_left (f := f) (a := a) (d := d) (n := n))
 
 /-- Normal form: express an affine AP sum as a homogeneous sum with step size `1` by bundling the
 step size `d` into the summand.
