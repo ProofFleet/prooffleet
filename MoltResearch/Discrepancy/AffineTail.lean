@@ -1539,6 +1539,33 @@ lemma sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left (f : ℕ → ℤ) (a d : �
     (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m)
       (n := n) (hmn := hmn))
 
+/-- Endpoint-normalization (`m ≤ n`) for affine tails written in the common `a + i*d` form.
+
+This is a convenience wrapper around `sum_Icc_eq_apSumOffset_shift_add_of_le` that performs the
+necessary commutations inside the lemma, so callers do not need `Nat.add_comm` rewrites under
+binders.
+-/
+lemma sum_Icc_eq_apSumOffset_shift_add_of_le_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  -- Commute `a + i*d` to the translation-friendly `i*d + a`, then apply the existing lemma.
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
+/-- Mul-left variant of `sum_Icc_eq_apSumOffset_shift_add_of_le_left`, with summand written as
+`f (a + d*i)`.
+
+This avoids commuting multiplication under binders when working in a `d * i` convention.
+-/
+lemma sum_Icc_eq_apSumOffset_shift_add_of_le_left_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc, Nat.mul_comm] using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
 /-- Normal form (nucleus → paper, tail): when `m ≤ n`, rewrite the offset AP sum on the shifted
 sequence `k ↦ f (k + a)` into the affine interval sum `∑ i ∈ Icc (m+1) n, f (i*d + a)`.
 

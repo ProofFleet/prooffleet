@@ -1530,6 +1530,21 @@ example (c : ℤ) (hc : c ≠ 0) (C : ℕ) :
 
 variable (a d m n : ℕ)
 
+-- Endpoint normalization for affine tails (variable upper endpoint).
+-- These examples ensure callers can rewrite tails written as `a + i*d` without doing `Nat.add_comm` under binders.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumOffset_shift_add_of_le_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    sum_Icc_eq_apSumOffset_shift_add_of_le_left_mul_left (f := f) (a := a) (d := d) (m := m)
+      (n := n) hmn
+
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
