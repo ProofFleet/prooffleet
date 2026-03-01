@@ -826,6 +826,22 @@ lemma apSumOffset_shift_add_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) 
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-- **Bridge lemma (endpoint convention reminder).**
+
+`apSumOffset (fun t => f (t + a)) d m n` is the tail of length `n` of the affine AP sum whose
+**first term** is `f (a + (m+1)*d)`.
+
+Under this repo’s `apSumFrom` convention (summing `a+d, a+2d, …, a+nd`), this tail is written as
+`apSumFrom f (a + m*d) d n`.
+
+This lemma is just `apSumOffset_shift_add_eq_apSumFrom_tail` with a more “first-term-explicit”
+docstring; the statement stays in the canonical `a + m*d` form.
+-/
+lemma apSumOffset_shift_add_eq_apSumFrom_tail_firstTerm (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun t => f (t + a)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Variant of `apSumOffset_shift_add_eq_apSumFrom_tail` with the affine start written as `m*d + a`.
 
 This wrapper avoids a commutativity rewrite at the call site.

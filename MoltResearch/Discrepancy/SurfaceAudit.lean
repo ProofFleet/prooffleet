@@ -50,6 +50,7 @@ section
   -- Affine-tail ↔ shifted-sequence normal forms should be present.
   #check apSumFrom_tail_eq_apSumOffset_shift_add
   #check apSumOffset_shift_add_eq_apSumFrom_tail
+  #check apSumOffset_shift_add_eq_apSumFrom_tail_firstTerm
 
   -- Differences → tails normal forms should be present.
   #check apSum_sub_eq_apSumOffset
