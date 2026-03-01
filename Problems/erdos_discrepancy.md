@@ -235,7 +235,7 @@ Definition of done:
 - minimal imports; prefer `import MoltResearch.Discrepancy` as stable surface
 
 #### Auto-generated backlog (needs triage)
-- [ ] Add `…_congr` lemmas for nucleus sums (`apSum_congr`, `apSumOffset_congr`, `apSumFrom_congr`) with a consistent statement shape (pointwise equality of summands on the relevant range) so rewrite scripts can swap `f` under a binder without manual `simp` gymnastics.
+- [x] Add `…_congr` lemmas for nucleus sums (`apSum_congr`, `apSumOffset_congr`, `apSumFrom_congr`) with a consistent statement shape (pointwise equality of summands on the relevant range) so rewrite scripts can swap `f` under a binder without manual `simp` gymnastics.
 - [ ] Add “shift in start index” normal form: rewrite `apSumOffset f d (m + k) n` into `apSumOffset (fun t => f (t + k*d)) d m n` (and a translation-friendly `…_add` variant), so proofs can move offset mass between the `m` parameter and the summand shift canonically.
 - [ ] Add a canonical lemma relating `apSumOffset` to an explicit tail of `apSumFrom` on a shifted sequence (a two-way bridge): `apSumOffset (fun t => f (t + a)) d m n = apSumFrom f (a + (m+1)*d) d n` (or the repo’s preferred endpoint convention), with a regression example under `import MoltResearch.Discrepancy`.
 - [ ] Add endpoint-normalization for affine tails with variable endpoints: a small family of `…_of_le` lemmas rewriting paper sums over `Icc (a + (m+1)*d) (a + n*d)` directly into `apSumOffset` (avoid `Nat.add_comm` noise under binders; align names with the existing `sum_Icc_eq_apSumOffset_of_le` family).

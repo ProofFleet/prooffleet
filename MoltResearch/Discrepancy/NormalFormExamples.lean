@@ -21,6 +21,22 @@ example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
 example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
   simpa using sum_Icc_eq_apSum (f := f) (d := d) (n := n)
 
+-- Regression: use the congruence lemmas to rewrite AP sums under a pointwise equality hypothesis.
+example (g : ℕ → ℤ)
+    (h : ∀ i, i < n → f ((i + 1) * d) = g ((i + 1) * d)) :
+    apSum f d n = apSum g d n := by
+  simpa using (apSum_congr (f := f) (g := g) (d := d) (n := n) (h := h))
+
+example (g : ℕ → ℤ)
+    (h : ∀ i, i < n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  simpa using (apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
+example (g : ℕ → ℤ)
+    (h : ∀ i, i < n → f (a + (i + 1) * d) = g (a + (i + 1) * d)) :
+    apSumFrom f a d n = apSumFrom g a d n := by
+  simpa using (apSumFrom_congr (f := f) (g := g) (a := a) (d := d) (n := n) (h := h))
+
 -- Regression: `simp` normalizes nested shifts inside translated summands.
 example : (fun k => f (k + a + b)) = fun k => f (k + (a + b)) := by
   simp
