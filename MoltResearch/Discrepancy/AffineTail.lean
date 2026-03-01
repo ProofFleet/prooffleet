@@ -887,6 +887,23 @@ lemma apSumFrom_eq_apSumOffset_step_one_via_shift_add (f : ℕ → ℤ) (a d n :
     (apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add (f := f) (a := a) (d := d)
       (n := n))
 
+/-- Paper → nucleus → step-one (offset) normal form, packaged via the shifted-sequence route.
+
+This composes `sum_Icc_eq_apSumFrom` with `apSumFrom_eq_apSumOffset_step_one_via_shift_add`.
+
+It is a convenience lemma for normalizing a paper affine sum (written as `a + i*d`) directly into
+the translation-friendly step-one offset normal form.
+-/
+lemma sum_Icc_eq_apSumOffset_step_one_via_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  calc
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+      simpa using sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
+    _ = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+      simpa using apSumFrom_eq_apSumOffset_step_one_via_shift_add (f := f) (a := a) (d := d)
+        (n := n)
+
 /-- Inverse orientation of `apSumFrom_eq_apSumOffset_shift_add`.
 
 This is the `m = 0` case of `apSumOffset_shift_add_eq_apSumFrom_tail`.

@@ -243,7 +243,7 @@ example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (d * i + a)) := b
 example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
   -- Paper → nucleus (`apSumFrom`), then “step-one” offset normal form.
   simpa using
-    (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n)).trans
+    (sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)).trans
       (apSumFrom_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (n := n))
 
 -- Regression: paper affine sums with translation-friendly binder normalize to a step-one homogeneous `apSum` form.
@@ -260,6 +260,12 @@ example :
   simpa using
     (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n)).trans
       (apSumFrom_eq_apSumOffset_step_one_via_shift_add (f := f) (a := a) (d := d) (n := n))
+
+-- Regression: “step into summand” coherence for the more common `a + i*d` paper form.
+example :
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa using
+    sum_Icc_eq_apSumOffset_step_one_via_shift_add (f := f) (a := a) (d := d) (n := n)
 
 -- Affine differences: normalize to an offset sum on a shifted sequence.
 example :
