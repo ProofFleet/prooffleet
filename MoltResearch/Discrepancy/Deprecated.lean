@@ -71,11 +71,18 @@ lemma apSum_map_add (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
   simpa using (apSum_shift_add (f := f) (k := k) (d := d) (n := n))
 
-/-- Deprecated name for `apSum_shift_add_left`. -/
-@[deprecated "Use `apSum_shift_add_left`." (since := "2026-02-28")]
+/-- Deprecated name for `apSum_shift_add_left`.
+
+Note: the core normal-form lemma is `apSum_shift_add` (in the `x + k` binder convention).
+This wrapper keeps the older `k + x` convention by commuting addition under the binder.
+-/
+@[deprecated "Use `apSum_shift_add` (after rewriting `fun x => f (k + x)` to `fun x => f (x + k)`)." (since := "2026-02-28")]
 lemma apSum_map_add_left (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
-  simpa using (apSum_shift_add_left (f := f) (k := k) (d := d) (n := n))
+  have hfun : (fun x => f (k + x)) = fun x => f (x + k) := by
+    funext x
+    simp [Nat.add_comm]
+  simpa [hfun] using (apSum_shift_add (f := f) (k := k) (d := d) (n := n))
 
 /-- Deprecated name for `HasDiscrepancyAtLeast.of_shift_add`. -/
 @[deprecated "Use `HasDiscrepancyAtLeast.of_shift_add`." (since := "2026-02-28")]

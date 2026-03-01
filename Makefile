@@ -21,6 +21,8 @@ build:
 ci:
 	@./scripts/forbid_sorry.sh
 	@~/.elan/bin/lake build
+	@~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceChecklist
+	@~/.elan/bin/lake build MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
 
 backlog:
 	@~/.elan/bin/lake build Tasks
