@@ -750,6 +750,22 @@ lemma apSum_step_one_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
 
 /-! ### Normal forms for shifts (step-one presentation) -/
 
+/-!
+## Normalization of nested shifts
+
+We frequently encounter functions of the form `fun k => f (k + a + b)`.
+For a tidy normal form we prefer the addition to be grouped as `k + (a + b)`.
+
+This is a tiny `[simp]` rule that rewrites the former into the latter without introducing a simp loop.
+Only associativity is used, so the orientation is safe.
+-/
+
+@[simp] lemma fun_shift_add_assoc {α : Type} (f : ℕ → α) (a b : ℕ) :
+  (fun k => f (k + a + b)) = fun k => f (k + (a + b)) := by
+  funext k
+  simp [Nat.add_assoc]
+
+
 /-- Normal form: shifting the index in the step-one presentation corresponds to `apSumOffset`.
 
 This is the key rewrite used when we first normalize `apSum f d n` into the step-one form
