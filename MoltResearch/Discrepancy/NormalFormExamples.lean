@@ -450,6 +450,11 @@ example :
   simpa using
     apSumOffset_shift_add_add_offset_eq (f := f) (a := a) (d := d) (m := m) (b := b) (n := n)
 
+-- Shift in the start index: absorb `k` into a summand translation.
+example :
+    apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n := by
+  simpa using apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n)
+
 -- Homogeneous AP view: push an offset into the translation constant under `apSum`.
 example :
     apSumOffset (fun k => f (k + a)) d b n = apSum (fun k => f (k + (a + b * d))) d n := by

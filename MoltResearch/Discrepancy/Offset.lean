@@ -1215,6 +1215,29 @@ lemma apSumOffset_shift_add_add_offset_eq (f : ℕ → ℤ) (a d m b n : ℕ) :
   -- Rewrite both sides using the `apSum` shifted-sequence normal form and simplify.
   simp [apSumOffset_eq_apSum_shift_add, Nat.add_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- Normal form: shift in the *start index* of an offset sum.
+
+Concretely, shifting the start from `m` to `m + k` can be absorbed into a translation of the
+summand function:
+
+`apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k*d)) d m n`.
+
+This is a specialization of `apSumOffset_shift_add_add_offset_eq` with `a = 0`.
+-/
+lemma apSumOffset_shift_start_add (f : ℕ → ℤ) (d m k n : ℕ) :
+    apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n := by
+  simpa using
+    (apSumOffset_shift_add_add_offset_eq (f := f) (a := 0) (d := d) (m := m) (b := k) (n := n))
+
+/-- Add-left variant of `apSumOffset_shift_start_add`.
+
+`apSumOffset f d (m + k) n = apSumOffset (fun t => f (k*d + t)) d m n`.
+-/
+lemma apSumOffset_shift_start_add_left (f : ℕ → ℤ) (d m k n : ℕ) :
+    apSumOffset f d (m + k) n = apSumOffset (fun t => f (k * d + t)) d m n := by
+  simpa [Nat.add_comm] using
+    (apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
+
 /-- Normal form (add-left variant): push an offset parameter into a translation constant.
 
 This is the `a + k` analogue of `apSumOffset_shift_add_eq_apSumOffset_shift_add`.
