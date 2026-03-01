@@ -872,6 +872,21 @@ lemma apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add (f : ℕ → ℤ)
     _ = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
       rfl
 
+/-- Coherence normal form: affine step-one normalization *via* the shifted-sequence offset
+normal form.
+
+This is just a naming-aligned wrapper around
+`apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add`.
+
+(“Step into summand” route: first rewrite to the shifted summand `k ↦ f (k+a)`, then apply
+step-one normalization there.)
+-/
+lemma apSumFrom_eq_apSumOffset_step_one_via_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa using
+    (apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add (f := f) (a := a) (d := d)
+      (n := n))
+
 /-- Inverse orientation of `apSumFrom_eq_apSumOffset_shift_add`.
 
 This is the `m = 0` case of `apSumOffset_shift_add_eq_apSumFrom_tail`.

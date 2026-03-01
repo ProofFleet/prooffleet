@@ -255,7 +255,7 @@ example :
     (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
   simpa using
     (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n)).trans
-      (apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add (f := f) (a := a) (d := d) (n := n))
+      (apSumFrom_eq_apSumOffset_step_one_via_shift_add (f := f) (a := a) (d := d) (n := n))
 
 -- Affine differences: normalize to an offset sum on a shifted sequence.
 example :
