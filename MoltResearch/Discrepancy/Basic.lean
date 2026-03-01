@@ -88,6 +88,22 @@ lemma discrepancy_shift_mul_simp (f : ℕ → ℤ) (m d n : ℕ) :
     discrepancy (fun k => f (k + m * d)) d n = Int.natAbs (apSumOffset f d m n) := by
   simpa using (discrepancy_shift_mul (f := f) (a := m) (d := d) (n := n))
 
+/-! ### Normalization of nested shifts inside summands -/
+
+/-- `simp` normal form for nested additive shifts under binders.
+
+This is intentionally *function-level* (rather than a `[simp]` lemma about `Nat.add_assoc`) so it
+only fires when a goal actually contains a shifted summand `fun k => f (k + a + b)`.
+
+We orient the rewrite as
+`fun k => f (k + a + b)` → `fun k => f (k + (a + b))`
+to avoid simp loops.
+-/
+@[simp] lemma shift_summand_add_assoc {α : Type} (f : ℕ → α) (a b : ℕ) :
+    (fun k => f (k + a + b)) = fun k => f (k + (a + b)) := by
+  funext k
+  simp [Nat.add_assoc]
+
 /-! ### Shifts by a known multiple of `d` -/
 
 /-- If `a` is (definitionally) a multiple of `d`, shifting by `a` is the same normal form
