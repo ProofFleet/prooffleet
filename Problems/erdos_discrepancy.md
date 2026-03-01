@@ -214,7 +214,10 @@ Typical rewrite pipeline:
 - [x] “Step into summand” coherence: affine analogue of step-one normalization (`apSumFrom …` → step-one + shifted/offset normal form), with naming aligned to the existing `…_step_one` family.
   - Implemented as `apSumFrom_eq_apSumOffset_step_one_via_shift_add` (and `sum_Icc_eq_apSumOffset_step_one_via_shift_add`).
   - Regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] Endpoint normalization: add a small, consistent family of `…_of_le` lemmas that rewrite paper interval sums with variable endpoints (`m ≤ n`) directly into nucleus `apSumOffset`/`apSumFrom` forms without intermediate commutativity rewrites (reduce `Nat.add_comm` noise under binders).
+- [x] Endpoint normalization: add a small, consistent family of `…_of_le` lemmas that rewrite paper interval sums with variable endpoints (`m ≤ n`) directly into nucleus `apSumOffset`/`apSumFrom` forms without intermediate commutativity rewrites (reduce `Nat.add_comm` noise under binders).
+  - Implemented in:
+    - `MoltResearch/Discrepancy/Offset.lean`: `sum_Icc_eq_apSumOffset_of_le` (+ `…_mul_left` variants)
+    - `MoltResearch/Discrepancy/AffineTail.lean`: `sum_Icc_eq_apSumFrom_tail_of_le` and translation-friendly `…_add` / `…_mul_left` variants
 - [ ] Degenerate-step API: prove and `simp`-tag the `d = 0` behavior for `apSum`, `apSumOffset`, and `apSumFrom` (and show how to rewrite such cases to a length-multiple of a constant term), so downstream proofs can safely normalize away impossible/degenerate progressions.
 - [ ] Shift-composition simp lemma set: add a minimal `[simp]` lemma set that normalizes nested shifts in summands (`fun k => f (k + a + b)` and `fun k => f (k + (a + b))`) specifically for the nucleus rewrite pipeline, without causing simp loops.
 - [ ] Stable surface audit: create a tiny “API surface checklist” file (or section) ensuring `import MoltResearch.Discrepancy` exposes exactly the intended normal-form lemmas (with deprecated aliases hidden behind a separate import), and add compile-time tests that fail if the surface regresses.
