@@ -845,6 +845,33 @@ lemma apSumFrom_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := 0) (n := n))
 
+/-- Coherence normal form: step-one normalization of an affine AP sum *via* the shifted-sequence
+offset normal form.
+
+This lemma packages the two-step rewrite
+
+`apSumFrom f a d n`
+`= apSumOffset (fun k => f (k + a)) d 0 n`
+`= apSumOffset (fun k => f (k*d + a)) 1 0 n`,
+
+where the second step is `apSumOffset_eq_apSumOffset_step_one` applied to the shifted summand
+`k ↦ f (k + a)`.
+
+It is a convenience wrapper: the right-hand side matches the translation-friendly step-one
+`…_add_left` family.
+-/
+lemma apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  calc
+    apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
+      simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
+    _ = apSumOffset (fun k => (fun x => f (x + a)) (k * d)) 1 0 n := by
+      simpa using
+        (apSumOffset_eq_apSumOffset_step_one (f := fun x => f (x + a)) (d := d) (m := 0)
+          (n := n))
+    _ = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+      rfl
+
 /-- Inverse orientation of `apSumFrom_eq_apSumOffset_shift_add`.
 
 This is the `m = 0` case of `apSumOffset_shift_add_eq_apSumFrom_tail`.
