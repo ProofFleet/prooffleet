@@ -1,21 +1,10 @@
-import MoltResearch.Discrepancy.Deprecated
+import MoltResearch.Discrepancy.DeprecatedAudit
 
 /-!
 # Discrepancy deprecated surface checklist (compile-time tests)
 
-This module checks that the deprecated compatibility layer still provides the legacy names.
+This module is built explicitly by `make ci`.
 
-This file is built explicitly by `make ci`.
+Implementation note: the actual checks live in `MoltResearch.Discrepancy.DeprecatedAudit`.
+This file stays intentionally small and boring; it just wires the audit into CI.
 -/
-
-namespace MoltResearch
-
-section
-
-#check apSumFrom_eq_apSum_map_add
-#check apSumFrom_eq_apSum_map_add_left
-#check apSum_map_add
-
-end
-
-end MoltResearch

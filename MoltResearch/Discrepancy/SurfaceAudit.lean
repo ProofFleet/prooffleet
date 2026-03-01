@@ -63,14 +63,17 @@ section
   If any of these starts typechecking here, the stable surface has regressed.
   -/
 
-  #guard_msgs (error) in
-    #check IsSignSequence.map_add
+  /-- error: Unknown constant `MoltResearch.IsSignSequence.map_add` -/
+  #guard_msgs in
+  #check IsSignSequence.map_add
 
-  #guard_msgs (error) in
-    #check apSumFrom_eq_apSum_map_add
+  /-- error: Unknown identifier `apSumFrom_eq_apSum_map_add` -/
+  #guard_msgs in
+  #check apSumFrom_eq_apSum_map_add
 
-  #guard_msgs (error) in
-    #check apSumFrom_map_add
+  /-- error: Unknown identifier `apSumFrom_map_add` -/
+  #guard_msgs in
+  #check apSumFrom_map_add
 end
 
 end MoltResearch
