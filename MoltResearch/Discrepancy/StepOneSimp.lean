@@ -25,6 +25,9 @@ attribute [simp] apSumOffset_eq_apSumOffset_step_one
 -- Also prefer the step-one offset normal form for affine tails.
 attribute [simp] apSumFrom_tail_eq_apSumOffset_step_one
 
+-- Prefer the step-one offset normal form for the affine nucleus itself.
+attribute [simp] apSumFrom_eq_apSumOffset_step_one
+
 -- Regression test: importing this module should let `simp` push the step into the summand.
 example (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSumOffset (fun k => f (k * d)) 1 m n := by
@@ -35,5 +38,17 @@ example (f : ℕ → ℤ) (d m n : ℕ) :
 example (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k * d)) 1 m n := by
   simp
+
+-- Regression test: paper affine sums should normalize into the step-one offset nucleus by going
+-- through `apSumFrom`.
+example (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+  -- First normalize the paper sum into the affine nucleus, then push the step into the summand.
+  calc
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d))
+        = apSumFrom f a d n := by
+            simpa using (sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n))
+    _ = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+            simp
 
 end MoltResearch
