@@ -234,6 +234,16 @@ Definition of done:
 - each PR adds 1–3 lemmas OR consolidates/normalizes existing ones
 - minimal imports; prefer `import MoltResearch.Discrepancy` as stable surface
 
+#### Auto-generated backlog (needs triage)
+- [ ] Add `…_congr` lemmas for nucleus sums (`apSum_congr`, `apSumOffset_congr`, `apSumFrom_congr`) with a consistent statement shape (pointwise equality of summands on the relevant range) so rewrite scripts can swap `f` under a binder without manual `simp` gymnastics.
+- [ ] Add “shift in start index” normal form: rewrite `apSumOffset f d (m + k) n` into `apSumOffset (fun t => f (t + k*d)) d m n` (and a translation-friendly `…_add` variant), so proofs can move offset mass between the `m` parameter and the summand shift canonically.
+- [ ] Add a canonical lemma relating `apSumOffset` to an explicit tail of `apSumFrom` on a shifted sequence (a two-way bridge): `apSumOffset (fun t => f (t + a)) d m n = apSumFrom f (a + (m+1)*d) d n` (or the repo’s preferred endpoint convention), with a regression example under `import MoltResearch.Discrepancy`.
+- [ ] Add endpoint-normalization for affine tails with variable endpoints: a small family of `…_of_le` lemmas rewriting paper sums over `Icc (a + (m+1)*d) (a + n*d)` directly into `apSumOffset` (avoid `Nat.add_comm` noise under binders; align names with the existing `sum_Icc_eq_apSumOffset_of_le` family).
+- [ ] Add a “one-cut in paper notation” bridge: a lemma that splits a paper interval sum `∑ i ∈ Icc (m+1) (m+n₁+n₂), f (i*d)` into two paper sums (at `m+n₁`), then immediately rewrite both pieces to nucleus `apSumOffset`; include a regression example showing the full pipeline compiles under the stable surface.
+- [ ] Add a small, stable simp lemma set for distributing `Int.natAbs` across definitional rewrites of `discrepancy` / `affineDiscrepancy` (e.g. `discrepancy_def`/`affineDiscrepancy_def` tagged `[simp]?` if safe) so downstream goals normalize to `Int.natAbs (apSum…)` without unfolding by hand.
+- [ ] Add a reusable “compare different steps” normal form: rewrite `apSum f (d₁*d₂) n` to `apSum (fun t => f (t*d₁)) d₂ n` (and `mul_left`/`mul_right`-friendly variants), so later multiplicative reindexing arguments can normalize step factorization canonically.
+- [ ] Add an API coherence pass: ensure the `apSum`/`apSumOffset`/`apSumFrom` split lemmas all have matching `simp`-friendly corollaries for `n₁=0` and `n₂=0` (so `simp` closes degenerate split goals uniformly across the three nucleus objects).
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
