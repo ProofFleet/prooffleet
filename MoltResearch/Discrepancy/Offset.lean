@@ -1062,6 +1062,28 @@ lemma sum_Icc_eq_apSum_shift_add_of_le_mul_left (f : ℕ → ℤ) (d : ℕ) {m n
     _ = apSum (fun k => f (k + m * d)) d (n - m) := by
       simpa using apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n - m)
 
+/-- Variant of `sum_Icc_eq_apSum_shift_add_of_le` with the translation constant written as `m*d + k`.
+
+This can avoid a commutativity rewrite when composing with lemmas that expect the `const + x`
+shape.
+-/
+lemma sum_Icc_eq_apSum_shift_of_le (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSum (fun k => f (m * d + k)) d (n - m) := by
+  calc
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d)) = apSumOffset f d m (n - m) := by
+      simpa using sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSum (fun k => f (m * d + k)) d (n - m) := by
+      simpa using apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n - m)
+
+/-- Translation-friendly `d * i` variant of `sum_Icc_eq_apSum_shift_of_le`. -/
+lemma sum_Icc_eq_apSum_shift_of_le_mul_left (f : ℕ → ℤ) (d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSum (fun k => f (m * d + k)) d (n - m) := by
+  calc
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i)) = apSumOffset f d m (n - m) := by
+      simpa using sum_Icc_eq_apSumOffset_of_le_mul_left (f := f) (d := d) (m := m) (n := n) hmn
+    _ = apSum (fun k => f (m * d + k)) d (n - m) := by
+      simpa using apSumOffset_eq_apSum_shift (f := f) (d := d) (m := m) (n := n - m)
+
 /-- Commute a translation in the shifted-sequence view of `apSumOffset`.
 
 This is a convenience lemma: the two shifted sequences `k ↦ f (a + k)` and `k ↦ f (k + a)` are
