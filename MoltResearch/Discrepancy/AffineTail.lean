@@ -1591,6 +1591,39 @@ lemma sum_Icc_eq_apSumOffset_shift_add_of_le_left_mul_left (f : ℕ → ℤ) (a 
     (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
       (hmn := hmn))
 
+/-!
+### Endpoint-normalization aliases producing `apSumOffset (fun k => f (a + k)) …`
+
+The existing endpoint-normalization lemmas in this file typically produce the shifted-sequence form
+`apSumOffset (fun k => f (k + a)) …`.
+
+The following aliases expose the equivalent but sometimes more convenient binder shape
+`fun k => f (a + k)`, so downstream callers can avoid `Nat.add_comm` rewrites under lambdas.
+-/
+
+/-- Endpoint-normalization (`m ≤ n`) for affine tails written as `f (a + i*d)`, producing the
+shifted-sequence offset sum with binder `fun k => f (a + k)`.
+
+This is a thin wrapper around `sum_Icc_eq_apSumOffset_shift_add_of_le_left`.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le_affine_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa [Nat.add_comm] using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_left (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
+/-- Mul-left variant of `sum_Icc_eq_apSumOffset_of_le_affine_left`, with summand written as
+`f (a + d*i)`.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le_affine_left_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa [Nat.add_comm, Nat.mul_comm] using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_left_mul_left (f := f) (a := a) (d := d) (m := m)
+      (n := n) (hmn := hmn))
+
 /-- Alias for `sum_Icc_eq_apSumOffset_shift_add_of_le` (same statement, naming aligned with
 `sum_Icc_eq_apSumOffset_of_le`). -/
 lemma sum_Icc_eq_apSumOffset_of_le_shift_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
