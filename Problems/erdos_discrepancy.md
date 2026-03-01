@@ -224,7 +224,11 @@ Typical rewrite pipeline:
     - `apSumFrom_zero_d` in `MoltResearch/Discrepancy/Affine.lean`
 - [x] Shift-composition simp lemma set: add a minimal [simp] lemma set that normalizes nested shifts in summands (`fun k => f (k + a + b)` and `fun k => f (k + (a + b))`) specifically for the nucleus rewrite pipeline, without causing simp loops.
   - Implemented as `shift_summand_add_assoc` in `MoltResearch/Discrepancy/Basic.lean` (function-level simp lemma oriented to avoid loops).
-- [ ] Stable surface audit: create a tiny “API surface checklist” file (or section) ensuring `import MoltResearch.Discrepancy` exposes exactly the intended normal-form lemmas (with deprecated aliases hidden behind a separate import), and add compile-time tests that fail if the surface regresses.
+- [x] Stable surface audit: create a tiny “API surface checklist” file (or section) ensuring `import MoltResearch.Discrepancy` exposes exactly the intended normal-form lemmas (with deprecated aliases hidden behind a separate import), and add compile-time tests that fail if the surface regresses.
+  - Implemented as:
+    - `MoltResearch/Discrepancy/SurfaceAudit.lean` (stable surface checks)
+    - `MoltResearch/Discrepancy/DeprecatedAudit.lean` (opt-in deprecated surface checks)
+    - wired into CI via `MoltResearch/Discrepancy/SurfaceChecklist.lean` and `.../DeprecatedSurfaceChecklist.lean`
 
 Definition of done:
 - each PR adds 1–3 lemmas OR consolidates/normalizes existing ones
