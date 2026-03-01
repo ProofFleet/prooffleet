@@ -110,6 +110,41 @@ lemma discrepancy_shift_mul_simp (f : ℕ → ℤ) (m d n : ℕ) :
     discrepancy (fun k => f (k + m * d)) d n = Int.natAbs (apSumOffset f d m n) := by
   simpa using (discrepancy_shift_mul (f := f) (a := m) (d := d) (n := n))
 
+/-! ### Shifting the “start index” in `apSumOffset` -/
+
+/-- Normal form: shifting the skipped prefix `m` by `k` can be moved into the summand as a shift
+by `k*d`.
+
+Concretely, this rewrites
+`apSumOffset f d (m + k) n`
+into
+`apSumOffset (fun t => f (t + k*d)) d m n`.
+-/
+lemma apSumOffset_add_start (f : ℕ → ℤ) (d m k n : ℕ) :
+    apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Align the indices so we can use distributivity of `(* d)` over `+`.
+  have hmk : m + k + i + 1 = (m + i + 1) + k := by
+    simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  have hmul : (m + k + i + 1) * d = (m + i + 1) * d + k * d := by
+    calc
+      (m + k + i + 1) * d = ((m + i + 1) + k) * d := by
+        simpa [hmk]
+      _ = (m + i + 1) * d + k * d := by
+        simpa [Nat.add_mul]
+  -- Now the summands match definitionally.
+  simp [hmul]
+
+/-- Translation-friendly variant of `apSumOffset_add_start` with the constant shift on the left:
+`k*d + t`.
+-/
+lemma apSumOffset_add_start_add_left (f : ℕ → ℤ) (d m k n : ℕ) :
+    apSumOffset f d (m + k) n = apSumOffset (fun t => f (k * d + t)) d m n := by
+  -- Just commute the addition inside the shifted summand.
+  simpa [Nat.add_comm] using (apSumOffset_add_start (f := f) (d := d) (m := m) (k := k) (n := n))
+
 /-! ### Normalization of nested shifts inside summands -/
 
 /-- `simp` normal form for nested additive shifts under binders.
