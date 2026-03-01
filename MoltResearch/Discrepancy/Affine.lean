@@ -186,6 +186,8 @@ lemma sum_Icc_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
     (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
   simpa using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)).symm
 
+-- (moved below: depends on `apSumFrom_eq_apSumOffset_step_one`)
+
 lemma apSumFrom_succ (f : ℕ → ℤ) (a d n : ℕ) :
   apSumFrom f a d (n + 1) = apSumFrom f a d n + f (a + (n + 1) * d) := by
   unfold apSumFrom
@@ -418,6 +420,23 @@ Implementation note: this is just a wrapper around `apSumFrom_eq_apSumOffset_ste
 lemma apSumFrom_eq_apSumOffset_step_one (f : ℕ → ℤ) (a d n : ℕ) :
     apSumFrom f a d n = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
   simpa using (apSumFrom_eq_apSumOffset_step_one_zero_m (f := f) (a := a) (d := d) (n := n))
+
+/-- Paper → nucleus → step-one (offset) normal form.
+
+This composes the standard paper-notation rewrite `sum_Icc_eq_apSumFrom` with the affine step-one
+normal form `apSumFrom_eq_apSumOffset_step_one`.
+
+It is a convenient one-shot lemma when you want to normalize a paper affine sum directly into the
+step-one offset nucleus.
+-/
+lemma sum_Icc_eq_apSumOffset_step_one (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+  calc
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+      simpa using sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
+    _ = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+      simpa using apSumFrom_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (n := n)
 
 /-- Translation-friendly variant of `apSumFrom_eq_apSumOffset_step_one_zero_m`.
 

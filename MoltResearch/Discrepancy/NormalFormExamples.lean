@@ -31,6 +31,10 @@ example : (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
 example : apSum f 1 n = (Finset.Icc 1 n).sum f := by
   simpa using apSum_one_d (f := f) (n := n)
 
+-- Paper affine sums → affine nucleus → step-one offset nucleus.
+example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+  simpa using sum_Icc_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (n := n)
+
 -- Affine tails as offset sums (both summand conventions).
 
 example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
