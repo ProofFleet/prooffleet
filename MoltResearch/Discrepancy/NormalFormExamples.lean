@@ -250,17 +250,12 @@ example : (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSum (fun k => f (k *
       (apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n))
 
 -- Regression: “step into summand” coherence.
--- Paper → nucleus → shifted-sequence offset normal form → step-one offset normal form.
+-- Paper → nucleus → step-one offset normal form, packaged via the shifted-sequence route.
 example :
     (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
-  calc
-    (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumFrom f a d n := by
-      simpa using (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n))
-    _ = apSumOffset (fun k => f (k + a)) d 0 n := by
-      simpa using (apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n))
-    _ = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
-      simpa using
-        (apSumOffset_eq_apSumOffset_step_one (f := fun x => f (x + a)) (d := d) (m := 0) (n := n))
+  simpa using
+    (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n)).trans
+      (apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add (f := f) (a := a) (d := d) (n := n))
 
 -- Affine differences: normalize to an offset sum on a shifted sequence.
 example :
