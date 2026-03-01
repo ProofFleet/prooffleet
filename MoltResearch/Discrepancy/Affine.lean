@@ -408,6 +408,17 @@ lemma apSumFrom_eq_apSumOffset_step_one_zero_m (f : ℕ → ℤ) (a d n : ℕ) :
   simpa [apSumFrom_eq_apSum_step_one] using
     (apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n))
 
+/-- Normal form (“step-one”, offset-sum view): express an affine AP sum as an `apSumOffset` with
+step size `1`.
+
+This name is aligned with the existing `…_step_one` family (cf. `apSumOffset_eq_apSumOffset_step_one`).
+
+Implementation note: this is just a wrapper around `apSumFrom_eq_apSumOffset_step_one_zero_m`.
+-/
+lemma apSumFrom_eq_apSumOffset_step_one (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+  simpa using (apSumFrom_eq_apSumOffset_step_one_zero_m (f := f) (a := a) (d := d) (n := n))
+
 /-- Translation-friendly variant of `apSumFrom_eq_apSumOffset_step_one_zero_m`.
 
 This packages the summand as `k * d + a` rather than `a + k * d`.
@@ -416,6 +427,17 @@ lemma apSumFrom_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (a d n
     apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
   simpa [Nat.add_comm] using
     (apSumFrom_eq_apSumOffset_step_one_zero_m (f := f) (a := a) (d := d) (n := n))
+
+/-- Translation-friendly variant of `apSumFrom_eq_apSumOffset_step_one`.
+
+This name is aligned with the existing `…_step_one` family.
+
+Implementation note: this is just a wrapper around `apSumFrom_eq_apSumOffset_step_one_zero_m_add_left`.
+-/
+lemma apSumFrom_eq_apSumOffset_step_one_add_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa using
+    (apSumFrom_eq_apSumOffset_step_one_zero_m_add_left (f := f) (a := a) (d := d) (n := n))
 
 /-- Translation-friendly variant of `apSumFrom_eq_apSum_step_one`.
 
