@@ -13,13 +13,17 @@ namespace MoltResearch
 
 section NormalFormExamples
 
-variable (f : ℕ → ℤ) (a d m n n₁ n₂ C : ℕ)
+variable (f : ℕ → ℤ) (a b d m n n₁ n₂ C : ℕ)
 
 example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
   simpa using apSum_eq_sum_Icc (f := f) (d := d) (n := n)
 
 example : (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSum f d n := by
   simpa using sum_Icc_eq_apSum (f := f) (d := d) (n := n)
+
+-- Regression: `simp` normalizes nested shifts inside translated summands.
+example : (fun k => f (k + a + b)) = fun k => f (k + (a + b)) := by
+  simp
 
 -- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
 example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by

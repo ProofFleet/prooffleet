@@ -67,7 +67,22 @@ lemma apSum_map_add_left (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
   simpa using (apSum_shift_add_left (f := f) (k := k) (d := d) (n := n))
 
-/-- Commute an additive translation under `apSum`.
+/-!
+## Normalization of nested shifts
+
+We frequently encounter functions of the form `fun k => f (k + a + b)`. For a tidy normal
+form we prefer the addition to be grouped as `k + (a + b)`.
+
+The following lemma is a tiny `[simp]` rule that rewrites the former into the latter without
+introducing a simp loop. Only associativity is used, so the orientation is safe.
+-/
+
+@[simp] lemma fun_shift_add_assoc (f : ℕ → ℤ) (a b : ℕ) :
+  (fun k => f (k + a + b)) = fun k => f (k + (a + b)) := by
+  funext k
+  simp [Nat.add_assoc]
+
+/-- Commute an additive translation under `apSum`. 
 
 This is a lightweight normal-form lemma: it lets you switch between the binder conventions
 `fun k => f (a + k)` and `fun k => f (k + a)` without doing a manual `funext` rewrite.
