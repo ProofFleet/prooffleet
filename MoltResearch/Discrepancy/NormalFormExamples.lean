@@ -1201,6 +1201,19 @@ example :
   simpa using
     apSumFrom_tail_eq_sum_Icc_length_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Regression: normalize the paper-notation tail sum via `sum_Icc_eq_apSumFrom_tail`
+-- and then `apSumFrom_tail_eq_apSumOffset_step_one` to the step-one offset normal form.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k * d)) 1 m n := by
+  calc
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+        apSumFrom f (a + m * d) d n := by
+      simpa using (sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+    _ = apSumOffset (fun k => f (a + k * d)) 1 m n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (m := m) (n := n))
+
 -- Variable upper endpoints appear often in surface statements.
 -- When `m ≤ n`, normalize `∑ i ∈ Icc (m+1) n, f (i*d + a)` into the canonical tail length `n - m`.
 example (hmn : m ≤ n) :
