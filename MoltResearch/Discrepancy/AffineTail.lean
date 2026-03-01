@@ -1511,6 +1511,34 @@ lemma sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add (f : ℕ → ℤ) (a d
             (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
               (n := n - m))
 
+/-! ### Alias lemma names (endpoint normalization, `m ≤ n`)
+
+The two lemmas above (`…_of_le_add` and `…_of_le_mul_left_add`) are the translation-friendly
+endpoint-normalization results, but their names end with `_add` because the summand is written
+as `i*d + a` (or `d*i + a`).
+
+Downstream callers often expect the “endpoint normalization” family to be named like
+`sum_Icc_eq_apSumOffset_of_le…` without a trailing `_add`. The following lemmas are simple
+aliases with cleaner names.
+-/
+
+/-- Alias for `sum_Icc_eq_apSumOffset_shift_add_of_le_add` (same statement, cleaner name). -/
+lemma sum_Icc_eq_apSumOffset_shift_add_of_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
+/-- Alias for `sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add` (same statement, cleaner name). -/
+lemma sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (d * i + a)) =
+      apSumOffset (fun k => f (k + a)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_of_le_mul_left_add (f := f) (a := a) (d := d) (m := m)
+      (n := n) (hmn := hmn))
+
 /-- Normal form (nucleus → paper, tail): when `m ≤ n`, rewrite the offset AP sum on the shifted
 sequence `k ↦ f (k + a)` into the affine interval sum `∑ i ∈ Icc (m+1) n, f (i*d + a)`.
 
