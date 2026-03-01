@@ -52,6 +52,10 @@ section
   #check apSumFrom_sub_eq_apSumFrom_tail
   #check apSumFrom_sub_eq_apSumOffset_shift_add
 
+  -- Additional bridge lemmas (high-leverage normal-form glue).
+  #check apSumOffset_eq_sub
+  #check apSumOffset_eq_apSumFrom
+
   -- Paper ↔ nucleus rewrite entrypoints should be present.
   #check sum_Icc_eq_apSum
   #check apSum_eq_sum_Icc
