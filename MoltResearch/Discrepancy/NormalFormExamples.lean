@@ -215,6 +215,16 @@ example : apSumOffset f d m n = apSumOffset (fun k => f (k + d * m)) d 0 n := by
   simpa using
     apSumOffset_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m) (n := n)
 
+-- Shift in the start index: absorb `+k` in the offset parameter into a translation of the summand.
+example (k : ℕ) :
+    apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n := by
+  simpa using apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n)
+
+-- Add-left variant.
+example (k : ℕ) :
+    apSumOffset f d (m + k) n = apSumOffset (fun t => f (k * d + t)) d m n := by
+  simpa using apSumOffset_shift_start_add_left (f := f) (d := d) (m := m) (k := k) (n := n)
+
 -- Paper normal form: rewrite `Icc (m+1) (m+n)` tails to the fixed-lower-endpoint `Icc 1 n` form.
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
