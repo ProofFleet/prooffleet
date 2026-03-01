@@ -47,6 +47,10 @@ section
   #check apSumOffset_eq_apSum_shift_add
   #check apSumOffset_eq_apSumOffset_shift_add
 
+  -- Affine-tail ↔ shifted-sequence normal forms should be present.
+  #check apSumFrom_tail_eq_apSumOffset_shift_add
+  #check apSumOffset_shift_add_eq_apSumFrom_tail
+
   -- Differences → tails normal forms should be present.
   #check apSum_sub_eq_apSumOffset
   #check apSumFrom_sub_eq_apSumFrom_tail
@@ -78,6 +82,10 @@ section
   /-- error: Unknown identifier `apSumFrom_map_add` -/
   #guard_msgs in
   #check apSumFrom_map_add
+
+  /-- error: Unknown identifier `apSum_map_add` -/
+  #guard_msgs in
+  #check apSum_map_add
 end
 
 end MoltResearch
