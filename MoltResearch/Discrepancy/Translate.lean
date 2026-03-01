@@ -77,7 +77,7 @@ The following lemma is a tiny `[simp]` rule that rewrites the former into the la
 introducing a simp loop. Only associativity is used, so the orientation is safe.
 -/
 
-@[simp] lemma fun_shift_add_assoc (f : ℕ → ℤ) (a b : ℕ) :
+@[simp] lemma fun_shift_add_assoc {α : Type} (f : ℕ → α) (a b : ℕ) :
   (fun k => f (k + a + b)) = fun k => f (k + (a + b)) := by
   funext k
   simp [Nat.add_assoc]
