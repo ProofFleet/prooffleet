@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy.Basic
 import MoltResearch.Discrepancy.Offset
 import MoltResearch.Discrepancy.Witness
 import MoltResearch.Discrepancy.Affine
+import MoltResearch.Discrepancy.AffineTail
 
 /-!
 # Discrepancy: sanity-check examples
@@ -134,6 +135,19 @@ theorem exists_signSequence_unbounded_discrepancy_witnessPos :
   exact (HasDiscrepancyAtLeast.iff_nonempty_witnessPos (f := fun _ => (1 : ℤ)) (C := C)).1 h
 
 /-! ### Affine discrepancy for the constant `+1` sequence -/
+
+/-! #### Offset-tail ↔ affine-tail bridge (regression)
+
+This is a small compile-time check that the stable surface import
+
+`import MoltResearch.Discrepancy`
+
+exposes the canonical lemma rewriting an offset tail on a shifted sequence into an affine tail.
+-/
+example (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun t => f (t + a)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSumFrom_tail_firstTerm (f := f) (a := a) (d := d) (m := m) (n := n))
 
 /-- For the constant `+1` sequence, `apSumFrom` is just the length `n`. -/
 lemma apSumFrom_const_one (a d n : ℕ) : apSumFrom (fun _ => (1 : ℤ)) a d n = (n : ℤ) := by
