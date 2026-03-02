@@ -80,6 +80,14 @@ section
   #check apSumFrom_add_len_zero_left
   #check apSumFrom_add_len_zero_right
 
+  -- Explicitly also audit the `n₁`/`n₂`-named split lemmas for the other nucleus objects.
+  #check apSum_add_len
+  #check apSum_add_len_zero_left
+  #check apSum_add_len_zero_right
+  #check apSumOffset_add_len
+  #check apSumOffset_add_len_zero_left
+  #check apSumOffset_add_len_zero_right
+
   /-!
   ## `simp` coherence checks
 
@@ -91,6 +99,18 @@ section
 
   example : apSumOffset f d m (0 + n) = apSumOffset f d m n := by simp
   example : apSumOffset f d m (n + 0) = apSumOffset f d m n := by simp
+
+  -- Explicitly exercise the `n₁`/`n₂`-named simp corollaries for `apSum`.
+  example : apSum f d (0 + n) = apSum f d n := by
+    simpa using (apSum_add_len_zero_left (f := f) (d := d) (n := n))
+  example : apSum f d (n + 0) = apSum f d n := by
+    simpa using (apSum_add_len_zero_right (f := f) (d := d) (n := n))
+
+  -- Explicitly exercise the `n₁`/`n₂`-named simp corollaries for `apSumOffset`.
+  example : apSumOffset f d m (0 + n) = apSumOffset f d m n := by
+    simpa using (apSumOffset_add_len_zero_left (f := f) (d := d) (m := m) (n := n))
+  example : apSumOffset f d m (n + 0) = apSumOffset f d m n := by
+    simpa using (apSumOffset_add_len_zero_right (f := f) (d := d) (m := m) (n := n))
 
   example : apSumFrom f a d (0 + n) = apSumFrom f a d n := by simp
   example : apSumFrom f a d (m + 0) = apSumFrom f a d m := by simp
