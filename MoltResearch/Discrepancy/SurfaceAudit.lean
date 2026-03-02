@@ -65,6 +65,10 @@ section
   #check sum_Icc_eq_apSum
   #check apSum_eq_sum_Icc
 
+  -- Bridge lemmas for splitting paper interval sums should be present.
+  #check sum_Icc_eq_apSumOffset_add_length
+  #check sum_Icc_add_length
+
   -- Step-factorization (compare different steps) normal form should be present.
   #check apSum_mul_eq_apSum_map_mul
 
@@ -90,6 +94,26 @@ section
   /-- error: Unknown identifier `apSum_map_add` -/
   #guard_msgs in
   #check apSum_map_add
+end
+
+/-!
+## Example usage (ensures the pipeline works end-to-end)
+
+A tiny example rewriting a paper-notation interval sum into two consecutive `apSumOffset` blocks,
+then expanding those blocks back into paper notation. This is a regression test that the
+one-cut paper→nucleus bridge lemma is available in the stable surface.
+-/
+section
+  variable (f : ℕ → ℤ) (d m n₁ n₂ : ℕ)
+
+  example :
+      (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) =
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) +
+          (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+    classical
+    -- Rewrite the LHS to `apSumOffset` blocks, then expand back to `Finset.Icc` sums.
+    simpa [apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (sum_Icc_eq_apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 end
 
 end MoltResearch
