@@ -16,6 +16,19 @@ lemma apSum_map_mul (f : ℕ → ℤ) (k d n : ℕ) :
   intro i hi
   simp [Nat.mul_assoc]
 
+/-- Factor a product step size `d * k` by pushing `d` into the summand.
+
+This is the inverse-orientation of `apSum_map_mul` (up to commutativity): it lets you normalize an
+AP sum along step `d * k` into an AP sum along step `k` on the multiplied sequence `x ↦ f (x * d)`.
+
+This is useful as a canonical “compare different steps” normal form in multiplicative reindexing
+arguments.
+-/
+lemma apSum_mul_eq_apSum_map_mul (f : ℕ → ℤ) (d k n : ℕ) :
+    apSum f (d * k) n = apSum (fun x => f (x * d)) k n := by
+  -- `apSum_map_mul` gives the forward direction with step `k * d`.
+  simpa [Nat.mul_comm] using (apSum_map_mul (f := f) (k := d) (d := k) (n := n)).symm
+
 lemma apSumOffset_map_mul (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (x * k)) d m n = apSumOffset f (d * k) m n := by
   unfold apSumOffset

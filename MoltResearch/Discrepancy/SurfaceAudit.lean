@@ -65,6 +65,9 @@ section
   #check sum_Icc_eq_apSum
   #check apSum_eq_sum_Icc
 
+  -- Step-factorization (compare different steps) normal form should be present.
+  #check apSum_mul_eq_apSum_map_mul
+
   /-!
   ## Absence checks (deprecated names must NOT be in the stable surface)
 
