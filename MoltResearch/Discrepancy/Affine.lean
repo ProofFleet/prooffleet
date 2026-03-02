@@ -1019,6 +1019,34 @@ lemma HasAffineDiscrepancyAtLeast_iff_exists_apSumOffset_shift_add_zero {f : ℕ
     simpa [HasAffineDiscrepancyAtLeast, apSumFrom, apSumOffset, Nat.add_assoc, Nat.add_left_comm,
       Nat.add_comm] using hgt
 
+/-- Witness-level translation: a discrepancy witness for the shifted sequence `k ↦ f (k + a)` is
+equivalently an affine AP witness for `f` with offset `a`.
+
+This is the direct bridge between the “homogeneous discrepancy” nucleus predicate and the affine
+nucleus object `apSumFrom`.
+-/
+lemma HasDiscrepancyAtLeast_shift_add_iff_exists_apSumFrom {f : ℕ → ℤ} (a : ℕ) {C : ℕ} :
+    HasDiscrepancyAtLeast (fun k => f (k + a)) C ↔
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumFrom f a d n) > C := by
+  constructor
+  · rintro ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, hd, ?_⟩
+    -- Rewrite the homogeneous sum on the shifted sequence as an affine sum on `f`.
+    simpa [apSumFrom_eq_apSum_shift_add] using hgt
+  · rintro ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSumFrom_eq_apSum_shift_add] using hgt
+
+/-- Packaging lemma: a discrepancy witness for the shifted sequence gives an affine discrepancy
+witness for the original sequence.
+-/
+lemma HasDiscrepancyAtLeast_shift_add_to_HasAffineDiscrepancyAtLeast {f : ℕ → ℤ} (a : ℕ) {C : ℕ} :
+    HasDiscrepancyAtLeast (fun k => f (k + a)) C → HasAffineDiscrepancyAtLeast f C := by
+  intro h
+  rcases (HasDiscrepancyAtLeast_shift_add_iff_exists_apSumFrom (f := f) a (C := C)).1 h with
+    ⟨d, n, hd, hgt⟩
+  exact ⟨a, d, n, hd, hgt⟩
+
 /-- Monotonicity of `HasAffineDiscrepancyAtLeast` in the bound. -/
 lemma HasAffineDiscrepancyAtLeast.mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
     (h : HasAffineDiscrepancyAtLeast f C₂) (hC : C₁ ≤ C₂) :
