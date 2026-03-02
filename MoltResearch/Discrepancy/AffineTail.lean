@@ -1425,6 +1425,27 @@ lemma sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f : ℕ → ℤ) (a d m n :
           simpa using
             (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
+/-- Convenience alias for `sum_Icc_eq_apSumOffset_shift_add_add`, specialized to the canonical tail
+endpoint form `Icc (m+1) (m+n)`.
+
+This is simp-friendly in downstream proofs because it avoids explicit endpoint normalization and
+keeps the summand in the translation-friendly `i*d + a` form.
+-/
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_shift_add_len (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Mul-left variant of `sum_Icc_eq_apSumOffset_of_le_shift_add_len`, with summand written as
+`f (d*i + a)`.
+-/
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_shift_add_len_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Normal form (nucleus → paper, tail, glue, fixed-length): rewrite an offset AP sum on the shifted
 sequence `k ↦ f (k + a)` as an affine interval sum with the summand written as `f (i*d + a)`.
 
