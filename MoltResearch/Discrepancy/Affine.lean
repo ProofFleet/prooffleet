@@ -45,6 +45,18 @@ lemma apSumFrom_eq_apSumOffset_shift_add_bridge (f : ℕ → ℤ) (a d m n : ℕ
   simpa [apSumOffset_shift_add_eq_apSumFrom_bridge] using
     (apSumOffset_shift_add_eq_apSumFrom_bridge (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-- `simp`-friendly variant of `apSumOffset_shift_add_eq_apSumFrom_bridge` under `Int.natAbs`.
+
+This is useful after rewriting `discrepancy_def` / `affineDiscrepancy_def`, where goals often
+contain `Int.natAbs (apSumOffset (fun t => f (t + a)) d m n)`.
+
+We orient the rewrite towards the Track B nucleus `apSumFrom`.
+-/
+@[simp] lemma natAbs_apSumOffset_shift_add_eq_natAbs_apSumFrom_bridge (f : ℕ → ℤ) (a d m n : ℕ) :
+    Int.natAbs (apSumOffset (fun t => f (t + a)) d m n) =
+      Int.natAbs (apSumFrom f (a + m * d) d n) := by
+  simpa [apSumOffset_shift_add_eq_apSumFrom_bridge]
+
 /-! ### Congruence lemmas -/
 
 /-- If two functions agree pointwise on the indices used in `apSumFrom`, then the affine AP sums are equal. -/
