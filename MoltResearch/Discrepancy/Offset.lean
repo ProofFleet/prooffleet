@@ -1030,6 +1030,22 @@ lemma apSumOffset_add_length_eq_add_apSum_shift_add (f : ℕ → ℤ) (d m n₁ 
             -- Normalize the tail offset sum into a homogeneous AP sum on a shifted sequence.
             simp [apSumOffset_eq_apSum_shift_add]
 
+/-- Corollary of `apSumOffset_add_length_eq_add_apSum_shift_add` for `n₁ = 0`. -/
+lemma apSumOffset_add_length_eq_add_apSum_shift_add_zero_left
+    (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (0 + n) =
+      apSumOffset f d m 0 + apSum (fun k => f (k + (m + 0) * d)) d n := by
+  simpa using
+    (apSumOffset_add_length_eq_add_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := 0) (n₂ := n))
+
+/-- Corollary of `apSumOffset_add_length_eq_add_apSum_shift_add` for `n₂ = 0`. -/
+lemma apSumOffset_add_length_eq_add_apSum_shift_add_zero_right
+    (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (n + 0) =
+      apSumOffset f d m n + apSum (fun k => f (k + (m + n) * d)) d 0 := by
+  simpa using
+    (apSumOffset_add_length_eq_add_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n) (n₂ := 0))
+
 /-- Normal form: rewrite the normal-form difference `apSum f d (m+n) - apSum f d m` as a
 homogeneous AP sum on a shifted sequence.
 
