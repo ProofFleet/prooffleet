@@ -249,7 +249,12 @@ Definition of done:
   - Implemented via `[simp]` lemmas like `discrepancy_def`, `affineDiscrepancy_def`, and the `natAbs_apSum_*` bridge lemmas; see also `MoltResearch/Discrepancy/NormalFormExamples.lean` for regression examples.
 - [x] Add a reusable “compare different steps” normal form: rewrite `apSum f (d₁*d₂) n` to `apSum (fun t => f (t*d₁)) d₂ n` (and `mul_left`/`mul_right`-friendly variants), so later multiplicative reindexing arguments can normalize step factorization canonically.
   - Done: `apSum_mul_eq_apSum_map_mul` in `MoltResearch/Discrepancy/Reindex.lean` (kept on the stable surface via `MoltResearch/Discrepancy/SurfaceAudit.lean`).
-- [ ] Add an API coherence pass: ensure the `apSum`/`apSumOffset`/`apSumFrom` split lemmas all have matching `simp`-friendly corollaries for `n₁=0` and `n₂=0` (so `simp` closes degenerate split goals uniformly across the three nucleus objects).
+- [x] Add an API coherence pass: ensure the `apSum`/`apSumOffset`/`apSumFrom` split lemmas all have matching `simp`-friendly corollaries for `n₁=0` and `n₂=0` (so `simp` closes degenerate split goals uniformly across the three nucleus objects).
+
+  Implemented via:
+  - `apSum_add_len_zero_left` / `apSum_add_len_zero_right` in `MoltResearch/Discrepancy/Basic.lean`
+  - `apSumOffset_add_len_zero_left` / `apSumOffset_add_len_zero_right` in `MoltResearch/Discrepancy/Basic.lean`
+  - `apSumFrom_add_len_zero_left` / `apSumFrom_add_len_zero_right` in `MoltResearch/Discrepancy/Affine.lean`
 
 ### Track C — Conjecture stub + equivalences (backlog)
 
