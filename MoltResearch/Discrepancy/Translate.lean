@@ -219,6 +219,30 @@ lemma HasDiscrepancyAtLeast.of_shift_add {f : ℕ → ℤ} {k C : ℕ} :
   refine ⟨k, d, n, hd, ?_⟩
   simpa [apSum_shift_add] using hgt
 
+/-! ### Witness-level normal form for shifted sequences
+
+Track B often wants shifted sequences to be expressed using the offset-sum nucleus `apSumOffset`
+so that start-index shifts can be handled canonically via `apSumOffset_shift_start_add*`.
+
+The lemma below is a thin wrapper that turns a `HasDiscrepancyAtLeast` witness for the shifted
+sequence `k ↦ f (k + a)` into the corresponding offset-sum witness.
+
+(We do not claim any invariance result for `HasDiscrepancyAtLeast f C`; this is only a
+normal-form rewrite of the witness expression.)
+-/
+
+/-- Normal form: a witness for `HasDiscrepancyAtLeast (k ↦ f (k + a)) C` can be written using
+`apSumOffset (k ↦ f (k + a)) d 0 n`.
+
+This is convenient when downstream steps want to rewrite start-index shifts via
+`apSumOffset_shift_start_add*`.
+-/
+lemma HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero {f : ℕ → ℤ} {a C : ℕ} :
+    HasDiscrepancyAtLeast (fun k => f (k + a)) C ↔
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset (fun k => f (k + a)) d 0 n) > C := by
+  -- This is just `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` applied to the shifted function.
+  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := fun k => f (k + a)) (C := C))
+
 /-- Variant of `HasDiscrepancyAtLeast.of_shift_add` for translated functions written in the `k + x`
 form. -/
 lemma HasDiscrepancyAtLeast.of_shift_add_left {f : ℕ → ℤ} {k C : ℕ} :
