@@ -70,6 +70,72 @@ lemma apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
                   (Finset.Ico_add_one_right_eq_Icc (a := m + 1) (b := m + n))
             simpa [hend] using hsum
 
+/-!
+## “One-cut in paper notation” bridge
+
+These lemmas let you split a paper-style interval sum into two pieces and then immediately
+rewrite both pieces into the nucleus API `apSumOffset`.
+
+The point is to keep downstream proofs working with the stable normal form while still allowing
+surface statements to be written in the familiar paper notation.
+-/
+
+/-- Split a paper-style interval sum at the interior cut `m+n₁`.
+
+Concretely, this splits
+`∑ i ∈ Icc (m+1) (m+n₁+n₂), f (i*d)`
+into two paper sums over `Icc (m+1) (m+n₁)` and `Icc (m+n₁+1) (m+n₁+n₂)`.
+-/
+lemma sum_Icc_add_len_split (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) +
+        (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+  -- Convert the paper notation to the nucleus, split in the nucleus, then convert back.
+  classical
+  -- LHS → nucleus.
+  have hL :
+      (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =
+        apSumOffset f d m (n₁ + n₂) := by
+    simpa [Nat.add_assoc] using
+      (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n₁ + n₂)).symm
+  -- Each RHS paper piece → nucleus.
+  have hR1 :
+      (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) = apSumOffset f d m n₁ := by
+    simpa using (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n₁)).symm
+  have hR2 :
+      (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =
+        apSumOffset f d (m + n₁) n₂ := by
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m + n₁) (n := n₂)).symm
+  -- Split in the nucleus and rewrite back.
+  -- Note: the split lemma lives in `Basic.lean` and is re-exported via the stable surface.
+  calc
+    (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d))
+        = apSumOffset f d m (n₁ + n₂) := hL
+    _ = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+          simpa using (apSumOffset_add_len (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+    _ = (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) +
+          (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
+          simpa [hR1, hR2]
+
+/-- The same “one-cut” split, but with both pieces immediately rewritten to the nucleus API.
+
+This is the lemma you usually want in proofs: it lets you start from paper notation and end
+in the canonical `apSumOffset` normal form in one step.
+-/
+lemma sum_Icc_add_len_eq_apSumOffset_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  -- First split in paper notation, then rewrite each piece.
+  classical
+  simpa [apSumOffset_eq_sum_Icc] using
+    (sum_Icc_add_len_split (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)).trans
+      (by
+        -- Rewrite each paper sum to `apSumOffset`.
+        -- We use `simp` with `apSumOffset_eq_sum_Icc` in the right orientation.
+        -- (The `simp` target is the nucleus form.)
+        simp [apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm])
+
 /-- Rewrite `apSumOffset` as a length-indexed interval sum over `Icc 1 n`.
 
 Concretely, this is the form

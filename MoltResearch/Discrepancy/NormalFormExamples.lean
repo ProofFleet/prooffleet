@@ -172,6 +172,13 @@ example : apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n :
 example : apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
   simpa using apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- Regression: split a paper interval sum in two, then land in the nucleus `apSumOffset` normal form.
+example :
+    (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    sum_Icc_add_len_eq_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 -- Splitting at an interior cut `k` (with `m ≤ k ≤ m+n`).
 example {k : ℕ} (hmk : m ≤ k) (hkn : k ≤ m + n) :
     apSumOffset f d m n = apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
@@ -605,7 +612,11 @@ example : apSum (fun x => f (x + a)) d n = apSumFrom f a d n := by
   simpa using apSum_shift_add (f := f) (k := a) (d := d) (n := n)
 
 example : apSum (fun x => f (a + x)) d n = apSumFrom f a d n := by
-  simpa using apSum_shift_add_left (f := f) (k := a) (d := d) (n := n)
+  calc
+    apSum (fun x => f (a + x)) d n = apSum (fun x => f (x + a)) d n := by
+      simpa using apSum_shift_comm (f := f) (a := a) (d := d) (n := n)
+    _ = apSumFrom f a d n := by
+      simpa using apSum_shift_add (f := f) (k := a) (d := d) (n := n)
 
 -- Translation under the offset nucleus API.
 example : apSumOffset (fun x => f (x + a)) d m n = apSumFrom f (m * d + a) d n := by
@@ -614,11 +625,15 @@ example : apSumOffset (fun x => f (x + a)) d m n = apSumFrom f (m * d + a) d n :
 -- Inverse orientation: normalize an affine tail with start `m*d + a` back into an offset sum
 -- on a shifted sequence.
 example : apSumFrom f (m * d + a) d n = apSumOffset (fun x => f (x + a)) d m n := by
-  simpa using apSumFrom_start_add_left_eq_apSumOffset_shift_add (f := f) (k := a) (d := d) (m := m)
-    (n := n)
+  simpa using apSumFrom_tail_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
 
 example : apSumOffset (fun x => f (a + x)) d m n = apSumFrom f (a + m * d) d n := by
-  simpa using apSumOffset_shift_add_left (f := f) (k := a) (d := d) (m := m) (n := n)
+  calc
+    apSumOffset (fun x => f (a + x)) d m n = apSumOffset (fun x => f (x + a)) d m n := by
+      simpa using apSumOffset_shift_comm (f := f) (a := a) (d := d) (m := m) (n := n)
+    _ = apSumFrom f (a + m * d) d n := by
+      simpa using
+        apSumOffset_shift_add_start_add_left (f := f) (k := a) (d := d) (m := m) (n := n)
 
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
@@ -918,7 +933,7 @@ example (k : ℕ) (hmn : m ≤ n) (hmk : m ≤ k) (hkn : k ≤ n) :
       simpa using
         (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := k - m) (n₂ := n - k))
     _ = apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
-      simpa [Nat.add_sub_cancel hmk]
+      simpa [Nat.add_sub_of_le hmk]
 
 -- Same pipeline, but in the translation-friendly `d * i` binder convention.
 example (k : ℕ) (hmn : m ≤ n) (hmk : m ≤ k) (hkn : k ≤ n) :
@@ -937,7 +952,7 @@ example (k : ℕ) (hmn : m ≤ n) (hmk : m ≤ k) (hkn : k ≤ n) :
       simpa using
         (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := k - m) (n₂ := n - k))
     _ = apSumOffset f d m (k - m) + apSumOffset f d k (n - k) := by
-      simpa [Nat.add_sub_cancel hmk]
+      simpa [Nat.add_sub_of_le hmk]
 
 -- Affine paper splitting: mul-left form `a + d*i`.
 example :
@@ -1496,13 +1511,22 @@ example (k : ℕ) : apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
   simpa using apSum_shift_add (f := f) (k := k) (d := d) (n := n)
 
 example (k : ℕ) : apSum (fun x => f (k + x)) d n = apSumFrom f k d n := by
-  simpa using apSum_shift_add_left (f := f) (k := k) (d := d) (n := n)
+  calc
+    apSum (fun x => f (k + x)) d n = apSum (fun x => f (x + k)) d n := by
+      simpa using apSum_shift_comm (f := f) (a := k) (d := d) (n := n)
+    _ = apSumFrom f k d n := by
+      simpa using apSum_shift_add (f := f) (k := k) (d := d) (n := n)
 
 example (k : ℕ) : apSumOffset (fun x => f (x + k)) d m n = apSumFrom f (k + m * d) d n := by
   simpa using apSumOffset_shift_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
 
 example (k : ℕ) : apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (k + m * d) d n := by
-  simpa using apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
+  calc
+    apSumOffset (fun x => f (k + x)) d m n = apSumOffset (fun x => f (x + k)) d m n := by
+      simpa using apSumOffset_shift_comm (f := f) (a := k) (d := d) (m := m) (n := n)
+    _ = apSumFrom f (k + m * d) d n := by
+      simpa using
+        apSumOffset_shift_add_start_add_left (f := f) (k := k) (d := d) (m := m) (n := n)
 
 -- Regression: compose a shift-add reindexing with the offset→shift normal form.
 example (k : ℕ) :
@@ -1584,7 +1608,15 @@ example : Int.natAbs (apSumOffset f d m n) ≤ n := by
   simpa using hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n)
 
 example : Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤ n + n' := by
-  simpa using hf.natAbs_apSumOffset_sub_le (d := d) (m := m) (n := n) (n' := n')
+  have hsub :
+      Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤
+        Int.natAbs (apSumOffset f d m n) + Int.natAbs (apSumOffset f d m n') := by
+    simpa using Int.natAbs_sub_le (apSumOffset f d m n) (apSumOffset f d m n')
+  have hn : Int.natAbs (apSumOffset f d m n) ≤ n := by
+    simpa using hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n)
+  have hn' : Int.natAbs (apSumOffset f d m n') ≤ n' := by
+    simpa using hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n')
+  exact le_trans hsub (by gcongr)
 
 example : Int.natAbs (apSum f d (m + n) - apSum f d m) ≤ n := by
   simpa using hf.natAbs_apSum_sub_le (d := d) (m := m) (n := n)
