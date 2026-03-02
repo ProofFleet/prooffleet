@@ -99,8 +99,12 @@ lemma apSum_shift_mul (f : ℕ → ℤ) (a d n : ℕ) :
         simp [Nat.add_assoc]
   simp [h, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
-/-- Normal form for discrepancy of a shift by `a*d`: it is the `natAbs` of an offset AP sum. -/
-lemma discrepancy_shift_mul (f : ℕ → ℤ) (a d n : ℕ) :
+/-- One-way normal form for discrepancy of a shift by `a*d`: it expands to the `natAbs` of an
+offset AP sum.
+
+Marked `[simp]` since the rewrite goes from the wrapper `discrepancy` to a `natAbs` normal form.
+-/
+@[simp] lemma discrepancy_shift_mul (f : ℕ → ℤ) (a d n : ℕ) :
     discrepancy (fun k => f (k + a * d)) d n = Int.natAbs (apSumOffset f d a n) := by
   unfold discrepancy
   simpa [apSum_shift_mul]
