@@ -803,6 +803,16 @@ lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
     _ = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
         simpa [hM, hN]
 
+/-- `simp`-friendly corollary of `apSumFrom_add_length` for `m = 0`. -/
+@[simp] lemma apSumFrom_add_length_zero_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d (0 + n) = apSumFrom f a d n := by
+  simpa [apSumFrom_add_length] using (apSumFrom_add_length (f := f) (a := a) (d := d) (m := 0) (n := n))
+
+/-- `simp`-friendly corollary of `apSumFrom_add_length` for `n = 0`. -/
+@[simp] lemma apSumFrom_add_length_zero_right (f : ℕ → ℤ) (a d m : ℕ) :
+    apSumFrom f a d (m + 0) = apSumFrom f a d m := by
+  simpa [apSumFrom_add_length] using (apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := 0))
+
 /-- Triangle inequality API for splitting an affine AP sum by length. -/
 lemma natAbs_apSumFrom_add_length_le (f : ℕ → ℤ) (a d n₁ n₂ : ℕ) :
     Int.natAbs (apSumFrom f a d (n₁ + n₂)) ≤

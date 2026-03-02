@@ -884,6 +884,16 @@ lemma apSum_add_length (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (fun i => f ((i + 1) * d)) m n)
 
+/-- `simp`-friendly corollary of `apSum_add_length` for `m = 0`. -/
+@[simp] lemma apSum_add_length_zero_left (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (0 + n) = apSum f d n := by
+  simpa [apSum_add_length] using (apSum_add_length (f := f) (d := d) (m := 0) (n := n))
+
+/-- `simp`-friendly corollary of `apSum_add_length` for `n = 0`. -/
+@[simp] lemma apSum_add_length_zero_right (f : ℕ → ℤ) (d m : ℕ) :
+    apSum f d (m + 0) = apSum f d m := by
+  simpa [apSum_add_length] using (apSum_add_length (f := f) (d := d) (m := m) (n := 0))
+
 /-- First-term decomposition for a homogeneous AP sum.
 
 This is a convenient “head + tail” normal form, pairing the first term `f d` with an offset sum.
@@ -905,6 +915,18 @@ lemma apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   unfold apSumOffset
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (fun i => f ((m + i + 1) * d)) n₁ n₂)
+
+/-- `simp`-friendly corollary of `apSumOffset_add_length` for `n₁ = 0`. -/
+@[simp] lemma apSumOffset_add_length_zero_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (0 + n) = apSumOffset f d m n := by
+  simpa [apSumOffset_add_length] using
+    (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := 0) (n₂ := n))
+
+/-- `simp`-friendly corollary of `apSumOffset_add_length` for `n₂ = 0`. -/
+@[simp] lemma apSumOffset_add_length_zero_right (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (n + 0) = apSumOffset f d m n := by
+  simpa [apSumOffset_add_length] using
+    (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n) (n₂ := 0))
 
 /-- Triangle inequality API for splitting an offset AP sum by length. -/
 lemma natAbs_apSumOffset_add_length_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
