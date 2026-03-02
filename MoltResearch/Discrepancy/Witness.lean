@@ -170,4 +170,55 @@ lemma AffineDiscrepancyWitnessPos.d_ge_one {f C} (w : _root_.MoltResearch.Affine
     w.d ≥ 1 := by
   exact Nat.succ_le_of_lt w.hd
 
+/-! ### Witness-level translation between homogeneous and affine discrepancy
+
+These lemmas package the idea that a homogeneous discrepancy witness for the **shifted** sequence
+`k ↦ f (k + a)` is the same data as an affine discrepancy witness for `f` with offset `a`.
+
+This is intentionally witness-level (not a global invariance statement), and is meant to be used
+as glue when switching normal forms.
+-/
+
+/-- Convert a `DiscrepancyWitness` for the shifted sequence `k ↦ f (k + a)` into an
+`AffineDiscrepancyWitness` for `f` with offset `a`. -/
+def DiscrepancyWitness.toAffineWitness {f : ℕ → ℤ} {C a : ℕ}
+    (w : DiscrepancyWitness (fun k => f (k + a)) C) :
+    AffineDiscrepancyWitness f C := by
+  refine
+    { a := a
+      d := w.d
+      n := w.n
+      hd := w.hd
+      hgt := ?_ }
+  -- Rewrite the homogeneous sum on the shifted sequence as an affine sum on `f`.
+  simpa [natAbs_apSum_shift_add_eq_natAbs_apSumFrom] using w.hgt
+
+/-- Convert a `DiscrepancyWitnessPos` for the shifted sequence into an
+`AffineDiscrepancyWitnessPos`. -/
+def DiscrepancyWitnessPos.toAffineWitnessPos {f : ℕ → ℤ} {C a : ℕ}
+    (w : DiscrepancyWitnessPos (fun k => f (k + a)) C) :
+    AffineDiscrepancyWitnessPos f C := by
+  refine
+    { a := a
+      d := w.d
+      n := w.n
+      hd := w.hd
+      hn := w.hn
+      hgt := ?_ }
+  simpa [natAbs_apSum_shift_add_eq_natAbs_apSumFrom] using w.hgt
+
+/-- From `HasDiscrepancyAtLeast (k ↦ f (k + a)) C` produce a nonempty affine witness for `f`. -/
+theorem HasDiscrepancyAtLeast.shift_add_toAffineWitness {f : ℕ → ℤ} {C a : ℕ}
+    (h : HasDiscrepancyAtLeast (fun k => f (k + a)) C) :
+    Nonempty (AffineDiscrepancyWitness f C) := by
+  classical
+  refine ⟨(h.toWitness).toAffineWitness (f := f) (C := C) (a := a)⟩
+
+/-- From `HasDiscrepancyAtLeast (k ↦ f (k + a)) C` produce a nonempty affine witness with `n > 0`. -/
+theorem HasDiscrepancyAtLeast.shift_add_toAffineWitnessPos {f : ℕ → ℤ} {C a : ℕ}
+    (h : HasDiscrepancyAtLeast (fun k => f (k + a)) C) :
+    Nonempty (AffineDiscrepancyWitnessPos f C) := by
+  classical
+  refine ⟨(h.toWitnessPos).toAffineWitnessPos (f := f) (C := C) (a := a)⟩
+
 end MoltResearch
