@@ -896,6 +896,23 @@ lemma apSum_add_length (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (fun i => f ((i + 1) * d)) m n)
 
+/-- Alias of `apSum_add_length` with the more symmetric “`n₁`/`n₂`” naming. -/
+lemma apSum_add_len (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
+    apSum f d (n₁ + n₂) = apSum f d n₁ + apSumOffset f d n₁ n₂ := by
+  simpa using (apSum_add_length (f := f) (d := d) (m := n₁) (n := n₂))
+
+/-- `simp`-friendly corollary of `apSum_add_len` for `n₁ = 0`. -/
+@[simp] lemma apSum_add_len_zero_left (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (0 + n) = apSum f d n := by
+  simpa [apSum_add_len] using
+    (apSum_add_len (f := f) (d := d) (n₁ := 0) (n₂ := n))
+
+/-- `simp`-friendly corollary of `apSum_add_len` for `n₂ = 0`. -/
+@[simp] lemma apSum_add_len_zero_right (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (n + 0) = apSum f d n := by
+  simpa [apSum_add_len] using
+    (apSum_add_len (f := f) (d := d) (n₁ := n) (n₂ := 0))
+
 /-- `simp`-friendly corollary of `apSum_add_length` for `m = 0`. -/
 @[simp] lemma apSum_add_length_zero_left (f : ℕ → ℤ) (d n : ℕ) :
     apSum f d (0 + n) = apSum f d n := by
