@@ -963,7 +963,7 @@ def HasAffineDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
   ∃ a d n : ℕ, d > 0 ∧ Int.natAbs (apSumFrom f a d n) > C
 
 /-- Sign-flip invariance: negating the sequence does not change affine discrepancy. -/
-lemma HasAffineDiscrepancyAtLeast_neg_iff (f : ℕ → ℤ) (C : ℕ) :
+@[simp] lemma HasAffineDiscrepancyAtLeast_neg_iff (f : ℕ → ℤ) (C : ℕ) :
     HasAffineDiscrepancyAtLeast (fun k => -f k) C ↔ HasAffineDiscrepancyAtLeast f C := by
   constructor
   · rintro ⟨a, d, n, hd, hgt⟩

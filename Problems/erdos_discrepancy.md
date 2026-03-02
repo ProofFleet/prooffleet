@@ -257,7 +257,8 @@ Definition of done:
   - `apSumFrom_add_len_zero_left` / `apSumFrom_add_len_zero_right` in `MoltResearch/Discrepancy/Affine.lean`
 
 #### Auto-generated backlog (needs triage)
-- [ ] Invariance API: prove `HasDiscrepancyAtLeast (fun k => -f k) C ↔ HasDiscrepancyAtLeast f C` (and the affine analogue) so sign-flips can be normalized away early.
+- [x] Invariance API: prove `HasDiscrepancyAtLeast (fun k => -f k) C ↔ HasDiscrepancyAtLeast f C` (and the affine analogue) so sign-flips can be normalized away early.
+  - Implemented as `HasDiscrepancyAtLeast_neg_iff` in `MoltResearch/Discrepancy/Basic.lean` and `HasAffineDiscrepancyAtLeast_neg_iff` in `MoltResearch/Discrepancy/Affine.lean` (both now tagged `[simp]`).
 - [ ] Translation invariance (witness-level): prove a canonical lemma rewriting `HasDiscrepancyAtLeast (fun k => f (k + a)) C` into a `HasDiscrepancyAtLeast f C` witness with a shifted offset-sum normal form (align with `apSumOffset_shift_start_add*`).
 - [ ] Normal form: add a lemma moving the offset parameter into the summand shift, e.g. `apSumOffset f d m n = apSumOffset (fun k => f (k + m*d)) d 0 n` (plus `_add`/`mul_left` variants to avoid `Nat.add_comm` noise).
 - [ ] Paper↔nucleus glue: add `sum_Icc_eq_apSumOffset_of_le` variants specialized to the “homogeneous tail” endpoints `Icc (m+1) (m+n)` that are `simp`-friendly under `import MoltResearch.Discrepancy` (reduce binder-commutativity churn in downstream proofs).
