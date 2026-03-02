@@ -612,6 +612,22 @@ lemma sum_Icc_eq_apSumOffset_of_le_mul_left (f : ℕ → ℤ) (d : ℕ) {m n : �
   simpa [Nat.mul_comm] using
     (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := n) hmn)
 
+/-- Convenience wrapper around `sum_Icc_eq_apSumOffset_of_le` specialized to the canonical tail
+endpoint form `Icc (m+1) (m+n)`.
+
+This is simp-friendly in downstream proofs because it avoids the explicit `Nat.add_sub_of_le`
+normalization step that appears in the general `…_of_le` lemma.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le_add_len (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simpa using (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
+/-- Translation-friendly variant of `sum_Icc_eq_apSumOffset_of_le_add_len` using `d * i` (step size
+on the left). -/
+lemma sum_Icc_eq_apSumOffset_of_le_add_len_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simpa using (sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n))
+
 /-- Surface form: when `m ≤ n`, rewrite the offset sum `apSumOffset f d m (n - m)` as the
 interval sum `∑ i ∈ Icc (m+1) n, f (i*d)`.
 
