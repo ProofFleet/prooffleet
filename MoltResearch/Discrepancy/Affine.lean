@@ -901,6 +901,11 @@ def affineDiscrepancy (f : ℕ → ℤ) (a d n : ℕ) : ℕ :=
     affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) :=
   rfl
 
+/-- Alias for the definitional simp lemma. -/
+@[simp] lemma affineDiscrepancy_def (f : ℕ → ℤ) (a d n : ℕ) :
+    affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) :=
+  rfl
+
 /-- The affine discrepancy of an empty progression is zero. -/
 @[simp] lemma affineDiscrepancy_zero (f : ℕ → ℤ) (a d : ℕ) :
     affineDiscrepancy f a d 0 = 0 := by

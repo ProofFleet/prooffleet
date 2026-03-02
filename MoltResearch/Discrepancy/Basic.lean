@@ -38,6 +38,11 @@ def discrepancy (f : ℕ → ℤ) (d n : ℕ) : ℕ :=
     discrepancy f d n = Int.natAbs (apSum f d n) :=
   rfl
 
+/-- Alias for the definitional simp lemma. -/
+@[simp] lemma discrepancy_def (f : ℕ → ℤ) (d n : ℕ) :
+    discrepancy f d n = Int.natAbs (apSum f d n) :=
+  rfl
+
 /-- The discrepancy of an empty progression is zero. -/
 @[simp] lemma discrepancy_zero (f : ℕ → ℤ) (d : ℕ) : discrepancy f d 0 = 0 := by
   unfold discrepancy apSum
