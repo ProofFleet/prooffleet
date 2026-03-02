@@ -380,6 +380,17 @@ lemma sum_Icc_eq_apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) 
             simpa using
               (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Paper-pretty variant of `sum_Icc_eq_apSumOffset_add_length`, with the right endpoint written as
+`m + n₁ + n₂` (no parentheses).
+
+This is just a `simp` wrapper around `sum_Icc_eq_apSumOffset_add_length`.
+-/
+lemma sum_Icc_eq_apSumOffset_add_length_paper (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simpa [Nat.add_assoc] using
+    (sum_Icc_eq_apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
 /-- Translation-friendly variant of `sum_Icc_add_length` using `d * i` (step size on the left).
 
 This is occasionally convenient when the surrounding development is already using the

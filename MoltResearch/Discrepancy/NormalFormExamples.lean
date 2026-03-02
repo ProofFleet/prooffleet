@@ -831,6 +831,13 @@ example :
   simpa using
     sum_Icc_eq_apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- Regression: paper-pretty right endpoint `m + n₁ + n₂` (no parentheses) compiles and rewrites.
+example :
+    (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    sum_Icc_eq_apSumOffset_add_length_paper (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 -- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
 example :
     (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) =
