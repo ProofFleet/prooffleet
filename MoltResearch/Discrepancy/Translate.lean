@@ -310,6 +310,21 @@ lemma HasDiscrepancyAtLeast_shift_add_exists_apSumOffset_div_mod {f : ℕ → �
   -- Rewrite the witness sum into the offset-sum div/mod normal form.
   simpa [apSum_shift_add_eq_apSumOffset_div_mod (f := f) (a := a) (d := d) (n := n)] using hgt
 
+/-- Iff normal form: `HasDiscrepancyAtLeast (k ↦ f (k + a)) C` can be expressed using the
+`div/mod`-reduced translation inside an `apSumOffset` witness.
+
+This aligns with the start-shift normalization lemmas `apSumOffset_shift_start_add*`.
+-/
+lemma HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_div_mod {f : ℕ → ℤ} {a C : ℕ} :
+    HasDiscrepancyAtLeast (fun k => f (k + a)) C ↔
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset (fun t => f (t + (a % d))) d (a / d) n) > C := by
+  constructor
+  · intro h
+    exact HasDiscrepancyAtLeast_shift_add_exists_apSumOffset_div_mod (f := f) (a := a) (C := C) h
+  · rintro ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, hd, ?_⟩
+    simpa [apSum_shift_add_eq_apSumOffset_div_mod (f := f) (a := a) (d := d) (n := n)] using hgt
+
 /-- Variant of `HasDiscrepancyAtLeast.of_shift_add` for translated functions written in the `k + x`
 form. -/
 lemma HasDiscrepancyAtLeast.of_shift_add_left {f : ℕ → ℤ} {k C : ℕ} :
