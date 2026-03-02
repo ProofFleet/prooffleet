@@ -362,6 +362,24 @@ lemma sum_Icc_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
           (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
             simp [apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- One-cut bridge (paper → nucleus): split a paper interval sum into two consecutive blocks and
+rewrite both pieces directly to `apSumOffset`.
+
+This is a convenience wrapper around `sum_Icc_eq_apSumOffset` and `apSumOffset_add_length`.
+-/
+lemma sum_Icc_eq_apSumOffset_add_length (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  classical
+  calc
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))
+        = apSumOffset f d m (n₁ + n₂) := by
+            simpa using
+              (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n₁ + n₂))
+    _ = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+            simpa using
+              (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
 /-- Translation-friendly variant of `sum_Icc_add_length` using `d * i` (step size on the left).
 
 This is occasionally convenient when the surrounding development is already using the

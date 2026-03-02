@@ -824,6 +824,13 @@ example :
         (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
   simpa using sum_Icc_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- One-cut bridge (paper → nucleus): split and immediately rewrite to `apSumOffset` blocks.
+example :
+    (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    sum_Icc_eq_apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 -- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
 example :
     (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) =
