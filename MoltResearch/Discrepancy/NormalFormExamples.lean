@@ -15,6 +15,19 @@ section NormalFormExamples
 
 variable (f : ℕ → ℤ) (a b d m n n₁ n₂ C : ℕ)
 
+-- Regression: `simp` should rewrite the discrepancy wrappers into their `Int.natAbs` normal forms.
+example : discrepancy f d n = Int.natAbs (apSum f d n) := by
+  simp
+
+example : affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) := by
+  simp
+
+example : discrepancy (fun k => f (k + a)) d n = Int.natAbs (apSumFrom f a d n) := by
+  simp
+
+example : Int.natAbs (apSum (fun k => f (k + a)) d n) = Int.natAbs (apSumFrom f a d n) := by
+  simp
+
 example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
   simpa using apSum_eq_sum_Icc (f := f) (d := d) (n := n)
 
