@@ -77,6 +77,21 @@ section
   #check apSumFrom_add_length_zero_left
   #check apSumFrom_add_length_zero_right
 
+  /-!
+  ## `simp` coherence checks
+
+  These are tiny regression tests that the degenerate split corollaries actually *work* with `simp`.
+  -/
+
+  example : apSum f d (0 + n) = apSum f d n := by simp
+  example : apSum f d (m + 0) = apSum f d m := by simp
+
+  example : apSumOffset f d m (0 + n) = apSumOffset f d m n := by simp
+  example : apSumOffset f d m (n + 0) = apSumOffset f d m n := by simp
+
+  example : apSumFrom f a d (0 + n) = apSumFrom f a d n := by simp
+  example : apSumFrom f a d (m + 0) = apSumFrom f a d m := by simp
+
   -- Step-factorization (compare different steps) normal form should be present.
   #check apSum_mul_eq_apSum_map_mul
 
