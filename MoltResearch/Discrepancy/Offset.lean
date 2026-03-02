@@ -618,13 +618,13 @@ endpoint form `Icc (m+1) (m+n)`.
 This is simp-friendly in downstream proofs because it avoids the explicit `Nat.add_sub_of_le`
 normalization step that appears in the general `…_of_le` lemma.
 -/
-lemma sum_Icc_eq_apSumOffset_of_le_add_len (f : ℕ → ℤ) (d m n : ℕ) :
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_add_len (f : ℕ → ℤ) (d m n : ℕ) :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
   simpa using (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
 /-- Translation-friendly variant of `sum_Icc_eq_apSumOffset_of_le_add_len` using `d * i` (step size
 on the left). -/
-lemma sum_Icc_eq_apSumOffset_of_le_add_len_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_add_len_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
   simpa using (sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n))
 
@@ -697,7 +697,7 @@ lemma apSum_sub_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
     apSum f d (m + n) - apSum f d m =
       (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
   -- Rewrite subtraction to an offset sum, then to an interval sum.
-  simp [apSum_sub_eq_apSumOffset, apSumOffset_eq_sum_Icc]
+  simp [apSum_sub_eq_apSumOffset, apSumOffset_eq_sum_Icc, -sum_Icc_eq_apSumOffset_of_le_add_len]
 
 /-- Translation-friendly variant of `apSum_sub_eq_sum_Icc` using `d * i` (step size on the left). -/
 lemma apSum_sub_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
@@ -1662,7 +1662,8 @@ lemma apSumOffset_sub_apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m : ℕ) {n₁
     apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
       (hn := hn)
   -- Rewrite the tail to an interval sum and simplify `m + n₁ + (n₂ - n₁) = m + n₂`.
-  simpa [apSumOffset_eq_sum_Icc, Nat.add_sub_of_le hn, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hEq
+  simpa [apSumOffset_eq_sum_Icc, Nat.add_sub_of_le hn, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
+    -sum_Icc_eq_apSumOffset_of_le_add_len] using hEq
 
 /-- Translation-friendly variant of `apSumOffset_sub_apSumOffset_eq_sum_Icc` using `d * i` (step size
 on the left).

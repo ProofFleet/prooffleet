@@ -117,7 +117,7 @@ lemma natAbs_sum_Icc_mul_le_mul (f : ℕ → ℤ) (B : ℕ)
 lemma natAbs_sum_Icc_mul_offset_le_mul (f : ℕ → ℤ) (B : ℕ)
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (d m n : ℕ) :
     Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ n * B := by
-  simpa [apSumOffset_eq_sum_Icc] using
+  simpa [apSumOffset_eq_sum_Icc, -sum_Icc_eq_apSumOffset_of_le_add_len] using
     (natAbs_apSumOffset_le_mul (f := f) (B := B) (hB := hB) (d := d) (m := m) (n := n))
 
 /-!
