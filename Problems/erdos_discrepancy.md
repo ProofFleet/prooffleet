@@ -256,6 +256,15 @@ Definition of done:
   - `apSumOffset_add_len_zero_left` / `apSumOffset_add_len_zero_right` in `MoltResearch/Discrepancy/Basic.lean`
   - `apSumFrom_add_len_zero_left` / `apSumFrom_add_len_zero_right` in `MoltResearch/Discrepancy/Affine.lean`
 
+#### Auto-generated backlog (needs triage)
+- [ ] Invariance API: prove `HasDiscrepancyAtLeast (fun k => -f k) C ↔ HasDiscrepancyAtLeast f C` (and the affine analogue) so sign-flips can be normalized away early.
+- [ ] Translation invariance (witness-level): prove a canonical lemma rewriting `HasDiscrepancyAtLeast (fun k => f (k + a)) C` into a `HasDiscrepancyAtLeast f C` witness with a shifted offset-sum normal form (align with `apSumOffset_shift_start_add*`).
+- [ ] Normal form: add a lemma moving the offset parameter into the summand shift, e.g. `apSumOffset f d m n = apSumOffset (fun k => f (k + m*d)) d 0 n` (plus `_add`/`mul_left` variants to avoid `Nat.add_comm` noise).
+- [ ] Paper↔nucleus glue: add `sum_Icc_eq_apSumOffset_of_le` variants specialized to the “homogeneous tail” endpoints `Icc (m+1) (m+n)` that are `simp`-friendly under `import MoltResearch.Discrepancy` (reduce binder-commutativity churn in downstream proofs).
+- [ ] Bounding lemma (stable normal form): for `IsSignSequence f`, prove a tight canonical bound `Int.natAbs (apSumOffset f d m n) ≤ n` as a stable-surface lemma (and derive `discrepancy ≤ n`).
+- [ ] Reindexing glue: add a canonical “factor the step” lemma family for offsets, rewriting `apSumOffset f (d₁*d₂) m n` to `apSumOffset (fun t => f (t*d₁)) d₂ m n` (with `mul_left`-friendly variants), mirroring `apSum_mul_eq_apSum_map_mul`.
+- [ ] Stable-surface coherence: add a short compile-time test file ensuring the preferred normal-form lemmas for the above invariance/translation/reindexing live under `import MoltResearch.Discrepancy` (and deprecated aliases stay opt-in).
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
