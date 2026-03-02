@@ -69,6 +69,14 @@ section
   #check sum_Icc_eq_apSumOffset_add_length
   #check sum_Icc_add_length
 
+  -- `simp`-friendly degenerate split corollaries should be coherent across the nucleus APIs.
+  #check apSum_add_length_zero_left
+  #check apSum_add_length_zero_right
+  #check apSumOffset_add_length_zero_left
+  #check apSumOffset_add_length_zero_right
+  #check apSumFrom_add_length_zero_left
+  #check apSumFrom_add_length_zero_right
+
   -- Step-factorization (compare different steps) normal form should be present.
   #check apSum_mul_eq_apSum_map_mul
 
