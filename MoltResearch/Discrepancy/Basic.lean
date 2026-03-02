@@ -205,6 +205,18 @@ lemma apSumOffset_add_len (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (f := fun i => f ((m + i + 1) * d)) n₁ n₂)
 
+/-- `simp`-friendly corollary of `apSumOffset_add_len` for `n₁ = 0`. -/
+@[simp] lemma apSumOffset_add_len_zero_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (0 + n) = apSumOffset f d m n := by
+  simpa [apSumOffset_add_len] using
+    (apSumOffset_add_len (f := f) (d := d) (m := m) (n₁ := 0) (n₂ := n))
+
+/-- `simp`-friendly corollary of `apSumOffset_add_len` for `n₂ = 0`. -/
+@[simp] lemma apSumOffset_add_len_zero_right (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (n + 0) = apSumOffset f d m n := by
+  simpa [apSumOffset_add_len] using
+    (apSumOffset_add_len (f := f) (d := d) (m := m) (n₁ := n) (n₂ := 0))
+
 /-- Triangle inequality for concatenating two offset AP sums. -/
 lemma natAbs_apSumOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     Int.natAbs (apSumOffset f d m (n₁ + n₂)) ≤

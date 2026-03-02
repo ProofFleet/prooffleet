@@ -110,6 +110,18 @@ lemma apSumFrom_add_len (f : ℕ → ℤ) (a d n₁ n₂ : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_add, Nat.add_mul] using
     (Finset.sum_range_add (f := fun i => f (a + (i + 1) * d)) n₁ n₂)
 
+/-- `simp`-friendly corollary of `apSumFrom_add_len` for `n₁ = 0`. -/
+@[simp] lemma apSumFrom_add_len_zero_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d (0 + n) = apSumFrom f a d n := by
+  simpa [apSumFrom_add_len] using
+    (apSumFrom_add_len (f := f) (a := a) (d := d) (n₁ := 0) (n₂ := n))
+
+/-- `simp`-friendly corollary of `apSumFrom_add_len` for `n₂ = 0`. -/
+@[simp] lemma apSumFrom_add_len_zero_right (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d (n + 0) = apSumFrom f a d n := by
+  simpa [apSumFrom_add_len] using
+    (apSumFrom_add_len (f := f) (a := a) (d := d) (n₁ := n) (n₂ := 0))
+
 /-- Triangle inequality for concatenating two affine AP sums. -/
 lemma natAbs_apSumFrom_add_len_le (f : ℕ → ℤ) (a d n₁ n₂ : ℕ) :
     Int.natAbs (apSumFrom f a d (n₁ + n₂)) ≤
