@@ -1624,6 +1624,33 @@ lemma sum_Icc_eq_apSumOffset_of_le_affine_left_mul_left (f : ℕ → ℤ) (a d :
     (sum_Icc_eq_apSumOffset_shift_add_of_le_left_mul_left (f := f) (a := a) (d := d) (m := m)
       (n := n) (hmn := hmn))
 
+/-- Endpoint-normalization (`m ≤ n`) for affine tails in “paper endpoint” form.
+
+In the paper, this tail sum is often written with endpoints `a + (m+1)*d` and `a + n*d`.
+This lemma rewrites the corresponding Lean interval sum
+`∑ i ∈ Icc (m+1) n, f (a + i*d)` directly into the nucleus `apSumOffset` form, producing the
+binder shape `fun k => f (a + k)` to avoid commutativity rewrites under lambdas.
+
+This is just a naming-aligned alias for `sum_Icc_eq_apSumOffset_of_le_affine_left`.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le_affine_left (f := f) (a := a) (d := d) (m := m) (n := n)
+      (hmn := hmn))
+
+/-- Mul-left variant of `sum_Icc_eq_apSumOffset_of_le_affineEndpoints`, with summand written as
+`f (a + d*i)`.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le_affine_left_mul_left (f := f) (a := a) (d := d) (m := m)
+      (n := n) (hmn := hmn))
+
 /-- Alias for `sum_Icc_eq_apSumOffset_shift_add_of_le` (same statement, naming aligned with
 `sum_Icc_eq_apSumOffset_of_le`). -/
 lemma sum_Icc_eq_apSumOffset_of_le_shift_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
