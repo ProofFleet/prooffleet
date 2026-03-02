@@ -243,6 +243,73 @@ lemma HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero {f : ℕ → �
   -- This is just `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` applied to the shifted function.
   simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := fun k => f (k + a)) (C := C))
 
+/-! ### Translation normal form via div/mod (witness-level)
+
+When working with translated sequences `k ↦ f (k + a)`, it is often useful to rewrite a witness
+`apSum (k ↦ f (k + a)) d n` into an offset-sum where the translation constant is reduced modulo
+`d`, and the quotient `a / d` is recorded as a start-index shift.
+
+This aligns well with the canonical start-shift normalization lemmas
+`apSumOffset_shift_start_add*`.
+-/
+
+/-- Normal form: rewrite a translated AP sum using `Nat.div`/`Nat.mod`.
+
+For any `a d n`:
+
+`apSum (fun k => f (k + a)) d n = apSumOffset (fun t => f (t + (a % d))) d (a / d) n`.
+
+Intuition: write `a = (a / d) * d + (a % d)` and absorb the quotient as a start-index shift.
+-/
+lemma apSum_shift_add_eq_apSumOffset_div_mod (f : ℕ → ℤ) (a d n : ℕ) :
+    apSum (fun k => f (k + a)) d n =
+      apSumOffset (fun t => f (t + (a % d))) d (a / d) n := by
+  -- Start from the generic inverse shift-add lemma in the `a + k` convention.
+  have h :=
+    (apSum_shift_add_left_eq_apSumOffset_shift_add_left (f := f) (a := a % d)
+        (d := d) (m := a / d) (n := n))
+  -- Convert the `apSumOffset` side to the `k + const` binder convention.
+  have hoff :
+      apSumOffset (fun k => f (a % d + k)) d (a / d) n =
+        apSumOffset (fun k => f (k + a % d)) d (a / d) n := by
+    simpa using
+      (apSumOffset_shift_add_comm (f := f) (k := a % d) (d := d) (m := a / d) (n := n)).symm
+  -- Replace `a` by `a % d + (a / d) * d` (using `Nat.div_add_mod`).
+  have ha : a % d + (a / d) * d = a := by
+    -- `Nat.div_add_mod` is `d * (a / d) + a % d = a`.
+    simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc, Nat.mul_comm] using
+      (Nat.div_add_mod a d)
+  have ha' : a = a % d + (a / d) * d := ha.symm
+  calc
+    apSum (fun k => f (k + a)) d n
+        = apSum (fun k => f (a + k)) d n := by
+            simpa using (apSum_shift_comm (f := f) (a := a) (d := d) (n := n)).symm
+    _ = apSum (fun k => f ((a % d + (a / d) * d) + k)) d n := by
+            have hfun : (fun k => f (a + k)) = fun k => f ((a % d + (a / d) * d) + k) := by
+              funext k
+              have hk : a + k = (a % d + (a / d) * d) + k := by
+                simpa using congrArg (fun t => t + k) ha'
+              simpa [hk]
+            simpa [hfun]
+    _ = apSumOffset (fun k => f (a % d + k)) d (a / d) n := by
+            exact h
+    _ = apSumOffset (fun k => f (k + a % d)) d (a / d) n := by
+            simpa using hoff
+
+/-- Witness-level normal form: rewrite a translated discrepancy witness into `apSumOffset`
+with translation reduced modulo `d`.
+
+If `HasDiscrepancyAtLeast (fun k => f (k + a)) C` holds, then there exist `d n` such that
+`Int.natAbs (apSumOffset (fun t => f (t + (a % d))) d (a / d) n) > C`.
+-/
+lemma HasDiscrepancyAtLeast_shift_add_exists_apSumOffset_div_mod {f : ℕ → ℤ} {a C : ℕ} :
+    HasDiscrepancyAtLeast (fun k => f (k + a)) C →
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset (fun t => f (t + (a % d))) d (a / d) n) > C := by
+  rintro ⟨d, n, hd, hgt⟩
+  refine ⟨d, n, hd, ?_⟩
+  -- Rewrite the witness sum into the offset-sum div/mod normal form.
+  simpa [apSum_shift_add_eq_apSumOffset_div_mod (f := f) (a := a) (d := d) (n := n)] using hgt
+
 /-- Variant of `HasDiscrepancyAtLeast.of_shift_add` for translated functions written in the `k + x`
 form. -/
 lemma HasDiscrepancyAtLeast.of_shift_add_left {f : ℕ → ℤ} {k C : ℕ} :
