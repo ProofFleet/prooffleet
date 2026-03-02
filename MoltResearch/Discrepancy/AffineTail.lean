@@ -109,6 +109,18 @@ lemma apSumFrom_tail_add_length (f : ℕ → ℤ) (a d m n1 n2 : ℕ) :
         simpa using congrArg (fun t => a + t) (Nat.add_mul m n1 d).symm
   simpa [hstart] using h
 
+/-- `simp`-friendly corollary of `apSumFrom_tail_add_length` for `n1 = 0`. -/
+@[simp] lemma apSumFrom_tail_add_length_zero_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d (0 + n) = apSumFrom f (a + m * d) d n := by
+  simpa [apSumFrom_tail_add_length, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_add_length (f := f) (a := a) (d := d) (m := m) (n1 := 0) (n2 := n))
+
+/-- `simp`-friendly corollary of `apSumFrom_tail_add_length` for `n2 = 0`. -/
+@[simp] lemma apSumFrom_tail_add_length_zero_right (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d (n + 0) = apSumFrom f (a + m * d) d n := by
+  simpa [apSumFrom_tail_add_length, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_add_length (f := f) (a := a) (d := d) (m := m) (n1 := n) (n2 := 0))
+
 
 /-- Split an affine tail sum by length, with the affine start written as `m*d + a`.
 
@@ -119,6 +131,19 @@ lemma apSumFrom_tail_add_length_start_add_left (f : ℕ → ℤ) (a d m n1 n2 : 
       apSumFrom f (m * d + a) d n1 + apSumFrom f ((m + n1) * d + a) d n2 := by
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumFrom_tail_add_length (f := f) (a := a) (d := d) (m := m) (n1 := n1) (n2 := n2))
+
+/-- `simp`-friendly corollary of `apSumFrom_tail_add_length_start_add_left` for `n1 = 0`. -/
+@[simp] lemma apSumFrom_tail_add_length_start_add_left_zero_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d (0 + n) = apSumFrom f (m * d + a) d n := by
+  simpa [apSumFrom_tail_add_length_start_add_left] using
+    (apSumFrom_tail_add_length_start_add_left (f := f) (a := a) (d := d) (m := m) (n1 := 0) (n2 := n))
+
+/-- `simp`-friendly corollary of `apSumFrom_tail_add_length_start_add_left` for `n2 = 0`. -/
+@[simp] lemma apSumFrom_tail_add_length_start_add_left_zero_right (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d (n + 0) = apSumFrom f (m * d + a) d n := by
+  simpa [apSumFrom_tail_add_length_start_add_left] using
+    (apSumFrom_tail_add_length_start_add_left (f := f) (a := a) (d := d) (m := m) (n1 := n) (n2 := 0))
+
 
 /-! ### Triangle inequality (tail sums)
 
