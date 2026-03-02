@@ -789,6 +789,15 @@ example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSumOffset f d m (n - m) 
 example (hmn : m ≤ n) : apSum f d n - apSum f d m = apSum (fun k => f (k + m * d)) d (n - m) := by
   simpa using apSum_sub_apSum_eq_apSum_shift_add_of_le (f := f) (d := d) (m := m) (n := n) hmn
 
+-- Canonical tail endpoints `Icc (m+1) (m+n)` simplify directly to `apSumOffset`.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simp
+
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simp
+
 -- Same difference normal form, but eliminate the offset parameter by shifting the underlying
 -- sequence so the offset is `0`.
 example (hmn : m ≤ n) :
