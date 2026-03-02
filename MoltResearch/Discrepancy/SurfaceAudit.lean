@@ -76,6 +76,9 @@ section
   #check apSumOffset_add_length_zero_right
   #check apSumFrom_add_length_zero_left
   #check apSumFrom_add_length_zero_right
+  #check apSumFrom_add_len
+  #check apSumFrom_add_len_zero_left
+  #check apSumFrom_add_len_zero_right
 
   /-!
   ## `simp` coherence checks
@@ -91,6 +94,12 @@ section
 
   example : apSumFrom f a d (0 + n) = apSumFrom f a d n := by simp
   example : apSumFrom f a d (m + 0) = apSumFrom f a d m := by simp
+
+  -- Explicitly exercise the `n₁`/`n₂`-named simp corollaries for `apSumFrom`.
+  example : apSumFrom f a d (0 + n) = apSumFrom f a d n := by
+    simpa using (apSumFrom_add_len_zero_left (f := f) (a := a) (d := d) (n := n))
+  example : apSumFrom f a d (n + 0) = apSumFrom f a d n := by
+    simpa using (apSumFrom_add_len_zero_right (f := f) (a := a) (d := d) (n := n))
 
   -- Step-factorization (compare different steps) normal form should be present.
   #check apSum_mul_eq_apSum_map_mul
