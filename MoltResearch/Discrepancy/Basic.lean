@@ -109,6 +109,15 @@ Marked `[simp]` since the rewrite goes from the wrapper `discrepancy` to a `natA
   unfold discrepancy
   simpa [apSum_shift_mul]
 
+/-- `simp`-friendly variant of `apSum_shift_mul` under `Int.natAbs`.
+
+This lets goals normalize after rewriting `discrepancy_def` without having to manually unfold
+`apSum_shift_mul`.
+-/
+@[simp] lemma natAbs_apSum_shift_mul (f : ℕ → ℤ) (a d n : ℕ) :
+    Int.natAbs (apSum (fun k => f (k + a * d)) d n) = Int.natAbs (apSumOffset f d a n) := by
+  simpa [apSum_shift_mul]
+
 /-- Normal form: shifting by `m*d` becomes `apSumOffset`. (Not a `[simp]` lemma: it can loop.) -/
 lemma apSum_shift_mul_simp (f : ℕ → ℤ) (m d n : ℕ) :
     apSum (fun k => f (k + m * d)) d n = apSumOffset f d m n := by

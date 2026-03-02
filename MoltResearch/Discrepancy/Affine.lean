@@ -77,6 +77,15 @@ Marked `[simp]` since it is a one-way expansion of `discrepancy` into a `natAbs`
   unfold discrepancy
   simpa [apSum_shift_add_eq_apSumFrom]
 
+/-- `simp`-friendly variant of `apSum_shift_add_eq_apSumFrom` under `Int.natAbs`.
+
+This is useful after rewriting `discrepancy_def` / `affineDiscrepancy_def`, where goals often
+contain `Int.natAbs (apSum (fun k => f (k + a)) d n)` or `Int.natAbs (apSumFrom f a d n)`.
+-/
+@[simp] lemma natAbs_apSum_shift_add_eq_natAbs_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    Int.natAbs (apSum (fun k => f (k + a)) d n) = Int.natAbs (apSumFrom f a d n) := by
+  simpa [apSum_shift_add_eq_apSumFrom]
+
 /-! ### Triangle-inequality API for affine AP sums -/
 
 /-- `apSumFrom` splits over addition of lengths. -/
