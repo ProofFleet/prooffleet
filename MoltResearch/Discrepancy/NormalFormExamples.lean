@@ -110,6 +110,13 @@ example : apSum (fun k => f (a + k)) d n = apSum (fun k => f (k + a)) d n := by
 example : apSumFrom (fun x => f (a + x)) m d n = apSumFrom (fun x => f (x + a)) m d n := by
   simpa using apSumFrom_shift_comm (f := f) (a := a) (k := m) (d := d) (n := n)
 
+-- Witness-level translation normal form (div/mod reduced translation inside an `apSumOffset`).
+example :
+    HasDiscrepancyAtLeast (fun k => f (k + a)) C ↔
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset (fun t => f (t + (a % d))) d (a / d) n) > C := by
+  simpa using
+    (HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_div_mod (f := f) (a := a) (C := C))
+
 -- “Push the translation into the function” normal forms.
 --
 -- These are mathematically the same as the `…_shift` / `…_shift_add` family.
