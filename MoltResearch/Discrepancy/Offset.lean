@@ -628,6 +628,27 @@ on the left). -/
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
   simpa using (sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n))
 
+/-- A simp-friendly alias for `sum_Icc_eq_apSumOffset_of_le_add_len`.
+
+This specialises the `sum_Icc_eq_apSumOffset_of_le` family to the homogeneous tail interval
+`Icc (m+1) (m+n)`.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le_homogeneousTail
+    (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simpa using (sum_Icc_eq_apSumOffset_of_le_add_len (f := f) (d := d) (m := m) (n := n))
+
+/-- A simp-friendly alias for `sum_Icc_eq_apSumOffset_of_le_add_len_mul_left`.
+
+This keeps the binder in the `d * i` convention, avoiding commutativity rewrites under binders in
+downstream proofs.
+-/
+lemma sum_Icc_eq_apSumOffset_of_le_homogeneousTail_mul_left
+    (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le_add_len_mul_left (f := f) (d := d) (m := m) (n := n))
+
 /-- Surface form: when `m ≤ n`, rewrite the offset sum `apSumOffset f d m (n - m)` as the
 interval sum `∑ i ∈ Icc (m+1) n, f (i*d)`.
 
