@@ -259,11 +259,7 @@ Definition of done:
 #### Auto-generated backlog (needs triage)
 - [x] Invariance API: prove `HasDiscrepancyAtLeast (fun k => -f k) C ↔ HasDiscrepancyAtLeast f C` (and the affine analogue) so sign-flips can be normalized away early.
   - Implemented as `HasDiscrepancyAtLeast_neg_iff` in `MoltResearch/Discrepancy/Basic.lean` and `HasAffineDiscrepancyAtLeast_neg_iff` in `MoltResearch/Discrepancy/Affine.lean` (both now tagged `[simp]`).
-- [ ] Translation normal form (witness-level): prove a canonical lemma rewriting
-  `HasDiscrepancyAtLeast (fun k => f (k + a)) C`
-  into an existence statement in the `apSumOffset` div/mod normal form
-  `∃ d n, d>0 ∧ Int.natAbs (apSumOffset (fun t => f (t + (a % d))) d (a / d) n) > C`,
-  aligning with `apSumOffset_shift_start_add*`.
+- [ ] Translation normal form (witness-level): rewrite `HasDiscrepancyAtLeast (fun k => f (k + a)) C` into `∃ d n, d>0 ∧ Int.natAbs (apSumOffset (fun t => f (t + (a % d))) d (a / d) n) > C` (align with `apSumOffset_shift_start_add*`).
 - [ ] Normal form: add a lemma moving the offset parameter into the summand shift, e.g. `apSumOffset f d m n = apSumOffset (fun k => f (k + m*d)) d 0 n` (plus `_add`/`mul_left` variants to avoid `Nat.add_comm` noise).
 - [ ] Paper↔nucleus glue: add `sum_Icc_eq_apSumOffset_of_le` variants specialized to the “homogeneous tail” endpoints `Icc (m+1) (m+n)` that are `simp`-friendly under `import MoltResearch.Discrepancy` (reduce binder-commutativity churn in downstream proofs).
 - [ ] Bounding lemma (stable normal form): for `IsSignSequence f`, prove a tight canonical bound `Int.natAbs (apSumOffset f d m n) ≤ n` as a stable-surface lemma (and derive `discrepancy ≤ n`).
