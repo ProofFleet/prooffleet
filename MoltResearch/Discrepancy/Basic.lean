@@ -290,6 +290,24 @@ We compare via `Int.natAbs` so `C : ℕ` stays natural.
 def HasDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
   ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSum f d n) > C
 
+/-- Sign-flip invariance: negating the sequence does not change discrepancy. -/
+lemma HasDiscrepancyAtLeast_neg_iff (f : ℕ → ℤ) (C : ℕ) :
+    HasDiscrepancyAtLeast (fun k => -f k) C ↔ HasDiscrepancyAtLeast f C := by
+  constructor
+  · rintro ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, hd, ?_⟩
+    have hnatAbs : Int.natAbs (apSum (fun k => -f k) d n) = Int.natAbs (apSum f d n) := by
+      unfold apSum
+      simp
+    simpa [hnatAbs] using hgt
+  · rintro ⟨d, n, hd, hgt⟩
+    refine ⟨d, n, hd, ?_⟩
+    have hnatAbs : Int.natAbs (apSum (fun k => -f k) d n) = Int.natAbs (apSum f d n) := by
+      unfold apSum
+      simp
+    -- Rewrite the goal to match `hgt`.
+    simpa [hnatAbs] using hgt
+
 /-- Monotonicity of `HasDiscrepancyAtLeast` in the bound. -/
 lemma HasDiscrepancyAtLeast.mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
     (h : HasDiscrepancyAtLeast f C₂) (hC : C₁ ≤ C₂) : HasDiscrepancyAtLeast f C₁ := by
