@@ -1544,6 +1544,13 @@ example :
 example (k : ℕ) : apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   simpa using apSum_map_mul (f := f) (k := k) (d := d) (n := n)
 
+-- Regression: reindex `apSumOffset` into the mapped-finset normal form.
+example :
+    apSumOffset f d m n =
+      ((Finset.range n).map (affineEmbedding (m + 1) 1 (Nat.succ_pos 0))).sum
+        (fun k => f (k * d)) := by
+  simpa using (apSumOffset_reindex_affine (f := f) (d := d) (m := m) (n := n))
+
 example (k : ℕ) : apSum (fun x => f (x + k)) d n = apSumFrom f k d n := by
   simpa using apSum_shift_add (f := f) (k := k) (d := d) (n := n)
 

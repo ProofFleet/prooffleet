@@ -284,7 +284,8 @@ Definition of done:
   - Implemented in `MoltResearch/Discrepancy/Offset.lean` as:
     - `apSumOffset_sub_apSumOffset_eq_apSumOffset_add_len`
     - plus rewrite-normal-form variants `apSumOffset_sub_eq_apSumOffset_shift_add` / `apSumOffset_sub_eq_apSum_shift_add` (and `*_mul_left` variants)
-- [ ] Reindexing glue (injective map): add a lemma that reindexes `apSumOffset` along an injective affine map on indices (a controlled `Finset.map` lemma) and packages it as a nucleus-normal-form reindexing step, to reduce repeated `Finset` boilerplate.
+- [x] Reindexing glue (injective map): add a lemma that reindexes `apSumOffset` along an injective affine map on indices (a controlled `Finset.map` lemma) and packages it as a nucleus-normal-form reindexing step, to reduce repeated `Finset` boilerplate.
+  Implemented in `MoltResearch/Discrepancy/Reindex.lean` via lemmas `sum_range_affine_reindex`, `affineEmbedding`, `apSumOffset_reindex_affine`.
 - [ ] Invariance API (mod step): add a lemma normalizing shifts modulo the step: `apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n` (when `d>0`), aligned with the existing witness-level translation normal form.
 - [ ] “Paper boundary” bridge: add a canonical lemma rewriting paper sums over `Icc (m+1) (m+n)` with summand `f (a + i*d)` directly to `apSumOffset (fun k => f (k + a)) d m n` (both `i*d` and `d*i` variants), minimizing `Nat.add_comm` churn.
 - [ ] API surface coherence: add `@[simp]` lemmas that move `Int.natAbs` through the definitional bridges `discrepancy/affineDiscrepancy` → `Int.natAbs (apSum…)` in a way that avoids simp loops, plus compile-time regression examples under `import MoltResearch.Discrepancy`.
