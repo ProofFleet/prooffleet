@@ -36,6 +36,34 @@ lemma apSumOffset_map_mul (f : ℕ → ℤ) (k d m n : ℕ) :
   intro i hi
   simp [Nat.mul_assoc]
 
+/-- Factor a product step size `d * k` by pushing `d` into the summand (offset-sum version).
+
+This is the offset analogue of `apSum_mul_eq_apSum_map_mul`.
+-/
+lemma apSumOffset_mul_eq_apSumOffset_map_mul (f : ℕ → ℤ) (d k m n : ℕ) :
+    apSumOffset f (d * k) m n = apSumOffset (fun x => f (x * d)) k m n := by
+  -- `apSumOffset_map_mul` gives the forward direction with step `k * d`.
+  simpa [Nat.mul_comm] using
+    (apSumOffset_map_mul (f := f) (k := d) (d := k) (m := m) (n := n)).symm
+
+/-- Variant oriented to match `apSumOffset f (d₁ * d₂) m n`.
+
+This is a convenient wrapper for rewriting
+`apSumOffset f (d₁*d₂) m n` into `apSumOffset (fun t => f (t*d₁)) d₂ m n`.
+-/
+lemma apSumOffset_mul_eq_apSumOffset_map_mul₁₂ (f : ℕ → ℤ) (d₁ d₂ m n : ℕ) :
+    apSumOffset f (d₁ * d₂) m n = apSumOffset (fun t => f (t * d₁)) d₂ m n := by
+  simpa using (apSumOffset_mul_eq_apSumOffset_map_mul (f := f) (d := d₁) (k := d₂) (m := m) (n := n))
+
+/-- Left-multiplication-friendly variant: rewrite into a summand `t ↦ f (d₁ * t)`.
+
+Useful when downstream normalization prefers keeping multiplication on the left.
+-/
+lemma apSumOffset_mul_eq_apSumOffset_map_mul_left (f : ℕ → ℤ) (d₁ d₂ m n : ℕ) :
+    apSumOffset f (d₁ * d₂) m n = apSumOffset (fun t => f (d₁ * t)) d₂ m n := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_mul_eq_apSumOffset_map_mul₁₂ (f := f) (d₁ := d₁) (d₂ := d₂) (m := m) (n := n))
+
 lemma apSum_map_mul_div_of_dvd (f : ℕ → ℤ) (k d n : ℕ) (hk : k > 0) (hd : k ∣ d) :
   apSum (fun x => f (x * k)) (d / k) n = apSum f d n := by
   rcases hd with ⟨d0, rfl⟩
