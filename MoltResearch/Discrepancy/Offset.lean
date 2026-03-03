@@ -1520,6 +1520,37 @@ lemma apSumOffset_succ_offset (f : ℕ → ℤ) (d m n : ℕ) :
 -- NOTE: `apSumOffset_tail_eq_sub` and `apSumOffset_sub_eq_apSumOffset_tail` live in
 -- `MoltResearch.Discrepancy.Basic` (kept in the “basic substrate” layer).
 
+/-!
+## Difference → tail: common rewrite shape
+
+Downstream proofs often produce the difference
+`apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁`.
+
+The basic substrate lemma is `apSumOffset_sub_eq_apSumOffset_tail`; here we provide a
+“shape-forward” alias plus a couple of tiny regression examples.
+-/
+
+/-- Stable alias for the common “subtract an initial block from a longer block” pattern.
+
+This is the offset-sum analogue of `apSumFrom_sub_eq_apSumFrom_tail`-style lemmas.
+-/
+lemma apSumOffset_sub_apSumOffset_eq_apSumOffset_add_len (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    (apSumOffset_sub_eq_apSumOffset_tail (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
+-- regression: the rewrite should stay simp-friendly.
+example (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
+  simpa using apSumOffset_sub_apSumOffset_eq_apSumOffset_add_len (f := f) (d := d) (m := m)
+    (n₁ := n₁) (n₂ := n₂)
+
+example (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d (m + n₁) n₂ = apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ := by
+  simpa [eq_comm] using
+    (apSumOffset_sub_apSumOffset_eq_apSumOffset_add_len (f := f) (d := d) (m := m) (n₁ := n₁)
+      (n₂ := n₂))
+
 /-- Normal form: rewrite the normal-form difference `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁`
 as an offset sum with `m = 0` on a shifted sequence.
 
