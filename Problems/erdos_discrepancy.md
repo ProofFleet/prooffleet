@@ -280,7 +280,10 @@ Definition of done:
   - Implemented in `MoltResearch/Discrepancy/Offset.lean` as `apSumOffset_eq_sum_range` and `apSumOffset_eq_sum_range_add`.
 - [x] Endpoint-coherence pass: add a small, consistent family of lemmas normalizing affine endpoints `a + (m+1)*d` ↔ `a + d*(m+1)` and `a + (m+n)*d` ↔ `a + m*d + n*d`, tagged so `simp` reduces binder-level `Nat` ring-noise in rewrite pipelines.
   - Implemented in `MoltResearch/Discrepancy/Affine.lean` (`add_mul_succ_norm`, `add_mul_add_norm` + reverses) and opt-in simp rules in `MoltResearch/Discrepancy/AffineEndpointSimp.lean`.
-- [ ] Difference→tail→offset pipeline: add `apSumFrom_sub_eq_apSumOffset`-style lemmas specialized to the common “subtract a tail from a longer tail” shape `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁` ↦ `apSumOffset f d (m+n₁) n₂`, with stable names + regression examples.
+- [x] Difference→tail→offset pipeline: add `apSumFrom_sub_eq_apSumOffset`-style lemmas specialized to the common “subtract a tail from a longer tail” shape `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁` ↦ `apSumOffset f d (m+n₁) n₂`, with stable names + regression examples.
+  - Implemented in `MoltResearch/Discrepancy/Offset.lean` as:
+    - `apSumOffset_sub_apSumOffset_eq_apSumOffset_add_len`
+    - plus rewrite-normal-form variants `apSumOffset_sub_eq_apSumOffset_shift_add` / `apSumOffset_sub_eq_apSum_shift_add` (and `*_mul_left` variants)
 - [ ] Reindexing glue (injective map): add a lemma that reindexes `apSumOffset` along an injective affine map on indices (a controlled `Finset.map` lemma) and packages it as a nucleus-normal-form reindexing step, to reduce repeated `Finset` boilerplate.
 - [ ] Invariance API (mod step): add a lemma normalizing shifts modulo the step: `apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n` (when `d>0`), aligned with the existing witness-level translation normal form.
 - [ ] “Paper boundary” bridge: add a canonical lemma rewriting paper sums over `Icc (m+1) (m+n)` with summand `f (a + i*d)` directly to `apSumOffset (fun k => f (k + a)) d m n` (both `i*d` and `d*i` variants), minimizing `Nat.add_comm` churn.
