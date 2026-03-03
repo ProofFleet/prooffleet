@@ -31,14 +31,18 @@ canonical form without causing rewrite loops.
 
 section NatEndpointNorm
 
-/-- Normalise `a + (m+1) * d` to `a + d * (m+1)` (canonical form). -/
+/-- Normalise `a + d * (m+1)` to `a + (m+1) * d` (canonical affine endpoint form).
+
+This matches the endpoint shape used by `apSumFrom` (`a + (i+1)*d`) and tends to reduce
+binder-level commutativity noise in downstream rewrite pipelines.
+-/
 @[simp] lemma add_mul_succ_norm (a m d : ℕ) :
-    a + (m + 1) * d = a + d * (m + 1) := by
+    a + d * (m + 1) = a + (m + 1) * d := by
   simp [Nat.mul_comm]
 
 /-- Reverse direction of `add_mul_succ_norm` (not tagged `[simp]`). -/
 lemma add_mul_succ_norm' (a m d : ℕ) :
-    a + d * (m + 1) = a + (m + 1) * d := by
+    a + (m + 1) * d = a + d * (m + 1) := by
   simp [Nat.mul_comm]
 
 /-- Normalise `a + (m+n) * d` to `a + m*d + n*d` (canonical form).
@@ -626,9 +630,9 @@ lemma apSumFrom_tail_eq_apSum_step_one (f : ℕ → ℤ) (a d m n : ℕ) :
   unfold apSumFrom apSum
   refine Finset.sum_congr rfl ?_
   intro i hi
-  -- `simp` (via `add_mul_succ_norm`) prefers the normal form `a + d * (i+1)`.
-  have hmul : m * d + d * (i + 1) = (m + (i + 1)) * d := by
-    simpa [Nat.mul_comm] using (Nat.add_mul m (i + 1) d).symm
+  -- `simp` (via `add_mul_succ_norm`) prefers the endpoint normal form `a + (i+1) * d`.
+  have hmul : m * d + (i + 1) * d = (m + (i + 1)) * d := by
+    simpa using (Nat.add_mul m (i + 1) d).symm
   -- `simp` also reduces `((i+1) * 1)`.
   simp [Nat.add_assoc, hmul]
 

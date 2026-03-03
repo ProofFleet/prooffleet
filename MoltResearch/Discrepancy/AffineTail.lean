@@ -590,8 +590,8 @@ lemma apSumFrom_tail_succ_length_eq_add_apSumOffset_shift (f : ℕ → ℤ) (a d
         f (a + (m + 1) * d) + apSumFrom f (a + (m + 1) * d) d n := by
           simpa using apSumFrom_tail_succ_length (f := f) (a := a) (d := d) (m := m) (n := n)
     _ = f (a + (m + 1) * d) + apSumOffset (fun k => f (a + k)) d (m + 1) n := by
-          -- `simp` normalises `a + (m+1)*d` to `a + d*(m+1)`, so apply the tail→offset lemma
-          -- explicitly (rather than relying on a direct simp match).
+          -- `simp` keeps affine endpoints in the `a + (m+1)*d` shape (via `add_mul_succ_norm`),
+          -- so this tail→offset rewrite matches without extra commutativity noise.
           simpa using
             congrArg (fun t => f (a + (m + 1) * d) + t)
               (apSumFrom_tail_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m + 1)
