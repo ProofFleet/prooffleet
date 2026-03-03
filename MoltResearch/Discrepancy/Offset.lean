@@ -12,6 +12,34 @@ namespace MoltResearch
     apSumOffset f d m 0 = 0 := by
   simp [apSumOffset]
 
+/-!
+## Normal-form: `Finset.range` expansions
+
+These are intentionally small “shape” lemmas: they let downstream code rewrite an `apSumOffset`
+into an explicit `Finset.range` sum without switching to `Icc`-based paper notation.
+
+We keep both binder orders:
+- the canonical definition order `m + i + 1`
+- a translation-friendly `_add` variant with `i + m + 1`
+-/
+
+/-- Normal-form lemma: rewrite `apSumOffset` as a `Finset.range` sum in the canonical binder order. -/
+lemma apSumOffset_eq_sum_range (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
+  rfl
+
+/-- Translation-friendly variant of `apSumOffset_eq_sum_range` with the binder variable on the left:
+`i + m + 1`.
+
+This avoids commuting `Nat.add_comm` under a lambda in downstream normalizations.
+-/
+lemma apSumOffset_eq_sum_range_add (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.range n).sum (fun i => f ((i + m + 1) * d)) := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   have h0 := (apSum_add_length (f := f) (d := d) (m := m) (n := n)).symm
