@@ -296,6 +296,50 @@ lemma apSum_shift_add_eq_apSumOffset_div_mod (f : ℕ → ℤ) (a d n : ℕ) :
     _ = apSumOffset (fun k => f (k + a % d)) d (a / d) n := by
             simpa using hoff
 
+/-- Normal form (mod step): reduce a translation inside an `apSumOffset` witness using `Nat.div`/`Nat.mod`.
+
+`apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n`.
+
+Intuition: write `a = (a / d) * d + (a % d)` and absorb the quotient into the start index.
+-/
+lemma apSumOffset_shift_add_eq_apSumOffset_div_mod (f : ℕ → ℤ) (a d m n : ℕ) (hd : d > 0) :
+    apSumOffset (fun k => f (k + a)) d m n =
+      apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n := by
+  -- Compute the adjusted translation constant.
+  have hconst' : (m + a / d) * d + a % d = m * d + a := by
+    -- Expand `(m + a/d) * d` and use `Nat.div_add_mod`.
+    calc
+      (m + a / d) * d + a % d
+          = (m * d + (a / d) * d) + a % d := by
+              simp [Nat.add_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+      _ = m * d + ((a / d) * d + a % d) := by
+              simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+      _ = m * d + (d * (a / d) + a % d) := by
+              simp [Nat.mul_comm, Nat.add_assoc]
+      _ = m * d + a := by
+              simpa [Nat.add_assoc] using congrArg (fun t => m * d + t) (Nat.div_add_mod a d)
+  have hconst : m * d + a = (m + a / d) * d + a % d := by
+    simpa using hconst'.symm
+  -- Rewrite both sides into shifted `apSum` form and use `hconst`.
+  -- (The hypothesis `hd` is included for API consistency with other div/mod normal forms.)
+  have hd' : d > 0 := hd
+  clear hd'
+  -- LHS
+  have hL : apSumOffset (fun k => f (k + a)) d m n = apSum (fun k => f (k + (m * d + a))) d n := by
+    simp [apSumOffset_eq_apSum_shift_add, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  -- RHS
+  have hR : apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n =
+      apSum (fun k => f (k + ((m + a / d) * d + a % d))) d n := by
+    simp [apSumOffset_eq_apSum_shift_add, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  -- Compare the shifted `apSum` expressions.
+  -- (We avoid commuting addition under binders by keeping the `k + const` convention.)
+  rw [hL, hR]
+  unfold apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Use the constant equality inside the binder.
+  simp [hconst, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-- Witness-level normal form: rewrite a translated discrepancy witness into `apSumOffset`
 with translation reduced modulo `d`.
 
