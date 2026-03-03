@@ -43,8 +43,10 @@ lemma add_mul_succ_norm' (a m d : ℕ) :
 
 /-- Normalise `a + (m+n) * d` to `a + m*d + n*d` (canonical form).
 
-We *do not* tag this `[simp]`: it can be useful, but it is a fairly powerful reassociation
-rewrite that tends to create large simp search spaces in downstream files.
+We do **not** tag this `[simp]` by default: it can be useful, but it is a powerful reassociation
+rewrite that may increase simp search or cause recursion in downstream proofs.
+
+If you explicitly want this as a simp rule, import `MoltResearch.Discrepancy.AffineEndpointSimp`.
 -/
 lemma add_mul_add_norm (a m n d : ℕ) :
     a + (m + n) * d = a + m * d + n * d := by
