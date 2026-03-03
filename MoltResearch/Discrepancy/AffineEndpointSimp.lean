@@ -23,8 +23,17 @@ namespace MoltResearch
 -- Enable the `(m+n)` endpoint expansion as a simp rule.
 attribute [simp] add_mul_add_norm
 
+-- Also expose the `(m+1)` endpoint normalisation as a simp rule for completeness.
+-- (It is already `[simp]` in the base module; repeating the attribute here keeps this module
+-- self-documenting as the place to import when you want endpoint simp normalisation.)
+attribute [simp] add_mul_succ_norm
+
 -- Regression test: importing this module should let `simp` normalize affine endpoints.
 example (a m n d : ℕ) : a + (m + n) * d = a + m * d + n * d := by
+  simp
+
+-- Regression test for the `(m+1)` normalisation.
+example (a m d : ℕ) : a + (m + 1) * d = a + d * (m + 1) := by
   simp
 
 end MoltResearch
