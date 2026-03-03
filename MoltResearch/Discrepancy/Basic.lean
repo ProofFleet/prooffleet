@@ -194,6 +194,44 @@ lemma discrepancy_shift_of_eq_mul (f : ℕ → ℤ) (a d n m : ℕ) (ha : a = m 
   subst ha
   simpa using (discrepancy_shift_mul (f := f) (a := m) (d := d) (n := n))
 
+/-! ### Normalizing shifts modulo the step -/
+
+/-- Normal form: shifting by `a` can be reduced modulo the step `d`.
+
+Concretely, for `d > 0` we rewrite the summand shift `k ↦ f (k + a)` as
+`k ↦ f (k + (a % d))` while adjusting the AP start index by `a / d`.
+
+This is aligned with the standard decomposition `a = (a / d) * d + (a % d)`.
+-/
+lemma apSumOffset_shift_mod (f : ℕ → ℤ) (d m n a : ℕ) (hd : 0 < d) :
+    apSumOffset (fun k => f (k + a)) d m n =
+      apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n := by
+  -- (We keep the hypothesis `d > 0` since this lemma is used as a normalization rule.)
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have ha : a = (a / d) * d + a % d := by
+    -- `Nat.div_add_mod` is stated with `d * (a / d)`; commute the factors.
+    simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using (Nat.div_add_mod a d).symm
+  have hadd : (m + i + 1) + a / d = m + a / d + i + 1 := by
+    simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  have hmul : (m + i + 1) * d + (a / d) * d = ((m + i + 1) + a / d) * d := by
+    simpa [Nat.add_mul] using (Nat.add_mul (m + i + 1) (a / d) d).symm
+  have hidx : ((m + i + 1) * d) + a = ((m + a / d + i + 1) * d) + a % d := by
+    calc
+      ((m + i + 1) * d) + a
+          = ((m + i + 1) * d) + ((a / d) * d + a % d) := by
+              nth_rewrite 1 [ha]
+              rfl
+      _ = ((m + i + 1) * d + (a / d) * d) + a % d := by
+              simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+      _ = (((m + i + 1) + a / d) * d) + a % d := by
+              -- `x*d + y*d = (x+y)*d`
+              rw [hmul]
+      _ = ((m + a / d + i + 1) * d) + a % d := by
+              simp [hadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  exact congrArg f hidx
+
 /-! ### Triangle-inequality API for AP sums -/
 
 /-- `apSumOffset` splits over addition of lengths. -/
