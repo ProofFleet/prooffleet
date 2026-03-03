@@ -44,6 +44,19 @@ lemma sum_range_affine_reindex (a b n : ℕ) (hb : 0 < b) (f : ℕ → ℤ) :
   -- `Finset.sum_map` gives the equality with the map on the right; we want its symmetric form.
   exact (Finset.sum_map (Finset.range n) ⟨fun i : ℕ => a + b * i, injective_add_mul a b hb⟩ f).symm
 
+/-- Reindex a range sum along an injective affine map inside an `apSumOffset`-style binder.
+
+This is a small convenience wrapper around `sum_range_affine_reindex` that avoids repeated
+`Finset` boilerplate when normalizing expressions like
+`∑ i ∈ range n, f ((m + (a + b*i) + 1) * d)`.
+-/
+lemma sum_range_apSumOffset_affine_reindex (a b n m d : ℕ) (hb : 0 < b) (f : ℕ → ℤ) :
+    (Finset.range n).sum (fun i => f ((m + (a + b * i) + 1) * d)) =
+      ((Finset.range n).map (affineEmbedding a b hb)).sum (fun k => f ((m + k + 1) * d)) := by
+  simpa using
+    (sum_range_affine_reindex (a := a) (b := b) (n := n) (hb := hb)
+      (f := fun k => f ((m + k + 1) * d)))
+
 /-- Nucleus-friendly normal form: reindex `apSumOffset` via the injective affine map
 `i ↦ (m+1) + 1*i`.
 
