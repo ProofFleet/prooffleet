@@ -270,7 +270,8 @@ Definition of done:
     - `sum_Icc_eq_apSumOffset_of_le_add_len` (`i * d` binder)
     - `sum_Icc_eq_apSumOffset_of_le_add_len_mul_left` (`d * i` binder)
     - plus aliases `sum_Icc_eq_apSumOffset_of_le_homogeneousTail*`
-- [ ] Bounding lemma (stable normal form): for `IsSignSequence f`, prove a tight canonical bound `Int.natAbs (apSumOffset f d m n) ≤ n` as a stable-surface lemma (and derive `discrepancy ≤ n`).
+- [x] Bounding lemma (stable normal form): for `IsSignSequence f`, prove a tight canonical bound `Int.natAbs (apSumOffset f d m n) ≤ n` as a stable-surface lemma (and derive `discrepancy ≤ n`).
+  - Implemented as `IsSignSequence.natAbs_apSumOffset_le` (see `MoltResearch/Discrepancy/Offset.lean`) and `IsSignSequence.discrepancy_le` (see `MoltResearch/Discrepancy/Bound.lean`).
 - [ ] Reindexing glue: add a canonical “factor the step” lemma family for offsets, rewriting `apSumOffset f (d₁*d₂) m n` to `apSumOffset (fun t => f (t*d₁)) d₂ m n` (with `mul_left`-friendly variants), mirroring `apSum_mul_eq_apSum_map_mul`.
 - [ ] Stable-surface coherence: add a short compile-time test file ensuring the preferred normal-form lemmas for the above invariance/translation/reindexing live under `import MoltResearch.Discrepancy` (and deprecated aliases stay opt-in).
 
