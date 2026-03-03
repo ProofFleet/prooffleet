@@ -276,7 +276,8 @@ Definition of done:
 - [x] Stable-surface coherence: add a short compile-time test file ensuring the preferred normal-form lemmas for the above invariance/translation/reindexing live under `import MoltResearch.Discrepancy` (and deprecated aliases stay opt-in).
 
 #### Auto-generated backlog (needs triage)
-- [ ] Normal-form API: add a canonical lemma rewriting `apSumOffset f d m n` into a `Finset.range n` sum with summand `fun i => f ((m+i+1)*d)` (and a translation-friendly `…_add` variant), so downstream bounds can avoid `Icc` bookkeeping.
+- [x] Normal-form API: add a canonical lemma rewriting `apSumOffset f d m n` into a `Finset.range n` sum with summand `fun i => f ((m+i+1)*d)` (and a translation-friendly `…_add` variant), so downstream bounds can avoid `Icc` bookkeeping.
+  - Implemented in `MoltResearch/Discrepancy/Offset.lean` as `apSumOffset_eq_sum_range` and `apSumOffset_eq_sum_range_add`.
 - [ ] Endpoint-coherence pass: add a small, consistent family of lemmas normalizing affine endpoints `a + (m+1)*d` ↔ `a + d*(m+1)` and `a + (m+n)*d` ↔ `a + m*d + n*d`, tagged so `simp` reduces binder-level `Nat` ring-noise in rewrite pipelines.
 - [ ] Difference→tail→offset pipeline: add `apSumFrom_sub_eq_apSumOffset`-style lemmas specialized to the common “subtract a tail from a longer tail” shape `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁` ↦ `apSumOffset f d (m+n₁) n₂`, with stable names + regression examples.
 - [ ] Reindexing glue (injective map): add a lemma that reindexes `apSumOffset` along an injective affine map on indices (a controlled `Finset.map` lemma) and packages it as a nucleus-normal-form reindexing step, to reduce repeated `Finset` boilerplate.
