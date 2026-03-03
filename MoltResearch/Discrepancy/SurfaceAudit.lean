@@ -125,6 +125,28 @@ section
   #check apSum_mul_eq_apSum_map_mul
 
   /-!
+  ## Presence checks (invariance / translation / reindexing)
+
+  These are the high-leverage “change of viewpoint” lemmas used to move discrepancy witnesses
+  across translated/reindexed sequences.
+  -/
+
+  -- Translation invariance (sequence shifted by `k`).
+  #check HasDiscrepancyAtLeast.of_shift_add
+  #check HasDiscrepancyAtLeast.of_shift_add_left
+  #check HasAffineDiscrepancyAtLeast.of_shift_add
+  #check HasAffineDiscrepancyAtLeast.of_shift_add_left
+
+  -- Multiplicative reindexing invariance (sequence reindexed by `x ↦ x * k`).
+  -- (These require a side condition `k > 0` when used in proofs; we just audit the names.)
+  #check HasDiscrepancyAtLeast.of_map_mul
+  #check HasAffineDiscrepancyAtLeast.of_map_mul
+
+  -- Sum-level reindexing bridges.
+  #check apSum_map_mul
+  #check apSumFrom_shift_add
+
+  /-!
   ## Absence checks (deprecated names must NOT be in the stable surface)
 
   We deliberately assert these names are *not* available under `import MoltResearch.Discrepancy`.
