@@ -205,6 +205,31 @@ lemma apSumOffset_add_len (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (f := fun i => f ((m + i + 1) * d)) n₁ n₂)
 
+/-! ### Tails / differences for `apSumOffset` -/
+
+/-- Tail of an offset AP sum as a difference of a longer sum and its initial segment.
+
+This is a convenient normal form for “difference → later tail” pipelines.
+-/
+lemma apSumOffset_tail_eq_sub (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d (m + n₁) n₂ = apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ := by
+  -- Start from the length-splitting lemma and rearrange.
+  have h := apSumOffset_add_len (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+  -- `h : apSumOffset … (n₁+n₂) = apSumOffset … n₁ + apSumOffset … (m+n₁) n₂`.
+  -- Subtract the prefix.
+  have hsub := congrArg (fun z : ℤ => z - apSumOffset f d m n₁) h
+  -- Clean up `(+ …) - …`.
+  simpa [add_sub_cancel_left, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hsub.symm
+
+/-- Rewrite the normal-form difference
+`apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁` as the tail `apSumOffset f d (m+n₁) n₂`.
+
+This is the offset-sum analogue of `apSum_sub_eq_apSumOffset` / `apSumFrom_sub_eq_apSumFrom_tail`.
+-/
+lemma apSumOffset_sub_eq_apSumOffset_tail (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
+  simpa using (apSumOffset_tail_eq_sub (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)).symm
+
 /-- `simp`-friendly corollary of `apSumOffset_add_len` for `n₁ = 0`. -/
 @[simp] lemma apSumOffset_add_len_zero_left (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m (0 + n) = apSumOffset f d m n := by

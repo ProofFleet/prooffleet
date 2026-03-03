@@ -1517,23 +1517,8 @@ lemma apSumOffset_succ_offset (f : ℕ → ℤ) (d m n : ℕ) :
       (apSumOffset_succ_length (f := f) (d := d) (m := m) (n := n)).symm
   simpa using eq_sub_of_add_eq h
 
-/-- Tail of an offset AP sum as a difference of a longer sum and its initial segment. -/
-lemma apSumOffset_tail_eq_sub (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
-    apSumOffset f d (m + n₁) n₂ = apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ := by
-  have h := apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
-  have hsub := congrArg (fun z : ℤ => z - apSumOffset f d m n₁) h
-  have : apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
-    simpa [add_sub_cancel_left] using hsub
-  simpa using this.symm
-
-/-- Rewrite the normal-form difference `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁`
- as the tail `apSumOffset f d (m+n₁) n₂`.
-
-This is the offset-sum analogue of `apSum_sub_eq_apSumOffset` / `apSumFrom_sub_eq_apSumFrom_tail`.
--/
-lemma apSumOffset_sub_eq_apSumOffset_tail (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
-    apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ = apSumOffset f d (m + n₁) n₂ := by
-  simpa using (apSumOffset_tail_eq_sub (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)).symm
+-- NOTE: `apSumOffset_tail_eq_sub` and `apSumOffset_sub_eq_apSumOffset_tail` live in
+-- `MoltResearch.Discrepancy.Basic` (kept in the “basic substrate” layer).
 
 /-- Normal form: rewrite the normal-form difference `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁`
 as an offset sum with `m = 0` on a shifted sequence.
