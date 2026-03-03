@@ -44,6 +44,20 @@ lemma sum_range_affine_reindex (a b n : ℕ) (hb : 0 < b) (f : ℕ → ℤ) :
   -- `Finset.sum_map` gives the equality with the map on the right; we want its symmetric form.
   exact (Finset.sum_map (Finset.range n) ⟨fun i : ℕ => a + b * i, injective_add_mul a b hb⟩ f).symm
 
+/-- Reindex a `Finset.range` sum along an injective affine map, when the summand also multiplies the
+reindexed index by `d`.
+
+This is a convenience wrapper around `sum_range_affine_reindex` that avoids re-proving `Finset`
+boilerplate when normalizing sums of the form
+`(Finset.range n).sum (fun i => f ((a + b * i) * d))`.
+-/
+lemma sum_range_affine_mul_reindex (a b d n : ℕ) (hb : 0 < b) (f : ℕ → ℤ) :
+    (Finset.range n).sum (fun i => f ((a + b * i) * d)) =
+      ((Finset.range n).map (affineEmbedding a b hb)).sum (fun k => f (k * d)) := by
+  simpa using
+    (sum_range_affine_reindex (a := a) (b := b) (n := n) (hb := hb)
+      (f := fun k => f (k * d)))
+
 /-- Reindex a range sum along an injective affine map inside an `apSumOffset`-style binder.
 
 This is a small convenience wrapper around `sum_range_affine_reindex` that avoids repeated
@@ -70,8 +84,8 @@ lemma apSumOffset_reindex_affine (f : ℕ → ℤ) (d m n : ℕ) :
   unfold apSumOffset
   -- `m + i + 1 = (m+1) + 1*i`.
   simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-    (sum_range_affine_reindex (a := m + 1) (b := 1) (n := n) (hb := Nat.succ_pos 0)
-      (f := fun k => f (k * d)))
+    (sum_range_affine_mul_reindex (a := m + 1) (b := 1) (d := d) (n := n)
+      (hb := Nat.succ_pos 0) (f := f))
 
 lemma apSum_map_mul (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
