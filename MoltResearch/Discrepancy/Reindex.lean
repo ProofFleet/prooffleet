@@ -9,6 +9,57 @@ is composed with a multiplication on the argument.
 
 namespace MoltResearch
 
+/-!
+## Affine reindexing glue
+
+These lemmas provide a tiny library for reindexing `Finset.range` sums along an injective
+affine map on indices `i ↦ a + b * i` (with `0 < b`).
+
+They are used to expose a nucleus-friendly normal form for `apSumOffset` that avoids rewriting
+under lambdas.
+-/
+
+/-- The affine map `i ↦ a + b*i` is injective when `b > 0`. -/
+lemma injective_add_mul (a b : ℕ) (hb : 0 < b) :
+    Function.Injective (fun i : ℕ => a + b * i) := by
+  intro i j h
+  have h' : b * i = b * j := Nat.add_left_cancel h
+  exact Nat.mul_left_cancel hb h'
+
+/-- An embedding version of `fun i => a + b*i` (usable with `Finset.map`). -/
+def affineEmbedding (a b : ℕ) (hb : 0 < b) : ℕ ↪ ℕ :=
+  ⟨fun i => a + b * i, injective_add_mul a b hb⟩
+
+/-- Reindex a `Finset.range` sum along an injective affine map.
+
+This is a controlled wrapper around `Finset.sum_map`.
+-/
+lemma sum_range_affine_reindex (a b n : ℕ) (hb : 0 < b) (f : ℕ → ℤ) :
+    (Finset.range n).sum (fun i => f (a + b * i)) =
+      ((Finset.range n).map (affineEmbedding a b hb)).sum f := by
+  classical
+  -- Reduce to `Finset.sum_map` for the embedding `i ↦ a + b*i`.
+  -- We `unfold` so the definitional equality matches the `sum_map` statement without `simp` noise.
+  unfold affineEmbedding
+  -- `Finset.sum_map` gives the equality with the map on the right; we want its symmetric form.
+  exact (Finset.sum_map (Finset.range n) ⟨fun i : ℕ => a + b * i, injective_add_mul a b hb⟩ f).symm
+
+/-- Nucleus-friendly normal form: reindex `apSumOffset` via the injective affine map
+`i ↦ (m+1) + 1*i`.
+
+Downstream code can now use `Finset.sum_map` over the mapped finset without additional
+`Finset.sum_congr` / arithmetic boilerplate.
+-/
+lemma apSumOffset_reindex_affine (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n =
+      ((Finset.range n).map (affineEmbedding (m + 1) 1 (Nat.succ_pos 0))).sum
+        (fun k => f (k * d)) := by
+  unfold apSumOffset
+  -- `m + i + 1 = (m+1) + 1*i`.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (sum_range_affine_reindex (a := m + 1) (b := 1) (n := n) (hb := Nat.succ_pos 0)
+      (f := fun k => f (k * d)))
+
 lemma apSum_map_mul (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   unfold apSum
