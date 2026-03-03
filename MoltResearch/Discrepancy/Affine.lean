@@ -20,6 +20,49 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-! ### Endpoint arithmetic normalisation lemmas
+
+These lemmas help normalising the endpoint expressions that appear in `apSumFrom`-style
+definitions.
+
+We mark only the “forward” direction lemmas with `[simp]`, so `simp` can rewrite towards a
+canonical form without causing rewrite loops.
+-/
+
+section NatEndpointNorm
+
+/-- Normalise `a + (m+1) * d` to `a + d * (m+1)` (canonical form). -/
+@[simp] lemma add_mul_succ_norm (a m d : ℕ) :
+    a + (m + 1) * d = a + d * (m + 1) := by
+  simp [Nat.mul_comm]
+
+/-- Reverse direction of `add_mul_succ_norm` (not tagged `[simp]`). -/
+lemma add_mul_succ_norm' (a m d : ℕ) :
+    a + d * (m + 1) = a + (m + 1) * d := by
+  simp [Nat.mul_comm]
+
+/-- Normalise `a + (m+n) * d` to `a + m*d + n*d` (canonical form).
+
+We *do not* tag this `[simp]`: it can be useful, but it is a fairly powerful reassociation
+rewrite that tends to create large simp search spaces in downstream files.
+-/
+lemma add_mul_add_norm (a m n d : ℕ) :
+    a + (m + n) * d = a + m * d + n * d := by
+  -- Expand `(m+n)*d` and reassociate.
+  simp [Nat.add_mul, Nat.add_assoc]
+
+/-- Reverse direction of `add_mul_add_norm` (not tagged `[simp]`). -/
+lemma add_mul_add_norm' (a m n d : ℕ) :
+    a + m * d + n * d = a + (m + n) * d := by
+  -- Compress back to `(m+n)*d`.
+  calc
+    a + m * d + n * d = a + (m * d + n * d) := by
+      simp [Nat.add_assoc]
+    _ = a + (m + n) * d := by
+      simpa using congrArg (fun t => a + t) (Nat.add_mul m n d).symm
+
+end NatEndpointNorm
+
 /-! ### Bridge lemmas: `apSumOffset` vs `apSumFrom` -/
 
 /-- Offset sum of a shifted sequence is an affine AP sum.
@@ -581,8 +624,9 @@ lemma apSumFrom_tail_eq_apSum_step_one (f : ℕ → ℤ) (a d m n : ℕ) :
   unfold apSumFrom apSum
   refine Finset.sum_congr rfl ?_
   intro i hi
-  have hmul : m * d + (i + 1) * d = (m + (i + 1)) * d := by
-    simpa using (Nat.add_mul m (i + 1) d).symm
+  -- `simp` (via `add_mul_succ_norm`) prefers the normal form `a + d * (i+1)`.
+  have hmul : m * d + d * (i + 1) = (m + (i + 1)) * d := by
+    simpa [Nat.mul_comm] using (Nat.add_mul m (i + 1) d).symm
   -- `simp` also reduces `((i+1) * 1)`.
   simp [Nat.add_assoc, hmul]
 

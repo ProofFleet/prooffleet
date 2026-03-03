@@ -47,11 +47,12 @@ lemma IsSignSequence.apSumFrom_zmod2 {f : ℕ → ℤ} (hf : IsSignSequence f) (
   | zero =>
       simp [apSumFrom]
   | succ n ih =>
-      have hterm : ((f (a + (n + 1) * d)) : ZMod 2) = (1 : ZMod 2) := by
-        rcases hf (a + (n + 1) * d) with h | h <;> simp [h]
+      -- `simp` normalises `a + (n+1)*d` to `a + d*(n+1)` via `add_mul_succ_norm`.
+      have hterm : ((f (a + d * (n + 1))) : ZMod 2) = (1 : ZMod 2) := by
+        rcases hf (a + d * (n + 1)) with h | h <;> simp [h]
       have hs :
           (apSumFrom f a d (n + 1) : ZMod 2) =
-            (apSumFrom f a d n : ZMod 2) + (f (a + (n + 1) * d) : ZMod 2) := by
+            (apSumFrom f a d n : ZMod 2) + (f (a + d * (n + 1)) : ZMod 2) := by
         simpa using
           congrArg (fun z : ℤ => (z : ZMod 2))
             (apSumFrom_succ (f := f) (a := a) (d := d) (n := n))
