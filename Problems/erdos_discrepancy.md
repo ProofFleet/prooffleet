@@ -172,6 +172,7 @@ Typical rewrite pipeline:
 - [x] Translation lemmas (shift indices / offset handling)
 
 **Remaining (choose next boxes from here)**
+- [x] Stability lemma: apSumOffset support / invariance under modifying f outside accessed indices
 - [x] Add regression example: affine difference → offset normal form (apSumFrom_sub_eq_apSumOffset_shift_add)
 - [x] Add regression example: mul-left affine difference → shifted homogeneous normal form (apSumFrom_sub_eq_apSum_shift_add_mul_left)
 - [x] Write a short “normal forms” section in `MoltResearch/Discrepancy.lean` documenting preferred rewrite targets
