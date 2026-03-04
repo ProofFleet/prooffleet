@@ -198,6 +198,10 @@ example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
 example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
   simpa using apSumOffset_eq_sum_range (f := f) (d := d) (m := m) (n := n)
 
+-- Regression: stable lemma name for the same normal form.
+example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
+  simpa using apSumOffset_eq_sum_range' (f := f) (d := d) (m := m) (n := n)
+
 -- Translation-friendly variant with binder order `i + m + 1`.
 example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((i + m + 1) * d)) := by
   simpa using apSumOffset_eq_sum_range_add (f := f) (d := d) (m := m) (n := n)

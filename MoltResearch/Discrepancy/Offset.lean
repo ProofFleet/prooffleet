@@ -28,6 +28,29 @@ lemma apSumOffset_eq_sum_range (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
   rfl
 
+/-!
+## Stable rewrite lemmas
+
+These expose the same rewrite as `apSumOffset_eq_sum_range` but with **stable names** that we
+intend downstream developments to depend on.
+-/
+
+/-- Stable normal-form lemma: rewrite `apSumOffset` as a `Finset.range` sum.
+
+This is a thin wrapper around `apSumOffset_eq_sum_range` (the definitional lemma).
+-/
+lemma apSumOffset_eq_sum_range' (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
+  simpa using (apSumOffset_eq_sum_range (f := f) (d := d) (m := m) (n := n))
+
+/-- Stable inverse rewrite lemma: a `Finset.range` tail sum is an `apSumOffset`.
+
+This is the symmetric orientation of `apSumOffset_eq_sum_range'`.
+-/
+lemma sum_range_eq_apSumOffset' (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.range n).sum (fun i => f ((m + i + 1) * d)) = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_sum_range' (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Translation-friendly variant of `apSumOffset_eq_sum_range` with the binder variable on the left:
 `i + m + 1`.
 
