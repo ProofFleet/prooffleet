@@ -172,6 +172,16 @@ lemma sum_Icc_eq_apSumFrom_mul_left_add (f : ℕ → ℤ) (a d n : ℕ) :
     (Finset.Icc 1 n).sum (fun i => f (d * i + a)) = apSumFrom f a d n := by
   simpa [Nat.mul_comm] using (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n))
 
+/-- Deprecated argument-order variant of `apSumFrom_mul_right`.
+
+The stable surface standardizes on the `(f, c, a, d, n)` argument order, consistent with
+`apSum_mul_right` and `apSumOffset_mul_right`.
+-/
+@[deprecated "Use `apSumFrom_mul_right` (with arguments ordered as `(f, c, a, d, n)`)." (since := "2026-03-04")]
+lemma apSumFrom_mul_right_cfirst (c : ℤ) (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom (fun k => f k * c) a d n = apSumFrom f a d n * c := by
+  simpa using (apSumFrom_mul_right (f := f) (c := c) (a := a) (d := d) (n := n))
+
 /-- Deprecated mul-left wrapper around `sum_Icc_eq_apSumOffset_shift_add_left`.
 
 Prefer the canonical lemma and rewrite `i * d` to `d * i` using `Nat.mul_comm` as needed.

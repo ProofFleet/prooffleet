@@ -946,7 +946,7 @@ lemma IsSignSequence.natAbs_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence 
   unfold apSumFrom
   simpa [Finset.mul_sum]
 
-@[simp] lemma apSumFrom_mul_right (c : ℤ) (f : ℕ → ℤ) (a d n : ℕ) :
+@[simp] lemma apSumFrom_mul_right (f : ℕ → ℤ) (c : ℤ) (a d n : ℕ) :
   apSumFrom (fun k => f k * c) a d n = apSumFrom f a d n * c := by
   classical
   unfold apSumFrom
