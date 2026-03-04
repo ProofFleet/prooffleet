@@ -444,6 +444,26 @@ lemma apSumOffset_eq_apSumFrom_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f (d * k)) 1 m n = apSumFrom f (m * d) d n := by
   simpa using (apSumFrom_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Deprecated mul-left variant of `apSumFrom_mul_eq_apSumOffset`.
+
+Prefer rewriting `d * m` to `m * d` with `Nat.mul_comm` and using the canonical lemma.
+-/
+@[deprecated "Use `apSumFrom_mul_eq_apSumOffset` (after rewriting `d * m` to `m * d` with `Nat.mul_comm`)." (since := "2026-03-04")]
+lemma apSumFrom_mul_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumFrom f (d * m) d n = apSumOffset f d m n := by
+  simpa [Nat.mul_comm] using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
+/-- Deprecated mul-left variant of `apSumFrom_eq_apSumOffset_of_eq_mul`.
+
+Prefer rewriting `a = d * m` to `a = m * d` (or changing the witness) and using the canonical lemma.
+-/
+@[deprecated "Use `apSumFrom_eq_apSumOffset_of_eq_mul` (after rewriting `a = d * m` to `a = m * d`)." (since := "2026-03-04")]
+lemma apSumFrom_eq_apSumOffset_of_eq_mul_left (f : ℕ → ℤ) {a d m n : ℕ} (ha : a = d * m) :
+    apSumFrom f a d n = apSumOffset f d m n := by
+  -- Reuse the canonical `m * d` lemma, but keep the hypothesis in the `d * m` orientation.
+  simpa [ha, Nat.mul_comm] using
+    (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSumOffset_step_one_add_left`.
 
 We do *not* mark this as `[simp]`: our normal forms prefer the `apSumOffset … 1 m n` presentation

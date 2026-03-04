@@ -354,15 +354,11 @@ lemma apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumFrom f (m * d) d n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSumFrom (f := f) (d := d) (m := m) (n := n)).symm
 
-/-- Mul-left variant of `apSumFrom_mul_eq_apSumOffset`.
+/-!
+Mul-left paper-notation helpers (e.g. `d * m` vs `m * d`) are *not* part of the stable surface.
 
-This is a tiny normal-form helper when your affine start is already written as `d * m`, so you can
-rewrite to an `apSumOffset` without first commuting multiplication.
+They live in `MoltResearch.Discrepancy.Deprecated` as deprecated compatibility wrappers.
 -/
-lemma apSumFrom_mul_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
-    apSumFrom f (d * m) d n = apSumOffset f d m n := by
-  -- Reuse the `m * d` lemma, but keep the statement in the `d * m` orientation.
-  simpa [Nat.mul_comm] using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
 /-- Convenience wrapper: if the affine start `a` is *definitionally* a multiple of `d`, rewrite
 `apSumFrom f a d n` to an offset sum.
@@ -373,13 +369,12 @@ lemma apSumFrom_eq_apSumOffset_of_eq_mul (f : ℕ → ℤ) {a d m n : ℕ} (ha :
     apSumFrom f a d n = apSumOffset f d m n := by
   simpa [ha] using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
-/-- Mul-left variant of `apSumFrom_eq_apSumOffset_of_eq_mul`.
+/-!
+Mul-left variant of `apSumFrom_eq_apSumOffset_of_eq_mul` (i.e. with a hypothesis `a = d * m`)
+was removed from the stable surface.
 
-This is a small normal-form helper when your context already contains a fact `a = d * m`.
+Import `MoltResearch.Discrepancy.Deprecated` if you need it.
 -/
-lemma apSumFrom_eq_apSumOffset_of_eq_mul_left (f : ℕ → ℤ) {a d m n : ℕ} (ha : a = d * m) :
-    apSumFrom f a d n = apSumOffset f d m n := by
-  simpa [ha] using (apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
 /-- Convenience wrapper: if the affine start `a` is a multiple of `d`, rewrite `apSumFrom` to an
 offset sum.
@@ -425,8 +420,8 @@ lemma apSumFrom_eq_apSumOffset_of_dvd (f : ℕ → ℤ) {a d n : ℕ} (h : d ∣
       -- Reduce to the standard `m*d / d = m` lemma.
       simpa [Nat.mul_comm] using (Nat.mul_div_left m hdpos)
     -- Reduce to the `a = d*m` normal form and compute the quotient.
-    simpa [hdiv] using
-      (apSumFrom_mul_left_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+    simpa [hdiv, Nat.mul_comm] using
+      (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
 /-- Shifted version of `apSumFrom`.
 
