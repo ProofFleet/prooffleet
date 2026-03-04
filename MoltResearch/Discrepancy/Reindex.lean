@@ -233,6 +233,33 @@ lemma apSumFrom_mul_eq_apSumFrom_rebase_map_mul_left (f : ℕ → ℤ) (a d₁ d
   simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
     (apSumFrom_mul_eq_apSumFrom_rebase_map_mul₁₂ (f := f) (a := a) (d₁ := d₁) (d₂ := d₂) (n := n))
 
+/-! #### Wrappers: step-factor coherence (keep basepoint `a`)
+
+The Track B checklist (Problems/erdos_discrepancy.md) phrases step-factor coherence as rewriting
+`apSumFrom f a (d₁*d₂) n` into an `apSumFrom` with step `d₂` while “pushing `d₁` into the summand”.
+
+Since `apSumFrom` ranges over *points* `t = a + (i+1)*d₂`, the correct basepoint-preserving
+formulation necessarily rebases the inner index via `t - a`.
+
+These are just convenience aliases for the more explicit `…_rebase_map_mul…` lemmas above.
+-/
+
+/-- Step-factor coherence for `apSumFrom`, keeping the basepoint `a`.
+
+Convenience wrapper (basepoint-preserving) for rewriting
+`apSumFrom f a (d₁*d₂) n` into an `apSumFrom` with step `d₂`.
+-/
+lemma apSumFrom_mul_eq_apSumFrom_map_mul_keep_a (f : ℕ → ℤ) (a d₁ d₂ n : ℕ) :
+    apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + (t - a) * d₁)) a d₂ n := by
+  simpa using
+    (apSumFrom_mul_eq_apSumFrom_rebase_map_mul₁₂ (f := f) (a := a) (d₁ := d₁) (d₂ := d₂) (n := n))
+
+/-- Left-multiplication-friendly variant of `apSumFrom_mul_eq_apSumFrom_map_mul_keep_a`. -/
+lemma apSumFrom_mul_eq_apSumFrom_map_mul_keep_a_left (f : ℕ → ℤ) (a d₁ d₂ n : ℕ) :
+    apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + d₁ * (t - a))) a d₂ n := by
+  simpa using
+    (apSumFrom_mul_eq_apSumFrom_rebase_map_mul_left (f := f) (a := a) (d₁ := d₁) (d₂ := d₂) (n := n))
+
 /-- Undo the `(· * k)` reindexing when `a` and `d` are multiples of `k`. -/
 lemma apSumFrom_map_mul_div_of_dvd (f : ℕ → ℤ) (k a d n : ℕ) (hk : k > 0)
     (ha : k ∣ a) (hd : k ∣ d) :
