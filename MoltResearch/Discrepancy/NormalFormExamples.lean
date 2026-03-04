@@ -700,6 +700,21 @@ example :
   simpa using
     sum_Icc_eq_apSumOffset_shift_add_mul_left_add (f := f) (a := a) (d := d) (m := m) (n := n)
 
+-- Paper boundary bridge: keep paper summand `a + i*d` but normalize into the translation-friendly
+-- offset normal form `k ↦ f (k + a)`.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    sum_Icc_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
+-- Mul-left variant of the paper boundary bridge: `a + d*i`.
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    sum_Icc_eq_apSumOffset_shift_add_left_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+
 -- Paper-notation inequality normal form: `Icc (m+1) n` tails for affine sums.
 example (hmn : m ≤ n) :
     (Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) = apSumFrom f (a + m * d) d (n - m) := by

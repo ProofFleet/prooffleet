@@ -73,6 +73,10 @@ section
   #check sum_Icc_eq_apSumOffset_add_length
   #check sum_Icc_add_length
 
+  -- Paper boundary bridge: affine paper tails → translation-friendly offset normal form.
+  #check sum_Icc_eq_apSumOffset_shift_add_left
+  #check sum_Icc_eq_apSumOffset_shift_add_left_mul_left
+
   -- `simp`-friendly degenerate split corollaries should be coherent across the nucleus APIs.
   #check apSum_add_length_zero_left
   #check apSum_add_length_zero_right

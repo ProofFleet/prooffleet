@@ -289,7 +289,8 @@ Definition of done:
   Implemented in `MoltResearch/Discrepancy/Reindex.lean` via lemmas `sum_range_affine_reindex`, `affineEmbedding`, `apSumOffset_reindex_affine`.
 - [x] Invariance API (mod step): add a lemma normalizing shifts modulo the step: `apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n` (when `d>0`), aligned with the existing witness-level translation normal form.
   - Implemented in `MoltResearch/Discrepancy/Basic.lean` as `apSumOffset_shift_mod` (with a regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`).
-- [ ] “Paper boundary” bridge: add a canonical lemma rewriting paper sums over `Icc (m+1) (m+n)` with summand `f (a + i*d)` directly to `apSumOffset (fun k => f (k + a)) d m n` (both `i*d` and `d*i` variants), minimizing `Nat.add_comm` churn.
+- [x] “Paper boundary” bridge: add a canonical lemma rewriting paper sums over `Icc (m+1) (m+n)` with summand `f (a + i*d)` directly to `apSumOffset (fun k => f (k + a)) d m n` (both `i*d` and `d*i` variants), minimizing `Nat.add_comm` churn.
+  - Implemented as `sum_Icc_eq_apSumOffset_shift_add_left` and `sum_Icc_eq_apSumOffset_shift_add_left_mul_left` in `MoltResearch/Discrepancy/AffineTail.lean`.
 - [ ] API surface coherence: add `@[simp]` lemmas that move `Int.natAbs` through the definitional bridges `discrepancy/affineDiscrepancy` → `Int.natAbs (apSum…)` in a way that avoids simp loops, plus compile-time regression examples under `import MoltResearch.Discrepancy`.
 - [ ] Consolidate naming: audit the “step-one” + “mul_left/mul_right” lemma families for `apSum`/`apSumOffset`/`apSumFrom` and ensure each has exactly one preferred public name (others as deprecated aliases), with `SurfaceAudit` tests updated accordingly.
 
