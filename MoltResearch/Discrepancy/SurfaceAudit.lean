@@ -177,6 +177,22 @@ section
   #guard_msgs in
   #check apSum_map_add
 
+  /-- error: Unknown identifier `apSumOffset_eq_apSum_step_one_mul_left` -/
+  #guard_msgs in
+  #check apSumOffset_eq_apSum_step_one_mul_left
+
+  /-- error: Unknown identifier `apSumOffset_eq_apSum_step_one_mul_left_add_left` -/
+  #guard_msgs in
+  #check apSumOffset_eq_apSum_step_one_mul_left_add_left
+
+  /-- error: Unknown identifier `apSum_step_one_mul_left_eq_apSumOffset` -/
+  #guard_msgs in
+  #check apSum_step_one_mul_left_eq_apSumOffset
+
+  /-- error: Unknown identifier `apSum_step_one_mul_left_add_left_eq_apSumOffset` -/
+  #guard_msgs in
+  #check apSum_step_one_mul_left_add_left_eq_apSumOffset
+
 
   /-- error: Unknown identifier `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left` -/
   #guard_msgs in

@@ -130,4 +130,47 @@ lemma apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left (f : ℕ → �
     (apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left (f := f) (a := a) (d := d)
       (m := m) (n := n) hmn)
 
+
+
+/-- Deprecated multiplication-on-the-left wrapper around `apSumOffset_eq_apSum_step_one`.
+
+Prefer `apSumOffset_eq_apSum_step_one` and rewrite `((m + k) * d)` to `d * (m + k)` as needed.
+-/
+@[deprecated "Use `apSumOffset_eq_apSum_step_one` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSumOffset_eq_apSum_step_one_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (d * (m + k))) 1 n := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n))
+
+/-- Deprecated multiplication-on-the-left wrapper around `apSumOffset_eq_apSum_step_one_add_left`.
+
+Prefer `apSumOffset_eq_apSum_step_one_add_left` and rewrite `k * d + m * d` to `d * k + d * m`
+using `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `apSumOffset_eq_apSum_step_one_add_left` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSumOffset_eq_apSum_step_one_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (d * k + d * m)) 1 n := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n))
+
+/-- Deprecated inverse-orientation wrapper around `apSumOffset_eq_apSum_step_one_mul_left`.
+
+Prefer `apSum_step_one_eq_apSumOffset` (and rewrite with `Nat.mul_comm` as needed).
+-/
+@[deprecated "Use `apSum_step_one_eq_apSumOffset` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSum_step_one_mul_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (d * (m + k))) 1 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSum_step_one_mul_left (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Deprecated inverse-orientation wrapper around `apSumOffset_eq_apSum_step_one_mul_left_add_left`.
+
+Prefer `apSum_step_one_add_left_eq_apSumOffset` (and rewrite with `Nat.mul_comm` as needed).
+-/
+@[deprecated "Use `apSum_step_one_add_left_eq_apSumOffset` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSum_step_one_mul_left_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (d * k + d * m)) 1 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSum_step_one_mul_left_add_left (f := f) (d := d) (m := m) (n := n)).symm
+
 end MoltResearch

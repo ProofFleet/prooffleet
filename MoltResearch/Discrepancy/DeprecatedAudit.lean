@@ -33,6 +33,11 @@ section
   #check apSum_map_add_left
 
   #check apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left
+
+  #check apSumOffset_eq_apSum_step_one_mul_left
+  #check apSumOffset_eq_apSum_step_one_mul_left_add_left
+  #check apSum_step_one_mul_left_eq_apSumOffset
+  #check apSum_step_one_mul_left_add_left_eq_apSumOffset
 end
 
 end MoltResearch
