@@ -265,4 +265,38 @@ lemma apSum_step_one_mul_left_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n :
   simpa using
     (apSumOffset_eq_apSum_step_one_mul_left_add_left (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Deprecated multiplication-on-the-left wrapper around
+`apSumOffset_eq_apSumOffset_step_one_zero_m_add_left`.
+
+Prefer `apSumOffset_eq_apSumOffset_step_one_zero_m_add_left` and rewrite `k*d + m*d` to
+`d*k + d*m` as needed.
+-/
+@[deprecated "Use `apSumOffset_eq_apSumOffset_step_one_zero_m_add_left` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumOffset (fun k => f (d * k + d * m)) 1 0 n := by
+  simpa [Nat.mul_comm] using
+    (apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n))
+
+/-- Deprecated inverse orientation of `apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left`.
+
+Prefer `apSumOffset_step_one_zero_m_add_left_eq_apSumOffset` and rewrite as needed.
+-/
+@[deprecated "Use `apSumOffset_step_one_zero_m_add_left_eq_apSumOffset` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSumOffset_step_one_zero_m_mul_left_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (d * k + d * m)) 1 0 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f := f) (d := d) (m := m)
+      (n := n)).symm
+
+/-- Deprecated multiplication-on-the-left wrapper around
+`apSum_sub_eq_apSumOffset_step_one_zero_m_add_left`.
+
+Prefer the canonical lemma and rewrite the summand index using `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `apSum_sub_eq_apSumOffset_step_one_zero_m_add_left` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSum_sub_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum f d (m + n) - apSum f d m = apSumOffset (fun k => f (d * k + d * m)) 1 0 n := by
+  simpa [Nat.mul_comm] using
+    (apSum_sub_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n))
+
 end MoltResearch

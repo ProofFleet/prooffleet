@@ -131,6 +131,9 @@ section
   -- Step-factorization (compare different steps) normal form should be present.
   #check apSum_mul_eq_apSum_map_mul
 
+  -- Step-one (difference) normal form should be present.
+  #check apSum_sub_eq_apSumOffset_step_one_zero_m_add_left
+
   /-!
   ## Presence checks (invariance / translation / reindexing)
 
@@ -219,6 +222,18 @@ section
   /-- error: Unknown identifier `apSum_step_one_mul_left_add_left_eq_apSumOffset` -/
   #guard_msgs in
   #check apSum_step_one_mul_left_add_left_eq_apSumOffset
+
+  /-- error: Unknown identifier `apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left` -/
+  #guard_msgs in
+  #check apSumOffset_eq_apSumOffset_step_one_zero_m_mul_left_add_left
+
+  /-- error: Unknown identifier `apSumOffset_step_one_zero_m_mul_left_add_left_eq_apSumOffset` -/
+  #guard_msgs in
+  #check apSumOffset_step_one_zero_m_mul_left_add_left_eq_apSumOffset
+
+  /-- error: Unknown identifier `apSum_sub_eq_apSumOffset_step_one_zero_m_mul_left_add_left` -/
+  #guard_msgs in
+  #check apSum_sub_eq_apSumOffset_step_one_zero_m_mul_left_add_left
 
 
   /-- error: Unknown identifier `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left` -/
