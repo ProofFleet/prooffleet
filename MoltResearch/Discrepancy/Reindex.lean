@@ -163,6 +163,31 @@ lemma apSumFrom_map_mul (f : ℕ → ℤ) (k a d n : ℕ) :
   intro i hi
   simp [Nat.add_mul, Nat.mul_assoc]
 
+/-! ### Step-factor coherence for `apSumFrom`
+
+These lemmas are the affine analogues of the `apSum_mul_eq_apSum_map_mul` /
+`apSumOffset_mul_eq_apSumOffset_map_mul…` family: they let us factor a product step size by
+changing the summand.
+
+Concretely, they rewrite an affine AP sum with step `d₁*d₂` into an affine AP sum with step `d₂`
+on the sequence `t ↦ f (a + t*d₁)`.
+-/
+
+/-- Factor a product step size `d₁ * d₂` in `apSumFrom` by pushing `d₁` into the summand. -/
+lemma apSumFrom_mul_eq_apSumFrom_map_mul₁₂ (f : ℕ → ℤ) (a d₁ d₂ n : ℕ) :
+    apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + t * d₁)) 0 d₂ n := by
+  unfold apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `a + (i+1)*(d₁*d₂) = a + ((i+1)*d₂)*d₁`.
+  simp [Nat.mul_assoc, Nat.mul_comm]
+
+/-- Left-multiplication-friendly variant of `apSumFrom_mul_eq_apSumFrom_map_mul₁₂`. -/
+lemma apSumFrom_mul_eq_apSumFrom_map_mul_left (f : ℕ → ℤ) (a d₁ d₂ n : ℕ) :
+    apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + d₁ * t)) 0 d₂ n := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (apSumFrom_mul_eq_apSumFrom_map_mul₁₂ (f := f) (a := a) (d₁ := d₁) (d₂ := d₂) (n := n))
+
 /-- Undo the `(· * k)` reindexing when `a` and `d` are multiples of `k`. -/
 lemma apSumFrom_map_mul_div_of_dvd (f : ℕ → ℤ) (k a d n : ℕ) (hk : k > 0)
     (ha : k ∣ a) (hd : k ∣ d) :
