@@ -15,11 +15,18 @@ section NormalFormExamples
 
 variable (f : ℕ → ℤ) (a b d m n n₁ n₂ C : ℕ)
 
--- Regression: `simp` should rewrite the discrepancy wrappers into their `Int.natAbs` normal forms.
+-- Regression: definitional lemmas expose the wrappers.
 example : discrepancy f d n = Int.natAbs (apSum f d n) := by
-  simp
+  simp [discrepancy]
 
 example : affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) := by
+  simp [affineDiscrepancy]
+
+-- Regression: `simp` can also move `Int.natAbs` *into* the wrappers without looping.
+example : Int.natAbs (apSum f d n) = discrepancy f d n := by
+  simp
+
+example : Int.natAbs (apSumFrom f a d n) = affineDiscrepancy f a d n := by
   simp
 
 example : discrepancy (fun k => f (k + a)) d n = Int.natAbs (apSumFrom f a d n) := by

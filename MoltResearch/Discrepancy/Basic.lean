@@ -33,14 +33,22 @@ It is defined as the natural absolute value of `apSum f d n`.
 def discrepancy (f : ℕ → ℤ) (d n : ℕ) : ℕ :=
   Int.natAbs (apSum f d n)
 
-/-- Simplification lemma exposing the definition. -/
-@[simp] lemma discrepancy_eq_natAbs_apSum (f : ℕ → ℤ) (d n : ℕ) :
+/-- Definitional lemma exposing the definition. -/
+lemma discrepancy_eq_natAbs_apSum (f : ℕ → ℤ) (d n : ℕ) :
     discrepancy f d n = Int.natAbs (apSum f d n) :=
   rfl
 
-/-- Alias for the definitional simp lemma. -/
-@[simp] lemma discrepancy_def (f : ℕ → ℤ) (d n : ℕ) :
+/-- Alias for the definitional lemma. -/
+lemma discrepancy_def (f : ℕ → ℤ) (d n : ℕ) :
     discrepancy f d n = Int.natAbs (apSum f d n) :=
+  rfl
+
+/-- `simp` bridge: `Int.natAbs (apSum …)` simplifies to the `discrepancy` wrapper.
+
+This direction avoids simp loops with `discrepancy_def`.
+-/
+@[simp] lemma natAbs_apSum_eq_discrepancy (f : ℕ → ℤ) (d n : ℕ) :
+    Int.natAbs (apSum f d n) = discrepancy f d n :=
   rfl
 
 /-- The discrepancy of an empty progression is zero. -/
@@ -500,10 +508,10 @@ lemma HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f : ℕ �
   · intro h
     rcases HasDiscrepancyAtLeast.exists_witness_d_ge_one_pos (h := h) with ⟨d, n, hd, hn, hgt⟩
     refine ⟨d, n, hd, hn, ?_⟩
-    simpa [discrepancy] using hgt
+    simpa using hgt
   · rintro ⟨d, n, hd, _hn, hgt⟩
     refine ⟨d, n, (Nat.succ_le_iff).1 hd, ?_⟩
-    simpa [discrepancy] using hgt
+    simpa using hgt
 
 /-- The “unbounded discrepancy” statement `∀ C, HasDiscrepancyAtLeast f C` is equivalent to
 the more explicit witness form `∀ C, ∃ d n > 0, …`.

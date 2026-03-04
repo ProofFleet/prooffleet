@@ -989,14 +989,22 @@ It is defined as the natural absolute value of `apSumFrom f a d n`.
 def affineDiscrepancy (f : ℕ → ℤ) (a d n : ℕ) : ℕ :=
   Int.natAbs (apSumFrom f a d n)
 
-/-- Simplification lemma exposing the definition. -/
-@[simp] lemma affineDiscrepancy_eq_natAbs_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+/-- Definitional lemma exposing the definition. -/
+lemma affineDiscrepancy_eq_natAbs_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
     affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) :=
   rfl
 
-/-- Alias for the definitional simp lemma. -/
-@[simp] lemma affineDiscrepancy_def (f : ℕ → ℤ) (a d n : ℕ) :
+/-- Alias for the definitional lemma. -/
+lemma affineDiscrepancy_def (f : ℕ → ℤ) (a d n : ℕ) :
     affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) :=
+  rfl
+
+/-- `simp` bridge: `Int.natAbs (apSumFrom …)` simplifies to the `affineDiscrepancy` wrapper.
+
+This direction avoids simp loops with `affineDiscrepancy_def`.
+-/
+@[simp] lemma natAbs_apSumFrom_eq_affineDiscrepancy (f : ℕ → ℤ) (a d n : ℕ) :
+    Int.natAbs (apSumFrom f a d n) = affineDiscrepancy f a d n :=
   rfl
 
 /-- The affine discrepancy of an empty progression is zero. -/
@@ -1042,10 +1050,10 @@ lemma HasAffineDiscrepancyAtLeast_iff_exists_affineDiscrepancy_ge_one (f : ℕ �
     HasAffineDiscrepancyAtLeast f C ↔ ∃ a d n, d ≥ 1 ∧ affineDiscrepancy f a d n > C := by
   constructor
   · rintro ⟨a, d, n, hd, hgt⟩
-    exact ⟨a, d, n, Nat.succ_le_of_lt hd, by simpa [affineDiscrepancy] using hgt⟩
+    exact ⟨a, d, n, Nat.succ_le_of_lt hd, by simpa using hgt⟩
   · rintro ⟨a, d, n, hd, hgt⟩
     refine ⟨a, d, n, (Nat.succ_le_iff).1 hd, ?_⟩
-    simpa [affineDiscrepancy] using hgt
+    simpa using hgt
 
 /-- Normal form: rewrite `HasAffineDiscrepancyAtLeast f C` into an offset-sum witness on the
 shifted sequence `k ↦ f (k + a)`.
@@ -1082,10 +1090,10 @@ lemma HasDiscrepancyAtLeast_shift_add_iff_exists_apSumFrom {f : ℕ → ℤ} (a 
   · rintro ⟨d, n, hd, hgt⟩
     refine ⟨d, n, hd, ?_⟩
     -- Rewrite the homogeneous sum on the shifted sequence as an affine sum on `f`.
-    simpa [apSumFrom_eq_apSum_shift_add] using hgt
+    simpa using hgt
   · rintro ⟨d, n, hd, hgt⟩
     refine ⟨d, n, hd, ?_⟩
-    simpa [apSumFrom_eq_apSum_shift_add] using hgt
+    simpa using hgt
 
 /-- Packaging lemma: a discrepancy witness for the shifted sequence gives an affine discrepancy
 witness for the original sequence.

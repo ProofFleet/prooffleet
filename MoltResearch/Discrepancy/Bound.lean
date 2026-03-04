@@ -35,7 +35,7 @@ lemma natAbs_apSum_le_mul (f : ℕ → ℤ) (B : ℕ)
 lemma discrepancy_le_mul (f : ℕ → ℤ) (B : ℕ)
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (d n : ℕ) :
     discrepancy f d n ≤ n * B := by
-  simpa [discrepancy] using (natAbs_apSum_le_mul (f := f) (B := B) (hB := hB) (d := d) (n := n))
+  simpa using (natAbs_apSum_le_mul (f := f) (B := B) (hB := hB) (d := d) (n := n))
 
 /-- For a sign sequence `f` (each entry is `±1`), the discrepancy on an interval of length `n`
 is at most `n`. -/
