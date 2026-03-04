@@ -116,6 +116,30 @@ lemma apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
     (apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n))
 
 
+/-! ## Step-one deprecated wrappers -/
+
+/-- Deprecated name for `apSumFrom_eq_apSumOffset_step_one`.
+
+This lemma used to be a thin “`m = 0`” wrapper for the step-one offset-sum normal form.
+-/
+@[deprecated "Use `apSumFrom_eq_apSumOffset_step_one`." (since := "2026-03-03")]
+lemma apSumFrom_eq_apSumOffset_step_one_zero_m (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
+  simpa using
+    (apSumFrom_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (n := n))
+
+/-- Deprecated name for `apSumFrom_eq_apSumOffset_step_one_add_left`.
+
+This lemma used to be a thin “`m = 0`” wrapper for the translation-friendly step-one offset-sum
+normal form.
+-/
+@[deprecated "Use `apSumFrom_eq_apSumOffset_step_one_add_left`." (since := "2026-03-03")]
+lemma apSumFrom_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa using
+    (apSumFrom_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (n := n))
+
+
 /-- Deprecated convenience wrapper around
 `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left` with the constant written as `a + d*m`.
 

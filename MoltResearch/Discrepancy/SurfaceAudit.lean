@@ -197,6 +197,14 @@ section
   /-- error: Unknown identifier `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left` -/
   #guard_msgs in
   #check apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left
+
+  /-- error: Unknown identifier `apSumFrom_eq_apSumOffset_step_one_zero_m` -/
+  #guard_msgs in
+  #check apSumFrom_eq_apSumOffset_step_one_zero_m
+
+  /-- error: Unknown identifier `apSumFrom_eq_apSumOffset_step_one_zero_m_add_left` -/
+  #guard_msgs in
+  #check apSumFrom_eq_apSumOffset_step_one_zero_m_add_left
 end
 
 /-!
