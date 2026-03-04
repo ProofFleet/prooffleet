@@ -84,6 +84,27 @@ lemma apSumOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
 
+/-- Support statement: if `f` and `g` agree on every *progression index* used by `apSumOffset`
+(i.e. on `Set.Icc (m+1) (m+n)`), then the offset sums are equal.
+
+This is convenient as “glue” for later local-surgery arguments where you know that `f` and `g`
+coincide on a bounded interval, and you want to change `f` outside that interval.
+-/
+lemma apSumOffset_congr_Icc (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ∈ Set.Icc (m + 1) (m + n) → f (i * d) = g (i * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  apply apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n)
+  intro i hi
+  have hlow : m + 1 ≤ m + i + 1 := by
+    have : 1 ≤ i + 1 := Nat.succ_le_succ (Nat.zero_le i)
+    have : m + 1 ≤ m + (i + 1) := Nat.add_le_add_left this m
+    simpa [Nat.add_assoc] using this
+  have hhigh : m + i + 1 ≤ m + n := by
+    have : i + 1 ≤ n := Nat.succ_le_of_lt hi
+    have : m + (i + 1) ≤ m + n := Nat.add_le_add_left this m
+    simpa [Nat.add_assoc] using this
+  exact h (m + i + 1) ⟨hlow, hhigh⟩
+
 /-- `congr` variant: if `P` holds on every *index* used in `apSumOffset`, and the summands agree
 whenever `P i` holds, then the offset AP sums are equal.
 
