@@ -180,17 +180,37 @@ section
   #guard_msgs in
   #check IsSignSequence.map_add
 
+  /-- error: Unknown constant `MoltResearch.IsSignSequence.map_add_left` -/
+  #guard_msgs in
+  #check IsSignSequence.map_add_left
+
+  /-- error: Unknown identifier `apSumFrom_eq_apSum_shift` -/
+  #guard_msgs in
+  #check apSumFrom_eq_apSum_shift
+
   /-- error: Unknown identifier `apSumFrom_eq_apSum_map_add` -/
   #guard_msgs in
   #check apSumFrom_eq_apSum_map_add
+
+  /-- error: Unknown identifier `apSumFrom_eq_apSum_map_add_left` -/
+  #guard_msgs in
+  #check apSumFrom_eq_apSum_map_add_left
 
   /-- error: Unknown identifier `apSumFrom_map_add` -/
   #guard_msgs in
   #check apSumFrom_map_add
 
+  /-- error: Unknown identifier `apSumFrom_map_add_left` -/
+  #guard_msgs in
+  #check apSumFrom_map_add_left
+
   /-- error: Unknown identifier `apSum_map_add` -/
   #guard_msgs in
   #check apSum_map_add
+
+  /-- error: Unknown identifier `apSum_map_add_left` -/
+  #guard_msgs in
+  #check apSum_map_add_left
 
   /-- error: Unknown identifier `apSum_eq_sum_Icc_mul_left` -/
   #guard_msgs in
@@ -246,6 +266,10 @@ section
   /-- error: Unknown identifier `apSumFrom_eq_apSumOffset_of_eq_mul_left` -/
   #guard_msgs in
   #check apSumFrom_eq_apSumOffset_of_eq_mul_left
+
+  /-- error: Unknown identifier `apSumFrom_mul_right_cfirst` -/
+  #guard_msgs in
+  #check apSumFrom_mul_right_cfirst
 
 
   /-- error: Unknown identifier `apSum_step_one_eq_apSum` -/
