@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.Basic
+import MoltResearch.Discrepancy.Periodic
 import MoltResearch.Discrepancy.Parity
 import MoltResearch.Discrepancy.Offset
 import MoltResearch.Discrepancy.Affine

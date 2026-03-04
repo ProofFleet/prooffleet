@@ -13,7 +13,7 @@ namespace MoltResearch
 
 section NormalFormExamples
 
-variable (f : ℕ → ℤ) (a b d m n n₁ n₂ C : ℕ)
+variable (f : ℕ → ℤ) (a b d m n n₁ n₂ p C : ℕ)
 
 -- Regression: definitional lemmas expose the wrappers.
 example : discrepancy f d n = Int.natAbs (apSum f d n) := by
@@ -207,6 +207,10 @@ example :
 -- Degenerate constant APs.
 example : apSum f 0 n = n • f 0 := by
   simp
+
+-- Periodicity normal form: a step that is a multiple of the period yields a constant sum.
+example (hp : Function.Periodic f p) : apSumOffset f (p * d) m n = n • f 0 := by
+  simpa using (apSumOffset_mul_periodic (f := f) (p := p) hp (d := d) (m := m) (n := n))
 
 example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
   simpa using apSum_eq_apSum_step_one (f := f) (d := d) (n := n)
