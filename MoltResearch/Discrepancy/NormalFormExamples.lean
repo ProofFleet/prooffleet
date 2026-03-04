@@ -324,11 +324,12 @@ example : apSumFrom f a d n = apSum (fun x => f (x + a)) d n := by
   simpa using apSumFrom_eq_apSum_shift_add (f := f) (a := a) (d := d) (n := n)
 
 -- Affine paper notation: multiplication-on-the-left variants (avoid commuting `i*d` under binders).
+-- These are *not* separate surface lemmas: rewrite `i * d` ↔ `d * i` with `Nat.mul_comm` as needed.
 example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + d * i)) := by
-  simpa using apSumFrom_eq_sum_Icc_mul_left (f := f) (a := a) (d := d) (n := n)
+  simpa [Nat.mul_comm] using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n))
 
 example : apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (d * i + a)) := by
-  simpa using apSumFrom_eq_sum_Icc_mul_left_add (f := f) (a := a) (d := d) (n := n)
+  simpa [Nat.mul_comm] using (apSumFrom_eq_sum_Icc_add (f := f) (a := a) (d := d) (n := n))
 
 -- Regression: paper affine sums can normalize to a step-one `apSumOffset` form.
 example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (a + k * d)) 1 0 n := by
