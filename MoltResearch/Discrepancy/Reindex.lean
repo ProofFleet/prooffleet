@@ -188,6 +188,40 @@ lemma apSumFrom_mul_eq_apSumFrom_map_mul_left (f : ℕ → ℤ) (a d₁ d₂ n :
   simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
     (apSumFrom_mul_eq_apSumFrom_map_mul₁₂ (f := f) (a := a) (d₁ := d₁) (d₂ := d₂) (n := n))
 
+/-! #### Step-factor coherence with a rebased index (`t - a`)
+
+The lemmas above factor a product step size `d₁ * d₂` by *reindexing the affine sum to start at 0*.
+Sometimes it is more convenient to keep the outer basepoint `a` (so the step is still `d₂` starting
+from `a`), and instead rebase the index inside the summand using `(t - a)`.
+
+Concretely, since the `apSumFrom` binder ranges over points of the form `t = a + (i+1) * d₂`, we
+have `(t - a) = (i+1) * d₂`, so pushing `d₁` into the summand still yields the same endpoints.
+-/
+
+/-- Factor `d₁ * d₂` in an affine AP sum while keeping the outer basepoint `a`, by rebasing the
+summand index via `(t - a)`.
+
+This gives a convenient rewrite:
+
+`apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + (t - a) * d₁)) a d₂ n`.
+-/
+lemma apSumFrom_mul_eq_apSumFrom_rebase_map_mul₁₂ (f : ℕ → ℤ) (a d₁ d₂ n : ℕ) :
+    apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + (t - a) * d₁)) a d₂ n := by
+  unfold apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hsub : (a + (i + 1) * d₂) - a = (i + 1) * d₂ := by
+    simpa [Nat.add_assoc] using Nat.add_sub_cancel a ((i + 1) * d₂)
+  -- Now both sides are the same endpoint, up to associativity/commutativity of multiplication.
+  simp [hsub, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]
+
+/-- Left-multiplication-friendly variant of `apSumFrom_mul_eq_apSumFrom_rebase_map_mul₁₂`. -/
+lemma apSumFrom_mul_eq_apSumFrom_rebase_map_mul_left (f : ℕ → ℤ) (a d₁ d₂ n : ℕ) :
+    apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + d₁ * (t - a))) a d₂ n := by
+  -- Swap multiplication order in the summand.
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (apSumFrom_mul_eq_apSumFrom_rebase_map_mul₁₂ (f := f) (a := a) (d₁ := d₁) (d₂ := d₂) (n := n))
+
 /-- Undo the `(· * k)` reindexing when `a` and `d` are multiples of `k`. -/
 lemma apSumFrom_map_mul_div_of_dvd (f : ℕ → ℤ) (k a d n : ℕ) (hk : k > 0)
     (ha : k ∣ a) (hd : k ∣ d) :
