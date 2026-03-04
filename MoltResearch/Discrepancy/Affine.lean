@@ -118,6 +118,20 @@ lemma apSumFrom_congr (f g : ℕ → ℤ) (a d n : ℕ)
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
 
+/-- `congr` variant: if `P` holds on every index used in `apSumFrom`, and `f = g` on `P`,
+then the affine AP sums are equal.
+
+This is convenient when you have an ambient hypothesis like
+`∀ x, P x → f x = g x` and want to apply it only on the summation range.
+-/
+lemma apSumFrom_congrOn (f g : ℕ → ℤ) (P : ℕ → Prop) (a d n : ℕ)
+    (hP : ∀ i, i < n → P (a + (i + 1) * d))
+    (hfg : ∀ x, P x → f x = g x) :
+    apSumFrom f a d n = apSumFrom g a d n := by
+  apply apSumFrom_congr (f := f) (g := g) (a := a) (d := d) (n := n)
+  intro i hi
+  exact hfg _ (hP i hi)
+
 /-! ### Normal-form lemmas relating homogeneous and affine AP sums -/
 
 /-- Shifting the sequence by `a` turns a homogeneous AP sum into an affine AP sum. -/
