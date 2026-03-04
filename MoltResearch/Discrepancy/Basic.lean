@@ -375,32 +375,41 @@ lemma natAbs_apSum_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
 
 /-! ### Basic inequalities for sign sequences -/
 
-/-- A sign sequence has `Int.natAbs` bounded by length on any offset AP sum. -/
-lemma natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
+/-! ### General `Int.natAbs` bounds for offset AP sums -/
+
+/-- If the terms of `f` are uniformly bounded by `1` in `Int.natAbs`, then any offset AP sum has
+`Int.natAbs` bounded by its length.
+
+This is the nucleus form of the standard “triangle inequality + induction on length” bound.
+-/
+lemma natAbs_apSumOffset_le_of_natAbs_le_one {f : ℕ → ℤ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ 1) (d m n : ℕ) :
     Int.natAbs (apSumOffset f d m n) ≤ n := by
   induction n with
   | zero =>
       simp [apSumOffset]
   | succ n ih =>
-      -- Peel off the last term of the range sum.
-      have hterm : Int.natAbs (f ((m + n + 1) * d)) = 1 := by
-        rcases hf ((m + n + 1) * d) with h | h <;> simp [h]
-      -- `range (n+1)` sum is `range n` sum plus the last term.
-      have :
+      have hterm : Int.natAbs (f ((m + n + 1) * d)) ≤ 1 := hf _
+      have hsum :
           apSumOffset f d m (n + 1) =
             apSumOffset f d m n + f ((m + n + 1) * d) := by
         simp [apSumOffset, Finset.sum_range_succ, Nat.add_assoc]
-      -- Now use triangle inequality (`natAbs_add_le`) and the inductive hypothesis.
       calc
         Int.natAbs (apSumOffset f d m (n + 1))
             = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
-                simp [this]
+                simpa [hsum]
         _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
-                exact Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d))
-        _ ≤ n + 1 := by
-                have hterm_le : Int.natAbs (f ((m + n + 1) * d)) ≤ 1 := by
-                  simp [hterm]
-                exact Nat.add_le_add ih hterm_le
+                simpa using
+                  (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))
+        _ ≤ n + 1 :=
+                Nat.add_le_add ih hterm
+
+/-- A sign sequence has `Int.natAbs` bounded by length on any offset AP sum. -/
+lemma natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
+    Int.natAbs (apSumOffset f d m n) ≤ n := by
+  refine natAbs_apSumOffset_le_of_natAbs_le_one (f := f) (d := d) (m := m) (n := n) ?_ 
+  intro k
+  rcases hf k with h | h <;> simp [h]
 
 /-- Bounding a *difference of discrepancies* (offset AP sums) by total length.
 
