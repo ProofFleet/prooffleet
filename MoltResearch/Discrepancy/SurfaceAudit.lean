@@ -75,7 +75,6 @@ section
 
   -- Paper boundary bridge: affine paper tails → translation-friendly offset normal form.
   #check sum_Icc_eq_apSumOffset_shift_add_left
-  #check sum_Icc_eq_apSumOffset_shift_add_left_mul_left
 
   -- `simp`-friendly degenerate split corollaries should be coherent across the nucleus APIs.
   #check apSum_add_length_zero_left
@@ -176,6 +175,34 @@ section
   /-- error: Unknown identifier `apSum_map_add` -/
   #guard_msgs in
   #check apSum_map_add
+
+  /-- error: Unknown identifier `apSum_eq_sum_Icc_mul_left` -/
+  #guard_msgs in
+  #check apSum_eq_sum_Icc_mul_left
+
+  /-- error: Unknown identifier `sum_Icc_eq_apSum_mul_left` -/
+  #guard_msgs in
+  #check sum_Icc_eq_apSum_mul_left
+
+  /-- error: Unknown identifier `apSumFrom_eq_sum_Icc_mul_left` -/
+  #guard_msgs in
+  #check apSumFrom_eq_sum_Icc_mul_left
+
+  /-- error: Unknown identifier `sum_Icc_eq_apSumFrom_mul_left` -/
+  #guard_msgs in
+  #check sum_Icc_eq_apSumFrom_mul_left
+
+  /-- error: Unknown identifier `apSumFrom_eq_sum_Icc_mul_left_add` -/
+  #guard_msgs in
+  #check apSumFrom_eq_sum_Icc_mul_left_add
+
+  /-- error: Unknown identifier `sum_Icc_eq_apSumFrom_mul_left_add` -/
+  #guard_msgs in
+  #check sum_Icc_eq_apSumFrom_mul_left_add
+
+  /-- error: Unknown identifier `sum_Icc_eq_apSumOffset_shift_add_left_mul_left` -/
+  #guard_msgs in
+  #check sum_Icc_eq_apSumOffset_shift_add_left_mul_left
 
   /-- error: Unknown identifier `apSumOffset_eq_apSum_step_one_mul_left` -/
   #guard_msgs in

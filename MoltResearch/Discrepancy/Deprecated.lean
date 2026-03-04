@@ -116,6 +116,74 @@ lemma apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
     (apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n))
 
 
+/-! ## Mul-left paper-notation deprecated wrappers -/
+
+/-- Deprecated wrapper around `apSum_eq_sum_Icc` writing the summand as `f (d * i)`.
+
+Prefer `apSum_eq_sum_Icc` and rewrite with `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `apSum_eq_sum_Icc` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSum_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by
+  simpa [Nat.mul_comm] using (apSum_eq_sum_Icc (f := f) (d := d) (n := n))
+
+/-- Deprecated inverse-orientation wrapper around `apSum_eq_sum_Icc_mul_left`.
+
+Prefer `sum_Icc_eq_apSum` and rewrite with `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `sum_Icc_eq_apSum` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma sum_Icc_eq_apSum_mul_left (f : ℕ → ℤ) (d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
+  simpa [Nat.mul_comm] using (sum_Icc_eq_apSum (f := f) (d := d) (n := n))
+
+/-- Deprecated wrapper around `apSumFrom_eq_sum_Icc` writing the summand as `f (a + d * i)`.
+
+Prefer `apSumFrom_eq_sum_Icc` and rewrite with `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `apSumFrom_eq_sum_Icc` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSumFrom_eq_sum_Icc_mul_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (a + d * i)) := by
+  simpa [Nat.mul_comm] using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n))
+
+/-- Deprecated inverse-orientation wrapper around `apSumFrom_eq_sum_Icc_mul_left`.
+
+Prefer `sum_Icc_eq_apSumFrom` and rewrite with `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `sum_Icc_eq_apSumFrom` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma sum_Icc_eq_apSumFrom_mul_left (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + d * i)) = apSumFrom f a d n := by
+  simpa [Nat.mul_comm] using (sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n))
+
+/-- Deprecated wrapper around `apSumFrom_eq_sum_Icc_add` writing the summand as `f (d * i + a)`.
+
+Prefer `apSumFrom_eq_sum_Icc_add` and rewrite with `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `apSumFrom_eq_sum_Icc_add` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSumFrom_eq_sum_Icc_mul_left_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = (Finset.Icc 1 n).sum (fun i => f (d * i + a)) := by
+  simpa [Nat.mul_comm] using (apSumFrom_eq_sum_Icc_add (f := f) (a := a) (d := d) (n := n))
+
+/-- Deprecated inverse-orientation wrapper around `apSumFrom_eq_sum_Icc_mul_left_add`.
+
+Prefer `sum_Icc_eq_apSumFrom_add` and rewrite with `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `sum_Icc_eq_apSumFrom_add` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma sum_Icc_eq_apSumFrom_mul_left_add (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (d * i + a)) = apSumFrom f a d n := by
+  simpa [Nat.mul_comm] using (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n))
+
+/-- Deprecated mul-left wrapper around `sum_Icc_eq_apSumOffset_shift_add_left`.
+
+Prefer the canonical lemma and rewrite `i * d` to `d * i` using `Nat.mul_comm` as needed.
+-/
+@[deprecated "Use `sum_Icc_eq_apSumOffset_shift_add_left` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma sum_Icc_eq_apSumOffset_shift_add_left_mul_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (k + a)) d m n := by
+  simpa [Nat.mul_comm] using
+    (sum_Icc_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
+
 /-! ## Step-one deprecated wrappers -/
 
 /-- Deprecated name for `apSumFrom_eq_apSumOffset_step_one`.

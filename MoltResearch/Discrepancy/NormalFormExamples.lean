@@ -63,10 +63,10 @@ example : (fun k => f (k + a + b)) = fun k => f (k + (a + b)) := by
 
 -- Translation-friendly `d * i` variant (avoids commuting multiplication under binders).
 example : apSum f d n = (Finset.Icc 1 n).sum (fun i => f (d * i)) := by
-  simpa using apSum_eq_sum_Icc_mul_left (f := f) (d := d) (n := n)
+  simpa [Nat.mul_comm] using (apSum_eq_sum_Icc (f := f) (d := d) (n := n))
 
 example : (Finset.Icc 1 n).sum (fun i => f (d * i)) = apSum f d n := by
-  simpa using sum_Icc_eq_apSum_mul_left (f := f) (d := d) (n := n)
+  simpa [Nat.mul_comm] using (sum_Icc_eq_apSum (f := f) (d := d) (n := n))
 
 example : apSum f 1 n = (Finset.Icc 1 n).sum f := by
   simpa using apSum_one_d (f := f) (n := n)
@@ -719,8 +719,8 @@ example :
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i)) =
       apSumOffset (fun k => f (k + a)) d m n := by
-  simpa using
-    sum_Icc_eq_apSumOffset_shift_add_left_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+  simpa [Nat.mul_comm] using
+    (sum_Icc_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
 
 -- Paper-notation inequality normal form: `Icc (m+1) n` tails for affine sums.
 example (hmn : m ≤ n) :
