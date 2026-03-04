@@ -166,6 +166,7 @@ Typical rewrite pipeline:
 - [x] Equivalences: witness existence ↔ `Nonempty` wrappers (to ease composition)
 
 **Reindexing / scaling / translation (canonical transforms)**
+- [x] Normal form: reduce summand shifts modulo the step for offset sums (`apSumOffset_shift_mod`).
 - [x] Reindexing lemmas (undo `map_mul` etc. under divisibility) (`Reindex.lean`)
 - [x] Scaling lemmas (multiply sequence, scale bounds)
 - [x] Translation lemmas (shift indices / offset handling)

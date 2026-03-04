@@ -117,6 +117,13 @@ example :
   simpa using
     (HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_div_mod (f := f) (a := a) (C := C))
 
+-- Summand-shift normalization modulo the step inside an `apSumOffset`.
+example (hd : 0 < d) :
+    apSumOffset (fun k => f (k + a)) d m n =
+      apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n := by
+  simpa using (apSumOffset_shift_mod (f := f) (d := d) (m := m) (n := n) (a := a) hd)
+
+
 -- “Push the translation into the function” normal forms.
 --
 -- These are mathematically the same as the `…_shift` / `…_shift_add` family.
