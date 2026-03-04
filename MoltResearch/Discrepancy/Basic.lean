@@ -1077,14 +1077,14 @@ lemma apSum_sub (f g : ℕ → ℤ) (d n : ℕ) :
   simp [Finset.sum_sub_distrib]
 
 /-- Multiplication by a fixed integer on the left commutes with `apSum`. -/
-lemma apSum_mul_left (c : ℤ) (f : ℕ → ℤ) (d n : ℕ) :
+@[simp] lemma apSum_mul_left (c : ℤ) (f : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => c * f k) d n = c * apSum f d n := by
   classical
   unfold apSum
   simp [Finset.mul_sum]
 
 /-- Multiplication by a fixed integer on the right commutes with `apSum`. -/
-lemma apSum_mul_right (f : ℕ → ℤ) (c : ℤ) (d n : ℕ) :
+@[simp] lemma apSum_mul_right (f : ℕ → ℤ) (c : ℤ) (d n : ℕ) :
     apSum (fun k => f k * c) d n = apSum f d n * c := by
   classical
   unfold apSum

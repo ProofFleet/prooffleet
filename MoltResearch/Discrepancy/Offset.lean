@@ -1735,14 +1735,14 @@ lemma apSumOffset_sub (f g : ℕ → ℤ) (d m n : ℕ) :
   simp [Finset.sum_sub_distrib]
 
 /-- Multiplication by a constant on the left commutes with `apSumOffset`. -/
-lemma apSumOffset_mul_left (c : ℤ) (f : ℕ → ℤ) (d m n : ℕ) :
+@[simp] lemma apSumOffset_mul_left (c : ℤ) (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => c * f k) d m n = c * apSumOffset f d m n := by
   classical
   unfold apSumOffset
   simp [Finset.mul_sum]
 
 /-- Multiplication by a constant on the right commutes with `apSumOffset`. -/
-lemma apSumOffset_mul_right (f : ℕ → ℤ) (c : ℤ) (d m n : ℕ) :
+@[simp] lemma apSumOffset_mul_right (f : ℕ → ℤ) (c : ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f k * c) d m n = apSumOffset f d m n * c := by
   classical
   unfold apSumOffset

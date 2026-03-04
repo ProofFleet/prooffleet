@@ -40,6 +40,14 @@ section
   #check apSumOffset
   #check apSumFrom
 
+  -- Algebraic (multiplication) lemmas should be present and coherent across the nucleus APIs.
+  #check apSum_mul_left
+  #check apSum_mul_right
+  #check apSumOffset_mul_left
+  #check apSumOffset_mul_right
+  #check apSumFrom_mul_left
+  #check apSumFrom_mul_right
+
   -- Canonical translation-friendly normal forms should be present.
   #check apSumFrom_eq_apSum_shift_add
   #check apSumFrom_eq_apSum_shift_add_left
