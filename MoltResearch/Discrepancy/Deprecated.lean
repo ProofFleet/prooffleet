@@ -202,6 +202,36 @@ lemma apSumOffset_mul_right_cfirst (c : ℤ) (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f k * c) d m n = apSumOffset f d m n * c := by
   simpa using (apSumOffset_mul_right (f := f) (c := c) (d := d) (m := m) (n := n))
 
+/-- Deprecated argument-order variant of `apSumFrom_mul_left`.
+
+The stable surface standardizes on the `(c, f, a, d, n)` argument order, consistent with
+`apSum_mul_left` and `apSumOffset_mul_left`.
+-/
+@[deprecated "Use `apSumFrom_mul_left` (with arguments ordered as `(c, f, a, d, n)`)." (since := "2026-03-04")]
+lemma apSumFrom_mul_left_ffirst (f : ℕ → ℤ) (c : ℤ) (a d n : ℕ) :
+    apSumFrom (fun k => c * f k) a d n = c * apSumFrom f a d n := by
+  simpa using (apSumFrom_mul_left (c := c) (f := f) (a := a) (d := d) (n := n))
+
+/-- Deprecated argument-order variant of `apSum_mul_left`.
+
+The stable surface standardizes on the `(c, f, d, n)` argument order, consistent with
+`apSum_mul_left` and `apSumOffset_mul_left`.
+-/
+@[deprecated "Use `apSum_mul_left` (with arguments ordered as `(c, f, d, n)`)." (since := "2026-03-04")]
+lemma apSum_mul_left_ffirst (f : ℕ → ℤ) (c : ℤ) (d n : ℕ) :
+    apSum (fun k => c * f k) d n = c * apSum f d n := by
+  simpa using (apSum_mul_left (c := c) (f := f) (d := d) (n := n))
+
+/-- Deprecated argument-order variant of `apSumOffset_mul_left`.
+
+The stable surface standardizes on the `(c, f, d, m, n)` argument order, consistent with
+`apSumOffset_mul_left` and `apSum_mul_left`.
+-/
+@[deprecated "Use `apSumOffset_mul_left` (with arguments ordered as `(c, f, d, m, n)`)." (since := "2026-03-04")]
+lemma apSumOffset_mul_left_ffirst (f : ℕ → ℤ) (c : ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => c * f k) d m n = c * apSumOffset f d m n := by
+  simpa using (apSumOffset_mul_left (c := c) (f := f) (d := d) (m := m) (n := n))
+
 /-- Deprecated mul-left wrapper around `sum_Icc_eq_apSumOffset_shift_add_left`."
 
 Prefer the canonical lemma and rewrite `i * d` to `d * i` using `Nat.mul_comm` as needed.

@@ -313,6 +313,18 @@ section
   #guard_msgs in
   #check apSumOffset_mul_right_cfirst
 
+  /-- error: Unknown identifier `apSumFrom_mul_left_ffirst` -/
+  #guard_msgs in
+  #check apSumFrom_mul_left_ffirst
+
+  /-- error: Unknown identifier `apSum_mul_left_ffirst` -/
+  #guard_msgs in
+  #check apSum_mul_left_ffirst
+
+  /-- error: Unknown identifier `apSumOffset_mul_left_ffirst` -/
+  #guard_msgs in
+  #check apSumOffset_mul_left_ffirst
+
 
   /-- error: Unknown identifier `apSum_step_one_eq_apSum` -/
   #guard_msgs in

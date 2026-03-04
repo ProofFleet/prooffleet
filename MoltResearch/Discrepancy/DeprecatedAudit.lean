@@ -52,6 +52,11 @@ section
   #check apSumOffset_mul_right_cfirst
   #check apSumFrom_mul_right_cfirst
 
+  -- Deprecated alias names for mul_left argument-order variants.
+  #check apSum_mul_left_ffirst
+  #check apSumOffset_mul_left_ffirst
+  #check apSumFrom_mul_left_ffirst
+
   -- Deprecated inverse-orientation step-one aliases.
   #check apSum_step_one_eq_apSum
   #check apSumOffset_step_one_eq_apSumOffset
