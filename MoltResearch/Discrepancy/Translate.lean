@@ -16,6 +16,35 @@ lemma apSumFrom_shift_add (f : ℕ → ℤ) (k a d n : ℕ) :
   intro i hi
   simp [Nat.add_comm, Nat.add_assoc]
 
+/-!
+### Translation bookkeeping for affine starts
+
+These lemmas let you *move a translation* between the affine start parameter and the summand.
+
+They are thin wrappers around `apSumFrom_shift_add`, but having both orientations available keeps
+rewrite pipelines from accumulating `.symm` noise.
+-/
+
+/-- Move an addition on the start parameter into the summand shift.
+
+Canonical “pull translation out of the start” form:
+
+`apSumFrom f (a + b) d n = apSumFrom (fun t => f (t + b)) a d n`.
+-/
+lemma apSumFrom_start_add_eq_shift_add (f : ℕ → ℤ) (a b d n : ℕ) :
+    apSumFrom f (a + b) d n = apSumFrom (fun t => f (t + b)) a d n := by
+  simpa using (apSumFrom_shift_add (f := f) (k := b) (a := a) (d := d) (n := n)).symm
+
+/-- Inverse orientation of `apSumFrom_start_add_eq_shift_add`.
+
+Canonical “push translation into the start” form:
+
+`apSumFrom (fun t => f (t + b)) a d n = apSumFrom f (a + b) d n`.
+-/
+lemma apSumFrom_shift_add_eq_start_add (f : ℕ → ℤ) (a b d n : ℕ) :
+    apSumFrom (fun t => f (t + b)) a d n = apSumFrom f (a + b) d n := by
+  simpa using (apSumFrom_shift_add (f := f) (k := b) (a := a) (d := d) (n := n))
+
 
 /-- Variant of `apSumFrom_shift_add` for translated functions written in the `k + x` form.
 
