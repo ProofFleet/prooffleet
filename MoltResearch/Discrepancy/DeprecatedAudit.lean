@@ -46,6 +46,23 @@ section
   #check apSumOffset_eq_apSum_step_one_mul_left_add_left
   #check apSum_step_one_mul_left_eq_apSumOffset
   #check apSum_step_one_mul_left_add_left_eq_apSumOffset
+
+  -- Deprecated alias names for mul_right_cfirst families.
+  #check apSum_mul_right_cfirst
+  #check apSumOffset_mul_right_cfirst
+  #check apSumFrom_mul_right_cfirst
+
+  -- Deprecated inverse-orientation step-one aliases.
+  #check apSum_step_one_eq_apSum
+  #check apSumOffset_step_one_eq_apSumOffset
+  #check apSumOffset_step_one_zero_m_eq_apSumOffset
+  #check apSumOffset_step_one_zero_m_add_left_eq_apSumOffset
+  -- Note: there is no deprecated alias named `apSumOffset_step_one_eq_apSum`.
+  #check apSum_step_one_eq_apSumOffset
+  #check apSum_step_one_eq_apSumFrom
+  #check apSum_step_one_eq_apSumFrom_tail
+  #check apSumFrom_step_one_eq_apSumFrom
+  #check apSumFrom_step_one_add_left_eq_apSumFrom
 end
 
 end MoltResearch

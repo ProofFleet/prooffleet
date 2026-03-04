@@ -57,6 +57,16 @@ section
   #check apSumOffset_eq_apSumOffset_step_one
   #check apSumFrom_eq_apSum_step_one
 
+  -- Additional stable step-one bridge lemmas across the families.
+  #check apSumOffset_eq_apSum_step_one
+  #check apSumOffset_eq_apSum_step_one_add_left
+  #check apSumFrom_eq_apSumOffset_step_one
+  #check apSumFrom_eq_apSumOffset_step_one_add_left
+  #check apSumFrom_tail_eq_apSum_step_one
+  #check apSumFrom_tail_eq_apSumOffset_step_one
+  #check apSumOffset_eq_apSumOffset_step_one_zero_m
+  #check apSumOffset_eq_apSumOffset_step_one_zero_m_add_left
+
   #check apSumOffset_eq_apSum_shift_add
   #check apSumOffset_eq_apSumOffset_shift_add
 
