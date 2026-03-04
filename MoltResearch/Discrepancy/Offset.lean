@@ -931,17 +931,7 @@ lemma apSum_sub_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (d m n
       simpa using
         apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n)
 
-/-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one_zero_m`. -/
-lemma apSumOffset_step_one_zero_m_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
-    apSumOffset (fun k => f ((m + k) * d)) 1 0 n = apSumOffset f d m n := by
-  simpa using
-    (apSumOffset_eq_apSumOffset_step_one_zero_m (f := f) (d := d) (m := m) (n := n)).symm
-
-/-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one_zero_m_add_left`. -/
-lemma apSumOffset_step_one_zero_m_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
-    apSumOffset (fun k => f (k * d + m * d)) 1 0 n = apSumOffset f d m n := by
-  simpa using
-    (apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n)).symm
+-- (deprecated inverse-orientation lemmas moved to `MoltResearch.Discrepancy.Deprecated`)
 
 /-- Express `apSumOffset` as an `apSum` with the same step on a shifted function. -/
 lemma apSumOffset_eq_apSum_shift (f : ℕ → ℤ) (d m n : ℕ) :

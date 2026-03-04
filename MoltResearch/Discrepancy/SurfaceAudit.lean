@@ -280,6 +280,14 @@ section
   #guard_msgs in
   #check apSumOffset_step_one_eq_apSumOffset
 
+  /-- error: Unknown identifier `apSumOffset_step_one_zero_m_eq_apSumOffset` -/
+  #guard_msgs in
+  #check apSumOffset_step_one_zero_m_eq_apSumOffset
+
+  /-- error: Unknown identifier `apSumOffset_step_one_zero_m_add_left_eq_apSumOffset` -/
+  #guard_msgs in
+  #check apSumOffset_step_one_zero_m_add_left_eq_apSumOffset
+
   /-- error: Unknown identifier `apSum_step_one_eq_apSumOffset` -/
   #guard_msgs in
   #check apSum_step_one_eq_apSumOffset
