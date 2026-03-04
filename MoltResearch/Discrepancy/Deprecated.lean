@@ -108,4 +108,11 @@ lemma HasAffineDiscrepancyAtLeast.of_map_add_left {f : ℕ → ℤ} {k C : ℕ} 
   HasAffineDiscrepancyAtLeast (fun x => f (k + x)) C → HasAffineDiscrepancyAtLeast f C :=
   HasAffineDiscrepancyAtLeast.of_shift_add_left (f := f) (k := k) (C := C)
 
+/-- Deprecated name for `apSumOffset_shift_add_left`. -/
+@[deprecated "Use `apSumOffset_shift_add_left`." (since := "2026-03-03")]
+lemma apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+    apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (m * d + k) d n := by
+  simpa using
+    (apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n))
+
 end MoltResearch

@@ -113,7 +113,7 @@ lemma apSumOffset_shift_add (f : ℕ → ℤ) (k d m n : ℕ) :
 Proof: commute the translation under `apSumOffset` using `apSumOffset_shift_add_comm`, then apply
 `apSumOffset_shift_add`.
 -/
-lemma apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+lemma apSumOffset_shift_add_left (f : ℕ → ℤ) (k d m n : ℕ) :
   apSumOffset (fun x => f (k + x)) d m n = apSumFrom f (m * d + k) d n := by
   calc
     apSumOffset (fun x => f (k + x)) d m n
