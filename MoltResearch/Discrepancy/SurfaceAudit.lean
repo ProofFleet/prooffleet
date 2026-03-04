@@ -220,6 +220,20 @@ section
   #check apSumOffset_eq_apSum_step_one_mul_left
 
   -- Step-one inverse-orientation names are deprecated and must not be in the stable surface.
+  -- Affine step-one inverse-orientation names are deprecated and must not be in the stable surface.
+
+  /-- error: Unknown identifier `apSumFrom_step_one_eq_apSumFrom` -/
+  #guard_msgs in
+  #check apSumFrom_step_one_eq_apSumFrom
+
+  /-- error: Unknown identifier `apSumFrom_step_one_add_left_eq_apSumFrom` -/
+  #guard_msgs in
+  #check apSumFrom_step_one_add_left_eq_apSumFrom
+
+  /-- error: Unknown identifier `apSumOffset_eq_apSumFrom_mul_left` -/
+  #guard_msgs in
+  #check apSumOffset_eq_apSumFrom_mul_left
+
 
   /-- error: Unknown identifier `apSum_step_one_eq_apSum` -/
   #guard_msgs in
