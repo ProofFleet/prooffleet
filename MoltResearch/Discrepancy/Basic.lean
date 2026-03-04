@@ -84,13 +84,26 @@ lemma apSumOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
 
-/-- `congr` variant: if `P` holds on every index used in `apSumOffset`, and `f = g` on `P`,
-then the offset AP sums are equal.
+/-- `congr` variant: if `P` holds on every *index* used in `apSumOffset`, and the summands agree
+whenever `P i` holds, then the offset AP sums are equal.
 
-This is convenient when you have an ambient hypothesis like
-`∀ x, P x → f x = g x` and want to apply it only on the summation range.
+This is convenient when you have a hypothesis stated on the summation range `i < n` (or
+`i ∈ range n`) and want to apply it without rewriting the whole function.
 -/
 lemma apSumOffset_congrOn (f g : ℕ → ℤ) (P : ℕ → Prop) (d m n : ℕ)
+    (hP : ∀ i, i < n → P i)
+    (hfg : ∀ i, P i → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  apply apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n)
+  intro i hi
+  exact hfg i (hP i hi)
+
+/-- Value-predicate variant of `apSumOffset_congrOn`: if `P` holds on every value used in
+`apSumOffset`, and `f = g` on `P`, then the offset AP sums are equal.
+
+This is convenient when you have an ambient hypothesis like `∀ x, P x → f x = g x`.
+-/
+lemma apSumOffset_congrOn_val (f g : ℕ → ℤ) (P : ℕ → Prop) (d m n : ℕ)
     (hP : ∀ i, i < n → P ((m + i + 1) * d))
     (hfg : ∀ x, P x → f x = g x) :
     apSumOffset f d m n = apSumOffset g d m n := by

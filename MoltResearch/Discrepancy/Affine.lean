@@ -118,13 +118,26 @@ lemma apSumFrom_congr (f g : ℕ → ℤ) (a d n : ℕ)
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
 
-/-- `congr` variant: if `P` holds on every index used in `apSumFrom`, and `f = g` on `P`,
-then the affine AP sums are equal.
+/-- `congr` variant: if `P` holds on every *index* used in `apSumFrom`, and the summands agree
+whenever `P i` holds, then the affine AP sums are equal.
 
-This is convenient when you have an ambient hypothesis like
-`∀ x, P x → f x = g x` and want to apply it only on the summation range.
+This is convenient when you have a hypothesis stated on the summation range `i < n` (or
+`i ∈ range n`) and want to apply it without rewriting the whole function.
 -/
 lemma apSumFrom_congrOn (f g : ℕ → ℤ) (P : ℕ → Prop) (a d n : ℕ)
+    (hP : ∀ i, i < n → P i)
+    (hfg : ∀ i, P i → f (a + (i + 1) * d) = g (a + (i + 1) * d)) :
+    apSumFrom f a d n = apSumFrom g a d n := by
+  apply apSumFrom_congr (f := f) (g := g) (a := a) (d := d) (n := n)
+  intro i hi
+  exact hfg i (hP i hi)
+
+/-- Value-predicate variant of `apSumFrom_congrOn`: if `P` holds on every value used in
+`apSumFrom`, and `f = g` on `P`, then the affine AP sums are equal.
+
+This is convenient when you have an ambient hypothesis like `∀ x, P x → f x = g x`.
+-/
+lemma apSumFrom_congrOn_val (f g : ℕ → ℤ) (P : ℕ → Prop) (a d n : ℕ)
     (hP : ∀ i, i < n → P (a + (i + 1) * d))
     (hfg : ∀ x, P x → f x = g x) :
     apSumFrom f a d n = apSumFrom g a d n := by
