@@ -176,6 +176,11 @@ section
   /-- error: Unknown identifier `apSum_map_add` -/
   #guard_msgs in
   #check apSum_map_add
+
+
+  /-- error: Unknown identifier `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left` -/
+  #guard_msgs in
+  #check apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left
 end
 
 /-!

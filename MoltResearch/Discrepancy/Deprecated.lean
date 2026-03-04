@@ -115,4 +115,19 @@ lemma apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
   simpa using
     (apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n))
 
+
+/-- Deprecated convenience wrapper around
+`apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left` with the constant written as `a + d*m`.
+
+Prefer using the canonical lemma and rewriting the constant as needed.
+-/
+@[deprecated "Use `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left` (and rewrite `m*d+a` / `a+d*m` as needed)." (since := "2026-03-03")]
+lemma apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    apSumFrom f a d n - apSumFrom f a d m =
+      apSum (fun k => f (d * k + (a + d * m))) 1 (n - m) := by
+  simpa [Nat.mul_comm, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left (f := f) (a := a) (d := d)
+      (m := m) (n := n) hmn)
+
 end MoltResearch

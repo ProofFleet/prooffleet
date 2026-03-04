@@ -31,6 +31,8 @@ section
 
   #check apSum_map_add
   #check apSum_map_add_left
+
+  #check apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left
 end
 
 end MoltResearch
