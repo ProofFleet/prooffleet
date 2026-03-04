@@ -17,10 +17,10 @@ variable (f : ℕ → ℤ) (a b d m n n₁ n₂ C : ℕ)
 
 -- Regression: definitional lemmas expose the wrappers.
 example : discrepancy f d n = Int.natAbs (apSum f d n) := by
-  simp [discrepancy]
+  rfl
 
 example : affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) := by
-  simp [affineDiscrepancy]
+  rfl
 
 -- Regression: `simp` can also move `Int.natAbs` *into* the wrappers without looping.
 example : Int.natAbs (apSum f d n) = discrepancy f d n := by
@@ -115,7 +115,7 @@ example : apSumFrom f (m * d) d n = apSumOffset (fun k => f (d * k)) 1 m n := by
   simpa using apSumFrom_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n)
 
 example : apSumOffset (fun k => f (d * k)) 1 m n = apSumFrom f (m * d) d n := by
-  simpa using apSumOffset_eq_apSumFrom_mul_left (f := f) (d := d) (m := m) (n := n)
+  simpa using (apSumFrom_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n)).symm
 
 -- Switching between `a + k` and `k + a` inside the shifted-sequence view of `apSumOffset`.
 example : apSumOffset (fun k => f (a + k)) d m n = apSumOffset (fun k => f (k + a)) d m n := by
@@ -130,6 +130,13 @@ example : apSum (fun k => f (a + k)) d n = apSum (fun k => f (k + a)) d n := by
 
 example : apSumFrom (fun x => f (a + x)) m d n = apSumFrom (fun x => f (x + a)) m d n := by
   simpa using apSumFrom_shift_comm (f := f) (a := a) (k := m) (d := d) (n := n)
+
+-- Translation bookkeeping for affine starts.
+example : apSumFrom f (a + b) d n = apSumFrom (fun t => f (t + b)) a d n := by
+  simpa using apSumFrom_start_add_eq_shift_add (f := f) (a := a) (b := b) (d := d) (n := n)
+
+example : apSumFrom (fun t => f (t + b)) a d n = apSumFrom f (a + b) d n := by
+  simpa using apSumFrom_shift_add_eq_start_add (f := f) (a := a) (b := b) (d := d) (n := n)
 
 -- Witness-level translation normal form (div/mod reduced translation inside an `apSumOffset`).
 example :
