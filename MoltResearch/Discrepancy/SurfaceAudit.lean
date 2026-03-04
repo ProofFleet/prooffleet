@@ -52,6 +52,10 @@ section
   #check apSumOffset_shift_add_eq_apSumFrom_tail
   #check apSumOffset_shift_add_eq_apSumFrom_tail_firstTerm
 
+  -- Translation normal form (div/mod step) should be present.
+  #check apSumOffset_shift_add_eq_apSumOffset_div_mod
+  #check apSumOffset_shift_add_mod
+
   -- Differences → tails normal forms should be present.
   #check apSum_sub_eq_apSumOffset
   #check apSumFrom_sub_eq_apSumFrom_tail

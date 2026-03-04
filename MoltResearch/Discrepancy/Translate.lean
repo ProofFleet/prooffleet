@@ -340,6 +340,18 @@ lemma apSumOffset_shift_add_eq_apSumOffset_div_mod (f : ℕ → ℤ) (a d m n : 
   -- Use the constant equality inside the binder.
   simp [hconst, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- Alias for `apSumOffset_shift_add_eq_apSumOffset_div_mod`.
+
+This is the translation-normal-form rule for an `apSumOffset` on a shifted sequence:
+reduce the shift `a` modulo the step size `d` and absorb the quotient `a / d` into the
+start index.
+-/
+lemma apSumOffset_shift_add_mod (f : ℕ → ℤ) (a d m n : ℕ) (hd : d > 0) :
+    apSumOffset (fun k => f (k + a)) d m n =
+      apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSumOffset_div_mod (f := f) (a := a) (d := d) (m := m) (n := n) hd)
+
 /-- Witness-level normal form: rewrite a translated discrepancy witness into `apSumOffset`
 with translation reduced modulo `d`.
 
