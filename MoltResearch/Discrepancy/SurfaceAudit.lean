@@ -283,6 +283,14 @@ section
   #guard_msgs in
   #check apSumFrom_mul_right_cfirst
 
+  /-- error: Unknown identifier `apSum_mul_right_cfirst` -/
+  #guard_msgs in
+  #check apSum_mul_right_cfirst
+
+  /-- error: Unknown identifier `apSumOffset_mul_right_cfirst` -/
+  #guard_msgs in
+  #check apSumOffset_mul_right_cfirst
+
 
   /-- error: Unknown identifier `apSum_step_one_eq_apSum` -/
   #guard_msgs in
