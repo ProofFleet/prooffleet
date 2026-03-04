@@ -105,6 +105,20 @@ lemma apSumOffset_congr_Icc (f g : ℕ → ℤ) (d m n : ℕ)
     simpa [Nat.add_assoc] using this
   exact h (m + i + 1) ⟨hlow, hhigh⟩
 
+/-- Finset-membership variant of `apSumOffset_congr_Icc`.
+
+This matches paper notation where the relevant progression indices are written as
+`Finset.Icc (m+1) (m+n)`.
+-/
+lemma apSumOffset_congr_finset_Icc (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ∈ Finset.Icc (m + 1) (m + n) → f (i * d) = g (i * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  apply apSumOffset_congr_Icc (f := f) (g := g) (d := d) (m := m) (n := n)
+  intro i hi
+  have : i ∈ Finset.Icc (m + 1) (m + n) := by
+    exact Finset.mem_Icc.2 hi
+  exact h i this
+
 /-- `congr` variant: if `P` holds on every *index* used in `apSumOffset`, and the summands agree
 whenever `P i` holds, then the offset AP sums are equal.
 
