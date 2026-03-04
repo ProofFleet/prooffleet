@@ -77,12 +77,9 @@ example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumOffset (fun k => 
 
 -- Regression: normalize paper affine sums via the shifted-sequence offset view, then step-one.
 example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
-  calc
-    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
-      simpa using sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)
-    _ = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
-      simpa using
-        apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add (f := f) (a := a) (d := d) (n := n)
+  simpa [Nat.add_comm] using
+    (sum_Icc_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (n := n))
+
 
 -- Affine tails as offset sums (both summand conventions).
 
@@ -353,13 +350,13 @@ example :
     (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
   simpa using
     (sum_Icc_eq_apSumFrom_add (f := f) (a := a) (d := d) (n := n)).trans
-      (apSumFrom_eq_apSumOffset_step_one_via_shift_add (f := f) (a := a) (d := d) (n := n))
+      (apSumFrom_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (n := n))
 
 -- Regression: “step into summand” coherence for the more common `a + i*d` paper form.
 example :
     (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
-  simpa using
-    sum_Icc_eq_apSumOffset_step_one_via_shift_add (f := f) (a := a) (d := d) (n := n)
+  simpa [Nat.add_comm] using
+    sum_Icc_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (n := n)
 
 -- Affine differences: normalize to an offset sum on a shifted sequence.
 example :

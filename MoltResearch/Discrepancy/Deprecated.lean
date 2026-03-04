@@ -501,6 +501,31 @@ lemma apSumOffset_step_one_add_left_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n
   simpa using
     (apSumFrom_tail_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-! ## Deprecated step-one normalization wrappers (via shifted-sequence route)
+
+These were redundant with the canonical step-one lemmas in `Affine.lean`, and are kept only as
+deprecated aliases under `import MoltResearch.Discrepancy.Deprecated`.
+-/
+
+@[deprecated "Use `apSumFrom_eq_apSumOffset_step_one_add_left`." (since := "2026-03-04")]
+lemma apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa using
+    (apSumFrom_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (n := n))
+
+@[deprecated "Use `apSumFrom_eq_apSumOffset_step_one_add_left`." (since := "2026-03-04")]
+lemma apSumFrom_eq_apSumOffset_step_one_via_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa using
+    (apSumFrom_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (n := n))
+
+@[deprecated "Use `sum_Icc_eq_apSumOffset_step_one` (then rewrite with `Nat.add_comm` as needed)." (since := "2026-03-04")]
+lemma sum_Icc_eq_apSumOffset_step_one_via_shift_add (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (k * d + a)) 1 0 n := by
+  simpa [Nat.add_comm] using
+    (sum_Icc_eq_apSumOffset_step_one (f := f) (a := a) (d := d) (n := n))
+
 /-- Inverse orientation of `apSumFrom_tail_eq_apSum_step_one_add_left`.
 
 We do *not* mark this as `[simp]`: our normal forms prefer the `k*d + const` presentation when

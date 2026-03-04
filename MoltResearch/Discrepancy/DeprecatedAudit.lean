@@ -37,6 +37,11 @@ section
   #check apSumFrom_eq_apSumOffset_step_one_zero_m
   #check apSumFrom_eq_apSumOffset_step_one_zero_m_add_left
 
+  #check apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add
+  #check apSumFrom_eq_apSumOffset_step_one_via_shift_add
+  #check sum_Icc_eq_apSumOffset_step_one_via_shift_add
+
+
   #check apSumOffset_eq_apSum_step_one_mul_left
   #check apSumOffset_eq_apSum_step_one_mul_left_add_left
   #check apSum_step_one_mul_left_eq_apSumOffset

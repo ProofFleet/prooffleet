@@ -204,6 +204,18 @@ section
   #guard_msgs in
   #check apSumFrom_map_add_left
 
+  /-- error: Unknown identifier `apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add` -/
+  #guard_msgs in
+  #check apSumFrom_eq_apSumOffset_step_one_add_left_via_shift_add
+
+  /-- error: Unknown identifier `apSumFrom_eq_apSumOffset_step_one_via_shift_add` -/
+  #guard_msgs in
+  #check apSumFrom_eq_apSumOffset_step_one_via_shift_add
+
+  /-- error: Unknown identifier `sum_Icc_eq_apSumOffset_step_one_via_shift_add` -/
+  #guard_msgs in
+  #check sum_Icc_eq_apSumOffset_step_one_via_shift_add
+
   /-- error: Unknown identifier `apSum_map_add` -/
   #guard_msgs in
   #check apSum_map_add
