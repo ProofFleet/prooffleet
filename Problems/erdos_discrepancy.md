@@ -293,7 +293,9 @@ Definition of done:
   - Implemented as `sum_Icc_eq_apSumOffset_shift_add_left` and `sum_Icc_eq_apSumOffset_shift_add_left_mul_left` in `MoltResearch/Discrepancy/AffineTail.lean`.
 - [x] API surface coherence: add `@[simp]` lemmas that move `Int.natAbs` through the definitional bridges `discrepancy/affineDiscrepancy` → `Int.natAbs (apSum…)` in a way that avoids simp loops, plus compile-time regression examples under `import MoltResearch.Discrepancy`.
   - Implemented in `MoltResearch/Discrepancy/Basic.lean`, `MoltResearch/Discrepancy/Affine.lean`, and `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] Consolidate naming: audit the “step-one” + “mul_left/mul_right” lemma families for `apSum`/`apSumOffset`/`apSumFrom` and ensure each has exactly one preferred public name (others as deprecated aliases), with `SurfaceAudit` tests updated accordingly.
+- [x] Consolidate naming: audit the “step-one” + “mul_left/mul_right” lemma families for `apSum`/`apSumOffset`/`apSumFrom` and ensure each has exactly one preferred public name (others as deprecated aliases), with `SurfaceAudit` tests updated accordingly.
+  - Stable surface: `import MoltResearch.Discrepancy` exports the canonical names (see `MoltResearch/Discrepancy/SurfaceAudit.lean`).
+  - Deprecated aliases (argument-order variants, inverse orientations, mul-left wrappers) live behind `import MoltResearch.Discrepancy.Deprecated` and are compile-audited in `MoltResearch/Discrepancy/DeprecatedAudit.lean`.
 
 ### Track C — Conjecture stub + equivalences (backlog)
 
