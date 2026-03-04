@@ -182,6 +182,17 @@ lemma apSumFrom_mul_eq_apSumFrom_map_mul₁₂ (f : ℕ → ℤ) (a d₁ d₂ n 
   -- `a + (i+1)*(d₁*d₂) = a + ((i+1)*d₂)*d₁`.
   simp [Nat.mul_assoc, Nat.mul_comm]
 
+/-- Wrapper lemma mirroring `apSum_mul_eq_apSum_map_mul` (affine version).
+
+This is a convenience alias for `apSumFrom_mul_eq_apSumFrom_map_mul₁₂`, letting us normalize an
+affine AP sum along step `d₁*d₂` into an affine AP sum along step `d₂` on the sequence
+`t ↦ f (a + t*d₁)`.
+-/
+lemma apSumFrom_mul_eq_apSumFrom_map_mul (f : ℕ → ℤ) (a d₁ d₂ n : ℕ) :
+    apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + t * d₁)) 0 d₂ n := by
+  simpa using
+    (apSumFrom_mul_eq_apSumFrom_map_mul₁₂ (f := f) (a := a) (d₁ := d₁) (d₂ := d₂) (n := n))
+
 /-- Left-multiplication-friendly variant of `apSumFrom_mul_eq_apSumFrom_map_mul₁₂`. -/
 lemma apSumFrom_mul_eq_apSumFrom_map_mul_left (f : ℕ → ℤ) (a d₁ d₂ n : ℕ) :
     apSumFrom f a (d₁ * d₂) n = apSumFrom (fun t => f (a + d₁ * t)) 0 d₂ n := by
