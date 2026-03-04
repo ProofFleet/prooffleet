@@ -297,6 +297,16 @@ Definition of done:
   - Stable surface: `import MoltResearch.Discrepancy` exports the canonical names (see `MoltResearch/Discrepancy/SurfaceAudit.lean`).
   - Deprecated aliases (argument-order variants, inverse orientations, mul-left wrappers) live behind `import MoltResearch.Discrepancy.Deprecated` and are compile-audited in `MoltResearch/Discrepancy/DeprecatedAudit.lean`.
 
+#### Auto-generated backlog (needs triage)
+- [ ] Normal form: add a canonical lemma rewriting `apSumOffset f d m n` to a *plain* `Finset.range n` sum with summand `fun i => f ((m+i+1)*d)` **and** provide the inverse rewrite lemma (so `simp` can go both directions via `simp?`/`rw` without unfolding). Target stable names like `apSumOffset_eq_sum_range'` / `sum_range_eq_apSumOffset'` with an example under `import MoltResearch.Discrepancy`.
+- [ ] Congruence-on-range: add `apSumOffset_congrOn` / `apSumFrom_congrOn` lemmas parameterized by a predicate `P` on indices (e.g. equality of summands for all `i` in the relevant `Icc`/`range`), so downstream proofs can replace `f` by `g` without rewriting the whole function.
+- [ ] Stability lemma: prove `apSumOffset` is invariant under modifying `f` outside the accessed indices, packaged as a “support” statement (e.g. if `∀ i ∈ Icc (m+1) (m+n), f (i*d) = g (i*d)` then `apSumOffset f d m n = apSumOffset g d m n`). This should be the preferred glue for later “local surgery” arguments.
+- [ ] Step-factor coherence: add the *affine* analogue of step factorization, rewriting `apSumFrom f a (d₁*d₂) n` to `apSumFrom (fun t => f (a + t*d₁)) a d₂ n` (and `mul_left`-friendly variants), mirroring the existing `apSum_mul_eq_apSum_map_mul` / `apSumOffset_mul_eq_apSumOffset_map_mul…` family.
+- [ ] Translation bookkeeping: add a canonical lemma rewriting `apSumFrom f (a + b) d n` to `apSumFrom (fun t => f (t + b)) a d n` (and the corresponding “push translation into the start” inverse), so affine-start noise can be moved uniformly either into the start parameter or the summand shift.
+- [ ] Periodicity normal form: if `f` is periodic with period `p` (or satisfies `∀ k, f (k+p)=f k`), add a lemma reducing `apSumOffset f (p*d) m n` to `apSumOffset f d m n` (or the correct normalized statement), plus a small regression example. This is high-leverage for later Fourier/character-style decompositions.
+- [ ] Bounding API generalization: add a lemma family for functions bounded by 1 in `Int.natAbs` (not just sign sequences), e.g. if `∀ k, Int.natAbs (f k) ≤ 1` then `Int.natAbs (apSumOffset f d m n) ≤ n`, and derive the `IsSignSequence` bound as a corollary. Keep it in nucleus form.
+- [ ] “Kernel lemma” for discrepancy: define `discOffset f d m n := Int.natAbs (apSumOffset f d m n)` (or prove it as a lemma-only abbreviation) and add triangle-inequality + split lemmas directly at the `discOffset` level, so later statements don’t have to carry `Int.natAbs (apSumOffset …)` everywhere.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
