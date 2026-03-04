@@ -57,6 +57,23 @@ example (g : ℕ → ℤ)
     apSumFrom f a d n = apSumFrom g a d n := by
   simpa using (apSumFrom_congr (f := f) (g := g) (a := a) (d := d) (n := n) (h := h))
 
+-- Regression: `congrOn` variants (predicate on indices) are usable from the stable surface.
+example (g : ℕ → ℤ) (P : ℕ → Prop)
+    (hP : ∀ i, i < n → P i)
+    (hfg : ∀ i, P i → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  simpa using
+    (apSumOffset_congrOn (f := f) (g := g) (P := P) (d := d) (m := m) (n := n) (hP := hP)
+      (hfg := hfg))
+
+example (g : ℕ → ℤ) (P : ℕ → Prop)
+    (hP : ∀ i, i < n → P i)
+    (hfg : ∀ i, P i → f (a + (i + 1) * d) = g (a + (i + 1) * d)) :
+    apSumFrom f a d n = apSumFrom g a d n := by
+  simpa using
+    (apSumFrom_congrOn (f := f) (g := g) (P := P) (a := a) (d := d) (n := n) (hP := hP)
+      (hfg := hfg))
+
 -- Regression: `simp` normalizes nested shifts inside translated summands.
 example : (fun k => f (k + a + b)) = fun k => f (k + (a + b)) := by
   simp
