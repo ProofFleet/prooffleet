@@ -512,16 +512,7 @@ lemma apSumFrom_eq_apSum_step_one_add_left (f : ℕ → ℤ) (a d n : ℕ) :
   simpa [Nat.add_comm] using
     (apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n))
 
-/-- Inverse orientation of `apSumFrom_eq_apSum_step_one`.
-
-We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
-
-Deprecated: prefer rewriting to the step-one direction via `apSumFrom_eq_apSum_step_one`.
--/
-@[deprecated "Use `apSumFrom_eq_apSum_step_one`." (since := "2026-03-04")]
-lemma apSum_step_one_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
-    apSum (fun k => f (a + k * d)) 1 n = apSumFrom f a d n := by
-  simpa using (apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)).symm
+-- (deprecated alias `apSum_step_one_eq_apSumFrom` moved to `MoltResearch.Discrepancy.Deprecated`)
 
 /-- Normal form (“step-one”, `apSumFrom`-native): express an affine AP sum as an `apSumFrom`
 with step size `1` by bundling the original step size `d` into the summand.
@@ -800,16 +791,7 @@ lemma apSumOffset_step_one_zero_m_add_left_eq_apSumFrom (f : ℕ → ℤ) (a d n
     (apSumOffset_step_one_zero_m_add_left_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := 0)
       (n := n))
 
-/-- Inverse orientation of `apSumFrom_tail_eq_apSum_step_one`.
-
-We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
-
-Deprecated: prefer rewriting to the step-one direction via `apSumFrom_tail_eq_apSum_step_one`.
--/
-@[deprecated "Use `apSumFrom_tail_eq_apSum_step_one`." (since := "2026-03-04")]
-lemma apSum_step_one_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
-    apSum (fun k => f (a + (m + k) * d)) 1 n = apSumFrom f (a + m * d) d n := by
-  simpa using (apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+-- (deprecated alias `apSum_step_one_eq_apSumFrom_tail` moved to `MoltResearch.Discrepancy.Deprecated`)
 
 lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
   apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by

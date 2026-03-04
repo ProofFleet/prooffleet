@@ -309,4 +309,81 @@ lemma apSum_sub_eq_apSumOffset_step_one_zero_m_mul_left_add_left (f : ℕ → �
   simpa [Nat.mul_comm] using
     (apSum_sub_eq_apSumOffset_step_one_zero_m_add_left (f := f) (d := d) (m := m) (n := n))
 
+
+/-! ## Deprecated step-one inverse-orientation aliases (moved out of the stable surface) -/
+
+-- A variant of `apSumOffset_one` with the multiplication order flipped.
+@[deprecated "Use `apSumOffset_one` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
+lemma apSumOffset_one_mul_left (f : ℕ → ℤ) (d m : ℕ) :
+    apSumOffset f d m 1 = f (d * (m + 1)) := by
+  simp [Nat.mul_comm]
+
+/-- Inverse orientation of `apSum_eq_apSum_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+
+Deprecated: prefer rewriting to the step-one direction via `apSum_eq_apSum_step_one`.
+-/
+@[deprecated "Use `apSum_eq_apSum_step_one`." (since := "2026-03-04")]
+lemma apSum_step_one_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
+    apSum (fun k => f (k * d)) 1 n = apSum f d n := by
+  simpa using (apSum_eq_apSum_step_one (f := f) (d := d) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_eq_apSumOffset_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+
+Deprecated: prefer rewriting to the step-one direction via `apSumOffset_eq_apSumOffset_step_one`.
+-/
+@[deprecated "Use `apSumOffset_eq_apSumOffset_step_one`." (since := "2026-03-04")]
+lemma apSumOffset_step_one_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (k * d)) 1 m n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSumOffset_step_one (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_eq_apSum_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+
+Deprecated: prefer rewriting to the step-one direction via `apSumOffset_eq_apSum_step_one`.
+-/
+@[deprecated "Use `apSumOffset_eq_apSum_step_one`." (since := "2026-03-04")]
+lemma apSum_step_one_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f ((m + k) * d)) 1 n = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumOffset_eq_apSum_step_one_add_left`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+
+Deprecated: prefer rewriting to the step-one direction via `apSumOffset_eq_apSum_step_one_add_left`.
+-/
+@[deprecated "Use `apSumOffset_eq_apSum_step_one_add_left`." (since := "2026-03-04")]
+lemma apSum_step_one_add_left_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (k * d + m * d)) 1 n = apSumOffset f d m n := by
+  simpa using
+    (apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Inverse orientation of `apSumFrom_eq_apSum_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+
+Deprecated: prefer rewriting to the step-one direction via `apSumFrom_eq_apSum_step_one`.
+-/
+@[deprecated "Use `apSumFrom_eq_apSum_step_one`." (since := "2026-03-04")]
+lemma apSum_step_one_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    apSum (fun k => f (a + k * d)) 1 n = apSumFrom f a d n := by
+  simpa using (apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)).symm
+
+/-- Inverse orientation of `apSumFrom_tail_eq_apSum_step_one`.
+
+We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
+
+Deprecated: prefer rewriting to the step-one direction via `apSumFrom_tail_eq_apSum_step_one`.
+-/
+@[deprecated "Use `apSumFrom_tail_eq_apSum_step_one`." (since := "2026-03-04")]
+lemma apSum_step_one_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSum (fun k => f (a + (m + k) * d)) 1 n = apSumFrom f (a + m * d) d n := by
+  simpa using (apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
 end MoltResearch

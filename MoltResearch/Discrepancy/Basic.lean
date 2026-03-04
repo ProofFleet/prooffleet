@@ -872,11 +872,7 @@ section apSumOffset_degenerate
 
 end apSumOffset_degenerate
 
--- A variant of `apSumOffset_one` with the multiplication order flipped.
-@[deprecated "Use `apSumOffset_one` (and rewrite with `Nat.mul_comm` as needed)." (since := "2026-03-04")]
-lemma apSumOffset_one_mul_left (f : ℕ → ℤ) (d m : ℕ) :
-    apSumOffset f d m 1 = f (d * (m + 1)) := by
-  simp [Nat.mul_comm]
+-- (deprecated alias moved to `MoltResearch.Discrepancy.Deprecated`)
 
 lemma apSumOffset_succ (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
@@ -900,16 +896,7 @@ lemma apSum_eq_apSum_step_one (f : ℕ → ℤ) (d n : ℕ) :
   unfold apSum
   simp
 
-/-- Inverse orientation of `apSum_eq_apSum_step_one`.
-
-We do *not* mark this as `[simp]`: our normal forms prefer the step-one presentation.
-
-Deprecated: prefer rewriting to the step-one direction via `apSum_eq_apSum_step_one`.
--/
-@[deprecated "Use `apSum_eq_apSum_step_one`." (since := "2026-03-04")]
-lemma apSum_step_one_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
-    apSum (fun k => f (k * d)) 1 n = apSum f d n := by
-  simpa using (apSum_eq_apSum_step_one (f := f) (d := d) (n := n)).symm
+-- (deprecated alias `apSum_step_one_eq_apSum` moved to `MoltResearch.Discrepancy.Deprecated`)
 
 /-! ### Normal forms for shifts (step-one presentation) -/
 
