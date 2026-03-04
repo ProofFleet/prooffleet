@@ -468,9 +468,9 @@ example (h : d ∣ a) : apSumFrom f a d n = apSumOffset f d (a / d) n := by
 example : apSumFrom f (d * m) d n = apSumOffset f d m n := by
   simpa [Nat.mul_comm] using apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
 
--- Step-one normalization that stays inside the affine nucleus API.
-example : apSumFrom f a d n = apSumFrom (fun k => f (a + k * d)) 0 1 n := by
-  simpa using apSumFrom_eq_apSumFrom_step_one (f := f) (a := a) (d := d) (n := n)
+-- Step-one normalization: bundle the step size `d` into the summand and switch to step `1`.
+example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
+  simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)
 
 -- Differences of partial sums: normalize to tails early.
 example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by

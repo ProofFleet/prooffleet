@@ -432,6 +432,35 @@ lemma apSum_step_one_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
 
 
 
+/-! ## Affine step-one (deprecated aliases)
+
+These lemmas used to be part of the stable surface, but the stable API now prefers the
+step-one entrypoint `apSumFrom_eq_apSum_step_one`.
+
+Importing `MoltResearch.Discrepancy.Deprecated` opts back into these names.
+-/
+
+/-- Deprecated name for the former “`apSumFrom`-native step-one” normal form.
+
+Prefer `apSumFrom_eq_apSum_step_one`.
+-/
+@[deprecated "Use `apSumFrom_eq_apSum_step_one`." (since := "2026-03-04")]
+lemma apSumFrom_eq_apSumFrom_step_one (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumFrom (fun k => f (a + k * d)) 0 1 n := by
+  unfold apSumFrom
+  simp
+
+/-- Deprecated translation-friendly variant of `apSumFrom_eq_apSumFrom_step_one`.
+
+Prefer `apSumFrom_eq_apSum_step_one_add_left`.
+-/
+@[deprecated "Use `apSumFrom_eq_apSum_step_one_add_left`." (since := "2026-03-04")]
+lemma apSumFrom_eq_apSumFrom_step_one_add_left (f : ℕ → ℤ) (a d n : ℕ) :
+    apSumFrom f a d n = apSumFrom (fun k => f (k * d + a)) 0 1 n := by
+  simpa [Nat.add_comm] using
+    (apSumFrom_eq_apSumFrom_step_one (f := f) (a := a) (d := d) (n := n))
+
+
 /-! ## Affine step-one / mul-left deprecated inverse-orientation wrappers
 
 These lemmas used to live in the stable surface, but our normal-form toolkit standardizes on the
