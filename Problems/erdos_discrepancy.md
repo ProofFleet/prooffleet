@@ -179,6 +179,7 @@ Typical rewrite pipeline:
 - [x] Add a minimal set of lemmas bridging the Conjectures statement to the nucleus API (so the theorem statement reads cleanly)
 - [x] Add paper→nucleus rewrite lemmas for affine difference interval sums (`sum_Icc_eq_apSumFrom_sub`, `sum_Icc_eq_apSumFrom_sub_apSumFrom_of_le`)
 - [x] Nucleus normal form: rewrite `apSumFrom f a d n` to `apSumOffset` when `a` is a multiple of `d`
+- [x] Canonical quotient/remainder normal form: prove a lemma rewriting `apSumFrom f a d n` into an `apSumOffset` form using `a = (a / d) * d + (a % d)` (when `d>0`).
 
 #### Auto-generated backlog (needs triage)
 - [x] Affine: for sign sequences, a witness for `HasAffineDiscrepancyAtLeast f C` can be taken with `d ≥ 1` and `n > C`.
