@@ -62,6 +62,31 @@ It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
 def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
+/-- A convenient wrapper for the absolute value of an offset arithmetic-progression sum.
+
+It is defined as the natural absolute value of `apSumOffset f d m n`.
+-/
+def discOffset (f : ℕ → ℤ) (d m n : ℕ) : ℕ :=
+  Int.natAbs (apSumOffset f d m n)
+
+/-- Definitional lemma exposing the definition. -/
+lemma discOffset_eq_natAbs_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=
+  rfl
+
+/-- Alias for the definitional lemma. -/
+lemma discOffset_def (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=
+  rfl
+
+/-- `simp` bridge: `Int.natAbs (apSumOffset …)` simplifies to the `discOffset` wrapper.
+
+This direction avoids simp loops with `discOffset_def`.
+-/
+@[simp] lemma natAbs_apSumOffset_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    Int.natAbs (apSumOffset f d m n) = discOffset f d m n :=
+  rfl
+
 /-! ### Congruence lemmas -/
 
 /-- If two functions agree pointwise on the indices used in `apSum`, then the AP sums are equal. -/
@@ -357,6 +382,14 @@ lemma natAbs_apSumOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   -- `Int.natAbs` satisfies `|x + y| ≤ |x| + |y|`.
   simpa [apSumOffset_add_len] using
     (Int.natAbs_add_le (apSumOffset f d m n₁) (apSumOffset f d (m + n₁) n₂))
+
+/-- Triangle inequality for concatenating two offset AP sums, at the `discOffset` level. -/
+lemma discOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    discOffset f d m (n₁ + n₂) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+  -- Avoid `simp [discOffset]`: it can loop with `natAbs_apSumOffset_eq_discOffset`.
+  unfold discOffset
+  exact natAbs_apSumOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
 /-- `apSumOffset` with zero offset is definitionaly the same as `apSum`. -/
 @[simp] lemma apSumOffset_zero_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
