@@ -314,6 +314,16 @@ Definition of done:
   - Wrapper `discOffset` + concat triangle inequality: `MoltResearch/Discrepancy/Basic.lean` (`discOffset`, `discOffset_add_le`).
   - Interior-cut split inequality: `MoltResearch/Discrepancy/Offset.lean` (`discOffset_split_at_le`) + regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
+#### Auto-generated backlog (needs triage)
+- [ ] Canonical quotient/remainder normal form: prove a lemma rewriting `apSumFrom f a d n` into an `apSumOffset` form using `a = (a / d) * d + (a % d)` (when `d>0`), so affine starts can be normalized into “multiple-of-step + small remainder” without manual arithmetic.
+- [ ] Provide a stable, `simp`-friendly lemma family for the `d = 1` specialization of `apSumOffset` / `apSumFrom` (rewrite to shifted `Finset.range` sums), to reduce boilerplate in later discrepancy bounds and translation arguments.
+- [ ] Add a `discOffset`-level split lemma: `discOffset f d m (n₁+n₂) ≤ discOffset f d m n₁ + discOffset f d (m+n₁) n₂` with a stable name and proof that does not unfold `discOffset` more than necessary (so later proofs can work at discrepancy-normal-form level).
+- [ ] Normal form: prove a lemma that moves *both* a start shift and a step factor into the summand in one rewrite (a combined “shift-start + step-one” normalization), so the rewrite pipeline can go directly to `apSumOffset (fun k => f (k*d + a)) 1 m n`-style shapes without two intermediate rewrites.
+- [ ] Reindexing glue: add a controlled lemma that rewrites `apSumOffset` under a bijective change-of-variables on `Finset.range` indices (packaged as a nucleus API lemma, not raw `Finset`), to support later “swap parity classes / split by residue” proofs.
+- [ ] API coherence: add a short file of `simp` lemmas for `Nat.succ`/`Nat.pred`-style endpoint normalization specifically tailored to the nucleus sums (avoid `Nat.add_comm` churn under binders), with a compile-only regression example under `import MoltResearch.Discrepancy`.
+- [ ] Surface regression: add 2–3 “typical user scripts” examples that start from paper statements (Icc sums with affine endpoints + differences) and normalize to `apSumOffset` + `discOffset` bounds with a single `simp`/`rw` pipeline, and make them compile under the stable surface.
+- [ ] Bounding lemma generalization: introduce a small lemma family stating that if `∀ k, Int.natAbs (f k) ≤ B` then `Int.natAbs (apSumOffset f d m n) ≤ n * B` (and analogous `apSum`/`apSumFrom`), so later work can reuse the same bound pipeline beyond sign sequences.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
