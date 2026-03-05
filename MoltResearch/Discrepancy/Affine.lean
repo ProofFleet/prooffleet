@@ -29,7 +29,8 @@ We provide both a translation-friendly binder form `i ↦ f (i + const)` and a c
 variant.
 -/
 
-lemma apSumFrom_one_d_range (f : ℕ → ℤ) (a n : ℕ) :
+-- simp-friendly normal-form lemma for `d = 1`
+@[simp] lemma apSumFrom_one_d_range (f : ℕ → ℤ) (a n : ℕ) :
     apSumFrom f a 1 n = (Finset.range n).sum (fun i => f (i + (a + 1))) := by
   unfold apSumFrom
   simp [Nat.mul_one, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
