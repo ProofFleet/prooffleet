@@ -318,7 +318,7 @@ Definition of done:
 #### Auto-generated backlog (needs triage)
 - [x] Canonical quotient/remainder normal form: prove a lemma rewriting `apSumFrom f a d n` into an `apSumOffset` form using `a = (a / d) * d + (a % d)` (when `d>0`), so affine starts can be normalized into “multiple-of-step + small remainder” without manual arithmetic.
   - Implemented as `apSumFrom_eq_apSumOffset_div_mod` in `MoltResearch/Discrepancy/Translate.lean`.
-- [ ] Provide a stable, `simp`-friendly lemma family for the `d = 1` specialization of `apSumOffset` / `apSumFrom` (rewrite to shifted `Finset.range` sums), to reduce boilerplate in later discrepancy bounds and translation arguments.
+- [x] Provide a stable, `simp`-friendly lemma family for the `d = 1` specialization of `apSumOffset` / `apSumFrom` (rewrite to shifted `Finset.range` sums), to reduce boilerplate in later discrepancy bounds and translation arguments.
 - [ ] Add a `discOffset`-level split lemma: `discOffset f d m (n₁+n₂) ≤ discOffset f d m n₁ + discOffset f d (m+n₁) n₂` with a stable name and proof that does not unfold `discOffset` more than necessary (so later proofs can work at discrepancy-normal-form level).
 - [ ] Normal form: prove a lemma that moves *both* a start shift and a step factor into the summand in one rewrite (a combined “shift-start + step-one” normalization), so the rewrite pipeline can go directly to `apSumOffset (fun k => f (k*d + a)) 1 m n`-style shapes without two intermediate rewrites.
 - [ ] Reindexing glue: add a controlled lemma that rewrites `apSumOffset` under a bijective change-of-variables on `Finset.range` indices (packaged as a nucleus API lemma, not raw `Finset`), to support later “swap parity classes / split by residue” proofs.

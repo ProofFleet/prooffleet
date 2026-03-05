@@ -1202,6 +1202,13 @@ example : (Finset.Icc 1 n).sum (fun i => f (d * (m + i))) = apSumOffset f d m n 
 example : apSumOffset f 1 m n = (Finset.Icc (m + 1) (m + n)).sum f := by
   simpa using apSumOffset_one_d (f := f) (m := m) (n := n)
 
+-- `d = 1` simp-friendly range normal forms (stable surface)
+example : apSumOffset f 1 m n = (Finset.range n).sum (fun i => f (i + (m + 1))) := by
+  simpa using apSumOffset_one_d_range (f := f) (m := m) (n := n)
+
+example : apSumOffset f 1 m n = (Finset.range n).sum (fun i => f ((m + 1) + i)) := by
+  simpa using apSumOffset_one_d_range_add_left (f := f) (m := m) (n := n)
+
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
   simpa using sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)
@@ -1249,6 +1256,13 @@ example : apSumFrom f 0 d n = apSum f d n := by
 
 example : apSumFrom f a 1 n = (Finset.Icc 1 n).sum (fun i => f (a + i)) := by
   simpa using apSumFrom_one_d (f := f) (a := a) (n := n)
+
+-- `d = 1` simp-friendly range normal forms (stable surface)
+example : apSumFrom f a 1 n = (Finset.range n).sum (fun i => f (i + (a + 1))) := by
+  simpa using apSumFrom_one_d_range (f := f) (a := a) (n := n)
+
+example : apSumFrom f a 1 n = (Finset.range n).sum (fun i => f ((a + 1) + i)) := by
+  simpa using apSumFrom_one_d_range_add_left (f := f) (a := a) (n := n)
 
 example : apSumFrom f a d (n + 1) = apSumFrom f a d n + f (a + (n + 1) * d) := by
   simpa using apSumFrom_succ (f := f) (a := a) (d := d) (n := n)
