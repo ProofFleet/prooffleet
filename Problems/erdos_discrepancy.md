@@ -332,6 +332,7 @@ Definition of done:
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
 - [ ] Prove the main theorem (long-horizon)
 - [x] Alternate formulations/equivalences recorded in the card + notes
+- [x] Quantifier-level normal form: define `BoundedDiscrepancy` and prove `forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy`.
 - [x] Sanity check: exhibit a sign sequence with unbounded discrepancy (constant +1 sequence)
 
 Equivalences / surface forms (proved lemmas; use these instead of unfolding defs):

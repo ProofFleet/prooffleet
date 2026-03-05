@@ -13,15 +13,30 @@ theorem erdos_discrepancy_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     HasDiscrepancyAtLeast f 0 := by
   simpa using IsSignSequence.hasDiscrepancyAtLeast_zero (hf := hf)
 
+/-- Tao 2015: Erdős discrepancy, packaged as a “not bounded discrepancy” statement.
+
+This is the *mathematically substantial* part of the development, and remains a conjecture stub
+in this repo for now.
+
+(We keep this statement separate so the main theorem can be a clean composition of verified
+quantifier-normal-form lemmas.)
+-/
+theorem tao2015_not_boundedDiscrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ BoundedDiscrepancy f := by
+  sorry
+
 /-- Erdős discrepancy theorem.
 
 Every ±1 sequence has unbounded discrepancy on homogeneous arithmetic progressions.
 
-This is a long-horizon target for the repo; we start by building the definition + lemma substrate.
+In this file we derive the usual `∀ C, HasDiscrepancyAtLeast f C` statement from the single
+boundedness-negation normal form `¬ BoundedDiscrepancy f`.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  sorry
+  -- Quantifier-level normalization: `∀ C, ...` ↔ `¬BoundedDiscrepancy`.
+  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
+  exact tao2015_not_boundedDiscrepancy (f := f) (hf := hf)
 
 /-- Surface form of `erdos_discrepancy`, matching the usual notation `∑_{i=1}^n f (i*d)`.
 
