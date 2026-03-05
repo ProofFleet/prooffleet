@@ -383,13 +383,17 @@ lemma natAbs_apSumOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa [apSumOffset_add_len] using
     (Int.natAbs_add_le (apSumOffset f d m n₁) (apSumOffset f d (m + n₁) n₂))
 
-/-- Triangle inequality for concatenating two offset AP sums, at the `discOffset` level. -/
+/-- Triangle inequality for concatenating two offset AP sums, at the `discOffset` level.
+
+This proof stays at the discrepancy-normal-form level: we apply the `Int.natAbs` lemma and
+rewrite using the simp bridge `natAbs_apSumOffset_eq_discOffset`, rather than unfolding
+`discOffset`.
+-/
 lemma discOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     discOffset f d m (n₁ + n₂) ≤
       discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
-  -- Avoid `simp [discOffset]`: it can loop with `natAbs_apSumOffset_eq_discOffset`.
-  unfold discOffset
-  exact natAbs_apSumOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+  simpa using
+    (natAbs_apSumOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
 /-- `apSumOffset` with zero offset is definitionaly the same as `apSum`. -/
 @[simp] lemma apSumOffset_zero_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
