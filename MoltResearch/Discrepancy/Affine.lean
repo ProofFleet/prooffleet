@@ -305,24 +305,6 @@ lemma apSumFrom_one_d (f : ℕ → ℤ) (a n : ℕ) :
     apSumFrom f a 1 n = (Finset.Icc 1 n).sum (fun i => f (a + i)) := by
   simpa using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := 1) (n := n))
 
-/-- Special case: `d = 1` turns `apSumFrom` into a shifted `Finset.range` sum.
-
-This is the affine analogue of `apSumOffset_one_d_range`.
--/
-@[simp] lemma apSumFrom_one_d_range (f : ℕ → ℤ) (a n : ℕ) :
-    apSumFrom f a 1 n = (Finset.range n).sum (fun i => f (a + i + 1)) := by
-  simp [apSumFrom, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
-
-/-- Translation-friendly variant of `apSumFrom_one_d_range` with binder form `i + const`.
-
-Concretely, this rewrites the summand `a + i + 1` as `i + (a + 1)`.
--/
-lemma apSumFrom_one_d_range_shift_add (f : ℕ → ℤ) (a n : ℕ) :
-    apSumFrom f a 1 n = (Finset.range n).sum (fun i => f (i + (a + 1))) := by
-  classical
-  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-    (apSumFrom_one_d_range (f := f) (a := a) (n := n))
-
 /-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc 1 n, f (a + i*d)` back to
 `apSumFrom`.
 
