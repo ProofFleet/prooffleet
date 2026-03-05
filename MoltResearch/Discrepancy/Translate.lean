@@ -325,6 +325,23 @@ lemma apSum_shift_add_eq_apSumOffset_div_mod (f : ℕ → ℤ) (a d n : ℕ) :
     _ = apSumOffset (fun k => f (k + a % d)) d (a / d) n := by
             simpa using hoff
 
+/-- Normal form: rewrite an affine AP sum `apSumFrom` into an `apSumOffset` div/mod normal form.
+
+`apSumFrom f a d n = apSumOffset (fun t => f (t + (a % d))) d (a / d) n`.
+
+Intuition: view `apSumFrom f a d n` as `apSum (k ↦ f (k + a)) d n` and then apply
+`apSum_shift_add_eq_apSumOffset_div_mod`.
+-/
+lemma apSumFrom_eq_apSumOffset_div_mod (f : ℕ → ℤ) (a d n : ℕ) (hd : d > 0) :
+    apSumFrom f a d n =
+      apSumOffset (fun t => f (t + (a % d))) d (a / d) n := by
+  -- The hypothesis `hd` is included for API consistency with other div/mod normal forms.
+  have hd' : d > 0 := hd
+  clear hd'
+  -- Rewrite to a shifted `apSum`, then normalize via div/mod.
+  simpa [apSumFrom_eq_apSum_shift_add] using
+    (apSum_shift_add_eq_apSumOffset_div_mod (f := f) (a := a) (d := d) (n := n))
+
 /-- Normal form (mod step): reduce a translation inside an `apSumOffset` witness using `Nat.div`/`Nat.mod`.
 
 `apSumOffset (fun k => f (k + a)) d m n = apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n`.
