@@ -900,6 +900,17 @@ lemma apSumOffset_eq_apSumOffset_step_one (f : ℕ → ℤ) (d m n : ℕ) :
   unfold apSumOffset
   simp
 
+/-- Combined “shift-start + step-one” normal form.
+
+This pushes both a *start shift* `a` (in the underlying sequence) and the AP step `d` into the
+summand, yielding the convenient translation-friendly shape `k*d + a`.
+-/
+lemma apSumOffset_shift_add_eq_apSumOffset_step_one_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun t => f (t + a)) d m n = apSumOffset (fun k => f (k * d + a)) 1 m n := by
+  -- Apply the step-one lemma to the shifted function, then β-reduce.
+  simpa using
+    (apSumOffset_eq_apSumOffset_step_one (f := fun t => f (t + a)) (d := d) (m := m) (n := n))
+
 -- (deprecated alias `apSumOffset_step_one_eq_apSumOffset` moved to `MoltResearch.Discrepancy.Deprecated`)
 
 /-- Express `apSumOffset` as an `apSum` with step `1`. -/
