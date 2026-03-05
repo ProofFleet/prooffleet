@@ -310,7 +310,9 @@ Definition of done:
 - [x] Translation bookkeeping: add a canonical lemma rewriting `apSumFrom f (a + b) d n` to `apSumFrom (fun t => f (t + b)) a d n` (and the corresponding “push translation into the start” inverse), so affine-start noise can be moved uniformly either into the start parameter or the summand shift.
 - [x] Periodicity normal form: if `f` is periodic with period `p` (or satisfies `∀ k, f (k+p)=f k`), normalize an offset AP sum whose step is a multiple of `p` to a constant sum (implemented as `apSumOffset_mul_periodic`, with a regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`). This is high-leverage for later Fourier/character-style decompositions.
 - [x] Bounding API generalization: add a lemma family for functions bounded by 1 in `Int.natAbs` (not just sign sequences), e.g. if `∀ k, Int.natAbs (f k) ≤ 1` then `Int.natAbs (apSumOffset f d m n) ≤ n`, and derive the `IsSignSequence` bound as a corollary. Keep it in nucleus form.
-- [ ] “Kernel lemma” for discrepancy: define `discOffset f d m n := Int.natAbs (apSumOffset f d m n)` (or prove it as a lemma-only abbreviation) and add triangle-inequality + split lemmas directly at the `discOffset` level, so later statements don’t have to carry `Int.natAbs (apSumOffset …)` everywhere.
+- [x] “Kernel lemma” for discrepancy: define `discOffset f d m n := Int.natAbs (apSumOffset f d m n)` (or prove it as a lemma-only abbreviation) and add triangle-inequality + split lemmas directly at the `discOffset` level, so later statements don’t have to carry `Int.natAbs (apSumOffset …)` everywhere.
+  - Wrapper `discOffset` + concat triangle inequality: `MoltResearch/Discrepancy/Basic.lean` (`discOffset`, `discOffset_add_le`).
+  - Interior-cut split inequality: `MoltResearch/Discrepancy/Offset.lean` (`discOffset_split_at_le`) + regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 ### Track C — Conjecture stub + equivalences (backlog)
 

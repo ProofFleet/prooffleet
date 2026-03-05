@@ -255,6 +255,11 @@ example {k : ℕ} (hmk : m ≤ k) (hkn : k ≤ m + n) :
     apSumOffset f d m n = apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
   simpa using (apSumOffset_split_at (f := f) (d := d) (hmk := hmk) (hkn := hkn))
 
+-- Same split, but at the discrepancy wrapper level (`discOffset`).
+example {k : ℕ} (hmk : m ≤ k) (hkn : k ≤ m + n) :
+    discOffset f d m n ≤ discOffset f d m (k - m) + discOffset f d k (m + n - k) := by
+  simpa using (discOffset_split_at_le (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn)
+
 example :
     apSumOffset f d m (n₁ + n₂) =
       apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by

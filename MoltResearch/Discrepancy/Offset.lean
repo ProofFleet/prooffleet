@@ -1679,6 +1679,24 @@ lemma apSumOffset_sub_apSumOffset_eq_sum_Icc_mul_left (f : ℕ → ℤ) (d m : �
   intro i hi
   simp [Nat.mul_comm]
 
+/-!
+## Discrepancy-level split inequality for offset sums
+
+The wrapper `discOffset f d m n := Int.natAbs (apSumOffset f d m n)` is defined in
+`MoltResearch.Discrepancy.Basic`. Here we add the common “split at an interior cut” inequality.
+-/
+
+/-- Triangle inequality for splitting an offset sum at an interior cut `k` (with `m ≤ k ≤ m+n`). -/
+lemma discOffset_split_at_le (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ m + n) :
+    discOffset f d m n ≤ discOffset f d m (k - m) + discOffset f d k (m + n - k) := by
+  -- Expand the wrapper so the proof is a direct `Int.natAbs` statement.
+  unfold discOffset
+  have h := apSumOffset_split_at (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
+  -- `|x+y| ≤ |x|+|y|`.
+  simpa [h] using
+    (Int.natAbs_add_le (apSumOffset f d m (k - m)) (apSumOffset f d k (m + n - k)))
+
 /-- Sign-sequence bound on the difference of two offset sums when `n₁ ≤ n₂`. -/
 lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f)
     (d m : ℕ) {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
