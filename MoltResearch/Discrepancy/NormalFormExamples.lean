@@ -52,6 +52,27 @@ example (g : ℕ → ℤ)
     apSumOffset f d m n = apSumOffset g d m n := by
   simpa using (apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
 
+-- Regression: `apSumOffset` reindexing under a bijection on `Finset.range` indices.
+--
+-- This is intentionally a very small compile-time test: we use the identity permutation.
+example :
+    apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
+  -- Route the proof through the Track B reindexing glue lemma.
+  let σ : ℕ → ℕ := fun i => i
+  have hσ_range : ∀ i ∈ Finset.range n, σ i ∈ Finset.range n := by
+    intro i hi
+    simpa [σ] using hi
+  have hσ_inj :
+      ∀ i₁ ∈ Finset.range n, ∀ i₂ ∈ Finset.range n, σ i₁ = σ i₂ → i₁ = i₂ := by
+    intro i₁ hi₁ i₂ hi₂ hEq
+    simpa [σ] using hEq
+  have hσ_surj : ∀ j ∈ Finset.range n, ∃ i ∈ Finset.range n, σ i = j := by
+    intro j hj
+    exact ⟨j, hj, rfl⟩
+  simpa [σ] using
+    (apSumOffset_reindex_range_bij (f := f) (d := d) (m := m) (n := n) (σ := σ)
+      (hσ_range := hσ_range) (hσ_inj := hσ_inj) (hσ_surj := hσ_surj))
+
 example (g : ℕ → ℤ)
     (h : ∀ i, i < n → f (a + (i + 1) * d) = g (a + (i + 1) * d)) :
     apSumFrom f a d n = apSumFrom g a d n := by
