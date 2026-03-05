@@ -20,6 +20,24 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-! ### `d = 1` simp-friendly normal forms (range-shift)
+
+These are small convenience wrappers for rewriting affine AP sums with step size `1` into a plain
+`Finset.range` sum, avoiding repeated `Nat.mul_one` / reassociation under binders.
+
+We provide both a translation-friendly binder form `i ↦ f (i + const)` and a constant-on-the-left
+variant.
+-/
+
+lemma apSumFrom_one_d_range (f : ℕ → ℤ) (a n : ℕ) :
+    apSumFrom f a 1 n = (Finset.range n).sum (fun i => f (i + (a + 1))) := by
+  unfold apSumFrom
+  simp [Nat.mul_one, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+lemma apSumFrom_one_d_range_add_left (f : ℕ → ℤ) (a n : ℕ) :
+    apSumFrom f a 1 n = (Finset.range n).sum (fun i => f ((a + 1) + i)) := by
+  simpa [Nat.add_comm] using (apSumFrom_one_d_range (f := f) (a := a) (n := n))
+
 /-! ### Endpoint arithmetic normalisation lemmas
 
 These lemmas help normalising the endpoint expressions that appear in `apSumFrom`-style
