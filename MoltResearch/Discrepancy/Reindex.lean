@@ -130,6 +130,38 @@ lemma apSumOffset_reindex_range_bij (f : ℕ → ℤ) (d m n : ℕ) (σ : ℕ �
   · intro i hi
     rfl
 
+/-- Reindex an `apSumOffset` sum by a permutation of the index type `Fin n`.
+
+This is often the most ergonomic form for “swap residue classes / permute blocks” arguments,
+since the change-of-variables is naturally a permutation on `Fin n`.
+
+It is a nucleus-level wrapper that avoids dropping into raw `Finset` boilerplate.
+-/
+lemma apSumOffset_reindex_fin_perm (f : ℕ → ℤ) (d m n : ℕ) (σ : Equiv.Perm (Fin n)) :
+    apSumOffset f d m n =
+      (Finset.univ : Finset (Fin n)).sum (fun i => f ((m + (σ i).1 + 1) * d)) := by
+  classical
+  unfold apSumOffset
+  -- Rewrite the `range` sum as a `Fin n` sum, then use invariance of `Fintype.sum` under
+  -- reindexing by an equivalence.
+  calc
+    (Finset.range n).sum (fun i => f ((m + i + 1) * d))
+        = (∑ i : Fin n, f ((m + (i : ℕ) + 1) * d)) := by
+          -- `Fin.sum_univ_eq_sum_range` is stated for a function on `ℕ` (with implicit coercions
+          -- from `Fin n`), so we feed it the `ℕ`-level summand.
+          simpa using
+            (Fin.sum_univ_eq_sum_range (n := n) (f := fun i : ℕ => f ((m + i + 1) * d))).symm
+    _ = (∑ i : Fin n, f ((m + (σ i : Fin n) + 1) * d)) := by
+          -- `Fintype.sum_equiv` reindexes sums.  We use it in the direction
+          --   (sum over `i ↦ g (σ i)`) = (sum over `i ↦ g i`)
+          -- and then take symmetry.
+          symm
+          simpa using
+            (Fintype.sum_equiv σ
+              (fun i : Fin n => f ((m + (σ i : Fin n) + 1) * d))
+              (fun i : Fin n => f ((m + (i : ℕ) + 1) * d))
+              (fun i => rfl))
+
 lemma apSum_map_mul (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   unfold apSum
