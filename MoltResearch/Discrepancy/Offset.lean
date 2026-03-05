@@ -425,6 +425,24 @@ lemma apSumOffset_one_d (f : ℕ → ℤ) (m n : ℕ) :
     apSumOffset f 1 m n = (Finset.Icc (m + 1) (m + n)).sum f := by
   simpa using (apSumOffset_eq_sum_Icc (f := f) (d := 1) (m := m) (n := n))
 
+/-- Special case: `d = 1` turns `apSumOffset` into a shifted `Finset.range` sum.
+
+This keeps the “nucleus” `Finset.range` binder rather than switching to paper notation (`Icc`).
+It is often more convenient for simp- and rewrite-heavy downstream arguments.
+-/
+@[simp] lemma apSumOffset_one_d_range (f : ℕ → ℤ) (m n : ℕ) :
+    apSumOffset f 1 m n = (Finset.range n).sum (fun i => f (m + i + 1)) := by
+  simp [apSumOffset]
+
+/-- Translation-friendly variant of `apSumOffset_one_d_range` with binder form `i + const`.
+-/
+lemma apSumOffset_one_d_range_shift_add (f : ℕ → ℤ) (m n : ℕ) :
+    apSumOffset f 1 m n = (Finset.range n).sum (fun i => f (i + (m + 1))) := by
+  classical
+  -- Start from the definitional/range normal form and commute the translation inside the binder.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumOffset_one_d_range (f := f) (m := m) (n := n))
+
 /-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc (m+1) (m+n), f (i*d)` back
 to `apSumOffset`.
 

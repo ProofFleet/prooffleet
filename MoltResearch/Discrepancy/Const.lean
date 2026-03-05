@@ -67,8 +67,9 @@ lemma hasDiscrepancyAtLeast_const_of_ne_zero (c : ℤ) (hc : c ≠ 0) (C : ℕ) 
     have : (C + 1) * Int.natAbs c ≥ C + 1 := by
       simpa using this
     exact Nat.lt_of_lt_of_le (Nat.lt_succ_self C) this
-  -- finish
-  simpa [hnatAbs] using hgt
+  -- finish (use `rw` so we don't simplify the `apSum` term away before applying `hnatAbs`)
+  rw [hnatAbs]
+  exact hgt
 
 /-- A constant zero function never has discrepancy at least `C`. -/
 lemma not_hasDiscrepancyAtLeast_const_zero (C : ℕ) :
@@ -118,7 +119,9 @@ lemma hasAffineDiscrepancyAtLeast_const_of_ne_zero (c : ℤ) (hc : c ≠ 0) (C :
     have : (C + 1) * Int.natAbs c ≥ C + 1 := by
       simpa using this
     exact Nat.lt_of_lt_of_le (Nat.lt_succ_self C) this
-  simpa [hnatAbs] using hgt
+  -- finish (use `rw` so we don't simplify the `apSumFrom` term away before applying `hnatAbs`)
+  rw [hnatAbs]
+  exact hgt
 
 /-- A constant zero function never has affine discrepancy at least `C`. -/
 lemma not_hasAffineDiscrepancyAtLeast_const_zero (C : ℕ) :
