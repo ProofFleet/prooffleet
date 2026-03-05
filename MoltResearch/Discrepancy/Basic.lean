@@ -1151,6 +1151,16 @@ lemma natAbs_apSumOffset_add_length_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa [apSumOffset_add_length] using
     (Int.natAbs_add_le (apSumOffset f d m n₁) (apSumOffset f d (m + n₁) n₂))
 
+/-- Triangle inequality API for splitting `discOffset` by length.
+
+This is a wrapper around `natAbs_apSumOffset_add_length_le`, using the `discOffset` simp bridge.
+-/
+lemma discOffset_add_length_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    discOffset f d m (n₁ + n₂) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+  simpa using
+    (natAbs_apSumOffset_add_length_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
 /-- Triangle inequality API for splitting a homogeneous AP sum by length. -/
 lemma natAbs_apSum_add_length_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
     Int.natAbs (apSum f d (n₁ + n₂)) ≤
