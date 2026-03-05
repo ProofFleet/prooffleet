@@ -411,6 +411,23 @@ lemma natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : �
   intro k
   rcases hf k with h | h <;> simp [h]
 
+/-- If the terms of `f` are uniformly bounded by `1` in `Int.natAbs`, then any AP sum has
+`Int.natAbs` bounded by its length.
+
+This is the `apSum` specialization of `natAbs_apSumOffset_le_of_natAbs_le_one`.
+-/
+lemma natAbs_apSum_le_of_natAbs_le_one {f : ℕ → ℤ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ 1) (d n : ℕ) :
+    Int.natAbs (apSum f d n) ≤ n := by
+  simpa [apSumOffset_zero_eq_apSum] using
+    (natAbs_apSumOffset_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (m := 0) (n := n))
+
+/-- A sign sequence has `Int.natAbs` bounded by length on any AP sum. -/
+lemma natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
+    Int.natAbs (apSum f d n) ≤ n := by
+  simpa [apSumOffset_zero_eq_apSum] using
+    (natAbs_apSumOffset_le (hf := hf) (d := d) (m := 0) (n := n))
+
 /-- Bounding a *difference of discrepancies* (offset AP sums) by total length.
 
 Useful for triangle-inequality pipelines: `|Sₙ - Sₙ'| ≤ |Sₙ| + |Sₙ'| ≤ n + n'`.
