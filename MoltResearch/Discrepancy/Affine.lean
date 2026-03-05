@@ -670,6 +670,17 @@ lemma apSumFrom_tail_eq_apSumOffset_step_one_add_left (f : ℕ → ℤ) (a d m n
     _ = f (((m + i + 1) * 1) * d + a) := by
             simp
 
+/-- Convenience wrapper around `apSumFrom_tail_eq_apSumOffset_step_one_add_left` when the affine
+start is written as `m*d + a`.
+
+This avoids a manual commutativity rewrite at the call site.
+-/
+lemma apSumFrom_tail_eq_apSumOffset_step_one_add_left_start_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (m * d + a) d n = apSumOffset (fun k => f (k * d + a)) 1 m n := by
+  -- Commute the affine start into the `a + m*d` form and reuse the existing lemma.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumFrom_tail_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- Tail step-one normal form that keeps the tail parameter `m` in the offset nucleus API,
 with the summand written in the `a + k*d` form.
 
