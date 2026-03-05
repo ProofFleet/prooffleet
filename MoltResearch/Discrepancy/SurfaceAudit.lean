@@ -55,6 +55,7 @@ section
   -- Step-one normal-form entrypoints (preferred forward orientation) should be present.
   #check apSum_eq_apSum_step_one
   #check apSumOffset_eq_apSumOffset_step_one
+  #check apSumOffset_shift_add_eq_apSumOffset_step_one_add_left
   #check apSumFrom_eq_apSum_step_one
 
   -- Additional stable step-one bridge lemmas across the families.
