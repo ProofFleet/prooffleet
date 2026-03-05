@@ -151,6 +151,12 @@ example (hd : 0 < d) :
       apSumOffset (fun k => f (k + (a % d))) d (m + a / d) n := by
   simpa using (apSumOffset_shift_mod (f := f) (d := d) (m := m) (n := n) (a := a) hd)
 
+-- Canonical quotient/remainder normal form for affine starts (div/mod).
+example (hd : 0 < d) :
+    apSumFrom f a d n = apSumOffset (fun t => f (t + (a % d))) d (a / d) n := by
+  -- Convert `0 < d` to `d > 0` for the API lemma.
+  simpa using (apSumFrom_eq_apSumOffset_div_mod (f := f) (a := a) (d := d) (n := n) hd)
+
 
 -- “Push the translation into the function” normal forms.
 --
