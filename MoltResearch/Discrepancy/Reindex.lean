@@ -87,6 +87,49 @@ lemma apSumOffset_reindex_affine (f : ℕ → ℤ) (d m n : ℕ) :
     (sum_range_affine_mul_reindex (a := m + 1) (b := 1) (d := d) (n := n)
       (hb := Nat.succ_pos 0) (f := f))
 
+/-!
+### Reindexing `apSumOffset` by permuting `Finset.range`
+
+This is a small piece of “glue” for later arguments that split a sum into residue classes (e.g.
+parity classes) and then swap / permute those classes by a change of variables.
+
+We keep this lemma at the nucleus level (`apSumOffset …`), so downstream code can reindex without
+dropping into raw `Finset` boilerplate.
+-/
+
+/-- Reindex an `apSumOffset` sum by a bijection on the range indices.
+
+If `σ` is a permutation of the index set `{0,1,…,n-1}` (expressed as a map `ℕ → ℕ` that is
+injective and surjective on `Finset.range n`), then we may rewrite the binder
+`i ↦ f ((m + i + 1) * d)` to `i ↦ f ((m + σ i + 1) * d)`.
+
+This is a controlled wrapper around `Finset.sum_bij` specialized to the `apSumOffset` normal form.
+-/
+lemma apSumOffset_reindex_range_bij (f : ℕ → ℤ) (d m n : ℕ) (σ : ℕ → ℕ)
+    (hσ_range : ∀ i ∈ Finset.range n, σ i ∈ Finset.range n)
+    (hσ_inj : ∀ i₁ ∈ Finset.range n, ∀ i₂ ∈ Finset.range n, σ i₁ = σ i₂ → i₁ = i₂)
+    (hσ_surj : ∀ j ∈ Finset.range n, ∃ i ∈ Finset.range n, σ i = j) :
+    apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + σ i + 1) * d)) := by
+  classical
+  unfold apSumOffset
+  -- `Finset.sum_bij` gives the reindexing equality in the direction
+  --   ∑ i, f (m + σ i + 1) = ∑ j, f (m + j + 1).
+  -- We take its symmetric form to match the `apSumOffset` definition.
+  symm
+  refine Finset.sum_bij (s := Finset.range n) (t := Finset.range n)
+    (i := fun i hi => σ i)
+    (hi := fun i hi => hσ_range i hi)
+    (i_inj := ?_)
+    (i_surj := ?_)
+    (h := ?_)
+  · intro i₁ hi₁ i₂ hi₂ hEq
+    exact hσ_inj i₁ hi₁ i₂ hi₂ hEq
+  · intro j hj
+    rcases hσ_surj j hj with ⟨i, hi, rfl⟩
+    exact ⟨i, hi, rfl⟩
+  · intro i hi
+    rfl
+
 lemma apSum_map_mul (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   unfold apSum
