@@ -43,6 +43,34 @@ example
   -- Difference → affine tail → offset-sum on the shifted sequence.
   simpa [apSumFrom_sub_eq_apSumOffset_shift_add] using h
 
+-- Paper tail sum with an *affine summand* `i*d + a` → `discOffset` bound in step-one offset form.
+--
+-- This is the kind of thing that shows up if a paper writes an AP as an *index interval* `Icc (m+1) (m+n)`
+-- and bundles the step `d` into the summand.
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a))) ≤ C) :
+    discOffset (fun k => f (k * d + a)) 1 m n ≤ C := by
+  -- `apSumOffset_one_d` rewrites the offset-sum into the `Icc` paper notation.
+  simpa [discOffset, apSumOffset_one_d] using h
+
+-- Paper difference of *paper* affine partial sums → `discOffset` bound (difference → tail → offset).
+example
+    (h :
+        Int.natAbs
+            ((Finset.Icc 1 (m + n)).sum (fun i => f (a + i * d)) -
+              (Finset.Icc 1 m).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (k + a)) d m n ≤ C := by
+  -- Paper → nucleus (`apSumFrom`), then difference → `apSumOffset` on a shifted sequence.
+  simpa [discOffset, sum_Icc_eq_apSumFrom, apSumFrom_sub_eq_apSumOffset_shift_add] using h
+
+-- Paper tail sum with a translation-friendly summand `i*d + a` → `discOffset` bound (tail → offset on shifted seq).
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a))) ≤ C) :
+    discOffset (fun k => f (k + a)) d m n ≤ C := by
+  -- Paper tail → affine-tail nucleus → offset tail on the shifted sequence.
+  simpa [discOffset, sum_Icc_eq_apSumFrom_tail_add, apSumFrom_tail_eq_apSumOffset_shift_add_left] using h
+
 -- Regression: definitional lemmas expose the wrappers.
 example : discrepancy f d n = Int.natAbs (apSum f d n) := by
   rfl
