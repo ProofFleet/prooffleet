@@ -159,6 +159,42 @@ example (hmn : m ≤ n)
   simpa [discOffset,
     sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
 
+-- Paper difference of two *paper* affine-endpoint tail sums → `discOffset` bound
+-- (tail - shorter tail = later tail).
+example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
+  have hn₁ : n₁ ≤ n - m := by
+    exact Nat.le_sub_of_add_le hmn₁
+  -- Rewrite both `Icc` tails into `apSumOffset` (stable surface), then normalize the difference.
+  simpa [discOffset,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+
+-- Same as the previous example, but with the summand written as `a + d*i` (mul-left convention).
+example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + d * i))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
+  have hn₁ : n₁ ≤ n - m := by
+    exact Nat.le_sub_of_add_le hmn₁
+  simpa [discOffset,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+
 -- Difference of affine partial sums (`m ≤ n`) → `discOffset` bound (difference → tail → offset on shifted sequence).
 example (hmn : m ≤ n)
     (h : Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ C) :
