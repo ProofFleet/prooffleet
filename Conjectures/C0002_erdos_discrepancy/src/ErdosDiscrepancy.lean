@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy
+import Conjectures.C0002_erdos_discrepancy.src.Tao2015
 
 /-!
 A conjecture-style stub for the Erdős discrepancy theorem (Tao 2015).
@@ -13,17 +14,7 @@ theorem erdos_discrepancy_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     HasDiscrepancyAtLeast f 0 := by
   simpa using IsSignSequence.hasDiscrepancyAtLeast_zero (hf := hf)
 
-/-- Tao 2015: Erdős discrepancy, packaged as a “not bounded discrepancy” statement.
-
-This is the *mathematically substantial* part of the development, and remains a conjecture stub
-in this repo for now.
-
-(We keep this statement separate so the main theorem can be a clean composition of verified
-quantifier-normal-form lemmas.)
--/
-theorem tao2015_not_boundedDiscrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ¬ BoundedDiscrepancy f := by
-  sorry
+-- Tao 2015 proof skeleton lives in `Conjectures.C0002_erdos_discrepancy.src.Tao2015`.
 
 /-- Erdős discrepancy theorem.
 
