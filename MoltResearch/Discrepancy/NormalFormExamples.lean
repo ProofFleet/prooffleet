@@ -29,6 +29,37 @@ example
     discOffset f d m n ≤ C := by
   simpa using h
 
+-- Paper tail sum with affine endpoints (`m ≤ n`) → normalize to the shifted-sequence `discOffset` view.
+--
+-- This is a very typical "paper statement": a tail interval `Icc (m+1) n` with an affine summand.
+example (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (k + a)) d m (n - m) ≤ C := by
+  -- Paper tail → affine-tail nucleus → offset-sum on the shifted sequence.
+  simpa [discOffset,
+    sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    apSumFrom_tail_eq_apSumOffset_shift_add] using h
+
+-- Paper difference of affine partial sums (`m ≤ n`) → normalize into an offset tail on the shifted sequence.
+example (hmn : m ≤ n)
+    (h : Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ C) :
+    discOffset (fun k => f (k + a)) d m (n - m) ≤ C := by
+  simpa [discOffset,
+    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      hmn] using h
+
+-- Paper difference of *paper* affine tail sums → normalize to a later tail (`tail-of-tail` normal form).
+example
+    (h :
+        Int.natAbs
+            (((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + i * d))) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (k + a)) d (m + n₁) n₂ ≤ C := by
+  -- Paper tails → affine-tail nucleus (`apSumFrom`), then difference → offset tail on shifted sequence.
+  simpa [discOffset, sum_Icc_eq_apSumFrom_tail, apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail,
+    Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
 -- Paper tail sum with affine summand `a + i` (i.e. `d = 1`) → normalize to the shifted-sequence `discOffset` view.
 example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i))) ≤ C) :
