@@ -93,6 +93,41 @@ example (hmn : m ≤ n)
   simpa [
     apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
 
+-- 7) Paper difference of *paper* affine sums with affine endpoints (`hmn : m ≤ n`).
+--
+-- Normalize the paper statement directly into the stable-surface offset wrapper.
+example (hmn : m ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc 1 n).sum (fun i => f (a + i * d)) -
+              (Finset.Icc 1 m).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  -- Avoid `simp` loops by rewriting the goal to the underlying `Int.natAbs (apSumOffset …)` form.
+  change Int.natAbs (apSumOffset (fun k => f (a + k)) d m (n - m)) ≤ C
+  -- paper → nucleus (`apSumFrom`), then difference → offset tail.
+  simpa [sum_Icc_eq_apSumFrom,
+    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+
+-- 7b) Same as (7), but with mul-left convention `a + d*i` in the paper statement.
+example (hmn : m ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc 1 n).sum (fun i => f (a + d * i)) -
+              (Finset.Icc 1 m).sum (fun i => f (a + d * i))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  change Int.natAbs (apSumOffset (fun k => f (a + k)) d m (n - m)) ≤ C
+  -- Normalize the paper mul-left summand `a + d*i` into the canonical `i*d` convention.
+  have h' :
+      Int.natAbs
+          ((Finset.Icc 1 n).sum (fun i => f (a + i * d)) -
+            (Finset.Icc 1 m).sum (fun i => f (a + i * d))) ≤
+        C := by
+    simpa [Nat.mul_comm] using h
+  simpa [sum_Icc_eq_apSumFrom,
+    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h'
+
 end UserScripts
 
 end MoltResearch
