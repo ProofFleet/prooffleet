@@ -105,6 +105,21 @@ section
   example : apSumOffset f d m n = apSumOffset (fun k => f (k * d)) 1 m n := by
     simpa using (apSumOffset_eq_apSumOffset_step_one (f := f) (d := d) (m := m) (n := n))
 
+  -- Canonical subtraction of affine partial sums (with `a = 0`) → offset-tail normal form.
+  example : apSumFrom f 0 d (m + n) - apSumFrom f 0 d m = apSumOffset f d m n := by
+    -- `apSumFrom_sub_eq_apSumOffset_shift_add` gives the canonical “difference → offset-tail” normal form.
+    simpa using
+      (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n))
+
+  -- Zero-offset tail → homogeneous `apSum` → step-one normalization.
+  example : apSumOffset f d 0 n = apSum (fun k => f (k * d)) 1 n := by
+    -- First drop the zero offset, then normalize the step size.
+    calc
+      apSumOffset f d 0 n = apSum f d n := by
+        simp
+      _ = apSum (fun k => f (k * d)) 1 n := by
+        simpa using (apSum_eq_apSum_step_one (f := f) (d := d) (n := n))
+
   -- Additional bridge lemmas (high-leverage normal-form glue).
   #check apSumOffset_eq_sub
   #check apSumOffset_eq_apSumFrom
