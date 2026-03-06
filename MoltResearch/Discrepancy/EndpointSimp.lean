@@ -54,4 +54,31 @@ example (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m (Nat.succ n) = apSumOffset f d m n + f ((m + Nat.succ n) * d) := by
   simp
 
+/-! ## `Nat.succ` wrappers for homogeneous sums -/
+
+/-- `Nat.succ` wrapper for `apSum_succ`.
+
+This avoids having to rewrite `Nat.succ n` into `n + 1` in downstream simp steps.
+-/
+@[simp] lemma apSum_succ_succ (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (Nat.succ n) = apSum f d n + f ((Nat.succ n) * d) := by
+  simpa [Nat.succ_eq_add_one, Nat.add_assoc] using
+    (apSum_succ (f := f) (d := d) (n := n))
+
+/-- `Nat.succ` wrapper for `apSum_succ_length`.
+
+This splits off the *first* term of an `apSum` when the length is written as `Nat.succ n`.
+The tail is naturally expressed as an `apSumOffset` starting at `m = 1`.
+-/
+@[simp] lemma apSum_succ_length_succ (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (Nat.succ n) = f d + apSumOffset f d 1 n := by
+  simpa [Nat.succ_eq_add_one, Nat.add_assoc] using
+    (apSum_succ_length (f := f) (d := d) (n := n))
+
+/-! ## Compile-only regression (via `import MoltResearch.Discrepancy`) -/
+
+example (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (Nat.succ n) = apSum f d n + f ((Nat.succ n) * d) := by
+  simp
+
 end MoltResearch
