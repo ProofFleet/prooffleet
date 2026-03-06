@@ -226,6 +226,49 @@ example (hmn : m ≤ n)
   simpa [sum_Icc_eq_apSumFrom,
     apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
 
+-- 15) Paper difference of *shifted* tail sums with translation-friendly summand `i*d + a`.
+--
+-- This shows how to turn a paper difference directly into a `discOffset` bound by rewriting the
+-- whole difference at once.
+example (n₁ n₂ : ℕ)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d + a)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d + a))) ≤
+          C) :
+    discOffset (fun k => f (k + a)) d (m + n₁) n₂ ≤ C := by
+  have h' := h
+  -- Rewrite the whole difference into an `apSumOffset` tail on the shifted sequence.
+  rw [
+    sum_Icc_sub_sum_Icc_eq_apSumOffset
+      (f := fun t => f (t + a)) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)] at h'
+  -- Let `simp` rewrite `Int.natAbs (apSumOffset …)` to the `discOffset` wrapper.
+  simpa using h'
+
+-- 16) Paper tail sum with translation-friendly summand `i*d + a` → `apSumOffset` bound (one-liner).
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a))) ≤ C) :
+    Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C := by
+  simpa [sum_Icc_eq_apSumOffset_of_le_shift_add_len] using h
+
+-- 17) Paper difference with mul-left convention `a + d*i` → `discOffset`.
+example
+    (h :
+        Int.natAbs
+            ((Finset.Icc 1 (m + n)).sum (fun i => f (a + d * i)) -
+              (Finset.Icc 1 m).sum (fun i => f (a + d * i))) ≤
+          C) :
+    discOffset (fun k => f (k + a)) d m n ≤ C := by
+  -- First normalize the mul-left summand into the canonical `i*d` convention.
+  have h' :
+      Int.natAbs
+          ((Finset.Icc 1 (m + n)).sum (fun i => f (a + i * d)) -
+            (Finset.Icc 1 m).sum (fun i => f (a + i * d))) ≤
+        C := by
+    simpa [Nat.mul_comm] using h
+  -- paper → nucleus (`apSumFrom`), then difference → offset tail.
+  simpa [sum_Icc_eq_apSumFrom, apSumFrom_sub_eq_apSumOffset_shift_add] using h'
+
 end UserScripts
 
 end MoltResearch
