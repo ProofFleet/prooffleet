@@ -357,6 +357,55 @@ example (n₁ : ℕ) (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
     apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (k + a)) (d := d) (m := m)
       (n₁ := n₁) (n₂ := n - m) hn₁] using h
 
+-- 22) Paper tail difference with affine endpoints (assume `hn₁ : n₁ ≤ n - m` directly).
+--
+-- This is the same normalization as (19)-(21), but in a more “user-facing” shape:
+-- users often know the length bound `n₁ ≤ n - m` already.
+example (n₁ : ℕ) (hmn : m ≤ n) (hn₁ : n₁ ≤ n - m)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
+  simpa [
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+
+-- 23) Same as (22), but with the paper summand written in mul-left convention `a + d*i`.
+example (n₁ : ℕ) (hmn : m ≤ n) (hn₁ : n₁ ≤ n - m)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + d * i))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
+  simpa [
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+      hmn,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+
+-- 24) Same as (22), but with the translation-friendly paper summand `i*d + a`.
+example (n₁ : ℕ) (hmn : m ≤ n) (hn₁ : n₁ ≤ n - m)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d + a))) ≤
+          C) :
+    discOffset (fun k => f (k + a)) d (m + n₁) (n - m - n₁) ≤ C := by
+  simpa [
+    sum_Icc_eq_apSumOffset_of_le_shift_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    sum_Icc_eq_apSumOffset_of_le_shift_add (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (k + a)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+
 end UserScripts
 
 end MoltResearch
