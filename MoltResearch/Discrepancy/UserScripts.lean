@@ -31,7 +31,7 @@ example
     discOffset (fun k => f (k + a)) d m n ≤ C := by
   simpa [apSumFrom_sub_eq_apSumOffset_shift_add] using h
 
--- 3) Paper difference of paper affine sums → `discOffset` (paper → nucleus → tail → offset).
+-- 3) Paper difference of paper affine sums → `discOffset` (difference → tail → offset).
 example
     (h :
         Int.natAbs
@@ -39,15 +39,27 @@ example
               (Finset.Icc 1 m).sum (fun i => f (a + i * d))) ≤
           C) :
     discOffset (fun k => f (k + a)) d m n ≤ C := by
-  -- First: paper sums → affine nucleus (`apSumFrom`).
-  have h' : Int.natAbs (apSumFrom f a d (m + n) - apSumFrom f a d m) ≤ C := by
-    simpa [sum_Icc_eq_apSumFrom] using h
-  -- Then: affine difference → offset tail on the shifted sequence.
-  have h'' : Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C := by
-    simpa [apSumFrom_sub_eq_apSumOffset_shift_add] using h'
-  -- Finally: repackage `Int.natAbs (apSumOffset …)` as `discOffset …`.
+  -- Avoid `simp` loops by rewriting the goal to the underlying `Int.natAbs (apSumOffset …)` form.
   change Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C
-  exact h''
+  simpa [sum_Icc_eq_apSumFrom, apSumFrom_sub_eq_apSumOffset_shift_add] using h
+
+-- 3b) Same as (3), but with the affine summand written in mul-left form `a + d*i`.
+example
+    (h :
+        Int.natAbs
+            ((Finset.Icc 1 (m + n)).sum (fun i => f (a + d * i)) -
+              (Finset.Icc 1 m).sum (fun i => f (a + d * i))) ≤
+          C) :
+    discOffset (fun k => f (k + a)) d m n ≤ C := by
+  -- First normalize the mul-left summand into the `i * d` convention.
+  have h' :
+      Int.natAbs
+          ((Finset.Icc 1 (m + n)).sum (fun i => f (a + i * d)) -
+            (Finset.Icc 1 m).sum (fun i => f (a + i * d))) ≤
+        C := by
+    simpa [Nat.mul_comm] using h
+  change Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C
+  simpa [sum_Icc_eq_apSumFrom, apSumFrom_sub_eq_apSumOffset_shift_add] using h'
 
 -- 4) Paper tail sum with translation-friendly summand `i*d + a` → `discOffset` bound.
 example
@@ -64,6 +76,14 @@ example (hmn : m ≤ n)
   change Int.natAbs (apSumOffset (fun k => f (a + k)) d m (n - m)) ≤ C
   simpa [
     sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+
+-- 5b) Same as (5), but with the summand written as `a + d*i` (mul-left convention).
+example (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + d * i))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  change Int.natAbs (apSumOffset (fun k => f (a + k)) d m (n - m)) ≤ C
+  simpa [
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
 
 -- 6) Difference of affine partial sums (`hmn : m ≤ n`) → `discOffset` bound.
 example (hmn : m ≤ n)
