@@ -48,6 +48,10 @@ This can show up after rewriting goals that express “remove the last element�
     apSumOffset f d m (Nat.pred (Nat.succ n)) = apSumOffset f d m n := by
   simp
 
+@[simp] lemma apSum_pred_succ (f : ℕ → ℤ) (d n : ℕ) :
+    apSum f d (Nat.pred (Nat.succ n)) = apSum f d n := by
+  simp
+
 /-! ## `Nat.succ` wrappers for homogeneous sums -/
 
 /-- `Nat.succ` wrapper for `apSum_succ`.
