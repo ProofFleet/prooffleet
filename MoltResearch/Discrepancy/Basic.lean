@@ -395,8 +395,12 @@ lemma discOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa using
     (natAbs_apSumOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
-/-- `apSumOffset` with zero offset is definitionaly the same as `apSum`. -/
-@[simp] lemma apSumOffset_zero_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
+/-- Normal form: an offset sum with start index `m = 0` is just the homogeneous sum `apSum`.
+
+Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
+(We intentionally do *not* simp in the other direction.)
+-/
+@[simp] lemma apSumOffset_zero_start (f : ℕ → ℤ) (d n : ℕ) :
     apSumOffset f d 0 n = apSum f d n := by
   unfold apSumOffset apSum
   simp
@@ -407,7 +411,7 @@ lemma natAbs_apSum_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
       Int.natAbs (apSum f d n₁) + Int.natAbs (apSumOffset f d n₁ n₂) := by
   -- This is `natAbs_apSumOffset_add_le` at `m = 0`, with the definitional rewrite
   -- `apSumOffset f d 0 _ = apSum f d _`.
-  simpa [apSumOffset_zero_eq_apSum] using
+  simpa [apSumOffset_zero_start] using
     (natAbs_apSumOffset_add_le (f := f) (d := d) (m := 0) (n₁ := n₁) (n₂ := n₂))
 
 /-! ### Basic inequalities for sign sequences -/
@@ -453,7 +457,7 @@ This is the `apSum` specialization of `natAbs_apSumOffset_le_mul_of_natAbs_le`.
 lemma natAbs_apSum_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
     (hf : ∀ k, Int.natAbs (f k) ≤ B) (d n : ℕ) :
     Int.natAbs (apSum f d n) ≤ n * B := by
-  simpa [apSumOffset_zero_eq_apSum] using
+  simpa [apSumOffset_zero_start] using
     (natAbs_apSumOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := 0)
       (n := n))
 
@@ -499,13 +503,13 @@ This is the `apSum` specialization of `natAbs_apSumOffset_le_of_natAbs_le_one`.
 lemma natAbs_apSum_le_of_natAbs_le_one {f : ℕ → ℤ}
     (hf : ∀ k, Int.natAbs (f k) ≤ 1) (d n : ℕ) :
     Int.natAbs (apSum f d n) ≤ n := by
-  simpa [apSumOffset_zero_eq_apSum] using
+  simpa [apSumOffset_zero_start] using
     (natAbs_apSumOffset_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (m := 0) (n := n))
 
 /-- A sign sequence has `Int.natAbs` bounded by length on any AP sum. -/
 lemma natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
     Int.natAbs (apSum f d n) ≤ n := by
-  simpa [apSumOffset_zero_eq_apSum] using
+  simpa [apSumOffset_zero_start] using
     (natAbs_apSumOffset_le (hf := hf) (d := d) (m := 0) (n := n))
 
 /-- Bounding a *difference of discrepancies* (offset AP sums) by total length.
@@ -1060,15 +1064,7 @@ lemma apSum_eq_apSumOffset (f : ℕ → ℤ) (d n : ℕ) : apSum f d n = apSumOf
   unfold apSum apSumOffset
   simp
 
-/-- Zero offset normalizes to the homogeneous API. -/
-@[simp] lemma apSumOffset_zero_eq (f : ℕ → ℤ) (d n : ℕ) :
-    apSumOffset f d 0 n = apSum f d n := by
-  simpa using (apSum_eq_apSumOffset (f := f) (d := d) (n := n)).symm
-
-/-- `apSumOffset` with offset `0` is definitionally the homogeneous sum `apSum`. -/
-@[simp] lemma apSumOffset_zero_offset (f : ℕ → ℤ) (d n : ℕ) :
-    apSumOffset f d 0 n = apSum f d n := by
-  simpa using (apSum_eq_apSumOffset (f := f) (d := d) (n := n)).symm
+/- (deprecated aliases for `apSumOffset_zero_start` live in `MoltResearch.Discrepancy.Deprecated`). -/
 
 /-- Normal form (“step-one”): express a homogeneous AP sum as an `apSum` with step size `1`
 by bundling the step size `d` into the summand.
@@ -1116,16 +1112,6 @@ lemma apSum_step_one_shift_eq_apSumOffset (f : ℕ → ℤ) (d a n : ℕ) :
     discrepancy (fun k => f ((k + a) * d)) 1 n = Int.natAbs (apSumOffset f d a n) := by
   unfold discrepancy
   simp [apSum_step_one_shift_eq_apSumOffset]
-
-/-- Normal form: an offset sum with start index `m = 0` is just the homogeneous sum `apSum`.
-
-Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
-(We intentionally do *not* simp in the other direction.)
--/
-@[simp] lemma apSumOffset_zero_start (f : ℕ → ℤ) (d n : ℕ) :
-    apSumOffset f d 0 n = apSum f d n := by
-  unfold apSumOffset apSum
-  simp
 
 lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
     apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
