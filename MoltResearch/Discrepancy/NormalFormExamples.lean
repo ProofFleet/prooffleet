@@ -1021,6 +1021,42 @@ example :
   simpa using
     sum_Icc_sub_sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+/-!
+### “Typical user script” regressions (paper statements → nucleus normal form)
+
+These are intended to mimic how downstream files often look:
+- start from an interval-sum statement (paper-friendly `Icc` endpoints)
+- rewrite a *difference* of two such blocks into an `apSumOffset`
+- immediately normalize the discrepancy wrapper via `simp` (to `discOffset`)
+
+The goal is that these normalize with a single `simp`/`rw` pipeline when importing only
+`MoltResearch.Discrepancy` (the stable surface).
+-/
+
+-- 1) Difference of paper blocks → `apSumOffset` (then `discOffset`) with no extra bookkeeping.
+example :
+    Int.natAbs (
+        (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+          (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d))) =
+      discOffset f d (m + n₁) n₂ := by
+  simp [sum_Icc_sub_sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)]
+
+-- 2) Same, but with an affine translation *after* the `i*d` (very common in paper statements).
+example :
+    Int.natAbs (
+        (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + i * d)) -
+          (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d))) =
+      discOffset (fun t => f (a + t)) d (m + n₁) n₂ := by
+  -- First rewrite the *difference of blocks* to an `apSumOffset` tail, then let `simp`
+  -- turn `Int.natAbs (apSumOffset …)` into `discOffset …`.
+  simp [sum_Icc_sub_sum_Icc_eq_apSumOffset (f := fun t => f (a + t)) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)]
+
+-- 3) “Tail length” form with variable upper endpoint: `m ≤ n` paper tail → `discOffset` tail.
+example (hmn : m ≤ n) :
+    Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) =
+      discOffset (fun t => f (a + t)) d m (n - m) := by
+  simp [sum_Icc_eq_apSumOffset_of_le (f := fun t => f (a + t)) (d := d) (m := m) (n := n) hmn]
+
 -- Variable upper endpoints often appear in surface statements. When `m ≤ k ≤ n`, split the
 -- interval sum at `k`. 
 example (k : ℕ) (hmk : m ≤ k) (hkn : k ≤ n) :
