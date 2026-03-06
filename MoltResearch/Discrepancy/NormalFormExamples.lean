@@ -29,6 +29,52 @@ example
     discOffset f d m n ≤ C := by
   simpa using h
 
+-- Paper tail sum with affine endpoints (`m ≤ n`) → normalize to an `apSumOffset` nucleus statement.
+-- (I.e. strip away the paper `Icc` and expose the canonical tail-sum wrapper.)
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn)
+
+-- Paper difference of two affine-endpoint tails → normalize to a later tail in `apSumOffset` normal form.
+example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) -
+        (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) := by
+  have hn₁ : n₁ ≤ n - m :=
+    Nat.le_sub_of_add_le hmn₁
+  -- Rewrite both paper tails to `apSumOffset`, then normalize the difference.
+  simpa [
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁,
+    Nat.sub_eq
+  ]
+  using
+    (apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁)
+
+-- Same normalization as above, but keep the `discOffset` wrapper (single `simpa` pipeline).
+example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
+  have hn₁ : n₁ ≤ n - m :=
+    Nat.le_sub_of_add_le hmn₁
+  simpa [discOffset,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁
+  ] using h
+
 -- Paper tail sum with affine endpoints (`m ≤ n`) → normalize to the shifted-sequence `discOffset` view.
 --
 -- This is a very typical "paper statement": a tail interval `Icc (m+1) n` with an affine summand.
