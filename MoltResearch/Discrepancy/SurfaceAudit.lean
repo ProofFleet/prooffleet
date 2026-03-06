@@ -120,6 +120,50 @@ section
       _ = apSum (fun k => f (k * d)) 1 n := by
         simpa using (apSum_eq_apSum_step_one (f := f) (d := d) (n := n))
 
+  /-!
+  ### Additional compile-only rewrite pipeline examples
+
+  These mirror the most common “paper → nucleus” rewrite moves used downstream:
+  tail interval sums and differences of affine partial sums normalized into `discOffset` / `apSumOffset`.
+  -/
+
+  -- Paper tail sum (`Icc (m+1) (m+n)`) → `discOffset` bound (homogeneous AP summand `i*d`).
+  example (C : ℕ)
+      (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C) :
+      discOffset f d m n ≤ C := by
+    simpa using h
+
+  -- Paper tail sum with affine endpoints (`m ≤ n`) → `discOffset` in `apSumOffset` normal form.
+  --
+  -- This is the “paper tail interval” shape that shows up constantly:
+  -- `∑_{i=m+1}^n f (a + i*d)`.
+  example (C : ℕ) (hmn : m ≤ n)
+      (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
+      discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+    -- Avoid simp loops: unfold `discOffset` via `rw`, not `simp`.
+    rw [discOffset_def]
+    -- Rewrite the paper interval sum into the nucleus `apSumOffset` wrapper.
+    have hs :
+        (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+          apSumOffset (fun k => f (a + k)) d m (n - m) := by
+      simpa using
+        (sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn)
+    -- Convert the bound by rewriting with `hs`.
+    simpa [hs] using h
+
+  -- Paper difference of affine partial sums (`m ≤ n`) → shifted-sequence `discOffset`.
+  example (C : ℕ) (hmn : m ≤ n)
+      (h : Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ C) :
+      discOffset (fun k => f (k + a)) d m (n - m) ≤ C := by
+    -- Avoid simp loops: unfold `discOffset` via `rw`, not `simp`.
+    rw [discOffset_def]
+    -- Rewrite the difference into the canonical offset-tail normal form.
+    have hdiff : apSumFrom f a d n - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m (n - m) := by
+      simpa using
+        (apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn)
+    -- Turn the bound on the paper form into a bound on the nucleus form.
+    simpa [hdiff] using h
+
   -- Additional bridge lemmas (high-leverage normal-form glue).
   #check apSumOffset_eq_sub
   #check apSumOffset_eq_apSumFrom
