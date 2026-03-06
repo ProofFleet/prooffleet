@@ -1053,6 +1053,11 @@ lemma apSum_eq_apSumOffset (f : ℕ → ℤ) (d n : ℕ) : apSum f d n = apSumOf
   unfold apSum apSumOffset
   simp
 
+/-- Zero offset normalizes to the homogeneous API. -/
+@[simp] lemma apSumOffset_zero_eq (f : ℕ → ℤ) (d n : ℕ) :
+    apSumOffset f d 0 n = apSum f d n := by
+  simpa using (apSum_eq_apSumOffset (f := f) (d := d) (n := n)).symm
+
 /-- `apSumOffset` with offset `0` is definitionally the homogeneous sum `apSum`. -/
 @[simp] lemma apSumOffset_zero_offset (f : ℕ → ℤ) (d n : ℕ) :
     apSumOffset f d 0 n = apSum f d n := by
