@@ -85,6 +85,26 @@ section
   #check apSumFrom_sub_eq_apSumFrom_tail
   #check apSumFrom_sub_eq_apSumOffset_shift_add
 
+  /-!
+  ## Rewrite pipeline examples (compile-only)
+
+  These are a few “go-to” rewrite steps that downstream Track B proofs use constantly.
+  We keep them as `example` blocks so they are checked by CI without introducing new lemmas.
+  -/
+
+  -- Canonical difference → offset-tail normal form.
+  example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
+    simpa using (apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
+  -- Canonical affine-tail ↔ shifted-sequence offset bridge.
+  example : apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+    simpa using
+      (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+  -- Canonical step-one normalization for offset sums.
+  example : apSumOffset f d m n = apSumOffset (fun k => f (k * d)) 1 m n := by
+    simpa using (apSumOffset_eq_apSumOffset_step_one (f := f) (d := d) (m := m) (n := n))
+
   -- Additional bridge lemmas (high-leverage normal-form glue).
   #check apSumOffset_eq_sub
   #check apSumOffset_eq_apSumFrom
