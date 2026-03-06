@@ -15,6 +15,10 @@ section NormalFormExamples
 
 variable (f : ℕ → ℤ) (a b d m n n₁ n₂ p C : ℕ)
 
+-- Regression: `simp` should normalize away a spurious zero-offset tail.
+example : apSumOffset f d 0 n = apSum f d n := by
+  simp
+
 /-!
 ## Typical “user script” examples
 

@@ -330,7 +330,8 @@ Definition of done:
   - Note: see `MoltResearch/Discrepancy/Bound.lean` for lemmas `natAbs_apSum_le_mul`, `natAbs_apSumOffset_le_mul`, `natAbs_apSumFrom_le_mul`.
 
 #### Auto-generated backlog (needs triage)
-- [ ] Normal form: prove and `[simp]`-tag `apSumOffset f d 0 n = apSum f d n` so zero-offset goals normalize to the homogeneous API without manual rewrites.
+- [x] Normal form: prove and `[simp]`-tag `apSumOffset f d 0 n = apSum f d n` so zero-offset goals normalize to the homogeneous API without manual rewrites.
+  - Implemented in `MoltResearch/Discrepancy/Basic.lean` as `@[simp] lemma apSumOffset_zero_m`.
 - [ ] Normal form: prove and `[simp]`-tag `apSumFrom f 0 d n = apSum f d n`, plus a small paper↔nucleus helper lemma specialized to `a=0` so the Conjectures statement can be stated uniformly.
 - [ ] Translation glue: add a direct normal-form lemma rewriting `apSumFrom f (a + m*d) d n` to `apSumOffset (fun k => f (k + a)) d m n` (and an `…_add`/`mul_left`-friendly variant) without intermediate arithmetic rearrangements.
 - [ ] API coherence: add the inverse normal-form lemma rewriting `apSumOffset (fun k => f (k + a)) d m n` back to an `apSumFrom` tail with the repo’s preferred endpoint convention, and ensure both directions live on the stable surface.
