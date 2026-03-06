@@ -48,12 +48,6 @@ This can show up after rewriting goals that express “remove the last element�
     apSumOffset f d m (Nat.pred (Nat.succ n)) = apSumOffset f d m n := by
   simp
 
-/-! ## Compile-only regression (via `import MoltResearch.Discrepancy`) -/
-
-example (f : ℕ → ℤ) (d m n : ℕ) :
-    apSumOffset f d m (Nat.succ n) = apSumOffset f d m n + f ((m + Nat.succ n) * d) := by
-  simp
-
 /-! ## `Nat.succ` wrappers for homogeneous sums -/
 
 /-- `Nat.succ` wrapper for `apSum_succ`.
@@ -74,11 +68,5 @@ The tail is naturally expressed as an `apSumOffset` starting at `m = 1`.
     apSum f d (Nat.succ n) = f d + apSumOffset f d 1 n := by
   simpa [Nat.succ_eq_add_one, Nat.add_assoc] using
     (apSum_succ_length (f := f) (d := d) (n := n))
-
-/-! ## Compile-only regression (via `import MoltResearch.Discrepancy`) -/
-
-example (f : ℕ → ℤ) (d n : ℕ) :
-    apSum f d (Nat.succ n) = apSum f d n + f ((Nat.succ n) * d) := by
-  simp
 
 end MoltResearch
