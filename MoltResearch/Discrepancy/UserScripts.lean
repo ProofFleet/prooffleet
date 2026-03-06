@@ -151,6 +151,49 @@ example
     Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C := by
   simpa [sum_Icc_eq_apSumOffset_of_le_shift_add_len] using h
 
+-- 10) Difference of two Icc sums → `discOffset` of the tail
+-- (using `sum_Icc_sub_sum_Icc_eq_apSumOffset`).
+example (n₁ n₂ : ℕ)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d))) ≤ C) :
+    discOffset f d (m + n₁) n₂ ≤ C := by
+  have hx :
+      (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+          (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d)) =
+        apSumOffset f d (m + n₁) n₂ := by
+    simpa using
+      (sum_Icc_sub_sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+  have h' := h
+  rw [hx] at h'
+  simpa using h'
+
+-- 10b) Same as (10) but with the mul-left convention `d * i`.
+example (n₁ n₂ : ℕ)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i))) ≤ C) :
+    discOffset f d (m + n₁) n₂ ≤ C := by
+  have hx :
+      (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (d * i)) -
+          (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (d * i)) =
+        apSumOffset f d (m + n₁) n₂ := by
+    simpa using
+      (sum_Icc_sub_sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n₁ := n₁)
+        (n₂ := n₂))
+  have h' := h
+  rw [hx] at h'
+  simpa using h'
+
+-- 11) Affine-endpoint tail sum → `discOffset` in a single `simpa` (no manual `change`).
+example (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  simpa [sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d)
+      (m := m) (n := n) hmn] using h
+
 end UserScripts
 
 end MoltResearch
