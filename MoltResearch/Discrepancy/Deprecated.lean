@@ -127,6 +127,25 @@ lemma apSumOffset_zero_n (f : ℕ → ℤ) (d m : ℕ) :
 
 /-! ## Mul-left paper-notation deprecated wrappers -/
 
+
+/-- Deprecated name for `apSumOffset_zero_start`.
+
+Prefer the canonical `apSumOffset_zero_start` lemma (in `Discrepancy/Basic.lean`).
+-/
+@[simp, deprecated "Use `apSumOffset_zero_start`." (since := "2026-03-06")]
+lemma apSumOffset_zero_m (f : ℕ → ℤ) (d n : ℕ) :
+    apSumOffset f d 0 n = apSum f d n := by
+  simpa using (apSumOffset_zero_start (f := f) (d := d) (n := n))
+
+/-- Deprecated name for `apSumFrom_zero_start`.
+
+Prefer the canonical `apSumFrom_zero_start` lemma (in `Discrepancy/Affine.lean`).
+-/
+@[simp, deprecated "Use `apSumFrom_zero_start`." (since := "2026-03-06")]
+lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
+    apSumFrom f 0 d n = apSum f d n := by
+  simpa using (apSumFrom_zero_start (f := f) (d := d) (n := n))
+
 /-- Deprecated wrapper around `apSum_eq_sum_Icc` writing the summand as `f (d * i)`.
 
 Prefer `apSum_eq_sum_Icc` and rewrite with `Nat.mul_comm` as needed.

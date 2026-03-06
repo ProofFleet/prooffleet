@@ -1127,12 +1127,6 @@ Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
   unfold apSumOffset apSum
   simp
 
-/-- Deprecated name for `apSumOffset_zero_start`. -/
-@[simp, deprecated "Use `apSumOffset_zero_start`." (since := "2026-03-06")]
-lemma apSumOffset_zero_m (f : ℕ → ℤ) (d n : ℕ) :
-    apSumOffset f d 0 n = apSum f d n := by
-  simpa using (apSumOffset_zero_start (f := f) (d := d) (n := n))
-
 lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
     apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
   classical
