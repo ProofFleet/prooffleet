@@ -329,6 +329,18 @@ Definition of done:
 - [x] Bounding lemma generalization: introduce a small lemma family stating that if `∀ k, Int.natAbs (f k) ≤ B` then `Int.natAbs (apSumOffset f d m n) ≤ n * B` (and analogous `apSum`/`apSumFrom`), so later work can reuse the same bound pipeline beyond sign sequences.
   - Note: see `MoltResearch/Discrepancy/Bound.lean` for lemmas `natAbs_apSum_le_mul`, `natAbs_apSumOffset_le_mul`, `natAbs_apSumFrom_le_mul`.
 
+#### Auto-generated backlog (needs triage)
+- [ ] Normal form: prove and `[simp]`-tag `apSumOffset f d 0 n = apSum f d n` so zero-offset goals normalize to the homogeneous API without manual rewrites.
+- [ ] Normal form: prove and `[simp]`-tag `apSumFrom f 0 d n = apSum f d n`, plus a small paper↔nucleus helper lemma specialized to `a=0` so the Conjectures statement can be stated uniformly.
+- [ ] Translation glue: add a direct normal-form lemma rewriting `apSumFrom f (a + m*d) d n` to `apSumOffset (fun k => f (k + a)) d m n` (and an `…_add`/`mul_left`-friendly variant) without intermediate arithmetic rearrangements.
+- [ ] API coherence: add the inverse normal-form lemma rewriting `apSumOffset (fun k => f (k + a)) d m n` back to an `apSumFrom` tail with the repo’s preferred endpoint convention, and ensure both directions live on the stable surface.
+- [ ] Surface regression: add 2–3 compile-only examples under `import MoltResearch.Discrepancy` showing the rewrite pipelines
+  - `apSumFrom f 0 d (m+n) - apSumFrom f 0 d m` → `apSumOffset f d m n` → split/bound, and
+  - `apSumOffset f d 0 n` → `apSum f d n` → step-one normalization,
+  to catch simp/namespace regressions early.
+- [ ] Naming audit: ensure the new `…_zero`/`…_zero_start` lemmas follow the existing `apSum_zero/apSum_one` naming scheme across `apSum`, `apSumOffset`, and `apSumFrom` (with deprecated aliases isolated behind `MoltResearch.Discrepancy.Deprecated`).
+- [ ] Stable-surface audit: update `MoltResearch/Discrepancy/SurfaceAudit.lean` to assert the above normal-form lemmas are exported by `import MoltResearch.Discrepancy` (and add a companion check that deprecated aliases are not).
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
