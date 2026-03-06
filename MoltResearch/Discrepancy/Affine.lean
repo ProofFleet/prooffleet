@@ -328,6 +328,20 @@ lemma apSum_eq_apSumFrom (f : ℕ → ℤ) (d n : ℕ) :
   unfold apSum apSumFrom
   simp [Nat.zero_add]
 
+
+/-- Paper↔nucleus bridge specialized to `a = 0`.
+
+This is a convenience lemma for writing surface statements uniformly in terms of `apSumFrom` while
+still matching paper notation on `Finset.Icc`.
+-/
+lemma apSumFrom_zero_eq_sum_Icc (f : ℕ → ℤ) (d n : ℕ) :
+    apSumFrom f 0 d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
+  simpa using (apSumFrom_eq_sum_Icc (f := f) (a := 0) (d := d) (n := n))
+
+lemma sum_Icc_eq_apSumFrom_zero (f : ℕ → ℤ) (d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSumFrom f 0 d n := by
+  simpa using (apSumFrom_zero_eq_sum_Icc (f := f) (d := d) (n := n)).symm
+
 /-- Normal form: eliminate the explicit start parameter `a` by shifting the underlying sequence.
 
 This is useful when you want to reduce affine AP sums to the `a = 0` case while keeping the step
@@ -378,7 +392,7 @@ lemma apSumFrom_shift_add_left_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
 
 This is the inverse orientation of `apSum_eq_apSumFrom`.
 -/
-lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
+@[simp] lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
     apSumFrom f 0 d n = apSum f d n := by
   simpa using (apSum_eq_apSumFrom (f := f) (d := d) (n := n)).symm
 
@@ -1156,7 +1170,7 @@ lemma HasDiscrepancyAtLeast.to_affine {f : ℕ → ℤ} {C : ℕ} (h : HasDiscre
     HasAffineDiscrepancyAtLeast f C := by
   rcases h with ⟨d, n, hd, hgt⟩
   refine ⟨0, d, n, hd, ?_⟩
-  simpa [apSum_eq_apSumFrom] using hgt
+  simpa using hgt
 
 /-- Relate affine discrepancy to shifted homogeneous discrepancy. -/
 lemma HasAffineDiscrepancyAtLeast_iff_exists_shift (f : ℕ → ℤ) (C : ℕ) :
