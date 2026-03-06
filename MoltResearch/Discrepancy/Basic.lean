@@ -414,6 +414,49 @@ lemma natAbs_apSum_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
 
 /-! ### General `Int.natAbs` bounds for offset AP sums -/
 
+/-- Uniform bound on `Int.natAbs` gives a length-times-bound estimate for offset AP sums.
+
+If `|f k| ≤ B` for every term, then the offset AP partial sums satisfy
+`|apSumOffset f d m n| ≤ n * B`.
+
+This is the nucleus form of the standard “triangle inequality + induction on length” bound,
+parameterised by the per-term bound `B`.
+-/
+lemma natAbs_apSumOffset_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ B) (d m n : ℕ) :
+    Int.natAbs (apSumOffset f d m n) ≤ n * B := by
+  induction n with
+  | zero =>
+      simp [apSumOffset]
+  | succ n ih =>
+      have hterm : Int.natAbs (f ((m + n + 1) * d)) ≤ B := hf _
+      have hsum :
+          apSumOffset f d m (n + 1) =
+            apSumOffset f d m n + f ((m + n + 1) * d) := by
+        simp [apSumOffset, Finset.sum_range_succ, Nat.add_assoc]
+      calc
+        Int.natAbs (apSumOffset f d m (n + 1))
+            = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
+                simpa [hsum]
+        _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
+                simpa using
+                  (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))
+        _ ≤ n * B + B := by
+                exact Nat.add_le_add ih hterm
+        _ = (n + 1) * B := by
+                simpa [Nat.succ_mul, Nat.add_assoc]
+
+/-- Uniform bound on `Int.natAbs` gives a length-times-bound estimate for homogeneous AP sums.
+
+This is the `apSum` specialization of `natAbs_apSumOffset_le_mul_of_natAbs_le`.
+-/
+lemma natAbs_apSum_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ B) (d n : ℕ) :
+    Int.natAbs (apSum f d n) ≤ n * B := by
+  simpa [apSumOffset_zero_eq_apSum] using
+    (natAbs_apSumOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := 0)
+      (n := n))
+
 /-- If the terms of `f` are uniformly bounded by `1` in `Int.natAbs`, then any offset AP sum has
 `Int.natAbs` bounded by its length.
 

@@ -818,6 +818,32 @@ lemma apSumFrom_sub_eq_apSum_step_one_mul_left_add_of_le (f : ℕ → ℤ) (a d 
     _ = apSum (fun k => f (d * k + (d * m + a))) 1 (n - m) := by
             simp [Nat.mul_comm, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
 
+/-! ### General `Int.natAbs` bounds for affine AP sums -/
+
+/-- Uniform bound on `Int.natAbs` gives a length-times-bound estimate for affine AP sums.
+
+If `|f k| ≤ B` for every term, then
+`|apSumFrom f a d n| ≤ n * B`.
+-/
+lemma natAbs_apSumFrom_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ B) (a d n : ℕ) :
+    Int.natAbs (apSumFrom f a d n) ≤ n * B := by
+  induction n with
+  | zero =>
+      simp [apSumFrom]
+  | succ n ih =>
+      have hterm : Int.natAbs (f (a + (n + 1) * d)) ≤ B := hf _
+      calc
+        Int.natAbs (apSumFrom f a d (n + 1))
+            = Int.natAbs (apSumFrom f a d n + f (a + (n + 1) * d)) := by
+                simp [apSumFrom_succ]
+        _ ≤ Int.natAbs (apSumFrom f a d n) + Int.natAbs (f (a + (n + 1) * d)) :=
+              Int.natAbs_add_le _ _
+        _ ≤ n * B + B := by
+              exact Nat.add_le_add ih hterm
+        _ = (n + 1) * B := by
+              simpa [Nat.succ_mul, Nat.add_assoc]
+
 /-! A sign sequence has affine AP partial sums bounded by length: `|∑_{i=1}^n f (a + i*d)| ≤ n`. -/
 lemma IsSignSequence.natAbs_apSumFrom_le {f : ℕ → ℤ} (hf : IsSignSequence f) (a d n : ℕ) :
     Int.natAbs (apSumFrom f a d n) ≤ n := by
