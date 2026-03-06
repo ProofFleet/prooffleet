@@ -23,11 +23,27 @@ start from an `Icc` sum / difference of partial sums, then normalize into the st
 `apSumOffset`/`discOffset` wrappers with a small `simp`/`rw` pipeline.
 -/
 
+-- Tiny one-line pipelines (intended “typical user scripts”).
+
 -- Paper tail sum bound → `discOffset` bound.
 example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C) :
     discOffset f d m n ≤ C := by
   simpa using h
+
+-- Paper affine tail with variable endpoint (`m ≤ n`) → `discOffset` in `apSumOffset` normal form.
+example (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  simpa [discOffset,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+
+-- Paper difference of affine partial sums (`m ≤ n`) → `discOffset` on a shifted sequence (single `simpa`).
+example (hmn : m ≤ n)
+    (h : Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ C) :
+    discOffset (fun k => f (k + a)) d m (n - m) ≤ C := by
+  simpa [discOffset,
+    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
 
 -- Paper tail sum with affine endpoints (`m ≤ n`) → normalize to an `apSumOffset` nucleus statement.
 -- (I.e. strip away the paper `Icc` and expose the canonical tail-sum wrapper.)
