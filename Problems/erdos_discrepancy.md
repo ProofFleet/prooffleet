@@ -332,6 +332,7 @@ Definition of done:
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
+- [x] Tao2015 skeleton: derived bound lemmas from `Context.bound` (offset sums / `discOffset` / shift-add normal form)
 - [ ] Prove the main theorem (long-horizon)
 - [x] Alternate formulations/equivalences recorded in the card + notes
 - [x] Quantifier-level normal form: define `BoundedDiscrepancy` and prove `forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy`.
