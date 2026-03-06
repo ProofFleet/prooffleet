@@ -326,7 +326,8 @@ Definition of done:
 - [x] API coherence: add a short file of `simp` lemmas for `Nat.succ`/`Nat.pred`-style endpoint normalization specifically tailored to the nucleus sums (avoid `Nat.add_comm` churn under binders), with a compile-only regression example under `import MoltResearch.Discrepancy`.
 - [x] Surface regression: add 2–3 “typical user scripts” examples that start from paper statements (Icc sums with affine endpoints + differences) and normalize to `apSumOffset` + `discOffset` bounds with a single `simp`/`rw` pipeline, and make them compile under the stable surface.
   - Implemented as compile-time regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean` (imports only `MoltResearch.Discrepancy`).
-- [ ] Bounding lemma generalization: introduce a small lemma family stating that if `∀ k, Int.natAbs (f k) ≤ B` then `Int.natAbs (apSumOffset f d m n) ≤ n * B` (and analogous `apSum`/`apSumFrom`), so later work can reuse the same bound pipeline beyond sign sequences.
+- [x] Bounding lemma generalization: introduce a small lemma family stating that if `∀ k, Int.natAbs (f k) ≤ B` then `Int.natAbs (apSumOffset f d m n) ≤ n * B` (and analogous `apSum`/`apSumFrom`), so later work can reuse the same bound pipeline beyond sign sequences.
+  - Note: see `MoltResearch/Discrepancy/Bound.lean` for lemmas `natAbs_apSum_le_mul`, `natAbs_apSumOffset_le_mul`, `natAbs_apSumFrom_le_mul`.
 
 ### Track C — Conjecture stub + equivalences (backlog)
 
