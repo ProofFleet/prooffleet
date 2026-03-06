@@ -71,6 +71,27 @@ example
   -- Paper tail → affine-tail nucleus → offset tail on the shifted sequence.
   simpa [discOffset, sum_Icc_eq_apSumFrom_tail_add, apSumFrom_tail_eq_apSumOffset_shift_add_left] using h
 
+-- Paper tail sum with affine endpoints (`m ≤ n`) → `discOffset` bound in `apSumOffset` normal form.
+example (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  simpa [discOffset,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+
+-- Same as above, but with the summand written as `a + d*i` (mul-left convention).
+example (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + d * i))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  simpa [discOffset,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+
+-- Difference of affine partial sums (`m ≤ n`) → `discOffset` bound (difference → tail → offset on shifted sequence).
+example (hmn : m ≤ n)
+    (h : Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  simpa [discOffset,
+    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+
 -- Regression: definitional lemmas expose the wrappers.
 example : discrepancy f d n = Int.natAbs (apSum f d n) := by
   rfl
