@@ -92,6 +92,21 @@ section
   We keep them as `example` blocks so they are checked by CI without introducing new lemmas.
   -/
 
+  -- Paper difference of homogeneous `Icc` sums → nucleus offset tail.
+  example :
+      (Finset.Icc 1 (m + n)).sum (fun i => f (i * d)) - (Finset.Icc 1 m).sum (fun i => f (i * d)) =
+        apSumOffset f d m n := by
+    -- Paper → nucleus (`apSum`), then difference → tail (`apSumOffset`).
+    simpa [sum_Icc_eq_apSum, apSum_sub_eq_apSumOffset]
+
+  -- Paper affine partial sum (`Icc 1 n`) → nucleus `apSumFrom`.
+  example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+    simpa [sum_Icc_eq_apSumFrom]
+
+  -- Difference of affine partial sums → explicit affine tail (before shifting to `apSumOffset`).
+  example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+    simpa using (apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+
   -- Canonical difference → offset-tail normal form.
   example : apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
     simpa using (apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
