@@ -300,6 +300,63 @@ example
   -- paper → nucleus (`apSumFrom`), then difference → offset tail.
   simpa [sum_Icc_eq_apSumFrom, apSumFrom_sub_eq_apSumOffset_shift_add] using h'
 
+-- 19) Paper difference of two *paper* affine-endpoint tail sums → `discOffset` bound
+-- (tail - shorter tail = later tail).
+--
+-- This is a good “from the paper directly” pattern: rewrite both tails into `apSumOffset` and
+-- then let `apSumOffset_sub_apSumOffset_eq_apSumOffset` normalize the difference.
+example (n₁ : ℕ) (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
+  have hn₁ : n₁ ≤ n - m := by
+    exact Nat.le_sub_of_add_le (by simpa [Nat.add_comm] using hmn₁)
+  simpa [
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+
+-- 20) Same as (19) but with the paper summand written in mul-left convention `a + d*i`.
+example (n₁ : ℕ) (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (a + d * i)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + d * i))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
+  have hn₁ : n₁ ≤ n - m := by
+    exact Nat.le_sub_of_add_le (by simpa [Nat.add_comm] using hmn₁)
+  simpa [
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)
+      hmn,
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+
+-- 21) Same affine-endpoint tail-difference pattern, but with translation-friendly paper summand
+-- `i*d + a`.
+example (n₁ : ℕ) (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) n).sum (fun i => f (i * d + a)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d + a))) ≤
+          C) :
+    discOffset (fun k => f (k + a)) d (m + n₁) (n - m - n₁) ≤ C := by
+  have hn₁ : n₁ ≤ n - m := by
+    exact Nat.le_sub_of_add_le (by simpa [Nat.add_comm] using hmn₁)
+  simpa [
+    sum_Icc_eq_apSumOffset_of_le_shift_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    sum_Icc_eq_apSumOffset_of_le_shift_add (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
+      (Nat.le_add_right m n₁),
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (k + a)) (d := d) (m := m)
+      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+
 end UserScripts
 
 end MoltResearch
