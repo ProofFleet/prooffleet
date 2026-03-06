@@ -115,6 +115,15 @@ lemma apSumOffset_shift_add_left_start_mul (f : ℕ → ℤ) (k d m n : ℕ) :
   simpa using
     (apSumOffset_shift_add_left (f := f) (k := k) (d := d) (m := m) (n := n))
 
+/-- Deprecated name for the former `apSumOffset_zero_n` shim.
+
+Prefer the canonical `apSumOffset_zero` lemma (in `Discrepancy/Basic.lean`).
+-/
+@[simp, deprecated "Use `apSumOffset_zero`." (since := "2026-03-06")]
+lemma apSumOffset_zero_n (f : ℕ → ℤ) (d m : ℕ) :
+    apSumOffset f d m 0 = 0 := by
+  simpa using (apSumOffset_zero (f := f) (d := d) (m := m))
+
 
 /-! ## Mul-left paper-notation deprecated wrappers -/
 

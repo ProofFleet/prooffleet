@@ -123,7 +123,7 @@ Arithmetic progression sums:
   `apSum f d n` ↦ `apSum (fun k => f (k * d)) 1 n` via `apSum_eq_apSum_step_one`
   (and back via `apSum_step_one_eq_apSum`).
   If an `apSumOffset` appears with `m = 0`, rewrite it back to `apSum` via
-  `apSumOffset_zero_m`.
+  `apSumOffset_zero_start`.
   If `d = 1`, you can also rewrite directly to the plain interval sum
   `∑ i ∈ Icc 1 n, f i` via `apSum_one_d`.
   If `d = 0`, simp to the expected “degenerate constant AP” form
@@ -226,7 +226,7 @@ Arithmetic progression sums:
   - `apSumFrom_sub_eq_apSum_shift_add_left` (if you prefer the translation constant `m*d + a`)
   - `apSumFrom_add_length_eq_add_apSum_shift_add`
   If `d = 0`, simp via `apSumFrom_zero_d` (degenerate constant AP).
-  If `a = 0`, rewrite to a homogeneous AP sum via `apSumFrom_zero_a` (and back via
+  If `a = 0`, rewrite to a homogeneous AP sum via `apSumFrom_zero_start` (and back via
   `apSum_eq_apSumFrom`).
   For tails/differences, rewrite via `apSumFrom_tail_eq_sub` (tail → difference) or
   `apSumFrom_sub_eq_apSumFrom_tail` (difference → tail, in the canonical `(m + n) - m` form).

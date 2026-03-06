@@ -681,7 +681,7 @@ lemma apSumFrom_tail_eq_apSumOffset_shift_add_zero_m_left (f : ℕ → ℤ) (a d
 Concretely:
 `apSumFrom f (a + m*d) d n = apSum (fun k => f (k + (a + m*d))) d n`.
 
-This is `apSumFrom_tail_eq_apSumOffset_shift_add_zero_m` followed by `apSumOffset_zero_m`.
+This is `apSumFrom_tail_eq_apSumOffset_shift_add_zero_m` followed by `apSumOffset_zero_start`.
 -/
 lemma apSumFrom_tail_eq_apSum_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f (a + m * d) d n = apSum (fun k => f (k + (a + m * d))) d n := by
@@ -691,7 +691,7 @@ lemma apSumFrom_tail_eq_apSum_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
         apSumFrom_tail_eq_apSumOffset_shift_add_zero_m (f := f) (a := a) (d := d) (m := m) (n := n)
     _ = apSum (fun k => f (k + (a + m * d))) d n := by
       simpa using
-        (apSumOffset_zero_m (f := fun k => f (k + (a + m * d))) (d := d) (n := n))
+        (apSumOffset_zero_start (f := fun k => f (k + (a + m * d))) (d := d) (n := n))
 
 /-- Inverse orientation of `apSumFrom_tail_eq_apSum_shift_add`. -/
 lemma apSum_shift_add_eq_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
@@ -741,7 +741,7 @@ lemma apSumFrom_sub_eq_apSumOffset_shift_add_zero_m_left (f : ℕ → ℤ) (a d 
 /-- Normal form: rewrite the canonical affine difference `(m+n) - m` as a homogeneous AP sum on the
 further-shifted sequence `k ↦ f (k + (a + m*d))`.
 
-This is `apSumFrom_sub_eq_apSumOffset_shift_add_zero_m` followed by `apSumOffset_zero_m`.
+This is `apSumFrom_sub_eq_apSumOffset_shift_add_zero_m` followed by `apSumOffset_zero_start`.
 -/
 lemma apSumFrom_sub_eq_apSum_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f a d (m + n) - apSumFrom f a d m = apSum (fun k => f (k + (a + m * d))) d n := by
@@ -1051,7 +1051,7 @@ lemma apSumFrom_tail_sub_eq_apSum_shift_add_zero_m_tail (f : ℕ → ℤ) (a d m
               (m := m) (n1 := n1) (n2 := n2))
     _ = apSum (fun k => f (k + (a + (m + n1) * d))) d n2 := by
           simpa using
-            (apSumOffset_zero_m (f := fun k => f (k + (a + (m + n1) * d))) (d := d) (n := n2))
+            (apSumOffset_zero_start (f := fun k => f (k + (a + (m + n1) * d))) (d := d) (n := n2))
 
 /-- Convenience wrapper around `apSumFrom_tail_sub_eq_apSum_shift_add_zero_m_tail` with the affine
 start written as `m*d + a`.
@@ -1069,7 +1069,7 @@ lemma apSumFrom_tail_sub_eq_apSum_shift_add_zero_m_tail_start_add_left (f : ℕ 
               (a := a) (d := d) (m := m) (n1 := n1) (n2 := n2))
     _ = apSum (fun k => f (k + ((m + n1) * d + a))) d n2 := by
           simpa using
-            (apSumOffset_zero_m (f := fun k => f (k + ((m + n1) * d + a))) (d := d) (n := n2))
+            (apSumOffset_zero_start (f := fun k => f (k + ((m + n1) * d + a))) (d := d) (n := n2))
 
 /-- Normal form: rewrite the canonical affine difference `(m+n) - m` as an offset AP sum on the
 shifted sequence `k ↦ f (a + k)`.
@@ -2094,7 +2094,7 @@ lemma apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le (f : ℕ → ℤ) (a d : 
               (d := d) (m := m) (n := n) (hmn := hmn))
     _ = apSum (fun k => f (k + (a + m * d))) d (n - m) := by
           simpa using
-            (apSumOffset_zero_m (f := fun k => f (k + (a + m * d))) (d := d) (n := n - m))
+            (apSumOffset_zero_start (f := fun k => f (k + (a + m * d))) (d := d) (n := n - m))
 
 /-- Variant of `apSumFrom_sub_apSumFrom_eq_apSum_shift_add_of_le` with the translation constant
 written as `m*d + a`.

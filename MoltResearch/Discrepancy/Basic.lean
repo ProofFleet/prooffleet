@@ -630,7 +630,7 @@ lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero {f : ℕ → ℤ} {C : �
   constructor
   · rintro ⟨d, n, hd, hgt⟩
     refine ⟨d, n, hd, ?_⟩
-    -- NOTE: `apSumOffset_zero_m` is proved later in this file, so we unfold here.
+    -- NOTE: `apSumOffset_zero_start` is proved later in this file, so we unfold here.
     have h0 : apSumOffset f d 0 n = apSum f d n := by
       unfold apSumOffset apSum
       simp
@@ -645,10 +645,17 @@ lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero {f : ℕ → ℤ} {C : �
 
 -- Backwards-compatibility: earlier versions used the slightly confusing name
 -- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m`.
-lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m {f : ℕ → ℤ} {C : ℕ} :
+lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start {f : ℕ → ℤ} {C : ℕ} :
     HasDiscrepancyAtLeast f C ↔
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
   simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C))
+
+/-- Deprecated name for `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`. -/
+@[deprecated "Use `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`." (since := "2026-03-06")]
+lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
+  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C))
 
 /-- Restate `HasDiscrepancyAtLeast` using the `discrepancy` wrapper. -/
 lemma HasDiscrepancyAtLeast_iff_exists_discrepancy (f : ℕ → ℤ) (C : ℕ) :
@@ -1110,14 +1117,21 @@ lemma apSum_step_one_shift_eq_apSumOffset (f : ℕ → ℤ) (d a n : ℕ) :
   unfold discrepancy
   simp [apSum_step_one_shift_eq_apSumOffset]
 
-/-- Normal form: an offset sum with `m = 0` is just the homogeneous sum `apSum`.
+/-- Normal form: an offset sum with start index `m = 0` is just the homogeneous sum `apSum`.
 
 Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
 (We intentionally do *not* simp in the other direction.)
 -/
-@[simp] lemma apSumOffset_zero_m (f : ℕ → ℤ) (d n : ℕ) : apSumOffset f d 0 n = apSum f d n := by
+@[simp] lemma apSumOffset_zero_start (f : ℕ → ℤ) (d n : ℕ) :
+    apSumOffset f d 0 n = apSum f d n := by
   unfold apSumOffset apSum
   simp
+
+/-- Deprecated name for `apSumOffset_zero_start`. -/
+@[simp, deprecated "Use `apSumOffset_zero_start`." (since := "2026-03-06")]
+lemma apSumOffset_zero_m (f : ℕ → ℤ) (d n : ℕ) :
+    apSumOffset f d 0 n = apSum f d n := by
+  simpa using (apSumOffset_zero_start (f := f) (d := d) (n := n))
 
 lemma apSum_succ (f : ℕ → ℤ) (d n : ℕ) :
     apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by

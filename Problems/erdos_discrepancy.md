@@ -331,9 +331,9 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 - [x] Normal form: prove and `[simp]`-tag `apSumOffset f d 0 n = apSum f d n` so zero-offset goals normalize to the homogeneous API without manual rewrites.
-  - Implemented in `MoltResearch/Discrepancy/Basic.lean` as `@[simp] lemma apSumOffset_zero_m`.
+  - Implemented in `MoltResearch/Discrepancy/Basic.lean` as `@[simp] lemma apSumOffset_zero_start`.
 - [x] Normal form: prove and `[simp]`-tag `apSumFrom f 0 d n = apSum f d n`, plus a small paper↔nucleus helper lemma specialized to `a=0` so the Conjectures statement can be stated uniformly.
-  - Implemented in `MoltResearch/Discrepancy/Affine.lean` as `apSumFrom_zero_a` (simp) and `apSumFrom_zero_eq_sum_Icc` / `sum_Icc_eq_apSumFrom_zero`.
+  - Implemented in `MoltResearch/Discrepancy/Affine.lean` as `apSumFrom_zero_start` (simp) and `apSumFrom_zero_eq_sum_Icc` / `sum_Icc_eq_apSumFrom_zero`.
 - [x] Translation glue: add a direct normal-form lemma rewriting `apSumFrom f (a + m*d) d n` to `apSumOffset (fun k => f (k + a)) d m n` (and an `…_add`/`mul_left`-friendly variant) without intermediate arithmetic rearrangements.
   - Implemented as `apSumFrom_tail_eq_apSumOffset_shift_add` and `apSumFrom_tail_eq_apSumOffset_shift_add_mul_left` in `MoltResearch/Discrepancy/AffineTail.lean`.
 - [x] API coherence: add the inverse normal-form lemma rewriting `apSumOffset (fun k => f (k + a)) d m n` back to an `apSumFrom` tail with the repo’s preferred endpoint convention, and ensure both directions live on the stable surface. (Implemented as `apSumOffset_shift_add_eq_apSumFrom_tail` / `apSumFrom_tail_eq_apSumOffset_shift_add`; surfaced via `import MoltResearch.Discrepancy` and audited in `MoltResearch/Discrepancy/SurfaceAudit.lean`.)

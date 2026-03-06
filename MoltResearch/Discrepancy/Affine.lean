@@ -422,13 +422,19 @@ lemma apSumFrom_shift_add_left_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
   simpa using
     (apSumFrom_eq_apSumFrom_shift_add_left (f := f) (a := a) (d := d) (n := n)).symm
 
-/-- Normal form: an affine AP sum starting at `a = 0` is just a homogeneous AP sum.
+/-- Normal form: an affine AP sum with start `a = 0` is just a homogeneous AP sum.
 
 This is the inverse orientation of `apSum_eq_apSumFrom`.
 -/
-@[simp] lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
+@[simp] lemma apSumFrom_zero_start (f : ℕ → ℤ) (d n : ℕ) :
     apSumFrom f 0 d n = apSum f d n := by
   simpa using (apSum_eq_apSumFrom (f := f) (d := d) (n := n)).symm
+
+/-- Deprecated name for `apSumFrom_zero_start`. -/
+@[simp, deprecated "Use `apSumFrom_zero_start`." (since := "2026-03-06")]
+lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
+    apSumFrom f 0 d n = apSum f d n := by
+  simpa using (apSumFrom_zero_start (f := f) (d := d) (n := n))
 
 lemma apSumOffset_eq_apSumFrom (f : ℕ → ℤ) (d m n : ℕ) :
   apSumOffset f d m n = apSumFrom f (m * d) d n := by
@@ -636,7 +642,7 @@ lemma apSumFrom_tail_eq_apSumOffset_step_one_zero_m (f : ℕ → ℤ) (a d m n :
       simpa using apSumFrom_tail_eq_apSum_step_one (f := f) (a := a) (d := d) (m := m) (n := n)
     _ = apSumOffset (fun k => f (a + (m + k) * d)) 1 0 n := by
       simpa using
-        (apSumOffset_zero_m (f := fun k => f (a + (m + k) * d)) (d := 1) (n := n)).symm
+        (apSumOffset_zero_start (f := fun k => f (a + (m + k) * d)) (d := 1) (n := n)).symm
 
 /-- Translation-friendly variant of `apSumFrom_tail_eq_apSum_step_one`.
 
@@ -682,7 +688,7 @@ lemma apSumFrom_tail_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (
         apSumFrom_tail_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (m := m) (n := n)
     _ = apSumOffset (fun k => f (k * d + (a + m * d))) 1 0 n := by
       simpa using
-        (apSumOffset_zero_m (f := fun k => f (k * d + (a + m * d))) (d := 1) (n := n)).symm
+        (apSumOffset_zero_start (f := fun k => f (k * d + (a + m * d))) (d := 1) (n := n)).symm
 
 /-- Tail step-one normal form that *keeps* the tail parameter `m` in the offset nucleus API.
 

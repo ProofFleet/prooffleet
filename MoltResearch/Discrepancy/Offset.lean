@@ -8,10 +8,6 @@ Extra lemmas about `apSumOffset` and its relation to differences of `apSum`.
 
 namespace MoltResearch
 
-@[simp] lemma apSumOffset_zero_n (f : ℕ → ℤ) (d m : ℕ) :
-    apSumOffset f d m 0 = 0 := by
-  simp [apSumOffset]
-
 /-!
 ## Normal-form: `Finset.range` expansions
 
@@ -951,7 +947,7 @@ lemma apSumOffset_eq_apSumOffset_step_one_zero_m (f : ℕ → ℤ) (d m n : ℕ)
       simpa using apSumOffset_eq_apSum_step_one (f := f) (d := d) (m := m) (n := n)
     _ = apSumOffset (fun k => f ((m + k) * d)) 1 0 n := by
       simpa using
-        (apSumOffset_zero_m (f := fun k => f ((m + k) * d)) (d := 1) (n := n)).symm
+        (apSumOffset_zero_start (f := fun k => f ((m + k) * d)) (d := 1) (n := n)).symm
 
 /-- Variant of `apSumOffset_eq_apSumOffset_step_one_zero_m` written in the translation-friendly
 `k * d + m * d` form.
@@ -966,7 +962,7 @@ lemma apSumOffset_eq_apSumOffset_step_one_zero_m_add_left (f : ℕ → ℤ) (d m
       simpa using apSumOffset_eq_apSum_step_one_add_left (f := f) (d := d) (m := m) (n := n)
     _ = apSumOffset (fun k => f (k * d + m * d)) 1 0 n := by
       simpa using
-        (apSumOffset_zero_m (f := fun k => f (k * d + m * d)) (d := 1) (n := n)).symm
+        (apSumOffset_zero_start (f := fun k => f (k * d + m * d)) (d := 1) (n := n)).symm
 
 /-- Normal form: rewrite the canonical difference `apSum f d (m+n) - apSum f d m` as a *step-one*
 `apSumOffset` with `m = 0`, by bundling the step size `d` and offset `m` into the summand.

@@ -550,7 +550,7 @@ example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
 example : apSumFrom f 0 d n = apSum f d n := by
-  simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
+  simpa using apSumFrom_zero_start (f := f) (d := d) (n := n)
 
 example : apSum f d n = apSumFrom f 0 d n := by
   simpa using apSum_eq_apSumFrom (f := f) (d := d) (n := n)
@@ -1562,7 +1562,7 @@ example : (Finset.Icc 1 n).sum (fun i => f (i * d + a)) = apSumFrom f a d n := b
 
 -- Affine start `a = 0` recovers the homogeneous AP sum.
 example : apSumFrom f 0 d n = apSum f d n := by
-  simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
+  simpa using apSumFrom_zero_start (f := f) (d := d) (n := n)
 
 example : apSumFrom f a 1 n = (Finset.Icc 1 n).sum (fun i => f (a + i)) := by
   simpa using apSumFrom_one_d (f := f) (a := a) (n := n)
@@ -1595,7 +1595,7 @@ example : apSumFrom f a 0 n = n • f a := by
 
 -- Affine sums at `a = 0` are just homogeneous AP sums.
 example : apSumFrom f 0 d n = apSum f d n := by
-  simpa using apSumFrom_zero_a (f := f) (d := d) (n := n)
+  simpa using apSumFrom_zero_start (f := f) (d := d) (n := n)
 
 example : apSum f d n = apSumFrom f 0 d n := by
   simpa using apSum_eq_apSumFrom (f := f) (d := d) (n := n)
