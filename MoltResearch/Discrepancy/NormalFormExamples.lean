@@ -29,6 +29,27 @@ example
     discOffset f d m n ≤ C := by
   simpa using h
 
+-- Paper tail sum with an affine summand `a + i*d` → normalize to the shifted-sequence `discOffset` view.
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (k + a)) d m n ≤ C := by
+  simpa [discOffset, sum_Icc_eq_apSumFrom_tail, apSumFrom_tail_eq_apSumOffset_shift_add] using h
+
+-- Paper tail sum with a mul-left affine summand `a + d*i` → same normalization (single `simpa` pipeline).
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i))) ≤ C) :
+    discOffset (fun k => f (k + a)) d m n ≤ C := by
+  simpa [discOffset, sum_Icc_eq_apSumFrom_tail_mul_left, apSumFrom_tail_eq_apSumOffset_shift_add] using h
+
+-- Paper difference of homogeneous partial sums (paper `Icc` notation) → normalize to an offset tail.
+example
+    (h :
+        Int.natAbs
+            ((Finset.Icc 1 (m + n)).sum (fun i => f (i * d)) - (Finset.Icc 1 m).sum (fun i => f (i * d))) ≤
+          C) :
+    discOffset f d m n ≤ C := by
+  simpa [discOffset, sum_Icc_eq_apSum, apSum_sub_eq_apSumOffset] using h
+
 -- Paper affine sum bound (with affine endpoints) → step-one `discOffset` normal form.
 example
     (h : Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) ≤ C) :
