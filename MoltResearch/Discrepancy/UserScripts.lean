@@ -194,6 +194,38 @@ example (hmn : m ≤ n)
   simpa [sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d)
       (m := m) (n := n) hmn] using h
 
+-- 12) Affine-endpoint tail sum with translation-friendly summand `i*d + a` → `discOffset`.
+example (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (i * d + a))) ≤ C) :
+    discOffset (fun k => f (k + a)) d m (n - m) ≤ C := by
+  simpa [sum_Icc_eq_apSumOffset_of_le_shift_add (f := f) (a := a) (d := d)
+      (m := m) (n := n) hmn] using h
+
+-- 13) Difference of two paper tail sums → `discOffset` of the tail.
+example (n₁ n₂ : ℕ)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d))) ≤
+          C) :
+    discOffset f d (m + n₁) n₂ ≤ C := by
+  -- Use a `rw` rewrite on the whole difference to avoid simp rewriting each summand separately.
+  have h' := h
+  rw [sum_Icc_sub_sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)] at h'
+  -- Let `simp` rewrite `Int.natAbs (apSumOffset …)` to the `discOffset` wrapper.
+  simpa using h'
+
+-- 14) Paper difference of affine partial sums with affine endpoints → `discOffset` (single `simpa`).
+example (hmn : m ≤ n)
+    (h :
+        Int.natAbs
+            ((Finset.Icc 1 n).sum (fun i => f (a + i * d)) -
+              (Finset.Icc 1 m).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  simpa [sum_Icc_eq_apSumFrom,
+    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+
 end UserScripts
 
 end MoltResearch
