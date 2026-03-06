@@ -113,6 +113,40 @@ lemma apSumFrom_eq_apSumOffset_shift_add_bridge (f : ℕ → ℤ) (a d m n : ℕ
   simpa [apSumOffset_shift_add_eq_apSumFrom_bridge] using
     (apSumOffset_shift_add_eq_apSumFrom_bridge (f := f) (a := a) (d := d) (m := m) (n := n)).symm
 
+/-!
+Direct normal-form wrappers.
+
+These are intentionally lightweight lemmas that let you rewrite an affine AP sum whose start is
+presented as a translated multiple `a + m*d` into an `apSumOffset` on the shifted function.
+
+They avoid having to manually coax `simp` through intermediate arithmetic reassociations under
+binders.
+-/
+
+/-- Normal form: rewrite `apSumFrom f (a + m*d) d n` as an offset AP sum on the shifted function
+`k ↦ f (k + a)`. -/
+lemma apSumFrom_add_mul_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using (apSumFrom_eq_apSumOffset_shift_add_bridge (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Constant-on-the-left variant of `apSumFrom_add_mul_eq_apSumOffset_shift_add`. -/
+lemma apSumFrom_add_mul_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa [Nat.add_comm] using
+    (apSumFrom_add_mul_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Mul-left-friendly variant of `apSumFrom_add_mul_eq_apSumOffset_shift_add` (i.e. with `a + d*m`). -/
+lemma apSumFrom_add_mul_left_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + d * m) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa [Nat.mul_comm] using
+    (apSumFrom_add_mul_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Mul-left-friendly, constant-on-the-left variant of `apSumFrom_add_mul_eq_apSumOffset_shift_add_left`. -/
+lemma apSumFrom_add_mul_left_eq_apSumOffset_shift_add_left (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + d * m) d n = apSumOffset (fun k => f (a + k)) d m n := by
+  simpa [Nat.mul_comm] using
+    (apSumFrom_add_mul_eq_apSumOffset_shift_add_left (f := f) (a := a) (d := d) (m := m) (n := n))
+
 /-- `simp`-friendly variant of `apSumOffset_shift_add_eq_apSumFrom_bridge` under `Int.natAbs`.
 
 This is useful after rewriting `discrepancy_def` / `affineDiscrepancy_def`, where goals often
