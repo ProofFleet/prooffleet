@@ -336,7 +336,7 @@ Definition of done:
   - Implemented in `MoltResearch/Discrepancy/Affine.lean` as `apSumFrom_zero_a` (simp) and `apSumFrom_zero_eq_sum_Icc` / `sum_Icc_eq_apSumFrom_zero`.
 - [x] Translation glue: add a direct normal-form lemma rewriting `apSumFrom f (a + m*d) d n` to `apSumOffset (fun k => f (k + a)) d m n` (and an `…_add`/`mul_left`-friendly variant) without intermediate arithmetic rearrangements.
   - Implemented as `apSumFrom_tail_eq_apSumOffset_shift_add` and `apSumFrom_tail_eq_apSumOffset_shift_add_mul_left` in `MoltResearch/Discrepancy/AffineTail.lean`.
-- [ ] API coherence: add the inverse normal-form lemma rewriting `apSumOffset (fun k => f (k + a)) d m n` back to an `apSumFrom` tail with the repo’s preferred endpoint convention, and ensure both directions live on the stable surface.
+- [x] API coherence: add the inverse normal-form lemma rewriting `apSumOffset (fun k => f (k + a)) d m n` back to an `apSumFrom` tail with the repo’s preferred endpoint convention, and ensure both directions live on the stable surface. (Implemented as `apSumOffset_shift_add_eq_apSumFrom_tail` / `apSumFrom_tail_eq_apSumOffset_shift_add`; surfaced via `import MoltResearch.Discrepancy` and audited in `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 - [ ] Surface regression: add 2–3 compile-only examples under `import MoltResearch.Discrepancy` showing the rewrite pipelines
   - `apSumFrom f 0 d (m+n) - apSumFrom f 0 d m` → `apSumOffset f d m n` → split/bound, and
   - `apSumOffset f d 0 n` → `apSum f d n` → step-one normalization,
