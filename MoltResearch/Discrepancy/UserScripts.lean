@@ -128,6 +128,29 @@ example (hmn : m ≤ n)
   simpa [sum_Icc_eq_apSumFrom,
     apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h'
 
+-- 8) Paper tail sum with translation-friendly summand `i*d + a` → `discOffset` bound.
+--
+-- This is a one-liner once you use the simp-friendly alias
+-- `sum_Icc_eq_apSumOffset_of_le_shift_add_len`.
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a))) ≤ C) :
+    discOffset (fun k => f (k + a)) d m n ≤ C := by
+  change Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C
+  simpa [sum_Icc_eq_apSumOffset_of_le_shift_add_len] using h
+
+-- 8b) Same as (8) but with the summand written as `d*i + a` (mul-left convention).
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i + a))) ≤ C) :
+    discOffset (fun k => f (k + a)) d m n ≤ C := by
+  change Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C
+  simpa [sum_Icc_eq_apSumOffset_of_le_shift_add_len_mul_left] using h
+
+-- 9) Same normalization as (8), but landing directly in the `apSumOffset` API.
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a))) ≤ C) :
+    Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C := by
+  simpa [sum_Icc_eq_apSumOffset_of_le_shift_add_len] using h
+
 end UserScripts
 
 end MoltResearch
