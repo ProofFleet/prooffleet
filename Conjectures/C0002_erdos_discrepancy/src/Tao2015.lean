@@ -31,39 +31,74 @@ models, etc.) in `Conjectures/` first, and only move stable definitions to `Molt
 we’re confident they are reusable.
 -/
 
-/-- (Stub) A key reduction step in Tao 2015.
+namespace Tao2015
 
-In a future development, this lemma will express the first major simplification/reduction of
-an assumed bounded-discrepancy counterexample into a more structured object.
+/-- Package the *assumption* of bounded discrepancy as data (`B` plus the bound lemma).
 
-For now it is only a placeholder to make the proof outline explicit.
+This is a Lean-friendly normal form: instead of passing around an existential hypothesis
+`BoundedDiscrepancy f`, downstream steps can take a single `Context f`.
+
+Note: this structure lives in `Conjectures/` because we may want to revise it as the proof
+strategy evolves.
 -/
-theorem tao2015_reduction_step (f : ℕ → ℤ) (hf : IsSignSequence f)
-    (hb : BoundedDiscrepancy f) : True := by
+structure Context (f : ℕ → ℤ) : Type where
+  B : ℕ
+  bound : ∀ d n : ℕ, d > 0 → Int.natAbs (apSum f d n) ≤ B
+
+/-- Extract a `Context` from a boundedness hypothesis.
+
+Noncomputable because we use classical choice to pick the witness `B`.
+-/
+noncomputable def Context.ofBoundedDiscrepancy {f : ℕ → ℤ} (hb : BoundedDiscrepancy f) :
+    Context f := by
+  classical
+  refine ⟨Classical.choose hb, ?_⟩
+  simpa using (Classical.choose_spec hb)
+
+/-- Output of the first major reduction stage of Tao 2015.
+
+We intentionally keep this opaque at first; the goal is to replace this with the first
+*stable* structured object we can state cleanly in Lean.
+-/
+structure ReductionOutput (f : ℕ → ℤ) : Type where
+  dummy : Unit := ()
+
+/-- (Stub) Tao 2015 reduction stage.
+
+Given a sign sequence `f` and a boundedness context, produce a structured object.
+
+In the real proof this will likely involve introducing auxiliary models / averaged objects.
+-/
+theorem reduction (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
+    ReductionOutput f := by
   sorry
 
-/-- (Stub) A key analytic/combinatorial contradiction step in Tao 2015.
+/-- (Stub) Tao 2015 contradiction stage.
 
-Given the structured object produced by `tao2015_reduction_step`, the proof eventually derives
-an explicit contradiction.
-
-This lemma is a placeholder for that second stage.
+Given the structured output of the reduction stage, derive a contradiction.
 -/
-theorem tao2015_contradiction_step (f : ℕ → ℤ) (hf : IsSignSequence f)
-    (hb : BoundedDiscrepancy f) : False := by
+theorem contradiction (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) : False := by
   sorry
+
+end Tao2015
 
 /-- Tao 2015: Erdős discrepancy, packaged as a “not bounded discrepancy” statement.
 
-This is the mathematically substantial part and remains a conjecture stub in this repo.
+This remains a conjecture stub. The body is written in Lean-friendly stages:
 
-The body is written as a proof skeleton (reduction step(s) + contradiction step(s)) so we can
-refine it iteratively.
+1. convert `BoundedDiscrepancy f` into a `Tao2015.Context f` (choose an explicit bound `B`)
+2. run a reduction step producing a structured object
+3. run a contradiction step
+
+Keeping the stages typed and named makes it possible to fill in the proof incrementally.
 -/
 theorem tao2015_not_boundedDiscrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
   intro hb
-  have _ : True := tao2015_reduction_step (f := f) (hf := hf) (hb := hb)
-  exact tao2015_contradiction_step (f := f) (hf := hf) (hb := hb)
+  classical
+  let ctx : Tao2015.Context f := Tao2015.Context.ofBoundedDiscrepancy (f := f) hb
+  let out : Tao2015.ReductionOutput f := Tao2015.reduction (f := f) (hf := hf) ctx
+  exact Tao2015.contradiction (f := f) (hf := hf) (ctx := ctx) (out := out)
 
 end MoltResearch
