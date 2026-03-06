@@ -245,13 +245,44 @@ example (n₁ n₂ : ℕ)
   -- Let `simp` rewrite `Int.natAbs (apSumOffset …)` to the `discOffset` wrapper.
   simpa using h'
 
--- 16) Paper tail sum with translation-friendly summand `i*d + a` → `apSumOffset` bound (one-liner).
+-- 16) Paper difference of *paper* tail sums (affine summand `a + i*d`) → `discOffset`.
+--
+-- This is the “tail difference is a tail” normal form, but with an affine-in-the-summand paper
+-- statement. The whole difference rewrites in one shot.
+example (n₁ n₂ : ℕ)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + i * d)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d))) ≤
+          C) :
+    discOffset (fun k => f (a + k)) d (m + n₁) n₂ ≤ C := by
+  have h' := h
+  rw [
+    sum_Icc_sub_sum_Icc_eq_apSumOffset
+      (f := fun t => f (a + t)) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)] at h'
+  simpa using h'
+
+-- 16b) Same as (16) but with translation-friendly summand `i*d + a`.
+example (n₁ n₂ : ℕ)
+    (h :
+        Int.natAbs
+            ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d + a)) -
+              (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d + a))) ≤
+          C) :
+    discOffset (fun k => f (k + a)) d (m + n₁) n₂ ≤ C := by
+  have h' := h
+  rw [
+    sum_Icc_sub_sum_Icc_eq_apSumOffset
+      (f := fun t => f (t + a)) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)] at h'
+  simpa using h'
+
+-- 17) Paper tail sum with translation-friendly summand `i*d + a` → `apSumOffset` bound (one-liner).
 example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a))) ≤ C) :
     Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) ≤ C := by
   simpa [sum_Icc_eq_apSumOffset_of_le_shift_add_len] using h
 
--- 17) Paper difference with mul-left convention `a + d*i` → `discOffset`.
+-- 18) Paper difference with mul-left convention `a + d*i` → `discOffset`.
 example
     (h :
         Int.natAbs
