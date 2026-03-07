@@ -727,6 +727,7 @@ for all `(d,n)`: they only use the single-`d` bound bundled in the `AlongContext
 /-- Bound offset AP sums using only a single-`d` uniform bound on prefix sums.
 
 This is the `AlongContext` analogue of `Context.bound_apSumOffset`.
+-/
 theorem bound_apSumOffset (ctx : AlongContext g d) (m n : ℕ) :
     Int.natAbs (apSumOffset g d m n) ≤ ctx.B + ctx.B := by
   -- `apSumOffset = apSum (m+n) - apSum m`.
