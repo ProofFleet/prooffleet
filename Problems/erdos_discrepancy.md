@@ -341,7 +341,9 @@ Definition of done:
   - `apSumFrom f 0 d (m+n) - apSumFrom f 0 d m` → `apSumOffset f d m n` → split/bound, and
   - `apSumOffset f d 0 n` → `apSum f d n` → step-one normalization,
   to catch simp/namespace regressions early.
-- [ ] Naming audit: ensure the new `…_zero`/`…_zero_start` lemmas follow the existing `apSum_zero/apSum_one` naming scheme across `apSum`, `apSumOffset`, and `apSumFrom` (with deprecated aliases isolated behind `MoltResearch.Discrepancy.Deprecated`).
+- [x] Naming audit: ensure the new `…_zero`/`…_zero_start` lemmas follow the existing `apSum_zero/apSum_one` naming scheme across `apSum`, `apSumOffset`, and `apSumFrom` (with deprecated aliases isolated behind `MoltResearch.Discrepancy.Deprecated`).
+  - Verified stable surface provides: `apSum_zero/apSum_one`, `apSumOffset_zero/apSumOffset_one/apSumOffset_zero_start`, `apSumFrom_zero/apSumFrom_one/apSumFrom_zero_start`.
+  - Verified legacy aliases (`*_zero_n`, `*_zero_m`, `*_zero_a`, etc.) live only in `MoltResearch.Discrepancy.Deprecated` and are guarded by `Discrepancy/SurfaceAudit.lean` absence checks.
 - [ ] Stable-surface audit: update `MoltResearch/Discrepancy/SurfaceAudit.lean` to assert the above normal-form lemmas are exported by `import MoltResearch.Discrepancy` (and add a companion check that deprecated aliases are not).
 
 ### Track C — Conjecture stub + equivalences (backlog)
