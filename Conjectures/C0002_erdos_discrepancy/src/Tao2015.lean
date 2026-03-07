@@ -638,6 +638,25 @@ noncomputable def alongContextOfBoundedDiscOffset (out : ReductionOutput f)
   rcases (out.boundedDiscOffset_iff_forall_natAbs_apSum_le (f := f)).1 h with ⟨B, hB⟩
   exact ⟨B, hB⟩
 
+/-- Convert an `AlongContext` for the reduced sequence into bounded *offset* discrepancy for `f`.
+
+This is the “reverse direction” of `alongContextOfBoundedDiscOffset`.
+-/
+theorem boundedDiscOffset_of_alongContext (out : ReductionOutput f) (ctx : AlongContext out.g out.d) :
+    BoundedDiscOffset f out.d out.m := by
+  -- `ctx` bounds discrepancies of `out.g`; transfer across the reduction interface.
+  have hAlong : BoundedDiscrepancyAlong out.g out.d := ctx.boundedDiscrepancyAlong (g := out.g) (d := out.d)
+  exact (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f)).1 hAlong
+
+/-- Convert an `AlongContext` for the reduced sequence into a uniform bound on `discOffset`.
+
+This is the consumer-friendly form of `boundedDiscOffset_of_alongContext`.
+-/
+theorem forall_discOffset_le_of_alongContext (out : ReductionOutput f) (ctx : AlongContext out.g out.d) :
+    ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  -- `BoundedDiscOffset` is already the desired `∃ B, ∀ n` shape.
+  simpa [BoundedDiscOffset] using (boundedDiscOffset_of_alongContext (f := f) (out := out) ctx)
+
 /-- A helper to *use* `BoundedDiscrepancyAlong` as a `∀ n` bound on `discrepancy`. -/
 theorem BoundedDiscrepancyAlong.exists_bound {g : ℕ → ℤ} {d : ℕ} :
     BoundedDiscrepancyAlong g d → ∃ B : ℕ, ∀ n : ℕ, discrepancy g d n ≤ B := by
