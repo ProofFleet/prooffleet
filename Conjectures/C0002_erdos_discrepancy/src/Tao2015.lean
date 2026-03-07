@@ -639,6 +639,27 @@ theorem apSum_shiftRight_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : 
   simpa [out.apSumOffset_g_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)] using
     (out.apSum_shiftRight_eq_apSumOffset_g (f := f) (m₂ := m₂) (n := n))
 
+/-- Discrepancy rewrite: shift `out.g` by `m₂*out.d`, then rewrite as a bundled offset discrepancy of `f`.
+
+This is the discrepancy analogue of `apSum_shiftRight_eq_apSumOffset_add`.
+-/
+theorem discrepancy_shiftRight_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n = discOffset f out.d (out.m + m₂) n := by
+  -- First rewrite a shifted discrepancy to an offset discrepancy of `out.g`.
+  -- Then peel the bundled offset back to `f`.
+  calc
+    discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n
+        = discOffset out.g out.d m₂ n := by
+          simpa using
+            (Tao2015.discrepancy_shift_add_mul_eq_discOffset (f := out.g) (d := out.d) (m := m₂) (n := n))
+    _ = discOffset f out.d (out.m + m₂) n := by
+          simpa using (out.discOffset_g_eq_discOffset_add (f := f) (m₂ := m₂) (n := n))
+
+/-- Reverse orientation of `discrepancy_shiftRight_eq_discOffset_add`. -/
+theorem discOffset_add_eq_discrepancy_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n := by
+  simpa using (out.discrepancy_shiftRight_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)).symm
+
 /-- `natAbs` form of the AP-sum bridge rule. -/
 theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
