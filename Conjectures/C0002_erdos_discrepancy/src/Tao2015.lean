@@ -33,6 +33,27 @@ we’re confident they are reusable.
 
 namespace Tao2015
 
+/-!
+### Small helper API: sign sequences are stable under shifts
+
+These lemmas are intentionally tiny, but they reduce friction when constructing reduction
+interfaces: many steps define a new sequence by shifting the old one.
+-/
+namespace IsSignSequence
+
+/-- Shifting the index preserves the sign-sequence property. -/
+theorem shift_add {f : ℕ → ℤ} (hf : IsSignSequence f) (a : ℕ) :
+    IsSignSequence (fun k => f (k + a)) := by
+  intro k
+  simpa using hf (k + a)
+
+/-- A common special case: shift by a multiple `m*d`. -/
+theorem shift_add_mul {f : ℕ → ℤ} (hf : IsSignSequence f) (m d : ℕ) :
+    IsSignSequence (fun k => f (k + m * d)) := by
+  simpa using (shift_add (f := f) hf (a := m * d))
+
+end IsSignSequence
+
 /-- Package the *assumption* of bounded discrepancy as data (`B` plus the bound lemma).
 
 This is a Lean-friendly normal form: instead of passing around an existential hypothesis
@@ -236,6 +257,18 @@ noncomputable def mkShift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ �
   · intro B hB n
     -- Rewrite the discrepancy of `g` as the offset discrepancy of `f`.
     simpa [discrepancy, discOffset, hgEq, apSumOffset_eq_apSum_shift_add] using hB n
+
+/-- Even more convenient constructor: build the shifted reduction output directly from `hf`.
+
+This is the typical situation in the Tao pipeline: the reduced sequence *is* a shift of the
+original sign sequence.
+-/
+noncomputable def mkShiftOfSign (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    ReductionOutput f := by
+  refine mkShift (f := f) (d := d) (m := m) (hd := hd)
+    (g := fun k => f (k + m * d))
+    (hg := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m d)
+    (hgEq := rfl)
 
 /-- Rewrite `apSum out.g out.d` as an offset sum of `f`.
 
