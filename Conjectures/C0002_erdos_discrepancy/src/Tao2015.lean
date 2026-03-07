@@ -753,6 +753,29 @@ theorem mkShiftOfSign_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ)
   -- Both sides are definitional wrappers around `Int.natAbs` and `mkShift` fills the AP-sum bridge.
   simp [discrepancy, discOffset, mkShiftOfSign, mkShift]
 
+/-- `mkShiftOfSign` satisfies the discrepancy-transfer contract definitionally.
+
+This is a tiny helper: it lets downstream code *use* the `ReductionOutput` interface without
+having to unfold the record fields of `mkShift`.
+-/
+@[simp] theorem mkShiftOfSign_contract_discrepancy_le (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f d m n ≤ B) (n : ℕ) :
+    (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).contract_discrepancy_le B hB n =
+      hB n := by
+  -- The contract is just rewriting `discrepancy` to `discOffset`.
+  simp [mkShiftOfSign, mkShift, discrepancy, discOffset]
+
+/-- Function-extensional version of `mkShiftOfSign_contract_discrepancy_le`. -/
+@[simp] theorem mkShiftOfSign_contract_discrepancy_le_funext (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f d m n ≤ B) :
+    (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).contract_discrepancy_le B hB = hB := by
+  funext n
+  simpa using
+    (mkShiftOfSign_contract_discrepancy_le (f := f) (hf := hf) (d := d) (m := m) (hd := hd)
+      (B := B) (hB := hB) (n := n))
+
 /-- `apSumFrom` rewrite for the reduction output produced by `mkShiftOfSign`.
 
 This is a tiny convenience lemma: it avoids having to explicitly invoke
