@@ -458,6 +458,27 @@ theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutpu
     HasDiscrepancyAtLeastAlong out.g out.d C :=
   (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 h
 
+/-- Quantified version of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  constructor
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 (h C)
+
+/-- Repackage unboundedness along the reduced step size `out.d`.
+
+This is just `HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong`
+specialized to `out.g`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔ ¬ BoundedDiscrepancyAlong out.g out.d := by
+  simpa using
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
+      (g := out.g) (d := out.d))
+
 /-- Promote a fixed-step discrepancy witness about `out.g` to the standard existential form.
 
 This is just `HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast` specialized to `out.hd`.
