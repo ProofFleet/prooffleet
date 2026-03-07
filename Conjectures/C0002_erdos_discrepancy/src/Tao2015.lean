@@ -1909,6 +1909,18 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+/-- Unfold `BoundedDiscrepancyAlong` into the raw `Int.natAbs (apSum …)` normal form. -/
+theorem boundedDiscrepancyAlong_iff_exists_natAbs_apSum_le (g : ℕ → ℤ) (d : ℕ) :
+    BoundedDiscrepancyAlong g d ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum g d n) ≤ B) := by
+  -- `discrepancy` is definitional.
+  simp [BoundedDiscrepancyAlong, discrepancy]
+
+/-- Unfold `BoundedDiscOffset` into the raw `Int.natAbs (apSumOffset …)` normal form. -/
+theorem boundedDiscOffset_iff_exists_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffset f d m ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
+  -- `discOffset` is definitional.
+  simp [BoundedDiscOffset, discOffset]
+
 /-- A `Context f` gives bounded discrepancy along the reduced step size `out.d`.
 
 This is a tiny packaging lemma: it turns the pointwise bound `out.bound_discrepancy` into the
