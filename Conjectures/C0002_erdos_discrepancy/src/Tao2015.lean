@@ -714,6 +714,53 @@ theorem ofContext (ctx : Context f) (out : ReductionOutput f) : AlongContext out
   intro n
   exact out.bound_apSum (f := f) (ctx := ctx) (out := out) n
 
+/-!
+### Offset / shift bounds from `AlongContext`
+
+Downstream stages frequently work with a fixed common difference `d` and only have an
+`AlongContext g d` hypothesis (a uniform bound on `apSum g d n`).
+
+The next lemmas mirror the earlier `Context` API but *do not* require global bounded discrepancy
+for all `(d,n)`: they only use the single-`d` bound bundled in the `AlongContext`.
+-/
+
+/-- Bound offset AP sums using only a single-`d` uniform bound on prefix sums.
+
+This is the `AlongContext` analogue of `Context.bound_apSumOffset`.
+-/-
+theorem bound_apSumOffset (ctx : AlongContext g d) (m n : ℕ) :
+    Int.natAbs (apSumOffset g d m n) ≤ ctx.B + ctx.B := by
+  -- `apSumOffset = apSum (m+n) - apSum m`.
+  calc
+    Int.natAbs (apSumOffset g d m n)
+        = Int.natAbs (apSum g d (m + n) - apSum g d m) := by
+          simp [apSumOffset_eq_sub]
+    _ ≤ Int.natAbs (apSum g d (m + n)) + Int.natAbs (apSum g d m) := by
+          simpa using (Int.natAbs_sub_le (apSum g d (m + n)) (apSum g d m))
+    _ ≤ ctx.B + ctx.B := by
+          exact Nat.add_le_add (ctx.bound (m + n)) (ctx.bound m)
+
+/-- Discrepancy wrapper version of `AlongContext.bound_apSumOffset`. -/-
+theorem bound_discOffset (ctx : AlongContext g d) (m n : ℕ) :
+    discOffset g d m n ≤ ctx.B + ctx.B := by
+  simpa [discOffset] using (ctx.bound_apSumOffset (g := g) (d := d) (m := m) (n := n))
+
+/-- Bound AP sums of a shifted sequence (by a multiple `m*d`) in terms of an `AlongContext`.
+
+This is the normal form that comes up when re-centering a reduction step.
+-/-
+theorem bound_apSum_shift_add_mul (ctx : AlongContext g d) (m n : ℕ) :
+    Int.natAbs (apSum (fun k => g (k + m * d)) d n) ≤ ctx.B + ctx.B := by
+  -- Rewrite the shifted AP sum to an offset sum and use `bound_apSumOffset`.
+  simpa [Tao2015.apSum_shift_add_mul_eq_apSumOffset] using
+    (ctx.bound_apSumOffset (g := g) (d := d) (m := m) (n := n))
+
+/-- Discrepancy version of `AlongContext.bound_apSum_shift_add_mul`. -/-
+theorem bound_discrepancy_shift_add_mul (ctx : AlongContext g d) (m n : ℕ) :
+    discrepancy (fun k => g (k + m * d)) d n ≤ ctx.B + ctx.B := by
+  -- `discrepancy` is just `natAbs` of `apSum`.
+  simpa [discrepancy] using (ctx.bound_apSum_shift_add_mul (g := g) (d := d) (m := m) (n := n))
+
 end AlongContext
 
 /-- Unfold `BoundedDiscrepancyAlong` into a uniform bound on absolute AP sums. -/
