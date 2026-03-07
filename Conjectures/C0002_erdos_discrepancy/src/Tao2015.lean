@@ -308,6 +308,38 @@ theorem bound_discrepancy (ctx : Context f) (out : ReductionOutput f) (n : ℕ) 
   -- `simp` turns `Int.natAbs (apSum …)` into `discrepancy …`.
   simpa [discrepancy] using (bound_apSum (f := f) (ctx := ctx) (out := out) (n := n))
 
+/-- A lightweight “bounded discrepancy” notion along a *single* common difference `d`.
+
+This is the natural consumer form after applying Tao’s first reduction: downstream steps
+work with a fixed `d` bundled into `ReductionOutput`.
+-/
+def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
+  ∃ B : ℕ, ∀ n : ℕ, discrepancy g d n ≤ B
+
+/-- A lightweight “bounded offset discrepancy” notion for fixed parameters `(d,m)`. -/
+def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
+  ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
+
+/-- Bridge lemma: `apSumOffset` can be rewritten to an `apSum` for the derived sequence. -/
+theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSum out.g out.d n := by
+  simpa using (out.apSum_eq_apSumOffset (f := f) (n := n)).symm
+
+/-- Equivalence of boundedness notions across the reduction interface. -/
+theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ BoundedDiscOffset f out.d out.m := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite `discOffset` to the discrepancy of `out.g`
+    simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite the discrepancy of `out.g` to `discOffset`
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
 end ReductionOutput
 
 /-- (Stub) Tao 2015 reduction stage.
