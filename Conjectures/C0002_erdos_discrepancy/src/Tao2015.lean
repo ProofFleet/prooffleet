@@ -235,6 +235,22 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
     discOffset f out.d out.m n = discrepancy out.g out.d n := by
   simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
 
+/-- Pointwise transfer lemma (≤): bounding the discrepancy of `out.g` at `n` is equivalent to
+bounding the corresponding offset discrepancy of `f` at `n`. -/
+theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)]
+
+/-- Pointwise transfer lemma (<): strict version of `discrepancy_le_iff_discOffset_le`. -/
+theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    discrepancy out.g out.d n < B ↔ discOffset f out.d out.m n < B := by
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)]
+
+/-- Symmetric pointwise transfer lemma (≤), oriented from offset discrepancy to discrepancy. -/
+theorem discOffset_le_iff_discrepancy_le (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    discOffset f out.d out.m n ≤ B ↔ discrepancy out.g out.d n ≤ B := by
+  simpa using (out.discrepancy_le_iff_discOffset_le (f := f) (B := B) (n := n)).symm
+
 /-- A convenient “forward” transfer lemma, derived from the rewrite rule.
 
 This is logically redundant with `discrepancy_eq_discOffset`, but it is the most common way
