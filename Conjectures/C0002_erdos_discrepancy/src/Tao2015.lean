@@ -3259,6 +3259,14 @@ theorem exists_discOffset_gt (s2 : Stage2Output f out) (C : ℕ) :
   rcases s2.unbounded_discOffset C with ⟨n, hn⟩
   exact ⟨n, hn⟩
 
+/-- Same as `exists_discOffset_gt`, but with the inequality oriented as `C < ...`.
+
+This avoids frequent `gt_iff_lt` rewriting in downstream stages.
+-/
+theorem exists_discOffset_lt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, C < discOffset f out.d out.m n := by
+  simpa [gt_iff_lt] using s2.exists_discOffset_gt (f := f) (out := out) C
+
 /-- A `Stage2Output` yields an `apSumOffset` witness in raw `natAbs` form.
 
 This is sometimes the easiest form to consume when staying at the “sum level”.
@@ -3274,6 +3282,11 @@ theorem exists_discrepancy_gt (s2 : Stage2Output f out) (C : ℕ) :
     ∃ n : ℕ, discrepancy out.g out.d n > C := by
   rcases s2.unbounded_discrepancy (f := f) (out := out) C with ⟨n, hn⟩
   exact ⟨n, hn⟩
+
+/-- Same as `exists_discrepancy_gt`, but with the inequality oriented as `C < ...`. -/
+theorem exists_discrepancy_lt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, C < discrepancy out.g out.d n := by
+  simpa [gt_iff_lt] using s2.exists_discrepancy_gt (f := f) (out := out) C
 
 /-- A `Stage2Output` yields an AP-sum witness `> C` in raw `natAbs` form for the reduced sequence.
 
