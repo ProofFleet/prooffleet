@@ -600,6 +600,46 @@ theorem natAbs_apSum_lt_iff_natAbs_apSumOffset_lt (out : ReductionOutput f) (B :
     Int.natAbs (apSum out.g out.d n) < B ↔ Int.natAbs (apSumOffset f out.d out.m n) < B := by
   simpa [out.apSum_eq_apSumOffset (f := f) (n := n)]
 
+/-- Uniform inequality transport across the AP-sum bridge rule (≤). -/
+theorem forall_natAbs_apSum_le_iff_forall_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, Int.natAbs (apSum out.g out.d n) ≤ B) ↔
+      (∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  constructor
+  · intro h n
+    simpa [out.apSum_contract] using h n
+  · intro h n
+    simpa [out.apSum_contract] using h n
+
+/-- Uniform inequality transport across the AP-sum bridge rule (<). -/
+theorem forall_natAbs_apSum_lt_iff_forall_natAbs_apSumOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, Int.natAbs (apSum out.g out.d n) < B) ↔
+      (∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) < B) := by
+  constructor
+  · intro h n
+    simpa [out.apSum_contract] using h n
+  · intro h n
+    simpa [out.apSum_contract] using h n
+
+/-- Existence transport across the AP-sum bridge rule (≤). -/
+theorem exists_natAbs_apSum_le_iff_exists_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∃ n : ℕ, Int.natAbs (apSum out.g out.d n) ≤ B) ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    exact ⟨n, (out.natAbs_apSum_le_iff_natAbs_apSumOffset_le (f := f) (B := B) (n := n)).1 hn⟩
+  · rintro ⟨n, hn⟩
+    exact ⟨n, (out.natAbs_apSum_le_iff_natAbs_apSumOffset_le (f := f) (B := B) (n := n)).2 hn⟩
+
+/-- Existence transport across the AP-sum bridge rule (<). -/
+theorem exists_natAbs_apSum_lt_iff_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∃ n : ℕ, Int.natAbs (apSum out.g out.d n) < B) ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) < B) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    exact ⟨n, (out.natAbs_apSum_lt_iff_natAbs_apSumOffset_lt (f := f) (B := B) (n := n)).1 hn⟩
+  · rintro ⟨n, hn⟩
+    exact ⟨n, (out.natAbs_apSum_lt_iff_natAbs_apSumOffset_lt (f := f) (B := B) (n := n)).2 hn⟩
+
 /-- Transfer a boundedness context for `f` to a bound on `apSum out.g out.d`.
 
 This is intentionally weak (a factor `2B`), but it is enough to make the interface usable
