@@ -1119,6 +1119,52 @@ stages that repeatedly “move the basepoint”.
   -- Use the simp-friendly `g_eq` lemma for `shiftRight` and associate additions.
   simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-!
+### Tiny consumer lemmas for repeated shifts
+
+These lemmas are mechanically derivable from the already-existing simp API, but having them as
+named facts helps downstream stages avoid repeated `simp`-based bookkeeping.
+-/
+
+/-- Two successive shifts: the resulting AP sums rewrite to an offset sum of the original sequence
+with the combined offset multiplier `out.m + m₁ + m₂`.
+-/
+@[simp] theorem apSum_shiftRight_shiftRight (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
+    apSum (((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g) out.d n =
+      apSumOffset f out.d (out.m + m₁ + m₂) n := by
+  -- The generic bridge rule already gives `apSum … = apSumOffset …` for the bundled parameters.
+  -- `simp` computes those parameters for the double-shift output.
+  simpa [Nat.add_assoc] using
+    (ReductionOutput.apSum_eq_apSumOffset (f := f)
+      (out := (out.shiftRight (f := f) m₁).shiftRight (f := f) m₂) n)
+
+/-- Two successive shifts: the resulting discrepancies rewrite to an offset discrepancy of the
+original sequence with the combined offset multiplier `out.m + m₁ + m₂`.
+-/
+@[simp] theorem discrepancy_shiftRight_shiftRight (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
+    discrepancy (((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g) out.d n =
+      discOffset f out.d (out.m + m₁ + m₂) n := by
+  simpa [Nat.add_assoc] using
+    (ReductionOutput.discrepancy_eq_discOffset (f := f)
+      (out := (out.shiftRight (f := f) m₁).shiftRight (f := f) m₂) n)
+
+/-- Re-associate offsets across a first shift: an offset by `out.m + m₁ + m₂` for `f` is an offset
+by `m₂` for the once-shifted sequence `out.shiftRight m₁`.
+-/
+@[simp] theorem apSumOffset_eq_apSumOffset_shiftRight (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₁ + m₂) n =
+      apSumOffset ((out.shiftRight (f := f) m₁).g) out.d m₂ n := by
+  -- This is `apSumOffset_add_right`, but applied to the intermediate reduction output.
+  simpa [Nat.add_assoc] using
+    ((out.shiftRight (f := f) m₁).apSumOffset_add_right (f := f) (m₂ := m₂) (n := n))
+
+/-- Discrepancy form of `apSumOffset_eq_apSumOffset_shiftRight`. -/
+@[simp] theorem discOffset_eq_discOffset_shiftRight (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₁ + m₂) n =
+      discOffset ((out.shiftRight (f := f) m₁).g) out.d m₂ n := by
+  -- `discOffset` is definitional; reuse the AP-sum statement.
+  simp [discOffset, apSumOffset_eq_apSumOffset_shiftRight (f := f) (out := out) (m₁ := m₁) (m₂ := m₂) (n := n)]
+
 /-- Pointwise form of `shiftRight_g`. -/
 @[simp] theorem shiftRight_g_apply (out : ReductionOutput f) (m₂ k : ℕ) :
     (out.shiftRight (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
