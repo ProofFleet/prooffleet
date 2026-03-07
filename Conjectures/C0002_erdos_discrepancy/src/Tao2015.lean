@@ -1278,6 +1278,37 @@ theorem not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (out : ReductionOu
     ¬ BoundedDiscrepancyAlong out.g out.d ↔ ¬ BoundedDiscOffset f out.d out.m := by
   simpa using not_congr (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f))
 
+/-- Pipeline-friendly form: `∀ C, HasDiscrepancyAtLeastAlong out.g out.d C` is equivalent to
+unbounded offset discrepancy for `f` at `(out.d,out.m)`.
+
+This is a convenient entry point when a downstream stage produces witnesses in the
+`HasDiscrepancyAtLeastAlong` form.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscOffset (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔ ¬ BoundedDiscOffset f out.d out.m := by
+  -- First convert `∀ C, HasDiscrepancyAtLeastAlong ...` to a negated boundedness statement for `out.g`.
+  -- Then transport across the reduction interface.
+  calc
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C)
+        ↔ ¬ BoundedDiscrepancyAlong out.g out.d := by
+          simpa using
+            (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
+              (g := out.g) (d := out.d))
+    _ ↔ ¬ BoundedDiscOffset f out.d out.m :=
+          out.not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (f := f)
+
+/-- One direction of `forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscOffset`. -/
+theorem not_boundedDiscOffset_of_forall_hasDiscrepancyAtLeastAlong (out : ReductionOutput f)
+    (h : ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) :
+    ¬ BoundedDiscOffset f out.d out.m :=
+  (out.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscOffset (f := f)).1 h
+
+/-- The other direction of `forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscOffset`. -/
+theorem forall_hasDiscrepancyAtLeastAlong_of_not_boundedDiscOffset (out : ReductionOutput f)
+    (h : ¬ BoundedDiscOffset f out.d out.m) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C :=
+  (out.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscOffset (f := f)).2 h
+
 /-- Convert an `AlongContext` for the reduced sequence into bounded offset discrepancy for `f`.
 
 This is often the *exact* consumer step after you have proved a uniform `apSum`-bound for `out.g`
