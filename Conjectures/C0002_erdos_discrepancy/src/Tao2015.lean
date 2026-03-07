@@ -1199,6 +1199,35 @@ theorem discOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
   -- `discOffset` is just `Int.natAbs` of `apSumOffset`.
   simp [discOffset, apSumOffset_add]
 
+/-- Re-associate offsets, reverse orientation of `apSumOffset_add`.
+
+This form is often convenient when you are already working with the shifted sequence
+`fun k => f (k + m₁*d)`.
+-/
+theorem apSumOffset_shift_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+    apSumOffset (fun k => f (k + m₁ * d)) d m₂ n = apSumOffset f d (m₁ + m₂) n := by
+  simpa using (apSumOffset_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)).symm
+
+/-- Discrepancy form of `apSumOffset_shift_add`. -/
+theorem discOffset_shift_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+    discOffset (fun k => f (k + m₁ * d)) d m₂ n = discOffset f d (m₁ + m₂) n := by
+  simpa [discOffset] using
+    congrArg Int.natAbs (apSumOffset_shift_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n))
+
+/-- Zero-offset for a shifted sequence: `apSumOffset (shift f m) d 0 = apSumOffset f d m`.
+
+This is a small convenience lemma that avoids repeatedly unfolding `apSumOffset_zero`.
+-/
+theorem apSumOffset_shift_zero (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f (k + m * d)) d 0 n = apSumOffset f d m n := by
+  -- Left: zero offset is just an AP sum of the shifted sequence; right: definition of `apSumOffset`.
+  simp [apSumOffset_zero, apSumOffset_eq_apSum_shift_add]
+
+/-- Discrepancy form of `apSumOffset_shift_zero`. -/
+theorem discOffset_shift_zero (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset (fun k => f (k + m * d)) d 0 n = discOffset f d m n := by
+  simp [discOffset, apSumOffset_shift_zero]
+
 /-- Bridge lemma: `apSumOffset` can be rewritten to an `apSum` for the derived sequence. -/
 theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
