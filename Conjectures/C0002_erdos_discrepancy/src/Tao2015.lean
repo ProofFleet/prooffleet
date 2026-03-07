@@ -1260,6 +1260,52 @@ theorem discOffset_eq_discOffset_add_right (out : ReductionOutput f) (m₂ n : �
   simpa using (out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)).symm
 
 /-!
+### Boundedness and witness transport across the bundled shift
+
+The lemmas `apSumOffset_add_right` / `discOffset_add_right` rewrite an offset expression of the
+original sequence `f` into an offset expression of the reduced sequence `out.g`.
+
+Downstream stages often need this not just pointwise, but at the level of *boundedness* (`∃ B, ∀ n`)
+or the explicit *unboundedness witness* normal form (`∀ B, ∃ n`).
+-/
+
+/-- Bounding all offset discrepancies of `f` at offset `out.m + m₂` is equivalent to bounding all
+offset discrepancies of `out.g` at offset `m₂`.
+
+This is just the `BoundedDiscOffset`-level transport version of `discOffset_add_right`.
+-/
+theorem boundedDiscOffset_add_right (out : ReductionOutput f) (m₂ : ℕ) :
+    BoundedDiscOffset f out.d (out.m + m₂) ↔ BoundedDiscOffset out.g out.d m₂ := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    simpa [out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite in the reverse direction
+    simpa [out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)] using hB n
+
+/-- Unboundedness witness transport across the bundled shift (explicit normal form).
+
+This is the “∀B, ∃n, B < …” analogue of `boundedDiscOffset_add_right`.
+-/
+theorem forall_exists_discOffset_gt_add_right_iff (out : ReductionOutput f) (m₂ : ℕ) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d (out.m + m₂) n) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset out.g out.d m₂ n) := by
+  constructor
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)] using hn
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- rewrite in the reverse direction
+    simpa [out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)] using hn
+
+/-!
 ### Composing shifts
 
 A common pattern in the Tao pipeline is to *shift again* after a first reduction step.
