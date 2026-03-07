@@ -3169,6 +3169,18 @@ theorem not_boundedDiscOffset (s2 : Stage2Output f out) : ¬ BoundedDiscOffset f
 theorem not_boundedDiscrepancyAlong (s2 : Stage2Output f out) : ¬ BoundedDiscrepancyAlong out.g out.d := by
   exact (stage2_witness_discOffset_iff_not_boundedDiscrepancyAlong (f := f) (out := out)).1 s2.unbounded_discOffset
 
+/-- Convert packaged stage-2 output to `¬ BoundedDiscrepancy out.g` (global boundedness).
+
+This is the cleanest negated-boundedness form for contradiction stages that do *not* want to
+carry a fixed step size around.
+
+We derive it from the already-packaged `∀ C, HasDiscrepancyAtLeast out.g C` witness.
+-/
+theorem not_boundedDiscrepancy (s2 : Stage2Output f out) : ¬ BoundedDiscrepancy out.g := by
+  have hunb : ∀ C : ℕ, HasDiscrepancyAtLeast out.g C :=
+    s2.forall_hasDiscrepancyAtLeast (f := f) (out := out)
+  exact (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy (f := out.g)).1 hunb
+
 end Stage2Output
 
 /-- (Stub) Stage 2 deliverable: from `ctx` + `out`, produce the explicit unboundedness normal form
