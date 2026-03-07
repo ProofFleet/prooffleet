@@ -3258,6 +3258,24 @@ theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reduc
     Tao2015.not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)
   exact h1.trans h2
 
+/-- `HasDiscrepancyAtLeastAlong` normal form, transported to an explicit `discOffset` witness.
+
+This is often a nice interface boundary: many “analytic” reductions naturally prove
+`∀ C, ∃ n, C < discrepancy …`, while the contradiction stage wants to stay in the
+`discOffset` world bundled in `out`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- First rewrite `∀ C, HasDiscrepancyAtLeastAlong …` as `¬ BoundedDiscrepancyAlong …`.
+  have h₁ : (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (¬ BoundedDiscrepancyAlong out.g out.d) := by
+    simpa using
+      (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
+        (g := out.g) (d := out.d))
+  -- Then transport unboundedness across the reduction interface.
+  exact h₁.trans (out.not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f))
+
 /-- The same unboundedness normal form, but phrased using `Int.natAbs (apSumOffset …)`.
 
 This is often the tightest thing you get from a reduction step: it avoids `discOffset` entirely.
