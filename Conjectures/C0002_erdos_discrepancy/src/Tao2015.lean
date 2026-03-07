@@ -1210,6 +1210,19 @@ it is the canonical normal form for discrepancies of the shifted reduction outpu
   -- Both sides are definitional wrappers around `Int.natAbs`, and the AP-sum bridge is `[simp]`.
   simp [discrepancy, discOffset]
 
+/-- A `Context f` implies bounded discrepancy along the shifted reduction output.
+
+This is a small wrapper around `ReductionOutput.boundedDiscrepancyAlong_of_context`, specialized to
+`shiftRight`.
+-/
+theorem shiftRight_boundedDiscrepancyAlong_of_context (out : ReductionOutput f) (m₂ : ℕ) (ctx : Context f) :
+    BoundedDiscrepancyAlong (shiftRight (f := f) out m₂).g out.d := by
+  -- Apply the general lemma to the shifted reduction output.
+  have h := (ReductionOutput.boundedDiscrepancyAlong_of_context (f := f)
+    (out := shiftRight (f := f) out m₂) ctx)
+  -- Normalize the step size.
+  simpa [shiftRight_d] using h
+
 /-- `shiftRight` satisfies the discrepancy-transfer contract definitionally.
 
 This is a convenience lemma: downstream steps can use the contract field without unfolding
