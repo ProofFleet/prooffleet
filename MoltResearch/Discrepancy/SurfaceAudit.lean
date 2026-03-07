@@ -299,6 +299,47 @@ section
   #guard_msgs in
   #check IsSignSequence.map_add_left
 
+  /-!
+  ### Additional absence checks: legacy `*_zero` / `*_zero_start` naming
+
+  The stable surface reserves the suffix `*_zero` for “length = 0” simp lemmas, and uses
+  `*_zero_start` for “start parameter = 0” simp lemmas.
+
+  Older aliases live in `MoltResearch.Discrepancy.Deprecated` and must not typecheck here.
+  -/
+
+  /-- error: Unknown identifier `apSumOffset_zero_n` -/
+  #guard_msgs in
+  #check apSumOffset_zero_n
+
+  /-- error: Unknown identifier `apSumOffset_zero_m` -/
+  #guard_msgs in
+  #check apSumOffset_zero_m
+
+  /-- error: Unknown identifier `apSumFrom_zero_a` -/
+  #guard_msgs in
+  #check apSumFrom_zero_a
+
+  /-- error: Unknown identifier `apSumFrom_zero_eq_sum_Icc` -/
+  #guard_msgs in
+  #check apSumFrom_zero_eq_sum_Icc
+
+  /-- error: Unknown identifier `sum_Icc_eq_apSumFrom_zero` -/
+  #guard_msgs in
+  #check sum_Icc_eq_apSumFrom_zero
+
+  /-- error: Unknown identifier `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` -/
+  #guard_msgs in
+  #check HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero
+
+  /-- error: Unknown identifier `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m` -/
+  #guard_msgs in
+  #check HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m
+
+  /-- error: Unknown identifier `HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero` -/
+  #guard_msgs in
+  #check HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero
+
   /-- error: Unknown identifier `apSumFrom_eq_apSum_shift` -/
   #guard_msgs in
   #check apSumFrom_eq_apSum_shift
