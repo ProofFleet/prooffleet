@@ -1419,6 +1419,43 @@ This is a convenience lemma: downstream steps can use the contract field without
     (hB := hB) (n := n))
 
 /-!
+### Fixed-step discrepancy rewrites for `shiftRight`
+
+These are small convenience lemmas: they let downstream stages work directly with the shifted
+reduction output `(shiftRight out m₂)` without manually normalizing its bundled offset.
+-/
+
+/-- `HasDiscrepancyAtLeastAlong` for the shifted reduction output, rewritten as a witness about
+`discOffset f` with the accumulated offset `out.m + m₂`.
+-/
+theorem shiftRight_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (shiftRight (f := f) out m₂).g out.d C ↔
+      (∃ n : ℕ, discOffset f out.d (out.m + m₂) n > C) := by
+  -- This is just the general `ReductionOutput` lemma, plus normalization of `shiftRight` fields.
+  simpa [shiftRight_d, shiftRight_m] using
+    (ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt
+      (f := f) (out := shiftRight (f := f) out m₂) (C := C))
+
+/-- `<`-oriented version of `shiftRight_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem shiftRight_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (shiftRight (f := f) out m₂).g out.d C ↔
+      (∃ n : ℕ, C < discOffset f out.d (out.m + m₂) n) := by
+  simpa [gt_iff_lt] using
+    (shiftRight_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (out := out) (m₂ := m₂) (C := C))
+
+/-- Sum-level version: `shiftRight` discrepancy witnesses phrased using `Int.natAbs (apSumOffset ...)`.
+-/
+theorem shiftRight_hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (shiftRight (f := f) out m₂).g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d (out.m + m₂) n) > C) := by
+  simpa [shiftRight_d, shiftRight_m] using
+    (ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt
+      (f := f) (out := shiftRight (f := f) out m₂) (C := C))
+
+/-!
 ### Composition lemmas for `shiftRight`
 
 These are small “algebra” facts: successive `shiftRight` operations add their offsets.
