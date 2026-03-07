@@ -450,6 +450,31 @@ theorem boundedDiscrepancyAlong_of_context (ctx : Context f) (out : ReductionOut
   intro n
   exact out.bound_discrepancy (f := f) (ctx := ctx) (out := out) n
 
+/-- Global bounded discrepancy for `f` implies bounded offset discrepancy for the parameters bundled in `out`. -/
+theorem boundedDiscOffset_of_boundedDiscrepancy (out : ReductionOutput f) (hb : BoundedDiscrepancy f) :
+    BoundedDiscOffset f out.d out.m := by
+  classical
+  -- Turn the existential bound into a `Context`, then apply `boundedDiscOffset_of_context`.
+  let ctx : Context f := Context.ofBoundedDiscrepancy (f := f) hb
+  exact out.boundedDiscOffset_of_context (f := f) (ctx := ctx)
+
+/-- Global bounded discrepancy for `f` implies bounded discrepancy along `out.d` for `out.g`. -/
+theorem boundedDiscrepancyAlong_of_boundedDiscrepancy (out : ReductionOutput f) (hb : BoundedDiscrepancy f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  classical
+  let ctx : Context f := Context.ofBoundedDiscrepancy (f := f) hb
+  exact out.boundedDiscrepancyAlong_of_context (f := f) (ctx := ctx)
+
+/-- Contrapositive convenience: if `out.g` is unbounded along `out.d`, then `f` is globally unbounded.
+
+This is a useful end-user lemma: once the Tao pipeline reduces unboundedness to a single fixed
+common difference, we can push the contradiction back to the original statement.
+-/
+theorem not_boundedDiscrepancy_of_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) → (¬ BoundedDiscrepancy f) := by
+  intro hAlong hb
+  exact hAlong (out.boundedDiscrepancyAlong_of_boundedDiscrepancy (f := f) (out := out) hb)
+
 end ReductionOutput
 
 /-- (Stub) Tao 2015 reduction stage.
