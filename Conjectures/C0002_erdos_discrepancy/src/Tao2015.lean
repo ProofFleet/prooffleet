@@ -1308,6 +1308,31 @@ theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   sorry
 
+/-- `natAbs` version of `stage2_unbounded_discOffset`.
+
+This is often the exact statement a downstream reduction stage naturally produces, since it may
+work with raw AP sums first and only introduce the `discOffset` wrapper later.
+-/
+theorem stage2_unbounded_natAbs_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
+  intro B
+  rcases stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+/-- Conversely, an unboundedness normal form in terms of `natAbs (apSumOffset …)` implies the
+`discOffset`-wrapper normal form.
+-/
+theorem stage2_unbounded_discOffset_of_unbounded_natAbs_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f)
+    (h : ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  intro B
+  rcases h B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
 /-- (Stub) Tao 2015 contradiction stage.
 
 Given the structured output of the reduction stage, a proof of global bounded discrepancy,
