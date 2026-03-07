@@ -1011,6 +1011,64 @@ theorem discOffset_eq_discOffset_add_right (out : ReductionOutput f) (m₂ n : �
     discOffset out.g out.d m₂ n = discOffset f out.d (out.m + m₂) n := by
   simpa using (out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)).symm
 
+/-!
+### Composing shifts
+
+A common pattern in the Tao pipeline is to *shift again* after a first reduction step.
+
+The next definition packages this as a new `ReductionOutput` with the same common difference `d`
+but an updated offset multiplier `m := out.m + m₂`.
+
+This lets downstream stages “move the basepoint” without leaving the reduction interface.
+-/
+
+/-- Shift the reduced sequence `out.g` by an additional multiple `m₂*out.d`, and repackage the
+result as a `ReductionOutput` for the original sequence `f`.
+
+Intuitively: if `out.g k = f (k + out.m*out.d)`, then
+`(shiftRight out m₂).g k = f (k + (out.m+m₂)*out.d)`.
+-/
+noncomputable def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionOutput f := by
+  classical
+  -- Define the new reduced sequence as a shift of the old one.
+  let g' : ℕ → ℤ := fun k => out.g (k + m₂ * out.d)
+  have hg' : IsSignSequence g' := Tao2015.IsSignSequence.shift_add_mul (f := out.g) out.hg m₂ out.d
+  have hgEq : g' = fun k => f (k + (out.m + m₂) * out.d) := by
+    funext k
+    -- Unfold `g'` and the defining equation for `out.g`, then simplify arithmetic.
+    simp [g', out.g_eq, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm, Nat.add_mul]
+  -- Use the generic “shift constructor”.
+  exact ReductionOutput.mkShift (f := f) (d := out.d) (m := out.m + m₂) (hd := out.hd)
+    (g := g') (hg := hg') (hgEq := hgEq)
+
+/-- The underlying function of `shiftRight` is just an extra shift of `out.g`. -/
+@[simp] theorem shiftRight_g (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight (f := f) m₂).g = fun k => out.g (k + m₂ * out.d) := by
+  classical
+  -- `shiftRight` was defined via `let g' := ...`.
+  rfl
+
+/-- The updated offset multiplier in `shiftRight` is `out.m + m₂`. -/
+@[simp] theorem shiftRight_m (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight (f := f) m₂).m = out.m + m₂ := by
+  classical
+  rfl
+
+/-- The common difference in `shiftRight` is unchanged. -/
+@[simp] theorem shiftRight_d (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight (f := f) m₂).d = out.d := by
+  classical
+  rfl
+
+/-- `shiftRight` composes offsets at the level of AP sums: it rewrites to `apSumOffset` with the
+combined offset multiplier `out.m + m₂`.
+-/
+@[simp] theorem apSum_shiftRight_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (fun k => out.g (k + m₂ * out.d)) out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- This is exactly the `apSum_contract` field of the constructed reduction output.
+  simpa [ReductionOutput.shiftRight_g] using
+    (out.shiftRight (f := f) m₂).apSum_contract n
+
 /-- Equivalence of boundedness notions across the reduction interface. -/
 theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) :
     BoundedDiscrepancyAlong out.g out.d ↔ BoundedDiscOffset f out.d out.m := by
