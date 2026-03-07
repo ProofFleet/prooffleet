@@ -320,6 +320,28 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+/-- Unfold `BoundedDiscrepancyAlong` into a uniform bound on absolute AP sums. -/
+theorem boundedDiscrepancyAlong_iff_forall_natAbs_apSum_le (g : ℕ → ℤ) (d : ℕ) :
+    BoundedDiscrepancyAlong g d ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum g d n) ≤ B) := by
+  -- `discrepancy` is just `Int.natAbs (apSum …)`.
+  simp [BoundedDiscrepancyAlong, discrepancy]
+
+/-- Unfold `BoundedDiscOffset` into a uniform bound on absolute offset AP sums. -/
+theorem boundedDiscOffset_iff_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffset f d m ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
+  -- `discOffset` is just `Int.natAbs (apSumOffset …)`.
+  simp [BoundedDiscOffset, discOffset]
+
+/-- A helper to *use* `BoundedDiscrepancyAlong` as a `∀ n` bound on `discrepancy`. -/
+theorem BoundedDiscrepancyAlong.exists_bound {g : ℕ → ℤ} {d : ℕ} :
+    BoundedDiscrepancyAlong g d → ∃ B : ℕ, ∀ n : ℕ, discrepancy g d n ≤ B := by
+  intro h; simpa [BoundedDiscrepancyAlong] using h
+
+/-- A helper to *use* `BoundedDiscOffset` as a `∀ n` bound on `discOffset`. -/
+theorem BoundedDiscOffset.exists_bound {f : ℕ → ℤ} {d m : ℕ} :
+    BoundedDiscOffset f d m → ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B := by
+  intro h; simpa [BoundedDiscOffset] using h
+
 /-- Re-associate offsets: shifting by `(m₁+m₂)*d` is the same as shifting by `m₁*d` and then by
 `m₂*d`.
 
@@ -439,14 +461,11 @@ This is enough to let downstream code *use* the interface immediately.
 -/
 theorem reduction (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
     ReductionOutput f := by
-  refine
-    ⟨1, 0, by decide, f, hf, (by simp), ?_, ?_⟩
-  · intro n
-    -- `apSumOffset f 1 0 n` is definitionally the same as `apSum f 1 n`.
-    simp [apSumOffset_eq_apSum_shift_add]
-  · intro B hB n
-    -- Transfer uniform bounds by rewriting to `discOffset`.
-    simpa [discrepancy, discOffset, apSumOffset_eq_apSum_shift_add] using hB n
+  -- (Temporary) trivial instantiation of the interface.
+  -- Keeping it factored through `mkShift` makes later upgrades less invasive.
+  classical
+  refine ReductionOutput.mkShift (f := f) (d := 1) (m := 0) (hd := by decide)
+    (g := f) (hg := hf) (hgEq := by simp)
 
 /-- (Stub) Tao 2015 contradiction stage.
 
