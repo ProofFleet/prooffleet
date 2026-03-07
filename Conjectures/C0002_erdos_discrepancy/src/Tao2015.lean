@@ -2875,6 +2875,34 @@ theorem discrepancy_eq_discOffset (out : ReductionOutput f) (m₂ n : ℕ) :
   simpa [g_eq_shift (f := f) (out := out) (m₂ := m₂)] using
     (Tao2015.discrepancy_shift_add_mul_eq_discOffset (f := out.g) (d := out.d) (m := m₂) (n := n))
 
+/-- AP-sum bridge for `out.shiftRight m₂`, rewritten with the original sequence `f`.
+
+This is just the generic `ReductionOutput.apSum_eq_apSumOffset` lemma applied to
+`out.shiftRight m₂`, but it is convenient to have the parameters in “paper form”
+(`out.m + m₂`).
+-/
+@[simp] theorem apSum_eq_apSumOffset_f (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (out.shiftRight (f := f) m₂).g out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- Reduce to the bundled bridge lemma of the new reduction output.
+  simpa using
+    (ReductionOutput.apSum_eq_apSumOffset (f := f) (out := out.shiftRight (f := f) m₂) (n := n))
+
+/-- Discrepancy bridge for `out.shiftRight m₂`, rewritten with the original sequence `f`. -/
+@[simp] theorem discrepancy_eq_discOffset_f (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (out.shiftRight (f := f) m₂).g out.d n = discOffset f out.d (out.m + m₂) n := by
+  -- Combine the standard `ReductionOutput` discrepancy bridge with the simp facts about `shiftRight`.
+  simpa using
+    (ReductionOutput.discrepancy_eq_discOffset (f := f) (out := out.shiftRight (f := f) m₂) (n := n))
+
+/-- Fixed-step discrepancy predicate for `out.shiftRight m₂`, phrased as a `discOffset` witness for `f`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_f (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (out.shiftRight (f := f) m₂).g out.d C ↔
+      (∃ n : ℕ, discOffset f out.d (out.m + m₂) n > C) := by
+  -- This is the generic `ReductionOutput` lemma, with parameters normalized.
+  simpa using
+    (ReductionOutput.hasDiscrepancyAtLeastAlong_iff_discOffset (f := f)
+      (out := out.shiftRight (f := f) m₂) (C := C))
+
 end shiftRight
 
 /-!
