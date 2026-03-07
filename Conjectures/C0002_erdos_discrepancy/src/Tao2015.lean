@@ -1609,6 +1609,35 @@ theorem not_boundedDiscrepancy_of_forall_exists_natAbs_apSumOffset_gt (out : Red
     simpa [discOffset] using hn
   exact out.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) h'
 
+/-- If the reduced sequence is unbounded along `out.d` (in the explicit witness normal form),
+then the original sequence `f` has unbounded discrepancy.
+
+This is a convenience wrapper around `not_boundedDiscrepancy_of_not_boundedDiscrepancyAlong`.
+-/
+theorem not_boundedDiscrepancy_of_forall_exists_discrepancy_gt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n) → (¬ BoundedDiscrepancy f) := by
+  intro h
+  -- Convert the explicit witness form into `¬ BoundedDiscrepancyAlong`.
+  have hnotAlong : ¬ BoundedDiscrepancyAlong out.g out.d := by
+    -- This equivalence is already proved earlier in the file.
+    exact (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d)).2 h
+  exact out.not_boundedDiscrepancy_of_not_boundedDiscrepancyAlong (f := f) hnotAlong
+
+/-- `natAbs` analogue of `not_boundedDiscrepancy_of_forall_exists_discrepancy_gt`.
+
+Many reduction stages produce witnesses in terms of absolute values of raw AP sums.
+-/
+theorem not_boundedDiscrepancy_of_forall_exists_natAbs_apSum_gt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSum out.g out.d n)) → (¬ BoundedDiscrepancy f) := by
+  intro h
+  -- Convert to discrepancy witnesses and reuse the previous lemma.
+  have h' : ∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n := by
+    intro B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [discrepancy] using hn
+  exact out.not_boundedDiscrepancy_of_forall_exists_discrepancy_gt (f := f) h'
+
 /-- Produce an `AlongContext` for `out.g` from a global boundedness context on `f`.
 
 This is a small wrapper around `AlongContext.ofContext` that keeps consumers inside the
