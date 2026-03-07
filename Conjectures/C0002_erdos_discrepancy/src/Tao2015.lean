@@ -175,6 +175,17 @@ theorem apSum_contract_derived (out : ReductionOutput f) :
   simpa [out.g_eq] using
     (apSumOffset_eq_apSum_shift_add (f := f) (d := out.d) (m := out.m) (n := n)).symm
 
+/-- The `apSum_contract` field is redundant: it is implied by `g_eq`.
+
+Keeping this lemma around makes it easy to refactor the interface later.
+-/
+theorem apSum_contract_eq_derived (out : ReductionOutput f) :
+    out.apSum_contract = out.apSum_contract_derived (f := f) := by
+  classical
+  funext n
+  -- Both sides are proofs of the same proposition; use proof irrelevance.
+  exact Subsingleton.elim _ _
+
 /-- Derive the discrepancy rewrite rule purely from `g_eq`.
 
 This variant does not rely on the `apSum_contract` field.
@@ -305,6 +316,18 @@ instead, which will still be available if the structure is simplified later.
 theorem contract_discrepancy_le_derived (out : ReductionOutput f) (B : ℕ) :
     (∀ n, discOffset f out.d out.m n ≤ B) → ∀ n, discrepancy out.g out.d n ≤ B :=
   out.discrepancy_le_of_forall_discOffset_le (f := f) (B := B)
+
+/-- The `contract_discrepancy_le` field is redundant: it is implied by the rewrite rule.
+
+This lemma records the redundancy at the level of functions so we can later drop the field
+without breaking downstream code.
+-/
+theorem contract_discrepancy_le_eq_derived (out : ReductionOutput f) :
+    out.contract_discrepancy_le = fun B => out.contract_discrepancy_le_derived (f := f) (out := out) B := by
+  classical
+  funext B
+  -- Both sides are proofs of the same proposition; use proof irrelevance.
+  exact Subsingleton.elim _ _
 
 /-- Witness transfer: if some discrepancy of `out.g` is large, the corresponding offset discrepancy of `f` is large. -/
 theorem exists_discOffset_gt_of_exists_discrepancy_gt (out : ReductionOutput f) (B : ℕ) :
