@@ -1076,6 +1076,16 @@ theorem discOffset_lt_iff_discrepancy_lt (out : ReductionOutput f) (B : ℕ) (n 
     discOffset f out.d out.m n < B ↔ discrepancy out.g out.d n < B := by
   simpa using (out.discrepancy_lt_iff_discOffset_lt (f := f) (B := B) (n := n)).symm
 
+/-- Strict-inequality transfer contract: a uniform bound on offset discrepancy transfers to `out.g`.
+
+This is the strict-inequality analogue of the `contract_discrepancy_le` field.
+-/
+theorem contract_discrepancy_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discOffset f out.d out.m n < B) → ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro hB n
+  -- Rewrite `discrepancy out.g` to the offset discrepancy of `f`.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
 /-- Uniform strict-inequality transport across the discrepancy bridge rule. -/
 theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
