@@ -189,6 +189,22 @@ namespace ReductionOutput
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
 
+/-- If the original sequence `f` is a sign sequence, then so is the derived sequence `out.g`.
+
+This lemma is useful when constructing or refactoring `ReductionOutput`: it shows that the
+`hg` field is *logically redundant* given `g_eq` and an external `IsSignSequence f` proof.
+-/
+theorem hg_derived (out : ReductionOutput f) (hf : IsSignSequence f) : IsSignSequence out.g := by
+  simpa [out.g_eq] using (Tao2015.IsSignSequence.shift_add_mul (f := f) hf out.m out.d)
+
+/-- The `hg` field is redundant when `f` is known to be a sign sequence.
+
+Recorded as an extensional equality (proof irrelevance) to make future interface refactors easier.
+-/
+theorem hg_eq_derived (out : ReductionOutput f) (hf : IsSignSequence f) : out.hg = out.hg_derived (f := f) hf := by
+  classical
+  exact Subsingleton.elim _ _
+
 /-- Function-extensional form of `apSum_contract`. -/
 theorem apSum_contract_funext (out : ReductionOutput f) :
     (fun n => apSum out.g out.d n) = fun n => apSumOffset f out.d out.m n := by
