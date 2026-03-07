@@ -1133,6 +1133,41 @@ noncomputable def shiftRight₀ (out : ReductionOutput f) (m₂ : ℕ) : Reducti
     (out.shiftRight₀ (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
   rfl
 
+/-- `apSum` rewrite rule for `shiftRight₀`: it is an offset AP sum of `f` with the bundled offset
+`out.m + m₂`.
+
+This is mostly a convenience lemma: it avoids having to remember the exact `.m` field of the
+shifted output.
+-/
+@[simp] theorem shiftRight₀_apSum_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (out.shiftRight₀ (f := f) m₂).g out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- This is the generic `apSum_eq_apSumOffset` lemma specialized to the shifted output.
+  simpa using (ReductionOutput.apSum_eq_apSumOffset (f := f) (out := out.shiftRight₀ (f := f) m₂) (n := n))
+
+/-- Discrepancy rewrite rule for `shiftRight₀`: it is an offset discrepancy of `f` with the bundled
+offset `out.m + m₂`.
+-/
+@[simp] theorem shiftRight₀_discrepancy_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (out.shiftRight₀ (f := f) m₂).g out.d n = discOffset f out.d (out.m + m₂) n := by
+  simpa using (ReductionOutput.discrepancy_eq_discOffset (f := f)
+    (out := out.shiftRight₀ (f := f) m₂) (n := n))
+
+/-- `apSum` rewrite rule for `shiftRight₀`, phrased as an offset AP sum of the *already reduced*
+sequence `out.g`.
+-/
+theorem shiftRight₀_apSum_eq_apSumOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (out.shiftRight₀ (f := f) m₂).g out.d n = apSumOffset out.g out.d m₂ n := by
+  -- Rewrite to an offset sum of `f` with bundled offset, then peel the original offset `out.m`.
+  simpa [out.apSumOffset_add_eq_apSumOffset_g (f := f) (m₂ := m₂) (n := n)] using
+    (out.shiftRight₀_apSum_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n))
+
+/-- Discrepancy rewrite rule for `shiftRight₀`, phrased as an offset discrepancy of `out.g`. -/
+theorem shiftRight₀_discrepancy_eq_discOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (out.shiftRight₀ (f := f) m₂).g out.d n = discOffset out.g out.d m₂ n := by
+  -- Convert both sides to `discOffset f` using the bundled-offset rewrite, then peel.
+  simpa [out.discOffset_add_eq_discOffset_g (f := f) (m₂ := m₂) (n := n)] using
+    (out.shiftRight₀_discrepancy_eq_discOffset_add (f := f) (m₂ := m₂) (n := n))
+
 /-- A fixed-step discrepancy witness for `out.g` yields a standard discrepancy witness.
 
 This is the bridge from our pipeline-friendly predicate `HasDiscrepancyAtLeastAlong` to the
