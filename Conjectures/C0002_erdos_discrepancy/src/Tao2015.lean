@@ -1372,6 +1372,26 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+/-- A direct shift-vs-offset boundedness equivalence (interface-free).
+
+This is the “raw” version of `ReductionOutput.boundedDiscrepancyAlong_iff_boundedDiscOffset`.
+It is useful when you have not yet packaged a reduction step into a `ReductionOutput`.
+-/
+theorem boundedDiscrepancyAlong_shift_add_mul_iff_boundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscrepancyAlong (fun k => f (k + m * d)) d ↔ BoundedDiscOffset f d m := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite the discrepancy of the shifted sequence to an offset discrepancy.
+    simpa [BoundedDiscOffset, discrepancy_shift_add_mul_eq_discOffset] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite back in the other direction.
+    -- (`simp` uses the reverse orientation of the rewrite lemma.)
+    simpa [BoundedDiscrepancyAlong, discrepancy_shift_add_mul_eq_discOffset] using hB n
+
 namespace BoundedDiscrepancyAlong
 
 /-- Negating `BoundedDiscrepancyAlong` is equivalent to the usual unboundedness normal form.
