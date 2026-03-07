@@ -2568,6 +2568,28 @@ def ofUnboundedDiscOffset (h : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d 
     (ofUnboundedDiscOffset (f := f) (out := out) h).unbounded_discOffset = h := by
   rfl
 
+/-- Constructor helper: package an unboundedness normal form stated using raw offset AP sums.
+
+This is often the natural output of a reduction step that works at the `apSum` level first.
+-/
+def ofUnboundedNatAbsApSumOffset
+    (h : ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) :
+    Stage2Output f out := by
+  refine ofUnboundedDiscOffset (f := f) (out := out) ?_
+  intro B
+  rcases h B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+@[simp] theorem ofUnboundedNatAbsApSumOffset_unbounded
+    (h : ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) :
+    (ofUnboundedNatAbsApSumOffset (f := f) (out := out) h).unbounded_discOffset =
+      (fun B => by
+        rcases h B with ⟨n, hn⟩
+        refine ⟨n, ?_⟩
+        simpa [discOffset] using hn) := by
+  rfl
+
 /-- Build a `Stage2Output` from the negated boundedness form `¬ BoundedDiscOffset …`.
 
 This is the classical “witness extraction” direction of
