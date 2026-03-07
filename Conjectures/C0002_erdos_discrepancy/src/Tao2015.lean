@@ -1135,6 +1135,38 @@ noncomputable def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionO
         hB n
 
 /-!
+### `shiftRight` simp API
+
+These lemmas let downstream stages use `shiftRight` without unfolding its record fields.
+-/
+
+@[simp] theorem shiftRight_d (out : ReductionOutput f) (m₂ : ℕ) :
+    (shiftRight (f := f) out m₂).d = out.d := by
+  simp [shiftRight]
+
+@[simp] theorem shiftRight_m (out : ReductionOutput f) (m₂ : ℕ) :
+    (shiftRight (f := f) out m₂).m = out.m + m₂ := by
+  simp [shiftRight]
+
+@[simp] theorem shiftRight_hd (out : ReductionOutput f) (m₂ : ℕ) :
+    (shiftRight (f := f) out m₂).hd = out.hd := by
+  simp [shiftRight]
+
+@[simp] theorem shiftRight_g_apply (out : ReductionOutput f) (m₂ : ℕ) (k : ℕ) :
+    (shiftRight (f := f) out m₂).g k = out.g (k + m₂ * out.d) := by
+  simp [shiftRight]
+
+theorem shiftRight_g_eq (out : ReductionOutput f) (m₂ : ℕ) :
+    (shiftRight (f := f) out m₂).g = fun k => out.g (k + m₂ * out.d) := by
+  funext k
+  simp
+
+@[simp] theorem shiftRight_apSum_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (shiftRight (f := f) out m₂).g out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- `shiftRight` sets `d := out.d` and fills `apSum_contract` with the bundled-offset bridge.
+  simp [shiftRight]
+
+/-!
 ### Tail-sum (`apSumFrom`) rewrites for shifted reductions
 
 Downstream stages often prefer the “tail sum” API `apSumFrom` (start at a base point `a` and take
