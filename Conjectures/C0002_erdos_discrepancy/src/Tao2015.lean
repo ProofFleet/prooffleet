@@ -694,6 +694,37 @@ noncomputable def mkShiftOfSign (f : ℕ → ℤ) (hf : IsSignSequence f) (d m :
     (hg := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m d)
     (hgEq := rfl)
 
+/-!
+### `mkShiftOfSign` simp API
+
+These are tiny convenience lemmas: they make it painless to reason about the fields of the
+reduction output produced by `mkShiftOfSign` without repeatedly unfolding the constructor.
+-/
+
+@[simp] theorem mkShiftOfSign_d (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).d = d := by
+  simp [mkShiftOfSign, mkShift]
+
+@[simp] theorem mkShiftOfSign_m (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).m = m := by
+  simp [mkShiftOfSign, mkShift]
+
+@[simp] theorem mkShiftOfSign_g_apply (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+    (k : ℕ) :
+    (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g k = f (k + m * d) := by
+  simp [mkShiftOfSign, mkShift]
+
+@[simp] theorem mkShiftOfSign_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g = fun k => f (k + m * d) := by
+  funext k
+  simp
+
+@[simp] theorem mkShiftOfSign_apSum_contract (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (n : ℕ) :
+    apSum (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g d n = apSumOffset f d m n := by
+  -- This is definitional: `mkShift` fills the bridge rule by rewriting `apSumOffset`.
+  simp [mkShiftOfSign, mkShift]
+
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
 
 This is occasionally useful as a “do-nothing” reduction step when you want to express later stages
