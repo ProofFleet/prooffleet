@@ -2150,6 +2150,21 @@ theorem reduction_eq_mkShiftOfSign (f : ℕ → ℤ) (hf : IsSignSequence f) (ct
   classical
   simpa [reduction_eq_mkShiftOfSign (f := f) (hf := hf) (ctx := ctx)]
 
+/-- The bundled positivity proof in the current stub reduction (`1 > 0`). -/
+@[simp] theorem reduction_hd (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
+    (reduction (f := f) (hf := hf) ctx).hd := by
+  classical
+  -- `reduction` is `mkShiftOfSign` with `d=1`.
+  simpa [Tao2015.reduction] using (show (1 : ℕ) > 0 by decide)
+
+/-- The bundled shift equation for the current stub reduction (`g = shift f (0*1)`). -/
+@[simp] theorem reduction_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
+    (reduction (f := f) (hf := hf) ctx).g = fun k => f (k + 0 * 1) := by
+  classical
+  -- This keeps the shift shape explicit; downstream rewriting can then simplify the arithmetic.
+  funext k
+  simp [Tao2015.reduction]
+
 @[simp] theorem reduction_g (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
     (reduction (f := f) (hf := hf) ctx).g = f := by
   classical
