@@ -398,6 +398,49 @@ section
   #guard_msgs in
   #check HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero
 
+  /-!
+  ### Additional absence checks: deprecated alias families
+
+  These names are still available behind `import MoltResearch.Discrepancy.Deprecated`, but must
+  *not* leak into the stable surface.
+  -/
+
+  /-- error: Unknown identifier `apSum_mul_right_cfirst` -/
+  #guard_msgs in
+  #check apSum_mul_right_cfirst
+
+  /-- error: Unknown identifier `apSumOffset_mul_right_cfirst` -/
+  #guard_msgs in
+  #check apSumOffset_mul_right_cfirst
+
+  /-- error: Unknown identifier `apSumFrom_mul_right_cfirst` -/
+  #guard_msgs in
+  #check apSumFrom_mul_right_cfirst
+
+  /-- error: Unknown identifier `apSum_mul_left_ffirst` -/
+  #guard_msgs in
+  #check apSum_mul_left_ffirst
+
+  /-- error: Unknown identifier `apSumOffset_mul_left_ffirst` -/
+  #guard_msgs in
+  #check apSumOffset_mul_left_ffirst
+
+  /-- error: Unknown identifier `apSumFrom_mul_left_ffirst` -/
+  #guard_msgs in
+  #check apSumFrom_mul_left_ffirst
+
+  /-- error: Unknown identifier `apSum_step_one_eq_apSum` -/
+  #guard_msgs in
+  #check apSum_step_one_eq_apSum
+
+  /-- error: Unknown identifier `apSumOffset_step_one_eq_apSumOffset` -/
+  #guard_msgs in
+  #check apSumOffset_step_one_eq_apSumOffset
+
+  /-- error: Unknown identifier `apSumFrom_step_one_eq_apSumFrom` -/
+  #guard_msgs in
+  #check apSumFrom_step_one_eq_apSumFrom
+
   /-- error: Unknown identifier `apSumFrom_eq_apSum_shift` -/
   #guard_msgs in
   #check apSumFrom_eq_apSum_shift
