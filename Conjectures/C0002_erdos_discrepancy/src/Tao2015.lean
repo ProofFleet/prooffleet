@@ -2228,6 +2228,11 @@ theorem bound_discrepancy (ctx : AlongContext g d) (n : ℕ) : discrepancy g d n
   -- `discrepancy` is just `natAbs (apSum …)`.
   simpa [discrepancy] using ctx.bound n
 
+/-- Uniform version of `AlongContext.bound_discrepancy`. -/
+theorem bound_discrepancy_forall (ctx : AlongContext g d) : ∀ n : ℕ, discrepancy g d n ≤ ctx.B := by
+  intro n
+  exact ctx.bound_discrepancy (g := g) (d := d) n
+
 /-- Extract an `AlongContext` from the propositional boundedness notion.
 
 Noncomputable because we use classical choice to pick a witness bound `B`.
@@ -2296,6 +2301,12 @@ theorem bound_discrepancy_shift_add_mul (ctx : AlongContext g d) (m n : ℕ) :
     discrepancy (fun k => g (k + m * d)) d n ≤ ctx.B + ctx.B := by
   -- `discrepancy` is just `natAbs` of `apSum`.
   simpa [discrepancy] using (ctx.bound_apSum_shift_add_mul (g := g) (d := d) (m := m) (n := n))
+
+/-- Uniform version of `AlongContext.bound_discrepancy_shift_add_mul`. -/
+theorem bound_discrepancy_shift_add_mul_forall (ctx : AlongContext g d) (m : ℕ) :
+    ∀ n : ℕ, discrepancy (fun k => g (k + m * d)) d n ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_discrepancy_shift_add_mul (g := g) (d := d) (m := m) (n := n)
 
 /-- Rewrite `discOffset` in terms of the tail-sum API `apSumFrom` for a single fixed `d`.
 
