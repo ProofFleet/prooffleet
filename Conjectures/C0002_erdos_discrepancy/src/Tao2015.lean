@@ -1328,6 +1328,34 @@ theorem discOffset_eq_discOffset_add_right (out : ReductionOutput f) (m₂ n : �
   simpa using (out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)).symm
 
 /-!
+### Zero-offset specializations (add-right form)
+
+The lemmas `apSumOffset_add_right` / `discOffset_add_right` are most often used with `m₂ = 0`.
+We record those special cases explicitly, since they become the “one-hop” bridge between
+`apSumOffset f out.d out.m` and the offset sums of the reduced sequence `out.g`.
+-/
+
+/-- Special case of `apSumOffset_add_right` with `m₂ = 0`. -/
+theorem apSumOffset_eq_apSumOffset_reduced_zero (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSumOffset out.g out.d 0 n := by
+  simpa using (out.apSumOffset_add_right (f := f) (m₂ := 0) (n := n))
+
+/-- Reverse orientation of `apSumOffset_eq_apSumOffset_reduced_zero`. -/
+theorem apSumOffset_reduced_zero_eq (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset out.g out.d 0 n = apSumOffset f out.d out.m n := by
+  simpa using (out.apSumOffset_eq_apSumOffset_reduced_zero (f := f) (n := n)).symm
+
+/-- Special case of `discOffset_add_right` with `m₂ = 0`. -/
+theorem discOffset_eq_discOffset_reduced_zero (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discOffset out.g out.d 0 n := by
+  simpa using (out.discOffset_add_right (f := f) (m₂ := 0) (n := n))
+
+/-- Reverse orientation of `discOffset_eq_discOffset_reduced_zero`. -/
+theorem discOffset_reduced_zero_eq (out : ReductionOutput f) (n : ℕ) :
+    discOffset out.g out.d 0 n = discOffset f out.d out.m n := by
+  simpa using (out.discOffset_eq_discOffset_reduced_zero (f := f) (n := n)).symm
+
+/-!
 ### Composing the first reduction with an additional shift
 
 After producing a reduction output `out`, downstream stages often want to “shift again” by a
