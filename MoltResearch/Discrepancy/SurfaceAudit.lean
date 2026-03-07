@@ -224,6 +224,10 @@ section
   -- Paper ↔ nucleus rewrite entrypoints should be present.
   #check sum_Icc_eq_apSum
   #check apSum_eq_sum_Icc
+  #check sum_Icc_eq_apSumOffset
+  #check apSumOffset_eq_sum_Icc
+  #check sum_Icc_eq_apSumFrom
+  #check apSumFrom_eq_sum_Icc
 
   -- Bridge lemmas for splitting paper interval sums should be present.
   #check sum_Icc_eq_apSumOffset_add_length
@@ -337,6 +341,22 @@ section
   #guard_msgs in
   #check IsSignSequence.map_add_left
 
+  /-- error: Unknown constant `MoltResearch.HasDiscrepancyAtLeast.of_map_add` -/
+  #guard_msgs in
+  #check HasDiscrepancyAtLeast.of_map_add
+
+  /-- error: Unknown constant `MoltResearch.HasDiscrepancyAtLeast.of_map_add_left` -/
+  #guard_msgs in
+  #check HasDiscrepancyAtLeast.of_map_add_left
+
+  /-- error: Unknown constant `MoltResearch.HasAffineDiscrepancyAtLeast.of_map_add` -/
+  #guard_msgs in
+  #check HasAffineDiscrepancyAtLeast.of_map_add
+
+  /-- error: Unknown constant `MoltResearch.HasAffineDiscrepancyAtLeast.of_map_add_left` -/
+  #guard_msgs in
+  #check HasAffineDiscrepancyAtLeast.of_map_add_left
+
   /-!
   ### Additional absence checks: legacy `*_zero` / `*_zero_start` naming
 
@@ -417,6 +437,10 @@ section
   /-- error: Unknown identifier `apSum_map_add_left` -/
   #guard_msgs in
   #check apSum_map_add_left
+
+  /-- error: Unknown identifier `apSumOffset_shift_add_left_start_mul` -/
+  #guard_msgs in
+  #check apSumOffset_shift_add_left_start_mul
 
   /-- error: Unknown identifier `apSum_eq_sum_Icc_mul_left` -/
   #guard_msgs in
