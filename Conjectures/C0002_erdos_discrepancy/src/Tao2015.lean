@@ -787,6 +787,24 @@ noncomputable def alongContextOfBoundedDiscOffset (out : ReductionOutput f)
   rcases (out.boundedDiscOffset_iff_forall_natAbs_apSum_le (f := f)).1 h with ⟨B, hB⟩
   exact ⟨B, hB⟩
 
+/-- Convert an `AlongContext` for the reduced sequence into a pointwise bound on the corresponding
+offset AP sums.
+
+This is often the most direct consumer lemma: downstream stages naturally produce `AlongContext`
+facts about `apSum out.g out.d`, and we want to immediately transport them back to the original
+sequence `f`.
+-/
+theorem bound_apSumOffset_of_alongContext (out : ReductionOutput f) (ctx : AlongContext out.g out.d) (n : ℕ) :
+    Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B := by
+  -- Rewrite the offset sum to an AP sum on the reduced sequence.
+  simpa [out.apSum_contract] using ctx.bound n
+
+/-- Discrepancy-flavored version of `bound_apSumOffset_of_alongContext`. -/
+theorem bound_discOffset_of_alongContext (out : ReductionOutput f) (ctx : AlongContext out.g out.d) (n : ℕ) :
+    discOffset f out.d out.m n ≤ ctx.B := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using (bound_apSumOffset_of_alongContext (f := f) (out := out) (ctx := ctx) n)
+
 /-- Convert an `AlongContext` for the reduced sequence into bounded *offset* discrepancy for `f`.
 
 This is the “reverse direction” of `alongContextOfBoundedDiscOffset`.
@@ -798,9 +816,7 @@ theorem boundedDiscOffset_of_alongContext (out : ReductionOutput f) (ctx : Along
     BoundedDiscOffset f out.d out.m := by
   refine ⟨ctx.B, ?_⟩
   intro n
-  -- `discOffset` is the absolute value of the offset AP sum; rewrite to `apSum out.g` and use `ctx`.
-  have : Int.natAbs (apSum out.g out.d n) ≤ ctx.B := ctx.bound n
-  simpa [discOffset, out.apSum_contract] using this
+  exact bound_discOffset_of_alongContext (f := f) (out := out) (ctx := ctx) n
 
 /-- Convert an `AlongContext` for the reduced sequence into a uniform bound on `discOffset`.
 
