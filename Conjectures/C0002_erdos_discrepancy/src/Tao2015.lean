@@ -5179,6 +5179,26 @@ theorem stage2_unbounded_natAbs_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequen
   refine ⟨n, ?_⟩
   simpa [discOffset] using hn
 
+/-- Stage-2 consequence: for every threshold `C`, we have an offset-discrepancy witness
+`C < discOffset f out.d out.m n`.
+
+This is the most common “back on the original sequence `f`” form used in later reductions.
+-/
+theorem stage2_forall_exists_discOffset_lt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n := by
+  intro C
+  -- `stage2_unbounded_discOffset` already provides the witness form with `<`.
+  exact stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) C
+
+/-- Same as `stage2_forall_exists_discOffset_lt`, but with the inequality oriented as `... > C`. -/
+theorem stage2_forall_exists_discOffset_gt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C := by
+  intro C
+  rcases stage2_forall_exists_discOffset_lt (f := f) (hf := hf) (ctx := ctx) (out := out) C with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- Conversely, an unboundedness normal form in terms of `natAbs (apSumOffset …)` implies the
 `discOffset`-wrapper normal form.
 -/
