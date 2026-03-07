@@ -1249,6 +1249,47 @@ theorem forall_exists_natAbs_apSum_gt_iff_forall_exists_natAbs_apSumOffset_gt (o
     refine ⟨n, ?_⟩
     simpa [out.apSum_contract] using hn
 
+/-!
+### Boundedness (along a fixed step) transfers
+
+Many later stages alternate between:
+- “bounded discrepancy along a fixed step `d`”, i.e. `BoundedDiscrepancyAlong` for the reduced sequence, and
+- uniform bounds on `discOffset` expressions for the original sequence.
+
+The following lemmas package those equivalences.
+-/
+
+/-- Bounded discrepancy of the reduced sequence along `out.d` is equivalent to a uniform bound on the
+corresponding offset discrepancies of `f`.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  -- Unfold `BoundedDiscrepancyAlong` and rewrite `discrepancy out.g` to `discOffset f`.
+  simp [BoundedDiscrepancyAlong, out.discrepancy_eq_discOffset]
+
+/-- Negated form of `boundedDiscrepancyAlong_iff_exists_forall_discOffset_le`.
+
+This is often the exact shape a contradiction stage consumes.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- Use the standard characterization of unboundedness along a fixed step, then transfer.
+  --
+  -- Note: `Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt` lives in the
+  -- verified substrate and is the “canonical” unboundedness normal form.
+  simpa [out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f)] using
+    (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d))
+
+/-- A slightly more pipeline-friendly repackaging of `not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`
+using the predicate `HasDiscrepancyAtLeastAlong`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔ ¬ BoundedDiscrepancyAlong out.g out.d := by
+  -- This is just the already-established equivalence for `out.g`, independent of the offset view.
+  simpa using
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
+      (g := out.g) (d := out.d))
+
 /-- Transfer a boundedness context for `f` to a bound on the *offset discrepancy* appearing in `out`.
 
 This is a small convenience lemma: it isolates the parameter bundle `(out.d,out.m)`.
