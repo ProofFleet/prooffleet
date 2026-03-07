@@ -2434,6 +2434,28 @@ theorem unbounded_discrepancy (s2 : Stage2Output f out) :
   refine ⟨n, ?_⟩
   simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
 
+/-- `natAbs` witness form for the bundled *offset sums*.
+
+This is just `Stage2Output.unbounded_discOffset` with `discOffset` unfolded.
+-/
+theorem unbounded_natAbs_apSumOffset (s2 : Stage2Output f out) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
+  intro B
+  rcases s2.unbounded_discOffset B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+/-- `natAbs` witness form for the reduced *AP sums* `apSum out.g out.d`.
+
+This is the most “sum-level” consumer statement: it avoids both `discOffset` and `discrepancy`.
+-/
+theorem unbounded_natAbs_apSum (s2 : Stage2Output f out) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSum out.g out.d n) := by
+  intro B
+  rcases s2.unbounded_discrepancy (f := f) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discrepancy] using hn
+
 /-- Convert packaged stage-2 output to the propositional negated boundedness form. -/
 theorem not_boundedDiscOffset (s2 : Stage2Output f out) : ¬ BoundedDiscOffset f out.d out.m := by
   exact (stage2_witness_discOffset_iff_not_boundedDiscOffset (f := f) (out := out)).1 s2.unbounded_discOffset
