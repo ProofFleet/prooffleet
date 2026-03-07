@@ -5052,6 +5052,16 @@ theorem stage2_unbounded_discOffset_of_not_boundedDiscOffset (f : ℕ → ℤ) (
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   exact (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)).1 h
 
+/-- Extract the unboundedness witness normal form directly from `¬ BoundedDiscrepancyAlong out.g out.d`.
+
+This is the most common entry point when a downstream reduction produces unboundedness for the
+*reduced* sequence first, and only later wants to talk about the bundled offset discrepancy of `f`.
+-/
+theorem stage2_unbounded_discOffset_of_not_boundedDiscrepancyAlong (f : ℕ → ℤ) (out : ReductionOutput f)
+    (h : ¬ BoundedDiscrepancyAlong out.g out.d) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  exact (out.not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)).1 h
+
 /-- Extract a single witness `> C` from `¬ BoundedDiscOffset …`.
 
 This is the “one-shot” form of `stage2_unbounded_discOffset_of_not_boundedDiscOffset`.
