@@ -1101,6 +1101,24 @@ stages that repeatedly “move the basepoint”.
   funext k
   simpa using out.shiftRight_shiftRight_g_apply (f := f) m₁ m₂ k
 
+/-- Shifting twice composes by addition at the level of the bundled offset multiplier. -/
+@[simp] theorem shiftRight_shiftRight_m (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).m = out.m + m₁ + m₂ := by
+  -- `shiftRight_m` computes the bundled offset multiplier.
+  simp [Nat.add_assoc]
+
+/-- Shifting twice does not change the common difference. -/
+@[simp] theorem shiftRight_shiftRight_d (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).d = out.d := by
+  simp
+
+/-- `shiftRight` twice exposes the underlying shift from the original sequence `f`. -/
+@[simp] theorem shiftRight_shiftRight_g_eq (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g =
+      fun k => f (k + (out.m + m₁ + m₂) * out.d) := by
+  -- Use the simp-friendly `g_eq` lemma for `shiftRight` and associate additions.
+  simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-- Pointwise form of `shiftRight_g`. -/
 @[simp] theorem shiftRight_g_apply (out : ReductionOutput f) (m₂ k : ℕ) :
     (out.shiftRight (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
