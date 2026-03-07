@@ -585,6 +585,33 @@ theorem apSumFrom_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
   -- Rewrite both sides to AP sums of the same shifted sequence.
   simp [apSumFrom_eq_apSum_shift_add, apSumOffset_eq_apSum_shift_add]
 
+/-!
+### Peeling bundled offsets
+
+Many downstream reductions will accumulate offsets of the form `(out.m + m₂) * out.d`.
+The next lemmas let you “peel off” the initial `out.m*out.d` shift encoded by
+`out.g`, turning an offset sum/discrepancy of `f` into an offset sum/discrepancy of `out.g`.
+-/
+
+/-- Peel the bundled offset in `out` at the AP-sum level.
+
+This is `apSumOffset_add_pre` specialized to the shift packed in `out.g`.
+-/
+theorem apSumOffset_add_eq_apSumOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
+  -- Re-associate the offset, then rewrite the shifted sequence using `out.g_eq`.
+  simpa [out.g_eq] using
+    (Tao2015.apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
+/-- Peel the bundled offset in `out` at the discrepancy level.
+
+This is the `discOffset` analogue of `apSumOffset_add_eq_apSumOffset_g`.
+-/
+theorem discOffset_add_eq_discOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
+  -- `discOffset` is just `natAbs` of `apSumOffset`.
+  simp [discOffset, out.apSumOffset_add_eq_apSumOffset_g (f := f) (m₂ := m₂) (n := n)]
+
 /-- `natAbs` form of the AP-sum bridge rule. -/
 theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
