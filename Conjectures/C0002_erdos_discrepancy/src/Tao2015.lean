@@ -3378,6 +3378,19 @@ theorem not_boundedDiscrepancy (s2 : Stage2Output f out) : ¬ BoundedDiscrepancy
     s2.forall_hasDiscrepancyAtLeast (f := f) (out := out)
   exact (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy (f := out.g)).1 hunb
 
+/-- Convert packaged stage-2 output to `¬ BoundedDiscrepancy f` (global boundedness).
+
+This is the “original sequence” consequence of stage 2: once we can produce explicit unbounded
+witnesses for the offset discrepancy bundled in `out`, `f` itself cannot have bounded
+discrepancy.
+
+This is the exact statement consumed by the top-level theorem `tao2015_not_boundedDiscrepancy`.
+-/
+theorem not_boundedDiscrepancy_original (s2 : Stage2Output f out) : ¬ BoundedDiscrepancy f := by
+  -- The reduction output `out` provides the interface hop from offset witnesses back to global
+  -- unbounded discrepancy of `f`.
+  exact out.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) s2.unbounded_discOffset
+
 end Stage2Output
 
 /-- (Stub) Stage 2 deliverable: from `ctx` + `out`, produce the explicit unboundedness normal form
