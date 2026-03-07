@@ -2369,6 +2369,32 @@ theorem stage2_witness_discOffset_iff_not_boundedDiscrepancyAlong (out : Reducti
     (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) ↔ (¬ BoundedDiscrepancyAlong out.g out.d) := by
   simpa using (out.forall_exists_discOffset_gt_iff_not_boundedDiscrepancyAlong (f := f))
 
+/-!
+### Stage-2 interface packaging
+
+Once we start actually implementing Tao’s stage-2 argument, we’ll likely want to *package* its
+output (the witness normal form) as a structure so later files can carry it around without
+re-quantifying over `B` each time.
+
+This stays in `Conjectures/` since it is proof-pipeline glue.
+-/
+
+/-- Stage-2 output: explicit unboundedness witnesses for the bundled offset discrepancies. -/
+structure Stage2Output (f : ℕ → ℤ) (out : ReductionOutput f) : Type where
+  unbounded_discOffset : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n
+
+namespace Stage2Output
+
+/-- Convert packaged stage-2 output to the propositional negated boundedness form. -/
+theorem not_boundedDiscOffset (s2 : Stage2Output f out) : ¬ BoundedDiscOffset f out.d out.m := by
+  exact (stage2_witness_discOffset_iff_not_boundedDiscOffset (f := f) (out := out)).1 s2.unbounded_discOffset
+
+/-- Convert packaged stage-2 output to `¬ BoundedDiscrepancyAlong out.g out.d`. -/
+theorem not_boundedDiscrepancyAlong (s2 : Stage2Output f out) : ¬ BoundedDiscrepancyAlong out.g out.d := by
+  exact (stage2_witness_discOffset_iff_not_boundedDiscrepancyAlong (f := f) (out := out)).1 s2.unbounded_discOffset
+
+end Stage2Output
+
 /-- (Stub) Stage 2 deliverable: from `ctx` + `out`, produce the explicit unboundedness normal form
 for the offset discrepancy bundled in `out`.
 
