@@ -367,14 +367,17 @@ lemma apSum_eq_apSumFrom (f : ℕ → ℤ) (d n : ℕ) :
 
 This is a convenience lemma for writing surface statements uniformly in terms of `apSumFrom` while
 still matching paper notation on `Finset.Icc`.
+
+Naming note: this is about the *start* parameter, so it uses the `_zero_start` suffix (compare
+`apSumFrom_zero` for the degenerate-length lemma `n = 0`).
 -/
-lemma apSumFrom_zero_eq_sum_Icc (f : ℕ → ℤ) (d n : ℕ) :
+lemma apSumFrom_zero_start_eq_sum_Icc (f : ℕ → ℤ) (d n : ℕ) :
     apSumFrom f 0 d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
   simpa using (apSumFrom_eq_sum_Icc (f := f) (a := 0) (d := d) (n := n))
 
-lemma sum_Icc_eq_apSumFrom_zero (f : ℕ → ℤ) (d n : ℕ) :
+lemma sum_Icc_eq_apSumFrom_zero_start (f : ℕ → ℤ) (d n : ℕ) :
     (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSumFrom f 0 d n := by
-  simpa using (apSumFrom_zero_eq_sum_Icc (f := f) (d := d) (n := n)).symm
+  simpa using (apSumFrom_zero_start_eq_sum_Icc (f := f) (d := d) (n := n)).symm
 
 /-- Normal form: eliminate the explicit start parameter `a` by shifting the underlying sequence.
 

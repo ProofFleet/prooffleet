@@ -146,6 +146,24 @@ lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
     apSumFrom f 0 d n = apSum f d n := by
   simpa using (apSumFrom_zero_start (f := f) (d := d) (n := n))
 
+/-- Deprecated name for `apSumFrom_zero_start_eq_sum_Icc`.
+
+Prefer the canonical `apSumFrom_zero_start_eq_sum_Icc` lemma (in `Discrepancy/Affine.lean`).
+-/
+@[deprecated "Use `apSumFrom_zero_start_eq_sum_Icc`." (since := "2026-03-06")]
+lemma apSumFrom_zero_eq_sum_Icc (f : ℕ → ℤ) (d n : ℕ) :
+    apSumFrom f 0 d n = (Finset.Icc 1 n).sum (fun i => f (i * d)) := by
+  simpa using (apSumFrom_zero_start_eq_sum_Icc (f := f) (d := d) (n := n))
+
+/-- Deprecated name for `sum_Icc_eq_apSumFrom_zero_start`.
+
+Prefer the canonical `sum_Icc_eq_apSumFrom_zero_start` lemma (in `Discrepancy/Affine.lean`).
+-/
+@[deprecated "Use `sum_Icc_eq_apSumFrom_zero_start`." (since := "2026-03-06")]
+lemma sum_Icc_eq_apSumFrom_zero (f : ℕ → ℤ) (d n : ℕ) :
+    (Finset.Icc 1 n).sum (fun i => f (i * d)) = apSumFrom f 0 d n := by
+  simpa using (sum_Icc_eq_apSumFrom_zero_start (f := f) (d := d) (n := n))
+
 -- NOTE: `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start` is now part of the stable
 -- surface (`import MoltResearch.Discrepancy`).
 
