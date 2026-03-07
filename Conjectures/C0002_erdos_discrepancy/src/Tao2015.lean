@@ -602,6 +602,19 @@ theorem hasDiscrepancyAtLeastAlong_iff_discOffset (out : ReductionOutput f) (C :
   -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
   simpa [HasDiscrepancyAtLeastAlong, discOffset] using (out.hasDiscrepancyAtLeastAlong_iff (f := f) (C := C))
 
+/-- Unfold `HasDiscrepancyAtLeastAlong` for the reduced sequence, phrased in terms of `discrepancy`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, discrepancy out.g out.d n > C) := by
+  -- This is just the definitional wrapper lemma specialized to `(out.g,out.d)`.
+  simpa using (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt (f := out.g) (d := out.d) (C := C))
+
+/-- “Consumer form” of `hasDiscrepancyAtLeastAlong_iff_discOffset`, with the inequality oriented as `C < ...`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- This avoids having to constantly rewrite `C < ...` to `... > C` downstream.
+  -- Note: `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_discOffset (f := f) (C := C))
+
 /-- A fixed-step discrepancy witness for `out.g` yields a standard discrepancy witness.
 
 This is the bridge from our pipeline-friendly predicate `HasDiscrepancyAtLeastAlong` to the
