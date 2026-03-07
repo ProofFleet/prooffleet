@@ -311,6 +311,16 @@ namespace ReductionOutput
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
 
+/-- Convenience rewrite: `out.g` is definitionally the shift of `f` by `out.m*out.d`. -/
+@[simp] theorem g_eq_shift (out : ReductionOutput f) : out.g = fun k => f (k + out.m * out.d) :=
+  out.g_eq
+
+/-- `HasDiscrepancyAtLeastAlong` is invariant under rewriting the reduced sequence via `out.g_eq`. -/
+theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      HasDiscrepancyAtLeastAlong (fun k => f (k + out.m * out.d)) out.d C := by
+  simpa [out.g_eq]
+
 /-- If the original sequence `f` is a sign sequence, then so is the derived sequence `out.g`.
 
 This lemma is useful when constructing or refactoring `ReductionOutput`: it shows that the
