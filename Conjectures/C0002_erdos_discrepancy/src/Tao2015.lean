@@ -1266,14 +1266,14 @@ have `apSumFrom` rewrite rules that mention the *new* affine start point explici
 -/
 
 /-- Rewrite the tail sum starting at `((out.m + m₂) * out.d)` as an AP sum of the shifted reduction output. -/
-@[simp] theorem shiftRight_apSumFrom (out : ReductionOutput f) (m₂ n : ℕ) :
+theorem shiftRight_apSumFrom (out : ReductionOutput f) (m₂ n : ℕ) :
     apSumFrom f ((out.m + m₂) * out.d) out.d n = apSum (shiftRight (f := f) out m₂).g out.d n := by
   -- This is just `ReductionOutput.apSumFrom_eq_apSum` specialized to `out := shiftRight out m₂`.
   simpa [shiftRight] using
     (ReductionOutput.apSumFrom_eq_apSum (f := f) (out := shiftRight (f := f) out m₂) (n := n))
 
 /-- Rewrite the tail sum starting at `((out.m + m₂) * out.d)` directly as an offset sum of `f`. -/
-@[simp] theorem shiftRight_apSumFrom_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+theorem shiftRight_apSumFrom_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
     apSumFrom f ((out.m + m₂) * out.d) out.d n = apSumOffset f out.d (out.m + m₂) n := by
   -- This is just `ReductionOutput.apSumFrom_eq_apSumOffset` for `out := shiftRight out m₂`.
   simpa [shiftRight] using
