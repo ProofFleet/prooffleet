@@ -3393,6 +3393,25 @@ noncomputable def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionO
   exact ReductionOutput.mkShift (f := f) (d := out.d) (m := out.m + m₂) (hd := out.hd)
     (g := g') (hg := hg') (hgEq := hgEq)
 
+/-- `shiftRight₀` and `shiftRight` are definitionally the same combinator.
+
+We keep both names for historical reasons; prefer `shiftRight` in new code.
+-/
+@[simp] theorem shiftRight₀_eq_shiftRight (out : ReductionOutput f) (m₂ : ℕ) :
+    out.shiftRight₀ (f := f) m₂ = out.shiftRight (f := f) m₂ := by
+  classical
+  -- The two definitions package the same shifted sequence; proof fields agree by proof irrelevance.
+  ext
+  · rfl
+  · rfl
+  · apply Subsingleton.elim
+  · funext k
+    rfl
+  · apply Subsingleton.elim
+  · apply Subsingleton.elim
+  · apply Subsingleton.elim
+  · apply Subsingleton.elim
+
 /-- The underlying function of `shiftRight` is just an extra shift of `out.g`. -/
 @[simp] theorem shiftRight_g (out : ReductionOutput f) (m₂ : ℕ) :
     (out.shiftRight (f := f) m₂).g = fun k => out.g (k + m₂ * out.d) := by
