@@ -2385,6 +2385,23 @@ structure Stage2Output (f : ℕ → ℤ) (out : ReductionOutput f) : Type where
 
 namespace Stage2Output
 
+/-- Constructor helper: package a witness-normal-form function as a `Stage2Output`. -/
+def ofUnboundedDiscOffset (h : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) :
+    Stage2Output f out :=
+  ⟨h⟩
+
+@[simp] theorem ofUnboundedDiscOffset_unbounded (h : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) :
+    (ofUnboundedDiscOffset (f := f) (out := out) h).unbounded_discOffset = h := by
+  rfl
+
+/-- Stage-2 output transported to the reduced sequence `out.g` (discrepancy witness form). -/
+theorem unbounded_discrepancy (s2 : Stage2Output f out) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n := by
+  intro B
+  rcases s2.unbounded_discOffset B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+
 /-- Convert packaged stage-2 output to the propositional negated boundedness form. -/
 theorem not_boundedDiscOffset (s2 : Stage2Output f out) : ¬ BoundedDiscOffset f out.d out.m := by
   exact (stage2_witness_discOffset_iff_not_boundedDiscOffset (f := f) (out := out)).1 s2.unbounded_discOffset
