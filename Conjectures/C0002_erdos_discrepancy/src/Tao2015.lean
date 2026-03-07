@@ -1873,6 +1873,42 @@ theorem forall_exists_natAbs_apSumOffset_gt_iff_not_boundedDiscrepancyAlong (out
       (out.not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (f := f)).1 h
     exact (out.not_boundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f)).1 hnotOff
 
+/-!
+### Stage-2 statement normal forms
+
+Downstream reduction stages often come in one of two equivalent shapes:
+
+1. an explicit unboundedness witness normal form `∀ B, ∃ n, B < …`
+2. a negated boundedness statement `¬ Bounded…`
+
+The helpers below let later files pick the more convenient form without rewriting proofs.
+-/
+
+/-- For the parameters bundled in `out`, the stage-2 witness normal form is equivalent to
+`¬ BoundedDiscOffset …`.
+
+This is just `forall_exists_discOffset_gt_iff_not_boundedDiscOffset`, but the name makes it
+discoverable when searching for “stage2” glue.
+-/
+theorem stage2_witness_discOffset_iff_not_boundedDiscOffset (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) ↔ (¬ BoundedDiscOffset f out.d out.m) := by
+  simpa using (out.forall_exists_discOffset_gt_iff_not_boundedDiscOffset (f := f))
+
+/-- `natAbs` analogue of `stage2_witness_discOffset_iff_not_boundedDiscOffset`. -/
+theorem stage2_witness_natAbs_apSumOffset_iff_not_boundedDiscOffset (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) ↔ (¬ BoundedDiscOffset f out.d out.m) := by
+  simpa using (out.forall_exists_natAbs_apSumOffset_gt_iff_not_boundedDiscOffset (f := f))
+
+/-- For the parameters bundled in `out`, the stage-2 witness normal form is equivalent to
+`¬ BoundedDiscrepancyAlong out.g out.d`.
+
+This is the “interface hop” most contradiction stages want: once we have the explicit offset
+witnesses, we can view them as unboundedness of the reduced sequence along the fixed `d`.
+-/
+theorem stage2_witness_discOffset_iff_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) ↔ (¬ BoundedDiscrepancyAlong out.g out.d) := by
+  simpa using (out.forall_exists_discOffset_gt_iff_not_boundedDiscrepancyAlong (f := f))
+
 /-- (Stub) Stage 2 deliverable: from `ctx` + `out`, produce the explicit unboundedness normal form
 for the offset discrepancy bundled in `out`.
 
