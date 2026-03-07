@@ -1120,6 +1120,49 @@ stages that repeatedly “move the basepoint”.
   simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
 /-!
+### Associativity helpers for `shiftRight`
+
+Downstream steps often want to treat `shiftRight` as an associative operation on the offset
+multiplier.  Proving equality of `ReductionOutput` structures is annoying (proof fields), so we
+provide function-level and parameter-level equalities instead.
+-/
+
+/-- Shifting by `m₁` then by `m₂` agrees (pointwise) with shifting by `m₁+m₂`. -/
+@[simp] theorem shiftRight_add_g_apply (out : ReductionOutput f) (m₁ m₂ k : ℕ) :
+    ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g k =
+      (out.shiftRight (f := f) (m₁ + m₂)).g k := by
+  -- Both sides simplify to `out.g (k + (m₁+m₂)*out.d)`.
+  simp [ReductionOutput.shiftRight_g]
+
+/-- Function-extensional form of `shiftRight_add_g_apply`. -/
+@[simp] theorem shiftRight_add_g (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g =
+      (out.shiftRight (f := f) (m₁ + m₂)).g := by
+  funext k
+  simpa using out.shiftRight_add_g_apply (f := f) m₁ m₂ k
+
+/-- The bundled offset multipliers agree: “shift by `m₁` then by `m₂`” equals “shift by `m₁+m₂`”. -/
+@[simp] theorem shiftRight_add_m (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).m =
+      (out.shiftRight (f := f) (m₁ + m₂)).m := by
+  -- Both sides reduce to `out.m + m₁ + m₂`.
+  simp [Nat.add_assoc]
+
+/-- Consumer lemma: the AP-sum bridge for the double shift can be stated using the combined shift. -/
+@[simp] theorem apSum_shiftRight_shiftRight_eq_apSum_shiftRight_add (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
+    apSum (((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g) out.d n =
+      apSum ((out.shiftRight (f := f) (m₁ + m₂)).g) out.d n := by
+  -- Rewrite both sides to the same `apSumOffset` normal form.
+  simp [apSum_shiftRight_shiftRight, apSum_shiftRight, Nat.add_assoc]
+
+/-- Discrepancy analogue of `apSum_shiftRight_shiftRight_eq_apSum_shiftRight_add`. -/
+@[simp] theorem discrepancy_shiftRight_shiftRight_eq_discrepancy_shiftRight_add (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
+    discrepancy (((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g) out.d n =
+      discrepancy ((out.shiftRight (f := f) (m₁ + m₂)).g) out.d n := by
+  -- Rewrite both sides to the same `discOffset` normal form.
+  simp [discrepancy_shiftRight_shiftRight, discrepancy_shiftRight, Nat.add_assoc]
+
+/-!
 ### Tiny consumer lemmas for repeated shifts
 
 These lemmas are mechanically derivable from the already-existing simp API, but having them as
