@@ -855,6 +855,23 @@ theorem apSumOffset_eq_sub_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum f out.d (out.m + n) - apSum f out.d out.m := by
   simp [apSumOffset_eq_sub]
 
+/-- Unfold the *offset discrepancy* in `out` as the absolute value of a difference of prefix sums.
+
+This is the `discOffset` analogue of `apSumOffset_eq_sub_apSum`.
+-/
+theorem discOffset_eq_natAbs_sub_apSum (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n =
+      Int.natAbs (apSum f out.d (out.m + n) - apSum f out.d out.m) := by
+  -- `discOffset` is definitional, and `apSumOffset_eq_sub_apSum` gives the prefix-sum normal form.
+  simp [discOffset, out.apSumOffset_eq_sub_apSum (f := f) (n := n)]
+
+/-- Absolute offset AP sum, unfolded as a `natAbs` of a difference of prefix sums. -/
+theorem natAbs_apSumOffset_eq_natAbs_sub_apSum (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumOffset f out.d out.m n) =
+      Int.natAbs (apSum f out.d (out.m + n) - apSum f out.d out.m) := by
+  -- Just rewrite by `apSumOffset_eq_sub_apSum`.
+  simp [out.apSumOffset_eq_sub_apSum (f := f) (n := n)]
+
 /-- Unfold `apSum out.g out.d` as a difference of two prefix sums of `f`.
 
 This is the common normal form when you want to “push” a statement about the reduced
