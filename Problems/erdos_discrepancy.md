@@ -187,7 +187,7 @@ Typical rewrite pipeline:
 - [x] Normal form: rewrite `HasAffineDiscrepancyAtLeast f C` into an offset-sum witness `Int.natAbs (apSumOffset (fun k => f (k + a)) d 0 n) > C`.
   - proved as `HasAffineDiscrepancyAtLeast_iff_exists_apSumOffset_shift_add_zero` in `MoltResearch/Discrepancy/Affine.lean`.
 - [x] Normal form: rewrite `HasDiscrepancyAtLeast f C` into an offset-sum witness `Int.natAbs (apSumOffset f d 0 n) > C`.
-  - proved as `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` in `MoltResearch/Discrepancy/Basic.lean`.
+  - proved as `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start` in `MoltResearch/Discrepancy/Basic.lean`.
 - [x] Add mul-left variant of the affine difference normal form for `m ≤ n` (rewrite `apSumFrom … n - apSumFrom … m` to a shifted `apSum` with summand `fun k => f (d * k + const)`).
   - proved as `apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left` in `MoltResearch/Discrepancy/AffineTail.lean`.
 - [x] Introduce `discrepancy (f d n : …) : ℕ := Int.natAbs (apSum f d n)` and prove the basic API (bounds, simp lemmas, and `HasDiscrepancyAtLeast` witness reformulation).

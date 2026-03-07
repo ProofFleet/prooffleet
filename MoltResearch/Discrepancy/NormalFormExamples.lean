@@ -1887,7 +1887,7 @@ example :
 example :
     HasDiscrepancyAtLeast f C ↔
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
-  simpa using HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C)
+  simpa using HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C)
 
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
