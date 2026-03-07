@@ -61,6 +61,7 @@ package their IO contracts, and add the small rewrite/transfer lemmas that let l
 
 Current status notes:
 - `ReductionOutput` and its rewrite/transfer glue are in place; consumers should treat it as the Stage-1 IO contract.
+- Stage-1 now also exposes a small *combinator API* for composing reductions: `ReductionOutput.shiftRight` packages “shift the reduced sequence again by `m₂*out.d`” as a new `ReductionOutput`, with assoc/zero simp lemmas (`shiftRight_shiftRight`, `shiftRight_zero_*`) so downstream stages can normalize nested shifts.
 - Stage-2 output is already *packaged* as `Tao2015.Stage2Output` (with helper lemmas to convert between witness normal forms and negated boundedness); the actual deliverable `stage2_unbounded_discOffset` is still stubbed.
 - `reduction` is still a *stub* implementation (currently the trivial `(d,m,g)=(1,0,f)` shift), so downstream stages should avoid depending on its specific parameters beyond the provided simp/bridge lemmas.
 
