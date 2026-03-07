@@ -1856,6 +1856,27 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+/-- A `Context f` gives bounded discrepancy along the reduced step size `out.d`.
+
+This is a tiny packaging lemma: it turns the pointwise bound `out.bound_discrepancy` into the
+existential form `BoundedDiscrepancyAlong` that later reduction stages commonly consume.
+-/
+theorem boundedDiscrepancyAlong_of_context (ctx : Context f) (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discrepancy (f := f) (ctx := ctx) (out := out) n
+
+/-- A `Context f` gives bounded offset discrepancy for the parameters bundled in `out`.
+
+This is the offset-discrepancy analogue of `boundedDiscrepancyAlong_of_context`.
+-/
+theorem boundedDiscOffset_of_context (ctx : Context f) (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discOffset (f := f) (ctx := ctx) (out := out) n
+
 /-- A direct shift-vs-offset boundedness equivalence (interface-free).
 
 This is the “raw” version of `ReductionOutput.boundedDiscrepancyAlong_iff_boundedDiscOffset`.
