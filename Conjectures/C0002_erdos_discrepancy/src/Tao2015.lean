@@ -731,6 +731,30 @@ theorem apSumFrom_shiftRight_eq_apSumOffset_add (out : ReductionOutput f) (m₂ 
   simpa [apSumFrom_eq_apSum_shift_add] using
     (out.apSum_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n))
 
+/-- Reverse orientation of `apSumFrom_shiftRight_eq_apSumOffset_add`.
+
+We keep this around because downstream proofs often start from an offset sum and want to rewrite
+it into the tail-sum API.
+-/
+theorem apSumOffset_add_eq_apSumFrom_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumFrom out.g (m₂ * out.d) out.d n := by
+  simpa using (out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)).symm
+
+/-- `natAbs` reverse orientation of `natAbs_apSumFrom_shiftRight_eq_natAbs_apSumOffset_add`. -/
+theorem natAbs_apSumOffset_add_eq_natAbs_apSumFrom_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumOffset f out.d (out.m + m₂) n) =
+      Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) := by
+  simpa using
+    (out.natAbs_apSumFrom_shiftRight_eq_natAbs_apSumOffset_add (f := f) (m₂ := m₂) (n := n)).symm
+
+/-- Reverse orientation of `discOffset_add_eq_natAbs_apSumFrom_shiftRight`.
+
+This is the bundled-offset analogue of `out.discOffset_eq_natAbs_apSumFrom`.
+-/
+theorem natAbs_apSumFrom_shiftRight_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) = discOffset f out.d (out.m + m₂) n := by
+  simpa using (out.discOffset_add_eq_natAbs_apSumFrom_shiftRight (f := f) (m₂ := m₂) (n := n)).symm
+
 /-- `natAbs` form of `apSumFrom_shiftRight_eq_apSumOffset_add`.
 
 This is the cleanest bridge when you want to talk about absolute values of tail sums.
