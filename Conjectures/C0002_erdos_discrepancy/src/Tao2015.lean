@@ -942,6 +942,31 @@ theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_gt
       (Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt
         (f := f) (d := out.d) (m := out.m + m₂) (C := C)))
 
+/-- Fixed-step discrepancy for an additional shift of `out.g` can be phrased purely using
+`discOffset out.g`.
+
+This is just `hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt` specialized to
+`out.g`.
+-/
+theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_g_gt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => out.g (k + m₂ * out.d)) out.d C ↔
+      (∃ n : ℕ, discOffset out.g out.d m₂ n > C) := by
+  simpa using
+    (Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt
+      (f := out.g) (d := out.d) (m := m₂) (C := C))
+
+/-- Variant of `hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_g_gt` with the
+inequality oriented as `C < ...`.
+-/
+theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_g_lt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => out.g (k + m₂ * out.d)) out.d C ↔
+      (∃ n : ℕ, C < discOffset out.g out.d m₂ n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_g_gt (f := f) (m₂ := m₂) (C := C))
+
 /-- Variant of `hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_gt` with the inequality
 oriented as `C < ...`.
 
