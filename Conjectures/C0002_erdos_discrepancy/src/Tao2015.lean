@@ -1246,6 +1246,34 @@ it is the canonical normal form for discrepancies of the shifted reduction outpu
   -- Both sides are definitional wrappers around `Int.natAbs`, and the AP-sum bridge is `[simp]`.
   simp [discrepancy, discOffset]
 
+/-!
+### `apSumFrom` API for `shiftRight`
+
+Downstream stages often prefer the tail-sum normal form `apSumFrom f (m*d) d`.
+Since `shiftRight` updates the bundled offset from `out.m` to `out.m + m₂`, it is convenient to
+have `apSumFrom` rewrite rules that mention the *new* affine start point explicitly.
+-/
+
+/-- Rewrite the tail sum starting at `((out.m + m₂) * out.d)` as an AP sum of the shifted reduction output. -/
+@[simp] theorem shiftRight_apSumFrom (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom f ((out.m + m₂) * out.d) out.d n = apSum (shiftRight (f := f) out m₂).g out.d n := by
+  -- This is just `ReductionOutput.apSumFrom_eq_apSum` specialized to `out := shiftRight out m₂`.
+  simpa [shiftRight] using
+    (ReductionOutput.apSumFrom_eq_apSum (f := f) (out := shiftRight (f := f) out m₂) (n := n))
+
+/-- Rewrite the tail sum starting at `((out.m + m₂) * out.d)` directly as an offset sum of `f`. -/
+@[simp] theorem shiftRight_apSumFrom_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom f ((out.m + m₂) * out.d) out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- This is just `ReductionOutput.apSumFrom_eq_apSumOffset` for `out := shiftRight out m₂`.
+  simpa [shiftRight] using
+    (ReductionOutput.apSumFrom_eq_apSumOffset (f := f) (out := shiftRight (f := f) out m₂) (n := n))
+
+/-- Rewrite `discOffset` using the tail-sum normal form for the shifted reduction output. -/
+theorem shiftRight_discOffset_eq_natAbs_apSumFrom (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = Int.natAbs (apSumFrom f ((out.m + m₂) * out.d) out.d n) := by
+  -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+  simp [discOffset, shiftRight_apSumFrom_eq_apSumOffset (f := f) (out := out) (m₂ := m₂) (n := n)]
+
 /-- A `Context f` implies bounded discrepancy along the shifted reduction output.
 
 This is a small wrapper around `ReductionOutput.boundedDiscrepancyAlong_of_context`, specialized to
