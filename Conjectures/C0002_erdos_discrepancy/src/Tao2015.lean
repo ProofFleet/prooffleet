@@ -1261,6 +1261,67 @@ theorem shiftRight₀_discrepancy_eq_discOffset_g (out : ReductionOutput f) (m�
   simpa [out.discOffset_add_eq_discOffset_g (f := f) (m₂ := m₂) (n := n)] using
     (out.shiftRight₀_discrepancy_eq_discOffset_add (f := f) (m₂ := m₂) (n := n))
 
+/-!
+### Fixed-step discrepancy witnesses for `shiftRight₀`
+
+These are small “consumer lemmas” that specialize the generic
+`ReductionOutput.hasDiscrepancyAtLeastAlong_iff_discOffset` transfer statement to the
+shifted output `out.shiftRight₀ m₂`.
+
+They avoid having to remember that the bundled offset parameter for the shifted output is
+`out.m + m₂`.
+-/
+
+/-- Fixed-step discrepancy for `out.shiftRight₀ m₂` is exactly a bundled-offset `discOffset` witness
+for `f` with offset `out.m + m₂`.
+-/
+theorem shiftRight₀_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (out.shiftRight₀ (f := f) m₂).g out.d C ↔
+      (∃ n : ℕ, discOffset f out.d (out.m + m₂) n > C) := by
+  -- This is the generic transfer lemma for the shifted reduction output.
+  simpa using
+    (ReductionOutput.hasDiscrepancyAtLeastAlong_iff_discOffset
+      (f := f) (out := out.shiftRight₀ (f := f) m₂) (C := C))
+
+/-- `C < discOffset ...` version of `shiftRight₀_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem shiftRight₀_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (out.shiftRight₀ (f := f) m₂).g out.d C ↔
+      (∃ n : ℕ, C < discOffset f out.d (out.m + m₂) n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.shiftRight₀_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (m₂ := m₂) (C := C))
+
+/-- Fixed-step discrepancy for `out.shiftRight₀ m₂` is exactly an offset discrepancy witness for the
+already-reduced sequence `out.g`.
+-/
+theorem shiftRight₀_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_g_gt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (out.shiftRight₀ (f := f) m₂).g out.d C ↔
+      (∃ n : ℕ, discOffset out.g out.d m₂ n > C) := by
+  -- Combine the generic transfer lemma for `out.shiftRight₀ m₂` with the discrepancy rewrite rule
+  -- `shiftRight₀_discrepancy_eq_discOffset_g`.
+  constructor
+  · intro h
+    rcases (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt
+      (f := (out.shiftRight₀ (f := f) m₂).g) (d := out.d) (C := C)).1 h with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.shiftRight₀_discrepancy_eq_discOffset_g (f := f) (m₂ := m₂) (n := n)] using hn
+  · rintro ⟨n, hn⟩
+    have : discrepancy (out.shiftRight₀ (f := f) m₂).g out.d n > C := by
+      simpa [out.shiftRight₀_discrepancy_eq_discOffset_g (f := f) (m₂ := m₂) (n := n)] using hn
+    exact (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt
+      (f := (out.shiftRight₀ (f := f) m₂).g) (d := out.d) (C := C)).2 ⟨n, this⟩
+
+/-- `C < discOffset ...` version of `shiftRight₀_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_g_gt`. -/
+theorem shiftRight₀_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_g_lt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (out.shiftRight₀ (f := f) m₂).g out.d C ↔
+      (∃ n : ℕ, C < discOffset out.g out.d m₂ n) := by
+  simpa [gt_iff_lt] using
+    (out.shiftRight₀_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_g_gt (f := f) (m₂ := m₂) (C := C))
+
 /-- A fixed-step discrepancy witness for `out.g` yields a standard discrepancy witness.
 
 This is the bridge from our pipeline-friendly predicate `HasDiscrepancyAtLeastAlong` to the
