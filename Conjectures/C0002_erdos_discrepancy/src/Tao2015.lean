@@ -585,6 +585,31 @@ theorem apSumFrom_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
   -- Rewrite both sides to AP sums of the same shifted sequence.
   simp [apSumFrom_eq_apSum_shift_add, apSumOffset_eq_apSum_shift_add]
 
+/-- Reverse orientation of `apSumFrom_eq_apSumOffset`.
+
+We do not mark this `[simp]` to avoid rewriting loops.
+-/
+theorem apSumOffset_eq_apSumFrom (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSumFrom f (out.m * out.d) out.d n := by
+  simpa using (out.apSumFrom_eq_apSumOffset (f := f) (n := n)).symm
+
+/-- `natAbs` form of `apSumFrom_eq_apSumOffset`.
+
+This is the cleanest way to move between `discOffset` and the “tail sum” API.
+-/
+theorem natAbs_apSumFrom_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumFrom f (out.m * out.d) out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simpa [out.apSumFrom_eq_apSumOffset (f := f) (n := n)]
+
+/-- Rewrite `discOffset` in terms of the tail-sum API `apSumFrom`.
+
+This is just a repackaging of `natAbs_apSumFrom_eq_natAbs_apSumOffset`.
+-/
+theorem discOffset_eq_natAbs_apSumFrom (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+  simpa [discOffset, out.natAbs_apSumFrom_eq_natAbs_apSumOffset (f := f) (n := n)]
+
 /-!
 ### Peeling bundled offsets
 
