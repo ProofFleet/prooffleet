@@ -719,6 +719,16 @@ theorem not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g : ℕ �
     rcases h B with ⟨n, hn⟩
     exact (not_lt_of_ge (hB n)) hn
 
+/-- The same unboundedness normal form, but phrased using `Int.natAbs (apSum …)`.
+
+This is often more convenient because many reduction steps work with raw AP sums first and only
+introduce the `discrepancy` wrapper later.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_natAbs_apSum_gt (g : ℕ → ℤ) (d : ℕ) :
+    (¬ BoundedDiscrepancyAlong g d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSum g d n)) := by
+  -- `discrepancy` is definitional.
+  simpa [discrepancy] using (not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := g) (d := d))
+
 /-- Unboundedness normal form for `BoundedDiscOffset`. -/
 theorem not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
     (¬ BoundedDiscOffset f d m) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
@@ -738,6 +748,15 @@ theorem not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f : ℕ → ℤ) 
     rcases hbd with ⟨B, hB⟩
     rcases h B with ⟨n, hn⟩
     exact (not_lt_of_ge (hB n)) hn
+
+/-- The same unboundedness normal form, but phrased using `Int.natAbs (apSumOffset …)`.
+
+This version is frequently the tightest statement one gets directly out of a reduction step.
+-/
+theorem not_boundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ BoundedDiscOffset f d m) ↔ (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m))
 
 /-- Offset sum with zero offset is just the original AP sum. -/
 theorem apSumOffset_zero (f : ℕ → ℤ) (d n : ℕ) : apSumOffset f d 0 n = apSum f d n := by
