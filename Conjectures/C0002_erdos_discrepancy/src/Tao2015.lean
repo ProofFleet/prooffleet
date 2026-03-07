@@ -1962,6 +1962,18 @@ theorem boundedDiscrepancyAlong_shift_add_mul_iff_boundedDiscOffset (f : ℕ →
     -- (`simp` uses the reverse orientation of the rewrite lemma.)
     simpa [BoundedDiscrepancyAlong, discrepancy_shift_add_mul_eq_discOffset] using hB n
 
+/-- Convenience: bounded offset discrepancy implies bounded discrepancy along the shifted sequence. -/
+theorem boundedDiscrepancyAlong_shift_add_mul_of_boundedDiscOffset (f : ℕ → ℤ) (d m : ℕ)
+    (h : BoundedDiscOffset f d m) :
+    BoundedDiscrepancyAlong (fun k => f (k + m * d)) d :=
+  (boundedDiscrepancyAlong_shift_add_mul_iff_boundedDiscOffset (f := f) (d := d) (m := m)).2 h
+
+/-- Convenience: bounded discrepancy along the shifted sequence implies bounded offset discrepancy. -/
+theorem boundedDiscOffset_of_boundedDiscrepancyAlong_shift_add_mul (f : ℕ → ℤ) (d m : ℕ)
+    (h : BoundedDiscrepancyAlong (fun k => f (k + m * d)) d) :
+    BoundedDiscOffset f d m :=
+  (boundedDiscrepancyAlong_shift_add_mul_iff_boundedDiscOffset (f := f) (d := d) (m := m)).1 h
+
 namespace BoundedDiscrepancyAlong
 
 /-- Negating `BoundedDiscrepancyAlong` is equivalent to the usual unboundedness normal form.
