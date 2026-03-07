@@ -1059,6 +1059,33 @@ theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutpu
   intro h
   exact (out.hasDiscrepancyAtLeastAlong_iff_discOffset (f := f) (C := C)).2 h
 
+/-- `C < discOffset ...` form of `exists_discOffset_gt_of_hasDiscrepancyAtLeastAlong`. -/
+theorem exists_discOffset_lt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C → (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  intro h
+  exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).1 h
+
+/-- `C < discOffset ...` form of `hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, C < discOffset f out.d out.m n) → HasDiscrepancyAtLeastAlong out.g out.d C := by
+  intro h
+  exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).2 h
+
+/-- Uniform version: `out.g` has arbitrarily large discrepancy along `out.d` iff the corresponding
+offset discrepancies of `f` are arbitrarily large.
+
+This is a small but useful lemma when a reduction stage proves unboundedness of the reduced
+sequence and a later stage wants to re-express it in terms of `discOffset f`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  constructor
+  · intro h C
+    exact out.exists_discOffset_gt_of_hasDiscrepancyAtLeastAlong (f := f) (C := C) (h C)
+  · intro h C
+    exact out.hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (f := f) (C := C) (h C)
+
 /-- A `discOffset` witness for `f` yields a standard discrepancy witness for the reduced sequence.
 
 This is the most common “pipeline hop” in later stages: reductions naturally produce offset-sum
