@@ -890,6 +890,33 @@ theorem not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (out : ReductionOu
     (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (¬ BoundedDiscOffset f out.d out.m) := by
   exact not_congr (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f))
 
+/-- Unboundedness normal form, transported across the reduction interface.
+
+This is a consumer-friendly lemma: it produces the `∀ B, ∃ n, B < …` shape directly for the
+*offset discrepancy* on the original sequence.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  have h1 : (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (¬ BoundedDiscOffset f out.d out.m) :=
+    out.not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (f := f)
+  have h2 : (¬ BoundedDiscOffset f out.d out.m) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) :=
+    Tao2015.not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)
+  exact h1.trans h2
+
+/-- The same unboundedness normal form, but phrased using `Int.natAbs (apSumOffset …)`.
+
+This is often the tightest thing you get from a reduction step: it avoids `discOffset` entirely.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  have h1 : (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (¬ BoundedDiscOffset f out.d out.m) :=
+    out.not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (f := f)
+  have h2 : (¬ BoundedDiscOffset f out.d out.m) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) :=
+    Tao2015.not_boundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := out.d) (m := out.m)
+  exact h1.trans h2
+
 /-- `discOffset` is literally the absolute value of `apSumOffset`; this lemma rewrites it
 using the reduction interface. -/
 theorem natAbs_apSum_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
