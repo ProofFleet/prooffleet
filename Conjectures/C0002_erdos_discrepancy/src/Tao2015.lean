@@ -729,6 +729,33 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+namespace ReductionOutput
+
+/-- A global boundedness context for `f` yields bounded *offset* discrepancy for the parameters
+bundled in `out`.
+
+This is the most direct way to use `Context f` after the first reduction step: it produces the
+exact `∃ B, ∀ n` shape downstream stages typically want.
+-/
+theorem boundedDiscOffset_ofContext (ctx : Context f) (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discOffset (f := f) (ctx := ctx) (out := out) n
+
+/-- A global boundedness context for `f` yields bounded discrepancy for the reduced sequence
+`out.g` along the fixed common difference `out.d`.
+
+This is the `BoundedDiscrepancyAlong` analogue of `boundedDiscOffset_ofContext`.
+-/
+theorem boundedDiscrepancyAlong_ofContext (ctx : Context f) (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discrepancy (f := f) (ctx := ctx) (out := out) n
+
+end ReductionOutput
+
 /-- If we literally shift the sequence by `m*d`, then bounded discrepancy along `d` is equivalent
 to bounded offset discrepancy of the original sequence.
 
