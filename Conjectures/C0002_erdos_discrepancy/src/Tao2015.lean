@@ -3750,7 +3750,7 @@ noncomputable def ofNotBoundedDiscOffset (h : ¬ BoundedDiscOffset f out.d out.m
 This is a useful alternative entry point for stage 2: some reductions naturally produce
 unboundedness of the *reduced* sequence at a fixed step size, and only later want to translate
 that back into explicit offset-discrepancy witnesses for the original sequence `f`.
--/-
+-/
 noncomputable def ofNotBoundedDiscrepancyAlong (h : ¬ BoundedDiscrepancyAlong out.g out.d) :
     Stage2Output f out := by
   classical
