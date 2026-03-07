@@ -2454,6 +2454,22 @@ theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   sorry
 
+/-- Package the stage-2 deliverable into a `Stage2Output` record.
+
+This is “pipeline glue”: later stages can be stated to consume `Stage2Output` without caring
+whether it came from a constructive stage-2 proof or from a negated boundedness hypothesis.
+-/
+noncomputable def stage2_output (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) : Stage2Output f out := by
+  refine ⟨?_⟩
+  exact stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out)
+
+@[simp] theorem stage2_output_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    (stage2_output (f := f) (hf := hf) (ctx := ctx) (out := out)).unbounded_discOffset =
+      stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) := by
+  rfl
+
 /-- Stage-2 helper: the unboundedness witness normal form implies `¬ BoundedDiscOffset …`.
 
 This is just a packaging lemma, but it is the *exact* consumer statement most later stages want:
