@@ -3863,6 +3863,24 @@ noncomputable def ofNotBoundedDiscOffset (h : ¬ BoundedDiscOffset f out.d out.m
       (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)).1 h := by
   rfl
 
+/-- Extract a single `discOffset` witness from `Stage2Output` (greater-than orientation). -/
+theorem exists_discOffset_gt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C := by
+  rcases s2.unbounded_discOffset C with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
+/-- Extract a single `discOffset` witness from `Stage2Output` (less-than orientation). -/
+theorem exists_discOffset_lt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, C < discOffset f out.d out.m n := by
+  rcases s2.unbounded_discOffset C with ⟨n, hn⟩
+  exact ⟨n, hn⟩
+
+/-- Convert a `Stage2Output` to a fixed-threshold `HasDiscrepancyAtLeastAlong` witness. -/
+theorem hasDiscrepancyAtLeastAlong (s2 : Stage2Output f out) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C := by
+  rcases s2.exists_discOffset_lt (f := f) (out := out) C with ⟨n, hn⟩
+  exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).2 ⟨n, hn⟩
+
 /-- Build a `Stage2Output` from the negated boundedness form `¬ BoundedDiscrepancyAlong out.g out.d`.
 
 This is a useful alternative entry point for stage 2: some reductions naturally produce
