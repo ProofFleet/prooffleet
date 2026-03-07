@@ -1075,6 +1075,46 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutp
   simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_discOffset (f := f) (C := C))
 
 /-!
+### Uniform unboundedness packaging
+
+Downstream steps often produce a statement of the form
+
+`∀ C, HasDiscrepancyAtLeastAlong out.g out.d C`.
+
+It is convenient to immediately translate this into either a `¬ BoundedDiscrepancyAlong` statement
+(for `out.g`) or into the corresponding uniform family of `discOffset` witnesses for the original
+sequence `f`.
+-/
+
+/-- Unboundedness along the fixed step `out.d`, in terms of the reduced sequence `out.g`. -/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔ ¬ BoundedDiscrepancyAlong out.g out.d := by
+  simpa using
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
+      (g := out.g) (d := out.d))
+
+/-- Translate uniform large-discrepancy-along-`out.d` for `out.g` into uniform `discOffset` witnesses
+for `f` (greater-than orientation). -/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  constructor
+  · intro h C
+    -- Convert the `HasDiscrepancyAtLeastAlong` witness for `out.g` to a `discOffset` witness for `f`.
+    simpa using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).1 (h C)
+  · intro h C
+    rcases h C with ⟨n, hn⟩
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 ⟨n, hn⟩
+
+/-- Same as `forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt`, but with the
+inequality oriented as `C < ...`. -/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using (out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (f := f))
+
+/-!
 ### Shifting the reduced sequence
 
 A common pattern in multi-stage reductions is to shift the already-reduced sequence `out.g` by an
