@@ -150,6 +150,42 @@ namespace ReductionOutput
 theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
 
+/-- Derive the bridge rule `apSum out.g out.d = apSumOffset f out.d out.m` purely from `g_eq`.
+
+This is useful when constructing a `ReductionOutput`: you can often avoid proving
+`apSum_contract` by hand.
+-/
+theorem apSum_contract_derived (out : ReductionOutput f) :
+    ∀ n : ℕ, apSum out.g out.d n = apSumOffset f out.d out.m n := by
+  intro n
+  -- `apSumOffset` is definitionally an AP sum of the shifted sequence.
+  simpa [out.g_eq] using
+    (apSumOffset_eq_apSum_shift_add (f := f) (d := out.d) (m := out.m) (n := n)).symm
+
+/-- Derive the discrepancy rewrite rule purely from `g_eq`.
+
+This variant does not rely on the `apSum_contract` field.
+-/
+theorem discrepancy_eq_discOffset_derived (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, out.g_eq, apSumOffset_eq_apSum_shift_add]
+
+/-- Convenience constructor: build a `ReductionOutput` when `g` is literally a shift of `f`.
+
+It fills `apSum_contract` and the discrepancy transfer contract automatically.
+-/
+noncomputable def mkShift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    ReductionOutput f := by
+  refine ⟨d, m, hd, g, hg, hgEq, ?_, ?_⟩
+  · intro n
+    simpa [hgEq] using
+      (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)).symm
+  · intro B hB n
+    -- Rewrite the discrepancy of `g` as the offset discrepancy of `f`.
+    simpa [discrepancy, discOffset, hgEq, apSumOffset_eq_apSum_shift_add] using hB n
+
 /-- Rewrite `apSum out.g out.d` as an offset sum of `f`.
 
 This is the main “bridge” lemma: it lets us convert bounds on `apSumOffset f` into bounds
