@@ -147,8 +147,21 @@ structure ReductionOutput (f : ℕ → ℤ) : Type where
 namespace ReductionOutput
 
 /-- Expand the defining equation of `g`. -/
-theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
+@[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
+
+/-- Function-extensional form of `apSum_contract`. -/
+theorem apSum_contract_funext (out : ReductionOutput f) :
+    (fun n => apSum out.g out.d n) = fun n => apSumOffset f out.d out.m n := by
+  funext n
+  exact out.apSum_contract n
+
+/-- Function-extensional form of the discrepancy rewrite rule. -/
+theorem discrepancy_contract_funext (out : ReductionOutput f) :
+    (fun n => discrepancy out.g out.d n) = fun n => discOffset f out.d out.m n := by
+  funext n
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, out.apSum_contract]
 
 /-- Derive the bridge rule `apSum out.g out.d = apSumOffset f out.d out.m` purely from `g_eq`.
 
