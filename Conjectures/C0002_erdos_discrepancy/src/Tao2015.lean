@@ -966,6 +966,21 @@ theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
   simpa using (out.apSum_eq_apSumOffset (f := f) (n := n)).symm
 
+/-- Discrepancy rewrite rule induced by `apSum_eq_apSumOffset`.
+
+Marked `[simp]` because it is the canonical normal form for discrepancies of the reduced
+sequence `out.g`.
+-/
+@[simp] theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, out.apSum_eq_apSumOffset]
+
+/-- Reverse orientation of `discrepancy_eq_discOffset` (not marked simp to avoid rewrite loops). -/
+theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discrepancy out.g out.d n := by
+  simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
+
 /-- Rewrite `apSumFrom f (m*d)` as an AP sum of the reduced sequence `out.g`.
 
 This is the most common “start at the affine point” normal form used in Tao-style reductions.
