@@ -504,6 +504,25 @@ theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
   simpa using (out.apSum_eq_apSumOffset (f := f) (n := n)).symm
 
+/-- Rewrite `apSumFrom f (m*d)` as an AP sum of the reduced sequence `out.g`.
+
+This is the most common “start at the affine point” normal form used in Tao-style reductions.
+-/
+theorem apSumFrom_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumFrom f (out.m * out.d) out.d n = apSum out.g out.d n := by
+  -- `apSumFrom` is an `apSum` of the shifted sequence; rewrite using `out.g_eq`.
+  simpa [out.g_eq] using
+    (apSumFrom_eq_apSum_shift_add (f := f) (a := out.m * out.d) (d := out.d) (n := n))
+
+/-- Rewrite `apSumFrom f (m*d)` as an offset AP sum of `f`.
+
+This is a direct bridge between the two “tail sum” APIs in the discrepancy substrate.
+-/
+theorem apSumFrom_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
+  -- Rewrite both sides to AP sums of the same shifted sequence.
+  simp [apSumFrom_eq_apSum_shift_add, apSumOffset_eq_apSum_shift_add]
+
 /-- `natAbs` form of the AP-sum bridge rule. -/
 theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
