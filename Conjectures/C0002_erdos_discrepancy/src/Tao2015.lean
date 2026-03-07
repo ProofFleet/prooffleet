@@ -487,6 +487,22 @@ theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out :
   · intro h C
     exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 (h C)
 
+/-- Extract an `apSumOffset` witness from a fixed-step discrepancy statement about `out.g`. -/
+theorem exists_natAbs_apSumOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) {C : ℕ}
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C)).1 h
+
+/-- Quantified version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`. -/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  constructor
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C)).2 (h C)
+
 /-- Repackage unboundedness along the reduced step size `out.d`.
 
 This is just `HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong`
@@ -580,6 +596,17 @@ theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reduc
   -- `discOffset` and `discrepancy` are definitional wrappers around `Int.natAbs`.
   simpa [discOffset, discrepancy, out.apSum_contract] using
     (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d))
+
+/-- Same as `not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`, but phrased directly in
+terms of `Int.natAbs (apSumOffset ...)` witnesses.
+
+This is often the best normal form for later pipeline stages that work at the AP-sum level.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using (out.not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f))
 
 /-- A slightly more “Tao-style” unboundedness packaging: `∀ B, ∃ n, B < discOffset ...`.
 
