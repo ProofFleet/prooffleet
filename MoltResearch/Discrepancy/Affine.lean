@@ -422,6 +422,12 @@ lemma apSumFrom_shift_add_left_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
   simpa using
     (apSumFrom_eq_apSumFrom_shift_add_left (f := f) (a := a) (d := d) (n := n)).symm
 
+/-! ### Degenerate start simp lemmas
+
+These mirror the “degenerate length” simp lemmas (`apSumFrom_zero` / `apSumFrom_one`) but for the
+*start* parameter.
+-/
+
 /-- Normal form: an affine AP sum with start `a = 0` is just a homogeneous AP sum.
 
 This is the inverse orientation of `apSum_eq_apSumFrom`.

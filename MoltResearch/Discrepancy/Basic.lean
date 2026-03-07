@@ -395,6 +395,12 @@ lemma discOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa using
     (natAbs_apSumOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-! ### Degenerate start simp lemmas
+
+These mirror the “degenerate length” simp lemmas (`apSumOffset_zero` / `apSumOffset_one`) but for the
+*start index* parameter.
+-/
+
 /-- Normal form: an offset sum with start index `m = 0` is just the homogeneous sum `apSum`.
 
 Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
