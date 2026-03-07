@@ -320,6 +320,25 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+/-- Re-associate offsets: shifting by `(m₁+m₂)*d` is the same as shifting by `m₁*d` and then by
+`m₂*d`.
+
+This lemma is small but shows up constantly when “chunking” offsets in the Tao pipeline.
+-/
+theorem apSumOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+    apSumOffset f d (m₁ + m₂) n =
+      apSumOffset (fun k => f (k + m₁ * d)) d m₂ n := by
+  -- Expand both sides to `apSum` of a shifted sequence and simplify arithmetic.
+  simp [apSumOffset_eq_apSum_shift_add, Nat.mul_add, Nat.add_assoc, Nat.add_left_comm,
+    Nat.add_comm]
+
+/-- The discrepancy form of `apSumOffset_add`. -/
+theorem discOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+    discOffset f d (m₁ + m₂) n =
+      discOffset (fun k => f (k + m₁ * d)) d m₂ n := by
+  -- `discOffset` is just `Int.natAbs` of `apSumOffset`.
+  simp [discOffset, apSumOffset_add]
+
 /-- Bridge lemma: `apSumOffset` can be rewritten to an `apSum` for the derived sequence. -/
 theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
