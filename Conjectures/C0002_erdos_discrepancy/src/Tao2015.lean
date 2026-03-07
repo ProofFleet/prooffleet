@@ -1151,6 +1151,26 @@ theorem not_boundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f : ℕ �
   -- `discOffset` is definitional.
   simpa [discOffset] using (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m))
 
+/-- `∀B, ∃n` witness normal form: `discOffset` vs raw `natAbs (apSumOffset …)`.
+
+This is a tiny definitional lemma, but it comes up often when a reduction step is proved using
+raw sums first and only later wrapped into `discOffset`.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt_iff_forall_exists_discOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
+    (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  -- `discOffset` is definitional.
+  simp [discOffset]
+
+/-- `∀B, ∃n` witness normal form: `discrepancy` vs raw `natAbs (apSum …)`.
+
+As above, this is just definitional unfolding.
+-/
+theorem forall_exists_natAbs_apSum_gt_iff_forall_exists_discrepancy_gt (g : ℕ → ℤ) (d : ℕ) :
+    (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSum g d n)) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discrepancy g d n) := by
+  simp [discrepancy]
+
 /-- Offset sum with zero offset is just the original AP sum. -/
 theorem apSumOffset_zero (f : ℕ → ℤ) (d n : ℕ) : apSumOffset f d 0 n = apSum f d n := by
   -- `apSumOffset` is defined as an `apSum` of a shifted sequence.
