@@ -184,6 +184,33 @@ theorem discrepancy_eq_discOffset_derived (out : ReductionOutput f) (n : ℕ) :
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, out.g_eq, apSumOffset_eq_apSum_shift_add]
 
+/-- A derived version of `apSumOffset_eq_apSum` that does not use the `apSum_contract` field.
+
+This is handy when you have a `ReductionOutput` built from a literal `g = shift f` proof but
+haven't filled `apSum_contract` yet.
+-/
+theorem apSumOffset_eq_apSum_derived (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSum out.g out.d n := by
+  -- Expand `apSumOffset` to an `apSum` on the shifted sequence, then rewrite by `out.g_eq`.
+  simpa [out.g_eq] using
+    (apSumOffset_eq_apSum_shift_add (f := f) (d := out.d) (m := out.m) (n := n))
+
+/-- A derived version of `discOffset_eq_discrepancy` that does not use the `apSum_contract` field. -/
+theorem discOffset_eq_discrepancy_derived (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discrepancy out.g out.d n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discOffset, discrepancy, out.g_eq, apSumOffset_eq_apSum_shift_add]
+
+/-- A derived version of `contract_discrepancy_le_derived` that does not use `apSum_contract`.
+
+It only needs the literal shift equation `g_eq`.
+-/
+theorem contract_discrepancy_le_derived' (out : ReductionOutput f) (B : ℕ) :
+    (∀ n, discOffset f out.d out.m n ≤ B) → ∀ n, discrepancy out.g out.d n ≤ B := by
+  intro hB n
+  -- Reduce to the rewrite rule from `g_eq`.
+  simpa [out.discOffset_eq_discrepancy_derived (f := f) (n := n)] using hB n
+
 /-- Convenience constructor: build a `ReductionOutput` when `g` is literally a shift of `f`.
 
 It fills `apSum_contract` and the discrepancy transfer contract automatically.
