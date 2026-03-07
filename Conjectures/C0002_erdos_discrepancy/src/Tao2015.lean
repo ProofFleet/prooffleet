@@ -987,6 +987,23 @@ Marked `[simp]` because it is the most common consumer rewrite.
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- Transfer a boundedness context for `f` to a bound on `discrepancy out.g out.d`.
+
+This is the discrepancy-level analogue of `ReductionOutput.bound_apSum`.
+-/
+theorem bound_discrepancy (ctx : Context f) (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  -- Reduce to the already-proved shifted discrepancy bound in `Context`.
+  have : discrepancy (fun k => f (k + out.m * out.d)) out.d n ≤ ctx.B + ctx.B := by
+    exact ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+  simpa [out.g_eq] using this
+
+/-- Uniform version of `ReductionOutput.bound_discrepancy`. -/
+theorem bound_discrepancy_forall (ctx : Context f) (out : ReductionOutput f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  intro n
+  exact out.bound_discrepancy (f := f) ctx n
+
 /-- Fixed-step discrepancy transfer (in `natAbs` form).
 
 This is the most direct consumer lemma for our new predicate `HasDiscrepancyAtLeastAlong`.
