@@ -3849,6 +3849,41 @@ theorem stage2_unbounded_natAbs_apSum (f : ℕ → ℤ) (hf : IsSignSequence f)
   refine ⟨n, ?_⟩
   simpa [discrepancy] using hn
 
+/-!
+### Stage-2 → pipeline-friendly discrepancy predicates
+
+Downstream stages often want the existential witness form at a particular threshold, or the
+`HasDiscrepancyAtLeastAlong` predicate (fixed `d`).
+
+The lemmas below are tiny wrappers around `stage2_unbounded_discrepancy` /
+`stage2_unbounded_natAbs_apSum`.
+-/
+
+/-- Stage-2 consequence: for every threshold `C`, the reduced sequence `out.g` has a witness
+of discrepancy `> C` along `out.d`.
+
+This is the most common consumer statement for fixed-step downstream reductions.
+-/
+theorem stage2_forall_hasDiscrepancyAtLeastAlong (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  intro C
+  rcases stage2_unbounded_natAbs_apSum (f := f) (hf := hf) (ctx := ctx) (out := out) C with ⟨n, hn⟩
+  exact ⟨n, by simpa [HasDiscrepancyAtLeastAlong] using hn⟩
+
+/-- Stage-2 consequence: for every threshold `C`, the reduced sequence `out.g` satisfies the
+ambient `HasDiscrepancyAtLeast` predicate.
+
+This is just `stage2_forall_hasDiscrepancyAtLeastAlong` promoted via the `d`-quantifier.
+-/
+theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast out.g C := by
+  intro C
+  exact
+    HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C) out.hd
+      (stage2_forall_hasDiscrepancyAtLeastAlong (f := f) (hf := hf) (ctx := ctx) (out := out) C)
+
 /-- Conversely, if you have unboundedness witnesses for `natAbs (apSum out.g out.d n)`, you also
 get witnesses for the discrepancy wrapper.
 -/
