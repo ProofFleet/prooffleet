@@ -1103,6 +1103,27 @@ theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) 
     -- rewrite back in the other direction
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-- Peel the bundled offset in `out` at the level of bounded offset discrepancy.
+
+Bounding `discOffset f out.d (out.m + m₂)` uniformly in `n` is equivalent to bounding
+`discOffset out.g out.d m₂` uniformly in `n`.
+
+This is the boundedness analogue of `out.discOffset_add_eq_discOffset_g`.
+-/
+theorem boundedDiscOffset_add_iff_boundedDiscOffset_g (out : ReductionOutput f) (m₂ : ℕ) :
+    BoundedDiscOffset f out.d (out.m + m₂) ↔ BoundedDiscOffset out.g out.d m₂ := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite a bundled offset discrepancy of `f` to an offset discrepancy of `out.g`
+    simpa [out.discOffset_add_eq_discOffset_g (f := f) (m₂ := m₂) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite back in the other direction
+    simpa [out.discOffset_add_eq_discOffset_g (f := f) (m₂ := m₂) (n := n)] using hB n
+
 /-- Negated form of `boundedDiscrepancyAlong_iff_boundedDiscOffset`.
 
 This is useful because many “unboundedness” stages in Tao’s pipeline are naturally phrased as
