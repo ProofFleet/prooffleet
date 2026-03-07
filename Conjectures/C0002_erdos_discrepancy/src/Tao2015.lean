@@ -1035,6 +1035,45 @@ theorem boundedDiscrepancyAlong_ofContext (ctx : Context f) (out : ReductionOutp
   intro n
   exact out.bound_discrepancy (f := f) (ctx := ctx) (out := out) n
 
+/-- The reduction interface gives an equivalence between bounded discrepancy for `out.g` along
+`out.d` and bounded offset discrepancy for `f` at `(out.d,out.m)`.
+
+This is essentially the bundled version of
+`boundedDiscrepancyAlong_shift_add_mul_iff_boundedDiscOffset`.
+-/
+theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ BoundedDiscOffset f out.d out.m := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite discrepancy of `out.g` to offset discrepancy of `f`
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite back in the other direction
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- Negated form of `boundedDiscrepancyAlong_iff_boundedDiscOffset`.
+
+This is useful because many “unboundedness” stages in Tao’s pipeline are naturally phrased as
+`¬ ∃ B, ∀ n, ...`.
+-/
+theorem not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (out : ReductionOutput f) :
+    ¬ BoundedDiscrepancyAlong out.g out.d ↔ ¬ BoundedDiscOffset f out.d out.m := by
+  simpa using not_congr (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f))
+
+/-- Transfer lemma: unboundedness (in the `∀ B, ∃ n, B < ...` normal form) is equivalent across
+the reduction interface.
+
+This is the strict witness form typically produced by contradiction stages.
+-/
+theorem forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt' (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) :=
+  out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f)
+
 end ReductionOutput
 
 /-- If we literally shift the sequence by `m*d`, then bounded discrepancy along `d` is equivalent
