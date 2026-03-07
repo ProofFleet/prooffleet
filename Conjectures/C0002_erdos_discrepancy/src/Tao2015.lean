@@ -1219,6 +1219,43 @@ provide function-level and parameter-level equalities instead.
   -- Both sides reduce to `out.m + m₁ + m₂`.
   simp [Nat.add_assoc]
 
+/-- Extensionality for `ReductionOutput`: to prove two outputs equal, it suffices to show the
+core data (`d`,`m`,`g`) agree.
+
+All other fields are proofs, hence propositionally irrelevant.
+-/
+@[ext] theorem ext_dmg (out₁ out₂ : ReductionOutput f)
+    (hd : out₁.d = out₂.d) (hm : out₁.m = out₂.m) (hg : out₁.g = out₂.g) : out₁ = out₂ := by
+  classical
+  -- Unpack both structures; after rewriting the data fields, the remaining proof fields match by
+  -- proof irrelevance.
+  cases out₁ with
+  | mk d₁ m₁ hd₁ g₁ hg₁ g_eq₁ apSum₁ contract₁ =>
+    cases out₂ with
+    | mk d₂ m₂ hd₂ g₂ hg₂ g_eq₂ apSum₂ contract₂ =>
+      -- Rewrite by the data equalities.
+      cases hd
+      cases hm
+      cases hg
+      -- Now we are comparing two records whose non-proof fields are definitional equal.
+      -- The remaining fields are proofs in `Prop`, so `Subsingleton.elim` closes them.
+      simp
+
+/-- `shiftRight` is associative at the level of the full `ReductionOutput` structure.
+
+This is the cleanest consumer-facing lemma: downstream code can rewrite nested `shiftRight`s into a
+single shift without manually transporting proof fields.
+-/
+theorem shiftRight_add (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    (out.shiftRight (f := f) m₁).shiftRight (f := f) m₂ = out.shiftRight (f := f) (m₁ + m₂) := by
+  -- Use extensionality on the core data.
+  ext
+  · simp
+  · simp [Nat.add_assoc]
+  · -- underlying reduced sequence agrees pointwise
+    funext k
+    simp [ReductionOutput.shiftRight_g, Nat.mul_add, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-- Consumer lemma: the AP-sum bridge for the double shift can be stated using the combined shift.
 
 This avoids any dependency on later “bridge” lemmas; it is just congruence along the function-level
