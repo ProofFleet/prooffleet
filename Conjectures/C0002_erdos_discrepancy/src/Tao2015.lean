@@ -1083,6 +1083,33 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+namespace BoundedDiscOffset
+
+/-- Negating bounded offset discrepancy is equivalent to the usual unboundedness normal form.
+
+This is a basic but extremely common shape transformation: downstream contradiction stages tend to
+produce witnesses of the form `∀ B, ∃ n, B < ...`.
+-/
+theorem not_iff_forall_exists_gt (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ BoundedDiscOffset f d m) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  classical
+  constructor
+  · intro h B
+    by_contra hcontra
+    -- If there is no witness `n` with `B < discOffset ... n`, then everything is bounded by `B`.
+    have hle : ∀ n : ℕ, discOffset f d m n ≤ B := by
+      intro n
+      by_contra hn
+      have : B < discOffset f d m n := Nat.lt_of_not_ge hn
+      exact hcontra ⟨n, this⟩
+    exact h ⟨B, hle⟩
+  · intro h hbd
+    rcases hbd with ⟨B, hB⟩
+    rcases h B with ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n)) hn
+
+end BoundedDiscOffset
+
 namespace ReductionOutput
 
 /-- A global boundedness context for `f` yields bounded *offset* discrepancy for the parameters
