@@ -105,21 +105,75 @@ end Context
 
 /-- Output of the first major reduction stage of Tao 2015.
 
-We intentionally keep this opaque at first; the goal is to replace this with the first
-*stable* structured object we can state cleanly in Lean.
+This is the first **nontrivial interface** we want downstream steps to consume.
+
+It packages:
+- an auxiliary sign sequence `g`
+- some numeric parameters `d,m`
+- a rewrite rule relating `apSum g d` to an `apSumOffset` of the original sequence
+- a basic “bounded discrepancy transfers” contract (as a lemma in the namespace below)
+
+This lives in `Conjectures/` so we can iterate on the interface without destabilizing
+the verified `MoltResearch/` substrate.
 -/
 structure ReductionOutput (f : ℕ → ℤ) : Type where
-  dummy : Unit := ()
+  /-- Common difference of the affine transform. -/
+  d : ℕ
+  /-- Offset multiplier: we shift by `m*d`. -/
+  m : ℕ
+  hd : d > 0
+  /-- The derived sign sequence. -/
+  g : ℕ → ℤ
+  hg : IsSignSequence g
+  /-- `g` is the shift of `f` by the multiple `m*d`. -/
+  g_eq : g = fun k => f (k + m * d)
+
+namespace ReductionOutput
+
+/-- Expand the defining equation of `g`. -/
+theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
+  simpa [out.g_eq]
+
+/-- Rewrite `apSum out.g out.d` as an offset sum of `f`.
+
+This is the main “bridge” lemma: it lets us convert bounds on `apSumOffset f` into bounds
+on the auxiliary AP sums for `g`.
+-/
+theorem apSum_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumOffset f out.d out.m n := by
+  -- `apSumOffset f d m n = apSum (fun k => f (k + m*d)) d n`.
+  -- Then rewrite `out.g` using `out.g_eq`.
+  simpa [out.g_eq, apSumOffset_eq_apSum_shift_add] using
+    (show apSum (fun k => f (k + out.m * out.d)) out.d n = apSumOffset f out.d out.m n by
+      symm
+      simp [apSumOffset_eq_apSum_shift_add])
+
+/-- Transfer a boundedness context for `f` to a bound on `apSum out.g out.d`.
+
+This is intentionally weak (a factor `2B`), but it is enough to make the interface usable
+without committing to any deeper part of Tao’s reduction.
+-/
+theorem bound_apSum (ctx : Context f) (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) ≤ ctx.B + ctx.B := by
+  -- Reduce to the already-proved tail bound in `Context`.
+  -- First rewrite `out.g` as a shift of `f`.
+  have : Int.natAbs (apSum (fun k => f (k + out.m * out.d)) out.d n) ≤ ctx.B + ctx.B := by
+    simpa using (ctx.bound_apSum_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+  simpa [out.g_eq] using this
+
+end ReductionOutput
 
 /-- (Stub) Tao 2015 reduction stage.
 
 Given a sign sequence `f` and a boundedness context, produce a structured object.
 
-In the real proof this will likely involve introducing auxiliary models / averaged objects.
+For now we instantiate the interface with the trivial choice `d = 1`, `m = 0`, `g = f`.
+This is enough to let downstream code *use* the interface immediately.
 -/
 theorem reduction (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
     ReductionOutput f := by
-  sorry
+  refine ⟨1, 0, by decide, f, hf, ?_⟩
+  simp
 
 /-- (Stub) Tao 2015 contradiction stage.
 
