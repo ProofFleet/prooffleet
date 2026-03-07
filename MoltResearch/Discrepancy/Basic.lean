@@ -654,13 +654,6 @@ lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start {f : ℕ → ℤ} 
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
   simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C))
 
-/-- Deprecated name for `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`. -/
-@[deprecated "Use `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`." (since := "2026-03-06")]
-lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m {f : ℕ → ℤ} {C : ℕ} :
-    HasDiscrepancyAtLeast f C ↔
-      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
-  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C))
-
 /-- Restate `HasDiscrepancyAtLeast` using the `discrepancy` wrapper. -/
 lemma HasDiscrepancyAtLeast_iff_exists_discrepancy (f : ℕ → ℤ) (C : ℕ) :
     HasDiscrepancyAtLeast f C ↔ ∃ d n, d > 0 ∧ discrepancy f d n > C := by

@@ -146,6 +146,16 @@ lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
     apSumFrom f 0 d n = apSum f d n := by
   simpa using (apSumFrom_zero_start (f := f) (d := d) (n := n))
 
+/-- Deprecated name for `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`.
+
+Prefer importing `MoltResearch.Discrepancy` and using the `_zero_start` name.
+-/
+@[deprecated "Use `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`." (since := "2026-03-06")]
+lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
+  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C))
+
 /-- Deprecated wrapper around `apSum_eq_sum_Icc` writing the summand as `f (d * i)`.
 
 Prefer `apSum_eq_sum_Icc` and rewrite with `Nat.mul_comm` as needed.
