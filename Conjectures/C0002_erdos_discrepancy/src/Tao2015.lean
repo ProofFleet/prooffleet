@@ -2830,6 +2830,18 @@ theorem bound_discrepancy_shift_add_mul_forall (ctx : AlongContext g d) (m : ℕ
   intro n
   exact ctx.bound_discrepancy_shift_add_mul (g := g) (d := d) (m := m) (n := n)
 
+/-- Uniform `∀ n` version of `AlongContext.bound_apSumFrom_mul`. -/
+theorem bound_apSumFrom_mul_forall (ctx : AlongContext g d) (m : ℕ) :
+    ∀ n : ℕ, Int.natAbs (apSumFrom g (m * d) d n) ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_apSumFrom_mul (g := g) (d := d) (m := m) (n := n)
+
+/-- Uniform `∀ n` version of `AlongContext.bound_discOffset_via_apSumFrom`. -/
+theorem bound_discOffset_via_apSumFrom_forall (ctx : AlongContext g d) (m : ℕ) :
+    ∀ n : ℕ, discOffset g d m n ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_discOffset_via_apSumFrom (g := g) (d := d) (m := m) (n := n)
+
 /-!
 ### Packaging shifts of an `AlongContext`
 
