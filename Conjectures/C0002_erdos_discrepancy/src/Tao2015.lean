@@ -555,6 +555,35 @@ theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
   simpa using (out.apSum_eq_apSumOffset (f := f) (n := n)).symm
 
+/-- Unfold the offset AP sum in `out` as a difference of two prefix sums of the original sequence.
+
+This is just `apSumOffset_eq_sub`, specialized to the parameters bundled in `out`.
+-/
+theorem apSumOffset_eq_sub_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSum f out.d (out.m + n) - apSum f out.d out.m := by
+  simp [apSumOffset_eq_sub]
+
+/-- Unfold `apSum out.g out.d` as a difference of two prefix sums of `f`.
+
+This is the common normal form when you want to “push” a statement about the reduced
+sequence back to the original one.
+-/
+theorem apSum_eq_sub_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSum f out.d (out.m + n) - apSum f out.d out.m := by
+  -- First rewrite `apSum out.g` to `apSumOffset`, then unfold.
+  simpa [out.apSum_contract] using (out.apSumOffset_eq_sub_apSum (f := f) (n := n)).symm
+
+/-- Discrepancy of the reduced sequence, unfolded as a `natAbs` of a difference of prefix sums.
+
+This is a convenient consumer lemma: downstream steps often reason about differences of
+prefix sums directly.
+-/
+theorem discrepancy_eq_natAbs_sub_apSum (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n =
+      Int.natAbs (apSum f out.d (out.m + n) - apSum f out.d out.m) := by
+  -- `discrepancy` is `natAbs` of `apSum`; rewrite using `apSum_eq_sub_apSum`.
+  simp [discrepancy, out.apSum_eq_sub_apSum]
+
 /-- Re-associate offsets, specialized to the `ReductionOutput` shift.
 
 This is the consumer form of `Tao2015.apSumOffset_add`: shifting `f` by `(out.m+m₂)*d`
