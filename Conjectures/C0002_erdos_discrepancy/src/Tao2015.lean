@@ -161,6 +161,24 @@ theorem bound_apSum (ctx : Context f) (out : ReductionOutput f) (n : ℕ) :
     simpa using (ctx.bound_apSum_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
   simpa [out.g_eq] using this
 
+/-- Discrepancy rewrite rule: the discrepancy of `out.g` along `out.d` is the offset discrepancy of `f`.
+
+This is just the `natAbs` version of `apSum_eq_apSumOffset`.
+-/
+theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, out.apSum_eq_apSumOffset]
+
+/-- Transfer a boundedness context for `f` to a bound on the *discrepancy* of `out.g`.
+
+This is the “consumer-facing” version of `bound_apSum`.
+-/
+theorem bound_discrepancy (ctx : Context f) (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  -- `simp` turns `Int.natAbs (apSum …)` into `discrepancy …`.
+  simpa [discrepancy] using (bound_apSum (f := f) (ctx := ctx) (out := out) (n := n))
+
 end ReductionOutput
 
 /-- (Stub) Tao 2015 reduction stage.
