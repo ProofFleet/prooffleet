@@ -340,6 +340,33 @@ theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) 
     -- rewrite the discrepancy of `out.g` to `discOffset`
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-- `discOffset` is literally the absolute value of `apSumOffset`; this lemma rewrites it
+using the reduction interface. -/
+theorem natAbs_apSum_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = discOffset f out.d out.m n := by
+  -- `discOffset` is definitional; `out.apSum_contract` supplies the bridge.
+  simp [discOffset, out.apSum_contract]
+
+/-- The absolute value of the offset AP sum can be rewritten to the discrepancy of `out.g`. -/
+theorem natAbs_apSumOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumOffset f out.d out.m n) = discrepancy out.g out.d n := by
+  -- Unfold both wrappers and use the bridge rule.
+  simp [discrepancy, out.apSum_contract]
+
+/-- Any boundedness context for `f` yields bounded offset discrepancy for the parameters in `out`. -/
+theorem boundedDiscOffset_of_context (ctx : Context f) (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discOffset (f := f) (ctx := ctx) (out := out) n
+
+/-- Any boundedness context for `f` yields bounded discrepancy along `out.d` for the derived sequence `out.g`. -/
+theorem boundedDiscrepancyAlong_of_context (ctx : Context f) (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discrepancy (f := f) (ctx := ctx) (out := out) n
+
 end ReductionOutput
 
 /-- (Stub) Tao 2015 reduction stage.
