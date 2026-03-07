@@ -3634,7 +3634,12 @@ noncomputable def ofNotBoundedDiscrepancyAlong (h : ¬ BoundedDiscrepancyAlong o
   -- Rewrite `discrepancy out.g out.d n` to the bundled offset discrepancy of `f`.
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
 
-@[simp] theorem ofNotBoundedDiscrepancyAlong_unbounded (h : ¬ BoundedDiscrepancyAlong out.g out.d) :
+/-- `rfl` expansion for the `unbounded_discOffset` field of `ofNotBoundedDiscrepancyAlong`.
+
+Not marked `[simp]` because it expands to a large witness-producing lambda that tends to make
+simp goals noisier rather than shorter.
+-/
+theorem ofNotBoundedDiscrepancyAlong_unbounded (h : ¬ BoundedDiscrepancyAlong out.g out.d) :
     (ofNotBoundedDiscrepancyAlong (f := f) (out := out) h).unbounded_discOffset =
       (fun B => by
         have hdisc : ∃ n : ℕ, B < discrepancy out.g out.d n :=
