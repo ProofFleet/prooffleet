@@ -649,10 +649,8 @@ lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero {f : ℕ → ℤ} {C : �
 
 -- Backwards-compatibility: earlier versions used the slightly confusing name
 -- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m`.
-lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start {f : ℕ → ℤ} {C : ℕ} :
-    HasDiscrepancyAtLeast f C ↔
-      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
-  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C))
+-- The deprecated alias `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start` lives in
+-- `MoltResearch.Discrepancy.Deprecated`.
 
 /-- Restate `HasDiscrepancyAtLeast` using the `discrepancy` wrapper. -/
 lemma HasDiscrepancyAtLeast_iff_exists_discrepancy (f : ℕ → ℤ) (C : ℕ) :
