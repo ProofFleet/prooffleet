@@ -747,6 +747,7 @@ theorem bound_discOffset (ctx : AlongContext g d) (m n : ℕ) :
 /-- Bound AP sums of a shifted sequence (by a multiple `m*d`) in terms of an `AlongContext`.
 
 This is the normal form that comes up when re-centering a reduction step.
+-/
 theorem bound_apSum_shift_add_mul (ctx : AlongContext g d) (m n : ℕ) :
     Int.natAbs (apSum (fun k => g (k + m * d)) d n) ≤ ctx.B + ctx.B := by
   -- Rewrite the shifted AP sum to an offset sum and use `bound_apSumOffset`.
