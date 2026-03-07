@@ -4161,6 +4161,12 @@ theorem hasDiscrepancyAtLeastAlong (s2 : Stage2Output f out) (C : ℕ) :
   refine ⟨n, ?_⟩
   simpa [HasDiscrepancyAtLeastAlong, discrepancy] using hn
 
+/-- Uniform version of `hasDiscrepancyAtLeastAlong`. -/
+theorem forall_hasDiscrepancyAtLeastAlong (s2 : Stage2Output f out) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  intro C
+  exact s2.hasDiscrepancyAtLeastAlong (f := f) (out := out) C
+
 /-- A `Stage2Output` gives the ambient `HasDiscrepancyAtLeast` predicate for every threshold.
 
 This is just `hasDiscrepancyAtLeastAlong` promoted via the `d`-quantifier.
@@ -4170,6 +4176,12 @@ theorem hasDiscrepancyAtLeast (s2 : Stage2Output f out) (C : ℕ) :
   -- Promote fixed-step discrepancy witness to the existential-over-`d` form.
   exact HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C)
     out.hd (s2.hasDiscrepancyAtLeastAlong (f := f) (out := out) C)
+
+/-- Uniform version of `hasDiscrepancyAtLeast`. -/
+theorem forall_hasDiscrepancyAtLeast (s2 : Stage2Output f out) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast out.g C := by
+  intro C
+  exact s2.hasDiscrepancyAtLeast (f := f) (out := out) C
 
 /-- A `Stage2Output` yields a `discOffset` witness `> C` for the bundled parameters.
 
