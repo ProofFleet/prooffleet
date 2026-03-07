@@ -4158,6 +4158,20 @@ theorem stage2_not_boundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequenc
     stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out)
   exact (stage2_witness_discOffset_iff_not_boundedDiscrepancyAlong (f := f) (out := out)).1 hwit
 
+/-- Stage-2 helper: the stage-2 output already implies the *global* contradiction target
+`¬ BoundedDiscrepancy f`.
+
+This is the final “hop” in the plane: stage 2 produces unbounded offset discrepancy, the
+reduction interface converts that to unboundedness along `out.d`, and then `out` upgrades that
+to unboundedness of `f` itself.
+-/
+theorem stage2_not_boundedDiscrepancy (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ¬ BoundedDiscrepancy f := by
+  have hnotAlong : ¬ BoundedDiscrepancyAlong out.g out.d :=
+    stage2_not_boundedDiscrepancyAlong (f := f) (hf := hf) (ctx := ctx) (out := out)
+  exact out.not_boundedDiscrepancy_of_not_boundedDiscrepancyAlong (f := f) hnotAlong
+
 /-- Interface plumbing: convert the stage-2 output to the unboundedness normal form for the
 *reduced* sequence discrepancy.
 
