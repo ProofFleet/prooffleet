@@ -1119,6 +1119,42 @@ theorem discOffset_add_eq_discrepancy_shiftRight (out : ReductionOutput f) (m₂
     discOffset f out.d (out.m + m₂) n = discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n := by
   simpa using (out.discrepancy_shiftRight_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)).symm
 
+/-- Fixed-step discrepancy for a further-shifted reduced sequence, rewritten as a bundled offset witness.
+
+This is a small convenience lemma: it lets downstream stages immediately move from a statement
+about
+
+`HasDiscrepancyAtLeastAlong (shift out.g) out.d C`
+
+to a witness about the original sequence `f` with the accumulated offset `out.m + m₂`.
+-/
+theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_add_gt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => out.g (k + m₂ * out.d)) out.d C ↔
+      (∃ n : ℕ, discOffset f out.d (out.m + m₂) n > C) := by
+  -- Rewrite `HasDiscrepancyAtLeastAlong` into the `discrepancy` wrapper form,
+  -- then use `discrepancy_shiftRight_eq_discOffset_add`.
+  constructor
+  · intro h
+    rcases (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt
+        (f := fun k => out.g (k + m₂ * out.d)) (d := out.d) (C := C)).1 h with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_shiftRight_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)] using hn
+  · rintro ⟨n, hn⟩
+    have : discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n > C := by
+      simpa [out.discrepancy_shiftRight_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)] using hn
+    exact (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt
+        (f := fun k => out.g (k + m₂ * out.d)) (d := out.d) (C := C)).2 ⟨n, this⟩
+
+/-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_add_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_add_lt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => out.g (k + m₂ * out.d)) out.d C ↔
+      (∃ n : ℕ, C < discOffset f out.d (out.m + m₂) n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_add_gt (f := f) (m₂ := m₂) (C := C))
+
 /-!
 ### Producing a new `ReductionOutput` by shifting the reduced sequence
 
