@@ -2133,6 +2133,31 @@ theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   sorry
 
+/-- Stage-2 helper: the unboundedness witness normal form implies `¬ BoundedDiscOffset …`.
+
+This is just a packaging lemma, but it is the *exact* consumer statement most later stages want:
+we often produce explicit witnesses and then immediately flip to a negated boundedness hypothesis.
+-/
+theorem stage2_not_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ¬ BoundedDiscOffset f out.d out.m := by
+  have hwit : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n :=
+    stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out)
+  -- use the prepackaged equivalence lemma to flip witness-normal-form to `¬ bounded`.
+  exact (stage2_witness_discOffset_iff_not_boundedDiscOffset (f := f) (out := out)).1 hwit
+
+/-- Stage-2 helper: the same witness normal form implies `¬ BoundedDiscrepancyAlong out.g out.d`.
+
+This is the main “interface hop”: once the reduction has fixed `d`, contradiction stages tend to
+reason directly about boundedness along that `d`.
+-/
+theorem stage2_not_boundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ¬ BoundedDiscrepancyAlong out.g out.d := by
+  have hwit : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n :=
+    stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out)
+  exact (stage2_witness_discOffset_iff_not_boundedDiscrepancyAlong (f := f) (out := out)).1 hwit
+
 /-- Interface plumbing: convert the stage-2 output to the unboundedness normal form for the
 *reduced* sequence discrepancy.
 
