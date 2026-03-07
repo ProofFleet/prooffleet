@@ -2049,6 +2049,18 @@ theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) 
     -- rewrite back in the other direction
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-- Unfold the boundedness interface down to the raw `natAbs (apSumOffset …)` normal form.
+
+This is just `boundedDiscrepancyAlong_iff_boundedDiscOffset` plus the definitional rewrite
+`boundedDiscOffset_iff_exists_natAbs_apSumOffset_le`, but it is a very common consumer shape.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_natAbs_apSumOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  -- First hop: `BoundedDiscrepancyAlong out.g out.d ↔ BoundedDiscOffset f out.d out.m`.
+  -- Second hop: unfold `BoundedDiscOffset` to the `natAbs (apSumOffset …)` normal form.
+  simpa [boundedDiscOffset_iff_exists_natAbs_apSumOffset_le] using
+    (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f))
+
 /-- Peel the bundled offset in `out` at the level of bounded offset discrepancy.
 
 Bounding `discOffset f out.d (out.m + m₂)` uniformly in `n` is equivalent to bounding
