@@ -1159,6 +1159,22 @@ noncomputable def shiftRight₀ (out : ReductionOutput f) (m₂ : ℕ) : Reducti
     (out.shiftRight₀ (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
   rfl
 
+/-- Shifting by `0` does not change the underlying reduced sequence (extensional form). -/
+@[simp] theorem shiftRight₀_zero_g (out : ReductionOutput f) :
+    (out.shiftRight₀ (f := f) 0).g = out.g := by
+  funext k
+  simp
+
+/-- Specialized rewrite: `shiftRight₀ 0` does not change AP sums of the reduced sequence. -/
+@[simp] theorem shiftRight₀_zero_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSum (out.shiftRight₀ (f := f) 0).g out.d n = apSum out.g out.d n := by
+  simp [shiftRight₀_zero_g]
+
+/-- Specialized rewrite: `shiftRight₀ 0` does not change discrepancies of the reduced sequence. -/
+@[simp] theorem shiftRight₀_zero_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    discrepancy (out.shiftRight₀ (f := f) 0).g out.d n = discrepancy out.g out.d n := by
+  simp [shiftRight₀_zero_g]
+
 /-!
 ### Iterating `shiftRight₀`
 
