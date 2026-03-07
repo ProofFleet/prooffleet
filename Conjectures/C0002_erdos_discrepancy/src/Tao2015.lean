@@ -1290,6 +1290,15 @@ stages that repeatedly “move the basepoint”.
     (out.shiftRight (f := f) 0).g k = out.g k := by
   simpa using congrArg (fun g => g k) (out.shiftRight_zero_g (f := f))
 
+/-- Shifting by zero does not change the full `ReductionOutput`. -/
+@[simp] theorem shiftRight_zero (out : ReductionOutput f) : out.shiftRight (f := f) 0 = out := by
+  -- Prove equality by extensionality on the core data.
+  ext
+  · simp
+  · simp
+  · funext k
+    simp [ReductionOutput.shiftRight_g]
+
 /-- Shifting twice composes by addition at the level of the underlying function. -/
 @[simp] theorem shiftRight_shiftRight_g_apply (out : ReductionOutput f) (m₁ m₂ k : ℕ) :
     ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g k = out.g (k + (m₁ + m₂) * out.d) := by
@@ -1385,6 +1394,18 @@ theorem shiftRight_add (out : ReductionOutput f) (m₁ m₂ : ℕ) :
   · -- underlying reduced sequence agrees pointwise
     funext k
     simp [ReductionOutput.shiftRight_g, Nat.mul_add, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-- A simp-friendly form of `shiftRight_add`. -/
+@[simp] theorem shiftRight_shiftRight (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    (out.shiftRight (f := f) m₁).shiftRight (f := f) m₂ = out.shiftRight (f := f) (m₁ + m₂) := by
+  simpa using out.shiftRight_add (f := f) (m₁ := m₁) (m₂ := m₂)
+
+/-- Three successive shifts collapse to a single shift (simp helper). -/
+@[simp] theorem shiftRight_shiftRight_shiftRight (out : ReductionOutput f) (m₁ m₂ m₃ : ℕ) :
+    (((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).shiftRight (f := f) m₃) =
+      out.shiftRight (f := f) (m₁ + m₂ + m₃) := by
+  -- Reassociate using `shiftRight_shiftRight` twice.
+  simp [Nat.add_assoc]
 
 /-- Consumer lemma: the AP-sum bridge for the double shift can be stated using the combined shift.
 
