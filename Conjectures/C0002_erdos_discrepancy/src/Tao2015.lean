@@ -205,6 +205,22 @@ theorem bound_apSum_shift_add (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
   simpa [apSumOffset_eq_apSum_shift_add] using
     (ctx.bound_apSumOffset (f := f) (d := d) (m := m) (n := n) hd)
 
+/-- Bound a tail sum `apSumFrom f (m*d) d n` using the `Context` for prefix sums.
+
+This is just `bound_apSum_shift_add` rewritten through `apSumFrom_eq_apSum_shift_add`.
+-/
+theorem bound_apSumFrom_mul (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
+    Int.natAbs (apSumFrom f (m * d) d n) ≤ ctx.B + ctx.B := by
+  -- Rewrite to a shifted homogeneous AP sum, then use `bound_apSum_shift_add`.
+  simpa [apSumFrom_eq_apSum_shift_add] using
+    (ctx.bound_apSum_shift_add (f := f) (d := d) (m := m) (n := n) hd)
+
+/-- Uniform version of `bound_apSumFrom_mul`. -/
+theorem bound_apSumFrom_mul_forall (ctx : Context f) (d m : ℕ) (hd : d > 0) :
+    ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_apSumFrom_mul (f := f) (d := d) (m := m) (n := n) hd
+
 /-- The discrepancy bound corresponding to `bound_apSum`. -/
 theorem bound_discrepancy (ctx : Context f) (d n : ℕ) (hd : d > 0) :
     discrepancy f d n ≤ ctx.B := by
