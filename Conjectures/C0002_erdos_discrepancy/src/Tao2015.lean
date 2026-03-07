@@ -250,6 +250,31 @@ theorem discrepancy_contract_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hgEq : g =
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, apSum_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq]
 
+/-- Discrepancy bridge rule, given a pointwise bridge rule for AP sums.
+
+This is the “interface-free” version of `ReductionOutput.discrepancy_eq_discOffset`.
+It is useful when you want to reason about a reduction step *before* packaging it into a
+`ReductionOutput`.
+-/
+theorem discrepancy_contract_of_apSum_contract (f g : ℕ → ℤ) (d m : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    ∀ n : ℕ, discrepancy g d n = discOffset f d m n := by
+  intro n
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, h n]
+
+/-- Transfer contract (≤): any uniform bound on the offset discrepancy transfers to a uniform
+bound on the discrepancy of `g`.
+
+This is the “interface-free” version of the `contract_discrepancy_le` field.
+-/
+theorem contract_discrepancy_le_of_apSum_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (∀ n, discOffset f d m n ≤ B) → ∀ n, discrepancy g d n ≤ B := by
+  intro hB n
+  -- Rewrite the discrepancy of `g` to `discOffset` using `h`.
+  simpa [discrepancy, discOffset, h n] using hB n
+
 /-- The `apSum_contract` field is redundant: it is implied by `g_eq`.
 
 Keeping this lemma around makes it easy to refactor the interface later.
