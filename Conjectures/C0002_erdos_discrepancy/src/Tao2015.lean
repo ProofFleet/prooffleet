@@ -612,6 +612,33 @@ theorem discOffset_add_eq_discOffset_g (out : ReductionOutput f) (m₂ n : ℕ) 
   -- `discOffset` is just `natAbs` of `apSumOffset`.
   simp [discOffset, out.apSumOffset_add_eq_apSumOffset_g (f := f) (m₂ := m₂) (n := n)]
 
+/-- Reverse orientation of `apSumOffset_add_eq_apSumOffset_g`. -/
+theorem apSumOffset_g_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset out.g out.d m₂ n = apSumOffset f out.d (out.m + m₂) n := by
+  simpa using (out.apSumOffset_add_eq_apSumOffset_g (f := f) (m₂ := m₂) (n := n)).symm
+
+/-- Reverse orientation of `discOffset_add_eq_discOffset_g`. -/
+theorem discOffset_g_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset out.g out.d m₂ n = discOffset f out.d (out.m + m₂) n := by
+  simpa using (out.discOffset_add_eq_discOffset_g (f := f) (m₂ := m₂) (n := n)).symm
+
+/-- Rewrite a shifted AP sum of the reduced sequence into an offset sum of the reduced sequence.
+
+This is just a specialization of `apSum_shift_add_mul_eq_apSumOffset`.
+-/
+theorem apSum_shiftRight_eq_apSumOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (fun k => out.g (k + m₂ * out.d)) out.d n = apSumOffset out.g out.d m₂ n := by
+  simpa using (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := out.g) (d := out.d) (m := m₂) (n := n))
+
+/-- Rewrite a shifted AP sum of the reduced sequence directly into an offset sum of `f` with the
+bundled offset `out.m + m₂`.
+-/
+theorem apSum_shiftRight_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (fun k => out.g (k + m₂ * out.d)) out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- First rewrite to an offset sum of `out.g`, then peel the bundled offset back to `f`.
+  simpa [out.apSumOffset_g_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)] using
+    (out.apSum_shiftRight_eq_apSumOffset_g (f := f) (m₂ := m₂) (n := n))
+
 /-- `natAbs` form of the AP-sum bridge rule. -/
 theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
