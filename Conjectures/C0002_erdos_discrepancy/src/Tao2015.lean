@@ -3767,6 +3767,39 @@ theorem stage2_witness_discOffset_iff_not_boundedDiscrepancyAlong (out : Reducti
   simpa using (out.forall_exists_discOffset_gt_iff_not_boundedDiscrepancyAlong (f := f))
 
 /-!
+### Stage-2 witness ⇄ fixed-step discrepancy (our local predicate)
+
+A stage-2 reduction naturally produces witnesses about the bundled offset discrepancy
+`discOffset f out.d out.m`.  For some downstream steps, it is more convenient to work with the
+fixed-step predicate `HasDiscrepancyAtLeastAlong out.g out.d`.
+
+The next lemmas let us move between these views without any extra rewriting.
+-/
+
+/-- Convert stage-2 witnesses into the fixed-step predicate `HasDiscrepancyAtLeastAlong`. -/
+theorem forall_hasDiscrepancyAtLeastAlong_of_forall_exists_discOffset_gt (out : ReductionOutput f)
+    (h : ∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  intro C
+  -- Use the `HasDiscrepancyAtLeastAlong` ↔ `discOffset` bridge already provided by `ReductionOutput`.
+  exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).2 (h C)
+
+/-- Convert fixed-step discrepancy statements into stage-2 witnesses (discOffset form). -/
+theorem forall_exists_discOffset_gt_of_forall_hasDiscrepancyAtLeastAlong (out : ReductionOutput f)
+    (h : ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) :
+    ∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n := by
+  intro C
+  exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).1 (h C)
+
+/-- Equivalence between stage-2 witness normal form and the `HasDiscrepancyAtLeastAlong` normal form. -/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  constructor
+  · exact forall_exists_discOffset_gt_of_forall_hasDiscrepancyAtLeastAlong (f := f) (out := out)
+  · exact forall_hasDiscrepancyAtLeastAlong_of_forall_exists_discOffset_gt (f := f) (out := out)
+
+/-!
 ### Stage-2 interface packaging
 
 Once we start actually implementing Tao’s stage-2 argument, we’ll likely want to *package* its
