@@ -112,6 +112,12 @@ theorem bound_discOffset (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
     discOffset f d m n ≤ ctx.B + ctx.B := by
   simpa [discOffset] using (ctx.bound_apSumOffset (f := f) (d := d) (m := m) (n := n) hd)
 
+/-- Uniform version of `bound_discOffset`. -/
+theorem bound_discOffset_forall (ctx : Context f) (d m : ℕ) (hd : d > 0) :
+    ∀ n : ℕ, discOffset f d m n ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_discOffset (f := f) (d := d) (m := m) (n := n) hd
+
 /-- Bound a shifted homogeneous AP sum by reducing it to an offset sum.
 
 This is the “translation by a multiple of `d`” normal form.
@@ -127,10 +133,22 @@ theorem bound_discrepancy (ctx : Context f) (d n : ℕ) (hd : d > 0) :
     discrepancy f d n ≤ ctx.B := by
   simpa [discrepancy] using (ctx.bound_apSum (f := f) (d := d) (n := n) hd)
 
+/-- Uniform version of `bound_discrepancy`. -/
+theorem bound_discrepancy_forall (ctx : Context f) (d : ℕ) (hd : d > 0) :
+    ∀ n : ℕ, discrepancy f d n ≤ ctx.B := by
+  intro n
+  exact ctx.bound_discrepancy (f := f) (d := d) (n := n) hd
+
 /-- Discrepancy bound for shifted AP sums (as in `bound_apSum_shift_add`). -/
 theorem bound_discrepancy_shift_add (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
     discrepancy (fun k => f (k + m * d)) d n ≤ ctx.B + ctx.B := by
   simpa [discrepancy] using (ctx.bound_apSum_shift_add (f := f) (d := d) (m := m) (n := n) hd)
+
+/-- Uniform version of `bound_discrepancy_shift_add`. -/
+theorem bound_discrepancy_shift_add_forall (ctx : Context f) (d m : ℕ) (hd : d > 0) :
+    ∀ n : ℕ, discrepancy (fun k => f (k + m * d)) d n ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_discrepancy_shift_add (f := f) (d := d) (m := m) (n := n) hd
 
 end Context
 
