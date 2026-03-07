@@ -3105,6 +3105,38 @@ theorem exists_natAbs_apSum_gt (s2 : Stage2Output f out) (C : ℕ) :
   refine ⟨n, ?_⟩
   simpa [discrepancy] using hn
 
+/-- A `Stage2Output` yields explicit unboundedness of the **offset AP sums** packaged by `out`.
+
+This is the `natAbs(apSumOffset ...)` form of the `discOffset` witnesses.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt (s2 : Stage2Output f out) :
+    ∀ C : ℕ, ∃ n : ℕ, C < Int.natAbs (apSumOffset f out.d out.m n) := by
+  intro C
+  rcases s2.unbounded_discOffset (f := f) (out := out) C with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+/-- A `Stage2Output` yields the pipeline-friendly `HasDiscrepancyAtLeastAlong` predicate for `out.g`.
+
+This is often the easiest form to feed into later reductions that keep `d` fixed.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong (s2 : Stage2Output f out) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  intro C
+  rcases s2.exists_natAbs_apSum_gt (f := f) (out := out) C with ⟨n, hn⟩
+  exact ⟨n, hn⟩
+
+/-- A `Stage2Output` yields the ambient `HasDiscrepancyAtLeast` predicate for the reduced sequence.
+
+This is a convenient bridge when a later stage expects the standard discrepancy notion.
+-/
+theorem forall_hasDiscrepancyAtLeast (s2 : Stage2Output f out) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast out.g C := by
+  intro C
+  exact
+    HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C) out.hd
+      (s2.forall_hasDiscrepancyAtLeastAlong (f := f) (out := out) C)
+
 /-- Convert packaged stage-2 output to the propositional negated boundedness form. -/
 theorem not_boundedDiscOffset (s2 : Stage2Output f out) : ¬ BoundedDiscOffset f out.d out.m := by
   exact (stage2_witness_discOffset_iff_not_boundedDiscOffset (f := f) (out := out)).1 s2.unbounded_discOffset
