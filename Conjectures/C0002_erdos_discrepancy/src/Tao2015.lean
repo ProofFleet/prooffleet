@@ -2588,6 +2588,32 @@ theorem exists_discOffset_gt (s2 : Stage2Output f out) (C : ℕ) :
   rcases s2.unbounded_discOffset C with ⟨n, hn⟩
   exact ⟨n, hn⟩
 
+/-- A `Stage2Output` yields an `apSumOffset` witness in raw `natAbs` form.
+
+This is sometimes the easiest form to consume when staying at the “sum level”.
+-/
+theorem exists_natAbs_apSumOffset_gt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C := by
+  rcases s2.exists_discOffset_gt (f := f) (out := out) C with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+/-- A `Stage2Output` yields a discrepancy witness `> C` for the reduced sequence `out.g`. -/
+theorem exists_discrepancy_gt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  rcases s2.unbounded_discrepancy (f := f) (out := out) C with ⟨n, hn⟩
+  exact ⟨n, hn⟩
+
+/-- A `Stage2Output` yields an AP-sum witness `> C` in raw `natAbs` form for the reduced sequence.
+
+This is the `apSum` analogue of `exists_discrepancy_gt`.
+-/
+theorem exists_natAbs_apSum_gt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, Int.natAbs (apSum out.g out.d n) > C := by
+  rcases s2.exists_discrepancy_gt (f := f) (out := out) C with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discrepancy] using hn
+
 /-- Convert packaged stage-2 output to the propositional negated boundedness form. -/
 theorem not_boundedDiscOffset (s2 : Stage2Output f out) : ¬ BoundedDiscOffset f out.d out.m := by
   exact (stage2_witness_discOffset_iff_not_boundedDiscOffset (f := f) (out := out)).1 s2.unbounded_discOffset
