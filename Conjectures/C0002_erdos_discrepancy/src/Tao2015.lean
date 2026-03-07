@@ -767,12 +767,18 @@ theorem apSumOffset_add_eq_apSumFrom_shiftRight (out : ReductionOutput f) (m₂ 
     apSumOffset f out.d (out.m + m₂) n = apSumFrom out.g (m₂ * out.d) out.d n := by
   simpa using (out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)).symm
 
-/-- `natAbs` reverse orientation of `natAbs_apSumFrom_shiftRight_eq_natAbs_apSumOffset_add`. -/
+/-- `natAbs` reverse orientation of `natAbs_apSumFrom_shiftRight_eq_natAbs_apSumOffset_add`.
+
+We prove this directly from `apSumFrom_shiftRight_eq_apSumOffset_add` to avoid unnecessary
+forward references.
+-/
 theorem natAbs_apSumOffset_add_eq_natAbs_apSumFrom_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
     Int.natAbs (apSumOffset f out.d (out.m + m₂) n) =
       Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) := by
-  simpa using
-    (out.natAbs_apSumFrom_shiftRight_eq_natAbs_apSumOffset_add (f := f) (m₂ := m₂) (n := n)).symm
+  -- Take `Int.natAbs` of the AP-sum identity and flip sides.
+  have h := congrArg Int.natAbs
+    (out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n))
+  simpa using h.symm
 
 /-- Reverse orientation of `discOffset_add_eq_natAbs_apSumFrom_shiftRight`.
 
@@ -780,7 +786,8 @@ This is the bundled-offset analogue of `out.discOffset_eq_natAbs_apSumFrom`.
 -/
 theorem natAbs_apSumFrom_shiftRight_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
     Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) = discOffset f out.d (out.m + m₂) n := by
-  simpa using (out.discOffset_add_eq_natAbs_apSumFrom_shiftRight (f := f) (m₂ := m₂) (n := n)).symm
+  -- Expand `discOffset` and reuse the tail-sum rewrite.
+  simp [discOffset, out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)]
 
 /-- `natAbs` form of `apSumFrom_shiftRight_eq_apSumOffset_add`.
 
@@ -789,7 +796,9 @@ This is the cleanest bridge when you want to talk about absolute values of tail 
 theorem natAbs_apSumFrom_shiftRight_eq_natAbs_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
     Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) =
       Int.natAbs (apSumOffset f out.d (out.m + m₂) n) := by
-  simpa [out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)]
+  -- Take `Int.natAbs` of the AP-sum identity.
+  simpa using congrArg Int.natAbs
+    (out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n))
 
 /-- `discOffset` rewrite in terms of a tail sum of `out.g`.
 
@@ -797,8 +806,10 @@ This is the bundled-offset analogue of `out.discOffset_eq_natAbs_apSumFrom`.
 -/
 theorem discOffset_add_eq_natAbs_apSumFrom_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
     discOffset f out.d (out.m + m₂) n = Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) := by
-  -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
-  simp [discOffset, out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)]
+  -- Expand `discOffset`, then rewrite the offset sum as a tail sum.
+  have h := congrArg Int.natAbs
+    (out.apSumOffset_add_eq_apSumFrom_shiftRight (f := f) (m₂ := m₂) (n := n))
+  simpa [discOffset] using h
 
 /-- `natAbs` form of the AP-sum bridge rule. -/
 theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
