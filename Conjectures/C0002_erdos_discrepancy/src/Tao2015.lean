@@ -1366,6 +1366,35 @@ theorem contract_discrepancy_gt (out : ReductionOutput f) (B : ℕ) :
   -- Rewrite `discrepancy out.g` to the offset discrepancy of `f`.
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-!
+### Reverse transfer contracts
+
+These are the “backward” forms of the bundled rewrite `discrepancy_eq_discOffset`: if a downstream
+stage proves a uniform property about the reduced discrepancy family `discrepancy out.g out.d`, we
+can immediately transport it back to the original offset-discrepancy family `discOffset f …`.
+-/
+
+/-- Reverse transfer contract (≤): from a uniform bound on `discrepancy out.g out.d` to one on
+`discOffset f out.d out.m`.
+-/
+theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) → ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  intro hB n
+  -- Rewrite `discOffset` to `discrepancy out.g`.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- Reverse transfer contract (<): strict version of `contract_discOffset_le`. -/
+theorem contract_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) → ∀ n : ℕ, discOffset f out.d out.m n < B := by
+  intro hB n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- Reverse transfer contract (>): strict `>` version of `contract_discOffset_lt`. -/
+theorem contract_discOffset_gt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n > B) → ∀ n : ℕ, discOffset f out.d out.m n > B := by
+  intro hB n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
 /-- Uniform strict-inequality transport across the discrepancy bridge rule. -/
 theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
