@@ -186,6 +186,34 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
     discOffset f out.d out.m n = discrepancy out.g out.d n := by
   simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
 
+/-- A convenient “forward” transfer lemma, derived from the rewrite rule.
+
+This is logically redundant with `discrepancy_eq_discOffset`, but it is the most common way
+consumers will use the interface: reduce a uniform bound on offset discrepancies of `f` to a
+uniform bound on discrepancies of `out.g`.
+-/
+theorem discrepancy_le_of_forall_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discOffset f out.d out.m n ≤ B) :
+    ∀ n, discrepancy out.g out.d n ≤ B := by
+  intro n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- A convenient “backward” transfer lemma, derived from the rewrite rule. -/
+theorem discOffset_le_of_forall_discrepancy_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n ≤ B) :
+    ∀ n, discOffset f out.d out.m n ≤ B := by
+  intro n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- The `ReductionOutput` field `contract_discrepancy_le` is implied by the rewrite rule.
+
+We keep the field for now (it documents intent), but downstream code can rely on this lemma
+instead, which will still be available if the structure is simplified later.
+-/
+theorem contract_discrepancy_le_derived (out : ReductionOutput f) (B : ℕ) :
+    (∀ n, discOffset f out.d out.m n ≤ B) → ∀ n, discrepancy out.g out.d n ≤ B :=
+  out.discrepancy_le_of_forall_discOffset_le (f := f) (B := B)
+
 /-- Witness transfer: if some discrepancy of `out.g` is large, the corresponding offset discrepancy of `f` is large. -/
 theorem exists_discOffset_gt_of_exists_discrepancy_gt (out : ReductionOutput f) (B : ℕ) :
     (∃ n, B < discrepancy out.g out.d n) → (∃ n, B < discOffset f out.d out.m n) := by
