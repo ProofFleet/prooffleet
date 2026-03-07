@@ -625,6 +625,23 @@ theorem forall_natAbs_apSum_le_iff_forall_natAbs_apSumOffset_le (out : Reduction
   · exact out.natAbs_apSumOffset_le_of_forall_natAbs_apSum_le (f := f) (B := B)
   · exact out.natAbs_apSum_le_of_forall_natAbs_apSumOffset_le (f := f) (B := B)
 
+/-- Existence transfer for `natAbs` bounds: a large AP sum for the reduced sequence is equivalent
+to a large offset AP sum for the original sequence. -/
+theorem exists_natAbs_apSum_gt_iff_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) (B : ℕ) :
+    (∃ n, B < Int.natAbs (apSum out.g out.d n)) ↔
+      (∃ n, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa [out.apSum_contract] using hn
+  · simpa [out.apSum_contract] using hn
+
+/-- As a corollary, if the offset sums are unbounded in `natAbs`, then so are the reduced sums. -/
+theorem not_forall_natAbs_apSumOffset_le_of_not_forall_natAbs_apSum_le (out : ReductionOutput f) (B : ℕ) :
+    (¬ (∀ n, Int.natAbs (apSum out.g out.d n) ≤ B)) →
+      (¬ (∀ n, Int.natAbs (apSumOffset f out.d out.m n) ≤ B)) := by
+  intro h h'
+  -- Transfer the `∀ n` bound back to `apSum`, contradicting `h`.
+  exact h ((out.forall_natAbs_apSum_le_iff_forall_natAbs_apSumOffset_le (f := f) (B := B)).2 h')
+
 /-- Any boundedness context for `f` yields bounded offset discrepancy for the parameters in `out`. -/
 theorem boundedDiscOffset_of_context (ctx : Context f) (out : ReductionOutput f) :
     BoundedDiscOffset f out.d out.m := by
