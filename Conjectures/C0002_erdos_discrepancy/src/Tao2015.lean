@@ -1112,6 +1112,45 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
     discOffset f out.d out.m n = discrepancy out.g out.d n := by
   simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
 
+/-!
+### Bound-transfer helper lemmas
+
+These are tiny wrappers that make the `ReductionOutput` interface more ergonomic.
+They are deliberately redundant: downstream stages often have a bound in one normal form and want
+it in the other without re-running the rewrite steps manually.
+-/
+
+/-- Transfer a uniform bound on `discOffset` to a uniform bound on the reduced discrepancy.
+
+This is just the `contract_discrepancy_le` field, exposed under a more discoverable name.
+-/
+theorem bound_discrepancy_of_bound_discOffset (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B :=
+  out.contract_discrepancy_le B hB
+
+/-- Reverse transfer: a uniform bound on the reduced discrepancy is a uniform bound on `discOffset`.
+
+This does not use the contract field; it is purely the `discOffset ↔ discrepancy` rewrite rule.
+-/
+theorem bound_discOffset_of_bound_discrepancy (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discrepancy out.g out.d n ≤ B) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  intro n
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+
+/-- Pointwise form of `bound_discrepancy_of_bound_discOffset`. -/
+theorem bound_discrepancy_of_bound_discOffset_apply (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) (n : ℕ) :
+    discrepancy out.g out.d n ≤ B :=
+  (out.bound_discrepancy_of_bound_discOffset (f := f) B hB) n
+
+/-- Pointwise form of `bound_discOffset_of_bound_discrepancy`. -/
+theorem bound_discOffset_of_bound_discrepancy_apply (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discrepancy out.g out.d n ≤ B) (n : ℕ) :
+    discOffset f out.d out.m n ≤ B :=
+  (out.bound_discOffset_of_bound_discrepancy (f := f) B hB) n
+
 /-- Rewrite `apSumFrom f (m*d)` as an AP sum of the reduced sequence `out.g`.
 
 This is the most common “start at the affine point” normal form used in Tao-style reductions.
