@@ -387,6 +387,33 @@ theorem natAbs_apSumOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
   -- Unfold both wrappers and use the bridge rule.
   simp [discrepancy, out.apSum_contract]
 
+/-- `natAbs` bridge rule: absolute AP sums for `out.g` equal absolute offset AP sums for `f`. -/
+theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simp [out.apSum_contract]
+
+/-- Transfer pointwise `natAbs` bounds from offset AP sums of `f` to AP sums of `out.g`. -/
+theorem natAbs_apSum_le_of_forall_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) :
+    ∀ n, Int.natAbs (apSum out.g out.d n) ≤ B := by
+  intro n
+  simpa [out.apSum_contract] using hB n
+
+/-- Transfer pointwise `natAbs` bounds from AP sums of `out.g` to offset AP sums of `f`. -/
+theorem natAbs_apSumOffset_le_of_forall_natAbs_apSum_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, Int.natAbs (apSum out.g out.d n) ≤ B) :
+    ∀ n, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+  intro n
+  -- Orient the bridge in the other direction.
+  simpa [out.apSum_contract] using hB n
+
+/-- Uniform `natAbs` boundedness transfers across the reduction interface (as a propositional equivalence). -/
+theorem forall_natAbs_apSum_le_iff_forall_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n, Int.natAbs (apSum out.g out.d n) ≤ B) ↔ (∀ n, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  constructor
+  · exact out.natAbs_apSumOffset_le_of_forall_natAbs_apSum_le (f := f) (B := B)
+  · exact out.natAbs_apSum_le_of_forall_natAbs_apSumOffset_le (f := f) (B := B)
+
 /-- Any boundedness context for `f` yields bounded offset discrepancy for the parameters in `out`. -/
 theorem boundedDiscOffset_of_context (ctx : Context f) (out : ReductionOutput f) :
     BoundedDiscOffset f out.d out.m := by
