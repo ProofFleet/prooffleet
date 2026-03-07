@@ -4700,6 +4700,19 @@ theorem stage2_not_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
   -- use the prepackaged equivalence lemma to flip witness-normal-form to `¬ bounded`.
   exact (stage2_witness_discOffset_iff_not_boundedDiscOffset (f := f) (out := out)).1 hwit
 
+/-- Stage-2 contradiction: `Context f` gives bounded offset discrepancy, while stage 2 supplies
+unbounded offset-discrepancy witnesses.
+
+This lemma is a small but common “glue step” when a downstream stage wants to derive `False`.
+-/
+theorem stage2_contradiction (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) : False := by
+  have hb : BoundedDiscOffset f out.d out.m :=
+    boundedDiscOffset_of_context (f := f) (ctx := ctx) (out := out)
+  have hnb : ¬ BoundedDiscOffset f out.d out.m :=
+    stage2_not_boundedDiscOffset (f := f) (hf := hf) (ctx := ctx) (out := out)
+  exact hnb hb
+
 /-- Stage-2 helper: the same witness normal form implies `¬ BoundedDiscrepancyAlong out.g out.d`.
 
 This is the main “interface hop”: once the reduction has fixed `d`, contradiction stages tend to
