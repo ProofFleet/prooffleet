@@ -734,6 +734,42 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutp
   -- Note: `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_discOffset (f := f) (C := C))
 
+/-!
+### Shifting the reduced sequence
+
+A common pattern in multi-stage reductions is to shift the already-reduced sequence `out.g` by an
+additional multiple `m₂*out.d`.  This corresponds to increasing the bundled offset parameter from
+`out.m` to `out.m + m₂`.
+
+The next lemma packages that rewrite at the level of the pipeline-friendly predicate
+`HasDiscrepancyAtLeastAlong`.
+-/
+
+/-- Fixed-step discrepancy for an additional shift of `out.g` is exactly a `discOffset` witness for
+`f` with the *bundled* offset `out.m + m₂`.
+
+This is a convenience lemma combining `out.g_eq` with
+`hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt`.
+-/
+theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_gt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => out.g (k + m₂ * out.d)) out.d C ↔
+      (∃ n : ℕ, discOffset f out.d (out.m + m₂) n > C) := by
+  -- Rewrite the shifted reduced sequence as a single shift of `f`.
+  have hcongr :
+      HasDiscrepancyAtLeastAlong (fun k => out.g (k + m₂ * out.d)) out.d C ↔
+        HasDiscrepancyAtLeastAlong (fun k => f (k + (out.m + m₂) * out.d)) out.d C := by
+    -- `out.g k = f (k + out.m*out.d)`.
+    -- So `out.g (k + m₂*out.d) = f (k + (out.m+m₂)*out.d)`.
+    -- (Associativity/commutativity of addition handles the rearrangement.)
+    simpa [out.g_eq, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add,
+      Nat.mul_assoc] 
+  -- Now apply the generic rewrite lemma for shifts of `f`.
+  simpa using
+    (hcongr.trans
+      (Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt
+        (f := f) (d := out.d) (m := out.m + m₂) (C := C)))
+
 /-- A fixed-step discrepancy witness for `out.g` yields a standard discrepancy witness.
 
 This is the bridge from our pipeline-friendly predicate `HasDiscrepancyAtLeastAlong` to the
