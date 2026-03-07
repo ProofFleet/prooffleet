@@ -3527,6 +3527,40 @@ theorem not_boundedDiscrepancy_of_forall_exists_natAbs_apSum_gt (out : Reduction
     simpa [discrepancy] using hn
   exact out.not_boundedDiscrepancy_of_forall_exists_discrepancy_gt (f := f) h'
 
+/-- Fixed-step unboundedness for the reduced sequence `out.g` is equivalent to unboundedness of
+(the bundled) offset discrepancy of the original sequence `f`.
+
+This is a key “consumer-facing” bridge: downstream reductions often naturally produce an
+unboundedness statement in the `HasDiscrepancyAtLeastAlong` normal form.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  constructor
+  · intro h C
+    -- specialize the `C`-witness and rewrite to a `discOffset` witness
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).1 (h C)
+  · intro h C
+    -- rewrite the `discOffset` witness back to the reduced fixed-step predicate
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).2 (h C)
+
+/-- If `out.g` is unbounded along `out.d` (in the `HasDiscrepancyAtLeastAlong` normal form), then
+`f` has unbounded discrepancy.
+
+This is a convenience wrapper around
+`not_boundedDiscrepancy_of_not_boundedDiscrepancyAlong` plus the standard
+`∀ C, HasDiscrepancyAtLeastAlong ↔ ¬BoundedDiscrepancyAlong` equivalence.
+-/
+theorem not_boundedDiscrepancy_of_forall_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) → (¬ BoundedDiscrepancy f) := by
+  intro h
+  have hnotAlong : ¬ BoundedDiscrepancyAlong out.g out.d := by
+    -- This equivalence is proved earlier in the file.
+    exact
+      (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
+        (g := out.g) (d := out.d)).1 h
+  exact out.not_boundedDiscrepancy_of_not_boundedDiscrepancyAlong (f := f) hnotAlong
+
 /-- Produce an `AlongContext` for `out.g` from a global boundedness context on `f`.
 
 This is a small wrapper around `AlongContext.ofContext` that keeps consumers inside the
