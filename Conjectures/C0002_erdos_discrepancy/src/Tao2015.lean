@@ -1072,6 +1072,27 @@ noncomputable def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionO
   classical
   simp [ReductionOutput.shiftRight_g]
 
+/-- `shiftRight` repackages the additional shift as a reduction output for `f`.
+
+This lemma exposes the `g_eq` field of the constructed `ReductionOutput` in a simp-friendly way.
+-/
+@[simp] theorem shiftRight_g_eq (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight (f := f) m₂).g = fun k => f (k + (out.m + m₂) * out.d) := by
+  -- This is exactly the `g_eq` field of the repackaged output.
+  simpa using (out.shiftRight (f := f) m₂).g_eq
+
+/-- `shiftRight` satisfies the reduction bridge rule, stated directly for the repackaged sequence. -/
+@[simp] theorem apSum_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (out.shiftRight (f := f) m₂).g out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- `ReductionOutput.apSum_eq_apSumOffset` already provides the bridge.
+  simpa using (ReductionOutput.apSum_eq_apSumOffset (f := f) (out := out.shiftRight (f := f) m₂) n)
+
+/-- Discrepancy bridge rule for `shiftRight`, stated directly for the repackaged sequence. -/
+@[simp] theorem discrepancy_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (out.shiftRight (f := f) m₂).g out.d n = discOffset f out.d (out.m + m₂) n := by
+  -- Same idea as `apSum_shiftRight`, but for the `natAbs` wrapper.
+  simpa using (ReductionOutput.discrepancy_eq_discOffset (f := f) (out := out.shiftRight (f := f) m₂) n)
+
 /-- `shiftRight` composes offsets at the level of AP sums: it rewrites to `apSumOffset` with the
 combined offset multiplier `out.m + m₂`.
 -/
