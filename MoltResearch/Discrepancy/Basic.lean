@@ -629,10 +629,12 @@ lemma HasDiscrepancyAtLeast_iff_exists_witness_pos {f : ℕ → ℤ} {C : ℕ} :
   · rintro ⟨d, n, hd, hn, hgt⟩
     exact ⟨d, n, hd, hgt⟩
 
-/-- Deprecated: the suffix `_zero` is ambiguous (it clashes with the convention `*_zero` for
-"length = 0" lemmas like `apSumOffset_zero`). Use `_zero_start` instead. -/
-@[deprecated "Use `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`." (since := "2026-03-06")]
-lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero {f : ℕ → ℤ} {C : ℕ} :
+/-- Normal form: rewrite `HasDiscrepancyAtLeast` using the offset-sum API `apSumOffset … 0 n`.
+
+This is definitionally the same notion (since `apSumOffset f d 0 n = apSum f d n`), but it is
+sometimes more convenient when downstream developments are already in the “tail sum” vocabulary.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start {f : ℕ → ℤ} {C : ℕ} :
     HasDiscrepancyAtLeast f C ↔
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
   constructor
@@ -651,18 +653,9 @@ lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero {f : ℕ → ℤ} {C : �
     -- rewrite the offset-sum witness back into the homogeneous-sum form.
     simpa [h0] using hgt
 
-/-- Normal form: rewrite `HasDiscrepancyAtLeast` using the offset-sum API `apSumOffset … 0 n`.
-
-This is definitionally the same notion (since `apSumOffset f d 0 n = apSum f d n`), but it is
-sometimes more convenient when downstream developments are already in the “tail sum” vocabulary.
--/
-lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start {f : ℕ → ℤ} {C : ℕ} :
-    HasDiscrepancyAtLeast f C ↔
-      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
-  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C))
-
--- Backwards-compatibility: earlier versions used the slightly confusing name
--- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m`; the deprecated alias lives in
+-- Backwards-compatibility: earlier versions used the slightly confusing names
+-- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` and
+-- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m`; the deprecated aliases live in
 -- `MoltResearch.Discrepancy.Deprecated`.
 
 /-- Restate `HasDiscrepancyAtLeast` using the `discrepancy` wrapper. -/

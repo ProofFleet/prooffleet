@@ -266,11 +266,12 @@ normal-form rewrite of the witness expression.)
 This is convenient when downstream steps want to rewrite start-index shifts via
 `apSumOffset_shift_start_add*`.
 -/
-lemma HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero {f : ℕ → ℤ} {a C : ℕ} :
+lemma HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero_start {f : ℕ → ℤ} {a C : ℕ} :
     HasDiscrepancyAtLeast (fun k => f (k + a)) C ↔
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset (fun k => f (k + a)) d 0 n) > C := by
-  -- This is just `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` applied to the shifted function.
-  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := fun k => f (k + a)) (C := C))
+  -- This is just `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start` applied to the shifted function.
+  simpa using
+    (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := fun k => f (k + a)) (C := C))
 
 /-! ### Translation normal form via div/mod (witness-level)
 

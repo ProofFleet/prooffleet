@@ -1997,7 +1997,8 @@ example (k C : ℕ) :
 example (k C : ℕ) :
     HasDiscrepancyAtLeast (fun x => f (x + k)) C ↔
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset (fun x => f (x + k)) d 0 n) > C := by
-  simpa using (HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero (f := f) (a := k) (C := C))
+  simpa using
+    (HasDiscrepancyAtLeast_shift_add_iff_exists_apSumOffset_zero_start (f := f) (a := k) (C := C))
 
 example (c : ℤ) (hc : c ≠ 0) (C : ℕ) :
     HasDiscrepancyAtLeast f C → HasDiscrepancyAtLeast (fun n => c * f n) C := by
