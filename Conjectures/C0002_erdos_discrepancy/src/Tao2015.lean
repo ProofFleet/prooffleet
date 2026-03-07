@@ -724,6 +724,20 @@ theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f)
   · intro h n
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
 
+/-- A convenient forward transfer lemma, strict version (`<`). -/
+theorem discrepancy_lt_of_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discOffset f out.d out.m n < B) :
+    ∀ n, discrepancy out.g out.d n < B := by
+  intro n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- A convenient backward transfer lemma, strict version (`<`). -/
+theorem discOffset_lt_of_forall_discrepancy_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n < B) :
+    ∀ n, discOffset f out.d out.m n < B := by
+  intro n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
 /-- Existence transfer: exhibiting an offset discrepancy `> B` is equivalent to exhibiting a discrepancy `> B` for `out.g`. -/
 theorem exists_discOffset_gt_iff_exists_discrepancy_gt (out : ReductionOutput f) (B : ℕ) :
     (∃ n, B < discOffset f out.d out.m n) ↔ (∃ n, B < discrepancy out.g out.d n) := by
