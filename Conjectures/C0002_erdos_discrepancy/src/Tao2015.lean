@@ -1120,6 +1120,35 @@ theorem shiftRight_bound_discrepancy (ctx : AlongContext g d) (m n : ℕ) :
   simpa [AlongContext.shiftRight] using
     (ctx.bound_discrepancy_shift_add_mul (g := g) (d := d) (m := m) (n := n))
 
+/-- `apSum` bound coming from `AlongContext.shiftRight`.
+
+This is just the `natAbs (apSum …)` form of `shiftRight_bound_discrepancy`.
+-/
+theorem shiftRight_bound_apSum (ctx : AlongContext g d) (m n : ℕ) :
+    Int.natAbs (apSum (fun k => g (k + m * d)) d n) ≤ (ctx.shiftRight (g := g) (d := d) m).B := by
+  -- Unfold `shiftRight` and reuse `bound_apSum_shift_add_mul`.
+  simpa [discrepancy, AlongContext.shiftRight] using
+    (ctx.bound_apSum_shift_add_mul (g := g) (d := d) (m := m) (n := n))
+
+/-- Offset-AP-sum bound coming from `AlongContext.shiftRight`.
+
+Downstream steps often shift `g` first and then take offset sums; this lemma is the direct
+packaged estimate.
+-/
+theorem shiftRight_bound_apSumOffset (ctx : AlongContext g d) (m m₂ n : ℕ) :
+    Int.natAbs (apSumOffset (fun k => g (k + m * d)) d m₂ n)
+      ≤ (ctx.shiftRight (g := g) (d := d) m).B + (ctx.shiftRight (g := g) (d := d) m).B := by
+  -- Use the generic `AlongContext` offset-sum bound on the shifted context.
+  simpa using
+    ((ctx.shiftRight (g := g) (d := d) m).bound_apSumOffset
+      (g := fun k => g (k + m * d)) (d := d) (m := m₂) (n := n))
+
+/-- Discrepancy wrapper version of `shiftRight_bound_apSumOffset`. -/
+theorem shiftRight_bound_discOffset (ctx : AlongContext g d) (m m₂ n : ℕ) :
+    discOffset (fun k => g (k + m * d)) d m₂ n
+      ≤ (ctx.shiftRight (g := g) (d := d) m).B + (ctx.shiftRight (g := g) (d := d) m).B := by
+  simpa [discOffset] using (shiftRight_bound_apSumOffset (g := g) (d := d) ctx m m₂ n)
+
 end AlongContext
 
 /-- Unfold `BoundedDiscrepancyAlong` into a uniform bound on absolute AP sums. -/
