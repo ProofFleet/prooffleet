@@ -274,6 +274,16 @@ section
   #check apSum_map_mul
   #check apSumFrom_shift_add
 
+  -- Degenerate-simp lemmas (canonical naming)
+  #check apSum_zero
+  #check apSum_one
+  #check apSumOffset_zero
+  #check apSumOffset_one
+  #check apSumOffset_zero_start
+  #check apSumFrom_zero
+  #check apSumFrom_one
+  #check apSumFrom_zero_start
+
   /-!
   ## Absence checks (deprecated names must NOT be in the stable surface)
 
@@ -485,6 +495,24 @@ section
   /-- error: Unknown identifier `apSumFrom_eq_apSumOffset_step_one_zero_m_add_left` -/
   #guard_msgs in
   #check apSumFrom_eq_apSumOffset_step_one_zero_m_add_left
+
+  -- Deprecated aliases for degenerate-simp lemmas (must NOT be in the stable surface)
+
+  /-- error: Unknown identifier `apSumOffset_zero_n` -/
+  #guard_msgs in
+  #check apSumOffset_zero_n
+
+  /-- error: Unknown identifier `apSumOffset_zero_m` -/
+  #guard_msgs in
+  #check apSumOffset_zero_m
+
+  /-- error: Unknown identifier `apSumFrom_zero_a` -/
+  #guard_msgs in
+  #check apSumFrom_zero_a
+
+  /-- error: Unknown identifier `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m` -/
+  #guard_msgs in
+  #check HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m
 end
 
 /-!
