@@ -1719,6 +1719,15 @@ theorem exists_discOffset_gt_iff_exists_discrepancy_gt (out : ReductionOutput f)
   · exact out.exists_discrepancy_gt_of_exists_discOffset_gt (f := f) (B := B)
   · exact out.exists_discOffset_gt_of_exists_discrepancy_gt (f := f) (B := B)
 
+/-- Same as `exists_discOffset_gt_iff_exists_discrepancy_gt`, but with inequalities oriented as `... > C`.
+
+This form is occasionally more convenient when a downstream lemma naturally produces a `>` inequality.
+-/
+theorem exists_discOffset_gt_iff_exists_discrepancy_gt' (out : ReductionOutput f) (C : ℕ) :
+    (∃ n, discOffset f out.d out.m n > C) ↔ (∃ n, discrepancy out.g out.d n > C) := by
+  -- Normalize `a > b` to `b < a`, then use the existing lemma.
+  simpa [gt_iff_lt] using (out.exists_discOffset_gt_iff_exists_discrepancy_gt (f := f) (B := C))
+
 /-- Uniform transfer of the unboundedness normal form, stated pointwise in `B`.
 
 This is a tiny lemma, but it's the exact *shape* downstream contradiction stages often output.
