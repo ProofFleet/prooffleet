@@ -641,12 +641,17 @@ noncomputable def alongContextOfBoundedDiscOffset (out : ReductionOutput f)
 /-- Convert an `AlongContext` for the reduced sequence into bounded *offset* discrepancy for `f`.
 
 This is the “reverse direction” of `alongContextOfBoundedDiscOffset`.
+
+Note: we prove this directly from the bridge rule `out.apSum_contract` rather than appealing to
+`boundedDiscrepancyAlong_iff_boundedDiscOffset`, since that equivalence is stated later in the file.
 -/
 theorem boundedDiscOffset_of_alongContext (out : ReductionOutput f) (ctx : AlongContext out.g out.d) :
     BoundedDiscOffset f out.d out.m := by
-  -- `ctx` bounds discrepancies of `out.g`; transfer across the reduction interface.
-  have hAlong : BoundedDiscrepancyAlong out.g out.d := ctx.boundedDiscrepancyAlong (g := out.g) (d := out.d)
-  exact (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f)).1 hAlong
+  refine ⟨ctx.B, ?_⟩
+  intro n
+  -- `discOffset` is the absolute value of the offset AP sum; rewrite to `apSum out.g` and use `ctx`.
+  have : Int.natAbs (apSum out.g out.d n) ≤ ctx.B := ctx.bound n
+  simpa [discOffset, out.apSum_contract] using this
 
 /-- Convert an `AlongContext` for the reduced sequence into a uniform bound on `discOffset`.
 
