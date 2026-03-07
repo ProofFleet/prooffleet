@@ -685,6 +685,52 @@ theorem discOffset_add_eq_discrepancy_shiftRight (out : ReductionOutput f) (m₂
     discOffset f out.d (out.m + m₂) n = discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n := by
   simpa using (out.discrepancy_shiftRight_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)).symm
 
+/-!
+### Tail-sum (`apSumFrom`) rewrites for shifted reductions
+
+Downstream stages often prefer the “tail sum” API `apSumFrom` (start at a base point `a` and take
+an AP with step `d`).  When we shift the reduced sequence `out.g` by an additional multiple
+`m₂*out.d`, it is convenient to have ready-made rewrite rules that keep everything in
+`apSumFrom` / `apSumOffset` normal forms.
+-/
+
+/-- Shifting `out.g` by `m₂*out.d` and taking an AP sum is the same as taking a tail sum of `out.g`.
+
+This is just the definitional bridge `apSumFrom_eq_apSum_shift_add` specialized to the shift
+`a = m₂*out.d`.
+-/
+theorem apSumFrom_shiftRight_eq_apSum (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom out.g (m₂ * out.d) out.d n = apSum (fun k => out.g (k + m₂ * out.d)) out.d n := by
+  simpa using
+    (apSumFrom_eq_apSum_shift_add (f := out.g) (a := m₂ * out.d) (d := out.d) (n := n))
+
+/-- Tail-sum rewrite: `apSumFrom out.g (m₂*out.d)` is an offset AP sum of `f` with bundled offset
+`out.m + m₂`.
+-/
+theorem apSumFrom_shiftRight_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom out.g (m₂ * out.d) out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- Rewrite `apSumFrom` to an AP sum of the shifted reduced sequence, then apply the existing bridge.
+  simpa [apSumFrom_eq_apSum_shift_add] using
+    (out.apSum_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n))
+
+/-- `natAbs` form of `apSumFrom_shiftRight_eq_apSumOffset_add`.
+
+This is the cleanest bridge when you want to talk about absolute values of tail sums.
+-/
+theorem natAbs_apSumFrom_shiftRight_eq_natAbs_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) =
+      Int.natAbs (apSumOffset f out.d (out.m + m₂) n) := by
+  simpa [out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)]
+
+/-- `discOffset` rewrite in terms of a tail sum of `out.g`.
+
+This is the bundled-offset analogue of `out.discOffset_eq_natAbs_apSumFrom`.
+-/
+theorem discOffset_add_eq_natAbs_apSumFrom_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) := by
+  -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+  simp [discOffset, out.apSumFrom_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)]
+
 /-- `natAbs` form of the AP-sum bridge rule. -/
 theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
