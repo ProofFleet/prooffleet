@@ -274,6 +274,58 @@ lemma of_exists_discrepancy_gt {f : ℕ → ℤ} {d C : ℕ} (h : ∃ n : ℕ, d
 
 end HasDiscrepancyAtLeastAlong
 
+/-!
+### A common special case: fixed-step discrepancy of a shifted sequence
+
+Many pipeline steps define a new sequence by shifting the original one by a multiple of the
+common difference `d`.  The following lemmas let us immediately rewrite the resulting
+`HasDiscrepancyAtLeastAlong` statements into `discOffset` / `apSumOffset` witnesses.
+-/
+
+/-- Fixed-step discrepancy for a shifted sequence is the same as an offset-discrepancy witness.
+
+This is a convenience lemma combining
+`HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt` with the rewrite
+`discrepancy_shift_add_mul_eq_discOffset`.
+-/
+theorem hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt
+    (f : ℕ → ℤ) (d m C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔
+      (∃ n : ℕ, discOffset f d m n > C) := by
+  -- First rewrite `HasDiscrepancyAtLeastAlong` into the `discrepancy` wrapper form.
+  -- Then rewrite `discrepancy (shift f)` into `discOffset f`.
+  constructor
+  · intro h
+    rcases (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt
+        (f := fun k => f (k + m * d)) (d := d) (C := C)).1 h with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using hn
+  · rintro ⟨n, hn⟩
+    have : discrepancy (fun k => f (k + m * d)) d n > C := by
+      simpa [discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using hn
+    exact (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt
+        (f := fun k => f (k + m * d)) (d := d) (C := C)).2 ⟨n, this⟩
+
+/-- `natAbs` (sum-level) version of `hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_natAbs_apSumOffset_gt
+    (f : ℕ → ℤ) (d m C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > C) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using
+    (hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt (f := f) (d := d) (m := m) (C := C))
+
+/-- A further convenience: rewrite the shifted fixed-step predicate into a `discOffset` witness
+with the inequality oriented as `C < ...`.
+-/
+theorem hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_lt
+    (f : ℕ → ℤ) (d m C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔
+      (∃ n : ℕ, C < discOffset f d m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt (f := f) (d := d) (m := m) (C := C))
+
 /-- Output of the first major reduction stage of Tao 2015.
 
 This is the first **nontrivial interface** we want downstream steps to consume.
