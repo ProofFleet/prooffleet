@@ -672,6 +672,53 @@ theorem BoundedDiscOffset.exists_bound {f : ℕ → ℤ} {d m : ℕ} :
     BoundedDiscOffset f d m → ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B := by
   intro h; simpa [BoundedDiscOffset] using h
 
+/-- Unboundedness normal form for `BoundedDiscrepancyAlong`.
+
+This is the shape downstream contradiction stages usually want: for every proposed bound `B`,
+there is some `n` with discrepancy exceeding `B`.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g : ℕ → ℤ) (d : ℕ) :
+    (¬ BoundedDiscrepancyAlong g d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discrepancy g d n) := by
+  classical
+  constructor
+  · intro h B
+    by_contra h'
+    -- `h'` says: for this `B`, we do *not* have an `n` with `B < discrepancy g d n`.
+    -- Hence all discrepancies are ≤ `B`, contradicting `h`.
+    have h_le : ∀ n : ℕ, discrepancy g d n ≤ B := by
+      intro n
+      -- If `discrepancy g d n ≤ B` failed, we'd have `B < discrepancy g d n`.
+      have : ¬ B < discrepancy g d n := by
+        intro hn
+        exact h' ⟨n, hn⟩
+      exact le_of_not_gt this
+    exact h ⟨B, h_le⟩
+  · intro h
+    intro hbd
+    rcases hbd with ⟨B, hB⟩
+    rcases h B with ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n)) hn
+
+/-- Unboundedness normal form for `BoundedDiscOffset`. -/
+theorem not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ BoundedDiscOffset f d m) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  classical
+  constructor
+  · intro h B
+    by_contra h'
+    have h_le : ∀ n : ℕ, discOffset f d m n ≤ B := by
+      intro n
+      have : ¬ B < discOffset f d m n := by
+        intro hn
+        exact h' ⟨n, hn⟩
+      exact le_of_not_gt this
+    exact h ⟨B, h_le⟩
+  · intro h
+    intro hbd
+    rcases hbd with ⟨B, hB⟩
+    rcases h B with ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n)) hn
+
 /-- Offset sum with zero offset is just the original AP sum. -/
 theorem apSumOffset_zero (f : ℕ → ℤ) (d n : ℕ) : apSumOffset f d 0 n = apSum f d n := by
   -- `apSumOffset` is defined as an `apSum` of a shifted sequence.
