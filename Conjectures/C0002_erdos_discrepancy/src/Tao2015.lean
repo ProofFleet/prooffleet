@@ -746,6 +746,13 @@ theorem mkShiftOfSign_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ)
   -- This is definitional: `mkShift` fills the bridge rule by rewriting `apSumOffset`.
   simp [mkShiftOfSign, mkShift]
 
+@[simp] theorem mkShiftOfSign_discrepancy_contract (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (n : ℕ) :
+    discrepancy (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g d n =
+      discOffset f d m n := by
+  -- Both sides are definitional wrappers around `Int.natAbs` and `mkShift` fills the AP-sum bridge.
+  simp [discrepancy, discOffset, mkShiftOfSign, mkShift]
+
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
 
 This is occasionally useful as a “do-nothing” reduction step when you want to express later stages
