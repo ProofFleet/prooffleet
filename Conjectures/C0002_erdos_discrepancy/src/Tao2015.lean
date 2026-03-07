@@ -1060,6 +1060,18 @@ noncomputable def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionO
   classical
   rfl
 
+/-- The positivity witness `hd` is unchanged by `shiftRight`. -/
+@[simp] theorem shiftRight_hd (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight (f := f) m₂).hd = out.hd := by
+  classical
+  rfl
+
+/-- Pointwise form of `shiftRight_g`. -/
+@[simp] theorem shiftRight_g_apply (out : ReductionOutput f) (m₂ k : ℕ) :
+    (out.shiftRight (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
+  classical
+  simp [ReductionOutput.shiftRight_g]
+
 /-- `shiftRight` composes offsets at the level of AP sums: it rewrites to `apSumOffset` with the
 combined offset multiplier `out.m + m₂`.
 -/
@@ -1068,6 +1080,12 @@ combined offset multiplier `out.m + m₂`.
   -- This is exactly the `apSum_contract` field of the constructed reduction output.
   simpa [ReductionOutput.shiftRight_g] using
     (out.shiftRight (f := f) m₂).apSum_contract n
+
+/-- Discrepancy version of `apSum_shiftRight_eq_apSumOffset`. -/
+@[simp] theorem discrepancy_shiftRight_eq_discOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n = discOffset f out.d (out.m + m₂) n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, out.apSum_shiftRight_eq_apSumOffset (f := f) (m₂ := m₂) (n := n)]
 
 /-- Equivalence of boundedness notions across the reduction interface. -/
 theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) :
