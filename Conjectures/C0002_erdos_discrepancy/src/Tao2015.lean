@@ -3450,6 +3450,12 @@ theorem exists_discOffset_lt (s2 : Stage2Output f out) (C : ℕ) :
     ∃ n : ℕ, C < discOffset f out.d out.m n := by
   simpa [gt_iff_lt] using s2.exists_discOffset_gt (f := f) (out := out) C
 
+/-- Uniform version of `exists_discOffset_lt`. -/
+theorem forall_exists_discOffset_lt (s2 : Stage2Output f out) :
+    ∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n := by
+  intro C
+  exact s2.exists_discOffset_lt (f := f) (out := out) C
+
 /-- A `Stage2Output` yields an `apSumOffset` witness in raw `natAbs` form.
 
 This is sometimes the easiest form to consume when staying at the “sum level”.
