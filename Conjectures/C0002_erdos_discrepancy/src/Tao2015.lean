@@ -3618,6 +3618,23 @@ theorem stage2_unbounded_discOffset_of_not_boundedDiscOffset (f : ℕ → ℤ) (
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   exact (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)).1 h
 
+/-- Extract a single witness `> C` from `¬ BoundedDiscOffset …`.
+
+This is the “one-shot” form of `stage2_unbounded_discOffset_of_not_boundedDiscOffset`.
+-/
+theorem stage2_exists_discOffset_gt_of_not_boundedDiscOffset (f : ℕ → ℤ) (out : ReductionOutput f)
+    (h : ¬ BoundedDiscOffset f out.d out.m) (C : ℕ) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C := by
+  rcases stage2_unbounded_discOffset_of_not_boundedDiscOffset (f := f) (out := out) h C with ⟨n, hn⟩
+  exact ⟨n, hn⟩
+
+/-- `C < discOffset ...` form of `stage2_exists_discOffset_gt_of_not_boundedDiscOffset`. -/
+theorem stage2_exists_discOffset_lt_of_not_boundedDiscOffset (f : ℕ → ℤ) (out : ReductionOutput f)
+    (h : ¬ BoundedDiscOffset f out.d out.m) (C : ℕ) :
+    ∃ n : ℕ, C < discOffset f out.d out.m n := by
+  simpa [gt_iff_lt] using
+    stage2_exists_discOffset_gt_of_not_boundedDiscOffset (f := f) (out := out) h C
+
 /-- Stage-2 helper: the unboundedness witness normal form implies `¬ BoundedDiscOffset …`.
 
 This is just a packaging lemma, but it is the *exact* consumer statement most later stages want:
