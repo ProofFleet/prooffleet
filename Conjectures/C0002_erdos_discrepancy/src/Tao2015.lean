@@ -483,6 +483,30 @@ theorem bound_discrepancy (ctx : Context f) (out : ReductionOutput f) (n : ℕ) 
   -- `simp` turns `Int.natAbs (apSum …)` into `discrepancy …`.
   simpa [discrepancy] using (bound_apSum (f := f) (ctx := ctx) (out := out) (n := n))
 
+/-- Uniform `∀ n` version of `bound_apSum`. -/
+theorem bound_apSum_forall (ctx : Context f) (out : ReductionOutput f) :
+    ∀ n : ℕ, Int.natAbs (apSum out.g out.d n) ≤ ctx.B + ctx.B := by
+  intro n
+  exact out.bound_apSum (f := f) (ctx := ctx) (out := out) n
+
+/-- Uniform `∀ n` version of `bound_apSumOffset`. -/
+theorem bound_apSumOffset_forall (ctx : Context f) (out : ReductionOutput f) :
+    ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B + ctx.B := by
+  intro n
+  exact out.bound_apSumOffset (f := f) (ctx := ctx) (out := out) n
+
+/-- Uniform `∀ n` version of `bound_discOffset`. -/
+theorem bound_discOffset_forall (ctx : Context f) (out : ReductionOutput f) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+  intro n
+  exact out.bound_discOffset (f := f) (ctx := ctx) (out := out) n
+
+/-- Uniform `∀ n` version of `bound_discrepancy`. -/
+theorem bound_discrepancy_forall (ctx : Context f) (out : ReductionOutput f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  intro n
+  exact out.bound_discrepancy (f := f) (ctx := ctx) (out := out) n
+
 /-- A lightweight “bounded discrepancy” notion along a *single* common difference `d`.
 
 This is the natural consumer form after applying Tao’s first reduction: downstream steps
