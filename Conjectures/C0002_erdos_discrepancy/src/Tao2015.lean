@@ -1195,19 +1195,25 @@ provide function-level and parameter-level equalities instead.
   -- Both sides reduce to `out.m + m₁ + m₂`.
   simp [Nat.add_assoc]
 
-/-- Consumer lemma: the AP-sum bridge for the double shift can be stated using the combined shift. -/
+/-- Consumer lemma: the AP-sum bridge for the double shift can be stated using the combined shift.
+
+This avoids any dependency on later “bridge” lemmas; it is just congruence along the function-level
+associativity lemma `shiftRight_add_g`.
+-/
 @[simp] theorem apSum_shiftRight_shiftRight_eq_apSum_shiftRight_add (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
     apSum (((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g) out.d n =
       apSum ((out.shiftRight (f := f) (m₁ + m₂)).g) out.d n := by
-  -- Rewrite both sides to the same `apSumOffset` normal form.
-  simp [apSum_shiftRight_shiftRight, apSum_shiftRight, Nat.add_assoc]
+  -- `shiftRight_add_g` identifies the underlying reduced sequences; apply `apSum` congruently.
+  simpa using congrArg (fun g => apSum g out.d n) (out.shiftRight_add_g (f := f) (m₁ := m₁) (m₂ := m₂))
 
-/-- Discrepancy analogue of `apSum_shiftRight_shiftRight_eq_apSum_shiftRight_add`. -/
+/-- Discrepancy analogue of `apSum_shiftRight_shiftRight_eq_apSum_shiftRight_add`.
+
+As above, this is a pure congruence consequence of `shiftRight_add_g`.
+-/
 @[simp] theorem discrepancy_shiftRight_shiftRight_eq_discrepancy_shiftRight_add (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
     discrepancy (((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g) out.d n =
       discrepancy ((out.shiftRight (f := f) (m₁ + m₂)).g) out.d n := by
-  -- Rewrite both sides to the same `discOffset` normal form.
-  simp [discrepancy_shiftRight_shiftRight, discrepancy_shiftRight, Nat.add_assoc]
+  simpa using congrArg (fun g => discrepancy g out.d n) (out.shiftRight_add_g (f := f) (m₁ := m₁) (m₂ := m₂))
 
 /-!
 ### Tiny consumer lemmas for repeated shifts
