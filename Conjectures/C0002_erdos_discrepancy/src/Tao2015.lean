@@ -1280,6 +1280,64 @@ theorem discOffset_eq_discOffset_add_right (out : ReductionOutput f) (m₂ n : �
   simpa using (out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)).symm
 
 /-!
+### Composing the first reduction with an additional shift
+
+After producing a reduction output `out`, downstream stages often want to “shift again” by a
+multiple of the *same* common difference `out.d`.
+
+Instead of manually re-proving the bridge/contract fields each time, we provide a small helper
+constructor that composes `out` with a further shift.
+-/
+
+/-- Shift the reduced sequence `out.g` by an additional multiple `m₂*out.d`, and repackage it as a
+new `ReductionOutput` for the original sequence `f`.
+
+The new parameters are:
+- same `d`
+- new offset multiplier `m := out.m + m₂`
+- derived sequence `g' k := out.g (k + m₂*out.d)`
+
+All interface fields are filled using the existing bridge lemmas in this file.
+-/
+noncomputable def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionOutput f := by
+  classical
+  -- Define the further-shifted reduced sequence.
+  let g' : ℕ → ℤ := fun k => out.g (k + m₂ * out.d)
+  have hg' : IsSignSequence g' :=
+    Tao2015.IsSignSequence.shift_add_mul (f := out.g) out.hg m₂ out.d
+  -- `g'` is also a shift of `f` by `(out.m+m₂)*out.d`.
+  have hg'_eq : g' = fun k => f (k + (out.m + m₂) * out.d) := by
+    funext k
+    simp [g', out.g_eq, Nat.add_mul, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm, Nat.add_assoc, Nat.add_left_comm]
+  -- Build the new reduction output.
+  refine ReductionOutput.mkShift (f := f) (d := out.d) (m := out.m + m₂) (hd := out.hd)
+    (g := g') (hg := hg') (hgEq := hg'_eq)
+
+namespace shiftRight
+
+/-- The shifted reduction output has the same `d`. -/
+@[simp] theorem d (out : ReductionOutput f) (m₂ : ℕ) : (out.shiftRight (f := f) m₂).d = out.d := by
+  rfl
+
+/-- The shifted reduction output's offset multiplier is `out.m + m₂`. -/
+@[simp] theorem m (out : ReductionOutput f) (m₂ : ℕ) : (out.shiftRight (f := f) m₂).m = out.m + m₂ := by
+  rfl
+
+/-- Pointwise description of the shifted derived sequence. -/
+@[simp] theorem g_apply (out : ReductionOutput f) (m₂ k : ℕ) :
+    (out.shiftRight (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
+  rfl
+
+/-- The key bridge rule for `shiftRight`: it rewrites an offset sum at `out.m+m₂` into an offset sum
+of the already-reduced sequence `out.g` at offset `m₂`.
+-/
+theorem apSumOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n :=
+  out.apSumOffset_add_right (f := f) (m₂ := m₂) (n := n)
+
+end shiftRight
+
+/-!
 ### Boundedness and witness transport across the bundled shift
 
 The lemmas `apSumOffset_add_right` / `discOffset_add_right` rewrite an offset expression of the
