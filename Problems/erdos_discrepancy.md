@@ -48,6 +48,22 @@ Definition of done:
 
 Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should correspond to a reusable normal form.
 
+### Track C — Tao2015 “build the plane” (Conjectures-only pipeline glue)
+
+Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
+package their IO contracts, and add the small rewrite/transfer lemmas that let later stages compose.
+
+- Primary file: `Conjectures/C0002_erdos_discrepancy/src/Tao2015.lean`
+- Key interface (Stage 1): `Tao2015.ReductionOutput` (derived sign sequence `g`, parameters `d,m`,
+  plus `apSum`/`apSumOffset` rewrite + discrepancy-transfer lemmas)
+- Key deliverable (Stage 2, stubbed):
+  `stage2_unbounded_discOffset : ∀ B, ∃ n, B < discOffset f out.d out.m n`
+
+Definition of done for Track C PRs:
+- Only edits under `Conjectures/` (and optionally this card)
+- CI green
+- Interfaces improve composability (more named rewrites / transfer lemmas; fewer ad-hoc rewrites)
+
 #### Track B normal-form guide (what we rewrite *to*)
 
 If you’re unsure “what shape should this lemma end in?”, default to the stable import surface:

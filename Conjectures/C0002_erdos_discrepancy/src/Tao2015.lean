@@ -929,12 +929,25 @@ theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_gt
     -- So `out.g (k + m₂*out.d) = f (k + (out.m+m₂)*out.d)`.
     -- (Associativity/commutativity of addition handles the rearrangement.)
     simpa [out.g_eq, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add,
-      Nat.mul_assoc] 
+      Nat.mul_assoc]
   -- Now apply the generic rewrite lemma for shifts of `f`.
   simpa using
     (hcongr.trans
       (Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt
         (f := f) (d := out.d) (m := out.m + m₂) (C := C)))
+
+/-- Variant of `hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_gt` with the inequality
+oriented as `C < ...`.
+
+This avoids frequent rewriting between `... > C` and `C < ...` in downstream reductions.
+-/
+theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_lt
+    (out : ReductionOutput f) (m₂ C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => out.g (k + m₂ * out.d)) out.d C ↔
+      (∃ n : ℕ, C < discOffset f out.d (out.m + m₂) n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_gt (f := f) (m₂ := m₂) (C := C))
 
 /-- A fixed-step discrepancy witness for `out.g` yields a standard discrepancy witness.
 
