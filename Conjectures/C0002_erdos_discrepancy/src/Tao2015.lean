@@ -1248,6 +1248,52 @@ theorem not_boundedDiscOffset_iff_not_boundedDiscrepancyAlong (out : ReductionOu
     (¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) ↔ ¬ BoundedDiscrepancyAlong out.g out.d := by
   simpa [out.boundedDiscOffset_iff_boundedDiscrepancyAlong (f := f)]
 
+/-- Unbounded offset discrepancy is equivalent to the standard `∀ B, ∃ n, B < ...` normal form.
+
+This is just `BoundedDiscOffset.not_iff_forall_exists_gt` specialized to the parameters bundled in
+`out`, and with the definitional expansion of `BoundedDiscOffset`.
+-/
+theorem not_exists_bound_discOffset_iff_forall_exists_lt (out : ReductionOutput f) :
+    (¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- `BoundedDiscOffset f d m` is definitionally `∃ B, ∀ n, discOffset f d m n ≤ B`.
+  simpa [BoundedDiscOffset] using
+    (BoundedDiscOffset.not_iff_forall_exists_gt (f := f) (d := out.d) (m := out.m))
+
+/-- Unbounded discrepancy along the fixed step `out.d` is equivalent to the standard
+`∀ B, ∃ n, B < discrepancy ...` normal form.
+
+This is a consumer-friendly restatement of
+`Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt`.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_lt_discrepancy (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n) := by
+  -- The library lemma uses the “`B < discrepancy`” orientation already.
+  simpa using
+    (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d))
+
+/-- Unboundedness normal forms are compatible with the stage-1 bridge `discrepancy = discOffset`.
+
+In practice this is what later contradiction stages want: it lets you freely swap between
+witnesses for unbounded discrepancy of the reduced sequence and unbounded offset discrepancy of
+the original sequence.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_lt_discOffset (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- Start from the discrepancy witness normal form, then rewrite the target using the bridge.
+  constructor
+  · intro h B
+    rcases (out.not_boundedDiscrepancyAlong_iff_forall_exists_lt_discrepancy (f := f)).1 h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+  · intro h
+    -- Convert to discrepancy witnesses by rewriting `discOffset` back to `discrepancy`.
+    refine (out.not_boundedDiscrepancyAlong_iff_forall_exists_lt_discrepancy (f := f)).2 ?_
+    intro B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
 /-- If `out.g` is bounded along `out.d`, then the bundled offset discrepancy family of `f` is
 bounded (with the same constant).
 
