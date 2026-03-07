@@ -1212,6 +1212,64 @@ theorem boundedDiscOffset_of_boundedDiscrepancy (out : ReductionOutput f)
   intro n
   exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
 
+/-!
+### `discOffset` bounds vs fixed-step bounds on the reduced sequence
+
+`ReductionOutput` is designed so that reasoning about the reduced sequence `out.g` (at the fixed
+step `out.d`) is equivalent to reasoning about the corresponding offset sums/discrepancies of the
+original sequence `f`.
+
+The next few lemmas make this equivalence explicit in the “boundedness” normal forms that show up
+repeatedly throughout the Tao2015 pipeline.
+-/
+
+/-- A uniform bound on the offset discrepancy of `f` is the same as bounded discrepancy of `out.g`
+along the fixed step `out.d`.
+
+This is a basic “consumer lemma”: it lets later stages choose whichever normal form is more
+convenient.
+-/
+theorem boundedDiscOffset_iff_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) ↔ BoundedDiscrepancyAlong out.g out.d := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite `discrepancy out.g` to `discOffset f`.
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite `discOffset f` to `discrepancy out.g`.
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- Negated form of `boundedDiscOffset_iff_boundedDiscrepancyAlong`. -/
+theorem not_boundedDiscOffset_iff_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) ↔ ¬ BoundedDiscrepancyAlong out.g out.d := by
+  simpa [out.boundedDiscOffset_iff_boundedDiscrepancyAlong (f := f)]
+
+/-- If `out.g` is bounded along `out.d`, then the bundled offset discrepancy family of `f` is
+bounded (with the same constant).
+
+This is just the forward implication of `boundedDiscOffset_iff_boundedDiscrepancyAlong` as a lemma
+with a direct statement.
+-/
+theorem boundedDiscOffset_of_boundedDiscrepancyAlong (out : ReductionOutput f)
+    (hb : BoundedDiscrepancyAlong out.g out.d) :
+    ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B :=
+  (out.boundedDiscOffset_iff_boundedDiscrepancyAlong (f := f)).2 hb
+
+/-- If the bundled offset discrepancy family of `f` is bounded, then so is the reduced sequence
+`out.g` along the fixed step `out.d`.
+
+This is just the reverse implication of `boundedDiscOffset_iff_boundedDiscrepancyAlong` as a lemma
+with a direct statement.
+-/
+theorem boundedDiscrepancyAlong_of_boundedDiscOffset (out : ReductionOutput f)
+    (hb : ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    BoundedDiscrepancyAlong out.g out.d :=
+  (out.boundedDiscOffset_iff_boundedDiscrepancyAlong (f := f)).1 hb
+
 /-- Fixed-step discrepancy transfer (in `natAbs` form).
 
 This is the most direct consumer lemma for our new predicate `HasDiscrepancyAtLeastAlong`.
