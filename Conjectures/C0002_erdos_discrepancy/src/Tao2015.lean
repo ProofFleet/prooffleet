@@ -211,6 +211,17 @@ lemma of_succ {f : ℕ → ℤ} {d C : ℕ} (h : HasDiscrepancyAtLeastAlong f d 
     HasDiscrepancyAtLeastAlong f d C :=
   mono (f := f) (d := d) (C₁ := C) (C₂ := C + 1) h (Nat.le_succ C)
 
+/-- Promote a fixed-step discrepancy witness to the standard `HasDiscrepancyAtLeast` predicate.
+
+This is just a small packaging lemma: `HasDiscrepancyAtLeastAlong` fixes `d`, while
+`HasDiscrepancyAtLeast` existentially quantifies over `d`.
+-/
+lemma toHasDiscrepancyAtLeast {f : ℕ → ℤ} {d C : ℕ} (hd : d > 0)
+    (h : HasDiscrepancyAtLeastAlong f d C) :
+    HasDiscrepancyAtLeast f C := by
+  rcases h with ⟨n, hn⟩
+  exact ⟨d, n, hd, hn⟩
+
 end HasDiscrepancyAtLeastAlong
 
 /-- Output of the first major reduction stage of Tao 2015.
@@ -492,6 +503,16 @@ theorem hasDiscrepancyAtLeastAlong_iff_discOffset (out : ReductionOutput f) (C :
   -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
   simpa [HasDiscrepancyAtLeastAlong, discOffset] using (out.hasDiscrepancyAtLeastAlong_iff (f := f) (C := C))
 
+/-- A fixed-step discrepancy witness for `out.g` yields a standard discrepancy witness.
+
+This is the bridge from our pipeline-friendly predicate `HasDiscrepancyAtLeastAlong` to the
+ambient `HasDiscrepancyAtLeast` predicate used in surface statements.
+-/
+theorem hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) (C : ℕ)
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    HasDiscrepancyAtLeast out.g C := by
+  exact HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C) out.hd h
+
 /-- A convenient forward direction: a large discrepancy witness for `out.g` produces a large
 `discOffset` witness for `f`. -/
 theorem exists_discOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) (C : ℕ) :
@@ -505,6 +526,19 @@ theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutpu
     (∃ n : ℕ, discOffset f out.d out.m n > C) → HasDiscrepancyAtLeastAlong out.g out.d C := by
   intro h
   exact (out.hasDiscrepancyAtLeastAlong_iff_discOffset (f := f) (C := C)).2 h
+
+/-- A `discOffset` witness for `f` yields a standard discrepancy witness for the reduced sequence.
+
+This is the most common “pipeline hop” in later stages: reductions naturally produce offset-sum
+witnesses for the original sequence, while contradiction stages tend to consume the ambient
+`HasDiscrepancyAtLeast` predicate.
+-/
+theorem hasDiscrepancyAtLeast_of_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    HasDiscrepancyAtLeast out.g C := by
+  have halong : HasDiscrepancyAtLeastAlong out.g out.d C :=
+    out.hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (f := f) (C := C) h
+  exact out.hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (f := f) (C := C) halong
 
 /-- The same rewrite rule, but oriented in the other direction. -/
 theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
