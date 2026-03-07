@@ -1662,6 +1662,35 @@ So we isolate that future deliverable as a named lemma:
 and make the top-level `contradiction` proof *structural* and `sorry`-free.
 -/
 
+/-!
+### Small helpers for the stage-2 deliverable
+
+The eventual stage-2 proof will almost certainly proceed by first showing a *negated boundedness*
+statement, and only then extracting the explicit `∀ B, ∃ n, B < …` normal form.
+
+We keep these helpers adjacent to the stage-2 stub so the intended proof shape is obvious.
+-/
+
+/-- For the parameters bundled in `out`, unpack `¬ BoundedDiscOffset` into the explicit
+unboundedness normal form `∀ B, ∃ n, B < discOffset …`.
+
+This is a specialization of `not_boundedDiscOffset_iff_forall_exists_discOffset_gt`.
+-/
+theorem not_boundedDiscOffset_iff_forall_exists_discOffset_gt' (out : ReductionOutput f) :
+    (¬ BoundedDiscOffset f out.d out.m) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  simpa using (Tao2015.not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m))
+
+/-- Same as `not_boundedDiscOffset_iff_forall_exists_discOffset_gt'`, but phrased using
+`Int.natAbs (apSumOffset …)`.
+
+This is often the natural output of a reduction step, before introducing `discOffset`.
+-/
+theorem not_boundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (out : ReductionOutput f) :
+    (¬ BoundedDiscOffset f out.d out.m) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  simpa using
+    (Tao2015.not_boundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := out.d) (m := out.m))
+
 /-- (Stub) Stage 2 deliverable: from `ctx` + `out`, produce the explicit unboundedness normal form
 for the offset discrepancy bundled in `out`.
 
