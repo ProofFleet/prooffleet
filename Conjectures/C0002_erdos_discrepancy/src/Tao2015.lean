@@ -140,6 +140,12 @@ noncomputable def Context.ofBoundedDiscrepancy {f : ℕ → ℤ} (hb : BoundedDi
 
 namespace Context
 
+/-- Turn `Context f` back into the existential boundedness statement `BoundedDiscrepancy f`. -/
+theorem toBoundedDiscrepancy (ctx : Context f) : BoundedDiscrepancy f := by
+  refine ⟨ctx.B, ?_⟩
+  intro d n hd
+  exact ctx.bound d n hd
+
 /-- The bound lemma, as a convenience. -/
 theorem bound_apSum (ctx : Context f) (d n : ℕ) (hd : d > 0) :
     Int.natAbs (apSum f d n) ≤ ctx.B :=
