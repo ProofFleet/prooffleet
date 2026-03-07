@@ -498,6 +498,24 @@ theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
   simp [out.apSum_contract]
 
+/-- Symmetric `natAbs` bridge rule, oriented from offset sums to reduced sums. -/
+theorem natAbs_apSumOffset_eq_natAbs_apSum (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumOffset f out.d out.m n) = Int.natAbs (apSum out.g out.d n) := by
+  simpa using (out.natAbs_apSum_eq_natAbs_apSumOffset (f := f) (n := n)).symm
+
+/-- A consumer-friendly “≤” transfer rule for `natAbs` of sums.
+
+This is the `natAbs` analogue of `discrepancy_le_iff_discOffset_le`.
+-/
+theorem natAbs_apSum_le_iff_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) ≤ B ↔ Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+  simpa [out.apSum_contract]
+
+/-- A consumer-friendly “≤” transfer rule for `natAbs` of sums, in the reverse orientation. -/
+theorem natAbs_apSumOffset_le_iff_natAbs_apSum_le (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    Int.natAbs (apSumOffset f out.d out.m n) ≤ B ↔ Int.natAbs (apSum out.g out.d n) ≤ B := by
+  simpa using (out.natAbs_apSum_le_iff_natAbs_apSumOffset_le (f := f) (B := B) (n := n)).symm
+
 /-- Transfer pointwise `natAbs` bounds from offset AP sums of `f` to AP sums of `out.g`. -/
 theorem natAbs_apSum_le_of_forall_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ)
     (hB : ∀ n, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) :
