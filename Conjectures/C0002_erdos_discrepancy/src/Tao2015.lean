@@ -101,6 +101,16 @@ theorem bound_apSum_shift_add (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
   simpa [apSumOffset_eq_apSum_shift_add] using
     (ctx.bound_apSumOffset (f := f) (d := d) (m := m) (n := n) hd)
 
+/-- The discrepancy bound corresponding to `bound_apSum`. -/
+theorem bound_discrepancy (ctx : Context f) (d n : ℕ) (hd : d > 0) :
+    discrepancy f d n ≤ ctx.B := by
+  simpa [discrepancy] using (ctx.bound_apSum (f := f) (d := d) (n := n) hd)
+
+/-- Discrepancy bound for shifted AP sums (as in `bound_apSum_shift_add`). -/
+theorem bound_discrepancy_shift_add (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
+    discrepancy (fun k => f (k + m * d)) d n ≤ ctx.B + ctx.B := by
+  simpa [discrepancy] using (ctx.bound_apSum_shift_add (f := f) (d := d) (m := m) (n := n) hd)
+
 end Context
 
 /-- Output of the first major reduction stage of Tao 2015.
@@ -169,6 +179,27 @@ theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, out.apSum_eq_apSumOffset]
+
+/-- The same rewrite rule, but oriented in the other direction. -/
+theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discrepancy out.g out.d n := by
+  simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
+
+/-- Witness transfer: if some discrepancy of `out.g` is large, the corresponding offset discrepancy of `f` is large. -/
+theorem exists_discOffset_gt_of_exists_discrepancy_gt (out : ReductionOutput f) (B : ℕ) :
+    (∃ n, B < discrepancy out.g out.d n) → (∃ n, B < discOffset f out.d out.m n) := by
+  intro h
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+/-- Witness transfer: if some offset discrepancy of `f` is large, the corresponding discrepancy of `out.g` is large. -/
+theorem exists_discrepancy_gt_of_exists_discOffset_gt (out : ReductionOutput f) (B : ℕ) :
+    (∃ n, B < discOffset f out.d out.m n) → (∃ n, B < discrepancy out.g out.d n) := by
+  intro h
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
 
 /-- Transfer a boundedness context for `f` to a bound on the *discrepancy* of `out.g`.
 
