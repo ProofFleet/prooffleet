@@ -85,6 +85,37 @@ theorem discOffset_eq_discrepancy_shift_add_mul (f : ℕ → ℤ) (d m n : ℕ) 
     discOffset f d m n = discrepancy (fun k => f (k + m * d)) d n := by
   simpa using (discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)).symm
 
+/-!
+### Re-associating offsets
+
+When building a multi-stage reduction, we frequently accumulate offsets of the form
+`(m₁ + m₂) * d`.  It is convenient to be able to “peel off” an initial offset `m₁*d` by shifting
+the underlying sequence.
+
+The discrepancy analogue (`discOffset_add`) lives in the verified substrate.  Here we record the
+AP-sum-level statement, which is often the first thing a reduction step needs.
+-/
+
+/-- Re-associate offsets at the AP-sum level.
+
+This is the `apSum` analogue of `discOffset_add`.
+-/
+theorem apSumOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+    apSumOffset f d (m₁ + m₂) n = apSumOffset (fun k => f (k + m₁ * d)) d m₂ n := by
+  -- Expand both sides to AP sums of shifted sequences.
+  -- LHS: shift by `(m₁+m₂)*d`.
+  -- RHS: first shift by `m₁*d`, then shift again by `m₂*d`.
+  simp [apSumOffset_eq_apSum_shift_add, Nat.add_mul, Nat.mul_add, Nat.add_assoc, Nat.add_left_comm,
+    Nat.add_comm, Nat.mul_assoc, Nat.left_distrib]
+
+/-- Reverse orientation of `apSumOffset_add`.
+
+We do not mark either direction `[simp]` to avoid rewriting loops.
+-/
+theorem apSumOffset_add' (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+    apSumOffset (fun k => f (k + m₁ * d)) d m₂ n = apSumOffset f d (m₁ + m₂) n := by
+  simpa using (apSumOffset_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)).symm
+
 /-- Package the *assumption* of bounded discrepancy as data (`B` plus the bound lemma).
 
 This is a Lean-friendly normal form: instead of passing around an existential hypothesis
