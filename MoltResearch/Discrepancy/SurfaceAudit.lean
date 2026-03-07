@@ -86,6 +86,31 @@ section
   #check apSumFrom_sub_eq_apSumOffset_shift_add
 
   /-!
+  ## Tao 2015 skeleton: stable normal-form exports
+
+  The `Conjectures/C0002_erdos_discrepancy/src/Tao2015.lean` proof skeleton is intentionally
+  lightweight, and it should only rely on the **stable discrepancy surface**.
+
+  These `#check`s ensure the key wrappers / normal-form lemmas it uses remain exported by:
+
+  ```lean
+  import MoltResearch.Discrepancy
+  ```
+  -/
+
+  #check IsSignSequence
+
+  #check BoundedDiscrepancy
+  #check discrepancy
+  #check discOffset
+
+  #check apSumOffset_eq_sub
+  #check apSumOffset_eq_apSum_shift_add
+
+  #check apSum_eq_sum_Icc
+  #check sum_Icc_eq_apSum
+
+  /-!
   ## Rewrite pipeline examples (compile-only)
 
   These are a few “go-to” rewrite steps that downstream Track B proofs use constantly.
@@ -470,6 +495,14 @@ section
   /-- error: Unknown identifier `apSumOffset_mul_left_ffirst` -/
   #guard_msgs in
   #check apSumOffset_mul_left_ffirst
+
+  /-- error: Unknown identifier `apSumOffset_shift_add_left_start_mul` -/
+  #guard_msgs in
+  #check apSumOffset_shift_add_left_start_mul
+
+  /-- error: Unknown identifier `apSumOffset_one_mul_left` -/
+  #guard_msgs in
+  #check apSumOffset_one_mul_left
 
 
   /-- error: Unknown identifier `apSum_step_one_eq_apSum` -/
