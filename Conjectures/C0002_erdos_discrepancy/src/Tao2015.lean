@@ -446,6 +446,27 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (out : ReductionOutp
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C))
 
+/-- Extract a `discOffset` witness from a fixed-step discrepancy statement about `out.g`. -/
+theorem exists_discOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) {C : ℕ}
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).1 h
+
+/-- Build a fixed-step discrepancy statement about `out.g` from a `discOffset` witness. -/
+theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    HasDiscrepancyAtLeastAlong out.g out.d C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 h
+
+/-- Promote a fixed-step discrepancy witness about `out.g` to the standard existential form.
+
+This is just `HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast` specialized to `out.hd`.
+-/
+theorem hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) {C : ℕ}
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    HasDiscrepancyAtLeast out.g C := by
+  exact HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C) out.hd h
+
 /-- Push `HasDiscrepancyAtLeastAlong` across the discrepancy wrapper.
 
 `HasDiscrepancyAtLeastAlong` is stated using `Int.natAbs (apSum ...)`, while many downstream
