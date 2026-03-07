@@ -775,8 +775,12 @@ This is a tiny convenience lemma: it avoids having to explicitly invoke
     (ReductionOutput.apSumFrom_eq_apSumOffset (f := f)
       (out := mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd) (n := n))
 
-/-- Reverse orientation of `mkShiftOfSign_discrepancy_contract`. -/
-@[simp] theorem mkShiftOfSign_discOffset_eq_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f)
+/-- Reverse orientation of `mkShiftOfSign_discrepancy_contract`.
+
+Not marked `[simp]`: the forward lemma is already `[simp]`, and having both directions in the simp
+set can cause nontermination / oscillation.
+-/
+theorem mkShiftOfSign_discOffset_eq_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f)
     (d m : ℕ) (hd : d > 0) (n : ℕ) :
     discOffset f d m n = discrepancy (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g d n := by
   simpa using
