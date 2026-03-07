@@ -1168,6 +1168,27 @@ theorem discOffset_le_of_forall_discrepancy_le (out : ReductionOutput f) (B : �
   intro n
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-- Uniform transfer lemma (≤): bounding all offset discrepancies of `f` is equivalent to bounding
+all discrepancies of the reduced sequence `out.g` (along `out.d`). -/
+theorem forall_discOffset_le_iff_forall_discrepancy_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discOffset f out.d out.m n ≤ B) ↔ (∀ n : ℕ, discrepancy out.g out.d n ≤ B) := by
+  constructor
+  · intro h
+    exact out.discrepancy_le_of_forall_discOffset_le (f := f) (B := B) h
+  · intro h
+    exact out.discOffset_le_of_forall_discrepancy_le (f := f) (B := B) h
+
+/-- Uniform transfer lemma (<): strict version of `forall_discOffset_le_iff_forall_discrepancy_le`. -/
+theorem forall_discOffset_lt_iff_forall_discrepancy_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discOffset f out.d out.m n < B) ↔ (∀ n : ℕ, discrepancy out.g out.d n < B) := by
+  constructor
+  · intro h n
+    -- rewrite `discrepancy` to `discOffset` and apply the hypothesis
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+  · intro h n
+    -- rewrite `discOffset` to `discrepancy` and apply the hypothesis
+    simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using h n
+
 /-- The `ReductionOutput` field `contract_discrepancy_le` is implied by the rewrite rule.
 
 We keep the field for now (it documents intent), but downstream code can rely on this lemma
