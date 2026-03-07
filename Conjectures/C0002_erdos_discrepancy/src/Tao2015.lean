@@ -1196,6 +1196,36 @@ This is a convenience lemma: downstream steps can use the contract field without
     (hB := hB) (n := n))
 
 /-!
+### Composition lemmas for `shiftRight`
+
+These are small “algebra” facts: successive `shiftRight` operations add their offsets.
+Downstream stages often build multi-step reductions, and these lemmas keep the resulting
+expressions from growing unwieldy.
+-/
+
+@[simp] theorem shiftRight_shiftRight_m (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    (shiftRight (f := f) (shiftRight (f := f) out m₁) m₂).m = out.m + m₁ + m₂ := by
+  -- `shiftRight` adds the new offset to the bundled offset parameter.
+  simp [Nat.add_assoc]
+
+@[simp] theorem shiftRight_shiftRight_d (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    (shiftRight (f := f) (shiftRight (f := f) out m₁) m₂).d = out.d := by
+  simp [shiftRight]
+
+theorem shiftRight_shiftRight_g_apply (out : ReductionOutput f) (m₁ m₂ k : ℕ) :
+    (shiftRight (f := f) (shiftRight (f := f) out m₁) m₂).g k =
+      out.g (k + (m₁ + m₂) * out.d) := by
+  -- Expand both shifts and re-associate additions/multiplications.
+  simp [shiftRight, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add,
+    Nat.mul_assoc]
+
+@[simp] theorem shiftRight_shiftRight_discrepancy_contract (out : ReductionOutput f) (m₁ m₂ n : ℕ) :
+    discrepancy (shiftRight (f := f) (shiftRight (f := f) out m₁) m₂).g out.d n =
+      discOffset f out.d (out.m + m₁ + m₂) n := by
+  -- Use the `[simp]` discrepancy contract for each shift and normalize associativity.
+  simp [Nat.add_assoc]
+
+/-!
 ### Tail-sum (`apSumFrom`) rewrites for shifted reductions
 
 Downstream stages often prefer the “tail sum” API `apSumFrom` (start at a base point `a` and take
