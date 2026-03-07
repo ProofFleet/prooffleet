@@ -463,6 +463,37 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+/-- A Lean-friendly “context” for working with a *single* common difference `d`.
+
+This is the natural consumer interface after Tao’s first reduction step: downstream stages
+typically fix `d` (bundled in `ReductionOutput`) and then only need uniform control of
+`apSum g d n` over `n`.
+-/
+structure AlongContext (g : ℕ → ℤ) (d : ℕ) : Type where
+  B : ℕ
+  bound : ∀ n : ℕ, Int.natAbs (apSum g d n) ≤ B
+
+namespace AlongContext
+
+/-- Turn an `AlongContext` into the propositional boundedness notion `BoundedDiscrepancyAlong`. -/
+theorem boundedDiscrepancyAlong (ctx : AlongContext g d) : BoundedDiscrepancyAlong g d := by
+  refine ⟨ctx.B, ?_⟩
+  intro n
+  -- `discrepancy` is just `natAbs (apSum …)`.
+  simpa [discrepancy] using ctx.bound n
+
+/-- If `f` has a global boundedness context, then any reduction output yields an `AlongContext`
+for the derived sequence along the bundled `d`.
+
+The bound is the same weak `2B` bound used in `ReductionOutput.bound_apSum`.
+-/
+theorem ofContext (ctx : Context f) (out : ReductionOutput f) : AlongContext out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_apSum (f := f) (ctx := ctx) (out := out) n
+
+end AlongContext
+
 /-- Unfold `BoundedDiscrepancyAlong` into a uniform bound on absolute AP sums. -/
 theorem boundedDiscrepancyAlong_iff_forall_natAbs_apSum_le (g : ℕ → ℤ) (d : ℕ) :
     BoundedDiscrepancyAlong g d ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum g d n) ≤ B) := by
@@ -764,10 +795,9 @@ This is enough to let downstream code *use* the interface immediately.
 theorem reduction (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
     ReductionOutput f := by
   -- (Temporary) trivial instantiation of the interface.
-  -- Keeping it factored through `mkShift` makes later upgrades less invasive.
+  -- Keeping it factored through `mkShiftOfSign` makes later upgrades less invasive.
   classical
-  refine ReductionOutput.mkShift (f := f) (d := 1) (m := 0) (hd := by decide)
-    (g := f) (hg := hf) (hgEq := by simp)
+  simpa using (ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := 1) (m := 0) (hd := by decide))
 
 /-- (Stub) Tao 2015 contradiction stage.
 
