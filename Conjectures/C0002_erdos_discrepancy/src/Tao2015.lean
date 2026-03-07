@@ -153,10 +153,7 @@ theorem apSum_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     apSum out.g out.d n = apSumOffset f out.d out.m n := by
   -- `apSumOffset f d m n = apSum (fun k => f (k + m*d)) d n`.
   -- Then rewrite `out.g` using `out.g_eq`.
-  simpa [out.g_eq, apSumOffset_eq_apSum_shift_add] using
-    (show apSum (fun k => f (k + out.m * out.d)) out.d n = apSumOffset f out.d out.m n by
-      symm
-      simp [apSumOffset_eq_apSum_shift_add])
+  simp [apSumOffset_eq_apSum_shift_add, out.g_eq]
 
 /-- Transfer a boundedness context for `f` to a bound on `apSum out.g out.d`.
 
@@ -225,6 +222,14 @@ theorem exists_discOffset_gt_iff_exists_discrepancy_gt (out : ReductionOutput f)
   constructor
   · exact out.exists_discrepancy_gt_of_exists_discOffset_gt (f := f) (B := B)
   · exact out.exists_discOffset_gt_of_exists_discrepancy_gt (f := f) (B := B)
+
+/-- Transfer a boundedness context for `f` to a bound on the *offset discrepancy* appearing in `out`.
+
+This is a small convenience lemma: it isolates the parameter bundle `(out.d,out.m)`.
+-/
+theorem bound_discOffset (ctx : Context f) (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+  simpa using (ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
 
 /-- Transfer a boundedness context for `f` to a bound on the *discrepancy* of `out.g`.
 
