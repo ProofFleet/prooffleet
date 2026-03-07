@@ -1041,6 +1041,40 @@ theorem not_boundedDiscrepancy_of_not_boundedDiscOffset (out : ReductionOutput f
   intro hOff hb
   exact hOff (out.boundedDiscOffset_of_boundedDiscrepancy (f := f) (out := out) hb)
 
+/-- Consumer wrapper: unboundedness normal form for `discOffset` implies global unbounded discrepancy.
+
+This is a common situation after a reduction: the downstream stage produces the explicit shape
+`∀ B, ∃ n, B < discOffset …`, and we want to push it back to the original `¬ BoundedDiscrepancy f`.
+-/
+theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) → (¬ BoundedDiscrepancy f) := by
+  intro h
+  -- Convert the normal form into `¬ BoundedDiscOffset …`, then use the previous lemma.
+  have hnot : ¬ BoundedDiscOffset f out.d out.m := by
+    -- `BoundedDiscOffset` is `∃ B, ∀ n, … ≤ B`, contradicting `h`.
+    intro hbd
+    rcases hbd with ⟨B, hB⟩
+    rcases h B with ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n)) hn
+  exact out.not_boundedDiscrepancy_of_not_boundedDiscOffset (f := f) hnot
+
+/-- Same as `not_boundedDiscrepancy_of_forall_exists_discOffset_gt`, but phrased using
+`Int.natAbs (apSumOffset …)`.
+
+This avoids mentioning `discOffset` entirely, which is often the tightest statement delivered
+by a reduction step.
+-/
+theorem not_boundedDiscrepancy_of_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) → (¬ BoundedDiscrepancy f) := by
+  intro h
+  -- Translate to the `discOffset` normal form and reuse the previous lemma.
+  have h' : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+    intro B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [discOffset] using hn
+  exact out.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) h'
+
 /-- Produce an `AlongContext` for `out.g` from a global boundedness context on `f`.
 
 This is a small wrapper around `AlongContext.ofContext` that keeps consumers inside the
