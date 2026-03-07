@@ -1187,6 +1187,31 @@ theorem bound_discrepancy_forall (ctx : Context f) (out : ReductionOutput f) :
   intro n
   exact out.bound_discrepancy (f := f) ctx n
 
+/-- If `f` has bounded discrepancy (globally), then the reduced sequence `out.g` has bounded
+(discrepancy) along the fixed step `out.d`.
+
+The bound degrades by at most a factor `2`.
+-/
+theorem boundedDiscrepancyAlong_of_boundedDiscrepancy (out : ReductionOutput f)
+    (hb : BoundedDiscrepancy f) : BoundedDiscrepancyAlong out.g out.d := by
+  classical
+  let ctx : Context f := Context.ofBoundedDiscrepancy (f := f) hb
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discrepancy (f := f) ctx n
+
+/-- A bound on `f`'s discrepancy implies a uniform bound on the offset discrepancy bundled by `out`.
+
+This is the `discOffset`-level analogue of `boundedDiscrepancyAlong_of_boundedDiscrepancy`.
+-/
+theorem boundedDiscOffset_of_boundedDiscrepancy (out : ReductionOutput f)
+    (hb : BoundedDiscrepancy f) : ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  classical
+  let ctx : Context f := Context.ofBoundedDiscrepancy (f := f) hb
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+
 /-- Fixed-step discrepancy transfer (in `natAbs` form).
 
 This is the most direct consumer lemma for our new predicate `HasDiscrepancyAtLeastAlong`.
