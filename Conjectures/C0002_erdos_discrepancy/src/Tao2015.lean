@@ -2677,7 +2677,7 @@ def ofUnboundedNatAbsApSumOffset
   refine ⟨n, ?_⟩
   simpa [discOffset] using hn
 
-@[simp] theorem ofUnboundedNatAbsApSumOffset_unbounded
+theorem ofUnboundedNatAbsApSumOffset_unbounded
     (h : ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) :
     (ofUnboundedNatAbsApSumOffset (f := f) (out := out) h).unbounded_discOffset =
       (fun B => by
