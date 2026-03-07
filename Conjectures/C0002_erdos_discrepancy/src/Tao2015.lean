@@ -1087,6 +1087,52 @@ theorem hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_lt
   simpa [gt_iff_lt] using
     (out.hasDiscrepancyAtLeastAlong_shiftRight_iff_exists_discOffset_gt (f := f) (m₂ := m₂) (C := C))
 
+/-!
+### Shifting a reduction output
+
+Many stages in the Tao pipeline shift the already-reduced sequence `out.g` by an additional
+multiple `m₂*out.d`.  This just increases the bundled offset from `out.m` to `out.m + m₂`.
+
+The next definition packages this as a new `ReductionOutput f`.
+-/
+
+/-- Shift the reduced sequence `out.g` by an additional multiple `m₂*out.d`.
+
+The resulting reduction output has:
+- the same common difference `d := out.d`
+- the bundled offset `m := out.m + m₂`
+- the reduced sequence `g k := out.g (k + m₂*out.d)`.
+
+It fills the bridge rule and discrepancy-transfer contract automatically via `mkShift`.
+-/
+noncomputable def shiftRight₀ (out : ReductionOutput f) (m₂ : ℕ) : ReductionOutput f := by
+  classical
+  -- Define the additionally-shifted reduced sequence.
+  let g' : ℕ → ℤ := fun k => out.g (k + m₂ * out.d)
+  have hg' : IsSignSequence g' :=
+    Tao2015.IsSignSequence.shift_add_mul (f := out.g) out.hg m₂ out.d
+  -- Identify `g'` as a single shift of the original `f`.
+  have hg'Eq : g' = fun k => f (k + (out.m + m₂) * out.d) := by
+    funext k
+    -- `out.g (k + m₂*out.d) = f ((k + m₂*out.d) + out.m*out.d)`.
+    -- Reassociate to `k + (out.m+m₂)*out.d`.
+    simp [g', out.g_eq, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
+      Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
+  -- Package as a reduction output with bundled offset `out.m + m₂`.
+  exact
+    ReductionOutput.mkShift (f := f) (d := out.d) (m := out.m + m₂) (hd := out.hd)
+      (g := g') (hg := hg') (hgEq := hg'Eq)
+
+@[simp] theorem shiftRight₀_d (out : ReductionOutput f) (m₂ : ℕ) : (out.shiftRight₀ (f := f) m₂).d = out.d :=
+  rfl
+
+@[simp] theorem shiftRight₀_m (out : ReductionOutput f) (m₂ : ℕ) : (out.shiftRight₀ (f := f) m₂).m = out.m + m₂ :=
+  rfl
+
+@[simp] theorem shiftRight₀_g_apply (out : ReductionOutput f) (m₂ k : ℕ) :
+    (out.shiftRight₀ (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
+  rfl
+
 /-- A fixed-step discrepancy witness for `out.g` yields a standard discrepancy witness.
 
 This is the bridge from our pipeline-friendly predicate `HasDiscrepancyAtLeastAlong` to the
