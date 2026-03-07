@@ -1439,6 +1439,26 @@ theorem discrepancy_eq_discOffset (out : ReductionOutput f) (m₂ n : ℕ) :
 end shiftRight
 
 /-!
+### Boundedness of offset discrepancy across the bundled shift
+
+After producing a reduction output `out`, later stages often want to work with offset sums at
+`out.m + m₂` for the original sequence `f`.  The lemma `shiftRight.discOffset_add_right` already
+rewrites these pointwise to offset sums of the reduced sequence `out.g`.
+
+The next lemmas package this rewriting at the *boundedness* level (`∃ B, ∀ n`).
+-/
+
+theorem boundedDiscOffset_add_right_iff (out : ReductionOutput f) (m₂ : ℕ) :
+    BoundedDiscOffset f out.d (out.m + m₂) ↔ BoundedDiscOffset out.g out.d m₂ := by
+  -- This is just `boundedDiscOffset_add`, using that `out.g` is the shift of `f` by `out.m*out.d`.
+  simpa [out.g_eq] using
+    (boundedDiscOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂))
+
+theorem not_boundedDiscOffset_add_right_iff (out : ReductionOutput f) (m₂ : ℕ) :
+    (¬ BoundedDiscOffset f out.d (out.m + m₂)) ↔ (¬ BoundedDiscOffset out.g out.d m₂) := by
+  simpa [boundedDiscOffset_add_right_iff (f := f) (out := out) (m₂ := m₂)]
+
+/-!
 ### Boundedness and witness transport across the bundled shift
 
 The lemmas `apSumOffset_add_right` / `discOffset_add_right` rewrite an offset expression of the
