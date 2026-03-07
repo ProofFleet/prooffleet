@@ -1754,6 +1754,22 @@ theorem not_boundedDiscOffset_of_forall_exists_natAbs_apSumOffset_gt (out : Redu
   refine ⟨n, ?_⟩
   simpa [discOffset] using hn
 
+/-- For the parameters bundled in `out`, the explicit unboundedness normal form is equivalent to
+`¬ BoundedDiscOffset …`.
+
+This is just `not_boundedDiscOffset_iff_forall_exists_discOffset_gt'` in the reverse direction,
+but it matches the way stage-2 reductions tend to be stated.
+-/
+theorem forall_exists_discOffset_gt_iff_not_boundedDiscOffset (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) ↔ (¬ BoundedDiscOffset f out.d out.m) := by
+  simpa [out.not_boundedDiscOffset_iff_forall_exists_discOffset_gt' (f := f)]
+
+/-- `natAbs` analogue of `forall_exists_discOffset_gt_iff_not_boundedDiscOffset`. -/
+theorem forall_exists_natAbs_apSumOffset_gt_iff_not_boundedDiscOffset (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) ↔
+      (¬ BoundedDiscOffset f out.d out.m) := by
+  simpa [out.not_boundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f)]
+
 /-- For the parameters in `out`, unbounded offset discrepancy implies the reduced sequence
 is unbounded along `out.d`.
 
@@ -1769,6 +1785,34 @@ theorem not_boundedDiscrepancyAlong_of_forall_exists_discOffset_gt (out : Reduct
   have hOff : BoundedDiscOffset f out.d out.m :=
     out.boundedDiscOffset_of_boundedDiscrepancyAlong (f := f) (out := out) hbd
   exact not_boundedDiscOffset_of_forall_exists_discOffset_gt (f := f) (out := out) h hOff
+
+/-- For the parameters in `out`, the explicit unboundedness normal form implies
+`¬ BoundedDiscrepancyAlong out.g out.d`.
+
+This is just `not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`, oriented the way
+stage-2 reductions naturally output witnesses.
+-/
+theorem forall_exists_discOffset_gt_iff_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) ↔ (¬ BoundedDiscrepancyAlong out.g out.d) := by
+  simpa using (out.not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)).symm
+
+/-- `natAbs` analogue of `forall_exists_discOffset_gt_iff_not_boundedDiscrepancyAlong`. -/
+theorem forall_exists_natAbs_apSumOffset_gt_iff_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) ↔
+      (¬ BoundedDiscrepancyAlong out.g out.d) := by
+  -- Convert the `natAbs` normal form to `discOffset`, then use the previous lemma.
+  constructor
+  · intro h
+    -- First convert the witness normal form into `¬ BoundedDiscOffset …`.
+    have hnotOff : ¬ BoundedDiscOffset f out.d out.m :=
+      (out.forall_exists_natAbs_apSumOffset_gt_iff_not_boundedDiscOffset (f := f)).1 h
+    -- Then transfer to `¬ BoundedDiscrepancyAlong …`.
+    exact (out.not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (f := f)).2 hnotOff
+  · intro h
+    -- Transfer back to `¬ BoundedDiscOffset …`, then unpack to the `natAbs` witness form.
+    have hnotOff : ¬ BoundedDiscOffset f out.d out.m :=
+      (out.not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (f := f)).1 h
+    exact (out.not_boundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f)).1 hnotOff
 
 /-- (Stub) Stage 2 deliverable: from `ctx` + `out`, produce the explicit unboundedness normal form
 for the offset discrepancy bundled in `out`.
