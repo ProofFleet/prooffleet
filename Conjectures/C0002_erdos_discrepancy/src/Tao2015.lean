@@ -1066,6 +1066,41 @@ noncomputable def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionO
   classical
   rfl
 
+/-!
+### Tiny normalization lemmas for `shiftRight`
+
+These are intentionally small, but they eliminate a lot of arithmetic clutter in downstream
+stages that repeatedly “move the basepoint”.
+-/
+
+/-- Shifting by zero does not change the bundled offset multiplier. -/
+@[simp] theorem shiftRight_zero_m (out : ReductionOutput f) :
+    (out.shiftRight (f := f) 0).m = out.m := by
+  simp
+
+/-- Shifting by zero does not change the reduced sequence. -/
+@[simp] theorem shiftRight_zero_g (out : ReductionOutput f) :
+    (out.shiftRight (f := f) 0).g = out.g := by
+  funext k
+  simp [ReductionOutput.shiftRight_g]
+
+/-- Pointwise form of `shiftRight_zero_g`. -/
+@[simp] theorem shiftRight_zero_g_apply (out : ReductionOutput f) (k : ℕ) :
+    (out.shiftRight (f := f) 0).g k = out.g k := by
+  simpa using congrArg (fun g => g k) (out.shiftRight_zero_g (f := f))
+
+/-- Shifting twice composes by addition at the level of the underlying function. -/
+@[simp] theorem shiftRight_shiftRight_g_apply (out : ReductionOutput f) (m₁ m₂ k : ℕ) :
+    ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g k = out.g (k + (m₁ + m₂) * out.d) := by
+  -- Unfold each `shiftRight` as an extra shift and simplify arithmetic.
+  simp [ReductionOutput.shiftRight_g, Nat.mul_add, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-- Consequently, the “shift by `m₁` then by `m₂`” function equals the “shift by `m₁+m₂`” function. -/
+@[simp] theorem shiftRight_shiftRight_g (out : ReductionOutput f) (m₁ m₂ : ℕ) :
+    ((out.shiftRight (f := f) m₁).shiftRight (f := f) m₂).g = fun k => out.g (k + (m₁ + m₂) * out.d) := by
+  funext k
+  simpa using out.shiftRight_shiftRight_g_apply (f := f) m₁ m₂ k
+
 /-- Pointwise form of `shiftRight_g`. -/
 @[simp] theorem shiftRight_g_apply (out : ReductionOutput f) (m₂ k : ℕ) :
     (out.shiftRight (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
