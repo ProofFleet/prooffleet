@@ -1151,6 +1151,40 @@ theorem bound_discOffset_of_bound_discrepancy_apply (out : ReductionOutput f) (B
     discOffset f out.d out.m n ≤ B :=
   (out.bound_discOffset_of_bound_discrepancy (f := f) B hB) n
 
+/-- Strict-inequality transfer: a uniform *strict* bound on the offset discrepancy transfers to a
+strict bound on the reduced discrepancy.
+
+This is the `<` analogue of `bound_discrepancy_of_bound_discOffset`.
+-/
+theorem bound_discrepancy_lt_of_bound_discOffset (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n < B) :
+    ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro n
+  simpa [out.discrepancy_contract (f := f) (n := n)] using hB n
+
+/-- Strict-inequality reverse transfer: a uniform strict bound on the reduced discrepancy transfers
+back to a strict bound on `discOffset`.
+
+This is the `<` analogue of `bound_discOffset_of_bound_discrepancy`.
+-/
+theorem bound_discOffset_lt_of_bound_discrepancy (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discrepancy out.g out.d n < B) :
+    ∀ n : ℕ, discOffset f out.d out.m n < B := by
+  intro n
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+
+/-- Pointwise form of `bound_discrepancy_lt_of_bound_discOffset`. -/
+theorem bound_discrepancy_lt_of_bound_discOffset_apply (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n < B) (n : ℕ) :
+    discrepancy out.g out.d n < B :=
+  (out.bound_discrepancy_lt_of_bound_discOffset (f := f) B hB) n
+
+/-- Pointwise form of `bound_discOffset_lt_of_bound_discrepancy`. -/
+theorem bound_discOffset_lt_of_bound_discrepancy_apply (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discrepancy out.g out.d n < B) (n : ℕ) :
+    discOffset f out.d out.m n < B :=
+  (out.bound_discOffset_lt_of_bound_discrepancy (f := f) B hB) n
+
 /-- Rewrite `apSumFrom f (m*d)` as an AP sum of the reduced sequence `out.g`.
 
 This is the most common “start at the affine point” normal form used in Tao-style reductions.
