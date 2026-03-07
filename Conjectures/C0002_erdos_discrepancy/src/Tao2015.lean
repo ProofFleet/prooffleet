@@ -1114,6 +1114,46 @@ theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_lt (out :
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using (out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (f := f))
 
+/-- Convenience: if you have uniform `discOffset` witnesses for `f`, then the reduced sequence `out.g`
+is unbounded along `out.d`. -/
+theorem not_boundedDiscrepancyAlong_of_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) → ¬ BoundedDiscrepancyAlong out.g out.d := by
+  intro h
+  -- Translate uniform `discOffset` witnesses back to uniform `HasDiscrepancyAtLeastAlong` witnesses.
+  have : ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C :=
+    (out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (f := f)).2 h
+  -- Then use the standard equivalence to `¬ BoundedDiscrepancyAlong`.
+  exact (out.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (f := f)).1 this
+
+/-- Converse convenience: if `out.g` is unbounded along `out.d`, then we get uniform `discOffset`
+witnesses for `f`. -/
+theorem forall_exists_discOffset_gt_of_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) → (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  intro h
+  have : ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C :=
+    (out.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (f := f)).2 h
+  exact (out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (f := f)).1 this
+
+/-- `<`-oriented version of `not_boundedDiscrepancyAlong_of_forall_exists_discOffset_gt`. -/
+theorem not_boundedDiscrepancyAlong_of_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    (∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) → ¬ BoundedDiscrepancyAlong out.g out.d := by
+  intro h
+  have : ∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C := by
+    intro C
+    rcases h C with ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  exact out.not_boundedDiscrepancyAlong_of_forall_exists_discOffset_gt (f := f) this
+
+/-- `<`-oriented version of `forall_exists_discOffset_gt_of_not_boundedDiscrepancyAlong`. -/
+theorem forall_exists_discOffset_lt_of_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) → (∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  intro h
+  have hgt : ∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C :=
+    out.forall_exists_discOffset_gt_of_not_boundedDiscrepancyAlong (f := f) h
+  intro C
+  rcases hgt C with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-!
 ### Shifting the reduced sequence
 
