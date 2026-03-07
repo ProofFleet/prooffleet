@@ -531,6 +531,17 @@ theorem boundedDiscrepancyAlong_iff_exists_discOffset_le (out : ReductionOutput 
     -- Rewrite the discrepancy of `out.g` to `discOffset` using the AP-sum contract.
     simpa [discOffset, discrepancy, out.apSum_contract] using hB n
 
+/-- Same as `boundedDiscrepancyAlong_iff_exists_discOffset_le`, but phrased directly in terms of
+`Int.natAbs (apSumOffset ...)`.
+
+This is often the most convenient normal form for later stages that work at the AP-sum level.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_natAbs_apSumOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using (out.boundedDiscrepancyAlong_iff_exists_discOffset_le (f := f))
+
 /-- Transfer the `Context`-level bound on `f` to a bound on the reduced discrepancy `discrepancy out.g out.d`.
 
 This is a tiny wrapper combining:
