@@ -175,6 +175,15 @@ theorem bound_apSumOffset (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
           exact Nat.add_le_add (ctx.bound_apSum (f := f) (d := d) (n := m + n) hd)
             (ctx.bound_apSum (f := f) (d := d) (n := m) hd)
 
+/-- Variant of `bound_apSumOffset` with the right-hand side written as `2 * B`.
+
+This is occasionally more convenient when downstream stages track constants multiplicatively.
+-/
+theorem bound_apSumOffset_two_mul (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
+    Int.natAbs (apSumOffset f d m n) ≤ 2 * ctx.B := by
+  -- `2 * B = B + B`.
+  simpa [two_mul] using (ctx.bound_apSumOffset (f := f) (d := d) (m := m) (n := n) hd)
+
 /-- Offset-sum bound in terms of the discrepancy wrapper `discOffset`. -/
 theorem bound_discOffset (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
     discOffset f d m n ≤ ctx.B + ctx.B := by
