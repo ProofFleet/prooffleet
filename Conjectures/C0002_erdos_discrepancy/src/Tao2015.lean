@@ -1383,6 +1383,31 @@ theorem apSumOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
     apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n :=
   out.apSumOffset_add_right (f := f) (m₂ := m₂) (n := n)
 
+/-- Discrepancy form of `shiftRight.apSumOffset_add_right`. -/
+theorem discOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
+  simp [discOffset, apSumOffset_add_right (f := f) (out := out) (m₂ := m₂) (n := n)]
+
+/-- The derived sequence of `out.shiftRight m₂` is literally a shift of `out.g` by `m₂*out.d`.
+
+This lemma makes it easy to reuse the basic shift/offset rewrite theorems for the *second* shift.
+-/
+theorem g_eq_shift (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight (f := f) m₂).g = fun k => out.g (k + m₂ * out.d) := by
+  rfl
+
+/-- Discrepancy of the derived sequence of `out.shiftRight m₂`, rewritten as an offset discrepancy
+of the already-reduced sequence `out.g`.
+
+This is the “second-hop” version of the main bridge lemma: it lets later stages talk about
+`discOffset out.g out.d m₂` instead of `discrepancy (out.shiftRight m₂).g`.
+-/
+theorem discrepancy_eq_discOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (out.shiftRight (f := f) m₂).g out.d n = discOffset out.g out.d m₂ n := by
+  -- This is the standard shift ↔ offset lemma, applied to the sequence `out.g`.
+  simpa [g_eq_shift (f := f) (out := out) (m₂ := m₂)] using
+    (Tao2015.discrepancy_shift_add_mul_eq_discOffset (f := out.g) (d := out.d) (m := m₂) (n := n))
+
 end shiftRight
 
 /-!
