@@ -482,6 +482,23 @@ theorem boundedDiscrepancyAlong (ctx : AlongContext g d) : BoundedDiscrepancyAlo
   -- `discrepancy` is just `natAbs (apSum …)`.
   simpa [discrepancy] using ctx.bound n
 
+/-- A convenience lemma: an `AlongContext` gives a pointwise discrepancy bound. -/
+theorem bound_discrepancy (ctx : AlongContext g d) (n : ℕ) : discrepancy g d n ≤ ctx.B := by
+  -- `discrepancy` is just `natAbs (apSum …)`.
+  simpa [discrepancy] using ctx.bound n
+
+/-- Extract an `AlongContext` from the propositional boundedness notion.
+
+Noncomputable because we use classical choice to pick a witness bound `B`.
+-/
+noncomputable def ofBoundedDiscrepancyAlong (h : BoundedDiscrepancyAlong g d) : AlongContext g d := by
+  classical
+  refine ⟨Classical.choose h, ?_⟩
+  intro n
+  -- `BoundedDiscrepancyAlong` bounds `discrepancy`; unfold and rewrite.
+  have : discrepancy g d n ≤ Classical.choose h := (Classical.choose_spec h) n
+  simpa [discrepancy] using this
+
 /-- If `f` has a global boundedness context, then any reduction output yields an `AlongContext`
 for the derived sequence along the bundled `d`.
 
@@ -551,6 +568,19 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSum_le (out : ReductionOutput f) :
     have : Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
       simpa [out.apSum_contract] using hB n
     simpa [discOffset] using this
+
+/-- Produce an `AlongContext` from bounded *offset* discrepancy.
+
+This is a common entry point for downstream stages: they only want an `AlongContext` for the
+reduced sequence `out.g` (along the fixed `out.d`), and do not care about the intermediate
+`discOffset` wrapper.
+-/
+noncomputable def alongContextOfBoundedDiscOffset (out : ReductionOutput f)
+    (h : BoundedDiscOffset f out.d out.m) : AlongContext out.g out.d := by
+  classical
+  -- Unfold to a uniform `natAbs` bound on `apSum out.g out.d n`, then package it.
+  rcases (out.boundedDiscOffset_iff_forall_natAbs_apSum_le (f := f)).1 h with ⟨B, hB⟩
+  exact ⟨B, hB⟩
 
 /-- A helper to *use* `BoundedDiscrepancyAlong` as a `∀ n` bound on `discrepancy`. -/
 theorem BoundedDiscrepancyAlong.exists_bound {g : ℕ → ℤ} {d : ℕ} :
