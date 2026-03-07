@@ -100,7 +100,7 @@ AP-sum-level statement, which is often the first thing a reduction step needs.
 
 This is the `apSum` analogue of `discOffset_add`.
 -/
-theorem apSumOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+theorem apSumOffset_add_pre (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
     apSumOffset f d (m₁ + m₂) n = apSumOffset (fun k => f (k + m₁ * d)) d m₂ n := by
   -- Expand both sides to AP sums of shifted sequences.
   -- LHS: shift by `(m₁+m₂)*d`.
@@ -108,13 +108,13 @@ theorem apSumOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
   simp [apSumOffset_eq_apSum_shift_add, Nat.add_mul, Nat.mul_add, Nat.add_assoc, Nat.add_left_comm,
     Nat.add_comm, Nat.mul_assoc, Nat.left_distrib]
 
-/-- Reverse orientation of `apSumOffset_add`.
+/-- Reverse orientation of `apSumOffset_add_pre`.
 
 We do not mark either direction `[simp]` to avoid rewriting loops.
 -/
-theorem apSumOffset_add' (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+theorem apSumOffset_add_pre' (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
     apSumOffset (fun k => f (k + m₁ * d)) d m₂ n = apSumOffset f d (m₁ + m₂) n := by
-  simpa using (apSumOffset_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)).symm
+  simpa using (apSumOffset_add_pre (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)).symm
 
 /-- Package the *assumption* of bounded discrepancy as data (`B` plus the bound lemma).
 
