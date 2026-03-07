@@ -2651,6 +2651,27 @@ theorem boundedDiscrepancyAlong_of_boundedDiscrepancy (out : ReductionOutput f) 
   let ctx : Context f := Context.ofBoundedDiscrepancy (f := f) hb
   exact out.boundedDiscrepancyAlong_of_context (f := f) (ctx := ctx)
 
+/-- The offset-boundedness predicate for `f` is equivalent to boundedness along `out.d` for the
+reduced sequence `out.g`.
+
+This is a key *interface hop*: reductions often produce boundedness/unboundedness information
+for the offset discrepancy `discOffset f out.d out.m`, while contradiction stages prefer to work
+with the simpler `BoundedDiscrepancyAlong out.g out.d` form.
+-/
+theorem boundedDiscOffset_iff_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m ↔ BoundedDiscrepancyAlong out.g out.d := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite `discOffset` to `discrepancy` using the reduction interface
+    simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite `discrepancy` to `discOffset` using the reduction interface
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
 /-- Contrapositive convenience: if `out.g` is unbounded along `out.d`, then `f` is globally unbounded.
 
 This is a useful end-user lemma: once the Tao pipeline reduces unboundedness to a single fixed
