@@ -1333,6 +1333,36 @@ theorem bound_discrepancy_shift_add_mul (ctx : AlongContext g d) (m n : ℕ) :
   -- `discrepancy` is just `natAbs` of `apSum`.
   simpa [discrepancy] using (ctx.bound_apSum_shift_add_mul (g := g) (d := d) (m := m) (n := n))
 
+/-- Rewrite `discOffset` in terms of the tail-sum API `apSumFrom` for a single fixed `d`.
+
+This is a small ergonomics lemma: many reduction steps naturally talk about tail sums, while the
+basic offset-discrepancy interface uses `discOffset`.
+-/
+theorem discOffset_eq_natAbs_apSumFrom (g : ℕ → ℤ) (d m n : ℕ) :
+    discOffset g d m n = Int.natAbs (apSumFrom g (m * d) d n) := by
+  -- Both `apSumOffset` and `apSumFrom` are definitional wrappers around the same shifted AP sum.
+  simp [discOffset, apSumOffset_eq_apSum_shift_add, apSumFrom_eq_apSum_shift_add, Nat.mul_assoc]
+
+/-- Bound tail sums of the form `apSumFrom g (m*d) d n` using only an `AlongContext g d`.
+
+This is the tail-sum analogue of `bound_apSum_shift_add_mul`.
+-/
+theorem bound_apSumFrom_mul (ctx : AlongContext g d) (m n : ℕ) :
+    Int.natAbs (apSumFrom g (m * d) d n) ≤ ctx.B + ctx.B := by
+  -- Rewrite `apSumFrom` to an AP sum of the shifted sequence and use the previous bound.
+  simpa [apSumFrom_eq_apSum_shift_add, Nat.mul_assoc] using
+    (ctx.bound_apSum_shift_add_mul (g := g) (d := d) (m := m) (n := n))
+
+/-- Bound `discOffset` using the `apSumFrom` normal form.
+
+This is just `bound_apSumFrom_mul`, but packaged in the standard discrepancy wrapper.
+-/
+theorem bound_discOffset_via_apSumFrom (ctx : AlongContext g d) (m n : ℕ) :
+    discOffset g d m n ≤ ctx.B + ctx.B := by
+  -- `discOffset` is the `natAbs` wrapper around `apSumOffset`, which equals the corresponding tail sum.
+  simpa [discOffset_eq_natAbs_apSumFrom (g := g) (d := d) (m := m) (n := n)] using
+    (ctx.bound_apSumFrom_mul (g := g) (d := d) (m := m) (n := n))
+
 /-- Uniform `∀ n` version of `AlongContext.bound_apSumOffset`. -/
 theorem bound_apSumOffset_forall (ctx : AlongContext g d) (m : ℕ) :
     ∀ n : ℕ, Int.natAbs (apSumOffset g d m n) ≤ ctx.B + ctx.B := by
