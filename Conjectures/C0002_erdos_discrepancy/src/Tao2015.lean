@@ -292,6 +292,22 @@ noncomputable def mkShift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ �
     -- Rewrite the discrepancy of `g` as the offset discrepancy of `f`.
     simpa [discrepancy, discOffset, hgEq, apSumOffset_eq_apSum_shift_add] using hB n
 
+/-- Convenience constructor: build a `ReductionOutput` from a *shift equation* and `hf`.
+
+This is a common refactor-friendly form: you might define `g` elsewhere and only later
+prove it is a shift of `f`. Given `hf : IsSignSequence f`, the sign-sequence proof for `g`
+can be derived automatically from `hgEq`.
+-/
+noncomputable def mkShiftOfEq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+    (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) :
+    ReductionOutput f := by
+  refine mkShift (f := f) (d := d) (m := m) (hd := hd)
+    (g := g)
+    (hg := ?_)
+    (hgEq := hgEq)
+  -- transport `IsSignSequence` across the definitional equality
+  simpa [hgEq] using (Tao2015.IsSignSequence.shift_add_mul (f := f) hf m d)
+
 /-- Even more convenient constructor: build the shifted reduction output directly from `hf`.
 
 This is the typical situation in the Tao pipeline: the reduced sequence *is* a shift of the
