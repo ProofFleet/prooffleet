@@ -1138,21 +1138,8 @@ produce witnesses of the form `∀ B, ∃ n, B < ...`.
 -/
 theorem not_iff_forall_exists_gt (f : ℕ → ℤ) (d m : ℕ) :
     (¬ BoundedDiscOffset f d m) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
-  classical
-  constructor
-  · intro h B
-    by_contra hcontra
-    -- If there is no witness `n` with `B < discOffset ... n`, then everything is bounded by `B`.
-    have hle : ∀ n : ℕ, discOffset f d m n ≤ B := by
-      intro n
-      by_contra hn
-      have : B < discOffset f d m n := Nat.lt_of_not_ge hn
-      exact hcontra ⟨n, this⟩
-    exact h ⟨B, hle⟩
-  · intro h hbd
-    rcases hbd with ⟨B, hB⟩
-    rcases h B with ⟨n, hn⟩
-    exact (not_lt_of_ge (hB n)) hn
+  simpa using
+    (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m))
 
 end BoundedDiscOffset
 
