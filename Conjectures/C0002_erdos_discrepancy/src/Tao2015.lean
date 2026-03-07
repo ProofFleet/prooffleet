@@ -962,6 +962,55 @@ theorem discOffset_add_eq_discrepancy_shiftRight (out : ReductionOutput f) (m₂
   simpa using (out.discrepancy_shiftRight_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)).symm
 
 /-!
+### Producing a new `ReductionOutput` by shifting the reduced sequence
+
+A very common move in Tao-style reductions is to take an existing reduction output `out :
+ReductionOutput f` and then shift the reduced sequence again by an additional multiple `m₂*out.d`.
+
+At the level of offsets, this simply replaces the bundled offset parameter `out.m` by
+`out.m + m₂`.
+
+The following constructor packages this into a new `ReductionOutput f` so downstream stages can
+stay entirely in the `ReductionOutput` interface.
+-/
+
+/-- Shift the reduced sequence `out.g` by an additional multiple `m₂*out.d`, producing a new
+reduction output with the bundled offset `out.m + m₂`.
+
+This is a small but useful “interface combinator”: it turns a downstream shift into a first-class
+reduction step.
+-/
+noncomputable def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionOutput f := by
+  classical
+  refine
+    { d := out.d
+      m := out.m + m₂
+      hd := out.hd
+      g := fun k => out.g (k + m₂ * out.d)
+      hg := ?_
+      g_eq := ?_
+      apSum_contract := ?_
+      contract_discrepancy_le := ?_ }
+  · -- `IsSignSequence` is stable under shifts.
+    exact Tao2015.IsSignSequence.shift_add_mul (f := out.g) out.hg m₂ out.d
+  · -- Compute the new `g` as a single shift of `f`.
+    funext k
+    -- `out.g (k + m₂*out.d) = f (k + (out.m+m₂)*out.d)`.
+    simp [out.g_eq, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add,
+      Nat.mul_assoc]
+  · intro n
+    -- Rewrite the shifted AP sum as the bundled offset AP sum of `f`.
+    simpa using (out.apSum_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n))
+  · intro B hB n
+    -- Transfer the bound using the AP-sum bridge.
+    exact
+      ReductionOutput.contract_discrepancy_le_of_apSum_contract (f := f)
+        (g := fun k => out.g (k + m₂ * out.d)) (d := out.d) (m := out.m + m₂) (B := B)
+        (h := fun n => by
+          simpa using (out.apSum_shiftRight_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)))
+        hB n
+
+/-!
 ### Tail-sum (`apSumFrom`) rewrites for shifted reductions
 
 Downstream stages often prefer the “tail sum” API `apSumFrom` (start at a base point `a` and take
