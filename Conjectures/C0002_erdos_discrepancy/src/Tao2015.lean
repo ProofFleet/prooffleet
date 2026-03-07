@@ -499,6 +499,34 @@ theorem apSum_contract_eq_derived (out : ReductionOutput f) :
   -- Both sides are proofs of the same proposition; use proof irrelevance.
   exact Subsingleton.elim _ _
 
+/-- A derived version of the discrepancy transfer contract.
+
+This does not use the `contract_discrepancy_le` field; it only needs the `apSum_contract` bridge.
+
+Useful when *constructing* a `ReductionOutput`: you can often fill the transfer contract
+automatically after proving the AP-sum bridge.
+-/
+theorem contract_discrepancy_le_derived (out : ReductionOutput f) (B : ℕ) :
+    (∀ n, discOffset f out.d out.m n ≤ B) → ∀ n, discrepancy out.g out.d n ≤ B := by
+  exact
+    contract_discrepancy_le_of_apSum_contract (f := f) (g := out.g) (d := out.d) (m := out.m)
+      (B := B) (h := out.apSum_contract)
+
+/-- The `contract_discrepancy_le` field is redundant: it is implied by `apSum_contract`.
+
+This lemma is to `contract_discrepancy_le` what `apSum_contract_eq_derived` is to
+`apSum_contract`: it makes future interface refactors easier.
+-/
+theorem contract_discrepancy_le_eq_derived (out : ReductionOutput f) :
+    out.contract_discrepancy_le =
+      fun B =>
+        contract_discrepancy_le_of_apSum_contract (f := f) (g := out.g) (d := out.d) (m := out.m)
+          (B := B) (h := out.apSum_contract) := by
+  classical
+  funext B hB n
+  -- Both sides are proofs of the same proposition; use proof irrelevance.
+  exact Subsingleton.elim _ _
+
 /-- Derive the discrepancy rewrite rule purely from `g_eq`.
 
 This variant does not rely on the `apSum_contract` field.
