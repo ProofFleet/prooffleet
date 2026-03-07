@@ -1166,6 +1166,35 @@ theorem shiftRight_g_eq (out : ReductionOutput f) (m₂ : ℕ) :
   -- `shiftRight` sets `d := out.d` and fills `apSum_contract` with the bundled-offset bridge.
   simp [shiftRight]
 
+/-- Discrepancy rewrite rule for `shiftRight`.
+
+Marked `[simp]` for the same reason as `ReductionOutput.mkShiftOfSign_discrepancy_contract`:
+it is the canonical normal form for discrepancies of the shifted reduction output.
+-/
+@[simp] theorem shiftRight_discrepancy_contract (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (shiftRight (f := f) out m₂).g out.d n = discOffset f out.d (out.m + m₂) n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`, and the AP-sum bridge is `[simp]`.
+  simp [discrepancy, discOffset]
+
+/-- `shiftRight` satisfies the discrepancy-transfer contract definitionally.
+
+This is a convenience lemma: downstream steps can use the contract field without unfolding
+`shiftRight`.
+-/
+@[simp] theorem shiftRight_contract_discrepancy_le (out : ReductionOutput f) (m₂ : ℕ) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d (out.m + m₂) n ≤ B) (n : ℕ) :
+    (shiftRight (f := f) out m₂).contract_discrepancy_le B hB n = hB n := by
+  -- The contract is just rewriting `discrepancy` to `discOffset` via the bridge rule.
+  simp [shiftRight, discrepancy, discOffset]
+
+/-- Function-extensional version of `shiftRight_contract_discrepancy_le`. -/
+@[simp] theorem shiftRight_contract_discrepancy_le_funext (out : ReductionOutput f) (m₂ : ℕ) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d (out.m + m₂) n ≤ B) :
+    (shiftRight (f := f) out m₂).contract_discrepancy_le B hB = hB := by
+  funext n
+  simpa using (shiftRight_contract_discrepancy_le (f := f) (out := out) (m₂ := m₂) (B := B)
+    (hB := hB) (n := n))
+
 /-!
 ### Tail-sum (`apSumFrom`) rewrites for shifted reductions
 
