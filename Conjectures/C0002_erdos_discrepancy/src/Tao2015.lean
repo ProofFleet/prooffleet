@@ -2540,6 +2540,44 @@ theorem unbounded_natAbs_apSum (s2 : Stage2Output f out) :
   refine ⟨n, ?_⟩
   simpa [discrepancy] using hn
 
+/-!
+### Convenience consequences: “for every threshold C, there is a large discrepancy”
+
+The stage-2 output is an unboundedness normal form (`∀ B, ∃ n, B < …`).
+Downstream stages often want the *existence* form at a particular threshold.
+-/
+
+/-- For any threshold `C`, the reduced sequence `out.g` has discrepancy `> C` along `out.d`.
+
+This is a direct consumer lemma for `HasDiscrepancyAtLeastAlong`.
+-/
+theorem hasDiscrepancyAtLeastAlong (s2 : Stage2Output f out) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C := by
+  -- Use the unboundedness normal form at `B = C`.
+  rcases s2.unbounded_discrepancy (f := f) (out := out) C with ⟨n, hn⟩
+  -- Unfold the predicate (it is stated in terms of `Int.natAbs (apSum …)`).
+  refine ⟨n, ?_⟩
+  simpa [HasDiscrepancyAtLeastAlong, discrepancy] using hn
+
+/-- A `Stage2Output` gives the ambient `HasDiscrepancyAtLeast` predicate for every threshold.
+
+This is just `hasDiscrepancyAtLeastAlong` promoted via the `d`-quantifier.
+-/
+theorem hasDiscrepancyAtLeast (s2 : Stage2Output f out) (C : ℕ) :
+    HasDiscrepancyAtLeast out.g C := by
+  -- Promote fixed-step discrepancy witness to the existential-over-`d` form.
+  exact HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C)
+    out.hd (s2.hasDiscrepancyAtLeastAlong (f := f) (out := out) C)
+
+/-- A `Stage2Output` yields a `discOffset` witness `> C` for the bundled parameters.
+
+This is the “original-sequence” form of `Stage2Output.hasDiscrepancyAtLeastAlong`.
+-/
+theorem exists_discOffset_gt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C := by
+  rcases s2.unbounded_discOffset C with ⟨n, hn⟩
+  exact ⟨n, hn⟩
+
 /-- Convert packaged stage-2 output to the propositional negated boundedness form. -/
 theorem not_boundedDiscOffset (s2 : Stage2Output f out) : ¬ BoundedDiscOffset f out.d out.m := by
   exact (stage2_witness_discOffset_iff_not_boundedDiscOffset (f := f) (out := out)).1 s2.unbounded_discOffset
