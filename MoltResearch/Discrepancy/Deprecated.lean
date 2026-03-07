@@ -146,25 +146,18 @@ lemma apSumFrom_zero_a (f : ℕ → ℤ) (d n : ℕ) :
     apSumFrom f 0 d n = apSum f d n := by
   simpa using (apSumFrom_zero_start (f := f) (d := d) (n := n))
 
-/-- Deprecated name for `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero`.
+-- NOTE: `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start` is now part of the stable
+-- surface (`import MoltResearch.Discrepancy`).
 
-Prefer importing `MoltResearch.Discrepancy` and using the canonical `_zero` name.
--/
-@[deprecated "Use `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero`." (since := "2026-03-06")]
-lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start {f : ℕ → ℤ} {C : ℕ} :
-    HasDiscrepancyAtLeast f C ↔
-      ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
-  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C))
-
-/-- Deprecated name for `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero`.
+/-- Deprecated name for `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`.
 
 This was the old `*_zero_m` name.
 -/
-@[deprecated "Use `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero`." (since := "2026-03-06")]
+@[deprecated "Use `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`." (since := "2026-03-06")]
 lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m {f : ℕ → ℤ} {C : ℕ} :
     HasDiscrepancyAtLeast f C ↔
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
-  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero (f := f) (C := C))
+  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C))
 
 /-- Deprecated wrapper around `apSum_eq_sum_Icc` writing the summand as `f (d * i)`.
 
