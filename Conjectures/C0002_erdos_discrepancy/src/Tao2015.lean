@@ -1275,6 +1275,34 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+namespace BoundedDiscrepancyAlong
+
+/-- Negating `BoundedDiscrepancyAlong` is equivalent to the usual unboundedness normal form.
+
+This is a tiny lemma, but it is the common *output shape* of many contradiction-style pipeline
+stages: they naturally produce witnesses `∀ B, ∃ n, B < discrepancy ...`.
+-/
+theorem not_iff_forall_exists_gt (g : ℕ → ℤ) (d : ℕ) :
+    (¬ BoundedDiscrepancyAlong g d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discrepancy g d n) := by
+  constructor
+  · intro h B
+    by_contra h'
+    -- `h'` says there is no `n` with `B < discrepancy g d n`, so everything is bounded by `B`.
+    have hB : ∀ n : ℕ, discrepancy g d n ≤ B := by
+      intro n
+      have : ¬ B < discrepancy g d n := by
+        -- otherwise we'd contradict `h'`.
+        intro hn
+        exact h' ⟨n, hn⟩
+      exact le_of_not_gt this
+    exact h ⟨B, hB⟩
+  · intro h
+    rintro ⟨B, hB⟩
+    rcases h B with ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n) hn)
+
+end BoundedDiscrepancyAlong
+
 namespace BoundedDiscOffset
 
 /-- Negating bounded offset discrepancy is equivalent to the usual unboundedness normal form.
