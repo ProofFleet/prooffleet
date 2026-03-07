@@ -1167,6 +1167,23 @@ theorem shiftRight₀_shiftRight₀_discrepancy_eq_discOffset (out : ReductionOu
     (ReductionOutput.shiftRight₀_discrepancy_eq_discOffset_add (f := f)
       (out := out.shiftRight₀ (f := f) m₂) (m₂ := m₃) (n := n))
 
+/-- Convenience rewrite: iterated shifting corresponds to increasing the bundled offset by
+`m₂ + m₃` in one go (AP-sum form).
+-/
+theorem shiftRight₀_shiftRight₀_apSum_eq_apSumOffset (out : ReductionOutput f) (m₂ m₃ n : ℕ) :
+    apSum ((out.shiftRight₀ (f := f) m₂).shiftRight₀ (f := f) m₃).g out.d n =
+      apSumOffset f out.d (out.m + m₂ + m₃) n := by
+  -- Apply the generic `shiftRight₀` AP-sum lemma twice.
+  simpa [Nat.add_assoc] using
+    (ReductionOutput.shiftRight₀_apSum_eq_apSumOffset_add (f := f)
+      (out := out.shiftRight₀ (f := f) m₂) (m₂ := m₃) (n := n))
+
+/-- Reverse orientation of `shiftRight₀_shiftRight₀_apSum_eq_apSumOffset`. -/
+theorem apSumOffset_eq_shiftRight₀_shiftRight₀_apSum (out : ReductionOutput f) (m₂ m₃ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂ + m₃) n =
+      apSum ((out.shiftRight₀ (f := f) m₂).shiftRight₀ (f := f) m₃).g out.d n := by
+  simpa using (out.shiftRight₀_shiftRight₀_apSum_eq_apSumOffset (f := f) (m₂ := m₂) (m₃ := m₃) (n := n)).symm
+
 /-- `apSum` rewrite rule for `shiftRight₀`: it is an offset AP sum of `f` with the bundled offset
 `out.m + m₂`.
 
