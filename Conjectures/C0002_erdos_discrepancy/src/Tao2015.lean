@@ -517,6 +517,29 @@ theorem contract_discrepancy_le_of_apSum_contract (f g : ℕ → ℤ) (d m B : �
   -- Rewrite the discrepancy of `g` to `discOffset` using `h`.
   simpa [discrepancy, discOffset, h n] using hB n
 
+/-- Transfer contract (≤) using a discrepancy-level bridge rule.
+
+This is sometimes the most convenient form: downstream steps can prove an identity about
+`discrepancy` directly (instead of going through `apSum`).
+-/
+theorem contract_discrepancy_le_of_discrepancy_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, discrepancy g d n = discOffset f d m n) :
+    (∀ n, discOffset f d m n ≤ B) → ∀ n, discrepancy g d n ≤ B := by
+  intro hB n
+  -- Rewrite `discrepancy g d n` to the offset discrepancy using `h`.
+  simpa [h n] using hB n
+
+/-- Derive `contract_discrepancy_le_of_discrepancy_contract` from an AP-sum bridge rule.
+
+This is just a small wrapper around `discrepancy_contract_of_apSum_contract`.
+-/
+theorem contract_discrepancy_le_of_apSum_contract' (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (∀ n, discOffset f d m n ≤ B) → ∀ n, discrepancy g d n ≤ B := by
+  -- First convert the AP-sum bridge to a discrepancy bridge, then reuse the discrepancy-level lemma.
+  apply contract_discrepancy_le_of_discrepancy_contract (f := f) (g := g) (d := d) (m := m) (B := B)
+  · exact discrepancy_contract_of_apSum_contract (f := f) (g := g) (d := d) (m := m) h
+
 /-- The `apSum_contract` field is redundant: it is implied by `g_eq`.
 
 Keeping this lemma around makes it easy to refactor the interface later.
