@@ -512,6 +512,31 @@ theorem boundedDiscrepancyAlong_iff_exists_discOffset_le (out : ReductionOutput 
     -- Rewrite the discrepancy of `out.g` to `discOffset` using the AP-sum contract.
     simpa [discOffset, discrepancy, out.apSum_contract] using hB n
 
+/-- Transfer the `Context`-level bound on `f` to a bound on the reduced discrepancy `discrepancy out.g out.d`.
+
+This is a tiny wrapper combining:
+- the `Context` bound on offset discrepancies (`Context.bound_discOffset`), and
+- the bridge rule `out.apSum_contract`.
+
+It is a common entry point for downstream reduction stages.
+-/
+theorem bound_discrepancy_of_context (out : ReductionOutput f) (ctx : Context f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  intro n
+  have h := ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+  -- Rewrite `discOffset` to `discrepancy out.g`.
+  simpa [discOffset, discrepancy, out.apSum_contract] using h
+
+/-- A `Context f` implies bounded discrepancy along the reduced step size `out.d`.
+
+The resulting bound is `ctx.B + ctx.B`, matching `Context.bound_discOffset`.
+-/
+theorem boundedDiscrepancyAlong_of_context (out : ReductionOutput f) (ctx : Context f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discrepancy_of_context (f := f) ctx n
+
 /-- Unboundedness along the reduced step size `out.d`, rewritten as a witness normal form for
 `discOffset`.
 
