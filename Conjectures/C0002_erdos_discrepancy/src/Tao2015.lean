@@ -262,6 +262,14 @@ theorem bound_apSum (ctx : Context f) (out : ReductionOutput f) (n : ℕ) :
     simpa using (ctx.bound_apSum_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
   simpa [out.g_eq] using this
 
+/-- Transfer a boundedness context for `f` to a bound on the *offset* AP sum appearing in `out`.
+
+This is just `Context.bound_apSumOffset`, specialized to the parameters bundled in `out`.
+-/
+theorem bound_apSumOffset (ctx : Context f) (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B + ctx.B := by
+  simpa using (ctx.bound_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+
 /-- Discrepancy rewrite rule: the discrepancy of `out.g` along `out.d` is the offset discrepancy of `f`.
 
 This is just the `natAbs` version of `apSum_eq_apSumOffset`.
@@ -415,6 +423,52 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d 
     BoundedDiscOffset f d m ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
   -- `discOffset` is just `Int.natAbs (apSumOffset …)`.
   simp [BoundedDiscOffset, discOffset]
+
+/-- For the particular parameters bundled in a `ReductionOutput`, boundedness along the reduced
+sequence is equivalent to a uniform bound on the absolute values of the corresponding offset sums.
+
+This is often the most convenient “consumer” statement: it avoids mentioning `discOffset` and
+`discrepancy` entirely.
+-/
+theorem boundedDiscrepancyAlong_iff_forall_natAbs_apSumOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  -- Unfold to `natAbs (apSum out.g out.d n)`, then rewrite via the bridge rule.
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- `hB` bounds `discrepancy`; unfold and rewrite `apSum` to `apSumOffset`.
+    have : Int.natAbs (apSum out.g out.d n) ≤ B := by
+      simpa [discrepancy] using hB n
+    simpa [out.apSum_contract] using this
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Conversely, rewrite `apSum` to `apSumOffset` and fold back into `discrepancy`.
+    have : Int.natAbs (apSum out.g out.d n) ≤ B := by
+      simpa [out.apSum_contract] using hB n
+    simpa [discrepancy] using this
+
+/-- Dually, bounded offset discrepancy for the parameters in `out` is equivalent to a uniform bound
+on absolute AP sums for the reduced sequence `out.g`.
+-/
+theorem boundedDiscOffset_iff_forall_natAbs_apSum_le (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum out.g out.d n) ≤ B) := by
+  -- Unfold to `natAbs (apSumOffset …)`, then rewrite via the bridge rule.
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have : Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+      simpa [discOffset] using hB n
+    simpa [out.apSum_contract] using this
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have : Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+      simpa [out.apSum_contract] using hB n
+    simpa [discOffset] using this
 
 /-- A helper to *use* `BoundedDiscrepancyAlong` as a `∀ n` bound on `discrepancy`. -/
 theorem BoundedDiscrepancyAlong.exists_bound {g : ℕ → ℤ} {d : ℕ} :
