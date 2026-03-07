@@ -785,6 +785,36 @@ theorem bound_discrepancy_shift_add_mul_forall (ctx : AlongContext g d) (m : ℕ
   intro n
   exact ctx.bound_discrepancy_shift_add_mul (g := g) (d := d) (m := m) (n := n)
 
+/-!
+### Packaging shifts of an `AlongContext`
+
+Downstream stages often re-center the reduced sequence by shifting it by a multiple of the fixed
+common difference `d`.  The lemma `bound_apSum_shift_add_mul` gives the relevant bound, but it is
+convenient to repackage it as a new `AlongContext`.
+-/
+
+/-- Shift an `AlongContext` by an additional multiple `m*d`.
+
+The bound degrades by a factor `2` (from `B` to `B+B`), matching the estimate in
+`AlongContext.bound_apSum_shift_add_mul`.
+-/
+def shiftRight (ctx : AlongContext g d) (m : ℕ) : AlongContext (fun k => g (k + m * d)) d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact ctx.bound_apSum_shift_add_mul (g := g) (d := d) (m := m) (n := n)
+
+/-- The bound used by `AlongContext.shiftRight`. -/
+@[simp] theorem shiftRight_B (ctx : AlongContext g d) (m : ℕ) :
+    (ctx.shiftRight (g := g) (d := d) m).B = ctx.B + ctx.B := by
+  rfl
+
+/-- Discrepancy bound coming from `AlongContext.shiftRight`. -/
+theorem shiftRight_bound_discrepancy (ctx : AlongContext g d) (m n : ℕ) :
+    discrepancy (fun k => g (k + m * d)) d n ≤ (ctx.shiftRight (g := g) (d := d) m).B := by
+  -- Unfold `shiftRight` and reuse `bound_discrepancy_shift_add_mul`.
+  simpa [AlongContext.shiftRight] using
+    (ctx.bound_discrepancy_shift_add_mul (g := g) (d := d) (m := m) (n := n))
+
 end AlongContext
 
 /-- Unfold `BoundedDiscrepancyAlong` into a uniform bound on absolute AP sums. -/
