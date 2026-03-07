@@ -1133,6 +1133,40 @@ noncomputable def shiftRight₀ (out : ReductionOutput f) (m₂ : ℕ) : Reducti
     (out.shiftRight₀ (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
   rfl
 
+/-!
+### Iterating `shiftRight₀`
+
+Many downstream reductions shift the reduced sequence multiple times.
+The next lemmas record the algebra of these shifts at the level of the bundled parameters and the
+underlying reduced sequence.
+-/
+
+@[simp] theorem shiftRight₀_shiftRight₀_d (out : ReductionOutput f) (m₂ m₃ : ℕ) :
+    ((out.shiftRight₀ (f := f) m₂).shiftRight₀ (f := f) m₃).d = out.d := by
+  rfl
+
+@[simp] theorem shiftRight₀_shiftRight₀_m (out : ReductionOutput f) (m₂ m₃ : ℕ) :
+    ((out.shiftRight₀ (f := f) m₂).shiftRight₀ (f := f) m₃).m = out.m + m₂ + m₃ := by
+  rfl
+
+@[simp] theorem shiftRight₀_shiftRight₀_g_apply (out : ReductionOutput f) (m₂ m₃ k : ℕ) :
+    ((out.shiftRight₀ (f := f) m₂).shiftRight₀ (f := f) m₃).g k =
+      out.g (k + (m₂ + m₃) * out.d) := by
+  -- Unfold the two shifts and reassociate the accumulated offset.
+  simp [ReductionOutput.shiftRight₀, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
+    Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
+
+/-- Convenience rewrite: iterated shifting corresponds to increasing the bundled offset by
+`m₂ + m₃` in one go (discrepancy form).
+-/
+theorem shiftRight₀_shiftRight₀_discrepancy_eq_discOffset (out : ReductionOutput f) (m₂ m₃ n : ℕ) :
+    discrepancy ((out.shiftRight₀ (f := f) m₂).shiftRight₀ (f := f) m₃).g out.d n =
+      discOffset f out.d (out.m + m₂ + m₃) n := by
+  -- Apply the generic `shiftRight₀` discrepancy lemma twice.
+  simpa [Nat.add_assoc] using
+    (ReductionOutput.shiftRight₀_discrepancy_eq_discOffset_add (f := f)
+      (out := out.shiftRight₀ (f := f) m₂) (m₂ := m₃) (n := n))
+
 /-- `apSum` rewrite rule for `shiftRight₀`: it is an offset AP sum of `f` with the bundled offset
 `out.m + m₂`.
 
