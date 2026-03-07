@@ -402,6 +402,35 @@ theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : �
       HasDiscrepancyAtLeastAlong (fun k => f (k + out.m * out.d)) out.d C := by
   simpa [out.g_eq]
 
+/-- Rewrite the reduced-step discrepancy predicate into a `discOffset` witness (`C < ...`). -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- First rewrite `out.g` to the literal shift of `f`, then use the shift→offset bridge lemma.
+  simpa [out.g_eq] using
+    (Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_lt
+      (f := f) (d := out.d) (m := out.m) (C := C))
+
+/-- A version of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt` with the inequality
+oriented as `... > C`.
+
+This can be slightly more convenient when the downstream step naturally produces a strict
+inequality in the “greater-than” direction.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C))
+
+/-- Push `HasDiscrepancyAtLeastAlong` across the discrepancy wrapper.
+
+`HasDiscrepancyAtLeastAlong` is stated using `Int.natAbs (apSum ...)`, while many downstream
+arguments prefer the bundled wrapper `discrepancy`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discrepancy out.g out.d n) := by
+  -- Unfold and normalize `a > b` as `b < a`.
+  simp [HasDiscrepancyAtLeastAlong, discrepancy, gt_iff_lt]
+
 /-- If the original sequence `f` is a sign sequence, then so is the derived sequence `out.g`.
 
 This lemma is useful when constructing or refactoring `ReductionOutput`: it shows that the
