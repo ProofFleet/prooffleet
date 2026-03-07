@@ -1112,6 +1112,37 @@ theorem not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (out : ReductionOu
     ¬ BoundedDiscrepancyAlong out.g out.d ↔ ¬ BoundedDiscOffset f out.d out.m := by
   simpa using not_congr (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f))
 
+/-- Convert an `AlongContext` for the reduced sequence into bounded offset discrepancy for `f`.
+
+This is often the *exact* consumer step after you have proved a uniform `apSum`-bound for `out.g`
+(along the fixed `out.d`) and want to hand it back to the next pipeline stage as a
+`BoundedDiscOffset` hypothesis.
+-/
+theorem boundedDiscOffset_ofAlongContext (out : ReductionOutput f) (ctx : AlongContext out.g out.d) :
+    BoundedDiscOffset f out.d out.m := by
+  refine ⟨ctx.B, ?_⟩
+  intro n
+  -- Rewrite `discOffset` to `discrepancy` and use the discrepancy bound from `ctx`.
+  have : discrepancy out.g out.d n ≤ ctx.B := by
+    simpa [discrepancy] using ctx.bound n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using this
+
+/-- Convert bounded offset discrepancy for `f` into an `AlongContext` for the reduced sequence.
+
+This is the “data” version of `boundedDiscrepancyAlong_iff_boundedDiscOffset`, specialized to the
+`AlongContext` consumer API.
+-/
+noncomputable def alongContext_ofBoundedDiscOffset (out : ReductionOutput f)
+    (h : BoundedDiscOffset f out.d out.m) : AlongContext out.g out.d := by
+  classical
+  refine ⟨Classical.choose h, ?_⟩
+  intro n
+  -- `BoundedDiscOffset` bounds `discOffset`; rewrite to `discrepancy` and unfold.
+  have hn : discOffset f out.d out.m n ≤ Classical.choose h := (Classical.choose_spec h) n
+  have : discrepancy out.g out.d n ≤ Classical.choose h := by
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+  simpa [discrepancy] using this
+
 /-- Transfer lemma: unboundedness (in the `∀ B, ∃ n, B < ...` normal form) is equivalent across
 the reduction interface.
 
