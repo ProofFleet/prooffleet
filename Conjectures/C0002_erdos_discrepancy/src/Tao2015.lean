@@ -723,6 +723,33 @@ theorem contract_discrepancy_le_of_apSum_contract (f g : ℕ → ℤ) (d m B : �
   -- Rewrite the discrepancy of `g` to `discOffset` using `h`.
   simpa [discrepancy, discOffset, h n] using hB n
 
+/-- Transfer contract (<): strict-inequality version of `contract_discrepancy_le_of_apSum_contract`. -/
+theorem contract_discrepancy_lt_of_apSum_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (∀ n, discOffset f d m n < B) → ∀ n, discrepancy g d n < B := by
+  intro hB n
+  -- Rewrite the discrepancy of `g` to `discOffset` using `h`.
+  simpa [discrepancy, discOffset, h n] using hB n
+
+/-- Reverse transfer contract (≤): a uniform bound on `discrepancy g d` transfers to a uniform bound
+on `discOffset f d m`, derived from an AP-sum bridge rule.
+-/
+theorem contract_discOffset_le_of_apSum_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (∀ n, discrepancy g d n ≤ B) → ∀ n, discOffset f d m n ≤ B := by
+  -- Convert the AP-sum bridge into a discrepancy-level bridge, then use the reverse transfer lemma.
+  have h' : ∀ n : ℕ, discrepancy g d n = discOffset f d m n :=
+    discrepancy_contract_of_apSum_contract (f := f) (g := g) (d := d) (m := m) h
+  exact contract_discOffset_le_of_discrepancy_contract (f := f) (g := g) (d := d) (m := m) (B := B) h'
+
+/-- Reverse transfer contract (<): strict version of `contract_discOffset_le_of_apSum_contract`. -/
+theorem contract_discOffset_lt_of_apSum_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (∀ n, discrepancy g d n < B) → ∀ n, discOffset f d m n < B := by
+  have h' : ∀ n : ℕ, discrepancy g d n = discOffset f d m n :=
+    discrepancy_contract_of_apSum_contract (f := f) (g := g) (d := d) (m := m) h
+  exact contract_discOffset_lt_of_discrepancy_contract (f := f) (g := g) (d := d) (m := m) (B := B) h'
+
 /-- Transfer contract (≤) using a discrepancy-level bridge rule.
 
 This is sometimes the most convenient form: downstream steps can prove an identity about
