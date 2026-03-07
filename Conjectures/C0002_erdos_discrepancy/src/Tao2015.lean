@@ -735,7 +735,7 @@ reduction output produced by `mkShiftOfSign` without repeatedly unfolding the co
     (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g k = f (k + m * d) := by
   simp [mkShiftOfSign, mkShift]
 
-@[simp] theorem mkShiftOfSign_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+theorem mkShiftOfSign_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g = fun k => f (k + m * d) := by
   funext k
   simp
@@ -2745,7 +2745,7 @@ sequence `f` by the *bundled* offset `(out.m + m₂) * out.d`.
 This is just the `g_eq` field of the newly constructed `ReductionOutput`, but it’s convenient to
 have as a named lemma for downstream reductions.
 -/
-@[simp] theorem g_eq_f_shift (out : ReductionOutput f) (m₂ : ℕ) :
+theorem g_eq_f_shift (out : ReductionOutput f) (m₂ : ℕ) :
     (out.shiftRight (f := f) m₂).g = fun k => f (k + (out.m + m₂) * out.d) := by
   simpa using (out.shiftRight (f := f) m₂).g_eq
 
