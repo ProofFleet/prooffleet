@@ -183,6 +183,36 @@ theorem bound_discrepancy_shift_add_forall (ctx : Context f) (d m : ℕ) (hd : d
 
 end Context
 
+/-!
+### A tiny “fixed-step” discrepancy predicate
+
+`HasDiscrepancyAtLeast` quantifies over the step size `d`.  Many intermediate reductions in
+Tao 2015 produce information at a *specific* step size (or a small set of step sizes).
+
+To avoid fighting the existential quantifier prematurely, we introduce a local predicate
+for “large discrepancy along a fixed `d`”.  Downstream stages can later upgrade it back to
+`HasDiscrepancyAtLeast` once they manage the `d`-quantifier.
+
+This lives in `Conjectures/` because it is proof-pipeline glue rather than stable substrate.
+-/
+
+def HasDiscrepancyAtLeastAlong (f : ℕ → ℤ) (d C : ℕ) : Prop :=
+  ∃ n : ℕ, Int.natAbs (apSum f d n) > C
+
+namespace HasDiscrepancyAtLeastAlong
+
+lemma mono {f : ℕ → ℤ} {d C₁ C₂ : ℕ}
+    (h : HasDiscrepancyAtLeastAlong f d C₂) (hC : C₁ ≤ C₂) :
+    HasDiscrepancyAtLeastAlong f d C₁ := by
+  rcases h with ⟨n, hn⟩
+  exact ⟨n, lt_of_le_of_lt hC hn⟩
+
+lemma of_succ {f : ℕ → ℤ} {d C : ℕ} (h : HasDiscrepancyAtLeastAlong f d (C + 1)) :
+    HasDiscrepancyAtLeastAlong f d C :=
+  mono (f := f) (d := d) (C₁ := C) (C₂ := C + 1) h (Nat.le_succ C)
+
+end HasDiscrepancyAtLeastAlong
+
 /-- Output of the first major reduction stage of Tao 2015.
 
 This is the first **nontrivial interface** we want downstream steps to consume.
@@ -439,6 +469,42 @@ Marked `[simp]` because it is the most common consumer rewrite.
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, out.apSum_contract]
+
+/-- Fixed-step discrepancy transfer (in `natAbs` form).
+
+This is the most direct consumer lemma for our new predicate `HasDiscrepancyAtLeastAlong`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- rewrite `apSum out.g` to `apSumOffset f`
+    simpa [out.apSum_contract] using hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.apSum_contract] using hn
+
+/-- Same transfer statement, but phrased using the `discOffset` wrapper. -/
+theorem hasDiscrepancyAtLeastAlong_iff_discOffset (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+  simpa [HasDiscrepancyAtLeastAlong, discOffset] using (out.hasDiscrepancyAtLeastAlong_iff (f := f) (C := C))
+
+/-- A convenient forward direction: a large discrepancy witness for `out.g` produces a large
+`discOffset` witness for `f`. -/
+theorem exists_discOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C → (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  intro h
+  exact (out.hasDiscrepancyAtLeastAlong_iff_discOffset (f := f) (C := C)).1 h
+
+/-- A convenient backward direction: a large `discOffset` witness for `f` produces a large
+fixed-step discrepancy witness for `out.g`. -/
+theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discOffset f out.d out.m n > C) → HasDiscrepancyAtLeastAlong out.g out.d C := by
+  intro h
+  exact (out.hasDiscrepancyAtLeastAlong_iff_discOffset (f := f) (C := C)).2 h
 
 /-- The same rewrite rule, but oriented in the other direction. -/
 theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
