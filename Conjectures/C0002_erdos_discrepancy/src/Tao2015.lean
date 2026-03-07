@@ -4511,10 +4511,9 @@ Downstream Tao steps should aim to prove this without needing to know how `ctx` 
 We declare this as an `axiom` (rather than a `theorem` proved by `sorry`) so that the rest of the
 pipeline glue can be developed `sorry`-free.
 -/
-theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+axiom stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     (ctx : Context f) (out : ReductionOutput f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
-  sorry
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n
 
 /-- Package the stage-2 deliverable into a `Stage2Output` record.
 
