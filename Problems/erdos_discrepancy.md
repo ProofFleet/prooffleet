@@ -367,6 +367,16 @@ Definition of done:
   - Verified legacy aliases (`*_zero_n`, `*_zero_m`, `*_zero_a`, etc.) live only in `MoltResearch.Discrepancy.Deprecated` and are guarded by `Discrepancy/SurfaceAudit.lean` absence checks.
 - [x] Stable-surface audit: update `MoltResearch/Discrepancy/SurfaceAudit.lean` to assert the above normal-form lemmas are exported by `import MoltResearch.Discrepancy` (and add a companion check that deprecated aliases are not).
 
+#### Auto-generated backlog (needs triage)
+- [ ] Residue-class split normal form: a lemma family splitting `apSum`/`apSumOffset` into a sum of `r` smaller AP sums by reindexing `i = r*q + j` (with both `i*d` and `d*i` summand orders), plus a regression example under `import MoltResearch.Discrepancy`.
+- [ ] Lipschitz-in-length: prove a canonical “one-step extension” lemma `apSumOffset f d m (n+1) = apSumOffset f d m n + f ((m+n+1)*d)` (and `apSum`/`apSumFrom` analogues), and derive `Int.natAbs (apSumOffset … (n+1)) ≤ Int.natAbs (apSumOffset … n) + 1` for sign sequences.
+- [ ] Disc-level API coherence: introduce `disc (f d n) : ℕ := Int.natAbs (apSum f d n)` (homogeneous analogue of `discOffset`) and port the existing split/triangle/bound lemmas to `disc` with stable names mirroring `discOffset_*`.
+- [ ] “Support finset” normal form: define `apSupport d m n : Finset ℕ` (the accessed indices `{(m+i+1)*d | i < n}`) and prove `apSumOffset_congr`/stability lemmas phrased as equality on `apSupport` (so later local-surgery arguments don’t need `Icc` bookkeeping).
+- [ ] Step-factoring for affine tails (API shape): add a canonical lemma rewriting `apSumFrom f a (d₁*d₂) n` into an `apSumOffset` normal form on a shifted sequence when `a` is a multiple of `d₂` (so affine starts + factored steps normalize in one hop).
+- [ ] One-cut in `Finset.range` normal form: a lemma splitting `apSumOffset` written as a `Finset.range` sum (via `apSumOffset_eq_sum_range'`) at a cut `k`, producing two `range` sums and immediately rewriting both back to nucleus `apSumOffset`; include a stable-surface regression example.
+- [ ] “Swap start shift vs summand shift” coherence: prove a two-way lemma family normalizing between `apSumOffset (fun t => f (t + a)) d (m+b) n` and `apSumOffset (fun t => f (t + (a + b*d))) d m n` with a preferred public name + deprecated aliases isolated.
+- [ ] Bounded-by-B generalization for affine tails: extend the existing `natAbs_apSum*_le_mul` family with a lemma that bounds differences of affine tails directly (without rewriting to offset first), producing `Int.natAbs (apSumFrom f a d (m+n) - apSumFrom f a d m) ≤ n * B` under `∀k, Int.natAbs (f k) ≤ B`.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
