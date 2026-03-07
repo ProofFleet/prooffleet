@@ -230,6 +230,26 @@ theorem apSum_contract_derived (out : ReductionOutput f) :
   simpa [out.g_eq] using
     (apSumOffset_eq_apSum_shift_add (f := f) (d := out.d) (m := out.m) (n := n)).symm
 
+/-- Standalone bridge rule: if `g` is literally a shift of `f` by `m*d`, then `apSum g d` is an
+offset AP sum of `f`.
+
+This lemma is useful when *constructing* a `ReductionOutput`: it lets you prove the bridge
+property without mentioning the structure.
+-/
+theorem apSum_contract_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hgEq : g = fun k => f (k + m * d)) :
+    ∀ n : ℕ, apSum g d n = apSumOffset f d m n := by
+  intro n
+  -- Expand `apSumOffset` to an `apSum` on the shifted sequence, then rewrite by `hgEq`.
+  simpa [hgEq] using
+    (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Standalone discrepancy bridge rule, derived from `apSum_contract_of_g_eq`. -/
+theorem discrepancy_contract_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hgEq : g = fun k => f (k + m * d)) :
+    ∀ n : ℕ, discrepancy g d n = discOffset f d m n := by
+  intro n
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, apSum_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq]
+
 /-- The `apSum_contract` field is redundant: it is implied by `g_eq`.
 
 Keeping this lemma around makes it easy to refactor the interface later.
