@@ -446,6 +446,25 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (out : ReductionOutp
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C))
 
+/-- Sum-level (offset AP sum) witness normal form for `HasDiscrepancyAtLeastAlong out.g out.d C`.
+
+This is the cleanest statement when downstream stages work directly with
+`Int.natAbs (apSumOffset ...)` rather than the bundled wrappers `discrepancy`/`discOffset`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  -- Unfold the fixed-step predicate, then rewrite `apSum out.g` to `apSumOffset` via the bridge.
+  simp [HasDiscrepancyAtLeastAlong, out.apSum_contract]
+
+/-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C))
+
 /-- Extract a `discOffset` witness from a fixed-step discrepancy statement about `out.g`. -/
 theorem exists_discOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) {C : ℕ}
     (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
