@@ -3276,6 +3276,23 @@ theorem unbounded_natAbs_apSum (s2 : Stage2Output f out) :
   refine ⟨n, ?_⟩
   simpa [discrepancy] using hn
 
+/-- A `Stage2Output` certifies that the bundled offset discrepancy is not bounded. -/
+theorem not_boundedDiscOffset (s2 : Stage2Output f out) :
+    ¬ BoundedDiscOffset f out.d out.m := by
+  intro hbd
+  rcases hbd with ⟨B, hB⟩
+  rcases s2.unbounded_discOffset B with ⟨n, hn⟩
+  exact (Nat.not_lt_of_ge (hB n)) hn
+
+/-- A `Stage2Output` certifies that the reduced sequence has unbounded discrepancy along `out.d`. -/
+theorem not_boundedDiscrepancyAlong (s2 : Stage2Output f out) :
+    ¬ BoundedDiscrepancyAlong out.g out.d := by
+  intro hbd
+  rcases hbd with ⟨B, hB⟩
+  rcases s2.unbounded_discrepancy (f := f) (out := out) B with ⟨n, hn⟩
+  -- `hB` gives `discrepancy ≤ B`, contradicting `B < discrepancy`.
+  exact (Nat.not_lt_of_ge (hB n)) hn
+
 /-!
 ### Convenience consequences: “for every threshold C, there is a large discrepancy”
 
