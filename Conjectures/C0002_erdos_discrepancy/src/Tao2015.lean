@@ -3615,6 +3615,35 @@ noncomputable def ofNotBoundedDiscOffset (h : ¬ BoundedDiscOffset f out.d out.m
       (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)).1 h := by
   rfl
 
+/-- Build a `Stage2Output` from the negated boundedness form `¬ BoundedDiscrepancyAlong out.g out.d`.
+
+This is a useful alternative entry point for stage 2: some reductions naturally produce
+unboundedness of the *reduced* sequence at a fixed step size, and only later want to translate
+that back into explicit offset-discrepancy witnesses for the original sequence `f`.
+-/-
+noncomputable def ofNotBoundedDiscrepancyAlong (h : ¬ BoundedDiscrepancyAlong out.g out.d) :
+    Stage2Output f out := by
+  classical
+  refine ofUnboundedDiscOffset (f := f) (out := out) ?_
+  intro B
+  -- Extract the explicit witness normal form for discrepancies of `out.g`.
+  have hdisc : ∃ n : ℕ, B < discrepancy out.g out.d n := by
+    exact (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d)).1 h B
+  rcases hdisc with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- Rewrite `discrepancy out.g out.d n` to the bundled offset discrepancy of `f`.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+@[simp] theorem ofNotBoundedDiscrepancyAlong_unbounded (h : ¬ BoundedDiscrepancyAlong out.g out.d) :
+    (ofNotBoundedDiscrepancyAlong (f := f) (out := out) h).unbounded_discOffset =
+      (fun B => by
+        have hdisc : ∃ n : ℕ, B < discrepancy out.g out.d n :=
+          (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d)).1 h B
+        rcases hdisc with ⟨n, hn⟩
+        refine ⟨n, ?_⟩
+        simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn) := by
+  rfl
+
 /-- Stage-2 output transported to the reduced sequence `out.g` (discrepancy witness form). -/
 theorem unbounded_discrepancy (s2 : Stage2Output f out) :
     ∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n := by
