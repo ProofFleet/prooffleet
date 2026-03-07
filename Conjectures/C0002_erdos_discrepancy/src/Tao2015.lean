@@ -1432,6 +1432,40 @@ theorem reduction_eq_mkShiftOfSign (f : ℕ → ℤ) (hf : IsSignSequence f) (ct
   simp [Tao2015.reduction, Tao2015.discOffset_zero]
 
 /-!
+Small helper lemmas: `reduction` is currently the trivial `(d,m,g)=(1,0,f)` instantiation,
+so many expressions simplify completely.
+
+Downstream code should prefer these lemmas to directly unfolding `reduction`.
+-/
+
+@[simp] theorem reduction_apSum (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (n : ℕ) :
+    apSum (reduction (f := f) (hf := hf) ctx).g (reduction (f := f) (hf := hf) ctx).d n =
+      apSum f 1 n := by
+  classical
+  -- In the current stub, `g = f` and `d = 1`.
+  simp [Tao2015.reduction]
+
+@[simp] theorem reduction_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (n : ℕ) :
+    apSumOffset f (reduction (f := f) (hf := hf) ctx).d (reduction (f := f) (hf := hf) ctx).m n =
+      apSum f 1 n := by
+  classical
+  -- In the current stub, `d = 1` and `m = 0`.
+  simp [Tao2015.reduction, Tao2015.apSumOffset_zero]
+
+@[simp] theorem reduction_natAbs_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (n : ℕ) :
+    Int.natAbs (apSumOffset f (reduction (f := f) (hf := hf) ctx).d (reduction (f := f) (hf := hf) ctx).m n) =
+      Int.natAbs (apSum f 1 n) := by
+  classical
+  simp [Tao2015.reduction, Tao2015.apSumOffset_zero]
+
+@[simp] theorem reduction_discOffset' (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (n : ℕ) :
+    discOffset f (reduction (f := f) (hf := hf) ctx).d (reduction (f := f) (hf := hf) ctx).m n =
+      discOffset f 1 0 n := by
+  classical
+  -- Sometimes it is convenient to keep `discOffset` rather than rewriting to `discrepancy`.
+  simp [Tao2015.reduction]
+
+/-!
 ### Downstream contradiction stage (still a stub)
 
 The point of the “plane” architecture is that once we have *any* downstream stage that produces
