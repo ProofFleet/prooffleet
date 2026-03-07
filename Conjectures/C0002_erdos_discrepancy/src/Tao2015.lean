@@ -1343,6 +1343,20 @@ theorem reduction_eq_mkShiftOfSign (f : ℕ → ℤ) (hf : IsSignSequence f) (ct
   funext k
   simp [reduction_eq_mkShiftOfSign (f := f) (hf := hf) (ctx := ctx)]
 
+@[simp] theorem reduction_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (n : ℕ) :
+    discrepancy (reduction (f := f) (hf := hf) ctx).g (reduction (f := f) (hf := hf) ctx).d n =
+      discrepancy f 1 n := by
+  classical
+  -- In the current stub, `g = f` and `d = 1`.
+  simp [Tao2015.reduction]
+
+@[simp] theorem reduction_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (n : ℕ) :
+    discOffset f (reduction (f := f) (hf := hf) ctx).d (reduction (f := f) (hf := hf) ctx).m n =
+      discrepancy f 1 n := by
+  classical
+  -- In the current stub, `d = 1` and `m = 0`.
+  simp [Tao2015.reduction, Tao2015.discOffset_zero]
+
 /-!
 ### Downstream contradiction stage (still a stub)
 
