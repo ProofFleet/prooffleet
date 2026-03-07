@@ -54,6 +54,37 @@ theorem shift_add_mul {f : ℕ → ℤ} (hf : IsSignSequence f) (m d : ℕ) :
 
 end IsSignSequence
 
+/-!
+### Bridge lemmas: shifting ↔ offset sums
+
+`apSumOffset` is defined in terms of shifting by a multiple of `d`.  Downstream steps often want
+these rewrite rules in the *forward* direction (from shifted sums to offset sums).
+
+We keep them in `Conjectures/` because they are part of the “proof pipeline ergonomics”, not the
+verified substrate.
+-/
+
+/-- A shifted AP sum is an offset AP sum. -/
+theorem apSum_shift_add_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (k + m * d)) d n = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
+
+/-- The reverse orientation of `apSum_shift_add_mul_eq_apSumOffset`. -/
+theorem apSumOffset_eq_apSum_shift_add_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using (apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Discrepancy version of `apSum_shift_add_mul_eq_apSumOffset`. -/
+theorem discrepancy_shift_add_mul_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    discrepancy (fun k => f (k + m * d)) d n = discOffset f d m n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, apSum_shift_add_mul_eq_apSumOffset]
+
+/-- Reverse orientation of `discrepancy_shift_add_mul_eq_discOffset`. -/
+theorem discOffset_eq_discrepancy_shift_add_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = discrepancy (fun k => f (k + m * d)) d n := by
+  simpa using (discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Package the *assumption* of bounded discrepancy as data (`B` plus the bound lemma).
 
 This is a Lean-friendly normal form: instead of passing around an existential hypothesis
