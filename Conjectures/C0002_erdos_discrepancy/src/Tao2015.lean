@@ -886,10 +886,24 @@ theorem apSumOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
   -- First re-associate offsets on `f`, then rewrite the shifted sequence to `out.g`.
   simpa [Tao2015.apSumOffset_add, out.g_eq]
 
+/-- The reverse orientation of `apSumOffset_add_right`.
+
+This is often convenient when you are *already* working with the reduced sequence `out.g`
+but want to phrase an expression back in terms of the original `f`.
+-/
+theorem apSumOffset_eq_apSumOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset out.g out.d m₂ n = apSumOffset f out.d (out.m + m₂) n := by
+  simpa using (out.apSumOffset_add_right (f := f) (m₂ := m₂) (n := n)).symm
+
 /-- Discrepancy form of `apSumOffset_add_right`. -/
 theorem discOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
     discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
   simp [discOffset, out.apSumOffset_add_right (f := f) (m₂ := m₂) (n := n)]
+
+/-- Reverse orientation of `discOffset_add_right`. -/
+theorem discOffset_eq_discOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset out.g out.d m₂ n = discOffset f out.d (out.m + m₂) n := by
+  simpa using (out.discOffset_add_right (f := f) (m₂ := m₂) (n := n)).symm
 
 /-- Equivalence of boundedness notions across the reduction interface. -/
 theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) :
