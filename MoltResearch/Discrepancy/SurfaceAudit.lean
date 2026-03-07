@@ -76,6 +76,19 @@ section
   #check apSumOffset_shift_add_eq_apSumFrom_tail
   #check apSumOffset_shift_add_eq_apSumFrom_tail_firstTerm
 
+  -- Tail-parameter-elimination normal-form lemmas should be present.
+  #check apSumFrom_tail_eq_apSumOffset_shift_add_zero_m
+  #check apSumFrom_tail_eq_apSumOffset_shift_add_zero_m_left
+  #check apSumFrom_tail_eq_apSum_shift_add
+  #check apSum_shift_add_eq_apSumFrom_tail
+  #check apSumFrom_sub_eq_apSumOffset_shift_add_zero_m
+  #check apSumFrom_sub_eq_apSumOffset_shift_add_zero_m_left
+  #check apSumFrom_sub_eq_apSum_shift_add
+  #check apSumFrom_sub_eq_apSum_shift_add_left
+  #check apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m
+  #check apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_left
+  #check apSumFrom_add_length_eq_add_apSumOffset_shift_add_zero_m_mul_left
+
   -- Translation normal form (div/mod step) should be present.
   #check apSumOffset_shift_add_eq_apSumOffset_div_mod
   #check apSumOffset_shift_add_mod
