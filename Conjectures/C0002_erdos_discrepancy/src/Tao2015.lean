@@ -595,6 +595,45 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+/-- If we literally shift the sequence by `m*d`, then bounded discrepancy along `d` is equivalent
+to bounded offset discrepancy of the original sequence.
+
+This is an “interface-free” version of `ReductionOutput.boundedDiscrepancyAlong_iff_boundedDiscOffset`:
+it is useful before packaging the shift into a `ReductionOutput`.
+-/
+theorem boundedDiscrepancyAlong_shift_add_mul_iff_boundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscrepancyAlong (fun k => f (k + m * d)) d ↔ BoundedDiscOffset f d m := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite discrepancy of the shifted sequence to `discOffset`.
+    simpa [discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite back in the other direction.
+    simpa [discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using hB n
+
+/-- Re-associate offsets at the level of boundedness: bounding offsets at `m₁+m₂` is equivalent
+to bounding offsets at `m₂` after shifting by `m₁*d`.
+
+This is the boundedness analogue of `discOffset_add`.
+-/
+theorem boundedDiscOffset_add (f : ℕ → ℤ) (d m₁ m₂ : ℕ) :
+    BoundedDiscOffset f d (m₁ + m₂) ↔ BoundedDiscOffset (fun k => f (k + m₁ * d)) d m₂ := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- `discOffset f d (m₁+m₂) n = discOffset (shift f m₁) d m₂ n`.
+    simpa [discOffset_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- reverse orientation of the same rewrite.
+    simpa [discOffset_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)] using hB n
+
 /-- A Lean-friendly “context” for working with a *single* common difference `d`.
 
 This is the natural consumer interface after Tao’s first reduction step: downstream stages
