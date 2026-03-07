@@ -449,6 +449,26 @@ the reduced sequence `out.g`.
     apSum out.g out.d n = apSumOffset f out.d out.m n :=
   out.apSum_contract n
 
+/-- Reverse orientation of `apSum_eq_apSumOffset` (not marked simp to avoid rewrite loops). -/
+theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSum out.g out.d n := by
+  simpa using (out.apSum_eq_apSumOffset (f := f) (n := n)).symm
+
+/-- `natAbs` form of the AP-sum bridge rule. -/
+theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simpa [out.apSum_eq_apSumOffset (f := f) (n := n)]
+
+/-- Inequality transport across the AP-sum bridge rule (≤). -/
+theorem natAbs_apSum_le_iff_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) ≤ B ↔ Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+  simpa [out.apSum_eq_apSumOffset (f := f) (n := n)]
+
+/-- Inequality transport across the AP-sum bridge rule (<). -/
+theorem natAbs_apSum_lt_iff_natAbs_apSumOffset_lt (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) < B ↔ Int.natAbs (apSumOffset f out.d out.m n) < B := by
+  simpa [out.apSum_eq_apSumOffset (f := f) (n := n)]
+
 /-- Transfer a boundedness context for `f` to a bound on `apSum out.g out.d`.
 
 This is intentionally weak (a factor `2B`), but it is enough to make the interface usable
