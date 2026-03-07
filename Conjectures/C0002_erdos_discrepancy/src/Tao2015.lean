@@ -578,6 +578,22 @@ noncomputable def mkShiftOfSign (f : ℕ → ℤ) (hf : IsSignSequence f) (d m :
     (hg := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m d)
     (hgEq := rfl)
 
+/-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
+
+This is occasionally useful as a “do-nothing” reduction step when you want to express later stages
+in terms of `ReductionOutput` without committing to a nontrivial stage-1 reduction yet.
+-/
+noncomputable def id (f : ℕ → ℤ) (hf : IsSignSequence f) : ReductionOutput f :=
+  mkShiftOfSign (f := f) (hf := hf) (d := 1) (m := 0) (by decide)
+
+@[simp] theorem id_d (f : ℕ → ℤ) (hf : IsSignSequence f) : (id (f := f) hf).d = 1 := rfl
+
+@[simp] theorem id_m (f : ℕ → ℤ) (hf : IsSignSequence f) : (id (f := f) hf).m = 0 := rfl
+
+@[simp] theorem id_g_apply (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    (id (f := f) hf).g k = f k := by
+  simp [id]
+
 /-- Rewrite `apSum out.g out.d` as an offset sum of `f`.
 
 This is the main “bridge” lemma: it lets us convert bounds on `apSumOffset f` into bounds
