@@ -4851,6 +4851,28 @@ noncomputable def stage2_output_of_not_boundedDiscOffset (f : ℕ → ℤ) (out 
       (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)).1 h := by
   rfl
 
+/-- Build a `Stage2Output` directly from the negated boundedness form
+`¬ BoundedDiscrepancyAlong out.g out.d`.
+
+This is useful when a downstream reduction produces the unboundedness statement in terms of the
+*reduced* sequence `out.g`, and only later wants explicit offset-discrepancy witnesses for `f`.
+-/
+noncomputable def stage2_output_of_not_boundedDiscrepancyAlong (f : ℕ → ℤ) (out : ReductionOutput f)
+    (h : ¬ BoundedDiscrepancyAlong out.g out.d) : Stage2Output f out :=
+  Stage2Output.ofNotBoundedDiscrepancyAlong (f := f) (out := out) h
+
+/-- `rfl` expansion for the `unbounded_discOffset` field of
+`stage2_output_of_not_boundedDiscrepancyAlong`.
+
+Not marked `[simp]`: it expands to a large witness-producing lambda (inherited from
+`Stage2Output.ofNotBoundedDiscrepancyAlong`).
+-/
+theorem stage2_output_of_not_boundedDiscrepancyAlong_unbounded (f : ℕ → ℤ) (out : ReductionOutput f)
+    (h : ¬ BoundedDiscrepancyAlong out.g out.d) :
+    (stage2_output_of_not_boundedDiscrepancyAlong (f := f) (out := out) h).unbounded_discOffset =
+      (Stage2Output.ofNotBoundedDiscrepancyAlong (f := f) (out := out) h).unbounded_discOffset := by
+  rfl
+
 /-- Extract the unboundedness witness normal form directly from `¬ BoundedDiscOffset`.
 
 This is a tiny packaging lemma, but it is the most common “first move” when entering stage 2
