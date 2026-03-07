@@ -1235,6 +1235,41 @@ theorem reduction (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
   simpa using (ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := 1) (m := 0) (hd := by decide))
 
 /-!
+### Reduction stage, trivial instantiation lemmas
+
+These are tiny, but they help downstream code avoid repeatedly unfolding the `reduction` stub
+just to extract its bundled parameters.
+
+When `reduction` is upgraded from the trivial `d=1,m=0` instantiation to a real Tao reduction,
+these lemmas should be the *only* place that needs to change.
+-/
+
+/-- `reduction` is currently implemented by the trivial `mkShiftOfSign` constructor. -/
+theorem reduction_eq_mkShiftOfSign (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
+    reduction (f := f) (hf := hf) ctx =
+      ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := 1) (m := 0) (hd := by decide) := by
+  classical
+  rfl
+
+@[simp] theorem reduction_d (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
+    (reduction (f := f) (hf := hf) ctx).d = 1 := by
+  classical
+  -- This reduces to the definitional value inside `mkShiftOfSign`.
+  simpa [reduction_eq_mkShiftOfSign (f := f) (hf := hf) (ctx := ctx)]
+
+@[simp] theorem reduction_m (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
+    (reduction (f := f) (hf := hf) ctx).m = 0 := by
+  classical
+  simpa [reduction_eq_mkShiftOfSign (f := f) (hf := hf) (ctx := ctx)]
+
+@[simp] theorem reduction_g (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
+    (reduction (f := f) (hf := hf) ctx).g = f := by
+  classical
+  -- `g := fun k => f (k + 0 * 1)`.
+  funext k
+  simp [reduction_eq_mkShiftOfSign (f := f) (hf := hf) (ctx := ctx)]
+
+/-!
 ### Downstream contradiction stage (still a stub)
 
 The point of the “plane” architecture is that once we have *any* downstream stage that produces
