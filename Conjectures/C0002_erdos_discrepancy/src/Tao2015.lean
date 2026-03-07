@@ -1093,6 +1093,18 @@ theorem contract_discrepancy_lt (out : ReductionOutput f) (B : ℕ) :
   -- Rewrite `discrepancy out.g` to the offset discrepancy of `f`.
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-- Strict-inequality transfer contract (greater-than form).
+
+This is just `contract_discrepancy_lt` with the inequality rewritten as `B < …`.
+
+Downstream stages often produce “large discrepancy” conclusions in `>`-form.
+-/
+theorem contract_discrepancy_gt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discOffset f out.d out.m n > B) → ∀ n : ℕ, discrepancy out.g out.d n > B := by
+  intro hB n
+  -- Rewrite `discrepancy out.g` to the offset discrepancy of `f`.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
 /-- Uniform strict-inequality transport across the discrepancy bridge rule. -/
 theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
