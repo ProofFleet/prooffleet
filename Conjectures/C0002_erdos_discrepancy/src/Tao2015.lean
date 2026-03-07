@@ -753,6 +753,35 @@ theorem mkShiftOfSign_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ)
   -- Both sides are definitional wrappers around `Int.natAbs` and `mkShift` fills the AP-sum bridge.
   simp [discrepancy, discOffset, mkShiftOfSign, mkShift]
 
+/-- `apSumFrom` rewrite for the reduction output produced by `mkShiftOfSign`.
+
+This is a tiny convenience lemma: it avoids having to explicitly invoke
+`ReductionOutput.apSumFrom_eq_apSum` each time.
+-/
+@[simp] theorem mkShiftOfSign_apSumFrom (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+    (n : ℕ) :
+    apSumFrom f (m * d) d n = apSum (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g d n := by
+  -- Reduce to the general lemma for `ReductionOutput`.
+  simpa using
+    (ReductionOutput.apSumFrom_eq_apSum (f := f)
+      (out := mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd) (n := n))
+
+/-- `apSumFrom` rewrite for `mkShiftOfSign`, oriented directly as an offset sum. -/
+@[simp] theorem mkShiftOfSign_apSumFrom_eq_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (n : ℕ) :
+    apSumFrom f (m * d) d n = apSumOffset f d m n := by
+  -- This is the bundled `ReductionOutput.apSumFrom_eq_apSumOffset` lemma.
+  simpa using
+    (ReductionOutput.apSumFrom_eq_apSumOffset (f := f)
+      (out := mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd) (n := n))
+
+/-- Reverse orientation of `mkShiftOfSign_discrepancy_contract`. -/
+@[simp] theorem mkShiftOfSign_discOffset_eq_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (n : ℕ) :
+    discOffset f d m n = discrepancy (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).g d n := by
+  simpa using
+    (mkShiftOfSign_discrepancy_contract (f := f) (hf := hf) (d := d) (m := m) hd n).symm
+
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
 
 This is occasionally useful as a “do-nothing” reduction step when you want to express later stages
