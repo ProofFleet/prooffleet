@@ -340,6 +340,21 @@ theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) 
     -- rewrite the discrepancy of `out.g` to `discOffset`
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-- Convenience: convert `BoundedDiscOffset` to `BoundedDiscrepancyAlong` using the interface. -/
+theorem boundedDiscrepancyAlong_of_boundedDiscOffset (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m → BoundedDiscrepancyAlong out.g out.d :=
+  (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f)).2
+
+/-- Convenience: convert `BoundedDiscrepancyAlong` to `BoundedDiscOffset` using the interface. -/
+theorem boundedDiscOffset_of_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d → BoundedDiscOffset f out.d out.m :=
+  (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f)).1
+
+/-- Negated form (often what we use to drive contradictions): unboundedness also transfers. -/
+theorem not_boundedDiscrepancyAlong_iff_not_boundedDiscOffset (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (¬ BoundedDiscOffset f out.d out.m) := by
+  exact not_congr (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f))
+
 /-- `discOffset` is literally the absolute value of `apSumOffset`; this lemma rewrites it
 using the reduction interface. -/
 theorem natAbs_apSum_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
