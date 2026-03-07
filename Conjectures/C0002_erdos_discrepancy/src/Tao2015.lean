@@ -272,6 +272,24 @@ lemma of_exists_discrepancy_gt {f : ℕ → ℤ} {d C : ℕ} (h : ∃ n : ℕ, d
     HasDiscrepancyAtLeastAlong f d C :=
   (iff_exists_discrepancy_gt (f := f) (d := d) (C := C)).2 h
 
+/-- Unboundedness along a fixed `d`, phrased using `HasDiscrepancyAtLeastAlong`.
+
+This is a convenient repackaging of
+`not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt`.
+-/
+theorem forall_iff_not_boundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong g d C) ↔ ¬ BoundedDiscrepancyAlong g d := by
+  -- Rewrite `HasDiscrepancyAtLeastAlong` to the `discrepancy`-wrapper witness form.
+  -- Then apply the standard “not bounded ↔ ∀ B, ∃ n, B < ...” lemma.
+  calc
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong g d C)
+        ↔ (∀ B : ℕ, ∃ n : ℕ, B < discrepancy g d n) := by
+          -- `a > b` is notation for `b < a`.
+          simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt, gt_iff_lt]
+    _ ↔ ¬ BoundedDiscrepancyAlong g d := by
+          simpa using
+            (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := g) (d := d)).symm
+
 end HasDiscrepancyAtLeastAlong
 
 /-!
