@@ -479,6 +479,63 @@ theorem forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (out :
     (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
       (g := out.g) (d := out.d))
 
+/-!
+### Boundedness/unboundedness normal forms for a `ReductionOutput`
+
+The stage-1 reduction interface is meant to be consumed as follows:
+- if you have an *unboundedness* statement about the reduced sequence `out.g` along the fixed step
+  `out.d`, rewrite it into an unboundedness statement about the offset discrepancies
+  `discOffset f out.d out.m`.
+- if you have a *boundedness* statement about `discOffset f out.d out.m`, transfer it back to a
+  boundedness statement about `discrepancy out.g out.d`.
+
+These lemmas are tiny wrappers around the existing rewrite/contract fields, but they are common
+entry points for downstream stages.
+-/
+
+/-- Boundedness along the reduced step size `out.d`, phrased as a uniform bound on `discOffset`.
+
+This is the “consumer-friendly” packaging: downstream stages typically want to bound or negate
+`discOffset f out.d out.m` rather than mention `out.g` explicitly.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_discOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite `discOffset` to the discrepancy of `out.g` using the AP-sum contract.
+    simpa [discOffset, discrepancy, out.apSum_contract] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite the discrepancy of `out.g` to `discOffset` using the AP-sum contract.
+    simpa [discOffset, discrepancy, out.apSum_contract] using hB n
+
+/-- Unboundedness along the reduced step size `out.d`, rewritten as a witness normal form for
+`discOffset`.
+
+This is just `not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt` plus the
+`discrepancy ↔ discOffset` rewrite.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
+  -- Start from the standard witness normal form for `¬ BoundedDiscrepancyAlong`.
+  -- Then rewrite `discrepancy out.g out.d` into `discOffset f out.d out.m`.
+  -- `discOffset` and `discrepancy` are definitional wrappers around `Int.natAbs`.
+  simpa [discOffset, discrepancy, out.apSum_contract] using
+    (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d))
+
+/-- A slightly more “Tao-style” unboundedness packaging: `∀ B, ∃ n, B < discOffset ...`.
+
+This is the same as `not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`, but with the
+inequality oriented as `B < ...`.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using (out.not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f))
+
 /-- Promote a fixed-step discrepancy witness about `out.g` to the standard existential form.
 
 This is just `HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast` specialized to `out.hd`.
