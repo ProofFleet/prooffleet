@@ -3136,6 +3136,32 @@ noncomputable def stage2_output (f : ℕ → ℤ) (hf : IsSignSequence f)
       stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) := by
   rfl
 
+/-!
+### Stage-2 alternative entry point
+
+While `stage2_unbounded_discOffset` is the intended **constructive** deliverable of stage 2,
+we often want to *start* stage-2 reasoning from the negated boundedness form
+`¬ BoundedDiscOffset f out.d out.m`.
+
+The next definition packages that hypothesis into a `Stage2Output` using the general-purpose
+constructor `Stage2Output.ofNotBoundedDiscOffset`.
+-/
+
+/-- Build a `Stage2Output` directly from the negated boundedness form.
+
+This is useful when a downstream reduction produces `¬ BoundedDiscOffset …` first and only later
+needs explicit witnesses.
+-/
+noncomputable def stage2_output_of_not_boundedDiscOffset (f : ℕ → ℤ) (out : ReductionOutput f)
+    (h : ¬ BoundedDiscOffset f out.d out.m) : Stage2Output f out :=
+  Stage2Output.ofNotBoundedDiscOffset (f := f) (out := out) h
+
+@[simp] theorem stage2_output_of_not_boundedDiscOffset_unbounded (f : ℕ → ℤ) (out : ReductionOutput f)
+    (h : ¬ BoundedDiscOffset f out.d out.m) :
+    (stage2_output_of_not_boundedDiscOffset (f := f) (out := out) h).unbounded_discOffset =
+      (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)).1 h := by
+  rfl
+
 /-- Stage-2 helper: the unboundedness witness normal form implies `¬ BoundedDiscOffset …`.
 
 This is just a packaging lemma, but it is the *exact* consumer statement most later stages want:
