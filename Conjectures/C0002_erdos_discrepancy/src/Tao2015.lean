@@ -241,8 +241,11 @@ noncomputable def mkShift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ �
 
 This is the main “bridge” lemma: it lets us convert bounds on `apSumOffset f` into bounds
 on the auxiliary AP sums for `g`.
+
+Marked `[simp]` because it is the *canonical* normal form for `apSum` expressions involving
+the reduced sequence `out.g`.
 -/
-theorem apSum_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+@[simp] theorem apSum_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     apSum out.g out.d n = apSumOffset f out.d out.m n :=
   out.apSum_contract n
 
@@ -262,8 +265,10 @@ theorem bound_apSum (ctx : Context f) (out : ReductionOutput f) (n : ℕ) :
 /-- Discrepancy rewrite rule: the discrepancy of `out.g` along `out.d` is the offset discrepancy of `f`.
 
 This is just the `natAbs` version of `apSum_eq_apSumOffset`.
+
+Marked `[simp]` because it is the most common consumer rewrite.
 -/
-theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+@[simp] theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, out.apSum_contract]
