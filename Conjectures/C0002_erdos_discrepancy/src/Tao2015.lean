@@ -554,6 +554,17 @@ theorem contract_discrepancy_le_of_discrepancy_contract (f g : ℕ → ℤ) (d m
   -- Rewrite `discrepancy g d n` to the offset discrepancy using `h`.
   simpa [h n] using hB n
 
+/-- Transfer contract (<) using a discrepancy-level bridge rule.
+
+This is the strict-inequality analogue of `contract_discrepancy_le_of_discrepancy_contract`.
+-/
+theorem contract_discrepancy_lt_of_discrepancy_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, discrepancy g d n = discOffset f d m n) :
+    (∀ n, discOffset f d m n < B) → ∀ n, discrepancy g d n < B := by
+  intro hB n
+  -- Rewrite `discrepancy g d n` to the offset discrepancy using `h`.
+  simpa [h n] using hB n
+
 /-- Derive `contract_discrepancy_le_of_discrepancy_contract` from an AP-sum bridge rule.
 
 This is just a small wrapper around `discrepancy_contract_of_apSum_contract`.
