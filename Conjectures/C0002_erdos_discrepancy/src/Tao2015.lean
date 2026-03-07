@@ -537,6 +537,21 @@ theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
   simpa using (out.apSum_eq_apSumOffset (f := f) (n := n)).symm
 
+/-- Re-associate offsets, specialized to the `ReductionOutput` shift.
+
+This is the consumer form of `Tao2015.apSumOffset_add`: shifting `f` by `(out.m+m₂)*d`
+can be seen as taking an offset sum of the *already-shifted* sequence `out.g`.
+-/
+theorem apSumOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
+  -- First re-associate offsets on `f`, then rewrite the shifted sequence to `out.g`.
+  simpa [Tao2015.apSumOffset_add, out.g_eq]
+
+/-- Discrepancy form of `apSumOffset_add_right`. -/
+theorem discOffset_add_right (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
+  simp [discOffset, out.apSumOffset_add_right (f := f) (m₂ := m₂) (n := n)]
+
 /-- Equivalence of boundedness notions across the reduction interface. -/
 theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) :
     BoundedDiscrepancyAlong out.g out.d ↔ BoundedDiscOffset f out.d out.m := by
