@@ -531,6 +531,15 @@ theorem BoundedDiscOffset.exists_bound {f : ℕ → ℤ} {d m : ℕ} :
     BoundedDiscOffset f d m → ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B := by
   intro h; simpa [BoundedDiscOffset] using h
 
+/-- Offset sum with zero offset is just the original AP sum. -/
+theorem apSumOffset_zero (f : ℕ → ℤ) (d n : ℕ) : apSumOffset f d 0 n = apSum f d n := by
+  -- `apSumOffset` is defined as an `apSum` of a shifted sequence.
+  simp [apSumOffset_eq_apSum_shift_add]
+
+/-- Discrepancy form of `apSumOffset_zero`. -/
+theorem discOffset_zero (f : ℕ → ℤ) (d n : ℕ) : discOffset f d 0 n = discrepancy f d n := by
+  simp [discOffset, discrepancy, apSumOffset_zero]
+
 /-- Re-associate offsets: shifting by `(m₁+m₂)*d` is the same as shifting by `m₁*d` and then by
 `m₂*d`.
 
