@@ -1033,6 +1033,35 @@ noncomputable def id (f : ℕ → ℤ) (hf : IsSignSequence f) : ReductionOutput
     (id (f := f) hf).g k = f k := by
   simp [id]
 
+/-!
+### A named entry point for the Tao2015 pipeline (Stage 1)
+
+The first “reduction” in the conjectures-only pipeline is currently an identity placeholder.
+
+Why bother naming it?
+- downstream stages can be written against a stable symbol (`stage1`), even while we later swap
+  in the *real* first reduction step;
+- it gives a single place to attach documentation and future refinement lemmas.
+-/
+
+/-- Stage 1 reduction (placeholder): currently the identity reduction `d = 1`, `m = 0`.
+
+Later we will replace this with the first genuine Tao-style reduction, but keeping the *name*
+stable lets the rest of the pipeline compile unchanged.
+-/
+noncomputable def stage1 (f : ℕ → ℤ) (hf : IsSignSequence f) : ReductionOutput f :=
+  id (f := f) hf
+
+@[simp] theorem stage1_d (f : ℕ → ℤ) (hf : IsSignSequence f) : (stage1 (f := f) hf).d = 1 := by
+  simp [stage1]
+
+@[simp] theorem stage1_m (f : ℕ → ℤ) (hf : IsSignSequence f) : (stage1 (f := f) hf).m = 0 := by
+  simp [stage1]
+
+@[simp] theorem stage1_g_apply (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    (stage1 (f := f) hf).g k = f k := by
+  simp [stage1]
+
 /-- Rewrite `apSum out.g out.d` as an offset sum of `f`.
 
 This is the main “bridge” lemma: it lets us convert bounds on `apSumOffset f` into bounds
