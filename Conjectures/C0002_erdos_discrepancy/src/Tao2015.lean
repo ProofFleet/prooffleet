@@ -2680,6 +2680,16 @@ theorem g_eq_shift (out : ReductionOutput f) (m₂ : ℕ) :
     (out.shiftRight (f := f) m₂).g = fun k => out.g (k + m₂ * out.d) := by
   rfl
 
+/-- The derived sequence of `out.shiftRight m₂`, rewritten directly as a shift of the original
+sequence `f` by the *bundled* offset `(out.m + m₂) * out.d`.
+
+This is just the `g_eq` field of the newly constructed `ReductionOutput`, but it’s convenient to
+have as a named lemma for downstream reductions.
+-/
+@[simp] theorem g_eq_f_shift (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight (f := f) m₂).g = fun k => f (k + (out.m + m₂) * out.d) := by
+  simpa using (out.shiftRight (f := f) m₂).g_eq
+
 /-- Discrepancy of the derived sequence of `out.shiftRight m₂`, rewritten as an offset discrepancy
 of the already-reduced sequence `out.g`.
 
