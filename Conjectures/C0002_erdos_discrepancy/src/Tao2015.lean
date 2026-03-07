@@ -1003,6 +1003,25 @@ Marked `[simp]` because it is the most common consumer rewrite.
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- Strict-inequality transport across the discrepancy bridge rule. -/
+theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    discrepancy out.g out.d n < B ↔ discOffset f out.d out.m n < B := by
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)]
+
+/-- Strict-inequality transport across the discrepancy bridge rule (the reversed orientation). -/
+theorem discOffset_lt_iff_discrepancy_lt (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
+    discOffset f out.d out.m n < B ↔ discrepancy out.g out.d n < B := by
+  simpa using (out.discrepancy_lt_iff_discOffset_lt (f := f) (B := B) (n := n)).symm
+
+/-- Uniform strict-inequality transport across the discrepancy bridge rule. -/
+theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
+  constructor
+  · intro h n
+    exact (out.discrepancy_lt_iff_discOffset_lt (f := f) (B := B) (n := n)).1 (h n)
+  · intro h n
+    exact (out.discrepancy_lt_iff_discOffset_lt (f := f) (B := B) (n := n)).2 (h n)
+
 /-- Transfer a boundedness context for `f` to a bound on `discrepancy out.g out.d`.
 
 This is the discrepancy-level analogue of `ReductionOutput.bound_apSum`.
