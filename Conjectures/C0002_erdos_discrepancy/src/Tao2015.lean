@@ -2465,6 +2465,21 @@ theorem boundedDiscOffset_iff_exists_natAbs_apSumOffset_le (f : ℕ → ℤ) (d 
   -- `discOffset` is definitional.
   simp [BoundedDiscOffset, discOffset]
 
+/-- Tail-sum normal form for `BoundedDiscOffset`.
+
+Since `apSumFrom f (m*d) d n` is the tail sum starting at the affine point `m*d`, it is often the
+most convenient expression once a stage has fixed the parameters `(d,m)`.
+
+This lemma is just `boundedDiscOffset_iff_exists_natAbs_apSumOffset_le` rewritten using the bridge
+`apSumFrom_eq_apSum_shift_add`/`apSumOffset_eq_apSum_shift_add`.
+-/
+theorem boundedDiscOffset_iff_exists_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffset f d m ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B) := by
+  -- Rewrite `apSumFrom` and `apSumOffset` to the same shifted `apSum` normal form.
+  -- Then reuse the existing `apSumOffset`-based lemma.
+  simpa [apSumFrom_eq_apSum_shift_add, apSumOffset_eq_apSum_shift_add] using
+    (boundedDiscOffset_iff_exists_natAbs_apSumOffset_le (f := f) (d := d) (m := m))
+
 /-- A `Context f` gives bounded discrepancy along the reduced step size `out.d`.
 
 This is a tiny packaging lemma: it turns the pointwise bound `out.bound_discrepancy` into the
