@@ -586,6 +586,27 @@ theorem contract_discrepancy_lt_of_discrepancy_contract (f g : ℕ → ℤ) (d m
   -- Rewrite `discrepancy g d n` to the offset discrepancy using `h`.
   simpa [h n] using hB n
 
+/-- Reverse transfer contract (≤): a uniform bound on `discrepancy g d` transfers to a uniform bound
+on `discOffset f d m`.
+
+This is the converse direction of `contract_discrepancy_le_of_discrepancy_contract`, and is useful
+when the pipeline temporarily works with the reduced sequence `g` but later needs to return to the
+original offset-discrepancy family.
+-/
+theorem contract_discOffset_le_of_discrepancy_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, discrepancy g d n = discOffset f d m n) :
+    (∀ n, discrepancy g d n ≤ B) → ∀ n, discOffset f d m n ≤ B := by
+  intro hB n
+  -- Rewrite `discOffset f d m n` to `discrepancy g d n` using `h`.
+  simpa [h n] using hB n
+
+/-- Reverse transfer contract (<): strict version of `contract_discOffset_le_of_discrepancy_contract`. -/
+theorem contract_discOffset_lt_of_discrepancy_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, discrepancy g d n = discOffset f d m n) :
+    (∀ n, discrepancy g d n < B) → ∀ n, discOffset f d m n < B := by
+  intro hB n
+  simpa [h n] using hB n
+
 /-- Derive `contract_discrepancy_le_of_discrepancy_contract` from an AP-sum bridge rule.
 
 This is just a small wrapper around `discrepancy_contract_of_apSum_contract`.
