@@ -121,7 +121,8 @@ It packages:
 - an auxiliary sign sequence `g`
 - some numeric parameters `d,m`
 - a rewrite rule relating `apSum g d` to an `apSumOffset` of the original sequence
-- a basic “bounded discrepancy transfers” contract (as a lemma in the namespace below)
+- a small “discrepancy transfers” contract, so downstream steps can treat `g` as a
+  faithful proxy for the offset sequence of `f`.
 
 This lives in `Conjectures/` so we can iterate on the interface without destabilizing
 the verified `MoltResearch/` substrate.
@@ -137,6 +138,11 @@ structure ReductionOutput (f : ℕ → ℤ) : Type where
   hg : IsSignSequence g
   /-- `g` is the shift of `f` by the multiple `m*d`. -/
   g_eq : g = fun k => f (k + m * d)
+  /-- Main bridge rule: rewrite `apSum g d` as an offset AP sum of `f`. -/
+  apSum_contract : ∀ n : ℕ, apSum g d n = apSumOffset f d m n
+  /-- Transfer contract (consumer-friendly form): any uniform bound on the offset discrepancy
+  transfers to a uniform bound on the discrepancy of `g`. -/
+  contract_discrepancy_le : ∀ B : ℕ, (∀ n, discOffset f d m n ≤ B) → ∀ n, discrepancy g d n ≤ B
 
 namespace ReductionOutput
 
@@ -150,10 +156,8 @@ This is the main “bridge” lemma: it lets us convert bounds on `apSumOffset f
 on the auxiliary AP sums for `g`.
 -/
 theorem apSum_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
-    apSum out.g out.d n = apSumOffset f out.d out.m n := by
-  -- `apSumOffset f d m n = apSum (fun k => f (k + m*d)) d n`.
-  -- Then rewrite `out.g` using `out.g_eq`.
-  simp [apSumOffset_eq_apSum_shift_add, out.g_eq]
+    apSum out.g out.d n = apSumOffset f out.d out.m n :=
+  out.apSum_contract n
 
 /-- Transfer a boundedness context for `f` to a bound on `apSum out.g out.d`.
 
@@ -175,7 +179,7 @@ This is just the `natAbs` version of `apSum_eq_apSumOffset`.
 theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   -- Both sides are definitional wrappers around `Int.natAbs`.
-  simp [discrepancy, discOffset, out.apSum_eq_apSumOffset]
+  simp [discrepancy, discOffset, out.apSum_contract]
 
 /-- The same rewrite rule, but oriented in the other direction. -/
 theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
@@ -251,8 +255,14 @@ This is enough to let downstream code *use* the interface immediately.
 -/
 theorem reduction (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
     ReductionOutput f := by
-  refine ⟨1, 0, by decide, f, hf, ?_⟩
-  simp
+  refine
+    ⟨1, 0, by decide, f, hf, (by simp), ?_, ?_⟩
+  · intro n
+    -- `apSumOffset f 1 0 n` is definitionally the same as `apSum f 1 n`.
+    simp [apSumOffset_eq_apSum_shift_add]
+  · intro B hB n
+    -- Transfer uniform bounds by rewriting to `discOffset`.
+    simpa [discrepancy, discOffset, apSumOffset_eq_apSum_shift_add] using hB n
 
 /-- (Stub) Tao 2015 contradiction stage.
 
