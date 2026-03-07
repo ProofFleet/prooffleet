@@ -59,6 +59,10 @@ package their IO contracts, and add the small rewrite/transfer lemmas that let l
 - Key deliverable (Stage 2, stubbed):
   `stage2_unbounded_discOffset : ∀ B, ∃ n, B < discOffset f out.d out.m n`
 
+Current status notes:
+- `ReductionOutput` and its rewrite/transfer glue are in place; consumers should treat it as the Stage-1 IO contract.
+- `reduction` is still a *stub* implementation (currently the trivial `(d,m,g)=(1,0,f)` shift), so downstream stages should avoid depending on its specific parameters beyond the provided simp/bridge lemmas.
+
 Definition of done for Track C PRs:
 - Only edits under `Conjectures/` (and optionally this card)
 - CI green
