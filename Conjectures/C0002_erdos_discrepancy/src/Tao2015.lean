@@ -222,6 +222,25 @@ lemma toHasDiscrepancyAtLeast {f : ℕ → ℤ} {d C : ℕ} (hd : d > 0)
   rcases h with ⟨n, hn⟩
   exact ⟨d, n, hd, hn⟩
 
+/-- `HasDiscrepancyAtLeastAlong` is just the definitional `discrepancy` wrapper form.
+
+This lemma is convenient because many later stages talk in terms of `discrepancy` rather than
+raw `Int.natAbs (apSum …)`.
+-/
+lemma iff_exists_discrepancy_gt (f : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong f d C ↔ (∃ n : ℕ, discrepancy f d n > C) := by
+  simp [HasDiscrepancyAtLeastAlong, discrepancy]
+
+/-- Forward direction of `iff_exists_discrepancy_gt`. -/
+lemma exists_discrepancy_gt {f : ℕ → ℤ} {d C : ℕ} (h : HasDiscrepancyAtLeastAlong f d C) :
+    ∃ n : ℕ, discrepancy f d n > C :=
+  (iff_exists_discrepancy_gt (f := f) (d := d) (C := C)).1 h
+
+/-- Backward direction of `iff_exists_discrepancy_gt`. -/
+lemma of_exists_discrepancy_gt {f : ℕ → ℤ} {d C : ℕ} (h : ∃ n : ℕ, discrepancy f d n > C) :
+    HasDiscrepancyAtLeastAlong f d C :=
+  (iff_exists_discrepancy_gt (f := f) (d := d) (C := C)).2 h
+
 end HasDiscrepancyAtLeastAlong
 
 /-- Output of the first major reduction stage of Tao 2015.
