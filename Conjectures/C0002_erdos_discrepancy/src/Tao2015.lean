@@ -3914,8 +3914,13 @@ theorem exists_discOffset_lt (s2 : Stage2Output f out) (C : ℕ) :
   rcases s2.unbounded_discOffset C with ⟨n, hn⟩
   exact ⟨n, hn⟩
 
-/-- Convert a `Stage2Output` to a fixed-threshold `HasDiscrepancyAtLeastAlong` witness. -/
-theorem hasDiscrepancyAtLeastAlong (s2 : Stage2Output f out) (C : ℕ) :
+/-- Convert a `Stage2Output` to a fixed-threshold `HasDiscrepancyAtLeastAlong` witness.
+
+This lemma is redundant with the later convenience lemma
+`Stage2Output.hasDiscrepancyAtLeastAlong`; we keep it under a more explicit name to avoid
+accidental rewriting loops and to document the `discOffset`→`HasDiscrepancyAtLeastAlong` bridge.
+-/
+theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_lt (s2 : Stage2Output f out) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C := by
   rcases s2.exists_discOffset_lt (f := f) (out := out) C with ⟨n, hn⟩
   exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).2 ⟨n, hn⟩
