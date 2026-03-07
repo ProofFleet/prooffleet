@@ -1130,13 +1130,44 @@ theorem reduction (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) :
   classical
   simpa using (ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := 1) (m := 0) (hd := by decide))
 
+/-!
+### Downstream contradiction stage (still a stub)
+
+The point of the “plane” architecture is that once we have *any* downstream stage that produces
+an explicit unboundedness witness for the offset discrepancy bundled in `out`, the rest of the
+argument is pure interface plumbing.
+
+So we isolate that future deliverable as a named lemma:
+- `stage2_unbounded_discOffset` (currently `sorry`)
+
+and make the top-level `contradiction` proof *structural* and `sorry`-free.
+-/
+
+/-- (Stub) Stage 2 deliverable: from `ctx` + `out`, produce the explicit unboundedness normal form
+for the offset discrepancy bundled in `out`.
+
+Downstream Tao steps should aim to prove this without needing to know how `ctx` was constructed.
+-/
+theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  sorry
+
 /-- (Stub) Tao 2015 contradiction stage.
 
-Given the structured output of the reduction stage, derive a contradiction.
+Given the structured output of the reduction stage, a proof of global bounded discrepancy,
+derive a contradiction.
+
+This lemma is intentionally *interface-only*: once `stage2_unbounded_discOffset` is filled in,
+this proof should require no further changes.
 -/
 theorem contradiction (f : ℕ → ℤ) (hf : IsSignSequence f)
-    (ctx : Context f) (out : ReductionOutput f) : False := by
-  sorry
+    (hb : BoundedDiscrepancy f) (ctx : Context f) (out : ReductionOutput f) : False := by
+  have hunb : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n :=
+    stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out)
+  have hnot : ¬ BoundedDiscrepancy f :=
+    out.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) hunb
+  exact hnot hb
 
 end Tao2015
 
@@ -1156,6 +1187,6 @@ theorem tao2015_not_boundedDiscrepancy (f : ℕ → ℤ) (hf : IsSignSequence f)
   classical
   let ctx : Tao2015.Context f := Tao2015.Context.ofBoundedDiscrepancy (f := f) hb
   let out : Tao2015.ReductionOutput f := Tao2015.reduction (f := f) (hf := hf) ctx
-  exact Tao2015.contradiction (f := f) (hf := hf) (ctx := ctx) (out := out)
+  exact Tao2015.contradiction (f := f) (hf := hf) (hb := hb) (ctx := ctx) (out := out)
 
 end MoltResearch
