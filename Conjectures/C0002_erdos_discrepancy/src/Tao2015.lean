@@ -888,6 +888,24 @@ theorem not_boundedDiscrepancy_of_not_boundedDiscrepancyAlong (out : ReductionOu
   intro hAlong hb
   exact hAlong (out.boundedDiscrepancyAlong_of_boundedDiscrepancy (f := f) (out := out) hb)
 
+/-- If the offset discrepancies for the parameters in `out` are unbounded, then `f` is globally unbounded.
+
+This is the same idea as `not_boundedDiscrepancy_of_not_boundedDiscrepancyAlong`, but it avoids
+mentioning `BoundedDiscrepancyAlong`: it is phrased purely in terms of `BoundedDiscOffset`.
+-/
+theorem not_boundedDiscrepancy_of_not_boundedDiscOffset (out : ReductionOutput f) :
+    (¬ BoundedDiscOffset f out.d out.m) → (¬ BoundedDiscrepancy f) := by
+  intro hOff hb
+  exact hOff (out.boundedDiscOffset_of_boundedDiscrepancy (f := f) (out := out) hb)
+
+/-- Produce an `AlongContext` for `out.g` from a global boundedness context on `f`.
+
+This is a small wrapper around `AlongContext.ofContext` that keeps consumers inside the
+`ReductionOutput` namespace.
+-/
+theorem alongContext_of_context (ctx : Context f) (out : ReductionOutput f) : AlongContext out.g out.d :=
+  AlongContext.ofContext (f := f) (ctx := ctx) (out := out)
+
 end ReductionOutput
 
 /-- (Stub) Tao 2015 reduction stage.
