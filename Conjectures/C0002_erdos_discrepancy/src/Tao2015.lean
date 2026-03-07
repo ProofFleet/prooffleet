@@ -1097,9 +1097,6 @@ theorem hasDiscrepancyAtLeastAlong_iff (out : ReductionOutput f) (C : ℕ) :
     refine ⟨n, ?_⟩
     -- rewrite back using the same bridge rule
     simpa [out.apSum_contract] using hn
-  · rintro ⟨n, hn⟩
-    refine ⟨n, ?_⟩
-    simpa [out.apSum_contract] using hn
 
 /-- Same transfer statement, but phrased using the `discOffset` wrapper. -/
 theorem hasDiscrepancyAtLeastAlong_iff_discOffset (out : ReductionOutput f) (C : ℕ) :
