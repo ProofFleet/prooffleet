@@ -643,7 +643,7 @@ theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
 
 This is the most common “start at the affine point” normal form used in Tao-style reductions.
 -/
-theorem apSumFrom_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+@[simp] theorem apSumFrom_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumFrom f (out.m * out.d) out.d n = apSum out.g out.d n := by
   -- `apSumFrom` is an `apSum` of the shifted sequence; rewrite using `out.g_eq`.
   simpa [out.g_eq] using
@@ -653,7 +653,7 @@ theorem apSumFrom_eq_apSum (out : ReductionOutput f) (n : ℕ) :
 
 This is a direct bridge between the two “tail sum” APIs in the discrepancy substrate.
 -/
-theorem apSumFrom_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+@[simp] theorem apSumFrom_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
   -- Rewrite both sides to AP sums of the same shifted sequence.
   simp [apSumFrom_eq_apSum_shift_add, apSumOffset_eq_apSum_shift_add]
