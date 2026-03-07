@@ -1642,6 +1642,43 @@ theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   sorry
 
+/-- Interface plumbing: convert the stage-2 output to the unboundedness normal form for the
+*reduced* sequence discrepancy.
+
+This is a tiny lemma, but it's the canonical consumer statement: downstream stages tend to
+produce offset-discrepancy witnesses for the original sequence `f`, while the contradiction stage
+often wants witnesses for the reduced sequence `out.g`.
+-/
+theorem stage2_unbounded_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n := by
+  intro B
+  rcases stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- rewrite `discOffset` to `discrepancy` using the reduction interface
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+
+/-- `natAbs` version of `stage2_unbounded_discrepancy`. -/
+theorem stage2_unbounded_natAbs_apSum (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSum out.g out.d n) := by
+  intro B
+  rcases stage2_unbounded_discrepancy (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discrepancy] using hn
+
+/-- Conversely, if you have unboundedness witnesses for `natAbs (apSum out.g out.d n)`, you also
+get witnesses for the discrepancy wrapper.
+-/
+theorem stage2_unbounded_discrepancy_of_unbounded_natAbs_apSum (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f)
+    (h : ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSum out.g out.d n)) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n := by
+  intro B
+  rcases h B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discrepancy] using hn
+
 /-- `natAbs` version of `stage2_unbounded_discOffset`.
 
 This is often the exact statement a downstream reduction stage naturally produces, since it may
