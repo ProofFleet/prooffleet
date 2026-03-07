@@ -542,6 +542,40 @@ theorem exists_discOffset_gt_iff_exists_discrepancy_gt (out : ReductionOutput f)
   · exact out.exists_discrepancy_gt_of_exists_discOffset_gt (f := f) (B := B)
   · exact out.exists_discOffset_gt_of_exists_discrepancy_gt (f := f) (B := B)
 
+/-- Uniform transfer of the unboundedness normal form, stated pointwise in `B`.
+
+This is a tiny lemma, but it's the exact *shape* downstream contradiction stages often output.
+-/
+theorem forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  constructor
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+/-- Uniform transfer of the same unboundedness normal form, but phrased using `natAbs` of sums.
+
+This avoids mentioning `discrepancy`/`discOffset` entirely.
+-/
+theorem forall_exists_natAbs_apSum_gt_iff_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSum out.g out.d n)) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  constructor
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.apSum_contract] using hn
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.apSum_contract] using hn
+
 /-- Transfer a boundedness context for `f` to a bound on the *offset discrepancy* appearing in `out`.
 
 This is a small convenience lemma: it isolates the parameter bundle `(out.d,out.m)`.
