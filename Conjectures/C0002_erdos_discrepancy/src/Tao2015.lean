@@ -3162,6 +3162,16 @@ noncomputable def stage2_output_of_not_boundedDiscOffset (f : ℕ → ℤ) (out 
       (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)).1 h := by
   rfl
 
+/-- Extract the unboundedness witness normal form directly from `¬ BoundedDiscOffset`.
+
+This is a tiny packaging lemma, but it is the most common “first move” when entering stage 2
+from a negated boundedness hypothesis.
+-/
+theorem stage2_unbounded_discOffset_of_not_boundedDiscOffset (f : ℕ → ℤ) (out : ReductionOutput f)
+    (h : ¬ BoundedDiscOffset f out.d out.m) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  exact (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := out.d) (m := out.m)).1 h
+
 /-- Stage-2 helper: the unboundedness witness normal form implies `¬ BoundedDiscOffset …`.
 
 This is just a packaging lemma, but it is the *exact* consumer statement most later stages want:
