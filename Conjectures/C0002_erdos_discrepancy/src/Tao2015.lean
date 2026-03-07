@@ -666,6 +666,24 @@ theorem discrepancy_contract_funext (out : ReductionOutput f) :
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- Pointwise form of `discrepancy_contract_funext`.
+
+Marked `[simp]` because it is the main consumer-facing rewrite rule for the reduction output:
+`discrepancy out.g out.d` is definitionally `discOffset f out.d out.m`.
+-/
+@[simp] theorem discrepancy_contract (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, out.apSum_contract]
+
+/-- Reverse orientation of `discrepancy_contract`.
+
+Not marked `[simp]` to avoid rewriting loops.
+-/
+theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discrepancy out.g out.d n := by
+  simpa using (out.discrepancy_contract (f := f) n).symm
+
 /-- Derive the bridge rule `apSum out.g out.d = apSumOffset f out.d out.m` purely from `g_eq`.
 
 This is useful when constructing a `ReductionOutput`: you can often avoid proving
