@@ -201,6 +201,31 @@ theorem exists_discrepancy_gt_of_exists_discOffset_gt (out : ReductionOutput f) 
   refine ⟨n, ?_⟩
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
 
+/-- Uniform transfer: bounding all discrepancies of `out.g` is equivalent to bounding all offset discrepancies of `f`. -/
+theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n, discrepancy out.g out.d n ≤ B) ↔ (∀ n, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+
+/-- Uniform transfer, strict version (`<`). -/
+theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n, discrepancy out.g out.d n < B) ↔ (∀ n, discOffset f out.d out.m n < B) := by
+  constructor
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+
+/-- Existence transfer: exhibiting an offset discrepancy `> B` is equivalent to exhibiting a discrepancy `> B` for `out.g`. -/
+theorem exists_discOffset_gt_iff_exists_discrepancy_gt (out : ReductionOutput f) (B : ℕ) :
+    (∃ n, B < discOffset f out.d out.m n) ↔ (∃ n, B < discrepancy out.g out.d n) := by
+  constructor
+  · exact out.exists_discrepancy_gt_of_exists_discOffset_gt (f := f) (B := B)
+  · exact out.exists_discOffset_gt_of_exists_discrepancy_gt (f := f) (B := B)
+
 /-- Transfer a boundedness context for `f` to a bound on the *discrepancy* of `out.g`.
 
 This is the “consumer-facing” version of `bound_apSum`.
