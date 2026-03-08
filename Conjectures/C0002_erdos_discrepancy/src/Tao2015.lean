@@ -783,8 +783,10 @@ theorem contract_discrepancy_le_of_forall_natAbs_apSumFrom_mul_le (out : Reducti
     (hB : ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) :
     ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
   intro n
-  -- Rewrite the reduced discrepancy through the affine-tail nucleus.
-  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+  have hn : Int.natAbs (apSum out.g out.d n) ≤ B := by
+    -- Rewrite the affine-tail bound into a bound on the reduced homogeneous AP sum.
+    simpa [out.apSum_eq_apSumFrom_mul (f := f) (n := n)] using hB n
+  simpa [discrepancy] using hn
 
 /-- Strict-inequality version of `contract_discrepancy_le_of_forall_natAbs_apSumFrom_mul_le`. -/
 theorem contract_discrepancy_lt_of_forall_natAbs_apSumFrom_mul_lt (out : ReductionOutput f)
@@ -792,7 +794,9 @@ theorem contract_discrepancy_lt_of_forall_natAbs_apSumFrom_mul_lt (out : Reducti
     (hB : ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B) :
     ∀ n : ℕ, discrepancy out.g out.d n < B := by
   intro n
-  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+  have hn : Int.natAbs (apSum out.g out.d n) < B := by
+    simpa [out.apSum_eq_apSumFrom_mul (f := f) (n := n)] using hB n
+  simpa [discrepancy] using hn
 
 /-- Discrepancy of the reduced sequence rewritten in terms of `apSumFrom` for the original one. -/
 theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
