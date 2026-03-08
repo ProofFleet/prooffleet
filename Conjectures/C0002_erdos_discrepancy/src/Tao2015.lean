@@ -525,6 +525,31 @@ theorem mk_of_shift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hf : IsSignSeque
     simpa [discrepancy, discOffset, Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)] using
       (hB n)
 
+/-- Build a `ReductionOutput` from an explicit derived sequence `g` together with the defining
+rewrite `g = fun k => f (k + m*d)`.
+
+This is a slightly more flexible constructor than `mk_of_shift`: it lets a stage-1 reduction pick
+a *named* `g` while still deriving the bridge and transfer contracts automatically.
+-/
+theorem mk_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
+    (hgEq : g = fun k => f (k + m * d)) :
+    ReductionOutput f := by
+  classical
+  refine
+    { d := d
+      m := m
+      hd := hd
+      g := g
+      hg := hg
+      g_eq := hgEq
+      apSum_contract := ?_
+      contract_discrepancy_le := ?_ }
+  · exact Tao2015.apSum_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq
+  · intro B hB
+    exact
+      Tao2015.contract_discrepancy_le_of_apSum_contract (f := f) (g := g) (d := d) (m := m) (B := B)
+        (Tao2015.apSum_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq) hB
+
 /-- Expand the defining equation of `g`. -/
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
