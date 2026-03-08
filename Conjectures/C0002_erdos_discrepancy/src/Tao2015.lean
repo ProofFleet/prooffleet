@@ -1145,9 +1145,32 @@ Downstream stages often prefer to work with the record `ContextAlong` rather tha
 predicate `BoundedDiscrepancyAlong`.  The following helpers let a consumer build such a context
 from a uniform offset-discrepancy bound (and conversely extract an offset bound from a context).
 
+We also provide a common special case: if we start from a global `Context f` (uniform bounds for
+all homogeneous AP sums of `f`), then the reduced sequence `out.g` automatically inherits a
+fixed-step discrepancy context along `out.d`.
+
 These are pure “pipeline glue”: the proofs are immediate from
-`out.discrepancy_eq_discOffset`.
+`out.discrepancy_eq_discOffset` and the basic bound lemmas in `Tao2015.Context`.
 -/
+
+/-- A global `Context f` gives a uniform bound on the offset discrepancy bundled in `out`. -/
+theorem forall_discOffset_le_of_context (out : ReductionOutput f) (ctx : Context f) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+
+/-- Build a fixed-step discrepancy context for `out.g` from a global `Context f`.
+
+Intuitively: bounded discrepancy for *all* steps of `f` implies bounded discrepancy for the
+particular step `out.d` of the shifted proxy sequence `out.g`.
+-/
+def contextAlong_of_context (out : ReductionOutput f) (ctx : Context f) : ContextAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  -- Bound the literal shift, then rewrite it to `out.g`.
+  have hshift : discrepancy (fun k => f (k + out.m * out.d)) out.d n ≤ ctx.B + ctx.B :=
+    ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+  simpa [out.g_eq] using hshift
 
 /-- Build a `ContextAlong` for the reduced sequence from a uniform `discOffset` bound. -/
 noncomputable def contextAlong_of_exists_forall_discOffset_le (out : ReductionOutput f)
