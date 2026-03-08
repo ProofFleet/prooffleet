@@ -1268,6 +1268,34 @@ theorem composeShiftSameD_discrepancy_contract {f : ℕ → ℤ} (out₁ : Tao20
   -- Both sides are definitional wrappers around `Int.natAbs` plus the AP-sum bridge rule.
   simp [discrepancy, discOffset]
 
+/-- Discrepancy-witness normal form for the composite reduction.
+
+This is a small “pipeline ergonomics” lemma: many later stages prove a fixed-step discrepancy
+statement about the reduced sequence. When those reductions are composed, it is useful to get
+directly back to a `discOffset` witness about the *original* sequence `f`.
+-/
+theorem composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt {f : ℕ → ℤ}
+    (out₁ : Tao2015.ReductionOutput f) (out₂ : Tao2015.ReductionOutput out₁.g)
+    (hdd : out₂.d = out₁.d) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d C ↔
+      (∃ n : ℕ, discOffset f out₁.d (out₁.m + out₂.m) n > C) := by
+  -- This is just `ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`
+  -- specialized to the composite reduction output.
+  simpa using
+    (ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f)
+      (out := composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd) (C := C))
+
+/-- `<`-oriented variant of `composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt {f : ℕ → ℤ}
+    (out₁ : Tao2015.ReductionOutput f) (out₂ : Tao2015.ReductionOutput out₁.g)
+    (hdd : out₂.d = out₁.d) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d C ↔
+      (∃ n : ℕ, C < discOffset f out₁.d (out₁.m + out₂.m) n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt
+      (out₁ := out₁) (out₂ := out₂) (hdd := hdd) (C := C))
+
 /-- Compute the reduced sequence produced by composing two `mkShiftOfSign` reductions.
 
 This is a common “pipeline ergonomics” lemma: it lets later stages treat successive shifts as a
