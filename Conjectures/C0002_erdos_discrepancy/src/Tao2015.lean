@@ -1263,6 +1263,36 @@ theorem discOffset_eq_natAbs_apSumFrom (out : ReductionOutput f) (n : ℕ) :
   simpa [discOffset, out.natAbs_apSumFrom_eq_natAbs_apSumOffset (f := f) (n := n)]
 
 /-!
+### Fixed-step discrepancy witnesses, rewritten through the tail-sum API
+
+Downstream stages of the Tao2015 pipeline often want to talk about sums of the form
+`apSumFrom f (m*d) d n` ("start at the affine point") rather than explicitly introducing the
+shifted sequence `out.g`.
+
+These lemmas provide the most direct witness-normal-form bridges between:
+- `HasDiscrepancyAtLeastAlong out.g out.d C` and
+- an `Int.natAbs (apSumFrom ...)` inequality witness.
+-/
+
+/-- Rewrite fixed-step discrepancy of the reduced sequence `out.g` into a tail-sum witness for `f`.
+
+This is the cleanest normal form when a downstream stage constructs a large discrepancy witness
+using the tail-sum API.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  -- Unfold `HasDiscrepancyAtLeastAlong` and rewrite `apSum out.g` via `apSumFrom_eq_apSum`.
+  simp [HasDiscrepancyAtLeastAlong, out.apSumFrom_eq_apSum]
+
+/-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (f := f) (C := C))
+
+/-!
 ### Peeling bundled offsets
 
 Many downstream reductions will accumulate offsets of the form `(out.m + m₂) * out.d`.
