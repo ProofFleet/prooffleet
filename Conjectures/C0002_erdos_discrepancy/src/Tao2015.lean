@@ -1269,6 +1269,38 @@ theorem boundedDiscrepancyAlong_iff_exists_bound_discOffset (out : ReductionOutp
   · rintro ⟨B, hB⟩
     exact out.boundedDiscrepancyAlong_ofBound_discOffset (f := f) B hB
 
+/-- `apSumOffset`-level reformulation of `boundedDiscrepancyAlong_iff_exists_bound_discOffset`. -/
+theorem boundedDiscrepancyAlong_iff_exists_bound_natAbs_apSumOffset (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+  -- `discOffset` is a wrapper around `Int.natAbs (apSumOffset ...)`.
+  simpa [discOffset] using
+    (out.boundedDiscrepancyAlong_iff_exists_bound_discOffset (f := f))
+
+/-- `apSumFrom`-level reformulation of `boundedDiscrepancyAlong_iff_exists_bound_discOffset`.
+
+This is convenient because many later stages work directly with the affine-tail nucleus
+`apSumFrom f (m*d) d`.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_bound_natAbs_apSumFrom_mul (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  -- Rewrite the `discOffset` bound into an `apSumFrom` bound via the offset→affine bridge.
+  constructor
+  · intro hb
+    rcases (out.boundedDiscrepancyAlong_iff_exists_bound_discOffset (f := f)).1 hb with ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- `discOffset f d m n = natAbs (apSumFrom f (m*d) d n)`.
+    simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul] using hB n
+  · rintro ⟨B, hB⟩
+    -- Convert the affine bound back into an offset-discrepancy bound, then apply the previous iff.
+    refine (out.boundedDiscrepancyAlong_iff_exists_bound_discOffset (f := f)).2 ?_
+    refine ⟨B, ?_⟩
+    intro n
+    -- `discOffset = natAbs(apSumFrom ...)`.
+    simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul] using hB n
+
 /-- Extract an offset-discrepancy bound from a fixed-step discrepancy context for `out.g`.
 
 This is a one-liner, but it avoids repeating the “rewrite then apply the context bound” pattern.
