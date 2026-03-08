@@ -686,6 +686,31 @@ theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simpa [discOffset, discrepancy, out.apSum_contract] using hB n
 
+/-- Uniform discrepancy bounds are equivalent across the reduction interface.
+
+This is often the most convenient contract form for consumers: you can swap between the
+"reduced" view (`discrepancy out.g out.d`) and the "offset" view (`discOffset f out.d out.m`)
+without mentioning AP sums.
+-/
+theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · intro h n
+    -- rewrite reduced discrepancy to `discOffset`
+    simpa [discOffset, discrepancy, out.apSum_contract] using h n
+  · intro h n
+    -- rewrite `discOffset` to reduced discrepancy
+    simpa [discOffset, discrepancy, out.apSum_contract] using h n
+
+/-- Strict-inequality version of `forall_discrepancy_le_iff_forall_discOffset_le`. -/
+theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
+  constructor
+  · intro h n
+    simpa [discOffset, discrepancy, out.apSum_contract] using h n
+  · intro h n
+    simpa [discOffset, discrepancy, out.apSum_contract] using h n
+
 /-- `HasDiscrepancyAtLeastAlong` is invariant under rewriting the reduced sequence via `out.g_eq`. -/
 theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
@@ -749,7 +774,7 @@ globally.
 If you want this rewrite in a local proof, use:
 `simpa using (out.apSum_eq_apSumFrom_mul_simp (f := f) (n := n))` or `simp [out.apSum_eq_apSumFrom_mul_simp]`.
 -/
- theorem apSum_eq_apSumFrom_mul_simp (out : ReductionOutput f) (n : ℕ) :
+theorem apSum_eq_apSumFrom_mul_simp (out : ReductionOutput f) (n : ℕ) :
     apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n :=
   out.apSum_eq_apSumFrom_mul (f := f) (n := n)
 
