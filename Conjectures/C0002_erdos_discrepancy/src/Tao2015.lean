@@ -573,6 +573,15 @@ theorem bound_discrepancy_of_context (out : ReductionOutput f) (ctx : Context f)
   -- Rewrite `discOffset` to `discrepancy out.g`.
   simpa [discOffset, discrepancy, out.apSum_contract] using h
 
+/-- A `Context f` implies a `2 * ctx.B` bound on the reduced discrepancy.
+
+This is just `bound_discrepancy_of_context` with the right-hand side written multiplicatively.
+-/
+theorem bound_discrepancy_of_context_two_mul (out : ReductionOutput f) (ctx : Context f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ 2 * ctx.B := by
+  intro n
+  simpa [two_mul] using (out.bound_discrepancy_of_context (f := f) ctx n)
+
 /-- A `Context f` implies bounded discrepancy along the reduced step size `out.d`.
 
 The resulting bound is `ctx.B + ctx.B`, matching `Context.bound_discOffset`.
@@ -582,6 +591,13 @@ theorem boundedDiscrepancyAlong_of_context (out : ReductionOutput f) (ctx : Cont
   refine ⟨ctx.B + ctx.B, ?_⟩
   intro n
   exact out.bound_discrepancy_of_context (f := f) ctx n
+
+/-- A `Context f` implies bounded discrepancy along `out.d` with bound `2 * ctx.B`. -/
+theorem boundedDiscrepancyAlong_of_context_two_mul (out : ReductionOutput f) (ctx : Context f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  refine ⟨2 * ctx.B, ?_⟩
+  intro n
+  exact out.bound_discrepancy_of_context_two_mul (f := f) ctx n
 
 /-- Unboundedness along the reduced step size `out.d`, rewritten as a witness normal form for
 `discOffset`.
