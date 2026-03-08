@@ -1440,6 +1440,31 @@ theorem bound_discOffset_ofContextAlong (out : ReductionOutput f)
   -- Use the `ContextAlong` bound on `out.g`, then transfer it back to the offset view.
   exact out.contract_discOffset_le (f := f) ctx.B (by intro n; exact ctx.bound_discrepancy (f := out.g) (d := out.d) n)
 
+/-- Extract a *sum-level* (`Int.natAbs`) offset bound from a fixed-step discrepancy context.
+
+This is a lightweight variant of `bound_discOffset_ofContextAlong` that avoids the `discOffset`
+wrapper when later stages want to reason directly about the underlying AP sum.
+-/
+theorem bound_natAbs_apSumOffset_ofContextAlong (out : ReductionOutput f)
+    (ctx : Tao2015.ContextAlong out.g out.d) :
+    ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B := by
+  intro n
+  -- `discOffset` is definitional.
+  simpa [discOffset] using out.bound_discOffset_ofContextAlong (f := f) ctx n
+
+/-- Extract a *sum-level* affine-tail bound (`apSumFrom`) from a fixed-step discrepancy context.
+
+This is the `apSumFrom` analogue of `bound_natAbs_apSumOffset_ofContextAlong`.
+-/
+theorem bound_natAbs_apSumFrom_mul_ofContextAlong (out : ReductionOutput f)
+    (ctx : Tao2015.ContextAlong out.g out.d) :
+    ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ ctx.B := by
+  intro n
+  -- `apSumFrom` bound is just the `apSum` bound for `out.g` rewritten via the stage-1 contract.
+  have hn : Int.natAbs (apSum out.g out.d n) ≤ ctx.B :=
+    ctx.bound_natAbs_apSum (f := out.g) (d := out.d) n
+  simpa [out.apSum_eq_apSumFrom_mul (f := f) (n := n)] using hn
+
 /-- Existential offset boundedness derived from a `ContextAlong` for the reduced sequence.
 
 This is the `ContextAlong` analogue of
