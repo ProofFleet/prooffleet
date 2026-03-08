@@ -1107,6 +1107,33 @@ theorem contract_discrepancy_lt_of_apSum_contract (f g : ℕ → ℤ) (d m B : �
   -- Rewrite the discrepancy of `g` to `discOffset` using `h`.
   simpa [discrepancy, discOffset, h n] using hB n
 
+/-- Witness-transport lemma: turn a fixed-step discrepancy witness for `g` into an offset-discrepancy
+witness for `f`, using an AP-sum bridge rule.
+
+This is the “interface-free” analogue of
+`ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_of_apSum_contract
+    (f g : ℕ → ℤ) (d m C : ℕ) (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    HasDiscrepancyAtLeastAlong g d C ↔ (∃ n : ℕ, discOffset f d m n > C) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+    simpa [HasDiscrepancyAtLeastAlong, discOffset, h n] using hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [HasDiscrepancyAtLeastAlong, discOffset, h n] using hn
+
+/-- `<`-oriented variant of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_of_apSum_contract`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt_of_apSum_contract
+    (f g : ℕ → ℤ) (d m C : ℕ) (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    HasDiscrepancyAtLeastAlong g d C ↔ (∃ n : ℕ, C < discOffset f d m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_of_apSum_contract
+      (f := f) (g := g) (d := d) (m := m) (C := C) h)
+
 /-- Reverse transfer contract (≤): a uniform bound on `discrepancy g d` transfers to a uniform bound
 on `discOffset f d m`, derived from an AP-sum bridge rule.
 -/
