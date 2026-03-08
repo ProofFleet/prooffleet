@@ -4392,6 +4392,21 @@ theorem discOffset_bound_of (out : ReductionOutput f) (ctx : ContextAlong out.g 
   -- Rewrite `discOffset` to the discrepancy of `out.g` using the AP-sum contract.
   simpa [discOffset, discrepancy, out.apSum_contract] using ctx.bound n
 
+/-- Build a fixed-step context for the reduced sequence from a global boundedness context.
+
+If `ctx : Tao2015.Context f` bounds *all* homogeneous AP discrepancies of `f` by `ctx.B`, then the
+corresponding offset discrepancies are bounded by `2*ctx.B` (triangle inequality), and hence the
+reduced sequence `out.g` has fixed-step discrepancy bounded by `2*ctx.B` along `out.d`.
+-/
+theorem ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ContextAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  -- `discrepancy out.g = discOffset f ...`, then apply the global context bound for offset sums.
+  have hOff : discOffset f out.d out.m n ≤ ctx.B + ctx.B :=
+    ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hOff
+
 end ContextAlong
 
 @[simp] theorem mkShiftOfSign_m (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
