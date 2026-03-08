@@ -1199,6 +1199,25 @@ theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
   -- Rewrite `discOffset` to `discrepancy` using the stage-1 contract, then apply the bound.
   simpa [(out.discrepancy_eq_discOffset (f := f) n).symm] using hB n
 
+/-- Sum-level (`Int.natAbs`) consequence of `contract_discOffset_le`.
+
+This is occasionally more convenient than working through the `discOffset` wrapper.
+-/
+theorem contract_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n ≤ B) :
+    ∀ n, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+  intro n
+  -- `discOffset = natAbs (apSumOffset ...)`.
+  simpa [discOffset] using (out.contract_discOffset_le (f := f) (B := B) hB n)
+
+/-- Strict-inequality version of `contract_natAbs_apSumOffset_le`. -/
+theorem contract_natAbs_apSumOffset_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n < B) :
+    ∀ n, Int.natAbs (apSumOffset f out.d out.m n) < B := by
+  intro n
+  -- Rewrite `discrepancy` through the stage-1 contract and expand `discOffset`.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n), discOffset, discrepancy] using hB n
+
 /-!
 ### Boundedness along the reduced step, transported to `discOffset`
 
