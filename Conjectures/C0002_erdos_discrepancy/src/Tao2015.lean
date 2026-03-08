@@ -1072,6 +1072,72 @@ theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-!
+### Boundedness transfer helpers
+
+The record field `contract_discrepancy_le` is stated in a “consumer-friendly” form:
+if you already have *uniform bounds* on the offset discrepancies, you can immediately bound
+`discrepancy out.g out.d`.
+
+Often, though, downstream stages naturally speak in terms of the existential predicate
+`BoundedDiscrepancyAlong`.  The following tiny lemmas let later stages move between
+`BoundedDiscrepancyAlong out.g out.d` and “there exists a uniform bound on `discOffset f out.d out.m`”
+without having to unfold wrappers by hand.
+-/
+
+/-- Bounded discrepancy along the reduced step is equivalent to bounded *offset* discrepancy
+for the original sequence (existential form). -/
+theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- rewrite the reduced discrepancy to the offset discrepancy
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- Forward direction of `boundedDiscrepancyAlong_iff_exists_forall_discOffset_le`. -/
+theorem exists_forall_discOffset_le_of_boundedDiscrepancyAlong (out : ReductionOutput f)
+    (h : BoundedDiscrepancyAlong out.g out.d) :
+    ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B :=
+  (out.boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (f := f)).1 h
+
+/-- Backward direction of `boundedDiscrepancyAlong_iff_exists_forall_discOffset_le`. -/
+theorem boundedDiscrepancyAlong_of_exists_forall_discOffset_le (out : ReductionOutput f)
+    (h : ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    BoundedDiscrepancyAlong out.g out.d :=
+  (out.boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (f := f)).2 h
+
+/-- Bounded discrepancy along the reduced step rewritten to the affine-tail nucleus `apSumFrom`.
+
+This is the `apSumFrom` analogue of
+`boundedDiscrepancyAlong_iff_exists_forall_discOffset_le`, using the bridge lemma
+`Tao2015.discOffset_eq_natAbs_apSumFrom_mul`.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSumFrom_mul_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite `discrepancy out.g` to `discOffset f`, then rewrite `discOffset` to the affine nucleus.
+    have : discOffset f out.d out.m n ≤ B := by
+      simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+    -- `discOffset = natAbs(apSumFrom ...)`.
+    simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul] using this
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Convert the affine-nucleus bound back to `discOffset`, then to `discrepancy out.g`.
+    have : discOffset f out.d out.m n ≤ B := by
+      simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul] using hB n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using this
+
 /-- Transfer contract, stated directly in terms of `discOffset`.
 
 This lemma is logically redundant (it follows from `discrepancy_eq_discOffset`), but it is a
