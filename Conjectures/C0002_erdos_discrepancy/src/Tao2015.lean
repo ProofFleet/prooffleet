@@ -1400,6 +1400,21 @@ theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : �
       HasDiscrepancyAtLeastAlong (fun k => f (k + out.m * out.d)) out.d C := by
   simpa [out.g_eq]
 
+/-- `apSum` for the reduced sequence is invariant under rewriting `out.g` via `out.g_eq`. -/
+theorem apSum_congr_shift (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSum (fun k => f (k + out.m * out.d)) out.d n := by
+  simpa [out.g_eq]
+
+/-- `discrepancy` for the reduced sequence is invariant under rewriting `out.g` via `out.g_eq`. -/
+theorem discrepancy_congr_shift (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discrepancy (fun k => f (k + out.m * out.d)) out.d n := by
+  simpa [out.g_eq]
+
+/-- `discOffset` for the reduced sequence is invariant under rewriting `out.g` via `out.g_eq`. -/
+theorem discOffset_congr_shift (out : ReductionOutput f) (m n : ℕ) :
+    discOffset out.g out.d m n = discOffset (fun k => f (k + out.m * out.d)) out.d m n := by
+  simpa [out.g_eq]
+
 /-- `BoundedDiscrepancyAlong` is invariant under rewriting the reduced sequence via `out.g_eq`. -/
 theorem boundedDiscrepancyAlong_congr_shift (out : ReductionOutput f) :
     BoundedDiscrepancyAlong out.g out.d ↔
