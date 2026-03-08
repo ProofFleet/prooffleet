@@ -761,6 +761,53 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
     discOffset f out.d out.m n = discrepancy out.g out.d n := by
   simpa using (out.discrepancy_contract (f := f) n).symm
 
+/-!
+### One-shot witness transport lemmas
+
+These are “micro-API” helpers: they let downstream stages move *existential* discrepancy witnesses
+back and forth across the reduction interface without first repackaging them as
+`HasDiscrepancyAtLeastAlong`.
+-/
+
+/-- Transport a single discrepancy witness for the reduced sequence to an offset-discrepancy witness.
+
+This is just a one-line rewrite using `discrepancy_contract`.
+-/
+theorem exists_discOffset_gt_of_exists_discrepancy_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discrepancy out.g out.d n > C) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_contract (f := f) (n := n)] using hn
+
+/-- Transport a single offset-discrepancy witness to a discrepancy witness for the reduced sequence.
+
+This is the reverse direction of `exists_discOffset_gt_of_exists_discrepancy_gt`.
+-/
+theorem exists_discrepancy_gt_of_exists_discOffset_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+
+/-- `natAbs(apSumOffset ...)` witness form transported from a reduced-sequence discrepancy witness. -/
+theorem exists_natAbs_apSumOffset_gt_of_exists_discrepancy_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discrepancy out.g out.d n > C) :
+    ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C := by
+  rcases out.exists_discOffset_gt_of_exists_discrepancy_gt (f := f) (C := C) h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+/-- Reduced-sequence discrepancy witness transported from a `natAbs(apSumOffset ...)` witness. -/
+theorem exists_discrepancy_gt_of_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- `discrepancy out.g out.d n = discOffset ... = natAbs(apSumOffset ...)`.
+  simpa [discOffset, discrepancy, out.apSum_contract (f := f) (n := n)] using hn
+
 /-- Derive the bridge rule `apSum out.g out.d = apSumOffset f out.d out.m` purely from `g_eq`.
 
 This is useful when constructing a `ReductionOutput`: you can often avoid proving
