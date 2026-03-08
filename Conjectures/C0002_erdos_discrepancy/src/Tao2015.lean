@@ -1192,21 +1192,8 @@ This is just `ctx.bound_discOffset` transported through `out.contract_discrepanc
 -/
 /-- (Removed: `discrepancy_le_two_mul_B_ofContext` was redundant with `contextAlong_ofContext`.) -/
 
-/-- Pointwise transfer (`<`) between the reduced discrepancy and the original offset discrepancy. -/
-theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (n B : ℕ) :
-    discrepancy out.g out.d n < B ↔ discOffset f out.d out.m n < B := by
-  simp [out.discrepancy_eq_discOffset (f := f) (n := n)]
-
-/-- Uniform transfer (`≤`) between the reduced discrepancy and the original offset discrepancy. -/
-theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
-    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
-  constructor
-  · intro h n
-    -- Convert a reduced bound to an offset bound.
-    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
-  · intro h n
-    -- Convert an offset bound to a reduced bound using the transfer contract.
-    exact out.contract_discrepancy_le B h n
+-- (Removed duplicate transfer lemmas: see earlier `discrepancy_lt_iff_discOffset_lt` and
+-- `forall_discrepancy_le_iff_forall_discOffset_le` in this namespace.)
 
 /-- Convert a uniform discrepancy bound on the reduced sequence into a uniform bound on
 `Int.natAbs (apSumOffset ...)` for the original sequence.
@@ -1249,14 +1236,8 @@ theorem forall_natAbs_apSumFrom_mul_lt_of_forall_discrepancy_lt (out : Reduction
   intro n
   simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
 
-/-- Uniform transfer (`<`) between the reduced discrepancy and the original offset discrepancy. -/
-theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
-    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
-  constructor
-  · intro h n
-    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
-  · intro h n
-    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+-- (Removed duplicate: `forall_discrepancy_lt_iff_forall_discOffset_lt` is proved earlier
+-- in this namespace.)
 
 /-!
 ### Extra transfer helpers
