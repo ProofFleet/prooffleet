@@ -7882,6 +7882,21 @@ theorem stage2_unbounded_natAbs_apSum (f : ℕ → ℤ) (hf : IsSignSequence f)
   refine ⟨n, ?_⟩
   simpa [discrepancy] using hn
 
+/-- Stage-2 witness normal form rewritten into the affine nucleus `apSumFrom` for the original
+sequence `f`.
+
+This is a convenience wrapper around `stage2_unbounded_natAbs_apSum` plus the stage-1 contract
+`ReductionOutput.apSum_eq_apSumFrom_mul`.
+-/
+theorem stage2_unbounded_natAbs_apSumFrom_mul (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  intro B
+  rcases stage2_unbounded_natAbs_apSum (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- Rewrite the reduced AP sum into the affine nucleus on the original sequence.
+  simpa [out.apSum_eq_apSumFrom_mul (f := f) (n := n)] using hn
+
 /-!
 ### Stage-2 → pipeline-friendly discrepancy predicates
 
