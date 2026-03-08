@@ -1171,6 +1171,42 @@ theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutpu
     HasDiscrepancyAtLeastAlong out.g out.d C :=
   (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 h
 
+/-- `∀ C` fixed-step discrepancy for `out.g` is equivalent to `∀ C` existence of a `discOffset`
+  witness for `f`.
+
+This is just the pointwise witness contract
+`HasDiscrepancyAtLeastAlong out.g out.d C ↔ ∃ n, C < discOffset f out.d out.m n` packaged under
+universal quantification.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  constructor
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).2 (h C)
+
+/-- `¬ BoundedDiscrepancyAlong out.g out.d` rewritten in terms of the `discOffset` witnesses for `f`.
+
+This is the “unbounded along a fixed step” normal form that later reductions typically want.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- Use the generic `∀ C, HasDiscrepancyAtLeastAlong ↔ ¬ bounded` equivalence.
+  simpa [out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_lt (f := f)] using
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
+      (g := out.g) (d := out.d))
+
+/-- A `> C`-oriented version of `not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`. -/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f))
+
 /-- Promote a fixed-step discrepancy statement for `out.g` to the standard discrepancy predicate.
 
 This is a convenience wrapper around `HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast`, using
