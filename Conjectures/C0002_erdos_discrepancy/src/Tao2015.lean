@@ -108,6 +108,20 @@ theorem natAbs_apSumOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : �
     Int.natAbs (apSumOffset f d m n) = Int.natAbs (apSumFrom f (m * d) d n) := by
   simp [apSumOffset_eq_apSumFrom_mul]
 
+/-- Rewrite `discOffset` in terms of the affine AP-sum nucleus `apSumFrom`.
+
+This is just the definitional wrapper `discOffset = natAbs(apSumOffset …)` combined with
+`apSumOffset_eq_apSumFrom_mul`.
+-/
+theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = Int.natAbs (apSumFrom f (m * d) d n) := by
+  simp [discOffset, apSumOffset_eq_apSumFrom_mul]
+
+/-- Reverse orientation of `discOffset_eq_natAbs_apSumFrom_mul`. -/
+theorem natAbs_apSumFrom_mul_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    Int.natAbs (apSumFrom f (m * d) d n) = discOffset f d m n := by
+  simpa using (discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- Discrepancy version of `apSum_shift_add_mul_eq_apSumOffset`. -/
 theorem discrepancy_shift_add_mul_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discrepancy (fun k => f (k + m * d)) d n = discOffset f d m n := by
