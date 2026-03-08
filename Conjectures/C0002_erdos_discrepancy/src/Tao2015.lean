@@ -746,6 +746,22 @@ back to the offset-sum family of `f`.
     apSum out.g out.d n = apSumOffset f out.d out.m n :=
   out.apSum_contract n
 
+/-- `Int.natAbs` form of the AP-sum bridge rule.
+
+This is a lightweight helper for pushing inequalities across `apSum_contract_apply`.
+-/
+theorem natAbs_apSum_contract (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simp [out.apSum_contract (f := f) (n := n)]
+
+/-- Reverse orientation of `natAbs_apSum_contract`.
+
+Not marked `[simp]` to avoid rewriting loops.
+-/
+theorem natAbs_apSumOffset_eq (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumOffset f out.d out.m n) = Int.natAbs (apSum out.g out.d n) := by
+  simpa using (out.natAbs_apSum_contract (f := f) n).symm
+
 /-- Reverse orientation of `apSum_contract_apply`.
 
 Not marked `[simp]` to avoid rewriting loops.
