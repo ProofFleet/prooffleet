@@ -783,6 +783,23 @@ theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f)
   · intro h n
     simpa [discOffset, discrepancy, out.apSum_contract] using h n
 
+/-- Uniform discrepancy bounds are equivalent to uniform `Int.natAbs (apSumOffset ...)` bounds.
+
+This is the same contract as `forall_discrepancy_le_iff_forall_discOffset_le`, but without going
+through the `discOffset` wrapper.
+-/
+theorem forall_discrepancy_le_iff_forall_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
+      (∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  -- `discOffset` is definitional, and `out.discrepancy_eq_discOffset` is simp.
+  simpa [discOffset] using (out.forall_discrepancy_le_iff_forall_discOffset_le (f := f) (B := B))
+
+/-- Strict-inequality version of `forall_discrepancy_le_iff_forall_natAbs_apSumOffset_le`. -/
+theorem forall_discrepancy_lt_iff_forall_natAbs_apSumOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔
+      (∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) < B) := by
+  simpa [discOffset] using (out.forall_discrepancy_lt_iff_forall_discOffset_lt (f := f) (B := B))
+
 /-- `HasDiscrepancyAtLeastAlong` is invariant under rewriting the reduced sequence via `out.g_eq`. -/
 theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
