@@ -581,6 +581,24 @@ theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) 
     _ = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) :=
       Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n)
 
+/-- Reverse orientation of `discrepancy_eq_natAbs_apSumFrom_mul`.
+
+This is occasionally convenient when a later stage produces a statement about the affine nucleus
+`apSumFrom` but wants to rewrite it back into the `discrepancy` wrapper form.
+-/
+theorem natAbs_apSumFrom_mul_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumFrom f (out.m * out.d) out.d n) = discrepancy out.g out.d n := by
+  simpa using (out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)).symm
+
+/-- Reverse orientation of `apSum_eq_apSumFrom_mul`.
+
+We keep this as a separate lemma (rather than making `apSum_eq_apSumFrom_mul` `[simp]` both ways)
+so that `simp` does not accidentally create rewriting loops.
+-/
+theorem apSumFrom_mul_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumFrom f (out.m * out.d) out.d n = apSum out.g out.d n := by
+  simpa using (out.apSum_eq_apSumFrom_mul (f := f) (n := n)).symm
+
 /-- If discrepancies of the reduced sequence are uniformly bounded, then offset discrepancies of
 `f` are uniformly bounded (same bound). -/
 theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
