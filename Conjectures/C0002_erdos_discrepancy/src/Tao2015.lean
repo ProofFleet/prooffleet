@@ -1107,6 +1107,119 @@ theorem mkShiftOfSign_discOffset_eq_discrepancy (f : ℕ → ℤ) (hf : IsSignSe
   simpa using
     (mkShiftOfSign_discrepancy_contract (f := f) (hf := hf) (d := d) (m := m) hd n).symm
 
+/-!
+### Composing shift-style reduction outputs (same step size)
+
+A common pattern in the Tao-style pipeline is to define a sequence by *multiple* successive
+shifts-by-multiples-of-`d`.  This section packages the simple “offsets add” fact as a compositional
+constructor on `ReductionOutput`.
+
+We intentionally only support the case where both reduction stages share the same step size `d`.
+That is already enough to let downstream stages build multi-step reductions while keeping the
+interface lightweight.
+-/
+
+namespace ReductionOutput
+
+/-- Compose two reduction outputs that share the same step size `d`.
+
+If:
+- `out₁ : ReductionOutput f` packages `g₁(k) = f(k + m₁*d)` and the bridge
+  `apSum g₁ d = apSumOffset f d m₁`, and
+- `out₂ : ReductionOutput out₁.g` packages `g₂(k) = out₁.g(k + m₂*d)` and the bridge
+  `apSum g₂ d = apSumOffset out₁.g d m₂`,
+
+then the composite packages `g₂(k) = f(k + (m₁+m₂)*d)` with bridge
+`apSum g₂ d = apSumOffset f d (m₁+m₂)`.
+
+The proof is just rewriting plus `apSumOffset_add_pre` / `discOffset_add_pre`.
+-/
+noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) :
+    Tao2015.ReductionOutput f := by
+  classical
+  -- We keep `d` and `hd` from `out₁`, since the step sizes agree.
+  refine
+    { d := out₁.d
+      m := out₁.m + out₂.m
+      hd := out₁.hd
+      g := out₂.g
+      hg := out₂.hg
+      g_eq := ?_
+      apSum_contract := ?_
+      contract_discrepancy_le := ?_ }
+  · -- Expand `out₂.g` as a shift of `out₁.g`, then expand `out₁.g` as a shift of `f`.
+    -- Finally, reassociate the resulting offset.
+    --
+    -- `out₂.g k = out₁.g (k + out₂.m * out₂.d)`
+    --        `= f ((k + out₂.m*out₂.d) + out₁.m*out₁.d)`.
+    -- With `out₂.d = out₁.d`, this is `f (k + (out₁.m+out₂.m) * out₁.d)`.
+    funext k
+    have hk : out₂.g k = out₁.g (k + out₂.m * out₂.d) := by
+      simpa [out₂.g_eq]
+    -- Rewrite `out₁.g` using `out₁.g_eq`.
+    -- Then normalize arithmetic.
+    simpa [hk, out₁.g_eq, hdd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul,
+      Nat.mul_add, Nat.mul_assoc] 
+  · intro n
+    -- Start from the stage-2 bridge `apSum out₂.g out₂.d = apSumOffset out₁.g out₂.d out₂.m`.
+    -- Then rewrite `out₂.d` to `out₁.d` and re-associate offsets.
+    have h₂ : apSum out₂.g out₂.d n = apSumOffset out₁.g out₂.d out₂.m n := out₂.apSum_contract n
+    -- Re-associate the offsets on the RHS:
+    -- `apSumOffset f d (m₁+m₂) = apSumOffset (shift f by m₁*d) d m₂`.
+    -- And `shift f by m₁*d` is exactly `out₁.g`.
+    --
+    -- We use the reverse orientation `apSumOffset_add_pre'`.
+    simpa [hdd] using
+      (show apSum out₂.g out₁.d n = apSumOffset f out₁.d (out₁.m + out₂.m) n by
+        -- Rewrite using `h₂`.
+        have : apSum out₂.g out₁.d n = apSumOffset out₁.g out₁.d out₂.m n := by
+          simpa [hdd] using h₂
+        -- Convert `apSumOffset out₁.g ...` to `apSumOffset f ... (m₁+m₂)`.
+        -- `out₁.g` is definitionally the shift of `f` by `out₁.m*out₁.d`.
+        -- `apSumOffset_add_pre` handles the offset reassociation.
+        simpa [out₁.g_eq] using
+          (congrArg (fun t => t) (apSumOffset_add_pre' (f := f) (d := out₁.d)
+            (m₁ := out₁.m) (m₂ := out₂.m) (n := n)))
+        |> fun h => by
+          -- `h` is an equality of offset sums; use it to rewrite the target.
+          -- (This little dance avoids needing `simp` to guess the direction.)
+          simpa [h] using this)
+  · intro B hB n
+    -- Convert the bound hypothesis on `discOffset f out₁.d (out₁.m+out₂.m)` into a bound on
+    -- `discOffset out₁.g out₁.d out₂.m` using `discOffset_add_pre` plus `out₁.g_eq`.
+    have hB₂ : ∀ n : ℕ, discOffset out₁.g out₁.d out₂.m n ≤ B := by
+      intro n
+      -- `discOffset_add_pre` says
+      --   `discOffset f d (m₁+m₂) = discOffset (shift f by m₁*d) d m₂`.
+      -- Here `shift f by m₁*d` is `out₁.g`.
+      -- So we can rewrite `hB n` into the desired bound.
+      have := hB n
+      -- Rewrite the LHS of `this` using `discOffset_add_pre` (symm) and `out₁.g_eq`.
+      simpa [out₁.g_eq] using (by
+        -- Change the goal by rewriting `discOffset out₁.g ...`.
+        -- `discOffset_add_pre` goes the other way, so use `.symm`.
+        simpa using (show discOffset out₁.g out₁.d out₂.m n ≤ B from
+          (by
+            -- Replace `discOffset out₁.g ...` with the corresponding `discOffset f ... (m₁+m₂)`.
+            --
+            -- `discOffset f d (m₁+m₂) = discOffset (shift f by m₁*d) d m₂`.
+            -- So
+            -- `discOffset (shift f by m₁*d) d m₂ = discOffset f d (m₁+m₂)`.
+            --
+            -- Now use `this`.
+            simpa [discOffset_add_pre (f := f) (d := out₁.d) (m₁ := out₁.m) (m₂ := out₂.m) (n := n)]
+              using this)))
+    -- Now apply the stage-2 transfer contract.
+    have h := out₂.contract_discrepancy_le B (by
+      intro n
+      -- `out₂` expects `discOffset out₁.g out₂.d out₂.m`; rewrite `out₂.d` to `out₁.d`.
+      simpa [hdd] using hB₂ n)
+    -- Again rewrite `out₂.d` to `out₁.d` on the conclusion.
+    simpa [hdd] using h n
+
+end ReductionOutput
+
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
 
 This is occasionally useful as a “do-nothing” reduction step when you want to express later stages
