@@ -1655,6 +1655,30 @@ theorem bound_discOffset_of_bound_discrepancy_apply (out : ReductionOutput f) (B
     discOffset f out.d out.m n ≤ B :=
   (out.bound_discOffset_of_bound_discrepancy (f := f) B hB) n
 
+/-- Reverse transfer, in the raw `Int.natAbs (apSumOffset ...)` form.
+
+This is just `bound_discOffset_of_bound_discrepancy` with `discOffset` unfolded.
+-/
+theorem bound_natAbs_apSumOffset_of_bound_discrepancy (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discrepancy out.g out.d n ≤ B) :
+    ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+  intro n
+  -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`.
+  simpa [discOffset] using (out.bound_discOffset_of_bound_discrepancy (f := f) B hB n)
+
+/-- Forward transfer, in the raw `Int.natAbs (apSumOffset ...)` form.
+
+This is `bound_discrepancy_of_bound_discOffset` specialized to a bound written directly on
+`Int.natAbs (apSumOffset ...)`.
+-/
+theorem bound_discrepancy_of_bound_natAbs_apSumOffset (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  -- Rewrite the hypothesis as a bound on `discOffset`, then use the contract field.
+  apply out.bound_discrepancy_of_bound_discOffset (f := f) (B := B)
+  intro n
+  simpa [discOffset] using hB n
+
 /-- Strict-inequality transfer: a uniform *strict* bound on the offset discrepancy transfers to a
 strict bound on the reduced discrepancy.
 
