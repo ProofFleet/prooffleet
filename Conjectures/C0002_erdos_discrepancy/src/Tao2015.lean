@@ -947,6 +947,27 @@ This is the strict-inequality analogue of `mk_of_shift_discrepancy_le_iff_discOf
       discOffset f d m n < B := by
   simp [mk_of_shift_discrepancy_eq_discOffset (f := f) (d := d) (m := m) (n := n) hd hf]
 
+/-- Uniform transfer contract (`≤`) for the default constructor `mk_of_shift`.
+
+This is the “consumer-facing” packaging: if you have a uniform bound on the offset discrepancy of
+`f`, you immediately get the same uniform bound on the fixed-step discrepancies of the reduced
+sequence.
+-/
+theorem mk_of_shift_contract_discrepancy_le (f : ℕ → ℤ) (d m B : ℕ) (hd : d > 0)
+    (hf : IsSignSequence f) :
+    (∀ n : ℕ, discOffset f d m n ≤ B) →
+      (∀ n : ℕ, discrepancy (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n ≤ B) := by
+  intro hB n
+  simpa [mk_of_shift_discrepancy_eq_discOffset (f := f) (d := d) (m := m) (n := n) hd hf] using hB n
+
+/-- Uniform transfer contract (`<`) for the default constructor `mk_of_shift`. -/
+theorem mk_of_shift_contract_discrepancy_lt (f : ℕ → ℤ) (d m B : ℕ) (hd : d > 0)
+    (hf : IsSignSequence f) :
+    (∀ n : ℕ, discOffset f d m n < B) →
+      (∀ n : ℕ, discrepancy (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n < B) := by
+  intro hB n
+  simpa [mk_of_shift_discrepancy_eq_discOffset (f := f) (d := d) (m := m) (n := n) hd hf] using hB n
+
 @[simp] theorem mk_of_g_eq_d (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
     (hgEq : g = fun k => f (k + m * d)) :
     (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).d = d := by
@@ -985,6 +1006,22 @@ This is the `mk_of_g_eq` analogue of `mk_of_shift_apSum_eq_apSumOffset`.
       discOffset f d m n := by
   -- Reduce to the AP-sum bridge and unfold wrappers.
   simp [discrepancy, discOffset, mk_of_g_eq_apSum_eq_apSumOffset]
+
+/-- Uniform transfer contract (`≤`) for the default constructor `mk_of_g_eq`. -/
+theorem mk_of_g_eq_contract_discrepancy_le (f g : ℕ → ℤ) (d m B : ℕ) (hd : d > 0)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    (∀ n : ℕ, discOffset f d m n ≤ B) →
+      (∀ n : ℕ, discrepancy (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g d n ≤ B) := by
+  intro hB n
+  simpa [mk_of_g_eq_discrepancy_eq_discOffset (f := f) (g := g) (d := d) (m := m) (n := n) hd hg hgEq] using hB n
+
+/-- Uniform transfer contract (`<`) for the default constructor `mk_of_g_eq`. -/
+theorem mk_of_g_eq_contract_discrepancy_lt (f g : ℕ → ℤ) (d m B : ℕ) (hd : d > 0)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    (∀ n : ℕ, discOffset f d m n < B) →
+      (∀ n : ℕ, discrepancy (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g d n < B) := by
+  intro hB n
+  simpa [mk_of_g_eq_discrepancy_eq_discOffset (f := f) (g := g) (d := d) (m := m) (n := n) hd hg hgEq] using hB n
 
 /-- Tail-sum (`apSumFrom`) rewrite for the default constructor `mk_of_g_eq`. -/
 @[simp] theorem mk_of_g_eq_discrepancy_eq_natAbs_apSumFrom_mul (f g : ℕ → ℤ) (d m n : ℕ)
