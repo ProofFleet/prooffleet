@@ -2002,6 +2002,17 @@ theorem discOffset_eq_natAbs_apSumFrom (out : ReductionOutput f) (n : ℕ) :
   -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
   simpa [discOffset, out.natAbs_apSumFrom_eq_natAbs_apSumOffset (f := f) (n := n)]
 
+/-- Rewrite the reduced discrepancy in terms of the tail-sum API.
+
+This is the cleanest “single-line” bridge when a downstream stage naturally produces a bound on
+`Int.natAbs (apSumFrom f (m*d) d n)` and wants to interpret it as a statement about
+`discrepancy out.g out.d n`.
+-/
+theorem discrepancy_eq_natAbs_apSumFrom (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, out.apSumFrom_eq_apSum (f := f) (n := n)]
+
 /-!
 ### Fixed-step discrepancy witnesses, rewritten through the tail-sum API
 
