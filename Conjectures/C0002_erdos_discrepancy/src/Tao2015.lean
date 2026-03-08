@@ -1244,6 +1244,22 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
   -- Proof irrelevance: both sides are proofs of the same proposition.
   simp [composeShiftSameD]
 
+/-- The AP-sum bridge rule for `composeShiftSameD` (pointwise form). -/
+@[simp] theorem composeShiftSameD_apSum_contract {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) (n : ℕ) :
+    apSum (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d n =
+      apSumOffset f out₁.d (out₁.m + out₂.m) n := by
+  -- This is exactly the `apSum_contract` field of the composite, with `d = out₁.d`.
+  simp [composeShiftSameD]
+
+/-- The discrepancy rewrite rule for `composeShiftSameD` (pointwise form). -/
+@[simp] theorem composeShiftSameD_discrepancy_contract {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) (n : ℕ) :
+    discrepancy (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d n =
+      discOffset f out₁.d (out₁.m + out₂.m) n := by
+  -- Both sides are definitional wrappers around `Int.natAbs` plus the AP-sum bridge rule.
+  simp [discrepancy, discOffset]
+
 /-- Compute the reduced sequence produced by composing two `mkShiftOfSign` reductions.
 
 This is a common “pipeline ergonomics” lemma: it lets later stages treat successive shifts as a
