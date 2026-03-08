@@ -4325,6 +4325,10 @@ noncomputable def stage1 (f : ℕ → ℤ) (hf : IsSignSequence f) : ReductionOu
 @[simp] theorem stage1_m (f : ℕ → ℤ) (hf : IsSignSequence f) : (stage1 (f := f) hf).m = 0 := by
   simp [stage1]
 
+@[simp] theorem stage1_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : (stage1 (f := f) hf).hd = (by decide : (1 : ℕ) > 0) := by
+  -- `stage1` is the identity reduction with `d = 1`.
+  simp [stage1, id]
+
 @[simp] theorem stage1_g_apply (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
     (stage1 (f := f) hf).g k = f k := by
   simp [stage1]
@@ -4334,10 +4338,27 @@ noncomputable def stage1 (f : ℕ → ℤ) (hf : IsSignSequence f) : ReductionOu
     apSum (stage1 (f := f) hf).g 1 n = apSumOffset f 1 0 n := by
   simp [stage1, id]
 
+/-- Under the identity reduction, the reduced AP sum is just the original one. -/
+@[simp] theorem stage1_apSum_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    apSum (stage1 (f := f) hf).g 1 n = apSum f 1 n := by
+  -- `apSumOffset f 1 0 n = apSum f 1 n` by the zero-offset simp lemma.
+  simpa using (stage1_apSum_contract (f := f) (hf := hf) n)
+
 /-- `stage1` satisfies the discrepancy bridge rule definitionally. -/
 @[simp] theorem stage1_discrepancy_contract (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
     discrepancy (stage1 (f := f) hf).g 1 n = discOffset f 1 0 n := by
   simp [stage1, id]
+
+/-- Under the identity reduction, the reduced discrepancy is just the original one. -/
+@[simp] theorem stage1_discrepancy_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    discrepancy (stage1 (f := f) hf).g 1 n = discrepancy f 1 n := by
+  -- Reduce to the offset form and then use the zero-offset simp lemma.
+  simpa using (stage1_discrepancy_contract (f := f) (hf := hf) n)
+
+/-- Convenience: the offset discrepancy wrapper `discOffset f 1 0` is just `discrepancy f 1`. -/
+@[simp] theorem discOffset_one_zero_eq_discrepancy (f : ℕ → ℤ) (n : ℕ) :
+    discOffset f 1 0 n = discrepancy f 1 n := by
+  simp [discOffset, discrepancy]
 
 /-- `stage1` rewrites the tail-sum API `apSumFrom` into an offset sum. -/
 @[simp] theorem stage1_apSumFrom_eq_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
