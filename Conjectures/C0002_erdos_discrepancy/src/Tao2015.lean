@@ -5874,16 +5874,12 @@ arbitrarily large discrepancy along a *fixed* step size `out.d`.
 theorem stage2_forall_hasDiscrepancyAtLeastAlong_unpacked (f : ℕ → ℤ) (hf : IsSignSequence f)
     (ctx : Context f) (out : ReductionOutput f) :
     ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  -- This is exactly the `ReductionOutput` witness-transport lemma applied to the stage-2 deliverable.
+  apply ReductionOutput.forall_hasDiscrepancyAtLeastAlong_of_forall_exists_discOffset_gt (f := f) (out := out)
   intro C
+  -- Stage 2 provides witnesses `C < discOffset ...` for all thresholds `C`.
   rcases stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) C with ⟨n, hn⟩
-  -- Convert the `discOffset` witness into a `discrepancy out.g out.d` witness using the reduction contract.
-  refine (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt (f := out.g) (d := out.d) (C := C)).2 ?_
-  refine ⟨n, ?_⟩
-  -- `a > b` is notation for `b < a`.
-  have : C < discrepancy out.g out.d n := by
-    -- Rewrite `discOffset` to `discrepancy` via the bridge rule bundled in `out`.
-    simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
-  simpa [gt_iff_lt] using this
+  exact ⟨n, hn⟩
 
 /-- Stage-2 witness form implies `¬ BoundedDiscrepancyAlong out.g out.d`. -/
 theorem stage2_not_boundedDiscrepancyAlong_unpacked (f : ℕ → ℤ) (hf : IsSignSequence f)
