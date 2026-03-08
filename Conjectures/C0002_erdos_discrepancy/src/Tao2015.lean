@@ -759,6 +759,28 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutp
   simpa [gt_iff_lt] using
     (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C))
 
+/-- Named forward direction of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem exists_discOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) (C : ℕ)
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).1 h
+
+/-- Named backward direction of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    HasDiscrepancyAtLeastAlong out.g out.d C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 h
+
+/-- Rewrite `HasDiscrepancyAtLeastAlong` for the reduced sequence into a `discrepancy` witness.
+
+This is just the generic lemma `HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt`
+instantiated at `(out.g, out.d)`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, discrepancy out.g out.d n > C) := by
+  simpa using
+    (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt (f := out.g) (d := out.d) (C := C))
+
 /-- Uniform `≤` bounds for discrepancies of `out.g` rewritten to the literal shift of `f`. -/
 theorem forall_discrepancy_le_iff_shift (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
