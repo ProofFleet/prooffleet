@@ -687,6 +687,17 @@ Marked `[simp]` because it is the main consumer-facing normalization rule for th
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   simp [discrepancy, discOffset]
 
+/-- A `discOffset`-free version of `discrepancy_eq_discOffset`.
+
+This is occasionally convenient when a downstream stage wants to work directly with
+`Int.natAbs (apSumOffset ...)` without going through the wrapper definition `discOffset`.
+
+Marked `[simp]` for the same reason as `discrepancy_eq_discOffset`.
+-/
+@[simp] theorem discrepancy_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simp [discrepancy, out.apSum_contract]
+
 /-- Reverse orientation of `discrepancy_eq_discOffset`.
 
 Not marked `[simp]` to avoid rewriting loops.
