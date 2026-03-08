@@ -688,6 +688,14 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
     refine ⟨n, ?_⟩
     simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using hn
 
+/-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (f := f) (C := C))
+
 /-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`. -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
