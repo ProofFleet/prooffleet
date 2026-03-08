@@ -1088,6 +1088,37 @@ theorem natAbs_apSumOffset_add_eq (out : ReductionOutput f) (m₂ n : ℕ) :
       Int.natAbs (apSumOffset out.g out.d m₂ n) := by
   simp [out.apSumOffset_add_eq_apSumOffset (f := f) (m₂ := m₂) (n := n)]
 
+/-- Reverse orientation of `discOffset_add_eq_discOffset`. -/
+theorem discOffset_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset out.g out.d m₂ n = discOffset f out.d (out.m + m₂) n := by
+  simpa using (out.discOffset_add_eq_discOffset (f := f) (m₂ := m₂) (n := n)).symm
+
+/-- Reverse orientation of `apSumOffset_add_eq_apSumOffset`. -/
+theorem apSumOffset_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset out.g out.d m₂ n = apSumOffset f out.d (out.m + m₂) n := by
+  simpa using (out.apSumOffset_add_eq_apSumOffset (f := f) (m₂ := m₂) (n := n)).symm
+
+/-- Affine-nucleus version of `apSumOffset_add_eq_apSumOffset`.
+
+This rewrites an offset of the reduced sequence `out.g` into an `apSumFrom` of the original
+sequence `f` with the accumulated start point `(out.m + m₂) * out.d`.
+-/
+theorem apSumFrom_add_mul_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom f ((out.m + m₂) * out.d) out.d n = apSumOffset out.g out.d m₂ n := by
+  -- Start from the RHS and rewrite back to an offset sum of `f`.
+  -- Then rewrite `apSumOffset` into the affine nucleus `apSumFrom`.
+  have h₁ : apSumOffset out.g out.d m₂ n = apSumOffset f out.d (out.m + m₂) n := by
+    simpa using (out.apSumOffset_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n))
+  -- Now rewrite the accumulated offset sum to the affine nucleus.
+  -- (Note: we keep the final result oriented as stated.)
+  simpa [h₁, Tao2015.apSumOffset_eq_apSumFrom_mul, Nat.add_mul] using
+    (Tao2015.apSumOffset_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m + m₂) (n := n)).symm
+
+/-- Same as `apSumFrom_add_mul_eq_apSumOffset`, but oriented to rewrite `apSumOffset` as `apSumFrom`. -/
+theorem apSumOffset_eq_apSumFrom_add_mul (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset out.g out.d m₂ n = apSumFrom f ((out.m + m₂) * out.d) out.d n := by
+  simpa using (out.apSumFrom_add_mul_eq_apSumOffset (f := f) (m₂ := m₂) (n := n)).symm
+
 /-!
 ### One-shot witness transport lemmas
 
