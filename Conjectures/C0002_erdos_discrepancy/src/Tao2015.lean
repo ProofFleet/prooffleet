@@ -627,6 +627,27 @@ namespace ReductionOutput
 variable {f : ℕ → ℤ}
 
 /-!
+### Basic accessors
+
+These are tiny one-liners that make it easier for downstream stages to use a
+`ReductionOutput` without constantly rewriting via the record fields.
+-/
+
+@[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) :
+    out.g k = f (k + out.m * out.d) := by
+  simpa [out.g_eq]
+
+/-- Reverse orientation of the AP-sum bridge field `apSum_contract`. -/
+theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSum out.g out.d n := by
+  simpa using (out.apSum_contract n).symm
+
+/-- Reverse orientation of `discrepancy_eq_discOffset`. -/
+theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discrepancy out.g out.d n := by
+  simpa using (out.discrepancy_eq_discOffset (f := f) n).symm
+
+/-!
 ### Consumer-facing rewrite lemmas
 
 These are tiny wrappers around the fields of `ReductionOutput`. They make the interface feel like
