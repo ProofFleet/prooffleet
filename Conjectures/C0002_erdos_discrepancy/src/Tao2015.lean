@@ -2302,6 +2302,31 @@ namespace shift_add_mul
     (out.shift_add_mul (f := f) m₂).g = fun k => out.g (k + m₂ * out.d) := by
   simp [ReductionOutput.shift_add_mul]
 
+@[simp] theorem g_apply (out : ReductionOutput f) (m₂ k : ℕ) :
+    (out.shift_add_mul (f := f) m₂).g k = out.g (k + m₂ * out.d) := by
+  simp
+
+/-- The shifted reduction output satisfies the same `apSum`→`apSumOffset` contract, with the
+updated offset multiplier `out.m + m₂`.
+
+This is just a convenience wrapper around the generic simp lemma
+`ReductionOutput.apSum_eq_apSumOffset`.
+-/
+theorem apSum_contract (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (out.shift_add_mul (f := f) m₂).g out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- `apSum (out'.g) out'.d = apSumOffset f out'.d out'.m`.
+  simpa using (ReductionOutput.apSum_eq_apSumOffset (f := f)
+    (out := out.shift_add_mul (f := f) m₂) (n := n))
+
+/-- Discrepancy contract for the shifted reduction output.
+
+Convenience wrapper around `ReductionOutput.discrepancy_eq_discOffset`.
+-/
+theorem discrepancy_contract (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (out.shift_add_mul (f := f) m₂).g out.d n = discOffset f out.d (out.m + m₂) n := by
+  simpa using (ReductionOutput.discrepancy_eq_discOffset (f := f)
+    (out := out.shift_add_mul (f := f) m₂) (n := n))
+
 end shift_add_mul
 
 /-!
