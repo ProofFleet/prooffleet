@@ -945,6 +945,43 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
   simpa using (out.discrepancy_contract (f := f) n).symm
 
 /-!
+### Offset reassociation for a `ReductionOutput`
+
+A common pattern in multi-stage reductions is that offsets accumulate additively.
+The base lemma `Tao2015.discOffset_add_pre` rewrites
+`discOffset f d (m₁+m₂)` as a `discOffset` of a shifted sequence.
+
+When `m₁` is the offset packaged in a `ReductionOutput`, the shifted sequence is exactly
+`out.g`.  The following helpers record that specialization.
+-/
+
+/-- Re-associate an offset past the reduction output: `discOffset f d (out.m + m₂)` is the
+same as `discOffset out.g d m₂`.
+
+Intuitively: shifting `f` by `out.m*out.d` is exactly the reduced sequence `out.g`, so any
+additional offset can be viewed as an offset of `out.g`.
+-/
+theorem discOffset_add_eq_discOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
+  -- `discOffset_add_pre` rewrites an accumulated offset into a shift of `f`.
+  -- Then `out.g_eq` identifies that shift with `out.g`.
+  simpa [out.g_eq, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (Tao2015.discOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
+/-- AP-sum-level analogue of `discOffset_add_eq_discOffset`. -/
+theorem apSumOffset_add_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
+  -- Same idea as `discOffset_add_eq_discOffset`, but at the `apSumOffset` level.
+  simpa [out.g_eq, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (Tao2015.apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
+/-- `Int.natAbs` form of `apSumOffset_add_eq_apSumOffset`. -/
+theorem natAbs_apSumOffset_add_eq (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumOffset f out.d (out.m + m₂) n) =
+      Int.natAbs (apSumOffset out.g out.d m₂ n) := by
+  simp [out.apSumOffset_add_eq_apSumOffset (f := f) (m₂ := m₂) (n := n)]
+
+/-!
 ### One-shot witness transport lemmas
 
 These are “micro-API” helpers: they let downstream stages move *existential* discrepancy witnesses
