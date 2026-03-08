@@ -535,6 +535,44 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : Reduc
   -- Unfold the fixed-step predicate, then rewrite `apSum out.g` to `apSumOffset` via the bridge.
   simp [HasDiscrepancyAtLeastAlong, out.apSum_contract]
 
+/-!
+### Convenience rewrites: `apSumOffset` ↔ `apSumFrom` for a `ReductionOutput`
+
+Track C often wants the reduced homogeneous sums `apSum out.g out.d` rewritten into the affine
+nucleus `apSumFrom f (out.m*out.d) out.d`.
+
+These lemmas are tiny wrappers around:
+- `out.apSum_contract`, and
+- `Tao2015.apSumOffset_eq_apSumFrom_mul`.
+-/
+
+/-- Rewrite `apSum out.g out.d` to an affine AP sum of `f` starting at `out.m*out.d`. -/
+theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
+  -- `apSum out.g out.d = apSumOffset f out.d out.m`, and `apSumOffset = apSumFrom (m*d)`.
+  simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using
+    (out.apSum_contract_apply (f := f) (n := n))
+
+/-- `Int.natAbs` form of `apSum_eq_apSumFrom_mul`. -/
+theorem natAbs_apSum_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [out.apSum_eq_apSumFrom_mul (f := f) (n := n)]
+
+/-- Sum-level witness normal form, but phrased using the affine nucleus `apSumFrom`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  -- First use the offset witness normal form, then rewrite `apSumOffset` to `apSumFrom`.
+  constructor
+  · intro h
+    rcases (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C)).1 h with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using hn
+  · rintro ⟨n, hn⟩
+    refine (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C)).2 ?_
+    refine ⟨n, ?_⟩
+    simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using hn
+
 /-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`. -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
