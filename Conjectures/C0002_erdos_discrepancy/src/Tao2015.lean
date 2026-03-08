@@ -1296,6 +1296,31 @@ theorem composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt {f
     (composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt
       (out₁ := out₁) (out₂ := out₂) (hdd := hdd) (C := C))
 
+/-- Sum-level witness normal form for the composite reduction.
+
+This is the `Int.natAbs (apSumOffset ...)` version of
+`composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`.
+-/
+theorem composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt {f : ℕ → ℤ}
+    (out₁ : Tao2015.ReductionOutput f) (out₂ : Tao2015.ReductionOutput out₁.g)
+    (hdd : out₂.d = out₁.d) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out₁.d (out₁.m + out₂.m) n) > C) := by
+  simpa using
+    (ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f)
+      (out := composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd) (C := C))
+
+/-- `<`-oriented sum-level witness normal form for the composite reduction. -/
+theorem composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_lt {f : ℕ → ℤ}
+    (out₁ : Tao2015.ReductionOutput f) (out₂ : Tao2015.ReductionOutput out₁.g)
+    (hdd : out₂.d = out₁.d) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumOffset f out₁.d (out₁.m + out₂.m) n)) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt
+      (out₁ := out₁) (out₂ := out₂) (hdd := hdd) (C := C))
+
 /-- Compute the reduced sequence produced by composing two `mkShiftOfSign` reductions.
 
 This is a common “pipeline ergonomics” lemma: it lets later stages treat successive shifts as a
