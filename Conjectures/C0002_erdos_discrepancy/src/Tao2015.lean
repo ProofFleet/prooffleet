@@ -2641,6 +2641,32 @@ theorem discrepancy_eq_natAbs_apSumFrom_mul_of_g_eq (f g : ℕ → ℤ) (d m : �
   intro n
   simp [discrepancy, apSumFrom_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq n]
 
+/-- Fixed-step discrepancy witnesses for a shifted sequence, in affine-nucleus form (`>`-oriented).
+
+This is the witness-level analogue of `discrepancy_eq_natAbs_apSumFrom_mul_of_g_eq`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt_of_g_eq
+    (f g : ℕ → ℤ) (d m C : ℕ) (hgEq : g = fun k => f (k + m * d)) :
+    HasDiscrepancyAtLeastAlong g d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  -- Rewrite `HasDiscrepancyAtLeastAlong` to a `discrepancy` witness, then use the affine bridge.
+  simp [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt,
+    discrepancy_eq_natAbs_apSumFrom_mul_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq]
+
+/-- Fixed-step discrepancy witnesses for a shifted sequence, in affine-nucleus form (`<`-oriented).
+
+This is just the `<`-oriented version of
+`hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt_of_g_eq`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_lt_of_g_eq
+    (f g : ℕ → ℤ) (d m C : ℕ) (hgEq : g = fun k => f (k + m * d)) :
+    HasDiscrepancyAtLeastAlong g d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumFrom f (m * d) d n)) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt_of_g_eq
+      (f := f) (g := g) (d := d) (m := m) (C := C) hgEq)
+
 /-- Transfer contract (≤) in affine-nucleus form.
 
 If you can bound `Int.natAbs (apSumFrom f (m*d) d n)` uniformly, you can bound the reduced
