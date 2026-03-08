@@ -580,6 +580,25 @@ example (B : ℕ) (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
 
 end ReductionOutputExamples
 
+/-!
+### Basic simp-friendly rewrites
+
+These are tiny wrappers around the record fields, but they let downstream stages use `simp` to
+normalize expressions involving the reduced sequence `out.g`.
+
+We only add the “forward” directions as simp lemmas, to avoid rewrite loops.
+-/
+
+/-- Rewrite the reduced homogeneous AP sum into the offset AP sum of the original sequence. -/
+@[simp] theorem apSum_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumOffset f out.d out.m n :=
+  out.apSum_contract n
+
+/-- `Int.natAbs` form of `apSum_eq_apSumOffset`. -/
+@[simp] theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simp [out.apSum_eq_apSumOffset (f := f) (n := n)]
+
 /-- Expand the defining equation of `g`. -/
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
