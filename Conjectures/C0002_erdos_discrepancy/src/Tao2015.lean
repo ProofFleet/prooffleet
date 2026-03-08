@@ -1085,6 +1085,18 @@ theorem contract_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ)
   -- Finally use the assumed nucleus-level bound.
   simpa [discrepancy, discOffset, out.apSum_contract] using hB n
 
+/-- Strict-inequality version of `contract_natAbs_apSumOffset_le`.
+
+We name it `contract_discrepancy_lt_of_forall_natAbs_apSumOffset_lt` to avoid colliding with the
+reverse-direction lemma `contract_natAbs_apSumOffset_lt` later in this file.
+-/
+theorem contract_discrepancy_lt_of_forall_natAbs_apSumOffset_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) < B) :
+    ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro n
+  -- Same proof as the `≤` version; we just keep the strict inequality.
+  simpa [discrepancy, discOffset, out.apSum_contract] using hB n
+
 /-!
 ### Re-associating offsets through a `ReductionOutput`
 
