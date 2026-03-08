@@ -986,6 +986,59 @@ theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
   -- Rewrite `discOffset` to `discrepancy` using the stage-1 contract, then apply the bound.
   simpa [(out.discrepancy_eq_discOffset (f := f) n).symm] using hB n
 
+/-!
+### Small `ContextAlong` helpers
+
+Later Track C stages often pass around a fixed-step boundedness context
+`ctx : Tao2015.ContextAlong out.g out.d` for the reduced sequence.
+Since the reduction output is *morally* an offset view of the original sequence,
+we frequently want to convert between:
+- a bound on `discrepancy out.g out.d`, and
+- a bound on `discOffset f out.d out.m`.
+
+These are tiny wrappers around the earlier transfer lemmas.
+-/
+
+/-- Build a fixed-step discrepancy context for the reduced sequence from a uniform offset bound.
+
+This is a convenience packaging of `out.contract_discrepancy_le`.
+-/
+theorem contextAlong_of_forall_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    Tao2015.ContextAlong out.g out.d := by
+  refine ⟨B, ?_⟩
+  intro n
+  exact out.contract_discrepancy_le B hB n
+
+/-- Extract a uniform offset-discrepancy bound from a fixed-step discrepancy context on the
+reduced sequence.
+
+This is the “reverse direction” counterpart to `contextAlong_of_forall_discOffset_le`.
+-/
+theorem forall_discOffset_le_ofContextAlong (out : ReductionOutput f)
+    (ctx : Tao2015.ContextAlong out.g out.d) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
+  -- Use the previously packaged contract `contract_discOffset_le`.
+  exact out.contract_discOffset_le ctx.B (fun n => ctx.bound_discrepancy (f := out.g) (d := out.d) n)
+
+/-- Strict inequality version of `contextAlong_of_forall_discOffset_le`. -/
+theorem contextAlong_of_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n < B) :
+    Tao2015.ContextAlong out.g out.d := by
+  refine ⟨B, ?_⟩
+  intro n
+  exact out.contract_discrepancy_lt B hB n
+
+/-- Strict inequality version of `forall_discOffset_le_ofContextAlong`. -/
+theorem forall_discOffset_lt_ofContextAlong (out : ReductionOutput f)
+    (ctx : Tao2015.ContextAlong out.g out.d) :
+    ∀ n : ℕ, discOffset f out.d out.m n < ctx.B + 1 := by
+  intro n
+  -- A `≤ ctx.B` bound implies a `< ctx.B+1` bound.
+  have hn : discOffset f out.d out.m n ≤ ctx.B :=
+    (out.forall_discOffset_le_ofContextAlong (f := f) ctx) n
+  exact lt_of_le_of_lt hn (Nat.lt_succ_self _)
+
 /-- Pointwise transfer (`≤`) between the reduced discrepancy and the original offset discrepancy. -/
 theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
     discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
