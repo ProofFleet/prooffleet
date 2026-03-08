@@ -915,6 +915,32 @@ theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
   simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using
     (out.apSum_contract n)
 
+/-- Rewrite the offset AP sum bundled in `out` into the affine nucleus `apSumFrom`.
+
+This is just `Tao2015.apSumOffset_eq_apSumFrom_mul` with `d,m` taken from `out`.
+-/
+theorem apSumOffset_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSumFrom f (out.m * out.d) out.d n := by
+  simpa using (Tao2015.apSumOffset_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
+
+/-- `Int.natAbs` form of `apSumOffset_eq_apSumFrom_mul` for `out`.
+
+This wrapper is useful when a later stage has bounds on `apSumFrom` and wants to transport them
+back to `apSumOffset` without expanding the intermediate lemmas by hand.
+-/
+theorem natAbs_apSumOffset_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumOffset f out.d out.m n) =
+      Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [out.apSumOffset_eq_apSumFrom_mul (f := f) (n := n)]
+
+/-- Rewrite `discOffset` (the offset discrepancy wrapper bundled in `out`) into the affine nucleus.
+
+This is the `discOffset` analogue of `apSumOffset_eq_apSumFrom_mul`.
+-/
+theorem discOffset_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [discOffset, out.apSumOffset_eq_apSumFrom_mul (f := f) (n := n)]
+
 /-- The stage-1 contract rewritten at the discrepancy level. -/
 theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
