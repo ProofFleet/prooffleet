@@ -644,6 +644,40 @@ namespace ReductionOutput
 variable {f : ℕ → ℤ}
 
 /-!
+### Canonical constructor: the literal shift reduction
+
+Many Track C reductions begin by defining the reduced sequence as the literal shift
+`g k := f (k + m*d)`.
+
+The record `ReductionOutput` is *more general* (it allows a definitional equality `g_eq` rather
+than forcing `g` to be syntactically that lambda), but it's convenient to have a one-line
+constructor for the common case.
+-/
+
+/-- Canonical `ReductionOutput` where the reduced sequence is the literal shift
+`g k := f (k + m*d)`.
+
+This constructor is intentionally lightweight: it just packages the basic rewrite contract
+`apSum (shift f) = apSumOffset f` and the corresponding discrepancy transfer.
+-/
+def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    ReductionOutput f := by
+  refine
+    { d := d
+      m := m
+      hd := hd
+      g := fun k => f (k + m * d)
+      hg := IsSignSequence.shift_add_mul (f := f) hf m d
+      g_eq := rfl
+      apSum_contract := ?_
+      contract_discrepancy_le := ?_ }
+  · intro n
+    simpa using (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+  · intro B hB n
+    -- Rewrite `discOffset` into `discrepancy` using the contract.
+    simpa [discOffset, discrepancy, Tao2015.apSum_shift_add_mul_eq_apSumOffset] using hB n
+
+/-!
 ### Basic accessors
 
 These are tiny one-liners that make it easier for downstream stages to use a
