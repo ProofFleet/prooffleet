@@ -9503,6 +9503,17 @@ axiom stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     (ctx : Context f) (out : ReductionOutput f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n
 
+/-- Package the stage-2 deliverable `stage2_unbounded_discOffset` as a `Stage2Output` structure.
+
+This is a small convenience wrapper: it turns the witness-normal-form function produced by stage 2
+into a single record that exposes the downstream API in `namespace Stage2Output`.
+-/
+def stage2Output (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    Stage2Output f out :=
+  Stage2Output.ofUnboundedDiscOffset (f := f) (out := out)
+    (stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out))
+
 /-- Strict-inequality form of `stage2_unbounded_discOffset` (`... > B`).
 
 Downstream lemmas often naturally produce or consume discrepancy witnesses with the inequality
