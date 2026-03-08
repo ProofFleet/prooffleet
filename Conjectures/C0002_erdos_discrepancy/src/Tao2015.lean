@@ -189,7 +189,7 @@ AP-sum-level statement, which is often the first thing a reduction step needs.
 
 This is the `apSum` analogue of `discOffset_add`.
 -/
-theorem apSumOffset_add_pre (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+theorem apSumOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
     apSumOffset f d (m₁ + m₂) n = apSumOffset (fun k => f (k + m₁ * d)) d m₂ n := by
   -- Expand both sides to AP sums of shifted sequences.
   -- LHS: shift by `(m₁+m₂)*d`.
@@ -197,31 +197,31 @@ theorem apSumOffset_add_pre (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
   simp [apSumOffset_eq_apSum_shift_add, Nat.add_mul, Nat.mul_add, Nat.add_assoc, Nat.add_left_comm,
     Nat.add_comm, Nat.mul_assoc, Nat.left_distrib]
 
-/-- Reverse orientation of `apSumOffset_add_pre`.
+/-- Reverse orientation of `apSumOffset_add`.
 
 We do not mark either direction `[simp]` to avoid rewriting loops.
 -/
-theorem apSumOffset_add_pre' (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+theorem apSumOffset_shift_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
     apSumOffset (fun k => f (k + m₁ * d)) d m₂ n = apSumOffset f d (m₁ + m₂) n := by
-  simpa using (apSumOffset_add_pre (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)).symm
+  simpa using (apSumOffset_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)).symm
 
-/-- `Int.natAbs` form of `apSumOffset_add_pre`.
+/-- `Int.natAbs` form of `apSumOffset_add`.
 
 This is a lightweight helper for passing offset reassociations through the discrepancy wrappers.
 -/
-theorem natAbs_apSumOffset_add_pre (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+theorem natAbs_apSumOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
     Int.natAbs (apSumOffset f d (m₁ + m₂) n) =
       Int.natAbs (apSumOffset (fun k => f (k + m₁ * d)) d m₂ n) := by
-  simp [apSumOffset_add_pre]
+  simp [apSumOffset_add]
 
-/-- `discOffset` form of `apSumOffset_add_pre`.
+/-- `discOffset` form of `apSumOffset_add`.
 
 This is the natural “offset reassociation” normal form at the discrepancy level.
 -/
-theorem discOffset_add_pre (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+theorem discOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
     discOffset f d (m₁ + m₂) n = discOffset (fun k => f (k + m₁ * d)) d m₂ n := by
   -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
-  simp [discOffset, natAbs_apSumOffset_add_pre]
+  simp [discOffset, natAbs_apSumOffset_add]
 
 /-- Package the *assumption* of bounded discrepancy as data (`B` plus the bound lemma).
 
@@ -1165,39 +1165,39 @@ theorem contextAlong_of_context (out : ReductionOutput f) (ctx : Tao2015.Context
 ### Re-associating offsets through a `ReductionOutput`
 
 When composing multiple Track C stages, offsets naturally add.
-`Tao2015.discOffset_add_pre` lets us peel off a leading offset by shifting the sequence.
+`Tao2015.discOffset_add` lets us peel off a leading offset by shifting the sequence.
 The following wrappers specialize this to the shift packaged in `out`.
 -/
 
 /-- Re-associate an offset past the reduction output, at the `apSumOffset` level.
 
-This is `Tao2015.apSumOffset_add_pre` rewritten using `out.g_eq`.
+This is `Tao2015.apSumOffset_add` rewritten using `out.g_eq`.
 -/
-theorem apSumOffset_add_pre_out (out : ReductionOutput f) (m₂ n : ℕ) :
+theorem apSumOffset_add_out (out : ReductionOutput f) (m₂ n : ℕ) :
     apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
   -- Peel off the first offset using the general lemma, then rewrite the shifted sequence to `out.g`.
   simpa [out.g_eq] using
-    (Tao2015.apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+    (Tao2015.apSumOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
 /-- Re-associate an offset past the reduction output, at the `discOffset` level.
 
-This is `Tao2015.discOffset_add_pre` rewritten using `out.g_eq`.
+This is `Tao2015.discOffset_add` rewritten using `out.g_eq`.
 -/
-theorem discOffset_add_pre_out (out : ReductionOutput f) (m₂ n : ℕ) :
+theorem discOffset_add_out (out : ReductionOutput f) (m₂ n : ℕ) :
     discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
   simpa [out.g_eq] using
-    (Tao2015.discOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+    (Tao2015.discOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
 /-- Re-associate an offset past the reduction output, at the nucleus (`Int.natAbs`) level.
 
-This is the `Int.natAbs` analogue of `discOffset_add_pre_out`.
+This is the `Int.natAbs` analogue of `discOffset_add_out`.
 -/
-theorem natAbs_apSumOffset_add_pre_out (out : ReductionOutput f) (m₂ n : ℕ) :
+theorem natAbs_apSumOffset_add_out (out : ReductionOutput f) (m₂ n : ℕ) :
     Int.natAbs (apSumOffset f out.d (out.m + m₂) n) =
       Int.natAbs (apSumOffset out.g out.d m₂ n) := by
   -- Peel off the leading offset, then rewrite the shifted sequence to `out.g`.
   simpa [out.g_eq] using
-    (Tao2015.natAbs_apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+    (Tao2015.natAbs_apSumOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
 /-!
 ### Consumer-facing rewrite lemmas
@@ -2787,23 +2787,23 @@ bundled by `out`.
 
 /-- Peel off the initial offset `out.m*out.d` at the AP-sum level.
 
-This is a `ReductionOutput`-friendly specialization of `Tao2015.apSumOffset_add_pre`.
+This is a `ReductionOutput`-friendly specialization of `Tao2015.apSumOffset_add`.
 -/
 theorem apSumOffset_add_eq_apSumOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
     apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
   -- Apply the general reassociation lemma, then rewrite the shifted sequence using `out.g_eq`.
   simpa [out.g_eq] using
-    (Tao2015.apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+    (Tao2015.apSumOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
 /-- Peel off the initial offset `out.m*out.d` at the discrepancy level.
 
-This is a `ReductionOutput`-friendly specialization of `Tao2015.discOffset_add_pre`.
+This is a `ReductionOutput`-friendly specialization of `Tao2015.discOffset_add`.
 -/
 theorem discOffset_add_eq_discOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
     discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
-  -- `discOffset_add_pre` is already at the discrepancy level.
+  -- `discOffset_add` is already at the discrepancy level.
   simpa [out.g_eq] using
-    (Tao2015.discOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+    (Tao2015.discOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
 /-- Peel off the initial offset `out.m*out.d` at the affine-tail level (`apSumFrom`).
 
@@ -3939,7 +3939,7 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
 ### Offset reassociation for a `ReductionOutput`
 
 A common pattern in multi-stage reductions is that offsets accumulate additively.
-The base lemma `Tao2015.discOffset_add_pre` rewrites
+The base lemma `Tao2015.discOffset_add` rewrites
 `discOffset f d (m₁+m₂)` as a `discOffset` of a shifted sequence.
 
 When `m₁` is the offset packaged in a `ReductionOutput`, the shifted sequence is exactly
@@ -3954,17 +3954,17 @@ additional offset can be viewed as an offset of `out.g`.
 -/
 theorem discOffset_add_eq_discOffset (out : ReductionOutput f) (m₂ n : ℕ) :
     discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
-  -- `discOffset_add_pre` rewrites an accumulated offset into a shift of `f`.
+  -- `discOffset_add` rewrites an accumulated offset into a shift of `f`.
   -- Then `out.g_eq` identifies that shift with `out.g`.
   simpa [out.g_eq, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
-    (Tao2015.discOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+    (Tao2015.discOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
 /-- AP-sum-level analogue of `discOffset_add_eq_discOffset`. -/
 theorem apSumOffset_add_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
     apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
   -- Same idea as `discOffset_add_eq_discOffset`, but at the `apSumOffset` level.
   simpa [out.g_eq, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
-    (Tao2015.apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+    (Tao2015.apSumOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
 /-- `Int.natAbs` form of `apSumOffset_add_eq_apSumOffset`. -/
 theorem natAbs_apSumOffset_add_eq (out : ReductionOutput f) (m₂ n : ℕ) :
@@ -4885,7 +4885,7 @@ If:
 then the composite packages `g₂(k) = f(k + (m₁+m₂)*d)` with bridge
 `apSum g₂ d = apSumOffset f d (m₁+m₂)`.
 
-The proof is just rewriting plus `apSumOffset_add_pre` / `discOffset_add_pre`.
+The proof is just rewriting plus `apSumOffset_add` / `discOffset_add`.
 -/
 noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
     (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) :
@@ -4922,7 +4922,7 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
     -- `apSumOffset f d (m₁+m₂) = apSumOffset (shift f by m₁*d) d m₂`.
     -- And `shift f by m₁*d` is exactly `out₁.g`.
     --
-    -- We use the reverse orientation `apSumOffset_add_pre'`.
+    -- We use the reverse orientation `apSumOffset_shift_add`.
     simpa [hdd] using
       (show apSum out₂.g out₁.d n = apSumOffset f out₁.d (out₁.m + out₂.m) n by
         -- Rewrite using `h₂`.
@@ -4930,9 +4930,9 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
           simpa [hdd] using h₂
         -- Convert `apSumOffset out₁.g ...` to `apSumOffset f ... (m₁+m₂)`.
         -- `out₁.g` is definitionally the shift of `f` by `out₁.m*out₁.d`.
-        -- `apSumOffset_add_pre` handles the offset reassociation.
+        -- `apSumOffset_add` handles the offset reassociation.
         simpa [out₁.g_eq] using
-          (congrArg (fun t => t) (apSumOffset_add_pre' (f := f) (d := out₁.d)
+          (congrArg (fun t => t) (apSumOffset_shift_add (f := f) (d := out₁.d)
             (m₁ := out₁.m) (m₂ := out₂.m) (n := n)))
         |> fun h => by
           -- `h` is an equality of offset sums; use it to rewrite the target.
@@ -4940,18 +4940,18 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
           simpa [h] using this)
   · intro B hB n
     -- Convert the bound hypothesis on `discOffset f out₁.d (out₁.m+out₂.m)` into a bound on
-    -- `discOffset out₁.g out₁.d out₂.m` using `discOffset_add_pre` plus `out₁.g_eq`.
+    -- `discOffset out₁.g out₁.d out₂.m` using `discOffset_add` plus `out₁.g_eq`.
     have hB₂ : ∀ n : ℕ, discOffset out₁.g out₁.d out₂.m n ≤ B := by
       intro n
-      -- `discOffset_add_pre` says
+      -- `discOffset_add` says
       --   `discOffset f d (m₁+m₂) = discOffset (shift f by m₁*d) d m₂`.
       -- Here `shift f by m₁*d` is `out₁.g`.
       -- So we can rewrite `hB n` into the desired bound.
       have := hB n
-      -- Rewrite the LHS of `this` using `discOffset_add_pre` (symm) and `out₁.g_eq`.
+      -- Rewrite the LHS of `this` using `discOffset_add` (symm) and `out₁.g_eq`.
       simpa [out₁.g_eq] using (by
         -- Change the goal by rewriting `discOffset out₁.g ...`.
-        -- `discOffset_add_pre` goes the other way, so use `.symm`.
+        -- `discOffset_add` goes the other way, so use `.symm`.
         simpa using (show discOffset out₁.g out₁.d out₂.m n ≤ B from
           (by
             -- Replace `discOffset out₁.g ...` with the corresponding `discOffset f ... (m₁+m₂)`.
@@ -4961,7 +4961,7 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
             -- `discOffset (shift f by m₁*d) d m₂ = discOffset f d (m₁+m₂)`.
             --
             -- Now use `this`.
-            simpa [discOffset_add_pre (f := f) (d := out₁.d) (m₁ := out₁.m) (m₂ := out₂.m) (n := n)]
+            simpa [discOffset_add (f := f) (d := out₁.d) (m₁ := out₁.m) (m₂ := out₂.m) (n := n)]
               using this)))
     -- Now apply the stage-2 transfer contract.
     have h := out₂.contract_discrepancy_le B (by
@@ -5739,13 +5739,13 @@ The next lemmas let you “peel off” the initial `out.m*out.d` shift encoded b
 
 /-- Peel the bundled offset in `out` at the AP-sum level.
 
-This is `apSumOffset_add_pre` specialized to the shift packed in `out.g`.
+This is `apSumOffset_add` specialized to the shift packed in `out.g`.
 -/
 theorem apSumOffset_add_eq_apSumOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
     apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
   -- Re-associate the offset, then rewrite the shifted sequence using `out.g_eq`.
   simpa [out.g_eq] using
-    (Tao2015.apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+    (Tao2015.apSumOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
 /-- Peel the bundled offset in `out` at the discrepancy level.
 
@@ -8111,40 +8111,6 @@ theorem apSumOffset_zero (f : ℕ → ℤ) (d n : ℕ) : apSumOffset f d 0 n = a
 /-- Discrepancy form of `apSumOffset_zero`. -/
 theorem discOffset_zero (f : ℕ → ℤ) (d n : ℕ) : discOffset f d 0 n = discrepancy f d n := by
   simp [discOffset, discrepancy, apSumOffset_zero]
-
-/-- Re-associate offsets: shifting by `(m₁+m₂)*d` is the same as shifting by `m₁*d` and then by
-`m₂*d`.
-
-This lemma is small but shows up constantly when “chunking” offsets in the Tao pipeline.
--/
-theorem apSumOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
-    apSumOffset f d (m₁ + m₂) n =
-      apSumOffset (fun k => f (k + m₁ * d)) d m₂ n := by
-  -- Expand both sides to `apSum` of a shifted sequence and simplify arithmetic.
-  simp [apSumOffset_eq_apSum_shift_add, Nat.mul_add, Nat.add_assoc, Nat.add_left_comm,
-    Nat.add_comm]
-
-/-- The discrepancy form of `apSumOffset_add`. -/
-theorem discOffset_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
-    discOffset f d (m₁ + m₂) n =
-      discOffset (fun k => f (k + m₁ * d)) d m₂ n := by
-  -- `discOffset` is just `Int.natAbs` of `apSumOffset`.
-  simp [discOffset, apSumOffset_add]
-
-/-- Re-associate offsets, reverse orientation of `apSumOffset_add`.
-
-This form is often convenient when you are already working with the shifted sequence
-`fun k => f (k + m₁*d)`.
--/
-theorem apSumOffset_shift_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
-    apSumOffset (fun k => f (k + m₁ * d)) d m₂ n = apSumOffset f d (m₁ + m₂) n := by
-  simpa using (apSumOffset_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)).symm
-
-/-- Discrepancy form of `apSumOffset_shift_add`. -/
-theorem discOffset_shift_add (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
-    discOffset (fun k => f (k + m₁ * d)) d m₂ n = discOffset f d (m₁ + m₂) n := by
-  simpa [discOffset] using
-    congrArg Int.natAbs (apSumOffset_shift_add (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n))
 
 /-- Zero-offset for a shifted sequence: `apSumOffset (shift f m) d 0 = apSumOffset f d m`.
 
