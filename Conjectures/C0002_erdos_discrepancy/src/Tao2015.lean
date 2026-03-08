@@ -762,6 +762,57 @@ theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f)
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
 
 /-!
+### Extra transfer helpers
+
+These are small wrappers that come up frequently when later stages want to move boundedness/
+(unboundedness) statements back and forth between the reduced sequence `out.g` and the offset view
+`discOffset f out.d out.m`.
+-/
+
+/-- If all offset discrepancies are *strictly* bounded by `B`, then so are the reduced fixed-step
+(discrepancy) values.
+
+This is the strict-inequality analogue of `out.contract_discrepancy_le`.
+-/
+theorem contract_discrepancy_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discOffset f out.d out.m n < B) :
+    ∀ n, discrepancy out.g out.d n < B := by
+  intro n
+  -- Rewrite the goal via the stage-1 discrepancy bridge.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- If reduced discrepancies are strictly bounded by `B`, then offset discrepancies are strictly
+bounded by `B`.
+
+This is the strict-inequality analogue of `out.contract_discOffset_le`.
+-/
+theorem contract_discOffset_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n < B) :
+    ∀ n, discOffset f out.d out.m n < B := by
+  intro n
+  simpa [(out.discrepancy_eq_discOffset (f := f) (n := n)).symm] using hB n
+
+/-- Unbounded discrepancy along the reduced fixed step `out.d` transfers to an unbounded offset
+view for the original sequence.
+
+Concretely, this is a witness-form repackaging of the rewrite
+`discrepancy out.g out.d n = discOffset f out.d out.m n`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- Unfold the witness predicate, then rewrite the discrepancy term.
+  constructor
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+/-!
 ### Basic derived boundedness contexts
 
 A common way to *consume* a stage-1 reduction is:
