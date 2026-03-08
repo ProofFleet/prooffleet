@@ -1218,6 +1218,32 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
     -- Again rewrite `out₂.d` to `out₁.d` on the conclusion.
     simpa [hdd] using h n
 
+/-- `composeShiftSameD` preserves the step size `d` (it is taken from `out₁`). -/
+@[simp] theorem composeShiftSameD_d {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) :
+    (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).d = out₁.d := by
+  simp [composeShiftSameD]
+
+/-- `composeShiftSameD` adds the offsets. -/
+@[simp] theorem composeShiftSameD_m {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) :
+    (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).m = out₁.m + out₂.m := by
+  simp [composeShiftSameD]
+
+/-- `composeShiftSameD` keeps the reduced sequence from stage 2. -/
+@[simp] theorem composeShiftSameD_g {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) :
+    (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g = out₂.g := by
+  simp [composeShiftSameD]
+
+/-- `composeShiftSameD` keeps the sign-sequence proof from stage 2. -/
+@[simp] theorem composeShiftSameD_hg {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) :
+    (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).hg = out₂.hg := by
+  classical
+  -- Proof irrelevance: both sides are proofs of the same proposition.
+  simp [composeShiftSameD]
+
 end ReductionOutput
 
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
