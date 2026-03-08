@@ -763,6 +763,28 @@ theorem contract_discrepancy_lt_of_forall_natAbs_apSumOffset_lt (out : Reduction
     simpa [out.apSum_contract n] using hB n
   simpa [discrepancy] using hn
 
+/-- Transfer contract in the affine-tail (`apSumFrom`) normal form.
+
+This is the `apSumFrom` analogue of `contract_discrepancy_le_of_forall_natAbs_apSumOffset_le`.
+It is often the cleanest way to consume a `ReductionOutput`, since many later stages are
+formulated directly in terms of the nucleus `apSumFrom`.
+-/
+theorem contract_discrepancy_le_of_forall_natAbs_apSumFrom_mul_le (out : ReductionOutput f)
+    (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  -- Rewrite the reduced discrepancy through the affine-tail nucleus.
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+
+/-- Strict-inequality version of `contract_discrepancy_le_of_forall_natAbs_apSumFrom_mul_le`. -/
+theorem contract_discrepancy_lt_of_forall_natAbs_apSumFrom_mul_lt (out : ReductionOutput f)
+    (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B) :
+    ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+
 /-- Discrepancy of the reduced sequence rewritten in terms of `apSumFrom` for the original one. -/
 theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
