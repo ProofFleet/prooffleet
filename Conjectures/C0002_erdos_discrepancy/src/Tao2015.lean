@@ -5195,16 +5195,25 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reducti
   -- Rewrite `discrepancy out.g` to `discOffset f` using the reduction interface.
   simp [UnboundedDiscrepancyAlong, out.discrepancy_eq_discOffset]
 
-/-- `<`-oriented version of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
+/-- `>`-oriented version of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
 
 This is often the more convenient orientation when later stages phrase witnesses as
 `discOffset ... n > B`.
 -/
-theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt' (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using
     (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f))
+
+/-- Deprecated: this lemma name was misleading (it proves a `>`-shaped conclusion).
+
+Use `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt'` instead.
+-/
+@[deprecated unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt' (since := "2026-03-08")]
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
+  simpa using (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt' (f := f))
 
 /-- Unbounded discrepancy for the reduced sequence `out.g` (along `out.d`) rewritten into the
 corresponding tail-sum witness form for the original sequence.
