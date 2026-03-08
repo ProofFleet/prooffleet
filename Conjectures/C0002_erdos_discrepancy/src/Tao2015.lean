@@ -3579,6 +3579,51 @@ theorem exists_natAbs_apSumFrom_gt_iff_exists_discrepancy_gt (out : ReductionOut
   · -- Rewrite back.
     simpa [out.discrepancy_eq_natAbs_apSumFrom (f := f) (n := n)] using hn
 
+/-- Unboundedness along the reduced step, expressed directly as tail-sum witnesses for `f`.
+
+This is just `∀ C, HasDiscrepancyAtLeastAlong out.g out.d C` rewritten through the bridge lemma
+`hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_natAbs_apSumFrom_gt
+    (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  constructor
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (f := f) (C := C)).2 (h C)
+
+/-- `<`-oriented version of `forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_natAbs_apSumFrom_gt`. -/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_natAbs_apSumFrom_lt
+    (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_natAbs_apSumFrom_gt (f := f))
+
+/-- A tail-sum witness normal form for `¬ BoundedDiscrepancyAlong out.g out.d`.
+
+This is the standard “not bounded ↔ ∀ C, ∃ witness with discrepancy > C” lemma specialized to the
+reduced sequence, with the witness further rewritten to the tail-sum API `apSumFrom` for `f`.
+-/
+theorem forall_exists_natAbs_apSumFrom_gt_iff_not_boundedDiscrepancyAlong
+    (out : ReductionOutput f) :
+    (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) ↔
+      ¬ BoundedDiscrepancyAlong out.g out.d := by
+  -- First rewrite `¬ BoundedDiscrepancyAlong` to `∀ C, HasDiscrepancyAtLeastAlong` for the reduced sequence.
+  -- Then rewrite the fixed-step predicate to the tail-sum witness normal form.
+  calc
+    (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C)
+        ↔ (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) := by
+          simpa using
+            (out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_natAbs_apSumFrom_gt (f := f)).symm
+    _ ↔ ¬ BoundedDiscrepancyAlong out.g out.d := by
+          simpa [HasDiscrepancyAtLeastAlong] using
+            (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
+              (g := out.g) (d := out.d))
+
 /-!
 ### Peeling bundled offsets
 
