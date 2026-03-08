@@ -1575,24 +1575,7 @@ theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (n B : ℕ) :
     discrepancy out.g out.d n < B ↔ discOffset f out.d out.m n < B := by
   simp [out.discrepancy_eq_discOffset (f := f) (n := n)]
 
-/-- Uniform transfer (`≤`) between the reduced discrepancy and the original offset discrepancy. -/
-theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
-    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
-  constructor
-  · intro h n
-    -- Rewrite `discOffset` to `discrepancy` and use the uniform bound.
-    simpa [(out.discrepancy_eq_discOffset (f := f) n).symm] using h n
-  · intro h n
-    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
-
-/-- Uniform transfer (`<`) between the reduced discrepancy and the original offset discrepancy. -/
-theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
-    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
-  constructor
-  · intro h n
-    simpa [(out.discrepancy_eq_discOffset (f := f) n).symm] using h n
-  · intro h n
-    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+/-- (Reviewer) Removed duplicate uniform-transfer lemmas here; keep the earlier canonical versions. -/
 
 /-!
 ### Interop with `Tao2015.Context`
