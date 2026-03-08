@@ -1113,6 +1113,26 @@ noncomputable def stage1 (f : ℕ → ℤ) (hf : IsSignSequence f) : ReductionOu
     (stage1 (f := f) hf).g k = f k := by
   simp [stage1]
 
+/-- `stage1` satisfies the `apSum` bridge rule definitionally. -/
+@[simp] theorem stage1_apSum_contract (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    apSum (stage1 (f := f) hf).g 1 n = apSumOffset f 1 0 n := by
+  simp [stage1, id]
+
+/-- `stage1` satisfies the discrepancy bridge rule definitionally. -/
+@[simp] theorem stage1_discrepancy_contract (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    discrepancy (stage1 (f := f) hf).g 1 n = discOffset f 1 0 n := by
+  simp [stage1, id]
+
+/-- `stage1` rewrites the tail-sum API `apSumFrom` into an offset sum. -/
+@[simp] theorem stage1_apSumFrom_eq_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    apSumFrom f 0 1 n = apSumOffset f 1 0 n := by
+  simp [stage1, id]
+
+/-- `stage1` rewrites the tail-sum API `apSumFrom` into the reduced AP sum (which is just `apSum f`). -/
+@[simp] theorem stage1_apSumFrom_eq_apSum (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    apSumFrom f 0 1 n = apSum (stage1 (f := f) hf).g 1 n := by
+  simp [stage1, id]
+
 /-- Rewrite `apSum out.g out.d` as an offset sum of `f`.
 
 This is the main “bridge” lemma: it lets us convert bounds on `apSumOffset f` into bounds
