@@ -207,6 +207,11 @@ theorem bound_discOffset (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
     discOffset f d m n ≤ ctx.B + ctx.B := by
   simpa [discOffset] using (ctx.bound_apSumOffset (f := f) (d := d) (m := m) (n := n) hd)
 
+/-- Variant of `bound_discOffset` with right-hand side written as `2 * B`. -/
+theorem bound_discOffset_two_mul (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
+    discOffset f d m n ≤ 2 * ctx.B := by
+  simpa [two_mul] using (ctx.bound_discOffset (f := f) (d := d) (m := m) (n := n) hd)
+
 /-- Uniform version of `bound_discOffset`. -/
 theorem bound_discOffset_forall (ctx : Context f) (d m : ℕ) (hd : d > 0) :
     ∀ n : ℕ, discOffset f d m n ≤ ctx.B + ctx.B := by
