@@ -5665,6 +5665,30 @@ axiom stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     (ctx : Context f) (out : ReductionOutput f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n
 
+/-- Strict-inequality form of `stage2_unbounded_discOffset` (`... > B`).
+
+Downstream lemmas often naturally produce or consume discrepancy witnesses with the inequality
+oriented as `>`, so this wrapper avoids repeated `gt_iff_lt` conversions.
+-/
+theorem stage2_unbounded_discOffset_gt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
+  intro B
+  rcases stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [gt_iff_lt] using hn
+
+/-- Convert the stage-2 witness normal form into a strict-inequality discrepancy witness for the
+reduced sequence `out.g` (along the fixed step size `out.d`). -/
+theorem stage2_unbounded_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, discrepancy out.g out.d n > B := by
+  intro B
+  rcases stage2_unbounded_discOffset_gt (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- Rewrite `discOffset` to `discrepancy` via the reduction output contract.
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+
 /-!
 ### Stage-2 derived consequences (unpackaged)
 
