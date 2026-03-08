@@ -1174,6 +1174,32 @@ theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) 
     refine ⟨B, ?_⟩
     exact out.forall_discrepancy_le_of_forall_discOffset_le (f := f) (B := B) hB
 
+/-- The stage-1 AP-sum contract in the natural consumer-facing form.
+
+This is just the record field `out.apSum_contract` with parameters specialized to `out`.
+-/
+theorem apSum_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumOffset f out.d out.m n := by
+  simpa using (out.apSum_contract n)
+
+/-- Unbounded discrepancy along `out.d` rewritten as the *negation* of a uniform offset bound.
+
+This is a convenient normal form for later reductions: to prove unboundedness for the reduced
+sequence it suffices to show that the offset discrepancy family `discOffset f out.d out.m` has no
+uniform bound.
+-/
+theorem unboundedDiscrepancyAlong_iff_not_exists_forall_discOffset_le (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      ¬ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  -- Convert unboundedness into a `¬ BoundedDiscrepancyAlong` statement, and rewrite boundedness
+  -- using `boundedDiscrepancyAlong_iff_boundedDiscOffset`.
+  have h₁ : Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔ ¬ BoundedDiscrepancyAlong out.g out.d :=
+    UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong (f := out.g) (d := out.d)
+  have h₂ : (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      ¬ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+    simpa using not_congr (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f))
+  exact h₁.trans h₂
+
 /-- Unboundedness along the reduced step `out.d` rewritten to the literal shift of `f`. -/
 theorem unboundedDiscrepancyAlong_iff_shift (out : ReductionOutput f) :
     Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
