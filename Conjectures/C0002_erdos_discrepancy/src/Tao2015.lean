@@ -909,6 +909,39 @@ into a single simp lemma.
     (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g = g := by
   rfl
 
+@[simp] theorem mk_of_g_eq_g_apply (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
+    (hgEq : g = fun k => f (k + m * d)) (k : ℕ) :
+    (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g k = g k := by
+  rfl
+
+/-- `mk_of_g_eq` exposes the core bridge rule as a simp lemma.
+
+This is the `mk_of_g_eq` analogue of `mk_of_shift_apSum_eq_apSumOffset`.
+-/
+@[simp] theorem mk_of_g_eq_apSum_eq_apSumOffset (f g : ℕ → ℤ) (d m n : ℕ) (hd : d > 0)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    apSum (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g d n =
+      apSumOffset f d m n := by
+  -- `mk_of_g_eq` uses `Tao2015.apSum_contract_of_g_eq` for its `apSum_contract` field.
+  simp [ReductionOutput.mk_of_g_eq, Tao2015.apSum_contract_of_g_eq, hgEq]
+
+/-- Discrepancy-level simp lemma for the default constructor `mk_of_g_eq`. -/
+@[simp] theorem mk_of_g_eq_discrepancy_eq_discOffset (f g : ℕ → ℤ) (d m n : ℕ) (hd : d > 0)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    discrepancy (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g d n =
+      discOffset f d m n := by
+  -- Reduce to the AP-sum bridge and unfold wrappers.
+  simp [discrepancy, discOffset, mk_of_g_eq_apSum_eq_apSumOffset]
+
+/-- Tail-sum (`apSumFrom`) rewrite for the default constructor `mk_of_g_eq`. -/
+@[simp] theorem mk_of_g_eq_discrepancy_eq_natAbs_apSumFrom_mul (f g : ℕ → ℤ) (d m n : ℕ)
+    (hd : d > 0) (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    discrepancy (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g d n =
+      Int.natAbs (apSumFrom f (m * d) d n) := by
+  -- First rewrite discrepancy to `discOffset`, then rewrite `discOffset` to `apSumFrom`.
+  simp [mk_of_g_eq_discrepancy_eq_discOffset (f := f) (g := g) (d := d) (m := m) (n := n) hd hg hgEq,
+    discOffset_eq_natAbs_apSumFrom_mul]
+
 /-- `mk_of_g_eq` stores the equality proof `hgEq` verbatim.
 
 We intentionally do **not** tag this lemma `[simp]`: simp rewriting on proof fields is rarely
