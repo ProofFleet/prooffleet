@@ -1537,6 +1537,21 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
     (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g = out₂.g := by
   simp [composeShiftSameD]
 
+/-- Pointwise formula for the reduced sequence produced by `composeShiftSameD`.
+
+This is the generic (non-`mkShiftOfSign`-specialized) version of the computation lemma
+`composeShiftSameD_mkShiftOfSign_g_apply`.
+-/
+theorem composeShiftSameD_g_apply {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) (k : ℕ) :
+    (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g k = f (k + (out₁.m + out₂.m) * out₁.d) := by
+  -- `composeShiftSameD` keeps `g` from stage 2; unfold `out₂.g` then `out₁.g`.
+  -- Finally normalize the arithmetic using `hdd : out₂.d = out₁.d`.
+  --
+  -- `out₂.g k = out₁.g (k + out₂.m*out₂.d)` and `out₁.g t = f (t + out₁.m*out₁.d)`.
+  simp [composeShiftSameD, out₂.g_eq, out₁.g_eq, hdd,
+    Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
+
 /-- `composeShiftSameD` keeps the sign-sequence proof from stage 2. -/
 @[simp] theorem composeShiftSameD_hg {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
     (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) :
