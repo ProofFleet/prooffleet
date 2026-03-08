@@ -2759,6 +2759,29 @@ theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out :
   · intro h C
     exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 (h C)
 
+/-- Convert an offset-discrepancy witness for `f` into a discrepancy witness for the reduced sequence.
+
+This is the `∃ n` (non-uniform) counterpart of the uniform transfer lemma
+`forall_discrepancy_le_iff_forall_discOffset_le`.
+-/
+theorem exists_discrepancy_gt_of_exists_discOffset_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+/-- Convert a discrepancy witness for the reduced sequence into an offset-discrepancy witness for `f`.
+
+This is the reverse direction of `exists_discrepancy_gt_of_exists_discOffset_gt`.
+-/
+theorem exists_discOffset_gt_of_exists_discrepancy_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discrepancy out.g out.d n > C) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
 /-- Extract an `apSumOffset` witness from a fixed-step discrepancy statement about `out.g`. -/
 theorem exists_natAbs_apSumOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) {C : ℕ}
     (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
