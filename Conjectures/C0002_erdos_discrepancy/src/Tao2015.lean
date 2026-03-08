@@ -732,6 +732,41 @@ def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     simpa [discOffset, discrepancy, Tao2015.apSum_shift_add_mul_eq_apSumOffset] using hB n
 
 /-!
+### `simp` lemmas for `ReductionOutput.ofShift`
+
+These are tiny definitional helpers: `ofShift` is the most common way later stages construct a
+stage-1 reduction output, so it’s convenient to have its basic fields available to `simp`.
+-/
+
+@[simp] theorem ofShift_d (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    (ReductionOutput.ofShift (f := f) hf d m hd).d = d := by
+  rfl
+
+@[simp] theorem ofShift_m (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    (ReductionOutput.ofShift (f := f) hf d m hd).m = m := by
+  rfl
+
+@[simp] theorem ofShift_g (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    (ReductionOutput.ofShift (f := f) hf d m hd).g = (fun k => f (k + m * d)) := by
+  rfl
+
+@[simp] theorem ofShift_g_apply (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) (k : ℕ) :
+    (ReductionOutput.ofShift (f := f) hf d m hd).g k = f (k + m * d) := by
+  rfl
+
+@[simp] theorem ofShift_apSum_eq_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f) (d m n : ℕ) (hd : d > 0) :
+    apSum (ReductionOutput.ofShift (f := f) hf d m hd).g d n = apSumOffset f d m n := by
+  -- This is exactly the stored contract.
+  simpa using (ReductionOutput.ofShift (f := f) hf d m hd).apSum_contract n
+
+@[simp] theorem ofShift_discrepancy_eq_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m n : ℕ) (hd : d > 0) :
+    discrepancy (ReductionOutput.ofShift (f := f) hf d m hd).g d n = discOffset f d m n := by
+  -- Reduce to the AP-sum contract and unfold wrappers.
+  simp [discrepancy, discOffset, ofShift_apSum_eq_apSumOffset (f := f) (hf := hf) (d := d) (m := m)
+    (n := n) hd]
+
+/-!
 ### Basic accessors
 
 These are tiny one-liners that make it easier for downstream stages to use a
