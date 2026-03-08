@@ -3434,6 +3434,20 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_lt (out : Reducti
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (f := f) (C := C))
 
+/-- Single-witness normal form: a tail-sum witness is the same as a discrepancy witness for `out.g`.
+
+This is the `∃ n` (as opposed to `HasDiscrepancyAtLeastAlong`) form of the same contract, and it
+shows up often because later stages usually produce one explicit `n`.
+-/
+theorem exists_natAbs_apSumFrom_gt_iff_exists_discrepancy_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) ↔
+      (∃ n : ℕ, discrepancy out.g out.d n > C) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · -- Rewrite the tail sum witness into a discrepancy witness.
+    simpa [out.discrepancy_eq_natAbs_apSumFrom (f := f) (n := n)] using hn
+  · -- Rewrite back.
+    simpa [out.discrepancy_eq_natAbs_apSumFrom (f := f) (n := n)] using hn
+
 /-!
 ### Peeling bundled offsets
 
