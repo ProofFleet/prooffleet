@@ -739,6 +739,15 @@ theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- Discrepancy of the reduced sequence rewritten as a `natAbs` bound on the original offset sum.
+
+This is just `discrepancy_eq_discOffset` plus the definitional expansion
+`discOffset = Int.natAbs (apSumOffset …)`.
+-/
+theorem discrepancy_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simp [out.discrepancy_eq_discOffset (f := f) (n := n), discOffset]
+
 /-- Transfer contract in the `Int.natAbs (apSumOffset …)` normal form.
 
 Downstream steps often prove bounds on `apSumOffset` first (before wrapping in `discOffset`).
