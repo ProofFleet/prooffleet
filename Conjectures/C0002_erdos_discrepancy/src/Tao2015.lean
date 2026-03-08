@@ -1401,6 +1401,56 @@ theorem composeShiftSameD_mkShiftOfSign_g_apply (f : ℕ → ℤ) (hf : IsSignSe
   simp [ReductionOutput.composeShiftSameD, ReductionOutput.mkShiftOfSign, ReductionOutput.mkShift,
     Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
 
+/-- Specialized AP-sum bridge for composing two `mkShiftOfSign` reductions. -/
+theorem composeShiftSameD_mkShiftOfSign_apSum_contract (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m₁ m₂ : ℕ) (hd : d > 0) (n : ℕ) :
+    apSum
+        (ReductionOutput.composeShiftSameD
+            (out₁ := ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m₁) hd)
+            (out₂ :=
+              ReductionOutput.mkShiftOfSign
+                (f := fun k => f (k + m₁ * d))
+                (hf := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m₁ d)
+                (d := d) (m := m₂) hd)
+            rfl).g d n
+      = apSumOffset f d (m₁ + m₂) n := by
+  -- This is just the general AP-sum bridge lemma for `composeShiftSameD`.
+  simpa using
+    (ReductionOutput.composeShiftSameD_apSum_contract
+      (f := f)
+      (out₁ := ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m₁) hd)
+      (out₂ :=
+        ReductionOutput.mkShiftOfSign
+          (f := fun k => f (k + m₁ * d))
+          (hf := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m₁ d)
+          (d := d) (m := m₂) hd)
+      (hdd := rfl) (n := n))
+
+/-- Specialized discrepancy bridge for composing two `mkShiftOfSign` reductions. -/
+theorem composeShiftSameD_mkShiftOfSign_discrepancy_contract (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m₁ m₂ : ℕ) (hd : d > 0) (n : ℕ) :
+    discrepancy
+        (ReductionOutput.composeShiftSameD
+            (out₁ := ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m₁) hd)
+            (out₂ :=
+              ReductionOutput.mkShiftOfSign
+                (f := fun k => f (k + m₁ * d))
+                (hf := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m₁ d)
+                (d := d) (m := m₂) hd)
+            rfl).g d n
+      = discOffset f d (m₁ + m₂) n := by
+  -- This is just the general discrepancy bridge lemma for `composeShiftSameD`.
+  simpa using
+    (ReductionOutput.composeShiftSameD_discrepancy_contract
+      (f := f)
+      (out₁ := ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m₁) hd)
+      (out₂ :=
+        ReductionOutput.mkShiftOfSign
+          (f := fun k => f (k + m₁ * d))
+          (hf := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m₁ d)
+          (d := d) (m := m₂) hd)
+      (hdd := rfl) (n := n))
+
 /-- Boundedness normal form for the composite reduction.
 
 This is the boundedness analogue of
