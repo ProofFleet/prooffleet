@@ -1672,6 +1672,27 @@ theorem contract_discrepancy_le_of_apSumFrom_contract (f g : ℕ → ℤ) (d m B
   -- `discrepancy = natAbs(apSum ...)`, then rewrite `apSum` using `h`.
   simpa [discrepancy, h n] using hB n
 
+/-- Transfer contract (<) in affine-nucleus form.
+
+This is the strict-inequality analogue of `contract_discrepancy_le_of_apSumFrom_contract`.
+-/
+theorem contract_discrepancy_lt_of_apSumFrom_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumFrom f (m * d) d n) :
+    (∀ n, Int.natAbs (apSumFrom f (m * d) d n) < B) → ∀ n, discrepancy g d n < B := by
+  intro hB n
+  -- `discrepancy = natAbs(apSum ...)`, then rewrite `apSum` using `h`.
+  simpa [discrepancy, h n] using hB n
+
+/-- The same strict-inequality transfer contract as `contract_discrepancy_lt_of_apSumFrom_contract`,
+but derived from the shift equation `g = fun k => f (k + m*d)`.
+-/
+theorem contract_discrepancy_lt_of_g_eq_apSumFrom (f g : ℕ → ℤ) (d m B : ℕ)
+    (hgEq : g = fun k => f (k + m * d)) :
+    (∀ n, Int.natAbs (apSumFrom f (m * d) d n) < B) → ∀ n, discrepancy g d n < B := by
+  -- Reduce to the generic transfer lemma using the derived affine bridge rule.
+  exact contract_discrepancy_lt_of_apSumFrom_contract (f := f) (g := g) (d := d) (m := m) (B := B)
+    (apSumFrom_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq)
+
 /-- The same transfer contract as `contract_discrepancy_le_of_apSumFrom_contract`, but derived
 from the shift equation `g = fun k => f (k + m*d)`.
 -/
