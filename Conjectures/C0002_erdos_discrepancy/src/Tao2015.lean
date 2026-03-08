@@ -1261,6 +1261,26 @@ theorem composeShiftSameD_apSum_contract {f : ℕ → ℤ} (out₁ : Tao2015.Red
   -- This is exactly the `apSum_contract` field of the composite, with `d = out₁.d`.
   simp [composeShiftSameD]
 
+/-- The discrepancy rewrite rule for `composeShiftSameD` (pointwise form). -/
+theorem composeShiftSameD_discrepancy_contract {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) (n : ℕ) :
+    discrepancy (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d n =
+      discOffset f out₁.d (out₁.m + out₂.m) n := by
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simp [discrepancy, discOffset, composeShiftSameD]
+
+/-- Transfer contract for `composeShiftSameD`: a bound on the *composed* offset discrepancy
+transfers to a bound on the reduced discrepancy of the composed output. -/
+theorem composeShiftSameD_contract_discrepancy_le {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out₁.d (out₁.m + out₂.m) n ≤ B) :
+    ∀ n : ℕ, discrepancy (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d n ≤ B := by
+  intro n
+  -- Unfold the composite and use its transfer contract field.
+  -- (`simp` handles the bookkeeping for `d`, `m`.)
+  simpa [composeShiftSameD] using
+    (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).contract_discrepancy_le B hB n
+
 /-- The discrepancy rewrite rule for `composeShiftSameD` (pointwise form).
 
 We do **not** mark this lemma `[simp]`: it unfolds `discrepancy`/`discOffset` wrappers and can cause
