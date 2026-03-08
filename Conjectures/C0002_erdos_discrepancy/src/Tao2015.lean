@@ -899,6 +899,58 @@ theorem boundedDiscrepancyAlong_ofBound_discOffset (out : ReductionOutput f) (B 
   intro n
   exact out.contract_discrepancy_le B hB n
 
+/-!
+### Boundedness equivalences
+
+These lemmas package the stage-1 transfer contracts into “existential boundedness” statements.
+They are small, but they show up constantly when later reductions want to move between:
+- bounded discrepancy of the reduced sequence `out.g` along the fixed step `out.d`, and
+- bounded offset discrepancy of the original sequence `f` at parameters `(out.d, out.m)`.
+-/
+
+/-- Fixed-step boundedness for `out.g` implies a uniform bound on the corresponding offset
+(discrepancy) family for `f`.
+
+This is just `out.contract_discOffset_le` packaged under an existential.
+-/
+theorem exists_bound_discOffset_of_boundedDiscrepancyAlong (out : ReductionOutput f)
+    (hb : BoundedDiscrepancyAlong out.g out.d) :
+    ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  rcases hb with ⟨B, hB⟩
+  refine ⟨B, ?_⟩
+  exact out.contract_discOffset_le (f := f) B hB
+
+/-- A convenience equivalence: bounded fixed-step discrepancy for `out.g` is the same as a
+uniform bound on the offset discrepancy family `discOffset f out.d out.m`.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_bound_discOffset (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  constructor
+  · intro hb
+    exact out.exists_bound_discOffset_of_boundedDiscrepancyAlong (f := f) hb
+  · rintro ⟨B, hB⟩
+    exact out.boundedDiscrepancyAlong_ofBound_discOffset (f := f) B hB
+
+/-- Extract an offset-discrepancy bound from a fixed-step discrepancy context for `out.g`.
+
+This is a one-liner, but it avoids repeating the “rewrite then apply the context bound” pattern.
+-/
+theorem bound_discOffset_ofContextAlong (out : ReductionOutput f)
+    (ctx : Tao2015.ContextAlong out.g out.d) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
+  -- Use the `ContextAlong` bound on `out.g`, then transfer it back to the offset view.
+  exact out.contract_discOffset_le (f := f) ctx.B (by intro n; exact ctx.bound_discrepancy (f := out.g) (d := out.d) n)
+
+/-- Existential offset boundedness derived from a `ContextAlong` for the reduced sequence.
+
+This is the `ContextAlong` analogue of
+`exists_bound_discOffset_of_boundedDiscrepancyAlong`.
+-/
+theorem exists_bound_discOffset_ofContextAlong (out : ReductionOutput f)
+    (ctx : Tao2015.ContextAlong out.g out.d) :
+    ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  refine ⟨ctx.B, out.bound_discOffset_ofContextAlong (f := f) ctx⟩
+
 /-- A one-line bound lemma extracted from `contextAlong_ofContext`.
 
 This can be handy in later reductions that want the bound but do not want to carry around the
