@@ -551,11 +551,16 @@ theorem mk_of_shift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hf : IsSignSeque
   · -- Bridge rule: shifted `apSum` is `apSumOffset`.
     intro n
     simpa using (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
-  · -- Transfer contract: rewrite `discrepancy` to `discOffset` using the bridge rule.
-    intro B hB n
-    -- Both sides are definitional wrappers around `Int.natAbs`.
-    simpa [discrepancy, discOffset, Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)] using
-      (hB n)
+  · -- Transfer contract: reuse the generic contract lemma derived from an `apSum` bridge.
+    intro B hB
+    -- Here the bridge is exactly `apSum_shift_add_mul_eq_apSumOffset`.
+    exact
+      Tao2015.contract_discrepancy_le_of_apSum_contract (f := f) (g := fun k => f (k + m * d))
+        (d := d) (m := m) (B := B)
+        (fun n => by
+          simpa using
+            (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)))
+        hB
 
 /-- Build a `ReductionOutput` from an explicit derived sequence `g` together with the defining
 rewrite `g = fun k => f (k + m*d)`.
