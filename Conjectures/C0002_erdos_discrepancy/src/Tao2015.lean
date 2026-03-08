@@ -694,6 +694,30 @@ theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- Transfer contract in the `Int.natAbs (apSumOffset …)` normal form.
+
+Downstream steps often prove bounds on `apSumOffset` first (before wrapping in `discOffset`).
+This lemma lets them consume a `ReductionOutput` without doing the wrapper bookkeeping by hand.
+-/
+theorem contract_discrepancy_le_of_forall_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  -- Rewrite the target discrepancy to the underlying `Int.natAbs (apSum …)` bound.
+  -- Then rewrite `apSum out.g` to `apSumOffset f` using the stage-1 contract.
+  have hn : Int.natAbs (apSum out.g out.d n) ≤ B := by
+    simpa [out.apSum_contract n] using hB n
+  simpa [discrepancy] using hn
+
+/-- Strict-inequality version of `contract_discrepancy_le_of_forall_natAbs_apSumOffset_le`. -/
+theorem contract_discrepancy_lt_of_forall_natAbs_apSumOffset_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) < B) :
+    ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro n
+  have hn : Int.natAbs (apSum out.g out.d n) < B := by
+    simpa [out.apSum_contract n] using hB n
+  simpa [discrepancy] using hn
+
 /-- Discrepancy of the reduced sequence rewritten in terms of `apSumFrom` for the original one. -/
 theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
