@@ -122,6 +122,15 @@ theorem apSum_shift_add_mul_eq_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [apSumOffset_eq_apSumFrom_mul] using
     (apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
 
+/-- Reverse orientation of `apSum_shift_add_mul_eq_apSumFrom_mul`.
+
+This is convenient when a reduction step naturally produces an affine-tail statement but the
+next stage expects a shifted-homogeneous `apSum`.
+-/
+theorem apSumFrom_mul_eq_apSum_shift_add_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumFrom f (m * d) d n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using (apSum_shift_add_mul_eq_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)).symm
+
 /-- `Int.natAbs` form of `apSum_shift_add_mul_eq_apSumFrom_mul`. -/
 theorem natAbs_apSum_shift_add_mul_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
     Int.natAbs (apSum (fun k => f (k + m * d)) d n) =
