@@ -952,6 +952,34 @@ theorem mk_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequ
       Tao2015.contract_discrepancy_le_of_apSum_contract (f := f) (g := g) (d := d) (m := m) (B := B)
         (Tao2015.apSum_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq) hB
 
+/-- Build a `ReductionOutput` from an explicit AP-sum bridge `apSum g d = apSumOffset f d m`.
+
+This constructor is useful when a stage-1 reduction produces a *named* derived sequence `g` and a
+clean bridge lemma at the `apSum` level, but does not want to separately prove the discrepancy
+transfer contract.
+
+The discrepancy transfer contract is derived automatically via the generic lemma
+`contract_discrepancy_le_of_apSum_contract`.
+-/
+theorem mk_of_apSum_contract (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
+    (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    ReductionOutput f := by
+  classical
+  refine
+    { d := d
+      m := m
+      hd := hd
+      g := g
+      hg := hg
+      g_eq := gEq
+      apSum_contract := hAp
+      contract_discrepancy_le := ?_ }
+  intro B hB
+  exact
+    Tao2015.contract_discrepancy_le_of_apSum_contract (f := f) (g := g) (d := d) (m := m) (B := B)
+      hAp hB
+
 /-!
 ### `simp` lemmas for the default constructors
 
