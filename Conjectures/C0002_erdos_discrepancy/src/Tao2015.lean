@@ -894,6 +894,27 @@ into a single simp lemma.
   simp [mk_of_shift_discrepancy_eq_discOffset (f := f) (d := d) (m := m) (n := n) hd hf,
     discOffset_eq_natAbs_apSumFrom_mul]
 
+/-- Pointwise transfer wrapper (`≤`) for the default constructor `mk_of_shift`.
+
+This is a tiny convenience lemma: later stages often prove a bound for `discOffset f d m n`
+(or assume it) and want to immediately rewrite it into a bound for the reduced discrepancy.
+-/
+@[simp] theorem mk_of_shift_discrepancy_le_iff_discOffset_le (f : ℕ → ℤ) (d m n B : ℕ)
+    (hd : d > 0) (hf : IsSignSequence f) :
+    discrepancy (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n ≤ B ↔
+      discOffset f d m n ≤ B := by
+  simp [mk_of_shift_discrepancy_eq_discOffset (f := f) (d := d) (m := m) (n := n) hd hf]
+
+/-- Pointwise transfer wrapper (`<`) for the default constructor `mk_of_shift`.
+
+This is the strict-inequality analogue of `mk_of_shift_discrepancy_le_iff_discOffset_le`.
+-/
+@[simp] theorem mk_of_shift_discrepancy_lt_iff_discOffset_lt (f : ℕ → ℤ) (d m n B : ℕ)
+    (hd : d > 0) (hf : IsSignSequence f) :
+    discrepancy (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n < B ↔
+      discOffset f d m n < B := by
+  simp [mk_of_shift_discrepancy_eq_discOffset (f := f) (d := d) (m := m) (n := n) hd hf]
+
 @[simp] theorem mk_of_g_eq_d (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
     (hgEq : g = fun k => f (k + m * d)) :
     (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).d = d := by
