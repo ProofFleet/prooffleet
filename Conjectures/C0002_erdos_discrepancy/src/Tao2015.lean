@@ -1281,18 +1281,6 @@ theorem composeShiftSameD_contract_discrepancy_le {f : ℕ → ℤ} (out₁ : Ta
   simpa [composeShiftSameD] using
     (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).contract_discrepancy_le B hB n
 
-/-- The discrepancy rewrite rule for `composeShiftSameD` (pointwise form).
-
-We do **not** mark this lemma `[simp]`: it unfolds `discrepancy`/`discOffset` wrappers and can cause
-simp blow-ups.
--/
-theorem composeShiftSameD_discrepancy_contract {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
-    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) (n : ℕ) :
-    discrepancy (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d n =
-      discOffset f out₁.d (out₁.m + out₂.m) n := by
-  -- Both sides are definitional wrappers around `Int.natAbs` plus the AP-sum bridge rule.
-  simp [discrepancy, discOffset]
-
 /-- Discrepancy-witness normal form for the composite reduction.
 
 This is a small “pipeline ergonomics” lemma: many later stages prove a fixed-step discrepancy
