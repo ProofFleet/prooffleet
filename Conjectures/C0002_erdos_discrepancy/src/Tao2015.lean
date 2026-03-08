@@ -1217,6 +1217,35 @@ theorem hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (out : ReductionOutp
     HasDiscrepancyAtLeast out.g C :=
   HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C) out.hd h
 
+/-- Produce a standard discrepancy witness for the reduced sequence from a `discOffset` witness
+for the original sequence.
+
+This is a tiny wrapper that combines:
+- the `discOffset` witness contract for `out` (fixed-step), and
+- the promotion lemma `hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong`.
+-/
+theorem hasDiscrepancyAtLeast_of_exists_discOffset_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    HasDiscrepancyAtLeast out.g C := by
+  apply out.hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (f := f)
+  exact out.hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (f := f) h
+
+/-- Standard discrepancy witness for the reduced sequence, in `apSumOffset` (sum-level) form. -/
+theorem hasDiscrepancyAtLeast_of_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) :
+    HasDiscrepancyAtLeast out.g C := by
+  apply out.hasDiscrepancyAtLeast_of_exists_discOffset_gt (f := f)
+  -- `discOffset` is definitional.
+  simpa [discOffset] using h
+
+/-- Standard discrepancy witness for the reduced sequence, in `apSumFrom` (affine-nucleus) form. -/
+theorem hasDiscrepancyAtLeast_of_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) :
+    HasDiscrepancyAtLeast out.g C := by
+  apply out.hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (f := f)
+  -- First build a fixed-step witness, then promote.
+  exact (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (f := f) (C := C)).2 h
+
 /-- Build a standard discrepancy statement for the *literal shift* `fun k => f (k + out.m*out.d)`
 from a `discOffset` witness.
 
