@@ -10084,6 +10084,34 @@ theorem stage2_unboundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence 
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using hn
 
+/-!
+### Stage-2 regression examples
+
+These `example` blocks are intentionally tiny: they serve as compile-time checks that the
+consumer-facing API around `stage2Output` / `Stage2Output` continues to compose.
+
+They are not mathematically deep; they just pin down the intended usage pattern.
+-/
+
+section Stage2RegressionExamples
+
+variable (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (out : ReductionOutput f)
+
+/-- `stage2Output` packages the stage-2 deliverable into the `Stage2Output` interface. -/
+example : Stage2Output f out :=
+  stage2Output (f := f) (hf := hf) (ctx := ctx) (out := out)
+
+/-- From stage 2 we can extract a strict-inequality discrepancy witness for the reduced sequence. -/
+example (C : ℕ) : ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  -- Use the packaged interface.
+  simpa using (stage2Output (f := f) (hf := hf) (ctx := ctx) (out := out)).exists_discrepancy_gt C
+
+/-- Stage 2 implies the original sequence does *not* have bounded discrepancy. -/
+example : ¬ BoundedDiscrepancy f := by
+  simpa using (stage2Output (f := f) (hf := hf) (ctx := ctx) (out := out)).not_boundedDiscrepancy_original
+
+end Stage2RegressionExamples
+
 /-- Sum-level (`Int.natAbs (apSumOffset ...)`) strict-inequality witness form of stage 2.
 
 This is just `stage2_unbounded_discOffset_gt` unfolded through the definitional wrapper
