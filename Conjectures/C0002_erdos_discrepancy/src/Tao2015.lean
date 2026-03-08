@@ -712,6 +712,40 @@ theorem discrepancy_eq_discrepancy_shift (out : ReductionOutput f) (n : ℕ) :
       discrepancy (fun k => f (k + out.m * out.d)) out.d n := by
   simp [out.g_eq]
 
+/-!
+### Congruence helpers for the reduced sequence
+
+Even though `out.g` is definitionally equal to the shift `fun k => f (k + out.m*out.d)` via
+`out.g_eq`, it is often useful to have *named* `↔` lemmas that let downstream stages rewrite whole
+predicates (boundedness/unboundedness/witness forms) without manually unfolding.
+
+These are intentionally tiny; they exist purely to reduce proof friction in later stages.
+-/
+
+/-- Fixed-step large-discrepancy predicate for `out.g` rewritten to the literal shift of `f`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_shift (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      HasDiscrepancyAtLeastAlong (fun k => f (k + out.m * out.d)) out.d C := by
+  simp [HasDiscrepancyAtLeastAlong, out.g_eq]
+
+/-- Uniform `≤` bounds for discrepancies of `out.g` rewritten to the literal shift of `f`. -/
+theorem forall_discrepancy_le_iff_shift (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
+      (∀ n : ℕ, discrepancy (fun k => f (k + out.m * out.d)) out.d n ≤ B) := by
+  simp [out.g_eq]
+
+/-- Uniform `<` bounds for discrepancies of `out.g` rewritten to the literal shift of `f`. -/
+theorem forall_discrepancy_lt_iff_shift (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔
+      (∀ n : ℕ, discrepancy (fun k => f (k + out.m * out.d)) out.d n < B) := by
+  simp [out.g_eq]
+
+/-- Unboundedness along the reduced step `out.d` rewritten to the literal shift of `f`. -/
+theorem unboundedDiscrepancyAlong_iff_shift (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      Tao2015.UnboundedDiscrepancyAlong (fun k => f (k + out.m * out.d)) out.d := by
+  simp [Tao2015.UnboundedDiscrepancyAlong, out.g_eq]
+
 /-- Reverse orientation of the AP-sum bridge field `apSum_contract`. -/
 theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
