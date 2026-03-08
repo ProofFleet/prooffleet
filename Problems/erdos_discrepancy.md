@@ -66,6 +66,9 @@ Current status notes:
   - bounded offset discrepancy of the original sequence `BoundedDiscOffset f out.d out.m`.
   (This is the main contract form that Stage-2 wants to negate.)
 - Stage-1 now also exposes a small *combinator API* for composing reductions: `ReductionOutput.shiftRight` packages “shift the reduced sequence again by `m₂*out.d`” as a new `ReductionOutput`, with assoc/zero simp lemmas (`shiftRight_shiftRight`, `shiftRight_zero_*`) so downstream stages can normalize nested shifts.
+- Witness-normal form: downstream stages that work with affine tails can use
+  `ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt` to rewrite
+  `HasDiscrepancyAtLeastAlong out.g out.d C` into an explicit `apSumFrom` witness for `f`.
 - Stage-2 output is already *packaged* as `Tao2015.Stage2Output` (with helper lemmas to convert between witness normal forms and negated boundedness); the actual deliverable `stage2_unbounded_discOffset` is still stubbed.
 - `reduction` is still a *stub* implementation (currently the trivial `(d,m,g)=(1,0,f)` shift), so downstream stages should avoid depending on its specific parameters beyond the provided simp/bridge lemmas.
 

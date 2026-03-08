@@ -767,6 +767,16 @@ example (B : ℕ) (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
   intro n
   exact out.contract_discrepancy_le B hB n
 
+/-- Fixed-step discrepancy witnesses for `out.g` can be normalized directly into the tail-sum API
+`apSumFrom` for `f`.
+
+This is the preferred witness-normal form when downstream stages reason about affine tails.
+-/
+example (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  simpa using (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (f := f) (C := C))
+
 end ReductionOutputExamples
 
 /-!
