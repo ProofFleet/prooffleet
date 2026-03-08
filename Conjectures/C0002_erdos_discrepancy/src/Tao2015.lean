@@ -864,6 +864,45 @@ theorem boundedDiscrepancyAlong_iff_exists_discOffset_le (out : ReductionOutput 
     -- Rewrite the discrepancy of `out.g` to `discOffset` using the AP-sum contract.
     simpa [discOffset, discrepancy, out.apSum_contract] using hB n
 
+/-- Convenience lemma: extract a uniform bound on `discOffset` from bounded discrepancy of `out.g`.
+
+This is just the forward direction of `boundedDiscrepancyAlong_iff_exists_discOffset_le`.
+-/
+theorem exists_bound_discOffset_of_boundedDiscrepancyAlong (out : ReductionOutput f)
+    (hb : BoundedDiscrepancyAlong out.g out.d) :
+    ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B :=
+  (out.boundedDiscrepancyAlong_iff_exists_discOffset_le (f := f)).1 hb
+
+/-- Convenience lemma: build bounded discrepancy of `out.g` from a uniform `discOffset` bound.
+
+This is just the reverse direction of `boundedDiscrepancyAlong_iff_exists_discOffset_le`.
+-/
+theorem boundedDiscrepancyAlong_of_bound_discOffset (out : ReductionOutput f)
+    (hB : ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    BoundedDiscrepancyAlong out.g out.d :=
+  (out.boundedDiscrepancyAlong_iff_exists_discOffset_le (f := f)).2 hB
+
+/-- Negated form of `boundedDiscrepancyAlong_iff_exists_discOffset_le`.
+
+This is a common normal form for *unboundedness* statements: it says there is **no** uniform
+bound on the offset discrepancies.
+-/
+theorem not_boundedDiscrepancyAlong_iff_not_exists_discOffset_le (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      ¬ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  simpa using (not_congr (out.boundedDiscrepancyAlong_iff_exists_discOffset_le (f := f)))
+
+/-- Same as `not_boundedDiscrepancyAlong_iff_not_exists_discOffset_le`, but at the AP-sum level.
+
+This is the `Int.natAbs (apSumOffset ...)` analogue of the previous lemma.
+-/
+theorem not_boundedDiscrepancyAlong_iff_not_exists_natAbs_apSumOffset_le (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      ¬ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using
+    (out.not_boundedDiscrepancyAlong_iff_not_exists_discOffset_le (f := f))
+
 /-- A strict-inequality version of `boundedDiscrepancyAlong_iff_exists_discOffset_le`.
 
 This is occasionally more convenient when a downstream stage produces a bound of the form
