@@ -6514,6 +6514,18 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+/-- The offset-boundedness predicate `BoundedDiscOffset` is equivalent to bounded discrepancy along
+a fixed step size for the shifted sequence `fun k => f (k + m*d)`.
+
+This is a convenience lemma: many Track C stages naturally produce (or consume) bounds in the
+shifted fixed-step normal form, while the pipeline interface prefers the offset normal form.
+-/
+theorem boundedDiscOffset_iff_boundedDiscrepancyAlong_shift_add_mul (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffset f d m ↔ BoundedDiscrepancyAlong (fun k => f (k + m * d)) d := by
+  -- Unfold both boundedness predicates and rewrite the discrepancy term using the shift→offset bridge.
+  simp [BoundedDiscOffset, BoundedDiscrepancyAlong,
+    Tao2015.discrepancy_shift_add_mul_eq_discOffset]
+
 namespace BoundedDiscrepancyAlong
 
 /-- Build `BoundedDiscrepancyAlong g d` from an explicit uniform bound. -/
