@@ -1145,6 +1145,18 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
   simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt,
     out.discrepancy_eq_natAbs_apSumFrom_mul]
 
+/-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt`.
+
+This is occasionally the more convenient inequality orientation for `linarith`/`omega`-style
+pipelines.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_lt (out : ReductionOutput f)
+    (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (f := f) C)
+
 /-- Uniform “large discrepancy exists” witnesses transfer from `out.g` to the offset view.
 
 This is just `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt` lifted under `∀ C`.
