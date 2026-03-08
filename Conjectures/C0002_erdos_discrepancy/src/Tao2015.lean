@@ -5149,6 +5149,18 @@ theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reduc
   simpa [out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f)] using
     (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d))
 
+/-- Unbounded discrepancy for the reduced sequence `out.g` (along `out.d`) rewritten into the
+corresponding offset-discrepancy witness form for the original sequence.
+
+This is the positive (non-negated) variant of
+`not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- `UnboundedDiscrepancyAlong` is definitional in terms of `discrepancy`.
+  -- Rewrite `discrepancy out.g` to `discOffset f` using the reduction interface.
+  simp [UnboundedDiscrepancyAlong, out.discrepancy_eq_discOffset]
+
 /-- A slightly more pipeline-friendly repackaging of `not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`
 using the predicate `HasDiscrepancyAtLeastAlong`.
 -/
