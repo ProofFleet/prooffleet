@@ -855,12 +855,6 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
   simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt,
     out.discrepancy_eq_natAbs_apSumFrom_mul] 
 
-/-- Unbounded discrepancy along the fixed step `out.d`, transferred to the offset view. -/
-theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
-    UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
-  -- Unfold and rewrite pointwise.
-  simp [UnboundedDiscrepancyAlong, out.discrepancy_eq_discOffset]
-
 /-!
 ### Constructors
 
