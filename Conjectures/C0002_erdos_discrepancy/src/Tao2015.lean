@@ -608,10 +608,35 @@ theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
   simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using
     (out.apSum_contract (f := f) (n := n))
 
+/-- Reverse orientation of `apSum_eq_apSumFrom_mul`.
+
+Not marked `[simp]` to avoid rewriting loops.
+-/
+theorem apSumFrom_mul_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumFrom f (out.m * out.d) out.d n = apSum out.g out.d n := by
+  simpa using (out.apSum_eq_apSumFrom_mul (f := f) (n := n)).symm
+
 /-- `Int.natAbs` form of `apSum_eq_apSumFrom_mul`. -/
 theorem natAbs_apSum_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
   simp [out.apSum_eq_apSumFrom_mul (f := f) (n := n)]
+
+/-- Reverse orientation of `natAbs_apSum_eq_natAbs_apSumFrom_mul`.
+
+Not marked `[simp]` to avoid rewriting loops.
+-/
+theorem natAbs_apSumFrom_mul_eq_natAbs_apSum (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumFrom f (out.m * out.d) out.d n) = Int.natAbs (apSum out.g out.d n) := by
+  simpa using (out.natAbs_apSum_eq_natAbs_apSumFrom_mul (f := f) (n := n)).symm
+
+/-- Rewrite the offset discrepancy bundled by `out` in terms of the affine nucleus `apSumFrom`.
+
+This is a tiny wrapper around `Tao2015.discOffset_eq_natAbs_apSumFrom_mul`.
+-/
+theorem discOffset_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simpa [Tao2015.apSumOffset_eq_apSumFrom_mul, discOffset] using
+    (Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
 
 /-- Rewrite `discrepancy out.g out.d` as a `natAbs` affine AP sum of `f`.
 
