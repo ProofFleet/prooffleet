@@ -551,6 +551,45 @@ structure ReductionOutput (f : ℕ → ℤ) : Type where
 
 namespace ReductionOutput
 
+variable {f : ℕ → ℤ}
+
+/-!
+### Consumer-facing rewrite lemmas
+
+These are tiny wrappers around the fields of `ReductionOutput`. They make the interface feel like
+an API rather than a record you have to destructure manually.
+-/
+
+/-- Rewrite `apSum` of the reduced sequence in terms of the affine nucleus for the original one. -/
+theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
+  -- First use the stage-1 contract to get an offset sum, then rewrite the offset sum as affine.
+  simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using
+    (out.apSum_contract n)
+
+/-- The stage-1 contract rewritten at the discrepancy level. -/
+theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  simp [discrepancy, discOffset, out.apSum_contract]
+
+/-- Discrepancy of the reduced sequence rewritten in terms of `apSumFrom` for the original one. -/
+theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  -- Combine `discrepancy_eq_discOffset` with the offset→affine bridge.
+  calc
+    discrepancy out.g out.d n = discOffset f out.d out.m n := out.discrepancy_eq_discOffset (f := f) n
+    _ = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) :=
+      Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n)
+
+/-- If discrepancies of the reduced sequence are uniformly bounded, then offset discrepancies of
+`f` are uniformly bounded (same bound). -/
+theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n ≤ B) :
+    ∀ n, discOffset f out.d out.m n ≤ B := by
+  intro n
+  -- Rewrite `discOffset` to `discrepancy` using the stage-1 contract, then apply the bound.
+  simpa [(out.discrepancy_eq_discOffset (f := f) n).symm] using hB n
+
 /-!
 ### Basic derived boundedness contexts
 
