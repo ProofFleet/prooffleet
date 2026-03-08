@@ -840,6 +840,21 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : Reduc
   -- `discOffset` is definitional.
   simpa [discOffset] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) C)
 
+/-- `natAbs (apSumFrom ...)` witness normal form for the stage-1 reduction.
+
+This is the affine-tail version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`.
+It avoids the `discOffset`/`apSumOffset` wrappers entirely, which can be convenient if a later
+stage is formulated directly in terms of the nucleus `apSumFrom`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f)
+    (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  -- Rewrite the fixed-step predicate to a `discrepancy` witness, then rewrite `discrepancy out.g`
+  -- via `out.discrepancy_eq_natAbs_apSumFrom_mul`.
+  simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt,
+    out.discrepancy_eq_natAbs_apSumFrom_mul] 
+
 /-- Unbounded discrepancy along the fixed step `out.d`, transferred to the offset view. -/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
