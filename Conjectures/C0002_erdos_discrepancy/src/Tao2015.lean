@@ -10068,12 +10068,18 @@ for the offset discrepancy bundled in `out`.
 
 Downstream Tao steps should aim to prove this without needing to know how `ctx` was constructed.
 
-We declare this as an `axiom` (rather than a `theorem` proved by `sorry`) so that the rest of the
-pipeline glue can be developed `sorry`-free.
+Implementation note:
+We keep this as a `theorem` with a single `sorry` (rather than an `axiom`) so the stub remains
+locally visible and easy to remove once Stage 2 is proved.
 -/
-axiom stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     (ctx : Context f) (out : ReductionOutput f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  -- TODO (Track C / Tao2015 Stage 2): supply the actual reduction proving unbounded offset
+  -- discrepancy from the boundedness context `ctx`.
+  --
+  -- Until then, we keep the entire pipeline composable (and CI-green) with a single stub.
+  sorry
 
 /-- Package the stage-2 deliverable `stage2_unbounded_discOffset` as a `Stage2Output` structure.
 
