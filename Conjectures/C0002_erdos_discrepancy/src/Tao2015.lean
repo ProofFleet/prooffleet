@@ -8639,6 +8639,28 @@ theorem stage2_unbounded_natAbs_apSumOffset_lt (f : ℕ → ℤ) (hf : IsSignSeq
   rcases stage2_unbounded_natAbs_apSumOffset_gt (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
   exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
+/-- Affine-tail (`apSumFrom`) strict-inequality witness form of stage 2.
+
+This is just `stage2_unbounded_natAbs_apSumOffset_gt` rewritten using the bridge lemma
+`apSumOffset_eq_apSumFrom_mul`.
+-/
+theorem stage2_unbounded_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > B := by
+  intro B
+  rcases stage2_unbounded_natAbs_apSumOffset_gt (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- Rewrite the offset AP sum into the affine-tail nucleus.
+  simpa [Tao2015.apSumOffset_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n)] using hn
+
+/-- `<`-oriented version of `stage2_unbounded_natAbs_apSumFrom_mul_gt`. -/
+theorem stage2_unbounded_natAbs_apSumFrom_mul_lt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  intro B
+  rcases stage2_unbounded_natAbs_apSumFrom_mul_gt (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-!
 ### Stage-2 derived consequences (unpackaged)
 
