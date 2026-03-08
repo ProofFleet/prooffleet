@@ -752,6 +752,25 @@ theorem discrepancy_eq_discrepancy_shift (out : ReductionOutput f) (n : ℕ) :
       discrepancy (fun k => f (k + out.m * out.d)) out.d n := by
   simp [out.g_eq]
 
+/-- The “literal shift” discrepancy rewrite specialized to the parameters bundled in `out`.
+
+This lemma does *not* mention `out.g`; it is useful when a downstream stage wants to talk about
+`fun k => f (k + out.m*out.d)` directly, but still reuse `out.d,out.m` consistently.
+-/
+theorem discrepancy_shift_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    discrepancy (fun k => f (k + out.m * out.d)) out.d n = discOffset f out.d out.m n := by
+  simpa using
+    (Tao2015.discrepancy_shift_add_mul_eq_discOffset (f := f) (d := out.d) (m := out.m) (n := n))
+
+/-- The “literal shift” AP-sum rewrite specialized to the parameters bundled in `out`.
+
+As with `discrepancy_shift_eq_discOffset`, this lemma does not mention `out.g`.
+-/
+theorem apSum_shift_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    apSum (fun k => f (k + out.m * out.d)) out.d n = apSumOffset f out.d out.m n := by
+  simpa using
+    (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
+
 /-!
 ### Congruence helpers for the reduced sequence
 
