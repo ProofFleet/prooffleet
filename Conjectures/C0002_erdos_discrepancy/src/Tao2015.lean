@@ -714,6 +714,32 @@ theorem mk_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequ
         (Tao2015.apSum_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq) hB
 
 /-!
+### `simp` lemmas for the default constructors
+
+These are small quality-of-life lemmas: they let downstream stages treat the constructors
+`mk_of_shift`/`mk_of_g_eq` as “transparent” without unfolding their proofs.
+
+We keep the simp set minimal to avoid rewriting loops.
+-/
+
+@[simp] theorem mk_of_shift_d (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hf : IsSignSequence f) :
+    (mk_of_shift (f := f) (d := d) (m := m) hd hf).d = d := by
+  rfl
+
+@[simp] theorem mk_of_shift_m (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hf : IsSignSequence f) :
+    (mk_of_shift (f := f) (d := d) (m := m) hd hf).m = m := by
+  rfl
+
+@[simp] theorem mk_of_shift_g (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hf : IsSignSequence f) :
+    (mk_of_shift (f := f) (d := d) (m := m) hd hf).g = (fun k => f (k + m * d)) := by
+  rfl
+
+@[simp] theorem mk_of_shift_g_apply (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hf : IsSignSequence f)
+    (k : ℕ) :
+    (mk_of_shift (f := f) (d := d) (m := m) hd hf).g k = f (k + m * d) := by
+  rfl
+
+/-!
 ### Sanity-check examples
 
 These are compile-only usage examples. They act as lightweight regression tests for the stage-1
