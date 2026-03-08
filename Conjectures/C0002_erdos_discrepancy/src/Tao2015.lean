@@ -1148,6 +1148,54 @@ reduction output produced by `mkShiftOfSign` without repeatedly unfolding the co
     (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).d = d := by
   simp [mkShiftOfSign, mkShift]
 
+/-!
+### Composing reductions by additional shifts
+
+A very common “micro-step” in the Tao2015 pipeline is to take an already-reduced sequence and
+shift it again by a multiple of the *same* common difference `d`.
+
+At the level of the original sequence `f`, this corresponds to adding offset multipliers.
+The following constructor packages that observation as a new `ReductionOutput f`.
+
+This is deliberately small glue, but it is a key ergonomic move: it lets later stages compose
+reduction steps without rewriting arithmetic by hand.
+-/
+
+/-- Shift the reduced sequence again by a multiple of the same step size.
+
+If `out : ReductionOutput f` corresponds to the shift `f(· + out.m*out.d)`, then
+`out.shift_add_mul m₂` corresponds to `f(· + (out.m + m₂) * out.d)`.
+-/
+noncomputable def shift_add_mul (out : ReductionOutput f) (m₂ : ℕ) : ReductionOutput f := by
+  -- Define the twice-shifted reduced sequence.
+  let g' : ℕ → ℤ := fun k => out.g (k + m₂ * out.d)
+  have hg' : IsSignSequence g' := by
+    -- Sign sequences are stable under shifts.
+    simpa [g'] using (Tao2015.IsSignSequence.shift_add_mul (f := out.g) out.hg m₂ out.d)
+  have hg'Eq : g' = fun k => f (k + (out.m + m₂) * out.d) := by
+    funext k
+    -- Expand `out.g` as the original shift, then reassociate the arithmetic.
+    -- `simp` handles the commutativity/associativity bookkeeping.
+    simp [g', out.g_eq, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add,
+      Nat.mul_assoc]
+  -- Package using `mkShift`, which fills the contracts automatically.
+  exact ReductionOutput.mkShift (f := f) (d := out.d) (m := out.m + m₂) (hd := out.hd)
+    (g := g') (hg := hg') (hgEq := hg'Eq)
+
+namespace shift_add_mul
+
+@[simp] theorem d (out : ReductionOutput f) (m₂ : ℕ) : (out.shift_add_mul (f := f) m₂).d = out.d := by
+  simp [ReductionOutput.shift_add_mul]
+
+@[simp] theorem m (out : ReductionOutput f) (m₂ : ℕ) : (out.shift_add_mul (f := f) m₂).m = out.m + m₂ := by
+  simp [ReductionOutput.shift_add_mul]
+
+@[simp] theorem g (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shift_add_mul (f := f) m₂).g = fun k => out.g (k + m₂ * out.d) := by
+  simp [ReductionOutput.shift_add_mul]
+
+end shift_add_mul
+
 @[simp] theorem mkShiftOfSign_m (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).m = m := by
   simp [mkShiftOfSign, mkShift]
