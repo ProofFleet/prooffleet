@@ -855,6 +855,21 @@ without having to mention `apSum_contract` explicitly.
   -- `mk_of_shift` defines the `apSum_contract` field using the shift↔offset bridge.
   simp [ReductionOutput.mk_of_shift]
 
+/-- Tail-sum (`apSumFrom`) simp lemma for the default constructor `mk_of_shift`.
+
+This gives a direct rewrite from the affine nucleus `apSumFrom f (m*d) d` into the reduced
+homogeneous AP sum `apSum (mk_of_shift ...).g d`.
+-/
+@[simp] theorem mk_of_shift_apSumFrom_mul_eq_apSum (f : ℕ → ℤ) (d m n : ℕ) (hd : d > 0)
+    (hf : IsSignSequence f) :
+    apSumFrom f (m * d) d n = apSum (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n := by
+  calc
+    apSumFrom f (m * d) d n = apSumOffset f d m n := by
+      simpa using (Tao2015.apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+    _ = apSum (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n := by
+      simpa using
+        (mk_of_shift_apSum_eq_apSumOffset (f := f) (d := d) (m := m) (n := n) hd hf).symm
+
 /-- Discrepancy-level simp lemma for the default constructor `mk_of_shift`.
 
 This is the discrepancy wrapper version of `mk_of_shift_apSum_eq_apSumOffset`.
