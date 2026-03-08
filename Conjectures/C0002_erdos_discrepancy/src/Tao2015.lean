@@ -116,6 +116,24 @@ theorem apSumOffset_add_pre' (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
     apSumOffset (fun k => f (k + m₁ * d)) d m₂ n = apSumOffset f d (m₁ + m₂) n := by
   simpa using (apSumOffset_add_pre (f := f) (d := d) (m₁ := m₁) (m₂ := m₂) (n := n)).symm
 
+/-- `Int.natAbs` form of `apSumOffset_add_pre`.
+
+This is a lightweight helper for passing offset reassociations through the discrepancy wrappers.
+-/
+theorem natAbs_apSumOffset_add_pre (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+    Int.natAbs (apSumOffset f d (m₁ + m₂) n) =
+      Int.natAbs (apSumOffset (fun k => f (k + m₁ * d)) d m₂ n) := by
+  simp [apSumOffset_add_pre]
+
+/-- `discOffset` form of `apSumOffset_add_pre`.
+
+This is the natural “offset reassociation” normal form at the discrepancy level.
+-/
+theorem discOffset_add_pre (f : ℕ → ℤ) (d m₁ m₂ n : ℕ) :
+    discOffset f d (m₁ + m₂) n = discOffset (fun k => f (k + m₁ * d)) d m₂ n := by
+  -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+  simp [discOffset, natAbs_apSumOffset_add_pre]
+
 /-- Package the *assumption* of bounded discrepancy as data (`B` plus the bound lemma).
 
 This is a Lean-friendly normal form: instead of passing around an existential hypothesis
