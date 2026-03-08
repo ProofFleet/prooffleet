@@ -1097,6 +1097,20 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : Reduc
   -- Unfold the fixed-step predicate, then rewrite `apSum out.g` to `apSumOffset` via the bridge.
   simp [HasDiscrepancyAtLeastAlong, out.apSum_contract]
 
+/-- Unboundedness along the reduced step, normalized into `discOffset` witnesses.
+
+This is a small convenience lemma: it lets later stages work purely in the “offset view” of the
+original sequence `f` while still quantifying over discrepancy thresholds `C`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  constructor
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 (h C)
+
 /-!
 ### Convenience rewrites: `apSumOffset` ↔ `apSumFrom` for a `ReductionOutput`
 
