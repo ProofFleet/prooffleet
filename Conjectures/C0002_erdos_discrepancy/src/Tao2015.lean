@@ -767,6 +767,43 @@ stage-1 reduction output, so it’s convenient to have its basic fields availabl
     (n := n) hd]
 
 /-!
+### Stage-1 regression examples
+
+These `example` blocks are intentionally tiny: they serve as compile-time checks that the
+consumer-facing rewrite/transfer API for `ReductionOutput` keeps working as we refactor the file.
+
+They are not meant to be mathematically deep; they just pin down the *intended usage pattern*.
+-/
+
+section Stage1RegressionExamples
+
+variable (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+
+/-- `ofShift` exposes the stage-1 discrepancy contract in the expected orientation. -/
+example (n : ℕ) :
+    discrepancy (ReductionOutput.ofShift (f := f) hf d m hd).g d n = discOffset f d m n := by
+  simp
+
+/-- A uniform bound on the offset discrepancy family transfers to the reduced sequence. -/
+example (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f d m n ≤ B) :
+    ∀ n : ℕ, discrepancy (ReductionOutput.ofShift (f := f) hf d m hd).g d n ≤ B := by
+  intro n
+  -- This is exactly the stored transfer contract.
+  simpa using (ReductionOutput.ofShift (f := f) hf d m hd).contract_discrepancy_le B hB n
+
+/-- Fixed-step large discrepancy for the reduced sequence rewrites to an affine-tail witness. -/
+example (C : ℕ) :
+    HasDiscrepancyAtLeastAlong (ReductionOutput.ofShift (f := f) hf d m hd).g d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  -- This is the consumer-facing witness normal form.
+  simpa using
+    (ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt
+      (f := f) (out := ReductionOutput.ofShift (f := f) hf d m hd) C)
+
+end Stage1RegressionExamples
+
+/-!
 ### Basic accessors
 
 These are tiny one-liners that make it easier for downstream stages to use a
