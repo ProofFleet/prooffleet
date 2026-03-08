@@ -642,10 +642,15 @@ theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
   simpa using (out.apSum_contract n).symm
 
-/-- Reverse orientation of `discrepancy_eq_discOffset`. -/
+/-- Reverse orientation of the stage-1 discrepancy contract.
+
+We prove this directly from `out.apSum_contract` to avoid any forward-reference to
+`discrepancy_eq_discOffset` (which appears later in the file).
+-/
 theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
     discOffset f out.d out.m n = discrepancy out.g out.d n := by
-  simpa using (out.discrepancy_eq_discOffset (f := f) n).symm
+  -- Both sides are definitional wrappers around `Int.natAbs (apSum ...)`.
+  simp [discOffset, discrepancy, out.apSum_contract]
 
 /-!
 ### Consumer-facing rewrite lemmas
