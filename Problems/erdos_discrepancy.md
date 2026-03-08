@@ -74,6 +74,11 @@ Current status notes:
 - Stage-2 output is already *packaged* as `Tao2015.Stage2Output` (with helper lemmas to convert between witness normal forms and negated boundedness); the actual deliverable `stage2_unbounded_discOffset` is still stubbed.
 - `reduction` is still a *stub* implementation (currently the trivial `(d,m,g)=(1,0,f)` shift), so downstream stages should avoid depending on its specific parameters beyond the provided simp/bridge lemmas.
 
+Next bite-size Track C steps (good 1-PR targets):
+- Replace the `reduction` stub with the first *actually-used* reduction in Tao’s pipeline (even if the proof is `sorry`), but keep the output packaged purely via `ReductionOutput` contracts.
+- Fill in `stage2_unbounded_discOffset` by wiring the existing equivalence lemmas (`UnboundedDiscrepancyAlong` / `HasDiscrepancyAtLeastAlong` / `¬Bounded…`) and leaving only the mathematical “core lemma” as a single `sorry`.
+- Add a minimal `section Stage2RegressionExamples` in `Conjectures/.../Tao2015.lean` with 2–3 `example` blocks that show the intended consumer rewrite pipeline compiles (these are cheap and catch naming regressions).
+
 Definition of done for Track C PRs:
 - Only edits under `Conjectures/` (and optionally this card)
 - CI green
