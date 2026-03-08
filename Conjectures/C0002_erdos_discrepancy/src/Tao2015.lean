@@ -550,6 +550,36 @@ theorem mk_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequ
       Tao2015.contract_discrepancy_le_of_apSum_contract (f := f) (g := g) (d := d) (m := m) (B := B)
         (Tao2015.apSum_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq) hB
 
+/-!
+### Sanity-check examples
+
+These are compile-only usage examples. They act as lightweight regression tests for the stage-1
+reduction interface: if we refactor `ReductionOutput` and accidentally break the intended rewrite
+contracts, these examples should fail to typecheck.
+-/
+section ReductionOutputExamples
+
+variable {f : ℕ → ℤ} (out : ReductionOutput f)
+
+/-- The interface fields are enough to rewrite `discrepancy` for the reduced sequence into an
+offset discrepancy of the original sequence.
+
+This is the core “IO contract” shape consumers should rely on.
+-/
+example (n : ℕ) : discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  simp [discrepancy, discOffset, out.apSum_contract]
+
+/-- If offset discrepancies of `f` are bounded, then discrepancies of the reduced sequence are
+bounded (using the `contract_discrepancy_le` field).
+-/
+example (B : ℕ) (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  refine ⟨B, ?_⟩
+  intro n
+  exact out.contract_discrepancy_le B hB n
+
+end ReductionOutputExamples
+
 /-- Expand the defining equation of `g`. -/
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
