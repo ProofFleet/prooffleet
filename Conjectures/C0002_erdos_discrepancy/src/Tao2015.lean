@@ -8757,6 +8757,20 @@ theorem stage2_unbounded_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f
   -- Rewrite `discOffset` to `discrepancy` via the reduction output contract.
   simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
 
+/-- Witness-form unboundedness along the reduced fixed step `out.d`, derived from stage 2.
+
+This is just `stage2_unbounded_discrepancy_gt` repackaged into the predicate
+`UnboundedDiscrepancyAlong out.g out.d`.
+-/
+theorem stage2_unboundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d := by
+  intro B
+  rcases stage2_unbounded_discrepancy_gt (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using hn
+
 /-- Sum-level (`Int.natAbs (apSumOffset ...)`) strict-inequality witness form of stage 2.
 
 This is just `stage2_unbounded_discOffset_gt` unfolded through the definitional wrapper
