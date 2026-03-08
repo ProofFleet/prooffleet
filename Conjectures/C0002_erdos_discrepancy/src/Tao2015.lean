@@ -6138,6 +6138,30 @@ theorem stage2_unbounded_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f
   -- Rewrite `discOffset` to `discrepancy` via the reduction output contract.
   simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
 
+/-- Sum-level (`Int.natAbs (apSumOffset ...)`) strict-inequality witness form of stage 2.
+
+This is just `stage2_unbounded_discOffset_gt` unfolded through the definitional wrapper
+`discOffset`.
+-/
+theorem stage2_unbounded_natAbs_apSumOffset_gt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
+  intro B
+  rcases stage2_unbounded_discOffset_gt (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+/-- `<`-oriented version of `stage2_unbounded_natAbs_apSumOffset_gt`.
+
+Some later steps prefer to work with bounds of the form `B < ...` rather than `... > B`.
+-/
+theorem stage2_unbounded_natAbs_apSumOffset_lt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
+  intro B
+  rcases stage2_unbounded_natAbs_apSumOffset_gt (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-!
 ### Stage-2 derived consequences (unpackaged)
 
