@@ -698,6 +698,15 @@ theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
   simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using
     (out.apSum_contract (f := f) (n := n))
 
+/-- `simp`-friendly version of `apSum_eq_apSumFrom_mul`.
+
+We keep the main lemma untagged to reduce the risk of `simp` blow-ups in downstream files,
+but having *an opt-in simp lemma* is often convenient in small calculations.
+-/
+@[simp] theorem apSum_eq_apSumFrom_mul_simp (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n :=
+  out.apSum_eq_apSumFrom_mul (f := f) (n := n)
+
 /-- Reverse orientation of `apSum_eq_apSumFrom_mul`.
 
 Not marked `[simp]` to avoid rewriting loops.
