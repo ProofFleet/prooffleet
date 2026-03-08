@@ -1446,6 +1446,58 @@ theorem apSum_contract_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hgEq : g = fun k
   simpa [hgEq] using
     (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Affine-nucleus bridge rule: rewrite the reduced homogeneous AP sums directly as `apSumFrom`.
+
+This is a small convenience wrapper around:
+- `apSum_contract_of_g_eq`, and
+- `apSumOffset_eq_apSumFrom_mul`.
+
+Downstream Tao2015 stages often prefer the affine nucleus `apSumFrom` over the offset form.
+-/
+theorem apSumFrom_contract_of_g_eq (f g : ℕ → ℤ) (d m : ℕ)
+    (hgEq : g = fun k => f (k + m * d)) :
+    ∀ n : ℕ, apSum g d n = apSumFrom f (m * d) d n := by
+  intro n
+  -- First rewrite to `apSumOffset`, then rewrite `apSumOffset` to the affine nucleus `apSumFrom`.
+  simpa [apSumOffset_eq_apSumFrom_mul] using
+    (apSum_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq n)
+
+/-- `Int.natAbs` form of `apSumFrom_contract_of_g_eq`. -/
+theorem natAbs_apSumFrom_contract_of_g_eq (f g : ℕ → ℤ) (d m : ℕ)
+    (hgEq : g = fun k => f (k + m * d)) :
+    ∀ n : ℕ, Int.natAbs (apSum g d n) = Int.natAbs (apSumFrom f (m * d) d n) := by
+  intro n
+  simp [apSumFrom_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq n]
+
+/-- Discrepancy bridge rule, rewritten to the affine nucleus `apSumFrom`. -/
+theorem discrepancy_eq_natAbs_apSumFrom_mul_of_g_eq (f g : ℕ → ℤ) (d m : ℕ)
+    (hgEq : g = fun k => f (k + m * d)) :
+    ∀ n : ℕ, discrepancy g d n = Int.natAbs (apSumFrom f (m * d) d n) := by
+  intro n
+  simp [discrepancy, apSumFrom_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq n]
+
+/-- Transfer contract (≤) in affine-nucleus form.
+
+If you can bound `Int.natAbs (apSumFrom f (m*d) d n)` uniformly, you can bound the reduced
+discrepancy `discrepancy g d n` uniformly.
+-/
+theorem contract_discrepancy_le_of_apSumFrom_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumFrom f (m * d) d n) :
+    (∀ n, Int.natAbs (apSumFrom f (m * d) d n) ≤ B) → ∀ n, discrepancy g d n ≤ B := by
+  intro hB n
+  -- `discrepancy = natAbs(apSum ...)`, then rewrite `apSum` using `h`.
+  simpa [discrepancy, h n] using hB n
+
+/-- The same transfer contract as `contract_discrepancy_le_of_apSumFrom_contract`, but derived
+from the shift equation `g = fun k => f (k + m*d)`.
+-/
+theorem contract_discrepancy_le_of_g_eq_apSumFrom (f g : ℕ → ℤ) (d m B : ℕ)
+    (hgEq : g = fun k => f (k + m * d)) :
+    (∀ n, Int.natAbs (apSumFrom f (m * d) d n) ≤ B) → ∀ n, discrepancy g d n ≤ B := by
+  -- Reduce to the generic transfer lemma using the derived affine bridge rule.
+  exact contract_discrepancy_le_of_apSumFrom_contract (f := f) (g := g) (d := d) (m := m) (B := B)
+    (apSumFrom_contract_of_g_eq (f := f) (g := g) (d := d) (m := m) hgEq)
+
 /-- Standalone discrepancy bridge rule, derived from `apSum_contract_of_g_eq`. -/
 theorem discrepancy_contract_of_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hgEq : g = fun k => f (k + m * d)) :
     ∀ n : ℕ, discrepancy g d n = discOffset f d m n := by
