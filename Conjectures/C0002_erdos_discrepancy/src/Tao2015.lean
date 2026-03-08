@@ -754,7 +754,12 @@ We keep the simp set minimal to avoid rewriting loops.
     (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g = g := by
   rfl
 
-@[simp] theorem mk_of_g_eq_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
+/-- `mk_of_g_eq` stores the equality proof `hgEq` verbatim.
+
+We intentionally do **not** tag this lemma `[simp]`: simp rewriting on proof fields is rarely
+useful and can add noise/slowdowns.
+-/
+ theorem mk_of_g_eq_g_eq (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
     (hgEq : g = fun k => f (k + m * d)) :
     (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).g_eq = hgEq := by
   rfl
