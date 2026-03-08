@@ -895,6 +895,26 @@ theorem exists_discrepancy_gt_of_exists_discOffset_gt (out : ReductionOutput f) 
   refine ⟨n, ?_⟩
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
 
+/-- Iff form of `exists_discOffset_gt_of_exists_discrepancy_gt` / `exists_discrepancy_gt_of_exists_discOffset_gt`. -/
+theorem exists_discrepancy_gt_iff_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discrepancy out.g out.d n > C) ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  constructor
+  · intro h
+    exact out.exists_discOffset_gt_of_exists_discrepancy_gt (f := f) (C := C) h
+  · intro h
+    exact out.exists_discrepancy_gt_of_exists_discOffset_gt (f := f) (C := C) h
+
+/-- Iff form of the `<`-oriented witness `∃ n, C < ...`. -/
+theorem exists_discrepancy_lt_iff_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, C < discrepancy out.g out.d n) ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
 /-- Uniform `≤` bounds for discrepancies of `out.g` rewritten to the literal shift of `f`. -/
 theorem forall_discrepancy_le_iff_shift (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
