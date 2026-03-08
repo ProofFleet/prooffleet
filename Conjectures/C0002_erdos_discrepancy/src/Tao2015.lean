@@ -1163,6 +1163,47 @@ theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f)
     -- Convert an offset bound to a reduced bound using the transfer contract.
     exact out.contract_discrepancy_le B h n
 
+/-- Convert a uniform discrepancy bound on the reduced sequence into a uniform bound on
+`Int.natAbs (apSumOffset ...)` for the original sequence.
+
+This is a small convenience wrapper around `out.discrepancy_eq_natAbs_apSumOffset`.
+-/
+theorem forall_natAbs_apSumOffset_le_of_forall_discrepancy_le (out : ReductionOutput f) (B : ℕ)
+    (h : ∀ n : ℕ, discrepancy out.g out.d n ≤ B) :
+    ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+  intro n
+  -- Rewrite `natAbs (apSumOffset ...)` into `discrepancy out.g ...`.
+  simpa [out.discrepancy_eq_natAbs_apSumOffset (f := f) (n := n)] using h n
+
+/-- Convert a uniform discrepancy bound on the reduced sequence into a uniform bound on
+`Int.natAbs (apSumFrom ...)` for the original sequence.
+
+This is the affine-tail analogue of `forall_natAbs_apSumOffset_le_of_forall_discrepancy_le`.
+-/
+theorem forall_natAbs_apSumFrom_mul_le_of_forall_discrepancy_le (out : ReductionOutput f) (B : ℕ)
+    (h : ∀ n : ℕ, discrepancy out.g out.d n ≤ B) :
+    ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  intro n
+  -- Rewrite `natAbs (apSumFrom ...)` into `discrepancy out.g ...`.
+  -- (We use the reverse orientation to keep `simp` predictable.)
+  have : discrepancy out.g out.d n ≤ B := h n
+  -- `discrepancy = natAbs(apSumFrom ...)` by the stage-1 contract.
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using this
+
+/-- Strict-inequality version of `forall_natAbs_apSumOffset_le_of_forall_discrepancy_le`. -/
+theorem forall_natAbs_apSumOffset_lt_of_forall_discrepancy_lt (out : ReductionOutput f) (B : ℕ)
+    (h : ∀ n : ℕ, discrepancy out.g out.d n < B) :
+    ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) < B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumOffset (f := f) (n := n)] using h n
+
+/-- Strict-inequality version of `forall_natAbs_apSumFrom_mul_le_of_forall_discrepancy_le`. -/
+theorem forall_natAbs_apSumFrom_mul_lt_of_forall_discrepancy_lt (out : ReductionOutput f) (B : ℕ)
+    (h : ∀ n : ℕ, discrepancy out.g out.d n < B) :
+    ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+
 /-- Uniform transfer (`<`) between the reduced discrepancy and the original offset discrepancy. -/
 theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
