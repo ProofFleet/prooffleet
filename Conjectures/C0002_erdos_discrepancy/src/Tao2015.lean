@@ -675,6 +675,23 @@ theorem apSum_contract_funext (out : ReductionOutput f) :
   funext n
   exact out.apSum_contract n
 
+/-- Pointwise form of the AP-sum bridge rule.
+
+Marked `[simp]` because it is the main rewrite rule for moving from the reduced sequence `out.g`
+back to the offset-sum family of `f`.
+-/
+@[simp] theorem apSum_contract_apply (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumOffset f out.d out.m n :=
+  out.apSum_contract n
+
+/-- Reverse orientation of `apSum_contract_apply`.
+
+Not marked `[simp]` to avoid rewriting loops.
+-/
+theorem apSumOffset_eq_apSum_apply (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSum out.g out.d n := by
+  simpa using (out.apSum_contract_apply (f := f) (n := n)).symm
+
 /-- Function-extensional form of the discrepancy rewrite rule. -/
 theorem discrepancy_contract_funext (out : ReductionOutput f) :
     (fun n => discrepancy out.g out.d n) = fun n => discOffset f out.d out.m n := by
