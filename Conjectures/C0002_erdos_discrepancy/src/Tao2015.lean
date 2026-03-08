@@ -790,6 +790,37 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : Reduc
   simpa [discOffset] using
     (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C))
 
+/-- Promote a fixed-step discrepancy witness for the reduced sequence to the global predicate
+`HasDiscrepancyAtLeast`.
+
+This is just `HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast` specialized to the step size
+`out.d` bundled in the reduction output.
+-/
+theorem hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) (C : ℕ)
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    HasDiscrepancyAtLeast out.g C := by
+  exact HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C)
+    out.hd h
+
+/-- Extract an explicit `apSumOffset` witness from a fixed-step discrepancy witness for `out.g`.
+
+This is a convenience wrapper around
+`hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`.
+-/
+theorem exists_natAbs_apSumOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) (C : ℕ)
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C)).1 h
+
+/-- Build a fixed-step discrepancy witness for `out.g` from an explicit `apSumOffset` witness.
+
+This is the reverse direction of `exists_natAbs_apSumOffset_gt_of_hasDiscrepancyAtLeastAlong`.
+-/
+theorem hasDiscrepancyAtLeastAlong_of_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) :
+    HasDiscrepancyAtLeastAlong out.g out.d C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C)).2 h
+
 /-- Inequality-orientation convenience: rewrite large discrepancy for `out.g` into a witness of the
 form `C < discOffset …`.
 -/
