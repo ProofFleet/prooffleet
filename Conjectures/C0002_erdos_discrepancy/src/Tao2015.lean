@@ -1194,6 +1194,41 @@ theorem contract_discrepancy_le_of_forall_discOffset_le (out : ReductionOutput f
   -- Rewrite to the offset discrepancy bound and apply `hB`.
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-!
+### Interop with the global boundedness context
+
+Often we begin with a global boundedness hypothesis `BoundedDiscrepancy f` (or its bundled record
+`Tao2015.Context f`) and then want to feed the resulting uniform bounds into a fixed-step
+reduction output.
+
+The following tiny lemmas record the common special case: any `Context f` gives a uniform bound on
+`discOffset f out.d out.m`, and hence a uniform bound on the reduced discrepancies
+`discrepancy out.g out.d`.
+-/
+
+/-- A global boundedness context bounds the offset discrepancies appearing in a `ReductionOutput`. -/
+theorem forall_discOffset_le_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+
+/-- A global boundedness context bounds the reduced discrepancies in a `ReductionOutput`. -/
+theorem forall_discrepancy_le_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  intro n
+  -- Bound the offset discrepancy using the global context, then transfer via the reduction output.
+  have h₁ : discOffset f out.d out.m n ≤ ctx.B + ctx.B :=
+    out.forall_discOffset_le_of_context (f := f) ctx n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h₁
+
+/-- Bundled fixed-step context for the reduced sequence, built from a global `Context f`. -/
+noncomputable def contextAlong_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ContextAlong out.g out.d := by
+  classical
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.forall_discrepancy_le_of_context (f := f) ctx n
+
 /-- Strict-inequality version of `contract_discrepancy_le_of_forall_discOffset_le`. -/
 theorem contract_discrepancy_lt_of_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ)
     (hB : ∀ n : ℕ, discOffset f out.d out.m n < B) :
