@@ -1346,6 +1346,24 @@ theorem composeShiftSameD_mkShiftOfSign_g_apply (f : ℕ → ℤ) (hf : IsSignSe
   simp [ReductionOutput.composeShiftSameD, ReductionOutput.mkShiftOfSign, ReductionOutput.mkShift,
     Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
 
+/-- Boundedness normal form for the composite reduction.
+
+This is the boundedness analogue of
+`composeShiftSameD_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`: it lets later stages
+move a `BoundedDiscrepancyAlong` statement about the *composed* reduced sequence back to a uniform
+bound on the original offset discrepancies.
+-/
+theorem composeShiftSameD_boundedDiscrepancyAlong_iff_exists_discOffset_le {f : ℕ → ℤ}
+    (out₁ : Tao2015.ReductionOutput f) (out₂ : Tao2015.ReductionOutput out₁.g)
+    (hdd : out₂.d = out₁.d) :
+    BoundedDiscrepancyAlong (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d ↔
+      (∃ B : ℕ, ∀ n : ℕ, discOffset f out₁.d (out₁.m + out₂.m) n ≤ B) := by
+  -- This is just the general boundedness normal form for `ReductionOutput`, specialized to the
+  -- composite reduction output.
+  simpa using
+    (ReductionOutput.boundedDiscrepancyAlong_iff_exists_discOffset_le (f := f)
+      (out := composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd))
+
 end ReductionOutput
 
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
