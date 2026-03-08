@@ -681,6 +681,37 @@ theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
   -- Rewrite `discOffset` to `discrepancy` using the stage-1 contract, then apply the bound.
   simpa [(out.discrepancy_eq_discOffset (f := f) n).symm] using hB n
 
+/-- Pointwise transfer (`≤`) between the reduced discrepancy and the original offset discrepancy. -/
+theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
+    discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
+  -- Just rewrite via `discrepancy_eq_discOffset`.
+  simp [out.discrepancy_eq_discOffset (f := f) (n := n)]
+
+/-- Pointwise transfer (`<`) between the reduced discrepancy and the original offset discrepancy. -/
+theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (n B : ℕ) :
+    discrepancy out.g out.d n < B ↔ discOffset f out.d out.m n < B := by
+  simp [out.discrepancy_eq_discOffset (f := f) (n := n)]
+
+/-- Uniform transfer (`≤`) between the reduced discrepancy and the original offset discrepancy. -/
+theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · intro h n
+    -- Convert a reduced bound to an offset bound.
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+  · intro h n
+    -- Convert an offset bound to a reduced bound using the transfer contract.
+    exact out.contract_discrepancy_le B h n
+
+/-- Uniform transfer (`<`) between the reduced discrepancy and the original offset discrepancy. -/
+theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
+  constructor
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+
 /-!
 ### Basic derived boundedness contexts
 
