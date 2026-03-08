@@ -390,6 +390,23 @@ theorem toBoundedDiscrepancyAlong (ctx : ContextAlong f d) : BoundedDiscrepancyA
 theorem bound_discrepancy (ctx : ContextAlong f d) (n : ℕ) : discrepancy f d n ≤ ctx.B :=
   ctx.bound n
 
+/-- `Int.natAbs` (sum-level) version of `bound_discrepancy`.
+
+Downstream stages sometimes prefer to work with the nucleus `apSum` directly rather than the
+wrapper `discrepancy`. This lemma lets them extract the underlying sum bound in one step.
+-/
+theorem bound_natAbs_apSum (ctx : ContextAlong f d) (n : ℕ) :
+    Int.natAbs (apSum f d n) ≤ ctx.B := by
+  simpa [discrepancy] using (ctx.bound_discrepancy (f := f) (d := d) n)
+
+/-- `Int.natAbs` (sum-level) bound for offset sums, derived from `bound_discOffset`.
+
+This is just the definitional expansion `discOffset = natAbs (apSumOffset ...)`.
+-/
+theorem bound_natAbs_apSumOffset (ctx : ContextAlong f d) (m n : ℕ) :
+    Int.natAbs (apSumOffset f d m n) ≤ ctx.B + ctx.B := by
+  simpa [discOffset] using (ctx.bound_discOffset (f := f) (d := d) (m := m) (n := n))
+
 /-- If the discrepancies along a fixed step `d` are uniformly bounded by `B`, then the corresponding
 *offset* discrepancies are uniformly bounded by `2*B`.
 
