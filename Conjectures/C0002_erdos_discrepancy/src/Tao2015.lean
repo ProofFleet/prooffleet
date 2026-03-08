@@ -1244,16 +1244,24 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
   -- Proof irrelevance: both sides are proofs of the same proposition.
   simp [composeShiftSameD]
 
-/-- The AP-sum bridge rule for `composeShiftSameD` (pointwise form). -/
-@[simp] theorem composeShiftSameD_apSum_contract {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+/-- The AP-sum bridge rule for `composeShiftSameD` (pointwise form).
+
+We do **not** mark this lemma `[simp]`: it expands a “semantic” statement about `apSum` into an
+offset normal form, and tends to be too aggressive in large proofs.
+-/
+theorem composeShiftSameD_apSum_contract {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
     (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) (n : ℕ) :
     apSum (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d n =
       apSumOffset f out₁.d (out₁.m + out₂.m) n := by
   -- This is exactly the `apSum_contract` field of the composite, with `d = out₁.d`.
   simp [composeShiftSameD]
 
-/-- The discrepancy rewrite rule for `composeShiftSameD` (pointwise form). -/
-@[simp] theorem composeShiftSameD_discrepancy_contract {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+/-- The discrepancy rewrite rule for `composeShiftSameD` (pointwise form).
+
+We do **not** mark this lemma `[simp]`: it unfolds `discrepancy`/`discOffset` wrappers and can cause
+simp blow-ups.
+-/
+theorem composeShiftSameD_discrepancy_contract {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
     (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) (n : ℕ) :
     discrepancy (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).g out₁.d n =
       discOffset f out₁.d (out₁.m + out₂.m) n := by
@@ -1265,7 +1273,7 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
 This is a common “pipeline ergonomics” lemma: it lets later stages treat successive shifts as a
 single shift by the sum of the offsets.
 -/
-@[simp] theorem composeShiftSameD_mkShiftOfSign_g_apply (f : ℕ → ℤ) (hf : IsSignSequence f)
+theorem composeShiftSameD_mkShiftOfSign_g_apply (f : ℕ → ℤ) (hf : IsSignSequence f)
     (d m₁ m₂ : ℕ) (hd : d > 0) (k : ℕ) :
     (ReductionOutput.composeShiftSameD
         (out₁ := ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m₁) hd)
