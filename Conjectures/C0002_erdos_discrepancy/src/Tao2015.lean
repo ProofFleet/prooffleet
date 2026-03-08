@@ -766,6 +766,31 @@ stage-1 reduction output, so it’s convenient to have its basic fields availabl
   simp [discrepancy, discOffset, ofShift_apSum_eq_apSumOffset (f := f) (hf := hf) (d := d) (m := m)
     (n := n) hd]
 
+/-- `apSum` form of the stage-1 contract for the canonical shift reduction, rewritten into the
+canonical affine-tail nucleus `apSumFrom`.
+
+This is a small `simp`-friendly wrapper around `Tao2015.apSum_shift_add_mul_eq_apSumFrom_mul`.
+-/
+@[simp] theorem ofShift_apSum_eq_apSumFrom_mul (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m n : ℕ) (hd : d > 0) :
+    apSum (ReductionOutput.ofShift (f := f) hf d m hd).g d n = apSumFrom f (m * d) d n := by
+  -- Rewrite `g` to the literal shift and apply the general shift→affine bridge.
+  simpa [ofShift_g (f := f) (hf := hf) (d := d) (m := m) hd] using
+    (Tao2015.apSum_shift_add_mul_eq_apSumFrom_mul (f := f) (d := d) (m := m) (n := n))
+
+/-- `discrepancy` form of the stage-1 contract for the canonical shift reduction, rewritten into
+`Int.natAbs (apSumFrom ...)`.
+
+This is often the cleanest “nucleus-level” normal form for consumers.
+-/
+@[simp] theorem ofShift_discrepancy_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m n : ℕ) (hd : d > 0) :
+    discrepancy (ReductionOutput.ofShift (f := f) hf d m hd).g d n =
+      Int.natAbs (apSumFrom f (m * d) d n) := by
+  -- Rewrite `g` to the literal shift and apply the general shift→affine discrepancy bridge.
+  simpa [ofShift_g (f := f) (hf := hf) (d := d) (m := m) hd] using
+    (Tao2015.discrepancy_shift_add_mul_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n))
+
 /-!
 ### Stage-1 regression examples
 
