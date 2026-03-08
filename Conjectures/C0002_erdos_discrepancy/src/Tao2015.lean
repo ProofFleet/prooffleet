@@ -1419,6 +1419,54 @@ theorem composeShiftSameD_boundedDiscrepancyAlong_iff_exists_discOffset_le {f : 
     (ReductionOutput.boundedDiscrepancyAlong_iff_exists_discOffset_le (f := f)
       (out := composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd))
 
+/-!
+### A “zero shift” reduction output (right identity for `composeShiftSameD`)
+
+When composing multiple shift-style reductions, it is convenient to have an explicit
+"do nothing" stage at the *same* step size `d`.
+
+This is distinct from `Tao2015.id`, which hard-codes `d = 1`.
+-/
+
+/-- Trivial reduction output on `out.g`: same `d`, zero offset `m = 0`, and `g` unchanged.
+
+This is the right-identity element for `composeShiftSameD` (up to proof irrelevance).
+-/
+noncomputable def shift0 {f : ℕ → ℤ} (out : Tao2015.ReductionOutput f) : Tao2015.ReductionOutput out.g := by
+  classical
+  refine
+    { d := out.d
+      m := 0
+      hd := out.hd
+      g := out.g
+      hg := out.hg
+      g_eq := rfl
+      apSum_contract := ?_
+      contract_discrepancy_le := ?_ }
+  · intro n
+    -- `apSumOffset _ _ 0 _ = apSum _ _ _`.
+    simpa [Tao2015.apSumOffset_zero]
+  · intro B hB n
+    -- Rewrite `discOffset _ _ 0 _` to `discrepancy`.
+    -- (Both are definitional wrappers around `Int.natAbs`.)
+    simpa [discOffset, discrepancy, Tao2015.apSumOffset_zero] using hB n
+
+@[simp] theorem shift0_d {f : ℕ → ℤ} (out : Tao2015.ReductionOutput f) : (shift0 out).d = out.d := rfl
+
+@[simp] theorem shift0_m {f : ℕ → ℤ} (out : Tao2015.ReductionOutput f) : (shift0 out).m = 0 := rfl
+
+@[simp] theorem shift0_g {f : ℕ → ℤ} (out : Tao2015.ReductionOutput f) : (shift0 out).g = out.g := rfl
+
+/-- Composing with `shift0` on the right preserves the offset parameter `m`. -/
+theorem composeShiftSameD_shift0_m {f : ℕ → ℤ} (out : Tao2015.ReductionOutput f) :
+    (composeShiftSameD (out₁ := out) (out₂ := shift0 out) rfl).m = out.m := by
+  simp [composeShiftSameD]
+
+/-- Composing with `shift0` on the right preserves the reduced sequence `g` (definitionally). -/
+@[simp] theorem composeShiftSameD_shift0_g {f : ℕ → ℤ} (out : Tao2015.ReductionOutput f) :
+    (composeShiftSameD (out₁ := out) (out₂ := shift0 out) rfl).g = out.g := by
+  simp [composeShiftSameD]
+
 end ReductionOutput
 
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
