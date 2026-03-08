@@ -2565,6 +2565,33 @@ theorem discOffset_add_eq_discrepancy_shiftRight (out : ReductionOutput f) (m₂
     discOffset f out.d (out.m + m₂) n = discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n := by
   simpa using (out.discrepancy_shiftRight_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)).symm
 
+/-- Rewrite the discrepancy of a further-shifted reduced sequence into the affine nucleus `apSumFrom`.
+
+This is the “all the way to `apSumFrom`” normal form:
+
+`discrepancy (shift out.g) out.d n = natAbs (apSumFrom f ((out.m+m₂)*out.d) out.d n)`.
+
+It is convenient for downstream stages that operate purely on affine progressions and prefer to
+avoid mentioning `discOffset` explicitly.
+-/
+theorem discrepancy_shiftRight_eq_natAbs_apSumFrom_add_mul (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n =
+      Int.natAbs (apSumFrom f ((out.m + m₂) * out.d) out.d n) := by
+  calc
+    discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n
+        = discOffset f out.d (out.m + m₂) n := by
+          simpa using
+            (out.discrepancy_shiftRight_eq_discOffset_add (f := f) (m₂ := m₂) (n := n))
+    _ = Int.natAbs (apSumFrom f ((out.m + m₂) * out.d) out.d n) := by
+          simpa using
+            (Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m + m₂) (n := n))
+
+/-- Reverse orientation of `discrepancy_shiftRight_eq_natAbs_apSumFrom_add_mul`. -/
+theorem natAbs_apSumFrom_add_mul_eq_discrepancy_shiftRight (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumFrom f ((out.m + m₂) * out.d) out.d n) =
+      discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n := by
+  simpa using (out.discrepancy_shiftRight_eq_natAbs_apSumFrom_add_mul (f := f) (m₂ := m₂) (n := n)).symm
+
 /-- Fixed-step discrepancy for a further-shifted reduced sequence, rewritten as a bundled offset witness.
 
 This is a small convenience lemma: it lets downstream stages immediately move from a statement
