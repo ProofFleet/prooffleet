@@ -565,6 +565,20 @@ theorem forall_iff_not_boundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) :
     (∀ C : ℕ, HasDiscrepancyAtLeastAlong g d C) ↔ ¬ BoundedDiscrepancyAlong g d := by
   simpa using (forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (g := g) (d := d))
 
+/-- Having arbitrarily large fixed-step discrepancy witnesses is the same as unbounded discrepancy
+along that step size.
+
+This lemma is pure “pipeline glue”: it lets later stages switch between the witness-style predicate
+`HasDiscrepancyAtLeastAlong` and the unboundedness predicate `UnboundedDiscrepancyAlong` with a
+single `simp`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong g d C) ↔ Tao2015.UnboundedDiscrepancyAlong g d := by
+  -- `UnboundedDiscrepancyAlong` uses the `B < discrepancy ...` witness form.
+  -- `HasDiscrepancyAtLeastAlong` uses the equivalent `∃ n, discrepancy ... > C` form.
+  simpa [Tao2015.UnboundedDiscrepancyAlong, HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt,
+    gt_iff_lt]
+
 end HasDiscrepancyAtLeastAlong
 
 /-!
