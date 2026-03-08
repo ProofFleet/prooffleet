@@ -978,6 +978,24 @@ theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f)
     -- rewrite `discOffset` to reduced discrepancy
     simpa [discOffset, discrepancy, out.apSum_contract] using h n
 
+/-- Pointwise version of `forall_discrepancy_le_iff_forall_discOffset_le`.
+
+This is handy when a downstream stage produces a bound for a *specific* witness `n`.
+-/
+theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (B n : ℕ) :
+    discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
+  -- Both sides are definitional wrappers around `Int.natAbs`, connected by `out.apSum_contract`.
+  simpa [discOffset, discrepancy, out.apSum_contract]
+
+/-- Pointwise strict-inequality version of `forall_discrepancy_lt_iff_forall_discOffset_lt`.
+
+We keep this as a separate lemma because many reductions naturally phrase witnesses as
+`B < ...`/`... > B` instead of a uniform `∀`-bound.
+-/
+theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (B n : ℕ) :
+    discrepancy out.g out.d n < B ↔ discOffset f out.d out.m n < B := by
+  simpa [discOffset, discrepancy, out.apSum_contract]
+
 /-- `BoundedDiscrepancyAlong` for the reduced sequence `out.g` is equivalent to a uniform bound
 on the offset discrepancy `discOffset f out.d out.m`.
 
