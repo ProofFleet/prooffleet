@@ -597,6 +597,35 @@ theorem hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_natAbs_apSumOffset_g
   simpa [discOffset] using
     (hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt (f := f) (d := d) (m := m) (C := C))
 
+/-- Fixed-step discrepancy for a shifted sequence rewritten into an affine-tail (`apSumFrom`) witness.
+
+This is occasionally cleaner than the offset form when downstream stages want to work with the
+canonical affine nucleus `apSumFrom`.
+-/
+theorem hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_natAbs_apSumFrom_mul_gt
+    (f : ℕ → ℤ) (d m C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  -- Unfold the fixed-step predicate and rewrite the shifted homogeneous AP sum into `apSumFrom`.
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- `natAbs (apSum (shift f)) = natAbs (apSumFrom f (m*d) ...)`.
+    simpa [natAbs_apSum_shift_add_mul_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)] using hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Rewrite `natAbs (apSumFrom ...)` back to `natAbs (apSum (shift f) ...)`.
+    simpa [natAbs_apSum_shift_add_mul_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)] using hn
+
+/-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_natAbs_apSumFrom_mul_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_natAbs_apSumFrom_mul_lt
+    (f : ℕ → ℤ) (d m C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumFrom f (m * d) d n)) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m) (C := C))
+
 /-- A further convenience: rewrite the shifted fixed-step predicate into a `discOffset` witness
 with the inequality oriented as `C < ...`.
 -/
