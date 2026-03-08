@@ -1129,6 +1129,46 @@ theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
   simpa [(out.discrepancy_eq_discOffset (f := f) n).symm] using hB n
 
 /-!
+### Boundedness along the reduced step, transported to `discOffset`
+
+These small lemmas let a downstream stage switch between:
+- bounded discrepancy along the reduced step for `out.g`, and
+- a uniform bound on the offset discrepancies `discOffset f out.d out.m`.
+
+They are pure “pipeline glue”: the content is obvious, but having them as named lemmas avoids
+repetitive `∃`-unpacking and rewriting.
+-/
+
+/-- Bounded discrepancy along the reduced step, rewritten as a uniform `discOffset` bound. -/
+theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact out.contract_discOffset_le (f := f) B hB
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    -- Transfer the `discOffset` bound to a discrepancy bound for the reduced sequence.
+    exact out.contract_discrepancy_le_of_forall_discOffset_le (f := f) B hB
+
+/-- Negated boundedness along the reduced step, rewritten as an explicit witness form on `discOffset`.
+
+This is the `ReductionOutput`-specialized version of the standard equivalence
+`¬ BoundedDiscrepancyAlong g d ↔ ∀ B, ∃ n, B < discrepancy g d n`, rewritten via
+`out.discrepancy_eq_discOffset`.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- Use the witness-form predicate `UnboundedDiscrepancyAlong` as a bridge.
+  calc
+    (¬ BoundedDiscrepancyAlong out.g out.d)
+        ↔ Tao2015.UnboundedDiscrepancyAlong out.g out.d := by
+            simpa using (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
+              (f := out.g) (d := out.d)).symm
+    _ ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) :=
+          out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)
+
+/-!
 ### Small `ContextAlong` helpers
 
 Later Track C stages often pass around a fixed-step boundedness context
