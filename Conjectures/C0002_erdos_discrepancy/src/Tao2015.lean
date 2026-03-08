@@ -4191,6 +4191,23 @@ theorem boundedDiscOffset_iff_exists_natAbs_apSumOffset_le (f : ℕ → ℤ) (d 
   -- `discOffset` is definitional.
   simp [BoundedDiscOffset, discOffset]
 
+/-- Strict-inequality version of `BoundedDiscOffset`.
+
+This is occasionally more convenient when a downstream stage naturally produces a bound of the form
+`discOffset … < B` rather than `≤ B`.
+-/
+theorem boundedDiscOffset_iff_exists_discOffset_lt (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffset f d m ↔ (∃ B : ℕ, ∀ n : ℕ, discOffset f d m n < B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B + 1, ?_⟩
+    intro n
+    exact Nat.lt_succ_of_le (hB n)
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    exact Nat.le_of_lt (hB n)
+
 /-- Tail-sum normal form for `BoundedDiscOffset`.
 
 Since `apSumFrom f (m*d) d n` is the tail sum starting at the affine point `m*d`, it is often the
