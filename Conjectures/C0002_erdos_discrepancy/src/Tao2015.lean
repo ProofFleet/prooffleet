@@ -850,6 +850,19 @@ theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) 
   -- `discrepancy = natAbs(apSum ...)`, then rewrite `apSum` using `apSum_eq_apSumFrom_mul`.
   simp [discrepancy, out.apSum_eq_apSumFrom_mul (f := f) (n := n)]
 
+/-- Transfer contract (≤) in affine-nucleus form.
+
+If you can bound the affine nucleus `Int.natAbs (apSumFrom f (out.m*out.d) out.d n)` uniformly,
+then you automatically bound the reduced discrepancies `discrepancy out.g out.d n`.
+
+This is often the cleanest interface for later Tao2015 stages that work directly with `apSumFrom`.
+-/
+theorem contract_discrepancy_le_of_bound_natAbs_apSumFrom_mul (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+
 /-- Sum-level witness normal form, but phrased using the affine nucleus `apSumFrom`. -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
