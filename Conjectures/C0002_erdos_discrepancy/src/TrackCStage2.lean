@@ -57,23 +57,43 @@ unbounded **offset discrepancy** witness.
 
 This is just a wrapper around
 `Tao2015.ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`.
+
+Note the inequality direction: this produces witnesses of the form `B < discOffset ...`.
 -/
-theorem forall_exists_discOffset_lt (out : Stage2Output f) :
+theorem forall_exists_discOffset_gt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n := by
   -- Unfold the Stage-2 witness form and transport it through the Stage-1 contract.
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)).1 out.unbounded)
 
-/-- Sum-level variant of `forall_exists_discOffset_lt`.
+/-- Backwards-compatible alias for `forall_exists_discOffset_gt`.
+
+Deprecated because the suffix `_lt` was misleading: the statement is `B < ...` (i.e. “greater than B”).
+-/
+@[deprecated "Use `forall_exists_discOffset_gt` (the statement is `B < discOffset ...`)." (since := "2026-03-08")]
+theorem forall_exists_discOffset_lt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n := by
+  simpa using out.forall_exists_discOffset_gt (f := f)
+
+/-- Sum-level variant of `forall_exists_discOffset_gt`.
 
 This is occasionally the right normal form for later analytic stages: it exposes the raw nucleus
 `apSumOffset` rather than the wrapper `discOffset`.
 -/
-theorem forall_exists_natAbs_apSumOffset_lt (out : Stage2Output f) :
+theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.out1.d out.out1.m n) := by
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (f := f)).1
       out.unbounded)
+
+/-- Backwards-compatible alias for `forall_exists_natAbs_apSumOffset_gt`.
+
+Deprecated because the suffix `_lt` was misleading: the statement is `B < ...`.
+-/
+@[deprecated "Use `forall_exists_natAbs_apSumOffset_gt` (the statement is `B < Int.natAbs ...`)." (since := "2026-03-08")]
+theorem forall_exists_natAbs_apSumOffset_lt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.out1.d out.out1.m n) := by
+  simpa using out.forall_exists_natAbs_apSumOffset_gt (f := f)
 
 end Stage2Output
 

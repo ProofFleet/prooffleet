@@ -42,7 +42,7 @@ def ofStage2Output (out2 : Tao2015.Stage2Output f) : Stage3Output f := by
   -- The Stage-1 reduction output has the generic lemma that this implies global unboundedness.
   exact
     out2.out1.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f)
-      (out2.forall_exists_discOffset_lt (f := f))
+      (out2.forall_exists_discOffset_gt (f := f))
 
 end Stage3Output
 
