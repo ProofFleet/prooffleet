@@ -1509,6 +1509,27 @@ theorem shiftRight_apSumFrom (out : ReductionOutput f) (m₂ n : ℕ) :
   simpa [shiftRight] using
     (ReductionOutput.apSumFrom_eq_apSum (f := f) (out := shiftRight (f := f) out m₂) (n := n))
 
+/-- Same as `shiftRight_apSumFrom`, but with the affine start point written additively.
+
+This avoids needing to normalize products of sums (`(out.m + m₂) * out.d`) in downstream steps.
+-/
+theorem shiftRight_apSumFrom_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom f (out.m * out.d + m₂ * out.d) out.d n =
+      apSum (shiftRight (f := f) out m₂).g out.d n := by
+  -- Rewrite the start point using `Nat.add_mul`, then reuse `shiftRight_apSumFrom`.
+  simpa [Nat.add_mul, Nat.mul_assoc, Nat.mul_add, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+    (shiftRight_apSumFrom (f := f) (out := out) (m₂ := m₂) (n := n))
+
+/-- Additive-start-point version of `shiftRight_apSumFrom_eq_apSumOffset`.
+
+This is occasionally the cleanest normal form when offsets are accumulated as sums.
+-/
+theorem shiftRight_apSumFrom_add_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom f (out.m * out.d + m₂ * out.d) out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- Rewrite the LHS start point and then use `shiftRight_apSumFrom_eq_apSumOffset`.
+  simpa [Nat.add_mul, Nat.mul_assoc, Nat.mul_add, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
+    (shiftRight_apSumFrom_eq_apSumOffset (f := f) (out := out) (m₂ := m₂) (n := n))
+
 /-- Rewrite the tail sum starting at `((out.m + m₂) * out.d)` directly as an offset sum of `f`. -/
 theorem shiftRight_apSumFrom_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
     apSumFrom f ((out.m + m₂) * out.d) out.d n = apSumOffset f out.d (out.m + m₂) n := by
