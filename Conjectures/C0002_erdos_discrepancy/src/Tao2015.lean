@@ -1055,6 +1055,60 @@ noncomputable def mkShift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ �
     -- Rewrite the discrepancy of `g` as the offset discrepancy of `f`.
     simpa [discrepancy, discOffset, hgEq, apSumOffset_eq_apSum_shift_add] using hB n
 
+/-!
+### `mkShift` simp API
+
+These small lemmas make it easy to use a `ReductionOutput` produced by `mkShift` without
+unfolding the constructor.
+-/
+
+@[simp] theorem mkShift_d (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShift (f := f) (d := d) (m := m) hd (g := g) (hg := hg) (hgEq := hgEq)).d = d := by
+  simp [mkShift]
+
+@[simp] theorem mkShift_m (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShift (f := f) (d := d) (m := m) hd (g := g) (hg := hg) (hgEq := hgEq)).m = m := by
+  simp [mkShift]
+
+@[simp] theorem mkShift_hd (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShift (f := f) (d := d) (m := m) hd (g := g) (hg := hg) (hgEq := hgEq)).hd = hd := by
+  simp [mkShift]
+
+@[simp] theorem mkShift_g_eq (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShift (f := f) (d := d) (m := m) hd (g := g) (hg := hg) (hgEq := hgEq)).g = g := by
+  simp [mkShift]
+
+@[simp] theorem mkShift_g_eq_shift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShift (f := f) (d := d) (m := m) hd (g := g) (hg := hg) (hgEq := hgEq)).g =
+      fun k => f (k + m * d) := by
+  -- `mkShift` stores `g` as a field, and `hgEq` identifies it as the intended shift.
+  simpa [mkShift, hgEq]
+
+@[simp] theorem mkShift_apSum_contract (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) (n : ℕ) :
+    apSum (mkShift (f := f) (d := d) (m := m) hd (g := g) (hg := hg) (hgEq := hgEq)).g d n =
+      apSumOffset f d m n := by
+  simp [mkShift]
+
+@[simp] theorem mkShift_discrepancy_contract (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) (n : ℕ) :
+    discrepancy (mkShift (f := f) (d := d) (m := m) hd (g := g) (hg := hg) (hgEq := hgEq)).g d n =
+      discOffset f d m n := by
+  simp [discrepancy, discOffset, mkShift]
+
+@[simp] theorem mkShift_contract_discrepancy_le (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ)
+    (hg : IsSignSequence g) (hgEq : g = fun k => f (k + m * d)) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f d m n ≤ B) (n : ℕ) :
+    (mkShift (f := f) (d := d) (m := m) hd (g := g) (hg := hg) (hgEq := hgEq)).contract_discrepancy_le B hB n =
+      hB n := by
+  -- The contract is just rewriting `discrepancy` to `discOffset`.
+  simp [mkShift, discrepancy, discOffset]
+
 /-- Convenience constructor: build a `ReductionOutput` from a *shift equation* and `hf`.
 
 This is a common refactor-friendly form: you might define `g` elsewhere and only later
