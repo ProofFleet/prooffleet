@@ -3599,6 +3599,28 @@ theorem exists_natAbs_apSumFrom_gt_iff_exists_discrepancy_gt (out : ReductionOut
   · -- Rewrite back.
     simpa [out.discrepancy_eq_natAbs_apSumFrom (f := f) (n := n)] using hn
 
+/-- `<`-oriented single-witness normal form (`C < ...`). -/
+theorem exists_natAbs_apSumFrom_lt_iff_exists_discrepancy_lt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) ↔
+      (∃ n : ℕ, C < discrepancy out.g out.d n) := by
+  -- Just rewrite `C < x` as `x > C` and reuse the `> C` lemma.
+  simpa [gt_iff_lt] using (out.exists_natAbs_apSumFrom_gt_iff_exists_discrepancy_gt (f := f) (C := C))
+
+/-- `>`-oriented single-witness normal form with the directions swapped.
+
+This is just the symmetric form of `exists_natAbs_apSumFrom_gt_iff_exists_discrepancy_gt`.
+-/
+theorem exists_discrepancy_gt_iff_exists_natAbs_apSumFrom_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discrepancy out.g out.d n > C) ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  simpa using (out.exists_natAbs_apSumFrom_gt_iff_exists_discrepancy_gt (f := f) (C := C)).symm
+
+/-- `<`-oriented single-witness normal form with the directions swapped. -/
+theorem exists_discrepancy_lt_iff_exists_natAbs_apSumFrom_lt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, C < discrepancy out.g out.d n) ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
+  simpa using (out.exists_natAbs_apSumFrom_lt_iff_exists_discrepancy_lt (f := f) (C := C)).symm
+
 /-- Unboundedness along the reduced step, expressed directly as tail-sum witnesses for `f`.
 
 This is just `∀ C, HasDiscrepancyAtLeastAlong out.g out.d C` rewritten through the bridge lemma
