@@ -1188,6 +1188,29 @@ theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : Reduction
     refine ⟨B, ?_⟩
     exact (out.forall_discrepancy_le_iff_forall_discOffset_le (f := f) (B := B)).2 hB
 
+/-- `BoundedDiscrepancyAlong` for the reduced sequence, expressed using the affine nucleus `apSumFrom`.
+
+This is often the cleanest “existential boundedness” contract for later Tao2015 stages:
+`apSumFrom` avoids the offset wrapper `discOffset` and lines up with affine AP sums used in the
+log-averaging parts of the argument.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSumFrom_mul_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) := by
+  constructor
+  · intro h
+    rcases (out.boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (f := f)).1 h with ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite `discOffset` into the affine nucleus.
+    simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine (out.boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (f := f)).2 ?_
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite back from the affine nucleus to `discOffset`.
+    simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n)] using hB n
+
 /-- Strict-inequality version of `forall_discrepancy_le_iff_forall_discOffset_le`. -/
 theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
