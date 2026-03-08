@@ -68,6 +68,35 @@ theorem exists_natAbs_apSumFrom_mul_gt_of_hasDiscrepancyAtLeastAlong_ofShift
     ((ReductionOutput.ofShift f hf d m hd).hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt
       (f := f) (C := C)).1 h
 
+/-- Example: unbounded fixed-step discrepancy for the reduced sequence produced by `ofShift`
+rewritten to an explicit `discOffset` witness family for `f`. -/
+theorem unboundedDiscrepancyAlong_ofShift_iff_forall_exists_discOffset_lt
+    (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    Tao2015.UnboundedDiscrepancyAlong (ReductionOutput.ofShift f hf d m hd).g d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  simpa using
+    (ReductionOutput.ofShift f hf d m hd).unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)
+
+/-- Example: “arbitrarily large discrepancy” for `ofShift` rewritten to affine-tail witnesses
+for `f`.
+
+This is a typical interface boundary: Stage 2 often consumes only `apSumFrom`-nucleus witnesses.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_ofShift_iff_forall_exists_natAbs_apSumFrom_mul_gt
+    (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong (ReductionOutput.ofShift f hf d m hd).g d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  constructor
+  · intro h C
+    -- Pointwise rewrite by the Stage-1 contract.
+    exact
+      ((ReductionOutput.ofShift f hf d m hd).hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt
+        (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact
+      ((ReductionOutput.ofShift f hf d m hd).hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt
+        (f := f) (C := C)).2 (h C)
+
 end Stage1Examples
 
 end Tao2015
