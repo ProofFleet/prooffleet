@@ -861,6 +861,35 @@ theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutpu
     HasDiscrepancyAtLeastAlong out.g out.d C :=
   (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 h
 
+/-- Promote a fixed-step discrepancy statement for `out.g` to the standard discrepancy predicate.
+
+This is a convenience wrapper around `HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast`, using
+`out.hd : out.d > 0`.
+-/
+theorem hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) {C : ℕ}
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    HasDiscrepancyAtLeast out.g C :=
+  HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d) (C := C) out.hd h
+
+/-- Build a standard discrepancy statement for the *literal shift* `fun k => f (k + out.m*out.d)`
+from a `discOffset` witness.
+
+This is a common packaging step: a later stage might produce a `discOffset` witness (about the
+original sequence), while the next stage expects a standard `HasDiscrepancyAtLeast` statement
+(about the shifted sequence).
+-/
+theorem hasDiscrepancyAtLeast_shift_of_exists_discOffset_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    HasDiscrepancyAtLeast (fun k => f (k + out.m * out.d)) C := by
+  -- First rewrite the `discOffset` witness into a fixed-step discrepancy statement.
+  have halong : HasDiscrepancyAtLeastAlong (fun k => f (k + out.m * out.d)) out.d C := by
+    exact
+      (Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt
+        (f := f) (d := out.d) (m := out.m) (C := C)).2 h
+  -- Then promote it to the standard `HasDiscrepancyAtLeast` predicate using `out.hd : out.d > 0`.
+  exact HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := fun k => f (k + out.m * out.d))
+    (d := out.d) (C := C) out.hd halong
+
 /-- Quantified version of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
 theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
     (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
