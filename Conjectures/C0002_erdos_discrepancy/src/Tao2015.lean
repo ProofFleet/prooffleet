@@ -1102,6 +1102,34 @@ theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
   simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using
     (out.apSum_contract n)
 
+/-- `Int.natAbs` form of `apSum_eq_apSumFrom_mul`.
+
+This is a useful nucleus-level rewrite when downstream stages bound the affine-tail sums directly.
+-/
+theorem natAbs_apSum_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [out.apSum_eq_apSumFrom_mul (f := f) (n := n)]
+
+/-- Rewrite `discrepancy out.g out.d` into the affine-tail nucleus for the original sequence.
+
+This combines `discrepancy = natAbs(apSum …)` with `apSum_eq_apSumFrom_mul`.
+-/
+theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [discrepancy, out.apSum_eq_apSumFrom_mul (f := f) (n := n)]
+
+/-- Transfer a uniform nucleus-level bound on the affine-tail sums of `f` into a discrepancy bound
+for the reduced sequence `out.g`.
+
+This is the most common “consumer” contract when later stages produce bounds (or unboundedness)
+statements formulated in terms of `apSumFrom`.
+-/
+theorem contract_discrepancy_le_of_forall_natAbs_apSumFrom_mul_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+
 /-- Rewrite the offset AP sum bundled in `out` into the affine nucleus `apSumFrom`.
 
 This is just `Tao2015.apSumOffset_eq_apSumFrom_mul` with `d,m` taken from `out`.
