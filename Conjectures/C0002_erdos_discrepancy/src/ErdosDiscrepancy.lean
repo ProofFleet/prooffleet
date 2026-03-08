@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy
 import Conjectures.C0002_erdos_discrepancy.src.Tao2015
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage1Examples
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2
 
 /-!
 A conjecture-style stub for the Erdős discrepancy theorem (Tao 2015).
