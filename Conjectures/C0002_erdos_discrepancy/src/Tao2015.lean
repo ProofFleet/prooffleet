@@ -1168,6 +1168,16 @@ unfolding `mkShiftOfEq`.
   -- `mkShiftOfEq` stores `g` as a field, and `hgEq` identifies it as the intended shift.
   simpa [mkShiftOfEq, hgEq]
 
+/-- Convenience rewrite: `apSum` of the shifted output is `apSumOffset`.
+
+Not marked `[simp]` to avoid rewriting loops (and to avoid expanding `apSumOffset`).
+-/
+theorem mkShiftOfEq_apSum_contract (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) (n : ℕ) :
+    apSum (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).g d n =
+      apSumOffset f d m n := by
+  simp [mkShiftOfEq, mkShift]
+
 /-- Convenience rewrite: `discrepancy` of the shifted output is `discOffset`.
 
 Not marked `[simp]` to avoid global simp pulling in `discrepancy`/`discOffset` expansions.
