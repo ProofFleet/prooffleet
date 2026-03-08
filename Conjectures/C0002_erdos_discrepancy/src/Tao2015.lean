@@ -1138,6 +1138,48 @@ theorem boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSumFrom_mul_le (out :
       simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul] using hB n
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using this
 
+/-!
+### Building a fixed-step discrepancy context from the reduction output
+
+Downstream stages often prefer to work with the record `ContextAlong` rather than the existential
+predicate `BoundedDiscrepancyAlong`.  The following helpers let a consumer build such a context
+from a uniform offset-discrepancy bound (and conversely extract an offset bound from a context).
+
+These are pure “pipeline glue”: the proofs are immediate from
+`out.discrepancy_eq_discOffset`.
+-/
+
+/-- Build a `ContextAlong` for the reduced sequence from a uniform `discOffset` bound. -/
+noncomputable def contextAlong_of_exists_forall_discOffset_le (out : ReductionOutput f)
+    (h : ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    ContextAlong out.g out.d := by
+  classical
+  refine ⟨Classical.choose h, ?_⟩
+  intro n
+  have hn : discOffset f out.d out.m n ≤ Classical.choose h :=
+    Classical.choose_spec h n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+/-- Extract a uniform `discOffset` bound from a `ContextAlong` for the reduced sequence. -/
+theorem forall_discOffset_le_of_contextAlong (out : ReductionOutput f)
+    (ctx : ContextAlong out.g out.d) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
+  intro n
+  -- Rewrite `discOffset` to `discrepancy out.g`, then apply the context bound.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using (ctx.bound_discrepancy n)
+
+/-- `BoundedDiscrepancyAlong` for the reduced sequence gives a `ContextAlong` for the reduced sequence. -/
+theorem contextAlong_of_boundedDiscrepancyAlong (out : ReductionOutput f)
+    (h : BoundedDiscrepancyAlong out.g out.d) :
+    ContextAlong out.g out.d :=
+  ContextAlong.ofBoundedDiscrepancyAlong (f := out.g) (d := out.d) h
+
+/-- If the reduced sequence has a `ContextAlong`, then `BoundedDiscrepancyAlong` holds. -/
+theorem boundedDiscrepancyAlong_of_contextAlong (out : ReductionOutput f)
+    (ctx : ContextAlong out.g out.d) :
+    BoundedDiscrepancyAlong out.g out.d :=
+  ctx.toBoundedDiscrepancyAlong
+
 /-- Transfer contract, stated directly in terms of `discOffset`.
 
 This lemma is logically redundant (it follows from `discrepancy_eq_discOffset`), but it is a
