@@ -1125,6 +1125,47 @@ noncomputable def mkShiftOfEq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : �
   -- transport `IsSignSequence` across the definitional equality
   simpa [hgEq] using (Tao2015.IsSignSequence.shift_add_mul (f := f) hf m d)
 
+/-!
+### `mkShiftOfEq` simp API
+
+`mkShiftOfEq` is the most refactor-friendly constructor: you can define an auxiliary sequence `g`
+first, and only later prove it is a shift of `f`.
+
+The following tiny lemmas make it convenient to use the resulting `ReductionOutput` without
+unfolding `mkShiftOfEq`.
+-/
+
+@[simp] theorem mkShiftOfEq_d (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+    (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).d = d := by
+  simp [mkShiftOfEq]
+
+@[simp] theorem mkShiftOfEq_m (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+    (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).m = m := by
+  simp [mkShiftOfEq]
+
+@[simp] theorem mkShiftOfEq_g_eq_shift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+    (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).g =
+      fun k => f (k + m * d) := by
+  -- `mkShiftOfEq` stores `g` as a field, and `hgEq` identifies it as the intended shift.
+  simpa [mkShiftOfEq, hgEq]
+
+@[simp] theorem mkShiftOfEq_discrepancy_contract (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) (n : ℕ) :
+    discrepancy (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).g d n =
+      discOffset f d m n := by
+  simp [mkShiftOfEq, discrepancy, discOffset, mkShift]
+
+@[simp] theorem mkShiftOfEq_contract_discrepancy_le (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f d m n ≤ B) (n : ℕ) :
+    (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).contract_discrepancy_le B hB n =
+      hB n := by
+  -- The contract is just rewriting `discrepancy` to `discOffset`.
+  simp [mkShiftOfEq, mkShift, discrepancy, discOffset]
+
 /-- Even more convenient constructor: build the shifted reduction output directly from `hf`.
 
 This is the typical situation in the Tao pipeline: the reduced sequence *is* a shift of the
