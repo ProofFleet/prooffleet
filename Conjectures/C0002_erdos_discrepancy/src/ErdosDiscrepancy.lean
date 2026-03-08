@@ -29,10 +29,21 @@ theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
   refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
   exact tao2015_not_boundedDiscrepancy (f := f) (hf := hf)
 
-/-- Surface form of `erdos_discrepancy`, matching the usual notation `∑_{i=1}^n f (i*d)`.
+/-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
-This is a thin wrapper around the nucleus predicate `HasDiscrepancyAtLeast`, via
-`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc`.
+This is the most pipeline-friendly surface statement:
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ |apSum f d n| > C`.
+-/
+theorem erdos_discrepancy_apSum (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
+      (erdos_discrepancy (f := f) (hf := hf))
+
+/-- Paper-notation surface form of `erdos_discrepancy`, matching `∑_{i=1}^n f (i*d)`.
+
+This is a thin wrapper around `erdos_discrepancy_apSum`, via
+`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`.
 -/
 theorem erdos_discrepancy_sum_Icc (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
