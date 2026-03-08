@@ -1161,6 +1161,16 @@ unfolding `mkShiftOfEq`.
     (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).m = m := by
   simp [mkShiftOfEq]
 
+@[simp] theorem mkShiftOfEq_hd (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+    (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).hd = hd := by
+  simp [mkShiftOfEq]
+
+@[simp] theorem mkShiftOfEq_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
+    (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) :
+    (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).g = g := by
+  simp [mkShiftOfEq]
+
 @[simp] theorem mkShiftOfEq_g_eq_shift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0)
     (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) :
     (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).g =
