@@ -3736,6 +3736,12 @@ theorem discrepancy_le_iff_natAbs_apSumFrom_le_contract (out : ReductionOutput f
   -- Rewrite `discrepancy` using the tail-sum bridge.
   simpa [out.discrepancy_eq_natAbs_apSumFrom (f := f) (n := n)]
 
+/-- Strict-inequality version of `discrepancy_le_iff_natAbs_apSumFrom_le_contract`. -/
+theorem discrepancy_lt_iff_natAbs_apSumFrom_lt_contract (out : ReductionOutput f) (B n : ℕ) :
+    discrepancy out.g out.d n < B ↔ Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B := by
+  -- Rewrite `discrepancy` using the same tail-sum bridge.
+  simpa [out.discrepancy_eq_natAbs_apSumFrom (f := f) (n := n)]
+
 /-!
 ### Fixed-step discrepancy witnesses, rewritten through the tail-sum API
 
