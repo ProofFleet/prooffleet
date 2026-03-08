@@ -5161,6 +5161,18 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reducti
   -- Rewrite `discrepancy out.g` to `discOffset f` using the reduction interface.
   simp [UnboundedDiscrepancyAlong, out.discrepancy_eq_discOffset]
 
+/-- Unbounded discrepancy for the reduced sequence `out.g` (along `out.d`) rewritten into the
+corresponding tail-sum witness form for the original sequence.
+
+This is the `apSumFrom` analogue of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_gt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
+  -- `UnboundedDiscrepancyAlong` is definitional in terms of `discrepancy`.
+  -- Rewrite `discrepancy out.g` using the reduction contract to the tail-sum nucleus.
+  simp [UnboundedDiscrepancyAlong, out.discrepancy_eq_natAbs_apSumFrom_mul]
+
 /-- A slightly more pipeline-friendly repackaging of `not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`
 using the predicate `HasDiscrepancyAtLeastAlong`.
 -/
