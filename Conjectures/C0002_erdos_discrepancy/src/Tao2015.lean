@@ -694,6 +694,33 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
   simp [discOffset, discrepancy, out.apSum_contract]
 
 /-!
+### Re-associating offsets through a `ReductionOutput`
+
+When composing multiple Track C stages, offsets naturally add.
+`Tao2015.discOffset_add_pre` lets us peel off a leading offset by shifting the sequence.
+The following wrappers specialize this to the shift packaged in `out`.
+-/
+
+/-- Re-associate an offset past the reduction output, at the `apSumOffset` level.
+
+This is `Tao2015.apSumOffset_add_pre` rewritten using `out.g_eq`.
+-/
+theorem apSumOffset_add_pre_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
+  -- Peel off the first offset using the general lemma, then rewrite the shifted sequence to `out.g`.
+  simpa [out.g_eq] using
+    (Tao2015.apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
+/-- Re-associate an offset past the reduction output, at the `discOffset` level.
+
+This is `Tao2015.discOffset_add_pre` rewritten using `out.g_eq`.
+-/
+theorem discOffset_add_pre_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
+  simpa [out.g_eq] using
+    (Tao2015.discOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
+/-!
 ### Consumer-facing rewrite lemmas
 
 These are tiny wrappers around the fields of `ReductionOutput`. They make the interface feel like
