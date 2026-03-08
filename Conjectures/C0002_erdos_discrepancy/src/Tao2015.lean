@@ -456,7 +456,9 @@ theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
     (hB : ∀ n, discrepancy out.g out.d n ≤ B) :
     ∀ n, discOffset f out.d out.m n ≤ B := by
   intro n
-  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+  -- Avoid depending on `discOffset_eq_discrepancy`, since it is derived later from `apSum_contract`.
+  -- Both sides are definitional wrappers around `Int.natAbs`.
+  simpa [discOffset, discrepancy, out.apSum_contract] using hB n
 
 /-- `HasDiscrepancyAtLeastAlong` is invariant under rewriting the reduced sequence via `out.g_eq`. -/
 theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : ℕ) :
