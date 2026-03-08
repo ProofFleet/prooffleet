@@ -3476,6 +3476,26 @@ theorem discOffset_eq_natAbs_apSumFrom (out : ReductionOutput f) (n : ℕ) :
   -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
   simpa [discOffset, out.natAbs_apSumFrom_eq_natAbs_apSumOffset (f := f) (n := n)]
 
+/-- `∃`-witness normal form: `discOffset` witnesses are equivalent to tail-sum witnesses.
+
+This is often the cleanest bridge when one stage produces discrepancy witnesses in the
+`discOffset` wrapper while the next stage wants to reason directly about `apSumFrom`.
+-/
+theorem exists_discOffset_gt_iff_exists_natAbs_apSumFrom_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discOffset f out.d out.m n > C) ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa [out.discOffset_eq_natAbs_apSumFrom (f := f) (n := n)] using hn
+  · simpa [out.discOffset_eq_natAbs_apSumFrom (f := f) (n := n)] using hn
+
+/-- `<`-oriented version of `exists_discOffset_gt_iff_exists_natAbs_apSumFrom_gt`. -/
+theorem exists_discOffset_lt_iff_exists_natAbs_apSumFrom_lt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discOffset f out.d out.m n < C) ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < C) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa [out.discOffset_eq_natAbs_apSumFrom (f := f) (n := n)] using hn
+  · simpa [out.discOffset_eq_natAbs_apSumFrom (f := f) (n := n)] using hn
+
 /-- `∃`-witness normal form: tail-sum witnesses are equivalent to offset-sum witnesses.
 
 This is a tiny helper, but it is convenient when a downstream stage naturally constructs a
