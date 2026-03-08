@@ -1218,6 +1218,24 @@ theorem discOffset_add_eq_discOffset_g (out : ReductionOutput f) (m₂ n : ℕ) 
   simpa [out.g_eq] using
     (Tao2015.discOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
+/-- Peel off the initial offset `out.m*out.d` at the affine-tail level (`apSumFrom`).
+
+This is a convenient reformulation of `apSumOffset_add_eq_apSumOffset_g` using the bridge
+`apSumOffset_eq_apSumFrom_mul`.
+-/
+theorem apSumFrom_add_mul_eq_apSumFrom_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom f ((out.m + m₂) * out.d) out.d n = apSumFrom out.g (m₂ * out.d) out.d n := by
+  -- Rewrite both sides to offset sums, then use `apSumOffset_add_eq_apSumOffset_g`.
+  -- LHS: `apSumFrom f ((out.m+m₂)*d) d n = apSumOffset f d (out.m+m₂) n`.
+  -- RHS: `apSumFrom out.g (m₂*d) d n = apSumOffset out.g d m₂ n`.
+  calc
+    apSumFrom f ((out.m + m₂) * out.d) out.d n
+        = apSumOffset f out.d (out.m + m₂) n := by
+            simpa using (Tao2015.apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m + m₂) (n := n))
+    _ = apSumOffset out.g out.d m₂ n := out.apSumOffset_add_eq_apSumOffset_g (f := f) (m₂ := m₂) (n := n)
+    _ = apSumFrom out.g (m₂ * out.d) out.d n := by
+            simpa using (Tao2015.apSumOffset_eq_apSumFrom_mul (f := out.g) (d := out.d) (m := m₂) (n := n))
+
 /-- `natAbs`-AP-sum form of `discOffset_add_eq_discOffset_g`.
 
 This is useful when a later stage wants to reason directly about the AP sums rather than the
