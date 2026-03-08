@@ -9848,6 +9848,16 @@ theorem not_boundedDiscOffset (s2 : Stage2Output f out) : ¬ BoundedDiscOffset f
 theorem not_boundedDiscrepancyAlong (s2 : Stage2Output f out) : ¬ BoundedDiscrepancyAlong out.g out.d := by
   exact (stage2_witness_discOffset_iff_not_boundedDiscrepancyAlong (f := f) (out := out)).1 s2.unbounded_discOffset
 
+/-- Convert packaged stage-2 output to the witness-style predicate
+`Tao2015.UnboundedDiscrepancyAlong out.g out.d`.
+
+This is a one-line interface hop: `Stage2Output` stores witnesses about `discOffset f out.d out.m`,
+while `UnboundedDiscrepancyAlong` talks about the discrepancy of the reduced sequence `out.g`.
+-/
+theorem unboundedDiscrepancyAlong (s2 : Stage2Output f out) : Tao2015.UnboundedDiscrepancyAlong out.g out.d := by
+  -- `out` already provides `UnboundedDiscrepancyAlong out.g out.d ↔ ∀ B, ∃ n, B < discOffset ...`.
+  exact (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)).2 s2.unbounded_discOffset
+
 /-- Convert packaged stage-2 output to `¬ BoundedDiscrepancy out.g` (global boundedness).
 
 This is the cleanest negated-boundedness form for contradiction stages that do *not* want to
