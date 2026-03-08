@@ -552,6 +552,58 @@ structure ReductionOutput (f : ℕ → ℤ) : Type where
 namespace ReductionOutput
 
 /-!
+### Basic derived boundedness contexts
+
+A common way to *consume* a stage-1 reduction is:
+- assume the original sequence has bounded discrepancy (globally),
+- instantiate the reduction `out : ReductionOutput f`,
+- immediately get a boundedness context along the fixed step `out.d` for the reduced sequence
+  `out.g`.
+
+These small wrappers keep later stages from having to manually rewrite `out.g` to a literal shift
+and re-prove the same bound each time.
+-/
+
+/-- Turn a global boundedness context for `f` into a fixed-step boundedness context for `out.g`.
+
+The output bound is `ctx.B + ctx.B` (i.e. `2*B`) because offset/tail sums can differ from prefix
+sums by a subtraction.
+-/
+theorem contextAlong_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    Tao2015.ContextAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  -- Rewrite `out.g` to the literal shift and apply the standard shift bound.
+  simpa [out.g_eq] using
+    (ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+
+/-- If `f` has bounded discrepancy (globally), then the reduced sequence `out.g` has bounded
+fixed-step discrepancy along `out.d`.
+
+This is the `BoundedDiscrepancy`-to-`BoundedDiscrepancyAlong` specialization of
+`contextAlong_ofContext`.
+-/
+theorem boundedDiscrepancyAlong_ofBoundedDiscrepancy (out : ReductionOutput f)
+    (hb : BoundedDiscrepancy f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  -- Package the existential bound as a convenient context.
+  let ctx : Tao2015.Context f := Tao2015.Context.ofBoundedDiscrepancy (f := f) hb
+  -- Then use the derived fixed-step context.
+  refine (Tao2015.ContextAlong.toBoundedDiscrepancyAlong (f := out.g) (d := out.d)
+    (ctx := out.contextAlong_ofContext (f := f) ctx))
+
+/-- A one-line bound lemma extracted from `contextAlong_ofContext`.
+
+This can be handy in later reductions that want the bound but do not want to carry around the
+entire `ContextAlong` record.
+-/
+theorem bound_discrepancy_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) (n : ℕ) :
+    discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  -- Use the `ContextAlong` produced by `contextAlong_ofContext`.
+  simpa using (Tao2015.ContextAlong.bound_discrepancy (f := out.g) (d := out.d)
+    (ctx := out.contextAlong_ofContext (f := f) ctx) n)
+
+/-!
 ### Constructors
 
 The first reduction interface in Track C is deliberately verbose, because we want later stages to
