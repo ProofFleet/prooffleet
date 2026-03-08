@@ -1148,6 +1148,17 @@ theorem discOffset_add_pre_out (out : ReductionOutput f) (m₂ n : ℕ) :
   simpa [out.g_eq] using
     (Tao2015.discOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
+/-- Re-associate an offset past the reduction output, at the nucleus (`Int.natAbs`) level.
+
+This is the `Int.natAbs` analogue of `discOffset_add_pre_out`.
+-/
+theorem natAbs_apSumOffset_add_pre_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumOffset f out.d (out.m + m₂) n) =
+      Int.natAbs (apSumOffset out.g out.d m₂ n) := by
+  -- Peel off the leading offset, then rewrite the shifted sequence to `out.g`.
+  simpa [out.g_eq] using
+    (Tao2015.natAbs_apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
 /-!
 ### Consumer-facing rewrite lemmas
 
