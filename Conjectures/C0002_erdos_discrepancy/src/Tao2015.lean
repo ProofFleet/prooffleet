@@ -599,6 +599,16 @@ theorem natAbs_apSum_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ)
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
   simp [out.apSum_eq_apSumFrom_mul (f := f) (n := n)]
 
+/-- Rewrite `discrepancy out.g out.d` as a `natAbs` affine AP sum of `f`.
+
+This is a tiny convenience lemma: downstream stages often prefer to work with the affine nucleus
+`apSumFrom` rather than the offset/homogeneous forms.
+-/
+theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  -- `discrepancy = natAbs(apSum ...)`, then rewrite `apSum` using `apSum_eq_apSumFrom_mul`.
+  simp [discrepancy, out.apSum_eq_apSumFrom_mul (f := f) (n := n)]
+
 /-- Sum-level witness normal form, but phrased using the affine nucleus `apSumFrom`. -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
