@@ -957,6 +957,27 @@ theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- Transfer contract, stated directly in terms of `discOffset`.
+
+This lemma is logically redundant (it follows from `discrepancy_eq_discOffset`), but it is a
+useful consumer-facing normal form: many downstream stages will naturally produce uniform bounds
+on `discOffset f out.d out.m` and want to immediately use them as bounds on the reduced
+discrepancies.
+-/
+theorem contract_discrepancy_le_of_forall_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  -- Rewrite to the offset discrepancy bound and apply `hB`.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- Strict-inequality version of `contract_discrepancy_le_of_forall_discOffset_le`. -/
+theorem contract_discrepancy_lt_of_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n < B) :
+    ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
 /-- Discrepancy of the reduced sequence rewritten as a `natAbs` bound on the original offset sum.
 
 This is just `discrepancy_eq_discOffset` plus the definitional expansion
