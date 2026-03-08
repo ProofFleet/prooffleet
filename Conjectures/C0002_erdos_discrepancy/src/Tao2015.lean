@@ -1100,6 +1100,31 @@ theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
   -- Just rewrite via `discrepancy_eq_discOffset`.
   simp [out.discrepancy_eq_discOffset (f := f) (n := n)]
 
+/-!
+### Interop with `Tao2015.Context`
+
+A typical Track C pipeline stage starts with a global boundedness context
+`ctx : Tao2015.Context f` and then constructs a `ReductionOutput f` describing some derived
+sequence `out.g`.
+
+The following lemma is the basic ergonomic bridge: it immediately produces a fixed-step
+boundedness statement for `out.g` from the global `ctx`.
+-/
+
+/-- If `f` has a global boundedness context `ctx`, then the reduced sequence `out.g` has bounded
+fixed-step discrepancy along `out.d`, with bound `2*ctx.B`.
+
+This is just `ctx.bound_discOffset` transported through `out.contract_discrepancy_le`.
+-/
+theorem discrepancy_le_two_mul_B_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  -- First bound the *offset* discrepancy using the global context.
+  have hOffset : ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+    intro n
+    exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+  -- Then transport it to the reduced sequence using the reduction contract.
+  exact out.contract_discrepancy_le (B := ctx.B + ctx.B) hOffset
+
 /-- Pointwise transfer (`<`) between the reduced discrepancy and the original offset discrepancy. -/
 theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (n B : ℕ) :
     discrepancy out.g out.d n < B ↔ discOffset f out.d out.m n < B := by
