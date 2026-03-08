@@ -1179,6 +1179,49 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
     discOffset f out.d out.m n = discrepancy out.g out.d n := by
   simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
 
+/-!
+### Pointwise transfer wrappers
+
+Downstream stages often want to translate inequalities about the reduced discrepancy into
+inequalities about the corresponding offset discrepancy of the original sequence (and vice
+versa).  These wrappers let `simp` close those goals immediately.
+-/
+
+/-- Pointwise `≤` transfer: `discrepancy out.g` is interchangeable with the corresponding
+`discOffset` witness.
+
+Marked `[simp]` because it is a one-step rewrite consequence of `discrepancy_eq_discOffset`.
+-/
+@[simp] theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
+    discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
+  simp [out.discrepancy_eq_discOffset (f := f) (n := n)]
+
+/-- Pointwise `<` transfer: strict inequality version of
+`discrepancy_le_iff_discOffset_le`.
+-/
+@[simp] theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (n B : ℕ) :
+    discrepancy out.g out.d n < B ↔ discOffset f out.d out.m n < B := by
+  simp [out.discrepancy_eq_discOffset (f := f) (n := n)]
+
+/-- One-direction pointwise transfer (`≤`), written without `↔`.
+
+Useful when the goal is a bound on the reduced discrepancy and the hypothesis is already a bound
+on `discOffset`.
+-/
+theorem discrepancy_le_of_discOffset_le (out : ReductionOutput f) {n B : ℕ}
+    (h : discOffset f out.d out.m n ≤ B) :
+    discrepancy out.g out.d n ≤ B := by
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h
+
+/-- One-direction pointwise transfer (`≤`), from reduced discrepancy to offset discrepancy.
+
+This is a small wrapper around `contract_discOffset_le`.
+-/
+theorem discOffset_le_of_discrepancy_le (out : ReductionOutput f) {n B : ℕ}
+    (h : discrepancy out.g out.d n ≤ B) :
+    discOffset f out.d out.m n ≤ B := by
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h
+
 /-- Expand the defining equation of `g`. -/
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
