@@ -809,6 +809,27 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : Reduc
   simpa [discOffset] using
     (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C))
 
+/-- Fixed-step large discrepancy for the reduced sequence rewritten to the affine nucleus `apSumFrom`.
+
+This is the `apSumFrom` analogue of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`.
+It is often the cleanest witness form to pass to later stages, since many reductions are stated
+in terms of the affine-tail nucleus rather than offsets.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Rewrite `apSum out.g` to a shifted sum (via `out.g_eq`), then into `apSumFrom`.
+    simpa [HasDiscrepancyAtLeastAlong, out.g_eq,
+      Tao2015.apSum_shift_add_mul_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n)] using hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Reverse direction: rewrite `apSumFrom` back to the shifted sum, then to `out.g`.
+    simpa [HasDiscrepancyAtLeastAlong, out.g_eq,
+      Tao2015.apSum_shift_add_mul_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n)] using hn
+
 /-- Promote a fixed-step discrepancy witness for the reduced sequence to the global predicate
 `HasDiscrepancyAtLeast`.
 
