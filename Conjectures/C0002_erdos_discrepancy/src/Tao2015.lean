@@ -599,6 +599,22 @@ We only add the “forward” directions as simp lemmas, to avoid rewrite loops.
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
   simp [out.apSum_eq_apSumOffset (f := f) (n := n)]
 
+/-- Rewrite the reduced discrepancy as an offset discrepancy of the original sequence.
+
+Marked `[simp]` because it is the main consumer-facing normalization rule for the interface.
+-/
+@[simp] theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  simp [discrepancy, discOffset]
+
+/-- Reverse orientation of `discrepancy_eq_discOffset`.
+
+Not marked `[simp]` to avoid rewriting loops.
+-/
+theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discrepancy out.g out.d n := by
+  simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
+
 /-- Expand the defining equation of `g`. -/
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
