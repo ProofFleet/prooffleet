@@ -8105,6 +8105,33 @@ theorem exists_natAbs_apSumOffset_lt (s2 : Stage2Output f out) (C : ℕ) :
   refine ⟨n, ?_⟩
   simpa [discOffset] using hn
 
+/-- Extract a single discrepancy witness for the reduced sequence `out.g` (greater-than orientation). -/
+theorem exists_discrepancy_gt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  rcases s2.exists_discOffset_gt (f := f) (out := out) C with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- Rewrite the offset discrepancy into the reduced discrepancy.
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+
+/-- Extract a single discrepancy witness for the reduced sequence `out.g` (less-than orientation). -/
+theorem exists_discrepancy_lt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, C < discrepancy out.g out.d n := by
+  rcases s2.exists_discOffset_lt (f := f) (out := out) C with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+
+/-- Extract a single `natAbs(apSumFrom ...)` witness from `Stage2Output`.
+
+This is the “affine nucleus” normal form: it rewrites the stage-2 witness about `discOffset`
+into a witness about the tail-sum nucleus `apSumFrom f (out.m*out.d) out.d`.
+-/
+theorem exists_natAbs_apSumFrom_mul_lt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  rcases s2.exists_discOffset_lt (f := f) (out := out) C with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- Convert `discOffset` to `natAbs (apSumFrom ...)` using the bridge lemma.
+  simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul] using hn
+
 /-- Extract a single `natAbs(apSumOffset ...)` witness from `Stage2Output` (greater-than orientation). -/
 theorem exists_natAbs_apSumOffset_gt (s2 : Stage2Output f out) (C : ℕ) :
     ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C := by
