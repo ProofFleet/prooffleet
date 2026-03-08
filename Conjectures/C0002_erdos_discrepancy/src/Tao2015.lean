@@ -962,6 +962,20 @@ theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f)
   · intro h n
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
 
+/-- Named forward direction of `forall_discrepancy_le_iff_forall_discOffset_le`. -/
+theorem forall_discOffset_le_of_forall_discrepancy_le (out : ReductionOutput f) (B : ℕ)
+    (h : ∀ n : ℕ, discrepancy out.g out.d n ≤ B) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  intro n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+
+/-- Named backward direction of `forall_discrepancy_le_iff_forall_discOffset_le`. -/
+theorem forall_discrepancy_le_of_forall_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (h : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+
 /-- Uniform `<` bounds for discrepancies of the reduced sequence rewritten to uniform `<` bounds
 for the bundled offset discrepancies. -/
 theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
