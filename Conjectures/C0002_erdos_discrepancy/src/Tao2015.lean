@@ -5286,6 +5286,18 @@ theorem not_iff_forall_exists_gt (f : ℕ → ℤ) (d m : ℕ) :
   simpa using
     (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m))
 
+/-- Tail-sum normal form of `BoundedDiscOffset.not_iff_forall_exists_gt`.
+
+This is the statement shape most convenient for later Tao2015 stages that reason about affine tails
+(`apSumFrom f (m*d) d n`) rather than the bundled wrapper `discOffset`.
+-/
+theorem not_iff_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ BoundedDiscOffset f d m) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumFrom f (m * d) d n)) := by
+  -- `discOffset f d m n = natAbs (apSumFrom f (m*d) d n)`.
+  simpa [discOffset_eq_natAbs_apSumFrom_mul] using
+    (not_iff_forall_exists_gt (f := f) (d := d) (m := m))
+
 end BoundedDiscOffset
 
 namespace ReductionOutput
