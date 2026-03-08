@@ -470,6 +470,47 @@ structure ReductionOutput (f : ℕ → ℤ) : Type where
 
 namespace ReductionOutput
 
+/-!
+### Constructors
+
+The first reduction interface in Track C is deliberately verbose, because we want later stages to
+*consume* a well-typed record instead of rebuilding rewrite lemmas each time.
+
+To make it easy to produce a `ReductionOutput` in early stages, we provide a small constructor for
+the common case where the reduced sequence is literally a shift of the input sequence.
+-/
+
+/-- Build a `ReductionOutput` from the literal shift `g k := f (k + m*d)`.
+
+This is the intended “default constructor” for stage-1 reductions.
+
+Note: the `apSum_contract` and discrepancy-transfer contracts are derived automatically from the
+shift definition, so a user of this lemma only needs to supply:
+- the parameters `d,m` and proof `d>0`, and
+- a proof that `f` is a sign sequence.
+-/
+theorem mk_of_shift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hf : IsSignSequence f) :
+    ReductionOutput f := by
+  classical
+  -- Define the reduced sequence as the literal shift.
+  refine
+    { d := d
+      m := m
+      hd := hd
+      g := fun k => f (k + m * d)
+      hg := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m d
+      g_eq := rfl
+      apSum_contract := ?_
+      contract_discrepancy_le := ?_ }
+  · -- Bridge rule: shifted `apSum` is `apSumOffset`.
+    intro n
+    simpa using (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+  · -- Transfer contract: rewrite `discrepancy` to `discOffset` using the bridge rule.
+    intro B hB n
+    -- Both sides are definitional wrappers around `Int.natAbs`.
+    simpa [discrepancy, discOffset, Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)] using
+      (hB n)
+
 /-- Expand the defining equation of `g`. -/
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
