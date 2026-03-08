@@ -1253,6 +1253,33 @@ theorem discOffset_le_of_discrepancy_le (out : ReductionOutput f) {n B : ℕ}
     discOffset f out.d out.m n ≤ B := by
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h
 
+/-!
+### Unboundedness transfer
+
+A later stage often proves that the reduced sequence has unbounded discrepancy along the fixed
+step `out.d`, and we want to translate that statement back into the “offset view” of the original
+sequence.
+
+These are just repackagings of `out.discrepancy_eq_discOffset`.
+-/
+
+/-- Unbounded discrepancy along `out.d` for the reduced sequence is equivalent to unboundedness of
+the corresponding offset discrepancies of the original sequence.
+
+This is a consumer-facing normal form: it avoids mentioning `out.g` at all.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- Unfold the witness predicate and rewrite via the stage-1 discrepancy contract.
+  simp [UnboundedDiscrepancyAlong, out.discrepancy_eq_discOffset]
+
+/-- `>`-oriented version of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`. -/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
+  simpa [gt_iff_lt] using (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f))
+
 /-- Expand the defining equation of `g`. -/
 @[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
