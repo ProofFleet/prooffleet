@@ -1271,6 +1271,50 @@ namespace shift_add_mul
 
 end shift_add_mul
 
+/-!
+### Offsets relative to a `ReductionOutput`
+
+When `out : ReductionOutput f` fixes an initial shift by `out.m*out.d`, it is common to take
+*further* offset sums of the reduced sequence `out.g`.
+
+The following tiny lemmas normalize these “relative offsets” back to offset sums of the original
+sequence `f`, with the combined multiplier `out.m + m₂`.
+-/
+
+namespace ReductionOutput
+
+/-- Offset sums of the reduced sequence correspond to offset sums of the original sequence with
+combined multiplier `out.m + m₂`.
+
+This is a basic arithmetic reassociation lemma, but it saves downstream stages from repeatedly
+expanding `out.g_eq` and fighting `Nat` algebra.
+-/
+theorem apSumOffset_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset out.g out.d m₂ n = apSumOffset f out.d (out.m + m₂) n := by
+  -- Expand both sides to AP sums of shifted sequences.
+  -- LHS shifts by `m₂*out.d` and then by `out.m*out.d` via `out.g_eq`.
+  -- This is the same as a single shift by `(out.m + m₂) * out.d`.
+  simp [apSumOffset_eq_apSum_shift_add, out.g_eq, Nat.add_mul, Nat.mul_add, Nat.add_assoc,
+    Nat.add_left_comm, Nat.add_comm]
+
+/-- Reverse orientation of `apSumOffset_eq_apSumOffset_add`. -/
+theorem apSumOffset_add_eq_apSumOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
+  simpa using (out.apSumOffset_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)).symm
+
+/-- Discrepancy version of `apSumOffset_eq_apSumOffset_add`. -/
+theorem discOffset_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset out.g out.d m₂ n = discOffset f out.d (out.m + m₂) n := by
+  -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+  simp [discOffset, out.apSumOffset_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)]
+
+/-- Reverse orientation of `discOffset_eq_discOffset_add`. -/
+theorem discOffset_add_eq_discOffset (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
+  simpa using (out.discOffset_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)).symm
+
+end ReductionOutput
+
 @[simp] theorem mkShiftOfSign_m (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).m = m := by
   simp [mkShiftOfSign, mkShift]
