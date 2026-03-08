@@ -2176,6 +2176,33 @@ theorem discrepancy_contract_of_apSum_contract (f g : ℕ → ℤ) (d m : ℕ)
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, h n]
 
+/-- `Int.natAbs` bridge rule, given a pointwise bridge rule for AP sums.
+
+This is the sum-level analogue of `discrepancy_contract_of_apSum_contract`.
+-/
+theorem natAbs_apSum_contract_of_apSum_contract (f g : ℕ → ℤ) (d m : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    ∀ n : ℕ, Int.natAbs (apSum g d n) = Int.natAbs (apSumOffset f d m n) := by
+  intro n
+  simp [h n]
+
+/-- Consumer-friendly transfer lemma: a `≤` bound on absolute AP sums transfers across an
+AP-sum bridge rule.
+
+This is occasionally more convenient than rewriting `discrepancy`/`discOffset` wrappers.
+-/
+theorem natAbs_apSum_le_iff_natAbs_apSumOffset_le_of_apSum_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) (n : ℕ) :
+    Int.natAbs (apSum g d n) ≤ B ↔ Int.natAbs (apSumOffset f d m n) ≤ B := by
+  simpa [h n]
+
+/-- Reverse orientation of `natAbs_apSum_le_iff_natAbs_apSumOffset_le_of_apSum_contract`. -/
+theorem natAbs_apSumOffset_le_iff_natAbs_apSum_le_of_apSum_contract (f g : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) (n : ℕ) :
+    Int.natAbs (apSumOffset f d m n) ≤ B ↔ Int.natAbs (apSum g d n) ≤ B := by
+  simpa using (natAbs_apSum_le_iff_natAbs_apSumOffset_le_of_apSum_contract
+    (f := f) (g := g) (d := d) (m := m) (B := B) h n).symm
+
 /-- Transfer contract (≤): any uniform bound on the offset discrepancy transfers to a uniform
 bound on the discrepancy of `g`.
 
