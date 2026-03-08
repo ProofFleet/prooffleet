@@ -1244,6 +1244,26 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
   -- Proof irrelevance: both sides are proofs of the same proposition.
   simp [composeShiftSameD]
 
+/-- Compute the reduced sequence produced by composing two `mkShiftOfSign` reductions.
+
+This is a common “pipeline ergonomics” lemma: it lets later stages treat successive shifts as a
+single shift by the sum of the offsets.
+-/
+@[simp] theorem composeShiftSameD_mkShiftOfSign_g_apply (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (d m₁ m₂ : ℕ) (hd : d > 0) (k : ℕ) :
+    (ReductionOutput.composeShiftSameD
+        (out₁ := ReductionOutput.mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m₁) hd)
+        (out₂ :=
+          ReductionOutput.mkShiftOfSign
+            (f := fun k => f (k + m₁ * d))
+            (hf := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m₁ d)
+            (d := d) (m := m₂) hd)
+        rfl).g k = f (k + (m₁ + m₂) * d) := by
+  -- `composeShiftSameD` keeps `g` from stage 2; stage 2 is itself a shift of stage 1.
+  -- Normalize arithmetic to combine the offsets.
+  simp [ReductionOutput.composeShiftSameD, ReductionOutput.mkShiftOfSign, ReductionOutput.mkShift,
+    Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
+
 end ReductionOutput
 
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
