@@ -9984,6 +9984,32 @@ theorem unboundedDiscrepancyAlong (s2 : Stage2Output f out) : Tao2015.UnboundedD
   -- `out` already provides `UnboundedDiscrepancyAlong out.g out.d ↔ ∀ B, ∃ n, B < discOffset ...`.
   exact (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)).2 s2.unbounded_discOffset
 
+/-!
+### Stage-2 regression examples
+
+These are compile-time “shape checks”: they assert that the packaged stage-2 interface can be
+consumed using the intended one-liner lemmas, without unfolding definitions.
+
+They are intentionally tiny and should remain stable even as we refactor the surrounding code.
+-/
+section Stage2RegressionExamples
+
+variable (s2 : Stage2Output f out)
+
+/-- Stage-2 output immediately provides the unboundedness predicate along the reduced step. -/
+example : Tao2015.UnboundedDiscrepancyAlong out.g out.d := by
+  simpa using (Stage2Output.unboundedDiscrepancyAlong (f := f) (out := out) s2)
+
+/-- Stage-2 output gives `∀ C, HasDiscrepancyAtLeastAlong out.g out.d C` in one hop. -/
+example : ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  simpa using (Stage2Output.forall_hasDiscrepancyAtLeastAlong (f := f) (out := out) s2)
+
+/-- A single-witness extraction pattern (offset discrepancy). -/
+example (C : ℕ) : ∃ n : ℕ, C < discOffset f out.d out.m n := by
+  simpa using (Stage2Output.exists_discOffset_lt (f := f) (out := out) s2 C)
+
+end Stage2RegressionExamples
+
 /-- Convert packaged stage-2 output to `¬ BoundedDiscrepancy out.g` (global boundedness).
 
 This is the cleanest negated-boundedness form for contradiction stages that do *not* want to
