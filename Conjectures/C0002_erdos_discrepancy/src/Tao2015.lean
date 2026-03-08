@@ -1190,30 +1190,8 @@ shift definition, so a user of this lemma only needs to supply:
 -/
 theorem mk_of_shift (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hf : IsSignSequence f) :
     ReductionOutput f := by
-  classical
-  -- Define the reduced sequence as the literal shift.
-  refine
-    { d := d
-      m := m
-      hd := hd
-      g := fun k => f (k + m * d)
-      hg := Tao2015.IsSignSequence.shift_add_mul (f := f) hf m d
-      g_eq := rfl
-      apSum_contract := ?_
-      contract_discrepancy_le := ?_ }
-  · -- Bridge rule: shifted `apSum` is `apSumOffset`.
-    intro n
-    simpa using (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
-  · -- Transfer contract: reuse the generic contract lemma derived from an `apSum` bridge.
-    intro B hB
-    -- Here the bridge is exactly `apSum_shift_add_mul_eq_apSumOffset`.
-    exact
-      Tao2015.contract_discrepancy_le_of_apSum_contract (f := f) (g := fun k => f (k + m * d))
-        (d := d) (m := m) (B := B)
-        (fun n => by
-          simpa using
-            (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)))
-        hB
+  -- Delegate to the canonical constructor `ReductionOutput.ofShift`.
+  exact ReductionOutput.ofShift (f := f) hf d m hd
 
 /-- Build a `ReductionOutput` from an explicit derived sequence `g` together with the defining
 rewrite `g = fun k => f (k + m*d)`.
