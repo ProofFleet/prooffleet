@@ -1281,6 +1281,26 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
     refine ⟨n, ?_⟩
     simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using hn
 
+/-- A single-witness form of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt`.
+
+This is a common consumer pattern: many later reductions produce (or consume) a *single* witness
+`∃ n, discrepancy … > C` rather than the bundled predicate `HasDiscrepancyAtLeastAlong …`.
+-/
+theorem exists_discrepancy_gt_iff_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discrepancy out.g out.d n > C) ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hn
+  · simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hn
+
+/-- A single-witness form of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`. -/
+theorem exists_discrepancy_gt_iff_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discrepancy out.g out.d n > C) ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa [out.discrepancy_eq_natAbs_apSumOffset (f := f) (n := n)] using hn
+  · simpa [out.discrepancy_eq_natAbs_apSumOffset (f := f) (n := n)] using hn
+
 /-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt`. -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_lt (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
