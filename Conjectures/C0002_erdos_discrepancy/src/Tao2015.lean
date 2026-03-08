@@ -1065,6 +1065,24 @@ theorem contextAlong_of_forall_discOffset_le (out : ReductionOutput f) (B : ℕ)
   intro n
   exact out.contract_discrepancy_le B hB n
 
+/-- Build a fixed-step discrepancy context for the reduced sequence from the global boundedness
+context of the original sequence.
+
+If `ctx : Tao2015.Context f` bounds all homogeneous AP sums of `f` by `ctx.B`, then the reduced
+sequence `out.g` (a shift of `f` by `out.m*out.d`) has discrepancy uniformly bounded by
+`ctx.B + ctx.B` along the fixed step size `out.d`.
+
+This is a tiny but frequently-used “stage-0” helper: it lets later stages assume a
+`ContextAlong out.g out.d` without having to re-prove the tail bound each time.
+-/
+theorem contextAlong_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    Tao2015.ContextAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  -- Reduce to the literal shift form and apply the generic shift-bound lemma from `Context`.
+  simpa [out.g_eq] using
+    (ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+
 /-- Extract a uniform offset-discrepancy bound from a fixed-step discrepancy context on the
 reduced sequence.
 
