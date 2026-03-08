@@ -633,7 +633,13 @@ These are tiny one-liners that make it easier for downstream stages to use a
 `ReductionOutput` without constantly rewriting via the record fields.
 -/
 
-@[simp] theorem g_apply (out : ReductionOutput f) (k : ℕ) :
+/-- Explicit pointwise form of `out.g_eq`.
+
+We intentionally do *not* mark this lemma `[simp]`: rewriting `out.g` into a shifted `f` is often
+helpful, but can also cause large proofs to expand aggressively. Prefer `simp [ReductionOutput.g_apply]`
+(or `simp [out.g_eq]`) at the specific call sites that want this rewrite.
+-/
+theorem g_apply (out : ReductionOutput f) (k : ℕ) :
     out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
 
