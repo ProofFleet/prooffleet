@@ -2826,6 +2826,32 @@ theorem contract_discrepancy_lt_of_discrepancy_contract (f g : ℕ → ℤ) (d m
   -- Rewrite `discrepancy g d n` to the offset discrepancy using `h`.
   simpa [h n] using hB n
 
+/-- Unboundedness along a fixed step transfers across a discrepancy-level bridge.
+
+This is the witness-level analogue of `contract_discrepancy_le_of_discrepancy_contract`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt_of_discrepancy_contract
+    (f g : ℕ → ℤ) (d m : ℕ)
+    (h : ∀ n : ℕ, discrepancy g d n = discOffset f d m n) :
+    UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  -- Unfold the witness predicate and rewrite pointwise.
+  simp [UnboundedDiscrepancyAlong, h]
+
+/-- Unboundedness transfer lemma derived from an AP-sum bridge rule.
+
+This is a convenience wrapper around
+`unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt_of_discrepancy_contract`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt_of_apSum_contract
+    (f g : ℕ → ℤ) (d m : ℕ)
+    (h : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  have h' : ∀ n : ℕ, discrepancy g d n = discOffset f d m n :=
+    discrepancy_contract_of_apSum_contract (f := f) (g := g) (d := d) (m := m) h
+  simpa using
+    (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt_of_discrepancy_contract
+      (f := f) (g := g) (d := d) (m := m) h')
+
 /-- Reverse transfer contract (≤): a uniform bound on `discrepancy g d` transfers to a uniform bound
 on `discOffset f d m`.
 
