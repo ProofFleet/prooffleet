@@ -390,6 +390,29 @@ theorem toBoundedDiscrepancyAlong (ctx : ContextAlong f d) : BoundedDiscrepancyA
 theorem bound_discrepancy (ctx : ContextAlong f d) (n : ℕ) : discrepancy f d n ≤ ctx.B :=
   ctx.bound n
 
+/-- If the discrepancies along a fixed step `d` are uniformly bounded by `B`, then the corresponding
+*offset* discrepancies are uniformly bounded by `2*B`.
+
+This is the fixed-step analogue of `Tao2015.Context.bound_discOffset`.
+-/
+theorem bound_discOffset (ctx : ContextAlong f d) (m n : ℕ) :
+    discOffset f d m n ≤ ctx.B + ctx.B := by
+  -- `discOffset` is `natAbs (apSumOffset ...)`, and `apSumOffset` is a difference of partial sums.
+  -- Then apply the triangle inequality and the fixed-step bound.
+  have h₁ : discrepancy f d (m + n) ≤ ctx.B := ctx.bound_discrepancy (f := f) (d := d) (n := m + n)
+  have h₂ : discrepancy f d m ≤ ctx.B := ctx.bound_discrepancy (f := f) (d := d) (n := m)
+  -- Expand `discOffset` and `apSumOffset`.
+  -- Note: `discrepancy` is definitional wrapper `natAbs (apSum ...)`.
+  calc
+    discOffset f d m n
+        = Int.natAbs (apSum f d (m + n) - apSum f d m) := by
+            simp [discOffset, apSumOffset_eq_sub]
+    _ ≤ Int.natAbs (apSum f d (m + n)) + Int.natAbs (apSum f d m) := by
+            simpa using (Int.natAbs_sub_le (apSum f d (m + n)) (apSum f d m))
+    _ ≤ ctx.B + ctx.B := by
+            -- Rewrite the hypotheses `h₁,h₂` into `natAbs (apSum ...) ≤ B` form.
+            simpa [discrepancy] using Nat.add_le_add h₁ h₂
+
 end ContextAlong
 
 /-!
