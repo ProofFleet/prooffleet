@@ -1140,6 +1140,38 @@ theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) 
     _ = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) :=
       Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n)
 
+/-- Uniform discrepancy bounds for the reduced sequence rewritten to the affine nucleus `apSumFrom`.
+
+This is the `∀ n, … ≤ B` form corresponding to `discrepancy_eq_natAbs_apSumFrom_mul`.
+-/
+theorem forall_discrepancy_le_iff_forall_natAbs_apSumFrom_mul_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
+      (∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) := by
+  constructor <;> intro h n
+  · simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+  · -- Reverse direction: rewrite the affine nucleus back into the discrepancy wrapper.
+    simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+
+/-- Strict uniform discrepancy bounds rewritten to the affine nucleus `apSumFrom`. -/
+theorem forall_discrepancy_lt_iff_forall_natAbs_apSumFrom_mul_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔
+      (∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B) := by
+  constructor <;> intro h n
+  · simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+  · simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+
+/-- Existential large-discrepancy witnesses rewritten to the affine nucleus `apSumFrom`. -/
+theorem exists_discrepancy_gt_iff_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discrepancy out.g out.d n > C) ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hn
+
 /-- Reverse orientation of `discrepancy_eq_natAbs_apSumFrom_mul`.
 
 This is occasionally convenient when a later stage produces a statement about the affine nucleus
