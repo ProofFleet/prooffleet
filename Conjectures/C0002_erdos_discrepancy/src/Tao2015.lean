@@ -799,6 +799,37 @@ theorem unboundedDiscrepancyAlong_iff_shift (out : ReductionOutput f) :
       Tao2015.UnboundedDiscrepancyAlong (fun k => f (k + out.m * out.d)) out.d := by
   simp [Tao2015.UnboundedDiscrepancyAlong, out.g_eq]
 
+/-- Unbounded discrepancy along the reduced step is equivalent to unbounded *offset* discrepancy
+for the original sequence.
+
+This is just `out.discrepancy_eq_discOffset` repackaged under the witness predicate
+`UnboundedDiscrepancyAlong`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  constructor
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+/-- `Int.natAbs (apSumOffset …)` witness form of
+`unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`.
+
+Downstream stages sometimes work directly with `apSumOffset` bounds before wrapping them into
+`discOffset`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  -- Just unfold `discOffset` in the previous lemma.
+  simpa [discOffset] using (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f))
+
 /-- Reverse orientation of the AP-sum bridge field `apSum_contract`. -/
 theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
