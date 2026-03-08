@@ -821,6 +821,30 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt (out : ReductionOut
   simpa using
     (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt (f := out.g) (d := out.d) (C := C))
 
+/-- Transfer a strict-inequality discrepancy witness for the reduced sequence to an offset-discrepancy
+witness for the original sequence.
+
+This is just `out.discrepancy_eq_discOffset` repackaged with `∃`.
+-/
+theorem exists_discOffset_gt_of_exists_discrepancy_gt (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, discrepancy out.g out.d n > C) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+/-- Transfer a strict-inequality offset-discrepancy witness for the original sequence to a
+strict-inequality discrepancy witness for the reduced sequence.
+
+This is the reverse direction of `exists_discOffset_gt_of_exists_discrepancy_gt`.
+-/
+theorem exists_discrepancy_gt_of_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
 /-- Uniform `≤` bounds for discrepancies of `out.g` rewritten to the literal shift of `f`. -/
 theorem forall_discrepancy_le_iff_shift (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
