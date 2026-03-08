@@ -1021,6 +1021,30 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : Reducti
     refine ⟨n, ?_⟩
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
 
+/-- `>`-oriented variant of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`.
+
+This is just a syntactic convenience wrapper: later stages often state unboundedness witnesses
+as `discOffset … > B`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f))
+
+/-- `>`-oriented variant of unboundedness along the reduced fixed step, stated using
+`discrepancy out.g out.d` rather than `discOffset`.
+
+This is occasionally the cleanest interface for downstream stages that do not want to mention
+the original sequence `f` at all.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, discrepancy out.g out.d n > B) := by
+  -- This is just the definitional symmetry `B < ...` vs `... > B`.
+  simp [Tao2015.UnboundedDiscrepancyAlong, gt_iff_lt]
+
 /-- `Int.natAbs (apSumOffset …)` witness form of
 `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`.
 
