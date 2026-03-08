@@ -79,6 +79,14 @@ Definition of done for Track C PRs:
 - CI green
 - Interfaces improve composability (more named rewrites / transfer lemmas; fewer ad-hoc rewrites)
 
+Quick consumption pattern (Stage 1):
+- Given `hf : IsSignSequence f` and a boundedness hypothesis `hb : BoundedDiscrepancy f`, build
+  `out : Tao2015.ReductionOutput f` (typically via `ReductionOutput.ofShift`).
+- Immediately derive a fixed-step context for the reduced sequence:
+  `ctx' : Tao2015.ContextAlong out.g out.d := out.contextAlong_ofContext (ctx := Context.ofBoundedDiscrepancy hb)`.
+- When a later stage produces a witness about offsets of `f`, normalize it through the contract:
+  `discrepancy out.g out.d n = discOffset f out.d out.m n` via `ReductionOutput.discrepancy_eq_discOffset`.
+
 #### Track B normal-form guide (what we rewrite *to*)
 
 If you’re unsure “what shape should this lemma end in?”, default to the stable import surface:
