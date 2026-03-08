@@ -948,6 +948,40 @@ theorem forall_discrepancy_lt_iff_shift (out : ReductionOutput f) (B : ℕ) :
       (∀ n : ℕ, discrepancy (fun k => f (k + out.m * out.d)) out.d n < B) := by
   simp [out.g_eq]
 
+/-- Uniform `≤` bounds for discrepancies of the reduced sequence rewritten to uniform `≤` bounds
+for the bundled offset discrepancies.
+
+This is the most common consumer-facing form: later stages frequently bound the offset discrepancy
+family `discOffset f out.d out.m` and want to immediately treat it as a bound on `out.g`.
+-/
+theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+
+/-- Uniform `<` bounds for discrepancies of the reduced sequence rewritten to uniform `<` bounds
+for the bundled offset discrepancies. -/
+theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
+  constructor
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+  · intro h n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h n
+
+/-- A strict-inequality version of the stage-1 discrepancy contract.
+
+This is derived from the definitional rewrite `out.discrepancy_eq_discOffset`.
+-/
+theorem contract_discrepancy_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discOffset f out.d out.m n < B) :
+    ∀ n, discrepancy out.g out.d n < B := by
+  intro n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
 /-- Unboundedness along the reduced step `out.d` rewritten to the literal shift of `f`. -/
 theorem unboundedDiscrepancyAlong_iff_shift (out : ReductionOutput f) :
     Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
