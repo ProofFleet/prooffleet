@@ -399,13 +399,24 @@ theorem bound_natAbs_apSum (ctx : ContextAlong f d) (n : ℕ) :
     Int.natAbs (apSum f d n) ≤ ctx.B := by
   simpa [discrepancy] using (ctx.bound_discrepancy (f := f) (d := d) n)
 
-/-- `Int.natAbs` (sum-level) bound for offset sums, derived from `bound_discOffset`.
+/-- `Int.natAbs` (sum-level) bound for offset sums.
 
-This is just the definitional expansion `discOffset = natAbs (apSumOffset ...)`.
+This is the nucleus-level statement underlying `bound_discOffset`.
+We prove it directly (rather than deriving it from `bound_discOffset`) to avoid a forward
+reference.
 -/
 theorem bound_natAbs_apSumOffset (ctx : ContextAlong f d) (m n : ℕ) :
     Int.natAbs (apSumOffset f d m n) ≤ ctx.B + ctx.B := by
-  simpa [discOffset] using (ctx.bound_discOffset (f := f) (d := d) (m := m) (n := n))
+  -- `apSumOffset` is a difference of two homogeneous partial sums.
+  calc
+    Int.natAbs (apSumOffset f d m n)
+        = Int.natAbs (apSum f d (m + n) - apSum f d m) := by
+            simp [apSumOffset_eq_sub]
+    _ ≤ Int.natAbs (apSum f d (m + n)) + Int.natAbs (apSum f d m) := by
+            simpa using (Int.natAbs_sub_le (apSum f d (m + n)) (apSum f d m))
+    _ ≤ ctx.B + ctx.B := by
+            exact Nat.add_le_add (ctx.bound_natAbs_apSum (f := f) (d := d) (n := m + n))
+              (ctx.bound_natAbs_apSum (f := f) (d := d) (n := m))
 
 /-- If the discrepancies along a fixed step `d` are uniformly bounded by `B`, then the corresponding
 *offset* discrepancies are uniformly bounded by `2*B`.
