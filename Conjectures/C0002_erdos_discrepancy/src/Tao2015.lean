@@ -1023,6 +1023,52 @@ theorem boundedDiscrepancyAlong_of_bound_discOffset (out : ReductionOutput f)
     BoundedDiscrepancyAlong out.g out.d :=
   (out.boundedDiscrepancyAlong_iff_exists_discOffset_le (f := f)).2 hB
 
+/-!
+### Interaction with `Context`
+
+`Context f` packages a global boundedness hypothesis for the *original* sequence `f`.
+
+The stage-1 reduction interface `ReductionOutput f` typically defines a derived sign sequence
+`out.g` by shifting `f` by `out.m*out.d` and then focuses on discrepancy along the *single*
+step size `out.d`.
+
+The following lemmas let downstream stages quickly move between these two normal forms.
+-/
+
+/-- From a global boundedness context for `f`, get bounded discrepancy along the reduced step
+size `out.d` for the reduced sequence `out.g`.
+
+Concretely, this is the statement:
+`∀ n, discrepancy out.g out.d n ≤ ctx.B + ctx.B`.
+-/
+theorem boundedDiscrepancyAlong_of_Context (out : ReductionOutput f) (ctx : Context f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  -- Rewrite `out.g` to the literal shift of `f`, then apply the shift-boundedness lemma.
+  simpa [out.g_eq] using
+    (ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+
+/-- Pointwise `discOffset` bound extracted from `Context f` through a `ReductionOutput`.
+
+This is the consumer-friendly formulation: it bounds the offset discrepancy of the original
+sequence rather than mentioning the reduced sequence explicitly.
+-/
+theorem bound_discOffset_of_Context (out : ReductionOutput f) (ctx : Context f) (n : ℕ) :
+    discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+  -- Bound the reduced discrepancy using the previous lemma, then rewrite via the interface.
+  have h : discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+    rcases out.boundedDiscrepancyAlong_of_Context (f := f) ctx with ⟨B, hB⟩
+    -- Here `B = ctx.B + ctx.B` by construction.
+    simpa using hB n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h
+
+/-- Uniform `discOffset` bound extracted from `Context f` through a `ReductionOutput`. -/
+theorem forall_bound_discOffset_of_Context (out : ReductionOutput f) (ctx : Context f) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+  intro n
+  exact out.bound_discOffset_of_Context (f := f) ctx n
+
 /-- Negated form of `boundedDiscrepancyAlong_iff_exists_discOffset_le`.
 
 This is a common normal form for *unboundedness* statements: it says there is **no** uniform
