@@ -1376,6 +1376,25 @@ theorem natAbs_apSumOffset_add_out (out : ReductionOutput f) (m₂ n : ℕ) :
   simpa [out.g_eq] using
     (Tao2015.natAbs_apSumOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
 
+/-- Re-associate an affine-tail (`apSumFrom`) past the reduction output.
+
+This is the affine-nucleus analogue of `apSumOffset_add_out`/`discOffset_add_out`.
+Informally: tail sums of `out.g` starting at `m₂*out.d` correspond to tail sums of `f`
+starting at `(out.m+m₂)*out.d`.
+-/
+theorem apSumFrom_add_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom f ((out.m + m₂) * out.d) out.d n = apSumFrom out.g (m₂ * out.d) out.d n := by
+  -- Rewrite both sides as homogeneous AP sums of shifted sequences.
+  -- Then use `out.g_eq` and reassociate the addition in the index.
+  simp [apSumFrom_eq_apSum_shift_add, out.g_eq, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
+    Nat.add_mul, Nat.mul_add, Nat.mul_assoc]
+
+/-- `Int.natAbs` form of `apSumFrom_add_out`. -/
+theorem natAbs_apSumFrom_add_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumFrom f ((out.m + m₂) * out.d) out.d n) =
+      Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) := by
+  simp [out.apSumFrom_add_out (f := f) (m₂ := m₂) (n := n)]
+
 /-!
 ### Consumer-facing rewrite lemmas
 
