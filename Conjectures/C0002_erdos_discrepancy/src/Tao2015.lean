@@ -2161,6 +2161,25 @@ example (C : ℕ) :
       (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
   simpa using (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (f := f) (C := C))
 
+/-- Offsetting the reduced sequence by `m₂` corresponds to offsetting the original by `out.m + m₂`.
+
+This is a basic “offset addition” sanity check for `ReductionOutput.apSumOffset_eq_apSumOffset_add`.
+-/
+example (m₂ n : ℕ) :
+    apSumOffset out.g out.d m₂ n = apSumOffset f out.d (out.m + m₂) n := by
+  simpa using (out.apSumOffset_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n))
+
+/-- The derived reduction `out.shift_add_mul m₂` has the expected combined offset multiplier.
+-/
+example (m₂ : ℕ) : (out.shift_add_mul (f := f) m₂).m = out.m + m₂ := by
+  simp
+
+/-- Discrepancy contract for a composed shift reduction, as a regression test.
+-/
+example (m₂ n : ℕ) :
+    discrepancy (out.shift_add_mul (f := f) m₂).g out.d n = discOffset f out.d (out.m + m₂) n := by
+  simpa using (ReductionOutput.shift_add_mul.discrepancy_contract (f := f) out m₂ n)
+
 end ReductionOutputExamples
 
 /-!
