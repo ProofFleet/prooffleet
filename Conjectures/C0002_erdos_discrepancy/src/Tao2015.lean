@@ -6288,6 +6288,20 @@ theorem not_boundedDiscrepancyAlong_of_forall_exists_discOffset_gt (out : Reduct
     out.boundedDiscOffset_of_boundedDiscrepancyAlong (f := f) (out := out) hbd
   exact not_boundedDiscOffset_of_forall_exists_discOffset_gt (f := f) (out := out) h hOff
 
+/-- `natAbs` variant of `not_boundedDiscrepancyAlong_of_forall_exists_discOffset_gt`.
+
+This lets a downstream stage stay at the AP-sum level (often the most natural output), while the
+contradiction stage works with the standard boundedness predicate.
+-/
+theorem not_boundedDiscrepancyAlong_of_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f)
+    (h : ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) :
+    ¬ BoundedDiscrepancyAlong out.g out.d := by
+  apply not_boundedDiscrepancyAlong_of_forall_exists_discOffset_gt (f := f) (out := out)
+  intro B
+  rcases h B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
 /-- For the parameters in `out`, the explicit unboundedness normal form implies
 `¬ BoundedDiscrepancyAlong out.g out.d`.
 
