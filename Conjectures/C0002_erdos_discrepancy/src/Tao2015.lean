@@ -1168,13 +1168,21 @@ unfolding `mkShiftOfEq`.
   -- `mkShiftOfEq` stores `g` as a field, and `hgEq` identifies it as the intended shift.
   simpa [mkShiftOfEq, hgEq]
 
-@[simp] theorem mkShiftOfEq_discrepancy_contract (f : ℕ → ℤ) (hf : IsSignSequence f)
+/-- Convenience rewrite: `discrepancy` of the shifted output is `discOffset`.
+
+Not marked `[simp]` to avoid global simp pulling in `discrepancy`/`discOffset` expansions.
+-/
+theorem mkShiftOfEq_discrepancy_contract (f : ℕ → ℤ) (hf : IsSignSequence f)
     (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) (n : ℕ) :
     discrepancy (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).g d n =
       discOffset f d m n := by
   simp [mkShiftOfEq, discrepancy, discOffset, mkShift]
 
-@[simp] theorem mkShiftOfEq_contract_discrepancy_le (f : ℕ → ℤ) (hf : IsSignSequence f)
+/-- Contract lemma for `mkShiftOfEq`.
+
+Not marked `[simp]` for the same reason as `mkShiftOfEq_discrepancy_contract`.
+-/
+theorem mkShiftOfEq_contract_discrepancy_le (f : ℕ → ℤ) (hf : IsSignSequence f)
     (d m : ℕ) (hd : d > 0) (g : ℕ → ℤ) (hgEq : g = fun k => f (k + m * d)) (B : ℕ)
     (hB : ∀ n : ℕ, discOffset f d m n ≤ B) (n : ℕ) :
     (mkShiftOfEq (f := f) (hf := hf) (d := d) (m := m) hd (g := g) (hgEq := hgEq)).contract_discrepancy_le B hB n =
