@@ -623,6 +623,48 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
 @[simp] theorem g_eq_shift (out : ReductionOutput f) : out.g = fun k => f (k + out.m * out.d) :=
   out.g_eq
 
+/-!
+### Offset reassociation through a `ReductionOutput`
+
+When chaining reductions it is common to accumulate an offset `(out.m + m₂) * out.d`.
+The lemmas in `Tao2015` allow us to peel off the first chunk `out.m*out.d` by shifting the
+underlying sequence.
+
+These wrappers specialize the general offset-reassociation lemmas to the particular shift
+bundled by `out`.
+-/
+
+/-- Peel off the initial offset `out.m*out.d` at the AP-sum level.
+
+This is a `ReductionOutput`-friendly specialization of `Tao2015.apSumOffset_add_pre`.
+-/
+theorem apSumOffset_add_eq_apSumOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
+  -- Apply the general reassociation lemma, then rewrite the shifted sequence using `out.g_eq`.
+  simpa [out.g_eq] using
+    (Tao2015.apSumOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
+/-- Peel off the initial offset `out.m*out.d` at the discrepancy level.
+
+This is a `ReductionOutput`-friendly specialization of `Tao2015.discOffset_add_pre`.
+-/
+theorem discOffset_add_eq_discOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
+  -- `discOffset_add_pre` is already at the discrepancy level.
+  simpa [out.g_eq] using
+    (Tao2015.discOffset_add_pre (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
+/-- `natAbs`-AP-sum form of `discOffset_add_eq_discOffset_g`.
+
+This is useful when a later stage wants to reason directly about the AP sums rather than the
+bundled discrepancy wrappers.
+-/
+theorem natAbs_apSumOffset_add_eq_natAbs_apSumOffset_g (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumOffset f out.d (out.m + m₂) n) =
+      Int.natAbs (apSumOffset out.g out.d m₂ n) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using congrArg Int.natAbs (out.apSumOffset_add_eq_apSumOffset_g (f := f) (m₂ := m₂) (n := n))
+
 /-- Pointwise convenience lemma for the discrepancy-transfer contract. -/
 theorem contract_discrepancy_le_apply (out : ReductionOutput f) (B : ℕ)
     (hB : ∀ n, discOffset f out.d out.m n ≤ B) (n : ℕ) :
