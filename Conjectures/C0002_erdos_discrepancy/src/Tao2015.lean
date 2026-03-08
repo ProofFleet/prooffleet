@@ -6672,23 +6672,11 @@ theorem natAbs_apSumOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
   -- Unfold both wrappers and use the bridge rule.
   simp [discrepancy, out.apSum_contract]
 
-/-- `HasDiscrepancyAtLeastAlong` for the reduced sequence can be phrased using the tail-sum API.
-
-This is sometimes the cleanest normal form when the next reduction stage naturally produces a
-witness involving `apSumFrom` rather than `apSumOffset`.
+/-!
+NOTE: The `HasDiscrepancyAtLeastAlong` ↔ `apSumFrom` witness lemmas are already defined earlier in
+this file (in the main `ReductionOutput` API section).  A duplicate copy used to live here; it was
+removed to avoid duplicate-declaration errors.
 -/
-theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (out : ReductionOutput f) (C : ℕ) :
-    HasDiscrepancyAtLeastAlong out.g out.d C ↔
-      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
-  -- Unfold `HasDiscrepancyAtLeastAlong`, then rewrite `apSumFrom` to `apSum out.g`.
-  simp [HasDiscrepancyAtLeastAlong, out.apSumFrom_eq_apSum]
-
-/-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt`. -/
-theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_lt (out : ReductionOutput f) (C : ℕ) :
-    HasDiscrepancyAtLeastAlong out.g out.d C ↔
-      (∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
-  -- `a > b` is notation for `b < a`.
-  simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (f := f) (C := C))
 
 /-- `natAbs` bridge rule: absolute AP sums for `out.g` equal absolute offset AP sums for `f`. -/
 theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
