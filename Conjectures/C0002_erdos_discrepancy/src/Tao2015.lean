@@ -1368,6 +1368,12 @@ noncomputable def composeShiftSameD {f : ℕ → ℤ} (out₁ : Tao2015.Reductio
   -- Proof irrelevance: both sides are proofs of the same proposition.
   simp [composeShiftSameD]
 
+/-- `composeShiftSameD` keeps the positivity proof `hd` from stage 1. -/
+@[simp] theorem composeShiftSameD_hd {f : ℕ → ℤ} (out₁ : Tao2015.ReductionOutput f)
+    (out₂ : Tao2015.ReductionOutput out₁.g) (hdd : out₂.d = out₁.d) :
+    (composeShiftSameD (out₁ := out₁) (out₂ := out₂) hdd).hd = out₁.hd := by
+  simp [composeShiftSameD]
+
 /-- The AP-sum bridge rule for `composeShiftSameD` (pointwise form).
 
 We do **not** mark this lemma `[simp]`: it expands a “semantic” statement about `apSum` into an
