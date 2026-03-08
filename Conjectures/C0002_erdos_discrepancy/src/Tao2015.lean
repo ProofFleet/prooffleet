@@ -1046,6 +1046,26 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (out : ReductionOutp
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C))
 
+/-- Forward direction of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`.
+
+Useful when a downstream reduction produces an explicit `discOffset` witness and wants to
+immediately phrase it as a fixed-step discrepancy statement for the reduced sequence.
+-/
+theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    HasDiscrepancyAtLeastAlong out.g out.d C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 h
+
+/-- Backward direction of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`.
+
+Useful when a downstream reduction starts from a fixed-step discrepancy hypothesis about the
+reduced sequence and wants to normalize it into an offset-discrepancy witness for the original.
+-/
+theorem exists_discOffset_gt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) {C : ℕ}
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).1 h
+
 /-- Witness-contract form: `∃ n, discrepancy out.g out.d n > C` is equivalent to
 `∃ n, discOffset f out.d out.m n > C`.
 
