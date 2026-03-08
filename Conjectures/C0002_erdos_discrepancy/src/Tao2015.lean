@@ -421,6 +421,25 @@ namespace ReductionOutput
 @[simp] theorem g_eq_shift (out : ReductionOutput f) : out.g = fun k => f (k + out.m * out.d) :=
   out.g_eq
 
+/-- Pointwise convenience lemma for the discrepancy-transfer contract. -/
+theorem contract_discrepancy_le_apply (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discOffset f out.d out.m n ≤ B) (n : ℕ) :
+    discrepancy out.g out.d n ≤ B :=
+  out.contract_discrepancy_le B hB n
+
+/-- `∀`-form convenience lemma for the discrepancy-transfer contract. -/
+theorem contract_discrepancy_le_forall (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discOffset f out.d out.m n ≤ B) :
+    ∀ n, discrepancy out.g out.d n ≤ B :=
+  out.contract_discrepancy_le B hB
+
+/-- Reverse transfer (≤): bound on the reduced discrepancy gives a bound on `discOffset`. -/
+theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n ≤ B) :
+    ∀ n, discOffset f out.d out.m n ≤ B := by
+  intro n
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+
 /-- `HasDiscrepancyAtLeastAlong` is invariant under rewriting the reduced sequence via `out.g_eq`. -/
 theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
