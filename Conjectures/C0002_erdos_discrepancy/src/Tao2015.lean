@@ -1030,6 +1030,39 @@ theorem contract_discrepancy_le_of_bound_natAbs_apSumFrom_mul (out : ReductionOu
   intro n
   simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
 
+/-- Transfer contract (<) in affine-nucleus form.
+
+A strict-inequality version of `contract_discrepancy_le_of_bound_natAbs_apSumFrom_mul`.
+-/
+theorem contract_discrepancy_lt_of_bound_natAbs_apSumFrom_mul (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B) :
+    ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+
+/-- Transfer contract (≤) in offset-sum form.
+
+If you can bound `Int.natAbs (apSumOffset f out.d out.m n)` uniformly, then you can bound the
+reduced discrepancies `discrepancy out.g out.d n`.
+
+This is a lightweight convenience wrapper around `out.discrepancy_eq_natAbs_apSumOffset`.
+-/
+theorem contract_discrepancy_le_of_bound_natAbs_apSumOffset (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumOffset (f := f) (n := n)] using hB n
+
+/-- Transfer contract (<) in offset-sum form.
+
+Strict-inequality version of `contract_discrepancy_le_of_bound_natAbs_apSumOffset`.
+-/
+theorem contract_discrepancy_lt_of_bound_natAbs_apSumOffset (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) < B) :
+    ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumOffset (f := f) (n := n)] using hB n
+
 /-- Sum-level witness normal form, but phrased using the affine nucleus `apSumFrom`. -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
