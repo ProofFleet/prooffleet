@@ -728,6 +728,37 @@ theorem hasDiscrepancyAtLeastAlong_iff_shift (out : ReductionOutput f) (C : ℕ)
       HasDiscrepancyAtLeastAlong (fun k => f (k + out.m * out.d)) out.d C := by
   simp [HasDiscrepancyAtLeastAlong, out.g_eq]
 
+/-- Large discrepancy for the reduced sequence is the same as a large *offset* discrepancy witness
+for the original sequence.
+
+This is a consumer-facing wrapper around
+`Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt` rewritten using
+`out.g_eq`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- Rewrite `out.g` to the literal shift and apply the general shift→offset lemma.
+  simpa [out.g_eq] using
+    (Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_gt
+      (f := f) (d := out.d) (m := out.m) (C := C))
+
+/-- `natAbs` (sum-level) version of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  simpa [discOffset] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C))
+
+/-- Inequality-orientation convenience: rewrite large discrepancy for `out.g` into a witness of the
+form `C < discOffset …`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C))
+
 /-- Uniform `≤` bounds for discrepancies of `out.g` rewritten to the literal shift of `f`. -/
 theorem forall_discrepancy_le_iff_shift (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
