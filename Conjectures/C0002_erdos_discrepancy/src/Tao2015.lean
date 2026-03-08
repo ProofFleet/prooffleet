@@ -9760,16 +9760,14 @@ theorem exists_natAbs_apSumOffset_gt (s2 : Stage2Output f out) (C : ℕ) :
   rcases s2.exists_natAbs_apSumOffset_lt (f := f) (out := out) C with ⟨n, hn⟩
   exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
-/-- Extract a single affine-nucleus witness `natAbs(apSumFrom ...)` from `Stage2Output`.
+/-- (Deprecated) This lemma was a duplicate of `exists_natAbs_apSumFrom_mul_lt`.
 
-This is the preferred witness normal form when later stages work with affine tails.
+Use `exists_natAbs_apSumFrom_mul_lt` instead.
 -/
-theorem exists_natAbs_apSumFrom_mul_lt (s2 : Stage2Output f out) (C : ℕ) :
-    ∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
-  rcases s2.exists_discOffset_lt (f := f) (out := out) C with ⟨n, hn⟩
-  refine ⟨n, ?_⟩
-  -- Rewrite `discOffset` into the affine AP-sum nucleus.
-  simpa [Tao2015.discOffset_eq_natAbs_apSumFrom_mul] using hn
+@[deprecated (since := "2026-03-08")]
+theorem exists_natAbs_apSumFrom_mul_lt' (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) :=
+  exists_natAbs_apSumFrom_mul_lt (f := f) (out := out) s2 C
 
 /-- Greater-than oriented version of `exists_natAbs_apSumFrom_mul_lt`. -/
 theorem exists_natAbs_apSumFrom_mul_gt (s2 : Stage2Output f out) (C : ℕ) :
