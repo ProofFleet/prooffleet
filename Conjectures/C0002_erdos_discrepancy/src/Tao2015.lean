@@ -5171,6 +5171,30 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def BoundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B
 
+namespace BoundedDiscrepancyAlong
+
+/-- Build `BoundedDiscrepancyAlong g d` from an explicit uniform bound. -/
+theorem of_bound (g : ℕ → ℤ) (d B : ℕ) (hB : ∀ n : ℕ, discrepancy g d n ≤ B) :
+    BoundedDiscrepancyAlong g d :=
+  ⟨B, hB⟩
+
+end BoundedDiscrepancyAlong
+
+namespace BoundedDiscOffset
+
+/-- Build `BoundedDiscOffset f d m` from an explicit uniform bound. -/
+theorem of_bound (f : ℕ → ℤ) (d m B : ℕ) (hB : ∀ n : ℕ, discOffset f d m n ≤ B) :
+    BoundedDiscOffset f d m :=
+  ⟨B, hB⟩
+
+/-- Monotonicity in the bound: if `discOffset f d m` is bounded by `B`, it is bounded by any larger `B'`. -/
+theorem mono {f : ℕ → ℤ} {d m B B' : ℕ}
+    (hB : ∀ n : ℕ, discOffset f d m n ≤ B) (hBB' : B ≤ B') :
+    BoundedDiscOffset f d m := by
+  exact ⟨B', fun n => le_trans (hB n) hBB'⟩
+
+end BoundedDiscOffset
+
 /-- Unfold `BoundedDiscrepancyAlong` into the raw `Int.natAbs (apSum …)` normal form. -/
 theorem boundedDiscrepancyAlong_iff_exists_natAbs_apSum_le (g : ℕ → ℤ) (d : ℕ) :
     BoundedDiscrepancyAlong g d ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum g d n) ≤ B) := by
