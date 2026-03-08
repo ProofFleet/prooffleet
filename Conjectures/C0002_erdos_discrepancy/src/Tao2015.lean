@@ -811,6 +811,42 @@ theorem bound_discrepancy_ofContext (out : ReductionOutput f) (ctx : Tao2015.Con
     (ctx := out.contextAlong_ofContext (f := f) ctx) n)
 
 /-!
+### Discrepancy witnesses transfer
+
+Later Track C steps frequently pass around “there exists a large discrepancy” witnesses at the
+fixed step `out.d`.  The reduced sequence `out.g` is meant to serve as a proxy for the offset view
+`discOffset f out.d out.m`, so we provide a few one-line equivalences that let downstream code move
+between these forms without redoing wrapper algebra.
+-/
+
+/-- Fixed-step discrepancy witness for `out.g` ↔ offset discrepancy witness for `f` (`>` form). -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- Unfold `HasDiscrepancyAtLeastAlong` into a `discrepancy` witness, then rewrite using
+  -- `out.discrepancy_eq_discOffset`.
+  simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt, out.discrepancy_eq_discOffset]
+
+/-- Fixed-step discrepancy witness for `out.g` ↔ offset discrepancy witness for `f` (`<`-oriented). -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) C)
+
+/-- `natAbs (apSumOffset ...)` witness normal form corresponding to
+`hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : ReductionOutput f)
+    (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) C)
+
+/-- Unbounded discrepancy along the fixed step `out.d`, transferred to the offset view. -/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- Unfold and rewrite pointwise.
+  simp [UnboundedDiscrepancyAlong, out.discrepancy_eq_discOffset]
+
+/-!
 ### Constructors
 
 The first reduction interface in Track C is deliberately verbose, because we want later stages to
