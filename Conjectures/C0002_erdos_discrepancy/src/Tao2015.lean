@@ -1967,6 +1967,31 @@ theorem boundedDiscrepancyAlong_of_boundedDiscrepancy (out : ReductionOutput f)
   intro n
   exact out.bound_discrepancy (f := f) ctx n
 
+/-- A pointwise bound on the reduced discrepancy extracted directly from `hb : BoundedDiscrepancy f`.
+
+This is a small convenience wrapper around `ReductionOutput.bound_discrepancy` and
+`Context.ofBoundedDiscrepancy`, with the right-hand side expressed as `2 * B`.
+-/
+theorem bound_discrepancy_of_boundedDiscrepancy (out : ReductionOutput f) (hb : BoundedDiscrepancy f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ 2 * (Context.ofBoundedDiscrepancy (f := f) hb).B := by
+  classical
+  intro n
+  -- First get the additive `B + B` bound, then rewrite it as `2 * B`.
+  have h := out.bound_discrepancy (f := f) (Context.ofBoundedDiscrepancy (f := f) hb) n
+  simpa [two_mul] using h
+
+/-- `BoundedDiscrepancyAlong` normal form for `out.g`, with an explicit `2 * B` witness.
+
+This is occasionally more convenient than the additive witness `B + B` produced by
+`boundedDiscrepancyAlong_of_boundedDiscrepancy`.
+-/
+theorem boundedDiscrepancyAlong_of_boundedDiscrepancy_two_mul (out : ReductionOutput f)
+    (hb : BoundedDiscrepancy f) : BoundedDiscrepancyAlong out.g out.d := by
+  classical
+  refine ⟨2 * (Context.ofBoundedDiscrepancy (f := f) hb).B, ?_⟩
+  intro n
+  exact out.bound_discrepancy_of_boundedDiscrepancy (f := f) hb n
+
 /-- A bound on `f`'s discrepancy implies a uniform bound on the offset discrepancy bundled by `out`.
 
 This is the `discOffset`-level analogue of `boundedDiscrepancyAlong_of_boundedDiscrepancy`.
