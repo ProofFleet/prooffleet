@@ -606,7 +606,7 @@ theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
     apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
   -- `apSum out.g out.d = apSumOffset f out.d out.m`, and `apSumOffset = apSumFrom (m*d)`.
   simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using
-    (out.apSum_contract_apply (f := f) (n := n))
+    (out.apSum_contract (f := f) (n := n))
 
 /-- `Int.natAbs` form of `apSum_eq_apSumFrom_mul`. -/
 theorem natAbs_apSum_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
