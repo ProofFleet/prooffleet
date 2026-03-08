@@ -66,6 +66,8 @@ Current status notes:
   - bounded offset discrepancy of the original sequence `BoundedDiscOffset f out.d out.m`.
   (This is the main contract form that Stage-2 wants to negate.)
 - Stage-1 now also exposes a small *combinator API* for composing reductions: `ReductionOutput.shiftRight` packages “shift the reduced sequence again by `m₂*out.d`” as a new `ReductionOutput`, with assoc/zero simp lemmas (`shiftRight_shiftRight`, `shiftRight_zero_*`) so downstream stages can normalize nested shifts.
+- Unboundedness witness normal form: use `ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt` (and friends) to flip between
+  “`out.g` has unbounded discrepancy along `out.d`” and “`discOffset f out.d out.m` is unbounded”.
 - Witness-normal form: downstream stages that work with affine tails can use
   `ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt` to rewrite
   `HasDiscrepancyAtLeastAlong out.g out.d C` into an explicit `apSumFrom` witness for `f`.
