@@ -1098,6 +1098,30 @@ theorem contract_discrepancy_lt_of_forall_natAbs_apSumOffset_lt (out : Reduction
   simpa [discrepancy, discOffset, out.apSum_contract] using hB n
 
 /-!
+### Transporting boundedness contexts through a `ReductionOutput`
+
+A common Track C pattern:
+- start from a global boundedness hypothesis `BoundedDiscrepancy f` (packaged as `Tao2015.Context f`)
+- shift to a derived sequence `out.g`
+- continue working along the fixed step size `out.d`.
+
+The next lemma packages that pattern as a one-liner.
+-/
+
+/-- If `f` has globally bounded discrepancy (in the `Tao2015.Context` sense), then the reduced
+sequence `out.g` has bounded discrepancy along the single step size `out.d`.
+
+The bound constant is the same `2*B` that appears in `Context.bound_discrepancy_shift_add`.
+-/
+theorem contextAlong_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    Tao2015.ContextAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  -- Reduce to the literal shift form and apply the bound from `ctx`.
+  simpa [out.g_eq] using
+    (ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+
+/-!
 ### Re-associating offsets through a `ReductionOutput`
 
 When composing multiple Track C stages, offsets naturally add.
