@@ -700,10 +700,14 @@ theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
 
 /-- `simp`-friendly version of `apSum_eq_apSumFrom_mul`.
 
-We keep the main lemma untagged to reduce the risk of `simp` blow-ups in downstream files,
-but having *an opt-in simp lemma* is often convenient in small calculations.
+We intentionally **do not** tag this lemma `[simp]` by default: rewriting `apSum out.g out.d _`
+into an `apSumFrom` expression can be convenient, but it can also create large goals if it fires
+globally.
+
+If you want this rewrite in a local proof, use:
+`simpa using (out.apSum_eq_apSumFrom_mul_simp (f := f) (n := n))` or `simp [out.apSum_eq_apSumFrom_mul_simp]`.
 -/
-@[simp] theorem apSum_eq_apSumFrom_mul_simp (out : ReductionOutput f) (n : ℕ) :
+ theorem apSum_eq_apSumFrom_mul_simp (out : ReductionOutput f) (n : ℕ) :
     apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n :=
   out.apSum_eq_apSumFrom_mul (f := f) (n := n)
 
