@@ -660,6 +660,24 @@ theorem g_apply (out : ReductionOutput f) (k : ℕ) :
     out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
 
+/-- Rewrite `apSum out.g out.d` into the literal shifted form.
+
+This is occasionally useful when a downstream step wants to apply lemmas stated specifically for
+shifts of the form `fun k => f (k + m*d)` (rather than the abstract `out.g`).
+-/
+theorem apSum_eq_apSum_shift (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSum (fun k => f (k + out.m * out.d)) out.d n := by
+  simp [out.g_eq]
+
+/-- Rewrite `discrepancy out.g out.d` into the literal shifted form.
+
+This is the discrepancy-wrapper analogue of `apSum_eq_apSum_shift`.
+-/
+theorem discrepancy_eq_discrepancy_shift (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n =
+      discrepancy (fun k => f (k + out.m * out.d)) out.d n := by
+  simp [out.g_eq]
+
 /-- Reverse orientation of the AP-sum bridge field `apSum_contract`. -/
 theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSum out.g out.d n := by
