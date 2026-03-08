@@ -52,6 +52,29 @@ abbrev d (out : Stage2Output f) : ℕ := out.out1.d
 /-- Convenience projection: the reduced sequence. -/
 abbrev g (out : Stage2Output f) : ℕ → ℤ := out.out1.g
 
+/-- Consumer-facing form: Stage 2 unboundedness transferred back to the original sequence as an
+unbounded **offset discrepancy** witness.
+
+This is just a wrapper around
+`Tao2015.ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`.
+-/
+theorem forall_exists_discOffset_lt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n := by
+  -- Unfold the Stage-2 witness form and transport it through the Stage-1 contract.
+  simpa using
+    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)).1 out.unbounded)
+
+/-- Sum-level variant of `forall_exists_discOffset_lt`.
+
+This is occasionally the right normal form for later analytic stages: it exposes the raw nucleus
+`apSumOffset` rather than the wrapper `discOffset`.
+-/
+theorem forall_exists_natAbs_apSumOffset_lt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.out1.d out.out1.m n) := by
+  simpa using
+    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (f := f)).1
+      out.unbounded)
+
 end Stage2Output
 
 /-!
