@@ -806,6 +806,31 @@ theorem boundedDiscrepancyAlong_of_context_two_mul (out : ReductionOutput f) (ct
   intro n
   exact out.bound_discrepancy_of_context_two_mul (f := f) ctx n
 
+/-- A boundedness hypothesis about the original sequence `f` implies bounded discrepancy along
+`out.d` for the reduced sequence `out.g`.
+
+This is the typical “boundedness survives stage-1 reduction” entry point: we first package the
+existential bound `BoundedDiscrepancy f` into a `Context f`, then reuse
+`boundedDiscrepancyAlong_of_context`.
+-/
+theorem boundedDiscrepancyAlong_of_boundedDiscrepancy (out : ReductionOutput f)
+    (hb : BoundedDiscrepancy f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  -- Pick a witness bound `B` from `hb` and use the `Context` API.
+  classical
+  simpa using (out.boundedDiscrepancyAlong_of_context (f := f) (Context.ofBoundedDiscrepancy (f := f) hb))
+
+/-- A slightly more explicit variant of `boundedDiscrepancyAlong_of_boundedDiscrepancy`.
+
+This uses the multiplicative normal form `2 * B` for the resulting bound.
+-/
+theorem boundedDiscrepancyAlong_of_boundedDiscrepancy_two_mul (out : ReductionOutput f)
+    (hb : BoundedDiscrepancy f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  classical
+  simpa using
+    (out.boundedDiscrepancyAlong_of_context_two_mul (f := f) (Context.ofBoundedDiscrepancy (f := f) hb))
+
 /-- Unboundedness along the reduced step size `out.d`, rewritten as a witness normal form for
 `discOffset`.
 
