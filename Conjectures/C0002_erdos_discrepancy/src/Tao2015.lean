@@ -3054,16 +3054,13 @@ theorem bound_apSumOffset (ctx : Context f) (out : ReductionOutput f) (n : ℕ) 
     Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B + ctx.B := by
   simpa using (ctx.bound_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
 
-/-- Discrepancy rewrite rule: the discrepancy of `out.g` along `out.d` is the offset discrepancy of `f`.
+/-- Discrepancy rewrite rule.
 
-This is just the `natAbs` version of `apSum_eq_apSumOffset`.
+Note: this lemma is already provided earlier in this namespace as
+`ReductionOutput.discrepancy_eq_discOffset` and is marked `[simp]`.
 
-Marked `[simp]` because it is the most common consumer rewrite.
+We avoid restating it here to keep the namespace free of duplicate declarations.
 -/
-@[simp] theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
-    discrepancy out.g out.d n = discOffset f out.d out.m n := by
-  -- Both sides are definitional wrappers around `Int.natAbs`.
-  simp [discrepancy, discOffset, out.apSum_contract]
 
 /-- Strict-inequality transport across the discrepancy bridge rule. -/
 theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (B : ℕ) (n : ℕ) :
