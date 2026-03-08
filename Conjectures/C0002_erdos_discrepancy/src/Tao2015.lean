@@ -1145,14 +1145,7 @@ fixed-step discrepancy along `out.d`, with bound `2*ctx.B`.
 
 This is just `ctx.bound_discOffset` transported through `out.contract_discrepancy_le`.
 -/
-theorem discrepancy_le_two_mul_B_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
-    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
-  -- First bound the *offset* discrepancy using the global context.
-  have hOffset : ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
-    intro n
-    exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
-  -- Then transport it to the reduced sequence using the reduction contract.
-  exact out.contract_discrepancy_le (B := ctx.B + ctx.B) hOffset
+/-- (Removed: `discrepancy_le_two_mul_B_ofContext` was redundant with `contextAlong_ofContext`.) -/
 
 /-- Pointwise transfer (`<`) between the reduced discrepancy and the original offset discrepancy. -/
 theorem discrepancy_lt_iff_discOffset_lt (out : ReductionOutput f) (n B : ℕ) :
@@ -1248,13 +1241,7 @@ and re-prove the same bound each time.
 The output bound is `ctx.B + ctx.B` (i.e. `2*B`) because offset/tail sums can differ from prefix
 sums by a subtraction.
 -/
-theorem contextAlong_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
-    Tao2015.ContextAlong out.g out.d := by
-  refine ⟨ctx.B + ctx.B, ?_⟩
-  intro n
-  -- Rewrite `out.g` to the literal shift and apply the standard shift bound.
-  simpa [out.g_eq] using
-    (ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+/-- Reuse `contextAlong_ofContext` above (defined in the ContextAlong helper section). -/
 
 /-- Variant of `contextAlong_ofContext` with the bound written as `2 * ctx.B`.
 
