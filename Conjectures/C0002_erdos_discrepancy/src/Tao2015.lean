@@ -8090,6 +8090,35 @@ theorem stage2_unbounded_natAbs_apSumFrom_mul (f : ℕ → ℤ) (hf : IsSignSequ
   -- Rewrite the reduced AP sum into the affine nucleus on the original sequence.
   simpa [out.apSum_eq_apSumFrom_mul (f := f) (n := n)] using hn
 
+/-- Strict-inequality (`... > B`) version of `stage2_unbounded_natAbs_apSumFrom_mul`.
+
+This wrapper avoids frequent `gt_iff_lt` rewriting in downstream stages.
+-/
+theorem stage2_unbounded_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > B := by
+  intro B
+  rcases stage2_unbounded_natAbs_apSumFrom_mul (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
+/-- Convenience: for each threshold `C`, produce an affine-tail AP-sum witness in the form
+`C < Int.natAbs (apSumFrom ...)`.
+
+This is a “one-shot” version of `stage2_unbounded_natAbs_apSumFrom_mul` with a more descriptive
+name.
+-/
+theorem stage2_exists_natAbs_apSumFrom_mul_lt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) (C : ℕ) :
+    ∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  exact stage2_unbounded_natAbs_apSumFrom_mul (f := f) (hf := hf) (ctx := ctx) (out := out) C
+
+/-- `... > C` version of `stage2_exists_natAbs_apSumFrom_mul_lt`. -/
+theorem stage2_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) (C : ℕ) :
+    ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
+  rcases stage2_exists_natAbs_apSumFrom_mul_lt (f := f) (hf := hf) (ctx := ctx) (out := out) C with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-!
 ### Stage-2 → pipeline-friendly discrepancy predicates
 
