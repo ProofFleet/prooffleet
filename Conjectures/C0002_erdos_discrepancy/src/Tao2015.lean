@@ -3476,6 +3476,20 @@ theorem discOffset_eq_natAbs_apSumFrom (out : ReductionOutput f) (n : ℕ) :
   -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
   simpa [discOffset, out.natAbs_apSumFrom_eq_natAbs_apSumOffset (f := f) (n := n)]
 
+/-- `∃`-witness normal form: tail-sum witnesses are equivalent to offset-sum witnesses.
+
+This is a tiny helper, but it is convenient when a downstream stage naturally constructs a
+witness using `apSumFrom` while an upstream lemma expects the `apSumOffset` normal form (or vice
+versa).
+-/
+theorem exists_natAbs_apSumFrom_gt_iff_exists_natAbs_apSumOffset_gt (out : ReductionOutput f)
+    (C : ℕ) :
+    (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa [out.natAbs_apSumFrom_eq_natAbs_apSumOffset (f := f) (n := n)] using hn
+  · simpa [out.natAbs_apSumFrom_eq_natAbs_apSumOffset (f := f) (n := n)] using hn
+
 /-- Rewrite the reduced discrepancy in terms of the tail-sum API.
 
 This is the cleanest “single-line” bridge when a downstream stage naturally produces a bound on
