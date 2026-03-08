@@ -103,6 +103,38 @@ theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumFrom f (m * d) d n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)).symm
 
+/-!
+### Combined bridge lemmas: shift ↔ affine AP sums
+
+Many Track C reductions define a derived sequence by the literal shift
+`g k := f (k + m*d)` and then want to speak directly in terms of the affine nucleus
+`apSumFrom f (m*d) d`.
+
+The following tiny wrappers package the common two-step rewrite:
+
+`apSum (shift f) = apSumOffset f = apSumFrom f (m*d)`.
+-/
+
+/-- A shifted homogeneous AP sum is an affine AP sum starting at `m*d`. -/
+theorem apSum_shift_add_mul_eq_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    apSum (fun k => f (k + m * d)) d n = apSumFrom f (m * d) d n := by
+  -- First rewrite the shift as an offset sum, then rewrite the offset sum as an affine sum.
+  simpa [apSumOffset_eq_apSumFrom_mul] using
+    (apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
+/-- `Int.natAbs` form of `apSum_shift_add_mul_eq_apSumFrom_mul`. -/
+theorem natAbs_apSum_shift_add_mul_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    Int.natAbs (apSum (fun k => f (k + m * d)) d n) =
+      Int.natAbs (apSumFrom f (m * d) d n) := by
+  simp [apSum_shift_add_mul_eq_apSumFrom_mul]
+
+/-- Discrepancy form of `apSum_shift_add_mul_eq_apSumFrom_mul`. -/
+theorem discrepancy_shift_add_mul_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    discrepancy (fun k => f (k + m * d)) d n =
+      Int.natAbs (apSumFrom f (m * d) d n) := by
+  -- `discrepancy = natAbs(apSum ...)`.
+  simp [discrepancy, apSum_shift_add_mul_eq_apSumFrom_mul]
+
 /-- `Int.natAbs` form of `apSumOffset_eq_apSumFrom_mul`. -/
 theorem natAbs_apSumOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
     Int.natAbs (apSumOffset f d m n) = Int.natAbs (apSumFrom f (m * d) d n) := by
