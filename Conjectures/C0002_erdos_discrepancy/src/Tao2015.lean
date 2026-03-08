@@ -1237,6 +1237,31 @@ theorem forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (out :
     (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong
       (g := out.g) (d := out.d))
 
+/-- Unboundedness along `out.d` rewritten as “arbitrarily large offset discrepancy witnesses”. -/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- `¬bounded` ↔ `∀ C, HasDiscrepancyAtLeastAlong ... C` ↔ `∀ C, ∃ n, discOffset ... > C`.
+  have h₁ : (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) := by
+    simpa using (out.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (f := f)).symm
+  have h₂ : (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) :=
+    out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (f := f)
+  exact Iff.trans h₁ h₂
+
+/-- Unboundedness along `out.d` rewritten as “arbitrarily large offset AP-sum witnesses”. -/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  have h₁ : (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) := by
+    simpa using (out.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (f := f)).symm
+  have h₂ : (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) :=
+    out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_natAbs_apSumOffset_gt (f := f)
+  exact Iff.trans h₁ h₂
+
 /-!
 ### Boundedness/unboundedness normal forms for a `ReductionOutput`
 
