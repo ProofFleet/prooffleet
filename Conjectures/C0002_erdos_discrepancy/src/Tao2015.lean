@@ -772,6 +772,46 @@ theorem apSum_shift_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
 
 /-!
+### Small nucleus rewrites specialized to `out`
+
+Downstream stages often prefer the affine-tail nucleus `apSumFrom` over the offset form.
+These wrappers let Track C steps rewrite everything using the *parameters* bundled in a
+`ReductionOutput` without having to restate `out.m,out.d` each time.
+-/
+
+/-- Affine-tail AP sum at `out.m*out.d` rewritten into the bundled offset sum.
+
+This lemma does not mention `out.g`; it is purely about relating the two nuclei for the original
+sequence `f`.
+-/
+theorem apSumFrom_mul_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
+  simpa using
+    (Tao2015.apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
+
+/-- Reverse orientation of `apSumFrom_mul_eq_apSumOffset`. -/
+theorem apSumOffset_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSumFrom f (out.m * out.d) out.d n := by
+  simpa using (out.apSumFrom_mul_eq_apSumOffset (f := f) (n := n)).symm
+
+/-- `discOffset` rewritten into `Int.natAbs (apSumFrom ...)` using the parameters in `out`. -/
+theorem discOffset_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simpa using
+    (Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
+
+/-- Discrepancy of the reduced sequence rewritten to the affine-tail nucleus `apSumFrom`.
+
+This is often the most compact “consumer” form of the stage-1 contract.
+-/
+theorem discrepancy_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  -- First rewrite `out.g` to the literal shift of `f`, then rewrite discrepancy to `apSumFrom`.
+  simpa [out.g_eq] using
+    (Tao2015.discrepancy_shift_add_mul_eq_natAbs_apSumFrom_mul
+      (f := f) (d := out.d) (m := out.m) (n := n))
+
+/-!
 ### Congruence helpers for the reduced sequence
 
 Even though `out.g` is definitionally equal to the shift `fun k => f (k + out.m*out.d)` via
