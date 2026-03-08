@@ -1161,6 +1161,19 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
   -- Both sides are definitional wrappers around `Int.natAbs (apSum ...)`.
   simp [discOffset, discrepancy, out.apSum_contract]
 
+/-- Derived `≤`-contract for discrepancies, proved from `out.apSum_contract`.
+
+This duplicates the intent of the data field `ReductionOutput.contract_discrepancy_le`, but as a
+*theorem* so consumers can avoid depending on that field explicitly (useful when constructing
+`ReductionOutput`s by hand and later refactoring the record fields).
+-/
+theorem contract_discrepancy_le_derived (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  -- Rewrite `discOffset` into `discrepancy` using the stage-1 contract.
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+
 /-- Sum-level (`Int.natAbs`) discrepancy contract.
 
 This is often the most convenient form for a consumer lemma: it avoids the wrapper
