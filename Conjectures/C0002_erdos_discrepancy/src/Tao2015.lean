@@ -880,6 +880,25 @@ theorem apSumOffset_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
     apSumOffset f out.d out.m n = apSumFrom f (out.m * out.d) out.d n := by
   simpa using (out.apSumFrom_mul_eq_apSumOffset (f := f) (n := n)).symm
 
+/-- Rewrite the affine-tail nucleus `apSumFrom` into the reduced AP sum `apSum out.g`.
+
+This is the consumer-friendly “stage-1 contract” in the `apSumFrom` normal form.
+-/
+theorem apSumFrom_mul_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumFrom f (out.m * out.d) out.d n = apSum out.g out.d n := by
+  -- `apSumFrom = apSumOffset` and `apSum out.g = apSumOffset`.
+  calc
+    apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
+      simpa using (out.apSumFrom_mul_eq_apSumOffset (f := f) (n := n))
+    _ = apSum out.g out.d n := by
+      -- This is the record field `out.apSum_contract`.
+      simpa using (out.apSum_contract n).symm
+
+/-- Reverse orientation of `apSumFrom_mul_eq_apSum`. -/
+theorem apSum_eq_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
+  simpa using (out.apSumFrom_mul_eq_apSum (f := f) (n := n)).symm
+
 /-- `discOffset` rewritten into `Int.natAbs (apSumFrom ...)` using the parameters in `out`. -/
 theorem discOffset_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
     discOffset f out.d out.m n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
