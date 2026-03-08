@@ -1565,6 +1565,25 @@ theorem contract_natAbs_apSumOffset_lt (out : ReductionOutput f) (B : ℕ)
   -- Rewrite `discrepancy` through the stage-1 contract and expand `discOffset`.
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n), discOffset, discrepancy] using hB n
 
+/-- Transfer a uniform discrepancy bound for the reduced sequence to a uniform nucleus-level
+bound on the affine-tail sums of the original sequence.
+
+This is the `apSumFrom` analogue of `contract_natAbs_apSumOffset_le`.  It is often the most useful
+form when later stages phrase their reductions in terms of the affine nucleus `apSumFrom`.
+-/
+theorem contract_natAbs_apSumFrom_mul_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n ≤ B) :
+    ∀ n, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+
+/-- Strict-inequality version of `contract_natAbs_apSumFrom_mul_le`. -/
+theorem contract_natAbs_apSumFrom_mul_lt (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n < B) :
+    ∀ n, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B := by
+  intro n
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using hB n
+
 /-!
 ### Boundedness along the reduced step, transported to `discOffset`
 
