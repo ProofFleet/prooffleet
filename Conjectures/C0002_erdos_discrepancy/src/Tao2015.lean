@@ -815,6 +815,69 @@ theorem boundedDiscrepancyAlong_iff_exists_natAbs_apSumOffset_lt (out : Reductio
   -- `discOffset` is definitional.
   simpa [discOffset] using (out.boundedDiscrepancyAlong_iff_exists_discOffset_lt (f := f))
 
+/-- Same boundedness interface as `boundedDiscrepancyAlong_iff_exists_natAbs_apSumOffset_le`, but
+rewritten to the affine nucleus `apSumFrom`.
+
+This is often the nicest normal form for later Tao2015 stages that operate directly on affine
+progressions.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_natAbs_apSumFrom_mul_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) := by
+  -- Rewrite the `apSumOffset`-normal form through `apSumOffset_eq_apSumFrom_mul`.
+  constructor
+  · intro hb
+    rcases (out.boundedDiscrepancyAlong_iff_exists_natAbs_apSumOffset_le (f := f)).1 hb with ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- `apSumOffset f d m n = apSumFrom f (m*d) d n`.
+    simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using hB n
+  · rintro ⟨B, hB⟩
+    refine (out.boundedDiscrepancyAlong_iff_exists_natAbs_apSumOffset_le (f := f)).2 ?_
+    refine ⟨B, ?_⟩
+    intro n
+    simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using hB n
+
+/-- Strict-inequality version of `boundedDiscrepancyAlong_iff_exists_natAbs_apSumFrom_mul_le`. -/
+theorem boundedDiscrepancyAlong_iff_exists_natAbs_apSumFrom_mul_lt (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B) := by
+  -- Derive from the `≤` version by a `+1` trick.
+  constructor
+  · intro hb
+    rcases (out.boundedDiscrepancyAlong_iff_exists_natAbs_apSumFrom_mul_le (f := f)).1 hb with ⟨B, hB⟩
+    refine ⟨B + 1, ?_⟩
+    intro n
+    exact Nat.lt_succ_of_le (hB n)
+  · rintro ⟨B, hB⟩
+    refine (out.boundedDiscrepancyAlong_iff_exists_natAbs_apSumFrom_mul_le (f := f)).2 ?_
+    refine ⟨B, ?_⟩
+    intro n
+    exact Nat.le_of_lt (hB n)
+
+/-- Unboundedness witness normal form for `out.g` along `out.d`, rewritten to the affine nucleus.
+
+This is the `apSumFrom` analogue of
+`not_boundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt`.
+-/
+theorem not_boundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > B) := by
+  -- Start from the `apSumOffset` witness normal form, then rewrite to `apSumFrom`.
+  constructor
+  · intro h
+    have h' := (out.not_boundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (f := f)).1 h
+    intro B
+    rcases h' B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using hn
+  · intro h
+    refine (out.not_boundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (f := f)).2 ?_
+    intro B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using hn
+
 /-- Transfer the `Context`-level bound on `f` to a bound on the reduced discrepancy `discrepancy out.g out.d`.
 
 This is a tiny wrapper combining:
