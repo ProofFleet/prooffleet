@@ -1122,6 +1122,58 @@ theorem contract_discrepancy_lt (out : ReductionOutput f) (B : ℕ)
   intro n
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-!
+### Packaging uniform bounds as `ContextAlong`
+
+Downstream reductions often want to treat the reduced sequence `out.g` as a black box that is
+known to have bounded discrepancy along the *fixed* step size `out.d`.
+
+The record `ContextAlong` is the fixed-step analogue of `Context`; these helpers let later stages
+construct (and deconstruct) a `ContextAlong` using bounds that are naturally stated for the
+bundled offset discrepancy family `discOffset f out.d out.m`.
+-/
+
+/-- Build a `ContextAlong` for the reduced sequence from a uniform `discOffset` bound.
+
+This is the most common “consumer” packaging step: once a reduction bounds the offset discrepancies
+of the original sequence, it can immediately regard the reduced sequence as having bounded
+fixed-step discrepancy.
+-/
+def contextAlong_of_forall_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    ContextAlong out.g out.d := by
+  refine ⟨B, ?_⟩
+  intro n
+  exact (out.forall_discrepancy_le_of_forall_discOffset_le (f := f) (B := B) hB) n
+
+/-- Extract the induced `discOffset` bound from a `ContextAlong` for the reduced sequence. -/
+theorem forall_discOffset_le_of_contextAlong (out : ReductionOutput f) (ctx : ContextAlong out.g out.d) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
+  intro n
+  -- Rewrite `discOffset` to a `discrepancy out.g` statement and apply the context bound.
+  have : discrepancy out.g out.d n ≤ ctx.B := ctx.bound_discrepancy (f := out.g) (d := out.d) n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using this
+
+/-- Boundedness along the reduced step size is equivalent to boundedness of the corresponding
+offset discrepancy family.
+
+This is the `∃B,∀n` existential form corresponding to
+`forall_discrepancy_le_iff_forall_discOffset_le`.
+-/
+theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  constructor
+  · intro hb
+    rcases hb with ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Convert the bound on `out.g` to a bound on `discOffset`.
+    have : discrepancy out.g out.d n ≤ B := hB n
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using this
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact out.forall_discrepancy_le_of_forall_discOffset_le (f := f) (B := B) hB
+
 /-- Unboundedness along the reduced step `out.d` rewritten to the literal shift of `f`. -/
 theorem unboundedDiscrepancyAlong_iff_shift (out : ReductionOutput f) :
     Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
