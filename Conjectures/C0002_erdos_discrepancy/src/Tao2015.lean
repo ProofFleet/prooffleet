@@ -1360,6 +1360,50 @@ theorem mk_of_shift_hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt 
     (mk_of_shift_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (d := d) (m := m)
       (C := C) hd hf)
 
+/-!
+### Derived boundedness contexts for `mk_of_shift`
+
+The general lemmas in `ReductionOutput` let later stages derive a fixed-step boundedness context
+for a stage-1 reduction output.
+
+When the reduction output is produced by `mk_of_shift`, it is convenient to have one-line wrappers
+that avoid explicitly mentioning the `ReductionOutput` API.
+-/
+
+/-- Turn a global boundedness context for `f` into a fixed-step boundedness context for the
+`mk_of_shift` reduced sequence.
+
+The bound is `ctx.B + ctx.B` (i.e. `2*B`).
+-/
+theorem mk_of_shift_contextAlong_ofContext (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0)
+    (hf : IsSignSequence f) (ctx : Tao2015.Context f) :
+    Tao2015.ContextAlong (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d := by
+  -- Just reuse the generic API for `ReductionOutput`.
+  simpa [ReductionOutput.mk_of_shift] using
+    (ReductionOutput.contextAlong_ofContext (f := f) (out := mk_of_shift (f := f) (d := d) (m := m) hd hf) ctx)
+
+/-- Pointwise bound lemma extracted from `mk_of_shift_contextAlong_ofContext`. -/
+theorem mk_of_shift_bound_discrepancy_ofContext (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0)
+    (hf : IsSignSequence f) (ctx : Tao2015.Context f) (n : ℕ) :
+    discrepancy (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n ≤ ctx.B + ctx.B := by
+  -- Use the `ContextAlong` bound.
+  exact (Tao2015.ContextAlong.bound_discrepancy
+    (f := (mk_of_shift (f := f) (d := d) (m := m) hd hf).g) (d := d)
+    (ctx := mk_of_shift_contextAlong_ofContext (f := f) (d := d) (m := m) hd hf ctx) n)
+
+/-- If `f` has bounded discrepancy globally, then the reduced sequence produced by `mk_of_shift`
+has bounded discrepancy along the fixed step `d`.
+
+This is just `ReductionOutput.boundedDiscrepancyAlong_ofBoundedDiscrepancy` specialized to
+`mk_of_shift`.
+-/
+theorem mk_of_shift_boundedDiscrepancyAlong_ofBoundedDiscrepancy (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0)
+    (hf : IsSignSequence f) (hb : BoundedDiscrepancy f) :
+    BoundedDiscrepancyAlong (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d := by
+  simpa [ReductionOutput.mk_of_shift] using
+    (ReductionOutput.boundedDiscrepancyAlong_ofBoundedDiscrepancy
+      (f := f) (out := mk_of_shift (f := f) (d := d) (m := m) hd hf) hb)
+
 @[simp] theorem mk_of_g_eq_d (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
     (hgEq : g = fun k => f (k + m * d)) :
     (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).d = d := by
