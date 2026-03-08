@@ -5151,6 +5151,58 @@ axiom stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     (ctx : Context f) (out : ReductionOutput f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n
 
+/-!
+### Stage-2 derived consequences (unpackaged)
+
+These lemmas are tiny wrappers that let downstream code use the stage-2 deliverable
+`stage2_unbounded_discOffset` *without* first packaging it into a `Stage2Output` record.
+
+They are intentionally “one-line” interface glue:
+- witness form (`discOffset`) → discrepancy along the reduced sequence (`out.g`, fixed step `out.d`)
+- witness form → negated boundedness forms
+- witness form → the original-sequence consequence `¬ BoundedDiscrepancy f`
+-/
+
+/-- Stage-2 witness form implies fixed-step unbounded discrepancy for the reduced sequence `out.g`.
+
+This is the canonical consumer-facing normal form for stage 3: we now have explicit witnesses for
+arbitrarily large discrepancy along a *fixed* step size `out.d`.
+-/
+theorem stage2_forall_hasDiscrepancyAtLeastAlong_unpacked (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  intro C
+  rcases stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) C with ⟨n, hn⟩
+  -- Convert the `discOffset` witness into a `discrepancy out.g out.d` witness using the reduction contract.
+  refine (HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt (f := out.g) (d := out.d) (C := C)).2 ?_
+  refine ⟨n, ?_⟩
+  -- `a > b` is notation for `b < a`.
+  have : C < discrepancy out.g out.d n := by
+    -- Rewrite `discOffset` to `discrepancy` via the bridge rule bundled in `out`.
+    simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+  simpa [gt_iff_lt] using this
+
+/-- Stage-2 witness form implies `¬ BoundedDiscrepancyAlong out.g out.d`. -/
+theorem stage2_not_boundedDiscrepancyAlong_unpacked (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ¬ BoundedDiscrepancyAlong out.g out.d := by
+  -- Use the standard witness normal form for `¬ BoundedDiscrepancyAlong`.
+  have hunb : ∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n := by
+    intro B
+    rcases stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+  exact (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d)).2 hunb
+
+/-- Stage-2 witness form implies `¬ BoundedDiscrepancy f` for the original sequence. -/
+theorem stage2_not_boundedDiscrepancy_original_unpacked (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ¬ BoundedDiscrepancy f := by
+  -- The reduction output `out` already knows how to turn unbounded `discOffset` witnesses into global
+  -- unbounded discrepancy of `f`.
+  exact out.not_boundedDiscrepancy_of_forall_exists_discOffset_lt (f := f)
+    (stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out))
+
 /-- Package the stage-2 deliverable into a `Stage2Output` record.
 
 This is “pipeline glue”: later stages can be stated to consume `Stage2Output` without caring
