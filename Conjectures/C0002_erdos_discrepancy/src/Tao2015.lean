@@ -789,6 +789,24 @@ theorem bound_discrepancy_of_context_two_mul (out : ReductionOutput f) (ctx : Co
   intro n
   simpa [two_mul] using (out.bound_discrepancy_of_context (f := f) ctx n)
 
+/-- Transfer a `Context f` bound to the affine nucleus `apSumFrom f (out.m*out.d) out.d`.
+
+This is a convenient “drop the `discrepancy` wrapper” lemma: many downstream stages want to work
+with the affine AP-sum nucleus directly.
+-/
+theorem bound_natAbs_apSumFrom_mul_of_context (out : ReductionOutput f) (ctx : Context f) :
+    ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ ctx.B + ctx.B := by
+  intro n
+  -- Rewrite `discrepancy out.g` as `natAbs (apSumFrom ...)`, then apply `bound_discrepancy_of_context`.
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using
+    (out.bound_discrepancy_of_context (f := f) ctx n)
+
+/-- Multiplicative-normal-form variant of `bound_natAbs_apSumFrom_mul_of_context`. -/
+theorem bound_natAbs_apSumFrom_mul_of_context_two_mul (out : ReductionOutput f) (ctx : Context f) :
+    ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ 2 * ctx.B := by
+  intro n
+  simpa [two_mul] using (out.bound_natAbs_apSumFrom_mul_of_context (f := f) ctx n)
+
 /-- A `Context f` implies bounded discrepancy along the reduced step size `out.d`.
 
 The resulting bound is `ctx.B + ctx.B`, matching `Context.bound_discOffset`.
