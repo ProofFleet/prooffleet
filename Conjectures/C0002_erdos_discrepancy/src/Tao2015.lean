@@ -697,6 +697,24 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_lt (out : ReductionOut
   -- Unfold and normalize `a > b` as `b < a`.
   simp [HasDiscrepancyAtLeastAlong, discrepancy, gt_iff_lt]
 
+/-- `>`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_lt`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, discrepancy out.g out.d n > C) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_lt (f := f) C)
+
+/-- Extract an offset-discrepancy witness (`C < discOffset ...`) from a fixed-step witness about `out.g`. -/
+theorem exists_discOffset_lt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) {C : ℕ}
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) :
+    ∃ n : ℕ, C < discOffset f out.d out.m n :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) C).1 h
+
+/-- Build a fixed-step witness about `out.g` from an offset-discrepancy witness (`C < discOffset ...`). -/
+theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_lt (out : ReductionOutput f) {C : ℕ}
+    (h : ∃ n : ℕ, C < discOffset f out.d out.m n) :
+    HasDiscrepancyAtLeastAlong out.g out.d C :=
+  (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) C).2 h
+
 /-- If the original sequence `f` is a sign sequence, then so is the derived sequence `out.g`.
 
 This lemma is useful when constructing or refactoring `ReductionOutput`: it shows that the
