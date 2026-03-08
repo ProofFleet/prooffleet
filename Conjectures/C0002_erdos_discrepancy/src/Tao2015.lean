@@ -3715,6 +3715,39 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt (out : Reducti
   -- Unfold `HasDiscrepancyAtLeastAlong` and rewrite `apSum out.g` via `apSumFrom_eq_apSum`.
   simp [HasDiscrepancyAtLeastAlong, out.apSumFrom_eq_apSum]
 
+/-- DiscOffset-free witness normal form: rewrite a fixed-step discrepancy witness for `out.g`
+into a witness about the raw offset AP sum `apSumOffset` of the original sequence `f`.
+
+This is sometimes preferable to going through the wrapper `discOffset`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (out : ReductionOutput f)
+    (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  -- Unfold the predicate and rewrite `apSum out.g` using the stage-1 contract.
+  simp [HasDiscrepancyAtLeastAlong, out.apSum_contract]
+
+/-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_lt (out : ReductionOutput f)
+    (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f := f) (C := C))
+
+/-- Single-witness normal form: a raw offset AP-sum witness is the same as a discrepancy witness
+for the reduced sequence `out.g`.
+
+This is a light wrapper around `out.discrepancy_eq_natAbs_apSumOffset`.
+-/
+theorem exists_natAbs_apSumOffset_gt_iff_exists_discrepancy_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) ↔
+      (∃ n : ℕ, discrepancy out.g out.d n > C) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa [out.discrepancy_eq_natAbs_apSumOffset (f := f) (n := n)] using hn
+  · simpa [out.discrepancy_eq_natAbs_apSumOffset (f := f) (n := n)] using hn
+
 /-- `<`-oriented version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_gt`. -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_lt (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
