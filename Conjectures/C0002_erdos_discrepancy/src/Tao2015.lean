@@ -1079,6 +1079,30 @@ theorem not_boundedDiscrepancyAlong_iff_not_exists_discOffset_le (out : Reductio
       ¬ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
   simpa using (not_congr (out.boundedDiscrepancyAlong_iff_exists_discOffset_le (f := f)))
 
+/-- Unboundedness along `out.d`, phrased as “no uniform bound on `discOffset`”.
+
+This is just the composition of:
+- `out.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong`, and
+- `out.not_boundedDiscrepancyAlong_iff_not_exists_discOffset_le`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_not_exists_discOffset_le (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      ¬ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  -- Rewrite “unbounded along `out.d`” into a `discOffset`-normal form.
+  simpa [out.not_boundedDiscrepancyAlong_iff_not_exists_discOffset_le (f := f)] using
+    (out.forall_hasDiscrepancyAtLeastAlong_iff_not_boundedDiscrepancyAlong (f := f))
+
+/-- Same as `forall_hasDiscrepancyAtLeastAlong_iff_not_exists_discOffset_le`, but at the AP-sum level.
+
+This is the `Int.natAbs (apSumOffset ...)` analogue of the previous lemma.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_not_exists_natAbs_apSumOffset_le (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      ¬ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using
+    (out.forall_hasDiscrepancyAtLeastAlong_iff_not_exists_discOffset_le (f := f))
+
 /-- Same as `not_boundedDiscrepancyAlong_iff_not_exists_discOffset_le`, but at the AP-sum level.
 
 This is the `Int.natAbs (apSumOffset ...)` analogue of the previous lemma.
