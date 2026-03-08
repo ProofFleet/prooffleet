@@ -5617,6 +5617,20 @@ theorem unbounded_discrepancy (s2 : Stage2Output f out) :
   refine ⟨n, ?_⟩
   simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
 
+/-- Greater-than oriented version of `Stage2Output.unbounded_discOffset`. -/
+theorem unbounded_discOffset_gt (s2 : Stage2Output f out) :
+    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
+  intro B
+  rcases s2.unbounded_discOffset B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
+/-- Greater-than oriented version of `Stage2Output.unbounded_discrepancy`. -/
+theorem unbounded_discrepancy_gt (s2 : Stage2Output f out) :
+    ∀ B : ℕ, ∃ n : ℕ, discrepancy out.g out.d n > B := by
+  intro B
+  rcases s2.unbounded_discrepancy (f := f) (out := out) B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- `natAbs` witness form for the bundled *offset sums*.
 
 This is just `Stage2Output.unbounded_discOffset` with `discOffset` unfolded.
@@ -5627,6 +5641,13 @@ theorem unbounded_natAbs_apSumOffset (s2 : Stage2Output f out) :
   rcases s2.unbounded_discOffset B with ⟨n, hn⟩
   refine ⟨n, ?_⟩
   simpa [discOffset] using hn
+
+/-- Greater-than oriented version of `Stage2Output.unbounded_natAbs_apSumOffset`. -/
+theorem unbounded_natAbs_apSumOffset_gt (s2 : Stage2Output f out) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
+  intro B
+  rcases s2.unbounded_natAbs_apSumOffset (f := f) (out := out) B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
 /-- `natAbs` witness form for the reduced *AP sums* `apSum out.g out.d`.
 
