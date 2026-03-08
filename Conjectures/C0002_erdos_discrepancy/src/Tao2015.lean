@@ -74,6 +74,40 @@ theorem apSumOffset_eq_apSum_shift_add_mul (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)).symm
 
+/-!
+### Bridge lemmas: `apSumOffset` ↔ `apSumFrom`
+
+Track B treats `apSumFrom` as the canonical nucleus for affine progressions.
+In Track C we often want to move between the “offset” normal form and the affine normal form
+without importing additional files or redoing endpoint arithmetic.
+
+These wrappers specialize the general bridge lemma
+`apSumOffset_shift_add_eq_apSumFrom_bridge` to the common case `a = 0`.
+-/
+
+/-- Offset AP sum as an affine AP sum starting at `m*d`.
+
+Concretely, this rewrites the offset family
+`apSumOffset f d m n = ∑ i < n, f ((m+i+1)*d)`
+into the affine nucleus
+`apSumFrom f (m*d) d n = ∑ i < n, f (m*d + (i+1)*d)`.
+-/
+theorem apSumOffset_eq_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSumFrom f (m * d) d n := by
+  -- Specialize the bridge lemma with `a = 0`.
+  simpa using
+    (apSumOffset_shift_add_eq_apSumFrom_bridge (f := f) (a := 0) (d := d) (m := m) (n := n))
+
+/-- Reverse orientation of `apSumOffset_eq_apSumFrom_mul`. -/
+theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumFrom f (m * d) d n = apSumOffset f d m n := by
+  simpa using (apSumOffset_eq_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- `Int.natAbs` form of `apSumOffset_eq_apSumFrom_mul`. -/
+theorem natAbs_apSumOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    Int.natAbs (apSumOffset f d m n) = Int.natAbs (apSumFrom f (m * d) d n) := by
+  simp [apSumOffset_eq_apSumFrom_mul]
+
 /-- Discrepancy version of `apSum_shift_add_mul_eq_apSumOffset`. -/
 theorem discrepancy_shift_add_mul_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discrepancy (fun k => f (k + m * d)) d n = discOffset f d m n := by
