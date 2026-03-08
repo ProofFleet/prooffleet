@@ -3487,6 +3487,40 @@ theorem discrepancy_eq_natAbs_apSumFrom (out : ReductionOutput f) (n : ℕ) :
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, out.apSumFrom_eq_apSum (f := f) (n := n)]
 
+/-- Reverse orientation of `out.apSumFrom_eq_apSum`.
+
+This is occasionally useful when a downstream stage naturally produces an `apSum` statement about
+`out.g` but wants to normalize it into the tail-sum nucleus `apSumFrom` for the original
+sequence `f`.
+-/
+theorem apSum_eq_apSumFrom_contract (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
+  -- This is just the existing bridge lemma, stated in the `apSum`-forward orientation.
+  simpa using (out.apSum_eq_apSumFrom_mul (f := f) (n := n))
+
+/-- Reverse orientation of `apSum_eq_apSumFrom_contract`.
+
+Not marked `[simp]` to avoid rewriting loops.
+-/
+theorem apSumFrom_eq_apSum_contract (out : ReductionOutput f) (n : ℕ) :
+    apSumFrom f (out.m * out.d) out.d n = apSum out.g out.d n := by
+  simpa using (out.apSum_eq_apSumFrom_contract (f := f) (n := n)).symm
+
+/-- `Int.natAbs` form of `apSum_eq_apSumFrom_contract`. -/
+theorem natAbs_apSum_eq_natAbs_apSumFrom_contract (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [out.apSum_eq_apSumFrom_contract (f := f) (n := n)]
+
+/-- A convenient `≤`-transfer wrapper for bounds phrased using the tail-sum nucleus.
+
+This is the pointwise version of the global contract
+`forall_discrepancy_le_iff_forall_natAbs_apSumFrom_mul_le`.
+-/
+theorem discrepancy_le_iff_natAbs_apSumFrom_le_contract (out : ReductionOutput f) (B n : ℕ) :
+    discrepancy out.g out.d n ≤ B ↔ Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  -- Rewrite `discrepancy` using the tail-sum bridge.
+  simpa [out.discrepancy_eq_natAbs_apSumFrom (f := f) (n := n)]
+
 /-!
 ### Fixed-step discrepancy witnesses, rewritten through the tail-sum API
 
