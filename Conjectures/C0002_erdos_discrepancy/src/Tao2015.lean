@@ -1005,7 +1005,42 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
   -- Rewrite the fixed-step predicate to a `discrepancy` witness, then rewrite `discrepancy out.g`
   -- via `out.discrepancy_eq_natAbs_apSumFrom_mul`.
   simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt,
-    out.discrepancy_eq_natAbs_apSumFrom_mul] 
+    out.discrepancy_eq_natAbs_apSumFrom_mul]
+
+/-- Uniform “large discrepancy exists” witnesses transfer from `out.g` to the offset view.
+
+This is just `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt` lifted under `∀ C`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- Push the pointwise equivalence through `∀`.
+  constructor
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) C).1 (h C)
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) C).2 (h C)
+
+/-- Witness-form unboundedness for `out.g` along `out.d` transfers to the offset view, and back.
+
+This is the `HasDiscrepancyAtLeastAlong` packaging of
+`unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_hasDiscrepancyAtLeastOffset (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔ (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- This is definitionally the same statement as the previous lemma; we keep the name as a cue
+  -- for later stages (“unbounded fixed-step discrepancy” ↔ “unbounded offset discrepancy”).
+  simpa using (out.forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (f := f))
+
+/-- If `out.g` has unbounded discrepancy along the fixed step `out.d`, then the offset view
+`discOffset f out.d out.m` is unbounded (witness form). -/
+theorem forall_exists_discOffset_gt_of_unboundedDiscrepancyAlong (out : ReductionOutput f)
+    (h : Tao2015.UnboundedDiscrepancyAlong out.g out.d) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  -- Use the witness-form transfer lemma and unfold `UnboundedDiscrepancyAlong`.
+  have h' := (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)).1 h
+  -- Just rewrite `discOffset > B` as `B < discOffset`.
+  simpa [Tao2015.UnboundedDiscrepancyAlong, gt_iff_lt] using h'
 
 /-!
 ### Constructors
