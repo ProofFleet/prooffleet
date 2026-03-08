@@ -844,6 +844,27 @@ We keep the simp set minimal to avoid rewriting loops.
     (mk_of_shift (f := f) (d := d) (m := m) hd hf).g k = f (k + m * d) := by
   rfl
 
+/-- `mk_of_shift` exposes the core bridge rule as a simp lemma.
+
+This is a tiny quality-of-life lemma: it lets downstream stages normalize the reduced AP sum
+without having to mention `apSum_contract` explicitly.
+-/
+@[simp] theorem mk_of_shift_apSum_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) (hd : d > 0)
+    (hf : IsSignSequence f) :
+    apSum (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n = apSumOffset f d m n := by
+  -- `mk_of_shift` defines the `apSum_contract` field using the shift↔offset bridge.
+  simp [ReductionOutput.mk_of_shift]
+
+/-- Discrepancy-level simp lemma for the default constructor `mk_of_shift`.
+
+This is the discrepancy wrapper version of `mk_of_shift_apSum_eq_apSumOffset`.
+-/
+@[simp] theorem mk_of_shift_discrepancy_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) (hd : d > 0)
+    (hf : IsSignSequence f) :
+    discrepancy (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d n = discOffset f d m n := by
+  -- Reduce to the AP-sum bridge and unfold wrappers.
+  simp [discrepancy, discOffset, mk_of_shift_apSum_eq_apSumOffset]
+
 @[simp] theorem mk_of_g_eq_d (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
     (hgEq : g = fun k => f (k + m * d)) :
     (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).d = d := by
