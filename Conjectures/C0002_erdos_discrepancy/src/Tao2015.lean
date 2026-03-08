@@ -968,6 +968,49 @@ theorem mk_of_shift_contract_discrepancy_lt (f : ℕ → ℤ) (d m B : ℕ) (hd 
   intro hB n
   simpa [mk_of_shift_discrepancy_eq_discOffset (f := f) (d := d) (m := m) (n := n) hd hf] using hB n
 
+/-!
+### Fixed-step discrepancy witnesses for `mk_of_shift`
+
+These are small wrappers that let downstream stages avoid unfolding
+`HasDiscrepancyAtLeastAlong` and the discrepancy wrappers by hand.
+-/
+
+/-- A fixed-step discrepancy witness for `mk_of_shift` is the same as an offset-discrepancy witness
+for the original sequence.
+
+This is just `HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt` combined with the simp lemma
+`mk_of_shift_discrepancy_eq_discOffset`.
+-/
+theorem mk_of_shift_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f : ℕ → ℤ) (d m C : ℕ)
+    (hd : d > 0) (hf : IsSignSequence f) :
+    HasDiscrepancyAtLeastAlong (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d C ↔
+      (∃ n : ℕ, discOffset f d m n > C) := by
+  -- Unfold the fixed-step predicate and rewrite `discrepancy` using the stage-1 simp lemma.
+  simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt,
+    mk_of_shift_discrepancy_eq_discOffset (f := f) (d := d) (m := m) (hd := hd) (hf := hf)]
+
+/-- `<`-oriented version of `mk_of_shift_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt`. -/
+theorem mk_of_shift_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f : ℕ → ℤ) (d m C : ℕ)
+    (hd : d > 0) (hf : IsSignSequence f) :
+    HasDiscrepancyAtLeastAlong (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d C ↔
+      (∃ n : ℕ, C < discOffset f d m n) := by
+  simpa [gt_iff_lt] using
+    (mk_of_shift_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (d := d) (m := m)
+      (C := C) hd hf)
+
+/-- `natAbs (apSumOffset ...)` witness normal form for `mk_of_shift`.
+
+This can be useful if a downstream stage wants to avoid the `discOffset` wrapper.
+-/
+theorem mk_of_shift_hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ)
+    (d m C : ℕ) (hd : d > 0) (hf : IsSignSequence f) :
+    HasDiscrepancyAtLeastAlong (mk_of_shift (f := f) (d := d) (m := m) hd hf).g d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > C) := by
+  -- `discOffset` is definitional.
+  simpa [discOffset] using
+    (mk_of_shift_hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (d := d) (m := m)
+      (C := C) hd hf)
+
 @[simp] theorem mk_of_g_eq_d (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
     (hgEq : g = fun k => f (k + m * d)) :
     (mk_of_g_eq (f := f) (g := g) (d := d) (m := m) hd hg hgEq).d = d := by
