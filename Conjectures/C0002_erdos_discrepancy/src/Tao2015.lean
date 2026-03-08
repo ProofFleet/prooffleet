@@ -819,6 +819,33 @@ theorem forall_discrepancy_lt_iff_forall_natAbs_apSumOffset_lt (out : ReductionO
       (∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) < B) := by
   simpa [discOffset] using (out.forall_discrepancy_lt_iff_forall_discOffset_lt (f := f) (B := B))
 
+/-- Uniform discrepancy bounds are equivalent to uniform bounds on the affine nucleus `apSumFrom`.
+
+This is the `apSumFrom` analogue of `forall_discrepancy_le_iff_forall_natAbs_apSumOffset_le`.
+It is often the cleanest contract form for later Tao2015 stages, since many reductions speak
+naturally in terms of `apSumFrom`.
+-/
+theorem forall_discrepancy_le_iff_forall_natAbs_apSumFrom_mul_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
+      (∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B) := by
+  constructor
+  · intro h n
+    -- Rewrite `discrepancy out.g out.d n` into the `apSumFrom` nucleus.
+    simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+  · intro h n
+    -- Rewrite back using the same contract.
+    simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+
+/-- Strict-inequality version of `forall_discrepancy_le_iff_forall_natAbs_apSumFrom_mul_le`. -/
+theorem forall_discrepancy_lt_iff_forall_natAbs_apSumFrom_mul_lt (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n < B) ↔
+      (∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) < B) := by
+  constructor
+  · intro h n
+    simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+  · intro h n
+    simpa [out.discrepancy_eq_natAbs_apSumFrom_mul (f := f) (n := n)] using h n
+
 /-- `HasDiscrepancyAtLeastAlong` is invariant under rewriting the reduced sequence via `out.g_eq`. -/
 theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
