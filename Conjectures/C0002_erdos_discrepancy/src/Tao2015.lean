@@ -940,6 +940,22 @@ theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f)
     -- rewrite `discOffset` to reduced discrepancy
     simpa [discOffset, discrepancy, out.apSum_contract] using h n
 
+/-- `BoundedDiscrepancyAlong` for the reduced sequence `out.g` is equivalent to a uniform bound
+on the offset discrepancy `discOffset f out.d out.m`.
+
+This is a small packaging lemma: it eliminates the `out.g`/`discrepancy` view in favor of the
+`f`/`discOffset` view, or vice versa.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ (∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact (out.forall_discrepancy_le_iff_forall_discOffset_le (f := f) (B := B)).1 hB
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact (out.forall_discrepancy_le_iff_forall_discOffset_le (f := f) (B := B)).2 hB
+
 /-- Strict-inequality version of `forall_discrepancy_le_iff_forall_discOffset_le`. -/
 theorem forall_discrepancy_lt_iff_forall_discOffset_lt (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n < B) ↔ (∀ n : ℕ, discOffset f out.d out.m n < B) := by
