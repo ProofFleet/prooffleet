@@ -384,6 +384,47 @@ theorem bound_discrepancy (ctx : ContextAlong f d) (n : ℕ) : discrepancy f d n
 end ContextAlong
 
 /-!
+### A tiny “fixed-step” unboundedness predicate
+
+Track C routinely wants to talk about *unbounded discrepancy along a fixed step size*.
+The verified substrate expresses boundedness via `BoundedDiscrepancyAlong`; its negation is the
+correct logical form, but it is often more convenient to carry the explicit witness form
+`∀ B, ∃ n, B < discrepancy …`.
+
+We record that witness form here as lightweight pipeline glue.
+-/
+
+def UnboundedDiscrepancyAlong (f : ℕ → ℤ) (d : ℕ) : Prop :=
+  ∀ B : ℕ, ∃ n : ℕ, B < discrepancy f d n
+
+namespace UnboundedDiscrepancyAlong
+
+/-- Definitional symmetry: `B < …` vs `… > B`. -/
+theorem iff_forall_exists_discrepancy_gt (f : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong f d ↔ (∀ B : ℕ, ∃ n : ℕ, discrepancy f d n > B) := by
+  -- `a > b` is notation for `b < a`.
+  simp [UnboundedDiscrepancyAlong, gt_iff_lt]
+
+/-- Unboundedness witness form is equivalent to the negation of `BoundedDiscrepancyAlong`. -/
+theorem iff_not_boundedDiscrepancyAlong (f : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong f d ↔ ¬ BoundedDiscrepancyAlong f d := by
+  -- Use the standard negated-boundedness equivalence, and unfold the witness predicate.
+  simpa [UnboundedDiscrepancyAlong] using
+    (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := f) (d := d)).symm
+
+/-- Forward direction of `iff_not_boundedDiscrepancyAlong`. -/
+theorem not_boundedDiscrepancyAlong {f : ℕ → ℤ} {d : ℕ} (h : UnboundedDiscrepancyAlong f d) :
+    ¬ BoundedDiscrepancyAlong f d :=
+  (iff_not_boundedDiscrepancyAlong (f := f) (d := d)).1 h
+
+/-- Backward direction of `iff_not_boundedDiscrepancyAlong`. -/
+theorem of_not_boundedDiscrepancyAlong {f : ℕ → ℤ} {d : ℕ} (h : ¬ BoundedDiscrepancyAlong f d) :
+    UnboundedDiscrepancyAlong f d :=
+  (iff_not_boundedDiscrepancyAlong (f := f) (d := d)).2 h
+
+end UnboundedDiscrepancyAlong
+
+/-!
 ### A tiny “fixed-step” discrepancy predicate
 
 `HasDiscrepancyAtLeast` quantifies over the step size `d`.  Many intermediate reductions in
