@@ -675,6 +675,19 @@ theorem contextAlong_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context 
   simpa [out.g_eq] using
     (ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
 
+/-- Variant of `contextAlong_ofContext` with the bound written as `2 * ctx.B`.
+
+This is occasionally convenient when downstream stages track constants multiplicatively.
+-/
+theorem contextAlong_ofContext_two_mul (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    Tao2015.ContextAlong out.g out.d := by
+  -- Reuse `contextAlong_ofContext`, then rewrite `ctx.B + ctx.B` as `2 * ctx.B`.
+  refine ⟨2 * ctx.B, ?_⟩
+  intro n
+  have h := (Tao2015.ContextAlong.bound_discrepancy (f := out.g) (d := out.d)
+    (ctx := out.contextAlong_ofContext (f := f) ctx) n)
+  simpa [two_mul] using h
+
 /-- If `f` has bounded discrepancy (globally), then the reduced sequence `out.g` has bounded
 fixed-step discrepancy along `out.d`.
 
