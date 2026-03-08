@@ -8585,6 +8585,19 @@ theorem forall_hasDiscrepancyAtLeastAlong (s2 : Stage2Output f out) :
   rcases s2.exists_natAbs_apSum_gt (f := f) (out := out) C with ⟨n, hn⟩
   exact ⟨n, hn⟩
 
+/-- A `Stage2Output` yields unbounded discrepancy along the reduced fixed step `out.d`.
+
+This is the witness predicate `UnboundedDiscrepancyAlong out.g out.d` packaged as a one-liner.
+It is frequently the most convenient form for later “contradiction” stages.
+-/
+theorem unboundedDiscrepancyAlong (s2 : Stage2Output f out) :
+    UnboundedDiscrepancyAlong out.g out.d := by
+  intro B
+  rcases s2.unbounded_discOffset (f := f) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- Rewrite the offset discrepancy back to the reduced discrepancy via the stage-1 contract.
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
+
 /-- A `Stage2Output` yields the ambient `HasDiscrepancyAtLeast` predicate for the reduced sequence.
 
 This is a convenient bridge when a later stage expects the standard discrepancy notion.
