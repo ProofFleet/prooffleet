@@ -349,6 +349,41 @@ theorem bound_discrepancy_shift_add_forall (ctx : Context f) (d m : ℕ) (hd : d
 end Context
 
 /-!
+### A tiny “fixed-step” discrepancy context
+
+Many intermediate reductions in Tao 2015 work along a *single* step size `d`.
+`BoundedDiscrepancyAlong` packages this as an existential, but it is often convenient to pass the
+witness `B` and the bound lemma together as a single record.
+
+This is the fixed-step analogue of `Tao2015.Context`.
+-/
+
+structure ContextAlong (f : ℕ → ℤ) (d : ℕ) : Type where
+  B : ℕ
+  bound : ∀ n : ℕ, discrepancy f d n ≤ B
+
+namespace ContextAlong
+
+/-- Build a `ContextAlong` from the existential boundedness statement. -/
+theorem ofBoundedDiscrepancyAlong {f : ℕ → ℤ} {d : ℕ} (hb : BoundedDiscrepancyAlong f d) :
+    ContextAlong f d := by
+  classical
+  refine ⟨Classical.choose hb, ?_⟩
+  simpa using (Classical.choose_spec hb)
+
+/-- Turn `ContextAlong` back into the existential boundedness statement. -/
+theorem toBoundedDiscrepancyAlong (ctx : ContextAlong f d) : BoundedDiscrepancyAlong f d := by
+  refine ⟨ctx.B, ?_⟩
+  intro n
+  exact ctx.bound n
+
+/-- Convenience lemma: the bound, as a named theorem. -/
+theorem bound_discrepancy (ctx : ContextAlong f d) (n : ℕ) : discrepancy f d n ≤ ctx.B :=
+  ctx.bound n
+
+end ContextAlong
+
+/-!
 ### A tiny “fixed-step” discrepancy predicate
 
 `HasDiscrepancyAtLeast` quantifies over the step size `d`.  Many intermediate reductions in
@@ -2131,6 +2166,31 @@ theorem discOffset_add_eq_discOffset (out : ReductionOutput f) (m₂ n : ℕ) :
   simpa using (out.discOffset_eq_discOffset_add (f := f) (m₂ := m₂) (n := n)).symm
 
 end ReductionOutput
+
+namespace ContextAlong
+
+/-- Transport a fixed-step context across a `ReductionOutput`.
+
+If you have a uniform bound on the *offset* discrepancies `discOffset f out.d out.m`, you can
+view it as a fixed-step context for the reduced sequence `out.g` along `out.d`.
+-/
+theorem of_discOffset_bound (out : ReductionOutput f)
+    (hB : ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    ContextAlong out.g out.d := by
+  rcases hB with ⟨B, hB⟩
+  refine ⟨B, ?_⟩
+  intro n
+  exact out.contract_discrepancy_le B hB n
+
+/-- Converse transport: a fixed-step context for `out.g` gives a uniform `discOffset` bound. -/
+theorem discOffset_bound_of (out : ReductionOutput f) (ctx : ContextAlong out.g out.d) :
+    ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  refine ⟨ctx.B, ?_⟩
+  intro n
+  -- Rewrite `discOffset` to the discrepancy of `out.g` using the AP-sum contract.
+  simpa [discOffset, discrepancy, out.apSum_contract] using ctx.bound n
+
+end ContextAlong
 
 @[simp] theorem mkShiftOfSign_m (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     (mkShiftOfSign (f := f) (hf := hf) (d := d) (m := m) hd).m = m := by
