@@ -395,6 +395,17 @@ Definition of done:
 - [ ] “Swap start shift vs summand shift” coherence: prove a two-way lemma family normalizing between `apSumOffset (fun t => f (t + a)) d (m+b) n` and `apSumOffset (fun t => f (t + (a + b*d))) d m n` with a preferred public name + deprecated aliases isolated.
 - [ ] Bounded-by-B generalization for affine tails: extend the existing `natAbs_apSum*_le_mul` family with a lemma that bounds differences of affine tails directly (without rewriting to offset first), producing `Int.natAbs (apSumFrom f a d (m+n) - apSumFrom f a d m) ≤ n * B` under `∀k, Int.natAbs (f k) ≤ B`.
 
+#### Auto-generated backlog (needs triage)
+- [ ] DiscOffset-level succ/Lipschitz API: add the canonical step lemma
+  `discOffset f d m (n+1) ≤ discOffset f d m n + 1` (and the corresponding equality for `apSumOffset`), plus `simp`-friendly corollaries.
+- [ ] DiscOffset-level stability: a lemma stating `discOffset f d m n = discOffset g d m n` if `f` and `g` agree on the accessed indices (prefer phrasing via `apSupport` or `Finset.range` normal form), so later “local surgery” arguments can stay at discrepancy level.
+- [ ] Coherence lemma: expose a stable normal form `discOffset f d m 0 = 0` and `discOffset f d m 1 = Int.natAbs (f ((m+1)*d))` (and affine/homogeneous analogues) to reduce degenerate-case boilerplate in later bounds.
+- [ ] Reindex-by-residue infrastructure: introduce a small helper API that packages the standard change of variables `i = r*q + j` as a reusable `Finset`/`Nat` reindexing lemma (separate from the final residue-class split lemma), to keep later residue-splitting PRs short and uniform.
+- [ ] Disc-level “factor the step” coherence: add `discOffset_mul_eq_discOffset_map_mul…` lemmas (mirroring `apSumOffset_mul_eq_apSumOffset_map_mul…`) so later statements can stay in `ℕ` discrepancy form without unfolding `Int.natAbs`.
+- [ ] Stable-surface regression examples: add 2–3 compile-only examples that start from paper `Icc` statements, normalize to `discOffset` (not `Int.natAbs (apSumOffset …)`), then split/bound — ensuring the whole pipeline works under `import MoltResearch.Discrepancy`.
+- [ ] API hygiene: create a tiny `DiscOffsetSimp` opt-in module with the minimal `[simp]` set for `discOffset`/`disc` normal forms (succ/zero/shift), audited so it doesn’t cause loops.
+- [ ] Bridge lemma: a canonical rewrite from `HasDiscrepancyAtLeastAlong` (or the repo’s preferred “along d” predicate) directly into a `discOffset` witness normal form, so Stage-2 statements can be phrased purely in `discOffset` without unpacking `Int.natAbs`.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
