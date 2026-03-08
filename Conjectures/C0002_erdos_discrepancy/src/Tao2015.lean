@@ -1048,6 +1048,19 @@ theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
   -- Both sides are definitional wrappers around `Int.natAbs (apSum ...)`.
   simp [discOffset, discrepancy, out.apSum_contract]
 
+/-- Sum-level (`Int.natAbs`) discrepancy contract.
+
+This is often the most convenient form for a consumer lemma: it avoids the wrapper
+`discOffset` and speaks directly about the nucleus `apSumOffset`.
+-/
+theorem contract_natAbs_apSumOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ B := by
+  intro n
+  -- Rewrite `discrepancy` to the nucleus `natAbs (apSum ...)` and then apply the AP-sum contract.
+  -- Finally use the assumed nucleus-level bound.
+  simpa [discrepancy, discOffset, out.apSum_contract] using hB n
+
 /-!
 ### Re-associating offsets through a `ReductionOutput`
 
