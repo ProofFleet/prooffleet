@@ -666,6 +666,14 @@ We only add the “forward” directions as simp lemmas, to avoid rewrite loops.
     apSum out.g out.d n = apSumOffset f out.d out.m n :=
   out.apSum_contract n
 
+/-- Reverse orientation of `apSum_eq_apSumOffset`.
+
+Not marked `[simp]` to avoid rewriting loops.
+-/
+theorem apSumOffset_eq_apSum (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSum out.g out.d n := by
+  simpa using (out.apSum_eq_apSumOffset (f := f) (n := n)).symm
+
 /-- `Int.natAbs` form of `apSum_eq_apSumOffset`. -/
 @[simp] theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
