@@ -852,6 +852,18 @@ theorem hasDiscrepancyAtLeastAlong_congr_shift (out : ReductionOutput f) (C : �
       HasDiscrepancyAtLeastAlong (fun k => f (k + out.m * out.d)) out.d C := by
   simpa [out.g_eq]
 
+/-- `BoundedDiscrepancyAlong` is invariant under rewriting the reduced sequence via `out.g_eq`. -/
+theorem boundedDiscrepancyAlong_congr_shift (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      BoundedDiscrepancyAlong (fun k => f (k + out.m * out.d)) out.d := by
+  simpa [out.g_eq]
+
+/-- Negated form of `boundedDiscrepancyAlong_congr_shift`. -/
+theorem not_boundedDiscrepancyAlong_congr_shift (out : ReductionOutput f) :
+    (¬ BoundedDiscrepancyAlong out.g out.d) ↔
+      (¬ BoundedDiscrepancyAlong (fun k => f (k + out.m * out.d)) out.d) := by
+  simpa [out.g_eq]
+
 /-- Rewrite the reduced-step discrepancy predicate into a `discOffset` witness (`C < ...`). -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
