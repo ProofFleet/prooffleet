@@ -1030,6 +1030,26 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (out : ReductionOutp
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C))
 
+/-- Witness-contract form: `∃ n, discrepancy out.g out.d n > C` is equivalent to
+`∃ n, discOffset f out.d out.m n > C`.
+
+This is a small lemma, but it comes up constantly: many pipeline stages produce a single witness
+rather than the bundled predicate `HasDiscrepancyAtLeastAlong`.
+-/
+theorem exists_discrepancy_gt_iff_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discrepancy out.g out.d n > C) ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- Both sides are definitional rewrites using the `discrepancy`-level simp contract.
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa using hn
+  · simpa using hn
+
+/-- `<`-oriented version of `exists_discrepancy_gt_iff_exists_discOffset_gt`. -/
+theorem exists_discrepancy_lt_iff_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discrepancy out.g out.d n < C) ↔ (∃ n : ℕ, discOffset f out.d out.m n < C) := by
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩
+  · simpa using hn
+  · simpa using hn
+
 /-- Sum-level (offset AP sum) witness normal form for `HasDiscrepancyAtLeastAlong out.g out.d C`.
 
 This is the cleanest statement when downstream stages work directly with
