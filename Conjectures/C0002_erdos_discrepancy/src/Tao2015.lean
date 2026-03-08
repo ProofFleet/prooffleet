@@ -5449,6 +5449,19 @@ theorem exists_discOffset_lt (s2 : Stage2Output f out) (C : ℕ) :
   rcases s2.unbounded_discOffset C with ⟨n, hn⟩
   exact ⟨n, hn⟩
 
+/-- Extract a single `natAbs(apSumOffset ...)` witness from `Stage2Output` (less-than orientation). -/
+theorem exists_natAbs_apSumOffset_lt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, C < Int.natAbs (apSumOffset f out.d out.m n) := by
+  rcases s2.exists_discOffset_lt (f := f) (out := out) C with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+/-- Extract a single `natAbs(apSumOffset ...)` witness from `Stage2Output` (greater-than orientation). -/
+theorem exists_natAbs_apSumOffset_gt (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C := by
+  rcases s2.exists_natAbs_apSumOffset_lt (f := f) (out := out) C with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- Convert a `Stage2Output` to a fixed-threshold `HasDiscrepancyAtLeastAlong` witness.
 
 This lemma is redundant with the later convenience lemma
