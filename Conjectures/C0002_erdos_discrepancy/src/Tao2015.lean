@@ -1290,6 +1290,87 @@ useful and can add noise/slowdowns.
   rfl
 
 /-!
+### `simp` lemmas for `mk_of_apSum_contract`
+
+`mk_of_apSum_contract` is the most flexible stage-1 constructor: you supply an explicit AP-sum
+bridge `apSum g d = apSumOffset f d m`, and the discrepancy transfer contract is derived
+automatically.
+
+The following tiny lemmas make that constructor pleasant to use downstream.
+-/
+
+@[simp] theorem mk_of_apSum_contract_d (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
+    (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).d = d := by
+  rfl
+
+@[simp] theorem mk_of_apSum_contract_m (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
+    (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).m = m := by
+  rfl
+
+@[simp] theorem mk_of_apSum_contract_g (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0) (hg : IsSignSequence g)
+    (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).g = g := by
+  rfl
+
+@[simp] theorem mk_of_apSum_contract_g_apply (f g : ℕ → ℤ) (d m : ℕ) (hd : d > 0)
+    (hg : IsSignSequence g) (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) (k : ℕ) :
+    (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).g k = g k := by
+  rfl
+
+/-- `mk_of_apSum_contract` exposes the supplied AP-sum bridge as a simp lemma. -/
+@[simp] theorem mk_of_apSum_contract_apSum_eq_apSumOffset (f g : ℕ → ℤ) (d m n : ℕ) (hd : d > 0)
+    (hg : IsSignSequence g) (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    apSum (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).g d n =
+      apSumOffset f d m n := by
+  simpa [ReductionOutput.mk_of_apSum_contract] using (hAp n)
+
+/-- Discrepancy-level simp lemma for `mk_of_apSum_contract`. -/
+@[simp] theorem mk_of_apSum_contract_discrepancy_eq_discOffset (f g : ℕ → ℤ) (d m n : ℕ)
+    (hd : d > 0) (hg : IsSignSequence g) (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    discrepancy (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).g d n =
+      discOffset f d m n := by
+  simp [discrepancy, discOffset, mk_of_apSum_contract_apSum_eq_apSumOffset (f := f) (g := g)
+    (d := d) (m := m) (n := n) hd hg gEq hAp]
+
+/-- Tail-sum (`apSumFrom`) rewrite for `mk_of_apSum_contract`. -/
+@[simp] theorem mk_of_apSum_contract_discrepancy_eq_natAbs_apSumFrom_mul (f g : ℕ → ℤ)
+    (d m n : ℕ) (hd : d > 0) (hg : IsSignSequence g) (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    discrepancy (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).g d n =
+      Int.natAbs (apSumFrom f (m * d) d n) := by
+  simp [mk_of_apSum_contract_discrepancy_eq_discOffset (f := f) (g := g) (d := d) (m := m) (n := n)
+    hd hg gEq hAp,
+    discOffset_eq_natAbs_apSumFrom_mul]
+
+/-- Uniform transfer contract (`≤`) for `mk_of_apSum_contract`. -/
+theorem mk_of_apSum_contract_contract_discrepancy_le (f g : ℕ → ℤ) (d m B : ℕ) (hd : d > 0)
+    (hg : IsSignSequence g) (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (∀ n : ℕ, discOffset f d m n ≤ B) →
+      (∀ n : ℕ, discrepancy (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).g d n ≤ B) := by
+  intro hB n
+  simpa [mk_of_apSum_contract_discrepancy_eq_discOffset (f := f) (g := g) (d := d) (m := m)
+    (n := n) hd hg gEq hAp] using hB n
+
+/-- Uniform transfer contract (`<`) for `mk_of_apSum_contract`. -/
+theorem mk_of_apSum_contract_contract_discrepancy_lt (f g : ℕ → ℤ) (d m B : ℕ) (hd : d > 0)
+    (hg : IsSignSequence g) (gEq : g = fun k => f (k + m * d))
+    (hAp : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    (∀ n : ℕ, discOffset f d m n < B) →
+      (∀ n : ℕ, discrepancy (mk_of_apSum_contract (f := f) (g := g) (d := d) (m := m) hd hg gEq hAp).g d n < B) := by
+  intro hB n
+  simpa [mk_of_apSum_contract_discrepancy_eq_discOffset (f := f) (g := g) (d := d) (m := m)
+    (n := n) hd hg gEq hAp] using hB n
+
+/-!
 ### Sanity-check examples
 
 These are compile-only usage examples. They act as lightweight regression tests for the stage-1
