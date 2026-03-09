@@ -95,6 +95,19 @@ theorem forall_exists_natAbs_apSumOffset_lt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.out1.d out.out1.m n) := by
   simpa using out.forall_exists_natAbs_apSumOffset_gt (f := f)
 
+/-- Consumer-facing form: Stage 2 implies global unbounded discrepancy for the original sequence.
+
+This is the minimal “bridge back to the main theorem statement” lemma: it packages the fact that
+Stage 2 gives an explicit unbounded offset-discrepancy family for `f`, and then uses the Stage-1
+contract carried by `out.out1` to conclude `¬ BoundedDiscrepancy f`.
+-/
+theorem notBoundedOriginal (out : Stage2Output f) : ¬ BoundedDiscrepancy f := by
+  -- Stage 2 → explicit offset unboundedness witness.
+  have hunb : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n :=
+    out.forall_exists_discOffset_gt (f := f)
+  -- Stage 1 contract transfers unboundedness back to `f`.
+  exact out.out1.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) hunb
+
 end Stage2Output
 
 /-!
