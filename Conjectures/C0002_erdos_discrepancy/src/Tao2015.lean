@@ -1080,6 +1080,16 @@ theorem forall_discrepancy_le_iff_forall_discOffset_le_via_contract (out : Reduc
   · intro h
     exact out.contract_discrepancy_le B h
 
+/-- Symmetric wrapper around `forall_discrepancy_le_iff_forall_discOffset_le_via_contract`.
+
+Many downstream stages start with a bound stated for the offset family and want to treat it as a
+bound for the reduced discrepancies (or vice versa) without having to remember which direction the
+previous lemma is oriented.
+-/
+theorem forall_discOffset_le_iff_forall_discrepancy_le_via_contract (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discOffset f out.d out.m n ≤ B) ↔ (∀ n : ℕ, discrepancy out.g out.d n ≤ B) := by
+  simpa using (out.forall_discrepancy_le_iff_forall_discOffset_le_via_contract (f := f) B).symm
+
 /-- Strict-inequality witness form: `∃ n, discrepancy out.g ... > C` iff
 `∃ n, discOffset f ... > C`.
 
