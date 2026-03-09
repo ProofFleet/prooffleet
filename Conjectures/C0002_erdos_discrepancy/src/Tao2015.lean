@@ -895,6 +895,38 @@ def contextAlong_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
   intro n
   exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
 
+/-- A consumer-friendly consequence of `contextAlong_ofContext`: if the original sequence `f`
+has a global boundedness context, then the reduced sequence `out.g` has uniformly bounded
+fixed-step discrepancy along `out.d`.
+
+This lemma is intentionally *quantified* (rather than producing an existential) because many
+later pipeline stages want to use it directly as a hypothesis.
+-/
+theorem bound_discrepancy_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) (n : ℕ) :
+    discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  -- Package the bound as a `ContextAlong`, then extract the bound.
+  exact (contextAlong_ofContext (f := f) out ctx).bound_discrepancy (f := out.g) (d := out.d) n
+
+/-- Existential packaging of `bound_discrepancy_ofContext`.
+
+This is often the right normal form for feeding into other `¬ bounded ↔ ∀ C, ∃ n, ... > C`
+lemmas.
+-/
+theorem boundedDiscrepancyAlong_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discrepancy_ofContext (f := f) ctx n
+
+/-- A `2 * B`-written version of `bound_discrepancy_ofContext`.
+
+This is occasionally convenient when later stages track losses multiplicatively.
+-/
+theorem bound_discrepancy_two_mul_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) (n : ℕ) :
+    discrepancy out.g out.d n ≤ 2 * ctx.B := by
+  -- `2*B = B+B`.
+  simpa [two_mul] using out.bound_discrepancy_ofContext (f := f) ctx n
+
 /-- Witness-style *unboundedness* along the reduced step size `out.d` rewritten to the offset family.
 
 This is the “∀ B, ∃ n, B < …” normal form that matches `Tao2015.UnboundedDiscrepancyAlong` and
