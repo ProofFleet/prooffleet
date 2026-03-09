@@ -878,6 +878,31 @@ theorem apSum_shift_add_mul_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n
     Nat.mul_assoc, Nat.left_distrib] using
     (apSum_shift_add_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m + m₂) (n := n))
 
+/-- Affine-tail AP sum for the reduced sequence rewritten as an affine-tail AP sum of the original.
+
+This is the `apSumFrom`-level analogue of `apSum_shift_add_mul_eq_apSumOffset_add`.
+It is a common normal form when later stages want to speak only in terms of the affine nucleus
+`apSumFrom`.
+-/
+theorem apSumFrom_mul_eq_apSumFrom_add_mul (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumFrom out.g (m₂ * out.d) out.d n = apSumFrom f ((out.m + m₂) * out.d) out.d n := by
+  -- Rewrite `apSumFrom` to a shifted homogeneous sum, use the shift→offset lemma, then
+  -- rewrite offset sums into affine-tail sums.
+  calc
+    apSumFrom out.g (m₂ * out.d) out.d n
+        = apSum (fun k => out.g (k + m₂ * out.d)) out.d n := by
+            simpa [apSumFrom_eq_apSum_shift_add]
+    _ = apSumOffset f out.d (out.m + m₂) n := out.apSum_shift_add_mul_eq_apSumOffset_add (f := f) (m₂ := m₂) (n := n)
+    _ = apSumFrom f ((out.m + m₂) * out.d) out.d n := by
+            simpa using
+              (Tao2015.apSumOffset_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m + m₂) (n := n))
+
+/-- `Int.natAbs` form of `apSumFrom_mul_eq_apSumFrom_add_mul`. -/
+theorem natAbs_apSumFrom_mul_eq_natAbs_apSumFrom_add_mul (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumFrom out.g (m₂ * out.d) out.d n) =
+      Int.natAbs (apSumFrom f ((out.m + m₂) * out.d) out.d n) := by
+  simp [out.apSumFrom_mul_eq_apSumFrom_add_mul (f := f) (m₂ := m₂) (n := n)]
+
 /-- Discrepancy of a further shift of `out.g` rewrites to the corresponding `discOffset` of `f`. -/
 theorem discrepancy_shift_add_mul_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
     discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n = discOffset f out.d (out.m + m₂) n := by
