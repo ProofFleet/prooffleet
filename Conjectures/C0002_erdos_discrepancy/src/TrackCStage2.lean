@@ -87,6 +87,16 @@ theorem forall_exists_discOffset_gt (out : Stage2Output f) :
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)).1 out.unbounded)
 
+/-- Stage 2 implies *unbounded offset discrepancy* for the original sequence, at the bundled
+parameters `(out.out1.d, out.out1.m)`.
+
+This is the packaged predicate version of `forall_exists_discOffset_gt`.
+-/
+theorem unboundedDiscOffset (out : Stage2Output f) :
+    Tao2015.UnboundedDiscOffset f out.out1.d out.out1.m := by
+  -- `UnboundedDiscOffset` is defined using the witness form `∀ B, ∃ n, B < discOffset ...`.
+  simpa [Tao2015.UnboundedDiscOffset] using out.forall_exists_discOffset_gt (f := f)
+
 /-- Backwards-compatible alias for `forall_exists_discOffset_gt`.
 
 Deprecated because the suffix `_lt` was misleading: the statement is `B < ...` (i.e. “greater than B”).
