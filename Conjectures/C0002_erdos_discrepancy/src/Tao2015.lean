@@ -1760,45 +1760,6 @@ def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     -- Rewrite `discOffset` into `discrepancy` using the contract.
     simpa [discOffset, discrepancy, Tao2015.apSum_shift_add_mul_eq_apSumOffset] using hB n
 
-/-!
-### Stage-1 regression examples (compile-time sanity checks)
-
-These examples are intentionally tiny: they ensure the *consumer-facing* rewrite pipeline stays
-stable while we iterate on the `ReductionOutput` interface.
-
-They should not rely on any downstream stages of the Tao 2015 development.
--/
-section Stage1RegressionExamples
-
-variable {f : ℕ → ℤ} (hf : IsSignSequence f)
-variable (d m n C : ℕ) (hd : d > 0)
-
-noncomputable abbrev outShift : ReductionOutput f :=
-  ReductionOutput.ofShift (f := f) hf d m hd
-
-example :
-    apSum (outShift (f := f) hf d m n C hd).g (outShift (f := f) hf d m n C hd).d n =
-      apSumOffset f d m n := by
-  simpa [outShift] using
-    (ReductionOutput.ofShift (f := f) hf d m hd).apSum_contract n
-
-example :
-    discrepancy (outShift (f := f) hf d m n C hd).g (outShift (f := f) hf d m n C hd).d n =
-      discOffset f d m n := by
-  -- Prefer the bundled stage-1 rewrite lemma.
-  simpa [outShift] using
-    (ReductionOutput.ofShift (f := f) hf d m hd).discrepancy_eq_discOffset_via_contract (f := f) (n := n)
-
-example :
-    HasDiscrepancyAtLeastAlong (outShift (f := f) hf d m n C hd).g
-        (outShift (f := f) hf d m n C hd).d C ↔
-      (∃ n : ℕ, C < discOffset f d m n) := by
-  -- Predicate-level rewrite into the offset witness form.
-  simpa [outShift] using
-    (ReductionOutput.ofShift (f := f) hf d m hd)
-      .hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt_via_contract (f := f) C
-
-end Stage1RegressionExamples
 
 /-- Variant constructor for a *definitionally shifted* reduction.
 
