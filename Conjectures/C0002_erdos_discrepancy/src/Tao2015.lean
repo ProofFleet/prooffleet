@@ -1099,6 +1099,37 @@ theorem discOffset_add_eq_discOffset_g_via_out (out : ReductionOutput f) (m₂ n
     discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
   simpa [discOffset, out.apSumOffset_add_eq_apSumOffset_g_via_out (f := f) (m₂ := m₂) (n := n)]
 
+/-- Rewrite the *combined* offset discrepancy into a shifted discrepancy of the reduced sequence.
+
+This is a common Track C maneuver: after producing a stage-1 reduction output `out`, we often want
+stage-2 statements about the offset family `discOffset f out.d (out.m + m₂)` to be expressed as
+plain fixed-step discrepancy statements for a further shift of `out.g`.
+-/
+theorem discOffset_add_eq_discrepancy_shift_g_via_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n =
+      discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n := by
+  calc
+    discOffset f out.d (out.m + m₂) n
+        = discOffset out.g out.d m₂ n := by
+            simpa using (out.discOffset_add_eq_discOffset_g_via_out (f := f) (m₂ := m₂) (n := n))
+    _ = discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n := by
+            simpa using
+              (Tao2015.discOffset_eq_discrepancy_shift_add_mul
+                (f := out.g) (d := out.d) (m := m₂) (n := n))
+
+/-- AP-sum-level analogue of `discOffset_add_eq_discrepancy_shift_g_via_out`. -/
+theorem apSumOffset_add_eq_apSum_shift_g_via_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n =
+      apSum (fun k => out.g (k + m₂ * out.d)) out.d n := by
+  -- Rewrite to an offset AP sum of `out.g`, then rewrite that to a shifted homogeneous AP sum.
+  calc
+    apSumOffset f out.d (out.m + m₂) n
+        = apSumOffset out.g out.d m₂ n := by
+            simpa using (out.apSumOffset_add_eq_apSumOffset_g_via_out (f := f) (m₂ := m₂) (n := n))
+    _ = apSum (fun k => out.g (k + m₂ * out.d)) out.d n := by
+            simpa using
+              (Tao2015.apSumOffset_eq_apSum_shift_add_mul (f := out.g) (d := out.d) (m := m₂) (n := n))
+
 /-!
 ### Small nucleus rewrites specialized to `out`
 
