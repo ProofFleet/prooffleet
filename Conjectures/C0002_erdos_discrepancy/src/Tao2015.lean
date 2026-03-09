@@ -763,6 +763,44 @@ theorem discrepancy_eq_discOffset_via_contract (out : ReductionOutput f) (n : �
   -- Both sides are `Int.natAbs` wrappers around the AP sums.
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- A nucleus-level rewrite: discrepancy of `out.g` is `natAbs (apSumOffset …)`.
+
+This is the `apSum`-level version of `discrepancy_eq_discOffset_via_contract`.
+-/
+theorem discrepancy_eq_natAbs_apSumOffset_via_contract (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simp [discrepancy, out.apSum_contract]
+
+/-- Uniform boundedness of reduced discrepancies is equivalent to uniform boundedness of the
+bundled offset-discrepancy family.
+
+This is the `∀ n, ... ≤ B` version of
+`exists_forall_discrepancy_le_iff_exists_forall_discOffset_le`.
+-/
+theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · intro h n
+    -- Rewrite `discOffset` to `discrepancy` via the stage-1 contract.
+    simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h n
+  · intro h
+    exact out.contract_discrepancy_le B h
+
+/-- Strict-inequality witness form: `∃ n, discrepancy out.g ... > C` iff
+`∃ n, discOffset f ... > C`.
+
+This is the existential analogue of `forall_discrepancy_le_iff_forall_discOffset_le`.
+-/
+theorem exists_discrepancy_gt_iff_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, discrepancy out.g out.d n > C) ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using hn
+
 /-- Reverse direction of the discrepancy transfer contract: a uniform bound on `discrepancy out.g`
 transfers to a uniform bound on the bundled offset discrepancy family.
 
