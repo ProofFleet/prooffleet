@@ -9777,6 +9777,33 @@ theorem exists_discrepancy_gt (s2 : Stage2Output f out) (C : ℕ) :
   -- Rewrite the offset discrepancy into the reduced discrepancy.
   simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hn
 
+/-!
+### Stage-2 regression examples
+
+These compile-time `example` blocks pin down the intended consumer workflow:
+- build `Stage2Output` from a negated boundedness statement, and
+- extract a fixed-step discrepancy witness for the reduced sequence.
+
+They are deliberately tiny and should remain stable even as we refactor the internal API.
+-/
+
+section Stage2RegressionExamples
+
+variable (f : ℕ → ℤ) (out : ReductionOutput f)
+
+/-- From `¬ BoundedDiscOffset`, we can extract the witness-normal-form function. -/
+example (h : ¬ BoundedDiscOffset f out.d out.m) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  -- `ofNotBoundedDiscOffset` is a packaging constructor; the witnesses are its only payload.
+  simpa using (Stage2Output.ofNotBoundedDiscOffset (f := f) (out := out) h).unbounded_discOffset
+
+/-- `Stage2Output` witnesses immediately yield a large-discrepancy witness for the reduced sequence. -/
+example (s2 : Stage2Output f out) (C : ℕ) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  simpa using s2.exists_discrepancy_gt (f := f) (out := out) C
+
+end Stage2RegressionExamples
+
 /-- Extract a single discrepancy witness for the reduced sequence `out.g` (less-than orientation). -/
 theorem exists_discrepancy_lt (s2 : Stage2Output f out) (C : ℕ) :
     ∃ n : ℕ, C < discrepancy out.g out.d n := by
