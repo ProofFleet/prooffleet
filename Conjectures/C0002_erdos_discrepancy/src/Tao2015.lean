@@ -10335,6 +10335,34 @@ theorem stage2_unboundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence 
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using hn
 
+/-- Stage-2 deliverable implies the negation of the bounded-offset predicate `BoundedDiscOffset`.
+
+This is just `not_boundedDiscOffset_iff_forall_exists_discOffset_gt` applied to the witness
+normal form returned by `stage2_unbounded_discOffset`.
+-/
+theorem stage2_not_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ¬ BoundedDiscOffset f out.d out.m := by
+  refine (Tao2015.not_boundedDiscOffset_iff_forall_exists_discOffset_gt
+      (f := f) (d := out.d) (m := out.m)).2 ?_
+  exact stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out)
+
+/-- Stage-2 deliverable implies unbounded discrepancy along the reduced step `out.d`
+(in the negated-boundedness normal form).
+
+This is a consumer-friendly wrapper around `stage2_not_boundedDiscOffset` plus the
+boundedness equivalence packaged by `ReductionOutput`.
+-/
+theorem stage2_not_boundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ¬ BoundedDiscrepancyAlong out.g out.d := by
+  intro hb
+  have hnot : ¬ BoundedDiscOffset f out.d out.m :=
+    stage2_not_boundedDiscOffset (f := f) (hf := hf) (ctx := ctx) (out := out)
+  apply hnot
+  -- Convert bounded discrepancy of the reduced sequence into bounded offset discrepancy of `f`.
+  exact (out.boundedDiscOffset_iff_boundedDiscrepancyAlong (f := f)).2 hb
+
 /-!
 ### Stage-2 regression examples
 
