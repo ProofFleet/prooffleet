@@ -1202,11 +1202,10 @@ theorem contract_discOffset_lt (out : ReductionOutput f) (B : ℕ)
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
 /-- Iff form of `contract_discrepancy_lt` / `contract_discOffset_lt`. -/
+@[deprecated (since := "2026-03-09")]
 theorem forall_discrepancy_lt_iff_forall_discOffset_lt' (out : ReductionOutput f) (B : ℕ) :
-    (∀ n, discrepancy out.g out.d n < B) ↔ (∀ n, discOffset f out.d out.m n < B) := by
-  -- This is already available as `out.forall_discrepancy_lt_iff_forall_discOffset_lt`, but this
-  -- name is occasionally easier to discover at call sites.
-  simpa using (out.forall_discrepancy_lt_iff_forall_discOffset_lt (f := f) (B := B))
+    (∀ n, discrepancy out.g out.d n < B) ↔ (∀ n, discOffset f out.d out.m n < B) :=
+  out.forall_discrepancy_lt_iff_forall_discOffset_lt (f := f) (B := B)
 
 /-!
 ### Packaging uniform bounds as `ContextAlong`
