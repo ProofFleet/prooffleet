@@ -485,6 +485,48 @@ theorem of_not_boundedDiscrepancyAlong {f : ℕ → ℤ} {d : ℕ} (h : ¬ Bound
 end UnboundedDiscrepancyAlong
 
 /-!
+### A tiny “offset discrepancy” unboundedness predicate
+
+Stage 2 of Track C is naturally phrased in terms of the *offset discrepancy family*
+`discOffset f d m n` associated to a reduction output `(d,m)`.
+
+The verified substrate expresses boundedness for this family via `BoundedDiscOffset f d m`.
+As with `UnboundedDiscrepancyAlong`, it is often more convenient to carry the explicit witness
+normal form `∀ B, ∃ n, B < discOffset …`.
+
+We record that witness form here as lightweight pipeline glue.
+-/
+
+def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
+  ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n
+
+namespace UnboundedDiscOffset
+
+/-- Definitional symmetry: `B < …` vs `… > B`. -/
+theorem iff_forall_exists_discOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
+  simp [UnboundedDiscOffset, gt_iff_lt]
+
+/-- Unbounded offset-discrepancy witness form is equivalent to the negation of `BoundedDiscOffset`. -/
+theorem iff_not_boundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ ¬ BoundedDiscOffset f d m := by
+  -- Use the standard negated-boundedness equivalence from the verified substrate.
+  simpa [UnboundedDiscOffset] using
+    (not_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m)).symm
+
+/-- Forward direction of `iff_not_boundedDiscOffset`. -/
+theorem not_boundedDiscOffset {f : ℕ → ℤ} {d m : ℕ} (h : UnboundedDiscOffset f d m) :
+    ¬ BoundedDiscOffset f d m :=
+  (iff_not_boundedDiscOffset (f := f) (d := d) (m := m)).1 h
+
+/-- Backward direction of `iff_not_boundedDiscOffset`. -/
+theorem of_not_boundedDiscOffset {f : ℕ → ℤ} {d m : ℕ} (h : ¬ BoundedDiscOffset f d m) :
+    UnboundedDiscOffset f d m :=
+  (iff_not_boundedDiscOffset (f := f) (d := d) (m := m)).2 h
+
+end UnboundedDiscOffset
+
+/-!
 ### A tiny “fixed-step” discrepancy predicate
 
 `HasDiscrepancyAtLeast` quantifies over the step size `d`.  Many intermediate reductions in
