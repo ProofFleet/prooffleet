@@ -1140,6 +1140,23 @@ theorem discrepancy_eq_natAbs_apSumFrom_mul_via_contract (out : ReductionOutput 
     discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
   simp [discrepancy, out.apSum_eq_apSumFrom_mul_via_contract (f := f) (n := n)]
 
+/-- Inequality-level rewrite helper derived from `discrepancy_eq_natAbs_apSumFrom_mul_via_contract`.
+
+This is useful when a downstream stage keeps the affine nucleus explicit and wants to avoid
+switching back to `discOffset`.
+-/
+theorem discrepancy_le_iff_natAbs_apSumFrom_mul_le_via_contract (out : ReductionOutput f) (n B : ℕ) :
+    discrepancy out.g out.d n ≤ B ↔ Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul_via_contract (f := f) (n := n)]
+
+/-- Strict-inequality rewrite helper derived from `discrepancy_eq_natAbs_apSumFrom_mul_via_contract`.
+
+This is the `C < ...` orientation, which often fits reduction statements more naturally.
+-/
+theorem discrepancy_lt_iff_natAbs_apSumFrom_mul_lt_via_contract (out : ReductionOutput f) (n C : ℕ) :
+    C < discrepancy out.g out.d n ↔ C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simpa [out.discrepancy_eq_natAbs_apSumFrom_mul_via_contract (f := f) (n := n)]
+
 /-- Offset discrepancy rewritten to the affine nucleus `apSumFrom`.
 
 This is just `discOffset_eq_natAbs_apSumFrom_mul` specialized to the parameters in `out`.
