@@ -924,10 +924,26 @@ theorem discrepancy_le_iff_discOffset_le_via_contract (out : ReductionOutput f) 
     discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
   simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
 
+/-- Reverse orientation of `discrepancy_le_iff_discOffset_le_via_contract`.
+
+This lemma is a tiny consumer convenience: it avoids having to append `.symm` in downstream code.
+-/
+theorem discOffset_le_iff_discrepancy_le_via_contract (out : ReductionOutput f) (n B : ℕ) :
+    discOffset f out.d out.m n ≤ B ↔ discrepancy out.g out.d n ≤ B := by
+  simpa using (out.discrepancy_le_iff_discOffset_le_via_contract (f := f) (n := n) (B := B)).symm
+
 /-- Strict-inequality rewrite helper derived from `discrepancy_eq_discOffset_via_contract`. -/
 theorem discrepancy_gt_iff_discOffset_gt_via_contract (out : ReductionOutput f) (n C : ℕ) :
     discrepancy out.g out.d n > C ↔ discOffset f out.d out.m n > C := by
   simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
+
+/-- Reverse orientation of `discrepancy_gt_iff_discOffset_gt_via_contract`.
+
+This lemma is a small ergonomic wrapper for downstream stages that start from offset formulations.
+-/
+theorem discOffset_gt_iff_discrepancy_gt_via_contract (out : ReductionOutput f) (n C : ℕ) :
+    discOffset f out.d out.m n > C ↔ discrepancy out.g out.d n > C := by
+  simpa using (out.discrepancy_gt_iff_discOffset_gt_via_contract (f := f) (n := n) (C := C)).symm
 
 /-- `<`-oriented strict-inequality rewrite helper.
 
