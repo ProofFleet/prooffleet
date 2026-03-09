@@ -11250,6 +11250,33 @@ theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
   simpa [Tao2015.UnboundedDiscOffset] using
     (stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out))
 
+/-!
+### Stage-2 regression examples (compile-only)
+
+These `example` blocks are intentionally lightweight: they do not assert any new mathematics.
+Instead, they serve as **API regression tests** that the intended rewrite/transfer pipeline keeps
+compiling as we refactor the plane.
+
+They should remain `sorry`-free.
+-/
+section Stage2RegressionExamples
+
+variable {f : ℕ → ℤ}
+variable (out : ReductionOutput f)
+
+/-- The stage-1 contract lets us rewrite reduced discrepancy into the bundled offset discrepancy. -/
+example (n : ℕ) : discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  simpa using (out.discrepancy_eq_discOffset (f := f) (n := n))
+
+/-- Fixed-step largeness for the reduced sequence rewrites into an `apSumFrom` witness for `f`. -/
+example (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  -- This is a canonical normal form many later stages consume.
+  simpa using (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (f := f) (C := C))
+
+end Stage2RegressionExamples
+
 /-- Package the stage-2 deliverable `stage2_unbounded_discOffset` as a `Stage2Output` structure.
 
 This is a small convenience wrapper: it turns the witness-normal-form function produced by stage 2
