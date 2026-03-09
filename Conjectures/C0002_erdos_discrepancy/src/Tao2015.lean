@@ -851,6 +851,39 @@ rewrite lemmas, so we record a few here.
 theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
   simpa [out.g_eq]
 
+/-!
+### Composing shifts
+
+A very common Track C move is to take the reduced sequence `out.g` and shift *it* again by a
+multiple of the same step size `out.d`.
+
+These lemmas let us normalize such “shift-of-a-shift” statements back to the original sequence
+`f` with the offset multipliers added.
+-/
+
+/-- Shifting the reduced sequence `out.g` by `m₂*out.d` corresponds to adding offsets on `f`. -/
+theorem g_shift_apply (out : ReductionOutput f) (m₂ k : ℕ) :
+    (fun t => out.g (t + m₂ * out.d)) k = f (k + (out.m + m₂) * out.d) := by
+  -- Unfold `out.g` and reassociate arithmetic.
+  -- The key identity is: `k + m₂*d + m*d = k + (m+m₂)*d`.
+  simp [out.g_eq, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add,
+    Nat.mul_assoc, Nat.left_distrib]
+
+/-- AP-sum of a further shift of `out.g` rewrites to an offset AP-sum of `f` with added offsets. -/
+theorem apSum_shift_add_mul_eq_apSumOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSum (fun k => out.g (k + m₂ * out.d)) out.d n = apSumOffset f out.d (out.m + m₂) n := by
+  -- Reduce to the literal shift of `f` and use the standard shift→offset bridge.
+  -- (`simp` handles the arithmetic normalization.)
+  simpa [out.g_eq, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul, Nat.mul_add,
+    Nat.mul_assoc, Nat.left_distrib] using
+    (apSum_shift_add_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m + m₂) (n := n))
+
+/-- Discrepancy of a further shift of `out.g` rewrites to the corresponding `discOffset` of `f`. -/
+theorem discrepancy_shift_add_mul_eq_discOffset_add (out : ReductionOutput f) (m₂ n : ℕ) :
+    discrepancy (fun k => out.g (k + m₂ * out.d)) out.d n = discOffset f out.d (out.m + m₂) n := by
+  -- Both sides are definitional wrappers around `Int.natAbs` of the AP-sum identity above.
+  simp [discrepancy, discOffset, out.apSum_shift_add_mul_eq_apSumOffset_add]
+
 /-- Rewrite `apSum out.g out.d` into the literal shifted nucleus. -/
 theorem apSum_eq_apSum_shift (out : ReductionOutput f) (n : ℕ) :
     apSum out.g out.d n = apSum (fun k => f (k + out.m * out.d)) out.d n := by
