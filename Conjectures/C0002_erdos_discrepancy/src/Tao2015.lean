@@ -987,6 +987,31 @@ theorem exists_discrepancy_lt_iff_exists_discOffset_lt_via_contract (out : Reduc
     refine ⟨n, ?_⟩
     exact (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).2 hn
 
+/-- Symmetric wrapper around `forall_discrepancy_lt_iff_forall_discOffset_lt_via_contract`. -/
+theorem forall_discOffset_lt_iff_forall_discrepancy_lt_via_contract (out : ReductionOutput f) (C : ℕ) :
+    (∀ n : ℕ, C < discOffset f out.d out.m n) ↔ (∀ n : ℕ, C < discrepancy out.g out.d n) := by
+  simpa using (out.forall_discrepancy_lt_iff_forall_discOffset_lt_via_contract (f := f) C).symm
+
+/-- Transport an existential `C < discrepancy out.g ...` witness to the bundled offset family.
+
+This is just the forward direction of
+`exists_discrepancy_lt_iff_exists_discOffset_lt_via_contract`, packaged as a lemma.
+-/
+theorem exists_discOffset_lt_of_exists_discrepancy_lt_via_contract (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, C < discrepancy out.g out.d n) :
+    ∃ n : ℕ, C < discOffset f out.d out.m n :=
+  (out.exists_discrepancy_lt_iff_exists_discOffset_lt_via_contract (f := f) C).1 h
+
+/-- Transport an existential `C < discOffset ...` witness to the reduced sequence.
+
+This is just the backward direction of
+`exists_discrepancy_lt_iff_exists_discOffset_lt_via_contract`, packaged as a lemma.
+-/
+theorem exists_discrepancy_lt_of_exists_discOffset_lt_via_contract (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, C < discOffset f out.d out.m n) :
+    ∃ n : ℕ, C < discrepancy out.g out.d n :=
+  (out.exists_discrepancy_lt_iff_exists_discOffset_lt_via_contract (f := f) C).2 h
+
 /-- Convenience lemma: `Tao2015.UnboundedDiscrepancyAlong` for the reduced sequence rewrites to a
 `C < ...` witness form for the bundled offset discrepancy family.
 
