@@ -973,10 +973,24 @@ theorem apSum_eq_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) 
           simpa using
             (Tao2015.apSumOffset_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
 
+/-- Reverse orientation of `apSum_eq_apSumFrom_mul_via_contract`.
+
+Downstream stages sometimes start with an affine-tail sum on `f` and want to rewrite it into the
+reduced homogeneous nucleus `apSum out.g out.d`.
+-/
+theorem apSumFrom_mul_eq_apSum_via_contract (out : ReductionOutput f) (n : ℕ) :
+    apSumFrom f (out.m * out.d) out.d n = apSum out.g out.d n := by
+  simpa using (out.apSum_eq_apSumFrom_mul_via_contract (f := f) (n := n)).symm
+
 /-- `Int.natAbs` form of `apSum_eq_apSumFrom_mul_via_contract`. -/
 theorem natAbs_apSum_eq_natAbs_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
   simp [out.apSum_eq_apSumFrom_mul_via_contract (f := f) (n := n)]
+
+/-- Reverse orientation of `natAbs_apSum_eq_natAbs_apSumFrom_mul_via_contract`. -/
+theorem natAbs_apSumFrom_mul_eq_natAbs_apSum_via_contract (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumFrom f (out.m * out.d) out.d n) = Int.natAbs (apSum out.g out.d n) := by
+  simpa using (out.natAbs_apSum_eq_natAbs_apSumFrom_mul_via_contract (f := f) (n := n)).symm
 
 /-- Discrepancy rewritten directly to the affine nucleus `apSumFrom` for the original sequence.
 
