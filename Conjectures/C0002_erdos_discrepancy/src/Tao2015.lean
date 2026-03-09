@@ -3401,10 +3401,10 @@ Marked `[simp]` for the same reason as `discrepancy_eq_discOffset`.
 /-- Reverse orientation of `discrepancy_eq_discOffset`.
 
 Not marked `[simp]` to avoid rewriting loops.
+
+Note: this lemma is already proved earlier in the file directly from `out.apSum_contract`.
 -/
-theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
-    discOffset f out.d out.m n = discrepancy out.g out.d n := by
-  simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
+-- (see `ReductionOutput.discOffset_eq_discrepancy` above)
 
 /-!
 ### Pointwise transfer wrappers
@@ -4629,10 +4629,10 @@ Marked `[simp]` because it is the main consumer-facing rewrite rule for the redu
 /-- Reverse orientation of `discrepancy_contract`.
 
 Not marked `[simp]` to avoid rewriting loops.
+
+Note: `ReductionOutput.discOffset_eq_discrepancy` is defined earlier; use that lemma.
 -/
-theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
-    discOffset f out.d out.m n = discrepancy out.g out.d n := by
-  simpa using (out.discrepancy_contract (f := f) n).symm
+-- (see `ReductionOutput.discOffset_eq_discrepancy` above)
 
 /-!
 ### Offset reassociation for a `ReductionOutput`
@@ -6080,10 +6080,11 @@ sequence `out.g`.
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discrepancy, discOffset, out.apSum_eq_apSumOffset]
 
-/-- Reverse orientation of `discrepancy_eq_discOffset` (not marked simp to avoid rewrite loops). -/
-theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
-    discOffset f out.d out.m n = discrepancy out.g out.d n := by
-  simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
+/-- Reverse orientation of `discrepancy_eq_discOffset` (not marked simp to avoid rewrite loops).
+
+Note: `ReductionOutput.discOffset_eq_discrepancy` is defined earlier; use that lemma.
+-/
+-- (see `ReductionOutput.discOffset_eq_discrepancy` above)
 
 /-!
 ### Bound-transfer helper lemmas
@@ -7686,10 +7687,11 @@ theorem hasDiscrepancyAtLeast_of_exists_discOffset_gt (out : ReductionOutput f) 
     out.hasDiscrepancyAtLeastAlong_of_exists_discOffset_gt (f := f) (C := C) h
   exact out.hasDiscrepancyAtLeast_of_hasDiscrepancyAtLeastAlong (f := f) (C := C) halong
 
-/-- The same rewrite rule, but oriented in the other direction. -/
-theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
-    discOffset f out.d out.m n = discrepancy out.g out.d n := by
-  simpa using (out.discrepancy_eq_discOffset (f := f) (n := n)).symm
+/-- The same rewrite rule, but oriented in the other direction.
+
+Note: `ReductionOutput.discOffset_eq_discrepancy` is defined earlier; use that lemma.
+-/
+-- (see `ReductionOutput.discOffset_eq_discrepancy` above)
 
 /-- Pointwise transfer lemma (≤): bounding the discrepancy of `out.g` at `n` is equivalent to
 bounding the corresponding offset discrepancy of `f` at `n`. -/
