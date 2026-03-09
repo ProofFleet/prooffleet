@@ -2302,6 +2302,42 @@ theorem unboundedDiscrepancyAlong_iff_unboundedDiscOffset (out : ReductionOutput
   simpa [Tao2015.UnboundedDiscOffset] using
     (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f))
 
+/-- A convenience consequence: unbounded discrepancy along the reduced step gives arbitrarily large
+fixed-step discrepancy witnesses (`HasDiscrepancyAtLeastAlong`).
+
+This is essentially the definitional relationship between the witness predicate
+`UnboundedDiscrepancyAlong` and the “large discrepancy at least `C`” predicate.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_of_unboundedDiscrepancyAlong (out : ReductionOutput f)
+    (h : Tao2015.UnboundedDiscrepancyAlong out.g out.d) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  intro C
+  rcases h C with ⟨n, hn⟩
+  -- `UnboundedDiscrepancyAlong` uses `<`-oriented witnesses; convert to `> C`.
+  have hn' : discrepancy out.g out.d n > C := by
+    simpa [gt_iff_lt] using hn
+  exact HasDiscrepancyAtLeastAlong.of_exists_discrepancy_gt (f := out.g) (d := out.d) (C := C)
+    ⟨n, hn'⟩
+
+/-- If the bundled offset discrepancy family is unbounded, then the reduced sequence has
+arbitrarily large global discrepancy witnesses (`HasDiscrepancyAtLeast`).
+
+This is a common “pipeline upgrade” step: stage 2 often produces unboundedness in the offset
+family, while the theorem statement wants large discrepancy somewhere (with `d` existential).
+-/
+theorem forall_hasDiscrepancyAtLeast_of_unboundedDiscOffset (out : ReductionOutput f)
+    (h : Tao2015.UnboundedDiscOffset f out.d out.m) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast out.g C := by
+  -- First convert `UnboundedDiscOffset` to unbounded discrepancy along the fixed step `out.d`.
+  have hunb : Tao2015.UnboundedDiscrepancyAlong out.g out.d :=
+    (out.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).2 h
+  intro C
+  -- Get a fixed-step witness and then promote it to `HasDiscrepancyAtLeast`.
+  have hAlong : HasDiscrepancyAtLeastAlong out.g out.d C :=
+    (out.forall_hasDiscrepancyAtLeastAlong_of_unboundedDiscrepancyAlong (f := f) hunb) C
+  exact HasDiscrepancyAtLeastAlong.toHasDiscrepancyAtLeast (f := out.g) (d := out.d)
+    (C := C) out.hd hAlong
+
 /-- `>`-oriented witness form of `unboundedDiscrepancyAlong_iff_unboundedDiscOffset`.
 
 This is convenient when stage-2 deliverables are stated as `discOffset … > B`.
