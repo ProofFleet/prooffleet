@@ -1617,6 +1617,29 @@ theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- Transfer uniform bounds on the reduced discrepancy back to bounds on the bundled offset discrepancy.
+
+This is the reverse direction of `ReductionOutput.contract_discrepancy_le`.
+
+Even though it is logically trivial (since `discrepancy out.g out.d n = discOffset ...`), having it
+as a named lemma avoids repeated rewrites at call sites.
+-/
+theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discrepancy out.g out.d n ≤ B) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  intro n
+  -- Rewrite `discOffset` into the reduced discrepancy and apply the bound.
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
+
+/-- Equivalence form of `contract_discrepancy_le` and `contract_discOffset_le`. -/
+theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · intro h
+    exact out.contract_discOffset_le (f := f) B h
+  · intro h
+    exact out.contract_discrepancy_le B h
+
 /-!
 ### Boundedness transfer helpers
 
