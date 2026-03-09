@@ -1166,6 +1166,46 @@ def ofShiftEq (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
     simpa [discOffset, discrepancy, g_eq_shift, Tao2015.apSum_shift_add_mul_eq_apSumOffset] using hB n
 
 /-!
+### `simp` lemmas for `ReductionOutput.ofShiftEq`
+
+`ofShiftEq` is the typical constructor when a reduction step defines some derived sequence `g`
+(which is already known to be a sign sequence) and separately proves that it is definitionally a
+shift of the original `f`.
+
+These are tiny definitional helpers, analogous to the `ofShift_*` lemmas below.
+-/
+
+@[simp] theorem ofShiftEq_d (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
+    (d m : ℕ) (hd : d > 0) (g_eq_shift : g = fun k => f (k + m * d)) :
+    (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).d = d := by
+  rfl
+
+@[simp] theorem ofShiftEq_m (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
+    (d m : ℕ) (hd : d > 0) (g_eq_shift : g = fun k => f (k + m * d)) :
+    (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).m = m := by
+  rfl
+
+@[simp] theorem ofShiftEq_g (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
+    (d m : ℕ) (hd : d > 0) (g_eq_shift : g = fun k => f (k + m * d)) :
+    (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).g = g := by
+  rfl
+
+@[simp] theorem ofShiftEq_apSum_eq_apSumOffset (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
+    (d m n : ℕ) (hd : d > 0) (g_eq_shift : g = fun k => f (k + m * d)) :
+    apSum (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).g d n =
+      apSumOffset f d m n := by
+  -- This is exactly the stored contract.
+  simpa using (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).apSum_contract n
+
+@[simp] theorem ofShiftEq_discrepancy_eq_discOffset (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
+    (d m n : ℕ) (hd : d > 0) (g_eq_shift : g = fun k => f (k + m * d)) :
+    discrepancy (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).g d n =
+      discOffset f d m n := by
+  -- Reduce to the AP-sum contract and unfold wrappers.
+  simp [discrepancy, discOffset, ofShiftEq_apSum_eq_apSumOffset (f := f) (g := g) (hg := hg)
+    (d := d) (m := m) (n := n) hd g_eq_shift]
+
+/-!
 ### `simp` lemmas for `ReductionOutput.ofShift`
 
 These are tiny definitional helpers: `ofShift` is the most common way later stages construct a
