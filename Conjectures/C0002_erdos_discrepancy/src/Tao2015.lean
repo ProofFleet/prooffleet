@@ -1699,6 +1699,40 @@ theorem contextAlong_of_context (out : ReductionOutput f) (ctx : Tao2015.Context
     (ctx.bound_discrepancy_shift_add (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
 
 /-!
+### Bounding the bundled offset family from a global `Context`
+
+The stage-1 reduction output `out` bundles a specific offset-discrepancy family
+`discOffset f out.d out.m`.  If we start from a global boundedness context `ctx : Context f`,
+then this entire family is uniformly bounded by the same constant `2*B`.
+
+These tiny helpers are useful in stage-2 constructions, where we often want to treat the offset
+family as a standalone object with a named bound.
+-/
+
+/-- A global `Context f` uniformly bounds the offset discrepancy family bundled in `out`. -/
+theorem bound_discOffset_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+
+/-- Package `bound_discOffset_of_context` as a `BoundedDiscOffset` witness. -/
+theorem boundedDiscOffset_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    BoundedDiscOffset f out.d out.m := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  exact out.bound_discOffset_of_context (f := f) ctx n
+
+/-- Bound the reduced discrepancies using only the offset bound and the stage-1 contract.
+
+This is a contract-style alternative to `contextAlong_of_context`: it does not use `out.g_eq`.
+-/
+theorem bound_discrepancy_via_contract_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  -- Use the derived bound on the bundled offset family and transfer it through the contract.
+  exact out.contract_discrepancy_le_derived (f := f) (B := ctx.B + ctx.B)
+    (out.bound_discOffset_of_context (f := f) ctx)
+
+/-!
 ### Re-associating offsets through a `ReductionOutput`
 
 When composing multiple Track C stages, offsets naturally add.
