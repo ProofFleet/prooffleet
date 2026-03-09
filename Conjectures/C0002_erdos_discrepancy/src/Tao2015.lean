@@ -1106,6 +1106,33 @@ theorem exists_discrepancy_lt_iff_exists_discOffset_lt (out : ReductionOutput f)
     refine ⟨n, ?_⟩
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
 
+/-- Uniform “arbitrarily large discrepancy” witness form for the reduced sequence `out.g` rewritten
+into the corresponding witness form for the bundled offset discrepancies.
+
+This is a convenience lemma: stage-2 deliverables are often stated as
+`∀ B, ∃ n, discOffset ... > B`, while the downstream unboundedness APIs for `out.g` are phrased
+in terms of `discrepancy out.g out.d`.
+-/
+theorem forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, discrepancy out.g out.d n > B) ↔
+      (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
+  constructor
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
+
+/-- `<`-oriented version of `forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt`. -/
+theorem forall_exists_discrepancy_lt_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using (out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f))
+
 /-- Uniform `≤` bounds for discrepancies of `out.g` rewritten to the literal shift of `f`. -/
 theorem forall_discrepancy_le_iff_shift (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
