@@ -791,6 +791,28 @@ theorem exists_forall_discrepancy_le_iff_exists_forall_discOffset_le (out : Redu
   · rintro ⟨B, hB⟩
     exact ⟨B, out.contract_discrepancy_le B hB⟩
 
+/-- Package a uniform offset-discrepancy bound into a `ContextAlong` for the reduced sequence.
+
+This is often the *entry point* for stage-2 reductions: once we have any quantitative control over
+`discOffset f out.d out.m`, we can treat `out.g` as a fixed-step discrepancy context.
+-/
+def contextAlong_of_forall_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    ContextAlong out.g out.d :=
+  ⟨B, out.contract_discrepancy_le B hB⟩
+
+/-- Build a fixed-step discrepancy context for the reduced sequence from a global `Context f`.
+
+Concretely: bounded discrepancy of `f` implies bounded *offset* discrepancy (with the `2*B` loss),
+which then transfers to bounded discrepancy of the reduced sequence `out.g`.
+-/
+def contextAlong_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ContextAlong out.g out.d := by
+  refine contextAlong_of_forall_discOffset_le (f := f) out (ctx.B + ctx.B) ?_
+  -- Use the generic offset bound coming from `ctx`.
+  intro n
+  exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+
 /-- Witness-style *unboundedness* along the reduced step size `out.d` rewritten to the offset family.
 
 This is the “∀ B, ∃ n, B < …” normal form that matches `Tao2015.UnboundedDiscrepancyAlong` and
