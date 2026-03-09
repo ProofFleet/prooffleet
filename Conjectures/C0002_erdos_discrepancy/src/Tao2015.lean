@@ -801,6 +801,28 @@ namespace ReductionOutput
 variable {f : ℕ → ℤ}
 
 /-!
+### Packaging lemmas: building contexts from offset bounds
+
+A common pipeline pattern is:
+- Stage 1 produces `out : ReductionOutput f` (a reduced sequence `out.g` and parameters `out.d,out.m`).
+- Stage 2 assumes a uniform bound on the *offset* discrepancy family `discOffset f out.d out.m`.
+
+Downstream stages often want this bound as a `ContextAlong out.g out.d` record, so they can
+reuse the fixed-step API developed above.
+-/
+
+/-- Build a fixed-step discrepancy context for the reduced sequence `out.g` from a uniform bound
+on the bundled offset discrepancy family.
+
+This is essentially the `ReductionOutput.contract_discrepancy_le` field repackaged as data.
+-/
+noncomputable def contextAlong_of_discOffset_bound (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) : ContextAlong out.g out.d := by
+  refine ⟨B, ?_⟩
+  intro n
+  exact out.contract_discrepancy_le B hB n
+
+/-!
 ### Tiny helper lemmas: unpacking the shift
 
 The record field `g_eq` stores the defining shift. In practice we often want pointwise
