@@ -7414,6 +7414,16 @@ theorem forall_discOffset_le_iff_forall_discrepancy_le (out : ReductionOutput f)
   · intro h
     exact out.discOffset_le_of_forall_discrepancy_le (f := f) (B := B) h
 
+/-- Track-C convenience: the same equivalence, but with the sides swapped.
+
+Some pipeline stages naturally produce a bound for the reduced sequence `out.g`; others naturally
+produce a bound for the offset family `discOffset f out.d out.m`.
+This lemma avoids repeated `Iff.symm` / `Iff.comm` gymnastics at call sites.
+-/
+theorem trackC_forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  simpa [Iff.comm] using (out.forall_discOffset_le_iff_forall_discrepancy_le (f := f) (B := B))
+
 /-- Uniform transfer lemma (<): strict version of `forall_discOffset_le_iff_forall_discrepancy_le`. -/
 theorem forall_discOffset_lt_iff_forall_discrepancy_lt (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discOffset f out.d out.m n < B) ↔ (∀ n : ℕ, discrepancy out.g out.d n < B) := by
