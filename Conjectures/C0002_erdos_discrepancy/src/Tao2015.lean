@@ -761,6 +761,42 @@ namespace ReductionOutput
 variable {f : ℕ → ℤ}
 
 /-!
+### Tiny helper lemmas: unpacking the shift
+
+The record field `g_eq` stores the defining shift. In practice we often want pointwise
+rewrite lemmas, so we record a few here.
+-/
+
+/-- Pointwise unfolding of `out.g_eq`. -/
+theorem g_apply (out : ReductionOutput f) (k : ℕ) : out.g k = f (k + out.m * out.d) := by
+  simpa [out.g_eq]
+
+/-- Rewrite `apSum out.g out.d` into the literal shifted nucleus. -/
+theorem apSum_eq_apSum_shift (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSum (fun k => f (k + out.m * out.d)) out.d n := by
+  simpa [out.g_eq]
+
+/-- Rewrite discrepancy of `out.g` into discrepancy of the literal shifted sequence.
+
+This lemma is occasionally useful when a downstream stage already has lemmas phrased for the
+literal shift `fun k => f (k + m*d)`.
+-/
+theorem discrepancy_eq_discrepancy_shift (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discrepancy (fun k => f (k + out.m * out.d)) out.d n := by
+  simpa [out.g_eq]
+
+/-- `HasDiscrepancyAtLeastAlong` for `out.g` rewritten to the corresponding predicate for the
+literal shifted sequence.
+
+This is the predicate-level analogue of `discrepancy_eq_discrepancy_shift`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_shift (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      HasDiscrepancyAtLeastAlong (fun k => f (k + out.m * out.d)) out.d C := by
+  -- unfold the predicate and use `out.g_eq`.
+  constructor <;> intro h <;> simpa [HasDiscrepancyAtLeastAlong, out.g_eq] using h
+
+/-!
 ### Canonical constructor: the literal shift
 
 Most stage-1 reductions in Tao 2015 really do define the reduced sequence as a literal shift
