@@ -8115,6 +8115,16 @@ theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) 
     -- rewrite back in the other direction
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-- Alias of `boundedDiscrepancyAlong_iff_boundedDiscOffset` with the sides swapped.
+
+Downstream stages sometimes speak naturally about the offset-boundedness predicate
+`BoundedDiscOffset f out.d out.m` and want to convert it into bounded discrepancy along
+the reduced step size.
+-/
+theorem boundedDiscOffset_iff_boundedDiscrepancyAlong (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m ↔ BoundedDiscrepancyAlong out.g out.d := by
+  simpa using (out.boundedDiscrepancyAlong_iff_boundedDiscOffset (f := f)).symm
+
 /-- Unfold the boundedness interface down to the raw `natAbs (apSumOffset …)` normal form.
 
 This is just `boundedDiscrepancyAlong_iff_boundedDiscOffset` plus the definitional rewrite
