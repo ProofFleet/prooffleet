@@ -909,6 +909,65 @@ theorem discrepancy_shift_add_mul_eq_discOffset_add (out : ReductionOutput f) (m
   -- Both sides are definitional wrappers around `Int.natAbs` of the AP-sum identity above.
   simp [discrepancy, discOffset, out.apSum_shift_add_mul_eq_apSumOffset_add]
 
+/-!
+### Tiny helper lemmas: turning the contract into rewrite rules
+
+The core bridge identity `out.apSum_contract` is an `apSum`-level statement.
+In practice we often want the derived `discOffset`/`discrepancy` rewrite rules, plus a few
+predicate-level transport lemmas.
+-/
+
+/-- The offset discrepancy family of `f` at `(out.d,out.m)` is *definitionally* the discrepancy
+family of the reduced sequence `out.g`.
+
+This is the consumer-friendly form of `out.apSum_contract`.
+-/
+theorem discOffset_eq_discrepancy (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discrepancy out.g out.d n := by
+  -- Both sides are `Int.natAbs` of the same AP sum.
+  simp [discOffset, discrepancy, out.apSum_contract]
+
+/-- Reverse orientation of `discOffset_eq_discrepancy`. -/
+theorem discrepancy_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  simpa using (out.discOffset_eq_discrepancy (f := f) (n := n)).symm
+
+/-- Transfer a uniform discrepancy bound *from* the reduced sequence *back* to the offset family.
+
+Combined with `contract_discrepancy_le`, this gives a clean equivalence between the two boundedness
+statements.
+-/
+theorem contract_discOffset_le (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n, discrepancy out.g out.d n ≤ B) : ∀ n, discOffset f out.d out.m n ≤ B := by
+  intro n
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+
+/-- Predicate transport: a discrepancy witness for the reduced sequence is exactly an offset witness
+for the original.
+
+This is a convenient packaging of
+`hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_lt` with `out.g_eq`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- Reduce to the literal shift `fun k => f (k + m*d)` and use the global bridge lemma.
+  -- (The equality `out.g_eq` is used only for rewriting.)
+  simpa [out.g_eq] using
+    (Tao2015.hasDiscrepancyAtLeastAlong_shift_add_mul_iff_exists_discOffset_lt
+      (f := f) (d := out.d) (m := out.m) (C := C))
+
+/-- If the offset family witnesses discrepancy `> C` somewhere, then `out.g` has discrepancy `> C`
+along step `out.d`.
+-/
+theorem hasDiscrepancyAtLeastAlong_of_exists_discOffset_lt (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, C < discOffset f out.d out.m n) : HasDiscrepancyAtLeastAlong out.g out.d C := by
+  exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).2 h
+
+/-- If `out.g` has discrepancy `> C` along step `out.d`, then the offset family witnesses it. -/
+theorem exists_discOffset_lt_of_hasDiscrepancyAtLeastAlong (out : ReductionOutput f) (C : ℕ)
+    (h : HasDiscrepancyAtLeastAlong out.g out.d C) : ∃ n : ℕ, C < discOffset f out.d out.m n := by
+  exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt (f := f) (C := C)).1 h
+
 /-- Rewrite `apSum out.g out.d` into the literal shifted nucleus. -/
 theorem apSum_eq_apSum_shift (out : ReductionOutput f) (n : ℕ) :
     apSum out.g out.d n = apSum (fun k => f (k + out.m * out.d)) out.d n := by
