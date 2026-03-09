@@ -761,6 +761,15 @@ We record a few of these wrappers here because they are extremely common in late
 and keeping them named avoids repeated `simp` arguments.
 -/
 
+/-- Reverse orientation of the stage-1 AP-sum contract.
+
+Downstream stages sometimes start from an offset formulation and want to rewrite *to* the reduced
+AP-sum nucleus `apSum out.g out.d`.
+-/
+theorem apSumOffset_eq_apSum_via_contract (out : ReductionOutput f) (n : ℕ) :
+    apSumOffset f out.d out.m n = apSum out.g out.d n := by
+  simpa using (out.apSum_contract n).symm
+
 /-- `Int.natAbs` form of the stage-1 AP-sum contract. -/
 theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
