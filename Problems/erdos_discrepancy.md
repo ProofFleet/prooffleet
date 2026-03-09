@@ -425,6 +425,16 @@ Definition of done:
 - [ ] API hygiene: create a tiny `DiscOffsetSimp` opt-in module with the minimal `[simp]` set for `discOffset`/`disc` normal forms (succ/zero/shift), audited so it doesn’t cause loops.
 - [ ] Bridge lemma: a canonical rewrite from `HasDiscrepancyAtLeastAlong` (or the repo’s preferred “along d” predicate) directly into a `discOffset` witness normal form, so Stage-2 statements can be phrased purely in `discOffset` without unpacking `Int.natAbs`.
 
+#### Auto-generated backlog (needs triage)
+- [ ] DiscOffset witness normal form: rewrite `HasDiscrepancyAtLeast f C` directly into `∃ d n, discOffset f d 0 n > C` (stable lemma on the `discOffset` API; avoid exposing `Int.natAbs (apSumOffset …)` in downstream statements).
+- [ ] Range-cut normal form (discOffset-level): using `apSumOffset_eq_sum_range'`, prove a canonical lemma splitting a `discOffset` over `Finset.range` at a cut `k` and rewriting both pieces back to `discOffset` (so later proofs can do “cut at k” without dropping to `Int` sums).
+- [ ] Residue-class split (offset → r tracks): for `r>0`, split `apSumOffset f d m n` (and `discOffset`) into a sum over residue classes `j < r` via reindexing `i = r*q + j` (provide both `i*d` and `d*i` summand-order variants), with a stable-surface regression example under `import MoltResearch.Discrepancy`.
+- [ ] `disc` API (homogeneous discrepancy): define `disc f d n := Int.natAbs (apSum f d n)` (or a lemma-only abbreviation) and port the key `discOffset_*` lemmas (`*_add_le`, `*_split_at_le`, stability) to `disc` with consistent names, so later stages can stay in `ℕ` discrepancy form.
+- [ ] Disc-level step-factor coherence: add `discOffset_mul_eq_discOffset_map_mul…` lemmas mirroring `apSumOffset_mul_eq_apSumOffset_map_mul…`, so multiplicative reindexing arguments can remain at discrepancy level without unfolding `Int.natAbs`.
+- [ ] `DiscOffsetSimp` hygiene pass: create an opt-in simp module for `discOffset`/`disc` with just the non-looping normal forms (`zero/one/succ`, `shift`, `mul` coherence), and add compile-time regression examples that use `simp` to normalize typical goals.
+- [ ] Stability at discrepancy level (apSupport-driven): prove `discOffset f d m n = discOffset g d m n` assuming `f` and `g` agree on the accessed indices (prefer phrasing via `apSupport` or the `Finset.range` normal form); include a stable-surface example showing local surgery works without `Icc` bookkeeping.
+- [ ] Endpoint/coherence bridge for Stage-2: add a canonical lemma rewriting `UnboundedDiscrepancyAlong`/`HasDiscrepancyAtLeastAlong` into a `∀ C, ∃ n, C < discOffset f d m n` normal form (quantifier-level, `discOffset`-native), so Stage-2 statements can be phrased purely in the nucleus API.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
