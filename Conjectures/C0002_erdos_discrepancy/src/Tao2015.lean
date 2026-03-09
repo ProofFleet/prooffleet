@@ -841,37 +841,6 @@ noncomputable def contextAlong_of_context (out : ReductionOutput f) (ctx : Conte
   exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
 
 /-!
-### Tiny helper lemmas: consuming a global boundedness context
-
-The stage-1 interface is fundamentally about *offset* discrepancy.  In practice, however,
-Stage 0 of the pipeline assumes a global boundedness context `ctx : Context f`.
-
-The following wrappers let downstream stages go directly from `ctx` to bounds on the reduced
-sequence `out.g` without having to explicitly mention `discOffset`.
--/
-
-theorem bound_discrepancy_of_context (out : ReductionOutput f) (ctx : Context f) (n : ℕ) :
-    discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
-  -- Reduce to the bundled offset family, then use `ctx.bound_discOffset`.
-  have h₁ : discOffset f out.d out.m n ≤ ctx.B + ctx.B :=
-    ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
-  -- Rewrite `discOffset` into discrepancy of the reduced sequence.
-  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h₁
-
-theorem bound_discrepancy_of_context_forall (out : ReductionOutput f) (ctx : Context f) :
-    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
-  intro n
-  exact out.bound_discrepancy_of_context (f := f) (ctx := ctx) n
-
-theorem bound_natAbs_apSumFrom_mul_of_context (out : ReductionOutput f) (ctx : Context f) (n : ℕ) :
-    Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ ctx.B + ctx.B := by
-  -- Rewrite to `discOffset` and use `ctx.bound_discOffset`.
-  have h₁ : discOffset f out.d out.m n ≤ ctx.B + ctx.B :=
-    ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
-  -- `discOffset = natAbs(apSumOffset ...) = natAbs(apSumFrom ...)`.
-  simpa [discOffset, apSumOffset_eq_apSumFrom_mul] using h₁
-
-/-!
 ### Tiny helper lemmas: unpacking the shift
 
 The record field `g_eq` stores the defining shift. In practice we often want pointwise
