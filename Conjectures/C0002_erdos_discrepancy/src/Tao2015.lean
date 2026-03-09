@@ -1215,6 +1215,42 @@ theorem forall_discOffset_le_of_contextAlong (out : ReductionOutput f) (ctx : Co
   have : discrepancy out.g out.d n ≤ ctx.B := ctx.bound_discrepancy (f := out.g) (d := out.d) n
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using this
 
+/-!
+### Unboundedness rewrites
+
+Later stages often want to switch between “arbitrarily large discrepancy” phrased for the reduced
+sequence `out.g` and the equivalent statements phrased for the bundled offset discrepancy family
+`discOffset f out.d out.m`.
+
+These are pure pipeline glue: they just package existing lemmas with the parameters bundled in a
+`ReductionOutput`.
+-/
+
+/-- Arbitrarily large discrepancy along `out.d` for `out.g` is equivalent to unbounded discrepancy
+along that fixed step size.
+
+This is just a specialization of
+`HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      Tao2015.UnboundedDiscrepancyAlong out.g out.d := by
+  simpa using
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong
+      (g := out.g) (d := out.d))
+
+/-- Arbitrarily large discrepancy along `out.d` for `out.g` rewritten into a family of strict
+inequalities for `discOffset f out.d out.m`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  constructor
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).1 (h C)
+  · intro h C
+    exact (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt (f := f) (C := C)).2 (h C)
+
 /-- Boundedness along the reduced step size is equivalent to boundedness of the corresponding
 offset discrepancy family.
 
