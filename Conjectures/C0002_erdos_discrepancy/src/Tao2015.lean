@@ -1001,6 +1001,34 @@ def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     -- Rewrite `discOffset` into `discrepancy` using the contract.
     simpa [discOffset, discrepancy, Tao2015.apSum_shift_add_mul_eq_apSumOffset] using hB n
 
+/-- Variant constructor for a *definitionally shifted* reduction.
+
+Use this when a reduction step defines a derived sequence `g` and separately proves
+`g = fun k => f (k + m*d)`.
+
+This constructor derives the stage-1 bridge rule `apSum g d = apSumOffset f d m` automatically
+from `g_eq_shift`, so downstream stages don't need to restate the contract by hand.
+-/
+def ofShiftEq (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
+    (d m : ℕ) (hd : d > 0) (g_eq_shift : g = fun k => f (k + m * d)) :
+    ReductionOutput f := by
+  refine
+    { d := d
+      m := m
+      hd := hd
+      g := g
+      hg := hg
+      g_eq := g_eq_shift
+      apSum_contract := ?_
+      contract_discrepancy_le := ?_ }
+  · intro n
+    -- Reduce to the canonical shift rewrite.
+    simpa [g_eq_shift] using
+      (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+  · intro B hB n
+    -- Reduce to the definitional wrappers plus the `apSum` contract.
+    simpa [discOffset, discrepancy, g_eq_shift, Tao2015.apSum_shift_add_mul_eq_apSumOffset] using hB n
+
 /-!
 ### `simp` lemmas for `ReductionOutput.ofShift`
 
