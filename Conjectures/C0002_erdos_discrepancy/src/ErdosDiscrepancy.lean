@@ -30,7 +30,8 @@ theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   -- Quantifier-level normalization: `∀ C, ...` ↔ `¬BoundedDiscrepancy`.
   refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
-  exact tao2015_not_boundedDiscrepancy (f := f) (hf := hf)
+  -- Use the named Track C stage boundary (Stage 3) rather than the older monolithic stub.
+  exact (Tao2015.stage3 (f := f) (hf := hf)).notBounded
 
 /-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
