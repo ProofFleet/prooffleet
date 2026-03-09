@@ -5643,6 +5643,33 @@ theorem composeShiftSameD_shift0_m {f : ℕ → ℤ} (out : Tao2015.ReductionOut
     (composeShiftSameD (out₁ := out) (out₂ := shift0 out) rfl).g = out.g := by
   simp [composeShiftSameD]
 
+/-!
+### Boundedness transfer helpers
+
+Stage-1 and Stage-2 reductions often begin with a global boundedness hypothesis on the original
+sequence `f` (packaged as `Tao2015.Context f`).
+
+Before doing any deeper Tao-style work, it is useful to immediately obtain a *fixed-step* bound
+for the reduced sequence `out.g` along the bundled step size `out.d`.
+
+This is intentionally tiny pipeline glue living in `Conjectures/`.
+-/
+
+/-- From a global boundedness context for `f`, build a fixed-step boundedness context for the
+reduced sequence `out.g` along the reduced step size `out.d`.
+
+The constant is the expected `2*B`: shifting turns the reduced partial sums into offset sums, and
+an offset sum is a difference of two prefix sums.
+-/
+def contextAlong_ofContext {f : ℕ → ℤ} (ctx : Tao2015.Context f) (out : Tao2015.ReductionOutput f) :
+    Tao2015.ContextAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  -- Reduce to the literal-shift form provided by `out.g_eq`, then apply the shift-bound lemma.
+  simpa [out.g_eq] using
+    (Tao2015.Context.bound_discrepancy_shift_add (f := f) (ctx := ctx)
+      (d := out.d) (m := out.m) (n := n) out.hd)
+
 end ReductionOutput
 
 /-- Identity reduction: take `d = 1` and `m = 0`, so the reduced sequence is literally `f`.
