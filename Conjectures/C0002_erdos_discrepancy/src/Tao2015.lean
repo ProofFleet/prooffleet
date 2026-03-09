@@ -915,6 +915,50 @@ theorem discrepancy_eq_natAbs_apSumOffset_via_contract (out : ReductionOutput f)
     discrepancy out.g out.d n = Int.natAbs (apSumOffset f out.d out.m n) := by
   simp [discrepancy, out.apSum_contract]
 
+/-!
+### Contract consequences: affine nucleus (`apSumFrom`)
+
+Track C increasingly treats `apSumFrom` as the canonical “affine AP nucleus”.
+The stage-1 contract is stated using `apSumOffset`; the following wrappers push it one step
+further and rewrite directly into `apSumFrom f (m*d) d`.
+-/
+
+/-- Rewrite the reduced homogeneous nucleus `apSum out.g out.d` to the affine nucleus `apSumFrom`
+for the original sequence.
+
+This lemma is a one-hop combination of `out.apSum_contract` with
+`Tao2015.apSumOffset_eq_apSumFrom_mul`.
+-/
+theorem apSum_eq_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
+  calc
+    apSum out.g out.d n = apSumOffset f out.d out.m n := out.apSum_contract n
+    _ = apSumFrom f (out.m * out.d) out.d n := by
+          simpa using
+            (Tao2015.apSumOffset_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
+
+/-- `Int.natAbs` form of `apSum_eq_apSumFrom_mul_via_contract`. -/
+theorem natAbs_apSum_eq_natAbs_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [out.apSum_eq_apSumFrom_mul_via_contract (f := f) (n := n)]
+
+/-- Discrepancy rewritten directly to the affine nucleus `apSumFrom` for the original sequence.
+
+This is often the most convenient consumer normal form.
+-/
+theorem discrepancy_eq_natAbs_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [discrepancy, out.apSum_eq_apSumFrom_mul_via_contract (f := f) (n := n)]
+
+/-- Offset discrepancy rewritten to the affine nucleus `apSumFrom`.
+
+This is just `discOffset_eq_natAbs_apSumFrom_mul` specialized to the parameters in `out`.
+-/
+theorem discOffset_eq_natAbs_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simpa using
+    (Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
+
 /-- Uniform boundedness of reduced discrepancies is equivalent to uniform boundedness of the
 bundled offset-discrepancy family.
 
