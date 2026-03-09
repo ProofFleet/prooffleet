@@ -845,6 +845,30 @@ theorem exists_discrepancy_gt_iff_exists_discOffset_gt_via_contract (out : Reduc
     refine ⟨n, ?_⟩
     simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using hn
 
+/-- Fixed-step discrepancy witness for the reduced sequence `out.g` rewritten into an offset-discrepancy
+witness for the original sequence `f`.
+
+This is the `HasDiscrepancyAtLeastAlong`-level analogue of
+`exists_discrepancy_gt_iff_exists_discOffset_gt_via_contract`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- Rewrite `HasDiscrepancyAtLeastAlong` into the `discrepancy` witness form,
+  -- then use the stage-1 contract to rewrite `discrepancy out.g` into `discOffset f`.
+  simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt] using
+    (out.exists_discrepancy_gt_iff_exists_discOffset_gt_via_contract (f := f) C)
+
+/-- `Int.natAbs` (sum-level) version of
+`hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt_via_contract
+    (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  -- `discOffset` is a definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+  simpa [discOffset] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract (f := f) C)
+
 /-- Reverse direction of the discrepancy transfer contract: a uniform bound on `discrepancy out.g`
 transfers to a uniform bound on the bundled offset discrepancy family.
 
