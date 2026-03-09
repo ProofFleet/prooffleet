@@ -749,27 +749,7 @@ The record `ReductionOutput` is intentionally general (it can support more elabo
 sequences later), but this constructor covers the common case and avoids repeating boilerplate.
 -/
 
-/-- Build a `ReductionOutput` from a literal shift of a sign sequence.
-
-The transfer contract is immediate because `discrepancy (shift f)` is definitionaly the bundled
-`discOffset` family (via the bridge lemmas above).
--/
-def ofShift (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) : ReductionOutput f := by
-  classical
-  refine
-    { d := d
-      m := m
-      hd := hd
-      g := fun k => f (k + m * d)
-      hg := IsSignSequence.shift_add_mul (f := f) hf m d
-      g_eq := rfl
-      apSum_contract := ?_
-      contract_discrepancy_le := ?_ }
-  · intro n
-    simpa using (apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
-  · intro B hB n
-    -- Rewrite discrepancy of the shifted sequence to the bundled offset discrepancy.
-    simpa [discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using hB n
+-- (moved below) 
 
 /-!
 ### Tiny contract consequences
