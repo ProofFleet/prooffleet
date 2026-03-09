@@ -1556,6 +1556,18 @@ theorem exists_forall_discrepancy_le_iff_exists_forall_discOffset_le (out : Redu
   · rintro ⟨B, hB⟩
     exact ⟨B, out.contract_discrepancy_le B hB⟩
 
+/-- `BoundedDiscOffset` for the bundled parameters is equivalent to bounded discrepancy (in the
+explicit witness form) for the reduced sequence.
+
+This is a convenience wrapper around
+`exists_forall_discrepancy_le_iff_exists_forall_discOffset_le`.
+-/
+theorem boundedDiscOffset_iff_exists_forall_discrepancy_le (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m ↔ (∃ B : ℕ, ∀ n : ℕ, discrepancy out.g out.d n ≤ B) := by
+  -- Unfold `BoundedDiscOffset` and use the existential packaging lemma.
+  simpa [BoundedDiscOffset] using
+    (out.exists_forall_discrepancy_le_iff_exists_forall_discOffset_le (f := f)).symm
+
 /-- Package a uniform offset-discrepancy bound into a `ContextAlong` for the reduced sequence.
 
 This is often the *entry point* for stage-2 reductions: once we have any quantitative control over
