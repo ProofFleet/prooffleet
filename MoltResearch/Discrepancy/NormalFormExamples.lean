@@ -13,11 +13,16 @@ namespace MoltResearch
 
 section NormalFormExamples
 
-variable (f : ℕ → ℤ) (a b d m n n₁ n₂ p C : ℕ)
+variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 -- Regression: `simp` should normalize away a spurious zero-offset tail.
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
+
+-- Regression: bounded discrepancy is stable under dilation (`n ↦ n*k`).
+example (hb : BoundedDiscrepancy f) (hk : k > 0) :
+    BoundedDiscrepancy (fun n => f (n * k)) := by
+  simpa using (BoundedDiscrepancy.map_mul (f := f) hb (k := k) hk)
 
 /-!
 ## Typical “user script” examples

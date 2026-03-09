@@ -416,6 +416,7 @@ Definition of done:
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
 - [x] Tao2015 skeleton: derived bound lemmas from `Context.bound` (offset sums / `discOffset` / shift-add normal form)
 - [x] Tao2015 “plane” interface: a first nontrivial `ReductionOutput f` packaging `(d,m,g)` plus bridge/transfer lemmas connecting `apSum g d` and `apSumOffset f d m` (lives in `Conjectures/C0002_erdos_discrepancy/src/Tao2015.lean`).
+- [x] Closure: `BoundedDiscrepancy` is stable under dilation (`n ↦ n*k`).
 - [ ] Prove the main theorem (long-horizon)
 - [x] Alternate formulations/equivalences recorded in the card + notes
 - [x] Quantifier-level normal form: define `BoundedDiscrepancy` and prove `forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy`.
