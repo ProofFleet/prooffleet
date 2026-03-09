@@ -1184,6 +1184,19 @@ theorem discOffset_le_of_discrepancy_le_via_contract (out : ReductionOutput f) (
     discOffset f out.d out.m n ≤ B :=
   (out.discrepancy_le_iff_discOffset_le_via_contract (f := f) (n := n) (B := B)).1 h
 
+/-- Uniform boundedness transport: `out.g` is uniformly bounded along `out.d` iff the bundled
+offset family is uniformly bounded.
+
+This is the “forall” version of `discrepancy_le_iff_discOffset_le_via_contract`.
+-/
+theorem forall_discrepancy_le_iff_forall_discOffset_le_via_contract (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · intro h n
+    exact out.discOffset_le_of_discrepancy_le_via_contract (f := f) (n := n) (B := B) (h n)
+  · intro h n
+    exact out.discrepancy_le_of_discOffset_le_via_contract (f := f) (n := n) (B := B) (h n)
+
 /-- Strict-inequality rewrite helper derived from `discrepancy_eq_discOffset_via_contract`. -/
 theorem discrepancy_gt_iff_discOffset_gt_via_contract (out : ReductionOutput f) (n C : ℕ) :
     discrepancy out.g out.d n > C ↔ discOffset f out.d out.m n > C := by
