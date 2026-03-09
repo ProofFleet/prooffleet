@@ -1251,6 +1251,15 @@ theorem discOffset_eq_natAbs_apSumFrom_mul (out : ReductionOutput f) (n : ℕ) :
   simpa using
     (Tao2015.discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
 
+/-- Reverse orientation of `discOffset_eq_natAbs_apSumFrom_mul`.
+
+This is a tiny helper when downstream stages want to rewrite *towards* the discrepancy wrapper
+`discOffset` rather than away from it.
+-/
+theorem natAbs_apSumFrom_mul_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSumFrom f (out.m * out.d) out.d n) = discOffset f out.d out.m n := by
+  simpa using (out.discOffset_eq_natAbs_apSumFrom_mul (f := f) (n := n)).symm
+
 /-- Discrepancy of the reduced sequence rewritten to the affine-tail nucleus `apSumFrom`.
 
 This is often the most compact “consumer” form of the stage-1 contract.
