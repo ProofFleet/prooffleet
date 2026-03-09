@@ -937,6 +937,27 @@ theorem discOffset_eq_discrepancy_via_contract (out : ReductionOutput f) (n : �
     discOffset f out.d out.m n = discrepancy out.g out.d n := by
   simpa using (out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)).symm
 
+/-- Strict-inequality transport: a large offset discrepancy witness yields a large reduced
+fixed-step discrepancy witness.
+
+This is a tiny convenience wrapper around `discrepancy_eq_discOffset_via_contract`.
+-/
+theorem exists_discrepancy_gt_of_exists_discOffset_gt_via_contract (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using hn
+
+/-- `<`-oriented variant of `exists_discrepancy_gt_of_exists_discOffset_gt_via_contract`. -/
+theorem exists_discrepancy_lt_of_exists_discOffset_lt_via_contract (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, C < discOffset f out.d out.m n) :
+    ∃ n : ℕ, C < discrepancy out.g out.d n := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  -- Rewrite `discOffset ...` into `discrepancy ...` via the contract.
+  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using hn
+
 /-- Inequality-level rewrite helper derived from `discrepancy_eq_discOffset_via_contract`.
 
 This is often the exact shape needed when transporting boundedness hypotheses across the stage-1
