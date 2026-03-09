@@ -1137,6 +1137,29 @@ theorem discOffset_add_eq_discOffset_g_via_out (out : ReductionOutput f) (m₂ n
     discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
   simpa [discOffset, out.apSumOffset_add_eq_apSumOffset_g_via_out (f := f) (m₂ := m₂) (n := n)]
 
+/-- Unboundedness of the *combined* offset family is equivalent to unboundedness of the offset
+family for the reduced sequence.
+
+This is a direct consequence of `discOffset_add_eq_discOffset_g_via_out`, but packaging it at the
+predicate level is often convenient for downstream stage interfaces.
+-/
+theorem unboundedDiscOffset_add_iff_unboundedDiscOffset_g_via_out (out : ReductionOutput f) (m₂ : ℕ) :
+    Tao2015.UnboundedDiscOffset f out.d (out.m + m₂) ↔
+      Tao2015.UnboundedDiscOffset out.g out.d m₂ := by
+  constructor
+  · intro h
+    intro B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Rewrite the combined offset discrepancy to the reduced-sequence offset discrepancy.
+    simpa [out.discOffset_add_eq_discOffset_g_via_out (f := f) (m₂ := m₂) (n := n)] using hn
+  · intro h
+    intro B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Rewrite back from the reduced-sequence offset discrepancy to the combined offset discrepancy.
+    simpa [out.discOffset_add_eq_discOffset_g_via_out (f := f) (m₂ := m₂) (n := n)] using hn
+
 /-- Rewrite the *combined* offset discrepancy into a shifted discrepancy of the reduced sequence.
 
 This is a common Track C maneuver: after producing a stage-1 reduction output `out`, we often want
