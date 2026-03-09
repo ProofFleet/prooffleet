@@ -1658,6 +1658,22 @@ theorem contract_discOffset_le_derived (out : ReductionOutput f) (B : ℕ)
   -- Rewrite `discOffset` to `discrepancy` using the stage-1 contract.
   simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
 
+/-- Strict-inequality analogue of `contract_discrepancy_le_derived`. -/
+theorem contract_discrepancy_lt_derived (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n < B) :
+    ∀ n : ℕ, discrepancy out.g out.d n < B := by
+  intro n
+  -- Rewrite `discOffset` into `discrepancy` using the stage-1 contract.
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+
+/-- Strict-inequality analogue of `contract_discOffset_le_derived`. -/
+theorem contract_discOffset_lt_derived (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discrepancy out.g out.d n < B) :
+    ∀ n : ℕ, discOffset f out.d out.m n < B := by
+  intro n
+  -- Rewrite `discOffset` to `discrepancy` using the stage-1 contract.
+  simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
+
 /-- Reverse strict-inequality contract: `discrepancy(out.g)` witnesses transfer back to
 `discOffset` witnesses.
 
