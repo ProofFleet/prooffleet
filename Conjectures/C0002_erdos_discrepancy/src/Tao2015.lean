@@ -749,7 +749,32 @@ The record `ReductionOutput` is intentionally general (it can support more elabo
 sequences later), but this constructor covers the common case and avoids repeating boilerplate.
 -/
 
--- (moved below) 
+/-- Canonical `ReductionOutput`: the literal shift `g k := f (k + m*d)`.
+
+This constructor is the default stage-1 interface when a reduction produces explicit parameters
+`d,m` and then works with the shifted sequence.
+-/
+noncomputable def mkShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    ReductionOutput f := by
+  classical
+  refine
+    { d := d
+      m := m
+      hd := hd
+      g := fun k => f (k + m * d)
+      hg := IsSignSequence.shift_add_mul (f := f) hf m d
+      g_eq := rfl
+      apSum_contract := ?_
+      contract_discrepancy_le := ?_ }
+  · intro n
+    -- This is the standard bridge lemma: shifted homogeneous sums are offset sums.
+    simpa using
+      (apSum_shift_add_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+  · intro B hB n
+    -- Rewrite `discrepancy` for the shifted sequence into `discOffset` for the original.
+    have : discOffset f d m n ≤ B := hB n
+    simpa [discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using this
+
 
 /-!
 ### Tiny contract consequences
