@@ -740,6 +740,49 @@ namespace ReductionOutput
 variable {f : ℕ → ℤ}
 
 /-!
+### Tiny contract consequences
+
+The record field `apSum_contract` is the *core* stage-1 bridge.  Most consumer-facing rewrite
+lemmas are just wrappers around it (plus definitional unfoldings of `discrepancy` / `discOffset`).
+
+We record a few of these wrappers here because they are extremely common in later pipeline stages
+and keeping them named avoids repeated `simp` arguments.
+-/
+
+/-- `Int.natAbs` form of the stage-1 AP-sum contract. -/
+theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
+  simpa [out.apSum_contract n]
+
+/-- Definitional wrapper: rewrite discrepancy of `out.g` to the bundled offset discrepancy.
+
+This lemma is derived purely from `out.apSum_contract`; it does not use `out.g_eq`.
+-/
+theorem discrepancy_eq_discOffset_via_contract (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+  -- Both sides are `Int.natAbs` wrappers around the AP sums.
+  simp [discrepancy, discOffset, out.apSum_contract]
+
+/-- A strict inequality witness for the reduced discrepancy transfers to the bundled offset family.
+
+This is the `∃`-packaged form of `discrepancy_eq_discOffset_via_contract`.
+-/
+theorem exists_discOffset_gt_of_exists_discrepancy_gt_via_contract (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, discrepancy out.g out.d n > C) :
+    ∃ n : ℕ, discOffset f out.d out.m n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using hn
+
+/-- Reverse direction of `exists_discOffset_gt_of_exists_discrepancy_gt_via_contract`. -/
+theorem exists_discrepancy_gt_of_exists_discOffset_gt_via_contract (out : ReductionOutput f) (C : ℕ)
+    (h : ∃ n : ℕ, discOffset f out.d out.m n > C) :
+    ∃ n : ℕ, discrepancy out.g out.d n > C := by
+  rcases h with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using hn
+
+/-!
 ### Canonical constructor: the literal shift reduction
 
 Many Track C reductions begin by defining the reduced sequence as the literal shift
