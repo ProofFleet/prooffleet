@@ -1153,27 +1153,6 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt_via_contract (out : 
   simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt, gt_iff_lt] using
     (out.exists_discrepancy_gt_iff_exists_discOffset_gt_via_contract (f := f) C)
 
-/-- Rewrite the reduced AP sum into the affine-tail nucleus `apSumFrom` for `f`, using only the
-stage-1 contract.
-
-This is a convenience wrapper around
-`Tao2015.apSumOffset_eq_apSumFrom_mul` composed with `out.apSum_contract`.
--/
-theorem apSum_eq_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
-    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
-  -- Contract to `apSumOffset`, then rewrite `apSumOffset` into the affine nucleus.
-  simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using (out.apSum_contract n)
-
-/-- Rewrite discrepancy of the reduced sequence into the affine-tail nucleus `apSumFrom` for `f`,
-using only the stage-1 contract.
-
-This is the `discrepancy` analogue of `apSum_eq_apSumFrom_mul_via_contract`.
--/
-theorem discrepancy_eq_natAbs_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
-    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
-  -- `discrepancy = natAbs(apSum ...)` and `apSum = apSumFrom` via the previous lemma.
-  simp [discrepancy, out.apSum_eq_apSumFrom_mul_via_contract (f := f) (n := n)]
-
 /-- A strict inequality witness for the reduced discrepancy transfers to the bundled offset family.
 
 This is the `∃`-packaged form of `discrepancy_eq_discOffset_via_contract`.
