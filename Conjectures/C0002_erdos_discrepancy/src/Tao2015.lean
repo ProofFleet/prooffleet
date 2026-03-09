@@ -10571,23 +10571,40 @@ theorem not_boundedDiscrepancy_original (s2 : Stage2Output f out) : ¬ BoundedDi
 
 end Stage2Output
 
-/-- (Stub) Stage 2 deliverable: from `ctx` + `out`, produce the explicit unboundedness normal form
-for the offset discrepancy bundled in `out`.
+/-- (Stub) Stage 2 core deliverable: prove that the offset-discrepancy family bundled in `out`
+is **not** bounded.
 
-Downstream Tao steps should aim to prove this without needing to know how `ctx` was constructed.
+This is the mathematically substantive content of stage 2.
+
+We intentionally keep this as a single `sorry` (rather than hiding the stub inside a more complex
+witness normal form), so it is easy to locate and delete once the stage-2 proof is filled in.
+-/
+theorem stage2_not_boundedDiscOffset_core (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ¬ BoundedDiscOffset f out.d out.m := by
+  -- TODO (Track C / Tao2015 Stage 2): supply the actual reduction proving that the offset
+  -- discrepancy family `discOffset f out.d out.m` cannot be uniformly bounded, assuming we have a
+  -- global boundedness context `ctx : Context f`.
+  sorry
+
+/-- Stage 2 deliverable, packaged in the explicit witness normal form.
+
+This is the “Conjectures-only pipeline glue” form: it is the most convenient statement for
+composing later reductions.
 
 Implementation note:
-We keep this as a `theorem` with a single `sorry` (rather than an `axiom`) so the stub remains
-locally visible and easy to remove once Stage 2 is proved.
+We keep the stub isolated in `stage2_not_boundedDiscOffset_core` and derive this witness form from
+it using the prepackaged equivalence lemmas for `BoundedDiscOffset`.
 -/
 theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     (ctx : Context f) (out : ReductionOutput f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
-  -- TODO (Track C / Tao2015 Stage 2): supply the actual reduction proving unbounded offset
-  -- discrepancy from the boundedness context `ctx`.
-  --
-  -- Until then, we keep the entire pipeline composable (and CI-green) with a single stub.
-  sorry
+  have hnb : ¬ BoundedDiscOffset f out.d out.m :=
+    stage2_not_boundedDiscOffset_core (f := f) (hf := hf) (ctx := ctx) (out := out)
+  -- Convert `¬ bounded` into the explicit `∀ B, ∃ n, B < ...` witness form.
+  have : Tao2015.UnboundedDiscOffset f out.d out.m :=
+    Tao2015.UnboundedDiscOffset.of_not_boundedDiscOffset (f := f) (d := out.d) (m := out.m) hnb
+  simpa [Tao2015.UnboundedDiscOffset] using this
 
 /-- Package the stage-2 deliverable `stage2_unbounded_discOffset` as a `Stage2Output` structure.
 
