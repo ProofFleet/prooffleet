@@ -919,6 +919,38 @@ theorem natAbs_apSum_eq_natAbs_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
   simpa [out.apSum_contract n]
 
+/-!
+### Bridge to the affine nucleus `apSumFrom`
+
+Track B treats `apSumFrom` as the canonical representation of affine progressions.
+Many later Track C stages also prefer to speak in terms of `apSumFrom` directly.
+
+The reduction output contract is stated in terms of `apSumOffset`; the following wrappers
+compose it with `apSumOffset_eq_apSumFrom_mul` so consumers can rewrite to the affine nucleus
+in one step.
+
+These lemmas are intentionally derived only from `out.apSum_contract` (and the general
+`apSumOffset ↔ apSumFrom` bridge), so they do not depend on the specific choice of
+`out.g_eq`.
+-/
+
+/-- Rewrite `apSum out.g out.d` into the affine-tail nucleus `apSumFrom f (out.m*out.d) out.d`. -/
+theorem apSum_eq_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
+  -- Stage-1: `apSum out.g = apSumOffset f`.
+  -- Bridge:  `apSumOffset f = apSumFrom f (m*d)`.
+  simpa [apSumOffset_eq_apSumFrom_mul] using (out.apSum_contract (f := f) n)
+
+/-- `Int.natAbs` form of `apSum_eq_apSumFrom_mul_via_contract`. -/
+theorem natAbs_apSum_eq_natAbs_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
+    Int.natAbs (apSum out.g out.d n) = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [out.apSum_eq_apSumFrom_mul_via_contract (f := f) (n := n)]
+
+/-- Discrepancy form of `apSum_eq_apSumFrom_mul_via_contract`. -/
+theorem discrepancy_eq_natAbs_apSumFrom_mul_via_contract (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  simp [discrepancy, out.apSum_eq_apSumFrom_mul_via_contract (f := f) (n := n)]
+
 /-- Definitional wrapper: rewrite discrepancy of `out.g` to the bundled offset discrepancy.
 
 This lemma is derived purely from `out.apSum_contract`; it does not use `out.g_eq`.
