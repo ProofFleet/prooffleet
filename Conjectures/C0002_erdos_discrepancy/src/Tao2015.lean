@@ -970,6 +970,36 @@ noncomputable def mkShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) 
     have : discOffset f d m n ≤ B := hB n
     simpa [discrepancy_shift_add_mul_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using this
 
+/-- A lightweight constructor: once you provide the stage-1 AP-sum contract,
+`contract_discrepancy_le` can be derived automatically.
+
+This is useful when a reduction step naturally proves an identity of AP sums
+`apSum g d n = apSumOffset f d m n` (often by algebraic rewriting), and we want to package it
+as a `ReductionOutput` without re-proving the discrepancy transfer manually.
+
+Note: we still keep `contract_discrepancy_le` as a field because downstream stages often want the
+implication form, but *producers* should usually build outputs using this constructor.
+-/
+noncomputable def mkOfApSumContract (f : ℕ → ℤ) (d m : ℕ) (hd : d > 0)
+    (g : ℕ → ℤ) (hg : IsSignSequence g) (g_eq : g = fun k => f (k + m * d))
+    (apSum_contract : ∀ n : ℕ, apSum g d n = apSumOffset f d m n) :
+    ReductionOutput f := by
+  classical
+  refine
+    { d := d
+      m := m
+      hd := hd
+      g := g
+      hg := hg
+      g_eq := g_eq
+      apSum_contract := apSum_contract
+      contract_discrepancy_le := ?_ }
+  intro B hB n
+  -- Rewrite `discrepancy g` to the bundled offset discrepancy using the AP-sum contract.
+  have h' : discOffset f d m n ≤ B := hB n
+  -- `discrepancy` and `discOffset` are definitional `Int.natAbs` wrappers.
+  simpa [discrepancy, discOffset, apSum_contract] using h'
+
 
 /-!
 ### Tiny contract consequences
