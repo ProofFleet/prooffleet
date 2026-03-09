@@ -10341,6 +10341,17 @@ noncomputable def stage2_output (f : ℕ → ℤ) (hf : IsSignSequence f)
       stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) := by
   rfl
 
+/-- `stage2_output` is definitionally the same packaging as `stage2Output`.
+
+We keep both names because different parts of the file historically used different casing; this
+lemma lets downstream code normalize them away with `simp`.
+-/
+@[simp] theorem stage2_output_eq_stage2Output (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    stage2_output (f := f) (hf := hf) (ctx := ctx) (out := out) =
+      stage2Output (f := f) (hf := hf) (ctx := ctx) (out := out) := by
+  rfl
+
 /-!
 ### Stage-2 alternative entry point
 
