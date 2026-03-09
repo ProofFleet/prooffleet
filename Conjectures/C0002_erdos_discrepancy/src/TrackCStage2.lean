@@ -52,6 +52,27 @@ abbrev d (out : Stage2Output f) : ℕ := out.out1.d
 /-- Convenience projection: the reduced sequence. -/
 abbrev g (out : Stage2Output f) : ℕ → ℤ := out.out1.g
 
+/-- Unboundedness of the reduced sequence in explicit witness form (`B < discrepancy ...`). -/
+theorem forall_exists_discrepancy_gt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n := by
+  -- This is just the definitional witness form for `UnboundedDiscrepancyAlong`.
+  simpa [Tao2015.UnboundedDiscrepancyAlong] using out.unbounded
+
+/-- Equivalent packaging: arbitrarily large discrepancy witnesses along `out.d`. -/
+theorem forall_hasDiscrepancyAtLeastAlong (out : Stage2Output f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  -- Use the lemma in `Tao2015` that relates `∀ C, HasDiscrepancyAtLeastAlong` to unboundedness.
+  have : (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      Tao2015.UnboundedDiscrepancyAlong out.g out.d :=
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong
+      (g := out.g) (d := out.d))
+  exact (this.2 out.unbounded)
+
+/-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
+theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
+  exact (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
+    (f := out.g) (d := out.d)).1 out.unbounded
+
 /-- Consumer-facing form: Stage 2 unboundedness transferred back to the original sequence as an
 unbounded **offset discrepancy** witness.
 
