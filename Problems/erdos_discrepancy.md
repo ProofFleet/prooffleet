@@ -92,6 +92,20 @@ Quick consumption pattern (Stage 1):
 - When a later stage produces a witness about offsets of `f`, normalize it through the contract:
   `discrepancy out.g out.d n = discOffset f out.d out.m n` via `ReductionOutput.discrepancy_eq_discOffset`.
 
+Stage-1 contract “cheat sheet” (most-used lemmas):
+- Rewrite (sum level):
+  - `ReductionOutput.apSum_eq_apSumOffset` (and the reverse `apSumOffset_eq_apSum`)
+  - `ReductionOutput.apSum_eq_apSumFrom_mul` (affine-tail nucleus normal form)
+- Rewrite (discrepancy level):
+  - `ReductionOutput.discrepancy_eq_discOffset`
+  - `ReductionOutput.discrepancy_eq_natAbs_apSumFrom_mul`
+- Transfer (bounds):
+  - `ReductionOutput.contract_discrepancy_le_derived` (offset bound → reduced bound)
+  - `ReductionOutput.contract_discOffset_le_derived` (reduced bound → offset bound)
+- Swap “boundedness vs unboundedness” normal forms:
+  - `ReductionOutput.boundedDiscrepancyAlong_iff_boundedDiscOffset`
+  - `ReductionOutput.unboundedDiscrepancyAlong_iff_unboundedDiscOffset`
+
 #### Track B normal-form guide (what we rewrite *to*)
 
 If you’re unsure “what shape should this lemma end in?”, default to the stable import surface:
