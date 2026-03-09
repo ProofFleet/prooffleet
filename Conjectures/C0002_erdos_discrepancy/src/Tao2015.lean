@@ -945,6 +945,43 @@ theorem discOffset_gt_iff_discrepancy_gt_via_contract (out : ReductionOutput f) 
     discOffset f out.d out.m n > C ↔ discrepancy out.g out.d n > C := by
   simpa using (out.discrepancy_gt_iff_discOffset_gt_via_contract (f := f) (n := n) (C := C)).symm
 
+/-!
+### Predicate-level wrappers (`HasDiscrepancyAtLeastAlong`)
+
+Downstream stages often state goals in the predicate form
+`HasDiscrepancyAtLeastAlong out.g out.d C` rather than as a raw inequality about
+`discrepancy out.g out.d n`.
+
+The following wrappers let us immediately rewrite such predicates into the bundled offset family
+(or vice versa) using only the stage-1 contract.
+-/
+
+/-- Fixed-step discrepancy predicate for the reduced sequence rewritten to the bundled offset family
+(`... > C` orientation). -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
+  -- Unfold the predicate into a `discrepancy` witness, then rewrite via the contract.
+  simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt, out.discrepancy_eq_discOffset_via_contract]
+
+/-- Fixed-step discrepancy predicate for the reduced sequence rewritten to the bundled offset family
+(`C < ...` orientation). -/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt_via_contract (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract (f := f) (C := C))
+
+/-- Sum-level (`apSumOffset`) version of `hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract`.
+
+This is useful when a downstream stage wants to avoid the `discOffset` wrapper and work directly
+with the nucleus `apSumOffset`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt_via_contract (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > C) := by
+  -- `discOffset` is definitional wrapper around `Int.natAbs (apSumOffset ...)`.
+  simpa [discOffset] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract (f := f) (C := C))
+
 /-- `<`-oriented strict-inequality rewrite helper.
 
 Downstream stages often prefer inequalities oriented as `C < ...` rather than `... > C`.
