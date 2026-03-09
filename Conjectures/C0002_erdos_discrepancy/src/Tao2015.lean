@@ -9659,7 +9659,7 @@ an explicit unboundedness witness for the offset discrepancy bundled in `out`, t
 argument is pure interface plumbing.
 
 So we isolate that future deliverable as a named lemma:
-- `stage2_unbounded_discOffset` (currently an `axiom`)
+- `stage2_unbounded_discOffset` (currently a stub theorem with one `sorry`)
 
 and make the top-level `contradiction` proof *structural* and `sorry`-free.
 -/
