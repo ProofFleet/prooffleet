@@ -1658,6 +1658,66 @@ theorem contract_discOffset_le_derived (out : ReductionOutput f) (B : ℕ)
   -- Rewrite `discOffset` to `discrepancy` using the stage-1 contract.
   simpa [out.discOffset_eq_discrepancy (f := f) (n := n)] using hB n
 
+/-!
+### Packaging bounds as `ContextAlong`
+
+Many later stages want a *record* carrying a bound `B` and the bound lemma, rather than a raw
+`∀ n, ... ≤ B` hypothesis.
+
+The following helpers let consumers build a `ContextAlong` for either the reduced sequence `out.g`
+(or, conversely, for the bundled offset family) with a single line.
+-/
+
+/-- Build a fixed-step discrepancy context for the reduced sequence `out.g` from a uniform bound on
+its associated offset discrepancy family.
+
+This uses only the derived stage-1 contract (`discOffset_eq_discrepancy`).
+-/
+def contextAlong_of_discOffset_bound (out : ReductionOutput f) (B : ℕ)
+    (hB : ∀ n : ℕ, discOffset f out.d out.m n ≤ B) :
+    Tao2015.ContextAlong out.g out.d :=
+  { B := B
+    bound := out.contract_discrepancy_le_derived (f := f) (B := B) hB }
+
+/-- Build a uniform bound on the bundled offset discrepancy family from a fixed-step discrepancy
+context for the reduced sequence.
+
+This is the converse direction of `contextAlong_of_discOffset_bound`.
+-/
+theorem discOffset_bound_of_contextAlong (out : ReductionOutput f)
+    (ctx : Tao2015.ContextAlong out.g out.d) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
+  -- Turn the context bound into a `∀ n` statement and rewrite using the contract.
+  exact out.contract_discOffset_le_derived (f := f) (B := ctx.B) (fun n => ctx.bound n)
+
+/-- If the bundled offset discrepancy family is bounded, then the reduced sequence has bounded
+discrepancy along the fixed step size `out.d`.
+
+This is a tiny convenience wrapper packaging the previous lemma into the existential form
+`BoundedDiscrepancyAlong`.
+-/
+theorem boundedDiscrepancyAlong_of_boundedDiscOffset (out : ReductionOutput f)
+    (hB : BoundedDiscOffset f out.d out.m) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  rcases hB with ⟨B, hB⟩
+  refine ⟨B, ?_⟩
+  intro n
+  -- `discOffset` is a discrepancy wrapper for `out.g` via the stage-1 contract.
+  exact out.contract_discrepancy_le_derived (f := f) (B := B) hB n
+
+/-- If the reduced sequence has bounded discrepancy along `out.d`, then the bundled offset
+discrepancies are bounded.
+
+This is the `BoundedDiscOffset` analogue of `boundedDiscrepancyAlong_of_boundedDiscOffset`.
+-/
+theorem boundedDiscOffset_of_boundedDiscrepancyAlong (out : ReductionOutput f)
+    (hB : BoundedDiscrepancyAlong out.g out.d) :
+    BoundedDiscOffset f out.d out.m := by
+  rcases hB with ⟨B, hB⟩
+  refine ⟨B, ?_⟩
+  intro n
+  exact out.contract_discOffset_le_derived (f := f) (B := B) hB n
+
 /-- Strict-inequality analogue of `contract_discrepancy_le_derived`. -/
 theorem contract_discrepancy_lt_derived (out : ReductionOutput f) (B : ℕ)
     (hB : ∀ n : ℕ, discOffset f out.d out.m n < B) :
