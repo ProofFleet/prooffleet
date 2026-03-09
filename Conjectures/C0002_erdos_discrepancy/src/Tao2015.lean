@@ -818,7 +818,7 @@ def contextAlong_ofContext (out : ReductionOutput f) (ctx : Tao2015.Context f) :
 This is the “∀ B, ∃ n, B < …” normal form that matches `Tao2015.UnboundedDiscrepancyAlong` and
 `Tao2015.UnboundedDiscOffset`.
 -/
-theorem forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+theorem forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt_via_contract (out : ReductionOutput f) :
     (∀ B : ℕ, ∃ n : ℕ, discrepancy out.g out.d n > B) ↔
       (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
   constructor
@@ -7926,23 +7926,6 @@ theorem exists_discOffset_gt_iff_exists_discrepancy_gt' (out : ReductionOutput f
   -- Normalize `a > b` to `b < a`, then use the existing lemma.
   simpa [gt_iff_lt] using (out.exists_discOffset_gt_iff_exists_discrepancy_gt (f := f) (B := C))
 
-/-- Uniform transfer of the unboundedness normal form, stated pointwise in `B`.
-
-This is a tiny lemma, but it's the exact *shape* downstream contradiction stages often output.
--/
-theorem forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
-    (∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n) ↔
-      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
-  constructor
-  · intro h B
-    rcases h B with ⟨n, hn⟩
-    refine ⟨n, ?_⟩
-    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
-  · intro h B
-    rcases h B with ⟨n, hn⟩
-    refine ⟨n, ?_⟩
-    simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hn
-
 /-- Uniform transfer of the same unboundedness normal form, but phrased using `natAbs` of sums.
 
 This avoids mentioning `discrepancy`/`discOffset` entirely.
@@ -7988,7 +7971,7 @@ theorem not_boundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reduc
   --
   -- Note: `Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt` lives in the
   -- verified substrate and is the “canonical” unboundedness normal form.
-  simpa [out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f)] using
+  simpa [out.forall_exists_discrepancy_lt_iff_forall_exists_discOffset_lt (f := f)] using
     (Tao2015.not_boundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt (g := out.g) (d := out.d))
 
 /-- Unbounded discrepancy for the reduced sequence `out.g` (along `out.d`) rewritten into the
