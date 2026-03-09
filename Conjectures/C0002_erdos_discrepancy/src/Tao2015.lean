@@ -7413,6 +7413,22 @@ theorem boundedDiscOffset_iff_boundedDiscrepancyAlong (out : ReductionOutput f) 
     -- rewrite `discOffset f` to `discrepancy out.g`.
     simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using hB n
 
+/-- `BoundedDiscOffset` for the bundled parameters is equivalent to bounded discrepancy of the
+reduced sequence along the bundled step size.
+
+This is just `boundedDiscOffset_iff_boundedDiscrepancyAlong` with the left-hand side rewritten
+into the named predicate `BoundedDiscOffset`.
+-/
+theorem boundedDiscOffset_iff_boundedDiscrepancyAlong' (out : ReductionOutput f) :
+    BoundedDiscOffset f out.d out.m ↔ BoundedDiscrepancyAlong out.g out.d := by
+  -- `BoundedDiscOffset` is definitionally `∃ B, ∀ n, discOffset … ≤ B`.
+  simpa [BoundedDiscOffset] using (out.boundedDiscOffset_iff_boundedDiscrepancyAlong (f := f))
+
+/-- Symmetric orientation of `boundedDiscOffset_iff_boundedDiscrepancyAlong'`. -/
+theorem boundedDiscrepancyAlong_iff_boundedDiscOffset (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ BoundedDiscOffset f out.d out.m := by
+  simpa using (out.boundedDiscOffset_iff_boundedDiscrepancyAlong' (f := f)).symm
+
 /-- Negated form of `boundedDiscOffset_iff_boundedDiscrepancyAlong`. -/
 theorem not_boundedDiscOffset_iff_not_boundedDiscrepancyAlong (out : ReductionOutput f) :
     (¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B) ↔ ¬ BoundedDiscrepancyAlong out.g out.d := by
