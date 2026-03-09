@@ -775,6 +775,29 @@ theorem discrepancy_eq_discOffset_via_contract (out : ReductionOutput f) (n : �
   -- Both sides are `Int.natAbs` wrappers around the AP sums.
   simp [discrepancy, discOffset, out.apSum_contract]
 
+/-- Reverse orientation of `discrepancy_eq_discOffset_via_contract`.
+
+This lemma is a tiny consumer convenience: downstream stages sometimes want to rewrite *from*
+`discOffset` into `discrepancy` without manually inserting `.symm`.
+-/
+theorem discOffset_eq_discrepancy_via_contract (out : ReductionOutput f) (n : ℕ) :
+    discOffset f out.d out.m n = discrepancy out.g out.d n := by
+  simpa using (out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)).symm
+
+/-- Inequality-level rewrite helper derived from `discrepancy_eq_discOffset_via_contract`.
+
+This is often the exact shape needed when transporting boundedness hypotheses across the stage-1
+interface.
+-/
+theorem discrepancy_le_iff_discOffset_le_via_contract (out : ReductionOutput f) (n B : ℕ) :
+    discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
+  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
+
+/-- Strict-inequality rewrite helper derived from `discrepancy_eq_discOffset_via_contract`. -/
+theorem discrepancy_gt_iff_discOffset_gt_via_contract (out : ReductionOutput f) (n C : ℕ) :
+    discrepancy out.g out.d n > C ↔ discOffset f out.d out.m n > C := by
+  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
+
 /-- A nucleus-level rewrite: discrepancy of `out.g` is `natAbs (apSumOffset …)`.
 
 This is the `apSum`-level version of `discrepancy_eq_discOffset_via_contract`.
