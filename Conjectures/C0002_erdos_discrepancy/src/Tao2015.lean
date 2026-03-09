@@ -1507,6 +1507,29 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reducti
   simpa [gt_iff_lt] using
     (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f))
 
+/-- Unbounded discrepancy along the reduced step size is equivalent to unbounded offset discrepancy
+for the original sequence, stated using the `UnboundedDiscOffset` predicate.
+
+This is a pure “predicate packaging” helper: it just unfolds `UnboundedDiscOffset` and uses
+`unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`.
+-/
+theorem unboundedDiscrepancyAlong_iff_unboundedDiscOffset (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔ Tao2015.UnboundedDiscOffset f out.d out.m := by
+  -- Both sides are the same `∀ B, ∃ n, B < ...` witness form, rewritten via the stage-1 contract.
+  simpa [Tao2015.UnboundedDiscOffset] using
+    (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f))
+
+/-- `>`-oriented witness form of `unboundedDiscrepancyAlong_iff_unboundedDiscOffset`.
+
+This is convenient when stage-2 deliverables are stated as `discOffset … > B`.
+-/
+theorem unboundedDiscrepancyAlong_iff_unboundedDiscOffset_gt (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
+  -- `UnboundedDiscOffset` is defined using `<`, but we can freely swap orientation.
+  simpa [Tao2015.UnboundedDiscOffset, gt_iff_lt] using
+    (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f))
+
 /-- `>`-oriented variant of unboundedness along the reduced fixed step, stated using
 `discrepancy out.g out.d` rather than `discOffset`.
 
