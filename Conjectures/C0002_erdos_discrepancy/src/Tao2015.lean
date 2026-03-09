@@ -1133,6 +1133,62 @@ theorem forall_exists_discrepancy_lt_iff_forall_exists_discOffset_lt (out : Redu
   -- `a > b` is notation for `b < a`.
   simpa [gt_iff_lt] using (out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f))
 
+/-!
+### Unboundedness transport helpers
+
+Later stages of the Tao2015 pipeline often prove (or assume) *unboundedness along a fixed step*.
+For the reduced sequence `out.g`, the natural predicate is
+`Tao2015.UnboundedDiscrepancyAlong out.g out.d`.
+
+But stage-2 deliverables are frequently expressed in terms of the bundled offset discrepancies
+`discOffset f out.d out.m`.  The following tiny lemmas let consumers move between these two
+normal forms without redoing the `∀ B, ∃ n` bookkeeping.
+-/
+
+/-- Unbounded discrepancy along `out.d` for the reduced sequence rewritten into the corresponding
+witness form for the bundled offset discrepancies (using `>` orientation). -/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
+  -- Unfold unboundedness into the witness form for `discrepancy`, then use the stage-1 rewrite.
+  have h₁ :
+      Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+        (∀ B : ℕ, ∃ n : ℕ, discrepancy out.g out.d n > B) := by
+    simpa using (Tao2015.UnboundedDiscrepancyAlong.iff_forall_exists_discrepancy_gt
+      (f := out.g) (d := out.d))
+  -- Now rewrite the witness form using the bundled offset discrepancies.
+  simpa [h₁] using (out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f))
+
+/-- `<`-oriented version of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`. -/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [Tao2015.UnboundedDiscrepancyAlong, gt_iff_lt] using
+    (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f))
+
+/-- If the bundled offset discrepancies are unbounded (witness form), then the reduced sequence is
+unbounded along the bundled step size.
+
+This is the forward direction of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`,
+recorded with a convenient name.
+-/
+theorem unboundedDiscrepancyAlong_of_forall_exists_discOffset_gt (out : ReductionOutput f)
+    (h : ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d :=
+  (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)).2 h
+
+/-- Conversely, unboundedness of the reduced sequence along `out.d` implies the bundled offset
+family has arbitrarily large witnesses.
+
+This is the reverse direction of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`,
+recorded with a convenient name.
+-/
+theorem forall_exists_discOffset_gt_of_unboundedDiscrepancyAlong (out : ReductionOutput f)
+    (h : Tao2015.UnboundedDiscrepancyAlong out.g out.d) :
+    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B :=
+  (out.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)).1 h
+
 /-- Uniform `≤` bounds for discrepancies of `out.g` rewritten to the literal shift of `f`. -/
 theorem forall_discrepancy_le_iff_shift (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔
