@@ -1248,6 +1248,29 @@ def contextAlong_of_context (out : ReductionOutput f) (ctx : Context f) :
   have h := ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h
 
+/-- A global boundedness `Context f` gives a uniform bound on the offset discrepancy family bundled
+in `out`.
+
+This is just `Context.bound_discOffset` specialized to the parameters carried by `out`.
+-/
+theorem forall_discOffset_le_of_context (out : ReductionOutput f) (ctx : Context f) :
+    ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B + ctx.B := by
+  intro n
+  exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+
+/-- A global boundedness `Context f` gives a uniform bound on fixed-step discrepancies of the
+reduced sequence `out.g`.
+
+This is a one-line wrapper around `forall_discOffset_le_of_context` plus the stage-1 discrepancy
+contract `out.discrepancy_eq_discOffset`.
+-/
+theorem forall_discrepancy_le_of_context (out : ReductionOutput f) (ctx : Context f) :
+    ∀ n : ℕ, discrepancy out.g out.d n ≤ ctx.B + ctx.B := by
+  intro n
+  have h : discOffset f out.d out.m n ≤ ctx.B + ctx.B :=
+    out.forall_discOffset_le_of_context (f := f) ctx n
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h
+
 /-- Extract the induced `discOffset` bound from a `ContextAlong` for the reduced sequence. -/
 theorem forall_discOffset_le_of_contextAlong (out : ReductionOutput f) (ctx : ContextAlong out.g out.d) :
     ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
