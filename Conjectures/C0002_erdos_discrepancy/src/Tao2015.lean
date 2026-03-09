@@ -10907,6 +10907,13 @@ Downstream code should prefer these lemmas to directly unfolding `reduction`.
   classical
   simp [Tao2015.reduction, Tao2015.apSumOffset_zero]
 
+@[simp] theorem reduction_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (n : ℕ) :
+    discrepancy (reduction (f := f) (hf := hf) ctx).g (reduction (f := f) (hf := hf) ctx).d n =
+      discrepancy f 1 n := by
+  classical
+  -- In the current stub, `g = f` and `d = 1`.
+  simp [Tao2015.reduction]
+
 @[simp] theorem reduction_discOffset' (f : ℕ → ℤ) (hf : IsSignSequence f) (ctx : Context f) (n : ℕ) :
     discOffset f (reduction (f := f) (hf := hf) ctx).d (reduction (f := f) (hf := hf) ctx).m n =
       discOffset f 1 0 n := by
