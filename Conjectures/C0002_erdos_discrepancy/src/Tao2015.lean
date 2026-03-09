@@ -1981,6 +1981,49 @@ theorem discOffset_add_eq_discOffset_g_via_out (out : ReductionOutput f) (m₂ n
     discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
   simpa [discOffset, out.apSumOffset_add_eq_apSumOffset_g_via_out (f := f) (m₂ := m₂) (n := n)]
 
+/-- `Int.natAbs` (sum-level) analogue of `apSumOffset_add_eq_apSumOffset_g_via_out`. -/
+theorem natAbs_apSumOffset_add_eq_natAbs_apSumOffset_g_via_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    Int.natAbs (apSumOffset f out.d (out.m + m₂) n) =
+      Int.natAbs (apSumOffset out.g out.d m₂ n) := by
+  -- Just apply `Int.natAbs` to the AP-sum identity.
+  simpa [out.apSumOffset_add_eq_apSumOffset_g_via_out (f := f) (m₂ := m₂) (n := n)]
+
+/-- Boundedness of the *combined* offset family is equivalent to boundedness of the offset family
+for the reduced sequence.
+
+This is the boundedness analogue of `discOffset_add_eq_discOffset_g_via_out`.
+-/
+theorem boundedDiscOffset_add_iff_boundedDiscOffset_g_via_out (out : ReductionOutput f) (m₂ : ℕ) :
+    BoundedDiscOffset f out.d (out.m + m₂) ↔ BoundedDiscOffset out.g out.d m₂ := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have hn : discOffset f out.d (out.m + m₂) n ≤ B := hB n
+    simpa [out.discOffset_add_eq_discOffset_g_via_out (f := f) (m₂ := m₂) (n := n)] using hn
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have hn : discOffset out.g out.d m₂ n ≤ B := hB n
+    -- Rewrite back from the reduced-sequence offset family.
+    simpa [out.discOffset_add_eq_discOffset_g_via_out (f := f) (m₂ := m₂) (n := n)] using hn
+
+/-- `∀`-packaged rewrite: uniform bounds for the combined offset family are equivalent to uniform
+bounds for the offset family of the reduced sequence.
+
+This is occasionally convenient when a downstream lemma wants a hypothesis in the form
+`∀ n, discOffset ... ≤ B` rather than the existential wrapper `BoundedDiscOffset ...`.
+-/
+theorem forall_discOffset_add_le_iff_forall_discOffset_g_le_via_out (out : ReductionOutput f) (m₂ B : ℕ) :
+    (∀ n : ℕ, discOffset f out.d (out.m + m₂) n ≤ B) ↔ (∀ n : ℕ, discOffset out.g out.d m₂ n ≤ B) := by
+  constructor
+  · intro h n
+    have hn : discOffset f out.d (out.m + m₂) n ≤ B := h n
+    simpa [out.discOffset_add_eq_discOffset_g_via_out (f := f) (m₂ := m₂) (n := n)] using hn
+  · intro h n
+    have hn : discOffset out.g out.d m₂ n ≤ B := h n
+    simpa [out.discOffset_add_eq_discOffset_g_via_out (f := f) (m₂ := m₂) (n := n)] using hn
+
 /-- Unboundedness of the *combined* offset family is equivalent to unboundedness of the offset
 family for the reduced sequence.
 
