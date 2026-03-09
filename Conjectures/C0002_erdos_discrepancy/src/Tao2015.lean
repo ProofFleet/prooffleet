@@ -104,6 +104,46 @@ theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
   simpa using (apSumOffset_eq_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)).symm
 
 /-!
+### Bridge lemmas: shifted offset sums ↔ affine AP sums
+
+The base lemma `apSumOffset_shift_add_eq_apSumFrom_bridge` already exists in the verified
+substrate and is parameterized by an arbitrary shift `a`.
+
+Track C frequently uses the special case `a = 0`, but later stages (and some reduction outputs)
+also want the general `a`-shifted form.  The following wrappers keep the most common orientations
+and `natAbs`-forms readily available without repeated `simp`/`simpa` boilerplate.
+-/
+
+/-- General shifted-offset ↔ affine bridge.
+
+This is the `a`-shifted analogue of `apSumOffset_eq_apSumFrom_mul`.
+-/
+theorem apSumOffset_shift_add_eq_apSumFrom (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumOffset (fun k => f (k + a)) d m n = apSumFrom f (a + m * d) d n := by
+  simpa using
+    (apSumOffset_shift_add_eq_apSumFrom_bridge (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-- Reverse orientation of `apSumOffset_shift_add_eq_apSumFrom`. -/
+theorem apSumFrom_add_mul_eq_apSumOffset_shift_add (f : ℕ → ℤ) (a d m n : ℕ) :
+    apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using (apSumOffset_shift_add_eq_apSumFrom (f := f) (a := a) (d := d) (m := m) (n := n)).symm
+
+/-- `Int.natAbs` form of `apSumOffset_shift_add_eq_apSumFrom`. -/
+theorem natAbs_apSumOffset_shift_add_eq_natAbs_apSumFrom_add_mul (f : ℕ → ℤ) (a d m n : ℕ) :
+    Int.natAbs (apSumOffset (fun k => f (k + a)) d m n) =
+      Int.natAbs (apSumFrom f (a + m * d) d n) := by
+  simp [apSumOffset_shift_add_eq_apSumFrom]
+
+/-- `discOffset` form of `apSumOffset_shift_add_eq_apSumFrom`.
+
+This is useful when a reduction introduces an initial shift `a` and then packages tails via
+`discOffset`.
+-/
+theorem discOffset_shift_add_eq_natAbs_apSumFrom_add_mul (f : ℕ → ℤ) (a d m n : ℕ) :
+    discOffset (fun k => f (k + a)) d m n = Int.natAbs (apSumFrom f (a + m * d) d n) := by
+  simp [discOffset, apSumOffset_shift_add_eq_apSumFrom]
+
+/-!
 ### Combined bridge lemmas: shift ↔ affine AP sums
 
 Many Track C reductions define a derived sequence by the literal shift
