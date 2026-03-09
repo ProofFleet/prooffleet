@@ -807,6 +807,22 @@ theorem discrepancy_gt_iff_discOffset_gt_via_contract (out : ReductionOutput f) 
     discrepancy out.g out.d n > C ↔ discOffset f out.d out.m n > C := by
   simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
 
+/-- `<`-oriented strict-inequality rewrite helper.
+
+Downstream stages often prefer inequalities oriented as `C < ...` rather than `... > C`.
+This lemma avoids repeated `gt_iff_lt` conversions.
+-/
+theorem discrepancy_lt_iff_discOffset_lt_via_contract (out : ReductionOutput f) (n C : ℕ) :
+    C < discrepancy out.g out.d n ↔ C < discOffset f out.d out.m n := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.discrepancy_gt_iff_discOffset_gt_via_contract (f := f) (n := n) (C := C))
+
+/-- Reverse orientation of `discrepancy_lt_iff_discOffset_lt_via_contract`. -/
+theorem discOffset_lt_iff_discrepancy_lt_via_contract (out : ReductionOutput f) (n C : ℕ) :
+    C < discOffset f out.d out.m n ↔ C < discrepancy out.g out.d n := by
+  simpa using (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).symm
+
 /-- A nucleus-level rewrite: discrepancy of `out.g` is `natAbs (apSumOffset …)`.
 
 This is the `apSum`-level version of `discrepancy_eq_discOffset_via_contract`.
