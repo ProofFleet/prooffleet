@@ -823,6 +823,44 @@ theorem discOffset_lt_iff_discrepancy_lt_via_contract (out : ReductionOutput f) 
     C < discOffset f out.d out.m n ↔ C < discrepancy out.g out.d n := by
   simpa using (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).symm
 
+/-- `∀`-packaged `<`-oriented rewrite helper.
+
+This is occasionally the most convenient normal form for “uniform largeness” statements.
+-/
+theorem forall_discrepancy_lt_iff_forall_discOffset_lt_via_contract (out : ReductionOutput f) (C : ℕ) :
+    (∀ n : ℕ, C < discrepancy out.g out.d n) ↔ (∀ n : ℕ, C < discOffset f out.d out.m n) := by
+  constructor
+  · intro h n
+    exact (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).1 (h n)
+  · intro h n
+    exact (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).2 (h n)
+
+/-- `∃`-packaged `<`-oriented rewrite helper.
+
+This is the existential analogue of `forall_discrepancy_lt_iff_forall_discOffset_lt_via_contract`.
+-/
+theorem exists_discrepancy_lt_iff_exists_discOffset_lt_via_contract (out : ReductionOutput f) (C : ℕ) :
+    (∃ n : ℕ, C < discrepancy out.g out.d n) ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    exact (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).1 hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    exact (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).2 hn
+
+/-- Convenience lemma: `Tao2015.UnboundedDiscrepancyAlong` for the reduced sequence rewrites to a
+`C < ...` witness form for the bundled offset discrepancy family.
+
+This is just `out.unboundedDiscrepancyAlong_iff_unboundedDiscOffset` plus the definitional
+`gt_iff_lt` symmetry.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt_via_contract (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔ (∀ C : ℕ, ∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- Both sides are the same witness form up to `gt_iff_lt`.
+  simpa [Tao2015.UnboundedDiscrepancyAlong, gt_iff_lt] using
+    (out.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))
+
 /-- A nucleus-level rewrite: discrepancy of `out.g` is `natAbs (apSumOffset …)`.
 
 This is the `apSum`-level version of `discrepancy_eq_discOffset_via_contract`.
