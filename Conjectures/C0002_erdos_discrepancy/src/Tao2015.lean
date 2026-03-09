@@ -1215,6 +1215,17 @@ theorem forall_discOffset_le_of_contextAlong (out : ReductionOutput f) (ctx : Co
   have : discrepancy out.g out.d n ≤ ctx.B := ctx.bound_discrepancy (f := out.g) (d := out.d) n
   simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using this
 
+/-- Existential packaging: a `ContextAlong` for the reduced sequence provides a uniform bound on the
+bundled offset discrepancies.
+
+This is a tiny helper (often used with `rcases`) that avoids having to separately write `⟨ctx.B, …⟩`.
+-/
+theorem exists_forall_discOffset_le_of_contextAlong (out : ReductionOutput f)
+    (ctx : ContextAlong out.g out.d) :
+    ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  refine ⟨ctx.B, ?_⟩
+  exact out.forall_discOffset_le_of_contextAlong (f := f) ctx
+
 /-!
 ### Unboundedness rewrites
 
