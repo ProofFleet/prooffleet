@@ -1185,6 +1185,11 @@ These are tiny definitional helpers, analogous to the `ofShift_*` lemmas below.
     (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).m = m := by
   rfl
 
+@[simp] theorem ofShiftEq_hd (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
+    (d m : ℕ) (hd : d > 0) (g_eq_shift : g = fun k => f (k + m * d)) :
+    (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).hd = hd := by
+  rfl
+
 @[simp] theorem ofShiftEq_g (f : ℕ → ℤ) (g : ℕ → ℤ) (hg : IsSignSequence g)
     (d m : ℕ) (hd : d > 0) (g_eq_shift : g = fun k => f (k + m * d)) :
     (ReductionOutput.ofShiftEq (f := f) (g := g) hg d m hd g_eq_shift).g = g := by
@@ -1218,6 +1223,10 @@ stage-1 reduction output, so it’s convenient to have its basic fields availabl
 
 @[simp] theorem ofShift_m (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     (ReductionOutput.ofShift (f := f) hf d m hd).m = m := by
+  rfl
+
+@[simp] theorem ofShift_hd (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    (ReductionOutput.ofShift (f := f) hf d m hd).hd = hd := by
   rfl
 
 @[simp] theorem ofShift_g (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
