@@ -5601,6 +5601,26 @@ theorem discOffset_eq_discrepancy_derived (out : ReductionOutput f) (n : ℕ) :
   -- Both sides are definitional wrappers around `Int.natAbs`.
   simp [discOffset, discrepancy, out.g_eq, apSumOffset_eq_apSum_shift_add]
 
+/-- A derived rewrite: the reduced AP-sum nucleus is an affine-tail AP sum for `f`.
+
+Unlike `apSum_eq_apSumFrom_mul_via_contract`, this lemma uses only the literal shift equation
+`out.g_eq` (so it works even if a future reduction output hasn't filled `apSum_contract` yet).
+-/
+theorem apSum_eq_apSumFrom_mul_derived (out : ReductionOutput f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f (out.m * out.d) out.d n := by
+  -- Rewrite `out.g` as a literal shift of `f`, then apply the generic shift↔affine bridge.
+  simpa [out.g_eq] using
+    (Tao2015.apSum_shift_add_mul_eq_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
+
+/-- Derived discrepancy rewrite into the affine-tail nucleus `apSumFrom` for `f`.
+
+This is the discrepancy analogue of `apSum_eq_apSumFrom_mul_derived`.
+-/
+theorem discrepancy_eq_natAbs_apSumFrom_mul_derived (out : ReductionOutput f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+  -- `discrepancy = natAbs(apSum ...)` then use the derived `apSumFrom` rewrite.
+  simp [discrepancy, out.apSum_eq_apSumFrom_mul_derived (f := f) (n := n)]
+
 /-- A derived version of `contract_discrepancy_le_derived` that does not use `apSum_contract`.
 
 It only needs the literal shift equation `g_eq`.
