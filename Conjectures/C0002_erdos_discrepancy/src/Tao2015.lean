@@ -1190,6 +1190,23 @@ def contextAlong_of_forall_discOffset_le (out : ReductionOutput f) (B : ℕ)
   intro n
   exact (out.forall_discrepancy_le_of_forall_discOffset_le (f := f) (B := B) hB) n
 
+/-- Build a `ContextAlong` for the reduced sequence `out.g` from a *global* `Context f`.
+
+This is a common situation in the Tao2015 pipeline: a stage assumes bounded discrepancy for the
+original sign sequence `f` (in the `Context` normal form), then introduces a shifted reduction
+output `out` and immediately needs a fixed-step boundedness record for the reduced sequence.
+
+The bound degrades by a factor 2 because offset sums are differences of two prefix sums.
+-/
+def contextAlong_of_context (out : ReductionOutput f) (ctx : Context f) :
+    ContextAlong out.g out.d := by
+  refine ⟨ctx.B + ctx.B, ?_⟩
+  intro n
+  -- Bound the offset discrepancy using the global context for `f`, then rewrite via the stage-1
+  -- discrepancy contract.
+  have h := ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+  simpa [out.discrepancy_eq_discOffset (f := f) (n := n)] using h
+
 /-- Extract the induced `discOffset` bound from a `ContextAlong` for the reduced sequence. -/
 theorem forall_discOffset_le_of_contextAlong (out : ReductionOutput f) (ctx : ContextAlong out.g out.d) :
     ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
