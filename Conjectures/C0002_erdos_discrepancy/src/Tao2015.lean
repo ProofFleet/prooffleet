@@ -1268,6 +1268,33 @@ theorem unboundedDiscrepancyAlong_iff_unboundedDiscOffset (out : ReductionOutput
     Tao2015.UnboundedDiscOffset.iff_forall_exists_discOffset_gt] using
       (out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f))
 
+/-- Reverse orientation of `unboundedDiscrepancyAlong_iff_unboundedDiscOffset`. -/
+theorem unboundedDiscOffset_iff_unboundedDiscrepancyAlong (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscOffset f out.d out.m ↔ Tao2015.UnboundedDiscrepancyAlong out.g out.d := by
+  simpa using (out.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).symm
+
+/-- `>`-oriented witness form of `unboundedDiscOffset_iff_unboundedDiscrepancyAlong`.
+
+This lemma is a small convenience wrapper around
+`forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt_via_contract`.
+-/
+theorem forall_exists_discOffset_gt_iff_forall_exists_discrepancy_gt_via_contract (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) ↔
+      (∀ B : ℕ, ∃ n : ℕ, discrepancy out.g out.d n > B) := by
+  simpa using (out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt_via_contract (f := f)).symm
+
+/-- `<`-oriented witness form of `unboundedDiscrepancyAlong_iff_unboundedDiscOffset`.
+
+This is occasionally the most ergonomic normal form, since many later stages prefer to keep
+inequalities oriented as `B < ...`.
+-/
+theorem unboundedDiscrepancyAlong_iff_unboundedDiscOffset_lt (out : ReductionOutput f) :
+    (∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n) ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt_via_contract (f := f))
+
 /-- Fixed-step large discrepancy for the reduced sequence, for all thresholds `C`, rewrites to the
 unbounded-offset predicate for the original sequence.
 
