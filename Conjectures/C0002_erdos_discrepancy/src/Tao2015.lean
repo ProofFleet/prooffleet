@@ -1103,6 +1103,57 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt_via_contract
   simpa [discOffset] using
     (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract (f := f) C)
 
+/-- `<`-oriented strict-inequality version of
+`hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract`.
+
+Downstream stages often prefer witnesses of the form `∃ n, C < ...` instead of `... > C`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt_via_contract (out : ReductionOutput f)
+    (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract (f := f) C)
+
+/-- `<`-oriented strict-inequality version of
+`hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt_via_contract`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_lt_via_contract
+    (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  simpa [gt_iff_lt] using
+    (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumOffset_gt_via_contract (f := f) C)
+
+/-- `<`-oriented strict-inequality version of
+`hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract`, but rewritten into the affine
+nucleus `apSumFrom` for `f`.
+
+This is a convenient witness form for later reductions that work directly with `apSumFrom`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_lt_via_contract
+    (out : ReductionOutput f) (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔
+      (∃ n : ℕ, C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
+  -- Rewrite the reduced discrepancy witness into an offset witness, then into `apSumFrom`.
+  -- (`discOffset` is definitional; `apSumOffset_eq_apSumFrom_mul` is a bridge lemma.)
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Start with the definitional form, then rewrite to the affine nucleus.
+    have : C < discOffset f out.d out.m n :=
+      (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).1 hn
+    -- `discOffset = natAbs(apSumOffset ...)` and `apSumOffset = apSumFrom ...`.
+    simpa [discOffset, Tao2015.apSumOffset_eq_apSumFrom_mul] using this
+  · rintro ⟨n, hn⟩
+    -- Rewrite the affine witness back to an offset witness, then back across the contract.
+    have : C < discOffset f out.d out.m n := by
+      -- `discOffset` rewritten to the affine nucleus.
+      -- `discOffset = natAbs(apSumOffset ...)` and `apSumOffset = apSumFrom ...`.
+      simpa [discOffset, Tao2015.apSumOffset_eq_apSumFrom_mul] using hn
+    -- Transport across the contract as a discrepancy witness on `out.g`.
+    exact (out.discrepancy_lt_iff_discOffset_lt_via_contract (f := f) (n := n) (C := C)).2 this
+
 /-- Reverse direction of the discrepancy transfer contract: a uniform bound on `discrepancy out.g`
 transfers to a uniform bound on the bundled offset discrepancy family.
 
