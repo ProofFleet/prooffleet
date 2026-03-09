@@ -10643,6 +10643,17 @@ theorem stage2_unbounded_discOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     Tao2015.UnboundedDiscOffset.of_not_boundedDiscOffset (f := f) (d := out.d) (m := out.m) hnb
   simpa [Tao2015.UnboundedDiscOffset] using this
 
+/-- Stage 2 deliverable, packaged as the predicate `UnboundedDiscOffset`.
+
+This is the same content as `stage2_unbounded_discOffset`, but in the canonical predicate form.
+-/
+theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    Tao2015.UnboundedDiscOffset f out.d out.m := by
+  -- `UnboundedDiscOffset` is defined as the witness normal form `∀ B, ∃ n, B < discOffset ...`.
+  simpa [Tao2015.UnboundedDiscOffset] using
+    (stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out))
+
 /-- Package the stage-2 deliverable `stage2_unbounded_discOffset` as a `Stage2Output` structure.
 
 This is a small convenience wrapper: it turns the witness-normal-form function produced by stage 2
