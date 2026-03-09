@@ -1037,6 +1037,32 @@ theorem unboundedDiscrepancyAlong_iff_unboundedDiscOffset (out : ReductionOutput
     Tao2015.UnboundedDiscOffset.iff_forall_exists_discOffset_gt] using
       (out.forall_exists_discrepancy_gt_iff_forall_exists_discOffset_gt (f := f))
 
+/-- Fixed-step large discrepancy for the reduced sequence, for all thresholds `C`, rewrites to the
+unbounded-offset predicate for the original sequence.
+
+This is a convenient glue lemma for pipeline stages that naturally produce witnesses in the form
+`∀ C, HasDiscrepancyAtLeastAlong ... C`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscOffset (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      Tao2015.UnboundedDiscOffset f out.d out.m := by
+  -- First rewrite `∀ C, HasDiscrepancyAtLeastAlong` into unbounded discrepancy along `out.d`.
+  -- Then rewrite unbounded discrepancy of `out.g` into the bundled offset family.
+  simpa using
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong
+          (g := out.g) (d := out.d)).trans
+      (out.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))
+
+/-- `<`-oriented witness form of
+`ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_discOffset_gt_via_contract`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discOffset_lt_via_contract (out : ReductionOutput f)
+    (C : ℕ) :
+    HasDiscrepancyAtLeastAlong out.g out.d C ↔ (∃ n : ℕ, C < discOffset f out.d out.m n) := by
+  -- `a > b` is notation for `b < a`.
+  simpa [HasDiscrepancyAtLeastAlong.iff_exists_discrepancy_gt, gt_iff_lt] using
+    (out.exists_discrepancy_gt_iff_exists_discOffset_gt_via_contract (f := f) C)
+
 /-- Rewrite the reduced AP sum into the affine-tail nucleus `apSumFrom` for `f`, using only the
 stage-1 contract.
 
