@@ -777,7 +777,7 @@ bundled offset-discrepancy family.
 This is the `∀ n, ... ≤ B` version of
 `exists_forall_discrepancy_le_iff_exists_forall_discOffset_le`.
 -/
-theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+theorem forall_discrepancy_le_iff_forall_discOffset_le_via_contract (out : ReductionOutput f) (B : ℕ) :
     (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
   constructor
   · intro h n
@@ -789,9 +789,9 @@ theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f)
 /-- Strict-inequality witness form: `∃ n, discrepancy out.g ... > C` iff
 `∃ n, discOffset f ... > C`.
 
-This is the existential analogue of `forall_discrepancy_le_iff_forall_discOffset_le`.
+This is the existential analogue of `forall_discrepancy_le_iff_forall_discOffset_le_via_contract`.
 -/
-theorem exists_discrepancy_gt_iff_exists_discOffset_gt (out : ReductionOutput f) (C : ℕ) :
+theorem exists_discrepancy_gt_iff_exists_discOffset_gt_via_contract (out : ReductionOutput f) (C : ℕ) :
     (∃ n : ℕ, discrepancy out.g out.d n > C) ↔ (∃ n : ℕ, discOffset f out.d out.m n > C) := by
   constructor
   · rintro ⟨n, hn⟩
