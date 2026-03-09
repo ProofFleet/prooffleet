@@ -1071,6 +1071,35 @@ theorem apSum_shift_eq_apSumOffset (out : ReductionOutput f) (n : ℕ) :
     (Tao2015.apSum_shift_add_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
 
 /-!
+### Re-associating offsets through a reduction output
+
+A common Track C situation is that we already shifted once (encoded by `out.g`) and now want to
+apply a *second* offset.  These lemmas let us fold/unfold the combined offset without redoing
+arithmetic each time.
+-/
+
+/-- Offsetting the original sequence by `out.m + m₂` is the same as offsetting the reduced
+sequence `out.g` by `m₂`.
+
+This is just `Tao2015.apSumOffset_add` rewritten using `out.g_eq`.
+-/
+theorem apSumOffset_add_eq_apSumOffset_g_via_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset f out.d (out.m + m₂) n = apSumOffset out.g out.d m₂ n := by
+  -- `apSumOffset_add` peels off the initial offset `out.m` into a shift of the sequence.
+  simpa [out.g_eq] using
+    (Tao2015.apSumOffset_add (f := f) (d := out.d) (m₁ := out.m) (m₂ := m₂) (n := n))
+
+/-- Reverse orientation of `apSumOffset_add_eq_apSumOffset_g_via_out`. -/
+theorem apSumOffset_g_eq_apSumOffset_add_via_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    apSumOffset out.g out.d m₂ n = apSumOffset f out.d (out.m + m₂) n := by
+  simpa using (out.apSumOffset_add_eq_apSumOffset_g_via_out (f := f) (m₂ := m₂) (n := n)).symm
+
+/-- Discrepancy-level analogue of `apSumOffset_add_eq_apSumOffset_g`. -/
+theorem discOffset_add_eq_discOffset_g_via_out (out : ReductionOutput f) (m₂ n : ℕ) :
+    discOffset f out.d (out.m + m₂) n = discOffset out.g out.d m₂ n := by
+  simpa [discOffset, out.apSumOffset_add_eq_apSumOffset_g_via_out (f := f) (m₂ := m₂) (n := n)]
+
+/-!
 ### Small nucleus rewrites specialized to `out`
 
 Downstream stages often prefer the affine-tail nucleus `apSumFrom` over the offset form.
