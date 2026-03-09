@@ -418,6 +418,27 @@ theorem bound_natAbs_apSumOffset (ctx : ContextAlong f d) (m n : ℕ) :
             exact Nat.add_le_add (ctx.bound_natAbs_apSum (f := f) (d := d) (n := m + n))
               (ctx.bound_natAbs_apSum (f := f) (d := d) (n := m))
 
+/-- `Int.natAbs` (sum-level) bound for affine-tail AP sums.
+
+This is the `apSumFrom` analogue of `bound_natAbs_apSumOffset`.  We prove it by rewriting
+`apSumFrom f (m*d) d` to `apSumOffset f d m`.
+-/
+theorem bound_natAbs_apSumFrom_mul (ctx : ContextAlong f d) (m n : ℕ) :
+    Int.natAbs (apSumFrom f (m * d) d n) ≤ ctx.B + ctx.B := by
+  -- Rewrite `apSumFrom` to `apSumOffset` and apply the offset bound.
+  simpa [Tao2015.apSumOffset_eq_apSumFrom_mul] using
+    (ctx.bound_natAbs_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
+/-- Discrepancy (wrapper-level) bound for affine-tail AP sums.
+
+This is the `discOffset` analogue of `bound_natAbs_apSumFrom_mul`.
+-/
+theorem bound_discOffset_via_apSumFrom_mul (ctx : ContextAlong f d) (m n : ℕ) :
+    discOffset f d m n ≤ ctx.B + ctx.B := by
+  -- `discOffset = natAbs(apSumOffset ...)` and `apSumOffset = apSumFrom ...`.
+  simpa [discOffset, Tao2015.apSumOffset_eq_apSumFrom_mul] using
+    (ctx.bound_natAbs_apSumOffset (f := f) (d := d) (m := m) (n := n))
+
 /-- If the discrepancies along a fixed step `d` are uniformly bounded by `B`, then the corresponding
 *offset* discrepancies are uniformly bounded by `2*B`.
 
