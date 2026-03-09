@@ -1025,6 +1025,18 @@ theorem discOffset_le_iff_discrepancy_le_via_contract (out : ReductionOutput f) 
     discOffset f out.d out.m n ≤ B ↔ discrepancy out.g out.d n ≤ B := by
   simpa using (out.discrepancy_le_iff_discOffset_le_via_contract (f := f) (n := n) (B := B)).symm
 
+/-- Forward implication form of `discrepancy_le_iff_discOffset_le_via_contract`. -/
+theorem discrepancy_le_of_discOffset_le_via_contract (out : ReductionOutput f) (n B : ℕ)
+    (h : discOffset f out.d out.m n ≤ B) :
+    discrepancy out.g out.d n ≤ B :=
+  (out.discOffset_le_iff_discrepancy_le_via_contract (f := f) (n := n) (B := B)).1 h
+
+/-- Forward implication form of `discOffset_le_iff_discrepancy_le_via_contract`. -/
+theorem discOffset_le_of_discrepancy_le_via_contract (out : ReductionOutput f) (n B : ℕ)
+    (h : discrepancy out.g out.d n ≤ B) :
+    discOffset f out.d out.m n ≤ B :=
+  (out.discrepancy_le_iff_discOffset_le_via_contract (f := f) (n := n) (B := B)).1 h
+
 /-- Strict-inequality rewrite helper derived from `discrepancy_eq_discOffset_via_contract`. -/
 theorem discrepancy_gt_iff_discOffset_gt_via_contract (out : ReductionOutput f) (n C : ℕ) :
     discrepancy out.g out.d n > C ↔ discOffset f out.d out.m n > C := by
@@ -1037,6 +1049,18 @@ This lemma is a small ergonomic wrapper for downstream stages that start from of
 theorem discOffset_gt_iff_discrepancy_gt_via_contract (out : ReductionOutput f) (n C : ℕ) :
     discOffset f out.d out.m n > C ↔ discrepancy out.g out.d n > C := by
   simpa using (out.discrepancy_gt_iff_discOffset_gt_via_contract (f := f) (n := n) (C := C)).symm
+
+/-- Forward implication form of `discrepancy_gt_iff_discOffset_gt_via_contract`. -/
+theorem discrepancy_gt_of_discOffset_gt_via_contract (out : ReductionOutput f) (n C : ℕ)
+    (h : discOffset f out.d out.m n > C) :
+    discrepancy out.g out.d n > C :=
+  (out.discOffset_gt_iff_discrepancy_gt_via_contract (f := f) (n := n) (C := C)).1 h
+
+/-- Forward implication form of `discOffset_gt_iff_discrepancy_gt_via_contract`. -/
+theorem discOffset_gt_of_discrepancy_gt_via_contract (out : ReductionOutput f) (n C : ℕ)
+    (h : discrepancy out.g out.d n > C) :
+    discOffset f out.d out.m n > C :=
+  (out.discrepancy_gt_iff_discOffset_gt_via_contract (f := f) (n := n) (C := C)).1 h
 
 /-!
 ### Predicate-level wrappers (`HasDiscrepancyAtLeastAlong`)
