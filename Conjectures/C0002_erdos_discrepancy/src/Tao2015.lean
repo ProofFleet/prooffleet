@@ -11726,6 +11726,28 @@ theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
   simpa [Tao2015.UnboundedDiscOffset] using
     (stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out))
 
+/-- Stage 2 deliverable, rewritten at the nucleus level (`Int.natAbs (apSumOffset …)`).
+
+This is just `stage2_unbounded_discOffset` with the definitional expansion
+`discOffset = Int.natAbs (apSumOffset …)`.
+-/
+theorem stage2_unbounded_natAbs_apSumOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
+  intro B
+  rcases stage2_unbounded_discOffset (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [discOffset] using hn
+
+/-- `>`-oriented form of `stage2_unbounded_natAbs_apSumOffset`. -/
+theorem stage2_unbounded_natAbs_apSumOffset_gt (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (ctx : Context f) (out : ReductionOutput f) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
+  intro B
+  rcases stage2_unbounded_natAbs_apSumOffset (f := f) (hf := hf) (ctx := ctx) (out := out) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [gt_iff_lt] using hn
+
 /-!
 ### Stage-2 regression examples (compile-only)
 
