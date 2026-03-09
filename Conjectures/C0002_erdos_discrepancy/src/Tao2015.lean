@@ -822,6 +822,24 @@ noncomputable def contextAlong_of_discOffset_bound (out : ReductionOutput f) (B 
   intro n
   exact out.contract_discrepancy_le B hB n
 
+/-- Build a fixed-step context for the reduced sequence `out.g` from a *global* bounded-discrepancy
+context for the original sequence `f`.
+
+This is the common “Stage 0 → Stage 1” glue:
+- Stage 0 assumes boundedness of *all* homogeneous progressions of `f` (a `Context f`).
+- Stage 1 wants boundedness along the single step size `out.d` for the reduced sequence.
+
+The resulting bound is `2*ctx.B`, coming from bounding offset sums by a difference of two prefix
+sums.
+-/
+noncomputable def contextAlong_of_context (out : ReductionOutput f) (ctx : Context f) :
+    ContextAlong out.g out.d := by
+  -- Use the stage-1 contract to transfer the uniform `discOffset` bound coming from `ctx`.
+  refine out.contextAlong_of_discOffset_bound (f := f) (B := ctx.B + ctx.B) (hB := ?_)
+  intro n
+  -- `ctx` bounds *all* offset discrepancies at step size `out.d`.
+  exact ctx.bound_discOffset (f := f) (d := out.d) (m := out.m) (n := n) out.hd
+
 /-!
 ### Tiny helper lemmas: unpacking the shift
 
