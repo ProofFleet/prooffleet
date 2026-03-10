@@ -435,6 +435,16 @@ Definition of done:
 - [ ] Stability at discrepancy level (apSupport-driven): prove `discOffset f d m n = discOffset g d m n` assuming `f` and `g` agree on the accessed indices (prefer phrasing via `apSupport` or the `Finset.range` normal form); include a stable-surface example showing local surgery works without `Icc` bookkeeping.
 - [ ] Endpoint/coherence bridge for Stage-2: add a canonical lemma rewriting `UnboundedDiscrepancyAlong`/`HasDiscrepancyAtLeastAlong` into a `∀ C, ∃ n, C < discOffset f d m n` normal form (quantifier-level, `discOffset`-native), so Stage-2 statements can be phrased purely in the nucleus API.
 
+#### Auto-generated backlog (needs triage)
+- [ ] Quantifier normal form (boundedness, discOffset-native): prove `BoundedDiscOffset f d m B ↔ ∀ n, discOffset f d m n ≤ B` with a stable lemma name (so later stages avoid unfolding defs).
+- [ ] Quantifier normal form (unboundedness, discOffset-native): prove `¬BoundedDiscOffset f d m ↔ ∀ B, ∃ n, B < discOffset f d m n` (the negation-pushed form Stage-2 wants).
+- [ ] Along-d API coherence: define a lightweight abbreviation (or lemma-only normal form) `discAlong f d n := discOffset f d 0 n` and add rewrite lemmas bridging it to `discrepancy f d n` / `HasDiscrepancyAtLeastAlong` so downstream files can stay entirely in the `ℕ` discrepancy API.
+- [ ] `discOffset` step-one normalization: add lemmas rewriting `discOffset f d m n` to `discOffset (fun k => f (k*d)) 1 m n` (and `mul_left`-friendly variants), mirroring `apSumOffset`’s `…_step_one` family.
+- [ ] `discOffset` step-factor coherence: port the existing `apSumOffset_mul_eq_apSumOffset_map_mul…` family to `discOffset` with stable names, so multiplicative reindexing arguments can remain at discrepancy level.
+- [ ] Range-form stability at discrepancy level: using `apSumOffset_eq_sum_range'`, prove `discOffset f d m n = discOffset g d m n` assuming pointwise agreement of summands on `Finset.range n` (no `Icc` endpoints), and add a stable-surface regression example.
+- [ ] Stage-2 bridge: a lemma rewriting `HasDiscrepancyAtLeast f C` directly into a `discOffset` witness `∃ d n, discOffset f d 0 n > C` (stable name; avoid exposing `Int.natAbs (apSumOffset …)` downstream).
+- [ ] “Consumer regression” examples: add 2–3 compile-only `example` blocks under `import MoltResearch.Discrepancy` that start from the Stage-2 goal shape (`∀ B, ∃ n, B < discOffset …`) and normalize through the preferred rewrite pipeline without unfolding.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
