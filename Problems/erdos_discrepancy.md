@@ -445,6 +445,16 @@ Definition of done:
 - [ ] Stage-2 bridge: a lemma rewriting `HasDiscrepancyAtLeast f C` directly into a `discOffset` witness `∃ d n, discOffset f d 0 n > C` (stable name; avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 - [ ] “Consumer regression” examples: add 2–3 compile-only `example` blocks under `import MoltResearch.Discrepancy` that start from the Stage-2 goal shape (`∀ B, ∃ n, B < discOffset …`) and normalize through the preferred rewrite pipeline without unfolding.
 
+#### Auto-generated backlog (needs triage)
+- [ ] Boundedness API hygiene: add monotonicity + transport lemmas for `BoundedDiscOffset` / `BoundedDiscrepancyAlong` (e.g. `mono_B`, `mono_len`, and `map` lemmas that push along `apSumOffset_eq_apSumOffset_shift_add`), so later stages can move between equivalent boundedness hypotheses without unfolding.
+- [ ] Residue-splitting helper infra: factor out a tiny `Finset.range` reindexing lemma bundle for `i = r*q + j` (with `q < (n+j)/r` bounds packaged), so the eventual residue-class split PRs don’t each rebuild the arithmetic boilerplate.
+- [ ] Residue-class split (homogeneous, nucleus): prove `apSum f d n` splits into `∑ j < r, apSum (fun q => f ((r*q + j)*d)) (r*d) ?` (choose the repo’s preferred normal form) with both `i*d` and `d*i` variants, plus a stable-surface regression example.
+- [ ] DiscOffset-level sign/shift invariances: port the existing `apSumOffset` invariance lemmas to the `discOffset` API (`discOffset (fun k => -f k) = discOffset f`, and `discOffset (fun k => f (k + a*d)) d m n = discOffset f d (m+a) n`), with careful simp orientation to avoid loops.
+- [ ] `discOffset` congruence-on-support: once `apSupport` exists (or via `Finset.range` normal form), add a canonical lemma `discOffset_congr` stating equality when `f` and `g` agree on accessed indices, so later local-surgery arguments stay purely in `ℕ` discrepancy form.
+- [ ] Range-form cut lemma (sum level): using `apSumOffset_eq_sum_range'`, add a canonical lemma splitting `apSumOffset` written as a `Finset.range` sum at `k`, rewriting both pieces back to nucleus `apSumOffset` (not just an inequality), with a stable-surface regression example.
+- [ ] Along-d convenience API: add `discAlong f d n := discOffset f d 0 n` (or the repo’s preferred abbreviation) plus a minimal lemma family that rewrites `HasDiscrepancyAtLeastAlong` into a `discAlong` witness, so Stage-2 statements can avoid explicit `m=0` bookkeeping.
+- [ ] Coherence pass: add a small `DiscSimp`/`DiscOffsetSimp` opt-in module audited for non-looping simp rules (`zero/one/succ`, step-one, shift-start), plus compile-only examples that demonstrate the intended `simp`-first normalization pipeline.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
