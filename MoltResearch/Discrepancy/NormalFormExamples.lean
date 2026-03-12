@@ -24,6 +24,11 @@ example (hb : BoundedDiscrepancy f) (hk : k > 0) :
     BoundedDiscrepancy (fun n => f (n * k)) := by
   simpa using (BoundedDiscrepancy.map_mul (f := f) hb (k := k) hk)
 
+-- Regression: parity split normal form for even-length homogeneous AP sums.
+example :
+    apSum f d (2 * (n + 1)) = apSum f (2 * d) (n + 1) + f d + apSumFrom f d (2 * d) n := by
+  simpa using (apSum_two_mul_len_succ (f := f) (d := d) (n := n))
+
 /-!
 ## Typical “user script” examples
 
