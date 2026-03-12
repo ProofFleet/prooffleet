@@ -19,6 +19,15 @@ variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
+-- Regression (Track B / Lipschitz-in-length): one-step extension for offset AP sums.
+example : apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
+  simpa using (apSumOffset_succ (f := f) (d := d) (m := m) (n := n))
+
+-- Regression (Track B / Lipschitz-in-length): Lipschitz bound in `Int.natAbs` for sign sequences.
+example (hf : IsSignSequence f) :
+    Int.natAbs (apSumOffset f d m (n + 1)) ≤ Int.natAbs (apSumOffset f d m n) + 1 := by
+  simpa using (IsSignSequence.natAbs_apSumOffset_succ_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
+
 -- Regression: bounded discrepancy is stable under dilation (`n ↦ n*k`).
 example (hb : BoundedDiscrepancy f) (hk : k > 0) :
     BoundedDiscrepancy (fun n => f (n * k)) := by

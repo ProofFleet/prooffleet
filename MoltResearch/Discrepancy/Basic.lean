@@ -1057,6 +1057,27 @@ lemma apSumOffset_succ (f : ℕ → ℤ) (d m n : ℕ) :
   unfold apSumOffset
   simp [Finset.range_add_one, Finset.sum_insert, add_comm, add_assoc]
 
+/-- Lipschitz-in-length: for a sign sequence, the offset AP partial sums change by at most `1`
+(in `Int.natAbs`) when increasing the length by one.
+
+Checklist item (Track B): `apSumOffset` one-step extension + Lipschitz bound.
+- `apSumOffset f d m (n+1) = apSumOffset f d m n + f ((m+n+1)*d)` (`apSumOffset_succ`)
+- `Int.natAbs (apSumOffset … (n+1)) ≤ Int.natAbs (apSumOffset … n) + 1` (this lemma)
+-/
+lemma IsSignSequence.natAbs_apSumOffset_succ_le {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d m n : ℕ) :
+    Int.natAbs (apSumOffset f d m (n + 1)) ≤ Int.natAbs (apSumOffset f d m n) + 1 := by
+  -- one-step extension, then triangle inequality
+  calc
+    Int.natAbs (apSumOffset f d m (n + 1))
+        = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
+          simp [apSumOffset_succ, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+    _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
+          simpa using
+            (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))
+    _ = Int.natAbs (apSumOffset f d m n) + 1 := by
+          simp [IsSignSequence.natAbs_eq_one (hf := hf)]
+
 lemma apSum_eq_apSumOffset (f : ℕ → ℤ) (d n : ℕ) : apSum f d n = apSumOffset f d 0 n := by
   unfold apSum apSumOffset
   simp
