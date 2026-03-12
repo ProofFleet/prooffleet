@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.SurfaceAudit
 import MoltResearch.Discrepancy.ParityExamples
+import MoltResearch.Discrepancy.ResidueExamples
 
 /-!
 # Discrepancy stable surface checklist (compile-time tests)

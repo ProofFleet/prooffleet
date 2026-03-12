@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy.Basic
 import MoltResearch.Discrepancy.EndpointSimp
 import MoltResearch.Discrepancy.Periodic
 import MoltResearch.Discrepancy.Parity
+import MoltResearch.Discrepancy.Residue
 import MoltResearch.Discrepancy.Offset
 import MoltResearch.Discrepancy.Affine
 import MoltResearch.Discrepancy.AffineTail
