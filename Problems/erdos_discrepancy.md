@@ -48,7 +48,9 @@ Definition of done:
 
 Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should correspond to a reusable normal form.
 
-### Track C — Tao2015 “build the plane” (Conjectures-only pipeline glue)
+- [ ] Parity split (even length): `apSum f d (2*(n+1)) = apSum f (2*d) (n+1) + f d + apSumFrom f d (2*d) n`
+
+#### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
 package their IO contracts, and add the small rewrite/transfer lemmas that let later stages compose.
