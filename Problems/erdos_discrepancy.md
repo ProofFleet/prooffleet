@@ -455,6 +455,17 @@ Definition of done:
 - [ ] Along-d convenience API: add `discAlong f d n := discOffset f d 0 n` (or the repo’s preferred abbreviation) plus a minimal lemma family that rewrites `HasDiscrepancyAtLeastAlong` into a `discAlong` witness, so Stage-2 statements can avoid explicit `m=0` bookkeeping.
 - [ ] Coherence pass: add a small `DiscSimp`/`DiscOffsetSimp` opt-in module audited for non-looping simp rules (`zero/one/succ`, step-one, shift-start), plus compile-only examples that demonstrate the intended `simp`-first normalization pipeline.
 
+#### Auto-generated backlog (needs triage)
+- [ ] Define `apSupport d m n : Finset ℕ := (Finset.range n).image (fun i => (m+i+1)*d)` (or the repo’s preferred endpoint convention) and prove the basic API: `mem_apSupport_iff`, `apSupport_card` (for `d>0`), and monotonicity in `n`.
+- [ ] Prove the core injectivity lemma used by support/reindexing arguments: for `d>0`, the map `i ↦ (m+i+1)*d` is injective on `Finset.range n` (and a `mul_left`-friendly variant `d*(m+i+1)`). Package it as a nucleus lemma (not raw arithmetic).
+- [ ] DiscOffset stability (support-driven): prove `discOffset f d m n = discOffset g d m n` assuming `∀ x ∈ apSupport d m n, f x = g x` (and surface it under `import MoltResearch.Discrepancy`).
+- [ ] DiscOffset shift-start coherence: port `apSumOffset_shift_start_add` to discrepancy level, i.e.
+  `discOffset f d (m+k) n = discOffset (fun t => f (t + k*d)) d m n` (with an `_add`/`mul_left` variant to avoid `Nat.add_comm` noise).
+- [ ] DiscOffset periodicity corollary: if `f` is periodic with period `p` and `p ∣ d`, prove `discOffset f d m n = discOffset f d 0 n` (or the tight constant-sum normal form implied by periodicity), and add a stable-surface regression example.
+- [ ] Bound transport API: add monotonicity/transport lemmas for `BoundedDiscOffset` under the standard normal-form rewrites (`shift_start`, `step_one`, `mul`-factor reindexing), so Stage-2 can rewrite hypotheses without unfolding.
+- [ ] Stable-surface coherence pass: ensure all preferred `discOffset_*` lemmas live under `import MoltResearch.Discrepancy` (and any old/unpreferred names are moved behind `MoltResearch.Discrepancy.Deprecated`), with compile-time audit tests.
+- [ ] Consumer regression examples (discOffset-native): add 2–3 compile-only `example` blocks that start from a paper `Icc` statement, normalize to `discOffset`, apply a split/triangle/bound lemma, and close with `simp`/`linarith`-style steps — all under `import MoltResearch.Discrepancy`.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
