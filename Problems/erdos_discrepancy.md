@@ -408,7 +408,8 @@ Definition of done:
 - [x] Stable-surface audit: update `MoltResearch/Discrepancy/SurfaceAudit.lean` to assert the above normal-form lemmas are exported by `import MoltResearch.Discrepancy` (and add a companion check that deprecated aliases are not).
 
 #### Auto-generated backlog (needs triage)
-- [ ] Residue-class split normal form: a lemma family splitting `apSum`/`apSumOffset` into a sum of `r` smaller AP sums by reindexing `i = r*q + j` (with both `i*d` and `d*i` summand orders), plus a regression example under `import MoltResearch.Discrepancy`.
+- [x] Residue-class split normal form: a lemma family splitting `apSum`/`apSumOffset` into a sum of `r` smaller AP sums by reindexing `i = r*q + j` (with both `i*d` and `d*i` summand orders), plus a regression example under `import MoltResearch.Discrepancy`.
+  - Implemented in `MoltResearch/Discrepancy/Residue.lean` as `apSum_mul_len_succ_eq_sum_range`, `apSumOffset_mul_len_succ_eq_sum_range`, plus the `*_mul_left` variants; regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (importing the stable surface `MoltResearch.Discrepancy`).
 - [ ] Lipschitz-in-length: prove a canonical “one-step extension” lemma `apSumOffset f d m (n+1) = apSumOffset f d m n + f ((m+n+1)*d)` (and `apSum`/`apSumFrom` analogues), and derive `Int.natAbs (apSumOffset … (n+1)) ≤ Int.natAbs (apSumOffset … n) + 1` for sign sequences.
 - [ ] Disc-level API coherence: introduce `disc (f d n) : ℕ := Int.natAbs (apSum f d n)` (homogeneous analogue of `discOffset`) and port the existing split/triangle/bound lemmas to `disc` with stable names mirroring `discOffset_*`.
 - [ ] “Support finset” normal form: define `apSupport d m n : Finset ℕ` (the accessed indices `{(m+i+1)*d | i < n}`) and prove `apSumOffset_congr`/stability lemmas phrased as equality on `apSupport` (so later local-surgery arguments don’t need `Icc` bookkeeping).
