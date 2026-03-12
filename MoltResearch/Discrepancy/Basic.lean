@@ -51,6 +51,41 @@ This direction avoids simp loops with `discrepancy_def`.
     Int.natAbs (apSum f d n) = discrepancy f d n :=
   rfl
 
+/-!
+### `disc`: homogeneous discrepancy wrapper (API coherence)
+
+This is a homogeneous analogue of `discOffset` with the same naming convention.
+
+It intentionally duplicates `discrepancy` as a more symmetric counterpart to `discOffset`.
+-/
+
+/-- Homogeneous discrepancy wrapper: `disc f d n = |apSum f d n|`. -/
+def disc (f : ℕ → ℤ) (d n : ℕ) : ℕ :=
+  Int.natAbs (apSum f d n)
+
+/-- Definitional lemma exposing the definition. -/
+lemma disc_eq_natAbs_apSum (f : ℕ → ℤ) (d n : ℕ) :
+    disc f d n = Int.natAbs (apSum f d n) :=
+  rfl
+
+/-- Alias for the definitional lemma. -/
+lemma disc_def (f : ℕ → ℤ) (d n : ℕ) :
+    disc f d n = Int.natAbs (apSum f d n) :=
+  rfl
+
+/-- `simp` bridge: `Int.natAbs (apSum …)` simplifies to the `disc` wrapper.
+
+This direction avoids simp loops with `disc_def`.
+-/
+@[simp] lemma natAbs_apSum_eq_disc (f : ℕ → ℤ) (d n : ℕ) :
+    Int.natAbs (apSum f d n) = disc f d n :=
+  rfl
+
+/-- The discrepancy of an empty progression is zero. -/
+@[simp] lemma disc_zero (f : ℕ → ℤ) (d : ℕ) : disc f d 0 = 0 := by
+  unfold disc apSum
+  simp
+
 /-- The discrepancy of an empty progression is zero. -/
 @[simp] lemma discrepancy_zero (f : ℕ → ℤ) (d : ℕ) : discrepancy f d 0 = 0 := by
   unfold discrepancy apSum
@@ -420,6 +455,14 @@ lemma natAbs_apSum_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
   simpa [apSumOffset_zero_start] using
     (natAbs_apSumOffset_add_le (f := f) (d := d) (m := 0) (n₁ := n₁) (n₂ := n₂))
 
+/-- Triangle inequality for `disc` by splitting into a prefix and a shifted suffix.
+
+This is the homogeneous analogue of `discOffset_add_le`.
+-/
+lemma disc_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
+    disc f d (n₁ + n₂) ≤ disc f d n₁ + discOffset f d n₁ n₂ := by
+  simpa using (natAbs_apSum_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+
 /-! ### Basic inequalities for sign sequences -/
 
 /-! ### General `Int.natAbs` bounds for offset AP sums -/
@@ -467,6 +510,13 @@ lemma natAbs_apSum_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
     (natAbs_apSumOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := 0)
       (n := n))
 
+/-- Uniform `Int.natAbs` bound gives a length-times-bound estimate for `disc`. -/
+lemma disc_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ B) (d n : ℕ) :
+    disc f d n ≤ n * B := by
+  simpa using
+    (natAbs_apSum_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (n := n))
+
 /-- If the terms of `f` are uniformly bounded by `1` in `Int.natAbs`, then any offset AP sum has
 `Int.natAbs` bounded by its length.
 
@@ -512,11 +562,22 @@ lemma natAbs_apSum_le_of_natAbs_le_one {f : ℕ → ℤ}
   simpa [apSumOffset_zero_start] using
     (natAbs_apSumOffset_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (m := 0) (n := n))
 
+/-- If the terms of `f` are uniformly bounded by `1` in `Int.natAbs`, then `disc f d n ≤ n`. -/
+lemma disc_le_of_natAbs_le_one {f : ℕ → ℤ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ 1) (d n : ℕ) :
+    disc f d n ≤ n := by
+  simpa using (natAbs_apSum_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (n := n))
+
 /-- A sign sequence has `Int.natAbs` bounded by length on any AP sum. -/
 lemma natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
     Int.natAbs (apSum f d n) ≤ n := by
   simpa [apSumOffset_zero_start] using
     (natAbs_apSumOffset_le (hf := hf) (d := d) (m := 0) (n := n))
+
+/-- A sign sequence has discrepancy (at the `disc` level) bounded by length. -/
+lemma disc_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
+    disc f d n ≤ n := by
+  simpa using (natAbs_apSum_le (hf := hf) (d := d) (n := n))
 
 /-- Bounding a *difference of discrepancies* (offset AP sums) by total length.
 
@@ -1238,6 +1299,14 @@ lemma natAbs_apSum_add_length_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
   simpa [apSum_add_length] using
     (Int.natAbs_add_le (apSum f d n₁) (apSumOffset f d n₁ n₂))
 
+/-- Triangle inequality API for splitting `disc` by length.
+
+This is the homogeneous analogue of `discOffset_add_length_le`.
+-/
+lemma disc_add_length_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
+    disc f d (n₁ + n₂) ≤ disc f d n₁ + discOffset f d n₁ n₂ := by
+  simpa using (natAbs_apSum_add_length_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+
 -- Algebraic properties of `apSum`
 lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => f k + g k) d n = apSum f d n + apSum g d n := by
@@ -1255,6 +1324,12 @@ lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
 @[simp] lemma discrepancy_neg (f : ℕ → ℤ) (d n : ℕ) :
     discrepancy (fun k => -f k) d n = discrepancy f d n := by
   unfold discrepancy
+  simp [apSum_neg]
+
+/-- `disc` is invariant under pointwise negation. -/
+@[simp] lemma disc_neg (f : ℕ → ℤ) (d n : ℕ) :
+    disc (fun k => -f k) d n = disc f d n := by
+  unfold disc
   simp [apSum_neg]
 
 lemma apSum_sub (f g : ℕ → ℤ) (d n : ℕ) :

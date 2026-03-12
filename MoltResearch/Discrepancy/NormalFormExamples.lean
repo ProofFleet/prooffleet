@@ -2139,6 +2139,20 @@ example : (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
   simpa using
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos (f := f))
 
+/-!
+## `disc` wrapper regression tests
+
+These ensure the homogeneous wrapper `disc` stays coherent with the offset wrapper `discOffset`.
+-/
+
+example (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
+    disc f d (n₁ + n₂) ≤ disc f d n₁ + discOffset f d n₁ n₂ := by
+  simpa using (disc_add_length_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+
+example (f : ℕ → ℤ) (hf : IsSignSequence f) (d n : ℕ) :
+    disc f d n ≤ n := by
+  simpa using (disc_le (hf := hf) (d := d) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
