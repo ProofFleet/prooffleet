@@ -446,6 +446,16 @@ Marked `[simp]` so that normalizing away a spurious `m = 0` offset is automatic.
   unfold apSumOffset apSum
   simp
 
+/-- Normal form: a `discOffset` with start index `m = 0` is just the homogeneous `disc`.
+
+This is an API-coherence lemma: many offset lemmas specialize cleanly to homogeneous statements
+once `m = 0` is normalized away.
+-/
+@[simp] lemma discOffset_zero_start (f : ℕ → ℤ) (d n : ℕ) :
+    discOffset f d 0 n = disc f d n := by
+  unfold discOffset disc
+  simp
+
 /-- Triangle inequality for `apSum` by splitting into a prefix and a shifted suffix. -/
 lemma natAbs_apSum_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
     Int.natAbs (apSum f d (n₁ + n₂)) ≤

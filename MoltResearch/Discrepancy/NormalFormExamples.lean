@@ -580,6 +580,11 @@ example {k : ℕ} (hmk : m ≤ k) (hkn : k ≤ m + n) :
     discOffset f d m n ≤ discOffset f d m (k - m) + discOffset f d k (m + n - k) := by
   simpa using (discOffset_split_at_le (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn)
 
+-- Homogeneous analogue (`disc`), specialized to `m = 0`.
+example {k : ℕ} (hkn : k ≤ n) :
+    disc f d n ≤ disc f d k + discOffset f d k (n - k) := by
+  simpa using (disc_split_at_le (f := f) (d := d) (k := k) (n := n) hkn)
+
 example :
     apSumOffset f d m (n₁ + n₂) =
       apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by

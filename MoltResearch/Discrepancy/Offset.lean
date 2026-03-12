@@ -1723,6 +1723,18 @@ lemma discOffset_split_at_le (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
   simpa [h] using
     (Int.natAbs_add_le (apSumOffset f d m (k - m)) (apSumOffset f d k (m + n - k)))
 
+/-- Triangle inequality for splitting a homogeneous sum at a cut `k` (with `k ≤ n`).
+
+This is the homogeneous analogue of `discOffset_split_at_le`.
+-/
+lemma disc_split_at_le (f : ℕ → ℤ) (d : ℕ) {k n : ℕ} (hkn : k ≤ n) :
+    disc f d n ≤ disc f d k + discOffset f d k (n - k) := by
+  have h :=
+    discOffset_split_at_le (f := f) (d := d) (m := 0) (k := k) (n := n)
+      (hmk := Nat.zero_le _) (hkn := by simpa using hkn)
+  -- Normalize away `m = 0` and the degenerate subtraction terms.
+  simpa using h
+
 /-- Sign-sequence bound on the difference of two offset sums when `n₁ ≤ n₂`. -/
 lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f)
     (d m : ℕ) {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
