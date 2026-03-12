@@ -334,4 +334,27 @@ lemma apSumOffset_mul_len_succ_eq_sum_range (f : ℕ → ℤ) (d m q n : ℕ) (h
   -- Finish.
   simpa [apSumOffset_eq_apSumFrom, hadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
 
+/-!
+## Multiplication-on-the-left variants
+
+These are small convenience wrappers around the main residue-class split lemmas.
+They keep the summands in the `d * i` form, which can be friendlier in downstream code
+(since it avoids commuting multiplication under binders).
+-/
+
+/-- `d * i` summand-order variant of `apSum_mul_len_succ_eq_sum_range`. -/
+lemma apSum_mul_len_succ_eq_sum_range_mul_left (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
+    apSum f d (q * (n + 1)) =
+      (Finset.range q).sum (fun r => f (d * (r + 1)) + apSumFrom f (d * (r + 1)) (q * d) n) := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (apSum_mul_len_succ_eq_sum_range (f := f) (d := d) (q := q) (n := n) hq)
+
+/-- `d * i` summand-order variant of `apSumOffset_mul_len_succ_eq_sum_range`. -/
+lemma apSumOffset_mul_len_succ_eq_sum_range_mul_left (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    apSumOffset f d m (q * (n + 1)) =
+      (Finset.range q).sum (fun r =>
+        f (d * (m + r + 1)) + apSumFrom f (d * (m + r + 1)) (q * d) n) := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq)
+
 end MoltResearch

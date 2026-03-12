@@ -29,6 +29,13 @@ example :
     apSum f d (2 * (n + 1)) = apSum f (2 * d) (n + 1) + f d + apSumFrom f d (2 * d) n := by
   simpa using (apSum_two_mul_len_succ (f := f) (d := d) (n := n))
 
+-- Regression: residue-class split normal form (multiplication-on-the-left summand convention).
+example (q : ℕ) (hq : q > 0) :
+    apSumOffset f d m (q * (n + 1)) =
+      (Finset.range q).sum (fun r => f (d * (m + r + 1)) + apSumFrom f (d * (m + r + 1)) (q * d) n) := by
+  simpa using
+    (apSumOffset_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (m := m) (q := q) (n := n) hq)
+
 /-!
 ## Typical “user script” examples
 
