@@ -181,4 +181,157 @@ lemma apSum_mul_len_succ (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
               rw [hF]
               abel
 
+/-!
+## Residue-class splitting into `q` blocks (all residue classes)
+
+This is a more symmetric normal form than `apSum_mul_len_succ`: instead of separating out the
+`0 mod q` class, it packages *all* residue classes into a single `Finset.range q` sum.
+
+It matches the common “reindex by `i = q * k + r`” viewpoint.
+-/
+
+/-- Helper: split the `0 mod q` class `apSum f (q*d) (n+1)` into a head term and an affine tail.
+
+This is the same arithmetic progression; we just expose the first term `f (q*d)` explicitly so it
+fits the uniform residue-class summand form.
+-/
+lemma apSum_mul_succ_len_head_tail (f : ℕ → ℤ) (d q n : ℕ) :
+    apSum f (q * d) (n + 1) = f (q * d) + apSumFrom f (q * d) (q * d) n := by
+  classical
+  unfold apSum apSumFrom
+
+  -- A small arithmetic normalization used by `simp` under the tail sum.
+  have hNat : ∀ i : ℕ, (i + 1 + 1) * (q * d) = q * d + (i + 1) * (q * d) := by
+    intro i
+    calc
+      (i + 1 + 1) * (q * d) = ((i + 1) + 1) * (q * d) := by
+        simp [Nat.add_assoc]
+      _ = (i + 1) * (q * d) + 1 * (q * d) := by
+        simpa [Nat.add_mul]
+      _ = (i + 1) * (q * d) + (q * d) := by
+        simp
+      _ = q * d + (i + 1) * (q * d) := by
+        simp [Nat.add_comm]
+
+  -- Split the range sum into the head term plus the tail, then rewrite the tail
+  -- into the `apSumFrom` summand form.
+  -- `sum_range_succ'` gives: `∑ i < n+1, g i = g 0 + ∑ i < n, g (i+1)`.
+  simp [Finset.sum_range_succ', hNat, Nat.mul_assoc]
+  abel
+
+/-- Symmetric residue-class split for homogeneous AP sums.
+
+For `q > 0`, rewrite the length-`q*(n+1)` sum as a sum of `q` smaller blocks, one for each residue
+class modulo `q`, using the reindexing `i = q*k + r`.
+
+Each block is expressed in the uniform “head + affine tail” normal form
+`f ((r+1)*d) + apSumFrom f ((r+1)*d) (q*d) n`.
+-/
+lemma apSum_mul_len_succ_eq_sum_range (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
+    apSum f d (q * (n + 1)) =
+      (Finset.range q).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) := by
+  classical
+  have h1 : 1 ≤ q := Nat.succ_le_iff.mp hq
+  have hq' : q - 1 + 1 = q := Nat.sub_add_cancel h1
+
+  -- Start from the existing split that isolates the `0 mod q` class.
+  have h := apSum_mul_len_succ (f := f) (d := d) (q := q) (n := n) hq
+
+  -- Rewrite the `0 mod q` class into the uniform head+tail form.
+  have h0 : apSum f (q * d) (n + 1) = f (q * d) + apSumFrom f (q * d) (q * d) n :=
+    apSum_mul_succ_len_head_tail (f := f) (d := d) (q := q) (n := n)
+
+  -- Package everything as a single `range q` sum: `range q = range (q-1)` plus the last term.
+  -- The last residue `r = q-1` corresponds to the `0 mod q` class.
+  have hsum :
+      (Finset.range q).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) =
+        (Finset.range (q - 1)).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) +
+          (f (q * d) + apSumFrom f (q * d) (q * d) n) := by
+    -- `Finset.sum_range_succ` with `n = q-1`.
+    -- Note: `q-1+1=q` by `hq'`.
+    simpa [hq', Nat.sub_add_cancel h1, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (Finset.sum_range_succ
+        (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)
+        (q - 1))
+
+  -- Finish by rewriting `h` into the symmetric sum form.
+  -- The existing lemma already has the `range (q-1)` part; we just replace the `0 mod q` class.
+  calc
+    apSum f d (q * (n + 1))
+        = apSum f (q * d) (n + 1) +
+            (Finset.range (q - 1)).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) := h
+    _ = (f (q * d) + apSumFrom f (q * d) (q * d) n) +
+            (Finset.range (q - 1)).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) := by
+          simpa [h0, add_assoc, add_left_comm, add_comm]
+    _ = (Finset.range q).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) := by
+          -- Commute the two summands, then use `hsum`.
+          have hcomm :
+              (f (q * d) + apSumFrom f (q * d) (q * d) n) +
+                  (Finset.range (q - 1)).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)
+                =
+                (Finset.range (q - 1)).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) +
+                  (f (q * d) + apSumFrom f (q * d) (q * d) n) := by
+            abel
+          -- Now rewrite using `hsum`.
+          simpa [hcomm] using hsum.symm
+
+/-- Residue-class split for affine AP sums.
+
+This is the shifted analogue of `apSum_mul_len_succ_eq_sum_range`:
+reindex `apSumFrom f a d (q*(n+1))` by `i = q*k + r`.
+-/
+lemma apSumFrom_mul_len_succ_eq_sum_range (f : ℕ → ℤ) (a d q n : ℕ) (hq : q > 0) :
+    apSumFrom f a d (q * (n + 1)) =
+      (Finset.range q).sum (fun r => f (a + (r + 1) * d) + apSumFrom f (a + (r + 1) * d) (q * d) n) := by
+  classical
+  -- Apply the homogeneous split to the shifted sequence `k ↦ f (k + a)`.
+  have h :=
+    apSum_mul_len_succ_eq_sum_range (f := fun k => f (k + a)) (d := d) (q := q) (n := n) hq
+
+  -- Normalize the LHS `apSum` into `apSumFrom`.
+  have hL : apSum (fun k => f (k + a)) d (q * (n + 1)) = apSumFrom f a d (q * (n + 1)) := by
+    simpa [apSum_shift_add_eq_apSumFrom] using
+      (apSum_shift_add_eq_apSumFrom (f := f) (a := a) (d := d) (n := q * (n + 1)))
+
+  -- Normalize each summand on the RHS.
+  have hR :
+      (Finset.range q).sum (fun r => (fun k => f (k + a)) ((r + 1) * d) +
+          apSumFrom (fun k => f (k + a)) ((r + 1) * d) (q * d) n)
+        =
+        (Finset.range q).sum (fun r => f (a + (r + 1) * d) + apSumFrom f (a + (r + 1) * d) (q * d) n) := by
+    refine Finset.sum_congr rfl ?_
+    intro r hr
+    -- First term: just reassociate `((r+1)*d) + a`.
+    -- Second term: push the shift into the start.
+    unfold apSumFrom
+    -- `simp` can handle the arithmetic normalization under the binder.
+    simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+  -- Put it together.
+  -- `h` is an equality; rewrite both sides by `hL` and `hR`.
+  simpa [hL, hR] using h
+
+/-- Residue-class split for offset AP sums.
+
+This is the offset analogue of `apSum_mul_len_succ_eq_sum_range`.
+It follows by rewriting `apSumOffset` as an affine AP sum via `apSumOffset_eq_apSumFrom`.
+-/
+lemma apSumOffset_mul_len_succ_eq_sum_range (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    apSumOffset f d m (q * (n + 1)) =
+      (Finset.range q).sum (fun r =>
+        f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
+  -- Convert to the affine nucleus, apply the affine split, and simplify the starts.
+  have h := apSumFrom_mul_len_succ_eq_sum_range (f := f) (a := m * d) (d := d) (q := q) (n := n) hq
+  -- `m*d + (r+1)*d = (m+r+1)*d`.
+  have hadd : ∀ r : ℕ, m * d + (r + 1) * d = (m + r + 1) * d := by
+    intro r
+    -- `m*d + (r+1)*d = (m + (r+1))*d`.
+    calc
+      m * d + (r + 1) * d = (m + (r + 1)) * d := by
+        simpa [Nat.add_mul] using (Nat.add_mul m (r + 1) d).symm
+      _ = (m + r + 1) * d := by
+        simp [Nat.add_assoc]
+  -- Finish.
+  simpa [apSumOffset_eq_apSumFrom, hadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
 end MoltResearch

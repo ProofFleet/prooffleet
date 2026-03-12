@@ -2050,6 +2050,21 @@ example :
   simpa using apSumOffset_sub_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
 
+-- Residue-class split normal forms (regression tests).
+
+variable (q : ℕ)
+
+example (hq : q > 0) :
+    apSum f d (q * (n + 1)) =
+      (Finset.range q).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) := by
+  simpa using apSum_mul_len_succ_eq_sum_range (f := f) (d := d) (q := q) (n := n) hq
+
+example (hq : q > 0) :
+    apSumOffset f d m (q * (n + 1)) =
+      (Finset.range q).sum (fun r => f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
+  simpa using apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq
+
+
 -- Bounds (regression tests): sign sequences give the expected triangle-inequality-style estimates.
 
 variable (hf : IsSignSequence f)
