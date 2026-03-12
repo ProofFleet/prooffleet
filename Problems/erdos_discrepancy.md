@@ -48,7 +48,8 @@ Definition of done:
 
 Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should correspond to a reusable normal form.
 
-- [ ] Parity split (even length): `apSum f d (2*(n+1)) = apSum f (2*d) (n+1) + f d + apSumFrom f d (2*d) n`
+- [x] Parity split (even length): `apSum f d (2*(n+1)) = apSum f (2*d) (n+1) + f d + apSumFrom f d (2*d) n`
+  (Implemented as `apSum_two_mul_len_succ` in `MoltResearch/Discrepancy/Parity.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
