@@ -585,6 +585,11 @@ example {k : ℕ} (hkn : k ≤ n) :
     disc f d n ≤ disc f d k + discOffset f d k (n - k) := by
   simpa using (disc_split_at_le (f := f) (d := d) (k := k) (n := n) hkn)
 
+-- `disc` shift normal form (API coherence regression).
+example (a : ℕ) :
+    disc (fun k => f (k + a * d)) d n = Int.natAbs (apSumOffset f d a n) := by
+  simpa using (disc_shift_mul (f := f) (a := a) (d := d) (n := n))
+
 example :
     apSumOffset f d m (n₁ + n₂) =
       apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by

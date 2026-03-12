@@ -258,6 +258,34 @@ lemma discrepancy_shift_mul_simp (f : ℕ → ℤ) (m d n : ℕ) :
     discrepancy (fun k => f (k + m * d)) d n = Int.natAbs (apSumOffset f d m n) := by
   simpa using (discrepancy_shift_mul (f := f) (a := m) (d := d) (n := n))
 
+/-!
+### `disc` API coherence: shift normal forms
+
+These are homogeneous `disc`-level counterparts of the existing `discrepancy_*` shift lemmas.
+They exist purely for naming/coherence with the `discOffset_*` API.
+-/
+
+/-- One-way normal form for `disc` of a shift by `a*d`: it expands to the `natAbs` of an
+offset AP sum.
+
+Marked `[simp]` since the rewrite goes from the wrapper `disc` to a `natAbs` normal form.
+-/
+@[simp] lemma disc_shift_mul (f : ℕ → ℤ) (a d n : ℕ) :
+    disc (fun k => f (k + a * d)) d n = Int.natAbs (apSumOffset f d a n) := by
+  unfold disc
+  simpa using (natAbs_apSum_shift_mul (f := f) (a := a) (d := d) (n := n))
+
+/-- Normal form: `disc` of a shift by `m*d` becomes `natAbs (apSumOffset ...)`. (Not `[simp]`.) -/
+lemma disc_shift_mul_simp (f : ℕ → ℤ) (m d n : ℕ) :
+    disc (fun k => f (k + m * d)) d n = Int.natAbs (apSumOffset f d m n) := by
+  simpa using (disc_shift_mul (f := f) (a := m) (d := d) (n := n))
+
+/-- The corresponding `disc` normal form when `a = m*d`. -/
+lemma disc_shift_of_eq_mul (f : ℕ → ℤ) (a d n m : ℕ) (ha : a = m * d) :
+    disc (fun k => f (k + a)) d n = Int.natAbs (apSumOffset f d m n) := by
+  subst ha
+  simpa using (disc_shift_mul (f := f) (a := m) (d := d) (n := n))
+
 /-! ### Shifting the “start index” in `apSumOffset` -/
 
 /-- Normal form: shifting the skipped prefix `m` by `k` can be moved into the summand as a shift
