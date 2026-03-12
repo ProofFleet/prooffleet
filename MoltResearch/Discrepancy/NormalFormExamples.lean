@@ -590,6 +590,15 @@ example (a : ℕ) :
     disc (fun k => f (k + a * d)) d n = Int.natAbs (apSumOffset f d a n) := by
   simpa using (disc_shift_mul (f := f) (a := a) (d := d) (n := n))
 
+-- `discOffset` bound wrapper regression: `|apSumOffset| ≤ n*B` implies `discOffset ≤ n*B`.
+example {B : ℕ} (hf : ∀ k, Int.natAbs (f k) ≤ B) : discOffset f d m n ≤ n * B := by
+  simpa using (discOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := m)
+    (n := n))
+
+-- `discOffset` length bound regression (the `B = 1` specialization).
+example (hf : ∀ k, Int.natAbs (f k) ≤ 1) : discOffset f d m n ≤ n := by
+  simpa using (discOffset_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (m := m) (n := n))
+
 example :
     apSumOffset f d m (n₁ + n₂) =
       apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by

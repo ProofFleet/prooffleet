@@ -537,6 +537,14 @@ lemma natAbs_apSumOffset_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
         _ = (n + 1) * B := by
                 simpa [Nat.succ_mul, Nat.add_assoc]
 
+/-- Uniform `Int.natAbs` bound gives a length-times-bound estimate for `discOffset`. -/
+lemma discOffset_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ B) (d m n : ℕ) :
+    discOffset f d m n ≤ n * B := by
+  simpa using
+    (natAbs_apSumOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := m)
+      (n := n))
+
 /-- Uniform bound on `Int.natAbs` gives a length-times-bound estimate for homogeneous AP sums.
 
 This is the `apSum` specialization of `natAbs_apSumOffset_le_mul_of_natAbs_le`.
@@ -581,6 +589,13 @@ lemma natAbs_apSumOffset_le_of_natAbs_le_one {f : ℕ → ℤ}
                   (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))
         _ ≤ n + 1 :=
                 Nat.add_le_add ih hterm
+
+/-- Uniform `Int.natAbs` bound by `1` gives a length bound for `discOffset`. -/
+lemma discOffset_le_of_natAbs_le_one {f : ℕ → ℤ}
+    (hf : ∀ k, Int.natAbs (f k) ≤ 1) (d m n : ℕ) :
+    discOffset f d m n ≤ n := by
+  simpa using
+    (natAbs_apSumOffset_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (m := m) (n := n))
 
 /-- A sign sequence has `Int.natAbs` bounded by length on any offset AP sum. -/
 lemma natAbs_apSumOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
