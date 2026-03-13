@@ -31,9 +31,14 @@ Orientation note: we rewrite **toward** the wrapper to avoid simp loops with `di
 -/
 @[simp] lemma natAbs_apSumOffset_succ_succ_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
     Int.natAbs (apSumOffset f d m n + f ((m + Nat.succ n) * d)) = discOffset f d m (Nat.succ n) := by
-  -- Expand `discOffset` and normalize `apSumOffset … (Nat.succ n)` using `apSumOffset_succ`.
-  -- Keep the endpoint in the directed form `m + Nat.succ n`.
-  simp [discOffset, apSumOffset_succ, Nat.succ_eq_add_one, Nat.add_assoc]
+  -- Avoid simp loops: rewrite `Nat.succ n` as `n + 1` and then use `apSumOffset_succ` directly.
+  unfold discOffset
+  -- Prevent `simp` from refolding via `natAbs_apSumOffset_eq_discOffset`.
+  simp [Nat.succ_eq_add_one, Nat.add_assoc, -natAbs_apSumOffset_eq_discOffset]
+  -- Close using the one-step expansion of `apSumOffset`.
+  rw [apSumOffset_succ (f := f) (d := d) (m := m) (n := n)]
+  -- Normalize associativity in the endpoint `(m + (n + 1))`.
+  simp [Nat.add_assoc]
 
 /-- `Nat.succ`-endpoint simp lemma for the homogeneous wrapper `disc`.
 
@@ -41,16 +46,19 @@ See `natAbs_apSumOffset_succ_succ_eq_discOffset`.
 -/
 @[simp] lemma natAbs_apSum_succ_succ_eq_disc (f : ℕ → ℤ) (d n : ℕ) :
     Int.natAbs (apSum f d n + f ((Nat.succ n) * d)) = disc f d (Nat.succ n) := by
-  simp [disc, apSum_succ, Nat.succ_eq_add_one, Nat.add_assoc]
+  unfold disc
+  -- Avoid `simp` refolding `Int.natAbs (apSum …)` back into wrappers.
+  simp [Nat.succ_eq_add_one, -natAbs_apSum_eq_disc, -natAbs_apSum_eq_discrepancy]
+  rw [apSum_succ (f := f) (d := d) (n := n)]
 
 /-! ## `Nat.pred (Nat.succ _)` cleanup -/
 
 @[simp] lemma discOffset_pred_succ (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m (Nat.pred (Nat.succ n)) = discOffset f d m n := by
-  simp [discOffset]
+  simp
 
 @[simp] lemma disc_pred_succ (f : ℕ → ℤ) (d n : ℕ) :
     disc f d (Nat.pred (Nat.succ n)) = disc f d n := by
-  simp [disc]
+  simp
 
 end MoltResearch
