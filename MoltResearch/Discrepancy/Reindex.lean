@@ -357,7 +357,20 @@ lemma apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f : ℕ → ℤ) (a
               simp [Nat.add_mul]
       _ = ((i + 1) * d₁ + a₀) * d₂ := by
               simp [Nat.add_comm]
-  simpa [h, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc] 
+  simpa [h, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc]
+
+/-- Right-multiplication-friendly wrapper for `apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul`.
+
+This version has the affine start written as `a₀ * d₂` (rather than `d₂ * a₀`), matching the
+common “multiple start” presentation in surface statements.
+-/
+lemma apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul_right (f : ℕ → ℤ)
+    (a₀ d₁ d₂ n : ℕ) :
+    apSumFrom f (a₀ * d₂) (d₁ * d₂) n =
+      apSumOffset (fun k => f ((k + a₀) * d₂)) d₁ 0 n := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f := f) (a₀ := a₀) (d₁ := d₁)
+      (d₂ := d₂) (n := n))
 
 /-- Dvd-based wrapper for `apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul`.
 
