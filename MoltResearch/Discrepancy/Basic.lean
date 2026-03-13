@@ -860,6 +860,18 @@ lemma HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start {f : ℕ → ℤ} 
     -- rewrite the offset-sum witness back into the homogeneous-sum form.
     simpa [h0] using hgt
 
+/-- Normal form: rewrite `HasDiscrepancyAtLeast` into the `discOffset` wrapper.
+
+This is the `discOffset`-valued analogue of
+`HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start`, and it avoids exposing
+`Int.natAbs (apSumOffset …)` in downstream witness statements.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
+  -- Reduce to the existing offset-sum normal form and rewrite the absolute-value wrapper.
+  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C))
+
 -- Backwards-compatibility: earlier versions used the slightly confusing names
 -- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` and
 -- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m`; the deprecated aliases live in

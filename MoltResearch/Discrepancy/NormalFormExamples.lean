@@ -2367,6 +2367,12 @@ example :
       ∃ d n : ℕ, d > 0 ∧ Int.natAbs (apSumOffset f d 0 n) > C := by
   simpa using HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C)
 
+-- NEW (Track B / discOffset witness normal form): avoid exposing `Int.natAbs (apSumOffset …)`.
+example :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
+  simpa using HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start (f := f) (C := C)
+
 example :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
       (∀ C : ℕ,
