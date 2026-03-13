@@ -311,6 +311,41 @@ lemma apSumOffset_mul_eq_apSumOffset_map_mul_left (f : ℕ → ℤ) (d₁ d₂ m
   simpa [Nat.mul_comm] using
     (apSumOffset_mul_eq_apSumOffset_map_mul₁₂ (f := f) (d₁ := d₁) (d₂ := d₂) (m := m) (n := n))
 
+/-! ### Step-factor coherence for `discOffset`
+
+These are the discrepancy-level (i.e. `ℕ`-valued `Int.natAbs`) analogues of the
+`apSumOffset_mul_eq_apSumOffset_map_mul…` family.
+
+They are intentionally oriented so downstream stages can keep goals in `discOffset` normal form
+without unfolding `Int.natAbs`.
+-/
+
+lemma discOffset_map_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+    discOffset (fun x => f (x * k)) d m n = discOffset f (d * k) m n := by
+  -- Reduce to the underlying sum lemma.
+  unfold discOffset
+  simpa using congrArg Int.natAbs
+    (apSumOffset_map_mul (f := f) (k := k) (d := d) (m := m) (n := n))
+
+/-- Factor a product step size `d * k` by pushing `d` into the summand (discrepancy version). -/
+lemma discOffset_mul_eq_discOffset_map_mul (f : ℕ → ℤ) (d k m n : ℕ) :
+    discOffset f (d * k) m n = discOffset (fun x => f (x * d)) k m n := by
+  unfold discOffset
+  -- Use the offset-sum coherence lemma and take `natAbs`.
+  simpa using congrArg Int.natAbs
+    (apSumOffset_mul_eq_apSumOffset_map_mul (f := f) (d := d) (k := k) (m := m) (n := n))
+
+/-- Variant oriented to match `discOffset f (d₁ * d₂) m n`. -/
+lemma discOffset_mul_eq_discOffset_map_mul₁₂ (f : ℕ → ℤ) (d₁ d₂ m n : ℕ) :
+    discOffset f (d₁ * d₂) m n = discOffset (fun t => f (t * d₁)) d₂ m n := by
+  simpa using (discOffset_mul_eq_discOffset_map_mul (f := f) (d := d₁) (k := d₂) (m := m) (n := n))
+
+/-- Left-multiplication-friendly variant: rewrite into a summand `t ↦ f (d₁ * t)`. -/
+lemma discOffset_mul_eq_discOffset_map_mul_left (f : ℕ → ℤ) (d₁ d₂ m n : ℕ) :
+    discOffset f (d₁ * d₂) m n = discOffset (fun t => f (d₁ * t)) d₂ m n := by
+  simpa [Nat.mul_comm] using
+    (discOffset_mul_eq_discOffset_map_mul₁₂ (f := f) (d₁ := d₁) (d₂ := d₂) (m := m) (n := n))
+
 lemma apSum_map_mul_div_of_dvd (f : ℕ → ℤ) (k d n : ℕ) (hk : k > 0) (hd : k ∣ d) :
   apSum (fun x => f (x * k)) (d / k) n = apSum f d n := by
   rcases hd with ⟨d0, rfl⟩

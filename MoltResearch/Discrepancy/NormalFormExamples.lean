@@ -2292,6 +2292,18 @@ example (f : ℕ → ℤ) (hf : IsSignSequence f) (d n : ℕ) :
     disc f d n ≤ n := by
   simpa using (disc_le (hf := hf) (d := d) (n := n))
 
+/-!
+## Step-factor coherence regression tests
+
+These are compile-time sanity checks that downstream code can “factor the step” at the discrepancy
+level (staying in `discOffset` normal form, without unfolding `Int.natAbs`).
+-/
+
+example (f : ℕ → ℤ) (d₁ d₂ m n : ℕ) :
+    discOffset f (d₁ * d₂) m n = discOffset (fun t => f (t * d₁)) d₂ m n := by
+  simpa using
+    (discOffset_mul_eq_discOffset_map_mul₁₂ (f := f) (d₁ := d₁) (d₂ := d₂) (m := m) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
