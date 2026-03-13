@@ -345,6 +345,18 @@ example (g : ℕ → ℤ)
     apSumOffset f d m n = apSumOffset g d m n := by
   simpa using (apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
 
+-- Regression: support-form congruence lemmas are usable from the stable surface.
+example (g : ℕ → ℤ)
+    (h : ∀ x ∈ apSupport d m n, f x = g x) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  simpa using
+    (apSumOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
+example (g : ℕ → ℤ)
+    (h : ∀ x ∈ apSupport d 0 n, f x = g x) :
+    apSum f d n = apSum g d n := by
+  simpa using (apSum_congr_support (f := f) (g := g) (d := d) (n := n) (h := h))
+
 -- Regression: `apSumOffset` reindexing under a bijection on `Finset.range` indices.
 --
 -- This is intentionally a very small compile-time test: we use the identity permutation.

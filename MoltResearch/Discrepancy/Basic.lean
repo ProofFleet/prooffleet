@@ -97,6 +97,50 @@ It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
 def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
+/-! ### Support finset for AP sums -/
+
+/-- `apSupport d m n` is the finite set of indices accessed by `apSumOffset f d m n`.
+
+Concretely, it is the image of `Finset.range n` under the map `i ↦ (m + i + 1) * d`.
+
+This is intended as a **normal-form support object** for local-surgery arguments: rather than
+phrasing “agreement on the relevant indices” using `Icc` bookkeeping, downstream code can assume
+pointwise agreement on `apSupport d m n`.
+-/
+def apSupport (d m n : ℕ) : Finset ℕ :=
+  (Finset.range n).image (fun i => (m + i + 1) * d)
+
+/-- If `i < n` then the corresponding index `(m + i + 1) * d` belongs to `apSupport d m n`. -/
+lemma mem_apSupport_of_lt {i d m n : ℕ} (hi : i < n) :
+    (m + i + 1) * d ∈ apSupport d m n := by
+  unfold apSupport
+  refine Finset.mem_image.2 ?_
+  exact ⟨i, Finset.mem_range.2 hi, rfl⟩
+
+/-- Support-form congruence lemma: if `f` and `g` agree on every element of `apSupport d m n`,
+then `apSumOffset f d m n = apSumOffset g d m n`.
+
+This is a convenience wrapper around `apSumOffset_congr`.
+-/
+lemma apSumOffset_congr_support (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ x ∈ apSupport d m n, f x = g x) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hi' : i < n := Finset.mem_range.1 hi
+  have hx : (m + i + 1) * d ∈ apSupport d m n := mem_apSupport_of_lt (d := d) (m := m) (n := n)
+    (i := i) hi'
+  exact h _ hx
+
+/-- Support-form congruence lemma for `apSum` (i.e. `m = 0`), expressed via `apSupport`. -/
+lemma apSum_congr_support (f g : ℕ → ℤ) (d n : ℕ)
+    (h : ∀ x ∈ apSupport d 0 n, f x = g x) :
+    apSum f d n = apSum g d n := by
+  -- `apSum f d n` is definitionally `apSumOffset f d 0 n`.
+  simpa [apSum, apSumOffset] using
+    (apSumOffset_congr_support (f := f) (g := g) (d := d) (m := 0) (n := n) (h := h))
+
 /-- A convenient wrapper for the absolute value of an offset arithmetic-progression sum.
 
 It is defined as the natural absolute value of `apSumOffset f d m n`.
