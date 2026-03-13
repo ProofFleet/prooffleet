@@ -463,8 +463,10 @@ Definition of done:
   - Implemented as `UnboundedDiscrepancyAlong.shift_mul_iff_forall_exists_discOffset_lt` and `UnboundedDiscrepancyAlong.iff_forall_exists_discOffset_zero_start_lt` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 #### Auto-generated backlog (needs triage)
-- [ ] Quantifier normal form (boundedness, discOffset-native): prove `BoundedDiscOffset f d m B ↔ ∀ n, discOffset f d m n ≤ B` with a stable lemma name (so later stages avoid unfolding defs).
-- [ ] Quantifier normal form (unboundedness, discOffset-native): prove `¬BoundedDiscOffset f d m ↔ ∀ B, ∃ n, B < discOffset f d m n` (the negation-pushed form Stage-2 wants).
+- [x] Quantifier normal form (boundedness, discOffset-native): prove `BoundedDiscOffset f d m B ↔ ∀ n, discOffset f d m n ≤ B` with a stable lemma name (so later stages avoid unfolding defs).
+  - Implemented as `boundedDiscOffset_iff_forall_discOffset_le` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
+- [x] Quantifier normal form (unboundedness, discOffset-native): prove the negation-pushed form Stage-2 wants.
+  - Implemented as `not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [ ] Along-d API coherence: define a lightweight abbreviation (or lemma-only normal form) `discAlong f d n := discOffset f d 0 n` and add rewrite lemmas bridging it to `discrepancy f d n` / `HasDiscrepancyAtLeastAlong` so downstream files can stay entirely in the `ℕ` discrepancy API.
 - [ ] `discOffset` step-one normalization: add lemmas rewriting `discOffset f d m n` to `discOffset (fun k => f (k*d)) 1 m n` (and `mul_left`-friendly variants), mirroring `apSumOffset`’s `…_step_one` family.
 - [ ] `discOffset` step-factor coherence: port the existing `apSumOffset_mul_eq_apSumOffset_map_mul…` family to `discOffset` with stable names, so multiplicative reindexing arguments can remain at discrepancy level.

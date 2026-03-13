@@ -194,6 +194,31 @@ theorem boundedDiscOffset_iff_forall_discOffset_le (f : ℕ → ℤ) (d m B : �
     BoundedDiscOffset f d m B ↔ ∀ n : ℕ, discOffset f d m n ≤ B :=
   Iff.rfl
 
+/-- Stable lemma name: negation-pushed quantifier normal form for *unboundedness* of `discOffset`.
+
+This is the standard boundedness dual:
+`¬ ∃ B, (∀ n, discOffset … ≤ B)` iff `∀ B, ∃ n, B < discOffset …`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Quantifier normal form (unboundedness, discOffset-native).
+-/
+theorem not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔ ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n := by
+  classical
+  constructor
+  · intro h B
+    by_contra h'
+    have hB : BoundedDiscOffset f d m B := by
+      intro n
+      have : ¬ B < discOffset f d m n := by
+        -- `h' : ¬ ∃ n, B < discOffset … n`
+        exact fun hn => h' ⟨n, hn⟩
+      exact le_of_not_gt this
+    exact h ⟨B, hB⟩
+  · intro h hex
+    rcases hex with ⟨B, hB⟩
+    rcases h B with ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n) hn)
+
 /-! ### Congruence lemmas -/
 
 /-- `disc` is stable under “local surgery”: if `f` and `g` agree on the indices actually

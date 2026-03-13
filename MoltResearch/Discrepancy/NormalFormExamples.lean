@@ -128,6 +128,13 @@ example (B : ℕ) :
     BoundedDiscOffset f d m B ↔ ∀ n : ℕ, discOffset f d m n ≤ B := by
   simpa using (boundedDiscOffset_iff_forall_discOffset_le (f := f) (d := d) (m := m) (B := B))
 
+-- Regression (Track B / unboundedness quantifier normal form, discOffset-native):
+-- Negation-pushed form: `¬ ∃ B, BoundedDiscOffset … B` rewrites to `∀ B, ∃ n, B < discOffset … n`.
+example :
+    (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔ ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n := by
+  simpa using
+    (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m))
+
 -- Regression: parity split normal form for even-length homogeneous AP sums.
 example :
     apSum f d (2 * (n + 1)) = apSum f (2 * d) (n + 1) + f d + apSumFrom f d (2 * d) n := by
