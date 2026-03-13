@@ -335,6 +335,47 @@ lemma apSumFrom_mul_eq_apSumFrom_map_mul_keep_a_left (f : ℕ → ℤ) (a d₁ d
   simpa using
     (apSumFrom_mul_eq_apSumFrom_rebase_map_mul_left (f := f) (a := a) (d₁ := d₁) (d₂ := d₂) (n := n))
 
+
+/-- Step-factoring normal form for affine AP sums at a pure multiple start.
+
+If the affine start is written as `a₀ * d₂`, then the endpoints
+`a₀*d₂ + (i+1)*(d₁*d₂)` can be normalised in one hop to
+`((i+1)*d₁ + a₀) * d₂` and expressed as an `apSumOffset` on a shifted sequence.
+-/
+lemma apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f : ℕ → ℤ) (a₀ d₁ d₂ n : ℕ) :
+    apSumFrom f (d₂ * a₀) (d₁ * d₂) n = apSumOffset (fun k => f ((k + a₀) * d₂)) d₁ 0 n := by
+  unfold apSumFrom apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Normalise: `d₂*a₀ + (i+1)*(d₁*d₂) = ((i+1)*d₁ + a₀) * d₂`.
+  have h : d₂ * a₀ + (i + 1) * (d₁ * d₂) = ((i + 1) * d₁ + a₀) * d₂ := by
+    calc
+      d₂ * a₀ + (i + 1) * (d₁ * d₂)
+          = a₀ * d₂ + ((i + 1) * d₁) * d₂ := by
+              simp [Nat.mul_assoc, Nat.mul_comm, Nat.mul_left_comm]
+      _ = (a₀ + (i + 1) * d₁) * d₂ := by
+              simp [Nat.add_mul]
+      _ = ((i + 1) * d₁ + a₀) * d₂ := by
+              simp [Nat.add_comm]
+  simpa [h, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc] 
+
+/-- Dvd-based wrapper for `apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul`.
+
+This is convenient when the start is given as an arbitrary `a` together with a hypothesis
+`d₂ ∣ a`.
+-/
+lemma apSumFrom_mul_step_eq_apSumOffset_shift_mul_of_dvd (f : ℕ → ℤ) (a d₁ d₂ n : ℕ)
+    (hd₂ : d₂ > 0) (ha : d₂ ∣ a) :
+    apSumFrom f a (d₁ * d₂) n = apSumOffset (fun k => f ((k + a / d₂) * d₂)) d₁ 0 n := by
+  rcases ha with ⟨a₀, rfl⟩
+  have hdiv : d₂ * a₀ / d₂ = a₀ := by
+    -- rewrite to `a₀*d₂` and use `Nat.mul_div_right`.
+    simpa [Nat.mul_comm] using (Nat.mul_div_right a₀ hd₂)
+  -- Prevent simp from rewriting `apSumOffset _ _ 0 _` into `apSum`.
+  simpa [hdiv, apSumOffset] using
+    (apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f := f) (a₀ := a₀) (d₁ := d₁)
+      (d₂ := d₂) (n := n))
+
 /-- Undo the `(· * k)` reindexing when `a` and `d` are multiples of `k`. -/
 lemma apSumFrom_map_mul_div_of_dvd (f : ℕ → ℤ) (k a d n : ℕ) (hk : k > 0)
     (ha : k ∣ a) (hd : k ∣ d) :

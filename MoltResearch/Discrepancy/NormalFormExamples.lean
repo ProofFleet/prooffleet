@@ -19,6 +19,14 @@ variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
+-- Regression (Track B / step-factoring at a multiple start):
+-- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
+example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d)) k 0 n := by
+  -- The lemma is stated with the start written as `d * a` (matching `Nat.dvd` witnesses); commute.
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f := f) (a₀ := a) (d₁ := k)
+      (d₂ := d) (n := n))
+
 -- Regression (Track B / Lipschitz-in-length): one-step extension for offset AP sums.
 example : apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
   simpa using (apSumOffset_succ (f := f) (d := d) (m := m) (n := n))
@@ -632,6 +640,14 @@ example :
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
+-- Regression (Track B / step-factoring at a multiple start):
+-- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
+example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d)) k 0 n := by
+  -- The lemma is stated with the start written as `d * a` (matching `Nat.dvd` witnesses); commute.
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f := f) (a₀ := a) (d₁ := k)
+      (d₂ := d) (n := n))
+
 example : apSumFrom f 0 d n = apSum f d n := by
   simpa using apSumFrom_zero_start (f := f) (d := d) (n := n)
 
@@ -1152,6 +1168,14 @@ example : apSum f d (n + 1) = f d + apSumOffset f d 1 n := by
 
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
+
+-- Regression (Track B / step-factoring at a multiple start):
+-- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
+example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d)) k 0 n := by
+  -- The lemma is stated with the start written as `d * a` (matching `Nat.dvd` witnesses); commute.
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f := f) (a₀ := a) (d₁ := k)
+      (d₂ := d) (n := n))
 
 example : apSumOffset f d m 0 = 0 := by
   simp
