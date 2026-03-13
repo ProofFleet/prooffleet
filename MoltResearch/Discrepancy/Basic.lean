@@ -1218,6 +1218,15 @@ lemma apSumOffset_succ (f : ℕ → ℤ) (d m n : ℕ) :
   unfold apSumOffset
   simp [Finset.range_add_one, Finset.sum_insert, add_comm, add_assoc]
 
+/-- (Track B checklist item) Canonical one-step difference lemma for `apSumOffset`.
+
+This is a `simp`-friendly way to express that extending the length by one adds exactly the next term.
+-/
+lemma apSumOffset_succ_sub (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m (n + 1) - apSumOffset f d m n = f ((m + n + 1) * d) := by
+  -- `S(n+1) = S(n) + term`, so subtracting `S(n)` leaves `term`.
+  simp [apSumOffset_succ, sub_eq_add_neg, add_assoc, add_left_comm, add_comm]
+
 /-- Lipschitz-in-length: for a sign sequence, the offset AP partial sums change by at most `1`
 (in `Int.natAbs`) when increasing the length by one.
 

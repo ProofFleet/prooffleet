@@ -30,6 +30,10 @@ example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d))
 example : apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
   simpa using (apSumOffset_succ (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / Lipschitz-in-length): one-step difference form.
+example : apSumOffset f d m (n + 1) - apSumOffset f d m n = f ((m + n + 1) * d) := by
+  simpa using (apSumOffset_succ_sub (f := f) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / Lipschitz-in-length): Lipschitz bound in `Int.natAbs` for sign sequences.
 example (hf : IsSignSequence f) :
     Int.natAbs (apSumOffset f d m (n + 1)) ≤ Int.natAbs (apSumOffset f d m n) + 1 := by

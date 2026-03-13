@@ -426,7 +426,7 @@ Definition of done:
 - [x] Bounded-by-B generalization for affine tails: lemma `natAbs_apSumFrom_add_sub_apSumFrom_le_mul` (in `MoltResearch/Discrepancy/Bound.lean`) bounds `Int.natAbs (apSumFrom f a d (m+n) - apSumFrom f a d m) ≤ n * B` under `∀k, Int.natAbs (f k) ≤ B`.
 
 #### Auto-generated backlog (needs triage)
-- [ ] DiscOffset-level succ/Lipschitz API: add the canonical step lemma
+- [x] DiscOffset-level succ/Lipschitz API: add the canonical step lemma
   `discOffset f d m (n+1) ≤ discOffset f d m n + 1` (and the corresponding equality for `apSumOffset`), plus `simp`-friendly corollaries.
 - [ ] DiscOffset-level stability: a lemma stating `discOffset f d m n = discOffset g d m n` if `f` and `g` agree on the accessed indices (prefer phrasing via `apSupport` or `Finset.range` normal form), so later “local surgery” arguments can stay at discrepancy level.
 - [ ] Coherence lemma: expose a stable normal form `discOffset f d m 0 = 0` and `discOffset f d m 1 = Int.natAbs (f ((m+1)*d))` (and affine/homogeneous analogues) to reduce degenerate-case boilerplate in later bounds.
