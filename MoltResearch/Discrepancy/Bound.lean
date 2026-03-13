@@ -192,6 +192,19 @@ lemma natAbs_apSumFrom_sub_apSumFrom_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
       (n := n - m)
   simpa [apSumFrom_tail_eq_sub_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
 
+/-- A convenient tail-difference bound specialized to a `m+n` endpoint.
+
+This is the `(m+n)-m` special case of `natAbs_apSumFrom_sub_apSumFrom_of_le_le_mul`, packaged
+so downstream code can bound an affine tail difference without first rewriting endpoints into
+a `≤` hypothesis.
+-/
+lemma natAbs_apSumFrom_add_sub_apSumFrom_le_mul (f : ℕ → ℤ) (B : ℕ)
+    (hB : ∀ k, Int.natAbs (f k) ≤ B) (a d m n : ℕ) :
+    Int.natAbs (apSumFrom f a d (m + n) - apSumFrom f a d m) ≤ n * B := by
+  simpa [Nat.add_sub_cancel_left] using
+    (natAbs_apSumFrom_sub_apSumFrom_of_le_le_mul (f := f) (B := B) (hB := hB) (a := a) (d := d)
+      (m := m) (n := m + n) (hmn := Nat.le_add_right m n))
+
 lemma natAbs_sum_Icc_add_mul_of_le_le_mul (f : ℕ → ℤ) (B : ℕ)
     (hB : ∀ n, Int.natAbs (f n) ≤ B) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
     Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ (n - m) * B := by

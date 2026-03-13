@@ -2208,6 +2208,16 @@ example : Int.natAbs (apSum f d (m + n) - apSum f d m) ≤ n := by
   simpa using hf.natAbs_apSum_sub_le (d := d) (m := m) (n := n)
 
 
+-- Bounds (regression tests): `B`-bounded sequences give the expected tail estimates.
+
+variable (B : ℕ) (hB : ∀ k, Int.natAbs (f k) ≤ B)
+
+example : Int.natAbs (apSumFrom f a d (m + n) - apSumFrom f a d m) ≤ n * B := by
+  simpa using
+    natAbs_apSumFrom_add_sub_apSumFrom_le_mul (f := f) (B := B) (hB := hB)
+      (a := a) (d := d) (m := m) (n := n)
+
+
 -- Witness normal forms (regression tests): `HasDiscrepancyAtLeast` ↔ paper-style interval witnesses.
 
 variable (C : ℕ)
