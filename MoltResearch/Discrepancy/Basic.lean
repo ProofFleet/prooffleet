@@ -1239,7 +1239,26 @@ lemma IsSignSequence.natAbs_apSumOffset_succ_le {f : ℕ → ℤ} (hf : IsSignSe
     _ = Int.natAbs (apSumOffset f d m n) + 1 := by
           simp [IsSignSequence.natAbs_eq_one (hf := hf)]
 
-/-! ### DiscOffset Lipschitz bound for sign sequences -/
+/-! ### DiscOffset Lipschitz bounds -/
+
+/-- (Track B checklist item) Canonical one-step inequality for `discOffset`.
+
+This is the fully general triangle-inequality form:
+`discOffset … (n+1)` is bounded by `discOffset … n` plus the `Int.natAbs` of the next term.
+
+The sign-sequence specialization `IsSignSequence.discOffset_succ_le` follows by rewriting
+`Int.natAbs (f _) = 1`. -/
+lemma discOffset_succ_le_add_natAbs (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m (n + 1) ≤ discOffset f d m n + Int.natAbs (f ((m + n + 1) * d)) := by
+  unfold discOffset
+  -- one-step extension, then triangle inequality
+  calc
+    Int.natAbs (apSumOffset f d m (n + 1))
+        = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
+          simp [apSumOffset_succ, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+    _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
+          simpa using
+            (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))
 
 /-- (Track B checklist item) `discOffset` grows by at most `1` when you extend the length by one,
 for sign sequences.

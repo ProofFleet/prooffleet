@@ -35,7 +35,12 @@ example (hf : IsSignSequence f) :
     Int.natAbs (apSumOffset f d m (n + 1)) ≤ Int.natAbs (apSumOffset f d m n) + 1 := by
   simpa using (IsSignSequence.natAbs_apSumOffset_succ_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
 
--- Regression (Track B / discOffset Lipschitz bound): one-step extension for discOffset.
+-- Regression (Track B / discOffset Lipschitz bound): one-step inequality (triangle form).
+example :
+    discOffset f d m (n + 1) ≤ discOffset f d m n + Int.natAbs (f ((m + n + 1) * d)) := by
+  simpa using (discOffset_succ_le_add_natAbs (f := f) (d := d) (m := m) (n := n))
+
+-- Regression (Track B / discOffset Lipschitz bound): sign-sequence specialization.
 example (hf : IsSignSequence f) :
     discOffset f d m (n + 1) ≤ discOffset f d m n + 1 := by
   simpa using
