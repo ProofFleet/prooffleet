@@ -55,6 +55,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔ (∃ n : ℕ, C < discOffset f d m n)`.
   (Implemented as `HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt` in `MoltResearch/Discrepancy/Basic.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+- [x] Range-cut normal form (discOffset-level): using `apSumOffset_eq_sum_range'`, prove a canonical lemma splitting a `discOffset`
+  over `Finset.range` at a cut `k` and rewriting both pieces back to `discOffset` (so later proofs can do “cut at k” without dropping to `Int` sums).
+  (Implemented as `discOffset_eq_natAbs_apSumOffset_cut` / `discOffset_cut_le` in `MoltResearch/Discrepancy/Offset.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
+
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
