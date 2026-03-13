@@ -981,6 +981,32 @@ lemma apSumOffset_eq_apSumOffset_step_one (f : ℕ → ℤ) (d m n : ℕ) :
   unfold apSumOffset
   simp
 
+/-!
+### Step-one normalization for `discOffset`
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` step-one normalization.
+-/
+
+/-- Normal form (“step-one”): push the step size into the summand for `discOffset`.
+
+This is the `Int.natAbs` wrapper analogue of `apSumOffset_eq_apSumOffset_step_one`.
+-/
+lemma discOffset_eq_discOffset_step_one (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = discOffset (fun k => f (k * d)) 1 m n := by
+  -- Avoid `simp`: the simp bridge `Int.natAbs (apSumOffset …) = discOffset …` can loop.
+  unfold discOffset
+  -- Push the step into the summand at the `apSumOffset` level, then wrap with `Int.natAbs`.
+  simpa using congrArg Int.natAbs (apSumOffset_eq_apSumOffset_step_one (f := f) (d := d) (m := m) (n := n))
+
+/-- `mul_left`-friendly variant of `discOffset_eq_discOffset_step_one`.
+
+This is occasionally convenient when the downstream normal form prefers `d * k`.
+-/
+lemma discOffset_eq_discOffset_step_one_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = discOffset (fun k => f (d * k)) 1 m n := by
+  -- Rewrite the summand index using commutativity.
+  simpa [Nat.mul_comm] using (discOffset_eq_discOffset_step_one (f := f) (d := d) (m := m) (n := n))
+
 /-- Combined “shift-start + step-one” normal form.
 
 This pushes both a *start shift* `a` (in the underlying sequence) and the AP step `d` into the

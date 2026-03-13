@@ -29,6 +29,15 @@ example : discOffset f d m 0 = 0 := by
 example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
   simp
 
+-- Regression (Track B / step-one normalization, discOffset):
+-- push the step size into the summand.
+example : discOffset f d m n = discOffset (fun k => f (k * d)) 1 m n := by
+  simpa using (discOffset_eq_discOffset_step_one (f := f) (d := d) (m := m) (n := n))
+
+-- Regression (Track B / step-one normalization, discOffset / mul_left-friendly):
+example : discOffset f d m n = discOffset (fun k => f (d * k)) 1 m n := by
+  simpa using (discOffset_eq_discOffset_step_one_mul_left (f := f) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
 -- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
