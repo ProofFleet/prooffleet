@@ -171,6 +171,18 @@ This direction avoids simp loops with `discOffset_def`.
 
 /-! ### Congruence lemmas -/
 
+/-- `disc` is stable under “local surgery”: if `f` and `g` agree on the indices actually
+accessed by the underlying homogeneous progression sum, then the discrepancies coincide.
+
+This is the `natAbs`/`ℕ`-valued analogue of `apSum_congr_support`.
+-/
+lemma disc_congr_support (f g : ℕ → ℤ) (d n : ℕ)
+    (h : ∀ x ∈ apSupport d 0 n, f x = g x) :
+    disc f d n = disc g d n := by
+  unfold disc
+  exact congrArg Int.natAbs
+    (apSum_congr_support (f := f) (g := g) (d := d) (n := n) (h := h))
+
 /-- `discOffset` is stable under “local surgery”: if `f` and `g` agree on the indices actually
 accessed by the underlying offset progression sum, then the offset discrepancies coincide.
 
@@ -193,6 +205,14 @@ lemma apSum_congr (f g : ℕ → ℤ) (d n : ℕ)
   intro i hi
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
+
+/-- Pointwise congruence variant of `disc_congr_support`, expressed over `i < n`. -/
+lemma disc_congr (f g : ℕ → ℤ) (d n : ℕ)
+    (h : ∀ i, i < n → f ((i + 1) * d) = g ((i + 1) * d)) :
+    disc f d n = disc g d n := by
+  unfold disc
+  exact congrArg Int.natAbs
+    (apSum_congr (f := f) (g := g) (d := d) (n := n) (h := h))
 
 /-- If two functions agree pointwise on the indices used in `apSumOffset`, then the offset sums are equal. -/
 lemma apSumOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)

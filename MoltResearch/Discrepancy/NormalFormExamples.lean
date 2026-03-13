@@ -40,6 +40,12 @@ example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
     discOffset f d m n = discOffset g d m n := by
   simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
+-- Regression (Track B / local surgery at homogeneous `disc` level):
+-- if two sequences agree on `apSupport d 0 n`, then their homogeneous discrepancies coincide.
+example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d 0 n, f x = g x) :
+    disc f d n = disc g d n := by
+  simpa using (disc_congr_support (f := f) (g := g) (d := d) (n := n) h)
+
 -- Regression (Track B / local surgery, range form):
 -- pointwise agreement on the summation indices `i < n` suffices.
 example (g : ℕ → ℤ)
