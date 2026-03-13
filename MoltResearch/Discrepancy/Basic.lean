@@ -1255,6 +1255,37 @@ section apSumOffset_degenerate
 
 end apSumOffset_degenerate
 
+/-! ### Degenerate length simp lemmas for `discOffset`
+
+These are the `natAbs`/`ℕ`-valued counterparts of `apSumOffset_zero` / `apSumOffset_one`.
+They are meant to reduce “degenerate tail” boilerplate at the discrepancy level.
+-/
+section discOffset_degenerate
+
+@[simp] lemma discOffset_zero (f : ℕ → ℤ) (d m : ℕ) : discOffset f d m 0 = 0 := by
+  unfold discOffset
+  simp
+
+@[simp] lemma discOffset_one (f : ℕ → ℤ) (d m : ℕ) :
+    discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
+  unfold discOffset
+  simp
+
+end discOffset_degenerate
+
+/-! ### Degenerate length simp lemmas for homogeneous wrappers -/
+section disc_degenerate
+
+@[simp] lemma disc_one (f : ℕ → ℤ) (d : ℕ) : disc f d 1 = Int.natAbs (f d) := by
+  unfold disc
+  simp [apSum_one]
+
+@[simp] lemma discrepancy_one (f : ℕ → ℤ) (d : ℕ) : discrepancy f d 1 = Int.natAbs (f d) := by
+  unfold discrepancy
+  simp [apSum_one]
+
+end disc_degenerate
+
 -- (deprecated alias moved to `MoltResearch.Discrepancy.Deprecated`)
 
 lemma apSumOffset_succ (f : ℕ → ℤ) (d m n : ℕ) :

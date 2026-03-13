@@ -19,6 +19,14 @@ variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
+-- Regression (Track B / degenerate tail normal forms):
+-- `discOffset` at length 0 and 1 should simplify to explicit normal forms.
+example : discOffset f d m 0 = 0 := by
+  simp
+
+example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
+  simp
+
 -- Regression (Track B / local surgery at `discOffset` level):
 -- if two sequences agree on `apSupport d m n`, then their offset discrepancies coincide.
 example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
