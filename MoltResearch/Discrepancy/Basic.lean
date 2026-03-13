@@ -171,6 +171,19 @@ This direction avoids simp loops with `discOffset_def`.
 
 /-! ### Congruence lemmas -/
 
+/-- `discOffset` is stable under “local surgery”: if `f` and `g` agree on the indices actually
+accessed by the underlying offset progression sum, then the offset discrepancies coincide.
+
+This is the `natAbs`/`ℕ`-valued analogue of `apSumOffset_congr_support`.
+-/
+lemma discOffset_congr_support (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ x ∈ apSupport d m n, f x = g x) :
+    discOffset f d m n = discOffset g d m n := by
+  -- Reduce to `apSumOffset_congr_support` and take `Int.natAbs` (avoid `simp` loops).
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
 /-- If two functions agree pointwise on the indices used in `apSum`, then the AP sums are equal. -/
 lemma apSum_congr (f g : ℕ → ℤ) (d n : ℕ)
     (h : ∀ i, i < n → f ((i + 1) * d) = g ((i + 1) * d)) :

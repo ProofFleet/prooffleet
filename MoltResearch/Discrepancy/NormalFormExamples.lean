@@ -19,6 +19,12 @@ variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
+-- Regression (Track B / local surgery at `discOffset` level):
+-- if two sequences agree on `apSupport d m n`, then their offset discrepancies coincide.
+example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
+    discOffset f d m n = discOffset g d m n := by
+  simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
 -- Regression (Track B / step-factoring at a multiple start):
 -- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
 example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d)) k 0 n := by
