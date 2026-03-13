@@ -106,6 +106,9 @@ Concretely, it is the image of `Finset.range n` under the map `i ↦ (m + i + 1)
 This is intended as a **normal-form support object** for local-surgery arguments: rather than
 phrasing “agreement on the relevant indices” using `Icc` bookkeeping, downstream code can assume
 pointwise agreement on `apSupport d m n`.
+
+Note: this is a `Finset`, so it forgets multiplicity (if different `i` map to the same index,
+the support still contains that index just once).
 -/
 def apSupport (d m n : ℕ) : Finset ℕ :=
   (Finset.range n).image (fun i => (m + i + 1) * d)
