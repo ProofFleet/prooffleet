@@ -1377,6 +1377,15 @@ lemma apSumOffset_shift_add_add_offset_eq (f : ℕ → ℤ) (a d m b n : ℕ) :
   -- Rewrite both sides using the `apSum` shifted-sequence normal form and simplify.
   simp [apSumOffset_eq_apSum_shift_add, Nat.add_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- Inverse orientation of `apSumOffset_shift_add_add_offset_eq`. -/
+lemma apSumOffset_shift_add_shift_add_eq_apSumOffset_shift_add_add_offset (f : ℕ → ℤ)
+    (a d m b n : ℕ) :
+    apSumOffset (fun k => f (k + (a + b * d))) d m n =
+      apSumOffset (fun k => f (k + a)) d (m + b) n := by
+  simpa using
+    (apSumOffset_shift_add_add_offset_eq (f := f) (a := a) (d := d) (m := m) (b := b)
+      (n := n)).symm
+
 /-- Normal form: shift in the *start index* of an offset sum.
 
 Concretely, shifting the start from `m` to `m + k` can be absorbed into a translation of the
