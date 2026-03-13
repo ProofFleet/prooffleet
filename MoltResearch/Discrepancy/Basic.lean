@@ -954,6 +954,17 @@ lemma shift_mul_iff_exists_discOffset_lt (f : ℕ → ℤ) (d m C : ℕ) :
     -- Package back into `discrepancy (shift)`.
     simpa [HasDiscrepancyAtLeastAlong, discrepancy_shift_mul] using hn'
 
+/-- Canonical bridge: along-`d` predicate rewrites to the `discOffset … 0 n` witness normal form.
+
+This is the unshifted specialization of `shift_mul_iff_exists_discOffset_lt`.
+-/
+lemma iff_exists_discOffset_zero_start_lt (f : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong f d C ↔ (∃ n : ℕ, C < discOffset f d 0 n) := by
+  -- Specialize the shift lemma to `m = 0`, then normalize the definitional shift.
+  simpa using
+    (HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt
+      (f := f) (d := d) (m := 0) (C := C))
+
 end HasDiscrepancyAtLeastAlong
 
 /-- Unbounded discrepancy along a fixed step `d` (witness normal form).
@@ -983,6 +994,17 @@ theorem shift_mul_iff_forall_exists_discOffset_lt (f : ℕ → ℤ) (d m : ℕ) 
       (HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt
           (f := f) (d := d) (m := m) (C := C)).2
         (h C)
+
+/-- Canonical bridge: unbounded discrepancy along `d` rewrites to the `discOffset … 0 n` ∀∃ normal form.
+
+This is the unshifted specialization of `shift_mul_iff_forall_exists_discOffset_lt`.
+-/
+theorem iff_forall_exists_discOffset_zero_start_lt (f : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong f d ↔ (∀ C : ℕ, ∃ n : ℕ, C < discOffset f d 0 n) := by
+  -- Specialize the shift lemma to `m = 0`, then normalize the definitional shift.
+  simpa using
+    (UnboundedDiscrepancyAlong.shift_mul_iff_forall_exists_discOffset_lt
+      (f := f) (d := d) (m := 0))
 
 end UnboundedDiscrepancyAlong
 

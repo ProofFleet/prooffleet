@@ -42,6 +42,16 @@ example :
   simpa using
     (UnboundedDiscrepancyAlong.shift_mul_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m))
 
+-- Regression (Track B / witness normal form, along-`d`): unshifted along-`d` predicate
+-- rewrites to the `discOffset … 0 n` witness form.
+example : HasDiscrepancyAtLeastAlong f d C ↔ ∃ n : ℕ, C < discOffset f d 0 n := by
+  simpa using (HasDiscrepancyAtLeastAlong.iff_exists_discOffset_zero_start_lt (f := f) (d := d) (C := C))
+
+-- Regression (Track B / unbounded witness normal form, along-`d`): unshifted unboundedness
+-- rewrites to the `discOffset … 0 n` ∀∃ normal form.
+example : UnboundedDiscrepancyAlong f d ↔ (∀ C : ℕ, ∃ n : ℕ, C < discOffset f d 0 n) := by
+  simpa using (UnboundedDiscrepancyAlong.iff_forall_exists_discOffset_zero_start_lt (f := f) (d := d))
+
 -- Regression (Track B / local surgery at `discOffset` level):
 -- if two sequences agree on `apSupport d m n`, then their offset discrepancies coincide.
 example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
