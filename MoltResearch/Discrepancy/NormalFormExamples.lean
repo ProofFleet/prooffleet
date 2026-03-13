@@ -1035,6 +1035,13 @@ example (hf : ∀ k, Int.natAbs (f k) ≤ 1) : disc f d n ≤ n := by
 example : disc f d (n₁ + n₂) ≤ disc f d n₁ + discOffset f d n₁ n₂ := by
   simpa using (disc_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
 
+-- `disc` one-step stability regression (homogeneous analogue of `discOffset_succ_le_add_natAbs`).
+example : disc f d (n + 1) ≤ disc f d n + Int.natAbs (f ((n + 1) * d)) := by
+  simpa using (disc_succ_le_add_natAbs (f := f) (d := d) (n := n))
+
+example (hf : IsSignSequence f) : disc f d (n + 1) ≤ disc f d n + 1 := by
+  simpa using (IsSignSequence.disc_succ_le (f := f) (hf := hf) (d := d) (n := n))
+
 example :
     apSumOffset f d m (n₁ + n₂) =
       apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by

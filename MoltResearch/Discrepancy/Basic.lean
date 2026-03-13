@@ -1438,6 +1438,41 @@ lemma IsSignSequence.discOffset_succ_le {f : ℕ → ℤ} (hf : IsSignSequence f
   unfold discOffset
   simpa using (hf.natAbs_apSumOffset_succ_le (d := d) (m := m) (n := n))
 
+/-! ### Homogeneous `disc` one-step (stability) lemmas -/
+
+/-- (Track B checklist item) Canonical one-step inequality for `disc`.
+
+This is the homogeneous analogue of `discOffset_succ_le_add_natAbs`.
+-/
+lemma disc_succ_le_add_natAbs (f : ℕ → ℤ) (d n : ℕ) :
+    disc f d (n + 1) ≤ disc f d n + Int.natAbs (f ((n + 1) * d)) := by
+  classical
+  unfold disc
+  have hsucc : apSum f d (n + 1) = apSum f d n + f ((n + 1) * d) := by
+    -- `Finset.range (n+1)` is `insert n (range n)`
+    simp [apSum, Finset.range_add_one, Finset.sum_insert]
+    -- remaining goal is just commutativity
+    simp [add_comm]
+  -- one-step extension, then triangle inequality
+  calc
+    Int.natAbs (apSum f d (n + 1))
+        = Int.natAbs (apSum f d n + f ((n + 1) * d)) := by
+          simpa [hsucc]
+    _ ≤ Int.natAbs (apSum f d n) + Int.natAbs (f ((n + 1) * d)) := by
+          simpa using (Int.natAbs_add_le (apSum f d n) (f ((n + 1) * d)))
+
+/-- (Track B checklist item) `disc` grows by at most `1` when you extend the length by one,
+for sign sequences.
+
+This is the homogeneous analogue of `IsSignSequence.discOffset_succ_le`.
+-/
+lemma IsSignSequence.disc_succ_le {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d n : ℕ) :
+    disc f d (n + 1) ≤ disc f d n + 1 := by
+  -- reduce to the general `Int.natAbs` form and rewrite the next term as `1`
+  simpa [IsSignSequence.natAbs_eq_one (hf := hf)] using
+    (disc_succ_le_add_natAbs (f := f) (d := d) (n := n))
+
 lemma apSum_eq_apSumOffset (f : ℕ → ℤ) (d n : ℕ) : apSum f d n = apSumOffset f d 0 n := by
   unfold apSum apSumOffset
   simp
