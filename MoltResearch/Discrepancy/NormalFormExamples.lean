@@ -29,6 +29,11 @@ example : discOffset f d m 0 = 0 := by
 example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
   simp
 
+-- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
+-- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
+example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
+  simpa using (HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start (f := f) (C := C))
+
 -- Regression (Track B / local surgery at `discOffset` level):
 -- if two sequences agree on `apSupport d m n`, then their offset discrepancies coincide.
 example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
