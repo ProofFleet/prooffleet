@@ -357,4 +357,29 @@ lemma apSumOffset_mul_len_succ_eq_sum_range_mul_left (f : ℕ → ℤ) (d m q n 
   simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq)
 
+/-!
+## Discrepancy-level residue-class splitting
+
+These are thin wrappers around the sum-level residue split lemmas, rewriting `discOffset` (which is
+`Int.natAbs` of an `apSumOffset`) into the corresponding residue-class normal form.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue-class split (offset → r tracks).
+-/
+
+/-- Residue-class split normal form for `discOffset` (offset discrepancy) at a block length `q*(n+1)`. -/
+lemma discOffset_mul_len_succ_eq_natAbs_sum_range (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    discOffset f d m (q * (n + 1)) =
+      Int.natAbs ((Finset.range q).sum (fun r =>
+        f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n)) := by
+  unfold discOffset
+  simp [apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq]
+
+/-- `d * i` summand-order variant of `discOffset_mul_len_succ_eq_natAbs_sum_range`. -/
+lemma discOffset_mul_len_succ_eq_natAbs_sum_range_mul_left (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    discOffset f d m (q * (n + 1)) =
+      Int.natAbs ((Finset.range q).sum (fun r =>
+        f (d * (m + r + 1)) + apSumFrom f (d * (m + r + 1)) (q * d) n)) := by
+  unfold discOffset
+  simp [apSumOffset_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (m := m) (q := q) (n := n) hq]
+
 end MoltResearch
