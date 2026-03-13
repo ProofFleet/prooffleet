@@ -944,6 +944,13 @@ example :
   simpa using
     discOffset_add_len_eq_natAbs_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- Range-cut normal form specialized to a cut length `k ≤ n`.
+example {k : ℕ} (hk : k ≤ n) :
+    discOffset f d m n =
+      Int.natAbs (apSumOffset f d m k + apSumOffset f d (m + k) (n - k)) := by
+  simpa using
+    (discOffset_eq_natAbs_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
 -- Same difference normal form, but eliminate the explicit offset sum into a homogeneous AP sum
 -- on a shifted sequence.
 example : apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n := by

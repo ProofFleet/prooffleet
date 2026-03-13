@@ -111,6 +111,24 @@ lemma discOffset_add_len_eq_natAbs_apSumOffset_add (f : ℕ → ℤ) (d m n₁ n
                 (n₂ := n₂))
   simpa [h]
 
+/-- Range-cut normal form for `discOffset`: split at a cut length `k ≤ n`.
+
+This packages the “expand to `Finset.range`, cut, and rewrite back” pipeline into a single lemma
+that later proofs can use without dropping down to raw `Finset` sums.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Range-cut normal form (discOffset-level).
+-/
+lemma discOffset_eq_natAbs_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    discOffset f d m n =
+      Int.natAbs (apSumOffset f d m k + apSumOffset f d (m + k) (n - k)) := by
+  -- Rewrite `n` as `k + (n-k)` and apply the length-splitting normal form.
+  have hn : k + (n - k) = n := Nat.add_sub_of_le hk
+  -- `discOffset_add_len_eq_natAbs_apSumOffset_add` is stated for `n₁+n₂`.
+  -- We specialize it with `n₁=k`, `n₂=n-k` and rewrite using `hn`.
+  simpa [hn] using
+    (discOffset_add_len_eq_natAbs_apSumOffset_add (f := f) (d := d) (m := m)
+      (n₁ := k) (n₂ := n - k))
+
 lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   have h0 := (apSum_add_length (f := f) (d := d) (m := m) (n := n)).symm
