@@ -125,6 +125,51 @@ example
     discOffset f d m n ≤ C := by
   simpa using h
 
+/-!
+### NEW (Track B): paper `Icc` statements → `discOffset` normal form → split/bound
+
+These are intentionally “paper-shaped” and *do not* mention
+`Int.natAbs (apSumOffset ...)` as an intermediate normal form.
+-/
+
+-- 1) Direct normalization from a paper `Icc` inequality.
+example
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C) :
+    discOffset f d m n ≤ C := by
+  -- `simp` turns the `Icc` sum into `discOffset` via `apSumOffset_eq_sum_Icc`.
+  simpa [discOffset, apSumOffset_eq_sum_Icc] using h
+
+-- 2) Split/bound a single paper interval into two consecutive tails.
+example (n₁ n₂ : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+  have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
+  have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
+    exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
+  -- Normalize LHS to `discOffset` and apply the stable-surface split lemma.
+  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+
+-- 3) Combine two paper bounds into a bound on the concatenated interval.
+example (n₁ n₂ C₁ C₂ : ℕ)
+    (h₁ : Int.natAbs ((Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d))) ≤ C₁)
+    (h₂ : Int.natAbs ((Finset.Icc (m + n₁ + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤ C₂) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤ C₁ + C₂ := by
+  have h₁' : discOffset f d m n₁ ≤ C₁ := by
+    simpa [discOffset, apSumOffset_eq_sum_Icc] using h₁
+  have h₂' : discOffset f d (m + n₁) n₂ ≤ C₂ := by
+    simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h₂
+  have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
+  have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
+    exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
+  have hsplit : discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+  have : discOffset f d m (n₁ + n₂) ≤ C₁ + C₂ :=
+    le_trans hsplit (Nat.add_le_add h₁' h₂')
+  -- Return to a paper `Icc` inequality.
+  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+
 -- Compile-only regression (Track B / paper `Icc` → `discOffset`):
 -- normalize to the stable-surface wrapper (not `Int.natAbs (apSumOffset ...)`).
 example :
