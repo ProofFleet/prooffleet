@@ -378,16 +378,27 @@ This is convenient when the start is given as an arbitrary `a` together with a h
 `d₂ ∣ a`.
 -/
 lemma apSumFrom_mul_step_eq_apSumOffset_shift_mul_of_dvd (f : ℕ → ℤ) (a d₁ d₂ n : ℕ)
-    (hd₂ : d₂ > 0) (ha : d₂ ∣ a) :
+    (ha : d₂ ∣ a) :
     apSumFrom f a (d₁ * d₂) n = apSumOffset (fun k => f ((k + a / d₂) * d₂)) d₁ 0 n := by
-  rcases ha with ⟨a₀, rfl⟩
-  have hdiv : d₂ * a₀ / d₂ = a₀ := by
-    -- rewrite to `a₀*d₂` and use `Nat.mul_div_right`.
-    simpa [Nat.mul_comm] using (Nat.mul_div_right a₀ hd₂)
-  -- Prevent simp from rewriting `apSumOffset _ _ 0 _` into `apSum`.
-  simpa [hdiv, apSumOffset] using
-    (apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f := f) (a₀ := a₀) (d₁ := d₁)
-      (d₂ := d₂) (n := n))
+  by_cases h0 : d₂ = 0
+  · subst h0
+    -- `0 ∣ a` forces `a = 0`.
+    rcases ha with ⟨a₀, rfl⟩
+    -- Everything is constant at `0`.
+    have hconst : (fun k : ℕ => f ((k + (0 : ℕ) / 0) * 0)) = (fun _ : ℕ => f 0) := by
+      funext k
+      simp
+    -- Both sides compute to `n • f 0`.
+    simp [apSumFrom, apSumOffset, apSum, hconst]
+  · have hd₂ : d₂ > 0 := Nat.pos_of_ne_zero h0
+    rcases ha with ⟨a₀, rfl⟩
+    have hdiv : d₂ * a₀ / d₂ = a₀ := by
+      -- rewrite to `a₀*d₂` and use `Nat.mul_div_right`.
+      simpa [Nat.mul_comm] using (Nat.mul_div_right a₀ hd₂)
+    -- Prevent simp from rewriting `apSumOffset _ _ 0 _` into `apSum`.
+    simpa [hdiv, apSumOffset] using
+      (apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul (f := f) (a₀ := a₀) (d₁ := d₁)
+        (d₂ := d₂) (n := n))
 
 /-- Undo the `(· * k)` reindexing when `a` and `d` are multiples of `k`. -/
 lemma apSumFrom_map_mul_div_of_dvd (f : ℕ → ℤ) (k a d n : ℕ) (hk : k > 0)

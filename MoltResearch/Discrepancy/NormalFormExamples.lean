@@ -646,6 +646,14 @@ example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d))
     (apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul_right (f := f) (a₀ := a) (d₁ := k)
       (d₂ := d) (n := n))
 
+-- Regression (Track B / step-factoring when the start is a multiple):
+-- normalize `apSumFrom f a (k*d) n` assuming `d ∣ a`.
+example (ha : d ∣ a) :
+    apSumFrom f a (k * d) n = apSumOffset (fun t => f ((t + a / d) * d)) k 0 n := by
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using
+    (apSumFrom_mul_step_eq_apSumOffset_shift_mul_of_dvd (f := f) (a := a) (d₁ := k) (d₂ := d)
+      (n := n) (ha := ha))
+
 example : apSumFrom f 0 d n = apSum f d n := by
   simpa using apSumFrom_zero_start (f := f) (d := d) (n := n)
 
