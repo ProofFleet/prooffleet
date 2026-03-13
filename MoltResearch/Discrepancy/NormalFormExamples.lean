@@ -937,6 +937,13 @@ example :
   simpa using
     sum_range_add_len_eq_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- One-cut normal form at the `discOffset` level (range-cut lemma regression).
+example :
+    discOffset f d m (n₁ + n₂) =
+      Int.natAbs (apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂) := by
+  simpa using
+    discOffset_add_len_eq_natAbs_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 -- Same difference normal form, but eliminate the explicit offset sum into a homogeneous AP sum
 -- on a shifted sequence.
 example : apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n := by

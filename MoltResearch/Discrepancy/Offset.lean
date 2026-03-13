@@ -88,6 +88,29 @@ lemma sum_range_add_len_eq_apSumOffset_add (f : ℕ → ℤ) (d m n₁ n₂ : �
   simpa [apSumOffset_eq_sum_range', Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
     (Finset.sum_range_add (f := fun i => f ((m + i + 1) * d)) n₁ n₂)
 
+/-- One-cut normal form for `discOffset` over a concatenated `Finset.range`.
+
+This rewrites `discOffset f d m (n₁+n₂)` into the absolute value of the sum of the two offset sums
+corresponding to the prefix of length `n₁` and the tail of length `n₂`.
+
+This is a Track B “range-cut normal form” lemma. -/
+lemma discOffset_add_len_eq_natAbs_apSumOffset_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    discOffset f d m (n₁ + n₂) =
+      Int.natAbs (apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂) := by
+  unfold discOffset
+  have h : apSumOffset f d m (n₁ + n₂) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+    calc
+      apSumOffset f d m (n₁ + n₂)
+          = (Finset.range (n₁ + n₂)).sum (fun i => f ((m + i + 1) * d)) := by
+              simpa using
+                (apSumOffset_eq_sum_range' (f := f) (d := d) (m := m) (n := n₁ + n₂))
+      _ = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+            simpa using
+              (sum_range_add_len_eq_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n₁)
+                (n₂ := n₂))
+  simpa [h]
+
 lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   have h0 := (apSum_add_length (f := f) (d := d) (m := m) (n := n)).symm
