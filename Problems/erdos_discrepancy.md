@@ -445,7 +445,8 @@ Definition of done:
   - Implemented as `HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 #### Auto-generated backlog (needs triage)
-- [ ] DiscOffset witness normal form: rewrite `HasDiscrepancyAtLeast f C` directly into `∃ d n, discOffset f d 0 n > C` (stable lemma on the `discOffset` API; avoid exposing `Int.natAbs (apSumOffset …)` in downstream statements).
+- [x] DiscOffset witness normal form: rewrite `HasDiscrepancyAtLeast f C` directly into `∃ d n, discOffset f d 0 n > C` (stable lemma on the `discOffset` API; avoid exposing `Int.natAbs (apSumOffset …)` in downstream statements).
+  - Implemented as `HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`. 
 - [ ] Range-cut normal form (discOffset-level): using `apSumOffset_eq_sum_range'`, prove a canonical lemma splitting a `discOffset` over `Finset.range` at a cut `k` and rewriting both pieces back to `discOffset` (so later proofs can do “cut at k” without dropping to `Int` sums).
 - [ ] Residue-class split (offset → r tracks): for `r>0`, split `apSumOffset f d m n` (and `discOffset`) into a sum over residue classes `j < r` via reindexing `i = r*q + j` (provide both `i*d` and `d*i` summand-order variants), with a stable-surface regression example under `import MoltResearch.Discrepancy`.
 - [ ] `disc` API (homogeneous discrepancy): define `disc f d n := Int.natAbs (apSum f d n)` (or a lemma-only abbreviation) and port the key `discOffset_*` lemmas (`*_add_le`, `*_split_at_le`, stability) to `disc` with consistent names, so later stages can stay in `ℕ` discrepancy form.
