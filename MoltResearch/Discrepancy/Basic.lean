@@ -169,6 +169,31 @@ This direction avoids simp loops with `discOffset_def`.
     Int.natAbs (apSumOffset f d m n) = discOffset f d m n :=
   rfl
 
+/-!
+## Quantifier normal form: explicit bounds for `discOffset`
+
+For many later statements, we want a *fixed bound* `B` that controls all lengths `n` for a given
+triple `(f, d, m)`.  The definition below is intentionally `discOffset`-native so downstream
+code can avoid unfolding `Int.natAbs (apSumOffset ...)`.
+-/
+
+/-- `BoundedDiscOffset f d m B` means: all offset discrepancies `discOffset f d m n` are
+uniformly bounded by `B` (as `n` varies).
+
+This is the “discOffset-native” boundedness predicate used in Track B normal forms.
+-/
+def BoundedDiscOffset (f : ℕ → ℤ) (d m B : ℕ) : Prop :=
+  ∀ n : ℕ, discOffset f d m n ≤ B
+
+/-- Stable lemma name: expose the quantifier normal form of `BoundedDiscOffset`.
+
+Downstream code should prefer this lemma over unfolding the definition.
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Quantifier normal form (boundedness, discOffset-native).
+-/
+theorem boundedDiscOffset_iff_forall_discOffset_le (f : ℕ → ℤ) (d m B : ℕ) :
+    BoundedDiscOffset f d m B ↔ ∀ n : ℕ, discOffset f d m n ≤ B :=
+  Iff.rfl
+
 /-! ### Congruence lemmas -/
 
 /-- `disc` is stable under “local surgery”: if `f` and `g` agree on the indices actually
