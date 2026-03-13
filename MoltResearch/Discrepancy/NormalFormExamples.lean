@@ -125,6 +125,65 @@ example
     discOffset f d m n ≤ C := by
   simpa using h
 
+-- Paper `Icc` tail (length `n₁+n₂`) → normalize to `discOffset`, then split/bound at an interior cut.
+--
+-- This is the shape that shows up constantly in papers: a single interval sum, then you want to
+-- split it into two consecutive tails.
+example (n₁ n₂ : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+  have hsum :
+      (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) = apSumOffset f d m (n₁ + n₂) := by
+    -- Route through the stable-surface lemma that splits the paper interval into two tails;
+    -- set the second length to 0 so the split collapses to a single `apSumOffset`.
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (sum_Icc_add_len_eq_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n₁ + n₂) (n₂ := 0))
+  have hsplit :
+      discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+    have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
+    have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
+      exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
+    -- Split the tail at `k = m+n₁`.
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+  -- Normalize the paper `Icc` statement to the stable-surface `discOffset` wrapper.
+  simpa [discOffset, hsum] using hsplit
+
+-- Paper `Icc` tail → normalize to `discOffset`, then apply a crude `n*B` bound.
+example {B : ℕ} (hf : ∀ k, Int.natAbs (f k) ≤ B) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ n * B := by
+  have hsum :
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (sum_Icc_add_len_eq_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n) (n₂ := 0))
+  have hbound : discOffset f d m n ≤ n * B := by
+    simpa using
+      (discOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := m) (n := n))
+  simpa [discOffset, hsum] using hbound
+
+-- Paper `Icc` tail → normalize to `discOffset`, then split and bound the second piece by `n₂*B`.
+example {B : ℕ} (n₁ n₂ : ℕ) (hf : ∀ k, Int.natAbs (f k) ≤ B) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤
+      discOffset f d m n₁ + n₂ * B := by
+  have hsum :
+      (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) = apSumOffset f d m (n₁ + n₂) := by
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (sum_Icc_add_len_eq_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n₁ + n₂) (n₂ := 0))
+  have hsplit :
+      discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+    have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
+    have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
+      exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+  have htail : discOffset f d (m + n₁) n₂ ≤ n₂ * B := by
+    simpa using
+      (discOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := m + n₁) (n := n₂))
+  have : discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + n₂ * B := by
+    -- Combine split + crude bound on the second piece.
+    exact le_trans hsplit (Nat.add_le_add_left htail _)
+  simpa [discOffset, hsum] using this
+
 -- Paper affine tail with variable endpoint (`m ≤ n`) → `discOffset` in `apSumOffset` normal form.
 example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
