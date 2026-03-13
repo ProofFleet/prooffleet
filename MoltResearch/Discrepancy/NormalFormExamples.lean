@@ -47,6 +47,11 @@ example (g : ℕ → ℤ)
     discOffset f d m n = discOffset g d m n := by
   simpa using (discOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
+-- Regression (Track B / range-cut inequality): split `discOffset` at a cut length `k ≤ n`.
+example (hk : k ≤ n) :
+    discOffset f d m n ≤ discOffset f d m k + discOffset f d (m + k) (n - k) := by
+  simpa using (discOffset_cut_le (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
 -- Regression (Track B / step-factoring at a multiple start):
 -- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
 example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d)) k 0 n := by

@@ -129,6 +129,21 @@ lemma discOffset_eq_natAbs_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk
     (discOffset_add_len_eq_natAbs_apSumOffset_add (f := f) (d := d) (m := m)
       (n₁ := k) (n₂ := n - k))
 
+/-- Range-cut triangle inequality for `discOffset`: split at a cut length `k ≤ n`.
+
+This is the inequality counterpart of `discOffset_eq_natAbs_apSumOffset_cut`, rewriting the
+result back into the `discOffset` wrapper on both pieces.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Range-cut normal form (discOffset-level).
+-/
+lemma discOffset_cut_le (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    discOffset f d m n ≤ discOffset f d m k + discOffset f d (m + k) (n - k) := by
+  -- Rewrite the left-hand side into a single `Int.natAbs (x+y)`.
+  have hEq := discOffset_eq_natAbs_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk
+  -- `|x+y| ≤ |x|+|y|`.
+  simpa [hEq] using
+    (Int.natAbs_add_le (apSumOffset f d m k) (apSumOffset f d (m + k) (n - k)))
+
 lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   have h0 := (apSum_add_length (f := f) (d := d) (m := m) (n := n)).symm
