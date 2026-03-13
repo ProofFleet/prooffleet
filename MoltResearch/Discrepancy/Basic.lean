@@ -170,6 +170,27 @@ This direction avoids simp loops with `discOffset_def`.
   rfl
 
 /-!
+### `discAlong`: along-`d` API coherence (`m = 0` offset form)
+
+This is a lightweight specialization of `discOffset` that packages the “no offset” case.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Along-`d` API coherence (`discAlong`).
+-/
+
+/-- Discrepancy along step `d` with no offset: `discAlong f d n = discOffset f d 0 n`. -/
+def discAlong (f : ℕ → ℤ) (d n : ℕ) : ℕ :=
+  discOffset f d 0 n
+
+/-- Definitional lemma exposing `discAlong`. -/
+lemma discAlong_def (f : ℕ → ℤ) (d n : ℕ) : discAlong f d n = discOffset f d 0 n :=
+  rfl
+
+/-- Bridge lemma: `discAlong` agrees with the original homogeneous wrapper `discrepancy`. -/
+lemma discAlong_eq_discrepancy (f : ℕ → ℤ) (d n : ℕ) : discAlong f d n = discrepancy f d n := by
+  unfold discAlong discOffset discrepancy apSumOffset apSum
+  simp
+
+/-!
 ## Quantifier normal form: explicit bounds for `discOffset`
 
 For many later statements, we want a *fixed bound* `B` that controls all lengths `n` for a given
@@ -1014,6 +1035,14 @@ lemma iff_exists_discOffset_zero_start_lt (f : ℕ → ℤ) (d C : ℕ) :
   simpa using
     (HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt
       (f := f) (d := d) (m := 0) (C := C))
+
+/-- Along-`d` witness normal form using the specialized wrapper `discAlong`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Along-`d` API coherence (`discAlong`).
+-/
+lemma iff_exists_discAlong_lt (f : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong f d C ↔ (∃ n : ℕ, C < discAlong f d n) := by
+  simpa [discAlong] using (HasDiscrepancyAtLeastAlong.iff_exists_discOffset_zero_start_lt (f := f) (d := d) (C := C))
 
 end HasDiscrepancyAtLeastAlong
 

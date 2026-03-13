@@ -47,6 +47,11 @@ example :
 example : HasDiscrepancyAtLeastAlong f d C ↔ ∃ n : ℕ, C < discOffset f d 0 n := by
   simpa using (HasDiscrepancyAtLeastAlong.iff_exists_discOffset_zero_start_lt (f := f) (d := d) (C := C))
 
+-- Regression (Track B / API coherence): the same witness form, but using the specialized
+-- wrapper `discAlong`.
+example : HasDiscrepancyAtLeastAlong f d C ↔ ∃ n : ℕ, C < discAlong f d n := by
+  simpa using (HasDiscrepancyAtLeastAlong.iff_exists_discAlong_lt (f := f) (d := d) (C := C))
+
 -- Regression (Track B / unbounded witness normal form, along-`d`): unshifted unboundedness
 -- rewrites to the `discOffset … 0 n` ∀∃ normal form.
 example : UnboundedDiscrepancyAlong f d ↔ (∀ C : ℕ, ∃ n : ℕ, C < discOffset f d 0 n) := by
