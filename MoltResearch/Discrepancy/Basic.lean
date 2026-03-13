@@ -875,6 +875,55 @@ lemma HasDiscrepancyAtLeast_iff_exists_discrepancy (f : ℕ → ℤ) (C : ℕ) :
   · rintro ⟨d, n, hd, hgt⟩
     exact ⟨d, n, hd, hgt⟩
 
+/-!
+### Predicate-level wrappers: fixed-step discrepancy (`along d`)
+
+These are small normal-form helpers used by the Tao 2015 reduction pipeline.
+-/
+
+/-- Fixed-step discrepancy predicate (“discrepancy at least `C` along step `d`”).
+
+This is the `d`-fixed analogue of `HasDiscrepancyAtLeast`.
+-/
+def HasDiscrepancyAtLeastAlong (f : ℕ → ℤ) (d C : ℕ) : Prop :=
+  ∃ n : ℕ, discrepancy f d n > C
+
+namespace HasDiscrepancyAtLeastAlong
+
+/-- Definitional witness form. -/
+lemma iff_exists_discrepancy_gt (f : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong f d C ↔ (∃ n : ℕ, discrepancy f d n > C) :=
+  Iff.rfl
+
+/-- Canonical bridge: `HasDiscrepancyAtLeastAlong` for a literal shift by `m*d` rewrites to a
+`discOffset` witness normal form.
+
+This is the Track B checklist item “bridge lemma: along-`d` predicate → `discOffset` witnesses”.
+-/
+lemma shift_mul_iff_exists_discOffset_lt (f : ℕ → ℤ) (d m C : ℕ) :
+    HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔ (∃ n : ℕ, C < discOffset f d m n) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Normalize `discrepancy` of the shift to an `Int.natAbs (apSumOffset …)` statement,
+    -- then repackage as `discOffset`.
+    have hn' : Int.natAbs (apSumOffset f d m n) > C := by
+      simpa [discrepancy_shift_mul] using hn
+    -- Convert `>` to `<` (avoid simp loops between `discOffset` and `Int.natAbs`).
+    unfold discOffset
+    simpa [gt_iff_lt] using hn'
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Unfold `discOffset` back to the raw `Int.natAbs (apSumOffset …)` statement.
+    have hn' : Int.natAbs (apSumOffset f d m n) > C := by
+      -- First unfold, then switch between `<` and `>`.
+      unfold discOffset at hn
+      simpa [gt_iff_lt] using hn
+    -- Package back into `discrepancy (shift)`.
+    simpa [HasDiscrepancyAtLeastAlong, discrepancy_shift_mul] using hn'
+
+end HasDiscrepancyAtLeastAlong
+
 /-- Variant with the step-size side condition written as `d ≥ 1`. -/
 lemma HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one (f : ℕ → ℤ) (C : ℕ) :
     HasDiscrepancyAtLeast f C ↔ ∃ d n, d ≥ 1 ∧ discrepancy f d n > C := by

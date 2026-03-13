@@ -2587,6 +2587,14 @@ example : (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔
   simpa using
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos (f := f))
 
+-- Track B regression test: fixed-step discrepancy (`along d`) rewrites to `discOffset` witnesses.
+
+variable (d m : ℕ)
+
+example : HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔ (∃ n : ℕ, C < discOffset f d m n) := by
+  simpa using
+    (HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt (f := f) (d := d) (m := m) (C := C))
+
 /-!
 ## `disc` wrapper regression tests
 
