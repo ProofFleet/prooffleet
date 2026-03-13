@@ -170,6 +170,61 @@ example (n₁ n₂ C₁ C₂ : ℕ)
   -- Return to a paper `Icc` inequality.
   simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
 
+-- 3a) Three-way split/bound: paper `Icc` tail → normalize to `discOffset` → split twice.
+example (n₁ n₂ n₃ : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂ + n₃))).sum (fun i => f (i * d))) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃ := by
+  have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
+  have hkn : m + n₁ ≤ m + (n₁ + n₂ + n₃) := by
+    exact Nat.add_le_add_left (Nat.le_add_right n₁ (n₂ + n₃)) m
+  have hsplit₁ : discOffset f d m (n₁ + (n₂ + n₃)) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) (n₂ + n₃) := by
+    simpa [Nat.add_assoc] using
+      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + (n₂ + n₃)) hmk hkn)
+  have hmk' : m + n₁ ≤ m + n₁ + n₂ := Nat.le_add_right _ _
+  have hkn' : m + n₁ + n₂ ≤ m + n₁ + (n₂ + n₃) := by
+    simpa [Nat.add_assoc] using Nat.add_le_add_left (Nat.le_add_right n₂ n₃) (m + n₁)
+  have hsplit₂ : discOffset f d (m + n₁) (n₂ + n₃) ≤ discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃ := by
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (discOffset_split_at_le (f := f) (d := d) (m := m + n₁) (k := m + n₁ + n₂) (n := n₂ + n₃) hmk' hkn')
+  have h : discOffset f d m (n₁ + n₂ + n₃) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃ := by
+    -- Combine the two split inequalities.
+    have : discOffset f d m (n₁ + (n₂ + n₃)) ≤
+        discOffset f d m n₁ + (discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃) := by
+      refine le_trans hsplit₁ ?_
+      -- bound the second summand via the second split.
+      exact Nat.add_le_add_left hsplit₂ _
+    -- Reassociate the RHS.
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
+-- 3b) Paper `Icc` bound + pointwise `|f| ≤ B` bound → split, then bound the second piece by `n₂ * B`.
+example {B : ℕ} (n₁ n₂ C₁ : ℕ)
+    (h₁ : Int.natAbs ((Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d))) ≤ C₁)
+    (hf : ∀ k, Int.natAbs (f k) ≤ B) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤ C₁ + n₂ * B := by
+  have h₁' : discOffset f d m n₁ ≤ C₁ := by
+    simpa [discOffset, apSumOffset_eq_sum_Icc] using h₁
+  have htail : discOffset f d (m + n₁) n₂ ≤ n₂ * B := by
+    simpa using
+      (discOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := m + n₁) (n := n₂))
+  have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
+  have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
+    exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
+  have hsplit : discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+  have : discOffset f d m (n₁ + n₂) ≤ C₁ + n₂ * B := by
+    exact le_trans hsplit (Nat.add_le_add h₁' htail)
+  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+
+-- 3c) Pure compile-only: normalize a paper `Icc` tail into `discOffset` at a shifted start.
+example (hmn : m ≤ n) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n - m))).sum (fun i => f (i * d))) =
+      discOffset f d m (n - m) := by
+  -- Here the endpoint `m + (n - m)` is definitionally the “length-(n-m)” tail endpoint.
+  simp [discOffset, apSumOffset_eq_sum_Icc, Nat.add_sub_of_le hmn]
+
 -- 4) Homogeneous variant (`m = 0`): normalize a paper `Icc 1 (n₁+n₂)` sum to `disc`, then split.
 example (n₁ n₂ : ℕ) :
     Int.natAbs ((Finset.Icc 1 (n₁ + n₂)).sum (fun i => f (i * d))) ≤
