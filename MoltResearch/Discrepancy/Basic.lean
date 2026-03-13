@@ -956,6 +956,36 @@ lemma shift_mul_iff_exists_discOffset_lt (f : ℕ → ℤ) (d m C : ℕ) :
 
 end HasDiscrepancyAtLeastAlong
 
+/-- Unbounded discrepancy along a fixed step `d` (witness normal form).
+
+This is the “along `d`” analogue of the global statement `∀ C, HasDiscrepancyAtLeast f C`.
+-/
+def UnboundedDiscrepancyAlong (f : ℕ → ℤ) (d : ℕ) : Prop :=
+  ∀ C : ℕ, HasDiscrepancyAtLeastAlong f d C
+
+namespace UnboundedDiscrepancyAlong
+
+/-- Canonical bridge: unbounded discrepancy for the literal shift `k ↦ f (k + m*d)` rewrites
+to a `discOffset` witness normal form.
+-/
+theorem shift_mul_iff_forall_exists_discOffset_lt (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscrepancyAlong (fun k => f (k + m * d)) d ↔
+      (∀ C : ℕ, ∃ n : ℕ, C < discOffset f d m n) := by
+  unfold UnboundedDiscrepancyAlong
+  constructor
+  · intro h C
+    exact
+      (HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt
+          (f := f) (d := d) (m := m) (C := C)).1
+        (h C)
+  · intro h C
+    exact
+      (HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt
+          (f := f) (d := d) (m := m) (C := C)).2
+        (h C)
+
+end UnboundedDiscrepancyAlong
+
 /-- Variant with the step-size side condition written as `d ≥ 1`. -/
 lemma HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one (f : ℕ → ℤ) (C : ℕ) :
     HasDiscrepancyAtLeast f C ↔ ∃ d n, d ≥ 1 ∧ discrepancy f d n > C := by

@@ -34,6 +34,14 @@ example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
   simpa using (HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start (f := f) (C := C))
 
+-- Regression (Track B / unbounded witness normal form, along-`d`): shift-by-`m*d` unboundedness
+-- rewrites to the pure `discOffset` ∀∃ normal form.
+example :
+    UnboundedDiscrepancyAlong (fun k => f (k + m * d)) d ↔
+      (∀ C : ℕ, ∃ n : ℕ, C < discOffset f d m n) := by
+  simpa using
+    (UnboundedDiscrepancyAlong.shift_mul_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m))
+
 -- Regression (Track B / local surgery at `discOffset` level):
 -- if two sequences agree on `apSupport d m n`, then their offset discrepancies coincide.
 example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
