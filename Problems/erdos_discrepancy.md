@@ -441,7 +441,8 @@ Definition of done:
   - Implemented as a dedicated section in `MoltResearch/Discrepancy/NormalFormExamples.lean` (imports only `MoltResearch.Discrepancy`).
 - [x] API hygiene: create a tiny `DiscOffsetSimp` opt-in module with the minimal `[simp]` set for `discOffset`/`disc` normal forms (succ/zero/shift), audited so it doesn’t cause loops.
   - Implemented as opt-in module `MoltResearch/Discrepancy/DiscOffsetSimp.lean` with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] Bridge lemma: a canonical rewrite from `HasDiscrepancyAtLeastAlong` (or the repo’s preferred “along d” predicate) directly into a `discOffset` witness normal form, so Stage-2 statements can be phrased purely in `discOffset` without unpacking `Int.natAbs`.
+- [x] Bridge lemma: a canonical rewrite from `HasDiscrepancyAtLeastAlong` (or the repo’s preferred “along d” predicate) directly into a `discOffset` witness normal form, so Stage-2 statements can be phrased purely in `discOffset` without unpacking `Int.natAbs`.
+  - Implemented as `HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 #### Auto-generated backlog (needs triage)
 - [ ] DiscOffset witness normal form: rewrite `HasDiscrepancyAtLeast f C` directly into `∃ d n, discOffset f d 0 n > C` (stable lemma on the `discOffset` API; avoid exposing `Int.natAbs (apSumOffset …)` in downstream statements).
