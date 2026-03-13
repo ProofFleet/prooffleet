@@ -435,7 +435,8 @@ Definition of done:
   - Implemented in `MoltResearch/Discrepancy/Reindex.lean` as `discOffset_mul_eq_discOffset_map_mul₁₂` and `discOffset_mul_eq_discOffset_map_mul_left` (plus `discOffset_map_mul`), with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [x] Stable-surface regression examples: add 2–3 compile-only examples that start from paper `Icc` statements, normalize to `discOffset` (not `Int.natAbs (apSumOffset …)`), then split/bound — ensuring the whole pipeline works under `import MoltResearch.Discrepancy`.
   - Implemented as a dedicated section in `MoltResearch/Discrepancy/NormalFormExamples.lean` (imports only `MoltResearch.Discrepancy`).
-- [ ] API hygiene: create a tiny `DiscOffsetSimp` opt-in module with the minimal `[simp]` set for `discOffset`/`disc` normal forms (succ/zero/shift), audited so it doesn’t cause loops.
+- [x] API hygiene: create a tiny `DiscOffsetSimp` opt-in module with the minimal `[simp]` set for `discOffset`/`disc` normal forms (succ/zero/shift), audited so it doesn’t cause loops.
+  - Implemented as opt-in module `MoltResearch/Discrepancy/DiscOffsetSimp.lean` with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [ ] Bridge lemma: a canonical rewrite from `HasDiscrepancyAtLeastAlong` (or the repo’s preferred “along d” predicate) directly into a `discOffset` witness normal form, so Stage-2 statements can be phrased purely in `discOffset` without unpacking `Int.natAbs`.
 
 #### Auto-generated backlog (needs triage)
