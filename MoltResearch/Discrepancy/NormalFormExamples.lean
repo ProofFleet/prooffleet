@@ -1,4 +1,6 @@
 import MoltResearch.Discrepancy
+-- Opt-in simp set regression tests (does not affect the stable surface).
+import MoltResearch.Discrepancy.DiscOffsetSimp
 
 /-!
 # Discrepancy normal-form regression examples
@@ -50,6 +52,16 @@ example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d))
 -- Regression (Track B / Lipschitz-in-length): one-step extension for offset AP sums.
 example : apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) := by
   simpa using (apSumOffset_succ (f := f) (d := d) (m := m) (n := n))
+
+-- Regression (Track B / API hygiene): the opt-in `DiscOffsetSimp` simp set should normalize
+-- `Nat.succ` endpoints without manual rewriting.
+example :
+    Int.natAbs (apSumOffset f d m n + f ((m + Nat.succ n) * d)) = discOffset f d m (Nat.succ n) := by
+  simp
+
+example :
+    Int.natAbs (apSum f d n + f ((Nat.succ n) * d)) = disc f d (Nat.succ n) := by
+  simp
 
 -- Regression (Track B / Lipschitz-in-length): one-step difference form.
 example : apSumOffset f d m (n + 1) - apSumOffset f d m n = f ((m + n + 1) * d) := by
