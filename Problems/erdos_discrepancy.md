@@ -423,7 +423,7 @@ Definition of done:
   - Implemented as `sum_range_add_len_eq_apSumOffset_add` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [x] “Swap start shift vs summand shift” coherence: prove a two-way lemma family normalizing between `apSumOffset (fun t => f (t + a)) d (m+b) n` and `apSumOffset (fun t => f (t + (a + b*d))) d m n` with a preferred public name + deprecated aliases isolated.
   - Implemented in `MoltResearch/Discrepancy/Offset.lean` as `apSumOffset_shift_add_add_offset_eq` and its inverse `apSumOffset_shift_add_shift_add_eq_apSumOffset_shift_add_add_offset`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] Bounded-by-B generalization for affine tails: extend the existing `natAbs_apSum*_le_mul` family with a lemma that bounds differences of affine tails directly (without rewriting to offset first), producing `Int.natAbs (apSumFrom f a d (m+n) - apSumFrom f a d m) ≤ n * B` under `∀k, Int.natAbs (f k) ≤ B`.
+- [x] Bounded-by-B generalization for affine tails: lemma `natAbs_apSumFrom_add_sub_apSumFrom_le_mul` (in `MoltResearch/Discrepancy/Bound.lean`) bounds `Int.natAbs (apSumFrom f a d (m+n) - apSumFrom f a d m) ≤ n * B` under `∀k, Int.natAbs (f k) ≤ B`.
 
 #### Auto-generated backlog (needs triage)
 - [ ] DiscOffset-level succ/Lipschitz API: add the canonical step lemma
