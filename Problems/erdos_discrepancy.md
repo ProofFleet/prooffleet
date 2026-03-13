@@ -421,7 +421,8 @@ Definition of done:
   - Implemented in `MoltResearch/Discrepancy/Reindex.lean` as `apSumFrom_mul_start_mul_step_eq_apSumOffset_shift_mul` (plus wrappers `_right` and `apSumFrom_mul_step_eq_apSumOffset_shift_mul_of_dvd`); see PR #1383.
 - [x] One-cut in `Finset.range` normal form: a lemma splitting `apSumOffset` written as a `Finset.range` sum (via `apSumOffset_eq_sum_range'`) at a cut `k`, producing two `range` sums and immediately rewriting both back to nucleus `apSumOffset`; include a stable-surface regression example.
   - Implemented as `sum_range_add_len_eq_apSumOffset_add` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] “Swap start shift vs summand shift” coherence: prove a two-way lemma family normalizing between `apSumOffset (fun t => f (t + a)) d (m+b) n` and `apSumOffset (fun t => f (t + (a + b*d))) d m n` with a preferred public name + deprecated aliases isolated.
+- [x] “Swap start shift vs summand shift” coherence: prove a two-way lemma family normalizing between `apSumOffset (fun t => f (t + a)) d (m+b) n` and `apSumOffset (fun t => f (t + (a + b*d))) d m n` with a preferred public name + deprecated aliases isolated.
+  - Implemented in `MoltResearch/Discrepancy/Offset.lean` as `apSumOffset_shift_add_add_offset_eq` and its inverse `apSumOffset_shift_add_shift_add_eq_apSumOffset_shift_add_add_offset`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [ ] Bounded-by-B generalization for affine tails: extend the existing `natAbs_apSum*_le_mul` family with a lemma that bounds differences of affine tails directly (without rewriting to offset first), producing `Int.natAbs (apSumFrom f a d (m+n) - apSumFrom f a d m) ≤ n * B` under `∀k, Int.natAbs (f k) ≤ B`.
 
 #### Auto-generated backlog (needs triage)
