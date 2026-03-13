@@ -170,6 +170,36 @@ example (n₁ n₂ C₁ C₂ : ℕ)
   -- Return to a paper `Icc` inequality.
   simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
 
+-- 4) Homogeneous variant (`m = 0`): normalize a paper `Icc 1 (n₁+n₂)` sum to `disc`, then split.
+example (n₁ n₂ : ℕ) :
+    Int.natAbs ((Finset.Icc 1 (n₁ + n₂)).sum (fun i => f (i * d))) ≤
+      disc f d n₁ + discOffset f d n₁ n₂ := by
+  -- Normalize the paper `Icc` sum into `disc`, then use the stable-surface length split bound.
+  simpa [disc, apSum_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (disc_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+
+-- 5) Same split, but keep everything in paper `Icc` notation on both sides.
+example (n₁ n₂ : ℕ) :
+    Int.natAbs ((Finset.Icc 1 (n₁ + n₂)).sum (fun i => f (i * d))) ≤
+      Int.natAbs ((Finset.Icc 1 n₁).sum (fun i => f (i * d))) + discOffset f d n₁ n₂ := by
+  -- `disc f d n₁` is definitionaly `|apSum f d n₁|`, and `apSum` is the `Icc` sum.
+  simpa [disc, apSum_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (disc_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+
+-- 6) Combine two paper bounds to bound a concatenated homogeneous interval.
+example (n₁ n₂ C₁ C₂ : ℕ)
+    (h₁ : Int.natAbs ((Finset.Icc 1 n₁).sum (fun i => f (i * d))) ≤ C₁)
+    (h₂ : discOffset f d n₁ n₂ ≤ C₂) :
+    Int.natAbs ((Finset.Icc 1 (n₁ + n₂)).sum (fun i => f (i * d))) ≤ C₁ + C₂ := by
+  have hsplit :
+      disc f d (n₁ + n₂) ≤ disc f d n₁ + discOffset f d n₁ n₂ := by
+    simpa using (disc_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+  have h₁' : disc f d n₁ ≤ C₁ := by
+    simpa [disc, apSum_eq_sum_Icc] using h₁
+  have : disc f d (n₁ + n₂) ≤ C₁ + C₂ :=
+    le_trans hsplit (Nat.add_le_add h₁' h₂)
+  simpa [disc, apSum_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+
 -- Compile-only regression (Track B / paper `Icc` → `discOffset`):
 -- normalize to the stable-surface wrapper (not `Int.natAbs (apSumOffset ...)`).
 example :
