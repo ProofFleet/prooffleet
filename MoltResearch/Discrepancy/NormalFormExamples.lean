@@ -35,6 +35,12 @@ example (hf : IsSignSequence f) :
     Int.natAbs (apSumOffset f d m (n + 1)) ≤ Int.natAbs (apSumOffset f d m n) + 1 := by
   simpa using (IsSignSequence.natAbs_apSumOffset_succ_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / discOffset Lipschitz bound): one-step extension for discOffset.
+example (hf : IsSignSequence f) :
+    discOffset f d m (n + 1) ≤ discOffset f d m n + 1 := by
+  simpa using
+    (IsSignSequence.discOffset_succ_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
+
 -- Regression: bounded discrepancy is stable under dilation (`n ↦ n*k`).
 example (hb : BoundedDiscrepancy f) (hk : k > 0) :
     BoundedDiscrepancy (fun n => f (n * k)) := by
