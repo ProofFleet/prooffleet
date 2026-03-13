@@ -239,6 +239,39 @@ lemma apSumOffset_congr_finset_Icc (f g : ℕ → ℤ) (d m n : ℕ)
     exact Finset.mem_Icc.2 hi
   exact h i this
 
+/-- Pointwise congruence variant of `discOffset_congr_support`, expressed over `i < n`.
+
+This is the `discOffset` analogue of `apSumOffset_congr`.
+-/
+lemma discOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i < n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
+/-- Interval-index congruence variant of `discOffset_congr_support`, expressed over `Set.Icc`.
+
+This is the `discOffset` analogue of `apSumOffset_congr_Icc`.
+-/
+lemma discOffset_congr_Icc (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ∈ Set.Icc (m + 1) (m + n) → f (i * d) = g (i * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_congr_Icc (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
+/-- Finset-membership variant of `discOffset_congr_Icc`.
+
+This is the `discOffset` analogue of `apSumOffset_congr_finset_Icc`.
+-/
+lemma discOffset_congr_finset_Icc (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ∈ Finset.Icc (m + 1) (m + n) → f (i * d) = g (i * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_congr_finset_Icc (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
 /-- `congr` variant: if `P` holds on every *index* used in `apSumOffset`, and the summands agree
 whenever `P i` holds, then the offset AP sums are equal.
 

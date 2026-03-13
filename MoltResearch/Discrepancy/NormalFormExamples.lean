@@ -25,6 +25,13 @@ example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
     discOffset f d m n = discOffset g d m n := by
   simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
+-- Regression (Track B / local surgery, range form):
+-- pointwise agreement on the summation indices `i < n` suffices.
+example (g : ℕ → ℤ)
+    (h : ∀ i, i < n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  simpa using (discOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
 -- Regression (Track B / step-factoring at a multiple start):
 -- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
 example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d)) k 0 n := by
