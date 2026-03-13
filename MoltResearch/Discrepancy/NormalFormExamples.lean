@@ -599,6 +599,18 @@ example {B : ℕ} (hf : ∀ k, Int.natAbs (f k) ≤ B) : discOffset f d m n ≤ 
 example (hf : ∀ k, Int.natAbs (f k) ≤ 1) : discOffset f d m n ≤ n := by
   simpa using (discOffset_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (m := m) (n := n))
 
+-- `disc` bound wrapper regression: `|apSum| ≤ n*B` implies `disc ≤ n*B`.
+example {B : ℕ} (hf : ∀ k, Int.natAbs (f k) ≤ B) : disc f d n ≤ n * B := by
+  simpa using (disc_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (n := n))
+
+-- `disc` length bound regression (the `B = 1` specialization).
+example (hf : ∀ k, Int.natAbs (f k) ≤ 1) : disc f d n ≤ n := by
+  simpa using (disc_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (n := n))
+
+-- `disc` triangle inequality regression (homogeneous analogue of `discOffset_add_le`).
+example : disc f d (n₁ + n₂) ≤ disc f d n₁ + discOffset f d n₁ n₂ := by
+  simpa using (disc_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+
 example :
     apSumOffset f d m (n₁ + n₂) =
       apSumOffset f d m n₁ + apSum (fun k => f (k + (m + n₁) * d)) d n₂ := by
