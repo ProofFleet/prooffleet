@@ -162,6 +162,100 @@ lemma apSumOffset_reindex_fin_perm (f : ℕ → ℤ) (d m n : ℕ) (σ : Equiv.P
               (fun i : Fin n => f ((m + (i : ℕ) + 1) * d))
               (fun i => rfl))
 
+/-!
+## Reindex-by-residue infrastructure
+
+Track B checklist item: `Problems/erdos_discrepancy.md` —
+“Reindex-by-residue infrastructure: package the change of variables `i = q*k + r`.”
+
+This lemma is intentionally small and reusable: it is the raw `Finset.range` reindexing fact
+behind residue-class splitting arguments.
+-/
+
+/-- Reindex a range sum by the change of variables `i = q*k + r`.
+
+For `q > 0`, this packages the standard `div`/`mod` bijection between indices
+`i < q*n` and pairs `(k,r)` with `k < n` and `r < q`.
+
+This is a helper lemma for residue-class splitting normal forms.
+-/
+lemma sum_range_mul_reindex_div_mod (q n : ℕ) (hq : q > 0) (f : ℕ → ℤ) :
+    (Finset.range (q * n)).sum f =
+      (Finset.range n).sum (fun k => (Finset.range q).sum (fun r => f (q * k + r))) := by
+  classical
+  -- Turn the nested sum into a sum over the product.
+  have hprod :
+      (Finset.range n).sum (fun k => (Finset.range q).sum (fun r => f (q * k + r))) =
+        ((Finset.range n).product (Finset.range q)).sum (fun p : ℕ × ℕ => f (q * p.1 + p.2)) := by
+    simpa [Finset.sum_product]
+
+  -- Reindex `range (q*n)` by the `div`/`mod` map.
+  let s : Finset ℕ := Finset.range (q * n)
+  let t : Finset (ℕ × ℕ) := (Finset.range n).product (Finset.range q)
+
+  have hbij : s.sum f = t.sum (fun p : ℕ × ℕ => f (q * p.1 + p.2)) := by
+    classical
+    refine (Finset.sum_bij (s := s) (t := t)
+      (i := fun i hi => (i / q, i % q))
+      (hi := ?_)
+      (i_inj := ?_)
+      (i_surj := ?_)
+      (h := ?_))
+    · intro i hi
+      have hi' : i < q * n := by simpa [s] using hi
+      have hk : i / q < n := by
+        -- `i < q*n` implies `i/q < n`.
+        exact Nat.div_lt_of_lt_mul (by simpa [Nat.mul_comm] using hi')
+      have hr : i % q < q := Nat.mod_lt i hq
+      -- Membership in the product finset.
+      simp [t, hk, hr]
+    · intro i₁ hi₁ i₂ hi₂ hEq
+      have hdiv : i₁ / q = i₂ / q := by simpa using congrArg Prod.fst hEq
+      have hmod : i₁ % q = i₂ % q := by simpa using congrArg Prod.snd hEq
+      -- Recover the numbers from their `div`/`mod` decomposition.
+      have hdecomp₁ : q * (i₁ / q) + i₁ % q = i₁ := Nat.div_add_mod i₁ q
+      have hdecomp₂ : q * (i₂ / q) + i₂ % q = i₂ := Nat.div_add_mod i₂ q
+      -- Put both in the same normal form.
+      calc
+        i₁ = q * (i₁ / q) + i₁ % q := by simpa [hdecomp₁]
+        _ = q * (i₂ / q) + i₂ % q := by simpa [hdiv, hmod]
+        _ = i₂ := by simpa [hdecomp₂]
+    · intro p hp
+      rcases p with ⟨k, r⟩
+      have hkr : k < n ∧ r < q := by
+        simpa [t] using hp
+      have hk : k < n := hkr.1
+      have hr : r < q := hkr.2
+      refine ⟨q * k + r, ?_, ?_⟩
+      · -- Membership in `range (q*n)`.
+        have hlt₁ : q * k + r < q * (k + 1) := by
+          have : q * k + r < q * k + q := Nat.add_lt_add_left hr (q * k)
+          simpa [Nat.mul_succ, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+        have hle₂ : q * (k + 1) ≤ q * n :=
+          Nat.mul_le_mul_left q (Nat.succ_le_of_lt hk)
+        have hlt : q * k + r < q * n := lt_of_lt_of_le hlt₁ hle₂
+        simpa [s] using hlt
+      · -- Compute `div` and `mod`.
+        have hmod : (q * k + r) % q = r := by
+          simpa [Nat.mod_eq_of_lt hr] using (Nat.mul_add_mod q k r)
+        have hdiv : (q * k + r) / q = k := by
+          -- `(q*k+r)/q = k + r/q = k` since `r<q`.
+          have : (q * k + r) / q = k + r / q := by
+            -- `Nat.mul_add_div` is `(q*k + r)/q = k + r/q`.
+            simpa [Nat.mul_comm, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+              (Nat.mul_add_div hq k r)
+          -- `r/q = 0`.
+          have hr0 : r / q = 0 := Nat.div_eq_of_lt hr
+          simpa [this, hr0]
+        ext <;> simp [hdiv, hmod]
+    · intro i hi
+      -- The map `i ↦ (i/q, i%q)` preserves the summand via `Nat.div_add_mod`.
+      have hdecomp : q * (i / q) + i % q = i := Nat.div_add_mod i q
+      simpa [hdecomp]
+
+  -- Finish: convert the product sum back to the nested-sum form.
+  simpa [s, t, hprod] using hbij
+
 lemma apSum_map_mul (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   unfold apSum

@@ -102,6 +102,13 @@ example (q : ℕ) (hq : q > 0) :
   simpa using
     (apSumOffset_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (m := m) (q := q) (n := n) hq)
 
+-- Regression (Track B / reindex-by-residue infrastructure):
+-- raw `Finset.range` reindexing lemma packaged via `div`/`mod`.
+example (q : ℕ) (hq : q > 0) :
+    (Finset.range (q * n)).sum (fun i => f i) =
+      (Finset.range n).sum (fun k => (Finset.range q).sum (fun r => f (q * k + r))) := by
+  simpa using (sum_range_mul_reindex_div_mod (q := q) (n := n) hq (f := f))
+
 /-!
 ## Typical “user script” examples
 
