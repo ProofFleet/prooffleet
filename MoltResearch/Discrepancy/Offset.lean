@@ -59,6 +59,35 @@ lemma apSumOffset_eq_sum_range_add (f : ℕ → ℤ) (d m n : ℕ) :
   intro i hi
   simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-!
+## One-cut normal form (range sums)
+
+When you expand an `apSumOffset` into a `Finset.range` sum (via `apSumOffset_eq_sum_range'`), you
+often want to split that range sum into two consecutive blocks and *immediately* land back in the
+nucleus normal form `apSumOffset` for each piece.
+
+This lemma packages that rewrite pipeline.
+-/
+
+/-- Split a `Finset.range` tail sum at a cut `n₁`, and rewrite both pieces to `apSumOffset`.
+
+Concretely, this rewrites
+`∑ i < n₁+n₂, f ((m+i+1)*d)`
+into
+`apSumOffset f d m n₁ + apSumOffset f d (m+n₁) n₂`.
+
+This is the `Finset.range` analogue of the paper-notation bridge
+`sum_Icc_add_len_eq_apSumOffset_add`.
+-/
+lemma sum_range_add_len_eq_apSumOffset_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    (Finset.range (n₁ + n₂)).sum (fun i => f ((m + i + 1) * d)) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  -- Split the `range (n₁+n₂)` sum, then rewrite each block back to the nucleus API.
+  classical
+  -- Use the standard `range`-split lemma and normalize the shifted summand.
+  simpa [apSumOffset_eq_sum_range', Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (Finset.sum_range_add (f := fun i => f ((m + i + 1) * d)) n₁ n₂)
+
 lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   have h0 := (apSum_add_length (f := f) (d := d) (m := m) (n := n)).symm

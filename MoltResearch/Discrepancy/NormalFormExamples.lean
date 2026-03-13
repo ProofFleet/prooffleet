@@ -573,6 +573,13 @@ example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * 
 example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((i + m + 1) * d)) := by
   simpa using apSumOffset_eq_sum_range_add (f := f) (d := d) (m := m) (n := n)
 
+-- One-cut normal form for `Finset.range` expansions: split the range sum and land back in `apSumOffset`.
+example :
+    (Finset.range (n₁ + n₂)).sum (fun i => f ((m + i + 1) * d)) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
+  simpa using
+    sum_range_add_len_eq_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+
 -- Same difference normal form, but eliminate the explicit offset sum into a homogeneous AP sum
 -- on a shifted sequence.
 example : apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n := by
