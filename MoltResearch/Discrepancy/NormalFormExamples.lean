@@ -125,6 +125,32 @@ example
     discOffset f d m n ≤ C := by
   simpa using h
 
+-- Compile-only regression (Track B / paper `Icc` → `discOffset`):
+-- normalize to the stable-surface wrapper (not `Int.natAbs (apSumOffset ...)`).
+example :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
+  simp [discOffset, apSumOffset_eq_sum_Icc]
+
+-- Compile-only regression (Track B / paper `Icc` → `discOffset`, then one-step bound).
+example (hf : IsSignSequence f) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n + 1))).sum (fun i => f (i * d))) ≤
+      discOffset f d m n + 1 := by
+  -- Normalize the paper statement into `discOffset` at length `n+1`, then apply the stable-surface
+  -- Lipschitz bound for sign sequences.
+  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (IsSignSequence.discOffset_succ_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
+
+-- Compile-only regression (Track B / paper `Icc` → `discOffset`, split at an interior cut).
+example (n₁ n₂ : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
+  have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
+  have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
+    exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
+  -- Normalize the paper `Icc` sum into `discOffset`, then use the stable-surface split lemma.
+  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+
 -- Regression (Track B / paper-to-stable-surface):
 -- `discOffset` is exactly the paper-style `Icc` tail sum in disguise.
 example :
