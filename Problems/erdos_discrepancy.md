@@ -468,7 +468,7 @@ Definition of done:
 - [x] Quantifier normal form (unboundedness, discOffset-native): prove the negation-pushed form Stage-2 wants.
   - Implemented as `not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [x] Along-d API coherence: define a lightweight abbreviation (or lemma-only normal form) `discAlong f d n := discOffset f d 0 n` and add rewrite lemmas bridging it to `discrepancy f d n` / `HasDiscrepancyAtLeastAlong` so downstream files can stay entirely in the `ℕ` discrepancy API.
-- [ ] `discOffset` step-one normalization: add lemmas rewriting `discOffset f d m n` to `discOffset (fun k => f (k*d)) 1 m n` (and `mul_left`-friendly variants), mirroring `apSumOffset`’s `…_step_one` family.
+- [x] `discOffset` step-one normalization: add lemmas rewriting `discOffset f d m n` to `discOffset (fun k => f (k*d)) 1 m n` (and `mul_left`-friendly variants), mirroring `apSumOffset`’s `…_step_one` family.
 - [ ] `discOffset` step-factor coherence: port the existing `apSumOffset_mul_eq_apSumOffset_map_mul…` family to `discOffset` with stable names, so multiplicative reindexing arguments can remain at discrepancy level.
 - [ ] Range-form stability at discrepancy level: using `apSumOffset_eq_sum_range'`, prove `discOffset f d m n = discOffset g d m n` assuming pointwise agreement of summands on `Finset.range n` (no `Icc` endpoints), and add a stable-surface regression example.
 - [ ] Stage-2 bridge: a lemma rewriting `HasDiscrepancyAtLeast f C` directly into a `discOffset` witness `∃ d n, discOffset f d 0 n > C` (stable name; avoid exposing `Int.natAbs (apSumOffset …)` downstream).
