@@ -148,13 +148,10 @@ Stage 2 gives an explicit unbounded offset-discrepancy family for `f`, and then 
 contract carried by `out.out1` to conclude `¬ BoundedDiscrepancy f`.
 -/
 theorem notBoundedOriginal (out : Stage2Output f) : ¬ BoundedDiscrepancy f := by
-  -- Stage 2 → explicit offset unboundedness witness.
-  have hunb : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n :=
-    out.forall_exists_discOffset_gt (f := f)
-  -- Global boundedness would bound every `discOffset` family; contradict the witness.
+  -- Stage 2 already packages an unbounded offset-discrepancy family for `f`.
   exact
-    not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) (d := out.out1.d)
-      (m := out.out1.m) out.out1.hd hunb
+    not_boundedDiscrepancy_of_unboundedDiscOffset (f := f) (d := out.out1.d) (m := out.out1.m)
+      out.out1.hd (out.unboundedDiscOffset (f := f))
 
 end Stage2Output
 

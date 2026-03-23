@@ -391,6 +391,19 @@ theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f : ℕ → ℤ) 
   rcases hunb (2 * ctx.B) with ⟨n, hn⟩
   exact (not_lt_of_ge (hbound n)) hn
 
+/-- If an offset discrepancy family is unbounded (packaged form), then `f` cannot have globally
+bounded discrepancy.
+
+This is just `not_boundedDiscrepancy_of_forall_exists_discOffset_gt` with `UnboundedDiscOffset`
+unfolded.
+-/
+theorem not_boundedDiscrepancy_of_unboundedDiscOffset (f : ℕ → ℤ) {d m : ℕ} (hd : d > 0)
+    (hunb : UnboundedDiscOffset f d m) :
+    ¬ BoundedDiscrepancy f := by
+  refine
+    Tao2015.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) (d := d) (m := m) hd ?_
+  simpa [UnboundedDiscOffset] using hunb
+
 end Tao2015
 
 end MoltResearch
