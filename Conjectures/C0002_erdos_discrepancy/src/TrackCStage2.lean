@@ -92,7 +92,7 @@ theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlo
 unbounded **offset discrepancy** witness.
 
 This is just a wrapper around
-`Tao2015.ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`.
+`Tao2015.ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
 
 Note the inequality direction: this produces witnesses of the form `B < discOffset ...`.
 -/
@@ -100,7 +100,7 @@ theorem forall_exists_discOffset_gt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n := by
   -- Unfold the Stage-2 witness form and transport it through the Stage-1 contract.
   simpa using
-    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)).1 out.unbounded)
+    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)).1 out.unbounded)
 
 /-- Stage 2 implies *unbounded offset discrepancy* for the original sequence, at the bundled
 parameters `(out.out1.d, out.out1.m)`.
@@ -129,7 +129,7 @@ This is occasionally the right normal form for later analytic stages: it exposes
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.out1.d out.out1.m n) := by
   simpa using
-    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (f := f)).1
+    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (f := f)).1
       out.unbounded)
 
 /-- Backwards-compatible alias for `forall_exists_natAbs_apSumOffset_gt`.

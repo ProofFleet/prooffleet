@@ -325,6 +325,12 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : Reducti
     refine ⟨n, ?_⟩
     simpa [discrepancy_eq_discOffset_via_contract (out := out) (n := n)] using hn
 
+/-- Alias of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt` with a suffix matching the
+inequality direction (`B < ...`). -/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
+  simpa using (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f) (out := out))
+
 /-- Nucleus-level variant of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`. -/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔
@@ -342,6 +348,14 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (out :
     intro B
     rcases hunb B with ⟨n, hn⟩
     exact ⟨n, hn⟩
+
+/-- Alias of `unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt` with a suffix matching
+the inequality direction (`B < ...`). -/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
+  simpa using
+    (unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (f := f) (out := out))
 
 /-- If the bundled offset discrepancies are unbounded, then `f` cannot have globally bounded discrepancy. -/
 theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (out : ReductionOutput f)
