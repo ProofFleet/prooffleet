@@ -109,8 +109,7 @@ This is the packaged predicate version of `forall_exists_discOffset_gt`.
 -/
 theorem unboundedDiscOffset (out : Stage2Output f) :
     Tao2015.UnboundedDiscOffset f out.out1.d out.out1.m := by
-  -- `UnboundedDiscOffset` is defined using the witness form `∀ B, ∃ n, B < discOffset ...`.
-  simpa [Tao2015.UnboundedDiscOffset] using out.forall_exists_discOffset_gt (f := f)
+  exact (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
 
 /-- Backwards-compatible alias for `forall_exists_discOffset_gt`.
 

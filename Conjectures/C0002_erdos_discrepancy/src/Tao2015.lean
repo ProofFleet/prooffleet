@@ -353,6 +353,14 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reducti
     UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
   simpa using (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f) (out := out))
 
+/-- Packaged predicate form: reduced-step unbounded discrepancy is equivalent to unboundedness of the
+bundled offset discrepancy family for `f`.
+-/
+theorem unboundedDiscrepancyAlong_iff_unboundedDiscOffset (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔ UnboundedDiscOffset f out.d out.m := by
+  simpa [UnboundedDiscOffset] using
+    (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f) (out := out))
+
 /-- Nucleus-level variant of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`. -/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔
