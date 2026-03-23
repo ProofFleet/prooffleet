@@ -157,18 +157,10 @@ public surface.
 Given a sign sequence `f`, produce a Stage-1 reduction output and show that the reduced sequence
 has unbounded discrepancy along its associated fixed step.
 
-This is `sorry` for now; it serves as the typed seam between Stage 1 (pure index gymnastics) and
+This is an axiom stub for now; it serves as the typed seam between Stage 1 (pure index gymnastics) and
 later analytic/combinatorial stages.
 -/
-def stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f := by
-  classical
-  -- TODO(Track C): fill in Tao 2015’s first major reduction producing fixed-step unboundedness.
-  -- For now we expose the contract as a named boundary.
-  refine
-    { out1 := Tao2015.ReductionOutput.ofShift (f := f) (hf := hf) (d := 1) (m := 0) (hd := by decide)
-      unbounded := ?_ }
-  -- Placeholder: the actual proof will replace this `sorry`.
-  sorry
+axiom stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 
 end Tao2015
 

@@ -55,7 +55,7 @@ output.
 It is still a conjecture stub only because Stage 2 is a conjecture stub.
 -/
 
-def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f := by
+noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f := by
   -- Run Stage 2, then close the global goal via the proved boundary lemma.
   exact (Stage3Output.ofStage2Output (f := f) (Tao2015.stage2 (f := f) (hf := hf)))
 
