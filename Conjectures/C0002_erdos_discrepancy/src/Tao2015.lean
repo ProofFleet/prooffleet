@@ -270,7 +270,15 @@ The suffix `_lt` is legacy: the witness is `B < ...` (i.e. “greater than B”)
 -/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
-  sorry
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [discrepancy_eq_discOffset_via_contract (out := out) (n := n)] using hn
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [discrepancy_eq_discOffset_via_contract (out := out) (n := n)] using hn
 
 /-- Nucleus-level variant of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`. -/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) :
