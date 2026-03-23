@@ -261,6 +261,28 @@ theorem discrepancy_eq_discOffset_via_contract (out : ReductionOutput f) (n : �
   simpa [hgfun] using
     (discrepancy_shift_mul_simp (f := f) (m := out.m) (d := out.d) (n := n))
 
+/-- Bounded discrepancy along the reduced step is equivalent to a uniform bound on the bundled offset
+discrepancy family.
+
+This is a tiny packaging lemma: it lets consumers switch between the fixed-step normal form
+(`discrepancy out.g out.d`) and the bundled offset normal form (`discOffset f out.d out.m`).
+-/
+theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔
+      ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  unfold BoundedDiscrepancyAlong
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have h : discrepancy out.g out.d n ≤ B := hB n
+    simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have h : discOffset f out.d out.m n ≤ B := hB n
+    simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h
+
 /-- Stage-1 witness transport: reduced discrepancy-at-least is an affine-tail witness for `f`.
 
 The affine nucleus is `apSumFrom f (m*d) d n`.
