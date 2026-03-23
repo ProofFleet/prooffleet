@@ -159,23 +159,10 @@ end Stage2Output
 /-!
 ## Stage 2 conjecture stub
 
-This is the first *nontrivial* boundary after `ReductionOutput`: it should encapsulate whatever
-Tao-style argument (Fourier-analytic / entropy decrement / pretentiousness machinery) yields a
-fixed-step unboundedness witness.
-
-We keep it as a single named theorem so future refactors do not leak intermediate lemmas into the
-public surface.
+The Stage-2 conjecture/axiom stub lives in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof` so that this file remains mostly
+“API + wiring”.
 -/
-
-/-- **Conjecture stub:** Stage 2 of Tao 2015.
-
-Given a sign sequence `f`, produce a Stage-1 reduction output and show that the reduced sequence
-has unbounded discrepancy along its associated fixed step.
-
-This is an axiom stub for now; it serves as the typed seam between Stage 1 (pure index gymnastics) and
-later analytic/combinatorial stages.
--/
-axiom stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 
 end Tao2015
 

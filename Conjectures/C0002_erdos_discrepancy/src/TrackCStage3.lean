@@ -1,4 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof
 
 /-!
 # Track C: Stage 3 boundary (Tao 2015 plane)
