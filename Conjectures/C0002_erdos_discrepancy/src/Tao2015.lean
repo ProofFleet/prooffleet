@@ -284,7 +284,19 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : Reducti
 theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔
       (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
-  sorry
+  constructor
+  · intro hunb
+    have hdisc : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n :=
+      (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f) (out := out)).1 hunb
+    intro B
+    rcases hdisc B with ⟨n, hn⟩
+    exact ⟨n, hn⟩
+  · intro hunb
+    refine
+      (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f) (out := out)).2 ?_
+    intro B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, hn⟩
 
 /-- If the bundled offset discrepancies are unbounded, then `f` cannot have globally bounded discrepancy. -/
 theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (out : ReductionOutput f)
