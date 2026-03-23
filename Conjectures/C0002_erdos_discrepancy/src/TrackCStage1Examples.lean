@@ -69,13 +69,31 @@ theorem exists_natAbs_apSumFrom_mul_gt_of_hasDiscrepancyAtLeastAlong_ofShift
       (f := f) (C := C)).1 h
 
 /-- Example: unbounded fixed-step discrepancy for the reduced sequence produced by `ofShift`
-rewritten to an explicit `discOffset` witness family for `f`. -/
+rewritten to an explicit `discOffset` witness family for `f`.
+
+Note: the witness inequality is `B < discOffset ...`, so we use the suffix `_gt` (“greater than B”).
+-/
+theorem unboundedDiscrepancyAlong_ofShift_iff_forall_exists_discOffset_gt
+    (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
+    Tao2015.UnboundedDiscrepancyAlong (ReductionOutput.ofShift f hf d m hd).g d ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  simpa using
+    (ReductionOutput.ofShift f hf d m hd).unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)
+
+/-- Backwards-compatible alias for `unboundedDiscrepancyAlong_ofShift_iff_forall_exists_discOffset_gt`.
+
+Deprecated because the suffix `_lt` was misleading: the statement is `B < discOffset ...`.
+-/
+@[deprecated
+  "Use `unboundedDiscrepancyAlong_ofShift_iff_forall_exists_discOffset_gt` (the statement is `B < discOffset ...`)."
+    (since := "2026-03-23")]
 theorem unboundedDiscrepancyAlong_ofShift_iff_forall_exists_discOffset_lt
     (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     Tao2015.UnboundedDiscrepancyAlong (ReductionOutput.ofShift f hf d m hd).g d ↔
       (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
   simpa using
-    (ReductionOutput.ofShift f hf d m hd).unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f)
+    (unboundedDiscrepancyAlong_ofShift_iff_forall_exists_discOffset_gt (f := f) (hf := hf) (d := d)
+      (m := m) (hd := hd))
 
 /-- Example: “arbitrarily large discrepancy” for `ofShift` rewritten to affine-tail witnesses
 for `f`.
