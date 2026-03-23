@@ -206,10 +206,14 @@ def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
   · intro k
     rfl
   · intro B hB n
-    -- The intended proof is a one-liner using the rewrite
-    -- `discrepancy (fun k => f (k + m*d)) d n = discOffset f d m n`.
-    -- We keep it as a stub while the rewriting API stabilizes.
-    sorry
+    -- Normalize the reduced discrepancy to the bundled offset discrepancy wrapper.
+    have hrewrite :
+        discrepancy (fun k => f (k + m * d)) d n = discOffset f d m n := by
+      -- `discrepancy_shift_mul_simp` is the standard normal form for shifts by `m*d`.
+      simpa using
+        (discrepancy_shift_mul_simp (f := f) (m := m) (d := d) (n := n))
+    -- Now discharge the bound using the supplied uniform `discOffset` bound.
+    simpa [hrewrite] using hB n
 
 /-- Consumer-facing rewrite: discrepancy of the reduced sequence equals bundled offset discrepancy.
 
