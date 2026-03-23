@@ -333,7 +333,9 @@ theorem bound_discOffset_of_contextAlong (out : ReductionOutput f) (ctx : Contex
     ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
   intro n
   have h : discrepancy out.g out.d n ≤ ctx.B := ctx.bound_discrepancy n
-  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h
+  -- Avoid `simp`: rewriting is more robust here.
+  rw [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] at h
+  exact h
 
 /-- Package `bound_discOffset_of_contextAlong` as a `BoundedDiscOffset` witness.
 
@@ -373,8 +375,8 @@ This version expands `discOffset` into `Int.natAbs (apSumOffset ...)`.
 theorem bound_natAbs_apSumOffset_of_contextAlong (out : ReductionOutput f) (ctx : ContextAlong out.g out.d) :
     ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B := by
   intro n
-  -- `discOffset` is definitionally `natAbs (apSumOffset ...)`.
-  have h : discOffset f out.d out.m n ≤ ctx.B := bound_discOffset_of_contextAlong (f := f) out ctx n
+  have h := bound_discOffset_of_contextAlong (f := f) out ctx n
+  -- Avoid `simp`: the simp bridge `Int.natAbs (apSumOffset …) = discOffset …` can loop.
   unfold discOffset at h
   exact h
 
