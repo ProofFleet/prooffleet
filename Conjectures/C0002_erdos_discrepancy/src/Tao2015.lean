@@ -221,8 +221,13 @@ This is the key normal-form bridge used by later stages.
 -/
 theorem discrepancy_eq_discOffset_via_contract (out : ReductionOutput f) (n : ℕ) :
     discrepancy out.g out.d n = discOffset f out.d out.m n := by
-  -- Ultimately proved from `out.g_eq` plus the `apSum`/`apSumOffset` bridge lemmas.
-  sorry
+  -- `out.g_eq` identifies `out.g` with the canonical shift `fun k ↦ f (k + m*d)`.
+  have hgfun : out.g = fun k => f (k + out.m * out.d) := by
+    funext k
+    simpa [out.g_eq]
+  -- Now normalize discrepancy of a shift by `m*d`.
+  simpa [hgfun] using
+    (discrepancy_shift_mul_simp (f := f) (m := out.m) (d := out.d) (n := n))
 
 /-- Stage-1 witness transport: reduced discrepancy-at-least is an affine-tail witness for `f`.
 
