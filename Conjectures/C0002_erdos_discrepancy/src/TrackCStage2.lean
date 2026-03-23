@@ -68,6 +68,21 @@ theorem forall_hasDiscrepancyAtLeastAlong (out : Stage2Output f) :
       (g := out.g) (d := out.d))
   exact (this.2 out.unbounded)
 
+/-- Tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail sums
+`apSumFrom f (m*d) d n`.
+
+This is just `forall_hasDiscrepancyAtLeastAlong` transported through the Stage-1 bridge lemma
+`ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt`.
+-/
+theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.out1.m * out.out1.d) out.out1.d n) > C := by
+  intro C
+  have hdisc : HasDiscrepancyAtLeastAlong out.g out.d C :=
+    out.forall_hasDiscrepancyAtLeastAlong (f := f) C
+  exact
+    ((out.out1.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (f := f) (C := C)).1
+      hdisc)
+
 /-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
   exact (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
