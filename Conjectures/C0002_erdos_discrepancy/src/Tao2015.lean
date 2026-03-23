@@ -191,6 +191,12 @@ re-proving ad-hoc rewrites.
 structure ReductionOutput (f : ℕ → ℤ) : Type where
   /-- Fixed step size for the reduced locus. -/
   d : ℕ
+  /-- The step size is positive.
+
+  Most discrepancy statements (including `BoundedDiscrepancy`) only quantify over `d > 0`.
+  We store this here so later stages can use it without threading it separately.
+  -/
+  hd : d > 0
   /-- Offset parameter bundling the tail `m*d`. -/
   m : ℕ
   /-- Reduced sign sequence. -/
@@ -221,6 +227,7 @@ def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
   classical
   refine
     { d := d
+      hd := hd
       m := m
       g := fun k => f (k + m * d)
       hg := ?_
@@ -340,8 +347,15 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (out :
 theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (out : ReductionOutput f)
     (hunb : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) :
     ¬ BoundedDiscrepancy f := by
-  -- This is the contrapositive of `Context.ofBoundedDiscrepancy` + the Stage-1 shift contracts.
-  sorry
+  intro hb
+  -- Turn global boundedness into a reusable `Context`, then contradict the unbounded witness.
+  let ctx : Context f := Context.ofBoundedDiscrepancy (f := f) hb
+  have hbound : ∀ n : ℕ, discOffset f out.d out.m n ≤ 2 * ctx.B := by
+    intro n
+    simpa using
+      (ctx.bound_discOffset_two_mul (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+  rcases hunb (2 * ctx.B) with ⟨n, hn⟩
+  exact (not_lt_of_ge (hbound n)) hn
 
 end ReductionOutput
 
