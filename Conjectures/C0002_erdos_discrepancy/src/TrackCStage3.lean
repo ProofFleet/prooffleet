@@ -38,11 +38,8 @@ This is the main “stage boundary” lemma: it is *proved* (no `sorry`) and sho
 -/
 def ofStage2Output (out2 : Tao2015.Stage2Output f) : Stage3Output f := by
   refine ⟨out2, ?_⟩
-  -- Stage 2 gives unbounded offset discrepancy witnesses for the original sequence.
-  -- The Stage-1 reduction output has the generic lemma that this implies global unboundedness.
-  exact
-    out2.out1.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f)
-      (out2.forall_exists_discOffset_gt (f := f))
+  -- Stage 2 already packages the global negation form `¬ BoundedDiscrepancy f`.
+  exact Stage2Output.notBoundedOriginal (f := f) out2
 
 end Stage3Output
 

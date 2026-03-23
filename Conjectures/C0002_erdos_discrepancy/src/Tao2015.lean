@@ -373,6 +373,24 @@ theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (out : ReductionOu
 
 end ReductionOutput
 
+/-- If some offset discrepancy family is unbounded, then `f` cannot have globally bounded discrepancy.
+
+This is the global (non–Stage-1-specific) contrapositive used by later stages: global bounded
+discrepancy implies a uniform bound on every `discOffset f d m`, so unboundedness of any one such
+family yields a contradiction.
+-/
+theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f : ℕ → ℤ) {d m : ℕ} (hd : d > 0)
+    (hunb : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) :
+    ¬ BoundedDiscrepancy f := by
+  intro hb
+  -- Turn global boundedness into a reusable `Context`, then contradict the unbounded witness.
+  let ctx : Context f := Context.ofBoundedDiscrepancy (f := f) hb
+  have hbound : ∀ n : ℕ, discOffset f d m n ≤ 2 * ctx.B := by
+    intro n
+    simpa using (ctx.bound_discOffset_two_mul (f := f) (d := d) (m := m) (n := n) hd)
+  rcases hunb (2 * ctx.B) with ⟨n, hn⟩
+  exact (not_lt_of_ge (hbound n)) hn
+
 end Tao2015
 
 end MoltResearch

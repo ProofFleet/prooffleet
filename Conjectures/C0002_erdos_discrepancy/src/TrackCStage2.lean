@@ -151,8 +151,10 @@ theorem notBoundedOriginal (out : Stage2Output f) : ¬ BoundedDiscrepancy f := b
   -- Stage 2 → explicit offset unboundedness witness.
   have hunb : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n :=
     out.forall_exists_discOffset_gt (f := f)
-  -- Stage 1 contract transfers unboundedness back to `f`.
-  exact out.out1.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) hunb
+  -- Global boundedness would bound every `discOffset` family; contradict the witness.
+  exact
+    not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) (d := out.out1.d)
+      (m := out.out1.m) out.out1.hd hunb
 
 end Stage2Output
 
