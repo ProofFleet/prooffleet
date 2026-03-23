@@ -1,7 +1,4 @@
 import MoltResearch.Discrepancy
-import Conjectures.C0002_erdos_discrepancy.src.Tao2015
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage1Examples
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
 
 /-!
