@@ -262,7 +262,45 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
     (C : ℕ) :
     HasDiscrepancyAtLeastAlong out.g out.d C ↔
       ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
-  sorry
+  unfold HasDiscrepancyAtLeastAlong
+  constructor
+  · rintro ⟨n, hn⟩
+    have hn' : C < discOffset f out.d out.m n := by
+      simpa [discrepancy_eq_discOffset_via_contract (f := f) (out := out) (n := n)] using hn
+    have hsum : apSumOffset f out.d out.m n = apSumFrom f (out.m * out.d) out.d n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := out.d) (m := out.m)
+            (n := n)).symm
+
+    have hn0 := hn'
+    unfold discOffset at hn0
+    have hnat :
+        Int.natAbs (apSumOffset f out.d out.m n) =
+          Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
+      simpa using congrArg Int.natAbs hsum
+    rw [hnat] at hn0
+    exact ⟨n, hn0⟩
+
+  · rintro ⟨n, hn⟩
+    have hsum : apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := out.d) (m := out.m)
+            (n := n))
+
+    have hn0 := hn
+    have hnat :
+        Int.natAbs (apSumFrom f (out.m * out.d) out.d n) =
+          Int.natAbs (apSumOffset f out.d out.m n) := by
+      simpa using congrArg Int.natAbs hsum
+    rw [hnat] at hn0
+
+    have hn' : C < discOffset f out.d out.m n := by
+      change C < Int.natAbs (apSumOffset f out.d out.m n)
+      exact hn0
+
+    refine ⟨n, ?_⟩
+    have heq := discrepancy_eq_discOffset_via_contract (f := f) (out := out) (n := n)
+    simpa [heq] using hn'
 
 /-- Unboundedness of reduced discrepancy is equivalent to unboundedness of the bundled offset family.
 
