@@ -49,6 +49,25 @@ theorem bound_natAbs_apSumOffset_of_contextAlong (out : ReductionOutput f) (ctx 
   -- `discOffset` is definitionally `natAbs (apSumOffset ...)`.
   simpa [discOffset] using (bound_discOffset_of_contextAlong (f := f) out ctx n)
 
+/-- Build a fixed-step discrepancy context for the reduced sequence from a global boundedness context.
+
+This is the most common consumer pattern for Stage 1:
+- from `BoundedDiscrepancy f` build `ctx : Tao2015.Context f`,
+- then recover a uniform bound on the reduced discrepancy `discrepancy out.g out.d`.
+
+We use the packaged bound `ctx.bound_discOffset_two_mul` together with the Stage-1 transport
+contract `out.contract_discrepancy_le`.
+-/
+theorem contextAlong_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+    ContextAlong out.g out.d := by
+  refine ⟨2 * ctx.B, ?_⟩
+  intro n
+  have hOffset : ∀ n : ℕ, discOffset f out.d out.m n ≤ 2 * ctx.B := by
+    intro n
+    simpa using
+      (ctx.bound_discOffset_two_mul (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
+  exact out.contract_discrepancy_le (B := 2 * ctx.B) hOffset n
+
 end ReductionOutput
 
 end Tao2015
