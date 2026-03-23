@@ -122,8 +122,33 @@ noncomputable def ofBoundedDiscrepancy (f : ℕ → ℤ) (hb : BoundedDiscrepanc
     change Int.natAbs (apSum f d n) ≤ B
     exact hB d n hd
   · intro d m n hd
-    -- This is a small piece of index/endpoint arithmetic; we keep it as a conjecture stub for now.
-    sorry
+    -- Offset sum is a difference of two prefix sums; use triangle inequality + the global bound.
+    have hEq : apSum f d (m + n) + (- apSum f d m) = apSumOffset f d m n := by
+      calc
+        apSum f d (m + n) + (- apSum f d m)
+            = apSum f d (m + n) - apSum f d m := by
+                simp [sub_eq_add_neg]
+        _ = apSumOffset f d m n :=
+          (MoltResearch.apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n)).symm
+
+    have htri :
+        Int.natAbs (apSumOffset f d m n) ≤
+          Int.natAbs (apSum f d (m + n)) + Int.natAbs (apSum f d m) := by
+      simpa [hEq, Int.natAbs_neg] using
+        (Int.natAbs_add_le (apSum f d (m + n)) (- apSum f d m))
+
+    have hsum :
+        Int.natAbs (apSum f d (m + n)) + Int.natAbs (apSum f d m) ≤ B + B :=
+      Nat.add_le_add (hB d (m + n) hd) (hB d m hd)
+
+    have hfinal : Int.natAbs (apSumOffset f d m n) ≤ B + B :=
+      le_trans htri hsum
+
+    have : discOffset f d m n ≤ B + B := by
+      change Int.natAbs (apSumOffset f d m n) ≤ B + B
+      exact hfinal
+
+    simpa [two_mul] using this
 
 end Context
 
