@@ -41,6 +41,12 @@ def ofStage2Output (out2 : Tao2015.Stage2Output f) : Stage3Output f := by
   -- Stage 2 already packages the global negation form `¬ BoundedDiscrepancy f`.
   exact Stage2Output.notBoundedOriginal (f := f) out2
 
+/-- Stage 3 output implies the usual "∀ C, HasDiscrepancyAtLeast f C" statement. -/
+theorem forall_hasDiscrepancyAtLeast (out : Stage3Output f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
+  exact out.notBounded
+
 end Stage3Output
 
 /-!

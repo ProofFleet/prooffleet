@@ -28,10 +28,8 @@ boundedness-negation normal form `¬ BoundedDiscrepancy f`.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Quantifier-level normalization: `∀ C, ...` ↔ `¬BoundedDiscrepancy`.
-  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
-  -- Use the named Track C stage boundary (Stage 3) rather than the older monolithic stub.
-  exact (Tao2015.stage3 (f := f) (hf := hf)).notBounded
+  -- Use the named Track C stage boundary (Stage 3).
+  exact (Tao2015.stage3 (f := f) (hf := hf)).forall_hasDiscrepancyAtLeast
 
 /-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
