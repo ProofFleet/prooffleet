@@ -39,6 +39,27 @@ theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
     (congrArg Int.natAbs
         (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))).symm
 
+/-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
+
+Since `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`, this lemma lets
+later stages avoid unfolding `discOffset` by hand.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) := by
+  unfold UnboundedDiscOffset
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    unfold discOffset at hn
+    exact hn
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    change B < Int.natAbs (apSumOffset f d m n)
+    exact hn
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the affine-tail nucleus.
 
 This is a small helper for later analytic stages: it avoids repeatedly unfolding `discOffset` and
