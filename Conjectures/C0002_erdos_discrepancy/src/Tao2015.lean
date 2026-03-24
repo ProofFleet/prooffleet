@@ -375,6 +375,24 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
     have heq := discrepancy_eq_discOffset_via_contract (f := f) (out := out) (n := n)
     simpa [heq] using hn'
 
+/-- Stage-1 transport: unbounded fixed-step discrepancy for the reduced sequence is equivalent to
+arbitrarily large affine-tail witnesses for `f`.
+
+This is the `∀ C` version of `hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔
+      ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
+  constructor
+  · intro hunb C
+    exact
+      (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (f := f) (C := C)).1
+        (hunb C)
+  · intro h B
+    exact
+      (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (f := f) (C := B)).2
+        (h B)
+
 /-- Unboundedness of reduced discrepancy is equivalent to unboundedness of the bundled offset family.
 
 The suffix `_lt` is legacy: the witness is `B < ...` (i.e. “greater than B”).
