@@ -53,6 +53,16 @@ def HasDiscrepancyAtLeastAlong (g : ℕ → ℤ) (d : ℕ) (C : ℕ) : Prop :=
 def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n
 
+/-- Bridge: the witness form `UnboundedDiscOffset` is equivalent to the negation-normal-form boundedness
+statement `¬ ∃ B, BoundedDiscOffset f d m B`.
+
+This lets later stages switch to a stable boundedness predicate without unfolding `discOffset`.
+-/
+theorem unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  simpa [UnboundedDiscOffset] using
+    (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m)).symm
+
 /-!
 ### Bridges to the verified along-`d` predicates in `MoltResearch.Discrepancy`
 
