@@ -26,6 +26,19 @@ theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n))
 
+/-- Normal form: offset discrepancy expressed directly using the affine-tail nucleus.
+
+This avoids having to expand `discOffset` into `apSumOffset` and then rewrite to an `apSumFrom` tail
+form by hand.
+-/
+theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = Int.natAbs (apSumFrom f (m * d) d n) := by
+  unfold discOffset
+  -- Apply `Int.natAbs` to the `apSumFrom`→`apSumOffset` normal form, then flip the equality.
+  exact
+    (congrArg Int.natAbs
+        (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))).symm
+
 namespace ReductionOutput
 
 variable {f : ℕ → ℤ}
