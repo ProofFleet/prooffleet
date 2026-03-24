@@ -54,6 +54,15 @@ This is a thin wrapper around the proved lemma `Stage2Output.notBoundedOriginal`
 theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
   exact Stage2Output.notBoundedOriginal (f := f) (stage2 (f := f) (hf := hf))
 
+/-- Stage 2 output implies the usual "∀ C, HasDiscrepancyAtLeast f C" surface statement.
+
+This is a thin wrapper around `Stage2Output.forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  simpa using
+    (Stage2Output.forall_hasDiscrepancyAtLeast (f := f) (stage2 (f := f) (hf := hf)))
+
 /-- Stage 2 yields the most pipeline-friendly global witness form:
 
 `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
