@@ -69,6 +69,18 @@ theorem exists_params_unboundedDiscOffset (out : Stage3Output f) :
     ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
   exact Stage2Output.exists_params_unboundedDiscOffset (f := f) out.out2
 
+/-- Stage 3 output implies there exist concrete parameters `d, m` such that the affine-tail nucleus
+`apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
+
+This is a convenience wrapper around the Stage-2 packaging
+`Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt`.
+-/
+theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ C : ℕ, ∃ n : ℕ, C < Int.natAbs (apSumFrom f (m * d) d n)) := by
+  exact
+    Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2
+
 end Stage3Output
 
 /-!
