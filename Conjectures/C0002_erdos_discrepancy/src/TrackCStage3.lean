@@ -77,7 +77,7 @@ This is a convenience wrapper around the Stage-2 packaging
 -/
 theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
     ∃ d m : ℕ, d > 0 ∧
-      (∀ C : ℕ, ∃ n : ℕ, C < Int.natAbs (apSumFrom f (m * d) d n)) := by
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
   exact
     Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2
 

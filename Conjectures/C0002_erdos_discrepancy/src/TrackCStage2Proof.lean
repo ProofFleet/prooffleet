@@ -42,7 +42,7 @@ This is the explicit witness family form often consumed by later analytic stages
 theorem stage2_exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧
-      (∀ C : ℕ, ∃ n : ℕ, C < Int.natAbs (apSumFrom f (m * d) d n)) := by
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
   simpa using
     (Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
       (stage2 (f := f) (hf := hf)))

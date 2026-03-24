@@ -153,12 +153,11 @@ This is the explicit witness-family form often consumed by later analytic stages
 -/
 theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
     ∃ d m : ℕ, d > 0 ∧
-      (∀ C : ℕ, ∃ n : ℕ, C < Int.natAbs (apSumFrom f (m * d) d n)) := by
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
   refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
   intro C
   rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
-  refine ⟨n, ?_⟩
-  simpa [gt_iff_lt] using hn
+  exact ⟨n, hn⟩
 
 /-- Backwards-compatible alias for `forall_exists_discOffset_gt`.
 
