@@ -148,6 +148,15 @@ theorem notBoundedOriginal (out : Stage2Output f) : ¬ BoundedDiscrepancy f := b
     not_boundedDiscrepancy_of_unboundedDiscOffset (f := f) (d := out.out1.d) (m := out.out1.m)
       out.out1.hd (out.unboundedDiscOffset (f := f))
 
+/-- Stage 2 output implies the usual "∀ C, HasDiscrepancyAtLeast f C" surface statement.
+
+This is a convenience wrapper around `notBoundedOriginal`.
+-/
+theorem forall_hasDiscrepancyAtLeast (out : Stage2Output f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
+  exact out.notBoundedOriginal (f := f)
+
 end Stage2Output
 
 /-!
