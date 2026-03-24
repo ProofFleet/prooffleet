@@ -13,6 +13,19 @@ namespace MoltResearch
 
 namespace Tao2015
 
+/-!
+## Small nucleus normal forms
+
+These are tiny rewrite lemmas that show up repeatedly when consuming the stage interfaces.
+They live in this Conjectures-only file to avoid growing the verified substrate.
+-/
+
+/-- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus. -/
+theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumFrom f (m * d) d n = apSumOffset f d m n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n))
+
 namespace ReductionOutput
 
 variable {f : ℕ → ℤ}
@@ -62,11 +75,7 @@ theorem bound_natAbs_apSumFrom_mul_of_contextAlong (out : ReductionOutput f)
   intro n
   have hOffset : Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B :=
     bound_natAbs_apSumOffset_of_contextAlong (f := f) out ctx n
-  have hsum : apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
-    simpa using
-      (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := out.d) (m := out.m)
-          (n := n))
-  simpa [hsum] using hOffset
+  simpa [apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n)] using hOffset
 
 /-- Build a fixed-step discrepancy context for the reduced sequence from a global boundedness context.
 
