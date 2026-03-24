@@ -23,6 +23,13 @@ and later analytic/combinatorial stages.
 -/
 axiom stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 
+/-- Consumer-facing shortcut: Stage 2 already yields the global conclusion `¬ BoundedDiscrepancy f`.
+
+This is a thin wrapper around the proved lemma `Stage2Output.notBoundedOriginal`.
+-/
+theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
+  exact Stage2Output.notBoundedOriginal (f := f) (stage2 (f := f) (hf := hf))
+
 end Tao2015
 
 end MoltResearch
