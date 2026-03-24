@@ -251,7 +251,8 @@ variable {f : ℕ → ℤ}
 This is the “pure index gymnastics” step: it defines
 `g k := f (k + m*d)`.
 
-The transport contracts are left as `sorry` stubs for now (Conjectures-only).
+The transport contract `contract_discrepancy_le` is discharged by rewriting
+`discrepancy (fun k => f (k + m*d)) d` into the bundled offset form `discOffset f d m`.
 -/
 def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) : ReductionOutput f := by
   classical
@@ -291,6 +292,12 @@ theorem discrepancy_eq_discOffset_via_contract (out : ReductionOutput f) (n : �
   simpa [hgfun] using
     (discrepancy_shift_mul_simp (f := f) (m := out.m) (d := out.d) (n := n))
 
+/-- Convenience: pointwise discrepancy bounds for the reduced sequence are exactly pointwise bounds
+on the bundled offset family. -/
+theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
+    discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
+  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
+
 /-- Bounded discrepancy along the reduced step is equivalent to a uniform bound on the bundled offset
 discrepancy family.
 
@@ -306,12 +313,12 @@ theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : Reduction
     refine ⟨B, ?_⟩
     intro n
     have h : discrepancy out.g out.d n ≤ B := hB n
-    simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h
+    exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).1 h
   · rintro ⟨B, hB⟩
     refine ⟨B, ?_⟩
     intro n
     have h : discOffset f out.d out.m n ≤ B := hB n
-    simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h
+    exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).2 h
 
 /-- Stage-1 witness transport: reduced discrepancy-at-least is an affine-tail witness for `f`.
 
