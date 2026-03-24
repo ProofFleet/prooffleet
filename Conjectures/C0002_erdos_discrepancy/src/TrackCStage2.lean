@@ -52,7 +52,12 @@ abbrev d (out : Stage2Output f) : ℕ := out.out1.d
 /-- Convenience projection: the reduced sequence. -/
 abbrev g (out : Stage2Output f) : ℕ → ℤ := out.out1.g
 
-/-- Unboundedness of the reduced sequence in explicit witness form (`B < discrepancy ...`). -/
+/-- (Deprecated) Unboundedness of the reduced sequence in explicit witness form (`B < discrepancy ...`).
+
+Prefer using the field `out.unbounded` (or the more structured
+`forall_hasDiscrepancyAtLeastAlong`) to keep the Stage-2 API surface small.
+-/
+@[deprecated "Use `out.unbounded` (or `forall_hasDiscrepancyAtLeastAlong`)." (since := "2026-03-24")]
 theorem forall_exists_discrepancy_gt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discrepancy out.g out.d n := by
   -- This is just the definitional witness form for `UnboundedDiscrepancyAlong`.
