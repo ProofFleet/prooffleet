@@ -64,6 +64,15 @@ theorem forall_hasDiscrepancyAtLeastAlong (out : Stage2Output f) :
   -- `UnboundedDiscrepancyAlong` is definitionally `∀ C, HasDiscrepancyAtLeastAlong ... C`.
   simpa [Tao2015.UnboundedDiscrepancyAlong, HasDiscrepancyAtLeastAlong] using out.unbounded
 
+/-- Stage-2 unboundedness, re-expressed using the verified core predicate.
+
+This is a small convenience lemma: many consumers outside the `Tao2015` namespace use the core
+predicate `MoltResearch.UnboundedDiscrepancyAlong` rather than the Track-C-local definition.
+-/
+theorem unboundedDiscrepancyAlong_core (out : Stage2Output f) :
+    MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
+  exact (Tao2015.unboundedDiscrepancyAlong_iff_core (g := out.g) (d := out.d)).1 out.unbounded
+
 /-- Tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail sums
 `apSumFrom f (m*d) d n`.
 
