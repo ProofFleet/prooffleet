@@ -121,6 +121,17 @@ theorem unboundedDiscOffset (out : Stage2Output f) :
     Tao2015.UnboundedDiscOffset f out.out1.d out.out1.m := by
   exact (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
 
+/-- Existential packaging: Stage 2 already yields concrete parameters `d, m` such that the bundled
+offset discrepancy family `discOffset f d m` is unbounded.
+
+This is occasionally a convenient normal form for later stages that prefer not to depend on the
+record fields of `Stage2Output`.
+-/
+theorem exists_params_unboundedDiscOffset (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
+  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  exact out.unboundedDiscOffset (f := f)
+
 /-- Backwards-compatible alias for `forall_exists_discOffset_gt`.
 
 Deprecated because the suffix `_lt` was misleading: the statement is `B < ...` (i.e. “greater than B”).

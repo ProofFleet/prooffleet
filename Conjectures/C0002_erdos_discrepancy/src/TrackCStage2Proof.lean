@@ -31,9 +31,8 @@ directly with the stage record fields.
 -/
 theorem stage2_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
-  let out : Stage2Output f := stage2 (f := f) (hf := hf)
-  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
-  exact Stage2Output.unboundedDiscOffset (f := f) out
+  simpa using
+    (Stage2Output.exists_params_unboundedDiscOffset (f := f) (stage2 (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 2 already yields the global conclusion `¬ BoundedDiscrepancy f`.
 
