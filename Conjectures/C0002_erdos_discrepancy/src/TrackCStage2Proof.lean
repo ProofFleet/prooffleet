@@ -23,6 +23,18 @@ and later analytic/combinatorial stages.
 -/
 axiom stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 
+/-- Stage 2 yields some concrete parameters `d, m` such that the bundled offset discrepancy family
+`discOffset f d m` is unbounded.
+
+This existential packaging is often more convenient for later analytic stages than working
+directly with the stage record fields.
+-/
+theorem stage2_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
+  let out : Stage2Output f := stage2 (f := f) (hf := hf)
+  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  exact Stage2Output.unboundedDiscOffset (f := f) out
+
 /-- Consumer-facing shortcut: Stage 2 already yields the global conclusion `¬ BoundedDiscrepancy f`.
 
 This is a thin wrapper around the proved lemma `Stage2Output.notBoundedOriginal`.
