@@ -50,6 +50,33 @@ def HasDiscrepancyAtLeastAlong (g : ℕ → ℤ) (d : ℕ) (C : ℕ) : Prop :=
 def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n
 
+/-!
+### Bridges to the verified along-`d` predicates in `MoltResearch.Discrepancy`
+
+Track C uses bespoke stage-record interfaces under `MoltResearch.Tao2015`, but it is convenient
+to interoperate with the verified Track B “along-`d`” normal forms.
+-/
+
+/-- Bridge: Track C `HasDiscrepancyAtLeastAlong` agrees with the core predicate
+`MoltResearch.HasDiscrepancyAtLeastAlong`. -/
+theorem hasDiscrepancyAtLeastAlong_iff_core (g : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong g d C ↔ MoltResearch.HasDiscrepancyAtLeastAlong g d C := by
+  unfold HasDiscrepancyAtLeastAlong MoltResearch.HasDiscrepancyAtLeastAlong
+  constructor <;> rintro ⟨n, hn⟩ <;> refine ⟨n, ?_⟩ <;> simpa [gt_iff_lt] using hn
+
+/-- Bridge: Track C `UnboundedDiscrepancyAlong` agrees with the core predicate
+`MoltResearch.UnboundedDiscrepancyAlong`. -/
+theorem unboundedDiscrepancyAlong_iff_core (g : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong g d ↔ MoltResearch.UnboundedDiscrepancyAlong g d := by
+  unfold UnboundedDiscrepancyAlong MoltResearch.UnboundedDiscrepancyAlong MoltResearch.HasDiscrepancyAtLeastAlong
+  constructor
+  · intro hunb C
+    rcases hunb C with ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 namespace UnboundedDiscrepancyAlong
 
 /-- Classical equivalence: unboundedness along `d` is the negation of boundedness along `d`. -/
