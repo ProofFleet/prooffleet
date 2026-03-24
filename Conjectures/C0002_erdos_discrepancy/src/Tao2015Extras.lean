@@ -152,6 +152,19 @@ theorem boundedDiscrepancyAlong_of_boundedDiscrepancy (out : ReductionOutput f)
   let ctxAlong : ContextAlong out.g out.d := contextAlong_of_context (f := f) out ctx
   exact ⟨ctxAlong.B, ctxAlong.bound_discrepancy⟩
 
+/-- Convenience wrapper: unboundedness of the bundled offset discrepancy family `discOffset f out.d out.m`
+is equivalent to arbitrarily large affine-tail nucleus values `apSumFrom f (out.m*out.d) out.d`.
+
+This is just `Tao2015.unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt` specialized to
+`(d, m) = (out.d, out.m)`, but phrased as a method on the Stage-1 output record.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (out : ReductionOutput f) :
+    UnboundedDiscOffset f out.d out.m ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumFrom f (out.m * out.d) out.d n)) := by
+  simpa using
+    (Tao2015.unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := out.d)
+      (m := out.m))
+
 end ReductionOutput
 
 end Tao2015
