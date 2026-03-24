@@ -49,6 +49,23 @@ theorem bound_natAbs_apSumOffset_of_contextAlong (out : ReductionOutput f) (ctx 
   -- `discOffset` is definitionally `natAbs (apSumOffset ...)`.
   simpa [discOffset] using (bound_discOffset_of_contextAlong (f := f) out ctx n)
 
+/-- Tail-nucleus variant of `bound_natAbs_apSumOffset_of_contextAlong`.
+
+This exposes the affine-tail nucleus `apSumFrom f (m*d) d n` rather than the bundled wrapper
+`apSumOffset f d m n`.
+-/
+theorem bound_natAbs_apSumFrom_mul_of_contextAlong (out : ReductionOutput f)
+    (ctx : ContextAlong out.g out.d) :
+    ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ ctx.B := by
+  intro n
+  have hOffset : Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B :=
+    bound_natAbs_apSumOffset_of_contextAlong (f := f) out ctx n
+  have hsum : apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
+    simpa using
+      (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := out.d) (m := out.m)
+          (n := n))
+  simpa [hsum] using hOffset
+
 /-- Build a fixed-step discrepancy context for the reduced sequence from a global boundedness context.
 
 This is the most common consumer pattern for Stage 1:
