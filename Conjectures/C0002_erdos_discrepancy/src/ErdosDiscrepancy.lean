@@ -16,6 +16,15 @@ theorem erdos_discrepancy_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
 
 -- Tao 2015 proof skeleton lives in `Conjectures.C0002_erdos_discrepancy.src.Tao2015`.
 
+/-- Erdős discrepancy theorem in boundedness-negation normal form.
+
+This is the core Track C output: it is the minimal statement from which the usual witness forms
+follow.
+-/
+theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ BoundedDiscrepancy f := by
+  exact (Tao2015.stage3 (f := f) (hf := hf)).notBounded
+
 /-- Erdős discrepancy theorem.
 
 Every ±1 sequence has unbounded discrepancy on homogeneous arithmetic progressions.
@@ -25,8 +34,9 @@ boundedness-negation normal form `¬ BoundedDiscrepancy f`.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Use the named Track C stage boundary (Stage 3).
-  exact (Tao2015.stage3 (f := f) (hf := hf)).forall_hasDiscrepancyAtLeast
+  -- Derive the usual surface statement from the negation normal form.
+  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
+  exact erdos_discrepancy_notBounded (f := f) (hf := hf)
 
 /-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
