@@ -75,6 +75,10 @@ noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Outpu
   -- Run Stage 2, then close the global goal via the proved boundary lemma.
   exact (Stage3Output.ofStage2Output (f := f) (Tao2015.stage2 (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`. -/
+theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
+  exact (stage3 (f := f) (hf := hf)).notBounded
+
 end Tao2015
 
 end MoltResearch

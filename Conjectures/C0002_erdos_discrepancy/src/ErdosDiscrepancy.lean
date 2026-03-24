@@ -28,7 +28,8 @@ follow.
 -/
 theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
-  exact (erdos_discrepancy_stage3Output (f := f) (hf := hf)).notBounded
+  -- Shortcut: Stage 3 already packages the global boundedness negation.
+  exact Tao2015.stage3_notBounded (f := f) (hf := hf)
 
 /-- Erdős discrepancy theorem.
 
