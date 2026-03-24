@@ -372,6 +372,7 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
 
 The suffix `_lt` is legacy: the witness is `B < ...` (i.e. “greater than B”).
 -/
+@[deprecated "Use `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt` (witnesses are of the form `B < discOffset ...`)." (since := "2026-03-24")]
 theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
   constructor
@@ -384,11 +385,21 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (out : Reducti
     refine ⟨n, ?_⟩
     simpa [discrepancy_eq_discOffset_via_contract (out := out) (n := n)] using hn
 
-/-- Alias of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt` with a suffix matching the
-inequality direction (`B < ...`). -/
+/-- Preferred naming for `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`.
+
+The witnesses have the form `B < discOffset ...`, so we use the suffix `_gt` (“greater than B”).
+-/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n) := by
-  simpa using (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f) (out := out))
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [discrepancy_eq_discOffset_via_contract (out := out) (n := n)] using hn
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [discrepancy_eq_discOffset_via_contract (out := out) (n := n)] using hn
 
 /-- Packaged predicate form: reduced-step unbounded discrepancy is equivalent to unboundedness of the
 bundled offset discrepancy family for `f`.
@@ -399,30 +410,44 @@ theorem unboundedDiscrepancyAlong_iff_unboundedDiscOffset (out : ReductionOutput
     (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f) (out := out))
 
 /-- Nucleus-level variant of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt`. -/
+@[deprecated "Use `unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt` (witnesses are of the form `B < Int.natAbs ...`)." (since := "2026-03-24")]
 theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔
       (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
   constructor
   · intro hunb
     have hdisc : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n :=
-      (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f) (out := out)).1 hunb
+      (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f) (out := out)).1 hunb
     intro B
     rcases hdisc B with ⟨n, hn⟩
     exact ⟨n, hn⟩
   · intro hunb
     refine
-      (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_lt (f := f) (out := out)).2 ?_
+      (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f) (out := out)).2 ?_
     intro B
     rcases hunb B with ⟨n, hn⟩
     exact ⟨n, hn⟩
 
-/-- Alias of `unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt` with a suffix matching
-the inequality direction (`B < ...`). -/
+/-- Preferred naming for `unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt`.
+
+The witnesses have the form `B < Int.natAbs ...`, so we use the suffix `_gt` (“greater than B”).
+-/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (out : ReductionOutput f) :
     UnboundedDiscrepancyAlong out.g out.d ↔
       (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n)) := by
-  simpa using
-    (unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_lt (f := f) (out := out))
+  constructor
+  · intro hunb
+    have hdisc : ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n :=
+      (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f) (out := out)).1 hunb
+    intro B
+    rcases hdisc B with ⟨n, hn⟩
+    exact ⟨n, hn⟩
+  · intro hunb
+    refine
+      (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f) (out := out)).2 ?_
+    intro B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, hn⟩
 
 /-- If the bundled offset discrepancies are unbounded, then `f` cannot have globally bounded discrepancy. -/
 theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (out : ReductionOutput f)
