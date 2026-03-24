@@ -78,6 +78,15 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ �
     refine ⟨n, ?_⟩
     simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)] using hn
 
+/-- Variant of `unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt` with the inequality
+written as `Int.natAbs ... > B` (often the normal form used by Stage interfaces).
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > B) := by
+  simpa [gt_iff_lt] using
+    (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m))
+
 namespace ReductionOutput
 
 variable {f : ℕ → ℤ}
