@@ -61,12 +61,8 @@ theorem forall_exists_discrepancy_gt (out : Stage2Output f) :
 /-- Equivalent packaging: arbitrarily large discrepancy witnesses along `out.d`. -/
 theorem forall_hasDiscrepancyAtLeastAlong (out : Stage2Output f) :
     ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
-  -- Use the lemma in `Tao2015` that relates `∀ C, HasDiscrepancyAtLeastAlong` to unboundedness.
-  have : (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
-      Tao2015.UnboundedDiscrepancyAlong out.g out.d :=
-    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong
-      (g := out.g) (d := out.d))
-  exact (this.2 out.unbounded)
+  -- `UnboundedDiscrepancyAlong` is definitionally `∀ C, HasDiscrepancyAtLeastAlong ... C`.
+  simpa [Tao2015.UnboundedDiscrepancyAlong, HasDiscrepancyAtLeastAlong] using out.unbounded
 
 /-- Tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail sums
 `apSumFrom f (m*d) d n`.

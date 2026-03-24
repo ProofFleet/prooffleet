@@ -99,7 +99,7 @@ structure Context (f : ℕ → ℤ) : Type where
   B : ℕ
   /-- Bound on homogeneous discrepancy (`discrepancy = natAbs(apSum)`). -/
   bound_discrepancy : ∀ d n : ℕ, d > 0 → discrepancy f d n ≤ B
-  /-- A convenient derived bound for offset discrepancy families (allowed to be `sorry` for now). -/
+  /-- A convenient derived bound for offset discrepancy families. -/
   bound_discOffset_two_mul : ∀ d m n : ℕ, d > 0 → discOffset f d m n ≤ 2 * B
 
 namespace Context
