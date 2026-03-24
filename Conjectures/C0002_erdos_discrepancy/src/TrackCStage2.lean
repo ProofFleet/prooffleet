@@ -52,6 +52,24 @@ abbrev d (out : Stage2Output f) : ℕ := out.out1.d
 /-- Convenience projection: the reduced sequence. -/
 abbrev g (out : Stage2Output f) : ℕ → ℤ := out.out1.g
 
+/-- Convenience projection: the offset parameter bundled in Stage 1. -/
+abbrev m (out : Stage2Output f) : ℕ := out.out1.m
+
+/-- Convenience projection: positivity of the reduced step size. -/
+abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
+
+/-- Stage-2 unboundedness re-expressed as arbitrarily large affine-tail nucleus values
+`apSumFrom f (m*d) d n`.
+
+This is a wrapper around the Stage-1 boundary lemma
+`ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt`.
+-/
+theorem unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
+  simpa [Stage2Output.g, Stage2Output.d, Stage2Output.m] using
+    (out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f))
+
 /-- (Deprecated) Unboundedness of the reduced sequence in explicit witness form (`B < discrepancy ...`).
 
 Prefer using the field `out.unbounded` (or the more structured
