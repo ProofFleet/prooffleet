@@ -428,6 +428,17 @@ theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (out : ReductionOu
   rcases hunb (2 * ctx.B) with ⟨n, hn⟩
   exact (not_lt_of_ge (hbound n)) hn
 
+/-- If reduced discrepancy along `out.d` is unbounded, then `f` cannot have globally bounded discrepancy.
+
+This is just `not_boundedDiscrepancy_of_forall_exists_discOffset_gt` composed with the Stage-1
+transport equivalence `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
+-/
+theorem not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (out : ReductionOutput f)
+    (hunb : UnboundedDiscrepancyAlong out.g out.d) :
+    ¬ BoundedDiscrepancy f := by
+  refine ReductionOutput.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) (out := out) ?_
+  exact (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f) (out := out)).1 hunb
+
 end ReductionOutput
 
 /-- If some offset discrepancy family is unbounded, then `f` cannot have globally bounded discrepancy.

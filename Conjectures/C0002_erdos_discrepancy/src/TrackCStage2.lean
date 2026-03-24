@@ -143,10 +143,8 @@ Stage 2 gives an explicit unbounded offset-discrepancy family for `f`, and then 
 contract carried by `out.out1` to conclude `¬ BoundedDiscrepancy f`.
 -/
 theorem notBoundedOriginal (out : Stage2Output f) : ¬ BoundedDiscrepancy f := by
-  -- Stage 2 already packages an unbounded offset-discrepancy family for `f`.
-  exact
-    not_boundedDiscrepancy_of_unboundedDiscOffset (f := f) (d := out.out1.d) (m := out.out1.m)
-      out.out1.hd (out.unboundedDiscOffset (f := f))
+  -- Transport the Stage-2 unboundedness witness back to `f` through the Stage-1 reduction record.
+  exact out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f) out.unbounded
 
 /-- Stage 2 output implies the usual "∀ C, HasDiscrepancyAtLeast f C" surface statement.
 
