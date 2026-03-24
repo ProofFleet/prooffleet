@@ -83,6 +83,16 @@ theorem bound_discOffset_of_contextAlong (out : ReductionOutput f) (ctx : Contex
   have h : discrepancy out.g out.d n ≤ ctx.B := ctx.bound_discrepancy n
   simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h
 
+/-- Package `bound_discOffset_of_contextAlong` as a `BoundedDiscOffset` witness.
+
+Many later stages prefer the Prop-level boundedness predicate `BoundedDiscOffset` rather than
+writing out the pointwise bound. This lemma is a tiny wrapper to keep consumer code clean.
+-/
+theorem boundedDiscOffset_of_contextAlong (out : ReductionOutput f) (ctx : ContextAlong out.g out.d) :
+    BoundedDiscOffset f out.d out.m ctx.B := by
+  intro n
+  exact bound_discOffset_of_contextAlong (f := f) out ctx n
+
 /-- Nucleus-level variant of `bound_discOffset_of_contextAlong`.
 
 This version expands `discOffset` into `Int.natAbs (apSumOffset ...)`.
