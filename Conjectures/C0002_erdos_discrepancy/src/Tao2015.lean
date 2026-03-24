@@ -91,8 +91,7 @@ theorem iff_not_boundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) :
     rcases hb with ⟨B, hB⟩
     rcases hunb B with ⟨n, hn⟩
     exact (not_lt_of_ge (hB n)) hn
-  · intro hnb
-    intro B
+  · intro hnb B
     by_contra h
     have hB : ∀ n : ℕ, discrepancy g d n ≤ B := by
       intro n
@@ -273,8 +272,7 @@ def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     have hrewrite :
         discrepancy (fun k => f (k + m * d)) d n = discOffset f d m n := by
       -- `discrepancy_shift_mul_simp` is the standard normal form for shifts by `m*d`.
-      simpa using
-        (discrepancy_shift_mul_simp (f := f) (m := m) (d := d) (n := n))
+      exact discrepancy_shift_mul_simp (f := f) (m := m) (d := d) (n := n)
     -- Now discharge the bound using the supplied uniform `discOffset` bound.
     simpa [hrewrite] using hB n
 
@@ -287,16 +285,15 @@ theorem discrepancy_eq_discOffset_via_contract (out : ReductionOutput f) (n : �
   -- `out.g_eq` identifies `out.g` with the canonical shift `fun k ↦ f (k + m*d)`.
   have hgfun : out.g = fun k => f (k + out.m * out.d) := by
     funext k
-    simpa [out.g_eq]
+    simp [out.g_eq]
   -- Now normalize discrepancy of a shift by `m*d`.
-  simpa [hgfun] using
-    (discrepancy_shift_mul_simp (f := f) (m := out.m) (d := out.d) (n := n))
+  simp [hgfun, discrepancy_shift_mul_simp (f := f) (m := out.m) (d := out.d) (n := n)]
 
 /-- Convenience: pointwise discrepancy bounds for the reduced sequence are exactly pointwise bounds
 on the bundled offset family. -/
 theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
     discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
-  simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
+  simp [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
 
 /-- Bounded discrepancy along the reduced step is equivalent to a uniform bound on the bundled offset
 discrepancy family.
