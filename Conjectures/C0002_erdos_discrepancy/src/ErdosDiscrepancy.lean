@@ -4,7 +4,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
 /-!
 A conjecture-style stub for the Erdős discrepancy theorem (Tao 2015).
 
-This file may contain `sorry` (backlog only). Verified, reusable definitions belong in `MoltResearch/`.
+This file is **Conjectures-only**: it may rely on axiom stubs (and, if needed, `sorry`). Verified, reusable definitions belong in `MoltResearch/`.
 -/
 
 namespace MoltResearch
@@ -16,6 +16,11 @@ theorem erdos_discrepancy_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
 
 -- Tao 2015 proof skeleton lives in `Conjectures.C0002_erdos_discrepancy.src.Tao2015`.
 
+/-- Track C pipeline package: Stage-3 output for a sign sequence `f`. -/
+noncomputable abbrev erdos_discrepancy_stage3Output (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Tao2015.Stage3Output f :=
+  Tao2015.stage3 (f := f) (hf := hf)
+
 /-- Erdős discrepancy theorem in boundedness-negation normal form.
 
 This is the core Track C output: it is the minimal statement from which the usual witness forms
@@ -23,7 +28,7 @@ follow.
 -/
 theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
-  exact (Tao2015.stage3 (f := f) (hf := hf)).notBounded
+  exact (erdos_discrepancy_stage3Output (f := f) (hf := hf)).notBounded
 
 /-- Erdős discrepancy theorem.
 
