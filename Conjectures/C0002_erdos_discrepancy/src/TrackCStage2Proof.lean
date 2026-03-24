@@ -34,6 +34,18 @@ theorem stage2_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignS
   simpa using
     (Stage2Output.exists_params_unboundedDiscOffset (f := f) (stage2 (f := f) (hf := hf)))
 
+/-- Stage 2 yields an explicit unbounded witness family for the bundled offset discrepancy
+`discOffset f d m`, for the concrete parameters `d, m` coming from the Stage-1 reduction record.
+
+This is a small normal-form convenience lemma: later analytic stages often want to stay at the
+`discOffset` level rather than unpacking `Stage2Output` fields.
+-/
+theorem stage2_forall_exists_discOffset_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      B < discOffset f (stage2 (f := f) (hf := hf)).out1.d (stage2 (f := f) (hf := hf)).out1.m n := by
+  simpa using
+    (Stage2Output.forall_exists_discOffset_gt (f := f) (stage2 (f := f) (hf := hf)))
+
 /-- Stage 2 yields concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
