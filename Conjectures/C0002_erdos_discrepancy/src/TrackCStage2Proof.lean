@@ -34,6 +34,20 @@ theorem stage2_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignS
   simpa using
     (Stage2Output.exists_params_unboundedDiscOffset (f := f) (stage2 (f := f) (hf := hf)))
 
+/-- Stage 2 yields concrete parameters `d, m` such that the affine-tail nucleus
+`apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
+
+This is the explicit witness family form often consumed by later analytic stages.
+-/
+theorem stage2_exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ C : ℕ, ∃ n : ℕ, C < Int.natAbs (apSumFrom f (m * d) d n)) := by
+  classical
+  let out : Stage2Output f := stage2 (f := f) (hf := hf)
+  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  simpa using (out.forall_exists_natAbs_apSumFrom_mul_gt (f := f))
+
 /-- Consumer-facing shortcut: Stage 2 already yields the global conclusion `¬ BoundedDiscrepancy f`.
 
 This is a thin wrapper around the proved lemma `Stage2Output.notBoundedOriginal`.
