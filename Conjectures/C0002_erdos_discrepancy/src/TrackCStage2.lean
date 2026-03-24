@@ -121,6 +121,20 @@ theorem unboundedDiscOffset (out : Stage2Output f) :
     Tao2015.UnboundedDiscOffset f out.out1.d out.out1.m := by
   exact (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
 
+/-- Stage 2 implies there is no uniform bound on the bundled offset discrepancy family
+`discOffset f out.out1.d out.out1.m`.
+
+This is the negation-normal-form version of `unboundedDiscOffset`.
+-/
+theorem not_exists_boundedDiscOffset (out : Stage2Output f) :
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.out1.d out.out1.m B := by
+  have hunb : UnboundedDiscOffset f out.out1.d out.out1.m :=
+    out.unboundedDiscOffset (f := f)
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f)
+        (d := out.out1.d) (m := out.out1.m)).1
+      hunb
+
 /-- Existential packaging: Stage 2 already yields concrete parameters `d, m` such that the bundled
 offset discrepancy family `discOffset f d m` is unbounded.
 
