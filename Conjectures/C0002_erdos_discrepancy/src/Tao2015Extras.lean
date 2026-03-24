@@ -36,7 +36,7 @@ This is just `ctx.bound` transported via the stage-1 rewrite
 theorem bound_discOffset_of_contextAlong (out : ReductionOutput f) (ctx : ContextAlong out.g out.d) :
     ∀ n : ℕ, discOffset f out.d out.m n ≤ ctx.B := by
   intro n
-  have h : discrepancy out.g out.d n ≤ ctx.B := ctx.bound_discrepancy (f := out.g) (d := out.d) n
+  have h : discrepancy out.g out.d n ≤ ctx.B := ctx.bound_discrepancy n
   simpa [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)] using h
 
 /-- Nucleus-level variant of `bound_discOffset_of_contextAlong`.
@@ -47,7 +47,9 @@ theorem bound_natAbs_apSumOffset_of_contextAlong (out : ReductionOutput f) (ctx 
     ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B := by
   intro n
   -- `discOffset` is definitionally `natAbs (apSumOffset ...)`.
-  simpa [discOffset] using (bound_discOffset_of_contextAlong (f := f) out ctx n)
+  have h : discOffset f out.d out.m n ≤ ctx.B := bound_discOffset_of_contextAlong (f := f) out ctx n
+  unfold discOffset at h
+  exact h
 
 /-- Tail-nucleus variant of `bound_natAbs_apSumOffset_of_contextAlong`.
 
@@ -75,7 +77,7 @@ This is the most common consumer pattern for Stage 1:
 We use the packaged bound `ctx.bound_discOffset_two_mul` together with the Stage-1 transport
 contract `out.contract_discrepancy_le`.
 -/
-theorem contextAlong_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
+def contextAlong_of_context (out : ReductionOutput f) (ctx : Tao2015.Context f) :
     ContextAlong out.g out.d := by
   refine ⟨2 * ctx.B, ?_⟩
   intro n
@@ -84,6 +86,21 @@ theorem contextAlong_of_context (out : ReductionOutput f) (ctx : Tao2015.Context
     simpa using
       (ctx.bound_discOffset_two_mul (f := f) (d := out.d) (m := out.m) (n := n) out.hd)
   exact out.contract_discrepancy_le (B := 2 * ctx.B) hOffset n
+
+/-- If `f` has globally bounded discrepancy, then the reduced sequence `out.g` has bounded
+fixed-step discrepancy along `out.d`.
+
+This is a convenience wrapper around `contextAlong_of_context`: it builds a `Context` from
+`BoundedDiscrepancy f`, then unwraps the resulting `ContextAlong` into the Prop-style predicate
+`BoundedDiscrepancyAlong`.
+-/
+theorem boundedDiscrepancyAlong_of_boundedDiscrepancy (out : ReductionOutput f)
+    (hb : BoundedDiscrepancy f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  classical
+  let ctx : Tao2015.Context f := Tao2015.Context.ofBoundedDiscrepancy (f := f) hb
+  let ctxAlong : ContextAlong out.g out.d := contextAlong_of_context (f := f) out ctx
+  exact ⟨ctxAlong.B, ctxAlong.bound_discrepancy⟩
 
 end ReductionOutput
 
