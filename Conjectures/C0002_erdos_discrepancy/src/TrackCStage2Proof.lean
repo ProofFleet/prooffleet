@@ -43,10 +43,9 @@ theorem stage2_exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → 
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧
       (∀ C : ℕ, ∃ n : ℕ, C < Int.natAbs (apSumFrom f (m * d) d n)) := by
-  classical
-  let out : Stage2Output f := stage2 (f := f) (hf := hf)
-  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
-  simpa using (out.forall_exists_natAbs_apSumFrom_mul_gt (f := f))
+  simpa using
+    (Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (stage2 (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 2 already yields the global conclusion `¬ BoundedDiscrepancy f`.
 
