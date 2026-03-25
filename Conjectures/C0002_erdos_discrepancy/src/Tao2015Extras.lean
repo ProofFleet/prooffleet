@@ -53,6 +53,22 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (
     have hn : Int.natAbs (apSumFrom f (m * d) d n) ≤ B := h n
     simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)] using hn
 
+/-- Normal form: boundedness of `discOffset f d m` expressed directly using the bundled offset nucleus.
+
+This avoids having to unfold `discOffset` at each call site.
+-/
+theorem boundedDiscOffset_iff_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m B : ℕ) :
+    BoundedDiscOffset f d m B ↔ ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B := by
+  constructor
+  · intro h n
+    have hn : discOffset f d m n ≤ B := h n
+    unfold discOffset at hn
+    exact hn
+  · intro h n
+    have hn : Int.natAbs (apSumOffset f d m n) ≤ B := h n
+    unfold discOffset
+    exact hn
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
 
 Since `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`, this lemma lets
