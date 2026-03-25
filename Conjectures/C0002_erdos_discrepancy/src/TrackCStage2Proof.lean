@@ -42,9 +42,11 @@ This is a small normal-form convenience lemma: later analytic stages often want 
 -/
 theorem stage2_forall_exists_discOffset_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ B : ℕ, ∃ n : ℕ,
-      B < discOffset f (stage2 (f := f) (hf := hf)).out1.d (stage2 (f := f) (hf := hf)).out1.m n := by
-  simpa using
-    (Stage2Output.forall_exists_discOffset_gt (f := f) (stage2 (f := f) (hf := hf)))
+      B < discOffset f (Stage2Output.d (stage2 (f := f) (hf := hf)))
+        (Stage2Output.m (stage2 (f := f) (hf := hf))) n := by
+  let out := stage2 (f := f) (hf := hf)
+  simpa [out, Stage2Output.d, Stage2Output.m] using
+    (Stage2Output.forall_exists_discOffset_gt (f := f) out)
 
 /-- Stage 2 yields concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
