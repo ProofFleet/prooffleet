@@ -162,6 +162,15 @@ noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Outpu
 theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
   exact (stage3 (f := f) (hf := hf)).notBounded
 
+/-- Consumer-facing shortcut: Stage 3 yields the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
+
+This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  simpa using
+    (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3 (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields the most pipeline-friendly global witness form:
 
 `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
