@@ -86,6 +86,16 @@ theorem forall_exists_discrepancy_gt (out : Stage2Output f) :
   -- This is just the definitional witness form for `UnboundedDiscrepancyAlong`.
   simpa [Tao2015.UnboundedDiscrepancyAlong] using out.unbounded
 
+/-- Unboundedness of the reduced sequence in explicit witness form (`discrepancy ... > B`).
+
+This is the inequality-direction normal form of the unboundedness field `out.unbounded`.
+-/
+theorem forall_exists_discrepancy_gt' (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, discrepancy out.g out.d n > B := by
+  simpa using
+    (Tao2015.unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g := out.g) (d := out.d)).1
+      out.unbounded
+
 /-- Equivalent packaging: arbitrarily large discrepancy witnesses along `out.d`. -/
 theorem forall_hasDiscrepancyAtLeastAlong (out : Stage2Output f) :
     ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
