@@ -218,6 +218,17 @@ theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (f := f)).1
       out.unbounded)
 
+/-- Inequality-direction variant of `forall_exists_natAbs_apSumOffset_gt`, written as
+`Int.natAbs ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.out1.d out.out1.m n) > B := by
+  intro B
+  rcases out.forall_exists_natAbs_apSumOffset_gt (f := f) B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- Backwards-compatible alias for `forall_exists_natAbs_apSumOffset_gt`.
 
 Deprecated because the suffix `_lt` was misleading: the statement is `B < ...`.
