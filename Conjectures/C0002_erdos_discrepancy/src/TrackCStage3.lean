@@ -69,6 +69,17 @@ theorem exists_params_unboundedDiscOffset (out : Stage3Output f) :
     ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
   exact Stage2Output.exists_params_unboundedDiscOffset (f := f) out.out2
 
+/-- Combined packaging: Stage 3 yields concrete parameters `d, m` such that the bundled offset
+  discrepancy family `discOffset f d m` has arbitrarily large values.
+
+This is the explicit witness-family form of `exists_params_unboundedDiscOffset`.
+-/
+theorem exists_params_forall_exists_discOffset_gt (out : Stage3Output f) :
+    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  refine ⟨out.out2.out1.d, out.out2.out1.m, out.out2.out1.hd, ?_⟩
+  intro B
+  exact Stage2Output.forall_exists_discOffset_gt (f := f) out.out2 B
+
 /-- Stage 3 output yields bundled offset discrepancy witnesses for the concrete parameters
 `d = out.out2.out1.d` and `m = out.out2.out1.m`.
 
