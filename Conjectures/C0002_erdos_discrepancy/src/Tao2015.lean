@@ -360,6 +360,16 @@ theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : Reduction
     have h : discOffset f out.d out.m n ≤ B := hB n
     exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).2 h
 
+/-- Packaged form of `boundedDiscrepancyAlong_iff_exists_forall_discOffset_le` using the verified
+predicate `BoundedDiscOffset`.
+
+This keeps downstream code from having to remember the exact quantifier normal form of
+`BoundedDiscOffset`.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_boundedDiscOffset (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d ↔ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
+  simpa [BoundedDiscOffset] using out.boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (f := f)
+
 /-- Stage-1 witness transport: reduced discrepancy-at-least is an affine-tail witness for `f`.
 
 The affine nucleus is `apSumFrom f (m*d) d n`.
