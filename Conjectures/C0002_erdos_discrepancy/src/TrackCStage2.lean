@@ -179,6 +179,19 @@ theorem exists_params_unboundedDiscOffset (out : Stage2Output f) :
   refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
   exact out.unboundedDiscOffset (f := f)
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This is a small convenience variant of `exists_params_unboundedDiscOffset`: many downstream stages
+use the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem exists_params_one_le_unboundedDiscOffset (out : Stage2Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  have hd1 : 1 ≤ out.out1.d := by
+    simpa [Stage2Output.d] using (out.one_le_d (f := f))
+  refine ⟨out.out1.d, out.out1.m, hd1, ?_⟩
+  exact out.unboundedDiscOffset (f := f)
+
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that `discOffset f d m`
 has arbitrarily large values.
 
