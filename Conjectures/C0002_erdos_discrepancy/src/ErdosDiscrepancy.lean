@@ -55,6 +55,19 @@ theorem erdos_discrepancy_apSum (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (erdos_discrepancy (f := f) (hf := hf))
 
+/-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
+  the affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
+
+This is a thin wrapper around the Stage-3 packaging.
+-/
+theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  simpa using
+    (Tao2015.Stage3Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+
 /-- Paper-notation surface form of `erdos_discrepancy`, matching `∑_{i=1}^n f (i*d)`.
 
 This is a thin wrapper around `erdos_discrepancy_apSum`, via
