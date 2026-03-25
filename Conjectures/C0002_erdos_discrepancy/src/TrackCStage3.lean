@@ -60,6 +60,15 @@ theorem forall_exists_d_ge_one_witness_pos (out : Stage3Output f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (out.forall_hasDiscrepancyAtLeast (f := f))
 
+/-- Stage 3 output yields unboundedness of the bundled offset discrepancy family
+`discOffset f d m` at the *concrete* parameters coming from Stage 1.
+
+This is just a thin wrapper around `Stage2Output.unboundedDiscOffset`.
+-/
+theorem unboundedDiscOffset (out : Stage3Output f) :
+    UnboundedDiscOffset f out.out2.out1.d out.out2.out1.m := by
+  exact Stage2Output.unboundedDiscOffset (f := f) out.out2
+
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the bundled offset
   discrepancy family `discOffset f d m` is unbounded.
 
