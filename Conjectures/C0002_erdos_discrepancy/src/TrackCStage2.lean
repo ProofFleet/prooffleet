@@ -174,6 +174,17 @@ theorem exists_params_unboundedDiscOffset (out : Stage2Output f) :
   refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
   exact out.unboundedDiscOffset (f := f)
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that `discOffset f d m`
+has arbitrarily large values.
+
+This is the explicit witness-family form of `exists_params_unboundedDiscOffset`.
+-/
+theorem exists_params_forall_exists_discOffset_gt (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  intro B
+  simpa using out.forall_exists_discOffset_gt (f := f) B
+
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
