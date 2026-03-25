@@ -121,6 +121,16 @@ theorem forall_exists_discOffset_gt' (out : Stage3Output f) :
   rcases out.forall_exists_discOffset_gt (f := f) B with ⟨n, hn⟩
   exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
+/-- Tail-nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
+
+This is just the Stage-2 witness `Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt`, re-expressed
+at the Stage-3 boundary.
+-/
+theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ n : ℕ,
+      Int.natAbs (apSumFrom f (out.out2.out1.m * out.out2.out1.d) out.out2.out1.d n) > C := by
+  simpa using (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
+
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
