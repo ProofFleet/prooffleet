@@ -194,6 +194,17 @@ theorem boundedDiscOffset_of_contextAlong (out : ReductionOutput f) (ctx : Conte
   intro n
   exact bound_discOffset_of_contextAlong (f := f) out ctx n
 
+/-- Build a reduced fixed-step discrepancy context from a bundled offset bound.
+
+If you can uniformly bound `discOffset f out.d out.m`, the Stage-1 transfer contract immediately
+yields a uniform bound on the reduced discrepancy `discrepancy out.g out.d`.
+-/
+def contextAlong_of_boundedDiscOffset (out : ReductionOutput f) {B : ℕ}
+    (hB : BoundedDiscOffset f out.d out.m B) : ContextAlong out.g out.d := by
+  refine ⟨B, ?_⟩
+  intro n
+  exact out.contract_discrepancy_le B hB n
+
 /-- Nucleus-level variant of `bound_discOffset_of_contextAlong`.
 
 This version expands `discOffset` into `Int.natAbs (apSumOffset ...)`.
