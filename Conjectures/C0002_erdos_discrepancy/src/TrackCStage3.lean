@@ -69,6 +69,15 @@ theorem unboundedDiscOffset (out : Stage3Output f) :
     UnboundedDiscOffset f out.out2.out1.d out.out2.out1.m := by
   exact Stage2Output.unboundedDiscOffset (f := f) out.out2
 
+/-- Negation-normal-form boundedness statement for the concrete Stage-1 parameters bundled in
+Stage 3.
+
+This is the Prop-style boundedness predicate form of `unboundedDiscOffset`.
+-/
+theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.out2.out1.d out.out2.out1.m B := by
+  exact Stage2Output.not_exists_boundedDiscOffset (f := f) out.out2
+
 /-- Nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
 This is `unboundedDiscOffset` rewritten so consumers can work directly with
