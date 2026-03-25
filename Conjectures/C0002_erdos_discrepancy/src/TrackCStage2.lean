@@ -58,6 +58,11 @@ abbrev m (out : Stage2Output f) : ℕ := out.out1.m
 /-- Convenience projection: positivity of the reduced step size. -/
 abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 
+/-- Convenience lemma: the reduced step size is at least `1`. -/
+theorem one_le_d (out : Stage2Output f) : 1 ≤ out.d := by
+  -- `out.hd` is `0 < out.d`.
+  simpa using (Nat.succ_le_iff).2 out.hd
+
 /-- Stage-2 unboundedness re-expressed as arbitrarily large affine-tail nucleus values
 `apSumFrom f (m*d) d n`.
 
