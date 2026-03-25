@@ -55,6 +55,16 @@ theorem stage2_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignS
   simpa using
     (Stage2Output.exists_params_unboundedDiscOffset (f := f) (stage2 (f := f) (hf := hf)))
 
+/-- Stage 2 yields some concrete parameters `d, m` with `1 ≤ d` such that the bundled offset discrepancy family
+`discOffset f d m` is unbounded.
+
+Many later stages use the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem stage2_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  simpa using
+    (Stage2Output.exists_params_one_le_unboundedDiscOffset (f := f) (stage2 (f := f) (hf := hf)))
+
 /-- Stage 2 yields some concrete parameters `d, m` such that the bundled offset discrepancy family
 `discOffset f d m` has arbitrarily large values.
 
