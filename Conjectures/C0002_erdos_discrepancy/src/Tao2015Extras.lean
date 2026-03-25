@@ -101,6 +101,22 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f : ℕ 
   simpa [gt_iff_lt] using
     (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m))
 
+/-- Normal form: the negation-normal-form boundedness statement
+`¬ ∃ B, BoundedDiscOffset f d m B` expressed directly using affine-tail nuclei.
+
+This is just the composition of
+`Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset` and
+`unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'`.
+-/
+theorem not_exists_boundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
+    (d m : ℕ) :
+    (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > B) := by
+  -- Rewrite the negation-normal form through the witness predicate `UnboundedDiscOffset`.
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m)).symm.trans
+      (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m))
+
 namespace ReductionOutput
 
 variable {f : ℕ → ℤ}
