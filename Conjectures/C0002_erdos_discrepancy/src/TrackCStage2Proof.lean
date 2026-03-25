@@ -92,6 +92,19 @@ theorem stage2_forall_exists_discOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequen
   simpa [out, Stage2Output.d, Stage2Output.m] using
     (Stage2Output.forall_exists_discOffset_gt' (f := f) out)
 
+/-- Stage 2 yields bundled offset nucleus witnesses at the concrete parameters coming from Stage 1.
+
+This is the same unboundedness witness as `stage2_forall_exists_discOffset_gt'`, but expanded to the
+raw nucleus `apSumOffset`.
+-/
+theorem stage2_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      Int.natAbs (apSumOffset f (Stage2Output.d (stage2 (f := f) (hf := hf)))
+        (Stage2Output.m (stage2 (f := f) (hf := hf))) n) > B := by
+  let out := stage2 (f := f) (hf := hf)
+  simpa [out, Stage2Output.d, Stage2Output.m] using
+    (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f) out)
+
 /-- Stage 2 yields concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
