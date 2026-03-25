@@ -74,6 +74,15 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f : ℕ →
     change B < Int.natAbs (apSumOffset f d m n)
     exact hn
 
+/-- Variant of `unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt` with the inequality
+written as `Int.natAbs ... > B` (often the normal form used by Stage interfaces).
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
+  simpa [gt_iff_lt] using
+    (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m))
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the affine-tail nucleus.
 
 This is a small helper for later analytic stages: it avoids repeatedly unfolding `discOffset` and
