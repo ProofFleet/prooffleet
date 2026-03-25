@@ -69,6 +69,15 @@ theorem exists_params_unboundedDiscOffset (out : Stage3Output f) :
     ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
   exact Stage2Output.exists_params_unboundedDiscOffset (f := f) out.out2
 
+/-- Stage 3 output yields bundled offset discrepancy witnesses for the concrete parameters
+`d = out.out2.out1.d` and `m = out.out2.out1.m`.
+
+This is a thin wrapper around the Stage-2 lemma `Stage2Output.forall_exists_discOffset_gt`.
+-/
+theorem forall_exists_discOffset_gt (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out2.out1.d out.out2.out1.m n := by
+  exact Stage2Output.forall_exists_discOffset_gt (f := f) out.out2
+
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
