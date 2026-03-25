@@ -55,6 +55,16 @@ theorem stage2_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignS
   simpa using
     (Stage2Output.exists_params_unboundedDiscOffset (f := f) (stage2 (f := f) (hf := hf)))
 
+/-- Stage 2 yields some concrete parameters `d, m` such that the bundled offset discrepancy family
+`discOffset f d m` has arbitrarily large values.
+
+This is the explicit witness-family form of `stage2_exists_params_unboundedDiscOffset`.
+-/
+theorem stage2_exists_params_forall_exists_discOffset_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  simpa using
+    (Stage2Output.exists_params_forall_exists_discOffset_gt (f := f) (stage2 (f := f) (hf := hf)))
+
 /-- Stage 2 yields an explicit unbounded witness family for the bundled offset discrepancy
 `discOffset f d m`, for the concrete parameters `d, m` coming from the Stage-1 reduction record.
 
