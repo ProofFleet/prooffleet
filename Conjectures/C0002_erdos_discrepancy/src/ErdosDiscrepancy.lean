@@ -67,6 +67,18 @@ theorem erdos_discrepancy_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (h
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
+  the bundled offset discrepancy family `discOffset f d m` takes arbitrarily large values.
+
+This is the explicit witness-family form of `erdos_discrepancy_exists_params_unboundedDiscOffset`.
+-/
+theorem erdos_discrepancy_exists_params_forall_exists_discOffset_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  simpa using
+    (Tao2015.Stage3Output.exists_params_forall_exists_discOffset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+
+/-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
 This is a thin wrapper around the Stage-3 packaging.
