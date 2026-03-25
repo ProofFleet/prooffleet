@@ -23,6 +23,16 @@ and later analytic/combinatorial stages.
 -/
 axiom stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 
+/-- Stage 2 yields unboundedness of the bundled offset discrepancy family
+`discOffset f d m`, for the concrete parameters coming from Stage 1.
+
+This is a thin wrapper around the proved lemma `Stage2Output.unboundedDiscOffset`.
+-/
+theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f (stage2 (f := f) (hf := hf)).out1.d (stage2 (f := f) (hf := hf)).out1.m := by
+  simpa using
+    (Stage2Output.unboundedDiscOffset (f := f) (stage2 (f := f) (hf := hf)))
+
 /-- Stage 2 yields some concrete parameters `d, m` such that the bundled offset discrepancy family
 `discOffset f d m` is unbounded.
 
