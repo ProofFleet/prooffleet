@@ -88,6 +88,18 @@ theorem stage2_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSign
   simpa using
     (Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) (stage2 (f := f) (hf := hf)))
 
+/-- Negation-normal-form boundedness statement for the concrete Stage-2 parameters.
+
+This is a thin wrapper around `Stage2Output.not_exists_boundedDiscOffset`.
+-/
+theorem stage2_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        BoundedDiscOffset f (Stage2Output.d (stage2 (f := f) (hf := hf)))
+          (Stage2Output.m (stage2 (f := f) (hf := hf))) B := by
+  let out := stage2 (f := f) (hf := hf)
+  simpa [out, Stage2Output.d, Stage2Output.m] using
+    (Stage2Output.not_exists_boundedDiscOffset (f := f) out)
+
 end Tao2015
 
 end MoltResearch
