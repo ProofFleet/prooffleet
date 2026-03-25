@@ -83,6 +83,17 @@ theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (
     rcases hunb B with ⟨n, hn⟩
     exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
+/-- Preferred naming for the core lemma
+`MoltResearch.not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt`.
+
+The witnesses have the form `B < discOffset ...`, so we use the suffix `_gt` (“greater than B”).
+-/
+theorem not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔ ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n := by
+  simpa using
+    (MoltResearch.not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d)
+      (m := m))
+
 /-- Bridge: the witness form `UnboundedDiscOffset` is equivalent to the negation-normal-form boundedness
 statement `¬ ∃ B, BoundedDiscOffset f d m B`.
 
@@ -91,7 +102,7 @@ This lets later stages switch to a stable boundedness predicate without unfoldin
 theorem unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) :
     UnboundedDiscOffset f d m ↔ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
   simpa [UnboundedDiscOffset] using
-    (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m)).symm
+    (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m)).symm
 
 /-!
 ### Bridges to the verified along-`d` predicates in `MoltResearch.Discrepancy`
