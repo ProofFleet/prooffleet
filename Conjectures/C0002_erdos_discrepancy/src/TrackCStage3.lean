@@ -98,6 +98,16 @@ theorem forall_exists_discOffset_gt (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out2.out1.d out.out2.out1.m n := by
   exact Stage2Output.forall_exists_discOffset_gt (f := f) out.out2
 
+/-- Inequality-direction variant of `forall_exists_discOffset_gt`, written as `discOffset ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem forall_exists_discOffset_gt' (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.out2.out1.d out.out2.out1.m n > B := by
+  intro B
+  rcases out.forall_exists_discOffset_gt (f := f) B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
