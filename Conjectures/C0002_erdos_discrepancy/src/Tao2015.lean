@@ -53,6 +53,21 @@ def HasDiscrepancyAtLeastAlong (g : ℕ → ℤ) (d : ℕ) (C : ℕ) : Prop :=
 def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n
 
+/-- Inequality-direction variant of `UnboundedDiscOffset`, written as `discOffset ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
+  unfold UnboundedDiscOffset
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- Bridge: the witness form `UnboundedDiscOffset` is equivalent to the negation-normal-form boundedness
 statement `¬ ∃ B, BoundedDiscOffset f d m B`.
 
