@@ -203,6 +203,20 @@ theorem exists_params_forall_exists_discOffset_gt (out : Stage2Output f) :
   intro B
   simpa using out.forall_exists_discOffset_gt (f := f) B
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that
+`discOffset f d m` has arbitrarily large values.
+
+This is a small convenience variant of `exists_params_forall_exists_discOffset_gt`: many downstream
+stages use the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem exists_params_one_le_forall_exists_discOffset_gt (out : Stage2Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  have hd1 : 1 ≤ out.out1.d := by
+    simpa [Stage2Output.d] using (out.one_le_d (f := f))
+  refine ⟨out.out1.d, out.out1.m, hd1, ?_⟩
+  intro B
+  simpa using out.forall_exists_discOffset_gt (f := f) B
+
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
