@@ -23,6 +23,17 @@ and later analytic/combinatorial stages.
 -/
 axiom stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 
+/-- Stage 2 yields unbounded discrepancy for the reduced sequence, stated using the verified core
+predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a thin wrapper around `Stage2Output.unboundedDiscrepancyAlong_core`.
+-/
+theorem stage2_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    MoltResearch.UnboundedDiscrepancyAlong (Stage2Output.g (stage2 (f := f) (hf := hf)))
+      (Stage2Output.d (stage2 (f := f) (hf := hf))) := by
+  exact
+    Stage2Output.unboundedDiscrepancyAlong_core (f := f) (stage2 (f := f) (hf := hf))
+
 /-- Stage 2 yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m`, for the concrete parameters coming from Stage 1.
 
