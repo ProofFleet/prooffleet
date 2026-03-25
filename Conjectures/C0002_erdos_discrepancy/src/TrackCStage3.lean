@@ -69,6 +69,19 @@ theorem unboundedDiscOffset (out : Stage3Output f) :
     UnboundedDiscOffset f out.out2.out1.d out.out2.out1.m := by
   exact Stage2Output.unboundedDiscOffset (f := f) out.out2
 
+/-- Nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
+
+This is `unboundedDiscOffset` rewritten so consumers can work directly with
+`Int.natAbs (apSumOffset f d m n)` without unfolding `discOffset`.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) > B := by
+  exact
+    (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f) (d := out.out2.out1.d)
+        (m := out.out2.out1.m)).1
+      (out.unboundedDiscOffset (f := f))
+
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the bundled offset
   discrepancy family `discOffset f d m` is unbounded.
 
