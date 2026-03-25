@@ -45,6 +45,21 @@ def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
 def UnboundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discrepancy g d n
 
+/-- Inequality-direction variant of `UnboundedDiscrepancyAlong`, written as `discrepancy ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, discrepancy g d n > B) := by
+  unfold UnboundedDiscrepancyAlong
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- `g` has discrepancy at least `C` along the fixed step `d` (witness form). -/
 def HasDiscrepancyAtLeastAlong (g : ℕ → ℤ) (d : ℕ) (C : ℕ) : Prop :=
   ∃ n : ℕ, C < discrepancy g d n
