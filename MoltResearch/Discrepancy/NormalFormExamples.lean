@@ -1134,6 +1134,12 @@ example : apSum f d (m + n) - apSum f d m = apSum (fun k => f (k + m * d)) d n :
 example : apSumOffset f d m (n₁ + n₂) = apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ := by
   simpa using apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
+-- Range-cut normal form for `apSumOffset`: split at a cut length `k ≤ n`.
+example {k : ℕ} (hk : k ≤ n) :
+    apSumOffset f d m n = apSumOffset f d m k + apSumOffset f d (m + k) (n - k) := by
+  simpa using
+    (apSumOffset_eq_add_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
 -- Regression: split a paper interval sum in two, then land in the nucleus `apSumOffset` normal form.
 example :
     (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =

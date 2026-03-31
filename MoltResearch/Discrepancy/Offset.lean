@@ -156,6 +156,21 @@ lemma discOffset_eq_natAbs_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk
     (discOffset_add_len_eq_natAbs_apSumOffset_add (f := f) (d := d) (m := m)
       (n₁ := k) (n₂ := n - k))
 
+/-- Range-cut normal form for `apSumOffset`: split at a cut length `k ≤ n`.
+
+This is the sum-level companion to `discOffset_eq_natAbs_apSumOffset_cut`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Range-form cut lemma (sum level).
+-/
+lemma apSumOffset_eq_add_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    apSumOffset f d m n = apSumOffset f d m k + apSumOffset f d (m + k) (n - k) := by
+  -- Rewrite `n` as `k + (n-k)` and apply the length-splitting normal form.
+  have hn : k + (n - k) = n := Nat.add_sub_of_le hk
+  -- `apSumOffset_add_length` is stated for `n₁+n₂`.
+  -- We specialize it with `n₁=k`, `n₂=n-k` and rewrite using `hn`.
+  simpa [hn] using
+    (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := k) (n₂ := n - k))
+
 /-- Range-cut triangle inequality for `discOffset`: split at a cut length `k ≤ n`.
 
 This is the inequality counterpart of `discOffset_eq_natAbs_apSumOffset_cut`, rewriting the
