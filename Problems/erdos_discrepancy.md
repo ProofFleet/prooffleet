@@ -501,7 +501,9 @@ Definition of done:
   - Implemented as `discOffset_congr` / `discOffset_congr_support` / `discOffset_congr_range` (see `MoltResearch/Discrepancy/Basic.lean` + `MoltResearch/Discrepancy/Offset.lean`), with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [x] Range-form cut lemma (sum level): using `apSumOffset_eq_sum_range'`, add a canonical lemma splitting `apSumOffset` written as a `Finset.range` sum at `k`, rewriting both pieces back to nucleus `apSumOffset` (not just an inequality), with a stable-surface regression example.
   - Implemented as `sum_range_add_len_eq_apSumOffset_add` and `apSumOffset_eq_add_apSumOffset_cut` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] Along-d convenience API: add `discAlong f d n := discOffset f d 0 n` (or the repo’s preferred abbreviation) plus a minimal lemma family that rewrites `HasDiscrepancyAtLeastAlong` into a `discAlong` witness, so Stage-2 statements can avoid explicit `m=0` bookkeeping.
+- [x] Along-d convenience API: add `discAlong f d n := discOffset f d 0 n` (or the repo’s preferred abbreviation) plus a minimal lemma family that rewrites `HasDiscrepancyAtLeastAlong` into a `discAlong` witness, so Stage-2 statements can avoid explicit `m=0` bookkeeping.
+  - Implemented in `MoltResearch/Discrepancy/Basic.lean` as `discAlong` and `HasDiscrepancyAtLeastAlong.iff_exists_discAlong_lt` (via the intermediate `discOffset` witness normal form).
+  - Stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (under `import MoltResearch.Discrepancy`).
 - [ ] Coherence pass: add a small `DiscSimp`/`DiscOffsetSimp` opt-in module audited for non-looping simp rules (`zero/one/succ`, step-one, shift-start), plus compile-only examples that demonstrate the intended `simp`-first normalization pipeline.
 
 #### Auto-generated backlog (needs triage)
