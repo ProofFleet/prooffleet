@@ -51,6 +51,13 @@ example : discOffset f (d * k) m n = discOffset (fun x => f (d * x)) k m n := by
   simpa using
     (discOffset_mul_eq_discOffset_map_mul_left (f := f) (d₁ := d) (d₂ := k) (m := m) (n := n))
 
+-- Regression (Track B / residue reindexing infra): commute the quotient/residue nesting order.
+example (q n' : ℕ) (hq : q > 0) :
+    (Finset.range (q * n')).sum f =
+      (Finset.range q).sum (fun r => (Finset.range n').sum (fun k => f (q * k + r))) := by
+  simpa using
+    (sum_range_mul_reindex_mod_div (q := q) (n := n') (hq := hq) (f := f))
+
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
 -- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by

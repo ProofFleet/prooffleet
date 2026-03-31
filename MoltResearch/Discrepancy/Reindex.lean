@@ -256,6 +256,25 @@ lemma sum_range_mul_reindex_div_mod (q n : ℕ) (hq : q > 0) (f : ℕ → ℤ) :
   -- Finish: convert the product sum back to the nested-sum form.
   simpa [s, t, hprod] using hbij
 
+/-- A residue-first variant of `sum_range_mul_reindex_div_mod`.
+
+This matches the common residue-class change of variables notation `i = q*k + r`, but with the
+outer sum ranging over residues `r < q` first.
+-/
+lemma sum_range_mul_reindex_mod_div (q n : ℕ) (hq : q > 0) (f : ℕ → ℤ) :
+    (Finset.range (q * n)).sum f =
+      (Finset.range q).sum (fun r => (Finset.range n).sum (fun k => f (q * k + r))) := by
+  classical
+  -- Start from the quotient-first form, then commute the nested sums.
+  calc
+    (Finset.range (q * n)).sum f
+        = (Finset.range n).sum (fun k => (Finset.range q).sum (fun r => f (q * k + r))) :=
+          sum_range_mul_reindex_div_mod (q := q) (n := n) (hq := hq) (f := f)
+    _ = (Finset.range q).sum (fun r => (Finset.range n).sum (fun k => f (q * k + r))) := by
+          simpa using
+            (Finset.sum_comm (s := Finset.range n) (t := Finset.range q)
+              (f := fun k r => f (q * k + r)))
+
 lemma apSum_map_mul (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   unfold apSum
