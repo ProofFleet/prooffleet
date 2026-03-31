@@ -190,9 +190,25 @@ noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Outpu
   -- Run Stage 2, then close the global goal via the proved boundary lemma.
   exact (Stage3Output.ofStage2Output (f := f) (Tao2015.stage2 (f := f) (hf := hf)))
 
+/-- Deterministic name for the Stage-3 output (useful to keep later statements readable). -/
+noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
+  stage3 (f := f) (hf := hf)
+
+/-- Convenience projection: the reduced step size produced by Stage 3. -/
+noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  (stage3Out (f := f) (hf := hf)).out2.out1.d
+
+/-- Convenience projection: the reduced sequence produced by Stage 3. -/
+noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
+  (stage3Out (f := f) (hf := hf)).out2.out1.g
+
+/-- Convenience projection: the bundled offset parameter produced by Stage 3. -/
+noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  (stage3Out (f := f) (hf := hf)).out2.out1.m
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`. -/
 theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  exact (stage3 (f := f) (hf := hf)).notBounded
+  exact (stage3Out (f := f) (hf := hf)).notBounded
 
 /-- Consumer-facing shortcut: Stage 3 yields an unbounded bundled offset discrepancy family
 `discOffset f d m`, at the concrete parameters produced by the pipeline.
@@ -200,10 +216,9 @@ theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
 This is a thin wrapper around `Stage3Output.unboundedDiscOffset`.
 -/
 theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    UnboundedDiscOffset f (stage3 (f := f) (hf := hf)).out2.out1.d
-      (stage3 (f := f) (hf := hf)).out2.out1.m := by
-  simpa using
-    (Stage3Output.unboundedDiscOffset (f := f) (stage3 (f := f) (hf := hf)))
+    UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) := by
+  simpa [stage3Out, stage3_d, stage3_m] using
+    (Stage3Output.unboundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
