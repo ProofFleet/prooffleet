@@ -164,12 +164,31 @@ Checklist item: Problems/erdos_discrepancy.md (Track B) — Range-form cut lemma
 -/
 lemma apSumOffset_eq_add_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
     apSumOffset f d m n = apSumOffset f d m k + apSumOffset f d (m + k) (n - k) := by
-  -- Rewrite `n` as `k + (n-k)` and apply the length-splitting normal form.
+  classical
+  -- Expand to a `Finset.range` sum, split at `k`, and rewrite both blocks back to `apSumOffset`.
   have hn : k + (n - k) = n := Nat.add_sub_of_le hk
-  -- `apSumOffset_add_length` is stated for `n₁+n₂`.
-  -- We specialize it with `n₁=k`, `n₂=n-k` and rewrite using `hn`.
-  simpa [hn] using
-    (apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := k) (n₂ := n - k))
+  -- Work in the `Finset.range` normal form.
+  have hsplit :
+      (Finset.range n).sum (fun i => f ((m + i + 1) * d)) =
+        (Finset.range k).sum (fun i => f ((m + i + 1) * d)) +
+          (Finset.range (n - k)).sum (fun i => f (((m + k) + i + 1) * d)) := by
+    -- Use the standard range split `sum_range_add` on `n = k + (n-k)`.
+    -- `sum_range_add` shifts the index in the second block by `k`.
+    -- We then normalize the arithmetic to expose `(m+k)+i+1`.
+    simpa [hn, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (Finset.sum_range_add (f := fun i => f ((m + i + 1) * d)) k (n - k))
+  -- Rewrite the left-hand side from `apSumOffset` into `Finset.range` form, apply the split,
+  -- then rewrite both blocks back to `apSumOffset`.
+  calc
+    apSumOffset f d m n
+        = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
+            simpa using (apSumOffset_eq_sum_range' (f := f) (d := d) (m := m) (n := n))
+    _ = (Finset.range k).sum (fun i => f ((m + i + 1) * d)) +
+          (Finset.range (n - k)).sum (fun i => f (((m + k) + i + 1) * d)) := by
+            simpa using hsplit
+    _ = apSumOffset f d m k + apSumOffset f d (m + k) (n - k) := by
+          -- Each block is exactly the stable `Finset.range` normal form of an `apSumOffset`.
+          simp [apSumOffset_eq_sum_range']
 
 /-- Range-cut triangle inequality for `discOffset`: split at a cut length `k ≤ n`.
 
