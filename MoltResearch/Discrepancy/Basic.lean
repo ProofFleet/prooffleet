@@ -240,6 +240,22 @@ theorem not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt (f : ℕ �
     rcases h B with ⟨n, hn⟩
     exact (not_lt_of_ge (hB n) hn)
 
+/-!
+### `BoundedDiscOffset` API lemmas
+
+These lemmas are intentionally lightweight: they let downstream code *move boundedness hypotheses*
+around without unfolding `BoundedDiscOffset` or `discOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness API hygiene.
+-/
+
+/-- Monotonicity in the bound parameter `B`. -/
+theorem BoundedDiscOffset.mono_B {f : ℕ → ℤ} {d m B B' : ℕ}
+    (h : BoundedDiscOffset f d m B) (hBB' : B ≤ B') :
+    BoundedDiscOffset f d m B' := by
+  intro n
+  exact le_trans (h n) hBB'
+
 /-! ### Congruence lemmas -/
 
 /-- `disc` is stable under “local surgery”: if `f` and `g` agree on the indices actually

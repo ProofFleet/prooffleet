@@ -1414,6 +1414,45 @@ lemma apSumOffset_shift_add_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f (k + m * d)) d 0 n = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n)).symm
 
+/-!
+### Boundedness transport lemmas (`BoundedDiscOffset`)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness API hygiene.
+-/
+
+/-- Re-express `discOffset f d m n` as an `m = 0` discrepancy on a shifted sequence.
+
+This is the `discOffset`-level wrapper of `apSumOffset_eq_apSumOffset_shift_add`.
+-/
+lemma discOffset_eq_discOffset_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = discOffset (fun k => f (k + m * d)) d 0 n := by
+  -- Avoid `simp` loops by rewriting under `Int.natAbs` explicitly.
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_eq_apSumOffset_shift_add (f := f) (d := d) (m := m) (n := n))
+
+/-- Transport boundedness along the `apSumOffset_eq_apSumOffset_shift_add` viewpoint change.
+
+If all offset discrepancies at start `m` are bounded by `B`, then the corresponding `m = 0`
+discrepancies of the shifted sequence are bounded by the same `B`.
+-/
+theorem BoundedDiscOffset.map_shift_add {f : ℕ → ℤ} {d m B : ℕ}
+    (h : BoundedDiscOffset f d m B) :
+    BoundedDiscOffset (fun k => f (k + m * d)) d 0 B := by
+  intro n
+  -- Avoid `simp` recursion; just rewrite the goal.
+  -- `discOffset f d m n = discOffset (fun k => f (k + m*d)) d 0 n`.
+  rw [← discOffset_eq_discOffset_shift_add (f := f) (d := d) (m := m) (n := n)]
+  exact h n
+
+/-- Inverse transport for `BoundedDiscOffset.map_shift_add`. -/
+theorem BoundedDiscOffset.of_map_shift_add {f : ℕ → ℤ} {d m B : ℕ}
+    (h : BoundedDiscOffset (fun k => f (k + m * d)) d 0 B) :
+    BoundedDiscOffset f d m B := by
+  intro n
+  rw [discOffset_eq_discOffset_shift_add (f := f) (d := d) (m := m) (n := n)]
+  exact h n
+
 /-- Mul-left variant of `apSumOffset_eq_apSumOffset_shift_add` using the translation constant `d*m`.
 
 This avoids commuting multiplication in the shift constant when downstream development prefers

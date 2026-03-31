@@ -166,6 +166,21 @@ example :
   simpa using
     (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m))
 
+-- Regression (Track B / boundedness API hygiene): monotonicity in the bound parameter.
+example (B B' : ℕ) (h : BoundedDiscOffset f d m B) (hBB' : B ≤ B') :
+    BoundedDiscOffset f d m B' := by
+  simpa using (BoundedDiscOffset.mono_B (f := f) (d := d) (m := m) (B := B) (B' := B') h hBB')
+
+-- Regression (Track B / boundedness API hygiene): shift-to-`m = 0` transport.
+example (B : ℕ) (h : BoundedDiscOffset f d m B) :
+    BoundedDiscOffset (fun k => f (k + m * d)) d 0 B := by
+  simpa using (BoundedDiscOffset.map_shift_add (f := f) (d := d) (m := m) (B := B) h)
+
+-- Regression (Track B / boundedness API hygiene): inverse shift transport.
+example (B : ℕ) (h : BoundedDiscOffset (fun k => f (k + m * d)) d 0 B) :
+    BoundedDiscOffset f d m B := by
+  simpa using (BoundedDiscOffset.of_map_shift_add (f := f) (d := d) (m := m) (B := B) h)
+
 -- Regression: parity split normal form for even-length homogeneous AP sums.
 example :
     apSum f d (2 * (n + 1)) = apSum f (2 * d) (n + 1) + f d + apSumFrom f d (2 * d) n := by
