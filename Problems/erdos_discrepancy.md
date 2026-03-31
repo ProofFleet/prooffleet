@@ -483,7 +483,10 @@ Definition of done:
   - Implemented in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 #### Auto-generated backlog (needs triage)
-- [ ] Boundedness API hygiene: add monotonicity + transport lemmas for `BoundedDiscOffset` / `BoundedDiscrepancyAlong` (e.g. `mono_B`, `mono_len`, and `map` lemmas that push along `apSumOffset_eq_apSumOffset_shift_add`), so later stages can move between equivalent boundedness hypotheses without unfolding.
+- [x] Boundedness API hygiene: add monotonicity + transport lemmas for `BoundedDiscOffset` / `BoundedDiscrepancyAlong` (e.g. `mono_B`, `mono_len`, and `map` lemmas that push along `apSumOffset_eq_apSumOffset_shift_add`), so later stages can move between equivalent boundedness hypotheses without unfolding.
+  - Implemented as `BoundedDiscOffset.mono_B` and `BoundedDiscrepancyAlong.mono_B` / `BoundedDiscrepancyAlong.mono_len` in `MoltResearch/Discrepancy/Basic.lean`.
+  - Transport along shift-add implemented as `BoundedDiscOffset.map_shift_add` / `BoundedDiscOffset.of_map_shift_add` (and the offset↔along bridge `BoundedDiscOffset.toBoundedDiscrepancyAlong_shift_add`) in `MoltResearch/Discrepancy/Offset.lean`.
+  - Stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (importing `MoltResearch.Discrepancy`).
 - [ ] Residue-splitting helper infra: factor out a tiny `Finset.range` reindexing lemma bundle for `i = r*q + j` (with `q < (n+j)/r` bounds packaged), so the eventual residue-class split PRs don’t each rebuild the arithmetic boilerplate.
 - [ ] Residue-class split (homogeneous, nucleus): prove `apSum f d n` splits into `∑ j < r, apSum (fun q => f ((r*q + j)*d)) (r*d) ?` (choose the repo’s preferred normal form) with both `i*d` and `d*i` variants, plus a stable-surface regression example.
 - [ ] DiscOffset-level sign/shift invariances: port the existing `apSumOffset` invariance lemmas to the `discOffset` API (`discOffset (fun k => -f k) = discOffset f`, and `discOffset (fun k => f (k + a*d)) d m n = discOffset f d (m+a) n`), with careful simp orientation to avoid loops.
