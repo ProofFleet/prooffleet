@@ -504,7 +504,9 @@ Definition of done:
 - [x] Along-d convenience API: add `discAlong f d n := discOffset f d 0 n` (or the repo’s preferred abbreviation) plus a minimal lemma family that rewrites `HasDiscrepancyAtLeastAlong` into a `discAlong` witness, so Stage-2 statements can avoid explicit `m=0` bookkeeping.
   - Implemented in `MoltResearch/Discrepancy/Basic.lean` as `discAlong` and `HasDiscrepancyAtLeastAlong.iff_exists_discAlong_lt` (via the intermediate `discOffset` witness normal form).
   - Stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (under `import MoltResearch.Discrepancy`).
-- [ ] Coherence pass: add a small `DiscSimp`/`DiscOffsetSimp` opt-in module audited for non-looping simp rules (`zero/one/succ`, step-one, shift-start), plus compile-only examples that demonstrate the intended `simp`-first normalization pipeline.
+- [x] Coherence pass: add a small `DiscSimp`/`DiscOffsetSimp` opt-in module audited for non-looping simp rules (`zero/one/succ`, step-one, shift-start), plus compile-only examples that demonstrate the intended `simp`-first normalization pipeline.
+  - Modules: `MoltResearch/Discrepancy/DiscSimp.lean`, `MoltResearch/Discrepancy/DiscOffsetSimp.lean`, `MoltResearch/Discrepancy/StepOneSimp.lean`, `MoltResearch/Discrepancy/EndpointSimp.lean`.
+  - Examples/regressions: `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 #### Auto-generated backlog (needs triage)
 - [x] Define `apSupport d m n : Finset ℕ := (Finset.range n).image (fun i => (m+i+1)*d)` (or the repo’s preferred endpoint convention) and prove the basic API: `mem_apSupport_iff`, `apSupport_card` (for `d>0`), and monotonicity in `n`.
