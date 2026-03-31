@@ -194,6 +194,17 @@ noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Outpu
 theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
   exact (stage3 (f := f) (hf := hf)).notBounded
 
+/-- Consumer-facing shortcut: Stage 3 yields an unbounded bundled offset discrepancy family
+`discOffset f d m`, at the concrete parameters produced by the pipeline.
+
+This is a thin wrapper around `Stage3Output.unboundedDiscOffset`.
+-/
+theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f (stage3 (f := f) (hf := hf)).out2.out1.d
+      (stage3 (f := f) (hf := hf)).out2.out1.m := by
+  simpa using
+    (Stage3Output.unboundedDiscOffset (f := f) (stage3 (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
 This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
