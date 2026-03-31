@@ -67,6 +67,15 @@ example (q : ℕ) (hq : q > 0) :
   simpa using
     (apSum_mul_len_succ_eq_sum_range_sum_range (f := f) (d := d) (q := q) (n := n) hq)
 
+-- Regression (Track B / residue-class split, homogeneous nucleus / mul_left variant):
+-- same normal form, but with the multiplication order normalized to `d * i`.
+example (q : ℕ) (hq : q > 0) :
+    apSum f d (q * (n + 1)) =
+      (Finset.range q).sum (fun r =>
+        (Finset.range (n + 1)).sum (fun k => f (d * (q * k + (r + 1))))) := by
+  simpa using
+    (apSum_mul_len_succ_eq_sum_range_sum_range_mul_left (f := f) (d := d) (q := q) (n := n) hq)
+
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
 -- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
