@@ -1015,6 +1015,12 @@ example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * 
 example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
   simpa using apSumOffset_eq_sum_range' (f := f) (d := d) (m := m) (n := n)
 
+-- Range-form stability at discrepancy level: range-index congruence (no `Icc` endpoints).
+example (g : ℕ → ℤ)
+    (h : ∀ i, i ∈ Finset.range n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  simpa using (discOffset_congr_range (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
 -- Translation-friendly variant with binder order `i + m + 1`.
 example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((i + m + 1) * d)) := by
   simpa using apSumOffset_eq_sum_range_add (f := f) (d := d) (m := m) (n := n)
