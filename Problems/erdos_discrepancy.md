@@ -475,9 +475,12 @@ Definition of done:
 - [x] `discOffset` step-one normalization: add lemmas rewriting `discOffset f d m n` to `discOffset (fun k => f (k*d)) 1 m n` (and `mul_left`-friendly variants), mirroring `apSumOffset`’s `…_step_one` family.
 - [x] `discOffset` step-factor coherence: port the existing `apSumOffset_mul_eq_apSumOffset_map_mul…` family to `discOffset` with stable names, so multiplicative reindexing arguments can remain at discrepancy level.
   - Implemented as the `discOffset_*mul*` lemmas in `MoltResearch/Discrepancy/Reindex.lean` (e.g. `discOffset_mul_eq_discOffset_map_mul`, `discOffset_mul_eq_discOffset_map_mul₁₂`, `discOffset_mul_eq_discOffset_map_mul_left`), with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`. 
-- [ ] Range-form stability at discrepancy level: using `apSumOffset_eq_sum_range'`, prove `discOffset f d m n = discOffset g d m n` assuming pointwise agreement of summands on `Finset.range n` (no `Icc` endpoints), and add a stable-surface regression example.
-- [ ] Stage-2 bridge: a lemma rewriting `HasDiscrepancyAtLeast f C` directly into a `discOffset` witness `∃ d n, discOffset f d 0 n > C` (stable name; avoid exposing `Int.natAbs (apSumOffset …)` downstream).
-- [ ] “Consumer regression” examples: add 2–3 compile-only `example` blocks under `import MoltResearch.Discrepancy` that start from the Stage-2 goal shape (`∀ B, ∃ n, B < discOffset …`) and normalize through the preferred rewrite pipeline without unfolding.
+- [x] Range-form stability at discrepancy level: using `apSumOffset_eq_sum_range'`, prove `discOffset f d m n = discOffset g d m n` assuming pointwise agreement of summands on `Finset.range n` (no `Icc` endpoints), and add a stable-surface regression example.
+  - Implemented as `discOffset_congr_range` in `MoltResearch/Discrepancy/Offset.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
+- [x] Stage-2 bridge: a lemma rewriting `HasDiscrepancyAtLeast f C` directly into a `discOffset` witness `∃ d n, discOffset f d 0 n > C` (stable name; avoid exposing `Int.natAbs (apSumOffset …)` downstream).
+  - Implemented as `HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
+- [x] “Consumer regression” examples: add 2–3 compile-only `example` blocks under `import MoltResearch.Discrepancy` that start from the Stage-2 goal shape (`∀ B, ∃ n, B < discOffset …`) and normalize through the preferred rewrite pipeline without unfolding.
+  - Implemented in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 #### Auto-generated backlog (needs triage)
 - [ ] Boundedness API hygiene: add monotonicity + transport lemmas for `BoundedDiscOffset` / `BoundedDiscrepancyAlong` (e.g. `mono_B`, `mono_len`, and `map` lemmas that push along `apSumOffset_eq_apSumOffset_shift_add`), so later stages can move between equivalent boundedness hypotheses without unfolding.
