@@ -38,6 +38,17 @@ example : discOffset f d m n = discOffset (fun k => f (k * d)) 1 m n := by
 example : discOffset f d m n = discOffset (fun k => f (d * k)) 1 m n := by
   simpa using (discOffset_eq_discOffset_step_one_mul_left (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / step-factor coherence, discOffset):
+-- normalize a product step size `d*k` by pushing `d` into the summand.
+example : discOffset f (d * k) m n = discOffset (fun x => f (x * d)) k m n := by
+  simpa using
+    (discOffset_mul_eq_discOffset_map_mul (f := f) (d := d) (k := k) (m := m) (n := n))
+
+-- Regression (Track B / step-factor coherence, discOffset / mul_left-friendly):
+example : discOffset f (d * k) m n = discOffset (fun x => f (d * x)) k m n := by
+  simpa using
+    (discOffset_mul_eq_discOffset_map_mul_left (f := f) (d₁ := d) (d₂ := k) (m := m) (n := n))
+
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
 -- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
