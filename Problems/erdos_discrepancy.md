@@ -489,7 +489,13 @@ Definition of done:
   - Stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (importing `MoltResearch.Discrepancy`).
 - [x] Residue-splitting helper infra: factor out a tiny `Finset.range` reindexing lemma bundle for `i = r*q + j` (quotient/residue form, with commuted nesting), so the eventual residue-class split PRs don’t each rebuild the arithmetic boilerplate.
   - Implemented as `sum_range_mul_reindex_div_mod` / `sum_range_mul_reindex_mod_div` in `MoltResearch/Discrepancy/Reindex.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] Residue-class split (homogeneous, nucleus): prove `apSum f d n` splits into `∑ j < r, apSum (fun q => f ((r*q + j)*d)) (r*d) ?` (choose the repo’s preferred normal form) with both `i*d` and `d*i` variants, plus a stable-surface regression example.
+- [x] Residue-class split (homogeneous, nucleus): implemented as the nested residue/quotient normal form
+  `apSum f d (q * (n + 1)) = ∑ r < q, ∑ k < n+1, f ((q*k + (r+1)) * d)`,
+  with both `i*d` and `d*i` multiplication-order variants.
+  See `MoltResearch/Discrepancy/Residue.lean`:
+  - `apSum_mul_len_succ_eq_sum_range_sum_range`
+  - `apSum_mul_len_succ_eq_sum_range_sum_range_mul_left`
+  Stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (search for “residue-class split, homogeneous nucleus”).
 - [ ] DiscOffset-level sign/shift invariances: port the existing `apSumOffset` invariance lemmas to the `discOffset` API (`discOffset (fun k => -f k) = discOffset f`, and `discOffset (fun k => f (k + a*d)) d m n = discOffset f d (m+a) n`), with careful simp orientation to avoid loops.
 - [ ] `discOffset` congruence-on-support: once `apSupport` exists (or via `Finset.range` normal form), add a canonical lemma `discOffset_congr` stating equality when `f` and `g` agree on accessed indices, so later local-surgery arguments stay purely in `ℕ` discrepancy form.
 - [ ] Range-form cut lemma (sum level): using `apSumOffset_eq_sum_range'`, add a canonical lemma splitting `apSumOffset` written as a `Finset.range` sum at `k`, rewriting both pieces back to nucleus `apSumOffset` (not just an inequality), with a stable-surface regression example.
