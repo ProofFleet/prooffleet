@@ -143,11 +143,29 @@ section
   #check discOffset_congr
   #check discOffset_congr_range
 
-  -- Splitting / one-step Lipschitz bounds.
+  -- Splitting / triangle inequality / one-step Lipschitz bounds.
+  #check discOffset_add_le
+  #check discOffset_add_length_le
   #check discOffset_cut_le
   #check discOffset_split_at_le
   #check discOffset_succ_le_add_natAbs
   #check IsSignSequence.discOffset_succ_le
+
+  -- Additional convenient normal forms (still stable surface).
+  #check discOffset_eq_discOffset_shift_add
+  #check discOffset_shift_start_add_mul_left
+  #check discOffset_le_mul_of_natAbs_le
+  #check discOffset_le_of_natAbs_le_one
+
+  -- Paper-notation bridge identities.
+  #check discOffset_add_len_eq_natAbs_apSumOffset_add
+  #check discOffset_eq_natAbs_apSumOffset_cut
+
+  -- Reindexing / step-factorization additional exports.
+  #check discOffset_map_mul
+  #check discOffset_mul_eq_discOffset_map_mul₁₂
+  #check discOffset_mul_len_succ_eq_natAbs_sum_range
+  #check discOffset_mul_len_succ_eq_natAbs_sum_range_mul_left
 
   -- Boundedness normal forms.
   #check boundedDiscOffset_iff_forall_discOffset_le
@@ -367,11 +385,22 @@ section
 
   We deliberately assert these names are *not* available under `import MoltResearch.Discrepancy`.
   If any of these starts typechecking here, the stable surface has regressed.
+
+  We include a couple of deprecated `discOffset_*` variants to ensure they stay behind the explicit
+  opt-in import `MoltResearch.Discrepancy.Deprecated`.
   -/
 
   /-- error: Unknown constant `MoltResearch.IsSignSequence.map_add` -/
   #guard_msgs in
   #check IsSignSequence.map_add
+
+  /-- error: Unknown identifier `discOffset_congr_Icc` -/
+  #guard_msgs in
+  #check discOffset_congr_Icc
+
+  /-- error: Unknown identifier `discOffset_congr_finset_Icc` -/
+  #guard_msgs in
+  #check discOffset_congr_finset_Icc
 
   /-- error: Unknown constant `MoltResearch.IsSignSequence.map_add_left` -/
   #guard_msgs in
