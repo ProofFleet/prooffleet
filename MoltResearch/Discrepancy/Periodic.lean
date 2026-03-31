@@ -58,4 +58,38 @@ lemma apSumOffset_mul_periodic (hp : Function.Periodic f p) (d m n : ℕ) :
     _ = n • f 0 := by
         simp
 
+/-!
+## Periodicity normal form (step divides the period)
+
+Checklist item: `Problems/erdos_discrepancy.md` (Track B) — Periodicity normal form for `discOffset`.
+
+If `f` has period `p` and `p ∣ d`, then an offset AP sum with step `d` only samples values of `f`
+at multiples of `p`, hence is a constant sum. This is the same normal form as
+`apSumOffset_mul_periodic`, but with the divisibility hypothesis exposed.
+-/
+
+/-- If `f` is periodic with period `p` and `p ∣ d`, then `apSumOffset f d m n` is the constant sum
+`n • f 0`.
+
+This is a normalization lemma used in Track B.
+-/
+lemma apSumOffset_periodic_of_dvd_step (hp : Function.Periodic f p) {d : ℕ} (hd : p ∣ d)
+    (m n : ℕ) :
+    apSumOffset f d m n = n • f 0 := by
+  rcases hd with ⟨k, rfl⟩
+  -- Reduce to the explicit `p * k` form.
+  simpa using (apSumOffset_mul_periodic (f := f) (p := p) hp (d := k) (m := m) (n := n))
+
+/-- If `f` is periodic with period `p` and `p ∣ d`, then `discOffset f d m n` is independent of the
+starting index `m`.
+
+This is the `discOffset`-level periodicity normal form requested in Track B.
+-/
+lemma discOffset_periodic_of_dvd_step (hp : Function.Periodic f p) {d : ℕ} (hd : p ∣ d)
+    (m n : ℕ) :
+    discOffset f d m n = discOffset f d 0 n := by
+  unfold discOffset
+  simp [apSumOffset_periodic_of_dvd_step (f := f) (p := p) hp (d := d) hd (m := m) (n := n),
+    apSumOffset_periodic_of_dvd_step (f := f) (p := p) hp (d := d) hd (m := 0) (n := n)]
+
 end MoltResearch

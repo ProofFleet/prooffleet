@@ -1085,6 +1085,14 @@ example : apSum f 0 n = n • f 0 := by
 example (hp : Function.Periodic f p) : apSumOffset f (p * d) m n = n • f 0 := by
   simpa using (apSumOffset_mul_periodic (f := f) (p := p) hp (d := d) (m := m) (n := n))
 
+-- Periodicity normal form (divisibility phrasing): if the step is any multiple of the period.
+example (hp : Function.Periodic f p) (hd : p ∣ d) : apSumOffset f d m n = n • f 0 := by
+  simpa using (apSumOffset_periodic_of_dvd_step (f := f) (p := p) hp (d := d) hd (m := m) (n := n))
+
+-- Discrepancy-level corollary: shifting the offset does not change `discOffset`.
+example (hp : Function.Periodic f p) (hd : p ∣ d) : discOffset f d m n = discOffset f d 0 n := by
+  simpa using (discOffset_periodic_of_dvd_step (f := f) (p := p) hp (d := d) hd (m := m) (n := n))
+
 example : apSum f d n = apSum (fun k => f (k * d)) 1 n := by
   simpa using apSum_eq_apSum_step_one (f := f) (d := d) (n := n)
 
