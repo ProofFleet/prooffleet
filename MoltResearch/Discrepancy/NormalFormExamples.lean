@@ -10,7 +10,10 @@ import MoltResearch.Discrepancy.DiscSimp
 
 This module is a standalone compilation test-bed for the preferred “normal form” rewrite pipelines.
 
-It intentionally imports only the **stable surface** `MoltResearch.Discrepancy`.
+It imports the **stable surface** `MoltResearch.Discrepancy`, and additionally imports a couple of
+**opt-in** simp bundles (`DiscOffsetSimp`, `DiscSimp`) solely to run regression tests for those
+simp collections.
+
 Downstream developments should not need to import this file.
 -/
 
