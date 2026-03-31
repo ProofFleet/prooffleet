@@ -256,6 +256,45 @@ theorem BoundedDiscOffset.mono_B {f : ℕ → ℤ} {d m B B' : ℕ}
   intro n
   exact le_trans (h n) hBB'
 
+/-!
+### `BoundedDiscrepancyAlong` (finite-length along-`d` boundedness)
+
+This predicate is the finite-length “along `d`” analogue of `BoundedDiscOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness API hygiene.
+-/
+
+/-- `BoundedDiscrepancyAlong f d len B` means: for all `n ≤ len`, the along-`d` discrepancies
+`discAlong f d n` are bounded by `B`.
+
+This is intentionally formulated in terms of the stable wrapper `discAlong`.
+-/
+def BoundedDiscrepancyAlong (f : ℕ → ℤ) (d len B : ℕ) : Prop :=
+  ∀ n : ℕ, n ≤ len → discAlong f d n ≤ B
+
+/-- Stable lemma name: expose the quantifier normal form of `BoundedDiscrepancyAlong`. -/
+theorem boundedDiscrepancyAlong_iff_forall_le_discAlong_le (f : ℕ → ℤ) (d len B : ℕ) :
+    BoundedDiscrepancyAlong f d len B ↔ ∀ n : ℕ, n ≤ len → discAlong f d n ≤ B :=
+  Iff.rfl
+
+namespace BoundedDiscrepancyAlong
+
+/-- Monotonicity in the bound parameter `B`. -/
+theorem mono_B {f : ℕ → ℤ} {d len B B' : ℕ}
+    (h : BoundedDiscrepancyAlong f d len B) (hBB' : B ≤ B') :
+    BoundedDiscrepancyAlong f d len B' := by
+  intro n hn
+  exact le_trans (h n hn) hBB'
+
+/-- Monotonicity in the length parameter `len` (shrinking the range keeps boundedness). -/
+theorem mono_len {f : ℕ → ℤ} {d len len' B : ℕ}
+    (h : BoundedDiscrepancyAlong f d len' B) (hlen : len ≤ len') :
+    BoundedDiscrepancyAlong f d len B := by
+  intro n hn
+  exact h n (le_trans hn hlen)
+
+end BoundedDiscrepancyAlong
+
 /-! ### Congruence lemmas -/
 
 /-- `disc` is stable under “local surgery”: if `f` and `g` agree on the indices actually

@@ -1453,6 +1453,54 @@ theorem BoundedDiscOffset.of_map_shift_add {f : ℕ → ℤ} {d m B : ℕ}
   rw [discOffset_eq_discOffset_shift_add (f := f) (d := d) (m := m) (n := n)]
   exact h n
 
+/-!
+### Finite-length along-`d` boundedness transport (`BoundedDiscrepancyAlong`)
+
+These lemmas let downstream code rewrite boundedness hypotheses between the offset form
+(`discOffset f d m n`) and the along-`d` form on a shifted sequence
+(`discAlong (fun k => f (k + m*d)) d n`) without unfolding definitions.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness API hygiene.
+-/
+
+/-- Re-express `discOffset f d m n` as an along-`d` discrepancy on the shifted sequence.
+
+This is just `discOffset_eq_discOffset_shift_add` plus the `discAlong` wrapper.
+-/
+lemma discOffset_eq_discAlong_shift_add (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = discAlong (fun k => f (k + m * d)) d n := by
+  -- `discAlong g d n = discOffset g d 0 n` by definition.
+  simpa [discAlong] using
+    (discOffset_eq_discOffset_shift_add (f := f) (d := d) (m := m) (n := n))
+
+/-- Inverse orientation of `discOffset_eq_discAlong_shift_add`. -/
+lemma discAlong_shift_add_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    discAlong (fun k => f (k + m * d)) d n = discOffset f d m n := by
+  simpa using (discOffset_eq_discAlong_shift_add (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- If a uniform bound holds for all offset discrepancies, then it holds for the finite-length
+along-`d` predicate on the shifted sequence. -/
+theorem BoundedDiscOffset.toBoundedDiscrepancyAlong_shift_add {f : ℕ → ℤ} {d m B : ℕ} (len : ℕ)
+    (h : BoundedDiscOffset f d m B) :
+    BoundedDiscrepancyAlong (fun k => f (k + m * d)) d len B := by
+  intro n hn
+  -- Rewrite `discAlong` back to `discOffset` at start `m`.
+  rw [discAlong_shift_add_eq_discOffset (f := f) (d := d) (m := m) (n := n)]
+  exact h n
+
+/-- Package a `BoundedDiscrepancyAlong` hypothesis on the shifted sequence as a boundedness
+statement about `discOffset` up to `len`.
+
+This is often the right shape when you want to later promote to a `BoundedDiscOffset` after
+discharging `n ≤ len` (e.g. by choosing `len := n`).
+-/
+theorem BoundedDiscrepancyAlong.to_forall_le_discOffset_le_shift_add {f : ℕ → ℤ} {d m len B : ℕ}
+    (h : BoundedDiscrepancyAlong (fun k => f (k + m * d)) d len B) :
+    ∀ n : ℕ, n ≤ len → discOffset f d m n ≤ B := by
+  intro n hn
+  -- Rewrite the target into a `discAlong` statement.
+  simpa [discOffset_eq_discAlong_shift_add (f := f) (d := d) (m := m) (n := n)] using h n hn
+
 /-- Mul-left variant of `apSumOffset_eq_apSumOffset_shift_add` using the translation constant `d*m`.
 
 This avoids commuting multiplication in the shift constant when downstream development prefers

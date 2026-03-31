@@ -183,6 +183,36 @@ example (B : ℕ) (h : BoundedDiscOffset (fun k => f (k + m * d)) d 0 B) :
     BoundedDiscOffset f d m B := by
   simpa using (BoundedDiscOffset.of_map_shift_add (f := f) (d := d) (m := m) (B := B) h)
 
+-- Regression (Track B / boundedness API hygiene): finite-length along-`d` boundedness
+-- rewrites to the explicit `∀ n ≤ len, discAlong … ≤ B` form via a stable name.
+example (len B : ℕ) :
+    BoundedDiscrepancyAlong f d len B ↔ ∀ n : ℕ, n ≤ len → discAlong f d n ≤ B := by
+  simpa using
+    (boundedDiscrepancyAlong_iff_forall_le_discAlong_le (f := f) (d := d) (len := len) (B := B))
+
+-- Regression (Track B / boundedness API hygiene): monotonicity in the bound parameter (finite-length along-`d`).
+example (len B B' : ℕ) (h : BoundedDiscrepancyAlong f d len B) (hBB' : B ≤ B') :
+    BoundedDiscrepancyAlong f d len B' := by
+  simpa using (BoundedDiscrepancyAlong.mono_B (f := f) (d := d) (len := len) (B := B) (B' := B') h hBB')
+
+-- Regression (Track B / boundedness API hygiene): monotonicity in the length parameter (finite-length along-`d`).
+example (len len' B : ℕ) (h : BoundedDiscrepancyAlong f d len' B) (hlen : len ≤ len') :
+    BoundedDiscrepancyAlong f d len B := by
+  simpa using (BoundedDiscrepancyAlong.mono_len (f := f) (d := d) (len := len) (len' := len') (B := B) h hlen)
+
+-- Regression (Track B / boundedness API hygiene): promote offset-boundedness to finite-length
+-- along-`d` boundedness on the shifted sequence.
+example (len B : ℕ) (h : BoundedDiscOffset f d m B) :
+    BoundedDiscrepancyAlong (fun k => f (k + m * d)) d len B := by
+  simpa using (BoundedDiscOffset.toBoundedDiscrepancyAlong_shift_add (f := f) (d := d) (m := m) (B := B) len h)
+
+-- Regression (Track B / boundedness API hygiene): unpack finite-length along-`d` boundedness on the shifted
+-- sequence into the corresponding `discOffset` inequality up to `len`.
+example (len B : ℕ) (h : BoundedDiscrepancyAlong (fun k => f (k + m * d)) d len B) :
+    ∀ n : ℕ, n ≤ len → discOffset f d m n ≤ B := by
+  simpa using
+    (BoundedDiscrepancyAlong.to_forall_le_discOffset_le_shift_add (f := f) (d := d) (m := m) (len := len) (B := B) h)
+
 -- Regression: parity split normal form for even-length homogeneous AP sums.
 example :
     apSum f d (2 * (n + 1)) = apSum f (2 * d) (n + 1) + f d + apSumFrom f d (2 * d) n := by
