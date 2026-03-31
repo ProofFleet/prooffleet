@@ -359,6 +359,31 @@ lemma discOffset_mul_eq_discOffset_map_mul₁₂ (f : ℕ → ℤ) (d₁ d₂ m 
     discOffset f (d₁ * d₂) m n = discOffset (fun t => f (t * d₁)) d₂ m n := by
   simpa using (discOffset_mul_eq_discOffset_map_mul (f := f) (d := d₁) (k := d₂) (m := m) (n := n))
 
+/-!
+### Boundedness transport lemmas (`BoundedDiscOffset`) for step-factor coherence
+
+These lemmas let downstream code rewrite boundedness hypotheses between the
+`discOffset f (d * k) m n` and the `discOffset (fun x => f (x * d)) k m n` forms.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Bounded transport API.
+-/
+
+/-- Transport boundedness along `discOffset_mul_eq_discOffset_map_mul`. -/
+theorem BoundedDiscOffset.map_mul {f : ℕ → ℤ} {d k m B : ℕ}
+    (h : BoundedDiscOffset f (d * k) m B) :
+    BoundedDiscOffset (fun x => f (x * d)) k m B := by
+  intro n
+  rw [← discOffset_mul_eq_discOffset_map_mul (f := f) (d := d) (k := k) (m := m) (n := n)]
+  exact h n
+
+/-- Inverse transport for `BoundedDiscOffset.map_mul`. -/
+theorem BoundedDiscOffset.of_map_mul {f : ℕ → ℤ} {d k m B : ℕ}
+    (h : BoundedDiscOffset (fun x => f (x * d)) k m B) :
+    BoundedDiscOffset f (d * k) m B := by
+  intro n
+  rw [discOffset_mul_eq_discOffset_map_mul (f := f) (d := d) (k := k) (m := m) (n := n)]
+  exact h n
+
 /-- Left-multiplication-friendly variant: rewrite into a summand `t ↦ f (d₁ * t)`. -/
 lemma discOffset_mul_eq_discOffset_map_mul_left (f : ℕ → ℤ) (d₁ d₂ m n : ℕ) :
     discOffset f (d₁ * d₂) m n = discOffset (fun t => f (d₁ * t)) d₂ m n := by

@@ -1488,6 +1488,31 @@ theorem BoundedDiscOffset.of_map_shift_add {f : ℕ → ℤ} {d m B : ℕ}
   exact h n
 
 /-!
+### Further boundedness transports (`BoundedDiscOffset`)
+
+These lemmas let downstream code rewrite boundedness hypotheses under the standard discrepancy
+normal-form rewrite `step_one`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Bounded transport API.
+-/
+
+/-- Transport boundedness along `discOffset_eq_discOffset_step_one`. -/
+theorem BoundedDiscOffset.map_step_one {f : ℕ → ℤ} {d m B : ℕ}
+    (h : BoundedDiscOffset f d m B) :
+    BoundedDiscOffset (fun k => f (k * d)) 1 m B := by
+  intro n
+  rw [← discOffset_eq_discOffset_step_one (f := f) (d := d) (m := m) (n := n)]
+  exact h n
+
+/-- Inverse transport for `BoundedDiscOffset.map_step_one`. -/
+theorem BoundedDiscOffset.of_map_step_one {f : ℕ → ℤ} {d m B : ℕ}
+    (h : BoundedDiscOffset (fun k => f (k * d)) 1 m B) :
+    BoundedDiscOffset f d m B := by
+  intro n
+  rw [discOffset_eq_discOffset_step_one (f := f) (d := d) (m := m) (n := n)]
+  exact h n
+
+/-!
 ### Finite-length along-`d` boundedness transport (`BoundedDiscrepancyAlong`)
 
 These lemmas let downstream code rewrite boundedness hypotheses between the offset form
@@ -2092,6 +2117,31 @@ lemma discOffset_shift_start_add_mul_left (f : ℕ → ℤ) (d m k n : ℕ) :
     discOffset f d (m + k) n = discOffset (fun t => f (t + d * k)) d m n := by
   simpa [Nat.mul_comm] using
     (discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
+
+/-!
+### Boundedness transport lemmas (`BoundedDiscOffset`) for shift-start coherence
+
+These lemmas let downstream code rewrite boundedness hypotheses under the `shift_start` normal form
+without unfolding `BoundedDiscOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Bounded transport API.
+-/
+
+/-- Transport boundedness along `discOffset_shift_start_add`. -/
+theorem BoundedDiscOffset.map_shift_start_add {f : ℕ → ℤ} {d m k B : ℕ}
+    (h : BoundedDiscOffset f d (m + k) B) :
+    BoundedDiscOffset (fun t => f (t + k * d)) d m B := by
+  intro n
+  rw [← discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n)]
+  exact h n
+
+/-- Inverse transport for `BoundedDiscOffset.map_shift_start_add`. -/
+theorem BoundedDiscOffset.of_map_shift_start_add {f : ℕ → ℤ} {d m k B : ℕ}
+    (h : BoundedDiscOffset (fun t => f (t + k * d)) d m B) :
+    BoundedDiscOffset f d (m + k) B := by
+  intro n
+  rw [discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n)]
+  exact h n
 
 /-- Offset AP sum of a pointwise subtraction of functions. -/
 lemma apSumOffset_sub (f g : ℕ → ℤ) (d m n : ℕ) :

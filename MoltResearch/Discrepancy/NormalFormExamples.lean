@@ -230,6 +230,39 @@ example (B : ℕ) (h : BoundedDiscOffset (fun k => f (k + m * d)) d 0 B) :
     BoundedDiscOffset f d m B := by
   simpa using (BoundedDiscOffset.of_map_shift_add (f := f) (d := d) (m := m) (B := B) h)
 
+-- Regression (Track B / boundedness API hygiene): shift-start transport.
+example (B : ℕ) (h : BoundedDiscOffset f d (m + k) B) :
+    BoundedDiscOffset (fun t => f (t + k * d)) d m B := by
+  simpa using
+    (BoundedDiscOffset.map_shift_start_add (f := f) (d := d) (m := m) (k := k) (B := B) h)
+
+example (B : ℕ) (h : BoundedDiscOffset (fun t => f (t + k * d)) d m B) :
+    BoundedDiscOffset f d (m + k) B := by
+  simpa using
+    (BoundedDiscOffset.of_map_shift_start_add (f := f) (d := d) (m := m) (k := k) (B := B) h)
+
+-- Regression (Track B / boundedness API hygiene): step-one transport.
+example (B : ℕ) (h : BoundedDiscOffset f d m B) :
+    BoundedDiscOffset (fun k => f (k * d)) 1 m B := by
+  simpa using
+    (BoundedDiscOffset.map_step_one (f := f) (d := d) (m := m) (B := B) h)
+
+example (B : ℕ) (h : BoundedDiscOffset (fun k => f (k * d)) 1 m B) :
+    BoundedDiscOffset f d m B := by
+  simpa using
+    (BoundedDiscOffset.of_map_step_one (f := f) (d := d) (m := m) (B := B) h)
+
+-- Regression (Track B / boundedness API hygiene): step-factor transport.
+example (B : ℕ) (h : BoundedDiscOffset f (d * k) m B) :
+    BoundedDiscOffset (fun x => f (x * d)) k m B := by
+  simpa using
+    (BoundedDiscOffset.map_mul (f := f) (d := d) (k := k) (m := m) (B := B) h)
+
+example (B : ℕ) (h : BoundedDiscOffset (fun x => f (x * d)) k m B) :
+    BoundedDiscOffset f (d * k) m B := by
+  simpa using
+    (BoundedDiscOffset.of_map_mul (f := f) (d := d) (k := k) (m := m) (B := B) h)
+
 -- Regression (Track B / boundedness API hygiene): finite-length along-`d` boundedness
 -- rewrites to the explicit `∀ n ≤ len, discAlong … ≤ B` form via a stable name.
 example (len B : ℕ) :
