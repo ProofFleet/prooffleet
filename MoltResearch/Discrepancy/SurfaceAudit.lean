@@ -178,6 +178,21 @@ section
   #check sum_Icc_eq_apSum
 
   /-!
+  ## Absence checks (stable surface)
+
+  These names should *not* be available under `import MoltResearch.Discrepancy`.
+  They are kept behind an explicit opt-in import:
+
+  ```lean
+  import MoltResearch.Discrepancy.Deprecated
+  ```
+  -/
+
+  -- Deprecated `discOffset` congruence variants.
+  #check_failure discOffset_congr_Icc
+  #check_failure discOffset_congr_finset_Icc
+
+  /-!
   ## Rewrite pipeline examples (compile-only)
 
   These are a few “go-to” rewrite steps that downstream Track B proofs use constantly.
