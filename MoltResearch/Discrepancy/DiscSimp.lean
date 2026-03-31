@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.EndpointSimp
 import MoltResearch.Discrepancy.DiscOffsetSimp
 import MoltResearch.Discrepancy.StepOneSimp
+import MoltResearch.Discrepancy.Offset
 
 /-!
 # `DiscSimp`: opt-in simp rules for the discrepancy normal-form pipeline
@@ -28,22 +29,8 @@ attribute [simp] apSumOffset_shift_start_add
 attribute [simp] apSumOffset_shift_start_add_left
 attribute [simp] apSumOffset_shift_start_add_mul_left
 
-/-- `discOffset` analogue of `apSumOffset_shift_start_add` (opt-in simp rule).
-
-Orientation note: we rewrite **toward** the translated-summand normal form.
--/
-@[simp] lemma discOffset_shift_start_add (f : ℕ → ℤ) (d m k n : ℕ) :
-    discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
-  -- `discOffset` is a wrapper around `Int.natAbs (apSumOffset …)`.
-  simp [discOffset]
-
-/-- `mul_left`-friendly variant of `discOffset_shift_start_add`.
-
-This avoids commuting multiplication in downstream developments that prefer the `d * k` convention.
--/
-@[simp] lemma discOffset_shift_start_add_mul_left (f : ℕ → ℤ) (d m k n : ℕ) :
-    discOffset f d (m + k) n = discOffset (fun t => f (t + d * k)) d m n := by
-  simpa [Nat.mul_comm] using
-    (discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
+-- Prefer pushing a start-index shift into the summand translation (discOffset-level).
+attribute [simp] discOffset_shift_start_add
+attribute [simp] discOffset_shift_start_add_mul_left
 
 end MoltResearch

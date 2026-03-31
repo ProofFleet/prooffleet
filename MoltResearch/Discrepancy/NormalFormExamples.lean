@@ -45,7 +45,7 @@ example : apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n
   simp
 
 example : discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
-  simp
+  simpa using (discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
 
 -- Regression (Track B / step-one normalization, discOffset):
 -- push the step size into the summand.

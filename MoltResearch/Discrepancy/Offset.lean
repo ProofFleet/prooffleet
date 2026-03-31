@@ -2065,6 +2065,34 @@ lemma discOffset_shift_add_mul (f : ℕ → ℤ) (a d m n : ℕ) :
       (apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := a) (n := n)).symm
   simpa [h]
 
+/-!
+### DiscOffset shift-start coherence
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — DiscOffset shift-start coherence.
+
+These are stable-surface `discOffset` wrappers around `apSumOffset_shift_start_add*`.
+-/
+
+/-- Shift-start coherence for `discOffset`: absorb a start-index shift `m ↦ m + k` into a
+translation of the summand.
+
+This is the `discOffset`-level wrapper of `apSumOffset_shift_start_add`.
+-/
+lemma discOffset_shift_start_add (f : ℕ → ℤ) (d m k n : ℕ) :
+    discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
+  -- `discOffset` is a wrapper around `Int.natAbs (apSumOffset …)`.
+  unfold discOffset
+  simp [apSumOffset_shift_start_add]
+
+/-- `mul_left`-friendly variant of `discOffset_shift_start_add`.
+
+This avoids commuting multiplication in downstream developments that prefer the `d * k` convention.
+-/
+lemma discOffset_shift_start_add_mul_left (f : ℕ → ℤ) (d m k n : ℕ) :
+    discOffset f d (m + k) n = discOffset (fun t => f (t + d * k)) d m n := by
+  simpa [Nat.mul_comm] using
+    (discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
+
 /-- Offset AP sum of a pointwise subtraction of functions. -/
 lemma apSumOffset_sub (f g : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f k - g k) d m n = apSumOffset f d m n - apSumOffset g d m n := by
