@@ -39,6 +39,12 @@ example : discOffset (fun k => -f k) d m n = discOffset f d m n := by
 example : discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
   simpa using (discOffset_shift_add_mul (f := f) (a := a) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / discOffset periodicity normal form):
+-- If `f` is periodic with period `p` and `p ∣ d`, then `discOffset f d m n` is independent of `m`.
+example (hp : Function.Periodic f p) (hd : p ∣ d) :
+    discOffset f d m n = discOffset f d 0 n := by
+  simpa using (discOffset_periodic_of_dvd_step (f := f) (p := p) hp (d := d) hd (m := m) (n := n))
+
 -- Regression (Track B / simp-first pipeline hygiene): importing `DiscSimp` should let `simp`
 -- normalize start-index shifts into a translated summand.
 example : apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n := by
