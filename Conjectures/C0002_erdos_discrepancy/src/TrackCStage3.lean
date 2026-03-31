@@ -85,11 +85,23 @@ This is `unboundedDiscOffset` rewritten so consumers can work directly with
 -/
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ,
-      Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) > B := by
+      B < Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) := by
   exact
-    (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f) (d := out.out2.out1.d)
+    (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := out.out2.out1.d)
         (m := out.out2.out1.m)).1
       (out.unboundedDiscOffset (f := f))
+
+/-- Inequality-direction variant of `forall_exists_natAbs_apSumOffset_gt`, written as
+`Int.natAbs ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) > B := by
+  intro B
+  rcases out.forall_exists_natAbs_apSumOffset_gt (f := f) B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the bundled offset
   discrepancy family `discOffset f d m` is unbounded.
