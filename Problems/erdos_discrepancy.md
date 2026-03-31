@@ -519,7 +519,8 @@ Definition of done:
   - Implemented as `discOffset_shift_start_add` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean` (under `import MoltResearch.Discrepancy`).
 - [x] DiscOffset periodicity corollary: if `f` is periodic with period `p` and `p ∣ d`, prove `discOffset f d m n = discOffset f d 0 n` (or the tight constant-sum normal form implied by periodicity), and add a stable-surface regression example.  
   Implemented as `discOffset_periodic_of_dvd_step` in `MoltResearch/Discrepancy/Periodic.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] Bound transport API: add monotonicity/transport lemmas for `BoundedDiscOffset` under the standard normal-form rewrites (`shift_start`, `step_one`, `mul`-factor reindexing), so Stage-2 can rewrite hypotheses without unfolding.
+- [x] Bound transport API: add monotonicity/transport lemmas for `BoundedDiscOffset` under the standard normal-form rewrites (`shift_start`, `step_one`, `mul`-factor reindexing), so Stage-2 can rewrite hypotheses without unfolding.
+  Implemented in `MoltResearch/Discrepancy/BoundedDiscOffset.lean` (transport + monotonicity nucleus lemmas); stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [ ] Stable-surface coherence pass: ensure all preferred `discOffset_*` lemmas live under `import MoltResearch.Discrepancy` (and any old/unpreferred names are moved behind `MoltResearch.Discrepancy.Deprecated`), with compile-time audit tests.
 - [ ] Consumer regression examples (discOffset-native): add 2–3 compile-only `example` blocks that start from a paper `Icc` statement, normalize to `discOffset`, apply a split/triangle/bound lemma, and close with `simp`/`linarith`-style steps — all under `import MoltResearch.Discrepancy`.
 
