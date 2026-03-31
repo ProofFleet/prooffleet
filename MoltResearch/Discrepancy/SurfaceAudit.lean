@@ -117,6 +117,42 @@ section
   #check discrepancy
   #check discOffset
 
+  /-!
+  ### discOffset_* lemma exports (stable surface)
+
+  These are high-leverage `discOffset` rewrite/transport lemmas used throughout Track B.
+  Keeping them available under `import MoltResearch.Discrepancy` avoids “mystery imports”.
+  -/
+
+  -- Invariances / transports.
+  #check discOffset_neg
+  #check discOffset_shift_add_mul
+  #check discOffset_shift_start_add
+  #check discOffset_periodic_of_dvd_step
+
+  -- Step-one normalization (and mul-left friendly variant).
+  #check discOffset_eq_discOffset_step_one
+  #check discOffset_eq_discOffset_step_one_mul_left
+
+  -- Step-factor / reindexing coherence.
+  #check discOffset_mul_eq_discOffset_map_mul
+  #check discOffset_mul_eq_discOffset_map_mul_left
+
+  -- Local surgery / congruence.
+  #check discOffset_congr_support
+  #check discOffset_congr
+  #check discOffset_congr_range
+
+  -- Splitting / one-step Lipschitz bounds.
+  #check discOffset_cut_le
+  #check discOffset_split_at_le
+  #check discOffset_succ_le_add_natAbs
+  #check IsSignSequence.discOffset_succ_le
+
+  -- Boundedness normal forms.
+  #check boundedDiscOffset_iff_forall_discOffset_le
+  #check not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt
+
   #check apSumOffset_eq_sub
   #check apSumOffset_eq_apSum_shift_add
 
