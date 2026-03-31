@@ -523,7 +523,8 @@ Definition of done:
   Implemented in `MoltResearch/Discrepancy/BoundedDiscOffset.lean` (transport + monotonicity nucleus lemmas); stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [x] Stable-surface coherence pass: ensure all preferred `discOffset_*` lemmas live under `import MoltResearch.Discrepancy` (and any old/unpreferred names are moved behind `MoltResearch.Discrepancy.Deprecated`), with compile-time audit tests.
   Implemented via `MoltResearch/Discrepancy/SurfaceAudit.lean` (presence + absence checks) and `MoltResearch/Discrepancy/DeprecatedAudit.lean` (opt-in deprecated surface).
-- [ ] Consumer regression examples (discOffset-native): add 2–3 compile-only `example` blocks that start from a paper `Icc` statement, normalize to `discOffset`, apply a split/triangle/bound lemma, and close with `simp`/`linarith`-style steps — all under `import MoltResearch.Discrepancy`.
+- [x] Consumer regression examples (discOffset-native): add 2–3 compile-only `example` blocks that start from a paper `Icc` statement, normalize to `discOffset`, apply a split/triangle/bound lemma, and close with `simp`/`linarith`-style steps — all under `import MoltResearch.Discrepancy`.
+  - Implemented in `MoltResearch/Discrepancy/NormalFormExamples.lean` under the heading “paper `Icc` statements → `discOffset` normal form → split/bound”.
 
 ### Track C — Conjecture stub + equivalences (backlog)
 
