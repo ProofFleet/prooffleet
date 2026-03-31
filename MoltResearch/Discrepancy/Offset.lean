@@ -2001,6 +2001,36 @@ lemma apSumOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
   unfold apSumOffset
   simp [Finset.sum_neg_distrib]
 
+/-!
+### `discOffset` invariances (sign and affine shifts)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — DiscOffset-level sign/shift invariances.
+
+These are thin `discOffset`-level wrappers around existing `apSumOffset` algebra/shift lemmas.
+-/
+
+/-- Negating the underlying sequence does not change `discOffset` (absolute value invariance). -/
+lemma discOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset (fun k => -f k) d m n = discOffset f d m n := by
+  -- `discOffset` is `Int.natAbs` of `apSumOffset`, and `natAbs` is invariant under negation.
+  unfold discOffset
+  simp [apSumOffset_neg]
+
+/-- Shifting the underlying sequence by an affine `a*d` translation corresponds to shifting the
+start index from `m` to `m + a`.
+
+This is the `discOffset`-level wrapper of `apSumOffset_shift_start_add`.
+-/
+lemma discOffset_shift_add_mul (f : ℕ → ℤ) (a d m n : ℕ) :
+    discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
+  unfold discOffset
+  -- Use the already-normalized `apSumOffset` lemma and rewrite under `Int.natAbs`.
+  have h : apSumOffset (fun k => f (k + a * d)) d m n = apSumOffset f d (m + a) n := by
+    -- `apSumOffset_shift_start_add` is oriented the other way.
+    simpa [Nat.mul_comm] using
+      (apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := a) (n := n)).symm
+  simpa [h]
+
 /-- Offset AP sum of a pointwise subtraction of functions. -/
 lemma apSumOffset_sub (f g : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => f k - g k) d m n = apSumOffset f d m n - apSumOffset g d m n := by

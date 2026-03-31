@@ -31,6 +31,13 @@ example : discOffset f d m 0 = 0 := by
 example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
   simp
 
+-- Regression (Track B / discOffset invariances):
+example : discOffset (fun k => -f k) d m n = discOffset f d m n := by
+  simpa using (discOffset_neg (f := f) (d := d) (m := m) (n := n))
+
+example : discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
+  simpa using (discOffset_shift_add_mul (f := f) (a := a) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / step-one normalization, discOffset):
 -- push the step size into the summand.
 example : discOffset f d m n = discOffset (fun k => f (k * d)) 1 m n := by
