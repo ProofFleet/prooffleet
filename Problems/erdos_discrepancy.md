@@ -515,8 +515,8 @@ Definition of done:
   - Implemented in `MoltResearch/Discrepancy/Basic.lean` (support/injectivity helpers near `apSupport`).
 - [x] DiscOffset stability (support-driven): prove `discOffset f d m n = discOffset g d m n` assuming `∀ x ∈ apSupport d m n, f x = g x` (and surface it under `import MoltResearch.Discrepancy`).
   - Implemented as `discOffset_congr_support` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
-- [ ] DiscOffset shift-start coherence: port `apSumOffset_shift_start_add` to discrepancy level, i.e.
-  `discOffset f d (m+k) n = discOffset (fun t => f (t + k*d)) d m n` (with an `_add`/`mul_left` variant to avoid `Nat.add_comm` noise).
+- [x] DiscOffset shift-start coherence: port `apSumOffset_shift_start_add` to discrepancy level (stable surface).
+  - Implemented as `discOffset_shift_start_add` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean` (under `import MoltResearch.Discrepancy`).
 - [ ] DiscOffset periodicity corollary: if `f` is periodic with period `p` and `p ∣ d`, prove `discOffset f d m n = discOffset f d 0 n` (or the tight constant-sum normal form implied by periodicity), and add a stable-surface regression example.
 - [ ] Bound transport API: add monotonicity/transport lemmas for `BoundedDiscOffset` under the standard normal-form rewrites (`shift_start`, `step_one`, `mul`-factor reindexing), so Stage-2 can rewrite hypotheses without unfolding.
 - [ ] Stable-surface coherence pass: ensure all preferred `discOffset_*` lemmas live under `import MoltResearch.Discrepancy` (and any old/unpreferred names are moved behind `MoltResearch.Discrepancy.Deprecated`), with compile-time audit tests.
