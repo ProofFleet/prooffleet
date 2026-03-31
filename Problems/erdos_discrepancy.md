@@ -497,15 +497,19 @@ Definition of done:
   - `apSum_mul_len_succ_eq_sum_range_sum_range_mul_left`
   Stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (search for “residue-class split, homogeneous nucleus”).
 - [x] DiscOffset-level sign/shift invariances: port the existing `apSumOffset` invariance lemmas to the `discOffset` API (`discOffset (fun k => -f k) = discOffset f`, and `discOffset (fun k => f (k + a*d)) d m n = discOffset f d (m+a) n`), with careful simp orientation to avoid loops.
-- [ ] `discOffset` congruence-on-support: once `apSupport` exists (or via `Finset.range` normal form), add a canonical lemma `discOffset_congr` stating equality when `f` and `g` agree on accessed indices, so later local-surgery arguments stay purely in `ℕ` discrepancy form.
+- [x] `discOffset` congruence-on-support: once `apSupport` exists (or via `Finset.range` normal form), add a canonical lemma `discOffset_congr` stating equality when `f` and `g` agree on accessed indices, so later local-surgery arguments stay purely in `ℕ` discrepancy form.
+  - Implemented as `discOffset_congr` / `discOffset_congr_support` / `discOffset_congr_range` (see `MoltResearch/Discrepancy/Basic.lean` + `MoltResearch/Discrepancy/Offset.lean`), with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [ ] Range-form cut lemma (sum level): using `apSumOffset_eq_sum_range'`, add a canonical lemma splitting `apSumOffset` written as a `Finset.range` sum at `k`, rewriting both pieces back to nucleus `apSumOffset` (not just an inequality), with a stable-surface regression example.
 - [ ] Along-d convenience API: add `discAlong f d n := discOffset f d 0 n` (or the repo’s preferred abbreviation) plus a minimal lemma family that rewrites `HasDiscrepancyAtLeastAlong` into a `discAlong` witness, so Stage-2 statements can avoid explicit `m=0` bookkeeping.
 - [ ] Coherence pass: add a small `DiscSimp`/`DiscOffsetSimp` opt-in module audited for non-looping simp rules (`zero/one/succ`, step-one, shift-start), plus compile-only examples that demonstrate the intended `simp`-first normalization pipeline.
 
 #### Auto-generated backlog (needs triage)
-- [ ] Define `apSupport d m n : Finset ℕ := (Finset.range n).image (fun i => (m+i+1)*d)` (or the repo’s preferred endpoint convention) and prove the basic API: `mem_apSupport_iff`, `apSupport_card` (for `d>0`), and monotonicity in `n`.
-- [ ] Prove the core injectivity lemma used by support/reindexing arguments: for `d>0`, the map `i ↦ (m+i+1)*d` is injective on `Finset.range n` (and a `mul_left`-friendly variant `d*(m+i+1)`). Package it as a nucleus lemma (not raw arithmetic).
-- [ ] DiscOffset stability (support-driven): prove `discOffset f d m n = discOffset g d m n` assuming `∀ x ∈ apSupport d m n, f x = g x` (and surface it under `import MoltResearch.Discrepancy`).
+- [x] Define `apSupport d m n : Finset ℕ := (Finset.range n).image (fun i => (m+i+1)*d)` (or the repo’s preferred endpoint convention) and prove the basic API: `mem_apSupport_iff`, `apSupport_card` (for `d>0`), and monotonicity in `n`.
+  - Implemented in `MoltResearch/Discrepancy/Basic.lean` (search for `apSupport`).
+- [x] Prove the core injectivity lemma used by support/reindexing arguments: for `d>0`, the map `i ↦ (m+i+1)*d` is injective on `Finset.range n` (and a `mul_left`-friendly variant `d*(m+i+1)`). Package it as a nucleus lemma (not raw arithmetic).
+  - Implemented in `MoltResearch/Discrepancy/Basic.lean` (support/injectivity helpers near `apSupport`).
+- [x] DiscOffset stability (support-driven): prove `discOffset f d m n = discOffset g d m n` assuming `∀ x ∈ apSupport d m n, f x = g x` (and surface it under `import MoltResearch.Discrepancy`).
+  - Implemented as `discOffset_congr_support` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 - [ ] DiscOffset shift-start coherence: port `apSumOffset_shift_start_add` to discrepancy level, i.e.
   `discOffset f d (m+k) n = discOffset (fun t => f (t + k*d)) d m n` (with an `_add`/`mul_left` variant to avoid `Nat.add_comm` noise).
 - [ ] DiscOffset periodicity corollary: if `f` is periodic with period `p` and `p ∣ d`, prove `discOffset f d m n = discOffset f d 0 n` (or the tight constant-sum normal form implied by periodicity), and add a stable-surface regression example.
