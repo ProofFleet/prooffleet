@@ -2,6 +2,8 @@ import MoltResearch.Discrepancy
 -- Opt-in simp set regression tests (does not affect the stable surface).
 import MoltResearch.Discrepancy.DiscOffsetSimp
 
+-- (CI) Touch this file to retrigger PR metadata validation after PR-body edits.
+
 /-!
 # Discrepancy normal-form regression examples
 
