@@ -59,6 +59,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   over `Finset.range` at a cut `k` and rewriting both pieces back to `discOffset` (so later proofs can do “cut at k” without dropping to `Int` sums).
   (Implemented as `discOffset_eq_natAbs_apSumOffset_cut` / `discOffset_cut_le` in `MoltResearch/Discrepancy/Offset.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+- [x] Range-form stability at discrepancy level: using `apSumOffset_eq_sum_range'`, prove
+  `discOffset f d m n = discOffset g d m n` assuming pointwise agreement of summands on `Finset.range n`.
+  (Implemented as `discOffset_congr_range` in `MoltResearch/Discrepancy/Offset.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
+
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,

@@ -96,6 +96,12 @@ example (g : ℕ → ℤ)
     discOffset f d m n = discOffset g d m n := by
   simpa using (discOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
+-- Regression (Track B / local surgery, range form via `Finset.range` membership):
+example (g : ℕ → ℤ)
+    (h : ∀ i, i ∈ Finset.range n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  simpa using (discOffset_congr_range (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
 -- Regression (Track B / range-cut inequality): split `discOffset` at a cut length `k ≤ n`.
 example (hk : k ≤ n) :
     discOffset f d m n ≤ discOffset f d m k + discOffset f d (m + k) (n - k) := by
