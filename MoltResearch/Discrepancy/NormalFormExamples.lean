@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy
 -- Opt-in simp set regression tests (does not affect the stable surface).
 import MoltResearch.Discrepancy.DiscOffsetSimp
+import MoltResearch.Discrepancy.DiscSimp
 
 -- (CI) Touch this file to retrigger PR metadata validation after PR-body edits.
 
@@ -37,6 +38,14 @@ example : discOffset (fun k => -f k) d m n = discOffset f d m n := by
 
 example : discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
   simpa using (discOffset_shift_add_mul (f := f) (a := a) (d := d) (m := m) (n := n))
+
+-- Regression (Track B / simp-first pipeline hygiene): importing `DiscSimp` should let `simp`
+-- normalize start-index shifts into a translated summand.
+example : apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n := by
+  simp
+
+example : discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
+  simp
 
 -- Regression (Track B / step-one normalization, discOffset):
 -- push the step size into the summand.
