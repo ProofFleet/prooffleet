@@ -723,4 +723,37 @@ lemma apSumOffset_step_one_zero_m_add_left_eq_apSumFrom (f : ℕ → ℤ) (a d n
     (apSumOffset_step_one_zero_m_add_left_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := 0)
       (n := n))
 
+/-!
+## Deprecated `discOffset` congruence variants
+
+These older congruence lemmas quantify directly over the paper-style index interval
+`Icc (m+1) (m+n)`.
+
+Preferred stable-surface lemma: `discOffset_congr_range`.
+-/
+
+/-- Deprecated: use `discOffset_congr_range`.
+
+This lemma is intentionally *not* part of the stable surface `import MoltResearch.Discrepancy`.
+-/
+@[deprecated "Use `discOffset_congr_range`." (since := "2026-03-31")]
+lemma discOffset_congr_Icc (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ∈ Set.Icc (m + 1) (m + n) → f (i * d) = g (i * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_congr_Icc (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
+/-- Deprecated: use `discOffset_congr_range`.
+
+This lemma is intentionally *not* part of the stable surface `import MoltResearch.Discrepancy`.
+-/
+@[deprecated "Use `discOffset_congr_range`." (since := "2026-03-31")]
+lemma discOffset_congr_finset_Icc (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ∈ Finset.Icc (m + 1) (m + n) → f (i * d) = g (i * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_congr_finset_Icc (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
 end MoltResearch

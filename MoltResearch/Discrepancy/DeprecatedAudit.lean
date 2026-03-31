@@ -34,6 +34,10 @@ section
 
   #check apSumFrom_sub_apSumFrom_eq_apSum_step_one_mul_left_mul_left
 
+  -- Deprecated `discOffset` congruence variants (not part of the stable surface).
+  #check discOffset_congr_Icc
+  #check discOffset_congr_finset_Icc
+
   #check apSumFrom_eq_apSumOffset_step_one_zero_m
   #check apSumFrom_eq_apSumOffset_step_one_zero_m_add_left
 
