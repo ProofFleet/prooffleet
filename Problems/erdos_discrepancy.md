@@ -79,8 +79,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Difference→tail normal form (affine AP): prove `apSumFrom f a d (m+n) - apSumFrom f a d m = apSumFrom f (a + m*d) d n`.
   (Available as `apSumFrom_sub_eq_apSumFrom_tail`; and (optionally) the offset-shifted variant via `apSumFrom_sub_eq_apSumOffset_shift_add`.)
 
-- [ ] Tail→offset shift-add normal form: prove `apSumFrom f (a + m*d) d n = apSumOffset (fun k => f (k + a)) d m n`
-  (`apSumFrom_tail_eq_apSumOffset_shift_add`) with a stable-surface regression `example`.
+- [x] Tail→offset shift-add normal form: prove `apSumFrom f (a + m*d) d n = apSumOffset (fun k => f (k + a)) d m n`
+  (Implemented as `apSumFrom_tail_eq_apSumOffset_shift_add` in `MoltResearch/Discrepancy/AffineTail.lean`; stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Step-one normalization bundle: add `apSum_eq_apSum_step_one` plus analogous step-one lemmas for `apSumOffset`/`discOffset`
   (rewriting step `d` into the summand), together with a regression example showing downstream proofs can normalize to step one.
