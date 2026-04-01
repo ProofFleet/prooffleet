@@ -65,8 +65,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Canonical homogeneous view of offsets: prove `apSumOffset f d m n = apSum (fun k => f (k + m*d)) d n`
-  (`apSumOffset_eq_apSum_shift_add`) and add a stable-surface regression `example` under `import MoltResearch.Discrepancy`.
+- [x] Canonical homogeneous view of offsets: prove `apSumOffset f d m n = apSum (fun k => f (k + m*d)) d n`
+  (Implemented as `apSumOffset_eq_apSum_shift_add` in `MoltResearch/Discrepancy/Offset.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Canonical discrepancy view of offsets: prove a rewrite lemma of the form
   `discOffset f d m n = discrepancy (fun k => f (k + m*d)) d n` (or the repo’s chosen naming),
