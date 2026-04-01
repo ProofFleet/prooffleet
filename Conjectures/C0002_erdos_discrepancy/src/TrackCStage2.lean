@@ -271,6 +271,18 @@ theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage2Output f) :
   rcases out.forall_exists_natAbs_apSumOffset_gt (f := f) B with ⟨n, hn⟩
   exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that the offset nucleus
+`apSumOffset f d m n` takes arbitrarily large absolute values.
+
+This is the raw-nucleus form of `exists_params_forall_exists_discOffset_gt`.
+-/
+theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) := by
+  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_apSumOffset_gt (f := f) B
+
 /-- Backwards-compatible alias for `forall_exists_natAbs_apSumOffset_gt`.
 
 Deprecated because the suffix `_lt` was misleading: the statement is `B < ...`.
