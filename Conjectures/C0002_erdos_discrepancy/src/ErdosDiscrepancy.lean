@@ -64,6 +64,18 @@ theorem erdos_discrepancy_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (h
     (Tao2015.Stage3Output.exists_params_unboundedDiscOffset (f := f)
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
+/-- Variant of `erdos_discrepancy_exists_params_unboundedDiscOffset` packaging the step-size side
+condition as `1 ≤ d`.
+
+Many later stages prefer the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ Tao2015.UnboundedDiscOffset f d m := by
+  simpa using
+    (Tao2015.Stage3Output.exists_params_one_le_unboundedDiscOffset (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` takes arbitrarily large values.
 
