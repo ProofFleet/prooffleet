@@ -125,6 +125,20 @@ theorem stage2_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSi
   simpa [stage2Out, stage2_d, stage2_m] using
     (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f) (stage2Out (f := f) (hf := hf)))
 
+/-- Stage 2 yields affine-tail nucleus witnesses at the concrete parameters coming from Stage 1.
+
+This is the same witness family as `stage2_forall_exists_natAbs_apSumOffset_gt'`, but rewritten to
+use the affine-tail nucleus `apSumFrom f (m*d) d n`.
+-/
+theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ n : ℕ,
+      Int.natAbs
+          (apSumFrom f
+            ((stage2_m (f := f) (hf := hf)) * (stage2_d (f := f) (hf := hf)))
+            (stage2_d (f := f) (hf := hf)) n) > C := by
+  simpa [stage2Out, stage2_d, stage2_m] using
+    (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) (stage2Out (f := f) (hf := hf)))
+
 /-- Stage 2 yields concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
