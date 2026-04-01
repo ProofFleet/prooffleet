@@ -372,12 +372,29 @@ lemma disc_congr (f g : ℕ → ℤ) (d n : ℕ)
   exact congrArg Int.natAbs
     (apSum_congr (f := f) (g := g) (d := d) (n := n) (h := h))
 
-/-- If two functions agree pointwise on the indices used in `apSumOffset`, then the offset sums are equal. -/
-lemma apSumOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
-    (h : ∀ i, i < n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+/-- Range-form congruence lemma for `apSumOffset`.
+
+If `f` and `g` agree on every summation index `i ∈ Finset.range n` in the `range`-expanded normal
+form of `apSumOffset`, then `apSumOffset f d m n = apSumOffset g d m n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Range-form stability at AP-sum level.
+-/
+lemma apSumOffset_congr_range (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ∈ Finset.range n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
     apSumOffset f d m n = apSumOffset g d m n := by
   unfold apSumOffset
   refine Finset.sum_congr rfl ?_
+  intro i hi
+  exact h i hi
+
+/-- If two functions agree pointwise on the indices used in `apSumOffset`, then the offset sums are equal.
+
+This is a pointwise-inequality wrapper around `apSumOffset_congr_range`.
+-/
+lemma apSumOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i < n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  apply apSumOffset_congr_range (f := f) (g := g) (d := d) (m := m) (n := n)
   intro i hi
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
@@ -417,16 +434,33 @@ lemma apSumOffset_congr_finset_Icc (f g : ℕ → ℤ) (d m n : ℕ)
     exact Finset.mem_Icc.2 hi
   exact h i this
 
+/-- Range-form congruence lemma for `discOffset`.
+
+If `f` and `g` agree on every summation index `i ∈ Finset.range n` in the `range`-expanded normal
+form of `apSumOffset`, then `discOffset f d m n = discOffset g d m n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Range-form stability at discrepancy level.
+-/
+lemma discOffset_congr_range (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ∈ Finset.range n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  unfold discOffset
+  refine congrArg Int.natAbs ?_
+  exact apSumOffset_congr_range (f := f) (g := g) (d := d) (m := m) (n := n) h
+
 /-- Pointwise congruence variant of `discOffset_congr_support`, expressed over `i < n`.
 
 This is the `discOffset` analogue of `apSumOffset_congr`.
+
+This is a pointwise-inequality wrapper around `discOffset_congr_range`.
 -/
 lemma discOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
     (h : ∀ i, i < n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
     discOffset f d m n = discOffset g d m n := by
-  unfold discOffset
-  exact congrArg Int.natAbs
-    (apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+  apply discOffset_congr_range (f := f) (g := g) (d := d) (m := m) (n := n)
+  intro i hi
+  have hi' : i < n := Finset.mem_range.mp hi
+  exact h i hi'
 
 /-!
 Deprecated `discOffset` congruence variants over explicit `Icc` index sets have been moved behind

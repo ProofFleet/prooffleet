@@ -48,31 +48,11 @@ lemma sum_range_eq_apSumOffset' (f : ℕ → ℤ) (d m n : ℕ) :
   simpa using (apSumOffset_eq_sum_range' (f := f) (d := d) (m := m) (n := n)).symm
 
 /-!
-### Range-form stability (discrepancy level)
+### Range-form stability
 
-When we normalize an `apSumOffset` into a `Finset.range` sum (via `apSumOffset_eq_sum_range'`), we
-sometimes want to do local-surgery arguments *without* switching to `Icc` endpoints.
-
-This lemma packages the “range-form” congruence principle at the `discOffset` level.
+The range-form congruence lemmas `apSumOffset_congr_range` and `discOffset_congr_range` live in
+`MoltResearch.Discrepancy.Basic` (so pointwise wrappers can discharge to them without import cycles).
 -/
-
-/-- Range-form congruence lemma for `discOffset`.
-
-If `f` and `g` agree on every summation index `i ∈ Finset.range n` in the `range`-expanded normal
-form of `apSumOffset`, then `discOffset f d m n = discOffset g d m n`.
-
-Checklist item: Problems/erdos_discrepancy.md (Track B) — Range-form stability at discrepancy level.
--/
-lemma discOffset_congr_range (f g : ℕ → ℤ) (d m n : ℕ)
-    (h : ∀ i, i ∈ Finset.range n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
-    discOffset f d m n = discOffset g d m n := by
-  unfold discOffset
-  refine congrArg Int.natAbs ?_
-  -- Expand both offset sums to `Finset.range` sums, then use `Finset.sum_congr`.
-  simp [apSumOffset_eq_sum_range']
-  refine Finset.sum_congr rfl ?_
-  intro i hi
-  exact h i hi
 
 /-- Translation-friendly variant of `apSumOffset_eq_sum_range` with the binder variable on the left:
 `i + m + 1`.

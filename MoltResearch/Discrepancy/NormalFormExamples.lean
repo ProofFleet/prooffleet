@@ -941,6 +941,12 @@ example (g : ℕ → ℤ)
     apSumOffset f d m n = apSumOffset g d m n := by
   simpa using (apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
 
+-- Regression: range-form congruence lemma (Finset.range hypothesis) is usable from the stable surface.
+example (g : ℕ → ℤ)
+    (h : ∀ i, i ∈ Finset.range n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  simpa using (apSumOffset_congr_range (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
 -- Regression: support-form congruence lemmas are usable from the stable surface.
 example (g : ℕ → ℤ)
     (h : ∀ x ∈ apSupport d m n, f x = g x) :
