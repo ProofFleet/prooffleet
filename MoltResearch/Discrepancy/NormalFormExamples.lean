@@ -807,6 +807,11 @@ example
   -- `simp` rewrites the `Icc` sum into `apSumOffset … 1 0 n`, then into `discOffset`.
   simpa [Nat.add_comm, Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using h
 
+-- Regression (Track B / affine difference→tail): difference of affine partial sums is the later tail.
+example :
+    apSumFrom f a d (m + n) - apSumFrom f a d m = apSumFrom f (a + m * d) d n := by
+  simpa using (apSumFrom_sub_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n))
+
 -- Difference of affine partial sums → `discOffset` of an offset tail on a shifted sequence.
 example
     (h : Int.natAbs (apSumFrom f a d (m + n) - apSumFrom f a d m) ≤ C) :

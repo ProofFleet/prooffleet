@@ -839,6 +839,8 @@ lemma apSumFrom_tail_eq_sub (f : ℕ → ℤ) (a d m n : ℕ) :
     simpa [add_comm] using h
   exact eq_sub_of_add_eq h'
 
+-- (moved to `MoltResearch.Discrepancy.AffineTail`: `apSumFrom_sub_eq_apSumFrom_tail`)
+
 /-- Convenience: when `m ≤ n`, rewrite the affine tail sum of length `n - m` as a difference of
 affine AP partial sums.
 

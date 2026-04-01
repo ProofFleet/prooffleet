@@ -76,7 +76,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Difference→tail normal form (homogeneous AP): proved in `MoltResearch/Discrepancy/Offset.lean` as `apSum_sub_eq_apSumOffset`.
   (Regression examples: `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Difference→tail normal form (affine AP): prove `apSumFrom f a d (m+n) - apSumFrom f a d m = apSumFrom f (a + m*d) d n`
+- [x] Difference→tail normal form (affine AP): `apSumFrom f a d (m+n) - apSumFrom f a d m = apSumFrom f (a + m*d) d n` (proved as `apSumFrom_sub_eq_apSumFrom_tail`).
   (`apSumFrom_sub_eq_apSumFrom_tail`) and (optionally) the offset-shifted variant via `apSumFrom_sub_eq_apSumOffset_shift_add`.
 
 - [ ] Tail→offset shift-add normal form: prove `apSumFrom f (a + m*d) d n = apSumOffset (fun k => f (k + a)) d m n`
