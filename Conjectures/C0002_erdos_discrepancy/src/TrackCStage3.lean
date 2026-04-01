@@ -60,6 +60,18 @@ theorem forall_exists_d_ge_one_witness_pos (out : Stage3Output f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (out.forall_hasDiscrepancyAtLeast (f := f))
 
+/-- Variant of `forall_exists_d_ge_one_witness_pos` with the step-size side condition written as
+`d > 0`.
+
+Many consumers prefer the strict-positivity normal form when working with `Nat` step sizes.
+-/
+theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hC⟩
+  have hd' : d > 0 := lt_of_lt_of_le Nat.zero_lt_one hd
+  exact ⟨d, n, hd', hn, hC⟩
+
 /-- Stage 3 output yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m` at the *concrete* parameters coming from Stage 1.
 
@@ -290,6 +302,18 @@ theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSign
     ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
   simpa using
     (Stage3Output.forall_exists_d_ge_one_witness_pos (f := f) (stage3 (f := f) (hf := hf)))
+
+/-- Consumer-facing shortcut: Stage 3 yields a global witness form with the step-size condition
+written as `d > 0`:
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is a thin wrapper around `Stage3Output.forall_exists_d_pos_witness_pos`.
+-/
+theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  simpa using
+    (Stage3Output.forall_exists_d_pos_witness_pos (f := f) (stage3 (f := f) (hf := hf)))
 
 end Tao2015
 
