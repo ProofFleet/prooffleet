@@ -93,8 +93,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   so downstream code can avoid manual `Finset.range` bookkeeping.
   (Implemented as `apSumOffset_congr` / `discOffset_congr` in `MoltResearch/Discrepancy/Basic.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Basic size bound for sign sequences: assuming `IsSignSequence f`, prove a bound like `discOffset f d m n ≤ n` (and/or the analogous `discrepancy` bound),
+- [x] Basic size bound for sign sequences: assuming `IsSignSequence f`, prove a bound like `discOffset f d m n ≤ n` (and/or the analogous `discrepancy` bound),
   to make trivial “boundedness” steps one-liners.
+  (Implemented as `discOffset_le` / `discAlong_le` (and also `disc_le`) in `MoltResearch/Discrepancy/Basic.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
