@@ -94,6 +94,26 @@ theorem not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f : ℕ �
     (MoltResearch.not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d)
       (m := m))
 
+/-- Inequality-direction variant of `not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt`,
+written as `discOffset ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
+  constructor
+  · intro h B
+    rcases
+        (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m)).1 h B with
+      ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  · intro h
+    refine
+      (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m)).2 ?_
+    intro B
+    rcases h B with ⟨n, hn⟩
+    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- Bridge: the witness form `UnboundedDiscOffset` is equivalent to the negation-normal-form boundedness
 statement `¬ ∃ B, BoundedDiscOffset f d m B`.
 
