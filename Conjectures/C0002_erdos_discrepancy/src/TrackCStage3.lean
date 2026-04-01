@@ -1,3 +1,4 @@
+import Conjectures.C0002_erdos_discrepancy.src.Tao2015Extras
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof
 
 /-!
@@ -116,12 +117,12 @@ This is `unboundedDiscOffset` rewritten so consumers can work directly with
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ,
       B < Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) := by
-  intro B
-  rcases out.unboundedDiscOffset (f := f) B with ⟨n, hn⟩
-  refine ⟨n, ?_⟩
-  -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`.
-  unfold discOffset at hn
-  exact hn
+  -- `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`;
+  -- use the normal-form lemma from `Tao2015Extras`.
+  simpa using
+    ((Tao2015.unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f := f)
+          (d := out.out2.out1.d) (m := out.out2.out1.m)).1
+      (out.unboundedDiscOffset (f := f)))
 
 /-- Inequality-direction variant of `forall_exists_natAbs_apSumOffset_gt`, written as
 `Int.natAbs ... > B`.
