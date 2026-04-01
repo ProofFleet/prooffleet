@@ -73,8 +73,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   so “offset discrepancy” can be treated as ordinary discrepancy of a shifted sequence.
   (Implemented as `discOffset_eq_discrepancy_shift_mul` in `MoltResearch/Discrepancy/Basic.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Difference→tail normal form (homogeneous AP): prove `apSum f d (m+n) - apSum f d m = apSumOffset f d m n`
-  (`apSum_sub_eq_apSumOffset`) and add a regression `example`.
+- [x] Difference→tail normal form (homogeneous AP): proved in `MoltResearch/Discrepancy/Offset.lean` as `apSum_sub_eq_apSumOffset`.
+  (Regression examples: `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Difference→tail normal form (affine AP): prove `apSumFrom f a d (m+n) - apSumFrom f a d m = apSumFrom f (a + m*d) d n`
   (`apSumFrom_sub_eq_apSumFrom_tail`) and (optionally) the offset-shifted variant via `apSumFrom_sub_eq_apSumOffset_shift_add`.
