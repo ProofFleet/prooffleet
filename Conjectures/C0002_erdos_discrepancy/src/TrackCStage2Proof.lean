@@ -188,6 +188,19 @@ theorem stage2_exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → 
     (Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
       (stage2Out (f := f) (hf := hf)))
 
+/-- Variant of `stage2_exists_params_forall_exists_natAbs_apSumFrom_mul_gt` with the side
+condition written as `1 ≤ d`.
+
+Many later analytic stages prefer `1 ≤ d` to avoid repeatedly rewriting `d > 0`.
+-/
+theorem stage2_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  simpa [stage2Out] using
+    (Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (stage2Out (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 2 already yields the global conclusion `¬ BoundedDiscrepancy f`.
 
 This is a thin wrapper around the proved lemma `Stage2Output.notBoundedOriginal`.
