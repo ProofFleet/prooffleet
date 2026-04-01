@@ -27,6 +27,10 @@ variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
+-- Regression (Track B / homogeneous view of offsets): push the offset `m*d` into the summand.
+example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  simpa using (apSumOffset_eq_apSum_shift_mul (f := f) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / degenerate tail normal forms):
 -- `discOffset` at length 0 and 1 should simplify to explicit normal forms.
 example : discOffset f d m 0 = 0 := by

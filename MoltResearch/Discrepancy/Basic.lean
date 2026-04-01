@@ -97,6 +97,28 @@ It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
 def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
+/-- Canonical homogeneous view of offsets: push the start shift `m*d` into the summand.
+
+(Track B normal-form checklist item.)
+-/
+lemma apSumOffset_eq_apSum_shift_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
+  unfold apSumOffset apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `(m + i + 1) * d = m*d + (i+1)*d`.
+  have hmul : (m + i + 1) * d = m * d + (i + 1) * d := by
+    -- reassociate to `m + (i+1)` and apply `Nat.add_mul`.
+    calc
+      (m + i + 1) * d = (m + (i + 1)) * d := by
+        simp [Nat.add_assoc]
+      _ = m * d + (i + 1) * d := by
+        simpa using (Nat.add_mul m (i + 1) d)
+  -- commute the addition to match `k + m*d`.
+  have h : (m + i + 1) * d = (i + 1) * d + m * d := by
+    simpa [hmul, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+  simpa [h]
+
 /-! ### Support finset for AP sums -/
 
 /-- `apSupport d m n` is the finite set of indices accessed by `apSumOffset f d m n`.
