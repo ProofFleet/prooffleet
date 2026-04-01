@@ -129,6 +129,16 @@ theorem exists_params_forall_exists_discOffset_gt (out : Stage3Output f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
   exact Stage2Output.exists_params_forall_exists_discOffset_gt (f := f) out.out2
 
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` such that the offset nucleus
+`apSumOffset f d m n` takes arbitrarily large absolute values.
+
+This is the raw-nucleus form of `exists_params_forall_exists_discOffset_gt`.
+-/
+theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) := by
+  exact Stage2Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f) out.out2
+
 /-- Stage 3 output yields bundled offset discrepancy witnesses for the concrete parameters
 `d = out.out2.out1.d` and `m = out.out2.out1.m`.
 
