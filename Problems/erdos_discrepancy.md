@@ -82,8 +82,12 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Tail→offset shift-add normal form: prove `apSumFrom f (a + m*d) d n = apSumOffset (fun k => f (k + a)) d m n`
   (Implemented as `apSumFrom_tail_eq_apSumOffset_shift_add` in `MoltResearch/Discrepancy/AffineTail.lean`; stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Step-one normalization bundle: add `apSum_eq_apSum_step_one` plus analogous step-one lemmas for `apSumOffset`/`discOffset`
+- [x] Step-one normalization bundle: add `apSum_eq_apSum_step_one` plus analogous step-one lemmas for `apSumOffset`/`discOffset`
   (rewriting step `d` into the summand), together with a regression example showing downstream proofs can normalize to step one.
+  Implemented as:
+  - `apSum_eq_apSum_step_one` in `MoltResearch/Discrepancy/Basic.lean`
+  - `apSumOffset_eq_apSumOffset_step_one` and `discOffset_eq_discOffset_step_one` in `MoltResearch/Discrepancy/Offset.lean`
+  - stable-surface regression examples under `import MoltResearch.Discrepancy` in `MoltResearch/Discrepancy/NormalFormExamples.lean`
 
 - [ ] Congruence wrappers: provide `apSumOffset_congr` / `discOffset_congr` lemmas that accept pointwise equality hypotheses and discharge to the existing `…_congr_range` facts,
   so downstream code can avoid manual `Finset.range` bookkeeping.
