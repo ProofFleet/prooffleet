@@ -57,12 +57,13 @@ theorem stage2_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) 
 
 /-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
 theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage2_d (f := f) (hf := hf) := by
-  -- `1 ≤ d` is equivalent to `0 < d`.
-  simpa using (Nat.succ_le_iff).2 (stage2_hd (f := f) (hf := hf))
+  simpa [stage2Out, stage2_d, Stage2Output.d] using
+    (Stage2Output.one_le_d (f := f) (stage2Out (f := f) (hf := hf)))
 
 /-- Convenience lemma: the reduced step size produced by Stage 2 is nonzero. -/
 theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) ≠ 0 := by
-  exact Nat.ne_of_gt (stage2_hd (f := f) (hf := hf))
+  simpa [stage2Out, stage2_d, Stage2Output.d] using
+    (Stage2Output.d_ne_zero (f := f) (stage2Out (f := f) (hf := hf)))
 
 /-- Stage 2 yields unbounded discrepancy for the reduced sequence, stated using the Track-C-local
 predicate `Tao2015.UnboundedDiscrepancyAlong`.

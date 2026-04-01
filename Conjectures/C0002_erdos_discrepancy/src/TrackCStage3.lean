@@ -279,11 +279,13 @@ theorem stage3_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) 
 
 /-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
 theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage3_d (f := f) (hf := hf) := by
-  simpa using (Nat.succ_le_iff).2 (stage3_hd (f := f) (hf := hf))
+  simpa [stage3Out, stage3_d, Stage3Output.d] using
+    (Stage3Output.one_le_d (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
 theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) ≠ 0 := by
-  exact Nat.ne_of_gt (stage3_hd (f := f) (hf := hf))
+  simpa [stage3Out, stage3_d, Stage3Output.d] using
+    (Stage3Output.d_ne_zero (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`. -/
 theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
