@@ -64,6 +64,16 @@ theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage2
 theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) ≠ 0 := by
   exact Nat.ne_of_gt (stage2_hd (f := f) (hf := hf))
 
+/-- Stage 2 yields unbounded discrepancy for the reduced sequence, stated using the Track-C-local
+predicate `Tao2015.UnboundedDiscrepancyAlong`.
+
+This is a thin wrapper around the field `Stage2Output.unbounded` of the axiom stub.
+-/
+theorem stage2_unboundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Tao2015.UnboundedDiscrepancyAlong (stage2_g (f := f) (hf := hf))
+      (stage2_d (f := f) (hf := hf)) := by
+  simpa [stage2Out, stage2_g, stage2_d] using (stage2Out (f := f) (hf := hf)).unbounded
+
 /-- Stage 2 yields unbounded discrepancy for the reduced sequence, stated using the verified core
 predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
