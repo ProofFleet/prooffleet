@@ -158,6 +158,23 @@ theorem not_exists_boundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (
     (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m)).symm.trans
       (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m))
 
+namespace Context
+
+variable {f : ℕ → ℤ}
+
+/-- Normal form: the global offset-nucleus bound bundled in `ctx` also bounds affine-tail nuclei
+`apSumFrom f (m*d) d n`.
+
+This is a small convenience wrapper around `Context.bound_natAbs_apSumOffset_two_mul`, rewritten
+using `apSumFrom_mul_eq_apSumOffset`.
+-/
+theorem bound_natAbs_apSumFrom_mul_two_mul (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
+    Int.natAbs (apSumFrom f (m * d) d n) ≤ 2 * ctx.B := by
+  simpa [apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)] using
+    (Context.bound_natAbs_apSumOffset_two_mul (ctx := ctx) (d := d) (m := m) (n := n) hd)
+
+end Context
+
 namespace ReductionOutput
 
 variable {f : ℕ → ℤ}
