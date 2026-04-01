@@ -314,6 +314,23 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage3Out, stage3_d, stage3_m] using
     (Stage3Output.unboundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields explicit affine-tail nucleus witnesses at the
+concrete parameters produced by the pipeline.
+
+Normal form:
+`∀ C, ∃ n, Int.natAbs (apSumFrom f (m*d) d n) > C`,
+where `d = stage3_d` and `m = stage3_m`.
+
+This is a thin wrapper around `Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt`.
+-/
+theorem stage3_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ n : ℕ,
+      Int.natAbs
+          (apSumFrom f ((stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf)))
+            (stage3_d (f := f) (hf := hf)) n) > C := by
+  simpa [stage3Out, stage3_d, stage3_m] using
+    (Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) (stage3Out (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
 This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
