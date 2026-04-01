@@ -58,6 +58,10 @@ abbrev m (out : Stage2Output f) : ℕ := out.out1.m
 /-- Convenience projection: positivity of the reduced step size. -/
 abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 
+/-- Convenience lemma: the reduced step size is nonzero. -/
+theorem d_ne_zero (out : Stage2Output f) : out.d ≠ 0 := by
+  exact Nat.ne_of_gt out.hd
+
 /-- Convenience lemma: the reduced step size is at least `1`. -/
 theorem one_le_d (out : Stage2Output f) : 1 ≤ out.d := by
   -- `out.hd` is `0 < out.d`.
