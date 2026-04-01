@@ -89,8 +89,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   - `apSumOffset_eq_apSumOffset_step_one` and `discOffset_eq_discOffset_step_one` in `MoltResearch/Discrepancy/Offset.lean`
   - stable-surface regression examples under `import MoltResearch.Discrepancy` in `MoltResearch/Discrepancy/NormalFormExamples.lean`
 
-- [ ] Congruence wrappers: provide `apSumOffset_congr` / `discOffset_congr` lemmas that accept pointwise equality hypotheses and discharge to the existing `…_congr_range` facts,
+- [x] Congruence wrappers: provide `apSumOffset_congr` / `discOffset_congr` lemmas that accept pointwise equality hypotheses and discharge to the existing `…_congr_range` facts,
   so downstream code can avoid manual `Finset.range` bookkeeping.
+  (Implemented as `apSumOffset_congr` / `discOffset_congr` in `MoltResearch/Discrepancy/Basic.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Basic size bound for sign sequences: assuming `IsSignSequence f`, prove a bound like `discOffset f d m n ≤ n` (and/or the analogous `discrepancy` bound),
   to make trivial “boundedness” steps one-liners.
