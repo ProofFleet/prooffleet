@@ -302,6 +302,20 @@ theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f)
   intro B
   simpa using out.forall_exists_natAbs_apSumOffset_gt (f := f) B
 
+/-- Existential packaging variant of `exists_params_forall_exists_natAbs_apSumOffset_gt` using
+the side condition `1 ≤ d`.
+
+Many downstream consumers prefer `1 ≤ d` to avoid repeatedly rewriting `d > 0`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) := by
+  have hd1 : 1 ≤ out.out1.d := by
+    simpa [Stage2Output.d] using (out.one_le_d (f := f))
+  refine ⟨out.out1.d, out.out1.m, hd1, ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_apSumOffset_gt (f := f) B
+
 /-- Backwards-compatible alias for `forall_exists_natAbs_apSumOffset_gt`.
 
 Deprecated because the suffix `_lt` was misleading: the statement is `B < ...`.
