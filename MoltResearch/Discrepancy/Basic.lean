@@ -183,6 +183,16 @@ lemma discOffset_def (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=
   rfl
 
+/-- Canonical discrepancy view of offsets: push the start shift `m*d` into the summand.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Canonical discrepancy view of offsets.
+-/
+lemma discOffset_eq_discrepancy_shift_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = discrepancy (fun k => f (k + m * d)) d n := by
+  unfold discOffset discrepancy
+  -- Reduce to the corresponding statement for the underlying AP sums.
+  simp [apSumOffset_eq_apSum_shift_mul]
+
 /-- `simp` bridge: `Int.natAbs (apSumOffset …)` simplifies to the `discOffset` wrapper.
 
 This direction avoids simp loops with `discOffset_def`.
