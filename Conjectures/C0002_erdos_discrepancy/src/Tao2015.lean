@@ -64,6 +64,14 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g : ℕ →
 def HasDiscrepancyAtLeastAlong (g : ℕ → ℤ) (d : ℕ) (C : ℕ) : Prop :=
   ∃ n : ℕ, C < discrepancy g d n
 
+/-- Inequality-direction variant of `HasDiscrepancyAtLeastAlong`, written as `discrepancy ... > C`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong g d C ↔ (∃ n : ℕ, discrepancy g d n > C) := by
+  simp [HasDiscrepancyAtLeastAlong, gt_iff_lt]
+
 /-- Unboundedness of a bundled offset discrepancy family. -/
 def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n
