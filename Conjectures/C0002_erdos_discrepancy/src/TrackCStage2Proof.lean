@@ -39,6 +39,19 @@ noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ �
 noncomputable abbrev stage2_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   (stage2Out (f := f) (hf := hf)).out1.m
 
+/-- Positivity of the reduced step size produced by Stage 2. -/
+theorem stage2_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
+  simpa [stage2Out, stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
+theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage2_d (f := f) (hf := hf) := by
+  -- `1 ≤ d` is equivalent to `0 < d`.
+  simpa using (Nat.succ_le_iff).2 (stage2_hd (f := f) (hf := hf))
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 is nonzero. -/
+theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) ≠ 0 := by
+  exact Nat.ne_of_gt (stage2_hd (f := f) (hf := hf))
+
 /-- Stage 2 yields unbounded discrepancy for the reduced sequence, stated using the verified core
 predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
