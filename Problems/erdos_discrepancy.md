@@ -63,6 +63,33 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `discOffset f d m n = discOffset g d m n` assuming pointwise agreement of summands on `Finset.range n`.
   (Implemented as `discOffset_congr_range` in `MoltResearch/Discrepancy/Offset.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Canonical homogeneous view of offsets: prove `apSumOffset f d m n = apSum (fun k => f (k + m*d)) d n`
+  (`apSumOffset_eq_apSum_shift_add`) and add a stable-surface regression `example` under `import MoltResearch.Discrepancy`.
+
+- [ ] Canonical discrepancy view of offsets: prove a rewrite lemma of the form
+  `discOffset f d m n = discrepancy (fun k => f (k + m*d)) d n` (or the repo’s chosen naming),
+  so “offset discrepancy” can be treated as ordinary discrepancy of a shifted sequence.
+
+- [ ] Difference→tail normal form (homogeneous AP): prove `apSum f d (m+n) - apSum f d m = apSumOffset f d m n`
+  (`apSum_sub_eq_apSumOffset`) and add a regression `example`.
+
+- [ ] Difference→tail normal form (affine AP): prove `apSumFrom f a d (m+n) - apSumFrom f a d m = apSumFrom f (a + m*d) d n`
+  (`apSumFrom_sub_eq_apSumFrom_tail`) and (optionally) the offset-shifted variant via `apSumFrom_sub_eq_apSumOffset_shift_add`.
+
+- [ ] Tail→offset shift-add normal form: prove `apSumFrom f (a + m*d) d n = apSumOffset (fun k => f (k + a)) d m n`
+  (`apSumFrom_tail_eq_apSumOffset_shift_add`) with a stable-surface regression `example`.
+
+- [ ] Step-one normalization bundle: add `apSum_eq_apSum_step_one` plus analogous step-one lemmas for `apSumOffset`/`discOffset`
+  (rewriting step `d` into the summand), together with a regression example showing downstream proofs can normalize to step one.
+
+- [ ] Congruence wrappers: provide `apSumOffset_congr` / `discOffset_congr` lemmas that accept pointwise equality hypotheses and discharge to the existing `…_congr_range` facts,
+  so downstream code can avoid manual `Finset.range` bookkeeping.
+
+- [ ] Basic size bound for sign sequences: assuming `IsSignSequence f`, prove a bound like `discOffset f d m n ≤ n` (and/or the analogous `discrepancy` bound),
+  to make trivial “boundedness” steps one-liners.
+
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
