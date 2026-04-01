@@ -55,12 +55,39 @@ Below, “output” means a Lean structure/type that packages witnesses/paramete
 
 **Acceptance test:** Stage 3 lemmas should not duplicate Stage 2 logic; they should delegate.
 
-## Next PR-sized tasks (actionable)
+## Track C checklist (PR-sized items)
 
-1) **One page of “stage interface signatures”:** for Stage2Output/Stage3Output, list the exact exported lemmas that downstream code is supposed to call.
-2) **Stable regression examples:** add 2–3 tiny examples that import only the stable surface + opt-in simp bundles and exercise the stage boundary wrappers.
-3) **Eliminate duplicate normal forms:** where we have both `d > 0` and `1 ≤ d` versions, pick one canonical downstream-facing form and make the other a thin wrapper.
-4) **Import boundary tightening:** ensure TrackCStage3 only imports what it needs (prefer stage APIs + specific normal-form lemmas).
+Each checkbox should be doable in ~1 PR. Prefer **wiring-only** changes in stage boundary files.
+
+### Stage 0 — make the target explicit
+
+- [ ] Add a short “Stage interface signatures” section below listing the *canonical* downstream-facing lemmas (names + types) for Stage 2 and Stage 3.
+- [ ] Add 2–3 small `example` blocks (regression) that import the intended surfaces and compile (no proof search). Keep them stable.
+
+### Stage 1 — ReductionOutput contract (Tao2015)
+
+- [ ] Audit `ReductionOutput` for duplicate normal forms; pick one canonical witness packaging for downstream (`1 ≤ d` vs `d > 0`) and make the other wrappers.
+- [ ] Ensure all Stage-1 “rewrite” lemmas used downstream are exposed as named lemmas (no repeated rewriting at call sites).
+- [ ] Add/confirm a small composition example for `ReductionOutput.shiftRight` that normalizes nested shifts.
+
+### Stage 2 — Stage2Output boundary
+
+- [ ] Ensure Stage2Output exposes *both* offset and affine-tail witness families in canonical form:
+  - `∀ C, ∃ n, natAbs (apSumOffset ...) > C`
+  - `∀ C, ∃ n, natAbs (apSumFrom f (m*d) d n) > C`
+- [ ] Provide the existential packaging lemma: `∃ d m, 1 ≤ d ∧ …` (Stage 2 → consumer form).
+- [ ] Tighten imports in Stage2 files: keep heavy lemmas in proof files; stage boundary should be API + packaging.
+
+### Stage 3 — Stage3Output boundary
+
+- [ ] Confirm Stage 3 delegates to Stage 2 (no duplicated logic); move any remaining “real content” back to Stage 2.
+- [ ] Provide Stage-3 existential packaging in canonical normal form for downstream stages (prefer `1 ≤ d`).
+- [ ] Provide Stage-3 consumer shortcuts (single lemma) that exposes the affine-tail witness family without unpacking outputs.
+
+### Stage N — next stage stub(s)
+
+- [ ] Add the next stage file stub (e.g. `TrackCStage4.lean`) that *only* imports the Stage 3 boundary and states the next interface theorem(s) as `theorem ... := by` with at most one `sorry` placeholder.
+- [ ] Add a regression example showing Stage 4 can consume Stage 3 without unfolding.
 
 ## Notes for automation
 
