@@ -140,6 +140,14 @@ theorem exists_params_forall_exists_discOffset_gt (out : Stage3Output f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
   exact Stage2Output.exists_params_forall_exists_discOffset_gt (f := f) out.out2
 
+/-- Variant of `exists_params_forall_exists_discOffset_gt` packaging the step-size side condition as `1 ≤ d`.
+
+Many later stages prefer the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem exists_params_one_le_forall_exists_discOffset_gt (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
+  exact Stage2Output.exists_params_one_le_forall_exists_discOffset_gt (f := f) out.out2
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` such that the offset nucleus
 `apSumOffset f d m n` takes arbitrarily large absolute values.
 
