@@ -342,6 +342,19 @@ theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSeq
   simpa using
     (Stage3Output.forall_exists_d_pos_witness_pos (f := f) (stage3 (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
+affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
+
+This is a thin wrapper around `Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt`.
+-/
+theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  simpa [stage3Out] using
+    (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (stage3 (f := f) (hf := hf)))
+
 end Tao2015
 
 end MoltResearch
