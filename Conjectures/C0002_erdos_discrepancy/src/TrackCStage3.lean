@@ -32,6 +32,26 @@ namespace Stage3Output
 
 variable {f : ℕ → ℤ}
 
+/-- Convenience projection: the reduced step size packaged in Stage 3. -/
+abbrev d (out : Stage3Output f) : ℕ := out.out2.out1.d
+
+/-- Convenience projection: the reduced sequence packaged in Stage 3. -/
+abbrev g (out : Stage3Output f) : ℕ → ℤ := out.out2.out1.g
+
+/-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
+abbrev m (out : Stage3Output f) : ℕ := out.out2.out1.m
+
+/-- Convenience projection: positivity of the reduced step size. -/
+abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.out1.hd
+
+/-- Convenience lemma: the reduced step size is nonzero. -/
+theorem d_ne_zero (out : Stage3Output f) : out.d ≠ 0 := by
+  exact Nat.ne_of_gt out.hd
+
+/-- Convenience lemma: the reduced step size is at least `1`. -/
+theorem one_le_d (out : Stage3Output f) : 1 ≤ out.d := by
+  simpa using (Nat.succ_le_iff).2 out.hd
+
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
 
