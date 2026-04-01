@@ -73,6 +73,20 @@ theorem stage2_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSign
   simpa [stage2Out] using
     (Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) (stage2Out (f := f) (hf := hf)))
 
+/-- Stage 2 yields explicit affine-tail nucleus witnesses at the concrete parameters produced by Stage 1.
+
+Normal form:
+`∀ C, ∃ n, Int.natAbs (apSumFrom f (m*d) d n) > C`,
+where `d = stage2_d` and `m = stage2_m`.
+-/
+theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ n : ℕ,
+      Int.natAbs
+          (apSumFrom f ((stage2_m (f := f) (hf := hf)) * (stage2_d (f := f) (hf := hf)))
+            (stage2_d (f := f) (hf := hf)) n) > C := by
+  simpa [stage2Out, stage2_m, stage2_d] using
+    (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) (stage2Out (f := f) (hf := hf)))
+
 end Tao2015
 
 end MoltResearch
