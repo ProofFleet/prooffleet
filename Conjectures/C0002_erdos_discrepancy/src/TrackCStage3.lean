@@ -227,6 +227,17 @@ theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f
 theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
   exact (stage3Out (f := f) (hf := hf)).notBounded
 
+/-- Consumer-facing shortcut: Stage 3 yields unbounded discrepancy along the reduced sequence,
+stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a thin wrapper around `Stage2Output.unboundedDiscrepancyAlong_core`.
+-/
+theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    MoltResearch.UnboundedDiscrepancyAlong (stage3_g (f := f) (hf := hf))
+      (stage3_d (f := f) (hf := hf)) := by
+  simpa [stage3Out, stage3_g, stage3_d, Stage2Output.g, Stage2Output.d] using
+    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) (stage3Out (f := f) (hf := hf)).out2)
+
 /-- Consumer-facing shortcut: Stage 3 yields an unbounded bundled offset discrepancy family
 `discOffset f d m`, at the concrete parameters produced by the pipeline.
 
