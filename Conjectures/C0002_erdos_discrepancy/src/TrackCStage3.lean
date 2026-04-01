@@ -180,6 +180,17 @@ theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output 
   exact
     Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2
 
+/-- Variant of `exists_params_forall_exists_natAbs_apSumFrom_mul_gt` packaging the step-size side
+condition as `1 ≤ d`.
+
+Many later analytic stages prefer the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  exact
+    Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2
+
 end Stage3Output
 
 /-!

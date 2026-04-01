@@ -244,6 +244,21 @@ theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output 
   rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
   exact ⟨n, hn⟩
 
+/-- Existential packaging variant of `exists_params_forall_exists_natAbs_apSumFrom_mul_gt` using
+the side condition `1 ≤ d`.
+
+Many downstream consumers prefer `1 ≤ d` to avoid repeatedly rewriting `d > 0`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  have hd1 : 1 ≤ out.out1.d := by
+    simpa [Stage2Output.d] using (out.one_le_d (f := f))
+  refine ⟨out.out1.d, out.out1.m, hd1, ?_⟩
+  intro C
+  rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
+  exact ⟨n, hn⟩
+
 /-- Backwards-compatible alias for `forall_exists_discOffset_gt`.
 
 Deprecated because the suffix `_lt` was misleading: the statement is `B < ...` (i.e. “greater than B”).
