@@ -250,6 +250,16 @@ noncomputable def ofBoundedDiscrepancy (f : ℕ → ℤ) (hb : BoundedDiscrepanc
 
     simpa [two_mul] using this
 
+/-- Convenience normal form: the global `discOffset` bound bundled in `Context` is equivalently a
+bound on the bundled offset nucleus `Int.natAbs (apSumOffset ...)`.
+
+This prevents consumers from having to unfold `discOffset` at each call site.
+-/
+theorem bound_natAbs_apSumOffset_two_mul {f : ℕ → ℤ} (ctx : Context f) (d m n : ℕ) (hd : d > 0) :
+    Int.natAbs (apSumOffset f d m n) ≤ 2 * ctx.B := by
+  -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`, so this is exactly the stored bound.
+  exact ctx.bound_discOffset_two_mul (d := d) (m := m) (n := n) hd
+
 end Context
 
 /-- Fixed-step analogue of `Context`: a bound on `discrepancy g d n` for all `n`. -/
