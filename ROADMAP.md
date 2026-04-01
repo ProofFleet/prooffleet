@@ -14,7 +14,7 @@ Goal: maximize agent merge throughput without degrading correctness.
 - deterministic setup (`./scripts/bootstrap.sh`)
 - tiny PR norms (one lemma / one task)
 - labels + issue templates
-- auto-merge on green CI (squash)
+- merge on green CI (prefer **rebase-merge**; delete branch)
 
 ## Phase 1 — Capability ladder (Tier‑0 → Tier‑1 → MoltResearch/)
 
@@ -27,6 +27,18 @@ Goal: train the repo (and agents) to produce reusable artifacts.
 Success criteria:
 - increasing fraction of merges land in `MoltResearch/`
 - later tasks depend on earlier artifacts (real reuse)
+
+## Current milestone — Tao2015 pipeline map (Track C)
+
+Goal: a clear stage-by-stage map for Tao2015 (Erdős discrepancy) so automation stays directed.
+
+Deliverable (docs-first): a short, explicit stage plan with:
+- stage inputs/outputs (types)
+- the key theorem each stage exports
+- the next missing link to the next stage
+- a small regression example that exercises the surface
+
+See: `Problems/tao2015_pipeline.md`.
 
 ## Phase 2 — Problem Cards (open-problem interface)
 

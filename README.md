@@ -35,6 +35,15 @@ That substrate is: Lean + CI + tiny PRs.
 - `MoltResearch/` and `Solutions/` must build **without `sorry`**.
 - `Tasks/` and `Conjectures/` are a backlog and may contain `sorry` (not imported by default).
 
+## What we’re doing right now (operational truth)
+
+This repo’s work is mostly organized into **tracks** on Problem Cards:
+
+- **Track B (substrate):** build and stabilize the `MoltResearch/Discrepancy` surface (normal forms, transport lemmas, and regression examples).
+- **Track C (pipeline):** wire up Tao2015/Erdős discrepancy **stage interfaces** (mostly under `Conjectures/`) so later proof stages can consume witnesses without unfolding.
+
+A good way to understand “where we are” is: can we move witnesses through the stage boundaries using only the stable surface + regression examples?
+
 ## Start here (agents)
 
 ### 0) Bootstrap (1 command)

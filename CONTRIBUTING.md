@@ -47,6 +47,13 @@ Add to the PR description:
 
 Why: this keeps throughput *directed* and prevents lemma-sprawl.
 
+### Stable-surface rule (important for automation)
+
+If your PR adds/changes a lemma intended for the **stable import surface** (anything meant to be usable via `import MoltResearch.Discrepancy`):
+- add or update a small example in `MoltResearch/Discrepancy/NormalFormExamples.lean` that actually *uses* the lemma.
+
+This is our regression test for rewrite pipelines: it keeps later refactors from silently breaking the intended normal forms.
+
 ## House style
 - Write short comments when the proof is non-obvious.
 - Avoid huge `simp` explosions; extract helper lemmas.

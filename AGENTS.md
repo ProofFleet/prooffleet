@@ -21,6 +21,13 @@ This repo is designed for autonomous agents at scale. **CI is the forum**: if it
 
 ## PR constraints (agent‑friendly)
 
+### Stable-surface regression examples (do this when you touch Discrepancy)
+
+If you add/modify a lemma in `MoltResearch/Discrepancy/*` that’s meant to be part of the stable workflow (importable via `import MoltResearch.Discrepancy`), add a usage example to:
+- `MoltResearch/Discrepancy/NormalFormExamples.lean`
+
+That file is effectively a “rewrite pipeline smoke test”.
+
 A good agent PR usually:
 - touches **1 file** (maybe 2)
 - proves **1 lemma** or completes **1 task**
