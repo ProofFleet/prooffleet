@@ -51,14 +51,7 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g : ℕ → ℤ) (d : ℕ) :
     UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, discrepancy g d n > B) := by
-  unfold UnboundedDiscrepancyAlong
-  constructor
-  · intro hunb B
-    rcases hunb B with ⟨n, hn⟩
-    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
-  · intro hunb B
-    rcases hunb B with ⟨n, hn⟩
-    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  simp [UnboundedDiscrepancyAlong, gt_iff_lt]
 
 /-- `g` has discrepancy at least `C` along the fixed step `d` (witness form). -/
 def HasDiscrepancyAtLeastAlong (g : ℕ → ℤ) (d : ℕ) (C : ℕ) : Prop :=
@@ -82,14 +75,7 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (d m : ℕ) :
     UnboundedDiscOffset f d m ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
-  unfold UnboundedDiscOffset
-  constructor
-  · intro hunb B
-    rcases hunb B with ⟨n, hn⟩
-    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
-  · intro hunb B
-    rcases hunb B with ⟨n, hn⟩
-    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  simp [UnboundedDiscOffset, gt_iff_lt]
 
 /-- Preferred naming for the core lemma
 `MoltResearch.not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt`.
@@ -109,18 +95,8 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (d m : ℕ) :
     (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
-  constructor
-  · intro h B
-    rcases
-        (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m)).1 h B with
-      ⟨n, hn⟩
-    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
-  · intro h
-    refine
-      (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m)).2 ?_
-    intro B
-    rcases h B with ⟨n, hn⟩
-    exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  simpa [gt_iff_lt] using
+    (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m))
 
 /-- Bridge: the witness form `UnboundedDiscOffset` is equivalent to the negation-normal-form boundedness
 statement `¬ ∃ B, BoundedDiscOffset f d m B`.
