@@ -208,6 +208,16 @@ example (hf : IsSignSequence f) :
   simpa using
     (IsSignSequence.discOffset_succ_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / basic size bound for sign sequences): `discOffset` bound by length.
+example (hf : IsSignSequence f) :
+    discOffset f d m n ≤ n := by
+  simpa using (discOffset_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
+
+-- Regression (Track B / basic size bound for sign sequences): `discAlong` bound by length.
+example (hf : IsSignSequence f) :
+    discAlong f d n ≤ n := by
+  simpa using (discAlong_le (f := f) (hf := hf) (d := d) (n := n))
+
 -- Regression: bounded discrepancy is stable under dilation (`n ↦ n*k`).
 example (hb : BoundedDiscrepancy f) (hk : k > 0) :
     BoundedDiscrepancy (fun n => f (n * k)) := by

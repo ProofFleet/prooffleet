@@ -922,6 +922,31 @@ lemma disc_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
     disc f d n ≤ n := by
   simpa using (natAbs_apSum_le (hf := hf) (d := d) (n := n))
 
+/-!
+### Size bound for sign sequences (`discOffset` / `discAlong`)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Basic size bound for sign sequences.
+-/
+
+/-- A sign sequence has offset discrepancy bounded by length.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Basic size bound for sign sequences.
+-/
+lemma discOffset_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m n : ℕ) :
+    discOffset f d m n ≤ n := by
+  -- Avoid `simp` loops between `discOffset` and `Int.natAbs (apSumOffset ...)`.
+  change Int.natAbs (apSumOffset f d m n) ≤ n
+  simpa using (natAbs_apSumOffset_le (hf := hf) (d := d) (m := m) (n := n))
+
+/-- A sign sequence has along-`d` discrepancy bounded by length.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Basic size bound for sign sequences.
+-/
+lemma discAlong_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
+    discAlong f d n ≤ n := by
+  -- `discAlong` is definitionaly `discOffset f d 0`.
+  simpa [discAlong] using (discOffset_le (f := f) (hf := hf) (d := d) (m := 0) (n := n))
+
 /-- Bounding a *difference of discrepancies* (offset AP sums) by total length.
 
 Useful for triangle-inequality pipelines: `|Sₙ - Sₙ'| ≤ |Sₙ| + |Sₙ'| ≤ n + n'`.
