@@ -97,9 +97,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   to make trivial “boundedness” steps one-liners.
   (Implemented as `discOffset_le` / `discAlong_le` (and also `disc_le`) in `MoltResearch/Discrepancy/Basic.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Offset concatenation normal form (sum-level): prove
+- [x] Offset concatenation normal form (sum-level): prove
   `apSumOffset f d m (n+k) = apSumOffset f d m n + apSumOffset f d (m+n) k`.
-  (Core reindexing lemma; add a stable-surface regression example.)
+  (Implemented as `apSumOffset_add_len` in `MoltResearch/Discrepancy/Basic.lean`; regression example in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Offset recursion (succ) normal form: prove a `Nat.succ` recursion lemma such as
   `apSumOffset f d m (n+1) = apSumOffset f d m n + f ((m+n+1)*d)`.
