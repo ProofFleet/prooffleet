@@ -96,12 +96,9 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 theorem erdos_discrepancy_exists_params_forall_exists_discOffset_gt' (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
-  -- Use the concrete Stage-3 parameters produced by the Track-C pipeline.
-  let out : Tao2015.Stage3Output f := erdos_discrepancy_stage3Output (f := f) (hf := hf)
-  refine ⟨out.d, out.m, out.hd, ?_⟩
-  intro B
-  simpa [Tao2015.Stage3Output.d, Tao2015.Stage3Output.m] using
-    (Tao2015.Stage3Output.forall_exists_discOffset_gt' (f := f) out B)
+  simpa using
+    (Tao2015.Stage3Output.exists_params_forall_exists_discOffset_gt' (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute values.
