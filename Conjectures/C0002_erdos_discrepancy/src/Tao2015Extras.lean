@@ -326,6 +326,17 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (out : Red
     (Tao2015.unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := out.d)
       (m := out.m))
 
+/-- Inequality-direction variant of `unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt`,
+written as `Int.natAbs ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (out : ReductionOutput f) :
+    UnboundedDiscOffset f out.d out.m ↔
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > B) := by
+  simpa [gt_iff_lt] using
+    (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (out := out))
+
 end ReductionOutput
 
 end Tao2015
