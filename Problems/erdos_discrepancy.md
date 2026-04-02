@@ -118,8 +118,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `discOffset_add_le` in `MoltResearch/Discrepancy/Basic.lean`; regression example in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Lipschitz-by-1 bound: assuming `IsSignSequence f`, prove that extending a tail by one term changes discrepancy by at most 1, e.g.
+- [x] Lipschitz-by-1 bound: assuming `IsSignSequence f`, prove that extending a tail by one term changes discrepancy by at most 1, e.g.
   `discOffset f d m (n+1) ≤ discOffset f d m n + 1` and `discOffset f d m n ≤ discOffset f d m (n+1) + 1`.
+  (Implemented as `IsSignSequence.discOffset_succ_le` and `IsSignSequence.discOffset_le_succ_add_one` in
+  `MoltResearch/Discrepancy/Basic.lean`; stable-surface regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Zero-length / zero-offset simp surface: add (or audit) canonical simp lemmas like
   `apSumOffset f d m 0 = 0`, `discOffset f d m 0 = 0`, and `apSumFrom f a d 0 = 0` under the stable import surface.
