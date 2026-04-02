@@ -97,6 +97,32 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   to make trivial “boundedness” steps one-liners.
   (Implemented as `discOffset_le` / `discAlong_le` (and also `disc_le`) in `MoltResearch/Discrepancy/Basic.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+- [ ] Offset concatenation normal form (sum-level): prove
+  `apSumOffset f d m (n+k) = apSumOffset f d m n + apSumOffset f d (m+n) k`.
+  (Core reindexing lemma; add a stable-surface regression example.)
+
+- [ ] Offset recursion (succ) normal form: prove a `Nat.succ` recursion lemma such as
+  `apSumOffset f d m (n+1) = apSumOffset f d m n + f ((m+n+1)*d)`.
+
+- [ ] Affine recursion (succ) normal form: prove
+  `apSumFrom f a d (n+1) = apSumFrom f a d n + f (a + (n+1)*d)`
+  (with a variant that rewrites the RHS into nucleus `apSumOffset` form for later glue).
+
+- [ ] Triangle-inequality bound (discrepancy-level): using the concatenation lemma + `Int.natAbs_add_le`, prove
+  `discOffset f d m (n+k) ≤ discOffset f d m n + discOffset f d (m+n) k`.
+
+- [ ] Lipschitz-by-1 bound: assuming `IsSignSequence f`, prove that extending a tail by one term changes discrepancy by at most 1, e.g.
+  `discOffset f d m (n+1) ≤ discOffset f d m n + 1` and `discOffset f d m n ≤ discOffset f d m (n+1) + 1`.
+
+- [ ] Zero-length / zero-offset simp surface: add (or audit) canonical simp lemmas like
+  `apSumOffset f d m 0 = 0`, `discOffset f d m 0 = 0`, and `apSumFrom f a d 0 = 0` under the stable import surface.
+
+- [ ] Boundedness monotonicity wrappers: prove convenience lemmas such as
+  `BoundedDiscOffset f d m B → B ≤ B' → BoundedDiscOffset f d m B'` (and analogous for `BoundedDiscrepancyAlong`).
+
+- [ ] Translation invariance wrappers: package lemmas that rewriting `f` by a pointwise equality on an affine tail (e.g. `∀ i ≤ n, f (a+i*d)=g (a+i*d)`) suffices to rewrite `apSumFrom`/`apSumOffset` results,
+  so downstream code doesn’t have to manually translate “≤ n” hypotheses into `Finset.range` congruence facts.
+
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
