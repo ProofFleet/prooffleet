@@ -130,6 +130,16 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
   -- Unpack the Stage-2 `UnboundedDiscrepancyAlong` witness using the Stage-1 boundary equivalence.
   exact (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 out.unbounded
 
+/-- Negation-normal form of `forall_exists_natAbs_apSumFrom_mul_gt`: there is no uniform bound on
+the affine-tail nuclei at the concrete Stage-1 parameters produced by Stage 2. -/
+theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ, Int.natAbs (apSumFrom f (out.out1.m * out.out1.d) out.out1.d n) ≤ B := by
+  intro h
+  rcases h with ⟨B, hB⟩
+  rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) B with ⟨n, hn⟩
+  exact (not_lt_of_ge (hB n)) hn
+
 /-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
   exact (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
