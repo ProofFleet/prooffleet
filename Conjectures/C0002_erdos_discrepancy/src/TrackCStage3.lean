@@ -215,6 +215,18 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
       Int.natAbs (apSumFrom f (out.out2.out1.m * out.out2.out1.d) out.out2.out1.d n) > C := by
   simpa using (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
 
+/-- Negation-normal form: there is no uniform bound on the affine-tail nuclei at the concrete
+Stage-1 parameters bundled in Stage 3.
+
+This is a small consumer convenience lemma: it is often the most convenient form for
+contradiction-based arguments.
+-/
+theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage3Output f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs (apSumFrom f (out.out2.out1.m * out.out2.out1.d) out.out2.out1.d n) ≤ B := by
+  simpa using (Stage2Output.not_exists_forall_natAbs_apSumFrom_mul_le (f := f) out.out2)
+
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
