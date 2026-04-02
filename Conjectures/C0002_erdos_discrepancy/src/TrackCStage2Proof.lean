@@ -27,15 +27,15 @@ noncomputable abbrev stage2Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage
 
 /-- Convenience projection: the reduced step size produced by Stage 2. -/
 noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage2Out (f := f) (hf := hf)).out1.d
+  (stage2Out (f := f) (hf := hf)).d
 
 /-- Convenience projection: the reduced sequence produced by Stage 2. -/
 noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
-  (stage2Out (f := f) (hf := hf)).out1.g
+  (stage2Out (f := f) (hf := hf)).g
 
 /-- Convenience projection: the bundled offset parameter produced by Stage 2. -/
 noncomputable abbrev stage2_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage2Out (f := f) (hf := hf)).out1.m
+  (stage2Out (f := f) (hf := hf)).m
 
 /-- The reduced sequence produced by Stage 2 is a sign sequence. -/
 theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
