@@ -91,6 +91,17 @@ theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
   have hd' : d > 0 := lt_of_lt_of_le Nat.zero_lt_one hd
   exact ⟨d, n, hd', hn, hC⟩
 
+/-- Stage 3 yields unbounded fixed-step discrepancy for the reduced sequence, expressed using the
+verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a small convenience wrapper around the Stage-2 bridge lemma
+`Stage2Output.unboundedDiscrepancyAlong_core`.
+-/
+theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
+    MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
+  simpa [Stage3Output.g, Stage3Output.d] using
+    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) out.out2)
+
 /-- Stage 3 output yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m` at the *concrete* parameters coming from Stage 1.
 
