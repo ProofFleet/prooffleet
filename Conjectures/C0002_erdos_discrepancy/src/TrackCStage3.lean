@@ -320,6 +320,22 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage3Out, stage3_d, stage3_m] using
     (Stage3Output.unboundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields raw offset-nucleus witnesses at the concrete
+parameters produced by the pipeline.
+
+Normal form:
+`∀ B, ∃ n, Int.natAbs (apSumOffset f d m n) > B`,
+where `d = stage3_d` and `m = stage3_m`.
+
+This is a thin wrapper around `Stage3Output.forall_exists_natAbs_apSumOffset_gt'`.
+-/
+theorem stage3_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      Int.natAbs
+          (apSumOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) n) > B := by
+  simpa [stage3Out, stage3_d, stage3_m] using
+    (Stage3Output.forall_exists_natAbs_apSumOffset_gt' (f := f) (stage3Out (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields explicit affine-tail nucleus witnesses at the
 concrete parameters produced by the pipeline.
 
