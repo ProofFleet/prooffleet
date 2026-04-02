@@ -117,6 +117,18 @@ theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt (f :
     (Tao2015.Stage3Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f)
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
+/-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt` packaging the
+step-size side condition as `1 ≤ d`.
+
+Many later analytic stages prefer the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
+  simpa using
+    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 

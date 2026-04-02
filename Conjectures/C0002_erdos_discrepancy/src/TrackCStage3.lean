@@ -182,6 +182,16 @@ theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f)
       (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
   exact Stage2Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f) out.out2
 
+/-- Variant of `exists_params_forall_exists_natAbs_apSumOffset_gt` packaging the step-size side
+condition as `1 ≤ d`.
+
+Many later analytic stages prefer the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
+  exact Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f) out.out2
+
 /-- Stage 3 output yields bundled offset discrepancy witnesses for the concrete parameters
 `d = out.out2.out1.d` and `m = out.out2.out1.m`.
 
