@@ -97,6 +97,44 @@ theorem iff_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (d m : ℕ) :
       (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
   simpa [gt_iff_lt] using (iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m))
 
+/-- Normal form: unbounded offset discrepancy expressed using affine-tail nuclei
+`apSumFrom f (m*d) d n`.
+
+This is a lightweight rewrite of `iff_forall_exists_natAbs_apSumOffset_gt` using the identity
+`apSumFrom f (m*d) d n = apSumOffset f d m n`.
+-/
+theorem iff_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumFrom f (m * d) d n)) := by
+  constructor
+  · intro hunb B
+    rcases (iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m)).1 hunb B with
+      ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    have hsum : apSumOffset f d m n = apSumFrom f (m * d) d n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n)).symm
+    simpa [hsum] using hn
+  · intro h
+    refine (iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m)).2 ?_
+    intro B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    have hsum : apSumOffset f d m n = apSumFrom f (m * d) d n := by
+      simpa using
+        (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n)).symm
+    -- Rewrite the tail nucleus back to the bundled offset nucleus.
+    simpa [hsum.symm] using hn
+
+/-- Variant of `iff_forall_exists_natAbs_apSumFrom_mul_gt` with the inequality written as
+`Int.natAbs ... > B`.
+-/
+theorem iff_forall_exists_natAbs_apSumFrom_mul_gt' (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > B) := by
+  simpa [gt_iff_lt] using
+    (iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m))
+
 end UnboundedDiscOffset
 
 /-- Preferred naming for the core lemma
