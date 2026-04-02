@@ -170,7 +170,7 @@ lemma apSumOffset_eq_add_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk :
           -- Each block is exactly the stable `Finset.range` normal form of an `apSumOffset`.
           simp [apSumOffset_eq_sum_range']
 
--- (Duplicate lemma removed: `apSumOffset_add_len` already lives in `MoltResearch.Discrepancy.Basic`.)
+--
 
 /-- Range-cut triangle inequality for `discOffset`: split at a cut length `k ≤ n`.
 
