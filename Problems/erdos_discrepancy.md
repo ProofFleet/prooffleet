@@ -107,9 +107,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `apSumOffset_succ` in `MoltResearch/Discrepancy/Basic.lean`; regression example in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Affine recursion (succ) normal form: prove
+- [x] Affine recursion (succ) normal form: prove
   `apSumFrom f a d (n+1) = apSumFrom f a d n + f (a + (n+1)*d)`
-  (with a variant that rewrites the RHS into nucleus `apSumOffset` form for later glue).
+  (Implemented as `apSumFrom_succ` in `MoltResearch/Discrepancy/Affine.lean`; tail-parameter variant as
+  `apSumFrom_tail_succ` in `MoltResearch/Discrepancy/AffineTail.lean`; stable-surface regression example in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Triangle-inequality bound (discrepancy-level): using the concatenation lemma + `Int.natAbs_add_le`, prove
   `discOffset f d m (n+k) ≤ discOffset f d m n + discOffset f d (m+n) k`.
