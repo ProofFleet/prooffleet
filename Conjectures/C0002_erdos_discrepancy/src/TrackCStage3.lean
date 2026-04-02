@@ -124,11 +124,8 @@ This is `unboundedDiscOffset` rewritten so consumers can work directly with
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ,
       B < Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) := by
-  -- `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`.
-  simpa using
-    ((Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt (f := f)
-          (d := out.out2.out1.d) (m := out.out2.out1.m)).1
-      (out.unboundedDiscOffset (f := f)))
+  -- Delegate to the Stage-2 boundary API: Stage 3 contains Stage 2 verbatim.
+  simpa using (Stage2Output.forall_exists_natAbs_apSumOffset_gt (f := f) out.out2)
 
 /-- Inequality-direction variant of `forall_exists_natAbs_apSumOffset_gt`, written as
 `Int.natAbs ... > B`.
@@ -138,9 +135,8 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ,
       Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) > B := by
-  intro B
-  rcases out.forall_exists_natAbs_apSumOffset_gt (f := f) B with ⟨n, hn⟩
-  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  -- Delegate to the Stage-2 boundary API.
+  simpa using (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f) out.out2)
 
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the bundled offset
   discrepancy family `discOffset f d m` is unbounded.
