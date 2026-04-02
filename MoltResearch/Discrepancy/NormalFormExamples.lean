@@ -208,6 +208,12 @@ example (hf : IsSignSequence f) :
   simpa using
     (IsSignSequence.discOffset_succ_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / discOffset Lipschitz bound): reverse inequality.
+example (hf : IsSignSequence f) :
+    discOffset f d m n ≤ discOffset f d m (n + 1) + 1 := by
+  simpa using
+    (IsSignSequence.discOffset_le_succ_add_one (f := f) (hf := hf) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / basic size bound for sign sequences): `discOffset` bound by length.
 example (hf : IsSignSequence f) :
     discOffset f d m n ≤ n := by

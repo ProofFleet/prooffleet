@@ -1700,6 +1700,37 @@ lemma IsSignSequence.discOffset_succ_le {f : ℕ → ℤ} (hf : IsSignSequence f
   unfold discOffset
   simpa using (hf.natAbs_apSumOffset_succ_le (d := d) (m := m) (n := n))
 
+/-- (Track B checklist item) `discOffset` also decreases by at most `1` when you extend the length
+by one, for sign sequences.
+
+Together with `IsSignSequence.discOffset_succ_le`, this gives the symmetric Lipschitz-by-1 bound
+in the length parameter.
+-/
+lemma IsSignSequence.discOffset_le_succ_add_one {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d m n : ℕ) :
+    discOffset f d m n ≤ discOffset f d m (n + 1) + 1 := by
+  -- Reduce to the underlying `Int.natAbs` statement.
+  unfold discOffset
+  -- Rewrite `S(n)` as `S(n+1) + (- nextTerm)`.
+  have hs : apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) :=
+    apSumOffset_succ (f := f) (d := d) (m := m) (n := n)
+  have hrewrite :
+      apSumOffset f d m n = apSumOffset f d m (n + 1) + (-f ((m + n + 1) * d)) := by
+    -- Subtract the next term from both sides of `hs`.
+    have := congrArg (fun x => x - f ((m + n + 1) * d)) hs
+    -- `(S n + t) - t = S n`.
+    simpa [sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using this.symm
+  -- Triangle inequality.
+  calc
+    Int.natAbs (apSumOffset f d m n)
+        = Int.natAbs (apSumOffset f d m (n + 1) + (-f ((m + n + 1) * d))) := by
+          simpa [hrewrite]
+    _ ≤ Int.natAbs (apSumOffset f d m (n + 1)) + Int.natAbs (-f ((m + n + 1) * d)) := by
+          simpa using
+            (Int.natAbs_add_le (apSumOffset f d m (n + 1)) (-f ((m + n + 1) * d)))
+    _ = Int.natAbs (apSumOffset f d m (n + 1)) + 1 := by
+          simp [IsSignSequence.natAbs_eq_one (hf := hf)]
+
 /-! ### Homogeneous `disc` one-step (stability) lemmas -/
 
 /-- (Track B checklist item) Canonical one-step inequality for `disc`.
