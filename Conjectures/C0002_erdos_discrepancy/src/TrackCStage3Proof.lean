@@ -21,7 +21,7 @@ namespace Tao2015
 
 noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f := by
   -- Run Stage 2, then close the global goal via the proved boundary lemma.
-  exact (Stage3Output.ofStage2Output (f := f) (Tao2015.stage2 (f := f) (hf := hf)))
+  exact Stage3Output.ofStage2Output (f := f) (stage2Out (f := f) (hf := hf))
 
 /-- Deterministic name for the Stage-3 output (useful to keep later statements readable). -/
 noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
@@ -74,13 +74,14 @@ theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
 /-- Consumer-facing shortcut: Stage 3 yields unbounded discrepancy along the reduced sequence,
 stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
-This is a thin wrapper around `Stage2Output.unboundedDiscrepancyAlong_core`.
+This is a thin wrapper around the proved Stage-3 boundary lemma
+`Stage3Output.unboundedDiscrepancyAlong_core`.
 -/
 theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
     MoltResearch.UnboundedDiscrepancyAlong (stage3_g (f := f) (hf := hf))
       (stage3_d (f := f) (hf := hf)) := by
-  simpa [stage3Out, stage3_g, stage3_d, Stage2Output.g, Stage2Output.d] using
-    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) (stage3Out (f := f) (hf := hf)).out2)
+  simpa [stage3Out, stage3_g, stage3_d, Stage3Output.g, Stage3Output.d] using
+    (Stage3Output.unboundedDiscrepancyAlong_core (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields an unbounded bundled offset discrepancy family
 `discOffset f d m`, at the concrete parameters produced by the pipeline.
