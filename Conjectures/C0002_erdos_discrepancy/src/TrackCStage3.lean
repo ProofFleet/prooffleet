@@ -85,10 +85,7 @@ Many consumers prefer the strict-positivity normal form when working with `Nat` 
 -/
 theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  intro C
-  rcases (Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) out.out2) C with ⟨d, n, hd, hn, hC⟩
-  have hd' : d > 0 := lt_of_lt_of_le Nat.zero_lt_one hd
-  exact ⟨d, n, hd', hn, hC⟩
+  exact Stage2Output.forall_exists_d_pos_witness_pos (f := f) out.out2
 
 /-- Stage 3 yields unbounded fixed-step discrepancy for the reduced sequence, expressed using the
 verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
