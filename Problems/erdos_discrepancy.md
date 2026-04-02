@@ -124,8 +124,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `MoltResearch/Discrepancy/Basic.lean`; stable-surface regression examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Zero-length / zero-offset simp surface: add (or audit) canonical simp lemmas like
+- [x] Zero-length / zero-offset simp surface: audit canonical simp lemmas like
   `apSumOffset f d m 0 = 0`, `discOffset f d m 0 = 0`, and `apSumFrom f a d 0 = 0` under the stable import surface.
+  (Implemented as `apSumOffset_zero` / `discOffset_zero` / `apSumFrom_zero`; regression examples live in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Boundedness monotonicity wrappers: prove convenience lemmas such as
   `BoundedDiscOffset f d m B → B ≤ B' → BoundedDiscOffset f d m B'` (and analogous for `BoundedDiscrepancyAlong`).
