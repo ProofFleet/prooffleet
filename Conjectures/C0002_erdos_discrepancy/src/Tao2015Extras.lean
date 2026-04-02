@@ -176,6 +176,20 @@ theorem not_exists_boundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (
     (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m)).symm.trans
       (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m))
 
+/-- Packaging: global bounded discrepancy gives a uniform bound for every bundled offset discrepancy family.
+
+This is the forward direction used implicitly in contrapositive arguments:
+if `BoundedDiscrepancy f`, then for any `d > 0` and `m` there exists `B` with
+`BoundedDiscOffset f d m B`.
+-/
+theorem exists_boundedDiscOffset_of_boundedDiscrepancy (f : ℕ → ℤ) (hb : BoundedDiscrepancy f)
+    (d m : ℕ) (hd : d > 0) :
+    ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  classical
+  let ctx : Context f := Context.ofBoundedDiscrepancy (f := f) hb
+  refine ⟨2 * ctx.B, ?_⟩
+  exact Context.boundedDiscOffset_two_mul (ctx := ctx) (d := d) (m := m) hd
+
 namespace Context
 
 variable {f : ℕ → ℤ}
