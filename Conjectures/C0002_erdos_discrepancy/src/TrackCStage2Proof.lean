@@ -53,6 +53,12 @@ theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
 theorem stage2_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
   simpa [stage2Out, stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
 
+/-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
+theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    1 ≤ stage2_d (f := f) (hf := hf) := by
+  -- `stage2_hd` is the strict-positivity normal form `0 < d`.
+  simpa using (Nat.succ_le_iff).2 (stage2_hd (f := f) (hf := hf))
+
 /-!
 Consumer code should use `stage2Out` together with the general lemmas about `Stage2Output` in
 `TrackCStage2.lean` (for example: `Stage2Output.notBoundedOriginal`,
