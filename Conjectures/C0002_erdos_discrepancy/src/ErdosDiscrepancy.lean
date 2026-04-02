@@ -112,12 +112,10 @@ Normal form:
 theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
-  refine
-    ⟨Tao2015.stage3_d (f := f) (hf := hf), Tao2015.stage3_m (f := f) (hf := hf),
-      Tao2015.stage3_hd (f := f) (hf := hf), ?_⟩
-  intro B
-  simpa using
-    (Tao2015.stage3_forall_exists_natAbs_apSumOffset_gt' (f := f) (hf := hf) B)
+  -- Prefer the Stage-3 existential packaging (in `<` form) and rewrite to the common `>` normal form.
+  simpa [gt_iff_lt] using
+    (Tao2015.Stage3Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
