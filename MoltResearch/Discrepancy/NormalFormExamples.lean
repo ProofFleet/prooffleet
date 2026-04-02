@@ -2851,6 +2851,11 @@ example (hn : n₁ ≤ n₂) :
 example : Int.natAbs (apSumOffset f d m n) ≤ n := by
   simpa using hf.natAbs_apSumOffset_le (d := d) (m := m) (n := n)
 
+-- Track B regression test: offset concatenation normal form (sum level).
+example (k : ℕ) :
+    apSumOffset f d m (n + k) = apSumOffset f d m n + apSumOffset f d (m + n) k := by
+  simpa using (apSumOffset_add_len (f := f) (d := d) (m := m) (n₁ := n) (n₂ := k))
+
 example : Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤ n + n' := by
   have hsub :
       Int.natAbs (apSumOffset f d m n - apSumOffset f d m n') ≤
