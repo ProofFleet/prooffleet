@@ -304,6 +304,12 @@ theorem bound_natAbs_apSumOffset_two_mul {f : ℕ → ℤ} (ctx : Context f) (d 
   -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`, so this is exactly the stored bound.
   exact ctx.bound_discOffset_two_mul (d := d) (m := m) (n := n) hd
 
+/-- Package the stored `discOffset` bound as a `BoundedDiscOffset` witness. -/
+theorem boundedDiscOffset_two_mul {f : ℕ → ℤ} (ctx : Context f) (d m : ℕ) (hd : d > 0) :
+    BoundedDiscOffset f d m (2 * ctx.B) := by
+  intro n
+  simpa using ctx.bound_discOffset_two_mul (d := d) (m := m) (n := n) hd
+
 end Context
 
 /-- Fixed-step analogue of `Context`: a bound on `discrepancy g d n` for all `n`. -/
