@@ -77,6 +77,28 @@ theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (
     UnboundedDiscOffset f d m ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
   simp [UnboundedDiscOffset, gt_iff_lt]
 
+namespace UnboundedDiscOffset
+
+/-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
+
+Since `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`, this lemma lets
+later stages avoid unfolding `discOffset` by hand.
+-/
+theorem iff_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) := by
+  simp [UnboundedDiscOffset, discOffset, -natAbs_apSumOffset_eq_discOffset]
+
+/-- Variant of `iff_forall_exists_natAbs_apSumOffset_gt` with the inequality written as
+`Int.natAbs ... > B` (often the normal form used by Stage interfaces).
+-/
+theorem iff_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
+  simpa [gt_iff_lt] using (iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m))
+
+end UnboundedDiscOffset
+
 /-- Preferred naming for the core lemma
 `MoltResearch.not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt`.
 
