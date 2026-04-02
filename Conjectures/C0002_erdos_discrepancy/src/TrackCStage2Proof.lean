@@ -53,39 +53,14 @@ theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
 theorem stage2_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
   simpa [stage2Out, stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
 
-/-- Consumer-facing shortcut: Stage 2 already yields the global conclusion `¬ BoundedDiscrepancy f`. -/
-theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  simpa [stage2Out] using
-    (Stage2Output.notBoundedOriginal (f := f) (stage2Out (f := f) (hf := hf)))
+/-!
+Consumer code should use `stage2Out` together with the general lemmas about `Stage2Output` in
+`TrackCStage2.lean` (for example: `Stage2Output.notBoundedOriginal`,
+`Stage2Output.forall_hasDiscrepancyAtLeast`, `Stage2Output.forall_exists_d_ge_one_witness_pos`).
 
-/-- Stage 2 yields the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`. -/
-theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  simpa [stage2Out] using
-    (Stage2Output.forall_hasDiscrepancyAtLeast (f := f) (stage2Out (f := f) (hf := hf)))
-
-/-- Stage 2 yields the pipeline-friendly nucleus witness form.
-
-`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+We intentionally avoid duplicating those wrappers here, so this file remains a pure conjecture stub
+plus projections.
 -/
-theorem stage2_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  simpa [stage2Out] using
-    (Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) (stage2Out (f := f) (hf := hf)))
-
-/-- Stage 2 yields explicit affine-tail nucleus witnesses at the concrete parameters produced by Stage 1.
-
-Normal form:
-`∀ C, ∃ n, Int.natAbs (apSumFrom f (m*d) d n) > C`,
-where `d = stage2_d` and `m = stage2_m`.
--/
-theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ n : ℕ,
-      Int.natAbs
-          (apSumFrom f ((stage2_m (f := f) (hf := hf)) * (stage2_d (f := f) (hf := hf)))
-            (stage2_d (f := f) (hf := hf)) n) > C := by
-  simpa [stage2Out, stage2_m, stage2_d] using
-    (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) (stage2Out (f := f) (hf := hf)))
 
 end Tao2015
 
