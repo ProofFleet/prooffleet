@@ -55,6 +55,13 @@ Below, “output” means a Lean structure/type that packages witnesses/paramete
 
 **Acceptance test:** Stage 3 lemmas should not duplicate Stage 2 logic; they should delegate.
 
+**Stage 3 policy (agent-executable guardrails):**
+- Any new Stage 3 “consumer-facing normal form” must be **Stage-2-derived**: it should be a thin wrapper provable by something like
+  `by simpa [...] using (Stage2Output.<lemma> ...)`.
+  If it cannot be written that way, move it **down** to Stage 2 (or to a shared normal-form file like `Tao2015Extras`).
+- Every new Stage 3 wrapper must come with a **3–5 line consumer `example`** in `TrackCStage3Proof.lean` showing the downstream call-site it unlocks.
+  (If you can’t write a clean example, it’s probably not a stable wrapper yet.)
+
 ## Track C checklist (PR-sized items)
 
 Each checkbox should be doable in ~1 PR. Prefer **wiring-only** changes in stage boundary files.
