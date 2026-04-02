@@ -77,6 +77,12 @@ theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (
     UnboundedDiscOffset f d m ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
   simp [UnboundedDiscOffset, gt_iff_lt]
 
+/-- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus. -/
+theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumFrom f (m * d) d n = apSumOffset f d m n := by
+  simpa using
+    (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n))
+
 namespace UnboundedDiscOffset
 
 /-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
@@ -112,8 +118,7 @@ theorem iff_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (d m : ℕ) 
       ⟨n, hn⟩
     refine ⟨n, ?_⟩
     have hsum : apSumOffset f d m n = apSumFrom f (m * d) d n := by
-      simpa using
-        (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n)).symm
+      simpa using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)).symm
     simpa [hsum] using hn
   · intro h
     refine (iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m)).2 ?_
@@ -121,8 +126,7 @@ theorem iff_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (d m : ℕ) 
     rcases h B with ⟨n, hn⟩
     refine ⟨n, ?_⟩
     have hsum : apSumOffset f d m n = apSumFrom f (m * d) d n := by
-      simpa using
-        (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n)).symm
+      simpa using (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)).symm
     -- Rewrite the tail nucleus back to the bundled offset nucleus.
     simpa [hsum.symm] using hn
 
@@ -495,9 +499,7 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
       unfold discOffset at hnOffset
       exact hnOffset
     have hsum : apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
-      simpa using
-        (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := out.d) (m := out.m)
-            (n := n))
+      simpa using (apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
     have hnFrom : C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
       simpa [hsum] using hnOffset
     simpa [gt_iff_lt] using hnFrom
@@ -507,9 +509,7 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (out : Red
     have hnFrom : C < Int.natAbs (apSumFrom f (out.m * out.d) out.d n) := by
       simpa [gt_iff_lt] using hn
     have hsum : apSumFrom f (out.m * out.d) out.d n = apSumOffset f out.d out.m n := by
-      simpa using
-        (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := out.d) (m := out.m)
-            (n := n))
+      simpa using (apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
     have hnOffset : C < Int.natAbs (apSumOffset f out.d out.m n) := by
       simpa [hsum] using hnFrom
     have hnDiscOffset : C < discOffset f out.d out.m n := by
