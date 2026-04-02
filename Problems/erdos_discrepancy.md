@@ -102,8 +102,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `apSumOffset_add_len` in `MoltResearch/Discrepancy/Basic.lean`; regression example in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Offset recursion (succ) normal form: prove a `Nat.succ` recursion lemma such as
+- [x] Offset recursion (succ) normal form: prove a `Nat.succ` recursion lemma such as
   `apSumOffset f d m (n+1) = apSumOffset f d m n + f ((m+n+1)*d)`.
+  (Implemented as `apSumOffset_succ` in `MoltResearch/Discrepancy/Basic.lean`; regression example in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Affine recursion (succ) normal form: prove
   `apSumFrom f a d (n+1) = apSumFrom f a d n + f (a + (n+1)*d)`
