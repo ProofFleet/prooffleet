@@ -399,6 +399,23 @@ lemma apSumOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
 
+/-- Translation-invariance wrapper: if `f` and `g` agree pointwise on the progression indices
+`(m+i)*d` for `i ≤ n`, then the offset AP sums of length `n` agree.
+
+This packages the common hypothesis form `∀ i ≤ n, f ((m+i)*d) = g ((m+i)*d)` without requiring
+manual `Finset.range` bookkeeping.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Translation invariance wrappers.
+-/
+lemma apSumOffset_congr_le (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ≤ n → f ((m + i) * d) = g ((m + i) * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  apply apSumOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n)
+  intro i hi
+  have hle : i + 1 ≤ n := Nat.succ_le_of_lt hi
+  -- rewrite `(m+i+1)` as `m+(i+1)` to match the hypothesis.
+  simpa [Nat.add_assoc] using (h (i + 1) hle)
+
 /-- Support statement: if `f` and `g` agree on every *progression index* used by `apSumOffset`
 (i.e. on `Set.Icc (m+1) (m+n)`), then the offset sums are equal.
 
@@ -461,6 +478,20 @@ lemma discOffset_congr (f g : ℕ → ℤ) (d m n : ℕ)
   intro i hi
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
+
+/-- Translation-invariance wrapper for `discOffset`.
+
+If `f` and `g` agree on the affine tail indices `(m+i)*d` for `i ≤ n`, then the corresponding
+offset discrepancies of length `n` agree.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Translation invariance wrappers.
+-/
+lemma discOffset_congr_le (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, i ≤ n → f ((m + i) * d) = g ((m + i) * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  unfold discOffset
+  refine congrArg Int.natAbs ?_
+  exact apSumOffset_congr_le (f := f) (g := g) (d := d) (m := m) (n := n) h
 
 /-!
 Deprecated `discOffset` congruence variants over explicit `Icc` index sets have been moved behind

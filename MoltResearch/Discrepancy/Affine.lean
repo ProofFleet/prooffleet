@@ -171,6 +171,24 @@ lemma apSumFrom_congr (f g : ℕ → ℤ) (a d n : ℕ)
   have hi' : i < n := Finset.mem_range.mp hi
   exact h i hi'
 
+/-- Translation-invariance wrapper: if `f` and `g` agree pointwise on the affine tail
+`a + i*d` up to length `n`, then the affine AP sums agree.
+
+This packages the common hypothesis form `∀ i ≤ n, f (a + i*d) = g (a + i*d)` without requiring
+manual `Finset.range` bookkeeping.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Translation invariance wrappers.
+-/
+lemma apSumFrom_congr_le (f g : ℕ → ℤ) (a d n : ℕ)
+    (h : ∀ i, i ≤ n → f (a + i * d) = g (a + i * d)) :
+    apSumFrom f a d n = apSumFrom g a d n := by
+  apply apSumFrom_congr (f := f) (g := g) (a := a) (d := d) (n := n)
+  intro i hi
+  -- `i < n` implies `i+1 ≤ n`.
+  have hle : i + 1 ≤ n := Nat.succ_le_of_lt hi
+  simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc, Nat.add_assoc] using
+    (h (i + 1) hle)
+
 /-- `congr` variant: if `P` holds on every *index* used in `apSumFrom`, and the summands agree
 whenever `P i` holds, then the affine AP sums are equal.
 

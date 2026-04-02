@@ -156,6 +156,19 @@ example (g : ℕ → ℤ)
     discOffset f d m n = discOffset g d m n := by
   simpa using (discOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
+-- Regression (Track B / translation invariance wrapper):
+-- agreement on the affine tail indices `(m+i)*d` for `i ≤ n` suffices.
+example (g : ℕ → ℤ)
+    (h : ∀ i, i ≤ n → f ((m + i) * d) = g ((m + i) * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  simpa using (discOffset_congr_le (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
+-- Regression (Track B / translation invariance wrapper, affine nucleus):
+example (g : ℕ → ℤ)
+    (h : ∀ i, i ≤ n → f (a + i * d) = g (a + i * d)) :
+    apSumFrom f a d n = apSumFrom g a d n := by
+  simpa using (apSumFrom_congr_le (f := f) (g := g) (a := a) (d := d) (n := n) h)
+
 -- Regression (Track B / local surgery, range form via `Finset.range` membership):
 example (g : ℕ → ℤ)
     (h : ∀ i, i ∈ Finset.range n → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
