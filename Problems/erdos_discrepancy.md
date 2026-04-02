@@ -134,8 +134,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `BoundedDiscOffset.mono_B` and `BoundedDiscrepancyAlong.mono_B`; stable-surface regression
   examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Translation invariance wrappers: package lemmas that rewriting `f` by a pointwise equality on an affine tail (e.g. `∀ i ≤ n, f (a+i*d)=g (a+i*d)`) suffices to rewrite `apSumFrom`/`apSumOffset` results,
+- [x] Translation invariance wrappers: package lemmas that rewriting `f` by a pointwise equality on an affine tail (e.g. `∀ i ≤ n, f (a+i*d)=g (a+i*d)`) suffices to rewrite `apSumFrom`/`apSumOffset` results,
   so downstream code doesn’t have to manually translate “≤ n” hypotheses into `Finset.range` congruence facts.
+  (Implemented as `apSumOffset_congr_le` / `discOffset_congr_le` in `MoltResearch/Discrepancy/Basic.lean` and `apSumFrom_congr_le` in `MoltResearch/Discrepancy/Affine.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
