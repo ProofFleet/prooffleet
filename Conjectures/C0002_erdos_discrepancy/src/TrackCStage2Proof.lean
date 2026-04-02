@@ -67,13 +67,21 @@ theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage2Out, stage2_d] using
     (Stage2Output.d_ne_zero (f := f) (stage2Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 2 already closes the core goal `¬ BoundedDiscrepancy f`.
+
+This is a thin wrapper around the proved Stage-2 boundary lemma
+`Stage2Output.notBoundedOriginal`.
+-/
+theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
+  exact Stage2Output.notBoundedOriginal (f := f) (stage2Out (f := f) (hf := hf))
+
 /-!
 Consumer code should use `stage2Out` together with the general lemmas about `Stage2Output` in
-`TrackCStage2.lean` (for example: `Stage2Output.notBoundedOriginal`,
-`Stage2Output.forall_hasDiscrepancyAtLeast`, `Stage2Output.forall_exists_d_ge_one_witness_pos`).
+`TrackCStage2.lean` (for example: `Stage2Output.forall_hasDiscrepancyAtLeast`,
+`Stage2Output.forall_exists_d_ge_one_witness_pos`).
 
-We intentionally avoid duplicating those wrappers here, so this file remains a pure conjecture stub
-plus projections.
+We intentionally avoid duplicating wrappers here (beyond the single core-goal shortcut above), so
+this file remains a pure conjecture stub plus projections.
 -/
 
 end Tao2015
