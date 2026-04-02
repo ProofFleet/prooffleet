@@ -129,8 +129,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `apSumOffset_zero` / `discOffset_zero` / `apSumFrom_zero`; regression examples live in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Boundedness monotonicity wrappers: prove convenience lemmas such as
+- [x] Boundedness monotonicity wrappers: prove convenience lemmas such as
   `BoundedDiscOffset f d m B → B ≤ B' → BoundedDiscOffset f d m B'` (and analogous for `BoundedDiscrepancyAlong`).
+  (Implemented as `BoundedDiscOffset.mono_B` and `BoundedDiscrepancyAlong.mono_B`; stable-surface regression
+  examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Translation invariance wrappers: package lemmas that rewriting `f` by a pointwise equality on an affine tail (e.g. `∀ i ≤ n, f (a+i*d)=g (a+i*d)`) suffices to rewrite `apSumFrom`/`apSumOffset` results,
   so downstream code doesn’t have to manually translate “≤ n” hypotheses into `Finset.range` congruence facts.
