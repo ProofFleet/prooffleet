@@ -113,8 +113,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumFrom_tail_succ` in `MoltResearch/Discrepancy/AffineTail.lean`; stable-surface regression example in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Triangle-inequality bound (discrepancy-level): using the concatenation lemma + `Int.natAbs_add_le`, prove
+- [x] Triangle-inequality bound (discrepancy-level): using the concatenation lemma + `Int.natAbs_add_le`, prove
   `discOffset f d m (n+k) ≤ discOffset f d m n + discOffset f d (m+n) k`.
+  (Implemented as `discOffset_add_le` in `MoltResearch/Discrepancy/Basic.lean`; regression example in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Lipschitz-by-1 bound: assuming `IsSignSequence f`, prove that extending a tail by one term changes discrepancy by at most 1, e.g.
   `discOffset f d m (n+1) ≤ discOffset f d m n + 1` and `discOffset f d m n ≤ discOffset f d m (n+1) + 1`.
