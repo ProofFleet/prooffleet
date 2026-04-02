@@ -53,6 +53,41 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (
     have hn : Int.natAbs (apSumFrom f (m * d) d n) ≤ B := h n
     simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)] using hn
 
+/-- Normal form: unbounded offset discrepancy means there is no uniform affine-tail nucleus bound.
+
+Negation-normal form:
+`¬ ∃ B, ∀ n, Int.natAbs (apSumFrom f (m*d) d n) ≤ B`.
+
+This can be convenient when proving unboundedness by contradiction.
+-/
+theorem unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B) := by
+  classical
+  -- Rewrite unboundedness through the Prop-level boundedness predicate, then unfold it using
+  -- `boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le`.
+  have hBound :
+      (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔
+        (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B) := by
+    constructor
+    · intro h
+      intro h'
+      rcases h' with ⟨B, hB⟩
+      apply h
+      refine ⟨B,
+        (boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f := f) (d := d) (m := m)
+          (B := B)).2 hB⟩
+    · intro h
+      intro h'
+      rcases h' with ⟨B, hB⟩
+      apply h
+      refine ⟨B,
+        (boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f := f) (d := d) (m := m)
+          (B := B)).1 hB⟩
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m)).trans
+      hBound
+
 /-- Normal form: boundedness of `discOffset f d m` expressed directly using the bundled offset nucleus.
 
 This avoids having to unfold `discOffset` at each call site.
