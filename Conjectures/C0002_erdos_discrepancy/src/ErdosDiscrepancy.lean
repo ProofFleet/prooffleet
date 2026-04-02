@@ -130,6 +130,18 @@ theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f
     (Tao2015.Stage3Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
+/-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumFrom_mul_gt` packaging the
+step-size side condition as `1 ≤ d`.
+
+Many later analytic stages prefer the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  simpa using
+    (Tao2015.stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (hf := hf))
+
 /-- Paper-notation surface form of `erdos_discrepancy`, matching `∑_{i=1}^n f (i*d)`.
 
 This is a thin wrapper around `erdos_discrepancy_apSum`, via
