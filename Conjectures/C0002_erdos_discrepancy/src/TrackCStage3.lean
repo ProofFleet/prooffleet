@@ -183,7 +183,7 @@ This is the raw-nucleus form of `exists_params_forall_exists_discOffset_gt`.
 -/
 theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
     ∃ d m : ℕ, d > 0 ∧
-      (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) := by
+      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
   exact Stage2Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f) out.out2
 
 /-- Stage 3 output yields bundled offset discrepancy witnesses for the concrete parameters

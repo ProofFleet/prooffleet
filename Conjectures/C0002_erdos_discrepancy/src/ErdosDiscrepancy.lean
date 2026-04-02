@@ -112,8 +112,8 @@ Normal form:
 theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
-  -- Prefer the Stage-3 existential packaging (in `<` form) and rewrite to the common `>` normal form.
-  simpa [gt_iff_lt] using
+  -- Prefer the Stage-3 existential packaging.
+  simpa using
     (Tao2015.Stage3Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f)
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
