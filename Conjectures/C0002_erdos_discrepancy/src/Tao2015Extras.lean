@@ -77,18 +77,8 @@ later stages avoid unfolding `discOffset` by hand.
 theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ) (d m : ℕ) :
     UnboundedDiscOffset f d m ↔
       (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f d m n)) := by
-  unfold UnboundedDiscOffset
-  constructor
-  · intro hunb B
-    rcases hunb B with ⟨n, hn⟩
-    refine ⟨n, ?_⟩
-    unfold discOffset at hn
-    exact hn
-  · intro h B
-    rcases h B with ⟨n, hn⟩
-    refine ⟨n, ?_⟩
-    change B < Int.natAbs (apSumOffset f d m n)
-    exact hn
+  simpa using
+    (UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m))
 
 /-- Variant of `unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt` with the inequality
 written as `Int.natAbs ... > B` (often the normal form used by Stage interfaces).
@@ -107,15 +97,8 @@ rewriting `apSumOffset` to `apSumFrom` tails.
 theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (d m : ℕ) :
     UnboundedDiscOffset f d m ↔
       (∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumFrom f (m * d) d n)) := by
-  constructor
-  · intro hunb B
-    rcases hunb B with ⟨n, hn⟩
-    refine ⟨n, ?_⟩
-    simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)] using hn
-  · intro h B
-    rcases h B with ⟨n, hn⟩
-    refine ⟨n, ?_⟩
-    simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)] using hn
+  simpa using
+    (UnboundedDiscOffset.iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m))
 
 /-- Variant of `unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt` with the inequality
 written as `Int.natAbs ... > B` (often the normal form used by Stage interfaces).
