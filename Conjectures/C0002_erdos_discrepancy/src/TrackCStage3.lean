@@ -37,6 +37,10 @@ abbrev d (out : Stage3Output f) : ℕ := out.out2.out1.d
 /-- Convenience projection: the reduced sequence packaged in Stage 3. -/
 abbrev g (out : Stage3Output f) : ℕ → ℤ := out.out2.out1.g
 
+/-- The reduced sequence packaged in Stage 3 is a sign sequence. -/
+theorem hg (out : Stage3Output f) : IsSignSequence out.g := by
+  simpa [Stage3Output.g] using out.out2.out1.hg
+
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
 abbrev m (out : Stage3Output f) : ℕ := out.out2.out1.m
 

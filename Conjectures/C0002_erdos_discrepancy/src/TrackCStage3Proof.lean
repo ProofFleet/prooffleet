@@ -42,7 +42,8 @@ noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
 /-- The reduced sequence produced by Stage 3 is a sign sequence. -/
 theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
     IsSignSequence (stage3_g (f := f) (hf := hf)) := by
-  simpa [stage3Out, stage3_g] using (stage3Out (f := f) (hf := hf)).out2.out1.hg
+  simpa [stage3Out, stage3_g] using
+    (Stage3Output.hg (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Rewrite for the reduced sequence produced by Stage 3: it is a shift by `m*d`. -/
 theorem stage3_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
