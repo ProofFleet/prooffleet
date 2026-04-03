@@ -224,4 +224,97 @@ lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le_two_mul_of_card_range
       (hf := hf) (hg := hg) (d := d) (m := m) (n := n)
   exact le_trans h (Nat.mul_le_mul_left 2 ht)
 
+/-!
+## Local edit sensitivity (discrepancy level)
+
+The lemmas above control the *sum* difference `|apSumOffset f - apSumOffset g|` in terms of the
+number of sampled indices where `f` and `g` differ.
+
+Here we package the corresponding *discrepancy* corollaries at the `discOffset` level.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B)
+- Local edit sensitivity (disc-level): derive the discrepancy-level corollary.
+-/
+
+/-- **Discrepancy-level edit bound (generic form).**
+
+If an offset AP sum changes by at most `t` in `Int.natAbs`, then the corresponding discrepancy
+changes by at most `t` (in the one-sided direction).
+
+This is a lightweight triangle-inequality wrapper intended to be combined with the sum-level
+edit-sensitivity bounds in this file.
+-/
+lemma discOffset_le_discOffset_add_of_natAbs_apSumOffset_sub_le (f g : ℕ → ℤ) (d m n t : ℕ)
+    (ht : Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤ t) :
+    discOffset f d m n ≤ discOffset g d m n + t := by
+  -- `|Sf| = |(Sf - Sg) + Sg| ≤ |Sf - Sg| + |Sg|`.
+  have htri :
+      Int.natAbs (apSumOffset f d m n) ≤
+        Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) +
+          Int.natAbs (apSumOffset g d m n) := by
+    -- Triangle inequality: `|a + b| ≤ |a| + |b|`, with `a = Sf - Sg`, `b = Sg`.
+    set a : ℤ := apSumOffset f d m n - apSumOffset g d m n
+    set b : ℤ := apSumOffset g d m n
+    have hab : a + b = apSumOffset f d m n := by
+      -- `(Sf - Sg) + Sg = Sf`.
+      -- `a` and `b` are just abbreviations, so this is `sub_add_cancel`.
+      simpa [a, b] using (sub_add_cancel (apSumOffset f d m n) (apSumOffset g d m n))
+    have h' : Int.natAbs (a + b) ≤ Int.natAbs a + Int.natAbs b :=
+      Int.natAbs_add_le a b
+    -- Rewrite `|a+b|` to `|Sf|`.
+    have habAbs : Int.natAbs (a + b) = Int.natAbs (apSumOffset f d m n) :=
+      congrArg Int.natAbs hab
+    -- Now transfer the bound.
+    have h'' := h'
+    rw [habAbs] at h''
+    simpa [a, b] using h''
+
+  -- Convert to the `discOffset` wrappers and apply the hypothesis `ht`.
+  -- Note: `discOffset` is definitional `Int.natAbs (apSumOffset ...)`.
+  have : discOffset f d m n ≤ t + discOffset g d m n := by
+    -- Combine triangle inequality with the bound on the difference term.
+    have hstep :
+        Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) +
+            Int.natAbs (apSumOffset g d m n)
+          ≤ t + Int.natAbs (apSumOffset g d m n) :=
+      Nat.add_le_add_right ht (Int.natAbs (apSumOffset g d m n))
+    -- Convert the target to `Int.natAbs` form and finish.
+    unfold discOffset
+    -- After unfolding, the goal is exactly the chained inequality.
+    exact le_trans htri hstep
+
+  -- Normalize `t + discOffset g ...` to `discOffset g ... + t`.
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using this
+
+/-- **Local edit sensitivity (disc-level, offset form).**
+
+If `f,g` are sign sequences and they differ on at most `t` sampled indices in the offset AP sum,
+then the discrepancy `discOffset` of length `n` changes by at most `2*t` (one-sided).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Local edit sensitivity (disc-level).
+-/
+lemma IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le {f g : ℕ → ℤ}
+    (hf : IsSignSequence f) (hg : IsSignSequence g) (d m n t : ℕ)
+    (ht : ((Finset.range n).filter (fun i => f ((m + i + 1) * d) ≠ g ((m + i + 1) * d))).card ≤ t) :
+    discOffset f d m n ≤ discOffset g d m n + 2 * t := by
+  have hsum :
+      Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤ 2 * t := by
+    simpa using
+      (IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le_two_mul_of_card_range_diff_le
+        (hf := hf) (hg := hg) (d := d) (m := m) (n := n) (t := t) ht)
+  simpa using
+    (discOffset_le_discOffset_add_of_natAbs_apSumOffset_sub_le (f := f) (g := g) (d := d) (m := m)
+      (n := n) (t := 2 * t) hsum)
+
+/-- Symmetric form of `IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le`. -/
+lemma IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le' {f g : ℕ → ℤ}
+    (hf : IsSignSequence f) (hg : IsSignSequence g) (d m n t : ℕ)
+    (ht : ((Finset.range n).filter (fun i => f ((m + i + 1) * d) ≠ g ((m + i + 1) * d))).card ≤ t) :
+    discOffset g d m n ≤ discOffset f d m n + 2 * t := by
+  have ht' : ((Finset.range n).filter (fun i => g ((m + i + 1) * d) ≠ f ((m + i + 1) * d))).card ≤ t := by
+    simpa [ne_comm] using ht
+  simpa [Nat.mul_comm] using
+    (IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le
+      (hf := hg) (hg := hf) (d := d) (m := m) (n := n) (t := t) ht')
+
 end MoltResearch
