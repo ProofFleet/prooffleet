@@ -28,8 +28,8 @@ follow.
 -/
 theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
-  -- Shortcut: Stage 3 already packages the global boundedness negation.
-  exact Tao2015.stage3_notBounded (f := f) (hf := hf)
+  -- Prefer consuming the Stage-3 output record API.
+  exact (erdos_discrepancy_stage3Output (f := f) (hf := hf)).notBounded
 
 /-- Erdős discrepancy theorem.
 
@@ -40,7 +40,10 @@ Track-C Stage-3 pipeline.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  simpa using Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
+  -- Prefer the Stage-3 record API (`Stage3Output`) rather than the `stage3_...` wrappers.
+  simpa using
+    (Tao2015.Stage3Output.forall_hasDiscrepancyAtLeast (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
 /-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
@@ -149,7 +152,8 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumFrom_mu
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
   simpa using
-    (Tao2015.stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (hf := hf))
+    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
 /-- Paper-notation surface form of `erdos_discrepancy`, matching `∑_{i=1}^n f (i*d)`.
 
