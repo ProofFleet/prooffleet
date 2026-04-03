@@ -51,7 +51,37 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g : ℕ → ℤ) (d : ℕ) :
     UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, discrepancy g d n > B) := by
-  simp [UnboundedDiscrepancyAlong, gt_iff_lt]
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, hn⟩
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    exact ⟨n, hn⟩
+
+/-- Nucleus normal form for `UnboundedDiscrepancyAlong`.
+
+Normal form:
+`∀ B, ∃ n, Int.natAbs (apSum g d n) > B`.
+
+This is a lightweight rewrite of `unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt'`
+using the definitional equality `discrepancy g d n = Int.natAbs (apSum g d n)`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSum_gt' (g : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSum g d n) > B) := by
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- `discrepancy g d n` is definitionally `Int.natAbs (apSum g d n)`.
+    unfold discrepancy at hn
+    exact hn
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Unfold `discrepancy`, then use the nucleus witness.
+    unfold discrepancy
+    exact hn
 
 /-- `g` has discrepancy at least `C` along the fixed step `d` (witness form). -/
 def HasDiscrepancyAtLeastAlong (g : ℕ → ℤ) (d : ℕ) (C : ℕ) : Prop :=
@@ -63,7 +93,11 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g : ℕ → ℤ) (d C : ℕ) :
     HasDiscrepancyAtLeastAlong g d C ↔ (∃ n : ℕ, discrepancy g d n > C) := by
-  simp [HasDiscrepancyAtLeastAlong, gt_iff_lt]
+  constructor
+  · rintro ⟨n, hn⟩
+    exact ⟨n, hn⟩
+  · rintro ⟨n, hn⟩
+    exact ⟨n, hn⟩
 
 /-- Unboundedness of a bundled offset discrepancy family. -/
 def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
@@ -75,7 +109,13 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (d m : ℕ) :
     UnboundedDiscOffset f d m ↔ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
-  simp [UnboundedDiscOffset, gt_iff_lt]
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    exact ⟨n, hn⟩
+  · intro h B
+    rcases h B with ⟨n, hn⟩
+    exact ⟨n, hn⟩
 
 /-- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus. -/
 theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
