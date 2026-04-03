@@ -166,7 +166,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 - [x] “Residue-class on offsets” disc-level inequality: after splitting `apSumOffset` into residues mod `r`, prove a canonical `discOffset` inequality bounding the whole discrepancy by the sum of residue discrepancies (triangle-inequality packaged), with regression examples under the stable surface.
 
-- [ ] Stable-surface polish: add a tiny compile-only example file showing the full normal-form pipeline for a typical “edit + split + bound” argument (paper sum → nucleus → local edit sensitivity → triangle bound), and wire it into `SurfaceAudit` so it can’t regress.
+- [x] Stable-surface polish: add a tiny compile-only example file showing the full normal-form pipeline for a typical “edit + split + bound” argument (paper sum → nucleus → local edit sensitivity → triangle bound), and wire it into `SurfaceAudit` so it can’t regress.
+  (Implemented as `MoltResearch/Discrepancy/NormalFormPipelineExample.lean`, imported by `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
