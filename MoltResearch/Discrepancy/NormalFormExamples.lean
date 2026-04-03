@@ -23,6 +23,22 @@ section NormalFormExamples
 
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
+/-!
+### Regression: multiplicative dilation normal forms (Track B)
+
+These are compile-only examples ensuring the “pull a common factor into the step” rewrites remain
+one-liners.
+-/
+
+example (q : ℕ) : apSum (fun t => f (t * q)) d n = apSum f (d * q) n := by
+  simpa using (apSum_map_mul_right (f := f) (q := q) (d := d) (n := n))
+
+example (q : ℕ) : apSumOffset (fun t => f (t * q)) d m n = apSumOffset f (d * q) m n := by
+  simpa using (apSumOffset_map_mul_right (f := f) (q := q) (d := d) (m := m) (n := n))
+
+example (q : ℕ) : apSumFrom (fun t => f (t * q)) a d n = apSumFrom f (a * q) (d * q) n := by
+  simpa using (apSumFrom_map_mul_right (f := f) (q := q) (a := a) (d := d) (n := n))
+
 -- Regression: `simp` should normalize away a spurious zero-offset tail.
 example : apSumOffset f d 0 n = apSum f d n := by
   simp

@@ -20,6 +20,39 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-!
+### Multiplicative dilation normal forms (affine nucleus)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
+
+Affine version: dilating indices by `q` scales both the start `a` and the step `d`.
+We provide both `mul_right` and `mul_left` variants to avoid commutativity noise.
+-/
+
+/-- Multiplicative dilation normal form for affine AP sums (`mul_right` summand convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
+-/
+lemma apSumFrom_map_mul_right (f : ℕ → ℤ) (q a d n : ℕ) :
+    apSumFrom (fun k => f (k * q)) a d n = apSumFrom f (a * q) (d * q) n := by
+  unfold apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `(a + (i+1)*d) * q = a*q + (i+1)*(d*q)`.
+  simp [Nat.add_mul, Nat.mul_assoc]
+
+/-- Multiplicative dilation normal form for affine AP sums (`mul_left` summand convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
+-/
+lemma apSumFrom_map_mul_left (f : ℕ → ℤ) (q a d n : ℕ) :
+    apSumFrom (fun k => f (q * k)) a d n = apSumFrom f (q * a) (q * d) n := by
+  unfold apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `q*(a + (i+1)*d) = q*a + (i+1)*(q*d)`.
+  simp [Nat.mul_add, Nat.mul_left_comm, Nat.mul_comm]
+
 /-! ### `d = 1` simp-friendly normal forms (range-shift)
 
 These are small convenience wrappers for rewriting affine AP sums with step size `1` into a plain

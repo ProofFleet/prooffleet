@@ -97,6 +97,64 @@ It is defined as `∑ i in range n, f ((m + i + 1) * d)`. -/
 def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
+/-!
+### Multiplicative dilation normal forms
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
+
+These lemmas package the common rewrite “pull a common factor into the step”.
+We provide both a `mul_right` and a `mul_left` variant to avoid commutativity noise under binders.
+-/
+
+/-- Multiplicative dilation normal form for homogeneous AP sums (`mul_right` summand convention).
+
+`apSum (fun k => f (k * q)) d n` samples indices `((i+1)*d)*q`, which canonically rewrite to
+`(i+1)*(d*q)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
+-/
+lemma apSum_map_mul_right (f : ℕ → ℤ) (q d n : ℕ) :
+    apSum (fun k => f (k * q)) d n = apSum f (d * q) n := by
+  unfold apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `((i+1)*d)*q = (i+1)*(d*q)`.
+  simp [Nat.mul_assoc]
+
+/-- Multiplicative dilation normal form for homogeneous AP sums (`mul_left` summand convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
+-/
+lemma apSum_map_mul_left (f : ℕ → ℤ) (q d n : ℕ) :
+    apSum (fun k => f (q * k)) d n = apSum f (q * d) n := by
+  unfold apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `q*((i+1)*d) = (i+1)*(q*d)`.
+  simp [Nat.mul_assoc, Nat.mul_comm]
+
+/-- Multiplicative dilation normal form for offset AP sums (`mul_right` summand convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
+-/
+lemma apSumOffset_map_mul_right (f : ℕ → ℤ) (q d m n : ℕ) :
+    apSumOffset (fun k => f (k * q)) d m n = apSumOffset f (d * q) m n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_assoc]
+
+/-- Multiplicative dilation normal form for offset AP sums (`mul_left` summand convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
+-/
+lemma apSumOffset_map_mul_left (f : ℕ → ℤ) (q d m n : ℕ) :
+    apSumOffset (fun k => f (q * k)) d m n = apSumOffset f (q * d) m n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  simp [Nat.mul_assoc, Nat.mul_comm]
+
 /-- Canonical homogeneous view of offsets: push the start shift `m*d` into the summand.
 
 (Track B normal-form checklist item.)
