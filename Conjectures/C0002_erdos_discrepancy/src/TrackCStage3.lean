@@ -208,6 +208,15 @@ theorem exists_params_one_le_forall_exists_discOffset_gt (out : Stage3Output f) 
     ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
   exact Stage2Output.exists_params_one_le_forall_exists_discOffset_gt (f := f) out.out2
 
+/-- Inequality-direction variant of `exists_params_one_le_forall_exists_discOffset_gt`, written as
+`discOffset f d m n > B`.
+
+This is often a more convenient normal form for consumers that want to `simp [gt_iff_lt]`.
+-/
+theorem exists_params_one_le_forall_exists_discOffset_gt' (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
+  exact Stage2Output.exists_params_one_le_forall_exists_discOffset_gt' (f := f) out.out2
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` such that the offset nucleus
 `apSumOffset f d m n` takes arbitrarily large absolute values.
 

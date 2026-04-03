@@ -117,6 +117,18 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_discOffset_gt (f : 
     (Tao2015.Stage3Output.exists_params_one_le_forall_exists_discOffset_gt (f := f)
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
+/-- Inequality-direction variant of `erdos_discrepancy_exists_params_one_le_forall_exists_discOffset_gt`,
+written as `discOffset f d m n > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem erdos_discrepancy_exists_params_one_le_forall_exists_discOffset_gt' (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
+  simpa using
+    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_discOffset_gt' (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+
 /-- Inequality-direction variant of `erdos_discrepancy_exists_params_forall_exists_discOffset_gt`,
 written as `discOffset f d m n > B`.
 
