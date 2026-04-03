@@ -41,6 +41,30 @@ These are the Track C “along a fixed step `d`” analogues of the global predi
 def BoundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
   ∃ B : ℕ, ∀ n : ℕ, discrepancy g d n ≤ B
 
+/-- Nucleus normal form for `BoundedDiscrepancyAlong`.
+
+Normal form:
+`∃ B, ∀ n, Int.natAbs (apSum g d n) ≤ B`.
+
+This is a lightweight rewrite of the definition of `BoundedDiscrepancyAlong` using the definitional
+identity `discrepancy g d n = Int.natAbs (apSum g d n)`.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSum_le (g : ℕ → ℤ) (d : ℕ) :
+    BoundedDiscrepancyAlong g d ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum g d n) ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have hn : discrepancy g d n ≤ B := hB n
+    unfold discrepancy at hn
+    exact hn
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have hn : Int.natAbs (apSum g d n) ≤ B := hB n
+    unfold discrepancy
+    exact hn
+
 /-- `g` has unbounded discrepancy along the fixed step `d` (witness form). -/
 def UnboundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discrepancy g d n
