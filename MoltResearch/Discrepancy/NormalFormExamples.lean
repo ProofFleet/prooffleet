@@ -632,6 +632,12 @@ example :
     Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
   simp [discOffset, apSumOffset_eq_sum_Icc]
 
+-- Compile-only regression (Track B / endpoint normalization):
+-- the “upper endpoint as `m+n+1`” shape simp-normalizes directly.
+example :
+    (Finset.Icc (m + 1) (m + n + 1)).sum (fun i => f (i * d)) = apSumOffset f d m (n + 1) := by
+  simp
+
 -- Compile-only regression (Track B / paper `Icc` → `discOffset`, then one-step bound).
 example (hf : IsSignSequence f) :
     Int.natAbs ((Finset.Icc (m + 1) (m + (n + 1))).sum (fun i => f (i * d))) ≤

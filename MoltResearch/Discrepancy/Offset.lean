@@ -822,6 +822,44 @@ on the left). -/
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
   simpa using (sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := n))
 
+/-- Checklist item (Track B): “Reindexing API coherence for `Icc` endpoints”.
+
+These are small endpoint-normalization wrappers around
+`sum_Icc_eq_apSumOffset_of_le_add_len{,_mul_left}` for common arithmetic shapes of the upper
+endpoint, so downstream proofs can `simp` without fighting `Nat.add_assoc`/`Nat.add_comm`.
+-/
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_add_len_add_one (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n + 1)).sum (fun i => f (i * d)) = apSumOffset f d m (n + 1) := by
+  -- `m + (n+1)` is the canonical form expected by `…_add_len`.
+  simpa [Nat.add_assoc] using
+    (sum_Icc_eq_apSumOffset_of_le_add_len (f := f) (d := d) (m := m) (n := n + 1))
+
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_add_len_add_one_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n + 1)).sum (fun i => f (d * i)) = apSumOffset f d m (n + 1) := by
+  simpa [Nat.add_assoc] using
+    (sum_Icc_eq_apSumOffset_of_le_add_len_mul_left (f := f) (d := d) (m := m) (n := n + 1))
+
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_add_len_add_comm (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (n + m)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simpa [Nat.add_comm] using
+    (sum_Icc_eq_apSumOffset_of_le_add_len (f := f) (d := d) (m := m) (n := n))
+
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_add_len_add_comm_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (n + m)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simpa [Nat.add_comm] using
+    (sum_Icc_eq_apSumOffset_of_le_add_len_mul_left (f := f) (d := d) (m := m) (n := n))
+
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_add_len_add_one_comm (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (n + m + 1)).sum (fun i => f (i * d)) = apSumOffset f d m (n + 1) := by
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (sum_Icc_eq_apSumOffset_of_le_add_len_add_one (f := f) (d := d) (m := m) (n := n))
+
+@[simp] lemma sum_Icc_eq_apSumOffset_of_le_add_len_add_one_comm_mul_left
+    (f : ℕ → ℤ) (d m n : ℕ) :
+    (Finset.Icc (m + 1) (n + m + 1)).sum (fun i => f (d * i)) = apSumOffset f d m (n + 1) := by
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (sum_Icc_eq_apSumOffset_of_le_add_len_add_one_mul_left (f := f) (d := d) (m := m) (n := n))
+
 /-- A simp-friendly alias for `sum_Icc_eq_apSumOffset_of_le_add_len`.
 
 This specialises the `sum_Icc_eq_apSumOffset_of_le` family to the homogeneous tail interval
