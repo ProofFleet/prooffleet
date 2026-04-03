@@ -144,8 +144,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤ 2*t` (and a homogeneous `apSum` analogue), with a stable regression example under `import MoltResearch.Discrepancy`.
   (Implemented in `MoltResearch/Discrepancy/EditSensitivity.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Local edit sensitivity (disc-level): derive the discrepancy-level corollary
-  `discOffset f d m n ≤ discOffset g d m n + t` (and symmetric), packaged as `discOffset_edit_le` / `discOffset_le_edit_add`-style lemmas.
+- [x] Local edit sensitivity (disc-level): derive the discrepancy-level corollary
+  `discOffset f d m n ≤ discOffset g d m n + 2*t` (and symmetric), packaged as `discOffset_edit_le` / `discOffset_le_edit_add`-style lemmas.
+  (Implemented in `MoltResearch/Discrepancy/EditSensitivity.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Multiplicative dilation normal form: package a canonical rewrite for dilating indices,
   `apSum (fun k => f (k * q)) d n = apSum f (d*q) n` (and `apSumOffset`/`apSumFrom` analogues with consistent `mul_left` variants), so “pull a common factor into the step” is one `rw`.
