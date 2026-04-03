@@ -675,6 +675,17 @@ theorem not_boundedDiscrepancy_of_unboundedDiscOffset (f : ℕ → ℤ) {d m : �
     Tao2015.not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) (d := d) (m := m) hd ?_
   simpa [UnboundedDiscOffset] using hunb
 
+/-- Variant of `not_boundedDiscrepancy_of_unboundedDiscOffset` with the step-size side condition
+written as `1 ≤ d`.
+
+Many later stages prefer `1 ≤ d` to avoid rewriting `d > 0`.
+-/
+theorem not_boundedDiscrepancy_of_unboundedDiscOffset_one_le (f : ℕ → ℤ) {d m : ℕ} (hd : 1 ≤ d)
+    (hunb : UnboundedDiscOffset f d m) :
+    ¬ BoundedDiscrepancy f := by
+  have hd' : d > 0 := lt_of_lt_of_le Nat.zero_lt_one hd
+  exact not_boundedDiscrepancy_of_unboundedDiscOffset (f := f) (d := d) (m := m) hd' hunb
+
 end Tao2015
 
 end MoltResearch
