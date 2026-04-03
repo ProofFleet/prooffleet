@@ -148,8 +148,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `discOffset f d m n ≤ discOffset g d m n + 2*t` (and symmetric), packaged as `discOffset_edit_le` / `discOffset_le_edit_add`-style lemmas.
   (Implemented in `MoltResearch/Discrepancy/EditSensitivity.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Multiplicative dilation normal form: package a canonical rewrite for dilating indices,
+- [x] Multiplicative dilation normal form: package a canonical rewrite for dilating indices,
   `apSum (fun k => f (k * q)) d n = apSum f (d*q) n` (and `apSumOffset`/`apSumFrom` analogues with consistent `mul_left` variants), so “pull a common factor into the step” is one `rw`.
+  (Implemented as `apSum_map_mul_right` / `apSum_map_mul_left` and `apSumOffset_map_mul_right` / `apSumOffset_map_mul_left`
+  in `MoltResearch/Discrepancy/Basic.lean`, and `apSumFrom_map_mul_right` / `apSumFrom_map_mul_left` in
+  `MoltResearch/Discrepancy/Affine.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Offset-of-offset flattening: prove a stable normal form eliminating nested offsets, e.g.
   `apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k` (or the repo’s preferred shape) rewrites to a single `apSumOffset`/`apSum` expression with no nested `apSumOffset` in the summand.
