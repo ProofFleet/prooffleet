@@ -799,6 +799,35 @@ example {B : ℕ} (n₁ n₂ : ℕ) (hf : ∀ k, Int.natAbs (f k) ≤ B) :
     exact le_trans hsplit (Nat.add_le_add_left htail _)
   simpa [discOffset, hsum] using this
 
+/-!
+### Regression: `Icc` endpoint algebra simp coherence (Track B)
+
+These are compile-only checks that the endpoint-normalization simp lemmas for common arithmetic
+shapes (`m + n + 1`, `n + m`, `n + m + 1`) fire without manual `Nat.add_assoc`/`Nat.add_comm` churn.
+-/
+
+example :
+    (Finset.Icc (m + 1) (m + n + 1)).sum (fun i => f (i * d)) = apSumOffset f d m (n + 1) := by
+  simp
+
+example :
+    (Finset.Icc (m + 1) (m + n + 1)).sum (fun i => f (d * i)) = apSumOffset f d m (n + 1) := by
+  simp
+
+example : (Finset.Icc (m + 1) (n + m)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simp
+
+example : (Finset.Icc (m + 1) (n + m)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simp
+
+example :
+    (Finset.Icc (m + 1) (n + m + 1)).sum (fun i => f (i * d)) = apSumOffset f d m (n + 1) := by
+  simp
+
+example :
+    (Finset.Icc (m + 1) (n + m + 1)).sum (fun i => f (d * i)) = apSumOffset f d m (n + 1) := by
+  simp
+
 -- Paper affine tail with variable endpoint (`m ≤ n`) → `discOffset` in `apSumOffset` normal form.
 example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :

@@ -161,7 +161,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] DiscOffset split (equality-level): complement existing `≤` split lemmas with an *equality* lemma expressing `discOffset` across a concatenation in terms of `Int.natAbs (x+y)` where `x,y` are `apSumOffset` pieces, so later proofs can choose between exact algebra and triangle-inequality bounds.
   (Implemented as `discOffset_add_len_eq_natAbs_apSumOffset_add` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Reindexing API coherence for `Icc` endpoints: add a small family of lemmas that rewrite common `Icc` endpoint algebra (`m+1`, `m+n`) into the exact shapes expected by the existing `sum_Icc_eq_apSumOffset_of_le_*` family, reducing `simp` churn in downstream proofs.
+- [x] Reindexing API coherence for `Icc` endpoints: add a small family of lemmas that rewrite common `Icc` endpoint algebra (`m+1`, `m+n`) into the exact shapes expected by the existing `sum_Icc_eq_apSumOffset_of_le_*` family, reducing `simp` churn in downstream proofs.
+  (Implemented as simp-friendly endpoint-normalization wrappers in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Residue-class on offsets” disc-level inequality: after splitting `apSumOffset` into residues mod `r`, prove a canonical `discOffset` inequality bounding the whole discrepancy by the sum of residue discrepancies (triangle-inequality packaged), with regression examples under the stable surface.
 
