@@ -143,7 +143,7 @@ This is just `forall_hasDiscrepancyAtLeastAlong` transported through the Stage-1
 `ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt`.
 -/
 theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
-    ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.out1.m * out.out1.d) out.out1.d n) > C := by
+    ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
   -- Unpack the Stage-2 `UnboundedDiscrepancyAlong` witness using the Stage-1 boundary equivalence.
   exact (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 out.unbounded
 
@@ -151,7 +151,7 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
 the affine-tail nuclei at the concrete Stage-1 parameters produced by Stage 2. -/
 theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
     ¬ ∃ B : ℕ,
-        ∀ n : ℕ, Int.natAbs (apSumFrom f (out.out1.m * out.out1.d) out.out1.d n) ≤ B := by
+        ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
   intro h
   rcases h with ⟨B, hB⟩
   rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) B with ⟨n, hn⟩
