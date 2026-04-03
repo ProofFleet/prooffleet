@@ -535,6 +535,31 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (out
       (out.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt (f := f) (C := B)).2
         (h B)
 
+/-- Stage-1 transport: the family statement `∀ C, HasDiscrepancyAtLeastAlong out.g out.d C`
+is equivalent to explicit affine-tail nucleus witnesses for `f`.
+
+This is a convenience wrapper combining
+`HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong`
+with `unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt
+    (out : ReductionOutput f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C) ↔
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C) := by
+  constructor
+  · intro h
+    have hunb : UnboundedDiscrepancyAlong out.g out.d :=
+      (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong
+        (g := out.g) (d := out.d)).1 h
+    exact
+      (out.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 hunb
+  · intro h
+    have hunb : UnboundedDiscrepancyAlong out.g out.d :=
+      (out.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).2 h
+    exact
+      (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong
+        (g := out.g) (d := out.d)).2 hunb
+
 /-- Unboundedness of reduced discrepancy is equivalent to unboundedness of the bundled offset family.
 
 The suffix `_lt` is legacy: the witness is `B < ...` (i.e. “greater than B”).
