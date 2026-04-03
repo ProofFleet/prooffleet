@@ -31,18 +31,26 @@ namespace Stage3Output
 
 variable {f : ℕ → ℤ}
 
-/-- Convenience projection: the reduced step size packaged in Stage 3. -/
-abbrev d (out : Stage3Output f) : ℕ := out.out2.out1.d
+/-- Convenience projection: the reduced step size packaged in Stage 3.
 
-/-- Convenience projection: the reduced sequence packaged in Stage 3. -/
-abbrev g (out : Stage3Output f) : ℕ → ℤ := out.out2.out1.g
+We intentionally route this through the Stage-2 boundary API (`Stage2Output.d`) so Stage 3 does not
+depend on Stage-1 record fields.
+-/
+abbrev d (out : Stage3Output f) : ℕ := out.out2.d
+
+/-- Convenience projection: the reduced sequence packaged in Stage 3.
+
+We intentionally route this through the Stage-2 boundary API (`Stage2Output.g`) so Stage 3 does not
+depend on Stage-1 record fields.
+-/
+abbrev g (out : Stage3Output f) : ℕ → ℤ := out.out2.g
 
 /-- The reduced sequence packaged in Stage 3 is a sign sequence. -/
 theorem hg (out : Stage3Output f) : IsSignSequence out.g := by
-  simpa [Stage3Output.g] using out.out2.out1.hg
+  simpa [Stage3Output.g] using (Stage2Output.hg (f := f) out.out2)
 
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
-abbrev m (out : Stage3Output f) : ℕ := out.out2.out1.m
+abbrev m (out : Stage3Output f) : ℕ := out.out2.m
 
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage3Output f) (k : ℕ) :
@@ -51,7 +59,7 @@ theorem g_eq (out : Stage3Output f) (k : ℕ) :
     (Stage2Output.g_eq (f := f) out.out2 k)
 
 /-- Convenience projection: positivity of the reduced step size. -/
-abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.out1.hd
+abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.hd
 
 /-- Convenience lemma: the reduced step size is nonzero. -/
 theorem d_ne_zero (out : Stage3Output f) : out.d ≠ 0 := by
@@ -114,8 +122,9 @@ theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
 This is just a thin wrapper around `Stage2Output.unboundedDiscOffset`.
 -/
 theorem unboundedDiscOffset (out : Stage3Output f) :
-    UnboundedDiscOffset f out.out2.out1.d out.out2.out1.m := by
-  exact Stage2Output.unboundedDiscOffset (f := f) out.out2
+    UnboundedDiscOffset f out.d out.m := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.unboundedDiscOffset (f := f) out.out2)
 
 /-- Negation-normal-form boundedness statement for the concrete Stage-1 parameters bundled in
 Stage 3.
@@ -123,8 +132,9 @@ Stage 3.
 This is the Prop-style boundedness predicate form of `unboundedDiscOffset`.
 -/
 theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
-    ¬ ∃ B : ℕ, BoundedDiscOffset f out.out2.out1.d out.out2.out1.m B := by
-  exact Stage2Output.not_exists_boundedDiscOffset (f := f) out.out2
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.not_exists_boundedDiscOffset (f := f) out.out2)
 
 /-- Nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
@@ -132,10 +142,10 @@ This is `unboundedDiscOffset` rewritten so consumers can work directly with
 `Int.natAbs (apSumOffset f d m n)` without unfolding `discOffset`.
 -/
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
-    ∀ B : ℕ, ∃ n : ℕ,
-      B < Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) := by
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
   -- Delegate to the Stage-2 boundary API: Stage 3 contains Stage 2 verbatim.
-  simpa using (Stage2Output.forall_exists_natAbs_apSumOffset_gt (f := f) out.out2)
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_natAbs_apSumOffset_gt (f := f) out.out2)
 
 /-- Inequality-direction variant of `forall_exists_natAbs_apSumOffset_gt`, written as
 `Int.natAbs ... > B`.
@@ -143,10 +153,10 @@ theorem forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
 Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
 -/
 theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage3Output f) :
-    ∀ B : ℕ, ∃ n : ℕ,
-      Int.natAbs (apSumOffset f out.out2.out1.d out.out2.out1.m n) > B := by
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
   -- Delegate to the Stage-2 boundary API.
-  simpa using (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f) out.out2)
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f) out.out2)
 
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the bundled offset
   discrepancy family `discOffset f d m` is unbounded.
@@ -212,20 +222,21 @@ theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (out : Stage3Ou
   exact Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f) out.out2
 
 /-- Stage 3 output yields bundled offset discrepancy witnesses for the concrete parameters
-`d = out.out2.out1.d` and `m = out.out2.out1.m`.
+`d = out.d` and `m = out.m`.
 
 This is a thin wrapper around the Stage-2 lemma `Stage2Output.forall_exists_discOffset_gt`.
 -/
 theorem forall_exists_discOffset_gt (out : Stage3Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out2.out1.d out.out2.out1.m n := by
-  exact Stage2Output.forall_exists_discOffset_gt (f := f) out.out2
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_discOffset_gt (f := f) out.out2)
 
 /-- Inequality-direction variant of `forall_exists_discOffset_gt`, written as `discOffset ... > B`.
 
 Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
 -/
 theorem forall_exists_discOffset_gt' (out : Stage3Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.out2.out1.d out.out2.out1.m n > B := by
+    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
   intro B
   rcases out.forall_exists_discOffset_gt (f := f) B with ⟨n, hn⟩
   exact ⟨n, by simpa [gt_iff_lt] using hn⟩
@@ -236,9 +247,9 @@ This is just the Stage-2 witness `Stage2Output.forall_exists_natAbs_apSumFrom_mu
 at the Stage-3 boundary.
 -/
 theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
-    ∀ C : ℕ, ∃ n : ℕ,
-      Int.natAbs (apSumFrom f (out.out2.out1.m * out.out2.out1.d) out.out2.out1.d n) > C := by
-  simpa using (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
+    ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
 
 /-- Negation-normal form: there is no uniform bound on the affine-tail nuclei at the concrete
 Stage-1 parameters bundled in Stage 3.
@@ -247,10 +258,9 @@ This is a small consumer convenience lemma: it is often the most convenient form
 contradiction-based arguments.
 -/
 theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage3Output f) :
-    ¬ ∃ B : ℕ,
-        ∀ n : ℕ,
-          Int.natAbs (apSumFrom f (out.out2.out1.m * out.out2.out1.d) out.out2.out1.d n) ≤ B := by
-  simpa using (Stage2Output.not_exists_forall_natAbs_apSumFrom_mul_le (f := f) out.out2)
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.not_exists_forall_natAbs_apSumFrom_mul_le (f := f) out.out2)
 
 /-- Stage 3 output implies there exist concrete parameters `d, m` such that the affine-tail nucleus
 `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
