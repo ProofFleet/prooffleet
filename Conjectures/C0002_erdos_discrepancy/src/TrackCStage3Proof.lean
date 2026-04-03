@@ -49,12 +49,15 @@ theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
 theorem stage3_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
     stage3_g (f := f) (hf := hf) k =
       f (k + (stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf))) := by
+  -- Prefer the Stage-2 boundary lemma to avoid exposing Stage-1 internals.
   simpa [stage3Out, stage3_g, stage3_m, stage3_d] using
-    (stage3Out (f := f) (hf := hf)).out2.out1.g_eq k
+    (Stage2Output.g_eq (f := f) (stage3Out (f := f) (hf := hf)).out2 k)
 
 /-- Positivity of the reduced step size produced by Stage 3. -/
 theorem stage3_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) > 0 := by
-  simpa [stage3Out, stage3_d] using (stage3Out (f := f) (hf := hf)).out2.out1.hd
+  -- Prefer the Stage-2 boundary API lemma.
+  simpa [stage3Out, stage3_d] using
+    (Stage2Output.hd (f := f) (stage3Out (f := f) (hf := hf)).out2)
 
 /-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
 theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
