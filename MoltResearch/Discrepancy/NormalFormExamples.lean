@@ -130,6 +130,25 @@ example :
     (IsSignSequence.natAbs_apSum_sub_apSum_le_two_mul_of_card_range_diff_le
       (hf := hf) (hg := hg) (d := 1) (n := 5) (t := 1) hcard)
 
+-- Regression (Track B / local edit sensitivity, sum-level / offset form):
+-- if you flip at most one sampled sign on the offset tail, the offset sum changes by at most `2`.
+example :
+    let f : ℕ → ℤ := fun _ => 1
+    let g : ℕ → ℤ := fun n => if n = 3 then (-1) else 1
+    Int.natAbs (apSumOffset f 1 2 5 - apSumOffset g 1 2 5) ≤ 2 := by
+  intro f g
+  have hf : IsSignSequence f := by intro n; simp [f]
+  have hg : IsSignSequence g := by
+    intro n
+    by_cases h : n = 3 <;> simp [g, h]
+  -- The offset sum samples indices `3,4,5,6,7`, so the sequences differ only at index `3`.
+  have hcard :
+      ((Finset.range 5).filter (fun i => f ((2 + i + 1) * 1) ≠ g ((2 + i + 1) * 1))).card ≤ 1 := by
+    decide
+  simpa using
+    (IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le_two_mul_of_card_range_diff_le
+      (hf := hf) (hg := hg) (d := 1) (m := 2) (n := 5) (t := 1) hcard)
+
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
 -- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
