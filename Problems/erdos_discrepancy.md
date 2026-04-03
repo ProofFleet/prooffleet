@@ -158,7 +158,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k` rewrites to a sum of homogeneous `apSum` terms with no nested `apSumOffset` in the summand.
   (Implemented as `apSumOffset_offset_summand_eq_sum_apSum_shift_add` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] DiscOffset split (equality-level): complement existing `≤` split lemmas with an *equality* lemma expressing `discOffset` across a concatenation in terms of `Int.natAbs (x+y)` where `x,y` are `apSumOffset` pieces, so later proofs can choose between exact algebra and triangle-inequality bounds.
+- [x] DiscOffset split (equality-level): complement existing `≤` split lemmas with an *equality* lemma expressing `discOffset` across a concatenation in terms of `Int.natAbs (x+y)` where `x,y` are `apSumOffset` pieces, so later proofs can choose between exact algebra and triangle-inequality bounds.
+  (Implemented as `discOffset_add_len_eq_natAbs_apSumOffset_add` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Reindexing API coherence for `Icc` endpoints: add a small family of lemmas that rewrite common `Icc` endpoint algebra (`m+1`, `m+n`) into the exact shapes expected by the existing `sum_Icc_eq_apSumOffset_of_le_*` family, reducing `simp` churn in downstream proofs.
 
