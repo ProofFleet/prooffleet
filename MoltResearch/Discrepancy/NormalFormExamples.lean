@@ -109,6 +109,27 @@ example (q : ℕ) (hq : q > 0) :
   simpa using
     (apSum_mul_len_succ_eq_sum_range_sum_range_mul_left (f := f) (d := d) (q := q) (n := n) hq)
 
+-- Regression (Track B / local edit sensitivity, sum-level):
+-- if you flip at most one sampled sign, the sum changes by at most `2`.
+example :
+    let f : ℕ → ℤ := fun _ => 1
+    let g : ℕ → ℤ := fun n => if n = 1 then (-1) else 1
+    Int.natAbs (apSum f 1 5 - apSum g 1 5) ≤ 2 := by
+  intro f g
+  have hf : IsSignSequence f := by intro n; simp [f]
+  have hg : IsSignSequence g := by
+    intro n
+    by_cases h : n = 1 <;> simp [g, h]
+  -- The sequences differ only at index `1`, so the filtered-card bound is `≤ 1`.
+  have hcard :
+      ((Finset.range 5).filter (fun i => f ((i + 1) * 1) ≠ g ((i + 1) * 1))).card ≤ 1 := by
+    -- `i=0` corresponds to sampled index `1`.
+    decide
+  -- Apply the convenience corollary with `t=1`.
+  simpa using
+    (IsSignSequence.natAbs_apSum_sub_apSum_le_two_mul_of_card_range_diff_le
+      (hf := hf) (hg := hg) (d := 1) (n := 5) (t := 1) hcard)
+
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
 -- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
