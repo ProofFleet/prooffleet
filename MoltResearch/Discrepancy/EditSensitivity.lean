@@ -317,4 +317,39 @@ lemma IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le'
     (IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le
       (hf := hg) (hg := hf) (d := d) (m := m) (n := n) (t := t) ht')
 
+/-!
+## API polish: `…_edit_…` naming
+
+The Track B card asks for the discrepancy-level edit-sensitivity bounds to be packaged with
+`…_edit_…`-style names, so downstream proofs read naturally (“edit the sequence; discrepancy
+changes by at most …”). These are thin wrappers around the canonical lemmas above.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Local edit sensitivity (disc-level).
+-/
+
+/-- **Local edit sensitivity (disc-level).**
+
+If `f,g` are sign sequences and they differ on at most `t` sampled indices in the offset AP sum,
+then editing `f` into `g` changes `discOffset` by at most `2*t` (one-sided).
+
+This is just a renamed wrapper for
+`IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le`.
+-/
+lemma IsSignSequence.discOffset_edit_le {f g : ℕ → ℤ}
+    (hf : IsSignSequence f) (hg : IsSignSequence g) (d m n t : ℕ)
+    (ht : ((Finset.range n).filter (fun i => f ((m + i + 1) * d) ≠ g ((m + i + 1) * d))).card ≤ t) :
+    discOffset f d m n ≤ discOffset g d m n + 2 * t := by
+  simpa using
+    (IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le
+      (hf := hf) (hg := hg) (d := d) (m := m) (n := n) (t := t) ht)
+
+/-- The opposite one-sided inequality, packaged with `…_le_edit_add` naming. -/
+lemma IsSignSequence.discOffset_le_edit_add {f g : ℕ → ℤ}
+    (hf : IsSignSequence f) (hg : IsSignSequence g) (d m n t : ℕ)
+    (ht : ((Finset.range n).filter (fun i => f ((m + i + 1) * d) ≠ g ((m + i + 1) * d))).card ≤ t) :
+    discOffset g d m n ≤ discOffset f d m n + 2 * t := by
+  simpa using
+    (IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le'
+      (hf := hf) (hg := hg) (d := d) (m := m) (n := n) (t := t) ht)
+
 end MoltResearch

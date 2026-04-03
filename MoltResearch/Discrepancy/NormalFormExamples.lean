@@ -165,7 +165,24 @@ example :
     decide
   -- Apply the discrepancy-level corollary with `t = 1`.
   simpa using
-    (IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le
+    (IsSignSequence.discOffset_edit_le
+      (hf := hf) (hg := hg) (d := 1) (m := 2) (n := 5) (t := 1) hcard)
+
+-- Regression (Track B / local edit sensitivity, disc-level / offset form, symmetric):
+example :
+    let f : ℕ → ℤ := fun _ => 1
+    let g : ℕ → ℤ := fun n => if n = 3 then (-1) else 1
+    discOffset g 1 2 5 ≤ discOffset f 1 2 5 + 2 := by
+  intro f g
+  have hf : IsSignSequence f := by intro n; simp [f]
+  have hg : IsSignSequence g := by
+    intro n
+    by_cases h : n = 3 <;> simp [g, h]
+  have hcard :
+      ((Finset.range 5).filter (fun i => f ((2 + i + 1) * 1) ≠ g ((2 + i + 1) * 1))).card ≤ 1 := by
+    decide
+  simpa using
+    (IsSignSequence.discOffset_le_edit_add
       (hf := hf) (hg := hg) (d := 1) (m := 2) (n := 5) (t := 1) hcard)
 
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
