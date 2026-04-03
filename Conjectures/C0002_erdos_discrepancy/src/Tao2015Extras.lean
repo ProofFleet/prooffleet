@@ -20,31 +20,12 @@ These are tiny rewrite lemmas that show up repeatedly when consuming the stage i
 They live in this Conjectures-only file to avoid growing the verified substrate.
 -/
 
-/-- Normal form: discrepancy at least `C` along a fixed step, expressed directly using the nucleus
-`apSum`.
+/-
+Note: `Tao2015` already provides the lemma
+`hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSum_gt'`.
 
-Normal form:
-`∃ n, Int.natAbs (apSum g d n) > C`.
-
-This is a lightweight rewrite of
-`hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt'` using the definition
-`discrepancy g d n = Int.natAbs (apSum g d n)`.
+`Tao2015Extras` is intended only for additional (non-duplicated) convenience lemmas.
 -/
-theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSum_gt' (g : ℕ → ℤ) (d C : ℕ) :
-    HasDiscrepancyAtLeastAlong g d C ↔ (∃ n : ℕ, Int.natAbs (apSum g d n) > C) := by
-  constructor
-  · intro h
-    rcases (hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g := g) (d := d) (C := C)).1 h with
-      ⟨n, hn⟩
-    refine ⟨n, ?_⟩
-    -- Avoid simp loops: unfold `discrepancy` manually.
-    unfold discrepancy at hn
-    exact hn
-  · rintro ⟨n, hn⟩
-    refine (hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g := g) (d := d) (C := C)).2 ?_
-    refine ⟨n, ?_⟩
-    unfold discrepancy
-    exact hn
 
 /-- Normal form: bounded discrepancy along a fixed step, expressed directly using the nucleus
 `apSum`.
