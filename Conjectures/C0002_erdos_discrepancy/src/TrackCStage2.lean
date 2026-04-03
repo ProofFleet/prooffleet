@@ -244,6 +244,19 @@ theorem exists_params_forall_exists_discOffset_gt (out : Stage2Output f) :
   intro B
   simpa using out.forall_exists_discOffset_gt (f := f) B
 
+/-- Inequality-direction variant of `exists_params_forall_exists_discOffset_gt`, written as
+`discOffset f d m n > B`.
+
+This is often a more convenient normal form for consumers that want to `simp [gt_iff_lt]`.
+-/
+theorem exists_params_forall_exists_discOffset_gt' (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
+  rcases out.exists_params_forall_exists_discOffset_gt (f := f) with ⟨d, m, hd, h⟩
+  refine ⟨d, m, hd, ?_⟩
+  intro B
+  rcases h B with ⟨n, hn⟩
+  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that
 `discOffset f d m` has arbitrarily large values.
 
