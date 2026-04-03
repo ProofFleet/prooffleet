@@ -20,20 +20,31 @@ These are tiny rewrite lemmas that show up repeatedly when consuming the stage i
 They live in this Conjectures-only file to avoid growing the verified substrate.
 -/
 
-/-- Normal form: unbounded discrepancy along a fixed step, expressed directly using the nucleus
+/-- Normal form: discrepancy at least `C` along a fixed step, expressed directly using the nucleus
 `apSum`.
 
 Normal form:
-`∀ B, ∃ n, Int.natAbs (apSum g d n) > B`.
+`∃ n, Int.natAbs (apSum g d n) > C`.
 
 This is a lightweight rewrite of
-`unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt'` using the definition
+`hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt'` using the definition
 `discrepancy g d n = Int.natAbs (apSum g d n)`.
 -/
-theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSum_gt' (g : ℕ → ℤ) (d : ℕ) :
-    UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSum g d n) > B) := by
-  simpa [discrepancy] using
-    (unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g := g) (d := d))
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSum_gt' (g : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong g d C ↔ (∃ n : ℕ, Int.natAbs (apSum g d n) > C) := by
+  constructor
+  · intro h
+    rcases (hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g := g) (d := d) (C := C)).1 h with
+      ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- Avoid simp loops: unfold `discrepancy` manually.
+    unfold discrepancy at hn
+    exact hn
+  · rintro ⟨n, hn⟩
+    refine (hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g := g) (d := d) (C := C)).2 ?_
+    refine ⟨n, ?_⟩
+    unfold discrepancy
+    exact hn
 
 /- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus.
 
@@ -57,12 +68,12 @@ theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
 /-- Inequality normal form: `discOffset f d m n < B` rewritten using affine-tail nuclei. -/
 theorem discOffset_lt_iff_natAbs_apSumFrom_mul_lt (f : ℕ → ℤ) (d m n B : ℕ) :
     discOffset f d m n < B ↔ Int.natAbs (apSumFrom f (m * d) d n) < B := by
-  simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)]
+  simp [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)]
 
 /-- Inequality normal form: `discOffset f d m n > B` rewritten using affine-tail nuclei. -/
 theorem discOffset_gt_iff_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (d m n B : ℕ) :
     discOffset f d m n > B ↔ Int.natAbs (apSumFrom f (m * d) d n) > B := by
-  simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)]
+  simp [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)]
 
 /-- Normal form: boundedness of `discOffset f d m` expressed using affine-tail nuclei.
 
