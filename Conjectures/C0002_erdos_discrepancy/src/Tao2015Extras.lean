@@ -20,6 +20,21 @@ These are tiny rewrite lemmas that show up repeatedly when consuming the stage i
 They live in this Conjectures-only file to avoid growing the verified substrate.
 -/
 
+/-- Normal form: unbounded discrepancy along a fixed step, expressed directly using the nucleus
+`apSum`.
+
+Normal form:
+`∀ B, ∃ n, Int.natAbs (apSum g d n) > B`.
+
+This is a lightweight rewrite of
+`unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt'` using the definition
+`discrepancy g d n = Int.natAbs (apSum g d n)`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSum_gt' (g : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSum g d n) > B) := by
+  simpa [discrepancy] using
+    (unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g := g) (d := d))
+
 /- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus.
 
 Provided by `Conjectures.C0002_erdos_discrepancy.src.Tao2015` as
