@@ -75,6 +75,16 @@ This is a thin wrapper around the proved Stage-2 boundary lemma
 theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
   exact Stage2Output.notBoundedOriginal (f := f) (stage2Out (f := f) (hf := hf))
 
+/-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
+`∀ C, HasDiscrepancyAtLeast f C`.
+
+This is a thin wrapper around the proved Stage-2 boundary lemma
+`Stage2Output.forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  exact Stage2Output.forall_hasDiscrepancyAtLeast (f := f) (stage2Out (f := f) (hf := hf))
+
 /-!
 Consumer code should use `stage2Out` together with the general lemmas about `Stage2Output` in
 `TrackCStage2.lean` (for example: `Stage2Output.forall_hasDiscrepancyAtLeast`,
