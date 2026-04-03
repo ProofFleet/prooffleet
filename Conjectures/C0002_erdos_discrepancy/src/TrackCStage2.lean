@@ -171,7 +171,7 @@ This is just a wrapper around
 Note the inequality direction: this produces witnesses of the form `B < discOffset ...`.
 -/
 theorem forall_exists_discOffset_gt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n := by
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   -- Unfold the Stage-2 witness form and transport it through the Stage-1 contract.
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)).1 out.unbounded)
@@ -181,32 +181,32 @@ theorem forall_exists_discOffset_gt (out : Stage2Output f) :
 Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
 -/
 theorem forall_exists_discOffset_gt' (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.out1.d out.out1.m n > B := by
+    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
   intro B
   rcases out.forall_exists_discOffset_gt (f := f) B with ⟨n, hn⟩
   exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
 /-- Stage 2 implies *unbounded offset discrepancy* for the original sequence, at the bundled
-parameters `(out.out1.d, out.out1.m)`.
+parameters `(out.d, out.m)`.
 
 This is the packaged predicate version of `forall_exists_discOffset_gt`.
 -/
 theorem unboundedDiscOffset (out : Stage2Output f) :
-    Tao2015.UnboundedDiscOffset f out.out1.d out.out1.m := by
+    Tao2015.UnboundedDiscOffset f out.d out.m := by
   exact (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
 
 /-- Stage 2 implies there is no uniform bound on the bundled offset discrepancy family
-`discOffset f out.out1.d out.out1.m`.
+`discOffset f out.d out.m`.
 
 This is the negation-normal-form version of `unboundedDiscOffset`.
 -/
 theorem not_exists_boundedDiscOffset (out : Stage2Output f) :
-    ¬ ∃ B : ℕ, BoundedDiscOffset f out.out1.d out.out1.m B := by
-  have hunb : UnboundedDiscOffset f out.out1.d out.out1.m :=
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
+  have hunb : UnboundedDiscOffset f out.d out.m :=
     out.unboundedDiscOffset (f := f)
   exact
     (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f)
-        (d := out.out1.d) (m := out.out1.m)).1
+        (d := out.d) (m := out.m)).1
       hunb
 
 /-- Existential packaging: Stage 2 already yields concrete parameters `d, m` such that the bundled
@@ -217,7 +217,7 @@ record fields of `Stage2Output`.
 -/
 theorem exists_params_unboundedDiscOffset (out : Stage2Output f) :
     ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
-  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  refine ⟨out.d, out.m, out.hd, ?_⟩
   exact out.unboundedDiscOffset (f := f)
 
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that the
@@ -228,9 +228,7 @@ use the normal form `1 ≤ d` rather than `d > 0`.
 -/
 theorem exists_params_one_le_unboundedDiscOffset (out : Stage2Output f) :
     ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
-  have hd1 : 1 ≤ out.out1.d := by
-    simpa [Stage2Output.d] using (out.one_le_d (f := f))
-  refine ⟨out.out1.d, out.out1.m, hd1, ?_⟩
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
   exact out.unboundedDiscOffset (f := f)
 
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that `discOffset f d m`
@@ -240,7 +238,7 @@ This is the explicit witness-family form of `exists_params_unboundedDiscOffset`.
 -/
 theorem exists_params_forall_exists_discOffset_gt (out : Stage2Output f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
-  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  refine ⟨out.d, out.m, out.hd, ?_⟩
   intro B
   simpa using out.forall_exists_discOffset_gt (f := f) B
 
@@ -265,9 +263,7 @@ stages use the normal form `1 ≤ d` rather than `d > 0`.
 -/
 theorem exists_params_one_le_forall_exists_discOffset_gt (out : Stage2Output f) :
     ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
-  have hd1 : 1 ≤ out.out1.d := by
-    simpa [Stage2Output.d] using (out.one_le_d (f := f))
-  refine ⟨out.out1.d, out.out1.m, hd1, ?_⟩
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
   intro B
   simpa using out.forall_exists_discOffset_gt (f := f) B
 
@@ -292,7 +288,7 @@ This is the explicit witness-family form often consumed by later analytic stages
 theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
     ∃ d m : ℕ, d > 0 ∧
       (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
-  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  refine ⟨out.d, out.m, out.hd, ?_⟩
   intro C
   rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
   exact ⟨n, hn⟩
@@ -305,9 +301,7 @@ Many downstream consumers prefer `1 ≤ d` to avoid repeatedly rewriting `d > 0`
 theorem exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
-  have hd1 : 1 ≤ out.out1.d := by
-    simpa [Stage2Output.d] using (out.one_le_d (f := f))
-  refine ⟨out.out1.d, out.out1.m, hd1, ?_⟩
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
   intro C
   rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
   exact ⟨n, hn⟩
@@ -318,7 +312,7 @@ Deprecated because the suffix `_lt` was misleading: the statement is `B < ...` (
 -/
 @[deprecated "Use `forall_exists_discOffset_gt` (the statement is `B < discOffset ...`)." (since := "2026-03-08")]
 theorem forall_exists_discOffset_lt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.out1.d out.out1.m n := by
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   simpa using out.forall_exists_discOffset_gt (f := f)
 
 /-- Sum-level variant of `forall_exists_discOffset_gt`.
@@ -327,7 +321,7 @@ This is occasionally the right normal form for later analytic stages: it exposes
 `apSumOffset` rather than the wrapper `discOffset`.
 -/
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.out1.d out.out1.m n) := by
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (f := f)).1
       out.unbounded)
@@ -338,7 +332,7 @@ theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
 Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
 -/
 theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.out1.d out.out1.m n) > B := by
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
   intro B
   rcases out.forall_exists_natAbs_apSumOffset_gt (f := f) B with ⟨n, hn⟩
   exact ⟨n, by simpa [gt_iff_lt] using hn⟩
@@ -351,7 +345,7 @@ This is the raw-nucleus form of `exists_params_forall_exists_discOffset_gt`.
 theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
     ∃ d m : ℕ, d > 0 ∧
       (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
-  refine ⟨out.out1.d, out.out1.m, out.out1.hd, ?_⟩
+  refine ⟨out.d, out.m, out.hd, ?_⟩
   intro B
   simpa using out.forall_exists_natAbs_apSumOffset_gt' (f := f) B
 
@@ -363,9 +357,7 @@ Many downstream consumers prefer `1 ≤ d` to avoid repeatedly rewriting `d > 0`
 theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
-  have hd1 : 1 ≤ out.out1.d := by
-    simpa [Stage2Output.d] using (out.one_le_d (f := f))
-  refine ⟨out.out1.d, out.out1.m, hd1, ?_⟩
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
   intro B
   simpa using out.forall_exists_natAbs_apSumOffset_gt' (f := f) B
 
@@ -375,7 +367,7 @@ Deprecated because the suffix `_lt` was misleading: the statement is `B < ...`.
 -/
 @[deprecated "Use `forall_exists_natAbs_apSumOffset_gt` (the statement is `B < Int.natAbs ...`)." (since := "2026-03-08")]
 theorem forall_exists_natAbs_apSumOffset_lt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.out1.d out.out1.m n) := by
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
   simpa using out.forall_exists_natAbs_apSumOffset_gt (f := f)
 
 /-- Consumer-facing form: Stage 2 implies global unbounded discrepancy for the original sequence.
