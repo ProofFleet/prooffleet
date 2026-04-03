@@ -47,6 +47,12 @@ example : apSumOffset f d 0 n = apSum f d n := by
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_mul (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / offset-of-offset flattening): eliminate nested `apSumOffset` in the summand.
+example : apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k =
+      (Finset.range k).sum (fun i => apSum (fun s => f (s + (m + (i + 1)) * d)) d n) := by
+  simpa using
+    (apSumOffset_offset_summand_eq_sum_apSum_shift_add (f := f) (d := d) (m := m) (n := n) (k := k))
+
 -- Regression (Track B / canonical discrepancy view of offsets): same rewrite at the `discrepancy` level.
 example : discOffset f d m n = discrepancy (fun k => f (k + m * d)) d n := by
   simpa using (discOffset_eq_discrepancy_shift_mul (f := f) (d := d) (m := m) (n := n))

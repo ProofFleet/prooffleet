@@ -1184,6 +1184,32 @@ lemma apSumOffset_eq_apSum_shift_add_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [Nat.mul_comm] using
     (apSumOffset_eq_apSum_shift_add (f := f) (d := d) (m := m) (n := n))
 
+/-!
+### Offset-of-offset flattening normal form
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Offset-of-offset flattening.
+
+This lemma provides a conservative normal form that eliminates **nested `apSumOffset`** in the
+summand by rewriting the inner offset sums using `apSumOffset_eq_apSum_shift_add`.
+
+It is intentionally not tagged `[simp]`: it is a directed rewrite that can be useful in
+normal-form pipelines, but we want to avoid accidental unfolding / simp blow-ups.
+-/
+lemma apSumOffset_offset_summand_eq_sum_apSum_shift_add
+    (f : ℕ → ℤ) (d m n k : ℕ) :
+    apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k =
+      (Finset.range k).sum (fun i => apSum (fun s => f (s + (m + (i + 1)) * d)) d n) := by
+  -- Expand the outer `apSumOffset` (`d=1, m=0`).
+  unfold apSumOffset
+  -- The outer step-one offset sum is just a range sum over `i ↦ apSumOffset f d (m + (i+1)) n`.
+  simp [Nat.mul_one, Nat.zero_add, Nat.add_assoc]
+  -- Normalize each inner offset sum using `apSumOffset_eq_apSum_shift_add`.
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Unfold `apSum` so the normal form is a plain range sum (no nested `apSumOffset`).
+  simp [apSumOffset_eq_apSum_shift_add, apSum, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
+    Nat.mul_assoc, Nat.add_mul, Nat.mul_add, two_mul]
+
 /-- Length-splitting normal form: split an offset sum into a prefix offset sum and a shifted
 homogeneous AP sum.
 
