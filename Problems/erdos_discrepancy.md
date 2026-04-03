@@ -138,6 +138,28 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   so downstream code doesn’t have to manually translate “≤ n” hypotheses into `Finset.range` congruence facts.
   (Implemented as `apSumOffset_congr_le` / `discOffset_congr_le` in `MoltResearch/Discrepancy/Basic.lean` and `apSumFrom_congr_le` in `MoltResearch/Discrepancy/Affine.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Local edit sensitivity (sum-level): if `f` and `g` differ on at most `t` indices of the relevant `Icc`/`range`, prove a canonical bound
+  `Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤ t` (and a homogeneous `apSum` analogue), with a stable regression example under `import MoltResearch.Discrepancy`.
+
+- [ ] Local edit sensitivity (disc-level): derive the discrepancy-level corollary
+  `discOffset f d m n ≤ discOffset g d m n + t` (and symmetric), packaged as `discOffset_edit_le` / `discOffset_le_edit_add`-style lemmas.
+
+- [ ] Multiplicative dilation normal form: package a canonical rewrite for dilating indices,
+  `apSum (fun k => f (k * q)) d n = apSum f (d*q) n` (and `apSumOffset`/`apSumFrom` analogues with consistent `mul_left` variants), so “pull a common factor into the step” is one `rw`.
+
+- [ ] Offset-of-offset flattening: prove a stable normal form eliminating nested offsets, e.g.
+  `apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k` (or the repo’s preferred shape) rewrites to a single `apSumOffset`/`apSum` expression with no nested `apSumOffset` in the summand.
+
+- [ ] DiscOffset split (equality-level): complement existing `≤` split lemmas with an *equality* lemma expressing `discOffset` across a concatenation in terms of `Int.natAbs (x+y)` where `x,y` are `apSumOffset` pieces, so later proofs can choose between exact algebra and triangle-inequality bounds.
+
+- [ ] Reindexing API coherence for `Icc` endpoints: add a small family of lemmas that rewrite common `Icc` endpoint algebra (`m+1`, `m+n`) into the exact shapes expected by the existing `sum_Icc_eq_apSumOffset_of_le_*` family, reducing `simp` churn in downstream proofs.
+
+- [ ] “Residue-class on offsets” disc-level inequality: after splitting `apSumOffset` into residues mod `r`, prove a canonical `discOffset` inequality bounding the whole discrepancy by the sum of residue discrepancies (triangle-inequality packaged), with regression examples under the stable surface.
+
+- [ ] Stable-surface polish: add a tiny compile-only example file showing the full normal-form pipeline for a typical “edit + split + bound” argument (paper sum → nucleus → local edit sensitivity → triangle bound), and wire it into `SurfaceAudit` so it can’t regress.
+
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
