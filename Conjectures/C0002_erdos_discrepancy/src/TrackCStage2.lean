@@ -46,6 +46,18 @@ namespace Stage2Output
 
 variable {f : ℕ → ℤ}
 
+/-- Build a Stage-2 output from a Stage-1 reduction output plus unboundedness of the bundled
+offset discrepancy family.
+
+This is a small convenience constructor: many future Stage-2 proofs will naturally establish
+unboundedness in the `discOffset` normal form, and then transport it to fixed-step unboundedness
+via the Stage-1 contract.
+-/
+def ofReductionOutput_unboundedDiscOffset (out1 : Tao2015.ReductionOutput f)
+    (hunb : Tao2015.UnboundedDiscOffset f out1.d out1.m) : Stage2Output f := by
+  refine ⟨out1, ?_⟩
+  exact (out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).2 hunb
+
 /-- Convenience projection: the reduced step size. -/
 abbrev d (out : Stage2Output f) : ℕ := out.out1.d
 
