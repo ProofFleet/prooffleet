@@ -415,4 +415,44 @@ lemma discOffset_mul_len_succ_eq_natAbs_sum_range_mul_left (f : ℕ → ℤ) (d 
   unfold discOffset
   simp [apSumOffset_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (m := m) (q := q) (n := n) hq]
 
+/-!
+### Discrepancy inequality: bound by sum of residue discrepancies
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue-class on offsets: disc-level inequality.
+
+After rewriting an offset discrepancy into the residue-class split normal form, apply the triangle
+inequality to bound the whole discrepancy by the sum of the residue-class discrepancies.
+-/
+
+/-- Triangle-inequality bound for the residue-class split normal form of `discOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue-class on offsets: disc-level inequality.
+-/
+lemma discOffset_mul_len_succ_le_sum_range_natAbs (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    discOffset f d m (q * (n + 1)) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n)) := by
+  classical
+  -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
+  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
+      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
+    classical
+    refine Finset.induction_on s ?h0 ?hstep
+    · simp
+    · intro a s ha hs
+      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
+        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
+      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
+      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
+          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
+        Nat.add_le_add_left h2 _
+      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+        (Nat.le_trans h1 h3)
+
+  -- Rewrite to the residue-class split normal form and apply the triangle inequality.
+  -- (We keep the summand in the stable-surface `f + apSumFrom` form.)
+  simpa [discOffset_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq] using
+    (natAbs_sum_le_sum_natAbs (Finset.range q)
+      (fun r => f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n))
+
 end MoltResearch
