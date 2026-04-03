@@ -44,6 +44,12 @@ theorem hg (out : Stage3Output f) : IsSignSequence out.g := by
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
 abbrev m (out : Stage3Output f) : ℕ := out.out2.out1.m
 
+/-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
+theorem g_eq (out : Stage3Output f) (k : ℕ) :
+    out.g k = f (k + out.m * out.d) := by
+  simpa [Stage3Output.g, Stage3Output.m, Stage3Output.d] using
+    (Stage2Output.g_eq (f := f) out.out2 k)
+
 /-- Convenience projection: positivity of the reduced step size. -/
 abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.out1.hd
 
