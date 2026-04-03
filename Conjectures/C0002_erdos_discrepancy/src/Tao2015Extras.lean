@@ -54,6 +54,16 @@ theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
     (congrArg Int.natAbs
         (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))).symm
 
+/-- Inequality normal form: `discOffset f d m n < B` rewritten using affine-tail nuclei. -/
+theorem discOffset_lt_iff_natAbs_apSumFrom_mul_lt (f : ℕ → ℤ) (d m n B : ℕ) :
+    discOffset f d m n < B ↔ Int.natAbs (apSumFrom f (m * d) d n) < B := by
+  simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)]
+
+/-- Inequality normal form: `discOffset f d m n > B` rewritten using affine-tail nuclei. -/
+theorem discOffset_gt_iff_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (d m n B : ℕ) :
+    discOffset f d m n > B ↔ Int.natAbs (apSumFrom f (m * d) d n) > B := by
+  simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)]
+
 /-- Normal form: boundedness of `discOffset f d m` expressed using affine-tail nuclei.
 
 This avoids unfolding `discOffset` and repeatedly rewriting `apSumOffset` into an `apSumFrom` tail.
