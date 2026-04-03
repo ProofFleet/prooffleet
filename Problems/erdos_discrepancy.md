@@ -154,8 +154,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   in `MoltResearch/Discrepancy/Basic.lean`, and `apSumFrom_map_mul_right` / `apSumFrom_map_mul_left` in
   `MoltResearch/Discrepancy/Affine.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Offset-of-offset flattening: prove a stable normal form eliminating nested offsets, e.g.
-  `apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k` (or the repo’s preferred shape) rewrites to a single `apSumOffset`/`apSum` expression with no nested `apSumOffset` in the summand.
+- [x] Offset-of-offset flattening: prove a stable normal form eliminating nested offsets, e.g.
+  `apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k` rewrites to a sum of homogeneous `apSum` terms with no nested `apSumOffset` in the summand.
+  (Implemented as `apSumOffset_offset_summand_eq_sum_apSum_shift_add` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] DiscOffset split (equality-level): complement existing `≤` split lemmas with an *equality* lemma expressing `discOffset` across a concatenation in terms of `Int.natAbs (x+y)` where `x,y` are `apSumOffset` pieces, so later proofs can choose between exact algebra and triangle-inequality bounds.
 
