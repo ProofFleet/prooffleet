@@ -99,6 +99,26 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g : ℕ → ℤ) 
   · rintro ⟨n, hn⟩
     exact ⟨n, hn⟩
 
+/-- Nucleus normal form for `HasDiscrepancyAtLeastAlong`.
+
+Normal form:
+`∃ n, Int.natAbs (apSum g d n) > C`.
+
+This is a lightweight rewrite of `hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt'` using the
+definitional equality `discrepancy g d n = Int.natAbs (apSum g d n)`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSum_gt' (g : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong g d C ↔ (∃ n : ℕ, Int.natAbs (apSum g d n) > C) := by
+  constructor
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    unfold discrepancy at hn
+    exact hn
+  · rintro ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    unfold discrepancy
+    exact hn
+
 /-- Unboundedness of a bundled offset discrepancy family. -/
 def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n
