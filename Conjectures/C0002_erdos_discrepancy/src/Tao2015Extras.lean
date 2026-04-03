@@ -20,11 +20,11 @@ These are tiny rewrite lemmas that show up repeatedly when consuming the stage i
 They live in this Conjectures-only file to avoid growing the verified substrate.
 -/
 
-/-- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus. -/
-theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
-    apSumFrom f (m * d) d n = apSumOffset f d m n := by
-  simpa using
-    (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n))
+/- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus.
+
+Provided by `Conjectures.C0002_erdos_discrepancy.src.Tao2015` as
+`Tao2015.apSumFrom_mul_eq_apSumOffset`; we just use it in this file.
+-/
 
 /-- Normal form: offset discrepancy expressed directly using the affine-tail nucleus.
 
@@ -65,7 +65,7 @@ theorem unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f : ℕ
       (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
   -- Rewrite unboundedness through the negation-normal-form boundedness predicate, then unfold the
   -- relevant definitions.
-  simpa [BoundedDiscOffset, discOffset] using
+  simpa [BoundedDiscOffset, discOffset, -natAbs_apSumOffset_eq_discOffset] using
     (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m))
 
 /-- Normal form: unbounded offset discrepancy means there is no uniform affine-tail nucleus bound.
