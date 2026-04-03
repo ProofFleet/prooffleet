@@ -46,6 +46,33 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSum_gt' (g : ℕ → ℤ)
     unfold discrepancy
     exact hn
 
+/-- Normal form: bounded discrepancy along a fixed step, expressed directly using the nucleus
+`apSum`.
+
+Normal form:
+`∃ B, ∀ n, Int.natAbs (apSum g d n) ≤ B`.
+
+This is a lightweight rewrite of the definition of `BoundedDiscrepancyAlong` using
+`discrepancy g d n = Int.natAbs (apSum g d n)`.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSum_le (g : ℕ → ℤ) (d : ℕ) :
+    BoundedDiscrepancyAlong g d ↔ (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum g d n) ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have hn : discrepancy g d n ≤ B := hB n
+    -- Avoid simp loops: unfold `discrepancy` manually.
+    unfold discrepancy at hn
+    exact hn
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have hn : Int.natAbs (apSum g d n) ≤ B := hB n
+    -- Avoid simp loops: unfold `discrepancy` manually.
+    unfold discrepancy
+    exact hn
+
 /- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus.
 
 Provided by `Conjectures.C0002_erdos_discrepancy.src.Tao2015` as
