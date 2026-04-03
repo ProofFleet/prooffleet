@@ -143,6 +143,30 @@ theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt (f :
     (Tao2015.Stage3Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f)
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
+/-- Paper-notation surface form of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt`.
+
+Normal form:
+`∃ d m, d > 0 ∧ ∀ B, ∃ n, |∑ i ∈ Icc (m+1) (m+n), f (i*d)| > B`.
+-/
+theorem erdos_discrepancy_exists_params_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ B : ℕ, ∃ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  rcases
+      erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt (f := f) (hf := hf) with
+    ⟨d, m, hd, h⟩
+  refine ⟨d, m, hd, ?_⟩
+  intro B
+  rcases h B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  have hIcc :
+      Int.natAbs (apSumOffset f d m n) =
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+    exact
+      congrArg Int.natAbs (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n))
+  simpa [hIcc] using hn
+
 /-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt` packaging the
 step-size side condition as `1 ≤ d`.
 
