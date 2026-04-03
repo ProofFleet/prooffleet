@@ -61,13 +61,20 @@ theorem g_eq (out : Stage3Output f) (k : ℕ) :
 /-- Convenience projection: positivity of the reduced step size. -/
 abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.hd
 
-/-- Convenience lemma: the reduced step size is nonzero. -/
-theorem d_ne_zero (out : Stage3Output f) : out.d ≠ 0 := by
-  exact Nat.ne_of_gt out.hd
+/-- Convenience lemma: the reduced step size is nonzero.
 
-/-- Convenience lemma: the reduced step size is at least `1`. -/
+We intentionally delegate this to the Stage-2 boundary API lemma (`Stage2Output.d_ne_zero`), so
+Stage 3 doesn't re-prove arithmetic facts about its projections.
+-/
+theorem d_ne_zero (out : Stage3Output f) : out.d ≠ 0 := by
+  simpa [Stage3Output.d] using (Stage2Output.d_ne_zero (f := f) out.out2)
+
+/-- Convenience lemma: the reduced step size is at least `1`.
+
+We intentionally delegate this to the Stage-2 boundary API lemma (`Stage2Output.one_le_d`).
+-/
 theorem one_le_d (out : Stage3Output f) : 1 ≤ out.d := by
-  simpa using (Nat.succ_le_iff).2 out.hd
+  simpa [Stage3Output.d] using (Stage2Output.one_le_d (f := f) out.out2)
 
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
