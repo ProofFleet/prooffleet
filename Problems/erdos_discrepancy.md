@@ -140,8 +140,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Local edit sensitivity (sum-level): if `f` and `g` differ on at most `t` indices of the relevant `Icc`/`range`, prove a canonical bound
-  `Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤ t` (and a homogeneous `apSum` analogue), with a stable regression example under `import MoltResearch.Discrepancy`.
+- [x] Local edit sensitivity (sum-level): if `f` and `g` differ on at most `t` indices of the relevant `Icc`/`range`, prove a canonical bound
+  `Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤ 2*t` (and a homogeneous `apSum` analogue), with a stable regression example under `import MoltResearch.Discrepancy`.
+  (Implemented in `MoltResearch/Discrepancy/EditSensitivity.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Local edit sensitivity (disc-level): derive the discrepancy-level corollary
   `discOffset f d m n ≤ discOffset g d m n + t` (and symmetric), packaged as `discOffset_edit_le` / `discOffset_le_edit_add`-style lemmas.
