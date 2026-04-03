@@ -78,30 +78,10 @@ This can be convenient when proving unboundedness by contradiction.
 theorem unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (d m : ℕ) :
     UnboundedDiscOffset f d m ↔
       (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B) := by
-  constructor
-  · intro hunb
-    intro h
-    rcases h with ⟨B, hB⟩
-    have hB' : ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B := by
-      intro n
-      simpa [apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)] using hB n
-    exact
-      (unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m)).1
-          hunb
-        ⟨B, hB'⟩
-  · intro h
-    refine
-      (unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m)).2
-        ?_
-    intro h'
-    rcases h' with ⟨B, hB⟩
-    have hB' : ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B := by
-      intro n
-      have hsum : apSumOffset f d m n = apSumFrom f (m * d) d n := by
-        simpa using
-          (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)).symm
-      simpa [hsum] using hB n
-    exact h ⟨B, hB'⟩
+  -- Rewrite through the negation-normal-form boundedness predicate, then use the affine-tail
+  -- normal form for `BoundedDiscOffset`.
+  simpa [boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f := f) (d := d) (m := m)] using
+    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m))
 
 /-- Normal form: boundedness of `discOffset f d m` expressed directly using the bundled offset nucleus.
 
