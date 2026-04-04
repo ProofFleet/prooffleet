@@ -66,6 +66,24 @@ lemma apSumOffset_eq_sum_range_add (f : ℕ → ℤ) (d m n : ℕ) :
   intro i hi
   simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- Reverse-reindex normal form for `apSumOffset` over `Finset.range`.
+
+This reindexes the defining range sum by `i ↦ n-1-i`, packaging the standard lemma
+`Finset.sum_range_reflect` into the discrepancy nucleus API.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Offset-reindex “reverse” normal form.
+-/
+lemma apSumOffset_eq_sum_range_reflect (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n =
+      (Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d)) := by
+  classical
+  calc
+    apSumOffset f d m n
+        = (Finset.range n).sum (fun i => f ((m + i + 1) * d)) := by
+            simpa using (apSumOffset_eq_sum_range' (f := f) (d := d) (m := m) (n := n))
+    _ = (Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d)) := by
+          simpa using (Finset.sum_range_reflect (f := fun i => f ((m + i + 1) * d)) n).symm
+
 /-!
 ## One-cut normal form (range sums)
 

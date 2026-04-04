@@ -47,6 +47,12 @@ example : apSumOffset f d 0 n = apSum f d n := by
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_mul (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / offset reindexing, reverse normal form):
+-- reindex the tail sum by `i ↦ n-1-i` (a `Finset.range` “reflect”).
+example : apSumOffset f d m n =
+    (Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d)) := by
+  simpa using (apSumOffset_eq_sum_range_reflect (f := f) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / offset-of-offset flattening): eliminate nested `apSumOffset` in the summand.
 example : apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k =
       (Finset.range k).sum (fun i => apSum (fun s => f (s + (m + (i + 1)) * d)) d n) := by
