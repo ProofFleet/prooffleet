@@ -166,6 +166,16 @@ theorem unboundedDiscOffset (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.unboundedDiscOffset (f := f) out.out2)
 
+/-- Negation-normal-form: there is no uniform bound on the bundled offset discrepancy family
+`discOffset f out.d out.m`.
+
+This is a thin wrapper around `Stage2Output.not_exists_boundedDiscOffset`.
+-/
+theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.not_exists_boundedDiscOffset (f := f) out.out2)
+
 /-- Nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
 This is `unboundedDiscOffset` rewritten so consumers can work directly with
