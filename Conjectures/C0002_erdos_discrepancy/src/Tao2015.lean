@@ -236,6 +236,32 @@ theorem iff_forall_exists_natAbs_apSumFrom_mul_gt' (f : ℕ → ℤ) (d m : ℕ)
     (iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m))
 
 /-- Negation-normal form: unbounded offset discrepancy means there is no uniform bound on the
+affine-tail nuclei `Int.natAbs (apSumFrom f (m*d) d n)`.
+
+This is the tail-nucleus analogue of `iff_not_exists_forall_natAbs_apSumOffset_le`.
+-/
+theorem iff_not_exists_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B) := by
+  classical
+  constructor
+  · intro hunb h
+    rcases h with ⟨B, hB⟩
+    rcases (iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m)).1 hunb B with
+      ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n)) hn
+  · intro hnb
+    refine (iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m)).2 ?_
+    intro B
+    by_contra h
+    have hB : ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B := by
+      intro n
+      exact le_of_not_gt (by
+        intro hgt
+        exact h ⟨n, hgt⟩)
+    exact hnb ⟨B, hB⟩
+
+/-- Negation-normal form: unbounded offset discrepancy means there is no uniform bound on the
 bundled offset nuclei `Int.natAbs (apSumOffset f d m n)`.
 
 This is often the most convenient form for proofs by contradiction.
