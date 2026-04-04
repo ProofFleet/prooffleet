@@ -175,7 +175,8 @@ This is a thin wrapper around `apSumOffset_eq_sum_Icc` (from `MoltResearch.Discr
 theorem natAbs_apSumOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
     Int.natAbs (apSumOffset f d m n) =
       Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
-  simpa using
+  -- Apply `Int.natAbs` to `apSumOffset_eq_sum_Icc` without invoking the simp engine.
+  exact
     congrArg Int.natAbs (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n))
 
 namespace UnboundedDiscOffset
