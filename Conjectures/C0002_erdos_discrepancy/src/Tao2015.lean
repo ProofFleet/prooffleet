@@ -726,6 +726,17 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (out : Reducti
     refine ⟨n, ?_⟩
     simpa [discrepancy_eq_discOffset_via_contract (out := out) (n := n)] using hn
 
+/-- Inequality-direction variant of `unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`,
+written as `discOffset ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt' (out : ReductionOutput f) :
+    UnboundedDiscrepancyAlong out.g out.d ↔
+      (∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B) := by
+  simpa [gt_iff_lt] using
+    (unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f) (out := out))
+
 /-- Packaged predicate form: reduced-step unbounded discrepancy is equivalent to unboundedness of the
 bundled offset discrepancy family for `f`.
 -/
