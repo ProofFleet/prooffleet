@@ -123,6 +123,62 @@ example :
       simpa using
         (discOffset_mul_eq_discOffset_map_mul (f := f) (d := d) (k := k) (m := m + a) (n := n))
 
+-- Regression (Track B / stable-surface simp audit, translation+dilation+cut):
+-- A representative “user rewrite chain” that should keep working under:
+--
+--   `import MoltResearch.Discrepancy`
+--
+-- It exercises:
+-- `discOffset` → cut → `apSumOffset` → (pull dilation into the step) → `apSumFrom` telescope.
+example (q k' : ℕ) (hk' : k' ≤ n) :
+    discOffset (fun t => f (a + t * q)) d m n =
+      Int.natAbs (apSumFrom f a (d * q) (m + n) - apSumFrom f a (d * q) m) := by
+  -- Cut `discOffset` at length `k'`.
+  have hcut :
+      discOffset (fun t => f (a + t * q)) d m n =
+        Int.natAbs
+          (apSumOffset (fun t => f (a + t * q)) d m k' +
+            apSumOffset (fun t => f (a + t * q)) d (m + k') (n - k')) := by
+    simpa using
+      (discOffset_eq_natAbs_apSumOffset_cut
+        (f := fun t => f (a + t * q)) (d := d) (m := m) (n := n) (k := k') hk')
+
+  -- Pull the dilation factor into the step in both `apSumOffset` blocks.
+  have h₁ :
+      apSumOffset (fun t => f (a + t * q)) d m k' =
+        apSumOffset (fun t => f (t + a)) (d * q) m k' := by
+    -- `apSumOffset_map_mul_right` yields `t*q + a`; we normalize it to `a + t*q`.
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc] using
+      (apSumOffset_map_mul_right
+        (f := fun t => f (t + a)) (q := q) (d := d) (m := m) (n := k'))
+
+  have h₂ :
+      apSumOffset (fun t => f (a + t * q)) d (m + k') (n - k') =
+        apSumOffset (fun t => f (t + a)) (d * q) (m + k') (n - k') := by
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc] using
+      (apSumOffset_map_mul_right
+        (f := fun t => f (t + a)) (q := q) (d := d) (m := m + k') (n := n - k'))
+
+  have hadd : (fun t => f (a + t)) = (fun t => f (t + a)) := by
+    funext t
+    simp [Nat.add_comm]
+
+  have hmn : (m + k') + (n - k') = m + n := by
+    -- `Nat.add_sub_of_le` gives `k' + (n - k') = n`.
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      congrArg (fun t => m + t) (Nat.add_sub_of_le hk')
+
+  calc
+    discOffset (fun t => f (a + t * q)) d m n =
+        Int.natAbs
+          (apSumOffset (fun t => f (a + t * q)) d m k' +
+            apSumOffset (fun t => f (a + t * q)) d (m + k') (n - k')) := hcut
+    _ = Int.natAbs (apSumFrom f a (d * q) (m + n) - apSumFrom f a (d * q) m) := by
+        -- After rewriting each `apSumOffset` as a difference of `apSumFrom`, the middle terms
+        -- telescope, leaving the advertised affine partial-sum difference.
+        simp [h₁, h₂, hadd, hmn, apSumOffset_shift_add_eq_apSumFrom_sub,
+          Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 -- Regression (Track B / discOffset periodicity normal form):
 -- If `f` is periodic with period `p` and `p ∣ d`, then `discOffset f d m n` is independent of `m`.
 example (hp : Function.Periodic f p) (hd : p ∣ d) :
