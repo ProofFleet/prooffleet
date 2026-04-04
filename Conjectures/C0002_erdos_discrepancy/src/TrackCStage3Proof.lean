@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Output
 
 /-!
 # Track C: Stage 3 conjecture stub (Tao 2015 plane)
