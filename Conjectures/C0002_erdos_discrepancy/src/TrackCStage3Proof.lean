@@ -1,5 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry
 
 /-!
 # Track C: Stage 3 conjecture stub (Tao 2015 plane)
@@ -19,13 +18,7 @@ namespace MoltResearch
 
 namespace Tao2015
 
-noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f := by
-  -- Run Stage 2, then close the global goal via the proved boundary lemma.
-  exact Stage3Output.ofStage2Output (f := f) (stage2Out (f := f) (hf := hf))
-
-/-- Deterministic name for the Stage-3 output (useful to keep later statements readable). -/
-noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
-  stage3 (f := f) (hf := hf)
+-- (Moved to `TrackCStage3Entry.lean` so the hard-gate build can avoid compiling wrapper lemmas.)
 
 /-- Convenience projection: the reduced step size produced by Stage 3. -/
 noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
