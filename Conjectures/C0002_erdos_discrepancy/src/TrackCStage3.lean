@@ -31,6 +31,14 @@ namespace Stage3Output
 
 variable {f : ℕ → ℤ}
 
+/-- Alias for the packaged global conclusion, matching Stage-2 naming.
+
+Stage 2 calls this statement `Stage2Output.notBoundedOriginal`; Stage 3 stores it as a field
+`out.notBounded`. This alias lets downstream code use a consistent name at both boundaries.
+-/
+abbrev notBoundedOriginal (out : Stage3Output f) : ¬ BoundedDiscrepancy f :=
+  out.notBounded
+
 /-- Convenience projection: the reduced step size packaged in Stage 3.
 
 We intentionally route this through the Stage-2 boundary API (`Stage2Output.d`) so Stage 3 does not
