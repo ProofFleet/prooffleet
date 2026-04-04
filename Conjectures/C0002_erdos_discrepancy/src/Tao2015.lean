@@ -235,6 +235,43 @@ theorem iff_forall_exists_natAbs_apSumFrom_mul_gt' (f : ℕ → ℤ) (d m : ℕ)
   simpa [gt_iff_lt] using
     (iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m))
 
+/-- Negation-normal form: unbounded offset discrepancy means there is no uniform bound on the
+bundled offset nuclei `Int.natAbs (apSumOffset f d m n)`.
+
+This is often the most convenient form for proofs by contradiction.
+-/
+theorem iff_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
+  classical
+  constructor
+  · intro hunb h
+    rcases h with ⟨B, hB⟩
+    rcases hunb B with ⟨n, hn⟩
+    have hn' : B < Int.natAbs (apSumOffset f d m n) := by
+      -- Avoid simp loops: `discOffset` is definitional.
+      have hn' := hn
+      unfold discOffset at hn'
+      exact hn'
+    exact (not_lt_of_ge (hB n)) hn'
+  · intro hnb B
+    by_contra h
+    -- If there is no witness beating B, then B is a uniform bound.
+    have hB : ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B := by
+      intro n
+      have hnot : ¬ B < discOffset f d m n := by
+        intro hlt
+        exact h ⟨n, hlt⟩
+      have hle : discOffset f d m n ≤ B := by
+        exact le_of_not_gt (by
+          intro hgt
+          exact hnot (by simpa [gt_iff_lt] using hgt))
+      -- Avoid simp loops: `discOffset` is definitional.
+      have hle' := hle
+      unfold discOffset at hle'
+      exact hle'
+    exact hnb ⟨B, hB⟩
+
 end UnboundedDiscOffset
 
 /-- Preferred naming for the core lemma
