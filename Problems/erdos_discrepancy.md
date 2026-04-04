@@ -186,7 +186,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] “Step scaling” bound wrapper: a lemma that if `d ∣ d'` (or `d' = d*q`) then `discrepancy f d' n` is controlled by a `discrepancy`/`discOffset` expression at step `d` (triangle-inequality packaged), so later stages can freely coarsen/refine steps.
   (Implemented as `disc_mul_step_le` in `MoltResearch/Discrepancy/StepScaling.lean`, with stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] AP-sum congruence on `Icc` endpoints: a stable wrapper lemma converting hypotheses of the form `∀ i, m < i ∧ i ≤ m+n → f (i*d)=g (i*d)` into an `apSumOffset` congruence without mentioning `Finset.range`/`Finset.Icc` in the statement.
+- [x] AP-sum congruence on `Icc` endpoints: a stable wrapper lemma converting hypotheses of the form `∀ i, m < i ∧ i ≤ m+n → f (i*d)=g (i*d)` into an `apSumOffset` congruence without mentioning `Finset.range`/`Finset.Icc` in the statement.
+  (Implemented as `apSumOffset_congr_endpoints` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffset` cut equality (NatAbs-level): complement `discOffset_eq_natAbs_apSumOffset_cut` with a lemma expressing the *exact* difference
   `apSumOffset f d m (n+k) - apSumOffset f d m n = apSumOffset f d (m+n) k` at the `Int` level, so later proofs can switch between equality and inequality styles without re-proving algebra.
