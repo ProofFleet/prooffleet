@@ -174,8 +174,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Negation invariance (disc-level): prove `discOffset (fun n => -f n) d m n = discOffset f d m n` (and the analogous `discrepancy` / `discAlong` lemmas), so sign-flips become a one-line `simp`/`rw`.
   (Implemented as `[simp]` lemmas `discOffset_neg`, `discrepancy_neg`, and `discAlong_neg` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Tail-shift coherence (sum-level): package a canonical lemma rewriting a tail-start shift into an explicit sequence shift, e.g.
+- [x] Tail-shift coherence (sum-level): package a canonical lemma rewriting a tail-start shift into an explicit sequence shift, e.g.
   `apSumOffset f d (m+k) n = apSumOffset (fun t => f (t + k*d)) d m n` (choose the repo’s preferred `shift_add`/`shift_mul` normal form), with a stable regression example.
+  (Implemented as `apSumOffset_shift_start_add` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Offset-reindex “reverse” normal form: a lemma reindexing `apSumOffset f d m n` by `i ↦ n-1-i` (or equivalent) so parity-splitting / symmetry arguments can flip order without dropping to raw `Finset` algebra.
 

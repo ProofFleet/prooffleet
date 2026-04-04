@@ -1694,6 +1694,8 @@ summand function:
 
 `apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k*d)) d m n`.
 
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Tail-shift coherence (sum level).
+
 This is a specialization of `apSumOffset_shift_add_add_offset_eq` with `a = 0`.
 -/
 lemma apSumOffset_shift_start_add (f : ℕ → ℤ) (d m k n : ℕ) :

@@ -1511,7 +1511,8 @@ example : apSumOffset f d m n = apSumOffset (fun k => f (k + d * m)) d 0 n := by
   simpa using
     apSumOffset_eq_apSumOffset_shift_add_mul_left (f := f) (d := d) (m := m) (n := n)
 
--- Shift in the start index: absorb `+k` in the offset parameter into a translation of the summand.
+-- Regression (Track B / tail-shift coherence, sum-level):
+-- absorb `+k` in the offset parameter into an explicit translation of the summand.
 example (k : ℕ) :
     apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n := by
   simpa using apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n)
