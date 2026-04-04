@@ -165,6 +165,16 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
 
+/-- Negation-normal form of `forall_exists_natAbs_apSumFrom_mul_gt`: there is no uniform bound on
+the affine-tail nuclei at the concrete Stage-1 parameters bundled in Stage 3.
+
+This is a thin wrapper around `Stage2Output.not_exists_forall_natAbs_apSumFrom_mul_le`.
+-/
+theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.not_exists_forall_natAbs_apSumFrom_mul_le (f := f) out.out2)
+
 end Stage3Output
 
 /-!
