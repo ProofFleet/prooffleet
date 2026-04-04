@@ -45,7 +45,17 @@ example (f : ℕ → ℤ) (d m n : ℕ) :
 -- step-one offset nucleus.
 example (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f (a + m * d) d n = apSumOffset (fun k => f (a + k * d)) 1 m n := by
-  simp
+  -- Rewrite the RHS into a “start = 0” step-one offset tail.
+  have hshift :
+      apSumOffset (fun k => f (a + k * d)) 1 m n =
+        apSumOffset (fun k => f (a + (k + m) * d)) 1 0 n := by
+    simpa [Nat.zero_add, Nat.one_mul, Nat.mul_one, Nat.add_assoc] using
+      (apSumOffset_shift_start_add (f := fun k => f (a + k * d)) (d := 1) (m := 0) (k := m)
+          (n := n))
+  -- Rewrite the RHS into “start = 0”, then `simp` the LHS into the same normal form.
+  rw [hshift]
+  simp [Nat.add_mul, Nat.mul_add, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm,
+    Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]
 
 -- Regression test: paper affine sums should normalize into the step-one offset nucleus by going
 -- through `apSumFrom`.

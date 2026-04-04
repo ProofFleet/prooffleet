@@ -109,6 +109,20 @@ example (q : ℕ) (hq : q > 0) :
 example : discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
   simpa using (discOffset_shift_add_mul (f := f) (a := a) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / simp audit, translation+dilation):
+-- typical user rewrite chain: translate the sampled indices by a multiple of the step, then
+-- normalize a product step size by pushing the common factor into the summand.
+example :
+    discOffset (fun t => f (t + a * (d * k))) (d * k) m n =
+      discOffset (fun x => f (x * d)) k (m + a) n := by
+  calc
+    discOffset (fun t => f (t + a * (d * k))) (d * k) m n = discOffset f (d * k) (m + a) n := by
+      simpa using
+        (discOffset_shift_add_mul (f := f) (a := a) (d := d * k) (m := m) (n := n))
+    _ = discOffset (fun x => f (x * d)) k (m + a) n := by
+      simpa using
+        (discOffset_mul_eq_discOffset_map_mul (f := f) (d := d) (k := k) (m := m + a) (n := n))
+
 -- Regression (Track B / discOffset periodicity normal form):
 -- If `f` is periodic with period `p` and `p ∣ d`, then `discOffset f d m n` is independent of `m`.
 example (hp : Function.Periodic f p) (hd : p ∣ d) :
