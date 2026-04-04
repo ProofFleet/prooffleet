@@ -169,6 +169,27 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Stable-surface polish: add a tiny compile-only example file showing the full normal-form pipeline for a typical “edit + split + bound” argument (paper sum → nucleus → local edit sensitivity → triangle bound), and wire it into `SurfaceAudit` so it can’t regress.
   (Implemented as `MoltResearch/Discrepancy/NormalFormPipelineExample.lean`, imported by `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Negation invariance (disc-level): prove `discOffset (fun n => -f n) d m n = discOffset f d m n` (and the analogous `discrepancy` / `discAlong` lemmas), so sign-flips become a one-line `simp`/`rw`.
+
+- [ ] Tail-shift coherence (sum-level): package a canonical lemma rewriting a tail-start shift into an explicit sequence shift, e.g.
+  `apSumOffset f d (m+k) n = apSumOffset (fun t => f (t + k*d)) d m n` (choose the repo’s preferred `shift_add`/`shift_mul` normal form), with a stable regression example.
+
+- [ ] Offset-reindex “reverse” normal form: a lemma reindexing `apSumOffset f d m n` by `i ↦ n-1-i` (or equivalent) so parity-splitting / symmetry arguments can flip order without dropping to raw `Finset` algebra.
+
+- [ ] `discOffset` monotone-in-length wrapper: prove a convenience inequality bounding the change when increasing `n` (e.g. `discOffset f d m n ≤ discOffset f d m (n+k) + k`), building on the existing Lipschitz-by-1 lemma but packaged for `Nat` increments.
+
+- [ ] “Step scaling” bound wrapper: a lemma that if `d ∣ d'` (or `d' = d*q`) then `discrepancy f d' n` is controlled by a `discrepancy`/`discOffset` expression at step `d` (triangle-inequality packaged), so later stages can freely coarsen/refine steps.
+
+- [ ] AP-sum congruence on `Icc` endpoints: a stable wrapper lemma converting hypotheses of the form `∀ i, m < i ∧ i ≤ m+n → f (i*d)=g (i*d)` into an `apSumOffset` congruence without mentioning `Finset.range`/`Finset.Icc` in the statement.
+
+- [ ] `discOffset` cut equality (NatAbs-level): complement `discOffset_eq_natAbs_apSumOffset_cut` with a lemma expressing the *exact* difference
+  `apSumOffset f d m (n+k) - apSumOffset f d m n = apSumOffset f d (m+n) k` at the `Int` level, so later proofs can switch between equality and inequality styles without re-proving algebra.
+
+- [ ] Stable-surface “simp audit” for translation/dilation: add a small `example` block under `import MoltResearch.Discrepancy` showing a typical chain
+  `apSumFrom` → `apSumOffset` → dilation pull-in → cut → `discOffset` bound compiles with `simp` + one `rw`, and wire it into `SurfaceAudit`.
+
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
