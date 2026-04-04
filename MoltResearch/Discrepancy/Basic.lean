@@ -281,6 +281,29 @@ lemma discAlong_eq_discrepancy (f : ℕ → ℤ) (d n : ℕ) : discAlong f d n =
   simp
 
 /-!
+### Negation invariance
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Negation invariance (disc-level).
+
+These lemmas let downstream code normalize sign-flips (`f ↦ -f`) with a one-line `simp`/`rw`.
+-/
+
+/-- Negation invariance for offset AP sums. -/
+lemma apSumOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => -f k) d m n = -apSumOffset f d m n := by
+  unfold apSumOffset
+  simp
+
+/-- Negation invariance for the offset discrepancy wrapper `discOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Negation invariance (disc-level).
+-/
+@[simp] lemma discOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset (fun k => -f k) d m n = discOffset f d m n := by
+  unfold discOffset
+  simp [apSumOffset_neg]
+
+/-!
 ## Quantifier normal form: explicit bounds for `discOffset`
 
 For many later statements, we want a *fixed bound* `B` that controls all lengths `n` for a given

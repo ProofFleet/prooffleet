@@ -2099,30 +2099,17 @@ lemma apSumOffset_add (f g : ℕ → ℤ) (d m n : ℕ) :
   unfold apSumOffset
   simp [Finset.sum_add_distrib]
 
-/-- Offset AP sum of a negated function. -/
-lemma apSumOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
-    apSumOffset (fun k => - f k) d m n = - apSumOffset f d m n := by
-  classical
-  unfold apSumOffset
-  simp [Finset.sum_neg_distrib]
-
 /-!
 ### `discOffset` invariances (sign and affine shifts)
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — DiscOffset-level sign/shift invariances.
 
 These are thin `discOffset`-level wrappers around existing `apSumOffset` algebra/shift lemmas.
--/
 
-/-- Negating the underlying sequence does not change `discOffset` (absolute value invariance).
-
-Checklist item: Problems/erdos_discrepancy.md (Track B) — Negation invariance (disc-level).
+Note: the sign-flip invariances (`apSumOffset_neg`, `discOffset_neg`) live in
+`MoltResearch.Discrepancy.Basic` so they are available from the stable surface without importing
+this file.
 -/
-@[simp] lemma discOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
-    discOffset (fun k => -f k) d m n = discOffset f d m n := by
-  -- `discOffset` is `Int.natAbs` of `apSumOffset`, and `natAbs` is invariant under negation.
-  unfold discOffset
-  simp [apSumOffset_neg]
 
 /-- Shifting the underlying sequence by an affine `a*d` translation corresponds to shifting the
 start index from `m` to `m + a`.

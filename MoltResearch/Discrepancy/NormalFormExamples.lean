@@ -73,6 +73,9 @@ example : discOffset (fun k => -f k) d m n = discOffset f d m n := by
 example : discAlong (fun k => -f k) d n = discAlong f d n := by
   simp
 
+example : discrepancy (fun k => -f k) d n = discrepancy f d n := by
+  simp
+
 example : discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
   simpa using (discOffset_shift_add_mul (f := f) (a := a) (d := d) (m := m) (n := n))
 
