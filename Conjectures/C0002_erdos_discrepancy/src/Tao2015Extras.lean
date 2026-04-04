@@ -231,6 +231,21 @@ theorem bound_natAbs_apSumFrom_mul_two_mul (ctx : Context f) (d m n : ℕ) (hd :
 
 end Context
 
+namespace ContextAlong
+
+variable {g : ℕ → ℤ} {d : ℕ}
+
+/-- Normal form: the discrepancy bound stored in `ContextAlong` is equivalently a bound on the
+fixed-step nucleus `Int.natAbs (apSum g d n)`.
+
+This prevents consumers from having to unfold `discrepancy` at each call site.
+-/
+theorem bound_natAbs_apSum (ctx : ContextAlong g d) (n : ℕ) :
+    Int.natAbs (apSum g d n) ≤ ctx.B := by
+  simpa [discrepancy] using (ctx.bound_discrepancy n)
+
+end ContextAlong
+
 namespace ReductionOutput
 
 variable {f : ℕ → ℤ}
