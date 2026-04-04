@@ -139,13 +139,24 @@ theorem unboundedDiscrepancyAlong_core (out : Stage2Output f) :
 /-- Tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail sums
 `apSumFrom f (m*d) d n`.
 
-This is just `forall_hasDiscrepancyAtLeastAlong` transported through the Stage-1 bridge lemma
-`ReductionOutput.hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt`.
+We phrase this in the tail-nucleus normal form because it is the most common analytic entry point
+into the Tao 2015 pipeline.
+
+Implementation note: we first convert the fixed-step unboundedness witness `out.unbounded` into
+unboundedness of the bundled offset discrepancy family `discOffset f d m` using the Stage-1 bridge
+carried by `out.out1`, and then apply the generic normal-form lemma
+`Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumFrom_mul_gt'`.
 -/
 theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
     ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
-  -- Unpack the Stage-2 `UnboundedDiscrepancyAlong` witness using the Stage-1 boundary equivalence.
-  exact (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 out.unbounded
+  have hunb : UnboundedDiscOffset f out.d out.m := by
+    -- `out.unbounded` is along the reduced sequence; Stage 1 transports it back to `discOffset`.
+    simpa [Stage2Output.d, Stage2Output.m] using
+      (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
+  -- Unfolding `discOffset` at call sites is noisy; prefer the canonical normal-form lemma.
+  simpa [Stage2Output.d, Stage2Output.m] using
+    (Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f)
+      (d := out.d) (m := out.m)).1 hunb
 
 /-- Negation-normal form of `forall_exists_natAbs_apSumFrom_mul_gt`: there is no uniform bound on
 the affine-tail nuclei at the concrete Stage-1 parameters produced by Stage 2. -/
@@ -334,12 +345,17 @@ theorem forall_exists_discOffset_lt (out : Stage2Output f) :
 
 This is occasionally the right normal form for later analytic stages: it exposes the raw nucleus
 `apSumOffset` rather than the wrapper `discOffset`.
+
+Implementation note: we obtain this from the packaged offset-unboundedness statement
+`out.unboundedDiscOffset` using the generic normal-form lemma
+`Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt`.
 -/
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
-  simpa using
-    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumOffset_gt (f := f)).1
-      out.unbounded)
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  simpa [Stage2Output.d, Stage2Output.m] using
+    (Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt (f := f)
+      (d := out.d) (m := out.m)).1 hunb
 
 /-- Inequality-direction variant of `forall_exists_natAbs_apSumOffset_gt`, written as
 `Int.natAbs ... > B`.
@@ -348,9 +364,10 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
-  intro B
-  rcases out.forall_exists_natAbs_apSumOffset_gt (f := f) B with ⟨n, hn⟩
-  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  simpa [Stage2Output.d, Stage2Output.m] using
+    (Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt' (f := f)
+      (d := out.d) (m := out.m)).1 hunb
 
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that the offset nucleus
 `apSumOffset f d m n` takes arbitrarily large absolute values.
