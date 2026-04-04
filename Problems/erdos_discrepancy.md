@@ -178,7 +178,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumOffset f d (m+k) n = apSumOffset (fun t => f (t + k*d)) d m n` (choose the repo’s preferred `shift_add`/`shift_mul` normal form), with a stable regression example.
   (Implemented as `apSumOffset_shift_start_add` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Offset-reindex “reverse” normal form: a lemma reindexing `apSumOffset f d m n` by `i ↦ n-1-i` (or equivalent) so parity-splitting / symmetry arguments can flip order without dropping to raw `Finset` algebra.
+- [x] Offset-reindex “reverse” normal form: reindex `apSumOffset f d m n` by `i ↦ n-1-i` via `MoltResearch.apSumOffset_eq_sum_range_reflect` (see `MoltResearch/Discrepancy/Offset.lean` and regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`).
 
 - [ ] `discOffset` monotone-in-length wrapper: prove a convenience inequality bounding the change when increasing `n` (e.g. `discOffset f d m n ≤ discOffset f d m (n+k) + k`), building on the existing Lipschitz-by-1 lemma but packaged for `Nat` increments.
 
