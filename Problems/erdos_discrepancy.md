@@ -180,7 +180,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 - [x] Offset-reindex “reverse” normal form: reindex `apSumOffset f d m n` by `i ↦ n-1-i` via `MoltResearch.apSumOffset_eq_sum_range_reflect` (see `MoltResearch/Discrepancy/Offset.lean` and regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`).
 
-- [ ] `discOffset` monotone-in-length wrapper: prove a convenience inequality bounding the change when increasing `n` (e.g. `discOffset f d m n ≤ discOffset f d m (n+k) + k`), building on the existing Lipschitz-by-1 lemma but packaged for `Nat` increments.
+- [x] `discOffset` monotone-in-length wrapper: prove a convenience inequality bounding the change when increasing `n` (e.g. `discOffset f d m n ≤ discOffset f d m (n+k) + k`), building on the existing Lipschitz-by-1 lemma but packaged for `Nat` increments.
+  (Implemented as `IsSignSequence.discOffset_le_add` in `MoltResearch/Discrepancy/Basic.lean`; stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Step scaling” bound wrapper: a lemma that if `d ∣ d'` (or `d' = d*q`) then `discrepancy f d' n` is controlled by a `discrepancy`/`discOffset` expression at step `d` (triangle-inequality packaged), so later stages can freely coarsen/refine steps.
 
