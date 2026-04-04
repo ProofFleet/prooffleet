@@ -57,6 +57,15 @@ abbrev g (out : Stage3Output f) : ℕ → ℤ := out.out2.g
 theorem hg (out : Stage3Output f) : IsSignSequence out.g := by
   simpa [Stage3Output.g] using (Stage2Output.hg (f := f) out.out2)
 
+/-- Stage 3 retains the Stage-2 reduced-step unboundedness witness.
+
+This is a tiny convenience projection so consumers of `Stage3Output` do not have to reach into the
+nested Stage-2 record field `out.out2.unbounded`.
+-/
+abbrev unboundedReducedAlong (out : Stage3Output f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d :=
+  out.out2.unbounded
+
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
 abbrev m (out : Stage3Output f) : ℕ := out.out2.m
 
