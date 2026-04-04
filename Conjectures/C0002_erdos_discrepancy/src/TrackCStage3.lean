@@ -176,6 +176,16 @@ theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.not_exists_boundedDiscOffset (f := f) out.out2)
 
+/-- Negation-normal-form unboundedness statement for the bundled offset nuclei
+`Int.natAbs (apSumOffset f out.d out.m n)`.
+
+This is a thin wrapper around `Stage2Output.not_exists_forall_natAbs_apSumOffset_le`.
+-/
+theorem not_exists_forall_natAbs_apSumOffset_le (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.not_exists_forall_natAbs_apSumOffset_le (f := f) out.out2)
+
 /-- Nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
 This is `unboundedDiscOffset` rewritten so consumers can work directly with
