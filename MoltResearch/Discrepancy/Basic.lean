@@ -2048,6 +2048,15 @@ lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :
   unfold disc
   simp [apSum_neg]
 
+/-- `discAlong` is invariant under pointwise negation.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Negation invariance (disc-level).
+-/
+@[simp] lemma discAlong_neg (f : ℕ → ℤ) (d n : ℕ) :
+    discAlong (fun k => -f k) d n = discAlong f d n := by
+  -- Reduce to the homogeneous wrapper `discrepancy`.
+  simp [discAlong_eq_discrepancy]
+
 lemma apSum_sub (f g : ℕ → ℤ) (d n : ℕ) :
     apSum (fun k => f k - g k) d n = apSum f d n - apSum g d n := by
   classical

@@ -2114,8 +2114,11 @@ Checklist item: Problems/erdos_discrepancy.md (Track B) — DiscOffset-level sig
 These are thin `discOffset`-level wrappers around existing `apSumOffset` algebra/shift lemmas.
 -/
 
-/-- Negating the underlying sequence does not change `discOffset` (absolute value invariance). -/
-lemma discOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
+/-- Negating the underlying sequence does not change `discOffset` (absolute value invariance).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Negation invariance (disc-level).
+-/
+@[simp] lemma discOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset (fun k => -f k) d m n = discOffset f d m n := by
   -- `discOffset` is `Int.natAbs` of `apSumOffset`, and `natAbs` is invariant under negation.
   unfold discOffset
