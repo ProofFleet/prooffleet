@@ -70,6 +70,9 @@ example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
 example : discOffset (fun k => -f k) d m n = discOffset f d m n := by
   simp
 
+example : discrepancy (fun k => -f k) d n = discrepancy f d n := by
+  simp
+
 example : discAlong (fun k => -f k) d n = discAlong f d n := by
   simp
 
