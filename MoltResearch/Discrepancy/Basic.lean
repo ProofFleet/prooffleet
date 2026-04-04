@@ -518,6 +518,29 @@ lemma apSumOffset_congr_Icc (f g : ℕ → ℤ) (d m n : ℕ)
     simpa [Nat.add_assoc] using this
   exact h (m + i + 1) ⟨hlow, hhigh⟩
 
+/-- Endpoint-form congruence wrapper for `apSumOffset`.
+
+This packages a very common hypothesis shape in discrepancy arguments:
+
+`∀ i, m < i ∧ i ≤ m+n → f (i*d) = g (i*d)`
+
+into the normal-form congruence statement
+`apSumOffset f d m n = apSumOffset g d m n`,
+without mentioning `Finset.range` or `Set.Icc` in the statement.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — AP-sum congruence on `Icc` endpoints.
+-/
+lemma apSumOffset_congr_endpoints (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, (m < i ∧ i ≤ m + n) → f (i * d) = g (i * d)) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  apply apSumOffset_congr_Icc (f := f) (g := g) (d := d) (m := m) (n := n)
+  intro i hi
+  have hlow : m < i := by
+    -- `m < m+1 ≤ i`.
+    have hm : m < m + 1 := Nat.lt_succ_self m
+    exact lt_of_lt_of_le hm hi.1
+  exact h i ⟨hlow, hi.2⟩
+
 /-- Finset-membership variant of `apSumOffset_congr_Icc`.
 
 This matches paper notation where the relevant progression indices are written as
