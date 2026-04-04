@@ -171,7 +171,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Negation invariance (disc-level): prove `discOffset (fun n => -f n) d m n = discOffset f d m n` (and the analogous `discrepancy` / `discAlong` lemmas), so sign-flips become a one-line `simp`/`rw`.
+- [x] Negation invariance (disc-level): prove `discOffset (fun n => -f n) d m n = discOffset f d m n` (and the analogous `discrepancy` / `discAlong` lemmas), so sign-flips become a one-line `simp`/`rw`.
+  (Implemented as `[simp]` lemmas `discOffset_neg`, `discrepancy_neg`, and `discAlong_neg` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Tail-shift coherence (sum-level): package a canonical lemma rewriting a tail-start shift into an explicit sequence shift, e.g.
   `apSumOffset f d (m+k) n = apSumOffset (fun t => f (t + k*d)) d m n` (choose the repo’s preferred `shift_add`/`shift_mul` normal form), with a stable regression example.
