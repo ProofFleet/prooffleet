@@ -41,9 +41,9 @@ theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf :
     MoltResearch.UnboundedDiscrepancyAlong
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)).g
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)).d := by
-  simpa using
-    (Tao2015.Stage3Output.unboundedDiscrepancyAlong_core (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+  let out := erdos_discrepancy_stage3Output (f := f) (hf := hf)
+  simpa [out] using
+    (Tao2015.Stage3Output.unboundedDiscrepancyAlong_core (f := f) out)
 
 /-- Erdős discrepancy theorem.
 

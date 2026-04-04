@@ -178,10 +178,10 @@ theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage3Output f) :
 end Stage3Output
 
 /-!
-## Stage 3 conjecture stub
+## Stage 3 entry point
 
-The Stage-3 conjecture/definition `stage3` (and its consumer-facing wrappers) lives in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Proof` so that this file remains purely
+The Stage-3 entry point `stage3` (a definition, not an axiom) lives in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry` so that this file remains purely
 “API + wiring”.
 -/
 
