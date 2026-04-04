@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Output
 
 /-!
 # Track C: Stage 3 output lemmas (Tao 2015 plane)
