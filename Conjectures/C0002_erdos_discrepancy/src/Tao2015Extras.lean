@@ -242,7 +242,10 @@ This prevents consumers from having to unfold `discrepancy` at each call site.
 -/
 theorem bound_natAbs_apSum (ctx : ContextAlong g d) (n : ℕ) :
     Int.natAbs (apSum g d n) ≤ ctx.B := by
-  simpa [discrepancy] using (ctx.bound_discrepancy n)
+  -- Avoid `simp` here: simp-lemmas rewriting `discrepancy` back and forth can trigger
+  -- recursion-depth blowups.
+  change discrepancy g d n ≤ ctx.B
+  exact ctx.bound_discrepancy n
 
 end ContextAlong
 

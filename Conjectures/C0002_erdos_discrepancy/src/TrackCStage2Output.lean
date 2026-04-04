@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
+import Conjectures.C0002_erdos_discrepancy.src.Tao2015Extras
 
 /-!
 # Track C: Stage 2 output lemmas
@@ -126,10 +127,13 @@ the affine-tail nuclei at the concrete Stage-1 parameters produced by Stage 2. -
 theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
     ¬ ∃ B : ℕ,
         ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
-  intro h
-  rcases h with ⟨B, hB⟩
-  rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) B with ⟨n, hn⟩
-  exact (not_lt_of_ge (hB n)) hn
+  have hunb : UnboundedDiscOffset f out.d out.m :=
+    (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
+  -- Use the Conjectures-only normal form lemma from `Tao2015Extras`.
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumFrom_mul_le
+        (f := f) (d := out.d) (m := out.m)).1
+      hunb
 
 /-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
@@ -190,13 +194,12 @@ This is `not_exists_boundedDiscOffset` rewritten by unfolding `discOffset`.
 -/
 theorem not_exists_forall_natAbs_apSumOffset_le (out : Stage2Output f) :
     ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
-  intro h
-  rcases h with ⟨B, hB⟩
-  have hbd : BoundedDiscOffset f out.d out.m B := by
-    intro n
-    unfold discOffset
-    exact hB n
-  exact out.not_exists_boundedDiscOffset (f := f) ⟨B, hbd⟩
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  -- Use the Conjectures-only normal form lemma from `Tao2015Extras`.
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f := f)
+        (d := out.d) (m := out.m)).1
+      hunb
 
 /-- Existential packaging: Stage 2 already yields concrete parameters `d, m` such that the bundled
 offset discrepancy family `discOffset f d m` is unbounded.
