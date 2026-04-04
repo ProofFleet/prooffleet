@@ -1,4 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Output
 
 /-!
 # Track C: Stage 2 proof stub (Tao 2015 plane)
@@ -8,6 +8,10 @@ convenience projections.
 
 Everything else should be proved/packaged in `TrackCStage2.lean` (the Stage-2 API surface) as
 lemmas about `Stage2Output`, so we avoid a second parallel library of wrapper lemmas here.
+
+Implementation note: this stub imports `TrackCStage2Output` directly (rather than the Stage-2
+wiring module `TrackCStage2.lean`) to keep the dependency direction one-way and avoid accidental
+import cycles as the pipeline grows.
 -/
 
 namespace MoltResearch
