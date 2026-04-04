@@ -11,5 +11,5 @@ convenience lemmas about `Tao2015.Stage2Output` (from
 “API + wiring”.
 
 The Stage-2 conjecture stub lives in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry`.
 -/

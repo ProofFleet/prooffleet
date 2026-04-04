@@ -6,7 +6,7 @@ import MoltResearch.Discrepancy
 This module is **Conjectures-only**: it may contain axiom stubs (and, if needed, `sorry`).
 
 At present, the only non-verified assumption is the Stage-2 axiom in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry`.
 
 Hard goal for Track C automation: make
 
