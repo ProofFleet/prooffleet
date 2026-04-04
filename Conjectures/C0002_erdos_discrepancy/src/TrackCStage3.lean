@@ -126,6 +126,20 @@ theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
   exact Stage2Output.forall_exists_d_pos_witness_pos (f := f) out.out2
 
+/-- Stage 3 output implies the paper-notation witness form
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
+
+This is a thin wrapper around `forall_hasDiscrepancyAtLeast` via
+`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`.
+-/
+theorem forall_exists_sum_Icc_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
 /-- Stage 3 yields unbounded fixed-step discrepancy for the reduced sequence, expressed using the
 verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
