@@ -172,12 +172,8 @@ theorem erdos_discrepancy_exists_params_forall_exists_natAbs_sum_Icc_offset_gt (
   intro B
   rcases h B with ⟨n, hn⟩
   refine ⟨n, ?_⟩
-  have hIcc :
-      Int.natAbs (apSumOffset f d m n) =
-        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
-    exact
-      congrArg Int.natAbs (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n))
-  simpa [hIcc] using hn
+  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using
+    hn
 
 /-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt` packaging the
 step-size side condition as `1 ≤ d`.

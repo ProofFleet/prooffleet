@@ -167,6 +167,17 @@ theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
   simpa using
     (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n))
 
+/-- Paper-notation normal form: the bundled offset nucleus `apSumOffset` is an interval sum.
+
+This is a thin wrapper around `apSumOffset_eq_sum_Icc` (from `MoltResearch.Discrepancy`), with
+`Int.natAbs` applied on both sides so it can be used directly in inequality goals.
+-/
+theorem natAbs_apSumOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
+    Int.natAbs (apSumOffset f d m n) =
+      Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+  simpa using
+    congrArg Int.natAbs (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n))
+
 namespace UnboundedDiscOffset
 
 /-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
