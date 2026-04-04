@@ -83,13 +83,11 @@ This is the main “stage boundary” lemma: it is *proved* (no `sorry`) and sho
 -/
 def ofStage2Output (out2 : Tao2015.Stage2Output f) : Stage3Output f := by
   refine ⟨out2, ?_⟩
-  -- Stage 2 already packages the global negation form `¬ BoundedDiscrepancy f`.
   exact Stage2Output.notBoundedOriginal (f := f) out2
 
 /-- Stage 3 output implies the usual "∀ C, HasDiscrepancyAtLeast f C" statement. -/
 theorem forall_hasDiscrepancyAtLeast (out : Stage3Output f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Stage 2 already packages this surface statement.
   exact Stage2Output.forall_hasDiscrepancyAtLeast (f := f) out.out2
 
 /-- Stage 3 output implies the nucleus witness form
@@ -100,7 +98,6 @@ This is the most pipeline-friendly surface statement for consuming Stage 3.
 -/
 theorem forall_exists_d_ge_one_witness_pos (out : Stage3Output f) :
     ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  -- Stage 2 already yields this nucleus witness form.
   exact Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) out.out2
 
 /-- Variant of `forall_exists_d_ge_one_witness_pos` with the step-size side condition written as
@@ -129,24 +126,14 @@ theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlo
     (Stage2Output.notBoundedReducedAlong (f := f) out.out2)
 
 /-- Stage 3 output yields unboundedness of the bundled offset discrepancy family
-`discOffset f d m` at the *concrete* parameters coming from Stage 1.
+`discOffset f d m` at the concrete parameters coming from Stage 1.
 
-This is just a thin wrapper around `Stage2Output.unboundedDiscOffset`.
+This is a thin wrapper around `Stage2Output.unboundedDiscOffset`.
 -/
 theorem unboundedDiscOffset (out : Stage3Output f) :
     UnboundedDiscOffset f out.d out.m := by
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.unboundedDiscOffset (f := f) out.out2)
-
-/-- Negation-normal-form boundedness statement for the concrete Stage-1 parameters bundled in
-Stage 3.
-
-This is the Prop-style boundedness predicate form of `unboundedDiscOffset`.
--/
-theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
-    ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
-  simpa [Stage3Output.d, Stage3Output.m] using
-    (Stage2Output.not_exists_boundedDiscOffset (f := f) out.out2)
 
 /-- Nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
@@ -155,7 +142,6 @@ This is `unboundedDiscOffset` rewritten so consumers can work directly with
 -/
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
-  -- Delegate to the Stage-2 boundary API: Stage 3 contains Stage 2 verbatim.
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_apSumOffset_gt (f := f) out.out2)
 
@@ -166,144 +152,18 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
-  -- Delegate to the Stage-2 boundary API.
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f) out.out2)
 
-/-- Stage 3 output implies there exist concrete parameters `d, m` such that the bundled offset
-  discrepancy family `discOffset f d m` is unbounded.
-
-This is a small convenience wrapper around the Stage-2 packaging.
--/
-theorem exists_params_unboundedDiscOffset (out : Stage3Output f) :
-    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
-  exact Stage2Output.exists_params_unboundedDiscOffset (f := f) out.out2
-
-/-- Variant of `exists_params_unboundedDiscOffset` packaging the step-size side condition as `1 ≤ d`.
-
-Many later stages prefer the normal form `1 ≤ d` rather than `d > 0`.
--/
-theorem exists_params_one_le_unboundedDiscOffset (out : Stage3Output f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
-  exact Stage2Output.exists_params_one_le_unboundedDiscOffset (f := f) out.out2
-
-/-- Combined packaging: Stage 3 yields concrete parameters `d, m` such that the bundled offset
-  discrepancy family `discOffset f d m` has arbitrarily large values.
-
-This is the explicit witness-family form of `exists_params_unboundedDiscOffset`.
--/
-theorem exists_params_forall_exists_discOffset_gt (out : Stage3Output f) :
-    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
-  exact Stage2Output.exists_params_forall_exists_discOffset_gt (f := f) out.out2
-
-/-- Inequality-direction variant of `exists_params_forall_exists_discOffset_gt`, written as
-`discOffset f d m n > B`.
-
-This is often a more convenient normal form for consumers that want to `simp [gt_iff_lt]`.
--/
-theorem exists_params_forall_exists_discOffset_gt' (out : Stage3Output f) :
-    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
-  exact Stage2Output.exists_params_forall_exists_discOffset_gt' (f := f) out.out2
-
-/-- Variant of `exists_params_forall_exists_discOffset_gt` packaging the step-size side condition as `1 ≤ d`.
-
-Many later stages prefer the normal form `1 ≤ d` rather than `d > 0`.
--/
-theorem exists_params_one_le_forall_exists_discOffset_gt (out : Stage3Output f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
-  exact Stage2Output.exists_params_one_le_forall_exists_discOffset_gt (f := f) out.out2
-
-/-- Inequality-direction variant of `exists_params_one_le_forall_exists_discOffset_gt`, written as
-`discOffset f d m n > B`.
-
-This is often a more convenient normal form for consumers that want to `simp [gt_iff_lt]`.
--/
-theorem exists_params_one_le_forall_exists_discOffset_gt' (out : Stage3Output f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
-  exact Stage2Output.exists_params_one_le_forall_exists_discOffset_gt' (f := f) out.out2
-
-/-- Existential packaging: Stage 3 yields concrete parameters `d, m` such that the offset nucleus
-`apSumOffset f d m n` takes arbitrarily large absolute values.
-
-This is the raw-nucleus form of `exists_params_forall_exists_discOffset_gt`.
--/
-theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
-    ∃ d m : ℕ, d > 0 ∧
-      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
-  exact Stage2Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f) out.out2
-
-/-- Variant of `exists_params_forall_exists_natAbs_apSumOffset_gt` packaging the step-size side
-condition as `1 ≤ d`.
-
-Many later analytic stages prefer the normal form `1 ≤ d` rather than `d > 0`.
--/
-theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (out : Stage3Output f) :
-    ∃ d m : ℕ, 1 ≤ d ∧
-      (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
-  exact Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f) out.out2
-
-/-- Stage 3 output yields bundled offset discrepancy witnesses for the concrete parameters
-`d = out.d` and `m = out.m`.
-
-This is a thin wrapper around the Stage-2 lemma `Stage2Output.forall_exists_discOffset_gt`.
--/
-theorem forall_exists_discOffset_gt (out : Stage3Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
-  simpa [Stage3Output.d, Stage3Output.m] using
-    (Stage2Output.forall_exists_discOffset_gt (f := f) out.out2)
-
-/-- Inequality-direction variant of `forall_exists_discOffset_gt`, written as `discOffset ... > B`.
-
-Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
--/
-theorem forall_exists_discOffset_gt' (out : Stage3Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
-  simpa [Stage3Output.d, Stage3Output.m] using
-    (Stage2Output.forall_exists_discOffset_gt' (f := f) out.out2)
-
 /-- Tail-nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
-This is just the Stage-2 witness `Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt`, re-expressed
+This is the Stage-2 witness `Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt`, re-expressed
 at the Stage-3 boundary.
 -/
 theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
     ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
-
-/-- Negation-normal form: there is no uniform bound on the affine-tail nuclei at the concrete
-Stage-1 parameters bundled in Stage 3.
-
-This is a small consumer convenience lemma: it is often the most convenient form for
-contradiction-based arguments.
--/
-theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage3Output f) :
-    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
-  simpa [Stage3Output.d, Stage3Output.m] using
-    (Stage2Output.not_exists_forall_natAbs_apSumFrom_mul_le (f := f) out.out2)
-
-/-- Stage 3 output implies there exist concrete parameters `d, m` such that the affine-tail nucleus
-`apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
-
-This is a convenience wrapper around the Stage-2 packaging
-`Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt`.
--/
-theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
-    ∃ d m : ℕ, d > 0 ∧
-      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
-  exact
-    Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2
-
-/-- Variant of `exists_params_forall_exists_natAbs_apSumFrom_mul_gt` packaging the step-size side
-condition as `1 ≤ d`.
-
-Many later analytic stages prefer the normal form `1 ≤ d` rather than `d > 0`.
--/
-theorem exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
-    ∃ d m : ℕ, 1 ≤ d ∧
-      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
-  exact
-    Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2
 
 end Stage3Output
 

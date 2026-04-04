@@ -78,8 +78,8 @@ This is a thin wrapper around the Stage-3 packaging.
 theorem erdos_discrepancy_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ Tao2015.UnboundedDiscOffset f d m := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_unboundedDiscOffset (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_unboundedDiscOffset (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Variant of `erdos_discrepancy_exists_params_unboundedDiscOffset` packaging the step-size side
 condition as `1 ≤ d`.
@@ -90,8 +90,8 @@ theorem erdos_discrepancy_exists_params_one_le_unboundedDiscOffset (f : ℕ → 
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧ Tao2015.UnboundedDiscOffset f d m := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_one_le_unboundedDiscOffset (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_one_le_unboundedDiscOffset (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` takes arbitrarily large values.
@@ -102,8 +102,8 @@ theorem erdos_discrepancy_exists_params_forall_exists_discOffset_gt (f : ℕ →
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_forall_exists_discOffset_gt (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_forall_exists_discOffset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Variant of `erdos_discrepancy_exists_params_forall_exists_discOffset_gt` packaging the step-size
 side condition as `1 ≤ d`.
@@ -114,8 +114,8 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_discOffset_gt (f : 
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_discOffset_gt (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_one_le_forall_exists_discOffset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Inequality-direction variant of `erdos_discrepancy_exists_params_one_le_forall_exists_discOffset_gt`,
 written as `discOffset f d m n > B`.
@@ -126,8 +126,8 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_discOffset_gt' (f :
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_discOffset_gt' (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_one_le_forall_exists_discOffset_gt' (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Inequality-direction variant of `erdos_discrepancy_exists_params_forall_exists_discOffset_gt`,
 written as `discOffset f d m n > B`.
@@ -138,8 +138,8 @@ theorem erdos_discrepancy_exists_params_forall_exists_discOffset_gt' (f : ℕ �
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_forall_exists_discOffset_gt' (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_forall_exists_discOffset_gt' (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute values.
@@ -150,10 +150,10 @@ Normal form:
 theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
-  -- Prefer the Stage-3 existential packaging.
+  -- Prefer the Stage-2 existential packaging (Stage 3 bundles a Stage-2 output).
   simpa using
-    (Tao2015.Stage3Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Paper-notation surface form of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt`.
 
@@ -188,8 +188,8 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumOffset_
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
@@ -201,8 +201,8 @@ theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f
     ∃ d m : ℕ, d > 0 ∧
       (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumFrom_mul_gt` packaging the
 step-size side condition as `1 ≤ d`.
@@ -214,8 +214,8 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumFrom_mu
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
   simpa using
-    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+    (Tao2015.Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Paper-notation surface form of `erdos_discrepancy`, matching `∑_{i=1}^n f (i*d)`.
 

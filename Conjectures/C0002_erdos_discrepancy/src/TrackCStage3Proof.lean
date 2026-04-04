@@ -158,15 +158,17 @@ theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSeq
 /-- Consumer-facing shortcut: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
-This is a thin wrapper around `Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt`.
+This is a thin wrapper around the Stage-2 packaging
+`Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt`, applied to the Stage-2
+output bundled inside Stage 3.
 -/
 theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
   simpa [stage3Out] using
-    (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
-      (stage3 (f := f) (hf := hf)))
+    (Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (stage3Out (f := f) (hf := hf)).out2)
 
 /-- Consumer-facing shortcut: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 bundled offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute values.
@@ -174,15 +176,17 @@ bundled offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute va
 Normal form:
 `∃ d m, 1 ≤ d ∧ ∀ B, ∃ n, Int.natAbs (apSumOffset f d m n) > B`.
 
-This is a thin wrapper around `Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt`.
+This is a thin wrapper around the Stage-2 packaging
+`Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt`, applied to the Stage-2
+output bundled inside Stage 3.
 -/
 theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
   simpa [stage3Out] using
-    (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f)
-      (stage3 (f := f) (hf := hf)))
+    (Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f)
+      (stage3Out (f := f) (hf := hf)).out2)
 
 end Tao2015
 
