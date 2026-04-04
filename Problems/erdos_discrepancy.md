@@ -189,8 +189,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] AP-sum congruence on `Icc` endpoints: a stable wrapper lemma converting hypotheses of the form `∀ i, m < i ∧ i ≤ m+n → f (i*d)=g (i*d)` into an `apSumOffset` congruence without mentioning `Finset.range`/`Finset.Icc` in the statement.
   (Implemented as `apSumOffset_congr_endpoints` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffset` cut equality (NatAbs-level): complement `discOffset_eq_natAbs_apSumOffset_cut` with a lemma expressing the *exact* difference
+- [x] `discOffset` cut equality (NatAbs-level): complement `discOffset_eq_natAbs_apSumOffset_cut` with a lemma expressing the *exact* difference
   `apSumOffset f d m (n+k) - apSumOffset f d m n = apSumOffset f d (m+n) k` at the `Int` level, so later proofs can switch between equality and inequality styles without re-proving algebra.
+  (Implemented as `apSumOffset_add_length_sub` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Stable-surface “simp audit” for translation/dilation: add a small `example` block under `import MoltResearch.Discrepancy` showing a typical chain
   `apSumFrom` → `apSumOffset` → dilation pull-in → cut → `discOffset` bound compiles with `simp` + one `rw`, and wire it into `SurfaceAudit`.
