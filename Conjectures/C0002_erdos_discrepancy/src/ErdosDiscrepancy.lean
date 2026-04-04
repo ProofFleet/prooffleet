@@ -175,15 +175,10 @@ theorem erdos_discrepancy_exists_params_forall_exists_natAbs_sum_Icc_offset_gt (
     ∃ d m : ℕ, d > 0 ∧
       (∀ B : ℕ, ∃ n : ℕ,
         Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
-  rcases
-      erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt (f := f) (hf := hf) with
-    ⟨d, m, hd, h⟩
-  refine ⟨d, m, hd, ?_⟩
-  intro B
-  rcases h B with ⟨n, hn⟩
-  refine ⟨n, ?_⟩
-  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using
-    hn
+  -- Prefer the Stage-2 packaging lemma rather than re-proving the `apSumOffset`→`sum_Icc` rewrite.
+  simpa using
+    (Tao2015.Stage2Output.exists_params_forall_exists_natAbs_sum_Icc_offset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
 /-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt` packaging the
 step-size side condition as `1 ≤ d`.
