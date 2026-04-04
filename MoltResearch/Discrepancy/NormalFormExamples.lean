@@ -341,6 +341,11 @@ example (hf : IsSignSequence f) :
   simpa using
     (IsSignSequence.discOffset_le_succ_add_one (f := f) (hf := hf) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / discOffset monotone-in-length wrapper): `Nat` increment form.
+example (hf : IsSignSequence f) :
+    discOffset f d m n ≤ discOffset f d m (n + k) + k := by
+  simpa using (IsSignSequence.discOffset_le_add (f := f) (hf := hf) (d := d) (m := m) (n := n) (k := k))
+
 -- Regression (Track B / basic size bound for sign sequences): `discOffset` bound by length.
 example (hf : IsSignSequence f) :
     discOffset f d m n ≤ n := by

@@ -1843,6 +1843,36 @@ lemma IsSignSequence.discOffset_le_succ_add_one {f : ℕ → ℤ} (hf : IsSignSe
     _ = Int.natAbs (apSumOffset f d m (n + 1)) + 1 := by
           simp [IsSignSequence.natAbs_eq_one (hf := hf)]
 
+/-- (Track B checklist item) Convenience wrapper: Lipschitz-by-1 over `Nat` increments.
+
+This packages repeated uses of `IsSignSequence.discOffset_le_succ_add_one` into the common form
+
+`discOffset f d m n ≤ discOffset f d m (n + k) + k`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` monotone-in-length wrapper.
+-/
+lemma IsSignSequence.discOffset_le_add {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d m n k : ℕ) :
+    discOffset f d m n ≤ discOffset f d m (n + k) + k := by
+  induction k with
+  | zero =>
+      simp
+  | succ k ih =>
+      -- Step: bound `discOffset … (n+k)` by `discOffset … (n+k+1) + 1`.
+      have hstep : discOffset f d m (n + k) ≤ discOffset f d m (n + k + 1) + 1 := by
+        simpa [Nat.add_assoc] using
+          (IsSignSequence.discOffset_le_succ_add_one (f := f) (hf := hf) (d := d) (m := m)
+            (n := n + k))
+      -- Add `k` to both sides, then combine with the induction hypothesis.
+      have hstep' : discOffset f d m (n + k) + k ≤ discOffset f d m (n + k + 1) + 1 + k :=
+        Nat.add_le_add_right hstep k
+      have : discOffset f d m n ≤ discOffset f d m (n + k + 1) + (k + 1) := by
+        refine le_trans ih ?_
+        -- Rearrange the RHS into the desired `+ (k+1)` form.
+        simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hstep'
+      -- Rewrite `n + (k+1)`.
+      simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+
 /-! ### Homogeneous `disc` one-step (stability) lemmas -/
 
 /-- (Track B checklist item) Canonical one-step inequality for `disc`.
