@@ -352,6 +352,27 @@ theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f)
   intro B
   simpa using out.forall_exists_natAbs_apSumOffset_gt' (f := f) B
 
+/-- Paper-notation packaging: Stage 2 yields concrete parameters `d, m` such that the shifted
+homogeneous progression sums
+
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`
+
+take arbitrarily large absolute values.
+
+This is `exists_params_forall_exists_natAbs_apSumOffset_gt` rewritten using
+`Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc`.
+-/
+theorem exists_params_forall_exists_natAbs_sum_Icc_offset_gt (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ B : ℕ, ∃ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  rcases out.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f) with ⟨d, m, hd, h⟩
+  refine ⟨d, m, hd, ?_⟩
+  intro B
+  rcases h B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hn
+
 /-- Existential packaging variant of `exists_params_forall_exists_natAbs_apSumOffset_gt` using
 the side condition `1 ≤ d`.
 
