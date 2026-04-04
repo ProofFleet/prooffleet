@@ -123,6 +123,11 @@ theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
   simpa [Stage3Output.g, Stage3Output.d] using
     (Stage2Output.unboundedDiscrepancyAlong_core (f := f) out.out2)
 
+/-- Stage 3 implies the reduced sequence is not bounded along its fixed step size. -/
+theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
+  simpa [Stage3Output.g, Stage3Output.d] using
+    (Stage2Output.notBoundedReducedAlong (f := f) out.out2)
+
 /-- Stage 3 output yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m` at the *concrete* parameters coming from Stage 1.
 
@@ -253,9 +258,8 @@ Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the cal
 -/
 theorem forall_exists_discOffset_gt' (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
-  intro B
-  rcases out.forall_exists_discOffset_gt (f := f) B with ⟨n, hn⟩
-  exact ⟨n, by simpa [gt_iff_lt] using hn⟩
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_discOffset_gt' (f := f) out.out2)
 
 /-- Tail-nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
