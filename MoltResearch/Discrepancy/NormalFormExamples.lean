@@ -1430,6 +1430,10 @@ example {k : ℕ} (hk : k ≤ n) :
   simpa using
     (apSumOffset_eq_add_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
 
+-- Exact difference normal form for `apSumOffset` when increasing the length.
+example : apSumOffset f d m (n + k) - apSumOffset f d m n = apSumOffset f d (m + n) k := by
+  simpa using (apSumOffset_add_length_sub (f := f) (d := d) (m := m) (n := n) (k := k))
+
 -- Regression: split a paper interval sum in two, then land in the nucleus `apSumOffset` normal form.
 example :
     (Finset.Icc (m + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) =

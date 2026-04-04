@@ -188,6 +188,25 @@ lemma apSumOffset_eq_add_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk :
           -- Each block is exactly the stable `Finset.range` normal form of an `apSumOffset`.
           simp [apSumOffset_eq_sum_range']
 
+/-- Difference normal form for `apSumOffset`: the increment when increasing the length.
+
+This complements the “cut” lemmas by giving the *exact* tail difference as an `apSumOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` cut equality (NatAbs-level):
+exact difference at the `Int` level.
+-/
+lemma apSumOffset_add_length_sub (f : ℕ → ℤ) (d m n k : ℕ) :
+    apSumOffset f d m (n + k) - apSumOffset f d m n = apSumOffset f d (m + n) k := by
+  -- This is just the length-splitting lemma, rearranged.
+  have h := apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n) (n₂ := k)
+  -- `h` is: `apSumOffset … (n+k) = apSumOffset … n + apSumOffset … (m+n) k`.
+  calc
+    apSumOffset f d m (n + k) - apSumOffset f d m n
+        = (apSumOffset f d m n + apSumOffset f d (m + n) k) - apSumOffset f d m n := by
+            simpa [h] using (congrArg (fun t => t - apSumOffset f d m n) h)
+    _ = apSumOffset f d (m + n) k := by
+          simpa using (add_sub_cancel_left (apSumOffset f d m n) (apSumOffset f d (m + n) k))
+
 --
 
 /-- Range-cut triangle inequality for `discOffset`: split at a cut length `k ≤ n`.
