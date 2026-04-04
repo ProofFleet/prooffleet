@@ -53,6 +53,13 @@ example : apSumOffset f d m n =
     (Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d)) := by
   simpa using (apSumOffset_eq_sum_range_reflect (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / cut equality, exact difference):
+-- subtracting the prefix offset sum yields the tail offset sum.
+example (hk : k ≤ n) :
+    apSumOffset f d m n - apSumOffset f d m k = apSumOffset f d (m + k) (n - k) := by
+  simpa using
+    (apSumOffset_sub_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
 -- Regression (Track B / offset-of-offset flattening): eliminate nested `apSumOffset` in the summand.
 example : apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k =
       (Finset.range k).sum (fun i => apSum (fun s => f (s + (m + (i + 1)) * d)) d n) := by

@@ -188,6 +188,25 @@ lemma apSumOffset_eq_add_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk :
           -- Each block is exactly the stable `Finset.range` normal form of an `apSumOffset`.
           simp [apSumOffset_eq_sum_range']
 
+/-- Difference normal form for `apSumOffset`: the tail after cutting at `k ≤ n`.
+
+This is the exact (non-`natAbs`) companion to `apSumOffset_eq_add_apSumOffset_cut`:
+subtracting the prefix sum of length `k` from the sum of length `n` yields the tail sum.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` cut equality (NatAbs-level):
+complement `discOffset_eq_natAbs_apSumOffset_cut` with an exact difference lemma.
+-/
+lemma apSumOffset_sub_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    apSumOffset f d m n - apSumOffset f d m k = apSumOffset f d (m + k) (n - k) := by
+  have h := apSumOffset_eq_add_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk
+  calc
+    apSumOffset f d m n - apSumOffset f d m k
+        = (apSumOffset f d m k + apSumOffset f d (m + k) (n - k)) - apSumOffset f d m k := by
+            simpa [h]
+    _ = apSumOffset f d (m + k) (n - k) := by
+          simpa using
+            (add_sub_cancel_left (apSumOffset f d m k) (apSumOffset f d (m + k) (n - k)))
+
 /-- Difference normal form for `apSumOffset`: the increment when increasing the length.
 
 This complements the “cut” lemmas by giving the *exact* tail difference as an `apSumOffset`.
