@@ -70,6 +70,16 @@ theorem erdos_discrepancy_apSum (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (erdos_discrepancy (f := f) (hf := hf))
 
+/-- Variant of `erdos_discrepancy_apSum` writing the step-size side condition as `d > 0`.
+
+Many later analytic stages prefer strict positivity for `Nat` step sizes.
+-/
+theorem erdos_discrepancy_apSum_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  simpa using
+    (Tao2015.Stage3Output.forall_exists_d_pos_witness_pos (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` is unbounded.
 
