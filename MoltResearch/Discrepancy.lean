@@ -8,6 +8,7 @@ import MoltResearch.Discrepancy.Affine
 import MoltResearch.Discrepancy.AffineTail
 import MoltResearch.Discrepancy.Const
 import MoltResearch.Discrepancy.Scale
+import MoltResearch.Discrepancy.StepScaling
 import MoltResearch.Discrepancy.Translate
 import MoltResearch.Discrepancy.Reindex
 import MoltResearch.Discrepancy.Bound

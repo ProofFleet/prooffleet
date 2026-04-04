@@ -85,6 +85,20 @@ example : discAlong (fun k => -f k) d n = discAlong f d n := by
 example : discrepancy (fun k => -f k) d n = discrepancy f d n := by
   simp
 
+/-!
+### Regression: step scaling bound wrapper (Track B)
+
+Compile-only check for the “step scaling” inequality wrapper.
+-/
+
+-- Regression (Track B / step scaling bound wrapper):
+example (q : ℕ) (hq : q > 0) :
+    disc f (q * d) (n + 1) ≤
+      disc f d (q * (n + 1)) +
+        (Finset.range (q - 1)).sum (fun r =>
+          Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
+  simpa using (disc_mul_step_le (f := f) (d := d) (q := q) (n := n) hq)
+
 example : discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
   simpa using (discOffset_shift_add_mul (f := f) (a := a) (d := d) (m := m) (n := n))
 
