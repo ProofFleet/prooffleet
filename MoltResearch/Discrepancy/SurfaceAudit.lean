@@ -234,6 +234,18 @@ section
     simpa using
       (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n))
 
+  -- Translation+dilation rewrite chain under stable import surface.
+  example :
+      discOffset (fun t => f (t + a * (d * k))) (d * k) m n =
+        discOffset (fun x => f (x * d)) k (m + a) n := by
+    calc
+      discOffset (fun t => f (t + a * (d * k))) (d * k) m n = discOffset f (d * k) (m + a) n := by
+        simpa using
+          (discOffset_shift_add_mul (f := f) (a := a) (d := d * k) (m := m) (n := n))
+      _ = discOffset (fun x => f (x * d)) k (m + a) n := by
+        simpa using
+          (discOffset_mul_eq_discOffset_map_mul (f := f) (d := d) (k := k) (m := m + a) (n := n))
+
   -- Zero-offset tail → homogeneous `apSum` → step-one normalization.
   example : apSumOffset f d 0 n = apSum (fun k => f (k * d)) 1 n := by
     -- First drop the zero offset, then normalize the step size.

@@ -193,8 +193,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumOffset f d m (n+k) - apSumOffset f d m n = apSumOffset f d (m+n) k` at the `Int` level, so later proofs can switch between equality and inequality styles without re-proving algebra.
   (Implemented as `apSumOffset_add_length_sub` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface “simp audit” for translation/dilation: add a small `example` block under `import MoltResearch.Discrepancy` showing a typical chain
+- [x] Stable-surface “simp audit” for translation/dilation: add a small `example` block under `import MoltResearch.Discrepancy` showing a typical chain
   `apSumFrom` → `apSumOffset` → dilation pull-in → cut → `discOffset` bound compiles with `simp` + one `rw`, and wire it into `SurfaceAudit`.
+  (Implemented in `MoltResearch/Discrepancy/SurfaceAudit.lean` and `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
