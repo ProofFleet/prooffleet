@@ -36,7 +36,7 @@ noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
 /-- The reduced sequence produced by Stage 3 is a sign sequence. -/
 theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
     IsSignSequence (stage3_g (f := f) (hf := hf)) := by
-  simpa [stage3Out, stage3_g] using
+  simpa [stage3_g] using
     (Stage3Output.hg (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Rewrite for the reduced sequence produced by Stage 3: it is a shift by `m*d`. -/
@@ -44,25 +44,25 @@ theorem stage3_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
     stage3_g (f := f) (hf := hf) k =
       f (k + (stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf))) := by
   -- Prefer the Stage-3 boundary lemma.
-  simpa [stage3Out, stage3_g, stage3_m, stage3_d, Stage3Output.g, Stage3Output.m, Stage3Output.d] using
+  simpa [stage3_g, stage3_m, stage3_d] using
     (Stage3Output.g_eq (f := f) (stage3Out (f := f) (hf := hf)) k)
 
 /-- Positivity of the reduced step size produced by Stage 3. -/
 theorem stage3_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) > 0 := by
   -- Prefer the Stage-3 boundary API lemma.
-  simpa [stage3Out, stage3_d] using
+  simpa [stage3_d] using
     (Stage3Output.hd (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
 theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     1 ≤ stage3_d (f := f) (hf := hf) := by
-  simpa [stage3Out, stage3_d, Stage3Output.d] using
+  simpa [stage3_d] using
     (Stage3Output.one_le_d (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
 theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3_d (f := f) (hf := hf) ≠ 0 := by
-  simpa [stage3Out, stage3_d, Stage3Output.d] using
+  simpa [stage3_d] using
     (Stage3Output.d_ne_zero (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`. -/
@@ -78,7 +78,7 @@ This is a thin wrapper around the proved Stage-3 boundary lemma
 theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
     MoltResearch.UnboundedDiscrepancyAlong (stage3_g (f := f) (hf := hf))
       (stage3_d (f := f) (hf := hf)) := by
-  simpa [stage3Out, stage3_g, stage3_d, Stage3Output.g, Stage3Output.d] using
+  simpa [stage3_g, stage3_d] using
     (Stage3Output.unboundedDiscrepancyAlong_core (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields an unbounded bundled offset discrepancy family
@@ -88,7 +88,7 @@ This is a thin wrapper around `Stage3Output.unboundedDiscOffset`.
 -/
 theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) := by
-  simpa [stage3Out, stage3_d, stage3_m] using
+  simpa [stage3_d, stage3_m] using
     (Stage3Output.unboundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields raw offset-nucleus witnesses at the concrete
@@ -104,7 +104,7 @@ theorem stage3_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSi
     ∀ B : ℕ, ∃ n : ℕ,
       Int.natAbs
           (apSumOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) n) > B := by
-  simpa [stage3Out, stage3_d, stage3_m] using
+  simpa [stage3_d, stage3_m] using
     (Stage3Output.forall_exists_natAbs_apSumOffset_gt' (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields explicit affine-tail nucleus witnesses at the
@@ -121,7 +121,7 @@ theorem stage3_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsS
       Int.natAbs
           (apSumFrom f ((stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf)))
             (stage3_d (f := f) (hf := hf)) n) > C := by
-  simpa [stage3Out, stage3_d, stage3_m] using
+  simpa [stage3_d, stage3_m] using
     (Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
@@ -166,7 +166,7 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f : �
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
-  simpa [stage3Out] using
+  simpa using
     (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
       (stage3Out (f := f) (hf := hf)))
 
@@ -183,7 +183,7 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f : ℕ
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f d m n) > B) := by
-  simpa [stage3Out] using
+  simpa using
     (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f)
       (stage3Out (f := f) (hf := hf)))
 
