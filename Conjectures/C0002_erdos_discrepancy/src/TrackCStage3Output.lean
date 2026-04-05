@@ -54,6 +54,16 @@ abbrev unboundedReducedAlong (out : Stage3Output f) :
     Tao2015.UnboundedDiscrepancyAlong out.g out.d :=
   out.out2.unbounded
 
+/-- Equivalent packaging: arbitrarily large reduced-sequence discrepancy witnesses along `out.d`.
+
+This is the `HasDiscrepancyAtLeastAlong` normal form of `unboundedReducedAlong`.
+-/
+theorem forall_hasDiscrepancyAtLeastAlong (out : Stage3Output f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
+  -- `UnboundedDiscrepancyAlong` is definitionally `∀ C, HasDiscrepancyAtLeastAlong ... C`.
+  simpa [Tao2015.UnboundedDiscrepancyAlong, HasDiscrepancyAtLeastAlong] using
+    (Stage2Output.forall_hasDiscrepancyAtLeastAlong (f := f) out.out2)
+
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
 abbrev m (out : Stage3Output f) : ℕ := out.out2.m
 
