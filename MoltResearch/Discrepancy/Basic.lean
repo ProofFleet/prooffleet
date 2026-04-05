@@ -217,11 +217,18 @@ This is designed to be a simp-friendly rewrite for local-surgery arguments.
 
 (Track B normal-form checklist item: support monotonicity API.)
 -/
-lemma apSupport_succ (d m n : ℕ) (hd : d > 0) :
+@[simp] lemma apSupport_add_one (d m n : ℕ) :
     apSupport d m (n + 1) = insert ((m + n + 1) * d) (apSupport d m n) := by
-  -- The statement is true even without `hd`; we keep the hypothesis to match the intended API.
   unfold apSupport
   simpa [Finset.range_add_one, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-- Version of `apSupport_add_one` phrased with the intended `d > 0` side-condition.
+
+(Track B normal-form checklist item: support monotonicity API.)
+-/
+lemma apSupport_succ (d m n : ℕ) (hd : d > 0) :
+    apSupport d m (n + 1) = insert ((m + n + 1) * d) (apSupport d m n) := by
+  simpa using (apSupport_add_one (d := d) (m := m) (n := n))
 
 /-- Support-form congruence lemma: if `f` and `g` agree on every element of `apSupport d m n`,
 then `apSumOffset f d m n = apSumOffset g d m n`.

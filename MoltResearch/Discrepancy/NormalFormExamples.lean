@@ -52,9 +52,9 @@ example : apSupport d m n ⊆ apSupport d m (n + k) := by
   simpa using (apSupport_mono_right (d := d) (m := m) (n := n) (k := k))
 
 -- Regression (Track B / support endpoint API):
-example (hd : d > 0) :
+example :
     apSupport d m (n + 1) = insert ((m + n + 1) * d) (apSupport d m n) := by
-  simpa using (apSupport_succ (d := d) (m := m) (n := n) hd)
+  simpa using (apSupport_add_one (d := d) (m := m) (n := n))
 
 -- Regression (Track B / offset reindexing, reverse normal form):
 -- reindex the tail sum by `i ↦ n-1-i` (a `Finset.range` “reflect”).

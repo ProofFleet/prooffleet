@@ -662,7 +662,7 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Support monotonicity API: prove `apSupport d m n ⊆ apSupport d m (n+k)` and a simp-friendly lemma `apSupport d m (n+1) = insert ((m+n+1)*d) (apSupport d m n)` (for `d>0`), so local-surgery arguments can grow the accessed-index set without redoing arithmetic.
+- [x] Support monotonicity API: prove `apSupport d m n ⊆ apSupport d m (n+k)` and a simp-friendly lemma `apSupport d m (n+1) = insert ((m+n+1)*d) (apSupport d m n)` (see `apSupport_mono_right`, `apSupport_add_one` in `MoltResearch/Discrepancy/Basic.lean`).
 
 - [ ] One-step `discOffset` update formula: package a lemma expressing the *exact* increment
   `apSumOffset f d m (n+1) - apSumOffset f d m n = f ((m+n+1)*d)` at the `Int` level (paired with the existing `apSumOffset_succ`), so later telescoping arguments don’t have to `simp` through `Nat.succ` normal forms.
