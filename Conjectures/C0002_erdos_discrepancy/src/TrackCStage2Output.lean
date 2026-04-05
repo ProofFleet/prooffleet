@@ -327,6 +327,20 @@ theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage2Output f) :
     (Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt' (f := f)
       (d := out.d) (m := out.m)).1 hunb
 
+/-- Paper-notation normal form of `forall_exists_natAbs_apSumOffset_gt'`.
+
+This rewrites the offset nuclei `apSumOffset f out.d out.m n` as the shifted progression sums
+`∑ i ∈ Icc (out.m+1) (out.m+n), f (i*out.d)`.
+-/
+theorem forall_exists_natAbs_sum_Icc_offset_gt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) > B := by
+  intro B
+  rcases out.forall_exists_natAbs_apSumOffset_gt' (f := f) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)]
+    using hn
+
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that the offset nucleus
 `apSumOffset f d m n` takes arbitrarily large absolute values.
 
