@@ -53,6 +53,23 @@ theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
     (congrArg Int.natAbs
         (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))).symm
 
+/-- Paper-notation normal form: affine-tail nuclei at start `m*d` written as an interval sum.
+
+This is `apSumFrom_mul_eq_apSumOffset` composed with `natAbs_apSumOffset_eq_natAbs_sum_Icc`.
+-/
+theorem natAbs_apSumFrom_mul_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
+    Int.natAbs (apSumFrom f (m * d) d n) =
+      Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+  calc
+    Int.natAbs (apSumFrom f (m * d) d n) = Int.natAbs (apSumOffset f d m n) := by
+      exact
+        congrArg Int.natAbs
+          (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+    _ =
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+      simpa using
+        (natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n))
+
 /-- Paper-notation normal form: `discOffset` expressed as an interval sum over `Icc (m+1) (m+n)`.
 
 This avoids unfolding `discOffset` and then rewriting `apSumOffset` to an interval sum by hand.
@@ -60,7 +77,12 @@ This avoids unfolding `discOffset` and then rewriting `apSumOffset` to an interv
 theorem discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n =
       Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
-  simp [discOffset, natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)]
+  calc
+    discOffset f d m n = Int.natAbs (apSumFrom f (m * d) d n) := by
+      simpa using discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)
+    _ =
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+      simpa using natAbs_apSumFrom_mul_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)
 
 /-- Inequality normal form: `discOffset f d m n < B` rewritten using affine-tail nuclei. -/
 theorem discOffset_lt_iff_natAbs_apSumFrom_mul_lt (f : ℕ → ℤ) (d m n B : ℕ) :
