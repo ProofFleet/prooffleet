@@ -17,11 +17,6 @@ theorem erdos_discrepancy_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
 
 -- Tao 2015 proof skeleton lives in `Conjectures.C0002_erdos_discrepancy.src.Tao2015`.
 
-/-- Track C pipeline package: Stage-3 output for a sign sequence `f`. -/
-noncomputable abbrev erdos_discrepancy_stage3Output (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    Tao2015.Stage3Output f :=
-  Tao2015.stage3 (f := f) (hf := hf)
-
 /-- Erdős discrepancy theorem in boundedness-negation normal form.
 
 This is the core Track C output: it is the minimal statement from which the usual witness forms
@@ -30,7 +25,7 @@ follow.
 theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
   -- Prefer consuming the Stage-3 output record API.
-  exact (erdos_discrepancy_stage3Output (f := f) (hf := hf)).notBounded
+  exact (Tao2015.stage3Out (f := f) (hf := hf)).notBounded
 
 /-- Erdős discrepancy theorem.
 
@@ -44,7 +39,7 @@ theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
   -- Prefer the Stage-3 record API (`Stage3Output`) rather than wrapper lemmas.
   simpa using
     (Tao2015.Stage3Output.forall_hasDiscrepancyAtLeast (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
+      (Tao2015.stage3Out (f := f) (hf := hf)))
 
 /-!
 Additional witness-form corollaries live in
