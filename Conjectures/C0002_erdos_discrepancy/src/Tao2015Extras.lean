@@ -53,6 +53,15 @@ theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
     (congrArg Int.natAbs
         (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))).symm
 
+/-- Paper-notation normal form: `discOffset` expressed as an interval sum over `Icc (m+1) (m+n)`.
+
+This avoids unfolding `discOffset` and then rewriting `apSumOffset` to an interval sum by hand.
+-/
+theorem discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+  simp [discOffset, natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)]
+
 /-- Inequality normal form: `discOffset f d m n < B` rewritten using affine-tail nuclei. -/
 theorem discOffset_lt_iff_natAbs_apSumFrom_mul_lt (f : ℕ → ℤ) (d m n B : ℕ) :
     discOffset f d m n < B ↔ Int.natAbs (apSumFrom f (m * d) d n) < B := by
