@@ -664,8 +664,9 @@ Definition of done:
 
 - [x] Support monotonicity API: prove `apSupport d m n ⊆ apSupport d m (n+k)` and a simp-friendly lemma `apSupport d m (n+1) = insert ((m+n+1)*d) (apSupport d m n)` (see `apSupport_mono_right`, `apSupport_add_one` in `MoltResearch/Discrepancy/Basic.lean`).
 
-- [ ] One-step `discOffset` update formula: package a lemma expressing the *exact* increment
+- [x] One-step `discOffset` update formula: package a lemma expressing the *exact* increment
   `apSumOffset f d m (n+1) - apSumOffset f d m n = f ((m+n+1)*d)` at the `Int` level (paired with the existing `apSumOffset_succ`), so later telescoping arguments don’t have to `simp` through `Nat.succ` normal forms.
+  - Implemented as `apSumOffset_succ_sub` in `MoltResearch/Discrepancy/Basic.lean` and audited as part of the stable surface in `MoltResearch/Discrepancy/SurfaceAudit.lean`.
 
 - [ ] Two-cut normal form (discOffset-level): given `n₁+n₂+n₃`, prove a canonical inequality bounding `discOffset f d m (n₁+n₂+n₃)` by the sum of the three segment discrepancies (triangle inequality packaged + stable name), with a regression example under `import MoltResearch.Discrepancy`.
 

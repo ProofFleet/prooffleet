@@ -41,6 +41,10 @@ section
   #check apSumOffset
   #check apSumFrom
 
+  -- One-step length extension/difference nucleus lemmas should be present.
+  #check apSumOffset_succ
+  #check apSumOffset_succ_sub
+
   -- Algebraic (multiplication) lemmas should be present and coherent across the nucleus APIs.
   #check apSum_mul_left
   #check apSum_mul_right
