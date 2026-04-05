@@ -52,6 +52,18 @@ theorem forall_exists_d_ge_one_witness_pos (out : Stage2Output f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (out.forall_hasDiscrepancyAtLeast (f := f))
 
+/-- Variant of `forall_exists_d_ge_one_witness_pos` with the step-size condition written as `d > 0`.
+
+This is sometimes a more convenient normal form when the next stage naturally assumes `d ≠ 0`
+(or uses lemmas phrased with strict positivity).
+-/
+theorem forall_exists_d_pos_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, ?_, hn, hw⟩
+  exact lt_of_lt_of_le Nat.zero_lt_one hd
+
 end Stage2Output
 
 end Tao2015
