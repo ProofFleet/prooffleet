@@ -93,6 +93,22 @@ theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact Stage2Output.forall_hasDiscrepancyAtLeast (f := f) (stage2Out (f := f) (hf := hf))
 
+/-- Consumer-facing tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail nuclei
+`apSumFrom f (m*d) d n` at the concrete parameters produced by the conjecture stub `stage2Out`.
+
+This is a thin wrapper around `Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt`.
+-/
+theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ,
+      ∃ n : ℕ,
+        Int.natAbs
+            (apSumFrom f
+              (stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf))
+              (stage2_d (f := f) (hf := hf)) n) > C := by
+  simpa [stage2_m, stage2_d] using
+    (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (stage2Out (f := f) (hf := hf)))
+
 /-!
 Consumer code should use `stage2Out` together with the general lemmas about `Stage2Output` in
 `TrackCStage2.lean` (for example: `Stage2Output.forall_hasDiscrepancyAtLeast`,
