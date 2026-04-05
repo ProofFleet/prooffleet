@@ -56,6 +56,16 @@ example :
     apSupport d m (n + 1) = insert ((m + n + 1) * d) (apSupport d m n) := by
   simpa using (apSupport_add_one (d := d) (m := m) (n := n))
 
+-- Regression (Track B / restriction to finite window API):
+-- restricting to the accessed-index support does not change the offset sum / discrepancy.
+example :
+    apSumOffset (fun x => if x ∈ apSupport d m n then f x else 0) d m n = apSumOffset f d m n := by
+  simpa using (apSumOffset_restrict_support (f := f) (d := d) (m := m) (n := n))
+
+example :
+    discOffset (fun x => if x ∈ apSupport d m n then f x else 0) d m n = discOffset f d m n := by
+  simpa using (discOffset_restrict_support (f := f) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / offset reindexing, reverse normal form):
 -- reindex the tail sum by `i ↦ n-1-i` (a `Finset.range` “reflect”).
 example : apSumOffset f d m n =
