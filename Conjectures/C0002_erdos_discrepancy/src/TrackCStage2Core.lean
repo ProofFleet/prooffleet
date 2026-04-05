@@ -39,6 +39,19 @@ theorem forall_hasDiscrepancyAtLeast (out : Stage2Output f) :
   refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
   exact out.notBoundedOriginal (f := f)
 
+/-- Stage 2 output implies the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is the most pipeline-friendly surface statement for consuming Stage 2 without going through
+Stage 3.
+-/
+theorem forall_exists_d_ge_one_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
 end Stage2Output
 
 end Tao2015
