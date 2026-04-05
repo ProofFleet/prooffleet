@@ -139,6 +139,26 @@ theorem unboundedDiscOffset (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.unboundedDiscOffset (f := f) out.out2)
 
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This is a convenience wrapper around `Stage3Output.unboundedDiscOffset`.
+-/
+theorem exists_params_unboundedDiscOffset (out : Stage3Output f) :
+    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
+  refine ⟨out.d, out.m, out.hd, ?_⟩
+  simpa [Stage3Output.d, Stage3Output.m] using out.unboundedDiscOffset (f := f)
+
+/-- Existential packaging variant of `exists_params_unboundedDiscOffset` using the side condition
+`1 ≤ d`.
+
+Many downstream consumers prefer `1 ≤ d` to avoid repeatedly rewriting `d > 0`.
+-/
+theorem exists_params_one_le_unboundedDiscOffset (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  simpa [Stage3Output.d, Stage3Output.m] using out.unboundedDiscOffset (f := f)
+
 /-- Negation-normal-form: there is no uniform bound on the bundled offset discrepancy family
 `discOffset f out.d out.m`.
 
