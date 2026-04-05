@@ -254,6 +254,21 @@ lemma apSum_congr_support (f g : ℕ → ℤ) (d n : ℕ)
   simpa [apSum, apSumOffset] using
     (apSumOffset_congr_support (f := f) (g := g) (d := d) (m := 0) (n := n) (h := h))
 
+/-! ### Restriction to a finite window (support-form) -/
+
+/-- Restricting `f` to `apSupport d m n` (with default value `0` outside the support)
+does not change `apSumOffset f d m n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Restriction to finite window” API.
+-/
+lemma apSumOffset_restrict_support (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun x => if x ∈ apSupport d m n then f x else 0) d m n = apSumOffset f d m n := by
+  -- The summand indices are always in `apSupport d m n`.
+  refine (apSumOffset_congr_support (f := fun x => if x ∈ apSupport d m n then f x else 0)
+      (g := f) (d := d) (m := m) (n := n) ?_)
+  intro x hx
+  simp [hx]
+
 /-- A convenient wrapper for the absolute value of an offset arithmetic-progression sum.
 
 It is defined as the natural absolute value of `apSumOffset f d m n`.
@@ -265,6 +280,16 @@ def discOffset (f : ℕ → ℤ) (d m n : ℕ) : ℕ :=
 lemma discOffset_eq_natAbs_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=
   rfl
+
+/-- Support-form version of “restriction to a finite window”: restricting `f` to the relevant
+`apSupport` (with default value `0` outside) does not change `discOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Restriction to finite window” API.
+-/
+lemma discOffset_restrict_support (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset (fun x => if x ∈ apSupport d m n then f x else 0) d m n = discOffset f d m n := by
+  unfold discOffset
+  simp [apSumOffset_restrict_support]
 
 /-- Alias for the definitional lemma. -/
 lemma discOffset_def (f : ℕ → ℤ) (d m n : ℕ) :

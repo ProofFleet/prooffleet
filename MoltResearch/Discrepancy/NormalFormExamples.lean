@@ -3286,6 +3286,21 @@ example (f : ℕ → ℤ) (d₁ d₂ m n : ℕ) :
   simpa using
     (discOffset_mul_eq_discOffset_map_mul₁₂ (f := f) (d₁ := d₁) (d₂ := d₂) (m := m) (n := n))
 
+/-!
+## “Restriction to finite window” regression tests
+
+These sanity checks ensure that replacing `f` by a version that agrees with it on the relevant
+`apSupport` (and is `0` elsewhere) does not change `apSumOffset` / `discOffset`.
+-/
+
+example (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun x => if x ∈ apSupport d m n then f x else 0) d m n = apSumOffset f d m n := by
+  simpa using (apSumOffset_restrict_support (f := f) (d := d) (m := m) (n := n))
+
+example (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset (fun x => if x ∈ apSupport d m n then f x else 0) d m n = discOffset f d m n := by
+  simpa using (discOffset_restrict_support (f := f) (d := d) (m := m) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch
