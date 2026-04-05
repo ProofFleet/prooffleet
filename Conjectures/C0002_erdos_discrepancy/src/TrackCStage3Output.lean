@@ -20,8 +20,9 @@ variable {f : ℕ → ℤ}
 
 /-- Alias for the packaged global conclusion, matching Stage-2 naming.
 
-Stage 2 calls this statement `Stage2Output.notBoundedOriginal`; Stage 3 stores it as a field
-`out.notBounded`. This alias lets downstream code use a consistent name at both boundaries.
+Stage 2 calls this statement `Stage2Output.notBoundedOriginal`; Stage 3 exposes it as the method
+`out.notBounded` (derived from the Stage-2 output). This alias lets downstream code use a
+consistent name at both boundaries.
 -/
 abbrev notBoundedOriginal (out : Stage3Output f) : ¬ BoundedDiscrepancy f :=
   out.notBounded

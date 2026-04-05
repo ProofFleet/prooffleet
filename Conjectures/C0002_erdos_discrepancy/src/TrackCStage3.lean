@@ -22,25 +22,30 @@ namespace Tao2015
 
 /-- Output of Stage 3 of the Track C pipeline.
 
-We keep the full Stage-2 output for traceability, and package the global conclusion
-`¬ BoundedDiscrepancy f` as the consumer-facing end of the Conjectures-only plane.
+We keep the full Stage-2 output for traceability. The global conclusion
+`¬ BoundedDiscrepancy f` is derived (as `Stage3Output.notBounded`) from the Stage-2 boundary.
 -/
 structure Stage3Output (f : ℕ → ℤ) : Type where
   out2 : Tao2015.Stage2Output f
-  notBounded : ¬ BoundedDiscrepancy f
 
 namespace Stage3Output
 
 variable {f : ℕ → ℤ}
+
+/-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
+
+We intentionally do not store this as a field: it is derived from the Stage-2 output.
+-/
+theorem notBounded (out : Stage3Output f) : ¬ BoundedDiscrepancy f :=
+  Stage2Output.notBoundedOriginal (f := f) out.out2
 
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
 
 This is the main “stage boundary” lemma: it is *proved* (no `sorry`) and should remain stable.
 -/
-def ofStage2Output (out2 : Tao2015.Stage2Output f) : Stage3Output f := by
-  refine ⟨out2, ?_⟩
-  exact Stage2Output.notBoundedOriginal (f := f) out2
+def ofStage2Output (out2 : Tao2015.Stage2Output f) : Stage3Output f :=
+  ⟨out2⟩
 
 /-- Stage 3 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
