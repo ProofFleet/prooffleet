@@ -336,6 +336,29 @@ This direction avoids simp loops with `discOffset_def`.
   rfl
 
 /-!
+### Degenerate-step (`d = 0`) normal forms
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Coherence lemma for `apSumOffset` under `d=0`”.
+
+These lemmas are oriented for `simp`: they prevent downstream goals from unfolding `apSumOffset`
+into a constant `Finset` sum when the step is `0`.
+-/
+
+/-- Degenerate step (`d = 0`): the sampled index is always `0`, so the sum is a constant sum. -/
+@[simp] lemma apSumOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
+    apSumOffset f 0 m n = (n : ℤ) * f 0 := by
+  classical
+  unfold apSumOffset
+  -- All sampled indices are `((m+i+1)*0) = 0`.
+  simp
+
+/-- Degenerate step (`d = 0`) at the `discOffset` level. -/
+@[simp] lemma discOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
+    discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
+  unfold discOffset
+  simp
+
+/-!
 ### `discAlong`: along-`d` API coherence (`m = 0` offset form)
 
 This is a lightweight specialization of `discOffset` that packages the “no offset” case.
