@@ -200,6 +200,29 @@ lemma mem_apSupport_of_lt {i d m n : ℕ} (hi : i < n) :
   refine Finset.mem_image.2 ?_
   exact ⟨i, Finset.mem_range.2 hi, rfl⟩
 
+/-- Monotonicity in the length parameter: the accessed-index set can only grow when `n` increases.
+
+(Track B normal-form checklist item: support monotonicity API.)
+-/
+lemma apSupport_mono_right (d m n k : ℕ) : apSupport d m n ⊆ apSupport d m (n + k) := by
+  intro x hx
+  rcases Finset.mem_image.1 hx with ⟨i, hi, rfl⟩
+  have hin : i < n := Finset.mem_range.1 hi
+  have hin' : i < n + k := lt_of_lt_of_le hin (Nat.le_add_right n k)
+  exact mem_apSupport_of_lt (d := d) (m := m) (n := n + k) (i := i) hin'
+
+/-- `apSupport` at length `n+1` is obtained by inserting the new endpoint index.
+
+This is designed to be a simp-friendly rewrite for local-surgery arguments.
+
+(Track B normal-form checklist item: support monotonicity API.)
+-/
+lemma apSupport_succ (d m n : ℕ) (hd : d > 0) :
+    apSupport d m (n + 1) = insert ((m + n + 1) * d) (apSupport d m n) := by
+  -- The statement is true even without `hd`; we keep the hypothesis to match the intended API.
+  unfold apSupport
+  simpa [Finset.range_add_one, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-- Support-form congruence lemma: if `f` and `g` agree on every element of `apSupport d m n`,
 then `apSumOffset f d m n = apSumOffset g d m n`.
 

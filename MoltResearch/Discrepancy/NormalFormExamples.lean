@@ -47,6 +47,15 @@ example : apSumOffset f d 0 n = apSum f d n := by
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_mul (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / support monotonicity API):
+example : apSupport d m n ⊆ apSupport d m (n + k) := by
+  simpa using (apSupport_mono_right (d := d) (m := m) (n := n) (k := k))
+
+-- Regression (Track B / support endpoint API):
+example (hd : d > 0) :
+    apSupport d m (n + 1) = insert ((m + n + 1) * d) (apSupport d m n) := by
+  simpa using (apSupport_succ (d := d) (m := m) (n := n) hd)
+
 -- Regression (Track B / offset reindexing, reverse normal form):
 -- reindex the tail sum by `i ↦ n-1-i` (a `Finset.range` “reflect”).
 example : apSumOffset f d m n =
