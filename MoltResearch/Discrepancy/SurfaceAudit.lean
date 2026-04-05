@@ -150,6 +150,7 @@ section
 
   -- Splitting / triangle inequality / one-step Lipschitz bounds.
   #check discOffset_add_le
+  #check discOffset_add_add_le
   #check discOffset_add_length_le
   #check discOffset_cut_le
   #check discOffset_split_at_le

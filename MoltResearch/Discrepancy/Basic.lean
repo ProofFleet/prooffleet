@@ -913,6 +913,30 @@ lemma discOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa using
     (natAbs_apSumOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Two-cut normal form bound (discOffset-level): concatenate three segments.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Two-cut normal form (discOffset-level).
+-/
+lemma discOffset_add_add_le (f : ℕ → ℤ) (d m n₁ n₂ n₃ : ℕ) :
+    discOffset f d m (n₁ + n₂ + n₃) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃ := by
+  -- Apply the 2-segment triangle inequality twice.
+  have h₁ : discOffset f d m (n₁ + n₂) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ :=
+    discOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+  have h₂ : discOffset f d m ((n₁ + n₂) + n₃) ≤
+      discOffset f d m (n₁ + n₂) + discOffset f d (m + (n₁ + n₂)) n₃ :=
+    discOffset_add_le (f := f) (d := d) (m := m) (n₁ := (n₁ + n₂)) (n₂ := n₃)
+  -- Add `discOffset … n₃` to the inequality for the prefix.
+  have h₃ :
+      discOffset f d m (n₁ + n₂) + discOffset f d (m + (n₁ + n₂)) n₃ ≤
+        (discOffset f d m n₁ + discOffset f d (m + n₁) n₂) + discOffset f d (m + (n₁ + n₂)) n₃ := by
+    exact Nat.add_le_add_right h₁ _
+  -- Chain and normalize associativity.
+  have h := le_trans h₂ h₃
+  -- Put both sides in the advertised normal form.
+  simpa [Nat.add_assoc] using h
+
 /-! ### Degenerate start simp lemmas
 
 These mirror the “degenerate length” simp lemmas (`apSumOffset_zero` / `apSumOffset_one`) but for the
