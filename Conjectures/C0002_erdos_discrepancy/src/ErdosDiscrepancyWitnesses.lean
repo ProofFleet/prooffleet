@@ -27,6 +27,24 @@ theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf :
   simpa [hout.symm] using
     (Tao2015.Stage3Output.unboundedDiscrepancyAlong_core (f := f) out)
 
+/-- Paper-notation witness form for the concrete Stage-3 offset parameters.
+
+Normal form:
+`∀ B, ∃ n, Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) > B`,
+where `d = (stage3Out f hf).d` and `m = (stage3Out f hf).m`.
+
+This is a thin wrapper around `Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt`.
+-/
+theorem erdos_discrepancy_sum_Icc_offset_stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      Int.natAbs
+          ((Finset.Icc ((Tao2015.stage3Out (f := f) (hf := hf)).m + 1)
+                ((Tao2015.stage3Out (f := f) (hf := hf)).m + n)).sum
+              (fun i => f (i * (Tao2015.stage3Out (f := f) (hf := hf)).d))) > B := by
+  set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
+  simpa [hout.symm] using
+    (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) out)
+
 /-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
 This is the most pipeline-friendly surface statement:
