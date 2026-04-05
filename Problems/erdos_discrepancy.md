@@ -673,7 +673,8 @@ Definition of done:
 - [x] “Drop-to-step-one then split residues” bundle: add a single convenience lemma (or a tiny wrapper API) that combines `*_step_one` + residue-class split, producing a `∑ j<r` decomposition directly for `apSumOffset`/`discOffset` without intermediate rewrites, so later Fourier/character-style steps are 1–2 `rw`s.
   - Implemented as `apSumOffset_step_one_mul_len_succ_eq_sum_range` and `discOffset_step_one_mul_len_succ_eq_natAbs_sum_range` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] Local edit sensitivity (support form, disc-level): restate the existing edit-sensitivity bound purely in terms of `apSupport` (no `Icc`/`range`), i.e. if `{x ∈ apSupport | f x ≠ g x}` has card ≤ t then `discOffset f d m n ≤ discOffset g d m n + 2*t` (and symmetric), with a stable-surface regression example.
+- [x] Local edit sensitivity (support form, disc-level): restate the existing edit-sensitivity bound purely in terms of `apSupport` (no `Icc`/`range`), i.e. if `{x ∈ apSupport | f x ≠ g x}` has card ≤ t then `discOffset f d m n ≤ discOffset g d m n + 2*t` (and symmetric), with a stable-surface regression example.
+  - Implemented in `MoltResearch/Discrepancy/EditSensitivity.lean` (see the `apSupport`-driven wrappers near `card_range_diff_le_card_apSupport_diff`), with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] “Restriction to finite window” API: package lemmas that let you replace `f` by `fun k => if k ∈ S then f k else 0` (or a default sign) when proving equalities/inequalities about `apSumOffset`/`discOffset`, phrased via `apSupport`, to support later compactness/averaging arguments.
 
