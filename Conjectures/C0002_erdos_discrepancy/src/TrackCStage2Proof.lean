@@ -97,6 +97,17 @@ theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsS
           (f := f)).1
       (stage2Out (f := f) (hf := hf)).unbounded
 
+/-- Consumer-facing shortcut: Stage 2 yields an unbounded bundled offset discrepancy family
+`discOffset f d m`, at the concrete parameters produced by the conjecture stub `stage2Out`.
+
+This is a thin wrapper around the Stage-1 transport equivalence on the bundled `ReductionOutput`.
+-/
+theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) := by
+  simpa [stage2_d, stage2_m] using
+    ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1
+      (stage2Out (f := f) (hf := hf)).unbounded
+
 /-!
 Consumer code should usually use `stage2Out` together with the general lemmas about `Stage2Output`
 (from `TrackCStage2.lean` / `TrackCStage2Output.lean`).
