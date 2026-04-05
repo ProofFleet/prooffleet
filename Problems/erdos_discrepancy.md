@@ -676,7 +676,8 @@ Definition of done:
 - [x] Local edit sensitivity (support form, disc-level): restate the existing edit-sensitivity bound purely in terms of `apSupport` (no `Icc`/`range`), i.e. if `{x ∈ apSupport | f x ≠ g x}` has card ≤ t then `discOffset f d m n ≤ discOffset g d m n + 2*t` (and symmetric), with a stable-surface regression example.
   - Implemented in `MoltResearch/Discrepancy/EditSensitivity.lean` (see the `apSupport`-driven wrappers near `card_range_diff_le_card_apSupport_diff`), with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [x] “Restriction to finite window” API: package lemmas that let you replace `f` by `fun k => if k ∈ S then f k else 0` (or a default sign) when proving equalities/inequalities about `apSumOffset`/`discOffset`, phrased via `apSupport`, to support later compactness/averaging arguments. (Lemmas: `apSumOffset_restrict_support`, `apSum_restrict_support`, `disc_restrict_support`, `discOffset_restrict_support`; regression: `MoltResearch/Discrepancy/NormalFormExamples.lean`)
+- [x] “Restriction to finite window” API: package lemmas that let you replace `f` by `fun k => if k ∈ S then f k else 0` (or a default sign) when proving equalities/inequalities about `apSumOffset`/`discOffset`, phrased via `apSupport`, to support later compactness/averaging arguments.
+  - Implemented as `apSumOffset_restrict_support`, `apSum_restrict_support`, `disc_restrict_support`, and `discOffset_restrict_support` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples under `import MoltResearch.Discrepancy` in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] Coherence lemma for `apSumOffset` under `d=0` at the *discOffset* level: provide `simp`-friendly `discOffset f 0 m n = Int.natAbs (n * f 0)` (or the repo’s chosen normal form) so degenerate-step goals normalize without unfolding.
 
