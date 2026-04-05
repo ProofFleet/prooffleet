@@ -314,6 +314,16 @@ def contextAlong_of_boundedDiscOffset (out : ReductionOutput f) {B : ℕ}
   intro n
   exact out.contract_discrepancy_le B hB n
 
+/-- Package `contextAlong_of_boundedDiscOffset` as a Prop-level boundedness statement.
+
+This is a small convenience wrapper: some consumers want a `BoundedDiscrepancyAlong` witness rather
+than carrying a `ContextAlong` record.
+-/
+theorem boundedDiscrepancyAlong_of_boundedDiscOffset (out : ReductionOutput f) {B : ℕ}
+    (hB : BoundedDiscOffset f out.d out.m B) : BoundedDiscrepancyAlong out.g out.d := by
+  exact
+    (contextAlong_of_boundedDiscOffset (f := f) (out := out) (B := B) hB).toBoundedDiscrepancyAlong
+
 /-- Nucleus-level variant of `bound_discOffset_of_contextAlong`.
 
 This version expands `discOffset` into `Int.natAbs (apSumOffset ...)`.
