@@ -253,22 +253,21 @@ example (q n' : ℕ) (hq : q > 0) :
     (sum_range_mul_reindex_mod_div (q := q) (n := n') (hq := hq) (f := f))
 
 -- Regression (Track B / residue-class split, homogeneous nucleus):
--- `apSum` at block length `q*(n+1)` rewrites into the nested residue/quotient normal form.
+-- preferred stable normal form: `apSum` at block length `q*(n+1)` rewrites into a `range q` sum of
+-- head+tail blocks.
 example (q : ℕ) (hq : q > 0) :
     apSum f d (q * (n + 1)) =
-      (Finset.range q).sum (fun r =>
-        (Finset.range (n + 1)).sum (fun k => f ((q * k + (r + 1)) * d))) := by
+      (Finset.range q).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) := by
   simpa using
-    (apSum_mul_len_succ_eq_sum_range_sum_range (f := f) (d := d) (q := q) (n := n) hq)
+    (apSum_mul_len_succ_eq_sum_range (f := f) (d := d) (q := q) (n := n) hq)
 
 -- Regression (Track B / residue-class split, homogeneous nucleus / mul_left variant):
 -- same normal form, but with the multiplication order normalized to `d * i`.
 example (q : ℕ) (hq : q > 0) :
     apSum f d (q * (n + 1)) =
-      (Finset.range q).sum (fun r =>
-        (Finset.range (n + 1)).sum (fun k => f (d * (q * k + (r + 1))))) := by
+      (Finset.range q).sum (fun r => f (d * (r + 1)) + apSumFrom f (d * (r + 1)) (q * d) n) := by
   simpa using
-    (apSum_mul_len_succ_eq_sum_range_sum_range_mul_left (f := f) (d := d) (q := q) (n := n) hq)
+    (apSum_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (q := q) (n := n) hq)
 
 -- Regression (Track B / local edit sensitivity, sum-level):
 -- if you flip at most one sampled sign, the sum changes by at most `2`.

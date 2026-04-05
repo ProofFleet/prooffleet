@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy
+import MoltResearch.Discrepancy.ResidueDeprecated
 
 /-!
 # Discrepancy: deprecated aliases

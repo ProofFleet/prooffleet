@@ -205,6 +205,10 @@ section
   #check_failure discOffset_congr_Icc
   #check_failure discOffset_congr_finset_Icc
 
+  -- Deprecated nested-sum residue splitting normal forms (kept behind `Discrepancy.Deprecated`).
+  #check_failure apSum_mul_len_succ_eq_sum_range_sum_range
+  #check_failure apSum_mul_len_succ_eq_sum_range_sum_range_mul_left
+
   /-!
   ## Rewrite pipeline examples (compile-only)
 
