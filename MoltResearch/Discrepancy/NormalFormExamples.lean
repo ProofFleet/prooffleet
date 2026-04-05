@@ -331,6 +331,23 @@ example :
     (IsSignSequence.discOffset_le_edit_add
       (hf := hf) (hg := hg) (d := 1) (m := 2) (n := 5) (t := 1) hcard)
 
+-- Regression (Track B / local edit sensitivity, disc-level / `apSupport` form):
+-- same bound, but phrased using the normal-form support finset `apSupport` (no `Finset.range`).
+example :
+    let f : ℕ → ℤ := fun _ => 1
+    let g : ℕ → ℤ := fun n => if n = 3 then (-1) else 1
+    discOffset f 1 2 5 ≤ discOffset g 1 2 5 + 2 := by
+  intro f g
+  have hf : IsSignSequence f := by intro n; simp [f]
+  have hg : IsSignSequence g := by
+    intro n
+    by_cases h : n = 3 <;> simp [g, h]
+  have ht : ((apSupport 1 2 5).filter (fun x => f x ≠ g x)).card ≤ 1 := by
+    decide
+  simpa using
+    (IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le
+      (hf := hf) (hg := hg) (d := 1) (m := 2) (n := 5) (t := 1) (by decide) ht)
+
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
 -- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by

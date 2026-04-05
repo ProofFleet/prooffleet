@@ -352,4 +352,96 @@ lemma IsSignSequence.discOffset_le_edit_add {f g : ℕ → ℤ}
     (IsSignSequence.discOffset_le_discOffset_add_two_mul_of_card_range_diff_le'
       (hf := hf) (hg := hg) (d := d) (m := m) (n := n) (t := t) ht)
 
+/-!
+## API: edit sensitivity phrased via `apSupport`
+
+The Track B checklist item asks for the local edit-sensitivity bounds to be stated without
+`Finset.range`/`Icc` bookkeeping, purely in terms of the normal-form support object `apSupport`.
+
+Because `apSupport d m n` is defined as an *image* of `Finset.range n`, we assume `d > 0` so that
+`i ↦ (m + i + 1) * d` is injective; otherwise multiplicities can collapse (e.g. `d = 0`).
+-/
+
+/-- Relate the “range-filter” disagreement count to the disagreement count on `apSupport`.
+
+If `d > 0`, the sampling map `i ↦ (m+i+1)*d` is injective, so counting disagreements over
+`Finset.range n` is bounded by counting disagreements over the induced `apSupport` finset.
+-/
+lemma card_range_diff_le_card_apSupport_diff (f g : ℕ → ℤ) (d m n : ℕ) (hd : d > 0) :
+    ((Finset.range n).filter (fun i => f ((m + i + 1) * d) ≠ g ((m + i + 1) * d))).card ≤
+      ((apSupport d m n).filter (fun x => f x ≠ g x)).card := by
+  classical
+  -- Set up the sampling map.
+  let h : ℕ → ℕ := fun i => (m + i + 1) * d
+  -- Injectivity of `h` when `d > 0`.
+  have hinj : Function.Injective h := by
+    intro i j hij
+    have hmul : m + i + 1 = m + j + 1 := by
+      -- Cancel the positive factor `d`.
+      exact Nat.mul_right_cancel hd hij
+    have hmul' : m + (i + 1) = m + (j + 1) := by
+      simpa [h, Nat.add_assoc] using hmul
+    have : i + 1 = j + 1 := Nat.add_left_cancel hmul'
+    exact Nat.succ_inj.mp (by simpa using this)
+
+  -- The filtered disagreement finset on indices `i`.
+  let s : Finset ℕ :=
+    (Finset.range n).filter (fun i => f (h i) ≠ g (h i))
+
+  -- Push disagreements forward into `apSupport`.
+  have himage_subset : s.image h ⊆ (apSupport d m n).filter (fun x => f x ≠ g x) := by
+    intro x hx
+    rcases Finset.mem_image.1 hx with ⟨i, hi, rfl⟩
+    have hi' := (Finset.mem_filter.1 hi)
+    have hirange : i ∈ Finset.range n := hi'.1
+    have hidiff : f (h i) ≠ g (h i) := hi'.2
+    have hxSupp : h i ∈ apSupport d m n := by
+      -- `i < n` implies the sampled index lies in `apSupport`.
+      exact mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) (Finset.mem_range.1 hirange)
+    exact Finset.mem_filter.2 ⟨hxSupp, by simpa [h] using hidiff⟩
+
+  -- Compare cardinalities.
+  have hcard_image : (s.image h).card = s.card := by
+    simpa [h] using (Finset.card_image_of_injective s hinj)
+  -- `card s = card (image)` and `image ⊆ filter`, so `card s ≤ card filter`.
+  have : s.card ≤ ((apSupport d m n).filter (fun x => f x ≠ g x)).card := by
+    -- Rewrite `s.card` as `(s.image h).card`.
+    have : (s.image h).card ≤ ((apSupport d m n).filter (fun x => f x ≠ g x)).card :=
+      Finset.card_le_card himage_subset
+    simpa [hcard_image] using this
+
+  -- Unfold `s` back to the statement.
+  simpa [s, h] using this
+
+/-- **Local edit sensitivity (disc-level, `apSupport` form).**
+
+If `f,g` are sign sequences and they differ on at most `t` indices in the normal-form support
+`apSupport d m n`, then editing `f` into `g` changes `discOffset` by at most `2*t` (one-sided).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Local edit sensitivity (disc-level),
+`apSupport` normal form.
+-/
+lemma IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le {f g : ℕ → ℤ}
+    (hf : IsSignSequence f) (hg : IsSignSequence g) (d m n t : ℕ) (hd : d > 0)
+    (ht : ((apSupport d m n).filter (fun x => f x ≠ g x)).card ≤ t) :
+    discOffset f d m n ≤ discOffset g d m n + 2 * t := by
+  have htrange :
+      ((Finset.range n).filter (fun i => f ((m + i + 1) * d) ≠ g ((m + i + 1) * d))).card ≤ t := by
+    exact le_trans (card_range_diff_le_card_apSupport_diff (f := f) (g := g)
+      (d := d) (m := m) (n := n) hd) ht
+  simpa using (IsSignSequence.discOffset_edit_le (hf := hf) (hg := hg) (d := d) (m := m) (n := n)
+    (t := t) htrange)
+
+/-- Symmetric `apSupport`-form edit sensitivity inequality. -/
+lemma IsSignSequence.discOffset_le_edit_add_of_card_apSupport_diff_le {f g : ℕ → ℤ}
+    (hf : IsSignSequence f) (hg : IsSignSequence g) (d m n t : ℕ) (hd : d > 0)
+    (ht : ((apSupport d m n).filter (fun x => f x ≠ g x)).card ≤ t) :
+    discOffset g d m n ≤ discOffset f d m n + 2 * t := by
+  -- Use the one-sided lemma with swapped roles.
+  have ht' : ((apSupport d m n).filter (fun x => g x ≠ f x)).card ≤ t := by
+    simpa [ne_comm] using ht
+  simpa [Nat.mul_comm] using
+    (IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le (hf := hg) (hg := hf)
+      (d := d) (m := m) (n := n) (t := t) hd ht')
+
 end MoltResearch
