@@ -1,4 +1,5 @@
-import MoltResearch.Discrepancy
+import MoltResearch.Discrepancy.Basic
+import MoltResearch.Discrepancy.Unbounded
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry
 
 /-!

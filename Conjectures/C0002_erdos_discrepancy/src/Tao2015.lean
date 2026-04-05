@@ -1,4 +1,5 @@
-import MoltResearch.Discrepancy
+import MoltResearch.Discrepancy.Unbounded
+import MoltResearch.Discrepancy.AffineTail
 
 /-!
 # Tao 2015: Erdős discrepancy theorem (Track C skeleton)
