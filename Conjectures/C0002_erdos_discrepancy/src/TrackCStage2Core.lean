@@ -104,6 +104,17 @@ theorem forall_exists_d_pos_witness_pos (out : Stage2Output f) :
   refine ⟨d, n, ?_, hn, hw⟩
   exact lt_of_lt_of_le Nat.zero_lt_one hd
 
+/-- Variant of `forall_exists_d_pos_witness_pos` with the step-size condition written as `d ≠ 0`.
+
+This is occasionally the right normal form for downstream stages that treat `d` as a denominator
+(or simply want to avoid rewriting strict inequalities).
+-/
+theorem forall_exists_d_ne_zero_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  exact ⟨d, n, Nat.ne_of_gt hd, hn, hw⟩
+
 end Stage2Output
 
 end Tao2015
