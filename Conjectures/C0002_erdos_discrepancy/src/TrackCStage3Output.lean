@@ -257,6 +257,17 @@ theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (out : Stage3Ou
   intro B
   simpa using out.forall_exists_natAbs_apSumOffset_gt' (f := f) B
 
+/-- Tail-nucleus witness form equivalence for the concrete Stage-1 parameters bundled in Stage 3.
+
+This is `Stage2Output.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt`, re-expressed at the
+Stage-3 boundary.
+-/
+theorem unboundedReducedAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
+  simpa [Stage3Output.g, Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
+
 /-- Tail-nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
 This is the Stage-2 witness `Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt`, re-expressed
@@ -264,8 +275,8 @@ at the Stage-3 boundary.
 -/
 theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
     ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
-  simpa [Stage3Output.d, Stage3Output.m] using
-    (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
+  exact (unboundedReducedAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out).1
+    out.unboundedReducedAlong
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
