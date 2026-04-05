@@ -170,6 +170,13 @@ section
   -- Reindexing / step-factorization additional exports.
   #check discOffset_map_mul
   #check discOffset_mul_eq_discOffset_map_mul₁₂
+
+  -- Residue-class splitting (API surface coherence).
+  -- Homogeneous / offset / discrepancy-level normal forms should be available from the stable surface.
+  #check apSum_mul_len_succ_eq_sum_range
+  #check apSum_mul_len_succ_eq_sum_range_mul_left
+  #check apSumOffset_mul_len_succ_eq_sum_range
+  #check apSumOffset_mul_len_succ_eq_sum_range_mul_left
   #check discOffset_mul_len_succ_eq_natAbs_sum_range
   #check discOffset_mul_len_succ_eq_natAbs_sum_range_mul_left
 
