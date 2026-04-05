@@ -498,6 +498,17 @@ theorem toBoundedDiscrepancyAlong {g : ℕ → ℤ} {d : ℕ} (ctx : ContextAlon
     BoundedDiscrepancyAlong g d := by
   exact ⟨ctx.B, ctx.bound_discrepancy⟩
 
+/-- Normal form: the discrepancy bound stored in `ContextAlong` is equivalently a bound on the
+fixed-step nucleus `Int.natAbs (apSum g d n)`.
+
+This prevents consumers from having to unfold `discrepancy` at each call site.
+-/
+theorem bound_natAbs_apSum {g : ℕ → ℤ} {d : ℕ} (ctx : ContextAlong g d) (n : ℕ) :
+    Int.natAbs (apSum g d n) ≤ ctx.B := by
+  -- `discrepancy g d n` is definitionally `Int.natAbs (apSum g d n)`.
+  change discrepancy g d n ≤ ctx.B
+  exact ctx.bound_discrepancy n
+
 end ContextAlong
 
 /-- If some offset discrepancy family is unbounded, then `f` cannot have globally bounded discrepancy.
