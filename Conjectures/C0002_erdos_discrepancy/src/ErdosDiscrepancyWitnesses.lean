@@ -159,6 +159,20 @@ theorem erdos_discrepancy_exists_params_forall_exists_natAbs_sum_Icc_offset_gt (
     (Tao2015.Stage2Output.exists_params_forall_exists_natAbs_sum_Icc_offset_gt (f := f)
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
 
+/-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_sum_Icc_offset_gt` packaging the
+step-size side condition as `1 ≤ d`.
+
+Many later analytic stages prefer the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  simpa using
+    (Tao2015.Stage2Output.exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
+
 /-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt` packaging the
 step-size side condition as `1 ≤ d`.
 

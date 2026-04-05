@@ -408,17 +408,7 @@ theorem forall_exists_natAbs_apSumOffset_lt (out : Stage2Output f) :
 
 -- (moved to `TrackCStage2Core.lean`)
 
-/-- Variant of `forall_exists_d_ge_one_witness_pos` with the step-size side condition written as
-`d > 0`.
-
-Many consumers prefer the strict-positivity normal form when working with `Nat` step sizes.
--/
-theorem forall_exists_d_pos_witness_pos (out : Stage2Output f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  intro C
-  rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hC⟩
-  have hd' : d > 0 := lt_of_lt_of_le Nat.zero_lt_one hd
-  exact ⟨d, n, hd', hn, hC⟩
+-- (moved to `TrackCStage2Core.lean` as `Stage2Output.forall_exists_d_pos_witness_pos`)
 
 /-- Stage 2 output implies the paper-notation witness form
 
