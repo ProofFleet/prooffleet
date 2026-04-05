@@ -670,7 +670,8 @@ Definition of done:
 
 - [x] Two-cut normal form (discOffset-level): given `n₁+n₂+n₃`, prove a canonical inequality bounding `discOffset f d m (n₁+n₂+n₃)` by the sum of the three segment discrepancies (triangle inequality packaged + stable name), with a regression example under `import MoltResearch.Discrepancy`. (Lemma: `discOffset_add_add_le`; regression: `MoltResearch/Discrepancy/NormalFormExamples.lean`)
 
-- [ ] “Drop-to-step-one then split residues” bundle: add a single convenience lemma (or a tiny wrapper API) that combines `*_step_one` + residue-class split, producing a `∑ j<r` decomposition directly for `apSumOffset`/`discOffset` without intermediate rewrites, so later Fourier/character-style steps are 1–2 `rw`s.
+- [x] “Drop-to-step-one then split residues” bundle: add a single convenience lemma (or a tiny wrapper API) that combines `*_step_one` + residue-class split, producing a `∑ j<r` decomposition directly for `apSumOffset`/`discOffset` without intermediate rewrites, so later Fourier/character-style steps are 1–2 `rw`s.
+  - Implemented as `apSumOffset_step_one_mul_len_succ_eq_sum_range` and `discOffset_step_one_mul_len_succ_eq_natAbs_sum_range` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] Local edit sensitivity (support form, disc-level): restate the existing edit-sensitivity bound purely in terms of `apSupport` (no `Icc`/`range`), i.e. if `{x ∈ apSupport | f x ≠ g x}` has card ≤ t then `discOffset f d m n ≤ discOffset g d m n + 2*t` (and symmetric), with a stable-surface regression example.
 
