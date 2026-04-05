@@ -660,6 +660,25 @@ Definition of done:
 - [x] Consumer regression examples (discOffset-native): add 2–3 compile-only `example` blocks that start from a paper `Icc` statement, normalize to `discOffset`, apply a split/triangle/bound lemma, and close with `simp`/`linarith`-style steps — all under `import MoltResearch.Discrepancy`.
   - Implemented in `MoltResearch/Discrepancy/NormalFormExamples.lean` under the heading “paper `Icc` statements → `discOffset` normal form → split/bound”.
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Support monotonicity API: prove `apSupport d m n ⊆ apSupport d m (n+k)` and a simp-friendly lemma `apSupport d m (n+1) = insert ((m+n+1)*d) (apSupport d m n)` (for `d>0`), so local-surgery arguments can grow the accessed-index set without redoing arithmetic.
+
+- [ ] One-step `discOffset` update formula: package a lemma expressing the *exact* increment
+  `apSumOffset f d m (n+1) - apSumOffset f d m n = f ((m+n+1)*d)` at the `Int` level (paired with the existing `apSumOffset_succ`), so later telescoping arguments don’t have to `simp` through `Nat.succ` normal forms.
+
+- [ ] Two-cut normal form (discOffset-level): given `n₁+n₂+n₃`, prove a canonical inequality bounding `discOffset f d m (n₁+n₂+n₃)` by the sum of the three segment discrepancies (triangle inequality packaged + stable name), with a regression example under `import MoltResearch.Discrepancy`.
+
+- [ ] “Drop-to-step-one then split residues” bundle: add a single convenience lemma (or a tiny wrapper API) that combines `*_step_one` + residue-class split, producing a `∑ j<r` decomposition directly for `apSumOffset`/`discOffset` without intermediate rewrites, so later Fourier/character-style steps are 1–2 `rw`s.
+
+- [ ] Local edit sensitivity (support form, disc-level): restate the existing edit-sensitivity bound purely in terms of `apSupport` (no `Icc`/`range`), i.e. if `{x ∈ apSupport | f x ≠ g x}` has card ≤ t then `discOffset f d m n ≤ discOffset g d m n + 2*t` (and symmetric), with a stable-surface regression example.
+
+- [ ] “Restriction to finite window” API: package lemmas that let you replace `f` by `fun k => if k ∈ S then f k else 0` (or a default sign) when proving equalities/inequalities about `apSumOffset`/`discOffset`, phrased via `apSupport`, to support later compactness/averaging arguments.
+
+- [ ] Coherence lemma for `apSumOffset` under `d=0` at the *discOffset* level: provide `simp`-friendly `discOffset f 0 m n = Int.natAbs (n * f 0)` (or the repo’s chosen normal form) so degenerate-step goals normalize without unfolding.
+
+- [ ] “API surface coherence” pass for residue splitting: ensure the preferred public names for the residue-class split lemmas (homogeneous + offset + disc-level) are exported by `import MoltResearch.Discrepancy`, with deprecated aliases moved behind `MoltResearch.Discrepancy.Deprecated` and audited by `SurfaceAudit`.
+
 ### Track C — Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
