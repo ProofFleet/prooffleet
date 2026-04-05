@@ -3301,6 +3301,15 @@ example (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset (fun x => if x ∈ apSupport d m n then f x else 0) d m n = discOffset f d m n := by
   simpa using (discOffset_restrict_support (f := f) (d := d) (m := m) (n := n))
 
+-- Homogeneous special cases (m = 0).
+example (f : ℕ → ℤ) (d n : ℕ) :
+    apSum (fun x => if x ∈ apSupport d 0 n then f x else 0) d n = apSum f d n := by
+  simpa using (apSum_restrict_support (f := f) (d := d) (n := n))
+
+example (f : ℕ → ℤ) (d n : ℕ) :
+    disc (fun x => if x ∈ apSupport d 0 n then f x else 0) d n = disc f d n := by
+  simpa using (disc_restrict_support (f := f) (d := d) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch

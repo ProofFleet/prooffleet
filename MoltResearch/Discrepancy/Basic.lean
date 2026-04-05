@@ -269,6 +269,27 @@ lemma apSumOffset_restrict_support (f : ℕ → ℤ) (d m n : ℕ) :
   intro x hx
   simp [hx]
 
+/-- Restricting `f` to `apSupport d 0 n` (with default value `0` outside the support)
+does not change `apSum f d n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Restriction to finite window” API.
+-/
+lemma apSum_restrict_support (f : ℕ → ℤ) (d n : ℕ) :
+    apSum (fun x => if x ∈ apSupport d 0 n then f x else 0) d n = apSum f d n := by
+  -- `apSum f d n` is definitionally `apSumOffset f d 0 n`.
+  simpa [apSum, apSumOffset] using
+    (apSumOffset_restrict_support (f := f) (d := d) (m := 0) (n := n))
+
+/-- Restricting `f` to `apSupport d 0 n` (with default value `0` outside the support)
+does not change `disc f d n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Restriction to finite window” API.
+-/
+lemma disc_restrict_support (f : ℕ → ℤ) (d n : ℕ) :
+    disc (fun x => if x ∈ apSupport d 0 n then f x else 0) d n = disc f d n := by
+  unfold disc
+  simp [apSum_restrict_support]
+
 /-- A convenient wrapper for the absolute value of an offset arithmetic-progression sum.
 
 It is defined as the natural absolute value of `apSumOffset f d m n`.
