@@ -69,6 +69,14 @@ example (hk : k ≤ n) :
   simpa using
     (apSumOffset_sub_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
 
+-- Regression (Track B / two-cut normal form, discOffset-level):
+-- concatenating three segments bounds the total discrepancy by the sum of segment discrepancies.
+example :
+    discOffset f d m (n₁ + n₂ + n₃) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃ := by
+  simpa [Nat.add_assoc] using
+    (discOffset_add_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂) (n₃ := n₃))
+
 -- Regression (Track B / offset-of-offset flattening): eliminate nested `apSumOffset` in the summand.
 example : apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k =
       (Finset.range k).sum (fun i => apSum (fun s => f (s + (m + (i + 1)) * d)) d n) := by
