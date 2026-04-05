@@ -28,40 +28,40 @@ This file keeps only the convenience projections/wrapper lemmas.
 
 /-- Convenience projection: the reduced step size produced by Stage 2. -/
 noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage2Out (f := f) (hf := hf)).out1.d
+  (stage2Out (f := f) (hf := hf)).d
 
 /-- Convenience projection: the reduced sequence produced by Stage 2. -/
 noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
-  (stage2Out (f := f) (hf := hf)).out1.g
+  (stage2Out (f := f) (hf := hf)).g
 
 /-- Convenience projection: the bundled offset parameter produced by Stage 2. -/
 noncomputable abbrev stage2_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage2Out (f := f) (hf := hf)).out1.m
+  (stage2Out (f := f) (hf := hf)).m
 
 /-- The reduced sequence produced by Stage 2 is a sign sequence. -/
 theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
     IsSignSequence (stage2_g (f := f) (hf := hf)) := by
-  simpa [stage2_g] using (stage2Out (f := f) (hf := hf)).out1.hg
+  simpa [stage2_g] using (stage2Out (f := f) (hf := hf)).hg
 
 /-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
 theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
     stage2_g (f := f) (hf := hf) k =
       f (k + (stage2_m (f := f) (hf := hf)) * (stage2_d (f := f) (hf := hf))) := by
-  simpa [stage2_g, stage2_m, stage2_d] using (stage2Out (f := f) (hf := hf)).out1.g_eq k
+  simpa [stage2_g, stage2_m, stage2_d] using (stage2Out (f := f) (hf := hf)).g_eq k
 
 /-- Positivity of the reduced step size produced by Stage 2. -/
 theorem stage2_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
-  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
+  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).hd
 
 /-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
 theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     1 ≤ stage2_d (f := f) (hf := hf) := by
-  simpa using (Nat.succ_le_iff).2 (stage2_hd (f := f) (hf := hf))
+  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).one_le_d
 
 /-- Convenience lemma: the reduced step size produced by Stage 2 is nonzero. -/
 theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage2_d (f := f) (hf := hf) ≠ 0 := by
-  exact Nat.ne_of_gt (stage2_hd (f := f) (hf := hf))
+  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).d_ne_zero
 
 /-- Consumer-facing shortcut: Stage 2 already closes the core goal `¬ BoundedDiscrepancy f`.
 

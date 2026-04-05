@@ -30,35 +30,10 @@ def ofReductionOutput_unboundedDiscOffset (out1 : Tao2015.ReductionOutput f)
   refine ⟨out1, ?_⟩
   exact (out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).2 hunb
 
-/-- Convenience projection: the reduced step size. -/
-abbrev d (out : Stage2Output f) : ℕ := out.out1.d
-
-/-- Convenience projection: the reduced sequence. -/
-abbrev g (out : Stage2Output f) : ℕ → ℤ := out.out1.g
-
-/-- The reduced sequence packaged by Stage 2 is a sign sequence. -/
-theorem hg (out : Stage2Output f) : IsSignSequence out.g := by
-  simpa [Stage2Output.g] using out.out1.hg
-
-/-- Convenience projection: the offset parameter bundled in Stage 1. -/
-abbrev m (out : Stage2Output f) : ℕ := out.out1.m
-
-/-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
-theorem g_eq (out : Stage2Output f) (k : ℕ) :
-    out.g k = f (k + out.m * out.d) := by
-  simpa [Stage2Output.g, Stage2Output.m, Stage2Output.d] using out.out1.g_eq k
-
-/-- Convenience projection: positivity of the reduced step size. -/
-abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
-
-/-- Convenience lemma: the reduced step size is nonzero. -/
-theorem d_ne_zero (out : Stage2Output f) : out.d ≠ 0 := by
-  exact Nat.ne_of_gt out.hd
-
-/-- Convenience lemma: the reduced step size is at least `1`. -/
-theorem one_le_d (out : Stage2Output f) : 1 ≤ out.d := by
-  -- `out.hd` is `0 < out.d`.
-  simpa using (Nat.succ_le_iff).2 out.hd
+/-!
+Basic projections (`d`, `g`, `m`, `hg`, `g_eq`, `hd`, `d_ne_zero`, `one_le_d`) live in
+`TrackCStage2Core.lean` so downstream stages can access them without importing this larger file.
+-/
 
 /-- Stage-2 unboundedness re-expressed as arbitrarily large affine-tail nucleus values
 `apSumFrom f (m*d) d n`.

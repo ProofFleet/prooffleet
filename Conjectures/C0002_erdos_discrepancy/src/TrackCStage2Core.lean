@@ -21,6 +21,46 @@ namespace Stage2Output
 
 variable {f : ℕ → ℤ}
 
+/-!
+## Stage-2 minimal projections
+
+These are the small, proved projections off `Tao2015.Stage2Output` that downstream stages use
+frequently.
+
+We keep them in this core file so consumers can avoid importing the much larger library of
+Stage-2 convenience lemmas in `TrackCStage2Output.lean`.
+-/
+
+/-- Convenience projection: the reduced step size. -/
+abbrev d (out : Stage2Output f) : ℕ := out.out1.d
+
+/-- Convenience projection: the reduced sequence. -/
+abbrev g (out : Stage2Output f) : ℕ → ℤ := out.out1.g
+
+/-- The reduced sequence packaged by Stage 2 is a sign sequence. -/
+theorem hg (out : Stage2Output f) : IsSignSequence out.g := by
+  simpa [Stage2Output.g] using out.out1.hg
+
+/-- Convenience projection: the offset parameter bundled in Stage 1. -/
+abbrev m (out : Stage2Output f) : ℕ := out.out1.m
+
+/-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
+theorem g_eq (out : Stage2Output f) (k : ℕ) :
+    out.g k = f (k + out.m * out.d) := by
+  simpa [Stage2Output.g, Stage2Output.m, Stage2Output.d] using out.out1.g_eq k
+
+/-- Convenience projection: positivity of the reduced step size. -/
+abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
+
+/-- Convenience lemma: the reduced step size is nonzero. -/
+theorem d_ne_zero (out : Stage2Output f) : out.d ≠ 0 := by
+  exact Nat.ne_of_gt out.hd
+
+/-- Convenience lemma: the reduced step size is at least `1`. -/
+theorem one_le_d (out : Stage2Output f) : 1 ≤ out.d := by
+  -- `out.hd` is `0 < out.d`.
+  simpa using (Nat.succ_le_iff).2 out.hd
+
 /-- Consumer-facing form: Stage 2 implies global unbounded discrepancy for the original sequence.
 
 This is the minimal “bridge back to the main theorem statement” lemma: it packages the fact that
