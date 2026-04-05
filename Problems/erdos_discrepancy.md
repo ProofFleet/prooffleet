@@ -682,7 +682,7 @@ Definition of done:
 - [x] Coherence lemma for `apSumOffset` under `d=0` at the *discOffset* level: provide `simp`-friendly `discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0)` (or the repo’s chosen normal form) so degenerate-step goals normalize without unfolding.
   - Implemented as `discOffset_zero_step` (and the underlying `apSumOffset_zero_step`) in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] “API surface coherence” pass for residue splitting: ensure the preferred public names for the residue-class split lemmas (homogeneous + offset + disc-level) are exported by `import MoltResearch.Discrepancy`, with deprecated aliases moved behind `MoltResearch.Discrepancy.Deprecated` and audited by `SurfaceAudit`.
+- [x] “API surface coherence” pass for residue splitting: ensure the preferred public names for the residue-class split lemmas (homogeneous + offset + disc-level) are exported by `import MoltResearch.Discrepancy`, with deprecated aliases moved behind `MoltResearch.Discrepancy.Deprecated` and audited by `SurfaceAudit`.
 
 ### Track C — Conjecture stub + equivalences (backlog)
 
