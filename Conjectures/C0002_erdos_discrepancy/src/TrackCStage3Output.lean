@@ -150,6 +150,26 @@ theorem unboundedDiscOffset (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.unboundedDiscOffset (f := f) out.out2)
 
+/-- Witness-family form: Stage 3 yields arbitrarily large values of the bundled offset discrepancy
+family `discOffset f out.d out.m`.
+
+Normal form: `∀ B, ∃ n, B < discOffset f out.d out.m n`.
+-/
+theorem forall_exists_discOffset_gt (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_discOffset_gt (f := f) out.out2)
+
+/-- Inequality-direction variant of `forall_exists_discOffset_gt`, written as
+`discOffset f out.d out.m n > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem forall_exists_discOffset_gt' (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_discOffset_gt' (f := f) out.out2)
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 
