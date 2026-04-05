@@ -80,6 +80,18 @@ theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact Stage2Output.forall_hasDiscrepancyAtLeast (f := f) (stage2Out (f := f) (hf := hf))
 
+/-- Consumer-facing shortcut: Stage 2 yields the most pipeline-friendly global witness form:
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is a thin wrapper around the proved Stage-2 core lemma
+`Stage2Output.forall_exists_d_ge_one_witness_pos`.
+-/
+theorem stage2_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) (stage2Out (f := f) (hf := hf))
+
 /-- Consumer-facing tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail nuclei
 `apSumFrom f (m*d) d n` at the concrete parameters produced by the conjecture stub `stage2Out`.
 
