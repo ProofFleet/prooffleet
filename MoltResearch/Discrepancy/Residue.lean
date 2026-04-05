@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.Affine
+import MoltResearch.Discrepancy.Offset
 import MoltResearch.Discrepancy.Reindex
 
 /-!
@@ -334,6 +335,51 @@ lemma apSumOffset_mul_len_succ_eq_sum_range (f : ℕ → ℤ) (d m q n : ℕ) (h
         simp [Nat.add_assoc]
   -- Finish.
   simpa [apSumOffset_eq_apSumFrom, hadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
+/-!
+## Step-one + residue split (bundled normal form)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Drop-to-step-one then split residues”.
+
+These lemmas package a common downstream rewrite pipeline:
+
+1. normalize an offset AP sum into the step-one normal form
+   `apSumOffset f d m n = apSumOffset (fun k => f (k*d)) 1 m n`, then
+2. apply the residue-class split for offset sums.
+
+The result is a single `rw` that produces a `∑ r<q` decomposition without intermediate rewrites.
+-/
+
+/-- Bundle: step-one normalization + residue-class split for `apSumOffset` at length `q*(n+1)`.
+
+This rewrites the step size `d` into the summand and then performs the residue split at modulus `q`.
+-/
+lemma apSumOffset_step_one_mul_len_succ_eq_sum_range
+    (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    apSumOffset f d m (q * (n + 1)) =
+      (Finset.range q).sum (fun r =>
+        f ((m + r + 1) * d) + apSumFrom (fun k => f (k * d)) (m + r + 1) q n) := by
+  -- Step 1: drop to step-one.
+  have hstep : apSumOffset f d m (q * (n + 1)) = apSumOffset (fun k => f (k * d)) 1 m (q * (n + 1)) := by
+    simpa using (apSumOffset_eq_apSumOffset_step_one (f := f) (d := d) (m := m) (n := q * (n + 1)))
+  -- Step 2: split residues at `d = 1`.
+  -- Then simplify the arithmetic in the summand.
+  simpa [hstep, Nat.mul_one, Nat.one_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumOffset_mul_len_succ_eq_sum_range
+      (f := fun k => f (k * d)) (d := 1) (m := m) (q := q) (n := n) hq)
+
+/-- Bundle: step-one normalization + residue-class split for `discOffset` at length `q*(n+1)`.
+
+This is the `discOffset`-level companion to `apSumOffset_step_one_mul_len_succ_eq_sum_range`.
+-/
+lemma discOffset_step_one_mul_len_succ_eq_natAbs_sum_range
+    (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    discOffset f d m (q * (n + 1)) =
+      Int.natAbs ((Finset.range q).sum (fun r =>
+        f ((m + r + 1) * d) + apSumFrom (fun k => f (k * d)) (m + r + 1) q n)) := by
+  unfold discOffset
+  simp [apSumOffset_step_one_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq]
+
 
 /-!
 ## Multiplication-on-the-left variants
