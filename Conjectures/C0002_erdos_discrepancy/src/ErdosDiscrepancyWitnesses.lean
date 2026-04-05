@@ -47,6 +47,18 @@ theorem erdos_discrepancy_apSum_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) 
     (Tao2015.Stage3Output.forall_exists_d_pos_witness_pos (f := f)
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
+/-- Witness form of `erdos_discrepancy` using the `discrepancy` wrapper.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+-/
+theorem erdos_discrepancy_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      ((erdos_discrepancy (f := f) (hf := hf)) C)
+
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` is unbounded.
 
