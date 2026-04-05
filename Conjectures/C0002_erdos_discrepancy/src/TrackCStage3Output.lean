@@ -199,6 +199,21 @@ theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f) out.out2)
 
+/-- Paper-notation witness form for the concrete Stage-1 parameters bundled in Stage 3.
+
+This is `forall_exists_natAbs_apSumOffset_gt'` rewritten using
+`Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc`.
+-/
+theorem forall_exists_natAbs_sum_Icc_offset_gt (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) > B := by
+  intro B
+  rcases out.forall_exists_natAbs_apSumOffset_gt' (f := f) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [
+    Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)
+  ] using hn
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute values.
 
