@@ -679,7 +679,8 @@ Definition of done:
 - [x] “Restriction to finite window” API: package lemmas that let you replace `f` by `fun k => if k ∈ S then f k else 0` (or a default sign) when proving equalities/inequalities about `apSumOffset`/`discOffset`, phrased via `apSupport`, to support later compactness/averaging arguments.
   - Implemented as `apSumOffset_restrict_support`, `apSum_restrict_support`, `disc_restrict_support`, and `discOffset_restrict_support` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples under `import MoltResearch.Discrepancy` in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] Coherence lemma for `apSumOffset` under `d=0` at the *discOffset* level: provide `simp`-friendly `discOffset f 0 m n = Int.natAbs (n * f 0)` (or the repo’s chosen normal form) so degenerate-step goals normalize without unfolding.
+- [x] Coherence lemma for `apSumOffset` under `d=0` at the *discOffset* level: provide `simp`-friendly `discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0)` (or the repo’s chosen normal form) so degenerate-step goals normalize without unfolding.
+  - Implemented as `discOffset_zero_step` (and the underlying `apSumOffset_zero_step`) in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] “API surface coherence” pass for residue splitting: ensure the preferred public names for the residue-class split lemmas (homogeneous + offset + disc-level) are exported by `import MoltResearch.Discrepancy`, with deprecated aliases moved behind `MoltResearch.Discrepancy.Deprecated` and audited by `SurfaceAudit`.
 
