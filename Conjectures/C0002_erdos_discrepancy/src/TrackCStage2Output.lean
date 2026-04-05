@@ -97,6 +97,23 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
   simpa using
     (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 out.unbounded
 
+/-- Positive-length witness form of `forall_exists_natAbs_apSumFrom_mul_gt`.
+
+The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
+-/
+theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
+  intro C
+  rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
+  refine ⟨n, ?_, hn⟩
+  have hnz : n ≠ 0 := by
+    intro h0
+    subst h0
+    have : C < 0 := by
+      simpa [gt_iff_lt] using hn
+    exact (Nat.not_lt_zero C) this
+  exact Nat.pos_of_ne_zero hnz
+
 /-- Negation-normal form of `forall_exists_natAbs_apSumFrom_mul_gt`: there is no uniform bound on
 the affine-tail nuclei at the concrete Stage-1 parameters produced by Stage 2. -/
 theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
