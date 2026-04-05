@@ -19,19 +19,8 @@ namespace MoltResearch
 
 namespace Tao2015
 
--- (Moved to `TrackCStage3Entry.lean` so the hard-gate build can avoid compiling wrapper lemmas.)
+-- Projections `stage3_d`, `stage3_g`, `stage3_m` live in `TrackCStage3Entry.lean`.
 
-/-- Convenience projection: the reduced step size produced by Stage 3. -/
-noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage3Out (f := f) (hf := hf)).d
-
-/-- Convenience projection: the reduced sequence produced by Stage 3. -/
-noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
-  (stage3Out (f := f) (hf := hf)).g
-
-/-- Convenience projection: the bundled offset parameter produced by Stage 3. -/
-noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage3Out (f := f) (hf := hf)).m
 
 /-- The reduced sequence produced by Stage 3 is a sign sequence. -/
 theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
