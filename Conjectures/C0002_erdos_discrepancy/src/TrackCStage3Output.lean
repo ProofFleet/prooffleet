@@ -110,6 +110,20 @@ theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
   exact Stage2Output.forall_exists_d_pos_witness_pos (f := f) out.out2
 
+/-- Stage 3 output implies the discrepancy-witness normal form
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem forall_exists_discrepancy_gt (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      ((out.forall_hasDiscrepancyAtLeast (f := f)) C)
+
 /-- Stage 3 output implies the paper-notation witness form
 
 `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.

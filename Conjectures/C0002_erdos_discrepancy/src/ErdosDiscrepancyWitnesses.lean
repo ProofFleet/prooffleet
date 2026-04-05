@@ -55,10 +55,9 @@ Normal form:
 -/
 theorem erdos_discrepancy_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
-  intro C
-  exact
-    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
-      ((erdos_discrepancy (f := f) (hf := hf)) C)
+  simpa using
+    (Tao2015.Stage3Output.forall_exists_discrepancy_gt (f := f)
+      (Tao2015.stage3Out (f := f) (hf := hf)))
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` is unbounded.
