@@ -22,9 +22,9 @@ theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf :
     MoltResearch.UnboundedDiscrepancyAlong
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)).g
       (erdos_discrepancy_stage3Output (f := f) (hf := hf)).d := by
-  let out := erdos_discrepancy_stage3Output (f := f) (hf := hf)
-  simpa [out] using
-    (Tao2015.Stage3Output.unboundedDiscrepancyAlong_core (f := f) out)
+  simpa using
+    (Tao2015.Stage3Output.unboundedDiscrepancyAlong_core (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
 /-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
@@ -55,8 +55,8 @@ This is a thin wrapper around the Stage-3 packaging.
 theorem erdos_discrepancy_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ Tao2015.UnboundedDiscOffset f d m := by
   simpa using
-    (Tao2015.Stage2Output.exists_params_unboundedDiscOffset (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
+    (Tao2015.Stage3Output.exists_params_unboundedDiscOffset (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
 /-- Variant of `erdos_discrepancy_exists_params_unboundedDiscOffset` packaging the step-size side
 condition as `1 ≤ d`.
@@ -67,8 +67,8 @@ theorem erdos_discrepancy_exists_params_one_le_unboundedDiscOffset (f : ℕ → 
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧ Tao2015.UnboundedDiscOffset f d m := by
   simpa using
-    (Tao2015.Stage2Output.exists_params_one_le_unboundedDiscOffset (f := f)
-      (erdos_discrepancy_stage3Output (f := f) (hf := hf)).out2)
+    (Tao2015.Stage3Output.exists_params_one_le_unboundedDiscOffset (f := f)
+      (erdos_discrepancy_stage3Output (f := f) (hf := hf)))
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` takes arbitrarily large values.
