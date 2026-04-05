@@ -125,6 +125,28 @@ example : discrepancy (fun k => -f k) d n = discrepancy f d n := by
   simp
 
 /-!
+### Regression: residue-class splitting normal forms (Track B)
+
+Compile-only examples ensuring the residue-class split normal forms are usable under:
+
+```lean
+import MoltResearch.Discrepancy
+```
+-/
+
+example (q : ℕ) (hq : q > 0) :
+    apSum f d (q * (n + 1)) =
+      (Finset.range q).sum (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n) := by
+  simpa using (apSum_mul_len_succ_eq_sum_range (f := f) (d := d) (q := q) (n := n) hq)
+
+example (q : ℕ) (hq : q > 0) :
+    discOffset f d m (q * (n + 1)) =
+      Int.natAbs ((Finset.range q).sum (fun r =>
+        f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n)) := by
+  simpa using
+    (discOffset_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq)
+
+/-!
 ### Regression: step scaling bound wrapper (Track B)
 
 Compile-only check for the “step scaling” inequality wrapper.
