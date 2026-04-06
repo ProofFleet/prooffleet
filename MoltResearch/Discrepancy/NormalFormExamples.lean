@@ -24,6 +24,33 @@ section NormalFormExamples
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
+### NEW (Track B): micro-pipeline “starter scripts”
+
+These are 2–3 minimal compile-only examples showing the common workflow:
+
+paper notation → nucleus (`apSum`/`apSumFrom`) → tail (`apSumOffset`) → discrepancy (`discOffset`).
+
+They are intentionally short and designed to keep working under:
+
+```lean
+import MoltResearch.Discrepancy
+```
+-/
+
+-- (1) Paper affine partial sum (`Icc 1 n`) → nucleus `apSumFrom`.
+example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+  simpa [sum_Icc_eq_apSumFrom]
+
+-- (2) Difference of affine partial sums → nucleus offset-tail normal form on the shifted sequence.
+example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
+  simpa using
+    (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+-- (3) Offset tail → discrepancy wrapper (no intermediate `Int.natAbs (apSumOffset ...)`).
+example : Int.natAbs (apSumOffset f d m n) = discOffset f d m n := by
+  simp [discOffset]
+
+/-!
 ### Regression: multiplicative dilation normal forms (Track B)
 
 These are compile-only examples ensuring the “pull a common factor into the step” rewrites remain
