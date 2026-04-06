@@ -57,12 +57,14 @@ theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage2_d (f := f) (hf := hf) ≠ 0 := by
   simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).d_ne_zero
 
-/-- Consumer-facing shortcut: Stage 2 already closes the core goal `¬ BoundedDiscrepancy f`.
+/-
+Note: the boundedness-negation normal form lemma
 
-This is a thin wrapper around the proved Stage-2 core lemma `Stage2Output.notBoundedOriginal`.
+  stage2_notBounded (f) (hf) : ¬ BoundedDiscrepancy f
+
+is defined in `TrackCStage2Entry.lean` (the entry-point module), so hard-gate consumers can access
+it without importing this wrapper-lemma module.
 -/
-theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  exact Stage2Output.notBoundedOriginal (f := f) (stage2Out (f := f) (hf := hf))
 
 /-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
