@@ -134,6 +134,20 @@ theorem stage2_forall_exists_discOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequen
           (f := f)).1
       (stage2Out (f := f) (hf := hf)).unbounded
 
+/-- Positive-length witness form of `stage2_forall_exists_discOffset_gt'`.
+
+The witness length `n` cannot be `0`, since `discOffset ... 0 = 0`.
+-/
+theorem stage2_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        n > 0 ∧ discOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n > B := by
+  have hunb :
+      UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
+    stage2_unboundedDiscOffset (f := f) (hf := hf)
+  simpa [gt_iff_lt] using
+    (UnboundedDiscOffset.forall_exists_discOffset_gt_witness_pos (hunb := hunb))
+
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
 parameters produced by the conjecture stub `stage2Out`, stated using the bundled offset nucleus.
 
