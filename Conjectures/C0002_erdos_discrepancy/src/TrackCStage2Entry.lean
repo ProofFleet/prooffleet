@@ -42,6 +42,19 @@ noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ �
 noncomputable abbrev stage2_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   (stage2Out (f := f) (hf := hf)).out1.m
 
+/-- Minimal consumer-facing Stage-2 consequence: the original sequence cannot have globally bounded
+(discrepancy) once Stage 2 produces an unbounded fixed-step witness along the reduced sequence.
+
+This lemma lives in the entry-point module so consumers who only need the boundedness-negation
+normal form can avoid importing the larger Stage-2 wrapper lemma files.
+-/
+theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
+  -- Name the Stage-2 output once, to avoid duplicating the `stage2Out` term.
+  set out := stage2Out (f := f) (hf := hf) with hout
+  exact
+    out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f)
+      (by simpa [hout] using out.unbounded)
+
 end Tao2015
 
 end MoltResearch
