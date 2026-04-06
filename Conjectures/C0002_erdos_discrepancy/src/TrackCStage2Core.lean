@@ -129,6 +129,20 @@ theorem forall_exists_discrepancy_gt_original (out : Stage2Output f) :
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       ((out.forall_hasDiscrepancyAtLeast (f := f)) C)
 
+/-- Stage 2 output implies the paper-notation witness form
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
+
+This is a thin wrapper around `forall_hasDiscrepancyAtLeast` via
+`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`.
+-/
+theorem forall_exists_sum_Icc_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
 end Stage2Output
 
 end Tao2015
