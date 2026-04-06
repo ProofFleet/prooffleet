@@ -1,5 +1,4 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
 
 /-!
@@ -35,17 +34,20 @@ noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage
 
 We define this in the entry-point module (not in the wrapper-lemma module) so hard-gate consumers
 can access it without importing additional convenience lemmas.
+
+Implementation note: we intentionally define these projections via the Stage-1 fields stored in the
+Stage-2 output, so this module does not need to import `TrackCStage2Core`.
 -/
 noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage3Out (f := f) (hf := hf)).out2.d
+  (stage3Out (f := f) (hf := hf)).out2.out1.d
 
 /-- Convenience projection: the reduced sequence produced by Stage 3. -/
 noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
-  (stage3Out (f := f) (hf := hf)).out2.g
+  (stage3Out (f := f) (hf := hf)).out2.out1.g
 
 /-- Convenience projection: the bundled offset parameter produced by Stage 3. -/
 noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage3Out (f := f) (hf := hf)).out2.m
+  (stage3Out (f := f) (hf := hf)).out2.out1.m
 
 end Tao2015
 
