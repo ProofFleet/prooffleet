@@ -271,9 +271,10 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos {f : ℕ → ℤ} {d m
     subst h0
     have hzero : Int.natAbs (apSumFrom f (m * d) d 0) = 0 := by
       simp
-    have : (0 : ℕ) > B := by
-      simpa [hzero] using hn
-    exact (Nat.not_lt_zero B) (by simpa [gt_iff_lt] using this)
+    have hn0gt := hn
+    rw [hzero] at hn0gt
+    have hlt : B < 0 := (gt_iff_lt).1 hn0gt
+    exact (Nat.not_lt_zero B) hlt
   exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
 
 /-- Negation-normal form: unbounded offset discrepancy means there is no uniform bound on the
