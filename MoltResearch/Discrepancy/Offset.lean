@@ -1857,6 +1857,41 @@ lemma apSumOffset_split_at (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
     (apSumOffset_eq_add_apSumOffset_of_le (f := f) (d := d) (m := m) (k := k) (n := m + n)
       hmk hkn)
 
+/-- Split an offset AP sum `apSumOffset f d m n` at an interior cut `k`, proved by splitting the
+paper-style `Icc` sum `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at `k` and immediately rewriting back to
+the nucleus normal form.
+
+This complements `apSumOffset_split_at` with a proof path that stays close to paper endpoints,
+which is often the easiest shape to match in downstream arguments.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Interior-cut equality (sum-level, offset).
+-/
+lemma apSumOffset_split_at_via_Icc (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
+    (hmk : m ≤ k) (hkn : k ≤ m + n) :
+    apSumOffset f d m n =
+      apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
+  classical
+  -- Start from the paper notation, split at `k`, then normalize each piece back to `apSumOffset`.
+  have hsplit :=
+    (sum_Icc_split_of_le (f := f) (d := d) (m := m) (k := k) (n := m + n) hmk hkn)
+  have hL :
+      apSumOffset f d m n = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := by
+    simpa using (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n))
+  have hR1 :
+      (Finset.Icc (m + 1) k).sum (fun i => f (i * d)) = apSumOffset f d m (k - m) := by
+    simpa using (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := m) (n := k) hmk)
+  have hR2 :
+      (Finset.Icc (k + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d k (m + n - k) := by
+    simpa using (sum_Icc_eq_apSumOffset_of_le (f := f) (d := d) (m := k) (n := m + n) hkn)
+  -- Assemble.
+  calc
+    apSumOffset f d m n
+        = (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) := hL
+    _ = (Finset.Icc (m + 1) k).sum (fun i => f (i * d)) +
+          (Finset.Icc (k + 1) (m + n)).sum (fun i => f (i * d)) := hsplit
+    _ = apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
+          simp [hR1, hR2]
+
 /-- First term of an offset AP sum. -/
 lemma apSumOffset_succ_length (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by

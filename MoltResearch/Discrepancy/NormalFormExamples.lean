@@ -2643,6 +2643,12 @@ example {k : ℕ} (hmk : m ≤ k) (hkn : k ≤ m + n) :
     apSumOffset f d m n = apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
   simpa using apSumOffset_split_at (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
 
+-- Same statement, but via the “paper endpoints → cut-at-k → nucleus” bridge.
+example {k : ℕ} (hmk : m ≤ k) (hkn : k ≤ m + n) :
+    apSumOffset f d m n = apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
+  simpa using
+    apSumOffset_split_at_via_Icc (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn
+
 example :
     apSumOffset f d m (n₁ + n₂) - apSumOffset f d m n₁ =
       (Finset.Icc (m + n₁ + 1) (m + n₁ + n₂)).sum (fun i => f (i * d)) := by
