@@ -310,6 +310,55 @@ This is packaged in a finitary form (a `Finset.sup` over `range (N+1)`) so it is
 def discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) : ℕ :=
   (Finset.range (N + 1)).sup (fun n => discOffset f d m n)
 
+/-- Any particular `discOffset f d m n` with `n ≤ N` is bounded by `discOffsetUpTo f d m N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
+-/
+lemma discOffset_le_discOffsetUpTo (f : ℕ → ℤ) (d m n N : ℕ) (hn : n ≤ N) :
+    discOffset f d m n ≤ discOffsetUpTo f d m N := by
+  classical
+  unfold discOffsetUpTo
+  -- `n ≤ N` implies `n ∈ range (N+1)`.
+  have hn' : n ∈ Finset.range (N + 1) := by
+    exact Finset.mem_range.2 (Nat.lt_succ_of_le hn)
+  simpa using (Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hn')
+
+/-- Monotonicity in the cutoff: increasing `N` can only increase `discOffsetUpTo`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
+-/
+lemma discOffsetUpTo_mono (f : ℕ → ℤ) (d m : ℕ) {N N' : ℕ} (h : N ≤ N') :
+    discOffsetUpTo f d m N ≤ discOffsetUpTo f d m N' := by
+  classical
+  unfold discOffsetUpTo
+  -- Show every element of `range (N+1)` is ≤ the `sup` over `range (N'+1)`.
+  refine Finset.sup_le ?_
+  intro n hn
+  have hnlt : n < N + 1 := Finset.mem_range.1 hn
+  have hnlt' : n < N' + 1 := lt_of_lt_of_le hnlt (Nat.succ_le_succ h)
+  have hn' : n ∈ Finset.range (N' + 1) := Finset.mem_range.2 hnlt'
+  exact Finset.le_sup (s := Finset.range (N' + 1)) (f := fun t => discOffset f d m t) hn'
+
+/-- The maximum in `discOffsetUpTo` is attained by some `n ≤ N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
+-/
+lemma exists_discOffset_eq_discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) :
+    ∃ n ≤ N, discOffset f d m n = discOffsetUpTo f d m N := by
+  classical
+  unfold discOffsetUpTo
+  -- `range (N+1)` is nonempty, so `sup` is attained.
+  have hne : (Finset.range (N + 1)).Nonempty := by
+    refine ⟨0, ?_⟩
+    simp
+  -- Use the standard `sup`-attainment lemma.
+  rcases Finset.exists_mem_eq_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hne with
+    ⟨n, hnmem, hsup⟩
+  refine ⟨n, ?_, ?_⟩
+  · -- `n ∈ range (N+1)` implies `n ≤ N`.
+    exact Nat.le_of_lt_succ (Finset.mem_range.1 hnmem)
+  · exact hsup.symm
+
 /-- Definitional lemma exposing the definition. -/
 lemma discOffset_eq_natAbs_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=

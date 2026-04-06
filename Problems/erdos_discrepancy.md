@@ -230,8 +230,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumOffset f d m n` into an `apSumOffset` at step `q` with a reindexed summand (choose the repo’s canonical naming/orientation),
   mirroring the existing `apSum*_mul_eq_apSum*_map_mul*` family.
 
-- [ ] “Max discrepancy up to N” API: define/introduce `discOffsetUpTo f d m N := Nat.sSup {discOffset f d m n | n ≤ N}` (or a finitary equivalent)
+- [x] “Max discrepancy up to N” API: define/introduce `discOffsetUpTo f d m N := Nat.sSup {discOffset f d m n | n ≤ N}` (or a finitary equivalent)
   and prove basic monotonicity + a lemma extracting a witness `n ≤ N` achieving the max.
+  (Implemented finitarily as `discOffsetUpTo` + `discOffsetUpTo_mono` + `exists_discOffset_eq_discOffsetUpTo` in
+  `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] API coherence: add a tiny, stable simp lemma set for `discOffset`/`discrepancy` over degenerate steps/offsets
   (e.g. `m=0`, `d=1`) that normalizes goals to the preferred nucleus shapes without unfolding definitions.
