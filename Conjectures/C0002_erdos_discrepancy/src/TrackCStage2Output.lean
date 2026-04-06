@@ -109,9 +109,10 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f)
   have hnz : n ≠ 0 := by
     intro h0
     subst h0
-    have : C < 0 := by
-      simpa [gt_iff_lt] using hn
-    exact (Nat.not_lt_zero C) this
+    -- With `n = 0` the affine-tail nucleus is `0`, so `hn` would assert `0 > C`.
+    have h0gt : (0 : ℕ) > C := by
+      simpa using hn
+    exact (Nat.not_lt_zero C) (by simpa [gt_iff_lt] using h0gt)
   exact Nat.pos_of_ne_zero hnz
 
 /-- Negation-normal form of `forall_exists_natAbs_apSumFrom_mul_gt`: there is no uniform bound on
