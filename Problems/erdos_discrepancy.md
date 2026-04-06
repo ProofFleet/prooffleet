@@ -226,7 +226,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `apSupport` + `apSumOffset_congr_support` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface
   regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Reindexing normal form (offset, divisibility): if `q ∣ d`, add a preferred lemma rewriting
+- [x] Reindexing normal form (offset, divisibility): if `q ∣ d`, add a preferred lemma rewriting
   `apSumOffset f d m n` into an `apSumOffset` at step `q` with a reindexed summand (choose the repo’s canonical naming/orientation),
   mirroring the existing `apSum*_mul_eq_apSum*_map_mul*` family.
 

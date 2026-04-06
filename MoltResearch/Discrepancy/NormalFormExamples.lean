@@ -39,6 +39,13 @@ example (q : ℕ) : apSumOffset (fun t => f (t * q)) d m n = apSumOffset f (d * 
 example (q : ℕ) : apSumFrom (fun t => f (t * q)) a d n = apSumFrom f (a * q) (d * q) n := by
   simpa using (apSumFrom_map_mul_right (f := f) (q := q) (a := a) (d := d) (n := n))
 
+-- Regression (Track B / offset reindexing by divisibility):
+-- if `q ∣ d`, rewrite the offset-sum at step `d` into step `q` with reindexed summand.
+example (q : ℕ) (hq : q > 0) (hd : q ∣ d) :
+    apSumOffset f d m n = apSumOffset (fun x => f (x * (d / q))) q m n := by
+  simpa using
+    (apSumOffset_reindex_div_of_dvd (f := f) (q := q) (d := d) (m := m) (n := n) hq hd)
+
 -- Regression: `simp` should normalize away a spurious zero-offset tail.
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
