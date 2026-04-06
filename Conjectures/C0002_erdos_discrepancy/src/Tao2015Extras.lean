@@ -184,6 +184,34 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f : ℕ �
   simpa [gt_iff_lt] using
     (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m))
 
+/-- Paper-notation normal form: unbounded offset discrepancy expressed as interval sums on `Icc`.
+
+This rewrites the offset nuclei `apSumOffset f d m n` as the shifted progression sums
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt' (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  constructor
+  · intro hunb B
+    rcases
+        (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f) (d := d) (m := m)).1
+          hunb B with
+      ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using
+      hn
+  · intro h
+    refine
+      (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f) (d := d) (m := m)).2
+        ?_
+    intro B
+    rcases h B with ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using
+      hn
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the affine-tail nucleus.
 
 This is a small helper for later analytic stages: it avoids repeatedly unfolding `discOffset` and
