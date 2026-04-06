@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
 
 /-!
@@ -36,15 +37,15 @@ We define this in the entry-point module (not in the wrapper-lemma module) so ha
 can access it without importing additional convenience lemmas.
 -/
 noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage3Out (f := f) (hf := hf)).out2.out1.d
+  (stage3Out (f := f) (hf := hf)).out2.d
 
 /-- Convenience projection: the reduced sequence produced by Stage 3. -/
 noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
-  (stage3Out (f := f) (hf := hf)).out2.out1.g
+  (stage3Out (f := f) (hf := hf)).out2.g
 
 /-- Convenience projection: the bundled offset parameter produced by Stage 3. -/
 noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage3Out (f := f) (hf := hf)).out2.out1.m
+  (stage3Out (f := f) (hf := hf)).out2.m
 
 end Tao2015
 
