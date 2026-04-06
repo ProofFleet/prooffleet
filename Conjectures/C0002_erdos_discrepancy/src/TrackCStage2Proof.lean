@@ -139,6 +139,26 @@ theorem stage2_forall_exists_discOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequen
           (f := f)).1
       (stage2Out (f := f) (hf := hf)).unbounded
 
+/-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
+parameters produced by the conjecture stub `stage2Out`, stated using the bundled offset nucleus.
+
+Normal form:
+`∀ B, ∃ n, Int.natAbs (apSumOffset f d m n) > B`,
+where `d = stage2_d` and `m = stage2_m`.
+
+This is a thin wrapper around the normal-form lemma
+`UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt'`.
+-/
+theorem stage2_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        Int.natAbs
+            (apSumOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n) > B := by
+  simpa using
+    (UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt' (f := f)
+          (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf))).1
+      (stage2_unboundedDiscOffset (f := f) (hf := hf))
+
 /-!
 Consumer code should usually use `stage2Out` together with the general lemmas about `Stage2Output`
 (from `TrackCStage2.lean` / `TrackCStage2Output.lean`).
