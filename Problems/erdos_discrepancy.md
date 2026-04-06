@@ -214,7 +214,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `UnboundedDiscrepancy` / `UnboundedDiscAlong` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression
   examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Interior-cut equality (sum-level, offset): complement `apSumOffset_split_at` with an *explicit* “cut-at-k” equality
+- [x] Interior-cut equality (sum-level, offset): complement `apSumOffset_split_at` with an *explicit* “cut-at-k” equality
+  - Implemented in `MoltResearch/Discrepancy/Offset.lean` as `apSumOffset_split_at_via_Icc` (paper-endpoint split → nucleus normal form).
+  - Regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (imports the stable surface `MoltResearch.Discrepancy`).
   for `apSumOffset` phrased using the paper endpoints (`Icc (m+1) (m+n)`) and then immediately rewritten back to nucleus form,
   so downstream proofs can cut in paper notation without manual endpoint algebra.
 
