@@ -370,19 +370,15 @@ homogeneous progression sums
 
 take arbitrarily large absolute values.
 
-This is `exists_params_forall_exists_natAbs_apSumOffset_gt` rewritten using
-`Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc`.
+This is just `forall_exists_natAbs_sum_Icc_offset_gt` packaged existentially.
 -/
 theorem exists_params_forall_exists_natAbs_sum_Icc_offset_gt (out : Stage2Output f) :
     ∃ d m : ℕ, d > 0 ∧
       (∀ B : ℕ, ∃ n : ℕ,
         Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
-  rcases out.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f) with ⟨d, m, hd, h⟩
-  refine ⟨d, m, hd, ?_⟩
+  refine ⟨out.d, out.m, out.hd, ?_⟩
   intro B
-  rcases h B with ⟨n, hn⟩
-  refine ⟨n, ?_⟩
-  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hn
+  simpa using out.forall_exists_natAbs_sum_Icc_offset_gt (f := f) B
 
 /-- Paper-notation packaging variant of `exists_params_forall_exists_natAbs_sum_Icc_offset_gt` using
 the side condition `1 ≤ d`.
@@ -393,11 +389,9 @@ theorem exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (out : Stage
     ∃ d m : ℕ, 1 ≤ d ∧
       (∀ B : ℕ, ∃ n : ℕ,
         Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
-  rcases out.exists_params_forall_exists_natAbs_sum_Icc_offset_gt (f := f) with ⟨d, m, hd, h⟩
-  have hd1 : 1 ≤ d := by
-    -- `hd : d > 0` is the same as `0 < d`.
-    simpa using (Nat.succ_le_iff).2 hd
-  exact ⟨d, m, hd1, h⟩
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_sum_Icc_offset_gt (f := f) B
 
 /-- Existential packaging variant of `exists_params_forall_exists_natAbs_apSumOffset_gt` using
 the side condition `1 ≤ d`.
