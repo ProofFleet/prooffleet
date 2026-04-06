@@ -115,6 +115,20 @@ theorem forall_exists_d_ne_zero_witness_pos (out : Stage2Output f) :
   rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
   exact ⟨d, n, Nat.ne_of_gt hd, hn, hw⟩
 
+/-- Stage 2 output implies the discrepancy-witness normal form
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is a thin wrapper around `Stage2Output.forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem forall_exists_discrepancy_gt_original (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      ((out.forall_hasDiscrepancyAtLeast (f := f)) C)
+
 end Stage2Output
 
 end Tao2015
