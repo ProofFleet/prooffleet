@@ -50,8 +50,10 @@ section
       (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
 
   -- (3) Tail normal form → discrepancy wrapper (`discOffset`).
+  -- Avoid `simp` here: the global simp set contains both directions of the `discOffset` wrapper,
+  -- and unfolding can trigger a simp loop.
   example : Int.natAbs (apSumOffset f d m n) = discOffset f d m n := by
-    simp [discOffset]
+    rfl
 
   end MicroPipeline
 
