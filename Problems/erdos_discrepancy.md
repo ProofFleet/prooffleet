@@ -199,9 +199,13 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Boundedness normal form (exists-bound): add a canonical equivalence
-  `BoundedDiscOffset f d m ↔ ∃ B, ∀ n, discOffset f d m n ≤ B` (and the `discAlong` analogue),
+- [x] Boundedness normal form (exists-bound): add a canonical equivalence
+  `BoundedDiscOffsetExists f d m ↔ ∃ B, ∀ n, discOffset f d m n ≤ B` (and the `discAlong` analogue),
   so later stages can switch between `∀ n` and `∃ B` forms without rewriting.
+  (Implemented as `BoundedDiscOffsetExists` + `boundedDiscOffsetExists_iff_exists_forall_discOffset_le`
+  and `BoundedDiscAlongExists` + `boundedDiscAlongExists_iff_exists_forall_discAlong_le` in
+  `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Unboundedness normal form (forall-exists): add a canonical lemma
   `UnboundedDiscOffset f d m ↔ ∀ B, ∃ n, B < discOffset f d m n` (and the `discrepancy` / `discAlong` analogues),
