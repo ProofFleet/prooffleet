@@ -200,6 +200,24 @@ theorem forall_exists_discOffset_gt_witness_pos {f : ℕ → ℤ} {d m : ℕ}
     exact this hn
   exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
 
+/-- Witness-positivity: in the bundled-nucleus witness form
+`∀ B, ∃ n, Int.natAbs (apSumOffset f d m n) > B`, any witness length `n` is automatically positive.
+
+Reason: `apSumOffset f d m 0 = 0`.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt_witness_pos {f : ℕ → ℤ} {d m : ℕ}
+    (hunb : UnboundedDiscOffset f d m) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B := by
+  intro B
+  rcases forall_exists_discOffset_gt_witness_pos (f := f) (d := d) (m := m) hunb B with
+    ⟨n, hnpos, hn⟩
+  refine ⟨n, hnpos, ?_⟩
+  have hn' : B < Int.natAbs (apSumOffset f d m n) := by
+    have hn' := hn
+    unfold discOffset at hn'
+    exact hn'
+  exact (gt_iff_lt).2 hn'
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
 
 Since `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`, this lemma lets
