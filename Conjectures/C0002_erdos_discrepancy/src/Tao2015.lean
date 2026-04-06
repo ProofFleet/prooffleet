@@ -182,6 +182,24 @@ theorem natAbs_apSumOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
 
 namespace UnboundedDiscOffset
 
+/-- Witness-positivity: in the `∀ B, ∃ n, B < discOffset f d m n` unboundedness normal form,
+any witness length `n` is automatically positive.
+
+Reason: `discOffset f d m 0 = 0`, so `B < discOffset f d m 0` is impossible.
+-/
+theorem forall_exists_discOffset_gt_witness_pos {f : ℕ → ℤ} {d m : ℕ}
+    (hunb : UnboundedDiscOffset f d m) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ B < discOffset f d m n := by
+  intro B
+  rcases hunb B with ⟨n, hn⟩
+  have hn0 : n ≠ 0 := by
+    intro h0
+    subst h0
+    have : ¬ B < discOffset f d m 0 := by
+      simp
+    exact this hn
+  exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
 
 Since `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`, this lemma lets
