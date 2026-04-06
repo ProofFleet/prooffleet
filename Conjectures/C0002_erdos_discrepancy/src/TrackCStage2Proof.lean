@@ -120,6 +120,25 @@ theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1
       (stage2Out (f := f) (hf := hf)).unbounded
 
+/-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
+parameters produced by the conjecture stub `stage2Out`.
+
+Normal form:
+`∀ B, ∃ n, discOffset f d m n > B`,
+where `d = stage2_d` and `m = stage2_m`.
+
+This is a thin wrapper around the Stage-1 transport equivalence
+`ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt'`.
+-/
+theorem stage2_forall_exists_discOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        discOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n > B := by
+  simpa [stage2_d, stage2_m] using
+    ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt'
+          (f := f)).1
+      (stage2Out (f := f) (hf := hf)).unbounded
+
 /-!
 Consumer code should usually use `stage2Out` together with the general lemmas about `Stage2Output`
 (from `TrackCStage2.lean` / `TrackCStage2Output.lean`).
