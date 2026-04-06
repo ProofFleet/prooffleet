@@ -113,6 +113,23 @@ theorem stage3_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsS
   simpa [stage3_d, stage3_m] using
     (Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Positive-length witness form of `stage3_forall_exists_natAbs_apSumFrom_mul_gt`.
+
+The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
+
+This is a thin wrapper around
+`Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem stage3_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ,
+      ∃ n : ℕ, n > 0 ∧
+        Int.natAbs
+            (apSumFrom f ((stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf)))
+              (stage3_d (f := f) (hf := hf)) n) > C := by
+  simpa [stage3_d, stage3_m] using
+    (Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
+      (stage3Out (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
 This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
