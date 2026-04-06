@@ -583,6 +583,19 @@ theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f : ℕ → ℤ) 
   rcases hunb (2 * ctx.B) with ⟨n, hn⟩
   exact (not_lt_of_ge (hbound n)) hn
 
+/-- Variant of `not_boundedDiscrepancy_of_forall_exists_discOffset_gt` with the witness inequality
+written as `discOffset ... > B`.
+
+Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
+-/
+theorem not_boundedDiscrepancy_of_forall_exists_discOffset_gt' (f : ℕ → ℤ) {d m : ℕ} (hd : d > 0)
+    (hunb : ∀ B : ℕ, ∃ n : ℕ, discOffset f d m n > B) :
+    ¬ BoundedDiscrepancy f := by
+  refine not_boundedDiscrepancy_of_forall_exists_discOffset_gt (f := f) (d := d) (m := m) hd ?_
+  intro B
+  rcases hunb B with ⟨n, hn⟩
+  exact ⟨n, (gt_iff_lt).1 hn⟩
+
 /-!
 ## Stage 1: shift reduction output
 
