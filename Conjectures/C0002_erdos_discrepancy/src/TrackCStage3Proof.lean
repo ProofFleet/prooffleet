@@ -96,6 +96,22 @@ theorem stage3_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSi
   simpa [stage3_d, stage3_m] using
     (Stage3Output.forall_exists_natAbs_apSumOffset_gt' (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields the paper-notation offset witness form:
+
+`∀ B, ∃ n, Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) > B`,
+where `d = stage3_d` and `m = stage3_m`.
+
+This is a thin wrapper around `Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt`.
+-/
+theorem stage3_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ,
+      Int.natAbs
+          ((Finset.Icc ((stage3_m (f := f) (hf := hf)) + 1)
+              ((stage3_m (f := f) (hf := hf)) + n)).sum
+            (fun i => f (i * (stage3_d (f := f) (hf := hf))))) > B := by
+  simpa [stage3_d, stage3_m] using
+    (Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) (stage3Out (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields explicit affine-tail nucleus witnesses at the
 concrete parameters produced by the pipeline.
 
