@@ -133,6 +133,20 @@ theorem unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f : ℕ
   simpa [BoundedDiscOffset, discOffset, -natAbs_apSumOffset_eq_discOffset] using
     (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m))
 
+/-- Normal form: unbounded offset discrepancy means there is no uniform `discOffset` bound.
+
+Negation-normal form:
+`¬ ∃ B, ∀ n, discOffset f d m n ≤ B`.
+
+This is `unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le` rewritten using the
+(definitional) equality `discOffset f d m n = Int.natAbs (apSumOffset f d m n)`.
+-/
+theorem unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ (¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B) := by
+  -- Avoid simp loops: `discOffset` is definitional.
+  simpa [discOffset, -natAbs_apSumOffset_eq_discOffset] using
+    (unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m))
+
 /-- Normal form: unbounded offset discrepancy means there is no uniform affine-tail nucleus bound.
 
 Negation-normal form:
