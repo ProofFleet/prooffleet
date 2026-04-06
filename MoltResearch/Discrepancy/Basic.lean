@@ -397,6 +397,27 @@ This direction avoids simp loops with `discOffset_def`.
     Int.natAbs (apSumOffset f d m n) = discOffset f d m n :=
   rfl
 
+
+/-- Degenerate step (`d = 0`): the sampled index is always `0`, so the sum is a constant sum. -/
+@[simp] lemma apSum_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    apSum f 0 n = (n : ℤ) * f 0 := by
+  classical
+  unfold apSum
+  -- All sampled indices are `((i+1)*0) = 0`.
+  simp
+
+/-- Degenerate step (`d = 0`) at the homogeneous discrepancy wrapper `disc` level. -/
+@[simp] lemma disc_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    disc f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
+  unfold disc
+  simp [apSum_zero_step]
+
+/-- Degenerate step (`d = 0`) at the homogeneous discrepancy wrapper `discrepancy` level. -/
+@[simp] lemma discrepancy_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    discrepancy f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
+  unfold discrepancy
+  simp [apSum_zero_step]
+
 /-!
 ### Degenerate-step (`d = 0`) normal forms
 

@@ -128,6 +128,14 @@ example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
 example : discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
   simp
 
+-- Regression (Track B / degenerate-step normal forms):
+example : disc f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
+  simp
+
+-- Regression (Track B / degenerate-step normal forms):
+example : discrepancy f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
+  simp
+
 -- Regression (Track B / negation invariance, disc-level):
 -- Sign flips should be a one-line `simp`.
 example : discOffset (fun k => -f k) d m n = discOffset f d m n := by
