@@ -103,17 +103,11 @@ The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
 -/
 theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f) :
     ∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
-  intro C
-  rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
-  refine ⟨n, ?_, hn⟩
-  have hnz : n ≠ 0 := by
-    intro h0
-    subst h0
-    -- With `n = 0` the affine-tail nucleus is `0`, so `hn` would assert `0 > C`.
-    have h0gt : (0 : ℕ) > C := by
-      simpa using hn
-    exact (Nat.not_lt_zero C) (by simpa [gt_iff_lt] using h0gt)
-  exact Nat.pos_of_ne_zero hnz
+  have hunb : UnboundedDiscOffset f out.d out.m :=
+    (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
+  simpa using
+    (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) (d := out.d)
+      (m := out.m) hunb)
 
 /-- Negation-normal form of `forall_exists_natAbs_apSumFrom_mul_gt`: there is no uniform bound on
 the affine-tail nuclei at the concrete Stage-1 parameters produced by Stage 2. -/

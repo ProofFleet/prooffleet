@@ -254,6 +254,28 @@ theorem iff_forall_exists_natAbs_apSumFrom_mul_gt' (f : ℕ → ℤ) (d m : ℕ)
   simpa [gt_iff_lt] using
     (iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m))
 
+/-- Witness-positivity: in the tail-nucleus witness form
+`∀ B, ∃ n, Int.natAbs (apSumFrom f (m*d) d n) > B`,
+any witness length `n` is automatically positive.
+
+Reason: `apSumFrom f (m*d) d 0 = 0`.
+-/
+theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos {f : ℕ → ℤ} {d m : ℕ}
+    (hunb : UnboundedDiscOffset f d m) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > B := by
+  intro B
+  rcases (iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m)).1 hunb B with
+    ⟨n, hn⟩
+  have hn0 : n ≠ 0 := by
+    intro h0
+    subst h0
+    have hzero : Int.natAbs (apSumFrom f (m * d) d 0) = 0 := by
+      simp
+    have : (0 : ℕ) > B := by
+      simpa [hzero] using hn
+    exact (Nat.not_lt_zero B) (by simpa [gt_iff_lt] using this)
+  exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
+
 /-- Negation-normal form: unbounded offset discrepancy means there is no uniform bound on the
 affine-tail nuclei `Int.natAbs (apSumFrom f (m*d) d n)`.
 
