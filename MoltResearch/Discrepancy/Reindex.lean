@@ -321,6 +321,23 @@ lemma apSumOffset_mul_eq_apSumOffset_map_mul₁₂ (f : ℕ → ℤ) (d₁ d₂ 
     apSumOffset f (d₁ * d₂) m n = apSumOffset (fun t => f (t * d₁)) d₂ m n := by
   simpa using (apSumOffset_mul_eq_apSumOffset_map_mul (f := f) (d := d₁) (k := d₂) (m := m) (n := n))
 
+/-- Reindexing normal form (offset, divisibility): if `q > 0` and `q ∣ d`, rewrite
+`apSumOffset f d m n` into an `apSumOffset` at step `q` with reindexed summand using quotient `d / q`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Reindexing normal form (offset, divisibility).
+-/
+lemma apSumOffset_reindex_div_of_dvd (f : ℕ → ℤ) (q d m n : ℕ) (hq : q > 0) (hd : q ∣ d) :
+    apSumOffset f d m n = apSumOffset (fun x => f (x * (d / q))) q m n := by
+  have hd' : (d / q) * q = d := Nat.div_mul_cancel hd
+  -- First rewrite the step size `d` as `(d / q) * q`, then factor the product step.
+  calc
+    apSumOffset f d m n = apSumOffset f ((d / q) * q) m n := by
+      -- `simp [hd']` rewrites the RHS back to the LHS.
+      simpa [hd'] using (rfl : apSumOffset f d m n = apSumOffset f d m n)
+    _ = apSumOffset (fun x => f (x * (d / q))) q m n := by
+      simpa using
+        (apSumOffset_mul_eq_apSumOffset_map_mul (f := f) (d := d / q) (k := q) (m := m) (n := n))
+
 /-- Left-multiplication-friendly variant: rewrite into a summand `t ↦ f (d₁ * t)`.
 
 Useful when downstream normalization prefers keeping multiplication on the left.

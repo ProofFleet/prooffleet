@@ -1961,6 +1961,13 @@ example : apSumFrom f (m * d) d n = apSumOffset f d m n := by
 example (h : d ∣ a) : apSumFrom f a d n = apSumOffset f d (a / d) n := by
   simpa using (apSumFrom_eq_apSumOffset_of_dvd (f := f) (a := a) (d := d) (n := n) h)
 
+-- Reindexing normal form (offset, divisibility): if `q ∣ d`, rewrite an `apSumOffset` at step `d`
+-- into one at step `q`, pushing the quotient `d / q` into the summand.
+example (q d m n : ℕ) (hq : q > 0) (hd : q ∣ d) :
+    apSumOffset f d m n = apSumOffset (fun x => f (x * (d / q))) q m n := by
+  simpa using
+    (apSumOffset_reindex_div_of_dvd (f := f) (q := q) (d := d) (m := m) (n := n) hq hd)
+
 -- Same offset normal form, but with the affine start written as `d*m`.
 -- (Downstream code can rewrite with `Nat.mul_comm` to use the canonical `m*d` lemma.)
 example : apSumFrom f (d * m) d n = apSumOffset f d m n := by
