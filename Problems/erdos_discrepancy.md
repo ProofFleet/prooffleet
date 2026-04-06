@@ -197,6 +197,37 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumFrom` → `apSumOffset` → dilation pull-in → cut → `discOffset` bound compiles with `simp` + one `rw`, and wire it into `SurfaceAudit`.
   (Implemented in `MoltResearch/Discrepancy/SurfaceAudit.lean` and `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Boundedness normal form (exists-bound): add a canonical equivalence
+  `BoundedDiscOffset f d m ↔ ∃ B, ∀ n, discOffset f d m n ≤ B` (and the `discAlong` analogue),
+  so later stages can switch between `∀ n` and `∃ B` forms without rewriting.
+
+- [ ] Unboundedness normal form (forall-exists): add a canonical lemma
+  `UnboundedDiscOffset f d m ↔ ∀ B, ∃ n, B < discOffset f d m n` (and the `discrepancy` / `discAlong` analogues),
+  with stable-surface regression examples.
+
+- [ ] Interior-cut equality (sum-level, offset): complement `apSumOffset_split_at` with an *explicit* “cut-at-k” equality
+  for `apSumOffset` phrased using the paper endpoints (`Icc (m+1) (m+n)`) and then immediately rewritten back to nucleus form,
+  so downstream proofs can cut in paper notation without manual endpoint algebra.
+
+- [ ] Endpoint-agnostic “tail surgery” lemma: package a stable lemma of the form
+  `apSumOffset f d m n = apSumOffset g d m n` assuming equality of `f` and `g` on the *image* set `{(m+i+1)*d | i < n}`,
+  to support later arguments that modify `f` off-progression (avoid `Icc`/`range` bookkeeping).
+
+- [ ] Reindexing normal form (offset, divisibility): if `q ∣ d`, add a preferred lemma rewriting
+  `apSumOffset f d m n` into an `apSumOffset` at step `q` with a reindexed summand (choose the repo’s canonical naming/orientation),
+  mirroring the existing `apSum*_mul_eq_apSum*_map_mul*` family.
+
+- [ ] “Max discrepancy up to N” API: define/introduce `discOffsetUpTo f d m N := Nat.sSup {discOffset f d m n | n ≤ N}` (or a finitary equivalent)
+  and prove basic monotonicity + a lemma extracting a witness `n ≤ N` achieving the max.
+
+- [ ] API coherence: add a tiny, stable simp lemma set for `discOffset`/`discrepancy` over degenerate steps/offsets
+  (e.g. `m=0`, `d=1`) that normalizes goals to the preferred nucleus shapes without unfolding definitions.
+
+- [ ] Stable-surface regression: add 2–3 compile-only examples under `import MoltResearch.Discrepancy` showing the common proof “micro-pipeline”
+  (paper Icc sum → nucleus → translate/shift → split at k → discOffset bound) works with `simp` + one `rw`.
+
 #### Track C — Tao2015 “build the plane” (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
