@@ -297,6 +297,19 @@ It is defined as the natural absolute value of `apSumOffset f d m n`.
 def discOffset (f : ℕ → ℤ) (d m n : ℕ) : ℕ :=
   Int.natAbs (apSumOffset f d m n)
 
+/-!
+### Discrepancy up to a finite length
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
+-/
+
+/-- Maximal offset discrepancy over lengths `n ≤ N`.
+
+This is packaged in a finitary form (a `Finset.sup` over `range (N+1)`) so it is computable.
+-/
+def discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) : ℕ :=
+  (Finset.range (N + 1)).sup (fun n => discOffset f d m n)
+
 /-- Definitional lemma exposing the definition. -/
 lemma discOffset_eq_natAbs_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=

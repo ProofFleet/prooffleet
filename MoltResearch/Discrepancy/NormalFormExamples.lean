@@ -104,6 +104,10 @@ example : apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k =
 example : discOffset f d m n = discrepancy (fun k => f (k + m * d)) d n := by
   simpa using (discOffset_eq_discrepancy_shift_mul (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / “max discrepancy up to N” API): the wrapper is available under the stable surface.
+example : discOffsetUpTo f d m n = (Finset.range (n + 1)).sup (fun t => discOffset f d m t) := by
+  rfl
+
 -- Regression (Track B / degenerate tail normal forms):
 -- `discOffset` at length 0 and 1 should simplify to explicit normal forms.
 example : discOffset f d m 0 = 0 := by
