@@ -271,6 +271,20 @@ theorem forall_exists_natAbs_sum_Icc_offset_gt (out : Stage3Output f) :
   ] using hn
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
+paper-notation offset sum witness `∑ i ∈ Icc (m+1) (m+n), f (i*d)` takes arbitrarily large absolute
+values.
+
+This is a small wrapper around `forall_exists_natAbs_sum_Icc_offset_gt`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  intro B
+  exact out.forall_exists_natAbs_sum_Icc_offset_gt (f := f) B
+
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute values.
 
 This is a small wrapper around `forall_exists_natAbs_apSumOffset_gt'`.
