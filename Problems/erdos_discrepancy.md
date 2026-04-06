@@ -220,9 +220,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   for `apSumOffset` phrased using the paper endpoints (`Icc (m+1) (m+n)`) and then immediately rewritten back to nucleus form,
   so downstream proofs can cut in paper notation without manual endpoint algebra.
 
-- [ ] Endpoint-agnostic “tail surgery” lemma: package a stable lemma of the form
+- [x] Endpoint-agnostic “tail surgery” lemma: package a stable lemma of the form
   `apSumOffset f d m n = apSumOffset g d m n` assuming equality of `f` and `g` on the *image* set `{(m+i+1)*d | i < n}`,
   to support later arguments that modify `f` off-progression (avoid `Icc`/`range` bookkeeping).
+  (Implemented as `apSupport` + `apSumOffset_congr_support` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface
+  regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Reindexing normal form (offset, divisibility): if `q ∣ d`, add a preferred lemma rewriting
   `apSumOffset f d m n` into an `apSumOffset` at step `q` with a reindexed summand (choose the repo’s canonical naming/orientation),
