@@ -420,6 +420,18 @@ theorem iff_not_boundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) :
       exact h ⟨n, hgt⟩
     exact hnb ⟨B, hB⟩
 
+/-- Nucleus normal form: unboundedness along `d` means there is no uniform bound on
+`Int.natAbs (apSum g d n)`.
+
+This is `iff_not_boundedDiscrepancyAlong` composed with
+`boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSum_le`.
+-/
+theorem iff_not_exists_forall_natAbs_apSum_le (g : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong g d ↔ ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum g d n) ≤ B := by
+  simpa using
+    (iff_not_boundedDiscrepancyAlong (g := g) (d := d)).trans
+      (not_congr (boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSum_le (g := g) (d := d)))
+
 end UnboundedDiscrepancyAlong
 
 namespace HasDiscrepancyAtLeastAlong
