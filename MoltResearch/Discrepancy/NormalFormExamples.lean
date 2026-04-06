@@ -397,6 +397,16 @@ example :
   simpa using
     (UnboundedDiscrepancyAlong.shift_mul_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m))
 
+-- Regression (Track B / unboundedness normal form, discOffset-native): the dedicated predicate
+-- rewrites to the same `∀ C, ∃ n` witness form.
+example : UnboundedDiscOffset f d m ↔ (∀ C : ℕ, ∃ n : ℕ, C < discOffset f d m n) := by
+  simpa using (unboundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m))
+
+-- Regression (Track B / API coherence): `UnboundedDiscrepancyAlong` agrees with the direct
+-- `discAlong` witness normal form.
+example : UnboundedDiscrepancyAlong f d ↔ UnboundedDiscAlong f d := by
+  simpa using (unboundedDiscrepancyAlong_iff_unboundedDiscAlong (f := f) (d := d))
+
 -- Regression (Track B / witness normal form, along-`d`): unshifted along-`d` predicate
 -- rewrites to the `discOffset … 0 n` witness form.
 example : HasDiscrepancyAtLeastAlong f d C ↔ ∃ n : ℕ, C < discOffset f d 0 n := by

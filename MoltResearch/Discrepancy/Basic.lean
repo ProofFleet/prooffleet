@@ -460,6 +460,55 @@ theorem boundedDiscAlongExists_iff_exists_forall_discAlong_le (f : ℕ → ℤ) 
     BoundedDiscAlongExists f d ↔ ∃ B : ℕ, ∀ n : ℕ, discAlong f d n ≤ B :=
   Iff.rfl
 
+/-!
+### Unboundedness normal forms
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Unboundedness normal form (forall-exists).
+
+These predicates package the “∀ B, ∃ n, …” normal form, primarily as the logical negation of the
+corresponding boundedness-exists predicate when one exists.
+-/
+
+/-- `UnboundedDiscOffset f d m` means: there is no uniform bound on `discOffset f d m n`.
+
+Defined as the negation of `BoundedDiscOffsetExists`, so the duality lemma below is the canonical
+bridge to the `∀ B, ∃ n, …` witness form.
+-/
+def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
+  ¬ BoundedDiscOffsetExists f d m
+
+/-- Canonical witness normal form for `UnboundedDiscOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Unboundedness normal form (forall-exists, discOffset).
+-/
+theorem unboundedDiscOffset_iff_forall_exists_discOffset_lt (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n := by
+  classical
+  -- Expand the definitional sugar and push negations.
+  -- `UnboundedDiscOffset` is defined as `¬ ∃ B, (∀ n, discOffset … n ≤ B)`.
+  unfold UnboundedDiscOffset BoundedDiscOffsetExists BoundedDiscOffset
+  constructor
+  · intro h B
+    by_contra h'
+    have hB : ∀ n : ℕ, discOffset f d m n ≤ B := by
+      intro n
+      have : ¬ B < discOffset f d m n := by
+        exact fun hn => h' ⟨n, hn⟩
+      exact le_of_not_gt this
+    exact h ⟨B, hB⟩
+  · intro h hex
+    rcases hex with ⟨B, hB⟩
+    rcases h B with ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n) hn)
+
+/-- Unboundedness normal form for homogeneous discrepancy `discrepancy f d n`. -/
+def UnboundedDiscrepancy (f : ℕ → ℤ) (d : ℕ) : Prop :=
+  ∀ B : ℕ, ∃ n : ℕ, B < discrepancy f d n
+
+/-- Unboundedness normal form for the along-`d` wrapper `discAlong f d n`. -/
+def UnboundedDiscAlong (f : ℕ → ℤ) (d : ℕ) : Prop :=
+  ∀ B : ℕ, ∃ n : ℕ, B < discAlong f d n
+
 /-- Stable lemma name: negation-pushed quantifier normal form for *unboundedness* of `discOffset`.
 
 This is the standard boundedness dual:
@@ -1508,6 +1557,20 @@ theorem iff_forall_exists_discOffset_zero_start_lt (f : ℕ → ℤ) (d : ℕ) :
       (f := f) (d := d) (m := 0))
 
 end UnboundedDiscrepancyAlong
+
+/-- API coherence: `UnboundedDiscrepancyAlong` agrees with the direct `discAlong` witness normal form.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Unboundedness normal form (forall-exists, discAlong).
+-/
+theorem unboundedDiscrepancyAlong_iff_unboundedDiscAlong (f : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong f d ↔ UnboundedDiscAlong f d := by
+  unfold UnboundedDiscrepancyAlong UnboundedDiscAlong
+  constructor
+  · intro h B
+    exact (HasDiscrepancyAtLeastAlong.iff_exists_discAlong_lt (f := f) (d := d) (C := B)).1 (h B)
+  · intro h B
+    exact (HasDiscrepancyAtLeastAlong.iff_exists_discAlong_lt (f := f) (d := d) (C := B)).2 (h B)
+
 
 /-- Variant with the step-size side condition written as `d ≥ 1`. -/
 lemma HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one (f : ℕ → ℤ) (C : ℕ) :
