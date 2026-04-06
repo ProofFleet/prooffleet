@@ -235,7 +235,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented finitarily as `discOffsetUpTo` + `discOffsetUpTo_mono` + `exists_discOffset_eq_discOffsetUpTo` in
   `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] API coherence: add a tiny, stable simp lemma set for `discOffset`/`discrepancy` over degenerate steps/offsets
+- [x] API coherence: add a tiny, stable simp lemma set for `discOffset`/`discrepancy` over degenerate steps/offsets
   (e.g. `m=0`, `d=1`) that normalizes goals to the preferred nucleus shapes without unfolding definitions.
 
 - [ ] Stable-surface regression: add 2–3 compile-only examples under `import MoltResearch.Discrepancy` showing the common proof “micro-pipeline”

@@ -123,6 +123,23 @@ section
   #check discOffset
 
   /-!
+  ### Degenerate-step/offset simp coherence (stable surface)
+
+  These are tiny regression tests ensuring the stable surface exports the simp lemmas that
+  normalize `d = 0` and small-length cases without unfolding into `Finset` sums.
+  -/
+
+  -- Degenerate step (`d = 0`) simp normal forms.
+  example : discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
+    simp
+
+  example : discrepancy f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
+    simp
+
+  example : disc f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
+    simp
+
+  /-!
   ### discOffset_* lemma exports (stable surface)
 
   These are high-leverage `discOffset` rewrite/transport lemmas used throughout Track B.
