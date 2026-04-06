@@ -54,9 +54,7 @@ theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage3_d] using
     (Stage3Output.d_ne_zero (f := f) (stage3Out (f := f) (hf := hf)))
 
-/-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`. -/
-theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  exact (stage3Out (f := f) (hf := hf)).notBounded
+-- (moved to TrackCStage3Entry)
 
 /-- Consumer-facing shortcut: Stage 3 yields unbounded discrepancy along the reduced sequence,
 stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.

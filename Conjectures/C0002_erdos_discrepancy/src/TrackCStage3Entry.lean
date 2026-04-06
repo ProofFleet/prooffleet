@@ -49,6 +49,15 @@ noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ �
 noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_m (f := f) (hf := hf)
 
+/-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
+
+We provide this lemma in the entry-point module so hard-gate consumers can access it without
+importing additional wrapper-lemma modules.
+-/
+theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
+  -- Prefer consuming the Stage-3 output record API.
+  exact (stage3Out (f := f) (hf := hf)).notBounded
+
 end Tao2015
 
 end MoltResearch
