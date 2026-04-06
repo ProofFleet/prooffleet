@@ -26,17 +26,11 @@ The Stage-2 conjecture stub (axiom) and the deterministic name `stage2Out` live 
 This file keeps only the convenience projections/wrapper lemmas.
 -/
 
-/-- Convenience projection: the reduced step size produced by Stage 2. -/
-noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage2Out (f := f) (hf := hf)).d
-
-/-- Convenience projection: the reduced sequence produced by Stage 2. -/
-noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
-  (stage2Out (f := f) (hf := hf)).g
-
-/-- Convenience projection: the bundled offset parameter produced by Stage 2. -/
-noncomputable abbrev stage2_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  (stage2Out (f := f) (hf := hf)).m
+/-
+Note: the basic projections `stage2_d`, `stage2_g`, `stage2_m` are defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` so hard-gate consumers can access them
+without importing this wrapper-lemma module.
+-/
 
 /-- The reduced sequence produced by Stage 2 is a sign sequence. -/
 theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :

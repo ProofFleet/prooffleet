@@ -385,7 +385,10 @@ theorem forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (out : Stage2Output f
   refine ⟨n, hnpos, ?_⟩
   have hn' : B <
       Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) := by
-    simpa [discOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] using hn
+    -- Avoid a `simp` recursion-depth blowup: rewrite the `discOffset` witness directly.
+    have hn' := hn
+    rw [discOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] at hn'
+    exact hn'
   exact (gt_iff_lt).2 hn'
 
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that the offset nucleus
