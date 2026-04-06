@@ -26,6 +26,22 @@ axiom stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 noncomputable abbrev stage2Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f :=
   stage2 (f := f) (hf := hf)
 
+/-- Convenience projection: the reduced step size produced by Stage 2.
+
+We define these projections in the entry-point module so consumers can access them without importing
+additional wrapper-lemma modules.
+-/
+noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  (stage2Out (f := f) (hf := hf)).out1.d
+
+/-- Convenience projection: the reduced sequence produced by Stage 2. -/
+noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
+  (stage2Out (f := f) (hf := hf)).out1.g
+
+/-- Convenience projection: the bundled offset parameter produced by Stage 2. -/
+noncomputable abbrev stage2_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  (stage2Out (f := f) (hf := hf)).out1.m
+
 end Tao2015
 
 end MoltResearch
