@@ -22,6 +22,40 @@ section
   open scoped BigOperators
 
   /-!
+  ## Micro-pipeline starter scripts (compile-only)
+
+  These are intentionally tiny examples that exercise the *most common* rewrite path in Track B:
+
+  paper notation → nucleus (`apSumFrom` / `apSumOffset`) → discrepancy wrapper (`discOffset`).
+
+  They must continue to compile under:
+
+  ```lean
+  import MoltResearch.Discrepancy
+  ```
+  -/
+
+  section MicroPipeline
+
+  variable (f : ℕ → ℤ) (a d m n : ℕ)
+
+  -- (1) Paper affine partial sum (`Icc 1 n`) → nucleus `apSumFrom`.
+  example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+    simpa [sum_Icc_eq_apSumFrom]
+
+  -- (2) Nucleus difference form → tail normal form `apSumOffset` (on a shifted sequence).
+  example : apSumFrom f a d (m + n) - apSumFrom f a d m =
+      apSumOffset (fun k => f (k + a)) d m n := by
+    simpa using
+      (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
+
+  -- (3) Tail normal form → discrepancy wrapper (`discOffset`).
+  example : Int.natAbs (apSumOffset f d m n) = discOffset f d m n := by
+    simp [discOffset]
+
+  end MicroPipeline
+
+  /-!
   A compact “edit + split + bound” example.
 
   We compare two sign sequences `f` and `g` that differ at exactly one sampled index, and we bound
