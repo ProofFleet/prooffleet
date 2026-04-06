@@ -427,6 +427,39 @@ theorem boundedDiscOffset_iff_forall_discOffset_le (f : ℕ → ℤ) (d m B : �
     BoundedDiscOffset f d m B ↔ ∀ n : ℕ, discOffset f d m n ≤ B :=
   Iff.rfl
 
+/-!
+### Exists-bound normal form
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness normal form (exists-bound).
+
+These predicates package the common pattern “there exists a uniform bound” without requiring
+call-sites to carry an explicit `B` parameter.
+-/
+
+/-- `BoundedDiscOffsetExists f d m` means: there exists a uniform bound on all `discOffset f d m n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness normal form (exists-bound, discOffset).
+-/
+def BoundedDiscOffsetExists (f : ℕ → ℤ) (d m : ℕ) : Prop :=
+  ∃ B : ℕ, BoundedDiscOffset f d m B
+
+/-- Stable lemma name: quantifier normal form for `BoundedDiscOffsetExists`. -/
+theorem boundedDiscOffsetExists_iff_exists_forall_discOffset_le (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffsetExists f d m ↔ ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B := by
+  rfl
+
+/-- `BoundedDiscAlongExists f d` means: there exists a uniform bound on all `discAlong f d n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness normal form (exists-bound, discAlong).
+-/
+def BoundedDiscAlongExists (f : ℕ → ℤ) (d : ℕ) : Prop :=
+  ∃ B : ℕ, ∀ n : ℕ, discAlong f d n ≤ B
+
+/-- Stable lemma name: quantifier normal form for `BoundedDiscAlongExists`. -/
+theorem boundedDiscAlongExists_iff_exists_forall_discAlong_le (f : ℕ → ℤ) (d : ℕ) :
+    BoundedDiscAlongExists f d ↔ ∃ B : ℕ, ∀ n : ℕ, discAlong f d n ≤ B :=
+  Iff.rfl
+
 /-- Stable lemma name: negation-pushed quantifier normal form for *unboundedness* of `discOffset`.
 
 This is the standard boundedness dual:

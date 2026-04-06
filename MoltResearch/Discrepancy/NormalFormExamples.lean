@@ -528,6 +528,18 @@ example (B : ℕ) :
     BoundedDiscOffset f d m B ↔ ∀ n : ℕ, discOffset f d m n ≤ B := by
   simpa using (boundedDiscOffset_iff_forall_discOffset_le (f := f) (d := d) (m := m) (B := B))
 
+-- Regression (Track B / boundedness normal form, exists-bound):
+-- `BoundedDiscOffsetExists` should rewrite to the explicit `∃ B, ∀ n, discOffset … ≤ B` form.
+example :
+    BoundedDiscOffsetExists f d m ↔ ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B := by
+  simpa using (boundedDiscOffsetExists_iff_exists_forall_discOffset_le (f := f) (d := d) (m := m))
+
+-- Regression (Track B / boundedness normal form, exists-bound):
+-- `BoundedDiscAlongExists` should rewrite to the explicit `∃ B, ∀ n, discAlong … ≤ B` form.
+example :
+    BoundedDiscAlongExists f d ↔ ∃ B : ℕ, ∀ n : ℕ, discAlong f d n ≤ B := by
+  simpa using (boundedDiscAlongExists_iff_exists_forall_discAlong_le (f := f) (d := d))
+
 -- Regression (Track B / unboundedness quantifier normal form, discOffset-native):
 -- Negation-pushed form: `¬ ∃ B, BoundedDiscOffset … B` rewrites to `∀ B, ∃ n, B < discOffset … n`.
 example :
