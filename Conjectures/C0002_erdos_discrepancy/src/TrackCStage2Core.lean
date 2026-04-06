@@ -70,6 +70,16 @@ carried by `out.out1` to conclude `¬ BoundedDiscrepancy f`.
 theorem notBoundedOriginal (out : Stage2Output f) : ¬ BoundedDiscrepancy f := by
   exact out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f) out.unbounded
 
+/-- Stage 2 output implies unbounded bundled offset discrepancy for the original sequence
+at the concrete parameters `out.d` and `out.m`.
+
+This is the Stage-1 transport contract applied to the fixed-step unboundedness witness
+`out.unbounded`.
+-/
+theorem unboundedDiscOffset (out : Stage2Output f) : UnboundedDiscOffset f out.d out.m := by
+  simpa [Stage2Output.d, Stage2Output.m] using
+    ((out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).1 out.unbounded
+
 /-- Stage 2 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
 This is a thin wrapper around `notBoundedOriginal`.

@@ -113,8 +113,7 @@ This is a thin wrapper around the Stage-1 transport equivalence on the bundled `
 theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) := by
   simpa [stage2_d, stage2_m] using
-    ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1
-      (stage2Out (f := f) (hf := hf)).unbounded
+    (Stage2Output.unboundedDiscOffset (f := f) (out := stage2Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
 parameters produced by the conjecture stub `stage2Out`.
