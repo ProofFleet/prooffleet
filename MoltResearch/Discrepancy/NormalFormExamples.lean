@@ -125,6 +125,23 @@ example : discrepancy (fun k => -f k) d n = discrepancy f d n := by
   simp
 
 /-!
+### Regression: unboundedness witness normal forms (Track B)
+
+These are compile-only checks ensuring the witness quantifier normal forms remain usable under
+`import MoltResearch.Discrepancy`.
+-/
+
+example : UnboundedDiscOffset f d m ↔ ∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n := by
+  simpa using
+    (unboundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m))
+
+example : UnboundedDiscrepancy f d ↔ ∀ B : ℕ, ∃ n : ℕ, B < discrepancy f d n := by
+  rfl
+
+example : UnboundedDiscAlong f d ↔ ∀ B : ℕ, ∃ n : ℕ, B < discAlong f d n := by
+  rfl
+
+/-!
 ### Regression: residue-class splitting normal forms (Track B)
 
 Compile-only examples ensuring the residue-class split normal forms are usable under:

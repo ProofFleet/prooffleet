@@ -207,9 +207,12 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Unboundedness normal form (forall-exists): add a canonical lemma
+- [x] Unboundedness normal form (forall-exists): add a canonical lemma
   `UnboundedDiscOffset f d m ↔ ∀ B, ∃ n, B < discOffset f d m n` (and the `discrepancy` / `discAlong` analogues),
   with stable-surface regression examples.
+  (Implemented as `UnboundedDiscOffset` + `unboundedDiscOffset_iff_forall_exists_discOffset_lt` and the witness-form defs
+  `UnboundedDiscrepancy` / `UnboundedDiscAlong` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression
+  examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Interior-cut equality (sum-level, offset): complement `apSumOffset_split_at` with an *explicit* “cut-at-k” equality
   for `apSumOffset` phrased using the paper endpoints (`Icc (m+1) (m+n)`) and then immediately rewritten back to nucleus form,
