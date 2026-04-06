@@ -110,6 +110,16 @@ theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
   exact Stage2Output.forall_exists_d_pos_witness_pos (f := f) out.out2
 
+/-- Variant of `forall_exists_d_pos_witness_pos` with the step-size side condition written as
+`d ≠ 0`.
+
+This is sometimes the right normal form for downstream stages that treat `d` as a denominator (or
+simply want to avoid rewriting strict inequalities).
+-/
+theorem forall_exists_d_ne_zero_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact Stage2Output.forall_exists_d_ne_zero_witness_pos (f := f) out.out2
+
 /-- Stage 3 output implies the discrepancy-witness normal form
 
 `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
