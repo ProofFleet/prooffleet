@@ -355,6 +355,17 @@ theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage2Output f) :
     (Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt' (f := f)
       (d := out.d) (m := out.m)).1 hunb
 
+/-- Positive-length witness form of `forall_exists_natAbs_apSumOffset_gt'`.
+
+The witness length `n` cannot be `0`, since `apSumOffset ... 0 = 0`.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f out.d out.m n) > B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  simpa [Stage2Output.d, Stage2Output.m] using
+    (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos
+      (f := f) (d := out.d) (m := out.m) hunb)
+
 /-- Paper-notation normal form of `forall_exists_natAbs_apSumOffset_gt'`.
 
 This rewrites the offset nuclei `apSumOffset f out.d out.m n` as the shifted progression sums
