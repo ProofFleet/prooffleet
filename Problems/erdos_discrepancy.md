@@ -266,7 +266,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] “Cut + reassemble” normal form at `apSumFrom`-level: prove the exact concatenation equality `apSumFrom f a d (n+k) = apSumFrom f a d n + apSumFrom f (a + n*d) d k` (and the immediate `disc` triangle-inequality corollary) with stable-surface regression examples.
   (Implemented as `apSumFrom_add_length` and `natAbs_apSumFrom_add_length_le` in `MoltResearch/Discrepancy/Affine.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Common-step refinement/coarsening wrappers: add convenience lemmas that move between steps `d` and `lcm d d'` (or `gcd`) in a controlled way, so later stages can “synchronize steps” without hand-rolling number-theory algebra.
+- [x] Common-step refinement/coarsening wrappers: add convenience lemmas that move between steps `d` and `lcm d d'` (or `gcd`) in a controlled way, so later stages can “synchronize steps” without hand-rolling number-theory algebra.
+  (Implemented as `disc_lcm_step_le_left` / `disc_lcm_step_le_right` in `MoltResearch/Discrepancy/StepScaling.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
