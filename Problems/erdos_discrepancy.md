@@ -263,7 +263,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] `discOffset` stability under pointwise bounded perturbations: if `∀ i` on the support set, `|f i - g i| ≤ 2` and the set of changed indices is bounded, package a canonical bound `discOffset f d m n ≤ discOffset g d m n + 2*t` in a form that only mentions `apSupport` (avoid `Icc`/`range` bookkeeping).
   (Implemented as `discOffset_le_discOffset_add_two_mul_of_card_apSupport_diff_le_of_natAbs_sub_le_two` in `MoltResearch/Discrepancy/EditSensitivity.lean`, with stable-surface regressions in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Cut + reassemble” normal form at `apSumFrom`-level: prove the exact concatenation equality `apSumFrom f a d (n+k) = apSumFrom f a d n + apSumFrom f (a + n*d) d k` (and the immediate `disc` triangle-inequality corollary) with stable-surface regression examples.
+- [x] “Cut + reassemble” normal form at `apSumFrom`-level: prove the exact concatenation equality `apSumFrom f a d (n+k) = apSumFrom f a d n + apSumFrom f (a + n*d) d k` (and the immediate `disc` triangle-inequality corollary) with stable-surface regression examples.
+  (Implemented as `apSumFrom_add_length` and `natAbs_apSumFrom_add_length_le` in `MoltResearch/Discrepancy/Affine.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Common-step refinement/coarsening wrappers: add convenience lemmas that move between steps `d` and `lcm d d'` (or `gcd`) in a controlled way, so later stages can “synchronize steps” without hand-rolling number-theory algebra.
 

@@ -835,6 +835,13 @@ lemma apSumFrom_eq_apSumOffset_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
 
 -- (deprecated alias `apSum_step_one_eq_apSumFrom_tail` moved to `MoltResearch.Discrepancy.Deprecated`)
 
+/-- “Cut + reassemble” normal form at the `apSumFrom`-level (affine nucleus).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut + reassemble” normal form at `apSumFrom`-level.
+
+This is the exact concatenation equality for splitting an affine AP sum of length `m+n`
+into a prefix of length `m` plus the tail of length `n`.
+-/
 lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
   apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) d n := by
   classical
@@ -871,7 +878,11 @@ lemma apSumFrom_add_length (f : ℕ → ℤ) (a d m n : ℕ) :
     apSumFrom f a d (m + 0) = apSumFrom f a d m := by
   simpa [apSumFrom_add_length] using (apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := 0))
 
-/-- Triangle inequality API for splitting an affine AP sum by length. -/
+/-- Triangle inequality API for splitting an affine AP sum by length.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — immediate corollary of
+`apSumFrom_add_length`.
+-/
 lemma natAbs_apSumFrom_add_length_le (f : ℕ → ℤ) (a d n₁ n₂ : ℕ) :
     Int.natAbs (apSumFrom f a d (n₁ + n₂)) ≤
       Int.natAbs (apSumFrom f a d n₁) + Int.natAbs (apSumFrom f (a + n₁ * d) d n₂) := by
