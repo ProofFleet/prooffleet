@@ -51,6 +51,25 @@ example : Int.natAbs (apSumOffset f d m n) = discOffset f d m n := by
   simp [discOffset]
 
 /-!
+### Regression: paper↔nucleus endpoint bridge simp wrappers (Track B)
+
+These ensure that paper-style endpoints `Icc (m+1) (m+n)` can be normalized into the nucleus API
+with a one-line `simp`.
+-/
+
+-- paper tail interval sum → nucleus `apSumOffset`
+example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
+  simp [sum_Icc_add_one_add_len_eq_apSumOffset]
+
+-- paper affine tail interval sum → nucleus `apSumFrom` tail
+example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
+  simp [sum_Icc_add_one_add_len_eq_apSumFrom_tail]
+
+-- paper discrepancy object → nucleus `discOffset`
+example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
+  simp [natAbs_sum_Icc_add_one_add_len_eq_discOffset]
+
+/-!
 ### Regression: multiplicative dilation normal forms (Track B)
 
 These are compile-only examples ensuring the “pull a common factor into the step” rewrites remain
