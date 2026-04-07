@@ -76,14 +76,14 @@ example (g : ℕ → ℤ) : apSum (fun k => f k + g k) d n = apSum f d n + apSum
   simpa using (apSum_add (f := f) (g := g) (d := d) (n := n))
 
 example : apSum (fun k => - f k) d n = - apSum f d n := by
-  simp
+  simpa using (apSum_neg (f := f) (d := d) (n := n))
 
 example (g : ℕ → ℤ) :
     apSumOffset (fun k => f k + g k) d m n = apSumOffset f d m n + apSumOffset g d m n := by
   simpa using (apSumOffset_add (f := f) (g := g) (d := d) (m := m) (n := n))
 
 example : apSumOffset (fun k => - f k) d m n = - apSumOffset f d m n := by
-  simp
+  simpa using (apSumOffset_neg (f := f) (d := d) (m := m) (n := n))
 
 -- Regression (Track B / offset reindexing by divisibility):
 -- if `q ∣ d`, rewrite the offset-sum at step `d` into step `q` with reindexed summand.

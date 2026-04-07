@@ -471,7 +471,7 @@ These lemmas let downstream code normalize sign-flips (`f ↦ -f`) with a one-li
 -/
 
 /-- Negation invariance for offset AP sums. -/
-lemma apSumOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
+@[simp] lemma apSumOffset_neg (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset (fun k => -f k) d m n = -apSumOffset f d m n := by
   unfold apSumOffset
   simp
