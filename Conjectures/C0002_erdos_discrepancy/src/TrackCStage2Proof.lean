@@ -88,6 +88,19 @@ theorem stage2_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSign
   exact
     Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) (stage2Out (f := f) (hf := hf))
 
+/-- Consumer-facing shortcut: Stage 2 yields a global witness form with the step-size condition
+written as `d > 0`:
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is a thin wrapper around the proved Stage-2 core lemma
+`Stage2Output.forall_exists_d_pos_witness_pos`.
+-/
+theorem stage2_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    Stage2Output.forall_exists_d_pos_witness_pos (f := f) (stage2Out (f := f) (hf := hf))
+
 /-- Consumer-facing tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail nuclei
 `apSumFrom f (m*d) d n` at the concrete parameters produced by the conjecture stub `stage2Out`.
 
@@ -113,7 +126,7 @@ access it without importing this wrapper-lemma module. -/
 The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
 
 This is a thin wrapper around the Conjectures-only normal-form lemma
-`Tao2015.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+`UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
 -/
 theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
@@ -127,7 +140,7 @@ theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → �
       UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
     stage2_unboundedDiscOffset (f := f) (hf := hf)
   simpa [stage2_m, stage2_d] using
-    (Tao2015.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
+    (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
       (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) hunb)
 
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
