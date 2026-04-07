@@ -67,6 +67,17 @@ theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
   simpa using
     (Stage2Output.notBoundedOriginal (f := f) (out := stage2Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
+`∀ C, HasDiscrepancyAtLeast f C`.
+
+This is a thin wrapper around `Stage2Output.forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  simpa using
+    (Stage2Output.forall_hasDiscrepancyAtLeast (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
+
 /-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
   discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`.
 
