@@ -34,6 +34,10 @@ additional wrapper-lemma modules.
 noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   (stage2Out (f := f) (hf := hf)).out1.d
 
+/-- Convenience lemma: the reduced step size produced by Stage 2 is positive. -/
+theorem stage2_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
+  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
+
 /-- Convenience projection: the reduced sequence produced by Stage 2. -/
 noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
   (stage2Out (f := f) (hf := hf)).out1.g
