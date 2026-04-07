@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 /-!
 # Track C: Stage 2 entry point (Tao 2015 plane)
@@ -53,11 +54,8 @@ This lemma lives in the entry-point module so consumers who only need the bounde
 normal form can avoid importing the larger Stage-2 wrapper lemma files.
 -/
 theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  -- Name the Stage-2 output once, to avoid duplicating the `stage2Out` term.
-  set out := stage2Out (f := f) (hf := hf) with hout
-  exact
-    out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f)
-      (by simpa [hout] using out.unbounded)
+  simpa using
+    (Stage2Output.notBoundedOriginal (f := f) (out := stage2Out (f := f) (hf := hf)))
 
 /-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
   discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`.
@@ -67,10 +65,8 @@ without importing the larger Stage-2 wrapper lemma files.
 -/
 theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) := by
-  set out := stage2Out (f := f) (hf := hf) with hout
-  have hunb : UnboundedDiscOffset f out.out1.d out.out1.m :=
-      ((out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).1 out.unbounded
-  simpa [stage2_d, stage2_m, hout] using hunb
+  simpa [stage2_d, stage2_m, Stage2Output.d, Stage2Output.m] using
+    (Stage2Output.unboundedDiscOffset (f := f) (out := stage2Out (f := f) (hf := hf)))
 
 end Tao2015
 
