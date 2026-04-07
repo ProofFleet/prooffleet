@@ -60,6 +60,12 @@ theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
 noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
   stage2_g (f := f) (hf := hf)
 
+/-- The reduced sequence produced by Stage 3 is a sign sequence. -/
+theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    IsSignSequence (stage3_g (f := f) (hf := hf)) := by
+  -- Stage 3 is glue on top of the Stage-2 conjecture stub.
+  simpa [stage3_g, stage2_g] using (stage2Out (f := f) (hf := hf)).hg
+
 /-- Convenience projection: the bundled offset parameter produced by Stage 3. -/
 noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_m (f := f) (hf := hf)
