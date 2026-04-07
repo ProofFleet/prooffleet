@@ -257,7 +257,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Paper↔nucleus endpoint bridge (simp surface): add simp-friendly wrapper lemmas that rewrite paper-style endpoints (`Icc (m+1) (m+n)`) into nucleus forms for *all* of: `apSumFrom`, `apSumOffset`, and the corresponding discrepancy objects, so downstream proofs can stay in paper notation longer.
   (Implemented as simp-friendly wrappers in `MoltResearch/Discrepancy/EndpointSimp.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Max discrepancy up to N” for homogeneous APs: add the homogeneous-step analogue `discUpTo f d N` (mirroring `discOffsetUpTo`) with monotonicity + witness-extraction, and a stable regression example under `import MoltResearch.Discrepancy`.
+- [x] “Max discrepancy up to N” for homogeneous APs: add the homogeneous-step analogue `discUpTo f d N` (mirroring `discOffsetUpTo`) with monotonicity + witness-extraction, and a stable regression example under `import MoltResearch.Discrepancy`.
+  (Implemented as `discUpTo` + `discUpTo_mono` + `exists_disc_eq_discUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffset` stability under pointwise bounded perturbations: if `∀ i` on the support set, `|f i - g i| ≤ 2` and the set of changed indices is bounded, package a canonical bound `discOffset f d m n ≤ discOffset g d m n + 2*t` in a form that only mentions `apSupport` (avoid `Icc`/`range` bookkeeping).
 
