@@ -248,7 +248,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Linearity normal form (sum-level): package additive/negation scaling lemmas for `apSum`/`apSumOffset` (e.g. `apSum (fun n => f n + g n) d n = apSum f d n + apSum g d n` and `apSum (fun n => -f n) d n = - apSum f d n`) in the repo's preferred orientation, with stable-surface regression examples.
   (Implemented as `apSum_add` / `apSum_neg` and `apSumOffset_add` / `apSumOffset_neg` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Reindexing API (range-bijection): add a general “reindex by an involution/bijection on `Finset.range n`” lemma specialized to `apSumOffset` summands, so future proofs can `rw` a reindexed AP sum without expanding to `Finset.sum` boilerplate.
+- [x] Reindexing API (range-bijection): add a general “reindex by an involution/bijection on `Finset.range n`” lemma specialized to `apSumOffset` summands, so future proofs can `rw` a reindexed AP sum without expanding to `Finset.sum` boilerplate.
+  (Implemented as `apSumOffset_reindex_range_bij` / `apSumOffset_reindex_range_invol` in `MoltResearch/Discrepancy/Reindex.lean`, with stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `apSupport` coherence under shift/dilation: prove lemmas rewriting `apSupport` for shifted/dilated sequences (e.g. `apSupport (fun t => f (t + k*d)) d m n`), and use them to derive a one-line `apSumOffset_congr_support` corollary for common transformations.
 
