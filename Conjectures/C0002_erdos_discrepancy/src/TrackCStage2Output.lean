@@ -159,6 +159,18 @@ theorem forall_exists_discOffset_gt' (out : Stage2Output f) :
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt' (f := f)).1 out.unbounded)
 
+/-- Positive-length witness form of `forall_exists_discOffset_gt'`.
+
+The witness length `n` cannot be `0`, since `discOffset ... 0 = 0`.
+-/
+theorem forall_exists_discOffset_gt'_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f out.d out.m n > B := by
+  have hunb : UnboundedDiscOffset f out.d out.m :=
+    out.unboundedDiscOffset (f := f)
+  simpa using
+    (UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos (f := f)
+      (d := out.d) (m := out.m) hunb)
+
 /-!
 The lemma
 
