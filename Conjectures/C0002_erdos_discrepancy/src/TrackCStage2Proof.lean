@@ -47,31 +47,17 @@ theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
 theorem stage2_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
   simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).hd
 
-/-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
-theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    1 ≤ stage2_d (f := f) (hf := hf) := by
-  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).one_le_d
-
--- (moved to TrackCStage2Entry)
-
 /-
-Note: the boundedness-negation normal form lemma
+Note: several lightweight consumer-facing convenience lemmas live in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` so hard-gate consumers can access them
+without importing this wrapper-lemma module:
 
+  stage2_one_le_d (f) (hf) : 1 ≤ stage2_d (f := f) (hf := hf)
   stage2_notBounded (f) (hf) : ¬ BoundedDiscrepancy f
+  stage2_forall_hasDiscrepancyAtLeast (f) (hf) : ∀ C, HasDiscrepancyAtLeast f C
 
-is defined in `TrackCStage2Entry.lean` (the entry-point module), so hard-gate consumers can access
-it without importing this wrapper-lemma module.
+This file keeps only the additional witness-form wrappers.
 -/
-
-/-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
-`∀ C, HasDiscrepancyAtLeast f C`.
-
-This is a thin wrapper around the proved Stage-2 core lemma
-`Stage2Output.forall_hasDiscrepancyAtLeast`.
--/
-theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  exact Stage2Output.forall_hasDiscrepancyAtLeast (f := f) (stage2Out (f := f) (hf := hf))
 
 /-- Consumer-facing shortcut: Stage 2 yields the most pipeline-friendly global witness form:
 
