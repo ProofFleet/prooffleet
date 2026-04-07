@@ -41,6 +41,21 @@ the Stage-2 entry-point projections (`stage2_d`, `stage2_g`, `stage2_m`).
 noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_d (f := f) (hf := hf)
 
+/-- Convenience lemma: the reduced step size produced by Stage 3 is positive. -/
+theorem stage3_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3_d (f := f) (hf := hf) > 0 := by
+  simpa [stage3_d] using stage2_d_pos (f := f) (hf := hf)
+
+/-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
+theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    1 ≤ stage3_d (f := f) (hf := hf) := by
+  simpa [stage3_d] using stage2_one_le_d (f := f) (hf := hf)
+
+/-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
+theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3_d (f := f) (hf := hf) ≠ 0 := by
+  simpa [stage3_d] using stage2_d_ne_zero (f := f) (hf := hf)
+
 /-- Convenience projection: the reduced sequence produced by Stage 3. -/
 noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
   stage2_g (f := f) (hf := hf)
