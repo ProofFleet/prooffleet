@@ -2185,13 +2185,6 @@ lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le {f : ℕ → ℤ} (hf
     simpa [hShift] using hle
   simpa [hEq] using htail
 
-/-- Sum of offset AP sums over a pointwise sum of functions. -/
-lemma apSumOffset_add (f g : ℕ → ℤ) (d m n : ℕ) :
-    apSumOffset (fun k => f k + g k) d m n = apSumOffset f d m n + apSumOffset g d m n := by
-  classical
-  unfold apSumOffset
-  simp [Finset.sum_add_distrib]
-
 /-!
 ### `discOffset` invariances (sign and affine shifts)
 

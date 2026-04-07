@@ -476,6 +476,16 @@ These lemmas let downstream code normalize sign-flips (`f ↦ -f`) with a one-li
   unfold apSumOffset
   simp
 
+/-- Linearity normal form for offset AP sums: push pointwise addition out of `apSumOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Linearity normal form (sum-level).
+-/
+lemma apSumOffset_add (f g : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset (fun k => f k + g k) d m n = apSumOffset f d m n + apSumOffset g d m n := by
+  classical
+  unfold apSumOffset
+  simp [Finset.sum_add_distrib]
+
 /-- Negation invariance for the offset discrepancy wrapper `discOffset`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Negation invariance (disc-level).
