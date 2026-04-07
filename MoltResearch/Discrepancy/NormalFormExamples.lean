@@ -313,6 +313,22 @@ example (q : ℕ) (hq : q > 0) :
           Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
   simpa using (disc_mul_step_le (f := f) (d := d) (q := q) (n := n) hq)
 
+-- Regression (Track B / common-step refinement/coarsening wrappers):
+example (d d' : ℕ) (hd : d > 0) (hd' : d' > 0) :
+    disc f (Nat.lcm d d') (n + 1) ≤
+      disc f d (Nat.lcm d d' / d * (n + 1)) +
+        (Finset.range (Nat.lcm d d' / d - 1)).sum (fun r =>
+          Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (Nat.lcm d d') n)) := by
+  simpa using (disc_lcm_step_le_left (f := f) (d := d) (d' := d') (n := n) hd hd')
+
+-- Regression (Track B / common-step refinement/coarsening wrappers, symmetric):
+example (d d' : ℕ) (hd : d > 0) (hd' : d' > 0) :
+    disc f (Nat.lcm d d') (n + 1) ≤
+      disc f d' (Nat.lcm d d' / d' * (n + 1)) +
+        (Finset.range (Nat.lcm d d' / d' - 1)).sum (fun r =>
+          Int.natAbs (f ((r + 1) * d') + apSumFrom f ((r + 1) * d') (Nat.lcm d d') n)) := by
+  simpa using (disc_lcm_step_le_right (f := f) (d := d) (d' := d') (n := n) hd hd')
+
 example : discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
   simpa using (discOffset_shift_add_mul (f := f) (a := a) (d := d) (m := m) (n := n))
 

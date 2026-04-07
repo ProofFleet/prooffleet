@@ -85,4 +85,68 @@ theorem disc_mul_step_le (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
             Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
           rfl
 
+/-!
+## Common-step refinement/coarsening wrappers
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Common-step refinement/coarsening wrappers”.
+
+These lemmas specialize the step-scaling wrapper `disc_mul_step_le` to the common refinement
+step `Nat.lcm d d'`, so downstream stages can synchronize steps without redoing the
+`lcm`/division algebra by hand.
+-/
+
+/-- Track B convenience wrapper: specialize `disc_mul_step_le` to the common refinement
+step `Nat.lcm d d'`, viewing it as a multiple of `d`.
+
+References: Problems/erdos_discrepancy.md (Track B) — “Common-step refinement/coarsening wrappers”.
+-/
+theorem disc_lcm_step_le_left (f : ℕ → ℤ) (d d' n : ℕ) (hd : d > 0) (hd' : d' > 0) :
+    disc f (Nat.lcm d d') (n + 1) ≤
+      disc f d (Nat.lcm d d' / d * (n + 1)) +
+        (Finset.range (Nat.lcm d d' / d - 1)).sum (fun r =>
+          Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (Nat.lcm d d') n)) := by
+  classical
+  -- Write `lcm d d'` as a multiple of `d`.
+  set q : ℕ := Nat.lcm d d' / d
+  have hdvd : d ∣ Nat.lcm d d' := Nat.dvd_lcm_left d d'
+  have hqpos : q > 0 := by
+    have hlcmpos : Nat.lcm d d' > 0 := Nat.lcm_pos hd hd'
+    have hqne : q ≠ 0 := by
+      intro hq0
+      have : Nat.lcm d d' = 0 := by
+        -- `(lcm/d)*d = lcm`, so if `lcm/d = 0` then `lcm = 0`.
+        simpa [q, hq0] using (Nat.div_mul_cancel hdvd).symm
+      exact (Nat.ne_of_gt hlcmpos) this
+    exact Nat.pos_of_ne_zero hqne
+
+  -- Apply the step-scaling wrapper at step `q*d`, then rewrite `q*d` as `lcm d d'`.
+  simpa [q, Nat.div_mul_cancel hdvd] using
+    (disc_mul_step_le (f := f) (d := d) (q := q) (n := n) hqpos)
+
+/-- Track B convenience wrapper: symmetric version of `disc_lcm_step_le_left`, viewing
+`Nat.lcm d d'` as a multiple of `d'`.
+
+References: Problems/erdos_discrepancy.md (Track B) — “Common-step refinement/coarsening wrappers”.
+-/
+theorem disc_lcm_step_le_right (f : ℕ → ℤ) (d d' n : ℕ) (hd : d > 0) (hd' : d' > 0) :
+    disc f (Nat.lcm d d') (n + 1) ≤
+      disc f d' (Nat.lcm d d' / d' * (n + 1)) +
+        (Finset.range (Nat.lcm d d' / d' - 1)).sum (fun r =>
+          Int.natAbs (f ((r + 1) * d') + apSumFrom f ((r + 1) * d') (Nat.lcm d d') n)) := by
+  classical
+  set q : ℕ := Nat.lcm d d' / d'
+  have hdvd : d' ∣ Nat.lcm d d' := Nat.dvd_lcm_right d d'
+  have hqpos : q > 0 := by
+    have hlcmpos : Nat.lcm d d' > 0 := Nat.lcm_pos hd hd'
+    have hqne : q ≠ 0 := by
+      intro hq0
+      have : Nat.lcm d d' = 0 := by
+        simpa [q, hq0] using (Nat.div_mul_cancel hdvd).symm
+      exact (Nat.ne_of_gt hlcmpos) this
+    exact Nat.pos_of_ne_zero hqne
+
+  simpa [q, Nat.div_mul_cancel hdvd] using
+    (disc_mul_step_le (f := f) (d := d') (q := q) (n := n) hqpos)
+
 end MoltResearch
