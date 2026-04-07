@@ -527,6 +527,23 @@ example :
     (IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le
       (hf := hf) (hg := hg) (d := 1) (m := 2) (n := 5) (t := 1) (by decide) ht)
 
+-- Regression (Track B / bounded-perturbation stability, `apSupport` form):
+-- a non-sign-sequence perturbation (values in `{0,2}`) still yields the same `+ 2*t` bound
+-- when we assume the pointwise `Int.natAbs (f x - g x) ≤ 2` hypothesis on `apSupport`.
+example :
+    let f : ℕ → ℤ := fun x => if x = 5 then 2 else 0
+    let g : ℕ → ℤ := fun _ => 0
+    discOffset f 1 0 10 ≤ discOffset g 1 0 10 + 2 * 1 := by
+  intro f g
+  have hpt : ∀ x ∈ apSupport 1 0 10, Int.natAbs (f x - g x) ≤ 2 := by
+    intro x hx
+    by_cases h : x = 5 <;> simp [f, g, h]
+  have ht : ((apSupport 1 0 10).filter (fun x => f x ≠ g x)).card ≤ 1 := by
+    decide
+  simpa using
+    (discOffset_le_discOffset_add_two_mul_of_card_apSupport_diff_le_of_natAbs_sub_le_two
+      (f := f) (g := g) (d := 1) (m := 0) (n := 10) (t := 1) (by decide) hpt ht)
+
 -- Regression (Track B / witness normal form): rewrite `HasDiscrepancyAtLeast` directly into the
 -- `discOffset … 0 n` wrapper (avoid exposing `Int.natAbs (apSumOffset …)` downstream).
 example : HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by

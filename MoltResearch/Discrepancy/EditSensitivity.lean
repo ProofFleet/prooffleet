@@ -413,6 +413,118 @@ lemma card_range_diff_le_card_apSupport_diff (f g : ℕ → ℤ) (d m n : ℕ) (
   -- Unfold `s` back to the statement.
   simpa [s, h] using this
 
+/-!
+### `discOffset` stability under bounded pointwise perturbations (support form)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` stability under pointwise
+bounded perturbations, packaged purely via `apSupport`.
+
+If `f` and `g` differ by at most `2` on the relevant support indices, and the number of indices in
+`apSupport d m n` where they actually differ is bounded by `t`, then
+`discOffset f d m n ≤ discOffset g d m n + 2*t`.
+-/
+
+lemma discOffset_le_discOffset_add_two_mul_of_card_apSupport_diff_le_of_natAbs_sub_le_two
+    (f g : ℕ → ℤ) (d m n t : ℕ) (hd : d > 0)
+    (hpt : ∀ x ∈ apSupport d m n, Int.natAbs (f x - g x) ≤ 2)
+    (ht : ((apSupport d m n).filter (fun x => f x ≠ g x)).card ≤ t) :
+    discOffset f d m n ≤ discOffset g d m n + 2 * t := by
+  classical
+  -- First, convert the `apSupport`-card bound into the corresponding `Finset.range` bound.
+  have htrange :
+      ((Finset.range n).filter (fun i => f ((m + i + 1) * d) ≠ g ((m + i + 1) * d))).card ≤ t := by
+    exact le_trans (card_range_diff_le_card_apSupport_diff (f := f) (g := g)
+      (d := d) (m := m) (n := n) hd) ht
+
+  -- Expand the subtraction to a single `Finset.range` sum.
+  have hsub : apSumOffset f d m n - apSumOffset g d m n =
+      (Finset.range n).sum (fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))) := by
+    simp [apSumOffset, Finset.sum_sub_distrib]
+
+  -- Filter away indices where the summand is `0` (i.e. where `f = g` at the sampled point).
+  let p : ℕ → Prop := fun i => f ((m + i + 1) * d) ≠ g ((m + i + 1) * d)
+  have hfilter :
+      (Finset.range n).sum (fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))) =
+        ((Finset.range n).filter p).sum (fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))) := by
+    have hif :
+        (Finset.range n).sum (fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))) =
+          (Finset.range n).sum
+            (fun i => if p i then (f ((m + i + 1) * d) - g ((m + i + 1) * d)) else 0) := by
+      refine Finset.sum_congr rfl ?_
+      intro i hi
+      by_cases hp : p i
+      · simp [hp]
+      · have : f ((m + i + 1) * d) = g ((m + i + 1) * d) := by
+          exact by simpa [p] using hp
+        simp [hp, this]
+    have hsum_filter :
+        ((Finset.range n).filter p).sum (fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))) =
+          (Finset.range n).sum
+            (fun i => if p i then (f ((m + i + 1) * d) - g ((m + i + 1) * d)) else 0) := by
+      simpa [Finset.sum_filter] using
+        (Finset.sum_filter (s := Finset.range n) (p := p)
+          (f := fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))))
+    exact hif.trans hsum_filter.symm
+
+  -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
+  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
+      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
+    classical
+    refine Finset.induction_on s ?h0 ?hstep
+    · simp
+    · intro a s ha hs
+      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
+        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
+      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
+      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
+          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
+        Nat.add_le_add_left h2 _
+      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+        (Nat.le_trans h1 h3)
+
+  have htri :
+      Int.natAbs (((Finset.range n).filter p).sum
+        (fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d)))) ≤
+          ((Finset.range n).filter p).sum
+            (fun i => Int.natAbs (f ((m + i + 1) * d) - g ((m + i + 1) * d))) := by
+    simpa using
+      (natAbs_sum_le_sum_natAbs ((Finset.range n).filter p)
+        (fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))))
+
+  -- Pointwise bound on the filtered indices, obtained from the `apSupport` hypothesis.
+  have hpt' : ∀ i, i ∈ (Finset.range n).filter p →
+      Int.natAbs (f ((m + i + 1) * d) - g ((m + i + 1) * d)) ≤ 2 := by
+    intro i hi
+    have hirange : i < n := Finset.mem_range.1 (Finset.mem_filter.1 hi).1
+    have hx : (m + i + 1) * d ∈ apSupport d m n :=
+      mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) hirange
+    exact hpt _ hx
+
+  have hsum_le :
+      ((Finset.range n).filter p).sum
+        (fun i => Int.natAbs (f ((m + i + 1) * d) - g ((m + i + 1) * d))) ≤
+          ((Finset.range n).filter p).card * 2 := by
+    exact Finset.sum_le_card_nsmul _ _ 2 (by intro i hi; simpa using (hpt' i hi))
+
+  have hnatAbs :
+      Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤ 2 * t := by
+    have :
+        Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤
+          ((Finset.range n).filter p).card * 2 := by
+      -- Rewrite to the filtered sum and chain the inequalities.
+      simpa [hsub, hfilter] using Nat.le_trans htri hsum_le
+    -- Use the card bound `≤ t` and normalize.
+    have hcard : ((Finset.range n).filter p).card * 2 ≤ t * 2 :=
+      Nat.mul_le_mul_right 2 htrange
+    have : Int.natAbs (apSumOffset f d m n - apSumOffset g d m n) ≤ t * 2 :=
+      le_trans this hcard
+    simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc, p] using this
+
+  -- Finish via the triangle-inequality wrapper for `discOffset`.
+  simpa using
+    (discOffset_le_discOffset_add_of_natAbs_apSumOffset_sub_le (f := f) (g := g)
+      (d := d) (m := m) (n := n) (t := 2 * t) hnatAbs)
+
 /-- **Local edit sensitivity (disc-level, `apSupport` form).**
 
 If `f,g` are sign sequences and they differ on at most `t` indices in the normal-form support
