@@ -68,6 +68,20 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
   simpa using
     (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields the paper-notation witness form
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ |∑ i ∈ Icc 1 n, f (i*d)| > C`.
+
+This is a thin wrapper around `stage3_forall_hasDiscrepancyAtLeast` via
+`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`.
+-/
+theorem stage3_forall_exists_sum_Icc_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos f).1
+      (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
+
 /-- Consumer-facing shortcut: Stage 3 yields an unbounded bundled offset discrepancy family
 `discOffset f d m` at the deterministic parameters `d = stage3_d` and `m = stage3_m`.
 
