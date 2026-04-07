@@ -126,11 +126,8 @@ theorem forall_exists_discrepancy_gt'_witness_pos {g : ℕ → ℤ} {d : ℕ}
     intro h0
     subst h0
     have hn0' : discrepancy g d 0 > B := hn
-    have hzero : (0 : ℕ) > B := by
-      simpa [discrepancy_zero] using hn0'
-    have hlt : B < 0 := by
-      simpa [gt_iff_lt] using hzero
-    exact (Nat.not_lt_zero B) hlt
+    -- `simp` turns the discrepancy witness into `False` (since `discrepancy g d 0 = 0`).
+    simp [discrepancy_zero] at hn0'
   exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
 
 /-- Witness-positivity: nucleus form of unboundedness, with `Int.natAbs (apSum ...) > B`. -/
