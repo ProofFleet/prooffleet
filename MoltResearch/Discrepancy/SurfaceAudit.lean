@@ -812,7 +812,8 @@ section
     classical
     -- Rewrite the LHS to `apSumOffset` blocks, then expand back to `Finset.Icc` sums.
     simpa [apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm,
-      -sum_Icc_eq_apSumOffset_of_le_add_len] using
+      -sum_Icc_eq_apSumOffset_of_le_add_len,
+      -sum_Icc_add_one_add_len_eq_apSumOffset] using
       (sum_Icc_eq_apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 end
 

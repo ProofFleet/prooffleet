@@ -254,7 +254,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] `apSupport` coherence under shift/dilation: prove lemmas rewriting `apSupport` for shifted/dilated sequences (e.g. `apSupport (fun t => f (t + k*d)) d m n`), and use them to derive a one-line `apSumOffset_congr_support` corollary for common transformations.
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` (search `apSupport_map_add` / `apSupport_map_mul`), with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Paper↔nucleus endpoint bridge (simp surface): add simp-friendly wrapper lemmas that rewrite paper-style endpoints (`Icc (m+1) (m+n)`) into nucleus forms for *all* of: `apSumFrom`, `apSumOffset`, and the corresponding discrepancy objects, so downstream proofs can stay in paper notation longer.
+- [x] Paper↔nucleus endpoint bridge (simp surface): add simp-friendly wrapper lemmas that rewrite paper-style endpoints (`Icc (m+1) (m+n)`) into nucleus forms for *all* of: `apSumFrom`, `apSumOffset`, and the corresponding discrepancy objects, so downstream proofs can stay in paper notation longer.
+  (Implemented as simp-friendly wrappers in `MoltResearch/Discrepancy/EndpointSimp.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Max discrepancy up to N” for homogeneous APs: add the homogeneous-step analogue `discUpTo f d N` (mirroring `discOffsetUpTo`) with monotonicity + witness-extraction, and a stable regression example under `import MoltResearch.Discrepancy`.
 

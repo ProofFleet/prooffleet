@@ -114,4 +114,20 @@ Design constraints:
   -- First rewrite the paper sum into the nucleus tail sum, then fold back into `discOffset`.
   simp
 
+/-- Mul-left variant of `natAbs_sum_Icc_add_one_add_len_eq_discOffset`. -/
+@[simp] lemma natAbs_sum_Icc_add_one_add_len_eq_discOffset_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) = discOffset f d m n := by
+  unfold discOffset
+  simp
+
+/-- `simp` wrapper: absolute value of the paper-notation affine tail interval sum.
+
+We don't currently have a dedicated discrepancy wrapper for `apSumFrom`, so this lemma keeps the
+result as an `Int.natAbs`.
+-/
+@[simp] lemma natAbs_sum_Icc_add_one_add_len_eq_natAbs_apSumFrom_tail (f : ℕ → ℤ) (a d m n : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d))) =
+      Int.natAbs (apSumFrom f (a + m * d) d n) := by
+  simp
+
 end MoltResearch

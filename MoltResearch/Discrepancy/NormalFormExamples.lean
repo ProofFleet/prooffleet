@@ -1191,6 +1191,20 @@ example :
     (Finset.Icc (m + 1) (n + m + 1)).sum (fun i => f (d * i)) = apSumOffset f d m (n + 1) := by
   simp
 
+-- Paper endpoints → nucleus discrepancy wrappers (simp surface).
+example :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
+  simp
+
+example :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) = discOffset f d m n := by
+  simp
+
+example :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d))) =
+      Int.natAbs (apSumFrom f (a + m * d) d n) := by
+  simp
+
 -- Paper affine tail with variable endpoint (`m ≤ n`) → `discOffset` in `apSumOffset` normal form.
 example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
