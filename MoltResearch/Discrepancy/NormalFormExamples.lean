@@ -59,15 +59,19 @@ with a one-line `simp`.
 
 -- paper tail interval sum → nucleus `apSumOffset`
 example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
-  simp [sum_Icc_add_one_add_len_eq_apSumOffset]
+  simp
+
+-- mul-left paper tail interval sum → nucleus `apSumOffset`
+example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
+  simp
 
 -- paper affine tail interval sum → nucleus `apSumFrom` tail
 example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
-  simp [sum_Icc_add_one_add_len_eq_apSumFrom_tail]
+  simp
 
 -- paper discrepancy object → nucleus `discOffset`
 example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
-  simp [natAbs_sum_Icc_add_one_add_len_eq_discOffset]
+  simp
 
 /-!
 ### Regression: multiplicative dilation normal forms (Track B)
