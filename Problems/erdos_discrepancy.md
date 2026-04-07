@@ -260,7 +260,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] “Max discrepancy up to N” for homogeneous APs: add the homogeneous-step analogue `discUpTo f d N` (mirroring `discOffsetUpTo`) with monotonicity + witness-extraction, and a stable regression example under `import MoltResearch.Discrepancy`.
   (Implemented as `discUpTo` + `discUpTo_mono` + `exists_disc_eq_discUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffset` stability under pointwise bounded perturbations: if `∀ i` on the support set, `|f i - g i| ≤ 2` and the set of changed indices is bounded, package a canonical bound `discOffset f d m n ≤ discOffset g d m n + 2*t` in a form that only mentions `apSupport` (avoid `Icc`/`range` bookkeeping).
+- [x] `discOffset` stability under pointwise bounded perturbations: if `∀ i` on the support set, `|f i - g i| ≤ 2` and the set of changed indices is bounded, package a canonical bound `discOffset f d m n ≤ discOffset g d m n + 2*t` in a form that only mentions `apSupport` (avoid `Icc`/`range` bookkeeping).
+  (Implemented as `discOffset_le_discOffset_add_two_mul_of_card_apSupport_diff_le_of_natAbs_sub_le_two` in `MoltResearch/Discrepancy/EditSensitivity.lean`, with stable-surface regressions in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Cut + reassemble” normal form at `apSumFrom`-level: prove the exact concatenation equality `apSumFrom f a d (n+k) = apSumFrom f a d n + apSumFrom f (a + n*d) d k` (and the immediate `disc` triangle-inequality corollary) with stable-surface regression examples.
 
