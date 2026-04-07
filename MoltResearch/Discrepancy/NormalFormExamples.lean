@@ -109,6 +109,18 @@ example :
     apSupport d m (n + 1) = insert ((m + n + 1) * d) (apSupport d m n) := by
   simpa using (apSupport_add_one (d := d) (m := m) (n := n))
 
+-- Regression (Track B / support coherence under shift):
+example : apSupport d (m + k) n = (apSupport d m n).image (fun x => x + k * d) := by
+  simpa using (apSupport_add_left (d := d) (m := m) (n := n) (k := k))
+
+-- Regression (Track B / support coherence under dilation):
+example (q : ℕ) : apSupport (d * q) m n = (apSupport d m n).image (fun x => x * q) := by
+  simpa using (apSupport_mul_right (d := d) (m := m) (n := n) (q := q))
+
+-- Regression (Track B / offset shift by a multiple of the step):
+example : apSumOffset (fun t => f (t + k * d)) d m n = apSumOffset f d (m + k) n := by
+  simpa using (apSumOffset_map_add_mul (f := f) (k := k) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / restriction to finite window API):
 -- restricting to the accessed-index support does not change the offset sum / discrepancy.
 example :

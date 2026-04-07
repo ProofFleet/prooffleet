@@ -230,6 +230,77 @@ lemma apSupport_succ (d m n : ℕ) (hd : d > 0) :
     apSupport d m (n + 1) = insert ((m + n + 1) * d) (apSupport d m n) := by
   simpa using (apSupport_add_one (d := d) (m := m) (n := n))
 
+/-!
+### Coherence under shifts / dilations (Track B)
+
+These lemmas explain how the normal-form support object `apSupport d m n` behaves under the two
+most common index transforms:
+- shifting the *offset* parameter `m` (equivalently: adding a multiple of the step `d` to indices),
+- multiplying indices by a common factor (equivalently: pulling a factor into the step).
+-/
+
+/-- Shift coherence: increasing `m` by `k` shifts the accessed indices by `k*d`.
+
+(Track B normal-form checklist item: `apSupport` coherence under shift.)
+-/
+lemma apSupport_add_left (d m n k : ℕ) :
+    apSupport d (m + k) n = (apSupport d m n).image (fun x => x + k * d) := by
+  classical
+  unfold apSupport
+  -- Prove set equality by membership; the arithmetic is handled by `simp`.
+  ext x
+  constructor
+  · intro hx
+    rcases Finset.mem_image.1 hx with ⟨i, hi, rfl⟩
+    have hi' : i < n := Finset.mem_range.1 hi
+    refine Finset.mem_image.2 ?_
+    refine ⟨(m + i + 1) * d, mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) hi', ?_⟩
+    simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul]
+  · intro hx
+    rcases Finset.mem_image.1 hx with ⟨y, hy, rfl⟩
+    rcases Finset.mem_image.1 hy with ⟨i, hi, rfl⟩
+    refine Finset.mem_image.2 ?_
+    refine ⟨i, hi, ?_⟩
+    simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul]
+
+/-- Dilation coherence: pulling a common factor into the step multiplies the support indices.
+
+(Track B normal-form checklist item: `apSupport` coherence under dilation.)
+-/
+lemma apSupport_mul_right (d m n q : ℕ) :
+    apSupport (d * q) m n = (apSupport d m n).image (fun x => x * q) := by
+  classical
+  unfold apSupport
+  ext x
+  constructor
+  · intro hx
+    rcases Finset.mem_image.1 hx with ⟨i, hi, rfl⟩
+    have hi' : i < n := Finset.mem_range.1 hi
+    refine Finset.mem_image.2 ?_
+    refine ⟨(m + i + 1) * d, mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) hi', ?_⟩
+    simp [Nat.mul_assoc]
+  · intro hx
+    rcases Finset.mem_image.1 hx with ⟨y, hy, rfl⟩
+    rcases Finset.mem_image.1 hy with ⟨i, hi, rfl⟩
+    refine Finset.mem_image.2 ?_
+    refine ⟨i, hi, ?_⟩
+    simp [Nat.mul_assoc]
+
+/-- Shift normal form for offset AP sums: shifting the sequence by `k*d` is equivalent to
+shifting the offset parameter `m` by `k`.
+
+This is a one-line corollary used in local-surgery pipelines.
+
+(Track B normal-form checklist item: `apSupport` coherence under shift/dilation.)
+-/
+lemma apSumOffset_map_add_mul (f : ℕ → ℤ) (k d m n : ℕ) :
+    apSumOffset (fun t => f (t + k * d)) d m n = apSumOffset f d (m + k) n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Normalize `((m+k+i+1)*d)` into `((m+i+1)*d) + k*d`.
+  simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul]
+
 /-- Support-form congruence lemma: if `f` and `g` agree on every element of `apSupport d m n`,
 then `apSumOffset f d m n = apSumOffset g d m n`.
 
