@@ -108,6 +108,45 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSum_gt' (g : ℕ �
     unfold discrepancy
     exact hn
 
+namespace UnboundedDiscrepancyAlong
+
+/-- Witness-positivity: in the unboundedness normal form
+`∀ B, ∃ n, discrepancy g d n > B`, any witness length `n` is automatically positive.
+
+Reason: `discrepancy g d 0 = 0`.
+-/
+theorem forall_exists_discrepancy_gt'_witness_pos {g : ℕ → ℤ} {d : ℕ}
+    (hunb : UnboundedDiscrepancyAlong g d) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discrepancy g d n > B := by
+  intro B
+  rcases
+      (unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g := g) (d := d)).1 hunb B with
+    ⟨n, hn⟩
+  have hn0 : n ≠ 0 := by
+    intro h0
+    subst h0
+    have hn0' : discrepancy g d 0 > B := hn
+    have hzero : (0 : ℕ) > B := by
+      simpa [discrepancy_zero] using hn0'
+    have hlt : B < 0 := by
+      simpa [gt_iff_lt] using hzero
+    exact (Nat.not_lt_zero B) hlt
+  exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
+
+/-- Witness-positivity: nucleus form of unboundedness, with `Int.natAbs (apSum ...) > B`. -/
+theorem forall_exists_natAbs_apSum_gt'_witness_pos {g : ℕ → ℤ} {d : ℕ}
+    (hunb : UnboundedDiscrepancyAlong g d) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSum g d n) > B := by
+  intro B
+  rcases forall_exists_discrepancy_gt'_witness_pos (g := g) (d := d) hunb B with ⟨n, hnpos, hn⟩
+  refine ⟨n, hnpos, ?_⟩
+  -- Avoid simp loops: `discrepancy` is definitional.
+  have hn' := hn
+  unfold discrepancy at hn'
+  exact hn'
+
+end UnboundedDiscrepancyAlong
+
 /-- `g` has discrepancy at least `C` along the fixed step `d` (witness form). -/
 def HasDiscrepancyAtLeastAlong (g : ℕ → ℤ) (d : ℕ) (C : ℕ) : Prop :=
   ∃ n : ℕ, C < discrepancy g d n
