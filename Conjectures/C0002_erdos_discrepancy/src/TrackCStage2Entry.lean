@@ -59,6 +59,19 @@ theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
     out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f)
       (by simpa [hout] using out.unbounded)
 
+/-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
+  discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`.
+
+This lemma lives in the entry-point module so consumers can access this key transport consequence
+without importing the larger Stage-2 wrapper lemma files.
+-/
+theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) := by
+  set out := stage2Out (f := f) (hf := hf) with hout
+  have hunb : UnboundedDiscOffset f out.out1.d out.out1.m :=
+      ((out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).1 out.unbounded
+  simpa [stage2_d, stage2_m, hout] using hunb
+
 end Tao2015
 
 end MoltResearch
