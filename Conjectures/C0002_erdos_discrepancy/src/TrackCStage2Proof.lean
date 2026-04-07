@@ -32,6 +32,55 @@ Note: the basic projections `stage2_d`, `stage2_g`, `stage2_m` are defined in
 without importing this wrapper-lemma module.
 -/
 
+/-!
+## Small consumer-facing wrappers about `stage2Out`
+
+We keep `TrackCStage2Entry` minimal (just the axiom stub and projections).  This module provides a
+small set of proved, pipeline-friendly convenience lemmas about the deterministic output
+`stage2Out`.
+-/
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 is positive. -/
+theorem stage2_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
+  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).hd
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
+theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage2_d (f := f) (hf := hf) := by
+  exact Nat.succ_le_of_lt (stage2_d_pos (f := f) (hf := hf))
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 is nonzero. -/
+theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) ≠ 0 := by
+  exact Nat.ne_of_gt (stage2_d_pos (f := f) (hf := hf))
+
+/-- Minimal consumer-facing Stage-2 consequence: the original sequence cannot have globally bounded
+(discrepancy) once Stage 2 produces an unbounded fixed-step witness along the reduced sequence. -/
+theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
+  exact (stage2Out (f := f) (hf := hf)).notBoundedOriginal
+
+/-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
+`∀ C, HasDiscrepancyAtLeast f C`.
+
+This is a thin wrapper around `Stage2Output.forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  exact (stage2Out (f := f) (hf := hf)).forall_hasDiscrepancyAtLeast
+
+/-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
+discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`. -/
+theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) := by
+  simpa [stage2_d, stage2_m, Stage2Output.d, Stage2Output.m] using
+    (stage2Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
+
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded. -/
+theorem stage2_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  refine ⟨stage2_d (f := f) (hf := hf), stage2_m (f := f) (hf := hf),
+    stage2_one_le_d (f := f) (hf := hf), ?_⟩
+  exact stage2_unboundedDiscOffset (f := f) (hf := hf)
+
 /-- The reduced sequence produced by Stage 2 is a sign sequence. -/
 theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
     IsSignSequence (stage2_g (f := f) (hf := hf)) := by
@@ -43,20 +92,8 @@ theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
       f (k + (stage2_m (f := f) (hf := hf)) * (stage2_d (f := f) (hf := hf))) := by
   simpa [stage2_g, stage2_m, stage2_d] using (stage2Out (f := f) (hf := hf)).g_eq k
 
-/-- Positivity of the reduced step size produced by Stage 2. -/
-theorem stage2_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
-  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).hd
-
-/-
-Note: several lightweight consumer-facing convenience lemmas live in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` so hard-gate consumers can access them
-without importing this wrapper-lemma module:
-
-  stage2_one_le_d (f) (hf) : 1 ≤ stage2_d (f := f) (hf := hf)
-  stage2_notBounded (f) (hf) : ¬ BoundedDiscrepancy f
-  stage2_forall_hasDiscrepancyAtLeast (f) (hf) : ∀ C, HasDiscrepancyAtLeast f C
-
-This file keeps only the additional witness-form wrappers.
+/-!
+## Additional witness-form wrappers
 -/
 
 /-- Consumer-facing shortcut: Stage 2 yields the most pipeline-friendly global witness form:
@@ -114,8 +151,9 @@ theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsS
           (f := f)).1
       (stage2Out (f := f) (hf := hf)).unbounded
 
-/- Note: `stage2_unboundedDiscOffset` is defined in `TrackCStage2Entry` so that consumers can
-access it without importing this wrapper-lemma module. -/
+
+/- Note: `stage2_unboundedDiscOffset` is defined in this module as a wrapper around the Stage-2 core lemma `Stage2Output.unboundedDiscOffset`. -/
+
 
 /-- Positive-length witness form of `stage2_forall_exists_natAbs_apSumFrom_mul_gt`.
 
