@@ -89,6 +89,18 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
   simpa using
     (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is often the most pipeline-friendly surface statement for consuming Track C.
+-/
+theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
+      (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
+
 /-- Consumer-facing shortcut: Stage 3 yields the paper-notation witness form
 
 `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ |∑ i ∈ Icc 1 n, f (i*d)| > C`.
