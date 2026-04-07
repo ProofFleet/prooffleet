@@ -89,6 +89,18 @@ theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage2_d, stage2_m, Stage2Output.d, Stage2Output.m] using
     (Stage2Output.unboundedDiscOffset (f := f) (out := stage2Out (f := f) (hf := hf)))
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This lemma lives in the entry-point module so hard-gate consumers can use it without importing the
+larger Stage-2 convenience-lemma layers.
+-/
+theorem stage2_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  refine ⟨stage2_d (f := f) (hf := hf), stage2_m (f := f) (hf := hf),
+    stage2_one_le_d (f := f) (hf := hf), ?_⟩
+  exact stage2_unboundedDiscOffset (f := f) (hf := hf)
+
 end Tao2015
 
 end MoltResearch
