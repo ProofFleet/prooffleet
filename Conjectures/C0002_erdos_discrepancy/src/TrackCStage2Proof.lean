@@ -160,8 +160,9 @@ theorem stage2_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : 
   have hunb :
       UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
     stage2_unboundedDiscOffset (f := f) (hf := hf)
-  simpa [gt_iff_lt] using
-    (UnboundedDiscOffset.forall_exists_discOffset_gt_witness_pos (hunb := hunb))
+  simpa using
+    (UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos (f := f)
+      (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) hunb)
 
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
 parameters produced by the conjecture stub `stage2Out`, stated using the bundled offset nucleus.

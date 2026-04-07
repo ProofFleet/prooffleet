@@ -236,6 +236,19 @@ theorem forall_exists_discOffset_gt_witness_pos {f : ℕ → ℤ} {d m : ℕ}
     exact this hn
   exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
 
+/-- Witness-positivity: in the inequality-direction unboundedness normal form
+`∀ B, ∃ n, discOffset f d m n > B`, any witness length `n` is automatically positive.
+
+This is `forall_exists_discOffset_gt_witness_pos` rewritten using `gt_iff_lt`.
+-/
+theorem forall_exists_discOffset_gt'_witness_pos {f : ℕ → ℤ} {d m : ℕ}
+    (hunb : UnboundedDiscOffset f d m) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f d m n > B := by
+  intro B
+  rcases forall_exists_discOffset_gt_witness_pos (f := f) (d := d) (m := m) hunb B with
+    ⟨n, hnpos, hn⟩
+  exact ⟨n, hnpos, (gt_iff_lt).2 hn⟩
+
 /-- Witness-positivity: in the bundled-nucleus witness form
 `∀ B, ∃ n, Int.natAbs (apSumOffset f d m n) > B`, any witness length `n` is automatically positive.
 
