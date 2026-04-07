@@ -115,6 +115,28 @@ theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage2_d, stage2_m] using
     (Stage2Output.unboundedDiscOffset (f := f) (out := stage2Out (f := f) (hf := hf)))
 
+/-- Positive-length witness form of `stage2_forall_exists_natAbs_apSumFrom_mul_gt`.
+
+The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
+
+This is a thin wrapper around the Conjectures-only normal-form lemma
+`Tao2015.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ C : ℕ,
+      ∃ n : ℕ, n > 0 ∧
+        Int.natAbs
+            (apSumFrom f
+              (stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf))
+              (stage2_d (f := f) (hf := hf)) n) > C := by
+  have hunb :
+      UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
+    stage2_unboundedDiscOffset (f := f) (hf := hf)
+  simpa [stage2_m, stage2_d] using
+    (Tao2015.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
+      (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) hunb)
+
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
 parameters produced by the conjecture stub `stage2Out`.
 
