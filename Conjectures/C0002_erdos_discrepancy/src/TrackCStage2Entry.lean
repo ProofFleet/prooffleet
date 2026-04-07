@@ -78,6 +78,18 @@ theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
     (Stage2Output.forall_hasDiscrepancyAtLeast (f := f)
       (out := stage2Out (f := f) (hf := hf)))
 
+/-- Pipeline-friendly witness normal form: Stage 2 yields
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is a thin wrapper around `Stage2Output.forall_exists_d_ge_one_witness_pos`.
+-/
+theorem stage2_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  simpa using
+    (Stage2Output.forall_exists_d_ge_one_witness_pos (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
+
 /-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
   discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`.
 
