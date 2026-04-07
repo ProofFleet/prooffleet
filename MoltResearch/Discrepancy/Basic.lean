@@ -374,12 +374,65 @@ def discOffset (f : ℕ → ℤ) (d m n : ℕ) : ℕ :=
 Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
 -/
 
+/-- Maximal homogeneous discrepancy over lengths `n ≤ N`.
+
+This is packaged in a finitary form (a `Finset.sup` over `range (N+1)`) so it is computable.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
+-/
+def discUpTo (f : ℕ → ℤ) (d N : ℕ) : ℕ :=
+  (Finset.range (N + 1)).sup (fun n => disc f d n)
+
 /-- Maximal offset discrepancy over lengths `n ≤ N`.
 
 This is packaged in a finitary form (a `Finset.sup` over `range (N+1)`) so it is computable.
 -/
 def discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) : ℕ :=
   (Finset.range (N + 1)).sup (fun n => discOffset f d m n)
+
+/-- Any particular `disc f d n` with `n ≤ N` is bounded by `discUpTo f d N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
+-/
+lemma disc_le_discUpTo (f : ℕ → ℤ) (d n N : ℕ) (hn : n ≤ N) :
+    disc f d n ≤ discUpTo f d N := by
+  classical
+  unfold discUpTo
+  have hn' : n ∈ Finset.range (N + 1) := by
+    exact Finset.mem_range.2 (Nat.lt_succ_of_le hn)
+  simpa using (Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => disc f d t) hn')
+
+/-- Monotonicity in the cutoff: increasing `N` can only increase `discUpTo`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
+-/
+lemma discUpTo_mono (f : ℕ → ℤ) (d : ℕ) {N N' : ℕ} (h : N ≤ N') :
+    discUpTo f d N ≤ discUpTo f d N' := by
+  classical
+  unfold discUpTo
+  refine Finset.sup_le ?_
+  intro n hn
+  have hnlt : n < N + 1 := Finset.mem_range.1 hn
+  have hnlt' : n < N' + 1 := lt_of_lt_of_le hnlt (Nat.succ_le_succ h)
+  have hn' : n ∈ Finset.range (N' + 1) := Finset.mem_range.2 hnlt'
+  exact Finset.le_sup (s := Finset.range (N' + 1)) (f := fun t => disc f d t) hn'
+
+/-- The maximum in `discUpTo` is attained by some `n ≤ N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
+-/
+lemma exists_disc_eq_discUpTo (f : ℕ → ℤ) (d N : ℕ) :
+    ∃ n ≤ N, disc f d n = discUpTo f d N := by
+  classical
+  unfold discUpTo
+  have hne : (Finset.range (N + 1)).Nonempty := by
+    refine ⟨0, ?_⟩
+    simp
+  rcases Finset.exists_mem_eq_sup (s := Finset.range (N + 1)) (f := fun t => disc f d t) hne with
+    ⟨n, hnmem, hsup⟩
+  refine ⟨n, ?_, ?_⟩
+  · exact Nat.le_of_lt_succ (Finset.mem_range.1 hnmem)
+  · exact hsup.symm
 
 /-- Any particular `discOffset f d m n` with `n ≤ N` is bounded by `discOffsetUpTo f d m N`.
 

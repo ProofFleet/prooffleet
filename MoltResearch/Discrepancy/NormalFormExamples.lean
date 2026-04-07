@@ -195,11 +195,20 @@ example : apSumOffset (fun t => apSumOffset f d (m + t) n) 1 0 k =
 example : discOffset f d m n = discrepancy (fun k => f (k + m * d)) d n := by
   simpa using (discOffset_eq_discrepancy_shift_mul (f := f) (d := d) (m := m) (n := n))
 
--- Regression (Track B / “max discrepancy up to N” API): the wrapper is available under the stable surface.
+-- Regression (Track B / “max discrepancy up to N” API): the wrappers are available under the stable surface.
+example : discUpTo f d n = (Finset.range (n + 1)).sup (fun t => disc f d t) := by
+  rfl
+
 example : discOffsetUpTo f d m n = (Finset.range (n + 1)).sup (fun t => discOffset f d m t) := by
   rfl
 
--- Regression: monotonicity + witness attainment for `discOffsetUpTo`.
+-- Regression: monotonicity + witness attainment for `discUpTo` / `discOffsetUpTo`.
+example (hn : n₁ ≤ n₂) : discUpTo f d n₁ ≤ discUpTo f d n₂ := by
+  simpa using (discUpTo_mono (f := f) (d := d) hn)
+
+example : ∃ t ≤ n, disc f d t = discUpTo f d n := by
+  simpa using (exists_disc_eq_discUpTo (f := f) (d := d) (N := n))
+
 example (hn : n₁ ≤ n₂) : discOffsetUpTo f d m n₁ ≤ discOffsetUpTo f d m n₂ := by
   simpa using (discOffsetUpTo_mono (f := f) (d := d) (m := m) hn)
 
