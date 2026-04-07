@@ -125,6 +125,16 @@ example : apSumOffset f d m n =
     (Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d)) := by
   simpa using (apSumOffset_eq_sum_range_reflect (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / reindexing API (range-bijection)):
+-- the involution-specialized wrapper should be usable as a one-line `rw` without unfolding.
+example : apSumOffset f d m n =
+    (Finset.range n).sum (fun i => f ((m + (fun i => i) i + 1) * d)) := by
+  -- `σ = id` is an involution on `range n`.
+  simpa using
+    (apSumOffset_reindex_range_invol (f := f) (d := d) (m := m) (n := n) (σ := fun i => i)
+      (hσ_range := by intro i hi; simpa using hi)
+      (hσ_invol := by intro i hi; rfl))
+
 -- Regression (Track B / cut equality, exact difference):
 -- subtracting the prefix offset sum yields the tail offset sum.
 example (hk : k ≤ n) :

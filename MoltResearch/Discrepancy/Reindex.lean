@@ -104,6 +104,8 @@ injective and surjective on `Finset.range n`), then we may rewrite the binder
 `i ↦ f ((m + i + 1) * d)` to `i ↦ f ((m + σ i + 1) * d)`.
 
 This is a controlled wrapper around `Finset.sum_bij` specialized to the `apSumOffset` normal form.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Reindexing API (range-bijection).
 -/
 lemma apSumOffset_reindex_range_bij (f : ℕ → ℤ) (d m n : ℕ) (σ : ℕ → ℕ)
     (hσ_range : ∀ i ∈ Finset.range n, σ i ∈ Finset.range n)
@@ -129,6 +131,37 @@ lemma apSumOffset_reindex_range_bij (f : ℕ → ℤ) (d m n : ℕ) (σ : ℕ �
     exact ⟨i, hi, rfl⟩
   · intro i hi
     rfl
+
+/-- Reindex an `apSumOffset` sum by an involution on the range indices.
+
+This is the common ergonomic case: you have a map `σ : ℕ → ℕ` that preserves `range n` and is
+involutive on it (`σ (σ i) = i` for `i ∈ range n`).  Then `σ` is automatically a bijection of the
+index set, and we may reindex the `apSumOffset` binder.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Reindexing API (range-bijection).
+-/
+lemma apSumOffset_reindex_range_invol (f : ℕ → ℤ) (d m n : ℕ) (σ : ℕ → ℕ)
+    (hσ_range : ∀ i ∈ Finset.range n, σ i ∈ Finset.range n)
+    (hσ_invol : ∀ i ∈ Finset.range n, σ (σ i) = i) :
+    apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + σ i + 1) * d)) := by
+  classical
+  refine apSumOffset_reindex_range_bij (f := f) (d := d) (m := m) (n := n) (σ := σ)
+    (hσ_range := hσ_range)
+    (hσ_inj := ?_)
+    (hσ_surj := ?_)
+  · intro i₁ hi₁ i₂ hi₂ hEq
+    -- Apply `σ` to both sides and use involutivity.
+    have hi₁' : σ i₁ ∈ Finset.range n := hσ_range i₁ hi₁
+    have hi₂' : σ i₂ ∈ Finset.range n := hσ_range i₂ hi₂
+    calc
+      i₁ = σ (σ i₁) := by simpa using (hσ_invol i₁ hi₁).symm
+      _ = σ (σ i₂) := by simpa [hEq]
+      _ = i₂ := by simpa using (hσ_invol i₂ hi₂)
+  · intro j hj
+    refine ⟨σ j, ?_, ?_⟩
+    · exact hσ_range j hj
+    · -- `σ (σ j) = j` on `range n`.
+      simpa using (hσ_invol j hj)
 
 /-- Reindex an `apSumOffset` sum by a permutation of the index type `Fin n`.
 
