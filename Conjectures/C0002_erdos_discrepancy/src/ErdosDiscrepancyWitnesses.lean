@@ -31,16 +31,16 @@ theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf :
 
 Normal form:
 `∀ B, ∃ n, Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) > B`,
-where `d = (stage3Out f hf).d` and `m = (stage3Out f hf).m`.
+where `d = Tao2015.stage3_d f hf` and `m = Tao2015.stage3_m f hf`.
 
 This is a thin wrapper around `Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt`.
 -/
 theorem erdos_discrepancy_sum_Icc_offset_stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ B : ℕ, ∃ n : ℕ,
       Int.natAbs
-          ((Finset.Icc ((Tao2015.stage3Out (f := f) (hf := hf)).m + 1)
-                ((Tao2015.stage3Out (f := f) (hf := hf)).m + n)).sum
-              (fun i => f (i * (Tao2015.stage3Out (f := f) (hf := hf)).d))) > B := by
+          ((Finset.Icc ((Tao2015.stage3_m (f := f) (hf := hf)) + 1)
+                ((Tao2015.stage3_m (f := f) (hf := hf)) + n)).sum
+              (fun i => f (i * (Tao2015.stage3_d (f := f) (hf := hf))))) > B := by
   set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
   simpa [hout.symm] using
     (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) out)
