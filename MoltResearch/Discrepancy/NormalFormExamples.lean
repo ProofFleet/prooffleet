@@ -66,6 +66,25 @@ example (q : ℕ) : apSumOffset (fun t => f (t * q)) d m n = apSumOffset f (d * 
 example (q : ℕ) : apSumFrom (fun t => f (t * q)) a d n = apSumFrom f (a * q) (d * q) n := by
   simpa using (apSumFrom_map_mul_right (f := f) (q := q) (a := a) (d := d) (n := n))
 
+/-!
+### Regression: linearity normal forms (Track B / sum-level)
+
+These should stay one-liners: pushing `+`/`-` out of `apSum`/`apSumOffset`.
+-/
+
+example (g : ℕ → ℤ) : apSum (fun k => f k + g k) d n = apSum f d n + apSum g d n := by
+  simpa using (apSum_add (f := f) (g := g) (d := d) (n := n))
+
+example : apSum (fun k => - f k) d n = - apSum f d n := by
+  simp
+
+example (g : ℕ → ℤ) :
+    apSumOffset (fun k => f k + g k) d m n = apSumOffset f d m n + apSumOffset g d m n := by
+  simpa using (apSumOffset_add (f := f) (g := g) (d := d) (m := m) (n := n))
+
+example : apSumOffset (fun k => - f k) d m n = - apSumOffset f d m n := by
+  simp
+
 -- Regression (Track B / offset reindexing by divisibility):
 -- if `q ∣ d`, rewrite the offset-sum at step `d` into step `q` with reindexed summand.
 example (q : ℕ) (hq : q > 0) (hd : q ∣ d) :
