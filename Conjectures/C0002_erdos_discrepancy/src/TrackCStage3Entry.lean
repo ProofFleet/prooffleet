@@ -58,6 +58,16 @@ theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
   -- Prefer consuming the Stage-3 output record API.
   exact (stage3Out (f := f) (hf := hf)).notBounded
 
+/-- Consumer-facing shortcut: the Stage-3 pipeline yields the usual surface statement
+`∀ C, HasDiscrepancyAtLeast f C`.
+
+This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  simpa using
+    (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf)))
+
 end Tao2015
 
 end MoltResearch

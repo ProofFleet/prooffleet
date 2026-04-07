@@ -35,10 +35,7 @@ Track-C Stage-3 pipeline.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Prefer the Stage-3 record API (`Stage3Output`) rather than wrapper lemmas.
-  simpa using
-    (Tao2015.Stage3Output.forall_hasDiscrepancyAtLeast (f := f)
-      (Tao2015.stage3Out (f := f) (hf := hf)))
+  simpa using (Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
 
 /-!
 Additional witness-form corollaries live in
