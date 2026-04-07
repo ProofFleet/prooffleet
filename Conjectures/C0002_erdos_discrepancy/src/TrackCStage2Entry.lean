@@ -39,6 +39,11 @@ noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
 theorem stage2_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
   simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
 
+/-- Convenience lemma: the reduced step size produced by Stage 2 is nonzero. -/
+theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_d (f := f) (hf := hf) ≠ 0 := by
+  exact Nat.ne_of_gt (stage2_d_pos (f := f) (hf := hf))
+
 /-- Convenience projection: the reduced sequence produced by Stage 2. -/
 noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
   (stage2Out (f := f) (hf := hf)).out1.g

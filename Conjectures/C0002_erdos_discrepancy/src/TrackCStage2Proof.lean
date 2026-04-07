@@ -52,10 +52,7 @@ theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     1 ≤ stage2_d (f := f) (hf := hf) := by
   simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).one_le_d
 
-/-- Convenience lemma: the reduced step size produced by Stage 2 is nonzero. -/
-theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage2_d (f := f) (hf := hf) ≠ 0 := by
-  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).d_ne_zero
+-- (moved to TrackCStage2Entry)
 
 /-
 Note: the boundedness-negation normal form lemma
