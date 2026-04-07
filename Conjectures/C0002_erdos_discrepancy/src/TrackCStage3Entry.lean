@@ -114,6 +114,22 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) := by
   simpa [stage3_d, stage3_m] using stage2_unboundedDiscOffset (f := f) (hf := hf)
 
+/-- Positive-length witness form of `stage3_unboundedDiscOffset`.
+
+The witness length `n` cannot be `0`, since `discOffset ... 0 = 0`.
+-/
+theorem stage3_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        n > 0 ∧
+          discOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) n > B := by
+  have hunb :
+      UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) :=
+    stage3_unboundedDiscOffset (f := f) (hf := hf)
+  simpa using
+    (UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos (f := f)
+      (d := stage3_d (f := f) (hf := hf)) (m := stage3_m (f := f) (hf := hf)) hunb)
+
 end Tao2015
 
 end MoltResearch
