@@ -144,14 +144,14 @@ theorem stage3_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → �
     (Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
       (stage3Out (f := f) (hf := hf)))
 
-/-- Consumer-facing shortcut: Stage 3 yields the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
+/-!
+Note: the lemma
 
-This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
+  Tao2015.stage3_forall_hasDiscrepancyAtLeast (f) (hf) : ∀ C, HasDiscrepancyAtLeast f C
+
+is defined in `TrackCStage3Entry.lean` so hard-gate consumers can use it without importing this
+larger convenience-lemma file.
 -/
-theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  simpa using
-    (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3 (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields the most pipeline-friendly global witness form:
 

@@ -161,14 +161,14 @@ theorem forall_exists_discOffset_gt' (out : Stage2Output f) :
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt' (f := f)).1 out.unbounded)
 
-/-- Stage 2 implies *unbounded offset discrepancy* for the original sequence, at the bundled
-parameters `(out.d, out.m)`.
+/-!
+The lemma
 
-This is the packaged predicate version of `forall_exists_discOffset_gt`.
+  Stage2Output.unboundedDiscOffset (out : Stage2Output f) : UnboundedDiscOffset f out.d out.m
+
+is proved in `TrackCStage2Core.lean` so downstream stages can use it without importing this larger
+convenience-lemma file.
 -/
-theorem unboundedDiscOffset (out : Stage2Output f) :
-    Tao2015.UnboundedDiscOffset f out.d out.m := by
-  exact (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
 
 /-- Stage 2 implies there is no uniform bound on the bundled offset discrepancy family
 `discOffset f out.d out.m`.
