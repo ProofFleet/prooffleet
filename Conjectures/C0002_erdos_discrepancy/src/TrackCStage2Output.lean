@@ -1,5 +1,4 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
-import Conjectures.C0002_erdos_discrepancy.src.Tao2015Extras
 
 /-!
 # Track C: Stage 2 output lemmas
@@ -116,9 +115,8 @@ theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
         ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
   have hunb : UnboundedDiscOffset f out.d out.m :=
     (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
-  -- Use the Conjectures-only normal form lemma from `Tao2015Extras`.
   exact
-    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumFrom_mul_le
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le
         (f := f) (d := out.d) (m := out.m)).1
       hunb
 
@@ -192,9 +190,8 @@ This is `not_exists_boundedDiscOffset` rewritten by unfolding `discOffset`.
 theorem not_exists_forall_natAbs_apSumOffset_le (out : Stage2Output f) :
     ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
   have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  -- Use the Conjectures-only normal form lemma from `Tao2015Extras`.
   exact
-    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f := f)
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le (f := f)
         (d := out.d) (m := out.m)).1
       hunb
 
@@ -375,10 +372,14 @@ theorem forall_exists_natAbs_sum_Icc_offset_gt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ,
       Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) > B := by
   have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  simpa using
-    (Tao2015.unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt' (f := f)
-          (d := out.d) (m := out.m)).1
-      hunb
+  have hOffset :
+      ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B :=
+    (Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt' (f := f)
+      (d := out.d) (m := out.m)).1 hunb
+  intro B
+  rcases hOffset B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] using hn
 
 /-- Positive-length witness form of `forall_exists_natAbs_sum_Icc_offset_gt`.
 
@@ -396,9 +397,10 @@ theorem forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (out : Stage2Output f
   refine ⟨n, hnpos, ?_⟩
   have hn' : B <
       Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) := by
-    -- Avoid a `simp` recursion-depth blowup: rewrite the `discOffset` witness directly.
+    -- Avoid `simp` recursion-depth issues: unfold `discOffset` and rewrite the nucleus directly.
     have hn' := hn
-    rw [discOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] at hn'
+    unfold discOffset at hn'
+    rw [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] at hn'
     exact hn'
   exact (gt_iff_lt).2 hn'
 
