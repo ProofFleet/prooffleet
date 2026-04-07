@@ -243,6 +243,24 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented in `MoltResearch/Discrepancy/NormalFormPipelineExample.lean`, plus the expanded stable-surface examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Linearity normal form (sum-level): package additive/negation scaling lemmas for `apSum`/`apSumOffset` (e.g. `apSum (fun n => f n + g n) d n = apSum f d n + apSum g d n` and `apSum (fun n => -f n) d n = - apSum f d n`) in the repo's preferred orientation, with stable-surface regression examples.
+
+- [ ] Reindexing API (range-bijection): add a general “reindex by an involution/bijection on `Finset.range n`” lemma specialized to `apSumOffset` summands, so future proofs can `rw` a reindexed AP sum without expanding to `Finset.sum` boilerplate.
+
+- [ ] `apSupport` coherence under shift/dilation: prove lemmas rewriting `apSupport` for shifted/dilated sequences (e.g. `apSupport (fun t => f (t + k*d)) d m n`), and use them to derive a one-line `apSumOffset_congr_support` corollary for common transformations.
+
+- [ ] Paper↔nucleus endpoint bridge (simp surface): add simp-friendly wrapper lemmas that rewrite paper-style endpoints (`Icc (m+1) (m+n)`) into nucleus forms for *all* of: `apSumFrom`, `apSumOffset`, and the corresponding discrepancy objects, so downstream proofs can stay in paper notation longer.
+
+- [ ] “Max discrepancy up to N” for homogeneous APs: add the homogeneous-step analogue `discUpTo f d N` (mirroring `discOffsetUpTo`) with monotonicity + witness-extraction, and a stable regression example under `import MoltResearch.Discrepancy`.
+
+- [ ] `discOffset` stability under pointwise bounded perturbations: if `∀ i` on the support set, `|f i - g i| ≤ 2` and the set of changed indices is bounded, package a canonical bound `discOffset f d m n ≤ discOffset g d m n + 2*t` in a form that only mentions `apSupport` (avoid `Icc`/`range` bookkeeping).
+
+- [ ] “Cut + reassemble” normal form at `apSumFrom`-level: prove the exact concatenation equality `apSumFrom f a d (n+k) = apSumFrom f a d n + apSumFrom f (a + n*d) d k` (and the immediate `disc` triangle-inequality corollary) with stable-surface regression examples.
+
+- [ ] Common-step refinement/coarsening wrappers: add convenience lemmas that move between steps `d` and `lcm d d'` (or `gcd`) in a controlled way, so later stages can “synchronize steps” without hand-rolling number-theory algebra.
+
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
