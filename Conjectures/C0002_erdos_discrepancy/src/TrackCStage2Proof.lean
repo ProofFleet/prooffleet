@@ -194,6 +194,23 @@ theorem stage2_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f : �
   intro C
   simpa using stage2_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (hf := hf) C
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that the
+affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values, with a
+positive-length witness `n > 0`.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ∀ C, ∃ n, n > 0 ∧ Int.natAbs (apSumFrom f (m*d) d n) > C`.
+
+This is a thin wrapper around `stage2_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem stage2_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  refine ⟨stage2_d (f := f) (hf := hf), stage2_m (f := f) (hf := hf),
+    stage2_one_le_d (f := f) (hf := hf), ?_⟩
+  simpa using stage2_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) (hf := hf)
+
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
 parameters produced by the conjecture stub `stage2Out`.
 
