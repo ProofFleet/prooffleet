@@ -1590,6 +1590,71 @@ theorem BoundedDiscOffset.of_map_shift_add {f : ℕ → ℤ} {d m B : ℕ}
   exact h n
 
 /-!
+### Predicate-level translation invariance (boundedness/unboundedness)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Predicate-level translation invariance.
+
+These lemmas repackage the pointwise transport lemmas above into equivalences between the
+quantified boundedness/unboundedness predicates.
+-/
+
+/-- `BoundedDiscOffsetExists` is invariant under the shift `k ↦ f (k + m*d)`.
+
+This is the predicate-level wrapper of `BoundedDiscOffset.map_shift_add`.
+-/
+theorem boundedDiscOffsetExists_shift_add_iff (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffsetExists f d m ↔
+      BoundedDiscOffsetExists (fun k => f (k + m * d)) d 0 := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact BoundedDiscOffset.map_shift_add (f := f) (d := d) (m := m) (B := B) hB
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact BoundedDiscOffset.of_map_shift_add (f := f) (d := d) (m := m) (B := B) hB
+
+/-- `UnboundedDiscOffset` is invariant under the shift `k ↦ f (k + m*d)`.
+
+Since `UnboundedDiscOffset` is defined as the negation of `BoundedDiscOffsetExists`, this is a
+direct `not_congr` wrapper around `boundedDiscOffsetExists_shift_add_iff`.
+-/
+theorem unboundedDiscOffset_shift_add_iff (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      UnboundedDiscOffset (fun k => f (k + m * d)) d 0 := by
+  -- Unfold the definitional sugar and use negation congruence.
+  simpa [UnboundedDiscOffset] using
+    (not_congr (boundedDiscOffsetExists_shift_add_iff (f := f) (d := d) (m := m)))
+
+/-- `BoundedDiscAlongExists` for the shifted sequence is equivalent to `BoundedDiscOffsetExists`
+for the unshifted sequence.
+
+This lemma is the predicate-level wrapper of the identity
+`discAlong (fun k => f (k + m*d)) d n = discOffset f d m n`.
+-/
+theorem boundedDiscAlongExists_shift_add_iff (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscAlongExists (fun k => f (k + m * d)) d ↔ BoundedDiscOffsetExists f d m := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- `hB n : discAlong (shifted) d n ≤ B`.
+    -- Rewrite it into the `discOffset f d m n` view.
+    -- First: `discAlong` is `discOffset _ d 0`.
+    have hn : discOffset (fun k => f (k + m * d)) d 0 n ≤ B := by
+      simpa [BoundedDiscOffset, discAlong] using hB n
+    -- Then: use `discOffset_eq_discOffset_shift_add` to remove the shift.
+    simpa [BoundedDiscOffset, discOffset_eq_discOffset_shift_add] using hn
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    have hn : discOffset f d m n ≤ B := by
+      simpa [BoundedDiscOffset] using hB n
+    have hn' : discOffset (fun k => f (k + m * d)) d 0 n ≤ B := by
+      -- `discOffset f d m n = discOffset (shifted) d 0 n`.
+      simpa [discOffset_eq_discOffset_shift_add] using hn
+    simpa [discAlong] using hn'
+
+/-!
 ### Further boundedness transports (`BoundedDiscOffset`)
 
 These lemmas let downstream code rewrite boundedness hypotheses under the standard discrepancy

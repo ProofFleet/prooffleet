@@ -758,6 +758,21 @@ example (B : ℕ) (h : BoundedDiscOffset (fun k => f (k + m * d)) d 0 B) :
     BoundedDiscOffset f d m B := by
   simpa using (BoundedDiscOffset.of_map_shift_add (f := f) (d := d) (m := m) (B := B) h)
 
+-- Regression (Track B / predicate-level translation invariance): boundedness predicate.
+example :
+    BoundedDiscOffsetExists f d m ↔ BoundedDiscOffsetExists (fun k => f (k + m * d)) d 0 := by
+  simpa using (boundedDiscOffsetExists_shift_add_iff (f := f) (d := d) (m := m))
+
+-- Regression (Track B / predicate-level translation invariance): unboundedness predicate.
+example :
+    UnboundedDiscOffset f d m ↔ UnboundedDiscOffset (fun k => f (k + m * d)) d 0 := by
+  simpa using (unboundedDiscOffset_shift_add_iff (f := f) (d := d) (m := m))
+
+-- Regression (Track B / predicate-level translation invariance): along-`d` boundedness as shifted offset.
+example :
+    BoundedDiscAlongExists (fun k => f (k + m * d)) d ↔ BoundedDiscOffsetExists f d m := by
+  simpa using (boundedDiscAlongExists_shift_add_iff (f := f) (d := d) (m := m))
+
 -- Regression (Track B / boundedness API hygiene): shift-start transport.
 example (B : ℕ) (h : BoundedDiscOffset f d (m + k) B) :
     BoundedDiscOffset (fun t => f (t + k * d)) d m B := by
