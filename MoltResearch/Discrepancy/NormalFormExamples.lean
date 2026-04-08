@@ -786,6 +786,21 @@ example :
     UnboundedDiscOffset f d m ↔ UnboundedDiscOffset (fun k => f (k + m * d)) d 0 := by
   simpa using (unboundedDiscOffset_shift_add_iff (f := f) (d := d) (m := m))
 
+-- Regression (Track B / predicate-level sign-flip invariance): boundedness predicate.
+example (B : ℕ) :
+    BoundedDiscOffset (fun k => -f k) d m B ↔ BoundedDiscOffset f d m B := by
+  simpa using (boundedDiscOffset_neg_iff (f := f) (d := d) (m := m) (B := B))
+
+-- Regression (Track B / predicate-level sign-flip invariance): exists-bound predicate.
+example :
+    BoundedDiscOffsetExists (fun k => -f k) d m ↔ BoundedDiscOffsetExists f d m := by
+  simpa using (boundedDiscOffsetExists_neg_iff (f := f) (d := d) (m := m))
+
+-- Regression (Track B / predicate-level sign-flip invariance): unboundedness predicate.
+example :
+    UnboundedDiscOffset (fun k => -f k) d m ↔ UnboundedDiscOffset f d m := by
+  simpa using (unboundedDiscOffset_neg_iff (f := f) (d := d) (m := m))
+
 -- Regression (Track B / predicate-level translation invariance): along-`d` boundedness as shifted offset.
 example :
     BoundedDiscAlongExists (fun k => f (k + m * d)) d ↔ BoundedDiscOffsetExists f d m := by

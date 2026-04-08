@@ -694,6 +694,32 @@ bridge to the `∀ B, ∃ n, …` witness form.
 def UnboundedDiscOffset (f : ℕ → ℤ) (d m : ℕ) : Prop :=
   ¬ BoundedDiscOffsetExists f d m
 
+/-!
+### Predicate-level sign-flip invariance
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Predicate-level sign-flip invariance.
+
+These lemmas let downstream code normalize away sign-flips (`f ↦ -f`) at the level of the
+boundedness/unboundedness predicates, without unfolding definitions.
+-/
+
+@[simp] theorem boundedDiscOffset_neg_iff (f : ℕ → ℤ) (d m B : ℕ) :
+    BoundedDiscOffset (fun k => -f k) d m B ↔ BoundedDiscOffset f d m B := by
+  constructor <;> intro h <;> intro n
+  · simpa [BoundedDiscOffset] using (h n)
+  · simpa [BoundedDiscOffset] using (h n)
+
+@[simp] theorem boundedDiscOffsetExists_neg_iff (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffsetExists (fun k => -f k) d m ↔ BoundedDiscOffsetExists f d m := by
+  constructor <;> rintro ⟨B, hB⟩
+  · exact ⟨B, (boundedDiscOffset_neg_iff (f := f) (d := d) (m := m) (B := B)).1 hB⟩
+  · exact ⟨B, (boundedDiscOffset_neg_iff (f := f) (d := d) (m := m) (B := B)).2 hB⟩
+
+@[simp] theorem unboundedDiscOffset_neg_iff (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset (fun k => -f k) d m ↔ UnboundedDiscOffset f d m := by
+  unfold UnboundedDiscOffset
+  simpa using not_congr (boundedDiscOffsetExists_neg_iff (f := f) (d := d) (m := m))
+
 /-- Canonical witness normal form for `UnboundedDiscOffset`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Unboundedness normal form (forall-exists, discOffset).
