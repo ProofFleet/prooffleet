@@ -216,6 +216,18 @@ theorem natAbs_apSumOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
   exact
     congrArg Int.natAbs (apSumOffset_eq_sum_Icc (f := f) (d := d) (m := m) (n := n))
 
+/-- Paper-notation normal form: the bundled offset discrepancy wrapper `discOffset` is an interval sum.
+
+This avoids having to unfold `discOffset` and then separately rewrite `apSumOffset` into an interval
+sum.
+-/
+theorem discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+  -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`.
+  unfold discOffset
+  simpa using (natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n))
+
 namespace UnboundedDiscOffset
 
 /-- Witness-positivity: in the `∀ B, ∃ n, B < discOffset f d m n` unboundedness normal form,
