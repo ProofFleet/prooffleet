@@ -285,7 +285,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `BoundedDiscOffset (fun k => -f k) d m ↔ BoundedDiscOffset f d m` and `UnboundedDiscOffset (fun k => -f k) d m ↔ UnboundedDiscOffset f d m`, so later stages can normalize away negations without unfolding.
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `boundedDiscOffset_neg_iff`, `boundedDiscOffsetExists_neg_iff`, and `unboundedDiscOffset_neg_iff`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Max discrepancy up to N” API (residue-friendly): extend the `discOffsetUpTo`/`discUpTo` API with a lemma extracting a maximizing witness in a *specified residue class* (when nonempty), to support later pigeonhole/residue arguments.
+- [x] “Max discrepancy up to N” API (residue-friendly): extend the `discOffsetUpTo`/`discUpTo` API with a lemma extracting a maximizing witness in a *specified residue class* (when nonempty), to support later pigeonhole/residue arguments.
+  (Implemented as `exists_disc_eq_sup_filter_modEq` and `exists_discOffset_eq_sup_filter_modEq` in `MoltResearch/Discrepancy/Basic.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Stable-surface simp polish for index arithmetic: add a minimal, loop-free simp lemma set that normalizes common index shapes in summands (e.g. `((m+i+1)*d)` vs `(d*(m+i+1))`, and associativity of `m+i+1`) specifically in the nucleus pipeline, with compile-time examples.
 
