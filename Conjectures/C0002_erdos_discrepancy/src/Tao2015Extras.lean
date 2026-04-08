@@ -246,6 +246,27 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f : ℕ 
   simpa [gt_iff_lt] using
     (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (d := d) (m := m))
 
+/-- Witness-positive variant of `unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'`.
+
+Since `apSumFrom f (m*d) d 0 = 0`, the unboundedness witness length can always be taken positive.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'_witness_pos (f : ℕ → ℤ)
+    (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > B) := by
+  constructor
+  · intro hunb B
+    simpa using
+      (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) (d := d)
+        (m := m) hunb B)
+  · intro h
+    refine
+      (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m)).2
+        ?_
+    intro B
+    rcases h B with ⟨n, hnpos, hn⟩
+    exact ⟨n, hn⟩
+
 /-- Normal form: the negation-normal-form boundedness statement
 `¬ ∃ B, BoundedDiscOffset f d m B` expressed directly using bundled offset nuclei.
 
