@@ -241,6 +241,12 @@ example (hn : n₁ ≤ n₂) : discOffsetUpTo f d m n₁ ≤ discOffsetUpTo f d 
 example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
   simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n))
 
+-- Regression (Track B / boundedness transfer for `discOffsetUpTo`): extending the cutoff by `K`
+-- increases the max discrepancy by at most `K` (Lipschitz-by-1 for sign sequences).
+example (hf : IsSignSequence f) :
+    discOffsetUpTo f d m (n₁ + n₂) ≤ discOffsetUpTo f d m n₁ + n₂ := by
+  simpa using (discOffsetUpTo_add_le (f := f) (hf := hf) (d := d) (m := m) (N := n₁) (K := n₂))
+
 -- Regression (Track B / “max discrepancy up to N” API, residue-friendly witness):
 example (q r : ℕ)
     (hne : ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).Nonempty) :
