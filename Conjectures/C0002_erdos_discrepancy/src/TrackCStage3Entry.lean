@@ -1,5 +1,6 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 /-!
 # Track C: Stage 3 entry point (Tao 2015 plane)
@@ -79,14 +80,10 @@ without importing the larger wrapper-lemma module `TrackCStage3Proof`.
 -/
 theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) := by
-  -- Reduce to the Stage-1 transport lemma bundled in the Stage-2 output.
-  have hunb :
-      UnboundedDiscOffset f (stage2Out (f := f) (hf := hf)).out1.d (stage2Out (f := f) (hf := hf)).out1.m := by
-    exact
-      (ReductionOutput.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)
-            (out := (stage2Out (f := f) (hf := hf)).out1)).1
-        (stage2Out (f := f) (hf := hf)).unbounded
-  simpa [stage3_d, stage3_m, stage2_d, stage2_m] using hunb
+  -- Route through the proved Stage-2 core lemma (a thin wrapper around the Stage-1 transport
+  -- contract).
+  simpa [stage3_d, stage3_m, stage2_d, stage2_m] using
+    (Stage2Output.unboundedDiscOffset (f := f) (stage2Out (f := f) (hf := hf)))
 
 end Tao2015
 
