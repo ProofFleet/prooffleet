@@ -288,7 +288,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] “Max discrepancy up to N” API (residue-friendly): extend the `discOffsetUpTo`/`discUpTo` API with a lemma extracting a maximizing witness in a *specified residue class* (when nonempty), to support later pigeonhole/residue arguments.
   (Implemented as `exists_disc_eq_sup_filter_modEq` and `exists_discOffset_eq_sup_filter_modEq` in `MoltResearch/Discrepancy/Basic.lean`; regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface simp polish for index arithmetic: add a minimal, loop-free simp lemma set that normalizes common index shapes in summands (e.g. `((m+i+1)*d)` vs `(d*(m+i+1))`, and associativity of `m+i+1`) specifically in the nucleus pipeline, with compile-time examples.
+- [x] Stable-surface simp polish for index arithmetic: add a minimal, loop-free simp lemma set that normalizes common index shapes in summands (e.g. `((m+i+1)*d)` vs `(d*(m+i+1))`, and associativity of `m+i+1`) specifically in the nucleus pipeline, with compile-time examples. (Implemented in `MoltResearch/Discrepancy/IndexSimp.lean`, with regression tests in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] A “shifted step-one” normal form bundle for affine starts: package a lemma family that normalizes
   `apSumFrom f a d n` to an `apSum` at step 1 on a shifted/dilated summand (choose the repo’s preferred orientation), so later stages can uniformly apply `Finset.range`-based bounds.
