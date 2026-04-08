@@ -68,11 +68,20 @@ theorem forall_hasDiscrepancyAtLeastAlong (out : Stage3Output f) :
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
 abbrev m (out : Stage3Output f) : ℕ := out.out2.m
 
+/-- Convenience projection: the affine-tail start index `m*d` packaged in Stage 3. -/
+abbrev start (out : Stage3Output f) : ℕ := out.m * out.d
+
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage3Output f) (k : ℕ) :
     out.g k = f (k + out.m * out.d) := by
   simpa [Stage3Output.g, Stage3Output.m, Stage3Output.d] using
     (Stage2Output.g_eq (f := f) out.out2 k)
+
+/-- Rewrite for the reduced sequence packaged in Stage 3, phrased using the bundled start index
+`out.start = out.m * out.d`. -/
+theorem g_eq_start (out : Stage3Output f) (k : ℕ) :
+    out.g k = f (k + out.start) := by
+  simpa [Stage3Output.start] using (out.g_eq (f := f) k)
 
 /-- Convenience projection: positivity of the reduced step size. -/
 abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.hd
