@@ -336,6 +336,19 @@ theorem exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2
   rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
   exact ⟨n, hn⟩
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that the
+affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values, with a
+positive-length witness `n > 0`.
+
+This is a thin wrapper around `forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  intro C
+  simpa using out.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) C
+
 /-- Backwards-compatible alias for `forall_exists_discOffset_gt`.
 
 Deprecated because the suffix `_lt` was misleading: the statement is `B < ...` (i.e. “greater than B”).
