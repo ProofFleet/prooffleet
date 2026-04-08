@@ -1213,6 +1213,76 @@ lemma apSumOffset_shift_mod (f : ℕ → ℤ) (d m n a : ℕ) (hd : 0 < d) :
               simp [hadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
   exact congrArg f hidx
 
+/-!
+### Predicate-level translation invariance (Track B)
+
+These lemmas lift the sum-level normalization lemma `apSumOffset_shift_mod` to the
+boundedness/unboundedness predicates.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Predicate-level translation invariance.
+-/
+
+/-- `discOffset` is invariant under the shift-modulo rewrite of `apSumOffset_shift_mod`. -/
+theorem discOffset_shift_mod (f : ℕ → ℤ) (d m n a : ℕ) (hd : 0 < d) :
+    discOffset (fun k => f (k + a)) d m n =
+      discOffset (fun k => f (k + (a % d))) d (m + a / d) n := by
+  unfold discOffset
+  simp [apSumOffset_shift_mod (f := f) (d := d) (m := m) (n := n) (a := a) hd]
+
+/-- Predicate-level wrapper for `apSumOffset_shift_mod` (boundedness, discOffset-native). -/
+theorem boundedDiscOffset_shift_mod_iff (f : ℕ → ℤ) (d m B a : ℕ) (hd : 0 < d) :
+    BoundedDiscOffset (fun k => f (k + a)) d m B ↔
+      BoundedDiscOffset (fun k => f (k + (a % d))) d (m + a / d) B := by
+  constructor <;> intro h <;> intro n
+  · simpa [BoundedDiscOffset, discOffset_shift_mod (f := f) (d := d) (m := m) (n := n) (a := a) hd] using
+      h n
+  · simpa [BoundedDiscOffset, discOffset_shift_mod (f := f) (d := d) (m := m) (n := n) (a := a) hd] using
+      h n
+
+/-- Predicate-level wrapper for `apSumOffset_shift_mod` (existence of a uniform bound). -/
+theorem boundedDiscOffsetExists_shift_mod_iff (f : ℕ → ℤ) (d m a : ℕ) (hd : 0 < d) :
+    BoundedDiscOffsetExists (fun k => f (k + a)) d m ↔
+      BoundedDiscOffsetExists (fun k => f (k + (a % d))) d (m + a / d) := by
+  constructor <;> rintro ⟨B, hB⟩
+  · exact ⟨B, (boundedDiscOffset_shift_mod_iff (f := f) (d := d) (m := m) (B := B) (a := a) hd).1 hB⟩
+  · exact ⟨B, (boundedDiscOffset_shift_mod_iff (f := f) (d := d) (m := m) (B := B) (a := a) hd).2 hB⟩
+
+/-- Predicate-level wrapper for `apSumOffset_shift_mod` (unboundedness). -/
+theorem unboundedDiscOffset_shift_mod_iff (f : ℕ → ℤ) (d m a : ℕ) (hd : 0 < d) :
+    UnboundedDiscOffset (fun k => f (k + a)) d m ↔
+      UnboundedDiscOffset (fun k => f (k + (a % d))) d (m + a / d) := by
+  -- `UnboundedDiscOffset` is defined as the negation of `BoundedDiscOffsetExists`.
+  simpa [UnboundedDiscOffset] using
+    (not_congr (boundedDiscOffsetExists_shift_mod_iff (f := f) (d := d) (m := m) (a := a) hd))
+
+/-!
+### Special case: shifts by multiples of `d`
+
+When `d ∣ a`, the modulo term `a % d` vanishes and the summand shift normalizes to `f`.
+-/
+
+/-- If `d ∣ a`, then shifting the summand by `a` only adjusts the start parameter (`m + a/d`). -/
+theorem boundedDiscOffset_shift_of_dvd_iff (f : ℕ → ℤ) (d m B a : ℕ) (hd : 0 < d)
+    (ha : d ∣ a) :
+    BoundedDiscOffset (fun k => f (k + a)) d m B ↔ BoundedDiscOffset f d (m + a / d) B := by
+  -- Reduce via the shift-modulo normalization and simplify `a % d = 0`.
+  simpa [Nat.mod_eq_zero_of_dvd ha] using
+    (boundedDiscOffset_shift_mod_iff (f := f) (d := d) (m := m) (B := B) (a := a) hd)
+
+/-- Exists-bound version of `boundedDiscOffset_shift_of_dvd_iff`. -/
+theorem boundedDiscOffsetExists_shift_of_dvd_iff (f : ℕ → ℤ) (d m a : ℕ) (hd : 0 < d)
+    (ha : d ∣ a) :
+    BoundedDiscOffsetExists (fun k => f (k + a)) d m ↔ BoundedDiscOffsetExists f d (m + a / d) := by
+  simpa [Nat.mod_eq_zero_of_dvd ha] using
+    (boundedDiscOffsetExists_shift_mod_iff (f := f) (d := d) (m := m) (a := a) hd)
+
+/-- Unboundedness version of `boundedDiscOffset_shift_of_dvd_iff`. -/
+theorem unboundedDiscOffset_shift_of_dvd_iff (f : ℕ → ℤ) (d m a : ℕ) (hd : 0 < d)
+    (ha : d ∣ a) :
+    UnboundedDiscOffset (fun k => f (k + a)) d m ↔ UnboundedDiscOffset f d (m + a / d) := by
+  simpa [Nat.mod_eq_zero_of_dvd ha] using
+    (unboundedDiscOffset_shift_mod_iff (f := f) (d := d) (m := m) (a := a) hd)
+
 /-! ### Triangle-inequality API for AP sums -/
 
 /-- `apSumOffset` splits over addition of lengths. -/

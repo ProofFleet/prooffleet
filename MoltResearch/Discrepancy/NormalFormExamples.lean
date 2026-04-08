@@ -278,6 +278,24 @@ example : UnboundedDiscAlong f d ↔ ∀ B : ℕ, ∃ n : ℕ, B < discAlong f d
   rfl
 
 /-!
+### Regression: predicate-level translation invariance (Track B)
+
+Compile-only checks ensuring the predicate-level wrappers for `apSumOffset_shift_mod` are usable
+under `import MoltResearch.Discrepancy`.
+-/
+
+example (hd : 0 < d) :
+    BoundedDiscOffset (fun k => f (k + a)) d m C ↔
+      BoundedDiscOffset (fun k => f (k + (a % d))) d (m + a / d) C := by
+  simpa using
+    (boundedDiscOffset_shift_mod_iff (f := f) (d := d) (m := m) (B := C) (a := a) hd)
+
+example (hd : 0 < d) (ha : d ∣ a) :
+    BoundedDiscOffset (fun k => f (k + a)) d m C ↔ BoundedDiscOffset f d (m + a / d) C := by
+  simpa using
+    (boundedDiscOffset_shift_of_dvd_iff (f := f) (d := d) (m := m) (B := C) (a := a) hd ha)
+
+/-!
 ### Regression: residue-class splitting normal forms (Track B)
 
 Compile-only examples ensuring the residue-class split normal forms are usable under:
