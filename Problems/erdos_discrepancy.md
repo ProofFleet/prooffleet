@@ -269,6 +269,30 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Common-step refinement/coarsening wrappers: add convenience lemmas that move between steps `d` and `lcm d d'` (or `gcd`) in a controlled way, so later stages can “synchronize steps” without hand-rolling number-theory algebra.
   (Implemented as `disc_lcm_step_le_left` / `disc_lcm_step_le_right` in `MoltResearch/Discrepancy/StepScaling.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Residue-class decomposition (sum-level, equality): for `r>0`, split an offset sum into `r` interleaved offset sums at step `r*d`, e.g. a lemma of the schematic form
+  `apSumOffset f d m (r*n) = ∑ j in Finset.range r, apSumOffset f (r*d) (m+j) n` (with the repo’s exact endpoint convention), plus a stable regression example.
+
+- [ ] Residue-class decomposition (disc-level, packaged): derive the triangle-inequality corollary
+  `discOffset f d m (r*n) ≤ ∑ j in Finset.range r, discOffset f (r*d) (m+j) n`, exported on the stable surface.
+
+- [ ] Predicate-level translation invariance: add simp-friendly wrappers expressing that shifting the sequence by an affine tail doesn’t change boundedness/unboundedness predicates, e.g.
+  `BoundedDiscOffset (fun k => f (k + a)) d m ↔ BoundedDiscOffset f d (m + a/d)`, aligned with the existing `apSumOffset_shift_mod` normal form.
+
+- [ ] Predicate-level sign-flip invariance: package `[simp]` lemmas like
+  `BoundedDiscOffset (fun k => -f k) d m ↔ BoundedDiscOffset f d m` and `UnboundedDiscOffset (fun k => -f k) d m ↔ UnboundedDiscOffset f d m`, so later stages can normalize away negations without unfolding.
+
+- [ ] “Max discrepancy up to N” API (residue-friendly): extend the `discOffsetUpTo`/`discUpTo` API with a lemma extracting a maximizing witness in a *specified residue class* (when nonempty), to support later pigeonhole/residue arguments.
+
+- [ ] Stable-surface simp polish for index arithmetic: add a minimal, loop-free simp lemma set that normalizes common index shapes in summands (e.g. `((m+i+1)*d)` vs `(d*(m+i+1))`, and associativity of `m+i+1`) specifically in the nucleus pipeline, with compile-time examples.
+
+- [ ] A “shifted step-one” normal form bundle for affine starts: package a lemma family that normalizes
+  `apSumFrom f a d n` to an `apSum` at step 1 on a shifted/dilated summand (choose the repo’s preferred orientation), so later stages can uniformly apply `Finset.range`-based bounds.
+
+- [ ] Boundedness transfer lemma (discOffsetUpTo): prove monotonicity/subadditivity facts like
+  `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + K` under `IsSignSequence f`, so “max up to N” interacts cleanly with Lipschitz-by-1.
+
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
