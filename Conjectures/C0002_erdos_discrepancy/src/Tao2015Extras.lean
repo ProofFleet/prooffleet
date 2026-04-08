@@ -70,19 +70,14 @@ theorem natAbs_apSumFrom_mul_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
       simpa using
         (natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n))
 
-/-- Paper-notation normal form: `discOffset` expressed as an interval sum over `Icc (m+1) (m+n)`.
+/-
+Note: `Tao2015` already provides the interval-sum normal form
 
-This avoids unfolding `discOffset` and then rewriting `apSumOffset` to an interval sum by hand.
+  Tao2015.discOffset_eq_natAbs_sum_Icc
+
+so we deliberately do not restate it here. (Otherwise this file cannot be imported together with
+`Tao2015`.)
 -/
-theorem discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
-    discOffset f d m n =
-      Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
-  calc
-    discOffset f d m n = Int.natAbs (apSumFrom f (m * d) d n) := by
-      simpa using discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)
-    _ =
-        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
-      simpa using natAbs_apSumFrom_mul_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)
 
 /-- Inequality normal form: `discOffset f d m n < B` rewritten using affine-tail nuclei. -/
 theorem discOffset_lt_iff_natAbs_apSumFrom_mul_lt (f : ℕ → ℤ) (d m n B : ℕ) :
