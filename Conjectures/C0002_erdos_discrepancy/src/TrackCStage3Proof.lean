@@ -68,15 +68,12 @@ theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
   simpa [stage3_g, stage3_d] using
     (Stage3Output.unboundedDiscrepancyAlong_core (f := f) (stage3Out (f := f) (hf := hf)))
 
-/-- Consumer-facing shortcut: Stage 3 yields an unbounded bundled offset discrepancy family
-`discOffset f d m`, at the concrete parameters produced by the pipeline.
+/-
+Note: `stage3_unboundedDiscOffset` is defined in `TrackCStage3Entry.lean` so hard-gate consumers
+can use it without importing this larger convenience-lemma file.
 
-This is a thin wrapper around `Stage3Output.unboundedDiscOffset`.
+Since this module imports `TrackCStage3Entry`, that lemma is available automatically here.
 -/
-theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) := by
-  simpa [stage3_d, stage3_m] using
-    (Stage3Output.unboundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields raw offset-nucleus witnesses at the concrete
 parameters produced by the pipeline.
@@ -168,40 +165,18 @@ is defined in `TrackCStage3Entry.lean` so hard-gate consumers can use it without
 larger convenience-lemma file.
 -/
 
-/-- Consumer-facing shortcut: Stage 3 yields the most pipeline-friendly global witness form:
+/-
+Note: the global witness-form wrappers
 
-`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+  stage3_forall_exists_d_ge_one_witness_pos
+  stage3_forall_exists_d_pos_witness_pos
+  stage3_forall_exists_d_ne_zero_witness_pos
 
-This is a thin wrapper around `Stage3Output.forall_exists_d_ge_one_witness_pos`.
+are defined in `TrackCStage3Entry.lean` so hard-gate consumers can use them without importing this
+larger convenience-lemma file.
+
+Since this module imports `TrackCStage3Entry`, those lemmas are available automatically here.
 -/
-theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  simpa using
-    (Stage3Output.forall_exists_d_ge_one_witness_pos (f := f) (stage3 (f := f) (hf := hf)))
-
-/-- Consumer-facing shortcut: Stage 3 yields a global witness form with the step-size condition
-written as `d > 0`:
-
-`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
-
-This is a thin wrapper around `Stage3Output.forall_exists_d_pos_witness_pos`.
--/
-theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  simpa using
-    (Stage3Output.forall_exists_d_pos_witness_pos (f := f) (stage3 (f := f) (hf := hf)))
-
-/-- Consumer-facing shortcut: Stage 3 yields a global witness form with the step-size condition
-written as `d ≠ 0`:
-
-`∀ C, ∃ d n, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
-
-This is a thin wrapper around `Stage3Output.forall_exists_d_ne_zero_witness_pos`.
--/
-theorem stage3_forall_exists_d_ne_zero_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  simpa using
-    (Stage3Output.forall_exists_d_ne_zero_witness_pos (f := f) (stage3 (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
