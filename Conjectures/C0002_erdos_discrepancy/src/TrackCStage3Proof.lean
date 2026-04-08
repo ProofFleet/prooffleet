@@ -94,6 +94,21 @@ theorem stage3_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSi
   simpa [stage3_d, stage3_m] using
     (Stage3Output.forall_exists_natAbs_apSumOffset_gt' (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Positive-length witness form of `stage3_forall_exists_natAbs_apSumOffset_gt'`.
+
+The witness length `n` cannot be `0`, since `apSumOffset ... 0 = 0`.
+-/
+theorem stage3_forall_exists_natAbs_apSumOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ, n > 0 ∧
+        Int.natAbs
+            (apSumOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) n) > B := by
+  have hunb :
+      UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) :=
+    stage3_unboundedDiscOffset (f := f) (hf := hf)
+  simpa using
+    (UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos (hunb := hunb))
+
 /-- Consumer-facing shortcut: Stage 3 yields the paper-notation offset witness form:
 
 `∀ B, ∃ n, Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) > B`,
