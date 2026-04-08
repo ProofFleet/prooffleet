@@ -1018,6 +1018,17 @@ theorem not_boundedDiscrepancy_of_unboundedDiscOffset_one_le (f : ℕ → ℤ) {
   have hd' : d > 0 := lt_of_lt_of_le Nat.zero_lt_one hd
   exact not_boundedDiscrepancy_of_unboundedDiscOffset (f := f) (d := d) (m := m) hd' hunb
 
+/-- Variant of `not_boundedDiscrepancy_of_unboundedDiscOffset` with the step-size side condition
+written as `d ≠ 0`.
+
+This is often the natural hypothesis produced by stage output records.
+-/
+theorem not_boundedDiscrepancy_of_unboundedDiscOffset_ne_zero (f : ℕ → ℤ) {d m : ℕ} (hd : d ≠ 0)
+    (hunb : UnboundedDiscOffset f d m) :
+    ¬ BoundedDiscrepancy f := by
+  have hd' : d > 0 := Nat.pos_of_ne_zero hd
+  exact not_boundedDiscrepancy_of_unboundedDiscOffset (f := f) (d := d) (m := m) hd' hunb
+
 end Tao2015
 
 end MoltResearch
