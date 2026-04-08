@@ -483,6 +483,47 @@ lemma exists_discOffset_eq_discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) :
     exact Nat.le_of_lt_succ (Finset.mem_range.1 hnmem)
   · exact hsup.symm
 
+/-- In a fixed residue class modulo `q`, the maximum in `discUpTo` is attained by some `n ≤ N`.
+
+This is a residue-friendly witness-extraction lemma: rather than maximizing over all `n ≤ N`, we
+maximize over the filtered finset `{ n ≤ N | n ≡ r [MOD q] }`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API (residue-friendly).
+-/
+lemma exists_disc_eq_sup_filter_modEq (f : ℕ → ℤ) (d N q r : ℕ)
+    (hne : ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).Nonempty) :
+    ∃ n ≤ N, n ≡ r [MOD q] ∧
+      disc f d n = ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).sup (fun t => disc f d t) := by
+  classical
+  rcases Finset.exists_mem_eq_sup
+      (s := (Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q]))
+      (f := fun t => disc f d t) hne with
+    ⟨n, hnmem, hsup⟩
+  have hnrange : n ∈ Finset.range (N + 1) := (Finset.mem_filter.1 hnmem).1
+  have hmod : n ≡ r [MOD q] := (Finset.mem_filter.1 hnmem).2
+  refine ⟨n, Nat.le_of_lt_succ (Finset.mem_range.1 hnrange), hmod, ?_⟩
+  exact hsup.symm
+
+/-- In a fixed residue class modulo `q`, the maximum in `discOffsetUpTo` is attained by some
+`n ≤ N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API (residue-friendly).
+-/
+lemma exists_discOffset_eq_sup_filter_modEq (f : ℕ → ℤ) (d m N q r : ℕ)
+    (hne : ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).Nonempty) :
+    ∃ n ≤ N, n ≡ r [MOD q] ∧
+      discOffset f d m n =
+        ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).sup (fun t => discOffset f d m t) := by
+  classical
+  rcases Finset.exists_mem_eq_sup
+      (s := (Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q]))
+      (f := fun t => discOffset f d m t) hne with
+    ⟨n, hnmem, hsup⟩
+  have hnrange : n ∈ Finset.range (N + 1) := (Finset.mem_filter.1 hnmem).1
+  have hmod : n ≡ r [MOD q] := (Finset.mem_filter.1 hnmem).2
+  refine ⟨n, Nat.le_of_lt_succ (Finset.mem_range.1 hnrange), hmod, ?_⟩
+  exact hsup.symm
+
 /-- Definitional lemma exposing the definition. -/
 lemma discOffset_eq_natAbs_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=

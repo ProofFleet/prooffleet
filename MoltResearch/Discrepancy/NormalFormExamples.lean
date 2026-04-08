@@ -225,6 +225,21 @@ example (hn : n₁ ≤ n₂) : discOffsetUpTo f d m n₁ ≤ discOffsetUpTo f d 
 example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
   simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n))
 
+-- Regression (Track B / “max discrepancy up to N” API, residue-friendly witness):
+example (q r : ℕ)
+    (hne : ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).Nonempty) :
+    ∃ t ≤ n, t ≡ r [MOD q] ∧
+      disc f d t = ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).sup (fun t => disc f d t) := by
+  simpa using (exists_disc_eq_sup_filter_modEq (f := f) (d := d) (N := n) (q := q) (r := r) hne)
+
+example (q r : ℕ)
+    (hne : ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).Nonempty) :
+    ∃ t ≤ n, t ≡ r [MOD q] ∧
+      discOffset f d m t =
+        ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).sup (fun t => discOffset f d m t) := by
+  simpa using
+    (exists_discOffset_eq_sup_filter_modEq (f := f) (d := d) (m := m) (N := n) (q := q) (r := r) hne)
+
 -- Regression (Track B / degenerate tail normal forms):
 -- `discOffset` at length 0 and 1 should simplify to explicit normal forms.
 example : discOffset f d m 0 = 0 := by
