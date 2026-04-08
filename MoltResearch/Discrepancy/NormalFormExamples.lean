@@ -449,6 +449,12 @@ example : apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n
 example : discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
   simpa using (discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
 
+-- Regression (Track B / index arithmetic simp normal form):
+-- `DiscSimp` should also normalize the common `(m+i+1)` addition shape and multiplication order
+-- in summand indices.
+example (i : ℕ) : f (d * (m + (i + 1))) = f ((m + i + 1) * d) := by
+  simp
+
 -- Regression (Track B / step-one normalization, discOffset):
 -- push the step size into the summand.
 example : discOffset f d m n = discOffset (fun k => f (k * d)) 1 m n := by
