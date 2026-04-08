@@ -96,6 +96,9 @@ example (i : ℕ) : m + (i + 1) = m + i + 1 := by
 example (i : ℕ) : d * (m + (i + 1)) = (m + i + 1) * d := by
   simp
 
+example (i : ℕ) : d * (m + Nat.succ i) = (m + i + 1) * d := by
+  simp
+
 /-!
 ### Regression: multiplicative dilation normal forms (Track B)
 

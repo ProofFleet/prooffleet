@@ -28,6 +28,14 @@ This is intentionally specialized to `+ 1` to keep the simp set small.
   -- `simp` knows how to rewrite `i + 1` as `Nat.succ i` and can close using associativity.
   simp [Nat.add_assoc]
 
+/-- Variant of `add_add_one_eq_add_add_one_left` where the right addend is written as `Nat.succ i`.
+
+This shows up frequently in goals produced by `simp`/`omega` when pushing endpoints.
+-/
+@[simp] lemma add_succ_eq_add_add_one_left (m i : ℕ) : m + Nat.succ i = m + i + 1 := by
+  -- Keep the simp lemma surface small: reduce to the `i + 1` case.
+  simpa [Nat.succ_eq_add_one] using (add_add_one_eq_add_add_one_left m i)
+
 /-! ## Multiplication shape: `d * (m + i + 1)` -/
 
 /-- Normalize multiplication order for the common index shape `m + i + 1`.
