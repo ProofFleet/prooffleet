@@ -294,8 +294,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumFrom f a d n` to an `apSum` at step 1 on a shifted/dilated summand (choose the repo’s preferred orientation), so later stages can uniformly apply `Finset.range`-based bounds.
   (Implemented in `MoltResearch/Discrepancy/Affine.lean` as `apSumFrom_eq_apSum_step_one` and `apSumFrom_eq_apSum_step_one_add_left`, with regression tests in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Boundedness transfer lemma (discOffsetUpTo): prove monotonicity/subadditivity facts like
+- [x] Boundedness transfer lemma (discOffsetUpTo): prove monotonicity/subadditivity facts like
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + K` under `IsSignSequence f`, so “max up to N” interacts cleanly with Lipschitz-by-1.
+  (Implemented as `discOffsetUpTo_add_le` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
