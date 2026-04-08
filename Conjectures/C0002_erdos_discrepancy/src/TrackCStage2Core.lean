@@ -98,6 +98,18 @@ theorem forall_hasDiscrepancyAtLeast (out : Stage2Output f) :
   refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
   exact out.notBoundedOriginal (f := f)
 
+/-- Stage-2 unboundedness, re-expressed using the verified core predicate.
+
+This is a small convenience lemma: many consumers outside the `Tao2015` namespace use the core
+predicate `MoltResearch.UnboundedDiscrepancyAlong` rather than the Track-C-local definition.
+
+We keep this lemma in `TrackCStage2Core.lean` so downstream stages can access it without importing
+the larger convenience-lemma library `TrackCStage2Output.lean`.
+-/
+theorem unboundedDiscrepancyAlong_core (out : Stage2Output f) :
+    MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
+  exact (Tao2015.unboundedDiscrepancyAlong_iff_core (g := out.g) (d := out.d)).1 out.unbounded
+
 /-- Stage 2 output implies the nucleus witness form
 
 `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
