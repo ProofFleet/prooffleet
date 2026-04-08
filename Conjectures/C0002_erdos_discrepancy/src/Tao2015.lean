@@ -201,8 +201,13 @@ theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (
 /-- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus. -/
 theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumFrom f (m * d) d n = apSumOffset f d m n := by
-  simpa using
-    (apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n))
+  calc
+    apSumFrom f (m * d) d n = apSumFrom f (0 + m * d) d n := by
+      simp
+    _ = apSumOffset (fun k => f (k + 0)) d m n := by
+      exact apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n)
+    _ = apSumOffset f d m n := by
+      simp
 
 /-- Paper-notation normal form: the bundled offset nucleus `apSumOffset` is an interval sum.
 
@@ -226,7 +231,7 @@ theorem discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
       Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
   -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`.
   unfold discOffset
-  simpa using (natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n))
+  exact natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)
 
 namespace UnboundedDiscOffset
 
