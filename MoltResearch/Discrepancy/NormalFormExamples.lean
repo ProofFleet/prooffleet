@@ -2091,6 +2091,14 @@ example : apSumFrom f a d n = apSum (fun k => f (k + a)) d n := by
 example : apSumFrom f a d n = apSumOffset (fun k => f (k + a)) d 0 n := by
   simpa using apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (n := n)
 
+-- Affine sums: “step-one” normal forms (bundle the step size into the summand).
+-- These are the canonical normal forms used by later `Finset.range`-based bounds.
+example : apSumFrom f a d n = apSum (fun k => f (a + k * d)) 1 n := by
+  simpa using apSumFrom_eq_apSum_step_one (f := f) (a := a) (d := d) (n := n)
+
+example : apSumFrom f a d n = apSum (fun k => f (k * d + a)) 1 n := by
+  simpa using apSumFrom_eq_apSum_step_one_add_left (f := f) (a := a) (d := d) (n := n)
+
 -- Normal form when the affine start is a multiple of the step.
 example (h : d ∣ a) : ∃ m, apSumFrom f a d n = apSumOffset f d m n := by
   simpa using

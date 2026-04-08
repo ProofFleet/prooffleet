@@ -290,8 +290,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 - [x] Stable-surface simp polish for index arithmetic: add a minimal, loop-free simp lemma set that normalizes common index shapes in summands (e.g. `((m+i+1)*d)` vs `(d*(m+i+1))`, and associativity of `m+i+1`) specifically in the nucleus pipeline, with compile-time examples. (Implemented in `MoltResearch/Discrepancy/IndexSimp.lean`, with regression tests in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] A “shifted step-one” normal form bundle for affine starts: package a lemma family that normalizes
+- [x] A “shifted step-one” normal form bundle for affine starts: package a lemma family that normalizes
   `apSumFrom f a d n` to an `apSum` at step 1 on a shifted/dilated summand (choose the repo’s preferred orientation), so later stages can uniformly apply `Finset.range`-based bounds.
+  (Implemented in `MoltResearch/Discrepancy/Affine.lean` as `apSumFrom_eq_apSum_step_one` and `apSumFrom_eq_apSum_step_one_add_left`, with regression tests in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Boundedness transfer lemma (discOffsetUpTo): prove monotonicity/subadditivity facts like
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + K` under `IsSignSequence f`, so “max up to N” interacts cleanly with Lipschitz-by-1.
