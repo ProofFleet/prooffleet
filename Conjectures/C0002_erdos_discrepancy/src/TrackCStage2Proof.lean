@@ -88,9 +88,9 @@ theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
 
 /-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
 theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
-    stage2_g (f := f) (hf := hf) k =
-      f (k + (stage2_m (f := f) (hf := hf)) * (stage2_d (f := f) (hf := hf))) := by
-  simpa [stage2_g, stage2_m, stage2_d] using (stage2Out (f := f) (hf := hf)).g_eq k
+    stage2_g (f := f) (hf := hf) k = f (k + stage2_start (f := f) (hf := hf)) := by
+  simpa [stage2_g, stage2_start, stage2_m, stage2_d] using
+    (stage2Out (f := f) (hf := hf)).g_eq k
 
 /-!
 ## Additional witness-form wrappers
@@ -143,10 +143,8 @@ theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsS
     ∀ C : ℕ,
       ∃ n : ℕ,
         Int.natAbs
-            (apSumFrom f
-              (stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf))
-              (stage2_d (f := f) (hf := hf)) n) > C := by
-  simpa [stage2_m, stage2_d] using
+            (apSumFrom f (stage2_start (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) n) > C := by
+  simpa [stage2_start, stage2_m, stage2_d] using
     ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt
           (f := f)).1
       (stage2Out (f := f) (hf := hf)).unbounded
@@ -167,13 +165,11 @@ theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → �
     ∀ C : ℕ,
       ∃ n : ℕ, n > 0 ∧
         Int.natAbs
-            (apSumFrom f
-              (stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf))
-              (stage2_d (f := f) (hf := hf)) n) > C := by
+            (apSumFrom f (stage2_start (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) n) > C := by
   have hunb :
       UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
     stage2_unboundedDiscOffset (f := f) (hf := hf)
-  simpa [stage2_m, stage2_d] using
+  simpa [stage2_start, stage2_m, stage2_d] using
     (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
       (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) hunb)
 

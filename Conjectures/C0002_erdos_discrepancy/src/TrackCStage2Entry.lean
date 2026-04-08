@@ -44,6 +44,15 @@ noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ �
 noncomputable abbrev stage2_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   (stage2Out (f := f) (hf := hf)).out1.m
 
+/-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1 and produced by
+Stage 2.
+
+We define this in the entry-point module so hard-gate consumers can use it without importing any
+additional wrapper-lemma modules.
+-/
+noncomputable abbrev stage2_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf)
+
 end Tao2015
 
 end MoltResearch
