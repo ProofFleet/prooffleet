@@ -277,8 +277,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Residue-class decomposition (disc-level, packaged): triangle-inequality corollary for the residue split normal form.
   (Implemented as `discOffset_mul_len_succ_eq_natAbs_sum_range` and `discOffset_mul_len_succ_le_sum_range_natAbs` in `MoltResearch/Discrepancy/Residue.lean`, exported on the stable surface, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Predicate-level translation invariance: add simp-friendly wrappers expressing that shifting the sequence by an affine tail doesn’t change boundedness/unboundedness predicates, e.g.
+- [x] Predicate-level translation invariance: add simp-friendly wrappers expressing that shifting the sequence by an affine tail doesn’t change boundedness/unboundedness predicates, e.g.
   `BoundedDiscOffset (fun k => f (k + a)) d m ↔ BoundedDiscOffset f d (m + a/d)`, aligned with the existing `apSumOffset_shift_mod` normal form.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `*_shift_mod_iff` and `*_shift_of_dvd_iff`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Predicate-level sign-flip invariance: package `[simp]` lemmas like
   `BoundedDiscOffset (fun k => -f k) d m ↔ BoundedDiscOffset f d m` and `UnboundedDiscOffset (fun k => -f k) d m ↔ UnboundedDiscOffset f d m`, so later stages can normalize away negations without unfolding.

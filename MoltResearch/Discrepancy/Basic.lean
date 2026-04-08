@@ -1262,7 +1262,7 @@ When `d ∣ a`, the modulo term `a % d` vanishes and the summand shift normalize
 -/
 
 /-- If `d ∣ a`, then shifting the summand by `a` only adjusts the start parameter (`m + a/d`). -/
-theorem boundedDiscOffset_shift_of_dvd_iff (f : ℕ → ℤ) (d m B a : ℕ) (hd : 0 < d)
+@[simp] theorem boundedDiscOffset_shift_of_dvd_iff (f : ℕ → ℤ) (d m B a : ℕ) (hd : 0 < d)
     (ha : d ∣ a) :
     BoundedDiscOffset (fun k => f (k + a)) d m B ↔ BoundedDiscOffset f d (m + a / d) B := by
   -- Reduce via the shift-modulo normalization and simplify `a % d = 0`.
@@ -1270,14 +1270,14 @@ theorem boundedDiscOffset_shift_of_dvd_iff (f : ℕ → ℤ) (d m B a : ℕ) (hd
     (boundedDiscOffset_shift_mod_iff (f := f) (d := d) (m := m) (B := B) (a := a) hd)
 
 /-- Exists-bound version of `boundedDiscOffset_shift_of_dvd_iff`. -/
-theorem boundedDiscOffsetExists_shift_of_dvd_iff (f : ℕ → ℤ) (d m a : ℕ) (hd : 0 < d)
+@[simp] theorem boundedDiscOffsetExists_shift_of_dvd_iff (f : ℕ → ℤ) (d m a : ℕ) (hd : 0 < d)
     (ha : d ∣ a) :
     BoundedDiscOffsetExists (fun k => f (k + a)) d m ↔ BoundedDiscOffsetExists f d (m + a / d) := by
   simpa [Nat.mod_eq_zero_of_dvd ha] using
     (boundedDiscOffsetExists_shift_mod_iff (f := f) (d := d) (m := m) (a := a) hd)
 
 /-- Unboundedness version of `boundedDiscOffset_shift_of_dvd_iff`. -/
-theorem unboundedDiscOffset_shift_of_dvd_iff (f : ℕ → ℤ) (d m a : ℕ) (hd : 0 < d)
+@[simp] theorem unboundedDiscOffset_shift_of_dvd_iff (f : ℕ → ℤ) (d m a : ℕ) (hd : 0 < d)
     (ha : d ∣ a) :
     UnboundedDiscOffset (fun k => f (k + a)) d m ↔ UnboundedDiscOffset f d (m + a / d) := by
   simpa [Nat.mod_eq_zero_of_dvd ha] using
