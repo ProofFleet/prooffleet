@@ -281,8 +281,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `BoundedDiscOffset (fun k => f (k + a)) d m ↔ BoundedDiscOffset f d (m + a/d)`, aligned with the existing `apSumOffset_shift_mod` normal form.
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `*_shift_mod_iff` and `*_shift_of_dvd_iff`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Predicate-level sign-flip invariance: package `[simp]` lemmas like
+- [x] Predicate-level sign-flip invariance: package `[simp]` lemmas like
   `BoundedDiscOffset (fun k => -f k) d m ↔ BoundedDiscOffset f d m` and `UnboundedDiscOffset (fun k => -f k) d m ↔ UnboundedDiscOffset f d m`, so later stages can normalize away negations without unfolding.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `boundedDiscOffset_neg_iff`, `boundedDiscOffsetExists_neg_iff`, and `unboundedDiscOffset_neg_iff`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Max discrepancy up to N” API (residue-friendly): extend the `discOffsetUpTo`/`discUpTo` API with a lemma extracting a maximizing witness in a *specified residue class* (when nonempty), to support later pigeonhole/residue arguments.
 
