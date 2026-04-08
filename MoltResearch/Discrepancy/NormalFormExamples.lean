@@ -84,6 +84,19 @@ example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = d
   simp
 
 /-!
+### Regression: index-arithmetic simp polish (Track B)
+
+These ensure the opt-in simp bundle `DiscSimp` normalizes the most common index shapes that show up
+in summands (associating `m + (i+1)` and ordering `d * (m+i+1)` as `(m+i+1) * d`).
+-/
+
+example (i : ℕ) : m + (i + 1) = m + i + 1 := by
+  simp
+
+example (i : ℕ) : d * (m + (i + 1)) = (m + i + 1) * d := by
+  simp
+
+/-!
 ### Regression: multiplicative dilation normal forms (Track B)
 
 These are compile-only examples ensuring the “pull a common factor into the step” rewrites remain
