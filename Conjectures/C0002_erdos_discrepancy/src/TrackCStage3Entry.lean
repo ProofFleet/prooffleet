@@ -62,6 +62,15 @@ additional wrapper-lemma modules.
 noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage3_m (f := f) (hf := hf) * stage3_d (f := f) (hf := hf)
 
+/-- Rewrite for the reduced sequence produced by Stage 3: it is a shift by the deterministic
+affine-tail start index `stage3_start = m*d`. -/
+theorem stage3_g_eq_start (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    stage3_g (f := f) (hf := hf) k = f (k + stage3_start (f := f) (hf := hf)) := by
+  -- Stage 3 is just Stage-2 glue, so this is the Stage-2 `g_eq_start` rewrite.
+  simpa [stage3_g, stage3_start, stage3_m, stage3_d, stage2_g, stage2_m, stage2_d,
+    Stage2Output.start] using
+    (Stage2Output.g_eq_start (f := f) (out := stage2Out (f := f) (hf := hf)) k)
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the entry-point module so hard-gate consumers can access it without
