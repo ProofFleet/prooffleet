@@ -71,6 +71,23 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
   simpa using
     (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields unboundedness of the bundled offset discrepancy family
+`discOffset f d m` at the deterministic parameters produced by the pipeline.
+
+We keep this lemma in the entry-point module so hard-gate consumers can access the offset witness
+without importing the larger wrapper-lemma module `TrackCStage3Proof`.
+-/
+theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) := by
+  -- Reduce to the Stage-1 transport lemma bundled in the Stage-2 output.
+  have hunb :
+      UnboundedDiscOffset f (stage2Out (f := f) (hf := hf)).out1.d (stage2Out (f := f) (hf := hf)).out1.m := by
+    exact
+      (ReductionOutput.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)
+            (out := (stage2Out (f := f) (hf := hf)).out1)).1
+        (stage2Out (f := f) (hf := hf)).unbounded
+  simpa [stage3_d, stage3_m, stage2_d, stage2_m] using hunb
+
 end Tao2015
 
 end MoltResearch
