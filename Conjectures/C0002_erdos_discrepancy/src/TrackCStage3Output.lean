@@ -215,11 +215,10 @@ This is `forall_exists_natAbs_apSumOffset_gt'` rewritten using
 theorem forall_exists_natAbs_sum_Icc_offset_gt (out : Stage3Output f) :
     ∀ B : ℕ, ∃ n : ℕ,
       Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) > B := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  simpa using
-    (Tao2015.unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt' (f := f)
-          (d := out.d) (m := out.m)).1
-      hunb
+  -- Stage 3 bundles a Stage-2 output, so route through the already-proved Stage-2 paper-notation
+  -- lemma rather than depending on optional Tao2015Extras normal forms.
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) out.out2)
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 paper-notation offset sum witness `∑ i ∈ Icc (m+1) (m+n), f (i*d)` takes arbitrarily large absolute
