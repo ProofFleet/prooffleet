@@ -90,6 +90,19 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
   simpa using
     (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is a thin wrapper around the proved Stage-2 core lemma
+`Stage2Output.forall_exists_d_ge_one_witness_pos`.
+-/
+theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  -- Stage 3 is just glue on top of Stage 2, so route through the Stage-2 core lemma.
+  exact
+    Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) (stage2Out (f := f) (hf := hf))
+
 /-- Consumer-facing shortcut: Stage 3 yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m` at the deterministic parameters produced by the pipeline.
 
