@@ -1,4 +1,3 @@
-import MoltResearch.Discrepancy.Unbounded
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry
 
 /-!
@@ -23,8 +22,8 @@ follow.
 -/
 theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
-  -- Prefer consuming the Stage-3 output record API.
-  exact (Tao2015.stage3Out (f := f) (hf := hf)).notBounded
+  -- Prefer consuming the Stage-3 entry-point API.
+  exact Tao2015.stage3_notBounded (f := f) (hf := hf)
 
 /-- Erdős discrepancy theorem.
 
