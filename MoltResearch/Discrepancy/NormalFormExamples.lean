@@ -836,6 +836,19 @@ example (len B : ℕ) (h : BoundedDiscrepancyAlong (fun k => f (k + m * d)) d le
   simpa using
     (BoundedDiscrepancyAlong.to_forall_le_discOffset_le_shift_add (f := f) (d := d) (m := m) (len := len) (B := B) h)
 
+-- Regression (Track B / predicate-level translation invariance): existence of a uniform bound for
+-- `discOffset` is equivalent to existence of a uniform bound for the along-`d` discrepancy of the
+-- shifted sequence.
+example :
+    BoundedDiscOffsetExists f d m ↔ BoundedDiscAlongExists (fun k => f (k + m * d)) d := by
+  simpa using (boundedDiscOffsetExists_iff_boundedDiscAlongExists_shift_add (f := f) (d := d) (m := m))
+
+-- Regression (Track B / predicate-level translation invariance): unboundedness is similarly invariant
+-- under shifting by an affine tail.
+example :
+    UnboundedDiscOffset f d m ↔ UnboundedDiscAlong (fun k => f (k + m * d)) d := by
+  simpa using (unboundedDiscOffset_iff_unboundedDiscAlong_shift_add (f := f) (d := d) (m := m))
+
 -- Regression: parity split normal form for even-length homogeneous AP sums.
 example :
     apSum f d (2 * (n + 1)) = apSum f (2 * d) (n + 1) + f d + apSumFrom f d (2 * d) n := by

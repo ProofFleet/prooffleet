@@ -1727,6 +1727,45 @@ theorem BoundedDiscrepancyAlong.to_forall_le_discOffset_le_shift_add {f : ℕ �
   -- Rewrite the target into a `discAlong` statement.
   simpa [discOffset_eq_discAlong_shift_add (f := f) (d := d) (m := m) (n := n)] using h n hn
 
+/-!
+### Predicate-level translation invariance (boundedness / unboundedness)
+
+These wrappers are the “quantifier-level” versions of `discOffset_eq_discAlong_shift_add`:
+shifting the underlying sequence by an affine tail `m*d` does not change the boundedness or
+unboundedness predicates.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Predicate-level translation invariance.
+-/
+
+/-- Boundedness-exists for `discOffset` is invariant under shifting the sequence by `m*d`.
+
+Concretely, `discOffset f d m n` is definitionally the along-`d` discrepancy of the shifted
+sequence `fun k => f (k + m*d)`, so existence of a uniform bound is equivalent.
+-/
+theorem boundedDiscOffsetExists_iff_boundedDiscAlongExists_shift_add (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffsetExists f d m ↔ BoundedDiscAlongExists (fun k => f (k + m * d)) d := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite `discAlong` on the shifted sequence back to `discOffset`.
+    simpa [discAlong_shift_add_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    -- Rewrite `discOffset` into `discAlong` on the shifted sequence.
+    simpa [discOffset_eq_discAlong_shift_add (f := f) (d := d) (m := m) (n := n)] using hB n
+
+/-- Unboundedness (witness normal form) is invariant under shifting the sequence by `m*d`.
+
+This is the natural dual of `boundedDiscOffsetExists_iff_boundedDiscAlongExists_shift_add`.
+-/
+theorem unboundedDiscOffset_iff_unboundedDiscAlong_shift_add (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ UnboundedDiscAlong (fun k => f (k + m * d)) d := by
+  -- Reduce the left-hand side to the witness normal form and rewrite each witness inequality.
+  simp [unboundedDiscOffset_iff_forall_exists_discOffset_lt, UnboundedDiscAlong,
+    discOffset_eq_discAlong_shift_add]
+
 /-- Mul-left variant of `apSumOffset_eq_apSumOffset_shift_add` using the translation constant `d*m`.
 
 This avoids commuting multiplication in the shift constant when downstream development prefers
