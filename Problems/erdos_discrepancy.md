@@ -271,11 +271,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Residue-class decomposition (sum-level, equality): for `r>0`, split an offset sum into `r` interleaved offset sums at step `r*d`, e.g. a lemma of the schematic form
-  `apSumOffset f d m (r*n) = ∑ j in Finset.range r, apSumOffset f (r*d) (m+j) n` (with the repo’s exact endpoint convention), plus a stable regression example.
+- [x] Residue-class decomposition (sum-level, equality): for `q>0`, split an offset sum into `q` residue classes (repo endpoint convention).
+  (Implemented as `apSumOffset_mul_len_succ_eq_sum_range` / `apSumOffset_mul_len_succ_eq_sum_range_mul_left` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Residue-class decomposition (disc-level, packaged): derive the triangle-inequality corollary
-  `discOffset f d m (r*n) ≤ ∑ j in Finset.range r, discOffset f (r*d) (m+j) n`, exported on the stable surface.
+- [x] Residue-class decomposition (disc-level, packaged): triangle-inequality corollary for the residue split normal form.
+  (Implemented as `discOffset_mul_len_succ_eq_natAbs_sum_range` and `discOffset_mul_len_succ_le_sum_range_natAbs` in `MoltResearch/Discrepancy/Residue.lean`, exported on the stable surface, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Predicate-level translation invariance: add simp-friendly wrappers expressing that shifting the sequence by an affine tail doesn’t change boundedness/unboundedness predicates, e.g.
   `BoundedDiscOffset (fun k => f (k + a)) d m ↔ BoundedDiscOffset f d (m + a/d)`, aligned with the existing `apSumOffset_shift_mod` normal form.
