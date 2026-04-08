@@ -198,6 +198,15 @@ theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f) out.out2)
 
+/-- Positive-length witness form of `forall_exists_natAbs_apSumOffset_gt'`.
+
+The witness length `n` cannot be `0`, since `apSumOffset ... 0 = 0`.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f out.d out.m n) > B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) out.out2)
+
 /-- Paper-notation witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
 This is `forall_exists_natAbs_apSumOffset_gt'` rewritten using
