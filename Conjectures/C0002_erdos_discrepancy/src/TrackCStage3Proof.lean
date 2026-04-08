@@ -191,6 +191,18 @@ theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSeq
   simpa using
     (Stage3Output.forall_exists_d_pos_witness_pos (f := f) (stage3 (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields a global witness form with the step-size condition
+written as `d ≠ 0`:
+
+`∀ C, ∃ d n, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is a thin wrapper around `Stage3Output.forall_exists_d_ne_zero_witness_pos`.
+-/
+theorem stage3_forall_exists_d_ne_zero_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  simpa using
+    (Stage3Output.forall_exists_d_ne_zero_witness_pos (f := f) (stage3 (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
 
