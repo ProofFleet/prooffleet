@@ -380,6 +380,21 @@ theorem bound_natAbs_apSumOffset_of_contextAlong (out : ReductionOutput f) (ctx 
   unfold discOffset at h
   exact h
 
+/-- Paper-notation variant of `bound_natAbs_apSumOffset_of_contextAlong`.
+
+This rewrites the bundled offset nucleus `apSumOffset` into an interval sum over
+`Finset.Icc (out.m + 1) (out.m + n)`.
+-/
+theorem bound_natAbs_sum_Icc_offset_of_contextAlong (out : ReductionOutput f)
+    (ctx : ContextAlong out.g out.d) :
+    ∀ n : ℕ,
+      Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) ≤ ctx.B := by
+  intro n
+  have hOffset : Int.natAbs (apSumOffset f out.d out.m n) ≤ ctx.B :=
+    bound_natAbs_apSumOffset_of_contextAlong (f := f) out ctx n
+  simpa [natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] using
+    hOffset
+
 /-- Tail-nucleus variant of `bound_natAbs_apSumOffset_of_contextAlong`.
 
 This exposes the affine-tail nucleus `apSumFrom f (m*d) d n` rather than the bundled wrapper
