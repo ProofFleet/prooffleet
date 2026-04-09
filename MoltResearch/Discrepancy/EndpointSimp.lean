@@ -17,6 +17,30 @@ These are small wrappers around existing nucleus lemmas.
 
 namespace MoltResearch
 
+/-! ## Endpoint algebra normal forms -/
+
+/-- Normalize a common endpoint shape produced by rewriting `Nat.succ` as `+ 1`.
+
+This lemma exists so downstream proofs can `simp` without having to add
+`Nat.add_assoc` by hand.
+-/
+@[simp] lemma add_add_one (m n : ℕ) : m + (n + 1) = m + n + 1 := by
+  simp [Nat.add_assoc]
+
+/-- Normalize another common endpoint shape: `m + 1 + n` → `m + n + 1`.
+
+Again, this is intentionally a tiny, directed simp lemma to avoid ad-hoc
+`Nat.add_assoc`/`Nat.add_left_comm` noise in downstream `simp` calls.
+-/
+@[simp] lemma add_one_add (m n : ℕ) : m + 1 + n = m + n + 1 := by
+  calc
+    m + 1 + n = m + (1 + n) := by
+      simp [Nat.add_assoc]
+    _ = m + (n + 1) := by
+      simp [Nat.add_comm, Nat.add_assoc]
+    _ = m + n + 1 := by
+      simp [Nat.add_assoc]
+
 /-! ## `Nat.succ` endpoints -/
 
 /-- `Nat.succ` wrapper for `apSumOffset_succ`.

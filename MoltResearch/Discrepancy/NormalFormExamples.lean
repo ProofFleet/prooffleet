@@ -1360,8 +1360,18 @@ example :
     (Finset.Icc (m + 1) (m + n + 1)).sum (fun i => f (i * d)) = apSumOffset f d m (n + 1) := by
   simp
 
+-- Same endpoint, but written in the common “`m + (n+1)`” shape.
+-- The goal is that `simp` normalizes it to the canonical `m + n + 1` surface automatically.
+example :
+    (Finset.Icc (m + 1) (m + (n + 1))).sum (fun i => f (i * d)) = apSumOffset f d m (n + 1) := by
+  simp
+
 example :
     (Finset.Icc (m + 1) (m + n + 1)).sum (fun i => f (d * i)) = apSumOffset f d m (n + 1) := by
+  simp
+
+example :
+    (Finset.Icc (m + 1) (m + (n + 1))).sum (fun i => f (d * i)) = apSumOffset f d m (n + 1) := by
   simp
 
 example : (Finset.Icc (m + 1) (n + m)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
