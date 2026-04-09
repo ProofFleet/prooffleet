@@ -49,13 +49,6 @@ noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ �
 noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_m (f := f) (hf := hf)
 
-/-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1.
-
-This is the Stage-3 name for the Stage-2 projection `stage2_start`.
--/
-noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  stage2_start (f := f) (hf := hf)
-
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate core so `ErdosDiscrepancy.lean` can remain minimal.
