@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy.EndpointSimp
 import MoltResearch.Discrepancy.DiscOffsetSimp
 import MoltResearch.Discrepancy.StepOneSimp
 import MoltResearch.Discrepancy.IndexSimp
+import MoltResearch.Discrepancy.CastSimp
 import MoltResearch.Discrepancy.Offset
 
 /-!

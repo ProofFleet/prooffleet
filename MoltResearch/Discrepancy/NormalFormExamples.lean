@@ -52,6 +52,23 @@ example : Int.natAbs (apSumFrom f a d (n + k)) ≤
   simpa using (natAbs_apSumFrom_add_length_le (f := f) (a := a) (d := d) (n₁ := n) (n₂ := k))
 
 -- (2) Difference of affine partial sums → nucleus offset-tail normal form on the shifted sequence.
+
+/-!
+### NEW (Track B): `Nat`/`Int` cast coherence helpers (nucleus algebra)
+
+Regression: the opt-in simp bundle `DiscSimp` should normalize common cast shapes that appear in
+`apSumOffset`/`discOffset` algebra without requiring ad-hoc `norm_cast`.
+-/
+
+example (m n : ℕ) : (m : ℤ) + (n : ℤ) = ((m + n : ℕ) : ℤ) := by
+  simp
+
+example (m n : ℕ) : (m : ℤ) * (n : ℤ) = ((m * n : ℕ) : ℤ) := by
+  simp
+
+example (n : ℕ) : (n : ℤ) + 1 = ((n + 1 : ℕ) : ℤ) := by
+  simp
+
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
     (apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n))
