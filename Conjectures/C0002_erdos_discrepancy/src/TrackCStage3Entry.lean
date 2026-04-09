@@ -19,25 +19,7 @@ namespace MoltResearch
 
 namespace Tao2015
 
--- (moved to `TrackCStage3EntryCore.lean`)
-
-/-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1 and produced by
-Stage 3.
-
-This is intentionally not in the hard-gate core: it is a convenience name used by a few later
-lemmas, but it is not needed to state the main theorem.
--/
-noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  stage2_start (f := f) (hf := hf)
-
-/-- Rewrite for the reduced sequence produced by Stage 3: it is a shift by the deterministic
-affine-tail start index `stage3_start = m*d`.
--/
-theorem stage3_g_eq_start (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
-    stage3_g (f := f) (hf := hf) k = f (k + stage3_start (f := f) (hf := hf)) := by
-  -- Stage 3 is just Stage-2 glue, so this is the Stage-2 `g_eq` rewrite.
-  simpa [stage3_g, stage3_start, stage2_g, stage2_start, stage2_m, stage2_d] using
-    (Stage2Output.g_eq (f := f) (out := stage2Out (f := f) (hf := hf)) k)
+-- (core API lives in `TrackCStage3EntryCore.lean`)
 
 /-- Function-level rewrite for `stage3_g`: it is the shifted sequence
 `fun k => f (k + stage3_start)`.
@@ -46,7 +28,7 @@ theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3_g (f := f) (hf := hf) =
       fun k => f (k + stage3_start (f := f) (hf := hf)) := by
   funext k
-  simpa using stage3_g_eq_start (f := f) (hf := hf) k
+  simpa using stage3_g_eq (f := f) (hf := hf) k
 
 /-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
 
