@@ -223,6 +223,25 @@ theorem stage2_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witnes
 parameters produced by the conjecture stub `stage2Out`.
 
 Normal form:
+`∀ B, ∃ n, B < discOffset f d m n`,
+where `d = stage2_d` and `m = stage2_m`.
+
+This is a thin wrapper around the Stage-1 transport equivalence
+`ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
+-/
+theorem stage2_forall_exists_discOffset_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        B < discOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n := by
+  simpa [stage2_d, stage2_m] using
+    ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt
+          (f := f)).1
+      (stage2Out (f := f) (hf := hf)).unbounded
+
+/-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
+parameters produced by the conjecture stub `stage2Out`.
+
+Normal form:
 `∀ B, ∃ n, discOffset f d m n > B`,
 where `d = stage2_d` and `m = stage2_m`.
 
