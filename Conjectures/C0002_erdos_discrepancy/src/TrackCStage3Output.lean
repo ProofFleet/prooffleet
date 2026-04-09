@@ -248,6 +248,18 @@ theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (out : Stage3Ou
   intro B
   simpa using out.forall_exists_natAbs_apSumOffset_gt' (f := f) B
 
+/-- Existential packaging variant of `exists_params_one_le_forall_exists_natAbs_apSumOffset_gt`
+with a positive-length witness `n > 0`.
+
+The witness length `n` cannot be `0`, since `apSumOffset ... 0 = 0`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B
+
 /-- Tail-nucleus witness form equivalence for the concrete Stage-1 parameters bundled in Stage 3.
 
 This is `Stage2Output.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt`, re-expressed at the
