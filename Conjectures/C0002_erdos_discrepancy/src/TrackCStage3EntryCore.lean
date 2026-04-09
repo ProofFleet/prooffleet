@@ -14,7 +14,10 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - the consumer-facing outputs `stage3_notBounded` and `stage3_forall_hasDiscrepancyAtLeast`
 
 All additional Stage-3 convenience lemmas (witness forms, offset packaging, rewrite lemmas, etc.)
-remain in `TrackCStage3Entry.lean` and `TrackCStage3Proof.lean`.
+remain outside the hard-gate core, in
+- `TrackCStage3Output.lean` (proved lemmas about `Stage3Output`),
+- `TrackCStage3Entry.lean`, and
+- `TrackCStage3Proof.lean`.
 -/
 
 namespace MoltResearch
@@ -69,50 +72,14 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf))
 
-/-- Consumer-facing witness form: Stage 3 yields
+/-!
+Witness-form corollaries are intentionally kept out of this hard-gate core module.
 
-`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
-
-This stays in the hard-gate core because it is a tiny wrapper around
-`stage3_forall_hasDiscrepancyAtLeast` via `HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+See instead:
+- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Output` (proved lemmas about `Stage3Output`)
+- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry` (additional entry-point wrappers)
+- `Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancyWitnesses` (user-facing corollaries)
 -/
-theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
-  intro C
-  exact
-    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
-      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
-
-/-- Sharpened witness form: Stage 3 yields side conditions `d ≥ 1` and `n > 0`.
-
-Normal form:
-`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C`.
-
-This is a tiny wrapper around `stage3_forall_hasDiscrepancyAtLeast` via
-`HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos`.
--/
-theorem stage3_forall_exists_discrepancy_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  exact
-    (HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f := f) (C := C)).1
-      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
-
-/-- Witness form: Stage 3 yields strict positivity for the step size and a positive-length witness.
-
-Normal form:
-`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
-
-This is a small convenience wrapper around
-`stage3_forall_exists_discrepancy_ge_one_witness_pos`.
--/
-theorem stage3_forall_exists_discrepancy_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  rcases stage3_forall_exists_discrepancy_ge_one_witness_pos (f := f) (hf := hf) C with
-    ⟨d, n, hd, hn, hdisc⟩
-  refine ⟨d, n, ?_, hn, hdisc⟩
-  exact lt_of_lt_of_le (Nat.succ_pos 0) hd
 
 end Tao2015
 
