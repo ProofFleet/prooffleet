@@ -75,16 +75,9 @@ theorem stage2_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
     stage2_one_le_d (f := f) (hf := hf), ?_⟩
   exact stage2_unboundedDiscOffset (f := f) (hf := hf)
 
-/-- The reduced sequence produced by Stage 2 is a sign sequence. -/
-theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    IsSignSequence (stage2_g (f := f) (hf := hf)) := by
-  simpa [stage2_g] using (stage2Out (f := f) (hf := hf)).hg
-
-/-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
-theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
-    stage2_g (f := f) (hf := hf) k = f (k + stage2_start (f := f) (hf := hf)) := by
-  simpa [stage2_g, stage2_start, stage2_m, stage2_d] using
-    (stage2Out (f := f) (hf := hf)).g_eq k
+-- Note: the tiny projection lemmas `stage2_hg` and `stage2_g_eq` live in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` so hard-gate consumers can use them
+-- without importing this wrapper-lemma module.
 
 /-- Function-level rewrite for `stage2_g`: it is the shifted sequence `fun k => f (k + m*d)`. -/
 theorem stage2_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :

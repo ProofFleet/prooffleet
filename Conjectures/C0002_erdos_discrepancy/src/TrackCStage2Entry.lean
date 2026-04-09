@@ -9,7 +9,8 @@ It contains only:
 - the Stage-2 conjecture stub (axiom) `stage2`,
 - the deterministic name `stage2Out`,
 - the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`, `stage2_start`, and
-- the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`.
+- the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`, `stage2_hg`,
+  `stage2_g_eq`.
 
 All other proved convenience lemmas about `stage2Out` live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
@@ -69,6 +70,18 @@ additional wrapper-lemma modules.
 -/
 noncomputable abbrev stage2_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf)
+
+/-- The reduced sequence produced by Stage 2 is a sign sequence. -/
+theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    IsSignSequence (stage2_g (f := f) (hf := hf)) := by
+  simpa [stage2_g] using (stage2Out (f := f) (hf := hf)).out1.hg
+
+/-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
+theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    stage2_g (f := f) (hf := hf) k = f (k + stage2_start (f := f) (hf := hf)) := by
+  -- This is just the Stage-1 reduction contract carried by the Stage-2 output.
+  simpa [stage2_g, stage2_start, stage2_m, stage2_d] using
+    (stage2Out (f := f) (hf := hf)).out1.g_eq k
 
 end Tao2015
 
