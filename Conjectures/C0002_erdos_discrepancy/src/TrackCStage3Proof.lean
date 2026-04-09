@@ -36,6 +36,13 @@ theorem stage3_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
   simpa [stage3_g, stage3_m, stage3_d] using
     (Stage3Output.g_eq (f := f) (stage3Out (f := f) (hf := hf)) k)
 
+/-- Function-level rewrite for `stage3_g`: it is the shifted sequence `fun k => f (k + m*d)`. -/
+theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3_g (f := f) (hf := hf) =
+      fun k => f (k + (stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf))) := by
+  funext k
+  simpa using stage3_g_eq (f := f) (hf := hf) k
+
 /-- Positivity of the reduced step size produced by Stage 3. -/
 theorem stage3_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) > 0 := by
   -- Prefer the Stage-3 boundary API lemma.
