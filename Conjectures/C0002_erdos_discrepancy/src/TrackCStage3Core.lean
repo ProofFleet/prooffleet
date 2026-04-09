@@ -65,6 +65,17 @@ theorem forall_hasDiscrepancyAtLeastAlong (out : Stage3Output f) :
   simpa [Tao2015.UnboundedDiscrepancyAlong, HasDiscrepancyAtLeastAlong, Stage3Output.g,
     Stage3Output.d] using out.out2.unbounded
 
+/-- Stage 3 yields unbounded fixed-step discrepancy for the reduced sequence, expressed using the
+verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a small convenience wrapper around the Stage-2 bridge lemma
+`Stage2Output.unboundedDiscrepancyAlong_core`.
+-/
+theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
+    MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
+  simpa [Stage3Output.g, Stage3Output.d] using
+    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) out.out2)
+
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
 abbrev m (out : Stage3Output f) : ℕ := out.out2.m
 

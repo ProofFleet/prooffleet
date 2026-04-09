@@ -20,7 +20,8 @@ variable {f : ℕ → ℤ}
 
 /-!
 Basic projections (`notBoundedOriginal`, `d`, `g`, `m`, `hg`, `g_eq`, `hd`, `d_ne_zero`,
-`one_le_d`, `unboundedReducedAlong`, `forall_hasDiscrepancyAtLeastAlong`) live in
+`one_le_d`, `unboundedReducedAlong`, `forall_hasDiscrepancyAtLeastAlong`,
+`unboundedDiscrepancyAlong_core`) live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Core`.
 -/
 
@@ -92,16 +93,7 @@ theorem forall_exists_sum_Icc_d_ge_one_witness_pos (out : Stage3Output f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos f).1
       (out.forall_hasDiscrepancyAtLeast (f := f))
 
-/-- Stage 3 yields unbounded fixed-step discrepancy for the reduced sequence, expressed using the
-verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
-
-This is a small convenience wrapper around the Stage-2 bridge lemma
-`Stage2Output.unboundedDiscrepancyAlong_core`.
--/
-theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
-    MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
-  simpa [Stage3Output.g, Stage3Output.d] using
-    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) out.out2)
+-- (moved to `TrackCStage3Core.lean`)
 
 /-- Stage 3 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
