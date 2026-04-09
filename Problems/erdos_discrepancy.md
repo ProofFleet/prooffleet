@@ -803,7 +803,8 @@ Definition of done:
 - [x] “Normalize endpoints” simp bundle: add simp-friendly lemmas that rewrite common endpoint algebra into nucleus-normal-form endpoints (e.g. `m+(n+1)` → `m+n+1`, `m+0` → `m` in the exact shapes used by `sum_Icc_eq_apSumOffset_of_le_*`), so `simp` can close endpoint goals reliably.
   (Implemented via `MoltResearch/Discrepancy/EndpointSimp.lean` + opt-in bundle `MoltResearch/Discrepancy/DiscSimp.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Triangle inequality for `discAlong` across concatenation: provide a canonical lemma bounding `discAlong f d (n+k)` by the sum of segment discrepancies in the along-`d` normal form (mirroring the existing `discOffset_add_le`), with a stable-surface regression example.
+- [x] Triangle inequality for `discAlong` across concatenation: provide a canonical lemma bounding `discAlong f d (n+k)` by the sum of segment discrepancies in the along-`d` normal form (mirroring the existing `discOffset_add_le`), with a stable-surface regression example.
+  - Implemented as `discAlong_add_le` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] “Contracted support” API: package lemmas relating `apSupport` sets under dilation/translation (e.g. `apSupport (d*q) m n` vs mapped image of `apSupport d m n`), so edit-sensitivity/support arguments commute with the step-normalization/dilation rewrites.
 
