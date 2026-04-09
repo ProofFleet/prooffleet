@@ -22,26 +22,17 @@ namespace Tao2015
 -- Projections `stage3_d`, `stage3_g`, `stage3_m` live in `TrackCStage3EntryCore.lean`.
 
 
-/-- The reduced sequence produced by Stage 3 is a sign sequence. -/
-theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    IsSignSequence (stage3_g (f := f) (hf := hf)) := by
-  simpa [stage3_g] using
-    (Stage3Output.hg (f := f) (stage3Out (f := f) (hf := hf)))
+/-
+Note: the basic Stage-3 projections/wrappers
 
-/-- Rewrite for the reduced sequence produced by Stage 3: it is a shift by `m*d`. -/
-theorem stage3_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
-    stage3_g (f := f) (hf := hf) k =
-      f (k + (stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf))) := by
-  -- Prefer the Stage-3 boundary lemma.
-  simpa [stage3_g, stage3_m, stage3_d] using
-    (Stage3Output.g_eq (f := f) (stage3Out (f := f) (hf := hf)) k)
+  stage3_hg
+  stage3_g_eq
+  stage3_g_eq_fun
 
-/-- Function-level rewrite for `stage3_g`: it is the shifted sequence `fun k => f (k + m*d)`. -/
-theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage3_g (f := f) (hf := hf) =
-      fun k => f (k + (stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf))) := by
-  funext k
-  simpa using stage3_g_eq (f := f) (hf := hf) k
+are defined in `TrackCStage3EntryCore.lean` / `TrackCStage3Entry.lean`.
+
+This file imports `TrackCStage3Entry`, so they are available without redeclaration.
+-/
 
 /-- Positivity of the reduced step size produced by Stage 3. -/
 theorem stage3_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) > 0 := by
@@ -54,13 +45,9 @@ The convenience lemma `stage3_one_le_d` lives in `TrackCStage3Entry.lean`.
 We intentionally do not redeclare it here (this file imports `TrackCStage3Entry`).
 -/
 
-/-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
-theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage3_d (f := f) (hf := hf) ≠ 0 := by
-  simpa [stage3_d] using
-    (Stage3Output.d_ne_zero (f := f) (stage3Out (f := f) (hf := hf)))
-
--- (moved to TrackCStage3Entry)
+/-
+Note: the convenience lemma `stage3_d_ne_zero` lives in `TrackCStage3EntryCore.lean`.
+-/
 
 /-- Consumer-facing shortcut: Stage 3 yields unbounded discrepancy along the reduced sequence,
 stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
