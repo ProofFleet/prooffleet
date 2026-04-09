@@ -44,6 +44,10 @@ noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
 theorem stage3_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) > 0 := by
   simpa [stage3_d] using (stage2_d_pos (f := f) (hf := hf))
 
+/-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
+theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage3_d (f := f) (hf := hf) := by
+  simpa [stage3_d] using stage2_one_le_d (f := f) (hf := hf)
+
 /-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
 theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) ≠ 0 := by
   exact Nat.ne_of_gt (stage3_d_pos (f := f) (hf := hf))

@@ -19,12 +19,7 @@ namespace MoltResearch
 
 namespace Tao2015
 
-/-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
-theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    1 ≤ stage3_d (f := f) (hf := hf) := by
-  -- Stage 3 just re-exports the deterministic Stage-2 step size.
-  simpa [stage3_d, stage2_d, Stage2Output.d] using
-    (Stage2Output.one_le_d (f := f) (stage2Out (f := f) (hf := hf)))
+-- (moved to `TrackCStage3EntryCore.lean`)
 
 /-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1 and produced by
 Stage 3.
