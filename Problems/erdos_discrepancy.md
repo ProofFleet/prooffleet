@@ -791,7 +791,8 @@ Definition of done:
   `discOffset f d (m+k) n = discOffset (fun t => f (t + k*d)) d m n` (or the repo’s preferred `shift_add` normal form), so changing the tail start becomes a one-line `rw` without unfolding `discOffset`.
   (Implemented as `discOffset_shift_start_add` (and `..._mul_left`) in `MoltResearch/Discrepancy/Offset.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean` and surfaced via `SurfaceAudit`.)
 
-- [ ] Reflection invariance (disc-level): add a stable lemma rewriting `discOffset f d m n` under the reindexing `i ↦ n-1-i` (pairing the existing sum-level reflect lemma), so “reverse the segment” is available at discrepancy level with a regression example.
+- [x] Reflection invariance (disc-level): add a stable lemma rewriting `discOffset f d m n` under the reindexing `i ↦ n-1-i` (pairing the existing sum-level reflect lemma), so “reverse the segment” is available at discrepancy level with a regression example.
+  - Implemented as `discOffset_eq_natAbs_sum_range_reflect` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] Residue-class split for affine tails: extend the residue splitting API to `apSumFrom`/affine tails (and a matching disc-level inequality), so later stages can split an affine AP sum into `r` residue classes without first rewriting into an offset form by hand.
 
