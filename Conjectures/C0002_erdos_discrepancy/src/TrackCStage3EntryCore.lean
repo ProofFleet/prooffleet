@@ -98,6 +98,22 @@ theorem stage3_forall_exists_discrepancy_ge_one_witness_pos (f : ℕ → ℤ) (h
     (HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f := f) (C := C)).1
       ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
 
+/-- Witness form: Stage 3 yields strict positivity for the step size and a positive-length witness.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
+
+This is a small convenience wrapper around
+`stage3_forall_exists_discrepancy_ge_one_witness_pos`.
+-/
+theorem stage3_forall_exists_discrepancy_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases stage3_forall_exists_discrepancy_ge_one_witness_pos (f := f) (hf := hf) C with
+    ⟨d, n, hd, hn, hdisc⟩
+  refine ⟨d, n, ?_, hn, hdisc⟩
+  exact lt_of_lt_of_le (Nat.succ_pos 0) hd
+
 end Tao2015
 
 end MoltResearch
