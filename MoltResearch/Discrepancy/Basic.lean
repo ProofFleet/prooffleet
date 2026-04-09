@@ -263,6 +263,56 @@ lemma apSupport_add_left (d m n k : ℕ) :
     refine ⟨i, hi, ?_⟩
     simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.add_mul]
 
+/-- Cardinalities of filtered supports commute with shifting the offset parameter.
+
+This is the “translation” half of the Track B contracted-support API.
+-/
+lemma card_apSupport_add_left_filter (d m n k : ℕ) (p : ℕ → Prop) :
+    ((apSupport d (m + k) n).filter p).card =
+      ((apSupport d m n).filter (fun x => p (x + k * d))).card := by
+  classical
+  have hinj : Function.Injective (fun x : ℕ => x + k * d) := by
+    intro a b hab
+    exact Nat.add_left_cancel hab
+  -- Rewrite `apSupport d (m+k) n` as an image and cancel cardinality via injectivity.
+  have hfilter : (apSupport d (m + k) n).filter p =
+      ((apSupport d m n).filter (fun x => p (x + k * d))).image (fun x => x + k * d) := by
+    classical
+    ext x
+    constructor
+    · intro hx
+      have hxSupp : x ∈ apSupport d (m + k) n := (Finset.mem_filter.1 hx).1
+      have hpx : p x := (Finset.mem_filter.1 hx).2
+      have : x ∈ (apSupport d m n).image (fun y => y + k * d) := by
+        simpa [apSupport_add_left (d := d) (m := m) (n := n) (k := k)] using hxSupp
+      rcases Finset.mem_image.1 this with ⟨y, hy, rfl⟩
+      refine Finset.mem_image.2 ?_
+      refine ⟨y, Finset.mem_filter.2 ?_, rfl⟩
+      exact ⟨hy, by simpa using hpx⟩
+    · intro hx
+      rcases Finset.mem_image.1 hx with ⟨y, hy, rfl⟩
+      have hy' := Finset.mem_filter.1 hy
+      have hySupp : y ∈ apSupport d m n := hy'.1
+      have hpy : p (y + k * d) := hy'.2
+      refine Finset.mem_filter.2 ?_
+      refine ⟨?_, hpy⟩
+      have : y + k * d ∈ (apSupport d m n).image (fun z => z + k * d) :=
+        Finset.mem_image.2 ⟨y, hySupp, rfl⟩
+      simpa [apSupport_add_left (d := d) (m := m) (n := n) (k := k)] using this
+
+  calc
+    ((apSupport d (m + k) n).filter p).card =
+        (((apSupport d m n).filter (fun x => p (x + k * d))).image (fun x => x + k * d)).card := by
+          simp [hfilter]
+    _ = ((apSupport d m n).filter (fun x => p (x + k * d))).card := by
+          simpa using (Finset.card_image_of_injective _ hinj)
+
+/-- In particular, shifting the offset parameter does not change the support size. -/
+lemma card_apSupport_add_left (d m n k : ℕ) :
+    (apSupport d (m + k) n).card = (apSupport d m n).card := by
+  simpa using (card_apSupport_add_left_filter (d := d) (m := m) (n := n) (k := k)
+    (p := fun _ => True))
+
 /-- Dilation coherence: pulling a common factor into the step multiplies the support indices.
 
 (Track B normal-form checklist item: `apSupport` coherence under dilation.)
@@ -285,6 +335,79 @@ lemma apSupport_mul_right (d m n q : ℕ) :
     refine Finset.mem_image.2 ?_
     refine ⟨i, hi, ?_⟩
     simp [Nat.mul_assoc]
+
+/-!
+### “Contracted support” API (Track B)
+
+When rewriting a discrepancy statement by “contracting” a common factor `q` into the step
+(e.g. rewriting `d*q` ↔ `d` via a change of variables), we often want to transport hypotheses
+stated on the support object `apSupport`.
+
+The lemmas below package the two key facts needed for this transport:
+- filtering `apSupport (d*q) m n` by a predicate `p` is the same as filtering `apSupport d m n`
+  by the pulled-back predicate `x ↦ p (x*q)` and then mapping by `x ↦ x*q`;
+- consequently, cardinality bounds on filtered supports commute with the contraction rewrite.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Contracted support” API.
+-/
+
+/-- A filtered `apSupport (d*q) m n` is the image of the corresponding filtered `apSupport d m n`
+under multiplication by `q`.
+
+We assume `q > 0` so that multiplication by `q` is injective and hence preserves cardinalities.
+-/
+lemma apSupport_mul_right_filter (d m n q : ℕ) (p : ℕ → Prop) (hq : q > 0) :
+    (apSupport (d * q) m n).filter p =
+      ((apSupport d m n).filter (fun x => p (x * q))).image (fun x => x * q) := by
+  classical
+  ext x
+  constructor
+  · intro hx
+    have hx' : x ∈ apSupport (d * q) m n := (Finset.mem_filter.1 hx).1
+    have hpx : p x := (Finset.mem_filter.1 hx).2
+    -- Use the dilation coherence to pull back membership to `apSupport d m n`.
+    have : x ∈ (apSupport d m n).image (fun y => y * q) := by
+      simpa [apSupport_mul_right (d := d) (m := m) (n := n) (q := q)] using hx'
+    rcases Finset.mem_image.1 this with ⟨y, hy, rfl⟩
+    refine Finset.mem_image.2 ?_
+    refine ⟨y, Finset.mem_filter.2 ?_, rfl⟩
+    exact ⟨hy, by simpa using hpx⟩
+  · intro hx
+    rcases Finset.mem_image.1 hx with ⟨y, hy, rfl⟩
+    have hy' := Finset.mem_filter.1 hy
+    have hySupp : y ∈ apSupport d m n := hy'.1
+    have hpy : p (y * q) := hy'.2
+    refine Finset.mem_filter.2 ?_
+    refine ⟨?_, hpy⟩
+    -- Push membership forward via the dilation coherence lemma.
+    have : y * q ∈ (apSupport d m n).image (fun z => z * q) := Finset.mem_image.2 ⟨y, hySupp, rfl⟩
+    simpa [apSupport_mul_right (d := d) (m := m) (n := n) (q := q)] using this
+
+/-- Cardinalities of filtered supports commute with the dilation/contract rewrite.
+
+This is the typical form needed to rewrite `card` hypotheses in edit-sensitivity arguments.
+-/
+lemma card_apSupport_mul_right_filter (d m n q : ℕ) (p : ℕ → Prop) (hq : q > 0) :
+    ((apSupport (d * q) m n).filter p).card =
+      ((apSupport d m n).filter (fun x => p (x * q))).card := by
+  classical
+  -- Rewrite the filtered support as an image, then use injectivity of `x ↦ x*q`.
+  have hinj : Function.Injective (fun x : ℕ => x * q) := by
+    intro a b hab
+    exact Nat.mul_right_cancel hq hab
+  -- Use `apSupport_mul_right_filter` to rewrite, then cancel the image cardinality.
+  calc
+    ((apSupport (d * q) m n).filter p).card =
+        (((apSupport d m n).filter (fun x => p (x * q))).image (fun x => x * q)).card := by
+          simp [apSupport_mul_right_filter (d := d) (m := m) (n := n) (q := q) (p := p) hq]
+    _ = ((apSupport d m n).filter (fun x => p (x * q))).card := by
+          simpa using (Finset.card_image_of_injective _ hinj)
+
+/-- In particular, dilation does not change the size of the support finset (when `q > 0`). -/
+lemma card_apSupport_mul_right (d m n q : ℕ) (hq : q > 0) :
+    (apSupport (d * q) m n).card = (apSupport d m n).card := by
+  simpa using (card_apSupport_mul_right_filter (d := d) (m := m) (n := n) (q := q)
+    (p := fun _ => True) hq)
 
 /-- Shift normal form for offset AP sums: shifting the sequence by `k*d` is equivalent to
 shifting the offset parameter `m` by `k`.
