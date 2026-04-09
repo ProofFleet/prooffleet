@@ -62,6 +62,20 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
   simpa using
     (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing witness form: Stage 3 yields
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This stays in the hard-gate core because it is a tiny wrapper around
+`stage3_forall_hasDiscrepancyAtLeast` via `HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
+
 end Tao2015
 
 end MoltResearch
