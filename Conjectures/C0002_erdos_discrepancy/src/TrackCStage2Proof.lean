@@ -40,9 +40,11 @@ small set of proved, pipeline-friendly convenience lemmas about the deterministi
 `stage2Out`.
 -/
 
-/-- Convenience lemma: the reduced step size produced by Stage 2 is positive. -/
-theorem stage2_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
-  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).hd
+/-
+Note: `stage2_d_pos` is defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` so hard-gate consumers can access it
+without importing this wrapper-lemma module.
+-/
 
 /-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
 theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage2_d (f := f) (hf := hf) := by

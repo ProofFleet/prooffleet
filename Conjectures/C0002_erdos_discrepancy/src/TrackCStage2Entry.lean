@@ -7,10 +7,11 @@ This file is **Conjectures-only** glue.
 
 It contains only:
 - the Stage-2 conjecture stub (axiom) `stage2`,
-- the deterministic name `stage2Out`, and
-- the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`.
+- the deterministic name `stage2Out`,
+- the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`, `stage2_start`, and
+- the tiny projection lemma `stage2_d_pos` (the side condition `d > 0`).
 
-All proved convenience lemmas about `stage2Out` live in
+All other proved convenience lemmas about `stage2Out` live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
 
 Design goal: keep the Track-C hard-gate build (which imports Stage 3) from compiling additional
@@ -35,6 +36,14 @@ noncomputable abbrev stage2Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage
 /-- Convenience projection: the reduced step size produced by Stage 2. -/
 noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   (stage2Out (f := f) (hf := hf)).out1.d
+
+/-- Convenience projection lemma: the reduced step size produced by Stage 2 is positive.
+
+We keep this in the entry-point module because most consumers need the side condition `d > 0`,
+and it is a zero-cost projection from the Stage-1 reduction output bundled in `stage2Out`.
+-/
+theorem stage2_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
+  simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
 
 /-- Convenience projection: the reduced sequence produced by Stage 2. -/
 noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
