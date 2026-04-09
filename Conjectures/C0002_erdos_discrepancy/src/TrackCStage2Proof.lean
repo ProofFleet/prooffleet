@@ -41,18 +41,10 @@ small set of proved, pipeline-friendly convenience lemmas about the deterministi
 -/
 
 /-
-Note: `stage2_d_pos` is defined in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` so hard-gate consumers can access it
-without importing this wrapper-lemma module.
+Note: the tiny side-condition lemmas `stage2_d_pos`, `stage2_one_le_d`, and `stage2_d_ne_zero` are
+defined in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` so hard-gate consumers can
+access them without importing this wrapper-lemma module.
 -/
-
-/-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
-theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage2_d (f := f) (hf := hf) := by
-  exact Nat.succ_le_of_lt (stage2_d_pos (f := f) (hf := hf))
-
-/-- Convenience lemma: the reduced step size produced by Stage 2 is nonzero. -/
-theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) ≠ 0 := by
-  exact Nat.ne_of_gt (stage2_d_pos (f := f) (hf := hf))
 
 /-- Minimal consumer-facing Stage-2 consequence: the original sequence cannot have globally bounded
 (discrepancy) once Stage 2 produces an unbounded fixed-step witness along the reduced sequence. -/

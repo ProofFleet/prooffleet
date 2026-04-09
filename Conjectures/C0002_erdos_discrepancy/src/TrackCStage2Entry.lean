@@ -9,7 +9,7 @@ It contains only:
 - the Stage-2 conjecture stub (axiom) `stage2`,
 - the deterministic name `stage2Out`,
 - the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`, `stage2_start`, and
-- the tiny projection lemma `stage2_d_pos` (the side condition `d > 0`).
+- the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`.
 
 All other proved convenience lemmas about `stage2Out` live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
@@ -44,6 +44,14 @@ and it is a zero-cost projection from the Stage-1 reduction output bundled in `s
 -/
 theorem stage2_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) > 0 := by
   simpa [stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 is at least `1`. -/
+theorem stage2_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage2_d (f := f) (hf := hf) := by
+  exact Nat.succ_le_of_lt (stage2_d_pos (f := f) (hf := hf))
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 is nonzero. -/
+theorem stage2_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage2_d (f := f) (hf := hf) ≠ 0 := by
+  exact Nat.ne_of_gt (stage2_d_pos (f := f) (hf := hf))
 
 /-- Convenience projection: the reduced sequence produced by Stage 2. -/
 noncomputable abbrev stage2_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
