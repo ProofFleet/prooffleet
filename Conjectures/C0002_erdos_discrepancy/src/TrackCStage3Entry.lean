@@ -33,10 +33,9 @@ affine-tail start index `stage3_start = m*d`.
 -/
 theorem stage3_g_eq_start (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
     stage3_g (f := f) (hf := hf) k = f (k + stage3_start (f := f) (hf := hf)) := by
-  -- Stage 3 is just Stage-2 glue, so this is the Stage-2 `g_eq_start` rewrite.
-  simpa [stage3_g, stage3_start, stage3_m, stage3_d, stage2_g, stage2_m, stage2_d,
-    Stage2Output.start] using
-    (Stage2Output.g_eq_start (f := f) (out := stage2Out (f := f) (hf := hf)) k)
+  -- Stage 3 is just Stage-2 glue, so this is the Stage-2 `g_eq` rewrite.
+  simpa [stage3_g, stage3_start, stage3_m, stage3_d, stage2_g, stage2_m, stage2_d] using
+    (Stage2Output.g_eq (f := f) (out := stage2Out (f := f) (hf := hf)) k)
 
 /-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
 
