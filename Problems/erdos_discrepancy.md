@@ -787,8 +787,9 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Offset-start shift invariance (disc-level): package a canonical lemma
+- [x] Offset-start shift invariance (disc-level): package a canonical lemma
   `discOffset f d (m+k) n = discOffset (fun t => f (t + k*d)) d m n` (or the repo’s preferred `shift_add` normal form), so changing the tail start becomes a one-line `rw` without unfolding `discOffset`.
+  (Implemented as `discOffset_shift_start_add` (and `..._mul_left`) in `MoltResearch/Discrepancy/Offset.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean` and surfaced via `SurfaceAudit`.)
 
 - [ ] Reflection invariance (disc-level): add a stable lemma rewriting `discOffset f d m n` under the reindexing `i ↦ n-1-i` (pairing the existing sum-level reflect lemma), so “reverse the segment” is available at discrepancy level with a regression example.
 
