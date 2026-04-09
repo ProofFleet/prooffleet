@@ -110,6 +110,20 @@ theorem unboundedDiscrepancyAlong_core (out : Stage2Output f) :
     MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
   exact (Tao2015.unboundedDiscrepancyAlong_iff_core (g := out.g) (d := out.d)).1 out.unbounded
 
+/-- Positive-length nucleus witness form of the Stage-2 unboundedness hypothesis `out.unbounded`.
+
+Normal form:
+`∀ B, ∃ n, n > 0 ∧ Int.natAbs (apSum out.g out.d n) > B`.
+
+This is a thin wrapper around
+`Tao2015.UnboundedDiscrepancyAlong.forall_exists_natAbs_apSum_gt'_witness_pos`.
+-/
+theorem forall_exists_natAbs_apSum_gt'_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSum out.g out.d n) > B := by
+  exact
+    Tao2015.UnboundedDiscrepancyAlong.forall_exists_natAbs_apSum_gt'_witness_pos
+      (g := out.g) (d := out.d) out.unbounded
+
 /-- Stage 2 output implies the nucleus witness form
 
 `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
