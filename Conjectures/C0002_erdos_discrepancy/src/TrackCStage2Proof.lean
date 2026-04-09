@@ -1,5 +1,5 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Output
 
 /-!
 # Track C: Stage 2 proof stub (Tao 2015 plane)
@@ -139,9 +139,8 @@ theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsS
         Int.natAbs
             (apSumFrom f (stage2_start (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) n) > C := by
   simpa [stage2_start, stage2_m, stage2_d] using
-    ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt
-          (f := f)).1
-      (stage2Out (f := f) (hf := hf)).unbounded
+    (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-- Negation-normal-form tail-nucleus statement: Stage 2 yields no uniform bound on the affine-tail
 nuclei `Int.natAbs (apSumFrom f (m*d) d n)` at the concrete parameters produced by `stage2Out`.
@@ -153,13 +152,9 @@ theorem stage2_not_exists_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (hf :
         ∀ n : ℕ,
           Int.natAbs
               (apSumFrom f (stage2_start (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) n) ≤ B := by
-  have hunb :
-      UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
-    stage2_unboundedDiscOffset (f := f) (hf := hf)
   simpa [stage2_start, stage2_m, stage2_d] using
-    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
-          (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf))).1
-      hunb
+    (Stage2Output.not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 
 /- Note: `stage2_unboundedDiscOffset` is defined in this module as a wrapper around the Stage-2 core lemma `Stage2Output.unboundedDiscOffset`. -/
@@ -178,12 +173,9 @@ theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → �
       ∃ n : ℕ, n > 0 ∧
         Int.natAbs
             (apSumFrom f (stage2_start (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) n) > C := by
-  have hunb :
-      UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
-    stage2_unboundedDiscOffset (f := f) (hf := hf)
   simpa [stage2_start, stage2_m, stage2_d] using
-    (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
-      (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) hunb)
+    (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that the
 affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
@@ -234,9 +226,8 @@ theorem stage2_forall_exists_discOffset_gt (f : ℕ → ℤ) (hf : IsSignSequenc
       ∃ n : ℕ,
         B < discOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n := by
   simpa [stage2_d, stage2_m] using
-    ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt
-          (f := f)).1
-      (stage2Out (f := f) (hf := hf)).unbounded
+    (Stage2Output.forall_exists_discOffset_gt (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
 parameters produced by the conjecture stub `stage2Out`.
@@ -253,9 +244,8 @@ theorem stage2_forall_exists_discOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequen
       ∃ n : ℕ,
         discOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n > B := by
   simpa [stage2_d, stage2_m] using
-    ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt'
-          (f := f)).1
-      (stage2Out (f := f) (hf := hf)).unbounded
+    (Stage2Output.forall_exists_discOffset_gt' (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-- Positive-length witness form of `stage2_forall_exists_discOffset_gt'`.
 
@@ -265,12 +255,9 @@ theorem stage2_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : 
     ∀ B : ℕ,
       ∃ n : ℕ,
         n > 0 ∧ discOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n > B := by
-  have hunb :
-      UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
-    stage2_unboundedDiscOffset (f := f) (hf := hf)
-  simpa using
-    (UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos (f := f)
-      (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) hunb)
+  simpa [stage2_d, stage2_m] using
+    (Stage2Output.forall_exists_discOffset_gt'_witness_pos (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
 parameters produced by the conjecture stub `stage2Out`, stated using the bundled offset nucleus.
@@ -287,10 +274,9 @@ theorem stage2_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSi
       ∃ n : ℕ,
         Int.natAbs
             (apSumOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n) > B := by
-  simpa using
-    (UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt' (f := f)
-          (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf))).1
-      (stage2_unboundedDiscOffset (f := f) (hf := hf))
+  simpa [stage2_d, stage2_m] using
+    (Stage2Output.forall_exists_natAbs_apSumOffset_gt' (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-- Positive-length witness form of `stage2_forall_exists_natAbs_apSumOffset_gt'`.
 
@@ -301,11 +287,9 @@ theorem stage2_forall_exists_natAbs_apSumOffset_gt'_witness_pos (f : ℕ → ℤ
       ∃ n : ℕ, n > 0 ∧
         Int.natAbs
             (apSumOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n) > B := by
-  have hunb :
-      UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
-    stage2_unboundedDiscOffset (f := f) (hf := hf)
-  simpa using
-    (UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos (hunb := hunb))
+  simpa [stage2_d, stage2_m] using
+    (Stage2Output.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-- Paper-notation witness form: Stage 2 yields arbitrarily large shifted progression sums
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the concrete parameters produced by the conjecture stub
@@ -324,11 +308,9 @@ theorem stage2_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ) (hf : Is
         Int.natAbs
             ((Finset.Icc (stage2_m (f := f) (hf := hf) + 1) (stage2_m (f := f) (hf := hf) + n)).sum
               (fun i => f (i * stage2_d (f := f) (hf := hf)))) > B := by
-  intro B
-  rcases stage2_forall_exists_natAbs_apSumOffset_gt' (f := f) (hf := hf) B with ⟨n, hn⟩
-  refine ⟨n, ?_⟩
-  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f)
-    (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) (n := n)] using hn
+  simpa [stage2_d, stage2_m] using
+    (Stage2Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-- Positive-length witness form of `stage2_forall_exists_natAbs_sum_Icc_offset_gt`.
 
@@ -341,19 +323,16 @@ theorem stage2_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f : ℕ → �
         Int.natAbs
             ((Finset.Icc (stage2_m (f := f) (hf := hf) + 1) (stage2_m (f := f) (hf := hf) + n)).sum
               (fun i => f (i * stage2_d (f := f) (hf := hf)))) > B := by
-  intro B
-  rcases stage2_forall_exists_natAbs_apSumOffset_gt'_witness_pos (f := f) (hf := hf) B with
-    ⟨n, hnpos, hn⟩
-  refine ⟨n, hnpos, ?_⟩
-  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f)
-    (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) (n := n)] using hn
+  simpa [stage2_d, stage2_m] using
+    (Stage2Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f)
+      (out := stage2Out (f := f) (hf := hf)))
 
 /-!
 Consumer code should usually use `stage2Out` together with the general lemmas about `Stage2Output`
 (from `TrackCStage2.lean` / `TrackCStage2Output.lean`).
 
-We intentionally avoid duplicating wrapper lemmas here, so this file remains a pure conjecture stub
-plus projections.
+We intentionally keep the proofs here as thin wrappers around the general lemmas about
+`Stage2Output`, specializing them to the deterministic parameters coming from `stage2Out`.
 -/
 
 end Tao2015
