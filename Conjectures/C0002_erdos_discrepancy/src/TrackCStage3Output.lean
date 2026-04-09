@@ -212,6 +212,16 @@ theorem forall_exists_natAbs_sum_Icc_offset_gt (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) out.out2)
 
+/-- Positive-length witness form of `forall_exists_natAbs_sum_Icc_offset_gt`.
+
+The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
+-/
+theorem forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+      Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) > B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) out.out2)
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 paper-notation offset sum witness `∑ i ∈ Icc (m+1) (m+n), f (i*d)` takes arbitrarily large absolute
 values.
