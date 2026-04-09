@@ -229,6 +229,19 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumFrom_mu
     (Tao2015.Stage2Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
       (Tao2015.stage3Out (f := f) (hf := hf)).out2)
 
+/-- Variant of `erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt`
+with a positive-length witness `n > 0`.
+
+The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  simpa using
+    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
+      (f := f) (Tao2015.stage3Out (f := f) (hf := hf)))
+
 /-- Paper-notation surface form of `erdos_discrepancy`, matching `∑_{i=1}^n f (i*d)`.
 
 This is a thin wrapper around `erdos_discrepancy_apSum`, via
