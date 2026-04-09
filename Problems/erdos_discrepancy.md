@@ -809,7 +809,8 @@ Definition of done:
 - [x] “Contracted support” API: package lemmas relating `apSupport` sets under dilation/translation (e.g. `apSupport (d*q) m n` vs mapped image of `apSupport d m n`), so edit-sensitivity/support arguments commute with the step-normalization/dilation rewrites.
   - Implemented as `apSupport_mul_right`, `apSupport_mul_right_filter`, `card_apSupport_mul_right_filter`, `card_apSupport_mul_right` (plus the translation-side `apSupport_add_left` / `card_apSupport_add_left`) in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] Coherence pass for `Nat`/`Int` casts in nucleus API: add small helper lemmas that rewrite common cast shapes (e.g. `(n : ℤ) + (m : ℤ)` vs `((n+m) : ℤ)`) as they appear in `apSumOffset`/`discOffset` algebra, to reduce proof script churn and avoid ad-hoc `norm_cast` sequences.
+- [x] Coherence pass for `Nat`/`Int` casts in nucleus API: add small helper lemmas that rewrite common cast shapes (e.g. `(n : ℤ) + (m : ℤ)` vs `((n+m) : ℤ)`) as they appear in `apSumOffset`/`discOffset` algebra, to reduce proof script churn and avoid ad-hoc `norm_cast` sequences.
+  - Implemented as opt-in simp lemmas in `MoltResearch/Discrepancy/CastSimp.lean` and exercised by regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean` (importing `MoltResearch.Discrepancy.DiscSimp`).
 
 ### Track C - Conjecture stub + equivalences (backlog)
 
