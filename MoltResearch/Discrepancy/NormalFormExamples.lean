@@ -3585,6 +3585,27 @@ example (hq : q > 0) :
       (Finset.range q).sum (fun r => f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
   simpa using apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq
 
+-- Affine / affine-tail residue splitting: callers shouldn’t have to normalize into `apSumOffset` first.
+example (hq : q > 0) :
+    apSumFrom f a d (q * (n + 1)) =
+      (Finset.range q).sum (fun r => f (a + (r + 1) * d) + apSumFrom f (a + (r + 1) * d) (q * d) n) := by
+  simpa using apSumFrom_mul_len_succ_eq_sum_range (f := f) (a := a) (d := d) (q := q) (n := n) hq
+
+example (hq : q > 0) :
+    apSumFrom f (a + m * d) d (q * (n + 1)) =
+      (Finset.range q).sum (fun r =>
+        f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n) := by
+  simpa using
+    apSumFrom_tail_mul_len_succ_eq_sum_range (f := f) (a := a) (d := d) (m := m) (q := q) (n := n) hq
+
+example (hq : q > 0) :
+    Int.natAbs (apSumFrom f (a + m * d) d (q * (n + 1))) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n)) := by
+  simpa using
+    natAbs_apSumFrom_tail_mul_len_succ_le_sum_range_natAbs (f := f) (a := a) (d := d) (m := m)
+      (q := q) (n := n) hq
+
 example (hq : q > 0) :
     discOffset f d m (q * (n + 1)) =
       Int.natAbs ((Finset.range q).sum (fun r =>
