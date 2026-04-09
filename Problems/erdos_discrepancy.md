@@ -797,7 +797,8 @@ Definition of done:
 - [x] Residue-class split for affine tails: extend the residue splitting API to `apSumFrom`/affine tails (and a matching disc-level inequality), so later stages can split an affine AP sum into `r` residue classes without first rewriting into an offset form by hand.
   - Implemented as `apSumFrom_mul_len_succ_eq_sum_range`, `apSumFrom_tail_mul_len_succ_eq_sum_range`, and `natAbs_apSumFrom_tail_mul_len_succ_le_sum_range_natAbs` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] Boundedness under sequence translation: prove a clean wrapper that `BoundedDiscrepancyAlong (fun k => f (k + a))` (and/or the repo’s chosen shifted notion) is equivalent to the unshifted one, packaged so downstream code can shift origins without rebuilding witnesses.
+- [x] Boundedness under sequence translation: prove a clean wrapper that `BoundedDiscrepancyAlong (fun k => f (k + a))` (and/or the repo’s chosen shifted notion) is equivalent to the unshifted one, packaged so downstream code can shift origins without rebuilding witnesses.
+  - Implemented as `boundedDiscrepancyAlong_shift_add_step_one_iff_forall_le_discOffset_le` in `MoltResearch/Discrepancy/Translate.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] “Normalize endpoints” simp bundle: add simp-friendly lemmas that rewrite common endpoint algebra into nucleus-normal-form endpoints (e.g. `m+(n+1)` → `m+n+1`, `m+0` → `m` in the exact shapes used by `sum_Icc_eq_apSumOffset_of_le_*`), so `simp` can close endpoint goals reliably.
 
