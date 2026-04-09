@@ -68,8 +68,8 @@ end Stage3Output
 ## Stage 3 entry point
 
 The Stage-3 entry point `stage3` (a definition, not an axiom) lives in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry` so that this file remains purely
-“API + wiring”.
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore` (re-exported by
+`...TrackCStage3Entry`) so that this file remains purely “API + wiring”.
 -/
 
 end Tao2015

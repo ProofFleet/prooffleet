@@ -1,5 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 /-!
@@ -7,14 +6,12 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 This file is **Conjectures-only** glue.
 
-It provides the minimal Stage-3 entry point `stage3`: from a sign sequence `f`, produce a
-`Stage3Output f`.
+- `TrackCStage3EntryCore.lean` contains the minimal Stage-3 API needed by the Track-C hard-gate
+  target `Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy`.
+- This file keeps additional Stage-3 convenience wrappers available under the traditional import
+  `...TrackCStage3Entry` without forcing the hard-gate target to compile them.
 
-Design goal: keep this module thin, so the hard-gate build for
-`Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy` does not need to compile additional
-wrapper lemmas.
-
-Additional convenience lemmas and witness-form wrappers live in
+Additional convenience lemmas and witness-form wrappers also live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Proof`.
 -/
 
@@ -22,73 +19,24 @@ namespace MoltResearch
 
 namespace Tao2015
 
-/-- Conjectures-only Stage 3 entry point: run Stage 2, then close the global goal via the proved
-Stage-3 boundary lemma `Stage3Output.ofStage2Output`.
-
-This is a definition (not an axiom): Stage 3 is non-stub glue on top of the Stage-2 axiom.
--/
-noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f := by
-  exact Stage3Output.ofStage2Output (f := f) (stage2Out (f := f) (hf := hf))
-
-/-- Deterministic name for the Stage-3 output (useful to keep later statements readable). -/
-noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
-  stage3 (f := f) (hf := hf)
-
-/-- Convenience projection: the reduced step size produced by Stage 3.
-
-We define this in the entry-point module (not in the wrapper-lemma module) so hard-gate consumers
-can access it without importing additional convenience lemmas.
-
-Implementation note: Stage 3 is just glue on top of Stage 2, so we route these projections through
-the Stage-2 entry-point projections (`stage2_d`, `stage2_g`, `stage2_m`).
--/
-noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  stage2_d (f := f) (hf := hf)
-
-/-- Convenience projection: the reduced sequence produced by Stage 3. -/
-noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
-  stage2_g (f := f) (hf := hf)
-
-/-- Convenience projection: the bundled offset parameter produced by Stage 3. -/
-noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  stage2_m (f := f) (hf := hf)
-
 /-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1 and produced by
 Stage 3.
 
-We define this in the entry-point module so hard-gate consumers can use it without importing any
-additional wrapper-lemma modules.
+This is intentionally not in the hard-gate core: it is a convenience name used by a few later
+lemmas, but it is not needed to state the main theorem.
 -/
 noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage3_m (f := f) (hf := hf) * stage3_d (f := f) (hf := hf)
 
 /-- Rewrite for the reduced sequence produced by Stage 3: it is a shift by the deterministic
-affine-tail start index `stage3_start = m*d`. -/
+affine-tail start index `stage3_start = m*d`.
+-/
 theorem stage3_g_eq_start (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
     stage3_g (f := f) (hf := hf) k = f (k + stage3_start (f := f) (hf := hf)) := by
   -- Stage 3 is just Stage-2 glue, so this is the Stage-2 `g_eq_start` rewrite.
   simpa [stage3_g, stage3_start, stage3_m, stage3_d, stage2_g, stage2_m, stage2_d,
     Stage2Output.start] using
     (Stage2Output.g_eq_start (f := f) (out := stage2Out (f := f) (hf := hf)) k)
-
-/-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
-
-We keep this lemma in the entry-point module so hard-gate consumers can access it without
-importing additional wrapper-lemma modules.
--/
-theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  -- Prefer consuming the Stage-3 output record API.
-  exact (stage3Out (f := f) (hf := hf)).notBounded
-
-/-- Consumer-facing shortcut: the Stage-3 pipeline yields the usual surface statement
-`∀ C, HasDiscrepancyAtLeast f C`.
-
-This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
--/
-theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  simpa using
-    (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
 
@@ -133,8 +81,9 @@ theorem stage3_forall_exists_d_ne_zero_witness_pos (f : ℕ → ℤ) (hf : IsSig
 /-- Consumer-facing shortcut: Stage 3 yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m` at the deterministic parameters produced by the pipeline.
 
-We keep this lemma in the entry-point module so hard-gate consumers can access the offset witness
-without importing the larger wrapper-lemma module `TrackCStage3Proof`.
+We keep this lemma in the `...TrackCStage3Entry` import path (rather than in the proof-heavy
+wrapper module) so consumers can access the offset witness without importing
+`TrackCStage3Proof`.
 -/
 theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) := by

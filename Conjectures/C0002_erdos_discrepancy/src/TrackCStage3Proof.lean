@@ -19,7 +19,7 @@ namespace MoltResearch
 
 namespace Tao2015
 
--- Projections `stage3_d`, `stage3_g`, `stage3_m` live in `TrackCStage3Entry.lean`.
+-- Projections `stage3_d`, `stage3_g`, `stage3_m` live in `TrackCStage3EntryCore.lean`.
 
 
 /-- The reduced sequence produced by Stage 3 is a sign sequence. -/
@@ -161,8 +161,8 @@ Note: the lemma
 
   Tao2015.stage3_forall_hasDiscrepancyAtLeast (f) (hf) : ∀ C, HasDiscrepancyAtLeast f C
 
-is defined in `TrackCStage3Entry.lean` so hard-gate consumers can use it without importing this
-larger convenience-lemma file.
+is defined in `TrackCStage3EntryCore.lean` so hard-gate consumers can use it without importing
+this larger convenience-lemma file.
 -/
 
 /-
