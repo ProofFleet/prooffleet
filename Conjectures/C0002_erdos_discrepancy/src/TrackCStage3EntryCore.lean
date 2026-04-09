@@ -80,6 +80,21 @@ theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
 
+/-- Sharpened witness form: Stage 3 yields side conditions `d ≥ 1` and `n > 0`.
+
+Normal form:
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C`.
+
+This is a tiny wrapper around `stage3_forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos`.
+-/
+theorem stage3_forall_exists_discrepancy_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f := f) (C := C)).1
+      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
+
 end Tao2015
 
 end MoltResearch
