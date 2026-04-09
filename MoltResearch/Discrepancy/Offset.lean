@@ -1719,6 +1719,27 @@ lemma discAlong_shift_add_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discAlong (fun k => f (k + m * d)) d n = discOffset f d m n := by
   simpa using (discOffset_eq_discAlong_shift_add (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Triangle inequality for `discAlong` across concatenation, in the along-`d` normal form.
+
+This mirrors `discOffset_add_le`, but expresses the suffix segment as an along-`d` discrepancy on
+the shifted sequence.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Triangle inequality for `discAlong` across concatenation.
+-/
+lemma discAlong_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
+    discAlong f d (n₁ + n₂) ≤
+      discAlong f d n₁ + discAlong (fun k => f (k + n₁ * d)) d n₂ := by
+  -- Start from the offset concatenation inequality at `m = 0`.
+  have h := discOffset_add_le (f := f) (d := d) (m := 0) (n₁ := n₁) (n₂ := n₂)
+  -- Normalize the middle start index `0 + n₁`.
+  have h' : discOffset f d 0 (n₁ + n₂) ≤ discOffset f d 0 n₁ + discOffset f d n₁ n₂ := by
+    simpa [Nat.zero_add] using h
+  -- Rewrite the suffix discrepancy into along-`d` form on the shifted sequence.
+  -- (Avoid `simp [discAlong, discOffset_eq_discAlong_shift_add]` which can loop.)
+  rw [discOffset_eq_discAlong_shift_add (f := f) (d := d) (m := n₁) (n := n₂)] at h'
+  -- Finally, fold `discOffset f d 0 _` back into `discAlong`.
+  simpa [discAlong] using h'
+
 /-- If a uniform bound holds for all offset discrepancies, then it holds for the finite-length
 along-`d` predicate on the shifted sequence. -/
 theorem BoundedDiscOffset.toBoundedDiscrepancyAlong_shift_add {f : ℕ → ℤ} {d m B : ℕ} (len : ℕ)

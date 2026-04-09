@@ -2014,6 +2014,11 @@ example :
     discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
   simpa using (discOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+-- `discAlong` triangle inequality regression (Track B item: along-`d` concatenation bound).
+example :
+    discAlong f d (n₁ + n₂) ≤ discAlong f d n₁ + discAlong (fun k => f (k + n₁ * d)) d n₂ := by
+  simpa using (discAlong_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+
 -- `discOffset` two-cut normal form regression (Track B item: three-segment concatenation bound).
 example :
     discOffset f d m (n₁ + n₂ + n₃) ≤
