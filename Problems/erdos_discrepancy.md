@@ -785,6 +785,25 @@ Definition of done:
 
 - [x] "API surface coherence" pass for residue splitting: ensure the preferred public names for the residue-class split lemmas (homogeneous + offset + disc-level) are exported by `import MoltResearch.Discrepancy`, with deprecated aliases moved behind `MoltResearch.Discrepancy.Deprecated` and audited by `SurfaceAudit`.
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Offset-start shift invariance (disc-level): package a canonical lemma
+  `discOffset f d (m+k) n = discOffset (fun t => f (t + k*d)) d m n` (or the repo’s preferred `shift_add` normal form), so changing the tail start becomes a one-line `rw` without unfolding `discOffset`.
+
+- [ ] Reflection invariance (disc-level): add a stable lemma rewriting `discOffset f d m n` under the reindexing `i ↦ n-1-i` (pairing the existing sum-level reflect lemma), so “reverse the segment” is available at discrepancy level with a regression example.
+
+- [ ] Residue-class split for affine tails: extend the residue splitting API to `apSumFrom`/affine tails (and a matching disc-level inequality), so later stages can split an affine AP sum into `r` residue classes without first rewriting into an offset form by hand.
+
+- [ ] Boundedness under sequence translation: prove a clean wrapper that `BoundedDiscrepancyAlong (fun k => f (k + a))` (and/or the repo’s chosen shifted notion) is equivalent to the unshifted one, packaged so downstream code can shift origins without rebuilding witnesses.
+
+- [ ] “Normalize endpoints” simp bundle: add simp-friendly lemmas that rewrite common endpoint algebra into nucleus-normal-form endpoints (e.g. `m+(n+1)` → `m+n+1`, `m+0` → `m` in the exact shapes used by `sum_Icc_eq_apSumOffset_of_le_*`), so `simp` can close endpoint goals reliably.
+
+- [ ] Triangle inequality for `discAlong` across concatenation: provide a canonical lemma bounding `discAlong f d (n+k)` by the sum of segment discrepancies in the along-`d` normal form (mirroring the existing `discOffset_add_le`), with a stable-surface regression example.
+
+- [ ] “Contracted support” API: package lemmas relating `apSupport` sets under dilation/translation (e.g. `apSupport (d*q) m n` vs mapped image of `apSupport d m n`), so edit-sensitivity/support arguments commute with the step-normalization/dilation rewrites.
+
+- [ ] Coherence pass for `Nat`/`Int` casts in nucleus API: add small helper lemmas that rewrite common cast shapes (e.g. `(n : ℤ) + (m : ℤ)` vs `((n+m) : ℤ)`) as they appear in `apSumOffset`/`discOffset` algebra, to reduce proof script churn and avoid ad-hoc `norm_cast` sequences.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
