@@ -34,7 +34,9 @@ Track-C Stage-3 pipeline.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
+  -- Derive the usual witness form from the core negation-normal-form statement.
+  exact (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2
+    (erdos_discrepancy_notBounded (f := f) (hf := hf))
 
 /-!
 Additional witness-form corollaries live in
