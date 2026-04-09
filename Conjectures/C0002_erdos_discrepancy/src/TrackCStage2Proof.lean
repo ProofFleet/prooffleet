@@ -94,6 +94,13 @@ theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
   simpa [stage2_g, stage2_start, stage2_m, stage2_d] using
     (stage2Out (f := f) (hf := hf)).g_eq k
 
+/-- Function-level rewrite for `stage2_g`: it is the shifted sequence `fun k => f (k + m*d)`. -/
+theorem stage2_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_g (f := f) (hf := hf) =
+      fun k => f (k + stage2_start (f := f) (hf := hf)) := by
+  funext k
+  simpa using stage2_g_eq (f := f) (hf := hf) k
+
 /-!
 ## Additional witness-form wrappers
 -/
