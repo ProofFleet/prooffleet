@@ -84,6 +84,21 @@ lemma apSumOffset_eq_sum_range_reflect (f : ℕ → ℤ) (d m n : ℕ) :
     _ = (Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d)) := by
           simpa using (Finset.sum_range_reflect (f := fun i => f ((m + i + 1) * d)) n).symm
 
+/-- Reverse-reindex normal form for `discOffset` over `Finset.range`.
+
+This is the `discOffset` wrapper analogue of `apSumOffset_eq_sum_range_reflect`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Reflection invariance (disc-level).
+-/
+lemma discOffset_eq_natAbs_sum_range_reflect (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d))) := by
+  -- Apply `Int.natAbs` to the sum-level reflect lemma.
+  unfold discOffset
+  exact
+    congrArg Int.natAbs
+      (apSumOffset_eq_sum_range_reflect (f := f) (d := d) (m := m) (n := n))
+
 /-!
 ## One-cut normal form (range sums)
 

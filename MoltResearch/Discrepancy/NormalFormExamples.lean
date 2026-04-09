@@ -186,6 +186,12 @@ example : apSumOffset f d m n =
     (Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d)) := by
   simpa using (apSumOffset_eq_sum_range_reflect (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / reflection invariance, discOffset-level):
+-- the same reverse-reindexing shape lemma should be available at the discrepancy wrapper.
+example : discOffset f d m n =
+    Int.natAbs ((Finset.range n).sum (fun i => f ((m + (n - 1 - i) + 1) * d))) := by
+  simpa using (discOffset_eq_natAbs_sum_range_reflect (f := f) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / reindexing API (range-bijection)):
 -- the involution-specialized wrapper should be usable as a one-line `rw` without unfolding.
 example : apSumOffset f d m n =
