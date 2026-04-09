@@ -267,13 +267,13 @@ lemma apSupport_add_left (d m n k : ℕ) :
 
 This is the “translation” half of the Track B contracted-support API.
 -/
-lemma card_apSupport_add_left_filter (d m n k : ℕ) (p : ℕ → Prop) :
+lemma card_apSupport_add_left_filter (d m n k : ℕ) (p : ℕ → Prop) [DecidablePred p] :
     ((apSupport d (m + k) n).filter p).card =
       ((apSupport d m n).filter (fun x => p (x + k * d))).card := by
   classical
   have hinj : Function.Injective (fun x : ℕ => x + k * d) := by
     intro a b hab
-    exact Nat.add_left_cancel hab
+    exact Nat.add_right_cancel hab
   -- Rewrite `apSupport d (m+k) n` as an image and cancel cardinality via injectivity.
   have hfilter : (apSupport d (m + k) n).filter p =
       ((apSupport d m n).filter (fun x => p (x + k * d))).image (fun x => x + k * d) := by
@@ -356,7 +356,7 @@ under multiplication by `q`.
 
 We assume `q > 0` so that multiplication by `q` is injective and hence preserves cardinalities.
 -/
-lemma apSupport_mul_right_filter (d m n q : ℕ) (p : ℕ → Prop) (hq : q > 0) :
+lemma apSupport_mul_right_filter (d m n q : ℕ) (p : ℕ → Prop) [DecidablePred p] (hq : q > 0) :
     (apSupport (d * q) m n).filter p =
       ((apSupport d m n).filter (fun x => p (x * q))).image (fun x => x * q) := by
   classical
@@ -387,7 +387,7 @@ lemma apSupport_mul_right_filter (d m n q : ℕ) (p : ℕ → Prop) (hq : q > 0)
 
 This is the typical form needed to rewrite `card` hypotheses in edit-sensitivity arguments.
 -/
-lemma card_apSupport_mul_right_filter (d m n q : ℕ) (p : ℕ → Prop) (hq : q > 0) :
+lemma card_apSupport_mul_right_filter (d m n q : ℕ) (p : ℕ → Prop) [DecidablePred p] (hq : q > 0) :
     ((apSupport (d * q) m n).filter p).card =
       ((apSupport d m n).filter (fun x => p (x * q))).card := by
   classical
