@@ -42,11 +42,10 @@ theorem stage3_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) 
   simpa [stage3_d] using
     (Stage3Output.hd (f := f) (stage3Out (f := f) (hf := hf)))
 
-/-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
-theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    1 ≤ stage3_d (f := f) (hf := hf) := by
-  simpa [stage3_d] using
-    (Stage3Output.one_le_d (f := f) (stage3Out (f := f) (hf := hf)))
+/-!
+The convenience lemma `stage3_one_le_d` lives in `TrackCStage3Entry.lean`.
+We intentionally do not redeclare it here (this file imports `TrackCStage3Entry`).
+-/
 
 /-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
 theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
