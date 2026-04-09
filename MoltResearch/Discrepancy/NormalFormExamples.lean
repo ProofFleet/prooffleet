@@ -174,6 +174,22 @@ example (q : ℕ) : apSupport (d * q) m n = (apSupport d m n).image (fun x => x 
 example (q : ℕ) (hq : q > 0) : (apSupport (d * q) m n).card = (apSupport d m n).card := by
   simpa using (card_apSupport_mul_right (d := d) (m := m) (n := n) (q := q) hq)
 
+-- Regression (Track B / contracted-support API, dilation, filtered form):
+example (P : ℕ → Prop) [DecidablePred P] (q : ℕ) (hq : q > 0) :
+    (apSupport (d * q) m n).filter P =
+      ((apSupport d m n).filter (fun x => P (x * q))).image (fun x => x * q) := by
+  classical
+  simpa using
+    (apSupport_mul_right_filter (d := d) (m := m) (n := n) (q := q) (p := P) hq)
+
+-- Regression (Track B / contracted-support cardinality API, dilation, filtered form):
+example (P : ℕ → Prop) [DecidablePred P] (q : ℕ) (hq : q > 0) :
+    ((apSupport (d * q) m n).filter P).card =
+      ((apSupport d m n).filter (fun x => P (x * q))).card := by
+  classical
+  simpa using
+    (card_apSupport_mul_right_filter (d := d) (m := m) (n := n) (q := q) (p := P) hq)
+
 -- Regression (Track B / offset shift by a multiple of the step):
 example : apSumOffset (fun t => f (t + k * d)) d m n = apSumOffset f d (m + k) n := by
   simpa using (apSumOffset_map_add_mul (f := f) (k := k) (d := d) (m := m) (n := n))

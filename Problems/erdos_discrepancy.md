@@ -806,7 +806,8 @@ Definition of done:
 - [x] Triangle inequality for `discAlong` across concatenation: provide a canonical lemma bounding `discAlong f d (n+k)` by the sum of segment discrepancies in the along-`d` normal form (mirroring the existing `discOffset_add_le`), with a stable-surface regression example.
   - Implemented as `discAlong_add_le` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] “Contracted support” API: package lemmas relating `apSupport` sets under dilation/translation (e.g. `apSupport (d*q) m n` vs mapped image of `apSupport d m n`), so edit-sensitivity/support arguments commute with the step-normalization/dilation rewrites.
+- [x] “Contracted support” API: package lemmas relating `apSupport` sets under dilation/translation (e.g. `apSupport (d*q) m n` vs mapped image of `apSupport d m n`), so edit-sensitivity/support arguments commute with the step-normalization/dilation rewrites.
+  - Implemented as `apSupport_mul_right`, `apSupport_mul_right_filter`, `card_apSupport_mul_right_filter`, `card_apSupport_mul_right` (plus the translation-side `apSupport_add_left` / `card_apSupport_add_left`) in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] Coherence pass for `Nat`/`Int` casts in nucleus API: add small helper lemmas that rewrite common cast shapes (e.g. `(n : ℤ) + (m : ℤ)` vs `((n+m) : ℤ)`) as they appear in `apSumOffset`/`discOffset` algebra, to reduce proof script churn and avoid ad-hoc `norm_cast` sequences.
 
