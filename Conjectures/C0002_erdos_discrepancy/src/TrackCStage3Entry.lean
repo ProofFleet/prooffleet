@@ -33,7 +33,7 @@ This is intentionally not in the hard-gate core: it is a convenience name used b
 lemmas, but it is not needed to state the main theorem.
 -/
 noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  stage3_m (f := f) (hf := hf) * stage3_d (f := f) (hf := hf)
+  stage2_start (f := f) (hf := hf)
 
 /-- Rewrite for the reduced sequence produced by Stage 3: it is a shift by the deterministic
 affine-tail start index `stage3_start = m*d`.
@@ -41,7 +41,7 @@ affine-tail start index `stage3_start = m*d`.
 theorem stage3_g_eq_start (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
     stage3_g (f := f) (hf := hf) k = f (k + stage3_start (f := f) (hf := hf)) := by
   -- Stage 3 is just Stage-2 glue, so this is the Stage-2 `g_eq` rewrite.
-  simpa [stage3_g, stage3_start, stage3_m, stage3_d, stage2_g, stage2_m, stage2_d] using
+  simpa [stage3_g, stage3_start, stage2_g, stage2_start, stage2_m, stage2_d] using
     (Stage2Output.g_eq (f := f) (out := stage2Out (f := f) (hf := hf)) k)
 
 /-- Function-level rewrite for `stage3_g`: it is the shifted sequence
@@ -116,9 +116,7 @@ when they only need the existence of some unbounded offset family.
 theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
   refine ⟨stage3_d (f := f) (hf := hf), stage3_m (f := f) (hf := hf), ?_, ?_⟩
-  · -- The Stage-3 projections route through the Stage-2 output.
-    simpa [stage3_d, stage2_d, Stage2Output.d] using
-      (Stage2Output.one_le_d (f := f) (stage2Out (f := f) (hf := hf)))
+  · exact stage3_one_le_d (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
 end Tao2015
