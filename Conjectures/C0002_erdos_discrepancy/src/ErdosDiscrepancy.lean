@@ -11,7 +11,7 @@ namespace MoltResearch
 /-- Trivial base case: any sign sequence has discrepancy at least 0. -/
 theorem erdos_discrepancy_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     HasDiscrepancyAtLeast f 0 := by
-  simpa using IsSignSequence.hasDiscrepancyAtLeast_zero (hf := hf)
+  exact IsSignSequence.hasDiscrepancyAtLeast_zero (hf := hf)
 
 -- Tao 2015 proof skeleton lives in `Conjectures.C0002_erdos_discrepancy.src.Tao2015`.
 
@@ -34,7 +34,7 @@ Track-C Stage-3 pipeline.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  simpa using (Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
+  exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
 
 /-!
 Additional witness-form corollaries live in

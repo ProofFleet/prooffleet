@@ -26,8 +26,8 @@ Stage-3 boundary lemma `Stage3Output.ofStage2Output`.
 
 This is a definition (not an axiom): Stage 3 is non-stub glue on top of the Stage-2 axiom.
 -/
-noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f := by
-  exact Stage3Output.ofStage2Output (f := f) (stage2Out (f := f) (hf := hf))
+noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
+  Stage3Output.ofStage2Output (f := f) (stage2Out (f := f) (hf := hf))
 
 /-- Deterministic name for the Stage-3 output (useful to keep later statements readable). -/
 noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
@@ -63,8 +63,7 @@ This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
 -/
 theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  simpa using
-    (Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf)))
+  exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf))
 
 /-- Consumer-facing witness form: Stage 3 yields
 
