@@ -276,6 +276,47 @@ theorem stage2_forall_exists_natAbs_apSumOffset_gt'_witness_pos (f : ℕ → ℤ
   simpa using
     (UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos (hunb := hunb))
 
+/-- Paper-notation witness form: Stage 2 yields arbitrarily large shifted progression sums
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the concrete parameters produced by the conjecture stub
+`stage2Out`.
+
+Normal form:
+`∀ B, ∃ n, Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) > B`,
+where `d = stage2_d` and `m = stage2_m`.
+
+This is just `stage2_forall_exists_natAbs_apSumOffset_gt'` rewritten using the paper-notation lemma
+`Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc`.
+-/
+theorem stage2_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        Int.natAbs
+            ((Finset.Icc (stage2_m (f := f) (hf := hf) + 1) (stage2_m (f := f) (hf := hf) + n)).sum
+              (fun i => f (i * stage2_d (f := f) (hf := hf)))) > B := by
+  intro B
+  rcases stage2_forall_exists_natAbs_apSumOffset_gt' (f := f) (hf := hf) B with ⟨n, hn⟩
+  refine ⟨n, ?_⟩
+  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f)
+    (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) (n := n)] using hn
+
+/-- Positive-length witness form of `stage2_forall_exists_natAbs_sum_Icc_offset_gt`.
+
+The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
+-/
+theorem stage2_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ, n > 0 ∧
+        Int.natAbs
+            ((Finset.Icc (stage2_m (f := f) (hf := hf) + 1) (stage2_m (f := f) (hf := hf) + n)).sum
+              (fun i => f (i * stage2_d (f := f) (hf := hf)))) > B := by
+  intro B
+  rcases stage2_forall_exists_natAbs_apSumOffset_gt'_witness_pos (f := f) (hf := hf) B with
+    ⟨n, hnpos, hn⟩
+  refine ⟨n, hnpos, ?_⟩
+  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f)
+    (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf)) (n := n)] using hn
+
 /-!
 Consumer code should usually use `stage2Out` together with the general lemmas about `Stage2Output`
 (from `TrackCStage2.lean` / `TrackCStage2Output.lean`).
