@@ -150,11 +150,29 @@ theorem stage2_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsS
           (f := f)).1
       (stage2Out (f := f) (hf := hf)).unbounded
 
+/-- Negation-normal-form tail-nucleus statement: Stage 2 yields no uniform bound on the affine-tail
+nuclei `Int.natAbs (apSumFrom f (m*d) d n)` at the concrete parameters produced by `stage2Out`.
+
+This is often the most convenient form for contradiction arguments in later stages.
+-/
+theorem stage2_not_exists_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs
+              (apSumFrom f (stage2_start (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) n) ≤ B := by
+  have hunb :
+      UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
+    stage2_unboundedDiscOffset (f := f) (hf := hf)
+  simpa [stage2_start, stage2_m, stage2_d] using
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+          (d := stage2_d (f := f) (hf := hf)) (m := stage2_m (f := f) (hf := hf))).1
+      hunb
+
 
 /- Note: `stage2_unboundedDiscOffset` is defined in this module as a wrapper around the Stage-2 core lemma `Stage2Output.unboundedDiscOffset`. -/
 
 
-/-- Positive-length witness form of `stage2_forall_exists_natAbs_apSumFrom_mul_gt`.
+/-- Positive-length witness form of `stage2_forall_exists_natAbs_apSumFrom_mul_gt`. 
 
 The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
 
