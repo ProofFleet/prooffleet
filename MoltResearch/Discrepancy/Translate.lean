@@ -456,4 +456,50 @@ lemma HasAffineDiscrepancyAtLeast.of_shift_add_left {f : ℕ → ℤ} {k C : ℕ
 
 
 
+/-!
+## Boundedness under sequence translation (step-one wrapper)
+
+Checklist item: `Problems/erdos_discrepancy.md` (Track B) —
+“Boundedness under sequence translation”.
+
+In our normal forms, `discAlong f d n` is implemented as `discOffset f d 0 n`. The `discOffset`
+API already has clean shift lemmas for translations by multiples of `d`.
+
+This section packages the special case relevant to “sequence translation” in the *step-one* view:
+shifting the input sequence by `a` corresponds exactly to increasing the offset parameter `m` by
+`a` when `d = 1`.
+-/
+
+/-- Step-one translation wrapper: along-`1` discrepancy of a shifted sequence is the offset
+  discrepancy at start `a`.
+
+This is the clean bridge between
+`discAlong (fun k => f (k + a)) 1 n`
+and
+`discOffset f 1 a n`.
+-/
+lemma discAlong_shift_add_step_one_eq_discOffset (f : ℕ → ℤ) (a n : ℕ) :
+    discAlong (fun k => f (k + a)) 1 n = discOffset f 1 a n := by
+  -- `discAlong g 1 n = discOffset g 1 0 n` by definition, and
+  -- `discOffset f 1 a n = discOffset (fun k => f (k + a*1)) 1 0 n` by `discOffset_eq_discOffset_shift_add`.
+  simpa [discAlong, Nat.mul_one] using
+    (discOffset_eq_discOffset_shift_add (f := f) (d := 1) (m := a) (n := n)).symm
+
+/-- Track-B wrapper: boundedness along `1` for a translated sequence is equivalent to
+boundedness of `discOffset` at start `a`.
+
+This is the packaged form used to “shift origins” without rebuilding witnesses.
+-/
+theorem boundedDiscrepancyAlong_shift_add_step_one_iff_forall_le_discOffset_le
+    (f : ℕ → ℤ) (a len B : ℕ) :
+    BoundedDiscrepancyAlong (fun k => f (k + a)) 1 len B ↔
+      ∀ n : ℕ, n ≤ len → discOffset f 1 a n ≤ B := by
+  constructor
+  · intro h n hn
+    simpa [discAlong_shift_add_step_one_eq_discOffset (f := f) (a := a) (n := n)] using h n hn
+  · intro h n hn
+    have hn' : discOffset f 1 a n ≤ B := h n hn
+    simpa [discAlong_shift_add_step_one_eq_discOffset (f := f) (a := a) (n := n)] using hn'
+
+
 end MoltResearch

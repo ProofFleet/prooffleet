@@ -895,6 +895,14 @@ example (len B : ℕ) :
   simpa using
     (boundedDiscrepancyAlong_iff_forall_le_discAlong_le (f := f) (d := d) (len := len) (B := B))
 
+-- Regression (Track B / boundedness under sequence translation): step-one wrapper.
+example (a len B : ℕ) :
+    BoundedDiscrepancyAlong (fun k => f (k + a)) 1 len B ↔
+      ∀ n : ℕ, n ≤ len → discOffset f 1 a n ≤ B := by
+  simpa using
+    (boundedDiscrepancyAlong_shift_add_step_one_iff_forall_le_discOffset_le (f := f) (a := a)
+      (len := len) (B := B))
+
 -- Regression (Track B / boundedness API hygiene): monotonicity in the bound parameter (finite-length along-`d`).
 example (len B B' : ℕ) (h : BoundedDiscrepancyAlong f d len B) (hBB' : B ≤ B') :
     BoundedDiscrepancyAlong f d len B' := by
