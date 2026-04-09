@@ -37,6 +37,10 @@ noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage
 noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_d (f := f) (hf := hf)
 
+/-- Convenience lemma: the reduced step size produced by Stage 3 is positive. -/
+theorem stage3_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) > 0 := by
+  simpa [stage3_d, stage2_d] using (stage2Out (f := f) (hf := hf)).out1.hd
+
 /-- Convenience projection: the reduced sequence produced by Stage 3. -/
 noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
   stage2_g (f := f) (hf := hf)
