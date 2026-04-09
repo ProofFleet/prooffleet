@@ -957,6 +957,23 @@ example (q : ℕ) (hq : q > 0) :
   simpa using
     (apSumOffset_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (m := m) (q := q) (n := n) hq)
 
+-- Regression (Track B / residue-class split for affine tails).
+example (a : ℕ) (q : ℕ) (hq : q > 0) :
+    apSumFrom f (a + m * d) d (q * (n + 1)) =
+      (Finset.range q).sum (fun r =>
+        f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n) := by
+  simpa using
+    (apSumFrom_tail_mul_len_succ_eq_sum_range (f := f) (a := a) (d := d) (m := m) (q := q) (n := n) hq)
+
+-- Regression (Track B / residue-class split for affine tails: disc-level inequality).
+example (a : ℕ) (q : ℕ) (hq : q > 0) :
+    Int.natAbs (apSumFrom f (a + m * d) d (q * (n + 1))) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n)) := by
+  simpa using
+    (natAbs_apSumFrom_tail_mul_len_succ_le_sum_range_natAbs
+      (f := f) (a := a) (d := d) (m := m) (q := q) (n := n) hq)
+
 -- Regression (Track B / step-one + residue split bundle, offset sum):
 -- a single rewrite should produce the `∑ r<q` decomposition without intermediate rewrites.
 example (q : ℕ) (hq : q > 0) :

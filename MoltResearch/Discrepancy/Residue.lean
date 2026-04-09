@@ -313,6 +313,78 @@ lemma apSumFrom_mul_len_succ_eq_sum_range (f : ℕ → ℤ) (a d q n : ℕ) (hq 
   -- `h` is an equality; rewrite both sides by `hL` and `hR`.
   simpa [hL, hR] using h
 
+/-- Residue-class split for affine tails `apSumFrom f (a + m*d) d …`.
+
+This is a small arithmetic-convenience wrapper around `apSumFrom_mul_len_succ_eq_sum_range`.
+It avoids a downstream “normalize the start by hand” step when working with affine tails.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue-class split for affine tails.
+-/
+lemma apSumFrom_tail_mul_len_succ_eq_sum_range
+    (f : ℕ → ℤ) (a d m q n : ℕ) (hq : q > 0) :
+    apSumFrom f (a + m * d) d (q * (n + 1)) =
+      (Finset.range q).sum (fun r =>
+        f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n) := by
+  classical
+  have h :=
+    apSumFrom_mul_len_succ_eq_sum_range (f := f) (a := a + m * d) (d := d) (q := q) (n := n) hq
+
+  -- Normalize the residue-class starts: `(a + m*d) + (r+1)*d = a + (m+r+1)*d`.
+  have hadd : ∀ r : ℕ, (a + m * d) + (r + 1) * d = a + (m + r + 1) * d := by
+    intro r
+    calc
+      (a + m * d) + (r + 1) * d = a + (m * d + (r + 1) * d) := by
+        simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+      _ = a + ((m + (r + 1)) * d) := by
+        -- `m*d + (r+1)*d = (m+(r+1))*d`.
+        simpa [Nat.add_mul] using (Nat.add_mul m (r + 1) d).symm
+      _ = a + (m + r + 1) * d := by
+        simp [Nat.add_assoc]
+
+  -- Rewrite each summand using `hadd`.
+  simpa [hadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+
+/-!
+### Discrepancy inequality: affine tails
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue-class split for affine tails (disc-level inequality).
+
+After rewriting an affine tail sum into the residue-class split normal form, apply the triangle
+inequality to bound the absolute value by the sum of absolute values of the residue blocks.
+-/
+
+/-- Triangle-inequality bound for residue-class splitting of an affine tail `apSumFrom f (a + m*d) d …`.
+
+We do not currently have a dedicated discrepancy wrapper for `apSumFrom`, so this lemma is stated
+at the `Int.natAbs` level.
+-/
+lemma natAbs_apSumFrom_tail_mul_len_succ_le_sum_range_natAbs
+    (f : ℕ → ℤ) (a d m q n : ℕ) (hq : q > 0) :
+    Int.natAbs (apSumFrom f (a + m * d) d (q * (n + 1))) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n)) := by
+  classical
+  -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
+  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
+      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
+    classical
+    refine Finset.induction_on s ?h0 ?hstep
+    · simp
+    · intro a s ha hs
+      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
+        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
+      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
+      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
+          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
+        Nat.add_le_add_left h2 _
+      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+        (Nat.le_trans h1 h3)
+
+  -- Rewrite to the residue split normal form and apply the triangle inequality.
+  simpa [apSumFrom_tail_mul_len_succ_eq_sum_range (f := f) (a := a) (d := d) (m := m) (q := q) (n := n) hq] using
+    (natAbs_sum_le_sum_natAbs (Finset.range q)
+      (fun r => f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n))
+
 /-- Residue-class split for offset AP sums.
 
 This is the offset analogue of `apSum_mul_len_succ_eq_sum_range`.
