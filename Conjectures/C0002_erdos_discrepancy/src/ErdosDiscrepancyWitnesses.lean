@@ -66,6 +66,17 @@ theorem erdos_discrepancy_apSum_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) 
     (Tao2015.Stage3Output.forall_exists_d_pos_witness_pos (f := f)
       (Tao2015.stage3Out (f := f) (hf := hf)))
 
+/-- Variant of `erdos_discrepancy_apSum` writing the step-size side condition as `d ≠ 0`.
+
+This is sometimes the right normal form for downstream stages that treat `d` as a denominator (or
+simply want to avoid rewriting strict inequalities).
+-/
+theorem erdos_discrepancy_apSum_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  simpa using
+    (Tao2015.Stage3Output.forall_exists_d_ne_zero_witness_pos (f := f)
+      (Tao2015.stage3Out (f := f) (hf := hf)))
+
 /-- Witness form of `erdos_discrepancy` using the `discrepancy` wrapper.
 
 Normal form:
