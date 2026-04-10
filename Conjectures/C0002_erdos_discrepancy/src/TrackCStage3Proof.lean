@@ -115,6 +115,20 @@ theorem stage3_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ) (hf : Is
   simpa [stage3_d, stage3_m] using
     (Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Positive-length witness form of `stage3_forall_exists_natAbs_sum_Icc_offset_gt`.
+
+The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
+-/
+theorem stage3_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+      Int.natAbs
+          ((Finset.Icc ((stage3_m (f := f) (hf := hf)) + 1)
+              ((stage3_m (f := f) (hf := hf)) + n)).sum
+            (fun i => f (i * (stage3_d (f := f) (hf := hf))))) > B := by
+  simpa [stage3_d, stage3_m] using
+    (Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f)
+      (stage3Out (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields explicit affine-tail nucleus witnesses at the
 concrete parameters produced by the pipeline.
 
