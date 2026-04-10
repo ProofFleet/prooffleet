@@ -113,6 +113,26 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (
     have hn : Int.natAbs (apSumFrom f (m * d) d n) ≤ B := h n
     simpa [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)] using hn
 
+/-- Packaging normal form: existence of a bundled offset bound expressed via affine-tail nuclei.
+
+This is just `BoundedDiscOffset` packaged under an existential quantifier and rewritten using
+`boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le`.
+-/
+theorem exists_boundedDiscOffset_iff_exists_forall_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (d m : ℕ) :
+    (∃ B : ℕ, BoundedDiscOffset f d m B) ↔
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact
+      (boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f := f) (d := d) (m := m) (B := B)).1
+        hB
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact
+      (boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f := f) (d := d) (m := m) (B := B)).2
+        hB
+
 /-- Normal form: unbounded offset discrepancy means there is no uniform bundled offset-nucleus bound.
 
 Negation-normal form:
