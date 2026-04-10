@@ -49,9 +49,20 @@ lemma natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset'
         hmn)
   simpa [hs]
 
+-- Common paper form: `∑_{i=m+1}^{m+n} f (a + i*d)`.
+-- This avoids having to manually provide the inequality `m ≤ m+n` and simplifies `(m+n) - m`.
+lemma natAbs_sum_Icc_add_affineEndpoints_eq_discOffset'
+    (f : ℕ → ℤ) (a d m n : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d))) =
+        discOffset (fun k => f (a + k)) d m n := by
+  simpa [Nat.add_sub_cancel_left] using
+    (natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset' (f := f) (a := a) (d := d)
+      (m := m) (n := m + n) (Nat.le_add_right m n))
+
 attribute [simp]
   natAbs_sum_Icc_eq_discOffset'
   natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset'
+  natAbs_sum_Icc_add_affineEndpoints_eq_discOffset'
 
 /-!
 ## Disable nucleus → paper rewrites as simp rules (loop avoidance)
