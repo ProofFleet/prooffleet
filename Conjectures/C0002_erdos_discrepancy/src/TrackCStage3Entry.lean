@@ -96,6 +96,23 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage3_d, stage3_m, stage2_d, stage2_m] using
     (Stage2Output.unboundedDiscOffset (f := f) (stage2Out (f := f) (hf := hf)))
 
+/-- Witness-family form of `stage3_unboundedDiscOffset` (inequality-direction), with a positive-length
+witness.
+
+Normal form:
+`∀ B, ∃ n, n > 0 ∧ discOffset f (stage3_d ...) (stage3_m ...) n > B`.
+
+This is a thin wrapper around the proved Stage-2 lemma
+`Stage2Output.forall_exists_discOffset_gt'_witness_pos`.
+-/
+theorem stage3_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        n > 0 ∧
+          discOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) n > B := by
+  simpa [stage3_d, stage3_m, stage2_d, stage2_m] using
+    (Stage2Output.forall_exists_discOffset_gt'_witness_pos (f := f) (stage2Out (f := f) (hf := hf)))
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 
