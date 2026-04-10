@@ -96,9 +96,9 @@ example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f 
 example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom f (a + m * d) d n := by
   simp
 
--- paper discrepancy object → nucleus `discOffset`
+-- paper discrepancy object → nucleus `discOffset` (named bridge lemma)
 example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
-  simp
+  simpa using (natAbs_sum_Icc_eq_discOffset (f := f) (d := d) (m := m) (n := n))
 
 -- nucleus `discOffset` → paper discrepancy object (Track B item: paper-interval discrepancy normal form)
 example : discOffset f d m n = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
