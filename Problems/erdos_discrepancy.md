@@ -826,8 +826,10 @@ Definition of done:
   - Implemented as `discOffset_congr_endpoints` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in
     `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] `discOffsetUpTo` paper↔nucleus bridge: provide a lemma rewriting the finitary max-definition for `discOffsetUpTo` into a max over paper-interval witnesses
+- [x] `discOffsetUpTo` paper↔nucleus bridge: provide a lemma rewriting the finitary max-definition for `discOffsetUpTo` into a max over paper-interval witnesses
   (and back), so arguments about “max discrepancy on Icc up to N” can reuse the existing nucleus API.
+  - Implemented as `discOffsetUpTo_eq_sup_Icc_endpoints` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in
+    `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] `discOffsetUpTo` concatenation inequality: prove a canonical inequality bounding
   `discOffsetUpTo f d m (N+K)` by `discOffsetUpTo f d m N` plus an appropriate tail term (with clean statement/orientation),
