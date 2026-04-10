@@ -416,20 +416,9 @@ theorem forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (out : Stage2Output f
     ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
       Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) > B := by
   intro B
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  rcases
-      Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt_witness_pos
-        (f := f) (d := out.d) (m := out.m) hunb B with
-    ⟨n, hnpos, hn⟩
+  rcases out.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B with ⟨n, hnpos, hn⟩
   refine ⟨n, hnpos, ?_⟩
-  have hn' : B <
-      Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) := by
-    -- Avoid `simp` recursion-depth issues: unfold `discOffset` and rewrite the nucleus directly.
-    have hn' := hn
-    unfold discOffset at hn'
-    rw [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] at hn'
-    exact hn'
-  exact (gt_iff_lt).2 hn'
+  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] using hn
 
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that the offset nucleus
 `apSumOffset f d m n` takes arbitrarily large absolute values.
