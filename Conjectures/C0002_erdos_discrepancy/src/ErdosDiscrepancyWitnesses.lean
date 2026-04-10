@@ -45,6 +45,20 @@ theorem erdos_discrepancy_sum_Icc_offset_stage3 (f : ℕ → ℤ) (hf : IsSignSe
   simpa [hout.symm] using
     (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) out)
 
+/-- Positive-length witness form of `erdos_discrepancy_sum_Icc_offset_stage3`.
+
+The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
+-/
+theorem erdos_discrepancy_sum_Icc_offset_stage3_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+      Int.natAbs
+          ((Finset.Icc ((Tao2015.stage3_m (f := f) (hf := hf)) + 1)
+                ((Tao2015.stage3_m (f := f) (hf := hf)) + n)).sum
+              (fun i => f (i * (Tao2015.stage3_d (f := f) (hf := hf))))) > B := by
+  set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
+  simpa [hout.symm] using
+    (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) out)
+
 /-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
 This is the most pipeline-friendly surface statement:
