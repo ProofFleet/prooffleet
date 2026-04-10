@@ -814,9 +814,11 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Paper-interval discrepancy normal form: add a stable lemma rewriting `discOffset f d m n` directly into a paper-style `Icc` sum,
+- [x] Paper-interval discrepancy normal form: add a stable lemma rewriting `discOffset f d m n` directly into a paper-style `Icc` sum,
   e.g. `discOffset f d m n = Int.natAbs (∑ i in Finset.Icc (m+1) (m+n), f (i*d))` (up to the repo’s chosen endpoint conventions),
   so downstream proofs can stay in paper notation without unfolding `discOffset`.
+  - Implemented as `discOffset_eq_natAbs_sum_Icc` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in
+    `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] Endpoint-congruence wrapper (disc-level, paper notation): package a lemma with hypotheses of the form
   `∀ i, m < i ∧ i ≤ m+n → f (i*d) = g (i*d)` implying `discOffset f d m n = discOffset g d m n`,
