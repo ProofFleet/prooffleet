@@ -80,6 +80,18 @@ theorem stage2_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
         (d := stage2_d (f := f) (hf := hf))).1
       (stage2Out (f := f) (hf := hf)).unbounded
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `d > 0` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This is a minimal corollary of `stage2_unboundedDiscOffset`; some downstream stages prefer strict
+positivity over `1 ≤ d`.
+-/
+theorem stage2_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
+  refine ⟨stage2_d (f := f) (hf := hf), stage2_m (f := f) (hf := hf),
+    stage2_d_pos (f := f) (hf := hf), ?_⟩
+  exact stage2_unboundedDiscOffset (f := f) (hf := hf)
+
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded. -/
 theorem stage2_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
