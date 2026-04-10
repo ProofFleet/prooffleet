@@ -21,14 +21,8 @@ namespace Tao2015
 
 -- (core API lives in `TrackCStage3EntryCore.lean`)
 
-/-- Function-level rewrite for `stage3_g`: it is the shifted sequence
-`fun k => f (k + stage3_start)`.
--/
-theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage3_g (f := f) (hf := hf) =
-      fun k => f (k + stage3_start (f := f) (hf := hf)) := by
-  funext k
-  simpa using stage3_g_eq (f := f) (hf := hf) k
+-- Note: `stage3_g_eq_fun` now lives in `TrackCStage3EntryCore.lean` so hard-gate consumers
+-- can use it without importing this larger convenience-lemma module.
 
 /-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
 

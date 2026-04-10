@@ -83,6 +83,15 @@ theorem stage3_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
     stage3_g (f := f) (hf := hf) k = f (k + stage3_start (f := f) (hf := hf)) := by
   simpa [stage3_g, stage3_start] using stage2_g_eq (f := f) (hf := hf) k
 
+/-- Function-level rewrite for `stage3_g`: it is the shifted sequence
+`fun k => f (k + stage3_start)`.
+-/
+theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3_g (f := f) (hf := hf) =
+      fun k => f (k + stage3_start (f := f) (hf := hf)) := by
+  funext k
+  simpa using stage3_g_eq (f := f) (hf := hf) k
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate core so `ErdosDiscrepancy.lean` can remain minimal.
