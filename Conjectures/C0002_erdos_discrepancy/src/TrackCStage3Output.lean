@@ -236,6 +236,19 @@ theorem exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (out : Stage
   intro B
   exact out.forall_exists_natAbs_sum_Icc_offset_gt (f := f) B
 
+/-- Existential packaging variant of `exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt`
+with a positive-length witness `n > 0`.
+
+The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) B
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute values.
 
