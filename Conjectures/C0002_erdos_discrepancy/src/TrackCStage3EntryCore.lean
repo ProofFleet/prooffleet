@@ -67,6 +67,12 @@ This is the shift used to define the reduced sequence `stage3_g` as a tail of `f
 noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_start (f := f) (hf := hf)
 
+/-- The affine-tail start index `stage3_start` is a multiple of the reduced step size `stage3_d`. -/
+theorem stage3_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3_d (f := f) (hf := hf) ∣ stage3_start (f := f) (hf := hf) := by
+  -- `stage3_start` is definitionally `m*d`.
+  simp [stage3_d, stage3_start, stage2_start]
+
 /-- The reduced sequence produced by Stage 3 is a sign sequence. -/
 theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
     IsSignSequence (stage3_g (f := f) (hf := hf)) := by
