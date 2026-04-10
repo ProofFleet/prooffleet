@@ -842,8 +842,9 @@ Definition of done:
   - Export checks live in `MoltResearch/Discrepancy/SurfaceAudit.lean` as `#check` presence tests under `import MoltResearch.Discrepancy`.
   - Mul-left/argument-order variants remain opt-in behind `MoltResearch.Discrepancy.Deprecated`.
 
-- [ ] One-line `simp` pipeline for paper endpoints: add (or refine) an opt-in simp set so a typical goal involving
+- [x] One-line `simp` pipeline for paper endpoints: add (or refine) an opt-in simp set so a typical goal involving
   `Finset.Icc (m+1) (m+n)` endpoints normalizes to nucleus forms with `simp` + at most one `rw`, and cover it with a regression example.
+  (Implemented as `MoltResearch.Discrepancy.PaperSimp` with regression examples in `MoltResearch/Discrepancy/PaperSimpExamples.lean`.)
 
 ### Track C - Conjecture stub + equivalences (backlog)
 

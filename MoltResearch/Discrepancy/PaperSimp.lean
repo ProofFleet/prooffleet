@@ -59,21 +59,33 @@ lemma natAbs_sum_Icc_add_affineEndpoints_eq_discOffset'
     (natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset' (f := f) (a := a) (d := d)
       (m := m) (n := m + n) (Nat.le_add_right m n))
 
+-- Common paper form: normalize all the way to the affine nucleus wrapper.
+lemma natAbs_sum_Icc_add_affineEndpoints_eq_affineDiscrepancy'
+    (f : ℕ → ℤ) (a d m n : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d))) =
+        affineDiscrepancy f (a + m * d) d n := by
+  -- First land in `discOffset` via the targeted lemma.
+  have h := natAbs_sum_Icc_add_affineEndpoints_eq_discOffset' (f := f) (a := a) (d := d) (m := m)
+    (n := n)
+  -- Then rewrite the wrapper into the affine nucleus wrapper.
+  have h' : discOffset (fun k => f (a + k)) d m n = affineDiscrepancy f (a + m * d) d n := by
+    rw [discOffset_def, affineDiscrepancy_def]
+    -- Normalize the underlying AP sum.
+    simp [apSumOffset_shift_eq_apSumFrom_tail]
+  exact h.trans h'
+
 attribute [simp]
   natAbs_sum_Icc_eq_discOffset'
   natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset'
   natAbs_sum_Icc_add_affineEndpoints_eq_discOffset'
+  natAbs_sum_Icc_add_affineEndpoints_eq_affineDiscrepancy'
 
 /-!
-## Disable nucleus → paper rewrites as simp rules (loop avoidance)
+## Simp-loop avoidance note
 
-These are useful rewrite lemmas, but if both directions are simp rules, `simp` may loop.
-We therefore explicitly turn them off in this opt-in simp module.
+This module is intentionally *targeted*: it adds simp lemmas only for the common paper-level
+`Int.natAbs (∑ Icc ...)` shapes, rather than making the raw `… = apSumOffset …` rewrite lemmas simp
+rules (which can interact badly with lemmas rewriting the other direction).
 -/
-
-attribute [-simp]
-  apSum_eq_sum_Icc
-  apSumOffset_eq_sum_Icc
-  apSumFrom_eq_sum_Icc
 
 end MoltResearch
