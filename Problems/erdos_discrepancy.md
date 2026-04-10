@@ -812,6 +812,30 @@ Definition of done:
 - [x] Coherence pass for `Nat`/`Int` casts in nucleus API: add small helper lemmas that rewrite common cast shapes (e.g. `(n : ℤ) + (m : ℤ)` vs `((n+m) : ℤ)`) as they appear in `apSumOffset`/`discOffset` algebra, to reduce proof script churn and avoid ad-hoc `norm_cast` sequences.
   - Implemented as opt-in simp lemmas in `MoltResearch/Discrepancy/CastSimp.lean` and exercised by regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean` (importing `MoltResearch.Discrepancy.DiscSimp`).
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Paper-interval discrepancy normal form: add a stable lemma rewriting `discOffset f d m n` directly into a paper-style `Icc` sum,
+  e.g. `discOffset f d m n = Int.natAbs (∑ i in Finset.Icc (m+1) (m+n), f (i*d))` (up to the repo’s chosen endpoint conventions),
+  so downstream proofs can stay in paper notation without unfolding `discOffset`.
+
+- [ ] Endpoint-congruence wrapper (disc-level, paper notation): package a lemma with hypotheses of the form
+  `∀ i, m < i ∧ i ≤ m+n → f (i*d) = g (i*d)` implying `discOffset f d m n = discOffset g d m n`,
+  eliminating the need to translate endpoint predicates into `Finset.range`/`Finset.Icc` bookkeeping by hand.
+
+- [ ] `discOffsetUpTo` paper↔nucleus bridge: provide a lemma rewriting the finitary max-definition for `discOffsetUpTo` into a max over paper-interval witnesses
+  (and back), so arguments about “max discrepancy on Icc up to N” can reuse the existing nucleus API.
+
+- [ ] `discOffsetUpTo` concatenation inequality: prove a canonical inequality bounding
+  `discOffsetUpTo f d m (N+K)` by `discOffsetUpTo f d m N` plus an appropriate tail term (with clean statement/orientation),
+  so later stages can do induction-on-N at the “max up to N” level.
+
+- [ ] Stable-surface export audit for paper-notation lemmas: ensure the preferred paper↔nucleus lemmas for `apSumFrom`/`apSumOffset`/`discOffset`
+  are re-exported by `import MoltResearch.Discrepancy`, with deprecated aliases behind `MoltResearch.Discrepancy.Deprecated`,
+  and add a `SurfaceAudit` compile-only example that uses paper notation end-to-end.
+
+- [ ] One-line `simp` pipeline for paper endpoints: add (or refine) an opt-in simp set so a typical goal involving
+  `Finset.Icc (m+1) (m+n)` endpoints normalizes to nucleus forms with `simp` + at most one `rw`, and cover it with a regression example.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
