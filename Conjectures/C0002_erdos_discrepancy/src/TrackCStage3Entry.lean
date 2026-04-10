@@ -1,5 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Output
 
 /-!
 # Track C: Stage 3 entry point (Tao 2015 plane)
@@ -34,12 +34,12 @@ theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
 
 `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
 
-This is a thin wrapper around the proved Stage-2 core lemma
+This is a thin wrapper around the proved Stage-2 lemma
 `Stage2Output.forall_exists_d_ge_one_witness_pos`.
 -/
 theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  -- Stage 3 is just glue on top of Stage 2, so route through the Stage-2 core lemma.
+  -- Stage 3 is just glue on top of Stage 2, so route through the Stage-2 lemma.
   exact
     Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) (stage2Out (f := f) (hf := hf))
 
@@ -48,12 +48,12 @@ for the step size:
 
 `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
 
-This is a thin wrapper around the proved Stage-2 core lemma
+This is a thin wrapper around the proved Stage-2 lemma
 `Stage2Output.forall_exists_d_pos_witness_pos`.
 -/
 theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  -- Stage 3 is just glue on top of Stage 2, so route through the Stage-2 core lemma.
+  -- Stage 3 is just glue on top of Stage 2, so route through the Stage-2 lemma.
   exact Stage2Output.forall_exists_d_pos_witness_pos (f := f) (stage2Out (f := f) (hf := hf))
 
 /-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form with the step-size condition
@@ -61,12 +61,12 @@ written as `d ≠ 0`:
 
 `∀ C, ∃ d n, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
 
-This is a thin wrapper around the proved Stage-2 core lemma
+This is a thin wrapper around the proved Stage-2 lemma
 `Stage2Output.forall_exists_d_ne_zero_witness_pos`.
 -/
 theorem stage3_forall_exists_d_ne_zero_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  -- Stage 3 is just glue on top of Stage 2, so route through the Stage-2 core lemma.
+  -- Stage 3 is just glue on top of Stage 2, so route through the Stage-2 lemma.
   exact
     Stage2Output.forall_exists_d_ne_zero_witness_pos (f := f) (stage2Out (f := f) (hf := hf))
 

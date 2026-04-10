@@ -483,7 +483,106 @@ theorem forall_exists_natAbs_apSumOffset_lt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
   simpa using out.forall_exists_natAbs_apSumOffset_gt (f := f)
 
--- Core global-goal bridge lemmas live in `TrackCStage2Core.lean`.
+/-!
+## Additional original-sequence witness wrappers
+
+These are the most common witness-form normal forms for consuming Stage 2 directly (without going
+through Stage 3).
+
+They live in this larger output-lemma module to keep `TrackCStage2Core.lean` minimal.
+-/
+
+/-- Positive-length nucleus witness form of the Stage-2 unboundedness hypothesis `out.unbounded`.
+
+Normal form:
+`∀ B, ∃ n, n > 0 ∧ Int.natAbs (apSum out.g out.d n) > B`.
+
+This is a thin wrapper around
+`Tao2015.UnboundedDiscrepancyAlong.forall_exists_natAbs_apSum_gt'_witness_pos`.
+-/
+theorem forall_exists_natAbs_apSum_gt'_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSum out.g out.d n) > B := by
+  exact
+    Tao2015.UnboundedDiscrepancyAlong.forall_exists_natAbs_apSum_gt'_witness_pos
+      (g := out.g) (d := out.d) out.unbounded
+
+/-- Stage 2 output implies the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is the most pipeline-friendly surface statement for consuming Stage 2 without going through
+Stage 3.
+-/
+theorem forall_exists_d_ge_one_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
+/-- Variant of `forall_exists_d_ge_one_witness_pos` with the step-size condition written as `d > 0`.
+
+This is sometimes a more convenient normal form when the next stage naturally assumes `d ≠ 0`
+(or uses lemmas phrased with strict positivity).
+-/
+theorem forall_exists_d_pos_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, ?_, hn, hw⟩
+  exact lt_of_lt_of_le Nat.zero_lt_one hd
+
+/-- Variant of `forall_exists_d_pos_witness_pos` with the step-size condition written as `d ≠ 0`.
+
+This is occasionally the right normal form for downstream stages that treat `d` as a denominator
+(or simply want to avoid rewriting strict inequalities).
+-/
+theorem forall_exists_d_ne_zero_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  exact ⟨d, n, Nat.ne_of_gt hd, hn, hw⟩
+
+/-- Stage 2 output implies the discrepancy-witness normal form
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is a thin wrapper around `Stage2Output.forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem forall_exists_discrepancy_gt_original (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      ((out.forall_hasDiscrepancyAtLeast (f := f)) C)
+
+/-- Variant of `forall_exists_discrepancy_gt_original` with a positive-length witness.
+
+Since `discrepancy f d 0 = 0`, any witness with `discrepancy f d n > C` can be taken with `n > 0`.
+-/
+theorem forall_exists_discrepancy_gt_original_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
+  simpa [discrepancy] using hw
+
+/-- Stage 2 output implies the paper-notation witness form
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
+
+This is a thin wrapper around `forall_hasDiscrepancyAtLeast` via
+`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`.
+-/
+theorem forall_exists_sum_Icc_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
+-- Minimal projections and global-goal bridge lemmas live in `TrackCStage2Core.lean`.
 
 end Stage2Output
 
