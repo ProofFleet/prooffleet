@@ -57,7 +57,9 @@ section
   #check sum_Icc_eq_apSumOffset_mul_left
 
   #check apSumFrom_eq_sum_Icc
+  #check apSumFrom_eq_sum_Icc_add
   #check sum_Icc_eq_apSumFrom
+  #check sum_Icc_eq_apSumFrom_add
   #check apSumFrom_tail_eq_sum_Icc_add
   #check sum_Icc_eq_apSumFrom_tail_of_le_add
   #check sum_Icc_eq_apSumFrom_tail
