@@ -411,6 +411,20 @@ theorem boundedDiscOffset_of_contextAlong (out : ReductionOutput f) (ctx : Conte
   intro n
   exact bound_discOffset_of_contextAlong (f := f) out ctx n
 
+/-- Extract an existential bundled offset bound from a fixed-step bounded-discrepancy witness for the
+reduced sequence.
+
+This is just `ContextAlong.ofBoundedDiscrepancyAlong` followed by
+`boundedDiscOffset_of_contextAlong`.
+-/
+theorem exists_boundedDiscOffset_of_boundedDiscrepancyAlong (out : ReductionOutput f)
+    (hb : BoundedDiscrepancyAlong out.g out.d) :
+    ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
+  classical
+  let ctx : ContextAlong out.g out.d :=
+    ContextAlong.ofBoundedDiscrepancyAlong (g := out.g) (d := out.d) hb
+  exact ⟨ctx.B, boundedDiscOffset_of_contextAlong (f := f) out ctx⟩
+
 /-- Build a reduced fixed-step discrepancy context from a bundled offset bound.
 
 If you can uniformly bound `discOffset f out.d out.m`, the Stage-1 transfer contract immediately
