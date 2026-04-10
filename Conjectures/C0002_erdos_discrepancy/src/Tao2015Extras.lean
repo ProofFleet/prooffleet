@@ -213,6 +213,26 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f : ℕ �
   simpa [gt_iff_lt] using
     (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt (f := f) (d := d) (m := m))
 
+/-- Witness-positivity variant of `unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt'`.
+
+Since `apSumOffset f d m 0 = 0`, any unboundedness witness length can be taken positive.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt'_witness_pos (f : ℕ → ℤ)
+    (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
+  constructor
+  · intro hunb B
+    simpa using
+      (forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) (d := d) (m := m) hunb B)
+  · intro h
+    refine
+      (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f) (d := d) (m := m)).2
+        ?_
+    intro B
+    rcases h B with ⟨n, hnpos, hn⟩
+    exact ⟨n, hn⟩
+
 /-- Paper-notation normal form: unbounded offset discrepancy expressed as interval sums on `Icc`.
 
 This rewrites the offset nuclei `apSumOffset f d m n` as the shifted progression sums
