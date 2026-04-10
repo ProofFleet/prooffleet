@@ -94,6 +94,14 @@ theorem g_eq_start (out : Stage3Output f) (k : ℕ) :
     out.g k = f (k + out.start) := by
   simpa [Stage3Output.start] using (out.g_eq (f := f) k)
 
+/-- Function-level rewrite for the reduced sequence packaged in Stage 3: it is the shifted sequence
+`fun k => f (k + out.start)`.
+-/
+theorem g_eq_fun (out : Stage3Output f) :
+    out.g = fun k => f (k + out.start) := by
+  funext k
+  simpa using out.g_eq_start (f := f) k
+
 /-- Convenience projection: positivity of the reduced step size. -/
 abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.hd
 
