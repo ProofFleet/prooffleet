@@ -221,34 +221,6 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt' (f : ℕ
     simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using
       hn
 
-/-- Witness-positive variant of `unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt'`.
-
-When `n = 0`, the interval `Icc (m+1) (m+n)` is empty, so the sum is `0`; thus any unboundedness
-witness can be taken with `n > 0`.
--/
-theorem unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt'_witness_pos (f : ℕ → ℤ)
-    (d m : ℕ) :
-    UnboundedDiscOffset f d m ↔
-      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
-        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
-  constructor
-  · intro hunb B
-    rcases
-        (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'_witness_pos (f := f)
-              (d := d) (m := m)).1
-          hunb B with
-      ⟨n, hnpos, hn⟩
-    refine ⟨n, hnpos, ?_⟩
-    simpa [natAbs_apSumFrom_mul_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hn
-  · intro h
-    refine
-      (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f) (d := d) (m := m)).2
-        ?_
-    intro B
-    rcases h B with ⟨n, hnpos, hn⟩
-    refine ⟨n, ?_⟩
-    simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hn
-
 /-- Normal form: unbounded offset discrepancy expressed directly using the affine-tail nucleus.
 
 This is a small helper for later analytic stages: it avoids repeatedly unfolding `discOffset` and
@@ -289,6 +261,34 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'_witness_p
     intro B
     rcases h B with ⟨n, hnpos, hn⟩
     exact ⟨n, hn⟩
+
+/-- Witness-positive variant of `unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt'`.
+
+When `n = 0`, the interval `Icc (m+1) (m+n)` is empty, so the sum is `0`; thus any unboundedness
+witness can be taken with `n > 0`.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt'_witness_pos (f : ℕ → ℤ)
+    (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  constructor
+  · intro hunb B
+    rcases
+        (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'_witness_pos (f := f)
+              (d := d) (m := m)).1
+          hunb B with
+      ⟨n, hnpos, hn⟩
+    refine ⟨n, hnpos, ?_⟩
+    simpa [natAbs_apSumFrom_mul_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hn
+  · intro h
+    refine
+      (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f) (d := d) (m := m)).2
+        ?_
+    intro B
+    rcases h B with ⟨n, hnpos, hn⟩
+    refine ⟨n, ?_⟩
+    simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hn
 
 /-- Normal form: the negation-normal-form boundedness statement
 `¬ ∃ B, BoundedDiscOffset f d m B` expressed directly using bundled offset nuclei.
