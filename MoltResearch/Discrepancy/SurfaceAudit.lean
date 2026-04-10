@@ -53,11 +53,15 @@ section
   #check apSumOffset_eq_sum_Icc_length_mul_left
   #check sum_Icc_eq_apSumOffset_length
   #check sum_Icc_eq_apSumOffset_length_mul_left
+  #check sum_Icc_eq_apSumOffset
+  #check sum_Icc_eq_apSumOffset_mul_left
 
   #check apSumFrom_eq_sum_Icc
   #check sum_Icc_eq_apSumFrom
   #check apSumFrom_tail_eq_sum_Icc_add
   #check sum_Icc_eq_apSumFrom_tail_of_le_add
+  #check sum_Icc_eq_apSumFrom_tail
+  #check sum_Icc_eq_apSumFrom_tail_of_le
 
   -- Paper-notation ↔ nucleus bridge for affine tails with `d * i` summand convention.
   #check apSumFrom_tail_eq_sum_Icc_mul_left
