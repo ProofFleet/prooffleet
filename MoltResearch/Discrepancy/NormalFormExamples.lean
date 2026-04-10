@@ -100,9 +100,17 @@ example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom 
 example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
   simpa using (natAbs_sum_Icc_eq_discOffset (f := f) (d := d) (m := m) (n := n))
 
+-- mul-left paper discrepancy object → nucleus `discOffset` (named bridge lemma)
+example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) = discOffset f d m n := by
+  simpa using (natAbs_sum_Icc_mul_left_eq_discOffset (f := f) (d := d) (m := m) (n := n))
+
 -- nucleus `discOffset` → paper discrepancy object (Track B item: paper-interval discrepancy normal form)
 example : discOffset f d m n = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
   simpa using (discOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n))
+
+-- nucleus `discOffset` → mul-left paper discrepancy object
+example : discOffset f d m n = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) := by
+  simpa using (discOffset_eq_natAbs_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n))
 
 /-!
 ### Regression: index-arithmetic simp polish (Track B)

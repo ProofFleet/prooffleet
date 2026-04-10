@@ -343,6 +343,7 @@ lemma natAbs_sum_Icc_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
   simpa using
     (discOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
 
+
 /-!
 ## `discOffsetUpTo` paper↔nucleus bridge
 
@@ -759,6 +760,30 @@ This is the inverse orientation of `apSumOffset_eq_sum_Icc_mul_left`.
 lemma sum_Icc_eq_apSumOffset_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i)) = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)).symm
+
+/-- Mul-left variant of `discOffset_eq_natAbs_sum_Icc`, rewriting the summand as `f (d*i)`.
+
+This is occasionally convenient when a paper statement has already normalized multiplication to the
+`d * i` convention.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Stable-surface export audit for
+paper-notation lemmas.
+-/
+lemma discOffset_eq_natAbs_sum_Icc_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) := by
+  unfold discOffset
+  simpa [apSumOffset_eq_sum_Icc_mul_left]
+
+/-- Inverse orientation of `discOffset_eq_natAbs_sum_Icc_mul_left`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Stable-surface export audit for
+paper-notation lemmas.
+-/
+lemma natAbs_sum_Icc_mul_left_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) = discOffset f d m n := by
+  simpa using
+    (discOffset_eq_natAbs_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)).symm
 
 /-- Split the “paper notation” interval sum
 `∑ i ∈ Icc (m+1) (m+(n₁+n₂)), f (i*d)` into the first `n₁` terms and the next `n₂` terms.

@@ -75,6 +75,8 @@ section
   -- Discrepancy wrappers for paper notation.
   #check discOffset_eq_natAbs_sum_Icc
   #check natAbs_sum_Icc_eq_discOffset
+  #check discOffset_eq_natAbs_sum_Icc_mul_left
+  #check natAbs_sum_Icc_mul_left_eq_discOffset
   #check discOffset_congr_endpoints
 
   -- Stable-surface simp wrappers for the paper `Icc (m+1) (m+n)` endpoint convention.
