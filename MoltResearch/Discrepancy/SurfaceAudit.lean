@@ -55,6 +55,16 @@ section
 
   #check discOffset_eq_natAbs_sum_Icc
 
+  -- Stable-surface simp wrappers for the paper `Icc (m+1) (m+n)` endpoint convention.
+  -- These live in `MoltResearch.Discrepancy.EndpointSimp` and should remain exported via
+  -- `import MoltResearch.Discrepancy`.
+  #check sum_Icc_add_one_add_len_eq_apSumOffset
+  #check sum_Icc_add_one_add_len_eq_apSumOffset_mul_left
+  #check sum_Icc_add_one_add_len_eq_apSumFrom_tail
+  #check natAbs_sum_Icc_add_one_add_len_eq_discOffset
+  #check natAbs_sum_Icc_add_one_add_len_eq_discOffset_mul_left
+  #check natAbs_sum_Icc_add_one_add_len_eq_natAbs_apSumFrom_tail
+
   -- One-step length extension/difference nucleus lemmas should be present.
   #check apSumOffset_succ
   #check apSumOffset_succ_sub
