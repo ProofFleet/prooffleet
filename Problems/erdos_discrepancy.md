@@ -837,9 +837,10 @@ Definition of done:
   - Implemented as `discOffsetUpTo_add_le_add_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface
     regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] Stable-surface export audit for paper-notation lemmas: ensure the preferred paper↔nucleus lemmas for `apSumFrom`/`apSumOffset`/`discOffset`
-  are re-exported by `import MoltResearch.Discrepancy`, with deprecated aliases behind `MoltResearch.Discrepancy.Deprecated`,
-  and add a `SurfaceAudit` compile-only example that uses paper notation end-to-end.
+- [x] Stable-surface export audit for paper-notation lemmas: ensure the preferred paper↔nucleus lemmas for `apSumFrom`/`apSumOffset`/`discOffset`
+  are re-exported by `import MoltResearch.Discrepancy`, with deprecated aliases behind `MoltResearch.Discrepancy.Deprecated`.
+  - Export checks live in `MoltResearch/Discrepancy/SurfaceAudit.lean` as `#check` presence tests under `import MoltResearch.Discrepancy`.
+  - Mul-left/argument-order variants remain opt-in behind `MoltResearch.Discrepancy.Deprecated`.
 
 - [ ] One-line `simp` pipeline for paper endpoints: add (or refine) an opt-in simp set so a typical goal involving
   `Finset.Icc (m+1) (m+n)` endpoints normalizes to nucleus forms with `simp` + at most one `rw`, and cover it with a regression example.
