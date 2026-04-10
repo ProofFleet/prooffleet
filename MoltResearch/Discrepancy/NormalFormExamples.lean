@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy
 -- Opt-in simp set regression tests (does not affect the stable surface).
 import MoltResearch.Discrepancy.DiscOffsetSimp
 import MoltResearch.Discrepancy.DiscSimp
+import MoltResearch.Discrepancy.PaperSimp
 
 -- (CI) Touch this file to retrigger PR metadata validation after PR-body edits.
 
@@ -103,6 +104,12 @@ example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = d
 -- mul-left paper discrepancy object → nucleus `discOffset` (named bridge lemma)
 example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) = discOffset f d m n := by
   simpa using (natAbs_sum_Icc_mul_left_eq_discOffset (f := f) (d := d) (m := m) (n := n))
+
+-- paper inequality hypothesis → discrepancy inequality goal via one-line `simpa` (opt-in PaperSimp)
+example (C : ℕ) (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  simpa using h
 
 -- nucleus `discOffset` → paper discrepancy object (Track B item: paper-interval discrepancy normal form)
 example : discOffset f d m n = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
