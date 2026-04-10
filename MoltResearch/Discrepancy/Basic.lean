@@ -2843,6 +2843,41 @@ lemma discOffsetUpTo_add_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m N K :
     exact le_trans hNt (Nat.add_le_add_left ht _)
 
 
+/-- Concatenation inequality for `discOffsetUpTo`: extending the cutoff from `N` to `N + K` is
+controlled by the max up to `N`, plus the max discrepancy on a tail segment of length `K`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+"`discOffsetUpTo` concatenation inequality".
+-/
+lemma discOffsetUpTo_add_le_add_discOffsetUpTo {f : ℕ → ℤ} (d m N K : ℕ) :
+    discOffsetUpTo f d m (N + K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
+  classical
+  unfold discOffsetUpTo
+  refine Finset.sup_le ?_
+  intro n hn
+  have hnlt : n < N + K + 1 := Finset.mem_range.1 hn
+  have hnle : n ≤ N + K := Nat.le_of_lt_succ hnlt
+  by_cases h' : n ≤ N
+  · have hdisc : discOffset f d m n ≤ discOffsetUpTo f d m N :=
+      discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m) (n := n) (N := N) h'
+    -- pad with the nonnegative tail term
+    exact le_trans hdisc (Nat.le_add_right _ _)
+  · have hN : N ≤ n := Nat.le_of_not_ge h'
+    obtain ⟨t, rfl⟩ := Nat.exists_eq_add_of_le hN
+    have ht : t ≤ K := by
+      -- cancel `N` from `N + t ≤ N + K`.
+      exact Nat.le_of_add_le_add_left hnle
+    have hsplit := discOffset_add_length_le (f := f) (d := d) (m := m) (n₁ := N) (n₂ := t)
+    have h1 : discOffset f d m N ≤ discOffsetUpTo f d m N :=
+      discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m) (n := N) (N := N) (le_rfl)
+    have h2 : discOffset f d (m + N) t ≤ discOffsetUpTo f d (m + N) K := by
+      exact discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m + N) (n := t) (N := K) ht
+    have hNt : discOffset f d m (N + t) ≤
+        discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
+      exact le_trans hsplit (Nat.add_le_add h1 h2)
+    simpa [Nat.add_assoc] using hNt
+
+
 /-- Triangle inequality API for splitting a homogeneous AP sum by length. -/
 lemma natAbs_apSum_add_length_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
     Int.natAbs (apSum f d (n₁ + n₂)) ≤

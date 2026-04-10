@@ -298,6 +298,13 @@ example (hf : IsSignSequence f) :
     discOffsetUpTo f d m (n₁ + n₂) ≤ discOffsetUpTo f d m n₁ + n₂ := by
   simpa using (discOffsetUpTo_add_le (f := f) (hf := hf) (d := d) (m := m) (N := n₁) (K := n₂))
 
+-- Regression (Track B / concatenation inequality for `discOffsetUpTo`): a sharper bound that
+-- isolates the tail segment.
+example :
+    discOffsetUpTo f d m (n₁ + n₂) ≤ discOffsetUpTo f d m n₁ + discOffsetUpTo f d (m + n₁) n₂ := by
+  simpa using
+    (discOffsetUpTo_add_le_add_discOffsetUpTo (f := f) (d := d) (m := m) (N := n₁) (K := n₂))
+
 -- Regression (Track B / “max discrepancy up to N” API, residue-friendly witness):
 example (q r : ℕ)
     (hne : ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).Nonempty) :
