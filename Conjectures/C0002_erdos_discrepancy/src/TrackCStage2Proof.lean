@@ -35,9 +35,9 @@ This file keeps only the convenience projections/wrapper lemmas.
 /-- Minimal consumer-facing Stage-2 consequence: the original sequence cannot have globally bounded
 (discrepancy) once Stage 2 produces an unbounded fixed-step witness along the reduced sequence. -/
 theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  exact
-    (stage2Out (f := f) (hf := hf)).out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f)
-      (stage2Out (f := f) (hf := hf)).unbounded
+  -- Name the Stage-2 output once, to avoid duplicating `stage2Out` in the proof term.
+  set out := stage2Out (f := f) (hf := hf) with hout
+  exact out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f) out.unbounded
 
 /-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
