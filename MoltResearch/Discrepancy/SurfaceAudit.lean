@@ -44,16 +44,27 @@ section
   -- Paper-notation ↔ nucleus bridge lemmas should be present (export audit).
   -- (This checklist item: Problems/erdos_discrepancy.md, Track B)
   #check apSumOffset_eq_sum_Icc
+  #check apSumOffset_eq_sum_Icc_mul_left
+  #check apSumOffset_eq_sum_Icc_of_le
+  #check apSumOffset_eq_sum_Icc_of_le_mul_left
   #check sum_Icc_eq_apSumOffset_of_le
+  #check sum_Icc_eq_apSumOffset_of_le_mul_left
   #check apSumOffset_eq_sum_Icc_length
+  #check apSumOffset_eq_sum_Icc_length_mul_left
   #check sum_Icc_eq_apSumOffset_length
+  #check sum_Icc_eq_apSumOffset_length_mul_left
 
   #check apSumFrom_eq_sum_Icc
   #check sum_Icc_eq_apSumFrom
   #check apSumFrom_tail_eq_sum_Icc_add
   #check sum_Icc_eq_apSumFrom_tail_of_le_add
 
+  -- Paper-notation ↔ nucleus bridge for affine tails with `d * i` summand convention.
+  #check apSumFrom_tail_eq_sum_Icc_mul_left
+  #check apSumFrom_tail_eq_sum_Icc_mul_left_add
+
   #check discOffset_eq_natAbs_sum_Icc
+  #check discOffset_congr_endpoints
 
   -- Stable-surface simp wrappers for the paper `Icc (m+1) (m+n)` endpoint convention.
   -- These live in `MoltResearch.Discrepancy.EndpointSimp` and should remain exported via
