@@ -100,6 +100,10 @@ example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom 
 example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
   simp
 
+-- nucleus `discOffset` → paper discrepancy object (Track B item: paper-interval discrepancy normal form)
+example : discOffset f d m n = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+  simpa using (discOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n))
+
 /-!
 ### Regression: index-arithmetic simp polish (Track B)
 

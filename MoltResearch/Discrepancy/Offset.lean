@@ -316,6 +316,19 @@ lemma apSumOffset_eq_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
                   (Finset.Ico_add_one_right_eq_Icc (a := m + 1) (b := m + n))
             simpa [hend] using hsum
 
+/-- Paper-interval discrepancy normal form: rewrite `discOffset` directly as an `Icc`-sum.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Paper-interval discrepancy normal form.
+
+This is the stable bridge lemma for surface statements written in paper notation.
+-/
+lemma discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+  unfold discOffset
+  -- `discOffset` is definitional `Int.natAbs (apSumOffset ...)`.
+  -- Rewrite `apSumOffset` into paper notation.
+  simpa [apSumOffset_eq_sum_Icc]
 /-!
 ## “One-cut in paper notation” bridge
 
