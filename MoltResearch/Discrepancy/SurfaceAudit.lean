@@ -41,6 +41,20 @@ section
   #check apSumOffset
   #check apSumFrom
 
+  -- Paper-notation ↔ nucleus bridge lemmas should be present (export audit).
+  -- (This checklist item: Problems/erdos_discrepancy.md, Track B)
+  #check apSumOffset_eq_sum_Icc
+  #check sum_Icc_eq_apSumOffset_of_le
+  #check apSumOffset_eq_sum_Icc_length
+  #check sum_Icc_eq_apSumOffset_length
+
+  #check apSumFrom_eq_sum_Icc
+  #check sum_Icc_eq_apSumFrom
+  #check apSumFrom_tail_eq_sum_Icc_add
+  #check sum_Icc_eq_apSumFrom_tail_of_le_add
+
+  #check discOffset_eq_natAbs_sum_Icc
+
   -- One-step length extension/difference nucleus lemmas should be present.
   #check apSumOffset_succ
   #check apSumOffset_succ_sub
