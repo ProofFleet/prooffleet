@@ -88,13 +88,6 @@ theorem stage2_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
     stage2_one_le_d (f := f) (hf := hf), ?_⟩
   exact stage2_unboundedDiscOffset (f := f) (hf := hf)
 
-/-- Function-level rewrite for `stage2_g`: it is the shifted sequence `fun k => f (k + m*d)`. -/
-theorem stage2_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage2_g (f := f) (hf := hf) =
-      fun k => f (k + stage2_start (f := f) (hf := hf)) := by
-  funext k
-  simpa using stage2_g_eq (f := f) (hf := hf) k
-
 /-!
 ## Additional witness-form wrappers
 -/
