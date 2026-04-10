@@ -84,6 +84,18 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage3_d, stage3_m, stage2_d, stage2_m] using
     (Stage2Output.unboundedDiscOffset (f := f) (stage2Out (f := f) (hf := hf)))
 
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This is a minimal corollary of `stage3_unboundedDiscOffset` for consumers that prefer strict
+positivity over `1 ≤ d`.
+-/
+theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
+  refine ⟨stage3_d (f := f) (hf := hf), stage3_m (f := f) (hf := hf), ?_, ?_⟩
+  · exact stage3_d_pos (f := f) (hf := hf)
+  · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 
