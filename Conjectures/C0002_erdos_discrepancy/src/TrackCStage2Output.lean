@@ -494,6 +494,20 @@ through Stage 3).
 They live in this larger output-lemma module to keep `TrackCStage2Core.lean` minimal.
 -/
 
+/-- Nucleus witness form of the Stage-2 unboundedness hypothesis `out.unbounded`.
+
+Normal form:
+`∀ B, ∃ n, Int.natAbs (apSum out.g out.d n) > B`.
+
+This is a thin wrapper around
+`Tao2015.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSum_gt'`.
+-/
+theorem forall_exists_natAbs_apSum_gt' (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSum out.g out.d n) > B := by
+  simpa using
+    (Tao2015.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSum_gt' (g := out.g) (d := out.d)).1
+      out.unbounded
+
 /-- Positive-length nucleus witness form of the Stage-2 unboundedness hypothesis `out.unbounded`.
 
 Normal form:
