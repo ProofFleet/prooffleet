@@ -60,6 +60,9 @@ section
   #check apSumFrom_eq_sum_Icc_add
   #check sum_Icc_eq_apSumFrom
   #check sum_Icc_eq_apSumFrom_add
+
+  -- Affine tails (paper-notation endpoints) ↔ nucleus.
+  #check apSumFrom_tail_eq_sum_Icc
   #check apSumFrom_tail_eq_sum_Icc_add
   #check sum_Icc_eq_apSumFrom_tail_of_le_add
   #check sum_Icc_eq_apSumFrom_tail
@@ -69,7 +72,9 @@ section
   #check apSumFrom_tail_eq_sum_Icc_mul_left
   #check apSumFrom_tail_eq_sum_Icc_mul_left_add
 
+  -- Discrepancy wrappers for paper notation.
   #check discOffset_eq_natAbs_sum_Icc
+  #check natAbs_sum_Icc_eq_discOffset
   #check discOffset_congr_endpoints
 
   -- Stable-surface simp wrappers for the paper `Icc (m+1) (m+n)` endpoint convention.
