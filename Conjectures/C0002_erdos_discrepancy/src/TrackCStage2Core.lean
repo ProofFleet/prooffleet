@@ -174,6 +174,18 @@ theorem forall_exists_discrepancy_gt_original (out : Stage2Output f) :
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       ((out.forall_hasDiscrepancyAtLeast (f := f)) C)
 
+/-- Variant of `forall_exists_discrepancy_gt_original` with a positive-length witness.
+
+Since `discrepancy f d 0 = 0`, any witness with `discrepancy f d n > C` can be taken with `n > 0`.
+-/
+theorem forall_exists_discrepancy_gt_original_witness_pos (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
+  simpa [discrepancy] using hw
+
 /-- Stage 2 output implies the paper-notation witness form
 
 `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
