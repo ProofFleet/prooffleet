@@ -127,9 +127,7 @@ theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlo
   exact (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
     (g := out.g) (d := out.d)).1 out.unbounded
 
-/-- Stage 2 implies the original sequence is not globally discrepancy-bounded. -/
-theorem notBoundedOriginal (out : Stage2Output f) : ¬ BoundedDiscrepancy f := by
-  exact out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f) out.unbounded
+-- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`)
 
 /-- Consumer-facing form: Stage 2 unboundedness transferred back to the original sequence as an
 unbounded **offset discrepancy** witness.
@@ -570,7 +568,8 @@ theorem forall_exists_discrepancy_gt_original_witness_pos (out : Stage2Output f)
   rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
   refine ⟨d, n, hd, hn, ?_⟩
   -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
-  simpa [discrepancy] using hw
+  change Int.natAbs (apSum f d n) > C
+  exact hw
 
 /-- Stage 2 output implies the paper-notation witness form
 
