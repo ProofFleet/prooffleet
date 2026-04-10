@@ -251,6 +251,20 @@ theorem stage2_forall_exists_discOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequen
   rcases stage2_forall_exists_discOffset_gt (f := f) (hf := hf) B with ⟨n, hn⟩
   exact ⟨n, (gt_iff_lt).2 hn⟩
 
+/-- Negation-normal form: Stage 2 yields no uniform bound on the offset-nucleus `discOffset` at the
+concrete parameters produced by the conjecture stub `stage2Out`.
+-/
+theorem stage2_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          discOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n ≤ B := by
+  rintro ⟨B, hB⟩
+  have hunb :
+      UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
+    stage2_unboundedDiscOffset (f := f) (hf := hf)
+  rcases hunb B with ⟨n, hn⟩
+  exact (not_lt_of_ge (hB n)) hn
+
 /-- Positive-length witness form of `stage2_forall_exists_discOffset_gt'`.
 
 The witness length `n` cannot be `0`, since `discOffset ... 0 = 0`.
