@@ -1143,6 +1143,25 @@ lemma apSumOffset_congr_finset_Icc (f g : ℕ → ℤ) (d m n : ℕ)
     exact Finset.mem_Icc.2 hi
   exact h i this
 
+/-- Endpoint-form congruence wrapper for `discOffset` (paper notation).
+
+This packages a very common hypothesis shape in discrepancy arguments:
+
+`∀ i, m < i ∧ i ≤ m+n → f (i*d) = g (i*d)`
+
+into the normal-form congruence statement
+`discOffset f d m n = discOffset g d m n`,
+without mentioning `Finset.range` or `Set.Icc` in the statement.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Endpoint-congruence wrapper (disc-level, paper notation).
+-/
+lemma discOffset_congr_endpoints (f g : ℕ → ℤ) (d m n : ℕ)
+    (h : ∀ i, (m < i ∧ i ≤ m + n) → f (i * d) = g (i * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  unfold discOffset
+  refine congrArg Int.natAbs ?_
+  exact apSumOffset_congr_endpoints (f := f) (g := g) (d := d) (m := m) (n := n) (h := h)
+
 /-- Range-form congruence lemma for `discOffset`.
 
 If `f` and `g` agree on every summation index `i ∈ Finset.range n` in the `range`-expanded normal

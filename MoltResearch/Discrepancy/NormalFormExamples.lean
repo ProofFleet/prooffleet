@@ -1735,6 +1735,13 @@ example (g : ℕ → ℤ)
   simpa using
     (apSumOffset_congr_endpoints (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
 
+-- Regression: endpoint-form congruence wrapper (disc-level) is usable from the stable surface.
+example (g : ℕ → ℤ)
+    (h : ∀ i, (m < i ∧ i ≤ m + n) → f (i * d) = g (i * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  simpa using
+    (discOffset_congr_endpoints (f := f) (g := g) (d := d) (m := m) (n := n) (h := h))
+
 -- Regression: support-form congruence lemmas are usable from the stable surface.
 example (g : ℕ → ℤ)
     (h : ∀ x ∈ apSupport d m n, f x = g x) :

@@ -47,7 +47,7 @@ This shows up frequently when normalizing `(i + 1 : ℕ)` endpoints after rewrit
 We include both orientations to avoid commutativity noise without enabling `Nat` commutativity.
 -/
 @[simp] lemma one_add_natCast (n : ℕ) : 1 + (n : ℤ) = ((1 + n : ℕ) : ℤ) := by
-  -- Keep this lemma separate to avoid pulling in commutativity simp rules.
-  simp [Nat.add_comm]
+  -- Use the non-commutative contraction lemma directly (avoid simp loops).
+  simpa using (natCast_add_natCast 1 n)
 
 end MoltResearch
