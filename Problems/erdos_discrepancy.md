@@ -831,9 +831,11 @@ Definition of done:
   - Implemented as `discOffsetUpTo_eq_sup_Icc_endpoints` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in
     `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] `discOffsetUpTo` concatenation inequality: prove a canonical inequality bounding
+- [x] `discOffsetUpTo` concatenation inequality: prove a canonical inequality bounding
   `discOffsetUpTo f d m (N+K)` by `discOffsetUpTo f d m N` plus an appropriate tail term (with clean statement/orientation),
   so later stages can do induction-on-N at the “max up to N” level.
+  - Implemented as `discOffsetUpTo_add_le_add_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface
+    regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] Stable-surface export audit for paper-notation lemmas: ensure the preferred paper↔nucleus lemmas for `apSumFrom`/`apSumOffset`/`discOffset`
   are re-exported by `import MoltResearch.Discrepancy`, with deprecated aliases behind `MoltResearch.Discrepancy.Deprecated`,
