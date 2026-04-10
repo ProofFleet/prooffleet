@@ -49,6 +49,15 @@ theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 (stage2_notBounded (f := f) (hf := hf))
 
+/-- Consumer-facing shortcut: Stage 2 yields unbounded discrepancy along the deterministic reduced
+sequence `stage2_g` at the deterministic step size `stage2_d`.
+
+This is just the `unbounded` field of `stage2Out`, rewritten to use the named projections.
+-/
+theorem stage2_unboundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscrepancyAlong (stage2_g (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) := by
+  simpa [stage2_g, stage2_d] using (stage2Out (f := f) (hf := hf)).unbounded
+
 /-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
 discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`. -/
 theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
