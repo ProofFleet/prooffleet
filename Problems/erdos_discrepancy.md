@@ -820,9 +820,11 @@ Definition of done:
   - Implemented as `discOffset_eq_natAbs_sum_Icc` in `MoltResearch/Discrepancy/Offset.lean`, with a stable-surface regression example in
     `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] Endpoint-congruence wrapper (disc-level, paper notation): package a lemma with hypotheses of the form
+- [x] Endpoint-congruence wrapper (disc-level, paper notation): package a lemma with hypotheses of the form
   `∀ i, m < i ∧ i ≤ m+n → f (i*d) = g (i*d)` implying `discOffset f d m n = discOffset g d m n`,
   eliminating the need to translate endpoint predicates into `Finset.range`/`Finset.Icc` bookkeeping by hand.
+  - Implemented as `discOffset_congr_endpoints` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in
+    `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] `discOffsetUpTo` paper↔nucleus bridge: provide a lemma rewriting the finitary max-definition for `discOffsetUpTo` into a max over paper-interval witnesses
   (and back), so arguments about “max discrepancy on Icc up to N” can reuse the existing nucleus API.
