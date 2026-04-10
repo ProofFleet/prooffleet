@@ -329,6 +329,70 @@ lemma discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
   -- `discOffset` is definitional `Int.natAbs (apSumOffset ...)`.
   -- Rewrite `apSumOffset` into paper notation.
   simpa [apSumOffset_eq_sum_Icc]
+
+/-!
+## `discOffsetUpTo` paper↔nucleus bridge
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` paper↔nucleus bridge.
+
+The nucleus API defines `discOffsetUpTo` as a finitary `Finset.sup` over lengths `n ≤ N`.
+Paper arguments often want to range over the *right endpoint* `b = m + n` instead.
+
+This lemma rewrites between these two equivalent finitary maximizations.
+-/
+
+/-- Rewrite `discOffsetUpTo` as a supremum over paper-style interval endpoints.
+
+Concretely, this transports the supremum over lengths `n ≤ N` to a supremum over endpoints
+`b ∈ Icc m (m+N)` with the paper-interval discrepancy expression
+`Int.natAbs (∑ i ∈ Icc (m+1) b, f (i*d))`.
+-/
+lemma discOffsetUpTo_eq_sup_Icc_endpoints (f : ℕ → ℤ) (d m N : ℕ) :
+    discOffsetUpTo f d m N =
+      (Finset.Icc m (m + N)).sup
+        (fun b => Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d)))) := by
+  classical
+  unfold discOffsetUpTo
+  apply le_antisymm
+  · -- `≤`: turn a length witness `n ≤ N` into an endpoint witness `b = m+n`.
+    refine Finset.sup_le ?_
+    intro n hn
+    have hnle : n ≤ N := Nat.le_of_lt_succ (Finset.mem_range.1 hn)
+    -- Show `m+n ∈ Icc m (m+N)`.
+    have hmem : m + n ∈ Finset.Icc m (m + N) := by
+      refine Finset.mem_Icc.2 ?_
+      constructor
+      · exact Nat.le_add_right _ _
+      · exact Nat.add_le_add_left hnle _
+    -- Reduce to the paper-interval form and discharge via `le_sup`.
+    simpa [discOffset_eq_natAbs_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (Finset.le_sup (s := Finset.Icc m (m + N))
+        (f := fun b => Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d))))
+        hmem)
+  · -- `≥`: turn an endpoint witness `b ∈ Icc m (m+N)` into a length witness `n = b-m ≤ N`.
+    refine Finset.sup_le ?_
+    intro b hb
+    rcases Finset.mem_Icc.1 hb with ⟨hmb, hbN⟩
+    have hnle : b - m ≤ N := by
+      -- From `b ≤ m+N`, subtract `m` from both sides.
+      have : b - m ≤ (m + N) - m := Nat.sub_le_sub_right hbN _
+      simpa [Nat.add_sub_cancel_left] using this
+    have hnmem : b - m ∈ Finset.range (N + 1) := by
+      exact Finset.mem_range.2 (Nat.lt_succ_of_le hnle)
+    -- Compare the paper expression at `b` with the nucleus `discOffset` at length `b-m`.
+    have hrewrite :
+        Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d))) =
+          discOffset f d m (b - m) := by
+      -- `discOffset f d m (b-m)` is the paper interval with right endpoint `m+(b-m)=b`.
+      have hmadd : m + (b - m) = b := by
+        simpa [Nat.add_comm] using (Nat.sub_add_cancel hmb)
+      -- Rewrite using `hmadd`.
+      simpa [discOffset_eq_natAbs_sum_Icc, hmadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+    -- Finish via `le_sup` in the original `range` finset.
+    -- (Note: `le_sup` expects the function in the `sup` to match exactly.)
+    simpa [hrewrite] using
+      (Finset.le_sup (s := Finset.range (N + 1)) (f := fun n => discOffset f d m n) hnmem)
+
 /-!
 ## “One-cut in paper notation” bridge
 

@@ -3763,6 +3763,17 @@ example : HasDiscrepancyAtLeastAlong (fun k => f (k + m * d)) d C ↔ (∃ n : �
     (HasDiscrepancyAtLeastAlong.shift_mul_iff_exists_discOffset_lt (f := f) (d := d) (m := m) (C := C))
 
 /-!
+## `discOffsetUpTo` paper↔nucleus bridge regression tests
+-/
+
+example (f : ℕ → ℤ) (d m N : ℕ) :
+    discOffsetUpTo f d m N =
+      (Finset.Icc m (m + N)).sup
+        (fun b => Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d)))) := by
+  simpa using
+    (discOffsetUpTo_eq_sup_Icc_endpoints (f := f) (d := d) (m := m) (N := N))
+
+/-!
 ## `disc` wrapper regression tests
 
 These ensure the homogeneous wrapper `disc` stays coherent with the offset wrapper `discOffset`.
