@@ -71,6 +71,14 @@ additional wrapper-lemma modules.
 noncomputable abbrev stage2_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf)
 
+/-- The affine-tail start index `stage2_start` is a multiple of the reduced step size `stage2_d`. -/
+theorem stage2_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_d (f := f) (hf := hf) ∣ stage2_start (f := f) (hf := hf) := by
+  refine ⟨stage2_m (f := f) (hf := hf), ?_⟩
+  -- `stage2_start = m*d`, so this is just commutativity.
+  simpa [stage2_start] using
+    (Nat.mul_comm (stage2_m (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)))
+
 /-- The reduced sequence produced by Stage 2 is a sign sequence. -/
 theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
     IsSignSequence (stage2_g (f := f) (hf := hf)) := by
