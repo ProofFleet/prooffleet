@@ -199,6 +199,10 @@ example : discUpTo f d 0 = 0 := by
 example : discOffsetUpTo f d 0 n = discUpTo f d n := by
   simp
 
+-- Common special case: `d = 1`.
+example : discOffsetUpTo f 1 0 n = discUpTo f 1 n := by
+  simp
+
 -- Micro-pipeline: bound a particular tail discrepancy by an `UpTo` bound.
 example (N : ℕ) (hn : n ≤ N) : discOffset f d 0 n ≤ discUpTo f d N := by
   simpa using (discOffset_le_discOffsetUpTo (f := f) (d := d) (m := 0) (n := n) (N := N) hn)
