@@ -1,4 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 /-!
 # Track C: Stage 3 boundary (Tao 2015 plane)
@@ -41,8 +41,8 @@ output (via `ReductionOutput.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong
 does not need to import the larger Stage-2 convenience-lemma layer.
 -/
 theorem notBounded (out : Stage3Output f) : ¬ BoundedDiscrepancy f := by
-  exact
-    out.out2.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f) out.out2.unbounded
+  -- Delegate to the canonical Stage-2 “bridge back to the global statement” lemma.
+  exact out.out2.notBoundedOriginal (f := f)
 
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
@@ -58,9 +58,8 @@ We keep this lemma in the hard-gate module so `ErdosDiscrepancy.lean` can remain
 -/
 theorem forall_hasDiscrepancyAtLeast (out : Stage3Output f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Route through the global normal form lemma from `MoltResearch.Discrepancy.Unbounded`.
-  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
-  exact out.notBounded (f := f)
+  -- Reuse the Stage-2 surface lemma rather than re-proving it.
+  exact out.out2.forall_hasDiscrepancyAtLeast (f := f)
 
 end Stage3Output
 
