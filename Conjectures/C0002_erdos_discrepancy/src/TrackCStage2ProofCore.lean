@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 /-!
 # Track C: Stage 2 proof stub core (Tao 2015 plane)
@@ -29,9 +30,8 @@ This file keeps only the core convenience wrappers.
 /-- Minimal consumer-facing Stage-2 consequence: the original sequence cannot have globally bounded
 (discrepancy) once Stage 2 produces an unbounded fixed-step witness along the reduced sequence. -/
 theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  -- Name the Stage-2 output once, to avoid duplicating `stage2Out` in the proof term.
-  set out := stage2Out (f := f) (hf := hf) with hout
-  exact out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f) out.unbounded
+  simpa using
+    (Stage2Output.notBoundedOriginal (f := f) (stage2Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
