@@ -10,7 +10,8 @@ It contains only:
 - the deterministic name `stage2Out`,
 - the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`, `stage2_start`, and
 - the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`,
-  `stage2_d_dvd_start`, `stage2_start_mod_d`, `stage2_hg`, `stage2_g_eq`, `stage2_g_eq_fun`.
+  `stage2_start_eq_m_mul_d`, `stage2_d_dvd_start`, `stage2_start_mod_d`, `stage2_hg`,
+  `stage2_g_eq`, `stage2_g_eq_fun`.
 
 All other proved convenience lemmas about `stage2Out` live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
@@ -70,6 +71,17 @@ additional wrapper-lemma modules.
 -/
 noncomputable abbrev stage2_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf)
+
+/-- Definitional rewrite: the Stage-2 start index is `m*d` for the deterministic parameters
+produced by Stage 2.
+
+This lemma is intentionally tiny (and not a simp lemma): it exists mainly to reduce `dsimp` noise
+in downstream arithmetic rewrites.
+-/
+theorem stage2_start_eq_m_mul_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_start (f := f) (hf := hf) =
+      stage2_m (f := f) (hf := hf) * stage2_d (f := f) (hf := hf) := by
+  rfl
 
 /-- The affine-tail start index `stage2_start` is a multiple of the reduced step size `stage2_d`. -/
 theorem stage2_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
