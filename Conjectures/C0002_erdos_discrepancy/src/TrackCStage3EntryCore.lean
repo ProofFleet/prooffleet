@@ -50,7 +50,9 @@ theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage3
 
 /-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
 theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) ≠ 0 := by
-  exact Nat.ne_of_gt (stage3_d_pos (f := f) (hf := hf))
+  -- Stage 3 re-exports the Stage-2 projections.
+  dsimp [stage3_d]
+  exact stage2_d_ne_zero (f := f) (hf := hf)
 
 /-- Convenience projection: the reduced sequence produced by Stage 3. -/
 noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
@@ -70,8 +72,9 @@ noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : �
 /-- The affine-tail start index `stage3_start` is a multiple of the reduced step size `stage3_d`. -/
 theorem stage3_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3_d (f := f) (hf := hf) ∣ stage3_start (f := f) (hf := hf) := by
-  -- `stage3_start` is definitionally `m*d`.
-  simp [stage3_d, stage3_start, stage2_start]
+  -- Stage 3 re-exports the Stage-2 projections, so this is just the Stage-2 lemma.
+  dsimp [stage3_d, stage3_start]
+  exact stage2_d_dvd_start (f := f) (hf := hf)
 
 /-- The affine-tail start index `stage3_start` has remainder `0` when reduced modulo `stage3_d`.
 
@@ -79,7 +82,9 @@ This is often the most convenient form of `stage3_d_dvd_start` for arithmetic re
 -/
 theorem stage3_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3_start (f := f) (hf := hf) % stage3_d (f := f) (hf := hf) = 0 := by
-  exact Nat.mod_eq_zero_of_dvd (stage3_d_dvd_start (f := f) (hf := hf))
+  -- Stage 3 re-exports the Stage-2 projections, so this is just the Stage-2 lemma.
+  dsimp [stage3_d, stage3_start]
+  exact stage2_start_mod_d (f := f) (hf := hf)
 
 /-- The reduced sequence produced by Stage 3 is a sign sequence. -/
 theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
