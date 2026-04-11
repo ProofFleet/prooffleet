@@ -310,9 +310,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `discOffsetUpTo_add_le_add_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
   derived from the `discOffset_add_le`/concatenation API, with a stable-surface regression example.
 
-- [ ] Boundedness ↔ `discOffsetUpTo` growth bound: prove a clean equivalence between
+- [x] Boundedness ↔ `discOffsetUpTo` growth bound: prove a clean equivalence between
   `BoundedDiscOffset f d m B` and `∀ N, discOffsetUpTo f d m N ≤ B` (or the repo’s preferred statement),
   so “bounded discrepancy” hypotheses can be converted into `UpTo` bounds with one lemma.
+  (Implemented as `boundedDiscOffset_iff_forall_discOffsetUpTo_le` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Unboundedness witness via `discOffsetUpTo`: prove a normal form like
   `UnboundedDiscOffset f d m ↔ ∀ B, ∃ N, B < discOffsetUpTo f d m N`,
