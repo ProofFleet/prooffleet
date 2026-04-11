@@ -112,6 +112,22 @@ theorem unboundedDiscOffset (out : Stage2Output f) : UnboundedDiscOffset f out.d
   simpa [Stage2Output.d, Stage2Output.m] using
     ((out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).1 out.unbounded
 
+/-- Stage 2 implies there is no uniform bound on the bundled offset discrepancy family
+`discOffset f out.d out.m`.
+
+This is the negation-normal-form version of `unboundedDiscOffset`.
+
+We keep this lemma in `TrackCStage2Core.lean` so downstream stages can access it without importing
+the larger convenience-lemma library `TrackCStage2Output.lean`.
+-/
+theorem not_exists_boundedDiscOffset (out : Stage2Output f) :
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f)
+        (d := out.d) (m := out.m)).1
+      hunb
+
 /-- Stage 2 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
 This is a thin wrapper around `notBoundedOriginal`.

@@ -184,19 +184,7 @@ is proved in `TrackCStage2Core.lean` so downstream stages can use it without imp
 convenience-lemma file.
 -/
 
-/-- Stage 2 implies there is no uniform bound on the bundled offset discrepancy family
-`discOffset f out.d out.m`.
-
-This is the negation-normal-form version of `unboundedDiscOffset`.
--/
-theorem not_exists_boundedDiscOffset (out : Stage2Output f) :
-    ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
-  have hunb : UnboundedDiscOffset f out.d out.m :=
-    out.unboundedDiscOffset (f := f)
-  exact
-    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f)
-        (d := out.d) (m := out.m)).1
-      hunb
+-- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`)
 
 /-- Negation-normal-form unboundedness statement for the bundled offset nuclei
 `Int.natAbs (apSumOffset f out.d out.m n)`.
