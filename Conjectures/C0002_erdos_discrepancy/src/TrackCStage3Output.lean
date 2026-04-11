@@ -141,6 +141,24 @@ theorem forall_exists_discOffset_gt' (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_discOffset_gt' (f := f) out.out2)
 
+/-- Positive-length witness form of `forall_exists_discOffset_gt`.
+
+The witness length `n` cannot be `0`, since `discOffset ... 0 = 0`.
+-/
+theorem forall_exists_discOffset_gt_witness_pos (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ B < discOffset f out.d out.m n := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_discOffset_gt_witness_pos (f := f) out.out2)
+
+/-- Positive-length witness form of `forall_exists_discOffset_gt'`.
+
+The witness length `n` cannot be `0`, since `discOffset ... 0 = 0`.
+-/
+theorem forall_exists_discOffset_gt'_witness_pos (out : Stage3Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f out.d out.m n > B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.forall_exists_discOffset_gt'_witness_pos (f := f) out.out2)
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 
