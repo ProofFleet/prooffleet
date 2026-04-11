@@ -451,6 +451,19 @@ theorem exists_params_forall_exists_natAbs_sum_Icc_offset_gt (out : Stage2Output
   intro B
   simpa using out.forall_exists_natAbs_sum_Icc_offset_gt (f := f) B
 
+/-- Paper-notation packaging with a positive-length witness `n > 0`.
+
+This is `exists_params_forall_exists_natAbs_sum_Icc_offset_gt` strengthened using
+`forall_exists_natAbs_sum_Icc_offset_gt_witness_pos`.
+-/
+theorem exists_params_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  refine ⟨out.d, out.m, out.hd, ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) B
+
 /-- Paper-notation packaging variant of `exists_params_forall_exists_natAbs_sum_Icc_offset_gt` using
 the side condition `1 ≤ d`.
 
