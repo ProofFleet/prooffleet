@@ -322,9 +322,12 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Residue-class `UpTo` extraction wrapper: build a lemma that if a set of lengths in a residue class is nonempty,
+- [x] Residue-class `UpTo` extraction wrapper: build a lemma that if a set of lengths in a residue class is nonempty,
   then `discOffsetUpTo` has a maximizing witness in that residue class (mirroring the existing `…_sup_filter_modEq` items,
   but packaged as a stable, easy-to-use wrapper for downstream pigeonhole arguments).
+  (Implemented as `discOffsetUpTo_modEq` + `exists_discOffset_eq_discOffsetUpTo_modEq` in
+  `MoltResearch/Discrepancy/Basic.lean`; stable-surface regression example in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Stable surface coherence for `UpTo` API: add a minimal simp lemma set normalizing degenerate parameters for
   `discOffsetUpTo` / `discUpTo` (e.g. `N=0`, `d=1`, `m=0`) and 2–3 compile-only examples under `import MoltResearch.Discrepancy`
