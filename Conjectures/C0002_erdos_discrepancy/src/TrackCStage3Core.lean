@@ -82,6 +82,16 @@ abbrev m (out : Stage3Output f) : ℕ := out.out2.m
 /-- Convenience projection: the affine-tail start index `m*d` packaged in Stage 3. -/
 abbrev start (out : Stage3Output f) : ℕ := out.m * out.d
 
+/-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
+theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
+  refine ⟨out.m, ?_⟩
+  -- `out.start` is definitionally `out.m * out.d`.
+  simp [Stage3Output.start, Nat.mul_comm]
+
+/-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`. -/
+theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
+  exact Nat.mod_eq_zero_of_dvd (d_dvd_start (f := f) out)
+
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage3Output f) (k : ℕ) :
     out.g k = f (k + out.m * out.d) := by
