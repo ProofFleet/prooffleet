@@ -29,13 +29,15 @@ theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
 
 Every ±1 sequence has unbounded discrepancy on homogeneous arithmetic progressions.
 
-This is the usual surface statement `∀ C, HasDiscrepancyAtLeast f C` exposed directly from the
-Track-C Stage-3 pipeline.
+This is the usual surface statement `∀ C, HasDiscrepancyAtLeast f C` derived from the core
+Track-C output `¬ BoundedDiscrepancy f`.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Prefer consuming the Stage-3 entry-point API.
-  exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
+  -- Route the surface statement through the verified equivalence
+  -- `∀ C, HasDiscrepancyAtLeast f C ↔ ¬ BoundedDiscrepancy f`.
+  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
+  exact erdos_discrepancy_notBounded (f := f) (hf := hf)
 
 /-!
 Additional witness-form corollaries live in
