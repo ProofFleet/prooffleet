@@ -1126,6 +1126,21 @@ lemma apSum_sub_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSum f d (m + n) - apSum f d m = apSumOffset f d m n := by
   simpa using (apSumOffset_eq_sub (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- Canonical “difference of partial sums” normal form for `discOffset`.
+
+This is the `discOffset` wrapper around `apSum_sub_eq_apSumOffset`, oriented so rewriting turns
+`discOffset` into the natural absolute value of a two-sum difference.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Canonical difference of partial sums
+normal form (discOffset)”.
+-/
+lemma discOffset_eq_natAbs_apSum_sub (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = Int.natAbs (apSum f d (m + n) - apSum f d m) := by
+  unfold discOffset
+  have h : apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
+    simpa using (apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n)).symm
+  simpa [h]
+
 /-- Rewrite the normal-form difference `apSum f d (m+n) - apSum f d m` as an interval sum
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)`.
 

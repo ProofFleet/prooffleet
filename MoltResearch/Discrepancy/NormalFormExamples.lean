@@ -78,6 +78,10 @@ example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f 
 example : Int.natAbs (apSumOffset f d m n) = discOffset f d m n := by
   simp [discOffset]
 
+-- (3.5) Canonical “difference of partial sums” normal form (discOffset) (Track B backlog item).
+example : discOffset f d m n = Int.natAbs (apSum f d (m + n) - apSum f d m) := by
+  simpa using (discOffset_eq_natAbs_apSum_sub (f := f) (d := d) (m := m) (n := n))
+
 /-!
 ### Regression: paper↔nucleus endpoint bridge simp wrappers (Track B)
 
