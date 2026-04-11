@@ -50,6 +50,14 @@ abbrev m (out : Stage2Output f) : ℕ := out.out1.m
 /-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1. -/
 abbrev start (out : Stage2Output f) : ℕ := out.m * out.d
 
+/-- Definitional rewrite: the affine-tail start index is `m*d`.
+
+This lemma is intentionally tiny (and not a simp lemma): it exists mainly to reduce `dsimp` noise
+in downstream arithmetic rewrites.
+-/
+theorem start_eq_m_mul_d (out : Stage2Output f) : out.start = out.m * out.d := by
+  rfl
+
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
   -- `out.start` is definitionally `m*d`.
