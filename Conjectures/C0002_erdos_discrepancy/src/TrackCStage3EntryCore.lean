@@ -69,6 +69,17 @@ This is the shift used to define the reduced sequence `stage3_g` as a tail of `f
 noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_start (f := f) (hf := hf)
 
+/-- Definitional rewrite: the Stage-3 start index is `m*d` for the deterministic parameters
+produced by Stage 3.
+
+This lemma is intentionally tiny (and not a simp lemma): it exists mainly to reduce `dsimp` noise
+in downstream arithmetic rewrites.
+-/
+theorem stage3_start_eq_m_mul_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3_start (f := f) (hf := hf) =
+      stage3_m (f := f) (hf := hf) * stage3_d (f := f) (hf := hf) := by
+  rfl
+
 /-- The affine-tail start index `stage3_start` is a multiple of the reduced step size `stage3_d`. -/
 theorem stage3_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3_d (f := f) (hf := hf) ∣ stage3_start (f := f) (hf := hf) := by
