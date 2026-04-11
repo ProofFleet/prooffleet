@@ -181,6 +181,28 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d 
     unfold discOffset
     exact hn
 
+/-- Paper-notation normal form: boundedness of `discOffset f d m` expressed as interval sums on `Icc`.
+
+This rewrites the bundled offset nuclei `apSumOffset f d m n` as the shifted progression sums
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`.
+-/
+theorem boundedDiscOffset_iff_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (d m B : ℕ) :
+    BoundedDiscOffset f d m B ↔
+      ∀ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ B := by
+  constructor
+  · intro h n
+    have hn : Int.natAbs (apSumOffset f d m n) ≤ B := by
+      have hn' : discOffset f d m n ≤ B := h n
+      unfold discOffset at hn'
+      exact hn'
+    simpa [natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hn
+  · intro h n
+    have hn : Int.natAbs (apSumOffset f d m n) ≤ B := by
+      simpa [natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using h n
+    unfold discOffset
+    exact hn
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
 
 Since `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`, this lemma lets
