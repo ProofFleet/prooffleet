@@ -34,10 +34,8 @@ Track-C output `¬ BoundedDiscrepancy f`.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Route the surface statement through the verified equivalence
-  -- `∀ C, HasDiscrepancyAtLeast f C ↔ ¬ BoundedDiscrepancy f`.
-  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
-  exact erdos_discrepancy_notBounded (f := f) (hf := hf)
+  -- Prefer consuming the Stage-3 entry-point API directly.
+  exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
 
 /-!
 Additional witness-form corollaries live in
