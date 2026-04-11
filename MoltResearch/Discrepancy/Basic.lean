@@ -513,6 +513,39 @@ This is packaged in a finitary form (a `Finset.sup` over `range (N+1)`) so it is
 def discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) : ℕ :=
   (Finset.range (N + 1)).sup (fun n => discOffset f d m n)
 
+/-!
+### `UpTo` API coherence simp lemmas (degenerate parameters)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Stable surface coherence for `UpTo` API.
+
+These are deliberately small and oriented for `simp`:
+- normalize away a spurious `m = 0` offset
+- compute the degenerate cutoff `N = 0`
+
+We are conservative here: these lemmas should be obviously terminating and orientation-safe.
+-/
+
+/-- `discUpTo` at cutoff `N = 0` is just `disc f d 0 = 0`. -/
+@[simp] lemma discUpTo_zero (f : ℕ → ℤ) (d : ℕ) : discUpTo f d 0 = 0 := by
+  classical
+  simp [discUpTo]
+
+/-- `discOffsetUpTo` at cutoff `N = 0` is just `discOffset f d m 0 = 0`. -/
+@[simp] lemma discOffsetUpTo_zero (f : ℕ → ℤ) (d m : ℕ) : discOffsetUpTo f d m 0 = 0 := by
+  classical
+  -- `range (0+1)` is the singleton `{0}`.
+  unfold discOffsetUpTo
+  -- Reduce to `discOffset f d m 0 = 0` by computation.
+  simp [discOffset, apSumOffset]
+
+/-- Coherence: a spurious `m = 0` offset in `discOffsetUpTo` normalizes to `discUpTo`. -/
+@[simp] lemma discOffsetUpTo_zero_start (f : ℕ → ℤ) (d N : ℕ) :
+    discOffsetUpTo f d 0 N = discUpTo f d N := by
+  classical
+  unfold discOffsetUpTo discUpTo
+  -- `discOffset f d 0 n` is definitionally `disc f d n`.
+  simp [discOffset, disc, apSumOffset, apSum]
+
 /-- Any particular `disc f d n` with `n ≤ N` is bounded by `discUpTo f d N`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.

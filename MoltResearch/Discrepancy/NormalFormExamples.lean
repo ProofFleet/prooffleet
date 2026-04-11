@@ -185,6 +185,24 @@ example (q : ℕ) (hq : q > 0) (hd : q ∣ d) :
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
+/-!
+### NEW (Track B): `UpTo` API coherence (degenerate parameters + micro-pipeline)
+
+These compile-only examples ensure the stable-surface `UpTo` wrappers stay easy to use.
+-/
+
+-- Degenerate cutoff: `N = 0`.
+example : discUpTo f d 0 = 0 := by
+  simp
+
+-- Coherence: `m = 0` offset normalizes away under `UpTo`.
+example : discOffsetUpTo f d 0 n = discUpTo f d n := by
+  simp
+
+-- Micro-pipeline: bound a particular tail discrepancy by an `UpTo` bound.
+example (N : ℕ) (hn : n ≤ N) : discOffset f d 0 n ≤ discUpTo f d N := by
+  simpa using (discOffset_le_discOffsetUpTo (f := f) (d := d) (m := 0) (n := n) (N := N) hn)
+
 -- Regression (Track B / homogeneous view of offsets): push the offset `m*d` into the summand.
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_mul (f := f) (d := d) (m := m) (n := n))
