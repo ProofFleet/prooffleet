@@ -300,9 +300,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Canonical “difference of partial sums” normal form (discOffset): add an exported lemma rewriting
+- [x] Canonical “difference of partial sums” normal form (discOffset): add an exported lemma rewriting
   `discOffset f d m n` into `Int.natAbs (apSum f d (m+n) - apSum f d m)` (and/or the paper `∑ i ∈ Icc …` difference),
   so later stages can switch between nucleus `discOffset` and a plain two-sum form without unfolding definitions.
+  (Implemented as `discOffset_eq_natAbs_apSum_sub` in `MoltResearch/Discrepancy/Offset.lean`; stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffsetUpTo` triangle/subadditivity (shift-aware): prove a packaged inequality like
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`,
