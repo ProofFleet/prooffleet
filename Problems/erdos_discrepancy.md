@@ -329,9 +329,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `MoltResearch/Discrepancy/Basic.lean`; stable-surface regression example in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable surface coherence for `UpTo` API: add a minimal simp lemma set normalizing degenerate parameters for
+- [x] Stable surface coherence for `UpTo` API: add a minimal simp lemma set normalizing degenerate parameters for
   `discOffsetUpTo` / `discUpTo` (e.g. `N=0`, `d=1`, `m=0`) and 2–3 compile-only examples under `import MoltResearch.Discrepancy`
   showing the intended “UpTo + split + bound” micro-pipeline compiles.
+  (Implemented as simp lemmas `discUpTo_zero`, `discOffsetUpTo_zero`, `discOffsetUpTo_zero_start` in
+  `MoltResearch/Discrepancy/Basic.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Constant/periodic sequence sanity checks: add one or two explicit computed examples (as lemmas) for `apSum`/`discOffset`
   on constant sequences and on a simple periodic sign sequence, used as regression examples to ensure the normal forms reduce as expected.
