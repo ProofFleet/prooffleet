@@ -25,6 +25,19 @@ section NormalFormExamples
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
+### NEW (Track B): constant-sequence sanity checks (`apSum`/`discOffset`)
+
+These are explicit computed examples that should remain one-line `simp`/`simpa` proofs under the
+stable surface `import MoltResearch.Discrepancy`.
+-/
+
+example : apSum (fun _ => (1 : ℤ)) d n = (n : ℤ) := by
+  simp
+
+example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
+  simpa [discOffset_const] 
+
+/-!
 ### NEW (Track B): micro-pipeline “starter scripts”
 
 These are 2–3 minimal compile-only examples showing the common workflow:

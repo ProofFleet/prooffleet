@@ -491,6 +491,16 @@ It is defined as the natural absolute value of `apSumOffset f d m n`.
 def discOffset (f : ℕ → ℤ) (d m n : ℕ) : ℕ :=
   Int.natAbs (apSumOffset f d m n)
 
+/-- `discOffset` on a constant sequence computes to `|n * c|` (independent of the offset `m` and step `d`).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Constant/periodic sequence sanity checks: explicit computed examples for `apSum`/`discOffset`”.
+-/
+lemma discOffset_const (c : ℤ) (d m n : ℕ) :
+    discOffset (fun _ => c) d m n = Int.natAbs ((n : ℤ) * c) := by
+  unfold discOffset apSumOffset
+  simp [mul_comm, mul_left_comm, mul_assoc]
+
 /-!
 ### Discrepancy up to a finite length
 
