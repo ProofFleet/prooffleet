@@ -340,10 +340,9 @@ example (q r : ℕ)
 example (q r : ℕ)
     (hne : ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).Nonempty) :
     ∃ t ≤ n, t ≡ r [MOD q] ∧
-      discOffset f d m t =
-        ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).sup (fun t => discOffset f d m t) := by
+      discOffset f d m t = discOffsetUpTo_modEq f d m n q r := by
   simpa using
-    (exists_discOffset_eq_sup_filter_modEq (f := f) (d := d) (m := m) (N := n) (q := q) (r := r) hne)
+    (exists_discOffset_eq_discOffsetUpTo_modEq (f := f) (d := d) (m := m) (N := n) (q := q) (r := r) hne)
 
 -- Regression (Track B / degenerate tail normal forms):
 -- `discOffset` at length 0 and 1 should simplify to explicit normal forms.

@@ -647,6 +647,28 @@ lemma exists_discOffset_eq_sup_filter_modEq (f : ℕ → ℤ) (d m N q r : ℕ)
   refine ⟨n, Nat.le_of_lt_succ (Finset.mem_range.1 hnrange), hmod, ?_⟩
   exact hsup.symm
 
+/-- Residue-class `UpTo` wrapper: the supremum of `discOffset f d m ·` over `{ n ≤ N | n ≡ r [MOD q] }`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Residue-class `UpTo` extraction wrapper”.
+-/
+def discOffsetUpTo_modEq (f : ℕ → ℤ) (d m N q r : ℕ) : ℕ :=
+  ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).sup (fun t => discOffset f d m t)
+
+/-- In a fixed residue class modulo `q`, the maximum in `discOffsetUpTo_modEq` is attained by some `n ≤ N`.
+
+This is a packaged, stable wrapper around `exists_discOffset_eq_sup_filter_modEq` that avoids having
+clients mention the filtered-`sup` expression directly.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Residue-class `UpTo` extraction wrapper”.
+-/
+lemma exists_discOffset_eq_discOffsetUpTo_modEq (f : ℕ → ℤ) (d m N q r : ℕ)
+    (hne : ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).Nonempty) :
+    ∃ n ≤ N, n ≡ r [MOD q] ∧ discOffset f d m n = discOffsetUpTo_modEq f d m N q r := by
+  rcases exists_discOffset_eq_sup_filter_modEq (f := f) (d := d) (m := m) (N := N) (q := q) (r := r) hne with
+    ⟨n, hnle, hmod, hEq⟩
+  refine ⟨n, hnle, hmod, ?_⟩
+  simpa [discOffsetUpTo_modEq] using hEq
+
 /-- Definitional lemma exposing the definition. -/
 lemma discOffset_eq_natAbs_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=
