@@ -55,9 +55,25 @@ Implementation idea:
 
 The *real obligation* will live in `TrackCStage4Proof.lean`.
 -/
-noncomputable def stage4 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage4Output f := by
-  refine ⟨?_,⟩
-  simpa using (Tao2015.stage3_notBounded (f := f) (hf := hf))
+noncomputable def stage4 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage4Output f :=
+  ⟨Tao2015.stage3_notBounded (f := f) (hf := hf)⟩
+
+/-- Deterministic name for the Stage-4 output (useful to keep later statements readable). -/
+noncomputable abbrev stage4Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage4Output f :=
+  stage4 (f := f) (hf := hf)
+
+/-- Consumer-facing shortcut: Stage 4 closes the core goal `¬ BoundedDiscrepancy f`. -/
+theorem stage4_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
+  exact (stage4Out (f := f) (hf := hf)).notBounded
+
+/-- Consumer-facing shortcut: Stage 4 yields the usual surface statement
+`∀ C, HasDiscrepancyAtLeast f C`.
+
+This is a thin wrapper around `Stage4Output.forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage4_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_hasDiscrepancyAtLeast
 
 end Tao2015
 end MoltResearch
