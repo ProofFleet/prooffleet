@@ -426,6 +426,20 @@ theorem iff_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m : ℕ
 
 end UnboundedDiscOffset
 
+/-- Normal form: unbounded offset discrepancy means there is no uniform `discOffset` bound.
+
+Negation-normal form:
+`¬ ∃ B, ∀ n, discOffset f d m n ≤ B`.
+
+This is the definitional `discOffset` rewrite of
+`UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le`.
+-/
+theorem unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ (¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B) := by
+  -- Avoid simp loops: `discOffset` is definitional.
+  simpa [discOffset, -natAbs_apSumOffset_eq_discOffset] using
+    (UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m))
+
 /-- Preferred naming for the core lemma
 `MoltResearch.not_exists_boundedDiscOffset_iff_forall_exists_discOffset_lt`.
 
