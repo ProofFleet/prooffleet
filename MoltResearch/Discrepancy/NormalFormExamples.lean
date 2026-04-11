@@ -391,6 +391,10 @@ example : UnboundedDiscOffset f d m ↔ ∀ B : ℕ, ∃ n : ℕ, B < discOffset
   simpa using
     (unboundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m))
 
+example : UnboundedDiscOffset f d m ↔ ∀ B : ℕ, ∃ N : ℕ, B < discOffsetUpTo f d m N := by
+  simpa using
+    (unboundedDiscOffset_iff_forall_exists_discOffsetUpTo_lt (f := f) (d := d) (m := m))
+
 example : UnboundedDiscrepancy f d ↔ ∀ B : ℕ, ∃ n : ℕ, B < discrepancy f d n := by
   rfl
 

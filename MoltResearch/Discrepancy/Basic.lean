@@ -933,6 +933,30 @@ theorem unboundedDiscOffset_iff_forall_exists_discOffset_lt (f : ℕ → ℤ) (d
     rcases h B with ⟨n, hn⟩
     exact (not_lt_of_ge (hB n) hn)
 
+/-- Canonical witness normal form for `UnboundedDiscOffset` using the `discOffsetUpTo` max wrapper.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Unboundedness witness via `discOffsetUpTo`.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_discOffsetUpTo_lt (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ ∀ B : ℕ, ∃ N : ℕ, B < discOffsetUpTo f d m N := by
+  classical
+  constructor
+  · intro hunb B
+    rcases (unboundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m)).1 hunb B with
+      ⟨n, hn⟩
+    refine ⟨n, ?_⟩
+    -- `discOffsetUpTo … n` dominates the particular value at `n`.
+    exact lt_of_lt_of_le hn
+      (discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m) (n := n) (N := n) (le_rfl))
+  · intro h
+    -- Reduce to the `discOffset` witness form using attainment of the `sup`.
+    refine (unboundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m)).2 ?_
+    intro B
+    rcases h B with ⟨N, hN⟩
+    rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) with ⟨n, hn, hnEq⟩
+    refine ⟨n, ?_⟩
+    simpa [hnEq] using hN
+
 /-- Unboundedness normal form for homogeneous discrepancy `discrepancy f d n`. -/
 def UnboundedDiscrepancy (f : ℕ → ℤ) (d : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discrepancy f d n
