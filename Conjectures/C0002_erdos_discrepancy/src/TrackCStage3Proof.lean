@@ -19,7 +19,7 @@ namespace MoltResearch
 
 namespace Tao2015
 
--- Projections `stage3_d`, `stage3_g`, `stage3_m` live in `TrackCStage3EntryCore.lean`.
+-- Projections `stage3_d`, `stage3_g`, `stage3_m` live in `TrackCStage3Entry.lean`.
 
 
 /-
@@ -29,7 +29,7 @@ Note: the basic Stage-3 projections/wrappers
   stage3_g_eq
   stage3_g_eq_fun
 
-are defined in `TrackCStage3EntryCore.lean` / `TrackCStage3Entry.lean`.
+are defined in `TrackCStage3Entry.lean`.
 
 This file imports `TrackCStage3Entry`, so they are available without redeclaration.
 -/
@@ -46,7 +46,7 @@ We intentionally do not redeclare it here (this file imports `TrackCStage3Entry`
 -/
 
 /-
-Note: the convenience lemma `stage3_d_ne_zero` lives in `TrackCStage3EntryCore.lean`.
+Note: the convenience lemma `stage3_d_ne_zero` lives in `TrackCStage3Entry.lean`.
 -/
 
 /-- Consumer-facing shortcut: Stage 3 yields unbounded discrepancy along the reduced sequence,

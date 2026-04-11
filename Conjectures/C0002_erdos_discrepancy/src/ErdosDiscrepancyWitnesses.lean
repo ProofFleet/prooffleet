@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Output
 
 /-!

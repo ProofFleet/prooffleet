@@ -10,14 +10,11 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 `Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy`:
 
 - `stage3` / `stage3Out` : produce a `Stage3Output f` from a sign sequence `f`
-- lightweight projections `stage3_d`, `stage3_g`, `stage3_m`, `stage3_start`, plus the tiny lemmas `stage3_hg` and `stage3_g_eq`
-- the consumer-facing outputs `stage3_notBounded` and `stage3_forall_hasDiscrepancyAtLeast`
+- `stage3_notBounded` : close the core goal `¬ BoundedDiscrepancy f`
+- `stage3_forall_hasDiscrepancyAtLeast` : the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`
 
-All additional Stage-3 convenience lemmas (witness forms, offset packaging, rewrite lemmas, etc.)
-remain outside the hard-gate core, in
-- `TrackCStage3Output.lean` (proved lemmas about `Stage3Output`),
-- `TrackCStage3Entry.lean`, and
-- `TrackCStage3Proof.lean`.
+All additional projections and rewrite lemmas (e.g. `stage3_d`, `stage3_g`, `stage3_start`,
+`stage3_g_eq`, ...) live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
 -/
 
 namespace MoltResearch
@@ -36,95 +33,6 @@ noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Outpu
 noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
   stage3 (f := f) (hf := hf)
 
-/-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
-Stage 2.
-
-This lemma is tiny but useful for rewriting when shuttling statements between Stage 2 and Stage 3.
--/
-theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
-  rfl
-
-/-- Convenience projection: the reduced step size produced by Stage 3. -/
-noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  stage2_d (f := f) (hf := hf)
-
-/-- Convenience lemma: the reduced step size produced by Stage 3 is positive. -/
-theorem stage3_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) > 0 := by
-  simpa [stage3_d] using (stage2_d_pos (f := f) (hf := hf))
-
-/-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
-theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage3_d (f := f) (hf := hf) := by
-  simpa [stage3_d] using stage2_one_le_d (f := f) (hf := hf)
-
-/-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
-theorem stage3_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) ≠ 0 := by
-  -- Stage 3 re-exports the Stage-2 projections.
-  dsimp [stage3_d]
-  exact stage2_d_ne_zero (f := f) (hf := hf)
-
-/-- Convenience projection: the reduced sequence produced by Stage 3. -/
-noncomputable abbrev stage3_g (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ → ℤ :=
-  stage2_g (f := f) (hf := hf)
-
-/-- Convenience projection: the bundled offset parameter produced by Stage 3. -/
-noncomputable abbrev stage3_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  stage2_m (f := f) (hf := hf)
-
-/-- Convenience projection: the affine-tail start index `m*d` produced by Stage 3.
-
-This is the shift used to define the reduced sequence `stage3_g` as a tail of `f`.
--/
-noncomputable abbrev stage3_start (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
-  stage2_start (f := f) (hf := hf)
-
-/-- Definitional rewrite: the Stage-3 start index is `m*d` for the deterministic parameters
-produced by Stage 3.
-
-This lemma is intentionally tiny (and not a simp lemma): it exists mainly to reduce `dsimp` noise
-in downstream arithmetic rewrites.
--/
-theorem stage3_start_eq_m_mul_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage3_start (f := f) (hf := hf) =
-      stage3_m (f := f) (hf := hf) * stage3_d (f := f) (hf := hf) := by
-  rfl
-
-/-- The affine-tail start index `stage3_start` is a multiple of the reduced step size `stage3_d`. -/
-theorem stage3_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage3_d (f := f) (hf := hf) ∣ stage3_start (f := f) (hf := hf) := by
-  -- Stage 3 re-exports the Stage-2 projections, so this is just the Stage-2 lemma.
-  dsimp [stage3_d, stage3_start]
-  exact stage2_d_dvd_start (f := f) (hf := hf)
-
-/-- The affine-tail start index `stage3_start` has remainder `0` when reduced modulo `stage3_d`.
-
-This is often the most convenient form of `stage3_d_dvd_start` for arithmetic rewriting.
--/
-theorem stage3_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage3_start (f := f) (hf := hf) % stage3_d (f := f) (hf := hf) = 0 := by
-  -- Stage 3 re-exports the Stage-2 projections, so this is just the Stage-2 lemma.
-  dsimp [stage3_d, stage3_start]
-  exact stage2_start_mod_d (f := f) (hf := hf)
-
-/-- The reduced sequence produced by Stage 3 is a sign sequence. -/
-theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    IsSignSequence (stage3_g (f := f) (hf := hf)) := by
-  simpa [stage3_g] using stage2_hg (f := f) (hf := hf)
-
-/-- Rewrite for the reduced sequence produced by Stage 3: it is a shift by `m*d`. -/
-theorem stage3_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
-    stage3_g (f := f) (hf := hf) k = f (k + stage3_start (f := f) (hf := hf)) := by
-  simpa [stage3_g, stage3_start] using stage2_g_eq (f := f) (hf := hf) k
-
-/-- Function-level rewrite for `stage3_g`: it is the shifted sequence
-`fun k => f (k + stage3_start)`.
--/
-theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage3_g (f := f) (hf := hf) =
-      fun k => f (k + stage3_start (f := f) (hf := hf)) := by
-  funext k
-  simpa using stage3_g_eq (f := f) (hf := hf) k
-
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate core so `ErdosDiscrepancy.lean` can remain minimal.
@@ -140,15 +48,6 @@ This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
 theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf))
-
-/-!
-Witness-form corollaries are intentionally kept out of this hard-gate core module.
-
-See instead:
-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Output` (proved lemmas about `Stage3Output`)
-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry` (additional entry-point wrappers)
-- `Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancyWitnesses` (user-facing corollaries)
--/
 
 end Tao2015
 
