@@ -33,6 +33,18 @@ noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Outpu
 noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
   stage3 (f := f) (hf := hf)
 
+/-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
+Stage 2.
+
+This lemma is tiny but useful for rewriting when shuttling statements between Stage 2 and Stage 3.
+
+We keep it in the hard-gate core so consumers don't need to import the larger Stage-3 convenience
+layer `TrackCStage3Entry` just to access this definitional rewrite.
+-/
+theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
+  rfl
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate core so `ErdosDiscrepancy.lean` can remain minimal.

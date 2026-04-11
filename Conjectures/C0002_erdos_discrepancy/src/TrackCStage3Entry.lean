@@ -28,17 +28,11 @@ namespace Tao2015
 These are just re-exports of the Stage-2 deterministic projections, since Stage 3 is definitional
 glue on top of the Stage-2 output.
 
-We keep them out of `TrackCStage3EntryCore.lean` to minimize the hard-gate compilation surface.
--/
+Most of them live outside `TrackCStage3EntryCore.lean` to minimize the hard-gate compilation surface.
 
-/-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
-Stage 2.
-
-This lemma is tiny but useful for rewriting when shuttling statements between Stage 2 and Stage 3.
+(One tiny definitional rewrite lemma, `stage3Out_out2`, lives in the core module so consumers can
+access it without importing this larger convenience layer.)
 -/
-theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
-  rfl
 
 /-- Convenience projection: the reduced step size produced by Stage 3. -/
 noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
