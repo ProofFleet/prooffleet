@@ -53,7 +53,7 @@ abbrev start (out : Stage2Output f) : ℕ := out.m * out.d
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
   -- `out.start` is definitionally `m*d`.
-  simpa [Stage2Output.start] using (Nat.dvd_mul_left out.d out.m)
+  simp [Stage2Output.start]
 
 /-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`.
 
