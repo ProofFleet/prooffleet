@@ -27,6 +27,26 @@ structure Stage4Output (f : ℕ → ℤ) : Type where
   /-- The Stage-3 core conclusion, carried forward as the input to Stage 4. -/
   stage3_notBounded : ¬ BoundedDiscrepancy f
 
+namespace Stage4Output
+
+variable {f : ℕ → ℤ}
+
+/-- Stage 4 output already carries the core Track-C conclusion `¬ BoundedDiscrepancy f`. -/
+theorem notBounded (out : Stage4Output f) : ¬ BoundedDiscrepancy f :=
+  out.stage3_notBounded
+
+/-- Stage 4 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
+
+This is the same corollary used in `ErdosDiscrepancy.lean`, but exposed at the Stage-4 boundary so
+later stages can consume Stage 4 without re-proving it.
+-/
+theorem forall_hasDiscrepancyAtLeast (out : Stage4Output f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  -- Route through the verified equivalence rather than unfolding any definitions.
+  exact (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 out.stage3_notBounded
+
+end Stage4Output
+
 /-- Stage 4 main constructor (stub).
 
 Implementation idea:
