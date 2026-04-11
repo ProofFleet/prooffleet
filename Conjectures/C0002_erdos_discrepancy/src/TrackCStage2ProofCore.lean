@@ -27,6 +27,18 @@ The Stage-2 conjecture stub (axiom) and the deterministic name `stage2Out` live 
 This file keeps only the core convenience wrappers.
 -/
 
+/-- Recover the bundled offset parameter `stage2_m` by dividing the start index `stage2_start`
+by the step size `stage2_d`.
+
+This is a tiny arithmetic convenience lemma: `stage2_start = stage2_m * stage2_d` by definition.
+-/
+theorem stage2_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_start (f := f) (hf := hf) / stage2_d (f := f) (hf := hf) =
+      stage2_m (f := f) (hf := hf) := by
+  -- `stage2_d_pos` is the only side condition needed for `Nat.mul_div_left`.
+  simpa [stage2_start] using
+    (Nat.mul_div_left (stage2_m (f := f) (hf := hf)) (stage2_d_pos (f := f) (hf := hf)))
+
 /-- Minimal consumer-facing Stage-2 consequence: the original sequence cannot have globally bounded
 (discrepancy) once Stage 2 produces an unbounded fixed-step witness along the reduced sequence. -/
 theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by

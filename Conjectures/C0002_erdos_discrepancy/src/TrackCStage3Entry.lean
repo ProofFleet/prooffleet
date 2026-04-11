@@ -97,7 +97,9 @@ This is a tiny arithmetic convenience lemma: `stage3_start = stage3_m * stage3_d
 theorem stage3_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3_start (f := f) (hf := hf) / stage3_d (f := f) (hf := hf) =
       stage3_m (f := f) (hf := hf) := by
-  simpa [stage3_start, stage3_d, stage3_m] using stage2_start_div_d (f := f) (hf := hf)
+  -- `stage3_d_pos` is the only side condition needed for `Nat.mul_div_left`.
+  simpa [stage3_start, stage3_m, stage3_d, stage2_start] using
+    (Nat.mul_div_left (stage3_m (f := f) (hf := hf)) (stage3_d_pos (f := f) (hf := hf)))
 
 /-- The reduced sequence produced by Stage 3 is a sign sequence. -/
 theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
