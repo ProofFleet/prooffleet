@@ -95,6 +95,16 @@ theorem stage3_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3_start (f := f) (hf := hf) % stage3_d (f := f) (hf := hf) = 0 := by
   simpa [stage3_d, stage3_start] using stage2_start_mod_d (f := f) (hf := hf)
 
+/-- Recover the bundled offset parameter `stage3_m` by dividing the start index `stage3_start`
+by the step size `stage3_d`.
+
+This is a tiny arithmetic convenience lemma: `stage3_start = stage3_m * stage3_d` by definition.
+-/
+theorem stage3_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3_start (f := f) (hf := hf) / stage3_d (f := f) (hf := hf) =
+      stage3_m (f := f) (hf := hf) := by
+  simpa [stage3_start, stage3_d, stage3_m] using stage2_start_div_d (f := f) (hf := hf)
+
 /-- The reduced sequence produced by Stage 3 is a sign sequence. -/
 theorem stage3_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
     IsSignSequence (stage3_g (f := f) (hf := hf)) := by
