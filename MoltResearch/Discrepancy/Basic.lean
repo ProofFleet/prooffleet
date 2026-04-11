@@ -808,6 +808,31 @@ theorem boundedDiscOffset_iff_forall_discOffset_le (f : ℕ → ℤ) (d m B : �
     BoundedDiscOffset f d m B ↔ ∀ n : ℕ, discOffset f d m n ≤ B :=
   Iff.rfl
 
+/-- `BoundedDiscOffset f d m B` is equivalent to a uniform bound on the finitary maxima
+`discOffsetUpTo f d m N`.
+
+This is the main bridge lemma that lets downstream code turn a “∀ n” boundedness hypothesis into
+an `UpTo` bound (and conversely) without unfolding definitions.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness ↔ `discOffsetUpTo` growth bound.
+-/
+theorem boundedDiscOffset_iff_forall_discOffsetUpTo_le (f : ℕ → ℤ) (d m B : ℕ) :
+    BoundedDiscOffset f d m B ↔ ∀ N : ℕ, discOffsetUpTo f d m N ≤ B := by
+  constructor
+  · intro h N
+    classical
+    unfold discOffsetUpTo
+    refine Finset.sup_le ?_
+    intro n hn
+    -- Every term in the `sup` is bounded by `B`.
+    exact h n
+  · intro h n
+    -- Specialize the `UpTo` bound at `N = n` and use the pointwise ≤ max lemma.
+    have hUpTo : discOffsetUpTo f d m n ≤ B := h n
+    have hle : discOffset f d m n ≤ discOffsetUpTo f d m n :=
+      discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m) (n := n) (N := n) (by rfl)
+    exact le_trans hle hUpTo
+
 /-!
 ### Exists-bound normal form
 

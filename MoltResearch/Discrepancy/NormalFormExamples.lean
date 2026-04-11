@@ -317,6 +317,12 @@ example (hf : IsSignSequence f) :
     discOffsetUpTo f d m (n₁ + n₂) ≤ discOffsetUpTo f d m n₁ + n₂ := by
   simpa using (discOffsetUpTo_add_le (f := f) (hf := hf) (d := d) (m := m) (N := n₁) (K := n₂))
 
+-- Regression (Track B / boundedness ↔ `discOffsetUpTo` growth bound):
+-- a uniform pointwise bound is equivalent to bounding all `UpTo` maxima.
+example (B : ℕ) :
+    BoundedDiscOffset f d m B ↔ ∀ N : ℕ, discOffsetUpTo f d m N ≤ B := by
+  simpa using (boundedDiscOffset_iff_forall_discOffsetUpTo_le (f := f) (d := d) (m := m) (B := B))
+
 -- Regression (Track B / concatenation inequality for `discOffsetUpTo`): a sharper bound that
 -- isolates the tail segment.
 example :
