@@ -298,6 +298,39 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + K` under `IsSignSequence f`, so “max up to N” interacts cleanly with Lipschitz-by-1.
   (Implemented as `discOffsetUpTo_add_le` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Canonical “difference of partial sums” normal form (discOffset): add an exported lemma rewriting
+  `discOffset f d m n` into `Int.natAbs (apSum f d (m+n) - apSum f d m)` (and/or the paper `∑ i ∈ Icc …` difference),
+  so later stages can switch between nucleus `discOffset` and a plain two-sum form without unfolding definitions.
+
+- [ ] `discOffsetUpTo` triangle/subadditivity (shift-aware): prove a packaged inequality like
+  `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`,
+  derived from the `discOffset_add_le`/concatenation API, with a stable-surface regression example.
+
+- [ ] Boundedness ↔ `discOffsetUpTo` growth bound: prove a clean equivalence between
+  `BoundedDiscOffset f d m B` and `∀ N, discOffsetUpTo f d m N ≤ B` (or the repo’s preferred statement),
+  so “bounded discrepancy” hypotheses can be converted into `UpTo` bounds with one lemma.
+
+- [ ] Unboundedness witness via `discOffsetUpTo`: prove a normal form like
+  `UnboundedDiscOffset f d m ↔ ∀ B, ∃ N, B < discOffsetUpTo f d m N`,
+  with a stable-surface regression example (this becomes a convenient “monotone witness” form).
+
+- [ ] Residue-class `UpTo` extraction wrapper: build a lemma that if a set of lengths in a residue class is nonempty,
+  then `discOffsetUpTo` has a maximizing witness in that residue class (mirroring the existing `…_sup_filter_modEq` items,
+  but packaged as a stable, easy-to-use wrapper for downstream pigeonhole arguments).
+
+- [ ] Stable surface coherence for `UpTo` API: add a minimal simp lemma set normalizing degenerate parameters for
+  `discOffsetUpTo` / `discUpTo` (e.g. `N=0`, `d=1`, `m=0`) and 2–3 compile-only examples under `import MoltResearch.Discrepancy`
+  showing the intended “UpTo + split + bound” micro-pipeline compiles.
+
+- [ ] Constant/periodic sequence sanity checks: add one or two explicit computed examples (as lemmas) for `apSum`/`discOffset`
+  on constant sequences and on a simple periodic sign sequence, used as regression examples to ensure the normal forms reduce as expected.
+
+- [ ] `discOffset` monotonicity wrapper under extension with explicit constant: a packaged lemma of the form
+  `discOffset f d m n ≤ discOffset f d m (n+k) + k` (if not already exported on the stable surface), plus a regression example,
+  to make “extend length” steps one-liners in large proofs.
+
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
