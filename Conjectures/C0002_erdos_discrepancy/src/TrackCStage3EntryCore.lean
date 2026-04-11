@@ -36,6 +36,15 @@ noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Outpu
 noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
   stage3 (f := f) (hf := hf)
 
+/-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
+Stage 2.
+
+This lemma is tiny but useful for rewriting when shuttling statements between Stage 2 and Stage 3.
+-/
+theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
+  rfl
+
 /-- Convenience projection: the reduced step size produced by Stage 3. -/
 noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
   stage2_d (f := f) (hf := hf)
