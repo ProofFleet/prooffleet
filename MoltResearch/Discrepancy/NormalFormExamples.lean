@@ -38,6 +38,21 @@ example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
   simpa [discOffset_const_one]
 
 /-!
+Periodic (non-constant) sanity check: the alternating sign sequence has period 2.
+
+When the step `d` is even, the sampled indices are all even, so the sequence restricts to the
+constant `1` sequence and the discrepancy reduces to the constant-sequence computation.
+-/
+
+example : apSum (fun t : ℕ => if t % 2 = 0 then (1 : ℤ) else -1) 2 n = (n : ℤ) := by
+  -- Every sampled index is of the form `(i+1)*2`, hence even.
+  simp [apSum]
+
+example : discOffset (fun t : ℕ => if t % 2 = 0 then (1 : ℤ) else -1) 2 m n = n := by
+  -- Same idea for the offset progression: every sampled index is even.
+  simp [discOffset, apSumOffset]
+
+/-!
 ### NEW (Track B): micro-pipeline “starter scripts”
 
 These are 2–3 minimal compile-only examples showing the common workflow:
