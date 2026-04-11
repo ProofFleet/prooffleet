@@ -315,9 +315,12 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   so “bounded discrepancy” hypotheses can be converted into `UpTo` bounds with one lemma.
   (Implemented as `boundedDiscOffset_iff_forall_discOffsetUpTo_le` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Unboundedness witness via `discOffsetUpTo`: prove a normal form like
+- [x] Unboundedness witness via `discOffsetUpTo`: prove a normal form like
   `UnboundedDiscOffset f d m ↔ ∀ B, ∃ N, B < discOffsetUpTo f d m N`,
   with a stable-surface regression example (this becomes a convenient “monotone witness” form).
+  (Implemented as `unboundedDiscOffset_iff_forall_exists_discOffsetUpTo_lt` in
+  `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Residue-class `UpTo` extraction wrapper: build a lemma that if a set of lengths in a residue class is nonempty,
   then `discOffsetUpTo` has a maximizing witness in that residue class (mirroring the existing `…_sup_filter_modEq` items,
