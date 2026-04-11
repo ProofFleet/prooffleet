@@ -70,6 +70,17 @@ This is often the most convenient form of `d_dvd_start` for arithmetic rewriting
 theorem start_mod_d (out : Stage2Output f) : out.start % out.d = 0 := by
   exact Nat.mod_eq_zero_of_dvd (d_dvd_start (f := f) out)
 
+/-- Recover the offset parameter `out.m` by dividing the start index `out.start` by the step size
+`out.d`.
+
+This is a tiny arithmetic convenience lemma: `out.start = out.m * out.d` by definition.
+-/
+theorem start_div_d (out : Stage2Output f) : out.start / out.d = out.m := by
+  -- `out.out1.hd` is the only side condition needed for `Nat.mul_div_left`.
+  have hd' : 0 < out.d := by
+    simpa [Stage2Output.d] using out.out1.hd
+  simpa [Stage2Output.start] using (Nat.mul_div_left out.m hd')
+
 /-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage2Output f) (k : ℕ) :
     out.g k = f (k + out.m * out.d) := by
