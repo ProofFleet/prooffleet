@@ -9,8 +9,8 @@ It contains only:
 - the Stage-2 conjecture stub (axiom) `stage2`,
 - the deterministic name `stage2Out`,
 - the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`, `stage2_start`, and
-- the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`, `stage2_hg`,
-  `stage2_g_eq`, `stage2_g_eq_fun`.
+- the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`,
+  `stage2_d_dvd_start`, `stage2_start_mod_d`, `stage2_hg`, `stage2_g_eq`, `stage2_g_eq_fun`.
 
 All other proved convenience lemmas about `stage2Out` live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
