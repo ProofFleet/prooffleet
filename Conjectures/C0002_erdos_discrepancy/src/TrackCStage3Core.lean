@@ -79,6 +79,15 @@ theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
 abbrev m (out : Stage3Output f) : ℕ := out.out2.m
 
+/-- Stage 3 retains the Stage-2 bundled offset unboundedness witness.
+
+This is a tiny convenience projection so consumers of `Stage3Output` do not have to reach into the
+nested Stage-2 record field `out.out2`.
+-/
+theorem unboundedDiscOffset (out : Stage3Output f) : UnboundedDiscOffset f out.d out.m := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.unboundedDiscOffset (f := f) out.out2)
+
 /-- Convenience projection: the affine-tail start index `m*d` packaged in Stage 3. -/
 abbrev start (out : Stage3Output f) : ℕ := out.m * out.d
 
