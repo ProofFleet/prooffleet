@@ -37,6 +37,25 @@ lemma apSumOffset_const_one (d m n : ℕ) :
   unfold apSumOffset
   simpa using (Finset.sum_const_one : (Finset.range n).sum (fun _ => (1 : ℤ)) = n)
 
+/-!
+### Periodic sanity checks
+
+The alternating-sign sequence has period `2`. When the step is even (here `d = 2`), all sampled
+indices are even, so we effectively restrict to the constant `+1` sequence.
+-/
+
+/-- For the period-2 alternating sign sequence, sampling with step `2` makes `apSum` equal to `n`. -/
+lemma apSum_altSign_step_two (n : ℕ) :
+    apSum (fun t : ℕ => if t % 2 = 0 then (1 : ℤ) else -1) 2 n = (n : ℤ) := by
+  -- Every sampled index is of the form `(i+1)*2`, hence even.
+  simp [apSum]
+
+/-- For the same sequence/step, the offset discrepancy is independent of `m` and equals `n`. -/
+lemma discOffset_altSign_step_two (m n : ℕ) :
+    discOffset (fun t : ℕ => if t % 2 = 0 then (1 : ℤ) else -1) 2 m n = n := by
+  -- Every sampled index is of the form `(m+i+1)*2`, hence even.
+  simp [discOffset, apSumOffset]
+
 /-! ### Offset/affine bridge regression -/
 
 /-- Regression test for `apSumOffset_shift_add_eq_apSumFrom` (constant `+1` sequence).
