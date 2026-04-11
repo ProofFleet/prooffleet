@@ -339,9 +339,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (done: `MoltResearch.Discrepancy.Const.apSum_const_one`, `MoltResearch.Discrepancy.Basic.discOffset_const_one`, and periodic lemmas in `MoltResearch.Discrepancy.Examples`)
   on constant sequences and on a simple periodic sign sequence, used as regression examples to ensure the normal forms reduce as expected.
 
-- [ ] `discOffset` monotonicity wrapper under extension with explicit constant: a packaged lemma of the form
+- [x] `discOffset` monotonicity wrapper under extension with explicit constant: a packaged lemma of the form
   `discOffset f d m n ≤ discOffset f d m (n+k) + k` (if not already exported on the stable surface), plus a regression example,
   to make “extend length” steps one-liners in large proofs.
+  (Implemented as `IsSignSequence.discOffset_le_add` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression
+  example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
