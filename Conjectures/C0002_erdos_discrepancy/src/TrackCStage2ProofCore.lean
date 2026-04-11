@@ -55,26 +55,28 @@ theorem stage2_unboundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence 
   simpa [stage2_g, stage2_d] using (stage2Out (f := f) (hf := hf)).unbounded
 
 /-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
-discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`. -/
+discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`.
+
+Design note: route this through the small, proved Stage-2 core API (`Stage2Output.unboundedDiscOffset`)
+rather than re-proving the transport step here.
+-/
 theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) := by
-  simpa [stage2_d, stage2_m] using
-    ((stage2Out (f := f) (hf := hf)).out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1
-      (stage2Out (f := f) (hf := hf)).unbounded
+  simpa [stage2_d, stage2_m, Stage2Output.d, Stage2Output.m] using
+    (Stage2Output.unboundedDiscOffset (f := f) (stage2Out (f := f) (hf := hf)))
 
 /-- Core-predicate form: Stage 2 yields unbounded fixed-step discrepancy along the reduced sequence,
 re-expressed using `MoltResearch.UnboundedDiscrepancyAlong`.
 
-This is a small convenience wrapper around the Track-C-local witness
-`(stage2Out ...).unbounded`, using `Tao2015.unboundedDiscrepancyAlong_iff_core`.
+Design note: we route this through the proved Stage-2 core API
+`Stage2Output.unboundedDiscrepancyAlong_core` (in `TrackCStage2Core`) so that this file stays a
+thin wrapper layer.
 -/
 theorem stage2_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
     MoltResearch.UnboundedDiscrepancyAlong (stage2_g (f := f) (hf := hf))
       (stage2_d (f := f) (hf := hf)) := by
-  exact
-    (Tao2015.unboundedDiscrepancyAlong_iff_core (g := stage2_g (f := f) (hf := hf))
-        (d := stage2_d (f := f) (hf := hf))).1
-      (stage2Out (f := f) (hf := hf)).unbounded
+  simpa [stage2_g, stage2_d, Stage2Output.g, Stage2Output.d] using
+    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) (stage2Out (f := f) (hf := hf)))
 
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
