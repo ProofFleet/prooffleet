@@ -74,10 +74,8 @@ noncomputable abbrev stage2_start (f : ℕ → ℤ) (hf : IsSignSequence f) : �
 /-- The affine-tail start index `stage2_start` is a multiple of the reduced step size `stage2_d`. -/
 theorem stage2_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage2_d (f := f) (hf := hf) ∣ stage2_start (f := f) (hf := hf) := by
-  refine ⟨stage2_m (f := f) (hf := hf), ?_⟩
-  -- `stage2_start = m*d`, so this is just commutativity.
-  simpa [stage2_start] using
-    (Nat.mul_comm (stage2_m (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)))
+  -- `stage2_start` is definitionally `m*d`.
+  simp [stage2_start]
 
 /-- The affine-tail start index `stage2_start` has remainder `0` when reduced modulo `stage2_d`.
 
