@@ -179,12 +179,15 @@ theorem stage2_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSeq
     ¬ ∃ B : ℕ,
         ∀ n : ℕ,
           discOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) n ≤ B := by
-  rintro ⟨B, hB⟩
   have hunb :
       UnboundedDiscOffset f (stage2_d (f := f) (hf := hf)) (stage2_m (f := f) (hf := hf)) :=
     stage2_unboundedDiscOffset (f := f) (hf := hf)
-  rcases hunb B with ⟨n, hn⟩
-  exact (not_lt_of_ge (hB n)) hn
+  -- Use the Track-C normal form lemma instead of duplicating the contradiction proof.
+  exact
+    (unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f)
+        (d := stage2_d (f := f) (hf := hf))
+        (m := stage2_m (f := f) (hf := hf))).1
+      hunb
 
 /-- Positive-length witness form of `stage2_forall_exists_discOffset_gt'`.
 
