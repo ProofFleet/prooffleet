@@ -335,7 +335,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as simp lemmas `discUpTo_zero`, `discOffsetUpTo_zero`, `discOffsetUpTo_zero_start` in
   `MoltResearch/Discrepancy/Basic.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Constant/periodic sequence sanity checks: add one or two explicit computed examples (as lemmas) for `apSum`/`discOffset`
+- [x] Constant/periodic sequence sanity checks: add one or two explicit computed examples (as lemmas) for `apSum`/`discOffset`
+  (done: `MoltResearch.Discrepancy.Const.apSum_const_one`, `MoltResearch.Discrepancy.Basic.discOffset_const_one`, and periodic lemmas in `MoltResearch.Discrepancy.Examples`)
   on constant sequences and on a simple periodic sign sequence, used as regression examples to ensure the normal forms reduce as expected.
 
 - [ ] `discOffset` monotonicity wrapper under extension with explicit constant: a packaged lemma of the form
