@@ -35,7 +35,7 @@ example : apSum (fun _ => (1 : ℤ)) d n = (n : ℤ) := by
   simp
 
 example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
-  simpa [discOffset_const] 
+  simpa [discOffset_const_one]
 
 /-!
 ### NEW (Track B): micro-pipeline “starter scripts”

@@ -501,6 +501,24 @@ lemma discOffset_const (c : ℤ) (d m n : ℕ) :
   unfold discOffset apSumOffset
   simp [mul_comm, mul_left_comm, mul_assoc]
 
+/-- `discOffset` on the constant sequence `1` computes to `n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Constant/periodic sequence sanity checks: explicit computed examples for `apSum`/`discOffset`”.
+-/
+@[simp] lemma discOffset_const_one (d m n : ℕ) :
+    discOffset (fun _ => (1 : ℤ)) d m n = n := by
+  simpa [discOffset_const]
+
+/-- `discOffset` on the constant sequence `-1` also computes to `n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Constant/periodic sequence sanity checks: explicit computed examples for `apSum`/`discOffset`”.
+-/
+@[simp] lemma discOffset_const_neg_one (d m n : ℕ) :
+    discOffset (fun _ => (-1 : ℤ)) d m n = n := by
+  simpa [discOffset_const]
+
 /-!
 ### Discrepancy up to a finite length
 
