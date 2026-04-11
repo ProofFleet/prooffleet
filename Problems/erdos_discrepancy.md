@@ -305,8 +305,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   so later stages can switch between nucleus `discOffset` and a plain two-sum form without unfolding definitions.
   (Implemented as `discOffset_eq_natAbs_apSum_sub` in `MoltResearch/Discrepancy/Offset.lean`; stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffsetUpTo` triangle/subadditivity (shift-aware): prove a packaged inequality like
-  `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`,
+- [x] `discOffsetUpTo` triangle/subadditivity (shift-aware): prove a packaged inequality like
+  `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`.
+  (Implemented as `discOffsetUpTo_add_le_add_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
   derived from the `discOffset_add_le`/concatenation API, with a stable-surface regression example.
 
 - [ ] Boundedness ↔ `discOffsetUpTo` growth bound: prove a clean equivalence between
