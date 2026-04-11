@@ -68,6 +68,17 @@ theorem forall_exists_discrepancy_gt (out : Stage3Output f) :
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       ((out.forall_hasDiscrepancyAtLeast (f := f)) C)
 
+/-- Strengthened witness form of `forall_exists_discrepancy_gt` with a positive-length witness.
+
+This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
+-/
+theorem forall_exists_discrepancy_gt_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, h⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  simpa using h
+
 /-- Stage 3 output implies the paper-notation witness form
 
 `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
