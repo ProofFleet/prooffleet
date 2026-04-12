@@ -198,6 +198,31 @@ theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt' (f : ℕ → ℤ) (
     rcases h B with ⟨n, hn⟩
     exact ⟨n, hn⟩
 
+/-- Witness-positivity variant of `UnboundedDiscOffset`.
+
+Since `discOffset f d m 0 = 0`, any witness satisfying `discOffset f d m n > B` must have
+`n > 0`.
+
+This is often the most convenient normal form for downstream stages that want to avoid reasoning
+about the trivial `n = 0` case.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f d m n > B) := by
+  constructor
+  · intro hunb B
+    rcases hunb B with ⟨n, hn⟩
+    have hn0 : n ≠ 0 := by
+      intro h0
+      subst h0
+      have : ¬ B < discOffset f d m 0 := by
+        simp
+      exact this hn
+    exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
+  · intro h B
+    rcases h B with ⟨n, hnpos, hn⟩
+    exact ⟨n, hn⟩
+
 /-- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus. -/
 theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumFrom f (m * d) d n = apSumOffset f d m n := by
