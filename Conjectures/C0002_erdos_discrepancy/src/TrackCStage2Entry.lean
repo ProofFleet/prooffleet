@@ -97,6 +97,27 @@ theorem stage2_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage2_start (f := f) (hf := hf) % stage2_d (f := f) (hf := hf) = 0 := by
   exact Nat.mod_eq_zero_of_dvd (stage2_d_dvd_start (f := f) (hf := hf))
 
+/-- Adding the start index does not change residues modulo the step size.
+
+Since `stage2_start` is a multiple of `stage2_d`, we have
+`(n + stage2_start) % stage2_d = n % stage2_d`.
+-/
+theorem stage2_add_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (n + stage2_start (f := f) (hf := hf)) % stage2_d (f := f) (hf := hf) =
+      n % stage2_d (f := f) (hf := hf) := by
+  have hstart : stage2_start (f := f) (hf := hf) % stage2_d (f := f) (hf := hf) = 0 :=
+    stage2_start_mod_d (f := f) (hf := hf)
+  calc
+    (n + stage2_start (f := f) (hf := hf)) % stage2_d (f := f) (hf := hf) =
+        ((n % stage2_d (f := f) (hf := hf)) +
+            (stage2_start (f := f) (hf := hf) % stage2_d (f := f) (hf := hf))) %
+          stage2_d (f := f) (hf := hf) := by
+        simpa [Nat.add_mod]
+    _ = ((n % stage2_d (f := f) (hf := hf)) + 0) % stage2_d (f := f) (hf := hf) := by
+        simp [hstart]
+    _ = n % stage2_d (f := f) (hf := hf) := by
+        simp
+
 /-- Recover the offset parameter `stage2_m` by dividing the Stage-2 start index `stage2_start`
 by the reduced step size `stage2_d`.
 
