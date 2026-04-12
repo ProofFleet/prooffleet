@@ -97,6 +97,17 @@ theorem stage2_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage2_start (f := f) (hf := hf) % stage2_d (f := f) (hf := hf) = 0 := by
   exact Nat.mod_eq_zero_of_dvd (stage2_d_dvd_start (f := f) (hf := hf))
 
+/-- Recover the offset parameter `stage2_m` by dividing the Stage-2 start index `stage2_start`
+by the reduced step size `stage2_d`.
+
+This is a tiny arithmetic convenience lemma: `stage2_start = stage2_m * stage2_d` by definition.
+-/
+theorem stage2_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_start (f := f) (hf := hf) / stage2_d (f := f) (hf := hf) =
+      stage2_m (f := f) (hf := hf) := by
+  have hd : 0 < stage2_d (f := f) (hf := hf) := stage2_d_pos (f := f) (hf := hf)
+  simpa [stage2_start] using (Nat.mul_div_left (stage2_m (f := f) (hf := hf)) hd)
+
 -- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofCore`)
 
 /-- The reduced sequence produced by Stage 2 is a sign sequence. -/
