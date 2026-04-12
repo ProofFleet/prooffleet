@@ -89,6 +89,16 @@ theorem stage3_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3_start (f := f) (hf := hf) % stage3_d (f := f) (hf := hf) = 0 := by
   simpa [stage3_d, stage3_start] using stage2_start_mod_d (f := f) (hf := hf)
 
+/-- Adding the start index does not change residues modulo the step size.
+
+Since `stage3_start` is a multiple of `stage3_d`, we have
+`(n + stage3_start) % stage3_d = n % stage3_d`.
+-/
+theorem stage3_add_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (n + stage3_start (f := f) (hf := hf)) % stage3_d (f := f) (hf := hf) =
+      n % stage3_d (f := f) (hf := hf) := by
+  simpa [stage3_d, stage3_start] using stage2_add_start_mod_d (f := f) (hf := hf) n
+
 /-- Recover the bundled offset parameter `stage3_m` by dividing the start index `stage3_start`
 by the step size `stage3_d`.
 
