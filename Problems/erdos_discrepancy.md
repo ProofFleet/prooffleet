@@ -893,6 +893,34 @@ Definition of done:
   `Finset.Icc (m+1) (m+n)` endpoints normalizes to nucleus forms with `simp` + at most one `rw`, and cover it with a regression example.
   (Implemented as `MoltResearch.Discrepancy.PaperSimp` with regression examples in `MoltResearch/Discrepancy/PaperSimpExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] `discOffsetUpTo` attains its max: prove an `∃ n ≤ N, discOffset f d m n = discOffsetUpTo f d m N` witness lemma (and package the `n` as a structure if convenient),
+  so later stages can switch from `sup`-style bounds to a concrete extremal interval without reopening `Finset` machinery.
+
+- [ ] `discOffsetUpTo` monotone in length: prove a clean wrapper `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N+K)` (and the `N ≤ N'` variant),
+  with a stable-surface regression example using only `import MoltResearch.Discrepancy`.
+
+- [ ] Paper-endpoint normalization for `discOffsetUpTo`: add a lemma rewriting `discOffsetUpTo f d m N` into a `sup` over paper intervals
+  `Int.natAbs (∑ i in Finset.Icc (m+1) (m+n), f (i*d))` (with `n ≤ N`) in the repo’s preferred endpoint conventions,
+  so the “max up to N” object is available directly in paper notation.
+
+- [ ] Sum-level residue-class decomposition (offset form): after splitting `Finset.Icc (m+1) (m+n)` into residues mod `r`, prove a canonical *equality*
+  expressing `apSumOffset f d m n` as a sum of `apSumOffset`/`apSumFrom` terms at step `d*r` (consistent normal form + argument order),
+  so the existing disc-level residue inequality can be obtained by `rw` + triangle inequality.
+
+- [ ] `discOffset` congruence under affine reindexing: package a lemma that if `φ : ℕ → ℕ` is a bijection on `Finset.range n` (or an explicit `Nat` reindex like `i ↦ n-1-i` / `i ↦ i+k`), then the corresponding reindexed `apSumOffset` has identical `discOffset`.
+  Goal: downstream proofs can reindex without unfolding `discOffset` to raw sums.
+
+- [ ] “Cut at k” API coherence for paper notation: provide paper-style cut lemmas at the `Icc` level (both sum- and disc-level)
+  whose statements mention only `Finset.Icc (m+1) (m+n)` and `Finset.Icc` endpoint algebra, but whose proofs route through the existing nucleus cut lemmas.
+
+- [ ] Step-positivity normal form: add a consistent lemma suite that reduces all theorems to `d ≥ 1` (or `Nat.succ d`) hypotheses early,
+  with deprecated `d=0` corner-case variants behind `MoltResearch.Discrepancy.Deprecated`, to keep the stable surface clean.
+
+- [ ] One-shot “normalization pipeline” tactic lemma: a small wrapper lemma (not a tactic) that takes a paper-style goal about `∑ i in Icc …` and rewrites it into the nucleus normal form (`apSumFrom`/`apSumOffset`/`discOffset`) in one `simp`/`rw` step,
+  and lock it in with a stable-surface regression example.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
