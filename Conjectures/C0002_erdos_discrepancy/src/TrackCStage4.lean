@@ -35,6 +35,14 @@ namespace Stage4Output
 
 variable {f : ℕ → ℤ}
 
+/-- Stage 4 carries the full Stage-3 output, hence also carries the underlying Stage-2 output.
+
+This projection is useful for later stages that still need Stage-2 witnesses, without forcing them
+to re-run earlier stages.
+-/
+abbrev out2 (out : Stage4Output f) : Tao2015.Stage2Output f :=
+  out.out3.out2
+
 /-- Stage 4 output already carries the Stage-3 conclusion `¬ BoundedDiscrepancy f`. -/
 theorem notBounded (out : Stage4Output f) : ¬ BoundedDiscrepancy f :=
   out.out3.notBounded
@@ -74,6 +82,17 @@ This lemma is tiny but useful for rewriting when shuttling statements between St
 @[simp] theorem stage4Out_out3 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage4Out (f := f) (hf := hf)).out3 = Tao2015.stage3Out (f := f) (hf := hf) := by
   rfl
+
+/-- The Stage-2 output stored inside `stage4Out` is definitionally the Stage-2 output produced by
+Stage 2.
+
+This lemma is tiny but useful for rewriting when shuttling statements between Stage 2 and Stage 4,
+without importing the larger Stage-3 convenience layer.
+-/
+@[simp] theorem stage4Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage4Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
+  -- Expand `stage4Out` to its Stage-3 payload, then use the Stage-3 definitional rewrite.
+  simpa [Stage4Output.out2] using (stage3Out_out2 (f := f) (hf := hf))
 
 /-- Consumer-facing shortcut: Stage 4 closes the core goal `¬ BoundedDiscrepancy f`. -/
 theorem stage4_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
