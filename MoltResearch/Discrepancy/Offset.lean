@@ -489,6 +489,61 @@ lemma sum_Icc_add_len_eq_apSumOffset_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ)
         -- (The `simp` target is the nucleus form.)
         simp [apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm])
 
+/-!
+### “Cut at k” coherence lemmas for paper `Icc` notation
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Cut at k” API coherence for paper notation: provide paper-style cut lemmas at the `Icc` level
+(both sum- and disc-level).
+
+These are convenience wrappers around `sum_Icc_add_len_split`/`sum_Icc_add_len_eq_apSumOffset_add`
+that expose the common `k ≤ n` cut parameterization directly.
+-/
+
+/-- Paper-notation cut lemma (sum level): split the tail interval at length `k ≤ n` and rewrite to
+`apSumOffset` pieces.
+
+Concretely, this rewrites
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`
+into
+`apSumOffset f d m k + apSumOffset f d (m+k) (n-k)`.
+-/
+lemma sum_Icc_eq_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+      apSumOffset f d m k + apSumOffset f d (m + k) (n - k) := by
+  have hn : k + (n - k) = n := Nat.add_sub_of_le hk
+  -- Specialize the two-length split and rewrite endpoints via `hn`.
+  simpa [hn, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (sum_Icc_add_len_eq_apSumOffset_add (f := f) (d := d) (m := m) (n₁ := k) (n₂ := n - k))
+
+/-- Paper-notation cut lemma (discrepancy level): split the `Icc` sum at length `k ≤ n` **without**
+leaving paper notation.
+
+This is useful when a proof wants to remain in `Icc`-indexed sums but still perform a cut.
+-/
+lemma discOffset_eq_natAbs_sum_Icc_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    discOffset f d m n =
+      Int.natAbs
+        ((Finset.Icc (m + 1) (m + k)).sum (fun i => f (i * d)) +
+          (Finset.Icc (m + k + 1) (m + n)).sum (fun i => f (i * d))) := by
+  have hn : k + (n - k) = n := Nat.add_sub_of_le hk
+  -- Split the paper interval sum at `k`, then apply `Int.natAbs`.
+  have hsplit :
+      (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+        (Finset.Icc (m + 1) (m + k)).sum (fun i => f (i * d)) +
+          (Finset.Icc (m + k + 1) (m + n)).sum (fun i => f (i * d)) := by
+    -- Start from the two-parameter split, then rewrite the endpoints.
+    simpa [hn, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (sum_Icc_add_len_split (f := f) (d := d) (m := m) (n₁ := k) (n₂ := n - k))
+  -- Now rewrite `discOffset` into paper notation and replace the interval sum using `hsplit`.
+  calc
+    discOffset f d m n = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
+      simpa using (discOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n))
+    _ = Int.natAbs
+          ((Finset.Icc (m + 1) (m + k)).sum (fun i => f (i * d)) +
+            (Finset.Icc (m + k + 1) (m + n)).sum (fun i => f (i * d))) := by
+          simpa [hsplit]
+
 /-- Rewrite `apSumOffset` as a length-indexed interval sum over `Icc 1 n`.
 
 Concretely, this is the form

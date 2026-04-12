@@ -1433,6 +1433,19 @@ example (n₁ n₂ : ℕ) :
   -- Normalize the paper `Icc` statement to the stable-surface `discOffset` wrapper.
   simpa [discOffset, hsum] using hsplit
 
+-- Regression: direct “cut at k” wrappers for paper notation.
+example (n k : ℕ) (hk : k ≤ n) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+      apSumOffset f d m k + apSumOffset f d (m + k) (n - k) := by
+  simpa using (sum_Icc_eq_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
+example (n k : ℕ) (hk : k ≤ n) :
+    discOffset f d m n =
+      Int.natAbs
+        ((Finset.Icc (m + 1) (m + k)).sum (fun i => f (i * d)) +
+          (Finset.Icc (m + k + 1) (m + n)).sum (fun i => f (i * d))) := by
+  simpa using (discOffset_eq_natAbs_sum_Icc_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
 -- Paper `Icc` tail split: if both pieces are bounded, then the concatenation is bounded.
 -- (This is the “paper statement → normalize to `discOffset` → split/bound” pipeline.)
 example (n₁ n₂ C₁ C₂ : ℕ)
