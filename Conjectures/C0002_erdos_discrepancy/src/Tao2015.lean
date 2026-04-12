@@ -613,9 +613,7 @@ theorem exists_witness_pos {g : ℕ → ℤ} {d C : ℕ} (h : HasDiscrepancyAtLe
   have hn0 : n ≠ 0 := by
     intro h0
     subst h0
-    have : False := by
-      simpa [discrepancy_zero] using hn
-    exact this
+    simp [discrepancy_zero] at hn
   exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
 
 end HasDiscrepancyAtLeastAlong
