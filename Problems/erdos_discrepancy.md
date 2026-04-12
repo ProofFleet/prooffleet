@@ -895,7 +895,8 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] `discOffsetUpTo` attains its max: prove an `∃ n ≤ N, discOffset f d m n = discOffsetUpTo f d m N` witness lemma (and package the `n` as a structure if convenient),
+- [x] `discOffsetUpTo` attains its max: prove an `∃ n ≤ N, discOffset f d m n = discOffsetUpTo f d m N` witness lemma (and package the `n` as a structure if convenient),
+  (Implemented as `exists_discOffset_eq_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with a stable regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
   so later stages can switch from `sup`-style bounds to a concrete extremal interval without reopening `Finset` machinery.
 
 - [ ] `discOffsetUpTo` monotone in length: prove a clean wrapper `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N+K)` (and the `N ≤ N'` variant),
