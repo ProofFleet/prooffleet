@@ -68,6 +68,17 @@ theorem forall_exists_discrepancy_gt (out : Stage3Output f) :
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       ((out.forall_hasDiscrepancyAtLeast (f := f)) C)
 
+/-- Variant of `forall_exists_discrepancy_gt` writing the step-size side condition as `d ≥ 1`.
+
+Many consumers prefer `d ≥ 1` rather than `d > 0` when working with `Nat` step sizes.
+-/
+theorem forall_exists_discrepancy_gt_d_ge_one (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ discrepancy f d n > C := by
+  intro C
+  rcases out.forall_exists_discrepancy_gt (f := f) C with ⟨d, n, hd, hdisc⟩
+  refine ⟨d, n, ?_, hdisc⟩
+  exact Nat.succ_le_iff.2 hd
+
 /-- Strengthened witness form of `forall_exists_discrepancy_gt` with a positive-length witness.
 
 This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
