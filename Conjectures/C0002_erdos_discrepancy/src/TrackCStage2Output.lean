@@ -110,17 +110,7 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f)
     (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) (d := out.d)
       (m := out.m) hunb)
 
-/-- Negation-normal form of `forall_exists_natAbs_apSumFrom_mul_gt`: there is no uniform bound on
-the affine-tail nuclei at the concrete Stage-1 parameters produced by Stage 2. -/
-theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
-    ¬ ∃ B : ℕ,
-        ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
-  have hunb : UnboundedDiscOffset f out.d out.m :=
-    (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
-  exact
-    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le
-        (f := f) (d := out.d) (m := out.m)).1
-      hunb
+-- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`)
 
 /-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by

@@ -147,6 +147,23 @@ theorem not_exists_boundedDiscOffset (out : Stage2Output f) :
         (d := out.d) (m := out.m)).1
       hunb
 
+/-- Negation-normal-form unboundedness statement for the affine-tail nuclei
+`Int.natAbs (apSumFrom f (out.m*d) out.d n)`.
+
+This is `unboundedDiscOffset` rewritten using the generic normal-form lemma
+`Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le`.
+
+We keep this lemma in `TrackCStage2Core.lean` so downstream stages can access it without importing
+the larger convenience-lemma library `TrackCStage2Output.lean`.
+-/
+theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  exact
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le
+        (f := f) (d := out.d) (m := out.m)).1
+      hunb
+
 /-- Stage 2 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
 This is a thin wrapper around `notBoundedOriginal`.
