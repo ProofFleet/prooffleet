@@ -348,7 +348,15 @@ example : discUpTo f d n = (Finset.range (n + 1)).sup (fun t => disc f d t) := b
 example : discOffsetUpTo f d m n = (Finset.range (n + 1)).sup (fun t => discOffset f d m t) := by
   rfl
 
--- Regression: monotonicity + witness attainment for `discUpTo` / `discOffsetUpTo`.
+-- Regression (Track B / paper-endpoint normalization for `discOffsetUpTo`): rewrite into a `sup`
+-- of paper-interval expressions with the repo's preferred endpoints.
+example :
+    discOffsetUpTo f d m n =
+      (Finset.range (n + 1)).sup
+        (fun t => Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d)))) := by
+  simpa using (discOffsetUpTo_eq_sup_range_Icc (f := f) (d := d) (m := m) (N := n))
+
+-- Regression: monotonicity + witness attainment for `discUpTo` / `discOffsetUpTo`. 
 example (hn : n₁ ≤ n₂) : discUpTo f d n₁ ≤ discUpTo f d n₂ := by
   simpa using (discUpTo_mono (f := f) (d := d) hn)
 

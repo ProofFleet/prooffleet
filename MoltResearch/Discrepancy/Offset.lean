@@ -407,6 +407,22 @@ lemma discOffsetUpTo_eq_sup_Icc_endpoints (f : ℕ → ℤ) (d m N : ℕ) :
     simpa [hrewrite] using
       (Finset.le_sup (s := Finset.range (N + 1)) (f := fun n => discOffset f d m n) hnmem)
 
+
+/-- Paper-endpoint normalization for `discOffsetUpTo`: rewrite directly into a `sup` of paper-interval
+expressions indexed by the length parameter `n ≤ N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Paper-endpoint normalization for
+`discOffsetUpTo`.
+-/
+lemma discOffsetUpTo_eq_sup_range_Icc (f : ℕ → ℤ) (d m N : ℕ) :
+    discOffsetUpTo f d m N =
+      (Finset.range (N + 1)).sup
+        (fun n => Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)))) := by
+  classical
+  unfold discOffsetUpTo
+  -- Rewrite each `discOffset` term into paper notation.
+  simpa [discOffset_eq_natAbs_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-!
 ## “One-cut in paper notation” bridge
 
