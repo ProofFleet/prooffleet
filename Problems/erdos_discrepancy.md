@@ -63,6 +63,15 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `discOffset f d m n = discOffset g d m n` assuming pointwise agreement of summands on `Finset.range n`.
   (Implemented as `discOffset_congr_range` in `MoltResearch/Discrepancy/Offset.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+- [x] One-shot “normalization pipeline” wrapper lemma (paper affine endpoints → nucleus normal form):
+  rewrite
+  `Int.natAbs (∑ i ∈ Icc (m+1) n, f (a + i*d))`
+  directly into the nucleus wrapper
+  `discOffset (fun k => f (a + k)) d m (n-m)`
+  in a single `rw`/`simpa` step.
+  (Implemented as `natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset` (+ specializations/bound-level wrappers)
+  in `MoltResearch/Discrepancy/AffineTail.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
+
 #### Auto-generated backlog (needs triage)
 
 - [x] Canonical homogeneous view of offsets: prove `apSumOffset f d m n = apSum (fun k => f (k + m*d)) d n`

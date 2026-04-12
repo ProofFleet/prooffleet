@@ -178,14 +178,17 @@ section
   -/
 
   -- Degenerate step (`d = 0`) simp normal forms.
+  --
+  -- We intentionally unfold the wrappers here, rather than requiring `simp` to unfold them by
+  -- default: the stable surface keeps `discOffset`/`discrepancy` as the normalization boundary.
   example : discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
-    simp
+    simp [discOffset, apSumOffset_zero_d, zsmul_eq_mul]
 
   example : discrepancy f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
-    simp
+    simp [discrepancy, apSum_zero_d, zsmul_eq_mul]
 
   example : disc f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
-    simp
+    simp [disc, apSum_zero_d, zsmul_eq_mul]
 
   /-!
   ### discOffset_* lemma exports (stable surface)
