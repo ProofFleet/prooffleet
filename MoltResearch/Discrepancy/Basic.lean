@@ -647,6 +647,14 @@ lemma discOffsetUpTo_mono (f : ℕ → ℤ) (d m : ℕ) {N N' : ℕ} (h : N ≤ 
   have hn' : n ∈ Finset.range (N' + 1) := Finset.mem_range.2 hnlt'
   exact Finset.le_sup (s := Finset.range (N' + 1)) (f := fun t => discOffset f d m t) hn'
 
+/-- A convenience wrapper: extending the cutoff by `K` can only increase `discOffsetUpTo`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` monotone in length.
+-/
+lemma discOffsetUpTo_le_add (f : ℕ → ℤ) (d m N K : ℕ) :
+    discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N + K) := by
+  simpa using (discOffsetUpTo_mono (f := f) (d := d) (m := m) (N := N) (N' := N + K) (Nat.le_add_right N K))
+
 /-- The maximum in `discOffsetUpTo` is attained by some `n ≤ N`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.

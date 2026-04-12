@@ -358,6 +358,10 @@ example : ∃ t ≤ n, disc f d t = discUpTo f d n := by
 example (hn : n₁ ≤ n₂) : discOffsetUpTo f d m n₁ ≤ discOffsetUpTo f d m n₂ := by
   simpa using (discOffsetUpTo_mono (f := f) (d := d) (m := m) hn)
 
+-- Regression (Track B / monotonicity wrapper): `N ≤ N+K`.
+example : discOffsetUpTo f d m n₁ ≤ discOffsetUpTo f d m (n₁ + n₂) := by
+  simpa using (discOffsetUpTo_le_add (f := f) (d := d) (m := m) (N := n₁) (K := n₂))
+
 example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
   simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n))
 
