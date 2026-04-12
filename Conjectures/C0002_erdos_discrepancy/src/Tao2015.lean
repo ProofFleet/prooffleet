@@ -602,6 +602,22 @@ theorem forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong (g : ℕ
   · intro hunb C
     exact hunb C
 
+/-- Witness-positivity: any witness for `HasDiscrepancyAtLeastAlong g d C` must have `n > 0`,
+since `discrepancy g d 0 = 0`.
+
+This is a tiny convenience lemma used by later stages to avoid splitting on the `n = 0` case.
+-/
+theorem exists_witness_pos {g : ℕ → ℤ} {d C : ℕ} (h : HasDiscrepancyAtLeastAlong g d C) :
+    ∃ n : ℕ, n > 0 ∧ C < discrepancy g d n := by
+  rcases h with ⟨n, hn⟩
+  have hn0 : n ≠ 0 := by
+    intro h0
+    subst h0
+    have : False := by
+      simpa [discrepancy_zero] using hn
+    exact this
+  exact ⟨n, Nat.pos_of_ne_zero hn0, hn⟩
+
 end HasDiscrepancyAtLeastAlong
 
 /-!
