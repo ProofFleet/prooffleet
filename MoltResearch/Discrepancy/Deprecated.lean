@@ -18,6 +18,49 @@ If you need older names (e.g. `*_map_add` wrappers), import this file explicitly
 
 namespace MoltResearch
 
+/-!
+## Degenerate-step (`d = 0`) simp normal forms (corner-case surface)
+
+These lemmas are oriented for `simp` and keep the `d = 0` corner case from unfolding `apSum`/
+`apSumOffset` into `Finset` sums.
+
+They used to be part of the stable surface (`import MoltResearch.Discrepancy`) but are now behind
+this deprecated surface module.
+-/
+
+/-- Degenerate step (`d = 0`): the sampled index is always `0`, so the sum is a constant sum. -/
+@[simp] lemma apSum_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    apSum f 0 n = (n : ℤ) * f 0 := by
+  classical
+  unfold apSum
+  simp
+
+/-- Degenerate step (`d = 0`) at the homogeneous discrepancy wrapper `disc` level. -/
+@[simp] lemma disc_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    disc f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
+  unfold disc
+  simp [apSum_zero_step]
+
+/-- Degenerate step (`d = 0`) at the homogeneous discrepancy wrapper `discrepancy` level. -/
+@[simp] lemma discrepancy_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    discrepancy f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
+  unfold discrepancy
+  simp [apSum_zero_step]
+
+/-- Degenerate step (`d = 0`): the sampled index is always `0`, so the offset sum is constant. -/
+@[simp] lemma apSumOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
+    apSumOffset f 0 m n = (n : ℤ) * f 0 := by
+  classical
+  unfold apSumOffset
+  simp
+
+/-- Degenerate step (`d = 0`) at the `discOffset` level. -/
+@[simp] lemma discOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
+    discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
+  unfold discOffset
+  simp
+
+
 /-- Deprecated name for `IsSignSequence.shift_add`. -/
 @[deprecated "Use `IsSignSequence.shift_add`." (since := "2026-02-28")]
 lemma IsSignSequence.map_add {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequence f) :

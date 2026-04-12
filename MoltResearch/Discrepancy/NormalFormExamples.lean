@@ -445,18 +445,11 @@ example : discOffset f d m 0 = 0 := by
 example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
   simp
 
--- Regression (Track B / degenerate-step normal forms):
--- The `d = 0` case should simplify without unfolding into a `Finset` sum.
-example : discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
-  simp
-
--- Regression (Track B / degenerate-step normal forms):
-example : disc f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
-  simp
-
--- Regression (Track B / degenerate-step normal forms):
-example : discrepancy f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
-  simp
+-- Regression (Track B / step-positivity witness normal forms):
+-- The stable surface should make it easy to normalize to `d = Nat.succ d'`.
+example (C : ℕ) (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n : ℕ, Int.natAbs (apSum f (Nat.succ d) n) > C := by
+  simpa using (HasDiscrepancyAtLeast.exists_witness_succ (h := h))
 
 -- Regression (Track B / negation invariance, disc-level):
 -- Sign flips should be a one-line `simp`.

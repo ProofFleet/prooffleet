@@ -924,8 +924,10 @@ Definition of done:
   (Implemented as `sum_Icc_eq_apSumOffset_cut` and `discOffset_eq_natAbs_sum_Icc_cut` in `MoltResearch/Discrepancy/Offset.lean`,
   with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Step-positivity normal form: add a consistent lemma suite that reduces all theorems to `d ≥ 1` (or `Nat.succ d`) hypotheses early,
+- [x] Step-positivity normal form: add a consistent lemma suite that reduces all theorems to `d ≥ 1` (or `Nat.succ d`) hypotheses early,
   with deprecated `d=0` corner-case variants behind `MoltResearch.Discrepancy.Deprecated`, to keep the stable surface clean.
+  (Implemented via `HasDiscrepancyAtLeast.exists_witness_succ(_pos)` / `HasAffineDiscrepancyAtLeast.exists_witness_succ(_pos)` on the stable surface,
+  and by moving `d = 0` simp normal forms to `MoltResearch/Discrepancy/Deprecated.lean`.)
 
 - [ ] One-shot “normalization pipeline” tactic lemma: a small wrapper lemma (not a tactic) that takes a paper-style goal about `∑ i in Icc …` and rewrites it into the nucleus normal form (`apSumFrom`/`apSumOffset`/`discOffset`) in one `simp`/`rw` step,
   and lock it in with a stable-surface regression example.

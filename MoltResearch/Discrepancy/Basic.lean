@@ -777,48 +777,18 @@ This direction avoids simp loops with `discOffset_def`.
   rfl
 
 
-/-- Degenerate step (`d = 0`): the sampled index is always `0`, so the sum is a constant sum. -/
-@[simp] lemma apSum_zero_step (f : ℕ → ℤ) (n : ℕ) :
-    apSum f 0 n = (n : ℤ) * f 0 := by
-  classical
-  unfold apSum
-  -- All sampled indices are `((i+1)*0) = 0`.
-  simp
-
-/-- Degenerate step (`d = 0`) at the homogeneous discrepancy wrapper `disc` level. -/
-@[simp] lemma disc_zero_step (f : ℕ → ℤ) (n : ℕ) :
-    disc f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
-  unfold disc
-  simp [apSum_zero_step]
-
-/-- Degenerate step (`d = 0`) at the homogeneous discrepancy wrapper `discrepancy` level. -/
-@[simp] lemma discrepancy_zero_step (f : ℕ → ℤ) (n : ℕ) :
-    discrepancy f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
-  unfold discrepancy
-  simp [apSum_zero_step]
-
 /-!
-### Degenerate-step (`d = 0`) normal forms
+### Degenerate-step (`d = 0`) normal forms (deprecated surface)
 
-Checklist item: Problems/erdos_discrepancy.md (Track B) — “Coherence lemma for `apSumOffset` under `d=0`”.
+The simp-oriented `d = 0` normal-form lemmas used to live in this file, but they are now
+considered *corner-case surface* and have been moved behind:
 
-These lemmas are oriented for `simp`: they prevent downstream goals from unfolding `apSumOffset`
-into a constant `Finset` sum when the step is `0`.
+```lean
+import MoltResearch.Discrepancy.Deprecated
+```
+
+This keeps the stable surface (`import MoltResearch.Discrepancy`) focused on the `d ≥ 1` workflow.
 -/
-
-/-- Degenerate step (`d = 0`): the sampled index is always `0`, so the sum is a constant sum. -/
-@[simp] lemma apSumOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
-    apSumOffset f 0 m n = (n : ℤ) * f 0 := by
-  classical
-  unfold apSumOffset
-  -- All sampled indices are `((m+i+1)*0) = 0`.
-  simp
-
-/-- Degenerate step (`d = 0`) at the `discOffset` level. -/
-@[simp] lemma discOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
-    discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
-  unfold discOffset
-  simp
 
 /-!
 ### `discAlong`: along-`d` API coherence (`m = 0` offset form)
@@ -2019,6 +1989,35 @@ lemma HasDiscrepancyAtLeast.exists_witness_d_ge_one_pos {f : ℕ → ℤ} {C : �
     ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
   rcases HasDiscrepancyAtLeast.exists_witness_pos (h := h) with ⟨d, n, hd, hn, hgt⟩
   exact ⟨d, n, Nat.succ_le_of_lt hd, hn, hgt⟩
+
+/-!
+### Step-positivity witness normal forms (`d = Nat.succ d'`)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step-positivity normal form.
+
+These lemmas package the (automatic) `d ≥ 1` side condition by writing the step as `Nat.succ d'`.
+This lets downstream code avoid carrying separate inequalities.
+-/
+
+/-- From a discrepancy witness obtain a witness whose step is written as `Nat.succ d`. -/
+lemma HasDiscrepancyAtLeast.exists_witness_succ {f : ℕ → ℤ} {C : ℕ}
+    (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n : ℕ, Int.natAbs (apSum f (Nat.succ d) n) > C := by
+  rcases HasDiscrepancyAtLeast.exists_witness_d_ge_one (h := h) with ⟨d, n, hd, hgt⟩
+  have hdpos : 0 < d := lt_of_lt_of_le Nat.zero_lt_one hd
+  have hd0 : d ≠ 0 := Nat.ne_of_gt hdpos
+  rcases Nat.exists_eq_succ_of_ne_zero hd0 with ⟨d', rfl⟩
+  exact ⟨d', n, hgt⟩
+
+/-- Variant of `HasDiscrepancyAtLeast.exists_witness_succ` also recording `n > 0`. -/
+lemma HasDiscrepancyAtLeast.exists_witness_succ_pos {f : ℕ → ℤ} {C : ℕ}
+    (h : HasDiscrepancyAtLeast f C) :
+    ∃ d n : ℕ, n > 0 ∧ Int.natAbs (apSum f (Nat.succ d) n) > C := by
+  rcases HasDiscrepancyAtLeast.exists_witness_d_ge_one_pos (h := h) with ⟨d, n, hd, hn, hgt⟩
+  have hdpos : 0 < d := lt_of_lt_of_le Nat.zero_lt_one hd
+  have hd0 : d ≠ 0 := Nat.ne_of_gt hdpos
+  rcases Nat.exists_eq_succ_of_ne_zero hd0 with ⟨d', rfl⟩
+  exact ⟨d', n, hn, hgt⟩
 
 /-- `HasDiscrepancyAtLeast` can be stated with `d` and `n` both positive.
 

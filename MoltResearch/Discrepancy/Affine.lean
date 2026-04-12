@@ -1177,6 +1177,33 @@ lemma HasAffineDiscrepancyAtLeast.exists_witness_d_ge_one {f : ℕ → ℤ} {C :
   refine ⟨a, d, n, ?_, hgt⟩
   exact Nat.succ_le_of_lt hd
 
+/-!
+### Step-positivity witness normal forms (`d = Nat.succ d'`)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step-positivity normal form.
+-/
+
+/-- From an affine discrepancy witness obtain a witness whose step is written as `Nat.succ d`. -/
+lemma HasAffineDiscrepancyAtLeast.exists_witness_succ {f : ℕ → ℤ} {C : ℕ}
+    (h : HasAffineDiscrepancyAtLeast f C) :
+    ∃ a d n : ℕ, Int.natAbs (apSumFrom f a (Nat.succ d) n) > C := by
+  rcases HasAffineDiscrepancyAtLeast.exists_witness_d_ge_one (h := h) with ⟨a, d, n, hd, hgt⟩
+  have hdpos : 0 < d := lt_of_lt_of_le Nat.zero_lt_one hd
+  have hd0 : d ≠ 0 := Nat.ne_of_gt hdpos
+  rcases Nat.exists_eq_succ_of_ne_zero hd0 with ⟨d', rfl⟩
+  exact ⟨a, d', n, hgt⟩
+
+/-- Variant of `HasAffineDiscrepancyAtLeast.exists_witness_succ` also recording `n > 0`. -/
+lemma HasAffineDiscrepancyAtLeast.exists_witness_succ_pos {f : ℕ → ℤ} {C : ℕ}
+    (h : HasAffineDiscrepancyAtLeast f C) :
+    ∃ a d n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f a (Nat.succ d) n) > C := by
+  rcases h.exists_witness_pos with ⟨a, d, n, hd, hn, hgt⟩
+  have hd' : d ≥ 1 := Nat.succ_le_of_lt hd
+  have hdpos : 0 < d := lt_of_lt_of_le Nat.zero_lt_one hd'
+  have hd0 : d ≠ 0 := Nat.ne_of_gt hdpos
+  rcases Nat.exists_eq_succ_of_ne_zero hd0 with ⟨d', rfl⟩
+  exact ⟨a, d', n, hn, hgt⟩
+
 /-- Normal form: `HasAffineDiscrepancyAtLeast f C` has a witness with `d ≥ 1` and `n > 0`.
 
 The `n > 0` side condition is automatic from `Int.natAbs (apSumFrom …) > C`, but it is often
