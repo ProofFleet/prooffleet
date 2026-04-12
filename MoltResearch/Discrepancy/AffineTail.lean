@@ -1679,6 +1679,52 @@ lemma sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f : ℕ → ℤ) (a
     (sum_Icc_eq_apSumOffset_of_le_affine_left_mul_left (f := f) (a := a) (d := d) (m := m)
       (n := n) (hmn := hmn))
 
+/-- One-shot normalization pipeline wrapper (paper affine endpoints → nucleus `discOffset`).
+
+This lemma is designed for the common paper-shaped expression
+
+`Int.natAbs (∑ i ∈ Icc (m+1) n, f (a + i*d))`
+
+and rewrites it directly into the nucleus normal form
+
+`discOffset (fun k => f (a + k)) d m (n-m)`
+
+in a single `rw`/`simpa` step.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — One-shot “normalization pipeline” wrapper.
+
+Note: we do **not** register this as a simp lemma in the stable surface, since mixing these
+paper↔nucleus rewrite rules into the global simp set can create simp loops.
+-/
+lemma natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset
+    (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :
+    Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) =
+        discOffset (fun k => f (a + k)) d m (n - m) := by
+  -- Rewrite the paper sum into the nucleus tail sum, then close by definition.
+  have hs :
+      (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+        apSumOffset (fun k => f (a + k)) d m (n - m) := by
+    simpa using
+      (sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n)
+        hmn)
+  -- `simp` knows `Int.natAbs (apSumOffset ...) = discOffset ...`.
+  simpa [hs]
+
+/-- One-shot normalization pipeline wrapper for the common endpoint form `Icc (m+1) (m+n)`.
+
+This is the specialization of `natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset` with the
+trivial inequality `m ≤ m+n` and normalization of `(m+n) - m`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — One-shot “normalization pipeline” wrapper.
+-/
+lemma natAbs_sum_Icc_add_affineEndpoints_eq_discOffset
+    (f : ℕ → ℤ) (a d m n : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d))) =
+        discOffset (fun k => f (a + k)) d m n := by
+  simpa [Nat.add_sub_cancel_left] using
+    (natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset (f := f) (a := a) (d := d)
+      (m := m) (n := m + n) (Nat.le_add_right m n))
+
 /-- Alias for `sum_Icc_eq_apSumOffset_shift_add_of_le` (same statement, naming aligned with
 `sum_Icc_eq_apSumOffset_of_le`). -/
 lemma sum_Icc_eq_apSumOffset_of_le_shift_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :

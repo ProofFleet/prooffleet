@@ -149,6 +149,14 @@ example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = d
 example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) = discOffset f d m n := by
   simpa using (natAbs_sum_Icc_mul_left_eq_discOffset (f := f) (d := d) (m := m) (n := n))
 
+-- NEW (Track B): one-shot normalization wrapper for affine endpoints.
+example (hmn : m ≤ n) :
+    Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) =
+        discOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset (f := f) (a := a) (d := d)
+      (m := m) (n := n) hmn)
+
 -- paper inequality hypothesis → discrepancy inequality goal via one-line `simpa` (opt-in PaperSimp)
 example (C : ℕ) (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
