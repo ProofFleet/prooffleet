@@ -128,7 +128,10 @@ Run:
 ```bash
 python3 scripts/next_task_recommender.py --top 5
 python3 scripts/learning_dashboard.py
+scripts/yolo_launch.sh
 ```
+
+`yolo_launch.sh` writes a timestamped markdown report at `reports/launch_YYYYMMDD.md` and stores a machine-readable prior snapshot at `reports/launch_latest.json` so each run can include prior-vs-current deltas.
 
 ## Success looks like
 
