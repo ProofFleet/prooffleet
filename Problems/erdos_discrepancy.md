@@ -909,9 +909,10 @@ Definition of done:
   (Implemented as `discOffsetUpTo_eq_sup_range_Icc` in `MoltResearch/Discrepancy/Offset.lean`,
   with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean` under `import MoltResearch.Discrepancy`.)
 
-- [ ] Sum-level residue-class decomposition (offset form): after splitting `Finset.Icc (m+1) (m+n)` into residues mod `r`, prove a canonical *equality*
-  expressing `apSumOffset f d m n` as a sum of `apSumOffset`/`apSumFrom` terms at step `d*r` (consistent normal form + argument order),
-  so the existing disc-level residue inequality can be obtained by `rw` + triangle inequality.
+- [x] Sum-level residue-class decomposition (offset form): after splitting `Finset.Icc (m+1) (m+n)` into residues mod `r`, prove a canonical *equality*
+  expressing the paper sum `(∑ i ∈ Icc (m+1) (m+q*(n+1)), f (i*d))` in the residue-class normal form.
+  - Implemented as `sum_Icc_mul_len_succ_eq_sum_range` and `sum_Icc_mul_len_succ_eq_sum_range_mul_left` in `MoltResearch/Discrepancy/Residue.lean`.
+  - Stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (search `sum_Icc_mul_len_succ_eq_sum_range`).
 
 - [ ] `discOffset` congruence under affine reindexing: package a lemma that if `φ : ℕ → ℕ` is a bijection on `Finset.range n` (or an explicit `Nat` reindex like `i ↦ n-1-i` / `i ↦ i+k`), then the corresponding reindexed `apSumOffset` has identical `discOffset`.
   Goal: downstream proofs can reindex without unfolding `discOffset` to raw sums.
