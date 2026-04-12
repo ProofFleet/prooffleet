@@ -316,6 +316,19 @@ example : apSumOffset f d m n =
       (hσ_range := by intro i hi; simpa using hi)
       (hσ_invol := by intro i hi; rfl))
 
+-- Regression (Track B / `discOffset` reindexing API (range-bijection)):
+example : discOffset f d m n =
+    Int.natAbs ((Finset.range n).sum (fun i => f ((m + (fun i => i) i + 1) * d))) := by
+  simpa using
+    (discOffset_reindex_range_invol (f := f) (d := d) (m := m) (n := n) (σ := fun i => i)
+      (hσ_range := by intro i hi; simpa using hi)
+      (hσ_invol := by intro i hi; rfl))
+
+-- Regression (Track B / `discOffset` reindexing API (Fin permutation form)):
+example (σ : Equiv.Perm (Fin n)) : discOffset f d m n =
+    Int.natAbs ((Finset.univ : Finset (Fin n)).sum (fun i => f ((m + (σ i).1 + 1) * d))) := by
+  simpa using (discOffset_reindex_fin_perm (f := f) (d := d) (m := m) (n := n) (σ := σ))
+
 -- Regression (Track B / cut equality, exact difference):
 -- subtracting the prefix offset sum yields the tail offset sum.
 example (hk : k ≤ n) :

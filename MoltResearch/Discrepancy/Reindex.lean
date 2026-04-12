@@ -163,6 +163,39 @@ lemma apSumOffset_reindex_range_invol (f : ℕ → ℤ) (d m n : ℕ) (σ : ℕ 
     · -- `σ (σ j) = j` on `range n`.
       simpa using (hσ_invol j hj)
 
+/-- Discrepancy wrapper: reindex `discOffset` by a bijection on `Finset.range n`.
+
+This is the `natAbs` analogue of `apSumOffset_reindex_range_bij`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` congruence under reindexing.
+-/
+lemma discOffset_reindex_range_bij (f : ℕ → ℤ) (d m n : ℕ) (σ : ℕ → ℕ)
+    (hσ_range : ∀ i ∈ Finset.range n, σ i ∈ Finset.range n)
+    (hσ_inj : ∀ i₁ ∈ Finset.range n, ∀ i₂ ∈ Finset.range n, σ i₁ = σ i₂ → i₁ = i₂)
+    (hσ_surj : ∀ j ∈ Finset.range n, ∃ i ∈ Finset.range n, σ i = j) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.range n).sum (fun i => f ((m + σ i + 1) * d))) := by
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_reindex_range_bij (f := f) (d := d) (m := m) (n := n) (σ := σ)
+      (hσ_range := hσ_range) (hσ_inj := hσ_inj) (hσ_surj := hσ_surj))
+
+/-- Discrepancy wrapper: reindex `discOffset` by an involution on `Finset.range n`.
+
+This is the common ergonomic case mirroring `apSumOffset_reindex_range_invol`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` congruence under reindexing.
+-/
+lemma discOffset_reindex_range_invol (f : ℕ → ℤ) (d m n : ℕ) (σ : ℕ → ℕ)
+    (hσ_range : ∀ i ∈ Finset.range n, σ i ∈ Finset.range n)
+    (hσ_invol : ∀ i ∈ Finset.range n, σ (σ i) = i) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.range n).sum (fun i => f ((m + σ i + 1) * d))) := by
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_reindex_range_invol (f := f) (d := d) (m := m) (n := n) (σ := σ)
+      (hσ_range := hσ_range) (hσ_invol := hσ_invol))
+
 /-- Reindex an `apSumOffset` sum by a permutation of the index type `Fin n`.
 
 This is often the most ergonomic form for “swap residue classes / permute blocks” arguments,
@@ -185,15 +218,29 @@ lemma apSumOffset_reindex_fin_perm (f : ℕ → ℤ) (d m n : ℕ) (σ : Equiv.P
           simpa using
             (Fin.sum_univ_eq_sum_range (n := n) (f := fun i : ℕ => f ((m + i + 1) * d))).symm
     _ = (∑ i : Fin n, f ((m + (σ i : Fin n) + 1) * d)) := by
-          -- `Fintype.sum_equiv` reindexes sums.  We use it in the direction
-          --   (sum over `i ↦ g (σ i)`) = (sum over `i ↦ g i`)
-          -- and then take symmetry.
+          -- `Fintype.sum_equiv` reindexes sums.
+          --
+          -- We use it in the direction:
+          --   (∑ i, g (σ i)) = (∑ i, g i)
+          -- and take symmetry to match the desired binder.
           symm
+          -- Here `f` and `g` are the same function, just written with permuted indices.
           simpa using
             (Fintype.sum_equiv σ
               (fun i : Fin n => f ((m + (σ i : Fin n) + 1) * d))
               (fun i : Fin n => f ((m + (i : ℕ) + 1) * d))
               (fun i => rfl))
+
+/-- Discrepancy wrapper: reindex `discOffset` by a permutation of the index type `Fin n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` congruence under affine/finite reindexing.
+-/
+lemma discOffset_reindex_fin_perm (f : ℕ → ℤ) (d m n : ℕ) (σ : Equiv.Perm (Fin n)) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.univ : Finset (Fin n)).sum (fun i => f ((m + (σ i).1 + 1) * d))) := by
+  unfold discOffset
+  exact congrArg Int.natAbs
+    (apSumOffset_reindex_fin_perm (f := f) (d := d) (m := m) (n := n) (σ := σ))
 
 /-!
 ## Reindex-by-residue infrastructure
