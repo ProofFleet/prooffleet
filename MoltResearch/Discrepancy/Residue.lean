@@ -477,6 +477,57 @@ lemma apSumOffset_mul_len_succ_eq_sum_range_mul_left (f : ℕ → ℤ) (d m q n 
     (apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq)
 
 /-!
+## Paper-notation residue-class splitting (`Finset.Icc` form)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Sum-level residue-class decomposition (offset form): after splitting `Finset.Icc (m+1) (m+n)` into
+residues mod `r`, prove a canonical equality”.
+
+These lemmas are thin wrappers that let callers start from the common “paper” interval notation
+`∑ i∈Icc (m+1) (m+N), …` and jump directly to the residue-class normal form.
+
+They are intentionally phrased for the special-but-common block length `N = q*(n+1)`; this is the
+shape produced by repeated residue-class splitting in discrepancy arguments.
+-/
+
+/-- Residue-class split normal form for the paper-notation interval sum
+`∑ i ∈ Icc (m+1) (m+q*(n+1)), f (i*d)`.
+
+This is the `Finset.Icc`-notation wrapper around `apSumOffset_mul_len_succ_eq_sum_range`.
+-/
+lemma sum_Icc_mul_len_succ_eq_sum_range
+    (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    (Finset.Icc (m + 1) (m + q * (n + 1))).sum (fun i => f (i * d)) =
+      (Finset.range q).sum (fun r =>
+        f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
+  calc
+    (Finset.Icc (m + 1) (m + q * (n + 1))).sum (fun i => f (i * d))
+        = apSumOffset f d m (q * (n + 1)) := by
+            simpa using
+              (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := q * (n + 1)))
+    _ = (Finset.range q).sum (fun r =>
+          f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
+          simpa using
+            (apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq)
+
+/-- `d * i` summand-order variant of `sum_Icc_mul_len_succ_eq_sum_range`. -/
+lemma sum_Icc_mul_len_succ_eq_sum_range_mul_left
+    (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
+    (Finset.Icc (m + 1) (m + q * (n + 1))).sum (fun i => f (d * i)) =
+      (Finset.range q).sum (fun r =>
+        f (d * (m + r + 1)) + apSumFrom f (d * (m + r + 1)) (q * d) n) := by
+  calc
+    (Finset.Icc (m + 1) (m + q * (n + 1))).sum (fun i => f (d * i))
+        = apSumOffset f d m (q * (n + 1)) := by
+            simpa using
+              (sum_Icc_eq_apSumOffset_mul_left (f := f) (d := d) (m := m) (n := q * (n + 1)))
+    _ = (Finset.range q).sum (fun r =>
+          f (d * (m + r + 1)) + apSumFrom f (d * (m + r + 1)) (q * d) n) := by
+          simpa using
+            (apSumOffset_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (m := m)
+              (q := q) (n := n) hq)
+
+/-!
 ## Nested-sum residue-class splitting (reindexing normal form)
 
 The “nested sum” normal forms for residue-class splitting (residue `r` outer, quotient `k` inner)

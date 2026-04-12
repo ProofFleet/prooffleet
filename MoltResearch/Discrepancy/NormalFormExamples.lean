@@ -3757,6 +3757,19 @@ example (hq : q > 0) :
       (Finset.range q).sum (fun r => f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
   simpa using apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq
 
+-- Paper-notation (`Finset.Icc`) residue splitting: callers shouldn’t have to drop to `apSumOffset` first.
+example (hq : q > 0) :
+    (Finset.Icc (m + 1) (m + q * (n + 1))).sum (fun i => f (i * d)) =
+      (Finset.range q).sum (fun r =>
+        f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
+  simpa using sum_Icc_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq
+
+example (hq : q > 0) :
+    (Finset.Icc (m + 1) (m + q * (n + 1))).sum (fun i => f (d * i)) =
+      (Finset.range q).sum (fun r =>
+        f (d * (m + r + 1)) + apSumFrom f (d * (m + r + 1)) (q * d) n) := by
+  simpa using sum_Icc_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (m := m) (q := q) (n := n) hq
+
 -- Affine / affine-tail residue splitting: callers shouldn’t have to normalize into `apSumOffset` first.
 example (hq : q > 0) :
     apSumFrom f a d (q * (n + 1)) =
