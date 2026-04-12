@@ -240,6 +240,19 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_sum_Icc_offs
     (Tao2015.Stage2Output.exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (f := f)
       (Tao2015.stage3Out (f := f) (hf := hf)).out2)
 
+/-- Positive-length witness form of `erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt`.
+
+The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  simpa using
+    (Tao2015.Stage3Output.exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos
+      (f := f) (Tao2015.stage3Out (f := f) (hf := hf)))
+
 /-- Variant of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt` packaging the
 step-size side condition as `1 ≤ d`.
 
