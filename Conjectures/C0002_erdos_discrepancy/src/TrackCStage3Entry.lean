@@ -120,6 +120,21 @@ theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
   funext k
   simpa using stage3_g_eq (f := f) (hf := hf) k
 
+/-- Stage-3 unboundedness, re-expressed using the verified core predicate.
+
+This is a tiny convenience lemma: many consumers outside the `Tao2015` namespace use the core
+predicate `MoltResearch.UnboundedDiscrepancyAlong` rather than the Track-C-local definition.
+
+We keep this lemma in the lightweight Stage-3 entry module (not the hard-gate core) since it is
+purely a repackaging of Stage-2 unboundedness.
+-/
+theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    MoltResearch.UnboundedDiscrepancyAlong (stage3_g (f := f) (hf := hf))
+      (stage3_d (f := f) (hf := hf)) := by
+  -- Route through the proved Stage-2 core lemma.
+  simpa [stage3_g, stage3_d, stage2_g, stage2_d, Stage2Output.g, Stage2Output.d] using
+    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) (stage2Out (f := f) (hf := hf)))
+
 /-!
 ## Witness-form corollaries
 
