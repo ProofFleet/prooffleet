@@ -54,6 +54,18 @@ If your PR adds/changes a lemma intended for the **stable import surface** (anyt
 
 This is our regression test for rewrite pipelines: it keeps later refactors from silently breaking the intended normal forms.
 
+### Overlay maintenance rule (canonical module changes)
+
+If your PR introduces a **significant change** to canonical material in `MoltResearch/` (new concepts, major API shifts, renamed core lemmas, or meaningfully changed proof ergonomics), update:
+- `Learning/EDUCATIONAL_OVERLAYS.md`
+
+At minimum, add/edit a short note covering intuition, proof pattern, and common pitfalls for the affected canonical module.
+
+Designated canonical modules currently checked in CI:
+- `MoltResearch/Basics.lean`
+- `MoltResearch/Logic.lean`
+- `MoltResearch/Discrepancy/Basic.lean`
+
 ## House style
 - Write short comments when the proof is non-obvious.
 - Avoid huge `simp` explosions; extract helper lemmas.

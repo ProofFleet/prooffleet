@@ -31,6 +31,19 @@ jobs:
             NUCLEUS=0
           fi
 
+          OVERLAY_PATH="Learning/EDUCATIONAL_OVERLAYS.md"
+          CANONICAL_REGEX='^(MoltResearch/Basics\.lean|MoltResearch/Logic\.lean|MoltResearch/Discrepancy/Basic\.lean)$'
+          if printf "%s\n" "$CHANGED" | grep -qE "$CANONICAL_REGEX"; then
+            CANONICAL_CHANGED=1
+          else
+            CANONICAL_CHANGED=0
+          fi
+          if printf "%s\n" "$CHANGED" | grep -qE "^${OVERLAY_PATH}$"; then
+            OVERLAY_CHANGED=1
+          else
+            OVERLAY_CHANGED=0
+          fi
+
           BODY=$(jq -r '.pull_request.body // ""' "$GITHUB_EVENT_PATH")
 
           CARD=$(printf "%s\n" "$BODY" | sed -n 's/^Card:[[:space:]]*//Ip' | head -n 1 | tr -d '\r')
@@ -54,6 +67,13 @@ jobs:
           # Hard gate for nucleus work.
           if [[ "$NUCLEUS" == "1" && "$MISSING" == "1" ]]; then
             echo "::error::This PR touches MoltResearch/ (verified nucleus). Please add Card/Track/Checklist item lines to the PR body (N/A allowed)."
+            exit 1
+          fi
+
+          # Canonical-module overlay hygiene.
+          if [[ "$CANONICAL_CHANGED" == "1" && "$OVERLAY_CHANGED" == "0" ]]; then
+            echo "::error::This PR changes designated canonical MoltResearch modules but does not update $OVERLAY_PATH."
+            echo "::error::Please add a concise overlay update (intuition/proof pattern/common pitfalls), or include a no-op clarification entry."
             exit 1
           fi
 
