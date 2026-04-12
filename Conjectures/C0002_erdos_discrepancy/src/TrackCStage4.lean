@@ -66,6 +66,15 @@ noncomputable def stage4 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage4Outpu
 noncomputable abbrev stage4Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage4Output f :=
   stage4 (f := f) (hf := hf)
 
+/-- The Stage-3 output stored inside `stage4Out` is definitionally the Stage-3 output produced by
+Stage 3.
+
+This lemma is tiny but useful for rewriting when shuttling statements between Stage 3 and Stage 4.
+-/
+theorem stage4Out_out3 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage4Out (f := f) (hf := hf)).out3 = Tao2015.stage3Out (f := f) (hf := hf) := by
+  rfl
+
 /-- Consumer-facing shortcut: Stage 4 closes the core goal `¬ BoundedDiscrepancy f`. -/
 theorem stage4_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
   exact (stage4Out (f := f) (hf := hf)).notBounded
