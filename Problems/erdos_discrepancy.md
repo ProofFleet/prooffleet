@@ -914,8 +914,10 @@ Definition of done:
   - Implemented as `sum_Icc_mul_len_succ_eq_sum_range` and `sum_Icc_mul_len_succ_eq_sum_range_mul_left` in `MoltResearch/Discrepancy/Residue.lean`.
   - Stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean` (search `sum_Icc_mul_len_succ_eq_sum_range`).
 
-- [ ] `discOffset` congruence under affine reindexing: package a lemma that if `φ : ℕ → ℕ` is a bijection on `Finset.range n` (or an explicit `Nat` reindex like `i ↦ n-1-i` / `i ↦ i+k`), then the corresponding reindexed `apSumOffset` has identical `discOffset`.
+- [x] `discOffset` congruence under affine reindexing: package a lemma that if `φ : ℕ → ℕ` is a bijection on `Finset.range n` (or an explicit `Nat` reindex like `i ↦ n-1-i` / `i ↦ i+k`), then the corresponding reindexed `apSumOffset` has identical `discOffset`.
   Goal: downstream proofs can reindex without unfolding `discOffset` to raw sums.
+  (Implemented in `MoltResearch/Discrepancy/Reindex.lean` as `apSumOffset_reindex_range_invol` / `discOffset_reindex_range_invol` and `discOffset_reindex_fin_perm`,
+  with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Cut at k” API coherence for paper notation: provide paper-style cut lemmas at the `Icc` level (both sum- and disc-level)
   whose statements mention only `Finset.Icc (m+1) (m+n)` and `Finset.Icc` endpoint algebra, but whose proofs route through the existing nucleus cut lemmas.
