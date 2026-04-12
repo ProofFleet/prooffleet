@@ -3,7 +3,8 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore
 /-!
 A conjecture-style stub for the Erdős discrepancy theorem (Tao 2015).
 
-This file is **Conjectures-only**: it may rely on axiom stubs (and, if needed, `sorry`). Verified, reusable definitions belong in `MoltResearch/`.
+This file is **Conjectures-only**: it may rely on axiom stubs (notably the Stage-2 stub). Verified,
+reusable definitions belong in `MoltResearch/`.
 -/
 
 namespace MoltResearch
