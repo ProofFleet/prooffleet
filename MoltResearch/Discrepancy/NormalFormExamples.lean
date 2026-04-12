@@ -209,6 +209,12 @@ example (q : ℕ) (hq : q > 0) (hd : q ∣ d) :
   simpa using
     (apSumOffset_reindex_div_of_dvd (f := f) (q := q) (d := d) (m := m) (n := n) hq hd)
 
+-- Regression (Track B / range permutation): reindexing by a permutation of `Fin n`.
+example (σ : Equiv.Perm (Fin n)) :
+    discOffset f d m n =
+      Int.natAbs ((Finset.univ : Finset (Fin n)).sum (fun i => f ((m + (σ i).1 + 1) * d))) := by
+  simpa using (discOffset_reindex_fin_perm (f := f) (d := d) (m := m) (n := n) (σ := σ))
+
 -- Regression: `simp` should normalize away a spurious zero-offset tail.
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
