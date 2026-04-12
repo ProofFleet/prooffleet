@@ -25,6 +25,18 @@ section NormalFormExamples
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
+### NEW (Track B): step-positivity witness normal forms
+
+These are compile-only regression tests for the “reduce early to `d ≥ 1`” API.
+-/
+
+example : (HasDiscrepancyAtLeast f C ↔ Nonempty (DiscrepancyWitnessGeOne f C)) := by
+  simpa using (HasDiscrepancyAtLeast.iff_nonempty_witnessGeOne (f := f) (C := C))
+
+example : (HasAffineDiscrepancyAtLeast f C ↔ Nonempty (AffineDiscrepancyWitnessGeOne f C)) := by
+  simpa using (HasAffineDiscrepancyAtLeast.iff_nonempty_witnessGeOne (f := f) (C := C))
+
+/-!
 ### NEW (Track B): constant-sequence sanity checks (`apSum`/`discOffset`)
 
 These are explicit computed examples that should remain one-line `simp`/`simpa` proofs under the

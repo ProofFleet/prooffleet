@@ -15,6 +15,19 @@ structure DiscrepancyWitness (f : ℕ → ℤ) (C : ℕ) where
 structure DiscrepancyWitnessPos (f : ℕ → ℤ) (C : ℕ) extends DiscrepancyWitness f C where
   hn : n > 0
 
+/-- Homogeneous discrepancy witness with the step-size side condition written as `d ≥ 1`.
+
+This is a small “step-positivity normal form”: it avoids the annoying `d > 0` vs `d ≥ 1`
+conversion dance in downstream statements.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step-positivity normal form.
+-/
+structure DiscrepancyWitnessGeOne (f : ℕ → ℤ) (C : ℕ) where
+  d : ℕ
+  n : ℕ
+  hd : d ≥ 1
+  hgt : Int.natAbs (apSum f d n) > C
+
 /-- Convert a `DiscrepancyWitness` to the underlying `HasDiscrepancyAtLeast`. -/
 def DiscrepancyWitness.toHas {f C} (w : DiscrepancyWitness f C) :
     HasDiscrepancyAtLeast f C :=
@@ -24,6 +37,11 @@ def DiscrepancyWitness.toHas {f C} (w : DiscrepancyWitness f C) :
 def DiscrepancyWitnessPos.toHas {f C} (w : DiscrepancyWitnessPos f C) :
     HasDiscrepancyAtLeast f C :=
   ⟨w.d, w.n, w.hd, w.hgt⟩
+
+/-- Convert a `DiscrepancyWitnessGeOne` to the underlying `HasDiscrepancyAtLeast`. -/
+def DiscrepancyWitnessGeOne.toHas {f C} (w : DiscrepancyWitnessGeOne f C) :
+    HasDiscrepancyAtLeast f C :=
+  ⟨w.d, w.n, (Nat.succ_le_iff).1 w.hd, w.hgt⟩
 
 /-- Turn a `HasDiscrepancyAtLeast` into a `DiscrepancyWitness`. -/
 noncomputable def HasDiscrepancyAtLeast.toWitness {f C} (h : HasDiscrepancyAtLeast f C) :
@@ -38,6 +56,23 @@ noncomputable def HasDiscrepancyAtLeast.toWitness {f C} (h : HasDiscrepancyAtLea
     , n := n
     , hd := h₂.1
     , hgt := h₂.2 }
+
+/-- Turn a `HasDiscrepancyAtLeast` into a `DiscrepancyWitnessGeOne`.
+
+This is the `d ≥ 1` witness normal form.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step-positivity normal form.
+-/
+noncomputable def HasDiscrepancyAtLeast.toWitnessGeOne {f C} (h : HasDiscrepancyAtLeast f C) :
+    DiscrepancyWitnessGeOne f C := by
+  classical
+  let hex : ∃ d n, d ≥ 1 ∧ Int.natAbs (apSum f d n) > C :=
+    h.exists_witness_d_ge_one (C := C)
+  let d := Classical.choose hex
+  have hd' := Classical.choose_spec hex
+  let n := Classical.choose hd'
+  have hn' := Classical.choose_spec hd'
+  exact { d := d, n := n, hd := hn'.1, hgt := hn'.2 }
 
 /-- Turn a `HasDiscrepancyAtLeast` into a `DiscrepancyWitnessPos`. -/
 noncomputable def HasDiscrepancyAtLeast.toWitnessPos {f C} (h : HasDiscrepancyAtLeast f C) :
@@ -73,6 +108,18 @@ theorem HasDiscrepancyAtLeast.iff_nonempty_witnessPos {f C} :
   · rintro ⟨w⟩
     exact w.toHas
 
+/-- Equivalence between `HasDiscrepancyAtLeast` and a nonempty `DiscrepancyWitnessGeOne`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step-positivity normal form.
+-/
+theorem HasDiscrepancyAtLeast.iff_nonempty_witnessGeOne {f C} :
+    HasDiscrepancyAtLeast f C ↔ Nonempty (DiscrepancyWitnessGeOne f C) := by
+  constructor
+  · intro h
+    exact ⟨h.toWitnessGeOne⟩
+  · rintro ⟨w⟩
+    exact w.toHas
+
 /-- Normal form: “unbounded discrepancy” as a `Nonempty` witness family. -/
 theorem forall_hasDiscrepancyAtLeast_iff_forall_nonempty_witnessPos (f : ℕ → ℤ) :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ (∀ C : ℕ, Nonempty (DiscrepancyWitnessPos f C)) := by
@@ -95,6 +142,17 @@ structure AffineDiscrepancyWitness (f : ℕ → ℤ) (C : ℕ) where
 structure AffineDiscrepancyWitnessPos (f : ℕ → ℤ) (C : ℕ) extends AffineDiscrepancyWitness f C where
   hn : n > 0
 
+/-- Affine discrepancy witness with the step-size side condition written as `d ≥ 1`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step-positivity normal form.
+-/
+structure AffineDiscrepancyWitnessGeOne (f : ℕ → ℤ) (C : ℕ) where
+  a : ℕ
+  d : ℕ
+  n : ℕ
+  hd : d ≥ 1
+  hgt : Int.natAbs (apSumFrom f a d n) > C
+
 /-- Convert an `AffineDiscrepancyWitness` to the underlying `HasAffineDiscrepancyAtLeast`. -/
 def AffineDiscrepancyWitness.toHas {f C} (w : AffineDiscrepancyWitness f C) :
     HasAffineDiscrepancyAtLeast f C :=
@@ -104,6 +162,11 @@ def AffineDiscrepancyWitness.toHas {f C} (w : AffineDiscrepancyWitness f C) :
 def AffineDiscrepancyWitnessPos.toHas {f C} (w : AffineDiscrepancyWitnessPos f C) :
     HasAffineDiscrepancyAtLeast f C :=
   ⟨w.a, w.d, w.n, w.hd, w.hgt⟩
+
+/-- Convert an `AffineDiscrepancyWitnessGeOne` to the underlying `HasAffineDiscrepancyAtLeast`. -/
+def AffineDiscrepancyWitnessGeOne.toHas {f C} (w : AffineDiscrepancyWitnessGeOne f C) :
+    HasAffineDiscrepancyAtLeast f C :=
+  ⟨w.a, w.d, w.n, (Nat.succ_le_iff).1 w.hd, w.hgt⟩
 
 /-- Turn a `HasAffineDiscrepancyAtLeast` into an `AffineDiscrepancyWitness`. -/
 noncomputable def HasAffineDiscrepancyAtLeast.toWitness {f C} (h : HasAffineDiscrepancyAtLeast f C) :
@@ -141,6 +204,23 @@ noncomputable def HasAffineDiscrepancyAtLeast.toWitnessPos {f C} (h : HasAffineD
     , hn := h₃.2.1
     , hgt := h₃.2.2 }
 
+/-- Turn a `HasAffineDiscrepancyAtLeast` into an `AffineDiscrepancyWitnessGeOne`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step-positivity normal form.
+-/
+noncomputable def HasAffineDiscrepancyAtLeast.toWitnessGeOne {f C} (h : HasAffineDiscrepancyAtLeast f C) :
+    AffineDiscrepancyWitnessGeOne f C := by
+  classical
+  let hex : ∃ a d n, d ≥ 1 ∧ Int.natAbs (apSumFrom f a d n) > C :=
+    h.exists_witness_d_ge_one (C := C)
+  let a := Classical.choose hex
+  have ha' := Classical.choose_spec hex
+  let d := Classical.choose ha'
+  have hd' := Classical.choose_spec ha'
+  let n := Classical.choose hd'
+  have hn' := Classical.choose_spec hd'
+  exact { a := a, d := d, n := n, hd := hn'.1, hgt := hn'.2 }
+
 /-- Equivalence between `HasAffineDiscrepancyAtLeast` and a nonempty `AffineDiscrepancyWitness`. -/
 theorem HasAffineDiscrepancyAtLeast.iff_nonempty_witness {f C} :
     HasAffineDiscrepancyAtLeast f C ↔ Nonempty (AffineDiscrepancyWitness f C) := by
@@ -156,6 +236,18 @@ theorem HasAffineDiscrepancyAtLeast.iff_nonempty_witnessPos {f C} :
   constructor
   · intro h
     exact ⟨h.toWitnessPos⟩
+  · rintro ⟨w⟩
+    exact w.toHas
+
+/-- Equivalence between `HasAffineDiscrepancyAtLeast` and a nonempty `AffineDiscrepancyWitnessGeOne`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step-positivity normal form.
+-/
+theorem HasAffineDiscrepancyAtLeast.iff_nonempty_witnessGeOne {f C} :
+    HasAffineDiscrepancyAtLeast f C ↔ Nonempty (AffineDiscrepancyWitnessGeOne f C) := by
+  constructor
+  · intro h
+    exact ⟨h.toWitnessGeOne⟩
   · rintro ⟨w⟩
     exact w.toHas
 
