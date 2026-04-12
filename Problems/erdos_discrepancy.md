@@ -919,8 +919,10 @@ Definition of done:
   (Implemented in `MoltResearch/Discrepancy/Reindex.lean` as `apSumOffset_reindex_range_invol` / `discOffset_reindex_range_invol` and `discOffset_reindex_fin_perm`,
   with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Cut at k” API coherence for paper notation: provide paper-style cut lemmas at the `Icc` level (both sum- and disc-level)
+- [x] “Cut at k” API coherence for paper notation: provide paper-style cut lemmas at the `Icc` level (both sum- and disc-level)
   whose statements mention only `Finset.Icc (m+1) (m+n)` and `Finset.Icc` endpoint algebra, but whose proofs route through the existing nucleus cut lemmas.
+  (Implemented as `sum_Icc_eq_apSumOffset_cut` and `discOffset_eq_natAbs_sum_Icc_cut` in `MoltResearch/Discrepancy/Offset.lean`,
+  with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Step-positivity normal form: add a consistent lemma suite that reduces all theorems to `d ≥ 1` (or `Nat.succ d`) hypotheses early,
   with deprecated `d=0` corner-case variants behind `MoltResearch.Discrepancy.Deprecated`, to keep the stable surface clean.
