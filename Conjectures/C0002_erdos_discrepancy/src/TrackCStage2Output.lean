@@ -209,18 +209,11 @@ theorem not_exists_forall_natAbs_sum_Icc_offset_le (out : Stage2Output f) :
     ¬ ∃ B : ℕ,
         ∀ n : ℕ,
           Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) ≤ B := by
-  intro h
-  have hOffset :
-      ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) ≤ B := by
-    rcases h with ⟨B, hB⟩
-    refine ⟨B, ?_⟩
-    intro n
-    have hIcc :
-        Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) ≤ B :=
-      hB n
-    simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n)] using
-      hIcc
-  exact (out.not_exists_forall_natAbs_apSumOffset_le (f := f)) hOffset
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  exact
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_sum_Icc_offset_le (f := f)
+        (d := out.d) (m := out.m)).1
+      hunb
 
 /-- Existential packaging: Stage 2 already yields concrete parameters `d, m` such that the bundled
 offset discrepancy family `discOffset f d m` is unbounded.

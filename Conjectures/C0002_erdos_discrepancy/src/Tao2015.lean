@@ -449,6 +449,40 @@ theorem iff_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m : ℕ
       exact hle'
     exact hnb ⟨B, hB⟩
 
+/-- Paper-notation normal form: unbounded offset discrepancy means there is no uniform bound on the
+shifted progression sums
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`.
+
+Negation-normal form:
+`¬ ∃ B, ∀ n, Int.natAbs ((Icc (m+1) (m+n)).sum (fun i => f (i*d))) ≤ B`.
+
+This is `iff_not_exists_forall_natAbs_apSumOffset_le` rewritten using
+`natAbs_apSumOffset_eq_natAbs_sum_Icc`.
+-/
+theorem iff_not_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ B) := by
+  have hiff :
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) ↔
+        (∃ B : ℕ,
+          ∀ n : ℕ,
+            Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ B) := by
+    constructor
+    · rintro ⟨B, hB⟩
+      refine ⟨B, ?_⟩
+      intro n
+      simpa [natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hB n
+    · rintro ⟨B, hB⟩
+      refine ⟨B, ?_⟩
+      intro n
+      simpa [natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hB n
+
+  exact
+    (iff_not_exists_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m)).trans
+      (not_congr hiff)
+
 end UnboundedDiscOffset
 
 /-- Normal form: unbounded offset discrepancy means there is no uniform `discOffset` bound.
