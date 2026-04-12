@@ -899,8 +899,9 @@ Definition of done:
   (Implemented as `exists_discOffset_eq_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with a stable regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
   so later stages can switch from `sup`-style bounds to a concrete extremal interval without reopening `Finset` machinery.
 
-- [ ] `discOffsetUpTo` monotone in length: prove a clean wrapper `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N+K)` (and the `N ≤ N'` variant),
-  with a stable-surface regression example using only `import MoltResearch.Discrepancy`.
+- [x] `discOffsetUpTo` monotone in length: prove a clean wrapper `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N+K)` (and the `N ≤ N'` variant),
+  (Implemented as `discOffsetUpTo_le_add` and `discOffsetUpTo_mono` in `MoltResearch/Discrepancy/Basic.lean`,
+  with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean` under `import MoltResearch.Discrepancy`.)
 
 - [ ] Paper-endpoint normalization for `discOffsetUpTo`: add a lemma rewriting `discOffsetUpTo f d m N` into a `sup` over paper intervals
   `Int.natAbs (∑ i in Finset.Icc (m+1) (m+n), f (i*d))` (with `n ≤ N`) in the repo’s preferred endpoint conventions,
