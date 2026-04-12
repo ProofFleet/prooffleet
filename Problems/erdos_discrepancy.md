@@ -903,9 +903,11 @@ Definition of done:
   (Implemented as `discOffsetUpTo_le_add` and `discOffsetUpTo_mono` in `MoltResearch/Discrepancy/Basic.lean`,
   with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean` under `import MoltResearch.Discrepancy`.)
 
-- [ ] Paper-endpoint normalization for `discOffsetUpTo`: add a lemma rewriting `discOffsetUpTo f d m N` into a `sup` over paper intervals
+- [x] Paper-endpoint normalization for `discOffsetUpTo`: add a lemma rewriting `discOffsetUpTo f d m N` into a `sup` over paper intervals
   `Int.natAbs (∑ i in Finset.Icc (m+1) (m+n), f (i*d))` (with `n ≤ N`) in the repo’s preferred endpoint conventions,
   so the “max up to N” object is available directly in paper notation.
+  (Implemented as `discOffsetUpTo_eq_sup_range_Icc` in `MoltResearch/Discrepancy/Offset.lean`,
+  with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean` under `import MoltResearch.Discrepancy`.)
 
 - [ ] Sum-level residue-class decomposition (offset form): after splitting `Finset.Icc (m+1) (m+n)` into residues mod `r`, prove a canonical *equality*
   expressing `apSumOffset f d m n` as a sum of `apSumOffset`/`apSumFrom` terms at step `d*r` (consistent normal form + argument order),
