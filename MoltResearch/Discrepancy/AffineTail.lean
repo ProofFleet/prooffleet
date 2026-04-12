@@ -1725,6 +1725,45 @@ lemma natAbs_sum_Icc_add_affineEndpoints_eq_discOffset
     (natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset (f := f) (a := a) (d := d)
       (m := m) (n := m + n) (Nat.le_add_right m n))
 
+/-- One-shot normalization pipeline wrapper (paper affine endpoint `natAbs` bound → `discOffset` bound).
+
+This is the inequality-level convenience lemma corresponding to
+`natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset`.
+
+It lets you go from the paper-shaped hypothesis
+
+`Int.natAbs (∑ i ∈ Icc (m+1) n, f (a + i*d)) ≤ C`
+
+directly to the nucleus normal form
+
+`discOffset (fun k => f (a + k)) d m (n-m) ≤ C`
+
+in a single `exact`/`simpa` step.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — One-shot “normalization pipeline” wrapper.
+-/
+lemma natAbs_sum_Icc_of_le_affineEndpoints_le_discOffset
+    (f : ℕ → ℤ) (a d C : ℕ) {m n : ℕ} (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  -- Rewrite the paper expression to `discOffset` using the equality-level wrapper, then close.
+  simpa [natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset (f := f) (a := a) (d := d)
+    (m := m) (n := n) hmn] using h
+
+/-- Specialization of `natAbs_sum_Icc_of_le_affineEndpoints_le_discOffset` to the common endpoint form
+`Icc (m+1) (m+n)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — One-shot “normalization pipeline” wrapper.
+-/
+lemma natAbs_sum_Icc_add_affineEndpoints_le_discOffset
+    (f : ℕ → ℤ) (a d m n C : ℕ)
+    (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m n ≤ C := by
+  -- Use the bound-level wrapper after normalizing the endpoints.
+  simpa [Nat.add_sub_cancel_left] using
+    (natAbs_sum_Icc_of_le_affineEndpoints_le_discOffset (f := f) (a := a) (d := d) (C := C)
+      (m := m) (n := m + n) (Nat.le_add_right m n) h)
+
 /-- Alias for `sum_Icc_eq_apSumOffset_shift_add_of_le` (same statement, naming aligned with
 `sum_Icc_eq_apSumOffset_of_le`). -/
 lemma sum_Icc_eq_apSumOffset_of_le_shift_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ} (hmn : m ≤ n) :

@@ -77,6 +77,13 @@ example (hmn : m ≤ n)
   simpa [
     sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
 
+-- 5a) Same goal as (5), but using the one-shot paper→nucleus wrapper lemma.
+example (hmn : m ≤ n)
+    (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
+    discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
+  exact natAbs_sum_Icc_of_le_affineEndpoints_le_discOffset (f := f) (a := a) (d := d) (C := C)
+    (m := m) (n := n) hmn h
+
 -- 5b) Same as (5), but with the summand written as `a + d*i` (mul-left convention).
 example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + d * i))) ≤ C) :
