@@ -22,4 +22,5 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **Intuition:** foundational discrepancy definitions and small bounds let later modules reuse a common vocabulary.
 - **Proof sketch pattern:** normalize definitions first, then prove small local inequalities and compose.
 - **Common pitfalls:** jumping into advanced lemmas before reducing to canonical definitions.
+- **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
 - **Related tasks:** `T1_01`, `T1_07`, `T1_12`.
