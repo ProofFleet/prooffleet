@@ -70,6 +70,29 @@ theorem boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSum_le (g : ℕ → �
 def UnboundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discrepancy g d n
 
+/-- Negation-normal-form equivalence: fixed-step unboundedness is the negation of fixed-step boundedness.
+
+This lemma is intentionally tiny but useful when stage boundaries trade between witness forms and
+boundedness hypotheses.
+-/
+theorem unboundedDiscrepancyAlong_iff_not_boundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong g d ↔ ¬ BoundedDiscrepancyAlong g d := by
+  classical
+  constructor
+  · intro hunb hbd
+    rcases hbd with ⟨B, hB⟩
+    rcases hunb B with ⟨n, hn⟩
+    exact (not_lt_of_ge (hB n)) hn
+  · intro hnot B
+    by_contra hcontra
+    have hle : ∀ n : ℕ, discrepancy g d n ≤ B := by
+      intro n
+      have hnotlt : ¬ B < discrepancy g d n := (not_exists.mp hcontra) n
+      have hnotgt : ¬ discrepancy g d n > B := by
+        simpa [gt_iff_lt] using hnotlt
+      exact le_of_not_gt hnotgt
+    exact hnot ⟨B, hle⟩
+
 /-- Inequality-direction variant of `UnboundedDiscrepancyAlong`, written as `discrepancy ... > B`.
 
 Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
