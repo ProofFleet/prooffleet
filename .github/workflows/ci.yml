@@ -98,6 +98,9 @@ jobs:
             fi
           fi
 
+      - name: Check task metadata coverage
+        run: python3 scripts/check_task_metadata_coverage.py
+
       - uses: leanprover/lean-action@v1
         with:
           build: true
