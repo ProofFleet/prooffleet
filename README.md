@@ -120,8 +120,16 @@ The repo now includes a lightweight learning graph + recommender loop:
 - `Learning/task_metadata.json` — task metadata (currently generated from Tasks/ + hints; safe defaults)
 - `scripts/next_task_recommender.py` — picks next unlocked tasks by easiest/impact/blended strategy
 - `scripts/learning_dashboard.py` — prints tier progress and concept coverage
+- `scripts/task_solved_state.py` — shared solved-state helper used by dashboard/recommender
 - `Learning/EDUCATIONAL_OVERLAYS.md` — concise intuition/proof-pattern notes for canonical modules
 - `scripts/generate_task_metadata.py` — regenerates baseline metadata from the repo
+
+
+Solved-state contract used by these tools:
+
+- A task is treated as solved if a matching Lean file exists in one configured solution source.
+- Current sources are `Solutions/Tier0/T0_*.lean` and `Solutions/Tier1/T1_*.lean`.
+- The canonical solved task id is the file stem (for example, `T0_07` from `Solutions/Tier0/T0_07.lean`).
 
 Run:
 

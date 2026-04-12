@@ -13,22 +13,16 @@ import argparse
 import json
 from pathlib import Path
 
+from task_solved_state import solved_task_ids
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 METADATA_PATH = REPO_ROOT / "Learning" / "task_metadata.json"
-SOLUTIONS_TIER0 = REPO_ROOT / "Solutions" / "Tier0"
 
 
 def load_tasks() -> list[dict]:
     with METADATA_PATH.open() as f:
         return json.load(f)["tasks"]
 
-
-def solved_task_ids() -> set[str]:
-    solved = set()
-    if SOLUTIONS_TIER0.exists():
-        for p in SOLUTIONS_TIER0.glob("T0_*.lean"):
-            solved.add(p.stem)
-    return solved
 
 
 def unlocked(task: dict, solved: set[str]) -> bool:
