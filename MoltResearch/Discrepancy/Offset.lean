@@ -330,13 +330,11 @@ lemma discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
   -- Rewrite `apSumOffset` into paper notation.
   simpa [apSumOffset_eq_sum_Icc]
 
-/-- Inverse orientation of `discOffset_eq_natAbs_sum_Icc`.
+/-- `simp` lemma: normalize a paper `Icc` discrepancy into the nucleus wrapper `discOffset`.
 
-This is useful when starting from a surface statement in paper notation and normalizing into the
-nucleus API.
+This is oriented in the **normal-form direction** (paper notation → nucleus).
 
-Checklist item: Problems/erdos_discrepancy.md (Track B) — Stable-surface export audit for
-paper-notation lemmas.
+Checklist item: Problems/erdos_discrepancy.md (Track B) — One-shot “normalization pipeline” wrapper.
 -/
 lemma natAbs_sum_Icc_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
     Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
