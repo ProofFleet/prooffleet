@@ -71,7 +71,7 @@ Stage 3.
 
 This lemma is tiny but useful for rewriting when shuttling statements between Stage 3 and Stage 4.
 -/
-theorem stage4Out_out3 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+@[simp] theorem stage4Out_out3 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage4Out (f := f) (hf := hf)).out3 = Tao2015.stage3Out (f := f) (hf := hf) := by
   rfl
 

@@ -41,7 +41,7 @@ This lemma is tiny but useful for rewriting when shuttling statements between St
 We keep it in the hard-gate core so consumers don't need to import the larger Stage-3 convenience
 layer `TrackCStage3Entry` just to access this definitional rewrite.
 -/
-theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+@[simp] theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
   rfl
 
