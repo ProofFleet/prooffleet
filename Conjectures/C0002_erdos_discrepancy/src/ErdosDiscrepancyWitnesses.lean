@@ -103,6 +103,16 @@ theorem erdos_discrepancy_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) 
     (Tao2015.Stage3Output.forall_exists_discrepancy_gt (f := f)
       (Tao2015.stage3Out (f := f) (hf := hf)))
 
+/-- Strengthened witness form of `erdos_discrepancy_discrepancy` with a positive-length witness.
+
+This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
+-/
+theorem erdos_discrepancy_discrepancy_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  simpa using
+    (Tao2015.Stage3Output.forall_exists_discrepancy_gt_witness_pos (f := f)
+      (Tao2015.stage3Out (f := f) (hf := hf)))
+
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` is unbounded.
 
