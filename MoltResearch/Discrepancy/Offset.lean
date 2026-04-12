@@ -343,6 +343,17 @@ lemma natAbs_sum_Icc_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
   simpa using
     (discOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
 
+/-- One-shot goal rewrite: a paper-style bound on `Int.natAbs (∑ i ∈ Icc …, f (i*d))`
+can be rewritten into the nucleus form `discOffset f d m n ≤ C` in a single `simp`/`simpa` step.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — One-shot “normalization pipeline” wrapper.
+-/
+lemma natAbs_sum_Icc_le_iff_discOffset_le (f : ℕ → ℤ) (d m n C : ℕ) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C ↔
+      discOffset f d m n ≤ C := by
+  -- Just rewrite the `Int.natAbs` expression to `discOffset`.
+  simpa [natAbs_sum_Icc_eq_discOffset (f := f) (d := d) (m := m) (n := n)]
+
 
 /-!
 ## `discOffsetUpTo` paper↔nucleus bridge

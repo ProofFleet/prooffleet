@@ -145,6 +145,13 @@ example : (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) = apSumFrom 
 example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
   simpa using (natAbs_sum_Icc_eq_discOffset (f := f) (d := d) (m := m) (n := n))
 
+-- NEW (Track B): one-shot goal rewrite for paper-style discrepancy bounds.
+example :
+    (Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C) ↔
+      (discOffset f d m n ≤ C) := by
+  simpa using
+    (natAbs_sum_Icc_le_iff_discOffset_le (f := f) (d := d) (m := m) (n := n) (C := C))
+
 -- mul-left paper discrepancy object → nucleus `discOffset` (named bridge lemma)
 example : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) = discOffset f d m n := by
   simpa using (natAbs_sum_Icc_mul_left_eq_discOffset (f := f) (d := d) (m := m) (n := n))
