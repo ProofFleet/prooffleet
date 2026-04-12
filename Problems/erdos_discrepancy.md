@@ -938,7 +938,7 @@ Definition of done:
   (Implemented via `HasDiscrepancyAtLeast.exists_witness_succ(_pos)` / `HasAffineDiscrepancyAtLeast.exists_witness_succ(_pos)` on the stable surface,
   and by moving `d = 0` simp normal forms to `MoltResearch/Discrepancy/Deprecated.lean`.)
 
-- [ ] One-shot “normalization pipeline” tactic lemma: a small wrapper lemma (not a tactic) that takes a paper-style goal about `∑ i in Icc …` and rewrites it into the nucleus normal form (`apSumFrom`/`apSumOffset`/`discOffset`) in one `simp`/`rw` step,
+- [x] One-shot “normalization pipeline” wrapper lemma: a small wrapper lemma (not a tactic) that takes a paper-style goal about `∑ i in Icc …` and rewrites it into the nucleus normal form (`apSumFrom`/`apSumOffset`/`discOffset`) in one `simp`/`rw` step,
   and lock it in with a stable-surface regression example.
 
 ### Track C - Conjecture stub + equivalences (backlog)

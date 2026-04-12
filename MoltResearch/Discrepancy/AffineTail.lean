@@ -1725,6 +1725,30 @@ lemma natAbs_sum_Icc_add_affineEndpoints_eq_discOffset
     (natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset (f := f) (a := a) (d := d)
       (m := m) (n := m + n) (Nat.le_add_right m n))
 
+/-- One-shot normalization pipeline wrapper (paper affine endpoints `Icc (m+1) (m+n)` → nucleus `apSumOffset`).
+
+This is the sum-level companion to `natAbs_sum_Icc_add_affineEndpoints_eq_discOffset`.
+
+It lets you rewrite the common paper-shaped interval sum
+
+`∑ i ∈ Icc (m+1) (m+n), f (a + i*d)`
+
+directly into the nucleus tail normal form
+
+`apSumOffset (fun k => f (a + k)) d m n`
+
+in a single `rw`/`simpa` step (no side conditions).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — One-shot “normalization pipeline” wrapper.
+-/
+lemma sum_Icc_add_affineEndpoints_eq_apSumOffset
+    (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+        apSumOffset (fun k => f (a + k)) d m n := by
+  simpa [Nat.add_sub_cancel_left] using
+    (sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d)
+      (m := m) (n := m + n) (Nat.le_add_right m n))
+
 /-- One-shot normalization pipeline wrapper (paper affine endpoint `natAbs` bound → `discOffset` bound).
 
 This is the inequality-level convenience lemma corresponding to

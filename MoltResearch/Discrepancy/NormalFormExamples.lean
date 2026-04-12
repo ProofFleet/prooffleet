@@ -1618,6 +1618,13 @@ example (hmn : m ≤ n) :
   simpa using
     (sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn)
 
+-- One-shot normalization wrapper for the common endpoint form `Icc (m+1) (m+n)` (no side conditions).
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using
+    (sum_Icc_add_affineEndpoints_eq_apSumOffset (f := f) (a := a) (d := d) (m := m) (n := n))
+
 -- Paper difference of two affine-endpoint tails → normalize to a later tail in `apSumOffset` normal form.
 example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n) :
     (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) -
