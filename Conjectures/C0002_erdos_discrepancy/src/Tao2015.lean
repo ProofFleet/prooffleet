@@ -553,6 +553,12 @@ theorem unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f : ℕ → ℤ) (
   simpa [UnboundedDiscOffset] using
     (not_exists_boundedDiscOffset_iff_forall_exists_discOffset_gt (f := f) (d := d) (m := m)).symm
 
+/-- Monotonicity: a `discOffset` bound can be weakened to any larger bound. -/
+theorem boundedDiscOffset_mono {f : ℕ → ℤ} {d m B B' : ℕ}
+    (h : BoundedDiscOffset f d m B) (hBB' : B ≤ B') : BoundedDiscOffset f d m B' := by
+  intro n
+  exact le_trans (h n) hBB'
+
 /-!
 ### Bridges to the verified along-`d` predicates in `MoltResearch.Discrepancy`
 
