@@ -3965,6 +3965,13 @@ example (f : ℕ → ℤ) (d m N : ℕ) :
   simpa using
     (discOffsetUpTo_eq_sup_Icc_endpoints (f := f) (d := d) (m := m) (N := N))
 
+example (f : ℕ → ℤ) (d m N C : ℕ) :
+    discOffsetUpTo f d m N ≤ C ↔
+      ∀ b ∈ Finset.Icc m (m + N),
+        Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d))) ≤ C := by
+  simpa using
+    (discOffsetUpTo_le_iff_forall_Icc_endpoints (f := f) (d := d) (m := m) (N := N) (C := C))
+
 /-!
 ## `disc` wrapper regression tests
 

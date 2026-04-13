@@ -417,6 +417,28 @@ lemma discOffsetUpTo_eq_sup_Icc_endpoints (f : ℕ → ℤ) (d m N : ℕ) :
       (Finset.le_sup (s := Finset.range (N + 1)) (f := fun n => discOffset f d m n) hnmem)
 
 
+/-- One-shot goal rewrite: a paper-style `Icc` endpoint bound on `discOffsetUpTo`.
+
+This is the finitary statement that
+`discOffsetUpTo f d m N ≤ C`
+iff *every* endpoint `b ∈ Icc m (m+N)` has paper discrepancy
+`Int.natAbs (∑ i ∈ Icc (m+1) b, f (i*d)) ≤ C`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` paper↔nucleus bridge
+(endpoint style).
+-/
+lemma discOffsetUpTo_le_iff_forall_Icc_endpoints (f : ℕ → ℤ) (d m N C : ℕ) :
+    discOffsetUpTo f d m N ≤ C ↔
+      ∀ b ∈ Finset.Icc m (m + N),
+        Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d))) ≤ C := by
+  classical
+  -- Rewrite `discOffsetUpTo` into the paper-endpoint `sup`, then use `Finset.sup_le_iff`.
+  simpa [discOffsetUpTo_eq_sup_Icc_endpoints] using
+    (Finset.sup_le_iff (s := Finset.Icc m (m + N))
+      (f := fun b => Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d))))
+      (a := C))
+
+
 /-- Paper-endpoint normalization for `discOffsetUpTo`: rewrite directly into a `sup` of paper-interval
 expressions indexed by the length parameter `n ≤ N`.
 
