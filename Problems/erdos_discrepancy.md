@@ -943,9 +943,11 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] `discOffsetUpTo` max-recursion normal form: prove a finitary recursion lemma like
+- [x] `discOffsetUpTo` max-recursion normal form: prove a finitary recursion lemma like
   `discOffsetUpTo f d m (N+1) = max (discOffsetUpTo f d m N) (discOffset f d m (N+1))`,
   with a stable-surface regression example under `import MoltResearch.Discrepancy`.
+  (Implemented as `discOffsetUpTo_succ` in `MoltResearch/Discrepancy/Basic.lean`, with regression example in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffset` ≤ `discOffsetUpTo` wrapper: package a lemma of the form
   `n ≤ N → discOffset f d m n ≤ discOffsetUpTo f d m N` (and the homogeneous/along variants if relevant),

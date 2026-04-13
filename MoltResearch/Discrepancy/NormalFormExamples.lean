@@ -394,6 +394,12 @@ example : discUpTo f d n = (Finset.range (n + 1)).sup (fun t => disc f d t) := b
 example : discOffsetUpTo f d m n = (Finset.range (n + 1)).sup (fun t => discOffset f d m t) := by
   rfl
 
+-- Regression (Track B / `discOffsetUpTo` max-recursion normal form): the successor cutoff is a `max`.
+example :
+    discOffsetUpTo f d m (n + 1) =
+      max (discOffsetUpTo f d m n) (discOffset f d m (n + 1)) := by
+  simpa using (discOffsetUpTo_succ (f := f) (d := d) (m := m) (N := n))
+
 -- Regression (Track B / paper-endpoint normalization for `discOffsetUpTo`): rewrite into a `sup`
 -- of paper-interval expressions with the repo's preferred endpoints.
 example :

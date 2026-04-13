@@ -574,6 +574,22 @@ We are conservative here: these lemmas should be obviously terminating and orien
   -- `discOffset f d 0 n` is definitionally `disc f d n`.
   simp [discOffset, disc, apSumOffset, apSum]
 
+/-- Max-recursion normal form for `discOffsetUpTo`.
+
+This is the finitary analogue of “the max up to `N+1` is either the max up to `N` or the new value
+at `N+1`”.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` max-recursion normal form.
+-/
+lemma discOffsetUpTo_succ (f : ℕ → ℤ) (d m N : ℕ) :
+    discOffsetUpTo f d m (N + 1) =
+      max (discOffsetUpTo f d m N) (discOffset f d m (N + 1)) := by
+  classical
+  unfold discOffsetUpTo
+  -- `range ((N+1)+1) = insert (N+1) (range (N+1))`.
+  -- Then `Finset.sup_insert` computes the new supremum as a `max`.
+  simpa [Finset.range_add_one, max_comm, max_left_comm, max_assoc]
+
 /-- Any particular `disc f d n` with `n ≤ N` is bounded by `discUpTo f d N`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
