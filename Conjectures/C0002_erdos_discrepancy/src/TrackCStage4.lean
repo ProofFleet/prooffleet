@@ -57,6 +57,19 @@ theorem forall_hasDiscrepancyAtLeast (out : Stage4Output f) :
   -- Reuse the Stage-3 surface lemma rather than unfolding any definitions.
   exact out.out3.forall_hasDiscrepancyAtLeast (f := f)
 
+/-- Stage 4 output implies the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is the most pipeline-friendly surface statement: it avoids `discrepancy` and goes straight to
+the nucleus `apSum`.
+-/
+theorem forall_exists_d_ge_one_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
 /-- Stage 4 output implies the explicit discrepancy witness normal form
 
 `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
@@ -134,6 +147,16 @@ This is a thin wrapper around `Stage4Output.forall_hasDiscrepancyAtLeast`.
 theorem stage4_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact (stage4Out (f := f) (hf := hf)).forall_hasDiscrepancyAtLeast
+
+/-- Consumer-facing shortcut: Stage 4 yields the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is the most pipeline-friendly surface statement for consuming Stage 4.
+-/
+theorem stage4_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_d_ge_one_witness_pos (f := f)
 
 /-- Consumer-facing shortcut: Stage 4 yields explicit discrepancy witnesses
 
