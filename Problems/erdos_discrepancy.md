@@ -941,6 +941,41 @@ Definition of done:
 - [x] One-shot “normalization pipeline” wrapper lemma: a small wrapper lemma (not a tactic) that takes a paper-style goal about `∑ i in Icc …` and rewrites it into the nucleus normal form (`apSumFrom`/`apSumOffset`/`discOffset`) in one `simp`/`rw` step,
   and lock it in with a stable-surface regression example.
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] `discOffsetUpTo` max-recursion normal form: prove a finitary recursion lemma like
+  `discOffsetUpTo f d m (N+1) = max (discOffsetUpTo f d m N) (discOffset f d m (N+1))`,
+  with a stable-surface regression example under `import MoltResearch.Discrepancy`.
+
+- [ ] `discOffset` ≤ `discOffsetUpTo` wrapper: package a lemma of the form
+  `n ≤ N → discOffset f d m n ≤ discOffsetUpTo f d m N` (and the homogeneous/along variants if relevant),
+  so later proofs can move freely between “a particular interval” and “the maximum up to N”.
+
+- [ ] Triangle-inequality bound for `discOffsetUpTo`: prove a canonical inequality bounding
+  `discOffsetUpTo f d m (N+K)` by `discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K` (or the repo’s preferred tail shape),
+  mirroring `discOffset_add_le` but at the “max up to N” level.
+
+- [ ] `discOffsetUpTo` Lipschitz-by-1 in N: assuming `IsSignSequence f`, prove that
+  `discOffsetUpTo f d m (N+1) ≤ discOffsetUpTo f d m N + 1` (and the reverse inequality up to +1),
+  to make max-level induction steps one-liners.
+
+- [ ] Paper↔nucleus bridge for `discOffsetUpTo` (endpoint style): add a one-shot lemma rewriting
+  `discOffsetUpTo f d m N` into a `sup`/`max` over paper-interval expressions
+  `Int.natAbs (∑ i ∈ Finset.Icc (m+1) (m+n), f (i*d))` with `n ≤ N`, in the *exact* endpoint conventions used in later Tao2015 stages,
+  with a stable-surface regression example.
+
+- [ ] Residue-class bound at max-level: after splitting an interval into residues mod `r`, prove a packaged bound like
+  `discOffsetUpTo f d m (r*(N+1)) ≤ ∑ j in Finset.range r, discOffsetUpTo f (d*r) (m+j) (N+1)` (or analogous),
+  so “split into residues then take max” becomes a single lemma call.
+
+- [ ] API coherence for degenerate parameters at max-level: add simp-friendly lemmas for
+  `discOffsetUpTo f 1 m N`, `discOffsetUpTo f d 0 N`, and `discOffsetUpTo f d m 0`,
+  normalizing statements to the preferred nucleus forms (without unfolding) and cover with a SurfaceAudit check.
+
+- [ ] Stable-surface regression mini-pipeline (max-level): add 1–2 compile-only examples under `import MoltResearch.Discrepancy` showing a typical flow
+  paper endpoints → nucleus → residue split / cut → `discOffsetUpTo` bounds → conclude a clean inequality,
+  and wire into `SurfaceAudit`.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
