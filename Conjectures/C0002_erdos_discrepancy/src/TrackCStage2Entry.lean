@@ -1,4 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub
 
 /-!
 # Track C: Stage 2 entry point (Tao 2015 plane)
@@ -6,12 +6,13 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
 This file is **Conjectures-only** glue.
 
 It contains only:
-- the Stage-2 conjecture stub (axiom) `stage2`,
-- the deterministic name `stage2Out`,
 - the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`, `stage2_start`, and
 - the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`,
   `stage2_start_eq_m_mul_d`, `stage2_d_dvd_start`, `stage2_start_mod_d`, `stage2_hg`,
   `stage2_g_eq`, `stage2_g_eq_fun`.
+
+The conjecture stub itself (`stage2` and the deterministic name `stage2Out`) lives in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
 
 All other proved convenience lemmas about `stage2Out` live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
@@ -23,17 +24,6 @@ wrapper lemmas when it only needs the Stage-2 stub.
 namespace MoltResearch
 
 namespace Tao2015
-
-/-- **Conjecture stub:** Stage 2 of Tao 2015.
-
-Given a sign sequence `f`, produce a Stage-1 reduction output and show that the reduced sequence
-has unbounded discrepancy along its associated fixed step.
--/
-axiom stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
-
-/-- Deterministic name for the Stage-2 output (useful to keep later statements readable). -/
-noncomputable abbrev stage2Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f :=
-  stage2 (f := f) (hf := hf)
 
 /-- Convenience projection: the reduced step size produced by Stage 2. -/
 noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=

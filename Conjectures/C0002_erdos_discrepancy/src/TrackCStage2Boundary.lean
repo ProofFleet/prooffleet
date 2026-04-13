@@ -55,7 +55,7 @@ The `Stage2Output` record is defined in this file. The bulk of the convenience l
 ## Stage 2 conjecture stub
 
 The Stage-2 conjecture/axiom stub lives in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` so that this file remains mostly
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub` so that this file remains mostly
 “API + wiring”.
 -/
 

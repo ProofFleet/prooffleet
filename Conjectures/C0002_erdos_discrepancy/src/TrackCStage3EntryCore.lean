@@ -1,5 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub
 
 /-!
 # Track C: Stage 3 entry point (hard-gate core)

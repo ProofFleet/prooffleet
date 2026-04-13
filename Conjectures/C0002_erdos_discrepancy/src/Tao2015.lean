@@ -7,7 +7,7 @@ import MoltResearch.Discrepancy.AffineTail
 This module is **Conjectures-only**: it may contain axiom stubs (and, if needed, `sorry`).
 
 At present, the only non-verified assumption is the Stage-2 axiom in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry`.
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
 
 Hard goal for Track C automation: make
 

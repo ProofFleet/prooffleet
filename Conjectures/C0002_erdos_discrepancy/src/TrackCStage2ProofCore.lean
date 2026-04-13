@@ -13,7 +13,7 @@ The larger collection of witness-form wrappers lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofWitnesses`.
 
 The Stage-2 conjecture stub (axiom) itself lives in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry`.
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
 -/
 
 namespace MoltResearch
@@ -22,7 +22,7 @@ namespace Tao2015
 
 /-!
 The Stage-2 conjecture stub (axiom) and the deterministic name `stage2Out` live in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry`.
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
 
 This file keeps only the core convenience wrappers.
 -/
