@@ -93,13 +93,16 @@ abbrev start (out : Stage3Output f) : ℕ := out.m * out.d
 
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
-  refine ⟨out.m, ?_⟩
-  -- `out.start` is definitionally `out.m * out.d`.
-  simp [Stage3Output.start, Nat.mul_comm]
+  -- Delegate to the Stage-2 core lemma (avoids re-proving arithmetic about the projections).
+  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m, Stage2Output.start, Stage2Output.d,
+    Stage2Output.m] using
+    (Stage2Output.d_dvd_start (f := f) out.out2)
 
 /-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`. -/
 theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
-  exact Nat.mod_eq_zero_of_dvd (d_dvd_start (f := f) out)
+  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m, Stage2Output.start, Stage2Output.d,
+    Stage2Output.m] using
+    (Stage2Output.start_mod_d (f := f) out.out2)
 
 /-- Adding the start index does not change residues modulo the step size.
 
@@ -108,8 +111,9 @@ Since `out.start` is a multiple of `out.d`, we have
 -/
 theorem add_start_mod_d (out : Stage3Output f) (n : ℕ) :
     (n + out.start) % out.d = n % out.d := by
-  have hstart : out.start % out.d = 0 := out.start_mod_d (f := f)
-  simp [Nat.add_mod, hstart]
+  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m, Stage2Output.start, Stage2Output.d,
+    Stage2Output.m] using
+    (Stage2Output.add_start_mod_d (f := f) out.out2 n)
 
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage3Output f) (k : ℕ) :
