@@ -454,6 +454,23 @@ lemma discOffsetUpTo_eq_sup_range_Icc (f : ℕ → ℤ) (d m N : ℕ) :
   -- Rewrite each `discOffset` term into paper notation.
   simpa [discOffset_eq_natAbs_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- Paper↔nucleus bridge for `discOffsetUpTo` (endpoint style): rewrite the `Finset.range (N+1)`
+supremum in `discOffsetUpTo_eq_sup_range_Icc` as a supremum over `Finset.Icc 0 N`.
+
+This matches the common “witness `n ≤ N`” convention used in later Tao2015 stages.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Paper↔nucleus bridge for
+`discOffsetUpTo` (endpoint style).
+-/
+lemma discOffsetUpTo_eq_sup_Icc_lengths (f : ℕ → ℤ) (d m N : ℕ) :
+    discOffsetUpTo f d m N =
+      (Finset.Icc 0 N).sup
+        (fun n => Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)))) := by
+  classical
+  have hrange : (Finset.range (N + 1)) = Finset.Icc 0 N := by
+    simpa using (Nat.range_eq_Icc_zero_sub_one (N + 1) (Nat.add_one_ne_zero N))
+  simpa [hrange] using (discOffsetUpTo_eq_sup_range_Icc (f := f) (d := d) (m := m) (N := N))
+
 /-- One-shot goal rewrite: a bound on `discOffsetUpTo` is equivalent to a uniform bound on the
 paper-interval discrepancy expressions `Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d))` for all
 lengths `n ≤ N`.

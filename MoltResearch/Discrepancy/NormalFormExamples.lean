@@ -292,6 +292,13 @@ example (N C : ℕ) :
         Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C := by
   simpa using (discOffsetUpTo_le_iff_forall_range_Icc (f := f) (d := d) (m := m) (N := N) (C := C))
 
+-- Regression (Track B / paper↔nucleus bridge, endpoint style): rewrite into an `Icc 0 N` supremum.
+example (N : ℕ) :
+    discOffsetUpTo f d m N =
+      (Finset.Icc 0 N).sup
+        (fun n => Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)))) := by
+  simpa using (discOffsetUpTo_eq_sup_Icc_lengths (f := f) (d := d) (m := m) (N := N))
+
 -- Regression (Track B / homogeneous view of offsets): push the offset `m*d` into the summand.
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_mul (f := f) (d := d) (m := m) (n := n))
