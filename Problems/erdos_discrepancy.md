@@ -973,9 +973,11 @@ Definition of done:
   `Int.natAbs (∑ i ∈ Finset.Icc (m+1) (m+n), f (i*d))` with `n ≤ N`, in the *exact* endpoint conventions used in later Tao2015 stages,
   with a stable-surface regression example.
 
-- [ ] Residue-class bound at max-level: after splitting an interval into residues mod `r`, prove a packaged bound like
+- [x] Residue-class bound at max-level: after splitting an interval into residues mod `r`, prove a packaged bound like
   `discOffsetUpTo f d m (r*(N+1)) ≤ ∑ j in Finset.range r, discOffsetUpTo f (d*r) (m+j) (N+1)` (or analogous),
   so “split into residues then take max” becomes a single lemma call.
+  (Implemented as `discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs` in `MoltResearch/Discrepancy/Residue.lean`,
+  with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] API coherence for degenerate parameters at max-level: add simp-friendly lemmas for
   `discOffsetUpTo f 1 m N`, `discOffsetUpTo f d 0 N`, and `discOffsetUpTo f d m 0`,
