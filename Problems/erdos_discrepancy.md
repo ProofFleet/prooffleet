@@ -979,9 +979,12 @@ Definition of done:
   (Implemented as `discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs` in `MoltResearch/Discrepancy/Residue.lean`,
   with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] API coherence for degenerate parameters at max-level: add simp-friendly lemmas for
+- [x] API coherence for degenerate parameters at max-level: add simp-friendly lemmas for
   `discOffsetUpTo f 1 m N`, `discOffsetUpTo f d 0 N`, and `discOffsetUpTo f d m 0`,
   normalizing statements to the preferred nucleus forms (without unfolding) and cover with a SurfaceAudit check.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as simp lemmas `discOffsetUpTo_zero`,
+  `discOffsetUpTo_zero_start`, `discOffsetUpTo_one_shift`; regression examples live in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`, and the stable surface audit includes `#check`s.)
 
 - [ ] Stable-surface regression mini-pipeline (max-level): add 1–2 compile-only examples under `import MoltResearch.Discrepancy` showing a typical flow
   paper endpoints → nucleus → residue split / cut → `discOffsetUpTo` bounds → conclude a clean inequality,
