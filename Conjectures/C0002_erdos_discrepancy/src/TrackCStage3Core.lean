@@ -101,6 +101,16 @@ theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
 theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
   exact Nat.mod_eq_zero_of_dvd (d_dvd_start (f := f) out)
 
+/-- Adding the start index does not change residues modulo the step size.
+
+Since `out.start` is a multiple of `out.d`, we have
+`(n + out.start) % out.d = n % out.d`.
+-/
+theorem add_start_mod_d (out : Stage3Output f) (n : ℕ) :
+    (n + out.start) % out.d = n % out.d := by
+  have hstart : out.start % out.d = 0 := out.start_mod_d (f := f)
+  simp [Nat.add_mod, hstart]
+
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage3Output f) (k : ℕ) :
     out.g k = f (k + out.m * out.d) := by
