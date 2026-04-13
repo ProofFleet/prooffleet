@@ -113,6 +113,42 @@ section
         _ = discOffset g 1 0 3 + discOffset g 1 3 3 + 2 := by
               ac_rfl
 
+  /-!
+  ## `discOffsetUpTo` cut/concatenation inequality (compile-only)
+
+  A very common Track B move is: bound a long segment by cutting it into an initial prefix of
+  length `N` and a tail segment of length `K`.
+
+  This exercises the `discOffsetUpTo` “max up to length” wrapper *and* the cut/concatenation lemma,
+  under the stable surface:
+
+  ```lean
+  import MoltResearch.Discrepancy
+  ```
+  -/
+
+  section UpToCut
+
+  variable (f : ℕ → ℤ) (d m N K : ℕ)
+
+  -- Cut/concatenation inequality (stable surface):
+  --   max up to `N+K` ≤ (max up to `N`) + (max on tail length `K`).
+  example :
+      discOffsetUpTo f d m (N + K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
+    simpa using (discOffsetUpTo_add_le_add_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) (K := K))
+
+  -- A clean inequality for a *particular* tail length, chained through `discOffset ≤ discOffsetUpTo`.
+  example :
+      discOffset f d m (N + K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
+    have h1 : discOffset f d m (N + K) ≤ discOffsetUpTo f d m (N + K) := by
+      simpa using (discOffset_le_discOffsetUpTo_self (f := f) (d := d) (m := m) (n := N + K))
+    have h2 :
+        discOffsetUpTo f d m (N + K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
+      simpa using (discOffsetUpTo_add_le_add_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) (K := K))
+    exact le_trans h1 h2
+
+  end UpToCut
+
 end
 
 end MoltResearch
