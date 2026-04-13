@@ -989,7 +989,8 @@ Definition of done:
 - [x] Stable-surface regression mini-pipeline (max-level): add 1–2 compile-only examples under `import MoltResearch.Discrepancy` showing a typical flow
   paper endpoints → nucleus → residue split / cut → `discOffsetUpTo` bounds → conclude a clean inequality,
   and wire into `SurfaceAudit`.
-  (Implemented in `MoltResearch/Discrepancy/NormalFormPipelineExample.lean`; wired via `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
+  (Pipeline example lives in `MoltResearch/Discrepancy/NormalFormPipelineExample.lean`; additional max-level smoke examples live in
+  `MoltResearch/Discrepancy/MiniPipelineMaxExample.lean`; both are wired via `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
 ### Track C - Conjecture stub + equivalences (backlog)
 

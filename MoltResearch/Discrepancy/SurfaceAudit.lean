@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy
 import MoltResearch.Discrepancy.NormalFormPipelineExample
+import MoltResearch.Discrepancy.MiniPipelineMaxExample
 
 /-!
 # Discrepancy: stable surface audit (compile-time regression tests)
