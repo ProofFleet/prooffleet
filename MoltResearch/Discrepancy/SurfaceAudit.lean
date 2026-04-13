@@ -191,6 +191,28 @@ section
     simp [disc, apSum_zero_d, zsmul_eq_mul]
 
   /-!
+  ### `UpTo` degenerate-parameter simp coherence (stable surface)
+
+  These ensure the stable surface exports the simp lemmas that normalize the `UpTo` wrappers in
+  the key degenerate cases, without users having to unfold into finset `sup`s.
+  -/
+
+  #check discUpTo
+  #check discOffsetUpTo
+  #check discOffsetUpTo_zero
+  #check discOffsetUpTo_zero_start
+  #check discOffsetUpTo_one_shift
+
+  example : discOffsetUpTo f d m 0 = 0 := by
+    simp
+
+  example : discOffsetUpTo f d 0 n = discUpTo f d n := by
+    simp
+
+  example : discOffsetUpTo f 1 m n = discUpTo (fun k => f (k + m)) 1 n := by
+    simp
+
+  /-!
   ### discOffset_* lemma exports (stable surface)
 
   These are high-leverage `discOffset` rewrite/transport lemmas used throughout Track B.

@@ -574,6 +574,36 @@ We are conservative here: these lemmas should be obviously terminating and orien
   -- `discOffset f d 0 n` is definitionally `disc f d n`.
   simp [discOffset, disc, apSumOffset, apSum]
 
+/-!
+### Step-one (`d = 1`) coherence simp lemmas
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“API coherence for degenerate parameters at max-level”.
+
+When the step is `1`, an offset progression is just a shift of the underlying sequence.
+These lemmas expose that shift at the wrapper level, in `simp`-friendly normal form.
+-/
+
+/-- Step-one coherence: absorb the offset into a shift of the underlying sequence. -/
+@[simp] lemma apSumOffset_one_shift (f : ℕ → ℤ) (m n : ℕ) :
+    apSumOffset f 1 m n = apSum (fun k => f (k + m)) 1 n := by
+  unfold apSumOffset apSum
+  -- Both sides are `Finset.range n` sums; normalize arithmetic and `* 1`.
+  simp [Nat.mul_one, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-- Step-one coherence: `discOffset` is just `disc` on the shifted sequence. -/
+@[simp] lemma discOffset_one_shift (f : ℕ → ℤ) (m n : ℕ) :
+    discOffset f 1 m n = disc (fun k => f (k + m)) 1 n := by
+  unfold discOffset disc
+  simp [apSumOffset_one_shift]
+
+/-- Step-one coherence: `discOffsetUpTo` is `discUpTo` on the shifted sequence. -/
+@[simp] lemma discOffsetUpTo_one_shift (f : ℕ → ℤ) (m N : ℕ) :
+    discOffsetUpTo f 1 m N = discUpTo (fun k => f (k + m)) 1 N := by
+  classical
+  unfold discOffsetUpTo discUpTo
+  simp [discOffset_one_shift]
+
 /-- Max-recursion normal form for `discOffsetUpTo`.
 
 This is the finitary analogue of “the max up to `N+1` is either the max up to `N` or the new value

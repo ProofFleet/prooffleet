@@ -50,6 +50,21 @@ example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
   simpa [discOffset_const_one]
 
 /-!
+### NEW (Track B): `discOffsetUpTo` degenerate-parameter simp coherence
+
+Compile-only regression tests ensuring the “degenerate parameter” simp lemmas stay one-liners.
+-/
+
+example : discOffsetUpTo f d m 0 = 0 := by
+  simp
+
+example : discOffsetUpTo f d 0 n = discUpTo f d n := by
+  simp
+
+example : discOffsetUpTo f 1 m n = discUpTo (fun k => f (k + m)) 1 n := by
+  simp
+
+/-!
 ### NEW (Track B): `discOffsetUpTo` Lipschitz-by-1 in `N`
 
 Compile-only regression tests ensuring the “extend the cutoff by 1” inequalities stay one-liners.
