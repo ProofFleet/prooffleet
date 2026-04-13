@@ -454,6 +454,27 @@ lemma discOffsetUpTo_eq_sup_range_Icc (f : ℕ → ℤ) (d m N : ℕ) :
   -- Rewrite each `discOffset` term into paper notation.
   simpa [discOffset_eq_natAbs_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- One-shot goal rewrite: a bound on `discOffsetUpTo` is equivalent to a uniform bound on the
+paper-interval discrepancy expressions `Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d))` for all
+lengths `n ≤ N`.
+
+This packages `discOffsetUpTo_eq_sup_range_Icc` together with `Finset.sup_le_iff`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` paper↔nucleus bridge
+(endpoint style): one-shot bound rewrite.
+-/
+lemma discOffsetUpTo_le_iff_forall_range_Icc (f : ℕ → ℤ) (d m N C : ℕ) :
+    discOffsetUpTo f d m N ≤ C ↔
+      ∀ n ∈ Finset.range (N + 1),
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C := by
+  classical
+  -- Rewrite `discOffsetUpTo` to a `sup` over paper expressions.
+  -- Then `sup ≤ C` iff all entries are `≤ C`.
+  simpa [discOffsetUpTo_eq_sup_range_Icc] using
+    (Finset.sup_le_iff (s := Finset.range (N + 1))
+      (f := fun n => Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))))
+      (a := C))
+
 /-!
 ## “One-cut in paper notation” bridge
 

@@ -285,6 +285,13 @@ example (N : ℕ) (hn : n ≤ N) : discOffset f d 0 n ≤ discUpTo f d N := by
 example : discOffset f d m n ≤ discOffsetUpTo f d m n := by
   simpa using (discOffset_le_discOffsetUpTo_self (f := f) (d := d) (m := m) (n := n))
 
+-- Regression (Track B / paper-endpoint bridge for `discOffsetUpTo`): a one-shot bound rewrite.
+example (N C : ℕ) :
+    discOffsetUpTo f d m N ≤ C ↔
+      ∀ n ∈ Finset.range (N + 1),
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C := by
+  simpa using (discOffsetUpTo_le_iff_forall_range_Icc (f := f) (d := d) (m := m) (N := N) (C := C))
+
 -- Regression (Track B / homogeneous view of offsets): push the offset `m*d` into the summand.
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_mul (f := f) (d := d) (m := m) (n := n))
