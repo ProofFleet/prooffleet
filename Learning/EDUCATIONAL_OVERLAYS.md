@@ -29,4 +29,8 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (max recursion):** when you need to peel the last case off a cutoff, rewrite `discOffsetUpTo f d m (N+1)` using `discOffsetUpTo_succ` to get a clean `max (discOffsetUpTo … N) (discOffset … (N+1))` normal form.
 - **API note (step positivity):** when extracting unboundedness witnesses, prefer the `Nat.succ` normal forms (`HasDiscrepancyAtLeast.exists_witness_succ(_pos)` and the affine analogue) so you can work with a concrete positive step without carrying a separate `d ≥ 1` side condition.
   The corner case `d = 0` has `simp` normal forms too, but those are now behind `import MoltResearch.Discrepancy.Deprecated` to keep the stable surface focused on the `d ≥ 1` workflow.
+- **API note (degenerate parameters for `UpTo`):** in downstream goals, you often want to normalize away “spurious” degenerate parameters without unfolding the finitary `Finset.sup` definition. The stable surface exports simp lemmas for:
+  - `discOffsetUpTo f d m 0 = 0`
+  - `discOffsetUpTo f d 0 N = discUpTo f d N`
+  - step-one shift: `discOffsetUpTo f 1 m N = discUpTo (fun k => f (k + m)) 1 N`
 - **Related tasks:** `T1_01`, `T1_07`, `T1_12`.
