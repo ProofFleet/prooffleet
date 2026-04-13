@@ -607,4 +607,57 @@ lemma discOffset_mul_len_succ_le_sum_range_natAbs (f : ℕ → ℤ) (d m q n : �
     (natAbs_sum_le_sum_natAbs (Finset.range q)
       (fun r => f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n))
 
+
+
+/-!
+### Max-level residue-class bound (block lengths `q*(n+1)`)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue-class bound at max-level.
+
+We often want a *max discrepancy up to a cutoff* but only along the block lengths `q*(n+1)` that
+appear naturally after residue-class splitting.  This lemma packages the residue-class split
+inequality at the level of the `Finset.sup` maximum over `n ≤ N`.
+
+The bound is stated in terms of the residue-class split summands
+`Int.natAbs (f (...) + apSumFrom ...)`, keeping the stable-surface normal form exposed by
+`discOffset_mul_len_succ_le_sum_range_natAbs`.
+-/
+
+/-- Max discrepancy (over `n ≤ N`) restricted to the block lengths `q*(n+1)`. -/
+def discOffsetUpTo_blockLen_mul_succ (f : ℕ → ℤ) (d m q N : ℕ) : ℕ :=
+  (Finset.range (N + 1)).sup (fun n => discOffset f d m (q * (n + 1)))
+
+/-- Max-level residue-class bound for block lengths `q*(n+1)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue-class bound at max-level.
+-/
+lemma discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs (f : ℕ → ℤ)
+    (d m q N : ℕ) (hq : q > 0) :
+    discOffsetUpTo_blockLen_mul_succ f d m q N ≤
+      (Finset.range q).sum (fun r =>
+        (Finset.range (N + 1)).sup (fun n =>
+          Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n))) := by
+  classical
+  unfold discOffsetUpTo_blockLen_mul_succ
+  -- bound each term in the `sup` using the residue-class split inequality, then push the bound
+  -- through the finite supremum.
+  refine Finset.sup_le ?_
+  intro n hn
+  have hsplit : discOffset f d m (q * (n + 1)) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n)) :=
+    discOffset_mul_len_succ_le_sum_range_natAbs (f := f) (d := d) (m := m) (q := q) (n := n) hq
+  -- each residue summand is ≤ the corresponding `sup` over all `n ≤ N`.
+  have hterm : (Finset.range q).sum (fun r =>
+        Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n)) ≤
+      (Finset.range q).sum (fun r =>
+        (Finset.range (N + 1)).sup (fun t =>
+          Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) t))) := by
+    -- pointwise bound, then sum.
+    refine Finset.sum_le_sum ?_
+    intro r hr
+    -- `n ∈ range (N+1)` so we can take the `le_sup` bound at index `n`.
+    exact Finset.le_sup (s := Finset.range (N + 1))
+      (f := fun t => Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) t)) hn
+  exact le_trans hsplit hterm
 end MoltResearch

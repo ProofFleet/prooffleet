@@ -603,6 +603,16 @@ example (q : ℕ) (hq : q > 0) :
   simpa using
     (discOffset_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq)
 
+-- Regression (Track B / residue-class bound at max-level):
+example (q N : ℕ) (hq : q > 0) :
+    discOffsetUpTo_blockLen_mul_succ f d m q N ≤
+      (Finset.range q).sum (fun r =>
+        (Finset.range (N + 1)).sup (fun n =>
+          Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n))) := by
+  simpa using
+    (discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs
+      (f := f) (d := d) (m := m) (q := q) (N := N) hq)
+
 /-!
 ### Regression: step scaling bound wrapper (Track B)
 
@@ -1241,6 +1251,16 @@ example (q : ℕ) (hq : q > 0) :
         f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n)) := by
   simpa using
     (discOffset_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq)
+
+-- Regression (Track B / residue-class bound at max-level):
+example (q N : ℕ) (hq : q > 0) :
+    discOffsetUpTo_blockLen_mul_succ f d m q N ≤
+      (Finset.range q).sum (fun r =>
+        (Finset.range (N + 1)).sup (fun n =>
+          Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n))) := by
+  simpa using
+    (discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs
+      (f := f) (d := d) (m := m) (q := q) (N := N) hq)
 
 -- Regression (Track B / step-one + residue split bundle, offset discrepancy):
 example (q : ℕ) (hq : q > 0) :
