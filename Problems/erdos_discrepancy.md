@@ -961,9 +961,12 @@ Definition of done:
   (Implemented as `discOffsetUpTo_add_le_add_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`,
   with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffsetUpTo` Lipschitz-by-1 in N: assuming `IsSignSequence f`, prove that
+- [x] `discOffsetUpTo` Lipschitz-by-1 in N: assuming `IsSignSequence f`, prove that
   `discOffsetUpTo f d m (N+1) ≤ discOffsetUpTo f d m N + 1` (and the reverse inequality up to +1),
   to make max-level induction steps one-liners.
+  (Implemented as `discOffsetUpTo_succ_le_add_one` and `discOffsetUpTo_le_succ` in
+  `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Paper↔nucleus bridge for `discOffsetUpTo` (endpoint style): add a one-shot lemma rewriting
   `discOffsetUpTo f d m N` into a `sup`/`max` over paper-interval expressions
