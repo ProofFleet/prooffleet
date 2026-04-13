@@ -57,6 +57,20 @@ theorem forall_hasDiscrepancyAtLeast (out : Stage4Output f) :
   -- Reuse the Stage-3 surface lemma rather than unfolding any definitions.
   exact out.out3.forall_hasDiscrepancyAtLeast (f := f)
 
+/-- Stage 4 output implies the explicit discrepancy witness normal form
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is a thin wrapper around `forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem forall_exists_discrepancy_gt (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      (out.forall_hasDiscrepancyAtLeast (f := f) C)
+
 end Stage4Output
 
 /-- Stage 4 main constructor (stub).
@@ -106,6 +120,16 @@ This is a thin wrapper around `Stage4Output.forall_hasDiscrepancyAtLeast`.
 theorem stage4_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact (stage4Out (f := f) (hf := hf)).forall_hasDiscrepancyAtLeast
+
+/-- Consumer-facing shortcut: Stage 4 yields explicit discrepancy witnesses
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is the witness-form normal form of `stage4_forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage4_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_discrepancy_gt (f := f)
 
 end Tao2015
 end MoltResearch
