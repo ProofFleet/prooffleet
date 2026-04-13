@@ -268,6 +268,10 @@ example : discOffsetUpTo f 1 0 n = discUpTo f 1 n := by
 example (N : ℕ) (hn : n ≤ N) : discOffset f d 0 n ≤ discUpTo f d N := by
   simpa using (discOffset_le_discOffsetUpTo (f := f) (d := d) (m := 0) (n := n) (N := N) hn)
 
+-- Regression (Track B / `discOffset` ≤ `discOffsetUpTo` wrapper): the cutoff `N = n` is ergonomic.
+example : discOffset f d m n ≤ discOffsetUpTo f d m n := by
+  simpa using (discOffset_le_discOffsetUpTo_self (f := f) (d := d) (m := m) (n := n))
+
 -- Regression (Track B / homogeneous view of offsets): push the offset `m*d` into the summand.
 example : apSumOffset f d m n = apSum (fun k => f (k + m * d)) d n := by
   simpa using (apSumOffset_eq_apSum_shift_mul (f := f) (d := d) (m := m) (n := n))

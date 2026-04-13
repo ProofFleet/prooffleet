@@ -647,6 +647,15 @@ lemma discOffset_le_discOffsetUpTo (f : ℕ → ℤ) (d m n N : ℕ) (hn : n ≤
     exact Finset.mem_range.2 (Nat.lt_succ_of_le hn)
   simpa using (Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hn')
 
+/-- Convenience wrapper: a tail discrepancy is always bounded by the corresponding `UpTo` cutoff.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` ≤ `discOffsetUpTo` wrapper.
+-/
+lemma discOffset_le_discOffsetUpTo_self (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n ≤ discOffsetUpTo f d m n := by
+  simpa using
+    (discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m) (n := n) (N := n) (le_rfl))
+
 /-- Monotonicity in the cutoff: increasing `N` can only increase `discOffsetUpTo`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
