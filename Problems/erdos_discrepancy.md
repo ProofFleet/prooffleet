@@ -949,9 +949,11 @@ Definition of done:
   (Implemented as `discOffsetUpTo_succ` in `MoltResearch/Discrepancy/Basic.lean`, with regression example in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffset` ≤ `discOffsetUpTo` wrapper: package a lemma of the form
+- [x] `discOffset` ≤ `discOffsetUpTo` wrapper: package a lemma of the form
   `n ≤ N → discOffset f d m n ≤ discOffsetUpTo f d m N` (and the homogeneous/along variants if relevant),
   so later proofs can move freely between “a particular interval” and “the maximum up to N”.
+  (Implemented as `discOffset_le_discOffsetUpTo` and the ergonomic cutoff lemma `discOffset_le_discOffsetUpTo_self` in
+  `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Triangle-inequality bound for `discOffsetUpTo`: prove a canonical inequality bounding
   `discOffsetUpTo f d m (N+K)` by `discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K` (or the repo’s preferred tail shape),
