@@ -59,6 +59,31 @@ example (hf : IsSignSequence f) :
     discOffsetUpTo f d m (n + 1) ≤ discOffsetUpTo f d m n + 1 := by
   simpa using (discOffsetUpTo_succ_le_add_one (f := f) (hf := hf) (d := d) (m := m) (N := n))
 
+/-!
+### NEW (Track B): `discOffsetUpTo` paper↔nucleus bridge (endpoint style)
+
+Regression tests ensuring `discOffsetUpTo` can be rewritten into the paper-interval endpoint
+conventions used downstream (as a finitary `sup` over `n ≤ N`).
+-/
+
+example :
+    discOffsetUpTo f d m n =
+      (Finset.Icc 0 n).sup
+        (fun t => Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d)))) := by
+  simpa using
+    (discOffsetUpTo_eq_sup_Icc_lengths (f := f) (d := d) (m := m) (N := n))
+
+example :
+    discOffsetUpTo f d m n ≤ C ↔
+      ∀ t ∈ Finset.Icc 0 n,
+        Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d))) ≤ C := by
+  -- This is the “one-shot bound rewrite” for the endpoint-style paper form.
+  -- (It’s a finitary `sup ≤ C` iff all entries are `≤ C`.)
+  simpa [discOffsetUpTo_eq_sup_Icc_lengths (f := f) (d := d) (m := m) (N := n)] using
+    (Finset.sup_le_iff (s := Finset.Icc 0 n)
+      (f := fun t => Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d))))
+      (a := C))
+
 example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n + 1) := by
   simpa using (discOffsetUpTo_le_succ (f := f) (d := d) (m := m) (N := n))
 

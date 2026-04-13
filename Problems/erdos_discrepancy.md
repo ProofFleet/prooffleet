@@ -968,7 +968,7 @@ Definition of done:
   `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Paper↔nucleus bridge for `discOffsetUpTo` (endpoint style): add a one-shot lemma rewriting
+- [x] Paper↔nucleus bridge for `discOffsetUpTo` (endpoint style): add a one-shot lemma rewriting
   `discOffsetUpTo f d m N` into a `sup`/`max` over paper-interval expressions
   `Int.natAbs (∑ i ∈ Finset.Icc (m+1) (m+n), f (i*d))` with `n ≤ N`, in the *exact* endpoint conventions used in later Tao2015 stages,
   with a stable-surface regression example.
