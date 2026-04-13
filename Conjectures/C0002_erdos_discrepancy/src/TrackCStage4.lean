@@ -168,5 +168,16 @@ theorem stage4_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
   exact (stage4Out (f := f) (hf := hf)).forall_exists_discrepancy_gt (f := f)
 
+/-- Consumer-facing shortcut: Stage 4 yields the paper-notation witness form
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
+
+This is a thin wrapper around `Stage4Output.forall_exists_sum_Icc_witness_pos`.
+-/
+theorem stage4_forall_exists_sum_Icc_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_sum_Icc_witness_pos (f := f)
+
 end Tao2015
 end MoltResearch
