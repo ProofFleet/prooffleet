@@ -678,7 +678,17 @@ Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` mon
 -/
 lemma discOffsetUpTo_le_add (f : ℕ → ℤ) (d m N K : ℕ) :
     discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N + K) := by
-  simpa using (discOffsetUpTo_mono (f := f) (d := d) (m := m) (N := N) (N' := N + K) (Nat.le_add_right N K))
+  simpa using
+    (discOffsetUpTo_mono (f := f) (d := d) (m := m) (N := N) (N' := N + K) (Nat.le_add_right N K))
+
+/-- Convenience: `discOffsetUpTo` is monotone under `N ↦ N+1`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` Lipschitz-by-1 in `N`
+(reverse inequality direction).
+-/
+lemma discOffsetUpTo_le_succ (f : ℕ → ℤ) (d m N : ℕ) :
+    discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N + 1) := by
+  simpa using (discOffsetUpTo_le_add (f := f) (d := d) (m := m) (N := N) (K := 1))
 
 /-- The maximum in `discOffsetUpTo` is attained by some `n ≤ N`.
 
@@ -3005,6 +3015,17 @@ lemma discOffsetUpTo_add_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d m N K :
     have hNt : discOffset f d m (N + t) ≤ discOffsetUpTo f d m N + t := by
       exact le_trans hsplit (Nat.add_le_add h1 h2)
     exact le_trans hNt (Nat.add_le_add_left ht _)
+
+
+/-- Lipschitz-by-1 in the cutoff parameter: extending from `N` to `N+1` increases the maximum by at
+most `1` (for sign sequences).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` Lipschitz-by-1 in `N`
+(forward inequality direction).
+-/
+lemma discOffsetUpTo_succ_le_add_one {f : ℕ → ℤ} (hf : IsSignSequence f) (d m N : ℕ) :
+    discOffsetUpTo f d m (N + 1) ≤ discOffsetUpTo f d m N + 1 := by
+  simpa using (discOffsetUpTo_add_le (f := f) (hf := hf) (d := d) (m := m) (N := N) (K := 1))
 
 
 /-- Concatenation inequality for `discOffsetUpTo`: extending the cutoff from `N` to `N + K` is

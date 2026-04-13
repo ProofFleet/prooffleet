@@ -50,6 +50,19 @@ example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
   simpa [discOffset_const_one]
 
 /-!
+### NEW (Track B): `discOffsetUpTo` Lipschitz-by-1 in `N`
+
+Compile-only regression tests ensuring the “extend the cutoff by 1” inequalities stay one-liners.
+-/
+
+example (hf : IsSignSequence f) :
+    discOffsetUpTo f d m (n + 1) ≤ discOffsetUpTo f d m n + 1 := by
+  simpa using (discOffsetUpTo_succ_le_add_one (f := f) (hf := hf) (d := d) (m := m) (N := n))
+
+example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n + 1) := by
+  simpa using (discOffsetUpTo_le_succ (f := f) (d := d) (m := m) (N := n))
+
+/-!
 Periodic (non-constant) sanity check: the alternating sign sequence has period 2.
 
 When the step `d` is even, the sampled indices are all even, so the sequence restricts to the
