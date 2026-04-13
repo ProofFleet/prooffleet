@@ -955,9 +955,11 @@ Definition of done:
   (Implemented as `discOffset_le_discOffsetUpTo` and the ergonomic cutoff lemma `discOffset_le_discOffsetUpTo_self` in
   `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Triangle-inequality bound for `discOffsetUpTo`: prove a canonical inequality bounding
+- [x] Triangle-inequality bound for `discOffsetUpTo`: prove a canonical inequality bounding
   `discOffsetUpTo f d m (N+K)` by `discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K` (or the repo’s preferred tail shape),
   mirroring `discOffset_add_le` but at the “max up to N” level.
+  (Implemented as `discOffsetUpTo_add_le_add_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`,
+  with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffsetUpTo` Lipschitz-by-1 in N: assuming `IsSignSequence f`, prove that
   `discOffsetUpTo f d m (N+1) ≤ discOffsetUpTo f d m N + 1` (and the reverse inequality up to +1),
