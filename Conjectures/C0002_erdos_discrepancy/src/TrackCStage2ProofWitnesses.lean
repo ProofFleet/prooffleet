@@ -50,6 +50,48 @@ theorem stage2_forall_exists_d_ne_zero_witness_pos (f : ℕ → ℤ) (hf : IsSig
   rcases stage2_forall_exists_d_pos_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
   exact ⟨d, n, Nat.ne_of_gt hd, hn, hw⟩
 
+/-!
+## Witnesses for the deterministic reduced locus
+
+Stage 2 packages fixed-step unboundedness along the reduced sequence `stage2_g` at the reduced
+step size `stage2_d`.
+
+These two wrappers expose that field in the common inequality-direction normal forms.
+-/
+
+/-- Inequality-direction witness form of `stage2_unboundedDiscrepancyAlong`.
+
+Normal form:
+`∀ B, ∃ n, discrepancy (stage2_g f) (stage2_d f) n > B`.
+-/
+theorem stage2_forall_exists_reduced_discrepancy_gt' (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        discrepancy (stage2_g (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) n > B := by
+  have hunb :
+      UnboundedDiscrepancyAlong (stage2_g (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) :=
+    stage2_unboundedDiscrepancyAlong (f := f) (hf := hf)
+  exact
+    (unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt'
+        (g := stage2_g (f := f) (hf := hf)) (d := stage2_d (f := f) (hf := hf))).1
+      hunb
+
+/-- Positive-length witness form of `stage2_forall_exists_reduced_discrepancy_gt'`.
+
+Since `discrepancy ... 0 = 0`, any witness for `discrepancy ... n > B` must have `n > 0`.
+-/
+theorem stage2_forall_exists_reduced_discrepancy_gt'_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        n > 0 ∧
+          discrepancy (stage2_g (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) n > B := by
+  have hunb :
+      UnboundedDiscrepancyAlong (stage2_g (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) :=
+    stage2_unboundedDiscrepancyAlong (f := f) (hf := hf)
+  exact
+    UnboundedDiscrepancyAlong.forall_exists_discrepancy_gt'_witness_pos
+      (g := stage2_g (f := f) (hf := hf)) (d := stage2_d (f := f) (hf := hf)) hunb
+
 /-- Consumer-facing tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail nuclei
 `apSumFrom f (m*d) d n` at the concrete parameters produced by the conjecture stub `stage2Out`.
 
