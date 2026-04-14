@@ -361,8 +361,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   so downstream proofs can avoid translating hypotheses into `Finset.range` statements.
   (Implemented as `discOffset_congr_support` in `MoltResearch/Discrepancy/Basic.lean`.)
 
-- [ ] Reflection normal form (disc-level): derive a clean lemma showing `discOffset` is invariant under reflecting the range
+- [x] Reflection normal form (disc-level): derive a clean lemma showing `discOffset` is invariant under reflecting the range
   (`i ↦ n-1-i`) using the existing `apSumOffset_eq_sum_range_reflect` infrastructure, and add a stable-surface regression example.
+  (Implemented as `discOffset_eq_natAbs_sum_range_reflect` in `MoltResearch/Discrepancy/Offset.lean`, with regression example in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Residue-class splitting (sum-level, equality): add a canonical equality rewriting
   `apSumOffset f d m n` as a finite sum over residues mod `r` of reindexed `apSumOffset`/`apSum` terms at step `d*r`
