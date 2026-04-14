@@ -356,9 +356,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Support-level congruence for `discOffset`: package a stable lemma
+- [x] Support-level congruence for `discOffset`: package a stable lemma
   `discOffset f d m n = discOffset g d m n` assuming `f` and `g` agree on the image set `apSupport d m n`,
   so downstream proofs can avoid translating hypotheses into `Finset.range` statements.
+  (Implemented as `discOffset_congr_support` in `MoltResearch/Discrepancy/Basic.lean`.)
 
 - [ ] Reflection normal form (disc-level): derive a clean lemma showing `discOffset` is invariant under reflecting the range
   (`i ↦ n-1-i`) using the existing `apSumOffset_eq_sum_range_reflect` infrastructure, and add a stable-surface regression example.
