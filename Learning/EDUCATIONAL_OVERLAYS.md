@@ -41,4 +41,7 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (paper interval normalization):** many downstream proofs naturally produce paper-style terms like `Int.natAbs ((Finset.Icc (m+1) (m+n)).sum ...)`. The stable surface exports simp lemmas rewriting these directly to `discOffset f d m n`, so endpoint algebra can be normalized by `simp` without manually rewriting `discOffset_eq_natAbs_sum_Icc` back and forth.
 - **API note (endpoint normalization):** when you have endpoint-style constraints in a `Finset.Icc` form, you can convert cleanly to the paper-style conjunction used by `discOffset_congr_endpoints`. Use `endpoints_lt_le_iff_mem_finset_Icc` to rewrite
   `m < i ∧ i ≤ m+n` ↔ `i ∈ Finset.Icc (m+1) (m+n)`, and `endpoints_lt_le_iff_succ_le_lt_succ` for the variant `m+1 ≤ i ∧ i < m+n+1`.
+- **API note (endpoint arithmetic normalization):** when your upper endpoint algebra is off by a “successor/pred” shim (common after `Nat.succ`/`Nat.pred` normalizations), use
+  `add_one_add_pred_eq_add` / `add_pred_add_one_eq_add` (both require `0 < n`) to normalize `m+1+(n-1)` (or `m+(n-1)+1`) back to `m+n`.
+  We *do not* add generic associativity/commutativity theorems to the simp set here: that tends to loop. Keep these helper lemmas explicit.
 - **Related tasks:** `T1_01`, `T1_07`, `T1_12`.
