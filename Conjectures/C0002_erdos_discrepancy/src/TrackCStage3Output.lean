@@ -117,16 +117,6 @@ theorem forall_exists_sum_Icc_d_ge_one_witness_pos (out : Stage3Output f) :
 
 -- (moved to `TrackCStage3Core.lean`)
 
-/-- Stage 3 output yields unboundedness of the bundled offset discrepancy family
-`discOffset f d m` at the concrete parameters coming from Stage 1.
-
-This is a thin wrapper around `Stage2Output.unboundedDiscOffset`.
--/
-theorem unboundedDiscOffset (out : Stage3Output f) :
-    UnboundedDiscOffset f out.d out.m := by
-  simpa [Stage3Output.d, Stage3Output.m] using
-    (Stage2Output.unboundedDiscOffset (f := f) out.out2)
-
 /-- Witness-family form: Stage 3 yields arbitrarily large values of the bundled offset discrepancy
 family `discOffset f out.d out.m`.
 

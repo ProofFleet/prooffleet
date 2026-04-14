@@ -158,6 +158,18 @@ theorem erdos_discrepancy_exists_params_forall_exists_discOffset_gt (f : ℕ →
     (Tao2015.Stage2Output.exists_params_forall_exists_discOffset_gt (f := f)
       (Tao2015.stage3Out (f := f) (hf := hf)).out2)
 
+/-- Positive-length witness form of `erdos_discrepancy_exists_params_forall_exists_discOffset_gt`.
+
+The witness length `n` cannot be `0`, since `discOffset f d m 0 = 0`.
+-/
+theorem erdos_discrepancy_exists_params_forall_exists_discOffset_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ B < discOffset f d m n) := by
+  rcases erdos_discrepancy_exists_params_unboundedDiscOffset (f := f) (hf := hf) with
+    ⟨d, m, hd, hunb⟩
+  refine ⟨d, m, hd, ?_⟩
+  exact Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt_witness_pos (hunb := hunb)
+
 /-- Variant of `erdos_discrepancy_exists_params_forall_exists_discOffset_gt` packaging the step-size
 side condition as `1 ≤ d`.
 

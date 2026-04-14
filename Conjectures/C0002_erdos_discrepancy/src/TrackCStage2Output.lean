@@ -98,18 +98,6 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
   simpa using
     (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 out.unbounded
 
-/-- Positive-length witness form of `forall_exists_natAbs_apSumFrom_mul_gt`.
-
-The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
--/
-theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f) :
-    ∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
-  have hunb : UnboundedDiscOffset f out.d out.m :=
-    (out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).1 out.unbounded
-  simpa using
-    (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) (d := out.d)
-      (m := out.m) hunb)
-
 -- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`)
 
 /-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
