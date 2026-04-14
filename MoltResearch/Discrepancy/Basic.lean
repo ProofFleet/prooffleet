@@ -1435,6 +1435,53 @@ lemma discOffset_congr_endpoints (f g : ℕ → ℤ) (d m n : ℕ)
   refine congrArg Int.natAbs ?_
   exact apSumOffset_congr_endpoints (f := f) (g := g) (d := d) (m := m) (n := n) (h := h)
 
+/-!
+### Endpoint-normalization lemmas (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Endpoint-normalization for `discOffset` witnesses.
+
+These lemmas package the small Nat arithmetic conversions that routinely arise when moving between
+endpoint-style hypotheses (paper notation) and finitary `Finset.Icc` membership hypotheses.
+
+We keep them **simp-friendly** (usable via `simp`/`simpa`) but avoid adding aggressive global
+`[simp]` attributes to prevent loops.
+-/
+
+/-- Endpoint-normalization lemma: endpoint-style constraints are `Finset.Icc` membership.
+
+Concretely,
+`m < i ∧ i ≤ m+n` is equivalent to `i ∈ Finset.Icc (m+1) (m+n)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Endpoint-normalization for `discOffset` witnesses.
+-/
+lemma endpoints_lt_le_iff_mem_finset_Icc (m n i : ℕ) :
+    (m < i ∧ i ≤ m + n) ↔ i ∈ Finset.Icc (m + 1) (m + n) := by
+  constructor
+  · intro h
+    exact Finset.mem_Icc.2 ⟨(Nat.succ_le_iff).2 h.1, h.2⟩
+  · intro h
+    have h' : m + 1 ≤ i ∧ i ≤ m + n := (Finset.mem_Icc).1 h
+    exact ⟨(Nat.succ_le_iff).1 h'.1, h'.2⟩
+
+/-- Endpoint-normalization lemma: endpoint constraints in `≤` form can be written in `lt` form.
+
+Concretely,
+`m < i ∧ i ≤ m+n` is equivalent to `m+1 ≤ i ∧ i < m+n+1`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Endpoint-normalization for `discOffset` witnesses.
+-/
+lemma endpoints_lt_le_iff_succ_le_lt_succ (m n i : ℕ) :
+    (m < i ∧ i ≤ m + n) ↔ (m + 1 ≤ i ∧ i < m + n + 1) := by
+  constructor
+  · intro h
+    refine ⟨(Nat.succ_le_iff).2 h.1, ?_⟩
+    -- `i ≤ m+n` iff `i < m+n+1`.
+    exact (Nat.lt_succ_iff).2 (by simpa [Nat.add_assoc] using h.2)
+  · intro h
+    refine ⟨(Nat.succ_le_iff).1 h.1, ?_⟩
+    -- `i < m+n+1` iff `i ≤ m+n`.
+    exact (Nat.lt_succ_iff).1 (by simpa [Nat.add_assoc] using h.2)
+
 /-- Range-form congruence lemma for `discOffset`.
 
 If `f` and `g` agree on every summation index `i ∈ Finset.range n` in the `range`-expanded normal

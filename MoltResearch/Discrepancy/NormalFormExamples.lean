@@ -74,6 +74,26 @@ example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
   simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
 /-!
+### NEW (Track B): endpoint-normalization helpers for `discOffset` witnesses
+
+Regression: a common hypothesis shape is stated using finitary endpoint sets
+`i ∈ Finset.Icc (m+1) (m+n)`; the nucleus API also supports the paper-style conjunction
+`m < i ∧ i ≤ m+n`.
+
+This example ensures the helper lemma `endpoints_lt_le_iff_mem_finset_Icc` keeps the conversion
+one-line under `import MoltResearch.Discrepancy`.
+-/
+
+example (g : ℕ → ℤ)
+    (h : ∀ i, i ∈ Finset.Icc (m + 1) (m + n) → f (i * d) = g (i * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  refine discOffset_congr_endpoints (f := f) (g := g) (d := d) (m := m) (n := n) ?_
+  intro i hi
+  have hi' : i ∈ Finset.Icc (m + 1) (m + n) :=
+    (endpoints_lt_le_iff_mem_finset_Icc (m := m) (n := n) (i := i)).1 hi
+  exact h i hi'
+
+/-!
 ### NEW (Track B): `apSupport` simp/coherence (degenerate length)
 
 Regression: the support finset should simp cleanly when `n = 0`, and the `n+1` rewrite should
@@ -1026,6 +1046,26 @@ example : UnboundedDiscrepancyAlong f d ↔ (∀ C : ℕ, ∃ n : ℕ, C < discO
 example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
     discOffset f d m n = discOffset g d m n := by
   simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
+/-!
+### NEW (Track B): endpoint-normalization helpers for `discOffset` witnesses
+
+Regression: a common hypothesis shape is stated using finitary endpoint sets
+`i ∈ Finset.Icc (m+1) (m+n)`; the nucleus API also supports the paper-style conjunction
+`m < i ∧ i ≤ m+n`.
+
+This example ensures the helper lemma `endpoints_lt_le_iff_mem_finset_Icc` keeps the conversion
+one-line under `import MoltResearch.Discrepancy`.
+-/
+
+example (g : ℕ → ℤ)
+    (h : ∀ i, i ∈ Finset.Icc (m + 1) (m + n) → f (i * d) = g (i * d)) :
+    discOffset f d m n = discOffset g d m n := by
+  refine discOffset_congr_endpoints (f := f) (g := g) (d := d) (m := m) (n := n) ?_
+  intro i hi
+  have hi' : i ∈ Finset.Icc (m + 1) (m + n) :=
+    (endpoints_lt_le_iff_mem_finset_Icc (m := m) (n := n) (i := i)).1 hi
+  exact h i hi'
 
 -- Regression (Track B / local surgery at homogeneous `disc` level):
 -- if two sequences agree on `apSupport d 0 n`, then their homogeneous discrepancies coincide.
