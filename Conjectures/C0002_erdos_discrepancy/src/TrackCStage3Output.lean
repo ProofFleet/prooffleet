@@ -117,11 +117,6 @@ theorem forall_exists_sum_Icc_d_ge_one_witness_pos (out : Stage3Output f) :
 
 -- (moved to `TrackCStage3Core.lean`)
 
-/-- Stage 3 implies the reduced sequence is not bounded along its fixed step size. -/
-theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
-  simpa [Stage3Output.g, Stage3Output.d] using
-    (Stage2Output.notBoundedReducedAlong (f := f) out.out2)
-
 /-- Stage 3 output yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m` at the concrete parameters coming from Stage 1.
 

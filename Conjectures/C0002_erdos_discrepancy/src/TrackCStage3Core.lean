@@ -65,6 +65,12 @@ theorem forall_hasDiscrepancyAtLeastAlong (out : Stage3Output f) :
   simpa [Tao2015.UnboundedDiscrepancyAlong, HasDiscrepancyAtLeastAlong, Stage3Output.g,
     Stage3Output.d] using out.out2.unbounded
 
+/-- Stage 3 implies the reduced sequence is not bounded along its fixed step size. -/
+theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
+  exact
+    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong (g := out.g) (d := out.d)).1
+      out.unboundedReducedAlong
+
 /-- Stage 3 yields unbounded fixed-step discrepancy for the reduced sequence, expressed using the
 verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
