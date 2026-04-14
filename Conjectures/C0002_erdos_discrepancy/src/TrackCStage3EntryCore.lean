@@ -14,6 +14,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - `stage3_forall_hasDiscrepancyAtLeast` : the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`
 - `stage3_forall_exists_discrepancy_gt` : discrepancy witness form
   `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
+- `stage3_forall_exists_discrepancy_gt_witness_pos` : discrepancy witness form with `n > 0`
+  `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`
 - `stage3_forall_exists_d_ge_one_witness_pos` : the pipeline-friendly nucleus witness normal form
   `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`
 
@@ -103,6 +105,19 @@ theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSeq
   rcases stage3_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
   refine ⟨d, n, ?_, hn, hw⟩
   exact lt_of_lt_of_le Nat.zero_lt_one hd
+
+/-- Strengthened variant of `stage3_forall_exists_discrepancy_gt` with a positive-length witness.
+
+Since `discrepancy f d 0 = 0`, any witness with `discrepancy f d n > C` can be taken with `n > 0`.
+-/
+theorem stage3_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases stage3_forall_exists_d_pos_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
+  change Int.natAbs (apSum f d n) > C
+  exact hw
 
 -- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`)
 
