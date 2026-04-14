@@ -217,31 +217,7 @@ theorem stage3_forall_exists_discrepancy_gt_d_ge_one_witness_pos (f : ℕ → �
   change Int.natAbs (apSum f d n) > C
   exact hw
 
-/-- Consumer-facing shortcut: Stage 3 yields the paper-notation witness form
-
-`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
-
-This is a thin wrapper around `stage3_forall_hasDiscrepancyAtLeast` via
-`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`.
--/
-theorem stage3_forall_exists_sum_Icc_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
-      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
-  exact
-    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos f).1
-      (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
-
-/-- Variant of `stage3_forall_exists_sum_Icc_witness_pos` writing the step-size side condition as
-`d ≥ 1`.
-
-This is often the most readable paper-notation witness form when `d : ℕ`.
--/
-theorem stage3_forall_exists_sum_Icc_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧
-      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
-  exact
-    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos f).1
-      (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
+-- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`)
 
 /-- Consumer-facing shortcut: Stage 3 yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m` at the deterministic parameters produced by the pipeline.
