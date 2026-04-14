@@ -378,8 +378,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   “pull a common factor into the step” commute in the nucleus API (for `apSumOffset` and `discOffset`),
   so normalization pipelines can reorder these steps without manual algebra.
 
-- [ ] `apSupport` simp/coherence surface: add minimal simp lemmas and rewrite helpers for `apSupport` (degenerate `n=0`,
+- [x] `apSupport` simp/coherence surface: add minimal simp lemmas and rewrite helpers for `apSupport` (degenerate `n=0`,
   start-shift, dilation) so support-level congruence lemmas are ergonomic and don’t require unfolding.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` (`apSupport_zero`, `apSupport_add_left_zero`, `apSupport_mul_right_one`,
+  plus rewrite helpers `apSupport_add_left`/`apSupport_mul_right`), with stable-surface regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Endpoint-normalization for `discOffset` witnesses: add a small family of simp-friendly lemmas normalizing common endpoint
   algebra (`m+(n+k)`, `m+1+(n-1)`, etc.) into the exact shapes expected by the stable witness APIs (cut/split/affine-tail),
