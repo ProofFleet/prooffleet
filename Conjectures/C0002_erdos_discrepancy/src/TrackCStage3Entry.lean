@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
 
 /-!
 # Track C: Stage 3 entry point (Tao 2015 plane)
@@ -171,22 +172,6 @@ theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
   exact
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
-
-/-- Positive-length witness variant of `stage3_forall_exists_discrepancy_gt`.
-
-Since `discrepancy f d 0 = 0`, any witness with `discrepancy f d n > C` can be taken with `n > 0`.
-
-We prove this by routing through the nucleus witness form
-`stage3_forall_exists_d_pos_witness_pos`.
--/
-theorem stage3_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  rcases stage3_forall_exists_d_pos_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
-  refine ⟨d, n, hd, hn, ?_⟩
-  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
-  change Int.natAbs (apSum f d n) > C
-  exact hw
 
 /-- Consumer-facing shortcut: Stage 3 yields unboundedness of the bundled offset discrepancy family
 `discOffset f d m` at the deterministic parameters produced by the pipeline.
