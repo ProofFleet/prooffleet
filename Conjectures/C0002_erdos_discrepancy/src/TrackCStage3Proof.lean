@@ -179,8 +179,8 @@ Note: the global witness-form wrappers
   stage3_forall_exists_d_pos_witness_pos
   stage3_forall_exists_d_ne_zero_witness_pos
 
-are defined in `TrackCStage3Entry.lean` so hard-gate consumers can use them without importing this
-larger convenience-lemma file.
+are available from `TrackCStage3Entry.lean` (which re-exports the hard-gate core) so consumers can
+use them without importing this larger convenience-lemma file.
 
 Since this module imports `TrackCStage3Entry`, those lemmas are available automatically here.
 -/
