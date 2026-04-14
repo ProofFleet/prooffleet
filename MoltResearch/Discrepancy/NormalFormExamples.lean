@@ -87,6 +87,33 @@ example (d m : ℕ) : apSupport d m (0 + 1) = insert ((m + 0 + 1) * d) (∅) := 
   simpa using (apSupport_add_one (d := d) (m := m) (n := 0))
 
 /-!
+### NEW (Track B): `apSupport` simp/coherence (start-shift, dilation, membership)
+
+These are compile-only regression tests ensuring the “support finset” API can be used without
+unfolding.
+-/
+
+example (d m n : ℕ) : apSupport d (m + 0) n = apSupport d m n := by
+  simp
+
+example (d m n : ℕ) : apSupport (d * 1) m n = apSupport d m n := by
+  simp
+
+example (d m n k : ℕ) : apSupport d (m + k) n = (apSupport d m n).image (fun x => x + k * d) := by
+  simpa using (apSupport_add_left (d := d) (m := m) (n := n) (k := k))
+
+example (d m n q : ℕ) : apSupport (d * q) m n = (apSupport d m n).image (fun x => x * q) := by
+  simpa using (apSupport_mul_right (d := d) (m := m) (n := n) (q := q))
+
+example (d m n : ℕ) :
+    ((m + 0 + 1) * d) ∈ apSupport d m (n + 1) := by
+  -- `mem_apSupport_iff` is the unfold-free membership interface.
+  have : ∃ i, i < n + 1 ∧ ((m + 0 + 1) * d) = (m + i + 1) * d := by
+    refine ⟨0, Nat.succ_pos _, ?_⟩
+    simp
+  exact (mem_apSupport_iff (d := d) (m := m) (n := n + 1) (x := (m + 0 + 1) * d)).2 this
+
+/-!
 ### NEW (Track B): `discOffsetUpTo` degenerate-parameter simp coherence
 
 Compile-only regression tests ensuring the “degenerate parameter” simp lemmas stay one-liners.

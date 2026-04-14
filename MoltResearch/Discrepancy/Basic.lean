@@ -253,6 +253,24 @@ lemma mem_apSupport_of_lt {i d m n : ℕ} (hi : i < n) :
   refine Finset.mem_image.2 ?_
   exact ⟨i, Finset.mem_range.2 hi, rfl⟩
 
+/-!
+### Membership characterization (Track B)
+
+This is a small “unfold-free” interface lemma for the `apSupport` support finset.
+
+We do *not* mark it `[simp]` to avoid loops with `Finset.mem_image`.
+-/
+
+lemma mem_apSupport_iff {d m n x : ℕ} :
+    x ∈ apSupport d m n ↔ ∃ i, i < n ∧ x = (m + i + 1) * d := by
+  unfold apSupport
+  constructor
+  · intro hx
+    rcases Finset.mem_image.1 hx with ⟨i, hi, rfl⟩
+    exact ⟨i, Finset.mem_range.1 hi, rfl⟩
+  · rintro ⟨i, hi, rfl⟩
+    exact Finset.mem_image.2 ⟨i, Finset.mem_range.2 hi, rfl⟩
+
 /-- Monotonicity in the length parameter: the accessed-index set can only grow when `n` increases.
 
 (Track B normal-form checklist item: support monotonicity API.)
@@ -388,6 +406,22 @@ lemma apSupport_mul_right (d m n q : ℕ) :
     refine Finset.mem_image.2 ?_
     refine ⟨i, hi, ?_⟩
     simp [Nat.mul_assoc]
+
+/-! ### Degenerate-parameter simp lemmas (Track B)
+
+These provide a small simp surface so “start-shift” and “dilation” bookkeeping doesn't force
+unfolding `apSupport`.
+
+We keep them minimal to avoid simp loops.
+-/
+
+@[simp] lemma apSupport_add_left_zero (d m n : ℕ) :
+    apSupport d (m + 0) n = apSupport d m n := by
+  simpa using (apSupport_add_left (d := d) (m := m) (n := n) (k := 0))
+
+@[simp] lemma apSupport_mul_right_one (d m n : ℕ) :
+    apSupport (d * 1) m n = apSupport d m n := by
+  simpa [Nat.mul_one] using (apSupport_mul_right (d := d) (m := m) (n := n) (q := 1))
 
 /-!
 ### “Contracted support” API (Track B)
