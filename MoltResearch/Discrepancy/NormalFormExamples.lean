@@ -50,6 +50,17 @@ example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
   simpa [discOffset_const_one]
 
 /-!
+### NEW (Track B): support-level congruence for `discOffset`
+
+Regression: if two sequences agree on `apSupport d m n`, then the discrepancy wrapper agrees.
+This should remain a one-line `simpa` under `import MoltResearch.Discrepancy`.
+-/
+
+example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
+    discOffset f d m n = discOffset g d m n := by
+  simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
+/-!
 ### NEW (Track B): `discOffsetUpTo` degenerate-parameter simp coherence
 
 Compile-only regression tests ensuring the “degenerate parameter” simp lemmas stay one-liners.
