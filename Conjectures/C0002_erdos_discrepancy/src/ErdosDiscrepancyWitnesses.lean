@@ -103,6 +103,16 @@ theorem erdos_discrepancy_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) 
     (Tao2015.Stage3Output.forall_exists_discrepancy_gt (f := f)
       (Tao2015.stage3Out (f := f) (hf := hf)))
 
+/-- Variant of `erdos_discrepancy_discrepancy` writing the step-size side condition as `d ≥ 1`.
+
+Many later analytic stages prefer `d ≥ 1` rather than `d > 0` when working with `Nat` step sizes.
+-/
+theorem erdos_discrepancy_discrepancy_d_ge_one (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ discrepancy f d n > C := by
+  simpa using
+    (Tao2015.Stage3Output.forall_exists_discrepancy_gt_d_ge_one (f := f)
+      (Tao2015.stage3Out (f := f) (hf := hf)))
+
 /-- Strengthened witness form of `erdos_discrepancy_discrepancy` with a positive-length witness.
 
 This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
