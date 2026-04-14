@@ -374,7 +374,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `discOffset f d m n` by the sum of the residue-class discrepancies produced by the split-equality lemma,
   with a stable regression example under `import MoltResearch.Discrepancy`.
 
-- [ ] Shift–dilation coherence lemma: prove a preferred commutation lemma stating that “shift the sequence” and
+- [x] Shift–dilation coherence lemma: prove a preferred commutation lemma stating that “shift the sequence” and  (implemented in `MoltResearch/Discrepancy/Basic.lean` as `apSumOffset_shift_mul_right_comm` / `discOffset_shift_mul_right_comm`; regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`)
   “pull a common factor into the step” commute in the nucleus API (for `apSumOffset` and `discOffset`),
   so normalization pipelines can reorder these steps without manual algebra.
 
