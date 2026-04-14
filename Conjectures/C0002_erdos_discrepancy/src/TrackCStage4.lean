@@ -61,6 +61,16 @@ theorem unboundedDiscOffset (out : Stage4Output f) :
     UnboundedDiscOffset f out.out2.d out.out2.m := by
   simpa using (out.out2.unboundedDiscOffset (f := f))
 
+/-- Positive-length witness form: Stage 4 yields arbitrarily large bundled offset discrepancies
+`discOffset f out.out2.d out.out2.m n`, with witnesses `n > 0`.
+
+This is a thin wrapper around the proved Stage-2 core lemma
+`Stage2Output.forall_exists_discOffset_gt'_witness_pos`.
+-/
+theorem forall_exists_discOffset_gt'_witness_pos (out : Stage4Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f out.out2.d out.out2.m n > B := by
+  simpa using (out.out2.forall_exists_discOffset_gt'_witness_pos (f := f))
+
 /-- Stage 4 output already carries the Stage-3 conclusion `¬ BoundedDiscrepancy f`. -/
 theorem notBounded (out : Stage4Output f) : ¬ BoundedDiscrepancy f :=
   out.out3.notBounded
