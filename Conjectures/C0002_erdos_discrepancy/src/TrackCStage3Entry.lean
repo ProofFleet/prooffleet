@@ -161,19 +161,8 @@ Most of these are intentionally kept out of the hard-gate core module.
 -- The common variants `stage3_forall_exists_d_pos_witness_pos` and
 -- `stage3_forall_exists_d_ne_zero_witness_pos` live here to keep the hard-gate core minimal.
 
-/-- Consumer-facing shortcut: Stage 3 yields the discrepancy witness form
-
-`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
-
-This is obtained from `stage3_forall_hasDiscrepancyAtLeast` via
-`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
--/
-theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
-  intro C
-  exact
-    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
-      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
+-- The discrepancy witness normal form `stage3_forall_exists_discrepancy_gt` lives in
+-- `TrackCStage3EntryCore.lean` (hard-gate surface).
 
 /-- Variant of `stage3_forall_exists_d_ge_one_witness_pos` with strict positivity for the step size.
 

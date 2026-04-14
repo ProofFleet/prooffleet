@@ -12,6 +12,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - `stage3` / `stage3Out` : produce a `Stage3Output f` from a sign sequence `f`
 - `stage3_notBounded` : close the core goal `¬ BoundedDiscrepancy f`
 - `stage3_forall_hasDiscrepancyAtLeast` : the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`
+- `stage3_forall_exists_discrepancy_gt` : discrepancy witness form
+  `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
 - `stage3_forall_exists_d_ge_one_witness_pos` : the pipeline-friendly nucleus witness normal form
   `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`
 
@@ -62,6 +64,20 @@ This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
 theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf))
+
+/-- Consumer-facing shortcut: Stage 3 yields the discrepancy witness form
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is obtained from `stage3_forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
 
 /-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
 
