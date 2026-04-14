@@ -50,6 +50,19 @@ example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
   simpa [discOffset_const_one]
 
 /-!
+### NEW (Track B): shift–dilation coherence (`apSumOffset`/`discOffset`)
+
+Compile-only regression: the nucleus normal-form pipeline should be able to reorder
+“push offset into the summand” and “pull a factor into the step” without manual algebra.
+-/
+
+example :
+    discOffset (fun k => f (k * p)) d m n =
+      Int.natAbs (apSum (fun k => f (k + m * (d * p))) (d * p) n) := by
+  simpa using
+    (discOffset_shift_mul_right_comm (f := f) (d := d) (m := m) (n := n) (q := p))
+
+/-!
 ### NEW (Track B): support-level congruence for `discOffset`
 
 Regression: if two sequences agree on `apSupport d m n`, then the discrepancy wrapper agrees.

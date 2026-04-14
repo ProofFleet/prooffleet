@@ -177,6 +177,54 @@ lemma apSumOffset_eq_apSum_shift_mul (f : ℕ → ℤ) (d m n : ℕ) :
     simpa [hmul, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
   simpa [h]
 
+/-!
+### Shift–dilation coherence (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Shift–dilation coherence lemma.
+
+These lemmas package the arithmetic needed to freely reorder the two most common
+normal-form rewrites:
+- “shift the sequence” (push the offset `m*d` into the summand), and
+- “pull a common factor into the step” (contract a `q` into the step).
+
+They are deliberately phrased so downstream proofs can use them with `simp`/`simpa`
+without redoing the algebra.
+-/
+
+/-- Shift–dilation coherence for `apSum`.
+
+Rewriting by shifting first and then contracting a common factor into the step agrees with
+contracting first (which scales the offset shift by `q`).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Shift–dilation coherence lemma.
+-/
+lemma apSum_shift_mul_right_comm (f : ℕ → ℤ) (d m n q : ℕ) :
+    apSum (fun k => f ((k + m * d) * q)) d n =
+      apSum (fun k => f (k + m * (d * q))) (d * q) n := by
+  unfold apSum
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- Compare summands at index `i`.
+  -- The two sampled indices are definitionally the same after reassociating:
+  -- `(((i+1)*d + m*d) * q) = (i+1)*(d*q) + m*(d*q)`.
+  simp [Nat.add_mul, Nat.mul_add, Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm,
+    Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-- Shift–dilation coherence for `apSumOffset`.
+
+This is the preferred “commutation lemma” used by the nucleus normal-form pipeline:
+first pushing the offset into the summand (shift) and then pulling a factor into the step (dilation)
+matches pulling the factor first.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Shift–dilation coherence lemma.
+-/
+lemma apSumOffset_shift_mul_right_comm (f : ℕ → ℤ) (d m n q : ℕ) :
+    apSumOffset (fun k => f (k * q)) d m n =
+      apSum (fun k => f (k + m * (d * q))) (d * q) n := by
+  -- Shift first, then use `apSum_shift_mul_right_comm`.
+  simpa [apSumOffset_eq_apSum_shift_mul] using
+    (apSum_shift_mul_right_comm (f := f) (d := d) (m := m) (n := n) (q := q))
+
 /-! ### Support finset for AP sums -/
 
 /-- `apSupport d m n` is the finite set of indices accessed by `apSumOffset f d m n`.
@@ -490,6 +538,16 @@ It is defined as the natural absolute value of `apSumOffset f d m n`.
 -/
 def discOffset (f : ℕ → ℤ) (d m n : ℕ) : ℕ :=
   Int.natAbs (apSumOffset f d m n)
+
+/-- Shift–dilation coherence for the discrepancy wrapper `discOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Shift–dilation coherence lemma.
+-/
+lemma discOffset_shift_mul_right_comm (f : ℕ → ℤ) (d m n q : ℕ) :
+    discOffset (fun k => f (k * q)) d m n =
+      Int.natAbs (apSum (fun k => f (k + m * (d * q))) (d * q) n) := by
+  unfold discOffset
+  simp [apSumOffset_shift_mul_right_comm]
 
 /-- `discOffset` on a constant sequence computes to `|n * c|` (independent of the offset `m` and step `d`).
 
