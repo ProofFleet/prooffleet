@@ -384,9 +384,12 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   plus rewrite helpers `apSupport_add_left`/`apSupport_mul_right`), with stable-surface regression examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Endpoint-normalization for `discOffset` witnesses: add a small family of simp-friendly lemmas normalizing common endpoint
+- [x] Endpoint-normalization for `discOffset` witnesses: add a small family of simp-friendly lemmas normalizing common endpoint
   algebra (`m+(n+k)`, `m+1+(n-1)`, etc.) into the exact shapes expected by the stable witness APIs (cut/split/affine-tail),
   reducing `simp` churn in large proofs.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `endpoints_lt_le_iff_mem_finset_Icc`,
+  `endpoints_lt_le_iff_succ_le_lt_succ`, plus small arithmetic helpers; stable-surface regression examples live in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 

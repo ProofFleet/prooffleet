@@ -1482,6 +1482,36 @@ lemma endpoints_lt_le_iff_succ_le_lt_succ (m n i : ℕ) :
     -- `i < m+n+1` iff `i ≤ m+n`.
     exact (Nat.lt_succ_iff).1 (by simpa [Nat.add_assoc] using h.2)
 
+/-!
+### Endpoint-normalization: small arithmetic simp helpers (Track B)
+
+These are intentionally tiny rewrite lemmas that steer `simp` towards the exact endpoint shapes
+that the stable witness APIs use (`m+1`, `m+n`, etc.).
+
+We only orient them towards a **right-associated** normal form to avoid simp loops.
+-/
+
+lemma add_assoc_right (m n k : ℕ) : m + (n + k) = m + n + k := by
+  simpa [Nat.add_assoc]
+
+lemma add_assoc_right' (m n k : ℕ) : (m + n) + k = m + n + k := by
+  rfl
+
+/-- Normalize the common upper-endpoint algebra `m+1+(n-1)` into `m+n` (for `n>0`). -/
+lemma add_one_add_pred_eq_add (m n : ℕ) (hn : 0 < n) : m + 1 + (n - 1) = m + n := by
+  cases n with
+  | zero => cases hn
+  | succ n =>
+      -- `Nat.succ` case: `n+1-1 = n`.
+      simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-- Variant of `add_one_add_pred_eq_add` with the trailing `+1` on the right. -/
+lemma add_pred_add_one_eq_add (m n : ℕ) (hn : 0 < n) : m + (n - 1) + 1 = m + n := by
+  cases n with
+  | zero => cases hn
+  | succ n =>
+      simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-- Range-form congruence lemma for `discOffset`.
 
 If `f` and `g` agree on every summation index `i ∈ Finset.range n` in the `range`-expanded normal
