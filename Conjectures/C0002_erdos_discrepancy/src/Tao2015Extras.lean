@@ -574,6 +574,19 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (out : Re
   simpa [gt_iff_lt] using
     (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) (out := out))
 
+/-- Witness-positive variant of `unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'`.
+
+Since `apSumFrom f (m*d) d 0 = 0`, the unboundedness witness length can always be taken positive.
+-/
+theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'_witness_pos
+    (out : ReductionOutput f) :
+    UnboundedDiscOffset f out.d out.m ↔
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+        Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > B) := by
+  simpa using
+    (Tao2015.unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'_witness_pos (f := f)
+      (d := out.d) (m := out.m))
+
 end ReductionOutput
 
 end Tao2015
