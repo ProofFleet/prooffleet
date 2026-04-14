@@ -74,6 +74,19 @@ example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
   simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
 /-!
+### NEW (Track B): `apSupport` simp/coherence (degenerate length)
+
+Regression: the support finset should simp cleanly when `n = 0`, and the `n+1` rewrite should
+reduce to inserting into `∅`.
+-/
+
+example (d m : ℕ) : apSupport d m 0 = ∅ := by
+  simp
+
+example (d m : ℕ) : apSupport d m (0 + 1) = insert ((m + 0 + 1) * d) (∅) := by
+  simpa using (apSupport_add_one (d := d) (m := m) (n := 0))
+
+/-!
 ### NEW (Track B): `discOffsetUpTo` degenerate-parameter simp coherence
 
 Compile-only regression tests ensuring the “degenerate parameter” simp lemmas stay one-liners.

@@ -241,6 +241,11 @@ the support still contains that index just once).
 def apSupport (d m n : ℕ) : Finset ℕ :=
   (Finset.range n).image (fun i => (m + i + 1) * d)
 
+/-- Degenerate case: no indices are accessed when `n = 0`. -/
+@[simp] lemma apSupport_zero (d m : ℕ) : apSupport d m 0 = ∅ := by
+  unfold apSupport
+  simp
+
 /-- If `i < n` then the corresponding index `(m + i + 1) * d` belongs to `apSupport d m n`. -/
 lemma mem_apSupport_of_lt {i d m n : ℕ} (hi : i < n) :
     (m + i + 1) * d ∈ apSupport d m n := by
