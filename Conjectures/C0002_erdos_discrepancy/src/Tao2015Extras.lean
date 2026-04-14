@@ -372,6 +372,21 @@ theorem not_exists_boundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (
     (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m)).symm.trans
       (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m))
 
+/-- Paper-notation normal form: the negation-normal-form boundedness statement
+`¬ ∃ B, BoundedDiscOffset f d m B` expressed using interval sums on `Icc (m+1) (m+n)`.
+
+This is the composition of `Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset` and
+`unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt'`.
+-/
+theorem not_exists_boundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ)
+    (d m : ℕ) :
+    (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔
+      (∀ B : ℕ, ∃ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m)).symm.trans
+      (unboundedDiscOffset_iff_forall_exists_natAbs_sum_Icc_offset_gt' (f := f) (d := d) (m := m))
+
 /-- Packaging: global bounded discrepancy gives a uniform bound for every bundled offset discrepancy family.
 
 This is the forward direction used implicitly in contrapositive arguments:
