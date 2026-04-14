@@ -148,21 +148,13 @@ theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
 /-!
 ## Witness-form corollaries
 
-These are intentionally kept out of the hard-gate core module.
+Most of these are intentionally kept out of the hard-gate core module.
+
+(The most pipeline-friendly variant `stage3_forall_exists_d_ge_one_witness_pos` lives in
+`TrackCStage3EntryCore.lean` so hard-gate consumers can access it without importing this file.)
 -/
 
-/-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
-
-`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
-
-This is a thin wrapper around the hard-gate lemma `stage3_forall_hasDiscrepancyAtLeast` via the
-global normal form lemma `forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos`.
--/
-theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  exact
-    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
-      (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
+-- (moved to `TrackCStage3EntryCore.lean`)
 
 /-- Variant of `stage3_forall_exists_d_ge_one_witness_pos` with strict positivity for the step size.
 
