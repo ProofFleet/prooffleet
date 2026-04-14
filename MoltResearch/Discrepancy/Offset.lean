@@ -336,7 +336,7 @@ This is oriented in the **normal-form direction** (paper notation → nucleus).
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — One-shot “normalization pipeline” wrapper.
 -/
-lemma natAbs_sum_Icc_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
+@[simp] lemma natAbs_sum_Icc_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
     Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
   simpa using
     (discOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)).symm
@@ -387,8 +387,9 @@ lemma discOffsetUpTo_eq_sup_Icc_endpoints (f : ℕ → ℤ) (d m N : ℕ) :
       constructor
       · exact Nat.le_add_right _ _
       · exact Nat.add_le_add_left hnle _
-    -- Reduce to the paper-interval form and discharge via `le_sup`.
-    simpa [discOffset_eq_natAbs_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    -- Discharge via `le_sup` at the endpoint `b = m+n`.
+    -- `simp` then normalizes the paper `Int.natAbs (Icc-sum)` expression back to `discOffset`.
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
       (Finset.le_sup (s := Finset.Icc m (m + N))
         (f := fun b => Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d))))
         hmem)
@@ -406,11 +407,12 @@ lemma discOffsetUpTo_eq_sup_Icc_endpoints (f : ℕ → ℤ) (d m N : ℕ) :
     have hrewrite :
         Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d))) =
           discOffset f d m (b - m) := by
-      -- `discOffset f d m (b-m)` is the paper interval with right endpoint `m+(b-m)=b`.
+      -- Normalize the endpoint `b` into the canonical `m + (b - m)` shape expected by the simp bridge.
       have hmadd : m + (b - m) = b := by
         simpa [Nat.add_comm] using (Nat.sub_add_cancel hmb)
-      -- Rewrite using `hmadd`.
-      simpa [discOffset_eq_natAbs_sum_Icc, hmadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+      -- Use the simp lemma at the canonical endpoint, then rewrite `m + (b - m) = b`.
+      simpa [hmadd, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+        (natAbs_sum_Icc_eq_discOffset (f := f) (d := d) (m := m) (n := b - m))
     -- Finish via `le_sup` in the original `range` finset.
     -- (Note: `le_sup` expects the function in the `sup` to match exactly.)
     simpa [hrewrite] using
@@ -451,8 +453,8 @@ lemma discOffsetUpTo_eq_sup_range_Icc (f : ℕ → ℤ) (d m N : ℕ) :
         (fun n => Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)))) := by
   classical
   unfold discOffsetUpTo
-  -- Rewrite each `discOffset` term into paper notation.
-  simpa [discOffset_eq_natAbs_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+  -- Rewrite each paper `Int.natAbs (Icc-sum)` term back into the nucleus wrapper `discOffset`.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
 /-- Paper↔nucleus bridge for `discOffsetUpTo` (endpoint style): rewrite the `Finset.range (N+1)`
 supremum in `discOffsetUpTo_eq_sup_range_Icc` as a supremum over `Finset.Icc 0 N`.
@@ -920,7 +922,7 @@ lemma discOffset_eq_natAbs_sum_Icc_mul_left (f : ℕ → ℤ) (d m n : ℕ) :
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Stable-surface export audit for
 paper-notation lemmas.
 -/
-lemma natAbs_sum_Icc_mul_left_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
+@[simp] lemma natAbs_sum_Icc_mul_left_eq_discOffset (f : ℕ → ℤ) (d m n : ℕ) :
     Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (d * i))) = discOffset f d m n := by
   simpa using
     (discOffset_eq_natAbs_sum_Icc_mul_left (f := f) (d := d) (m := m) (n := n)).symm

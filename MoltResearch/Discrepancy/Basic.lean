@@ -578,6 +578,7 @@ It is defined as the natural absolute value of `apSumOffset f d m n`.
 def discOffset (f : ℕ → ℤ) (d m n : ℕ) : ℕ :=
   Int.natAbs (apSumOffset f d m n)
 
+
 /-- Shift–dilation coherence for the discrepancy wrapper `discOffset`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Shift–dilation coherence lemma.
