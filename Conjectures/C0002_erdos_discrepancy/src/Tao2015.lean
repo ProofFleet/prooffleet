@@ -588,23 +588,14 @@ theorem unboundedDiscrepancyAlong_iff_core (g : ℕ → ℤ) (d : ℕ) :
 
 namespace UnboundedDiscrepancyAlong
 
-/-- Classical equivalence: unboundedness along `d` is the negation of boundedness along `d`. -/
+/-- Classical equivalence: unboundedness along `d` is the negation of boundedness along `d`.
+
+This is just `Tao2015.unboundedDiscrepancyAlong_iff_not_boundedDiscrepancyAlong`, restated in the
+namespaced form `UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong`.
+-/
 theorem iff_not_boundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) :
     UnboundedDiscrepancyAlong g d ↔ ¬ BoundedDiscrepancyAlong g d := by
-  classical
-  constructor
-  · intro hunb hb
-    rcases hb with ⟨B, hB⟩
-    rcases hunb B with ⟨n, hn⟩
-    exact (not_lt_of_ge (hB n)) hn
-  · intro hnb B
-    by_contra h
-    have hB : ∀ n : ℕ, discrepancy g d n ≤ B := by
-      intro n
-      refine le_of_not_gt ?_
-      intro hgt
-      exact h ⟨n, hgt⟩
-    exact hnb ⟨B, hB⟩
+  simpa using (Tao2015.unboundedDiscrepancyAlong_iff_not_boundedDiscrepancyAlong (g := g) (d := d))
 
 /-- Nucleus normal form: unboundedness along `d` means there is no uniform bound on
 `Int.natAbs (apSum g d n)`.
