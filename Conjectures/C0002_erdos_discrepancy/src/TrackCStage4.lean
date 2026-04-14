@@ -52,6 +52,15 @@ the nested record fields.
 abbrev out1 (out : Stage4Output f) : Tao2015.ReductionOutput f :=
   out.out3.out2.out1
 
+/-- Stage 4 output yields unboundedness of the bundled offset discrepancy family at the concrete
+Stage-2 parameters carried by Stage 4.
+
+This is a thin wrapper around the proved Stage-2 core lemma `Stage2Output.unboundedDiscOffset`.
+-/
+theorem unboundedDiscOffset (out : Stage4Output f) :
+    UnboundedDiscOffset f out.out2.d out.out2.m := by
+  simpa using (out.out2.unboundedDiscOffset (f := f))
+
 /-- Stage 4 output already carries the Stage-3 conclusion `¬ BoundedDiscrepancy f`. -/
 theorem notBounded (out : Stage4Output f) : ¬ BoundedDiscrepancy f :=
   out.out3.notBounded
