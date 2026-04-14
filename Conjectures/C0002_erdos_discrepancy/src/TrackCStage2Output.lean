@@ -256,6 +256,16 @@ theorem exists_params_forall_exists_discOffset_gt (out : Stage2Output f) :
   intro B
   simpa using out.forall_exists_discOffset_gt (f := f) B
 
+/-- Strengthening of `exists_params_forall_exists_discOffset_gt` with a positive-length witness.
+
+The witness length `n` cannot be `0`, since `discOffset ... 0 = 0`.
+-/
+theorem exists_params_forall_exists_discOffset_gt_witness_pos (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ B < discOffset f d m n) := by
+  refine ⟨out.d, out.m, out.hd, ?_⟩
+  intro B
+  simpa using out.forall_exists_discOffset_gt_witness_pos (f := f) B
+
 /-- Inequality-direction variant of `exists_params_forall_exists_discOffset_gt`, written as
 `discOffset f d m n > B`.
 
