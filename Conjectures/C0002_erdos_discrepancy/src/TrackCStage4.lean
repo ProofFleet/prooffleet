@@ -70,6 +70,19 @@ theorem forall_exists_d_ge_one_witness_pos (out : Stage4Output f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (out.forall_hasDiscrepancyAtLeast (f := f))
 
+/-- Variant of `forall_exists_d_ge_one_witness_pos` with the step-size condition written as
+`d > 0`.
+
+This is sometimes a more convenient normal form when downstream stages naturally assume `d ≠ 0`
+(or use lemmas phrased with strict positivity).
+-/
+theorem forall_exists_d_pos_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, ?_, hn, hw⟩
+  exact lt_of_lt_of_le Nat.zero_lt_one hd
+
 /-- Stage 4 output implies the explicit discrepancy witness normal form
 
 `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
@@ -157,6 +170,16 @@ This is the most pipeline-friendly surface statement for consuming Stage 4.
 theorem stage4_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
   exact (stage4Out (f := f) (hf := hf)).forall_exists_d_ge_one_witness_pos (f := f)
+
+/-- Consumer-facing shortcut: Stage 4 yields the nucleus witness form with strict positivity for
+`d`.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+-/
+theorem stage4_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_d_pos_witness_pos (f := f)
 
 /-- Consumer-facing shortcut: Stage 4 yields explicit discrepancy witnesses
 
