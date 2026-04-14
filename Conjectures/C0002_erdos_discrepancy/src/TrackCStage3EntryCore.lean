@@ -76,19 +76,6 @@ theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSign
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
 
-/-- Variant of `stage3_forall_exists_d_ge_one_witness_pos` with the step-size condition written as
-`d > 0`.
-
-Many later analytic stages prefer strict positivity for `Nat` step sizes.
--/
-theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  intro C
-  rcases stage3_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
-  refine ⟨d, n, ?_, hn, hw⟩
-  exact lt_of_lt_of_le Nat.zero_lt_one hd
-
-
 end Tao2015
 
 end MoltResearch
