@@ -33,4 +33,5 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `discOffsetUpTo f d m 0 = 0`
   - `discOffsetUpTo f d 0 N = discUpTo f d N`
   - step-one shift: `discOffsetUpTo f 1 m N = discUpTo (fun k => f (k + m)) 1 N`
+- **API note (shift–dilation coherence):** when you both (i) push an offset shift into the summand and (ii) pull a factor `q` into the step, use the commutation lemma `apSumOffset_shift_mul_right_comm` (and the wrapper `discOffset_shift_mul_right_comm`) to avoid redoing index algebra. Conceptually: “shift then dilate” = “dilate then shift (with scaled offset)”.
 - **Related tasks:** `T1_01`, `T1_07`, `T1_12`.
