@@ -51,6 +51,18 @@ layer `TrackCStage3Entry` just to access this definitional rewrite.
     (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
   rfl
 
+/-- The Stage-1 reduction output stored inside `stage3Out` is definitionally the Stage-1 reduction
+output produced by Stage 2.
+
+This lemma is tiny but useful for rewriting when shuttling statements between Stage 1 and Stage 3.
+
+We keep it in the hard-gate core so consumers don't need to import the larger Stage-3 convenience
+layer `TrackCStage3Entry` just to access this definitional rewrite.
+-/
+@[simp] theorem stage3Out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2.out1 = (stage2Out (f := f) (hf := hf)).out1 := by
+  rfl
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate core so `ErdosDiscrepancy.lean` can remain minimal.
