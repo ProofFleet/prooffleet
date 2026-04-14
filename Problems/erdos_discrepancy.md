@@ -370,7 +370,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumOffset f d m (r*(n+1))` (and the homogeneous `apSum` analogue) as a `Finset.range r` sum of residue blocks at step `r*d`, in a single `rw` away from nucleus terms.
   (Implemented as `apSum_mul_len_succ_eq_sum_range` and `apSumOffset_mul_len_succ_eq_sum_range` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Residue-class splitting (disc-level, inequality wrapper): package the triangle-inequality corollary bounding
+- [x] Residue-class splitting (disc-level, inequality wrapper): package the triangle-inequality corollary bounding
   `discOffset f d m n` by the sum of the residue-class discrepancies produced by the split-equality lemma,
   with a stable regression example under `import MoltResearch.Discrepancy`.
 

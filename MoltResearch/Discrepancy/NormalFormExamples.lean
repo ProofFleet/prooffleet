@@ -275,6 +275,20 @@ example (q : ℕ) : apSumFrom (fun t => f (t * q)) a d n = apSumFrom f (a * q) (
   simpa using (apSumFrom_map_mul_right (f := f) (q := q) (a := a) (d := d) (n := n))
 
 /-!
+### NEW (Track B): residue-class splitting (disc-level inequality wrapper)
+
+Compile-only regression: the inequality wrapper should be usable under the stable surface
+`import MoltResearch.Discrepancy`.
+-/
+
+example (q : ℕ) (hq : q > 0) :
+    discOffset f d m (q * (n + 1)) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n)) := by
+  simpa using
+    (discOffset_mul_len_succ_le_sum_range_natAbs (f := f) (d := d) (m := m) (q := q) (n := n) hq)
+
+/-!
 ### Regression: linearity normal forms (Track B / sum-level)
 
 These should stay one-liners: pushing `+`/`-` out of `apSum`/`apSumOffset`.
