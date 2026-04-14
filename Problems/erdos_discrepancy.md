@@ -354,6 +354,34 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `IsSignSequence.discOffset_le_add` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression
   example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Support-level congruence for `discOffset`: package a stable lemma
+  `discOffset f d m n = discOffset g d m n` assuming `f` and `g` agree on the image set `apSupport d m n`,
+  so downstream proofs can avoid translating hypotheses into `Finset.range` statements.
+
+- [ ] Reflection normal form (disc-level): derive a clean lemma showing `discOffset` is invariant under reflecting the range
+  (`i ↦ n-1-i`) using the existing `apSumOffset_eq_sum_range_reflect` infrastructure, and add a stable-surface regression example.
+
+- [ ] Residue-class splitting (sum-level, equality): add a canonical equality rewriting
+  `apSumOffset f d m n` as a finite sum over residues mod `r` of reindexed `apSumOffset`/`apSum` terms at step `d*r`
+  (choose one preferred normal form/orientation), so later mod-splitting arguments are one `rw` away from nucleus terms.
+
+- [ ] Residue-class splitting (disc-level, inequality wrapper): package the triangle-inequality corollary bounding
+  `discOffset f d m n` by the sum of the residue-class discrepancies produced by the split-equality lemma,
+  with a stable regression example under `import MoltResearch.Discrepancy`.
+
+- [ ] Shift–dilation coherence lemma: prove a preferred commutation lemma stating that “shift the sequence” and
+  “pull a common factor into the step” commute in the nucleus API (for `apSumOffset` and `discOffset`),
+  so normalization pipelines can reorder these steps without manual algebra.
+
+- [ ] `apSupport` simp/coherence surface: add minimal simp lemmas and rewrite helpers for `apSupport` (degenerate `n=0`,
+  start-shift, dilation) so support-level congruence lemmas are ergonomic and don’t require unfolding.
+
+- [ ] Endpoint-normalization for `discOffset` witnesses: add a small family of simp-friendly lemmas normalizing common endpoint
+  algebra (`m+(n+k)`, `m+1+(n-1)`, etc.) into the exact shapes expected by the stable witness APIs (cut/split/affine-tail),
+  reducing `simp` churn in large proofs.
+
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
