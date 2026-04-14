@@ -174,6 +174,23 @@ theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
         (f := f) (d := out.d) (m := out.m)).1
       hunb
 
+/-- Tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail nuclei
+`Int.natAbs (apSumFrom f (out.m*out.d) out.d n)`.
+
+This is a small convenience wrapper around the generic normal-form lemma
+`Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`, specialized to
+the deterministic Stage-2 parameters.
+
+We keep it in `TrackCStage2Core.lean` so downstream stages can access the witness form without
+importing the larger convenience-lemma library `TrackCStage2Output.lean`.
+-/
+theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  simpa using
+    (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
+      (f := f) (d := out.d) (m := out.m) hunb)
+
 /-- Stage 2 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
 This is a thin wrapper around `notBoundedOriginal`.
