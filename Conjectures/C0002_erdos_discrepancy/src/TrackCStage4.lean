@@ -131,6 +131,18 @@ theorem forall_exists_sum_Icc_witness_pos (out : Stage4Output f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos f).1
       (out.forall_hasDiscrepancyAtLeast (f := f))
 
+/-- Variant of `forall_exists_sum_Icc_witness_pos` writing the step-size side condition as
+`d ≥ 1`.
+
+This is often the most readable paper-notation witness form when `d : ℕ`.
+-/
+theorem forall_exists_sum_Icc_d_ge_one_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
 end Stage4Output
 
 /-- Stage 4 main constructor (stub).
@@ -236,6 +248,16 @@ theorem stage4_forall_exists_sum_Icc_witness_pos (f : ℕ → ℤ) (hf : IsSignS
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
       Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
   exact (stage4Out (f := f) (hf := hf)).forall_exists_sum_Icc_witness_pos (f := f)
+
+/-- Variant of `stage4_forall_exists_sum_Icc_witness_pos` writing the step-size side condition as
+`d ≥ 1`.
+
+This is often the most readable surface form when `d : ℕ`.
+-/
+theorem stage4_forall_exists_sum_Icc_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_sum_Icc_d_ge_one_witness_pos (f := f)
 
 end Tao2015
 end MoltResearch
