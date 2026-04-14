@@ -76,6 +76,19 @@ theorem forall_exists_discrepancy_gt' (out : Stage2Output f) :
     (Tao2015.unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g := out.g) (d := out.d)).1
       out.unbounded
 
+/-- Positive-length witness form of `forall_exists_discrepancy_gt'`.
+
+The witness length `n` cannot be `0`, since `discrepancy ... 0 = 0`.
+-/
+theorem forall_exists_discrepancy_gt'_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discrepancy out.g out.d n > B := by
+  intro B
+  -- Delegate to the generic `UnboundedDiscrepancyAlong` witness-positivity lemma.
+  exact
+    (Tao2015.UnboundedDiscrepancyAlong.forall_exists_discrepancy_gt'_witness_pos
+        (g := out.g) (d := out.d) out.unbounded)
+      B
+
 /-- Equivalent packaging: arbitrarily large discrepancy witnesses along `out.d`. -/
 theorem forall_hasDiscrepancyAtLeastAlong (out : Stage2Output f) :
     ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
