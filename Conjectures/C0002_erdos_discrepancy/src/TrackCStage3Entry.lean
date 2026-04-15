@@ -227,6 +227,23 @@ theorem stage3_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : 
     UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos (f := f)
       (d := stage3_d (f := f) (hf := hf)) (m := stage3_m (f := f) (hf := hf)) hunb
 
+/-- Existential packaging version of `stage3_forall_exists_discOffset_gt'_witness_pos`.
+
+Normal form:
+`∀ B, ∃ d m n, 1 ≤ d ∧ n > 0 ∧ discOffset f d m n > B`.
+
+This is a lightweight convenience wrapper: it bundles the deterministic parameters produced by the
+pipeline (`stage3_d`, `stage3_m`) together with the witness `n`.
+-/
+theorem stage3_forall_exists_params_one_le_discOffset_gt'_witness_pos
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ d m n : ℕ, 1 ≤ d ∧ n > 0 ∧ discOffset f d m n > B := by
+  intro B
+  rcases stage3_forall_exists_discOffset_gt'_witness_pos (f := f) (hf := hf) B with ⟨n, hn, hgt⟩
+  refine ⟨stage3_d (f := f) (hf := hf), stage3_m (f := f) (hf := hf), n, ?_, hn, ?_⟩
+  · exact stage3_one_le_d (f := f) (hf := hf)
+  · simpa using hgt
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 
