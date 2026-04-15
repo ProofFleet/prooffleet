@@ -140,6 +140,9 @@ example (d m n i : ℕ) (hd : d > 0) :
 example (d m n : ℕ) (hd : d > 0) : (apSupport d m n).card = n := by
   simpa using (card_apSupport (d := d) (m := m) (n := n) hd)
 
+example (d m n k : ℕ) : apSupport d m n ⊆ apSupport d m (n + k) := by
+  simpa using (apSupport_mono_right (d := d) (m := m) (n := n) (k := k))
+
 -- Paper-endpoint bridge: membership can be rewritten into the `(m<i≤m+n)` witness form.
 example (d m n x : ℕ) :
     x ∈ apSupport d m n ↔ ∃ i, m < i ∧ i ≤ m + n ∧ x = i * d := by

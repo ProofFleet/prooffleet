@@ -399,8 +399,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `mem_apSupport` / `mem_apSupport_iff_exists_endpoints`, with regression in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `apSupport` size/monotonicity API: assuming `d > 0`, prove `Finset.card (apSupport d m n) = n` (no collisions) and
+- [x] `apSupport` size/monotonicity API: assuming `d > 0`, prove `Finset.card (apSupport d m n) = n` (no collisions) and
   `apSupport d m n ⊆ apSupport d m (n+k)`; add a stable-surface regression example under `import MoltResearch.Discrepancy`.
+  (Implemented as `card_apSupport` / `apSupport_mono_right` in `MoltResearch/Discrepancy/Basic.lean`, with regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Support-level congruence (sum-level): complement `discOffset_congr_support` with an `apSumOffset_congr_support` lemma
   `apSumOffset f d m n = apSumOffset g d m n` assuming `∀ x ∈ apSupport d m n, f x = g x`,
