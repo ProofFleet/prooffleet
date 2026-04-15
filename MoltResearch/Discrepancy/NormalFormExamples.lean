@@ -1005,6 +1005,24 @@ example :
     (IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le
       (hf := hf) (hg := hg) (d := 1) (m := 2) (n := 5) (t := 1) (by decide) ht)
 
+/-!
+### NEW (Track B): support + edit pipeline (stable-surface starter pattern)
+
+This is the “generic” version of the common workflow:
+
+1. you have two sign sequences `f, g`;
+2. you know they differ on at most `t` points of the accessed-index finset `apSupport d m n`;
+3. you conclude `discOffset f d m n ≤ discOffset g d m n + 2*t`.
+
+It is intentionally a one-line `simpa` application of the stable-surface wrapper lemma.
+-/
+example (g : ℕ → ℤ) (hf : IsSignSequence f) (hg : IsSignSequence g)
+    (t : ℕ) (ht : ((apSupport d m n).filter (fun x => f x ≠ g x)).card ≤ t) :
+    discOffset f d m n ≤ discOffset g d m n + 2 * t := by
+  simpa using
+    (IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le
+      (hf := hf) (hg := hg) (d := d) (m := m) (n := n) (t := t) (by decide) ht)
+
 -- Regression (Track B / bounded-perturbation stability, `apSupport` form):
 -- a non-sign-sequence perturbation (values in `{0,2}`) still yields the same `+ 2*t` bound
 -- when we assume the pointwise `Int.natAbs (f x - g x) ≤ 2` hypothesis on `apSupport`.
