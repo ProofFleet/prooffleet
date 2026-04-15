@@ -416,9 +416,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `apSumOffset_congr_endpoints` / `discOffset_congr_endpoints` in `MoltResearch/Discrepancy/Basic.lean`,
   with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `apSumOffset` two-cut normal form: add a canonical lemma splitting at *two* interior cuts
+- [x] `apSumOffset` two-cut normal form: add a canonical lemma splitting at *two* interior cuts
   (e.g. `n = a + b + c`) and rewriting all three pieces back to nucleus `apSumOffset` form, so later proofs can do
   “middle block surgery” without dropping to `Finset.sum` algebra.
+  (Implemented as `apSumOffset_add_len_add_len` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression
+  examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffset` reverse triangle bounds: complement `discOffset_add_le` with packaged “reverse triangle” corollaries
   like `discOffset f d m (n+k) + discOffset f d (m+n) k ≥ discOffset f d m n` (in the repo’s preferred inequality orientation),
