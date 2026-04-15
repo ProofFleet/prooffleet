@@ -76,10 +76,10 @@ theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
     MoltResearch.UnboundedDiscrepancyAlong
       (stage3Out (f := f) (hf := hf)).out2.out1.g
       (stage3Out (f := f) (hf := hf)).out2.out1.d := by
-  set out := stage3Out (f := f) (hf := hf) with hout
+  let out : Stage3Output f := stage3Out (f := f) (hf := hf)
   have hunb : Tao2015.UnboundedDiscrepancyAlong out.out2.out1.g out.out2.out1.d :=
     out.out2.unbounded
-  simpa [hout.symm] using
+  simpa [out] using
     (Tao2015.unboundedDiscrepancyAlong_iff_core (g := out.out2.out1.g) (d := out.out2.out1.d)).1
       hunb
 

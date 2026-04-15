@@ -98,7 +98,7 @@ theorem forall_hasDiscrepancyAtLeastAlong (out : Stage2Output f) :
           (g := out.g) (d := out.d)).2
       out.unbounded
 
--- (moved to `TrackCStage2Core.lean`)
+-- Note: this lemma is part of the larger Stage-2 convenience layer (not imported by the hard-gate build).
 
 /-- Tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail sums
 `apSumFrom f (m*d) d n`.
@@ -114,14 +114,14 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
   simpa using
     (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 out.unbounded
 
--- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`)
+-- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
 /-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
   exact (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
     (g := out.g) (d := out.d)).1 out.unbounded
 
--- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`)
+-- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
 /-- Consumer-facing form: Stage 2 unboundedness transferred back to the original sequence as an
 unbounded **offset discrepancy** witness.
@@ -171,7 +171,7 @@ is proved in `TrackCStage2Core.lean` so downstream stages can use it without imp
 convenience-lemma file.
 -/
 
--- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`)
+-- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
 /-- Negation-normal-form unboundedness statement for the bundled offset discrepancies
 `discOffset f out.d out.m`.
