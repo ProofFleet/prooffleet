@@ -89,6 +89,14 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf))
 
+/-- Specialization of `stage3_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
+
+This is a tiny convenience lemma: it avoids an extra application at the call site.
+-/
+theorem stage3_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (C : ℕ) :
+    HasDiscrepancyAtLeast f C := by
+  exact (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
+
 /-- Stage 3 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such that the bundled offset
 discrepancy family `discOffset f d m` is unbounded.
 
