@@ -1,4 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal
 
 /-!
 A conjecture-style stub for the Erdős discrepancy theorem (Tao 2015).
