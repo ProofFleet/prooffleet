@@ -120,6 +120,21 @@ theorem g_eq_fun (out : Stage2Output f) :
   funext k
   simpa using out.g_eq_start (f := f) k
 
+/-- The reduced-sequence homogeneous nucleus is the original-sequence affine nucleus at the bundled
+start index `out.start`.
+
+Concretely, `apSum out.g out.d n` sums `out.g` along `out.d, 2*out.d, …, n*out.d`, and since
+`out.g k = f (k + out.start)`, this is exactly `apSumFrom f out.start out.d n`.
+-/
+theorem apSum_g_eq_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
+    apSum out.g out.d n = apSumFrom f out.start out.d n := by
+  unfold apSum apSumFrom
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `out.g` is `f` shifted by `out.start`.
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (out.g_eq_start (f := f) ((i + 1) * out.d))
+
 /-- Convenience projection: positivity of the reduced step size. -/
 abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 
