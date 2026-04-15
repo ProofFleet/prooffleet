@@ -391,6 +391,38 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `endpoints_lt_le_iff_succ_le_lt_succ`, plus small arithmetic helpers; stable-surface regression examples live in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] `apSupport` image membership normal form: add simp-friendly lemmas characterizing membership
+  `x ∈ apSupport d m n` in terms of an explicit witness `i < n` with `x = (m + i + 1) * d` (and the equivalent `m < i ∧ i ≤ m+n` paper-endpoint form),
+  so later proofs can move between set-level hypotheses and range/Icc hypotheses without unfolding.
+
+- [ ] `apSupport` size/monotonicity API: assuming `d > 0`, prove `Finset.card (apSupport d m n) = n` (no collisions) and
+  `apSupport d m n ⊆ apSupport d m (n+k)`; add a stable-surface regression example under `import MoltResearch.Discrepancy`.
+
+- [ ] Support-level congruence (sum-level): complement `discOffset_congr_support` with an `apSumOffset_congr_support` lemma
+  `apSumOffset f d m n = apSumOffset g d m n` assuming `∀ x ∈ apSupport d m n, f x = g x`,
+  so downstream code can rewrite sums using “agree on accessed indices” hypotheses directly.
+
+- [ ] “Agree on accessed indices” (paper-level wrapper): package a wrapper lemma accepting hypotheses of the form
+  `∀ i, m < i ∧ i ≤ m+n → f (i*d) = g (i*d)` and discharging to the support-level congruence facts (sum + disc),
+  avoiding any explicit mention of `Finset.range`/`Finset.Icc` in the statement.
+
+- [ ] `apSumOffset` two-cut normal form: add a canonical lemma splitting at *two* interior cuts
+  (e.g. `n = a + b + c`) and rewriting all three pieces back to nucleus `apSumOffset` form, so later proofs can do
+  “middle block surgery” without dropping to `Finset.sum` algebra.
+
+- [ ] `discOffset` reverse triangle bounds: complement `discOffset_add_le` with packaged “reverse triangle” corollaries
+  like `discOffset f d m (n+k) + discOffset f d (m+n) k ≥ discOffset f d m n` (in the repo’s preferred inequality orientation),
+  so later arguments can lower-bound a piece by the whole minus the other piece in one lemma.
+
+- [ ] Stable-surface “support + edit” pipeline example: add a compile-only example showing the common pattern
+  “assume two sequences agree on `apSupport` outside a small set → apply edit-sensitivity → conclude a `discOffset` bound”,
+  wired into `SurfaceAudit`.
+
+- [ ] API coherence: add a minimal simp lemma set that normalizes `apSupport`/`apSumOffset`/`discOffset` under the most common
+  degenerate parameters (`m=0`, `d=1`, `k=0`, nested `m+(n+k)` arithmetic) in the stable import surface, with 2–3 tiny regression examples.
+
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
