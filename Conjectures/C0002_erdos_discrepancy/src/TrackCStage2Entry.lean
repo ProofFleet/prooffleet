@@ -8,7 +8,8 @@ This file is **Conjectures-only** glue.
 It contains only:
 - the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`, `stage2_start`, and
 - the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`,
-  `stage2_start_eq_m_mul_d`, `stage2_d_dvd_start`, `stage2_start_mod_d`, `stage2_hg`,
+  `stage2_start_eq_m_mul_d`, `stage2_d_dvd_start`, `stage2_start_mod_d`,
+  `stage2_add_start_mod_d`, `stage2_start_add_mod_d`, `stage2_start_div_d`, `stage2_hg`,
   `stage2_g_eq`, `stage2_g_eq_fun`.
 
 The conjecture stub itself (`stage2` and the deterministic name `stage2Out`) lives in
@@ -98,6 +99,12 @@ theorem stage2_add_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : �
   have hstart : stage2_start (f := f) (hf := hf) % stage2_d (f := f) (hf := hf) = 0 :=
     stage2_start_mod_d (f := f) (hf := hf)
   simp [Nat.add_mod, hstart]
+
+/-- Variant of `stage2_add_start_mod_d` with the start index on the left. -/
+theorem stage2_start_add_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (stage2_start (f := f) (hf := hf) + n) % stage2_d (f := f) (hf := hf) =
+      n % stage2_d (f := f) (hf := hf) := by
+  simpa [Nat.add_comm] using stage2_add_start_mod_d (f := f) (hf := hf) (n := n)
 
 /-- Recover the offset parameter `stage2_m` by dividing the Stage-2 start index `stage2_start`
 by the reduced step size `stage2_d`.
