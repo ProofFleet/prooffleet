@@ -61,9 +61,11 @@ This is the `HasDiscrepancyAtLeastAlong` normal form of `unboundedReducedAlong`.
 -/
 theorem forall_hasDiscrepancyAtLeastAlong (out : Stage3Output f) :
     ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
-  -- `UnboundedDiscrepancyAlong` is definitionally `∀ C, HasDiscrepancyAtLeastAlong ... C`.
-  simpa [Tao2015.UnboundedDiscrepancyAlong, HasDiscrepancyAtLeastAlong, Stage3Output.g,
-    Stage3Output.d] using out.out2.unbounded
+  -- Package the definitional equivalence as a named lemma, avoiding repeated unfolding.
+  exact
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong
+          (g := out.g) (d := out.d)).2
+      out.unboundedReducedAlong
 
 /-- Stage 3 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by

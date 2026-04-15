@@ -92,8 +92,11 @@ theorem forall_exists_discrepancy_gt'_witness_pos (out : Stage2Output f) :
 /-- Equivalent packaging: arbitrarily large discrepancy witnesses along `out.d`. -/
 theorem forall_hasDiscrepancyAtLeastAlong (out : Stage2Output f) :
     ∀ C : ℕ, HasDiscrepancyAtLeastAlong out.g out.d C := by
-  -- `UnboundedDiscrepancyAlong` is definitionally `∀ C, HasDiscrepancyAtLeastAlong ... C`.
-  simpa [Tao2015.UnboundedDiscrepancyAlong, HasDiscrepancyAtLeastAlong] using out.unbounded
+  -- Package the definitional equivalence as a named lemma, avoiding repeated unfolding.
+  exact
+    (HasDiscrepancyAtLeastAlong.forall_hasDiscrepancyAtLeastAlong_iff_unboundedDiscrepancyAlong
+          (g := out.g) (d := out.d)).2
+      out.unbounded
 
 -- (moved to `TrackCStage2Core.lean`)
 
