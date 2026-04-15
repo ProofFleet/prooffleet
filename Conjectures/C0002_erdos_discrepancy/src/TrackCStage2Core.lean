@@ -68,6 +68,18 @@ theorem apSumFrom_start_eq_apSumOffset (out : Stage2Output f) (n : ℕ) :
   simpa [Stage2Output.start] using
     (apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
 
+/-- Normal form: the bundled offset discrepancy wrapper `discOffset f out.d out.m n` is the
+absolute value of the affine-tail nucleus `apSumFrom f out.start out.d n`.
+
+This lets later stages work directly with affine-tail nuclei (a common analytic normal form)
+without repeatedly rewriting `apSumOffset` or unfolding `discOffset`.
+-/
+theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
+    discOffset f out.d out.m n = Int.natAbs (apSumFrom f out.start out.d n) := by
+  unfold discOffset
+  -- Rewrite the bundled offset nucleus `apSumOffset` to the affine-tail nucleus `apSumFrom`.
+  rw [← out.apSumFrom_start_eq_apSumOffset (f := f) n]
+
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
   -- `out.start` is definitionally `m*d`.
