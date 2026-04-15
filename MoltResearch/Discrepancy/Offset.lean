@@ -203,6 +203,22 @@ lemma apSumOffset_eq_add_apSumOffset_cut (f : ℕ → ℤ) (d m n k : ℕ) (hk :
           -- Each block is exactly the stable `Finset.range` normal form of an `apSumOffset`.
           simp [apSumOffset_eq_sum_range']
 
+/-- Two-cut normal form for `apSumOffset`: split into three consecutive blocks.
+
+This is the length-based (canonical) version of “split at two interior cuts”:
+cut at length `n₁`, then at length `n₁+n₂`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSumOffset` two-cut normal form.
+-/
+lemma apSumOffset_add_len_add_len (f : ℕ → ℤ) (d m n₁ n₂ n₃ : ℕ) :
+    apSumOffset f d m (n₁ + n₂ + n₃) =
+      apSumOffset f d m n₁ + apSumOffset f d (m + n₁) n₂ + apSumOffset f d (m + n₁ + n₂) n₃ := by
+  -- Split off the last block `n₃`, then split the prefix into `n₁` and `n₂`.
+  have h₁ := apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁ + n₂) (n₂ := n₃)
+  have h₂ := apSumOffset_add_length (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+  -- `simp` uses `h₂` to expand the `(n₁+n₂)` prefix in `h₁`.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, h₂] using h₁
+
 /-- Difference normal form for `apSumOffset`: the tail after cutting at `k ≤ n`.
 
 This is the exact (non-`natAbs`) companion to `apSumOffset_eq_add_apSumOffset_cut`:
