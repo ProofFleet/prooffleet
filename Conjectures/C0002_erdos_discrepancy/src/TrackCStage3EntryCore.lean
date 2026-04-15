@@ -14,6 +14,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - `stage3_forall_hasDiscrepancyAtLeast` : the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`
 - `stage3_exists_params_one_le_unboundedDiscOffset` : existential packaging of the concrete Stage-2 parameters
   `∃ d m, 1 ≤ d ∧ UnboundedDiscOffset f d m`
+- `stage3_exists_params_unboundedDiscOffset` : same packaging with strict positivity for `d`
+  `∃ d m, d > 0 ∧ UnboundedDiscOffset f d m`
 - `stage3_forall_exists_discrepancy_gt` : discrepancy witness form
   `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
 - `stage3_forall_exists_discrepancy_gt_witness_pos` : discrepancy witness form with `n > 0`
@@ -116,6 +118,17 @@ theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
   let out := stage3Out (f := f) (hf := hf)
   refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
   exact out.out2.unboundedDiscOffset (f := f)
+
+/-- Variant of `stage3_exists_params_one_le_unboundedDiscOffset` with strict positivity for `d`.
+
+Normal form:
+`∃ d m, d > 0 ∧ UnboundedDiscOffset f d m`.
+-/
+theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
+  rcases stage3_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf) with ⟨d, m, hd, hU⟩
+  refine ⟨d, m, ?_, hU⟩
+  exact lt_of_lt_of_le Nat.zero_lt_one hd
 
 /-- Consumer-facing shortcut: Stage 3 yields the discrepancy witness form
 
