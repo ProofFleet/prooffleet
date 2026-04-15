@@ -430,7 +430,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `discOffset_left_le_add` / `discOffset_right_le_add`,
   with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface “support + edit” pipeline example: add a compile-only example showing the common pattern
+- [x] Stable-surface “support + edit” pipeline example: add a compile-only example showing the common pattern
   “assume two sequences agree on `apSupport` outside a small set → apply edit-sensitivity → conclude a `discOffset` bound”,
   wired into `SurfaceAudit`.
 
