@@ -137,6 +137,11 @@ example (d m n i : ℕ) (hd : d > 0) :
     (m + i + 1) * d ∈ apSupport d m n ↔ i < n := by
   simpa using (mem_apSupport_index_iff (d := d) (m := m) (n := n) (i := i) hd)
 
+-- Paper-endpoint bridge: membership can be rewritten into the `(m<i≤m+n)` witness form.
+example (d m n x : ℕ) :
+    x ∈ apSupport d m n ↔ ∃ i, m < i ∧ i ≤ m + n ∧ x = i * d := by
+  simpa using (mem_apSupport_iff_exists_endpoints (d := d) (m := m) (n := n) (x := x))
+
 /-!
 ### NEW (Track B): `discOffsetUpTo` degenerate-parameter simp coherence
 

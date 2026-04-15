@@ -309,6 +309,44 @@ finset reduces to the expected bound `i < n`.
   · intro hi
     exact mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) hi
 
+/-!
+### Paper-endpoint membership normal form (Track B)
+
+Many later arguments phrase “agreement on accessed indices” in the paper endpoint convention
+`m < i ∧ i ≤ m+n` for the *multiplier* index `i` (so the accessed sequence index is `i*d`).
+
+This lemma provides an unfold-free bridge between:
+- the nucleus support object `apSupport d m n`, and
+- the paper-style endpoint bounds.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupport` image membership normal form.
+-/
+
+lemma mem_apSupport_iff_exists_endpoints {d m n x : ℕ} :
+    x ∈ apSupport d m n ↔ ∃ i, m < i ∧ i ≤ m + n ∧ x = i * d := by
+  constructor
+  · intro hx
+    rcases (mem_apSupport_iff (d := d) (m := m) (n := n) (x := x)).1 hx with ⟨k, hk, rfl⟩
+    refine ⟨m + k + 1, ?_, ?_, rfl⟩
+    · -- `m < m+k+1`
+      have : m < m + (k + 1) := Nat.lt_add_of_pos_right (Nat.succ_pos k)
+      simpa [Nat.add_assoc] using this
+    · -- `m+k+1 ≤ m+n`
+      have hk' : k + 1 ≤ n := Nat.succ_le_of_lt hk
+      -- cancel the common `m`
+      have : m + (k + 1) ≤ m + n := Nat.add_le_add_left hk' m
+      simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+  · rintro ⟨i, hmi, hile, rfl⟩
+    -- Write `i = m + k + 1` using `m < i`.
+    rcases Nat.exists_eq_add_of_lt hmi with ⟨k, rfl⟩
+    -- From `m + k + 1 ≤ m + n` derive `k < n`.
+    have hk1 : k + 1 ≤ n := by
+      have : m + (k + 1) ≤ m + n := by
+        simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hile
+      exact Nat.add_le_add_iff_left.mp this
+    have hk : k < n := lt_of_lt_of_le (Nat.lt_succ_self k) hk1
+    exact mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := k) hk
+
 /-- Monotonicity in the length parameter: the accessed-index set can only grow when `n` increases.
 
 (Track B normal-form checklist item: support monotonicity API.)

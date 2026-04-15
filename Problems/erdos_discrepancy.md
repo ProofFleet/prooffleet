@@ -393,9 +393,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] `apSupport` image membership normal form: add simp-friendly lemmas characterizing membership
+- [x] `apSupport` image membership normal form: add simp-friendly lemmas characterizing membership
   `x ∈ apSupport d m n` in terms of an explicit witness `i < n` with `x = (m + i + 1) * d` (and the equivalent `m < i ∧ i ≤ m+n` paper-endpoint form),
   so later proofs can move between set-level hypotheses and range/Icc hypotheses without unfolding.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `mem_apSupport` / `mem_apSupport_iff_exists_endpoints`, with regression in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `apSupport` size/monotonicity API: assuming `d > 0`, prove `Finset.card (apSupport d m n) = n` (no collisions) and
   `apSupport d m n ⊆ apSupport d m (n+k)`; add a stable-surface regression example under `import MoltResearch.Discrepancy`.
