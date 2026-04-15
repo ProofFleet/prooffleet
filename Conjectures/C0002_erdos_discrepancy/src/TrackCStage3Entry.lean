@@ -155,51 +155,13 @@ Most of these are intentionally kept out of the hard-gate core module.
 `TrackCStage3EntryCore.lean` so hard-gate consumers can access it without importing this file.)
 -/
 
--- The nucleus witness normal form `stage3_forall_exists_d_ge_one_witness_pos` lives in
--- `TrackCStage3EntryCore.lean` (hard-gate surface).
+-- The hard-gate core module `TrackCStage3EntryCore.lean` already provides the key witness forms
+-- (nucleus and discrepancy versions, including witness-positivity variants).
 --
--- The common variants `stage3_forall_exists_d_pos_witness_pos` and
--- `stage3_forall_exists_d_ne_zero_witness_pos` live here to keep the hard-gate core minimal.
+-- This file keeps only additional convenience wrappers that are not part of the hard-gate core API.
 
 -- The discrepancy witness normal form `stage3_forall_exists_discrepancy_gt` lives in
 -- `TrackCStage3EntryCore.lean` (hard-gate surface).
-
-/-- Variant of `stage3_forall_exists_d_ge_one_witness_pos` with strict positivity for the step size.
-
-Normal form:
-`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
--/
-theorem stage3_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  intro C
-  rcases stage3_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf) C with
-    ⟨d, n, hd, hn, hw⟩
-  refine ⟨d, n, ?_, hn, hw⟩
-  exact lt_of_lt_of_le Nat.zero_lt_one hd
-
-/-- Variant of `stage3_forall_exists_d_pos_witness_pos` with the step-size condition written as
-`d ≠ 0`.
--/
-theorem stage3_forall_exists_d_ne_zero_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  intro C
-  rcases stage3_forall_exists_d_pos_witness_pos (f := f) (hf := hf) C with
-    ⟨d, n, hd, hn, hw⟩
-  exact ⟨d, n, Nat.ne_of_gt hd, hn, hw⟩
-
-/-- Discrepancy witness form of `stage3_forall_exists_d_pos_witness_pos`.
-
-Normal form:
-`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
--/
-theorem stage3_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  rcases stage3_forall_exists_d_pos_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
-  refine ⟨d, n, hd, hn, ?_⟩
-  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
-  change Int.natAbs (apSum f d n) > C
-  exact hw
 
 /-- Variant of `stage3_forall_exists_discrepancy_gt_witness_pos` with the step-size condition
 written as `d ≥ 1`.
@@ -277,17 +239,9 @@ theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignS
   · exact stage3_d_pos (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
-/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
-bundled offset discrepancy family `discOffset f d m` is unbounded.
-
-This is a minimal corollary of `stage3_unboundedDiscOffset` that many downstream consumers prefer
-when they only need the existence of some unbounded offset family.
--/
-theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
-  refine ⟨stage3_d (f := f) (hf := hf), stage3_m (f := f) (hf := hf), ?_, ?_⟩
-  · exact stage3_one_le_d (f := f) (hf := hf)
-  · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
+-- The existential packaging lemma with hypothesis `1 ≤ d`
+-- (stage3_exists_params_one_le_unboundedDiscOffset) is provided by
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
 
 end Tao2015
 
