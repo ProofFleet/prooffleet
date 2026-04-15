@@ -397,6 +397,19 @@ theorem not_exists_boundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt (
     (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m)).symm.trans
       (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt' (f := f) (d := d) (m := m))
 
+/-- Witness-positive variant of `not_exists_boundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt`.
+
+Since `apSumFrom f (m*d) d 0 = 0`, any unboundedness witness length can be taken positive.
+-/
+theorem not_exists_boundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'_witness_pos
+    (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > B) := by
+  simpa using
+    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m)).symm.trans
+      (unboundedDiscOffset_iff_forall_exists_natAbs_apSumFrom_mul_gt'_witness_pos (f := f) (d := d)
+        (m := m))
+
 /-- Paper-notation normal form: the negation-normal-form boundedness statement
 `¬ ∃ B, BoundedDiscOffset f d m B` expressed using interval sums on `Icc (m+1) (m+n)`.
 
