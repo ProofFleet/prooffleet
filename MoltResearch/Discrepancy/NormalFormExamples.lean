@@ -78,6 +78,27 @@ example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
   simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
 /-!
+### NEW (Track B): “support + edit” pipeline pattern
+
+A common workflow is:
+1. identify the finite “support” set `apSupport d m n`,
+2. define a modified sequence `g` by editing `f` *outside* (or inside) that support,
+3. rewrite `apSumOffset`/`discOffset` using the support-level congruence lemma.
+
+This example is compile-only and should remain a one-line `simp` proof under
+`import MoltResearch.Discrepancy`.
+-/
+
+example :
+    let g : ℕ → ℤ := fun x => if x ∈ apSupport d m n then f x else 0
+    discOffset f d m n = discOffset g d m n := by
+  intro g
+  refine discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) ?_
+  intro x hx
+  -- On the support, `g` agrees with `f` by construction.
+  simp [g, hx]
+
+/-!
 ### NEW (Track B): endpoint-normalization helpers for `discOffset` witnesses
 
 Regression: a common hypothesis shape is stated using finitary endpoint sets
