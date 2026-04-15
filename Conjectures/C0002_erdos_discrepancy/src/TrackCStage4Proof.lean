@@ -1,16 +1,193 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage4
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage4Core
 
 /-!
-# Track C — Stage 4 proof file (placeholder)
+# Track C — Stage 4 proof file (derived wrappers)
 
-This file is where Stage 4 will eventually carry the first nontrivial proof obligations.
+Stage 4 is meant to stay API + wiring. This file collects the derived witness-form wrappers that
+are convenient for downstream analytic stages.
 
-Guideline: keep Stage 4 boundary API small; put proofs here.
+Current policy: keep the Stage-4 boundary core minimal; put these wrappers here.
 -/
 
-namespace Conjectures.C0002.EDP.TrackC
+namespace MoltResearch
+namespace Tao2015
 
--- TODO(Stage4): pick one concrete obligation and start turning the Stage-4 stub into an actual
--- proof boundary (Stage 4 is the first place we want to carry nontrivial arguments).
+namespace Stage4Output
 
-end Conjectures.C0002.EDP.TrackC
+variable {f : ℕ → ℤ}
+
+/-- Stage 4 output yields unboundedness of the bundled offset discrepancy family at the concrete
+Stage-2 parameters carried by Stage 4.
+
+This is a thin wrapper around the proved Stage-2 core lemma `Stage2Output.unboundedDiscOffset`.
+-/
+theorem unboundedDiscOffset (out : Stage4Output f) :
+    UnboundedDiscOffset f out.out2.d out.out2.m := by
+  simpa using (out.out2.unboundedDiscOffset (f := f))
+
+/-- Positive-length witness form: Stage 4 yields arbitrarily large bundled offset discrepancies
+`discOffset f out.out2.d out.out2.m n`, with witnesses `n > 0`.
+
+This is a thin wrapper around the proved Stage-2 output lemma
+`Stage2Output.forall_exists_discOffset_gt'_witness_pos`.
+-/
+theorem forall_exists_discOffset_gt'_witness_pos (out : Stage4Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f out.out2.d out.out2.m n > B := by
+  simpa using (out.out2.forall_exists_discOffset_gt'_witness_pos (f := f))
+
+/-- Stage 4 output implies the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is the most pipeline-friendly surface statement: it avoids `discrepancy` and goes straight to
+the nucleus `apSum`.
+-/
+theorem forall_exists_d_ge_one_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
+/-- Variant of `forall_exists_d_ge_one_witness_pos` with the step-size condition written as
+`d > 0`.
+
+This is sometimes a more convenient normal form when downstream stages naturally assume `d ≠ 0`
+(or use lemmas phrased with strict positivity).
+-/
+theorem forall_exists_d_pos_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, ?_, hn, hw⟩
+  exact lt_of_lt_of_le Nat.zero_lt_one hd
+
+/-- Variant of `forall_exists_d_pos_witness_pos` with the step-size condition written as `d ≠ 0`. -/
+theorem forall_exists_d_ne_zero_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  exact ⟨d, n, Nat.ne_of_gt hd, hn, hw⟩
+
+/-- Stage 4 output implies the explicit discrepancy witness normal form
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is a thin wrapper around `forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem forall_exists_discrepancy_gt (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      (out.forall_hasDiscrepancyAtLeast (f := f) C)
+
+/-- Strengthened witness form of `forall_exists_discrepancy_gt` with a positive-length witness.
+
+This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
+-/
+theorem forall_exists_discrepancy_gt_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
+  change Int.natAbs (apSum f d n) > C
+  exact hw
+
+/-- Stage 4 output implies the paper-notation witness form
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
+
+This is a thin wrapper around `forall_hasDiscrepancyAtLeast` via
+`forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos`.
+-/
+theorem forall_exists_sum_Icc_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
+/-- Variant of `forall_exists_sum_Icc_witness_pos` writing the step-size side condition as
+`d ≥ 1`.
+
+This is often the most readable paper-notation witness form when `d : ℕ`.
+-/
+theorem forall_exists_sum_Icc_d_ge_one_witness_pos (out : Stage4Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
+end Stage4Output
+
+/-- Consumer-facing shortcut: Stage 4 yields the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is the most pipeline-friendly surface statement for consuming Stage 4.
+-/
+theorem stage4_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_d_ge_one_witness_pos (f := f)
+
+/-- Consumer-facing shortcut: Stage 4 yields the nucleus witness form with strict positivity for
+`d`.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+-/
+theorem stage4_forall_exists_d_pos_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_d_pos_witness_pos (f := f)
+
+/-- Variant of `stage4_forall_exists_d_pos_witness_pos` with the step-size condition written as
+`d ≠ 0`.
+-/
+theorem stage4_forall_exists_d_ne_zero_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≠ 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_d_ne_zero_witness_pos (f := f)
+
+/-- Consumer-facing shortcut: Stage 4 yields explicit discrepancy witnesses
+
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is the witness-form normal form of `stage4_forall_hasDiscrepancyAtLeast`.
+-/
+theorem stage4_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_discrepancy_gt (f := f)
+
+/-- Strengthened witness form of `stage4_forall_exists_discrepancy_gt` with a positive-length witness.
+
+This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
+-/
+theorem stage4_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_discrepancy_gt_witness_pos (f := f)
+
+/-- Consumer-facing shortcut: Stage 4 yields the paper-notation witness form
+
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ Int.natAbs (∑ i ∈ Icc 1 n, f (i*d)) > C`.
+
+This is a thin wrapper around `Stage4Output.forall_exists_sum_Icc_witness_pos`.
+-/
+theorem stage4_forall_exists_sum_Icc_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_sum_Icc_witness_pos (f := f)
+
+/-- Variant of `stage4_forall_exists_sum_Icc_witness_pos` writing the step-size side condition as
+`d ≥ 1`.
+
+This is often the most readable surface form when `d : ℕ`.
+-/
+theorem stage4_forall_exists_sum_Icc_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧
+      Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (i * d))) > C := by
+  exact (stage4Out (f := f) (hf := hf)).forall_exists_sum_Icc_d_ge_one_witness_pos (f := f)
+
+end Tao2015
+end MoltResearch
