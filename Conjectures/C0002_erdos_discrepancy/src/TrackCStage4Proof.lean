@@ -25,6 +25,17 @@ theorem unboundedDiscOffset (out : Stage4Output f) :
     UnboundedDiscOffset f out.out2.d out.out2.m := by
   simpa using (out.out2.unboundedDiscOffset (f := f))
 
+/-- Existential packaging: Stage 4 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such
+that the bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This is a tiny wrapper around `unboundedDiscOffset` together with the proved side condition
+`Stage2Output.one_le_d` carried by `out.out2`.
+-/
+theorem exists_params_one_le_unboundedDiscOffset (out : Stage4Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
+  simpa using out.unboundedDiscOffset (f := f)
+
 /-- Positive-length witness form: Stage 4 yields arbitrarily large bundled offset discrepancies
 `discOffset f out.out2.d out.out2.m n`, with witnesses `n > 0`.
 
