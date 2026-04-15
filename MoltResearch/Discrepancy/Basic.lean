@@ -258,7 +258,8 @@ lemma mem_apSupport_of_lt {i d m n : ℕ} (hi : i < n) :
 
 This is a small “unfold-free” interface lemma for the `apSupport` support finset.
 
-We do *not* mark it `[simp]` to avoid loops with `Finset.mem_image`.
+We keep the core lemma (`mem_apSupport_iff`) free of `[simp]` to avoid aggressive rewriting.
+For simp-friendly rewriting in proofs, use the binder-notation variant `mem_apSupport` below.
 -/
 
 lemma mem_apSupport_iff {d m n x : ℕ} :
@@ -270,6 +271,16 @@ lemma mem_apSupport_iff {d m n x : ℕ} :
     exact ⟨i, Finset.mem_range.1 hi, rfl⟩
   · rintro ⟨i, hi, rfl⟩
     exact Finset.mem_image.2 ⟨i, Finset.mem_range.2 hi, rfl⟩
+
+/-- Simp-friendly binder-notation membership characterization for `apSupport`.
+
+This lemma rewrites `x ∈ apSupport d m n` into an existential over `i < n`.
+It is stated without mentioning `Finset.image` so it can be used as a stable interface.
+-/
+lemma mem_apSupport {d m n x : ℕ} :
+    x ∈ apSupport d m n ↔ ∃ i < n, x = (m + i + 1) * d := by
+  simpa [and_left_comm, and_assoc, and_comm] using
+    (mem_apSupport_iff (d := d) (m := m) (n := n) (x := x))
 
 /-- Monotonicity in the length parameter: the accessed-index set can only grow when `n` increases.
 

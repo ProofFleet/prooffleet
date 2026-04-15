@@ -127,11 +127,11 @@ example (d m n q : ℕ) : apSupport (d * q) m n = (apSupport d m n).image (fun x
 
 example (d m n : ℕ) :
     ((m + 0 + 1) * d) ∈ apSupport d m (n + 1) := by
-  -- `mem_apSupport_iff` is the unfold-free membership interface.
-  have : ∃ i, i < n + 1 ∧ ((m + 0 + 1) * d) = (m + i + 1) * d := by
+  -- `mem_apSupport` is the simp-friendly membership interface.
+  have : ∃ i < n + 1, ((m + 0 + 1) * d) = (m + i + 1) * d := by
     refine ⟨0, Nat.succ_pos _, ?_⟩
     simp
-  exact (mem_apSupport_iff (d := d) (m := m) (n := n + 1) (x := (m + 0 + 1) * d)).2 this
+  exact (mem_apSupport (d := d) (m := m) (n := n + 1) (x := (m + 0 + 1) * d)).2 this
 
 /-!
 ### NEW (Track B): `discOffsetUpTo` degenerate-parameter simp coherence
