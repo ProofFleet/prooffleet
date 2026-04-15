@@ -404,9 +404,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `card_apSupport` / `apSupport_mono_right` in `MoltResearch/Discrepancy/Basic.lean`, with regression examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Support-level congruence (sum-level): complement `discOffset_congr_support` with an `apSumOffset_congr_support` lemma
+- [x] Support-level congruence (sum-level): complement `discOffset_congr_support` with an `apSumOffset_congr_support` lemma
   `apSumOffset f d m n = apSumOffset g d m n` assuming `∀ x ∈ apSupport d m n, f x = g x`,
   so downstream code can rewrite sums using “agree on accessed indices” hypotheses directly.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `apSumOffset_congr_support`, with stable-surface coverage in
+  `MoltResearch/Discrepancy/SurfaceAudit.lean` and regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Agree on accessed indices” (paper-level wrapper): package a wrapper lemma accepting hypotheses of the form
   `∀ i, m < i ∧ i ≤ m+n → f (i*d) = g (i*d)` and discharging to the support-level congruence facts (sum + disc),
