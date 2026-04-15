@@ -332,6 +332,35 @@ theorem forall_exists_natAbs_apSumOffset_gt_witness_pos {f : ℕ → ℤ} {d m :
     exact hn'
   exact (gt_iff_lt).2 hn'
 
+/-- Witness-positivity normal form: unbounded offset discrepancy is equivalent to arbitrarily large
+bundled offset nuclei, with witnesses `n > 0`.
+
+This is `unboundedDiscOffset_iff_forall_exists_discOffset_gt'_witness_pos` rewritten using the
+definitional equality `discOffset = Int.natAbs (apSumOffset ...)`.
+-/
+theorem iff_forall_exists_natAbs_apSumOffset_gt'_witness_pos (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
+  constructor
+  · intro hunb B
+    rcases
+        (unboundedDiscOffset_iff_forall_exists_discOffset_gt'_witness_pos (f := f) (d := d) (m := m)).1
+          hunb B with
+      ⟨n, hnpos, hn⟩
+    refine ⟨n, hnpos, ?_⟩
+    have hn' := hn
+    unfold discOffset at hn'
+    exact hn'
+  · intro h
+    refine
+      (unboundedDiscOffset_iff_forall_exists_discOffset_gt'_witness_pos (f := f) (d := d) (m := m)).2
+        ?_
+    intro B
+    rcases h B with ⟨n, hnpos, hn⟩
+    refine ⟨n, hnpos, ?_⟩
+    unfold discOffset
+    exact hn
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
 
 Since `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`, this lemma lets
