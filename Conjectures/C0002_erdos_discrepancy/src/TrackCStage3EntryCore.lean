@@ -130,6 +130,29 @@ theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignS
   refine ⟨d, m, ?_, hU⟩
   exact lt_of_lt_of_le Nat.zero_lt_one hd
 
+/-- Stage 3 yields concrete parameters `d, m` (with `1 ≤ d`) such that the bundled offset
+sequence nuclei `apSumOffset f d m n` take arbitrarily large absolute values, with positive-length
+witnesses.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ∀ B, ∃ n, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B`.
+
+This is the most pipeline-friendly witness-family form for consuming the Stage-2 output without
+importing the larger Stage-2 convenience-lemma layer.
+-/
+theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
+  let out := stage3Out (f := f) (hf := hf)
+  refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
+  intro B
+  -- Use the proved Stage-2 core wrapper, then unfold `discOffset`.
+  rcases out.out2.forall_exists_discOffset_gt'_witness_pos (f := f) B with ⟨n, hn, hdisc⟩
+  refine ⟨n, hn, ?_⟩
+  -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`.
+  change discOffset f out.out2.d out.out2.m n > B
+  exact hdisc
+
 /-- Consumer-facing shortcut: Stage 3 yields the discrepancy witness form
 
 `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
