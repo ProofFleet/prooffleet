@@ -58,6 +58,60 @@ section
   end MicroPipeline
 
   /-!
+  A compact “support + edit” pipeline example.
+
+  Typical Track B pattern:
+
+  1. Use **support congruence** to ignore changes outside `apSupport d m n`.
+  2. Use **edit sensitivity** to compare two sign sequences that differ on ≤1 sampled index.
+
+  Compile-only; the goal is to keep the stable surface usable under:
+
+  ```lean
+  import MoltResearch.Discrepancy
+  ```
+  -/
+  example :
+      let f : ℕ → ℤ := fun _ => 1
+      let g : ℕ → ℤ := fun n => if n = 4 then (-1) else 1
+      let h : ℕ → ℤ := fun n => if n = 100 then (-1) else g n
+      -- (1) Changes outside the support do not affect `discOffset`.
+      discOffset h 1 0 6 = discOffset g 1 0 6 ∧
+      -- (2) If `f` and `h` differ on ≤1 sampled index in `range 6`, pay a +2 edit cost.
+      discOffset f 1 0 6 ≤ discOffset h 1 0 6 + 2 := by
+    intro f g h
+    constructor
+    · -- Support congruence: `h = g` on the relevant finite support.
+      refine (discOffset_congr_support (f := h) (g := g) (d := 1) (m := 0) (n := 6) ?_).symm
+      intro x hx
+      -- Any `x ∈ apSupport 1 0 6` satisfies `x ≤ 6`, so in particular `x ≠ 100`.
+      have hx' : ∃ i, 0 < i ∧ i ≤ 0 + 6 ∧ x = i * 1 := by
+        simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+          (mem_apSupport_iff_exists_endpoints (d := 1) (m := 0) (n := 6) (x := x)).1 hx
+      rcases hx' with ⟨i, hi0, hi6, rfl⟩
+      have hi6' : i ≤ 6 := by simpa using hi6
+      have hi100 : i ≠ 100 := by
+        -- `i ≤ 6 < 100`.
+        exact ne_of_lt (lt_of_le_of_lt hi6' (by decide))
+      -- Now `h` reduces to `g` on this support point.
+      simp [h, g, hi100]
+    · -- Edit sensitivity bound.
+      have hf : IsSignSequence f := by
+        intro n; simp [f]
+      have hh : IsSignSequence h := by
+        intro n
+        by_cases hn : n = 100
+        · simp [h, hn]
+        · by_cases h4 : n = 4 <;> simp [h, hn, g, h4]
+      have hcard :
+          ((Finset.range 6).filter (fun i => f ((0 + i + 1) * 1) ≠ h ((0 + i + 1) * 1))).card ≤ 1 := by
+        -- On sampled indices `1..6`, `h` agrees with `g`, so only the `i=3` (`n=4`) sample differs.
+        decide
+      simpa using
+        (IsSignSequence.discOffset_edit_le
+          (hf := hf) (hg := hh) (d := 1) (m := 0) (n := 6) (t := 1) hcard)
+
+  /-!
   A compact “edit + split + bound” example.
 
   We compare two sign sequences `f` and `g` that differ at exactly one sampled index, and we bound
