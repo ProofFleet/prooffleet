@@ -1,4 +1,5 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub
 
 /-!
 A conjecture-style stub for the Erdős discrepancy theorem (Tao 2015).
@@ -23,8 +24,10 @@ follow.
 -/
 theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
-  -- Prefer consuming the Stage-3 entry-point API.
-  exact Tao2015.stage3_notBounded (f := f) (hf := hf)
+  -- Stage 3 is proved glue on top of the Stage-2 axiom stub: run Stage 2, then close the global goal.
+  let out3 : Tao2015.Stage3Output f :=
+    Tao2015.Stage3Output.ofStage2Output (f := f) (Tao2015.stage2Out (f := f) (hf := hf))
+  exact Tao2015.Stage3Output.notBounded (f := f) out3
 
 /-- Erdős discrepancy theorem.
 
@@ -35,8 +38,10 @@ Track-C output `¬ BoundedDiscrepancy f`.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Prefer consuming the Stage-3 entry-point API directly.
-  exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
+  -- Run the proved Stage-3 boundary API on the Stage-2 axiom stub.
+  let out3 : Tao2015.Stage3Output f :=
+    Tao2015.Stage3Output.ofStage2Output (f := f) (Tao2015.stage2Out (f := f) (hf := hf))
+  exact Tao2015.Stage3Output.forall_hasDiscrepancyAtLeast (f := f) out3
 
 /-!
 Additional witness-form corollaries live in
