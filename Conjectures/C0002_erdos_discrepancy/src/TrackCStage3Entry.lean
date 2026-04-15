@@ -131,20 +131,11 @@ theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
   funext k
   simpa using stage3_g_eq (f := f) (hf := hf) k
 
-/-- Stage-3 unboundedness, re-expressed using the verified core predicate.
-
-This is a tiny convenience lemma: many consumers outside the `Tao2015` namespace use the core
-predicate `MoltResearch.UnboundedDiscrepancyAlong` rather than the Track-C-local definition.
-
-We keep this lemma in the lightweight Stage-3 entry module (not the hard-gate core) since it is
-purely a repackaging of Stage-2 unboundedness.
+/-!
+The lemma `stage3_unboundedDiscrepancyAlong_core` is provided by
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (re-exported by the core import
+path), so we do not re-declare it here.
 -/
-theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    MoltResearch.UnboundedDiscrepancyAlong (stage3_g (f := f) (hf := hf))
-      (stage3_d (f := f) (hf := hf)) := by
-  -- Route through the proved Stage-2 core lemma.
-  simpa [stage3_g, stage3_d, stage2_g, stage2_d, Stage2Output.g, Stage2Output.d] using
-    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) (stage2Out (f := f) (hf := hf)))
 
 /-!
 ## Witness-form corollaries
@@ -244,17 +235,10 @@ theorem stage3_forall_exists_params_one_le_discOffset_gt'_witness_pos
   · exact stage3_one_le_d (f := f) (hf := hf)
   · simpa using hgt
 
-/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
-bundled offset discrepancy family `discOffset f d m` is unbounded.
-
-This is a minimal corollary of `stage3_unboundedDiscOffset` for consumers that prefer strict
-positivity over `1 ≤ d`.
+/-!
+The existential packaging lemmas for `UnboundedDiscOffset` are provided by the hard-gate core module
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
 -/
-theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
-  refine ⟨stage3_d (f := f) (hf := hf), stage3_m (f := f) (hf := hf), ?_, ?_⟩
-  · exact stage3_d_pos (f := f) (hf := hf)
-  · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
 -- The existential packaging lemma with hypothesis `1 ≤ d`
 -- (stage3_exists_params_one_le_unboundedDiscOffset) is provided by
