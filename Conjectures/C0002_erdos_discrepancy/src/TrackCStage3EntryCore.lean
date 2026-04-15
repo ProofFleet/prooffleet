@@ -12,6 +12,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - `stage3` / `stage3Out` : produce a `Stage3Output f` from a sign sequence `f`
 - `stage3_notBounded` : close the core goal `¬ BoundedDiscrepancy f`
 - `stage3_forall_hasDiscrepancyAtLeast` : the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`
+- `stage3_exists_params_one_le_unboundedDiscOffset` : existential packaging of the concrete Stage-2 parameters
+  `∃ d m, 1 ≤ d ∧ UnboundedDiscOffset f d m`
 - `stage3_forall_exists_discrepancy_gt` : discrepancy witness form
   `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
 - `stage3_forall_exists_discrepancy_gt_witness_pos` : discrepancy witness form with `n > 0`
@@ -86,6 +88,17 @@ This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
 theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf))
+
+/-- Stage 3 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such that the bundled offset
+discrepancy family `discOffset f d m` is unbounded.
+
+This is a thin wrapper around `Stage2Output.unboundedDiscOffset` applied to `stage3Out`.
+-/
+theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  let out := stage3Out (f := f) (hf := hf)
+  refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
+  exact out.out2.unboundedDiscOffset (f := f)
 
 /-- Consumer-facing shortcut: Stage 3 yields the discrepancy witness form
 
