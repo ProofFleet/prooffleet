@@ -45,6 +45,14 @@ theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
     (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2
       (stage2_notBounded (f := f) (hf := hf))
 
+/-- Specialization of `stage2_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
+
+This is a tiny convenience lemma: it avoids an extra application at the call site.
+-/
+theorem stage2_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (C : ℕ) :
+    HasDiscrepancyAtLeast f C := by
+  exact (stage2_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
+
 /-- Consumer-facing shortcut: Stage 2 yields unbounded discrepancy along the deterministic reduced
 sequence `stage2_g` at the deterministic step size `stage2_d`.
 
