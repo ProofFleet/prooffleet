@@ -282,6 +282,33 @@ lemma mem_apSupport {d m n x : ℕ} :
   simpa [and_left_comm, and_assoc, and_comm] using
     (mem_apSupport_iff (d := d) (m := m) (n := n) (x := x))
 
+/-!
+### Canonical membership normal form (Track B)
+
+In downstream proofs, the most common membership query is for an index already in the
+`(m + i + 1) * d` normal form.
+
+When `d > 0`, the sampling map `i ↦ (m + i + 1) * d` is injective, so membership in the support
+finset reduces to the expected bound `i < n`.
+-/
+
+@[simp] lemma mem_apSupport_index_iff {d m n i : ℕ} (hd : d > 0) :
+    (m + i + 1) * d ∈ apSupport d m n ↔ i < n := by
+  constructor
+  · intro hx
+    rcases (mem_apSupport_iff (d := d) (m := m) (n := n) (x := (m + i + 1) * d)).1 hx with
+      ⟨j, hj, hji⟩
+    have hmul : m + i + 1 = m + j + 1 := Nat.mul_right_cancel hd hji
+    have : i = j := by
+      -- Peel off the common offset `m`.
+      have hmul' : m + (i + 1) = m + (j + 1) := by
+        simpa [Nat.add_assoc] using hmul
+      have : i + 1 = j + 1 := Nat.add_left_cancel hmul'
+      exact Nat.succ_inj.mp this
+    simpa [this] using hj
+  · intro hi
+    exact mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) hi
+
 /-- Monotonicity in the length parameter: the accessed-index set can only grow when `n` increases.
 
 (Track B normal-form checklist item: support monotonicity API.)

@@ -133,6 +133,10 @@ example (d m n : ℕ) :
     simp
   exact (mem_apSupport (d := d) (m := m) (n := n + 1) (x := (m + 0 + 1) * d)).2 this
 
+example (d m n i : ℕ) (hd : d > 0) :
+    (m + i + 1) * d ∈ apSupport d m n ↔ i < n := by
+  simpa using (mem_apSupport_index_iff (d := d) (m := m) (n := n) (i := i) hd)
+
 /-!
 ### NEW (Track B): `discOffsetUpTo` degenerate-parameter simp coherence
 
