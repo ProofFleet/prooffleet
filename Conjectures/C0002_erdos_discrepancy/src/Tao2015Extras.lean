@@ -181,6 +181,26 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d 
     unfold discOffset
     exact hn
 
+/-- Packaging normal form: existence of a bundled offset bound expressed via offset nuclei.
+
+This is `BoundedDiscOffset` packaged under an existential quantifier and rewritten using
+`boundedDiscOffset_iff_forall_natAbs_apSumOffset_le`.
+-/
+theorem exists_boundedDiscOffset_iff_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m : ℕ) :
+    (∃ B : ℕ, BoundedDiscOffset f d m B) ↔
+      (∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact
+      (boundedDiscOffset_iff_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m) (B := B)).1
+        hB
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact
+      (boundedDiscOffset_iff_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m) (B := B)).2
+        hB
+
 /-- Paper-notation normal form: boundedness of `discOffset f d m` expressed as interval sums on `Icc`.
 
 This rewrites the bundled offset nuclei `apSumOffset f d m n` as the shifted progression sums
