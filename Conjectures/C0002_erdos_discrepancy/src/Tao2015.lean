@@ -905,6 +905,12 @@ theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
     discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
   simp [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
 
+/-- Convenience: pointwise strict-inequality witnesses for the reduced sequence are exactly
+pointwise witnesses for the bundled offset family. -/
+theorem lt_discrepancy_iff_lt_discOffset (out : ReductionOutput f) (n B : ℕ) :
+    B < discrepancy out.g out.d n ↔ B < discOffset f out.d out.m n := by
+  simp [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
+
 /-- Convenience: uniform discrepancy bounds for the reduced sequence are exactly uniform bounds on
 the bundled offset family. -/
 theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
