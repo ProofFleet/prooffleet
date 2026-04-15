@@ -63,6 +63,26 @@ example :
     (discOffset_shift_mul_right_comm (f := f) (d := d) (m := m) (n := n) (q := p))
 
 /-!
+### NEW (Track B): API coherence simp surface (`apSupport`/`apSumOffset`/`discOffset`)
+
+Regression: the stable surface should `simp`-normalize the most common degenerate-parameter and
+start-shift bookkeeping.
+-/
+
+example : apSupport d (m + 0) n = apSupport d m n := by
+  simp
+
+example :
+    apSumOffset f d (m + (n₁ + n₂)) n =
+      apSumOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
+  simp
+
+example :
+    discOffset f d (m + (n₁ + n₂)) n =
+      discOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
+  simp
+
+/-!
 ### NEW (Track B): support-level congruence for `apSumOffset`/`discOffset`
 
 Regression: if two sequences agree on `apSupport d m n`, then both the sum and the discrepancy

@@ -434,8 +434,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   “assume two sequences agree on `apSupport` outside a small set → apply edit-sensitivity → conclude a `discOffset` bound”,
   wired into `SurfaceAudit`.
 
-- [ ] API coherence: add a minimal simp lemma set that normalizes `apSupport`/`apSumOffset`/`discOffset` under the most common
+- [x] API coherence: add a minimal simp lemma set that normalizes `apSupport`/`apSumOffset`/`discOffset` under the most common
   degenerate parameters (`m=0`, `d=1`, `k=0`, nested `m+(n+k)` arithmetic) in the stable import surface, with 2–3 tiny regression examples.
+  (Implemented as `MoltResearch/Discrepancy/CoherenceSimp.lean` (stable-surface `[simp]` for start-shift coherence) plus new examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
