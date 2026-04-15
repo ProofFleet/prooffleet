@@ -127,6 +127,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `discOffset_add_le` in `MoltResearch/Discrepancy/Basic.lean`; regression example in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+- [x] `discOffset` reverse triangle bounds: complement `discOffset_add_le` with packaged “reverse triangle” corollaries.
+  (Implemented as `discOffset_left_le_add` and `discOffset_right_le_add` in `MoltResearch/Discrepancy/Basic.lean`; regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
+
 - [x] Lipschitz-by-1 bound: assuming `IsSignSequence f`, prove that extending a tail by one term changes discrepancy by at most 1, e.g.
   `discOffset f d m (n+1) ≤ discOffset f d m n + 1` and `discOffset f d m n ≤ discOffset f d m (n+1) + 1`.
   (Implemented as `IsSignSequence.discOffset_succ_le` and `IsSignSequence.discOffset_le_succ_add_one` in
