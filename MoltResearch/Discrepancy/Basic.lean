@@ -2009,6 +2009,50 @@ lemma discOffset_add_le (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   simpa using
     (natAbs_apSumOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+/-- Reverse triangle inequality (prefix form) for offset AP sums.
+
+If `S(n₁ + n₂) = S(n₁) + S'(n₂)` then `|S(n₁)| ≤ |S(n₁ + n₂)| + |S'(n₂)|`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` reverse triangle bounds.
+-/
+lemma natAbs_apSumOffset_left_le_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    Int.natAbs (apSumOffset f d m n₁) ≤
+      Int.natAbs (apSumOffset f d m (n₁ + n₂)) + Int.natAbs (apSumOffset f d (m + n₁) n₂) := by
+  -- `|x| = |(x+y) - y| ≤ |x+y| + |y|`.
+  simpa [apSumOffset_add_len, sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using
+    (Int.natAbs_sub_le (apSumOffset f d m (n₁ + n₂)) (apSumOffset f d (m + n₁) n₂))
+
+/-- Reverse triangle inequality (suffix form) for offset AP sums.
+
+If `S(n₁ + n₂) = S(n₁) + S'(n₂)` then `|S'(n₂)| ≤ |S(n₁ + n₂)| + |S(n₁)|`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` reverse triangle bounds.
+-/
+lemma natAbs_apSumOffset_right_le_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    Int.natAbs (apSumOffset f d (m + n₁) n₂) ≤
+      Int.natAbs (apSumOffset f d m (n₁ + n₂)) + Int.natAbs (apSumOffset f d m n₁) := by
+  -- `|y| = |(x+y) - x| ≤ |x+y| + |x|`.
+  simpa [apSumOffset_add_len, sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using
+    (Int.natAbs_sub_le (apSumOffset f d m (n₁ + n₂)) (apSumOffset f d m n₁))
+
+/-- Reverse triangle inequality for `discOffset` (prefix form).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` reverse triangle bounds.
+-/
+lemma discOffset_left_le_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    discOffset f d m n₁ ≤ discOffset f d m (n₁ + n₂) + discOffset f d (m + n₁) n₂ := by
+  simpa using
+    (natAbs_apSumOffset_left_le_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
+/-- Reverse triangle inequality for `discOffset` (suffix form).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` reverse triangle bounds.
+-/
+lemma discOffset_right_le_add (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
+    discOffset f d (m + n₁) n₂ ≤ discOffset f d m (n₁ + n₂) + discOffset f d m n₁ := by
+  simpa using
+    (natAbs_apSumOffset_right_le_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
 /-- Two-cut normal form bound (discOffset-level): concatenate three segments.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Two-cut normal form (discOffset-level).

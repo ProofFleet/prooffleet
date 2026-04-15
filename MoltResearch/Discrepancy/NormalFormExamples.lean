@@ -2463,6 +2463,15 @@ example :
     discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
   simpa using (discOffset_add_le (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
 
+-- `discOffset` reverse triangle inequality regressions (Track B item: reverse triangle bounds).
+example :
+    discOffset f d m n₁ ≤ discOffset f d m (n₁ + n₂) + discOffset f d (m + n₁) n₂ := by
+  simpa using (discOffset_left_le_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
+example :
+    discOffset f d (m + n₁) n₂ ≤ discOffset f d m (n₁ + n₂) + discOffset f d m n₁ := by
+  simpa using (discOffset_right_le_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂))
+
 -- `discAlong` triangle inequality regression (Track B item: along-`d` concatenation bound).
 example :
     discAlong f d (n₁ + n₂) ≤ discAlong f d n₁ + discAlong (fun k => f (k + n₁ * d)) d n₂ := by
