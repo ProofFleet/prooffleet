@@ -37,6 +37,7 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (`apSupport` bookkeeping helpers):** for common “no-op” shifts/dilations, the stable surface provides simp lemmas
   `apSupport_add_left_zero` and `apSupport_mul_right_one` so `simp` can discharge trivial `m+0` / `d*1` noise without unfolding.
   For unfold-free membership reasoning, use `mem_apSupport_iff`, or the binder-notation variant `mem_apSupport` when you want to feed the result directly to `simp`/`rcases` as `∃ i < n, ...`.
+  If you want the *paper endpoint convention* (`m < i ∧ i ≤ m+n` with accessed index `i*d`), use `mem_apSupport_iff_exists_endpoints`.
 - **API note (`apSupport` canonical membership):** if your membership goal is already in the normal form
   `((m + i + 1) * d) ∈ apSupport d m n`, and you have `hd : d > 0`, then `simp [mem_apSupport_index_iff (m := m) (n := n) (i := i) hd]` reduces it to the expected bound `i < n`.
 - **API note (shift–dilation coherence):** when you both (i) push an offset shift into the summand and (ii) pull a factor `q` into the step, use the commutation lemma `apSumOffset_shift_mul_right_comm` (and the wrapper `discOffset_shift_mul_right_comm`) to avoid redoing index algebra. Conceptually: “shift then dilate” = “dilate then shift (with scaled offset)”.
