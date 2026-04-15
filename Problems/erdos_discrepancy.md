@@ -426,9 +426,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `apSumOffset_add_len_add_len` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression
   examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffset` reverse triangle bounds: complement `discOffset_add_le` with packaged “reverse triangle” corollaries
-  like `discOffset f d m (n+k) + discOffset f d (m+n) k ≥ discOffset f d m n` (in the repo’s preferred inequality orientation),
-  so later arguments can lower-bound a piece by the whole minus the other piece in one lemma.
+- [x] `discOffset` reverse triangle bounds: complement `discOffset_add_le` with packaged “reverse triangle” corollaries.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `discOffset_left_le_add` / `discOffset_right_le_add`,
+  with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Stable-surface “support + edit” pipeline example: add a compile-only example showing the common pattern
   “assume two sequences agree on `apSupport` outside a small set → apply edit-sensitivity → conclude a `discOffset` bound”,
