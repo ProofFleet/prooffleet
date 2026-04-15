@@ -99,6 +99,11 @@ theorem discOffset_le_iff_natAbs_apSumFrom_mul_le (f : ℕ → ℤ) (d m n B : �
     discOffset f d m n ≤ B ↔ Int.natAbs (apSumFrom f (m * d) d n) ≤ B := by
   simp [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)]
 
+/-- Inequality normal form: `B ≤ discOffset f d m n` rewritten using affine-tail nuclei. -/
+theorem le_discOffset_iff_le_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n B : ℕ) :
+    B ≤ discOffset f d m n ↔ B ≤ Int.natAbs (apSumFrom f (m * d) d n) := by
+  simp [discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := d) (m := m) (n := n)]
+
 /-- Normal form: boundedness of `discOffset f d m` expressed using affine-tail nuclei.
 
 This avoids unfolding `discOffset` and repeatedly rewriting `apSumOffset` into an `apSumFrom` tail.
