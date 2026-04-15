@@ -58,6 +58,16 @@ in downstream arithmetic rewrites.
 theorem start_eq_m_mul_d (out : Stage2Output f) : out.start = out.m * out.d := by
   rfl
 
+/-- Normal form: the affine-tail nucleus starting at the bundled start index `out.start`
+is the bundled offset nucleus at the bundled offset parameter `out.m`.
+
+This is `Tao2015.apSumFrom_mul_eq_apSumOffset` rewritten using `out.start = out.m * out.d`.
+-/
+theorem apSumFrom_start_eq_apSumOffset (out : Stage2Output f) (n : ℕ) :
+    apSumFrom f out.start out.d n = apSumOffset f out.d out.m n := by
+  simpa [Stage2Output.start] using
+    (apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
+
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
   -- `out.start` is definitionally `m*d`.
