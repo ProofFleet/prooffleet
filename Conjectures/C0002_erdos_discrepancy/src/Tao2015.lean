@@ -876,6 +876,16 @@ theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
     discrepancy out.g out.d n ≤ B ↔ discOffset f out.d out.m n ≤ B := by
   simp [out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)]
 
+/-- Convenience: uniform discrepancy bounds for the reduced sequence are exactly uniform bounds on
+the bundled offset family. -/
+theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f) (B : ℕ) :
+    (∀ n : ℕ, discrepancy out.g out.d n ≤ B) ↔ (∀ n : ℕ, discOffset f out.d out.m n ≤ B) := by
+  constructor
+  · intro h n
+    exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).1 (h n)
+  · intro h n
+    exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).2 (h n)
+
 /-- Bounded discrepancy along the reduced step is equivalent to a uniform bound on the bundled offset
 discrepancy family.
 
@@ -888,15 +898,9 @@ theorem boundedDiscrepancyAlong_iff_exists_forall_discOffset_le (out : Reduction
   unfold BoundedDiscrepancyAlong
   constructor
   · rintro ⟨B, hB⟩
-    refine ⟨B, ?_⟩
-    intro n
-    have h : discrepancy out.g out.d n ≤ B := hB n
-    exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).1 h
+    refine ⟨B, (out.forall_discrepancy_le_iff_forall_discOffset_le (f := f) B).1 hB⟩
   · rintro ⟨B, hB⟩
-    refine ⟨B, ?_⟩
-    intro n
-    have h : discOffset f out.d out.m n ≤ B := hB n
-    exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).2 h
+    refine ⟨B, (out.forall_discrepancy_le_iff_forall_discOffset_le (f := f) B).2 hB⟩
 
 /-- Packaged form of `boundedDiscrepancyAlong_iff_exists_forall_discOffset_le` using the verified
 predicate `BoundedDiscOffset`.
