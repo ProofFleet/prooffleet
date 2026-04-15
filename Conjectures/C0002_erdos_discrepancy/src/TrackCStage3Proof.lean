@@ -199,6 +199,22 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f : �
     (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f := f)
       (stage3Out (f := f) (hf := hf)))
 
+/-- Positive-length witness variant of `stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt`.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ∀ C, ∃ n, n > 0 ∧ Int.natAbs (apSumFrom f (m*d) d n) > C`.
+
+This is a thin wrapper around the Stage-3 boundary API lemma
+`Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  simpa using
+    (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
+      (stage3Out (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 bundled offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute values.
 
