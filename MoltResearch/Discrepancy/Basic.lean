@@ -310,6 +310,29 @@ finset reduces to the expected bound `i < n`.
     exact mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) hi
 
 /-!
+### Cardinality (Track B)
+
+Assuming `d > 0`, the map `i ↦ (m + i + 1) * d` is injective, so the support finset contains
+exactly `n` distinct indices.
+
+(Track B normal-form checklist item: `apSupport` size API / no-collision guarantee.)
+-/
+
+lemma card_apSupport {d m n : ℕ} (hd : d > 0) : (apSupport d m n).card = n := by
+  classical
+  unfold apSupport
+  have hinj : Function.Injective (fun i : ℕ => (m + i + 1) * d) := by
+    intro i j hij
+    have hmul : m + i + 1 = m + j + 1 := Nat.mul_right_cancel hd hij
+    have hmul' : m + (i + 1) = m + (j + 1) := by
+      simpa [Nat.add_assoc] using hmul
+    have : i + 1 = j + 1 := Nat.add_left_cancel hmul'
+    exact Nat.succ_inj.mp this
+  simpa [Finset.card_range] using
+    (Finset.card_image_of_injective (s := Finset.range n)
+      (f := fun i : ℕ => (m + i + 1) * d) hinj)
+
+/-!
 ### Paper-endpoint membership normal form (Track B)
 
 Many later arguments phrase “agreement on accessed indices” in the paper endpoint convention
