@@ -203,6 +203,20 @@ theorem not_exists_forall_natAbs_apSumOffset_le (out : Stage2Output f) :
         (d := out.d) (m := out.m)).1
       hunb
 
+/-- Negation-normal-form unboundedness statement for the affine-tail nuclei
+`Int.natAbs (apSumFrom f (m*d) d n)` at the concrete Stage-2 parameters `(out.d, out.m)`.
+
+This is the tail-nucleus analogue of `not_exists_forall_natAbs_apSumOffset_le`.
+-/
+theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  -- Use the generic tail-nucleus normal form for `UnboundedDiscOffset`.
+  exact
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+        (d := out.d) (m := out.m)).1
+      hunb
+
 /-- Negation-normal-form unboundedness statement for the paper-notation shifted progression sums
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the concrete Stage-2 parameters `(out.d, out.m)`.
 
