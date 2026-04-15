@@ -32,6 +32,15 @@ namespace Stage3Output
 
 variable {f : ℕ → ℤ}
 
+/-- Convenience projection: Stage 3 carries the full Stage-2 output, hence also carries the
+underlying Stage-1 reduction output.
+
+This is occasionally useful when later stages want access to the deterministic parameters
+`g, d, m` and the Stage-1 transport contracts, without reaching through multiple record fields.
+-/
+abbrev out1 (out : Stage3Output f) : Tao2015.ReductionOutput f :=
+  out.out2.out1
+
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
