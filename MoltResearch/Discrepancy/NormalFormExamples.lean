@@ -63,11 +63,15 @@ example :
     (discOffset_shift_mul_right_comm (f := f) (d := d) (m := m) (n := n) (q := p))
 
 /-!
-### NEW (Track B): support-level congruence for `discOffset`
+### NEW (Track B): support-level congruence for `apSumOffset`/`discOffset`
 
-Regression: if two sequences agree on `apSupport d m n`, then the discrepancy wrapper agrees.
-This should remain a one-line `simpa` under `import MoltResearch.Discrepancy`.
+Regression: if two sequences agree on `apSupport d m n`, then both the sum and the discrepancy
+wrapper agree. These should remain one-line `simpa` proofs under `import MoltResearch.Discrepancy`.
 -/
+
+example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
+    apSumOffset f d m n = apSumOffset g d m n := by
+  simpa using (apSumOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
 example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
     discOffset f d m n = discOffset g d m n := by

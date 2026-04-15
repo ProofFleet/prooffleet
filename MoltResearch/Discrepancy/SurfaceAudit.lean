@@ -235,6 +235,7 @@ section
   #check discOffset_mul_eq_discOffset_map_mul_left
 
   -- Local surgery / congruence.
+  #check apSumOffset_congr_support
   #check discOffset_congr_support
   #check discOffset_congr
   #check discOffset_congr_range
