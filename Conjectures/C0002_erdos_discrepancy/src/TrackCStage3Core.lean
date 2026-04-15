@@ -1,5 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras
 
 /-!
 # Track C: Stage 3 core lemmas (Tao 2015 plane)

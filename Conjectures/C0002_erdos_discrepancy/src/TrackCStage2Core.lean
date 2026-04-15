@@ -5,14 +5,15 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
 
 This file is intentionally tiny.
 
-It contains the minimal proved lemmas about `Tao2015.Stage2Output` needed by later stages to
-close the global goal `¬ BoundedDiscrepancy f`.
+It contains the minimal proved lemmas about `Tao2015.Stage2Output` needed by later hard-gate stages
+to close the global goal `¬ BoundedDiscrepancy f` and to expose the small Stage-2 API used by the
+Stage-3 hard-gate entry point.
 
-Design note: Track C's hard-gate build for
-`Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy`
-should not need to compile the full library of Stage-2 convenience lemmas.
+Additional arithmetic/rewrite helpers (e.g. the start index `m*d`, reduced-sequence rewrite lemmas,
+and tail-nucleus normal forms phrased using `out.start`) live in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
 
-Additional witness-form wrappers live in
+The larger collection of witness-form wrappers lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Output`.
 -/
 
@@ -27,11 +28,8 @@ variable {f : ℕ → ℤ}
 /-!
 ## Stage-2 minimal projections
 
-These are the small, proved projections off `Tao2015.Stage2Output` that downstream stages use
+These are small, proved projections off `Tao2015.Stage2Output` that downstream hard-gate stages use
 frequently.
-
-We keep them in this core file so consumers can avoid importing the much larger library of
-Stage-2 convenience lemmas in `TrackCStage2Output.lean`.
 -/
 
 /-- Convenience projection: the reduced step size. -/
@@ -47,106 +45,6 @@ theorem hg (out : Stage2Output f) : IsSignSequence out.g := by
 /-- Convenience projection: the offset parameter bundled in Stage 1. -/
 abbrev m (out : Stage2Output f) : ℕ := out.out1.m
 
-/-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1. -/
-abbrev start (out : Stage2Output f) : ℕ := out.m * out.d
-
-/-- Definitional rewrite: the affine-tail start index is `m*d`.
-
-This lemma is intentionally tiny (and not a simp lemma): it exists mainly to reduce `dsimp` noise
-in downstream arithmetic rewrites.
--/
-theorem start_eq_m_mul_d (out : Stage2Output f) : out.start = out.m * out.d := by
-  rfl
-
-/-- Normal form: the affine-tail nucleus starting at the bundled start index `out.start`
-is the bundled offset nucleus at the bundled offset parameter `out.m`.
-
-This is `Tao2015.apSumFrom_mul_eq_apSumOffset` rewritten using `out.start = out.m * out.d`.
--/
-theorem apSumFrom_start_eq_apSumOffset (out : Stage2Output f) (n : ℕ) :
-    apSumFrom f out.start out.d n = apSumOffset f out.d out.m n := by
-  simpa [Stage2Output.start] using
-    (apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
-
-/-- Normal form: the bundled offset discrepancy wrapper `discOffset f out.d out.m n` is the
-absolute value of the affine-tail nucleus `apSumFrom f out.start out.d n`.
-
-This lets later stages work directly with affine-tail nuclei (a common analytic normal form)
-without repeatedly rewriting `apSumOffset` or unfolding `discOffset`.
--/
-theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
-    discOffset f out.d out.m n = Int.natAbs (apSumFrom f out.start out.d n) := by
-  unfold discOffset
-  -- Rewrite the bundled offset nucleus `apSumOffset` to the affine-tail nucleus `apSumFrom`.
-  rw [← out.apSumFrom_start_eq_apSumOffset (f := f) n]
-
-/-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
-theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
-  -- `out.start` is definitionally `m*d`.
-  simp [Stage2Output.start]
-
-/-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`.
-
-This is often the most convenient form of `d_dvd_start` for arithmetic rewriting.
--/
-theorem start_mod_d (out : Stage2Output f) : out.start % out.d = 0 := by
-  exact Nat.mod_eq_zero_of_dvd (d_dvd_start (f := f) out)
-
-/-- Adding the start index does not change residues modulo the step size.
-
-Since `out.start` is a multiple of `out.d`, we have
-`(n + out.start) % out.d = n % out.d`.
--/
-theorem add_start_mod_d (out : Stage2Output f) (n : ℕ) :
-    (n + out.start) % out.d = n % out.d := by
-  have hstart : out.start % out.d = 0 := out.start_mod_d (f := f)
-  simp [Nat.add_mod, hstart]
-
-/-- Recover the offset parameter `out.m` by dividing the start index `out.start` by the step size
-`out.d`.
-
-This is a tiny arithmetic convenience lemma: `out.start = out.m * out.d` by definition.
--/
-theorem start_div_d (out : Stage2Output f) : out.start / out.d = out.m := by
-  -- `out.out1.hd` is the only side condition needed for `Nat.mul_div_left`.
-  have hd' : 0 < out.d := by
-    simpa [Stage2Output.d] using out.out1.hd
-  simpa [Stage2Output.start] using (Nat.mul_div_left out.m hd')
-
-/-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
-theorem g_eq (out : Stage2Output f) (k : ℕ) :
-    out.g k = f (k + out.m * out.d) := by
-  simpa [Stage2Output.g, Stage2Output.m, Stage2Output.d] using out.out1.g_eq k
-
-/-- Rewrite for the reduced sequence produced by Stage 2, phrased using the bundled start index
-`out.start = out.m * out.d`. -/
-theorem g_eq_start (out : Stage2Output f) (k : ℕ) :
-    out.g k = f (k + out.start) := by
-  simpa [Stage2Output.start] using (out.g_eq (f := f) k)
-
-/-- Function-level rewrite for the reduced sequence produced by Stage 2: it is the shifted sequence
-`fun k => f (k + out.start)`.
--/
-theorem g_eq_fun (out : Stage2Output f) :
-    out.g = fun k => f (k + out.start) := by
-  funext k
-  simpa using out.g_eq_start (f := f) k
-
-/-- The reduced-sequence homogeneous nucleus is the original-sequence affine nucleus at the bundled
-start index `out.start`.
-
-Concretely, `apSum out.g out.d n` sums `out.g` along `out.d, 2*out.d, …, n*out.d`, and since
-`out.g k = f (k + out.start)`, this is exactly `apSumFrom f out.start out.d n`.
--/
-theorem apSum_g_eq_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
-    apSum out.g out.d n = apSumFrom f out.start out.d n := by
-  unfold apSum apSumFrom
-  refine Finset.sum_congr rfl ?_
-  intro i hi
-  -- `out.g` is `f` shifted by `out.start`.
-  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
-    (out.g_eq_start (f := f) ((i + 1) * out.d))
-
 /-- Convenience projection: positivity of the reduced step size. -/
 abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 
@@ -156,8 +54,11 @@ theorem d_ne_zero (out : Stage2Output f) : out.d ≠ 0 := by
 
 /-- Convenience lemma: the reduced step size is at least `1`. -/
 theorem one_le_d (out : Stage2Output f) : 1 ≤ out.d := by
-  -- `out.hd` is `0 < out.d`.
   simpa using (Nat.succ_le_iff).2 out.hd
+
+/-!
+## Stage-2 bridge back to the global statement
+-/
 
 /-- Consumer-facing form: Stage 2 implies global unbounded discrepancy for the original sequence.
 
@@ -167,6 +68,19 @@ carried by `out.out1` to conclude `¬ BoundedDiscrepancy f`.
 -/
 theorem notBoundedOriginal (out : Stage2Output f) : ¬ BoundedDiscrepancy f := by
   exact out.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f) out.unbounded
+
+/-- Stage 2 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
+
+This is a thin wrapper around `notBoundedOriginal`.
+-/
+theorem forall_hasDiscrepancyAtLeast (out : Stage2Output f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
+  exact out.notBoundedOriginal (f := f)
+
+/-!
+## Offset-discrepancy normal forms used by Stage 3
+-/
 
 /-- Stage 2 output implies unbounded bundled offset discrepancy for the original sequence
 at the concrete parameters `out.d` and `out.m`.
@@ -195,9 +109,6 @@ theorem forall_exists_discOffset_gt'_witness_pos (out : Stage2Output f) :
 `discOffset f out.d out.m`.
 
 This is the negation-normal-form version of `unboundedDiscOffset`.
-
-We keep this lemma in `TrackCStage2Core.lean` so downstream stages can access it without importing
-the larger convenience-lemma library `TrackCStage2Output.lean`.
 -/
 theorem not_exists_boundedDiscOffset (out : Stage2Output f) :
     ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
@@ -207,62 +118,14 @@ theorem not_exists_boundedDiscOffset (out : Stage2Output f) :
         (d := out.d) (m := out.m)).1
       hunb
 
-/-- Negation-normal-form unboundedness statement for the affine-tail nuclei
-`Int.natAbs (apSumFrom f out.start out.d n)`.
-
-This is `unboundedDiscOffset` rewritten using the generic normal-form lemma
-`Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le`.
-
-We phrase this using the bundled start index `out.start = out.m * out.d` to reduce arithmetic noise
-in downstream stages.
-
-We keep this lemma in `TrackCStage2Core.lean` so downstream stages can access it without importing
-the larger convenience-lemma library `TrackCStage2Output.lean`.
+/-!
+## Core-predicate bridge
 -/
-theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
-    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) ≤ B := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  simpa [Stage2Output.start] using
-    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le
-        (f := f) (d := out.d) (m := out.m)).1
-      hunb
-
-/-- Tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail nuclei
-`Int.natAbs (apSumFrom f out.start out.d n)`.
-
-This is a small convenience wrapper around the generic normal-form lemma
-`Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`, specialized to
-the deterministic Stage-2 parameters.
-
-We phrase this using the bundled start index `out.start = out.m * out.d` to reduce arithmetic noise
-in downstream stages.
-
-We keep it in `TrackCStage2Core.lean` so downstream stages can access the witness form without
-importing the larger convenience-lemma library `TrackCStage2Output.lean`.
--/
-theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f out.start out.d n) > B := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  simpa [Stage2Output.start] using
-    (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
-      (f := f) (d := out.d) (m := out.m) hunb)
-
-/-- Stage 2 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
-
-This is a thin wrapper around `notBoundedOriginal`.
--/
-theorem forall_hasDiscrepancyAtLeast (out : Stage2Output f) :
-    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
-  exact out.notBoundedOriginal (f := f)
 
 /-- Stage-2 unboundedness, re-expressed using the verified core predicate.
 
 This is a small convenience lemma: many consumers outside the `Tao2015` namespace use the core
 predicate `MoltResearch.UnboundedDiscrepancyAlong` rather than the Track-C-local definition.
-
-We keep this lemma in `TrackCStage2Core.lean` so downstream stages can access it without importing
-the larger convenience-lemma library `TrackCStage2Output.lean`.
 -/
 theorem unboundedDiscrepancyAlong_core (out : Stage2Output f) :
     MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
