@@ -38,6 +38,14 @@ theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
   -- Delegate to the minimal Stage-3 entry-point API.
   exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
 
+/-- Specialization of `erdos_discrepancy` at a fixed threshold `C`.
+
+This is a tiny convenience lemma: it avoids an extra application at the call site.
+-/
+theorem erdos_discrepancy_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (C : ℕ) :
+    HasDiscrepancyAtLeast f C := by
+  exact (erdos_discrepancy (f := f) (hf := hf)) C
+
 /-!
 Additional witness-form corollaries live in
 `Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancyWitnesses`.
