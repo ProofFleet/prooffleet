@@ -22,6 +22,7 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **Intuition:** foundational discrepancy definitions and small bounds let later modules reuse a common vocabulary.
 - **Proof sketch pattern:** normalize definitions first, then prove small local inequalities and compose.
 - **Common pitfalls:** jumping into advanced lemmas before reducing to canonical definitions.
+- **API note (triangle vs reverse triangle):** for concatenation, `discOffset_add_le` is the forward triangle inequality. The reverse-triangle companions are `discOffset_left_le_add` / `discOffset_right_le_add`, proved by rewriting `S(n₁) = S(n₁+n₂) - S'(n₂)` and applying `Int.natAbs_sub_le`.
 - **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
 - **API note (Lipschitz step):** for sign sequences, the one-step cutoff bound is `discOffsetUpTo_succ_le_add_one`:
   `discOffsetUpTo f d m (N+1) ≤ discOffsetUpTo f d m N + 1`. The reverse direction (monotonicity) is `discOffsetUpTo_le_succ`.
