@@ -66,6 +66,23 @@ This lemma is a tiny wrapper around `stage3Out_out1`.
     (stage3Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
   rfl
 
+/-- Track C pipeline witness: Stage 3 yields unbounded fixed-step discrepancy along the reduced
+sequence, expressed using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This lemma is a small convenience wrapper around the bridge equivalence
+`Tao2015.unboundedDiscrepancyAlong_iff_core`.
+-/
+theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    MoltResearch.UnboundedDiscrepancyAlong
+      (stage3Out (f := f) (hf := hf)).out2.out1.g
+      (stage3Out (f := f) (hf := hf)).out2.out1.d := by
+  set out := stage3Out (f := f) (hf := hf) with hout
+  have hunb : Tao2015.UnboundedDiscrepancyAlong out.out2.out1.g out.out2.out1.d :=
+    out.out2.unbounded
+  simpa [hout.symm] using
+    (Tao2015.unboundedDiscrepancyAlong_iff_core (g := out.out2.out1.g) (d := out.out2.out1.d)).1
+      hunb
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` can remain minimal.
