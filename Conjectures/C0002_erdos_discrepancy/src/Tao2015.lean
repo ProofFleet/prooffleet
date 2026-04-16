@@ -311,9 +311,11 @@ sum.
 theorem discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n =
       Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
-  -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`.
-  unfold discOffset
-  exact natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)
+  calc
+    discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=
+      discOffset_eq_natAbs_apSumOffset (f := f) (d := d) (m := m) (n := n)
+    _ = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) :=
+      natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)
 
 namespace UnboundedDiscOffset
 

@@ -58,12 +58,11 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_
   let out := stage3Out (f := f) (hf := hf)
   refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
   intro B
-  -- Use the proved Stage-2 core wrapper, then unfold `discOffset`.
+  -- Use the proved Stage-2 core wrapper, then rewrite `discOffset` to the bundled nucleus form.
   rcases out.out2.forall_exists_discOffset_gt'_witness_pos (f := f) B with ⟨n, hn, hdisc⟩
   refine ⟨n, hn, ?_⟩
-  -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`.
-  -- Avoid `simp` here (it can hit recursion limits); unfold the definition directly.
-  unfold discOffset at hdisc
+  -- Avoid `simp` here (it can hit recursion limits); use the definitional lemma instead.
+  rw [discOffset_eq_natAbs_apSumOffset] at hdisc
   exact hdisc
 
 /-- Consumer-facing shortcut: Stage 3 yields the discrepancy witness form
