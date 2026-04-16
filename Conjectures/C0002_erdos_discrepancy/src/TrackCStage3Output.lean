@@ -247,6 +247,19 @@ theorem forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (out : Stage3Output f
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) out.out2)
 
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` such that the paper-notation
+shifted progression sums `∑ i ∈ Icc (m+1) (m+n), f (i*d)` take arbitrarily large absolute values.
+
+This is a small wrapper around `forall_exists_natAbs_sum_Icc_offset_gt`.
+-/
+theorem exists_params_forall_exists_natAbs_sum_Icc_offset_gt (out : Stage3Output f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ B : ℕ, ∃ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  refine ⟨out.d, out.m, out.hd, ?_⟩
+  intro B
+  exact out.forall_exists_natAbs_sum_Icc_offset_gt (f := f) B
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 paper-notation offset sum witness `∑ i ∈ Icc (m+1) (m+n), f (i*d)` takes arbitrarily large absolute
 values.
