@@ -220,10 +220,16 @@ section
   #check discOffsetUpTo_one_shift
   #check discOffsetUpTo_succ
   #check discOffsetUpTo_add_start
+  #check discOffset_le_discOffsetUpTo
   #check discOffset_le_discOffsetUpTo_self
   #check discOffsetUpTo_mono
   #check discOffsetUpTo_le_add
   #check discOffsetUpTo_le_succ
+  #check exists_discOffset_eq_discOffsetUpTo
+
+  -- One-line usage audit: any particular `discOffset` is bounded by the corresponding `UpTo`.
+  example (N : ℕ) (hn : n ≤ N) : discOffset f d m n ≤ discOffsetUpTo f d m N := by
+    simpa using (discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m) (n := n) (N := N) hn)
 
   -- One-line usage audit: the max-recursion normal form.
   example :
@@ -235,6 +241,10 @@ section
   example (k : ℕ) :
       discOffsetUpTo f d (m + k) n = discOffsetUpTo (fun t => f (t + k * d)) d m n := by
     simpa using (discOffsetUpTo_add_start (f := f) (d := d) (m := m) (k := k) (N := n))
+
+  -- One-line usage audit: the `sup` in `discOffsetUpTo` is attained by some `t ≤ N`.
+  example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
+    simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n))
 
   -- Additional one-line usage audits for other max-level `discOffsetUpTo_*` lemmas.
   example : discOffsetUpTo f d m 0 = 0 := by
