@@ -268,6 +268,19 @@ theorem exists_params_forall_exists_discOffset_gt' (out : Stage2Output f) :
   rcases h B with ⟨n, hn⟩
   exact ⟨n, by simpa [gt_iff_lt] using hn⟩
 
+/-- Positive-length witness variant of `exists_params_forall_exists_discOffset_gt'`.
+
+The witness length `n` cannot be `0`, since `discOffset ... 0 = 0`.
+-/
+theorem exists_params_forall_exists_discOffset_gt'_witness_pos (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧ (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f d m n > B) := by
+  rcases out.exists_params_forall_exists_discOffset_gt_witness_pos (f := f) with ⟨d, m, hd, h⟩
+  refine ⟨d, m, hd, ?_⟩
+  intro B
+  rcases h B with ⟨n, hnpos, hn⟩
+  refine ⟨n, hnpos, ?_⟩
+  simpa [gt_iff_lt] using hn
+
 /-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that
 `discOffset f d m` has arbitrarily large values.
 
