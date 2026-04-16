@@ -225,6 +225,17 @@ section
   #check discOffsetUpTo_le_add
   #check discOffsetUpTo_le_succ
 
+  -- One-line usage audit: the max-recursion normal form.
+  example :
+      discOffsetUpTo f d m (n + 1) =
+        max (discOffsetUpTo f d m n) (discOffset f d m (n + 1)) := by
+    simpa using (discOffsetUpTo_succ (f := f) (d := d) (m := m) (N := n))
+
+  -- One-line usage audit: advancing the start parameter is just a sequence shift by `k*d`.
+  example (k : ℕ) :
+      discOffsetUpTo f d (m + k) n = discOffsetUpTo (fun t => f (t + k * d)) d m n := by
+    simpa using (discOffsetUpTo_add_start (f := f) (d := d) (m := m) (k := k) (N := n))
+
   -- “Max over lengths/endpoints” normal-form expansions.
   #check discOffsetUpTo_eq_sup_Icc_lengths
   #check discOffsetUpTo_eq_sup_range_Icc
