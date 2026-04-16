@@ -228,6 +228,28 @@ theorem boundedDiscOffset_iff_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) 
     unfold discOffset
     exact hn
 
+/-- Packaging normal form: existence of a bundled offset bound expressed as interval sums on `Icc`.
+
+This is `BoundedDiscOffset` packaged under an existential quantifier and rewritten using
+`boundedDiscOffset_iff_forall_natAbs_sum_Icc_offset_le`.
+-/
+theorem exists_boundedDiscOffset_iff_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (d m : ℕ) :
+    (∃ B : ℕ, BoundedDiscOffset f d m B) ↔
+      (∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact
+      (boundedDiscOffset_iff_forall_natAbs_sum_Icc_offset_le (f := f) (d := d) (m := m) (B := B)).1
+        hB
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact
+      (boundedDiscOffset_iff_forall_natAbs_sum_Icc_offset_le (f := f) (d := d) (m := m) (B := B)).2
+        hB
+
 /-- Normal form: unbounded offset discrepancy expressed directly using the bundled offset nucleus.
 
 Since `discOffset f d m n` is definitionally `Int.natAbs (apSumOffset f d m n)`, this lemma lets
