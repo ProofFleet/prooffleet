@@ -80,6 +80,17 @@ theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
   simpa [Stage3Output.out1, Stage2Output.g, Stage2Output.d] using
     (stage3Out (f := f) (hf := hf)).out2.unboundedDiscrepancyAlong_core (f := f)
 
+/-- Track C pipeline witness: Stage 3 yields an unbounded bundled offset discrepancy family
+`discOffset f d m` at the deterministic Stage-2 parameters stored in `stage3Out`.
+
+This is a thin wrapper around the proved Stage-2 core lemma `Stage2Output.unboundedDiscOffset`.
+-/
+theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f
+      (stage3Out (f := f) (hf := hf)).out2.d
+      (stage3Out (f := f) (hf := hf)).out2.m := by
+  simpa using (stage3Out (f := f) (hf := hf)).out2.unboundedDiscOffset (f := f)
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` can remain minimal.
