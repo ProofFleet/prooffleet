@@ -108,6 +108,18 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).out2.m := by
   simpa using (stage3Out (f := f) (hf := hf)).out2.unboundedDiscOffset (f := f)
 
+/-- Consumer-facing normal form: there is no bundled offset-discrepancy bound at the deterministic
+Stage-2 parameters stored in `stage3Out`.
+
+This is the stable boundedness-negation normal form of `stage3_unboundedDiscOffset`.
+-/
+theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (stage3Out (f := f) (hf := hf)).out2.d
+        (stage3Out (f := f) (hf := hf)).out2.m B := by
+  exact (stage3Out (f := f) (hf := hf)).not_exists_boundedDiscOffset (f := f)
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` can remain minimal.
