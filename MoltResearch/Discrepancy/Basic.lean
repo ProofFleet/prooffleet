@@ -2331,11 +2331,27 @@ def HasDiscrepancyAtLeast (f : ℕ → ℤ) (C : ℕ) : Prop :=
     -- Rewrite the goal to match `hgt`.
     simpa [hnatAbs] using hgt
 
-/-- Monotonicity of `HasDiscrepancyAtLeast` in the bound. -/
+/-- Monotonicity of `HasDiscrepancyAtLeast` in the bound.
+
+⚠️ Note the direction: `HasDiscrepancyAtLeast f C` is **easier** to satisfy for smaller `C`
+(because the witness inequality is `> C`). So the predicate is antitone in `C`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `HasDiscrepancyAtLeast` monotone-in-`C`
+API (avoid unfolding definitions in quantifier manipulations).
+-/
 lemma HasDiscrepancyAtLeast.mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
     (h : HasDiscrepancyAtLeast f C₂) (hC : C₁ ≤ C₂) : HasDiscrepancyAtLeast f C₁ := by
   rcases h with ⟨d, n, hd, hn⟩
   exact ⟨d, n, hd, lt_of_le_of_lt hC hn⟩
+
+/-- Contrapositive monotonicity: if you cannot beat a smaller bound, you cannot beat a larger one.
+
+This is the logically convenient “negated” form used when normalizing boundedness hypotheses.
+-/
+lemma HasDiscrepancyAtLeast.not_mono {f : ℕ → ℤ} {C₁ C₂ : ℕ}
+    (h : ¬ HasDiscrepancyAtLeast f C₁) (hC : C₁ ≤ C₂) : ¬ HasDiscrepancyAtLeast f C₂ := by
+  intro h₂
+  exact h (HasDiscrepancyAtLeast.mono (f := f) (C₁ := C₁) (C₂ := C₂) h₂ hC)
 
 /-- Decrease the bound by one. -/
 lemma HasDiscrepancyAtLeast.of_succ {f : ℕ → ℤ} {C : ℕ}

@@ -37,6 +37,21 @@ example : (HasAffineDiscrepancyAtLeast f C ↔ Nonempty (AffineDiscrepancyWitnes
   simpa using (HasAffineDiscrepancyAtLeast.iff_nonempty_witnessGeOne (f := f) (C := C))
 
 /-!
+### NEW (Track B): `HasDiscrepancyAtLeast` monotone-in-`C` API
+
+Compile-only regression: we can move bounds around (including under negation) without unfolding
+`HasDiscrepancyAtLeast`.
+-/
+
+variable (C' : ℕ)
+
+example (h : HasDiscrepancyAtLeast f C') (hC : C ≤ C') : HasDiscrepancyAtLeast f C := by
+  simpa using (HasDiscrepancyAtLeast.mono (f := f) (C₁ := C) (C₂ := C') h hC)
+
+example (h : ¬ HasDiscrepancyAtLeast f C) (hC : C ≤ C') : ¬ HasDiscrepancyAtLeast f C' := by
+  simpa using (HasDiscrepancyAtLeast.not_mono (f := f) (C₁ := C) (C₂ := C') h hC)
+
+/-!
 ### NEW (Track B): constant-sequence sanity checks (`apSum`/`discOffset`)
 
 These are explicit computed examples that should remain one-line `simp`/`simpa` proofs under the
