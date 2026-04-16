@@ -175,6 +175,18 @@ theorem exists_params_one_le_unboundedDiscOffset (out : Stage3Output f) :
   refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
   simpa [Stage3Output.d, Stage3Output.m] using out.unboundedDiscOffset (f := f)
 
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
+no bundled offset-discrepancy bound at those parameters.
+
+Normal form: `∃ d m, 1 ≤ d ∧ ¬ ∃ B, BoundedDiscOffset f d m B`.
+
+This is just `Stage3Output.not_exists_boundedDiscOffset` packaged under an existential quantifier.
+-/
+theorem exists_params_one_le_not_exists_boundedDiscOffset (out : Stage3Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  simpa [Stage3Output.d, Stage3Output.m] using out.not_exists_boundedDiscOffset (f := f)
+
 -- Note: `Stage3Output.not_exists_boundedDiscOffset` is defined in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
