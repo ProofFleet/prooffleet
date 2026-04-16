@@ -24,6 +24,10 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **Common pitfalls:** jumping into advanced lemmas before reducing to canonical definitions.
 - **API note (triangle vs reverse triangle):** for concatenation, `discOffset_add_le` is the forward triangle inequality. The reverse-triangle companions are `discOffset_left_le_add` / `discOffset_right_le_add`, proved by rewriting `S(n₁) = S(n₁+n₂) - S'(n₂)` and applying `Int.natAbs_sub_le`.
 - **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
+- **API note (tail concatenation, max-level):** for later Tao2015 bookkeeping, prefer the wrapper
+  `discOffsetUpTo_tail_concat_le`:
+  `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`.
+  It is just a stable-name wrapper around `discOffsetUpTo_add_le_add_discOffsetUpTo`, but avoids downstream proofs having to remember that name.
 - **API note (Lipschitz step):** for sign sequences, the one-step cutoff bound is `discOffsetUpTo_succ_le_add_one`:
   `discOffsetUpTo f d m (N+1) ≤ discOffsetUpTo f d m N + 1`. The reverse direction (monotonicity) is `discOffsetUpTo_le_succ`.
 - **API note (bounding a fixed tail):** to bound a particular `discOffset f d m n` by the max cutoff at the *same* `n`, use `discOffset_le_discOffsetUpTo_self` (it’s just the `N = n` specialization, so you don’t have to write `le_rfl`).
