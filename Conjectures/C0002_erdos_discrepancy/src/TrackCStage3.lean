@@ -50,6 +50,22 @@ Implementation note: we delegate to the tiny Stage-2 core bridge lemma `Stage2Ou
 theorem notBounded (out : Stage3Output f) : ¬ BoundedDiscrepancy f := by
   exact out.out2.notBoundedOriginal (f := f)
 
+/-- Stage 3 output also exposes the Stage-2 offset-discrepancy witness predicate.
+
+This is a thin wrapper around the Stage-2 core lemma `Stage2Output.unboundedDiscOffset`.
+-/
+theorem unboundedDiscOffset (out : Stage3Output f) :
+    UnboundedDiscOffset f out.out2.d out.out2.m := by
+  exact out.out2.unboundedDiscOffset (f := f)
+
+/-- Stage 3 output implies there is no bundled offset bound at the deterministic Stage-2 parameters.
+
+This is the stable boundedness-negation normal form of `unboundedDiscOffset`.
+-/
+theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.out2.d out.out2.m B := by
+  exact out.out2.not_exists_boundedDiscOffset (f := f)
+
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
 
