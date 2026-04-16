@@ -201,9 +201,29 @@ section
 
   #check discUpTo
   #check discOffsetUpTo
+
+  -- Max-level normal forms (the `UpTo` family): keep the core rewrite lemmas exported.
+  -- (This checklist item: Problems/erdos_discrepancy.md, Track B)
   #check discOffsetUpTo_zero
   #check discOffsetUpTo_zero_start
   #check discOffsetUpTo_one_shift
+  #check discOffsetUpTo_succ
+  #check discOffsetUpTo_add_start
+  #check discOffset_le_discOffsetUpTo_self
+  #check discOffsetUpTo_mono
+  #check discOffsetUpTo_le_add
+  #check discOffsetUpTo_le_succ
+
+  -- “Max over lengths/endpoints” normal-form expansions.
+  #check discOffsetUpTo_eq_sup_Icc_lengths
+  #check discOffsetUpTo_eq_sup_range_Icc
+  #check discOffsetUpTo_eq_sup_Icc_endpoints
+
+  -- High-leverage bound normal forms.
+  #check discOffsetUpTo_le_iff_forall_range_Icc
+  #check discOffsetUpTo_le_iff_forall_Icc_endpoints
+
+  -- API-level inequalities used in Track B.
   #check discOffsetUpTo_add_le_add_discOffsetUpTo
   #check discOffsetUpTo_tail_concat_le
 
@@ -215,6 +235,31 @@ section
 
   example : discOffsetUpTo f 1 m n = discUpTo (fun k => f (k + m)) 1 n := by
     simp
+
+  /-!
+  ### Max-level `discOffsetUpTo` normal forms (stable surface)
+
+  These are compile-only regression tests that the intended “one-line” rewrite pipeline
+  for max-level normal forms remains available under `import MoltResearch.Discrepancy`.
+  -/
+
+  -- Rewrite `discOffsetUpTo` into the paper-style endpoint convention as a finitary `sup`.
+  example :
+      discOffsetUpTo f d m n =
+        (Finset.Icc 0 n).sup
+          (fun t => Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d)))) := by
+    simpa using
+      (discOffsetUpTo_eq_sup_Icc_lengths (f := f) (d := d) (m := m) (N := n))
+
+  -- “One-shot bound rewrite” for the endpoint-style paper form (`sup ≤ C` iff all entries ≤ C).
+  example (C : ℕ) :
+      discOffsetUpTo f d m n ≤ C ↔
+        ∀ t ∈ Finset.Icc 0 n,
+          Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d))) ≤ C := by
+    simpa [discOffsetUpTo_eq_sup_Icc_lengths (f := f) (d := d) (m := m) (N := n)] using
+      (Finset.sup_le_iff (s := Finset.Icc 0 n)
+        (f := fun t => Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d))))
+        (a := C))
 
   /-!
   ### discOffset_* lemma exports (stable surface)
