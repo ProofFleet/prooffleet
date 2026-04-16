@@ -63,6 +63,20 @@ example :
     (discOffset_shift_mul_right_comm (f := f) (d := d) (m := m) (n := n) (q := p))
 
 /-!
+### NEW (Track B): gcd / coprimality normalization helper (`apSumFrom`)
+
+Compile-only regression: we can rewrite an affine AP sum by dividing out `g := Nat.gcd a d`.
+-/
+
+example :
+    apSumFrom f a d n =
+      apSumFrom (fun k => f (k * Nat.gcd a d)) (a / Nat.gcd a d) (d / Nat.gcd a d) n := by
+  simpa using (apSumFrom_eq_apSumFrom_div_gcd_map_mul_right (f := f) (a := a) (d := d) (n := n))
+
+example (hgd : 0 < Nat.gcd a d) : Nat.Coprime (a / Nat.gcd a d) (d / Nat.gcd a d) := by
+  simpa using (coprime_div_gcd_div_gcd (a := a) (d := d) hgd)
+
+/-!
 ### NEW (Track B): API coherence simp surface (`apSupport`/`apSumOffset`/`discOffset`)
 
 Regression: the stable surface should `simp`-normalize the most common degenerate-parameter and
