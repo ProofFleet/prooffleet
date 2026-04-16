@@ -55,16 +55,8 @@ theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
   -- Rewrite the bundled offset nucleus `apSumOffset` to the affine-tail nucleus `apSumFrom`.
   rw [← out.apSumFrom_start_eq_apSumOffset (f := f) n]
 
-/-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset discrepancies
-`discOffset f out.d out.m n`, with witnesses `n > 0`.
-
-We keep this lemma in `TrackCStage2CoreExtras.lean` so downstream stages can access it without
-importing the large Stage-2 output-lemma library `TrackCStage2Output.lean`.
--/
-theorem forall_exists_discOffset_gt_witness_pos (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ B < discOffset f out.d out.m n := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  exact UnboundedDiscOffset.forall_exists_discOffset_gt_witness_pos (hunb := hunb)
+-- Note: `Stage2Output.forall_exists_discOffset_gt_witness_pos` now lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`.
 
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
