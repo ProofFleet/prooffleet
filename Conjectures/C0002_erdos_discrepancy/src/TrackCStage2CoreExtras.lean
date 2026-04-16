@@ -164,6 +164,17 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f)
     (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
       (f := f) (d := out.d) (m := out.m) hunb)
 
+/-- Tail-nucleus witness form without the positive-length side condition.
+
+This is a small convenience corollary of
+`Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem forall_exists_natAbs_apSumFrom_start_gt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) > B := by
+  intro B
+  rcases out.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) B with ⟨n, _hnpos, hgt⟩
+  exact ⟨n, hgt⟩
+
 end Stage2Output
 
 end Tao2015
