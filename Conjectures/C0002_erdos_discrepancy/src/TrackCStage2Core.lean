@@ -78,6 +78,13 @@ theorem forall_hasDiscrepancyAtLeast (out : Stage2Output f) :
   refine (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2 ?_
   exact out.notBoundedOriginal (f := f)
 
+/-- Specialization of `forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
+
+This is a tiny convenience lemma: it avoids an extra application at the call site.
+-/
+theorem hasDiscrepancyAtLeast (out : Stage2Output f) (C : ℕ) : HasDiscrepancyAtLeast f C := by
+  exact (out.forall_hasDiscrepancyAtLeast (f := f)) C
+
 /-!
 ## Offset-discrepancy normal forms used by Stage 3
 -/
