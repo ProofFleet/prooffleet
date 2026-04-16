@@ -87,6 +87,22 @@ theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSign
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
 
+/-- Discrepancy-form variant of `stage3_forall_exists_d_ge_one_witness_pos`.
+
+Normal form:
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C`.
+-/
+theorem stage3_forall_exists_discrepancy_gt_d_ge_one_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases stage3_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf) C with
+    ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
+  change Int.natAbs (apSum f d n) > C
+  exact hw
+
 /-- Variant of `stage3_forall_exists_d_ge_one_witness_pos` with strict positivity for `d`.
 
 Normal form:
@@ -150,7 +166,7 @@ theorem stage3_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ) (hf : 
   change Int.natAbs (apSum f d n) > C
   exact hw
 
--- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`)
+-- (also available via `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`)
 
 end Tao2015
 

@@ -153,23 +153,8 @@ Most of these are intentionally kept out of the hard-gate core module.
 -- The discrepancy witness normal form `stage3_forall_exists_discrepancy_gt` lives in
 -- `TrackCStage3EntryCore.lean` (hard-gate surface).
 
-/-- Variant of `stage3_forall_exists_discrepancy_gt_witness_pos` with the step-size condition
-written as `d ≥ 1`.
-
-Normal form:
-`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C`.
--/
-theorem stage3_forall_exists_discrepancy_gt_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  rcases stage3_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf) C with
-    ⟨d, n, hd, hn, hw⟩
-  refine ⟨d, n, hd, hn, ?_⟩
-  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
-  change Int.natAbs (apSum f d n) > C
-  exact hw
-
--- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`)
+-- The lemma `stage3_forall_exists_discrepancy_gt_d_ge_one_witness_pos` is provided by
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
 
 -- Note: `stage3_unboundedDiscOffset` and `stage3_not_exists_boundedDiscOffset` live in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`.
