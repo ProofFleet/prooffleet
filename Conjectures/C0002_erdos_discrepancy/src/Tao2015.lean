@@ -935,6 +935,16 @@ theorem discrepancy_eq_discOffset_via_contract (out : ReductionOutput f) (n : �
   -- Now normalize discrepancy of a shift by `m*d`.
   simp [hgfun, discrepancy_shift_mul_simp (f := f) (m := out.m) (d := out.d) (n := n)]
 
+/-- Consumer-facing rewrite: the stable wrapper `discAlong` for the reduced sequence equals the
+bundled offset discrepancy wrapper for the original sequence.
+
+This is a tiny packaging lemma around `discrepancy_eq_discOffset_via_contract`.
+-/
+theorem discAlong_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    discAlong out.g out.d n = discOffset f out.d out.m n := by
+  simpa [discAlong_eq_discrepancy] using
+    out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)
+
 /-- Convenience: pointwise discrepancy bounds for the reduced sequence are exactly pointwise bounds
 on the bundled offset family. -/
 theorem discrepancy_le_iff_discOffset_le (out : ReductionOutput f) (n B : ℕ) :
