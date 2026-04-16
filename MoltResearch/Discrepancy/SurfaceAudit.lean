@@ -227,6 +227,20 @@ section
   #check discOffsetUpTo_le_succ
   #check exists_discOffset_eq_discOffsetUpTo
 
+  -- Max-level block-length / residue APIs (stable surface)
+  #check discOffsetUpTo_blockLen_mul_succ
+  #check discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs
+  #check discOffsetUpTo_residueTerm
+  #check discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm
+
+  -- One-line usage audit: max-level residue-class block-length bound (clean API surface).
+  example (q N : ℕ) (hq : q > 0) :
+      discOffsetUpTo_blockLen_mul_succ f d m q N ≤
+        (Finset.range q).sum (fun r => discOffsetUpTo_residueTerm f d m q r N) := by
+    simpa using
+      (discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm
+        (f := f) (d := d) (m := m) (q := q) (N := N) hq)
+
   -- Residue-class `UpTo` wrappers (max-level APIs): ensure the packaged definitions remain exported.
   #check discOffsetUpTo_modEq
   #check exists_discOffset_eq_discOffsetUpTo_modEq
