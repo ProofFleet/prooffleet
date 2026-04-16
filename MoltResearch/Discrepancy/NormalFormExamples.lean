@@ -4334,6 +4334,17 @@ example (f : ℕ → ℤ) (d m N C : ℕ) :
     (discOffsetUpTo_le_iff_forall_Icc_endpoints (f := f) (d := d) (m := m) (N := N) (C := C))
 
 /-!
+## Residue-class max-level bound regression tests
+-/
+
+example (f : ℕ → ℤ) (d m q N : ℕ) (hq : q > 0) :
+    discOffsetUpTo_blockLen_mul_succ f d m q N ≤
+      (Finset.range q).sum (fun r => discOffsetUpTo_residueTerm f d m q r N) := by
+  simpa using
+    (discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm (f := f) (d := d) (m := m) (q := q)
+      (N := N) hq)
+
+/-!
 ## `disc` wrapper regression tests
 
 These ensure the homogeneous wrapper `disc` stays coherent with the offset wrapper `discOffset`.
