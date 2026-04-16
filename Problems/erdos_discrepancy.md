@@ -1107,7 +1107,8 @@ Definition of done:
 - [x] “Residue max” inequality (clean API surface): after residue-class splitting, add a packaged lemma bounding a single `discOffsetUpTo` by a sum (or max) of residue-class `discOffsetUpTo` objects with consistent parameter ordering (no ad-hoc reindexing in downstream proofs).
   (Implemented as `discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm` (plus `discOffsetUpTo_residueTerm`) in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface audit for max-level APIs: extend `MoltResearch/Discrepancy/SurfaceAudit.lean` with `#check`/`example` coverage for the max-level normal forms (`discOffsetUpTo_*` lemmas), ensuring the intended rewrite pipeline stays one-line usable.
+- [x] Stable-surface audit for max-level APIs: extend `MoltResearch/Discrepancy/SurfaceAudit.lean` with `#check`/`example` coverage for the max-level normal forms (`discOffsetUpTo_*` lemmas), ensuring the intended rewrite pipeline stays one-line usable.
+  - See the `UpTo` section in `MoltResearch/Discrepancy/SurfaceAudit.lean` for one-line rewrite/bound audits.
 
 ### Track C - Conjecture stub + equivalences (backlog)
 
