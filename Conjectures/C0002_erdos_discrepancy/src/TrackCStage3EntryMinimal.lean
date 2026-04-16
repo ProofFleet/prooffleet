@@ -76,16 +76,9 @@ theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
     MoltResearch.UnboundedDiscrepancyAlong
       (stage3Out (f := f) (hf := hf)).out1.g
       (stage3Out (f := f) (hf := hf)).out1.d := by
-  have hunb :
-      Tao2015.UnboundedDiscrepancyAlong
-        (stage3Out (f := f) (hf := hf)).out1.g
-        (stage3Out (f := f) (hf := hf)).out1.d :=
-    (stage3Out (f := f) (hf := hf)).out2.unbounded
-  exact
-    (Tao2015.unboundedDiscrepancyAlong_iff_core
-          (g := (stage3Out (f := f) (hf := hf)).out1.g)
-          (d := (stage3Out (f := f) (hf := hf)).out1.d)).1
-      hunb
+  -- Delegate to the Stage-2 core bridge lemma, then unfold the Stage-3 convenience projection.
+  simpa [Stage3Output.out1, Stage2Output.g, Stage2Output.d] using
+    (stage3Out (f := f) (hf := hf)).out2.unboundedDiscrepancyAlong_core (f := f)
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
