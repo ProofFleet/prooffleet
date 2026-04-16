@@ -1090,7 +1090,12 @@ Definition of done:
   (Implemented as `discOffsetUpTo_tail_concat_le` (wrapper around `discOffsetUpTo_add_le_add_discOffsetUpTo`) in
   `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean` and audit coverage in `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
-- [ ] GCD/step normalization helper: add a lemma suite that normalizes hypotheses to `Nat.coprime d m` (or `gcd d m = 1`) by factoring out `g := Nat.gcd d m` and rewriting the corresponding `apSumOffset`/`discOffset` terms, so later stages can assume coprimality “for free”.
+- [x] GCD / coprimality normalization helper (`apSumFrom`): rewrite an affine AP sum
+  `apSumFrom f a d n` by dividing out `g := Nat.gcd a d`, producing reduced parameters
+  `(a/g, d/g)` with `Nat.Coprime (a/g) (d/g)`.
+  (Implemented in `MoltResearch/Discrepancy/GcdNormalization.lean` and re-exported from the stable
+  surface `import MoltResearch.Discrepancy`; compile-only regression examples live in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `HasDiscrepancyAtLeast` monotone-in-C API: package lemmas like
   `HasDiscrepancyAtLeast f C → C ≤ C' → HasDiscrepancyAtLeast f C'` and the contrapositive/negated boundedness versions, so later quantifier manipulations don’t unfold definitions.
