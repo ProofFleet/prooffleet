@@ -77,6 +77,11 @@ theorem add_start_mod_d (out : Stage2Output f) (n : ℕ) :
   have hstart : out.start % out.d = 0 := out.start_mod_d (f := f)
   simp [Nat.add_mod, hstart]
 
+/-- Variant of `add_start_mod_d` with the start index on the left. -/
+theorem start_add_mod_d (out : Stage2Output f) (n : ℕ) :
+    (out.start + n) % out.d = n % out.d := by
+  simpa [Nat.add_comm] using out.add_start_mod_d (f := f) (n := n)
+
 /-- Recover the offset parameter `out.m` by dividing the start index `out.start` by the step size
 `out.d`.
 
