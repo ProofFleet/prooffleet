@@ -660,4 +660,39 @@ lemma discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs (f : ℕ → ℤ)
     exact Finset.le_sup (s := Finset.range (N + 1))
       (f := fun t => Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) t)) hn
   exact le_trans hsplit hterm
+
+/-!
+### Residue max inequality (clean API surface)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Residue max inequality (clean API surface)”.
+
+This is just a lightweight wrapper around the residue-class `sup` term that appears in
+`discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs`.
+
+Downstream proofs can now refer to `discOffsetUpTo_residueTerm` without restating the `Finset.sup`
+expression (and without ad-hoc reindexing).
+-/
+
+/-- The `r`-th residue-class term appearing in the max-level bound for block lengths.
+
+This is the finitary supremum over `n ≤ N` of the absolute value of the residue-class split summand
+in `discOffset_mul_len_succ_le_sum_range_natAbs`.
+-/
+def discOffsetUpTo_residueTerm (f : ℕ → ℤ) (d m q r N : ℕ) : ℕ :=
+  (Finset.range (N + 1)).sup (fun n =>
+    Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n))
+
+/-- Restatement of `discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs` using the clean API
+surface `discOffsetUpTo_residueTerm`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Residue max inequality (clean API surface)”.
+-/
+lemma discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm (f : ℕ → ℤ)
+    (d m q N : ℕ) (hq : q > 0) :
+    discOffsetUpTo_blockLen_mul_succ f d m q N ≤
+      (Finset.range q).sum (fun r => discOffsetUpTo_residueTerm f d m q r N) := by
+  simpa [discOffsetUpTo_residueTerm] using
+    (discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs (f := f) (d := d) (m := m) (q := q)
+      (N := N) hq)
+
 end MoltResearch

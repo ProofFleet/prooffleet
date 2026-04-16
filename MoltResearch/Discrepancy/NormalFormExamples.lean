@@ -1539,6 +1539,15 @@ example (q N : ℕ) (hq : q > 0) :
     (discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs
       (f := f) (d := d) (m := m) (q := q) (N := N) hq)
 
+-- Regression (Track B / “Residue max inequality (clean API surface)”):
+-- use the packaged residue-term wrapper (avoid repeating the `sup` expression).
+example (q N : ℕ) (hq : q > 0) :
+    discOffsetUpTo_blockLen_mul_succ f d m q N ≤
+      (Finset.range q).sum (fun r => discOffsetUpTo_residueTerm f d m q r N) := by
+  simpa [discOffsetUpTo_residueTerm] using
+    (discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm
+      (f := f) (d := d) (m := m) (q := q) (N := N) hq)
+
 -- Regression (Track B / step-one + residue split bundle, offset discrepancy):
 example (q : ℕ) (hq : q > 0) :
     discOffset f d m (q * (n + 1)) =
