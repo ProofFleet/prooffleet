@@ -1,4 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 /-!
 # Track C: Stage 3 boundary (Tao 2015 plane)
@@ -45,14 +45,10 @@ abbrev out1 (out : Stage3Output f) : Tao2015.ReductionOutput f :=
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
 
-Design note: we prove this directly from the Stage-1 transport contract carried by the Stage-2
-output (via `ReductionOutput.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong`), so this module
-does not need to import the larger Stage-2 convenience-lemma layer.
+Implementation note: we delegate to the tiny Stage-2 core bridge lemma `Stage2Output.notBoundedOriginal`.
 -/
 theorem notBounded (out : Stage3Output f) : ¬ BoundedDiscrepancy f := by
-  -- Use the Stage-1 transport contract stored in the Stage-2 output.
-  exact
-    out.out2.out1.not_boundedDiscrepancy_of_unboundedDiscrepancyAlong (f := f) out.out2.unbounded
+  exact out.out2.notBoundedOriginal (f := f)
 
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
