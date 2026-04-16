@@ -172,30 +172,8 @@ theorem stage3_forall_exists_discrepancy_gt_d_ge_one_witness_pos (f : ℕ → �
 
 -- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`)
 
-/-- Consumer-facing shortcut: Stage 3 yields unboundedness of the bundled offset discrepancy family
-`discOffset f d m` at the deterministic parameters produced by the pipeline.
-
-We keep this lemma in the `...TrackCStage3Entry` import path so consumers can access the offset
-witness without importing `TrackCStage3Proof`.
--/
-theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    UnboundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) := by
-  -- Route through the proved Stage-2 core lemma (a thin wrapper around the Stage-1 transport
-  -- contract).
-  simpa [stage3_d, stage3_m, stage2_d, stage2_m] using
-    (Stage2Output.unboundedDiscOffset (f := f) (stage2Out (f := f) (hf := hf)))
-
-/-- Negation-normal-form: Stage 3 yields no uniform bound on the bundled offset discrepancy family
-`discOffset f d m` at the deterministic parameters produced by the pipeline.
-
-This is a thin wrapper around the Stage-2 core lemma
-`Stage2Output.not_exists_boundedDiscOffset`.
--/
-theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ¬ ∃ B : ℕ,
-        BoundedDiscOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) B := by
-  simpa [stage3_d, stage3_m, stage2_d, stage2_m, Stage2Output.d, Stage2Output.m] using
-    (Stage2Output.not_exists_boundedDiscOffset (f := f) (stage2Out (f := f) (hf := hf)))
+-- Note: `stage3_unboundedDiscOffset` and `stage3_not_exists_boundedDiscOffset` live in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`.
 
 /-- Witness-family form of `stage3_unboundedDiscOffset` (inequality-direction), with a positive-length
 witness.

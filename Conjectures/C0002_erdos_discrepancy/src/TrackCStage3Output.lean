@@ -175,15 +175,8 @@ theorem exists_params_one_le_unboundedDiscOffset (out : Stage3Output f) :
   refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
   simpa [Stage3Output.d, Stage3Output.m] using out.unboundedDiscOffset (f := f)
 
-/-- Negation-normal-form: there is no uniform bound on the bundled offset discrepancy family
-`discOffset f out.d out.m`.
-
-This is a thin wrapper around `Stage2Output.not_exists_boundedDiscOffset`.
--/
-theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
-    ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
-  simpa [Stage3Output.d, Stage3Output.m] using
-    (Stage2Output.not_exists_boundedDiscOffset (f := f) out.out2)
+-- Note: `Stage3Output.not_exists_boundedDiscOffset` is defined in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
 /-- Negation-normal-form unboundedness statement for the bundled offset nuclei
 `Int.natAbs (apSumOffset f out.d out.m n)`.
