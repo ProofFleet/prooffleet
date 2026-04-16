@@ -202,6 +202,17 @@ section
   #check discUpTo
   #check discOffsetUpTo
 
+  -- Definitional unfold: `discUpTo` is a finitary `sup` over `range (N+1)`.
+  example : discUpTo f d n = (Finset.range (n + 1)).sup (fun t => disc f d t) := by
+    rfl
+
+  -- One-shot bound rewrite for `discUpTo` (matches the `discOffsetUpTo` bound rewrites below).
+  example (C : ℕ) :
+      discUpTo f d n ≤ C ↔ ∀ t ∈ Finset.range (n + 1), disc f d t ≤ C := by
+    -- `Finset.sup_le_iff` handles the bound; we just unfold `discUpTo`.
+    simpa [discUpTo] using
+      (Finset.sup_le_iff (s := Finset.range (n + 1)) (f := fun t => disc f d t) (a := C))
+
   -- Max-level normal forms (the `UpTo` family): keep the core rewrite lemmas exported.
   -- (This checklist item: Problems/erdos_discrepancy.md, Track B)
   #check discOffsetUpTo_zero
