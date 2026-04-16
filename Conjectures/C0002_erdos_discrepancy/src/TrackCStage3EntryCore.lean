@@ -62,7 +62,9 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_
   rcases out.out2.forall_exists_discOffset_gt'_witness_pos (f := f) B with ⟨n, hn, hdisc⟩
   refine ⟨n, hn, ?_⟩
   -- `discOffset` is definitionally `Int.natAbs (apSumOffset ...)`.
-  simpa [discOffset] using hdisc
+  -- Avoid `simp` here (it can hit recursion limits); unfold the definition directly.
+  unfold discOffset at hdisc
+  exact hdisc
 
 /-- Consumer-facing shortcut: Stage 3 yields the discrepancy witness form
 

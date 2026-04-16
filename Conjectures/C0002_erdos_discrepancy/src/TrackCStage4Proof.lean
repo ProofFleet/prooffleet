@@ -25,6 +25,33 @@ theorem unboundedDiscOffset (out : Stage4Output f) :
     UnboundedDiscOffset f out.out2.d out.out2.m := by
   simpa using (out.out2.unboundedDiscOffset (f := f))
 
+/-- Negation-normal-form packaging of Stage-4 offset unboundedness:
+`¬ ∃ B, ∀ n, discOffset f out.out2.d out.out2.m n ≤ B`.
+
+This is a thin wrapper around the equivalence
+`unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
+-/
+theorem not_exists_forall_discOffset_le (out : Stage4Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.out2.d out.out2.m n ≤ B := by
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := out.unboundedDiscOffset (f := f)
+  exact
+    (unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f)
+          (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+
+/-- Negation-normal-form packaging of Stage-4 offset unboundedness at the raw nucleus level:
+`¬ ∃ B, ∀ n, Int.natAbs (apSumOffset f out.out2.d out.out2.m n) ≤ B`.
+
+This is `not_exists_forall_discOffset_le` rewritten by unfolding `discOffset`.
+-/
+theorem not_exists_forall_natAbs_apSumOffset_le (out : Stage4Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f out.out2.d out.out2.m n) ≤ B := by
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := out.unboundedDiscOffset (f := f)
+  exact
+    (UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le (f := f)
+          (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+
 /-- Existential packaging: Stage 4 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such
 that the bundled offset discrepancy family `discOffset f d m` is unbounded.
 
