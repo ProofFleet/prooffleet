@@ -647,6 +647,12 @@ example :
       max (discOffsetUpTo f d m n) (discOffset f d m (n + 1)) := by
   simpa using (discOffsetUpTo_succ (f := f) (d := d) (m := m) (N := n))
 
+-- Regression (Track B / start-shift vs sequence-shift coherence at max level): advancing the start
+-- index is equivalent to shifting the underlying sequence.
+example :
+    discOffsetUpTo f d (m + k) n = discOffsetUpTo (fun t => f (t + k * d)) d m n := by
+  simpa using (discOffsetUpTo_add_start (f := f) (d := d) (m := m) (k := k) (N := n))
+
 -- Regression (Track B / paper-endpoint normalization for `discOffsetUpTo`): rewrite into a `sup`
 -- of paper-interval expressions with the repo's preferred endpoints.
 example :
