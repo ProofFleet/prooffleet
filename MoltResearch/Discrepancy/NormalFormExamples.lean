@@ -1418,6 +1418,13 @@ example (len B : ℕ) :
   simpa using
     (boundedDiscrepancyAlong_iff_forall_le_discAlong_le (f := f) (d := d) (len := len) (B := B))
 
+-- Regression (Track B / boundedness ↔ max-level nucleus):
+-- `BoundedDiscrepancyAlong` is equivalent to a single inequality about `discOffsetUpTo`.
+example (len B : ℕ) :
+    BoundedDiscrepancyAlong f d len B ↔ discOffsetUpTo f d 0 len ≤ B := by
+  simpa using
+    (boundedDiscrepancyAlong_iff_discOffsetUpTo_le (f := f) (d := d) (len := len) (B := B))
+
 -- Regression (Track B / boundedness under sequence translation): step-one wrapper.
 example (a len B : ℕ) :
     BoundedDiscrepancyAlong (fun k => f (k + a)) 1 len B ↔

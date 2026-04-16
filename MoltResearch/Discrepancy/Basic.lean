@@ -1366,6 +1366,30 @@ theorem boundedDiscrepancyAlong_iff_forall_le_discAlong_le (f : ℕ → ℤ) (d 
     BoundedDiscrepancyAlong f d len B ↔ ∀ n : ℕ, n ≤ len → discAlong f d n ≤ B :=
   Iff.rfl
 
+/-- Bridge lemma: finite-length along-`d` boundedness is equivalent to a bound on the finitary
+maximum `discOffsetUpTo f d 0 len`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+Bridge lemma: `BoundedDiscrepancyAlong` ↔ max-level bound.
+-/
+theorem boundedDiscrepancyAlong_iff_discOffsetUpTo_le (f : ℕ → ℤ) (d len B : ℕ) :
+    BoundedDiscrepancyAlong f d len B ↔ discOffsetUpTo f d 0 len ≤ B := by
+  constructor
+  · intro h
+    classical
+    unfold discOffsetUpTo
+    refine Finset.sup_le ?_
+    intro n hn
+    have hn' : n ≤ len := Nat.le_of_lt_succ (Finset.mem_range.mp hn)
+    -- Rewrite `discAlong` to the nucleus wrapper `discOffset`.
+    simpa [discAlong] using h n hn'
+  · intro h
+    intro n hn
+    have hle : discOffset f d 0 n ≤ discOffsetUpTo f d 0 len :=
+      discOffset_le_discOffsetUpTo (f := f) (d := d) (m := 0) (n := n) (N := len) hn
+    have : discOffset f d 0 n ≤ B := le_trans hle h
+    simpa [discAlong] using this
+
 namespace BoundedDiscrepancyAlong
 
 /-- Monotonicity in the bound parameter `B`. -/
