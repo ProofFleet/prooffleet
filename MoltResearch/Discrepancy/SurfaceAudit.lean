@@ -236,6 +236,16 @@ section
       discOffsetUpTo f d (m + k) n = discOffsetUpTo (fun t => f (t + k * d)) d m n := by
     simpa using (discOffsetUpTo_add_start (f := f) (d := d) (m := m) (k := k) (N := n))
 
+  -- Additional one-line usage audits for other max-level `discOffsetUpTo_*` lemmas.
+  example : discOffsetUpTo f d m 0 = 0 := by
+    simpa using (discOffsetUpTo_zero (f := f) (d := d) (m := m))
+
+  example : discOffsetUpTo f d 0 n = discUpTo f d n := by
+    simpa using (discOffsetUpTo_zero_start (f := f) (d := d) (N := n))
+
+  example : discOffsetUpTo f 1 m n = discUpTo (fun k => f (k + m)) 1 n := by
+    simpa using (discOffsetUpTo_one_shift (f := f) (m := m) (N := n))
+
   -- “Max over lengths/endpoints” normal-form expansions.
   #check discOffsetUpTo_eq_sup_Icc_lengths
   #check discOffsetUpTo_eq_sup_range_Icc
@@ -249,14 +259,7 @@ section
   #check discOffsetUpTo_add_le_add_discOffsetUpTo
   #check discOffsetUpTo_tail_concat_le
 
-  example : discOffsetUpTo f d m 0 = 0 := by
-    simp
-
-  example : discOffsetUpTo f d 0 n = discUpTo f d n := by
-    simp
-
-  example : discOffsetUpTo f 1 m n = discUpTo (fun k => f (k + m)) 1 n := by
-    simp
+  -- (moved above as a one-line usage audit via `discOffsetUpTo_one_shift`)
 
   /-!
   ### Max-level `discOffsetUpTo` normal forms (stable surface)
