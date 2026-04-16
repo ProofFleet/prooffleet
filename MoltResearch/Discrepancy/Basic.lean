@@ -817,6 +817,22 @@ lemma discOffsetUpTo_succ (f : ℕ → ℤ) (d m N : ℕ) :
   -- Then `Finset.sup_insert` computes the new supremum as a `max`.
   simpa [Finset.range_add_one, max_comm, max_left_comm, max_assoc]
 
+/-- Start-shift vs sequence-shift coherence at max level.
+
+Normal form: rewriting a start advance `m ↦ m + k` is equivalent to shifting the underlying
+sequence by `k*d`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Start-shift vs sequence-shift coherence
+at the max level”.
+-/
+lemma discOffsetUpTo_add_start (f : ℕ → ℤ) (d m k N : ℕ) :
+    discOffsetUpTo f d (m + k) N = discOffsetUpTo (fun t => f (t + k * d)) d m N := by
+  classical
+  unfold discOffsetUpTo
+  -- Pointwise, `discOffset` is definitionally `Int.natAbs (apSumOffset ...)` and
+  -- `apSumOffset_map_add_mul` performs the start/sequence shift rewrite.
+  simp [discOffset, apSumOffset_map_add_mul, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
 /-- Any particular `disc f d n` with `n ≤ N` is bounded by `discUpTo f d N`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.

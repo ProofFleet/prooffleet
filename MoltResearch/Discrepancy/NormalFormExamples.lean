@@ -82,6 +82,12 @@ example :
       discOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
   simp
 
+example :
+    discOffsetUpTo f d (m + (n₁ + n₂)) n =
+      discOffsetUpTo (fun t => f (t + (n₁ + n₂) * d)) d m n := by
+  simpa using
+    (discOffsetUpTo_add_start (f := f) (d := d) (m := m) (k := n₁ + n₂) (N := n))
+
 /-!
 ### NEW (Track B): support-level congruence for `apSumOffset`/`discOffset`
 
