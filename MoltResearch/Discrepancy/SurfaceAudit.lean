@@ -288,6 +288,17 @@ section
   #check discOffsetUpTo_add_le_add_discOffsetUpTo
   #check discOffsetUpTo_tail_concat_le
 
+  -- One-line usage audit: tail concatenation inequality.
+  example (N K : ℕ) :
+      discOffsetUpTo f d m (N + K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
+    simpa using
+      (discOffsetUpTo_add_le_add_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) (K := K))
+
+  -- One-line usage audit: same inequality under the shorter `*_tail_concat_le` name.
+  example (N K : ℕ) :
+      discOffsetUpTo f d m (N + K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
+    simpa using (discOffsetUpTo_tail_concat_le (f := f) (d := d) (m := m) (N := N) (K := K))
+
   -- Boundedness-transfer / Lipschitz-by-1 inequalities (max-level `UpTo` API).
   #check discOffsetUpTo_add_le
   #check discOffsetUpTo_succ_le_add_one
