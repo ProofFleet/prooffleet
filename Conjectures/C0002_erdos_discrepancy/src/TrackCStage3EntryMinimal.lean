@@ -74,13 +74,17 @@ This lemma is a small convenience wrapper around the bridge equivalence
 -/
 theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
     MoltResearch.UnboundedDiscrepancyAlong
-      (stage3Out (f := f) (hf := hf)).out2.out1.g
-      (stage3Out (f := f) (hf := hf)).out2.out1.d := by
-  let out : Stage3Output f := stage3Out (f := f) (hf := hf)
-  have hunb : Tao2015.UnboundedDiscrepancyAlong out.out2.out1.g out.out2.out1.d :=
-    out.out2.unbounded
-  simpa [out] using
-    (Tao2015.unboundedDiscrepancyAlong_iff_core (g := out.out2.out1.g) (d := out.out2.out1.d)).1
+      (stage3Out (f := f) (hf := hf)).out1.g
+      (stage3Out (f := f) (hf := hf)).out1.d := by
+  have hunb :
+      Tao2015.UnboundedDiscrepancyAlong
+        (stage3Out (f := f) (hf := hf)).out1.g
+        (stage3Out (f := f) (hf := hf)).out1.d :=
+    (stage3Out (f := f) (hf := hf)).out2.unbounded
+  exact
+    (Tao2015.unboundedDiscrepancyAlong_iff_core
+          (g := (stage3Out (f := f) (hf := hf)).out1.g)
+          (d := (stage3Out (f := f) (hf := hf)).out1.d)).1
       hunb
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
