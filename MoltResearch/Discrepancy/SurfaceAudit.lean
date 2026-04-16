@@ -247,6 +247,14 @@ section
     simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n))
 
   -- Additional one-line usage audits for other max-level `discOffsetUpTo_*` lemmas.
+
+  -- Monotonicity in the `UpTo` parameter (packaged names stay one-line usable).
+  example (K : ℕ) : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n + K) := by
+    simpa using (discOffsetUpTo_le_add (f := f) (d := d) (m := m) (N := n) (K := K))
+
+  example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n + 1) := by
+    simpa using (discOffsetUpTo_le_succ (f := f) (d := d) (m := m) (N := n))
+
   example : discOffsetUpTo f d m 0 = 0 := by
     simpa using (discOffsetUpTo_zero (f := f) (d := d) (m := m))
 
