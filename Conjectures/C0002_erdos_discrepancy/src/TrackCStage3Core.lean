@@ -28,6 +28,14 @@ consistent name at both boundaries.
 abbrev notBoundedOriginal (out : Stage3Output f) : ¬ BoundedDiscrepancy f :=
   out.notBounded
 
+/-- Specialization of `Stage3Output.forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
+
+This is a tiny convenience lemma, matching the Stage-2 API name
+`Stage2Output.hasDiscrepancyAtLeast`.
+-/
+theorem hasDiscrepancyAtLeast (out : Stage3Output f) (C : ℕ) : HasDiscrepancyAtLeast f C := by
+  exact (out.forall_hasDiscrepancyAtLeast (f := f)) C
+
 /-- Convenience projection: the reduced step size packaged in Stage 3.
 
 We intentionally route this through the Stage-2 boundary API (`Stage2Output.d`) so Stage 3 does not
