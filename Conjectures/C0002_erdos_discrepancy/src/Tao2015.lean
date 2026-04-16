@@ -127,6 +127,20 @@ theorem unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g : ℕ →
     rcases h B with ⟨n, hn⟩
     exact ⟨n, hn⟩
 
+/-- Inequality-direction variant of `UnboundedDiscrepancyAlong`, written using the stable wrapper
+`discAlong`.
+
+Normal form:
+`∀ B, ∃ n, discAlong g d n > B`.
+
+This is `unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt'` rewritten using
+`discAlong_eq_discrepancy`.
+-/
+theorem unboundedDiscrepancyAlong_iff_forall_exists_discAlong_gt' (g : ℕ → ℤ) (d : ℕ) :
+    UnboundedDiscrepancyAlong g d ↔ (∀ B : ℕ, ∃ n : ℕ, discAlong g d n > B) := by
+  simpa [discAlong_eq_discrepancy] using
+    (unboundedDiscrepancyAlong_iff_forall_exists_discrepancy_gt' (g := g) (d := d))
+
 /-- Nucleus normal form for `UnboundedDiscrepancyAlong`.
 
 Normal form:
