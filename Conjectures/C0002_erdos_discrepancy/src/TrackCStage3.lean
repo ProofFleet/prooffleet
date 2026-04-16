@@ -38,7 +38,7 @@ underlying Stage-1 reduction output.
 This is occasionally useful when later stages want access to the deterministic parameters
 `g, d, m` and the Stage-1 transport contracts, without reaching through multiple record fields.
 -/
-abbrev out1 (out : Stage3Output f) : Tao2015.ReductionOutput f :=
+@[simp] abbrev out1 (out : Stage3Output f) : Tao2015.ReductionOutput f :=
   out.out2.out1
 
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
