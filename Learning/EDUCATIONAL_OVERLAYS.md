@@ -31,6 +31,10 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (Lipschitz step):** for sign sequences, the one-step cutoff bound is `discOffsetUpTo_succ_le_add_one`:
   `discOffsetUpTo f d m (N+1) ≤ discOffsetUpTo f d m N + 1`. The reverse direction (monotonicity) is `discOffsetUpTo_le_succ`.
 - **API note (bounding a fixed tail):** to bound a particular `discOffset f d m n` by the max cutoff at the *same* `n`, use `discOffset_le_discOffsetUpTo_self` (it’s just the `N = n` specialization, so you don’t have to write `le_rfl`).
+- **API note (boundedness ↔ max-level nucleus, finite length):** for the finite-length “along `d`” predicate,
+  `BoundedDiscrepancyAlong f d len B` is equivalent to the single inequality
+  `discOffsetUpTo f d 0 len ≤ B` via `boundedDiscrepancyAlong_iff_discOffsetUpTo_le`.
+  This is the bridge that lets later steps rewrite boundedness hypotheses into a one-line max bound.
 - **API note (max recursion):** when you need to peel the last case off a cutoff, rewrite `discOffsetUpTo f d m (N+1)` using `discOffsetUpTo_succ` to get a clean `max (discOffsetUpTo … N) (discOffset … (N+1))` normal form.
 - **API note (step positivity):** when extracting unboundedness witnesses, prefer the `Nat.succ` normal forms (`HasDiscrepancyAtLeast.exists_witness_succ(_pos)` and the affine analogue) so you can work with a concrete positive step without carrying a separate `d ≥ 1` side condition.
   The corner case `d = 0` has `simp` normal forms too, but those are now behind `import MoltResearch.Discrepancy.Deprecated` to keep the stable surface focused on the `d ≥ 1` workflow.
