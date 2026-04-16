@@ -1077,6 +1077,27 @@ Definition of done:
   (Pipeline example lives in `MoltResearch/Discrepancy/NormalFormPipelineExample.lean`; additional max-level smoke examples live in
   `MoltResearch/Discrepancy/MiniPipelineMaxExample.lean`; both are wired via `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Max-attainment wrapper for `discOffsetUpTo`: prove an `∃ n ≤ N` witness lemma saying the `sup`/`max` in `discOffsetUpTo f d m N` is attained by some concrete interval length `n`, packaged so later proofs can `obtain ⟨n, hn, hmax⟩` without unfolding.
+
+- [ ] Start-shift vs sequence-shift coherence at the max level: a lemma relating
+  `discOffsetUpTo f d (m+k) N` to `discOffsetUpTo (fun t => f (t + k*d)) d m N` (repo-preferred `shift_add` normal form), so “advance the start” is one `rw`.
+
+- [ ] `discOffsetUpTo` tail concatenation inequality: a max-level analogue of `discOffset_add_le` but with start shifts, e.g.
+  `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`, packaged with a statement that matches the later Tao2015 step bookkeeping (avoid manual `Nat` algebra).
+
+- [ ] GCD/step normalization helper: add a lemma suite that normalizes hypotheses to `Nat.coprime d m` (or `gcd d m = 1`) by factoring out `g := Nat.gcd d m` and rewriting the corresponding `apSumOffset`/`discOffset` terms, so later stages can assume coprimality “for free”.
+
+- [ ] `HasDiscrepancyAtLeast` monotone-in-C API: package lemmas like
+  `HasDiscrepancyAtLeast f C → C ≤ C' → HasDiscrepancyAtLeast f C'` and the contrapositive/negated boundedness versions, so later quantifier manipulations don’t unfold definitions.
+
+- [ ] Bridge lemma: `BoundedDiscrepancyAlong` ↔ max-level bound: connect an along-`d` boundedness predicate to a uniform bound on `discOffsetUpTo` (or whichever max object is the nucleus), so later “boundedness” steps can be rewritten into a single inequality about `discOffsetUpTo`.
+
+- [ ] “Residue max” inequality (clean API surface): after residue-class splitting, add a packaged lemma bounding a single `discOffsetUpTo` by a sum (or max) of residue-class `discOffsetUpTo` objects with consistent parameter ordering (no ad-hoc reindexing in downstream proofs).
+
+- [ ] Stable-surface audit for max-level APIs: extend `MoltResearch/Discrepancy/SurfaceAudit.lean` with `#check`/`example` coverage for the max-level normal forms (`discOffsetUpTo_*` lemmas), ensuring the intended rewrite pipeline stays one-line usable.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
