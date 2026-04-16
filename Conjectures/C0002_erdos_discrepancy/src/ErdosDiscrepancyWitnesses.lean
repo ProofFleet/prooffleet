@@ -23,9 +23,10 @@ theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf :
     MoltResearch.UnboundedDiscrepancyAlong
       (Tao2015.stage3Out (f := f) (hf := hf)).g
       (Tao2015.stage3Out (f := f) (hf := hf)).d := by
-  -- Delegate to the hard-gate minimal Stage-3 entry point lemma.
-  simpa [Tao2015.Stage3Output.g, Tao2015.Stage3Output.d, Tao2015.Stage2Output.g, Tao2015.Stage2Output.d] using
-    (Tao2015.stage3_unboundedDiscrepancyAlong_core (f := f) (hf := hf))
+  -- Use the stable Stage-3 boundary API (avoids reaching into the hard-gate entry point lemma).
+  simpa using
+    (Tao2015.Stage3Output.unboundedDiscrepancyAlong_core (f := f)
+      (Tao2015.stage3Out (f := f) (hf := hf)))
 
 /-- Paper-notation witness form for the concrete Stage-3 offset parameters.
 
