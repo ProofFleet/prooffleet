@@ -227,6 +227,10 @@ section
   #check discOffsetUpTo_le_succ
   #check exists_discOffset_eq_discOffsetUpTo
 
+  -- Residue-class `UpTo` wrappers (max-level APIs): ensure the packaged definitions remain exported.
+  #check discOffsetUpTo_modEq
+  #check exists_discOffset_eq_discOffsetUpTo_modEq
+
   -- One-line usage audit: any particular `discOffset` is bounded by the corresponding `UpTo`.
   example (N : ℕ) (hn : n ≤ N) : discOffset f d m n ≤ discOffsetUpTo f d m N := by
     simpa using (discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m) (n := n) (N := N) hn)
@@ -245,6 +249,13 @@ section
   -- One-line usage audit: the `sup` in `discOffsetUpTo` is attained by some `t ≤ N`.
   example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
     simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n))
+
+  -- One-line usage audit: residue-class `UpTo` extraction wrappers.
+  example (q r : ℕ)
+      (hne : ((Finset.range (n + 1)).filter (fun t => t ≡ r [MOD q])).Nonempty) :
+      ∃ t ≤ n, t ≡ r [MOD q] ∧ discOffset f d m t = discOffsetUpTo_modEq f d m n q r := by
+    simpa using
+      (exists_discOffset_eq_discOffsetUpTo_modEq (f := f) (d := d) (m := m) (N := n) (q := q) (r := r) hne)
 
   -- Additional one-line usage audits for other max-level `discOffsetUpTo_*` lemmas.
 
