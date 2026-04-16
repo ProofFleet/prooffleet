@@ -204,6 +204,8 @@ section
   #check discOffsetUpTo_zero
   #check discOffsetUpTo_zero_start
   #check discOffsetUpTo_one_shift
+  #check discOffsetUpTo_add_le_add_discOffsetUpTo
+  #check discOffsetUpTo_tail_concat_le
 
   example : discOffsetUpTo f d m 0 = 0 := by
     simp

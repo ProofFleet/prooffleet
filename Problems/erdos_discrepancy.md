@@ -1085,8 +1085,10 @@ Definition of done:
   `discOffsetUpTo f d (m+k) N` to `discOffsetUpTo (fun t => f (t + k*d)) d m N` (repo-preferred `shift_add` normal form), so “advance the start” is one `rw`.
   (Implemented as `discOffsetUpTo_add_start` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffsetUpTo` tail concatenation inequality: a max-level analogue of `discOffset_add_le` but with start shifts, e.g.
+- [x] `discOffsetUpTo` tail concatenation inequality: a max-level analogue of `discOffset_add_le` but with start shifts, e.g.
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`, packaged with a statement that matches the later Tao2015 step bookkeeping (avoid manual `Nat` algebra).
+  (Implemented as `discOffsetUpTo_tail_concat_le` (wrapper around `discOffsetUpTo_add_le_add_discOffsetUpTo`) in
+  `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean` and audit coverage in `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
 - [ ] GCD/step normalization helper: add a lemma suite that normalizes hypotheses to `Nat.coprime d m` (or `gcd d m = 1`) by factoring out `g := Nat.gcd d m` and rewriting the corresponding `apSumOffset`/`discOffset` terms, so later stages can assume coprimality “for free”.
 

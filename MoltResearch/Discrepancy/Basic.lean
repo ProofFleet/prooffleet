@@ -3427,6 +3427,20 @@ lemma discOffsetUpTo_add_le_add_discOffsetUpTo {f : ℕ → ℤ} (d m N K : ℕ)
     simpa [Nat.add_assoc] using hNt
 
 
+/-- Tail concatenation inequality for `discOffsetUpTo` (bookkeeping-friendly wrapper).
+
+This is a max-level analogue of `discOffset_add_le`, expressed so later arguments can split an
+initial segment of length `N` from a tail segment of length `K` without manual `Nat` algebra.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` tail concatenation inequality.
+-/
+lemma discOffsetUpTo_tail_concat_le {f : ℕ → ℤ} (d m N K : ℕ) :
+    discOffsetUpTo f d m (N + K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
+  simpa using
+    (discOffsetUpTo_add_le_add_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) (K := K))
+
+
 /-- Triangle inequality API for splitting a homogeneous AP sum by length. -/
 lemma natAbs_apSum_add_length_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
     Int.natAbs (apSum f d (n₁ + n₂)) ≤
