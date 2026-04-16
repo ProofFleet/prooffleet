@@ -247,6 +247,18 @@ example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n + 1) := by
   simpa using (discOffsetUpTo_le_succ (f := f) (d := d) (m := m) (N := n))
 
 /-!
+### NEW (Track B): Max-attainment wrapper for `discOffsetUpTo`
+
+Compile-only regression test checking the witness-extraction lemma can be used without
+unfolding `discOffsetUpTo`.
+-/
+
+example (f : ℕ → ℤ) (d m N : ℕ) :
+    ∃ n ≤ N, discOffset f d m n = discOffsetUpTo f d m N := by
+  -- This is the packaged witness-extraction lemma.
+  simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := N))
+
+/-!
 Periodic (non-constant) sanity check: the alternating sign sequence has period 2.
 
 When the step `d` is even, the sampled indices are all even, so the sequence restricts to the

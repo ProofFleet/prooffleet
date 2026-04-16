@@ -1079,7 +1079,7 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Max-attainment wrapper for `discOffsetUpTo`: prove an `∃ n ≤ N` witness lemma saying the `sup`/`max` in `discOffsetUpTo f d m N` is attained by some concrete interval length `n`, packaged so later proofs can `obtain ⟨n, hn, hmax⟩` without unfolding.
+- [x] Max-attainment wrapper for `discOffsetUpTo`: prove an `∃ n ≤ N` witness lemma saying the `sup`/`max` in `discOffsetUpTo f d m N` is attained by some concrete interval length `n`, packaged so later proofs can `obtain ⟨n, hn, hmax⟩` without unfolding. (Implemented as `exists_discOffset_eq_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`; compile-only regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Start-shift vs sequence-shift coherence at the max level: a lemma relating
   `discOffsetUpTo f d (m+k) N` to `discOffsetUpTo (fun t => f (t + k*d)) d m N` (repo-preferred `shift_add` normal form), so “advance the start” is one `rw`.
