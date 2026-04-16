@@ -277,6 +277,20 @@ section
   #check discOffsetUpTo_add_le_add_discOffsetUpTo
   #check discOffsetUpTo_tail_concat_le
 
+  -- Boundedness-transfer / Lipschitz-by-1 inequalities (max-level `UpTo` API).
+  #check discOffsetUpTo_add_le
+  #check discOffsetUpTo_succ_le_add_one
+
+  -- One-line usage audit: these should be usable directly under `import MoltResearch.Discrepancy`.
+  example {f : ℕ → ℤ} (hf : IsSignSequence f) (d m N K : ℕ) :
+      discOffsetUpTo f d m (N + K) ≤ discOffsetUpTo f d m N + K := by
+    simpa using (discOffsetUpTo_add_le (f := f) (hf := hf) (d := d) (m := m) (N := N) (K := K))
+
+  example {f : ℕ → ℤ} (hf : IsSignSequence f) (d m N : ℕ) :
+      discOffsetUpTo f d m (N + 1) ≤ discOffsetUpTo f d m N + 1 := by
+    simpa using
+      (discOffsetUpTo_succ_le_add_one (f := f) (hf := hf) (d := d) (m := m) (N := N))
+
   -- (moved above as a one-line usage audit via `discOffsetUpTo_one_shift`)
 
   /-!
