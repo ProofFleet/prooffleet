@@ -112,6 +112,19 @@ theorem forall_exists_discOffset_gt'_witness_pos (out : Stage2Output f) :
     (Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos
       (f := f) (d := out.d) (m := out.m) hunb)
 
+/-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset nuclei
+`Int.natAbs (apSumOffset f out.d out.m n)`, with witnesses `n > 0`.
+
+This is a thin wrapper around
+`Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos`.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f out.d out.m n) > B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  simpa using
+    (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos
+      (f := f) (d := out.d) (m := out.m) hunb)
+
 /-- Stage 2 implies there is no uniform bound on the bundled offset discrepancy family
 `discOffset f out.d out.m`.
 
