@@ -486,6 +486,18 @@ theorem exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (out : Stage
   intro B
   simpa using out.forall_exists_natAbs_sum_Icc_offset_gt (f := f) B
 
+/-- Positive-length witness variant of `exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt`.
+
+The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (out : Stage2Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) B
+
 /-- Existential packaging variant of `exists_params_forall_exists_natAbs_apSumOffset_gt` using
 the side condition `1 ≤ d`.
 
