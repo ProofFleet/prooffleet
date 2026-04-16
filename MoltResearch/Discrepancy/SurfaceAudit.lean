@@ -261,6 +261,38 @@ section
         (f := fun t => Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d))))
         (a := C))
 
+  -- Additional max-level audit examples: exercise the “range (N+1)” and “endpoint (Icc m (m+N))”
+  -- normal forms in one line under `import MoltResearch.Discrepancy`.
+
+  -- Rewrite into the paper-endpoint `sup` indexed by `n ≤ N` (as `range (N+1)`).
+  example :
+      discOffsetUpTo f d m n =
+        (Finset.range (n + 1)).sup
+          (fun t => Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d)))) := by
+    simpa using (discOffsetUpTo_eq_sup_range_Icc (f := f) (d := d) (m := m) (N := n))
+
+  -- One-shot bound rewrite for the `range (N+1)` normal form.
+  example (C : ℕ) :
+      discOffsetUpTo f d m n ≤ C ↔
+        ∀ t ∈ Finset.range (n + 1),
+          Int.natAbs ((Finset.Icc (m + 1) (m + t)).sum (fun i => f (i * d))) ≤ C := by
+    simpa using (discOffsetUpTo_le_iff_forall_range_Icc (f := f) (d := d) (m := m) (N := n) (C := C))
+
+  -- Rewrite into the paper-endpoint `sup` indexed by right endpoints `b ∈ Icc m (m+N)`.
+  example :
+      discOffsetUpTo f d m n =
+        (Finset.Icc m (m + n)).sup
+          (fun b => Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d)))) := by
+    simpa using (discOffsetUpTo_eq_sup_Icc_endpoints (f := f) (d := d) (m := m) (N := n))
+
+  -- One-shot bound rewrite for the endpoint-indexed normal form.
+  example (C : ℕ) :
+      discOffsetUpTo f d m n ≤ C ↔
+        ∀ b ∈ Finset.Icc m (m + n),
+          Int.natAbs ((Finset.Icc (m + 1) b).sum (fun i => f (i * d))) ≤ C := by
+    simpa using
+      (discOffsetUpTo_le_iff_forall_Icc_endpoints (f := f) (d := d) (m := m) (N := n) (C := C))
+
   /-!
   ### discOffset_* lemma exports (stable surface)
 
