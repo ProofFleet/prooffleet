@@ -66,6 +66,26 @@ theorem boundedDiscrepancyAlong_iff_exists_forall_natAbs_apSum_le (g : ℕ → �
     unfold discrepancy
     exact hn
 
+/-- Stable-wrapper normal form for `BoundedDiscrepancyAlong`.
+
+Normal form:
+`∃ B, ∀ n, discAlong g d n ≤ B`.
+
+This is a tiny packaging lemma: it lets later stages rewrite bounds in terms of the stable wrapper
+`discAlong`, rather than the raw `discrepancy` definition.
+-/
+theorem boundedDiscrepancyAlong_iff_exists_forall_discAlong_le (g : ℕ → ℤ) (d : ℕ) :
+    BoundedDiscrepancyAlong g d ↔ (∃ B : ℕ, ∀ n : ℕ, discAlong g d n ≤ B) := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    simpa [discAlong_eq_discrepancy] using hB n
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    intro n
+    simpa [discAlong_eq_discrepancy] using hB n
+
 /-- `g` has unbounded discrepancy along the fixed step `d` (witness form). -/
 def UnboundedDiscrepancyAlong (g : ℕ → ℤ) (d : ℕ) : Prop :=
   ∀ B : ℕ, ∃ n : ℕ, B < discrepancy g d n
