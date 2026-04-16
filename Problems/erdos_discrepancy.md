@@ -1101,7 +1101,8 @@ Definition of done:
   `HasDiscrepancyAtLeast f C' → C ≤ C' → HasDiscrepancyAtLeast f C` and the contrapositive/negated forms, so later quantifier manipulations don’t unfold definitions.
   (Implemented as `HasDiscrepancyAtLeast.mono` / `.not_mono` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Bridge lemma: `BoundedDiscrepancyAlong` ↔ max-level bound: connect an along-`d` boundedness predicate to a uniform bound on `discOffsetUpTo` (or whichever max object is the nucleus), so later “boundedness” steps can be rewritten into a single inequality about `discOffsetUpTo`.
+- [x] Bridge lemma: `BoundedDiscrepancyAlong` ↔ max-level bound: connect an along-`d` boundedness predicate to a uniform bound on `discOffsetUpTo` (or whichever max object is the nucleus), so later “boundedness” steps can be rewritten into a single inequality about `discOffsetUpTo`.
+  (Implemented as `boundedDiscrepancyAlong_iff_discOffsetUpTo_le` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Residue max” inequality (clean API surface): after residue-class splitting, add a packaged lemma bounding a single `discOffsetUpTo` by a sum (or max) of residue-class `discOffsetUpTo` objects with consistent parameter ordering (no ad-hoc reindexing in downstream proofs).
 
