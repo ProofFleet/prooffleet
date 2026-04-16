@@ -327,6 +327,18 @@ theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output 
   rcases out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C with ⟨n, hn⟩
   exact ⟨n, hn⟩
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` such that the affine-tail nucleus
+`apSumFrom f (m*d) d n` takes arbitrarily large absolute values, with a positive-length witness `n > 0`.
+
+This is a thin wrapper around `forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem exists_params_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  refine ⟨out.d, out.m, out.hd, ?_⟩
+  intro C
+  simpa using out.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) C
+
 /-- Existential packaging variant of `exists_params_forall_exists_natAbs_apSumFrom_mul_gt` using
 the side condition `1 ≤ d`.
 
