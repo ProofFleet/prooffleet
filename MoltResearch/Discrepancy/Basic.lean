@@ -39,6 +39,7 @@ lemma discrepancy_eq_natAbs_apSum (f : ℕ → ℤ) (d n : ℕ) :
   rfl
 
 /-- Alias for the definitional lemma. -/
+@[deprecated "Use `discrepancy_eq_natAbs_apSum`." (since := "2026-04-17")]
 lemma discrepancy_def (f : ℕ → ℤ) (d n : ℕ) :
     discrepancy f d n = Int.natAbs (apSum f d n) :=
   rfl
@@ -57,6 +58,10 @@ This direction avoids simp loops with `discrepancy_def`.
 This is a homogeneous analogue of `discOffset` with the same naming convention.
 
 It intentionally duplicates `discrepancy` as a more symmetric counterpart to `discOffset`.
+
+Naming guidance:
+- Prefer `disc`/`discOffset`/`discOffsetUpTo` when you want a uniform family of wrappers.
+- `discrepancy` is kept as a readable synonym for the homogeneous case.
 -/
 
 /-- Homogeneous discrepancy wrapper: `disc f d n = |apSum f d n|`. -/
@@ -69,6 +74,7 @@ lemma disc_eq_natAbs_apSum (f : ℕ → ℤ) (d n : ℕ) :
   rfl
 
 /-- Alias for the definitional lemma. -/
+@[deprecated "Use `disc_eq_natAbs_apSum`." (since := "2026-04-17")]
 lemma disc_def (f : ℕ → ℤ) (d n : ℕ) :
     disc f d n = Int.natAbs (apSum f d n) :=
   rfl
@@ -80,6 +86,16 @@ This direction avoids simp loops with `disc_def`.
 @[simp] lemma natAbs_apSum_eq_disc (f : ℕ → ℤ) (d n : ℕ) :
     Int.natAbs (apSum f d n) = disc f d n :=
   rfl
+
+/-- Coherence lemma: the two homogeneous wrappers are definitionally the same.
+
+This exists purely for API consistency; prefer rewriting goals to the `disc`-family wrappers when
+working with `discOffset` / `discOffsetUpTo` pipelines.
+-/
+lemma discrepancy_eq_disc (f : ℕ → ℤ) (d n : ℕ) : discrepancy f d n = disc f d n := rfl
+
+/-- Coherence lemma: the two homogeneous wrappers are definitionally the same. -/
+lemma disc_eq_discrepancy (f : ℕ → ℤ) (d n : ℕ) : disc f d n = discrepancy f d n := rfl
 
 /-- The discrepancy of an empty progression is zero. -/
 @[simp] lemma disc_zero (f : ℕ → ℤ) (d : ℕ) : disc f d 0 = 0 := by

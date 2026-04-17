@@ -2295,6 +2295,16 @@ example (hmn : m ≤ n)
 example : discrepancy f d n = Int.natAbs (apSum f d n) := by
   rfl
 
+example : disc f d n = Int.natAbs (apSum f d n) := by
+  rfl
+
+-- Regression: coherence between the two homogeneous wrapper spellings.
+example : discrepancy f d n = disc f d n := by
+  simpa using (discrepancy_eq_disc (f := f) (d := d) (n := n))
+
+example : disc f d n = discrepancy f d n := by
+  simpa using (disc_eq_discrepancy (f := f) (d := d) (n := n))
+
 example : affineDiscrepancy f a d n = Int.natAbs (apSumFrom f a d n) := by
   rfl
 
