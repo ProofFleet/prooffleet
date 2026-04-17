@@ -157,6 +157,34 @@ theorem stage3_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (hf : I
   unfold discOffset
   exact hB n
 
+/-- Paper-notation normal form: there is no uniform bound on the shifted progression sums
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the deterministic Stage-2 parameters stored in `stage3Out`.
+
+Negation normal form:
+`¬ ∃ B, ∀ n, Int.natAbs ((Icc (m+1) (m+n)).sum (fun i => f (i*d))) ≤ B`.
+
+This is the Stage-3 witness `stage3_unboundedDiscOffset` packaged via
+`UnboundedDiscOffset.iff_not_exists_forall_natAbs_sum_Icc_offset_le`.
+-/
+theorem stage3_not_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs
+              ((Finset.Icc ((stage3Out (f := f) (hf := hf)).out2.m + 1)
+                ((stage3Out (f := f) (hf := hf)).out2.m + n)).sum
+                (fun i => f (i * (stage3Out (f := f) (hf := hf)).out2.d))) ≤ B := by
+  let out := stage3Out (f := f) (hf := hf)
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := by
+    simpa [out] using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  have hnb :
+      ¬ ∃ B : ℕ,
+          ∀ n : ℕ,
+            Int.natAbs ((Finset.Icc (out.out2.m + 1) (out.out2.m + n)).sum (fun i => f (i * out.out2.d))) ≤ B :=
+    (UnboundedDiscOffset.iff_not_exists_forall_natAbs_sum_Icc_offset_le (f := f)
+        (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+  simpa [out] using hnb
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` can remain minimal.
