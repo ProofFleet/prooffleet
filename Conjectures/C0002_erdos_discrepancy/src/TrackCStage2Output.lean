@@ -123,22 +123,8 @@ theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlo
 
 -- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
-/-- Consumer-facing form: Stage 2 unboundedness transferred back to the original sequence as an
-unbounded **offset discrepancy** witness.
-
-This is just a wrapper around
-`Tao2015.ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt`.
-
-Note the inequality direction: this produces witnesses of the form `B < discOffset ...`.
--/
-theorem forall_exists_discOffset_gt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
-  -- Unfold the Stage-2 witness form and transport it through the Stage-1 contract.
-  simpa using
-    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)).1 out.unbounded)
-
--- Note: `Stage2Output.forall_exists_discOffset_gt'` is part of the Stage-2 core API (see
--- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`).
+-- Note: `Stage2Output.forall_exists_discOffset_gt` and `Stage2Output.forall_exists_discOffset_gt'`
+-- are part of the Stage-2 core API (see `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`).
 
 
 /-!

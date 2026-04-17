@@ -133,6 +133,17 @@ theorem forall_exists_discOffset_gt_witness_pos (out : Stage2Output f) :
   rcases out.forall_exists_discOffset_gt'_witness_pos (f := f) B with ⟨n, hnpos, hn⟩
   exact ⟨n, hnpos, (gt_iff_lt).1 hn⟩
 
+/-- Witness-family form: Stage 2 yields arbitrarily large bundled offset discrepancies, written as
+`B < discOffset ...`.
+
+This is `forall_exists_discOffset_gt_witness_pos` with the positivity side condition dropped.
+-/
+theorem forall_exists_discOffset_gt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  intro B
+  rcases out.forall_exists_discOffset_gt_witness_pos (f := f) B with ⟨n, _hnpos, hn⟩
+  exact ⟨n, hn⟩
+
 /-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset nuclei
 `Int.natAbs (apSumOffset f out.d out.m n)`, with witnesses `n > 0`.
 
