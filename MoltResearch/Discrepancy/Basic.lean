@@ -2868,6 +2868,51 @@ lemma sum_Icc_eq_apSum (f : ℕ → ℤ) (d n : ℕ) :
   simpa using (apSum_eq_sum_Icc (f := f) (d := d) (n := n)).symm
 
 /-!
+### NEW (Track B): `Icc` ↔ `apSumOffset` normal form (affine endpoints)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+Icc↔offset sum normal form (affine endpoints).
+
+This lemma is designed to be a one-step rewrite from the common “paper notation”
+interval sum `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` to the nucleus API
+`apSumOffset (fun k => f (a + k)) d m n`.
+-/
+
+/-- Rewrite an affine-argument interval sum `∑ i ∈ Icc (m+1) (m+n), f (a + i*d)` as an
+offset arithmetic-progression sum `apSumOffset`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+Icc↔offset sum normal form (affine endpoints).
+-/
+lemma sum_Icc_affine_eq_apSumOffset (f : ℕ → ℤ) (a d m n : ℕ) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m n := by
+  classical
+  unfold apSumOffset
+  -- Rewrite `Icc` as `Ico` and then use the standard `Ico`-to-`range` conversion.
+  have h :=
+    (Finset.sum_Ico_eq_sum_range (f := fun i => f (a + i * d)) (m := m + 1) (n := m + n + 1))
+  -- `m + n + 1 - (m + 1) = n`.
+  have hsub : m + n + 1 - (m + 1) = n := by
+    -- Use the canonical “subtract the same left addend” normal form.
+    simpa [Nat.add_assoc] using (Nat.add_sub_add_left m (n + 1) 1)
+  calc
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+        (Finset.Ico (m + 1) (m + n + 1)).sum (fun i => f (a + i * d)) := by
+          simp [Finset.Ico_add_one_right_eq_Icc]
+    _ = (Finset.range (m + n + 1 - (m + 1))).sum (fun i => f (a + (m + 1 + i) * d)) := by
+          -- `h` is oriented from `Ico` to `range`.
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using h
+    _ = (Finset.range n).sum (fun i => f (a + (m + i + 1) * d)) := by
+          -- Normalize the range length and reassociate `m+1+i`.
+          refine Finset.sum_congr (by simpa [hsub]) ?_
+          intro i hi
+          -- `m + 1 + i = m + i + 1`.
+          simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+    _ = (Finset.range n).sum (fun i => (fun k => f (a + k)) ((m + i + 1) * d)) := by
+          rfl
+
+/-!
 Note: deprecated `*_mul_left` paper-notation wrappers live in `MoltResearch.Discrepancy.Deprecated`.
 The stable surface uses the `i * d` convention (`apSum_eq_sum_Icc` / `sum_Icc_eq_apSum`).
 -/

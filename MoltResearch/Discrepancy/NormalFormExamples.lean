@@ -65,6 +65,18 @@ example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
   simpa [discOffset_const_one]
 
 /-!
+### NEW (Track B): `Icc` ↔ `apSumOffset` normal form (affine endpoints)
+
+Compile-only regression: paper-notation sums over `Finset.Icc (m+1) (m+n)` should rewrite to the
+offset nucleus API in a single step, without manual `Nat` endpoint algebra.
+-/
+
+example :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m n := by
+  simpa using (sum_Icc_affine_eq_apSumOffset (f := f) (a := a) (d := d) (m := m) (n := n))
+
+/-!
 ### NEW (Track B): shift–dilation coherence (`apSumOffset`/`discOffset`)
 
 Compile-only regression: the nucleus normal-form pipeline should be able to reorder
