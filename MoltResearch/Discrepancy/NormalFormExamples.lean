@@ -1052,6 +1052,14 @@ example (q n' : ℕ) (hq : q > 0) :
   simpa using
     (sum_range_mul_reindex_mod_div (q := q) (n := n') (hq := hq) (f := f))
 
+-- Regression (Track B / block-length rewrite surface with offset):
+-- rewrite a tail sum of length `q*n'` starting at `m` into residue classes.
+example (m q n' : ℕ) (hq : q > 0) :
+    (Finset.range (q * n')).sum (fun i => f (m + i)) =
+      (Finset.range q).sum (fun r => (Finset.range n').sum (fun k => f (m + (q * k + r)))) := by
+  simpa using
+    (sum_range_offset_mul_reindex_mod_div (m := m) (q := q) (n := n') (hq := hq) (f := f))
+
 -- Regression (Track B / residue-class split, homogeneous nucleus):
 -- preferred stable normal form: `apSum` at block length `q*(n+1)` rewrites into a `range q` sum of
 -- head+tail blocks.

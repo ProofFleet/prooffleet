@@ -355,6 +355,31 @@ lemma sum_range_mul_reindex_mod_div (q n : ℕ) (hq : q > 0) (f : ℕ → ℤ) :
             (Finset.sum_comm (s := Finset.range n) (t := Finset.range q)
               (f := fun k r => f (q * k + r)))
 
+/-- Offset variant of `sum_range_mul_reindex_div_mod`.
+
+This is the canonical “block-length rewrite surface” for residue splitting with an added offset.
+It rewrites a tail sum of length `q*n` starting at `m` into a sum over `n` blocks of length `q`.
+
+Track B checklist item: `Problems/erdos_discrepancy.md` —
+“Block-length rewrite surface for residue splitting.”
+-/
+lemma sum_range_offset_mul_reindex_div_mod (m q n : ℕ) (hq : q > 0) (f : ℕ → ℤ) :
+    (Finset.range (q * n)).sum (fun i => f (m + i)) =
+      (Finset.range n).sum (fun k => (Finset.range q).sum (fun r => f (m + (q * k + r)))) := by
+  -- Reduce to the non-offset lemma by rewriting the summand.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (sum_range_mul_reindex_div_mod (q := q) (n := n) (hq := hq) (f := fun i => f (m + i)))
+
+/-- Offset + residue-first variant of `sum_range_offset_mul_reindex_div_mod`.
+
+This matches the common residue-class normal form: sum over residues `r < q` first.
+-/
+lemma sum_range_offset_mul_reindex_mod_div (m q n : ℕ) (hq : q > 0) (f : ℕ → ℤ) :
+    (Finset.range (q * n)).sum (fun i => f (m + i)) =
+      (Finset.range q).sum (fun r => (Finset.range n).sum (fun k => f (m + (q * k + r)))) := by
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (sum_range_mul_reindex_mod_div (q := q) (n := n) (hq := hq) (f := fun i => f (m + i)))
+
 lemma apSum_map_mul (f : ℕ → ℤ) (k d n : ℕ) :
   apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   unfold apSum
