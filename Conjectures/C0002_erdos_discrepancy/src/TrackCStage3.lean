@@ -69,7 +69,7 @@ theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
 
-This is the main “stage boundary” lemma: it is *proved* (no `sorry`) and should remain stable.
+This is the main “stage boundary” lemma: it is proved (no placeholders) and should remain stable.
 -/
 def ofStage2Output (out2 : Tao2015.Stage2Output f) : Stage3Output f :=
   ⟨out2⟩

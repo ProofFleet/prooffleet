@@ -4,7 +4,7 @@ import MoltResearch.Discrepancy.AffineTail
 /-!
 # Tao 2015: Erdős discrepancy theorem (Track C skeleton)
 
-This module is **Conjectures-only**: it may contain axiom stubs (and, if needed, `sorry`).
+This module is **Conjectures-only**: it may contain axiom stubs and temporary placeholders.
 
 At present, the only non-verified assumption is the Stage-2 axiom in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.

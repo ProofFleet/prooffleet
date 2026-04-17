@@ -3,7 +3,7 @@ import Conjectures.C0002_erdos_discrepancy.src.Tao2015
 /-!
 # Tao 2015 (Track C): small interface extras
 
-This module is **Conjectures-only**: it may contain axiom stubs (and, if needed, `sorry`), but the intent here is to add tiny
+This module is **Conjectures-only**: it may contain axiom stubs and temporary placeholders, but the intent here is to add tiny
 helper lemmas that make the stage interfaces easier to consume.
 
 Nothing in this file should edit or depend on implementation details under `MoltResearch/`.
