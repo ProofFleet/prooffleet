@@ -145,5 +145,17 @@ theorem stage4_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (
     HasDiscrepancyAtLeast f C := by
   exact (stage4_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
 
+/-- Track C pipeline witness: Stage 4 retains the fixed-step unboundedness witness for the reduced
+sequence, phrased using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a tiny wrapper around `Stage4Output.unboundedDiscrepancyAlong_core`, kept in the Stage-4
+core boundary so later stages can consume Stage 4 without importing additional proof files.
+-/
+theorem stage4_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    MoltResearch.UnboundedDiscrepancyAlong
+      (stage4Out (f := f) (hf := hf)).out1.g
+      (stage4Out (f := f) (hf := hf)).out1.d := by
+  simpa using (stage4Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core (f := f)
+
 end Tao2015
 end MoltResearch
