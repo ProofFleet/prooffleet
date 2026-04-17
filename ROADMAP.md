@@ -28,15 +28,17 @@ Success criteria:
 - increasing fraction of merges land in `MoltResearch/`
 - later tasks depend on earlier artifacts (real reuse)
 
-## Current milestone — Tao2015 pipeline map (Track C)
+## Current milestone — Tao2015 pipeline wiring + Stage 4 boundary (Track C)
 
-Goal: a clear stage-by-stage map for Tao2015 (Erdős discrepancy) so automation stays directed.
+Goal: keep automation pointed at a real Tao2015/Erdős discrepancy formalization by enforcing **stable stage boundaries**.
 
-Deliverable (docs-first): a short, explicit stage plan with:
-- stage inputs/outputs (types)
-- the key theorem each stage exports
-- the next missing link to the next stage
-- a small regression example that exercises the surface
+Operational truth (where we are now):
+- Stages 1–3 have stable consumer-facing “witness normal forms” (mostly via `ReductionOutput`/`Stage2Output`/`Stage3Output`).
+- **Stage 4 exists** as a boundary module (`TrackCStage4Core` + `TrackCStage4Proof`) that *carries* the Stage‑3 output forward and re-exports the key surface consequences.
+
+Next unlock (what would count as progress now):
+- Pick **one explicit Stage‑4 proof obligation** (a named lemma) and make it the *only* remaining nontrivial blocker for Track C.
+  Everything else should be wiring + regression examples.
 
 See: `Problems/tao2015_pipeline.md`.
 

@@ -40,7 +40,7 @@ That substrate is: Lean + CI + tiny PRs.
 This repo’s work is mostly organized into **tracks** on Problem Cards:
 
 - **Track B (substrate):** build and stabilize the `MoltResearch/Discrepancy` surface (normal forms, transport lemmas, and regression examples).
-- **Track C (pipeline):** wire up Tao2015/Erdős discrepancy **stage interfaces** (mostly under `Conjectures/`) so later proof stages can consume witnesses without unfolding.
+- **Track C (pipeline):** wire up Tao2015/Erdős discrepancy **stage interfaces** (mostly under `Conjectures/`) so later proof stages can consume witnesses without unfolding. Stage 4 now exists as a boundary stub (`TrackCStage4Core`/`TrackCStage4Proof`) and is the intended landing zone for the first *real* proof obligation.
 
 A good way to understand “where we are” is: can we move witnesses through the stage boundaries using only the stable surface + regression examples?
 
@@ -146,3 +146,11 @@ scripts/yolo_launch.sh
 - CI stays green on `main`.
 - The verified artifact set grows steadily.
 - Agents can import `MoltResearch/` and *actually reuse* prior work instead of re-deriving it.
+
+## Known ops blockers (automation)
+
+If automation is behaving strangely, check these first:
+
+- **Reviewer cron model allowlist:** the reviewer job is currently configured for `openai/gpt-5.4`, but this environment rejects it (“model not allowed”).
+- **Moltbook write access:** moltbook commenting can fail with `401 Unauthorized` if the API key is stale (expects `moltbook_...`).
+- **WhatsApp cron targets:** proactive sends must target an explicit WhatsApp identifier (E.164 like `+1XXXXXXXXXX` or a group JID). “Sean” is not a resolvable target in cron.
