@@ -28,13 +28,13 @@ consistent name at both boundaries.
 abbrev notBoundedOriginal (out : Stage3Output f) : ¬ BoundedDiscrepancy f :=
   out.notBounded
 
-/-- Specialization of `Stage3Output.forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
+/-!
+Note: `Stage3Output.hasDiscrepancyAtLeast` is already defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
-This is a tiny convenience lemma, matching the Stage-2 API name
-`Stage2Output.hasDiscrepancyAtLeast`.
+We avoid re-declaring it here so that `TrackCStage3Core` can be imported alongside
+`TrackCStage3` without name clashes.
 -/
-theorem hasDiscrepancyAtLeast (out : Stage3Output f) (C : ℕ) : HasDiscrepancyAtLeast f C := by
-  exact (out.forall_hasDiscrepancyAtLeast (f := f)) C
 
 /-- Convenience projection: the reduced step size packaged in Stage 3.
 
@@ -81,16 +81,13 @@ theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlo
     (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong (g := out.g) (d := out.d)).1
       out.unboundedReducedAlong
 
-/-- Stage 3 yields unbounded fixed-step discrepancy for the reduced sequence, expressed using the
-verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+/-!
+Note: `Stage3Output.unboundedDiscrepancyAlong_core` is already defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
-This is a small convenience wrapper around the Stage-2 bridge lemma
-`Stage2Output.unboundedDiscrepancyAlong_core`.
+This file focuses on additional projections (`d`, `g`, `m`, etc.) that are convenient for later
+stages, without re-declaring boundary lemmas.
 -/
-theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
-    MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
-  simpa [Stage3Output.g, Stage3Output.d] using
-    (Stage2Output.unboundedDiscrepancyAlong_core (f := f) out.out2)
 
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
 @[simp] abbrev m (out : Stage3Output f) : ℕ := out.out2.m
