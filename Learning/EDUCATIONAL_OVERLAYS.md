@@ -22,6 +22,10 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **Intuition:** foundational discrepancy definitions and small bounds let later modules reuse a common vocabulary.
 - **Proof sketch pattern:** normalize definitions first, then prove small local inequalities and compose.
 - **Common pitfalls:** jumping into advanced lemmas before reducing to canonical definitions.
+- **API note (wrapper naming coherence):** there are two homogeneous discrepancy wrappers:
+  - `discrepancy f d n` (readable name), and
+  - `disc f d n` (matches the `discOffset` / `discOffsetUpTo` family).
+  They are definitionally equal; use `discrepancy_eq_disc` / `disc_eq_discrepancy` when you want to normalize one spelling to the other without unfolding. For definitional unfolding, prefer the explicit lemmas `discrepancy_eq_natAbs_apSum` / `disc_eq_natAbs_apSum` over the shorter `*_def` aliases.
 - **API note (triangle vs reverse triangle):** for concatenation, `discOffset_add_le` is the forward triangle inequality. The reverse-triangle companions are `discOffset_left_le_add` / `discOffset_right_le_add`, proved by rewriting `S(n₁) = S(n₁+n₂) - S'(n₂)` and applying `Int.natAbs_sub_le`.
 - **API note (endpoint-algebra wrappers):** three-segment concatenation is available as `discOffset_add_add_le`, but downstream goals often appear with right-associated endpoints. Use `discOffset_add_add_le_assoc` when your goal has length `n₁ + (n₂ + n₃)` and/or third-start index `m + (n₁ + n₂)` so you can `simpa` without manual `Nat.add_assoc` reassociation.
 - **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
