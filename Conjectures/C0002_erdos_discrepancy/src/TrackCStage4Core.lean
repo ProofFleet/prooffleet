@@ -41,7 +41,7 @@ variable {f : ℕ → ℤ}
 This projection is useful for later stages that still need Stage-2 witnesses, without forcing them
 to re-run earlier stages.
 -/
-abbrev out2 (out : Stage4Output f) : Tao2015.Stage2Output f :=
+@[simp] abbrev out2 (out : Stage4Output f) : Tao2015.Stage2Output f :=
   out.out3.out2
 
 /-- Stage 4 carries the full Stage-2 output, hence also carries the underlying Stage-1 reduction output.
@@ -49,7 +49,7 @@ abbrev out2 (out : Stage4Output f) : Tao2015.Stage2Output f :=
 This projection is occasionally useful for later stages that want access to the deterministic
 parameters `g, d, m` and the Stage-1 transport contracts.
 -/
-abbrev out1 (out : Stage4Output f) : Tao2015.ReductionOutput f :=
+@[simp] abbrev out1 (out : Stage4Output f) : Tao2015.ReductionOutput f :=
   out.out3.out2.out1
 
 /-- Stage 4 output already carries the Stage-3 conclusion `¬ BoundedDiscrepancy f`. -/
@@ -107,8 +107,7 @@ without importing the larger Stage-3 convenience layer.
 -/
 @[simp] theorem stage4Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage4Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
-  -- Expand `stage4Out` to its Stage-3 payload, then use the Stage-3 definitional rewrite.
-  simpa [Stage4Output.out2] using (stage3Out_out2 (f := f) (hf := hf))
+  rfl
 
 /-- The Stage-1 reduction output stored inside `stage4Out` is definitionally the Stage-1 reduction
 output produced by Stage 2.
@@ -117,8 +116,7 @@ This lemma is tiny but useful for rewriting when shuttling statements between St
 -/
 @[simp] theorem stage4Out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage4Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
-  simpa [Stage4Output.out1] using
-    congrArg Tao2015.Stage2Output.out1 (stage4Out_out2 (f := f) (hf := hf))
+  rfl
 
 /-- Consumer-facing shortcut: Stage 4 closes the core goal `¬ BoundedDiscrepancy f`. -/
 theorem stage4_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by

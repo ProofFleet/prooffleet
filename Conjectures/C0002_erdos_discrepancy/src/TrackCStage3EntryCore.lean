@@ -36,7 +36,7 @@ theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
 Normal form:
 `∃ d m, d > 0 ∧ UnboundedDiscOffset f d m`.
 -/
-theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+theorem stage3_exists_params_d_pos_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
   rcases stage3_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf) with ⟨d, m, hd, hU⟩
   refine ⟨d, m, ?_, hU⟩
