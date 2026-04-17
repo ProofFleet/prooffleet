@@ -144,6 +144,18 @@ theorem stage3_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (
     HasDiscrepancyAtLeast f C := by
   exact (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
 
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This is a tiny wrapper around `stage3_unboundedDiscOffset`.
+-/
+theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
+  refine ⟨(stage3Out (f := f) (hf := hf)).out2.d,
+    (stage3Out (f := f) (hf := hf)).out2.m,
+    (stage3Out (f := f) (hf := hf)).out2.hd, ?_⟩
+  simpa using (stage3Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
+
 end Tao2015
 
 end MoltResearch
