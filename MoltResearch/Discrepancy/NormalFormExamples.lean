@@ -281,6 +281,9 @@ example :
 example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n + 1) := by
   simpa using (discOffsetUpTo_le_succ (f := f) (d := d) (m := m) (N := n))
 
+example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (Nat.succ n) := by
+  simpa using (discOffsetUpTo_le_succNat (f := f) (d := d) (m := m) (N := n))
+
 /-!
 ### NEW (Track B): Max-attainment wrapper for `discOffsetUpTo`
 

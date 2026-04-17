@@ -926,12 +926,19 @@ lemma discOffsetUpTo_le_add (f : ℕ → ℤ) (d m N K : ℕ) :
 
 /-- Convenience: `discOffsetUpTo` is monotone under `N ↦ N+1`.
 
-Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` Lipschitz-by-1 in `N`
-(reverse inequality direction).
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` monotone in the cutoff.
 -/
 lemma discOffsetUpTo_le_succ (f : ℕ → ℤ) (d m N : ℕ) :
     discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N + 1) := by
   simpa using (discOffsetUpTo_le_add (f := f) (d := d) (m := m) (N := N) (K := 1))
+
+/-- Convenience: `discOffsetUpTo` is monotone under `N ↦ Nat.succ N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo` monotone in the cutoff.
+-/
+lemma discOffsetUpTo_le_succNat (f : ℕ → ℤ) (d m N : ℕ) :
+    discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (Nat.succ N) := by
+  simpa [Nat.succ_eq_add_one] using (discOffsetUpTo_le_succ (f := f) (d := d) (m := m) (N := N))
 
 /-- The maximum in `discOffsetUpTo` is attained by some `n ≤ N`.
 
