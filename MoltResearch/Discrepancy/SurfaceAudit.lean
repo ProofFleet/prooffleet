@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy
 import MoltResearch.Discrepancy.NormalFormPipelineExample
 import MoltResearch.Discrepancy.MiniPipelineMaxExample
+import MoltResearch.Discrepancy.ResidueMaxPipelineExample
 import MoltResearch.Discrepancy.SupportEditPipelineExample
 
 /-!
