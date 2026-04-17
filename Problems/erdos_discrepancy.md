@@ -1110,6 +1110,27 @@ Definition of done:
 - [x] Stable-surface audit for max-level APIs: extend `MoltResearch/Discrepancy/SurfaceAudit.lean` with `#check`/`example` coverage for the max-level normal forms (`discOffsetUpTo_*` lemmas), ensuring the intended rewrite pipeline stays one-line usable.
   - See the `UpTo` section in `MoltResearch/Discrepancy/SurfaceAudit.lean` for one-line rewrite/bound audits.
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] `discOffsetUpTo` monotone-in-`N` wrapper: package `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N+K)` (and a `Nat.succ` corollary) without unfolding the `sup`/`max` definition.
+
+- [ ] `discOffsetUpTo` Lipschitz-by-`K` wrapper: a bundled lemma of the form
+  `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + K` (or the repo’s preferred inequality), built from the existing length-Lipschitz lemma at the `discOffset` level.
+
+- [ ] Icc↔offset sum normal form (affine endpoints): add simp-friendly rewrite lemmas converting
+  `∑ i ∈ Finset.Icc (m+1) (m+n), f (a + i*d)` ↔ `apSumOffset (fun k => f (a + k)) d m n` in a single step (matching the repo’s preferred endpoint conventions), with stable-surface regression examples.
+
+- [ ] Endpoint algebra helpers for `m+(n+k)` shapes: add a small family of `simp`/`rw` wrappers that normalize common `Nat` expressions (e.g. `m + (n + k)` / `(m+n)+k` / `m+n+k`) into the exact shapes expected by the offset concatenation / cut lemmas, so downstream proofs don’t need manual `Nat` reassociation.
+
+- [ ] “Block-length” rewrite surface for residue splitting: provide a canonical lemma rewriting an offset sum over length `r*k` into a sum over `k` blocks (or `r` residue classes—pick one normal form) with consistent parameter ordering, so later residue arguments can start from a one-line `rw` rather than ad-hoc reindexing.
+
+- [ ] Max-level congruence wrapper: `discOffsetUpTo_congr` / `discOffsetUpTo_congr_le` lemmas mirroring the existing `discOffset_congr(_le)` style, so max-level rewrite steps can avoid `Finset.range` bookkeeping.
+
+- [ ] Stable-surface audit for residue + max pipelines: add 1 compile-only example under `import MoltResearch.Discrepancy` showing a typical flow
+  paper sum → nucleus → residue split → `discOffsetUpTo` bound → clean inequality, and wire it into `SurfaceAudit` so the intended pipeline stays one-line usable.
+
+- [ ] “Nucleus API coherence” pass: audit naming / argument order consistency across `apSum`/`apSumOffset`/`apSumFrom` and `discrepancy`/`discOffset`/`discOffsetUpTo` wrappers; propose 1–2 targeted renames + deprecated aliases (not a mass rename), with a stable-surface regression example confirming imports don’t break.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
