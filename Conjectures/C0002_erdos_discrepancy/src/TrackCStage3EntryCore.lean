@@ -31,6 +31,21 @@ theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
   refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
   exact out.out2.unboundedDiscOffset (f := f)
 
+/-- Existential packaging: Stage 3 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such
+that there is no bundled offset-discrepancy bound at those parameters.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ¬ ∃ B, BoundedDiscOffset f d m B`.
+
+This is the stable boundedness-negation normal form of the Stage-3 offset-unboundedness witness.
+-/
+theorem stage3_exists_params_one_le_not_exists_boundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  let out := stage3Out (f := f) (hf := hf)
+  refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
+  simpa using out.not_exists_boundedDiscOffset (f := f)
+
 /-- Variant of `stage3_exists_params_one_le_unboundedDiscOffset` with strict positivity for `d`.
 
 Normal form:
