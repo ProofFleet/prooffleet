@@ -33,20 +33,20 @@ frequently.
 -/
 
 /-- Convenience projection: the reduced step size. -/
-abbrev d (out : Stage2Output f) : ℕ := out.out1.d
+@[simp] abbrev d (out : Stage2Output f) : ℕ := out.out1.d
 
 /-- Convenience projection: the reduced sequence. -/
-abbrev g (out : Stage2Output f) : ℕ → ℤ := out.out1.g
+@[simp] abbrev g (out : Stage2Output f) : ℕ → ℤ := out.out1.g
 
 /-- The reduced sequence packaged by Stage 2 is a sign sequence. -/
 theorem hg (out : Stage2Output f) : IsSignSequence out.g := by
-  simpa [Stage2Output.g] using out.out1.hg
+  simpa using out.out1.hg
 
 /-- Convenience projection: the offset parameter bundled in Stage 1. -/
-abbrev m (out : Stage2Output f) : ℕ := out.out1.m
+@[simp] abbrev m (out : Stage2Output f) : ℕ := out.out1.m
 
 /-- Convenience projection: positivity of the reduced step size. -/
-abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
+@[simp] abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 
 /-- Convenience lemma: the reduced step size is nonzero. -/
 theorem d_ne_zero (out : Stage2Output f) : out.d ≠ 0 := by
@@ -96,7 +96,7 @@ This is the Stage-1 transport contract applied to the fixed-step unboundedness w
 `out.unbounded`.
 -/
 theorem unboundedDiscOffset (out : Stage2Output f) : UnboundedDiscOffset f out.d out.m := by
-  simpa [Stage2Output.d, Stage2Output.m] using
+  simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).1 out.unbounded
 
 /-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset discrepancies
