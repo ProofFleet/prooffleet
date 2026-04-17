@@ -60,6 +60,11 @@ The goal is to pair verified artifacts with learning scaffolding.
   `(apSupport d m n).card = n` (the proof is by injectivity of `i ↦ (m+i+1)*d` when `d > 0`).
 - **API note (shift–dilation coherence):** when you both (i) push an offset shift into the summand and (ii) pull a factor `q` into the step, use the commutation lemma `apSumOffset_shift_mul_right_comm` (and the wrapper `discOffset_shift_mul_right_comm`) to avoid redoing index algebra. Conceptually: “shift then dilate” = “dilate then shift (with scaled offset)”.
 - **API note (paper interval normalization):** many downstream proofs naturally produce paper-style terms like `Int.natAbs ((Finset.Icc (m+1) (m+n)).sum ...)`. The stable surface exports simp lemmas rewriting these directly to `discOffset f d m n`, so endpoint algebra can be normalized by `simp` without manually rewriting `discOffset_eq_natAbs_sum_Icc` back and forth.
+- **API note (affine interval sum → `apSumOffset`):** if you have an interval sum with an extra affine offset in the summand,
+  `∑ i ∈ Finset.Icc (m+1) (m+n), f (a + i*d)`,
+  rewrite it in one shot using `sum_Icc_affine_eq_apSumOffset` to
+  `apSumOffset (fun k => f (a + k)) d m n`.
+  This is the “Icc↔offset sum normal form (affine endpoints)” Track B checklist item.
 - **API note (endpoint normalization):** when you have endpoint-style constraints in a `Finset.Icc` form, you can convert cleanly to the paper-style conjunction used by `discOffset_congr_endpoints`. Use `endpoints_lt_le_iff_mem_finset_Icc` to rewrite
   `m < i ∧ i ≤ m+n` ↔ `i ∈ Finset.Icc (m+1) (m+n)`, and `endpoints_lt_le_iff_succ_le_lt_succ` for the variant `m+1 ≤ i ∧ i < m+n+1`.
 - **API note (endpoint arithmetic normalization):** when your upper endpoint algebra is off by a “successor/pred” shim (common after `Nat.succ`/`Nat.pred` normalizations), use
