@@ -37,21 +37,9 @@ Note: the bounded-discrepancy-along nucleus normal form lives in `Tao2015` as
 /- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus.
 
 Provided by `Conjectures.C0002_erdos_discrepancy.src.Tao2015` as
-`Tao2015.apSumFrom_mul_eq_apSumOffset`; we just use it in this file.
+`Tao2015.apSumFrom_mul_eq_apSumOffset` and
+`Tao2015.discOffset_eq_natAbs_apSumFrom_mul`; we just use them in this file.
 -/
-
-/-- Normal form: offset discrepancy expressed directly using the affine-tail nucleus.
-
-This avoids having to expand `discOffset` into `apSumOffset` and then rewrite to an `apSumFrom` tail
-form by hand.
--/
-theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
-    discOffset f d m n = Int.natAbs (apSumFrom f (m * d) d n) := by
-  unfold discOffset
-  -- Apply `Int.natAbs` to the `apSumFrom`→`apSumOffset` normal form, then flip the equality.
-  exact
-    (congrArg Int.natAbs
-        (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))).symm
 
 /-- Paper-notation normal form: affine-tail nuclei at start `m*d` written as an interval sum.
 

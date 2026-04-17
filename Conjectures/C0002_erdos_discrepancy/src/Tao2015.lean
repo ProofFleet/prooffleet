@@ -291,6 +291,22 @@ theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     _ = apSumOffset f d m n := by
       simp
 
+/-- Normal form: offset discrepancy expressed directly using the affine-tail nucleus.
+
+This avoids having to expand `discOffset` into `apSumOffset` and then rewrite to an `apSumFrom` tail
+form by hand.
+-/
+theorem discOffset_eq_natAbs_apSumFrom_mul (f : ℕ → ℤ) (d m n : ℕ) :
+    discOffset f d m n = Int.natAbs (apSumFrom f (m * d) d n) := by
+  -- Rewrite `discOffset` to the bundled offset nucleus, then shuttle to the affine-tail form.
+  calc
+    discOffset f d m n = Int.natAbs (apSumOffset f d m n) := by
+      exact discOffset_eq_natAbs_apSumOffset (f := f) (d := d) (m := m) (n := n)
+    _ = Int.natAbs (apSumFrom f (m * d) d n) := by
+      simpa using
+        (congrArg Int.natAbs
+            (apSumFrom_mul_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))).symm
+
 /-- Paper-notation normal form: the bundled offset nucleus `apSumOffset` is an interval sum.
 
 This is a thin wrapper around `apSumOffset_eq_sum_Icc` (from `MoltResearch.Discrepancy`), with
