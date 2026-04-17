@@ -225,6 +225,38 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f : ℕ
     (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f)
       (stage3Out (f := f) (hf := hf)))
 
+/-- Consumer-facing shortcut: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
+paper-notation offset sum witness `∑ i ∈ Icc (m+1) (m+n), f (i*d)` takes arbitrarily large absolute
+values.
+
+This is a thin wrapper around the Stage-3 boundary API lemma
+`Stage3Output.exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt`.
+-/
+theorem stage3_exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ,
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  simpa using
+    (Stage3Output.exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (f := f)
+      (stage3Out (f := f) (hf := hf)))
+
+/-- Positive-length witness variant of `stage3_exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt`.
+
+The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
+
+This is a thin wrapper around the Stage-3 boundary API lemma
+`Stage3Output.exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos`.
+-/
+theorem stage3_exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  simpa using
+    (Stage3Output.exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f)
+      (stage3Out (f := f) (hf := hf)))
+
 -- Note: `stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos` is already
 -- provided by `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore` (imported via
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`).
