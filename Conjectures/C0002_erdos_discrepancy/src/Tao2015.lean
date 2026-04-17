@@ -988,16 +988,15 @@ def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionOutput f := by
       contract_discrepancy_le := ?_ }
   · intro k
     -- `out.g` is a sign sequence, so any shift of it is also a sign sequence.
-    simpa using out.hg (k + m₂ * out.d)
+    exact out.hg (k + m₂ * out.d)
   · intro k
     -- Expand `out.g` using `out.g_eq` and normalize the index arithmetic.
     calc
       out.g (k + m₂ * out.d) = f ((k + m₂ * out.d) + out.m * out.d) := by
-        simpa [out.g_eq]
+        simp [out.g_eq]
       _ = f (k + (out.m + m₂) * out.d) := by
         -- Pure `Nat` semiring arithmetic.
-        simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc, Nat.mul_left_comm,
-          Nat.mul_comm, Nat.add_mul, Nat.mul_add]
+        simp [Nat.add_assoc, Nat.add_comm, Nat.mul_comm, Nat.mul_add]
   · intro B hB n
     -- Rewrite `g` to the canonical shift of `f` so we can reuse `discrepancy_shift_mul_simp`.
     have hgfun : (fun k => out.g (k + m₂ * out.d)) = fun k => f (k + m' * out.d) := by
@@ -1008,10 +1007,9 @@ def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionOutput f := by
           -- same calc as above
           calc
             out.g (k + m₂ * out.d) = f ((k + m₂ * out.d) + out.m * out.d) := by
-              simpa [out.g_eq]
+              simp [out.g_eq]
             _ = f (k + (out.m + m₂) * out.d) := by
-              simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc, Nat.mul_left_comm,
-                Nat.mul_comm, Nat.add_mul, Nat.mul_add]))
+              simp [Nat.add_assoc, Nat.add_comm, Nat.mul_comm, Nat.mul_add]))
 
     have hrewrite :
         discrepancy (fun k => f (k + m' * out.d)) out.d n = discOffset f out.d m' n := by
