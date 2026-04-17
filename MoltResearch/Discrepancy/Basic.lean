@@ -1055,6 +1055,7 @@ lemma discOffset_restrict_support (f : ℕ → ℤ) (d m n : ℕ) :
   simp [apSumOffset_restrict_support]
 
 /-- Alias for the definitional lemma. -/
+@[deprecated "Use `discOffset_eq_natAbs_apSumOffset`." (since := "2026-04-17")]
 lemma discOffset_def (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=
   rfl

@@ -20,6 +20,33 @@ namespace MoltResearch
 def apSumFrom (f : ℕ → ℤ) (a d n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f (a + (i + 1) * d))
 
+/-! ### Discrepancy wrapper for affine AP sums (`apSumFrom`) -/
+
+/-- Affine discrepancy wrapper: `discFrom f a d n = |apSumFrom f a d n|`.
+
+This is the affine analogue of `disc` / `discOffset`.
+-/
+def discFrom (f : ℕ → ℤ) (a d n : ℕ) : ℕ :=
+  Int.natAbs (apSumFrom f a d n)
+
+/-- Definitional lemma exposing the definition. -/
+lemma discFrom_eq_natAbs_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    discFrom f a d n = Int.natAbs (apSumFrom f a d n) :=
+  rfl
+
+/-- `simp` bridge: `Int.natAbs (apSumFrom …)` simplifies to the `discFrom` wrapper.
+
+This direction avoids simp loops with `discFrom_eq_natAbs_apSumFrom`.
+-/
+@[simp] lemma natAbs_apSumFrom_eq_discFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    Int.natAbs (apSumFrom f a d n) = discFrom f a d n :=
+  rfl
+
+/-- Coherence: `a = 0` recovers the homogeneous wrapper `disc`. -/
+lemma discFrom_zero_start (f : ℕ → ℤ) (d n : ℕ) : discFrom f 0 d n = disc f d n := by
+  -- unfold both wrappers and discharge the `0 + …` normalisation.
+  simp [discFrom, disc, apSumFrom, apSum]
+
 /-!
 ### Multiplicative dilation normal forms (affine nucleus)
 

@@ -406,9 +406,10 @@ example : apSumFrom f a d (n + k) = apSumFrom f a d n + apSumFrom f (a + n * d) 
   simpa using (apSumFrom_add_length (f := f) (a := a) (d := d) (m := n) (n := k))
 
 -- (1.6) Immediate triangle-inequality corollary (still at the nucleus level).
-example : Int.natAbs (apSumFrom f a d (n + k)) ≤
-    Int.natAbs (apSumFrom f a d n) + Int.natAbs (apSumFrom f (a + n * d) d k) := by
-  simpa using (natAbs_apSumFrom_add_length_le (f := f) (a := a) (d := d) (n₁ := n) (n₂ := k))
+example : discFrom f a d (n + k) ≤ discFrom f a d n + discFrom f (a + n * d) d k := by
+  -- Use the underlying `natAbs` lemma and rewrite via the `discFrom` wrapper.
+  simpa [discFrom] using
+    (natAbs_apSumFrom_add_length_le (f := f) (a := a) (d := d) (n₁ := n) (n₂ := k))
 
 -- (2) Difference of affine partial sums → nucleus offset-tail normal form on the shifted sequence.
 
