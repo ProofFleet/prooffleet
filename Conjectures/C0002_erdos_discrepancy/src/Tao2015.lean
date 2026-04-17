@@ -229,6 +229,19 @@ theorem hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g : ℕ → ℤ) 
   · rintro ⟨n, hn⟩
     exact ⟨n, hn⟩
 
+/-- Stable-wrapper normal form for `HasDiscrepancyAtLeastAlong`.
+
+Normal form:
+`∃ n, discAlong g d n > C`.
+
+This is `hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt'` rewritten using
+`discAlong_eq_discrepancy`.
+-/
+theorem hasDiscrepancyAtLeastAlong_iff_exists_discAlong_gt' (g : ℕ → ℤ) (d C : ℕ) :
+    HasDiscrepancyAtLeastAlong g d C ↔ (∃ n : ℕ, discAlong g d n > C) := by
+  simpa [discAlong_eq_discrepancy] using
+    (hasDiscrepancyAtLeastAlong_iff_exists_discrepancy_gt' (g := g) (d := d) (C := C))
+
 /-- Nucleus normal form for `HasDiscrepancyAtLeastAlong`.
 
 Normal form:
