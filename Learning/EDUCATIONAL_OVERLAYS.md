@@ -50,6 +50,9 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (start-shift vs sequence-shift, max-level):** if you want to “advance the start” without pushing arithmetic through the `Finset.sup` definition, rewrite using
   `discOffsetUpTo_add_start`:
   `discOffsetUpTo f d (m + k) N = discOffsetUpTo (fun t => f (t + k*d)) d m N`.
+- **API note (max-level congruence wrappers):** when you have pointwise agreement of two sequences on the tail indices that can occur up to cutoff `N`, you can rewrite `discOffsetUpTo` without unfolding the outer `Finset.range`/`Finset.sup` using:
+  - `discOffsetUpTo_congr` (hypothesis over `i < N+1` on indices `(m+i+1)*d`)
+  - `discOffsetUpTo_congr_le` (hypothesis over `i ≤ N+1` on indices `(m+i)*d`)
 - **API note (degenerate length for `apSupport`):** when writing support-form hypotheses (agreement on `apSupport d m n`), the base case `n = 0` should reduce immediately. Use the simp lemma `apSupport_zero` to rewrite `apSupport d m 0` to `∅`.
 - **API note (`apSupport` bookkeeping helpers):** for common “no-op” shifts/dilations, the stable surface provides simp lemmas
   `apSupport_add_left_zero` and `apSupport_mul_right_one` so `simp` can discharge trivial `m+0` / `d*1` noise without unfolding.
