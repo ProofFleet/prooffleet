@@ -73,6 +73,19 @@ theorem stage2_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [stage2_d, stage2_m, Stage2Output.d, Stage2Output.m] using
     (Stage2Output.unboundedDiscOffset (f := f) (stage2Out (f := f) (hf := hf)))
 
+/-- Consumer-facing normal form: there is no bound `B` with
+`BoundedDiscOffset f (stage2_d ...) (stage2_m ...) B`.
+
+This is the stable boundedness-negation normal form of `stage2_unboundedDiscOffset`.
+-/
+theorem stage2_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (stage2_d (f := f) (hf := hf))
+        (stage2_m (f := f) (hf := hf)) B := by
+  simpa [stage2_d, stage2_m, Stage2Output.d, Stage2Output.m] using
+    (Stage2Output.not_exists_boundedDiscOffset (f := f) (stage2Out (f := f) (hf := hf)))
+
 /-- Core-predicate form: Stage 2 yields unbounded fixed-step discrepancy along the reduced sequence,
 re-expressed using `MoltResearch.UnboundedDiscrepancyAlong`.
 
