@@ -75,6 +75,19 @@ example : discOffset' f m d n = discOffset f d m n := by
 example : discOffsetUpTo' f m d n = discOffsetUpTo f d m n := by
   rfl
 
+-- NEW (Track B): nucleus API coherence (disc/discrepancy wrappers)
+example : disc f d n = discrepancy f d n := by
+  rfl
+
+example : Int.natAbs (apSum f d n) = disc f d n := by
+  rfl
+
+example : Int.natAbs (apSum f d n) = discrepancy f d n := by
+  rfl
+
+example : discFrom f 0 d n = disc f d n := by
+  simpa using (discFrom_zero_start (f := f) (d := d) (n := n))
+
 /-!
 ### NEW (Track B): `Icc` ↔ `apSumOffset` normal form (affine endpoints)
 
