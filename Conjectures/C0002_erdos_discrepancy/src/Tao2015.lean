@@ -963,6 +963,69 @@ def ofShift (f : ℕ → ℤ) (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     -- Now discharge the bound using the supplied uniform `discOffset` bound.
     simpa [hrewrite] using hB n
 
+/-- Stage-1 reduction combinator: shift the reduced sequence again by `m₂ * out.d`.
+
+This is the first “actually used” reduction composition operator downstream stages need:
+Tao’s pipeline frequently produces a reduced locus and then shifts it again.
+
+- It keeps the step size `d` unchanged.
+- It updates the offset parameter from `m` to `m + m₂`.
+- It defines the new reduced sequence as `k ↦ out.g (k + m₂*out.d)`.
+
+The key point: this constructor does **not** require any global sign-sequence hypothesis for `f`;
+we reuse `out.hg` and `out.g_eq`.
+-/
+def shiftRight (out : ReductionOutput f) (m₂ : ℕ) : ReductionOutput f := by
+  classical
+  let m' : ℕ := out.m + m₂
+  refine
+    { d := out.d
+      hd := out.hd
+      m := m'
+      g := fun k => out.g (k + m₂ * out.d)
+      hg := ?_
+      g_eq := ?_
+      contract_discrepancy_le := ?_ }
+  · intro k
+    -- `out.g` is a sign sequence, so any shift of it is also a sign sequence.
+    simpa using out.hg (k + m₂ * out.d)
+  · intro k
+    -- Expand `out.g` using `out.g_eq` and normalize the index arithmetic.
+    calc
+      out.g (k + m₂ * out.d) = f ((k + m₂ * out.d) + out.m * out.d) := by
+        simpa [out.g_eq]
+      _ = f (k + (out.m + m₂) * out.d) := by
+        -- Pure `Nat` semiring arithmetic.
+        simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc, Nat.mul_left_comm,
+          Nat.mul_comm, Nat.add_mul, Nat.mul_add]
+  · intro B hB n
+    -- Rewrite `g` to the canonical shift of `f` so we can reuse `discrepancy_shift_mul_simp`.
+    have hgfun : (fun k => out.g (k + m₂ * out.d)) = fun k => f (k + m' * out.d) := by
+      funext k
+      -- Use the defining equation we just provided.
+      simpa [m', Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using (show
+        out.g (k + m₂ * out.d) = f (k + (out.m + m₂) * out.d) from (by
+          -- same calc as above
+          calc
+            out.g (k + m₂ * out.d) = f ((k + m₂ * out.d) + out.m * out.d) := by
+              simpa [out.g_eq]
+            _ = f (k + (out.m + m₂) * out.d) := by
+              simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc, Nat.mul_left_comm,
+                Nat.mul_comm, Nat.add_mul, Nat.mul_add]))
+
+    have hrewrite :
+        discrepancy (fun k => f (k + m' * out.d)) out.d n = discOffset f out.d m' n := by
+      exact discrepancy_shift_mul_simp (f := f) (m := m') (d := out.d) (n := n)
+
+    -- Discharge the bound.
+    simpa [hgfun, hrewrite] using hB n
+
+/-! ### `shiftRight` coherence lemmas
+
+We intentionally keep this file minimal; if/when downstream stages need simp-normalization lemmas
+like `shiftRight_zero` or associativity, add them together with small regression examples.
+-/
+
 /-- Consumer-facing rewrite: discrepancy of the reduced sequence equals bundled offset discrepancy.
 
 This is the key normal-form bridge used by later stages.
