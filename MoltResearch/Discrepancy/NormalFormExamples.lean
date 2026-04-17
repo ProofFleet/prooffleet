@@ -284,6 +284,10 @@ example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n + 1) := by
 example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (Nat.succ n) := by
   simpa using (discOffsetUpTo_le_succNat (f := f) (d := d) (m := m) (N := n))
 
+-- Regression (Track B / `discOffsetUpTo` monotone-in-`N` wrapper): `N ↦ N + k` form.
+example : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n + k) := by
+  simpa using (discOffsetUpTo_le_add (f := f) (d := d) (m := m) (N := n) (K := k))
+
 /-!
 ### NEW (Track B): Max-attainment wrapper for `discOffsetUpTo`
 

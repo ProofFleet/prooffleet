@@ -1112,7 +1112,8 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] `discOffsetUpTo` monotone-in-`N` wrapper: package `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N+K)` (and a `Nat.succ` corollary) without unfolding the `sup`/`max` definition.
+- [x] `discOffsetUpTo` monotone-in-`N` wrapper: package `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N+K)` (and a `Nat.succ` corollary) without unfolding the `sup`/`max` definition.
+  (Implemented as `discOffsetUpTo_le_add` + `discOffsetUpTo_le_succNat` (and `discOffsetUpTo_mono`) in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffsetUpTo` Lipschitz-by-`K` wrapper: a bundled lemma of the form
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + K` (or the repo’s preferred inequality), built from the existing length-Lipschitz lemma at the `discOffset` level.
