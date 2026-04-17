@@ -1126,7 +1126,8 @@ Definition of done:
 - [x] Endpoint algebra helpers for `m+(n+k)` shapes: add a small family of `simp`/`rw` wrappers that normalize common `Nat` expressions (e.g. `m + (n + k)` / `(m+n)+k` / `m+n+k`) into the exact shapes expected by the offset concatenation / cut lemmas, so downstream proofs don’t need manual `Nat` reassociation.
   (Implemented as `[simp]` reassociation wrappers `apSumOffset_start_add_assoc` / `discOffset_start_add_assoc` in `MoltResearch/Discrepancy/CoherenceSimp.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Block-length” rewrite surface for residue splitting: provide a canonical lemma rewriting an offset sum over length `r*k` into a sum over `k` blocks (or `r` residue classes—pick one normal form) with consistent parameter ordering, so later residue arguments can start from a one-line `rw` rather than ad-hoc reindexing.
+- [x] “Block-length” rewrite surface for residue splitting: provide a canonical lemma rewriting an offset sum over length `r*k` into a sum over `k` blocks (or `r` residue classes—pick one normal form) with consistent parameter ordering, so later residue arguments can start from a one-line `rw` rather than ad-hoc reindexing.
+  (Implemented as `sum_range_offset_mul_reindex_mod_div` in `MoltResearch/Discrepancy/Reindex.lean`; stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Max-level congruence wrapper: `discOffsetUpTo_congr` / `discOffsetUpTo_congr_le` lemmas mirroring the existing `discOffset_congr(_le)` style, so max-level rewrite steps can avoid `Finset.range` bookkeeping.
 
