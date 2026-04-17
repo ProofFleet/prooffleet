@@ -55,6 +55,22 @@ theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
   -- Rewrite the bundled offset nucleus `apSumOffset` to the affine-tail nucleus `apSumFrom`.
   rw [← out.apSumFrom_start_eq_apSumOffset (f := f) n]
 
+/-- Normal form: boundedness of the bundled offset discrepancy family `discOffset f out.d out.m`
+expressed directly using affine-tail nuclei `apSumFrom f out.start out.d`.
+
+This is just `BoundedDiscOffset` rewritten using `discOffset_eq_natAbs_apSumFrom_start`.
+-/
+theorem boundedDiscOffset_iff_forall_natAbs_apSumFrom_start_le (out : Stage2Output f) (B : ℕ) :
+    BoundedDiscOffset f out.d out.m B ↔
+      ∀ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) ≤ B := by
+  constructor
+  · intro h n
+    have hn : discOffset f out.d out.m n ≤ B := h n
+    simpa [out.discOffset_eq_natAbs_apSumFrom_start (f := f) (n := n)] using hn
+  · intro h n
+    have hn : Int.natAbs (apSumFrom f out.start out.d n) ≤ B := h n
+    simpa [out.discOffset_eq_natAbs_apSumFrom_start (f := f) (n := n)] using hn
+
 -- Note: `Stage2Output.forall_exists_discOffset_gt_witness_pos` now lives in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`.
 
