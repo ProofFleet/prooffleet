@@ -49,17 +49,10 @@ We intentionally do not redeclare it here (this file imports `TrackCStage3Entry`
 Note: the convenience lemma `stage3_d_ne_zero` lives in `TrackCStage3Entry.lean`.
 -/
 
-/-- Consumer-facing shortcut: Stage 3 yields unbounded discrepancy along the reduced sequence,
-stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+-- Note: `stage3_unboundedDiscrepancyAlong_core` is already provided by
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (imported via
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`).
 
-This is a thin wrapper around the proved Stage-3 boundary lemma
-`Stage3Output.unboundedDiscrepancyAlong_core`.
--/
-theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    MoltResearch.UnboundedDiscrepancyAlong (stage3_g (f := f) (hf := hf))
-      (stage3_d (f := f) (hf := hf)) := by
-  simpa [stage3_g, stage3_d] using
-    (Stage3Output.unboundedDiscrepancyAlong_core (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-
 Note: `stage3_unboundedDiscOffset` is defined in `TrackCStage3Entry.lean` so hard-gate consumers
@@ -232,23 +225,10 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f : ℕ
     (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (f := f)
       (stage3Out (f := f) (hf := hf)))
 
-/-- Consumer-facing shortcut: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
-bundled offset nucleus `apSumOffset f d m n` takes arbitrarily large absolute values, with a
-positive-length witness `n > 0`.
+-- Note: `stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos` is already
+-- provided by `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore` (imported via
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`).
 
-Normal form:
-`∃ d m, 1 ≤ d ∧ ∀ B, ∃ n, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B`.
-
-This is a thin wrapper around the Stage-3 boundary API lemma
-`Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos`.
--/
-theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos (f : ℕ → ℤ)
-    (hf : IsSignSequence f) :
-    ∃ d m : ℕ, 1 ≤ d ∧
-      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
-  simpa using
-    (Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f)
-      (stage3Out (f := f) (hf := hf)))
 
 end Tao2015
 

@@ -137,15 +137,9 @@ theorem forall_exists_discOffset_gt (out : Stage2Output f) :
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)).1 out.unbounded)
 
-/-- Inequality-direction variant of `forall_exists_discOffset_gt`, written as `discOffset ... > B`.
+-- Note: `Stage2Output.forall_exists_discOffset_gt'` is part of the Stage-2 core API (see
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`).
 
-Many consumers prefer this normal form so they can `simp [gt_iff_lt]` at the call site.
--/
-theorem forall_exists_discOffset_gt' (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
-  -- Delegate to the Stage-1 transport lemma (inequality-direction normal form).
-  simpa using
-    ((out.out1.unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt' (f := f)).1 out.unbounded)
 
 /-!
 Positive-length witness form of `forall_exists_discOffset_gt'` is part of the Stage-2 core API:
@@ -394,16 +388,9 @@ theorem forall_exists_natAbs_apSumOffset_gt' (out : Stage2Output f) :
     (Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt' (f := f)
       (d := out.d) (m := out.m)).1 hunb
 
-/-- Positive-length witness form of `forall_exists_natAbs_apSumOffset_gt'`.
+-- Note: `Stage2Output.forall_exists_natAbs_apSumOffset_gt_witness_pos` is part of the Stage-2
+-- core API (see `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`).
 
-The witness length `n` cannot be `0`, since `apSumOffset ... 0 = 0`.
--/
-theorem forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f out.d out.m n) > B := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  simpa [Stage2Output.d, Stage2Output.m] using
-    (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos
-      (f := f) (d := out.d) (m := out.m) hunb)
 
 /-- Paper-notation normal form of `forall_exists_natAbs_apSumOffset_gt'`.
 
