@@ -1132,8 +1132,9 @@ Definition of done:
 - [x] Max-level congruence wrapper: `discOffsetUpTo_congr` / `discOffsetUpTo_congr_le` lemmas mirroring the existing `discOffset_congr(_le)` style, so max-level rewrite steps can avoid `Finset.range` bookkeeping.
   (Implemented as `discOffsetUpTo_congr` / `discOffsetUpTo_congr_le` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface audit for residue + max pipelines: add 1 compile-only example under `import MoltResearch.Discrepancy` showing a typical flow
+- [x] Stable-surface audit for residue + max pipelines: add 1 compile-only example under `import MoltResearch.Discrepancy` showing a typical flow
   paper sum → nucleus → residue split → `discOffsetUpTo` bound → clean inequality, and wire it into `SurfaceAudit` so the intended pipeline stays one-line usable.
+  (Implemented as `MoltResearch/Discrepancy/ResidueMaxPipelineExample.lean`, imported by `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
 - [ ] “Nucleus API coherence” pass: audit naming / argument order consistency across `apSum`/`apSumOffset`/`apSumFrom` and `discrepancy`/`discOffset`/`discOffsetUpTo` wrappers; propose 1–2 targeted renames + deprecated aliases (not a mass rename), with a stable-surface regression example confirming imports don’t break.
 
