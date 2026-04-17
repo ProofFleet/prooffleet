@@ -39,6 +39,20 @@ theorem not_exists_forall_discOffset_le (out : Stage4Output f) :
           (d := out.out2.d) (m := out.out2.m)).1
       hunb
 
+/-- Stable boundedness-negation packaging of Stage-4 offset unboundedness:
+`¬ ∃ B, BoundedDiscOffset f out.out2.d out.out2.m B`.
+
+This is a thin wrapper around the bridge equivalence
+`unboundedDiscOffset_iff_not_exists_boundedDiscOffset`.
+-/
+theorem not_exists_boundedDiscOffset (out : Stage4Output f) :
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.out2.d out.out2.m B := by
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := out.unboundedDiscOffset (f := f)
+  exact
+    (unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f)
+          (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+
 /-- Negation-normal-form packaging of Stage-4 offset unboundedness at the raw nucleus level:
 `¬ ∃ B, ∀ n, Int.natAbs (apSumOffset f out.out2.d out.out2.m n) ≤ B`.
 
@@ -160,6 +174,27 @@ theorem forall_exists_sum_Icc_d_ge_one_witness_pos (out : Stage4Output f) :
       (out.forall_hasDiscrepancyAtLeast (f := f))
 
 end Stage4Output
+
+/-- Consumer-facing shortcut: Stage 4 yields unboundedness of the bundled offset discrepancy family
+at the deterministic parameters produced by the Stage-4 output.
+-/
+theorem stage4_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f
+      (stage4Out (f := f) (hf := hf)).out2.d
+      (stage4Out (f := f) (hf := hf)).out2.m := by
+  simpa using (stage4Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
+
+/-- Consumer-facing shortcut: stable boundedness-negation normal form of `stage4_unboundedDiscOffset`.
+
+Normal form:
+`¬ ∃ B, BoundedDiscOffset f (stage4Out ...).out2.d (stage4Out ...).out2.m B`.
+-/
+theorem stage4_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (stage4Out (f := f) (hf := hf)).out2.d
+        (stage4Out (f := f) (hf := hf)).out2.m B := by
+  simpa using (stage4Out (f := f) (hf := hf)).not_exists_boundedDiscOffset (f := f)
 
 /-- Consumer-facing shortcut: Stage 4 yields the nucleus witness form
 
