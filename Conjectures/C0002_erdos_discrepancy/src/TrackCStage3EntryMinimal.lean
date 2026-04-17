@@ -109,6 +109,29 @@ theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequen
         (stage3Out (f := f) (hf := hf)).out2.m B := by
   exact (stage3Out (f := f) (hf := hf)).not_exists_boundedDiscOffset (f := f)
 
+/-- Consumer-facing normal form: there is no uniform bound on `discOffset f d m` at the
+deterministic Stage-2 parameters stored in `stage3Out`.
+
+Negation normal form:
+`¬ ∃ B, ∀ n, discOffset f d m n ≤ B`.
+
+This is a thin wrapper around `stage3_unboundedDiscOffset` via
+`Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
+-/
+theorem stage3_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          discOffset f
+            (stage3Out (f := f) (hf := hf)).out2.d
+            (stage3Out (f := f) (hf := hf)).out2.m n ≤ B := by
+  let out := stage3Out (f := f) (hf := hf)
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := by
+    simpa [out] using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f)
+        (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` can remain minimal.
