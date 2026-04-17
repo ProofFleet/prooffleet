@@ -66,6 +66,13 @@ theorem forall_hasDiscrepancyAtLeast (out : Stage4Output f) :
   -- Reuse the Stage-3 surface lemma rather than unfolding any definitions.
   exact out.out3.forall_hasDiscrepancyAtLeast (f := f)
 
+/-- Specialization of `Stage4Output.forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
+
+This is a tiny convenience lemma, matching the Stage-2/Stage-3 boundary API style.
+-/
+theorem hasDiscrepancyAtLeast (out : Stage4Output f) (C : ℕ) : HasDiscrepancyAtLeast f C := by
+  exact (out.forall_hasDiscrepancyAtLeast (f := f)) C
+
 end Stage4Output
 
 /-- Stage 4 main constructor (stub).
@@ -125,6 +132,11 @@ This is a thin wrapper around `Stage4Output.forall_hasDiscrepancyAtLeast`.
 theorem stage4_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact (stage4Out (f := f) (hf := hf)).forall_hasDiscrepancyAtLeast
+
+/-- Specialization of `stage4_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`. -/
+theorem stage4_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (C : ℕ) :
+    HasDiscrepancyAtLeast f C := by
+  exact (stage4_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
 
 end Tao2015
 end MoltResearch
