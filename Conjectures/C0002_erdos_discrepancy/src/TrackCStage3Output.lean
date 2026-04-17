@@ -200,6 +200,18 @@ theorem not_exists_forall_natAbs_apSumOffset_le (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.not_exists_forall_natAbs_apSumOffset_le (f := f) out.out2)
 
+/-- Normal form: Stage 3 unboundedness means there is no uniform `discOffset` bound.
+
+Negation-normal form:
+`¬ ∃ B, ∀ n, discOffset f out.d out.m n ≤ B`.
+
+This is a thin wrapper around `Stage2Output.not_exists_forall_discOffset_le`.
+-/
+theorem not_exists_forall_discOffset_le (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  simpa [Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.not_exists_forall_discOffset_le (f := f) out.out2)
+
 /-- Nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
 This is `unboundedDiscOffset` rewritten so consumers can work directly with
