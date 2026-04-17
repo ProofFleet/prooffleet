@@ -41,14 +41,14 @@ theorem hasDiscrepancyAtLeast (out : Stage3Output f) (C : ℕ) : HasDiscrepancyA
 We intentionally route this through the Stage-2 boundary API (`Stage2Output.d`) so Stage 3 does not
 depend on Stage-1 record fields.
 -/
-abbrev d (out : Stage3Output f) : ℕ := out.out2.d
+@[simp] abbrev d (out : Stage3Output f) : ℕ := out.out2.d
 
 /-- Convenience projection: the reduced sequence packaged in Stage 3.
 
 We intentionally route this through the Stage-2 boundary API (`Stage2Output.g`) so Stage 3 does not
 depend on Stage-1 record fields.
 -/
-abbrev g (out : Stage3Output f) : ℕ → ℤ := out.out2.g
+@[simp] abbrev g (out : Stage3Output f) : ℕ → ℤ := out.out2.g
 
 /-- The reduced sequence packaged in Stage 3 is a sign sequence. -/
 theorem hg (out : Stage3Output f) : IsSignSequence out.g := by
@@ -93,7 +93,7 @@ theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
     (Stage2Output.unboundedDiscrepancyAlong_core (f := f) out.out2)
 
 /-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
-abbrev m (out : Stage3Output f) : ℕ := out.out2.m
+@[simp] abbrev m (out : Stage3Output f) : ℕ := out.out2.m
 
 -- Note: `Stage3Output.unboundedDiscOffset` is defined in `TrackCStage3.lean`.
 
@@ -145,7 +145,7 @@ theorem g_eq_fun (out : Stage3Output f) :
   simpa using out.g_eq_start (f := f) k
 
 /-- Convenience projection: positivity of the reduced step size. -/
-abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.hd
+@[simp] abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.hd
 
 /-- Convenience lemma: the reduced step size is nonzero.
 
