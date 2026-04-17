@@ -73,6 +73,15 @@ This is a tiny convenience lemma, matching the Stage-2/Stage-3 boundary API styl
 theorem hasDiscrepancyAtLeast (out : Stage4Output f) (C : ℕ) : HasDiscrepancyAtLeast f C := by
   exact (out.forall_hasDiscrepancyAtLeast (f := f)) C
 
+/-- Stage 4 output retains the Stage-3 fixed-step unboundedness witness for the reduced sequence,
+phrased using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a thin wrapper around `Stage3Output.unboundedDiscrepancyAlong_core`.
+-/
+theorem unboundedDiscrepancyAlong_core (out : Stage4Output f) :
+    MoltResearch.UnboundedDiscrepancyAlong out.out1.g out.out1.d := by
+  simpa [Stage4Output.out1] using out.out3.unboundedDiscrepancyAlong_core (f := f)
+
 end Stage4Output
 
 /-- Stage 4 main constructor (stub).
