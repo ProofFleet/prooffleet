@@ -1129,7 +1129,8 @@ Definition of done:
 - [x] “Block-length” rewrite surface for residue splitting: provide a canonical lemma rewriting an offset sum over length `r*k` into a sum over `k` blocks (or `r` residue classes—pick one normal form) with consistent parameter ordering, so later residue arguments can start from a one-line `rw` rather than ad-hoc reindexing.
   (Implemented as `sum_range_offset_mul_reindex_mod_div` in `MoltResearch/Discrepancy/Reindex.lean`; stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Max-level congruence wrapper: `discOffsetUpTo_congr` / `discOffsetUpTo_congr_le` lemmas mirroring the existing `discOffset_congr(_le)` style, so max-level rewrite steps can avoid `Finset.range` bookkeeping.
+- [x] Max-level congruence wrapper: `discOffsetUpTo_congr` / `discOffsetUpTo_congr_le` lemmas mirroring the existing `discOffset_congr(_le)` style, so max-level rewrite steps can avoid `Finset.range` bookkeeping.
+  (Implemented as `discOffsetUpTo_congr` / `discOffsetUpTo_congr_le` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Stable-surface audit for residue + max pipelines: add 1 compile-only example under `import MoltResearch.Discrepancy` showing a typical flow
   paper sum → nucleus → residue split → `discOffsetUpTo` bound → clean inequality, and wire it into `SurfaceAudit` so the intended pipeline stays one-line usable.
