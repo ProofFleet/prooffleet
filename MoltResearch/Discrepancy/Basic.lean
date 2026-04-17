@@ -792,6 +792,28 @@ def discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) : ℕ :=
   (Finset.range (N + 1)).sup (fun n => discOffset f d m n)
 
 /-!
+### `discOffsetUpTo` argument-order coherence helper (API coherence)
+
+The historical argument order for the offset-up-to wrapper is `(d m N)`, matching `discOffset`.
+For the same reason we provide `discOffset'`, we also provide the alias `discOffsetUpTo'` with the
+more uniform order `(m d N)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Nucleus API coherence”.
+-/
+
+/-- Alias for `discOffsetUpTo` with argument order `(m d N)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Nucleus API coherence”.
+-/
+def discOffsetUpTo' (f : ℕ → ℤ) (m d N : ℕ) : ℕ :=
+  discOffsetUpTo f d m N
+
+/-- Coherence lemma: `discOffsetUpTo'` is definitionally `discOffsetUpTo`. -/
+lemma discOffsetUpTo'_eq (f : ℕ → ℤ) (m d N : ℕ) :
+    discOffsetUpTo' f m d N = discOffsetUpTo f d m N :=
+  rfl
+
+/-!
 ### `UpTo` API coherence simp lemmas (degenerate parameters)
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Stable surface coherence for `UpTo` API.

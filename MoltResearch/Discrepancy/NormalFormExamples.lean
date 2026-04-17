@@ -71,6 +71,10 @@ example : apSumOffset' f m d n = apSumOffset f d m n := by
 example : discOffset' f m d n = discOffset f d m n := by
   rfl
 
+-- NEW (Track B): nucleus API coherence (argument order) for `discOffsetUpTo`.
+example : discOffsetUpTo' f m d n = discOffsetUpTo f d m n := by
+  rfl
+
 /-!
 ### NEW (Track B): `Icc` ↔ `apSumOffset` normal form (affine endpoints)
 
