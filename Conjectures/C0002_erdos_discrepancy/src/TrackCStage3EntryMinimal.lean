@@ -54,15 +54,6 @@ This lemma is tiny but useful for rewriting when shuttling statements between St
 We keep it in the hard-gate minimal module so `ErdosDiscrepancy.lean` can stay minimal.
 -/
 @[simp] theorem stage3Out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2.out1 = (stage2Out (f := f) (hf := hf)).out1 := by
-  rfl
-
-/-- The Stage-1 reduction output stored inside `stage3Out` can also be accessed through the
-convenience projection `Stage3Output.out1`.
-
-This lemma is a tiny wrapper around `stage3Out_out1`.
--/
-@[simp] theorem stage3Out_out1' (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
   rfl
 
