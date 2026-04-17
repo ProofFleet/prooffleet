@@ -133,39 +133,12 @@ theorem stage3_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (
     HasDiscrepancyAtLeast f C := by
   exact (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
 
-/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that there
-is no bound `B` with `BoundedDiscOffset f d m B`.
-
-This is the stable boundedness-negation normal form packaged with explicit parameters.
--/
-theorem stage3_exists_params_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∃ d m : ℕ, d > 0 ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
-  refine ⟨(stage3Out (f := f) (hf := hf)).out2.d,
-    (stage3Out (f := f) (hf := hf)).out2.m,
-    (stage3Out (f := f) (hf := hf)).out2.hd, ?_⟩
-  simpa using (stage3_not_exists_boundedDiscOffset (f := f) (hf := hf))
-
-/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
-bundled offset discrepancy family `discOffset f d m` is unbounded.
-
-This is a tiny wrapper around `stage3_unboundedDiscOffset`.
--/
-theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
-  refine ⟨(stage3Out (f := f) (hf := hf)).out2.d,
-    (stage3Out (f := f) (hf := hf)).out2.m,
-    (stage3Out (f := f) (hf := hf)).out2.hd, ?_⟩
-  simpa using (stage3Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
-
 /-!
-Note: the existential packaging lemma
+Existential packaging lemmas (producing explicit `d, m` witnesses) live in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
 
-  stage3_exists_params_one_le_unboundedDiscOffset
-
-lives in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
-
-We intentionally keep this hard-gate minimal module free of additional packaging to avoid
-duplicating core lemmas.
+We keep this hard-gate minimal module focused on the Stage-3 entry API used by
+`Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy`.
 -/
 
 end Tao2015

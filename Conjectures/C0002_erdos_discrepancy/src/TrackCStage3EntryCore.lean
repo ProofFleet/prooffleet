@@ -57,6 +57,19 @@ theorem stage3_exists_params_d_pos_unboundedDiscOffset (f : ℕ → ℤ) (hf : I
   refine ⟨d, m, ?_, hU⟩
   exact lt_of_lt_of_le Nat.zero_lt_one hd
 
+/-- Variant of `stage3_exists_params_one_le_not_exists_boundedDiscOffset` with strict positivity for
+`d`.
+
+Normal form:
+`∃ d m, d > 0 ∧ ¬ ∃ B, BoundedDiscOffset f d m B`.
+-/
+theorem stage3_exists_params_d_pos_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  rcases stage3_exists_params_one_le_not_exists_boundedDiscOffset (f := f) (hf := hf) with
+    ⟨d, m, hd, h⟩
+  refine ⟨d, m, lt_of_lt_of_le Nat.zero_lt_one hd, h⟩
+
+
 /-- Stage 3 yields concrete parameters `d, m` (with `1 ≤ d`) such that the bundled offset
 sequence nuclei `apSumOffset f d m n` take arbitrarily large absolute values, with positive-length
 witnesses.
