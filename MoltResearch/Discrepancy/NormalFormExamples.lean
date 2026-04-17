@@ -64,6 +64,13 @@ example : apSum (fun _ => (1 : ℤ)) d n = (n : ℤ) := by
 example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
   simpa [discOffset_const_one]
 
+-- NEW (Track B): nucleus API coherence (argument order)
+example : apSumOffset' f m d n = apSumOffset f d m n := by
+  rfl
+
+example : discOffset' f m d n = discOffset f d m n := by
+  rfl
+
 /-!
 ### NEW (Track B): `Icc` ↔ `apSumOffset` normal form (affine endpoints)
 

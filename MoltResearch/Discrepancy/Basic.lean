@@ -114,6 +114,31 @@ def apSumOffset (f : ℕ → ℤ) (d m n : ℕ) : ℤ :=
   (Finset.range n).sum (fun i => f ((m + i + 1) * d))
 
 /-!
+### `apSumOffset` argument-order coherence helper (API coherence)
+
+`apSumFrom` uses argument order `(a d n)`, i.e. “start, step, length”.
+
+For the offset nucleus `apSumOffset`, the historical order is `(d m n)`.
+This file keeps that order (it is used widely), but we also provide the alias
+`apSumOffset'` with the more uniform order `(m d n)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Nucleus API coherence”.
+-/
+
+/-- Alias for `apSumOffset` with argument order `(m d n)`.
+
+This is purely an API-coherence convenience so that the “offset” parameter sits next to the
+“start” parameter of `apSumFrom` when you are switching between the two nuclei.
+-/
+def apSumOffset' (f : ℕ → ℤ) (m d n : ℕ) : ℤ :=
+  apSumOffset f d m n
+
+/-- Coherence lemma: `apSumOffset'` is definitionally `apSumOffset`. -/
+lemma apSumOffset'_eq (f : ℕ → ℤ) (m d n : ℕ) :
+    apSumOffset' f m d n = apSumOffset f d m n :=
+  rfl
+
+/-!
 ### Multiplicative dilation normal forms
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Multiplicative dilation normal form.
@@ -692,6 +717,18 @@ It is defined as the natural absolute value of `apSumOffset f d m n`.
 -/
 def discOffset (f : ℕ → ℤ) (d m n : ℕ) : ℕ :=
   Int.natAbs (apSumOffset f d m n)
+
+/-- Alias for `discOffset` with argument order `(m d n)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Nucleus API coherence”.
+-/
+def discOffset' (f : ℕ → ℤ) (m d n : ℕ) : ℕ :=
+  discOffset f d m n
+
+/-- Coherence lemma: `discOffset'` is definitionally `discOffset`. -/
+lemma discOffset'_eq (f : ℕ → ℤ) (m d n : ℕ) :
+    discOffset' f m d n = discOffset f d m n :=
+  rfl
 
 
 /-- Shift–dilation coherence for the discrepancy wrapper `discOffset`.
