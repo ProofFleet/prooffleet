@@ -1701,6 +1701,87 @@ lemma discOffset_congr_le (f g : ℕ → ℤ) (d m n : ℕ)
   exact apSumOffset_congr_le (f := f) (g := g) (d := d) (m := m) (n := n) h
 
 /-!
+### Congruence wrappers for `discOffsetUpTo`
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Max-level congruence wrapper: `discOffsetUpTo_congr` / `discOffsetUpTo_congr_le`”.
+
+These mirror the existing `discOffset_congr` / `discOffset_congr_le` wrappers, but lift them
+through the outer `Finset.sup` so callers don’t have to manually manage `n ∈ range (N+1)`.
+-/
+
+/-- Pointwise congruence wrapper for `discOffsetUpTo`, expressed over `i < N + 1`.
+
+If `f` and `g` agree on every tail index that can appear in any length `n ≤ N`, then the
+corresponding max-offset discrepancies up to `N` agree.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Max-level congruence wrappers.
+-/
+lemma discOffsetUpTo_congr (f g : ℕ → ℤ) (d m N : ℕ)
+    (h : ∀ i, i < N + 1 → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    discOffsetUpTo f d m N = discOffsetUpTo g d m N := by
+  classical
+  unfold discOffsetUpTo
+  refine le_antisymm ?_ ?_
+  · refine Finset.sup_le ?_
+    intro n hn
+    have hnlt : n < N + 1 := Finset.mem_range.1 hn
+    have hfg : discOffset f d m n = discOffset g d m n := by
+      apply discOffset_congr (f := f) (g := g) (d := d) (m := m) (n := n)
+      intro i hi
+      exact h i (lt_trans hi hnlt)
+    -- transport the pointwise equality into the `sup` bound
+    simpa [hfg] using
+      (Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset g d m t) hn)
+  · refine Finset.sup_le ?_
+    intro n hn
+    have hnlt : n < N + 1 := Finset.mem_range.1 hn
+    have hgf : discOffset g d m n = discOffset f d m n := by
+      apply discOffset_congr (f := g) (g := f) (d := d) (m := m) (n := n)
+      intro i hi
+      simpa using (h i (lt_trans hi hnlt)).symm
+    simpa [hgf] using
+      (Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hn)
+
+/-- Translation-invariance wrapper for `discOffsetUpTo`.
+
+If `f` and `g` agree on the affine tail indices `(m+i)*d` for `i ≤ N+1`, then the corresponding
+max-offset discrepancies up to `N` agree.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Max-level congruence wrappers.
+-/
+lemma discOffsetUpTo_congr_le (f g : ℕ → ℤ) (d m N : ℕ)
+    (h : ∀ i, i ≤ N + 1 → f ((m + i) * d) = g ((m + i) * d)) :
+    discOffsetUpTo f d m N = discOffsetUpTo g d m N := by
+  classical
+  unfold discOffsetUpTo
+  refine le_antisymm ?_ ?_
+  · refine Finset.sup_le ?_
+    intro n hn
+    have hnlt : n < N + 1 := Finset.mem_range.1 hn
+    have hfg : discOffset f d m n = discOffset g d m n := by
+      apply discOffset_congr_le (f := f) (g := g) (d := d) (m := m) (n := n)
+      intro i hi
+      -- `i ≤ n` and `n < N+1` gives `i ≤ N+1`.
+      have hin : i ≤ N := le_trans hi (Nat.le_of_lt_succ hnlt)
+      have hiN1 : i ≤ N + 1 := le_trans hin (Nat.le_succ N)
+      exact h i hiN1
+    simpa [hfg] using
+      (Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset g d m t) hn)
+  · refine Finset.sup_le ?_
+    intro n hn
+    have hnlt : n < N + 1 := Finset.mem_range.1 hn
+    have hgf : discOffset g d m n = discOffset f d m n := by
+      apply discOffset_congr_le (f := g) (g := f) (d := d) (m := m) (n := n)
+      intro i hi
+      have hin : i ≤ N := le_trans hi (Nat.le_of_lt_succ hnlt)
+      have hiN1 : i ≤ N + 1 := le_trans hin (Nat.le_succ N)
+      have : f ((m + i) * d) = g ((m + i) * d) := h i hiN1
+      simpa using this.symm
+    simpa [hgf] using
+      (Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hn)
+
+/-!
 Deprecated `discOffset` congruence variants over explicit `Icc` index sets have been moved behind
 `import MoltResearch.Discrepancy.Deprecated`.
 

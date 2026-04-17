@@ -283,6 +283,23 @@ example : discOffsetUpTo f 1 m n = discUpTo (fun k => f (k + m)) 1 n := by
   simp
 
 /-!
+### NEW (Track B): max-level congruence wrappers for `discOffsetUpTo`
+
+Regression tests ensuring `discOffsetUpTo` can be rewritten by pointwise tail agreement without
+unfolding the outer `Finset.range`/`Finset.sup`.
+-/
+
+example (g : ℕ → ℤ)
+    (h : ∀ i, i < n + 1 → f ((m + i + 1) * d) = g ((m + i + 1) * d)) :
+    discOffsetUpTo f d m n = discOffsetUpTo g d m n := by
+  simpa using (discOffsetUpTo_congr (f := f) (g := g) (d := d) (m := m) (N := n) h)
+
+example (g : ℕ → ℤ)
+    (h : ∀ i, i ≤ n + 1 → f ((m + i) * d) = g ((m + i) * d)) :
+    discOffsetUpTo f d m n = discOffsetUpTo g d m n := by
+  simpa using (discOffsetUpTo_congr_le (f := f) (g := g) (d := d) (m := m) (N := n) h)
+
+/-!
 ### NEW (Track B): `discOffsetUpTo` Lipschitz-by-1 in `N`
 
 Compile-only regression tests ensuring the “extend the cutoff by 1” inequalities stay one-liners.
