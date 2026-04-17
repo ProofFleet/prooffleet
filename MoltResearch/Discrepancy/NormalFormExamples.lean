@@ -77,6 +77,21 @@ example :
   simpa using (sum_Icc_affine_eq_apSumOffset (f := f) (a := a) (d := d) (m := m) (n := n))
 
 /-!
+### NEW (Track B): start-index reassociation coherence (`m+n+k` vs `m+(n+k)`)
+
+Compile-only regression: the stable surface simp set should normalize start-index parenthesization
+so downstream proofs can feed the `*_shift_start_add` coherence rules without manual `Nat.add_assoc`.
+-/
+
+variable (t : ℕ)
+
+example : apSumOffset f d (m + n + k) t = apSumOffset f d (m + (n + k)) t := by
+  simp
+
+example : discOffset f d (m + n + k) t = discOffset f d (m + (n + k)) t := by
+  simp
+
+/-!
 ### NEW (Track B): shift–dilation coherence (`apSumOffset`/`discOffset`)
 
 Compile-only regression: the nucleus normal-form pipeline should be able to reorder

@@ -1123,7 +1123,8 @@ Definition of done:
   `∑ i ∈ Finset.Icc (m+1) (m+n), f (a + i*d)` ↔ `apSumOffset (fun k => f (a + k)) d m n` in a single step (matching the repo’s preferred endpoint conventions), with stable-surface regression examples.
   (Implemented as `sum_Icc_affine_eq_apSumOffset` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Endpoint algebra helpers for `m+(n+k)` shapes: add a small family of `simp`/`rw` wrappers that normalize common `Nat` expressions (e.g. `m + (n + k)` / `(m+n)+k` / `m+n+k`) into the exact shapes expected by the offset concatenation / cut lemmas, so downstream proofs don’t need manual `Nat` reassociation.
+- [x] Endpoint algebra helpers for `m+(n+k)` shapes: add a small family of `simp`/`rw` wrappers that normalize common `Nat` expressions (e.g. `m + (n + k)` / `(m+n)+k` / `m+n+k`) into the exact shapes expected by the offset concatenation / cut lemmas, so downstream proofs don’t need manual `Nat` reassociation.
+  (Implemented as `[simp]` reassociation wrappers `apSumOffset_start_add_assoc` / `discOffset_start_add_assoc` in `MoltResearch/Discrepancy/CoherenceSimp.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Block-length” rewrite surface for residue splitting: provide a canonical lemma rewriting an offset sum over length `r*k` into a sum over `k` blocks (or `r` residue classes—pick one normal form) with consistent parameter ordering, so later residue arguments can start from a one-line `rw` rather than ad-hoc reindexing.
 
