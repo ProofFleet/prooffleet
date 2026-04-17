@@ -132,6 +132,31 @@ theorem stage3_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSeq
         (d := out.out2.d) (m := out.out2.m)).1
       hunb
 
+/-- Consumer-facing normal form: there is no uniform bound on the bundled offset nuclei
+`Int.natAbs (apSumOffset f d m n)` at the deterministic Stage-2 parameters stored in `stage3Out`.
+
+Negation normal form:
+`¬ ∃ B, ∀ n, Int.natAbs (apSumOffset f d m n) ≤ B`.
+
+This is a thin rewrite of `stage3_not_exists_forall_discOffset_le` using the definitional
+identity `discOffset = Int.natAbs (apSumOffset ...)`.
+-/
+theorem stage3_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs
+              (apSumOffset f
+                (stage3Out (f := f) (hf := hf)).out2.d
+                (stage3Out (f := f) (hf := hf)).out2.m n) ≤ B := by
+  intro h
+  apply stage3_not_exists_forall_discOffset_le (f := f) (hf := hf)
+  rcases h with ⟨B, hB⟩
+  refine ⟨B, ?_⟩
+  intro n
+  -- Avoid `simp` recursion: `discOffset` is definitional.
+  unfold discOffset
+  exact hB n
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` can remain minimal.
