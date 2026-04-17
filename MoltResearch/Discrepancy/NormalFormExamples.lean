@@ -254,6 +254,17 @@ example (hf : IsSignSequence f) :
   simpa using (discOffsetUpTo_succ_le_add_one (f := f) (hf := hf) (d := d) (m := m) (N := n))
 
 /-!
+### NEW (Track B): `discOffsetUpTo` Lipschitz-by-`K` in `N`
+
+Compile-only regression test ensuring the “extend the cutoff by `K`” inequality stays a one-liner.
+-/
+
+example (hf : IsSignSequence f) (K : ℕ) :
+    discOffsetUpTo f d m (n + K) ≤ discOffsetUpTo f d m n + K := by
+  simpa using
+    (discOffsetUpTo_add_le (f := f) (hf := hf) (d := d) (m := m) (N := n) (K := K))
+
+/-!
 ### NEW (Track B): `discOffsetUpTo` paper↔nucleus bridge (endpoint style)
 
 Regression tests ensuring `discOffsetUpTo` can be rewritten into the paper-interval endpoint
