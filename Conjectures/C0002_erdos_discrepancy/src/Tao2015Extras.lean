@@ -194,6 +194,18 @@ theorem exists_boundedDiscOffset_iff_exists_forall_natAbs_apSumOffset_le (f : �
       (boundedDiscOffset_iff_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m) (B := B)).2
         hB
 
+/-- Negation-normal-form packaging: nonexistence of a bundled offset bound expressed via offset nuclei.
+
+This is `exists_boundedDiscOffset_iff_exists_forall_natAbs_apSumOffset_le` under `not`.
+-/
+theorem not_exists_boundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le
+    (f : ℕ → ℤ) (d m : ℕ) :
+    (¬ ∃ B : ℕ, BoundedDiscOffset f d m B) ↔
+      (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
+  exact
+    not_congr
+      (exists_boundedDiscOffset_iff_exists_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m))
+
 /-- Paper-notation normal form: boundedness of `discOffset f d m` expressed as interval sums on `Icc`.
 
 This rewrites the bundled offset nuclei `apSumOffset f d m n` as the shifted progression sums
