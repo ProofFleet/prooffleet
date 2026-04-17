@@ -58,6 +58,15 @@ theorem unboundedDiscOffset (out : Stage3Output f) :
     UnboundedDiscOffset f out.out2.d out.out2.m := by
   exact out.out2.unboundedDiscOffset (f := f)
 
+/-- Stage 3 output also exposes the Stage-2 fixed-step unboundedness witness, phrased using the
+verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a thin wrapper around `Stage2Output.unboundedDiscrepancyAlong_core`.
+-/
+theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
+    MoltResearch.UnboundedDiscrepancyAlong out.out1.g out.out1.d := by
+  simpa [Stage3Output.out1] using out.out2.unboundedDiscrepancyAlong_core (f := f)
+
 /-- Stage 3 output implies there is no bundled offset bound at the deterministic Stage-2 parameters.
 
 This is the stable boundedness-negation normal form of `unboundedDiscOffset`.

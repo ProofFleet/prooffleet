@@ -93,9 +93,7 @@ theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
     MoltResearch.UnboundedDiscrepancyAlong
       (stage3Out (f := f) (hf := hf)).out1.g
       (stage3Out (f := f) (hf := hf)).out1.d := by
-  -- Delegate to the Stage-2 core bridge lemma, then unfold the Stage-3 convenience projection.
-  simpa [Stage3Output.out1, Stage2Output.g, Stage2Output.d] using
-    (stage3Out (f := f) (hf := hf)).out2.unboundedDiscrepancyAlong_core (f := f)
+  simpa using (stage3Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core
 
 /-- Track C pipeline witness: Stage 3 yields an unbounded bundled offset discrepancy family
 `discOffset f d m` at the deterministic Stage-2 parameters stored in `stage3Out`.
