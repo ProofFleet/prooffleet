@@ -118,8 +118,20 @@ example :
       apSumOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
   simp
 
+-- NEW (Track B): endpoint algebra helpers should let `simp` see through reassociation.
+example :
+    apSumOffset f d (m + n₁ + n₂) n =
+      apSumOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
+  simp
+
 example :
     discOffset f d (m + (n₁ + n₂)) n =
+      discOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
+  simp
+
+-- NEW (Track B): same reassociation helper at the `discOffset` level.
+example :
+    discOffset f d (m + n₁ + n₂) n =
       discOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
   simp
 
