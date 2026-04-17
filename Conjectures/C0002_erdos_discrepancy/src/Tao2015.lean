@@ -199,6 +199,18 @@ theorem forall_exists_natAbs_apSum_gt'_witness_pos {g : ℕ → ℤ} {d : ℕ}
   unfold discrepancy at hn'
   exact hn'
 
+/-- Witness-positivity: stable-wrapper form of unboundedness, with `discAlong g d n > B`.
+
+This is `forall_exists_discrepancy_gt'_witness_pos` rewritten using `discAlong_eq_discrepancy`.
+-/
+theorem forall_exists_discAlong_gt'_witness_pos {g : ℕ → ℤ} {d : ℕ}
+    (hunb : UnboundedDiscrepancyAlong g d) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discAlong g d n > B := by
+  intro B
+  rcases forall_exists_discrepancy_gt'_witness_pos (g := g) (d := d) hunb B with ⟨n, hnpos, hn⟩
+  refine ⟨n, hnpos, ?_⟩
+  simpa [discAlong_eq_discrepancy] using hn
+
 end UnboundedDiscrepancyAlong
 
 /-- `g` has discrepancy at least `C` along the fixed step `d` (witness form). -/
