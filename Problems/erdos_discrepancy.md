@@ -1119,8 +1119,9 @@ Definition of done:
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + K` (or the repo’s preferred inequality), built from the existing length-Lipschitz lemma at the `discOffset` level.
   (Implemented as `discOffsetUpTo_add_le` (and `discOffsetUpTo_succ_le_add_one` as the `K=1` corollary) in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Icc↔offset sum normal form (affine endpoints): add simp-friendly rewrite lemmas converting
+- [x] Icc↔offset sum normal form (affine endpoints): add simp-friendly rewrite lemmas converting
   `∑ i ∈ Finset.Icc (m+1) (m+n), f (a + i*d)` ↔ `apSumOffset (fun k => f (a + k)) d m n` in a single step (matching the repo’s preferred endpoint conventions), with stable-surface regression examples.
+  (Implemented as `sum_Icc_affine_eq_apSumOffset` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Endpoint algebra helpers for `m+(n+k)` shapes: add a small family of `simp`/`rw` wrappers that normalize common `Nat` expressions (e.g. `m + (n + k)` / `(m+n)+k` / `m+n+k`) into the exact shapes expected by the offset concatenation / cut lemmas, so downstream proofs don’t need manual `Nat` reassociation.
 
