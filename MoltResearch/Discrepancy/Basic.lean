@@ -2124,6 +2124,21 @@ lemma discOffset_add_add_le (f : ℕ → ℤ) (d m n₁ n₂ n₃ : ℕ) :
   -- Put both sides in the advertised normal form.
   simpa [Nat.add_assoc] using h
 
+/-- Endpoint-algebra wrapper for `discOffset_add_add_le`.
+
+This variant uses the right-associated length `n₁ + (n₂ + n₃)` and the right-associated
+third-segment start index `m + (n₁ + n₂)`, so downstream proofs can `simpa` without manual
+`Nat.add_assoc` bookkeeping.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Endpoint algebra helpers.
+-/
+lemma discOffset_add_add_le_assoc (f : ℕ → ℤ) (d m n₁ n₂ n₃ : ℕ) :
+    discOffset f d m (n₁ + (n₂ + n₃)) ≤
+      discOffset f d m n₁ + discOffset f d (m + n₁) n₂ + discOffset f d (m + (n₁ + n₂)) n₃ := by
+  -- Reassociate to match `discOffset_add_add_le`, then reassociate the conclusion back.
+  simpa [Nat.add_assoc] using (discOffset_add_add_le (f := f) (d := d) (m := m)
+    (n₁ := n₁) (n₂ := n₂) (n₃ := n₃))
+
 /-! ### Degenerate start simp lemmas
 
 These mirror the “degenerate length” simp lemmas (`apSumOffset_zero` / `apSumOffset_one`) but for the
