@@ -1136,7 +1136,8 @@ Definition of done:
   paper sum → nucleus → residue split → `discOffsetUpTo` bound → clean inequality, and wire it into `SurfaceAudit` so the intended pipeline stays one-line usable.
   (Implemented as `MoltResearch/Discrepancy/ResidueMaxPipelineExample.lean`, imported by `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
-- [ ] “Nucleus API coherence” pass: audit naming / argument order consistency across `apSum`/`apSumOffset`/`apSumFrom` and `discrepancy`/`discOffset`/`discOffsetUpTo` wrappers; propose 1–2 targeted renames + deprecated aliases (not a mass rename), with a stable-surface regression example confirming imports don’t break.
+- [x] “Nucleus API coherence” pass: audit naming / argument order consistency across `apSum`/`apSumOffset`/`apSumFrom` and `discrepancy`/`discOffset`/`discOffsetUpTo` wrappers; propose 1–2 targeted renames + deprecated aliases (not a mass rename), with a stable-surface regression example confirming imports don’t break.
+  (Implemented via coherence aliases `apSumOffset'` / `discOffset'` / `discOffsetUpTo'` and the homogeneous `disc` wrapper in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 ### Track C - Conjecture stub + equivalences (backlog)
 
