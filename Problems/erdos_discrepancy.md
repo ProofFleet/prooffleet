@@ -1139,6 +1139,27 @@ Definition of done:
 - [x] “Nucleus API coherence” pass: audit naming / argument order consistency across `apSum`/`apSumOffset`/`apSumFrom` and `discrepancy`/`discOffset`/`discOffsetUpTo` wrappers; propose 1–2 targeted renames + deprecated aliases (not a mass rename), with a stable-surface regression example confirming imports don’t break.
   (Implemented via coherence aliases `apSumOffset'` / `discOffset'` / `discOffsetUpTo'` and the homogeneous `disc` wrapper in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Degenerate-step normal forms (`d = 0`): add a preferred simp/rewrite API for `apSum`/`apSumOffset`/`discOffset` when the step is zero (everything hits index 0), so downstream code can safely normalize or rule out `d=0` without ad-hoc arithmetic.
+
+- [ ] Homogeneous Icc↔offset bridge: add a one-line rewrite lemma specializing the affine endpoint normal form to `a=0`, e.g.
+  `∑ i ∈ Finset.Icc (m+1) (m+n), f (i*d) = apSumOffset (fun k => f (k*d)) d m n` (or repo’s preferred shape), with a stable-surface regression example.
+
+- [ ] “Offset is just tail” for `apSupport`: package a lemma rewriting `apSupport f d m n` into the image of a `Finset.range n` map (or equivalent), so support-level congruence proofs can be done by `simp` instead of unfolding.
+
+- [ ] Max-level subadditivity: prove a clean inequality like
+  `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`
+  (or the repo’s preferred parameterization), so concatenation arguments can stay entirely at the `UpTo` level.
+
+- [ ] “Argmax extractor” for residue/max pipelines: after any inequality of the form `X ≤ ∑ r, Y r`, add a canonical lemma producing a residue `r` with `X ≤ (r+1) * Y r` (pigeonhole-style), packaged for `discOffsetUpTo` and wired into the stable surface.
+
+- [ ] `discOffsetUpTo` dilation/coarsening convenience wrappers: build a small lemma family for rewriting `discOffsetUpTo` under step scaling (`d ↦ d*q`) and length scaling (`N ↦ N*q`) with consistent naming and argument order, so later reductions don’t mix `disc_mul_step_le` with manual `Nat` algebra.
+
+- [ ] “Cut then normalize” wrapper: provide a single lemma that (a) cuts an affine/Icc sum at `k`, (b) rewrites both sides into nucleus `discOffset` normal form, and (c) returns the canonical triangle-inequality bound, so later proofs can do cut+bound in one line.
+
+- [ ] Stable-surface `simp` set audit for `apSum` (homogeneous): add a compile-only file under `import MoltResearch.Discrepancy` verifying that `simp` rewrites `apSum` goals into the preferred nucleus shapes (zero length, step one, dilation pull-in, reflect reindex), and wire it into `SurfaceAudit`.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
