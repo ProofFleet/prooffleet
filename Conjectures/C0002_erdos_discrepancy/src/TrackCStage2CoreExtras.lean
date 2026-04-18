@@ -51,9 +51,10 @@ without repeatedly rewriting `apSumOffset` or unfolding `discOffset`.
 -/
 theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
     discOffset f out.d out.m n = Int.natAbs (apSumFrom f out.start out.d n) := by
-  unfold discOffset
-  -- Rewrite the bundled offset nucleus `apSumOffset` to the affine-tail nucleus `apSumFrom`.
-  rw [← out.apSumFrom_start_eq_apSumOffset (f := f) n]
+  -- Prefer routing through the core normal form lemma `discOffset_eq_natAbs_apSumFrom_mul` so this
+  -- interface lemma does not depend on unfolding `discOffset`.
+  simpa [Stage2Output.start] using
+    (discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
 
 /-- Normal form: discrepancy of the reduced sequence is the absolute value of the affine-tail nucleus
 `apSumFrom f out.start out.d n`.
