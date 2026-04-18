@@ -1154,7 +1154,8 @@ Definition of done:
   (or the repo’s preferred parameterization), so concatenation arguments can stay entirely at the `UpTo` level.
   (Implemented as `discOffsetUpTo_add_le_add_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples under `import MoltResearch.Discrepancy`.)
 
-- [ ] “Argmax extractor” for residue/max pipelines: after any inequality of the form `X ≤ ∑ r, Y r`, add a canonical lemma producing a residue `r` with `X ≤ (r+1) * Y r` (pigeonhole-style), packaged for `discOffsetUpTo` and wired into the stable surface.
+- [x] “Argmax extractor” for residue/max pipelines: after any inequality of the form `X ≤ ∑ r < q, Y r`, add a canonical lemma producing a residue `r` with `X ≤ q * Y r` (pigeonhole-style), packaged for `discOffsetUpTo` and wired into the stable surface.
+  (Implemented as `exists_le_mul_of_le_sum_range` and `exists_discOffsetUpTo_blockLen_mul_succ_le_mul_residueTerm` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffsetUpTo` dilation/coarsening convenience wrappers: build a small lemma family for rewriting `discOffsetUpTo` under step scaling (`d ↦ d*q`) and length scaling (`N ↦ N*q`) with consistent naming and argument order, so later reductions don’t mix `disc_mul_step_le` with manual `Nat` algebra.
 
