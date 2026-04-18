@@ -1163,7 +1163,8 @@ Definition of done:
 - [x] “Cut then normalize” wrapper: provide a single lemma that (a) cuts an affine/Icc sum at `k`, (b) rewrites both sides into nucleus `discOffset` normal form, and (c) returns the canonical triangle-inequality bound, so later proofs can do cut+bound in one line.
   (Implemented as `natAbs_sum_Icc_cut_le_discOffset_add` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface `simp` set audit for `apSum` (homogeneous): add a compile-only file under `import MoltResearch.Discrepancy` verifying that `simp` rewrites `apSum` goals into the preferred nucleus shapes (zero length, step one, dilation pull-in, reflect reindex), and wire it into `SurfaceAudit`.
+- [x] Stable-surface `simp` set audit for `apSum` (homogeneous): add a compile-only file under `import MoltResearch.Discrepancy` verifying that `simp` rewrites `apSum` goals into the preferred nucleus shapes (zero length, step one, dilation pull-in, reflect reindex), and wire it into `SurfaceAudit`.
+  (Implemented as `MoltResearch/Discrepancy/ApSumSimpAudit.lean`; wired via `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
 ### Track C - Conjecture stub + equivalences (backlog)
 
