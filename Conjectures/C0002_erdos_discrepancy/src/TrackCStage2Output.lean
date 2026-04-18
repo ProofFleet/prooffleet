@@ -140,6 +140,16 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
   simpa using
     (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 out.unbounded
 
+/-- Variant of `forall_exists_natAbs_apSumFrom_mul_gt` phrased using the bundled start index
+`out.start = out.m * out.d`.
+
+This reduces arithmetic noise in downstream stages that already use the start-index normal form.
+-/
+theorem forall_exists_natAbs_apSumFrom_start_gt (out : Stage2Output f) :
+    ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) > C := by
+  intro C
+  simpa [Stage2Output.start] using out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C
+
 -- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
 /-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
