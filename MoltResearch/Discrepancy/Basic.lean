@@ -859,6 +859,36 @@ We are conservative here: these lemmas should be obviously terminating and orien
   simp [discOffset, disc, apSumOffset, apSum]
 
 /-!
+### Dilation/coarsening convenience wrappers
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+
+These lemmas let downstream code rewrite `discOffsetUpTo` under a multiplicative dilation
+`k ↦ q*k` of the underlying sequence, without mixing in manual `Nat` algebra.
+They are oriented and marked `[simp]` so `simp` can normalize the dilated form.
+-/
+
+/-- Pull a dilation factor `q` out of the step size argument of `apSumOffset`. -/
+@[simp] lemma apSumOffset_dilate_mul (f : ℕ → ℤ) (q d m n : ℕ) :
+    apSumOffset (fun k => f (q * k)) d m n = apSumOffset f (q * d) m n := by
+  unfold apSumOffset
+  simp [Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm]
+
+/-- Pull a dilation factor `q` out of the step size argument of `discOffset`. -/
+@[simp] lemma discOffset_dilate_mul (f : ℕ → ℤ) (q d m n : ℕ) :
+    discOffset (fun k => f (q * k)) d m n = discOffset f (q * d) m n := by
+  unfold discOffset
+  simp [apSumOffset_dilate_mul]
+
+/-- Pull a dilation factor `q` out of the step size argument of `discOffsetUpTo`. -/
+@[simp] lemma discOffsetUpTo_dilate_mul (f : ℕ → ℤ) (q d m N : ℕ) :
+    discOffsetUpTo (fun k => f (q * k)) d m N = discOffsetUpTo f (q * d) m N := by
+  classical
+  unfold discOffsetUpTo
+  simp [discOffset_dilate_mul]
+
+/-!
 ### Degenerate-step (`d = 0`) normal forms
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) —

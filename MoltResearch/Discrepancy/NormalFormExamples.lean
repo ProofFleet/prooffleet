@@ -25,6 +25,17 @@ section NormalFormExamples
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
+### NEW (Track B): `discOffsetUpTo` dilation/coarsening convenience wrappers
+
+Compile-only regression test: `simp` should rewrite a dilated `discOffsetUpTo` by pulling the
+factor into the step.
+-/
+
+example (f : ℕ → ℤ) (q d m N : ℕ) :
+    discOffsetUpTo (fun k => f (q * k)) d m N = discOffsetUpTo f (q * d) m N := by
+  simp
+
+/-!
 ### NEW (Track B): step-positivity witness normal forms
 
 These are compile-only regression tests for the “reduce early to `d ≥ 1`” API.
