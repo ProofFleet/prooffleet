@@ -420,6 +420,18 @@ theorem exists_params_forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f)
   intro B
   simpa using out.forall_exists_natAbs_apSumOffset_gt' (f := f) B
 
+/-- Existential packaging variant of `exists_params_forall_exists_natAbs_apSumOffset_gt` with a
+positive-length witness `n > 0`.
+
+The witness length `n` cannot be `0`, since `apSumOffset ... 0 = 0`.
+-/
+theorem exists_params_forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage2Output f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
+  refine ⟨out.d, out.m, out.hd, ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B
+
 /-- Paper-notation packaging: Stage 2 yields concrete parameters `d, m` such that the shifted
 homogeneous progression sums
 
@@ -487,7 +499,19 @@ theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt (out : Stage2Ou
   intro B
   simpa using out.forall_exists_natAbs_apSumOffset_gt' (f := f) B
 
-/-- Backwards-compatible alias for `forall_exists_natAbs_apSumOffset_gt`.
+/-- Existential packaging variant of `exists_params_one_le_forall_exists_natAbs_apSumOffset_gt`
+with a positive-length witness `n > 0`.
+
+The witness length `n` cannot be `0`, since `apSumOffset ... 0 = 0`.
+-/
+theorem exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage2Output f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
+  refine ⟨out.d, out.m, out.one_le_d (f := f), ?_⟩
+  intro B
+  simpa using out.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B
+
+/-- Backwards-compatible alias for `forall_exists_natAbs_apSumOffset_gt`. 
 
 Deprecated because the suffix `_lt` was misleading: the statement is `B < ...`.
 -/
