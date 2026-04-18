@@ -47,7 +47,10 @@ The goal is to pair verified artifacts with learning scaffolding.
   This is the bridge that lets later steps rewrite boundedness hypotheses into a one-line max bound.
 - **API note (max recursion):** when you need to peel the last case off a cutoff, rewrite `discOffsetUpTo f d m (N+1)` using `discOffsetUpTo_succ` to get a clean `max (discOffsetUpTo … N) (discOffset … (N+1))` normal form.
 - **API note (step positivity):** when extracting unboundedness witnesses, prefer the `Nat.succ` normal forms (`HasDiscrepancyAtLeast.exists_witness_succ(_pos)` and the affine analogue) so you can work with a concrete positive step without carrying a separate `d ≥ 1` side condition.
-  The corner case `d = 0` has `simp` normal forms too, but those are now behind `import MoltResearch.Discrepancy.Deprecated` to keep the stable surface focused on the `d ≥ 1` workflow.
+  The degenerate corner case `d = 0` also has stable-surface simp normal forms:
+  - `apSum_zero_step`: `apSum f 0 n = (n : ℤ) * f 0`
+  - `apSumOffset_zero_step`: `apSumOffset f 0 m n = (n : ℤ) * f 0`
+  - `discOffset_zero_step`: `discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0)`
 - **API note (monotone-in-`C`):** `HasDiscrepancyAtLeast f C` is **antitone** in `C` (the witness inequality is `> C`).
   Use `HasDiscrepancyAtLeast.mono` to *lower* the bound, and the contrapositive lemma
   `HasDiscrepancyAtLeast.not_mono` to *raise* bounds under negation (useful for boundedness normal forms).
