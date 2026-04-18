@@ -138,8 +138,8 @@ theorem stage3_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSeq
 Negation normal form:
 `¬ ∃ B, ∀ n, Int.natAbs (apSumOffset f d m n) ≤ B`.
 
-This is a thin rewrite of `stage3_not_exists_forall_discOffset_le` using the definitional
-identity `discOffset = Int.natAbs (apSumOffset ...)`.
+This is `stage3_unboundedDiscOffset` packaged via the generic normal-form lemma
+`Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le`.
 -/
 theorem stage3_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ ∃ B : ℕ,
@@ -148,14 +148,13 @@ theorem stage3_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (hf : I
               (apSumOffset f
                 (stage3Out (f := f) (hf := hf)).out2.d
                 (stage3Out (f := f) (hf := hf)).out2.m n) ≤ B := by
-  intro h
-  apply stage3_not_exists_forall_discOffset_le (f := f) (hf := hf)
-  rcases h with ⟨B, hB⟩
-  refine ⟨B, ?_⟩
-  intro n
-  -- Avoid `simp` recursion: `discOffset` is definitional.
-  unfold discOffset
-  exact hB n
+  let out := stage3Out (f := f) (hf := hf)
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := by
+    simpa [out] using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  exact
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le (f := f)
+        (d := out.out2.d) (m := out.out2.m)).1
+      hunb
 
 /-- Paper-notation normal form: there is no uniform bound on the shifted progression sums
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the deterministic Stage-2 parameters stored in `stage3Out`.
