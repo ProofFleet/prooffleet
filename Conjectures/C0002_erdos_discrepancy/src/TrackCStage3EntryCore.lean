@@ -87,6 +87,28 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_
   intro B
   simpa using out.out2.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B
 
+/-- Paper-notation variant of `stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos`.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ∀ B, ∃ n, n > 0 ∧ Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) > B`.
+
+Implementation note: this is just
+`stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos` rewritten using
+`Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc`.
+-/
+theorem stage3_exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
+        Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) > B) := by
+  rcases stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos
+      (f := f) (hf := hf) with ⟨d, m, hd, h⟩
+  refine ⟨d, m, hd, ?_⟩
+  intro B
+  rcases h B with ⟨n, hnpos, hn⟩
+  refine ⟨n, hnpos, ?_⟩
+  simpa [Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)] using hn
+
 /-- Stage 3 yields concrete parameters `d, m` (with `1 ≤ d`) such that the bundled offset discrepancy
 family `discOffset f d m n` takes arbitrarily large values, with positive-length witnesses.
 
