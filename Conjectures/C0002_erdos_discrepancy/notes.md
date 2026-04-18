@@ -1,5 +1,21 @@
 Notes and references for the Erdős discrepancy theorem live here.
 
+## Track C pipeline skeleton (Conjectures/C0002)
+
+Hard-gate build target:
+- Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy
+
+Key stage boundary modules:
+- Stage 2 boundary record: Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
+  (defines Tao2015.Stage2Output)
+- Stage 2 conjecture stub (the only non-verified assumption):
+  Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub
+  (axiom stage2, abbrev stage2Out)
+- Stage 3 boundary record: Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
+  (defines Tao2015.Stage3Output and derives notBounded)
+- Stage 3 minimal entry point: Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal
+  (defines stage3 and proves stage3_notBounded and stage3_forall_hasDiscrepancyAtLeast)
+
 ## Surface forms / equivalences (proved)
 
 The core nucleus predicate is:
