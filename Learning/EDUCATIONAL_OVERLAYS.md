@@ -62,6 +62,8 @@ The goal is to pair verified artifacts with learning scaffolding.
   - if you want to pull a factor `q` into the step *at the wrapper level* (without unfolding the `Finset.sup`), use the rewrite lemmas
     `discOffsetUpTo_map_mul_right` / `discOffsetUpTo_map_mul_left` (and their `discOffset_*` analogues),
     which package the `((m+i+1)*d)*q = (m+i+1)*(d*q)` index normalization.
+    If your goal is oriented the other way (the step is already written as `d*q` / `q*d` and you want to push the multiplier into the input), use the non-simp orientation helpers:
+    `discOffsetUpTo_step_mul_right` / `discOffsetUpTo_step_mul_left`.
     For cutoff scaling bookkeeping, use `discOffsetUpTo_le_mul` (monotonicity under `N ↦ N*q`, assuming `q > 0`).
     If you just need to normalize the *orientation* of a scaled cutoff (so you can match another lemma’s statement), use:
     - `discOffsetUpTo_length_mul_comm` to rewrite `discOffsetUpTo f d m (q * N)` into `discOffsetUpTo f d m (N * q)`
