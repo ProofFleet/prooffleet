@@ -196,6 +196,16 @@ theorem stage4_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequen
         (stage4Out (f := f) (hf := hf)).out2.m B := by
   simpa using (stage4Out (f := f) (hf := hf)).not_exists_boundedDiscOffset (f := f)
 
+/-- Consumer-facing shortcut: Stage 4 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such
+that the bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This is the existential packaging of `stage4_unboundedDiscOffset`.
+-/
+theorem stage4_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  simpa using
+    (stage4Out (f := f) (hf := hf)).exists_params_one_le_unboundedDiscOffset (f := f)
+
 /-- Consumer-facing shortcut: Stage 4 yields the nucleus witness form
 
 `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
