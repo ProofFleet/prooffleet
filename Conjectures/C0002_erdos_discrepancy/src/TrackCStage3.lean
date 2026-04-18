@@ -91,6 +91,14 @@ This is the main “stage boundary” lemma: it is proved (no placeholders) and 
 def ofStage2Output (out2 : Tao2015.Stage2Output f) : Stage3Output f :=
   ⟨out2⟩
 
+/-- The Stage-2 output carried by `ofStage2Output` is definitionally the input `out2`.
+
+This is a tiny simp lemma that reduces rewriting noise when shuttling between Stage 2 and Stage 3.
+-/
+@[simp] theorem ofStage2Output_out2 (out2 : Tao2015.Stage2Output f) :
+    (ofStage2Output (f := f) out2).out2 = out2 := by
+  rfl
+
 /-- Stage 3 output implies the usual surface statement `∀ C, HasDiscrepancyAtLeast f C`.
 
 We keep this lemma in the hard-gate module so `ErdosDiscrepancy.lean` can remain minimal.
