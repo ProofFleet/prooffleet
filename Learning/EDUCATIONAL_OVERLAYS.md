@@ -63,6 +63,9 @@ The goal is to pair verified artifacts with learning scaffolding.
     `discOffsetUpTo_map_mul_right` / `discOffsetUpTo_map_mul_left` (and their `discOffset_*` analogues),
     which package the `((m+i+1)*d)*q = (m+i+1)*(d*q)` index normalization.
     For cutoff scaling bookkeeping, use `discOffsetUpTo_le_mul` (monotonicity under `N ↦ N*q`, assuming `q > 0`).
+    If you just need to normalize the *orientation* of a scaled cutoff (so you can match another lemma’s statement), use:
+    - `discOffsetUpTo_length_mul_comm` to rewrite `discOffsetUpTo f d m (q * N)` into `discOffsetUpTo f d m (N * q)`
+    - `discOffsetUpTo_length_mul_succ_comm` for the common `q * (N+1)` case.
 - **API note (start-shift vs sequence-shift, max-level):** if you want to “advance the start” without pushing arithmetic through the `Finset.sup` definition, rewrite using
   `discOffsetUpTo_add_start`:
   `discOffsetUpTo f d (m + k) N = discOffsetUpTo (fun t => f (t + k*d)) d m N`.
