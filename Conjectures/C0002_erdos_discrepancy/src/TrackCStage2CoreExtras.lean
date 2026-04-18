@@ -55,6 +55,22 @@ theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
   -- Rewrite the bundled offset nucleus `apSumOffset` to the affine-tail nucleus `apSumFrom`.
   rw [← out.apSumFrom_start_eq_apSumOffset (f := f) n]
 
+/-- Normal form: discrepancy of the reduced sequence is the absolute value of the affine-tail nucleus
+`apSumFrom f out.start out.d n`.
+
+This combines the Stage-1 contract rewrite
+`ReductionOutput.discrepancy_eq_discOffset_via_contract` with
+`discOffset_eq_natAbs_apSumFrom_start`.
+-/
+theorem discrepancy_eq_natAbs_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
+    discrepancy out.g out.d n = Int.natAbs (apSumFrom f out.start out.d n) := by
+  calc
+    discrepancy out.g out.d n = discOffset f out.d out.m n := by
+      simpa [Stage2Output.g, Stage2Output.d, Stage2Output.m] using
+        (out.out1.discrepancy_eq_discOffset_via_contract (f := f) (n := n))
+    _ = Int.natAbs (apSumFrom f out.start out.d n) := by
+      simpa using out.discOffset_eq_natAbs_apSumFrom_start (f := f) (n := n)
+
 /-- Normal form: boundedness of the bundled offset discrepancy family `discOffset f out.d out.m`
 expressed directly using affine-tail nuclei `apSumFrom f out.start out.d`.
 
