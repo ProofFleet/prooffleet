@@ -62,6 +62,25 @@ theorem stage2_unboundedDiscrepancyAlong (f : ℕ → ℤ) (hf : IsSignSequence 
     UnboundedDiscrepancyAlong (stage2_g (f := f) (hf := hf)) (stage2_d (f := f) (hf := hf)) := by
   simpa [stage2_g, stage2_d] using (stage2Out (f := f) (hf := hf)).unbounded
 
+/-- Consumer-facing normal form: Stage 2 implies the reduced sequence is not bounded along its
+fixed step size.
+
+This is the boundedness-negation normal form of `stage2_unboundedDiscrepancyAlong`.
+-/
+theorem stage2_notBoundedReducedAlong (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ BoundedDiscrepancyAlong
+        (stage2_g (f := f) (hf := hf))
+        (stage2_d (f := f) (hf := hf)) := by
+  have hunb : Tao2015.UnboundedDiscrepancyAlong
+      (stage2_g (f := f) (hf := hf))
+      (stage2_d (f := f) (hf := hf)) := by
+    simpa [stage2_g, stage2_d] using (stage2Out (f := f) (hf := hf)).unbounded
+  exact
+    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
+        (g := stage2_g (f := f) (hf := hf))
+        (d := stage2_d (f := f) (hf := hf))).1
+      hunb
+
 /-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
 discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`.
 
