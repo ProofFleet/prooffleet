@@ -26,6 +26,16 @@ def ofReductionOutput_unboundedDiscrepancyAlong (out1 : Tao2015.ReductionOutput 
     (hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d) : Stage2Output f :=
   ⟨out1, hunb⟩
 
+@[simp] theorem ofReductionOutput_unboundedDiscrepancyAlong_out1 (out1 : Tao2015.ReductionOutput f)
+    (hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d) :
+    (ofReductionOutput_unboundedDiscrepancyAlong (f := f) out1 hunb).out1 = out1 := by
+  rfl
+
+@[simp] theorem ofReductionOutput_unboundedDiscrepancyAlong_unbounded (out1 : Tao2015.ReductionOutput f)
+    (hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d) :
+    (ofReductionOutput_unboundedDiscrepancyAlong (f := f) out1 hunb).unbounded = hunb := by
+  rfl
+
 /-- Build a Stage-2 output from a Stage-1 reduction output plus unboundedness of the bundled
 offset discrepancy family.
 
@@ -37,6 +47,11 @@ def ofReductionOutput_unboundedDiscOffset (out1 : Tao2015.ReductionOutput f)
     (hunb : Tao2015.UnboundedDiscOffset f out1.d out1.m) : Stage2Output f :=
   ofReductionOutput_unboundedDiscrepancyAlong (out1 := out1)
     ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).2 hunb)
+
+@[simp] theorem ofReductionOutput_unboundedDiscOffset_out1 (out1 : Tao2015.ReductionOutput f)
+    (hunb : Tao2015.UnboundedDiscOffset f out1.d out1.m) :
+    (ofReductionOutput_unboundedDiscOffset (f := f) out1 hunb).out1 = out1 := by
+  simp [ofReductionOutput_unboundedDiscOffset]
 
 /-!
 Basic projections (`d`, `g`, `m`, `hg`, `g_eq`, `hd`, `d_ne_zero`, `one_le_d`) live in
