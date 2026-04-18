@@ -87,6 +87,48 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_
   intro B
   simpa using out.out2.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B
 
+/-- Stage 3 yields concrete parameters `d, m` (with `1 ≤ d`) such that the affine-tail nuclei
+`apSumFrom f (m*d) d n` take arbitrarily large absolute values.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ∀ C, ∃ n, Int.natAbs (apSumFrom f (m*d) d n) > C`.
+
+This is a pipeline-friendly normal form derived directly from the Stage-2 offset-unboundedness
+witness.
+-/
+theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  let out := stage3Out (f := f) (hf := hf)
+  refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := out.out2.unboundedDiscOffset (f := f)
+  intro C
+  rcases
+      (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
+            (f := f) (d := out.out2.d) (m := out.out2.m) hunb)
+          C with
+    ⟨n, _hnpos, hgt⟩
+  exact ⟨n, hgt⟩
+
+/-- Positive-length witness variant of `stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt`.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ∀ C, ∃ n, n > 0 ∧ Int.natAbs (apSumFrom f (m*d) d n) > C`.
+-/
+theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      (∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (m * d) d n) > C) := by
+  let out := stage3Out (f := f) (hf := hf)
+  refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := out.out2.unboundedDiscOffset (f := f)
+  intro C
+  simpa using
+    (UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
+          (f := f) (d := out.out2.d) (m := out.out2.m) hunb)
+      C
+
 /-- Paper-notation variant of `stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_pos`.
 
 Normal form:
