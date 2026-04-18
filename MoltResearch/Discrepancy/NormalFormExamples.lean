@@ -162,6 +162,10 @@ start-shift bookkeeping.
 example : apSupport d (m + 0) n = apSupport d m n := by
   simp
 
+-- NEW (Track B): “offset is just tail” packaging for `apSupport`.
+example : apSupport d m n = (Finset.range n).image (fun i => (m + i + 1) * d) := by
+  simpa using (apSupport_eq_image_range (d := d) (m := m) (n := n))
+
 example :
     apSumOffset f d (m + (n₁ + n₂)) n =
       apSumOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by

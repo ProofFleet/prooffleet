@@ -282,6 +282,18 @@ the support still contains that index just once).
 def apSupport (d m n : ℕ) : Finset ℕ :=
   (Finset.range n).image (fun i => (m + i + 1) * d)
 
+/-!
+### “Offset is just tail” packaging lemma (Track B)
+
+Downstream, we often want to push `apSupport d m n` into the explicit `Finset.range` image form
+without unfolding the definition. This lemma is a stable, simp-friendly rewrite target.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Offset is just tail” for `apSupport`.
+-/
+lemma apSupport_eq_image_range (d m n : ℕ) :
+    apSupport d m n = (Finset.range n).image (fun i => (m + i + 1) * d) := by
+  rfl
+
 /-- Degenerate case: no indices are accessed when `n = 0`. -/
 @[simp] lemma apSupport_zero (d m : ℕ) : apSupport d m 0 = ∅ := by
   unfold apSupport
