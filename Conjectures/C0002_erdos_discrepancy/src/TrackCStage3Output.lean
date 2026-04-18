@@ -376,6 +376,16 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage3Output f) :
   exact (unboundedReducedAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out).1
     out.unboundedReducedAlong
 
+/-- Tail-nucleus witness form phrased using the bundled start index `out.start = out.m * out.d`.
+
+This is a convenience wrapper around `forall_exists_natAbs_apSumFrom_mul_gt` that reduces
+arithmetic noise in downstream stages.
+-/
+theorem forall_exists_natAbs_apSumFrom_start_gt (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) > C := by
+  intro C
+  simpa [Stage3Output.start] using out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C
+
 /-- Positive-length witness form of `forall_exists_natAbs_apSumFrom_mul_gt`.
 
 The witness length `n` cannot be `0`, since `apSumFrom ... 0 = 0`.
@@ -385,6 +395,15 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage3Output f)
       ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f (out.m * out.d) out.d n) > C := by
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) out.out2)
+
+/-- Positive-length tail-nucleus witness form phrased using the bundled start index `out.start`.
+
+This is a convenience wrapper around `forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem forall_exists_natAbs_apSumFrom_start_gt_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f out.start out.d n) > C := by
+  intro C
+  simpa [Stage3Output.start] using out.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) C
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
 affine-tail nucleus `apSumFrom f (m*d) d n` takes arbitrarily large absolute values.
