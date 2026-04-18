@@ -140,6 +140,34 @@ theorem stage2_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
       stage2_one_le_d (f := f) (hf := hf), ?_⟩
   exact stage2_unboundedDiscOffset (f := f) (hf := hf)
 
+/-!
+## Reduced sequence projection lemmas
+
+These are tiny proved wrapper lemmas specialized to the deterministic reduced sequence `stage2_g`.
+They are logically part of the Stage-1 reduction output bundled inside `stage2Out`, but we keep
+them out of the entry-point module `TrackCStage2Entry` so that file stays focused on deterministic
+parameter projections and small arithmetic facts.
+-/
+
+/-- The reduced sequence produced by Stage 2 is a sign sequence. -/
+theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    IsSignSequence (stage2_g (f := f) (hf := hf)) := by
+  simpa [stage2_g] using (stage2Out (f := f) (hf := hf)).out1.hg
+
+/-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
+theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    stage2_g (f := f) (hf := hf) k = f (k + stage2_start (f := f) (hf := hf)) := by
+  -- This is just the Stage-1 reduction contract carried by the Stage-2 output.
+  simpa [stage2_g, stage2_start, stage2_m, stage2_d] using
+    (stage2Out (f := f) (hf := hf)).out1.g_eq k
+
+/-- Function-level rewrite for `stage2_g`: it is the shifted sequence `fun k => f (k + m*d)`. -/
+theorem stage2_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_g (f := f) (hf := hf) =
+      fun k => f (k + stage2_start (f := f) (hf := hf)) := by
+  funext k
+  simpa using stage2_g_eq (f := f) (hf := hf) k
+
 end Tao2015
 
 end MoltResearch

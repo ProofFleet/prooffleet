@@ -9,8 +9,10 @@ It contains only:
 - the lightweight projections `stage2_d`, `stage2_g`, `stage2_m`, `stage2_start`, and
 - the tiny projection lemmas `stage2_d_pos`, `stage2_one_le_d`, `stage2_d_ne_zero`,
   `stage2_start_eq_m_mul_d`, `stage2_d_dvd_start`, `stage2_start_mod_d`,
-  `stage2_add_start_mod_d`, `stage2_start_add_mod_d`, `stage2_start_div_d`, `stage2_hg`,
-  `stage2_g_eq`, `stage2_g_eq_fun`.
+  `stage2_add_start_mod_d`, `stage2_start_add_mod_d`, `stage2_start_div_d`.
+
+The reduced-sequence rewrite lemmas (`stage2_hg`, `stage2_g_eq`, `stage2_g_eq_fun`) live in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofCore`.
 
 The conjecture stub itself (`stage2` and the deterministic name `stage2Out`) lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
@@ -117,26 +119,13 @@ theorem stage2_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
   have hd : 0 < stage2_d (f := f) (hf := hf) := stage2_d_pos (f := f) (hf := hf)
   simpa [stage2_start] using (Nat.mul_div_left (stage2_m (f := f) (hf := hf)) hd)
 
--- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofCore`)
+/-!
+The remaining proved projection lemmas about the reduced sequence `stage2_g` live in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofCore`.
 
-/-- The reduced sequence produced by Stage 2 is a sign sequence. -/
-theorem stage2_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    IsSignSequence (stage2_g (f := f) (hf := hf)) := by
-  simpa [stage2_g] using (stage2Out (f := f) (hf := hf)).out1.hg
-
-/-- Rewrite for the reduced sequence produced by Stage 2: it is a shift by `m*d`. -/
-theorem stage2_g_eq (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
-    stage2_g (f := f) (hf := hf) k = f (k + stage2_start (f := f) (hf := hf)) := by
-  -- This is just the Stage-1 reduction contract carried by the Stage-2 output.
-  simpa [stage2_g, stage2_start, stage2_m, stage2_d] using
-    (stage2Out (f := f) (hf := hf)).out1.g_eq k
-
-/-- Function-level rewrite for `stage2_g`: it is the shifted sequence `fun k => f (k + m*d)`. -/
-theorem stage2_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    stage2_g (f := f) (hf := hf) =
-      fun k => f (k + stage2_start (f := f) (hf := hf)) := by
-  funext k
-  simpa using stage2_g_eq (f := f) (hf := hf) k
+We keep this entry-point module focused on deterministic parameter/projection definitions and
+small arithmetic facts about `stage2_start`.
+-/
 
 end Tao2015
 

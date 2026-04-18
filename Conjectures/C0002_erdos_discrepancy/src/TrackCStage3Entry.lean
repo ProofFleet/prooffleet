@@ -1,5 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofCore
 
 /-!
 # Track C: Stage 3 entry point (Tao 2015 plane)
