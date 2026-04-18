@@ -888,10 +888,12 @@ lemma apSumOffset_one_d_range_add_left (f : ℕ → ℤ) (m n : ℕ) :
     apSumOffset f 1 m n = (Finset.range n).sum (fun i => f ((m + 1) + i)) := by
   simpa [Nat.add_comm] using (apSumOffset_one_d_range (f := f) (m := m) (n := n))
 
-/-- Normal form: rewrite the “paper notation” interval sum `∑ i ∈ Icc (m+1) (m+n), f (i*d)` back
-to `apSumOffset`.
+/-- Normal form: rewrite the “paper notation” interval sum
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)` back to `apSumOffset`.
 
 This is useful when starting from a surface statement and normalizing into the nucleus API.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Homogeneous Icc↔offset bridge.
 -/
 lemma sum_Icc_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) = apSumOffset f d m n := by
