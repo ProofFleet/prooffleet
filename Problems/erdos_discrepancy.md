@@ -1157,7 +1157,8 @@ Definition of done:
 - [x] “Argmax extractor” for residue/max pipelines: after any inequality of the form `X ≤ ∑ r < q, Y r`, add a canonical lemma producing a residue `r` with `X ≤ q * Y r` (pigeonhole-style), packaged for `discOffsetUpTo` and wired into the stable surface.
   (Implemented as `exists_le_mul_of_le_sum_range` and `exists_discOffsetUpTo_blockLen_mul_succ_le_mul_residueTerm` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffsetUpTo` dilation/coarsening convenience wrappers: build a small lemma family for rewriting `discOffsetUpTo` under step scaling (`d ↦ d*q`) and length scaling (`N ↦ N*q`) with consistent naming and argument order, so later reductions don’t mix `disc_mul_step_le` with manual `Nat` algebra.
+- [x] `discOffsetUpTo` dilation/coarsening convenience wrappers: build a small lemma family for rewriting `discOffsetUpTo` under step scaling (`d ↦ d*q`) and length scaling (`N ↦ N*q`) with consistent naming and argument order, so later reductions don’t mix `disc_mul_step_le` with manual `Nat` algebra.
+  (Implemented as `discOffsetUpTo_map_mul_{right,left}` + orientation helpers `discOffsetUpTo_step_mul_{right,left}`, plus length wrappers `discOffsetUpTo_le_mul`, `discOffsetUpTo_length_mul_comm`, `discOffsetUpTo_length_mul_succ_comm` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Cut then normalize” wrapper: provide a single lemma that (a) cuts an affine/Icc sum at `k`, (b) rewrites both sides into nucleus `discOffset` normal form, and (c) returns the canonical triangle-inequality bound, so later proofs can do cut+bound in one line.
 
