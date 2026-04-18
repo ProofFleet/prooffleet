@@ -143,22 +143,8 @@ convenience-lemma file.
 
 -- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
-/-- Negation-normal-form unboundedness statement for the bundled offset discrepancies
-`discOffset f out.d out.m`.
-
-Negation-normal form:
-`¬ ∃ B, ∀ n, discOffset f out.d out.m n ≤ B`.
-
-This is a thin wrapper around
-`Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
--/
-theorem not_exists_forall_discOffset_le (out : Stage2Output f) :
-    ¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  exact
-    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f)
-        (d := out.d) (m := out.m)).1
-      hunb
+-- Note: `Stage2Output.not_exists_forall_discOffset_le` is part of the Stage-2 core API:
+-- see `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`.
 
 /-- Negation-normal-form unboundedness statement for the bundled offset nuclei
 `Int.natAbs (apSumOffset f out.d out.m n)`.
