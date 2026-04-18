@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy
+import MoltResearch.Discrepancy.ApSumSimpAudit
 import MoltResearch.Discrepancy.NormalFormPipelineExample
 import MoltResearch.Discrepancy.MiniPipelineMaxExample
 import MoltResearch.Discrepancy.ResidueMaxPipelineExample
