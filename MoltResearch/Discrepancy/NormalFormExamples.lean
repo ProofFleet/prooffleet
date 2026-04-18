@@ -89,6 +89,16 @@ example : discOffsetUpTo' f m d n = discOffsetUpTo f d m n := by
 example : disc f d n = discrepancy f d n := by
   rfl
 
+/-!
+### NEW (Track B): “Offset is just tail” for `apSupport`
+
+Compile-only regression: we can rewrite `apSupport d m n` to its `range`-image normal form using a
+named lemma (so downstream proofs can do `simp [apSupport_eq_image_range]` instead of unfolding).
+-/
+
+example : apSupport d m n = (Finset.range n).image (fun i => (m + i + 1) * d) := by
+  simp [apSupport_eq_image_range]
+
 example : Int.natAbs (apSum f d n) = disc f d n := by
   rfl
 

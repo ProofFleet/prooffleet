@@ -1147,7 +1147,7 @@ Definition of done:
 - [x] Homogeneous Icc↔offset bridge: add a one-line rewrite lemma specializing the affine endpoint normal form to `a=0`, e.g.
   `∑ i ∈ Finset.Icc (m+1) (m+n), f (i*d) = apSumOffset f d m n` (or repo’s preferred shape), with a stable-surface regression example.
 
-- [ ] “Offset is just tail” for `apSupport`: package a lemma rewriting `apSupport f d m n` into the image of a `Finset.range n` map (or equivalent), so support-level congruence proofs can be done by `simp` instead of unfolding.
+- [x] “Offset is just tail” for `apSupport`: package a lemma rewriting `apSupport f d m n` into the image of a `Finset.range n` map (or equivalent), so support-level congruence proofs can be done by `simp` instead of unfolding. (`apSupport_eq_image_range`)
 
 - [ ] Max-level subadditivity: prove a clean inequality like
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`
