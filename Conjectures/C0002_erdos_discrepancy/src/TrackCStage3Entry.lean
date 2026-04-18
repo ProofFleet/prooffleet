@@ -31,7 +31,7 @@ glue on top of the Stage-2 output.
 
 Most of them live outside `TrackCStage3EntryCore.lean` to minimize the hard-gate compilation surface.
 
-(One tiny definitional rewrite lemma, `stage3Out_out2`, lives in the core module so consumers can
+(One tiny definitional rewrite lemma, `stage3Out_out2`, lives in the minimal module so consumers can
 access it without importing this larger convenience layer.)
 -/
 

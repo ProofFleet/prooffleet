@@ -37,6 +37,45 @@ noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Outpu
 noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
   stage3 (f := f) (hf := hf)
 
+/-!
+## Definitional rewrites
+
+These simp lemmas reduce rewriting noise when shuttling statements between Stage 2 and Stage 3.
+They are intentionally kept in the minimal entry-point module.
+-/
+
+/-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
+Stage 2.
+
+This lemma is tiny but useful for rewriting when shuttling statements between Stage 2 and Stage 3.
+-/
+@[simp] theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
+  rfl
+
+/-- The Stage-1 reduction output stored inside `stage3Out` is definitionally the Stage-1 reduction
+output produced by Stage 2.
+-/
+@[simp] theorem stage3Out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
+  rfl
+
+/-- Deterministic Stage-2 parameter projections for `stage3Out`.
+
+These simp lemmas reduce rewriting noise when shuttling statements between Stage 2 and Stage 3.
+-/
+@[simp] theorem stage3Out_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2.d = (stage2Out (f := f) (hf := hf)).d := by
+  rfl
+
+@[simp] theorem stage3Out_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2.m = (stage2Out (f := f) (hf := hf)).m := by
+  rfl
+
+@[simp] theorem stage3Out_g (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2.g = (stage2Out (f := f) (hf := hf)).g := by
+  rfl
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
 We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` can remain minimal.

@@ -11,10 +11,10 @@ This file is **Conjectures-only** glue.
 - This file adds a small collection of pipeline-friendly witness forms and existential packaging
   lemmas, without pulling in the larger convenience layer `TrackCStage3Entry`.
 
-Beyond the tiny definitional rewrites about `stage3Out` in this file, all additional
-convenience projections and rewrite lemmas (e.g. `stage3_d`, `stage3_g`, `stage3_start`,
-`stage3_g_eq`, ...) live in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
+Beyond the tiny definitional rewrites about `stage3Out` in the minimal module
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`, all additional convenience
+projections and rewrite lemmas (e.g. `stage3_d`, `stage3_g`, `stage3_start`, `stage3_g_eq`, ...)
+live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
 -/
 
 namespace MoltResearch
@@ -22,44 +22,17 @@ namespace MoltResearch
 namespace Tao2015
 
 /-!
-## Core Stage-3 rewrites and pipeline witnesses
+## Core Stage-3 pipeline witnesses
 
 These are proved (non-stub) lemmas that are often useful when shuttling statements between
 Stages 2 and 3, without importing the larger convenience layer
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
 -/
 
-/-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
-Stage 2.
-
-This lemma is tiny but useful for rewriting when shuttling statements between Stage 2 and Stage 3.
+/-!
+Definitional rewrite simp lemmas for `stage3Out` live in the minimal module
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`.
 -/
-@[simp] theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
-  rfl
-
-/-- The Stage-1 reduction output stored inside `stage3Out` is definitionally the Stage-1 reduction
-output produced by Stage 2.
--/
-@[simp] theorem stage3Out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
-  rfl
-
-/-- Deterministic Stage-2 parameter projections for `stage3Out`.
-
-These simp lemmas reduce rewriting noise when shuttling statements between Stage 2 and Stage 3.
--/
-@[simp] theorem stage3Out_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2.d = (stage2Out (f := f) (hf := hf)).d := by
-  rfl
-
-@[simp] theorem stage3Out_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2.m = (stage2Out (f := f) (hf := hf)).m := by
-  rfl
-
-@[simp] theorem stage3Out_g (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2.g = (stage2Out (f := f) (hf := hf)).g := by
-  rfl
 
 /-- Track C pipeline witness: Stage 3 yields unbounded fixed-step discrepancy along the reduced
 sequence, expressed using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
