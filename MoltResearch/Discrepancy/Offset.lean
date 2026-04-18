@@ -2585,6 +2585,33 @@ lemma discOffset_split_at_le (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
   simpa [h] using
     (Int.natAbs_add_le (apSumOffset f d m (k - m)) (apSumOffset f d k (m + n - k)))
 
+/-!
+### Cut then normalize → canonical triangle bound (paper notation)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then normalize” wrapper.
+
+This packages the common workflow into a single, paper-shaped statement:
+cut at `k` and immediately return the canonical triangle-inequality bound in `discOffset`
+normal form.
+-/
+
+/-- Paper tail `Icc` sum → cut at `k ≤ n` → normalize → triangle bound.
+
+Concretely,
+`|∑ i ∈ Icc (m+1) (m+n), f (i*d)| ≤ discOffset f d m k + discOffset f d (m+k) (n-k)`.
+-/
+lemma natAbs_sum_Icc_cut_le_discOffset_add (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤
+      discOffset f d m k + discOffset f d (m + k) (n - k) := by
+  have hmk : m ≤ m + k := Nat.le_add_right _ _
+  have hkn : m + k ≤ m + n := Nat.add_le_add_left hk m
+  have hsplit : discOffset f d m n ≤ discOffset f d m k + discOffset f d (m + k) (n - k) := by
+    -- Split in the nucleus at the interior cut `m+k`, then simplify the resulting lengths.
+    simpa [Nat.add_sub_cancel_left, Nat.add_sub_add_left, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + k) (n := n) hmk hkn)
+  -- Normalize the paper `Icc` discrepancy into `discOffset`, then apply the split bound.
+  simpa [natAbs_sum_Icc_eq_discOffset (f := f) (d := d) (m := m) (n := n)] using hsplit
+
 /-- Triangle inequality for splitting a homogeneous sum at a cut `k` (with `k ≤ n`).
 
 This is the homogeneous analogue of `discOffset_split_at_le`.

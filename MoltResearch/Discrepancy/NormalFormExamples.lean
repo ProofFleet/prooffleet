@@ -2016,6 +2016,12 @@ example (n k : ℕ) (hk : k ≤ n) :
           (Finset.Icc (m + k + 1) (m + n)).sum (fun i => f (i * d))) := by
   simpa using (discOffset_eq_natAbs_sum_Icc_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
 
+-- Regression (Track B): cut+normalize+triangle bound in a single lemma (paper notation).
+example (n k : ℕ) (hk : k ≤ n) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤
+      discOffset f d m k + discOffset f d (m + k) (n - k) := by
+  simpa using (natAbs_sum_Icc_cut_le_discOffset_add (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
 -- Paper `Icc` tail split: if both pieces are bounded, then the concatenation is bounded.
 -- (This is the “paper statement → normalize to `discOffset` → split/bound” pipeline.)
 example (n₁ n₂ C₁ C₂ : ℕ)
