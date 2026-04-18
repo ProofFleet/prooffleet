@@ -1024,6 +1024,14 @@ We intentionally keep this file minimal; if/when downstream stages need simp-nor
 like `shiftRight_zero` or associativity, add them together with small regression examples.
 -/
 
+/-- Coherence: the offset parameter of `out.shiftRight m₂` is `out.m + m₂`.
+
+This is a tiny simp-normalization lemma: it avoids having to unfold `shiftRight` at each call site.
+-/
+@[simp] theorem shiftRight_m (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight m₂).m = out.m + m₂ := by
+  simp [ReductionOutput.shiftRight]
+
 /-- Consumer-facing rewrite: discrepancy of the reduced sequence equals bundled offset discrepancy.
 
 This is the key normal-form bridge used by later stages.
