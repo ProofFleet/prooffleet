@@ -63,16 +63,12 @@ theorem stage3_notBoundedReducedAlong (f : ℕ → ℤ) (hf : IsSignSequence f) 
         (g := out.out2.g) (d := out.out2.d)).1
       out.out2.unbounded
 
-/-- Track C pipeline witness: Stage 3 yields an unbounded bundled offset discrepancy family
-`discOffset f d m` at the deterministic Stage-2 parameters stored in `stage3Out`.
+/-!
+`stage3_unboundedDiscOffset` is already defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (the hard-gate minimal layer).
 
-This is a thin wrapper around the proved Stage-2 core lemma `Stage2Output.unboundedDiscOffset`.
+We re-export it here by importing the minimal module, avoiding a duplicate declaration.
 -/
-theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    UnboundedDiscOffset f
-      (stage3Out (f := f) (hf := hf)).out2.d
-      (stage3Out (f := f) (hf := hf)).out2.m := by
-  simpa using (stage3Out (f := f) (hf := hf)).out2.unboundedDiscOffset (f := f)
 
 /-!
 `stage3_not_exists_boundedDiscOffset` is already defined in
