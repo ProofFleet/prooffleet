@@ -109,6 +109,14 @@ example : discOffset (fun k => f (k * q)) d m n = discOffset f (d * q) m n := by
 example : discOffsetUpTo (fun k => f (k * q)) d m n = discOffsetUpTo f (d * q) m n := by
   simpa using (discOffsetUpTo_map_mul_right (f := f) (q := q) (d := d) (m := m) (N := n))
 
+-- NEW (Track B): same rewrite, but oriented for when the *step* is already written as `d*q`.
+example : discOffsetUpTo f (d * q) m n = discOffsetUpTo (fun k => f (k * q)) d m n := by
+  simpa using (discOffsetUpTo_step_mul_right (f := f) (q := q) (d := d) (m := m) (N := n))
+
+-- NEW (Track B): `mul_left` convention (`q*d`).
+example : discOffsetUpTo f (q * d) m n = discOffsetUpTo (fun k => f (q * k)) d m n := by
+  simpa using (discOffsetUpTo_step_mul_left (f := f) (q := q) (d := d) (m := m) (N := n))
+
 example (hq : q > 0) : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n * q) := by
   simpa using (discOffsetUpTo_le_mul (f := f) (d := d) (m := m) (N := n) (q := q) hq)
 

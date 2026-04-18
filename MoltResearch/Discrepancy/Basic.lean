@@ -868,6 +868,38 @@ lemma discOffsetUpTo_map_mul_left (f : ℕ → ℤ) (q d m N : ℕ) :
   simp [discOffset_map_mul_left]
 
 /-!
+#### Step-scaling rewrite wrappers (orientation helpers)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+
+Downstream normal-form code often has the *step* written as `d*q`/`q*d` already and wants to
+rewrite the expression into a form where the step multiplier is pushed into the function
+argument (`k ↦ k*q` or `k ↦ q*k`).  The core lemmas above are oriented the other way, so we
+provide these tiny wrappers for ergonomic rewriting.
+
+These are **not** tagged `[simp]`.
+-/
+
+/-- Rewrite a multiplied step `d*q` into a multiplied input (`mul_right` convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+-/
+lemma discOffsetUpTo_step_mul_right (f : ℕ → ℤ) (q d m N : ℕ) :
+    discOffsetUpTo f (d * q) m N = discOffsetUpTo (fun k => f (k * q)) d m N := by
+  simpa using (discOffsetUpTo_map_mul_right (f := f) (q := q) (d := d) (m := m) (N := N)).symm
+
+/-- Rewrite a multiplied step `q*d` into a multiplied input (`mul_left` convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+-/
+lemma discOffsetUpTo_step_mul_left (f : ℕ → ℤ) (q d m N : ℕ) :
+    discOffsetUpTo f (q * d) m N = discOffsetUpTo (fun k => f (q * k)) d m N := by
+  simpa using (discOffsetUpTo_map_mul_left (f := f) (q := q) (d := d) (m := m) (N := N)).symm
+
+/-!
 ### `discOffsetUpTo` length-scaling normalization lemmas
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) —
