@@ -695,4 +695,66 @@ lemma discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm (f : ℕ → ℤ
     (discOffsetUpTo_blockLen_mul_succ_le_sum_range_sup_natAbs (f := f) (d := d) (m := m) (q := q)
       (N := N) hq)
 
+/-!
+### “Argmax extractor” (pigeonhole) wrapper for residue/max pipelines
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Argmax extractor” for residue/max pipelines.
+
+Given an inequality of the form `X ≤ ∑ r, Y r` over a finite range, this produces an index `r`
+whose term is large enough (up to a factor of the range size).
+
+This is the standard pigeonhole step used to pass from a *sum of residue-class terms* to a *single*
+residue class controlling the whole quantity.
+-/
+
+/-- Pigeonhole step: if `X ≤ ∑ r < q, Y r` then some residue `r` satisfies `X ≤ q * Y r`.
+
+This is the “extract a large term from a large sum” lemma, specialized to a `range` sum.
+-/
+lemma exists_le_mul_of_le_sum_range (X q : ℕ) (Y : ℕ → ℕ) (hq : q > 0)
+    (hX : X ≤ (Finset.range q).sum Y) :
+    ∃ r < q, X ≤ q * Y r := by
+  classical
+  by_contra h
+  have hall : ∀ r ∈ Finset.range q, q * Y r < X := by
+    intro r hr
+    have : ¬ X ≤ q * Y r := by
+      -- unpack the negated `∃`.
+      intro hle
+      exact h ⟨r, by simpa using hr, hle⟩
+    exact Nat.lt_of_not_ge this
+  have hsumlt : (Finset.range q).sum (fun r => q * Y r) < (Finset.range q).sum (fun _ => X) := by
+    have hle : ∀ r ∈ Finset.range q, (q * Y r) ≤ X := by
+      intro r hr
+      exact le_of_lt (hall r hr)
+    have hex : ∃ r ∈ Finset.range q, (q * Y r) < X := by
+      refine ⟨0, ?_, hall 0 ?_⟩
+      · exact (Finset.mem_range.mpr hq)
+      · exact (Finset.mem_range.mpr hq)
+    exact Finset.sum_lt_sum hle hex
+  have hmul_lt : q * ((Finset.range q).sum Y) < q * X := by
+    -- rewrite both sides of `hsumlt`.
+    simpa [Finset.mul_sum] using hsumlt
+  have hmul_le : q * X ≤ q * ((Finset.range q).sum Y) := by
+    exact Nat.mul_le_mul_left q hX
+  exact (not_lt_of_ge hmul_le) hmul_lt
+
+/-- Packaged “argmax extractor” for the max-level residue inequality:
+from the stable-surface sum bound, extract a single residue class controlling the LHS.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Argmax extractor” for residue/max pipelines.
+-/
+lemma exists_discOffsetUpTo_blockLen_mul_succ_le_mul_residueTerm (f : ℕ → ℤ)
+    (d m q N : ℕ) (hq : q > 0) :
+    ∃ r < q,
+      discOffsetUpTo_blockLen_mul_succ f d m q N ≤
+        q * discOffsetUpTo_residueTerm f d m q r N := by
+  have hsum :=
+    discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm (f := f) (d := d) (m := m)
+      (q := q) (N := N) hq
+  -- Apply the generic pigeonhole lemma to the residue-term sum.
+  simpa using
+    (exists_le_mul_of_le_sum_range (X := discOffsetUpTo_blockLen_mul_succ f d m q N) (q := q)
+      (Y := fun r => discOffsetUpTo_residueTerm f d m q r N) hq hsum)
+
 end MoltResearch

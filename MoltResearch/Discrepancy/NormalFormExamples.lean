@@ -1679,6 +1679,15 @@ example (q N : ℕ) (hq : q > 0) :
     (discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm
       (f := f) (d := d) (m := m) (q := q) (N := N) hq)
 
+-- Regression (Track B / “Argmax extractor” for residue/max pipelines):
+-- from the sum bound, extract a single residue class controlling the LHS.
+example (q N : ℕ) (hq : q > 0) :
+    ∃ r < q,
+      discOffsetUpTo_blockLen_mul_succ f d m q N ≤ q * discOffsetUpTo_residueTerm f d m q r N := by
+  simpa using
+    (exists_discOffsetUpTo_blockLen_mul_succ_le_mul_residueTerm
+      (f := f) (d := d) (m := m) (q := q) (N := N) hq)
+
 -- Regression (Track B / step-one + residue split bundle, offset discrepancy):
 example (q : ℕ) (hq : q > 0) :
     discOffset f d m (q * (n + 1)) =
