@@ -88,8 +88,8 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumFrom_start_le (out : Stage2Outp
     have hn : Int.natAbs (apSumFrom f out.start out.d n) ≤ B := h n
     simpa [out.discOffset_eq_natAbs_apSumFrom_start (f := f) (n := n)] using hn
 
--- Note: `Stage2Output.forall_exists_discOffset_gt_witness_pos` now lives in
--- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`.
+-- Note: additional witness/negation-normal-form wrappers for `discOffset` and `apSumOffset`
+-- live near the end of this file.
 
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
@@ -215,6 +215,103 @@ theorem forall_exists_natAbs_apSumFrom_start_gt (out : Stage2Output f) :
   intro B
   rcases out.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) B with ⟨n, _hnpos, hgt⟩
   exact ⟨n, hgt⟩
+
+/-!
+## Offset-discrepancy witness forms (non-hard-gate)
+
+These are convenient witness/negation-normal-form wrappers derived from the proved core lemma
+`Stage2Output.unboundedDiscOffset`.
+
+They are intentionally kept out of `TrackCStage2Core.lean` so the Track-C hard-gate build does not
+compile them.
+-/
+
+/-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset discrepancies
+`discOffset f out.d out.m n`, with witnesses `n > 0`.
+
+This is a thin wrapper around
+`Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos`.
+-/
+theorem forall_exists_discOffset_gt'_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f out.d out.m n > B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  simpa using
+    (Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos
+      (f := f) (d := out.d) (m := out.m) hunb)
+
+/-- Witness form: Stage 2 yields arbitrarily large bundled offset discrepancies `discOffset ... > B`.
+
+This is just `forall_exists_discOffset_gt'_witness_pos` with the positivity side condition dropped.
+-/
+theorem forall_exists_discOffset_gt' (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
+  intro B
+  rcases out.forall_exists_discOffset_gt'_witness_pos (f := f) B with ⟨n, _hnpos, hn⟩
+  exact ⟨n, hn⟩
+
+/-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset discrepancies
+`discOffset f out.d out.m n`, with witnesses `n > 0`.
+
+This is `forall_exists_discOffset_gt'_witness_pos` rewritten using `gt_iff_lt`.
+-/
+theorem forall_exists_discOffset_gt_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ B < discOffset f out.d out.m n := by
+  intro B
+  rcases out.forall_exists_discOffset_gt'_witness_pos (f := f) B with ⟨n, hnpos, hn⟩
+  exact ⟨n, hnpos, (gt_iff_lt).1 hn⟩
+
+/-- Witness-family form: Stage 2 yields arbitrarily large bundled offset discrepancies, written as
+`B < discOffset ...`.
+
+This is `forall_exists_discOffset_gt_witness_pos` with the positivity side condition dropped.
+-/
+theorem forall_exists_discOffset_gt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
+  intro B
+  rcases out.forall_exists_discOffset_gt_witness_pos (f := f) B with ⟨n, _hnpos, hn⟩
+  exact ⟨n, hn⟩
+
+/-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset nuclei
+`Int.natAbs (apSumOffset f out.d out.m n)`, with witnesses `n > 0`.
+
+This is a thin wrapper around
+`Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos`.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f out.d out.m n) > B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  simpa using
+    (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos
+      (f := f) (d := out.d) (m := out.m) hunb)
+
+/-- Witness form: Stage 2 yields arbitrarily large bundled offset nuclei
+`Int.natAbs (apSumOffset f out.d out.m n)`.
+
+This is `forall_exists_natAbs_apSumOffset_gt_witness_pos` with the positivity side condition
+dropped.
+-/
+theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
+  intro B
+  rcases out.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B with ⟨n, _hnpos, hn⟩
+  exact ⟨n, hn⟩
+
+/-- Negation-normal-form unboundedness statement for the bundled offset discrepancies
+`discOffset f out.d out.m`.
+
+Negation-normal form:
+`¬ ∃ B, ∀ n, discOffset f out.d out.m n ≤ B`.
+
+This is a thin wrapper around
+`Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
+-/
+theorem not_exists_forall_discOffset_le (out : Stage2Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f)
+        (d := out.d) (m := out.m)).1
+      hunb
 
 end Stage2Output
 

@@ -99,76 +99,6 @@ theorem unboundedDiscOffset (out : Stage2Output f) : UnboundedDiscOffset f out.d
   simpa using
     ((out.out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).1 out.unbounded
 
-/-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset discrepancies
-`discOffset f out.d out.m n`, with witnesses `n > 0`.
-
-This is a thin wrapper around
-`Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos`.
--/
-theorem forall_exists_discOffset_gt'_witness_pos (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f out.d out.m n > B := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  simpa using
-    (Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos
-      (f := f) (d := out.d) (m := out.m) hunb)
-
-/-- Witness form: Stage 2 yields arbitrarily large bundled offset discrepancies `discOffset ... > B`.
-
-This is just `forall_exists_discOffset_gt'_witness_pos` with the positivity side condition dropped.
--/
-theorem forall_exists_discOffset_gt' (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, discOffset f out.d out.m n > B := by
-  intro B
-  rcases out.forall_exists_discOffset_gt'_witness_pos (f := f) B with ⟨n, _hnpos, hn⟩
-  exact ⟨n, hn⟩
-
-/-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset discrepancies
-`discOffset f out.d out.m n`, with witnesses `n > 0`.
-
-This is `forall_exists_discOffset_gt'_witness_pos` rewritten using `gt_iff_lt`.
--/
-theorem forall_exists_discOffset_gt_witness_pos (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ B < discOffset f out.d out.m n := by
-  intro B
-  rcases out.forall_exists_discOffset_gt'_witness_pos (f := f) B with ⟨n, hnpos, hn⟩
-  exact ⟨n, hnpos, (gt_iff_lt).1 hn⟩
-
-/-- Witness-family form: Stage 2 yields arbitrarily large bundled offset discrepancies, written as
-`B < discOffset ...`.
-
-This is `forall_exists_discOffset_gt_witness_pos` with the positivity side condition dropped.
--/
-theorem forall_exists_discOffset_gt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
-  intro B
-  rcases out.forall_exists_discOffset_gt_witness_pos (f := f) B with ⟨n, _hnpos, hn⟩
-  exact ⟨n, hn⟩
-
-/-- Positive-length witness form: Stage 2 yields arbitrarily large bundled offset nuclei
-`Int.natAbs (apSumOffset f out.d out.m n)`, with witnesses `n > 0`.
-
-This is a thin wrapper around
-`Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos`.
--/
-theorem forall_exists_natAbs_apSumOffset_gt_witness_pos (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f out.d out.m n) > B := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  simpa using
-    (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos
-      (f := f) (d := out.d) (m := out.m) hunb)
-
-/-- Witness form: Stage 2 yields arbitrarily large bundled offset nuclei
-`Int.natAbs (apSumOffset f out.d out.m n)`.
-
-This is `forall_exists_natAbs_apSumOffset_gt_witness_pos` with the positivity side condition
-dropped.
--/
-theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
-  intro B
-  rcases out.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B with ⟨n, _hnpos, hn⟩
-  exact ⟨n, hn⟩
-
 /-- Stage 2 implies there is no uniform bound on the bundled offset discrepancy family
 `discOffset f out.d out.m`.
 
@@ -182,22 +112,10 @@ theorem not_exists_boundedDiscOffset (out : Stage2Output f) :
         (d := out.d) (m := out.m)).1
       hunb
 
-/-- Negation-normal-form unboundedness statement for the bundled offset discrepancies
-`discOffset f out.d out.m`.
-
-Negation-normal form:
-`¬ ∃ B, ∀ n, discOffset f out.d out.m n ≤ B`.
-
-This is a thin wrapper around
-`Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
--/
-theorem not_exists_forall_discOffset_le (out : Stage2Output f) :
-    ¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  exact
-    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f)
-        (d := out.d) (m := out.m)).1
-      hunb
+-- Note: additional witness-form wrappers (e.g. `forall_exists_discOffset_gt'_witness_pos`,
+-- `forall_exists_natAbs_apSumOffset_gt_witness_pos`, and the negation-normal-form
+-- `not_exists_forall_discOffset_le`) live in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
 
 /-!
 ## Core-predicate bridge

@@ -160,12 +160,13 @@ theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlo
 -- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
 -- Note: `Stage2Output.forall_exists_discOffset_gt` and `Stage2Output.forall_exists_discOffset_gt'`
--- are part of the Stage-2 core API (see `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`).
+-- live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
 
 
 /-!
-Positive-length witness form of `forall_exists_discOffset_gt'` is part of the Stage-2 core API:
-see `Stage2Output.forall_exists_discOffset_gt'_witness_pos` in `TrackCStage2Core.lean`.
+Positive-length witness form of `forall_exists_discOffset_gt'` lives in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras` as
+`Stage2Output.forall_exists_discOffset_gt'_witness_pos`.
 -/
 
 /-!
@@ -179,8 +180,8 @@ convenience-lemma file.
 
 -- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
--- Note: `Stage2Output.not_exists_forall_discOffset_le` is part of the Stage-2 core API:
--- see `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`.
+-- Note: `Stage2Output.not_exists_forall_discOffset_le` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
 
 /-- Negation-normal-form unboundedness statement for the bundled offset nuclei
 `Int.natAbs (apSumOffset f out.d out.m n)`.
