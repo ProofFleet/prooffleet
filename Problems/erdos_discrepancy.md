@@ -1160,7 +1160,8 @@ Definition of done:
 - [x] `discOffsetUpTo` dilation/coarsening convenience wrappers: build a small lemma family for rewriting `discOffsetUpTo` under step scaling (`d ↦ d*q`) and length scaling (`N ↦ N*q`) with consistent naming and argument order, so later reductions don’t mix `disc_mul_step_le` with manual `Nat` algebra.
   (Implemented as `discOffsetUpTo_map_mul_{right,left}` + orientation helpers `discOffsetUpTo_step_mul_{right,left}`, plus length wrappers `discOffsetUpTo_le_mul`, `discOffsetUpTo_length_mul_comm`, `discOffsetUpTo_length_mul_succ_comm` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Cut then normalize” wrapper: provide a single lemma that (a) cuts an affine/Icc sum at `k`, (b) rewrites both sides into nucleus `discOffset` normal form, and (c) returns the canonical triangle-inequality bound, so later proofs can do cut+bound in one line.
+- [x] “Cut then normalize” wrapper: provide a single lemma that (a) cuts an affine/Icc sum at `k`, (b) rewrites both sides into nucleus `discOffset` normal form, and (c) returns the canonical triangle-inequality bound, so later proofs can do cut+bound in one line.
+  (Implemented as `natAbs_sum_Icc_cut_le_discOffset_add` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Stable-surface `simp` set audit for `apSum` (homogeneous): add a compile-only file under `import MoltResearch.Discrepancy` verifying that `simp` rewrites `apSum` goals into the preferred nucleus shapes (zero length, step one, dilation pull-in, reflect reindex), and wire it into `SurfaceAudit`.
 
