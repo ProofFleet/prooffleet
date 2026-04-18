@@ -742,6 +742,38 @@ lemma discOffset'_eq (f : ℕ → ℤ) (m d n : ℕ) :
     discOffset' f m d n = discOffset f d m n :=
   rfl
 
+/-!
+### Multiplicative dilation normal forms (`discOffset` / `discOffsetUpTo`)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+
+These are the wrapper-level analogues of `apSumOffset_map_mul_right` / `apSumOffset_map_mul_left`.
+We keep them as plain rewrite lemmas (not `[simp]`) to avoid creating rewrite loops.
+-/
+
+/-- Dilation normal form for `discOffset` (`mul_right` summand convention).
+
+`discOffset (fun k => f (k*q)) d m n` samples indices `((m+i+1)*d)*q`, which canonically rewrite to
+`(m+i+1)*(d*q)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+-/
+lemma discOffset_map_mul_right (f : ℕ → ℤ) (q d m n : ℕ) :
+    discOffset (fun k => f (k * q)) d m n = discOffset f (d * q) m n := by
+  unfold discOffset
+  simp [apSumOffset_map_mul_right]
+
+/-- Dilation normal form for `discOffset` (`mul_left` summand convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+-/
+lemma discOffset_map_mul_left (f : ℕ → ℤ) (q d m n : ℕ) :
+    discOffset (fun k => f (q * k)) d m n = discOffset f (q * d) m n := by
+  unfold discOffset
+  simp [apSumOffset_map_mul_left]
 
 /-- Shift–dilation coherence for the discrepancy wrapper `discOffset`.
 
@@ -802,6 +834,38 @@ This is packaged in a finitary form (a `Finset.sup` over `range (N+1)`) so it is
 -/
 def discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) : ℕ :=
   (Finset.range (N + 1)).sup (fun n => discOffset f d m n)
+
+/-!
+### Multiplicative dilation normal forms (`discOffsetUpTo`)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+
+These are the wrapper-level analogues of `discOffset_map_mul_right` / `discOffset_map_mul_left`.
+We keep them as plain rewrite lemmas (not `[simp]`) to avoid creating rewrite loops.
+-/
+
+/-- Dilation normal form for `discOffsetUpTo` (`mul_right` summand convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+-/
+lemma discOffsetUpTo_map_mul_right (f : ℕ → ℤ) (q d m N : ℕ) :
+    discOffsetUpTo (fun k => f (k * q)) d m N = discOffsetUpTo f (d * q) m N := by
+  classical
+  unfold discOffsetUpTo
+  simp [discOffset_map_mul_right]
+
+/-- Dilation normal form for `discOffsetUpTo` (`mul_left` summand convention).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+-/
+lemma discOffsetUpTo_map_mul_left (f : ℕ → ℤ) (q d m N : ℕ) :
+    discOffsetUpTo (fun k => f (q * k)) d m N = discOffsetUpTo f (q * d) m N := by
+  classical
+  unfold discOffsetUpTo
+  simp [discOffset_map_mul_left]
 
 /-!
 ### `discOffsetUpTo` argument-order coherence helper (API coherence)
@@ -1070,6 +1134,20 @@ lemma discOffsetUpTo_le_add (f : ℕ → ℤ) (d m N K : ℕ) :
     discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N + K) := by
   simpa using
     (discOffsetUpTo_mono (f := f) (d := d) (m := m) (N := N) (N' := N + K) (Nat.le_add_right N K))
+
+/-- Convenience wrapper: `discOffsetUpTo` is monotone under multiplicative length scaling `N ↦ N*q`
+when `q > 0`.
+
+This is the “length scaling” half of the `discOffsetUpTo` dilation/coarsening checklist item.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+-/
+lemma discOffsetUpTo_le_mul (f : ℕ → ℤ) (d m N q : ℕ) (hq : q > 0) :
+    discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (N * q) := by
+  -- monotonicity + `N ≤ N*q` for `q > 0`
+  refine discOffsetUpTo_mono (f := f) (d := d) (m := m) (N := N) (N' := N * q) ?_
+  simpa [Nat.mul_comm] using (Nat.le_mul_of_pos_left N hq)
 
 /-- Convenience: `discOffsetUpTo` is monotone under `N ↦ N+1`.
 
@@ -3385,7 +3463,7 @@ lemma IsSignSequence.natAbs_apSumOffset_succ_le {f : ℕ → ℤ} (hf : IsSignSe
   calc
     Int.natAbs (apSumOffset f d m (n + 1))
         = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
-          simp [apSumOffset_succ, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+          simp [apSumOffset_succ, Nat.add_assoc, Nat.add_left_comm]
     _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
           simpa using
             (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))
@@ -3408,7 +3486,7 @@ lemma discOffset_succ_le_add_natAbs (f : ℕ → ℤ) (d m n : ℕ) :
   calc
     Int.natAbs (apSumOffset f d m (n + 1))
         = Int.natAbs (apSumOffset f d m n + f ((m + n + 1) * d)) := by
-          simp [apSumOffset_succ, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+          simp [apSumOffset_succ, Nat.add_assoc, Nat.add_left_comm]
     _ ≤ Int.natAbs (apSumOffset f d m n) + Int.natAbs (f ((m + n + 1) * d)) := by
           simpa using
             (Int.natAbs_add_le (apSumOffset f d m n) (f ((m + n + 1) * d)))

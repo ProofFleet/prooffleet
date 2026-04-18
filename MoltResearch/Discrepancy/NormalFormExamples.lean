@@ -96,6 +96,22 @@ example : discOffset' f m d n = discOffset f d m n := by
 example : discOffsetUpTo' f m d n = discOffsetUpTo f d m n := by
   rfl
 
+/-!
+### NEW (Track B): `discOffsetUpTo` dilation/coarsening convenience wrappers
+
+Compile-only regressions: wrapper-level rewriting under index dilation (`k ↦ k*q`) and cutoff
+scaling (`N ↦ N*q`) should be one `rw`/`simp` away.
+-/
+
+example : discOffset (fun k => f (k * q)) d m n = discOffset f (d * q) m n := by
+  simpa using (discOffset_map_mul_right (f := f) (q := q) (d := d) (m := m) (n := n))
+
+example : discOffsetUpTo (fun k => f (k * q)) d m n = discOffsetUpTo f (d * q) m n := by
+  simpa using (discOffsetUpTo_map_mul_right (f := f) (q := q) (d := d) (m := m) (N := n))
+
+example (hq : q > 0) : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n * q) := by
+  simpa using (discOffsetUpTo_le_mul (f := f) (d := d) (m := m) (N := n) (q := q) hq)
+
 -- NEW (Track B): nucleus API coherence (disc/discrepancy wrappers)
 example : disc f d n = discrepancy f d n := by
   rfl
