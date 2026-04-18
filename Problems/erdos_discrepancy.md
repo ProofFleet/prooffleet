@@ -1149,9 +1149,10 @@ Definition of done:
 
 - [x] “Offset is just tail” for `apSupport`: package a lemma rewriting `apSupport f d m n` into the image of a `Finset.range n` map (or equivalent), so support-level congruence proofs can be done by `simp` instead of unfolding. (`apSupport_eq_image_range`)
 
-- [ ] Max-level subadditivity: prove a clean inequality like
+- [x] Max-level subadditivity: prove a clean inequality like
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`
   (or the repo’s preferred parameterization), so concatenation arguments can stay entirely at the `UpTo` level.
+  (Implemented as `discOffsetUpTo_add_le_add_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples under `import MoltResearch.Discrepancy`.)
 
 - [ ] “Argmax extractor” for residue/max pipelines: after any inequality of the form `X ≤ ∑ r, Y r`, add a canonical lemma producing a residue `r` with `X ≤ (r+1) * Y r` (pigeonhole-style), packaged for `discOffsetUpTo` and wired into the stable surface.
 
