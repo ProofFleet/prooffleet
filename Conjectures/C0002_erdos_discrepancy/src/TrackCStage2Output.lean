@@ -70,6 +70,17 @@ theorem unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output 
   simpa [Stage2Output.g, Stage2Output.d, Stage2Output.m] using
     (out.out1.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f))
 
+/-- Variant of `unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt` phrased using the bundled
+start index `out.start = out.m * out.d`.
+
+This reduces arithmetic noise in downstream stages that already use the start-index normal form.
+-/
+theorem unbounded_iff_forall_exists_natAbs_apSumFrom_start_gt (out : Stage2Output f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) > C := by
+  simpa [Stage2Output.start] using
+    (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f))
+
 /-- (Deprecated) Unboundedness of the reduced sequence in explicit witness form (`B < discrepancy ...`).
 
 Prefer using the field `out.unbounded` (or the more structured
