@@ -26,6 +26,20 @@ theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
   -- Delegate to the minimal Stage-3 entry-point API.
   exact Tao2015.stage3_notBounded (f := f) (hf := hf)
 
+/-- Stable boundedness-negation packaging of the Stage-3 offset-discrepancy witness.
+
+Normal form:
+`¬ ∃ B, BoundedDiscOffset f (stage3Out ...).out2.d (stage3Out ...).out2.m B`.
+
+This is a small convenience wrapper around `Tao2015.stage3_not_exists_boundedDiscOffset`.
+-/
+theorem erdos_discrepancy_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (Tao2015.stage3Out (f := f) (hf := hf)).out2.d
+        (Tao2015.stage3Out (f := f) (hf := hf)).out2.m B := by
+  exact Tao2015.stage3_not_exists_boundedDiscOffset (f := f) (hf := hf)
+
 /-- Erdős discrepancy theorem.
 
 Every ±1 sequence has unbounded discrepancy on homogeneous arithmetic progressions.
