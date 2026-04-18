@@ -847,6 +847,36 @@ We are conservative here: these lemmas should be obviously terminating and orien
   simp [discOffset, disc, apSumOffset, apSum]
 
 /-!
+### Degenerate-step (`d = 0`) normal forms
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+Degenerate-step normal forms (`d = 0`).
+
+When the step is `0`, every index in the progression is `0`.
+These lemmas provide a preferred simp/rewrite API so downstream code can normalize the `d = 0`
+case without ad-hoc arithmetic.
+
+We keep these lemmas forward-oriented and obviously terminating.
+-/
+
+@[simp] lemma apSum_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    apSum f 0 n = (n : ℤ) * f 0 := by
+  unfold apSum
+  -- `(i+1) * 0 = 0`, so this is a constant-sum over `range n`.
+  simp
+
+@[simp] lemma apSumOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
+    apSumOffset f 0 m n = (n : ℤ) * f 0 := by
+  unfold apSumOffset
+  -- `(m+i+1) * 0 = 0`, so this is also a constant-sum.
+  simp
+
+@[simp] lemma discOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
+    discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
+  unfold discOffset
+  simp
+
+/-!
 ### Step-one (`d = 1`) coherence simp lemmas
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) —

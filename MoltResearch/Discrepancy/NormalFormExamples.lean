@@ -64,6 +64,16 @@ example : apSum (fun _ => (1 : ℤ)) d n = (n : ℤ) := by
 example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
   simpa [discOffset_const_one]
 
+-- NEW (Track B): degenerate-step normal forms (`d = 0`)
+example : apSum f 0 n = (n : ℤ) * f 0 := by
+  simp
+
+example : apSumOffset f 0 m n = (n : ℤ) * f 0 := by
+  simp
+
+example : discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
+  simp
+
 -- NEW (Track B): nucleus API coherence (argument order)
 example : apSumOffset' f m d n = apSumOffset f d m n := by
   rfl
