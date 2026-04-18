@@ -36,19 +36,9 @@ We avoid re-declaring it here so that `TrackCStage3Core` can be imported alongsi
 `TrackCStage3` without name clashes.
 -/
 
-/-- Convenience projection: the reduced step size packaged in Stage 3.
-
-We intentionally route this through the Stage-2 boundary API (`Stage2Output.d`) so Stage 3 does not
-depend on Stage-1 record fields.
--/
-@[simp] abbrev d (out : Stage3Output f) : ℕ := out.out2.d
-
-/-- Convenience projection: the reduced sequence packaged in Stage 3.
-
-We intentionally route this through the Stage-2 boundary API (`Stage2Output.g`) so Stage 3 does not
-depend on Stage-1 record fields.
--/
-@[simp] abbrev g (out : Stage3Output f) : ℕ → ℤ := out.out2.g
+-- Note: the basic projections `Stage3Output.d` and `Stage3Output.g` live in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3` so that hard-gate consumers can access
+-- them without importing `TrackCStage3Core`.
 
 /-- The reduced sequence packaged in Stage 3 is a sign sequence. -/
 theorem hg (out : Stage3Output f) : IsSignSequence out.g := by
