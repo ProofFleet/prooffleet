@@ -59,6 +59,10 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `discOffsetUpTo f d 0 N = discUpTo f d N`
   - step-one shift: `discOffsetUpTo f 1 m N = discUpTo (fun k => f (k + m)) 1 N`
   - dilation/coarsening: `discOffsetUpTo (fun k => f (q*k)) d m N = discOffsetUpTo f (q*d) m N`
+  - if you want to pull a factor `q` into the step *at the wrapper level* (without unfolding the `Finset.sup`), use the rewrite lemmas
+    `discOffsetUpTo_map_mul_right` / `discOffsetUpTo_map_mul_left` (and their `discOffset_*` analogues),
+    which package the `((m+i+1)*d)*q = (m+i+1)*(d*q)` index normalization.
+    For cutoff scaling bookkeeping, use `discOffsetUpTo_le_mul` (monotonicity under `N ↦ N*q`, assuming `q > 0`).
 - **API note (start-shift vs sequence-shift, max-level):** if you want to “advance the start” without pushing arithmetic through the `Finset.sup` definition, rewrite using
   `discOffsetUpTo_add_start`:
   `discOffsetUpTo f d (m + k) N = discOffsetUpTo (fun t => f (t + k*d)) d m N`.
