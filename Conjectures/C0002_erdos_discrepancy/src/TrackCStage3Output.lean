@@ -79,6 +79,20 @@ theorem forall_exists_discrepancy_gt_d_ge_one (out : Stage3Output f) :
   refine ⟨d, n, ?_, hdisc⟩
   exact Nat.succ_le_iff.2 hd
 
+/-- Strengthened witness form of `forall_exists_discrepancy_gt_d_ge_one` with a positive-length witness.
+
+Normal form:
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C`.
+-/
+theorem forall_exists_discrepancy_gt_d_ge_one_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
+  change Int.natAbs (apSum f d n) > C
+  exact hw
+
 /-- Strengthened witness form of `forall_exists_discrepancy_gt` with a positive-length witness.
 
 This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
