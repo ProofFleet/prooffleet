@@ -73,8 +73,8 @@ theorem stage2_notBoundedReducedAlong (f : ℕ → ℤ) (hf : IsSignSequence f) 
         (stage2_d (f := f) (hf := hf)) := by
   have hunb : Tao2015.UnboundedDiscrepancyAlong
       (stage2_g (f := f) (hf := hf))
-      (stage2_d (f := f) (hf := hf)) := by
-    simpa [stage2_g, stage2_d] using (stage2Out (f := f) (hf := hf)).unbounded
+      (stage2_d (f := f) (hf := hf)) :=
+    stage2_unboundedDiscrepancyAlong (f := f) (hf := hf)
   exact
     (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
         (g := stage2_g (f := f) (hf := hf))
