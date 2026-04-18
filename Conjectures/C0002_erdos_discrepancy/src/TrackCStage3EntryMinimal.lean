@@ -87,6 +87,19 @@ theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequen
   simpa using
     (Stage3Output.not_exists_boundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
 
+/-- Stable witness packaging of the Stage-3 offset-discrepancy unboundedness statement.
+
+Normal form:
+`UnboundedDiscOffset f (stage3Out ...).out2.d (stage3Out ...).out2.m`.
+
+This is a thin wrapper around `Stage3Output.unboundedDiscOffset`.
+-/
+theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f
+      (stage3Out (f := f) (hf := hf)).out2.d
+      (stage3Out (f := f) (hf := hf)).out2.m := by
+  exact (stage3Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
 
