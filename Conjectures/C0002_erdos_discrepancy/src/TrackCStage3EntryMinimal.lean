@@ -86,6 +86,22 @@ theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
       (stage3Out (f := f) (hf := hf)).out1.d := by
   simpa using (stage3Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core
 
+/-- Consumer-facing normal form: Stage 3 implies the reduced sequence is not bounded along its
+fixed step size.
+
+This is the boundedness-negation normal form of the Stage-2 unboundedness witness stored in
+`stage3Out ...`. Most later stages state hypotheses in this form.
+-/
+theorem stage3_notBoundedReducedAlong (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ BoundedDiscrepancyAlong
+        (stage3Out (f := f) (hf := hf)).out2.g
+        (stage3Out (f := f) (hf := hf)).out2.d := by
+  let out := stage3Out (f := f) (hf := hf)
+  exact
+    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
+        (g := out.out2.g) (d := out.out2.d)).1
+      out.out2.unbounded
+
 /-- Track C pipeline witness: Stage 3 yields an unbounded bundled offset discrepancy family
 `discOffset f d m` at the deterministic Stage-2 parameters stored in `stage3Out`.
 
