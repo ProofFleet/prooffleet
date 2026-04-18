@@ -868,6 +868,28 @@ lemma discOffsetUpTo_map_mul_left (f : ℕ → ℤ) (q d m N : ℕ) :
   simp [discOffset_map_mul_left]
 
 /-!
+### `discOffsetUpTo` length-scaling normalization lemmas
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` dilation/coarsening convenience wrappers.
+
+These are intentionally tiny rewrite lemmas: they normalize the *length* argument when it is
+written as `q * N` (or `q * (N+1)`), so downstream code doesn’t need to do ad-hoc `Nat` algebra.
+
+They are **not** tagged `[simp]` to avoid rewrite loops.
+-/
+
+lemma discOffsetUpTo_length_mul_comm (f : ℕ → ℤ) (d m q N : ℕ) :
+    discOffsetUpTo f d m (q * N) = discOffsetUpTo f d m (N * q) := by
+  simpa [Nat.mul_comm] using
+    (rfl : discOffsetUpTo f d m (q * N) = discOffsetUpTo f d m (q * N))
+
+lemma discOffsetUpTo_length_mul_succ_comm (f : ℕ → ℤ) (d m q N : ℕ) :
+    discOffsetUpTo f d m (q * (N + 1)) = discOffsetUpTo f d m ((N + 1) * q) := by
+  simpa [Nat.mul_comm] using
+    (rfl : discOffsetUpTo f d m (q * (N + 1)) = discOffsetUpTo f d m (q * (N + 1)))
+
+/-!
 ### `discOffsetUpTo` argument-order coherence helper (API coherence)
 
 The historical argument order for the offset-up-to wrapper is `(d m N)`, matching `discOffset`.

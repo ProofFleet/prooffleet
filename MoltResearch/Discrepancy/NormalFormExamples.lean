@@ -112,6 +112,13 @@ example : discOffsetUpTo (fun k => f (k * q)) d m n = discOffsetUpTo f (d * q) m
 example (hq : q > 0) : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n * q) := by
   simpa using (discOffsetUpTo_le_mul (f := f) (d := d) (m := m) (N := n) (q := q) hq)
 
+-- NEW (Track B): length-scaling normalization (avoid ad-hoc `Nat` algebra).
+example : discOffsetUpTo f d m (q * n) = discOffsetUpTo f d m (n * q) := by
+  simpa using (discOffsetUpTo_length_mul_comm (f := f) (d := d) (m := m) (q := q) (N := n))
+
+example : discOffsetUpTo f d m (q * (n + 1)) = discOffsetUpTo f d m ((n + 1) * q) := by
+  simpa using (discOffsetUpTo_length_mul_succ_comm (f := f) (d := d) (m := m) (q := q) (N := n))
+
 -- NEW (Track B): nucleus API coherence (disc/discrepancy wrappers)
 example : disc f d n = discrepancy f d n := by
   rfl
