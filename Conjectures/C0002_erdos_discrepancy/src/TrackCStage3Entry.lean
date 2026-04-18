@@ -138,7 +138,7 @@ theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
 
 /-!
 The lemma `stage3_unboundedDiscrepancyAlong_core` is provided by
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (re-exported by the core import
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore` (re-exported by the core import
 path), so we do not re-declare it here.
 -/
 
@@ -163,7 +163,7 @@ Most of these are intentionally kept out of the hard-gate core module.
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
 
 -- Note: `stage3_unboundedDiscOffset` and `stage3_not_exists_boundedDiscOffset` live in
--- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`.
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
 
 /-- Witness-family form of `stage3_unboundedDiscOffset` (inequality-direction), with a positive-length
 witness.

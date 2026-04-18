@@ -11,13 +11,173 @@ This file is **Conjectures-only** glue.
 - This file adds a small collection of pipeline-friendly witness forms and existential packaging
   lemmas, without pulling in the larger convenience layer `TrackCStage3Entry`.
 
-All additional projections and rewrite lemmas (e.g. `stage3_d`, `stage3_g`, `stage3_start`,
-`stage3_g_eq`, ...) live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
+Beyond the tiny definitional rewrites about `stage3Out` in this file, all additional
+convenience projections and rewrite lemmas (e.g. `stage3_d`, `stage3_g`, `stage3_start`,
+`stage3_g_eq`, ...) live in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
 -/
 
 namespace MoltResearch
 
 namespace Tao2015
+
+/-!
+## Core Stage-3 rewrites and pipeline witnesses
+
+These are proved (non-stub) lemmas that are often useful when shuttling statements between
+Stages 2 and 3, without importing the larger convenience layer
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
+-/
+
+/-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
+Stage 2.
+
+This lemma is tiny but useful for rewriting when shuttling statements between Stage 2 and Stage 3.
+-/
+@[simp] theorem stage3Out_out2 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2 = stage2Out (f := f) (hf := hf) := by
+  rfl
+
+/-- The Stage-1 reduction output stored inside `stage3Out` is definitionally the Stage-1 reduction
+output produced by Stage 2.
+-/
+@[simp] theorem stage3Out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
+  rfl
+
+/-- Deterministic Stage-2 parameter projections for `stage3Out`.
+
+These simp lemmas reduce rewriting noise when shuttling statements between Stage 2 and Stage 3.
+-/
+@[simp] theorem stage3Out_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2.d = (stage2Out (f := f) (hf := hf)).d := by
+  rfl
+
+@[simp] theorem stage3Out_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2.m = (stage2Out (f := f) (hf := hf)).m := by
+  rfl
+
+@[simp] theorem stage3Out_g (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).out2.g = (stage2Out (f := f) (hf := hf)).g := by
+  rfl
+
+/-- Track C pipeline witness: Stage 3 yields unbounded fixed-step discrepancy along the reduced
+sequence, expressed using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This lemma is a small convenience wrapper around the bridge equivalence
+`Tao2015.unboundedDiscrepancyAlong_iff_core`.
+-/
+theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    MoltResearch.UnboundedDiscrepancyAlong
+      (stage3Out (f := f) (hf := hf)).out1.g
+      (stage3Out (f := f) (hf := hf)).out1.d := by
+  simpa using (stage3Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core
+
+/-- Consumer-facing normal form: Stage 3 implies the reduced sequence is not bounded along its
+fixed step size.
+
+This is the boundedness-negation normal form of the Stage-2 unboundedness witness stored in
+`stage3Out ...`.
+-/
+theorem stage3_notBoundedReducedAlong (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ BoundedDiscrepancyAlong
+        (stage3Out (f := f) (hf := hf)).out2.g
+        (stage3Out (f := f) (hf := hf)).out2.d := by
+  let out := stage3Out (f := f) (hf := hf)
+  exact
+    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
+        (g := out.out2.g) (d := out.out2.d)).1
+      out.out2.unbounded
+
+/-- Track C pipeline witness: Stage 3 yields an unbounded bundled offset discrepancy family
+`discOffset f d m` at the deterministic Stage-2 parameters stored in `stage3Out`.
+
+This is a thin wrapper around the proved Stage-2 core lemma `Stage2Output.unboundedDiscOffset`.
+-/
+theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f
+      (stage3Out (f := f) (hf := hf)).out2.d
+      (stage3Out (f := f) (hf := hf)).out2.m := by
+  simpa using (stage3Out (f := f) (hf := hf)).out2.unboundedDiscOffset (f := f)
+
+/-- Consumer-facing normal form: there is no bundled offset-discrepancy bound at the deterministic
+Stage-2 parameters stored in `stage3Out`.
+
+This is the stable boundedness-negation normal form of `stage3_unboundedDiscOffset`.
+-/
+theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (stage3Out (f := f) (hf := hf)).out2.d
+        (stage3Out (f := f) (hf := hf)).out2.m B := by
+  exact (stage3Out (f := f) (hf := hf)).not_exists_boundedDiscOffset (f := f)
+
+/-- Consumer-facing normal form: there is no uniform bound on `discOffset f d m` at the
+deterministic Stage-2 parameters stored in `stage3Out`.
+
+Negation normal form:
+`¬ ∃ B, ∀ n, discOffset f d m n ≤ B`.
+-/
+theorem stage3_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          discOffset f
+            (stage3Out (f := f) (hf := hf)).out2.d
+            (stage3Out (f := f) (hf := hf)).out2.m n ≤ B := by
+  let out := stage3Out (f := f) (hf := hf)
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := by
+    simpa [out] using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f)
+        (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+
+/-- Consumer-facing normal form: there is no uniform bound on the bundled offset nuclei
+`Int.natAbs (apSumOffset f d m n)` at the deterministic Stage-2 parameters stored in `stage3Out`.
+
+Negation normal form:
+`¬ ∃ B, ∀ n, Int.natAbs (apSumOffset f d m n) ≤ B`.
+-/
+theorem stage3_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs
+              (apSumOffset f
+                (stage3Out (f := f) (hf := hf)).out2.d
+                (stage3Out (f := f) (hf := hf)).out2.m n) ≤ B := by
+  let out := stage3Out (f := f) (hf := hf)
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := by
+    simpa [out] using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  exact
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le (f := f)
+        (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+
+/-- Paper-notation normal form: there is no uniform bound on the shifted progression sums
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the deterministic Stage-2 parameters stored in `stage3Out`.
+
+Negation normal form:
+`¬ ∃ B, ∀ n, Int.natAbs ((Icc (m+1) (m+n)).sum (fun i => f (i*d))) ≤ B`.
+-/
+theorem stage3_not_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs
+              ((Finset.Icc ((stage3Out (f := f) (hf := hf)).out2.m + 1)
+                ((stage3Out (f := f) (hf := hf)).out2.m + n)).sum
+                (fun i => f (i * (stage3Out (f := f) (hf := hf)).out2.d))) ≤ B := by
+  let out := stage3Out (f := f) (hf := hf)
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := by
+    simpa [out] using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  have hnb :
+      ¬ ∃ B : ℕ,
+          ∀ n : ℕ,
+            Int.natAbs ((Finset.Icc (out.out2.m + 1) (out.out2.m + n)).sum (fun i => f (i * out.out2.d))) ≤ B :=
+    (UnboundedDiscOffset.iff_not_exists_forall_natAbs_sum_Icc_offset_le (f := f)
+        (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+  simpa [out] using hnb
+
 
 /-- Stage 3 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such that the bundled offset
 discrepancy family `discOffset f d m` is unbounded.

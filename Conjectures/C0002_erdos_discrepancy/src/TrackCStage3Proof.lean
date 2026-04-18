@@ -50,13 +50,14 @@ Note: the convenience lemma `stage3_d_ne_zero` lives in `TrackCStage3Entry.lean`
 -/
 
 -- Note: `stage3_unboundedDiscrepancyAlong_core` is already provided by
--- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (imported via
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore` (imported via
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`).
 
 
 /-
-Note: `stage3_unboundedDiscOffset` is defined in `TrackCStage3Entry.lean` so hard-gate consumers
-can use it without importing this larger convenience-lemma file.
+Note: `stage3_unboundedDiscOffset` is provided by `TrackCStage3EntryCore.lean` (re-exported by
+`TrackCStage3Entry.lean`) so hard-gate consumers can use it without importing this larger
+convenience-lemma file.
 
 Since this module imports `TrackCStage3Entry`, that lemma is available automatically here.
 -/
