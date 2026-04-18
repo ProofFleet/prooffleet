@@ -1141,7 +1141,8 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Degenerate-step normal forms (`d = 0`): add a preferred simp/rewrite API for `apSum`/`apSumOffset`/`discOffset` when the step is zero (everything hits index 0), so downstream code can safely normalize or rule out `d=0` without ad-hoc arithmetic.
+- [x] Degenerate-step normal forms (`d = 0`): add a preferred simp/rewrite API for `apSum`/`apSumOffset`/`discOffset` when the step is zero (everything hits index 0), so downstream code can safely normalize or rule out `d=0` without ad-hoc arithmetic.
+  (Implemented as `[simp]` lemmas `apSum_zero_step` / `apSumOffset_zero_step` / `discOffset_zero_step` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Homogeneous Icc↔offset bridge: add a one-line rewrite lemma specializing the affine endpoint normal form to `a=0`, e.g.
   `∑ i ∈ Finset.Icc (m+1) (m+n), f (i*d) = apSumOffset (fun k => f (k*d)) d m n` (or repo’s preferred shape), with a stable-surface regression example.
