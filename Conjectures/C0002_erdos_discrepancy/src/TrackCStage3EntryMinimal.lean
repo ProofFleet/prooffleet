@@ -60,21 +60,10 @@ output produced by Stage 2.
     (stage3Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
   rfl
 
-/-- Deterministic Stage-2 parameter projections for `stage3Out`.
+-- Note: the simp lemma `stage3Out_out2` is enough to rewrite projections like
+-- `(stage3Out ...).out2.d` to `(stage2Out ...).d`, so we avoid duplicating simp lemmas for
+-- `.d/.m/.g` here.
 
-These simp lemmas reduce rewriting noise when shuttling statements between Stage 2 and Stage 3.
--/
-@[simp] theorem stage3Out_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2.d = (stage2Out (f := f) (hf := hf)).d := by
-  rfl
-
-@[simp] theorem stage3Out_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2.m = (stage2Out (f := f) (hf := hf)).m := by
-  rfl
-
-@[simp] theorem stage3Out_g (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).out2.g = (stage2Out (f := f) (hf := hf)).g := by
-  rfl
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
