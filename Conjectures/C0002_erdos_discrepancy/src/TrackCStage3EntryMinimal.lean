@@ -14,6 +14,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - `stage3_forall_hasDiscrepancyAtLeast` : the usual surface statement
   `∀ C, HasDiscrepancyAtLeast f C`
 - `stage3_hasDiscrepancyAtLeast` : specialization at a fixed threshold `C`
+- `stage3_not_exists_boundedDiscOffset` : stable boundedness-negation packaging of the
+  Stage-2 offset-discrepancy unboundedness witness
 
 All additional projection/rewrite lemmas and witness-form corollaries live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
@@ -41,6 +43,21 @@ We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` ca
 -/
 theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
   exact (stage3Out (f := f) (hf := hf)).notBounded
+
+/-- Stable boundedness-negation packaging of the Stage-3 offset-discrepancy witness.
+
+Normal form:
+`¬ ∃ B, BoundedDiscOffset f (stage3Out ...).out2.d (stage3Out ...).out2.m B`.
+
+This is a thin wrapper around `Stage3Output.not_exists_boundedDiscOffset`.
+-/
+theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (stage3Out (f := f) (hf := hf)).out2.d
+        (stage3Out (f := f) (hf := hf)).out2.m B := by
+  simpa using
+    (Stage3Output.not_exists_boundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
