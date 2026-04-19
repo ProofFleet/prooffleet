@@ -36,14 +36,13 @@ theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
 /-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
 
-This is a thin wrapper around `stage2_notBounded` via the global normal form lemma
-`forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy`.
+Design note: route this through the proved Stage-2 core API
+`Stage2Output.forall_hasDiscrepancyAtLeast`, keeping this wrapper layer thin.
 -/
 theorem stage2_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  exact
-    (forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f).2
-      (stage2_notBounded (f := f) (hf := hf))
+  simpa using
+    (Stage2Output.forall_hasDiscrepancyAtLeast (f := f) (stage2Out (f := f) (hf := hf)))
 
 /-- Specialization of `stage2_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
 
@@ -51,7 +50,8 @@ This is a tiny convenience lemma: it avoids an extra application at the call sit
 -/
 theorem stage2_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (C : ℕ) :
     HasDiscrepancyAtLeast f C := by
-  exact (stage2_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
+  simpa using
+    (Stage2Output.hasDiscrepancyAtLeast (f := f) (stage2Out (f := f) (hf := hf)) C)
 
 /-- Consumer-facing shortcut: Stage 2 yields unbounded discrepancy along the deterministic reduced
 sequence `stage2_g` at the deterministic step size `stage2_d`.
