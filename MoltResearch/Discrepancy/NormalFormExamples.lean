@@ -164,6 +164,27 @@ into a union of the two block supports.
 example : apSupport d m (n + k) = apSupport d m n ∪ apSupport d (m + n) k := by
   simpa using (apSupport_add (d := d) (m := m) (n := n) (k := k))
 
+/-!
+### NEW (Track B): cut-stability for support-form congruence hypotheses
+
+Compile-only regression: if `f` and `g` agree on the accessed indices for a length `(n+k)` block,
+we can split that hypothesis into the two cut pieces and transport it through the length-splitting
+normal form `apSumOffset_add_len`, without unfolding `apSupport`.
+-/
+
+example (h : ∀ x ∈ apSupport d m (n + k), f x = g x) :
+    apSumOffset f d m (n + k) = apSumOffset g d m (n + k) := by
+  have hpieces :
+      (∀ x ∈ apSupport d m n, f x = g x) ∧ (∀ x ∈ apSupport d (m + n) k, f x = g x) :=
+    (apSupport_agree_add_iff (f := f) (g := g) (d := d) (m := m) (n := n) (k := k)).1 h
+  calc
+    apSumOffset f d m (n + k) = apSumOffset f d m n + apSumOffset f d (m + n) k := by
+      simpa [apSumOffset_add_len]
+    _ = apSumOffset g d m n + apSumOffset g d (m + n) k := by
+      simp [apSumOffset_congr_support, hpieces.1, hpieces.2]
+    _ = apSumOffset g d m (n + k) := by
+      simpa [apSumOffset_add_len]
+
 example : Int.natAbs (apSum f d n) = disc f d n := by
   rfl
 

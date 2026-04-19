@@ -445,6 +445,41 @@ lemma apSupport_add (d m n k : ℕ) :
       · simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using (Nat.add_lt_add_left hj n)
       · simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+/-- Cut-stability for support-form agreement hypotheses.
+
+If `f` and `g` agree on the accessed indices for a length `(n+k)` block, then they agree on both
+cut pieces; conversely, agreement on both cut pieces implies agreement on the whole block.
+
+This is the key glue lemma for transporting “agree on accessed indices” assumptions through
+cut/split normal forms such as `apSumOffset_add_len`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Cut-stability for `apSupport`.
+-/
+lemma apSupport_agree_add_iff {β : Type} (f g : ℕ → β) (d m n k : ℕ) :
+    (∀ x ∈ apSupport d m (n + k), f x = g x) ↔
+      (∀ x ∈ apSupport d m n, f x = g x) ∧ (∀ x ∈ apSupport d (m + n) k, f x = g x) := by
+  constructor
+  · intro h
+    refine ⟨?_, ?_⟩
+    · intro x hx
+      -- Promote membership in the left block to membership in the full `(n+k)` support.
+      have hx' : x ∈ apSupport d m n ∪ apSupport d (m + n) k := (Finset.mem_union).2 (Or.inl hx)
+      have hx'' : x ∈ apSupport d m (n + k) := by
+        simpa [apSupport_add (d := d) (m := m) (n := n) (k := k)] using hx'
+      exact h x hx''
+    · intro x hx
+      have hx' : x ∈ apSupport d m n ∪ apSupport d (m + n) k := (Finset.mem_union).2 (Or.inr hx)
+      have hx'' : x ∈ apSupport d m (n + k) := by
+        simpa [apSupport_add (d := d) (m := m) (n := n) (k := k)] using hx'
+      exact h x hx''
+  · rintro ⟨h₁, h₂⟩ x hx
+    have hx' : x ∈ apSupport d m n ∪ apSupport d (m + n) k := by
+      simpa [apSupport_add (d := d) (m := m) (n := n) (k := k)] using hx
+    rcases (Finset.mem_union).1 hx' with hxL | hxR
+    · exact h₁ x hxL
+    · exact h₂ x hxR
+
+
 /-!
 ### Cardinality (Track B)
 
