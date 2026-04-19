@@ -83,29 +83,29 @@ theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
 /-- Stable boundedness-negation packaging of the Stage-3 offset-discrepancy witness.
 
 Normal form:
-`¬ ∃ B, BoundedDiscOffset f (stage3Out ...).out2.d (stage3Out ...).out2.m B`.
+`¬ ∃ B, BoundedDiscOffset f (stage3Out ...).d (stage3Out ...).m B`.
 
 This is a thin wrapper around `Stage3Output.not_exists_boundedDiscOffset`.
 -/
 theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ ∃ B : ℕ,
       BoundedDiscOffset f
-        (stage3Out (f := f) (hf := hf)).out2.d
-        (stage3Out (f := f) (hf := hf)).out2.m B := by
+        (stage3Out (f := f) (hf := hf)).d
+        (stage3Out (f := f) (hf := hf)).m B := by
   simpa using
     (Stage3Output.not_exists_boundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Stable witness packaging of the Stage-3 offset-discrepancy unboundedness statement.
 
 Normal form:
-`UnboundedDiscOffset f (stage3Out ...).out2.d (stage3Out ...).out2.m`.
+`UnboundedDiscOffset f (stage3Out ...).d (stage3Out ...).m`.
 
 This is a thin wrapper around `Stage3Output.unboundedDiscOffset`.
 -/
 theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f
-      (stage3Out (f := f) (hf := hf)).out2.d
-      (stage3Out (f := f) (hf := hf)).out2.m := by
+      (stage3Out (f := f) (hf := hf)).d
+      (stage3Out (f := f) (hf := hf)).m := by
   exact (stage3Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
@@ -116,8 +116,8 @@ record fields of `stage3Out`.
 -/
 theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
-  refine ⟨(stage3Out (f := f) (hf := hf)).out2.d, (stage3Out (f := f) (hf := hf)).out2.m, ?_, ?_⟩
-  · simpa using Stage2Output.one_le_d (out := (stage3Out (f := f) (hf := hf)).out2)
+  refine ⟨(stage3Out (f := f) (hf := hf)).d, (stage3Out (f := f) (hf := hf)).m, ?_, ?_⟩
+  · exact stage3_one_le_d (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
 /-- Track-C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,

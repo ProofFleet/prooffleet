@@ -29,28 +29,28 @@ theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
 /-- Stable boundedness-negation packaging of the Stage-3 offset-discrepancy witness.
 
 Normal form:
-`¬ ∃ B, BoundedDiscOffset f (stage3Out ...).out2.d (stage3Out ...).out2.m B`.
+`¬ ∃ B, BoundedDiscOffset f (stage3Out ...).d (stage3Out ...).m B`.
 
 This is a small convenience wrapper around `Tao2015.stage3_not_exists_boundedDiscOffset`.
 -/
 theorem erdos_discrepancy_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ ∃ B : ℕ,
       BoundedDiscOffset f
-        (Tao2015.stage3Out (f := f) (hf := hf)).out2.d
-        (Tao2015.stage3Out (f := f) (hf := hf)).out2.m B := by
+        (Tao2015.stage3Out (f := f) (hf := hf)).d
+        (Tao2015.stage3Out (f := f) (hf := hf)).m B := by
   exact Tao2015.stage3_not_exists_boundedDiscOffset (f := f) (hf := hf)
 
 /-- Stable packaging of the Stage-3 offset-discrepancy unboundedness witness.
 
 Normal form:
-`UnboundedDiscOffset f (stage3Out ...).out2.d (stage3Out ...).out2.m`.
+`UnboundedDiscOffset f (stage3Out ...).d (stage3Out ...).m`.
 
 This is a small convenience wrapper around `Tao2015.stage3_unboundedDiscOffset`.
 -/
 theorem erdos_discrepancy_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     Tao2015.UnboundedDiscOffset f
-      (Tao2015.stage3Out (f := f) (hf := hf)).out2.d
-      (Tao2015.stage3Out (f := f) (hf := hf)).out2.m := by
+      (Tao2015.stage3Out (f := f) (hf := hf)).d
+      (Tao2015.stage3Out (f := f) (hf := hf)).m := by
   exact Tao2015.stage3_unboundedDiscOffset (f := f) (hf := hf)
 
 /-- Track C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
