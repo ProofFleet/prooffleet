@@ -67,8 +67,8 @@ theorem notBounded (out : Stage3Output f) : ¬ BoundedDiscrepancy f := by
 This is a thin wrapper around the Stage-2 core lemma `Stage2Output.unboundedDiscOffset`.
 -/
 theorem unboundedDiscOffset (out : Stage3Output f) :
-    UnboundedDiscOffset f out.out2.d out.out2.m := by
-  exact out.out2.unboundedDiscOffset (f := f)
+    UnboundedDiscOffset f out.d out.m := by
+  simpa [Stage3Output.d, Stage3Output.m] using out.out2.unboundedDiscOffset (f := f)
 
 /-- Stage 3 output also exposes the Stage-2 fixed-step unboundedness witness (the Tao2015 predicate
 `UnboundedDiscrepancyAlong`) along the reduced sequence.
@@ -77,8 +77,8 @@ This is just the `unbounded` field of the carried Stage-2 output, rewritten to u
 Stage-3 projections.
 -/
 theorem unboundedDiscrepancyAlong (out : Stage3Output f) :
-    Tao2015.UnboundedDiscrepancyAlong out.out1.g out.out1.d := by
-  simpa [Stage3Output.out1] using out.out2.unbounded
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d := by
+  simpa [Stage3Output.g, Stage3Output.d] using out.out2.unbounded
 
 /-- Stage 3 output also exposes the Stage-2 fixed-step unboundedness witness, phrased using the
 verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
@@ -86,16 +86,16 @@ verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 This is a thin wrapper around `Stage2Output.unboundedDiscrepancyAlong_core`.
 -/
 theorem unboundedDiscrepancyAlong_core (out : Stage3Output f) :
-    MoltResearch.UnboundedDiscrepancyAlong out.out1.g out.out1.d := by
-  simpa [Stage3Output.out1] using out.out2.unboundedDiscrepancyAlong_core (f := f)
+    MoltResearch.UnboundedDiscrepancyAlong out.g out.d := by
+  simpa [Stage3Output.g, Stage3Output.d] using out.out2.unboundedDiscrepancyAlong_core (f := f)
 
 /-- Stage 3 output implies there is no bundled offset bound at the deterministic Stage-2 parameters.
 
 This is the stable boundedness-negation normal form of `unboundedDiscOffset`.
 -/
 theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
-    ¬ ∃ B : ℕ, BoundedDiscOffset f out.out2.d out.out2.m B := by
-  exact out.out2.not_exists_boundedDiscOffset (f := f)
+    ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
+  simpa [Stage3Output.d, Stage3Output.m] using out.out2.not_exists_boundedDiscOffset (f := f)
 
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
