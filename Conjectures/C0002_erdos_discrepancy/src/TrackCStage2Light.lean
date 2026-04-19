@@ -1,4 +1,3 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofCore
 
 /-!
