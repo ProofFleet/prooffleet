@@ -148,8 +148,19 @@ theorem stage3_not_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (hf 
   simpa [out] using hnb
 
 
--- Note: `stage3_exists_params_one_le_unboundedDiscOffset` and
--- `stage3_exists_params_one_le_not_exists_boundedDiscOffset` are already defined in
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This lemma lives in the hard-gate core layer (not the minimal layer): it is not needed by the
+Track-C hard-gate target, but it is a common pipeline-friendly normal form.
+-/
+theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  refine ⟨(stage3Out (f := f) (hf := hf)).d, (stage3Out (f := f) (hf := hf)).m, ?_, ?_⟩
+  · exact stage3_one_le_d (f := f) (hf := hf)
+  · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
+
+-- Note: `stage3_exists_params_one_le_not_exists_boundedDiscOffset` is defined in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (imported above).
 
 
@@ -307,6 +318,14 @@ theorem stage3_forall_exists_discrepancy_gt_d_ge_one_witness_pos (f : ℕ → �
   -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
   change Int.natAbs (apSum f d n) > C
   exact hw
+
+/-- Alias for `stage3_forall_exists_discrepancy_gt_d_ge_one_witness_pos`.
+
+This keeps the older name (with the same statement) available in the hard-gate core layer.
+-/
+theorem stage3_forall_exists_discrepancy_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
+  simpa using stage3_forall_exists_discrepancy_gt_d_ge_one_witness_pos (f := f) (hf := hf)
 
 /-- Variant of `stage3_forall_exists_d_ge_one_witness_pos` with strict positivity for `d`.
 

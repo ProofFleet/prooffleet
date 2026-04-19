@@ -17,7 +17,12 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
   `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
 - `stage3_hasDiscrepancyAtLeast` : specialization at a fixed threshold `C`
 - `stage3_not_exists_boundedDiscOffset` : stable boundedness-negation packaging of the
-  Stage-2 offset-discrepancy unboundedness witness
+  Stage-2 offset-discrepancy witness
+- `stage3_unboundedDiscOffset` : stable packaging of the Stage-2 offset-discrepancy witness
+- `stage3_unboundedDiscrepancyAlong_core` : Track-C fixed-step unboundedness witness along the
+  reduced sequence, phrased using `MoltResearch.UnboundedDiscrepancyAlong`
+- `stage3_exists_params_one_le_not_exists_boundedDiscOffset` : existential packaging of
+  `stage3_not_exists_boundedDiscOffset`
 
 All additional projection/rewrite lemmas and most witness-form corollaries live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
@@ -70,26 +75,9 @@ theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     1 ≤ (stage3Out (f := f) (hf := hf)).d := by
   simpa using (Stage2Output.one_le_d (out := (stage3Out (f := f) (hf := hf)).out2))
 
-/-- Convenience lemma: the Stage-3 reduced step size is positive.
-
-This is a tiny corollary of `stage3_one_le_d`.
--/
-theorem stage3Out_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).d > 0 := by
-  exact lt_of_lt_of_le Nat.zero_lt_one (stage3_one_le_d (f := f) (hf := hf))
-
-/-- Convenience lemma: the Stage-3 reduced step size is nonzero.
-
-This is a tiny corollary of `stage3Out_d_pos`.
--/
-theorem stage3Out_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage3Out (f := f) (hf := hf)).d ≠ 0 := by
-  exact Nat.ne_of_gt (stage3Out_d_pos (f := f) (hf := hf))
-
 -- Note: the simp lemma `stage3Out_out2` is enough to rewrite projections like
 -- `(stage3Out ...).out2.d` to `(stage2Out ...).d`, so we avoid duplicating simp lemmas for
 -- `.d/.m/.g` here.
-
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
@@ -125,18 +113,6 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).d
       (stage3Out (f := f) (hf := hf)).m := by
   exact (stage3Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
-
-/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
-bundled offset discrepancy family `discOffset f d m` is unbounded.
-
-This is a minimal-entry convenience lemma for downstream stages that prefer not to mention the
-record fields of `stage3Out`.
--/
-theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
-  refine ⟨(stage3Out (f := f) (hf := hf)).d, (stage3Out (f := f) (hf := hf)).m, ?_, ?_⟩
-  · exact stage3_one_le_d (f := f) (hf := hf)
-  · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
 no bundled offset bound at those parameters.
@@ -186,20 +162,6 @@ theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
   intro C
   exact
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
-      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
-
-/-- Strengthening of `stage3_forall_exists_discrepancy_gt` with side conditions `d ≥ 1` and `n > 0`.
-
-This is the most “surface-friendly” witness form of Stage 3.
-
-It is obtained from `stage3_forall_hasDiscrepancyAtLeast` via
-`HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos`.
--/
-theorem stage3_forall_exists_discrepancy_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  exact
-    (HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f := f) (C := C)).1
       ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
 
 /-- Specialization of `stage3_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
