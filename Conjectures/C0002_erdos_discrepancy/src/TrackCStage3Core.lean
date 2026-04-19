@@ -85,17 +85,24 @@ convenient for later stages, without re-declaring boundary lemmas.
 /-- Convenience projection: the affine-tail start index `m*d` packaged in Stage 3. -/
 abbrev start (out : Stage3Output f) : ℕ := out.m * out.d
 
+/-- Definitional rewrite: the bundled Stage-3 start index is the Stage-2 start index
+of the carried Stage-2 output.
+
+This lemma is intentionally tiny (and not marked as a simp lemma): it exists mainly to reduce
+`dsimp` noise when shuttling facts between Stage 2 and Stage 3.
+-/
+theorem start_eq_out2_start (out : Stage3Output f) : out.start = out.out2.start := by
+  rfl
+
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
   -- Delegate to the Stage-2 core lemma (avoids re-proving arithmetic about the projections).
-  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m, Stage2Output.start, Stage2Output.d,
-    Stage2Output.m] using
+  simpa [Stage3Output.start, Stage2Output.start] using
     (Stage2Output.d_dvd_start (f := f) out.out2)
 
 /-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`. -/
 theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
-  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m, Stage2Output.start, Stage2Output.d,
-    Stage2Output.m] using
+  simpa [Stage3Output.start, Stage2Output.start] using
     (Stage2Output.start_mod_d (f := f) out.out2)
 
 /-- Adding the start index does not change residues modulo the step size.
@@ -105,8 +112,7 @@ Since `out.start` is a multiple of `out.d`, we have
 -/
 theorem add_start_mod_d (out : Stage3Output f) (n : ℕ) :
     (n + out.start) % out.d = n % out.d := by
-  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m, Stage2Output.start, Stage2Output.d,
-    Stage2Output.m] using
+  simpa [Stage3Output.start, Stage2Output.start] using
     (Stage2Output.add_start_mod_d (f := f) out.out2 n)
 
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
