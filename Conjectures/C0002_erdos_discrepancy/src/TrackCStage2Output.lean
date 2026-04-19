@@ -143,12 +143,8 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
 -- Note: `Stage2Output.forall_exists_natAbs_apSumFrom_start_gt` lives in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
 
--- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
-
-/-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
-theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
-  exact (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
-    (g := out.g) (d := out.d)).1 out.unbounded
+-- Note: `Stage2Output.notBoundedReducedAlong` now lives in `TrackCStage2Core.lean` so downstream
+-- hard-gate stages can use it without importing this larger convenience-lemma module.
 
 -- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 

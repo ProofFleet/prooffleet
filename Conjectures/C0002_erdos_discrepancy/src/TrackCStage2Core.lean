@@ -56,6 +56,13 @@ theorem d_ne_zero (out : Stage2Output f) : out.d ≠ 0 := by
 theorem one_le_d (out : Stage2Output f) : 1 ≤ out.d := by
   simpa using (Nat.succ_le_iff).2 out.hd
 
+/-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
+theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
+  exact
+    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
+      (g := out.g) (d := out.d)).1
+      out.unbounded
+
 /-!
 ## Stage-2 bridge back to the global statement
 -/
