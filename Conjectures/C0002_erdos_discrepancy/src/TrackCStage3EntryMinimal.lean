@@ -75,6 +75,15 @@ theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     1 ≤ (stage3Out (f := f) (hf := hf)).d := by
   simpa using (Stage2Output.one_le_d (out := (stage3Out (f := f) (hf := hf)).out2))
 
+/-- Convenience lemma: the Stage-3 reduced step size is positive.
+
+This is sometimes the right normal form when downstream stages want to treat `d` as a denominator
+(or simply avoid rewriting `1 ≤ d`).
+-/
+theorem stage3Out_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).d > 0 := by
+  exact lt_of_lt_of_le Nat.zero_lt_one (stage3_one_le_d (f := f) (hf := hf))
+
 -- Note: the simp lemma `stage3Out_out2` is enough to rewrite projections like
 -- `(stage3Out ...).out2.d` to `(stage2Out ...).d`, so we avoid duplicating simp lemmas for
 -- `.d/.m/.g` here.
