@@ -339,6 +339,29 @@ example :
   simp [g, hx]
 
 /-!
+### NEW (Track B): “support + edit” pipeline — tiny one-liners
+
+These are intentionally tiny compile-only examples: edit `f` *outside* the support and transport
+through `apSumOffset`/`discOffset` with a one-step application of the support congruence lemmas.
+-/
+
+example :
+    let g : ℕ → ℤ := fun x => if x ∈ apSupport d m n then f x else f x + 1
+    apSumOffset f d m n = apSumOffset g d m n := by
+  intro g
+  refine apSumOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) ?_
+  intro x hx
+  simp [g, hx]
+
+example :
+    let g : ℕ → ℤ := fun x => if x ∈ apSupport d m n then f x else 37
+    discOffset f d m n = discOffset g d m n := by
+  intro g
+  refine discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) ?_
+  intro x hx
+  simp [g, hx]
+
+/-!
 ### NEW (Track B): endpoint-normalization helpers for `discOffset` witnesses
 
 Regression: a common hypothesis shape is stated using finitary endpoint sets
