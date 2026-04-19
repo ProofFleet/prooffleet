@@ -86,8 +86,9 @@ The goal is to pair verified artifacts with learning scaffolding.
   `apSupport_add`:
   `apSupport d m (n+k) = apSupport d m n ∪ apSupport d (m+n) k`.
   This is the support-side normal form that matches “concatenate AP sums” arguments.
-- **API note (`apSupport` size / no collisions):** if you need a cardinality statement, use `card_apSupport (m := m) (n := n) (hd := hd)` to rewrite
-  `(apSupport d m n).card = n` (the proof is by injectivity of `i ↦ (m+i+1)*d` when `d > 0`).
+- **API note (`apSupport` size / no collisions):** if you need a cardinality statement, there are two stable-surface wrappers:
+  - `card_apSupport_le` gives the always-true bound `(apSupport d m n).card ≤ n` (since it is an image of `Finset.range n`), and
+  - `card_apSupport_eq` (or the older `card_apSupport`) gives the exact value `(apSupport d m n).card = n` assuming `d > 0` (injectivity of `i ↦ (m+i+1)*d`).
 - **API note (shift–dilation coherence):** when you both (i) push an offset shift into the summand and (ii) pull a factor `q` into the step, use the commutation lemma `apSumOffset_shift_mul_right_comm` (and the wrapper `discOffset_shift_mul_right_comm`) to avoid redoing index algebra. Conceptually: “shift then dilate” = “dilate then shift (with scaled offset)”.
 - **API note (paper interval normalization):** many downstream proofs naturally produce paper-style terms like `Int.natAbs ((Finset.Icc (m+1) (m+n)).sum ...)`. The stable surface exports simp lemmas rewriting these directly to `discOffset f d m n`, so endpoint algebra can be normalized by `simp` without manually rewriting `discOffset_eq_natAbs_sum_Icc` back and forth.
 - **API note (affine interval sum → `apSumOffset`):** if you have an interval sum with an extra affine offset in the summand,
