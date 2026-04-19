@@ -102,3 +102,9 @@ The goal is to pair verified artifacts with learning scaffolding.
   `add_one_add_pred_eq_add` / `add_pred_add_one_eq_add` (both require `0 < n`) to normalize `m+1+(n-1)` (or `m+(n-1)+1`) back to `m+n`.
   We *do not* add generic associativity/commutativity theorems to the simp set here: that tends to loop. Keep these helper lemmas explicit.
 - **Related tasks:** `T1_01`, `T1_07`, `T1_12`.
+
+- **API note (`apSupport` cut-stability for congruence hypotheses):** when you have a hypothesis of the form
+  `h : ∀ x ∈ apSupport d m (n + k), f x = g x`, you often want to transport it through cut/split normal forms like `apSumOffset_add_len`.
+  Use `apSupport_agree_add_iff` to split/merge that hypothesis across the cut:
+  `∀ x ∈ apSupport d m (n+k), ...` ↔ `(∀ x ∈ apSupport d m n, ...) ∧ (∀ x ∈ apSupport d (m+n) k, ...)`.
+  This avoids unfolding `apSupport` and keeps the “agree on accessed indices” condition in a canonical shape.
