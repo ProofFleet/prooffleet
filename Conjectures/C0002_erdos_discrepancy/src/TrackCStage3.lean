@@ -66,6 +66,16 @@ theorem unboundedDiscOffset (out : Stage3Output f) :
     UnboundedDiscOffset f out.out2.d out.out2.m := by
   exact out.out2.unboundedDiscOffset (f := f)
 
+/-- Stage 3 output also exposes the Stage-2 fixed-step unboundedness witness (the Tao2015 predicate
+`UnboundedDiscrepancyAlong`) along the reduced sequence.
+
+This is just the `unbounded` field of the carried Stage-2 output, rewritten to use the
+Stage-3 projections.
+-/
+theorem unboundedDiscrepancyAlong (out : Stage3Output f) :
+    Tao2015.UnboundedDiscrepancyAlong out.out1.g out.out1.d := by
+  simpa [Stage3Output.out1] using out.out2.unbounded
+
 /-- Stage 3 output also exposes the Stage-2 fixed-step unboundedness witness, phrased using the
 verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
