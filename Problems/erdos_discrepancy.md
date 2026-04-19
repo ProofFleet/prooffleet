@@ -460,7 +460,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] `discOffset` extremizer API (argmax, not just max value): strengthen `exists_discOffset_eq_discOffsetUpTo` to return an explicit `n` together with a proof that it maximizes `discOffset` among `n' ≤ N` (argmax-style), so later proofs can “choose a maximizer” without rebuilding comparison lemmas.
   (Implemented as `exists_discOffset_eq_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Paper-endpoint congruence wrappers for `discOffsetUpTo`/`discUpTo`: add lemmas that accept hypotheses in `Icc (m+1) (m+n)` form and discharge to `UpTo` congruence/stability facts, avoiding any explicit `Finset.range`/`Finset.image` in downstream statements.
+- [x] Paper-endpoint congruence wrappers for `discOffsetUpTo`/`discUpTo`: add lemmas that accept hypotheses in `Icc (m+1) (m+n)` form and discharge to `UpTo` congruence/stability facts, avoiding any explicit `Finset.range`/`Finset.image` in downstream statements.
+  (Implemented as `discOffsetUpTo_congr_Icc_lengths` and `discUpTo_congr_Icc_lengths` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Stable-surface regression for support algebra: add 2–3 tiny `example` blocks under `import MoltResearch.Discrepancy` showing the intended pipeline
   “support split → edit sensitivity → discOffset bound” compiles with `simp` + one `rw`, and wire into `SurfaceAudit`.
