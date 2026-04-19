@@ -445,6 +445,19 @@ example (g : ℕ → ℤ)
     discOffsetUpTo f d m n = discOffsetUpTo g d m n := by
   simpa using (discOffsetUpTo_congr_le (f := f) (g := g) (d := d) (m := m) (N := n) h)
 
+/-- NEW (Track B): paper-endpoint congruence wrapper for `discOffsetUpTo` (Icc-length form). -/
+example (g : ℕ → ℤ)
+    (h : ∀ t, t ≤ n → ∀ i ∈ Finset.Icc (m + 1) (m + t), f (i * d) = g (i * d)) :
+    discOffsetUpTo f d m n = discOffsetUpTo g d m n := by
+  simpa using
+    (discOffsetUpTo_congr_Icc_lengths (f := f) (g := g) (d := d) (m := m) (N := n) h)
+
+/-- NEW (Track B): paper-endpoint congruence wrapper for `discUpTo` (Icc-length form). -/
+example (g : ℕ → ℤ)
+    (h : ∀ t, t ≤ n → ∀ i ∈ Finset.Icc 1 t, f (i * d) = g (i * d)) :
+    discUpTo f d n = discUpTo g d n := by
+  simpa using (discUpTo_congr_Icc_lengths (f := f) (g := g) (d := d) (N := n) h)
+
 /-!
 ### NEW (Track B): `discOffsetUpTo` Lipschitz-by-1 in `N`
 
