@@ -25,6 +25,27 @@ section NormalFormExamples
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
+### NEW (Track B): stable-surface regression for `apSupport` algebra
+
+These are intentionally tiny compile-only examples meant to demonstrate the intended workflow:
+
+`apSupport` bookkeeping → `apSumOffset`/`discOffset` transport via the stable-surface lemmas.
+-/
+
+-- (1) Length-splitting normal form for the finite support.
+example : apSupport d m (n + k) = apSupport d m n ∪ apSupport d (m + n) k := by
+  simpa using (apSupport_add (d := d) (m := m) (n := n) (k := k))
+
+-- (2) Start-shift normal form: shifting the start index is an `image` of the old support.
+example : apSupport d (m + k) n = (apSupport d m n).image (fun x => x + k * d) := by
+  simpa using (apSupport_add_left (d := d) (m := m) (n := n) (k := k))
+
+-- (3) Pipeline pattern: agreement on `apSupport` transports sums/discrepancies.
+example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
+    discOffset f d m n = discOffset g d m n := by
+  simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
+
+/-!
 ### NEW (Track B): `discOffsetUpTo` dilation/coarsening convenience wrappers
 
 Compile-only regression test: `simp` should rewrite a dilated `discOffsetUpTo` by pulling the
