@@ -82,6 +82,10 @@ The goal is to pair verified artifacts with learning scaffolding.
   If you want to expose the underlying `Finset.range` image form of the support (to map/filter/count over it) without unfolding the definition, rewrite via `apSupport_eq_image_range`.
 - **API note (`apSupport` canonical membership):** if your membership goal is already in the normal form
   `((m + i + 1) * d) ∈ apSupport d m n`, and you have `hd : d > 0`, then `simp [mem_apSupport_index_iff (m := m) (n := n) (i := i) hd]` reduces it to the expected bound `i < n`.
+- **API note (`apSupport` concatenation):** to split the support of a length `(n+k)` block into its first `n` and last `k` pieces, use
+  `apSupport_add`:
+  `apSupport d m (n+k) = apSupport d m n ∪ apSupport d (m+n) k`.
+  This is the support-side normal form that matches “concatenate AP sums” arguments.
 - **API note (`apSupport` size / no collisions):** if you need a cardinality statement, use `card_apSupport (m := m) (n := n) (hd := hd)` to rewrite
   `(apSupport d m n).card = n` (the proof is by injectivity of `i ↦ (m+i+1)*d` when `d > 0`).
 - **API note (shift–dilation coherence):** when you both (i) push an offset shift into the summand and (ii) pull a factor `q` into the step, use the commutation lemma `apSumOffset_shift_mul_right_comm` (and the wrapper `discOffset_shift_mul_right_comm`) to avoid redoing index algebra. Conceptually: “shift then dilate” = “dilate then shift (with scaled offset)”.
