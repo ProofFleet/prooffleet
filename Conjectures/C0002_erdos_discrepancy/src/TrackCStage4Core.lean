@@ -82,6 +82,14 @@ theorem unboundedDiscrepancyAlong_core (out : Stage4Output f) :
     MoltResearch.UnboundedDiscrepancyAlong out.out1.g out.out1.d := by
   simpa [Stage4Output.out1] using out.out3.unboundedDiscrepancyAlong_core (f := f)
 
+/-- Stage 4 output retains the Stage-3 offset-discrepancy unboundedness witness.
+
+This is a thin wrapper around `Stage3Output.unboundedDiscOffset`.
+-/
+theorem unboundedDiscOffset (out : Stage4Output f) :
+    UnboundedDiscOffset f out.out2.d out.out2.m := by
+  simpa [Stage4Output.out2] using out.out3.unboundedDiscOffset (f := f)
+
 end Stage4Output
 
 /-- Stage 4 main constructor (stub).
@@ -156,6 +164,16 @@ theorem stage4_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
       (stage4Out (f := f) (hf := hf)).out1.g
       (stage4Out (f := f) (hf := hf)).out1.d := by
   simpa using (stage4Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core (f := f)
+
+/-- Stable packaging of the Stage-2 offset-discrepancy unboundedness witness retained by Stage 4.
+
+This is a tiny wrapper around `Stage4Output.unboundedDiscOffset`.
+-/
+theorem stage4_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscOffset f
+      (stage4Out (f := f) (hf := hf)).out2.d
+      (stage4Out (f := f) (hf := hf)).out2.m := by
+  exact (stage4Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
 
 end Tao2015
 end MoltResearch
