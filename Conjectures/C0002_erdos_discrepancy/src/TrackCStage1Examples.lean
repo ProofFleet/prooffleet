@@ -32,6 +32,25 @@ theorem exists_forall_discOffset_le_of_boundedDiscrepancy (hb : BoundedDiscrepan
   simpa using (ctx.bound_discOffset_two_mul (f := f) (d := d) (m := m) (n := n) hd)
 
 /-- Example: bounded global discrepancy transfers to bounded fixed-step discrepancy
+for the reduced sequence packaged by an arbitrary Stage-1 `ReductionOutput`.
+
+This is the generic Stage-1 consumption pattern:
+1. turn `BoundedDiscrepancy f` into a uniform `discOffset` bound (cost: factor `2`), then
+2. apply the `ReductionOutput` discrepancy-transfer contract.
+-/
+theorem boundedDiscrepancyAlong_ofReductionOutput_of_boundedDiscrepancy (hb : BoundedDiscrepancy f)
+    (out : ReductionOutput f) :
+    BoundedDiscrepancyAlong out.g out.d := by
+  classical
+  let ctx : Tao2015.Context f := Tao2015.Context.ofBoundedDiscrepancy (f := f) hb
+  refine ⟨2 * ctx.B, ?_⟩
+  intro n
+  -- Apply the reduction output's transfer contract with the uniform bound coming from `ctx`.
+  refine out.contract_discrepancy_le (f := f) (B := 2 * ctx.B) ?_ n
+  intro n'
+  simpa using (ctx.bound_discOffset_two_mul (f := f) (d := out.d) (m := out.m) (n := n') out.hd)
+
+/-- Example: bounded global discrepancy transfers to bounded fixed-step discrepancy
 for the reduced sequence coming from `ReductionOutput.ofShift`.
 
 This is the canonical Stage-1 consumption pattern:
@@ -41,15 +60,9 @@ This is the canonical Stage-1 consumption pattern:
 theorem boundedDiscrepancyAlong_ofShift_of_boundedDiscrepancy
     (hf : IsSignSequence f) (hb : BoundedDiscrepancy f) (d m : ℕ) (hd : d > 0) :
     BoundedDiscrepancyAlong (ReductionOutput.ofShift f hf d m hd).g d := by
-  -- Extract a uniform offset bound from global boundedness.
-  rcases
-      (exists_forall_discOffset_le_of_boundedDiscrepancy (f := f) hb (d := d) (m := m) hd)
-    with ⟨B, hB⟩
-  -- Apply the reduction output's transfer contract.
-  refine ⟨B, ?_⟩
-  intro n
-  -- `BoundedDiscrepancyAlong` is stated in terms of `discrepancy`.
-  exact (ReductionOutput.ofShift f hf d m hd).contract_discrepancy_le B hB n
+  simpa using
+    (boundedDiscrepancyAlong_ofReductionOutput_of_boundedDiscrepancy (f := f) (hb := hb)
+      (out := ReductionOutput.ofShift f hf d m hd))
 
 /-- Example: consume a fixed-step discrepancy witness for the reduced sequence produced by
 `ReductionOutput.ofShift`, and extract an explicit affine-tail witness for the *original* sequence.
