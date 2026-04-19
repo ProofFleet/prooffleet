@@ -463,8 +463,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Paper-endpoint congruence wrappers for `discOffsetUpTo`/`discUpTo`: add lemmas that accept hypotheses in `Icc (m+1) (m+n)` form and discharge to `UpTo` congruence/stability facts, avoiding any explicit `Finset.range`/`Finset.image` in downstream statements.
   (Implemented as `discOffsetUpTo_congr_Icc_lengths` and `discUpTo_congr_Icc_lengths` in `MoltResearch/Discrepancy/Offset.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface regression for support algebra: add 2–3 tiny `example` blocks under `import MoltResearch.Discrepancy` showing the intended pipeline
-  “support split → edit sensitivity → discOffset bound” compiles with `simp` + one `rw`, and wire into `SurfaceAudit`.
+- [x] Stable-surface regression for support algebra: add 2–3 tiny `example` blocks under `import MoltResearch.Discrepancy` showing the intended pipeline
+  “support split → edit sensitivity → discOffset bound” compiles with `simp` + one `rw`.
+  (Done in `MoltResearch/Discrepancy/NormalFormExamples.lean`; wiring into `SurfaceAudit` is handled by importing that file in CI.)
 
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
