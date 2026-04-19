@@ -307,6 +307,39 @@ lemma mem_apSupport_of_lt {i d m n : ℕ} (hi : i < n) :
   exact ⟨i, Finset.mem_range.2 hi, rfl⟩
 
 /-!
+### Cardinality bounds (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupport` cardinality bookkeeping.
+
+Because `apSupport d m n` is defined as an image of `Finset.range n`, its cardinality is always
+bounded by `n`. When `d > 0`, the sampling map `i ↦ (m + i + 1) * d` is injective, so the support
+contains *exactly* `n` indices.
+-/
+
+/-- Basic bookkeeping: `apSupport d m n` has cardinality at most `n`. -/
+lemma card_apSupport_le (d m n : ℕ) : (apSupport d m n).card ≤ n := by
+  classical
+  -- `card (image ...) ≤ card (range n) = n`.
+  simpa [apSupport] using (Finset.card_image_le (s := Finset.range n)
+    (f := fun i => (m + i + 1) * d))
+
+/-- Exact cardinality when the step is positive (no multiplicities collapse). -/
+lemma card_apSupport_eq (d m n : ℕ) (hd : d > 0) : (apSupport d m n).card = n := by
+  classical
+  -- The sampling map is injective when `d > 0`.
+  have hinj : Function.Injective (fun i : ℕ => (m + i + 1) * d) := by
+    intro i j hij
+    have hmul : m + i + 1 = m + j + 1 := Nat.mul_right_cancel hd hij
+    have hmul' : m + (i + 1) = m + (j + 1) := by
+      simpa [Nat.add_assoc] using hmul
+    have : i + 1 = j + 1 := Nat.add_left_cancel hmul'
+    exact Nat.succ_inj.mp (by simpa using this)
+  -- `card (image) = card (range n) = n`.
+  simpa [apSupport] using
+    (Finset.card_image_of_injective (s := Finset.range n)
+      (f := fun i : ℕ => (m + i + 1) * d) hinj)
+
+/-!
 ### Membership characterization (Track B)
 
 This is a small “unfold-free” interface lemma for the `apSupport` support finset.

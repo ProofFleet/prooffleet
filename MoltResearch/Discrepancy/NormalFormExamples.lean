@@ -142,6 +142,19 @@ example : apSupport d m n = (Finset.range n).image (fun i => (m + i + 1) * d) :=
   simp [apSupport_eq_image_range]
 
 /-!
+### NEW (Track B): `apSupport` cardinality bookkeeping
+
+Compile-only regressions: bounding the number of accessed indices should be a one-liner, and when
+`d > 0` the bound should be exact.
+-/
+
+example : (apSupport d m n).card ≤ n := by
+  simpa using (card_apSupport_le (d := d) (m := m) (n := n))
+
+example (hd : d > 0) : (apSupport d m n).card = n := by
+  simpa using (card_apSupport_eq (d := d) (m := m) (n := n) hd)
+
+/-!
 ### NEW (Track B): support concatenation normal form (`apSupport`)
 
 Compile-only regression: the stable surface API can split the support of a length `(n+k)` block
