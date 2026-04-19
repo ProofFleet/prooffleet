@@ -41,8 +41,13 @@ theorem stage3_hd (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) 
     (Stage3Output.hd (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-!
-The convenience lemma `stage3_one_le_d` lives in `TrackCStage3Entry.lean`.
-We intentionally do not redeclare it here (this file imports `TrackCStage3Entry`).
+The convenience lemma `stage3_one_le_d_proj` (for the projection `stage3_d`) lives in
+`TrackCStage3Entry.lean`.
+
+(The lemma with the canonical name `stage3_one_le_d` lives in the minimal entry module
+`TrackCStage3EntryMinimal` and is phrased using `(stage3Out ...).d`.)
+
+We intentionally do not redeclare either lemma here (this file imports `TrackCStage3Entry`).
 -/
 
 /-

@@ -43,8 +43,13 @@ noncomputable abbrev stage3_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
 theorem stage3_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) : stage3_d (f := f) (hf := hf) > 0 := by
   simpa [stage3_d] using stage2_d_pos (f := f) (hf := hf)
 
-/-- Convenience lemma: the reduced step size produced by Stage 3 is at least `1`. -/
-theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) : 1 ≤ stage3_d (f := f) (hf := hf) := by
+/-- Convenience lemma: the reduced step size projection `stage3_d` is at least `1`.
+
+Note: the lemma with the canonical name `stage3_one_le_d` lives in the minimal entry-point module
+`TrackCStage3EntryMinimal` and states the same inequality for `(stage3Out ...).d`.
+-/
+theorem stage3_one_le_d_proj (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    1 ≤ stage3_d (f := f) (hf := hf) := by
   simpa [stage3_d] using stage2_one_le_d (f := f) (hf := hf)
 
 /-- Convenience lemma: the reduced step size produced by Stage 3 is nonzero. -/
@@ -200,7 +205,7 @@ theorem stage3_forall_exists_params_one_le_discOffset_gt'_witness_pos
   intro B
   rcases stage3_forall_exists_discOffset_gt'_witness_pos (f := f) (hf := hf) B with ⟨n, hn, hgt⟩
   refine ⟨stage3_d (f := f) (hf := hf), stage3_m (f := f) (hf := hf), n, ?_, hn, ?_⟩
-  · exact stage3_one_le_d (f := f) (hf := hf)
+  · exact stage3_one_le_d_proj (f := f) (hf := hf)
   · simpa using hgt
 
 /-!

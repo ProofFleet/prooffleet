@@ -38,10 +38,14 @@ Definitional rewrite simp lemmas for `stage3Out` live in the minimal module
 /-- Track C pipeline witness: Stage 3 yields unbounded fixed-step discrepancy along the reduced
 sequence, expressed using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
-This lemma is a small convenience wrapper around the bridge equivalence
-`Tao2015.unboundedDiscrepancyAlong_iff_core`.
+The lemma with the canonical name `stage3_unboundedDiscrepancyAlong_core` lives in the minimal
+entry-point module `TrackCStage3EntryMinimal` (it uses the bundled projections `.g` and `.d`).
+
+This lemma is the same statement, but written using the explicit Stage-1 reduction fields
+`out1.g` and `out1.d`; it is occasionally convenient when shuttling between Stage-2 and Stage-3
+records.
 -/
-theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+theorem stage3_unboundedDiscrepancyAlong_core_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     MoltResearch.UnboundedDiscrepancyAlong
       (stage3Out (f := f) (hf := hf)).out1.g
       (stage3Out (f := f) (hf := hf)).out1.d := by
