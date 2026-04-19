@@ -454,6 +454,109 @@ lemma discOffset_step_one_mul_len_succ_eq_natAbs_sum_range
 
 
 /-!
+## Support API for residue decomposition (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue decomposition support API.
+
+After splitting a length-`q*(n+1)` offset AP sum into residue classes modulo `q`, it is useful to
+have a corresponding statement at the level of the *accessed-index support* finset `apSupport`.
+
+We package this as:
+- a finset `apSupportResidue d m q n r` for the indices accessed by the `r`-th residue class, and
+- a rewrite lemma expressing `apSupport d m (q*(n+1))` as the union of these residue supports.
+
+When `d > 0`, these residue supports are pairwise disjoint (no multiplicities collapse).
+-/
+
+def apSupportResidue (d m q n r : ℕ) : Finset ℕ :=
+  (Finset.range (n + 1)).image (fun k => (m + (q * k + r) + 1) * d)
+
+lemma apSupport_mul_len_succ_eq_biUnion_apSupportResidue (d m q n : ℕ) (hq : q > 0) :
+    apSupport d m (q * (n + 1)) =
+      (Finset.range q).biUnion (fun r => apSupportResidue d m q n r) := by
+  classical
+  ext x
+  constructor
+  · intro hx
+    rcases (mem_apSupport (d := d) (m := m) (n := q * (n + 1)) (x := x)).1 hx with ⟨i, hi, rfl⟩
+    let r : ℕ := i % q
+    let k : ℕ := i / q
+    have hr : r < q := Nat.mod_lt _ hq
+    have hk : k < n + 1 := by
+      -- `i < q*(n+1)` implies `i/q < n+1` when `q > 0`.
+      have hi' : i < (n + 1) * q := by
+        simpa [Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using hi
+      have : i / q < n + 1 := (Nat.div_lt_iff_lt_mul hq).2 (by simpa [Nat.mul_comm] using hi')
+      simpa [k] using this
+    have hdecomp : q * k + r = i := by
+      -- `i / q * q + i % q = i`.
+      simpa [k, r, Nat.mul_comm, Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+        (Nat.div_add_mod i q)
+
+    -- Membership in the biUnion.
+    refine (Finset.mem_biUnion).2 ?_
+    refine ⟨r, Finset.mem_range.2 hr, ?_⟩
+    refine Finset.mem_image.2 ?_
+    refine ⟨k, Finset.mem_range.2 hk, ?_⟩
+    -- Normalize `q*k + r` back to `i`.
+    simp [apSupportResidue, hdecomp, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+  · intro hx
+    rcases (Finset.mem_biUnion).1 hx with ⟨r, hr, hx⟩
+    rcases Finset.mem_image.1 hx with ⟨k, hk, rfl⟩
+    have hr' : r < q := Finset.mem_range.1 hr
+    have hk' : k < n + 1 := Finset.mem_range.1 hk
+    -- Show the combined index `i = q*k + r` lies in the `q*(n+1)` range.
+    have hi : q * k + r < q * (n + 1) := by
+      -- First, `q*k + r < q*k + q` since `r < q`.
+      have h1 : q * k + r < q * k + q := Nat.add_lt_add_left hr' _
+      -- And `q*k + q = q*(k+1) ≤ q*(n+1)` since `k+1 ≤ n+1`.
+      have hle : q * k + q ≤ q * (n + 1) := by
+        have hkle : k + 1 ≤ n + 1 := Nat.succ_le_of_lt hk'
+        -- Multiply the inequality by `q` on the left.
+        have : q * (k + 1) ≤ q * (n + 1) := Nat.mul_le_mul_left q hkle
+        -- Rewrite `q*(k+1)`.
+        simpa [Nat.mul_add, Nat.mul_one, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+      exact lt_of_lt_of_le h1 hle
+
+    exact (mem_apSupport (d := d) (m := m) (n := q * (n + 1)) (x := (m + (q * k + r) + 1) * d)).2
+      ⟨q * k + r, by simpa [Nat.mul_assoc] using hi, rfl⟩
+
+lemma disjoint_apSupportResidue_of_ne
+    (d m q n r₁ r₂ : ℕ) (hq : q > 0) (hd : d > 0) (hr₁ : r₁ < q) (hr₂ : r₂ < q) (hne : r₁ ≠ r₂) :
+    Disjoint (apSupportResidue d m q n r₁) (apSupportResidue d m q n r₂) := by
+  classical
+  -- Prove disjointness by elementwise contradiction.
+  refine Finset.disjoint_left.2 ?_
+  intro x hx₁ hx₂
+  rcases Finset.mem_image.1 hx₁ with ⟨k₁, hk₁, hkx₁⟩
+  rcases Finset.mem_image.1 hx₂ with ⟨k₂, hk₂, hkx₂⟩
+
+  -- Cancel the positive factor `d`.
+  have hmul : (m + (q * k₁ + r₁) + 1) = (m + (q * k₂ + r₂) + 1) := by
+    apply Nat.mul_right_cancel hd
+    -- both sides equal `x`.
+    simpa [apSupportResidue] using hkx₁.trans hkx₂.symm
+
+  -- Cancel the common `m` and the trailing `+ 1`.
+  have hidx : q * k₁ + r₁ = q * k₂ + r₂ := by
+    -- First cancel the common prefix `m`.
+    have h' : (q * k₁ + r₁) + 1 = (q * k₂ + r₂) + 1 := by
+      have hm' : m + ((q * k₁ + r₁) + 1) = m + ((q * k₂ + r₂) + 1) := by
+        simpa [Nat.add_assoc] using hmul
+      exact Nat.add_left_cancel hm'
+    exact Nat.succ_inj.mp h'
+
+  -- Reduce the equality modulo `q` to force `r₁ = r₂`.
+  have hmod : (q * k₁ + r₁) % q = (q * k₂ + r₂) % q := congrArg (fun t => t % q) hidx
+  have : r₁ = r₂ := by
+    -- simplify both sides using `r < q`.
+    simpa [Nat.add_mod, Nat.mul_mod, Nat.mod_eq_of_lt hr₁, Nat.mod_eq_of_lt hr₂] using hmod
+
+  exact hne this
+
+
+/-!
 ## Multiplication-on-the-left variants
 
 These are small convenience wrappers around the main residue-class split lemmas.

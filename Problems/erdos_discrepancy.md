@@ -454,7 +454,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Cut-stability for `apSupport`: prove a normal form stating that if `f=g` on `apSupport d m n` then they also agree on both cut pieces’ supports (and conversely), so “agree on accessed indices” hypotheses can be transported through `apSumOffset` cut/split lemmas.
   (Implemented as `apSupport_agree_add_iff` and `apSupport_agree_cut_iff` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Residue decomposition support API: after splitting an AP sum into residues mod `r`, prove the corresponding support union lemma (supports of each residue class are disjoint / have controlled overlap) and export a single wrapper so residue-class arguments can reuse the edit-sensitivity library without unfolding.
+- [x] Residue decomposition support API: after splitting an AP sum into residues mod `r`, prove the corresponding support union lemma (supports of each residue class are disjoint) and export a single wrapper so residue-class arguments can reuse the edit-sensitivity library without unfolding.
+  (Implemented as `apSupportResidue`, `apSupport_mul_len_succ_eq_biUnion_apSupportResidue`, and `disjoint_apSupportResidue_of_ne` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffset` extremizer API (argmax, not just max value): strengthen `exists_discOffset_eq_discOffsetUpTo` to return an explicit `n` together with a proof that it maximizes `discOffset` among `n' ≤ N` (argmax-style), so later proofs can “choose a maximizer” without rebuilding comparison lemmas.
 

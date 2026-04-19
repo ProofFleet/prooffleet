@@ -4461,6 +4461,19 @@ example (hq : q > 0) :
       (Finset.range q).sum (fun r => f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
   simpa using apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq
 
+-- Regression (Track B / residue support API): callers can rewrite supports for residue-class splits.
+example (hq : q > 0) :
+    apSupport d m (q * (n + 1)) =
+      (Finset.range q).biUnion (fun r => apSupportResidue d m q n r) := by
+  simpa using
+    apSupport_mul_len_succ_eq_biUnion_apSupportResidue (d := d) (m := m) (q := q) (n := n) hq
+
+example (hq : q > 0) (hd : d > 0) {r₁ r₂ : ℕ} (hr₁ : r₁ < q) (hr₂ : r₂ < q) (hne : r₁ ≠ r₂) :
+    Disjoint (apSupportResidue d m q n r₁) (apSupportResidue d m q n r₂) := by
+  simpa using
+    disjoint_apSupportResidue_of_ne (d := d) (m := m) (q := q) (n := n)
+      (r₁ := r₁) (r₂ := r₂) hq hd hr₁ hr₂ hne
+
 -- Paper-notation (`Finset.Icc`) residue splitting: callers shouldn’t have to drop to `apSumOffset` first.
 example (hq : q > 0) :
     (Finset.Icc (m + 1) (m + q * (n + 1))).sum (fun i => f (i * d)) =
