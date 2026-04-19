@@ -441,6 +441,15 @@ theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage3Output f) :
   simpa [Stage3Output.d, Stage3Output.m] using
     (Stage2Output.not_exists_forall_natAbs_apSumFrom_mul_le (f := f) out.out2)
 
+/-- Start-index phrasing of `not_exists_forall_natAbs_apSumFrom_mul_le`.
+
+This replaces the explicit arithmetic form `out.m * out.d` with the bundled start index
+`out.start = out.m * out.d` to reduce noise in downstream stages.
+-/
+theorem not_exists_forall_natAbs_apSumFrom_start_le (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) ≤ B := by
+  simpa [Stage3Output.start] using out.not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+
 end Stage3Output
 
 end Tao2015
