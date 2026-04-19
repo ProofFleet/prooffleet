@@ -107,4 +107,9 @@ The goal is to pair verified artifacts with learning scaffolding.
   `h : ∀ x ∈ apSupport d m (n + k), f x = g x`, you often want to transport it through cut/split normal forms like `apSumOffset_add_len`.
   Use `apSupport_agree_add_iff` to split/merge that hypothesis across the cut:
   `∀ x ∈ apSupport d m (n+k), ...` ↔ `(∀ x ∈ apSupport d m n, ...) ∧ (∀ x ∈ apSupport d (m+n) k, ...)`.
-  This avoids unfolding `apSupport` and keeps the “agree on accessed indices” condition in a canonical shape.
+
+  For the common “cut at `k ≤ n`” shape (prefix length `k`, suffix length `n-k`), use the wrapper
+  `apSupport_agree_cut_iff`:
+  `∀ x ∈ apSupport d m n, ...` ↔ `(∀ x ∈ apSupport d m k, ...) ∧ (∀ x ∈ apSupport d (m+k) (n-k), ...)`.
+
+  These avoid unfolding `apSupport` and keep “agree on accessed indices” hypotheses in a canonical, transport-friendly form.
