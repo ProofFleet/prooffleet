@@ -136,6 +136,21 @@ theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
   · exact stage3_one_le_d (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
+no bundled offset bound at those parameters.
+
+Normal form: `∃ d m, 1 ≤ d ∧ ¬ ∃ B, BoundedDiscOffset f d m B`.
+
+This is a minimal-entry convenience lemma for downstream stages that prefer not to mention the
+record fields of `stage3Out`.
+-/
+theorem stage3_exists_params_one_le_not_exists_boundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  refine ⟨(stage3Out (f := f) (hf := hf)).d, (stage3Out (f := f) (hf := hf)).m, ?_, ?_⟩
+  · exact stage3_one_le_d (f := f) (hf := hf)
+  · simpa using stage3_not_exists_boundedDiscOffset (f := f) (hf := hf)
+
 /-- Track-C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
 phrased using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
