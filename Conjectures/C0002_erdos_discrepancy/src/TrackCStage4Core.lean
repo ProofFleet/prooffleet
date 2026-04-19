@@ -1,4 +1,4 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal
 
 /-!
 # Track C — Stage 4 (core boundary)
@@ -9,7 +9,7 @@ Policy:
 - This file should stay API + wiring.
 - Put any additional derived lemmas / witness-form wrappers in
   `Conjectures.C0002_erdos_discrepancy.src.TrackCStage4Proof`.
-- Stage 4 should consume Stage 3 only through the hard-gate core import above.
+- Stage 4 should consume Stage 3 only through the hard-gate minimal entry-point import above.
 
 Current status: Stage-4 boundary API is still lightweight.
 

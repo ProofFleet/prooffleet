@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage4Core
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras
 
 /-!
 # Track C — Stage 4 proof file (derived wrappers)
