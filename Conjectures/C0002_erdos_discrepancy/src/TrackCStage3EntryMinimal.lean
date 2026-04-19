@@ -103,7 +103,8 @@ theorem stage3Out_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
 We keep this lemma in the hard-gate minimal module so `ErdosDiscrepancy.lean` can remain minimal.
 -/
 theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
-  exact (stage3Out (f := f) (hf := hf)).notBounded
+  let out := stage3Out (f := f) (hf := hf)
+  exact out.notBounded
 
 /-- Stable boundedness-negation packaging of the Stage-3 offset-discrepancy witness.
 
@@ -117,8 +118,8 @@ theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequen
       BoundedDiscOffset f
         (stage3Out (f := f) (hf := hf)).d
         (stage3Out (f := f) (hf := hf)).m B := by
-  simpa using
-    (Stage3Output.not_exists_boundedDiscOffset (f := f) (stage3Out (f := f) (hf := hf)))
+  let out := stage3Out (f := f) (hf := hf)
+  exact Stage3Output.not_exists_boundedDiscOffset (f := f) out
 
 /-- Stable witness packaging of the Stage-3 offset-discrepancy unboundedness statement.
 
@@ -131,7 +132,8 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     UnboundedDiscOffset f
       (stage3Out (f := f) (hf := hf)).d
       (stage3Out (f := f) (hf := hf)).m := by
-  exact (stage3Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
+  let out := stage3Out (f := f) (hf := hf)
+  exact out.unboundedDiscOffset (f := f)
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
@@ -141,9 +143,10 @@ positivity over `1 ≤ d`.
 -/
 theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
-  refine ⟨(stage3Out (f := f) (hf := hf)).d, (stage3Out (f := f) (hf := hf)).m, ?_, ?_⟩
+  let out := stage3Out (f := f) (hf := hf)
+  refine ⟨out.d, out.m, ?_, ?_⟩
   · exact stage3Out_d_pos (f := f) (hf := hf)
-  · simpa using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
 no bundled offset bound at those parameters.
@@ -156,9 +159,10 @@ record fields of `stage3Out`.
 theorem stage3_exists_params_one_le_not_exists_boundedDiscOffset (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
     ∃ d m : ℕ, 1 ≤ d ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
-  refine ⟨(stage3Out (f := f) (hf := hf)).d, (stage3Out (f := f) (hf := hf)).m, ?_, ?_⟩
+  let out := stage3Out (f := f) (hf := hf)
+  refine ⟨out.d, out.m, ?_, ?_⟩
   · exact stage3_one_le_d (f := f) (hf := hf)
-  · simpa using stage3_not_exists_boundedDiscOffset (f := f) (hf := hf)
+  · exact stage3_not_exists_boundedDiscOffset (f := f) (hf := hf)
 
 /-- Track-C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
 phrased using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
@@ -169,7 +173,8 @@ theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequ
     MoltResearch.UnboundedDiscrepancyAlong
       (stage3Out (f := f) (hf := hf)).g
       (stage3Out (f := f) (hf := hf)).d := by
-  simpa using (stage3Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core (f := f)
+  let out := stage3Out (f := f) (hf := hf)
+  exact out.unboundedDiscrepancyAlong_core (f := f)
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
@@ -178,7 +183,8 @@ This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
 -/
 theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf))
+  let out := stage3Out (f := f) (hf := hf)
+  exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) out
 
 /-- Consumer-facing witness form: Stage 3 yields explicit discrepancy witnesses.
 
