@@ -75,13 +75,11 @@ theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlo
 Note: `Stage3Output.unboundedDiscrepancyAlong_core` is already defined in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
-This file focuses on additional projections (`d`, `g`, `m`, etc.) that are convenient for later
-stages, without re-declaring boundary lemmas.
+This file focuses on additional projections (such as `start`) and tiny arithmetic rewrites that are
+convenient for later stages, without re-declaring boundary lemmas.
 -/
 
-/-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
-@[simp] abbrev m (out : Stage3Output f) : ℕ := out.out2.m
-
+-- Note: the basic projection `Stage3Output.m` lives in `TrackCStage3.lean` alongside `d` and `g`.
 -- Note: `Stage3Output.unboundedDiscOffset` is defined in `TrackCStage3.lean`.
 
 /-- Convenience projection: the affine-tail start index `m*d` packaged in Stage 3. -/

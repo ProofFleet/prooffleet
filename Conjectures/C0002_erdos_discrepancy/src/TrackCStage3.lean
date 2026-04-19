@@ -49,6 +49,10 @@ This is occasionally useful when later stages want access to the deterministic p
 @[simp] abbrev g (out : Stage3Output f) : ℕ → ℤ :=
   out.out2.g
 
+/-- Convenience projection: the bundled offset parameter packaged in Stage 3. -/
+@[simp] abbrev m (out : Stage3Output f) : ℕ :=
+  out.out2.m
+
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
