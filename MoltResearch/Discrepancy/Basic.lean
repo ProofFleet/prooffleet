@@ -1351,13 +1351,17 @@ lemma discOffsetUpTo_le_succNat (f : ℕ → ℤ) (d m N : ℕ) :
     discOffsetUpTo f d m N ≤ discOffsetUpTo f d m (Nat.succ N) := by
   simpa [Nat.succ_eq_add_one] using (discOffsetUpTo_le_succ (f := f) (d := d) (m := m) (N := N))
 
-/-- The maximum in `discOffsetUpTo` is attained by some `n ≤ N`.
+/-- The maximum in `discOffsetUpTo` is attained by some `n ≤ N`, together with an
+argmax-style comparison lemma.
+
+This packages the common pattern “choose a maximizer `n` and then reuse the inequality
+`discOffset _ n' ≤ discOffset _ n` for all `n' ≤ N`” without unfolding `discOffsetUpTo`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
 -/
 lemma exists_discOffset_eq_discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) :
     ∃ n ≤ N,
-      discOffset f d m n = discOffsetUpTo f d m N ∧
+      discOffsetUpTo f d m N = discOffset f d m n ∧
       ∀ n' ≤ N, discOffset f d m n' ≤ discOffset f d m n := by
   classical
   unfold discOffsetUpTo
@@ -1371,13 +1375,14 @@ lemma exists_discOffset_eq_discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) :
   refine ⟨n, ?_, ?_⟩
   · -- `n ∈ range (N+1)` implies `n ≤ N`.
     exact Nat.le_of_lt_succ (Finset.mem_range.1 hnmem)
-  · refine ⟨hsup.symm, ?_⟩
+  · refine ⟨hsup, ?_⟩
     intro n' hn'le
     have hn'mem : n' ∈ Finset.range (N + 1) := by
       exact Finset.mem_range.2 (Nat.lt_succ_of_le hn'le)
     have hle :=
       Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hn'mem
-    simpa [hsup.symm] using hle
+    -- rewrite the `sup` value to the chosen maximizer
+    simpa [hsup] using hle
 
 /-- In a fixed residue class modulo `q`, the maximum in `discUpTo` is attained by some `n ≤ N`.
 

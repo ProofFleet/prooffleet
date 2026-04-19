@@ -266,7 +266,7 @@ section
   example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
     rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n) with
       ⟨t, ht, htEq, -⟩
-    exact ⟨t, ht, htEq⟩
+    exact ⟨t, ht, htEq.symm⟩
 
   -- One-line usage audit: residue-class `UpTo` extraction wrappers.
   example (q r : ℕ)

@@ -510,7 +510,7 @@ unfolding `discOffsetUpTo`.
 
 example (f : ℕ → ℤ) (d m N : ℕ) :
     ∃ n ≤ N,
-      discOffset f d m n = discOffsetUpTo f d m N ∧
+      discOffsetUpTo f d m N = discOffset f d m n ∧
       ∀ n' ≤ N, discOffset f d m n' ≤ discOffset f d m n := by
   -- This is the packaged witness-extraction lemma.
   simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := N))
