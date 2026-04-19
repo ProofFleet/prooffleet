@@ -108,6 +108,17 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).out2.m := by
   exact (stage3Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
 
+/-- Track-C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
+phrased using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a thin wrapper around `Stage3Output.unboundedDiscrepancyAlong_core`.
+-/
+theorem stage3_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    MoltResearch.UnboundedDiscrepancyAlong
+      (stage3Out (f := f) (hf := hf)).g
+      (stage3Out (f := f) (hf := hf)).d := by
+  simpa using (stage3Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core (f := f)
+
 /-- Consumer-facing shortcut: the Stage-3 pipeline yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
 

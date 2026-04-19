@@ -63,9 +63,7 @@ theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf :
     UnboundedDiscrepancyAlong
       (Tao2015.stage3Out (f := f) (hf := hf)).g
       (Tao2015.stage3Out (f := f) (hf := hf)).d := by
-  -- Use the stable Stage-3 boundary record field, avoiding additional entry-point imports.
-  simpa using
-    (Tao2015.stage3Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core (f := f)
+  exact Tao2015.stage3_unboundedDiscrepancyAlong_core (f := f) (hf := hf)
 
 /-- Erdős discrepancy theorem.
 
