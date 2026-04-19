@@ -34,6 +34,11 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (endpoint-algebra wrappers):** three-segment concatenation is available as `discOffset_add_add_le`, but downstream goals often appear with right-associated endpoints. Use `discOffset_add_add_le_assoc` when your goal has length `n₁ + (n₂ + n₃)` and/or third-start index `m + (n₁ + n₂)` so you can `simpa` without manual `Nat.add_assoc` reassociation.
 - **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
   If your goal is stated with `Nat.succ N` instead of `N+1`, use the wrapper `discOffsetUpTo_le_succNat`.
+- **API note (argmax witness for `discOffsetUpTo`):** the lemma
+  `exists_discOffset_eq_discOffsetUpTo` returns not just a witness `n ≤ N` with
+  `discOffset … n = discOffsetUpTo … N`, but also the comparison fact
+  `∀ n' ≤ N, discOffset … n' ≤ discOffset … n`.
+  Pattern: `rcases exists_discOffset_eq_discOffsetUpTo … with ⟨n, hnle, hnEq, hmax⟩` and then use `hmax` to avoid rebuilding “≤ sup” inequalities.
 - **API note (tail concatenation, max-level):** for later Tao2015 bookkeeping, prefer the wrapper
   `discOffsetUpTo_tail_concat_le`:
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`.
