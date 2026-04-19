@@ -441,8 +441,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Support concatenation normal form (`apSupport`): prove a lemma describing `apSupport d m (n+k)` as the union of the two block supports
+- [x] Support concatenation normal form (`apSupport`): prove a lemma describing `apSupport d m (n+k)` as the union of the two block supports
   `apSupport d m n ∪ apSupport d (m+n) k` (with a simp-friendly membership characterization), so edit-sensitivity and congruence arguments can split supports without re-proving set algebra.
+  (Implemented as `apSupport_add` in `MoltResearch/Discrepancy/Basic.lean`, with membership interface `mem_apSupport` and a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Support cardinality bound: prove `Nat.card (apSupport d m n) ≤ n` (and the exact value `= n` when `d>0`) to make “number of accessed indices” bookkeeping one-liners in edit-sensitivity bounds.
 
