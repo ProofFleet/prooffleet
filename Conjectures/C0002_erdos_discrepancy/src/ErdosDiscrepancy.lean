@@ -40,6 +40,19 @@ theorem erdos_discrepancy_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : I
         (Tao2015.stage3Out (f := f) (hf := hf)).m B := by
   exact Tao2015.stage3_not_exists_boundedDiscOffset (f := f) (hf := hf)
 
+/-- Existential packaging of `erdos_discrepancy_not_exists_boundedDiscOffset`.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ¬ ∃ B, BoundedDiscOffset f d m B`.
+
+This is a small convenience wrapper around
+`Tao2015.stage3_exists_params_one_le_not_exists_boundedDiscOffset`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_not_exists_boundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  exact Tao2015.stage3_exists_params_one_le_not_exists_boundedDiscOffset (f := f) (hf := hf)
+
 /-- Stable packaging of the Stage-3 offset-discrepancy unboundedness witness.
 
 Normal form:
