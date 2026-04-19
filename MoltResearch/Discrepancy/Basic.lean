@@ -1356,7 +1356,9 @@ lemma discOffsetUpTo_le_succNat (f : ℕ → ℤ) (d m N : ℕ) :
 Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
 -/
 lemma exists_discOffset_eq_discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) :
-    ∃ n ≤ N, discOffset f d m n = discOffsetUpTo f d m N := by
+    ∃ n ≤ N,
+      discOffset f d m n = discOffsetUpTo f d m N ∧
+      ∀ n' ≤ N, discOffset f d m n' ≤ discOffset f d m n := by
   classical
   unfold discOffsetUpTo
   -- `range (N+1)` is nonempty, so `sup` is attained.
@@ -1369,7 +1371,13 @@ lemma exists_discOffset_eq_discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) :
   refine ⟨n, ?_, ?_⟩
   · -- `n ∈ range (N+1)` implies `n ≤ N`.
     exact Nat.le_of_lt_succ (Finset.mem_range.1 hnmem)
-  · exact hsup.symm
+  · refine ⟨hsup.symm, ?_⟩
+    intro n' hn'le
+    have hn'mem : n' ∈ Finset.range (N + 1) := by
+      exact Finset.mem_range.2 (Nat.lt_succ_of_le hn'le)
+    have hle :=
+      Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hn'mem
+    simpa [hsup.symm] using hle
 
 /-- In a fixed residue class modulo `q`, the maximum in `discUpTo` is attained by some `n ≤ N`.
 
@@ -1711,7 +1719,8 @@ theorem unboundedDiscOffset_iff_forall_exists_discOffsetUpTo_lt (f : ℕ → ℤ
     refine (unboundedDiscOffset_iff_forall_exists_discOffset_lt (f := f) (d := d) (m := m)).2 ?_
     intro B
     rcases h B with ⟨N, hN⟩
-    rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) with ⟨n, hn, hnEq⟩
+    rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) with
+      ⟨n, hn, hnEq, -⟩
     refine ⟨n, ?_⟩
     simpa [hnEq] using hN
 

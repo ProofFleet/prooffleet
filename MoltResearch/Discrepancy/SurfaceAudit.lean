@@ -264,7 +264,9 @@ section
 
   -- One-line usage audit: the `sup` in `discOffsetUpTo` is attained by some `t ≤ N`.
   example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
-    simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n))
+    rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n) with
+      ⟨t, ht, htEq, -⟩
+    exact ⟨t, ht, htEq⟩
 
   -- One-line usage audit: residue-class `UpTo` extraction wrappers.
   example (q r : ℕ)

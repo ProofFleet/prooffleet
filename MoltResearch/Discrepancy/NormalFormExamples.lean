@@ -509,9 +509,18 @@ unfolding `discOffsetUpTo`.
 -/
 
 example (f : ℕ → ℤ) (d m N : ℕ) :
-    ∃ n ≤ N, discOffset f d m n = discOffsetUpTo f d m N := by
+    ∃ n ≤ N,
+      discOffset f d m n = discOffsetUpTo f d m N ∧
+      ∀ n' ≤ N, discOffset f d m n' ≤ discOffset f d m n := by
   -- This is the packaged witness-extraction lemma.
   simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := N))
+
+-- Regression: extract the argmax inequality from the witness.
+example (f : ℕ → ℤ) (d m N n' : ℕ) (hn' : n' ≤ N) :
+    ∃ n ≤ N, discOffset f d m n' ≤ discOffset f d m n := by
+  rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) with
+    ⟨n, hnle, -, hmax⟩
+  exact ⟨n, hnle, hmax n' hn'⟩
 
 /-!
 Periodic (non-constant) sanity check: the alternating sign sequence has period 2.
@@ -926,7 +935,9 @@ example : discOffsetUpTo f d m n₁ ≤ discOffsetUpTo f d m (n₁ + n₂) := by
   simpa using (discOffsetUpTo_le_add (f := f) (d := d) (m := m) (N := n₁) (K := n₂))
 
 example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
-  simpa using (exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n))
+  rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n) with
+    ⟨t, ht, htEq, -⟩
+  exact ⟨t, ht, htEq⟩
 
 -- Regression (Track B / boundedness transfer for `discOffsetUpTo`): extending the cutoff by `K`
 -- increases the max discrepancy by at most `K` (Lipschitz-by-1 for sign sequences).
