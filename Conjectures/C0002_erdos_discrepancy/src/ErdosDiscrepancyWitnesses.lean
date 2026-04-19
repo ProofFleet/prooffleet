@@ -1,5 +1,4 @@
 import Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Output
 
 /-!
@@ -17,16 +16,16 @@ namespace MoltResearch
 
 Normal form:
 `∀ B, ∃ n, Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) > B`,
-where `d = Tao2015.stage3_d f hf` and `m = Tao2015.stage3_m f hf`.
+where `d = (Tao2015.stage3Out f hf).d` and `m = (Tao2015.stage3Out f hf).m`.
 
 This is a thin wrapper around `Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt`.
 -/
 theorem erdos_discrepancy_sum_Icc_offset_stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ B : ℕ, ∃ n : ℕ,
       Int.natAbs
-          ((Finset.Icc ((Tao2015.stage3_m (f := f) (hf := hf)) + 1)
-                ((Tao2015.stage3_m (f := f) (hf := hf)) + n)).sum
-              (fun i => f (i * (Tao2015.stage3_d (f := f) (hf := hf))))) > B := by
+          ((Finset.Icc (((Tao2015.stage3Out (f := f) (hf := hf)).m) + 1)
+                (((Tao2015.stage3Out (f := f) (hf := hf)).m) + n)).sum
+              (fun i => f (i * ((Tao2015.stage3Out (f := f) (hf := hf)).d)))) > B := by
   set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
   simpa [hout.symm] using
     (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) out)
@@ -38,9 +37,9 @@ The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is em
 theorem erdos_discrepancy_sum_Icc_offset_stage3_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧
       Int.natAbs
-          ((Finset.Icc ((Tao2015.stage3_m (f := f) (hf := hf)) + 1)
-                ((Tao2015.stage3_m (f := f) (hf := hf)) + n)).sum
-              (fun i => f (i * (Tao2015.stage3_d (f := f) (hf := hf))))) > B := by
+          ((Finset.Icc (((Tao2015.stage3Out (f := f) (hf := hf)).m) + 1)
+                (((Tao2015.stage3Out (f := f) (hf := hf)).m) + n)).sum
+              (fun i => f (i * ((Tao2015.stage3Out (f := f) (hf := hf)).d)))) > B := by
   set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
   simpa [hout.symm] using
     (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) out)
