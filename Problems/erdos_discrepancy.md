@@ -457,7 +457,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Residue decomposition support API: after splitting an AP sum into residues mod `r`, prove the corresponding support union lemma (supports of each residue class are disjoint) and export a single wrapper so residue-class arguments can reuse the edit-sensitivity library without unfolding.
   (Implemented as `apSupportResidue`, `apSupport_mul_len_succ_eq_biUnion_apSupportResidue`, and `disjoint_apSupportResidue_of_ne` in `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffset` extremizer API (argmax, not just max value): strengthen `exists_discOffset_eq_discOffsetUpTo` to return an explicit `n` together with a proof that it maximizes `discOffset` among `n' ≤ N` (argmax-style), so later proofs can “choose a maximizer” without rebuilding comparison lemmas.
+- [x] `discOffset` extremizer API (argmax, not just max value): strengthen `exists_discOffset_eq_discOffsetUpTo` to return an explicit `n` together with a proof that it maximizes `discOffset` among `n' ≤ N` (argmax-style), so later proofs can “choose a maximizer” without rebuilding comparison lemmas.
+  (Implemented as `exists_discOffset_eq_discOffsetUpTo` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Paper-endpoint congruence wrappers for `discOffsetUpTo`/`discUpTo`: add lemmas that accept hypotheses in `Icc (m+1) (m+n)` form and discharge to `UpTo` congruence/stability facts, avoiding any explicit `Finset.range`/`Finset.image` in downstream statements.
 
