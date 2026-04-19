@@ -13,21 +13,6 @@ Track-C hard-gate build compiles quickly.
 
 namespace MoltResearch
 
-/-- Track C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
-stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
-
-This is a small convenience wrapper around
-`Tao2015.Stage3Output.unboundedDiscrepancyAlong_core`.
--/
-theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    MoltResearch.UnboundedDiscrepancyAlong
-      (Tao2015.stage3Out (f := f) (hf := hf)).g
-      (Tao2015.stage3Out (f := f) (hf := hf)).d := by
-  -- Use the stable Stage-3 boundary API (avoids reaching into the hard-gate entry point lemma).
-  simpa using
-    (Tao2015.Stage3Output.unboundedDiscrepancyAlong_core (f := f)
-      (Tao2015.stage3Out (f := f) (hf := hf)))
-
 /-- Paper-notation witness form for the concrete Stage-3 offset parameters.
 
 Normal form:

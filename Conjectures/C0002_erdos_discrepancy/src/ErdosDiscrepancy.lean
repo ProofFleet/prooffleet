@@ -53,6 +53,20 @@ theorem erdos_discrepancy_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequ
       (Tao2015.stage3Out (f := f) (hf := hf)).out2.m := by
   exact Tao2015.stage3_unboundedDiscOffset (f := f) (hf := hf)
 
+/-- Track C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
+stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+
+This is a small convenience wrapper around
+`Tao2015.Stage3Output.unboundedDiscrepancyAlong_core`.
+-/
+theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscrepancyAlong
+      (Tao2015.stage3Out (f := f) (hf := hf)).g
+      (Tao2015.stage3Out (f := f) (hf := hf)).d := by
+  -- Use the stable Stage-3 boundary record field, avoiding additional entry-point imports.
+  simpa using
+    (Tao2015.stage3Out (f := f) (hf := hf)).unboundedDiscrepancyAlong_core (f := f)
+
 /-- Erdős discrepancy theorem.
 
 Every ±1 sequence has unbounded discrepancy on homogeneous arithmetic progressions.
