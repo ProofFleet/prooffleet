@@ -445,9 +445,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSupport d m n ∪ apSupport d (m+n) k` (with a simp-friendly membership characterization), so edit-sensitivity and congruence arguments can split supports without re-proving set algebra.
   (Implemented as `apSupport_add` in `MoltResearch/Discrepancy/Basic.lean`, with membership interface `mem_apSupport` and a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Support cardinality bound: prove `Nat.card (apSupport d m n) ≤ n` (and the exact value `= n` when `d>0`) to make “number of accessed indices” bookkeeping one-liners in edit-sensitivity bounds.
+- [x] Support cardinality bound: prove `Nat.card (apSupport d m n) ≤ n` (and the exact value `= n` when `d>0`) to make “number of accessed indices” bookkeeping one-liners in edit-sensitivity bounds.
+  (Implemented as `card_apSupport_le` / `card_apSupport_eq` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Support monotonicity in length: package a lemma `apSupport d m n ⊆ apSupport d m (n+k)` (and a `Finset.image`-free membership form), to avoid manual arithmetic when extending tails.
+- [x] Support monotonicity in length: package a lemma `apSupport d m n ⊆ apSupport d m (n+k)` (and a `Finset.image`-free membership form), to avoid manual arithmetic when extending tails.
+  (Implemented as `apSupport_mono_right` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Cut-stability for `apSupport`: prove a normal form stating that if `f=g` on `apSupport d m n` then they also agree on both cut pieces’ supports (and conversely), so “agree on accessed indices” hypotheses can be transported through `apSumOffset` cut/split lemmas.
 
