@@ -60,6 +60,14 @@ output produced by Stage 2.
     (stage3Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
   rfl
 
+/-- Convenience lemma: the Stage-3 reduced step size is at least `1`.
+
+This is a tiny wrapper around the Stage-2 projection lemma `Stage2Output.one_le_d`.
+-/
+theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    1 ≤ (stage3Out (f := f) (hf := hf)).d := by
+  simpa using (Stage2Output.one_le_d (out := (stage3Out (f := f) (hf := hf)).out2))
+
 -- Note: the simp lemma `stage3Out_out2` is enough to rewrite projections like
 -- `(stage3Out ...).out2.d` to `(stage2Out ...).d`, so we avoid duplicating simp lemmas for
 -- `.d/.m/.g` here.
