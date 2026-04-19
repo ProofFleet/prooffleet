@@ -222,6 +222,35 @@ theorem stage4_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequen
         (stage4Out (f := f) (hf := hf)).out2.m B := by
   simpa using (stage4Out (f := f) (hf := hf)).not_exists_boundedDiscOffset (f := f)
 
+/-- Consumer-facing shortcut: negation-normal-form packaging of `stage4_unboundedDiscOffset`.
+
+Normal form:
+`¬ ∃ B, ∀ n, discOffset f (stage4Out ...).out2.d (stage4Out ...).out2.m n ≤ B`.
+-/
+theorem stage4_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      ∀ n : ℕ,
+        discOffset f
+            (stage4Out (f := f) (hf := hf)).out2.d
+            (stage4Out (f := f) (hf := hf)).out2.m n ≤ B := by
+  simpa using (stage4Out (f := f) (hf := hf)).not_exists_forall_discOffset_le (f := f)
+
+/-- Consumer-facing shortcut: negation-normal-form packaging of `stage4_unboundedDiscOffset` at the
+raw nucleus level.
+
+Normal form:
+`¬ ∃ B, ∀ n, Int.natAbs (apSumOffset f (stage4Out ...).out2.d (stage4Out ...).out2.m n) ≤ B`.
+-/
+theorem stage4_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      ∀ n : ℕ,
+        Int.natAbs
+            (apSumOffset f
+              (stage4Out (f := f) (hf := hf)).out2.d
+              (stage4Out (f := f) (hf := hf)).out2.m n) ≤ B := by
+  simpa using
+    (stage4Out (f := f) (hf := hf)).not_exists_forall_natAbs_apSumOffset_le (f := f)
+
 /-- Consumer-facing shortcut: Stage 4 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such
 that the bundled offset discrepancy family `discOffset f d m` is unbounded.
 
