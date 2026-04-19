@@ -148,31 +148,10 @@ theorem stage3_not_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (hf 
   simpa [out] using hnb
 
 
-/-- Stage 3 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such that the bundled offset
-discrepancy family `discOffset f d m` is unbounded.
+-- Note: `stage3_exists_params_one_le_unboundedDiscOffset` and
+-- `stage3_exists_params_one_le_not_exists_boundedDiscOffset` are already defined in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (imported above).
 
-This is a thin wrapper around `Stage2Output.unboundedDiscOffset` applied to `stage3Out`.
--/
-theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
-  let out := stage3Out (f := f) (hf := hf)
-  refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
-  exact out.out2.unboundedDiscOffset (f := f)
-
-/-- Existential packaging: Stage 3 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such
-that there is no bundled offset-discrepancy bound at those parameters.
-
-Normal form:
-`∃ d m, 1 ≤ d ∧ ¬ ∃ B, BoundedDiscOffset f d m B`.
-
-This is the stable boundedness-negation normal form of the Stage-3 offset-unboundedness witness.
--/
-theorem stage3_exists_params_one_le_not_exists_boundedDiscOffset (f : ℕ → ℤ)
-    (hf : IsSignSequence f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
-  let out := stage3Out (f := f) (hf := hf)
-  refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
-  simpa using out.not_exists_boundedDiscOffset (f := f)
 
 /-- Variant of `stage3_exists_params_one_le_unboundedDiscOffset` with strict positivity for `d`.
 
@@ -297,19 +276,8 @@ theorem stage3_exists_params_one_le_forall_exists_discOffset_gt'_witness_pos (f 
   intro B
   simpa using out.out2.forall_exists_discOffset_gt'_witness_pos (f := f) B
 
-/-- Consumer-facing shortcut: Stage 3 yields the discrepancy witness form
+-- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`)
 
-`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
-
-This is obtained from `stage3_forall_hasDiscrepancyAtLeast` via
-`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
--/
-theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
-  intro C
-  exact
-    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
-      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
 
 /-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
 

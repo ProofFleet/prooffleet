@@ -13,11 +13,13 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - `stage3_notBounded` : close the core goal `¬ BoundedDiscrepancy f`
 - `stage3_forall_hasDiscrepancyAtLeast` : the usual surface statement
   `∀ C, HasDiscrepancyAtLeast f C`
+- `stage3_forall_exists_discrepancy_gt` : the discrepancy witness form
+  `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
 - `stage3_hasDiscrepancyAtLeast` : specialization at a fixed threshold `C`
 - `stage3_not_exists_boundedDiscOffset` : stable boundedness-negation packaging of the
   Stage-2 offset-discrepancy unboundedness witness
 
-All additional projection/rewrite lemmas and witness-form corollaries live in
+All additional projection/rewrite lemmas and most witness-form corollaries live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore`.
 -/
 
@@ -170,6 +172,21 @@ This is a thin wrapper around `Stage3Output.forall_hasDiscrepancyAtLeast`.
 theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) (stage3Out (f := f) (hf := hf))
+
+/-- Consumer-facing witness form: Stage 3 yields explicit discrepancy witnesses.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is obtained from `stage3_forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
 
 /-- Specialization of `stage3_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
 
