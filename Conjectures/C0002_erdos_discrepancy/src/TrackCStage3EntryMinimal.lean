@@ -188,6 +188,20 @@ theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
 
+/-- Strengthening of `stage3_forall_exists_discrepancy_gt` with side conditions `d ≥ 1` and `n > 0`.
+
+This is the most “surface-friendly” witness form of Stage 3.
+
+It is obtained from `stage3_forall_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos`.
+-/
+theorem stage3_forall_exists_discrepancy_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f := f) (C := C)).1
+      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
+
 /-- Specialization of `stage3_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
 
 This is a tiny convenience lemma: it avoids an extra application at the call site.
