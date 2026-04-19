@@ -363,6 +363,56 @@ finset reduces to the expected bound `i < n`.
     exact mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) hi
 
 /-!
+### Support concatenation normal form (Track B)
+
+When we split a length `(n+k)` AP sum into its first `n` terms and its last `k` terms, the
+corresponding support finset splits as the union of two “block supports”.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Support concatenation normal form (`apSupport`).
+-/
+
+lemma apSupport_add (d m n k : ℕ) :
+    apSupport d m (n + k) = apSupport d m n ∪ apSupport d (m + n) k := by
+  ext x
+  constructor
+  · intro hx
+    rcases (mem_apSupport_iff (d := d) (m := m) (n := n + k) (x := x)).1 hx with ⟨i, hi, rfl⟩
+    by_cases hin : i < n
+    · -- First block.
+      exact (Finset.mem_union).2 (Or.inl (mem_apSupport_of_lt (d := d) (m := m) (n := n) (i := i) hin))
+    · -- Second block: write `i = n + (i-n)`.
+      have hle : n ≤ i := Nat.le_of_not_gt hin
+      have hj : i - n < k := by
+        have hnk : n + (i - n) < n + k := by
+          -- rewrite `i` as `n + (i-n)` using `n ≤ i`.
+          simpa [Nat.add_sub_of_le hle] using hi
+        exact (Nat.add_lt_add_iff_left).1 hnk
+      have hbase : m + i + 1 = m + n + (i - n) + 1 := by
+        calc
+          m + i + 1 = m + (n + (i - n)) + 1 := by
+            simp [Nat.add_sub_of_le hle, Nat.add_assoc]
+          _ = m + n + (i - n) + 1 := by
+            simp [Nat.add_assoc]
+      have hrewrite : (m + i + 1) * d = (m + n + (i - n) + 1) * d := by
+        simpa [hbase]
+      exact (Finset.mem_union).2 (Or.inr (by
+        simpa [hrewrite] using
+          (mem_apSupport_of_lt (d := d) (m := m + n) (n := k) (i := i - n) hj)))
+  · intro hx
+    rcases (Finset.mem_union).1 hx with hx | hx
+    · -- Left block inclusion.
+      rcases (mem_apSupport_iff (d := d) (m := m) (n := n) (x := x)).1 hx with ⟨i, hi, rfl⟩
+      exact (mem_apSupport_iff (d := d) (m := m) (n := n + k) (x := (m + i + 1) * d)).2
+        ⟨i, Nat.lt_of_lt_of_le hi (Nat.le_add_right n k), rfl⟩
+    · -- Right block inclusion.
+      rcases (mem_apSupport_iff (d := d) (m := m + n) (n := k) (x := x)).1 hx with ⟨j, hj, rfl⟩
+      refine (mem_apSupport_iff (d := d) (m := m) (n := n + k)
+        (x := (m + n + j + 1) * d)).2 ?_
+      refine ⟨n + j, ?_, ?_⟩
+      · simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using (Nat.add_lt_add_left hj n)
+      · simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+
+/-!
 ### Cardinality (Track B)
 
 Assuming `d > 0`, the map `i ↦ (m + i + 1) * d` is injective, so the support finset contains

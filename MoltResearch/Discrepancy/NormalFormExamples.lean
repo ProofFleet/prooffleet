@@ -141,6 +141,16 @@ named lemma (so downstream proofs can do `simp [apSupport_eq_image_range]` inste
 example : apSupport d m n = (Finset.range n).image (fun i => (m + i + 1) * d) := by
   simp [apSupport_eq_image_range]
 
+/-!
+### NEW (Track B): support concatenation normal form (`apSupport`)
+
+Compile-only regression: the stable surface API can split the support of a length `(n+k)` block
+into a union of the two block supports.
+-/
+
+example : apSupport d m (n + k) = apSupport d m n ∪ apSupport d (m + n) k := by
+  simpa using (apSupport_add (d := d) (m := m) (n := n) (k := k))
+
 example : Int.natAbs (apSum f d n) = disc f d n := by
   rfl
 
