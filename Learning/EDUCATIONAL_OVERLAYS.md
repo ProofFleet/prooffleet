@@ -35,10 +35,12 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
   If your goal is stated with `Nat.succ N` instead of `N+1`, use the wrapper `discOffsetUpTo_le_succNat`.
 - **API note (argmax witness for `discOffsetUpTo`):** the lemma
-  `exists_discOffset_eq_discOffsetUpTo` returns not just a witness `n ≤ N` with
-  `discOffset … n = discOffsetUpTo … N`, but also the comparison fact
-  `∀ n' ≤ N, discOffset … n' ≤ discOffset … n`.
-  Pattern: `rcases exists_discOffset_eq_discOffsetUpTo … with ⟨n, hnle, hnEq, hmax⟩` and then use `hmax` to avoid rebuilding “≤ sup” inequalities.
+  `exists_discOffset_eq_discOffsetUpTo` returns a witness `n ≤ N` together with
+  the *argmax* comparison fact `∀ n' ≤ N, discOffset … n' ≤ discOffset … n`, and
+  an equality oriented as `discOffsetUpTo … N = discOffset … n`.
+  Pattern: `rcases exists_discOffset_eq_discOffsetUpTo … with ⟨n, hnle, hnEq, hmax⟩`;
+  then `simpa [hnEq]` rewrites the max value to the chosen witness, and `hmax`
+  supplies all “≤ maximizer” inequalities without redoing `Finset.sup` reasoning.
 - **API note (tail concatenation, max-level):** for later Tao2015 bookkeeping, prefer the wrapper
   `discOffsetUpTo_tail_concat_le`:
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`.
