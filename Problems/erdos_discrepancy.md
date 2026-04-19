@@ -451,7 +451,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Support monotonicity in length: package a lemma `apSupport d m n ⊆ apSupport d m (n+k)` (and a `Finset.image`-free membership form), to avoid manual arithmetic when extending tails.
   (Implemented as `apSupport_mono_right` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Cut-stability for `apSupport`: prove a normal form stating that if `f=g` on `apSupport d m n` then they also agree on both cut pieces’ supports (and conversely), so “agree on accessed indices” hypotheses can be transported through `apSumOffset` cut/split lemmas.
+- [x] Cut-stability for `apSupport`: prove a normal form stating that if `f=g` on `apSupport d m n` then they also agree on both cut pieces’ supports (and conversely), so “agree on accessed indices” hypotheses can be transported through `apSumOffset` cut/split lemmas.
+  (Implemented as `apSupport_agree_add_iff` and `apSupport_agree_cut_iff` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Residue decomposition support API: after splitting an AP sum into residues mod `r`, prove the corresponding support union lemma (supports of each residue class are disjoint / have controlled overlap) and export a single wrapper so residue-class arguments can reuse the edit-sensitivity library without unfolding.
 
