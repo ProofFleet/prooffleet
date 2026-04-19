@@ -185,6 +185,18 @@ example (h : ∀ x ∈ apSupport d m (n + k), f x = g x) :
     _ = apSumOffset g d m (n + k) := by
       simpa [apSumOffset_add_len]
 
+/-!
+### NEW (Track B): cut-stability for `apSupport` at `k ≤ n`
+
+Compile-only regression: the “cut at `k`” version of the support agreement lemma is available
+without manual rewriting `n = k + (n-k)`.
+-/
+
+example (hk : k ≤ n)
+    (h : ∀ x ∈ apSupport d m n, f x = g x) :
+    (∀ x ∈ apSupport d m k, f x = g x) ∧ (∀ x ∈ apSupport d (m + k) (n - k), f x = g x) := by
+  exact (apSupport_agree_cut_iff (f := f) (g := g) (d := d) (m := m) (n := n) (k := k) hk).1 h
+
 example : Int.natAbs (apSum f d n) = disc f d n := by
   rfl
 

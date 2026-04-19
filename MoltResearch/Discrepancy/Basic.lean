@@ -479,6 +479,20 @@ lemma apSupport_agree_add_iff {β : Type} (f g : ℕ → β) (d m n k : ℕ) :
     · exact h₁ x hxL
     · exact h₂ x hxR
 
+/-- Cut-stability for support-form agreement hypotheses (cut at `k ≤ n`).
+
+This is a convenience wrapper around `apSupport_agree_add_iff` that matches the common
+“prefix/suffix after a cut” shape used by `apSumOffset` cut/split lemmas.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Cut-stability for `apSupport` through cuts.
+-/
+lemma apSupport_agree_cut_iff {β : Type} (f g : ℕ → β) (d m n k : ℕ) (hk : k ≤ n) :
+    (∀ x ∈ apSupport d m n, f x = g x) ↔
+      (∀ x ∈ apSupport d m k, f x = g x) ∧ (∀ x ∈ apSupport d (m + k) (n - k), f x = g x) := by
+  -- Rewrite `n` as `k + (n-k)` and apply the concatenation lemma.
+  simpa [Nat.add_sub_of_le hk, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSupport_agree_add_iff (f := f) (g := g) (d := d) (m := m) (n := k) (k := n - k))
+
 
 /-!
 ### Cardinality (Track B)
