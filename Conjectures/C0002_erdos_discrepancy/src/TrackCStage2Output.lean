@@ -140,15 +140,8 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt (out : Stage2Output f) :
   simpa using
     (out.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f)).1 out.unbounded
 
-/-- Variant of `forall_exists_natAbs_apSumFrom_mul_gt` phrased using the bundled start index
-`out.start = out.m * out.d`.
-
-This reduces arithmetic noise in downstream stages that already use the start-index normal form.
--/
-theorem forall_exists_natAbs_apSumFrom_start_gt (out : Stage2Output f) :
-    ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) > C := by
-  intro C
-  simpa [Stage2Output.start] using out.forall_exists_natAbs_apSumFrom_mul_gt (f := f) C
+-- Note: `Stage2Output.forall_exists_natAbs_apSumFrom_start_gt` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
 
 -- Note: downstream hard-gate stages should prefer the smaller API in `TrackCStage2Core.lean`.
 
@@ -369,21 +362,8 @@ theorem forall_exists_discOffset_lt (out : Stage2Output f) :
     ∀ B : ℕ, ∃ n : ℕ, B < discOffset f out.d out.m n := by
   simpa using out.forall_exists_discOffset_gt (f := f)
 
-/-- Sum-level variant of `forall_exists_discOffset_gt`.
-
-This is occasionally the right normal form for later analytic stages: it exposes the raw nucleus
-`apSumOffset` rather than the wrapper `discOffset`.
-
-Implementation note: we obtain this from the packaged offset-unboundedness statement
-`out.unboundedDiscOffset` using the generic normal-form lemma
-`Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt`.
--/
-theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
-  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
-  simpa [Stage2Output.d, Stage2Output.m] using
-    (Tao2015.UnboundedDiscOffset.iff_forall_exists_natAbs_apSumOffset_gt (f := f)
-      (d := out.d) (m := out.m)).1 hunb
+-- Note: `Stage2Output.forall_exists_natAbs_apSumOffset_gt` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
 
 /-- Inequality-direction variant of `forall_exists_natAbs_apSumOffset_gt`, written as
 `Int.natAbs ... > B`.

@@ -291,10 +291,10 @@ This is `forall_exists_natAbs_apSumOffset_gt_witness_pos` with the positivity si
 dropped.
 -/
 theorem forall_exists_natAbs_apSumOffset_gt (out : Stage2Output f) :
-    ∀ B : ℕ, ∃ n : ℕ, Int.natAbs (apSumOffset f out.d out.m n) > B := by
+    ∀ B : ℕ, ∃ n : ℕ, B < Int.natAbs (apSumOffset f out.d out.m n) := by
   intro B
   rcases out.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B with ⟨n, _hnpos, hn⟩
-  exact ⟨n, hn⟩
+  exact ⟨n, (gt_iff_lt).1 hn⟩
 
 /-- Negation-normal-form unboundedness statement for the bundled offset discrepancies
 `discOffset f out.d out.m`.
