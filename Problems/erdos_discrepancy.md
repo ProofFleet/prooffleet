@@ -439,6 +439,26 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `MoltResearch/Discrepancy/CoherenceSimp.lean` (stable-surface `[simp]` for start-shift coherence) plus new examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Support concatenation normal form (`apSupport`): prove a lemma describing `apSupport d m (n+k)` as the union of the two block supports
+  `apSupport d m n ∪ apSupport d (m+n) k` (with a simp-friendly membership characterization), so edit-sensitivity and congruence arguments can split supports without re-proving set algebra.
+
+- [ ] Support cardinality bound: prove `Nat.card (apSupport d m n) ≤ n` (and the exact value `= n` when `d>0`) to make “number of accessed indices” bookkeeping one-liners in edit-sensitivity bounds.
+
+- [ ] Support monotonicity in length: package a lemma `apSupport d m n ⊆ apSupport d m (n+k)` (and a `Finset.image`-free membership form), to avoid manual arithmetic when extending tails.
+
+- [ ] Cut-stability for `apSupport`: prove a normal form stating that if `f=g` on `apSupport d m n` then they also agree on both cut pieces’ supports (and conversely), so “agree on accessed indices” hypotheses can be transported through `apSumOffset` cut/split lemmas.
+
+- [ ] Residue decomposition support API: after splitting an AP sum into residues mod `r`, prove the corresponding support union lemma (supports of each residue class are disjoint / have controlled overlap) and export a single wrapper so residue-class arguments can reuse the edit-sensitivity library without unfolding.
+
+- [ ] `discOffset` extremizer API (argmax, not just max value): strengthen `exists_discOffset_eq_discOffsetUpTo` to return an explicit `n` together with a proof that it maximizes `discOffset` among `n' ≤ N` (argmax-style), so later proofs can “choose a maximizer” without rebuilding comparison lemmas.
+
+- [ ] Paper-endpoint congruence wrappers for `discOffsetUpTo`/`discUpTo`: add lemmas that accept hypotheses in `Icc (m+1) (m+n)` form and discharge to `UpTo` congruence/stability facts, avoiding any explicit `Finset.range`/`Finset.image` in downstream statements.
+
+- [ ] Stable-surface regression for support algebra: add 2–3 tiny `example` blocks under `import MoltResearch.Discrepancy` showing the intended pipeline
+  “support split → edit sensitivity → discOffset bound” compiles with `simp` + one `rw`, and wire into `SurfaceAudit`.
+
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
