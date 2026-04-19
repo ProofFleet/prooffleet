@@ -53,6 +53,12 @@ def ofReductionOutput_unboundedDiscOffset (out1 : Tao2015.ReductionOutput f)
     (ofReductionOutput_unboundedDiscOffset (f := f) out1 hunb).out1 = out1 := by
   simp [ofReductionOutput_unboundedDiscOffset]
 
+@[simp] theorem ofReductionOutput_unboundedDiscOffset_unbounded (out1 : Tao2015.ReductionOutput f)
+    (hunb : Tao2015.UnboundedDiscOffset f out1.d out1.m) :
+    (ofReductionOutput_unboundedDiscOffset (f := f) out1 hunb).unbounded =
+      (out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).2 hunb := by
+  simp [ofReductionOutput_unboundedDiscOffset]
+
 /-!
 Basic projections (`d`, `g`, `m`, `hg`, `g_eq`, `hd`, `d_ne_zero`, `one_le_d`) live in
 `TrackCStage2Core.lean` so downstream stages can access them without importing this larger file.
