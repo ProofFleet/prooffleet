@@ -370,18 +370,13 @@ theorem stage3_forall_exists_sum_Icc_d_ge_one_witness_pos (f : ℕ → ℤ) (hf 
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_sum_Icc_d_ge_one_witness_pos f).1
       (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
 
-/-- Strengthened variant of `stage3_forall_exists_discrepancy_gt` with a positive-length witness.
+/-!
+Note: `stage3_forall_exists_discrepancy_gt_witness_pos` is already defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`.
 
-Since `discrepancy f d 0 = 0`, any witness with `discrepancy f d n > C` can be taken with `n > 0`.
+We avoid re-declaring it here so that `TrackCStage3EntryCore` can be imported alongside the
+minimal entry-point module without name clashes.
 -/
-theorem stage3_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  rcases stage3_forall_exists_d_pos_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
-  refine ⟨d, n, hd, hn, ?_⟩
-  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
-  change Int.natAbs (apSum f d n) > C
-  exact hw
 
 -- (also available via `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`)
 

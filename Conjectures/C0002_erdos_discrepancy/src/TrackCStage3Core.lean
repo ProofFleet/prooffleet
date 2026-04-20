@@ -65,11 +65,13 @@ theorem forall_hasDiscrepancyAtLeastAlong (out : Stage3Output f) :
           (g := out.g) (d := out.d)).2
       out.unboundedReducedAlong
 
-/-- Stage 3 implies the reduced sequence is not bounded along its fixed step size. -/
-theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
-  exact
-    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong (g := out.g) (d := out.d)).1
-      out.unboundedReducedAlong
+/-!
+Note: `Stage3Output.notBoundedReducedAlong` is already defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
+
+We do not re-declare it here so that `TrackCStage3Core` can be imported alongside `TrackCStage3`
+without name clashes.
+-/
 
 /-!
 Note: `Stage3Output.unboundedDiscrepancyAlong_core` is already defined in

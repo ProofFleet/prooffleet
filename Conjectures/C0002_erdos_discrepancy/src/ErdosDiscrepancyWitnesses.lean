@@ -31,6 +31,25 @@ theorem erdos_discrepancy_sum_Icc_offset_stage3 (f : ℕ → ℤ) (hf : IsSignSe
   simpa [Tao2015.stage3_m, Tao2015.stage3_d, hout.symm] using
     (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) out)
 
+/-- Negation-normal-form corollary for the concrete Stage-3 offset parameters.
+
+Normal form:
+`¬ ∃ B, ∀ n, Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) ≤ B`,
+where `d = Tao2015.stage3_d f hf` and `m = Tao2015.stage3_m f hf`.
+
+This is a thin wrapper around `Tao2015.stage3_not_exists_forall_natAbs_sum_Icc_offset_le`.
+-/
+theorem erdos_discrepancy_not_exists_forall_natAbs_sum_Icc_offset_le_stage3 (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      ∀ n : ℕ,
+        Int.natAbs
+            ((Finset.Icc ((Tao2015.stage3_m (f := f) (hf := hf)) + 1)
+                  ((Tao2015.stage3_m (f := f) (hf := hf)) + n)).sum
+                (fun i => f (i * (Tao2015.stage3_d (f := f) (hf := hf))))) ≤ B := by
+  simpa [Tao2015.stage3_m, Tao2015.stage3_d] using
+    (Tao2015.stage3_not_exists_forall_natAbs_sum_Icc_offset_le (f := f) (hf := hf))
+
 /-- Positive-length witness form of `erdos_discrepancy_sum_Icc_offset_stage3`.
 
 The witness length `n` cannot be `0`, since the interval `Icc (m+1) (m+n)` is empty when `n = 0`.
