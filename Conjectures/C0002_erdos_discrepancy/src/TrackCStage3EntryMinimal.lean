@@ -87,6 +87,14 @@ output produced by Stage 2.
     (stage3Out (f := f) (hf := hf)).g = (stage2Out (f := f) (hf := hf)).g := by
   rfl
 
+/-- Convenience lemma: the Stage-3 reduced sequence is a sign sequence.
+
+This is a tiny wrapper around the Stage-2 core projection lemma `Stage2Output.hg`.
+-/
+theorem stage3Out_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    IsSignSequence (stage3Out (f := f) (hf := hf)).g := by
+  simpa using (Stage2Output.hg (out := (stage3Out (f := f) (hf := hf)).out2))
+
 /-- Convenience lemma: the Stage-3 reduced step size is at least `1`.
 
 This is a tiny wrapper around the Stage-2 projection lemma `Stage2Output.one_le_d`.
