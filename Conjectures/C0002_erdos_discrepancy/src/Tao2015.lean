@@ -1,5 +1,5 @@
 import MoltResearch.Discrepancy.Unbounded
-import MoltResearch.Discrepancy.AffineTail
+import MoltResearch.Discrepancy.Offset
 
 /-!
 # Tao 2015: Erdős discrepancy theorem (Track C skeleton)
@@ -308,13 +308,18 @@ theorem unboundedDiscOffset_iff_forall_exists_discOffset_gt'_witness_pos (f : �
 /-- Normal form: the affine-tail nucleus at start `m*d` is the bundled offset nucleus. -/
 theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     apSumFrom f (m * d) d n = apSumOffset f d m n := by
-  calc
-    apSumFrom f (m * d) d n = apSumFrom f (0 + m * d) d n := by
-      simp
-    _ = apSumOffset (fun k => f (k + 0)) d m n := by
-      exact apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := 0) (d := d) (m := m) (n := n)
-    _ = apSumOffset f d m n := by
-      simp
+  unfold apSumFrom apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hidx : m * d + (i + 1) * d = (m + i + 1) * d := by
+    calc
+      m * d + (i + 1) * d = (m + (i + 1)) * d := by
+        simpa [Nat.add_mul] using (Nat.add_mul m (i + 1) d).symm
+      _ = (m + i + 1) * d := by
+        have hm : m + (i + 1) = m + i + 1 := by
+          simpa using (Nat.add_assoc m i 1).symm
+        simpa [hm]
+  simpa [hidx]
 
 /-- Normal form: offset discrepancy expressed directly using the affine-tail nucleus.
 
