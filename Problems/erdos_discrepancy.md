@@ -1196,12 +1196,16 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Residue-class decomposition (sum-level, equality): for any `r>0`, rewrite
-  `apSumOffset f d m n` as a sum of `r` residue tails at step `r*d`, i.e. an equality of the shape
-  `apSumOffset f d m n = ∑ a in Finset.range r, apSumOffset f (r*d) (m+a) (Nat.ceilDiv? n r)` (choose the repo’s canonical endpoint normal form), so later “split into residues mod r” starts from a single `rw`.
+- [x] Residue-class decomposition (sum-level, equality): for any `r>0`, rewrite
+  `apSumOffset f d m (r*(n+1))` as a sum of `r` residue tails at step `r*d`.
+  (Implemented as `apSumOffset_mul_len_succ_eq_sum_range` (and the `d*i` variant `…_mul_left`) in
+  `MoltResearch/Discrepancy/Residue.lean`, with stable-surface regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Residue-class decomposition (disc-level, packaged bound): build a one-line lemma that combines the residue equality with `Int.natAbs_sum_le` (or repeated triangle inequality) to produce the canonical bound
-  `discOffset f d m n ≤ ∑ a in Finset.range r, discOffset f (r*d) (m+a) (… )`, with a stable-surface regression example.
+- [x] Residue-class decomposition (disc-level, packaged bound): triangle-inequality corollary for the residue split.
+  (Implemented as `discOffset_mul_len_succ_eq_natAbs_sum_range` +
+  `discOffset_mul_len_succ_le_sum_range_natAbs` (and `…_mul_left`) in `MoltResearch/Discrepancy/Residue.lean`, with
+  stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffsetUpTo` monotone-in-N wrapper: package `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m N'` for `N ≤ N'` (and the corresponding “increase N by k” corollary), so later “increase the search horizon” steps are one-liners.
 
