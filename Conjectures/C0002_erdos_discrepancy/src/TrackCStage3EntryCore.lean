@@ -62,10 +62,8 @@ theorem stage3_notBoundedReducedAlong (f : ℕ → ℤ) (hf : IsSignSequence f) 
         (stage3Out (f := f) (hf := hf)).out2.g
         (stage3Out (f := f) (hf := hf)).out2.d := by
   let out := stage3Out (f := f) (hf := hf)
-  exact
-    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
-        (g := out.out2.g) (d := out.out2.d)).1
-      out.out2.unbounded
+  -- Delegate to the core Stage-3 boundary API.
+  simpa [out] using (Stage3Output.notBoundedReducedAlong (f := f) out)
 
 /-!
 `stage3_unboundedDiscOffset` is already defined in
@@ -148,17 +146,12 @@ theorem stage3_not_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (hf 
   simpa [out] using hnb
 
 
-/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
-bundled offset discrepancy family `discOffset f d m` is unbounded.
+/-!
+`stage3_exists_params_one_le_unboundedDiscOffset` is defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (the hard-gate minimal layer).
 
-This lemma lives in the hard-gate core layer (not the minimal layer): it is not needed by the
-Track-C hard-gate target, but it is a common pipeline-friendly normal form.
+We re-export it here by importing the minimal module, avoiding a duplicate declaration.
 -/
-theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
-  refine ⟨(stage3Out (f := f) (hf := hf)).d, (stage3Out (f := f) (hf := hf)).m, ?_, ?_⟩
-  · exact stage3_one_le_d (f := f) (hf := hf)
-  · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
 -- Note: `stage3_exists_params_one_le_not_exists_boundedDiscOffset` is defined in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` (imported above).

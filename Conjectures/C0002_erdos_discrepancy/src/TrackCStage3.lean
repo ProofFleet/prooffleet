@@ -80,6 +80,13 @@ theorem unboundedDiscrepancyAlong (out : Stage3Output f) :
     Tao2015.UnboundedDiscrepancyAlong out.g out.d := by
   simpa [Stage3Output.g, Stage3Output.d] using out.out2.unbounded
 
+/-- Stage 3 implies the reduced sequence is not bounded along its fixed step size. -/
+theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
+  exact
+    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
+      (g := out.g) (d := out.d)).1
+      out.unboundedDiscrepancyAlong
+
 /-- Stage 3 output also exposes the Stage-2 fixed-step unboundedness witness, phrased using the
 verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
