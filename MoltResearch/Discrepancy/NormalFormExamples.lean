@@ -103,7 +103,17 @@ example : apSum f 0 n = (n : ℤ) * f 0 := by
 example : apSumOffset f 0 m n = (n : ℤ) * f 0 := by
   simp
 
-example : discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
+example : discOffset f 0 m n = n * Int.natAbs (f 0) := by
+  simp
+
+-- NEW (Track B): zero-step / `d = 0` surface discipline for `disc`/`UpTo` wrappers
+example : disc f 0 n = n * Int.natAbs (f 0) := by
+  simp
+
+example : discUpTo f 0 N = (Finset.range (N + 1)).sup (fun n => n * Int.natAbs (f 0)) := by
+  simp
+
+example : discOffsetUpTo f 0 m N = (Finset.range (N + 1)).sup (fun n => n * Int.natAbs (f 0)) := by
   simp
 
 -- NEW (Track B): nucleus API coherence (argument order)

@@ -1164,9 +1164,49 @@ We keep these lemmas forward-oriented and obviously terminating.
   simp
 
 @[simp] lemma discOffset_zero_step (f : ℕ → ℤ) (m n : ℕ) :
-    discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
+    discOffset f 0 m n = n * Int.natAbs (f 0) := by
   unfold discOffset
-  simp
+  -- Reduce to `Int.natAbs ((n:ℤ) * f 0)` and simplify via multiplicativity of `natAbs`.
+  simp [apSumOffset_zero_step, Int.natAbs_mul, mul_assoc, mul_left_comm, mul_comm]
+
+/-- Degenerate-step normal form for the homogeneous wrapper `disc`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Zero-step / d=0 surface discipline”.
+-/
+@[simp] lemma disc_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    disc f 0 n = n * Int.natAbs (f 0) := by
+  unfold disc
+  -- Reduce to `Int.natAbs ((n:ℤ) * f 0)` then simplify via multiplicativity of `natAbs`.
+  simp [apSum_zero_step, Int.natAbs_mul, mul_assoc, mul_left_comm, mul_comm]
+
+/-- Degenerate-step normal form for `discUpTo`.
+
+This does **not** try to solve the `Finset.sup` further; it rewrites the inside to a clean
+multiplicative form so the `d = 0` case doesn't leave `Int` arithmetic in goals.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Zero-step / d=0 surface discipline”.
+-/
+@[simp] lemma discUpTo_zero_step (f : ℕ → ℤ) (N : ℕ) :
+    discUpTo f 0 N = (Finset.range (N + 1)).sup (fun n => n * Int.natAbs (f 0)) := by
+  classical
+  unfold discUpTo
+  simp [disc_zero_step]
+
+/-- Degenerate-step normal form for `discOffsetUpTo`.
+
+In particular, the `d = 0` case becomes independent of the offset `m`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Zero-step / d=0 surface discipline”.
+-/
+@[simp] lemma discOffsetUpTo_zero_step (f : ℕ → ℤ) (m N : ℕ) :
+    discOffsetUpTo f 0 m N = (Finset.range (N + 1)).sup (fun n => n * Int.natAbs (f 0)) := by
+  classical
+  unfold discOffsetUpTo
+  -- `discOffset_zero_step` makes the offset `m` disappear.
+  simp [discOffset_zero_step]
 
 /-!
 ### Step-one (`d = 1`) coherence simp lemmas
