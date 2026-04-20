@@ -17,14 +17,8 @@ namespace Stage4Output
 
 variable {f : ℕ → ℤ}
 
-/-- Stage 4 output yields unboundedness of the bundled offset discrepancy family at the concrete
-Stage-2 parameters carried by Stage 4.
+-- Note: `Stage4Output.unboundedDiscOffset` is defined in `TrackCStage4Core.lean`.
 
-This is a thin wrapper around the proved Stage-2 core lemma `Stage2Output.unboundedDiscOffset`.
--/
-theorem unboundedDiscOffset (out : Stage4Output f) :
-    UnboundedDiscOffset f out.out2.d out.out2.m := by
-  simpa using (out.out2.unboundedDiscOffset (f := f))
 
 /-- Negation-normal-form packaging of Stage-4 offset unboundedness:
 `¬ ∃ B, ∀ n, discOffset f out.out2.d out.out2.m n ≤ B`.
@@ -201,14 +195,8 @@ theorem forall_exists_sum_Icc_d_ge_one_witness_pos (out : Stage4Output f) :
 
 end Stage4Output
 
-/-- Consumer-facing shortcut: Stage 4 yields unboundedness of the bundled offset discrepancy family
-at the deterministic parameters produced by the Stage-4 output.
--/
-theorem stage4_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    UnboundedDiscOffset f
-      (stage4Out (f := f) (hf := hf)).out2.d
-      (stage4Out (f := f) (hf := hf)).out2.m := by
-  simpa using (stage4Out (f := f) (hf := hf)).unboundedDiscOffset (f := f)
+-- Note: `stage4_unboundedDiscOffset` is defined in `TrackCStage4Core.lean`.
+
 
 /-- Consumer-facing shortcut: stable boundedness-negation normal form of `stage4_unboundedDiscOffset`.
 
