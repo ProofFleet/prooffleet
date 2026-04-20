@@ -51,7 +51,7 @@ section
     have hcut :
         discOffset (fun t => f (a + t)) d m (k + q * (n + 1)) ≤
           discOffset (fun t => f (a + t)) d m k +
-            discOffset (fun t => f (a + t)) d (m + k) (q * (n + 1)) := by
+            discOffset (fun t => f (a + t)) d (m + k) ((n + 1) * q) := by
       -- `k ≤ k + q*(n+1)`.
       have hk : k ≤ k + q * (n + 1) := Nat.le_add_right _ _
       -- Apply the range-cut triangle inequality and simplify the tail length.
@@ -61,12 +61,13 @@ section
 
     -- Step 3: residue-class split + triangle bound on the tail.
     have hres :
-        discOffset (fun t => f (a + t)) d (m + k) (q * (n + 1)) ≤
+        discOffset (fun t => f (a + t)) d (m + k) ((n + 1) * q) ≤
           (Finset.range q).sum (fun r =>
             Int.natAbs
               ((fun t => f (a + t)) (((m + k) + r + 1) * d) +
                 apSumFrom (fun t => f (a + t)) (((m + k) + r + 1) * d) (q * d) n)) := by
-      simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      -- `discOffset_mul_len_succ_le_sum_range_natAbs` uses the length `q * (n+1)`; commute.
+      simpa [Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
         (discOffset_mul_len_succ_le_sum_range_natAbs (f := fun t => f (a + t)) (d := d)
           (m := m + k) (q := q) (n := n) hq)
 
@@ -75,15 +76,57 @@ section
       Int.natAbs
           ((Finset.Icc (m + 1) (m + (k + q * (n + 1)))).sum (fun i => f (a + i * d)))
           = discOffset (fun t => f (a + t)) d m (k + q * (n + 1)) := by
-              simpa [hnorm]
+              simpa using hnorm
       _ ≤ discOffset (fun t => f (a + t)) d m k +
-            discOffset (fun t => f (a + t)) d (m + k) (q * (n + 1)) := hcut
+            discOffset (fun t => f (a + t)) d (m + k) ((n + 1) * q) := hcut
       _ ≤ discOffset (fun t => f (a + t)) d m k +
             (Finset.range q).sum (fun r =>
               Int.natAbs
                 ((fun t => f (a + t)) (((m + k) + r + 1) * d) +
                   apSumFrom (fun t => f (a + t)) (((m + k) + r + 1) * d) (q * d) n)) := by
               exact Nat.add_le_add_left hres _
+
+  /-- Even shorter stable-surface audit: same pipeline, written as a single `calc` chain.
+
+  This is intentionally “boring”: it’s meant to be a low-friction template that downstream proofs
+  can copy/paste, and a regression test that the key rewrite lemmas remain available and `simp`able
+  under `import MoltResearch.Discrepancy`.
+  -/
+  example (hq : q > 0) :
+      Int.natAbs
+          ((Finset.Icc (m + 1) (m + (k + q * (n + 1)))).sum (fun i => f (a + i * d))) ≤
+        discOffset (fun t => f (a + t)) d m k +
+          (Finset.range q).sum (fun r =>
+            Int.natAbs
+              ((fun t => f (a + t)) (((m + k) + r + 1) * d) +
+                apSumFrom (fun t => f (a + t)) (((m + k) + r + 1) * d) (q * d) n)) := by
+    have hk : k ≤ k + q * (n + 1) := Nat.le_add_right _ _
+    -- affine endpoints → `discOffset` → cut → residue split → triangle bound
+    calc
+      Int.natAbs
+          ((Finset.Icc (m + 1) (m + (k + q * (n + 1)))).sum (fun i => f (a + i * d)))
+          = discOffset (fun t => f (a + t)) d m (k + q * (n + 1)) := by
+              simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+                (natAbs_sum_Icc_add_affineEndpoints_eq_discOffset (f := f) (a := a) (d := d)
+                  (m := m) (n := k + q * (n + 1)))
+      _ ≤ discOffset (fun t => f (a + t)) d m k +
+            discOffset (fun t => f (a + t)) d (m + k) ((n + 1) * q) := by
+              -- range cut + triangle inequality
+              simpa [Nat.add_sub_cancel_left, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+                (discOffset_cut_le (f := fun t => f (a + t)) (d := d) (m := m)
+                  (n := k + q * (n + 1)) (k := k) hk)
+      _ ≤ discOffset (fun t => f (a + t)) d m k +
+            (Finset.range q).sum (fun r =>
+              Int.natAbs
+                ((fun t => f (a + t)) (((m + k) + r + 1) * d) +
+                  apSumFrom (fun t => f (a + t)) (((m + k) + r + 1) * d) (q * d) n)) := by
+              -- residue split + triangle inequality on the tail
+              exact Nat.add_le_add_left
+                (by
+                  simpa [Nat.mul_assoc, Nat.mul_left_comm, Nat.mul_comm, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+                    (discOffset_mul_len_succ_le_sum_range_natAbs (f := fun t => f (a + t)) (d := d)
+                      (m := m + k) (q := q) (n := n) hq))
+                _
 
 end
 
