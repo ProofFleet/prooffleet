@@ -20,6 +20,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
   Stage-2 offset-discrepancy witness
 - `stage3_unboundedDiscOffset` : stable packaging of the Stage-2 offset-discrepancy witness
 - `stage3_exists_params_unboundedDiscOffset` : existential packaging of `stage3_unboundedDiscOffset`
+- `stage3_exists_params_one_le_unboundedDiscOffset` : existential packaging of
+  `stage3_unboundedDiscOffset` with the side condition `1 ≤ d`
 - `stage3_unboundedDiscrepancyAlong_core` : Track-C fixed-step unboundedness witness along the
   reduced sequence, phrased using `MoltResearch.UnboundedDiscrepancyAlong`
 - `stage3_exists_params_one_le_not_exists_boundedDiscOffset` : existential packaging of
@@ -146,6 +148,19 @@ theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignS
   let out := stage3Out (f := f) (hf := hf)
   refine ⟨out.d, out.m, ?_, ?_⟩
   · exact stage3Out_d_pos (f := f) (hf := hf)
+  · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
+
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that the
+bundled offset discrepancy family `discOffset f d m` is unbounded.
+
+This is a minimal corollary of `stage3_unboundedDiscOffset`; some downstream stages prefer `1 ≤ d`
+to avoid rewriting strict positivity.
+-/
+theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  let out := stage3Out (f := f) (hf := hf)
+  refine ⟨out.d, out.m, ?_, ?_⟩
+  · exact stage3_one_le_d (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
