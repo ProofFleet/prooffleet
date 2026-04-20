@@ -314,12 +314,12 @@ theorem apSumFrom_mul_eq_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
   have hidx : m * d + (i + 1) * d = (m + i + 1) * d := by
     calc
       m * d + (i + 1) * d = (m + (i + 1)) * d := by
-        simpa [Nat.add_mul] using (Nat.add_mul m (i + 1) d).symm
+        exact (Nat.add_mul m (i + 1) d).symm
       _ = (m + i + 1) * d := by
         have hm : m + (i + 1) = m + i + 1 := by
-          simpa using (Nat.add_assoc m i 1).symm
-        simpa [hm]
-  simpa [hidx]
+          exact (Nat.add_assoc m i 1).symm
+        simp [hm]
+  simp [hidx]
 
 /-- Normal form: offset discrepancy expressed directly using the affine-tail nucleus.
 
