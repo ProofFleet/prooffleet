@@ -1237,7 +1237,8 @@ Definition of done:
 - [x] “Zero-step / d=0” surface discipline: decide and enforce the canonical convention (`d=0` forbidden vs allowed with a simp-normal form), then add simp/guard lemmas ensuring downstream proofs never get stuck on `d=0` corner cases.
   (Already implemented earlier in this card: `HasDiscrepancyAtLeast` uses `d > 0`, and the stable surface provides simp normal forms `apSum_zero_step` / `apSumOffset_zero_step` / `disc_zero_step` / `discrepancy_zero_step` / `discOffset_zero_step` in `MoltResearch/Discrepancy/Basic.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `apSumFrom`/`discOffset` mixed normal form for affine-residue splits: a wrapper lemma that takes an affine/Icc sum, normalizes to `discOffset`, then applies a residue-class split bound (mod `r`) in one go, with a stable-surface regression example (paper-style “split into r progressions” step).
+- [x] `apSumFrom`/`discOffset` mixed normal form for affine-residue splits: a wrapper lemma that takes an affine/Icc sum, normalizes to `discOffset`, then applies a residue-class split bound (mod `r`) in one go, with a stable-surface regression example (paper-style “split into r progressions” step).
+  (Implemented as `natAbs_sum_Icc_add_affineEndpoints_mul_len_succ_le_sum_range_natAbs` in `MoltResearch/Discrepancy/Residue.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] API coherence: add a short `SurfaceAudit` example proving that the preferred sequence of rewrites (affine endpoints → discOffset → cut → residue split → triangle bound) works with *only* stable imports and `simp`, so the “big proof script shape” can’t regress.
 
