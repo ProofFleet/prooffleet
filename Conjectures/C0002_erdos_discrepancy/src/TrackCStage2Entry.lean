@@ -108,6 +108,19 @@ theorem stage2_start_add_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : �
       n % stage2_d (f := f) (hf := hf) := by
   simpa [Nat.add_comm] using stage2_add_start_mod_d (f := f) (hf := hf) (n := n)
 
+/-- Adding the start index increases quotients by the offset parameter.
+
+Since `stage2_start = stage2_m * stage2_d`, we have
+`(n + stage2_start) / stage2_d = n / stage2_d + stage2_m`.
+-/
+theorem stage2_add_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (n + stage2_start (f := f) (hf := hf)) / stage2_d (f := f) (hf := hf) =
+      n / stage2_d (f := f) (hf := hf) + stage2_m (f := f) (hf := hf) := by
+  have hd : 0 < stage2_d (f := f) (hf := hf) := stage2_d_pos (f := f) (hf := hf)
+  simpa [stage2_start] using
+    (Nat.add_mul_div_right (x := n) (y := stage2_m (f := f) (hf := hf))
+      (z := stage2_d (f := f) (hf := hf)) hd)
+
 /-- Recover the offset parameter `stage2_m` by dividing the Stage-2 start index `stage2_start`
 by the reduced step size `stage2_d`.
 
