@@ -172,6 +172,20 @@ theorem forall_exists_d_ge_one_witness_pos (out : Stage3Output f) :
     (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
       (out.forall_hasDiscrepancyAtLeast (f := f))
 
+/-- Variant of `forall_exists_d_ge_one_witness_pos` writing the step-size side condition as `d > 0`.
+
+This is slightly weaker but often matches downstream APIs that prefer `Nat` positivity hypotheses.
+-/
+theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  intro C
+  rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hgt⟩
+  have hdpos : d > 0 := by
+    have h : Nat.succ 0 ≤ d := by
+      simpa using hd
+    exact (Nat.succ_le_iff).1 h
+  exact ⟨d, n, hdpos, hn, hgt⟩
+
 end Stage3Output
 
 /-!
