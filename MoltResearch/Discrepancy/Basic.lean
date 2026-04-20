@@ -1627,6 +1627,54 @@ theorem boundedDiscOffset_iff_forall_discOffsetUpTo_le (f : ℕ → ℤ) (d m B 
     exact le_trans hle hUpTo
 
 /-!
+### Bridge: boundedness of `discOffsetUpTo` ↔ boundedness of all `discOffset` witnesses
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+Bridge: boundedness of `discOffsetUpTo` ↔ boundedness of all `discOffset` witnesses.
+
+These are the **direct** quantifier-level bridge lemmas promised by the checklist item:
+
+`(∀ N, discOffsetUpTo f d m N ≤ B) ↔ (∀ n, discOffset f d m n ≤ B)`.
+
+We keep the main statement as an `iff` and also expose the two directions as named lemmas.
+-/
+
+/-- If all finitary maxima `discOffsetUpTo f d m N` are bounded by `B`, then every witness
+`discOffset f d m n` is bounded by `B`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — boundedness bridge (`UpTo` → witnesses).
+-/
+lemma forall_discOffset_le_of_forall_discOffsetUpTo_le (f : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ N : ℕ, discOffsetUpTo f d m N ≤ B) :
+    ∀ n : ℕ, discOffset f d m n ≤ B := by
+  intro n
+  have hUpTo : discOffsetUpTo f d m n ≤ B := h n
+  exact le_trans (discOffset_le_discOffsetUpTo_self (f := f) (d := d) (m := m) (n := n)) hUpTo
+
+/-- If every witness `discOffset f d m n` is bounded by `B`, then every finitary maximum
+`discOffsetUpTo f d m N` is bounded by `B`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — boundedness bridge (witnesses → `UpTo`).
+-/
+lemma forall_discOffsetUpTo_le_of_forall_discOffset_le (f : ℕ → ℤ) (d m B : ℕ)
+    (h : ∀ n : ℕ, discOffset f d m n ≤ B) :
+    ∀ N : ℕ, discOffsetUpTo f d m N ≤ B := by
+  intro N
+  -- Reuse the `BoundedDiscOffset` bridge lemma.
+  exact (boundedDiscOffset_iff_forall_discOffsetUpTo_le (f := f) (d := d) (m := m) (B := B)).1 h N
+
+/-- Quantifier-level boundedness bridge between the `discOffsetUpTo` normal form and the pointwise
+`discOffset` witnesses.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — boundedness bridge (`iff`).
+-/
+theorem forall_discOffsetUpTo_le_iff_forall_discOffset_le (f : ℕ → ℤ) (d m B : ℕ) :
+    (∀ N : ℕ, discOffsetUpTo f d m N ≤ B) ↔ (∀ n : ℕ, discOffset f d m n ≤ B) := by
+  constructor
+  · exact forall_discOffset_le_of_forall_discOffsetUpTo_le (f := f) (d := d) (m := m) (B := B)
+  · exact forall_discOffsetUpTo_le_of_forall_discOffset_le (f := f) (d := d) (m := m) (B := B)
+
+/-!
 ### Exists-bound normal form
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness normal form (exists-bound).

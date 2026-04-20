@@ -143,6 +143,11 @@ example : (C < discOffsetUpTo f d m n) ↔ (∃ n' ≤ n, C < discOffset f d m n
   simpa using
     (lt_discOffsetUpTo_iff_exists_lt_discOffset (f := f) (d := d) (m := m) (N := n) (C := C))
 
+-- NEW (Track B): boundedness bridge (`discOffsetUpTo` ↔ pointwise `discOffset`).
+example (B : ℕ) :
+    (∀ N : ℕ, discOffsetUpTo f d m N ≤ B) ↔ (∀ n : ℕ, discOffset f d m n ≤ B) := by
+  simpa using (forall_discOffsetUpTo_le_iff_forall_discOffset_le (f := f) (d := d) (m := m) (B := B))
+
 example (hq : q > 0) : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n * q) := by
   simpa using (discOffsetUpTo_le_mul (f := f) (d := d) (m := m) (N := n) (q := q) hq)
 
