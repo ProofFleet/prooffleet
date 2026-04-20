@@ -53,6 +53,10 @@ This is occasionally useful when later stages want access to the deterministic p
 @[simp] abbrev m (out : Stage3Output f) : ℕ :=
   out.out2.m
 
+/-- Convenience projection: the affine-tail start index `m*d` packaged in Stage 3. -/
+abbrev start (out : Stage3Output f) : ℕ :=
+  out.m * out.d
+
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
