@@ -96,15 +96,23 @@ This lemma is intentionally tiny (and not marked as a simp lemma): it exists mai
 theorem start_eq_out2_start (out : Stage3Output f) : out.start = out.out2.start := by
   rfl
 
+/-- Definitional rewrite: `out.start = out.m * out.d`.
+
+This mirrors the Stage-2 lemma `Stage2Output.start_eq_m_mul_d` and avoids repeated unfolding of
+`Stage3Output.start` in downstream arithmetic rewrites.
+-/
+theorem start_eq_m_mul_d (out : Stage3Output f) : out.start = out.m * out.d := by
+  rfl
+
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
   -- Delegate to the Stage-2 core lemma (avoids re-proving arithmetic about the projections).
-  simpa [Stage3Output.start, Stage2Output.start] using
+  simpa [start_eq_out2_start] using
     (Stage2Output.d_dvd_start (f := f) out.out2)
 
 /-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`. -/
 theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
-  simpa [Stage3Output.start, Stage2Output.start] using
+  simpa [start_eq_out2_start] using
     (Stage2Output.start_mod_d (f := f) out.out2)
 
 /-- Adding the start index does not change residues modulo the step size.
@@ -114,7 +122,7 @@ Since `out.start` is a multiple of `out.d`, we have
 -/
 theorem add_start_mod_d (out : Stage3Output f) (n : ℕ) :
     (n + out.start) % out.d = n % out.d := by
-  simpa [Stage3Output.start, Stage2Output.start] using
+  simpa [start_eq_out2_start] using
     (Stage2Output.add_start_mod_d (f := f) out.out2 n)
 
 /-- Recover the offset parameter `out.m` by dividing the start index `out.start`
@@ -125,7 +133,7 @@ This is a tiny arithmetic convenience lemma: `out.start = out.m * out.d` by defi
 theorem start_div_d (out : Stage3Output f) : out.start / out.d = out.m := by
   have hd' : 0 < out.d := by
     simpa [Stage3Output.d] using out.out2.hd
-  simpa [Stage3Output.start] using (Nat.mul_div_left out.m hd')
+  simpa [start_eq_m_mul_d] using (Nat.mul_div_left out.m hd')
 
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage3Output f) (k : ℕ) :
