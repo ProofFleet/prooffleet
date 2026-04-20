@@ -32,7 +32,9 @@ Design note: we register this instance at very low priority so that downstream d
 provide a verified `Stage2Assumption` instance that will be preferred by typeclass search.
 -/
 axiom instStage2Assumption : Stage2Assumption
-attribute [instance 10000] instStage2Assumption
+-- Low-priority default: downstream developments can provide a verified instance that typeclass
+-- search will prefer (larger priorities are tried first).
+attribute [instance 10] instStage2Assumption
 
 /-- **Conjecture stub:** Stage 2 of Tao 2015.
 
