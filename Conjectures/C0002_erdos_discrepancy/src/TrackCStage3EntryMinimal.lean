@@ -15,6 +15,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
   `∀ C, HasDiscrepancyAtLeast f C`
 - `stage3_forall_exists_discrepancy_gt` : the discrepancy witness form
   `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
+- `stage3_forall_exists_discrepancy_gt_witness_pos` : witness form with `n > 0`
+  `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`
 - `stage3_hasDiscrepancyAtLeast` : specialization at a fixed threshold `C`
 - `stage3_not_exists_boundedDiscOffset` : stable boundedness-negation packaging of the
   Stage-2 offset-discrepancy witness
@@ -232,6 +234,26 @@ theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
   exact
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
+
+/-- Variant of `stage3_forall_exists_discrepancy_gt` with a positive-length witness `n > 0`.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
+
+Implementation note: we use the core witness-normal form lemma
+`HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos` to avoid re-proving that
+`discrepancy f d 0 = 0`.
+-/
+theorem stage3_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  have hC : HasDiscrepancyAtLeast f C :=
+    (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
+  rcases
+      (HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f := f) (C := C)).1 hC with
+    ⟨d, n, hd, hn, hgt⟩
+  refine ⟨d, n, ?_, hn, hgt⟩
+  exact lt_of_lt_of_le Nat.zero_lt_one hd
 
 /-- Specialization of `stage3_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
 
