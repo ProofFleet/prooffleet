@@ -126,23 +126,6 @@ theorem exists_boundedDiscOffset_iff_exists_forall_natAbs_apSumFrom_mul_le (f : 
       (boundedDiscOffset_iff_forall_natAbs_apSumFrom_mul_le (f := f) (d := d) (m := m) (B := B)).2
         hB
 
-/-- Normal form: unbounded offset discrepancy means there is no uniform bundled offset-nucleus bound.
-
-Negation-normal form:
-`¬ ∃ B, ∀ n, Int.natAbs (apSumOffset f d m n) ≤ B`.
-
-This can be convenient when proving unboundedness by contradiction.
--/
-theorem unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m : ℕ) :
-    UnboundedDiscOffset f d m ↔
-      (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
-  -- Rewrite unboundedness through the negation-normal-form boundedness predicate, then unfold the
-  -- relevant definitions.
-  simpa [BoundedDiscOffset, discOffset, -natAbs_apSumOffset_eq_discOffset] using
-    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := d) (m := m))
-
--- moved to `Conjectures.C0002_erdos_discrepancy.src.Tao2015` (core interface)
-
 /-- Normal form: unbounded offset discrepancy means there is no uniform affine-tail nucleus bound.
 
 Negation-normal form:

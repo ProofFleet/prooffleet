@@ -614,6 +614,19 @@ theorem iff_not_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (d m : 
 
 end UnboundedDiscOffset
 
+/-- Normal form: unbounded offset discrepancy means there is no uniform bundled offset-nucleus bound.
+
+Negation-normal form:
+`¬ ∃ B, ∀ n, Int.natAbs (apSumOffset f d m n) ≤ B`.
+
+This is just a naming wrapper around
+`UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le`.
+-/
+theorem unboundedDiscOffset_iff_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (d m : ℕ) :
+    UnboundedDiscOffset f d m ↔ (¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumOffset f d m n) ≤ B) := by
+  simpa using
+    (UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumOffset_le (f := f) (d := d) (m := m))
+
 /-- Normal form: unbounded offset discrepancy means there is no uniform `discOffset` bound.
 
 Negation-normal form:
