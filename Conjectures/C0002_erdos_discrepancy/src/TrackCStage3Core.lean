@@ -117,6 +117,16 @@ theorem add_start_mod_d (out : Stage3Output f) (n : ℕ) :
   simpa [Stage3Output.start, Stage2Output.start] using
     (Stage2Output.add_start_mod_d (f := f) out.out2 n)
 
+/-- Recover the offset parameter `out.m` by dividing the start index `out.start`
+by the step size `out.d`.
+
+This is a tiny arithmetic convenience lemma: `out.start = out.m * out.d` by definition.
+-/
+theorem start_div_d (out : Stage3Output f) : out.start / out.d = out.m := by
+  have hd' : 0 < out.d := by
+    simpa [Stage3Output.d] using out.out2.hd
+  simpa [Stage3Output.start] using (Nat.mul_div_left out.m hd')
+
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage3Output f) (k : ℕ) :
     out.g k = f (k + out.m * out.d) := by
