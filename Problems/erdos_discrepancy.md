@@ -1240,7 +1240,8 @@ Definition of done:
 - [x] `apSumFrom`/`discOffset` mixed normal form for affine-residue splits: a wrapper lemma that takes an affine/Icc sum, normalizes to `discOffset`, then applies a residue-class split bound (mod `r`) in one go, with a stable-surface regression example (paper-style “split into r progressions” step).
   (Implemented as `natAbs_sum_Icc_add_affineEndpoints_mul_len_succ_le_sum_range_natAbs` in `MoltResearch/Discrepancy/Residue.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] API coherence: add a short `SurfaceAudit` example proving that the preferred sequence of rewrites (affine endpoints → discOffset → cut → residue split → triangle bound) works with *only* stable imports and `simp`, so the “big proof script shape” can’t regress.
+- [x] API coherence: add a short `SurfaceAudit` example proving that the preferred sequence of rewrites (affine endpoints → discOffset → cut → residue split → triangle bound) works with *only* stable imports and `simp`, so the “big proof script shape” can’t regress.
+  (Implemented as `MoltResearch/Discrepancy/SurfaceAuditPipelineExample.lean`, imported by `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
 ### Track C - Conjecture stub + equivalences (backlog)
 
