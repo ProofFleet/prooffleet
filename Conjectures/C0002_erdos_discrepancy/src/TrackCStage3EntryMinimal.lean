@@ -101,7 +101,7 @@ This is sometimes the right normal form when downstream stages want to treat `d`
 theorem stage3Out_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).d > 0 := by
   -- Delegate to the Stage-2 core projection lemma (Stage 3 carries a Stage-2 output).
-  simpa using (Stage2Output.hd (out := (stage3Out (f := f) (hf := hf)).out2))
+  simp
 
 /-- Convenience lemma: the Stage-3 reduced step size is nonzero.
 
