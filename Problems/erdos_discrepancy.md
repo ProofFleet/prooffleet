@@ -77,9 +77,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `lt_discOffsetUpTo_iff_exists_lt_discOffset` in `MoltResearch/Discrepancy/Basic.lean`;
   regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [x] Zero-step / `d = 0` surface discipline: make `d = 0` either forbidden in the “witness”
-  predicates (preferred: require `d > 0`), or fully simp-normalized so it never becomes a stuck
-  corner case in downstream proofs.
+- [x] Zero-step / d = 0 surface discipline
+  Make `d = 0` either forbidden in the “witness” predicates (preferred: require `d > 0`), or fully
+  simp-normalized so it never becomes a stuck corner case in downstream proofs.
   (Implemented as `HasDiscrepancyAtLeast` using `d > 0`, plus simp normal forms
   `apSum_zero_step` / `apSumOffset_zero_step` / `disc_zero_step` / `discrepancy_zero_step` /
   `discOffset_zero_step` in `MoltResearch/Discrepancy/Basic.lean`; regression examples in
