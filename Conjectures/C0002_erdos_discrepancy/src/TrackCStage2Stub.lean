@@ -26,9 +26,13 @@ class Stage2Assumption : Type where
   sequence. -/
   stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 
-/-- Default axiom instance for the Stage-2 assumption (Conjectures-only stub). -/
+/-- Default axiom instance for the Stage-2 assumption (Conjectures-only stub).
+
+Design note: we register this instance at low priority so that downstream developments can provide
+a verified `Stage2Assumption` instance that will be preferred by typeclass search.
+-/
 axiom instStage2Assumption : Stage2Assumption
-attribute [instance] instStage2Assumption
+attribute [instance 10] instStage2Assumption
 
 /-- **Conjecture stub:** Stage 2 of Tao 2015.
 
