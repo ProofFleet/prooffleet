@@ -100,7 +100,8 @@ This is sometimes the right normal form when downstream stages want to treat `d`
 -/
 theorem stage3Out_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).d > 0 := by
-  exact lt_of_lt_of_le Nat.zero_lt_one (stage3_one_le_d (f := f) (hf := hf))
+  -- Delegate to the Stage-2 core projection lemma (Stage 3 carries a Stage-2 output).
+  simpa using (Stage2Output.hd (out := (stage3Out (f := f) (hf := hf)).out2))
 
 /-- Convenience lemma: the Stage-3 reduced step size is nonzero.
 
@@ -109,7 +110,8 @@ simply want to avoid rewriting strict inequalities).
 -/
 theorem stage3Out_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).d ≠ 0 := by
-  exact Nat.ne_of_gt (stage3Out_d_pos (f := f) (hf := hf))
+  -- Delegate to the Stage-2 core lemma; avoids re-proving arithmetic facts.
+  simpa using (Stage2Output.d_ne_zero (out := (stage3Out (f := f) (hf := hf)).out2))
 
 -- Note: the simp lemma `stage3Out_out2` is enough to rewrite projections like
 -- `(stage3Out ...).out2.d` to `(stage2Out ...).d`, but we also provide `[simp]` lemmas for the
