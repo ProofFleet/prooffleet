@@ -148,6 +148,29 @@ path), so we do not re-declare it here.
 -/
 
 /-!
+## Offset-discrepancy normal forms (affine-tail nuclei)
+
+These are tiny rewrite helpers for the deterministic Stage-3 parameters `(stage3_d, stage3_m)`.
+They let downstream stages work directly with the affine-tail nucleus `apSumFrom` without
+unfolding `discOffset` or repeatedly rewriting the start index `m*d`.
+-/
+
+/-- Normal form: the bundled offset discrepancy wrapper `discOffset` at the deterministic Stage-3
+parameters is the absolute value of the affine-tail nucleus `apSumFrom` at the deterministic start
+index `stage3_start = stage3_m * stage3_d`.
+
+This is just `Tao2015.discOffset_eq_natAbs_apSumFrom_mul` specialized to the Stage-3 projections.
+-/
+theorem stage3_discOffset_eq_natAbs_apSumFrom_start (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    discOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) n =
+      Int.natAbs
+        (apSumFrom f (stage3_start (f := f) (hf := hf)) (stage3_d (f := f) (hf := hf)) n) := by
+  -- Rewrite the start index `stage3_start` to `stage3_m * stage3_d`, then apply the generic lemma.
+  simpa [stage3_start_eq_m_mul_d (f := f) (hf := hf)] using
+    (discOffset_eq_natAbs_apSumFrom_mul (f := f)
+      (d := stage3_d (f := f) (hf := hf)) (m := stage3_m (f := f) (hf := hf)) (n := n))
+
+/-!
 ## Witness-form corollaries
 
 Most of these are intentionally kept out of the hard-gate core module.
