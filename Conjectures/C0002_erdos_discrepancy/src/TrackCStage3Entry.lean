@@ -111,6 +111,17 @@ theorem stage3_start_add_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : �
       n % stage3_d (f := f) (hf := hf) := by
   simpa [Nat.add_comm] using stage3_add_start_mod_d (f := f) (hf := hf) (n := n)
 
+/-- Adding the start index increases quotients by the offset parameter.
+
+Since `stage3_start = stage3_m * stage3_d`, we have
+`(n + stage3_start) / stage3_d = n / stage3_d + stage3_m`.
+-/
+theorem stage3_add_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (n + stage3_start (f := f) (hf := hf)) / stage3_d (f := f) (hf := hf) =
+      n / stage3_d (f := f) (hf := hf) + stage3_m (f := f) (hf := hf) := by
+  -- Stage 3 is definitional glue on top of the Stage-2 projections.
+  simpa [stage3_start, stage3_d, stage3_m] using stage2_add_start_div_d (f := f) (hf := hf) (n := n)
+
 /-- Recover the bundled offset parameter `stage3_m` by dividing the start index `stage3_start`
 by the step size `stage3_d`.
 
