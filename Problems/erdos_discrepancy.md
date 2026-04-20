@@ -1207,7 +1207,8 @@ Definition of done:
   `discOffset_mul_len_succ_le_sum_range_natAbs` (and `…_mul_left`) in `MoltResearch/Discrepancy/Residue.lean`, with
   stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffsetUpTo` monotone-in-N wrapper: package `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m N'` for `N ≤ N'` (and the corresponding “increase N by k” corollary), so later “increase the search horizon” steps are one-liners.
+- [x] `discOffsetUpTo` monotone-in-N wrapper: package `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m N'` for `N ≤ N'` (and the corresponding “increase N by k” corollary), so later “increase the search horizon” steps are one-liners.
+  (Implemented as `discOffsetUpTo_mono` + `discOffsetUpTo_le_add` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffsetUpTo` vs single-witness normal form: a lemma of the form
   `discOffsetUpTo f d m N = ⨆ n < N, discOffset f d m n` (or the repo’s chosen `Nat`-bounded `sup` formulation), so `discOffsetUpTo` can be reasoned about via a clean `sup` API.
