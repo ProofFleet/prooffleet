@@ -29,6 +29,11 @@ The goal is to pair verified artifacts with learning scaffolding.
 
   For definitional unfolding, prefer the explicit lemmas `discrepancy_eq_natAbs_apSum` / `disc_eq_natAbs_apSum` over the shorter `*_def` aliases. Similarly, for offsets prefer `discOffset_eq_natAbs_apSumOffset` (the older `discOffset_def` alias is deprecated).
 
+  **Degenerate step (`d = 0`) convention:** `d = 0` is **allowed** (not forbidden) and the stable surface provides terminating `[simp]` normal forms so downstream goals don't get stuck in the corner case. Typical normal forms:
+  - `apSum f 0 n` and `apSumOffset f 0 m n` simplify to constant-sums
+  - `disc f 0 n` / `discOffset f 0 m n` simplify to `n * Int.natAbs (f 0)`
+  - `discUpTo f 0 N` / `discOffsetUpTo f 0 m N` simplify to a `Finset.sup` of the same multiplicative form
+
   **Argument-order coherence:** `apSumFrom` uses `(a d n)` (“start, step, length”), while the historical offset nucleus uses `apSumOffset f d m n`. When you want to line up parameters across the affine/offset nuclei, use the definitional aliases `apSumOffset' f m d n`, `discOffset' f m d n`, and `discOffsetUpTo' f m d N`.
 - **API note (triangle vs reverse triangle):** for concatenation, `discOffset_add_le` is the forward triangle inequality. The reverse-triangle companions are `discOffset_left_le_add` / `discOffset_right_le_add`, proved by rewriting `S(n₁) = S(n₁+n₂) - S'(n₂)` and applying `Int.natAbs_sub_le`.
 - **API note (endpoint-algebra wrappers):** three-segment concatenation is available as `discOffset_add_add_le`, but downstream goals often appear with right-associated endpoints. Use `discOffset_add_add_le_assoc` when your goal has length `n₁ + (n₂ + n₃)` and/or third-start index `m + (n₁ + n₂)` so you can `simpa` without manual `Nat.add_assoc` reassociation.
