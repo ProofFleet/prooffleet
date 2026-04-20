@@ -1180,6 +1180,19 @@ Checklist item: Problems/erdos_discrepancy.md (Track B) —
   -- Reduce to `Int.natAbs ((n:ℤ) * f 0)` then simplify via multiplicativity of `natAbs`.
   simp [apSum_zero_step, Int.natAbs_mul, mul_assoc, mul_left_comm, mul_comm]
 
+/-- Degenerate-step normal form for the homogeneous wrapper `discrepancy`.
+
+This is definitionally the same as `disc_zero_step`, but we keep the lemma so downstream code
+using the `discrepancy` spelling doesn't have to detour through `disc`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Zero-step / d=0 surface discipline”.
+-/
+@[simp] lemma discrepancy_zero_step (f : ℕ → ℤ) (n : ℕ) :
+    discrepancy f 0 n = n * Int.natAbs (f 0) := by
+  unfold discrepancy
+  simp [apSum_zero_step, Int.natAbs_mul, mul_assoc, mul_left_comm, mul_comm]
+
 /-- Degenerate-step normal form for `discUpTo`.
 
 This does **not** try to solve the `Finset.sup` further; it rewrites the inside to a clean

@@ -110,6 +110,10 @@ example : discOffset f 0 m n = n * Int.natAbs (f 0) := by
 example : disc f 0 n = n * Int.natAbs (f 0) := by
   simp
 
+-- Same normalization, but under the `discrepancy` spelling.
+example : discrepancy f 0 n = n * Int.natAbs (f 0) := by
+  simp
+
 example : discUpTo f 0 N = (Finset.range (N + 1)).sup (fun n => n * Int.natAbs (f 0)) := by
   simp
 
