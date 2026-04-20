@@ -1384,6 +1384,28 @@ lemma exists_discOffset_eq_discOffsetUpTo (f : ℕ → ℤ) (d m N : ℕ) :
     -- rewrite the `sup` value to the chosen maximizer
     simpa [hsup] using hle
 
+/-- Single-witness normal form for inequalities involving `discOffsetUpTo`.
+
+This is a convenience lemma: an inequality `C < discOffsetUpTo f d m N` is equivalent to the
+existence of a single witness `n ≤ N` with `C < discOffset f d m n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+`discOffsetUpTo` vs single-witness normal form.
+-/
+lemma lt_discOffsetUpTo_iff_exists_lt_discOffset (f : ℕ → ℤ) (d m N C : ℕ) :
+    (C < discOffsetUpTo f d m N) ↔ (∃ n ≤ N, C < discOffset f d m n) := by
+  classical
+  constructor
+  · intro h
+    rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) with
+      ⟨n, hnle, hEq, -⟩
+    refine ⟨n, hnle, ?_⟩
+    -- rewrite `discOffsetUpTo` to the maximizing `discOffset`
+    simpa [hEq] using h
+  · rintro ⟨n, hnle, hnC⟩
+    exact lt_of_lt_of_le hnC (discOffset_le_discOffsetUpTo (f := f) (d := d) (m := m) (n := n)
+      (N := N) hnle)
+
 /-- In a fixed residue class modulo `q`, the maximum in `discUpTo` is attained by some `n ≤ N`.
 
 This is a residue-friendly witness-extraction lemma: rather than maximizing over all `n ≤ N`, we

@@ -138,6 +138,11 @@ example : discOffsetUpTo f (d * q) m n = discOffsetUpTo (fun k => f (k * q)) d m
 example : discOffsetUpTo f (q * d) m n = discOffsetUpTo (fun k => f (q * k)) d m n := by
   simpa using (discOffsetUpTo_step_mul_left (f := f) (q := q) (d := d) (m := m) (N := n))
 
+-- NEW (Track B): `discOffsetUpTo` vs single-witness normal form.
+example : (C < discOffsetUpTo f d m n) ↔ (∃ n' ≤ n, C < discOffset f d m n') := by
+  simpa using
+    (lt_discOffsetUpTo_iff_exists_lt_discOffset (f := f) (d := d) (m := m) (N := n) (C := C))
+
 example (hq : q > 0) : discOffsetUpTo f d m n ≤ discOffsetUpTo f d m (n * q) := by
   simpa using (discOffsetUpTo_le_mul (f := f) (d := d) (m := m) (N := n) (q := q) hq)
 

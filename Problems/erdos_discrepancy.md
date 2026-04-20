@@ -72,6 +72,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `natAbs_sum_Icc_of_le_affineEndpoints_eq_discOffset` (+ specializations/bound-level wrappers)
   in `MoltResearch/Discrepancy/AffineTail.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+- [x] `discOffsetUpTo` vs single-witness normal form: a lemma of the form
+  `C < discOffsetUpTo f d m N ↔ ∃ n ≤ N, C < discOffset f d m n`.
+  (Implemented as `lt_discOffsetUpTo_iff_exists_lt_discOffset` in `MoltResearch/Discrepancy/Basic.lean`;
+  regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
+
 #### Auto-generated backlog (needs triage)
 
 - [x] Canonical homogeneous view of offsets: prove `apSumOffset f d m n = apSum (fun k => f (k + m*d)) d n`
