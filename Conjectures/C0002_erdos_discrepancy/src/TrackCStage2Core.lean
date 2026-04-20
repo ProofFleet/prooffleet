@@ -9,9 +9,11 @@ It contains the minimal proved lemmas about `Tao2015.Stage2Output` needed by lat
 to close the global goal `¬ BoundedDiscrepancy f` and to expose the small Stage-2 API used by the
 Stage-3 hard-gate entry point.
 
-Additional arithmetic/rewrite helpers (e.g. the start index `m*d`, reduced-sequence rewrite lemmas,
-and tail-nucleus normal forms phrased using `out.start`) live in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
+Additional arithmetic/rewrite helpers (e.g. reduced-sequence rewrite lemmas and tail-nucleus normal
+forms) live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras`.
+
+The start index projection `out.start = out.m * out.d` is part of this core API (it is definitional,
+but downstream stages often want a named projection to avoid repeating `out.m * out.d`).
 
 The larger collection of witness-form wrappers lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Output`.
@@ -44,6 +46,9 @@ theorem hg (out : Stage2Output f) : IsSignSequence out.g := by
 
 /-- Convenience projection: the offset parameter bundled in Stage 1. -/
 @[simp] abbrev m (out : Stage2Output f) : ℕ := out.out1.m
+
+/-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1. -/
+abbrev start (out : Stage2Output f) : ℕ := out.m * out.d
 
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd

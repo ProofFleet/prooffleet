@@ -22,8 +22,7 @@ variable {f : ℕ → ℤ}
 ## Start index (`m*d`) helpers
 -/
 
-/-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1. -/
-abbrev start (out : Stage2Output f) : ℕ := out.m * out.d
+-- Note: `Stage2Output.start` is defined in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`.
 
 /-- Definitional rewrite: the affine-tail start index is `m*d`.
 
