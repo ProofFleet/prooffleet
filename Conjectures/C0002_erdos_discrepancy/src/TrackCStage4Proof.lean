@@ -61,6 +61,25 @@ theorem not_exists_forall_natAbs_apSumOffset_le (out : Stage4Output f) :
           (d := out.out2.d) (m := out.out2.m)).1
       hunb
 
+/-- Paper-notation normal form: there is no uniform bound on the shifted progression sums
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the concrete Stage-2 parameters stored inside Stage 4.
+
+Negation normal form:
+`¬ ∃ B, ∀ n, Int.natAbs ((Icc (m+1) (m+n)).sum (fun i => f (i*d))) ≤ B`.
+
+This is `not_exists_forall_natAbs_apSumOffset_le` rewritten using the normal-form equivalence
+`UnboundedDiscOffset.iff_not_exists_forall_natAbs_sum_Icc_offset_le`.
+-/
+theorem not_exists_forall_natAbs_sum_Icc_offset_le (out : Stage4Output f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs ((Finset.Icc (out.out2.m + 1) (out.out2.m + n)).sum (fun i => f (i * out.out2.d))) ≤ B := by
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := out.unboundedDiscOffset (f := f)
+  exact
+    (UnboundedDiscOffset.iff_not_exists_forall_natAbs_sum_Icc_offset_le (f := f)
+          (d := out.out2.d) (m := out.out2.m)).1
+      hunb
+
 /-- Existential packaging: Stage 4 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such
 that the bundled offset discrepancy family `discOffset f d m` is unbounded.
 
@@ -248,6 +267,21 @@ theorem stage4_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (hf : I
               (stage4Out (f := f) (hf := hf)).out2.m n) ≤ B := by
   simpa using
     (stage4Out (f := f) (hf := hf)).not_exists_forall_natAbs_apSumOffset_le (f := f)
+
+/-- Consumer-facing shortcut: paper-notation normal form of Stage-4 offset unboundedness.
+
+Negation normal form:
+`¬ ∃ B, ∀ n, Int.natAbs ((Icc (m+1) (m+n)).sum (fun i => f (i*d))) ≤ B`.
+-/
+theorem stage4_not_exists_forall_natAbs_sum_Icc_offset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs
+              ((Finset.Icc ((stage4Out (f := f) (hf := hf)).out2.m + 1)
+                ((stage4Out (f := f) (hf := hf)).out2.m + n)).sum
+                (fun i => f (i * (stage4Out (f := f) (hf := hf)).out2.d))) ≤ B := by
+  simpa using
+    (stage4Out (f := f) (hf := hf)).not_exists_forall_natAbs_sum_Icc_offset_le (f := f)
 
 /-- Consumer-facing shortcut: Stage 4 yields concrete Stage-2 parameters `d, m` (with `1 ≤ d`) such
 that the bundled offset discrepancy family `discOffset f d m` is unbounded.
