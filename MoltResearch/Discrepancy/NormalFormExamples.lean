@@ -4606,6 +4606,16 @@ example (hq : q > 0) :
     natAbs_apSumFrom_tail_mul_len_succ_le_sum_range_natAbs (f := f) (a := a) (d := d) (m := m)
       (q := q) (n := n) hq
 
+-- Regression (Track B / paper-style `Finset.Icc` affine endpoint residue split bound):
+-- callers should be able to go from the `Icc` sum straight to the residue-class bound.
+example (q : ℕ) (hq : q > 0) :
+    Int.natAbs ((Finset.Icc (m + 1) (m + q * (n + 1))).sum (fun i => f (a + i * d))) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n)) := by
+  simpa using
+    natAbs_sum_Icc_add_affineEndpoints_mul_len_succ_le_sum_range_natAbs
+      (f := f) (a := a) (d := d) (m := m) (q := q) (n := n) hq
+
 example (hq : q > 0) :
     discOffset f d m (q * (n + 1)) =
       Int.natAbs ((Finset.range q).sum (fun r =>
