@@ -104,6 +104,23 @@ theorem not_exists_boundedDiscOffset (out : Stage3Output f) :
     ¬ ∃ B : ℕ, BoundedDiscOffset f out.d out.m B := by
   simpa [Stage3Output.d, Stage3Output.m] using out.out2.not_exists_boundedDiscOffset (f := f)
 
+/-- Negation-normal form: there is no uniform bound on the bundled offset discrepancy family
+`discOffset f out.d out.m`.
+
+Normal form:
+`¬ ∃ B, ∀ n, discOffset f out.d out.m n ≤ B`.
+
+This is `unboundedDiscOffset` rewritten using
+`Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
+-/
+theorem not_exists_forall_discOffset_le (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f)
+        (d := out.d) (m := out.m)).1
+      hunb
+
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
 
