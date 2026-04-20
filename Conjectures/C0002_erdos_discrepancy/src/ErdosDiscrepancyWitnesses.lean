@@ -223,6 +223,18 @@ theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt (f :
     (Tao2015.Stage2Output.exists_params_forall_exists_natAbs_apSumOffset_gt (f := f)
       (Tao2015.stage3Out (f := f) (hf := hf)).out2)
 
+/-- Positive-length witness form of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt`.
+
+The witness length `n` cannot be `0`, since `apSumOffset ... 0 = 0`.
+-/
+theorem erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt_witness_pos
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d > 0 ∧
+      (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
+  simpa using
+    (Tao2015.Stage2Output.exists_params_forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f)
+      (Tao2015.stage3Out (f := f) (hf := hf)).out2)
+
 /-- Paper-notation surface form of `erdos_discrepancy_exists_params_forall_exists_natAbs_apSumOffset_gt`.
 
 Normal form:
