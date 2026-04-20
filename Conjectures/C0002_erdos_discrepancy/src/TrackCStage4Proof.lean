@@ -72,6 +72,16 @@ theorem exists_params_one_le_unboundedDiscOffset (out : Stage4Output f) :
   refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
   simpa using out.unboundedDiscOffset (f := f)
 
+/-- Variant of `exists_params_one_le_unboundedDiscOffset` with strict positivity for `d`.
+
+Normal form:
+`∃ d m, d > 0 ∧ UnboundedDiscOffset f d m`.
+-/
+theorem exists_params_d_pos_unboundedDiscOffset (out : Stage4Output f) :
+    ∃ d m : ℕ, d > 0 ∧ UnboundedDiscOffset f d m := by
+  rcases out.exists_params_one_le_unboundedDiscOffset (f := f) with ⟨d, m, hd, hU⟩
+  refine ⟨d, m, lt_of_lt_of_le Nat.zero_lt_one hd, hU⟩
+
 /-- Positive-length witness form: Stage 4 yields arbitrarily large bundled offset discrepancies
 `discOffset f out.out2.d out.out2.m n`, with witnesses `n > 0`.
 
