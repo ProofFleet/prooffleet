@@ -70,6 +70,21 @@ output produced by Stage 2.
     (stage3Out (f := f) (hf := hf)).out1 = (stage2Out (f := f) (hf := hf)).out1 := by
   rfl
 
+/-- Definitional rewrite: the Stage-3 reduced step size equals the Stage-2 reduced step size. -/
+@[simp] theorem stage3Out_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).d = (stage2Out (f := f) (hf := hf)).d := by
+  rfl
+
+/-- Definitional rewrite: the Stage-3 bundled offset parameter equals the Stage-2 parameter. -/
+@[simp] theorem stage3Out_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).m = (stage2Out (f := f) (hf := hf)).m := by
+  rfl
+
+/-- Definitional rewrite: the Stage-3 reduced sequence equals the Stage-2 reduced sequence. -/
+@[simp] theorem stage3Out_g (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).g = (stage2Out (f := f) (hf := hf)).g := by
+  rfl
+
 /-- Convenience lemma: the Stage-3 reduced step size is at least `1`.
 
 This is a tiny wrapper around the Stage-2 projection lemma `Stage2Output.one_le_d`.
@@ -97,8 +112,8 @@ theorem stage3Out_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
   exact Nat.ne_of_gt (stage3Out_d_pos (f := f) (hf := hf))
 
 -- Note: the simp lemma `stage3Out_out2` is enough to rewrite projections like
--- `(stage3Out ...).out2.d` to `(stage2Out ...).d`, so we avoid duplicating simp lemmas for
--- `.d/.m/.g` here.
+-- `(stage3Out ...).out2.d` to `(stage2Out ...).d`, but we also provide `[simp]` lemmas for the
+-- common projections `.d/.m/.g` so consumers can rewrite without reaching through `.out2`.
 
 /-- Consumer-facing shortcut: the Stage-3 pipeline closes the core goal `¬ BoundedDiscrepancy f`.
 
