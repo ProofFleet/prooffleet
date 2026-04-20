@@ -1647,6 +1647,26 @@ theorem boundedDiscOffsetExists_iff_exists_forall_discOffset_le (f : ℕ → ℤ
     BoundedDiscOffsetExists f d m ↔ ∃ B : ℕ, ∀ n : ℕ, discOffset f d m n ≤ B := by
   rfl
 
+/-!
+### Exists-bound bridge lemma for `discOffsetUpTo`
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+Bridge: boundedness of `discOffsetUpTo` ↔ boundedness of all `discOffset` witnesses.
+
+This lemma upgrades the “there exists a uniform bound” normal form from pointwise `discOffset`
+to the `discOffsetUpTo` wrapper, reusing `boundedDiscOffset_iff_forall_discOffsetUpTo_le`.
+-/
+
+theorem boundedDiscOffsetExists_iff_exists_forall_discOffsetUpTo_le (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffsetExists f d m ↔ ∃ B : ℕ, ∀ N : ℕ, discOffsetUpTo f d m N ≤ B := by
+  constructor
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact (boundedDiscOffset_iff_forall_discOffsetUpTo_le (f := f) (d := d) (m := m) (B := B)).1 hB
+  · rintro ⟨B, hB⟩
+    refine ⟨B, ?_⟩
+    exact (boundedDiscOffset_iff_forall_discOffsetUpTo_le (f := f) (d := d) (m := m) (B := B)).2 hB
+
 /-- `BoundedDiscAlongExists f d` means: there exists a uniform bound on all `discAlong f d n`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Boundedness normal form (exists-bound, discAlong).

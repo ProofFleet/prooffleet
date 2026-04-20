@@ -1013,6 +1013,12 @@ example (B : ℕ) :
     BoundedDiscOffset f d m B ↔ ∀ N : ℕ, discOffsetUpTo f d m N ≤ B := by
   simpa using (boundedDiscOffset_iff_forall_discOffsetUpTo_le (f := f) (d := d) (m := m) (B := B))
 
+-- Regression (Track B): exists-bound bridge for `discOffsetUpTo`.
+example (f : ℕ → ℤ) (d m : ℕ) :
+    BoundedDiscOffsetExists f d m ↔ ∃ B : ℕ, ∀ N : ℕ, discOffsetUpTo f d m N ≤ B := by
+  simpa using
+    (boundedDiscOffsetExists_iff_exists_forall_discOffsetUpTo_le (f := f) (d := d) (m := m))
+
 -- Regression (Track B / concatenation inequality for `discOffsetUpTo`): a sharper bound that
 -- isolates the tail segment.
 example :
@@ -4052,7 +4058,7 @@ example : apSumFrom f a d (n + 1) = apSumFrom f a d n + f (a + (n + 1) * d) := b
   simpa using apSumFrom_succ (f := f) (a := a) (d := d) (n := n)
 
 example : apSumFrom f a d 0 = 0 := by
-  simp
+  simpa using (apSumFrom_zero (f := f) (a := a) (d := d))
 
 example : apSumFrom f a d (n + 1) = f (a + d) + apSumFrom f (a + d) d n := by
   simpa using apSumFrom_succ_length (f := f) (a := a) (d := d) (n := n)
@@ -4065,7 +4071,7 @@ example : apSumFrom f a d (m + n) = apSumFrom f a d m + apSumFrom f (a + m * d) 
   simpa using apSumFrom_add_length (f := f) (a := a) (d := d) (m := m) (n := n)
 
 example : apSumFrom f a 0 n = n • f a := by
-  simp
+  simpa using (apSumFrom_zero_d (f := f) (a := a) (n := n))
 
 -- Affine sums at `a = 0` are just homogeneous AP sums.
 example : apSumFrom f 0 d n = apSum f d n := by
