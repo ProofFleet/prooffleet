@@ -50,6 +50,21 @@ theorem stage2_forall_exists_d_ne_zero_witness_pos (f : ℕ → ℤ) (hf : IsSig
   rcases stage2_forall_exists_d_pos_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
   exact ⟨d, n, Nat.ne_of_gt hd, hn, hw⟩
 
+/-- Consumer-facing discrepancy witness form derived from Stage 2.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is obtained from `stage2_hasDiscrepancyAtLeast` via
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem stage2_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  intro C
+  exact
+    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
+      (stage2_hasDiscrepancyAtLeast (f := f) (hf := hf) C)
+
 /-!
 ## Witnesses for the deterministic reduced locus
 
