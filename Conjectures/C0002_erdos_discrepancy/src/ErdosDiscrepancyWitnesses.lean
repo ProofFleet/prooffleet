@@ -139,6 +139,18 @@ theorem erdos_discrepancy_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (h
       (Tao2015.stage3Out (f := f) (hf := hf)))
 
 /-- Variant of `erdos_discrepancy_exists_params_unboundedDiscOffset` packaging the step-size side
+condition as `d ≠ 0`.
+
+Some downstream stages prefer this normal form when `d` is used as a denominator or an index step.
+-/
+theorem erdos_discrepancy_exists_params_d_ne_zero_unboundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, d ≠ 0 ∧ Tao2015.UnboundedDiscOffset f d m := by
+  rcases erdos_discrepancy_exists_params_unboundedDiscOffset (f := f) (hf := hf) with
+    ⟨d, m, hd, hunb⟩
+  exact ⟨d, m, Nat.ne_of_gt hd, hunb⟩
+
+/-- Variant of `erdos_discrepancy_exists_params_unboundedDiscOffset` packaging the step-size side
 condition as `1 ≤ d`.
 
 Many later stages prefer the normal form `1 ≤ d` rather than `d > 0`.
