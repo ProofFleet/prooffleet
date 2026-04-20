@@ -1219,8 +1219,12 @@ Definition of done:
   `discOffsetUpTo f d m N = ⨆ n < N, discOffset f d m n` (or the repo’s chosen `Nat`-bounded `sup` formulation), so `discOffsetUpTo` can be reasoned about via a clean `sup` API.
   (Implemented as `discOffsetUpTo_eq_sup_Icc_endpoints` / `discOffsetUpTo_eq_sup_Icc_lengths` / `discOffsetUpTo_eq_sup_range_Icc` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Bridge: boundedness of `discOffsetUpTo` ↔ boundedness of all `discOffset` witnesses: prove
+- [x] Bridge: boundedness of `discOffsetUpTo` ↔ boundedness of all `discOffset` witnesses: prove
   `(∀ N, discOffsetUpTo f d m N ≤ B) ↔ (∀ n, discOffset f d m n ≤ B)` with the canonical direction lemmas exposed, so “boundedness” moves between the two normal forms without unfolding.
+  (Implemented as `forall_discOffsetUpTo_le_iff_forall_discOffset_le` plus direction lemmas
+  `forall_discOffset_le_of_forall_discOffsetUpTo_le` / `forall_discOffsetUpTo_le_of_forall_discOffset_le`
+  in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Zero-step / d=0” surface discipline: decide and enforce the canonical convention (`d=0` forbidden vs allowed with a simp-normal form), then add simp/guard lemmas ensuring downstream proofs never get stuck on `d=0` corner cases.
 
