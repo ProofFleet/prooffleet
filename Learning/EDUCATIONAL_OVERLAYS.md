@@ -41,6 +41,11 @@ The goal is to pair verified artifacts with learning scaffolding.
   Pattern: `rcases exists_discOffset_eq_discOffsetUpTo … with ⟨n, hnle, hnEq, hmax⟩`;
   then `simpa [hnEq]` rewrites the max value to the chosen witness, and `hmax`
   supplies all “≤ maximizer” inequalities without redoing `Finset.sup` reasoning.
+
+- **API note (single-witness strict inequality, max-level):** if you *only* need a witness for a strict inequality (rather than an argmax + comparison), use
+  `lt_discOffsetUpTo_iff_exists_lt_discOffset`:
+  `C < discOffsetUpTo f d m N ↔ ∃ n ≤ N, C < discOffset f d m n`.
+  This is often the cleanest way to move between “max over a finite set” and “∃ witness” without unfolding `Finset.sup`.
 - **API note (tail concatenation, max-level):** for later Tao2015 bookkeeping, prefer the wrapper
   `discOffsetUpTo_tail_concat_le`:
   `discOffsetUpTo f d m (N+K) ≤ discOffsetUpTo f d m N + discOffsetUpTo f d (m+N) K`.
