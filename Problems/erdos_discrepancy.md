@@ -1194,6 +1194,29 @@ Definition of done:
 - [x] Stable-surface `simp` set audit for `apSum` (homogeneous): add a compile-only file under `import MoltResearch.Discrepancy` verifying that `simp` rewrites `apSum` goals into the preferred nucleus shapes (zero length, step one, dilation pull-in, reflect reindex), and wire it into `SurfaceAudit`.
   (Implemented as `MoltResearch/Discrepancy/ApSumSimpAudit.lean`; wired via `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Residue-class decomposition (sum-level, equality): for any `r>0`, rewrite
+  `apSumOffset f d m n` as a sum of `r` residue tails at step `r*d`, i.e. an equality of the shape
+  `apSumOffset f d m n = ∑ a in Finset.range r, apSumOffset f (r*d) (m+a) (Nat.ceilDiv? n r)` (choose the repo’s canonical endpoint normal form), so later “split into residues mod r” starts from a single `rw`.
+
+- [ ] Residue-class decomposition (disc-level, packaged bound): build a one-line lemma that combines the residue equality with `Int.natAbs_sum_le` (or repeated triangle inequality) to produce the canonical bound
+  `discOffset f d m n ≤ ∑ a in Finset.range r, discOffset f (r*d) (m+a) (… )`, with a stable-surface regression example.
+
+- [ ] `discOffsetUpTo` monotone-in-N wrapper: package `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m N'` for `N ≤ N'` (and the corresponding “increase N by k” corollary), so later “increase the search horizon” steps are one-liners.
+
+- [ ] `discOffsetUpTo` vs single-witness normal form: a lemma of the form
+  `discOffsetUpTo f d m N = ⨆ n < N, discOffset f d m n` (or the repo’s chosen `Nat`-bounded `sup` formulation), so `discOffsetUpTo` can be reasoned about via a clean `sup` API.
+
+- [ ] Bridge: boundedness of `discOffsetUpTo` ↔ boundedness of all `discOffset` witnesses: prove
+  `(∀ N, discOffsetUpTo f d m N ≤ B) ↔ (∀ n, discOffset f d m n ≤ B)` with the canonical direction lemmas exposed, so “boundedness” moves between the two normal forms without unfolding.
+
+- [ ] “Zero-step / d=0” surface discipline: decide and enforce the canonical convention (`d=0` forbidden vs allowed with a simp-normal form), then add simp/guard lemmas ensuring downstream proofs never get stuck on `d=0` corner cases.
+
+- [ ] `apSumFrom`/`discOffset` mixed normal form for affine-residue splits: a wrapper lemma that takes an affine/Icc sum, normalizes to `discOffset`, then applies a residue-class split bound (mod `r`) in one go, with a stable-surface regression example (paper-style “split into r progressions” step).
+
+- [ ] API coherence: add a short `SurfaceAudit` example proving that the preferred sequence of rewrites (affine endpoints → discOffset → cut → residue split → triangle bound) works with *only* stable imports and `simp`, so the “big proof script shape” can’t regress.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
