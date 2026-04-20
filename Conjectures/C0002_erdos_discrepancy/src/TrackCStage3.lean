@@ -86,10 +86,9 @@ theorem unboundedDiscrepancyAlong (out : Stage3Output f) :
 
 /-- Stage 3 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage3Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
-  exact
-    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
-      (g := out.g) (d := out.d)).1
-      out.unboundedDiscrepancyAlong
+  -- Delegate to the Stage-2 core boundary lemma carried by Stage 3.
+  simpa [Stage3Output.g, Stage3Output.d] using
+    (Stage2Output.notBoundedReducedAlong (f := f) (out := out.out2))
 
 /-- Stage 3 output also exposes the Stage-2 fixed-step unboundedness witness, phrased using the
 verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.

@@ -71,15 +71,9 @@ theorem stage2_notBoundedReducedAlong (f : ℕ → ℤ) (hf : IsSignSequence f) 
     ¬ BoundedDiscrepancyAlong
         (stage2_g (f := f) (hf := hf))
         (stage2_d (f := f) (hf := hf)) := by
-  have hunb : Tao2015.UnboundedDiscrepancyAlong
-      (stage2_g (f := f) (hf := hf))
-      (stage2_d (f := f) (hf := hf)) :=
-    stage2_unboundedDiscrepancyAlong (f := f) (hf := hf)
-  exact
-    (Tao2015.UnboundedDiscrepancyAlong.iff_not_boundedDiscrepancyAlong
-        (g := stage2_g (f := f) (hf := hf))
-        (d := stage2_d (f := f) (hf := hf))).1
-      hunb
+  -- Delegate to the proved Stage-2 core boundary API.
+  simpa [stage2_g, stage2_d, Stage2Output.g, Stage2Output.d] using
+    (Stage2Output.notBoundedReducedAlong (out := stage2Out (f := f) (hf := hf)))
 
 /-- Minimal consumer-facing Stage-2 consequence: Stage 2 yields an unbounded bundled offset
 discrepancy family `discOffset f d m` at the deterministic parameters produced by `stage2Out`.
