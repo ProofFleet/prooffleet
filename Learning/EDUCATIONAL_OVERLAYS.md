@@ -31,7 +31,8 @@ The goal is to pair verified artifacts with learning scaffolding.
 
   **Degenerate step (`d = 0`) convention:** `d = 0` is **allowed** (not forbidden) and the stable surface provides terminating `[simp]` normal forms so downstream goals don't get stuck in the corner case. Typical normal forms:
   - `apSum f 0 n` and `apSumOffset f 0 m n` simplify to constant-sums
-  - `disc f 0 n` / `discOffset f 0 m n` simplify to `n * Int.natAbs (f 0)`
+  - `disc f 0 n` / `discrepancy f 0 n` / `discOffset f 0 m n` simplify to `n * Int.natAbs (f 0)`
+    (see the stable-surface simp lemmas `disc_zero_step` / `discrepancy_zero_step` / `discOffset_zero_step`).
   - `discUpTo f 0 N` / `discOffsetUpTo f 0 m N` simplify to a `Finset.sup` of the same multiplicative form
 
   **Argument-order coherence:** `apSumFrom` uses `(a d n)` (“start, step, length”), while the historical offset nucleus uses `apSumOffset f d m n`. When you want to line up parameters across the affine/offset nuclei, use the definitional aliases `apSumOffset' f m d n`, `discOffset' f m d n`, and `discOffsetUpTo' f m d N`.
