@@ -92,6 +92,16 @@ output produced by Stage 2.
     (stage3Out (f := f) (hf := hf)).start = (stage2Out (f := f) (hf := hf)).start := by
   rfl
 
+/-- Definitional rewrite: the Stage-3 start index is `m*d` for the bundled Stage-3 parameters.
+
+We keep this lemma (without making it a simp lemma) in the minimal entry-point module so downstream
+stages can normalize start-index expressions without importing the larger Stage-3 convenience layer.
+-/
+theorem stage3Out_start_eq_m_mul_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).start =
+      (stage3Out (f := f) (hf := hf)).m * (stage3Out (f := f) (hf := hf)).d := by
+  rfl
+
 /-- Convenience lemma: the Stage-3 reduced sequence is a sign sequence.
 
 This is a tiny wrapper around the Stage-2 core projection lemma `Stage2Output.hg`.
