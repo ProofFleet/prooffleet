@@ -156,6 +156,22 @@ This is a tiny convenience lemma: it avoids an extra application at the call sit
 theorem hasDiscrepancyAtLeast (out : Stage3Output f) (C : ℕ) : HasDiscrepancyAtLeast f C := by
   exact (out.forall_hasDiscrepancyAtLeast (f := f)) C
 
+/-- Stage 3 output implies the nucleus witness form
+
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is the most pipeline-friendly surface normal form: it avoids `discrepancy` and uses the
+nucleus `apSum` directly.
+
+It is a thin wrapper around `forall_hasDiscrepancyAtLeast` via
+`forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos`.
+-/
+theorem forall_exists_d_ge_one_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact
+    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
+      (out.forall_hasDiscrepancyAtLeast (f := f))
+
 end Stage3Output
 
 /-!
