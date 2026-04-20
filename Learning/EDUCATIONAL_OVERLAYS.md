@@ -57,6 +57,10 @@ The goal is to pair verified artifacts with learning scaffolding.
   `BoundedDiscrepancyAlong f d len B` is equivalent to the single inequality
   `discOffsetUpTo f d 0 len ≤ B` via `boundedDiscrepancyAlong_iff_discOffsetUpTo_le`.
   This is the bridge that lets later steps rewrite boundedness hypotheses into a one-line max bound.
+- **API note (exists-bound normal form, `discOffsetUpTo`):** if you want the *existential* boundedness normal form (there exists a uniform bound over all cutoffs), use
+  `boundedDiscOffsetExists_iff_exists_forall_discOffsetUpTo_le`:
+  `BoundedDiscOffsetExists f d m ↔ ∃ B, ∀ N, discOffsetUpTo f d m N ≤ B`.
+  This packages the fixed-`B` bridge `boundedDiscOffset_iff_forall_discOffsetUpTo_le` into a single ergonomic equivalence.
 - **API note (max recursion):** when you need to peel the last case off a cutoff, rewrite `discOffsetUpTo f d m (N+1)` using `discOffsetUpTo_succ` to get a clean `max (discOffsetUpTo … N) (discOffset … (N+1))` normal form.
 - **API note (step positivity):** when extracting unboundedness witnesses, prefer the `Nat.succ` normal forms (`HasDiscrepancyAtLeast.exists_witness_succ(_pos)` and the affine analogue) so you can work with a concrete positive step without carrying a separate `d ≥ 1` side condition.
   The degenerate corner case `d = 0` also has stable-surface simp normal forms:
