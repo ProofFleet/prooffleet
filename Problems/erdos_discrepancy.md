@@ -1215,8 +1215,9 @@ Definition of done:
 - [x] `discOffsetUpTo` monotone-in-N wrapper: package `discOffsetUpTo f d m N ≤ discOffsetUpTo f d m N'` for `N ≤ N'` (and the corresponding “increase N by k” corollary), so later “increase the search horizon” steps are one-liners.
   (Implemented as `discOffsetUpTo_mono` + `discOffsetUpTo_le_add` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffsetUpTo` vs single-witness normal form: a lemma of the form
+- [x] `discOffsetUpTo` vs single-witness normal form: a lemma of the form
   `discOffsetUpTo f d m N = ⨆ n < N, discOffset f d m n` (or the repo’s chosen `Nat`-bounded `sup` formulation), so `discOffsetUpTo` can be reasoned about via a clean `sup` API.
+  (Implemented as `discOffsetUpTo_eq_sup_Icc_endpoints` / `discOffsetUpTo_eq_sup_Icc_lengths` / `discOffsetUpTo_eq_sup_range_Icc` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Bridge: boundedness of `discOffsetUpTo` ↔ boundedness of all `discOffset` witnesses: prove
   `(∀ N, discOffsetUpTo f d m N ≤ B) ↔ (∀ n, discOffset f d m n ≤ B)` with the canonical direction lemmas exposed, so “boundedness” moves between the two normal forms without unfolding.
