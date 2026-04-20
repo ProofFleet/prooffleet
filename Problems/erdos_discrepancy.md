@@ -1234,7 +1234,8 @@ Definition of done:
   in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Zero-step / d=0” surface discipline: decide and enforce the canonical convention (`d=0` forbidden vs allowed with a simp-normal form), then add simp/guard lemmas ensuring downstream proofs never get stuck on `d=0` corner cases.
+- [x] “Zero-step / d=0” surface discipline: decide and enforce the canonical convention (`d=0` forbidden vs allowed with a simp-normal form), then add simp/guard lemmas ensuring downstream proofs never get stuck on `d=0` corner cases.
+  (Already implemented earlier in this card: `HasDiscrepancyAtLeast` uses `d > 0`, and the stable surface provides simp normal forms `apSum_zero_step` / `apSumOffset_zero_step` / `disc_zero_step` / `discrepancy_zero_step` / `discOffset_zero_step` in `MoltResearch/Discrepancy/Basic.lean`, with regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `apSumFrom`/`discOffset` mixed normal form for affine-residue splits: a wrapper lemma that takes an affine/Icc sum, normalizes to `discOffset`, then applies a residue-class split bound (mod `r`) in one go, with a stable-surface regression example (paper-style “split into r progressions” step).
 
