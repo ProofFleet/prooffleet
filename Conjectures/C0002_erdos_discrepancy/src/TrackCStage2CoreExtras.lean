@@ -198,6 +198,15 @@ theorem forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (out : Stage2Output f)
     (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
       (f := f) (d := out.d) (m := out.m) hunb)
 
+/-- Positive-length tail-nucleus witness form phrased using the bundled start index `out.start`.
+
+This is just `forall_exists_natAbs_apSumFrom_mul_gt_witness_pos` under the more discoverable name
+that matches the Stage-3 interface.
+-/
+theorem forall_exists_natAbs_apSumFrom_start_gt_witness_pos (out : Stage2Output f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f out.start out.d n) > B := by
+  simpa using out.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
+
 /-- Tail-nucleus witness form without the positive-length side condition.
 
 This is a small convenience corollary of
