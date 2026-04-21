@@ -1243,6 +1243,24 @@ Definition of done:
 - [x] API coherence: add a short `SurfaceAudit` example proving that the preferred sequence of rewrites (affine endpoints → discOffset → cut → residue split → triangle bound) works with *only* stable imports and `simp`, so the “big proof script shape” can’t regress.
   (Implemented as `MoltResearch/Discrepancy/SurfaceAuditPipelineExample.lean`, imported by `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Reverse/reindex normal form (sum-level): package a lemma rewriting `apSumOffset f d m n` as the sum over `Finset.range n` after the reindex `i ↦ n-1-i` (with a clean statement that avoids manual `Nat` subtraction clutter), so “reverse the order” steps don’t drop to raw `Finset` algebra.
+
+- [ ] `Ico`/`Icc` interval normalization bundle: add rewrite lemmas converting common interval sums (`∑ i in Finset.Ico m n, ...` and `∑ i in Finset.Icc (m+1) n, ...`) directly into the nucleus `apSumFrom`/`apSumOffset` shapes, with consistent endpoint conventions and stable-surface regression examples.
+
+- [ ] Step-one + affine-endpoint coherence: provide a one-line wrapper turning paper sums of the form `∑ i ∈ Icc (m+1) n, f (a + i*d)` into a step-one tail on the shifted sequence `fun k => f (a + k)` (i.e. normalize both “affine endpoints” and “step one” in a single lemma), so downstream proofs can choose the step-one normal form without two separate rewrites.
+
+- [ ] Sign-sequence coercion hygiene: add a small lemma family that lets users treat `f : ℕ → {±1}`-style data as `ℕ → ℤ` sign sequences with `simp`-friendly coercions (and show `IsSignSequence` is preserved), to reduce friction when importing sequences from other modules.
+
+- [ ] “Extract a common gcd” normal form for steps: add a lemma rewriting discrepancy along step `d` into discrepancy along step `d/g` on the subsequence `fun k => f (k*g)` (where `g ∣ d`), with consistent naming and a regression example. Intended use: normalize steps before applying residue splits/dilations.
+
+- [ ] Residue split (equality) for homogeneous `apSum`: complement the existing offset-residue decomposition with a homogeneous `apSum` version (and the corresponding `disc` bound wrapper), so later reductions can switch between `apSum` and `apSumOffset` without losing access to the residue API.
+
+- [ ] “Cut at k” API for homogeneous sums: provide the homogeneous analogue of the `discOffset` cut lemmas (both equality-level and triangle-inequality bound wrappers), so proofs that start in the non-offset normal form can still do cut+bound in one line.
+
+- [ ] Stable-surface naming audit: do a pass to ensure the exported stable surface exposes a minimal, coherent set of names for the nucleus normal forms (`apSum`, `apSumFrom`, `apSumOffset`, `discOffset`, `discOffsetUpTo`, bridges), and add a compile-only `SurfaceAudit` file that fails if any of these names move or stop rewriting as intended.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
