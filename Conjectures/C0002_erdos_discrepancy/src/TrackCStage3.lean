@@ -57,6 +57,11 @@ This is occasionally useful when later stages want access to the deterministic p
 abbrev start (out : Stage3Output f) : ℕ :=
   out.m * out.d
 
+/-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
+theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
+  refine ⟨out.m, ?_⟩
+  simp [Stage3Output.start, Nat.mul_comm]
+
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
