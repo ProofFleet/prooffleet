@@ -27,6 +27,11 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `disc f d n` (matches the `discOffset` / `discOffsetUpTo` family).
   They are definitionally equal; use `discrepancy_eq_disc` / `disc_eq_discrepancy` when you want to normalize one spelling to the other without unfolding.
 
+- **API note (homogeneous cut at `k ≤ n`):** if you want to cut a homogeneous AP sum/discrepancy without rewriting into an offset normal form, use:
+  - `apSum_eq_add_apSumOffset_cut` / `apSum_sub_apSum_cut` for exact prefix+tail / tail-difference statements, and
+  - `disc_cut_le` for the one-line triangle bound
+    `disc f d n ≤ disc f d k + discOffset f d k (n-k)`.
+
   For definitional unfolding, prefer the explicit lemmas `discrepancy_eq_natAbs_apSum` / `disc_eq_natAbs_apSum` over the shorter `*_def` aliases. Similarly, for offsets prefer `discOffset_eq_natAbs_apSumOffset` (the older `discOffset_def` alias is deprecated).
 
   **Degenerate step (`d = 0`) convention:** `d = 0` is **allowed** (not forbidden) and the stable surface provides terminating `[simp]` normal forms so downstream goals don't get stuck in the corner case. Typical normal forms:
@@ -71,13 +76,13 @@ The goal is to pair verified artifacts with learning scaffolding.
   `boundedDiscOffsetExists_iff_exists_forall_discOffsetUpTo_le`:
   `BoundedDiscOffsetExists f d m ↔ ∃ B, ∀ N, discOffsetUpTo f d m N ≤ B`.
   This packages the fixed-`B` bridge `boundedDiscOffset_iff_forall_discOffsetUpTo_le` into a single ergonomic equivalence.
-+
-+- **API note (boundedness bridge, `UpTo` ↔ witnesses):** when you want to move *a fixed bound* `B` between the two quantifier normal forms,
-+  - `(∀ N, discOffsetUpTo f d m N ≤ B)` and
-+  - `(∀ n, discOffset f d m n ≤ B)`,
-+  use `forall_discOffsetUpTo_le_iff_forall_discOffset_le`.
-+  The directional lemmas `forall_discOffset_le_of_forall_discOffsetUpTo_le` and
-+  `forall_discOffsetUpTo_le_of_forall_discOffset_le` are convenient when you want to stay in implication form.
+
+- **API note (boundedness bridge, `UpTo` ↔ witnesses):** when you want to move *a fixed bound* `B` between the two quantifier normal forms,
+  - `(∀ N, discOffsetUpTo f d m N ≤ B)` and
+  - `(∀ n, discOffset f d m n ≤ B)`,
+  use `forall_discOffsetUpTo_le_iff_forall_discOffset_le`.
+  The directional lemmas `forall_discOffset_le_of_forall_discOffsetUpTo_le` and
+  `forall_discOffsetUpTo_le_of_forall_discOffset_le` are convenient when you want to stay in implication form.
 - **API note (max recursion):** when you need to peel the last case off a cutoff, rewrite `discOffsetUpTo f d m (N+1)` using `discOffsetUpTo_succ` to get a clean `max (discOffsetUpTo … N) (discOffset … (N+1))` normal form.
 - **API note (step positivity):** when extracting unboundedness witnesses, prefer the `Nat.succ` normal forms (`HasDiscrepancyAtLeast.exists_witness_succ(_pos)` and the affine analogue) so you can work with a concrete positive step without carrying a separate `d ≥ 1` side condition.
   The degenerate corner case `d = 0` also has stable-surface simp normal forms:
