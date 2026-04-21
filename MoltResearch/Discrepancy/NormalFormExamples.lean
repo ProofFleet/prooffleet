@@ -673,6 +673,21 @@ example (hm0 : 0 < m) (hmn : m ≤ n) :
   simpa using
     (sum_Ico_eq_apSumOffset_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
 
+-- (1.4.2) Common paper tail sum (`Icc (m+1) n`) → nucleus `apSumOffset`.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n)
+      hmn)
+
+-- (1.4.3) Same paper tail sum (`Icc (m+1) n`) → nucleus `apSumFrom` tail form.
+example (hmn : m ≤ n) :
+    (Finset.Icc (m + 1) n).sum (fun i => f (a + i * d)) =
+      apSumFrom f (a + m * d) d (n - m) := by
+  simpa using
+    (sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn)
+
 -- (1.5) “Cut + reassemble” normal form at the `apSumFrom`-level (Track B checklist item).
 -- This is the exact concatenation equality at the nucleus level.
 example : apSumFrom f a d (n + k) = apSumFrom f a d n + apSumFrom f (a + n * d) d k := by
