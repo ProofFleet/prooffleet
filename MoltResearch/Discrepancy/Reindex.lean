@@ -559,6 +559,27 @@ lemma apSumOffset_map_mul_div_of_dvd (f : ℕ → ℤ) (k d m n : ℕ) (hk : k >
   have d0k : d0 * k = k * d0 := Nat.mul_comm d0 k
   simpa [hd', d0k] using (apSumOffset_map_mul (f := f) (k := k) (d := d0) (m := m) (n := n))
 
+/-!
+### Step division normal form (homogeneous discrepancy)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Extract a common gcd” normal form.
+
+These lemmas let downstream code rewrite discrepancy along step `d` into discrepancy along step
+`d/k` on the gcd-restricted subsequence `x ↦ f (x*k)` when `k ∣ d`.
+
+They are intentionally wrapper-level: the real work is done by `apSum_map_mul_div_of_dvd`.
+-/
+
+lemma disc_map_mul_div_of_dvd (f : ℕ → ℤ) (k d n : ℕ) (hk : k > 0) (hd : k ∣ d) :
+    disc (fun x => f (x * k)) (d / k) n = disc f d n := by
+  unfold disc
+  simpa [apSum_map_mul_div_of_dvd (f := f) (k := k) (d := d) (n := n) hk hd]
+
+lemma discrepancy_map_mul_div_of_dvd (f : ℕ → ℤ) (k d n : ℕ) (hk : k > 0) (hd : k ∣ d) :
+    discrepancy (fun x => f (x * k)) (d / k) n = discrepancy f d n := by
+  unfold discrepancy
+  simpa [apSum_map_mul_div_of_dvd (f := f) (k := k) (d := d) (n := n) hk hd]
+
 lemma apSumFrom_map_mul (f : ℕ → ℤ) (k a d n : ℕ) :
   apSumFrom (fun x => f (x * k)) a d n = apSumFrom f (a * k) (d * k) n := by
   unfold apSumFrom

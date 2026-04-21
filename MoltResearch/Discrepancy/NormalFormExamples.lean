@@ -4530,6 +4530,11 @@ example :
 example (k : ℕ) : apSum (fun x => f (x * k)) d n = apSum f (d * k) n := by
   simpa using apSum_map_mul (f := f) (k := k) (d := d) (n := n)
 
+-- Regression: step-division normal form (rewrite `disc f d n` into a `d/k` step on the subsequence).
+example (k : ℕ) (hk : k > 0) (hd : k ∣ d) :
+    disc f d n = disc (fun x => f (x * k)) (d / k) n := by
+  simpa using (disc_map_mul_div_of_dvd (f := f) (k := k) (d := d) (n := n) hk hd).symm
+
 -- Regression: reindex `apSumOffset` into the mapped-finset normal form.
 example :
     apSumOffset f d m n =
