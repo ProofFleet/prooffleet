@@ -1654,10 +1654,21 @@ example (hk : k ≤ n) :
     disc f d n ≤ disc f d k + discOffset f d k (n - k) := by
   simpa using (disc_cut_le (f := f) (d := d) (n := n) (k := k) hk)
 
+-- Regression (Track B / homogeneous cut API, prefix+tail): cut `apSum` at `k ≤ n`.
+example (hk : k ≤ n) :
+    apSum f d n = apSum f d k + apSumOffset f d k (n - k) := by
+  simpa using (apSum_eq_add_apSumOffset_cut (f := f) (d := d) (n := n) (k := k) hk)
+
 -- Regression (Track B / homogeneous cut API, exact tail): subtract a prefix at `k ≤ n`.
 example (hk : k ≤ n) :
     apSum f d n - apSum f d k = apSumOffset f d k (n - k) := by
   simpa using (apSum_sub_apSum_cut (f := f) (d := d) (n := n) (k := k) hk)
+
+-- Regression (Track B / homogeneous cut API, disc-level rewrite):
+-- the length-`n` discrepancy rewrites into a single `natAbs (prefix + tail)`.
+example (hk : k ≤ n) :
+    disc f d n = Int.natAbs (apSum f d k + apSumOffset f d k (n - k)) := by
+  simpa using (disc_eq_natAbs_apSum_cut (f := f) (d := d) (n := n) (k := k) hk)
 
 -- Regression (Track B / step-factoring at a multiple start):
 -- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
