@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.Basic
 import MoltResearch.Discrepancy.EndpointSimp
+import MoltResearch.Discrepancy.SignSequenceCoercions
 import MoltResearch.Discrepancy.Periodic
 import MoltResearch.Discrepancy.Parity
 import MoltResearch.Discrepancy.Residue

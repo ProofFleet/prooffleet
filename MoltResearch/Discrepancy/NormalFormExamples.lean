@@ -22,6 +22,22 @@ namespace MoltResearch
 
 section NormalFormExamples
 
+/-!
+### NEW (Track B): sign-sequence coercion hygiene
+
+Compile-only regression tests: sequences with `{±1}`-style values should be easy to use as
+`ℕ → ℤ` sign sequences via coercion.
+-/
+
+-- A `SignZ`-valued sequence coerces to an `IsSignSequence`.
+example (g : ℕ → SignZ) : IsSignSequence (fun n => (g n : ℤ)) := by
+  simpa using (isSignSequence_coe_signZ (f := g))
+
+-- Generic bridge: any coercion to `ℤ` plus a pointwise `±1` hypothesis gives `IsSignSequence`.
+example {α : Type} [CoeTC α ℤ] (g : ℕ → α) (hg : ∀ n, (g n : ℤ) = 1 ∨ (g n : ℤ) = -1) :
+    IsSignSequence (fun n => (g n : ℤ)) := by
+  simpa using (isSignSequence_coe (f := g) hg)
+
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
