@@ -62,6 +62,13 @@ theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
   refine ⟨out.m, ?_⟩
   simp [Stage3Output.start, Nat.mul_comm]
 
+/-- The affine-tail start index has remainder `0` modulo the reduced step size `out.d`.
+
+This is often the most convenient normal form of `d_dvd_start`.
+-/
+theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
+  exact Nat.mod_eq_zero_of_dvd out.d_dvd_start
+
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
