@@ -4844,6 +4844,19 @@ example (f : ℕ → ℤ) (hf : IsSignSequence f) (d n : ℕ) :
     disc f d n ≤ n := by
   simpa using (disc_le (hf := hf) (d := d) (n := n))
 
+-- NEW (Track B): residue-class splitting wrapper for homogeneous discrepancy.
+example (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
+    disc f d (q * (n + 1)) =
+      Int.natAbs ((Finset.range q).sum (fun r =>
+        f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
+  simpa using (disc_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (q := q) (n := n) hq)
+
+example (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
+    disc f d (q * (n + 1)) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
+  simpa using (disc_mul_len_succ_le_sum_range_natAbs (f := f) (d := d) (q := q) (n := n) hq)
+
 /-!
 ## Step-factor coherence regression tests
 

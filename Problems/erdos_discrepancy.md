@@ -1263,7 +1263,7 @@ Definition of done:
 - [x] “Extract a common gcd” normal form for steps: add a lemma rewriting discrepancy along step `d` into discrepancy along step `d/g` on the subsequence `fun k => f (k*g)` (where `g ∣ d`), with consistent naming and a regression example. Intended use: normalize steps before applying residue splits/dilations.
   (Implemented as `disc_map_mul_div_of_dvd` in `MoltResearch/Discrepancy/Reindex.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Residue split (equality) for homogeneous `apSum`: complement the existing offset-residue decomposition with a homogeneous `apSum` version (and the corresponding `disc` bound wrapper), so later reductions can switch between `apSum` and `apSumOffset` without losing access to the residue API.
+- [x] Residue split (equality) for homogeneous `apSum`: complement the existing offset-residue decomposition with a homogeneous `apSum` version (and the corresponding `disc` bound wrapper), so later reductions can switch between `apSum` and `apSumOffset` without losing access to the residue API.
 
 - [ ] “Cut at k” API for homogeneous sums: provide the homogeneous analogue of the `discOffset` cut lemmas (both equality-level and triangle-inequality bound wrappers), so proofs that start in the non-offset normal form can still do cut+bound in one line.
 
