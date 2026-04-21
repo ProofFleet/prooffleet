@@ -2651,6 +2651,12 @@ example :
     (apSumOffset_reindex_range_bij (f := f) (d := d) (m := m) (n := n) (σ := σ)
       (hσ_range := hσ_range) (hσ_inj := hσ_inj) (hσ_surj := hσ_surj))
 
+-- Regression: reverse-order reindexing normal form is usable from the stable surface.
+example :
+    apSumOffset f d m n =
+      (Finset.range n).sum (fun i => f ((m + (n - (i + 1)) + 1) * d)) := by
+  simpa using (apSumOffset_reindex_range_rev (f := f) (d := d) (m := m) (n := n))
+
 example (g : ℕ → ℤ)
     (h : ∀ i, i < n → f (a + (i + 1) * d) = g (a + (i + 1) * d)) :
     apSumFrom f a d n = apSumFrom g a d n := by

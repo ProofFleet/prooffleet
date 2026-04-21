@@ -231,6 +231,39 @@ lemma apSumOffset_reindex_fin_perm (f : ℕ → ℤ) (d m n : ℕ) (σ : Equiv.P
               (fun i : Fin n => f ((m + (i : ℕ) + 1) * d))
               (fun i => rfl))
 
+/-- Reverse-order reindexing normal form for `apSumOffset`.
+
+This packages the change of variables `i ↦ n - (i+1)` (i.e. `Fin.rev`) on `Finset.range n`.
+The statement is kept at the `Finset.range`/`Nat` level so it can be used directly in
+sum-level normalization steps without switching to `Fin n` indices.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Reverse/reindex normal form (sum-level).
+-/
+lemma apSumOffset_reindex_range_rev (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n =
+      (Finset.range n).sum (fun i => f ((m + (n - (i + 1)) + 1) * d)) := by
+  classical
+  -- Define the reverse permutation on `Fin n` via `Fin.rev`.
+  let σ : Equiv.Perm (Fin n) :=
+    { toFun := Fin.rev
+      invFun := Fin.rev
+      left_inv := by
+        intro i
+        simpa using (Fin.rev_rev i)
+      right_inv := by
+        intro i
+        simpa using (Fin.rev_rev i) }
+  -- Reindex via the `Fin n`-permutation lemma, then convert back to a `Finset.range` sum.
+  calc
+    apSumOffset f d m n
+        = (Finset.univ : Finset (Fin n)).sum (fun i => f ((m + (σ i).1 + 1) * d)) :=
+          apSumOffset_reindex_fin_perm (f := f) (d := d) (m := m) (n := n) (σ := σ)
+    _ = (Finset.range n).sum (fun i => f ((m + (n - (i + 1)) + 1) * d)) := by
+          -- Rewrite the `Fin`-level sum as a `range` sum and unfold `Fin.rev`.
+          simpa [σ, Fin.val_rev] using
+            (Fin.sum_univ_eq_sum_range (n := n)
+              (f := fun i : ℕ => f ((m + (n - (i + 1)) + 1) * d)))
+
 /-- Discrepancy wrapper: reindex `discOffset` by a permutation of the index type `Fin n`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` congruence under affine/finite reindexing.
