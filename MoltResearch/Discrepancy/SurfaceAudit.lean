@@ -35,6 +35,7 @@ namespace MoltResearch
 
 section
   variable (f : ℕ → ℤ) (a d m n : ℕ)
+  variable (q N : ℕ)
 
   /-!
   ## Presence checks (stable surface)
@@ -175,6 +176,7 @@ section
   #check BoundedDiscrepancy
   #check discrepancy
   #check discOffset
+  #check discOffsetUpTo
 
   /-!
   ### Degenerate-step/offset simp coherence (stable surface)
@@ -189,6 +191,23 @@ section
   -- default: the stable surface keeps `discOffset`/`discrepancy` as the normalization boundary.
   example : discOffset f 0 m n = Int.natAbs ((n : ℤ) * f 0) := by
     simp [discOffset, apSumOffset_zero_d, zsmul_eq_mul]
+
+  /-!
+  ### `discOffsetUpTo` simp/regression (stable surface)
+
+  These are tiny compile-time checks that `discOffsetUpTo` remains part of the exported surface and
+  that a couple of the intended normalization lemmas remain usable via `simp`.
+  -/
+
+  -- Dilation/coarsening convenience wrappers should remain simp-usable.
+  example : discOffsetUpTo (fun k => f (q * k)) d m N = discOffsetUpTo f (q * d) m N := by
+    simpa using
+      (discOffsetUpTo_step_mul_left (f := f) (q := q) (d := d) (m := m) (N := N))
+
+  -- Degenerate step (`d = 0`) simp normal form should remain stable.
+  example :
+      discOffsetUpTo f 0 m N = (Finset.range (N + 1)).sup (fun n => n * Int.natAbs (f 0)) := by
+    simp [discOffsetUpTo, apSumOffset_zero_d, zsmul_eq_mul]
 
   example : discrepancy f 0 n = Int.natAbs ((n : ℤ) * f 0) := by
     simp [discrepancy, apSum_zero_d, zsmul_eq_mul]
