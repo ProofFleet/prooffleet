@@ -129,15 +129,37 @@ Since `stage3Out ... .start` is a multiple of `stage3Out ... .d`, we have
 theorem stage3Out_add_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
     (n + (stage3Out (f := f) (hf := hf)).start) % (stage3Out (f := f) (hf := hf)).d =
       n % (stage3Out (f := f) (hf := hf)).d := by
-  -- The bundled start index is definitionally `m*d`, so it is `0` modulo `d`.
-  simp [Nat.add_mod]
+  -- We keep this proof explicit (rather than relying on simp unfolding `start = m*d`) so it is
+  -- robust under simp-set changes.
+  let out := stage3Out (f := f) (hf := hf)
+  have hstart : out.start % out.d = 0 := by
+    simpa [out] using stage3Out_start_mod_d (f := f) (hf := hf)
+  have : (n + out.start) % out.d = n % out.d := by
+    calc
+      (n + out.start) % out.d = (n % out.d + out.start % out.d) % out.d := by
+        simpa [Nat.add_mod]
+      _ = (n % out.d + 0) % out.d := by
+        simp [hstart]
+      _ = n % out.d := by
+        simp
+  simpa [out] using this
 
 /-- Variant of `stage3Out_add_start_mod_d` with the start index on the left. -/
 theorem stage3Out_start_add_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
     ((stage3Out (f := f) (hf := hf)).start + n) % (stage3Out (f := f) (hf := hf)).d =
       n % (stage3Out (f := f) (hf := hf)).d := by
-  -- Same proof as `stage3Out_add_start_mod_d`; we avoid commutativity simp loops.
-  simp [Nat.add_mod]
+  let out := stage3Out (f := f) (hf := hf)
+  have hstart : out.start % out.d = 0 := by
+    simpa [out] using stage3Out_start_mod_d (f := f) (hf := hf)
+  have : (out.start + n) % out.d = n % out.d := by
+    calc
+      (out.start + n) % out.d = (out.start % out.d + n % out.d) % out.d := by
+        simpa [Nat.add_mod]
+      _ = (0 + n % out.d) % out.d := by
+        simp [hstart]
+      _ = n % out.d := by
+        simp
+  simpa [out] using this
 
 /-- Convenience lemma: the Stage-3 reduced sequence is a sign sequence.
 
