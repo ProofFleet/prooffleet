@@ -85,17 +85,8 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumFrom_start_le (out : Stage2Outp
 -- Note: additional witness/negation-normal-form wrappers for `discOffset` and `apSumOffset`
 -- live near the end of this file.
 
-/-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
-theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
-  -- `out.start` is definitionally `m*d`.
-  simp [Stage2Output.start]
-
-/-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`.
-
-This is often the most convenient form of `d_dvd_start` for arithmetic rewriting.
--/
-theorem start_mod_d (out : Stage2Output f) : out.start % out.d = 0 := by
-  exact Nat.mod_eq_zero_of_dvd (d_dvd_start (f := f) out)
+-- Note: `Stage2Output.d_dvd_start` and `Stage2Output.start_mod_d` live in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).
 
 /-- Adding the start index does not change residues modulo the step size.
 
