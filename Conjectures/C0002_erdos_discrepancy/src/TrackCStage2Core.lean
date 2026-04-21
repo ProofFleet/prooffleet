@@ -70,6 +70,16 @@ This is often the most convenient normal form of `d_dvd_start`.
 theorem start_mod_d (out : Stage2Output f) : out.start % out.d = 0 := by
   exact Nat.mod_eq_zero_of_dvd out.d_dvd_start
 
+/-- Recover the offset parameter `out.m` by dividing the start index `out.start` by the step size
+`out.d`.
+
+This is a tiny arithmetic convenience lemma: `out.start = out.m * out.d` by definition.
+-/
+theorem start_div_d (out : Stage2Output f) : out.start / out.d = out.m := by
+  have hd' : 0 < out.d := by
+    simpa using out.out1.hd
+  simpa [Stage2Output.start] using (Nat.mul_div_left out.m hd')
+
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 

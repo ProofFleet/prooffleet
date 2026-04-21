@@ -103,16 +103,8 @@ theorem start_add_mod_d (out : Stage2Output f) (n : ℕ) :
     (out.start + n) % out.d = n % out.d := by
   simpa [Nat.add_comm] using out.add_start_mod_d (f := f) (n := n)
 
-/-- Recover the offset parameter `out.m` by dividing the start index `out.start` by the step size
-`out.d`.
-
-This is a tiny arithmetic convenience lemma: `out.start = out.m * out.d` by definition.
--/
-theorem start_div_d (out : Stage2Output f) : out.start / out.d = out.m := by
-  -- `out.out1.hd` is the only side condition needed for `Nat.mul_div_left`.
-  have hd' : 0 < out.d := by
-    simpa [Stage2Output.d] using out.out1.hd
-  simpa [Stage2Output.start] using (Nat.mul_div_left out.m hd')
+-- Note: `Stage2Output.start_div_d` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).
 
 /-!
 ## Reduced-sequence rewrite helpers
