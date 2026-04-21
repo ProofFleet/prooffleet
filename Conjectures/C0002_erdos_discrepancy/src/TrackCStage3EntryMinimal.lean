@@ -133,16 +133,18 @@ theorem stage3Out_add_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n :
   -- robust under simp-set changes.
   let out := stage3Out (f := f) (hf := hf)
   have hstart : out.start % out.d = 0 := by
-    simpa [out] using stage3Out_start_mod_d (f := f) (hf := hf)
-  have : (n + out.start) % out.d = n % out.d := by
+    dsimp [out]
+    exact stage3Out_start_mod_d (f := f) (hf := hf)
+  have h : (n + out.start) % out.d = n % out.d := by
     calc
       (n + out.start) % out.d = (n % out.d + out.start % out.d) % out.d := by
-        simpa [Nat.add_mod]
+        simp [Nat.add_mod]
       _ = (n % out.d + 0) % out.d := by
         simp [hstart]
       _ = n % out.d := by
         simp
-  simpa [out] using this
+  dsimp [out] at h
+  exact h
 
 /-- Variant of `stage3Out_add_start_mod_d` with the start index on the left. -/
 theorem stage3Out_start_add_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
@@ -150,16 +152,18 @@ theorem stage3Out_start_add_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n :
       n % (stage3Out (f := f) (hf := hf)).d := by
   let out := stage3Out (f := f) (hf := hf)
   have hstart : out.start % out.d = 0 := by
-    simpa [out] using stage3Out_start_mod_d (f := f) (hf := hf)
-  have : (out.start + n) % out.d = n % out.d := by
+    dsimp [out]
+    exact stage3Out_start_mod_d (f := f) (hf := hf)
+  have h : (out.start + n) % out.d = n % out.d := by
     calc
       (out.start + n) % out.d = (out.start % out.d + n % out.d) % out.d := by
-        simpa [Nat.add_mod]
+        simp [Nat.add_mod]
       _ = (0 + n % out.d) % out.d := by
         simp [hstart]
       _ = n % out.d := by
         simp
-  simpa [out] using this
+  dsimp [out] at h
+  exact h
 
 /-- Convenience lemma: the Stage-3 reduced sequence is a sign sequence.
 
