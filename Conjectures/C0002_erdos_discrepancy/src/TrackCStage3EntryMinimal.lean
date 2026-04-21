@@ -122,11 +122,14 @@ theorem stage3_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
 
 This is sometimes the right normal form when downstream stages want to treat `d` as a denominator
 (or simply avoid rewriting `1 ≤ d`).
+
+Implementation note: we intentionally avoid `simp` here so the proof does not depend on the
+current simp set; we instead transport positivity from the proved lemma `stage3_one_le_d`.
 -/
 theorem stage3Out_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).d > 0 := by
-  -- Delegate to the Stage-2 core projection lemma (Stage 3 carries a Stage-2 output).
-  simp
+  have h1 : 1 ≤ (stage3Out (f := f) (hf := hf)).d := stage3_one_le_d (f := f) (hf := hf)
+  exact lt_of_lt_of_le Nat.zero_lt_one h1
 
 /-- Convenience lemma: the Stage-3 reduced step size is nonzero.
 
