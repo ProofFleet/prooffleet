@@ -45,6 +45,16 @@ theorem hasDiscrepancyAtLeast_of_le (f : ℕ → ℤ) {C C' : ℕ} (hC : C' ≤ 
   have hlt' : C' < discrepancy f d n := lt_of_le_of_lt hC hlt
   simpa [gt_iff_lt] using hlt'
 
+/-- Monotonicity along a fixed step: if `g` has discrepancy at least `C` along `d`, then it has
+discrepancy at least any smaller threshold `C' ≤ C`.
+
+This is just the witness-form definition `HasDiscrepancyAtLeastAlong g d C := ∃ n, C < discrepancy g d n`.
+-/
+theorem hasDiscrepancyAtLeastAlong_of_le (g : ℕ → ℤ) (d : ℕ) {C C' : ℕ} (hC : C' ≤ C) :
+    HasDiscrepancyAtLeastAlong g d C → HasDiscrepancyAtLeastAlong g d C' := by
+  rintro ⟨n, hn⟩
+  exact ⟨n, lt_of_le_of_lt hC hn⟩
+
 
 /-
 Note: the bounded-discrepancy-along nucleus normal form lives in `Tao2015` as
