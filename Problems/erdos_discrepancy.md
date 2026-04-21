@@ -1257,7 +1257,8 @@ Definition of done:
   `MoltResearch/Discrepancy/AffineTail.lean`, with stable-surface regression examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Sign-sequence coercion hygiene: add a small lemma family that lets users treat `f : ℕ → {±1}`-style data as `ℕ → ℤ` sign sequences with `simp`-friendly coercions (and show `IsSignSequence` is preserved), to reduce friction when importing sequences from other modules.
+- [x] Sign-sequence coercion hygiene: add a small lemma family that lets users treat `f : ℕ → {±1}`-style data as `ℕ → ℤ` sign sequences with `simp`-friendly coercions (and show `IsSignSequence` is preserved), to reduce friction when importing sequences from other modules.
+  (Implemented in `MoltResearch/Discrepancy/SignSequenceCoercions.lean` as `SignZ`, `isSignSequence_coe`, and `isSignSequence_coe_signZ`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Extract a common gcd” normal form for steps: add a lemma rewriting discrepancy along step `d` into discrepancy along step `d/g` on the subsequence `fun k => f (k*g)` (where `g ∣ d`), with consistent naming and a regression example. Intended use: normalize steps before applying residue splits/dilations.
 
