@@ -66,6 +66,19 @@ theorem erdos_discrepancy_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequ
       (Tao2015.stage3Out (f := f) (hf := hf)).m := by
   exact Tao2015.stage3_unboundedDiscOffset (f := f) (hf := hf)
 
+/-- Existential packaging of `erdos_discrepancy_unboundedDiscOffset`.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ UnboundedDiscOffset f d m`.
+
+This is a small convenience wrapper around
+`Tao2015.stage3_exists_params_one_le_unboundedDiscOffset`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ Tao2015.UnboundedDiscOffset f d m := by
+  exact Tao2015.stage3_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf)
+
 /-- Track C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
 stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
