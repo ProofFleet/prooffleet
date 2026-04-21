@@ -65,6 +65,19 @@ theorem stage2_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
     (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
       (stage2_hasDiscrepancyAtLeast (f := f) (hf := hf) C)
 
+/-- Variant of `stage2_forall_exists_discrepancy_gt` writing the step-size side condition as `d ≥ 1`,
+with a positive-length witness `n > 0`.
+
+This is a thin wrapper around `stage2_forall_exists_d_ge_one_witness_pos`, rewriting the nucleus
+statement `Int.natAbs (apSum f d n) > C` as `discrepancy f d n > C`.
+-/
+theorem stage2_forall_exists_discrepancy_gt_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases stage2_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  simpa [discrepancy] using hw
+
 /-!
 ## Witnesses for the deterministic reduced locus
 
