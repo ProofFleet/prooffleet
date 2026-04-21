@@ -90,6 +90,19 @@ theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
   -- Delegate to the minimal Stage-3 entry-point API.
   exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
 
+/-- Witness form of `erdos_discrepancy`, stated using the `discrepancy` wrapper.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
+
+We keep this lemma in the hard-gate file since it is a common consumption pattern, and it does not
+require importing the larger witness-corollary module.
+-/
+theorem erdos_discrepancy_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  exact Tao2015.stage3_forall_exists_discrepancy_gt_witness_pos (f := f) (hf := hf)
+
 /-- Specialization of `erdos_discrepancy` at a fixed threshold `C`.
 
 This is a tiny convenience lemma: it avoids an extra application at the call site.
