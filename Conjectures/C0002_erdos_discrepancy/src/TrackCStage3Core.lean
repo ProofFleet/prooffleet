@@ -104,11 +104,7 @@ This mirrors the Stage-2 lemma `Stage2Output.start_eq_m_mul_d` and avoids repeat
 theorem start_eq_m_mul_d (out : Stage3Output f) : out.start = out.m * out.d := by
   rfl
 
-/-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
-theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
-  -- Delegate to the Stage-2 core lemma (avoids re-proving arithmetic about the projections).
-  simpa [start_eq_out2_start] using
-    (Stage2Output.d_dvd_start (f := f) out.out2)
+-- Note: the lemma `Stage3Output.d_dvd_start` lives in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
 /-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`. -/
 theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by

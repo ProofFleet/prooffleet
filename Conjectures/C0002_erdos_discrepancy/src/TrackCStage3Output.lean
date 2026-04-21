@@ -25,24 +25,13 @@ Basic projections (`notBoundedOriginal`, `d`, `g`, `m`, `hg`, `g_eq`, `hd`, `d_n
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Core`.
 -/
 
-/-- Stage 3 output implies the nucleus witness form
-
-`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
-
-This is the most pipeline-friendly surface statement for consuming Stage 3.
+/-!
+Note: the minimal witness-form lemmas
+`Stage3Output.forall_exists_d_ge_one_witness_pos` and
+`Stage3Output.forall_exists_d_pos_witness_pos`
+are defined in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3` (the hard-gate boundary).
+We re-use those statements here rather than re-declaring them.
 -/
-theorem forall_exists_d_ge_one_witness_pos (out : Stage3Output f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  exact Stage2Output.forall_exists_d_ge_one_witness_pos (f := f) out.out2
-
-/-- Variant of `forall_exists_d_ge_one_witness_pos` with the step-size side condition written as
-`d > 0`.
-
-Many consumers prefer the strict-positivity normal form when working with `Nat` step sizes.
--/
-theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  exact Stage2Output.forall_exists_d_pos_witness_pos (f := f) out.out2
 
 /-- Variant of `forall_exists_d_pos_witness_pos` with the step-size side condition written as
 `d ≠ 0`.
@@ -93,16 +82,8 @@ theorem forall_exists_discrepancy_gt_d_ge_one_witness_pos (out : Stage3Output f)
   change Int.natAbs (apSum f d n) > C
   exact hw
 
-/-- Strengthened witness form of `forall_exists_discrepancy_gt` with a positive-length witness.
-
-This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
--/
-theorem forall_exists_discrepancy_gt_witness_pos (out : Stage3Output f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, h⟩
-  refine ⟨d, n, hd, hn, ?_⟩
-  simpa using h
+-- Note: `Stage3Output.forall_exists_discrepancy_gt_witness_pos` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3` (the hard-gate boundary).
 
 /-- Stage 3 output implies the paper-notation witness form
 
