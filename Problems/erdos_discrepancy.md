@@ -1268,7 +1268,7 @@ Definition of done:
 - [x] “Cut at k” API for homogeneous sums: provide the homogeneous analogue of the `discOffset` cut lemmas (both equality-level and triangle-inequality bound wrappers), so proofs that start in the non-offset normal form can still do cut+bound in one line.
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `apSum_eq_add_apSumOffset_cut`, `apSum_sub_apSum_cut`, `disc_eq_natAbs_apSum_cut`, and `disc_cut_le`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface naming audit: do a pass to ensure the exported stable surface exposes a minimal, coherent set of names for the nucleus normal forms (`apSum`, `apSumFrom`, `apSumOffset`, `discOffset`, `discOffsetUpTo`, bridges), and add a compile-only `SurfaceAudit` file that fails if any of these names move or stop rewriting as intended.
+- [x] Stable-surface naming audit: do a pass to ensure the exported stable surface exposes a minimal, coherent set of names for the nucleus normal forms (`apSum`, `apSumFrom`, `apSumOffset`, `discOffset`, `discOffsetUpTo`, bridges), and add a compile-only `SurfaceAudit` file that fails if any of these names move or stop rewriting as intended. (Implemented as `MoltResearch/Discrepancy/SurfaceAudit.lean`, PR #2636.)
 
 ### Track C - Conjecture stub + equivalences (backlog)
 
