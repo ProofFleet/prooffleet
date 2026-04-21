@@ -71,6 +71,11 @@ They let downstream stages write `out.d`, `out.m`, etc. without reaching through
 /-- Convenience projection: the affine-tail start index `m*d` carried by Stage 4. -/
 abbrev start (out : Stage4Output f) : ℕ := out.m * out.d
 
+/-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
+theorem d_dvd_start (out : Stage4Output f) : out.d ∣ out.start := by
+  refine ⟨out.m, ?_⟩
+  simp [Stage4Output.start, Nat.mul_comm]
+
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage4Output f) : out.d > 0 := out.out2.hd
 
