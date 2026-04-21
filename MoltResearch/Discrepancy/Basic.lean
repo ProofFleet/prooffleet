@@ -4070,6 +4070,61 @@ lemma apSum_add_len (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
     apSum f d (n₁ + n₂) = apSum f d n₁ + apSumOffset f d n₁ n₂ := by
   simpa using (apSum_add_length (f := f) (d := d) (m := n₁) (n := n₂))
 
+/-!
+### “Cut at `k ≤ n`” API (homogeneous sums)
+
+This is the homogeneous analogue of the `discOffset` range-cut lemmas (see
+`MoltResearch/Discrepancy/Offset.lean`).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut at k” API for homogeneous sums.
+
+Goal: proofs that start in the homogeneous normal form (`apSum` / `disc`) should be able to
+cut at `k ≤ n` and immediately obtain the exact tail (equality-level) or a one-line triangle bound.
+-/
+
+/-- Prefix + tail = total: cut a homogeneous AP sum at length `k ≤ n`.
+
+This is `apSum_add_length` specialized to the decomposition `n = k + (n-k)`.
+-/
+lemma apSum_eq_add_apSumOffset_cut (f : ℕ → ℤ) (d n k : ℕ) (hk : k ≤ n) :
+    apSum f d n = apSum f d k + apSumOffset f d k (n - k) := by
+  have hn : k + (n - k) = n := Nat.add_sub_of_le hk
+  -- rewrite to the canonical length-split normal form
+  simpa [hn] using (apSum_add_length (f := f) (d := d) (m := k) (n := (n - k)))
+
+/-- Exact tail difference after cutting a homogeneous AP sum at `k ≤ n`.
+
+This is the homogeneous analogue of `apSumOffset_sub_apSumOffset_cut`.
+-/
+lemma apSum_sub_apSum_cut (f : ℕ → ℤ) (d n k : ℕ) (hk : k ≤ n) :
+    apSum f d n - apSum f d k = apSumOffset f d k (n - k) := by
+  have h := apSum_eq_add_apSumOffset_cut (f := f) (d := d) (n := n) (k := k) hk
+  calc
+    apSum f d n - apSum f d k
+        = (apSum f d k + apSumOffset f d k (n - k)) - apSum f d k := by
+            simpa [h]
+    _ = apSumOffset f d k (n - k) := by
+          simpa using (add_sub_cancel_left (apSum f d k) (apSumOffset f d k (n - k)))
+
+/-- Range-cut equality, `disc`-level: rewrite the length-`n` discrepancy via a cut at `k ≤ n`.
+
+This is the homogeneous analogue of `discOffset_eq_natAbs_apSumOffset_cut`.
+-/
+lemma disc_eq_natAbs_apSum_cut (f : ℕ → ℤ) (d n k : ℕ) (hk : k ≤ n) :
+    disc f d n = Int.natAbs (apSum f d k + apSumOffset f d k (n - k)) := by
+  unfold disc
+  simpa [apSum_eq_add_apSumOffset_cut (f := f) (d := d) (n := n) (k := k) hk]
+
+/-- Range-cut triangle inequality for `disc`: split at a cut length `k ≤ n`.
+
+This is the homogeneous analogue of `discOffset_cut_le`.
+-/
+lemma disc_cut_le (f : ℕ → ℤ) (d n k : ℕ) (hk : k ≤ n) :
+    disc f d n ≤ disc f d k + discOffset f d k (n - k) := by
+  -- rewrite the LHS into a single `Int.natAbs (x + y)` and apply `|x+y| ≤ |x|+|y|`.
+  have hEq := disc_eq_natAbs_apSum_cut (f := f) (d := d) (n := n) (k := k) hk
+  simpa [hEq] using (Int.natAbs_add_le (apSum f d k) (apSumOffset f d k (n - k)))
+
 /-- `simp`-friendly corollary of `apSum_add_len` for `n₁ = 0`. -/
 @[simp] lemma apSum_add_len_zero_left (f : ℕ → ℤ) (d n : ℕ) :
     apSum f d (0 + n) = apSum f d n := by

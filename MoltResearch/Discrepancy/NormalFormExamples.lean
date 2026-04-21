@@ -1649,6 +1649,16 @@ example (hk : k ≤ n) :
     discOffset f d m n ≤ discOffset f d m k + discOffset f d (m + k) (n - k) := by
   simpa using (discOffset_cut_le (f := f) (d := d) (m := m) (n := n) (k := k) hk)
 
+-- Regression (Track B / homogeneous cut API): cut+bound for `disc` without rewriting to offsets.
+example (hk : k ≤ n) :
+    disc f d n ≤ disc f d k + discOffset f d k (n - k) := by
+  simpa using (disc_cut_le (f := f) (d := d) (n := n) (k := k) hk)
+
+-- Regression (Track B / homogeneous cut API, exact tail): subtract a prefix at `k ≤ n`.
+example (hk : k ≤ n) :
+    apSum f d n - apSum f d k = apSumOffset f d k (n - k) := by
+  simpa using (apSum_sub_apSum_cut (f := f) (d := d) (n := n) (k := k) hk)
+
 -- Regression (Track B / step-factoring at a multiple start):
 -- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
 example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d)) k 0 n := by
