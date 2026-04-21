@@ -427,6 +427,23 @@ lemma sum_Icc_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
     (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
   simpa using (apSumFrom_eq_sum_Icc (f := f) (a := a) (d := d) (n := n)).symm
 
+/-!
+### NEW (Track B): `Ico` ↔ `apSumFrom` normal form
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `Ico`/`Icc` interval normalization bundle.
+
+In many sources, the “`1..n`” sum is written as an `Ico` interval `Ico 1 (n+1)`.
+This lemma rewrites that directly into the nucleus `apSumFrom` form.
+
+We keep this as an explicit rewrite lemma (not `[simp]`) to avoid simp loops between
+paper-notation and nucleus-notation.
+-/
+lemma sum_Ico_one_add_one_eq_apSumFrom (f : ℕ → ℤ) (a d n : ℕ) :
+    (Finset.Ico 1 (n + 1)).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+  -- `Ico 1 (n+1)` is the same set as `Icc 1 n`.
+  simpa [Finset.Ico_add_one_right_eq_Icc] using
+    (sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n))
+
 -- (moved below: depends on `apSumFrom_eq_apSumOffset_step_one`)
 
 lemma apSumFrom_succ (f : ℕ → ℤ) (a d n : ℕ) :

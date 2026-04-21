@@ -640,6 +640,18 @@ import MoltResearch.Discrepancy
 example : (Finset.Icc 1 n).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
   simpa [sum_Icc_eq_apSumFrom]
 
+-- (1.1) Same sum, but in the common `Ico 1 (n+1)` paper notation.
+example : (Finset.Ico 1 (n + 1)).sum (fun i => f (a + i * d)) = apSumFrom f a d n := by
+  simpa using (sum_Ico_one_add_one_eq_apSumFrom (f := f) (a := a) (d := d) (n := n))
+
+-- (1.2) Tail sum in `Ico (m+1) (n+1)` paper notation → nucleus `apSumOffset`.
+example (hmn : m ≤ n) :
+    (Finset.Ico (m + 1) (n + 1)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  simpa using
+    (sum_Ico_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n)
+      hmn)
+
 -- (1.5) “Cut + reassemble” normal form at the `apSumFrom`-level (Track B checklist item).
 -- This is the exact concatenation equality at the nucleus level.
 example : apSumFrom f a d (n + k) = apSumFrom f a d n + apSumFrom f (a + n * d) d k := by

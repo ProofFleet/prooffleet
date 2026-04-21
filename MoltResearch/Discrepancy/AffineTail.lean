@@ -1668,6 +1668,26 @@ lemma sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f : ℕ → ℤ) (a d : ℕ)
     (sum_Icc_eq_apSumOffset_of_le_affine_left (f := f) (a := a) (d := d) (m := m) (n := n)
       (hmn := hmn))
 
+/-!
+### NEW (Track B): `Ico` ↔ `apSumOffset` normal form
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `Ico`/`Icc` interval normalization bundle.
+
+The tail sum `∑ i ∈ Icc (m+1) n, f (a + i*d)` is often written as an `Ico` interval
+`Ico (m+1) (n+1)`. This lemma rewrites that directly into the nucleus `apSumOffset` form.
+
+We keep this as an explicit rewrite lemma (not `[simp]`) to avoid simp loops between
+paper-notation and nucleus-notation.
+-/
+lemma sum_Ico_eq_apSumOffset_of_le_affineEndpoints (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hmn : m ≤ n) :
+    (Finset.Ico (m + 1) (n + 1)).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d m (n - m) := by
+  -- `Ico (m+1) (n+1)` is the same set as `Icc (m+1) n`.
+  simpa [Finset.Ico_add_one_right_eq_Icc] using
+    (sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n)
+      hmn)
+
 /-- Mul-left variant of `sum_Icc_eq_apSumOffset_of_le_affineEndpoints`, with summand written as
 `f (a + d*i)`.
 -/
