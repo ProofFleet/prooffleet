@@ -121,6 +121,24 @@ theorem stage3Out_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).start % (stage3Out (f := f) (hf := hf)).d = 0 := by
   exact Nat.mod_eq_zero_of_dvd (stage3Out_d_dvd_start (f := f) (hf := hf))
 
+/-- Adding the start index does not change residues modulo the step size.
+
+Since `stage3Out ... .start` is a multiple of `stage3Out ... .d`, we have
+`(n + start) % d = n % d`.
+-/
+theorem stage3Out_add_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (n + (stage3Out (f := f) (hf := hf)).start) % (stage3Out (f := f) (hf := hf)).d =
+      n % (stage3Out (f := f) (hf := hf)).d := by
+  -- The bundled start index is definitionally `m*d`, so it is `0` modulo `d`.
+  simp [Nat.add_mod]
+
+/-- Variant of `stage3Out_add_start_mod_d` with the start index on the left. -/
+theorem stage3Out_start_add_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    ((stage3Out (f := f) (hf := hf)).start + n) % (stage3Out (f := f) (hf := hf)).d =
+      n % (stage3Out (f := f) (hf := hf)).d := by
+  -- Same proof as `stage3Out_add_start_mod_d`; we avoid commutativity simp loops.
+  simp [Nat.add_mod]
+
 /-- Convenience lemma: the Stage-3 reduced sequence is a sign sequence.
 
 This is a tiny wrapper around the Stage-2 core projection lemma `Stage2Output.hg`.
