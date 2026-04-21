@@ -124,6 +124,10 @@ example : discOffsetUpTo f 0 m N = (Finset.range (N + 1)).sup (fun n => n * Int.
 example : apSumOffset' f m d n = apSumOffset f d m n := by
   rfl
 
+-- NEW (Track B): reverse / reindex normal form (sum-level)
+example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + (n - i)) * d)) := by
+  simpa using (apSumOffset_eq_sum_range_reverse (f := f) (d := d) (m := m) (n := n))
+
 example : discOffset' f m d n = discOffset f d m n := by
   rfl
 

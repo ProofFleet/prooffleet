@@ -219,6 +219,57 @@ lemma apSumOffset_eq_apSum_shift_mul (f : ℕ → ℤ) (d m n : ℕ) :
   simpa [h]
 
 /-!
+### Reverse / reindex normal forms (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Reverse/reindex normal form (sum-level).
+
+Downstream proofs often want to “reverse the order” of an AP sum (typically to align endpoints)
+without dropping to ad-hoc `Finset` algebra.
+
+We package the canonical `Finset.range` reflection `i ↦ n-1-i`, and simplify the index
+`(n - 1 - i) + 1` to `n - i` inside the `apSumOffset` nucleus.
+-/
+
+/-- Reverse / reindex normal form for `apSumOffset`.
+
+This rewrites the sum in reverse order using the clean index `n - i`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Reverse/reindex normal form (sum-level).
+-/
+lemma apSumOffset_eq_sum_range_reverse (f : ℕ → ℤ) (d m n : ℕ) :
+    apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + (n - i)) * d)) := by
+  -- Use the standard `range` reflection lemma.
+  unfold apSumOffset
+  -- Let `g j := f ((m + j + 1) * d)`.
+  have h :=
+    (Finset.sum_range_reflect (f := fun j : ℕ => f ((m + j + 1) * d)) n)
+  -- The RHS of `h` is exactly the defining sum; rewrite by symmetry.
+  -- Then simplify `(m + (n - 1 - i) + 1)` to `(m + (n - i))` under `i < n`.
+  refine (h.symm.trans ?_)
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  have hi' : i < n := by
+    simpa [Finset.mem_range] using hi
+  -- `n - 1 - i + 1 = n - i` when `i < n`.
+  have hni : n - 1 - i + 1 = n - i := by
+    cases n with
+    | zero =>
+        -- impossible since `i < 0`
+        cases (Nat.not_lt_zero i hi')
+    | succ n' =>
+        have hi_le : i ≤ n' := (Nat.lt_succ_iff.mp hi')
+        -- `succ n' - 1 = n'`, and `succ n' - i = succ (n' - i)` when `i ≤ n'`.
+        simpa [Nat.succ_sub_one, Nat.succ_sub hi_le, Nat.succ_eq_add_one, Nat.add_assoc]
+  -- Now simplify the summand.
+  have hmni : m + (n - 1 - i) + 1 = m + (n - i) := by
+    calc
+      m + (n - 1 - i) + 1 = m + (n - 1 - i + 1) := by
+        simp [Nat.add_assoc]
+      _ = m + (n - i) := by
+        simp [hni]
+  simp [hmni]
+
+/-!
 ### Shift–dilation coherence (Track B)
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Shift–dilation coherence lemma.
