@@ -87,6 +87,15 @@ theorem d_ne_zero (out : Stage4Output f) : out.d ≠ 0 := by
 theorem one_le_d (out : Stage4Output f) : 1 ≤ out.d := by
   exact Nat.succ_le_of_lt out.hd
 
+/-- Recover the offset parameter `out.m` by dividing the start index `out.start`
+by the step size `out.d`.
+
+This mirrors the Stage-2/Stage-3 boundary lemma `start_div_d`.
+-/
+theorem start_div_d (out : Stage4Output f) : out.start / out.d = out.m := by
+  have hd' : 0 < out.d := out.hd
+  simpa [Stage4Output.start] using (Nat.mul_div_left out.m hd')
+
 /-- Stage 4 output already carries the Stage-3 conclusion `¬ BoundedDiscrepancy f`. -/
 theorem notBounded (out : Stage4Output f) : ¬ BoundedDiscrepancy f :=
   out.out3.notBounded
