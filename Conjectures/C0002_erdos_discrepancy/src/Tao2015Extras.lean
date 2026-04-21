@@ -27,6 +27,24 @@ Note: `Tao2015` already provides the lemma
 `Tao2015Extras` is intended only for additional (non-duplicated) convenience lemmas.
 -/
 
+/-- Monotonicity: if `f` has discrepancy at least `C`, then it has discrepancy at least any
+smaller threshold `C' ≤ C`.
+
+This is a tiny wrapper around the witness normal form
+`HasDiscrepancyAtLeast_iff_exists_discrepancy`.
+-/
+theorem hasDiscrepancyAtLeast_of_le (f : ℕ → ℤ) {C C' : ℕ} (hC : C' ≤ C) :
+    HasDiscrepancyAtLeast f C → HasDiscrepancyAtLeast f C' := by
+  intro h
+  rcases (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1 h with
+    ⟨d, n, hd, hgt⟩
+  refine (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C')).2 ?_
+  refine ⟨d, n, hd, ?_⟩
+  have hlt : C < discrepancy f d n := by
+    simpa [gt_iff_lt] using hgt
+  have hlt' : C' < discrepancy f d n := lt_of_le_of_lt hC hlt
+  simpa [gt_iff_lt] using hlt'
+
 
 /-
 Note: the bounded-discrepancy-along nucleus normal form lives in `Tao2015` as
