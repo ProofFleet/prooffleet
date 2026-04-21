@@ -50,6 +50,14 @@ theorem hg (out : Stage2Output f) : IsSignSequence out.g := by
 /-- Convenience projection: the affine-tail start index `m*d` bundled in Stage 1. -/
 abbrev start (out : Stage2Output f) : ℕ := out.m * out.d
 
+/-- Definitional rewrite: the affine-tail start index is `m*d`.
+
+This lemma is intentionally tiny (and not a simp lemma): it exists mainly to reduce `dsimp` noise
+in downstream arithmetic rewrites.
+-/
+theorem start_eq_m_mul_d (out : Stage2Output f) : out.start = out.m * out.d := by
+  rfl
+
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 

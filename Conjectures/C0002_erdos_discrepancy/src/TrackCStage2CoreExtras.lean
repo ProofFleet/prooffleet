@@ -24,13 +24,8 @@ variable {f : ℕ → ℤ}
 
 -- Note: `Stage2Output.start` is defined in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core`.
 
-/-- Definitional rewrite: the affine-tail start index is `m*d`.
-
-This lemma is intentionally tiny (and not a simp lemma): it exists mainly to reduce `dsimp` noise
-in downstream arithmetic rewrites.
--/
-theorem start_eq_m_mul_d (out : Stage2Output f) : out.start = out.m * out.d := by
-  rfl
+-- Note: the definitional rewrite lemma `Stage2Output.start_eq_m_mul_d` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).
 
 /-- Normal form: the affine-tail nucleus starting at the bundled start index `out.start`
 is the bundled offset nucleus at the bundled offset parameter `out.m`.
