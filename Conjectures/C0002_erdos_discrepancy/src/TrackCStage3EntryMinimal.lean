@@ -204,6 +204,17 @@ theorem stage3Out_add_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n :
     (Nat.add_mul_div_right (x := n) (y := (stage3Out (f := f) (hf := hf)).m)
       (z := (stage3Out (f := f) (hf := hf)).d) hd')
 
+/-- Variant of `stage3Out_add_start_div_d` with the start index on the left. -/
+theorem stage3Out_start_add_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    ((stage3Out (f := f) (hf := hf)).start + n) / (stage3Out (f := f) (hf := hf)).d =
+      n / (stage3Out (f := f) (hf := hf)).d + (stage3Out (f := f) (hf := hf)).m := by
+  calc
+    ((stage3Out (f := f) (hf := hf)).start + n) / (stage3Out (f := f) (hf := hf)).d =
+        (n + (stage3Out (f := f) (hf := hf)).start) / (stage3Out (f := f) (hf := hf)).d := by
+      simp [Nat.add_comm]
+    _ = n / (stage3Out (f := f) (hf := hf)).d + (stage3Out (f := f) (hf := hf)).m := by
+      simpa using stage3Out_add_start_div_d (f := f) (hf := hf) (n := n)
+
 /-- Recover the offset parameter `m` by dividing the Stage-3 start index `start` by the step size `d`.
 
 This is a tiny arithmetic convenience lemma: `start = m*d` by definition.
