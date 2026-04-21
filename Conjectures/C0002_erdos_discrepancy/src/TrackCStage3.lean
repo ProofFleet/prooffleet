@@ -186,6 +186,23 @@ theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
     exact (Nat.succ_le_iff).1 h
   exact ⟨d, n, hdpos, hn, hgt⟩
 
+/-- Stage 3 output implies the explicit discrepancy witness normal form with a positive-length witness.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
+
+This is a thin wrapper around `forall_exists_d_pos_witness_pos`, rewriting `discrepancy` to its
+definitional `apSum` form.
+-/
+theorem forall_exists_discrepancy_gt_witness_pos (out : Stage3Output f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  intro C
+  rcases out.forall_exists_d_pos_witness_pos (f := f) C with ⟨d, n, hd, hn, hgt⟩
+  refine ⟨d, n, hd, hn, ?_⟩
+  -- `discrepancy f d n` is definitionally `Int.natAbs (apSum f d n)`.
+  change Int.natAbs (apSum f d n) > C
+  exact hgt
+
 end Stage3Output
 
 /-!

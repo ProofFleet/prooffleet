@@ -266,20 +266,13 @@ theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
 Normal form:
 `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
 
-Implementation note: we use the core witness-normal form lemma
-`HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos` to avoid re-proving that
-`discrepancy f d 0 = 0`.
+This is a thin wrapper around the Stage-3 API lemma
+`Stage3Output.forall_exists_discrepancy_gt_witness_pos`.
 -/
 theorem stage3_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
-  intro C
-  have hC : HasDiscrepancyAtLeast f C :=
-    (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
-  rcases
-      (HasDiscrepancyAtLeast_iff_exists_discrepancy_ge_one_witness_pos (f := f) (C := C)).1 hC with
-    ⟨d, n, hd, hn, hgt⟩
-  refine ⟨d, n, ?_, hn, hgt⟩
-  exact lt_of_lt_of_le Nat.zero_lt_one hd
+  let out := stage3Out (f := f) (hf := hf)
+  exact out.forall_exists_discrepancy_gt_witness_pos (f := f)
 
 /-- Specialization of `stage3_forall_hasDiscrepancyAtLeast` at a fixed threshold `C`.
 
