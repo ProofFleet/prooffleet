@@ -4647,6 +4647,18 @@ example (hq : q > 0) :
   simpa using apSum_mul_len_succ_eq_sum_range (f := f) (d := d) (q := q) (n := n) hq
 
 example (hq : q > 0) :
+    disc f d (q * (n + 1)) =
+      Int.natAbs ((Finset.range q).sum (fun r =>
+        f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
+  simpa using disc_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (q := q) (n := n) hq
+
+example (hq : q > 0) :
+    disc f d (q * (n + 1)) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
+  simpa using disc_mul_len_succ_le_sum_range_natAbs (f := f) (d := d) (q := q) (n := n) hq
+
+example (hq : q > 0) :
     apSumOffset f d m (q * (n + 1)) =
       (Finset.range q).sum (fun r => f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n) := by
   simpa using apSumOffset_mul_len_succ_eq_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq

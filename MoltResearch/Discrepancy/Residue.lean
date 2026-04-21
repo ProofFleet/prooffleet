@@ -650,11 +650,53 @@ See `MoltResearch.Discrepancy.ResidueDeprecated`.
 /-!
 ## Discrepancy-level residue-class splitting
 
-These are thin wrappers around the sum-level residue split lemmas, rewriting `discOffset` (which is
-`Int.natAbs` of an `apSumOffset`) into the corresponding residue-class normal form.
+These are thin wrappers around the sum-level residue split lemmas, rewriting:
+- `disc` (which is `Int.natAbs` of an `apSum`) and
+- `discOffset` (which is `Int.natAbs` of an `apSumOffset`)
+into the corresponding residue-class normal forms.
 
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue split (equality) for homogeneous `apSum`.
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue-class split (offset → r tracks).
 -/
+
+/-- Residue-class split normal form for `disc` (homogeneous discrepancy) at a block length `q*(n+1)`. -/
+lemma disc_mul_len_succ_eq_natAbs_sum_range (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
+    disc f d (q * (n + 1)) =
+      Int.natAbs ((Finset.range q).sum (fun r =>
+        f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
+  unfold disc
+  simp [apSum_mul_len_succ_eq_sum_range (f := f) (d := d) (q := q) (n := n) hq]
+
+/-- Triangle-inequality bound for the residue-class split normal form of `disc`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Residue split (equality) for homogeneous `apSum`.
+-/
+lemma disc_mul_len_succ_le_sum_range_natAbs (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
+    disc f d (q * (n + 1)) ≤
+      (Finset.range q).sum (fun r =>
+        Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
+  classical
+  -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
+  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
+      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
+    classical
+    refine Finset.induction_on s ?h0 ?hstep
+    · simp
+    · intro a s ha hs
+      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
+        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
+      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
+      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
+          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
+        Nat.add_le_add_left h2 _
+      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+        (Nat.le_trans h1 h3)
+
+  -- Rewrite to the residue-class split normal form and apply the triangle inequality.
+  simpa [disc_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (q := q) (n := n) hq] using
+    (natAbs_sum_le_sum_natAbs (Finset.range q)
+      (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n))
+
 
 /-- Residue-class split normal form for `discOffset` (offset discrepancy) at a block length `q*(n+1)`. -/
 lemma discOffset_mul_len_succ_eq_natAbs_sum_range (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
