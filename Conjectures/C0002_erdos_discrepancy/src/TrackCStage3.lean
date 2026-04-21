@@ -53,29 +53,35 @@ This is occasionally useful when later stages want access to the deterministic p
 @[simp] abbrev m (out : Stage3Output f) : ℕ :=
   out.out2.m
 
-/-- Convenience projection: the affine-tail start index `m*d` packaged in Stage 3. -/
+/-- Convenience projection: the affine-tail start index `m*d` packaged in Stage 3.
+
+Design note: we define this by reusing the Stage-2 start index projection so the arithmetic
+normal-form lemmas (`dvd`, `mod`) stay consistent across Stage 2 and Stage 3.
+-/
 abbrev start (out : Stage3Output f) : ℕ :=
-  out.m * out.d
+  Stage2Output.start out.out2
 
-/-- Definitional rewrite: the affine-tail start index is `m*d`.
+/-- Normal form: the affine-tail start index is `m*d`.
 
-This lemma is intentionally tiny (and not a simp lemma): it exists mainly to reduce `dsimp` noise
-in downstream arithmetic rewrites.
+This is just the corresponding Stage-2 projection lemma, rewritten to use the Stage-3 projections.
 -/
 theorem start_eq_m_mul_d (out : Stage3Output f) : out.start = out.m * out.d := by
   rfl
 
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
-  refine ⟨out.m, ?_⟩
-  simp [Stage3Output.start, Nat.mul_comm]
+  -- Rewrite to the corresponding Stage-2 normal form.
+  change out.out2.d ∣ Stage2Output.start out.out2
+  exact Stage2Output.d_dvd_start (f := f) (out := out.out2)
 
 /-- The affine-tail start index has remainder `0` modulo the reduced step size `out.d`.
 
 This is often the most convenient normal form of `d_dvd_start`.
 -/
 theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
-  exact Nat.mod_eq_zero_of_dvd out.d_dvd_start
+  -- Rewrite to the corresponding Stage-2 normal form.
+  change Stage2Output.start out.out2 % out.out2.d = 0
+  exact Stage2Output.start_mod_d (f := f) (out := out.out2)
 
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
