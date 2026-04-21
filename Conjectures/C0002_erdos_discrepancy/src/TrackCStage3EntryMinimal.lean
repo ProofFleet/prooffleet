@@ -168,6 +168,20 @@ theorem stage3Out_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
   have h1 : 1 ≤ (stage3Out (f := f) (hf := hf)).d := stage3_one_le_d (f := f) (hf := hf)
   exact lt_of_lt_of_le Nat.zero_lt_one h1
 
+/-- Adding the start index increases quotients by the offset parameter.
+
+Since `start = m*d`, we have
+`(n + start) / d = n / d + m`.
+-/
+theorem stage3Out_add_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (n + (stage3Out (f := f) (hf := hf)).start) / (stage3Out (f := f) (hf := hf)).d =
+      n / (stage3Out (f := f) (hf := hf)).d + (stage3Out (f := f) (hf := hf)).m := by
+  have hd' : 0 < (stage3Out (f := f) (hf := hf)).d := stage3Out_d_pos (f := f) (hf := hf)
+  rw [stage3Out_start_eq_m_mul_d (f := f) (hf := hf)]
+  simpa using
+    (Nat.add_mul_div_right (x := n) (y := (stage3Out (f := f) (hf := hf)).m)
+      (z := (stage3Out (f := f) (hf := hf)).d) hd')
+
 /-- Recover the offset parameter `m` by dividing the Stage-3 start index `start` by the step size `d`.
 
 This is a tiny arithmetic convenience lemma: `start = m*d` by definition.
