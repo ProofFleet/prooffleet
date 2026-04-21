@@ -363,6 +363,15 @@ theorem discOffset_eq_natAbs_sum_Icc (f : ℕ → ℤ) (d m n : ℕ) :
     _ = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) :=
       natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := d) (m := m) (n := n)
 
+/-- Base case: bundled offset discrepancy at length `0` is `0`.
+
+This is a tiny wrapper around the definitional equality
+`discOffset f d m n = Int.natAbs (apSumOffset f d m n)` together with the core simp lemma
+`apSumOffset_zero`.
+-/
+@[simp] theorem discOffset_zero (f : ℕ → ℤ) (d m : ℕ) : discOffset f d m 0 = 0 := by
+  simp [discOffset]
+
 namespace UnboundedDiscOffset
 
 /-- Witness-positivity: in the `∀ B, ∃ n, B < discOffset f d m n` unboundedness normal form,
