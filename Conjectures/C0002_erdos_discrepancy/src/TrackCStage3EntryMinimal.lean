@@ -13,6 +13,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - `stage3_notBounded` : close the core goal `¬ BoundedDiscrepancy f`
 - `stage3_forall_hasDiscrepancyAtLeast` : the usual surface statement
   `∀ C, HasDiscrepancyAtLeast f C`
+- `stage3_forall_exists_d_ge_one_witness_pos` : nucleus witness form using `apSum`
+  `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`
 - `stage3_forall_exists_discrepancy_gt` : the discrepancy witness form
   `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
 - `stage3_forall_exists_discrepancy_gt_witness_pos` : witness form with `n > 0`
@@ -262,6 +264,18 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
   let out := stage3Out (f := f) (hf := hf)
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) out
+
+/-- Consumer-facing nucleus witness form, avoiding the `discrepancy` wrapper.
+
+Normal form:
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is a thin wrapper around `Stage3Output.forall_exists_d_ge_one_witness_pos`.
+-/
+theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  let out := stage3Out (f := f) (hf := hf)
+  exact out.forall_exists_d_ge_one_witness_pos (f := f)
 
 /-- Consumer-facing witness form: Stage 3 yields explicit discrepancy witnesses.
 
