@@ -660,6 +660,19 @@ example (hm0 : 0 < m) (hmn : m ≤ n) :
     (sum_Ico_eq_apSumOffset_of_pos_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n)
       hm0 hmn)
 
+-- (1.4) Generic `Ico m n` affine endpoint sum → nucleus `apSumFrom` tail form.
+example (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (a + i * d)) = apSumFrom f (a + (m - 1) * d) d (n - m) := by
+  simpa using
+    (sum_Ico_eq_apSumFrom_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
+
+-- (1.4.1) Same `Ico m n` sum → nucleus `apSumOffset` on the shifted sequence.
+example (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d (m - 1) (n - m) := by
+  simpa using
+    (sum_Ico_eq_apSumOffset_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
+
 -- (1.5) “Cut + reassemble” normal form at the `apSumFrom`-level (Track B checklist item).
 -- This is the exact concatenation equality at the nucleus level.
 example : apSumFrom f a d (n + k) = apSumFrom f a d n + apSumFrom f (a + n * d) d k := by

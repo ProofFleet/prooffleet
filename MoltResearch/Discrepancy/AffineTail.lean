@@ -1713,6 +1713,99 @@ lemma sum_Ico_eq_apSumOffset_of_pos_le_affineEndpoints (f : ℕ → ℤ) (a d : 
     (sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m - 1)
       (n := n) hmn')
 
+/-- Normal form (paper → nucleus): rewrite the half-open interval sum `∑ i ∈ Ico m n, f (a + i*d)`
+into the nucleus `apSumFrom` tail form.
+
+This is a convenient endpoint-normalization lemma for sources that use `Ico m n` rather than the
+closed interval `Icc (m+1) (n-1)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `Ico`/`Icc` interval normalization bundle.
+
+We keep this as an explicit rewrite lemma (not `[simp]`) to avoid simp loops between paper-notation
+and nucleus-notation.
+-/
+lemma sum_Ico_eq_apSumFrom_of_pos_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (a + i * d)) =
+      apSumFrom f (a + (m - 1) * d) d (n - m) := by
+  classical
+  have hm1 : 1 ≤ m := Nat.succ_le_iff.mp hm0
+  -- Rewrite `Ico m n` as a shifted `range (n-m)` sum, then match `apSumFrom`.
+  calc
+    (Finset.Ico m n).sum (fun i => f (a + i * d)) =
+        (Finset.range (n - m)).sum (fun i => f (a + (m + i) * d)) := by
+          simpa using
+            (Finset.sum_Ico_eq_sum_range (f := fun i => f (a + i * d)) (m := m) (n := n))
+    _ = (Finset.range (n - m)).sum (fun i => f ((a + (m - 1) * d) + (i + 1) * d)) := by
+          refine Finset.sum_congr rfl ?_
+          intro i hi
+          -- Normalize `m + i` into `(m-1) + (i+1)`.
+          have hmi : m + i = (m - 1) + (i + 1) := by
+            calc
+              m + i = (m - 1 + 1) + i := by
+                simp [Nat.sub_add_cancel hm1, Nat.add_assoc]
+              _ = (m - 1) + (1 + i) := by
+                simp [Nat.add_assoc]
+              _ = (m - 1) + (i + 1) := by
+                simp [Nat.add_assoc, Nat.add_comm]
+          -- Push the equality through `(* d)` and the outer `a + ·`.
+          -- Also use `Nat.add_mul` to combine `((m-1)*d) + ((i+1)*d)`.
+          have : a + (m + i) * d = (a + (m - 1) * d) + (i + 1) * d := by
+            -- Convert the RHS into `a + (((m-1)+(i+1))*d)`.
+            -- Then rewrite `(m+i)` using `hmi`.
+            calc
+              a + (m + i) * d
+                  = a + ((m - 1) + (i + 1)) * d := by simpa [hmi]
+              _ = a + ((m - 1) * d + (i + 1) * d) := by
+                    simp [Nat.add_mul]
+              _ = (a + (m - 1) * d) + (i + 1) * d := by
+                    simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+          simpa [this]
+    _ = apSumFrom f (a + (m - 1) * d) d (n - m) := by
+          rfl
+
+/-- Normal form (paper → nucleus): rewrite `∑ i ∈ Ico m n, f (a + i*d)` directly into the nucleus
+`apSumOffset` form on the shifted sequence `k ↦ f (a + k)`.
+
+This is the `apSumOffset` analogue of `sum_Ico_eq_apSumFrom_of_pos_le`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `Ico`/`Icc` interval normalization bundle.
+
+We keep this as an explicit rewrite lemma (not `[simp]`) to avoid simp loops between paper-notation
+and nucleus-notation.
+-/
+lemma sum_Ico_eq_apSumOffset_of_pos_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (a + i * d)) =
+      apSumOffset (fun k => f (a + k)) d (m - 1) (n - m) := by
+  classical
+  have hm1 : 1 ≤ m := Nat.succ_le_iff.mp hm0
+  -- Rewrite `Ico m n` as a shifted `range (n-m)` sum, then match `apSumOffset`.
+  calc
+    (Finset.Ico m n).sum (fun i => f (a + i * d)) =
+        (Finset.range (n - m)).sum (fun i => f (a + (m + i) * d)) := by
+          simpa using
+            (Finset.sum_Ico_eq_sum_range (f := fun i => f (a + i * d)) (m := m) (n := n))
+    _ = apSumOffset (fun k => f (a + k)) d (m - 1) (n - m) := by
+          -- Expand `apSumOffset` and use `m + i = (m-1) + i + 1`.
+          unfold apSumOffset
+          -- Both are `range (n-m)` sums; show the summands agree.
+          refine Finset.sum_congr rfl ?_
+          intro i hi
+          have hmi : m + i = (m - 1) + i + 1 := by
+            calc
+              m + i = (m - 1 + 1) + i := by
+                simp [Nat.sub_add_cancel hm1, Nat.add_assoc]
+              _ = (m - 1) + (1 + i) := by
+                simp [Nat.add_assoc]
+              _ = (m - 1) + (i + 1) := by
+                simp [Nat.add_comm]
+              _ = (m - 1) + i + 1 := by
+                simp [Nat.add_assoc]
+          -- Push through multiplication and the outer `a + ·`.
+          -- (`Nat.add_assoc` etc. normalize the parenthesization.)
+          simp [hmi, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc]
+
 /-- Mul-left variant of `sum_Icc_eq_apSumOffset_of_le_affineEndpoints`, with summand written as
 `f (a + d*i)`.
 -/
