@@ -117,6 +117,17 @@ theorem erdos_discrepancy_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (
 /-- Witness form of `erdos_discrepancy`, stated using the `discrepancy` wrapper.
 
 Normal form:
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+
+This is the most direct discrepancy-wrapper witness form.
+-/
+theorem erdos_discrepancy_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  exact Tao2015.stage3_forall_exists_discrepancy_gt (f := f) (hf := hf)
+
+/-- Positive-length witness form of `erdos_discrepancy_forall_exists_discrepancy_gt`.
+
+Normal form:
 `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
 
 We keep this lemma in the hard-gate file since it is a common consumption pattern, and it does not
