@@ -1806,6 +1806,66 @@ lemma sum_Ico_eq_apSumOffset_of_pos_le (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
           -- (`Nat.add_assoc` etc. normalize the parenthesization.)
           simp [hmi, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm, Nat.mul_assoc]
 
+/-!
+### NEW (Track B): `Ico` summand-convention wrappers
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `Ico`/`Icc` interval normalization bundle.
+
+These are lightweight variants of `sum_Ico_eq_apSumFrom_of_pos_le` and
+`sum_Ico_eq_apSumOffset_of_pos_le` for the common summand conventions `i*d + a` and `d*i`.
+
+They are intentionally **not** tagged `[simp]` to avoid rewrite loops between paper notation and
+nucleus notation.
+-/
+
+-- `Ico` → `apSumFrom` tail form (summand `i*d + a`).
+lemma sum_Ico_eq_apSumFrom_of_pos_le_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (i * d + a)) =
+      apSumFrom f (a + (m - 1) * d) d (n - m) := by
+  simpa [Nat.add_comm] using
+    (sum_Ico_eq_apSumFrom_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
+
+-- `Ico` → `apSumFrom` tail form (summand `a + d*i`).
+lemma sum_Ico_eq_apSumFrom_of_pos_le_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (a + d * i)) =
+      apSumFrom f (a + (m - 1) * d) d (n - m) := by
+  simpa [Nat.mul_comm] using
+    (sum_Ico_eq_apSumFrom_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
+
+-- `Ico` → `apSumFrom` tail form (summand `d*i + a`).
+lemma sum_Ico_eq_apSumFrom_of_pos_le_mul_left_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (d * i + a)) =
+      apSumFrom f (a + (m - 1) * d) d (n - m) := by
+  simpa [Nat.add_comm, Nat.mul_comm] using
+    (sum_Ico_eq_apSumFrom_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
+
+-- `Ico` → `apSumOffset` (summand `i*d + a`).
+lemma sum_Ico_eq_apSumOffset_of_pos_le_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (i * d + a)) =
+      apSumOffset (fun k => f (k + a)) d (m - 1) (n - m) := by
+  simpa [Nat.add_comm] using
+    (sum_Ico_eq_apSumOffset_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
+
+-- `Ico` → `apSumOffset` (summand `a + d*i`).
+lemma sum_Ico_eq_apSumOffset_of_pos_le_mul_left (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (a + d * i)) =
+      apSumOffset (fun k => f (a + k)) d (m - 1) (n - m) := by
+  simpa [Nat.mul_comm] using
+    (sum_Ico_eq_apSumOffset_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
+
+-- `Ico` → `apSumOffset` (summand `d*i + a`).
+lemma sum_Ico_eq_apSumOffset_of_pos_le_mul_left_add (f : ℕ → ℤ) (a d : ℕ) {m n : ℕ}
+    (hm0 : 0 < m) (hmn : m ≤ n) :
+    (Finset.Ico m n).sum (fun i => f (d * i + a)) =
+      apSumOffset (fun k => f (k + a)) d (m - 1) (n - m) := by
+  simpa [Nat.add_comm, Nat.mul_comm] using
+    (sum_Ico_eq_apSumOffset_of_pos_le (f := f) (a := a) (d := d) (m := m) (n := n) hm0 hmn)
+
 /-- Mul-left variant of `sum_Icc_eq_apSumOffset_of_le_affineEndpoints`, with summand written as
 `f (a + d*i)`.
 -/
