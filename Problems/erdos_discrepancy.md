@@ -1251,7 +1251,11 @@ Definition of done:
 - [x] `Ico`/`Icc` interval normalization bundle: add rewrite lemmas converting common interval sums (`∑ i in Finset.Ico m n, ...` and `∑ i in Finset.Icc (m+1) n, ...`) directly into the nucleus `apSumFrom`/`apSumOffset` shapes, with consistent endpoint conventions and stable-surface regression examples.
   (Implemented in `MoltResearch/Discrepancy/AffineTail.lean` as the `sum_Ico_*` / `sum_Icc_*` normal-form lemma family; stable-surface regression examples live in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Step-one + affine-endpoint coherence: provide a one-line wrapper turning paper sums of the form `∑ i ∈ Icc (m+1) n, f (a + i*d)` into a step-one tail on the shifted sequence `fun k => f (a + k)` (i.e. normalize both “affine endpoints” and “step one” in a single lemma), so downstream proofs can choose the step-one normal form without two separate rewrites.
+- [x] Step-one + affine-endpoint coherence: provide a one-line wrapper turning paper sums of the form `∑ i ∈ Icc (m+1) n, f (a + i*d)` into a step-one tail on the shifted sequence `fun k => f (a + k)` (i.e. normalize both “affine endpoints” and “step one” in a single lemma), so downstream proofs can choose the step-one normal form without two separate rewrites.
+  (Implemented as `sum_Icc_eq_apSumOffset_of_le_affineEndpoints` (variable upper endpoint, `m ≤ n`) and
+  `sum_Icc_add_affineEndpoints_eq_apSumOffset` (common `Icc (m+1) (m+n)` specialization) in
+  `MoltResearch/Discrepancy/AffineTail.lean`, with stable-surface regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Sign-sequence coercion hygiene: add a small lemma family that lets users treat `f : ℕ → {±1}`-style data as `ℕ → ℤ` sign sequences with `simp`-friendly coercions (and show `IsSignSequence` is preserved), to reduce friction when importing sequences from other modules.
 
