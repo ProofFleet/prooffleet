@@ -103,6 +103,22 @@ theorem start_add_mod_d (out : Stage2Output f) (n : ℕ) :
     (out.start + n) % out.d = n % out.d := by
   simpa [Nat.add_comm] using out.add_start_mod_d (f := f) (n := n)
 
+/-- Adding the start index increases quotients by the offset parameter.
+
+Since `out.start = out.m * out.d`, we have
+`(n + out.start) / out.d = n / out.d + out.m`.
+-/
+theorem add_start_div_d (out : Stage2Output f) (n : ℕ) :
+    (n + out.start) / out.d = n / out.d + out.m := by
+  have hd : 0 < out.d := out.hd
+  simpa [Stage2Output.start] using
+    (Nat.add_mul_div_right (x := n) (y := out.m) (z := out.d) hd)
+
+/-- Variant of `add_start_div_d` with the start index on the left. -/
+theorem start_add_div_d (out : Stage2Output f) (n : ℕ) :
+    (out.start + n) / out.d = n / out.d + out.m := by
+  simpa [Nat.add_comm] using out.add_start_div_d (f := f) (n := n)
+
 -- Note: `Stage2Output.start_div_d` lives in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).
 
