@@ -52,6 +52,36 @@ parameters `g, d, m` and the Stage-1 transport contracts.
 @[simp] abbrev out1 (out : Stage4Output f) : Tao2015.ReductionOutput f :=
   out.out3.out2.out1
 
+/-!
+## Stage-4 minimal projections
+
+These are small, proved projections off `Stage4Output` mirroring the Stage-2/Stage-3 boundary API.
+They let downstream stages write `out.d`, `out.m`, etc. without reaching through `.out3` / `.out2`.
+-/
+
+/-- Convenience projection: the reduced step size carried by Stage 4. -/
+@[simp] abbrev d (out : Stage4Output f) : ℕ := out.out2.d
+
+/-- Convenience projection: the reduced sequence carried by Stage 4. -/
+@[simp] abbrev g (out : Stage4Output f) : ℕ → ℤ := out.out2.g
+
+/-- Convenience projection: the bundled offset parameter carried by Stage 4. -/
+@[simp] abbrev m (out : Stage4Output f) : ℕ := out.out2.m
+
+/-- Convenience projection: the affine-tail start index `m*d` carried by Stage 4. -/
+abbrev start (out : Stage4Output f) : ℕ := out.m * out.d
+
+/-- Convenience projection: positivity of the reduced step size. -/
+@[simp] abbrev hd (out : Stage4Output f) : out.d > 0 := out.out2.hd
+
+/-- Convenience lemma: the reduced step size is nonzero. -/
+theorem d_ne_zero (out : Stage4Output f) : out.d ≠ 0 := by
+  exact Nat.ne_of_gt out.hd
+
+/-- Convenience lemma: the reduced step size is at least `1`. -/
+theorem one_le_d (out : Stage4Output f) : 1 ≤ out.d := by
+  exact Nat.succ_le_of_lt out.hd
+
 /-- Stage 4 output already carries the Stage-3 conclusion `¬ BoundedDiscrepancy f`. -/
 theorem notBounded (out : Stage4Output f) : ¬ BoundedDiscrepancy f :=
   out.out3.notBounded
@@ -87,7 +117,7 @@ theorem unboundedDiscrepancyAlong_core (out : Stage4Output f) :
 This is a thin wrapper around `Stage3Output.unboundedDiscOffset`.
 -/
 theorem unboundedDiscOffset (out : Stage4Output f) :
-    UnboundedDiscOffset f out.out2.d out.out2.m := by
+    UnboundedDiscOffset f out.d out.m := by
   simpa [Stage4Output.out2] using out.out3.unboundedDiscOffset (f := f)
 
 end Stage4Output
