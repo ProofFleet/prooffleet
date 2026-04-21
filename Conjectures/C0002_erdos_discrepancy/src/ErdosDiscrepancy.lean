@@ -103,6 +103,17 @@ theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
   -- Delegate to the minimal Stage-3 entry-point API.
   exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
 
+/-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
+
+Normal form:
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+
+This is the most pipeline-friendly witness normal form: it avoids the `discrepancy` wrapper.
+-/
+theorem erdos_discrepancy_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact Tao2015.stage3_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf)
+
 /-- Witness form of `erdos_discrepancy`, stated using the `discrepancy` wrapper.
 
 Normal form:
