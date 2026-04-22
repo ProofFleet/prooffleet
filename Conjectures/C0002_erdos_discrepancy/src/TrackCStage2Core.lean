@@ -70,6 +70,16 @@ This is often the most convenient normal form of `d_dvd_start`.
 theorem start_mod_d (out : Stage2Output f) : out.start % out.d = 0 := by
   exact Nat.mod_eq_zero_of_dvd out.d_dvd_start
 
+/-- Adding the start index does not change residues modulo the step size.
+
+Since `out.start` is a multiple of `out.d`, we have
+`(n + out.start) % out.d = n % out.d`.
+-/
+theorem add_start_mod_d (out : Stage2Output f) (n : ℕ) :
+    (n + out.start) % out.d = n % out.d := by
+  have hstart : out.start % out.d = 0 := out.start_mod_d (f := f)
+  simp [Nat.add_mod, hstart]
+
 /-- Recover the offset parameter `out.m` by dividing the start index `out.start` by the step size
 `out.d`.
 
