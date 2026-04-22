@@ -872,6 +872,19 @@ example (q : ℕ) : apSumFrom (fun t => f (t * q)) a d n = apSumFrom f (a * q) (
   simpa using (apSumFrom_map_mul_right (f := f) (q := q) (a := a) (d := d) (n := n))
 
 /-!
+### NEW (Track B): affine step pull-out normal form
+
+Compile-only regression: rewriting a scaled affine AP into a “pulled-out factor” form should be a
+one-liner under the stable surface `import MoltResearch.Discrepancy`.
+-/
+
+example (q : ℕ) : apSumFrom f (a * q) (d * q) n = apSumFrom (fun t => f (t * q)) a d n := by
+  simpa using (apSumFrom_mul_pull_out_right (f := f) (q := q) (a := a) (d := d) (n := n))
+
+example (q : ℕ) : discFrom f (a * q) (d * q) n = discFrom (fun t => f (t * q)) a d n := by
+  simpa using (discFrom_mul_pull_out_right (f := f) (q := q) (a := a) (d := d) (n := n))
+
+/-!
 ### NEW (Track B): residue-class splitting (disc-level inequality wrapper)
 
 Compile-only regression: the inequality wrapper should be usable under the stable surface

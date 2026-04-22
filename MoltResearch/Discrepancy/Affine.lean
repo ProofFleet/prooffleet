@@ -80,6 +80,65 @@ lemma apSumFrom_map_mul_left (f : ℕ → ℤ) (q a d n : ℕ) :
   -- `q*(a + (i+1)*d) = q*a + (i+1)*(q*d)`.
   simp [Nat.mul_add, Nat.mul_left_comm, Nat.mul_comm]
 
+/-!
+### Affine step “pull-out” normal form (scaling)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Affine step pull-out” normal form.
+
+This is the reverse direction of `apSumFrom_map_mul_right` / `apSumFrom_map_mul_left`, packaged
+so you can normalize a scaled affine progression in one rewrite *before* applying residue/dilation
+lemmas.
+-/
+
+/-- Pull out a common multiplicative factor from the start/step of an affine AP sum (`mul_right`).
+
+Rewrites
+`apSumFrom f (a*q) (d*q) n`
+into the canonical form
+`apSumFrom (fun t => f (t*q)) a d n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Affine step pull-out” normal form.
+-/
+lemma apSumFrom_mul_pull_out_right (f : ℕ → ℤ) (q a d n : ℕ) :
+    apSumFrom f (a * q) (d * q) n = apSumFrom (fun t => f (t * q)) a d n := by
+  simpa using (apSumFrom_map_mul_right (f := f) (q := q) (a := a) (d := d) (n := n)).symm
+
+/-- Pull out a common multiplicative factor from the start/step of an affine AP sum (`mul_left`).
+
+Rewrites
+`apSumFrom f (q*a) (q*d) n`
+into
+`apSumFrom (fun t => f (q*t)) a d n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Affine step pull-out” normal form.
+-/
+lemma apSumFrom_mul_pull_out_left (f : ℕ → ℤ) (q a d n : ℕ) :
+    apSumFrom f (q * a) (q * d) n = apSumFrom (fun t => f (q * t)) a d n := by
+  simpa using (apSumFrom_map_mul_left (f := f) (q := q) (a := a) (d := d) (n := n)).symm
+
+/-- Discrepancy wrapper analogue of `apSumFrom_mul_pull_out_right`.
+
+We avoid `simp [discFrom]` here because `discFrom` participates in a simp-bridge loop via
+`natAbs_apSumFrom_eq_discFrom`.
+-/
+lemma discFrom_mul_pull_out_right (f : ℕ → ℤ) (q a d n : ℕ) :
+    discFrom f (a * q) (d * q) n = discFrom (fun t => f (t * q)) a d n := by
+  unfold discFrom
+  -- Apply `Int.natAbs` to the sum-level normal form.
+  simpa using congrArg Int.natAbs
+    (apSumFrom_mul_pull_out_right (f := f) (q := q) (a := a) (d := d) (n := n))
+
+/-- Discrepancy wrapper analogue of `apSumFrom_mul_pull_out_left`.
+
+We avoid `simp [discFrom]` here because `discFrom` participates in a simp-bridge loop via
+`natAbs_apSumFrom_eq_discFrom`.
+-/
+lemma discFrom_mul_pull_out_left (f : ℕ → ℤ) (q a d n : ℕ) :
+    discFrom f (q * a) (q * d) n = discFrom (fun t => f (q * t)) a d n := by
+  unfold discFrom
+  simpa using congrArg Int.natAbs
+    (apSumFrom_mul_pull_out_left (f := f) (q := q) (a := a) (d := d) (n := n))
+
 /-! ### `d = 1` simp-friendly normal forms (range-shift)
 
 These are small convenience wrappers for rewriting affine AP sums with step size `1` into a plain
