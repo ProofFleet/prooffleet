@@ -1640,7 +1640,12 @@ example : HasDiscrepancyAtLeastAlong f d C ↔ ∃ n : ℕ, C < discAlong f d n 
 -- Regression (Track B / `discOffset`/`discAlong` bridge coherence): rewrite the along-`d`
 -- wrapper to the offset normal form without unfolding.
 example : discAlong f d n = discOffset f d 0 n := by
-  simpa using (discAlong_def (f := f) (d := d) (n := n))
+  simpa using (discAlong_eq_discOffset (f := f) (d := d) (n := n))
+
+-- Regression (Track B / `discOffset`/`discAlong` bridge coherence): also rewrite the
+-- zero-offset `discOffset` normal form back into `discAlong`.
+example : discOffset f d 0 n = discAlong f d n := by
+  simpa using (discOffset_zero_eq_discAlong (f := f) (d := d) (n := n))
 
 -- Regression (Track B / unbounded witness normal form, along-`d`): unshifted unboundedness
 -- rewrites to the `discOffset … 0 n` ∀∃ normal form.

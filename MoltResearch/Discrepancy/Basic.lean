@@ -1690,6 +1690,22 @@ simp loops with other bridge lemmas in the discrepancy API).
 lemma discAlong_def (f : ℕ → ℤ) (d n : ℕ) : discAlong f d n = discOffset f d 0 n :=
   rfl
 
+/-- Stable lemma name: rewrite `discAlong` into `discOffset` with zero offset.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset`/`discAlong` bridge coherence.
+-/
+lemma discAlong_eq_discOffset (f : ℕ → ℤ) (d n : ℕ) :
+    discAlong f d n = discOffset f d 0 n :=
+  rfl
+
+/-- Stable lemma name: rewrite a zero-offset `discOffset` into `discAlong`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset`/`discAlong` bridge coherence.
+-/
+lemma discOffset_zero_eq_discAlong (f : ℕ → ℤ) (d n : ℕ) :
+    discOffset f d 0 n = discAlong f d n :=
+  rfl
+
 /-- Bridge lemma: `discAlong` agrees with the original homogeneous wrapper `discrepancy`. -/
 lemma discAlong_eq_discrepancy (f : ℕ → ℤ) (d n : ℕ) : discAlong f d n = discrepancy f d n := by
   unfold discAlong discOffset discrepancy apSumOffset apSum
