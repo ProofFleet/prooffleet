@@ -96,6 +96,10 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (monotone-in-`C`):** `HasDiscrepancyAtLeast f C` is **antitone** in `C` (the witness inequality is `> C`).
   Use `HasDiscrepancyAtLeast.mono` to *lower* the bound, and the contrapositive lemma
   `HasDiscrepancyAtLeast.not_mono` to *raise* bounds under negation (useful for boundedness normal forms).
+- **API note (boundedness monotonicity, `B`):** for the boundedness predicates,
+  `BoundedDiscOffset f d m B` and `BoundedDiscrepancyAlong f d len B` are monotone in the bound parameter `B`.
+  Use `BoundedDiscOffset.mono_B` / `BoundedDiscrepancyAlong.mono_B` to enlarge bounds, and the contrapositive
+  helpers `BoundedDiscOffset.not_mono_B` / `BoundedDiscrepancyAlong.not_mono_B` to shrink bounds under negation.
 - **API note (degenerate parameters for `UpTo`):** in downstream goals, you often want to normalize away “spurious” degenerate parameters without unfolding the finitary `Finset.sup` definition. The stable surface exports simp lemmas for:
   - `discOffsetUpTo f d m 0 = 0`
   - `discOffsetUpTo f d 0 N = discUpTo f d N`
