@@ -339,10 +339,8 @@ This is obtained from `stage3_forall_hasDiscrepancyAtLeast` via
 -/
 theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
-  intro C
-  exact
-    (HasDiscrepancyAtLeast_iff_exists_discrepancy (f := f) (C := C)).1
-      ((stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C)
+  let out := stage3Out (f := f) (hf := hf)
+  exact out.forall_exists_discrepancy_gt (f := f)
 
 /-- Variant of `stage3_forall_exists_discrepancy_gt` with a positive-length witness `n > 0`.
 
