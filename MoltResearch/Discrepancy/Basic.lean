@@ -1682,7 +1682,11 @@ Checklist item: Problems/erdos_discrepancy.md (Track B) — Along-`d` API cohere
 def discAlong (f : ℕ → ℤ) (d n : ℕ) : ℕ :=
   discOffset f d 0 n
 
-/-- Definitional lemma exposing `discAlong`. -/
+/-- Definitional lemma exposing `discAlong`.
+
+This is the canonical `discAlong`/`discOffset` bridge lemma (kept *out* of `[simp]` to avoid
+simp loops with other bridge lemmas in the discrepancy API).
+-/
 lemma discAlong_def (f : ℕ → ℤ) (d n : ℕ) : discAlong f d n = discOffset f d 0 n :=
   rfl
 
