@@ -1280,7 +1280,7 @@ Definition of done:
 - [x] `apSupport` API polish: prove a small bundle about the progression support set `{(m+i+1)*d | i < n}` (or the repo’s canonical `apSupport`), including `card = n` (for `d>0`) and a clean membership characterization lemma, to support later pigeonhole/counting steps without re-opening `Finset.image` algebra.
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `card_apSupport_eq`, `mem_apSupport`, `mem_apSupport_index_iff`, etc., with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Affine step pull-out” normal form: package a lemma rewriting `apSumFrom f (a*q) (d*q) n` into `apSumFrom (fun t => f (t*q)) a d n` (and corresponding offset/disc versions), so scaling an affine AP can be normalized in one `rw` before applying residue/dilation lemmas.
+- [x] “Affine step pull-out” normal form: package a lemma rewriting `apSumFrom f (a*q) (d*q) n` into `apSumFrom (fun t => f (t*q)) a d n` (and corresponding offset/disc versions), so scaling an affine AP can be normalized in one `rw` before applying residue/dilation lemmas.
 
 - [ ] `discOffset`/`discAlong` bridge coherence: add a canonical lemma expressing `discAlong f d n` as a `discOffset` (or vice versa) in the repo’s preferred orientation, so downstream code can move between “along” and “offset” normal forms without unfolding.
 

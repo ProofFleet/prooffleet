@@ -884,6 +884,14 @@ example (q : ℕ) : apSumFrom f (a * q) (d * q) n = apSumFrom (fun t => f (t * q
 example (q : ℕ) : discFrom f (a * q) (d * q) n = discFrom (fun t => f (t * q)) a d n := by
   simpa using (discFrom_mul_pull_out_right (f := f) (q := q) (a := a) (d := d) (n := n))
 
+-- Offset / tail-level analogues: when the *step* is already written as `d*q`, we can push the
+-- multiplier into the summand in one rewrite.
+example (q : ℕ) : apSumOffset f (d * q) m n = apSumOffset (fun t => f (t * q)) d m n := by
+  simpa using (apSumOffset_step_mul_right (f := f) (q := q) (d := d) (m := m) (n := n))
+
+example (q : ℕ) : discOffset f (d * q) m n = discOffset (fun t => f (t * q)) d m n := by
+  simpa using (discOffset_step_mul_right (f := f) (q := q) (d := d) (m := m) (n := n))
+
 /-!
 ### NEW (Track B): residue-class splitting (disc-level inequality wrapper)
 

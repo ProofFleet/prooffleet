@@ -197,6 +197,28 @@ lemma apSumOffset_map_mul_left (f : ℕ → ℤ) (q d m n : ℕ) :
   intro i hi
   simp [Nat.mul_assoc, Nat.mul_comm]
 
+/-!
+#### Step-scaling rewrite wrappers (orientation helpers)
+
+These are the `apSumOffset`-level analogues of `discOffsetUpTo_step_mul_right` / `discOffsetUpTo_step_mul_left`.
+
+Downstream normal-form code often has the *step* written as `d*q`/`q*d` already and wants to push the
+multiplier into the function argument (`k ↦ k*q` or `k ↦ q*k`). The core dilation lemmas above are oriented
+the other way, so we provide these tiny wrappers for ergonomic rewriting.
+
+These are **not** tagged `[simp]`.
+-/
+
+/-- Rewrite a multiplied step `d*q` into a multiplied input (`mul_right` convention). -/
+lemma apSumOffset_step_mul_right (f : ℕ → ℤ) (q d m n : ℕ) :
+    apSumOffset f (d * q) m n = apSumOffset (fun k => f (k * q)) d m n := by
+  simpa using (apSumOffset_map_mul_right (f := f) (q := q) (d := d) (m := m) (n := n)).symm
+
+/-- Rewrite a multiplied step `q*d` into a multiplied input (`mul_left` convention). -/
+lemma apSumOffset_step_mul_left (f : ℕ → ℤ) (q d m n : ℕ) :
+    apSumOffset f (q * d) m n = apSumOffset (fun k => f (q * k)) d m n := by
+  simpa using (apSumOffset_map_mul_left (f := f) (q := q) (d := d) (m := m) (n := n)).symm
+
 /-- Canonical homogeneous view of offsets: push the start shift `m*d` into the summand.
 
 (Track B normal-form checklist item.)
@@ -958,6 +980,27 @@ lemma discOffset_map_mul_left (f : ℕ → ℤ) (q d m n : ℕ) :
     discOffset (fun k => f (q * k)) d m n = discOffset f (q * d) m n := by
   unfold discOffset
   simp [apSumOffset_map_mul_left]
+
+/-!
+#### Step-scaling rewrite wrappers (orientation helpers)
+
+These are the `discOffset`-level analogues of `discOffsetUpTo_step_mul_right` / `discOffsetUpTo_step_mul_left`.
+
+They are convenient when the step is already presented as `d*q`/`q*d` and you want to push the multiplier
+into the summand in one rewrite.
+
+These are **not** tagged `[simp]`.
+-/
+
+/-- Rewrite a multiplied step `d*q` into a multiplied input (`mul_right` convention). -/
+lemma discOffset_step_mul_right (f : ℕ → ℤ) (q d m n : ℕ) :
+    discOffset f (d * q) m n = discOffset (fun k => f (k * q)) d m n := by
+  simpa using (discOffset_map_mul_right (f := f) (q := q) (d := d) (m := m) (n := n)).symm
+
+/-- Rewrite a multiplied step `q*d` into a multiplied input (`mul_left` convention). -/
+lemma discOffset_step_mul_left (f : ℕ → ℤ) (q d m n : ℕ) :
+    discOffset f (q * d) m n = discOffset (fun k => f (q * k)) d m n := by
+  simpa using (discOffset_map_mul_left (f := f) (q := q) (d := d) (m := m) (n := n)).symm
 
 /-- Shift–dilation coherence for the discrepancy wrapper `discOffset`.
 
