@@ -47,6 +47,20 @@ This is a definition (not an axiom): Stage 3 is non-stub glue on top of the Stag
 noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
   Stage3Output.ofStage2Output (f := f) (stage2Out (f := f) (hf := hf))
 
+/-- Non-typeclass entry point: run Stage 3 using an explicit `Stage2Assumption` proof.
+
+This mirrors the Stage-2 helper `stage2OutOf` and is useful in downstream developments that want to
+avoid `letI` / typeclass search and pass a verified Stage-2 assumption explicitly.
+-/
+noncomputable def stage3Of (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Stage3Output f :=
+  Stage3Output.ofStage2Output (f := f) (stage2OutOf inst (f := f) (hf := hf))
+
+/-- Abbreviation wrapper for `stage3Of` (mirrors `stage3Out`). -/
+noncomputable abbrev stage3OutOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Stage3Output f :=
+  stage3Of inst (f := f) (hf := hf)
+
 /-- Deterministic name for the Stage-3 output (useful to keep later statements readable). -/
 noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
   stage3 (f := f) (hf := hf)
