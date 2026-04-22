@@ -943,6 +943,19 @@ example : apSumOffset f d 0 n = apSum f d n := by
   simp
 
 /-!
+### NEW (Track B): `discAlong` ↔ `discOffset` bridge coherence
+
+Compile-only regression: moving between the “along” and “offset” normal forms should be a one-liner
+without unfolding definitions.
+-/
+
+example : discAlong f d n = discOffset f d 0 n := by
+  simpa using (discAlong_eq_discOffset (f := f) (d := d) (n := n))
+
+example : discOffset f d 0 n = discAlong f d n := by
+  simp
+
+/-!
 ### NEW (Track B): `UpTo` API coherence (degenerate parameters + micro-pipeline)
 
 These compile-only examples ensure the stable-surface `UpTo` wrappers stay easy to use.
