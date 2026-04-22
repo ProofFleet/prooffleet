@@ -2654,6 +2654,38 @@ lemma apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add (f : ℕ → ℤ) (d 
       (n₂ := n₂ - n₁)
   simpa [Nat.add_sub_of_le hn] using h
 
+/-- “Cut then shift” coherence for `apSumOffset`.
+
+When `n₁ ≤ n₂`, cutting off the first `n₁` terms of the offset sum starting at `m + k` produces a
+new offset sum starting at `m + k + n₁`. Shifting the start by `k` can either be done before the
+cut (by translating the summand), or after the cut (by rewriting the new start index).
+
+Concretely:
+`apSumOffset f d (m+k) n₂ - apSumOffset f d (m+k) n₁
+   = apSumOffset (fun t => f (t + k*d)) d (m+n₁) (n₂-n₁)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then shift” coherence.
+-/
+lemma apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_start_add (f : ℕ → ℤ) (d m k : ℕ)
+    {n₁ n₂ : ℕ} (hn : n₁ ≤ n₂) :
+    apSumOffset f d (m + k) n₂ - apSumOffset f d (m + k) n₁ =
+      apSumOffset (fun t => f (t + k * d)) d (m + n₁) (n₂ - n₁) := by
+  -- First cut at `n₁`, then shift the new start index by rewriting `(m+k)+n₁` as `(m+n₁)+k`.
+  have hcut :=
+    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := f) (d := d) (m := m + k) (n₁ := n₁)
+      (n₂ := n₂) (hn := hn)
+  -- `hcut` gives a tail starting at `(m+k)+n₁`; rewrite the start and apply shift-start coherence.
+  calc
+    apSumOffset f d (m + k) n₂ - apSumOffset f d (m + k) n₁
+        = apSumOffset f d ((m + k) + n₁) (n₂ - n₁) := by
+            simpa using hcut
+    _ = apSumOffset f d ((m + n₁) + k) (n₂ - n₁) := by
+            simp [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+    _ = apSumOffset (fun t => f (t + k * d)) d (m + n₁) (n₂ - n₁) := by
+            simpa using
+              (apSumOffset_shift_start_add (f := f) (d := d) (m := m + n₁) (k := k)
+                (n := n₂ - n₁))
+
 /-- Mul-left variant of `apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_add` with the translation
 constant written as `d * (m + n₁)`.
 
@@ -2831,6 +2863,24 @@ lemma discOffset_shift_start_add_mul_left (f : ℕ → ℤ) (d m k n : ℕ) :
     discOffset f d (m + k) n = discOffset (fun t => f (t + d * k)) d m n := by
   simpa [Nat.mul_comm] using
     (discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
+
+/-- “Cut then shift” coherence for the wrapper `discOffset`.
+
+This is a reassociation-friendly wrapper around `discOffset_shift_start_add` keyed to the start
+index shape produced by tail-cuts:
+
+`discOffset f d ((m+k)+n₁) n = discOffset (fun t => f (t+k*d)) d (m+n₁) n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then shift” coherence.
+-/
+lemma discOffset_shift_start_add_tail (f : ℕ → ℤ) (d m k n₁ n : ℕ) :
+    discOffset f d ((m + k) + n₁) n = discOffset (fun t => f (t + k * d)) d (m + n₁) n := by
+  -- Reassociate the start index to match the canonical `m+k` shape and apply `discOffset_shift_start_add`.
+  -- (Tail-cut lemmas typically produce `((m+k)+n₁)` rather than `((m+n₁)+k)`.)
+  -- `discOffset_shift_start_add` is keyed to the syntactic shape `(m+n₁)+k`; tail cuts often
+  -- produce `((m+k)+n₁)`, so we just reassociate/commute the start index.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (discOffset_shift_start_add (f := f) (d := d) (m := m + n₁) (k := k) (n := n))
 
 /-!
 ### Boundedness transport lemmas (`BoundedDiscOffset`) for shift-start coherence

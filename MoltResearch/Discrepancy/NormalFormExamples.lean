@@ -3252,6 +3252,21 @@ example (k : ℕ) :
     apSumOffset f d (m + k) n = apSumOffset (fun t => f (k * d + t)) d m n := by
   simpa using apSumOffset_shift_start_add_left (f := f) (d := d) (m := m) (k := k) (n := n)
 
+-- Regression (Track B / “cut then shift” coherence, sum-level):
+-- cut a tail after shifting the start, or shift after cutting.
+example (k : ℕ) (hn : n₁ ≤ n₂) :
+    apSumOffset f d (m + k) n₂ - apSumOffset f d (m + k) n₁ =
+      apSumOffset (fun t => f (t + k * d)) d (m + n₁) (n₂ - n₁) := by
+  simpa using
+    apSumOffset_sub_apSumOffset_eq_apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := k)
+      (n₁ := n₁) (n₂ := n₂) hn
+
+-- Wrapper-level version keyed to the start-index shape produced by tail cuts.
+example (k : ℕ) :
+    discOffset f d ((m + k) + n₁) n = discOffset (fun t => f (t + k * d)) d (m + n₁) n := by
+  simpa using
+    discOffset_shift_start_add_tail (f := f) (d := d) (m := m) (k := k) (n₁ := n₁) (n := n)
+
 -- Paper normal form: rewrite `Icc (m+1) (m+n)` tails to the fixed-lower-endpoint `Icc 1 n` form.
 example :
     (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
