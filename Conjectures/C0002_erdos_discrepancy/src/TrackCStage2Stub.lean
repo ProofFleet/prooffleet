@@ -26,6 +26,20 @@ class Stage2Assumption : Type where
   sequence. -/
   stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
 
+/-- Non-typeclass entry point: run Stage 2 using an explicit `Stage2Assumption` instance.
+
+This is useful in downstream developments that want to avoid `letI` / typeclass search and pass a
+verified Stage-2 implementation explicitly.
+-/
+noncomputable def stage2Of (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Stage2Output f :=
+  Stage2Assumption.stage2 (self := inst) (f := f) (hf := hf)
+
+/-- Abbreviation wrapper for `stage2Of` (mirrors `stage2Out`). -/
+noncomputable abbrev stage2OutOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Stage2Output f :=
+  stage2Of inst (f := f) (hf := hf)
+
 /-- Default axiom instance for the Stage-2 assumption (Conjectures-only stub).
 
 Design note: we register this instance at very low priority so that downstream developments can
