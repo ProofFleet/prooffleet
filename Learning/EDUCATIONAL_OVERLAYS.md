@@ -27,6 +27,11 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `disc f d n` (matches the `discOffset` / `discOffsetUpTo` family).
   They are definitionally equal; use `discrepancy_eq_disc` / `disc_eq_discrepancy` when you want to normalize one spelling to the other without unfolding.
 
+- **API note (`discAlong` ↔ `discOffset` bridge):** `discAlong f d n` is the “no-offset” specialization
+  `discOffset f d 0 n`. Use the wrapper-level lemma `discAlong_def` to rewrite between these normal
+  forms **without unfolding**; it is intentionally *not* a `[simp]` lemma, since the discrepancy API
+  already contains other bridge lemmas that can interact to create simp loops.
+
 - **API note (homogeneous cut at `k ≤ n`):** if you want to cut a homogeneous AP sum/discrepancy without rewriting into an offset normal form, use:
   - `apSum_eq_add_apSumOffset_cut` / `apSum_sub_apSum_cut` for exact prefix+tail / tail-difference statements, and
   - `disc_cut_le` for the one-line triangle bound
