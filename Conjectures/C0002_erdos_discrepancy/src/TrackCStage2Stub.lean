@@ -18,22 +18,27 @@ namespace Tao2015
 
 /-- Typeclass packaging of the Stage-2 conjecture assumption.
 
-This lets downstream code replace the axiom stub by providing a local instance.
+We package the conjecture as a `Prop` (existence of a Stage-2 output) rather than committing to a
+specific function. The definitional output `stage2`/`stage2Out` is then selected noncomputably via
+`Classical.choice`.
+
+This lets downstream code replace the axiom stub by providing a local instance (e.g. derived from a
+verified Stage-2 construction).
 -/
-class Stage2Assumption : Type where
-  /-- Stage 2 of Tao 2015: given a sign sequence `f`, produce a Stage-2 output consisting of a
+class Stage2Assumption : Prop where
+  /-- Stage 2 of Tao 2015: given a sign sequence `f`, a Stage-2 output exists consisting of a
   Stage-1 reduction output and an unbounded fixed-step discrepancy witness along the reduced
   sequence. -/
-  stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f
+  stage2_nonempty (f : ℕ → ℤ) (hf : IsSignSequence f) : Nonempty (Stage2Output f)
 
-/-- Non-typeclass entry point: run Stage 2 using an explicit `Stage2Assumption` instance.
+/-- Non-typeclass entry point: run Stage 2 using an explicit `Stage2Assumption` proof.
 
 This is useful in downstream developments that want to avoid `letI` / typeclass search and pass a
-verified Stage-2 implementation explicitly.
+verified Stage-2 assumption explicitly.
 -/
 noncomputable def stage2Of (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     Stage2Output f :=
-  Stage2Assumption.stage2 (self := inst) (f := f) (hf := hf)
+  Classical.choice (Stage2Assumption.stage2_nonempty (self := inst) (f := f) (hf := hf))
 
 /-- Abbreviation wrapper for `stage2Of` (mirrors `stage2Out`). -/
 noncomputable abbrev stage2OutOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
@@ -52,11 +57,11 @@ attribute [instance 10] instStage2Assumption
 
 /-- **Conjecture stub:** Stage 2 of Tao 2015.
 
-Given a sign sequence `f`, produce a Stage-2 output consisting of a Stage-1 reduction output and an
-unbounded fixed-step discrepancy witness along the reduced sequence.
+Given a sign sequence `f`, choose a Stage-2 output using `Classical.choice` from the existence
+statement packaged by `Stage2Assumption`.
 -/
 noncomputable def stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) [Stage2Assumption] : Stage2Output f :=
-  Stage2Assumption.stage2 (f := f) (hf := hf)
+  Classical.choice (Stage2Assumption.stage2_nonempty (f := f) (hf := hf))
 
 /-- Deterministic name for the Stage-2 output (useful to keep later statements readable). -/
 noncomputable abbrev stage2Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f :=
