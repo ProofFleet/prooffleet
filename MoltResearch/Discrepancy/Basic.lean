@@ -16,6 +16,7 @@ namespace MoltResearch
 /-- A ±1-valued sequence on ℕ (values in ℤ). -/
 def IsSignSequence (f : ℕ → ℤ) : Prop := ∀ n, f n = 1 ∨ f n = -1
 
+
 /-- Sum of `f` along the homogeneous arithmetic progression `d, 2d, ..., nd`.
 
 We use `Finset.range n` with `i+1` so the progression starts at `d`.
@@ -3474,6 +3475,16 @@ lemma IsSignSequence.shift_add_left {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequ
 lemma IsSignSequence.map_mul {f : ℕ → ℤ} (k : ℕ) (hf : IsSignSequence f) :
     IsSignSequence (fun n => f (n * k)) :=
   IsSignSequence.comp (f := f) (fun n => n * k) hf
+
+/-- Dot-notation friendly wrapper for `IsSignSequence.shift_add` (argument order: hypothesis first). -/
+lemma IsSignSequence.shift_add' {f : ℕ → ℤ} (hf : IsSignSequence f) (k : ℕ) :
+    IsSignSequence (fun n => f (n + k)) :=
+  IsSignSequence.shift_add (f := f) k hf
+
+/-- Dot-notation friendly wrapper for `IsSignSequence.map_mul` (argument order: hypothesis first). -/
+lemma IsSignSequence.map_mul' {f : ℕ → ℤ} (hf : IsSignSequence f) (k : ℕ) :
+    IsSignSequence (fun n => f (n * k)) :=
+  IsSignSequence.map_mul (f := f) k hf
 
 lemma IsSignSequence.natAbs_eq_one {f : ℕ → ℤ} (hf : IsSignSequence f) (n : ℕ) :
     Int.natAbs (f n) = 1 := by

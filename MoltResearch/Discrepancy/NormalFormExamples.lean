@@ -1420,6 +1420,16 @@ example (q : ℕ) (hq : q > 0) :
   simpa using
     (apSum_mul_len_succ_eq_sum_range_mul_left (f := f) (d := d) (q := q) (n := n) hq)
 
+-- Regression (Track B / sign sequences closed under reindexing):
+example (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    IsSignSequence (fun n => f (n + k)) := by
+  simpa using (IsSignSequence.shift_add (f := f) k hf)
+
+-- Regression (Track B / sign sequences closed under reindexing):
+example (f : ℕ → ℤ) (hf : IsSignSequence f) (q : ℕ) :
+    IsSignSequence (fun n => f (n * q)) := by
+  simpa using (IsSignSequence.map_mul (f := f) q hf)
+
 -- Regression (Track B / local edit sensitivity, sum-level):
 -- if you flip at most one sampled sign, the sum changes by at most `2`.
 example :
