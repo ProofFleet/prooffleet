@@ -72,6 +72,15 @@ These simp lemmas reduce rewriting noise when shuttling statements between Stage
 They are intentionally kept in the minimal entry-point module.
 -/
 
+/-- The Stage-2 output stored inside `stage3OutOf inst` is definitionally the Stage-2 output
+produced by Stage 2 using the explicit assumption `inst`.
+
+This is the explicit-assumption analogue of `stage3Out_out2`.
+-/
+@[simp] theorem stage3OutOf_out2 (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).out2 = stage2OutOf inst (f := f) (hf := hf) := by
+  rfl
+
 /-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
 Stage 2.
 
