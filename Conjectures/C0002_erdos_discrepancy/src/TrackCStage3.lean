@@ -245,9 +245,7 @@ theorem forall_exists_d_pos_witness_pos (out : Stage3Output f) :
   intro C
   rcases out.forall_exists_d_ge_one_witness_pos (f := f) C with ⟨d, n, hd, hn, hgt⟩
   have hdpos : d > 0 := by
-    have h : Nat.succ 0 ≤ d := by
-      simpa using hd
-    exact (Nat.succ_le_iff).1 h
+    exact lt_of_lt_of_le Nat.zero_lt_one hd
   exact ⟨d, n, hdpos, hn, hgt⟩
 
 /-- Stage 3 output implies the explicit discrepancy witness normal form with a positive-length witness.
