@@ -134,6 +134,24 @@ theorem stage2_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
       stage2_one_le_d (f := f) (hf := hf), ?_⟩
   exact stage2_unboundedDiscOffset (f := f) (hf := hf)
 
+/-- Existential packaging: Stage 2 yields concrete parameters `d, m` with `1 ≤ d` such that there is
+no bundled offset bound at those parameters.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ¬ ∃ B, BoundedDiscOffset f d m B`.
+
+This is a minimal-entry convenience lemma for downstream stages that prefer to work with an
+existential parameter packaging, without mentioning the deterministic projections
+`stage2_d/stage2_m`.
+-/
+theorem stage2_exists_params_one_le_not_exists_boundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  refine
+    ⟨stage2_d (f := f) (hf := hf), stage2_m (f := f) (hf := hf),
+      stage2_one_le_d (f := f) (hf := hf), ?_⟩
+  exact stage2_not_exists_boundedDiscOffset (f := f) (hf := hf)
+
 end Tao2015
 
 end MoltResearch
