@@ -31,6 +31,19 @@ class Stage2Assumption : Prop where
   sequence. -/
   stage2_nonempty (f : ℕ → ℤ) (hf : IsSignSequence f) : Nonempty (Stage2Output f)
 
+namespace Stage2Assumption
+
+/-- Build a `Stage2Assumption` instance from an explicit Stage-2 construction function.
+
+This is a small convenience constructor for downstream developments: a verified Stage-2 algorithm
+(or theorem) usually produces a concrete `Stage2Output f`, and this lemma packages it into the
+typeclass form expected by the Track-C pipeline.
+-/
+def ofStage2 (stage2 : ∀ f : ℕ → ℤ, IsSignSequence f → Stage2Output f) : Stage2Assumption :=
+  ⟨fun f hf => ⟨stage2 f hf⟩⟩
+
+end Stage2Assumption
+
 /-- Non-typeclass entry point: run Stage 2 using an explicit `Stage2Assumption` proof.
 
 This is useful in downstream developments that want to avoid `letI` / typeclass search and pass a
