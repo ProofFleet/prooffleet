@@ -1973,6 +1973,19 @@ theorem BoundedDiscOffset.mono_B {f : ℕ → ℤ} {d m B B' : ℕ}
   intro n
   exact le_trans (h n) hBB'
 
+/-- Contrapositive monotonicity in the bound parameter `B`.
+
+If `B ≤ B'` and you cannot bound the discrepancies by the **larger** bound `B'`, then you
+certainly cannot bound them by the smaller bound `B`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Monotonicity packaging for boundedness predicates.
+-/
+theorem BoundedDiscOffset.not_mono_B {f : ℕ → ℤ} {d m B B' : ℕ}
+    (h : ¬ BoundedDiscOffset f d m B') (hBB' : B ≤ B') :
+    ¬ BoundedDiscOffset f d m B := by
+  intro hB
+  exact h (BoundedDiscOffset.mono_B (f := f) (d := d) (m := m) (B := B) (B' := B') hB hBB')
+
 /-!
 ### `BoundedDiscrepancyAlong` (finite-length along-`d` boundedness)
 
@@ -1993,6 +2006,7 @@ def BoundedDiscrepancyAlong (f : ℕ → ℤ) (d len B : ℕ) : Prop :=
 theorem boundedDiscrepancyAlong_iff_forall_le_discAlong_le (f : ℕ → ℤ) (d len B : ℕ) :
     BoundedDiscrepancyAlong f d len B ↔ ∀ n : ℕ, n ≤ len → discAlong f d n ≤ B :=
   Iff.rfl
+
 
 /-- Bridge lemma: finite-length along-`d` boundedness is equivalent to a bound on the finitary
 maximum `discOffsetUpTo f d 0 len`.
@@ -2026,6 +2040,13 @@ theorem mono_B {f : ℕ → ℤ} {d len B B' : ℕ}
     BoundedDiscrepancyAlong f d len B' := by
   intro n hn
   exact le_trans (h n hn) hBB'
+
+/-- Contrapositive monotonicity in the bound parameter `B`. -/
+theorem not_mono_B {f : ℕ → ℤ} {d len B B' : ℕ}
+    (h : ¬ BoundedDiscrepancyAlong f d len B') (hBB' : B ≤ B') :
+    ¬ BoundedDiscrepancyAlong f d len B := by
+  intro hB
+  exact h (mono_B (f := f) (d := d) (len := len) (B := B) (B' := B') hB hBB')
 
 /-- Monotonicity in the length parameter `len` (shrinking the range keeps boundedness). -/
 theorem mono_len {f : ℕ → ℤ} {d len len' B : ℕ}

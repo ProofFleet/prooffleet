@@ -1274,8 +1274,8 @@ Definition of done:
 
 - [x] Shift/dilation closure for sign sequences: prove `IsSignSequence f → IsSignSequence (fun n => f (n + k))` and `IsSignSequence f → IsSignSequence (fun n => f (n * q))` (with simp-friendly wrappers for the repo’s preferred `shift_add`/`map_mul` naming), so later reductions can freely shift/dilate without re-proving the `{±1}` bound.
 
-- [ ] Monotonicity packaging for discrepancy predicates: add one-line wrappers like
-  `HasDiscrepancyAtLeast f C → C ≤ C' → HasDiscrepancyAtLeast f C'` (and converses where appropriate), plus analogous monotonicity for the “boundedness” predicates, so later “weaken/strengthen the target constant” steps are boilerplate-free.
+- [x] Monotonicity packaging for discrepancy predicates: add one-line wrappers for “weaken/strengthen the target constant” steps (including contrapositive forms where appropriate), plus analogous monotonicity for the boundedness predicates.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `HasDiscrepancyAtLeast.mono` / `HasDiscrepancyAtLeast.not_mono`, `BoundedDiscOffset.mono_B` / `BoundedDiscOffset.not_mono_B`, and `BoundedDiscrepancyAlong.mono_B` / `BoundedDiscrepancyAlong.not_mono_B` / `BoundedDiscrepancyAlong.mono_len`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `apSupport` API polish: prove a small bundle about the progression support set `{(m+i+1)*d | i < n}` (or the repo’s canonical `apSupport`), including `card = n` (for `d>0`) and a clean membership characterization lemma, to support later pigeonhole/counting steps without re-opening `Finset.image` algebra.
 

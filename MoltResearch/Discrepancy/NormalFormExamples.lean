@@ -100,6 +100,31 @@ example (h : ¬ HasDiscrepancyAtLeast f C) (hC : C ≤ C') : ¬ HasDiscrepancyAt
   simpa using (HasDiscrepancyAtLeast.not_mono (f := f) (C₁ := C) (C₂ := C') h hC)
 
 /-!
+### NEW (Track B): monotonicity packaging for boundedness predicates
+
+Compile-only regression: we can weaken/strengthen bounds without unfolding `BoundedDiscOffset` or
+`BoundedDiscrepancyAlong`.
+-/
+
+example (B B' : ℕ) (h : BoundedDiscOffset f d m B) (hBB' : B ≤ B') : BoundedDiscOffset f d m B' := by
+  simpa using (BoundedDiscOffset.mono_B (f := f) (d := d) (m := m) (B := B) (B' := B') h hBB')
+
+example (B B' : ℕ) (h : ¬ BoundedDiscOffset f d m B') (hBB' : B ≤ B') : ¬ BoundedDiscOffset f d m B := by
+  simpa using (BoundedDiscOffset.not_mono_B (f := f) (d := d) (m := m) (B := B) (B' := B') h hBB')
+
+example (len B B' : ℕ) (h : BoundedDiscrepancyAlong f d len B) (hBB' : B ≤ B') :
+    BoundedDiscrepancyAlong f d len B' := by
+  simpa using (BoundedDiscrepancyAlong.mono_B (f := f) (d := d) (len := len) (B := B) (B' := B') h hBB')
+
+example (len B B' : ℕ) (h : ¬ BoundedDiscrepancyAlong f d len B') (hBB' : B ≤ B') :
+    ¬ BoundedDiscrepancyAlong f d len B := by
+  simpa using (BoundedDiscrepancyAlong.not_mono_B (f := f) (d := d) (len := len) (B := B) (B' := B') h hBB')
+
+example (len len' B : ℕ) (h : BoundedDiscrepancyAlong f d len B) (hlen : len' ≤ len) :
+    BoundedDiscrepancyAlong f d len' B := by
+  simpa using (BoundedDiscrepancyAlong.mono_len (f := f) (d := d) (len := len) (len' := len') (B := B) h hlen)
+
+/-!
 ### NEW (Track B): constant-sequence sanity checks (`apSum`/`discOffset`)
 
 These are explicit computed examples that should remain one-line `simp`/`simpa` proofs under the
