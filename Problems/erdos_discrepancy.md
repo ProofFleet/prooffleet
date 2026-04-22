@@ -1272,7 +1272,7 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Shift/dilation closure for sign sequences: prove `IsSignSequence f → IsSignSequence (fun n => f (n + k))` and `IsSignSequence f → IsSignSequence (fun n => f (n * q))` (with simp-friendly wrappers for the repo’s preferred `shift_add`/`map_mul` naming), so later reductions can freely shift/dilate without re-proving the `{±1}` bound.
+- [x] Shift/dilation closure for sign sequences: prove `IsSignSequence f → IsSignSequence (fun n => f (n + k))` and `IsSignSequence f → IsSignSequence (fun n => f (n * q))` (with simp-friendly wrappers for the repo’s preferred `shift_add`/`map_mul` naming), so later reductions can freely shift/dilate without re-proving the `{±1}` bound.
 
 - [ ] Monotonicity packaging for discrepancy predicates: add one-line wrappers like
   `HasDiscrepancyAtLeast f C → C ≤ C' → HasDiscrepancyAtLeast f C'` (and converses where appropriate), plus analogous monotonicity for the “boundedness” predicates, so later “weaken/strengthen the target constant” steps are boilerplate-free.
