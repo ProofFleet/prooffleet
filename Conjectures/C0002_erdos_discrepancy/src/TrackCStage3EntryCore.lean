@@ -283,18 +283,8 @@ theorem stage3_exists_params_one_le_forall_exists_discOffset_gt'_witness_pos (f 
 -- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`)
 
 
-/-- Consumer-facing shortcut: Stage 3 yields the nucleus witness form
-
-`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
-
-This is the most pipeline-friendly surface statement for consuming Stage 3 without importing the
-larger Stage-3 output-lemma layer.
--/
-theorem stage3_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  exact
-    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
-      (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf))
+-- Note: the nucleus witness form `stage3_forall_exists_d_ge_one_witness_pos` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`.
 
 /-- Discrepancy-form variant of `stage3_forall_exists_d_ge_one_witness_pos`.
 

@@ -96,30 +96,11 @@ This lemma is intentionally tiny (and not marked as a simp lemma): it exists mai
 theorem start_eq_out2_start (out : Stage3Output f) : out.start = out.out2.start := by
   rfl
 
-/-- Definitional rewrite: `out.start = out.m * out.d`.
-
-This mirrors the Stage-2 lemma `Stage2Output.start_eq_m_mul_d` and avoids repeated unfolding of
-`Stage3Output.start` in downstream arithmetic rewrites.
--/
-theorem start_eq_m_mul_d (out : Stage3Output f) : out.start = out.m * out.d := by
-  rfl
+-- Note: the basic start-index lemmas
+-- `Stage3Output.start_eq_m_mul_d`, `Stage3Output.start_mod_d`, and `Stage3Output.add_start_mod_d`
+-- live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
 -- Note: the lemma `Stage3Output.d_dvd_start` lives in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
-
-/-- The affine-tail start index `out.start` has remainder `0` when reduced modulo `out.d`. -/
-theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
-  simpa [start_eq_out2_start] using
-    (Stage2Output.start_mod_d (f := f) out.out2)
-
-/-- Adding the start index does not change residues modulo the step size.
-
-Since `out.start` is a multiple of `out.d`, we have
-`(n + out.start) % out.d = n % out.d`.
--/
-theorem add_start_mod_d (out : Stage3Output f) (n : ℕ) :
-    (n + out.start) % out.d = n % out.d := by
-  simpa [start_eq_out2_start] using
-    (Stage2Output.add_start_mod_d (f := f) out.out2 n)
 
 /-- Recover the offset parameter `out.m` by dividing the start index `out.start`
 by the step size `out.d`.

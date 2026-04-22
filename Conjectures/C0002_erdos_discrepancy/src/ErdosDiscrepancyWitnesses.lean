@@ -117,6 +117,17 @@ theorem erdos_discrepancy_discrepancy_d_ge_one (f : ℕ → ℤ) (hf : IsSignSeq
     (Tao2015.Stage3Output.forall_exists_discrepancy_gt_d_ge_one (f := f)
       (Tao2015.stage3Out (f := f) (hf := hf)))
 
+/-- Strengthened witness form of `erdos_discrepancy_discrepancy_d_ge_one` with a positive-length witness.
+
+Normal form:
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C`.
+-/
+theorem erdos_discrepancy_discrepancy_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ discrepancy f d n > C := by
+  simpa using
+    (Tao2015.Stage3Output.forall_exists_discrepancy_gt_d_ge_one_witness_pos (f := f)
+      (Tao2015.stage3Out (f := f) (hf := hf)))
+
 /-- Strengthened witness form of `erdos_discrepancy_discrepancy` with a positive-length witness.
 
 This is sometimes convenient when downstream stages want to rule out the degenerate case `n = 0`.
@@ -150,17 +161,8 @@ theorem erdos_discrepancy_exists_params_d_ne_zero_unboundedDiscOffset (f : ℕ �
     ⟨d, m, hd, hunb⟩
   exact ⟨d, m, Nat.ne_of_gt hd, hunb⟩
 
-/-- Variant of `erdos_discrepancy_exists_params_unboundedDiscOffset` packaging the step-size side
-condition as `1 ≤ d`.
-
-Many later stages prefer the normal form `1 ≤ d` rather than `d > 0`.
--/
-theorem erdos_discrepancy_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ)
-    (hf : IsSignSequence f) :
-    ∃ d m : ℕ, 1 ≤ d ∧ Tao2015.UnboundedDiscOffset f d m := by
-  simpa using
-    (Tao2015.Stage3Output.exists_params_one_le_unboundedDiscOffset (f := f)
-      (Tao2015.stage3Out (f := f) (hf := hf)))
+-- Note: the packaging lemma `erdos_discrepancy_exists_params_one_le_unboundedDiscOffset` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy`.
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` takes arbitrarily large values.
