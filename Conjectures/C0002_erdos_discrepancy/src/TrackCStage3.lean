@@ -99,6 +99,19 @@ theorem start_add_mod_d (out : Stage3Output f) (n : ℕ) :
   rw [Nat.add_comm]
   exact out.add_start_mod_d (f := f) (n := n)
 
+/-- Normal form: the bundled offset discrepancy wrapper `discOffset f out.d out.m n` is the
+absolute value of the affine-tail nucleus `apSumFrom f out.start out.d n`.
+
+This is `discOffset_eq_natAbs_apSumFrom_mul` rewritten using the Stage-3 start index
+`out.start = out.m * out.d`.
+
+It is a common analytic normal form for consuming the Stage-3 offset-discrepancy witness.
+-/
+theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage3Output f) (n : ℕ) :
+    discOffset f out.d out.m n = Int.natAbs (apSumFrom f out.start out.d n) := by
+  simpa [Stage3Output.start, Stage2Output.start] using
+    (discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
+
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
