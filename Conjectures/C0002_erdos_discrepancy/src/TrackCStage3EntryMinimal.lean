@@ -151,6 +151,15 @@ theorem stage3Out_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
   have h1 : 1 ≤ (stage3Out (f := f) (hf := hf)).d := stage3_one_le_d (f := f) (hf := hf)
   exact lt_of_lt_of_le Nat.zero_lt_one h1
 
+/-- Convenience lemma: the Stage-3 reduced step size is nonzero.
+
+This is a tiny wrapper around `stage3Out_d_pos` since some arithmetic lemmas want the side
+condition `d ≠ 0` rather than strict positivity.
+-/
+theorem stage3Out_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).d ≠ 0 := by
+  exact Nat.ne_of_gt (stage3Out_d_pos (f := f) (hf := hf))
+
 -- Note: the simp lemma `stage3Out_out2` is enough to rewrite projections like
 -- `(stage3Out ...).out2.d` to `(stage2Out ...).d`, but we also provide `[simp]` lemmas for the
 -- common projections `.d/.m/.g` so consumers can rewrite without reaching through `.out2`.
