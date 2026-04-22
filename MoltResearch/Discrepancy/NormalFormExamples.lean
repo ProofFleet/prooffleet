@@ -5036,6 +5036,23 @@ example (f : ℕ → ℤ) (d n : ℕ) :
     disc (fun x => if x ∈ apSupport d 0 n then f x else 0) d n = disc f d n := by
   simpa using (disc_restrict_support (f := f) (d := d) (n := n))
 
+/-!
+## NEW (Track B): “cut then shift” coherence regression tests
+
+Compile-only regression examples showing that the tail-cut start-index shape `((m+k)+n₁)`
+normalizes cleanly at the `apSumOffset` and `discOffset` levels.
+-/
+
+example (f : ℕ → ℤ) (d m k n₁ n : ℕ) :
+    apSumOffset f d ((m + k) + n₁) n = apSumOffset (fun t => f (t + k * d)) d (m + n₁) n := by
+  simpa using
+    (apSumOffset_shift_start_add_tail (f := f) (d := d) (m := m) (k := k) (n₁ := n₁) (n := n))
+
+example (f : ℕ → ℤ) (d m k n₁ n : ℕ) :
+    discOffset f d ((m + k) + n₁) n = discOffset (fun t => f (t + k * d)) d (m + n₁) n := by
+  simpa using
+    (discOffset_shift_start_add_tail (f := f) (d := d) (m := m) (k := k) (n₁ := n₁) (n := n))
+
 end NormalFormExamples
 
 end MoltResearch

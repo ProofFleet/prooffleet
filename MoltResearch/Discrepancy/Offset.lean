@@ -2333,6 +2333,22 @@ lemma apSumOffset_shift_start_add_left (f : ℕ → ℤ) (d m k n : ℕ) :
   simpa [Nat.add_comm] using
     (apSumOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
 
+/-- “Cut then shift” coherence for the nucleus `apSumOffset`.
+
+This is a reassociation-friendly wrapper around `apSumOffset_shift_start_add` keyed to the start
+index shape produced by tail-cuts:
+
+`apSumOffset f d ((m+k)+n₁) n = apSumOffset (fun t => f (t+k*d)) d (m+n₁) n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then shift” coherence.
+-/
+lemma apSumOffset_shift_start_add_tail (f : ℕ → ℤ) (d m k n₁ n : ℕ) :
+    apSumOffset f d ((m + k) + n₁) n = apSumOffset (fun t => f (t + k * d)) d (m + n₁) n := by
+  -- Reassociate the start index to match the canonical `m+k` shape and apply
+  -- `apSumOffset_shift_start_add`.
+  simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    (apSumOffset_shift_start_add (f := f) (d := d) (m := m + n₁) (k := k) (n := n))
+
 /-- Normal form (mul-left variant): shift in the *start index* using the translation constant `d*k`.
 
 `apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + d*k)) d m n`.
