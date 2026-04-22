@@ -83,6 +83,22 @@ theorem start_mod_d (out : Stage3Output f) : out.start % out.d = 0 := by
   change Stage2Output.start out.out2 % out.out2.d = 0
   exact Stage2Output.start_mod_d (f := f) (out := out.out2)
 
+/-- Adding the start index does not change residues modulo the step size.
+
+Since `out.start` is a multiple of `out.d`, we have
+`(n + out.start) % out.d = n % out.d`.
+-/
+theorem add_start_mod_d (out : Stage3Output f) (n : ℕ) :
+    (n + out.start) % out.d = n % out.d := by
+  have hstart : out.start % out.d = 0 := out.start_mod_d (f := f)
+  simp [Nat.add_mod, hstart]
+
+/-- Variant of `add_start_mod_d` with the start index on the left. -/
+theorem start_add_mod_d (out : Stage3Output f) (n : ℕ) :
+    (out.start + n) % out.d = n % out.d := by
+  rw [Nat.add_comm]
+  exact out.add_start_mod_d (f := f) (n := n)
+
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
