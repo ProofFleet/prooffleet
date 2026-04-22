@@ -1282,7 +1282,8 @@ Definition of done:
 
 - [x] “Affine step pull-out” normal form: package a lemma rewriting `apSumFrom f (a*q) (d*q) n` into `apSumFrom (fun t => f (t*q)) a d n` (and corresponding offset/disc versions), so scaling an affine AP can be normalized in one `rw` before applying residue/dilation lemmas.
 
-- [ ] `discOffset`/`discAlong` bridge coherence: add a canonical lemma expressing `discAlong f d n` as a `discOffset` (or vice versa) in the repo’s preferred orientation, so downstream code can move between “along” and “offset” normal forms without unfolding.
+- [x] `discOffset`/`discAlong` bridge coherence: add a canonical lemma expressing `discAlong f d n` as a `discOffset` (or vice versa) in the repo’s preferred orientation, so downstream code can move between “along” and “offset” normal forms without unfolding.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `discAlong_eq_discOffset` / `discOffset_zero_eq_discAlong`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Cut then shift” coherence: prove that cutting a tail and then shifting the start agrees with shifting first and cutting after, at the level of `apSumOffset` and at the packaged `discOffset` inequalities, so longer normal-form pipelines can reorder these rewrites without manual algebra.
 
