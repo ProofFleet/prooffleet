@@ -1277,7 +1277,8 @@ Definition of done:
 - [x] Monotonicity packaging for discrepancy predicates: add one-line wrappers for “weaken/strengthen the target constant” steps (including contrapositive forms where appropriate), plus analogous monotonicity for the boundedness predicates.
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `HasDiscrepancyAtLeast.mono` / `HasDiscrepancyAtLeast.not_mono`, `BoundedDiscOffset.mono_B` / `BoundedDiscOffset.not_mono_B`, and `BoundedDiscrepancyAlong.mono_B` / `BoundedDiscrepancyAlong.not_mono_B` / `BoundedDiscrepancyAlong.mono_len`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `apSupport` API polish: prove a small bundle about the progression support set `{(m+i+1)*d | i < n}` (or the repo’s canonical `apSupport`), including `card = n` (for `d>0`) and a clean membership characterization lemma, to support later pigeonhole/counting steps without re-opening `Finset.image` algebra.
+- [x] `apSupport` API polish: prove a small bundle about the progression support set `{(m+i+1)*d | i < n}` (or the repo’s canonical `apSupport`), including `card = n` (for `d>0`) and a clean membership characterization lemma, to support later pigeonhole/counting steps without re-opening `Finset.image` algebra.
+  (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `card_apSupport_eq`, `mem_apSupport`, `mem_apSupport_index_iff`, etc., with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Affine step pull-out” normal form: package a lemma rewriting `apSumFrom f (a*q) (d*q) n` into `apSumFrom (fun t => f (t*q)) a d n` (and corresponding offset/disc versions), so scaling an affine AP can be normalized in one `rw` before applying residue/dilation lemmas.
 
