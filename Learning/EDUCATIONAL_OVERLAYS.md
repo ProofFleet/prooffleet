@@ -110,6 +110,11 @@ The goal is to pair verified artifacts with learning scaffolding.
     which package the `((m+i+1)*d)*q = (m+i+1)*(d*q)` index normalization.
     If your goal is oriented the other way (the step is already written as `d*q` / `q*d` and you want to push the multiplier into the input), use the non-simp orientation helpers:
     `discOffsetUpTo_step_mul_right` / `discOffsetUpTo_step_mul_left`.
+
+    **Tip (sum-level and witness-level):** the same “step is already scaled” orientation helpers exist one level down:
+    - `apSumOffset_step_mul_right` / `apSumOffset_step_mul_left`
+    - `discOffset_step_mul_right` / `discOffset_step_mul_left`
+    These are handy when you want to normalize a tail sum/discrepancy *before* applying residue/dilation lemmas, without unfolding definitions.
     For cutoff scaling bookkeeping, use `discOffsetUpTo_le_mul` (monotonicity under `N ↦ N*q`, assuming `q > 0`).
     If you just need to normalize the *orientation* of a scaled cutoff (so you can match another lemma’s statement), use:
     - `discOffsetUpTo_length_mul_comm` to rewrite `discOffsetUpTo f d m (q * N)` into `discOffsetUpTo f d m (N * q)`
