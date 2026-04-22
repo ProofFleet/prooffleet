@@ -4958,6 +4958,21 @@ example (f : ℕ → ℤ) (d q n : ℕ) (hq : q > 0) :
   simpa using (disc_mul_len_succ_le_sum_range_natAbs (f := f) (d := d) (q := q) (n := n) hq)
 
 /-!
+### NEW (Track B): `discAlong`/`discOffset` bridge coherence regression tests
+
+These are compile-only sanity checks that the stable-surface bridge lemmas can move between
+`discAlong f d n` and the zero-offset normal form `discOffset f d 0 n` **without unfolding**.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset`/`discAlong` bridge coherence.
+-/
+
+example (f : ℕ → ℤ) (d n : ℕ) : discAlong f d n = discOffset f d 0 n := by
+  simpa using (discAlong_eq_discOffset (f := f) (d := d) (n := n))
+
+example (f : ℕ → ℤ) (d n : ℕ) : discOffset f d 0 n = discAlong f d n := by
+  simpa using (discOffset_zero_eq_discAlong (f := f) (d := d) (n := n))
+
+/-!
 ## Step-factor coherence regression tests
 
 These are compile-time sanity checks that downstream code can “factor the step” at the discrepancy
