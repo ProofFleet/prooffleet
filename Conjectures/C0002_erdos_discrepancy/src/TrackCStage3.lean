@@ -74,8 +74,8 @@ theorem start_eq_m_mul_d (out : Stage3Output f) : out.start = out.m * out.d := b
 This is a tiny arithmetic convenience lemma: `out.start = out.m * out.d` by definition (via Stage 2).
 -/
 theorem start_div_d (out : Stage3Output f) : out.start / out.d = out.m := by
-  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m] using
-    (Stage2Output.start_div_d (f := f) (out := out.out2))
+  simp [Stage3Output.start, Stage3Output.d, Stage3Output.m,
+    Stage2Output.start_div_d (f := f) (out := out.out2)]
 
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage3Output f) : out.d ∣ out.start := by
