@@ -50,6 +50,16 @@ theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage2Output f) (n : ℕ) :
   simpa [Stage2Output.start] using
     (discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
 
+/-- Reverse-direction normal form: the absolute value of the affine-tail nucleus at the bundled
+start index is the bundled offset discrepancy wrapper.
+
+This is `discOffset_eq_natAbs_apSumFrom_start` with sides swapped, and it is sometimes the most
+convenient rewrite direction in downstream stages.
+-/
+theorem natAbs_apSumFrom_start_eq_discOffset (out : Stage2Output f) (n : ℕ) :
+    Int.natAbs (apSumFrom f out.start out.d n) = discOffset f out.d out.m n := by
+  simpa using (out.discOffset_eq_natAbs_apSumFrom_start (f := f) (n := n)).symm
+
 /-- Normal form: discrepancy of the reduced sequence is the absolute value of the affine-tail nucleus
 `apSumFrom f out.start out.d n`.
 
