@@ -37,8 +37,10 @@ This is useful in downstream developments that want to avoid `letI` / typeclass 
 verified Stage-2 assumption explicitly.
 -/
 noncomputable def stage2Of (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    Stage2Output f :=
-  Classical.choice (Stage2Assumption.stage2_nonempty (self := inst) (f := f) (hf := hf))
+    Stage2Output f := by
+  classical
+  letI : Stage2Assumption := inst
+  exact Classical.choice (Stage2Assumption.stage2_nonempty (f := f) (hf := hf))
 
 /-- Abbreviation wrapper for `stage2Of` (mirrors `stage2Out`). -/
 noncomputable abbrev stage2OutOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
