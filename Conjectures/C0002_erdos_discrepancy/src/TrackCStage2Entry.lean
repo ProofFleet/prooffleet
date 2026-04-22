@@ -121,6 +121,12 @@ theorem stage2_add_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : �
     (Nat.add_mul_div_right (x := n) (y := stage2_m (f := f) (hf := hf))
       (z := stage2_d (f := f) (hf := hf)) hd)
 
+/-- Variant of `stage2_add_start_div_d` with the start index on the left. -/
+theorem stage2_start_add_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (stage2_start (f := f) (hf := hf) + n) / stage2_d (f := f) (hf := hf) =
+      n / stage2_d (f := f) (hf := hf) + stage2_m (f := f) (hf := hf) := by
+  simpa [Nat.add_comm] using stage2_add_start_div_d (f := f) (hf := hf) (n := n)
+
 /-- Recover the offset parameter `stage2_m` by dividing the Stage-2 start index `stage2_start`
 by the reduced step size `stage2_d`.
 
