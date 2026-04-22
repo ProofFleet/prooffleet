@@ -78,8 +78,13 @@ statement packaged by `Stage2Assumption`.
 noncomputable def stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) [Stage2Assumption] : Stage2Output f :=
   Classical.choice (Stage2Assumption.stage2_nonempty (f := f) (hf := hf))
 
-/-- Deterministic name for the Stage-2 output (useful to keep later statements readable). -/
-noncomputable abbrev stage2Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f :=
+/-- Deterministic name for the Stage-2 output (useful to keep later statements readable).
+
+Note: the implicit `[Stage2Assumption]` argument is intentionally explicit here so that downstream
+developments can override the default conjecture instance by providing a local verified instance.
+-/
+noncomputable abbrev stage2Out (f : ℕ → ℤ) (hf : IsSignSequence f) [Stage2Assumption] :
+    Stage2Output f :=
   stage2 (f := f) (hf := hf)
 
 /-!
