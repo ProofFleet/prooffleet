@@ -39,8 +39,8 @@ verified Stage-2 assumption explicitly.
 noncomputable def stage2Of (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     Stage2Output f := by
   classical
-  letI : Stage2Assumption := inst
-  exact Classical.choice (Stage2Assumption.stage2_nonempty (f := f) (hf := hf))
+  -- Use the explicit assumption directly, avoiding typeclass search.
+  exact Classical.choice (inst.stage2_nonempty (f := f) (hf := hf))
 
 /-- Abbreviation wrapper for `stage2Of` (mirrors `stage2Out`). -/
 noncomputable abbrev stage2OutOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
