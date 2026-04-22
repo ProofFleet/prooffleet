@@ -71,9 +71,8 @@ This is the most pipeline-friendly surface statement:
 -/
 theorem erdos_discrepancy_apSum (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  exact
-    (forall_hasDiscrepancyAtLeast_iff_forall_exists_d_ge_one_witness_pos f).1
-      (erdos_discrepancy (f := f) (hf := hf))
+  -- Reuse the hard-gate lemma from `ErdosDiscrepancy.lean`.
+  exact erdos_discrepancy_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf)
 
 /-- Variant of `erdos_discrepancy_apSum` writing the step-size side condition as `d > 0`.
 
@@ -103,9 +102,8 @@ Normal form:
 -/
 theorem erdos_discrepancy_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
-  simpa using
-    (Tao2015.Stage3Output.forall_exists_discrepancy_gt (f := f)
-      (Tao2015.stage3Out (f := f) (hf := hf)))
+  -- Reuse the hard-gate lemma from `ErdosDiscrepancy.lean`.
+  exact erdos_discrepancy_forall_exists_discrepancy_gt (f := f) (hf := hf)
 
 /-- Variant of `erdos_discrepancy_discrepancy` writing the step-size side condition as `d ≥ 1`.
 
@@ -134,9 +132,8 @@ This is sometimes convenient when downstream stages want to rule out the degener
 -/
 theorem erdos_discrepancy_discrepancy_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
-  simpa using
-    (Tao2015.Stage3Output.forall_exists_discrepancy_gt_witness_pos (f := f)
-      (Tao2015.stage3Out (f := f) (hf := hf)))
+  -- Reuse the hard-gate lemma from `ErdosDiscrepancy.lean`.
+  exact erdos_discrepancy_forall_exists_discrepancy_gt_witness_pos (f := f) (hf := hf)
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` is unbounded.
