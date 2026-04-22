@@ -153,6 +153,97 @@ theorem stage3_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa using stage3_g_eq (f := f) (hf := hf) k
 
 /-!
+## Stage-3 output (`stage3Out`) arithmetic conveniences
+
+These lemmas are not needed by the Track-C hard-gate target
+`Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy`, so we keep them out of the minimal
+entry-point module `TrackCStage3EntryMinimal`.
+-/
+
+/-- The Stage-3 start index is a multiple of the Stage-3 reduced step size. -/
+theorem stage3Out_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).d ∣ (stage3Out (f := f) (hf := hf)).start := by
+  exact Stage3Output.d_dvd_start (f := f) (out := stage3Out (f := f) (hf := hf))
+
+/-- The Stage-3 start index has remainder `0` modulo the reduced step size.
+
+This is often the most convenient normal form of `stage3Out_d_dvd_start`.
+-/
+theorem stage3Out_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).start % (stage3Out (f := f) (hf := hf)).d = 0 := by
+  exact Nat.mod_eq_zero_of_dvd (stage3Out_d_dvd_start (f := f) (hf := hf))
+
+/-- Adding the start index does not change residues modulo the step size.
+
+Since `stage3Out ... .start` is a multiple of `stage3Out ... .d`, we have
+`(n + start) % d = n % d`.
+-/
+theorem stage3Out_add_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (n + (stage3Out (f := f) (hf := hf)).start) % (stage3Out (f := f) (hf := hf)).d =
+      n % (stage3Out (f := f) (hf := hf)).d := by
+  exact Stage3Output.add_start_mod_d (f := f) (out := stage3Out (f := f) (hf := hf)) n
+
+/-- Variant of `stage3Out_add_start_mod_d` with the start index on the left. -/
+theorem stage3Out_start_add_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    ((stage3Out (f := f) (hf := hf)).start + n) % (stage3Out (f := f) (hf := hf)).d =
+      n % (stage3Out (f := f) (hf := hf)).d := by
+  exact Stage3Output.start_add_mod_d (f := f) (out := stage3Out (f := f) (hf := hf)) n
+
+/-- Convenience lemma: the Stage-3 reduced sequence is a sign sequence.
+
+This is a tiny wrapper around the Stage-2 core projection lemma `Stage2Output.hg`.
+-/
+theorem stage3Out_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    IsSignSequence (stage3Out (f := f) (hf := hf)).g := by
+  exact Stage2Output.hg (out := (stage3Out (f := f) (hf := hf)).out2)
+
+/-- Adding the start index increases quotients by the offset parameter.
+
+Since `start = m*d`, we have
+`(n + start) / d = n / d + m`.
+-/
+theorem stage3Out_add_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (n + (stage3Out (f := f) (hf := hf)).start) / (stage3Out (f := f) (hf := hf)).d =
+      n / (stage3Out (f := f) (hf := hf)).d + (stage3Out (f := f) (hf := hf)).m := by
+  have hd' : 0 < (stage3Out (f := f) (hf := hf)).d := stage3Out_d_pos (f := f) (hf := hf)
+  rw [stage3Out_start_eq_m_mul_d (f := f) (hf := hf)]
+  simpa using
+    (Nat.add_mul_div_right (x := n) (y := (stage3Out (f := f) (hf := hf)).m)
+      (z := (stage3Out (f := f) (hf := hf)).d) hd')
+
+/-- Variant of `stage3Out_add_start_div_d` with the start index on the left. -/
+theorem stage3Out_start_add_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    ((stage3Out (f := f) (hf := hf)).start + n) / (stage3Out (f := f) (hf := hf)).d =
+      n / (stage3Out (f := f) (hf := hf)).d + (stage3Out (f := f) (hf := hf)).m := by
+  calc
+    ((stage3Out (f := f) (hf := hf)).start + n) / (stage3Out (f := f) (hf := hf)).d =
+        (n + (stage3Out (f := f) (hf := hf)).start) / (stage3Out (f := f) (hf := hf)).d := by
+      simp [Nat.add_comm]
+    _ = n / (stage3Out (f := f) (hf := hf)).d + (stage3Out (f := f) (hf := hf)).m := by
+      simpa using stage3Out_add_start_div_d (f := f) (hf := hf) (n := n)
+
+/-- Recover the offset parameter `m` by dividing the Stage-3 start index `start` by the step size `d`.
+
+This is a tiny arithmetic convenience lemma: `start = m*d` by definition.
+-/
+theorem stage3Out_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).start / (stage3Out (f := f) (hf := hf)).d =
+      (stage3Out (f := f) (hf := hf)).m := by
+  have hd' : 0 < (stage3Out (f := f) (hf := hf)).d := stage3Out_d_pos (f := f) (hf := hf)
+  rw [stage3Out_start_eq_m_mul_d (f := f) (hf := hf)]
+  exact Nat.mul_div_left (stage3Out (f := f) (hf := hf)).m hd'
+
+/-- Convenience lemma: the Stage-3 reduced step size is nonzero.
+
+This is sometimes the right normal form for downstream stages that treat `d` as a denominator (or
+simply want to avoid rewriting strict inequalities).
+-/
+theorem stage3Out_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).d ≠ 0 := by
+  -- Delegate to the Stage-2 core lemma; avoids re-proving arithmetic facts.
+  simpa using (Stage2Output.d_ne_zero (out := (stage3Out (f := f) (hf := hf)).out2))
+
+/-!
 The lemma `stage3_unboundedDiscrepancyAlong_core` is provided by
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore` (re-exported by the core import
 path), so we do not re-declare it here.
