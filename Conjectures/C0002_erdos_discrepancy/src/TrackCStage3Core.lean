@@ -102,15 +102,8 @@ theorem start_eq_out2_start (out : Stage3Output f) : out.start = out.out2.start 
 
 -- Note: the lemma `Stage3Output.d_dvd_start` lives in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
-/-- Recover the offset parameter `out.m` by dividing the start index `out.start`
-by the step size `out.d`.
-
-This is a tiny arithmetic convenience lemma: `out.start = out.m * out.d` by definition.
--/
-theorem start_div_d (out : Stage3Output f) : out.start / out.d = out.m := by
-  have hd' : 0 < out.d := by
-    simpa [Stage3Output.d] using out.out2.hd
-  simpa [start_eq_m_mul_d] using (Nat.mul_div_left out.m hd')
+-- Note: `Stage3Output.start_div_d` is already defined in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
 /-- Rewrite for the reduced sequence packaged in Stage 3: it is a shift by `m*d`. -/
 theorem g_eq (out : Stage3Output f) (k : ℕ) :
