@@ -99,8 +99,8 @@ Since `out.start` is a multiple of `out.d`, we have
 -/
 theorem add_start_mod_d (out : Stage3Output f) (n : ℕ) :
     (n + out.start) % out.d = n % out.d := by
-  simpa [Stage3Output.start, Stage3Output.d] using
-    (Stage2Output.add_start_mod_d (f := f) (out := out.out2) (n := n))
+  simp [Stage3Output.start, Stage3Output.d,
+    Stage2Output.add_start_mod_d (f := f) (out := out.out2) (n := n)]
 
 /-- Variant of `add_start_mod_d` with the start index on the left. -/
 theorem start_add_mod_d (out : Stage3Output f) (n : ℕ) :
