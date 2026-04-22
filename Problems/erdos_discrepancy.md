@@ -1270,6 +1270,26 @@ Definition of done:
 
 - [x] Stable-surface naming audit: do a pass to ensure the exported stable surface exposes a minimal, coherent set of names for the nucleus normal forms (`apSum`, `apSumFrom`, `apSumOffset`, `discOffset`, `discOffsetUpTo`, bridges), and add a compile-only `SurfaceAudit` file that fails if any of these names move or stop rewriting as intended. (Implemented as `MoltResearch/Discrepancy/SurfaceAudit.lean`, PR #2636.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Shift/dilation closure for sign sequences: prove `IsSignSequence f → IsSignSequence (fun n => f (n + k))` and `IsSignSequence f → IsSignSequence (fun n => f (n * q))` (with simp-friendly wrappers for the repo’s preferred `shift_add`/`map_mul` naming), so later reductions can freely shift/dilate without re-proving the `{±1}` bound.
+
+- [ ] Monotonicity packaging for discrepancy predicates: add one-line wrappers like
+  `HasDiscrepancyAtLeast f C → C ≤ C' → HasDiscrepancyAtLeast f C'` (and converses where appropriate), plus analogous monotonicity for the “boundedness” predicates, so later “weaken/strengthen the target constant” steps are boilerplate-free.
+
+- [ ] `apSupport` API polish: prove a small bundle about the progression support set `{(m+i+1)*d | i < n}` (or the repo’s canonical `apSupport`), including `card = n` (for `d>0`) and a clean membership characterization lemma, to support later pigeonhole/counting steps without re-opening `Finset.image` algebra.
+
+- [ ] “Affine step pull-out” normal form: package a lemma rewriting `apSumFrom f (a*q) (d*q) n` into `apSumFrom (fun t => f (t*q)) a d n` (and corresponding offset/disc versions), so scaling an affine AP can be normalized in one `rw` before applying residue/dilation lemmas.
+
+- [ ] `discOffset`/`discAlong` bridge coherence: add a canonical lemma expressing `discAlong f d n` as a `discOffset` (or vice versa) in the repo’s preferred orientation, so downstream code can move between “along” and “offset” normal forms without unfolding.
+
+- [ ] “Cut then shift” coherence: prove that cutting a tail and then shifting the start agrees with shifting first and cutting after, at the level of `apSumOffset` and at the packaged `discOffset` inequalities, so longer normal-form pipelines can reorder these rewrites without manual algebra.
+
+- [ ] Residue-class decomposition (sum-level) for `apSumFrom`: complement the existing residue API with an *affine* `apSumFrom` equality lemma splitting into `r` residue classes (with a stable regression example), so papers’ “split an affine AP into r progressions” step is available without first normalizing to offsets.
+
+- [ ] “Translation invariance in m” for boundedness: prove a clean equivalence like
+  `BoundedDiscOffset f d m B ↔ BoundedDiscOffset (fun k => f (k + m*d)) d 0 B` (and Exists/Unbounded analogues), so later proofs can reset `m := 0` as a normal form.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
