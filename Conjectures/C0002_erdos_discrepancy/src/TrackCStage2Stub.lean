@@ -82,6 +82,32 @@ noncomputable def stage2 (f : ℕ → ℤ) (hf : IsSignSequence f) [Stage2Assump
 noncomputable abbrev stage2Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f :=
   stage2 (f := f) (hf := hf)
 
+/-!
+## Definitional rewrites
+
+These tiny lemmas let downstream developments freely switch between the explicit-assumption API
+(`stage2OutOf`) and the typeclass-based API (`stage2Out`) by introducing a local instance.
+
+They are deliberately kept in the Stage-2 stub so later stages can import them without pulling in
+additional convenience layers.
+-/
+
+/-- If we register an explicit assumption `inst` as the local typeclass instance, then the
+explicit Stage-2 output `stage2OutOf inst` agrees definitionally with the typeclass-based output
+`stage2Out`.
+
+This is useful when consumer code wants to pass `inst` explicitly but also reuse lemmas phrased in
+terms of `stage2Out`.
+-/
+theorem stage2OutOf_eq_stage2Out (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2OutOf inst (f := f) (hf := hf) =
+      (by
+        classical
+        letI : Stage2Assumption := inst
+        exact stage2Out (f := f) (hf := hf)) := by
+  classical
+  rfl
+
 end Tao2015
 
 end MoltResearch
