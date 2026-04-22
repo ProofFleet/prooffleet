@@ -63,6 +63,11 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `discOffset f d m n = discOffset g d m n` assuming pointwise agreement of summands on `Finset.range n`.
   (Implemented as `discOffset_congr_range` in `MoltResearch/Discrepancy/Offset.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+- [x] Cut then shift coherence: prove that cutting a tail and then shifting the start agrees with shifting first and cutting after,
+  at the level of `apSumOffset` and at the packaged `discOffset` inequalities.
+  (Implemented as `apSumOffset_shift_mul_start` / `discOffset_shift_mul_start` and cut wrappers in `MoltResearch/Discrepancy/Offset.lean`;
+  regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
+
 - [x] One-shot “normalization pipeline” wrapper lemma (paper affine endpoints → nucleus normal form):
   rewrite
   `Int.natAbs (∑ i ∈ Icc (m+1) n, f (a + i*d))`
