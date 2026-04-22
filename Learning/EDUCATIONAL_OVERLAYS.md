@@ -67,6 +67,10 @@ The goal is to pair verified artifacts with learning scaffolding.
   It is just a stable-name wrapper around `discOffsetUpTo_add_le_add_discOffsetUpTo`, but avoids downstream proofs having to remember that name.
 - **API note (Lipschitz step):** for sign sequences, the one-step cutoff bound is `discOffsetUpTo_succ_le_add_one`:
   `discOffsetUpTo f d m (N+1) ≤ discOffsetUpTo f d m N + 1`. The reverse direction (monotonicity) is `discOffsetUpTo_le_succ`.
+- **API note (sign sequences under reindexing):** once you have `hf : IsSignSequence f`, you should not re-prove the pointwise `{±1}` bound after shifting/dilating indices. Use:
+  - additive shift (`n ↦ n + k`): `IsSignSequence.shift_add (f := f) k hf` (or dot-notation `hf.shift_add' k`),
+  - multiplicative dilation (`n ↦ n * k`): `IsSignSequence.map_mul (f := f) k hf` (or dot-notation `hf.map_mul' k`).
+  These are intended as lightweight hypothesis-transport wrappers for later normal-form pipelines.
 - **API note (bounding a fixed tail):** to bound a particular `discOffset f d m n` by the max cutoff at the *same* `n`, use `discOffset_le_discOffsetUpTo_self` (it’s just the `N = n` specialization, so you don’t have to write `le_rfl`).
 - **API note (boundedness ↔ max-level nucleus, finite length):** for the finite-length “along `d`” predicate,
   `BoundedDiscrepancyAlong f d len B` is equivalent to the single inequality
