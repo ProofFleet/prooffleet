@@ -1420,6 +1420,14 @@ example (q k' : ℕ) (hk' : k' ≤ n) :
         simp [h₁, h₂, hadd, hmn, apSumOffset_shift_add_eq_apSumFrom_sub,
           Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
 
+-- Regression (Track B / cut-then-shift coherence):
+-- Rewriting the *tail* term of `discOffset_cut_le` into “shift-first” form should be a `simpa`.
+example (k : ℕ) (hk : k ≤ n) :
+    discOffset f d m n ≤
+      discOffset f d m k + discOffset (fun t => f (t + m * d)) d k (n - k) := by
+  simpa using
+    (discOffset_cut_le_shift_mul (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
 -- Regression (Track B / discOffset periodicity normal form):
 -- If `f` is periodic with period `p` and `p ∣ d`, then `discOffset f d m n` is independent of `m`.
 example (hp : Function.Periodic f p) (hd : p ∣ d) :

@@ -274,6 +274,67 @@ lemma discOffset_cut_le (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
   simpa [hEq] using
     (Int.natAbs_add_le (apSumOffset f d m k) (apSumOffset f d (m + k) (n - k)))
 
+/-!
+### “Cut then shift” coherence (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then shift” coherence.
+
+Goal: allow longer normal-form pipelines to reorder the operations
+
+- cut a tail (turn the post-cut block into `m+k`)
+- shift the start into the summand (`t ↦ t + m*d`)
+
+without dropping to ad-hoc arithmetic on indices.
+-/
+
+/-- Shifting the start into the summand commutes with changing the offset start.
+
+Concretely: the tail sum starting at `m+k` is the same as first shifting the summand by `m*d`
+and then taking the tail starting at `k`.
+-/
+lemma apSumOffset_shift_mul_start (f : ℕ → ℤ) (d m k n : ℕ) :
+    apSumOffset (fun t => f (t + m * d)) d k n = apSumOffset f d (m + k) n := by
+  unfold apSumOffset
+  refine Finset.sum_congr rfl ?_
+  intro i hi
+  -- `(k+i+1)*d + m*d = (m+k+i+1)*d`.
+  have h : (k + i + 1) * d + m * d = (m + k + i + 1) * d := by
+    calc
+      (k + i + 1) * d + m * d
+          = m * d + (k + i + 1) * d := by
+              simp [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc]
+      _ = (m + (k + i + 1)) * d := by
+            simpa using (Nat.add_mul m (k + i + 1) d).symm
+      _ = (m + k + i + 1) * d := by
+            simp [Nat.add_assoc]
+  -- The goal is equality after applying `f`, so use `congrArg` on the index identity `h`.
+  exact
+    congrArg f (by
+      simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h)
+
+/-- `discOffset` analogue of `apSumOffset_shift_mul_start`. -/
+lemma discOffset_shift_mul_start (f : ℕ → ℤ) (d m k n : ℕ) :
+    discOffset (fun t => f (t + m * d)) d k n = discOffset f d (m + k) n := by
+  unfold discOffset
+  simpa using congrArg Int.natAbs (apSumOffset_shift_mul_start (f := f) (d := d) (m := m) (k := k) (n := n))
+
+/-- Cut-equality, with the tail written in “shift-first” form. -/
+lemma apSumOffset_eq_add_apSumOffset_cut_shift_mul (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    apSumOffset f d m n =
+      apSumOffset f d m k + apSumOffset (fun t => f (t + m * d)) d k (n - k) := by
+  simpa [apSumOffset_shift_mul_start (f := f) (d := d) (m := m) (k := k) (n := n - k), Nat.add_comm,
+    Nat.add_left_comm, Nat.add_assoc] using
+    (apSumOffset_eq_add_apSumOffset_cut (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
+/-- Cut-inequality, with the tail written in “shift-first” form. -/
+lemma discOffset_cut_le_shift_mul (f : ℕ → ℤ) (d m n k : ℕ) (hk : k ≤ n) :
+    discOffset f d m n ≤
+      discOffset f d m k + discOffset (fun t => f (t + m * d)) d k (n - k) := by
+  -- Start from the existing cut inequality and rewrite the tail term.
+  simpa [discOffset_shift_mul_start (f := f) (d := d) (m := m) (k := k) (n := n - k), Nat.add_comm,
+    Nat.add_left_comm, Nat.add_assoc] using
+    (discOffset_cut_le (f := f) (d := d) (m := m) (n := n) (k := k) hk)
+
 lemma apSumOffset_eq_sub (f : ℕ → ℤ) (d m n : ℕ) :
     apSumOffset f d m n = apSum f d (m + n) - apSum f d m := by
   have h0 := (apSum_add_length (f := f) (d := d) (m := m) (n := n)).symm
