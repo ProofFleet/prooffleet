@@ -41,6 +41,19 @@ example {α : Type} [CoeTC α ℤ] (g : ℕ → α) (hg : ∀ n, (g n : ℤ) = 1
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
+### NEW (Track B): `discAlong` / `discOffset` bridge coherence
+
+Compile-only regression tests: downstream code should be able to move between the along-`d`
+normal form (`discAlong`) and the offset normal form (`discOffset`) without unfolding.
+-/
+
+example : discAlong f d n = discOffset f d 0 n := by
+  simpa using (discAlong_eq_discOffset (f := f) (d := d) (n := n))
+
+example : discOffset f d 0 n = discAlong f d n := by
+  simpa using (discOffset_zero_eq_discAlong (f := f) (d := d) (n := n))
+
+/-!
 ### NEW (Track B): stable-surface regression for `apSupport` algebra
 
 These are intentionally tiny compile-only examples meant to demonstrate the intended workflow:
