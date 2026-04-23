@@ -135,7 +135,7 @@ theorem stage3_not_exists_forall_natAbs_apSumFrom_start_le (f : ℕ → ℤ) (hf
                 (stage3Out (f := f) (hf := hf)).out2.d n) ≤ B := by
   let out := stage3Out (f := f) (hf := hf)
   -- Delegate to the Stage-2 core-extras lemma (phrased using the bundled start index).
-  simpa [out] using out.out2.not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+  simpa [out] using out.out2.not_exists_forall_natAbs_apSumFrom_start_le (f := f)
 
 /-- Paper-notation normal form: there is no uniform bound on the shifted progression sums
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the deterministic Stage-2 parameters stored in `stage3Out`.

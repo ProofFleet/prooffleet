@@ -184,6 +184,15 @@ theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage2Output f) :
         (f := f) (d := out.d) (m := out.m)).1
       hunb
 
+/-- Start-index phrasing of `not_exists_forall_natAbs_apSumFrom_mul_le`.
+
+This is just `not_exists_forall_natAbs_apSumFrom_mul_le` under the more discoverable name that
+matches the Stage-3 interface.
+-/
+theorem not_exists_forall_natAbs_apSumFrom_start_le (out : Stage2Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) ≤ B := by
+  simpa using out.not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+
 /-- Tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail nuclei
 `Int.natAbs (apSumFrom f out.start out.d n)`.
 
