@@ -512,7 +512,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   wired into `SurfaceAudit`.
   (Done in `MoltResearch/Discrepancy/NormalFormExamples.lean` under the residue-class max-level / argmax blocks.)
 
-- [ ] “Coarsen to gcd/lcm” normalization lemma (UpTo-level): complement `disc_lcm_step_le_left/right` with an `UpTo` analogue that bounds `discUpTo f (lcm d d') N` in terms of `discUpTo f d N` / `discUpTo f d' N` (packaged triangle-inequality style), with a stable regression example.
+- [x] “Coarsen to gcd/lcm” normalization lemma (UpTo-level): complement `disc_lcm_step_le_left/right` with an `UpTo` analogue that bounds `discUpTo f (lcm d d') N` in terms of `discUpTo f d N` / `discUpTo f d' N` (packaged triangle-inequality style), with a stable regression example.
+  (Implemented as `discUpTo_lcm_step_le_left/right` in `MoltResearch/Discrepancy/StepScaling.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] API polish: add a minimal simp lemma set normalizing `discOffsetUpTo` under `d=1` and `m=0` (and `N=0`) *without unfolding*, so later code can `simp` these away under the stable import surface.
 
