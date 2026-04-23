@@ -504,11 +504,13 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 - [x] Endpoint-normalization wrappers for `discOffsetUpTo` witnesses: add simp-friendly lemmas rewriting common endpoint algebra in hypotheses of the form `n ≤ r*(N+1)` (or `n < r*(N+1)`) into the exact shapes expected by the residue/UpTo extraction API, so downstream code can stay `simp`-driven.
 
-- [ ] “Argmax in a residue class” convenience lemma (discOffsetUpTo): strengthen the existing `…_modEq` witness lemmas with a wrapper returning an explicit maximizer `n` *and* a comparison proof `∀ n' ≤ N, discOffset … n' ≤ discOffset … n` suitable for later pigeonhole arguments.
+- [x] “Argmax in a residue class” convenience lemma (discOffsetUpTo): strengthen the existing `…_modEq` witness lemmas with a wrapper returning an explicit maximizer `n` *and* a comparison proof `∀ n' ≤ N, discOffset … n' ≤ discOffset … n` suitable for later pigeonhole arguments.
+  (Implemented as `exists_discOffsetUpTo_modEq_argmax` in `MoltResearch/Discrepancy/Basic.lean`, with regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface regression: add 2–3 compile-only examples under `import MoltResearch.Discrepancy` demonstrating the intended pipeline
+- [x] Stable-surface regression: add 2–3 compile-only examples under `import MoltResearch.Discrepancy` demonstrating the intended pipeline
   `discOffsetUpTo` → (choose maximizer) → residue split → triangle bound,
   wired into `SurfaceAudit`.
+  (Done in `MoltResearch/Discrepancy/NormalFormExamples.lean` under the residue-class max-level / argmax blocks.)
 
 - [ ] “Coarsen to gcd/lcm” normalization lemma (UpTo-level): complement `disc_lcm_step_le_left/right` with an `UpTo` analogue that bounds `discUpTo f (lcm d d') N` in terms of `discUpTo f d N` / `discUpTo f d' N` (packaged triangle-inequality style), with a stable regression example.
 
