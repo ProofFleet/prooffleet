@@ -182,6 +182,16 @@ example : apSumOffset' f m d n = apSumOffset f d m n := by
 example : apSumOffset f d m n = (Finset.range n).sum (fun i => f ((m + (n - i)) * d)) := by
   simpa using (apSumOffset_eq_sum_range_reverse (f := f) (d := d) (m := m) (n := n))
 
+-- NEW (Track B): “cut then shift” coherence (tail-cuts commute with start-shifts)
+example :
+    apSumOffset f d (m + k + n₁) n₂ =
+      apSumOffset (fun t => f (t + k * d)) d m (n₁ + n₂) - apSumOffset (fun t => f (t + k * d)) d m n₁ := by
+  simpa using
+    (apSumOffset_tail_add_start_coherent (f := f) (d := d) (m := m) (k := k) (n₁ := n₁) (n₂ := n₂))
+
+example : discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
+  simpa using (discOffset_add_start (f := f) (d := d) (m := m) (k := k) (n := n))
+
 example : discOffset' f m d n = discOffset f d m n := by
   rfl
 

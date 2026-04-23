@@ -2635,6 +2635,20 @@ lemma apSumOffset_add_start_add_left (f : ℕ → ℤ) (d m k n : ℕ) :
   -- Just commute the addition inside the shifted summand.
   simpa [Nat.add_comm] using (apSumOffset_add_start (f := f) (d := d) (m := m) (k := k) (n := n))
 
+/-- Wrapper-level normal form: `discOffset` is invariant under shifting the start index.
+
+Concretely, this rewrites
+`discOffset f d (m + k) n`
+into
+`discOffset (fun t => f (t + k*d)) d m n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then shift” coherence.
+-/
+lemma discOffset_add_start (f : ℕ → ℤ) (d m k n : ℕ) :
+    discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
+  unfold discOffset
+  exact congrArg Int.natAbs (apSumOffset_add_start (f := f) (d := d) (m := m) (k := k) (n := n))
+
 /-! ### Normalization of nested shifts inside summands -/
 
 /-- `simp` normal form for nested additive shifts under binders.
@@ -2800,6 +2814,29 @@ lemma apSumOffset_tail_eq_sub (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
   have hsub := congrArg (fun z : ℤ => z - apSumOffset f d m n₁) h
   -- Clean up `(+ …) - …`.
   simpa [add_sub_cancel_left, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using hsub.symm
+
+/-- “Cut then shift” coherence for `apSumOffset` tails.
+
+This packages a common normal-form pipeline equivalence:
+- cut a tail (difference of a longer sum and its prefix), then
+- shift the start index (`m ↦ m + k`) by pushing `k*d` into the summand.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then shift” coherence.
+-/
+lemma apSumOffset_tail_add_start_coherent (f : ℕ → ℤ) (d m k n₁ n₂ : ℕ) :
+    apSumOffset f d (m + k + n₁) n₂ =
+      apSumOffset (fun t => f (t + k * d)) d m (n₁ + n₂) -
+        apSumOffset (fun t => f (t + k * d)) d m n₁ := by
+  -- First rewrite the tail (start = `(m+n₁)+k`) via `apSumOffset_add_start`.
+  have hshift : apSumOffset f d (m + k + n₁) n₂ =
+      apSumOffset (fun t => f (t + k * d)) d (m + n₁) n₂ := by
+    -- `(m + k + n₁) = (m + n₁) + k`.
+    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (apSumOffset_add_start (f := f) (d := d) (m := m + n₁) (k := k) (n := n₂))
+  -- Then cut the shifted sum using the tail-as-difference normal form.
+  have htail :=
+    apSumOffset_tail_eq_sub (f := fun t => f (t + k * d)) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
+  simpa [hshift] using htail
 
 /-- Rewrite the normal-form difference
 `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁` as the tail `apSumOffset f d (m+n₁) n₂`.
