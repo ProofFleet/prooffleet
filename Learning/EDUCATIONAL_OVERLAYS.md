@@ -99,6 +99,12 @@ The goal is to pair verified artifacts with learning scaffolding.
   `BoundedDiscOffsetExists f d m ↔ ∃ B, ∀ N, discOffsetUpTo f d m N ≤ B`.
   This packages the fixed-`B` bridge `boundedDiscOffset_iff_forall_discOffsetUpTo_le` into a single ergonomic equivalence.
 
+- **API note (translation invariance in `m`, boundedness-level):** to reset the start parameter to the
+  normal form `m := 0`, use `boundedDiscOffset_shift_mul_start`:
+  `BoundedDiscOffset f d m B ↔ BoundedDiscOffset (fun k => f (k + m*d)) d 0 B`.
+  This is proved via the stable normal form `discOffset_eq_discrepancy_shift_mul`, so downstream code
+  can perform the rewrite without unfolding `discOffset`.
+
 - **API note (boundedness bridge, `UpTo` ↔ witnesses):** when you want to move *a fixed bound* `B` between the two quantifier normal forms,
   - `(∀ N, discOffsetUpTo f d m N ≤ B)` and
   - `(∀ n, discOffset f d m n ≤ B)`,
