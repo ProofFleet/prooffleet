@@ -67,6 +67,11 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (endpoint-algebra wrappers):** three-segment concatenation is available as `discOffset_add_add_le`, but downstream goals often appear with right-associated endpoints. Use `discOffset_add_add_le_assoc` when your goal has length `n₁ + (n₂ + n₃)` and/or third-start index `m + (n₁ + n₂)` so you can `simpa` without manual `Nat.add_assoc` reassociation.
 - **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
   If your goal is stated with `Nat.succ N` instead of `N+1`, use the wrapper `discOffsetUpTo_le_succNat`.
+
+- **API note (residue-class `UpTo` bridge):** the wrapper `discOffsetUpTo_modEq f d m N q r` packages
+  “take the maximum discrepancy over `n ≤ N` in the residue class `n ≡ r [MOD q]`”. When you want to
+  compare it to the unrestricted max, use the wrapper lemma
+  `discOffsetUpTo_modEq_le_discOffsetUpTo`.
 - **API note (argmax witness for `discOffsetUpTo`):** the lemma
   `exists_discOffset_eq_discOffsetUpTo` returns a witness `n ≤ N` together with
   the *argmax* comparison fact `∀ n' ≤ N, discOffset … n' ≤ discOffset … n`, and
