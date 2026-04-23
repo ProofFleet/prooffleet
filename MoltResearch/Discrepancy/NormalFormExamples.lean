@@ -86,6 +86,25 @@ example (f : ℕ → ℤ) (q d m N : ℕ) :
   simp
 
 /-!
+### NEW (Track B): `discOffsetUpTo` simplification under `m = 0` / `N = 0`
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — API polish for the `discOffsetUpTo` wrapper.
+
+Compile-only regressions: under the stable import surface, `simp` should normalize away a spurious
+`m = 0` start offset and compute the degenerate cutoff `N = 0`, without users having to unfold
+`discOffsetUpTo`.
+-/
+
+example : discOffsetUpTo f d 0 n = discUpTo f d n := by
+  simp
+
+example : discOffsetUpTo f 1 0 n = discUpTo f 1 n := by
+  simp
+
+example : discOffsetUpTo f 1 0 0 = 0 := by
+  simp
+
+/-!
 ### NEW (Track B): step-positivity witness normal forms
 
 These are compile-only regression tests for the “reduce early to `d ≥ 1`” API.
