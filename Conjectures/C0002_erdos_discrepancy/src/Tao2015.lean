@@ -1114,6 +1114,32 @@ theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f)
   · intro h n
     exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).2 (h n)
 
+/-- Coherence: the stable wrapper `disc` for the reduced sequence equals the bundled offset wrapper
+for the original sequence.
+
+This is the homogeneous version of `discrepancy_eq_discOffset_via_contract`.
+-/
+theorem disc_eq_discOffset (out : ReductionOutput f) (n : ℕ) :
+    disc out.g out.d n = discOffset f out.d out.m n := by
+  -- `disc` and `discrepancy` are definitional synonyms, so we can just `change` the goal.
+  change discrepancy out.g out.d n = discOffset f out.d out.m n
+  exact out.discrepancy_eq_discOffset_via_contract (f := f) (n := n)
+
+/-- Coherence at the max level: homogeneous max discrepancy of the reduced sequence up to `N`
+rewrites to the offset max discrepancy of `f` up to `N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“`ReductionOutput` UpTo coherence”.
+-/
+theorem discUpTo_eq_discOffsetUpTo (out : ReductionOutput f) (N : ℕ) :
+    discUpTo out.g out.d N = discOffsetUpTo f out.d out.m N := by
+  classical
+  unfold discUpTo discOffsetUpTo
+  -- `Finset.sup_congr` is the right tool here: both sides are sups over the same index set.
+  refine Finset.sup_congr rfl ?_
+  intro n hn
+  simpa using out.disc_eq_discOffset (f := f) (n := n)
+
 /-- Bounded discrepancy along the reduced step is equivalent to a uniform bound on the bundled offset
 discrepancy family.
 
