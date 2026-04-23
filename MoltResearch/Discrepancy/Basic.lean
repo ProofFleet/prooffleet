@@ -1656,6 +1656,22 @@ This direction avoids simp loops with `discOffset_def`.
     Int.natAbs (apSumOffset f d m n) = discOffset f d m n :=
   rfl
 
+/-- Max-level coherence: `discOffsetUpTo` is `discUpTo` on the shifted sequence.
+
+This is the `UpTo` analogue of `discOffset_eq_discrepancy_shift_mul`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“`ReductionOutput` UpTo coherence”.
+-/
+theorem discOffsetUpTo_eq_discUpTo_shift_mul (f : ℕ → ℤ) (d m N : ℕ) :
+    discOffsetUpTo f d m N = discUpTo (fun k => f (k + m * d)) d N := by
+  classical
+  unfold discOffsetUpTo discUpTo
+  refine Finset.sup_congr rfl ?_
+  intro n hn
+  -- Rewrite the term inside the `sup` using the canonical offset→shift discrepancy view.
+  simp [discOffset_eq_discrepancy_shift_mul, disc_eq_discrepancy]
+
 
 /-!
 ### Degenerate-step (`d = 0`) normal forms (deprecated surface)

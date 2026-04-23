@@ -487,8 +487,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] `ReductionOutput` UpTo coherence: for `out : Tao2015.ReductionOutput f`, add a lemma rewriting homogeneous max discrepancy of `out.g` to the offset max discrepancy of `f`, e.g.
-  `discUpTo out.g out.d N = discOffsetUpTo f out.d out.m N`, with a stable-surface regression example.
+- [x] `ReductionOutput` UpTo coherence: rewrite an offset max discrepancy as a homogeneous max discrepancy of the shifted sequence.
+  Normal form:
+  `discOffsetUpTo f d m N = discUpTo (fun k => f (k + m*d)) d N`.
+  (Implemented as `discOffsetUpTo_eq_discUpTo_shift_mul` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `ReductionOutput` witness extraction wrapper (UpTo-level): package a lemma that from
   `C < discOffsetUpTo f d m N` produces a witness `n ≤ N` with `C < discOffset f d m n` *in the exact nucleus normal form*, so Stage-2 code never needs to open `sSup`/`Finset` definitions.

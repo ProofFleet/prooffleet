@@ -571,6 +571,11 @@ example : discOffsetUpTo f d 0 n = discUpTo f d n := by
 example : discOffsetUpTo f 1 m n = discUpTo (fun k => f (k + m)) 1 n := by
   simp
 
+-- NEW (Track B): `ReductionOutput` UpTo coherence (offset max-level = homogeneous max-level on shift).
+example : discOffsetUpTo f d m n = discUpTo (fun k => f (k + m * d)) d n := by
+  simpa using
+    (discOffsetUpTo_eq_discUpTo_shift_mul (f := f) (d := d) (m := m) (N := n))
+
 /-!
 ### NEW (Track B): max-level congruence wrappers for `discOffsetUpTo`
 
