@@ -1290,7 +1290,8 @@ Definition of done:
 - [x] `discOffset`/`discAlong` bridge coherence: add a canonical lemma expressing `discAlong f d n` as a `discOffset` (or vice versa) in the repo’s preferred orientation, so downstream code can move between “along” and “offset” normal forms without unfolding.
   (Implemented in `MoltResearch/Discrepancy/Basic.lean` as `discAlong_eq_discOffset` / `discOffset_zero_eq_discAlong`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Cut then shift” coherence: prove that cutting a tail and then shifting the start agrees with shifting first and cutting after, at the level of `apSumOffset` and at the packaged `discOffset` inequalities, so longer normal-form pipelines can reorder these rewrites without manual algebra.
+- [x] “Cut then shift” coherence: prove that cutting a tail and then shifting the start agrees with shifting first and cutting after, at the level of `apSumOffset` and at the packaged `discOffset` inequalities, so longer normal-form pipelines can reorder these rewrites without manual algebra.
+  (Implemented as `apSumOffset_shift_mul_start` / `discOffset_shift_mul_start` and cut wrappers in `MoltResearch/Discrepancy/Offset.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Residue-class decomposition (sum-level) for `apSumFrom`: complement the existing residue API with an *affine* `apSumFrom` equality lemma splitting into `r` residue classes (with a stable regression example), so papers’ “split an affine AP into r progressions” step is available without first normalizing to offsets.
 
