@@ -122,6 +122,12 @@ theorem stage3_add_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : �
   -- Stage 3 is definitional glue on top of the Stage-2 projections.
   simpa [stage3_start, stage3_d, stage3_m] using stage2_add_start_div_d (f := f) (hf := hf) (n := n)
 
+/-- Variant of `stage3_add_start_div_d` with the start index on the left. -/
+theorem stage3_start_add_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) (n : ℕ) :
+    (stage3_start (f := f) (hf := hf) + n) / stage3_d (f := f) (hf := hf) =
+      n / stage3_d (f := f) (hf := hf) + stage3_m (f := f) (hf := hf) := by
+  simpa [Nat.add_comm] using stage3_add_start_div_d (f := f) (hf := hf) (n := n)
+
 /-- Recover the bundled offset parameter `stage3_m` by dividing the start index `stage3_start`
 by the step size `stage3_d`.
 
