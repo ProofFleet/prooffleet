@@ -1602,6 +1602,22 @@ Checklist item: Problems/erdos_discrepancy.md (Track B) — “Residue-class `Up
 def discOffsetUpTo_modEq (f : ℕ → ℤ) (d m N q r : ℕ) : ℕ :=
   ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).sup (fun t => discOffset f d m t)
 
+/-- Residue-class + `UpTo` bridge: restricting to a residue class can only decrease the max-level value.
+
+This is the canonical inequality relating the residue-class `UpTo` wrapper `discOffsetUpTo_modEq` to
+`discOffsetUpTo`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Residue-class + UpTo bridge”.
+-/
+lemma discOffsetUpTo_modEq_le_discOffsetUpTo (f : ℕ → ℤ) (d m N q r : ℕ) :
+    discOffsetUpTo_modEq f d m N q r ≤ discOffsetUpTo f d m N := by
+  classical
+  unfold discOffsetUpTo_modEq discOffsetUpTo
+  refine Finset.sup_le ?_
+  intro n hn
+  have hn' : n ∈ Finset.range (N + 1) := (Finset.mem_filter.1 hn).1
+  exact Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hn'
+
 /-- In a fixed residue class modulo `q`, the maximum in `discOffsetUpTo_modEq` is attained by some `n ≤ N`.
 
 This is a packaged, stable wrapper around `exists_discOffset_eq_sup_filter_modEq` that avoids having

@@ -4995,6 +4995,14 @@ example (f : ℕ → ℤ) (d m q N : ℕ) (hq : q > 0) :
       (N := N) hq)
 
 /-!
+## NEW (Track B): residue-class + `UpTo` bridge regression tests
+-/
+
+example (f : ℕ → ℤ) (d m N q r : ℕ) :
+    discOffsetUpTo_modEq f d m N q r ≤ discOffsetUpTo f d m N := by
+  simpa using (discOffsetUpTo_modEq_le_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) (q := q) (r := r))
+
+/-!
 ## `disc` wrapper regression tests
 
 These ensure the homogeneous wrapper `disc` stays coherent with the offset wrapper `discOffset`.
