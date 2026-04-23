@@ -1,5 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 /-!
 # Track C: Stage 3 entry point (hard-gate core)
@@ -134,8 +134,14 @@ theorem stage3_not_exists_forall_natAbs_apSumFrom_start_le (f : ℕ → ℤ) (hf
                 (stage3Out (f := f) (hf := hf)).out2.start
                 (stage3Out (f := f) (hf := hf)).out2.d n) ≤ B := by
   let out := stage3Out (f := f) (hf := hf)
-  -- Delegate to the Stage-2 core-extras lemma (phrased using the bundled start index).
-  simpa [out] using out.out2.not_exists_forall_natAbs_apSumFrom_start_le (f := f)
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := by
+    simpa [out] using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  -- Rewrite the generic unboundedness normal form using the bundled start index
+  -- `out.out2.start = out.out2.m * out.out2.d`.
+  simpa [out, Stage2Output.start] using
+    (UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+        (d := out.out2.d) (m := out.out2.m)).1
+      hunb
 
 /-- Paper-notation normal form: there is no uniform bound on the shifted progression sums
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the deterministic Stage-2 parameters stored in `stage3Out`.
@@ -213,8 +219,12 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_apSumOffset_gt_witness_
     ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumOffset f d m n) > B) := by
   let out := stage3Out (f := f) (hf := hf)
   refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := out.out2.unboundedDiscOffset (f := f)
   intro B
-  simpa using out.out2.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) B
+  simpa using
+    (UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f)
+        (d := out.out2.d) (m := out.out2.m) hunb)
+      B
 
 /-- Stage 3 yields concrete parameters `d, m` (with `1 ≤ d`) such that the affine-tail nuclei
 `apSumFrom f (m*d) d n` take arbitrarily large absolute values.
@@ -294,8 +304,12 @@ theorem stage3_exists_params_one_le_forall_exists_discOffset_gt'_witness_pos (f 
     ∃ d m : ℕ, 1 ≤ d ∧ (∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f d m n > B) := by
   let out := stage3Out (f := f) (hf := hf)
   refine ⟨out.out2.d, out.out2.m, out.out2.one_le_d (f := f), ?_⟩
+  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := out.out2.unboundedDiscOffset (f := f)
   intro B
-  simpa using out.out2.forall_exists_discOffset_gt'_witness_pos (f := f) B
+  simpa using
+    (UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos (f := f)
+        (d := out.out2.d) (m := out.out2.m) hunb)
+      B
 
 -- (moved to `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal`)
 
