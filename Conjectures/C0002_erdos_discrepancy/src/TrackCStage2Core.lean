@@ -60,8 +60,7 @@ theorem start_eq_m_mul_d (out : Stage2Output f) : out.start = out.m * out.d := b
 
 /-- The Stage-2 start index is a multiple of the Stage-2 step size. -/
 theorem d_dvd_start (out : Stage2Output f) : out.d ∣ out.start := by
-  refine ⟨out.m, ?_⟩
-  simp [Stage2Output.start, Nat.mul_comm]
+  simp [Stage2Output.start]
 
 /-- The Stage-2 start index has remainder `0` modulo the Stage-2 step size.
 
