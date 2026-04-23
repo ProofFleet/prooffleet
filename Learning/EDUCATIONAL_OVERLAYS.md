@@ -72,6 +72,12 @@ The goal is to pair verified artifacts with learning scaffolding.
   “take the maximum discrepancy over `n ≤ N` in the residue class `n ≡ r [MOD q]`”. When you want to
   compare it to the unrestricted max, use the wrapper lemma
   `discOffsetUpTo_modEq_le_discOffsetUpTo`.
+
+- **API note (argmax in a residue class):** when you need an *explicit* maximizer in the residue class
+  (for later pigeonhole/combinatorial arguments), use
+  `exists_discOffsetUpTo_modEq_argmax`. It returns `n ≤ N` with `n ≡ r [MOD q]`, the equality
+  `discOffset … n = discOffsetUpTo_modEq …`, and a comparison proof
+  `∀ n' ≤ N, n' ≡ r [MOD q] → discOffset … n' ≤ discOffset … n`.
 - **API note (argmax witness for `discOffsetUpTo`):** the lemma
   `exists_discOffset_eq_discOffsetUpTo` returns a witness `n ≤ N` together with
   the *argmax* comparison fact `∀ n' ≤ N, discOffset … n' ≤ discOffset … n`, and
