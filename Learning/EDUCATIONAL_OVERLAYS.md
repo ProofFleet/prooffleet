@@ -128,6 +128,8 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `discOffsetUpTo f d m 0 = 0`
   - `discOffsetUpTo f d 0 N = discUpTo f d N`
   - step-one shift: `discOffsetUpTo f 1 m N = discUpTo (fun k => f (k + m)) 1 N`
+  - general offset→shift coherence (max-level): `discOffsetUpTo f d m N = discUpTo (fun k => f (k + m*d)) d N`
+    (lemma: `discOffsetUpTo_eq_discUpTo_shift_mul`)
   - dilation/coarsening: `discOffsetUpTo (fun k => f (q*k)) d m N = discOffsetUpTo f (q*d) m N`
   - if you want to pull a factor `q` into the step *at the wrapper level* (without unfolding the `Finset.sup`), use the rewrite lemmas
     `discOffsetUpTo_map_mul_right` / `discOffsetUpTo_map_mul_left` (and their `discOffset_*` analogues),
