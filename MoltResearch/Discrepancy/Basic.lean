@@ -2838,6 +2838,42 @@ lemma apSumOffset_tail_add_start_coherent (f : ℕ → ℤ) (d m k n₁ n₂ : �
     apSumOffset_tail_eq_sub (f := fun t => f (t + k * d)) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
   simpa [hshift] using htail
 
+/-- “Cut then shift” coherence, `discOffset`-level: express the shifted tail as a normal-form
+`Int.natAbs` difference.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then shift” coherence.
+-/
+lemma discOffset_tail_add_start_eq_natAbs_sub (f : ℕ → ℤ) (d m k n₁ n₂ : ℕ) :
+    discOffset f d (m + k + n₁) n₂ =
+      Int.natAbs
+        (apSumOffset (fun t => f (t + k * d)) d m (n₁ + n₂) -
+          apSumOffset (fun t => f (t + k * d)) d m n₁) := by
+  unfold discOffset
+  -- Apply `Int.natAbs` to the sum-level coherence lemma.
+  simpa using congrArg Int.natAbs
+    (apSumOffset_tail_add_start_coherent (f := f) (d := d) (m := m) (k := k) (n₁ := n₁) (n₂ := n₂))
+
+/-- “Cut then shift” coherence, `discOffset`-level triangle bound.
+
+This is the packaged inequality form typically used in normal-form pipelines:
+`|S_tail| ≤ |S_big| + |S_prefix|`, after commuting a start-shift with a tail-cut.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Cut then shift” coherence.
+-/
+lemma discOffset_tail_add_start_le (f : ℕ → ℤ) (d m k n₁ n₂ : ℕ) :
+    discOffset f d (m + k + n₁) n₂ ≤
+      discOffset (fun t => f (t + k * d)) d m (n₁ + n₂) +
+        discOffset (fun t => f (t + k * d)) d m n₁ := by
+  -- Reduce to the `Int.natAbs` triangle inequality on a difference.
+  have hEq :=
+    discOffset_tail_add_start_eq_natAbs_sub (f := f) (d := d) (m := m) (k := k)
+      (n₁ := n₁) (n₂ := n₂)
+  -- `simp` converts `Int.natAbs (apSumOffset …)` into `discOffset …`.
+  simpa [hEq] using
+    (Int.natAbs_sub_le
+      (apSumOffset (fun t => f (t + k * d)) d m (n₁ + n₂))
+      (apSumOffset (fun t => f (t + k * d)) d m n₁))
+
 /-- Rewrite the normal-form difference
 `apSumOffset f d m (n₁+n₂) - apSumOffset f d m n₁` as the tail `apSumOffset f d (m+n₁) n₂`.
 

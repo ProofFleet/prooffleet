@@ -189,6 +189,13 @@ example :
   simpa using
     (apSumOffset_tail_add_start_coherent (f := f) (d := d) (m := m) (k := k) (n₁ := n₁) (n₂ := n₂))
 
+-- Same coherence, but as the packaged `discOffset`-native triangle bound.
+example :
+    discOffset f d (m + k + n₁) n₂ ≤
+      discOffset (fun t => f (t + k * d)) d m (n₁ + n₂) + discOffset (fun t => f (t + k * d)) d m n₁ := by
+  simpa using
+    (discOffset_tail_add_start_le (f := f) (d := d) (m := m) (k := k) (n₁ := n₁) (n₂ := n₂))
+
 example : discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
   simpa using (discOffset_add_start (f := f) (d := d) (m := m) (k := k) (n := n))
 
