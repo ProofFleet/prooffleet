@@ -180,6 +180,12 @@ theorem stage3Out_start_eq_m_mul_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).m * (stage3Out (f := f) (hf := hf)).d := by
   rfl
 
+/-- Explicit-assumption analogue of `stage3Out_start_eq_m_mul_d`. -/
+theorem stage3OutOf_start_eq_m_mul_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).start =
+      (stage3OutOf inst (f := f) (hf := hf)).m * (stage3OutOf inst (f := f) (hf := hf)).d := by
+  rfl
+
 /-- Recover the offset parameter `m` by dividing the Stage-3 start index by the Stage-3 step size.
 
 This is a tiny arithmetic convenience lemma: by definition, `start = m * d`.
