@@ -180,6 +180,21 @@ theorem stage3Out_start_eq_m_mul_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).m * (stage3Out (f := f) (hf := hf)).d := by
   rfl
 
+/-- Recover the offset parameter `m` by dividing the Stage-3 start index by the Stage-3 step size.
+
+This is a tiny arithmetic convenience lemma: by definition, `start = m * d`.
+-/
+theorem stage3Out_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).start / (stage3Out (f := f) (hf := hf)).d =
+      (stage3Out (f := f) (hf := hf)).m := by
+  exact Stage3Output.start_div_d (f := f) (out := stage3Out (f := f) (hf := hf))
+
+/-- Explicit-assumption analogue of `stage3Out_start_div_d`. -/
+theorem stage3OutOf_start_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).start / (stage3OutOf inst (f := f) (hf := hf)).d =
+      (stage3OutOf inst (f := f) (hf := hf)).m := by
+  exact Stage3Output.start_div_d (f := f) (out := stage3OutOf inst (f := f) (hf := hf))
+
 -- Note: additional arithmetic convenience lemmas about `stage3Out` (mod/div and reduced-sequence
 -- wrappers) live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
 
