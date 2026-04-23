@@ -55,6 +55,11 @@ The goal is to pair verified artifacts with learning scaffolding.
   `apSumOffset f d m n = ∑ i in range n, f ((m + (n - i)) * d)`.
   This packages the standard `range` reflection (`i ↦ n-1-i`) and simplifies the index to the clean `n - i` form.
 - **API note (triangle vs reverse triangle):** for concatenation, `discOffset_add_le` is the forward triangle inequality. The reverse-triangle companions are `discOffset_left_le_add` / `discOffset_right_le_add`, proved by rewriting `S(n₁) = S(n₁+n₂) - S'(n₂)` and applying `Int.natAbs_sub_le`.
+- **API note ("cut then shift" coherence):** when you’re building longer normal-form pipelines, you often want to commute:
+  1) a tail cut (rewrite a tail as a difference of a longer sum and its prefix), and
+  2) a start-shift (`m ↦ m + k`) pushed into the summand as `t ↦ t + k*d`.
+
+  Use `apSumOffset_tail_add_start_coherent` for the sum-level normal form, and `discOffset_add_start` as the wrapper-level rewrite so you can apply existing `discOffset_*` triangle/reverse-triangle bounds without unfolding.
 - **API note (endpoint-algebra wrappers):** three-segment concatenation is available as `discOffset_add_add_le`, but downstream goals often appear with right-associated endpoints. Use `discOffset_add_add_le_assoc` when your goal has length `n₁ + (n₂ + n₃)` and/or third-start index `m + (n₁ + n₂)` so you can `simpa` without manual `Nat.add_assoc` reassociation.
 - **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
   If your goal is stated with `Nat.succ N` instead of `N+1`, use the wrapper `discOffsetUpTo_le_succNat`.
