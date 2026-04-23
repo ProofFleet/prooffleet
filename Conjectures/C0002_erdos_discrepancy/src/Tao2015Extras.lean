@@ -55,6 +55,16 @@ theorem hasDiscrepancyAtLeastAlong_of_le (g : ℕ → ℤ) (d : ℕ) {C C' : ℕ
   rintro ⟨n, hn⟩
   exact ⟨n, lt_of_le_of_lt hC hn⟩
 
+/-- Monotonicity: if `discOffset f d m` is bounded by `B`, then it is bounded by any larger bound
+`B' ≥ B`.
+
+This is just the definition of `BoundedDiscOffset` plus transitivity of `≤`.
+-/
+theorem boundedDiscOffset_of_le (f : ℕ → ℤ) (d m : ℕ) {B B' : ℕ} (hBB' : B ≤ B') :
+    BoundedDiscOffset f d m B → BoundedDiscOffset f d m B' := by
+  intro h n
+  exact le_trans (h n) hBB'
+
 
 /-
 Note: the bounded-discrepancy-along nucleus normal form lives in `Tao2015` as
@@ -292,7 +302,8 @@ theorem unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt'_witness_pos
   constructor
   · intro hunb B
     simpa using
-      (forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) (d := d) (m := m) hunb B)
+      (UnboundedDiscOffset.forall_exists_natAbs_apSumOffset_gt_witness_pos (f := f) (d := d) (m := m)
+        hunb B)
   · intro h
     refine
       (unboundedDiscOffset_iff_forall_exists_natAbs_apSumOffset_gt' (f := f) (d := d) (m := m)).2
