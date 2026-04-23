@@ -81,6 +81,43 @@ This is the explicit-assumption analogue of `stage3Out_out2`.
     (stage3OutOf inst (f := f) (hf := hf)).out2 = stage2OutOf inst (f := f) (hf := hf) := by
   rfl
 
+/-- Definitional rewrite: the Stage-1 reduction output stored inside `stage3OutOf inst` is the
+Stage-1 reduction output stored inside `stage2OutOf inst`.
+
+This is the explicit-assumption analogue of `stage3Out_out1`.
+-/
+@[simp] theorem stage3OutOf_out1 (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).out1 = (stage2OutOf inst (f := f) (hf := hf)).out1 := by
+  rfl
+
+/-- Definitional rewrite: the Stage-3 reduced step size stored inside `stage3OutOf inst` is the
+Stage-2 reduced step size stored inside `stage2OutOf inst`.
+-/
+@[simp] theorem stage3OutOf_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).d = (stage2OutOf inst (f := f) (hf := hf)).d := by
+  rfl
+
+/-- Definitional rewrite: the Stage-3 bundled offset parameter stored inside `stage3OutOf inst` is
+the Stage-2 parameter stored inside `stage2OutOf inst`.
+-/
+@[simp] theorem stage3OutOf_m (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).m = (stage2OutOf inst (f := f) (hf := hf)).m := by
+  rfl
+
+/-- Definitional rewrite: the Stage-3 reduced sequence stored inside `stage3OutOf inst` is the
+Stage-2 reduced sequence stored inside `stage2OutOf inst`.
+-/
+@[simp] theorem stage3OutOf_g (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).g = (stage2OutOf inst (f := f) (hf := hf)).g := by
+  rfl
+
+/-- Definitional rewrite: the Stage-3 start index stored inside `stage3OutOf inst` is the
+Stage-2 start index stored inside `stage2OutOf inst`.
+-/
+@[simp] theorem stage3OutOf_start (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).start = (stage2OutOf inst (f := f) (hf := hf)).start := by
+  rfl
+
 /-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
 Stage 2.
 
