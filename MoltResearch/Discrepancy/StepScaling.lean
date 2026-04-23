@@ -149,4 +149,111 @@ theorem disc_lcm_step_le_right (f : ℕ → ℤ) (d d' n : ℕ) (hd : d > 0) (hd
   simpa [q, Nat.div_mul_cancel hdvd] using
     (disc_mul_step_le (f := f) (d := d') (q := q) (n := n) hqpos)
 
+/-!
+## UpTo-level common-step coarsening wrappers
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Coarsen to gcd/lcm normalization lemma (UpTo-level)”.
+
+These are `discUpTo` analogues of `disc_lcm_step_le_left/right`, packaged with explicit
+triangle-inequality style error terms as suprema over `n ≤ N`.
+-/
+
+/-- UpTo-level wrapper: specialize `disc_lcm_step_le_left` and take a supremum over
+`n ≤ N+1`.
+
+This is the `discUpTo` analogue of `disc_lcm_step_le_left`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Coarsen to gcd/lcm normalization lemma (UpTo-level)”.
+-/
+theorem discUpTo_lcm_step_le_left (f : ℕ → ℤ) (d d' N : ℕ) (hd : d > 0) (hd' : d' > 0) :
+    discUpTo f (Nat.lcm d d') (N + 1) ≤
+      discUpTo f d (Nat.lcm d d' / d * (N + 1)) +
+        (Finset.range (Nat.lcm d d' / d - 1)).sum (fun r =>
+          (Finset.range (N + 1)).sup (fun n =>
+            Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (Nat.lcm d d') n))) := by
+  classical
+  -- Abbreviate the left multiplier.
+  set q : ℕ := Nat.lcm d d' / d
+  have hdvd : d ∣ Nat.lcm d d' := Nat.dvd_lcm_left d d'
+  -- We take a supremum over `n ≤ N+1` and apply `disc_lcm_step_le_left` pointwise.
+  unfold discUpTo
+  refine Finset.sup_le ?_
+  intro n hn
+  have hnle : n ≤ N + 1 := Nat.le_of_lt_succ (Finset.mem_range.1 hn)
+  cases n with
+  | zero =>
+      -- `disc .. 0 = 0`.
+      simp
+  | succ n' =>
+      have hn'le : n' ≤ N := Nat.succ_le_succ_iff.1 hnle
+      have hdisc :=
+        disc_lcm_step_le_left (f := f) (d := d) (d' := d') (n := n') hd hd'
+      -- Bound the main `disc` term by `discUpTo`.
+      have hmain : disc f d (q * (n' + 1)) ≤ discUpTo f d (q * (N + 1)) := by
+        refine disc_le_discUpTo (f := f) (d := d) (n := q * (n' + 1)) (N := q * (N + 1)) ?_
+        exact Nat.mul_le_mul_left q (Nat.succ_le_succ hn'le)
+      -- Bound each error term by its `sup` over `n ≤ N`.
+      have herr :
+          (Finset.range (q - 1)).sum (fun r =>
+              Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (Nat.lcm d d') n'))
+            ≤ (Finset.range (q - 1)).sum (fun r =>
+              (Finset.range (N + 1)).sup (fun n =>
+                Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (Nat.lcm d d') n))) := by
+        refine Finset.sum_le_sum ?_
+        intro r hr
+        have hnmem : n' ∈ Finset.range (N + 1) := by
+          exact Finset.mem_range.2 (Nat.lt_succ_of_le hn'le)
+        exact (Finset.le_sup (s := Finset.range (N + 1))
+          (f := fun n =>
+            Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (Nat.lcm d d') n)) hnmem)
+
+      -- Combine the pointwise inequality with the `discUpTo`/`sup` bounds.
+      exact le_trans hdisc (Nat.add_le_add hmain herr)
+
+/-- UpTo-level wrapper: symmetric version of `discUpTo_lcm_step_le_left`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“Coarsen to gcd/lcm normalization lemma (UpTo-level)”.
+-/
+theorem discUpTo_lcm_step_le_right (f : ℕ → ℤ) (d d' N : ℕ) (hd : d > 0) (hd' : d' > 0) :
+    discUpTo f (Nat.lcm d d') (N + 1) ≤
+      discUpTo f d' (Nat.lcm d d' / d' * (N + 1)) +
+        (Finset.range (Nat.lcm d d' / d' - 1)).sum (fun r =>
+          (Finset.range (N + 1)).sup (fun n =>
+            Int.natAbs (f ((r + 1) * d') + apSumFrom f ((r + 1) * d') (Nat.lcm d d') n))) := by
+  classical
+  set q : ℕ := Nat.lcm d d' / d'
+  have hdvd : d' ∣ Nat.lcm d d' := Nat.dvd_lcm_right d d'
+  unfold discUpTo
+  refine Finset.sup_le ?_
+  intro n hn
+  have hnle : n ≤ N + 1 := Nat.le_of_lt_succ (Finset.mem_range.1 hn)
+  cases n with
+  | zero =>
+      simp
+  | succ n' =>
+      have hn'le : n' ≤ N := Nat.succ_le_succ_iff.1 hnle
+      have hdisc :=
+        disc_lcm_step_le_right (f := f) (d := d) (d' := d') (n := n') hd hd'
+      have hmain : disc f d' (q * (n' + 1)) ≤ discUpTo f d' (q * (N + 1)) := by
+        refine disc_le_discUpTo (f := f) (d := d') (n := q * (n' + 1)) (N := q * (N + 1)) ?_
+        exact Nat.mul_le_mul_left q (Nat.succ_le_succ hn'le)
+      have herr :
+          (Finset.range (q - 1)).sum (fun r =>
+              Int.natAbs (f ((r + 1) * d') + apSumFrom f ((r + 1) * d') (Nat.lcm d d') n'))
+            ≤ (Finset.range (q - 1)).sum (fun r =>
+              (Finset.range (N + 1)).sup (fun n =>
+                Int.natAbs (f ((r + 1) * d') + apSumFrom f ((r + 1) * d') (Nat.lcm d d') n))) := by
+        refine Finset.sum_le_sum ?_
+        intro r hr
+        have hnmem : n' ∈ Finset.range (N + 1) := by
+          exact Finset.mem_range.2 (Nat.lt_succ_of_le hn'le)
+        exact (Finset.le_sup (s := Finset.range (N + 1))
+          (f := fun n =>
+            Int.natAbs (f ((r + 1) * d') + apSumFrom f ((r + 1) * d') (Nat.lcm d d') n)) hnmem)
+
+      exact le_trans hdisc (Nat.add_le_add hmain herr)
+
 end MoltResearch

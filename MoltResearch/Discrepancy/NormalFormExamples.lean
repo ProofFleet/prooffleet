@@ -1389,6 +1389,30 @@ example (d d' : ℕ) (hd : d > 0) (hd' : d' > 0) :
           Int.natAbs (f ((r + 1) * d') + apSumFrom f ((r + 1) * d') (Nat.lcm d d') n)) := by
   simpa using (disc_lcm_step_le_right (f := f) (d := d) (d' := d') (n := n) hd hd')
 
+/-!
+### Regression: UpTo-level lcm coarsening wrappers (Track B)
+
+Compile-only checks for `discUpTo_lcm_step_le_left/right`.
+-/
+
+-- Regression (Track B / UpTo-level lcm coarsening wrapper, left):
+example (d d' N : ℕ) (hd : d > 0) (hd' : d' > 0) :
+    discUpTo f (Nat.lcm d d') (N + 1) ≤
+      discUpTo f d (Nat.lcm d d' / d * (N + 1)) +
+        (Finset.range (Nat.lcm d d' / d - 1)).sum (fun r =>
+          (Finset.range (N + 1)).sup (fun n =>
+            Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (Nat.lcm d d') n))) := by
+  simpa using (discUpTo_lcm_step_le_left (f := f) (d := d) (d' := d') (N := N) hd hd')
+
+-- Regression (Track B / UpTo-level lcm coarsening wrapper, right):
+example (d d' N : ℕ) (hd : d > 0) (hd' : d' > 0) :
+    discUpTo f (Nat.lcm d d') (N + 1) ≤
+      discUpTo f d' (Nat.lcm d d' / d' * (N + 1)) +
+        (Finset.range (Nat.lcm d d' / d' - 1)).sum (fun r =>
+          (Finset.range (N + 1)).sup (fun n =>
+            Int.natAbs (f ((r + 1) * d') + apSumFrom f ((r + 1) * d') (Nat.lcm d d') n))) := by
+  simpa using (discUpTo_lcm_step_le_right (f := f) (d := d) (d' := d') (N := N) hd hd')
+
 example : discOffset (fun k => f (k + a * d)) d m n = discOffset f d (m + a) n := by
   simpa using (discOffset_shift_add_mul (f := f) (a := a) (d := d) (m := m) (n := n))
 
