@@ -1293,7 +1293,8 @@ Definition of done:
 - [x] “Cut then shift” coherence: prove that cutting a tail and then shifting the start agrees with shifting first and cutting after, at the level of `apSumOffset` and at the packaged `discOffset` inequalities, so longer normal-form pipelines can reorder these rewrites without manual algebra.
   (Implemented as `apSumOffset_shift_mul_start` / `discOffset_shift_mul_start` and cut wrappers in `MoltResearch/Discrepancy/Offset.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Residue-class decomposition (sum-level) for `apSumFrom`: complement the existing residue API with an *affine* `apSumFrom` equality lemma splitting into `r` residue classes (with a stable regression example), so papers’ “split an affine AP into r progressions” step is available without first normalizing to offsets.
+- [x] Residue-class decomposition (sum-level) for `apSumFrom`: complement the existing residue API with an *affine* `apSumFrom` equality lemma splitting into `r` residue classes (with a stable regression example), so papers’ “split an affine AP into r progressions” step is available without first normalizing to offsets.
+  (Implemented in `MoltResearch/Discrepancy/Residue.lean` as `apSumFrom_mul_len_succ_eq_sum_range` (and tail wrapper), with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Translation invariance in m” for boundedness: prove a clean equivalence like
   `BoundedDiscOffset f d m B ↔ BoundedDiscOffset (fun k => f (k + m*d)) d 0 B` (and Exists/Unbounded analogues), so later proofs can reset `m := 0` as a normal form.
