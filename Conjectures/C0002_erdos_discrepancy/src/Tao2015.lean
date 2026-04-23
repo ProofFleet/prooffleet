@@ -1114,18 +1114,6 @@ theorem forall_discrepancy_le_iff_forall_discOffset_le (out : ReductionOutput f)
   · intro h n
     exact (out.discrepancy_le_iff_discOffset_le (f := f) (n := n) (B := B)).2 (h n)
 
-/-- Coherence: max homogeneous discrepancy of the reduced sequence up to `N` equals the max offset
-wrapper discrepancy of the original sequence up to `N`.
-
-Checklist item: Problems/erdos_discrepancy.md (Track B) — “Max discrepancy up to N” API.
--/
-theorem discUpTo_eq_discOffsetUpTo (out : ReductionOutput f) (N : ℕ) :
-    discUpTo out.g out.d N = discOffsetUpTo f out.d out.m N := by
-  classical
-  unfold discUpTo discOffsetUpTo
-  -- Reduce to pointwise coherence of the discrepancy wrappers.
-  simp [disc_eq_discrepancy, out.discrepancy_eq_discOffset_via_contract (f := f)]
-
 /-- Coherence: the stable wrapper `disc` for the reduced sequence equals the bundled offset wrapper
 for the original sequence.
 
