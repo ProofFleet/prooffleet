@@ -497,8 +497,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `Tao2015.ReductionOutput.exists_le_lt_discOffset_of_lt_discOffsetUpTo` in
   `Conjectures/C0002_erdos_discrepancy/src/Tao2015.lean`.)
 
-- [ ] Residue-class + UpTo bridge: after residue splitting at modulus `r`, add a lemma that relates the residue-class `UpTo` objects to the global `discOffsetUpTo`, e.g. a canonical bound of the form
+- [x] Residue-class + UpTo bridge: after residue splitting at modulus `r`, add a lemma that relates the residue-class `UpTo` objects to the global `discOffsetUpTo`, e.g. a canonical bound of the form
   `discOffsetUpTo f d m (r*(N+1)) ≤ ∑ q in Finset.range r, discOffsetUpTo f (r*d) (m+q) N`.
+  (Implemented via the block-length wrapper `discOffsetUpTo_blockLen_mul_succ` and the stable-surface lemma
+  `discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm` in `MoltResearch/Discrepancy/Residue.lean`.)
 
 - [ ] Endpoint-normalization wrappers for `discOffsetUpTo` witnesses: add simp-friendly lemmas rewriting common endpoint algebra in hypotheses of the form `n ≤ r*(N+1)` (or `n < r*(N+1)`) into the exact shapes expected by the residue/UpTo extraction API, so downstream code can stay `simp`-driven.
 
