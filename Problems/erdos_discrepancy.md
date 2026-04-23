@@ -485,6 +485,29 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   “support split → edit sensitivity → discOffset bound” compiles with `simp` + one `rw`.
   (Done in `MoltResearch/Discrepancy/NormalFormExamples.lean`; wiring into `SurfaceAudit` is handled by importing that file in CI.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] `ReductionOutput` UpTo coherence: for `out : Tao2015.ReductionOutput f`, add a lemma rewriting homogeneous max discrepancy of `out.g` to the offset max discrepancy of `f`, e.g.
+  `discUpTo out.g out.d N = discOffsetUpTo f out.d out.m N`, with a stable-surface regression example.
+
+- [ ] `ReductionOutput` witness extraction wrapper (UpTo-level): package a lemma that from
+  `C < discOffsetUpTo f d m N` produces a witness `n ≤ N` with `C < discOffset f d m n` *in the exact nucleus normal form*, so Stage-2 code never needs to open `sSup`/`Finset` definitions.
+
+- [ ] Residue-class + UpTo bridge: after residue splitting at modulus `r`, add a lemma that relates the residue-class `UpTo` objects to the global `discOffsetUpTo`, e.g. a canonical bound of the form
+  `discOffsetUpTo f d m (r*(N+1)) ≤ ∑ q in Finset.range r, discOffsetUpTo f (r*d) (m+q) N`.
+
+- [ ] Endpoint-normalization wrappers for `discOffsetUpTo` witnesses: add simp-friendly lemmas rewriting common endpoint algebra in hypotheses of the form `n ≤ r*(N+1)` (or `n < r*(N+1)`) into the exact shapes expected by the residue/UpTo extraction API, so downstream code can stay `simp`-driven.
+
+- [ ] “Argmax in a residue class” convenience lemma (discOffsetUpTo): strengthen the existing `…_modEq` witness lemmas with a wrapper returning an explicit maximizer `n` *and* a comparison proof `∀ n' ≤ N, discOffset … n' ≤ discOffset … n` suitable for later pigeonhole arguments.
+
+- [ ] Stable-surface regression: add 2–3 compile-only examples under `import MoltResearch.Discrepancy` demonstrating the intended pipeline
+  `discOffsetUpTo` → (choose maximizer) → residue split → triangle bound,
+  wired into `SurfaceAudit`.
+
+- [ ] “Coarsen to gcd/lcm” normalization lemma (UpTo-level): complement `disc_lcm_step_le_left/right` with an `UpTo` analogue that bounds `discUpTo f (lcm d d') N` in terms of `discUpTo f d N` / `discUpTo f d' N` (packaged triangle-inequality style), with a stable regression example.
+
+- [ ] API polish: add a minimal simp lemma set normalizing `discOffsetUpTo` under `d=1` and `m=0` (and `N=0`) *without unfolding*, so later code can `simp` these away under the stable import surface.
+
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
