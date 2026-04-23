@@ -88,8 +88,9 @@ Downstream developments are expected to replace this axiom by providing a verifi
 `Stage2Assumption` instance.
 -/
 axiom stage2Stub_unbounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (let out1 := stage2Stub_out1 (f := f) (hf := hf);
-      Tao2015.UnboundedDiscrepancyAlong out1.g out1.d)
+    Tao2015.UnboundedDiscrepancyAlong
+      (stage2Stub_out1 (f := f) (hf := hf)).g
+      (stage2Stub_out1 (f := f) (hf := hf)).d
 
 instance instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
