@@ -60,28 +60,45 @@ noncomputable abbrev stage2OutOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf
     Stage2Output f :=
   stage2Of inst (f := f) (hf := hf)
 
-/-- Default (Conjectures-only) Stage-2 assumption instance.
+/- Default (Conjectures-only) Stage-2 assumption instance.
 
 This replaces the old `axiom instStage2Assumption` with an explicit construction of a
-`Stage2Output`, leaving **exactly one** placeholder proof (`sorry`) for the mathematical core.
+`Stage2Output`, leaving **exactly one** axiom stub for the mathematical core.
 
 This is the intended “first real problem progress” milestone:
 - we now *actually* run a concrete Stage‑1 reduction (`ReductionOutput.ofShift`), and
-- we isolate the remaining unproved content to the single Stage‑2 unboundedness witness.
+- we isolate the remaining unverified content to the single Stage‑2 unboundedness witness.
 
 Design note: we register this instance at very low priority so downstream developments can provide
 (and override with) a verified `Stage2Assumption` instance.
 -/
+
+/-- The canonical Stage-1 reduction used by the default Stage-2 conjecture stub.
+
+We keep this as a named definition so later refactors can change the default Stage-1 wiring
+without touching the `Stage2Assumption` API.
+-/
+noncomputable def stage2Stub_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) : Tao2015.ReductionOutput f :=
+  Tao2015.ReductionOutput.ofShift (f := f) (hf := hf) (d := 1) (m := 0) (hd := Nat.succ_pos 0)
+
+/-- The single non-verified assumption of Track C (Stage 2 of Tao 2015).
+
+This is stated in terms of the canonical Stage-1 reduction used by `stage2Stub_out1`.
+Downstream developments are expected to replace this axiom by providing a verified
+`Stage2Assumption` instance.
+-/
+axiom stage2Stub_unbounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (let out1 := stage2Stub_out1 (f := f) (hf := hf);
+      Tao2015.UnboundedDiscrepancyAlong out1.g out1.d)
+
 instance instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
     classical
-    refine ⟨{ out1 := (Tao2015.ReductionOutput.ofShift (f := f) (hf := hf) (d := 1) (m := 0)
-                  (hd := Nat.succ_pos 0))
+    let out1 := stage2Stub_out1 (f := f) (hf := hf)
+    refine ⟨{ out1 := out1
               unbounded := ?_ }⟩
-    -- TODO (real Tao2015 Stage 2): replace this placeholder with the first genuine reduction step.
-    -- For now we keep the pipeline compiling while forcing all downstream use to go through the
-    -- typed `Stage2Output` interface.
-    sorry
+    -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unbounded` with the first verified reduction step.
+    simpa [out1] using (stage2Stub_unbounded (f := f) (hf := hf))
 
 attribute [instance 10] instStage2Assumption
 
