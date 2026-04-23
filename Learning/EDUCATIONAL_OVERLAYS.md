@@ -80,6 +80,10 @@ The goal is to pair verified artifacts with learning scaffolding.
   then `simpa [hnEq]` rewrites the max value to the chosen witness, and `hmax`
   supplies all “≤ maximizer” inequalities without redoing `Finset.sup` reasoning.
 
+- **API note (endpoint normalization in `discOffsetUpTo` witnesses):** after extracting a witness `n ≤ N`, goals/hypotheses often contain endpoint algebra like
+  `n ≤ r*(N+1)` / `n < r*(N+1)` (or commuted `((N+1)*r)` forms). Use the stable-surface simp wrappers in `MoltResearch/Discrepancy/Basic.lean` to normalize these to the right-associated form
+  `n ≤ r*N + r` / `n < r*N + r` so downstream `simp`/`linarith` steps can match other lemmas without manual `Nat.mul_add`/`Nat.add_assoc` rewriting.
+
 - **API note (single-witness strict inequality, max-level):** if you *only* need a witness for a strict inequality (rather than an argmax + comparison), use
   `lt_discOffsetUpTo_iff_exists_lt_discOffset`:
   `C < discOffsetUpTo f d m N ↔ ∃ n ≤ N, C < discOffset f d m n`.
