@@ -87,9 +87,25 @@ This is stated in terms of the canonical Stage-1 reduction used by `stage2Stub_o
 Downstream developments are expected to replace this axiom by providing a verified
 `Stage2Assumption` instance.
 -/
-axiom stage2Stub_unbounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
+axiom stage2Stub_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     let out1 := stage2Stub_out1 (f := f) (hf := hf)
-    Tao2015.UnboundedDiscrepancyAlong out1.g out1.d
+    Tao2015.UnboundedDiscOffset f out1.d out1.m
+
+/-- Derived form of the Stage-2 stub assumption: unbounded discrepancy along the reduced sequence.
+
+We keep the axiom itself in the bundled offset normal form (`UnboundedDiscOffset`) because it is
+stable under changes to the internal definition of the reduced sequence `out1.g`.
+-/
+theorem stage2Stub_unbounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    let out1 := stage2Stub_out1 (f := f) (hf := hf)
+    Tao2015.UnboundedDiscrepancyAlong out1.g out1.d := by
+  classical
+  let out1 := stage2Stub_out1 (f := f) (hf := hf)
+  have hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m := by
+    simpa [out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
+  have hunbAlong : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d := by
+    exact ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).2 hunbOffset
+  simpa [out1] using hunbAlong
 
 instance instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
@@ -97,7 +113,7 @@ instance instStage2Assumption : Stage2Assumption where
     let out1 := stage2Stub_out1 (f := f) (hf := hf)
     refine ⟨{ out1 := out1
               unbounded := ?_ }⟩
-    -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unbounded` with the first verified reduction step.
+    -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset` with the first verified reduction step.
     simpa [out1] using (stage2Stub_unbounded (f := f) (hf := hf))
 
 attribute [instance 10] instStage2Assumption
