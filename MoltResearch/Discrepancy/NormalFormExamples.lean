@@ -1208,6 +1208,12 @@ example (f : ℕ → ℤ) (d m : ℕ) :
   simpa using
     (boundedDiscOffsetExists_iff_exists_forall_discOffsetUpTo_le (f := f) (d := d) (m := m))
 
+-- Regression (Track B): translation invariance in `m` for boundedness.
+example (f : ℕ → ℤ) (d m B : ℕ) :
+    BoundedDiscOffset f d m B ↔ BoundedDiscOffset (fun k => f (k + m * d)) d 0 B := by
+  simpa using
+    (boundedDiscOffset_shift_mul_start (f := f) (d := d) (m := m) (B := B))
+
 -- Regression (Track B / concatenation inequality for `discOffsetUpTo`): a sharper bound that
 -- isolates the tail segment.
 example :

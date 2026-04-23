@@ -1795,6 +1795,28 @@ theorem boundedDiscOffset_iff_forall_discOffsetUpTo_le (f : ℕ → ℤ) (d m B 
     exact le_trans hle hUpTo
 
 /-!
+### Translation invariance in `m` for boundedness
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Translation invariance in m” for boundedness.
+-/
+
+/-- `BoundedDiscOffset f d m B` is equivalent to bounding the shifted function with start `m := 0`:
+`BoundedDiscOffset (fun k => f (k + m*d)) d 0 B`.
+
+This lets downstream proofs reset `m := 0` as a normal form without unfolding `discOffset`.
+-/
+theorem boundedDiscOffset_shift_mul_start (f : ℕ → ℤ) (d m B : ℕ) :
+    BoundedDiscOffset f d m B ↔ BoundedDiscOffset (fun k => f (k + m * d)) d 0 B := by
+  unfold BoundedDiscOffset
+  constructor
+  · intro h n
+    have hn : discOffset f d m n ≤ B := h n
+    simpa [discOffset_eq_discrepancy_shift_mul] using hn
+  · intro h n
+    have hn : discOffset (fun k => f (k + m * d)) d 0 n ≤ B := h n
+    simpa [discOffset_eq_discrepancy_shift_mul] using hn
+
+/-!
 ### Bridge: boundedness of `discOffsetUpTo` ↔ boundedness of all `discOffset` witnesses
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) —
