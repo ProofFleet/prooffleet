@@ -492,8 +492,10 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `discOffsetUpTo f d m N = discUpTo (fun k => f (k + m*d)) d N`.
   (Implemented as `discOffsetUpTo_eq_discUpTo_shift_mul` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `ReductionOutput` witness extraction wrapper (UpTo-level): package a lemma that from
+- [x] `ReductionOutput` witness extraction wrapper (UpTo-level): package a lemma that from
   `C < discOffsetUpTo f d m N` produces a witness `n ≤ N` with `C < discOffset f d m n` *in the exact nucleus normal form*, so Stage-2 code never needs to open `sSup`/`Finset` definitions.
+  (Implemented as `Tao2015.ReductionOutput.exists_le_lt_discOffset_of_lt_discOffsetUpTo` in
+  `Conjectures/C0002_erdos_discrepancy/src/Tao2015.lean`.)
 
 - [ ] Residue-class + UpTo bridge: after residue splitting at modulus `r`, add a lemma that relates the residue-class `UpTo` objects to the global `discOffsetUpTo`, e.g. a canonical bound of the form
   `discOffsetUpTo f d m (r*(N+1)) ≤ ∑ q in Finset.range r, discOffsetUpTo f (r*d) (m+q) N`.

@@ -1140,6 +1140,21 @@ theorem discUpTo_eq_discOffsetUpTo (out : ReductionOutput f) (N : ℕ) :
   intro n hn
   simpa using out.disc_eq_discOffset (f := f) (n := n)
 
+/-- Witness extraction wrapper (UpTo-level): from a strict inequality on the offset max discrepancy
+we can extract a single witness `n ≤ N` achieving the bound.
+
+This is a consumer convenience lemma: it keeps Stage-2/3 code in the nucleus normal form and avoids
+opening `Finset.sup` definitions.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+“`ReductionOutput` witness extraction wrapper (UpTo-level)”.
+-/
+theorem exists_le_lt_discOffset_of_lt_discOffsetUpTo (out : ReductionOutput f) (N C : ℕ)
+    (h : C < discOffsetUpTo f out.d out.m N) :
+    ∃ n ≤ N, C < discOffset f out.d out.m n := by
+  exact (lt_discOffsetUpTo_iff_exists_lt_discOffset (f := f) (d := out.d) (m := out.m)
+    (N := N) (C := C)).1 h
+
 /-- Bounded discrepancy along the reduced step is equivalent to a uniform bound on the bundled offset
 discrepancy family.
 
