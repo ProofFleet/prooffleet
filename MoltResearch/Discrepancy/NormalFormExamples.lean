@@ -5017,6 +5017,17 @@ example (f : ℕ → ℤ) (d m N q r : ℕ) :
   simpa using (discOffsetUpTo_modEq_le_discOffsetUpTo (f := f) (d := d) (m := m) (N := N) (q := q) (r := r))
 
 /-!
+## NEW (Track B): “argmax in a residue class” regression tests
+-/
+
+example (f : ℕ → ℤ) (d m N q r : ℕ)
+    (hne : ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).Nonempty) :
+    ∃ n ≤ N, n ≡ r [MOD q] ∧
+      discOffset f d m n = discOffsetUpTo_modEq f d m N q r ∧
+      ∀ n' ≤ N, n' ≡ r [MOD q] → discOffset f d m n' ≤ discOffset f d m n := by
+  simpa using (exists_discOffsetUpTo_modEq_argmax (f := f) (d := d) (m := m) (N := N) (q := q) (r := r) hne)
+
+/-!
 ## `disc` wrapper regression tests
 
 These ensure the homogeneous wrapper `disc` stays coherent with the offset wrapper `discOffset`.

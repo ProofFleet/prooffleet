@@ -1668,6 +1668,37 @@ lemma exists_discOffset_eq_discOffsetUpTo_modEq (f : ℕ → ℤ) (d m N q r : �
   refine ⟨n, hnle, hmod, ?_⟩
   simpa [discOffsetUpTo_modEq] using hEq
 
+/-- `Argmax in a residue class` convenience wrapper:
+
+Returns an explicit maximizer `n` for `discOffsetUpTo_modEq` together with a comparison proof that
+any other candidate `n' ≤ N` in the same residue class satisfies `discOffset … n' ≤ discOffset … n`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — “Argmax in a residue class” convenience lemma.
+-/
+lemma exists_discOffsetUpTo_modEq_argmax (f : ℕ → ℤ) (d m N q r : ℕ)
+    (hne : ((Finset.range (N + 1)).filter (fun n => n ≡ r [MOD q])).Nonempty) :
+    ∃ n ≤ N, n ≡ r [MOD q] ∧
+      discOffset f d m n = discOffsetUpTo_modEq f d m N q r ∧
+      ∀ n' ≤ N, n' ≡ r [MOD q] → discOffset f d m n' ≤ discOffset f d m n := by
+  classical
+  rcases exists_discOffset_eq_sup_filter_modEq (f := f) (d := d) (m := m) (N := N) (q := q) (r := r) hne with
+    ⟨n, hnle, hmod, hEq⟩
+  refine ⟨n, hnle, hmod, ?_, ?_⟩
+  · simpa [discOffsetUpTo_modEq] using hEq
+  · intro n' hn'le hn'mod
+    have hn'mem :
+        n' ∈ (Finset.range (N + 1)).filter (fun t => t ≡ r [MOD q]) := by
+      refine Finset.mem_filter.2 ?_
+      refine ⟨?_, hn'mod⟩
+      exact Finset.mem_range.2 (Nat.lt_succ_of_le hn'le)
+    have hleSup :
+        discOffset f d m n' ≤
+          ((Finset.range (N + 1)).filter (fun t => t ≡ r [MOD q])).sup (fun t => discOffset f d m t) := by
+      exact Finset.le_sup (s := (Finset.range (N + 1)).filter (fun t => t ≡ r [MOD q]))
+        (f := fun t => discOffset f d m t) hn'mem
+    -- Use the witness equality `hEq` to identify the supremum with `discOffset … n`.
+    simpa [hEq] using hleSup
+
 /-- Definitional lemma exposing the definition. -/
 lemma discOffset_eq_natAbs_apSumOffset (f : ℕ → ℤ) (d m n : ℕ) :
     discOffset f d m n = Int.natAbs (apSumOffset f d m n) :=
