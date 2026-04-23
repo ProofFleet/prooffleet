@@ -118,6 +118,22 @@ Stage-2 start index stored inside `stage2OutOf inst`.
     (stage3OutOf inst (f := f) (hf := hf)).start = (stage2OutOf inst (f := f) (hf := hf)).start := by
   rfl
 
+/-- If we register an explicit assumption `inst` as the local typeclass instance, then the
+explicit Stage-3 output `stage3OutOf inst` agrees definitionally with the typeclass-based output
+`stage3Out`.
+
+This is useful when consumer code wants to pass `inst` explicitly but also reuse lemmas phrased in
+terms of `stage3Out`.
+-/
+theorem stage3OutOf_eq_stage3Out (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3OutOf inst (f := f) (hf := hf) =
+      (by
+        classical
+        letI : Stage2Assumption := inst
+        exact stage3Out (f := f) (hf := hf)) := by
+  classical
+  rfl
+
 /-- The Stage-2 output stored inside `stage3Out` is definitionally the Stage-2 output produced by
 Stage 2.
 
