@@ -1149,6 +1149,41 @@ lemma discOffsetUpTo_length_mul_succ_comm (f : ℕ → ℤ) (d m q N : ℕ) :
     (rfl : discOffsetUpTo f d m (q * (N + 1)) = discOffsetUpTo f d m (q * (N + 1)))
 
 /-!
+### Endpoint-normalization wrappers for `discOffsetUpTo` witnesses
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+Endpoint-normalization wrappers for `discOffsetUpTo` witnesses.
+
+These are intentionally tiny, `simp`-friendly lemmas that normalize common endpoint algebra that
+shows up when extracting witnesses for `UpTo`/residue constructions.
+
+In practice, downstream proofs often produce hypotheses like `n ≤ r * (N+1)` (or the commuted
+variant), while the `simp`/API surface tends to prefer the expanded `r*N + r` form.
+
+We provide equivalences for both `≤` and `<`, and for both multiplication conventions.
+
+We keep these as proposition-level rewrite lemmas (rather than tagging the arithmetic identities
+itself) so that `simp` can rewrite goals/hypotheses directly.
+-/
+
+@[simp] lemma le_mul_succ_iff (n r N : ℕ) :
+    n ≤ r * (N + 1) ↔ n ≤ r * N + r := by
+  -- `Nat.mul_succ` expands `r * (N+1)`.
+  simpa [Nat.mul_succ, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+
+@[simp] lemma lt_mul_succ_iff (n r N : ℕ) :
+    n < r * (N + 1) ↔ n < r * N + r := by
+  simpa [Nat.mul_succ, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+
+@[simp] lemma le_succ_mul_iff (n r N : ℕ) :
+    n ≤ (N + 1) * r ↔ n ≤ N * r + r := by
+  simpa [Nat.succ_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+
+@[simp] lemma lt_succ_mul_iff (n r N : ℕ) :
+    n < (N + 1) * r ↔ n < N * r + r := by
+  simpa [Nat.succ_mul, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+
+/-!
 ### `discOffsetUpTo` argument-order coherence helper (API coherence)
 
 The historical argument order for the offset-up-to wrapper is `(d m N)`, matching `discOffset`.

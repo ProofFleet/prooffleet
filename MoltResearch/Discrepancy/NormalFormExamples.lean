@@ -247,6 +247,20 @@ example : discOffsetUpTo f d m (q * n) = discOffsetUpTo f d m (n * q) := by
 example : discOffsetUpTo f d m (q * (n + 1)) = discOffsetUpTo f d m ((n + 1) * q) := by
   simpa using (discOffsetUpTo_length_mul_succ_comm (f := f) (d := d) (m := m) (q := q) (N := n))
 
+/-!
+### NEW (Track B): endpoint-normalization wrappers for `discOffsetUpTo` witnesses
+
+Compile-only regression tests: `simp` should normalize endpoint algebra inside `<`/`≤` hypotheses
+and goals of the form `… ≤ r*(N+1)` / `… < r*(N+1)` (and the commuted variants).
+-/
+
+example (r N n : ℕ) (h : n ≤ r * (N + 1)) : n ≤ r * N + r := by
+  -- The wrapper lemma is `[simp]` so this is a `simp`-normal form step.
+  simpa using (show n ≤ r * (N + 1) from h)
+
+example (r N n : ℕ) (h : n < (N + 1) * r) : n < N * r + r := by
+  simpa using (show n < (N + 1) * r from h)
+
 -- NEW (Track B): nucleus API coherence (disc/discrepancy wrappers)
 example : disc f d n = discrepancy f d n := by
   rfl
