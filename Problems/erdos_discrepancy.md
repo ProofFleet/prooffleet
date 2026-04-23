@@ -502,7 +502,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented via the block-length wrapper `discOffsetUpTo_blockLen_mul_succ` and the stable-surface lemma
   `discOffsetUpTo_blockLen_mul_succ_le_sum_range_residueTerm` in `MoltResearch/Discrepancy/Residue.lean`.)
 
-- [ ] Endpoint-normalization wrappers for `discOffsetUpTo` witnesses: add simp-friendly lemmas rewriting common endpoint algebra in hypotheses of the form `n ≤ r*(N+1)` (or `n < r*(N+1)`) into the exact shapes expected by the residue/UpTo extraction API, so downstream code can stay `simp`-driven.
+- [x] Endpoint-normalization wrappers for `discOffsetUpTo` witnesses: add simp-friendly lemmas rewriting common endpoint algebra in hypotheses of the form `n ≤ r*(N+1)` (or `n < r*(N+1)`) into the exact shapes expected by the residue/UpTo extraction API, so downstream code can stay `simp`-driven.
 
 - [ ] “Argmax in a residue class” convenience lemma (discOffsetUpTo): strengthen the existing `…_modEq` witness lemmas with a wrapper returning an explicit maximizer `n` *and* a comparison proof `∀ n' ≤ N, discOffset … n' ≤ discOffset … n` suitable for later pigeonhole arguments.
 
