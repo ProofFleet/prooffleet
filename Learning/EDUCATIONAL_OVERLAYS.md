@@ -59,7 +59,11 @@ The goal is to pair verified artifacts with learning scaffolding.
   1) a tail cut (rewrite a tail as a difference of a longer sum and its prefix), and
   2) a start-shift (`m ↦ m + k`) pushed into the summand as `t ↦ t + k*d`.
 
-  Use `apSumOffset_tail_add_start_coherent` for the sum-level normal form, and `discOffset_add_start` as the wrapper-level rewrite so you can apply existing `discOffset_*` triangle/reverse-triangle bounds without unfolding.
+  Use:
+  - `apSumOffset_tail_add_start_coherent` for the sum-level normal form, and
+  - `discOffset_tail_add_start_eq_natAbs_sub` / `discOffset_tail_add_start_le` for the discrepancy-level normal form + triangle bound,
+
+  so downstream code can reorder these rewrites and apply `discOffset_*` bounds **without** unfolding definitions or redoing index algebra.
 - **API note (endpoint-algebra wrappers):** three-segment concatenation is available as `discOffset_add_add_le`, but downstream goals often appear with right-associated endpoints. Use `discOffset_add_add_le_assoc` when your goal has length `n₁ + (n₂ + n₃)` and/or third-start index `m + (n₁ + n₂)` so you can `simpa` without manual `Nat.add_assoc` reassociation.
 - **API note:** `discOffsetUpTo` is monotone in the cutoff. Use `discOffsetUpTo_mono` for an arbitrary `N ≤ N'`, or the convenience wrapper `discOffsetUpTo_le_add` for the common “extend by `K`” case `N ≤ N+K`.
   If your goal is stated with `Nat.succ N` instead of `N+1`, use the wrapper `discOffsetUpTo_le_succNat`.
