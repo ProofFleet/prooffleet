@@ -145,6 +145,25 @@ They are deliberately kept in the Stage-2 stub so later stages can import them w
 additional convenience layers.
 -/
 
+/-- Explicit-assumption wrapper around `stage2Out`.
+
+This returns the typeclass-based output `stage2Out` but with the instance `inst` installed locally.
+It lets downstream code use lemmas stated in terms of `stage2Out` without writing `letI` at the call
+site.
+-/
+noncomputable abbrev stage2OutWith (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Stage2Output f :=
+  (by
+    classical
+    letI : Stage2Assumption := inst
+    exact stage2Out (f := f) (hf := hf))
+
+/-- `stage2OutOf` agrees definitionally with `stage2OutWith`. -/
+theorem stage2OutOf_eq_stage2OutWith (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2OutOf inst (f := f) (hf := hf) = stage2OutWith inst (f := f) (hf := hf) := by
+  classical
+  rfl
+
 /-- If we register an explicit assumption `inst` as the local typeclass instance, then the
 explicit Stage-2 output `stage2OutOf inst` agrees definitionally with the typeclass-based output
 `stage2Out`.
