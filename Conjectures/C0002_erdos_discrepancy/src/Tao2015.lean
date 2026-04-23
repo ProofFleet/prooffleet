@@ -1059,6 +1059,16 @@ This is a tiny simp-normalization lemma: it avoids having to unfold `shiftRight`
     (out.shiftRight m₂).m = out.m + m₂ := by
   simp [ReductionOutput.shiftRight]
 
+/-!
+### Note on `shiftRight_zero`
+
+We intentionally *do not* register a simp lemma `shiftRight_zero` for `ReductionOutput` here.
+Proving equality of `ReductionOutput` records robustly requires either an `[ext]` lemma or a
+custom proof that manages proof-irrelevant fields carefully.
+
+If/when downstream stages need this, add it together with a regression example.
+-/
+
 /-- Consumer-facing rewrite: discrepancy of the reduced sequence equals bundled offset discrepancy.
 
 This is the key normal-form bridge used by later stages.

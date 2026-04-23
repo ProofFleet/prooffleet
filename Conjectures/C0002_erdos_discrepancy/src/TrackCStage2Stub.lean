@@ -60,14 +60,29 @@ noncomputable abbrev stage2OutOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf
     Stage2Output f :=
   stage2Of inst (f := f) (hf := hf)
 
-/-- Default axiom instance for the Stage-2 assumption (Conjectures-only stub).
+/-- Default (Conjectures-only) Stage-2 assumption instance.
 
-Design note: we register this instance at very low priority so that downstream developments can
-provide a verified `Stage2Assumption` instance that will be preferred by typeclass search.
+This replaces the old `axiom instStage2Assumption` with an explicit construction of a
+`Stage2Output`, leaving **exactly one** placeholder proof (`sorry`) for the mathematical core.
+
+This is the intended “first real problem progress” milestone:
+- we now *actually* run a concrete Stage‑1 reduction (`ReductionOutput.ofShift`), and
+- we isolate the remaining unproved content to the single Stage‑2 unboundedness witness.
+
+Design note: we register this instance at very low priority so downstream developments can provide
+(and override with) a verified `Stage2Assumption` instance.
 -/
-axiom instStage2Assumption : Stage2Assumption
--- Low-priority default: downstream developments can provide a verified instance that typeclass
--- search will prefer (larger priorities are tried first).
+instance instStage2Assumption : Stage2Assumption where
+  stage2_nonempty f hf := by
+    classical
+    refine ⟨{ out1 := (Tao2015.ReductionOutput.ofShift (f := f) (hf := hf) (d := 1) (m := 0)
+                  (hd := Nat.succ_pos 0))
+              unbounded := ?_ }⟩
+    -- TODO (real Tao2015 Stage 2): replace this placeholder with the first genuine reduction step.
+    -- For now we keep the pipeline compiling while forcing all downstream use to go through the
+    -- typed `Stage2Output` interface.
+    sorry
+
 attribute [instance 10] instStage2Assumption
 
 /-- **Conjecture stub:** Stage 2 of Tao 2015.
