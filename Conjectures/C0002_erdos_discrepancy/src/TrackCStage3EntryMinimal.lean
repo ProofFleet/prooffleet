@@ -222,8 +222,29 @@ theorem stage3OutOf_start_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf 
       (stage3OutOf inst (f := f) (hf := hf)).m := by
   exact Stage3Output.start_div_d (f := f) (out := stage3OutOf inst (f := f) (hf := hf))
 
--- Note: additional arithmetic convenience lemmas about `stage3Out` (mod/div and reduced-sequence
--- wrappers) live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
+/-- The affine-tail start index stored in `stage3Out` is a multiple of the reduced step size. -/
+theorem stage3Out_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).d ∣ (stage3Out (f := f) (hf := hf)).start := by
+  exact Stage3Output.d_dvd_start (f := f) (out := stage3Out (f := f) (hf := hf))
+
+/-- Explicit-assumption analogue of `stage3Out_d_dvd_start`. -/
+theorem stage3OutOf_d_dvd_start (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).d ∣ (stage3OutOf inst (f := f) (hf := hf)).start := by
+  exact Stage3Output.d_dvd_start (f := f) (out := stage3OutOf inst (f := f) (hf := hf))
+
+/-- The affine-tail start index stored in `stage3Out` has remainder `0` modulo the reduced step size.
+-/
+theorem stage3Out_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3Out (f := f) (hf := hf)).start % (stage3Out (f := f) (hf := hf)).d = 0 := by
+  exact Stage3Output.start_mod_d (f := f) (out := stage3Out (f := f) (hf := hf))
+
+/-- Explicit-assumption analogue of `stage3Out_start_mod_d`. -/
+theorem stage3OutOf_start_mod_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutOf inst (f := f) (hf := hf)).start % (stage3OutOf inst (f := f) (hf := hf)).d = 0 := by
+  exact Stage3Output.start_mod_d (f := f) (out := stage3OutOf inst (f := f) (hf := hf))
+
+-- Note: additional arithmetic convenience lemmas about `stage3Out` (e.g. reduced-sequence wrappers)
+-- live in `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`.
 
 /-- Convenience lemma: the Stage-3 reduced step size is at least `1`.
 
