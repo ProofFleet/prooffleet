@@ -90,6 +90,26 @@ theorem erdos_discrepancy_exists_params_one_le_unboundedDiscOffset (f : ℕ → 
     ∃ d m : ℕ, 1 ≤ d ∧ Tao2015.UnboundedDiscOffset f d m := by
   exact Tao2015.stage3_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf)
 
+/-- Negation-normal-form packaging of the Stage-3 affine-tail witness.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ¬ ∃ B, ∀ n, Int.natAbs (apSumFrom f (m*d) d n) ≤ B`.
+
+This is `erdos_discrepancy_exists_params_one_le_unboundedDiscOffset` rewritten using
+`Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_mul_le
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B := by
+  rcases erdos_discrepancy_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf) with
+    ⟨d, m, hd, hunb⟩
+  refine ⟨d, m, hd, ?_⟩
+  exact
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+        (d := d) (m := m)).1
+      hunb
+
 /-- Track C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
 stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
 
