@@ -135,6 +135,10 @@ The goal is to pair verified artifacts with learning scaffolding.
 - **API note (monotone-in-`C`):** `HasDiscrepancyAtLeast f C` is **antitone** in `C` (the witness inequality is `> C`).
   Use `HasDiscrepancyAtLeast.mono` to *lower* the bound, and the contrapositive lemma
   `HasDiscrepancyAtLeast.not_mono` to *raise* bounds under negation (useful for boundedness normal forms).
+- **API note (`HasDiscrepancyAtLeast` ↔ `discOffset` witness):** when you want to “jump to the nucleus” without unfolding,
+  use `HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start_lt`:
+  `HasDiscrepancyAtLeast f C ↔ ∃ d n, d > 0 ∧ C < discOffset f d 0 n`.
+  This is the clean bridge between the global predicate and the `discOffset` witness form.
 - **API note (boundedness monotonicity, `B`):** for the boundedness predicates,
   `BoundedDiscOffset f d m B` and `BoundedDiscrepancyAlong f d len B` are monotone in the bound parameter `B`.
   Use `BoundedDiscOffset.mono_B` / `BoundedDiscrepancyAlong.mono_B` to enlarge bounds, and the contrapositive
