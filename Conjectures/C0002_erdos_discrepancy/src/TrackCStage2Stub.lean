@@ -139,7 +139,7 @@ instance instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
     exact ⟨stage2Stub_out (f := f) (hf := hf)⟩
 
-attribute [instance 10] instStage2Assumption
+attribute [instance 10000] instStage2Assumption
 
 /-- **Conjecture stub:** Stage 2 of Tao 2015.
 
