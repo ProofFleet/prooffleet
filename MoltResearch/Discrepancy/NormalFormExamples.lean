@@ -38,6 +38,12 @@ example {α : Type} [CoeTC α ℤ] (g : ℕ → α) (hg : ∀ n, (g n : ℤ) = 1
     IsSignSequence (fun n => (g n : ℤ)) := by
   simpa using (isSignSequence_coe (f := g) hg)
 
+-- NEW (Track B): bool/Fin2-style sign encodings can be swapped in `discOffset` statements.
+example (f : ℕ → ℤ) (d m n : ℕ) (b : ℕ → Bool) (h : ∀ t, f t = boolToSign (b t)) :
+    discOffset f d m n = discOffset (fun t => boolToSign (b t)) d m n := by
+  simpa using
+    (discOffset_congr_boolToSign (f := f) (b := b) (d := d) (m := m) (n := n) h)
+
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
