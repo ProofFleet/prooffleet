@@ -531,8 +531,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `apSumOffset f d m n` can be reindexed by `φ` without dropping to raw `Finset.sum` (and a `discOffset` corollary).
   (Implemented as `apSumOffset_reindex_fin_perm` / `discOffset_reindex_fin_perm` in `MoltResearch/Discrepancy/Reindex.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Minimize simp churn for `Nat` arithmetic in summands: add a *loop-free* simp lemma set (exported on the stable surface) normalizing common shapes like
+- [x] Minimize simp churn for `Nat` arithmetic in summands: add a *loop-free* simp lemma set (exported on the stable surface) normalizing common shapes like
   `((m + (i+1)) * d)` ↔ `((m+i+1) * d)` and `a + (m+i+1)*d` associativity, plus a compile-only regression example showing a typical pipeline reduces with `simp`.
+  (Implemented as `MoltResearch.Discrepancy.NatSimp` (imported by the stable surface `MoltResearch.Discrepancy`), with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Residue-class decomposition (disc-level, equality wrapper): complement the existing residue-class inequality with a lemma expressing the exact `NatAbs` of the residue-sum at the discrepancy level,
   `discOffset f d m (r*(N+1)) = Int.natAbs (∑ q in Finset.range r, apSumOffset f (r*d) (m+q) (N+1))`, so later arguments can choose between equality-level algebra and triangle bounds.
