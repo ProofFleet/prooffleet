@@ -518,6 +518,28 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] API polish: add a minimal simp lemma set normalizing `discOffsetUpTo` under `d=1` and `m=0` (and `N=0`) *without unfolding*, so later code can `simp` these away under the stable import surface.
   (Implemented as `discOffsetUpTo_zero_start` and `discOffsetUpTo_zero` in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] Stable-surface lemma: `HasDiscrepancyAtLeast f C` (global predicate) ↔ `∃ d > 0, ∃ n, C < discOffset f d 0 n` (or the repo’s chosen nucleus witness form), so users can jump between “exists step/start” and the nucleus `discOffset` witness without unfolding.
+
+- [ ] Step/offset coercion normal form: add a preferred rewrite lemma converting
+  `discOffset (fun k => f (a + k)) d m n` into `discOffset f d (m + a/d) n` under the appropriate divisibility hypothesis (or an explicit `a = t*d`), so affine shifts compose cleanly at the `discOffset` level.
+
+- [ ] Congruence under `Nat`-level reindexing: a stable lemma that if `φ : Fin n ≃ Fin n` is a permutation then
+  `apSumOffset (fun k => f ((m + (φ ⟨k, _⟩).1 + 1) * d)) d 0 n = apSumOffset f d m n` (and a `discOffset` corollary), packaged so later proofs can reindex without dropping to raw `Finset.sum`.
+
+- [ ] Minimize simp churn for `Nat` arithmetic in summands: add a *loop-free* simp lemma set (exported on the stable surface) normalizing common shapes like
+  `((m + (i+1)) * d)` ↔ `((m+i+1) * d)` and `a + (m+i+1)*d` associativity, plus a compile-only regression example showing a typical pipeline reduces with `simp`.
+
+- [ ] Residue-class decomposition (disc-level, equality wrapper): complement the existing residue-class inequality with a lemma expressing the exact `NatAbs` of the residue-sum at the discrepancy level,
+  `discOffset f d m (r*(N+1)) = Int.natAbs (∑ q in Finset.range r, apSumOffset f (r*d) (m+q) (N+1))`, so later arguments can choose between equality-level algebra and triangle bounds.
+
+- [ ] Cut-at-k API coherence (paper endpoints): add a stable wrapper that takes a paper-style cut hypothesis `m < k ∧ k ≤ m+n` and produces the nucleus cut form with all endpoint arithmetic normalized, so downstream code can stay in `Icc` notation and still use the nucleus `cut` lemmas in one `rw`.
+
+- [ ] `discOffset` invariance under swapping `ℤ` sign encoding: package a lemma allowing replacement of a sign sequence `f : ℕ → ℤ` by an equivalent `g : ℕ → Bool`/`Fin 2` encoding (with a chosen coercion) *at the level of discrepancy statements*, so later stages can interoperate with combinatorial encodings without rewriting every lemma.
+
+- [ ] “Nucleus surface audit” consolidation: create a single `MoltResearch/Discrepancy/NucleusSurface.lean` that re-exports the intended stable API (`Basic`, `Offset`, `AffineTail`, `Residue`, `EditSensitivity`, `StepScaling`) and add a compile-only example importing only this file that exercises the full normal-form micro-pipeline (paper sum → nucleus → shift/dilate → cut → residue split → bound).
+
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
 Goal: make the Tao 2015 proof **structural** before it is complete: explicitly name the reduction stages,
