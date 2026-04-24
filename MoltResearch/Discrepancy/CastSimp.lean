@@ -1,10 +1,13 @@
 import MoltResearch.Discrepancy.Basic
 
 /-!
-# `CastSimp`: opt-in simp lemmas for common `Nat`/`Int` cast shapes
+# `CastSimp`: simp lemmas for common `Nat`/`Int` cast shapes
 
-This module is **opt-in**: it provides a *minimal*, loop-free collection of `[simp]` lemmas that
-normalize common coercion patterns between `Nat` and `Int`.
+This module provides a *minimal*, loop-free collection of `[simp]` lemmas that normalize common
+coercion patterns between `Nat` and `Int`.
+
+As of Track B “Nat arithmetic in summands” admission control, these lemmas are part of the **stable
+import surface** via `import MoltResearch.Discrepancy`.
 
 Motivation (Track B checklist item): in nucleus-level algebra around `apSumOffset`/`discOffset`,
 proof scripts often accumulate ad-hoc `norm_cast` / `zify` sequences just to rewrite

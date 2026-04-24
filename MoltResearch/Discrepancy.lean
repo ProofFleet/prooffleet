@@ -6,6 +6,7 @@ import MoltResearch.Discrepancy.Parity
 import MoltResearch.Discrepancy.Residue
 import MoltResearch.Discrepancy.Offset
 import MoltResearch.Discrepancy.CoherenceSimp
+import MoltResearch.Discrepancy.CastSimp
 import MoltResearch.Discrepancy.Affine
 import MoltResearch.Discrepancy.AffineTail
 import MoltResearch.Discrepancy.Const

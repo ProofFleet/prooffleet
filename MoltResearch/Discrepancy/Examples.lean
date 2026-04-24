@@ -165,6 +165,27 @@ theorem exists_signSequence_unbounded_discrepancy_witnessPos :
     exact Nat.lt_succ_self C
   exact (HasDiscrepancyAtLeast.iff_nonempty_witnessPos (f := fun _ => (1 : ℤ)) (C := C)).1 h
 
+/-!
+### Stable-surface simp regression: `Nat` cast coherence
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — minimize simp churn for `Nat` arithmetic in summands.
+
+These should remain one-line `simp` proofs under:
+
+```lean
+import MoltResearch.Discrepancy
+```
+-/
+
+example (m n : ℕ) : (m : ℤ) + (n : ℤ) = ((m + n : ℕ) : ℤ) := by
+  simp
+
+example (m n : ℕ) : (m : ℤ) * (n : ℤ) = ((m * n : ℕ) : ℤ) := by
+  simp
+
+example (n : ℕ) : (n : ℤ) + 1 = ((n + 1 : ℕ) : ℤ) := by
+  simp
+
 /-! ### Affine discrepancy for the constant `+1` sequence -/
 
 /-! #### Offset-tail ↔ affine-tail bridge (regression)
