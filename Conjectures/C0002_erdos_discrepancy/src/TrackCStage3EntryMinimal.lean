@@ -264,6 +264,12 @@ theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
   let out := stage3Out (f := f) (hf := hf)
   exact out.notBounded
 
+/-- Explicit-assumption variant of `stage3_notBounded`. -/
+theorem stage3OutOf_notBounded (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ BoundedDiscrepancy f := by
+  let out := stage3OutOf inst (f := f) (hf := hf)
+  exact out.notBounded
+
 /-- Stable boundedness-negation packaging of the Stage-3 offset-discrepancy witness.
 
 Normal form:
