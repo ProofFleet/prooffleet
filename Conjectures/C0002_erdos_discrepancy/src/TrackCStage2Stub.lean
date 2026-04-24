@@ -113,6 +113,22 @@ theorem stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequ
     Tao2015.UnboundedDiscOffset f 1 0 := by
   simpa using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
 
+/-- Stable boundedness-negation normal form of the Stage-2 stub assumption.
+
+Normal form:
+`¬ ∃ B, BoundedDiscOffset f 1 0 B`.
+
+This is `stage2Stub_unboundedDiscOffset_params` rewritten via
+`Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset`.
+-/
+theorem stage2Stub_not_exists_boundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ, BoundedDiscOffset f 1 0 B := by
+  have hunb : Tao2015.UnboundedDiscOffset f 1 0 :=
+    stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf)
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := 1) (m := 0)).1
+      hunb
+
 /-- Derived form of the Stage-2 stub assumption: unbounded discrepancy along the reduced sequence.
 
 We keep the axiom itself in the bundled offset normal form (`UnboundedDiscOffset`) because it is
