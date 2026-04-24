@@ -545,7 +545,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 - [x] Cut-at-k API coherence (paper endpoints): add a stable wrapper that takes a paper-style cut hypothesis `m < k ∧ k ≤ m+n` and produces the nucleus cut form with all endpoint arithmetic normalized, so downstream code can stay in `Icc` notation and still use the nucleus `cut` lemmas in one `rw`.
 
-- [ ] `discOffset` invariance under swapping `ℤ` sign encoding: package a lemma allowing replacement of a sign sequence `f : ℕ → ℤ` by an equivalent `g : ℕ → Bool`/`Fin 2` encoding (with a chosen coercion) *at the level of discrepancy statements*, so later stages can interoperate with combinatorial encodings without rewriting every lemma.
+- [x] `discOffset` invariance under swapping `ℤ` sign encoding: package a lemma allowing replacement of a sign sequence `f : ℕ → ℤ` by an equivalent `g : ℕ → Bool`/`Fin 2` encoding (with a chosen coercion) *at the level of discrepancy statements*, so later stages can interoperate with combinatorial encodings without rewriting every lemma.
+  (Implemented in `MoltResearch/Discrepancy/SignSequenceCoercions.lean` as `boolToSign` / `fin2ToSign` plus `discOffset` congruence wrappers; exercised by stable-surface regressions in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] “Nucleus surface audit” consolidation: create a single `MoltResearch/Discrepancy/NucleusSurface.lean` that re-exports the intended stable API (`Basic`, `Offset`, `AffineTail`, `Residue`, `EditSensitivity`, `StepScaling`) and add a compile-only example importing only this file that exercises the full normal-form micro-pipeline (paper sum → nucleus → shift/dilate → cut → residue split → bound).
 
