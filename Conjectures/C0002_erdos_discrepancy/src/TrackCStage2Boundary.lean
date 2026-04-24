@@ -46,6 +46,25 @@ namespace Stage2Output
 
 variable {f : ℕ → ℤ}
 
+/-- Constructor: build a Stage-2 output from a Stage-1 reduction output plus unbounded fixed-step
+(discrepancy) along the reduced sequence.
+
+This is the most direct constructor for the Stage-2 boundary record.
+-/
+def ofUnboundedDiscrepancyAlong (out1 : Tao2015.ReductionOutput f)
+    (hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d) : Tao2015.Stage2Output f :=
+  ⟨out1, hunb⟩
+
+@[simp] theorem ofUnboundedDiscrepancyAlong_out1 (out1 : Tao2015.ReductionOutput f)
+    (hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d) :
+    (ofUnboundedDiscrepancyAlong (f := f) out1 hunb).out1 = out1 := by
+  rfl
+
+@[simp] theorem ofUnboundedDiscrepancyAlong_unbounded (out1 : Tao2015.ReductionOutput f)
+    (hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d) :
+    (ofUnboundedDiscrepancyAlong (f := f) out1 hunb).unbounded = hunb := by
+  rfl
+
 /-- Constructor: build a Stage-2 output from a Stage-1 reduction output plus an unbounded bundled
 offset discrepancy witness for the original sequence at the parameters carried by the reduction.
 

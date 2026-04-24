@@ -181,7 +181,9 @@ noncomputable def stage2Stub_out (f : ℕ → ℤ) (hf : IsSignSequence f) : Sta
   have hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m := by
     -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset` with the first verified reduction step.
     simpa [out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
-  exact Stage2Output.ofUnboundedDiscOffset (f := f) out1 hunbOffset
+  have hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d :=
+    ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).2 hunbOffset
+  exact Stage2Output.ofUnboundedDiscrepancyAlong (f := f) out1 hunb
 
 /-- The Stage-1 reduction packaged inside the default Stage-2 stub output is `stage2Stub_out1`.
 
@@ -192,7 +194,7 @@ exposing the axiom stub in definitional reductions).
 @[simp] theorem stage2Stub_out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage2Stub_out (f := f) (hf := hf)).out1 = stage2Stub_out1 (f := f) (hf := hf) := by
   classical
-  simp [stage2Stub_out, Stage2Output.ofUnboundedDiscOffset]
+  simp [stage2Stub_out, Stage2Output.ofUnboundedDiscrepancyAlong]
 
 instance (priority := 10000) instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
