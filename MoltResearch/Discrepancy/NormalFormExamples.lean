@@ -117,6 +117,17 @@ example : (HasAffineDiscrepancyAtLeast f C ↔ Nonempty (AffineDiscrepancyWitnes
   simpa using (HasAffineDiscrepancyAtLeast.iff_nonempty_witnessGeOne (f := f) (C := C))
 
 /-!
+### NEW (Track B): `HasDiscrepancyAtLeast` witness normal form (`discOffset`, `Nat.lt`)
+
+Compile-only regression: under the stable surface `import MoltResearch.Discrepancy`, users can move
+between `HasDiscrepancyAtLeast` and the nucleus `discOffset` witness form without unfolding.
+-/
+
+example : (HasDiscrepancyAtLeast f C ↔ ∃ d n : ℕ, d > 0 ∧ C < discOffset f d 0 n) := by
+  simpa using
+    (HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start_lt (f := f) (C := C))
+
+/-!
 ### NEW (Track B): `HasDiscrepancyAtLeast` monotone-in-`C` API
 
 Compile-only regression: we can move bounds around (including under negation) without unfolding

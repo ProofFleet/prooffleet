@@ -3509,6 +3509,17 @@ lemma HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start {f : ℕ → ℤ} {
   -- Reduce to the existing offset-sum normal form and rewrite the absolute-value wrapper.
   simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C))
 
+/-- Normal form: rewrite `HasDiscrepancyAtLeast` into the `discOffset` wrapper using `Nat.lt`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — stable-surface lemma:
+`HasDiscrepancyAtLeast f C` ↔ `∃ d > 0, ∃ n, C < discOffset f d 0 n`.
+-/
+lemma HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start_lt {f : ℕ → ℤ} {C : ℕ} :
+    HasDiscrepancyAtLeast f C ↔
+      ∃ d n : ℕ, d > 0 ∧ C < discOffset f d 0 n := by
+  simpa [gt_iff_lt] using
+    (HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start (f := f) (C := C))
+
 -- Backwards-compatibility: earlier versions used the slightly confusing names
 -- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero` and
 -- `HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_m`; the deprecated aliases live in
