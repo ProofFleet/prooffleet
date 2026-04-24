@@ -90,6 +90,16 @@ parameters `d = 1` and `m = 0`.
     (stage2Stub_out1 (f := f) (hf := hf)).g k = f k := by
   simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
 
+/-- Function-level rewrite for the reduced sequence in the default stub reduction.
+
+This is `stage2Stub_out1_g` bundled as an equality of functions; it is convenient when rewriting
+a whole `g` argument (rather than pointwise applications `g k`).
+-/
+@[simp] theorem stage2Stub_out1_g_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out1 (f := f) (hf := hf)).g = f := by
+  funext k
+  simp [stage2Stub_out1_g]
+
 /-- The default stub reduction uses step size `d = 1`. -/
 @[simp] theorem stage2Stub_out1_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage2Stub_out1 (f := f) (hf := hf)).d = 1 := by
@@ -121,6 +131,24 @@ This lemma is intentionally tiny: it exists to reduce projection noise at call s
 theorem stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
     Tao2015.UnboundedDiscOffset f 1 0 := by
   simpa using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
+
+/-- Parameter-normal form of the Stage-2 stub assumption as fixed-step unboundedness.
+
+This is `stage2Stub_unboundedDiscOffset_params` transported across the Stage-1 contract
+`ReductionOutput.unboundedDiscrepancyAlong_iff_unboundedDiscOffset`, then simplified using the
+stub parameters `g = f` and `d = 1`.
+-/
+theorem stage2Stub_unboundedDiscrepancyAlong_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Tao2015.UnboundedDiscrepancyAlong f 1 := by
+  have hunb :
+      Tao2015.UnboundedDiscrepancyAlong
+        (stage2Stub_out1 (f := f) (hf := hf)).g
+        (stage2Stub_out1 (f := f) (hf := hf)).d := by
+    exact
+      ((stage2Stub_out1 (f := f) (hf := hf)).unboundedDiscrepancyAlong_iff_unboundedDiscOffset
+            (f := f)).2
+        (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
+  simpa using hunb
 
 /-- Stable boundedness-negation normal form of the Stage-2 stub assumption.
 
