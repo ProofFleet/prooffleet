@@ -285,6 +285,16 @@ theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequen
   let out := stage3Out (f := f) (hf := hf)
   exact Stage3Output.not_exists_boundedDiscOffset (f := f) out
 
+/-- Explicit-assumption variant of `stage3_not_exists_boundedDiscOffset`. -/
+theorem stage3OutOf_not_exists_boundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (stage3OutOf inst (f := f) (hf := hf)).d
+        (stage3OutOf inst (f := f) (hf := hf)).m B := by
+  let out := stage3OutOf inst (f := f) (hf := hf)
+  exact Stage3Output.not_exists_boundedDiscOffset (f := f) out
+
 /-- Stable witness packaging of the Stage-3 offset-discrepancy unboundedness statement.
 
 Normal form:
@@ -297,6 +307,15 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).d
       (stage3Out (f := f) (hf := hf)).m := by
   let out := stage3Out (f := f) (hf := hf)
+  exact out.unboundedDiscOffset (f := f)
+
+/-- Explicit-assumption variant of `stage3_unboundedDiscOffset`. -/
+theorem stage3OutOf_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    UnboundedDiscOffset f
+      (stage3OutOf inst (f := f) (hf := hf)).d
+      (stage3OutOf inst (f := f) (hf := hf)).m := by
+  let out := stage3OutOf inst (f := f) (hf := hf)
   exact out.unboundedDiscOffset (f := f)
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
