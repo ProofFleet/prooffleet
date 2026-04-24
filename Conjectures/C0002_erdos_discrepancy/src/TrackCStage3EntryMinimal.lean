@@ -104,6 +104,18 @@ This is the explicit-assumption analogue of `stage3OutWith` itself: it lets cons
   classical
   simp [stage3OutWith, stage2OutWith, stage3Out, stage3]
 
+/-- Definitional rewrite: the Stage-1 reduction output stored inside `stage3OutWith inst` is the
+Stage-1 reduction output stored inside `stage2OutWith inst`.
+
+This is occasionally convenient in downstream stages that want to rewrite `.out1` while still
+using the typeclass-based `stage3Out` API.
+-/
+@[simp] theorem stage3OutWith_out1 (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutWith inst (f := f) (hf := hf)).out1 =
+      (stage2OutWith inst (f := f) (hf := hf)).out1 := by
+  classical
+  simp [stage3OutWith, stage2OutWith, stage3Out, stage3]
+
 /-- The Stage-2 output stored inside `stage3OutOf inst` is definitionally the Stage-2 output
 produced by Stage 2 using the explicit assumption `inst`.
 
