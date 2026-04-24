@@ -1038,6 +1038,30 @@ lemma discOffset_map_add_eq (f : ℕ → ℤ) (a t d m n : ℕ) (ha : a = t * d)
   simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
     (discOffset_map_add_mul (f := f) (t := t) (d := d) (m := m) (n := n))
 
+/-- Preferred rewrite lemma for affine shifts at the `discOffset` level, using a `Nat` divisibility
+hypothesis.
+
+If `a` is a multiple of `d`, then `discOffset (fun k => f (a + k)) d m n` rewrites by shifting the
+offset parameter `m` by `a / d`.
+
+We keep the explicit `0 < d` hypothesis so the division normal form is meaningful.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step/offset coercion normal form.
+-/
+lemma discOffset_map_add_dvd (f : ℕ → ℤ) (a d m n : ℕ) (hd : 0 < d) (ha : d ∣ a) :
+    discOffset (fun k => f (a + k)) d m n = discOffset f d (m + a / d) n := by
+  rcases ha with ⟨t, rfl⟩
+  have ht : d * t = t * d := by simpa [Nat.mul_comm]
+  have hdiv : d * t / d = t := Nat.mul_div_right t hd
+  calc
+    discOffset (fun k => f (d * t + k)) d m n
+        = discOffset f d (m + t) n := by
+            simpa using
+              (discOffset_map_add_eq (f := f) (a := d * t) (t := t) (d := d) (m := m) (n := n) ht)
+    _ = discOffset f d (m + d * t / d) n := by
+            -- `simp` rewrites `d * t / d` to `t`.
+            simp [hdiv]
+
 /-- Shift–dilation coherence for the discrepancy wrapper `discOffset`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Shift–dilation coherence lemma.

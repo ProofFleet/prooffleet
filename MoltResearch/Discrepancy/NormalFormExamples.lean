@@ -85,6 +85,11 @@ example (ha : a = k * d) :
     discOffset (fun t => f (a + t)) d m n = discOffset f d (m + k) n := by
   simpa using (discOffset_map_add_eq (f := f) (a := a) (t := k) (d := d) (m := m) (n := n) ha)
 
+-- Variant preferred form: use the `Nat`-level divisibility hypothesis and shift by `a / d`.
+example (hd : 0 < d) (ha : d ∣ a) :
+    discOffset (fun t => f (a + t)) d m n = discOffset f d (m + a / d) n := by
+  simpa using (discOffset_map_add_dvd (f := f) (a := a) (d := d) (m := m) (n := n) hd ha)
+
 /-!
 ### NEW (Track B): `discOffsetUpTo` dilation/coarsening convenience wrappers
 
