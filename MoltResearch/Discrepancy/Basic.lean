@@ -1002,6 +1002,42 @@ lemma discOffset_step_mul_left (f : ℕ → ℤ) (q d m n : ℕ) :
     discOffset f (q * d) m n = discOffset (fun k => f (q * k)) d m n := by
   simpa using (discOffset_map_mul_left (f := f) (q := q) (d := d) (m := m) (n := n)).symm
 
+/-!
+### Step/offset coercion normal form (`discOffset`)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step/offset coercion normal form.
+
+The core lemma is `apSumOffset_map_add_mul`: shifting the *sequence* by a multiple of the step `d`
+corresponds to shifting the offset parameter `m`.
+
+We package the corresponding rewrite at the `discOffset` wrapper level.
+
+These are plain rewrite lemmas (not `[simp]`) to avoid rewrite loops.
+-/
+
+/-- Wrapper-level shift normal form: shifting the input by `t*d` shifts the offset `m` by `t`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step/offset coercion normal form.
+-/
+lemma discOffset_map_add_mul (f : ℕ → ℤ) (t d m n : ℕ) :
+    discOffset (fun k => f (k + t * d)) d m n = discOffset f d (m + t) n := by
+  unfold discOffset
+  simpa using congrArg Int.natAbs (apSumOffset_map_add_mul (f := f) (k := t) (d := d) (m := m) (n := n))
+
+/-- Preferred rewrite lemma for affine shifts at the `discOffset` level.
+
+This is the form typically used in normal-form pipelines: if `a` is explicitly presented as a
+multiple of `d`, then `discOffset (fun k => f (a + k)) d m n` can be rewritten by shifting `m`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Step/offset coercion normal form.
+-/
+lemma discOffset_map_add_eq (f : ℕ → ℤ) (a t d m n : ℕ) (ha : a = t * d) :
+    discOffset (fun k => f (a + k)) d m n = discOffset f d (m + t) n := by
+  subst ha
+  -- Commute the addition so we can apply `discOffset_map_add_mul`.
+  simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+    (discOffset_map_add_mul (f := f) (t := t) (d := d) (m := m) (n := n))
+
 /-- Shift–dilation coherence for the discrepancy wrapper `discOffset`.
 
 Checklist item: Problems/erdos_discrepancy.md (Track B) — Shift–dilation coherence lemma.

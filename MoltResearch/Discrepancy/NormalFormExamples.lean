@@ -75,6 +75,17 @@ example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
   simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
 /-!
+### NEW (Track B): step/offset coercion normal form (`discOffset`)
+
+Compile-only regression test: if the input sequence is shifted by a multiple of the step `d`, the
+normal form shifts the offset parameter `m`.
+-/
+
+example (ha : a = k * d) :
+    discOffset (fun t => f (a + t)) d m n = discOffset f d (m + k) n := by
+  simpa using (discOffset_map_add_eq (f := f) (a := a) (t := k) (d := d) (m := m) (n := n) ha)
+
+/-!
 ### NEW (Track B): `discOffsetUpTo` dilation/coarsening convenience wrappers
 
 Compile-only regression test: `simp` should rewrite a dilated `discOffsetUpTo` by pulling the
