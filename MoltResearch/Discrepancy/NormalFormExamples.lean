@@ -269,6 +269,12 @@ example (hk : m < k) (hkn : k ≤ m + n) :
   simpa using
     (sum_Icc_eq_apSumOffset_split_at_of_lt (f := f) (d := d) (m := m) (n := n) (k := k) hk hkn)
 
+-- Same cut, but as the packaged `discOffset`-native triangle bound.
+example (hk : m < k) (hkn : k ≤ m + n) :
+    discOffset f d m n ≤ discOffset f d m (k - m) + discOffset f d k (m + n - k) := by
+  simpa using
+    (discOffset_split_at_of_lt_le (f := f) (d := d) (m := m) (n := n) (k := k) hk hkn)
+
 -- NEW (Track B): nucleus API coherence (argument order) for `discOffsetUpTo`.
 example : discOffsetUpTo' f m d n = discOffsetUpTo f d m n := by
   rfl

@@ -2860,6 +2860,22 @@ lemma discOffset_split_at_le (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
   simpa [h] using
     (Int.natAbs_add_le (apSumOffset f d m (k - m)) (apSumOffset f d k (m + n - k)))
 
+/-- Discrepancy-level companion to `sum_Icc_eq_apSumOffset_split_at_of_lt`.
+
+This takes the paper-style interior-cut hypotheses `m < k ∧ k ≤ m+n` and returns the canonical
+triangle-inequality bound in `discOffset` normal form.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Cut-at-`k` API coherence (paper endpoints).
+-/
+lemma discOffset_split_at_of_lt_le (f : ℕ → ℤ) (d : ℕ) (m n k : ℕ)
+    (hk : m < k) (hkn : k ≤ m + n) :
+    discOffset f d m n ≤ discOffset f d m (k - m) + discOffset f d k (m + n - k) := by
+  -- Convert the strict lower bound to the weak form expected by the nucleus split lemma.
+  simpa using
+    (discOffset_split_at_le (f := f) (d := d) (m := m) (k := k) (n := n)
+      (hmk := Nat.le_of_lt hk) (hkn := hkn))
+
+
 /-!
 ### Cut then normalize → canonical triangle bound (paper notation)
 
