@@ -44,6 +44,12 @@ example (f : ℕ → ℤ) (d m n : ℕ) (b : ℕ → Bool) (h : ∀ t, f t = boo
   simpa using
     (discOffset_congr_boolToSign (f := f) (b := b) (d := d) (m := m) (n := n) h)
 
+-- Same idea for a `Fin 2` encoding.
+example (f : ℕ → ℤ) (d m n : ℕ) (b : ℕ → Fin 2) (h : ∀ t, f t = fin2ToSign (b t)) :
+    discOffset f d m n = discOffset (fun t => fin2ToSign (b t)) d m n := by
+  simpa using
+    (discOffset_congr_fin2ToSign (f := f) (b := b) (d := d) (m := m) (n := n) h)
+
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!

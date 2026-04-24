@@ -51,6 +51,76 @@ lemma discOffset_congr_boolToSign (f : ℕ → ℤ) (b : ℕ → Bool) (d m n : 
   intro i hi
   simpa using (h ((m + i + 1) * d))
 
+/-- Helper: on `±1` inputs, decoding `decide (z = 1)` via `boolToSign` recovers `z`. -/
+lemma boolToSign_decide_eq (z : ℤ) (hz : z = 1 ∨ z = -1) :
+    boolToSign (decide (z = 1)) = z := by
+  rcases hz with hz | hz <;> simp [hz, boolToSign]
+
+/-- Packaged version of `discOffset_congr_boolToSign` for sign sequences.
+
+This lets you *change encodings in statements* without providing the pointwise equality by hand:
+use the canonical boolean encoding `t ↦ decide (f t = 1)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffset` invariance under swapping `ℤ`
+sign encoding.
+-/
+lemma IsSignSequence.discOffset_eq_boolToSign_decide {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d m n : ℕ) :
+    discOffset f d m n = discOffset (fun t => boolToSign (decide (f t = 1))) d m n := by
+  apply discOffset_congr (f := f) (g := fun t => boolToSign (decide (f t = 1)))
+      (d := d) (m := m) (n := n)
+  intro i hi
+  simpa using (boolToSign_decide_eq (z := f ((m + i + 1) * d)) (hf ((m + i + 1) * d))).symm
+
+/-!
+### `Fin 2` sign encoding
+
+Some later stages prefer `Fin 2` in place of `Bool`.
+We provide the same explicit decoding and a `discOffset`-level congruence wrapper.
+-/
+
+/-- `Fin 2` sign encoding: `0 ↦ 1`, `1 ↦ -1`. -/
+def fin2ToSign (x : Fin 2) : ℤ :=
+  if x = 0 then 1 else -1
+
+@[simp] lemma fin2ToSign_zero : fin2ToSign (0 : Fin 2) = (1 : ℤ) := by
+  simp [fin2ToSign]
+
+@[simp] lemma fin2ToSign_one : fin2ToSign (1 : Fin 2) = (-1 : ℤ) := by
+  simp [fin2ToSign]
+
+/-- Any `Fin 2` sequence yields an `IsSignSequence` after decoding via `fin2ToSign`. -/
+lemma isSignSequence_fin2ToSign (b : ℕ → Fin 2) : IsSignSequence (fun n => fin2ToSign (b n)) := by
+  intro n
+  classical
+  by_cases h : b n = 0
+  · left; simp [fin2ToSign, h]
+  · right
+    -- In `Fin 2`, anything other than `0` is `1`.
+    have : b n = 1 := by
+      -- `Fin 2` has exactly two values.
+      have hn : (b n).val = 0 ∨ (b n).val = 1 := by
+        have : (b n).val < 2 := (b n).isLt
+        omega
+      cases hn with
+      | inl h0 =>
+          exfalso
+          apply h
+          ext
+          simpa using h0
+      | inr h1 =>
+          ext
+          simpa using h1
+    simp [fin2ToSign, h, this]
+
+/-- Discrepancy-level representation swap: replace `f : ℕ → ℤ` by a `Fin 2`-encoded sequence. -/
+lemma discOffset_congr_fin2ToSign (f : ℕ → ℤ) (b : ℕ → Fin 2) (d m n : ℕ)
+    (h : ∀ t, f t = fin2ToSign (b t)) :
+    discOffset f d m n = discOffset (fun t => fin2ToSign (b t)) d m n := by
+  apply discOffset_congr (f := f) (g := fun t => fin2ToSign (b t)) (d := d) (m := m) (n := n)
+  intro i hi
+  simpa using (h ((m + i + 1) * d))
+
 /-- A bundled ±1 value in `ℤ`, intended as a convenient source type for sign sequences.
 
 Users can write `f : ℕ → SignZ` and then coerce to `ℤ` via `(f n : ℤ)`.
