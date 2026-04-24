@@ -1,5 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2CoreExtras
 
 /-!
 # Track C: Stage 3 entry point (hard-gate core)
@@ -134,14 +134,9 @@ theorem stage3_not_exists_forall_natAbs_apSumFrom_start_le (f : ℕ → ℤ) (hf
                 (stage3Out (f := f) (hf := hf)).out2.start
                 (stage3Out (f := f) (hf := hf)).out2.d n) ≤ B := by
   let out := stage3Out (f := f) (hf := hf)
-  have hunb : UnboundedDiscOffset f out.out2.d out.out2.m := by
-    simpa [out] using stage3_unboundedDiscOffset (f := f) (hf := hf)
-  -- Rewrite the generic unboundedness normal form using the bundled start index
-  -- `out.out2.start = out.out2.m * out.out2.d`.
-  simpa [out, Stage2Output.start] using
-    (UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
-        (d := out.out2.d) (m := out.out2.m)).1
-      hunb
+  -- Delegate to the Stage-2 core-extras normal form on the carried Stage-2 output.
+  simpa [out] using
+    (Stage2Output.not_exists_forall_natAbs_apSumFrom_start_le (f := f) out.out2)
 
 /-- Paper-notation normal form: there is no uniform bound on the shifted progression sums
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the deterministic Stage-2 parameters stored in `stage3Out`.
