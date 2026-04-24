@@ -93,6 +93,17 @@ These simp lemmas reduce rewriting noise when shuttling statements between Stage
 They are intentionally kept in the minimal entry-point module.
 -/
 
+/-- Definitional rewrite: the Stage-2 output stored inside `stage3OutWith inst` is the Stage-2 output
+produced by Stage 2 with the instance `inst` installed locally.
+
+This is the explicit-assumption analogue of `stage3OutWith` itself: it lets consumer code rewrite
+`.out2` without switching to the `stage3OutOf` API.
+-/
+@[simp] theorem stage3OutWith_out2 (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutWith inst (f := f) (hf := hf)).out2 = stage2OutWith inst (f := f) (hf := hf) := by
+  classical
+  simp [stage3OutWith, stage2OutWith, stage3Out, stage3]
+
 /-- The Stage-2 output stored inside `stage3OutOf inst` is definitionally the Stage-2 output
 produced by Stage 2 using the explicit assumption `inst`.
 
