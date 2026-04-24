@@ -33,6 +33,36 @@ theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
   simpa using
     (Stage2Output.notBoundedOriginal (f := f) (stage2Out (f := f) (hf := hf)))
 
+/-!
+## Explicit-assumption variants
+
+These are the non-typeclass analogues of the deterministic wrappers above, phrased in terms of the
+explicit Stage-2 output constructor `stage2OutOf`.
+
+They are useful when downstream developments want to run the Track-C pipeline under a verified
+Stage-2 assumption without introducing a local typeclass instance via `letI`.
+-/
+
+/-- Explicit-assumption variant of `stage2_notBounded`. -/
+theorem stage2OutOf_notBounded (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ BoundedDiscrepancy f := by
+  simpa using
+    (Stage2Output.notBoundedOriginal (f := f) (stage2OutOf inst (f := f) (hf := hf)))
+
+/-- Explicit-assumption variant of `stage2_forall_hasDiscrepancyAtLeast`. -/
+theorem stage2OutOf_forall_hasDiscrepancyAtLeast (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  simpa using
+    (Stage2Output.forall_hasDiscrepancyAtLeast (f := f) (stage2OutOf inst (f := f) (hf := hf)))
+
+/-- Explicit-assumption specialization of `stage2OutOf_forall_hasDiscrepancyAtLeast` at `C`. -/
+theorem stage2OutOf_hasDiscrepancyAtLeast (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) (C : ℕ) :
+    HasDiscrepancyAtLeast f C := by
+  simpa using
+    (Stage2Output.hasDiscrepancyAtLeast (f := f) (stage2OutOf inst (f := f) (hf := hf)) C)
+
 /-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
 
