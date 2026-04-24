@@ -262,6 +262,13 @@ example : discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n :
 example : discOffset' f m d n = discOffset f d m n := by
   rfl
 
+-- NEW (Track B): cut-at-`k` API coherence (paper endpoints → nucleus split form).
+example (hk : m < k) (hkn : k ≤ m + n) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+      apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
+  simpa using
+    (sum_Icc_eq_apSumOffset_split_at_of_lt (f := f) (d := d) (m := m) (n := n) (k := k) hk hkn)
+
 -- NEW (Track B): nucleus API coherence (argument order) for `discOffsetUpTo`.
 example : discOffsetUpTo' f m d n = discOffsetUpTo f d m n := by
   rfl

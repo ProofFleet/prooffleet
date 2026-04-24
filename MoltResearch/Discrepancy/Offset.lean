@@ -2499,6 +2499,37 @@ lemma apSumOffset_split_at (f : ℕ → ℤ) (d : ℕ) {m k n : ℕ}
     (apSumOffset_eq_add_apSumOffset_of_le (f := f) (d := d) (m := m) (k := k) (n := m + n)
       hmk hkn)
 
+/-!
+### Cut-at-`k` bridge (paper endpoints → nucleus normal form)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Cut-at-`k` API coherence (paper endpoints).
+
+Downstream arguments often come with a paper-style interior cut hypothesis `m < k ∧ k ≤ m + n`
+while the nucleus lemmas are stated using `m ≤ k`. This wrapper keeps the cut point in the
+paper endpoint form and returns the nucleus split normal form directly.
+-/
+
+/-- One-cut bridge (paper → nucleus): split a paper `Icc` sum at an interior cut `k`.
+
+Concretely, assuming `m < k ≤ m + n`,
+
+`∑ i ∈ Icc (m+1) (m+n), f (i*d)`
+rewrites to
+`apSumOffset f d m (k-m) + apSumOffset f d k (m+n-k)`.
+-/
+lemma sum_Icc_eq_apSumOffset_split_at_of_lt (f : ℕ → ℤ) (d m n k : ℕ)
+    (hk : m < k) (hkn : k ≤ m + n) :
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d)) =
+      apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
+  have hmk : m ≤ k := Nat.le_of_lt hk
+  calc
+    (Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))
+        = apSumOffset f d m n := by
+            simpa using (sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n := n))
+    _ = apSumOffset f d m (k - m) + apSumOffset f d k (m + n - k) := by
+            simpa using
+              (apSumOffset_split_at (f := f) (d := d) (m := m) (k := k) (n := n) hmk hkn)
+
 /-- Split an offset AP sum `apSumOffset f d m n` at an interior cut `k`, proved by splitting the
 paper-style `Icc` sum `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at `k` and immediately rewriting back to
 the nucleus normal form.
