@@ -332,6 +332,17 @@ theorem unboundedReducedAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (out : S
   simpa [Stage3Output.g, Stage3Output.d, Stage3Output.m] using
     (Stage2Output.unbounded_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out.out2)
 
+/-- Tail-nucleus witness form equivalence phrased using the bundled start index `out.start`.
+
+This is a thin rewrite of `unboundedReducedAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt` that
+reduces arithmetic noise in downstream stages.
+-/
+theorem unboundedReducedAlong_iff_forall_exists_natAbs_apSumFrom_start_gt (out : Stage3Output f) :
+    Tao2015.UnboundedDiscrepancyAlong out.g out.d ↔
+      ∀ C : ℕ, ∃ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) > C := by
+  simpa [Stage3Output.start, Stage2Output.start] using
+    (unboundedReducedAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt (f := f) out)
+
 /-- Tail-nucleus witness form for the concrete Stage-1 parameters bundled in Stage 3.
 
 This is the Stage-2 witness `Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt`, re-expressed
