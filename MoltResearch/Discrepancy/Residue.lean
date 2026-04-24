@@ -698,7 +698,14 @@ lemma disc_mul_len_succ_le_sum_range_natAbs (f : ℕ → ℤ) (d q n : ℕ) (hq 
       (fun r => f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n))
 
 
-/-- Residue-class split normal form for `discOffset` (offset discrepancy) at a block length `q*(n+1)`. -/
+/-- Residue-class split normal form for `discOffset` (offset discrepancy) at a block length `q*(n+1)`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) —
+Residue-class decomposition (disc-level, equality wrapper).
+
+This packages the exact `Int.natAbs` of the residue-split sum, complementing the triangle-inequality
+bound `discOffset_mul_len_succ_le_sum_range_natAbs`.
+-/
 lemma discOffset_mul_len_succ_eq_natAbs_sum_range (f : ℕ → ℤ) (d m q n : ℕ) (hq : q > 0) :
     discOffset f d m (q * (n + 1)) =
       Int.natAbs ((Finset.range q).sum (fun r =>

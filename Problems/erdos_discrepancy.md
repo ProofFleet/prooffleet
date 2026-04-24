@@ -535,8 +535,13 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   `((m + (i+1)) * d)` ↔ `((m+i+1) * d)` and `a + (m+i+1)*d` associativity, plus a compile-only regression example showing a typical pipeline reduces with `simp`.
   (Implemented as `MoltResearch.Discrepancy.NatSimp` (imported by the stable surface `MoltResearch.Discrepancy`), with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Residue-class decomposition (disc-level, equality wrapper): complement the existing residue-class inequality with a lemma expressing the exact `NatAbs` of the residue-sum at the discrepancy level,
-  `discOffset f d m (r*(N+1)) = Int.natAbs (∑ q in Finset.range r, apSumOffset f (r*d) (m+q) (N+1))`, so later arguments can choose between equality-level algebra and triangle bounds.
+- [x] Residue-class decomposition (disc-level, equality wrapper): complement the existing residue-class inequality with a lemma expressing the exact `NatAbs` of the residue-sum at the discrepancy level.
+  Implemented as `discOffset_mul_len_succ_eq_natAbs_sum_range` in `MoltResearch/Discrepancy/Residue.lean` (stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`).
+
+  Note: the stable normal form is expressed as
+  `discOffset f d m (r*(N+1)) = Int.natAbs (∑ q in Finset.range r, (f ((m+q+1)*d) + apSumFrom f ((m+q+1)*d) (r*d) N))`,
+  i.e. “head + affine tail” per residue class; this is the form used by the triangle-inequality wrapper
+  `discOffset_mul_len_succ_le_sum_range_natAbs`.
 
 - [ ] Cut-at-k API coherence (paper endpoints): add a stable wrapper that takes a paper-style cut hypothesis `m < k ∧ k ≤ m+n` and produces the nucleus cut form with all endpoint arithmetic normalized, so downstream code can stay in `Icc` notation and still use the nucleus `cut` lemmas in one `rw`.
 
