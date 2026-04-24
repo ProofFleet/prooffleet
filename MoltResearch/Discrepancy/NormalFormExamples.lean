@@ -41,6 +41,20 @@ example {α : Type} [CoeTC α ℤ] (g : ℕ → α) (hg : ∀ n, (g n : ℤ) = 1
 variable (f : ℕ → ℤ) (a b d k m n n₁ n₂ p C : ℕ)
 
 /-!
+### NEW (Track B): `Nat` arithmetic simp normalization (summand churn)
+
+Compile-only regression tests: under the stable surface `import MoltResearch.Discrepancy`, `simp`
+should normalize common endpoint arithmetic *inside* summands without manual `Nat.add_assoc` noise.
+-/
+
+example (f : ℕ → ℤ) (a m i d : ℕ) :
+    f (a + (m + (i + 1)) * d) = f (a + (m + i + 1) * d) := by
+  simp
+
+example (m i d : ℕ) : (m + (i + 1)) * d = (m + i + 1) * d := by
+  simp
+
+/-!
 ### NEW (Track B): `discAlong` / `discOffset` bridge coherence
 
 Compile-only regression tests: downstream code should be able to move between the along-`d`
