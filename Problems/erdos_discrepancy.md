@@ -523,7 +523,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] Stable-surface lemma: `HasDiscrepancyAtLeast f C` (global predicate) ↔ `∃ d > 0, ∃ n, C < discOffset f d 0 n` (or the repo’s chosen nucleus witness form), so users can jump between “exists step/start” and the nucleus `discOffset` witness without unfolding.
   - Implemented as `HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start_lt` in `MoltResearch/Discrepancy/Basic.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
-- [ ] Step/offset coercion normal form: add a preferred rewrite lemma converting
+- [x] Step/offset coercion normal form: add a preferred rewrite lemma converting
+  (Implemented as `discOffset_map_add_eq` and `discOffset_map_add_dvd`; see `MoltResearch/Discrepancy/Basic.lean` and the stable-surface regressions in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
   `discOffset (fun k => f (a + k)) d m n` into `discOffset f d (m + a/d) n` under the appropriate divisibility hypothesis (or an explicit `a = t*d`), so affine shifts compose cleanly at the `discOffset` level.
 
 - [ ] Congruence under `Nat`-level reindexing: a stable lemma that if `φ : Fin n ≃ Fin n` is a permutation then
