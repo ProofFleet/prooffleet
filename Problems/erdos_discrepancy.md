@@ -527,8 +527,9 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
   (Implemented as `discOffset_map_add_eq` and `discOffset_map_add_dvd`; see `MoltResearch/Discrepancy/Basic.lean` and the stable-surface regressions in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
   `discOffset (fun k => f (a + k)) d m n` into `discOffset f d (m + a/d) n` under the appropriate divisibility hypothesis (or an explicit `a = t*d`), so affine shifts compose cleanly at the `discOffset` level.
 
-- [ ] Congruence under `Nat`-level reindexing: a stable lemma that if `φ : Fin n ≃ Fin n` is a permutation then
-  `apSumOffset (fun k => f ((m + (φ ⟨k, _⟩).1 + 1) * d)) d 0 n = apSumOffset f d m n` (and a `discOffset` corollary), packaged so later proofs can reindex without dropping to raw `Finset.sum`.
+- [x] Congruence under `Nat`-level reindexing: a stable lemma that if `φ : Fin n ≃ Fin n` is a permutation then
+  `apSumOffset f d m n` can be reindexed by `φ` without dropping to raw `Finset.sum` (and a `discOffset` corollary).
+  (Implemented as `apSumOffset_reindex_fin_perm` / `discOffset_reindex_fin_perm` in `MoltResearch/Discrepancy/Reindex.lean`, with stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Minimize simp churn for `Nat` arithmetic in summands: add a *loop-free* simp lemma set (exported on the stable surface) normalizing common shapes like
   `((m + (i+1)) * d)` ↔ `((m+i+1) * d)` and `a + (m+i+1)*d` associativity, plus a compile-only regression example showing a typical pipeline reduces with `simp`.

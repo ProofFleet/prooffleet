@@ -1033,6 +1033,11 @@ example (σ : Equiv.Perm (Fin n)) :
       Int.natAbs ((Finset.univ : Finset (Fin n)).sum (fun i => f ((m + (σ i).1 + 1) * d))) := by
   simpa using (discOffset_reindex_fin_perm (f := f) (d := d) (m := m) (n := n) (σ := σ))
 
+example (σ : Equiv.Perm (Fin n)) :
+    apSumOffset f d m n =
+      (Finset.univ : Finset (Fin n)).sum (fun i => f ((m + (σ i).1 + 1) * d)) := by
+  simpa using (apSumOffset_reindex_fin_perm (f := f) (d := d) (m := m) (n := n) (σ := σ))
+
 -- Regression: `simp` should normalize away a spurious zero-offset tail.
 example : apSumOffset f d 0 n = apSum f d n := by
   simp
