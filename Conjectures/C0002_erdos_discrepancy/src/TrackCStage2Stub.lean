@@ -98,16 +98,16 @@ Downstream developments are expected to replace this axiom by providing a verifi
 `Stage2Assumption` instance.
 -/
 axiom stage2Stub_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    let out1 := stage2Stub_out1 (f := f) (hf := hf)
-    Tao2015.UnboundedDiscOffset f out1.d out1.m
+    Tao2015.UnboundedDiscOffset f
+      (stage2Stub_out1 (f := f) (hf := hf)).d
+      (stage2Stub_out1 (f := f) (hf := hf)).m
 
 /-- Parameter-normal form of the Stage-2 stub assumption.
 
 Since `stage2Stub_out1` is wired with the deterministic parameters `d = 1` and `m = 0`, the axiom
 `stage2Stub_unboundedDiscOffset` immediately implies unboundedness of `discOffset f 1 0`.
 
-This lemma is intentionally tiny: it exists to reduce `let`-binder and projection noise at call
-sites.
+This lemma is intentionally tiny: it exists to reduce projection noise at call sites.
 -/
 theorem stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
     Tao2015.UnboundedDiscOffset f 1 0 := by
@@ -173,8 +173,9 @@ We keep the axiom itself in the bundled offset normal form (`UnboundedDiscOffset
 stable under changes to the internal definition of the reduced sequence `out1.g`.
 -/
 theorem stage2Stub_unbounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    let out1 := stage2Stub_out1 (f := f) (hf := hf)
-    Tao2015.UnboundedDiscrepancyAlong out1.g out1.d := by
+    Tao2015.UnboundedDiscrepancyAlong
+      (stage2Stub_out1 (f := f) (hf := hf)).g
+      (stage2Stub_out1 (f := f) (hf := hf)).d := by
   classical
   let out1 := stage2Stub_out1 (f := f) (hf := hf)
   have hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m := by
