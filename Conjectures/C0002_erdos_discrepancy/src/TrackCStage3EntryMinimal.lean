@@ -44,7 +44,8 @@ Stage-3 boundary lemma `Stage3Output.ofStage2Output`.
 
 This is a definition (not an axiom): Stage 3 is non-stub glue on top of the Stage-2 axiom.
 -/
-noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
+noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) [Stage2Assumption] :
+    Stage3Output f :=
   Stage3Output.ofStage2Output (f := f) (stage2Out (f := f) (hf := hf))
 
 /-- Non-typeclass entry point: run Stage 3 using an explicit `Stage2Assumption` proof.
@@ -62,8 +63,28 @@ noncomputable abbrev stage3OutOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf
   stage3Of inst (f := f) (hf := hf)
 
 /-- Deterministic name for the Stage-3 output (useful to keep later statements readable). -/
-noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage3Output f :=
+noncomputable abbrev stage3Out (f : ℕ → ℤ) (hf : IsSignSequence f) [Stage2Assumption] :
+    Stage3Output f :=
   stage3 (f := f) (hf := hf)
+
+/-- Explicit-assumption wrapper around `stage3Out`.
+
+This returns the typeclass-based output `stage3Out` but with the instance `inst` installed locally.
+It lets downstream code use lemmas stated in terms of `stage3Out` without writing `letI` at the call
+site.
+-/
+noncomputable abbrev stage3OutWith (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Stage3Output f :=
+  (by
+    classical
+    letI : Stage2Assumption := inst
+    exact stage3Out (f := f) (hf := hf))
+
+/-- `stage3OutOf` agrees definitionally with `stage3OutWith`. -/
+theorem stage3OutOf_eq_stage3OutWith (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage3OutOf inst (f := f) (hf := hf) = stage3OutWith inst (f := f) (hf := hf) := by
+  classical
+  rfl
 
 /-!
 ## Definitional rewrites
