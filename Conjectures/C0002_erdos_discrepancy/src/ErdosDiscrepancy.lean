@@ -40,6 +40,27 @@ theorem erdos_discrepancy_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : I
         (Tao2015.stage3Out (f := f) (hf := hf)).m B := by
   exact Tao2015.stage3_not_exists_boundedDiscOffset (f := f) (hf := hf)
 
+/-- Negation-normal-form packaging of the Stage-3 offset-discrepancy witness family.
+
+Normal form:
+`¬ ∃ B, ∀ n, discOffset f (stage3Out ...).d (stage3Out ...).m n ≤ B`.
+
+This is a small convenience wrapper around `Tao2015.stage3_unboundedDiscOffset` and the
+equivalence `Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
+-/
+theorem erdos_discrepancy_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      ∀ n : ℕ,
+        discOffset f
+          (Tao2015.stage3Out (f := f) (hf := hf)).d
+          (Tao2015.stage3Out (f := f) (hf := hf)).m n ≤ B := by
+  set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
+  have hunb : Tao2015.UnboundedDiscOffset f out.d out.m := by
+    simpa [hout] using (Tao2015.stage3_unboundedDiscOffset (f := f) (hf := hf))
+  simpa [hout] using
+    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f) (d := out.d) (m := out.m)).1
+      hunb
+
 /-- Existential packaging of `erdos_discrepancy_not_exists_boundedDiscOffset`.
 
 Normal form:
