@@ -276,14 +276,22 @@ theorem stage3Out_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).d ≠ 0 := by
   exact Nat.ne_of_gt (stage3Out_d_pos (f := f) (hf := hf))
 
+/-- Convenience lemma: the explicit-assumption Stage-3 reduced step size is at least `1`.
+
+This is the explicit-assumption analogue of `stage3_one_le_d`.
+-/
+theorem stage3OutOf_one_le_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    1 ≤ (stage3OutOf inst (f := f) (hf := hf)).d := by
+  simpa using (Stage2Output.one_le_d (out := (stage3OutOf inst (f := f) (hf := hf)).out2))
+
 /-- Convenience lemma: the explicit-assumption Stage-3 reduced step size is positive.
 
 This is the explicit-assumption analogue of `stage3Out_d_pos`.
 -/
 theorem stage3OutOf_d_pos (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3OutOf inst (f := f) (hf := hf)).d > 0 := by
-  have h1 : 1 ≤ (stage3OutOf inst (f := f) (hf := hf)).d := by
-    simpa using (Stage2Output.one_le_d (out := (stage3OutOf inst (f := f) (hf := hf)).out2))
+  have h1 : 1 ≤ (stage3OutOf inst (f := f) (hf := hf)).d :=
+    stage3OutOf_one_le_d (inst := inst) (f := f) (hf := hf)
   exact lt_of_lt_of_le Nat.zero_lt_one h1
 
 /-- Convenience lemma: the explicit-assumption Stage-3 reduced step size is nonzero.
