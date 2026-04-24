@@ -234,6 +234,28 @@ theorem stage2_startOf_mod_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : I
     stage2_startOf inst (f := f) (hf := hf) % stage2_dOf inst (f := f) (hf := hf) = 0 := by
   exact Nat.mod_eq_zero_of_dvd (stage2_dOf_dvd_startOf (inst := inst) (f := f) (hf := hf))
 
+/-- Adding the explicit-assumption start index does not change residues modulo the step size.
+
+Since `stage2_startOf` is a multiple of `stage2_dOf`, we have
+`(n + stage2_startOf) % stage2_dOf = n % stage2_dOf`.
+-/
+theorem stage2_add_startOf_mod_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (n : ℕ) :
+    (n + stage2_startOf inst (f := f) (hf := hf)) % stage2_dOf inst (f := f) (hf := hf) =
+      n % stage2_dOf inst (f := f) (hf := hf) := by
+  have hstart :
+      stage2_startOf inst (f := f) (hf := hf) % stage2_dOf inst (f := f) (hf := hf) = 0 :=
+    stage2_startOf_mod_d (inst := inst) (f := f) (hf := hf)
+  simp [Nat.add_mod, hstart]
+
+/-- Variant of `stage2_add_startOf_mod_d` with the start index on the left. -/
+theorem stage2_startOf_add_mod_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (n : ℕ) :
+    (stage2_startOf inst (f := f) (hf := hf) + n) % stage2_dOf inst (f := f) (hf := hf) =
+      n % stage2_dOf inst (f := f) (hf := hf) := by
+  simpa [Nat.add_comm] using
+    stage2_add_startOf_mod_d (inst := inst) (f := f) (hf := hf) (n := n)
+
 /-- Recover the offset parameter by dividing the explicit-assumption start index by the step size.
 -/
 theorem stage2_startOf_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
