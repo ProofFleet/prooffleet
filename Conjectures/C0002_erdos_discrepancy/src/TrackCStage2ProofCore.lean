@@ -63,6 +63,15 @@ theorem stage2OutOf_hasDiscrepancyAtLeast (inst : Stage2Assumption) (f : ℕ →
   simpa using
     (Stage2Output.hasDiscrepancyAtLeast (f := f) (stage2OutOf inst (f := f) (hf := hf)) C)
 
+/-- Explicit-assumption variant of `stage2_unboundedDiscOffset`. -/
+theorem stage2OutOf_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    UnboundedDiscOffset f
+      (stage2OutOf inst (f := f) (hf := hf)).d
+      (stage2OutOf inst (f := f) (hf := hf)).m := by
+  let out := stage2OutOf inst (f := f) (hf := hf)
+  simpa [out] using (Stage2Output.unboundedDiscOffset (f := f) out)
+
 /-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
 
