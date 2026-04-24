@@ -215,6 +215,25 @@ noncomputable abbrev stage2_startOf (inst : Stage2Assumption) (f : ℕ → ℤ) 
     ℕ :=
   stage2_mOf inst (f := f) (hf := hf) * stage2_dOf inst (f := f) (hf := hf)
 
+/-- The explicit-assumption start index `stage2_startOf` is a multiple of the reduced step size
+`stage2_dOf`.
+
+This is the explicit-assumption analogue of `stage2_d_dvd_start`.
+-/
+theorem stage2_dOf_dvd_startOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_dOf inst (f := f) (hf := hf) ∣ stage2_startOf inst (f := f) (hf := hf) := by
+  refine ⟨stage2_mOf inst (f := f) (hf := hf), ?_⟩
+  -- `stage2_startOf` is definitionally `m*d`.
+  simp [stage2_startOf, Nat.mul_comm]
+
+/-- The explicit-assumption start index `stage2_startOf` has remainder `0` modulo `stage2_dOf`.
+
+This is the explicit-assumption analogue of `stage2_start_mod_d`.
+-/
+theorem stage2_startOf_mod_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_startOf inst (f := f) (hf := hf) % stage2_dOf inst (f := f) (hf := hf) = 0 := by
+  exact Nat.mod_eq_zero_of_dvd (stage2_dOf_dvd_startOf (inst := inst) (f := f) (hf := hf))
+
 /-- Recover the offset parameter by dividing the explicit-assumption start index by the step size.
 -/
 theorem stage2_startOf_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
