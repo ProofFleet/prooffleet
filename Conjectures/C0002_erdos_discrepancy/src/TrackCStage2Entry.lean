@@ -166,6 +166,84 @@ theorem stage2_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
   funext k
   simpa using stage2_g_eq (f := f) (hf := hf) k
 
+/-!
+## Explicit-assumption variants
+
+These are the non-typeclass analogues of the deterministic projections above, specialized to an
+explicit `Stage2Assumption` instance `inst`.
+
+They let downstream developments run the Stage-2 pipeline under a verified assumption without
+introducing a local typeclass instance via `letI`.
+-/
+
+/-- Convenience projection: the reduced step size produced by Stage 2, under an explicit
+assumption. -/
+noncomputable abbrev stage2_dOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  (stage2OutOf inst (f := f) (hf := hf)).out1.d
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 (explicit assumption) is
+positive. -/
+theorem stage2_dOf_pos (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_dOf inst (f := f) (hf := hf) > 0 := by
+  simpa [stage2_dOf] using (stage2OutOf inst (f := f) (hf := hf)).out1.hd
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 (explicit assumption) is at least
+`1`. -/
+theorem stage2_one_le_dOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    1 ≤ stage2_dOf inst (f := f) (hf := hf) := by
+  exact Nat.succ_le_of_lt (stage2_dOf_pos (inst := inst) (f := f) (hf := hf))
+
+/-- Convenience lemma: the reduced step size produced by Stage 2 (explicit assumption) is
+nonzero. -/
+theorem stage2_dOf_ne_zero (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_dOf inst (f := f) (hf := hf) ≠ 0 := by
+  exact Nat.ne_of_gt (stage2_dOf_pos (inst := inst) (f := f) (hf := hf))
+
+/-- Convenience projection: the reduced sequence produced by Stage 2, under an explicit
+assumption. -/
+noncomputable abbrev stage2_gOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ℕ → ℤ :=
+  (stage2OutOf inst (f := f) (hf := hf)).out1.g
+
+/-- Convenience projection: the bundled offset parameter produced by Stage 2, under an explicit
+assumption. -/
+noncomputable abbrev stage2_mOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  (stage2OutOf inst (f := f) (hf := hf)).out1.m
+
+/-- Convenience projection: the affine-tail start index `m*d` under an explicit assumption. -/
+noncomputable abbrev stage2_startOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ℕ :=
+  stage2_mOf inst (f := f) (hf := hf) * stage2_dOf inst (f := f) (hf := hf)
+
+/-- Recover the offset parameter by dividing the explicit-assumption start index by the step size.
+-/
+theorem stage2_startOf_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_startOf inst (f := f) (hf := hf) / stage2_dOf inst (f := f) (hf := hf) =
+      stage2_mOf inst (f := f) (hf := hf) := by
+  have hd : 0 < stage2_dOf inst (f := f) (hf := hf) :=
+    stage2_dOf_pos (inst := inst) (f := f) (hf := hf)
+  simpa [stage2_startOf] using
+    (Nat.mul_div_left (stage2_mOf inst (f := f) (hf := hf)) hd)
+
+/-- The reduced sequence produced by Stage 2 (explicit assumption) is a sign sequence. -/
+theorem stage2_hgOf (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    IsSignSequence (stage2_gOf inst (f := f) (hf := hf)) := by
+  simpa [stage2_gOf] using (stage2OutOf inst (f := f) (hf := hf)).out1.hg
+
+/-- Pointwise rewrite for the reduced sequence under an explicit assumption. -/
+theorem stage2_gOf_eq (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    stage2_gOf inst (f := f) (hf := hf) k =
+      f (k + stage2_startOf inst (f := f) (hf := hf)) := by
+  simpa [stage2_gOf, stage2_startOf, stage2_mOf, stage2_dOf] using
+    (stage2OutOf inst (f := f) (hf := hf)).out1.g_eq k
+
+/-- Function-level rewrite for `stage2_gOf`. -/
+theorem stage2_gOf_eq_fun (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2_gOf inst (f := f) (hf := hf) =
+      fun k => f (k + stage2_startOf inst (f := f) (hf := hf)) := by
+  funext k
+  simpa using stage2_gOf_eq (inst := inst) (f := f) (hf := hf) k
+
 end Tao2015
 
 end MoltResearch
