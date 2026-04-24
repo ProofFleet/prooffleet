@@ -50,6 +50,10 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `discUpTo f 0 N` / `discOffsetUpTo f 0 m N` simplify to a `Finset.sup` of the same multiplicative form
 
   **Argument-order coherence:** `apSumFrom` uses `(a d n)` (“start, step, length”), while the historical offset nucleus uses `apSumOffset f d m n`. When you want to line up parameters across the affine/offset nuclei, use the definitional aliases `apSumOffset' f m d n`, `discOffset' f m d n`, and `discOffsetUpTo' f m d N`.
+
+  **Step/offset coercion normal form:** affine shifts of the input sequence by a multiple of the step should be pushed into the offset parameter `m` rather than kept in the summand. Prefer the wrapper-level rewrite lemmas (not `[simp]`):
+  - `discOffset_map_add_eq` when you have an explicit factorization `a = t*d`.
+  - `discOffset_map_add_dvd` when you have `0 < d` and `d ∣ a` (it produces the canonical `m + a / d` offset shift).
 - **API note (reverse/reindex normal form, sum-level):** if you need to “reverse the order” of an offset AP sum without doing raw `Finset` algebra, use
   `apSumOffset_eq_sum_range_reverse`:
   `apSumOffset f d m n = ∑ i in range n, f ((m + (n - i)) * d)`.
