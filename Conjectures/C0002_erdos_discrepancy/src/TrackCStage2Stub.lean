@@ -167,23 +167,6 @@ theorem stage2Stub_not_exists_forall_natAbs_sum_Icc_one_le (f : ℕ → ℤ)
         (f := f) (d := 1) (m := 0)).1
       hunb
 
-/-- Derived form of the Stage-2 stub assumption: unbounded discrepancy along the reduced sequence.
-
-We keep the axiom itself in the bundled offset normal form (`UnboundedDiscOffset`) because it is
-stable under changes to the internal definition of the reduced sequence `out1.g`.
--/
-theorem stage2Stub_unbounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    Tao2015.UnboundedDiscrepancyAlong
-      (stage2Stub_out1 (f := f) (hf := hf)).g
-      (stage2Stub_out1 (f := f) (hf := hf)).d := by
-  classical
-  let out1 := stage2Stub_out1 (f := f) (hf := hf)
-  have hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m := by
-    simpa [out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
-  have hunbAlong : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d := by
-    exact ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).2 hunbOffset
-  simpa [out1] using hunbAlong
-
 /-- Default (Conjectures-only) Stage-2 output produced by the stub assumption.
 
 This is the concrete `Stage2Output` used by the low-priority default instance
@@ -195,10 +178,10 @@ default Stage-1 wiring without rewriting the typeclass instance boilerplate.
 noncomputable def stage2Stub_out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f := by
   classical
   let out1 := stage2Stub_out1 (f := f) (hf := hf)
-  refine { out1 := out1
-           unbounded := ?_ }
-  -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset` with the first verified reduction step.
-  simpa [out1] using (stage2Stub_unbounded (f := f) (hf := hf))
+  have hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m := by
+    -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset` with the first verified reduction step.
+    simpa [out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
+  exact Stage2Output.ofUnboundedDiscOffset (f := f) out1 hunbOffset
 
 instance (priority := 10000) instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
