@@ -520,7 +520,8 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] Stable-surface lemma: `HasDiscrepancyAtLeast f C` (global predicate) ↔ `∃ d > 0, ∃ n, C < discOffset f d 0 n` (or the repo’s chosen nucleus witness form), so users can jump between “exists step/start” and the nucleus `discOffset` witness without unfolding.
+- [x] Stable-surface lemma: `HasDiscrepancyAtLeast f C` (global predicate) ↔ `∃ d > 0, ∃ n, C < discOffset f d 0 n` (or the repo’s chosen nucleus witness form), so users can jump between “exists step/start” and the nucleus `discOffset` witness without unfolding.
+  - Implemented as `HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start_lt` in `MoltResearch/Discrepancy/Basic.lean`; regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.
 
 - [ ] Step/offset coercion normal form: add a preferred rewrite lemma converting
   `discOffset (fun k => f (a + k)) d m n` into `discOffset f d (m + a/d) n` under the appropriate divisibility hypothesis (or an explicit `a = t*d`), so affine shifts compose cleanly at the `discOffset` level.
