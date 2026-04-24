@@ -135,11 +135,9 @@ noncomputable def stage2Stub_out (f : ℕ → ℤ) (hf : IsSignSequence f) : Sta
   -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset` with the first verified reduction step.
   simpa [out1] using (stage2Stub_unbounded (f := f) (hf := hf))
 
-instance instStage2Assumption : Stage2Assumption where
+instance (priority := 10000) instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
     exact ⟨stage2Stub_out (f := f) (hf := hf)⟩
-
-attribute [instance 10000] instStage2Assumption
 
 /-- **Conjecture stub:** Stage 2 of Tao 2015.
 
