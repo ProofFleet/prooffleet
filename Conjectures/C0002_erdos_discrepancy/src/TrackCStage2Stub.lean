@@ -119,14 +119,25 @@ theorem stage2Stub_unbounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
     exact ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).2 hunbOffset
   simpa [out1] using hunbAlong
 
+/-- Default (Conjectures-only) Stage-2 output produced by the stub assumption.
+
+This is the concrete `Stage2Output` used by the low-priority default instance
+`instStage2Assumption`.
+
+It is intentionally factored out as a named definition so downstream refactors can adjust the
+default Stage-1 wiring without rewriting the typeclass instance boilerplate.
+-/
+noncomputable def stage2Stub_out (f : ℕ → ℤ) (hf : IsSignSequence f) : Stage2Output f := by
+  classical
+  let out1 := stage2Stub_out1 (f := f) (hf := hf)
+  refine { out1 := out1
+           unbounded := ?_ }
+  -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset` with the first verified reduction step.
+  simpa [out1] using (stage2Stub_unbounded (f := f) (hf := hf))
+
 instance instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
-    classical
-    let out1 := stage2Stub_out1 (f := f) (hf := hf)
-    refine ⟨{ out1 := out1
-              unbounded := ?_ }⟩
-    -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset` with the first verified reduction step.
-    simpa [out1] using (stage2Stub_unbounded (f := f) (hf := hf))
+    exact ⟨stage2Stub_out (f := f) (hf := hf)⟩
 
 attribute [instance 10] instStage2Assumption
 
