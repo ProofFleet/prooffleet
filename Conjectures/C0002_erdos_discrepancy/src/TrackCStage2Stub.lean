@@ -183,6 +183,17 @@ noncomputable def stage2Stub_out (f : ℕ → ℤ) (hf : IsSignSequence f) : Sta
     simpa [out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
   exact Stage2Output.ofUnboundedDiscOffset (f := f) out1 hunbOffset
 
+/-- The Stage-1 reduction packaged inside the default Stage-2 stub output is `stage2Stub_out1`.
+
+This lemma is intentionally tiny: it lets downstream code reason about the reduction parameters
+(`d`, `m`, `g`) carried by the stub without unfolding `stage2Stub_out` (and therefore without
+exposing the axiom stub in definitional reductions).
+-/
+@[simp] theorem stage2Stub_out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out (f := f) (hf := hf)).out1 = stage2Stub_out1 (f := f) (hf := hf) := by
+  classical
+  simp [stage2Stub_out, Stage2Output.ofUnboundedDiscOffset]
+
 instance (priority := 10000) instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
     exact ⟨stage2Stub_out (f := f) (hf := hf)⟩
