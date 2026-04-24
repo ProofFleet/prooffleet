@@ -81,6 +81,16 @@ without touching the `Stage2Assumption` API.
 noncomputable def stage2Stub_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) : Tao2015.ReductionOutput f :=
   Tao2015.ReductionOutput.ofShift (f := f) (hf := hf) (d := 1) (m := 0) (hd := Nat.succ_pos 0)
 
+/-- The default stub reduction uses step size `d = 1`. -/
+@[simp] theorem stage2Stub_out1_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out1 (f := f) (hf := hf)).d = 1 := by
+  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
+
+/-- The default stub reduction uses offset parameter `m = 0`. -/
+@[simp] theorem stage2Stub_out1_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out1 (f := f) (hf := hf)).m = 0 := by
+  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
+
 /-- The single non-verified assumption of Track C (Stage 2 of Tao 2015).
 
 This is stated in terms of the canonical Stage-1 reduction used by `stage2Stub_out1`.
@@ -101,7 +111,7 @@ sites.
 -/
 theorem stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
     Tao2015.UnboundedDiscOffset f 1 0 := by
-  simpa [stage2Stub_out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
+  simpa using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
 
 /-- Derived form of the Stage-2 stub assumption: unbounded discrepancy along the reduced sequence.
 
