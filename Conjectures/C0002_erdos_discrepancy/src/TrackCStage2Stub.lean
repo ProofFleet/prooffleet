@@ -81,6 +81,15 @@ without touching the `Stage2Assumption` API.
 noncomputable def stage2Stub_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) : Tao2015.ReductionOutput f :=
   Tao2015.ReductionOutput.ofShift (f := f) (hf := hf) (d := 1) (m := 0) (hd := Nat.succ_pos 0)
 
+/-- The reduced sequence in the default stub reduction is just the original sequence.
+
+This is the `g_eq` contract of `ReductionOutput.ofShift` specialized to the deterministic stub
+parameters `d = 1` and `m = 0`.
+-/
+@[simp] theorem stage2Stub_out1_g (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    (stage2Stub_out1 (f := f) (hf := hf)).g k = f k := by
+  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
+
 /-- The default stub reduction uses step size `d = 1`. -/
 @[simp] theorem stage2Stub_out1_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage2Stub_out1 (f := f) (hf := hf)).d = 1 := by
