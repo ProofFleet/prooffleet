@@ -91,6 +91,18 @@ axiom stage2Stub_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     let out1 := stage2Stub_out1 (f := f) (hf := hf)
     Tao2015.UnboundedDiscOffset f out1.d out1.m
 
+/-- Parameter-normal form of the Stage-2 stub assumption.
+
+Since `stage2Stub_out1` is wired with the deterministic parameters `d = 1` and `m = 0`, the axiom
+`stage2Stub_unboundedDiscOffset` immediately implies unboundedness of `discOffset f 1 0`.
+
+This lemma is intentionally tiny: it exists to reduce `let`-binder and projection noise at call
+sites.
+-/
+theorem stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Tao2015.UnboundedDiscOffset f 1 0 := by
+  simpa [stage2Stub_out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
+
 /-- Derived form of the Stage-2 stub assumption: unbounded discrepancy along the reduced sequence.
 
 We keep the axiom itself in the bundled offset normal form (`UnboundedDiscOffset`) because it is
