@@ -186,6 +186,10 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `card_apSupport_le` gives the always-true bound `(apSupport d m n).card ≤ n` (since it is an image of `Finset.range n`), and
   - `card_apSupport_eq` (or the older `card_apSupport`) gives the exact value `(apSupport d m n).card = n` assuming `d > 0` (injectivity of `i ↦ (m+i+1)*d`).
 - **API note (shift–dilation coherence):** when you both (i) push an offset shift into the summand and (ii) pull a factor `q` into the step, use the commutation lemma `apSumOffset_shift_mul_right_comm` (and the wrapper `discOffset_shift_mul_right_comm`) to avoid redoing index algebra. Conceptually: “shift then dilate” = “dilate then shift (with scaled offset)”.
+- **API note (step/offset coercion normal form):** if your summand is presented with an *affine* shift by a multiple of the step, normalize at the wrapper level:
+  - `discOffset_map_add_mul` rewrites `discOffset (fun k => f (k + t*d)) d m n` to `discOffset f d (m+t) n`, and
+  - `discOffset_map_add_eq` is the variant for an explicitly named shift `a` with hypothesis `a = t*d`, rewriting `discOffset (fun k => f (a + k)) d m n`.
+  These are intentionally not `[simp]` to avoid rewrite loops.
 - **API note (paper interval normalization):** many downstream proofs naturally produce paper-style terms like `Int.natAbs ((Finset.Icc (m+1) (m+n)).sum ...)`. The stable surface exports simp lemmas rewriting these directly to `discOffset f d m n`, so endpoint algebra can be normalized by `simp` without manually rewriting `discOffset_eq_natAbs_sum_Icc` back and forth.
 - **API note (affine interval sum → `apSumOffset`):** if you have an interval sum with an extra affine offset in the summand,
   `∑ i ∈ Finset.Icc (m+1) (m+n), f (a + i*d)`,
