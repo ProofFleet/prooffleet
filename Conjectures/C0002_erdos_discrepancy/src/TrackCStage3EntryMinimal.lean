@@ -140,6 +140,17 @@ This is the explicit-assumption analogue of the simp lemma `stage3Out_m`.
   -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
   simp [Stage3Output.m]
 
+/-- Definitional rewrite: the Stage-3 reduced sequence stored inside `stage3OutWith inst` is the
+Stage-2 reduced sequence produced under the same explicit assumption.
+
+This is the explicit-assumption analogue of the simp lemma `stage3Out_g`.
+-/
+@[simp] theorem stage3OutWith_g (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutWith inst (f := f) (hf := hf)).g = (stage2OutWith inst (f := f) (hf := hf)).g := by
+  classical
+  -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
+  simp [Stage3Output.g]
+
 /-- Definitional rewrite: the Stage-3 affine-tail start index stored inside `stage3OutWith inst` is
 the Stage-2 start index produced under the same explicit assumption.
 
