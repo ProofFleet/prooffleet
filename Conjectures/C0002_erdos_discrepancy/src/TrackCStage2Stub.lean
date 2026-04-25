@@ -110,27 +110,27 @@ a whole `g` argument (rather than pointwise applications `g k`).
     (stage2Stub_out1 (f := f) (hf := hf)).m = 0 := by
   simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
 
-/-- The single non-verified assumption of Track C (Stage 2 of Tao 2015).
+/-- The single non-verified assumption of Track C (Stage 2 of Tao 2015), in parameter-normal form.
 
-This is stated in terms of the canonical Stage-1 reduction used by `stage2Stub_out1`.
+Since `stage2Stub_out1` is wired with the deterministic parameters `d = 1` and `m = 0`, the
+Stage-2 conjecture stub is simply unboundedness of `discOffset f 1 0`.
+
 Downstream developments are expected to replace this axiom by providing a verified
 `Stage2Assumption` instance.
 -/
-axiom stage2Stub_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+axiom stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Tao2015.UnboundedDiscOffset f 1 0
+
+/-- Out1-form of the Stage-2 stub assumption.
+
+This is `stage2Stub_unboundedDiscOffset_params` rewritten to mention the projections `out1.d` and
+`out1.m` of the canonical stub reduction `stage2Stub_out1`.
+-/
+theorem stage2Stub_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
     Tao2015.UnboundedDiscOffset f
       (stage2Stub_out1 (f := f) (hf := hf)).d
-      (stage2Stub_out1 (f := f) (hf := hf)).m
-
-/-- Parameter-normal form of the Stage-2 stub assumption.
-
-Since `stage2Stub_out1` is wired with the deterministic parameters `d = 1` and `m = 0`, the axiom
-`stage2Stub_unboundedDiscOffset` immediately implies unboundedness of `discOffset f 1 0`.
-
-This lemma is intentionally tiny: it exists to reduce projection noise at call sites.
--/
-theorem stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    Tao2015.UnboundedDiscOffset f 1 0 := by
-  simpa using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
+      (stage2Stub_out1 (f := f) (hf := hf)).m := by
+  simpa using (stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf))
 
 /-- Parameter-normal form of the Stage-2 stub assumption as fixed-step unboundedness.
 
@@ -216,8 +216,8 @@ noncomputable def stage2Stub_out (f : ℕ → ℤ) (hf : IsSignSequence f) : Sta
   classical
   let out1 := stage2Stub_out1 (f := f) (hf := hf)
   have hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m := by
-    -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset` with the first verified reduction step.
-    simpa [out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
+    -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset_params` with the first verified reduction step.
+    simpa [out1] using (stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf))
   have hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d :=
     ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).2 hunbOffset
   exact Stage2Output.ofUnboundedDiscrepancyAlong (f := f) out1 hunb
