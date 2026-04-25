@@ -358,6 +358,15 @@ theorem stage3Out_d_ne_zero (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).d ≠ 0 := by
   exact Nat.ne_of_gt (stage3Out_d_pos (f := f) (hf := hf))
 
+/-- Convenience lemma: the Stage-3 reduced sequence is a sign sequence.
+
+This is a tiny wrapper around the Stage-2 projection lemma `Stage2Output.hg`.
+-/
+theorem stage3Out_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    IsSignSequence (stage3Out (f := f) (hf := hf)).g := by
+  simpa [Stage3Output.g] using
+    (Stage2Output.hg (f := f) (out := (stage3Out (f := f) (hf := hf)).out2))
+
 /-- Convenience lemma: the explicit-assumption-with-local-instance Stage-3 reduced step size is
 positive.
 
