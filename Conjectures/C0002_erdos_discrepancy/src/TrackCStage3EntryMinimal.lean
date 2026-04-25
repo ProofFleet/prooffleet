@@ -534,7 +534,9 @@ theorem stage3_forall_exists_natAbs_apSumFrom_start_gt_witness_pos (f : ℕ → 
     have hzero : Int.natAbs (apSumFrom f out.start out.d 0) = 0 := by
       simp
     have hn0gt : (0 : ℕ) > B := by
-      simpa [hzero] using hn
+      have hn0gt' := hn
+      rw [hzero] at hn0gt'
+      exact hn0gt'
     have hlt : B < 0 := (gt_iff_lt).1 hn0gt
     exact (Nat.not_lt_zero B) hlt
   refine ⟨n, Nat.pos_of_ne_zero hn0, ?_⟩
