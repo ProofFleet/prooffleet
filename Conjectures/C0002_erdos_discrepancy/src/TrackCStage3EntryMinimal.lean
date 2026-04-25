@@ -485,6 +485,52 @@ theorem stage3_not_exists_forall_natAbs_apSumFrom_start_le' (f : ℕ → ℤ) (h
   simpa [Stage3Output.start, Stage3Output.d] using
     (stage3_not_exists_forall_natAbs_apSumFrom_start_le (f := f) (hf := hf))
 
+/-- Tail-nucleus witness form at the deterministic Stage-3 parameters.
+
+Normal form:
+`∀ B, ∃ n, n > 0 ∧ Int.natAbs (apSumFrom f start d n) > B`.
+
+This is the witness-form contraposition of
+`stage3_not_exists_forall_natAbs_apSumFrom_start_le'`.
+-/
+theorem stage3_forall_exists_natAbs_apSumFrom_start_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        n > 0 ∧
+          Int.natAbs
+              (apSumFrom f
+                (stage3Out (f := f) (hf := hf)).start
+                (stage3Out (f := f) (hf := hf)).d n) > B := by
+  classical
+  intro B
+  set out := stage3Out (f := f) (hf := hf) with hout
+  have hnb :
+      ¬ ∃ B0 : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) ≤ B0 := by
+    simpa [hout] using
+      (stage3_not_exists_forall_natAbs_apSumFrom_start_le' (f := f) (hf := hf))
+  have hex : ∃ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) > B := by
+    by_contra h
+    have hle : ∀ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) ≤ B := by
+      intro n
+      have hnot : ¬ Int.natAbs (apSumFrom f out.start out.d n) > B := by
+        intro hn
+        exact h ⟨n, hn⟩
+      exact le_of_not_gt hnot
+    exact hnb ⟨B, hle⟩
+  rcases hex with ⟨n, hn⟩
+  have hn0 : n ≠ 0 := by
+    intro h0
+    subst h0
+    have hzero : Int.natAbs (apSumFrom f out.start out.d 0) = 0 := by
+      simp
+    have hn0gt : (0 : ℕ) > B := by
+      simpa [hzero] using hn
+    have hlt : B < 0 := (gt_iff_lt).1 hn0gt
+    exact (Nat.not_lt_zero B) hlt
+  refine ⟨n, Nat.pos_of_ne_zero hn0, ?_⟩
+  simpa [hout] using hn
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 
