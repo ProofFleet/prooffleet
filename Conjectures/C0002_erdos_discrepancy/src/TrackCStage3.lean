@@ -68,6 +68,16 @@ This is just the corresponding Stage-2 projection lemma, rewritten to use the St
 theorem start_eq_m_mul_d (out : Stage3Output f) : out.start = out.m * out.d := by
   rfl
 
+/-- Normal form: the affine-tail nucleus at `out.start` is the bundled offset nucleus at `out.m`.
+
+This is `Tao2015.apSumFrom_mul_eq_apSumOffset` rewritten using the Stage-3 start index
+`out.start = out.m * out.d`.
+-/
+theorem apSumFrom_start_eq_apSumOffset (out : Stage3Output f) (n : ℕ) :
+    apSumFrom f out.start out.d n = apSumOffset f out.d out.m n := by
+  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m, Stage2Output.start] using
+    (apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
+
 /-- Recover the offset parameter `out.m` by dividing the start index `out.start` by the step size
 `out.d`.
 
