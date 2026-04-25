@@ -391,6 +391,27 @@ theorem stage3OutOf_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → �
   let out := stage3OutOf inst (f := f) (hf := hf)
   exact out.unboundedDiscOffset (f := f)
 
+/-- Negation-normal-form packaging of the Stage-3 offset-discrepancy witness family.
+
+Normal form:
+`¬ ∃ B, ∀ n, discOffset f (stage3Out ...).d (stage3Out ...).m n ≤ B`.
+
+This is a small convenience wrapper around `stage3_unboundedDiscOffset` and the equivalence
+`unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
+-/
+theorem stage3_not_exists_forall_discOffset_le_d_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          discOffset f
+              (stage3Out (f := f) (hf := hf)).d
+              (stage3Out (f := f) (hf := hf)).m n ≤ B := by
+  set out := stage3Out (f := f) (hf := hf) with hout
+  have hunb : UnboundedDiscOffset f out.d out.m := by
+    simpa [hout] using stage3_unboundedDiscOffset (f := f) (hf := hf)
+  simpa [hout] using
+    (unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f) (d := out.d) (m := out.m)).1
+      hunb
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 

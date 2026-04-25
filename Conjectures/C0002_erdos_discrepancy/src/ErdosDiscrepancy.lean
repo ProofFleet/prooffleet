@@ -54,12 +54,7 @@ theorem erdos_discrepancy_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf 
         discOffset f
           (Tao2015.stage3Out (f := f) (hf := hf)).d
           (Tao2015.stage3Out (f := f) (hf := hf)).m n ≤ B := by
-  set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
-  have hunb : Tao2015.UnboundedDiscOffset f out.d out.m := by
-    simpa [hout] using (Tao2015.stage3_unboundedDiscOffset (f := f) (hf := hf))
-  simpa [hout] using
-    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f) (d := out.d) (m := out.m)).1
-      hunb
+  exact Tao2015.stage3_not_exists_forall_discOffset_le_d_m (f := f) (hf := hf)
 
 /-- Existential packaging of `erdos_discrepancy_not_exists_boundedDiscOffset`.
 
