@@ -21,10 +21,13 @@ variable {f : ℕ → ℤ}
 along the reduced sequence.
 
 This is the most direct constructor for the Stage-2 boundary record.
+
+Implementation note: we define this in terms of the boundary-layer constructor
+`Stage2Output.ofUnboundedDiscrepancyAlong` to keep the stage wiring single-sourced.
 -/
-def ofReductionOutput_unboundedDiscrepancyAlong (out1 : Tao2015.ReductionOutput f)
+abbrev ofReductionOutput_unboundedDiscrepancyAlong (out1 : Tao2015.ReductionOutput f)
     (hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d) : Stage2Output f :=
-  ⟨out1, hunb⟩
+  ofUnboundedDiscrepancyAlong (f := f) out1 hunb
 
 @[simp] theorem ofReductionOutput_unboundedDiscrepancyAlong_out1 (out1 : Tao2015.ReductionOutput f)
     (hunb : Tao2015.UnboundedDiscrepancyAlong out1.g out1.d) :
@@ -42,22 +45,24 @@ offset discrepancy family.
 This is a small convenience constructor: many future Stage-2 proofs will naturally establish
 unboundedness in the `discOffset` normal form, and then transport it to fixed-step unboundedness
 via the Stage-1 contract.
+
+Implementation note: we define this in terms of the boundary-layer constructor
+`Stage2Output.ofUnboundedDiscOffset` to avoid duplicating the Stage-1 transport wiring.
 -/
-def ofReductionOutput_unboundedDiscOffset (out1 : Tao2015.ReductionOutput f)
+abbrev ofReductionOutput_unboundedDiscOffset (out1 : Tao2015.ReductionOutput f)
     (hunb : Tao2015.UnboundedDiscOffset f out1.d out1.m) : Stage2Output f :=
-  ofReductionOutput_unboundedDiscrepancyAlong (out1 := out1)
-    ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).2 hunb)
+  ofUnboundedDiscOffset (f := f) out1 hunb
 
 @[simp] theorem ofReductionOutput_unboundedDiscOffset_out1 (out1 : Tao2015.ReductionOutput f)
     (hunb : Tao2015.UnboundedDiscOffset f out1.d out1.m) :
     (ofReductionOutput_unboundedDiscOffset (f := f) out1 hunb).out1 = out1 := by
-  simp [ofReductionOutput_unboundedDiscOffset]
+  rfl
 
 @[simp] theorem ofReductionOutput_unboundedDiscOffset_unbounded (out1 : Tao2015.ReductionOutput f)
     (hunb : Tao2015.UnboundedDiscOffset f out1.d out1.m) :
     (ofReductionOutput_unboundedDiscOffset (f := f) out1 hunb).unbounded =
       (out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f)).2 hunb := by
-  simp [ofReductionOutput_unboundedDiscOffset]
+  rfl
 
 /-!
 Basic projections (`d`, `g`, `m`, `hg`, `g_eq`, `hd`, `d_ne_zero`, `one_le_d`) live in
