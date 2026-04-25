@@ -78,6 +78,17 @@ def ofUnboundedDiscOffset (out1 : Tao2015.ReductionOutput f)
     unbounded :=
       ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).2 hunbOffset }
 
+@[simp] theorem ofUnboundedDiscOffset_out1 (out1 : Tao2015.ReductionOutput f)
+    (hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m) :
+    (ofUnboundedDiscOffset (f := f) out1 hunbOffset).out1 = out1 := by
+  rfl
+
+@[simp] theorem ofUnboundedDiscOffset_unbounded (out1 : Tao2015.ReductionOutput f)
+    (hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m) :
+    (ofUnboundedDiscOffset (f := f) out1 hunbOffset).unbounded =
+      ((out1.unboundedDiscrepancyAlong_iff_unboundedDiscOffset (f := f))).2 hunbOffset := by
+  rfl
+
 end Stage2Output
 
 
