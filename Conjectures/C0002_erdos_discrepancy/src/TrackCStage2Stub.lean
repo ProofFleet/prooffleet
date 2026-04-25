@@ -277,6 +277,17 @@ noncomputable abbrev stage2OutWith (inst : Stage2Assumption) (f : ℕ → ℤ) (
     letI : Stage2Assumption := inst
     exact stage2Out (f := f) (hf := hf))
 
+/-- `stage2OutWith` agrees definitionally with the explicit-assumption Stage-2 output `stage2OutOf`.
+
+We register this as a simp lemma so downstream developments can rewrite away `stage2OutWith`
+without importing any additional Stage-2 convenience layers.
+-/
+@[simp] theorem stage2OutWith_eq_stage2OutOf (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    stage2OutWith inst (f := f) (hf := hf) = stage2OutOf inst (f := f) (hf := hf) := by
+  classical
+  rfl
+
 /-- `stage2OutOf` agrees definitionally with `stage2OutWith`. -/
 theorem stage2OutOf_eq_stage2OutWith (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage2OutOf inst (f := f) (hf := hf) = stage2OutWith inst (f := f) (hf := hf) := by
