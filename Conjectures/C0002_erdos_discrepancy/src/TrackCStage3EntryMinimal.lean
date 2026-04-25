@@ -464,6 +464,13 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
   let out := stage3Out (f := f) (hf := hf)
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) out
 
+/-- Explicit-assumption variant of `stage3_forall_hasDiscrepancyAtLeast`. -/
+theorem stage3OutOf_forall_hasDiscrepancyAtLeast (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  let out := stage3OutOf inst (f := f) (hf := hf)
+  exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) out
+
 /-- Consumer-facing nucleus witness form, avoiding the `discrepancy` wrapper.
 
 Normal form:
@@ -509,6 +516,12 @@ This is a tiny convenience lemma: it avoids an extra application at the call sit
 theorem stage3_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (C : ℕ) :
     HasDiscrepancyAtLeast f C := by
   exact (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
+
+/-- Explicit-assumption specialization of `stage3OutOf_forall_hasDiscrepancyAtLeast` at `C`. -/
+theorem stage3OutOf_hasDiscrepancyAtLeast (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) (C : ℕ) :
+    HasDiscrepancyAtLeast f C := by
+  exact (stage3OutOf_forall_hasDiscrepancyAtLeast (inst := inst) (f := f) (hf := hf)) C
 
 end Tao2015
 
