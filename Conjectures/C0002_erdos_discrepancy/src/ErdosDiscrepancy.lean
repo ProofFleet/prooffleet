@@ -26,6 +26,17 @@ theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
   -- Delegate to the minimal Stage-3 entry-point API.
   exact Tao2015.stage3_notBounded (f := f) (hf := hf)
 
+/-- Bridge lemma: the usual “unbounded discrepancy” surface statement is equivalent to negating the
+boundedness predicate `BoundedDiscrepancy`.
+
+This equivalence lives in the verified core as
+`forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy`, but we restate it here so consumers of
+the Track‑C hard‑gate file can access it without hunting imports.
+-/
+theorem erdos_discrepancy_forall_hasDiscrepancyAtLeast_iff_notBounded (f : ℕ → ℤ) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ ¬ BoundedDiscrepancy f := by
+  exact forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f
+
 /-- Stable boundedness-negation packaging of the Stage-3 offset-discrepancy witness.
 
 Normal form:
