@@ -26,6 +26,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
 - `stage3_exists_params_unboundedDiscOffset` : existential packaging of `stage3_unboundedDiscOffset`
 - `stage3_exists_params_one_le_unboundedDiscOffset` : existential packaging of
   `stage3_unboundedDiscOffset` with the side condition `1 ≤ d`
+- `stage3_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_mul_le` : existential packaging of
+  the affine-tail unboundedness normal form at concrete `d, m`
 - `stage3_unboundedDiscrepancyAlong_core` : Track-C fixed-step unboundedness witness along the
   reduced sequence, phrased using `MoltResearch.UnboundedDiscrepancyAlong`
 - `stage3_exists_params_one_le_not_exists_boundedDiscOffset` : existential packaging of
@@ -506,6 +508,26 @@ theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
   refine ⟨out.d, out.m, ?_, ?_⟩
   · exact stage3_one_le_d (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
+
+/-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
+no uniform bound on the affine-tail nuclei `Int.natAbs (apSumFrom f (m*d) d n)`.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ¬ ∃ B, ∀ n, Int.natAbs (apSumFrom f (m*d) d n) ≤ B`.
+
+This is `stage3_exists_params_one_le_unboundedDiscOffset` rewritten using
+`Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le`.
+-/
+theorem stage3_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_mul_le
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B := by
+  rcases stage3_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf) with ⟨d, m, hd, hunb⟩
+  refine ⟨d, m, hd, ?_⟩
+  exact
+    (Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+        (d := d) (m := m)).1
+      hunb
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
 no bundled offset bound at those parameters.
