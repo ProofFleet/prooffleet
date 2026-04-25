@@ -120,23 +120,9 @@ theorem stage3_not_exists_forall_natAbs_apSumOffset_le (f : ℕ → ℤ) (hf : I
         (d := out.out2.d) (m := out.out2.m)).1
       hunb
 
-/-- Consumer-facing normal form: there is no uniform bound on the affine-tail nuclei
-`Int.natAbs (apSumFrom f start d n)` at the deterministic Stage-2 parameters stored in `stage3Out`.
-
-Negation normal form:
-`¬ ∃ B, ∀ n, Int.natAbs (apSumFrom f start d n) ≤ B`.
--/
-theorem stage3_not_exists_forall_natAbs_apSumFrom_start_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ¬ ∃ B : ℕ,
-        ∀ n : ℕ,
-          Int.natAbs
-              (apSumFrom f
-                (stage3Out (f := f) (hf := hf)).out2.start
-                (stage3Out (f := f) (hf := hf)).out2.d n) ≤ B := by
-  let out := stage3Out (f := f) (hf := hf)
-  -- Delegate to the Stage-2 core-extras normal form on the carried Stage-2 output.
-  simpa [out] using
-    (Stage2Output.not_exists_forall_natAbs_apSumFrom_start_le (f := f) out.out2)
+-- Note: `stage3_not_exists_forall_natAbs_apSumFrom_start_le` now lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal` so the hard-gate minimal
+-- Stage-3 entry point exposes this tail-nucleus normal form without importing Stage-2 core extras.
 
 /-- Paper-notation normal form: there is no uniform bound on the shifted progression sums
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the deterministic Stage-2 parameters stored in `stage3Out`.
