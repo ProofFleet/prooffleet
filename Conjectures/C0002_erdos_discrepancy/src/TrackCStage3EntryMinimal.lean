@@ -116,6 +116,30 @@ using the typeclass-based `stage3Out` API.
   classical
   simp [stage3OutWith, stage2OutWith, stage3Out, stage3]
 
+/-- Definitional rewrite: the reduced step size stored inside `stage3OutWith inst` is the
+Stage-2 reduced step size produced under the same explicit assumption.
+
+This is the explicit-assumption analogue of the simp lemma `stage3Out_d`.
+-/
+@[simp] theorem stage3OutWith_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutWith inst (f := f) (hf := hf)).d = (stage2OutWith inst (f := f) (hf := hf)).d := by
+  classical
+  -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
+  simpa [Stage3Output.d] using congrArg Stage2Output.d
+    (stage3OutWith_out2 (inst := inst) (f := f) (hf := hf))
+
+/-- Definitional rewrite: the bundled offset parameter stored inside `stage3OutWith inst` is the
+Stage-2 parameter produced under the same explicit assumption.
+
+This is the explicit-assumption analogue of the simp lemma `stage3Out_m`.
+-/
+@[simp] theorem stage3OutWith_m (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutWith inst (f := f) (hf := hf)).m = (stage2OutWith inst (f := f) (hf := hf)).m := by
+  classical
+  -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
+  simpa [Stage3Output.m] using congrArg Stage2Output.m
+    (stage3OutWith_out2 (inst := inst) (f := f) (hf := hf))
+
 /-- The Stage-2 output stored inside `stage3OutOf inst` is definitionally the Stage-2 output
 produced by Stage 2 using the explicit assumption `inst`.
 
