@@ -121,6 +121,15 @@ theorem discOffset_eq_natAbs_apSumFrom_start (out : Stage3Output f) (n : ℕ) :
   simpa [Stage3Output.start, Stage2Output.start] using
     (discOffset_eq_natAbs_apSumFrom_mul (f := f) (d := out.d) (m := out.m) (n := n))
 
+/-- Reverse-direction normal form: the absolute value of the affine-tail nucleus at the Stage-3
+start index is the bundled offset discrepancy wrapper.
+
+This is `discOffset_eq_natAbs_apSumFrom_start` with sides swapped.
+-/
+theorem natAbs_apSumFrom_start_eq_discOffset (out : Stage3Output f) (n : ℕ) :
+    Int.natAbs (apSumFrom f out.start out.d n) = discOffset f out.d out.m n := by
+  simpa using (out.discOffset_eq_natAbs_apSumFrom_start (f := f) (n := n)).symm
+
 /-- Stage 3 already closes the global goal `¬ BoundedDiscrepancy f`.
 
 We intentionally do not store this as a field: it is derived from the Stage-2 output.
