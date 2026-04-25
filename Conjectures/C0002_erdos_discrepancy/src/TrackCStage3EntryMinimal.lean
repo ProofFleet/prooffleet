@@ -142,6 +142,17 @@ This is the explicit-assumption analogue of the simp lemma `stage3Out_m`.
   simpa [Stage3Output.m] using congrArg Stage2Output.m
     (stage3OutWith_out2 (inst := inst) (f := f) (hf := hf))
 
+/-- Definitional rewrite: the Stage-3 affine-tail start index stored inside `stage3OutWith inst` is
+the Stage-2 start index produced under the same explicit assumption.
+
+This lets consumer code rewrite `.start` without reaching through `.out2`.
+-/
+@[simp] theorem stage3OutWith_start (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutWith inst (f := f) (hf := hf)).start =
+      (stage2OutWith inst (f := f) (hf := hf)).start := by
+  classical
+  simp [Stage3Output.start]
+
 /-- The Stage-2 output stored inside `stage3OutOf inst` is definitionally the Stage-2 output
 produced by Stage 2 using the explicit assumption `inst`.
 
