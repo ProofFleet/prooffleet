@@ -95,6 +95,20 @@ theorem start_div_d (out : Stage2Output f) : out.start / out.d = out.m := by
     simpa using out.out1.hd
   simpa [Stage2Output.start] using (Nat.mul_div_left out.m hd')
 
+/-- Adding the start index increases quotients by the offset parameter.
+
+Since `out.start = out.m * out.d`, we have
+`(n + out.start) / out.d = n / out.d + out.m`.
+
+This is occasionally useful in downstream arithmetic normalizations.
+-/
+theorem add_start_div_d (out : Stage2Output f) (n : ℕ) :
+    (n + out.start) / out.d = n / out.d + out.m := by
+  have hd : 0 < out.d := by
+    simpa using out.out1.hd
+  simpa [Stage2Output.start] using
+    (Nat.add_mul_div_right (x := n) (y := out.m) (z := out.d) hd)
+
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 
