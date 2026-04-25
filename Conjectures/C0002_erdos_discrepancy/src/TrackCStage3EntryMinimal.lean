@@ -88,6 +88,8 @@ theorem stage3OutOf_eq_stage3OutWith (inst : Stage2Assumption) (f : ℕ → ℤ)
   classical
   rfl
 
+-- (stage3OutWith_eq_stage3OutOf is declared later to avoid interfering with simp proofs above)
+
 /-!
 ## Definitional rewrites
 
@@ -161,6 +163,17 @@ This lets consumer code rewrite `.start` without reaching through `.out2`.
       (stage2OutWith inst (f := f) (hf := hf)).start := by
   classical
   simp [Stage3Output.start]
+
+/-- `stage3OutWith` agrees definitionally with the explicit-assumption Stage-3 output `stage3OutOf`.
+
+We register this as a simp lemma so downstream developments can rewrite away `stage3OutWith`
+without importing any additional Stage-3 convenience layers.
+-/
+@[simp] theorem stage3OutWith_eq_stage3OutOf (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    stage3OutWith inst (f := f) (hf := hf) = stage3OutOf inst (f := f) (hf := hf) := by
+  classical
+  rfl
 
 /-- The Stage-2 output stored inside `stage3OutOf inst` is definitionally the Stage-2 output
 produced by Stage 2 using the explicit assumption `inst`.
