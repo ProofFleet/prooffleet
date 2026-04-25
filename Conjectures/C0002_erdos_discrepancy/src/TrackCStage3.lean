@@ -117,7 +117,7 @@ theorem add_start_div_d (out : Stage3Output f) (n : ℕ) :
     (n + out.start) / out.d = n / out.d + out.m := by
   have hd : 0 < out.d := by
     -- `out.d` is definitionally the Stage-2 step size.
-    simpa [Stage3Output.d] using (out.out2.hd : out.out2.d > 0)
+    exact out.out2.hd
   -- Rewrite `out.start` to the normal form `out.m * out.d` and apply the standard arithmetic lemma.
   simpa [out.start_eq_m_mul_d] using
     (Nat.add_mul_div_right (x := n) (y := out.m) (z := out.d) hd)
