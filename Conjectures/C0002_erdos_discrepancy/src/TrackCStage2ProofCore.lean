@@ -72,6 +72,17 @@ theorem stage2OutOf_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → �
   let out := stage2OutOf inst (f := f) (hf := hf)
   simpa [out] using (Stage2Output.unboundedDiscOffset (f := f) out)
 
+/-- Explicit-assumption normal form: there is no uniform bound on the bundled offset discrepancy
+family `discOffset f out.d out.m`, at the concrete parameters produced by `stage2OutOf`. -/
+theorem stage2OutOf_not_exists_boundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (stage2OutOf inst (f := f) (hf := hf)).d
+        (stage2OutOf inst (f := f) (hf := hf)).m B := by
+  simpa using
+    (Stage2Output.not_exists_boundedDiscOffset (f := f) (stage2OutOf inst (f := f) (hf := hf)))
+
 /-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
 
