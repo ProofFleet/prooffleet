@@ -72,6 +72,19 @@ theorem stage2OutOf_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → �
   let out := stage2OutOf inst (f := f) (hf := hf)
   simpa [out] using (Stage2Output.unboundedDiscOffset (f := f) out)
 
+/-- Explicit-assumption normal form: Stage 2 implies the reduced sequence is not bounded along
+its fixed step size.
+
+This is the explicit-assumption analogue of `stage2_notBoundedReducedAlong`.
+-/
+theorem stage2OutOf_notBoundedReducedAlong (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ¬ BoundedDiscrepancyAlong
+        (stage2OutOf inst (f := f) (hf := hf)).g
+        (stage2OutOf inst (f := f) (hf := hf)).d := by
+  let out := stage2OutOf inst (f := f) (hf := hf)
+  simpa [out] using (Stage2Output.notBoundedReducedAlong (out := out))
+
 /-- Explicit-assumption normal form: there is no uniform bound on the bundled offset discrepancy
 family `discOffset f out.d out.m`, at the concrete parameters produced by `stage2OutOf`. -/
 theorem stage2OutOf_not_exists_boundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
