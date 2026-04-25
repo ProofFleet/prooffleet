@@ -127,8 +127,7 @@ This is the explicit-assumption analogue of the simp lemma `stage3Out_d`.
     (stage3OutWith inst (f := f) (hf := hf)).d = (stage2OutWith inst (f := f) (hf := hf)).d := by
   classical
   -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
-  simpa [Stage3Output.d] using congrArg Stage2Output.d
-    (stage3OutWith_out2 (inst := inst) (f := f) (hf := hf))
+  simp [Stage3Output.d]
 
 /-- Definitional rewrite: the bundled offset parameter stored inside `stage3OutWith inst` is the
 Stage-2 parameter produced under the same explicit assumption.
@@ -139,8 +138,7 @@ This is the explicit-assumption analogue of the simp lemma `stage3Out_m`.
     (stage3OutWith inst (f := f) (hf := hf)).m = (stage2OutWith inst (f := f) (hf := hf)).m := by
   classical
   -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
-  simpa [Stage3Output.m] using congrArg Stage2Output.m
-    (stage3OutWith_out2 (inst := inst) (f := f) (hf := hf))
+  simp [Stage3Output.m]
 
 /-- Definitional rewrite: the Stage-3 affine-tail start index stored inside `stage3OutWith inst` is
 the Stage-2 start index produced under the same explicit assumption.
@@ -529,7 +527,9 @@ theorem stage3_forall_exists_natAbs_apSumFrom_start_gt_witness_pos (f : ℕ → 
     have hlt : B < 0 := (gt_iff_lt).1 hn0gt
     exact (Nat.not_lt_zero B) hlt
   refine ⟨n, Nat.pos_of_ne_zero hn0, ?_⟩
-  simpa [hout] using hn
+  have hn' := hn
+  simp [hout] at hn'
+  exact hn'
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
