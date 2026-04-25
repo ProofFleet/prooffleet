@@ -108,6 +108,20 @@ theorem start_add_mod_d (out : Stage3Output f) (n : ℕ) :
   rw [Nat.add_comm]
   exact out.add_start_mod_d (f := f) (n := n)
 
+/-- Adding the start index increases quotients by the offset parameter.
+
+Since `out.start = out.m * out.d`, we have
+`(n + out.start) / out.d = n / out.d + out.m`.
+-/
+theorem add_start_div_d (out : Stage3Output f) (n : ℕ) :
+    (n + out.start) / out.d = n / out.d + out.m := by
+  have hd : 0 < out.d := by
+    -- `out.d` is definitionally the Stage-2 step size.
+    simpa [Stage3Output.d] using (out.out2.hd : out.out2.d > 0)
+  -- Rewrite `out.start` to the normal form `out.m * out.d` and apply the standard arithmetic lemma.
+  simpa [out.start_eq_m_mul_d] using
+    (Nat.add_mul_div_right (x := n) (y := out.m) (z := out.d) hd)
+
 /-- Normal form: the bundled offset discrepancy wrapper `discOffset f out.d out.m n` is the
 absolute value of the affine-tail nucleus `apSumFrom f out.start out.d n`.
 
