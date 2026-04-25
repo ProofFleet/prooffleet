@@ -457,6 +457,21 @@ theorem stage3_not_exists_forall_natAbs_apSumFrom_start_le (f : ℕ → ℤ) (hf
   simpa [hout, Stage3Output.start, Stage3Output.d] using
     (Stage3Output.not_exists_forall_natAbs_apSumFrom_start_le (f := f) out)
 
+/-- Variant of `stage3_not_exists_forall_natAbs_apSumFrom_start_le` phrased using the Stage-3
+projection names `.start` and `.d` (rather than reaching through `.out2`).
+
+This is purely a rewrite convenience lemma for downstream stages.
+-/
+theorem stage3_not_exists_forall_natAbs_apSumFrom_start_le' (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+        ∀ n : ℕ,
+          Int.natAbs
+              (apSumFrom f
+                (stage3Out (f := f) (hf := hf)).start
+                (stage3Out (f := f) (hf := hf)).d n) ≤ B := by
+  simpa [Stage3Output.start, Stage3Output.d] using
+    (stage3_not_exists_forall_natAbs_apSumFrom_start_le (f := f) (hf := hf))
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 
