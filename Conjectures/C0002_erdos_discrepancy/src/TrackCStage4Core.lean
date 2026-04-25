@@ -68,13 +68,23 @@ They let downstream stages write `out.d`, `out.m`, etc. without reaching through
 /-- Convenience projection: the bundled offset parameter carried by Stage 4. -/
 @[simp] abbrev m (out : Stage4Output f) : ℕ := out.out2.m
 
-/-- Convenience projection: the affine-tail start index `m*d` carried by Stage 4. -/
-abbrev start (out : Stage4Output f) : ℕ := out.m * out.d
+/-- Convenience projection: the affine-tail start index `m*d` carried by Stage 4.
+
+Design note: we reuse the Stage-2 start-index projection so the arithmetic normal-form lemmas
+(`dvd`, `mod`, `div`) stay consistent across Stage 2/3/4.
+-/
+abbrev start (out : Stage4Output f) : ℕ :=
+  Stage2Output.start out.out2
+
+/-- Normal form: the affine-tail start index is `m*d`. -/
+@[simp] theorem start_eq_m_mul_d (out : Stage4Output f) : out.start = out.m * out.d := by
+  rfl
 
 /-- The affine-tail start index `out.start` is a multiple of the reduced step size `out.d`. -/
 theorem d_dvd_start (out : Stage4Output f) : out.d ∣ out.start := by
-  refine ⟨out.m, ?_⟩
-  simp [Stage4Output.start, Nat.mul_comm]
+  -- Rewrite to the corresponding Stage-2 normal form.
+  change out.out2.d ∣ Stage2Output.start out.out2
+  exact Stage2Output.d_dvd_start (f := f) (out := out.out2)
 
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage4Output f) : out.d > 0 := out.out2.hd
@@ -93,8 +103,8 @@ by the step size `out.d`.
 This mirrors the Stage-2/Stage-3 boundary lemma `start_div_d`.
 -/
 theorem start_div_d (out : Stage4Output f) : out.start / out.d = out.m := by
-  have hd' : 0 < out.d := out.hd
-  simpa [Stage4Output.start] using (Nat.mul_div_left out.m hd')
+  simpa [Stage4Output.start, Stage4Output.d, Stage4Output.m] using
+    (Stage2Output.start_div_d (f := f) (out := out.out2))
 
 /-- Stage 4 output already carries the Stage-3 conclusion `¬ BoundedDiscrepancy f`. -/
 theorem notBounded (out : Stage4Output f) : ¬ BoundedDiscrepancy f :=
