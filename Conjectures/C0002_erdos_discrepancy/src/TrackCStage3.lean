@@ -211,6 +211,30 @@ theorem not_exists_forall_discOffset_le (out : Stage3Output f) :
         (d := out.d) (m := out.m)).1
       hunb
 
+/-- Negation-normal form: there is no uniform bound on the affine-tail nuclei
+`Int.natAbs (apSumFrom f (m*d) d n)` at the deterministic Stage-3 parameters `out.d` and `out.m`.
+
+This is `unboundedDiscOffset` rewritten using
+`Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le`.
+-/
+theorem not_exists_forall_natAbs_apSumFrom_mul_le (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (out.m * out.d) out.d n) ≤ B := by
+  have hunb : UnboundedDiscOffset f out.d out.m := out.unboundedDiscOffset (f := f)
+  exact
+    (_root_.MoltResearch.Tao2015.UnboundedDiscOffset.iff_not_exists_forall_natAbs_apSumFrom_mul_le
+        (f := f) (d := out.d) (m := out.m)).1
+      hunb
+
+/-- Start-index phrasing of `not_exists_forall_natAbs_apSumFrom_mul_le`.
+
+This replaces the explicit arithmetic form `out.m * out.d` with the bundled start index `out.start`
+to reduce noise in downstream stages.
+-/
+theorem not_exists_forall_natAbs_apSumFrom_start_le (out : Stage3Output f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f out.start out.d n) ≤ B := by
+  simpa [Stage3Output.start, Stage2Output.start] using
+    out.not_exists_forall_natAbs_apSumFrom_mul_le (f := f)
+
 /-- Deterministic Stage-3 completion: a Stage-2 output already contains enough information to
 contradict any global boundedness hypothesis.
 

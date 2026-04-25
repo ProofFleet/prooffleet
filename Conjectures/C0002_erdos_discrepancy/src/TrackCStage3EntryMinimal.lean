@@ -430,21 +430,8 @@ theorem stage3_not_exists_forall_natAbs_apSumFrom_start_le (f : ℕ → ℤ) (hf
                 (stage3Out (f := f) (hf := hf)).out2.start
                 (stage3Out (f := f) (hf := hf)).out2.d n) ≤ B := by
   set out := stage3Out (f := f) (hf := hf) with hout
-  have hndisc :
-      ¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f out.d out.m n ≤ B := by
-    -- `stage3_not_exists_forall_discOffset_le_d_m` is stated in terms of `stage3Out`; rewrite via `hout`.
-    simpa [hout] using (stage3_not_exists_forall_discOffset_le_d_m (f := f) (hf := hf))
-
-  intro h
-  rcases h with ⟨B, hB⟩
-  apply hndisc
-  refine ⟨B, ?_⟩
-  intro n
-  have hn : Int.natAbs (apSumFrom f out.start out.d n) ≤ B := by
-    -- Rewrite the `stage3Out`-statement to the local constant `out`.
-    simpa [hout, Stage3Output.start, Stage3Output.d] using hB n
-  -- Rewrite the `discOffset` wrapper to the affine-tail nucleus normal form.
-  simpa [out.discOffset_eq_natAbs_apSumFrom_start (f := f) (n := n)] using hn
+  simpa [hout, Stage3Output.start, Stage3Output.d] using
+    (Stage3Output.not_exists_forall_natAbs_apSumFrom_start_le (f := f) out)
 
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
