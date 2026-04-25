@@ -216,8 +216,9 @@ noncomputable def stage2Stub_out (f : ℕ → ℤ) (hf : IsSignSequence f) : Sta
   classical
   let out1 := stage2Stub_out1 (f := f) (hf := hf)
   have hunbOffset : Tao2015.UnboundedDiscOffset f out1.d out1.m := by
-    -- TODO (real Tao2015 Stage 2): replace `stage2Stub_unboundedDiscOffset_params` with the first verified reduction step.
-    simpa [out1] using (stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf))
+    -- TODO (real Tao2015 Stage 2): replace the axiom stub `stage2Stub_unboundedDiscOffset_params`
+    -- (currently accessed via `stage2Stub_unboundedDiscOffset`) with the first verified reduction step.
+    simpa [out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
   exact Stage2Output.ofUnboundedDiscOffset (f := f) out1 hunbOffset
 
 /-- The Stage-1 reduction packaged inside the default Stage-2 stub output is `stage2Stub_out1`.
