@@ -56,6 +56,25 @@ theorem erdos_discrepancy_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf 
           (Tao2015.stage3Out (f := f) (hf := hf)).m n ≤ B := by
   exact Tao2015.stage3_not_exists_forall_discOffset_le_d_m (f := f) (hf := hf)
 
+/-- Negation-normal-form packaging of the Stage-3 affine-tail witness, stated at the deterministic
+Stage-3 parameters `start` and `d`.
+
+Normal form:
+`¬ ∃ B, ∀ n, Int.natAbs (apSumFrom f (stage3Out ...).start (stage3Out ...).d n) ≤ B`.
+
+This is a small convenience wrapper around
+`Tao2015.stage3_not_exists_forall_natAbs_apSumFrom_start_le'`.
+-/
+theorem erdos_discrepancy_not_exists_forall_natAbs_apSumFrom_start_le (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      ∀ n : ℕ,
+        Int.natAbs
+            (apSumFrom f
+              (Tao2015.stage3Out (f := f) (hf := hf)).start
+              (Tao2015.stage3Out (f := f) (hf := hf)).d n) ≤ B := by
+  exact Tao2015.stage3_not_exists_forall_natAbs_apSumFrom_start_le' (f := f) (hf := hf)
+
 /-- Existential packaging of `erdos_discrepancy_not_exists_boundedDiscOffset`.
 
 Normal form:
