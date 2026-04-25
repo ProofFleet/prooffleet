@@ -132,6 +132,11 @@ theorem add_start_div_d (out : Stage3Output f) (n : ℕ) :
   simpa [out.start_eq_m_mul_d] using
     (Nat.add_mul_div_right (x := n) (y := out.m) (z := out.d) hd)
 
+/-- Variant of `add_start_div_d` with the start index on the left. -/
+theorem start_add_div_d (out : Stage3Output f) (n : ℕ) :
+    (out.start + n) / out.d = n / out.d + out.m := by
+  simpa [Nat.add_comm] using out.add_start_div_d (f := f) (n := n)
+
 /-- Normal form: the bundled offset discrepancy wrapper `discOffset f out.d out.m n` is the
 absolute value of the affine-tail nucleus `apSumFrom f out.start out.d n`.
 
