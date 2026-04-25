@@ -65,7 +65,7 @@ abbrev start (out : Stage3Output f) : ℕ :=
 
 This is just the corresponding Stage-2 projection lemma, rewritten to use the Stage-3 projections.
 -/
-theorem start_eq_m_mul_d (out : Stage3Output f) : out.start = out.m * out.d := by
+@[simp] theorem start_eq_m_mul_d (out : Stage3Output f) : out.start = out.m * out.d := by
   rfl
 
 /-- Normal form: the affine-tail nucleus at `out.start` is the bundled offset nucleus at `out.m`.
