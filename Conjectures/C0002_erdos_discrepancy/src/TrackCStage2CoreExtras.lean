@@ -60,6 +60,24 @@ theorem natAbs_apSumFrom_start_eq_discOffset (out : Stage2Output f) (n : ℕ) :
     Int.natAbs (apSumFrom f out.start out.d n) = discOffset f out.d out.m n := by
   simpa using (out.discOffset_eq_natAbs_apSumFrom_start (f := f) (n := n)).symm
 
+/-- Paper-notation normal form: the absolute value of the affine-tail nucleus at the bundled start
+index `out.start` is the absolute value of the shifted progression sum over `Icc (m+1) (m+n)`.
+
+This is `Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc` rewritten using
+`apSumFrom_start_eq_apSumOffset`.
+-/
+theorem natAbs_apSumFrom_start_eq_natAbs_sum_Icc_offset (out : Stage2Output f) (n : ℕ) :
+    Int.natAbs (apSumFrom f out.start out.d n) =
+      Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) := by
+  calc
+    Int.natAbs (apSumFrom f out.start out.d n) = Int.natAbs (apSumOffset f out.d out.m n) := by
+      simpa using
+        congrArg Int.natAbs (out.apSumFrom_start_eq_apSumOffset (f := f) (n := n))
+    _ =
+        Int.natAbs ((Finset.Icc (out.m + 1) (out.m + n)).sum (fun i => f (i * out.d))) := by
+      simpa using
+        (Tao2015.natAbs_apSumOffset_eq_natAbs_sum_Icc (f := f) (d := out.d) (m := out.m) (n := n))
+
 /-- Normal form: discrepancy of the reduced sequence is the absolute value of the affine-tail nucleus
 `apSumFrom f out.start out.d n`.
 
