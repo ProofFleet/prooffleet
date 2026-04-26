@@ -50,8 +50,10 @@ Track-C output `¬ BoundedDiscrepancy f`.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Delegate to the minimal Stage-3 entry-point API.
-  exact Tao2015.stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)
+  -- Convert from the core Track-C output `¬ BoundedDiscrepancy f` using the verified equivalence.
+  have hnb : ¬ BoundedDiscrepancy f :=
+    erdos_discrepancy_notBounded (f := f) (hf := hf)
+  exact (erdos_discrepancy_forall_hasDiscrepancyAtLeast_iff_notBounded (f := f)).2 hnb
 
 /-- Specialization of `erdos_discrepancy` at a fixed threshold `C`.
 
