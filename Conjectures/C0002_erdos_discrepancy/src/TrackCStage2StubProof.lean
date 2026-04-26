@@ -143,6 +143,23 @@ theorem stage2Stub_not_exists_forall_discOffset_le_params (f : ℕ → ℤ) (hf 
     (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f) (d := 1) (m := 0)).1
       hunb
 
+/-- Witness-positivity normal form of the Stage-2 stub assumption, stated directly for the bundled
+offset discrepancy wrapper `discOffset`.
+
+Normal form:
+`∀ B, ∃ n, n > 0 ∧ discOffset f 1 0 n > B`.
+
+This is `stage2Stub_unboundedDiscOffset_params` rewritten via the generic witness-positivity lemma
+`Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos`.
+-/
+theorem stage2Stub_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discOffset f 1 0 n > B := by
+  have hunb : Tao2015.UnboundedDiscOffset f 1 0 :=
+    stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf)
+  simpa using
+    (Tao2015.UnboundedDiscOffset.forall_exists_discOffset_gt'_witness_pos
+      (f := f) (d := 1) (m := 0) hunb)
+
 /-- Stable `apSumFrom` normal form of the Stage-2 stub assumption.
 
 Normal form:
