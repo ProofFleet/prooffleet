@@ -27,15 +27,9 @@ variable {f : ℕ → ℤ}
 -- Note: the definitional rewrite lemma `Stage2Output.start_eq_m_mul_d` lives in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).
 
-/-- Normal form: the affine-tail nucleus starting at the bundled start index `out.start`
-is the bundled offset nucleus at the bundled offset parameter `out.m`.
-
-This is `Tao2015.apSumFrom_mul_eq_apSumOffset` rewritten using `out.start = out.m * out.d`.
--/
-theorem apSumFrom_start_eq_apSumOffset (out : Stage2Output f) (n : ℕ) :
-    apSumFrom f out.start out.d n = apSumOffset f out.d out.m n := by
-  simpa [Stage2Output.start] using
-    (apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
+-- Note: the core normalization lemma
+-- `Stage2Output.apSumFrom_start_eq_apSumOffset` lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).
 
 /-- Normal form: the bundled offset discrepancy wrapper `discOffset f out.d out.m n` is the
 absolute value of the affine-tail nucleus `apSumFrom f out.start out.d n`.
