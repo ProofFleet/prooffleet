@@ -41,6 +41,14 @@ theorem erdos_discrepancy_forall_hasDiscrepancyAtLeast_iff_notBounded (f : ℕ �
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ ¬ BoundedDiscrepancy f := by
   exact forall_hasDiscrepancyAtLeast_iff_not_boundedDiscrepancy f
 
+/-- Convenience direction of `erdos_discrepancy_forall_hasDiscrepancyAtLeast_iff_notBounded`.
+
+This avoids rewriting with `.2` at the call site.
+-/
+theorem erdos_discrepancy_of_notBounded (f : ℕ → ℤ) (hnb : ¬ BoundedDiscrepancy f) :
+    ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
+  exact (erdos_discrepancy_forall_hasDiscrepancyAtLeast_iff_notBounded (f := f)).2 hnb
+
 /-- Erdős discrepancy theorem.
 
 Every ±1 sequence has unbounded discrepancy on homogeneous arithmetic progressions.
@@ -50,10 +58,10 @@ Track-C output `¬ BoundedDiscrepancy f`.
 -/
 theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, HasDiscrepancyAtLeast f C := by
-  -- Convert from the core Track-C output `¬ BoundedDiscrepancy f` using the verified equivalence.
+  -- Convert from the core Track-C output `¬ BoundedDiscrepancy f`.
   have hnb : ¬ BoundedDiscrepancy f :=
     erdos_discrepancy_notBounded (f := f) (hf := hf)
-  exact (erdos_discrepancy_forall_hasDiscrepancyAtLeast_iff_notBounded (f := f)).2 hnb
+  exact erdos_discrepancy_of_notBounded (f := f) hnb
 
 /-- Specialization of `erdos_discrepancy` at a fixed threshold `C`.
 
