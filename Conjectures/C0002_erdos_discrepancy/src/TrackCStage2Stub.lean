@@ -150,6 +150,21 @@ theorem stage2Stub_unboundedDiscrepancyAlong_params (f : ℕ → ℤ) (hf : IsSi
         (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
   simpa using hunb
 
+/-- Discrepancy-wrapper witness form of the Stage-2 stub assumption.
+
+Normal form:
+`∀ B, ∃ n, n > 0 ∧ discrepancy f 1 n > B`.
+
+This is `stage2Stub_unboundedDiscrepancyAlong_params` rewritten using the generic witness-positivity
+lemma `UnboundedDiscrepancyAlong.forall_exists_discrepancy_gt'_witness_pos`.
+-/
+theorem stage2Stub_forall_exists_discrepancy_gt'_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ discrepancy f 1 n > B := by
+  -- Delegate to the generic unboundedness witness form.
+  exact
+    UnboundedDiscrepancyAlong.forall_exists_discrepancy_gt'_witness_pos
+      (g := f) (d := 1) (stage2Stub_unboundedDiscrepancyAlong_params (f := f) (hf := hf))
+
 /-- Stable boundedness-negation normal form of the Stage-2 stub assumption.
 
 Normal form:
