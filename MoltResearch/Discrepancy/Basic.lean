@@ -357,6 +357,26 @@ def apSupport (d m n : ℕ) : Finset ℕ :=
   (Finset.range n).image (fun i => (m + i + 1) * d)
 
 /-!
+### Support finset up to a cutoff (Track B)
+
+`discOffsetUpTo f d m N` ranges over all lengths `n ≤ N`. For “local surgery” arguments, it is
+useful to name a single finitary support set containing all indices accessed by any such length.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupportUpTo`.
+-/
+
+/-- `apSupportUpTo d m N` is the support finset for AP sums of step `d`, start-offset `m`,
+of any length `n ≤ N`.
+
+Concretely, this is just `apSupport d m N`, since `apSupport d m n ⊆ apSupport d m N` whenever
+`n ≤ N`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupportUpTo`.
+-/
+def apSupportUpTo (d m N : ℕ) : Finset ℕ :=
+  apSupport d m N
+
+/-!
 ### “Offset is just tail” packaging lemma (Track B)
 
 Downstream, we often want to push `apSupport d m n` into the explicit `Finset.range` image form
@@ -441,6 +461,46 @@ lemma mem_apSupport {d m n x : ℕ} :
     x ∈ apSupport d m n ↔ ∃ i < n, x = (m + i + 1) * d := by
   simpa [and_left_comm, and_assoc, and_comm] using
     (mem_apSupport_iff (d := d) (m := m) (n := n) (x := x))
+
+/-!
+### Basic lemmas for `apSupportUpTo` (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupportUpTo`.
+-/
+
+/-- Monotonicity: shorter supports are contained in the cutoff support.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupportUpTo`.
+-/
+lemma apSupport_subset_apSupportUpTo {d m n N : ℕ} (hn : n ≤ N) :
+    apSupport d m n ⊆ apSupportUpTo d m N := by
+  intro x hx
+  rcases (mem_apSupport_iff (d := d) (m := m) (n := n) (x := x)).1 hx with ⟨i, hi, rfl⟩
+  have hiN : i < N := lt_of_lt_of_le hi hn
+  exact (mem_apSupport_iff (d := d) (m := m) (n := N) (x := (m + i + 1) * d)).2 ⟨i, hiN, rfl⟩
+
+/-- Stable-surface membership characterization for `apSupportUpTo`.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupportUpTo`.
+-/
+lemma mem_apSupportUpTo {d m N x : ℕ} :
+    x ∈ apSupportUpTo d m N ↔ ∃ i < N, x = (m + i + 1) * d := by
+  unfold apSupportUpTo
+  simpa using (mem_apSupport (d := d) (m := m) (n := N) (x := x))
+
+/-- Cardinality bound: `apSupportUpTo d m N` contains at most `N` indices.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupportUpTo`.
+-/
+lemma card_apSupportUpTo_le (d m N : ℕ) : (apSupportUpTo d m N).card ≤ N := by
+  simpa [apSupportUpTo] using (card_apSupport_le (d := d) (m := m) (n := N))
+
+/-- Exact cardinality when the step is positive.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `apSupportUpTo`.
+-/
+lemma card_apSupportUpTo_eq (d m N : ℕ) (hd : d > 0) : (apSupportUpTo d m N).card = N := by
+  simpa [apSupportUpTo] using (card_apSupport_eq (d := d) (m := m) (n := N) hd)
 
 /-!
 ### Canonical membership normal form (Track B)

@@ -101,6 +101,29 @@ example (g : ℕ → ℤ) (h : ∀ x ∈ apSupport d m n, f x = g x) :
   simpa using (discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) h)
 
 /-!
+### NEW (Track B): stable-surface regression for `apSupportUpTo`
+
+Compile-only regression tests: downstream code should be able to talk about the indices touched by
+any length `n ≤ N` without re-opening `Finset.range` / `Finset.image` algebra.
+-/
+
+-- (1) Monotonicity: a shorter support is contained in the cutoff support.
+example (N : ℕ) (hN : n ≤ N) : apSupport d m n ⊆ apSupportUpTo d m N := by
+  simpa using (apSupport_subset_apSupportUpTo (d := d) (m := m) (n := n) (N := N) hN)
+
+-- (2) Membership: stable-surface existential normal form.
+example (N x : ℕ) :
+    x ∈ apSupportUpTo d m N ↔ ∃ i < N, x = (m + i + 1) * d := by
+  simpa using (mem_apSupportUpTo (d := d) (m := m) (N := N) (x := x))
+
+-- (3) Cardinality bounds.
+example (N : ℕ) : (apSupportUpTo d m N).card ≤ N := by
+  simpa using (card_apSupportUpTo_le (d := d) (m := m) (N := N))
+
+example (N : ℕ) (hd : d > 0) : (apSupportUpTo d m N).card = N := by
+  simpa using (card_apSupportUpTo_eq (d := d) (m := m) (N := N) hd)
+
+/-!
 ### NEW (Track B): step/offset coercion normal form (`discOffset`)
 
 Compile-only regression test: if the input sequence is shifted by a multiple of the step `d`, the
