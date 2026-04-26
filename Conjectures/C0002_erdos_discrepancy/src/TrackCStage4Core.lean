@@ -86,6 +86,13 @@ theorem d_dvd_start (out : Stage4Output f) : out.d ∣ out.start := by
   change out.out2.d ∣ Stage2Output.start out.out2
   exact Stage2Output.d_dvd_start (f := f) (out := out.out2)
 
+/-- The affine-tail start index has remainder `0` modulo the reduced step size `out.d`.
+
+This is often the most convenient normal form of `d_dvd_start`.
+-/
+theorem start_mod_d (out : Stage4Output f) : out.start % out.d = 0 := by
+  exact Nat.mod_eq_zero_of_dvd out.d_dvd_start
+
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage4Output f) : out.d > 0 := out.out2.hd
 
