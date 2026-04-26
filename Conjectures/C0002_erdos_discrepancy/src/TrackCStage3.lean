@@ -52,6 +52,13 @@ This is just the Stage-2 field `out.out2.hd` rewritten to use the Stage-3 projec
 theorem d_pos (out : Stage3Output f) : 0 < out.d := by
   exact out.out2.hd
 
+/-- Convenience lemma: the reduced step size packaged in Stage 3 is nonzero.
+
+This is a tiny wrapper around `d_pos`; some arithmetic lemmas prefer the side condition `d ≠ 0`.
+-/
+theorem d_ne_zero (out : Stage3Output f) : out.d ≠ 0 := by
+  exact Nat.ne_of_gt out.d_pos
+
 /-- Convenience projection: the reduced sequence packaged in Stage 3. -/
 @[simp] abbrev g (out : Stage3Output f) : ℕ → ℤ :=
   out.out2.g
