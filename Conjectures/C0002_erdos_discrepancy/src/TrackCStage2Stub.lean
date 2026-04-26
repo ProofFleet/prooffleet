@@ -201,6 +201,24 @@ theorem stage2Stub_not_exists_forall_natAbs_apSumFrom_zero_one_le (f : ℕ → �
         (f := f) (d := 1) (m := 0)).1
       hunb
 
+/-- Witness form of the Stage-2 stub assumption for the affine-tail nuclei `apSumFrom f 0 1 n`.
+
+Normal form:
+`∀ B, ∃ n, n > 0 ∧ Int.natAbs (apSumFrom f 0 1 n) > B`.
+
+This is `stage2Stub_unboundedDiscOffset_params` rewritten using
+`Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos`.
+-/
+theorem stage2Stub_forall_exists_natAbs_apSumFrom_zero_one_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ B : ℕ, ∃ n : ℕ, n > 0 ∧ Int.natAbs (apSumFrom f 0 1 n) > B := by
+  have hunb : Tao2015.UnboundedDiscOffset f 1 0 :=
+    stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf)
+  -- `m*d` simplifies to `0` at the stub parameters `m = 0`, `d = 1`.
+  simpa using
+    (Tao2015.UnboundedDiscOffset.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
+        (f := f) (d := 1) (m := 0) hunb)
+
 /-- Paper-notation normal form of the Stage-2 stub assumption.
 
 Normal form:
