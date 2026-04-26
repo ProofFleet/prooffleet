@@ -566,6 +566,27 @@ theorem stage3_forall_exists_natAbs_apSumFrom_start_gt_witness_pos (f : ℕ → 
     simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m, Stage2Output.start] using hn
   simpa [hout] using hn'
 
+/-- Tail-nucleus witness form at the deterministic Stage-3 parameters (without the `n > 0` side
+condition).
+
+Normal form:
+`∀ B, ∃ n, Int.natAbs (apSumFrom f start d n) > B`.
+
+This is a small convenience corollary of
+`stage3_forall_exists_natAbs_apSumFrom_start_gt_witness_pos`.
+-/
+theorem stage3_forall_exists_natAbs_apSumFrom_start_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        Int.natAbs
+            (apSumFrom f
+              (stage3Out (f := f) (hf := hf)).start
+              (stage3Out (f := f) (hf := hf)).d n) > B := by
+  intro B
+  rcases stage3_forall_exists_natAbs_apSumFrom_start_gt_witness_pos (f := f) (hf := hf) B with
+      ⟨n, _hnpos, hn⟩
+  exact ⟨n, hn⟩
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `d > 0` such that the
 bundled offset discrepancy family `discOffset f d m` is unbounded.
 
