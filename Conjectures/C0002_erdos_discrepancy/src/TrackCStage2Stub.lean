@@ -81,35 +81,6 @@ without touching the `Stage2Assumption` API.
 noncomputable def stage2Stub_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) : Tao2015.ReductionOutput f :=
   Tao2015.ReductionOutput.ofShift (f := f) (hf := hf) (d := 1) (m := 0) (hd := Nat.succ_pos 0)
 
-/-- The reduced sequence in the default stub reduction is just the original sequence.
-
-This is the `g_eq` contract of `ReductionOutput.ofShift` specialized to the deterministic stub
-parameters `d = 1` and `m = 0`.
--/
-@[simp] theorem stage2Stub_out1_g (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
-    (stage2Stub_out1 (f := f) (hf := hf)).g k = f k := by
-  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
-
-/-- Function-level rewrite for the reduced sequence in the default stub reduction.
-
-This is `stage2Stub_out1_g` bundled as an equality of functions; it is convenient when rewriting
-a whole `g` argument (rather than pointwise applications `g k`).
--/
-@[simp] theorem stage2Stub_out1_g_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage2Stub_out1 (f := f) (hf := hf)).g = f := by
-  funext k
-  simp [stage2Stub_out1_g]
-
-/-- The default stub reduction uses step size `d = 1`. -/
-@[simp] theorem stage2Stub_out1_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage2Stub_out1 (f := f) (hf := hf)).d = 1 := by
-  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
-
-/-- The default stub reduction uses offset parameter `m = 0`. -/
-@[simp] theorem stage2Stub_out1_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage2Stub_out1 (f := f) (hf := hf)).m = 0 := by
-  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
-
 /-- The single non-verified assumption of Track C (Stage 2 of Tao 2015), in parameter-normal form.
 
 Since `stage2Stub_out1` is wired with the deterministic parameters `d = 1` and `m = 0`, the
@@ -130,7 +101,8 @@ theorem stage2Stub_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
     Tao2015.UnboundedDiscOffset f
       (stage2Stub_out1 (f := f) (hf := hf)).d
       (stage2Stub_out1 (f := f) (hf := hf)).m := by
-  simpa using (stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf))
+  simpa [stage2Stub_out1, Tao2015.ReductionOutput.ofShift] using
+    (stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf))
 
 /-!
 ## Derived normal forms (moved)
@@ -159,32 +131,6 @@ noncomputable def stage2Stub_out (f : ℕ → ℤ) (hf : IsSignSequence f) : Sta
     -- (currently accessed via `stage2Stub_unboundedDiscOffset`) with the first verified reduction step.
     simpa [out1] using (stage2Stub_unboundedDiscOffset (f := f) (hf := hf))
   exact Stage2Output.ofUnboundedDiscOffset (f := f) out1 hunbOffset
-
-/-- The Stage-1 reduction packaged inside the default Stage-2 stub output is `stage2Stub_out1`.
-
-This lemma is intentionally tiny: it lets downstream code reason about the reduction parameters
-(`d`, `m`, `g`) carried by the stub without unfolding `stage2Stub_out` (and therefore without
-exposing the axiom stub in definitional reductions).
--/
-@[simp] theorem stage2Stub_out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage2Stub_out (f := f) (hf := hf)).out1 = stage2Stub_out1 (f := f) (hf := hf) := by
-  classical
-  simp [stage2Stub_out]
-
-/-- The default stub Stage-2 output uses step size `d = 1` in its Stage-1 reduction. -/
-@[simp] theorem stage2Stub_out_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage2Stub_out (f := f) (hf := hf)).out1.d = 1 := by
-  simp
-
-/-- The reduced sequence in the default stub Stage-2 output is just the original sequence. -/
-@[simp] theorem stage2Stub_out_g (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
-    (stage2Stub_out (f := f) (hf := hf)).out1.g k = f k := by
-  simp [stage2Stub_out1_g]
-
-/-- The default stub Stage-2 output uses offset parameter `m = 0` in its Stage-1 reduction. -/
-@[simp] theorem stage2Stub_out_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    (stage2Stub_out (f := f) (hf := hf)).out1.m = 0 := by
-  simp [stage2Stub_out1_m]
 
 instance (priority := 10000) instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by

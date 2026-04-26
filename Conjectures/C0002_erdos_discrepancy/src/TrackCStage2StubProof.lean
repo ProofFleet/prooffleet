@@ -17,6 +17,67 @@ namespace MoltResearch
 
 namespace Tao2015
 
+/-!
+## Stub reduction definitional rewrites
+
+These simp lemmas were previously in `TrackCStage2Stub.lean`, but they are not needed by the
+hard-gate Stage-3 pipeline. We keep them here so `TrackCStage2Stub` stays minimal.
+-/
+
+/-- The reduced sequence in the default stub reduction is just the original sequence.
+
+This is the `g_eq` contract of `ReductionOutput.ofShift` specialized to the deterministic stub
+parameters `d = 1` and `m = 0`.
+-/
+@[simp] theorem stage2Stub_out1_g (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    (stage2Stub_out1 (f := f) (hf := hf)).g k = f k := by
+  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
+
+/-- Function-level rewrite for the reduced sequence in the default stub reduction.
+
+This is `stage2Stub_out1_g` bundled as an equality of functions; it is convenient when rewriting
+a whole `g` argument (rather than pointwise applications `g k`).
+-/
+@[simp] theorem stage2Stub_out1_g_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out1 (f := f) (hf := hf)).g = f := by
+  funext k
+  simp [stage2Stub_out1_g]
+
+/-- The default stub reduction uses step size `d = 1`. -/
+@[simp] theorem stage2Stub_out1_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out1 (f := f) (hf := hf)).d = 1 := by
+  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
+
+/-- The default stub reduction uses offset parameter `m = 0`. -/
+@[simp] theorem stage2Stub_out1_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out1 (f := f) (hf := hf)).m = 0 := by
+  simp [stage2Stub_out1, Tao2015.ReductionOutput.ofShift]
+
+/-- The Stage-1 reduction packaged inside the default Stage-2 stub output is `stage2Stub_out1`.
+
+This lemma is intentionally tiny: it lets downstream code reason about the reduction parameters
+(`d`, `m`, `g`) carried by the stub without unfolding `stage2Stub_out`.
+-/
+@[simp] theorem stage2Stub_out_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out (f := f) (hf := hf)).out1 = stage2Stub_out1 (f := f) (hf := hf) := by
+  classical
+  simp [stage2Stub_out]
+
+/-- The default stub Stage-2 output uses step size `d = 1` in its Stage-1 reduction. -/
+@[simp] theorem stage2Stub_out_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out (f := f) (hf := hf)).out1.d = 1 := by
+  simp
+
+/-- The reduced sequence in the default stub Stage-2 output is just the original sequence. -/
+@[simp] theorem stage2Stub_out_g (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    (stage2Stub_out (f := f) (hf := hf)).out1.g k = f k := by
+  simp [stage2Stub_out1_g]
+
+/-- The default stub Stage-2 output uses offset parameter `m = 0` in its Stage-1 reduction. -/
+@[simp] theorem stage2Stub_out_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out (f := f) (hf := hf)).out1.m = 0 := by
+  simp [stage2Stub_out1_m]
+
 /-- Parameter-normal form of the Stage-2 stub assumption as fixed-step unboundedness.
 
 This is `stage2Stub_unboundedDiscOffset_params` transported across the Stage-1 contract
