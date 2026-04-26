@@ -232,6 +232,11 @@ exposing the axiom stub in definitional reductions).
   classical
   simp [stage2Stub_out]
 
+/-- The default stub Stage-2 output uses step size `d = 1` in its Stage-1 reduction. -/
+@[simp] theorem stage2Stub_out_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out (f := f) (hf := hf)).out1.d = 1 := by
+  simp
+
 instance (priority := 10000) instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
     exact ⟨stage2Stub_out (f := f) (hf := hf)⟩
