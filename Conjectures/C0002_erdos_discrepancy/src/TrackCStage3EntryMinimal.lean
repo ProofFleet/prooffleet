@@ -298,6 +298,12 @@ theorem stage3Out_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).m := by
   exact Stage3Output.start_div_d (f := f) (out := stage3Out (f := f) (hf := hf))
 
+/-- Explicit-assumption-with-local-instance analogue of `stage3Out_start_div_d`. -/
+theorem stage3OutWith_start_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage3OutWith inst (f := f) (hf := hf)).start / (stage3OutWith inst (f := f) (hf := hf)).d =
+      (stage3OutWith inst (f := f) (hf := hf)).m := by
+  exact Stage3Output.start_div_d (f := f) (out := stage3OutWith inst (f := f) (hf := hf))
+
 /-- Explicit-assumption analogue of `stage3Out_start_div_d`. -/
 theorem stage3OutOf_start_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3OutOf inst (f := f) (hf := hf)).start / (stage3OutOf inst (f := f) (hf := hf)).d =
