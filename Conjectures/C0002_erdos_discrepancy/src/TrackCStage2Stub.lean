@@ -237,6 +237,16 @@ exposing the axiom stub in definitional reductions).
     (stage2Stub_out (f := f) (hf := hf)).out1.d = 1 := by
   simp
 
+/-- The reduced sequence in the default stub Stage-2 output is just the original sequence. -/
+@[simp] theorem stage2Stub_out_g (f : ℕ → ℤ) (hf : IsSignSequence f) (k : ℕ) :
+    (stage2Stub_out (f := f) (hf := hf)).out1.g k = f k := by
+  simp [stage2Stub_out1_g]
+
+/-- The default stub Stage-2 output uses offset parameter `m = 0` in its Stage-1 reduction. -/
+@[simp] theorem stage2Stub_out_m (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    (stage2Stub_out (f := f) (hf := hf)).out1.m = 0 := by
+  simp [stage2Stub_out1_m]
+
 instance (priority := 10000) instStage2Assumption : Stage2Assumption where
   stage2_nonempty f hf := by
     exact ⟨stage2Stub_out (f := f) (hf := hf)⟩
