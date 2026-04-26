@@ -180,6 +180,12 @@ The goal is to pair verified artifacts with learning scaffolding.
   For unfold-free membership reasoning, use `mem_apSupport_iff`, or the binder-notation variant `mem_apSupport` when you want to feed the result directly to `simp`/`rcases` as `∃ i < n, ...`.
   If you want the *paper endpoint convention* (`m < i ∧ i ≤ m+n` with accessed index `i*d`), use `mem_apSupport_iff_exists_endpoints`.
   If you want to expose the underlying `Finset.range` image form of the support (to map/filter/count over it) without unfolding the definition, rewrite via `apSupport_eq_image_range`.
+- **API note (`apSupportUpTo` for max-length families):** when you need a single support set covering all `apSupport d m n` with
+  `n ≤ N` (e.g. to control rewrites for `discOffsetUpTo f d m N`), use `apSupportUpTo d m N`.
+  It is definitionally `apSupport d m N`, and the stable surface provides:
+  - `apSupport_subset_apSupportUpTo` for monotonicity (`n ≤ N`),
+  - `mem_apSupportUpTo` for the existential membership normal form, and
+  - `card_apSupportUpTo_le` / `card_apSupportUpTo_eq` for cardinality bounds.
 - **API note (`apSupport` canonical membership):** if your membership goal is already in the normal form
   `((m + i + 1) * d) ∈ apSupport d m n`, and you have `hd : d > 0`, then `simp [mem_apSupport_index_iff (m := m) (n := n) (i := i) hd]` reduces it to the expected bound `i < n`.
 - **API note (`apSupport` concatenation):** to split the support of a length `(n+k)` block into its first `n` and last `k` pieces, use
