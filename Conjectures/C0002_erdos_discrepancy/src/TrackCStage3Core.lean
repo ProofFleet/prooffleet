@@ -128,13 +128,13 @@ theorem g_eq_fun (out : Stage3Output f) :
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage3Output f) : out.d > 0 := out.out2.hd
 
-/-- Convenience lemma: the reduced step size is nonzero.
+/-!
+Note: `Stage3Output.d_ne_zero` is already defined in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
 
-We intentionally delegate this to the Stage-2 boundary API lemma (`Stage2Output.d_ne_zero`), so
-Stage 3 doesn't re-prove arithmetic facts about its projections.
+We avoid re-declaring it here so `TrackCStage3Core` can be imported alongside `TrackCStage3`
+without name clashes.
 -/
-theorem d_ne_zero (out : Stage3Output f) : out.d ≠ 0 := by
-  simpa [Stage3Output.d] using (Stage2Output.d_ne_zero (f := f) out.out2)
 
 /-- Convenience lemma: the reduced step size is at least `1`.
 

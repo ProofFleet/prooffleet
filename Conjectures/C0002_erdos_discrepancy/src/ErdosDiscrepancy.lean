@@ -55,18 +55,6 @@ theorem erdos_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     erdos_discrepancy_notBounded (f := f) (hf := hf)
   exact (erdos_discrepancy_forall_hasDiscrepancyAtLeast_iff_notBounded (f := f)).2 hnb
 
-/-- Witness form of the Erdős discrepancy theorem.
-
-Normal form:
-`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
-
-This is a tiny wrapper around the Stage-3 boundary lemma
-`Tao2015.stage3_forall_exists_discrepancy_gt`.
--/
-theorem erdos_discrepancy_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
-  exact Tao2015.stage3_forall_exists_discrepancy_gt (f := f) (hf := hf)
-
 /-- Specialization of `erdos_discrepancy` at a fixed threshold `C`.
 
 This is a tiny convenience lemma: it avoids an extra application at the call site.
