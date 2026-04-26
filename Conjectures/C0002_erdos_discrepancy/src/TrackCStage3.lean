@@ -132,10 +132,9 @@ Since `out.start = out.m * out.d`, we have
 -/
 theorem add_start_div_d (out : Stage3Output f) (n : ℕ) :
     (n + out.start) / out.d = n / out.d + out.m := by
-  have hd : 0 < out.d := out.d_pos (f := f)
-  -- Rewrite `out.start` to the normal form `out.m * out.d` and apply the standard arithmetic lemma.
-  simpa [out.start_eq_m_mul_d] using
-    (Nat.add_mul_div_right (x := n) (y := out.m) (z := out.d) hd)
+  -- Delegate to the corresponding Stage-2 arithmetic normalization lemma.
+  simpa [Stage3Output.start, Stage3Output.d, Stage3Output.m] using
+    (Stage2Output.add_start_div_d (f := f) (out := out.out2) (n := n))
 
 /-- Variant of `add_start_div_d` with the start index on the left. -/
 theorem start_add_div_d (out : Stage3Output f) (n : ℕ) :
