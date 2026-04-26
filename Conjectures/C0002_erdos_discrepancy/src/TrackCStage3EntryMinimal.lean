@@ -367,6 +367,17 @@ theorem stage3Out_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [Stage3Output.g] using
     (Stage2Output.hg (f := f) (out := (stage3Out (f := f) (hf := hf)).out2))
 
+/-- Convenience lemma: the explicit-assumption-with-local-instance Stage-3 reduced sequence is a
+sign sequence.
+
+This is the `stage3OutWith` analogue of `stage3Out_hg`.
+-/
+theorem stage3OutWith_hg (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    IsSignSequence (stage3OutWith inst (f := f) (hf := hf)).g := by
+  classical
+  simpa [Stage3Output.g] using
+    (Stage2Output.hg (f := f) (out := (stage3OutWith inst (f := f) (hf := hf)).out2))
+
 /-- Convenience lemma: the explicit-assumption-with-local-instance Stage-3 reduced step size is at
 least `1`.
 
