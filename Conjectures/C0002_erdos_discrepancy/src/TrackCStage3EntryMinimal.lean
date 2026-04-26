@@ -677,6 +677,24 @@ theorem stage3_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_mul_le
         (d := d) (m := m)).1
       hunb
 
+/-- Existential packaging variant of `stage3_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_mul_le`
+phrased using a start index `start` rather than an offset parameter `m`.
+
+Normal form:
+`∃ d start, 1 ≤ d ∧ ¬ ∃ B, ∀ n, Int.natAbs (apSumFrom f start d n) ≤ B`.
+
+This is occasionally the most convenient boundary surface statement for downstream stages that
+want to reason about affine tails without first introducing (or remembering) the offset parameter.
+-/
+theorem stage3_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_start_le
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d start : ℕ, 1 ≤ d ∧
+      ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f start d n) ≤ B := by
+  rcases stage3_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_mul_le (f := f) (hf := hf) with
+      ⟨d, m, hd, h⟩
+  refine ⟨d, m * d, hd, ?_⟩
+  simpa using h
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
 no bundled offset bound at those parameters.
 
