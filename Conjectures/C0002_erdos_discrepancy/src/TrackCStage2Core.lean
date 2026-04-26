@@ -160,6 +160,19 @@ theorem hasDiscrepancyAtLeast (out : Stage2Output f) (C : ℕ) : HasDiscrepancyA
 ## Offset-discrepancy normal forms used by Stage 3
 -/
 
+/-- Normal form: the affine-tail nucleus starting at the bundled start index `out.start`
+is the bundled offset nucleus at the bundled offset parameter `out.m`.
+
+This is `Tao2015.apSumFrom_mul_eq_apSumOffset` rewritten using `out.start = out.m * out.d`.
+
+We keep this lemma in the core surface because Stage 3 imports only `TrackCStage2Core.lean`, and
+this rewrite is a common normalization step when consuming Stage 2 through Stage 3.
+-/
+theorem apSumFrom_start_eq_apSumOffset (out : Stage2Output f) (n : ℕ) :
+    apSumFrom f out.start out.d n = apSumOffset f out.d out.m n := by
+  simpa [Stage2Output.start] using
+    (apSumFrom_mul_eq_apSumOffset (f := f) (d := out.d) (m := out.m) (n := n))
+
 /-- Stage 2 output implies unbounded bundled offset discrepancy for the original sequence
 at the concrete parameters `out.d` and `out.m`.
 
