@@ -122,10 +122,8 @@ theorem boundedDiscOffset_iff_forall_natAbs_apSumFrom_start_le (out : Stage2Outp
 -- Note: `Stage2Output.add_start_div_d` now lives in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).
 
-/-- Variant of `add_start_div_d` with the start index on the left. -/
-theorem start_add_div_d (out : Stage2Output f) (n : ℕ) :
-    (out.start + n) / out.d = n / out.d + out.m := by
-  simpa [Nat.add_comm] using out.add_start_div_d (f := f) (n := n)
+-- Note: `Stage2Output.start_add_div_d` now lives in
+-- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).
 
 -- Note: `Stage2Output.start_div_d` lives in
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core` (hard-gate surface).

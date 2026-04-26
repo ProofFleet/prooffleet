@@ -109,6 +109,11 @@ theorem add_start_div_d (out : Stage2Output f) (n : ℕ) :
   simpa [Stage2Output.start] using
     (Nat.add_mul_div_right (x := n) (y := out.m) (z := out.d) hd)
 
+/-- Variant of `add_start_div_d` with the start index on the left. -/
+theorem start_add_div_d (out : Stage2Output f) (n : ℕ) :
+    (out.start + n) / out.d = n / out.d + out.m := by
+  simpa [Nat.add_comm] using out.add_start_div_d (f := f) (n := n)
+
 /-- Convenience projection: positivity of the reduced step size. -/
 @[simp] abbrev hd (out : Stage2Output f) : out.d > 0 := out.out1.hd
 
