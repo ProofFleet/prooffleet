@@ -45,6 +45,13 @@ This is occasionally useful when later stages want access to the deterministic p
 @[simp] abbrev d (out : Stage3Output f) : ℕ :=
   out.out2.d
 
+/-- Positivity of the reduced step size packaged in Stage 3.
+
+This is just the Stage-2 field `out.out2.hd` rewritten to use the Stage-3 projection `out.d`.
+-/
+theorem d_pos (out : Stage3Output f) : 0 < out.d := by
+  exact out.out2.hd
+
 /-- Convenience projection: the reduced sequence packaged in Stage 3. -/
 @[simp] abbrev g (out : Stage3Output f) : ℕ → ℤ :=
   out.out2.g
@@ -125,9 +132,7 @@ Since `out.start = out.m * out.d`, we have
 -/
 theorem add_start_div_d (out : Stage3Output f) (n : ℕ) :
     (n + out.start) / out.d = n / out.d + out.m := by
-  have hd : 0 < out.d := by
-    -- `out.d` is definitionally the Stage-2 step size.
-    exact out.out2.hd
+  have hd : 0 < out.d := out.d_pos (f := f)
   -- Rewrite `out.start` to the normal form `out.m * out.d` and apply the standard arithmetic lemma.
   simpa [out.start_eq_m_mul_d] using
     (Nat.add_mul_div_right (x := n) (y := out.m) (z := out.d) hd)
