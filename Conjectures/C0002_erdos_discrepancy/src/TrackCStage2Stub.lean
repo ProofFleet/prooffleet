@@ -166,6 +166,22 @@ theorem stage2Stub_not_exists_boundedDiscOffset_params (f : ℕ → ℤ) (hf : I
     (Tao2015.unboundedDiscOffset_iff_not_exists_boundedDiscOffset (f := f) (d := 1) (m := 0)).1
       hunb
 
+/-- Stable `discOffset` boundedness-negation normal form of the Stage-2 stub assumption.
+
+Normal form:
+`¬ ∃ B, ∀ n, discOffset f 1 0 n ≤ B`.
+
+This is `stage2Stub_unboundedDiscOffset_params` rewritten via
+`Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le`.
+-/
+theorem stage2Stub_not_exists_forall_discOffset_le_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ, ∀ n : ℕ, discOffset f 1 0 n ≤ B := by
+  have hunb : Tao2015.UnboundedDiscOffset f 1 0 :=
+    stage2Stub_unboundedDiscOffset_params (f := f) (hf := hf)
+  exact
+    (Tao2015.unboundedDiscOffset_iff_not_exists_forall_discOffset_le (f := f) (d := 1) (m := 0)).1
+      hunb
+
 /-- Stable `apSumFrom` normal form of the Stage-2 stub assumption.
 
 Normal form:
