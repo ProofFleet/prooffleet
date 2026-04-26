@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy
 import MoltResearch.Discrepancy.ApSumSimpAudit
 import MoltResearch.Discrepancy.NormalFormPipelineExample
 import MoltResearch.Discrepancy.SurfaceAuditPipelineExample
+import MoltResearch.Discrepancy.NucleusSurfacePipelineExample
 import MoltResearch.Discrepancy.MiniPipelineMaxExample
 import MoltResearch.Discrepancy.ResidueMaxPipelineExample
 import MoltResearch.Discrepancy.SupportEditPipelineExample
