@@ -13,6 +13,42 @@ Track-C hard-gate build compiles quickly.
 
 namespace MoltResearch
 
+/-!
+## Witness-form wrappers (Stage 3 → common surface normal forms)
+
+These are small convenience wrappers around the Stage-3 entry-point API.
+They previously lived in `Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy`, but were moved
+here so the Track‑C hard‑gate build stays minimal.
+-/
+
+/-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
+
+Normal form:
+`∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`.
+-/
+theorem erdos_discrepancy_forall_exists_d_ge_one_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
+  exact Tao2015.stage3_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf)
+
+/-- Witness form of `erdos_discrepancy` using the `discrepancy` wrapper.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`.
+-/
+theorem erdos_discrepancy_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  exact Tao2015.stage3_forall_exists_discrepancy_gt (f := f) (hf := hf)
+
+/-- Positive-length witness form of `erdos_discrepancy_forall_exists_discrepancy_gt`.
+
+Normal form:
+`∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`.
+-/
+theorem erdos_discrepancy_forall_exists_discrepancy_gt_witness_pos (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
+  exact Tao2015.stage3_forall_exists_discrepancy_gt_witness_pos (f := f) (hf := hf)
+
 /-- Paper-notation witness form for the concrete Stage-3 offset parameters.
 
 Normal form:
@@ -91,7 +127,7 @@ This is the most pipeline-friendly surface statement:
 -/
 theorem erdos_discrepancy_apSum (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C := by
-  -- Reuse the hard-gate lemma from `ErdosDiscrepancy.lean`.
+  -- Reuse the Stage-3 wrapper lemma (now kept out of the hard-gate module).
   exact erdos_discrepancy_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf)
 
 /-- Variant of `erdos_discrepancy_apSum` writing the step-size side condition as `d > 0`.
@@ -122,7 +158,7 @@ Normal form:
 -/
 theorem erdos_discrepancy_discrepancy (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
-  -- Reuse the hard-gate lemma from `ErdosDiscrepancy.lean`.
+  -- Reuse the Stage-3 wrapper lemma (now kept out of the hard-gate module).
   exact erdos_discrepancy_forall_exists_discrepancy_gt (f := f) (hf := hf)
 
 /-- Variant of `erdos_discrepancy_discrepancy` writing the step-size side condition as `d ≥ 1`.
@@ -152,7 +188,7 @@ This is sometimes convenient when downstream stages want to rule out the degener
 -/
 theorem erdos_discrepancy_discrepancy_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ n > 0 ∧ discrepancy f d n > C := by
-  -- Reuse the hard-gate lemma from `ErdosDiscrepancy.lean`.
+  -- Reuse the Stage-3 wrapper lemma (now kept out of the hard-gate module).
   exact erdos_discrepancy_forall_exists_discrepancy_gt_witness_pos (f := f) (hf := hf)
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
@@ -178,8 +214,104 @@ theorem erdos_discrepancy_exists_params_d_ne_zero_unboundedDiscOffset (f : ℕ �
     ⟨d, m, hd, hunb⟩
   exact ⟨d, m, Nat.ne_of_gt hd, hunb⟩
 
--- Note: the packaging lemma `erdos_discrepancy_exists_params_one_le_unboundedDiscOffset` lives in
--- `Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy`.
+/-- Variant of `erdos_discrepancy_exists_params_unboundedDiscOffset` packaging the step-size side
+condition as `1 ≤ d`.
+
+Many later stages prefer the normal form `1 ≤ d` rather than `d > 0`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ Tao2015.UnboundedDiscOffset f d m := by
+  exact Tao2015.stage3_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf)
+
+/-- Existential packaging version of the stable boundedness-negation normal form.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ¬ ∃ B, BoundedDiscOffset f d m B`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_not_exists_boundedDiscOffset (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ ¬ ∃ B : ℕ, BoundedDiscOffset f d m B := by
+  exact Tao2015.stage3_exists_params_one_le_not_exists_boundedDiscOffset (f := f) (hf := hf)
+
+/-- Existential packaging of the affine-tail boundedness-negation normal form.
+
+Normal form:
+`∃ d m, 1 ≤ d ∧ ¬ ∃ B, ∀ n, Int.natAbs (apSumFrom f (m*d) d n) ≤ B`.
+-/
+theorem erdos_discrepancy_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_mul_le
+    (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧
+      ¬ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) ≤ B := by
+  exact Tao2015.stage3_exists_params_one_le_not_exists_forall_natAbs_apSumFrom_mul_le
+    (f := f) (hf := hf)
+
+/-!
+## Negation-normal-form wrappers at deterministic Stage-3 parameters
+
+These package the unboundedness conclusions in stable boundedness-negation normal forms, using the
+deterministic Stage‑3 parameters bundled in `Tao2015.stage3Out`.
+-/
+
+/-- Stable boundedness-negation normal form at the deterministic Stage-3 parameters.
+
+Normal form:
+`¬ ∃ B, BoundedDiscOffset f (stage3Out ...).d (stage3Out ...).m B`.
+-/
+theorem erdos_discrepancy_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      BoundedDiscOffset f
+        (Tao2015.stage3Out (f := f) (hf := hf)).d
+        (Tao2015.stage3Out (f := f) (hf := hf)).m B := by
+  exact Tao2015.stage3_not_exists_boundedDiscOffset (f := f) (hf := hf)
+
+/-- Stable `discOffset` boundedness-negation normal form at the deterministic Stage-3 parameters.
+
+Normal form:
+`¬ ∃ B, ∀ n, discOffset f (stage3Out ...).d (stage3Out ...).m n ≤ B`.
+-/
+theorem erdos_discrepancy_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      ∀ n : ℕ,
+        discOffset f
+          (Tao2015.stage3Out (f := f) (hf := hf)).d
+          (Tao2015.stage3Out (f := f) (hf := hf)).m n ≤ B := by
+  exact Tao2015.stage3_not_exists_forall_discOffset_le_d_m (f := f) (hf := hf)
+
+/-- Stable `apSumFrom` boundedness-negation normal form at the deterministic Stage-3 parameters.
+
+Normal form:
+`¬ ∃ B, ∀ n, Int.natAbs (apSumFrom f (stage3Out ...).start (stage3Out ...).d n) ≤ B`.
+-/
+theorem erdos_discrepancy_not_exists_forall_natAbs_apSumFrom_start_le (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ¬ ∃ B : ℕ,
+      ∀ n : ℕ,
+        Int.natAbs
+            (apSumFrom f
+              (Tao2015.stage3Out (f := f) (hf := hf)).start
+              (Tao2015.stage3Out (f := f) (hf := hf)).d n) ≤ B := by
+  exact Tao2015.stage3_not_exists_forall_natAbs_apSumFrom_start_le' (f := f) (hf := hf)
+
+/-- Stable packaging of the Stage-3 offset-discrepancy unboundedness witness.
+
+Normal form:
+`UnboundedDiscOffset f (stage3Out ...).d (stage3Out ...).m`.
+-/
+theorem erdos_discrepancy_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Tao2015.UnboundedDiscOffset f
+      (Tao2015.stage3Out (f := f) (hf := hf)).d
+      (Tao2015.stage3Out (f := f) (hf := hf)).m := by
+  exact Tao2015.stage3_unboundedDiscOffset (f := f) (hf := hf)
+
+/-- Track C pipeline witness: Stage 3 yields unbounded discrepancy along the reduced sequence,
+stated using the verified core predicate `MoltResearch.UnboundedDiscrepancyAlong`.
+-/
+theorem erdos_discrepancy_unboundedDiscrepancyAlong_core (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    UnboundedDiscrepancyAlong
+      (Tao2015.stage3Out (f := f) (hf := hf)).g
+      (Tao2015.stage3Out (f := f) (hf := hf)).d := by
+  exact Tao2015.stage3_unboundedDiscrepancyAlong_core (f := f) (hf := hf)
 
 /-- Track-C pipeline witness form (Tao 2015 plane): there exist concrete parameters `d, m` such that
   the bundled offset discrepancy family `discOffset f d m` takes arbitrarily large values.
