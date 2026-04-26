@@ -548,7 +548,7 @@ Goal: build a *directed* lemma scaffold (not lemma-sprawl). Each checkbox should
 - [x] `discOffset` invariance under swapping `ℤ` sign encoding: package a lemma allowing replacement of a sign sequence `f : ℕ → ℤ` by an equivalent `g : ℕ → Bool`/`Fin 2` encoding (with a chosen coercion) *at the level of discrepancy statements*, so later stages can interoperate with combinatorial encodings without rewriting every lemma.
   (Implemented in `MoltResearch/Discrepancy/SignSequenceCoercions.lean` as `boolToSign` / `fin2ToSign` plus `discOffset` congruence wrappers; exercised by stable-surface regressions in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] “Nucleus surface audit” consolidation: create a single `MoltResearch/Discrepancy/NucleusSurface.lean` that re-exports the intended stable API (`Basic`, `Offset`, `AffineTail`, `Residue`, `EditSensitivity`, `StepScaling`) and add a compile-only example importing only this file that exercises the full normal-form micro-pipeline (paper sum → nucleus → shift/dilate → cut → residue split → bound).
+- [x] “Nucleus surface audit” consolidation: create a single `MoltResearch/Discrepancy/NucleusSurface.lean` that re-exports the intended stable API (`Basic`, `Offset`, `AffineTail`, `Residue`, `EditSensitivity`, `StepScaling`) and add a compile-only example importing only this file that exercises the full normal-form micro-pipeline (paper sum → nucleus → shift/dilate → cut → residue split → bound). (Implemented in `MoltResearch/Discrepancy/NucleusSurface.lean` and `MoltResearch/Discrepancy/NucleusSurfacePipelineExample.lean`, wired into `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
 #### Track C - Tao2015 "build the plane" (context; Track C checklist below)
 
