@@ -64,6 +64,26 @@ theorem erdos_discrepancy_sum_Icc_offset_stage3_witness_pos (f : ℕ → ℤ) (h
   simpa [Tao2015.stage3_m, Tao2015.stage3_d, hout.symm] using
     (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) out)
 
+/-- Tail-nucleus witness form at the deterministic Stage-3 parameters `start` and `d`.
+
+Normal form:
+`∀ B, ∃ n, n > 0 ∧ Int.natAbs (apSumFrom f start d n) > B`,
+where `start = (Tao2015.stage3Out ...).start` and `d = (Tao2015.stage3Out ...).d`.
+
+This is a thin wrapper around the minimal Stage-3 entry-point lemma
+`Tao2015.stage3_forall_exists_natAbs_apSumFrom_start_gt_witness_pos`.
+-/
+theorem erdos_discrepancy_apSumFrom_stage3Out_start_witness_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∀ B : ℕ,
+      ∃ n : ℕ,
+        n > 0 ∧
+          Int.natAbs
+              (apSumFrom f
+                (Tao2015.stage3Out (f := f) (hf := hf)).start
+                (Tao2015.stage3Out (f := f) (hf := hf)).d n) > B := by
+  simpa using
+    (Tao2015.stage3_forall_exists_natAbs_apSumFrom_start_gt_witness_pos (f := f) (hf := hf))
+
 /-- Witness form of `erdos_discrepancy` directly in terms of the nucleus `apSum`.
 
 This is the most pipeline-friendly surface statement:
