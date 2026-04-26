@@ -256,6 +256,29 @@ theorem stage2_startOf_add_mod_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf
   simpa [Nat.add_comm] using
     stage2_add_startOf_mod_d (inst := inst) (f := f) (hf := hf) (n := n)
 
+/-- Adding the explicit-assumption start index increases quotients by the offset parameter.
+
+Since `stage2_startOf = stage2_mOf * stage2_dOf`, we have
+`(n + stage2_startOf) / stage2_dOf = n / stage2_dOf + stage2_mOf`.
+-/
+theorem stage2_add_startOf_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (n : ℕ) :
+    (n + stage2_startOf inst (f := f) (hf := hf)) / stage2_dOf inst (f := f) (hf := hf) =
+      n / stage2_dOf inst (f := f) (hf := hf) + stage2_mOf inst (f := f) (hf := hf) := by
+  have hd : 0 < stage2_dOf inst (f := f) (hf := hf) :=
+    stage2_dOf_pos (inst := inst) (f := f) (hf := hf)
+  simpa [stage2_startOf] using
+    (Nat.add_mul_div_right (x := n) (y := stage2_mOf inst (f := f) (hf := hf))
+      (z := stage2_dOf inst (f := f) (hf := hf)) hd)
+
+/-- Variant of `stage2_add_startOf_div_d` with the start index on the left. -/
+theorem stage2_startOf_add_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f)
+    (n : ℕ) :
+    (stage2_startOf inst (f := f) (hf := hf) + n) / stage2_dOf inst (f := f) (hf := hf) =
+      n / stage2_dOf inst (f := f) (hf := hf) + stage2_mOf inst (f := f) (hf := hf) := by
+  simpa [Nat.add_comm] using
+    stage2_add_startOf_div_d (inst := inst) (f := f) (hf := hf) (n := n)
+
 /-- Recover the offset parameter by dividing the explicit-assumption start index by the step size.
 -/
 theorem stage2_startOf_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
