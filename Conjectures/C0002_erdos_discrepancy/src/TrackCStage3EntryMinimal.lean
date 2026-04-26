@@ -648,6 +648,15 @@ theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
   · exact stage3_one_le_d (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
+/-- Explicit-assumption variant of `stage3_exists_params_one_le_unboundedDiscOffset`. -/
+theorem stage3OutOf_exists_params_one_le_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ UnboundedDiscOffset f d m := by
+  let out := stage3OutOf inst (f := f) (hf := hf)
+  refine ⟨out.d, out.m, ?_, ?_⟩
+  · exact stage3OutOf_one_le_d (inst := inst) (f := f) (hf := hf)
+  · exact stage3OutOf_unboundedDiscOffset (inst := inst) (f := f) (hf := hf)
+
 /-- Existential packaging: Stage 3 yields concrete parameters `d, m` with `1 ≤ d` such that there is
 no uniform bound on the affine-tail nuclei `Int.natAbs (apSumFrom f (m*d) d n)`.
 
