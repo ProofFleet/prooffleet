@@ -1365,6 +1365,32 @@ Definition of done:
   `BoundedDiscOffset f d m B ↔ BoundedDiscOffset (fun k => f (k + m*d)) d 0 B` (and Exists/Unbounded analogues), so later proofs can reset `m := 0` as a normal form.
   (Implemented as `boundedDiscOffset_shift_mul_start` in `MoltResearch/Discrepancy/Basic.lean`, with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
+#### Auto-generated backlog (needs triage)
+
+- [ ] `apSupportUpTo` (support union for `UpTo`): define a finitary support set capturing all indices touched by the family
+  `{ apSupport d m n | n ≤ N }` (or the repo’s preferred packaging), with clean membership lemmas and a usable `card` bound.
+
+- [ ] `discOffsetUpTo_congr_support`: if `f` and `g` agree on `apSupportUpTo d m N`, prove
+  `discOffsetUpTo f d m N = discOffsetUpTo g d m N` (stable-surface wrapper; no `Finset.range` bookkeeping in the statement).
+
+- [ ] Local edit sensitivity (UpTo, disc-level): if `f` and `g` differ on at most `t` indices of `apSupportUpTo d m N`, prove a canonical bound
+  `discOffsetUpTo f d m N ≤ discOffsetUpTo g d m N + 2*t` (and the symmetric inequality), with a regression example under `import MoltResearch.Discrepancy`.
+
+- [ ] Block decomposition (sum-level, length multiple): add a rewrite lemma expressing
+  `apSumOffset f d m (k*L)` as a `Finset.range k` sum of block terms `apSumOffset f d (m + j*L) L` (choose the repo’s preferred parameter order/name), with a stable regression example.
+
+- [ ] Block decomposition (disc-level bound): derive a packaged triangle-inequality corollary bounding
+  `discOffset f d m (k*L)` by the sum of the `k` block discrepancies (statement should stay in nucleus terms; no raw `Int` sums).
+
+- [ ] Stable-surface simp normal form for composing shifts/dilations: add simp lemmas normalizing nested reindexing of the summand,
+  so expressions like `fun n => f ((n + a)*q + b)` and `fun n => f (n*(q*r))` reduce to a single canonical `shift_add`/`map_mul` form.
+
+- [ ] Start-shift Lipschitz wrapper: assuming `IsSignSequence f`, prove a convenience inequality controlling how `discOffset` changes when increasing the start parameter `m` by `k`, packaged so “slide the window” steps are one-liners.
+
+- [ ] Consumer regression example (UpTo + edits + blocks): add a compile-only `example` block (or small file) showing the intended pipeline
+  `discOffsetUpTo` → support/edit sensitivity → block decomposition → triangle bound
+  compiles under the stable surface `import MoltResearch.Discrepancy`.
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)
