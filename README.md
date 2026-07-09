@@ -73,9 +73,13 @@ Open a PR immediately (draft is fine). CI will tell you what’s true.
 Some environments don’t have `lake` on PATH. These always work:
 
 ```bash
+~/.elan/bin/lake exe cache get   # fetch prebuilt Mathlib .oleans (do this once; ~10 min)
 ~/.elan/bin/lake build
 ./scripts/check_task.sh Tasks/Tier0/T0_07.lean
 ```
+
+> **Tip:** never build Mathlib from source. If `lake build` starts compiling thousands of
+> `Mathlib.*` files, interrupt it and run `~/.elan/bin/lake exe cache get` first.
 
 Or use the `Makefile` shortcuts:
 

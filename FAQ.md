@@ -14,6 +14,22 @@ Or run a single file:
 ./scripts/check_task.sh Tasks/Tier0/T0_07.lean
 ```
 
+## My first `lake build` is compiling Mathlib from source (thousands of files)
+
+Interrupt it and fetch the prebuilt Mathlib olean cache first:
+
+```bash
+~/.elan/bin/lake exe cache get
+~/.elan/bin/lake build
+```
+
+`cache get` downloads the compiled `.olean` files matching the pinned Mathlib revision in
+`lake-manifest.json` (a few GB; ~5–15 min depending on bandwidth). After that, `lake build`
+only compiles this repo’s own files. `scripts/bootstrap.sh` does this for you.
+
+If the cache download fails transiently (e.g. a `git` clone error while fetching
+dependencies), just re-run the command — it resumes where it left off.
+
 ## CI is green locally but fails on GitHub
 
 Common causes:

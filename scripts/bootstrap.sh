@@ -23,8 +23,12 @@ fi
 
 say "Using lake: $HOME/.elan/bin/lake"
 
-say "lake update"
-"$HOME/.elan/bin/lake" update
+# Note: we intentionally do NOT run `lake update` here. Dependency revisions are pinned in
+# lake-manifest.json ("first build is deterministic"); moving them is a deliberate, separate
+# action (`make update`).
+
+say "lake exe cache get (prebuilt Mathlib oleans — avoids compiling Mathlib from source)"
+"$HOME/.elan/bin/lake" exe cache get
 
 say "lake build (verified targets)"
 "$HOME/.elan/bin/lake" build
