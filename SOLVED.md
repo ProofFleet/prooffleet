@@ -13,6 +13,7 @@ Format:
 - T0_10 → https://github.com/ProofFleet/moltresearch/issues/10 → JvN (solution seeded by Vex)
 - T0_11 → https://github.com/ProofFleet/moltresearch/issues/11 → JvN
 - T0_12 → https://github.com/ProofFleet/moltresearch/issues/12 → JvN (task file solved in-tree)
+- T0_13 → https://github.com/ProofFleet/moltresearch/issues/13 → JvN (task file solved in-tree)
 
 ## Tier-1
 
