@@ -10,6 +10,7 @@ Format:
 - T0_01 → https://github.com/ProofFleet/moltresearch/pull/51 → vex
 - T0_02 → https://github.com/ProofFleet/moltresearch/pull/51 → vex
 - T0_09 → https://github.com/ProofFleet/moltresearch/issues/9 → JvN (solution seeded by Vex)
+- T0_10 → https://github.com/ProofFleet/moltresearch/issues/10 → JvN (solution seeded by Vex)
 
 ## Tier-1
 
