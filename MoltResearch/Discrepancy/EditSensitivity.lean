@@ -556,4 +556,57 @@ lemma IsSignSequence.discOffset_le_edit_add_of_card_apSupport_diff_le {f g : ℕ
     (IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le (hf := hg) (hg := hf)
       (d := d) (m := m) (n := n) (t := t) hd ht')
 
+/-!
+### Local edit sensitivity at the `UpTo` level (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Local edit sensitivity (UpTo,
+disc-level).
+
+The `discOffsetUpTo` wrapper ranges over all window lengths `n ≤ N`; every such window accesses
+only indices inside the cutoff support `apSupportUpTo d m N`, so an edit budget on that single
+finset controls the whole family at once.
+-/
+
+/-- **Local edit sensitivity (`UpTo`, disc-level).**
+
+If sign sequences `f, g` differ on at most `t` indices of the cutoff support
+`apSupportUpTo d m N`, then the max discrepancies up to `N` differ by at most `2 * t`
+(one-sided).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Local edit sensitivity (UpTo,
+disc-level).
+-/
+lemma IsSignSequence.discOffsetUpTo_edit_le_of_card_apSupportUpTo_diff_le {f g : ℕ → ℤ}
+    (hf : IsSignSequence f) (hg : IsSignSequence g) (d m N t : ℕ) (hd : d > 0)
+    (ht : ((apSupportUpTo d m N).filter (fun x => f x ≠ g x)).card ≤ t) :
+    discOffsetUpTo f d m N ≤ discOffsetUpTo g d m N + 2 * t := by
+  have hsup : ∀ n ∈ Finset.range (N + 1),
+      discOffset f d m n ≤ discOffsetUpTo g d m N + 2 * t := by
+    intro n hn
+    have hn' : n ≤ N := Nat.lt_succ_iff.mp (Finset.mem_range.mp hn)
+    -- The differing indices inside a length-`n` window sit inside the cutoff support.
+    have hmono : ((apSupport d m n).filter (fun x => f x ≠ g x)).card ≤ t := by
+      refine le_trans (Finset.card_le_card ?_) ht
+      exact Finset.filter_subset_filter _
+        (apSupport_subset_apSupportUpTo (d := d) (m := m) hn')
+    have hedit :=
+      IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le
+        (hf := hf) (hg := hg) (d := d) (m := m) (n := n) (t := t) hd hmono
+    have hup := discOffset_le_discOffsetUpTo (f := g) (d := d) (m := m) (n := n) (N := N) hn'
+    omega
+  calc discOffsetUpTo f d m N
+      = (Finset.range (N + 1)).sup (fun n => discOffset f d m n) := rfl
+    _ ≤ discOffsetUpTo g d m N + 2 * t := Finset.sup_le hsup
+
+/-- Symmetric `UpTo`-level edit sensitivity inequality. -/
+lemma IsSignSequence.discOffsetUpTo_le_edit_add_of_card_apSupportUpTo_diff_le {f g : ℕ → ℤ}
+    (hf : IsSignSequence f) (hg : IsSignSequence g) (d m N t : ℕ) (hd : d > 0)
+    (ht : ((apSupportUpTo d m N).filter (fun x => f x ≠ g x)).card ≤ t) :
+    discOffsetUpTo g d m N ≤ discOffsetUpTo f d m N + 2 * t := by
+  -- Use the one-sided lemma with swapped roles.
+  have ht' : ((apSupportUpTo d m N).filter (fun x => g x ≠ f x)).card ≤ t := by
+    simpa [ne_comm] using ht
+  exact IsSignSequence.discOffsetUpTo_edit_le_of_card_apSupportUpTo_diff_le
+    (hf := hg) (hg := hf) (d := d) (m := m) (N := N) (t := t) hd ht'
+
 end MoltResearch

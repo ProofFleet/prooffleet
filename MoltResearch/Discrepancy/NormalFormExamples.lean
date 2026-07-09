@@ -123,6 +123,49 @@ example (N : ℕ) : (apSupportUpTo d m N).card ≤ N := by
 example (N : ℕ) (hd : d > 0) : (apSupportUpTo d m N).card = N := by
   simpa using (card_apSupportUpTo_eq (d := d) (m := m) (N := N) hd)
 
+-- (4) Pipeline pattern: agreement on `apSupportUpTo` transports the `UpTo` discrepancy wrapper.
+example (g : ℕ → ℤ) (N : ℕ) (h : ∀ x ∈ apSupportUpTo d m N, f x = g x) :
+    discOffsetUpTo f d m N = discOffsetUpTo g d m N := by
+  simpa using (discOffsetUpTo_congr_support (f := f) (g := g) (d := d) (m := m) (N := N) h)
+
+-- (5) Edit sensitivity at the `UpTo` level: a bounded edit budget on the cutoff support
+-- controls the whole `n ≤ N` family of discrepancies at once.
+example (g : ℕ → ℤ) (N t : ℕ) (hd : 0 < d) (hf : IsSignSequence f) (hg : IsSignSequence g)
+    (ht : ((apSupportUpTo d m N).filter (fun x => f x ≠ g x)).card ≤ t) :
+    discOffsetUpTo f d m N ≤ discOffsetUpTo g d m N + 2 * t := by
+  simpa using
+    (IsSignSequence.discOffsetUpTo_edit_le_of_card_apSupportUpTo_diff_le
+      (hf := hf) (hg := hg) (d := d) (m := m) (N := N) (t := t) hd ht)
+
+/-!
+### NEW (Track B): block decomposition + start-shift Lipschitz normal forms
+
+Compile-only regression tests: a length `k*L` window splits into `k` consecutive length-`L`
+blocks (sum-level equality, disc-level triangle bound), and “slide the window start” steps are
+one-liners for sign sequences.
+-/
+
+-- (1) Block decomposition, sum-level equality.
+example (L : ℕ) :
+    apSumOffset f d m (k * L) = ∑ j ∈ Finset.range k, apSumOffset f d (m + j * L) L := by
+  simpa using
+    (apSumOffset_mul_len_eq_sum_range_block (f := f) (d := d) (m := m) (L := L) (k := k))
+
+-- (2) Block decomposition, disc-level triangle bound (stays in nucleus terms).
+example (L : ℕ) :
+    discOffset f d m (k * L) ≤ ∑ j ∈ Finset.range k, discOffset f d (m + j * L) L := by
+  simpa using
+    (discOffset_mul_len_le_sum_range_block (f := f) (d := d) (m := m) (L := L) (k := k))
+
+-- (3) Start-shift Lipschitz: sliding the window start by `k` costs at most `2*k`.
+example (hf : IsSignSequence f) :
+    discOffset f d (m + k) n ≤ discOffset f d m n + 2 * k := by
+  simpa using (hf.discOffset_start_add_le (d := d) (m := m) (k := k) (n := n))
+
+example (hf : IsSignSequence f) :
+    discOffset f d m n ≤ discOffset f d (m + k) n + 2 * k := by
+  simpa using (hf.discOffset_le_start_add_add (d := d) (m := m) (k := k) (n := n))
+
 /-!
 ### NEW (Track B): step/offset coercion normal form (`discOffset`)
 

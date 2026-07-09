@@ -186,6 +186,17 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `apSupport_subset_apSupportUpTo` for monotonicity (`n ≤ N`),
   - `mem_apSupportUpTo` for the existential membership normal form, and
   - `card_apSupportUpTo_le` / `card_apSupportUpTo_eq` for cardinality bounds.
+- **API note (`discOffsetUpTo` local surgery):** the `UpTo` wrapper transports through the cutoff support in one step:
+  - `discOffsetUpTo_congr_support` — agreement of `f, g` on `apSupportUpTo d m N` gives `discOffsetUpTo f d m N = discOffsetUpTo g d m N` (no `Finset.range` bookkeeping);
+  - `IsSignSequence.discOffsetUpTo_edit_le_of_card_apSupportUpTo_diff_le` (and the symmetric `…_le_edit_add_…`) — an edit budget of `t` indices inside `apSupportUpTo d m N` moves the whole `n ≤ N` family by at most `2*t`.
+  Intuition: every window of length `n ≤ N` reads only indices in the single finset `apSupportUpTo d m N`, so one “local surgery” hypothesis controls the max over all window lengths. Common pitfall: state the edit budget on `apSupportUpTo d m N`, *not* per-length supports — the per-length filter cardinalities are then bounded via `Finset.filter_subset_filter` + `apSupport_subset_apSupportUpTo`.
+- **API note (block decomposition):** to split a window whose length is an exact multiple `k*L`, use
+  - `apSumOffset_mul_len_eq_sum_range_block` (sum-level equality): `apSumOffset f d m (k*L) = ∑ j ∈ range k, apSumOffset f d (m + j*L) L`, and
+  - `discOffset_mul_len_le_sum_range_block` (disc-level triangle bound).
+  This is the `k`-block generalization of the one-cut (`apSumOffset_add_len`) and two-cut (`discOffset_add_add_le`) normal forms; the proof is just induction on `k` + `Int.natAbs_sum_le`.
+- **API note (start-shift Lipschitz / “slide the window”):** for sign sequences, moving the window start forward or backward by `k` steps costs at most `2*k`:
+  `IsSignSequence.discOffset_start_add_le` (`discOffset f d (m+k) n ≤ discOffset f d m n + 2*k`) and
+  `IsSignSequence.discOffset_le_start_add_add` (the reverse direction). Intuition: the two windows differ by a length-`k` prefix and a length-`k` suffix, each of discrepancy ≤ `k` (`discOffset_le`). These are packaged from the reverse-triangle lemmas so downstream proofs don’t redo the algebra.
 - **API note (`apSupport` canonical membership):** if your membership goal is already in the normal form
   `((m + i + 1) * d) ∈ apSupport d m n`, and you have `hd : d > 0`, then `simp [mem_apSupport_index_iff (m := m) (n := n) (i := i) hd]` reduces it to the expected bound `i < n`.
 - **API note (`apSupport` concatenation):** to split the support of a length `(n+k)` block into its first `n` and last `k` pieces, use

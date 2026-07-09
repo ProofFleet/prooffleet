@@ -2726,6 +2726,25 @@ lemma discOffsetUpTo_congr_le (f g : ℕ → ℤ) (d m N : ℕ)
     simpa [hgf] using
       (Finset.le_sup (s := Finset.range (N + 1)) (f := fun t => discOffset f d m t) hn)
 
+/-- Support-level congruence for `discOffsetUpTo`: if `f` and `g` agree on the cutoff support
+`apSupportUpTo d m N`, then the max-offset discrepancies up to `N` agree.
+
+This is the `UpTo` analogue of `discOffset_congr_support`: the statement mentions only the
+support finset, so callers never touch `Finset.range` bookkeeping.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — `discOffsetUpTo_congr_support`.
+-/
+lemma discOffsetUpTo_congr_support (f g : ℕ → ℤ) (d m N : ℕ)
+    (h : ∀ x ∈ apSupportUpTo d m N, f x = g x) :
+    discOffsetUpTo f d m N = discOffsetUpTo g d m N := by
+  unfold discOffsetUpTo
+  refine Finset.sup_congr rfl ?_
+  intro n hn
+  have hn' : n ≤ N := Nat.lt_succ_iff.mp (Finset.mem_range.mp hn)
+  refine discOffset_congr_support (f := f) (g := g) (d := d) (m := m) (n := n) ?_
+  intro x hx
+  exact h x (apSupport_subset_apSupportUpTo (d := d) (m := m) hn' hx)
+
 /-!
 Deprecated `discOffset` congruence variants over explicit `Icc` index sets have been moved behind
 `import MoltResearch.Discrepancy.Deprecated`.
@@ -3238,6 +3257,59 @@ lemma discOffset_add_add_le_assoc (f : ℕ → ℤ) (d m n₁ n₂ n₃ : ℕ) :
   simpa [Nat.add_assoc] using (discOffset_add_add_le (f := f) (d := d) (m := m)
     (n₁ := n₁) (n₂ := n₂) (n₃ := n₃))
 
+/-!
+### Block decomposition (Track B)
+
+Checklist items: Problems/erdos_discrepancy.md (Track B) —
+Block decomposition (sum-level, length multiple) / Block decomposition (disc-level bound).
+
+These generalize the one-cut (`apSumOffset_add_len`) and two-cut normal forms to an arbitrary
+number of equal-length consecutive blocks.
+-/
+
+/-- **Block decomposition (sum-level).** An offset AP sum whose length is a multiple `k * L`
+splits as a `Finset.range k` sum of consecutive length-`L` blocks.
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Block decomposition (sum-level, length
+multiple).
+-/
+lemma apSumOffset_mul_len_eq_sum_range_block (f : ℕ → ℤ) (d m L k : ℕ) :
+    apSumOffset f d m (k * L) =
+      ∑ j ∈ Finset.range k, apSumOffset f d (m + j * L) L := by
+  induction k with
+  | zero => simp [apSumOffset]
+  | succ k ih =>
+      rw [Nat.succ_mul, apSumOffset_add_len, ih, Finset.sum_range_succ]
+
+/-- **Block decomposition (disc-level bound).** The discrepancy of a length `k * L` window is
+bounded by the sum of the `k` consecutive block discrepancies (triangle inequality, packaged in
+nucleus terms).
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Block decomposition (disc-level bound).
+-/
+lemma discOffset_mul_len_le_sum_range_block (f : ℕ → ℤ) (d m L k : ℕ) :
+    discOffset f d m (k * L) ≤
+      ∑ j ∈ Finset.range k, discOffset f d (m + j * L) L := by
+  classical
+  -- Triangle inequality for `Int.natAbs` over `Finset.sum` (local, as in `Residue.lean`).
+  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
+      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
+    classical
+    refine Finset.induction_on s ?h0 ?hstep
+    · simp
+    · intro a s ha hs
+      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
+        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
+      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
+          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
+        Nat.add_le_add_left hs _
+      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+        (Nat.le_trans h1 h3)
+  change Int.natAbs (apSumOffset f d m (k * L)) ≤ _
+  rw [apSumOffset_mul_len_eq_sum_range_block]
+  exact natAbs_sum_le_sum_natAbs (Finset.range k) (fun j => apSumOffset f d (m + j * L) L)
+
+
 /-! ### Degenerate start simp lemmas
 
 These mirror the “degenerate length” simp lemmas (`apSumOffset_zero` / `apSumOffset_one`) but for the
@@ -3436,6 +3508,42 @@ lemma discAlong_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
     discAlong f d n ≤ n := by
   -- `discAlong` is definitionaly `discOffset f d 0`.
   simpa [discAlong] using (discOffset_le (f := f) (hf := hf) (d := d) (m := 0) (n := n))
+
+/-!
+### Start-shift Lipschitz wrapper (Track B)
+
+Checklist item: Problems/erdos_discrepancy.md (Track B) — Start-shift Lipschitz wrapper.
+
+“Slide the window” one-liners: moving the start of a length-`n` window forward by `k` steps
+changes a sign-sequence discrepancy by at most `2 * k` (the two windows differ by a length-`k`
+prefix and a length-`k` suffix, each of discrepancy at most `k`).
+-/
+
+/-- Sliding the window start forward by `k` steps increases `discOffset` by at most `2 * k`. -/
+lemma IsSignSequence.discOffset_start_add_le {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d m k n : ℕ) :
+    discOffset f d (m + k) n ≤ discOffset f d m n + 2 * k := by
+  have h₁ : discOffset f d (m + k) n ≤ discOffset f d m (k + n) + discOffset f d m k :=
+    discOffset_right_le_add (f := f) (d := d) (m := m) (n₁ := k) (n₂ := n)
+  have hcomm : discOffset f d m (k + n) = discOffset f d m (n + k) := by rw [Nat.add_comm]
+  have h₂ : discOffset f d m (n + k) ≤ discOffset f d m n + discOffset f d (m + n) k :=
+    discOffset_add_le (f := f) (d := d) (m := m) (n₁ := n) (n₂ := k)
+  have h₃ : discOffset f d (m + n) k ≤ k := discOffset_le hf d (m + n) k
+  have h₄ : discOffset f d m k ≤ k := discOffset_le hf d m k
+  omega
+
+/-- Sliding the window start backward by `k` steps increases `discOffset` by at most `2 * k`. -/
+lemma IsSignSequence.discOffset_le_start_add_add {f : ℕ → ℤ} (hf : IsSignSequence f)
+    (d m k n : ℕ) :
+    discOffset f d m n ≤ discOffset f d (m + k) n + 2 * k := by
+  have h₁ : discOffset f d m n ≤ discOffset f d m (n + k) + discOffset f d (m + n) k :=
+    discOffset_left_le_add (f := f) (d := d) (m := m) (n₁ := n) (n₂ := k)
+  have hcomm : discOffset f d m (n + k) = discOffset f d m (k + n) := by rw [Nat.add_comm]
+  have h₂ : discOffset f d m (k + n) ≤ discOffset f d m k + discOffset f d (m + k) n :=
+    discOffset_add_le (f := f) (d := d) (m := m) (n₁ := k) (n₂ := n)
+  have h₃ : discOffset f d (m + n) k ≤ k := discOffset_le hf d (m + n) k
+  have h₄ : discOffset f d m k ≤ k := discOffset_le hf d m k
+  omega
 
 /-- Bounding a *difference of discrepancies* (offset AP sums) by total length.
 

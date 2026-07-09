@@ -1373,22 +1373,35 @@ Definition of done:
   `card_apSupportUpTo_le` / `card_apSupportUpTo_eq` in `MoltResearch/Discrepancy/Basic.lean`, with
   stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] `discOffsetUpTo_congr_support`: if `f` and `g` agree on `apSupportUpTo d m N`, prove
+- [x] `discOffsetUpTo_congr_support`: if `f` and `g` agree on `apSupportUpTo d m N`, prove
   `discOffsetUpTo f d m N = discOffsetUpTo g d m N` (stable-surface wrapper; no `Finset.range` bookkeeping in the statement).
+  (Implemented as `discOffsetUpTo_congr_support` in `MoltResearch/Discrepancy/Basic.lean`, with a
+  stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Local edit sensitivity (UpTo, disc-level): if `f` and `g` differ on at most `t` indices of `apSupportUpTo d m N`, prove a canonical bound
+- [x] Local edit sensitivity (UpTo, disc-level): if `f` and `g` differ on at most `t` indices of `apSupportUpTo d m N`, prove a canonical bound
   `discOffsetUpTo f d m N ≤ discOffsetUpTo g d m N + 2*t` (and the symmetric inequality), with a regression example under `import MoltResearch.Discrepancy`.
+  (Implemented as `IsSignSequence.discOffsetUpTo_edit_le_of_card_apSupportUpTo_diff_le` and the
+  symmetric `IsSignSequence.discOffsetUpTo_le_edit_add_of_card_apSupportUpTo_diff_le` in
+  `MoltResearch/Discrepancy/EditSensitivity.lean`, with a stable-surface regression example in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Block decomposition (sum-level, length multiple): add a rewrite lemma expressing
+- [x] Block decomposition (sum-level, length multiple): add a rewrite lemma expressing
   `apSumOffset f d m (k*L)` as a `Finset.range k` sum of block terms `apSumOffset f d (m + j*L) L` (choose the repo’s preferred parameter order/name), with a stable regression example.
+  (Implemented as `apSumOffset_mul_len_eq_sum_range_block` in `MoltResearch/Discrepancy/Basic.lean`,
+  with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Block decomposition (disc-level bound): derive a packaged triangle-inequality corollary bounding
+- [x] Block decomposition (disc-level bound): derive a packaged triangle-inequality corollary bounding
   `discOffset f d m (k*L)` by the sum of the `k` block discrepancies (statement should stay in nucleus terms; no raw `Int` sums).
+  (Implemented as `discOffset_mul_len_le_sum_range_block` in `MoltResearch/Discrepancy/Basic.lean`,
+  with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Stable-surface simp normal form for composing shifts/dilations: add simp lemmas normalizing nested reindexing of the summand,
   so expressions like `fun n => f ((n + a)*q + b)` and `fun n => f (n*(q*r))` reduce to a single canonical `shift_add`/`map_mul` form.
 
-- [ ] Start-shift Lipschitz wrapper: assuming `IsSignSequence f`, prove a convenience inequality controlling how `discOffset` changes when increasing the start parameter `m` by `k`, packaged so “slide the window” steps are one-liners.
+- [x] Start-shift Lipschitz wrapper: assuming `IsSignSequence f`, prove a convenience inequality controlling how `discOffset` changes when increasing the start parameter `m` by `k`, packaged so “slide the window” steps are one-liners.
+  (Implemented as `IsSignSequence.discOffset_start_add_le` / `IsSignSequence.discOffset_le_start_add_add`
+  in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] Consumer regression example (UpTo + edits + blocks): add a compile-only `example` block (or small file) showing the intended pipeline
   `discOffsetUpTo` → support/edit sensitivity → block decomposition → triangle bound
