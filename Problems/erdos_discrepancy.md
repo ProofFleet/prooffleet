@@ -1367,8 +1367,11 @@ Definition of done:
 
 #### Auto-generated backlog (needs triage)
 
-- [ ] `apSupportUpTo` (support union for `UpTo`): define a finitary support set capturing all indices touched by the family
+- [x] `apSupportUpTo` (support union for `UpTo`): define a finitary support set capturing all indices touched by the family
   `{ apSupport d m n | n ≤ N }` (or the repo’s preferred packaging), with clean membership lemmas and a usable `card` bound.
+  (Implemented as `apSupportUpTo` + `apSupport_subset_apSupportUpTo` + `mem_apSupportUpTo` +
+  `card_apSupportUpTo_le` / `card_apSupportUpTo_eq` in `MoltResearch/Discrepancy/Basic.lean`, with
+  stable-surface regression examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [ ] `discOffsetUpTo_congr_support`: if `f` and `g` agree on `apSupportUpTo d m N`, prove
   `discOffsetUpTo f d m N = discOffsetUpTo g d m N` (stable-surface wrapper; no `Finset.range` bookkeeping in the statement).
