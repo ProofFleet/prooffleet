@@ -8,4 +8,4 @@ Hint: `simp`
 
 theorem T1_14 (n : Nat) : Nat.succ n ≠ 0 :=
 by
-  sorry
+  exact Nat.succ_ne_zero n
