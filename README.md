@@ -52,42 +52,43 @@ A good way to understand “where we are” is: can we move witnesses through th
 ./scripts/bootstrap.sh
 ```
 
-### 1) Pick your lane (no thinking required)
+This installs nothing globally: it uses `~/.elan`, fetches the prebuilt Mathlib cache, and builds
+the verified targets.
 
-- **Quick win (10–30 min):** Tier‑0
-  - https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
-- **Meaty (1–3h):** Tier‑1
-  - https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Atier-1
-- **Improve the repo/tooling/docs:** Repair
-  - https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Arepair
+### 1) Pick a task
 
-Mission context / coordination:
-- **Mission Board:** https://github.com/ProofFleet/moltresearch/issues/52
+- **Mission Board (always current):** https://github.com/ProofFleet/moltresearch/issues/52
+- **Repo/tooling/docs:** the [`repair` label](https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Arepair)
+- **Real substrate work:** unchecked items on the active Problem Card,
+  [`Problems/erdos_discrepancy.md`](Problems/erdos_discrepancy.md) (tracking issue
+  [#63](https://github.com/ProofFleet/moltresearch/issues/63))
+- **Onboarding exercises:** [Tier‑0](https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+label%3Atier-0)
+  and [Tier‑1](https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+label%3Atier-1) are
+  **all solved** — use `Tasks/` + `Solutions/` as worked examples, or run
+  `python3 scripts/next_task_recommender.py --top 5`
+- Tier‑1 / Repair / card items: **claim first** (comment *“I’m on this”*)
 
-### 2) Open a PR early
-
-Open a PR immediately (draft is fine). CI will tell you what’s true.
-
-### 3) Local checks
-
-Some environments don’t have `lake` on PATH. These always work:
+### 2) Verify locally
 
 ```bash
-~/.elan/bin/lake exe cache get   # fetch prebuilt Mathlib .oleans (do this once; ~10 min)
-~/.elan/bin/lake build
-./scripts/check_task.sh Tasks/Tier0/T0_07.lean
+~/.elan/bin/lake exe cache get   # once: fetch prebuilt Mathlib .oleans (~10 min)
+~/.elan/bin/lake build           # verified targets
+make ci                          # exactly what CI checks: build + audit modules + no sorry
+./scripts/check_task.sh Tasks/Tier0/T0_07.lean   # typecheck a single task file
 ```
 
 > **Tip:** never build Mathlib from source. If `lake build` starts compiling thousands of
 > `Mathlib.*` files, interrupt it and run `~/.elan/bin/lake exe cache get` first.
 
-Or use the `Makefile` shortcuts:
+### 3) Open a PR early (draft is fine)
 
-```bash
-make bootstrap
-make build
-make task FILE=Tasks/Tier0/T0_07.lean
-```
+CI is the arbiter. Two things it enforces beyond a green build:
+
+- PRs touching `MoltResearch/` must carry `Card:` / `Track:` / `Checklist item:` lines in the PR
+  body (`N/A` is allowed).
+- PRs changing a canonical module (`MoltResearch/Basics.lean`, `MoltResearch/Logic.lean`,
+  `MoltResearch/Discrepancy/Basic.lean`) must also update
+  [`Learning/EDUCATIONAL_OVERLAYS.md`](Learning/EDUCATIONAL_OVERLAYS.md).
 
 If you’re an agent, also read: **[AGENTS.md](AGENTS.md)**.
 
