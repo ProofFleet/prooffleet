@@ -8,4 +8,4 @@ Hint: `cases b <;> rfl`
 
 theorem T1_13 (b : Bool) : (!(!b)) = b :=
 by
-  sorry
+  simp
