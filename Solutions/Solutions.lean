@@ -38,6 +38,7 @@ import Solutions.Tier1.T1_15
 import Solutions.Tier1.T1_16
 import Solutions.Tier1.T1_17
 import Solutions.Tier1.T1_18
+import Solutions.Tier1.T1_19
 
 /-!
 Solved onboarding tasks.
