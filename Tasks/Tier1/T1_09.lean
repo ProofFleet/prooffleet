@@ -10,4 +10,4 @@ open List
 
 theorem T1_09 {α} (xs ys : List α) : (xs ++ ys).length = xs.length + ys.length :=
 by
-  sorry
+  simp
