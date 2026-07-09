@@ -8,4 +8,5 @@ Hint: `exact Eq.symm`
 
 theorem T1_18 {α} {a b : α} : a = b → b = a :=
 by
-  sorry
+  intro h
+  exact h.symm
