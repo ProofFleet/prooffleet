@@ -73,24 +73,6 @@ lemma IsSignSequence.natAbs_apSum_sub_apSum_le_two_mul_card_range_diff {f g : �
     exact (hif.trans hsum_filter.symm)
 
   -- Apply triangle inequality + pointwise bound `≤ 2` on the filtered sum.
-  -- A small helper: triangle inequality for `Int.natAbs` over `Finset.sum`.
-  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
-      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
-    classical
-    refine Finset.induction_on s ?h0 ?hstep
-    · simp
-    · intro a s ha hs
-      -- `|h a + sum h| ≤ |h a| + |sum h| ≤ |h a| + sum |h|`.
-      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
-        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
-      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
-      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
-          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) := by
-        exact Nat.add_le_add_left h2 _
-      -- Reassociate the RHS into a `Finset.sum`.
-      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-        (Nat.le_trans h1 h3)
-
   have htri :
       Int.natAbs (((Finset.range n).filter p).sum (fun i => (f ((i + 1) * d) - g ((i + 1) * d)))) ≤
         ((Finset.range n).filter p).sum (fun i => Int.natAbs (f ((i + 1) * d) - g ((i + 1) * d))) := by
@@ -171,22 +153,6 @@ lemma IsSignSequence.natAbs_apSumOffset_sub_apSumOffset_le_two_mul_card_range_di
         (Finset.sum_filter (s := Finset.range n)
           (p := p) (f := fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))))
     exact (hif.trans hsum_filter.symm)
-
-  -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
-  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
-      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
-    classical
-    refine Finset.induction_on s ?h0 ?hstep
-    · simp
-    · intro a s ha hs
-      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
-        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
-      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
-      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
-          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
-        Nat.add_le_add_left h2 _
-      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-        (Nat.le_trans h1 h3)
 
   have htri :
       Int.natAbs (((Finset.range n).filter p).sum (fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d)))) ≤
@@ -465,22 +431,6 @@ lemma discOffset_le_discOffset_add_two_mul_of_card_apSupport_diff_le_of_natAbs_s
         (Finset.sum_filter (s := Finset.range n) (p := p)
           (f := fun i => (f ((m + i + 1) * d) - g ((m + i + 1) * d))))
     exact hif.trans hsum_filter.symm
-
-  -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
-  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
-      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
-    classical
-    refine Finset.induction_on s ?h0 ?hstep
-    · simp
-    · intro a s ha hs
-      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
-        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
-      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
-      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
-          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
-        Nat.add_le_add_left h2 _
-      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-        (Nat.le_trans h1 h3)
 
   have htri :
       Int.natAbs (((Finset.range n).filter p).sum

@@ -194,6 +194,9 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `apSumOffset_mul_len_eq_sum_range_block` (sum-level equality): `apSumOffset f d m (k*L) = ∑ j ∈ range k, apSumOffset f d (m + j*L) L`, and
   - `discOffset_mul_len_le_sum_range_block` (disc-level triangle bound).
   This is the `k`-block generalization of the one-cut (`apSumOffset_add_len`) and two-cut (`discOffset_add_add_le`) normal forms; the proof is just induction on `k` + `Int.natAbs_sum_le`.
+- **API note (natAbs of a finite sum):** the triangle inequality `|∑ a ∈ s, g a| ≤ ∑ a ∈ s, |g a|` is exported as
+  `natAbs_sum_le_sum_natAbs` in `MoltResearch/Discrepancy/Basic.lean` (the `Int.natAbs` counterpart of `Finset.abs_sum_le_sum_abs`).
+  Don’t re-prove it inline with `Finset.induction_on` — it used to be duplicated eight times across `Residue`/`EditSensitivity`/`StepScaling`/`Basic` before being deduplicated.
 - **API note (composing shifts/dilations of the summand):** nested reindexings left behind by chained rewrites normalize by `simp` alone (stable surface, via `CoherenceSimp`):
   shift-shift `fun t => f ((t+a)+b)` ↦ `fun t => f (t+(a+b))`, dilate-dilate `fun t => f (t*q*r)` ↦ `fun t => f (t*(q*r))`, and shift-then-dilate `fun t => f ((t+a)*q+b)` ↦ `fun t => f (t*q + (a*q+b))` — see the `*_summand_add_add` / `*_summand_mul_mul` / `*_summand_shift_mul_add` families. Each rewrite strictly reduces nesting depth, so the set is loop-free.
 - **API note (start-shift Lipschitz / “slide the window”):** for sign sequences, moving the window start forward or backward by `k` steps costs at most `2*k`:

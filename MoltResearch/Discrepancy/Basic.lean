@@ -3049,6 +3049,28 @@ When `d ∣ a`, the modulo term `a % d` vanishes and the summand shift normalize
 
 /-! ### Triangle-inequality API for AP sums -/
 
+/-- Triangle inequality for `Int.natAbs` over a `Finset.sum`:
+`|∑ a ∈ s, g a| ≤ ∑ a ∈ s, |g a|`.
+
+This is the `ℕ`-valued (`Int.natAbs`) counterpart of `Finset.abs_sum_le_sum_abs`. It used to be
+re-proved inline in several files (`Residue`, `EditSensitivity`, `StepScaling`, and the
+block-decomposition lemma below); keep this as the single shared statement.
+-/
+lemma natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (g : α → ℤ) :
+    Int.natAbs (s.sum g) ≤ s.sum (fun a => Int.natAbs (g a)) := by
+  classical
+  refine Finset.induction_on s ?h0 ?hstep
+  · simp
+  · intro a s ha hs
+    -- `|g a + ∑ g| ≤ |g a| + |∑ g| ≤ |g a| + ∑ |g|`.
+    have h1 : Int.natAbs (g a + s.sum g) ≤ Int.natAbs (g a) + Int.natAbs (s.sum g) :=
+      Int.natAbs_add_le (g a) (s.sum g)
+    have h2 : Int.natAbs (g a) + Int.natAbs (s.sum g) ≤
+        Int.natAbs (g a) + s.sum (fun x => Int.natAbs (g x)) :=
+      Nat.add_le_add_left hs _
+    simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+      (Nat.le_trans h1 h2)
+
 /-- `apSumOffset` splits over addition of lengths. -/
 lemma apSumOffset_add_len (f : ℕ → ℤ) (d m n₁ n₂ : ℕ) :
     apSumOffset f d m (n₁ + n₂) =
@@ -3290,21 +3312,6 @@ Checklist item: Problems/erdos_discrepancy.md (Track B) — Block decomposition 
 lemma discOffset_mul_len_le_sum_range_block (f : ℕ → ℤ) (d m L k : ℕ) :
     discOffset f d m (k * L) ≤
       ∑ j ∈ Finset.range k, discOffset f d (m + j * L) L := by
-  classical
-  -- Triangle inequality for `Int.natAbs` over `Finset.sum` (local, as in `Residue.lean`).
-  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
-      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
-    classical
-    refine Finset.induction_on s ?h0 ?hstep
-    · simp
-    · intro a s ha hs
-      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
-        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
-      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
-          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
-        Nat.add_le_add_left hs _
-      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-        (Nat.le_trans h1 h3)
   change Int.natAbs (apSumOffset f d m (k * L)) ≤ _
   rw [apSumOffset_mul_len_eq_sum_range_block]
   exact natAbs_sum_le_sum_natAbs (Finset.range k) (fun j => apSumOffset f d (m + j * L) L)

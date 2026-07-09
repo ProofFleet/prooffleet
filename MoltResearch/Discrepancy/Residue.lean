@@ -367,21 +367,6 @@ lemma natAbs_apSumFrom_tail_mul_len_succ_le_sum_range_natAbs
         Int.natAbs (f (a + (m + r + 1) * d) + apSumFrom f (a + (m + r + 1) * d) (q * d) n)) := by
   classical
   -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
-  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
-      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
-    classical
-    refine Finset.induction_on s ?h0 ?hstep
-    · simp
-    · intro a s ha hs
-      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
-        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
-      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
-      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
-          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
-        Nat.add_le_add_left h2 _
-      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-        (Nat.le_trans h1 h3)
-
   -- Rewrite to the residue split normal form and apply the triangle inequality.
   simpa [apSumFrom_tail_mul_len_succ_eq_sum_range (f := f) (a := a) (d := d) (m := m) (q := q) (n := n) hq] using
     (natAbs_sum_le_sum_natAbs (Finset.range q)
@@ -677,21 +662,6 @@ lemma disc_mul_len_succ_le_sum_range_natAbs (f : ℕ → ℤ) (d q n : ℕ) (hq 
         Int.natAbs (f ((r + 1) * d) + apSumFrom f ((r + 1) * d) (q * d) n)) := by
   classical
   -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
-  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
-      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
-    classical
-    refine Finset.induction_on s ?h0 ?hstep
-    · simp
-    · intro a s ha hs
-      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
-        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
-      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
-      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
-          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
-        Nat.add_le_add_left h2 _
-      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-        (Nat.le_trans h1 h3)
-
   -- Rewrite to the residue-class split normal form and apply the triangle inequality.
   simpa [disc_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (q := q) (n := n) hq] using
     (natAbs_sum_le_sum_natAbs (Finset.range q)
@@ -740,21 +710,6 @@ lemma discOffset_mul_len_succ_le_sum_range_natAbs (f : ℕ → ℤ) (d m q n : �
         Int.natAbs (f ((m + r + 1) * d) + apSumFrom f ((m + r + 1) * d) (q * d) n)) := by
   classical
   -- Triangle inequality for `Int.natAbs` over `Finset.sum`.
-  have natAbs_sum_le_sum_natAbs {α : Type} (s : Finset α) (h : α → ℤ) :
-      Int.natAbs (s.sum h) ≤ s.sum (fun a => Int.natAbs (h a)) := by
-    classical
-    refine Finset.induction_on s ?h0 ?hstep
-    · simp
-    · intro a s ha hs
-      have h1 : Int.natAbs (h a + s.sum h) ≤ Int.natAbs (h a) + Int.natAbs (s.sum h) := by
-        simpa [add_comm, add_left_comm, add_assoc] using (Int.natAbs_add_le (h a) (s.sum h))
-      have h2 : Int.natAbs (s.sum h) ≤ s.sum (fun b => Int.natAbs (h b)) := hs
-      have h3 : Int.natAbs (h a) + Int.natAbs (s.sum h) ≤
-          Int.natAbs (h a) + s.sum (fun b => Int.natAbs (h b)) :=
-        Nat.add_le_add_left h2 _
-      simpa [Finset.sum_insert ha, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-        (Nat.le_trans h1 h3)
-
   -- Rewrite to the residue-class split normal form and apply the triangle inequality.
   -- (We keep the summand in the stable-surface `f + apSumFrom` form.)
   simpa [discOffset_mul_len_succ_eq_natAbs_sum_range (f := f) (d := d) (m := m) (q := q) (n := n) hq] using
