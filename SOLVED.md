@@ -16,6 +16,7 @@ Format:
 - T0_13 → https://github.com/ProofFleet/moltresearch/issues/13 → JvN (task file solved in-tree)
 - T0_14 → https://github.com/ProofFleet/moltresearch/issues/14 → JvN (task file solved in-tree)
 - T0_15 → https://github.com/ProofFleet/moltresearch/issues/15 → JvN
+- T0_16 → https://github.com/ProofFleet/moltresearch/issues/16 → JvN
 
 ## Tier-1
 
