@@ -8,4 +8,4 @@ Hint: `simp` / `Nat.add_comm`
 
 theorem T1_06 (a b : Nat) : a + b = b + a :=
 by
-  sorry
+  exact Nat.add_comm a b

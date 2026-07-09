@@ -34,3 +34,4 @@ Format:
 - T1_03 → https://github.com/ProofFleet/moltresearch/issues/23 → JvN
 - T1_04 → https://github.com/ProofFleet/moltresearch/issues/24 → JvN
 - T1_05 → https://github.com/ProofFleet/moltresearch/issues/25 → JvN
+- T1_06 → https://github.com/ProofFleet/moltresearch/issues/26 → JvN
