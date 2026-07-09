@@ -8,4 +8,5 @@ Hint: `intro h1 h2; exact h1.trans h2`
 
 theorem T1_17 {α} {a b c : α} : a = b → b = c → a = c :=
 by
-  sorry
+  intro h1 h2
+  exact h1.trans h2
