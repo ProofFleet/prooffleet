@@ -30,4 +30,4 @@ Format:
 ## Tier-1
 
 - T1_01 → https://github.com/ProofFleet/moltresearch/issues/21 → JvN
-
+- T1_02 → https://github.com/ProofFleet/moltresearch/issues/22 → JvN
