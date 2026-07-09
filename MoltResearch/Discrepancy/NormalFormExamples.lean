@@ -309,17 +309,17 @@ example : apSum (fun _ => (1 : ℤ)) d n = (n : ℤ) := by
   simp
 
 example : discOffset (fun _ => (1 : ℤ)) d m n = n := by
-  simpa [discOffset_const_one]
+  exact discOffset_const_one d m n
 
 -- NEW (Track B): degenerate-step normal forms (`d = 0`)
 example : apSum f 0 n = (n : ℤ) * f 0 := by
   simp
 
 example : apSumOffset f 0 m n = (n : ℤ) * f 0 := by
-  simp
+  exact apSumOffset_zero_step f m n
 
 example : discOffset f 0 m n = n * Int.natAbs (f 0) := by
-  simp
+  exact discOffset_zero_step f m n
 
 -- NEW (Track B): zero-step / `d = 0` surface discipline for `disc`/`UpTo` wrappers
 example : disc f 0 n = n * Int.natAbs (f 0) := by
@@ -486,12 +486,12 @@ example (h : ∀ x ∈ apSupport d m (n + k), f x = g x) :
       (∀ x ∈ apSupport d m n, f x = g x) ∧ (∀ x ∈ apSupport d (m + n) k, f x = g x) :=
     (apSupport_agree_add_iff (f := f) (g := g) (d := d) (m := m) (n := n) (k := k)).1 h
   calc
-    apSumOffset f d m (n + k) = apSumOffset f d m n + apSumOffset f d (m + n) k := by
-      simpa [apSumOffset_add_len]
+    apSumOffset f d m (n + k) = apSumOffset f d m n + apSumOffset f d (m + n) k :=
+      apSumOffset_add_len f d m n k
     _ = apSumOffset g d m n + apSumOffset g d (m + n) k := by
-      simp [apSumOffset_congr_support, hpieces.1, hpieces.2]
-    _ = apSumOffset g d m (n + k) := by
-      simpa [apSumOffset_add_len]
+      rw [apSumOffset_congr_support f g d m n hpieces.1,
+        apSumOffset_congr_support f g d (m + n) k hpieces.2]
+    _ = apSumOffset g d m (n + k) := (apSumOffset_add_len g d m n k).symm
 
 /-!
 ### NEW (Track B): cut-stability for `apSupport` at `k ≤ n`
@@ -500,7 +500,7 @@ Compile-only regression: the “cut at `k`” version of the support agreement l
 without manual rewriting `n = k + (n-k)`.
 -/
 
-example (hk : k ≤ n)
+example (g : ℕ → ℤ) (hk : k ≤ n)
     (h : ∀ x ∈ apSupport d m n, f x = g x) :
     (∀ x ∈ apSupport d m k, f x = g x) ∧ (∀ x ∈ apSupport d (m + k) (n - k), f x = g x) := by
   exact (apSupport_agree_cut_iff (f := f) (g := g) (d := d) (m := m) (n := n) (k := k) hk).1 h
@@ -536,10 +536,10 @@ so downstream proofs can feed the `*_shift_start_add` coherence rules without ma
 variable (t : ℕ)
 
 example : apSumOffset f d (m + n + k) t = apSumOffset f d (m + (n + k)) t := by
-  simp
+  exact apSumOffset_start_add_assoc f d m n k t
 
 example : discOffset f d (m + n + k) t = discOffset f d (m + (n + k)) t := by
-  simp
+  exact discOffset_start_add_assoc f d m n k t
 
 /-!
 ### NEW (Track B): shift–dilation coherence (`apSumOffset`/`discOffset`)
@@ -585,24 +585,26 @@ example : apSupport d m n = (Finset.range n).image (fun i => (m + i + 1) * d) :=
 example :
     apSumOffset f d (m + (n₁ + n₂)) n =
       apSumOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
-  simp
+  exact apSumOffset_shift_start_add f d m (n₁ + n₂) n
 
 -- NEW (Track B): endpoint algebra helpers should let `simp` see through reassociation.
 example :
     apSumOffset f d (m + n₁ + n₂) n =
       apSumOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
-  simp
+  rw [apSumOffset_start_add_assoc]
+  exact apSumOffset_shift_start_add f d m (n₁ + n₂) n
 
 example :
     discOffset f d (m + (n₁ + n₂)) n =
       discOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
-  simp
+  exact discOffset_shift_start_add f d m (n₁ + n₂) n
 
 -- NEW (Track B): same reassociation helper at the `discOffset` level.
 example :
     discOffset f d (m + n₁ + n₂) n =
       discOffset (fun t => f (t + (n₁ + n₂) * d)) d m n := by
-  simp
+  rw [discOffset_start_add_assoc]
+  exact discOffset_shift_start_add f d m (n₁ + n₂) n
 
 example :
     discOffsetUpTo f d (m + (n₁ + n₂)) n =
@@ -986,13 +988,13 @@ Regression: the opt-in simp bundle `DiscSimp` should normalize common cast shape
 -/
 
 example (m n : ℕ) : (m : ℤ) + (n : ℤ) = ((m + n : ℕ) : ℤ) := by
-  simp
+  simp only [natCast_add_natCast]
 
 example (m n : ℕ) : (m : ℤ) * (n : ℤ) = ((m * n : ℕ) : ℤ) := by
-  simp
+  simp only [natCast_mul_natCast]
 
 example (n : ℕ) : (n : ℤ) + 1 = ((n + 1 : ℕ) : ℤ) := by
-  simp
+  simp only [natCast_add_one]
 
 example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f (k + a)) d m n := by
   simpa using
@@ -1000,7 +1002,7 @@ example : apSumFrom f a d (m + n) - apSumFrom f a d m = apSumOffset (fun k => f 
 
 -- (3) Offset tail → discrepancy wrapper (no intermediate `Int.natAbs (apSumOffset ...)`).
 example : Int.natAbs (apSumOffset f d m n) = discOffset f d m n := by
-  simp [discOffset]
+  simp only [natAbs_apSumOffset_eq_discOffset]
 
 -- (3.5) Canonical “difference of partial sums” normal form (discOffset) (Track B backlog item).
 example : discOffset f d m n = Int.natAbs (apSum f d (m + n) - apSum f d m) := by
@@ -1052,7 +1054,8 @@ example (hmn : m ≤ n) :
 example (C : ℕ) (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
     discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
-  simpa using h
+  exact natAbs_sum_Icc_of_le_affineEndpoints_le_discOffset (f := f) (a := a) (d := d) (C := C)
+    hmn h
 
 -- nucleus `discOffset` → paper discrepancy object (Track B item: paper-interval discrepancy normal form)
 example : discOffset f d m n = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
@@ -1168,7 +1171,7 @@ example (σ : Equiv.Perm (Fin n)) :
 
 -- Regression: `simp` should normalize away a spurious zero-offset tail.
 example : apSumOffset f d 0 n = apSum f d n := by
-  simp
+  simp only [apSumOffset_zero_start]
 
 /-!
 ### NEW (Track B): `discAlong` ↔ `discOffset` bridge coherence
@@ -1181,7 +1184,7 @@ example : discAlong f d n = discOffset f d 0 n := by
   simpa using (discAlong_eq_discOffset (f := f) (d := d) (n := n))
 
 example : discOffset f d 0 n = discAlong f d n := by
-  simp
+  exact discOffset_zero_eq_discAlong f d n
 
 /-!
 ### NEW (Track B): `UpTo` API coherence (degenerate parameters + micro-pipeline)
@@ -1386,7 +1389,7 @@ example : discOffsetUpTo f d m n₁ ≤ discOffsetUpTo f d m (n₁ + n₂) := by
 example : ∃ t ≤ n, discOffset f d m t = discOffsetUpTo f d m n := by
   rcases exists_discOffset_eq_discOffsetUpTo (f := f) (d := d) (m := m) (N := n) with
     ⟨t, ht, htEq, -⟩
-  exact ⟨t, ht, htEq⟩
+  exact ⟨t, ht, htEq.symm⟩
 
 -- Regression (Track B / boundedness transfer for `discOffsetUpTo`): extending the cutoff by `K`
 -- increases the max discrepancy by at most `K` (Lipschitz-by-1 for sign sequences).
@@ -1442,10 +1445,10 @@ example (q r : ℕ)
 -- Regression (Track B / degenerate tail normal forms):
 -- `discOffset` at length 0 and 1 should simplify to explicit normal forms.
 example : discOffset f d m 0 = 0 := by
-  simp
+  simp only [discOffset_zero]
 
 example : discOffset f d m 1 = Int.natAbs (f ((m + 1) * d)) := by
-  simp
+  simp only [discOffset_one]
 
 -- Regression (Track B / step-positivity witness normal forms):
 -- The stable surface should make it easy to normalize to `d = Nat.succ d'`.
@@ -1456,7 +1459,7 @@ example (C : ℕ) (h : HasDiscrepancyAtLeast f C) :
 -- Regression (Track B / negation invariance, disc-level):
 -- Sign flips should be a one-line `simp`.
 example : discOffset (fun k => -f k) d m n = discOffset f d m n := by
-  simp
+  simp only [discOffset_neg]
 
 example : discrepancy (fun k => -f k) d n = discrepancy f d n := by
   simp
@@ -1662,8 +1665,14 @@ example (q k' : ℕ) (hk' : k' ≤ n) :
     _ = Int.natAbs (apSumFrom f a (d * q) (m + n) - apSumFrom f a (d * q) m) := by
         -- After rewriting each `apSumOffset` as a difference of `apSumFrom`, the middle terms
         -- telescope, leaving the advertised affine partial-sum difference.
-        simp [h₁, h₂, hadd, hmn, apSumOffset_shift_add_eq_apSumFrom_sub,
-          Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+        rw [h₁, h₂,
+          apSumOffset_shift_add_eq_apSumFrom_sub (f := f) (a := a) (d := d * q) (m := m)
+            (n := k'),
+          apSumOffset_shift_add_eq_apSumFrom_sub (f := f) (a := a) (d := d * q) (m := m + k')
+            (n := n - k'),
+          hmn]
+        congr 1
+        ring
 
 -- Regression (Track B / cut-then-shift coherence):
 -- Rewriting the *tail* term of `discOffset_cut_le` into “shift-first” form should be a `simpa`.
@@ -1682,7 +1691,7 @@ example (hp : Function.Periodic f p) (hd : p ∣ d) :
 -- Regression (Track B / simp-first pipeline hygiene): importing `DiscSimp` should let `simp`
 -- normalize start-index shifts into a translated summand.
 example : apSumOffset f d (m + k) n = apSumOffset (fun t => f (t + k * d)) d m n := by
-  simp
+  simp only [apSumOffset_shift_start_add]
 
 example : discOffset f d (m + k) n = discOffset (fun t => f (t + k * d)) d m n := by
   simpa using (discOffset_shift_start_add (f := f) (d := d) (m := m) (k := k) (n := n))
@@ -1859,12 +1868,12 @@ This is the “generic” version of the common workflow:
 
 It is intentionally a one-line `simpa` application of the stable-surface wrapper lemma.
 -/
-example (g : ℕ → ℤ) (hf : IsSignSequence f) (hg : IsSignSequence g)
+example (g : ℕ → ℤ) (hf : IsSignSequence f) (hg : IsSignSequence g) (hd : d > 0)
     (t : ℕ) (ht : ((apSupport d m n).filter (fun x => f x ≠ g x)).card ≤ t) :
     discOffset f d m n ≤ discOffset g d m n + 2 * t := by
   simpa using
     (IsSignSequence.discOffset_edit_le_of_card_apSupport_diff_le
-      (hf := hf) (hg := hg) (d := d) (m := m) (n := n) (t := t) (by decide) ht)
+      (hf := hf) (hg := hg) (d := d) (m := m) (n := n) (t := t) hd ht)
 
 -- Regression (Track B / bounded-perturbation stability, `apSupport` form):
 -- a non-sign-sequence perturbation (values in `{0,2}`) still yields the same `+ 2*t` bound
@@ -2030,7 +2039,7 @@ example : apSumOffset f d m (n + 1) = apSumOffset f d m n + f ((m + n + 1) * d) 
 -- `Nat.succ` endpoints without manual rewriting.
 example :
     Int.natAbs (apSumOffset f d m n + f ((m + Nat.succ n) * d)) = discOffset f d m (Nat.succ n) := by
-  simp
+  simp only [natAbs_apSumOffset_succ_succ_eq_discOffset]
 
 example :
     Int.natAbs (apSum f d n + f ((Nat.succ n) * d)) = disc f d (Nat.succ n) := by
@@ -2389,8 +2398,9 @@ These are intentionally “paper-shaped” and *do not* mention
 example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) ≤ C) :
     discOffset f d m n ≤ C := by
-  -- `simp` turns the `Icc` sum into `discOffset` via `apSumOffset_eq_sum_Icc`.
-  simpa [discOffset, apSumOffset_eq_sum_Icc] using h
+  -- The default simp set turns the `Icc` sum into `discOffset`
+  -- (via `sum_Icc_add_one_add_len_eq_apSumOffset` and `natAbs_apSumOffset_eq_discOffset`).
+  simpa using h
 
 -- 2) Split/bound a single paper interval into two consecutive tails.
 example (n₁ n₂ : ℕ) :
@@ -2400,7 +2410,7 @@ example (n₁ n₂ : ℕ) :
   have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
     exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
   -- Normalize LHS to `discOffset` and apply the stable-surface split lemma.
-  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+  simpa [Nat.add_sub_add_left] using
     (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
 
 -- 3) Combine two paper bounds into a bound on the concatenated interval.
@@ -2409,35 +2419,35 @@ example (n₁ n₂ C₁ C₂ : ℕ)
     (h₂ : Int.natAbs ((Finset.Icc (m + n₁ + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤ C₂) :
     Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤ C₁ + C₂ := by
   have h₁' : discOffset f d m n₁ ≤ C₁ := by
-    simpa [discOffset, apSumOffset_eq_sum_Icc] using h₁
+    simpa using h₁
   have h₂' : discOffset f d (m + n₁) n₂ ≤ C₂ := by
-    simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h₂
+    simpa [← Nat.add_assoc] using h₂
   have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
   have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
     exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
   have hsplit : discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    simpa [Nat.add_sub_add_left] using
       (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
   have : discOffset f d m (n₁ + n₂) ≤ C₁ + C₂ :=
     le_trans hsplit (Nat.add_le_add h₁' h₂')
   -- Return to a paper `Icc` inequality.
-  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+  simpa using this
 
 -- 3a) Three-way split/bound: paper `Icc` tail → normalize to `discOffset` → split twice.
 example (n₁ n₂ n₃ : ℕ) :
     Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂ + n₃))).sum (fun i => f (i * d))) ≤
       discOffset f d m n₁ + discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃ := by
   have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
-  have hkn : m + n₁ ≤ m + (n₁ + n₂ + n₃) := by
+  have hkn : m + n₁ ≤ m + (n₁ + (n₂ + n₃)) := by
     exact Nat.add_le_add_left (Nat.le_add_right n₁ (n₂ + n₃)) m
   have hsplit₁ : discOffset f d m (n₁ + (n₂ + n₃)) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) (n₂ + n₃) := by
-    simpa [Nat.add_assoc] using
+    simpa [Nat.add_sub_add_left] using
       (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + (n₂ + n₃)) hmk hkn)
   have hmk' : m + n₁ ≤ m + n₁ + n₂ := Nat.le_add_right _ _
-  have hkn' : m + n₁ + n₂ ≤ m + n₁ + (n₂ + n₃) := by
-    simpa [Nat.add_assoc] using Nat.add_le_add_left (Nat.le_add_right n₂ n₃) (m + n₁)
+  have hkn' : m + n₁ + n₂ ≤ m + n₁ + (n₂ + n₃) :=
+    Nat.add_le_add_left (Nat.le_add_right n₂ n₃) (m + n₁)
   have hsplit₂ : discOffset f d (m + n₁) (n₂ + n₃) ≤ discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃ := by
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    simpa [Nat.add_sub_add_left] using
       (discOffset_split_at_le (f := f) (d := d) (m := m + n₁) (k := m + n₁ + n₂) (n := n₂ + n₃) hmk' hkn')
   have h : discOffset f d m (n₁ + n₂ + n₃) ≤
       discOffset f d m n₁ + discOffset f d (m + n₁) n₂ + discOffset f d (m + n₁ + n₂) n₃ := by
@@ -2448,8 +2458,8 @@ example (n₁ n₂ n₃ : ℕ) :
       -- bound the second summand via the second split.
       exact Nat.add_le_add_left hsplit₂ _
     -- Reassociate the RHS.
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
-  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+    simpa [Nat.add_assoc] using this
+  simpa using h
 
 -- 3b) Paper `Icc` bound + pointwise `|f| ≤ B` bound → split, then bound the second piece by `n₂ * B`.
 example {B : ℕ} (n₁ n₂ C₁ : ℕ)
@@ -2457,7 +2467,7 @@ example {B : ℕ} (n₁ n₂ C₁ : ℕ)
     (hf : ∀ k, Int.natAbs (f k) ≤ B) :
     Int.natAbs ((Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d))) ≤ C₁ + n₂ * B := by
   have h₁' : discOffset f d m n₁ ≤ C₁ := by
-    simpa [discOffset, apSumOffset_eq_sum_Icc] using h₁
+    simpa using h₁
   have htail : discOffset f d (m + n₁) n₂ ≤ n₂ * B := by
     simpa using
       (discOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := m + n₁) (n := n₂))
@@ -2465,18 +2475,18 @@ example {B : ℕ} (n₁ n₂ C₁ : ℕ)
   have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
     exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
   have hsplit : discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    simpa [Nat.add_sub_add_left] using
       (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
   have : discOffset f d m (n₁ + n₂) ≤ C₁ + n₂ * B := by
     exact le_trans hsplit (Nat.add_le_add h₁' htail)
-  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+  simpa using this
 
 -- 3c) Pure compile-only: normalize a paper `Icc` tail into `discOffset` at a shifted start.
-example (hmn : m ≤ n) :
+example (_hmn : m ≤ n) :
     Int.natAbs ((Finset.Icc (m + 1) (m + (n - m))).sum (fun i => f (i * d))) =
       discOffset f d m (n - m) := by
   -- Here the endpoint `m + (n - m)` is definitionally the “length-(n-m)” tail endpoint.
-  simp [discOffset, apSumOffset_eq_sum_Icc, Nat.add_sub_of_le hmn]
+  simp
 
 -- 4) Homogeneous variant (`m = 0`): normalize a paper `Icc 1 (n₁+n₂)` sum to `disc`, then split.
 example (n₁ n₂ : ℕ) :
@@ -2512,7 +2522,7 @@ example (n₁ n₂ C₁ C₂ : ℕ)
 -- normalize to the stable-surface wrapper (not `Int.natAbs (apSumOffset ...)`).
 example :
     Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) = discOffset f d m n := by
-  simp [discOffset, apSumOffset_eq_sum_Icc]
+  simp
 
 -- Compile-only regression (Track B / endpoint normalization):
 -- the “upper endpoint as `m+n+1`” shape simp-normalizes directly.
@@ -2526,7 +2536,7 @@ example (hf : IsSignSequence f) :
       discOffset f d m n + 1 := by
   -- Normalize the paper statement into `discOffset` at length `n+1`, then apply the stable-surface
   -- Lipschitz bound for sign sequences.
-  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+  simpa using
     (IsSignSequence.discOffset_succ_le (f := f) (hf := hf) (d := d) (m := m) (n := n))
 
 -- Compile-only regression (Track B / paper `Icc` → `discOffset`, split at an interior cut).
@@ -2537,7 +2547,7 @@ example (n₁ n₂ : ℕ) :
   have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
     exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
   -- Normalize the paper `Icc` sum into `discOffset`, then use the stable-surface split lemma.
-  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+  simpa [Nat.add_sub_add_left] using
     (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
 
 -- Regression (Track B / paper-to-stable-surface):
@@ -2545,7 +2555,7 @@ example (n₁ n₂ : ℕ) :
 example :
     discOffset f d m n = Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d))) := by
   -- `discOffset` is `Int.natAbs (apSumOffset ...)`, and `apSumOffset` is the `Icc` tail sum.
-  simp [discOffset, apSumOffset_eq_sum_Icc]
+  exact discOffset_eq_natAbs_sum_Icc f d m n
 
 -- Regression (Track B / paper `Icc` → `discOffset` (no `Int.natAbs (apSumOffset ...)`), then split/bound).
 example (n₁ n₂ : ℕ) :
@@ -2555,7 +2565,7 @@ example (n₁ n₂ : ℕ) :
   have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
     exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
   -- Split the tail at `k = m+n₁`, then normalize the LHS back into paper `Icc` form.
-  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+  simpa [Nat.add_sub_add_left] using
     (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
 
 -- Regression (Track B / paper `Icc` → `discOffset` → split/bound → return to paper `Icc` statement).
@@ -2567,18 +2577,18 @@ example (n₁ n₂ C₁ C₂ : ℕ)
     simpa using h₁
   have h₂' : discOffset f d (m + n₁) n₂ ≤ C₂ := by
     -- Normalize the second paper interval; note `m + n₁ + n₂ = m + (n₁ + n₂)`.
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h₂
+    simpa [← Nat.add_assoc] using h₂
   have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
   have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
     exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
   have hsplit :
       discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    simpa [Nat.add_sub_add_left] using
       (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
   have : discOffset f d m (n₁ + n₂) ≤ C₁ + C₂ :=
     le_trans hsplit (Nat.add_le_add h₁' h₂')
   -- Return to the paper `Icc` tail sum statement.
-  simpa [discOffset, apSumOffset_eq_sum_Icc, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using this
+  simpa using this
 
 -- Paper `Icc` tail (length `n₁+n₂`) → normalize to `discOffset`, then split/bound at an interior cut.
 --
@@ -2599,10 +2609,10 @@ example (n₁ n₂ : ℕ) :
     have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
       exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
     -- Split the tail at `k = m+n₁`.
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
+    simpa [Nat.add_sub_add_left] using
       (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
   -- Normalize the paper `Icc` statement to the stable-surface `discOffset` wrapper.
-  simpa [discOffset, hsum] using hsplit
+  simpa [hsum] using hsplit
 
 -- Regression: direct “cut at k” wrappers for paper notation.
 example (n k : ℕ) (hk : k ≤ n) :
@@ -2633,15 +2643,19 @@ example (n₁ n₂ C₁ C₂ : ℕ)
     simpa using h₁
   have h₂' : discOffset f d (m + n₁) n₂ ≤ C₂ := by
     -- Normalize the second paper interval; note `m + n₁ + n₂ = m + (n₁ + n₂)`.
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h₂
+    have hIcc := natAbs_sum_Icc_eq_discOffset (f := f) (d := d) (m := m + n₁) (n := n₂)
+    rw [Nat.add_assoc m n₁ n₂] at hIcc
+    rw [← hIcc]
+    exact h₂
   have hsplit :
       discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + discOffset f d (m + n₁) n₂ := by
     have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
     have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
       exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
     -- Split the tail at `k = m+n₁`.
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+    have hsp :=
+      discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn
+    rwa [Nat.add_sub_cancel_left, ← Nat.add_assoc, Nat.add_sub_cancel_left] at hsp
   exact le_trans hsplit (Nat.add_le_add h₁' h₂')
 
 -- Same split, but bound the second piece crudely by `n₂*B` from a pointwise `|f| ≤ B` bound.
@@ -2659,8 +2673,9 @@ example {B : ℕ} (n₁ n₂ C₁ : ℕ)
     have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
     have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
       exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+    have hsp :=
+      discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn
+    rwa [Nat.add_sub_cancel_left, ← Nat.add_assoc, Nat.add_sub_cancel_left] at hsp
   have : discOffset f d m (n₁ + n₂) ≤ C₁ + n₂ * B := by
     exact le_trans hsplit (Nat.add_le_add h₁' h₂')
   simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using this
@@ -2675,7 +2690,7 @@ example {B : ℕ} (hf : ∀ k, Int.natAbs (f k) ≤ B) :
   have hbound : discOffset f d m n ≤ n * B := by
     simpa using
       (discOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := m) (n := n))
-  simpa [discOffset, hsum] using hbound
+  rwa [discOffset_eq_natAbs_apSumOffset, ← hsum] at hbound
 
 -- Paper `Icc` tail → normalize to `discOffset`, then split and bound the second piece by `n₂*B`.
 example {B : ℕ} (n₁ n₂ : ℕ) (hf : ∀ k, Int.natAbs (f k) ≤ B) :
@@ -2690,15 +2705,16 @@ example {B : ℕ} (n₁ n₂ : ℕ) (hf : ∀ k, Int.natAbs (f k) ≤ B) :
     have hmk : m ≤ m + n₁ := Nat.le_add_right _ _
     have hkn : m + n₁ ≤ m + (n₁ + n₂) := by
       exact Nat.add_le_add_left (Nat.le_add_right n₁ n₂) m
-    simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using
-      (discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn)
+    have hsp :=
+      discOffset_split_at_le (f := f) (d := d) (m := m) (k := m + n₁) (n := n₁ + n₂) hmk hkn
+    rwa [Nat.add_sub_cancel_left, ← Nat.add_assoc, Nat.add_sub_cancel_left] at hsp
   have htail : discOffset f d (m + n₁) n₂ ≤ n₂ * B := by
     simpa using
       (discOffset_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (m := m + n₁) (n := n₂))
   have : discOffset f d m (n₁ + n₂) ≤ discOffset f d m n₁ + n₂ * B := by
     -- Combine split + crude bound on the second piece.
     exact le_trans hsplit (Nat.add_le_add_left htail _)
-  simpa [discOffset, hsum] using this
+  rwa [discOffset_eq_natAbs_apSumOffset, ← hsum] at this
 
 /-!
 ### Regression: `Icc` endpoint algebra simp coherence (Track B)
@@ -2757,15 +2773,18 @@ example :
 example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
     discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
-  simpa [discOffset,
-    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn]
+  exact h
 
 -- Paper difference of affine partial sums (`m ≤ n`) → `discOffset` on a shifted sequence (single `simpa`).
 example (hmn : m ≤ n)
     (h : Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ C) :
     discOffset (fun k => f (k + a)) d m (n - m) ≤ C := by
-  simpa [discOffset,
-    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
+      hmn]
+  exact h
 
 -- Paper tail sum with affine endpoints (`m ≤ n`) → normalize to an `apSumOffset` nucleus statement.
 -- (I.e. strip away the paper `Icc` and expose the canonical tail-sum wrapper.)
@@ -2788,7 +2807,7 @@ example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n) :
         (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d)) =
       apSumOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) := by
   have hn₁ : n₁ ≤ n - m :=
-    Nat.le_sub_of_add_le hmn₁
+    Nat.le_sub_of_add_le (Nat.add_comm m n₁ ▸ hmn₁)
   -- Rewrite both paper tails to `apSumOffset`, then normalize the difference.
   simpa [
     sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
@@ -2811,14 +2830,17 @@ example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
           C) :
     discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
   have hn₁ : n₁ ≤ n - m :=
-    Nat.le_sub_of_add_le hmn₁
-  simpa [discOffset,
-    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    Nat.le_sub_of_add_le (Nat.add_comm m n₁ ▸ hmn₁)
+  have hs₁ :=
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+  have hs₂ :=
     sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
-      (Nat.le_add_right m n₁),
-    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
-      (n₁ := n₁) (n₂ := n - m) hn₁
-  ] using h
+      (Nat.le_add_right m n₁)
+  rw [Nat.add_sub_cancel_left] at hs₂
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m) hn₁,
+    ← hs₁, ← hs₂]
+  exact h
 
 -- Paper tail sum with affine endpoints (`m ≤ n`) → normalize to the shifted-sequence `discOffset` view.
 --
@@ -2827,17 +2849,19 @@ example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
     discOffset (fun k => f (k + a)) d m (n - m) ≤ C := by
   -- Paper tail → affine-tail nucleus → offset-sum on the shifted sequence.
-  simpa [discOffset,
-    sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
-    apSumFrom_tail_eq_apSumOffset_shift_add] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n - m),
+    ← sum_Icc_eq_apSumFrom_tail_of_le (f := f) (a := a) (d := d) (m := m) (n := n) hmn]
+  exact h
 
 -- Paper difference of affine partial sums (`m ≤ n`) → normalize into an offset tail on the shifted sequence.
 example (hmn : m ≤ n)
     (h : Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ C) :
     discOffset (fun k => f (k + a)) d m (n - m) ≤ C := by
-  simpa [discOffset,
-    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)
-      hmn] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_sub_apSumFrom_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m)
+      (n := n) hmn]
+  exact h
 
 -- Paper difference of *paper* affine tail sums → normalize to a later tail (`tail-of-tail` normal form).
 example
@@ -2848,14 +2872,23 @@ example
           C) :
     discOffset (fun k => f (k + a)) d (m + n₁) n₂ ≤ C := by
   -- Paper tails → affine-tail nucleus (`apSumFrom`), then difference → offset tail on shifted sequence.
-  simpa [discOffset, sum_Icc_eq_apSumFrom_tail, apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail,
-    Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_tail_sub_eq_apSumOffset_shift_add_tail (f := f) (a := a) (d := d) (m := m)
+      (n1 := n₁) (n2 := n₂),
+    ← sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n₁ + n₂),
+    ← sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n₁)]
+  exact h
 
 -- Paper tail sum with affine summand `a + i` (i.e. `d = 1`) → normalize to the shifted-sequence `discOffset` view.
 example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i))) ≤ C) :
     discOffset (fun k => f (k + a)) 1 m n ≤ C := by
-  simpa [discOffset, Nat.mul_one, sum_Icc_eq_apSumFrom_tail, apSumFrom_tail_eq_apSumOffset_shift_add] using h
+  have h' : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * 1))) ≤ C := by
+    simpa only [Nat.mul_one] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := 1) (m := m) (n := n),
+    ← sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := 1) (m := m) (n := n)]
+  exact h'
 
 -- Paper difference of homogeneous partial sums with `d = 1` → normalize to an offset tail (single `simpa` pipeline).
 example
@@ -2864,26 +2897,42 @@ example
             ((Finset.Icc 1 (m + n)).sum f - (Finset.Icc 1 m).sum f) ≤
           C) :
     discOffset f 1 m n ≤ C := by
-  simpa [discOffset, Nat.mul_one, sum_Icc_eq_apSum, apSum_sub_eq_apSumOffset] using h
+  have h' :
+      Int.natAbs
+          ((Finset.Icc 1 (m + n)).sum (fun i => f (i * 1)) -
+            (Finset.Icc 1 m).sum (fun i => f (i * 1))) ≤ C := by
+    simpa only [Nat.mul_one] using h
+  rw [discOffset_eq_natAbs_apSumOffset, ← apSum_sub_eq_apSumOffset (f := f) (d := 1) (m := m) (n := n),
+    ← sum_Icc_eq_apSum (f := f) (d := 1) (n := m + n), ← sum_Icc_eq_apSum (f := f) (d := 1) (n := m)]
+  exact h'
 
 -- Paper tail sum with affine endpoints (`m ≤ n`) and `d = 1` → normalize directly to a `discOffset` bound.
 example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i))) ≤ C) :
     discOffset (fun k => f (a + k)) 1 m (n - m) ≤ C := by
-  simpa [discOffset, Nat.mul_one,
-    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := 1) (m := m) (n := n) hmn] using h
+  have h' : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * 1))) ≤ C := by
+    simpa only [Nat.mul_one] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := 1) (m := m) (n := n) hmn]
+  exact h'
 
 -- Paper tail sum with an affine summand `a + i*d` → normalize to the shifted-sequence `discOffset` view.
 example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + i * d))) ≤ C) :
     discOffset (fun k => f (k + a)) d m n ≤ C := by
-  simpa [discOffset, sum_Icc_eq_apSumFrom_tail, apSumFrom_tail_eq_apSumOffset_shift_add] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n),
+    ← sum_Icc_eq_apSumFrom_tail (f := f) (a := a) (d := d) (m := m) (n := n)]
+  exact h
 
 -- Paper tail sum with a mul-left affine summand `a + d*i` → same normalization (single `simpa` pipeline).
 example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (a + d * i))) ≤ C) :
     discOffset (fun k => f (k + a)) d m n ≤ C := by
-  simpa [discOffset, sum_Icc_eq_apSumFrom_tail_mul_left, apSumFrom_tail_eq_apSumOffset_shift_add] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n),
+    ← sum_Icc_eq_apSumFrom_tail_mul_left (f := f) (a := a) (d := d) (m := m) (n := n)]
+  exact h
 
 -- Paper difference of homogeneous partial sums (paper `Icc` notation) → normalize to an offset tail.
 example
@@ -2892,14 +2941,19 @@ example
             ((Finset.Icc 1 (m + n)).sum (fun i => f (i * d)) - (Finset.Icc 1 m).sum (fun i => f (i * d))) ≤
           C) :
     discOffset f d m n ≤ C := by
-  simpa [discOffset, sum_Icc_eq_apSum, apSum_sub_eq_apSumOffset] using h
+  rw [discOffset_eq_natAbs_apSumOffset, ← apSum_sub_eq_apSumOffset (f := f) (d := d) (m := m) (n := n),
+    ← sum_Icc_eq_apSum (f := f) (d := d) (n := m + n), ← sum_Icc_eq_apSum (f := f) (d := d) (n := m)]
+  exact h
 
 -- Paper affine sum bound (with affine endpoints) → step-one `discOffset` normal form.
 example
     (h : Int.natAbs ((Finset.Icc 1 n).sum (fun i => f (a + i * d))) ≤ C) :
     discOffset (fun k => f (k * d + a)) 1 0 n ≤ C := by
-  -- `simp` rewrites the `Icc` sum into `apSumOffset … 1 0 n`, then into `discOffset`.
-  simpa [Nat.add_comm, Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using h
+  -- Rewrite the `Icc` sum into `apSumOffset … 1 0 n` (step-one normal form), then fold `discOffset`.
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_eq_apSumOffset_step_one_add_left (f := f) (a := a) (d := d) (n := n),
+    ← sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := n)]
+  exact h
 
 -- Regression (Track B / affine difference→tail): difference of affine partial sums is the later tail.
 example :
@@ -2911,7 +2965,9 @@ example
     (h : Int.natAbs (apSumFrom f a d (m + n) - apSumFrom f a d m) ≤ C) :
     discOffset (fun k => f (k + a)) d m n ≤ C := by
   -- Difference → affine tail → offset-sum on the shifted sequence.
-  simpa [apSumFrom_sub_eq_apSumOffset_shift_add] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n)]
+  exact h
 
 -- Paper tail sum with an *affine summand* `i*d + a` → `discOffset` bound in step-one offset form.
 --
@@ -2921,7 +2977,8 @@ example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a))) ≤ C) :
     discOffset (fun k => f (k * d + a)) 1 m n ≤ C := by
   -- `apSumOffset_one_d` rewrites the offset-sum into the `Icc` paper notation.
-  simpa [discOffset, apSumOffset_one_d] using h
+  rw [discOffset_eq_natAbs_apSumOffset, apSumOffset_one_d]
+  exact h
 
 -- Paper difference of *paper* affine partial sums → `discOffset` bound (difference → tail → offset).
 example
@@ -2932,28 +2989,37 @@ example
           C) :
     discOffset (fun k => f (k + a)) d m n ≤ C := by
   -- Paper → nucleus (`apSumFrom`), then difference → `apSumOffset` on a shifted sequence.
-  simpa [discOffset, sum_Icc_eq_apSumFrom, apSumFrom_sub_eq_apSumOffset_shift_add] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_sub_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n),
+    ← sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := m + n),
+    ← sum_Icc_eq_apSumFrom (f := f) (a := a) (d := d) (n := m)]
+  exact h
 
 -- Paper tail sum with a translation-friendly summand `i*d + a` → `discOffset` bound (tail → offset on shifted seq).
 example
     (h : Int.natAbs ((Finset.Icc (m + 1) (m + n)).sum (fun i => f (i * d + a))) ≤ C) :
     discOffset (fun k => f (k + a)) d m n ≤ C := by
   -- Paper tail → affine-tail nucleus → offset tail on the shifted sequence.
-  simpa [discOffset, sum_Icc_eq_apSumFrom_tail_add, apSumFrom_tail_eq_apSumOffset_shift_add_left] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_tail_eq_apSumOffset_shift_add (f := f) (a := a) (d := d) (m := m) (n := n),
+    ← sum_Icc_eq_apSumFrom_tail_add (f := f) (a := a) (d := d) (m := m) (n := n)]
+  exact h
 
 -- Paper tail sum with affine endpoints (`m ≤ n`) → `discOffset` bound in `apSumOffset` normal form.
 example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + i * d))) ≤ C) :
     discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
-  simpa [discOffset,
-    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn]
+  exact h
 
 -- Same as above, but with the summand written as `a + d*i` (mul-left convention).
 example (hmn : m ≤ n)
     (h : Int.natAbs ((Finset.Icc (m + 1) n).sum (fun i => f (a + d * i))) ≤ C) :
     discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
-  simpa [discOffset,
-    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn]
+  exact h
 
 -- Paper difference of two *paper* affine-endpoint tail sums → `discOffset` bound
 -- (tail - shorter tail = later tail).
@@ -2965,14 +3031,18 @@ example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
           C) :
     discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
   have hn₁ : n₁ ≤ n - m := by
-    exact Nat.le_sub_of_add_le hmn₁
+    exact Nat.le_sub_of_add_le (Nat.add_comm m n₁ ▸ hmn₁)
   -- Rewrite both `Icc` tails into `apSumOffset` (stable surface), then normalize the difference.
-  simpa [discOffset,
-    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+  have hs₁ :=
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+  have hs₂ :=
     sum_Icc_eq_apSumOffset_of_le_affineEndpoints (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
-      (Nat.le_add_right m n₁),
-    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
-      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+      (Nat.le_add_right m n₁)
+  rw [Nat.add_sub_cancel_left] at hs₂
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m) hn₁,
+    ← hs₁, ← hs₂]
+  exact h
 
 -- Same as the previous example, but with the summand written as `a + d*i` (mul-left convention).
 example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
@@ -2983,20 +3053,25 @@ example (hmn : m ≤ n) (hmn₁ : m + n₁ ≤ n)
           C) :
     discOffset (fun k => f (a + k)) d (m + n₁) (n - m - n₁) ≤ C := by
   have hn₁ : n₁ ≤ n - m := by
-    exact Nat.le_sub_of_add_le hmn₁
-  simpa [discOffset,
-    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn,
+    exact Nat.le_sub_of_add_le (Nat.add_comm m n₁ ▸ hmn₁)
+  have hs₁ :=
+    sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := n) hmn
+  have hs₂ :=
     sum_Icc_eq_apSumOffset_of_le_affineEndpoints_mul_left (f := f) (a := a) (d := d) (m := m) (n := m + n₁)
-      (Nat.le_add_right m n₁),
-    apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m)
-      (n₁ := n₁) (n₂ := n - m) hn₁] using h
+      (Nat.le_add_right m n₁)
+  rw [Nat.add_sub_cancel_left] at hs₂
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumOffset_sub_apSumOffset_eq_apSumOffset (f := fun k => f (a + k)) (d := d) (m := m) hn₁,
+    ← hs₁, ← hs₂]
+  exact h
 
 -- Difference of affine partial sums (`m ≤ n`) → `discOffset` bound (difference → tail → offset on shifted sequence).
 example (hmn : m ≤ n)
     (h : Int.natAbs (apSumFrom f a d n - apSumFrom f a d m) ≤ C) :
     discOffset (fun k => f (a + k)) d m (n - m) ≤ C := by
-  simpa [discOffset,
-    apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn] using h
+  rw [discOffset_eq_natAbs_apSumOffset,
+    ← apSumFrom_sub_apSumFrom_eq_apSumOffset_shift (f := f) (a := a) (d := d) (m := m) (n := n) hmn]
+  exact h
 
 -- Regression: definitional lemmas expose the wrappers.
 example : discrepancy f d n = Int.natAbs (apSum f d n) := by
@@ -3020,7 +3095,7 @@ example : Int.natAbs (apSum f d n) = discrepancy f d n := by
   simp
 
 example : Int.natAbs (apSumFrom f a d n) = affineDiscrepancy f a d n := by
-  simp
+  exact (affineDiscrepancy_def f a d n).symm
 
 example : discrepancy (fun k => f (k + a)) d n = Int.natAbs (apSumFrom f a d n) := by
   simp
@@ -3448,7 +3523,7 @@ example :
     apSumOffset_add_length_eq_add_apSum_shift_add (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)
 
 example : apSumOffset f d 0 n = apSum f d n := by
-  simp
+  exact apSumOffset_zero_start f d n
 
 -- Regression (Track B / step-factoring at a multiple start):
 -- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
@@ -4022,7 +4097,7 @@ example : apSum f d (n + 1) = f d + apSumOffset f d 1 n := by
   simpa using apSum_succ_length (f := f) (d := d) (n := n)
 
 example : apSumOffset f d 0 n = apSum f d n := by
-  simp
+  exact apSumOffset_zero_start f d n
 
 -- Regression (Track B / step-factoring at a multiple start):
 -- normalize `apSumFrom f (a*d) (k*d) n` directly into an `apSumOffset` on a shifted sequence.
@@ -4032,7 +4107,7 @@ example : apSumFrom f (a * d) (k * d) n = apSumOffset (fun t => f ((t + a) * d))
       (d₂ := d) (n := n))
 
 example : apSumOffset f d m 0 = 0 := by
-  simp
+  exact apSumOffset_zero f d m
 
 -- Single-term normal forms (useful when you want to peel a tail down to one summand).
 example : apSumOffset f d m 1 = f ((m + 1) * d) := by
@@ -4044,7 +4119,7 @@ example : apSumFrom f a d 1 = f (a + d) := by
 
 -- Degenerate constant AP tails.
 example : apSumOffset f 0 m n = n • f 0 := by
-  simp
+  exact apSumOffset_zero_d f m n
 
 example : apSumOffset f d m (n + 1) = f ((m + 1) * d) + apSumOffset f d (m + 1) n := by
   simpa using apSumOffset_succ_length (f := f) (d := d) (m := m) (n := n)
@@ -4253,7 +4328,8 @@ example :
         (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (i * d)) -
           (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (i * d))) =
       discOffset f d (m + n₁) n₂ := by
-  simp [sum_Icc_sub_sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)]
+  rw [sum_Icc_sub_sum_Icc_eq_apSumOffset (f := f) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)]
+  exact (discOffset_eq_natAbs_apSumOffset f d (m + n₁) n₂).symm
 
 -- 2) Same, but with an affine translation *after* the `i*d` (very common in paper statements).
 example :
@@ -4261,9 +4337,10 @@ example :
         (Finset.Icc (m + 1) (m + (n₁ + n₂))).sum (fun i => f (a + i * d)) -
           (Finset.Icc (m + 1) (m + n₁)).sum (fun i => f (a + i * d))) =
       discOffset (fun t => f (a + t)) d (m + n₁) n₂ := by
-  -- First rewrite the *difference of blocks* to an `apSumOffset` tail, then let `simp`
-  -- turn `Int.natAbs (apSumOffset …)` into `discOffset …`.
-  simp [sum_Icc_sub_sum_Icc_eq_apSumOffset (f := fun t => f (a + t)) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)]
+  -- First rewrite the *difference of blocks* to an `apSumOffset` tail, then fold the
+  -- `Int.natAbs (apSumOffset …)` into `discOffset …`.
+  rw [sum_Icc_sub_sum_Icc_eq_apSumOffset (f := fun t => f (a + t)) (d := d) (m := m) (n₁ := n₁) (n₂ := n₂)]
+  exact (discOffset_eq_natAbs_apSumOffset (fun t => f (a + t)) d (m + n₁) n₂).symm
 
 -- 3) “Tail length” form with variable upper endpoint: `m ≤ n` paper tail → `discOffset` tail.
 example (hmn : m ≤ n) :

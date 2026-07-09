@@ -108,6 +108,16 @@ jobs:
           lint: false
           use-mathlib-cache: true
 
+      # The default target only builds what MoltResearch.lean imports. The audit/regression
+      # modules are standalone, so build them explicitly — otherwise they can silently decay
+      # (this happened: NormalFormExamples accumulated ~95 compile errors unnoticed).
+      - name: Build audit + regression example modules
+        run: |
+          ~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceChecklist
+          ~/.elan/bin/lake build MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
+          ~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceAudit
+          ~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamples
+
       - name: Forbid sorry in verified targets
         run: bash scripts/forbid_sorry.sh
 
