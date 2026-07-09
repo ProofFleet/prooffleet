@@ -8,6 +8,7 @@ import Solutions.Tier0.T0_07
 import Solutions.Tier0.T0_08
 import Solutions.Tier0.T0_09
 import Solutions.Tier0.T0_10
+import Solutions.Tier0.T0_11
 
 /-!
 Solved onboarding tasks.
