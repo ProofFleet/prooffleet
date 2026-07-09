@@ -8,4 +8,4 @@ Hint: `exact le_trans`
 
 theorem T1_20 (a b c : Nat) : a ≤ b → b ≤ c → a ≤ c :=
 by
-  sorry
+  exact Nat.le_trans
