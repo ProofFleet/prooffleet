@@ -6,6 +6,7 @@ import MoltResearch.Discrepancy.NucleusSurfacePipelineExample
 import MoltResearch.Discrepancy.MiniPipelineMaxExample
 import MoltResearch.Discrepancy.ResidueMaxPipelineExample
 import MoltResearch.Discrepancy.SupportEditPipelineExample
+import MoltResearch.Discrepancy.UpToEditBlockPipelineExample
 import MoltResearch.Discrepancy.SupportAlgebraExamples
 
 /-!

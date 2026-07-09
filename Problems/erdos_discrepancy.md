@@ -1395,17 +1395,22 @@ Definition of done:
   (Implemented as `discOffset_mul_len_le_sum_range_block` in `MoltResearch/Discrepancy/Basic.lean`,
   with a stable-surface regression example in `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Stable-surface simp normal form for composing shifts/dilations: add simp lemmas normalizing nested reindexing of the summand,
+- [x] Stable-surface simp normal form for composing shifts/dilations: add simp lemmas normalizing nested reindexing of the summand,
   so expressions like `fun n => f ((n + a)*q + b)` and `fun n => f (n*(q*r))` reduce to a single canonical `shift_add`/`map_mul` form.
+  (Implemented as the `*_summand_add_add` / `*_summand_mul_mul` / `*_summand_shift_mul_add` simp
+  families in `MoltResearch/Discrepancy/CoherenceSimp.lean`, with `simp`-only regression examples in
+  `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
 - [x] Start-shift Lipschitz wrapper: assuming `IsSignSequence f`, prove a convenience inequality controlling how `discOffset` changes when increasing the start parameter `m` by `k`, packaged so “slide the window” steps are one-liners.
   (Implemented as `IsSignSequence.discOffset_start_add_le` / `IsSignSequence.discOffset_le_start_add_add`
   in `MoltResearch/Discrepancy/Basic.lean`, with stable-surface regression examples in
   `MoltResearch/Discrepancy/NormalFormExamples.lean`.)
 
-- [ ] Consumer regression example (UpTo + edits + blocks): add a compile-only `example` block (or small file) showing the intended pipeline
+- [x] Consumer regression example (UpTo + edits + blocks): add a compile-only `example` block (or small file) showing the intended pipeline
   `discOffsetUpTo` → support/edit sensitivity → block decomposition → triangle bound
   compiles under the stable surface `import MoltResearch.Discrepancy`.
+  (Implemented as `MoltResearch/Discrepancy/UpToEditBlockPipelineExample.lean`, imported by
+  `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
 ### Track C - Conjecture stub + equivalences (backlog)
 

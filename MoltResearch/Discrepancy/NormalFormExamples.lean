@@ -167,6 +167,29 @@ example (hf : IsSignSequence f) :
   simpa using (hf.discOffset_le_start_add_add (d := d) (m := m) (k := k) (n := n))
 
 /-!
+### NEW (Track B): composing shifts/dilations of the summand (simp normal form)
+
+Compile-only regression tests: nested reindexings of the summand (shift-shift, dilate-dilate,
+shift-then-dilate) normalize to a single canonical `shift_add` / `map_mul` form by `simp` alone.
+-/
+
+-- (1) Two shifts collapse to one.
+example : apSum (fun t => f ((t + a) + b)) d n = apSum (fun t => f (t + (a + b))) d n := by
+  simp
+
+-- (2) Two dilations collapse to one. (`simp only`: this file also imports the opt-in simp
+-- bundles, which would otherwise rewrite both sides past the canonical form.)
+example (q r : ℕ) :
+    discOffset (fun t => f (t * q * r)) d m n = discOffset (fun t => f (t * (q * r))) d m n := by
+  simp only [discOffset_summand_mul_mul]
+
+-- (3) Shift-then-dilate collapses to a single affine reindex.
+example (q : ℕ) :
+    apSumOffset (fun t => f ((t + a) * q + b)) d m n =
+      apSumOffset (fun t => f (t * q + (a * q + b))) d m n := by
+  simp only [apSumOffset_summand_shift_mul_add]
+
+/-!
 ### NEW (Track B): step/offset coercion normal form (`discOffset`)
 
 Compile-only regression test: if the input sequence is shifted by a multiple of the step `d`, the
@@ -273,7 +296,7 @@ example (len B B' : ℕ) (h : ¬ BoundedDiscrepancyAlong f d len B') (hBB' : B �
 
 example (len len' B : ℕ) (h : BoundedDiscrepancyAlong f d len B) (hlen : len' ≤ len) :
     BoundedDiscrepancyAlong f d len' B := by
-  simpa using (BoundedDiscrepancyAlong.mono_len (f := f) (d := d) (len := len) (len' := len') (B := B) h hlen)
+  simpa using (BoundedDiscrepancyAlong.mono_len (f := f) (d := d) (len := len') (len' := len) (B := B) h hlen)
 
 /-!
 ### NEW (Track B): constant-sequence sanity checks (`apSum`/`discOffset`)

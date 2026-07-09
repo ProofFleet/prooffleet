@@ -194,6 +194,8 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `apSumOffset_mul_len_eq_sum_range_block` (sum-level equality): `apSumOffset f d m (k*L) = ∑ j ∈ range k, apSumOffset f d (m + j*L) L`, and
   - `discOffset_mul_len_le_sum_range_block` (disc-level triangle bound).
   This is the `k`-block generalization of the one-cut (`apSumOffset_add_len`) and two-cut (`discOffset_add_add_le`) normal forms; the proof is just induction on `k` + `Int.natAbs_sum_le`.
+- **API note (composing shifts/dilations of the summand):** nested reindexings left behind by chained rewrites normalize by `simp` alone (stable surface, via `CoherenceSimp`):
+  shift-shift `fun t => f ((t+a)+b)` ↦ `fun t => f (t+(a+b))`, dilate-dilate `fun t => f (t*q*r)` ↦ `fun t => f (t*(q*r))`, and shift-then-dilate `fun t => f ((t+a)*q+b)` ↦ `fun t => f (t*q + (a*q+b))` — see the `*_summand_add_add` / `*_summand_mul_mul` / `*_summand_shift_mul_add` families. Each rewrite strictly reduces nesting depth, so the set is loop-free.
 - **API note (start-shift Lipschitz / “slide the window”):** for sign sequences, moving the window start forward or backward by `k` steps costs at most `2*k`:
   `IsSignSequence.discOffset_start_add_le` (`discOffset f d (m+k) n ≤ discOffset f d m n + 2*k`) and
   `IsSignSequence.discOffset_le_start_add_add` (the reverse direction). Intuition: the two windows differ by a length-`k` prefix and a length-`k` suffix, each of discrepancy ≤ `k` (`discOffset_le`). These are packaged from the reverse-triangle lemmas so downstream proofs don’t redo the algebra.
