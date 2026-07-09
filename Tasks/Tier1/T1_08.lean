@@ -8,4 +8,4 @@ Hint: `simp`
 
 theorem T1_08 (a : Nat) : a * 0 = 0 :=
 by
-  sorry
+  exact Nat.mul_zero a
