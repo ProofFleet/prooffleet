@@ -5487,6 +5487,20 @@ example (f : ℕ → ℤ) (n : ℕ) :
     ‖∑ j ∈ Finset.Icc 1 n, ((f j : ℂ))‖ = ((apSum f 1 n).natAbs : ℝ) :=
   norm_sum_Icc_intCast_eq_natAbs_apSum_one f n
 
+-- Stochastic packaging: the deterministic embedding is a literal special case — over a
+-- probability measure its second moment is the squared partial-sum norm.
+example {Ω : Type} [MeasurableSpace Ω] (μ : MeasureTheory.Measure Ω)
+    [MeasureTheory.IsProbabilityMeasure μ] (g : ℕ → ℂ)
+    (hmul : CompletelyMultiplicativeC g) (hg : Unimodular g) (n : ℕ) :
+    sndMomentPartialSum (StochasticMultiplicative.ofDeterministic μ g hmul hg) n
+      = ‖apSumC g 1 n‖ ^ 2 := by
+  simp
+
+example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
+    (G : StochasticMultiplicative μ) (n : ℕ) :
+    0 ≤ sndMomentPartialSum G n :=
+  sndMomentPartialSum_nonneg G n
+
 end NormalFormExamples
 
 end MoltResearch

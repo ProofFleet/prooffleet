@@ -94,42 +94,29 @@ theorem theorem18 …           -- Theorem 1.8 from the two above
 
 Language layer (each: 1 file in `MoltResearch/`, compiles + regression example, no axioms):
 
-- [ ] Stochastic packaging (Theorem 1.9 style): `StochasticMultiplicative` (measure-theoretic
-  family of completely multiplicative unimodular functions) + `sndMomentPartialSum`, with
-  degenerate simp lemmas and a deterministic-example constructor (a single `g` as a trivial
-  stochastic one).
-- [ ] Nonasymptotic non-pretentiousness language: bounded-range pretentious distance
-  `pretentiousDistSqUpTo` variants with explicit character-period and `|t|`-range quantifiers
-  matching Theorem 1.10's hypothesis verbatim; relate to the existing `NonPretentious`
-  (asymptotic ⇒ nonasymptotic-for-every-A direction only, stated as a lemma).
+(Convention: keep each checkbox on a single line — the CI metadata gate matches `Checklist item:` lines against the card by exact fixed-string grep.)
+
+- [x] Stochastic packaging (Theorem 1.9 style): `StochasticMultiplicative` (measure-theoretic family of completely multiplicative unimodular functions) + `sndMomentPartialSum`, with degenerate simp lemmas and a deterministic-example constructor (a single `g` as a trivial stochastic one).
+  (Implemented in `MoltResearch/Discrepancy/StochasticMultiplicative.lean` (on the stable
+  surface): the structure over an arbitrary `Measure Ω` with `∀ᵐ` pointwise fields,
+  `sndMomentPartialSum` with zero-length simp lemma and nonnegativity, and
+  `StochasticMultiplicative.ofDeterministic` with its probability-measure second-moment
+  collapse; regression examples in `NormalFormExamples.lean`.)
+- [ ] Nonasymptotic non-pretentiousness language: bounded-range pretentious distance variants with explicit character-period and `|t|`-range quantifiers matching Theorem 1.10's hypothesis verbatim; relate to the existing `NonPretentious` (asymptotic ⇒ nonasymptotic-for-every-A direction only, stated as a lemma).
 
 Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no instances/axioms):
 
-- [ ] State `FourierReductionStochasticAssumption` (§2 direction: bounded-discrepancy sign
-  sequence ⇒ stochastic completely multiplicative counterexample to Theorem 1.8, second-moment
-  form) and re-derive the existing deterministic `FourierReductionAssumption` from it.
-- [ ] State `LogElliottNonasymptoticAssumption` (Theorem 1.10 verbatim: affine forms,
-  `a₁b₂ − a₂b₁ ≠ 0`, `ε/A/w/x` quantifiers, period-`≤ A` characters, `|t| ≤ Ax`, conclusion
-  `≤ ε log w`) and re-derive the existing asymptotic `LogElliottAssumption` from it.
-- [ ] State Proposition 1.11 as a typed intermediate interface (`VanDerCorputConclusion` /
-  class), so §4 work can consume it before its proof lands.
+- [ ] State `FourierReductionStochasticAssumption` (§2 direction: bounded-discrepancy sign sequence ⇒ stochastic completely multiplicative counterexample to Theorem 1.8, second-moment form) and re-derive the existing deterministic `FourierReductionAssumption` from it.
+- [ ] State `LogElliottNonasymptoticAssumption` (Theorem 1.10 verbatim: affine forms, `a₁b₂ − a₂b₁ ≠ 0`, `ε/A/w/x` quantifiers, period-`≤ A` characters, `|t| ≤ Ax`, conclusion `≤ ε log w`) and re-derive the existing asymptotic `LogElliottAssumption` from it.
+- [ ] State Proposition 1.11 as a typed intermediate interface, so §4 work can consume it before its proof lands.
 
 Derivation (the real work; open a GitHub issue per box when starting):
 
-- [ ] Prove Proposition 1.11 from `LogElliottNonasymptoticAssumption` (the van der Corput
-  expansion of `𝔼|∑_{j≤n} 𝐠(j)|²`, averaging/pigeonhole over shifts, contrapositive of
-  Theorem 1.10). Probability-light: mostly Cauchy–Schwarz and summation bookkeeping.
-- [ ] §4, deterministic core: Borwein–Choi–Coons for modulated characters — for a completely
-  multiplicative `g` at bounded pretentious distance from `χ(n)·n^{it}`, the second moment of
-  partial sums grows. Decompose further when opened (character partial-sum boundedness;
-  `n^{it}` phase handling; distance-to-growth transfer).
-- [ ] §4, stochastic upgrade: from "with probability `1 − O(ε)` pretentious" (Prop 1.11's
-  conclusion) to unbounded `sndMomentPartialSum`, contradicting the standing bound.
+- [ ] Prove Proposition 1.11 from `LogElliottNonasymptoticAssumption` (the van der Corput expansion of the second moment, averaging/pigeonhole over shifts, contrapositive of Theorem 1.10).
+- [ ] §4, deterministic core: Borwein–Choi–Coons for modulated characters — for a completely multiplicative `g` at bounded pretentious distance from `χ(n)·n^{it}`, the second moment of partial sums grows. Decompose further when opened.
+- [ ] §4, stochastic upgrade: from "with probability `1 − O(ε)` pretentious" (Prop 1.11's conclusion) to unbounded `sndMomentPartialSum`, contradicting the standing bound.
 - [ ] Glue: Theorem 1.8 (`theorem18`) from the two halves; then Theorem 1.9 restatement.
-- [ ] Endgame: re-prove `stage5_notBounded` from `FourierReductionStochasticAssumption` +
-  `theorem18`, retire the Stage-2 stub axiom, and flip the blueprint card's milestone (C) to
-  done. CI must stay green with the axiom file deleted (the `Stage2Assumption` instance gets a
-  real proof).
+- [ ] Endgame: re-prove `stage5_notBounded` from `FourierReductionStochasticAssumption` + `theorem18`, retire the Stage-2 stub axiom, and flip the blueprint card's milestone (C) to done. CI must stay green with the axiom file deleted.
 
 ## 5. References / links
 
