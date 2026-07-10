@@ -5501,6 +5501,19 @@ example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
     0 ≤ sndMomentPartialSum G n :=
   sndMomentPartialSum_nonneg G n
 
+-- Nonasymptotic non-pretentiousness language: character twists are 1-bounded comparisons, so
+-- the distance to them is monotone in the truncation; `NonPretentiousAt` hands back the
+-- Theorem-1.10-shaped bound when the quantifier ranges are met.
+example (g : ℕ → ℂ) (hg : Unimodular g) (q : ℕ) (χ : DirichletCharacter ℂ q) (t : ℝ)
+    {N M : ℕ} (hNM : N ≤ M) :
+    pretentiousDistSq g (charTwist q χ t) N ≤ pretentiousDistSq g (charTwist q χ t) M :=
+  pretentiousDistSq_mono_of_norm_le_one hg (charTwist_norm_le_one q χ t) hNM
+
+example (g : ℕ → ℂ) (A : ℝ) (x : ℕ) (h : NonPretentiousAt g A x)
+    (q : ℕ) (χ : DirichletCharacter ℂ q) (t : ℝ) (hq : (q : ℝ) ≤ A) (ht : |t| ≤ A * x) :
+    A ≤ pretentiousDistSq g (charTwist q χ t) x :=
+  h q χ t hq ht
+
 end NormalFormExamples
 
 end MoltResearch

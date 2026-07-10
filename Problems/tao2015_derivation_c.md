@@ -102,7 +102,16 @@ Language layer (each: 1 file in `MoltResearch/`, compiles + regression example, 
   `sndMomentPartialSum` with zero-length simp lemma and nonnegativity, and
   `StochasticMultiplicative.ofDeterministic` with its probability-measure second-moment
   collapse; regression examples in `NormalFormExamples.lean`.)
-- [ ] Nonasymptotic non-pretentiousness language: bounded-range pretentious distance variants with explicit character-period and `|t|`-range quantifiers matching Theorem 1.10's hypothesis verbatim; relate to the existing `NonPretentious` (asymptotic ⇒ nonasymptotic-for-every-A direction only, stated as a lemma).
+- [x] Nonasymptotic non-pretentiousness language: bounded-range pretentious distance variants with explicit character-period and `|t|`-range quantifiers matching Theorem 1.10's hypothesis verbatim; relate to the existing `NonPretentious` (asymptotic ⇒ nonasymptotic-for-every-A direction only, stated as a lemma).
+  (Implemented: `charTwist` (named `n ↦ χ(n)·nⁱᵗ` comparison), `charTwist_norm_le_one`,
+  1-bounded-comparison generalizations of the distance order lemmas, and `NonPretentiousAt`
+  (the Theorem-1.10 hypothesis shape) in `MoltResearch/Discrepancy/PretentiousDist.lean`;
+  `NonPretentious` refactored over `charTwist` and related via
+  `NonPretentious.of_forall_eventually_nonPretentiousAt` in `TrackCStage5Elliott.lean`.
+  **Correction to this box's parenthetical:** the derivable direction is the reverse —
+  uniform nonasymptotic bounds imply the pointwise asymptotic form; the asymptotic form cannot
+  supply the uniformity over `|t| ≤ A·x`, which is exactly why derivation (C) consumes the
+  nonasymptotic interface.)
 
 Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no instances/axioms):
 

@@ -36,10 +36,35 @@ Junk-value conventions are inherited from the language layer (`pretentiousDistSq
 -/
 def NonPretentious (g : ℕ → ℂ) : Prop :=
   ∀ (q : ℕ) (χ : DirichletCharacter ℂ q) (t : ℝ),
-    Filter.Tendsto
-      (fun N => pretentiousDistSq g
-        (fun m => χ (m : ZMod q) * (m : ℂ) ^ (Complex.I * (t : ℂ))) N)
+    Filter.Tendsto (fun N => pretentiousDistSq g (charTwist q χ t) N)
       Filter.atTop Filter.atTop
+
+/-- Bridge from the nonasymptotic non-pretentiousness language (`NonPretentiousAt`, the
+Theorem-1.10 hypothesis shape) to the asymptotic form: uniform-in-`(χ, t)` nonasymptotic bounds
+at every strength imply divergence against each fixed twist.
+
+The converse direction is *not* derivable: the asymptotic form is pointwise in `(q, χ, t)` and
+cannot supply the uniformity over the `|t| ≤ A·x` range that `NonPretentiousAt` demands. This
+is why derivation (C) consumes the nonasymptotic interface, not this one. -/
+theorem NonPretentious.of_forall_eventually_nonPretentiousAt {g : ℕ → ℂ}
+    (h : ∀ A : ℝ, ∀ᶠ x in Filter.atTop, NonPretentiousAt g A x) :
+    NonPretentious g := by
+  intro q χ t
+  rw [Filter.tendsto_atTop]
+  intro b
+  set A : ℝ := max (max b (q : ℝ)) |t| with hA
+  have hbA : b ≤ A := le_trans (le_max_left _ _) (le_max_left _ _)
+  have hqA : (q : ℝ) ≤ A := le_trans (le_max_right b _) (le_max_left _ _)
+  have htA : |t| ≤ A := le_max_right _ _
+  have hA0 : 0 ≤ A := le_trans (abs_nonneg t) htA
+  filter_upwards [h A, Filter.eventually_ge_atTop 1] with x hx hx1
+  have htx : |t| ≤ A * x := by
+    calc |t| ≤ A := htA
+      _ = A * 1 := (mul_one A).symm
+      _ ≤ A * x := by
+        have h1x : (1 : ℝ) ≤ (x : ℝ) := by exact_mod_cast hx1
+        exact mul_le_mul_of_nonneg_left h1x hA0
+  exact le_trans hbA (hx q χ t hqA htx)
 
 /-- **Log-averaged two-point Elliott assumption** (arXiv:1509.05422, Thm 1.3; two-point
 shifted-correlation special case).

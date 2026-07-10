@@ -47,34 +47,59 @@ noncomputable def pretentiousDist (g h : ℕ → ℂ) (N : ℕ) : ℝ :=
 
 variable {g h : ℕ → ℂ}
 
-/-- Each summand of `pretentiousDistSq` is nonnegative for unimodular arguments:
-`Re(g p * conj (h p)) ≤ ‖g p * conj (h p)‖ = 1`, and the denominator is a `ℕ`-cast. -/
-theorem pretentiousDistSq_summand_nonneg (hg : Unimodular g) (hh : Unimodular h) (p : ℕ) :
+/-- Each summand of `pretentiousDistSq` is nonnegative when `g` is unimodular and the
+comparison `h` is 1-bounded: `Re(g p * conj (h p)) ≤ ‖g p‖ * ‖h p‖ ≤ 1`, and the denominator
+is a `ℕ`-cast.
+
+The 1-bounded (rather than unimodular) comparison hypothesis matters for the analytic-core
+interfaces: character-modulated twists `n ↦ χ(n)·nⁱᵗ` vanish off the coprime locus and at `0`,
+so they are 1-bounded but not unimodular. -/
+theorem pretentiousDistSq_summand_nonneg_of_norm_le_one (hg : Unimodular g)
+    (hh : ∀ p : ℕ, ‖h p‖ ≤ 1) (p : ℕ) :
     0 ≤ (1 - (g p * (starRingEnd ℂ) (h p)).re) / p := by
   apply div_nonneg
   · have hre : (g p * (starRingEnd ℂ) (h p)).re ≤ 1 := by
       calc (g p * (starRingEnd ℂ) (h p)).re
           ≤ ‖g p * (starRingEnd ℂ) (h p)‖ := Complex.re_le_norm _
-        _ = 1 := by rw [norm_mul, hg p, RCLike.norm_conj, hh p, one_mul]
+        _ = ‖h p‖ := by rw [norm_mul, hg p, RCLike.norm_conj, one_mul]
+        _ ≤ 1 := hh p
     linarith
   · exact Nat.cast_nonneg p
+
+/-- Each summand of `pretentiousDistSq` is nonnegative for unimodular arguments. -/
+theorem pretentiousDistSq_summand_nonneg (hg : Unimodular g) (hh : Unimodular h) (p : ℕ) :
+    0 ≤ (1 - (g p * (starRingEnd ℂ) (h p)).re) / p :=
+  pretentiousDistSq_summand_nonneg_of_norm_le_one hg (fun p => (hh p).le) p
+
+/-- Nonnegativity of the squared pretentious distance for a 1-bounded comparison. -/
+theorem pretentiousDistSq_nonneg_of_norm_le_one (hg : Unimodular g)
+    (hh : ∀ p : ℕ, ‖h p‖ ≤ 1) (N : ℕ) :
+    0 ≤ pretentiousDistSq g h N :=
+  Finset.sum_nonneg fun p _ => pretentiousDistSq_summand_nonneg_of_norm_le_one hg hh p
 
 /-- Nonnegativity of the squared pretentious distance for unimodular arguments. -/
 theorem pretentiousDistSq_nonneg (hg : Unimodular g) (hh : Unimodular h) (N : ℕ) :
     0 ≤ pretentiousDistSq g h N :=
-  Finset.sum_nonneg fun p _ => pretentiousDistSq_summand_nonneg hg hh p
+  pretentiousDistSq_nonneg_of_norm_le_one hg (fun p => (hh p).le) N
 
-/-- The squared pretentious distance is monotone in the truncation `N`
-(for unimodular arguments, so that the added summands are nonnegative). -/
-theorem pretentiousDistSq_mono (hg : Unimodular g) (hh : Unimodular h) {N M : ℕ}
-    (hNM : N ≤ M) :
+/-- The squared pretentious distance is monotone in the truncation `N` for a 1-bounded
+comparison (so that the added summands are nonnegative). -/
+theorem pretentiousDistSq_mono_of_norm_le_one (hg : Unimodular g)
+    (hh : ∀ p : ℕ, ‖h p‖ ≤ 1) {N M : ℕ} (hNM : N ≤ M) :
     pretentiousDistSq g h N ≤ pretentiousDistSq g h M := by
   apply Finset.sum_le_sum_of_subset_of_nonneg
   · intro p hp
     rw [Nat.mem_primesBelow] at hp ⊢
     exact ⟨lt_of_lt_of_le hp.1 hNM, hp.2⟩
   · intro p _ _
-    exact pretentiousDistSq_summand_nonneg hg hh p
+    exact pretentiousDistSq_summand_nonneg_of_norm_le_one hg hh p
+
+/-- The squared pretentious distance is monotone in the truncation `N`
+(for unimodular arguments, so that the added summands are nonnegative). -/
+theorem pretentiousDistSq_mono (hg : Unimodular g) (hh : Unimodular h) {N M : ℕ}
+    (hNM : N ≤ M) :
+    pretentiousDistSq g h N ≤ pretentiousDistSq g h M :=
+  pretentiousDistSq_mono_of_norm_le_one hg (fun p => (hh p).le) hNM
 
 /-- The pretentious distance is nonnegative (unconditionally: it is a square root). -/
 theorem pretentiousDist_nonneg (g h : ℕ → ℂ) (N : ℕ) : 0 ≤ pretentiousDist g h N :=
@@ -103,5 +128,44 @@ theorem pretentiousDist_self (hg : Unimodular g) (N : ℕ) :
   rw [pretentiousDist, hg.pretentiousDistSq_self N, Real.sqrt_zero]
 
 end Unimodular
+
+/-! ### Character-modulated archimedean twists and nonasymptotic non-pretentiousness -/
+
+/-- The character-modulated archimedean twist `n ↦ χ(n)·nⁱᵗ` — the comparison family of the
+pretentious classification (Tao 2015 / Granville–Soundararajan). Junk values are embraced:
+`χ` vanishes off the coprime locus and `cpow` at `0` follows Mathlib's conventions. -/
+noncomputable def charTwist (q : ℕ) (χ : DirichletCharacter ℂ q) (t : ℝ) : ℕ → ℂ :=
+  fun m => χ (m : ZMod q) * (m : ℂ) ^ (Complex.I * (t : ℂ))
+
+/-- Character-modulated twists are 1-bounded (values are `0` or on the unit circle). -/
+theorem charTwist_norm_le_one (q : ℕ) (χ : DirichletCharacter ℂ q) (t : ℝ) (m : ℕ) :
+    ‖charTwist q χ t m‖ ≤ 1 := by
+  unfold charTwist
+  rw [norm_mul]
+  have hχ : ‖χ (m : ZMod q)‖ ≤ 1 := DirichletCharacter.norm_le_one χ _
+  have hpow : ‖(m : ℂ) ^ (Complex.I * (t : ℂ))‖ ≤ 1 := by
+    rcases Nat.eq_zero_or_pos m with hm | hm
+    · subst hm
+      rcases eq_or_ne (Complex.I * (t : ℂ)) 0 with h0 | h0
+      · simp [h0]
+      · simp [Complex.zero_cpow h0]
+    · have hm' : (0 : ℝ) < (m : ℝ) := by exact_mod_cast hm
+      have hcast : ((m : ℕ) : ℂ) = (((m : ℕ) : ℝ) : ℂ) := by push_cast; rfl
+      rw [hcast, Complex.norm_cpow_eq_rpow_re_of_pos hm']
+      simp [Complex.mul_re]
+  calc ‖χ (m : ZMod q)‖ * ‖(m : ℂ) ^ (Complex.I * (t : ℂ))‖
+      ≤ 1 * 1 := mul_le_mul hχ hpow (norm_nonneg _) zero_le_one
+    _ = 1 := mul_one 1
+
+/-- Nonasymptotic non-pretentiousness at strength `A` and truncation `x` — the hypothesis shape
+of the logarithmically averaged nonasymptotic Elliott theorem (arXiv:1509.05363, Theorem 1.10):
+`g` is at squared pretentious distance `≥ A` from every character-modulated twist with character
+period `≤ A` and frequency `|t| ≤ A·x`.
+
+The parameter `A` plays three roles at once (distance threshold, period range, frequency range),
+exactly as in the source statement; consequently this predicate is *not* monotone in `A`. -/
+def NonPretentiousAt (g : ℕ → ℂ) (A : ℝ) (x : ℕ) : Prop :=
+  ∀ (q : ℕ) (χ : DirichletCharacter ℂ q) (t : ℝ),
+    (q : ℝ) ≤ A → |t| ≤ A * x → A ≤ pretentiousDistSq g (charTwist q χ t) x
 
 end MoltResearch
