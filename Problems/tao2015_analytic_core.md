@@ -95,7 +95,12 @@ Language layer (each: 1 file, `make ci`, definition of done = compiles + regress
   (Implemented in `MoltResearch/Discrepancy/MultiplicativeC.lean`: `apSumC` (mirrors `apSum`),
   `CompletelyMultiplicativeC.apSumC_eq_mul_apSumC_one`, and the norm-level corollary
   `norm_apSumC_eq_norm_apSumC_one`; regression examples in `NormalFormExamples.lean`.)
-- [ ] Define `logAvgCorr` (log-averaged two-point correlation) with degenerate-parameter simp lemmas (`N = 0`, `N = 1`, `a = b` diagonal value).
+- [x] Define `logAvgCorr` (log-averaged two-point correlation) with degenerate-parameter simp lemmas (`N = 0`, `N = 1`, `a = b` diagonal value).
+  (Implemented in `MoltResearch/Discrepancy/LogAvgCorr.lean` (on the stable surface):
+  `logAvgCorr` with ℂ-division and embraced `Real.log` junk values, simp lemmas
+  `logAvgCorr_zero_N` / `logAvgCorr_one_N`, and the unimodular diagonal collapse
+  `Unimodular.logAvgCorr_self` (via `Unimodular.mul_conj_self`); regression examples in
+  `NormalFormExamples.lean`.)
 - [ ] Define the pretentious distance `𝔻(g, h; N)` (finite-`N` Granville–Soundararajan distance over primes) — definition + monotonicity basics only.
 
 Interface layer (each: 1 file in `Conjectures/`, wiring + consumer example, no new axioms

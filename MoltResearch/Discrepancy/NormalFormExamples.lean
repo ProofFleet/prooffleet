@@ -5458,6 +5458,16 @@ example (g : ℕ → ℂ) (hmul : CompletelyMultiplicativeC g) (hg : Unimodular 
     ‖apSumC g d n‖ = ‖apSumC g 1 n‖ :=
   hmul.norm_apSumC_eq_norm_apSumC_one hg d n
 
+-- Log-averaged two-point correlation: N ≤ 1 junk values normalize to 0 by simp, and the
+-- unimodular diagonal collapses to the log-averaged harmonic sum.
+example (g : ℕ → ℂ) (a b : ℕ) : logAvgCorr g a b 0 = 0 := by simp
+
+example (g : ℕ → ℂ) (a b : ℕ) : logAvgCorr g a b 1 = 0 := by simp
+
+example (g : ℕ → ℂ) (hg : Unimodular g) (a N : ℕ) :
+    logAvgCorr g a a N = (∑ n ∈ Finset.Icc 1 N, ((n : ℂ))⁻¹) / (Real.log N : ℂ) :=
+  hg.logAvgCorr_self a N
+
 end NormalFormExamples
 
 end MoltResearch
