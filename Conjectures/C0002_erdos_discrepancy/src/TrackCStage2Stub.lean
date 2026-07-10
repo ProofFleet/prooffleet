@@ -73,24 +73,68 @@ Design note: we register this instance at very low priority so downstream develo
 (and override with) a verified `Stage2Assumption` instance.
 -/
 
-/-- The canonical Stage-1 reduction used by the default Stage-2 conjecture stub.
+/-- The single non-verified assumption of Track C (Stage 2 of Tao 2015), in existential
+parameter form.
+
+This is the Erdős discrepancy statement in the reduced shape Stage 2 packages: for every sign
+sequence there **exist** parameters `d, m` (with `1 ≤ d`) whose bundled offset discrepancy family
+is unbounded.
+
+Design note (important): the parameters must be quantified *existentially*, with `d` depending on
+`f`. An earlier version of this stub hard-wired `d = 1`, `m = 0`, asserting that every ±1 sequence
+has unbounded plain partial sums — which is refutable in-system (the alternating sequence has
+partial sums in `{-1, 0}`), making the axiom environment inconsistent and every downstream
+conditional theorem vacuous.
+
+Downstream developments are expected to replace this axiom by providing a verified
+`Stage2Assumption` instance.
+-/
+axiom stage2Stub_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    ∃ d m : ℕ, 1 ≤ d ∧ Tao2015.UnboundedDiscOffset f d m
+
+/-- The step size `d` chosen (noncomputably) from the Stage-2 stub assumption. -/
+noncomputable def stage2Stub_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  (stage2Stub_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf)).choose
+
+/-- The offset parameter `m` chosen (noncomputably) from the Stage-2 stub assumption. -/
+noncomputable def stage2Stub_m (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
+  (stage2Stub_exists_params_one_le_unboundedDiscOffset (f := f) (hf := hf)).choose_spec.choose
+
+/-- The chosen stub step size satisfies `1 ≤ d`. -/
+theorem stage2Stub_one_le_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    1 ≤ stage2Stub_d (f := f) (hf := hf) :=
+  (stage2Stub_exists_params_one_le_unboundedDiscOffset (f := f)
+      (hf := hf)).choose_spec.choose_spec.1
+
+/-- The chosen stub step size is positive (the form `ReductionOutput.ofShift` expects). -/
+theorem stage2Stub_d_pos (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    stage2Stub_d (f := f) (hf := hf) > 0 :=
+  lt_of_lt_of_le Nat.zero_lt_one (stage2Stub_one_le_d (f := f) (hf := hf))
+
+/-- Parameter form of the Stage-2 stub assumption, at the chosen parameters
+`stage2Stub_d` / `stage2Stub_m`.
+
+This keeps the name used by the derived normal-form wrappers in
+`TrackCStage2StubProof.lean`; it is now a theorem (about the chosen parameters) rather than the
+axiom itself.
+-/
+theorem stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Tao2015.UnboundedDiscOffset f (stage2Stub_d (f := f) (hf := hf))
+      (stage2Stub_m (f := f) (hf := hf)) :=
+  (stage2Stub_exists_params_one_le_unboundedDiscOffset (f := f)
+      (hf := hf)).choose_spec.choose_spec.2
+
+/-- The canonical Stage-1 reduction used by the default Stage-2 conjecture stub, wired at the
+chosen parameters `stage2Stub_d` / `stage2Stub_m`.
 
 We keep this as a named definition so later refactors can change the default Stage-1 wiring
 without touching the `Stage2Assumption` API.
 -/
 noncomputable def stage2Stub_out1 (f : ℕ → ℤ) (hf : IsSignSequence f) : Tao2015.ReductionOutput f :=
-  Tao2015.ReductionOutput.ofShift (f := f) (hf := hf) (d := 1) (m := 0) (hd := Nat.succ_pos 0)
-
-/-- The single non-verified assumption of Track C (Stage 2 of Tao 2015), in parameter-normal form.
-
-Since `stage2Stub_out1` is wired with the deterministic parameters `d = 1` and `m = 0`, the
-Stage-2 conjecture stub is simply unboundedness of `discOffset f 1 0`.
-
-Downstream developments are expected to replace this axiom by providing a verified
-`Stage2Assumption` instance.
--/
-axiom stage2Stub_unboundedDiscOffset_params (f : ℕ → ℤ) (hf : IsSignSequence f) :
-    Tao2015.UnboundedDiscOffset f 1 0
+  Tao2015.ReductionOutput.ofShift (f := f) (hf := hf)
+    (d := stage2Stub_d (f := f) (hf := hf))
+    (m := stage2Stub_m (f := f) (hf := hf))
+    (hd := stage2Stub_d_pos (f := f) (hf := hf))
 
 /-- Out1-form of the Stage-2 stub assumption.
 
@@ -108,7 +152,7 @@ theorem stage2Stub_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f)
 ## Derived normal forms (moved)
 
 The proved normal-form wrappers (fixed-step unboundedness, boundedness-negation normal forms, and
-witness-form corollaries specialized to the stub parameters `d = 1`, `m = 0`) live in
+witness-form corollaries at the chosen stub parameters `stage2Stub_d` / `stage2Stub_m`) live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2StubProof`.
 
 We keep `TrackCStage2Stub` minimal so hard-gate consumers only compile the axiom stub and the
