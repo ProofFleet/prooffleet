@@ -101,7 +101,12 @@ Language layer (each: 1 file, `make ci`, definition of done = compiles + regress
   `logAvgCorr_zero_N` / `logAvgCorr_one_N`, and the unimodular diagonal collapse
   `Unimodular.logAvgCorr_self` (via `Unimodular.mul_conj_self`); regression examples in
   `NormalFormExamples.lean`.)
-- [ ] Define the pretentious distance `𝔻(g, h; N)` (finite-`N` Granville–Soundararajan distance over primes) — definition + monotonicity basics only.
+- [x] Define the pretentious distance `𝔻(g, h; N)` (finite-`N` Granville–Soundararajan distance over primes) — definition + monotonicity basics only.
+  (Implemented in `MoltResearch/Discrepancy/PretentiousDist.lean` (on the stable surface):
+  `pretentiousDistSq` (primary, over `Nat.primesBelow N`) and `pretentiousDist`, with
+  summand/sum nonnegativity, monotonicity in `N` (`pretentiousDistSq_mono` /
+  `pretentiousDist_mono`, for unimodular arguments), and diagonal degeneracy
+  `Unimodular.pretentiousDistSq_self`; regression examples in `NormalFormExamples.lean`.)
 
 Interface layer (each: 1 file in `Conjectures/`, wiring + consumer example, no new axioms
 beyond the named assumption):

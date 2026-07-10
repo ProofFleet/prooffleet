@@ -23,6 +23,7 @@ import MoltResearch.Discrepancy.Witness
 import MoltResearch.Discrepancy.Multiplicative
 import MoltResearch.Discrepancy.MultiplicativeC
 import MoltResearch.Discrepancy.LogAvgCorr
+import MoltResearch.Discrepancy.PretentiousDist
 -- Note: `MoltResearch.Discrepancy.NormalFormExamples` is a standalone regression-test module.
 -- It should import `MoltResearch.Discrepancy` (the stable surface) rather than being imported here,
 -- to avoid an import cycle.

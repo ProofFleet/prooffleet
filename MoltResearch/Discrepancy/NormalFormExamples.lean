@@ -5468,6 +5468,19 @@ example (g : ℕ → ℂ) (hg : Unimodular g) (a N : ℕ) :
     logAvgCorr g a a N = (∑ n ∈ Finset.Icc 1 N, ((n : ℂ))⁻¹) / (Real.log N : ℂ) :=
   hg.logAvgCorr_self a N
 
+-- Pretentious distance: nonneg + monotone in the truncation for unimodular arguments,
+-- and the diagonal vanishes.
+example (g h : ℕ → ℂ) (hg : Unimodular g) (hh : Unimodular h) (N M : ℕ) (hNM : N ≤ M) :
+    pretentiousDistSq g h N ≤ pretentiousDistSq g h M :=
+  pretentiousDistSq_mono hg hh hNM
+
+example (g h : ℕ → ℂ) (hg : Unimodular g) (hh : Unimodular h) (N : ℕ) :
+    0 ≤ pretentiousDistSq g h N :=
+  pretentiousDistSq_nonneg hg hh N
+
+example (g : ℕ → ℂ) (hg : Unimodular g) (N : ℕ) : pretentiousDist g g N = 0 :=
+  hg.pretentiousDist_self N
+
 end NormalFormExamples
 
 end MoltResearch
