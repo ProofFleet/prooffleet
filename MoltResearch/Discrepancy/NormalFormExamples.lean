@@ -5481,6 +5481,12 @@ example (g h : ℕ → ℂ) (hg : Unimodular g) (hh : Unimodular h) (N : ℕ) :
 example (g : ℕ → ℂ) (hg : Unimodular g) (N : ℕ) : pretentiousDist g g N = 0 :=
   hg.pretentiousDist_self N
 
+-- Norm-level cast bridge: ℂ-interface partial-sum conclusions transfer back to the ℤ-valued
+-- discrepancy substrate.
+example (f : ℕ → ℤ) (n : ℕ) :
+    ‖∑ j ∈ Finset.Icc 1 n, ((f j : ℂ))‖ = ((apSum f 1 n).natAbs : ℝ) :=
+  norm_sum_Icc_intCast_eq_natAbs_apSum_one f n
+
 end NormalFormExamples
 
 end MoltResearch

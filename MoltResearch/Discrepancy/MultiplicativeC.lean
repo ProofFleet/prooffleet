@@ -123,6 +123,21 @@ theorem norm_apSumC_eq_norm_apSumC_one (hmul : CompletelyMultiplicativeC g)
 
 end CompletelyMultiplicativeC
 
+/-- Cast bridge at the norm level: the ℂ-partial-sum norm of a coerced ℤ-valued sequence is the
+`natAbs` of its step-one AP sum.
+
+This is the hand-off from ℂ-valued interface conclusions (`∃ n, C < ‖∑ j ∈ Icc 1 n, g j‖` at
+`g = fun n => (f n : ℂ)`) back to the ℤ-valued discrepancy substrate
+(`discrepancy f 1 n = natAbs (apSum f 1 n)`).
+-/
+theorem norm_sum_Icc_intCast_eq_natAbs_apSum_one (f : ℕ → ℤ) (n : ℕ) :
+    ‖∑ j ∈ Finset.Icc 1 n, ((f j : ℂ))‖ = ((apSum f 1 n).natAbs : ℝ) := by
+  have hsum : (∑ j ∈ Finset.Icc 1 n, ((f j : ℂ))) = ((apSum f 1 n : ℤ) : ℂ) := by
+    rw [apSum_one_d]
+    push_cast
+    rfl
+  rw [hsum, Complex.norm_intCast, Int.cast_natAbs, Int.cast_abs]
+
 namespace CompletelyMultiplicative
 
 variable {f : ℕ → ℤ}

@@ -128,7 +128,16 @@ beyond the named assumption):
   boundary (hence the Stage-2 stub) with the analytic-core instances carried in the signature
   as the stable contract; compile-only consumer example. The proof-body switch to (A)+(C) is
   documented in the module docstring.)
-- [ ] Replace the Stage-2 stub axiom's role: derive `stage2Stub_exists_params_one_le_unboundedDiscOffset`'s content from `FourierReductionAssumption` + the multiplicative constructors on the reduced class (this is the first piece of (C)).
+- [x] Replace the Stage-2 stub axiom's role: derive `stage2Stub_exists_params_one_le_unboundedDiscOffset`'s content from `FourierReductionAssumption` + the multiplicative constructors on the reduced class (this is the first piece of (C)).
+  (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Reduction.lean`
+  (no new axioms): `stage2StubContent_of_univ_multiplicative` derives the stub's statement on
+  the completely multiplicative subclass from the universal-multiplicative hypothesis (the
+  antecedent of `FourierReductionAssumption.reduce`) via the coercion bridges, the new
+  norm-level cast bridge `norm_sum_Icc_intCast_eq_natAbs_apSum_one`
+  (`MoltResearch/Discrepancy/MultiplicativeC.lean`), and
+  `Stage2Output.ofUnboundedDiscrepancyOne`. Remaining for actual stub retirement: (C) must
+  discharge the universal-multiplicative hypothesis itself, and general `f` must route through
+  (A)'s reduction.)
 
 Discharge milestones (long-horizon; each becomes its own card when opened):
 
