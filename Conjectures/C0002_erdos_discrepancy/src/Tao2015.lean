@@ -959,6 +959,14 @@ namespace ReductionOutput
 
 variable {f : ℕ → ℤ}
 
+/-- Convenience wrapper: the reduced step size is at least `1`.
+
+The canonical positivity fact is the stored field `hd : d > 0`; downstream stages that prefer the
+`1 ≤ d` normal form should use this wrapper instead of re-deriving it from `hd`.
+-/
+theorem one_le_d (out : ReductionOutput f) : 1 ≤ out.d := by
+  exact Nat.succ_le_iff.2 out.hd
+
 /-- Canonical Stage-1 reduction: shift `f` by `m*d`.
 
 This is the “pure index gymnastics” step: it defines

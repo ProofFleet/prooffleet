@@ -138,12 +138,12 @@ Rule of thumb: Stage 4 should *not* add new math content unless it is the single
 
 ### Stage 1 — ReductionOutput contract (Tao2015)
 
-- [ ] Audit `ReductionOutput` for duplicate normal forms; pick one canonical witness packaging for downstream (`1 ≤ d` vs `d > 0`) and make the other wrappers.
-  (Audited 2026-07-10, mostly done: canonical positivity is the stored field `ReductionOutput.hd : d > 0`;
-  duplicate `_lt` iff normal forms are deduplicated via `@[deprecated]` toward the `_gt` forms
-  (`Tao2015.lean`). Remaining gap: no `ReductionOutput.one_le_d` wrapper, so the `1 ≤ d` form is
-  re-derived downstream (`Stage2Output.one_le_d` in `TrackCStage2Core.lean`, again in
-  `TrackCStage3Output.lean`). Add the Stage-1 wrapper and delegate to it, then tick.)
+- [x] Audit `ReductionOutput` for duplicate normal forms; pick one canonical witness packaging for downstream (`1 ≤ d` vs `d > 0`) and make the other wrappers.
+  (Canonical positivity is the stored field `ReductionOutput.hd : d > 0`; duplicate `_lt` iff normal
+  forms are deduplicated via `@[deprecated]` toward the `_gt` forms (`Tao2015.lean`). The `1 ≤ d`
+  form is provided by the Stage-1 wrapper `ReductionOutput.one_le_d` (`Tao2015.lean`), with
+  `Stage2Output.one_le_d` (`TrackCStage2Core.lean`) and `Stage3Output.one_le_d`
+  (`TrackCStage3Core.lean`) delegating down the chain.)
 - [x] Ensure all Stage-1 “rewrite” lemmas used downstream are exposed as named lemmas (no repeated rewriting at call sites).
   (Audited 2026-07-10: downstream consumes Stage-1 rewrites by name —
   `unboundedDiscrepancyAlong_iff_unboundedDiscOffset`, `discrepancy_eq_discOffset_via_contract`,

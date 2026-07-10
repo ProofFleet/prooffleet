@@ -121,9 +121,12 @@ theorem start_add_div_d (out : Stage2Output f) (n : ℕ) :
 theorem d_ne_zero (out : Stage2Output f) : out.d ≠ 0 := by
   exact Nat.ne_of_gt out.hd
 
-/-- Convenience lemma: the reduced step size is at least `1`. -/
+/-- Convenience lemma: the reduced step size is at least `1`.
+
+Delegates to the Stage-1 wrapper `ReductionOutput.one_le_d`.
+-/
 theorem one_le_d (out : Stage2Output f) : 1 ≤ out.d := by
-  simpa using (Nat.succ_le_iff).2 out.hd
+  simpa using out.out1.one_le_d
 
 /-- Stage 2 implies the reduced sequence is not bounded along its fixed step size. -/
 theorem notBoundedReducedAlong (out : Stage2Output f) : ¬ BoundedDiscrepancyAlong out.g out.d := by
