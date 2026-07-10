@@ -4,6 +4,11 @@ This file is an **operational roadmap** for Track C: wiring up Tao2015’s reduc
 
 It is intentionally lightweight and automation-friendly.
 
+> **The mathematics behind the stages** (Fourier reduction, log-Elliott, and the derivation
+> combining them) is decomposed on the companion card
+> [`Problems/tao2015_analytic_core.md`](tao2015_analytic_core.md) — read it before adding new
+> interface axioms or Stage-5+ files.
+
 ## Finish lines (pick one when planning)
 
 - **Pipeline finish line (engineering):** we have named stage interfaces with theorems that compose end-to-end, plus small regression examples. `Conjectures/` may still contain `sorry`, but stage boundaries are stable.
