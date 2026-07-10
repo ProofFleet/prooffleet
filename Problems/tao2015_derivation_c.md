@@ -122,7 +122,19 @@ Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no in
   instance `FourierReductionStochasticAssumption.ofDeterministic`); the converse fails, i.e.
   the deterministic first-cut is the *stronger*, non-literature axiom. Blueprint card §6
   record corrected accordingly. Derivation work must consume the stochastic class.)
-- [ ] State `LogElliottNonasymptoticAssumption` (Theorem 1.10 verbatim: affine forms, `a₁b₂ − a₂b₁ ≠ 0`, `ε/A/w/x` quantifiers, period-`≤ A` characters, `|t| ≤ Ax`, conclusion `≤ ε log w`) and re-derive the existing asymptotic `LogElliottAssumption` from it.
+- [x] State `LogElliottNonasymptoticAssumption` (Theorem 1.10 verbatim: affine forms, `a₁b₂ − a₂b₁ ≠ 0`, `ε/A/w/x` quantifiers, period-`≤ A` characters, `|t| ≤ Ax`, conclusion `≤ ε log w`) and relate it to the existing asymptotic `LogElliottAssumption`.
+  (Implemented in `TrackCStage5Elliott.lean`: the class verbatim on the completely
+  multiplicative subclass (strictly weaker, sufficient), window `Ioc ⌊x/w⌋₊ ⌊x⌋₊`, hypothesis
+  `NonPretentiousAt g₁ A ⌈x⌉₊` (shown in the docstring to imply the paper's real-truncation
+  hypothesis), with a quantifier-instantiating consumer example.
+  **Correction to this box's original plan** ("re-derive the asymptotic from it"): the paper's
+  asymptotic corollary (arXiv:1509.05422, Cor 1.5) needs the **uniform (inf-form)**
+  non-pretentiousness, now defined as `NonPretentiousUniform` (with
+  `NonPretentiousUniform.nonPretentious`); the existing pointwise-hypothesis
+  `LogElliottAssumption` is a stronger-than-literature statement — demoted to toy-consumer
+  convenience, mirroring the deterministic Fourier finding. Faithful asymptotic derivation is
+  the new box below.)
+- [ ] Bridge: `NonPretentiousUniform` implies eventually-`NonPretentiousAt g A x` (finitely many Dirichlet characters of period `≤ A`), and derive the faithful asymptotic corollary (Cor 1.5 form: uniform hypothesis, `o(log w(x))` conclusion) from `LogElliottNonasymptoticAssumption`.
 - [ ] State Proposition 1.11 as a typed intermediate interface, so §4 work can consume it before its proof lands.
 
 Derivation (the real work; open a GitHub issue per box when starting):

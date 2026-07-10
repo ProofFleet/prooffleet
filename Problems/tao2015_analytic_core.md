@@ -119,9 +119,13 @@ beyond the named assumption):
 - [x] State `LogElliottAssumption` (log-averaged two-point Elliott with explicit non-pretentiousness hypothesis; cite arXiv:1509.05422 Thm 1.3).
   (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Elliott.lean`:
   `NonPretentious` (divergent `pretentiousDistSq` to every `n ↦ χ(n)·nⁱᵗ`) and
-  `LogElliottAssumption` (the two-point shifted-correlation special case of Thm 1.3, strictly
-  weaker than the source as the hygiene rule permits), with **no instance and no axiom**, the
-  consumer-facing theorem `logElliott_tendsto_zero`, and a compile-only consumer `example`.)
+  `LogElliottAssumption`, with **no instance and no axiom**, the consumer-facing theorem
+  `logElliott_tendsto_zero`, and a compile-only consumer `example`.
+  **Correction (found while formalizing the nonasymptotic form on the derivation-(C) card):**
+  the original annotation here claimed this class is "strictly weaker than the source" — wrong.
+  The paper's asymptotic corollary (Cor 1.5) needs *uniform* (inf-form) non-pretentiousness;
+  this class's pointwise hypothesis makes it stronger than the literature. Demoted to
+  toy-consumer convenience; derivation work consumes `LogElliottNonasymptoticAssumption`.)
 - [x] Stage-5 skeleton: `TrackCStage5Core.lean` packaging (A)+(B) as inputs and exposing the conditional target `stage5_notBounded [FourierReductionAssumption] [LogElliottAssumption] : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f` — initially proved from the *existing* Stage-2 stub axiom, then re-proved from (A)+(C) when (C) lands, retiring the stub.
   (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Core.lean`:
   `stage5_notBounded` and `stage5_forall_hasDiscrepancyAtLeast`, wired through the Stage-4
