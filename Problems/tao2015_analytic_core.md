@@ -122,7 +122,12 @@ beyond the named assumption):
   `LogElliottAssumption` (the two-point shifted-correlation special case of Thm 1.3, strictly
   weaker than the source as the hygiene rule permits), with **no instance and no axiom**, the
   consumer-facing theorem `logElliott_tendsto_zero`, and a compile-only consumer `example`.)
-- [ ] Stage-5 skeleton: `TrackCStage5Core.lean` packaging (A)+(B) as inputs and exposing the conditional target `stage5_notBounded [FourierReductionAssumption] [LogElliottAssumption] : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f` — initially proved from the *existing* Stage-2 stub axiom, then re-proved from (A)+(C) when (C) lands, retiring the stub.
+- [x] Stage-5 skeleton: `TrackCStage5Core.lean` packaging (A)+(B) as inputs and exposing the conditional target `stage5_notBounded [FourierReductionAssumption] [LogElliottAssumption] : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f` — initially proved from the *existing* Stage-2 stub axiom, then re-proved from (A)+(C) when (C) lands, retiring the stub.
+  (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Core.lean`:
+  `stage5_notBounded` and `stage5_forall_hasDiscrepancyAtLeast`, wired through the Stage-4
+  boundary (hence the Stage-2 stub) with the analytic-core instances carried in the signature
+  as the stable contract; compile-only consumer example. The proof-body switch to (A)+(C) is
+  documented in the module docstring.)
 - [ ] Replace the Stage-2 stub axiom's role: derive `stage2Stub_exists_params_one_le_unboundedDiscOffset`'s content from `FourierReductionAssumption` + the multiplicative constructors on the reduced class (this is the first piece of (C)).
 
 Discharge milestones (long-horizon; each becomes its own card when opened):
