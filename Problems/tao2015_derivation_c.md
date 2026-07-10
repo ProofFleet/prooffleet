@@ -115,7 +115,13 @@ Language layer (each: 1 file in `MoltResearch/`, compiles + regression example, 
 
 Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no instances/axioms):
 
-- [ ] State `FourierReductionStochasticAssumption` (§2 direction: bounded-discrepancy sign sequence ⇒ stochastic completely multiplicative counterexample to Theorem 1.8, second-moment form) and re-derive the existing deterministic `FourierReductionAssumption` from it.
+- [x] State `FourierReductionStochasticAssumption` (§2 direction: bounded-discrepancy sign sequence ⇒ stochastic completely multiplicative counterexample to Theorem 1.8, second-moment form) and relate it to the existing deterministic `FourierReductionAssumption`.
+  (Implemented in `TrackCStage5Fourier.lean` with the nucleus helper `apSumC_one_d`.
+  **Correction to this box's original plan** ("re-derive the deterministic from it"): the
+  derivable direction is deterministic ⇒ stochastic (point-mass embedding, landed as the
+  instance `FourierReductionStochasticAssumption.ofDeterministic`); the converse fails, i.e.
+  the deterministic first-cut is the *stronger*, non-literature axiom. Blueprint card §6
+  record corrected accordingly. Derivation work must consume the stochastic class.)
 - [ ] State `LogElliottNonasymptoticAssumption` (Theorem 1.10 verbatim: affine forms, `a₁b₂ − a₂b₁ ≠ 0`, `ε/A/w/x` quantifiers, period-`≤ A` characters, `|t| ≤ Ax`, conclusion `≤ ε log w`) and re-derive the existing asymptotic `LogElliottAssumption` from it.
 - [ ] State Proposition 1.11 as a typed intermediate interface, so §4 work can consume it before its proof lands.
 

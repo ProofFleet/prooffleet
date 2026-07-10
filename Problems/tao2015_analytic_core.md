@@ -166,11 +166,16 @@ Discharge milestones (long-horizon; each becomes its own card when opened):
   ±1 multiplicative bridge already in `MoltResearch/` remains valuable (it is the hand-off once
   a reduction produces candidates) but must not be baked into interface statements.
 - **Deterministic vs stochastic (A):** the paper's reduction produces a *random* completely
-  multiplicative `g` with bounded *second moment* of partial sums. The deterministic first-cut
-  interface above is intentionally simpler and is implied by the stochastic version; when the
-  language layer gains probability packaging, add the stochastic form
-  (`𝔼 |∑_{j≤n} g(j)|²` version) as the primary and re-derive the deterministic one. Keep both
-  named separately so downstream code never silently assumes the wrong one.
+  multiplicative `g` with bounded *second moment* of partial sums.
+  **Correction (found while formalizing, see `TrackCStage5Fourier.lean`):** the original record
+  here claimed the deterministic first-cut is *implied by* the stochastic version — that is
+  backwards. The deterministic conditional is the **stronger** axiom: it implies the stochastic
+  form via the point-mass embedding (`FourierReductionStochasticAssumption.ofDeterministic`),
+  and the converse is not derivable (a stochastic counterexample with bounded second moments
+  need not concentrate on a deterministic bounded-partial-sum sequence). Since only the
+  stochastic form is a theorem of §2, derivation-(C) work must consume
+  `FourierReductionStochasticAssumption`; the deterministic class stays as a convenience for
+  toy consumers. Both remain named separately.
 - **Axiom hygiene (hard rule, from #2843):** every interface axiom/class on this card must be a
   named theorem of the literature (or strictly weaker), with the arXiv reference in its
   docstring, and must be stated *existentially/conditionally* exactly as in the source. Any new

@@ -80,6 +80,24 @@ noncomputable def apSumC (g : ℕ → ℂ) (d n : ℕ) : ℂ :=
 @[simp] theorem apSumC_zero_length (g : ℕ → ℂ) (d : ℕ) : apSumC g d 0 = 0 := by
   simp [apSumC]
 
+/-- Special case: step size `d = 1` turns `apSumC` into the plain interval sum
+`∑ j ∈ Icc 1 n, g j` (mirrors `apSum_one_d`). -/
+theorem apSumC_one_d (g : ℕ → ℂ) (n : ℕ) :
+    apSumC g 1 n = ∑ j ∈ Finset.Icc 1 n, g j := by
+  classical
+  unfold apSumC
+  have h := (Finset.sum_Ico_eq_sum_range (f := fun i => g i) (m := 1) (n := n + 1))
+  calc
+    (Finset.range n).sum (fun i => g ((i + 1) * 1))
+        = (Finset.range n).sum (fun i => g (1 + i)) := by
+            refine Finset.sum_congr rfl ?_
+            intro i hi
+            simp [Nat.add_comm]
+    _ = (Finset.Ico 1 (n + 1)).sum (fun i => g i) := by
+            simpa [Nat.add_sub_cancel] using h.symm
+    _ = ∑ j ∈ Finset.Icc 1 n, g j := by
+            simp [Finset.Ico_add_one_right_eq_Icc]
+
 namespace CompletelyMultiplicativeC
 
 variable {g : ℕ → ℂ}
@@ -136,7 +154,7 @@ theorem norm_sum_Icc_intCast_eq_natAbs_apSum_one (f : ℕ → ℤ) (n : ℕ) :
     rw [apSum_one_d]
     push_cast
     rfl
-  rw [hsum, Complex.norm_intCast, Int.cast_natAbs, Int.cast_abs]
+  rw [hsum, Complex.norm_intCast, Nat.cast_natAbs, Int.cast_abs]
 
 namespace CompletelyMultiplicative
 
