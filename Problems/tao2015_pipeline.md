@@ -136,6 +136,10 @@ Rule of thumb: Stage 4 should *not* add new math content unless it is the single
 
 ### Stage 2 — Stage2Output boundary
 
+- [x] Verified Stage-2 constructors for the completely multiplicative subclass: build `Stage2Output` from a hypothesized step-one witness (`ofUnboundedDiscrepancyOne`) and, via the verified multiplicative reduction, from the EDP surface statement for completely multiplicative sign sequences (`ofCompletelyMultiplicative`).
+  (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage2Multiplicative.lean`, with consumer
+  regression examples; the underlying verified equivalence lives in `MoltResearch/Discrepancy/Multiplicative.lean`.)
+
 - [ ] Ensure Stage2Output exposes *both* offset and affine-tail witness families in canonical form:
   - `∀ C, ∃ n, natAbs (apSumOffset ...) > C`
   - `∀ C, ∃ n, natAbs (apSumFrom f (m*d) d n) > C`
