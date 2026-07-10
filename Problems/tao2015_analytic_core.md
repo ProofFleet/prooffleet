@@ -142,6 +142,11 @@ beyond the named assumption):
 Discharge milestones (long-horizon; each becomes its own card when opened):
 
 - [ ] (C) first: conditional EDP from (A)+(B) — the van der Corput expansion + pretentious-branch argument (§3 of the paper). Most self-contained; needs only Mathlib probability + the language layer.
+  (**Opened** as its own card: `Problems/tao2015_derivation_c.md`, with the faithful §3/§4
+  dependency graph (Thm 1.8 ⟸ Prop 1.11 + generalized Borwein–Choi–Coons) and a PR-sized
+  decomposition — including the required stochastic upgrade of (A) and nonasymptotic upgrade of
+  (B). Tick here only when `stage5_notBounded` is re-proved from the interfaces and the Stage-2
+  stub axiom is retired.)
 - [ ] (A): the Fourier reduction — Hilbert-space valued sequences, Plancherel, the Polymath5 argument. Medium-hard; opens after (C).
 - [ ] (B): entropy decrement + Matomäki–Radziwiłł. Do not open until (A) and (C) are done; expected to remain an interface for a long time.
 
