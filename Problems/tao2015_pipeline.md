@@ -151,7 +151,10 @@ Rule of thumb: Stage 4 should *not* add new math content unless it is the single
 ### Stage N — next stage stub(s)
 
 - [x] Add the next stage file stub (`TrackCStage4Core.lean` + `TrackCStage4Proof.lean` + thin `TrackCStage4.lean`) that imports the Stage‑3 boundary and exposes the next interface theorem(s) as wiring.
-- [ ] Add a regression example showing Stage 4 can consume Stage 3 without unfolding.
+- [x] Add a regression example showing Stage 4 can consume Stage 3 without unfolding.
+  (Implemented as `Conjectures/C0002_erdos_discrepancy/src/TrackCStage4Examples.lean`: compile-only
+  `example` blocks consuming the Stage-3/Stage-4 boundary via named lemmas only, importing just the
+  thin `TrackCStage4` entry point.)
 
 ## Notes for automation
 
