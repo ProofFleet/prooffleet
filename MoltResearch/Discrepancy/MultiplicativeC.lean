@@ -19,6 +19,13 @@ Bridges (the ℤ-valued substrate embeds in the ℂ-valued language):
   multiplicative after coercion to ℂ.
 - `IsSignSequence.unimodularC` — sign sequences are unimodular after coercion to ℂ.
 
+Partial sums:
+- `apSumC g d n` — ℂ-valued homogeneous AP partial sum, mirroring `apSum`.
+- `CompletelyMultiplicativeC.apSumC_eq_mul_apSumC_one` — the multiplicative collapse
+  `apSumC g d n = g d * apSumC g 1 n` (port of `CompletelyMultiplicative.apSum_eq_mul_apSum_one`).
+- `CompletelyMultiplicativeC.norm_apSumC_eq_norm_apSumC_one` — its norm-level corollary for
+  unimodular `g`: partial-sum growth along any step `d` is the step-one growth.
+
 Design note (from the card's decision record): interfaces for the analytic core must be stated
 over ℂ-valued unimodular functions — the ±1 subclass loses the character-modulated cases. The
 ℤ-valued bridge below is the hand-off *into* that subclass once a reduction produces candidates,
@@ -61,6 +68,18 @@ theorem ne_zero (hg : Unimodular g) (n : ℕ) : g n ≠ 0 := by
 
 end Unimodular
 
+/-- ℂ-valued homogeneous AP partial sum: `g d + g (2*d) + ⋯ + g (n*d)`.
+
+Mirrors `apSum` (`Finset.range n` with `i + 1`, so the progression starts at `d`; `n = 0`
+yields sum `0`).
+-/
+noncomputable def apSumC (g : ℕ → ℂ) (d n : ℕ) : ℂ :=
+  (Finset.range n).sum (fun i => g ((i + 1) * d))
+
+/-- Degenerate length: the empty AP sum vanishes. -/
+@[simp] theorem apSumC_zero_length (g : ℕ → ℂ) (d : ℕ) : apSumC g d 0 = 0 := by
+  simp [apSumC]
+
 namespace CompletelyMultiplicativeC
 
 variable {g : ℕ → ℂ}
@@ -76,6 +95,31 @@ From `g 1 = g 1 * g 1` and `g 1 ≠ 0`, cancellation gives `g 1 = 1`. ℂ-valued
   rw [Nat.mul_one] at h
   have h' : g 1 * g 1 = g 1 * 1 := by rw [mul_one]; exact h.symm
   exact mul_left_cancel₀ (hg.ne_zero 1) h'
+
+/-- Sum-level multiplicative collapse (normal form): the ℂ-valued AP sum at step `d` factors
+through the step-one (plain partial) sum.
+
+Normal form: `apSumC g d n = g d * apSumC g 1 n`. Port of
+`CompletelyMultiplicative.apSum_eq_mul_apSum_one` to ℂ.
+-/
+theorem apSumC_eq_mul_apSumC_one (hmul : CompletelyMultiplicativeC g) (d n : ℕ) :
+    apSumC g d n = g d * apSumC g 1 n := by
+  unfold apSumC
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [Nat.mul_one, hmul (i + 1) d]
+  exact mul_comm _ _
+
+/-- Norm-level corollary of the multiplicative collapse for unimodular `g`: partial-sum growth
+along any step `d` is exactly the step-one growth (`‖g d‖ = 1` scales nothing away).
+
+This is the quantity Tao's Fourier-reduction interface controls: unboundedness of
+`‖apSumC g 1 n‖` is unboundedness along every step.
+-/
+theorem norm_apSumC_eq_norm_apSumC_one (hmul : CompletelyMultiplicativeC g)
+    (hg : Unimodular g) (d n : ℕ) :
+    ‖apSumC g d n‖ = ‖apSumC g 1 n‖ := by
+  rw [hmul.apSumC_eq_mul_apSumC_one d n, norm_mul, hg d, one_mul]
 
 end CompletelyMultiplicativeC
 

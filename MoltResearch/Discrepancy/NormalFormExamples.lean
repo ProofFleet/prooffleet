@@ -5448,6 +5448,16 @@ example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequen
 example (g : ℕ → ℂ) (hg : Unimodular g) (n : ℕ) : g n ≠ 0 :=
   hg.ne_zero n
 
+-- ℂ-valued multiplicative collapse: any-step AP sums factor through the step-one sum,
+-- and for unimodular sequences the norms agree on the nose.
+example (g : ℕ → ℂ) (hmul : CompletelyMultiplicativeC g) (d n : ℕ) :
+    apSumC g d n = g d * apSumC g 1 n :=
+  hmul.apSumC_eq_mul_apSumC_one d n
+
+example (g : ℕ → ℂ) (hmul : CompletelyMultiplicativeC g) (hg : Unimodular g) (d n : ℕ) :
+    ‖apSumC g d n‖ = ‖apSumC g 1 n‖ :=
+  hmul.norm_apSumC_eq_norm_apSumC_one hg d n
+
 end NormalFormExamples
 
 end MoltResearch
