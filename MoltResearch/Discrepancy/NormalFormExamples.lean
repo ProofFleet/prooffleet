@@ -5426,6 +5426,28 @@ example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequen
     BoundedDiscrepancy f ↔ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum f 1 n) ≤ B := by
   simpa using (hmul.boundedDiscrepancy_iff_exists_forall_natAbs_apSum_one_le hf)
 
+/-!
+## NEW (Track B): ℂ-valued multiplicative language layer regression tests
+
+Compile-only regression examples for the analytic-core language layer: the ℤ→ℂ coercion bridges
+land in the ℂ-valued predicates, and a completely multiplicative unimodular sequence fixes `1`.
+-/
+
+example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) :
+    CompletelyMultiplicativeC (fun n => (f n : ℂ)) :=
+  hmul.toC
+
+example (f : ℕ → ℤ) (hf : IsSignSequence f) :
+    Unimodular (fun n => (f n : ℂ)) :=
+  hf.unimodularC
+
+example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequence f) :
+    ((f 1 : ℂ)) = 1 := by
+  simpa using hmul.toC.map_one_of_unimodular hf.unimodularC
+
+example (g : ℕ → ℂ) (hg : Unimodular g) (n : ℕ) : g n ≠ 0 :=
+  hg.ne_zero n
+
 end NormalFormExamples
 
 end MoltResearch

@@ -1,0 +1,113 @@
+import MoltResearch.Discrepancy.Multiplicative
+
+/-!
+# Discrepancy: ℂ-valued completely multiplicative language layer
+
+First language-layer module for the Tao 2015 analytic core
+(`Problems/tao2015_analytic_core.md`): the ℂ-valued predicates the Fourier-reduction and
+log-Elliott interfaces are stated over, plus the coercion bridge from the existing ℤ-valued
+substrate.
+
+Definitions:
+- `CompletelyMultiplicativeC g` — `g (a * b) = g a * g b` for **all** `a b : ℕ` (no coprimality
+  hypothesis, mirroring the ℤ-valued `CompletelyMultiplicative`).
+- `Unimodular g` — `‖g n‖ = 1` for all `n` (the "valued in the unit circle `S¹`" hypothesis of
+  Tao's interfaces, arXiv:1509.05363 §2).
+
+Bridges (the ℤ-valued substrate embeds in the ℂ-valued language):
+- `CompletelyMultiplicative.toC` — a ℤ-valued completely multiplicative sequence is completely
+  multiplicative after coercion to ℂ.
+- `IsSignSequence.unimodularC` — sign sequences are unimodular after coercion to ℂ.
+
+Design note (from the card's decision record): interfaces for the analytic core must be stated
+over ℂ-valued unimodular functions — the ±1 subclass loses the character-modulated cases. The
+ℤ-valued bridge below is the hand-off *into* that subclass once a reduction produces candidates,
+not a substitute for it.
+-/
+
+namespace MoltResearch
+
+/-- A ℂ-valued completely multiplicative sequence: `g (a * b) = g a * g b` for **all** `a b : ℕ`
+(no coprimality hypothesis).
+
+ℂ-valued analogue of `CompletelyMultiplicative`. As there, we do not bake in `g 1 = 1`: it
+follows for unimodular sequences (`CompletelyMultiplicativeC.map_one_of_unimodular`), and keeping
+the definition minimal makes it easier to produce.
+-/
+def CompletelyMultiplicativeC (g : ℕ → ℂ) : Prop :=
+  ∀ a b : ℕ, g (a * b) = g a * g b
+
+/-- A unimodular sequence: every value lies on the complex unit circle.
+
+This is the "valued in `S¹`" hypothesis in Tao's Fourier-reduction and log-Elliott interfaces.
+-/
+def Unimodular (g : ℕ → ℂ) : Prop :=
+  ∀ n : ℕ, ‖g n‖ = 1
+
+namespace Unimodular
+
+variable {g : ℕ → ℂ}
+
+/-- Unfolding lemma in simp-friendly form: unimodular values have norm `1`. -/
+@[simp] theorem norm_eq_one (hg : Unimodular g) (n : ℕ) : ‖g n‖ = 1 :=
+  hg n
+
+/-- Unimodular values are nonzero (they have norm `1`). -/
+theorem ne_zero (hg : Unimodular g) (n : ℕ) : g n ≠ 0 := by
+  intro h
+  have h1 := hg n
+  rw [h] at h1
+  norm_num at h1
+
+end Unimodular
+
+namespace CompletelyMultiplicativeC
+
+variable {g : ℕ → ℂ}
+
+/-- A completely multiplicative unimodular sequence fixes `1`.
+
+From `g 1 = g 1 * g 1` and `g 1 ≠ 0`, cancellation gives `g 1 = 1`. ℂ-valued analogue of
+`CompletelyMultiplicative.map_one_of_isSignSequence`.
+-/
+@[simp] theorem map_one_of_unimodular (hmul : CompletelyMultiplicativeC g)
+    (hg : Unimodular g) : g 1 = 1 := by
+  have h := hmul 1 1
+  rw [Nat.mul_one] at h
+  have h' : g 1 * g 1 = g 1 * 1 := by rw [mul_one]; exact h.symm
+  exact mul_left_cancel₀ (hg.ne_zero 1) h'
+
+end CompletelyMultiplicativeC
+
+namespace CompletelyMultiplicative
+
+variable {f : ℕ → ℤ}
+
+/-- Coercion bridge: a ℤ-valued completely multiplicative sequence is completely multiplicative
+as a ℂ-valued sequence.
+
+This is the hand-off from the verified ±1 substrate into the ℂ-valued language layer of the
+analytic core.
+-/
+theorem toC (hmul : CompletelyMultiplicative f) :
+    CompletelyMultiplicativeC (fun n => (f n : ℂ)) := by
+  intro a b
+  show ((f (a * b) : ℂ)) = (f a : ℂ) * (f b : ℂ)
+  exact_mod_cast hmul a b
+
+end CompletelyMultiplicative
+
+namespace IsSignSequence
+
+variable {f : ℕ → ℤ}
+
+/-- Coercion bridge: sign sequences are unimodular as ℂ-valued sequences
+(`‖(±1 : ℂ)‖ = 1`). -/
+theorem unimodularC (hf : IsSignSequence f) :
+    Unimodular (fun n => (f n : ℂ)) := by
+  intro n
+  rcases hf n with h | h <;> simp [h]
+
+end IsSignSequence
+
+end MoltResearch

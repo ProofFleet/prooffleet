@@ -86,7 +86,11 @@ class FourierReductionAssumption : Prop where
 
 Language layer (each: 1 file, `make ci`, definition of done = compiles + regression example):
 
-- [ ] Define `CompletelyMultiplicativeC` / `Unimodular` (ℂ-valued) with basic simp lemmas, and the ℤ→ℂ coercion bridge `CompletelyMultiplicative f → CompletelyMultiplicativeC (fun n => (f n : ℂ))` (sign sequences are unimodular).
+- [x] Define `CompletelyMultiplicativeC` / `Unimodular` (ℂ-valued) with basic simp lemmas, and the ℤ→ℂ coercion bridge `CompletelyMultiplicative f → CompletelyMultiplicativeC (fun n => (f n : ℂ))` (sign sequences are unimodular).
+  (Implemented in `MoltResearch/Discrepancy/MultiplicativeC.lean` (on the stable surface):
+  `CompletelyMultiplicativeC`, `Unimodular`, `Unimodular.norm_eq_one`/`ne_zero`,
+  `CompletelyMultiplicativeC.map_one_of_unimodular`, bridges `CompletelyMultiplicative.toC` and
+  `IsSignSequence.unimodularC`; regression examples in `NormalFormExamples.lean`.)
 - [ ] ℂ-valued partial-sum collapse: port `apSum_eq_mul_apSum_one` to ℂ (`apSumC g d n = g d * apSumC g 1 n` for completely multiplicative `g`), with norm-level corollary for unimodular `g`.
 - [ ] Define `logAvgCorr` (log-averaged two-point correlation) with degenerate-parameter simp lemmas (`N = 0`, `N = 1`, `a = b` diagonal value).
 - [ ] Define the pretentious distance `𝔻(g, h; N)` (finite-`N` Granville–Soundararajan distance over primes) — definition + monotonicity basics only.
