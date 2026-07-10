@@ -139,8 +139,20 @@ Rule of thumb: Stage 4 should *not* add new math content unless it is the single
 ### Stage 1 — ReductionOutput contract (Tao2015)
 
 - [ ] Audit `ReductionOutput` for duplicate normal forms; pick one canonical witness packaging for downstream (`1 ≤ d` vs `d > 0`) and make the other wrappers.
-- [ ] Ensure all Stage-1 “rewrite” lemmas used downstream are exposed as named lemmas (no repeated rewriting at call sites).
+  (Audited 2026-07-10, mostly done: canonical positivity is the stored field `ReductionOutput.hd : d > 0`;
+  duplicate `_lt` iff normal forms are deduplicated via `@[deprecated]` toward the `_gt` forms
+  (`Tao2015.lean`). Remaining gap: no `ReductionOutput.one_le_d` wrapper, so the `1 ≤ d` form is
+  re-derived downstream (`Stage2Output.one_le_d` in `TrackCStage2Core.lean`, again in
+  `TrackCStage3Output.lean`). Add the Stage-1 wrapper and delegate to it, then tick.)
+- [x] Ensure all Stage-1 “rewrite” lemmas used downstream are exposed as named lemmas (no repeated rewriting at call sites).
+  (Audited 2026-07-10: downstream consumes Stage-1 rewrites by name —
+  `unboundedDiscrepancyAlong_iff_unboundedDiscOffset`, `discrepancy_eq_discOffset_via_contract`,
+  and `g_eq` re-exposed as per-stage named wrappers (`TrackCStage2CoreExtras.lean`,
+  `TrackCStage2Entry.lean`, `TrackCStage3Core.lean`). No inline re-derivation at consumer call sites.)
 - [ ] Add/confirm a small composition example for `ReductionOutput.shiftRight` that normalizes nested shifts.
+  (Audited 2026-07-10, still open: only the single-shift projection `shiftRight_m` exists
+  (`Tao2015.lean`); no nested-shift composition lemma/example anywhere, and the source note next to
+  `shiftRight` explicitly defers simp-normalization lemmas until a downstream stage needs them.)
 
 ### Stage 2 — Stage2Output boundary
 
@@ -148,17 +160,43 @@ Rule of thumb: Stage 4 should *not* add new math content unless it is the single
   (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage2Multiplicative.lean`, with consumer
   regression examples; the underlying verified equivalence lives in `MoltResearch/Discrepancy/Multiplicative.lean`.)
 
-- [ ] Ensure Stage2Output exposes *both* offset and affine-tail witness families in canonical form:
+- [x] Ensure Stage2Output exposes *both* offset and affine-tail witness families in canonical form:
   - `∀ C, ∃ n, natAbs (apSumOffset ...) > C`
   - `∀ C, ∃ n, natAbs (apSumFrom f (m*d) d n) > C`
-- [ ] Provide the existential packaging lemma: `∃ d m, 1 ≤ d ∧ …` (Stage 2 → consumer form).
-- [ ] Tighten imports in Stage2 files: keep heavy lemmas in proof files; stage boundary should be API + packaging.
+  (Audited 2026-07-10: offset family `Stage2Output.forall_exists_natAbs_apSumOffset_gt'`
+  (`TrackCStage2Output.lean`) and affine-tail family `Stage2Output.forall_exists_natAbs_apSumFrom_mul_gt`
+  (`TrackCStage2Output.lean`), each with `_witness_pos` / `_start_gt` variants in
+  `TrackCStage2CoreExtras.lean`. Pinned by `TrackCStage0SignatureExamples.lean`.)
+- [x] Provide the existential packaging lemma: `∃ d m, 1 ≤ d ∧ …` (Stage 2 → consumer form).
+  (Audited 2026-07-10: the `Stage2Output.exists_params_one_le_*` family in `TrackCStage2Output.lean`
+  and the `stage2Out`-keyed `stage2_exists_params_one_le_*` lemmas in `TrackCStage2ProofCore.lean` /
+  `TrackCStage2ProofWitnesses.lean` cover offset, affine-tail, and paper-notation forms.)
+- [x] Tighten imports in Stage2 files: keep heavy lemmas in proof files; stage boundary should be API + packaging.
+  (Audited 2026-07-10: `TrackCStage2Boundary.lean` is API-only (record + constructors, imports only
+  `Tao2015`); heavy convenience lemmas live in `Output`/`CoreExtras`/`Entry`/`ProofWitnesses`; the
+  hard-gate path `ErdosDiscrepancy → Stage3EntryMinimal → Stage2Stub → Stage2Boundary` imports none
+  of the heavy files. Cosmetic follow-up only: `TrackCStage2Light.lean` imports `ProofCore`, so
+  "light" is relative.)
 
 ### Stage 3 — Stage3Output boundary
 
-- [ ] Confirm Stage 3 delegates to Stage 2 (no duplicated logic); move any remaining “real content” back to Stage 2.
-- [ ] Provide Stage-3 existential packaging in canonical normal form for downstream stages (prefer `1 ≤ d`).
-- [ ] Provide Stage-3 consumer shortcuts (single lemma) that exposes the affine-tail witness family without unpacking outputs.
+- [x] Confirm Stage 3 delegates to Stage 2 (no duplicated logic); move any remaining “real content” back to Stage 2.
+  (Audited 2026-07-10 across all seven Stage-3 files: every proof is a thin wrapper —
+  `simpa ... using (Stage2Output....)`, `.out2` projections, or verified-core normal-form
+  equivalences (`UnboundedDiscOffset.*`, `discOffset_eq_natAbs_apSumFrom_mul`). No standalone math.
+  One cosmetic nit: `stage3Out_add_start_div_d` (`TrackCStage3Entry.lean`) re-proves a trivial `Nat`
+  division fact instead of calling `Stage3Output.add_start_div_d`.)
+- [x] Provide Stage-3 existential packaging in canonical normal form for downstream stages (prefer `1 ≤ d`).
+  (Audited 2026-07-10: `stage3_exists_params_one_le_unboundedDiscOffset` and
+  `..._not_exists_boundedDiscOffset` in `TrackCStage3EntryMinimal.lean`, plus the full
+  `stage3_exists_params_one_le_*` affine-tail/offset/paper-notation family in
+  `TrackCStage3EntryCore.lean` / `TrackCStage3Proof.lean` and `Stage3Output.exists_params_one_le_*`
+  methods in `TrackCStage3Output.lean`. Pinned by `TrackCStage0SignatureExamples.lean`.)
+- [x] Provide Stage-3 consumer shortcuts (single lemma) that exposes the affine-tail witness family without unpacking outputs.
+  (Audited 2026-07-10: top-level `(f, hf)` shortcuts `stage3_forall_exists_natAbs_apSumFrom_mul_gt`
+  (`TrackCStage3Proof.lean`) and `stage3_forall_exists_natAbs_apSumFrom_start_gt`
+  (`TrackCStage3EntryMinimal.lean`), each with `_witness_pos` variants — one application, no
+  `Stage3Output` unpacking.)
 
 ### Stage N — next stage stub(s)
 
