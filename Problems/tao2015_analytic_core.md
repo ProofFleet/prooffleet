@@ -131,7 +131,11 @@ beyond the named assumption):
   `stage5_notBounded` and `stage5_forall_hasDiscrepancyAtLeast`, wired through the Stage-4
   boundary (hence the Stage-2 stub) with the analytic-core instances carried in the signature
   as the stable contract; compile-only consumer example. The proof-body switch to (A)+(C) is
-  documented in the module docstring.)
+  documented in the module docstring.
+  **Signature migration (2026-07-10):** after both first-cut classes were found stronger than
+  the literature, the Stage-5 contract was moved to the faithful pair
+  `[FourierReductionStochasticAssumption] [LogElliottNonasymptoticAssumption]` — done while
+  nothing downstream consumed Stage 5, so no migration debt.)
 - [x] Replace the Stage-2 stub axiom's role: derive `stage2Stub_exists_params_one_le_unboundedDiscOffset`'s content from `FourierReductionAssumption` + the multiplicative constructors on the reduced class (this is the first piece of (C)).
   (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Reduction.lean`
   (no new axioms): `stage2StubContent_of_univ_multiplicative` derives the stub's statement on
