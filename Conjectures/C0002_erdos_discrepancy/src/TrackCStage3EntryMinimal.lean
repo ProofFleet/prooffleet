@@ -17,6 +17,8 @@ It provides the minimal Stage-3 entry point API needed by the Track-C hard-gate 
   `∀ C, ∃ d n, d ≥ 1 ∧ n > 0 ∧ Int.natAbs (apSum f d n) > C`
 - `stage3_forall_exists_discrepancy_gt` : the discrepancy witness form
   `∀ C, ∃ d n, d > 0 ∧ discrepancy f d n > C`
+- `stage3OutOf_forall_exists_discrepancy_gt` : explicit-assumption variant of
+  `stage3_forall_exists_discrepancy_gt`
 - `stage3_forall_exists_discrepancy_gt_witness_pos` : witness form with `n > 0`
   `∀ C, ∃ d n, d > 0 ∧ n > 0 ∧ discrepancy f d n > C`
 - `stage3_hasDiscrepancyAtLeast` : specialization at a fixed threshold `C`
@@ -763,6 +765,13 @@ This is obtained from `stage3_forall_hasDiscrepancyAtLeast` via
 theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
   let out := stage3Out (f := f) (hf := hf)
+  exact out.forall_exists_discrepancy_gt (f := f)
+
+/-- Explicit-assumption variant of `stage3_forall_exists_discrepancy_gt`. -/
+theorem stage3OutOf_forall_exists_discrepancy_gt (inst : Stage2Assumption) (f : ℕ → ℤ)
+    (hf : IsSignSequence f) :
+    ∀ C : ℕ, ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C := by
+  let out := stage3OutOf inst (f := f) (hf := hf)
   exact out.forall_exists_discrepancy_gt (f := f)
 
 /-- Variant of `stage3_forall_exists_discrepancy_gt` with a positive-length witness `n > 0`.

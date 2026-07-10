@@ -236,6 +236,13 @@ theorem stage3_exists_params_one_le_forall_exists_natAbs_sum_Icc_offset_gt (f : 
 -- provided by `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryCore` (imported via
 -- `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry`).
 
+-- Consumer example (Stage-3 policy): with an *explicit* `Stage2Assumption` term in hand (no
+-- instance in scope), a downstream call site gets the discrepancy witness family in one lemma
+-- application, without constructing a `Stage3Output` first.
+example (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) (C : ℕ) :
+    ∃ d n : ℕ, d > 0 ∧ discrepancy f d n > C :=
+  stage3OutOf_forall_exists_discrepancy_gt inst f hf C
+
 
 end Tao2015
 
