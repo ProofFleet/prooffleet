@@ -1412,6 +1412,13 @@ Definition of done:
   (Implemented as `MoltResearch/Discrepancy/UpToEditBlockPipelineExample.lean`, imported by
   `MoltResearch/Discrepancy/SurfaceAudit.lean`.)
 
+#### Multiplicative reduction (Tao 2015, step 1)
+
+- [x] Completely multiplicative reduction: define `CompletelyMultiplicative` and prove the step-collapse normal forms `apSum f d n = f d * apSum f 1 n` and `discrepancy f d n = discrepancy f 1 n` (sign sequences), plus the surface equivalence `(∀ C, HasDiscrepancyAtLeast f C) ↔ UnboundedDiscrepancy f 1` and its bounded-side dual.
+  (Implemented in `MoltResearch/Discrepancy/Multiplicative.lean`, exported on the stable surface, with regression
+  examples in `MoltResearch/Discrepancy/NormalFormExamples.lean`. This is the verified bridge behind the Track C
+  reduction-to-multiplicative interface: for completely multiplicative sign sequences, EDP ⇔ unbounded partial sums.)
+
 ### Track C - Conjecture stub + equivalences (backlog)
 
 - [x] A clean Lean statement stub in `Conjectures/` (allowed `sorry`)

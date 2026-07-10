@@ -5402,6 +5402,30 @@ example (f : ℕ → ℤ) (d m k n₁ n : ℕ) :
   simpa using
     (discOffset_shift_start_add_tail (f := f) (d := d) (m := m) (k := k) (n₁ := n₁) (n := n))
 
+/-!
+## NEW (Track B): completely multiplicative reduction regression tests
+
+Compile-only regression examples for the multiplicative reduction normal forms: for completely
+multiplicative sign sequences, discrepancy along any step `d` collapses to the step-one case,
+and the EDP surface statement is equivalent to unbounded plain partial sums.
+-/
+
+example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (d n : ℕ) :
+    apSum f d n = f d * apSum f 1 n := by
+  simpa using (hmul.apSum_eq_mul_apSum_one d n)
+
+example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequence f) (d n : ℕ) :
+    discrepancy f d n = discrepancy f 1 n := by
+  simpa using (hmul.discrepancy_eq_discrepancy_one hf d n)
+
+example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequence f) :
+    (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ UnboundedDiscrepancy f 1 := by
+  simpa using (hmul.forall_hasDiscrepancyAtLeast_iff_unboundedDiscrepancy_one hf)
+
+example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequence f) :
+    BoundedDiscrepancy f ↔ ∃ B : ℕ, ∀ n : ℕ, Int.natAbs (apSum f 1 n) ≤ B := by
+  simpa using (hmul.boundedDiscrepancy_iff_exists_forall_natAbs_apSum_one_le hf)
+
 end NormalFormExamples
 
 end MoltResearch
