@@ -76,7 +76,10 @@ theorem stage2_forall_exists_discrepancy_gt_d_ge_one_witness_pos (f : ℕ → �
   intro C
   rcases stage2_forall_exists_d_ge_one_witness_pos (f := f) (hf := hf) C with ⟨d, n, hd, hn, hw⟩
   refine ⟨d, n, hd, hn, ?_⟩
-  simpa [discrepancy] using hw
+  -- Note: `simp [discrepancy]` loops against the `natAbs_apSum_eq_discrepancy` simp bridge;
+  -- rewrite with the definitional lemma instead.
+  rw [discrepancy_eq_natAbs_apSum]
+  exact hw
 
 /-!
 ## Witnesses for the deterministic reduced locus
