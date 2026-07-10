@@ -118,6 +118,19 @@ jobs:
           ~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceAudit
           ~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamples
 
+      # The default target builds only the MoltResearch lib. Solutions/ is part of the verified
+      # invariant (no sorry/axiom/unsafe) but is not a default target, and the Tasks/Conjectures
+      # backlog (including the Track C stage pipeline + its single axiom stub) was previously
+      # never typechecked in CI at all — which is how a false Stage-2 stub axiom sat unnoticed
+      # (see issue #2843). Build all of them explicitly.
+      - name: Build Solutions (verified target)
+        run: ~/.elan/bin/lake build Solutions
+
+      - name: Build backlog (Tasks + Conjectures, may contain sorry)
+        run: |
+          ~/.elan/bin/lake build Tasks
+          ~/.elan/bin/lake build Conjectures
+
       - name: Forbid sorry in verified targets
         run: bash scripts/forbid_sorry.sh
 

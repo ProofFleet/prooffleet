@@ -24,8 +24,7 @@ make backlog                        # typecheck the whole Tasks/ + Conjectures/ 
 
 **Never build Mathlib from source.** If `lake build` starts compiling thousands of `Mathlib.*` files, interrupt it and run `~/.elan/bin/lake exe cache get` first.
 
-The default target only builds what `MoltResearch.lean` imports. CI (and `make ci`) additionally builds these standalone modules explicitly, because they can silently decay otherwise:
-`MoltResearch.Discrepancy.SurfaceChecklist`, `DeprecatedSurfaceChecklist`, `SurfaceAudit`, `NormalFormExamples`.
+The default target only builds what `MoltResearch.lean` imports. CI (and `make ci`) additionally builds these explicitly, because they can silently decay otherwise: the standalone audit modules (`MoltResearch.Discrepancy.SurfaceChecklist`, `DeprecatedSurfaceChecklist`, `SurfaceAudit`, `NormalFormExamples`), the `Solutions` lib, and the whole `Tasks` + `Conjectures` backlog (including the Track C stage pipeline).
 
 ## Architecture
 
