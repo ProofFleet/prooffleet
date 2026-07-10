@@ -116,7 +116,12 @@ beyond the named assumption):
   exactly as stated above, with **no instance and no axiom** (consumers carry it as a
   hypothesis), the consumer-facing theorem `fourierReduction_notBounded`, and a compile-only
   consumer `example`.)
-- [ ] State `LogElliottAssumption` (log-averaged two-point Elliott with explicit non-pretentiousness hypothesis; cite arXiv:1509.05422 Thm 1.3).
+- [x] State `LogElliottAssumption` (log-averaged two-point Elliott with explicit non-pretentiousness hypothesis; cite arXiv:1509.05422 Thm 1.3).
+  (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Elliott.lean`:
+  `NonPretentious` (divergent `pretentiousDistSq` to every `n ↦ χ(n)·nⁱᵗ`) and
+  `LogElliottAssumption` (the two-point shifted-correlation special case of Thm 1.3, strictly
+  weaker than the source as the hygiene rule permits), with **no instance and no axiom**, the
+  consumer-facing theorem `logElliott_tendsto_zero`, and a compile-only consumer `example`.)
 - [ ] Stage-5 skeleton: `TrackCStage5Core.lean` packaging (A)+(B) as inputs and exposing the conditional target `stage5_notBounded [FourierReductionAssumption] [LogElliottAssumption] : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f` — initially proved from the *existing* Stage-2 stub axiom, then re-proved from (A)+(C) when (C) lands, retiring the stub.
 - [ ] Replace the Stage-2 stub axiom's role: derive `stage2Stub_exists_params_one_le_unboundedDiscOffset`'s content from `FourierReductionAssumption` + the multiplicative constructors on the reduced class (this is the first piece of (C)).
 
