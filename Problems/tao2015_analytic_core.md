@@ -111,7 +111,11 @@ Language layer (each: 1 file, `make ci`, definition of done = compiles + regress
 Interface layer (each: 1 file in `Conjectures/`, wiring + consumer example, no new axioms
 beyond the named assumption):
 
-- [ ] State `FourierReductionAssumption` (deterministic form above), with a consumer example deriving `¬ BoundedDiscrepancy f` from it plus a hypothesized universal-multiplicative witness.
+- [x] State `FourierReductionAssumption` (deterministic form above), with a consumer example deriving `¬ BoundedDiscrepancy f` from it plus a hypothesized universal-multiplicative witness.
+  (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Fourier.lean`: the class
+  exactly as stated above, with **no instance and no axiom** (consumers carry it as a
+  hypothesis), the consumer-facing theorem `fourierReduction_notBounded`, and a compile-only
+  consumer `example`.)
 - [ ] State `LogElliottAssumption` (log-averaged two-point Elliott with explicit non-pretentiousness hypothesis; cite arXiv:1509.05422 Thm 1.3).
 - [ ] Stage-5 skeleton: `TrackCStage5Core.lean` packaging (A)+(B) as inputs and exposing the conditional target `stage5_notBounded [FourierReductionAssumption] [LogElliottAssumption] : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f` — initially proved from the *existing* Stage-2 stub axiom, then re-proved from (A)+(C) when (C) lands, retiring the stub.
 - [ ] Replace the Stage-2 stub axiom's role: derive `stage2Stub_exists_params_one_le_unboundedDiscOffset`'s content from `FourierReductionAssumption` + the multiplicative constructors on the reduced class (this is the first piece of (C)).
