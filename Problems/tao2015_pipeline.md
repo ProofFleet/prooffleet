@@ -149,10 +149,12 @@ Rule of thumb: Stage 4 should *not* add new math content unless it is the single
   `unboundedDiscrepancyAlong_iff_unboundedDiscOffset`, `discrepancy_eq_discOffset_via_contract`,
   and `g_eq` re-exposed as per-stage named wrappers (`TrackCStage2CoreExtras.lean`,
   `TrackCStage2Entry.lean`, `TrackCStage3Core.lean`). No inline re-derivation at consumer call sites.)
-- [ ] Add/confirm a small composition example for `ReductionOutput.shiftRight` that normalizes nested shifts.
-  (Audited 2026-07-10, still open: only the single-shift projection `shiftRight_m` exists
-  (`Tao2015.lean`); no nested-shift composition lemma/example anywhere, and the source note next to
-  `shiftRight` explicitly defers simp-normalization lemmas until a downstream stage needs them.)
+- [x] Add/confirm a small composition example for `ReductionOutput.shiftRight` that normalizes nested shifts.
+  (Implemented via the `@[simp]` projection lemmas `shiftRight_m` / `shiftRight_d` (`Tao2015.lean`)
+  plus compile-only regression examples in `TrackCStage1Examples.lean` showing
+  `(out.shiftRight a).shiftRight b` normalizes, parameter-wise, to `out.shiftRight (a + b)`
+  without unfolding `shiftRight`. Record-level equality is intentionally not stated — see the
+  `shiftRight_zero` note in `Tao2015.lean`.)
 
 ### Stage 2 — Stage2Output boundary
 

@@ -128,6 +128,24 @@ theorem forall_hasDiscrepancyAtLeastAlong_ofShift_iff_forall_exists_natAbs_apSum
       ((ReductionOutput.ofShift f hf d m hd).hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt
         (f := f) (C := C)).2 (h C)
 
+/-!
+## `shiftRight` composition: nested shifts normalize
+
+Compile-only regression examples: composing `shiftRight` twice agrees, parameter-wise, with a
+single shift by the sum — via the `@[simp]` projection lemmas `shiftRight_m` / `shiftRight_d`
+only, no unfolding of `shiftRight`.
+-/
+
+-- Nested shifts compose additively on the offset parameter.
+example (out : Tao2015.ReductionOutput f) (a b : ℕ) :
+    ((out.shiftRight a).shiftRight b).m = (out.shiftRight (a + b)).m := by
+  simp [Nat.add_assoc]
+
+-- Nested shifts keep the step size unchanged.
+example (out : Tao2015.ReductionOutput f) (a b : ℕ) :
+    ((out.shiftRight a).shiftRight b).d = (out.shiftRight (a + b)).d := by
+  simp
+
 end Stage1Examples
 
 end Tao2015

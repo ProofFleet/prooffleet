@@ -1067,6 +1067,16 @@ This is a tiny simp-normalization lemma: it avoids having to unfold `shiftRight`
     (out.shiftRight m₂).m = out.m + m₂ := by
   simp [ReductionOutput.shiftRight]
 
+/-- Coherence: `shiftRight` keeps the step size unchanged.
+
+Together with `shiftRight_m`, this lets `simp` normalize the parameters of nested shifts
+(`(out.shiftRight a).shiftRight b` has the same parameters as `out.shiftRight (a + b)`)
+without unfolding `shiftRight`. See the regression examples in `TrackCStage1Examples.lean`.
+-/
+@[simp] theorem shiftRight_d (out : ReductionOutput f) (m₂ : ℕ) :
+    (out.shiftRight m₂).d = out.d := by
+  simp [ReductionOutput.shiftRight]
+
 /-!
 ### Note on `shiftRight_zero`
 
