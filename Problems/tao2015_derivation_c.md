@@ -135,7 +135,13 @@ Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no in
   convenience, mirroring the deterministic Fourier finding. Faithful asymptotic derivation is
   the new box below.)
 - [ ] Bridge: `NonPretentiousUniform` implies eventually-`NonPretentiousAt g A x` (finitely many Dirichlet characters of period `≤ A`), and derive the faithful asymptotic corollary (Cor 1.5 form: uniform hypothesis, `o(log w(x))` conclusion) from `LogElliottNonasymptoticAssumption`.
-- [ ] State Proposition 1.11 as a typed intermediate interface, so §4 work can consume it before its proof lands.
+- [x] State Proposition 1.11 as a typed intermediate interface, so §4 work can consume it before its proof lands.
+  (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5VanDerCorput.lean`:
+  `VanDerCorputAssumption` — bounded second moment ⇒ probability-`(1 − K·ε)` pretentious event
+  with period `≤ Q`, `|t| ≤ T·X`, distance `≤ B` — in the per-sample existential form (strictly
+  weaker than the paper's measurable selection; strengthen if §4 needs the selection), with the
+  consumer theorem `vanDerCorput_pretentious` and a compile-only §4-call-site example. No
+  instance, no axiom: it is the *target* of the van der Corput proof box below.)
 
 Derivation (the real work; open a GitHub issue per box when starting):
 
