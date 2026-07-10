@@ -74,7 +74,10 @@ Each checkbox should be doable in ~1 PR. Prefer **wiring-only** changes in stage
 ### Stage 0 — make the target explicit
 
 - [x] Add a short “Stage interface signatures” section below listing the *canonical* downstream-facing lemmas (names + types) for Stage 2–4.
-- [ ] Add 2–3 small `example` blocks (regression) that import the intended surfaces and compile (no proof search). Keep them stable.
+- [x] Add 2–3 small `example` blocks (regression) that import the intended surfaces and compile (no proof search). Keep them stable.
+  (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage0SignatureExamples.lean`:
+  compile-only `example` blocks per stage pinning the canonical lemmas from the signature
+  section below, importing only the intended surfaces via named lemmas.)
 
 ## Stage interface signatures (canonical; treat as frozen for consumers)
 
