@@ -358,9 +358,9 @@ analytic core.
 -/
 theorem toC (hmul : CompletelyMultiplicative f) :
     CompletelyMultiplicativeC (fun n => (f n : ℂ)) := by
-  intro a b _ _
+  intro a b ha hb
   show ((f (a * b) : ℂ)) = (f a : ℂ) * (f b : ℂ)
-  exact_mod_cast hmul a b
+  exact_mod_cast hmul a b ha hb
 
 end CompletelyMultiplicative
 

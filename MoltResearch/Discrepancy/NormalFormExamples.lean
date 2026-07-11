@@ -5413,13 +5413,27 @@ multiplicative sign sequences, discrepancy along any step `d` collapses to the s
 and the EDP surface statement is equivalent to unbounded plain partial sums.
 -/
 
-example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (d n : ℕ) :
+example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) {d : ℕ} (hd : d ≠ 0) (n : ℕ) :
     apSum f d n = f d * apSum f 1 n := by
-  simpa using (hmul.apSum_eq_mul_apSum_one d n)
+  simpa using (hmul.apSum_eq_mul_apSum_one hd n)
 
-example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequence f) (d n : ℕ) :
+example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequence f) {d : ℕ}
+    (hd : d ≠ 0) (n : ℕ) :
     discrepancy f d n = discrepancy f 1 n := by
-  simpa using (hmul.discrepancy_eq_discrepancy_one hf d n)
+  simpa using (hmul.discrepancy_eq_discrepancy_one hf hd n)
+
+-- Anti-vacuity witness (issue #2879, ℤ side): the class {completely multiplicative,
+-- sign sequence} is inhabited by a non-constant sequence — the Liouville sequence
+-- `n ↦ (−1)^Ω(n)`. Unprovable under an unguarded multiplicativity law.
+example : ∃ f : ℕ → ℤ, CompletelyMultiplicative f ∧ IsSignSequence f ∧ f 2 = -1 := by
+  refine ⟨fun n => (-1 : ℤ) ^ (ArithmeticFunction.cardFactors n), ?_, ?_, ?_⟩
+  · intro a b ha hb
+    simp only [ArithmeticFunction.cardFactors_mul ha hb, pow_add]
+  · intro n
+    rcases Nat.even_or_odd (ArithmeticFunction.cardFactors n) with h | h
+    · exact Or.inl (h.neg_one_pow)
+    · exact Or.inr (h.neg_one_pow)
+  · simp only [ArithmeticFunction.cardFactors_apply_prime Nat.prime_two, pow_one]
 
 example (f : ℕ → ℤ) (hmul : CompletelyMultiplicative f) (hf : IsSignSequence f) :
     (∀ C : ℕ, HasDiscrepancyAtLeast f C) ↔ UnboundedDiscrepancy f 1 := by
