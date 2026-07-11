@@ -134,7 +134,12 @@ Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no in
   `LogElliottAssumption` is a stronger-than-literature statement — demoted to toy-consumer
   convenience, mirroring the deterministic Fourier finding. Faithful asymptotic derivation is
   the new box below.)
-- [ ] Bridge: `NonPretentiousUniform` implies eventually-`NonPretentiousAt g A x` (finitely many Dirichlet characters of period `≤ A`), and derive the faithful asymptotic corollary (Cor 1.5 form: uniform hypothesis, `o(log w(x))` conclusion) from `LogElliottNonasymptoticAssumption`.
+- [x] Bridge: `NonPretentiousUniform` implies eventually-`NonPretentiousAt g A x` (finitely many Dirichlet characters of period `≤ A`).
+  (Implemented as `NonPretentiousUniform.eventually_nonPretentiousAt` in
+  `TrackCStage5Elliott.lean`: moduli range over `Finset.range (⌊A⌋₊ + 1)`, characters per
+  modulus are finite via `DirichletCharacter.fintype`, and the per-character eventual bounds
+  intersect via `Filter.eventually_all_finset` / `eventually_all`.)
+- [ ] Derive the faithful asymptotic corollary (Cor 1.5 form: uniform hypothesis, `o(log w(x))` conclusion) from `LogElliottNonasymptoticAssumption` + the bridge.
 - [x] State Proposition 1.11 as a typed intermediate interface, so §4 work can consume it before its proof lands.
   (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5VanDerCorput.lean`:
   `VanDerCorputAssumption` — bounded second moment ⇒ probability-`(1 − K·ε)` pretentious event

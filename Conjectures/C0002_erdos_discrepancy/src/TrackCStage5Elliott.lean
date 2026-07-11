@@ -79,6 +79,32 @@ def NonPretentiousUniform (g : ℕ → ℂ) : Prop :=
     ∀ b : ℝ, ∀ᶠ x : ℕ in Filter.atTop, ∀ t : ℝ, |t| ≤ A * x →
       b ≤ pretentiousDistSq g (charTwist q χ t) x
 
+/-- **Bridge to the nonasymptotic hypothesis**: uniform non-pretentiousness yields, for every
+strength `A ≥ 1`, the full `NonPretentiousAt g A x` package at all large truncations `x`.
+
+This is the lemma that lets Corollary-1.5-style asymptotic consumers feed
+`LogElliottNonasymptoticAssumption`: for fixed `A` there are only finitely many relevant
+comparison characters — moduli `q ≤ ⌊A⌋₊` and, for each, finitely many `χ`
+(`DirichletCharacter.fintype`) — so the per-character eventual bounds intersect into one
+eventual statement. -/
+theorem NonPretentiousUniform.eventually_nonPretentiousAt {g : ℕ → ℂ}
+    (h : NonPretentiousUniform g) {A : ℝ} (hA : 1 ≤ A) :
+    ∀ᶠ x : ℕ in Filter.atTop, NonPretentiousAt g A x := by
+  have key : ∀ᶠ x : ℕ in Filter.atTop,
+      ∀ q ∈ Finset.range (⌊A⌋₊ + 1), ∀ χ : DirichletCharacter ℂ q, ∀ t : ℝ,
+        |t| ≤ A * x → A ≤ pretentiousDistSq g (charTwist q χ t) x := by
+    rw [Filter.eventually_all_finset]
+    intro q _
+    rw [Filter.eventually_all]
+    intro χ
+    exact h q χ A hA A
+  filter_upwards [key] with x hx
+  intro q χ t hq ht
+  have hqmem : q ∈ Finset.range (⌊A⌋₊ + 1) := by
+    rw [Finset.mem_range, Nat.lt_succ_iff]
+    exact Nat.le_floor hq
+  exact hx q hqmem χ t ht
+
 /-- Uniform non-pretentiousness implies the pointwise form. -/
 theorem NonPretentiousUniform.nonPretentious {g : ℕ → ℂ}
     (h : NonPretentiousUniform g) : NonPretentious g := by
