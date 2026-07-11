@@ -2,6 +2,8 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Derivation
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Core
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Reduction
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5VanDerCorputProof
+-- For the anti-vacuity witnesses (issue #2879) only.
+import Mathlib.NumberTheory.ArithmeticFunction
 
 /-!
 # Track C: axiom-footprint audit (machine-checked honesty claims)
@@ -60,6 +62,32 @@ info: 'MoltResearch.Tao2015.theorem18_of_logElliottNonasymptotic' depends on axi
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.theorem18_of_logElliottNonasymptotic
+
+/-!
+## Anti-vacuity witnesses (issue #2879)
+
+The classes the derivation quantifies over must stay *inhabited by non-degenerate members*,
+or every conditional theorem above is silently vacuous — exactly what happened when the
+unguarded multiplicativity law collapsed {completely multiplicative, unimodular} to the
+constant-1 function (`theorem18` was provable with no assumption classes). These examples
+turn that failure mode into a build failure: each exhibits a member taking the value `-1`
+at `2`, which no constant-1 collapse can satisfy.
+-/
+
+open MeasureTheory in
+/-- The stochastic layer is inhabited by a non-degenerate family: the deterministic
+embedding of the Liouville-style sequence `n ↦ (−1)^Ω(n)` over the one-point probability
+space. Under the pre-#2879 definitions this example was unprovable. -/
+example : ∃ G : MoltResearch.StochasticMultiplicative (Measure.dirac ()),
+    G.g () 2 = -1 := by
+  refine ⟨MoltResearch.StochasticMultiplicative.ofDeterministic _
+    (fun n => (-1 : ℂ) ^ (ArithmeticFunction.cardFactors n)) ?_ ?_, ?_⟩
+  · intro a b ha hb
+    simp only [ArithmeticFunction.cardFactors_mul ha hb, pow_add]
+  · intro n
+    simp only [norm_pow, norm_neg, norm_one, one_pow]
+  · simp only [MoltResearch.StochasticMultiplicative.ofDeterministic,
+      ArithmeticFunction.cardFactors_apply_prime Nat.prime_two, pow_one]
 
 /--
 info: 'MoltResearch.Tao2015.stage5_notBounded' depends on axioms: [propext,

@@ -211,5 +211,15 @@ Derivation (the real work; open a GitHub issue per box when starting):
 - **Junk-value conventions** carry over from the language layer: ℂ-division, `Real.log`
   degeneracy, `cpow` at `0`. The `∑_{x/w<n≤x} …/n` sum needs an `Ioc`-indexed nucleus
   definition — mirror the `logAvgCorr` conventions rather than inventing new ones.
+- **Anti-vacuity discipline (issue #2879).** The original unguarded multiplicativity law
+  `f (a*b) = f a * f b` for *all* `a b : ℕ` collided with `Unimodular`/`IsSignSequence` at
+  `n = 0` and collapsed both completely-multiplicative classes to the constant-1 function —
+  `theorem18`'s statement was provable with **no** assumption classes, and
+  `FourierReductionStochasticAssumption` was silently equivalent to EDP itself. Both
+  definitions are now guarded (`a ≠ 0 → b ≠ 0`), and `NormalFormExamples` +
+  `TrackCAxiomAudit` carry Liouville-style inhabitation witnesses (`∃ g, CM ∧ unimodular ∧
+  g 2 = −1`, deterministic and stochastic). **Rule**: every statement quantifying over a
+  conjunction of predicate classes needs a non-degenerate inhabitation witness in a
+  CI-built module — axiom-footprint audits cannot catch definition-level vacuity.
 - Local verification: `./scripts/check_task.sh <file>` per file; `make ci` before any PR that
   touches `MoltResearch/`.
