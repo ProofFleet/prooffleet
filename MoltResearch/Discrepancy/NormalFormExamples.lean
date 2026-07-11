@@ -5501,6 +5501,18 @@ example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
     0 ≤ sndMomentPartialSum G n :=
   sndMomentPartialSum_nonneg G n
 
+-- Van der Corput toolbox: window sums telescope out of the partial sums, and their second
+-- moments inherit a uniform partial-sum bound (the §3 standing input).
+example (g : ℕ → ℂ) (n H : ℕ) :
+    windowSumC g n H = apSumC g 1 (n + H) - apSumC g 1 n :=
+  windowSumC_eq_apSumC_sub g n H
+
+example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
+    [MeasureTheory.IsProbabilityMeasure μ] (G : StochasticMultiplicative μ) {C : ℝ}
+    (hC : ∀ m : ℕ, sndMomentPartialSum G m ≤ C) (n H : ℕ) :
+    ∫ ω, ‖windowSumC (G.g ω) n H‖ ^ 2 ∂μ ≤ 4 * C :=
+  windowSndMoment_le G hC n H
+
 -- Nonasymptotic non-pretentiousness language: character twists are 1-bounded comparisons, so
 -- the distance to them is monotone in the truncation; `NonPretentiousAt` hands back the
 -- Theorem-1.10-shaped bound when the quantifier ranges are met.

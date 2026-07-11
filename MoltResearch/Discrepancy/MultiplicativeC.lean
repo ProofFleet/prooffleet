@@ -98,6 +98,53 @@ theorem apSumC_one_d (g : ℕ → ℂ) (n : ℕ) :
     _ = ∑ j ∈ Finset.Icc 1 n, g j := by
             simp [Finset.Ico_add_one_right_eq_Icc]
 
+/-- Window sum: `g (n+1) + ⋯ + g (n+H)` — the increment of the step-one partial sums over the
+window `(n, n+H]`. This is the quantity the van der Corput argument (Tao 2015, §3) averages:
+its second moment inherits the partial-sum bound (`windowSumC_eq_apSumC_sub`), while its
+square expands into the two-point shift correlations. -/
+noncomputable def windowSumC (g : ℕ → ℂ) (n H : ℕ) : ℂ :=
+  ∑ h ∈ Finset.Icc 1 H, g (n + h)
+
+/-- Degenerate window: the empty window sum vanishes. -/
+@[simp] theorem windowSumC_zero_H (g : ℕ → ℂ) (n : ℕ) : windowSumC g n 0 = 0 := by
+  simp [windowSumC]
+
+/-- Telescoping identity: the window sum is the increment of the step-one partial sums.
+
+Normal form: `windowSumC g n H = apSumC g 1 (n + H) - apSumC g 1 n`.
+-/
+theorem windowSumC_eq_apSumC_sub (g : ℕ → ℂ) (n H : ℕ) :
+    windowSumC g n H = apSumC g 1 (n + H) - apSumC g 1 n := by
+  classical
+  unfold windowSumC apSumC
+  rw [← Finset.sum_Ico_eq_sub (fun i => g ((i + 1) * 1)) (Nat.le_add_right n H),
+    Finset.sum_Ico_eq_sum_range]
+  have h := (Finset.sum_Ico_eq_sum_range (f := fun h => g (n + h)) (m := 1) (n := H + 1))
+  calc ∑ h ∈ Finset.Icc 1 H, g (n + h)
+      = ∑ h ∈ Finset.Ico 1 (H + 1), g (n + h) := by
+        simp [Finset.Ico_add_one_right_eq_Icc]
+    _ = ∑ j ∈ Finset.range (H + 1 - 1), g (n + (1 + j)) := h
+    _ = ∑ j ∈ Finset.range (n + H - n), g ((n + j + 1) * 1) := by
+        refine Finset.sum_congr (by simp) fun j _ => ?_
+        congr 1
+        omega
+
+/-- Norm bound: a window sum of a 1-bounded sequence has norm at most the window length. -/
+theorem norm_windowSumC_le (g : ℕ → ℂ) (hg : ∀ k, ‖g k‖ ≤ 1) (n H : ℕ) :
+    ‖windowSumC g n H‖ ≤ H := by
+  calc ‖windowSumC g n H‖
+      ≤ ∑ h ∈ Finset.Icc 1 H, ‖g (n + h)‖ := norm_sum_le _ _
+    _ ≤ ∑ _h ∈ Finset.Icc 1 H, (1 : ℝ) := Finset.sum_le_sum fun h _ => hg (n + h)
+    _ = H := by simp
+
+/-- Norm bound: a step-one partial sum of a 1-bounded sequence has norm at most its length. -/
+theorem norm_apSumC_le (g : ℕ → ℂ) (hg : ∀ k, ‖g k‖ ≤ 1) (d n : ℕ) :
+    ‖apSumC g d n‖ ≤ n := by
+  calc ‖apSumC g d n‖
+      ≤ ∑ i ∈ Finset.range n, ‖g ((i + 1) * d)‖ := norm_sum_le _ _
+    _ ≤ ∑ _i ∈ Finset.range n, (1 : ℝ) := Finset.sum_le_sum fun i _ => hg _
+    _ = n := by simp
+
 namespace CompletelyMultiplicativeC
 
 variable {g : ℕ → ℂ}
