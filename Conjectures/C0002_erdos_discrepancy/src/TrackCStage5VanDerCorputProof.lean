@@ -46,8 +46,8 @@ namespace MoltResearch
 /-- Conjugation preserves complete multiplicativity — the small bridge the Elliott call
 site needs for `g₂ = conj g₁` (promotion candidate for the nucleus). -/
 theorem CompletelyMultiplicativeC.conj {g : ℕ → ℂ} (hg : CompletelyMultiplicativeC g) :
-    CompletelyMultiplicativeC fun n => (starRingEnd ℂ) (g n) := fun a b => by
-  simp only [hg a b, map_mul]
+    CompletelyMultiplicativeC fun n => (starRingEnd ℂ) (g n) := fun a b ha hb => by
+  simp only [hg a b ha hb, map_mul]
 
 namespace Tao2015
 

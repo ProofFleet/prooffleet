@@ -34,15 +34,21 @@ not a substitute for it.
 
 namespace MoltResearch
 
-/-- A ℂ-valued completely multiplicative sequence: `g (a * b) = g a * g b` for **all** `a b : ℕ`
-(no coprimality hypothesis).
+/-- A ℂ-valued completely multiplicative sequence: `g (a * b) = g a * g b` for all **nonzero**
+`a b : ℕ` (no coprimality hypothesis).
 
 ℂ-valued analogue of `CompletelyMultiplicative`. As there, we do not bake in `g 1 = 1`: it
 follows for unimodular sequences (`CompletelyMultiplicativeC.map_one_of_unimodular`), and keeping
 the definition minimal makes it easier to produce.
+
+The `a ≠ 0 → b ≠ 0` guards are load-bearing (issue #2879): the literature defines completely
+multiplicative functions on `{1, 2, ...}`, and an unguarded law instantiated at `b = 0` gives
+`g 0 = g a * g 0` for every `a`, which under any nonvanishing-at-`0` condition (`Unimodular`)
+collapses the class to the constant-1 function and vacates every theorem quantifying over it.
+With the guards, `g 0` is genuinely unconstrained junk.
 -/
 def CompletelyMultiplicativeC (g : ℕ → ℂ) : Prop :=
-  ∀ a b : ℕ, g (a * b) = g a * g b
+  ∀ a b : ℕ, a ≠ 0 → b ≠ 0 → g (a * b) = g a * g b
 
 /-- A unimodular sequence: every value lies on the complex unit circle.
 
@@ -291,7 +297,7 @@ From `g 1 = g 1 * g 1` and `g 1 ≠ 0`, cancellation gives `g 1 = 1`. ℂ-valued
 -/
 @[simp] theorem map_one_of_unimodular (hmul : CompletelyMultiplicativeC g)
     (hg : Unimodular g) : g 1 = 1 := by
-  have h := hmul 1 1
+  have h := hmul 1 1 one_ne_zero one_ne_zero
   rw [Nat.mul_one] at h
   have h' : g 1 * g 1 = g 1 * 1 := by rw [mul_one]; exact h.symm
   exact mul_left_cancel₀ (hg.ne_zero 1) h'
@@ -300,14 +306,16 @@ From `g 1 = g 1 * g 1` and `g 1 ≠ 0`, cancellation gives `g 1 = 1`. ℂ-valued
 through the step-one (plain partial) sum.
 
 Normal form: `apSumC g d n = g d * apSumC g 1 n`. Port of
-`CompletelyMultiplicative.apSum_eq_mul_apSum_one` to ℂ.
+`CompletelyMultiplicative.apSum_eq_mul_apSum_one` to ℂ. The `d ≠ 0` hypothesis is necessary:
+at `d = 0` the left side is `n • g 0` (junk) while the right is `g 0 * (g 1 + ⋯)`.
 -/
-theorem apSumC_eq_mul_apSumC_one (hmul : CompletelyMultiplicativeC g) (d n : ℕ) :
+theorem apSumC_eq_mul_apSumC_one (hmul : CompletelyMultiplicativeC g) {d : ℕ} (hd : d ≠ 0)
+    (n : ℕ) :
     apSumC g d n = g d * apSumC g 1 n := by
   unfold apSumC
   rw [Finset.mul_sum]
   refine Finset.sum_congr rfl fun i _ => ?_
-  rw [Nat.mul_one, hmul (i + 1) d]
+  rw [Nat.mul_one, hmul (i + 1) d (Nat.succ_ne_zero i) hd]
   exact mul_comm _ _
 
 /-- Norm-level corollary of the multiplicative collapse for unimodular `g`: partial-sum growth
@@ -317,9 +325,9 @@ This is the quantity Tao's Fourier-reduction interface controls: unboundedness o
 `‖apSumC g 1 n‖` is unboundedness along every step.
 -/
 theorem norm_apSumC_eq_norm_apSumC_one (hmul : CompletelyMultiplicativeC g)
-    (hg : Unimodular g) (d n : ℕ) :
+    (hg : Unimodular g) {d : ℕ} (hd : d ≠ 0) (n : ℕ) :
     ‖apSumC g d n‖ = ‖apSumC g 1 n‖ := by
-  rw [hmul.apSumC_eq_mul_apSumC_one d n, norm_mul, hg d, one_mul]
+  rw [hmul.apSumC_eq_mul_apSumC_one hd n, norm_mul, hg d, one_mul]
 
 end CompletelyMultiplicativeC
 
@@ -350,7 +358,7 @@ analytic core.
 -/
 theorem toC (hmul : CompletelyMultiplicative f) :
     CompletelyMultiplicativeC (fun n => (f n : ℂ)) := by
-  intro a b
+  intro a b _ _
   show ((f (a * b) : ℂ)) = (f a : ℂ) * (f b : ℂ)
   exact_mod_cast hmul a b
 

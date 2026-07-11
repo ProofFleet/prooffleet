@@ -3,6 +3,9 @@ import MoltResearch.Discrepancy
 import MoltResearch.Discrepancy.DiscOffsetSimp
 import MoltResearch.Discrepancy.DiscSimp
 import MoltResearch.Discrepancy.PaperSimp
+-- For the anti-vacuity witness only (issue #2879): the Liouville-style inhabitant of
+-- {completely multiplicative, unimodular}. Regression-module import, not on the surface.
+import Mathlib.NumberTheory.ArithmeticFunction
 
 -- (CI) Touch this file to retrigger PR metadata validation after PR-body edits.
 
@@ -5450,13 +5453,26 @@ example (g : ℕ → ℂ) (hg : Unimodular g) (n : ℕ) : g n ≠ 0 :=
 
 -- ℂ-valued multiplicative collapse: any-step AP sums factor through the step-one sum,
 -- and for unimodular sequences the norms agree on the nose.
-example (g : ℕ → ℂ) (hmul : CompletelyMultiplicativeC g) (d n : ℕ) :
+example (g : ℕ → ℂ) (hmul : CompletelyMultiplicativeC g) {d : ℕ} (hd : d ≠ 0) (n : ℕ) :
     apSumC g d n = g d * apSumC g 1 n :=
-  hmul.apSumC_eq_mul_apSumC_one d n
+  hmul.apSumC_eq_mul_apSumC_one hd n
 
-example (g : ℕ → ℂ) (hmul : CompletelyMultiplicativeC g) (hg : Unimodular g) (d n : ℕ) :
+example (g : ℕ → ℂ) (hmul : CompletelyMultiplicativeC g) (hg : Unimodular g) {d : ℕ}
+    (hd : d ≠ 0) (n : ℕ) :
     ‖apSumC g d n‖ = ‖apSumC g 1 n‖ :=
-  hmul.norm_apSumC_eq_norm_apSumC_one hg d n
+  hmul.norm_apSumC_eq_norm_apSumC_one hg hd n
+
+-- Anti-vacuity witness (issue #2879): the class {completely multiplicative, unimodular} is
+-- inhabited by a non-constant function — the Liouville-style sequence `n ↦ (−1)^Ω(n)`.
+-- Guards this regression: with an unguarded multiplicativity law this example is unprovable
+-- (the class collapses to the constant-1 function).
+example : ∃ g : ℕ → ℂ, CompletelyMultiplicativeC g ∧ Unimodular g ∧ g 2 = -1 := by
+  refine ⟨fun n => (-1 : ℂ) ^ (ArithmeticFunction.cardFactors n), ?_, ?_, ?_⟩
+  · intro a b ha hb
+    simp only [ArithmeticFunction.cardFactors_mul ha hb, pow_add]
+  · intro n
+    simp only [norm_pow, norm_neg, norm_one, one_pow]
+  · simp only [ArithmeticFunction.cardFactors_apply_prime Nat.prime_two, pow_one]
 
 -- Log-averaged two-point correlation: N ≤ 1 junk values normalize to 0 by simp, and the
 -- unimodular diagonal collapses to the log-averaged harmonic sum.
