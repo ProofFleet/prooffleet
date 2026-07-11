@@ -5504,6 +5504,17 @@ example : cmOfPrimes (fun _ => (-1 : ℂ)) 8 = -1 := by
   rw [show (8 : ℕ) = 2 ^ 3 by norm_num, cmOfPrimes_apply_prime_pow _ Nat.prime_two]
   norm_num
 
+-- Zeta-weighted sums (§4 substrate): the 𝔖-shaped Euler product identity at the
+-- prescribed-primes Liouville example, at a concrete exponent σ = 2 > 1.
+example :
+    ∏' p : Nat.Primes, (1 - cmOfPrimes (fun _ => (-1 : ℂ)) p / (p : ℂ) ^ ((2 : ℝ) : ℂ))⁻¹
+      = zetaWeightedSum (cmOfPrimes fun _ => (-1 : ℂ)) 2 :=
+  tprod_eulerFactor_eq_zetaWeightedSum
+    (cmOfPrimes_completelyMultiplicativeC _)
+    (cmOfPrimes_one _)
+    (fun n => ((cmOfPrimes_unimodular fun _ _ => by norm_num) n).le)
+    one_lt_two
+
 -- Log-averaged two-point correlation: N ≤ 1 junk values normalize to 0 by simp, and the
 -- unimodular diagonal collapses to the log-averaged harmonic sum.
 example (g : ℕ → ℂ) (a b : ℕ) : logAvgCorr g a b 0 = 0 := by simp
