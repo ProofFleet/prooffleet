@@ -5521,6 +5521,28 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Singular-series bounds (§4 substrate, eq. (1s)): a completely multiplicative 1-bounded
+-- sequence pretending to be 1 at scale X has ‖𝔖‖ ≍ log X; the constant-1 function is the
+-- degenerate consumer (its pretense sum is 0 ≤ 0).
+example {X : ℝ} (hX : 3 ≤ X) :
+    Real.exp (-(20 + 0)) * Real.log X
+      ≤ ‖zetaWeightedSum (fun _ => (1 : ℂ)) (1 + 1 / Real.log X)‖ := by
+  refine exp_neg_mul_log_le_norm_zetaWeightedSum
+    (fun _ _ _ _ => (one_mul 1).symm) rfl (fun _ => by norm_num) hX ?_
+  refine le_of_eq ?_
+  unfold pretentiousDistSq
+  refine Finset.sum_eq_zero fun p _ => ?_
+  simp
+
+example {g : ℕ → ℂ} (hb : ∀ n, ‖g n‖ ≤ 1) {X : ℝ} (hX : 3 ≤ X) :
+    ‖zetaWeightedSum g (1 + 1 / Real.log X)‖ ≤ 2 + Real.log X :=
+  norm_zetaWeightedSum_le hb hX
+
+example {X : ℝ} (hX : 3 ≤ X) :
+    Real.log (Real.log X / 3) - 1
+      ≤ ∑' p : Nat.Primes, 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log X) :=
+  log_log_le_tsum_primes_one_div_rpow hX
+
 -- Zeta-weighted sums (§4 substrate): the 𝔖-shaped Euler product identity at the
 -- prescribed-primes Liouville example, at a concrete exponent σ = 2 > 1.
 example :
