@@ -92,6 +92,29 @@ consumer form. **This is the least literal interface in the repo** (there is no 
 source statement to transcribe); it is the typed target of the derivation card's two §4
 boxes, and should be revised freely if the §4 proof wants a different factoring.
 
+### §4, Lemma "tb" input (Vinogradov–Korobov twist non-pretentiousness)
+
+> For a Dirichlet character `χ₁` of period `O_ε(1)` and `X^δ ≤ |s| ≪_ε X`, one has
+> `∑_{exp((log X)^{2/3}) ≤ p ≤ X^δ} (1 − Re χ₁(p) p^{−is})/p ≫ log log X`
+> for `X` sufficiently large depending on `ε, δ`.
+
+Derived in the source from the Vinogradov–Korobov zero-free region for `L(·, χ₁)`
+(Montgomery §9.5), a `|log L| ≪ log^{O(1)}|t|` bound in that region, and the contour-shifting
+argument of [Matomäki–Radziwiłł, short-intervals note, Lemma 2]. The classical zero-free
+region is quantitatively insufficient (width `c/log X` vs the needed `≍ 1/(δ log X)`).
+
+Lean: `VinogradovKorobovAssumption` (`TrackCStage5VinogradovKorobov.lean`). Known
+deviations, each weakening the statement (hygiene-safe):
+- conclusion summed over all primes `p < ⌊X^δ⌋₊` (`pretentiousDistSq` with constant-1 base
+  point; summands nonnegative, so at least the source's sub-range sum);
+- the `≫ log log X` divergence weakened to "for every `M`, eventually `≥ M`";
+- sign convention `p^{+is}` (the symmetric `|s|`-range absorbs `s ↦ −s`);
+- restricted to `1 ≤ q` (the source's Dirichlet-character scope).
+
+No instance, no axiom: the §4 target is
+`instance [LogElliottNonasymptoticAssumption] [VinogradovKorobovAssumption] :
+BorweinChoiCoonsAssumption` (issue #2871).
+
 ---
 
 ## arXiv:1509.05422 — log-averaged Chowla/Elliott for two-point correlations

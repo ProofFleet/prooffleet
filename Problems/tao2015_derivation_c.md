@@ -167,7 +167,14 @@ Derivation (the real work; open a GitHub issue per box when starting):
   `theorem18_of_logElliottNonasymptotic` records the milestone: Theorem 1.8 now needs only
   the Elliott and §4 inputs.)
 - [ ] §4, deterministic core: Borwein–Choi–Coons for modulated characters — for a completely multiplicative `g` at bounded pretentious distance from `χ(n)·n^{it}`, the second moment of partial sums grows. Decompose further when opened.
-  (Opened, together with the stochastic-upgrade box, as issue #2871.)
+  (Opened, together with the stochastic-upgrade box, as issue #2871. Deep input identified
+  while decomposing: the `𝐭`-cutting lemma needs Vinogradov–Korobov-strength zero-free-region
+  technology — typed as the interface `VinogradovKorobovAssumption` in
+  `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5VinogradovKorobov.lean` (no instance,
+  no axiom; ledger entry in `Problems/sources/tao2015_statements.md`). The §4 target is
+  `instance [LogElliottNonasymptoticAssumption] [VinogradovKorobovAssumption] :
+  BorweinChoiCoonsAssumption`; `theorem18`'s honest deep-input set becomes
+  {Elliott, Vinogradov–Korobov, Fourier §2}.)
 - [ ] §4, stochastic upgrade: from "with probability `1 − O(ε)` pretentious" (Prop 1.11's conclusion) to unbounded `sndMomentPartialSum`, contradicting the standing bound.
   (Typed target available: proving these two boxes means providing the instance of
   `BorweinChoiCoonsAssumption` in `TrackCStage5Derivation.lean` — the contrapositive consumer
