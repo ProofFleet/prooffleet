@@ -5529,6 +5529,22 @@ example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
         ((G.g ω) (n + h) * (starRingEnd ℂ) ((G.g ω) (n + h'))).re) ∂μ ≤ 4 * C - H :=
   integral_offdiag_windowSumC_le G hC n H
 
+-- Log-averaged expansion and pigeonhole: small log-averaged squares over a window force a
+-- shift pair whose windowed correlation is large — the Elliott-contradiction shape.
+example (g : ℕ → ℂ) (hg : Unimodular g) (s : Finset ℕ) (H : ℕ) :
+    ∑ n ∈ s, ‖windowSumC g n H‖ ^ 2 / (n : ℝ)
+      = H * (∑ n ∈ s, (1 : ℝ) / n)
+        + ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h, (windowCorr g s h h').re :=
+  hg.sum_div_normSq_windowSumC s H
+
+example (g : ℕ → ℂ) (hg : Unimodular g) {s : Finset ℕ} {H : ℕ} (hH : 1 ≤ H) {B : ℝ}
+    (hSpos : 0 < ∑ n ∈ s, (1 : ℝ) / n)
+    (hZ : ∑ n ∈ s, ‖windowSumC g n H‖ ^ 2 / (n : ℝ) ≤ B)
+    (hB : B ≤ H * (∑ n ∈ s, (1 : ℝ) / n) / 2) :
+    ∃ h ∈ Finset.Icc 1 H, ∃ h' ∈ Finset.Icc 1 H, h ≠ h' ∧
+      (∑ n ∈ s, (1 : ℝ) / n) / (2 * H) ≤ ‖windowCorr g s h h'‖ :=
+  hg.exists_pair_windowCorr_le hH hSpos hZ hB
+
 -- Nonasymptotic non-pretentiousness language: character twists are 1-bounded comparisons, so
 -- the distance to them is monotone in the truncation; `NonPretentiousAt` hands back the
 -- Theorem-1.10-shaped bound when the quantifier ranges are met.

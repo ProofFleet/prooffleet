@@ -165,6 +165,105 @@ theorem Unimodular.normSq_windowSumC {g : ℕ → ℂ} (hg : Unimodular g) (n H 
   rw [Finset.sum_congr rfl hsplit, Finset.sum_add_distrib]
   simp
 
+/-- Log-averaged two-point window correlation at shift pair `(h, h')` over the window set `s`:
+
+`windowCorr g s h h' = ∑_{n ∈ s} g(n+h)·conj(g(n+h'))/n`.
+
+For `s = Ioc ⌊x/w⌋₊ ⌊x⌋₊` this is exactly the sum the nonasymptotic Elliott theorem bounds at
+affine data `a₁ = a₂ = 1`, `b₁ = h`, `b₂ = h'`, `g₂ = conj g`. -/
+noncomputable def windowCorr (g : ℕ → ℂ) (s : Finset ℕ) (h h' : ℕ) : ℂ :=
+  ∑ n ∈ s, g (n + h) * (starRingEnd ℂ) (g (n + h')) / (n : ℂ)
+
+/-- **Log-averaged van der Corput expansion**: summing `‖windowSumC g n H‖²/n` over a window
+set splits into the diagonal `H·∑ 1/n` plus the real parts of the pair correlations
+`windowCorr`. Pure finite-sum bookkeeping over `Unimodular.normSq_windowSumC`. -/
+theorem Unimodular.sum_div_normSq_windowSumC {g : ℕ → ℂ} (hg : Unimodular g)
+    (s : Finset ℕ) (H : ℕ) :
+    ∑ n ∈ s, ‖windowSumC g n H‖ ^ 2 / (n : ℝ)
+      = H * (∑ n ∈ s, (1 : ℝ) / n)
+        + ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h, (windowCorr g s h h').re := by
+  classical
+  have hpt : ∀ n ∈ s, ‖windowSumC g n H‖ ^ 2 / (n : ℝ)
+      = (H : ℝ) * (1 / n)
+        + ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h,
+            (g (n + h) * (starRingEnd ℂ) (g (n + h'))).re / n := by
+    intro n _
+    rw [hg.normSq_windowSumC n H, add_div, mul_one_div, Finset.sum_div]
+    congr 1
+    exact Finset.sum_congr rfl fun h _ => Finset.sum_div _ _ _
+  rw [Finset.sum_congr rfl hpt, Finset.sum_add_distrib, ← Finset.mul_sum]
+  congr 1
+  rw [Finset.sum_comm]
+  refine Finset.sum_congr rfl fun h _ => ?_
+  rw [Finset.sum_comm]
+  refine Finset.sum_congr rfl fun h' _ => ?_
+  rw [windowCorr, Complex.re_sum]
+  exact Finset.sum_congr rfl fun n _ => (Complex.div_natCast_re _ n).symm
+
+/-- **Pigeonhole extraction** (Tao 2015 §3): if the log-averaged squared window sums are small
+(`≤ B` with `B ≤ H·S/2`, as Markov provides on a large event), then some shift pair `(h, h')`
+carries a large correlation: `S/(2H) ≤ ‖windowCorr g s h h'‖`.
+
+`S` is the log-mass `∑_{n ∈ s} 1/n` of the window; at Elliott windows it is `≳ log w`, so the
+conclusion contradicts the nonasymptotic Elliott bound and forces pretentiousness. -/
+theorem Unimodular.exists_pair_windowCorr_le {g : ℕ → ℂ} (hg : Unimodular g)
+    {s : Finset ℕ} {H : ℕ} (hH : 1 ≤ H) {B : ℝ}
+    (hSpos : 0 < ∑ n ∈ s, (1 : ℝ) / n)
+    (hZ : ∑ n ∈ s, ‖windowSumC g n H‖ ^ 2 / (n : ℝ) ≤ B)
+    (hB : B ≤ H * (∑ n ∈ s, (1 : ℝ) / n) / 2) :
+    ∃ h ∈ Finset.Icc 1 H, ∃ h' ∈ Finset.Icc 1 H, h ≠ h' ∧
+      (∑ n ∈ s, (1 : ℝ) / n) / (2 * H) ≤ ‖windowCorr g s h h'‖ := by
+  classical
+  set S : ℝ := ∑ n ∈ s, (1 : ℝ) / n with hSdef
+  by_contra hcon
+  push_neg at hcon
+  -- every pair's correlation real part is > −S/(2H)
+  have hterm : ∀ h ∈ Finset.Icc 1 H, ∀ h' ∈ (Finset.Icc 1 H).erase h,
+      -(S / (2 * H)) ≤ (windowCorr g s h h').re := by
+    intro h hh h' hh'
+    have hne : h ≠ h' := (Finset.ne_of_mem_erase hh').symm
+    have hlt := hcon h hh h' (Finset.mem_of_mem_erase hh') hne
+    have habs : |(windowCorr g s h h').re| ≤ ‖windowCorr g s h h'‖ :=
+      Complex.abs_re_le_norm _
+    have := neg_abs_le (windowCorr g s h h').re
+    linarith
+  -- so the correlation sum is ≥ −H·(H−1)·S/(2H)
+  have hcard : ∀ h ∈ Finset.Icc 1 H, (((Finset.Icc 1 H).erase h).card : ℝ) = (H : ℝ) - 1 := by
+    intro h hh
+    rw [Finset.card_erase_of_mem hh, Nat.card_Icc]
+    have : H + 1 - 1 - 1 = H - 1 := by omega
+    rw [this, Nat.cast_sub hH, Nat.cast_one]
+  have hlower : -((H : ℝ) * ((H : ℝ) - 1) * (S / (2 * H)))
+      ≤ ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h, (windowCorr g s h h').re := by
+    have hinner : ∀ h ∈ Finset.Icc 1 H,
+        -(((H : ℝ) - 1) * (S / (2 * H)))
+          ≤ ∑ h' ∈ (Finset.Icc 1 H).erase h, (windowCorr g s h h').re := by
+      intro h hh
+      calc -(((H : ℝ) - 1) * (S / (2 * H)))
+          = (((Finset.Icc 1 H).erase h).card : ℝ) * (-(S / (2 * H))) := by
+            rw [hcard h hh]; ring
+        _ ≤ ∑ h' ∈ (Finset.Icc 1 H).erase h, (windowCorr g s h h').re := by
+            rw [← nsmul_eq_mul]
+            exact Finset.card_nsmul_le_sum _ _ _ (hterm h hh)
+    calc -((H : ℝ) * ((H : ℝ) - 1) * (S / (2 * H)))
+        = ((Finset.Icc 1 H).card : ℝ) * (-(((H : ℝ) - 1) * (S / (2 * H)))) := by
+          rw [Nat.card_Icc]
+          have : H + 1 - 1 = H := by omega
+          rw [this]; ring
+      _ ≤ ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h, (windowCorr g s h h').re := by
+          rw [← nsmul_eq_mul]
+          exact Finset.card_nsmul_le_sum _ _ _ hinner
+  -- but the expansion says it is ≤ B − H·S ≤ −H·S/2 — contradiction with S > 0
+  have hupper : ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h,
+      (windowCorr g s h h').re ≤ B - H * S := by
+    have hexp := hg.sum_div_normSq_windowSumC s H
+    rw [← hSdef] at hexp
+    linarith [hexp ▸ hZ]
+  have hHpos : (0 : ℝ) < H := by exact_mod_cast hH
+  have hfrac : (H : ℝ) * ((H : ℝ) - 1) * (S / (2 * H)) = ((H : ℝ) - 1) * S / 2 := by
+    field_simp
+  nlinarith [hlower, hupper, hB, hSpos, hfrac]
+
 /-- Norm bound: a window sum of a 1-bounded sequence has norm at most the window length. -/
 theorem norm_windowSumC_le (g : ℕ → ℂ) (hg : ∀ k, ‖g k‖ ≤ 1) (n H : ℕ) :
     ‖windowSumC g n H‖ ≤ H := by
