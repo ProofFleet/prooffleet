@@ -5498,6 +5498,18 @@ example (g : ℕ → ℂ) (hg : Unimodular g) (a N : ℕ) :
     logAvgCorr g a a N = (∑ n ∈ Finset.Icc 1 N, ((n : ℂ))⁻¹) / (Real.log N : ℂ) :=
   hg.logAvgCorr_self a N
 
+-- Quasi-triangle inequality at the Lemma-"tb" call-site shape: a sample close to two
+-- character twists forces the twists close to each other (constant 3; the O(1) bookkeeping
+-- of derivation (C) never needs the sharp Granville–Soundararajan constant).
+example (g : ℕ → ℂ) (hg : Unimodular g) (q q' : ℕ) (χ : DirichletCharacter ℂ q)
+    (χ' : DirichletCharacter ℂ q') (t t' : ℝ) (N : ℕ) {b b' : ℝ}
+    (hb : pretentiousDistSq g (charTwist q χ t) N ≤ b)
+    (hb' : pretentiousDistSq g (charTwist q' χ' t') N ≤ b') :
+    pretentiousDistSq (charTwist q χ t) (charTwist q' χ' t') N ≤ 3 * b + 3 * b' := by
+  have h := pretentiousDistSq_quasi_triangle hg (charTwist_norm_le_one q χ t)
+    (charTwist_norm_le_one q' χ' t') N
+  linarith
+
 -- Pretentious distance: nonneg + monotone in the truncation for unimodular arguments,
 -- and the diagonal vanishes.
 example (g h : ℕ → ℂ) (hg : Unimodular g) (hh : Unimodular h) (N M : ℕ) (hNM : N ≤ M) :

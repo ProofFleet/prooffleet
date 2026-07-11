@@ -129,6 +129,95 @@ theorem pretentiousDist_self (hg : Unimodular g) (N : ℕ) :
 
 end Unimodular
 
+/-! ### Quasi-triangle inequality
+
+The sharp Granville–Soundararajan triangle inequality for `pretentiousDist` is not needed by
+the derivation-(C) bookkeeping (all its pretense bounds are `O(1)`), so we state only the
+elementary squared-distance version with constant `3`, which has a pointwise proof on the
+closed unit disc. -/
+
+/-- Pointwise quasi-triangle bound on the closed unit disc:
+`1 − Re(u·conj v) ≤ 3(1 − Re u) + 3(1 − Re v)` for `‖u‖, ‖v‖ ≤ 1`.
+
+Sharp at `u = v = 1`. Follows from `1 − Re(u·conj v) = ½|u − v|² + ½(1−|u|²) + ½(1−|v|²)`
+and elementary estimates; here delegated to `nlinarith`. -/
+theorem one_sub_mul_conj_re_le_of_norm_le_one {u v : ℂ} (hu : ‖u‖ ≤ 1) (hv : ‖v‖ ≤ 1) :
+    1 - (u * (starRingEnd ℂ) v).re ≤ 3 * (1 - u.re) + 3 * (1 - v.re) := by
+  have hu2 : u.re ^ 2 + u.im ^ 2 ≤ 1 := by
+    have h := Complex.normSq_eq_norm_sq u
+    have : ‖u‖ ^ 2 ≤ 1 := pow_le_one₀ (norm_nonneg u) hu
+    rw [Complex.normSq_apply] at h
+    nlinarith
+  have hv2 : v.re ^ 2 + v.im ^ 2 ≤ 1 := by
+    have h := Complex.normSq_eq_norm_sq v
+    have : ‖v‖ ^ 2 ≤ 1 := pow_le_one₀ (norm_nonneg v) hv
+    rw [Complex.normSq_apply] at h
+    nlinarith
+  have hur : u.re ≤ 1 := le_trans (Complex.re_le_norm u) hu
+  have hvr : v.re ≤ 1 := le_trans (Complex.re_le_norm v) hv
+  have hmul : (u * (starRingEnd ℂ) v).re = u.re * v.re + u.im * v.im := by
+    simp [Complex.mul_re]
+  rw [hmul]
+  nlinarith [sq_nonneg (u.im + v.im), sq_nonneg (u.re - 1), sq_nonneg (v.re - 1),
+    mul_nonneg (sub_nonneg.mpr hur) (sub_nonneg.mpr hvr)]
+
+/-- Pointwise quasi-triangle bound through a unimodular pivot `a`:
+`1 − Re(b·conj c) ≤ 3(1 − Re(a·conj b)) + 3(1 − Re(a·conj c))` for 1-bounded `b, c`.
+
+This is the per-prime content of the quasi-triangle inequality: multiplying by the
+unimodular `a` rotates `b, c` into the disc lemma's frame without changing the left side. -/
+theorem one_sub_mul_conj_re_le_pivot {a b c : ℂ} (ha : ‖a‖ = 1) (hb : ‖b‖ ≤ 1)
+    (hc : ‖c‖ ≤ 1) :
+    1 - (b * (starRingEnd ℂ) c).re
+      ≤ 3 * (1 - (a * (starRingEnd ℂ) b).re) + 3 * (1 - (a * (starRingEnd ℂ) c).re) := by
+  have ha1 : a * (starRingEnd ℂ) a = 1 := by
+    rw [Complex.mul_conj, Complex.normSq_eq_norm_sq, ha]
+    norm_num
+  have hkey : (a * (starRingEnd ℂ) b) * (starRingEnd ℂ) (a * (starRingEnd ℂ) c)
+      = (starRingEnd ℂ) b * c := by
+    rw [map_mul, Complex.conj_conj]
+    calc a * (starRingEnd ℂ) b * ((starRingEnd ℂ) a * c)
+        = (a * (starRingEnd ℂ) a) * ((starRingEnd ℂ) b * c) := by ring
+      _ = (starRingEnd ℂ) b * c := by rw [ha1, one_mul]
+  have hre : ((starRingEnd ℂ) b * c).re = (b * (starRingEnd ℂ) c).re := by
+    have h := Complex.conj_re ((starRingEnd ℂ) b * c)
+    rw [map_mul, Complex.conj_conj] at h
+    exact h.symm
+  have hub : ‖a * (starRingEnd ℂ) b‖ ≤ 1 := by
+    rw [norm_mul, ha, one_mul, RCLike.norm_conj]
+    exact hb
+  have huc : ‖a * (starRingEnd ℂ) c‖ ≤ 1 := by
+    rw [norm_mul, ha, one_mul, RCLike.norm_conj]
+    exact hc
+  have h := one_sub_mul_conj_re_le_of_norm_le_one hub huc
+  rw [hkey, hre] at h
+  exact h
+
+/-- **Quasi-triangle inequality** for the squared pretentious distance: two 1-bounded
+comparisons close to a common unimodular `g` are close to each other, with constant `3`:
+
+`𝔻(h₁, h₂; N)² ≤ 3·𝔻(g, h₁; N)² + 3·𝔻(g, h₂; N)²`.
+
+This is the derivation-(C) form of the Granville–Soundararajan triangle inequality (all its
+pretense bounds are `O(1)`, so the sharp constant is irrelevant); the Lemma-"tb" consumer
+takes `g` a sample of the stochastic function and `hᵢ` two character twists. -/
+theorem pretentiousDistSq_quasi_triangle {h₁ h₂ : ℕ → ℂ} (hg : Unimodular g)
+    (hh₁ : ∀ p : ℕ, ‖h₁ p‖ ≤ 1) (hh₂ : ∀ p : ℕ, ‖h₂ p‖ ≤ 1) (N : ℕ) :
+    pretentiousDistSq h₁ h₂ N
+      ≤ 3 * pretentiousDistSq g h₁ N + 3 * pretentiousDistSq g h₂ N := by
+  unfold pretentiousDistSq
+  rw [Finset.mul_sum, Finset.mul_sum, ← Finset.sum_add_distrib]
+  refine Finset.sum_le_sum fun p hp => ?_
+  have hppos : (0 : ℝ) < p := by
+    exact_mod_cast (Nat.mem_primesBelow.mp hp).2.pos
+  have hpt := one_sub_mul_conj_re_le_pivot (hg p) (hh₁ p) (hh₂ p)
+  calc (1 - (h₁ p * (starRingEnd ℂ) (h₂ p)).re) / p
+      ≤ (3 * (1 - (g p * (starRingEnd ℂ) (h₁ p)).re)
+          + 3 * (1 - (g p * (starRingEnd ℂ) (h₂ p)).re)) / p := by
+        exact div_le_div_of_nonneg_right hpt hppos.le
+    _ = 3 * ((1 - (g p * (starRingEnd ℂ) (h₁ p)).re) / p)
+        + 3 * ((1 - (g p * (starRingEnd ℂ) (h₂ p)).re) / p) := by ring
+
 /-! ### Character-modulated archimedean twists and nonasymptotic non-pretentiousness -/
 
 /-- The character-modulated archimedean twist `n ↦ χ(n)·nⁱᵗ` — the comparison family of the
