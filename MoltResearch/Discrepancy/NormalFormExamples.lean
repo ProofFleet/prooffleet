@@ -5504,6 +5504,23 @@ example : cmOfPrimes (fun _ => (-1 : ℂ)) 8 = -1 := by
   rw [show (8 : ℕ) = 2 ^ 3 by norm_num, cmOfPrimes_apply_prime_pow _ Nat.prime_two]
   norm_num
 
+-- Prime-sum bounds at the zeta weight (§4 substrate): the two-sided zeta mass ≍ log X and
+-- the O(1) prime tail, at a concrete truncation X = 5.
+example : Real.log 5 / 3 ≤ ∑' n : ℕ, 1 / (n : ℝ) ^ (1 + 1 / Real.log 5) :=
+  log_div_three_le_tsum_one_div_rpow (by norm_num)
+
+example : ∑' n : ℕ, 1 / (n : ℝ) ^ (1 + 1 / Real.log 5) ≤ 2 + Real.log 5 :=
+  tsum_one_div_rpow_le_two_add_log (by norm_num)
+
+example (B : ℕ) :
+    ∑ p ∈ (Finset.Ioc ⌊(5 : ℝ)⌋₊ B).filter Nat.Prime, 1 / (p : ℝ) ^ (1 + 1 / Real.log 5) ≤ 8 :=
+  sum_primes_Ioc_one_div_rpow_le (by norm_num) B
+
+example :
+    ∑' p : Nat.Primes,
+        (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
+  tsum_primes_tail_one_div_rpow_le (by norm_num)
+
 -- Zeta-weighted sums (§4 substrate): the 𝔖-shaped Euler product identity at the
 -- prescribed-primes Liouville example, at a concrete exponent σ = 2 > 1.
 example :
