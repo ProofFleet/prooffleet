@@ -486,4 +486,180 @@ theorem tsum_primes_tail_one_div_rpow_le {X : ℝ} (hX : 3 ≤ X) :
         sum_le_sum_of_subset_of_nonneg hsub fun p _ _ => by positivity
     _ ≤ 8 := sum_primes_Ioc_one_div_rpow_le hX B
 
+/-! ### Crude Mertens upper bound
+
+`∑_{p < N} 1/p ≤ 4·log log N + 13` — the same dyadic-block/Chebyshev argument as the tail
+bound, but with unit weights: block `(2^j, 2^{j+1}]` contributes at most `4/j` exactly
+(`2·log 4/log 2 = 4`), and the block index runs only to `Nat.log 2 N ≍ log N`, so the
+harmonic sum of block bounds is `≲ log log N`. The constant `4` (vs the true Mertens `1`)
+is harmless: the §4 consumer exponentiates `O(√(B₀ · log log X))`. -/
+
+open scoped Chebyshev in
+/-- One dyadic block of the Mertens sum: primes in `(2^{i+1}, 2^{i+2}]` contribute at most
+`4/(i+1)`. -/
+private lemma mertens_block_bound (i : ℕ) :
+    ∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime, (1 : ℝ) / p
+      ≤ 4 / (i + 1) := by
+  have h2i : (0 : ℝ) < 2 ^ (i + 1) := by positivity
+  have hlog2 : (0 : ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hlogblock : (0 : ℝ) < ((i : ℝ) + 1) * Real.log 2 := by positivity
+  -- pointwise: `1/p ≤ log p / (2^{i+1} · (i+1) · log 2)`
+  have hpt : ∀ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime,
+      (1 : ℝ) / p ≤ Real.log p * (1 / (2 ^ (i + 1) * (((i : ℝ) + 1) * Real.log 2))) := by
+    intro p hp
+    rw [mem_filter, mem_Ioc] at hp
+    have hplo : (2 : ℝ) ^ (i + 1) < (p : ℕ) := by exact_mod_cast hp.1.1
+    have hp0 : (0 : ℝ) < p := lt_trans h2i hplo
+    have hlogp : ((i : ℝ) + 1) * Real.log 2 ≤ Real.log p := by
+      have h1 : Real.log ((2 : ℝ) ^ (i + 1)) ≤ Real.log p :=
+        Real.log_le_log (by positivity) hplo.le
+      rw [Real.log_pow] at h1
+      push_cast at h1
+      linarith
+    have h2 : (1 : ℝ) ≤ Real.log p / (((i : ℝ) + 1) * Real.log 2) := by
+      rw [le_div_iff₀ hlogblock]
+      linarith
+    have h3 : (1 : ℝ) / p ≤ 1 / 2 ^ (i + 1) := one_div_le_one_div_of_le h2i hplo.le
+    calc (1 : ℝ) / p = 1 * (1 / p) := (one_mul _).symm
+      _ ≤ (Real.log p / (((i : ℝ) + 1) * Real.log 2)) * (1 / 2 ^ (i + 1)) := by
+          refine mul_le_mul h2 h3 (by positivity) ?_
+          positivity
+      _ = Real.log p * (1 / (2 ^ (i + 1) * (((i : ℝ) + 1) * Real.log 2))) := by
+          field_simp
+  -- Chebyshev on the block
+  have htheta : ∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime, Real.log p
+      ≤ Real.log 4 * 2 ^ (i + 2) := by
+    have hsub : (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime
+        ⊆ (Finset.Ioc 0 ⌊((2 ^ (i + 2) : ℕ) : ℝ)⌋₊).filter Nat.Prime := by
+      rw [Nat.floor_natCast]
+      exact Finset.filter_subset_filter _ (Finset.Ioc_subset_Ioc (Nat.zero_le _) le_rfl)
+    have hmono : ∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime, Real.log p
+        ≤ ∑ p ∈ (Finset.Ioc 0 ⌊((2 ^ (i + 2) : ℕ) : ℝ)⌋₊).filter Nat.Prime, Real.log p := by
+      refine sum_le_sum_of_subset_of_nonneg hsub fun p hp _ => ?_
+      rw [mem_filter] at hp
+      exact Real.log_nonneg (by exact_mod_cast hp.2.one_lt.le)
+    calc ∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime, Real.log p
+        ≤ θ ((2 ^ (i + 2) : ℕ) : ℝ) := hmono
+      _ ≤ Real.log 4 * 2 ^ (i + 2) := by
+          have := Chebyshev.theta_le_log4_mul_x
+            (show (0 : ℝ) ≤ ((2 ^ (i + 2) : ℕ) : ℝ) by positivity)
+          calc θ ((2 ^ (i + 2) : ℕ) : ℝ)
+              ≤ Real.log 4 * ((2 ^ (i + 2) : ℕ) : ℝ) := this
+            _ = Real.log 4 * 2 ^ (i + 2) := by push_cast; ring
+  -- combine with `log 4 = 2 log 2`
+  have hlog4 : Real.log 4 = 2 * Real.log 2 := by
+    rw [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.log_pow]
+    push_cast
+    ring
+  calc ∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime, (1 : ℝ) / p
+      ≤ ∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime,
+          Real.log p * (1 / (2 ^ (i + 1) * (((i : ℝ) + 1) * Real.log 2))) := sum_le_sum hpt
+    _ = (∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime, Real.log p)
+          * (1 / (2 ^ (i + 1) * (((i : ℝ) + 1) * Real.log 2))) := by rw [sum_mul]
+    _ ≤ (Real.log 4 * 2 ^ (i + 2)) * (1 / (2 ^ (i + 1) * (((i : ℝ) + 1) * Real.log 2))) := by
+        refine mul_le_mul_of_nonneg_right htheta ?_
+        positivity
+    _ = 4 / (i + 1) := by
+        rw [hlog4, show (2 : ℝ) ^ (i + 2) = 2 ^ (i + 1) * 2 by rw [pow_succ]]
+        field_simp
+        ring
+
+/-- **Crude Mertens upper bound**: `∑_{p < N} 1/p ≤ 4·log(log N) + 13`.
+
+The constant `4` (the sharp bound has `1`) is all the §4 Cauchy–Schwarz step needs: it
+enters as `exp(O(√(B₀·log log X)))`. -/
+theorem sum_primesBelow_one_div_le {N : ℕ} (hN : 3 ≤ N) :
+    ∑ p ∈ N.primesBelow, (1 : ℝ) / p ≤ 4 * Real.log (Real.log N) + 13 := by
+  classical
+  set J : ℕ := Nat.log 2 N with hJdef
+  have hJ1 : 1 ≤ J := by
+    rw [hJdef]
+    exact Nat.le_log_of_pow_le (by norm_num) (by omega)
+  have hNJ : N ≤ 2 ^ (J + 1) := (Nat.lt_pow_succ_log_self (by norm_num) N).le
+  set g : ℕ → ℝ := fun p => if p.Prime then (1 : ℝ) / p else 0 with hgdef
+  have hg0 : ∀ p, 0 ≤ g p := fun p => by
+    rw [hgdef]
+    dsimp only
+    split <;> positivity
+  -- move to the dyadic cover `Ioc 1 2^{J+1}`
+  have hcover : ∑ p ∈ N.primesBelow, (1 : ℝ) / p ≤ ∑ p ∈ Finset.Ioc 1 (2 ^ (J + 1)), g p := by
+    have hsub : N.primesBelow ⊆ Finset.Ioc 1 (2 ^ (J + 1)) := by
+      intro p hp
+      rw [Nat.mem_primesBelow] at hp
+      rw [Finset.mem_Ioc]
+      exact ⟨hp.2.one_lt, by omega⟩
+    calc ∑ p ∈ N.primesBelow, (1 : ℝ) / p = ∑ p ∈ N.primesBelow, g p := by
+          refine sum_congr rfl fun p hp => ?_
+          rw [hgdef]
+          simp [(Nat.mem_primesBelow.mp hp).2]
+      _ ≤ ∑ p ∈ Finset.Ioc 1 (2 ^ (J + 1)), g p :=
+          sum_le_sum_of_subset_of_nonneg hsub fun p _ _ => hg0 p
+  -- consecutive dyadic decomposition
+  have hdecomp : ∀ K : ℕ, ∑ p ∈ Finset.Ioc 1 (2 ^ K), g p
+      = ∑ j ∈ range K, ∑ p ∈ Finset.Ioc (2 ^ j) (2 ^ (j + 1)), g p := by
+    intro K
+    induction K with
+    | zero => simp
+    | succ K ih =>
+        rw [sum_range_succ, ← ih]
+        refine (Finset.sum_Ioc_consecutive g ?_ ?_).symm
+        · exact Nat.one_le_two_pow
+        · exact Nat.pow_le_pow_right (by norm_num) (by omega)
+  rw [hdecomp (J + 1), sum_range_succ'] at hcover
+  -- block 0 is `{2}`; blocks `i+1` are bounded by `4/(i+1)`
+  have hblock0 : ∑ p ∈ Finset.Ioc (2 ^ 0) (2 ^ (0 + 1)), g p ≤ 1 := by
+    rw [show (2 : ℕ) ^ (0 + 1) = 2 ^ 0 + 1 by norm_num, Nat.Ioc_succ_singleton,
+      Finset.sum_singleton]
+    rw [hgdef]
+    norm_num [Nat.prime_two]
+  have hblocks : ∑ i ∈ range J, ∑ p ∈ Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 1 + 1)), g p
+      ≤ 4 * (1 + Real.log J) := by
+    have hstep : ∀ i ∈ range J, ∑ p ∈ Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 1 + 1)), g p
+        ≤ 4 * (1 / ((i : ℝ) + 1)) := by
+      intro i _
+      rw [show ∑ p ∈ Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 1 + 1)), g p
+          = ∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime, (1 : ℝ) / p by
+        rw [Finset.sum_filter]]
+      calc ∑ p ∈ (Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 2))).filter Nat.Prime, (1 : ℝ) / p
+          ≤ 4 / (i + 1) := mertens_block_bound i
+        _ = 4 * (1 / ((i : ℝ) + 1)) := by rw [mul_one_div]
+    calc ∑ i ∈ range J, ∑ p ∈ Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 1 + 1)), g p
+        ≤ ∑ i ∈ range J, 4 * (1 / ((i : ℝ) + 1)) := sum_le_sum hstep
+      _ = 4 * ∑ i ∈ range J, 1 / ((i : ℝ) + 1) := by rw [← mul_sum]
+      _ ≤ 4 * (1 + Real.log J) := by
+          refine mul_le_mul_of_nonneg_left ?_ (by norm_num)
+          have hharm : (harmonic J : ℝ) = ∑ i ∈ range J, 1 / ((i : ℝ) + 1) := by
+            rw [harmonic]
+            push_cast
+            refine sum_congr rfl fun i _ => ?_
+            rw [one_div]
+          rw [← hharm]
+          exact harmonic_le_one_add_log J
+    -- `log J ≤ 1 + log log N`
+  have hJlog : Real.log J ≤ 1 + Real.log (Real.log N) := by
+    have hN3 : (3 : ℝ) ≤ N := by exact_mod_cast hN
+    have hlogN : 1 < Real.log N := one_lt_log hN3
+    have hJle : (J : ℝ) ≤ 2 * Real.log N := by
+      have h2J : (2 : ℝ) ^ J ≤ N := by exact_mod_cast Nat.pow_log_le_self 2 (by omega)
+      have hlog2J : (J : ℝ) * Real.log 2 ≤ Real.log N := by
+        have := Real.log_le_log (by positivity) h2J
+        rwa [Real.log_pow] at this
+      have hlog2 : (1 : ℝ) / 2 ≤ Real.log 2 := by
+        have h := Real.log_two_gt_d9
+        linarith
+      nlinarith [hlog2J, hlog2, Nat.cast_nonneg (α := ℝ) J]
+    have hJ0 : (0 : ℝ) < J := by exact_mod_cast hJ1
+    calc Real.log J ≤ Real.log (2 * Real.log N) := Real.log_le_log hJ0 hJle
+      _ = Real.log 2 + Real.log (Real.log N) := by
+          rw [Real.log_mul (by norm_num) (by linarith)]
+      _ ≤ 1 + Real.log (Real.log N) := by
+          have h := Real.log_two_lt_d9
+          linarith
+  calc ∑ p ∈ N.primesBelow, (1 : ℝ) / p
+      ≤ (∑ i ∈ range J, ∑ p ∈ Finset.Ioc (2 ^ (i + 1)) (2 ^ (i + 1 + 1)), g p)
+          + ∑ p ∈ Finset.Ioc (2 ^ 0) (2 ^ (0 + 1)), g p := hcover
+    _ ≤ 4 * (1 + Real.log J) + 1 := by linarith [hblocks, hblock0]
+    _ ≤ 4 * (1 + (1 + Real.log (Real.log N))) + 1 := by nlinarith [hJlog]
+    _ ≤ 4 * Real.log (Real.log N) + 13 := by nlinarith
+
 end MoltResearch

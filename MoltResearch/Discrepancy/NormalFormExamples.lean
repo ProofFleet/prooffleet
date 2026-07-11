@@ -5521,6 +5521,12 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Crude Mertens upper bound (§4 substrate, PR E's Cauchy–Schwarz input): the prime
+-- harmonic sum grows at most like 4·log log N.
+example {N : ℕ} (hN : 3 ≤ N) :
+    ∑ p ∈ N.primesBelow, (1 : ℝ) / p ≤ 4 * Real.log (Real.log N) + 13 :=
+  sum_primesBelow_one_div_le hN
+
 -- Singular-series bounds (§4 substrate, eq. (1s)): a completely multiplicative 1-bounded
 -- sequence pretending to be 1 at scale X has ‖𝔖‖ ≍ log X; the constant-1 function is the
 -- degenerate consumer (its pretense sum is 0 ≤ 0).
