@@ -174,6 +174,89 @@ theorem integral_offdiag_windowSumC_le [IsProbabilityMeasure μ]
 
 namespace StochasticMultiplicative
 
+/-- Measurability of the log-averaged squared window sums. -/
+theorem measurable_sum_div_normSq_windowSumC (G : StochasticMultiplicative μ)
+    (s : Finset ℕ) (H : ℕ) :
+    Measurable fun ω => ∑ n ∈ s, ‖windowSumC (G.g ω) n H‖ ^ 2 / (n : ℝ) :=
+  Finset.measurable_sum _ fun n _ =>
+    (((G.measurable_windowSumC n H).norm.pow_const 2).div_const _)
+
+/-- Integrability of the log-averaged squared window sums over a finite measure. -/
+theorem integrable_sum_div_normSq_windowSumC [IsFiniteMeasure μ]
+    (G : StochasticMultiplicative μ) (s : Finset ℕ) (H : ℕ) :
+    MeasureTheory.Integrable
+      (fun ω => ∑ n ∈ s, ‖windowSumC (G.g ω) n H‖ ^ 2 / (n : ℝ)) μ :=
+  MeasureTheory.integrable_finset_sum _ fun n _ =>
+    (G.integrable_normSq_windowSumC n H).div_const _
+
+end StochasticMultiplicative
+
+/-- Expected log-averaged squared window sum: at most `4·C·S` with `S = ∑_{n ∈ s} 1/n`
+(per-window `windowSndMoment_le`, summed with the log weights). -/
+theorem integral_sum_div_normSq_windowSumC_le [IsProbabilityMeasure μ]
+    (G : StochasticMultiplicative μ) {C : ℝ} (hC : ∀ m : ℕ, sndMomentPartialSum G m ≤ C)
+    (s : Finset ℕ) (H : ℕ) :
+    ∫ ω, (∑ n ∈ s, ‖windowSumC (G.g ω) n H‖ ^ 2 / (n : ℝ)) ∂μ
+      ≤ 4 * C * (∑ n ∈ s, (1 : ℝ) / n) := by
+  rw [MeasureTheory.integral_finset_sum _
+    (fun n _ => (G.integrable_normSq_windowSumC n H).div_const _), Finset.mul_sum]
+  refine Finset.sum_le_sum fun n _ => ?_
+  rw [MeasureTheory.integral_div, mul_one_div]
+  rcases Nat.eq_zero_or_pos n with rfl | hn
+  · simp
+  · have hpos : (0 : ℝ) < n := by exact_mod_cast hn
+    exact div_le_div_of_nonneg_right (windowSndMoment_le G hC n H) hpos.le
+
+/-- **Markov step** (Tao 2015 §3): with probability at least `1 − ε`, the sample's
+log-averaged squared window sum is at most `4·C·S/ε`.
+
+Combined with the pigeonhole `Unimodular.exists_pair_windowCorr_le` (choose `H ≥ 8C/ε` so
+that `4CS/ε ≤ H·S/2`), this extracts on the good event a shift pair with a large window
+correlation — the violation of the nonasymptotic Elliott bound. -/
+theorem prob_sum_div_normSq_windowSumC_le [IsProbabilityMeasure μ]
+    (G : StochasticMultiplicative μ) {C : ℝ} (hC : ∀ m : ℕ, sndMomentPartialSum G m ≤ C)
+    (s : Finset ℕ) (H : ℕ) {ε : ℝ} (hε : 0 < ε) (hε1 : ε ≤ 1)
+    (hCS : 0 < C * (∑ n ∈ s, (1 : ℝ) / n)) :
+    ENNReal.ofReal (1 - ε)
+      ≤ μ {ω | ∑ n ∈ s, ‖windowSumC (G.g ω) n H‖ ^ 2 / (n : ℝ)
+          ≤ 4 * C * (∑ n ∈ s, (1 : ℝ) / n) / ε} := by
+  classical
+  set S : ℝ := ∑ n ∈ s, (1 : ℝ) / n with hSdef
+  set Z : Ω → ℝ := fun ω => ∑ n ∈ s, ‖windowSumC (G.g ω) n H‖ ^ 2 / (n : ℝ) with hZdef
+  set a : ℝ := 4 * C * S / ε with hadef
+  have h4CS : (0 : ℝ) < 4 * C * S := by nlinarith
+  have ha : 0 < a := div_pos h4CS hε
+  have hZ0 : 0 ≤ᵐ[μ] Z := Filter.Eventually.of_forall fun ω =>
+    Finset.sum_nonneg fun n _ => div_nonneg (pow_nonneg (norm_nonneg _) 2) (Nat.cast_nonneg n)
+  have hmark := MeasureTheory.mul_meas_ge_le_integral_of_nonneg hZ0
+    (G.integrable_sum_div_normSq_windowSumC s H) a
+  have hint := integral_sum_div_normSq_windowSumC_le G hC s H
+  have hreal : μ.real {ω | a ≤ Z ω} ≤ ε := by
+    have h4 : a * μ.real {ω | a ≤ Z ω} ≤ 4 * C * S := le_trans hmark hint
+    have hdiv : μ.real {ω | a ≤ Z ω} ≤ 4 * C * S / a :=
+      (le_div_iff₀ ha).2 (by linarith [h4, mul_comm a (μ.real {ω | a ≤ Z ω})])
+    have haval : 4 * C * S / a = ε := by
+      rw [hadef, div_div_eq_mul_div, mul_comm (4 * C * S) ε, mul_div_assoc,
+        div_self (ne_of_gt h4CS), mul_one]
+    calc μ.real {ω | a ≤ Z ω} ≤ 4 * C * S / a := hdiv
+      _ = ε := haval
+  have hmeasZ : Measurable Z := G.measurable_sum_div_normSq_windowSumC s H
+  have hmeas : MeasurableSet {ω | a ≤ Z ω} := measurableSet_le measurable_const hmeasZ
+  have hENN : μ {ω | a ≤ Z ω} ≤ ENNReal.ofReal ε := by
+    rw [ENNReal.le_ofReal_iff_toReal_le (MeasureTheory.measure_ne_top μ _) hε.le]
+    exact hreal
+  calc ENNReal.ofReal (1 - ε)
+      = 1 - ENNReal.ofReal ε := by
+        rw [ENNReal.ofReal_sub _ hε.le, ENNReal.ofReal_one]
+    _ ≤ 1 - μ {ω | a ≤ Z ω} := tsub_le_tsub_left hENN 1
+    _ = μ ({ω | a ≤ Z ω}ᶜ) := (MeasureTheory.prob_compl_eq_one_sub hmeas).symm
+    _ ≤ μ {ω | Z ω ≤ a} := by
+        refine MeasureTheory.measure_mono fun ω hω => ?_
+        simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_le] at hω
+        exact hω.le
+
+namespace StochasticMultiplicative
+
 /-- A single completely multiplicative unimodular `g` as a constant (deterministic) stochastic
 family over any measure space. -/
 def ofDeterministic (μ : Measure Ω) (g : ℕ → ℂ)

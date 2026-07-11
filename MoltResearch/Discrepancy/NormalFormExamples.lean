@@ -5545,6 +5545,16 @@ example (g : ℕ → ℂ) (hg : Unimodular g) {s : Finset ℕ} {H : ℕ} (hH : 1
       (∑ n ∈ s, (1 : ℝ) / n) / (2 * H) ≤ ‖windowCorr g s h h'‖ :=
   hg.exists_pair_windowCorr_le hH hSpos hZ hB
 
+-- Markov step: the log-averaged squared window sum is ≤ 4CS/ε off an ε-exceptional event.
+example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
+    [MeasureTheory.IsProbabilityMeasure μ] (G : StochasticMultiplicative μ) {C : ℝ}
+    (hC : ∀ m : ℕ, sndMomentPartialSum G m ≤ C) (s : Finset ℕ) (H : ℕ)
+    {ε : ℝ} (hε : 0 < ε) (hε1 : ε ≤ 1) (hCS : 0 < C * (∑ n ∈ s, (1 : ℝ) / n)) :
+    ENNReal.ofReal (1 - ε)
+      ≤ μ {ω | ∑ n ∈ s, ‖windowSumC (G.g ω) n H‖ ^ 2 / (n : ℝ)
+          ≤ 4 * C * (∑ n ∈ s, (1 : ℝ) / n) / ε} :=
+  prob_sum_div_normSq_windowSumC_le G hC s H hε hε1 hCS
+
 -- Nonasymptotic non-pretentiousness language: character twists are 1-bounded comparisons, so
 -- the distance to them is monotone in the truncation; `NonPretentiousAt` hands back the
 -- Theorem-1.10-shaped bound when the quantifier ranges are met.
