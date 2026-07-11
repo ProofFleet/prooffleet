@@ -28,6 +28,9 @@ import MoltResearch.Discrepancy.PrimeSumBounds
 import MoltResearch.Discrepancy.SingularSeries
 import MoltResearch.Discrepancy.LFunctionBounds
 import MoltResearch.Discrepancy.CharTwistedSingularSeries
+import MoltResearch.Discrepancy.GoodResidues
+import MoltResearch.Discrepancy.AdditiveCharCancellation
+import MoltResearch.Discrepancy.CharTwistCompose
 import MoltResearch.Discrepancy.LogAvgCorr
 import MoltResearch.Discrepancy.PretentiousDist
 import MoltResearch.Discrepancy.StochasticMultiplicative

@@ -5521,6 +5521,43 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Character-twist composition (§4 substrate, Lemma tb input): the distance between two
+-- twists equals the distance from 1 to the composite twist mod q·q' — exactly the shape
+-- the VinogradovKorobovAssumption interface consumes.
+example {q q' : ℕ} (hq : q ≠ 0) (hq' : q' ≠ 0)
+    (χ : DirichletCharacter ℂ q) (χ' : DirichletCharacter ℂ q') (t t' : ℝ) (N : ℕ) :
+    pretentiousDistSq (fun _ => 1)
+        (charTwist (q * q')
+          (DirichletCharacter.changeLevel (dvd_mul_right q q') χ
+            * (DirichletCharacter.changeLevel (dvd_mul_left q' q) χ')⁻¹)
+          (t - t')) N
+      = pretentiousDistSq (charTwist q χ t) (charTwist q' χ' t') N :=
+  pretentiousDistSq_one_charTwist_mul hq hq' χ χ' t t' N
+
+-- Additive-character cancellation (§4 substrate, eq. (perf) core): full-period exponential
+-- sums vanish off the zero frequency, and distinct divisors give distinct frequencies.
+example {M : ℕ} (hM : M ≠ 0) {ξ : ℤ} (hξ : ¬ ((M : ℤ) ∣ ξ)) :
+    ∑ a ∈ Finset.range M, Complex.exp (2 * Real.pi * Complex.I * ξ * a / M) = 0 :=
+  sum_exp_two_pi_mul_eq_zero hM hξ
+
+example {q k : ℕ} (hq : 1 < q) (hk : 1 ≤ k) {d₁ d₂ : ℕ}
+    (h₁ : d₁ ∣ q ^ (k - 1)) (h₂ : d₂ ∣ q ^ (k - 1)) (hne : d₁ ≠ d₂)
+    {ξ₁ ξ₂ : ℤ} (hcop₁ : IsCoprime ξ₁ (d₁ * q : ℤ)) (hcop₂ : IsCoprime ξ₂ (d₂ * q : ℤ)) :
+    ∑ a ∈ Finset.range (q ^ k), Complex.exp
+      (2 * Real.pi * Complex.I * (ξ₁ * a / (d₁ * q : ℕ) - ξ₂ * a / (d₂ * q : ℕ))) = 0 :=
+  sum_exp_sub_eq_zero_of_divisor_ne hq hk h₁ h₂ hne hcop₁ hcop₂
+
+-- Good residues mod q^k (§4 substrate, Maier decoupling): gcd rigidity on good classes
+-- and the o(q^k) bad-residue count.
+example {q k H n a m : ℕ} (h : n ≡ a [MOD q ^ k]) :
+    Nat.gcd (n + m) (q ^ k) = Nat.gcd (a + m) (q ^ k) :=
+  gcd_add_eq_of_modEq h m
+
+example (q k H : ℕ) (hq : q ≠ 0) :
+    ((Finset.Icc 1 (q ^ k)).filter fun a => ¬ IsGoodResidue q k H a).card
+      ≤ 2 * H * q.primeFactors.card * (q ^ k / 2 ^ k + 1) :=
+  card_not_goodResidue_le q k H hq
+
 -- Non-principal char-twisted singular series (§4 substrate, PR E2): subexponentially
 -- small compared to the log X of the principal direction.
 example {N : ℕ} [NeZero N] {χ : DirichletCharacter ℂ N} (hχ : χ ≠ 1) :
