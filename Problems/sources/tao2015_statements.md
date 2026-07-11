@@ -127,6 +127,11 @@ each weakening the statement:
 > `∑_{x/ω(x)<n≤x} g₁(a₁n+b₁)·g₂(a₂n+b₂)/n = o(log ω(x))`.
 
 **The hypothesis is the uniform (inf-over-`t`) form, not pointwise in `t`.** Lean:
-`NonPretentiousUniform` encodes the hypothesis; the corollary itself is the derivation card's
-open "Cor 1.5 form" box. The repo's earlier `LogElliottAssumption` (pointwise `NonPretentious`
-hypothesis) is *stronger than this source statement* and is demoted to toy-consumer use.
+`NonPretentiousUniform` encodes the hypothesis, and the corollary is `Tao2015.corollary15`
+(`TrackCStage5Elliott.lean`), **proved** from `LogElliottNonasymptoticAssumption` via the
+finitely-many-characters bridge. Known deviations, each weakening the statement: completely
+multiplicative `gᵢ`; `ℕ`-shifts; `o(log ω(x))` encoded in `ε`-form
+(`∀ ε > 0, ∀ᶠ x, ‖·‖ ≤ ε·log(w x)`); window hypothesis `w x ≤ x` required only eventually and
+`1 ≤ ω(x)` dropped (implied eventually by divergence). The repo's earlier
+`LogElliottAssumption` (pointwise `NonPretentious` hypothesis) is *stronger than this source
+statement* and is demoted to toy-consumer use.

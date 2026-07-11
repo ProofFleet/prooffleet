@@ -205,6 +205,60 @@ example [inst : LogElliottNonasymptoticAssumption] {g : ℕ → ℂ}
   exact ⟨A₀, fun A hA hA1 x w hAw hwx hnp =>
     hA₀ A hA hA1 x w hAw hwx g (fun n => (starRingEnd ℂ) (g n)) hmul hg1 hmulc hg1c hnp⟩
 
+/-- **Corollary 1.5** (arXiv:1509.05422; logarithmically averaged Elliott, asymptotic form),
+derived from the nonasymptotic interface.
+
+For 1-bounded completely multiplicative `g₁, g₂` with `g₁` **uniformly** non-pretentious
+(`NonPretentiousUniform` — the inf-form hypothesis; the pointwise form does not suffice), and
+any window function `w` with `1 ≤ w x ≤ x` growing to infinity, the windowed two-point
+correlation is `o(log w(x))`, encoded in `ε`-form: for every `ε > 0` the bound
+`‖∑_{x/w(x) < n ≤ x} g₁(a₁n+b₁)·g₂(a₂n+b₂)/n‖ ≤ ε·log(w x)` holds for all large `x`.
+
+Known deviations from the source (each weakening the statement, see
+`Problems/sources/tao2015_statements.md`): completely multiplicative `gᵢ` and `ℕ`-shifts. The
+window hypothesis `w x ≤ x` is only required eventually, and the source's `1 ≤ w x` needs no
+hypothesis at all — it holds eventually because `w` diverges.
+
+The proof composes `LogElliottNonasymptoticAssumption` with the finitely-many-characters
+bridge `NonPretentiousUniform.eventually_nonPretentiousAt`.
+-/
+theorem corollary15 [inst : LogElliottNonasymptoticAssumption]
+    (a₁ a₂ b₁ b₂ : ℕ) (ha₁ : 0 < a₁) (ha₂ : 0 < a₂) (hab : a₁ * b₂ ≠ a₂ * b₁)
+    {g₁ g₂ : ℕ → ℂ}
+    (hm₁ : CompletelyMultiplicativeC g₁) (hb₁ : ∀ n, ‖g₁ n‖ ≤ 1)
+    (hm₂ : CompletelyMultiplicativeC g₂) (hb₂ : ∀ n, ‖g₂ n‖ ≤ 1)
+    (hnp : NonPretentiousUniform g₁)
+    (w : ℝ → ℝ) (hwx : ∀ᶠ x in Filter.atTop, w x ≤ x)
+    (hw : Filter.Tendsto w Filter.atTop Filter.atTop)
+    {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ x : ℝ in Filter.atTop,
+      ‖∑ n ∈ Finset.Ioc ⌊x / w x⌋₊ ⌊x⌋₊,
+          g₁ (a₁ * n + b₁) * g₂ (a₂ * n + b₂) / (n : ℂ)‖ ≤ ε * Real.log (w x) := by
+  obtain ⟨A₀, hA₀⟩ := inst.bound a₁ a₂ b₁ b₂ ha₁ ha₂ hab ε hε
+  set A : ℝ := max A₀ 1 with hAdef
+  have hA1 : (1 : ℝ) ≤ A := le_max_right _ _
+  obtain ⟨X₀, hX₀⟩ :=
+    Filter.eventually_atTop.1 (hnp.eventually_nonPretentiousAt hA1)
+  filter_upwards [hw.eventually_ge_atTop A, Filter.eventually_ge_atTop (X₀ : ℝ), hwx]
+    with x hwA hxX hwxx
+  have hceil : X₀ ≤ ⌈x⌉₊ := by
+    calc X₀ = ⌈(X₀ : ℝ)⌉₊ := (Nat.ceil_natCast X₀).symm
+      _ ≤ ⌈x⌉₊ := Nat.ceil_le_ceil hxX
+  exact hA₀ A (le_max_left _ _) hA1 x (w x) hwA hwxx g₁ g₂ hm₁ hb₁ hm₂ hb₂
+    (hX₀ ⌈x⌉₊ hceil)
+
+-- Consumer example (compile-only): the full-window specialization `w = id` — the shape the
+-- derivation uses when it wants the plain log-averaged correlation over `1 < n ≤ x`.
+example [LogElliottNonasymptoticAssumption] {g₁ g₂ : ℕ → ℂ}
+    (hm₁ : CompletelyMultiplicativeC g₁) (hb₁ : ∀ n, ‖g₁ n‖ ≤ 1)
+    (hm₂ : CompletelyMultiplicativeC g₂) (hb₂ : ∀ n, ‖g₂ n‖ ≤ 1)
+    (hnp : NonPretentiousUniform g₁) {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ x : ℝ in Filter.atTop,
+      ‖∑ n ∈ Finset.Ioc ⌊x / x⌋₊ ⌊x⌋₊,
+          g₁ (1 * n + 0) * g₂ (1 * n + 1) / (n : ℂ)‖ ≤ ε * Real.log x :=
+  corollary15 1 1 0 1 one_pos one_pos (by norm_num) hm₁ hb₁ hm₂ hb₂ hnp
+    (fun x => x) (Filter.Eventually.of_forall fun x => le_rfl) Filter.tendsto_id hε
+
 end Tao2015
 
 end MoltResearch

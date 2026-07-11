@@ -139,7 +139,12 @@ Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no in
   `TrackCStage5Elliott.lean`: moduli range over `Finset.range (⌊A⌋₊ + 1)`, characters per
   modulus are finite via `DirichletCharacter.fintype`, and the per-character eventual bounds
   intersect via `Filter.eventually_all_finset` / `eventually_all`.)
-- [ ] Derive the faithful asymptotic corollary (Cor 1.5 form: uniform hypothesis, `o(log w(x))` conclusion) from `LogElliottNonasymptoticAssumption` + the bridge.
+- [x] Derive the faithful asymptotic corollary (Cor 1.5 form: uniform hypothesis, `o(log w(x))` conclusion) from `LogElliottNonasymptoticAssumption` + the bridge.
+  (Implemented as `corollary15` in `TrackCStage5Elliott.lean`: `NonPretentiousUniform`
+  hypothesis, arbitrary divergent window `w` with eventual `w x ≤ x`, `o(log w x)` in
+  `ε`-form; proof composes the nonasymptotic class with
+  `NonPretentiousUniform.eventually_nonPretentiousAt`. Full-window `w = id` consumer example.
+  Deviations recorded in `Problems/sources/tao2015_statements.md`.)
 - [x] State Proposition 1.11 as a typed intermediate interface, so §4 work can consume it before its proof lands.
   (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5VanDerCorput.lean`:
   `VanDerCorputAssumption` — bounded second moment ⇒ probability-`(1 − K·ε)` pretentious event
