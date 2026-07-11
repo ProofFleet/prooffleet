@@ -26,6 +26,7 @@ import MoltResearch.Discrepancy.CMOfPrimes
 import MoltResearch.Discrepancy.ZetaWeighted
 import MoltResearch.Discrepancy.PrimeSumBounds
 import MoltResearch.Discrepancy.SingularSeries
+import MoltResearch.Discrepancy.LFunctionBounds
 import MoltResearch.Discrepancy.LogAvgCorr
 import MoltResearch.Discrepancy.PretentiousDist
 import MoltResearch.Discrepancy.StochasticMultiplicative

@@ -5521,6 +5521,21 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- L-function bounds (§4 substrate, PR E's non-principal input): the zeta-weighted
+-- character sum is the L-value, and non-principal character prime sums are bounded
+-- uniformly in the truncation.
+example {N : ℕ} [NeZero N] (χ : DirichletCharacter ℂ N) {σ : ℝ} (hσ : 1 < σ) :
+    zetaWeightedSum (fun n : ℕ => χ (n : ZMod N)) σ
+      = DirichletCharacter.LFunction χ (σ : ℂ) :=
+  zetaWeightedSum_char_eq_LFunction χ hσ
+
+example {N : ℕ} [NeZero N] {χ : DirichletCharacter ℂ N} (hχ : χ ≠ 1) :
+    ∃ C : ℝ, ∀ X : ℝ, 3 ≤ X →
+      (∑' p : Nat.Primes,
+          χ (((p : ℕ) : ℕ) : ZMod N)
+            / ((p : ℕ) : ℂ) ^ ((1 + 1 / Real.log X : ℝ) : ℂ)).re ≤ C :=
+  exists_re_tsum_primes_char_le hχ
+
 -- Crude Mertens upper bound (§4 substrate, PR E's Cauchy–Schwarz input): the prime
 -- harmonic sum grows at most like 4·log log N.
 example {N : ℕ} (hN : 3 ≤ N) :
