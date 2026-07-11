@@ -153,7 +153,18 @@ Derivation (the real work; open a GitHub issue per box when starting):
 - [ ] Prove Proposition 1.11 from `LogElliottNonasymptoticAssumption` (the van der Corput expansion of the second moment, averaging/pigeonhole over shifts, contrapositive of Theorem 1.10).
 - [ ] §4, deterministic core: Borwein–Choi–Coons for modulated characters — for a completely multiplicative `g` at bounded pretentious distance from `χ(n)·n^{it}`, the second moment of partial sums grows. Decompose further when opened.
 - [ ] §4, stochastic upgrade: from "with probability `1 − O(ε)` pretentious" (Prop 1.11's conclusion) to unbounded `sndMomentPartialSum`, contradicting the standing bound.
-- [ ] Glue: Theorem 1.8 (`theorem18`) from the two halves; then Theorem 1.9 restatement.
+  (Typed target available: proving these two boxes means providing the instance of
+  `BorweinChoiCoonsAssumption` in `TrackCStage5Derivation.lean` — the contrapositive consumer
+  form the Theorem-1.8 glue composes with.)
+- [x] Glue: Theorem 1.8 (`theorem18`) from the two halves; then Theorem 1.9 restatement.
+  (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Derivation.lean`:
+  `theorem18 [VanDerCorputAssumption] [BorweinChoiCoonsAssumption]` by the paper's
+  contradiction, plus `notBounded_of_derivation` — EDP from the three typed pieces with **no
+  axiom on the path**. The derivation is now reduced to exactly two named proof obligations
+  (the §3 and §4 boxes). Theorem 1.9 needs no separate restatement: `StochasticMultiplicative`
+  is already the measure-theoretic packaging. Composing the glue also caught a quantifier-order
+  bug in `VanDerCorputAssumption` — `K` must precede `ε` to encode `1 − O(ε)` non-vacuously —
+  fixed in the same PR, along with factoring the shared `pretentiousEvent` set.)
 - [ ] Endgame: re-prove `stage5_notBounded` from `FourierReductionStochasticAssumption` + `theorem18`, retire the Stage-2 stub axiom, and flip the blueprint card's milestone (C) to done. CI must stay green with the axiom file deleted.
 
 ## 5. References / links
