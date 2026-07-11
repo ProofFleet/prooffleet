@@ -5488,6 +5488,22 @@ example : ∃ g : ℕ → ℂ, CompletelyMultiplicativeC g ∧ Unimodular g ∧ 
     simp only [norm_pow, norm_neg, norm_one, one_pow]
   · simp only [ArithmeticFunction.cardFactors_apply_prime Nat.prime_two, pow_one]
 
+-- CM-from-prime-data constructor (§4 substrate): the character-like completions `χ̃`, `h`
+-- are built by prescribing prime values; only prime values matter, unimodularity transfers,
+-- and prime-power evaluation is definitional.
+example : CompletelyMultiplicativeC (cmOfPrimes fun _ => (-1 : ℂ)) :=
+  cmOfPrimes_completelyMultiplicativeC _
+
+example : Unimodular (cmOfPrimes fun _ => (-1 : ℂ)) :=
+  cmOfPrimes_unimodular fun _ _ => by norm_num
+
+example : cmOfPrimes (fun _ => (-1 : ℂ)) 2 = -1 := by
+  rw [cmOfPrimes_apply_prime _ Nat.prime_two]
+
+example : cmOfPrimes (fun _ => (-1 : ℂ)) 8 = -1 := by
+  rw [show (8 : ℕ) = 2 ^ 3 by norm_num, cmOfPrimes_apply_prime_pow _ Nat.prime_two]
+  norm_num
+
 -- Log-averaged two-point correlation: N ≤ 1 junk values normalize to 0 by simp, and the
 -- unimodular diagonal collapses to the log-averaged harmonic sum.
 example (g : ℕ → ℂ) (a b : ℕ) : logAvgCorr g a b 0 = 0 := by simp
