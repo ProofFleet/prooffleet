@@ -27,9 +27,12 @@ Encoding notes:
   below only asserts the per-sample existential on a large-probability set — strictly weaker.
   If the §4 formalization turns out to need the measurable selection, strengthen this interface
   then (flagged on the derivation card).
-- This is a **target to be proved** from `LogElliottNonasymptoticAssumption` (derivation card),
-  not a standing axiom: no instance, no axiom, consumers carry it as a hypothesis until the
-  proof lands and provides the instance.
+- This was stated as a **target to be proved** from `LogElliottNonasymptoticAssumption`
+  (derivation card), not a standing axiom. The proof has since landed:
+  `TrackCStage5VanDerCorputProof.lean` provides the instance
+  `[LogElliottNonasymptoticAssumption] → VanDerCorputAssumption` (no axiom — the Elliott
+  input remains a hypothesis class). Consumers may still carry `VanDerCorputAssumption`
+  as a hypothesis; under an Elliott hypothesis it now resolves automatically.
 -/
 
 namespace MoltResearch

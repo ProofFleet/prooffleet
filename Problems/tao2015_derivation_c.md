@@ -155,8 +155,17 @@ Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no in
 
 Derivation (the real work; open a GitHub issue per box when starting):
 
-- [ ] Prove Proposition 1.11 from `LogElliottNonasymptoticAssumption` (the van der Corput expansion of the second moment, averaging/pigeonhole over shifts, contrapositive of Theorem 1.10).
-  (Opened as issue #2870.)
+- [x] Prove Proposition 1.11 from `LogElliottNonasymptoticAssumption` (the van der Corput expansion of the second moment, averaging/pigeonhole over shifts, contrapositive of Theorem 1.10).
+  (Issue #2870, PRs #2874–#2877 + the instance PR. Nucleus substrate: `windowSumC` toolbox,
+  van der Corput expansion, log-averaged expansion + pigeonhole, Markov step. The instance
+  `vanDerCorputAssumption_of_logElliottNonasymptotic` lives in
+  `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5VanDerCorputProof.lean`, with
+  `K = 1`, `Q = T = B = A` dominating the finitely many per-pair Elliott thresholds, and
+  window `Ioc ⌊X/W⌋₊ X` at `x := (X : ℝ)` — so `⌈x⌉₊ = X` and the flagged truncation
+  friction needed no interface amendment; per-sample existential form sufficed, no
+  measurable selection needed. Footprints pinned standard-only in `TrackCAxiomAudit.lean`;
+  `theorem18_of_logElliottNonasymptotic` records the milestone: Theorem 1.8 now needs only
+  the Elliott and §4 inputs.)
 - [ ] §4, deterministic core: Borwein–Choi–Coons for modulated characters — for a completely multiplicative `g` at bounded pretentious distance from `χ(n)·n^{it}`, the second moment of partial sums grows. Decompose further when opened.
   (Opened, together with the stochastic-upgrade box, as issue #2871.)
 - [ ] §4, stochastic upgrade: from "with probability `1 − O(ε)` pretentious" (Prop 1.11's conclusion) to unbounded `sndMomentPartialSum`, contradicting the standing bound.
