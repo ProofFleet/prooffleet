@@ -151,7 +151,9 @@ Interface layer (each: 1 file in `Conjectures/`, class + consumer example, no in
 Derivation (the real work; open a GitHub issue per box when starting):
 
 - [ ] Prove Proposition 1.11 from `LogElliottNonasymptoticAssumption` (the van der Corput expansion of the second moment, averaging/pigeonhole over shifts, contrapositive of Theorem 1.10).
+  (Opened as issue #2870.)
 - [ ] §4, deterministic core: Borwein–Choi–Coons for modulated characters — for a completely multiplicative `g` at bounded pretentious distance from `χ(n)·n^{it}`, the second moment of partial sums grows. Decompose further when opened.
+  (Opened, together with the stochastic-upgrade box, as issue #2871.)
 - [ ] §4, stochastic upgrade: from "with probability `1 − O(ε)` pretentious" (Prop 1.11's conclusion) to unbounded `sndMomentPartialSum`, contradicting the standing bound.
   (Typed target available: proving these two boxes means providing the instance of
   `BorweinChoiCoonsAssumption` in `TrackCStage5Derivation.lean` — the contrapositive consumer
