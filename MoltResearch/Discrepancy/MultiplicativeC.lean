@@ -129,6 +129,42 @@ theorem windowSumC_eq_apSumC_sub (g : ℕ → ℂ) (n H : ℕ) :
         congr 1
         omega
 
+/-- **Van der Corput expansion** (Tao 2015 §3): for a unimodular sequence, the squared window
+sum is the window length plus the off-diagonal shift correlations:
+
+`‖g(n+1) + ⋯ + g(n+H)‖² = H + ∑_{h ≠ h' ≤ H} Re(g(n+h)·conj(g(n+h')))`.
+
+Since the left side has second moment `≤ 4C` independent of `H` (`windowSndMoment_le`), the
+correlations must be large and negative on average once `H > 4C` — the engine of
+Proposition 1.11. -/
+theorem Unimodular.normSq_windowSumC {g : ℕ → ℂ} (hg : Unimodular g) (n H : ℕ) :
+    ‖windowSumC g n H‖ ^ 2
+      = H + ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h,
+          (g (n + h) * (starRingEnd ℂ) (g (n + h'))).re := by
+  classical
+  have key : ‖windowSumC g n H‖ ^ 2
+      = ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ Finset.Icc 1 H,
+          (g (n + h) * (starRingEnd ℂ) (g (n + h'))).re := by
+    have h1 : ‖windowSumC g n H‖ ^ 2
+        = (windowSumC g n H * (starRingEnd ℂ) (windowSumC g n H)).re := by
+      rw [Complex.mul_conj, Complex.ofReal_re]
+      exact (Complex.normSq_eq_norm_sq _).symm
+    rw [h1]
+    unfold windowSumC
+    rw [map_sum, Finset.sum_mul_sum, Complex.re_sum]
+    exact Finset.sum_congr rfl fun h _ => Complex.re_sum _ _
+  rw [key]
+  have hsplit : ∀ h ∈ Finset.Icc 1 H,
+      ∑ h' ∈ Finset.Icc 1 H, (g (n + h) * (starRingEnd ℂ) (g (n + h'))).re
+        = 1 + ∑ h' ∈ (Finset.Icc 1 H).erase h,
+            (g (n + h) * (starRingEnd ℂ) (g (n + h'))).re := by
+    intro h hh
+    rw [← Finset.add_sum_erase _ _ hh]
+    congr 1
+    rw [Complex.mul_conj, Complex.ofReal_re, Complex.normSq_eq_norm_sq, hg (n + h), one_pow]
+  rw [Finset.sum_congr rfl hsplit, Finset.sum_add_distrib]
+  simp
+
 /-- Norm bound: a window sum of a 1-bounded sequence has norm at most the window length. -/
 theorem norm_windowSumC_le (g : ℕ → ℂ) (hg : ∀ k, ‖g k‖ ≤ 1) (n H : ℕ) :
     ‖windowSumC g n H‖ ≤ H := by

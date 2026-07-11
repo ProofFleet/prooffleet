@@ -90,6 +90,22 @@ theorem integrable_normSq_apSumC [IsFiniteMeasure μ] (G : StochasticMultiplicat
   have h0 : (0 : ℝ) ≤ ‖apSumC (G.g ω) d n‖ := norm_nonneg _
   simpa [abs_of_nonneg (pow_nonneg h0 2)] using pow_le_pow_left₀ h0 hω 2
 
+/-- Almost every sample's window sum is bounded by the window length. -/
+theorem ae_norm_windowSumC_le (G : StochasticMultiplicative μ) (n H : ℕ) :
+    ∀ᵐ ω ∂μ, ‖windowSumC (G.g ω) n H‖ ≤ H := by
+  filter_upwards [G.unimodular_ae] with ω hω
+  exact norm_windowSumC_le _ (fun k => (hω k).le) n H
+
+/-- The squared window-sum norms are integrable over a finite measure (bounded measurable). -/
+theorem integrable_normSq_windowSumC [IsFiniteMeasure μ] (G : StochasticMultiplicative μ)
+    (n H : ℕ) :
+    MeasureTheory.Integrable (fun ω => ‖windowSumC (G.g ω) n H‖ ^ 2) μ := by
+  refine (MeasureTheory.integrable_const ((H : ℝ) ^ 2)).mono'
+    ((((G.measurable_windowSumC n H).norm).pow_const 2).aestronglyMeasurable) ?_
+  filter_upwards [G.ae_norm_windowSumC_le n H] with ω hω
+  have h0 : (0 : ℝ) ≤ ‖windowSumC (G.g ω) n H‖ := norm_nonneg _
+  simpa [abs_of_nonneg (pow_nonneg h0 2)] using pow_le_pow_left₀ h0 hω 2
+
 end StochasticMultiplicative
 
 /-- **Van der Corput input** (Tao 2015 §3, first step): if the partial-sum second moments are
@@ -129,6 +145,32 @@ theorem windowSndMoment_le [IsProbabilityMeasure μ] (G : StochasticMultiplicati
         have h2 := hC n
         nlinarith
     _ = 4 * C := by ring
+
+/-- **Forced correlations** (Tao 2015 §3): under a uniform second-moment bound `C`, the
+integrated off-diagonal shift correlations over any window of length `H` are at most
+`4·C − H` — large and *negative* once `H > 4C`.
+
+This is `windowSndMoment_le` minus the diagonal contribution of the van der Corput expansion
+(`Unimodular.normSq_windowSumC`); the averaging/pigeonhole step of Proposition 1.11 starts
+from here. -/
+theorem integral_offdiag_windowSumC_le [IsProbabilityMeasure μ]
+    (G : StochasticMultiplicative μ) {C : ℝ} (hC : ∀ m : ℕ, sndMomentPartialSum G m ≤ C)
+    (n H : ℕ) :
+    ∫ ω, (∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h,
+        ((G.g ω) (n + h) * (starRingEnd ℂ) ((G.g ω) (n + h'))).re) ∂μ ≤ 4 * C - H := by
+  have hae : (fun ω => ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h,
+        ((G.g ω) (n + h) * (starRingEnd ℂ) ((G.g ω) (n + h'))).re)
+      =ᵐ[μ] fun ω => ‖windowSumC (G.g ω) n H‖ ^ 2 - H := by
+    filter_upwards [G.unimodular_ae] with ω hω
+    rw [hω.normSq_windowSumC n H]
+    ring
+  rw [MeasureTheory.integral_congr_ae hae,
+    MeasureTheory.integral_sub (G.integrable_normSq_windowSumC n H)
+      (MeasureTheory.integrable_const _)]
+  have hconst : ∫ (_ : Ω), (H : ℝ) ∂μ = H := by simp
+  rw [hconst]
+  have hw := windowSndMoment_le G hC n H
+  linarith
 
 namespace StochasticMultiplicative
 

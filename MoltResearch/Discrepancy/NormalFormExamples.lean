@@ -5513,6 +5513,22 @@ example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
     ∫ ω, ‖windowSumC (G.g ω) n H‖ ^ 2 ∂μ ≤ 4 * C :=
   windowSndMoment_le G hC n H
 
+-- Van der Corput expansion: squared window sums split into the diagonal (the window length)
+-- plus off-diagonal shift correlations; under the second-moment bound, the integrated
+-- correlations are forced ≤ 4C − H — large negative once H > 4C.
+example (g : ℕ → ℂ) (hg : Unimodular g) (n H : ℕ) :
+    ‖windowSumC g n H‖ ^ 2
+      = H + ∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h,
+          (g (n + h) * (starRingEnd ℂ) (g (n + h'))).re :=
+  hg.normSq_windowSumC n H
+
+example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
+    [MeasureTheory.IsProbabilityMeasure μ] (G : StochasticMultiplicative μ) {C : ℝ}
+    (hC : ∀ m : ℕ, sndMomentPartialSum G m ≤ C) (n H : ℕ) :
+    ∫ ω, (∑ h ∈ Finset.Icc 1 H, ∑ h' ∈ (Finset.Icc 1 H).erase h,
+        ((G.g ω) (n + h) * (starRingEnd ℂ) ((G.g ω) (n + h'))).re) ∂μ ≤ 4 * C - H :=
+  integral_offdiag_windowSumC_le G hC n H
+
 -- Nonasymptotic non-pretentiousness language: character twists are 1-bounded comparisons, so
 -- the distance to them is monotone in the truncation; `NonPretentiousAt` hands back the
 -- Theorem-1.10-shaped bound when the quantifier ranges are met.
