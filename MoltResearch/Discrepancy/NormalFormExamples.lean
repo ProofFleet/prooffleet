@@ -5521,6 +5521,17 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Non-principal char-twisted singular series (§4 substrate, PR E2): subexponentially
+-- small compared to the log X of the principal direction.
+example {N : ℕ} [NeZero N] {χ : DirichletCharacter ℂ N} (hχ : χ ≠ 1) :
+    ∃ C : ℝ, ∀ h : ℕ → ℂ, CompletelyMultiplicativeC h → h 1 = 1 → Unimodular h →
+      ∀ X : ℝ, 3 ≤ X → ∀ B₀ : ℝ,
+        pretentiousDistSq h (fun _ => 1) (⌊X⌋₊ + 1) ≤ B₀ →
+        ‖zetaWeightedSum (fun n : ℕ => χ (n : ZMod N) * h n) (1 + 1 / Real.log X)‖
+          ≤ C * Real.exp (Real.sqrt (2 * B₀)
+              * Real.sqrt (4 * Real.log (Real.log X) + 17)) :=
+  exists_norm_zetaWeightedSum_char_mul_le hχ
+
 -- L-function bounds (§4 substrate, PR E's non-principal input): the zeta-weighted
 -- character sum is the L-value, and non-principal character prime sums are bounded
 -- uniformly in the truncation.
