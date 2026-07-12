@@ -5521,6 +5521,15 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Residue-class reduction (§4 substrate): non-unit classes factor through the gcd, at the
+-- cost of a single 1/d^σ.
+example {h : ℕ → ℂ} (hmul : CompletelyMultiplicativeC h) {r b : ℕ} (hb : b ≠ 0)
+    {σ : ℝ} (hσ : σ ≠ 0) (hd1 : h (Nat.gcd b r) = 1) :
+    natResidueZetaSum h r b σ
+      = (1 / (Nat.gcd b r : ℂ) ^ (σ : ℂ))
+          * natResidueZetaSum h (r / Nat.gcd b r) (b / Nat.gcd b r) σ :=
+  natResidueZetaSum_eq_of_gcd hmul hb hσ hd1
+
 -- Pretentious factorization (§4 substrate, eq. (dos)): g = χ̃·n^{it}·h with the pretense
 -- transferred to h, and χ̃ rigid on good residue classes.
 example {g : ℕ → ℂ} {q : ℕ} {χ : DirichletCharacter ℂ q} {t : ℝ}
