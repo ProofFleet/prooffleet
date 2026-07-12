@@ -36,6 +36,7 @@ import MoltResearch.Discrepancy.ArchimedeanTaylor
 import MoltResearch.Discrepancy.PerfectCancellation
 import MoltResearch.Discrepancy.PretentiousFactorization
 import MoltResearch.Discrepancy.ResidueClassReduction
+import MoltResearch.Discrepancy.ConductorReduction
 import MoltResearch.Discrepancy.LogAvgCorr
 import MoltResearch.Discrepancy.PretentiousDist
 import MoltResearch.Discrepancy.StochasticMultiplicative

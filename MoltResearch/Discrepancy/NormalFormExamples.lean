@@ -5521,6 +5521,14 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Conductor reduction (§4 substrate, "WLOG χ primitive"): passing to the primitive core
+-- costs at most 2·ω(N) in pretentious distance.
+example {N : ℕ} [NeZero N] (χ : DirichletCharacter ℂ N) {g : ℕ → ℂ}
+    (hu : Unimodular g) (t : ℝ) (M : ℕ) :
+    pretentiousDistSq g (charTwist χ.conductor χ.primitiveCharacter t) M
+      ≤ pretentiousDistSq g (charTwist N χ t) M + 2 * N.primeFactors.card :=
+  pretentiousDistSq_primitive_le χ hu t M
+
 -- Residue-class reduction (§4 substrate): non-unit classes factor through the gcd, at the
 -- cost of a single 1/d^σ.
 example {h : ℕ → ℂ} (hmul : CompletelyMultiplicativeC h) {r b : ℕ} (hb : b ≠ 0)
