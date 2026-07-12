@@ -5521,6 +5521,19 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Pretentious factorization (§4 substrate, eq. (dos)): g = χ̃·n^{it}·h with the pretense
+-- transferred to h, and χ̃ rigid on good residue classes.
+example {g : ℕ → ℂ} {q : ℕ} {χ : DirichletCharacter ℂ q} {t : ℝ}
+    (hg : CompletelyMultiplicativeC g) (hu : Unimodular g) {n : ℕ} (hn : n ≠ 0) :
+    chiTilde g q χ t n * (n : ℂ) ^ (Complex.I * (t : ℂ)) * hPart g q χ t n = g n :=
+  chiTilde_mul_cpow_mul_hPart hg hu hn
+
+example {g : ℕ → ℂ} {q : ℕ} {χ : DirichletCharacter ℂ q} {t : ℝ}
+    (hu : Unimodular g) (N : ℕ) :
+    pretentiousDistSq (hPart g q χ t) (fun _ => 1) N
+      ≤ pretentiousDistSq g (charTwist q χ t) N :=
+  pretentiousDistSq_hPart_le hu N
+
 -- Perfect cancellation (§4 substrate, eq. (perf), PR I2): the off-diagonal d₁ ≠ d₂ terms
 -- of the χ̃-expansion vanish identically for primitive χ.
 example {q k : ℕ} (hq : 1 < q) (hk : 1 ≤ k)
