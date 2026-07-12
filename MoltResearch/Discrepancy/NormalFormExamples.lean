@@ -5521,6 +5521,18 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Perfect cancellation (§4 substrate, eq. (perf), PR I2): the off-diagonal d₁ ≠ d₂ terms
+-- of the χ̃-expansion vanish identically for primitive χ.
+example {q k : ℕ} (hq : 1 < q) (hk : 1 ≤ k)
+    {χ : DirichletCharacter ℂ q} (hχ : χ.IsPrimitive)
+    {d₁ d₂ : ℕ} (h₁ : d₁ ∣ q ^ (k - 1)) (h₂ : d₂ ∣ q ^ (k - 1)) (hne : d₁ ≠ d₂)
+    (m₁ m₂ : ℕ) :
+    ∑ a ∈ Finset.range (q ^ k),
+        (if d₁ ∣ (a + m₁) then χ (((a + m₁) / d₁ : ℕ) : ZMod q) else 0)
+      * (starRingEnd ℂ) (if d₂ ∣ (a + m₂) then χ (((a + m₂) / d₂ : ℕ) : ZMod q) else 0)
+      = 0 :=
+  sum_indicator_char_mul_conj_eq_zero hq hk hχ h₁ h₂ hne m₁ m₂
+
 -- Archimedean Taylor step (§4 substrate, PR G core): the twist n^{it} is removable from
 -- window sums at cost H'·(|t|·H'/n).
 example {u : ℕ → ℂ} (hu : ∀ k, ‖u k‖ ≤ 1) {n : ℕ} (hn : n ≠ 0) (H' : ℕ) (t : ℝ) :

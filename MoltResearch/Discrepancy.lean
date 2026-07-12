@@ -33,6 +33,7 @@ import MoltResearch.Discrepancy.AdditiveCharCancellation
 import MoltResearch.Discrepancy.CharTwistCompose
 import MoltResearch.Discrepancy.PrincipalAndEquidistribution
 import MoltResearch.Discrepancy.ArchimedeanTaylor
+import MoltResearch.Discrepancy.PerfectCancellation
 import MoltResearch.Discrepancy.LogAvgCorr
 import MoltResearch.Discrepancy.PretentiousDist
 import MoltResearch.Discrepancy.StochasticMultiplicative
