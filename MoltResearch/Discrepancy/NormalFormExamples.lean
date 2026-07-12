@@ -5521,6 +5521,19 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Twisted-window transfer (§4 substrate, the Taylor step at the sum level): zeta-weighted
+-- window bounds survive removal of the archimedean twist with explicit cost.
+example {g w : ℕ → ℂ} {t : ℝ}
+    (hfac : ∀ n : ℕ, n ≠ 0 → g n = w n * (n : ℂ) ^ (Complex.I * (t : ℂ)))
+    (hwb : ∀ n, ‖w n‖ ≤ 1)
+    {X T : ℝ} (hX : 3 ≤ X) (hT : 1 ≤ T) (ht : |t| ≤ T * X ^ ((1 : ℝ) / 4))
+    {H' : ℕ} (hH' : 1 ≤ H') {D : ℝ}
+    (hg : ∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+      ≤ D * Real.log X) :
+    ∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', w (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+      ≤ (D + (H' : ℝ) ^ 2 * (2 + 18 * T * H')) * Real.log X :=
+  sum_div_normSq_window_twisted_le hfac hwb hX hT ht hH' hg
+
 -- Conductor reduction (§4 substrate, "WLOG χ primitive"): passing to the primitive core
 -- costs at most 2·ω(N) in pretentious distance.
 example {N : ℕ} [NeZero N] (χ : DirichletCharacter ℂ N) {g : ℕ → ℂ}
