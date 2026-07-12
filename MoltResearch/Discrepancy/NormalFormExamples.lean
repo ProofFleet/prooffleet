@@ -5521,6 +5521,14 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Archimedean Taylor step (§4 substrate, PR G core): the twist n^{it} is removable from
+-- window sums at cost H'·(|t|·H'/n).
+example {u : ℕ → ℂ} (hu : ∀ k, ‖u k‖ ≤ 1) {n : ℕ} (hn : n ≠ 0) (H' : ℕ) (t : ℝ) :
+    ‖(∑ m ∈ Finset.Icc 1 H', u m * ((n + m : ℕ) : ℂ) ^ (Complex.I * (t : ℂ)))
+        - ((n : ℕ) : ℂ) ^ (Complex.I * (t : ℂ)) * ∑ m ∈ Finset.Icc 1 H', u m‖
+      ≤ H' * (|t| * H' / n) :=
+  norm_windowTwistSum_sub_le hu hn H' t
+
 -- Principal ratio + equidistribution (§4 substrate, PR E3): the principal-twisted 𝔖 is
 -- comparable to 𝔖 up to exp(±ω(r)), and residue-class zeta sums expand into character
 -- averages by second orthogonality.
