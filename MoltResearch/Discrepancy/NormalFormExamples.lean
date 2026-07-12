@@ -5813,6 +5813,15 @@ example {Ω : Type} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
           ≤ 4 * C * (∑ n ∈ s, (1 : ℝ) / n) / ε} :=
   prob_sum_div_normSq_windowSumC_le G hC s H hε hε1 hCS
 
+-- Principal-character Euler-factor identity (Track C §4, issue #2871): the χ₀-twist
+-- removes exactly the Euler factors at p ∣ r from the singular series.
+example {r : ℕ} [NeZero r] {h : ℕ → ℂ} (hmul : CompletelyMultiplicativeC h) (h1 : h 1 = 1)
+    (hb : ∀ n, ‖h n‖ ≤ 1) {σ : ℝ} (hσ : 1 < σ) :
+    zetaWeightedSum (fun n : ℕ => (1 : DirichletCharacter ℂ r) ((n : ℕ) : ZMod r) * h n) σ
+      = zetaWeightedSum h σ
+        * ∏ p ∈ r.primeFactors, (1 - h p / ((p : ℕ) : ℂ) ^ ((σ : ℝ) : ℂ)) :=
+  zetaWeightedSum_principal_mul_eq hmul h1 hb hσ
+
 -- Nonasymptotic non-pretentiousness language: character twists are 1-bounded comparisons, so
 -- the distance to them is monotone in the truncation; `NonPretentiousAt` hands back the
 -- Theorem-1.10-shaped bound when the quantifier ranges are met.

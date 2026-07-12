@@ -241,6 +241,124 @@ theorem norm_zetaWeightedSum_principal_mul_bounds {r : ℕ} [NeZero r]
       _ = Real.exp (1 * (r.primeFactors.card : ℝ))
           * ‖zetaWeightedSum h (1 + 1 / Real.log X)‖ := by rw [hexpTh]
 
+/-- **Principal-character Euler-factor identity** (Tao 2015, arXiv:1509.05363 §4, the
+principal computation `∑_n χ₀(n)h(n)/n^{1+1/log X} = 𝔖·∏_{p|r}(1−h(p)/p^σ)` before the
+`φ(r)/r` approximation): twisting a 1-bounded completely multiplicative `h` by the
+principal character mod `r` removes exactly the Euler factors at the primes dividing `r`. -/
+theorem zetaWeightedSum_principal_mul_eq {r : ℕ} [NeZero r]
+    {h : ℕ → ℂ} (hmul : CompletelyMultiplicativeC h) (h1 : h 1 = 1)
+    (hb : ∀ n, ‖h n‖ ≤ 1) {σ : ℝ} (hσ : 1 < σ) :
+    zetaWeightedSum (fun n : ℕ => (1 : DirichletCharacter ℂ r) ((n : ℕ) : ZMod r) * h n) σ
+      = zetaWeightedSum h σ
+        * ∏ p ∈ r.primeFactors, (1 - h p / ((p : ℕ) : ℂ) ^ ((σ : ℝ) : ℂ)) := by
+  set g₀ : ℕ → ℂ := fun n : ℕ => (1 : DirichletCharacter ℂ r) ((n : ℕ) : ZMod r) * h n
+    with hg₀def
+  -- the principal twist is completely multiplicative, normalized, 1-bounded
+  have hg₀mul : CompletelyMultiplicativeC g₀ := by
+    intro a b ha hb'
+    rw [hg₀def]
+    dsimp only
+    rw [Nat.cast_mul, map_mul, hmul a b ha hb']
+    ring
+  have hg₀1 : g₀ 1 = 1 := by
+    rw [hg₀def]
+    dsimp only
+    rw [Nat.cast_one, map_one, h1, mul_one]
+  have hg₀b : ∀ n, ‖g₀ n‖ ≤ 1 := by
+    intro n
+    rw [hg₀def]
+    dsimp only
+    rw [norm_mul]
+    calc ‖(1 : DirichletCharacter ℂ r) ((n : ℕ) : ZMod r)‖ * ‖h n‖
+        ≤ 1 * 1 := mul_le_mul (DirichletCharacter.norm_le_one _ _) (hb n)
+          (norm_nonneg _) zero_le_one
+      _ = 1 := one_mul 1
+  -- Euler products: both series are exponentials of prime log-sums
+  have hnormh := summable_norm_zetaWeight hb hσ
+  have hnormg := summable_norm_zetaWeight hg₀b hσ
+  have hEh := EulerProduct.exp_tsum_primes_log_eq_tsum
+    (f := hmul.zetaWeightHom h1 (by linarith)) hnormh
+  have hEg := EulerProduct.exp_tsum_primes_log_eq_tsum
+    (f := hg₀mul.zetaWeightHom hg₀1 (by linarith)) hnormg
+  set Th : ℂ := ∑' p : Nat.Primes,
+    -Complex.log (1 - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) with hThdef
+  set T₀ : ℂ := ∑' p : Nat.Primes,
+    -Complex.log (1 - g₀ p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) with hT₀def
+  have hexpTh : Complex.exp Th = zetaWeightedSum h σ := by
+    rw [hThdef]
+    exact hEh
+  have hexpT₀ : Complex.exp T₀ = zetaWeightedSum g₀ σ := by
+    rw [hT₀def]
+    exact hEg
+  have hsumlogh : Summable fun p : Nat.Primes =>
+      -Complex.log (1 - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) :=
+    ((hnormh.of_norm.subtype {p | Nat.Prime p}).clog_one_sub).neg
+  have hsumlogg : Summable fun p : Nat.Primes =>
+      -Complex.log (1 - g₀ p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) :=
+    ((hnormg.of_norm.subtype {p | Nat.Prime p}).clog_one_sub).neg
+  -- the two log-sums differ by exactly one log-factor at each prime dividing `r`
+  have hoff : ∀ p : Nat.Primes, p ∉ primeFactorsLift r →
+      -Complex.log (1 - g₀ p / ((p : ℕ) : ℂ) ^ (σ : ℂ))
+        - -Complex.log (1 - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) = 0 := by
+    intro p hp
+    have hpnot : (p : ℕ) ∉ r.primeFactors := fun hmem =>
+      hp (mem_primeFactorsLift.mpr hmem)
+    have hcop : Nat.Coprime (p : ℕ) r :=
+      (Nat.Prime.coprime_iff_not_dvd p.prop).mpr fun hdvd =>
+        hpnot (Nat.mem_primeFactors.mpr ⟨p.prop, hdvd, NeZero.ne r⟩)
+    have hunit : IsUnit (((p : ℕ) : ZMod r)) := (ZMod.isUnit_iff_coprime (p : ℕ) r).mpr hcop
+    have hg₀p : g₀ (p : ℕ) = h (p : ℕ) := by
+      rw [hg₀def]
+      dsimp only
+      rw [MulChar.one_apply hunit, one_mul]
+    rw [hg₀p, sub_self]
+  have hdiff : T₀ - Th = ∑ p ∈ primeFactorsLift r,
+      Complex.log (1 - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) := by
+    rw [hT₀def, hThdef, ← Summable.tsum_sub hsumlogg hsumlogh, tsum_eq_sum hoff]
+    refine Finset.sum_congr rfl fun p hp => ?_
+    have hmem : (p : ℕ) ∈ r.primeFactors := mem_primeFactorsLift.mp hp
+    have hnunit : ¬IsUnit (((p : ℕ) : ZMod r)) := by
+      rw [ZMod.isUnit_iff_coprime, Nat.Prime.coprime_iff_not_dvd p.prop]
+      exact not_not_intro (Nat.dvd_of_mem_primeFactors hmem)
+    have hg₀p : g₀ (p : ℕ) = 0 := by
+      rw [hg₀def]
+      dsimp only
+      rw [MulChar.map_nonunit _ hnunit, zero_mul]
+    rw [hg₀p, zero_div, sub_zero, Complex.log_one, neg_zero, zero_sub, neg_neg]
+  -- each Euler factor is nonzero (`‖h(p)/p^σ‖ ≤ 1/2 < 1`), so `exp ∘ log` recovers it
+  have hfac_ne : ∀ p : Nat.Primes, (1 : ℂ) - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ) ≠ 0 := by
+    intro p heq
+    have hp2 : (2 : ℝ) ≤ ((p : ℕ) : ℝ) := by exact_mod_cast p.prop.two_le
+    have hhalf : ‖h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)‖ ≤ 1 / 2 :=
+      (norm_prime_zetaWeight_le hb hσ p).trans (one_div_le_one_div_of_le (by norm_num) hp2)
+    have h1n : ‖(1 : ℂ)‖ ≤ 1 / 2 := by
+      rw [sub_eq_zero.mp heq]
+      exact hhalf
+    rw [norm_one] at h1n
+    norm_num at h1n
+  have hexpdiff : Complex.exp (T₀ - Th)
+      = ∏ p ∈ primeFactorsLift r, (1 - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) := by
+    rw [hdiff, Complex.exp_sum]
+    exact Finset.prod_congr rfl fun p _ => Complex.exp_log (hfac_ne p)
+  -- transfer the finite product from `Finset Nat.Primes` to `r.primeFactors : Finset ℕ`
+  have hliftprod : ∏ p ∈ primeFactorsLift r, ((1 : ℂ) - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ))
+      = ∏ p ∈ r.primeFactors, ((1 : ℂ) - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) := by
+    rw [primeFactorsLift, Finset.prod_map]
+    exact Finset.prod_attach r.primeFactors
+      (fun p : ℕ => (1 : ℂ) - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ))
+  calc zetaWeightedSum g₀ σ
+      = Complex.exp T₀ := hexpT₀.symm
+    _ = Complex.exp (Th + (T₀ - Th)) := by
+        congr 1
+        ring
+    _ = Complex.exp Th * Complex.exp (T₀ - Th) := Complex.exp_add _ _
+    _ = zetaWeightedSum h σ
+        * ∏ p ∈ primeFactorsLift r, (1 - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) := by
+        rw [hexpTh, hexpdiff]
+    _ = zetaWeightedSum h σ
+        * ∏ p ∈ r.primeFactors, (1 - h p / ((p : ℕ) : ℂ) ^ (σ : ℂ)) := by
+        rw [hliftprod]
+
 /-- The zeta-weighted sum restricted to the residue class `b mod r`:
 `∑_{n ≡ b (r)} h(n)/n^σ` (Tao 2015 §4: the residue-class average whose equidistribution
 over good residues drives the Borwein–Choi–Coons analysis). -/
