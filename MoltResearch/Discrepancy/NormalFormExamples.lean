@@ -5826,6 +5826,19 @@ example (g : ℕ → ℂ) (A : ℝ) (x : ℕ) (h : NonPretentiousAt g A x)
     A ≤ pretentiousDistSq g (charTwist q χ t) x :=
   h q χ t hq ht
 
+-- Track C §4 (issue #2871): δ-parametric archimedean twist removal for zeta-weighted
+-- windows — additive form, loss `(H')²(1+2δ·log X) + O_{T,H'}((2+log X)/X^δ)`.
+example {g w : ℕ → ℂ} {t : ℝ}
+    (hfac : ∀ n : ℕ, n ≠ 0 → g n = w n * (n : ℂ) ^ (Complex.I * (t : ℂ)))
+    (hwb : ∀ n, ‖w n‖ ≤ 1)
+    {X T δ : ℝ} (hX : 3 ≤ X) (hT : 1 ≤ T) (hδ0 : 0 < δ) (ht : |t| ≤ T * X ^ δ)
+    {H' : ℕ} (hH' : 1 ≤ H') :
+    ∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', w (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+      ≤ (∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X))
+        + (H' : ℝ) ^ 2 * (1 + 2 * δ * Real.log X)
+        + 3 * (H' : ℝ) ^ 3 * T * (2 + Real.log X) / X ^ δ :=
+  sum_div_normSq_window_twisted_le_add hfac hwb hX hT hδ0 ht hH'
+
 end NormalFormExamples
 
 end MoltResearch

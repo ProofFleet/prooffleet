@@ -401,4 +401,230 @@ theorem sum_div_normSq_window_twisted_le
           + 2 * (H' : ℝ) ^ 2 * Real.log X := by linarith
     _ = (D + (H' : ℝ) ^ 2 * (2 + 18 * T * (H' : ℝ))) * Real.log X := by ring
 
+/-- **Parametric crude-region bound** (Tao 2015 §4: "for `n < X^{2δ}` we can crudely bound
+… by `H²`", with the exponent `δ` a parameter): the finite sum of `(H')²/n^{1+1/log X}` over
+`1 ≤ n ≤ ⌊X^{2δ}⌋` costs at most `(H')²·(1 + 2δ·log X)` — harmonic sum plus
+`log⌊X^{2δ}⌋ ≤ 2δ·log X`, kept exact (not absorbed into the log term) so the caller can take
+`δ` small depending on `H'`. -/
+private lemma sum_crude_region_le_param {X δ : ℝ} (hX : 3 ≤ X) (hδ0 : 0 < δ) (H' : ℕ) :
+    ∑ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊,
+        (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X))
+      ≤ (H' : ℝ) ^ 2 * (1 + 2 * δ * Real.log X) := by
+  have hlog1 : 1 < Real.log X := one_lt_log_aux hX
+  have hX0 : (0 : ℝ) < X := by linarith
+  -- each zeta weight is dominated by the harmonic weight
+  have hstep : ∀ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊,
+      (1 : ℝ) / (n : ℝ) ^ (1 + 1 / Real.log X) ≤ 1 / (n : ℝ) := by
+    intro n hn
+    have hn1 : (1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast (Finset.mem_Icc.mp hn).1
+    have h0 : (0 : ℝ) ≤ 1 / Real.log X := one_div_nonneg.mpr (by linarith)
+    have h2 : (n : ℝ) ^ (1 : ℝ) ≤ (n : ℝ) ^ (1 + 1 / Real.log X) :=
+      Real.rpow_le_rpow_of_exponent_le hn1 (by linarith)
+    rw [Real.rpow_one] at h2
+    exact one_div_le_one_div_of_le (by linarith) h2
+  -- harmonic sum bound
+  have hharm : ∑ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊, (1 : ℝ) / (n : ℝ)
+      ≤ 1 + Real.log ⌊X ^ (2 * δ)⌋₊ := by
+    have h1 : (harmonic ⌊X ^ (2 * δ)⌋₊ : ℝ)
+        = ∑ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊, (1 : ℝ) / (n : ℝ) := by
+      rw [harmonic_eq_sum_Icc]
+      push_cast
+      simp [one_div]
+    rw [← h1]
+    exact harmonic_le_one_add_log _
+  -- the floor is between `1` and `X^{2δ}`
+  have hB1 : 1 ≤ ⌊X ^ (2 * δ)⌋₊ := by
+    apply Nat.le_floor
+    rw [Nat.cast_one]
+    exact Real.one_le_rpow (by linarith) (by linarith)
+  have hlogB : Real.log ⌊X ^ (2 * δ)⌋₊ ≤ 2 * δ * Real.log X := by
+    have hB0 : (0 : ℝ) < (⌊X ^ (2 * δ)⌋₊ : ℝ) := by exact_mod_cast hB1
+    calc Real.log ⌊X ^ (2 * δ)⌋₊
+        ≤ Real.log (X ^ (2 * δ)) :=
+          Real.log_le_log hB0 (Nat.floor_le (Real.rpow_nonneg hX0.le _))
+      _ = 2 * δ * Real.log X := Real.log_rpow hX0 _
+  calc ∑ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊,
+        (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X))
+      = (H' : ℝ) ^ 2 * ∑ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊,
+          (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) := by rw [← Finset.mul_sum]
+    _ ≤ (H' : ℝ) ^ 2 * (1 + 2 * δ * Real.log X) := by
+        refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+        have := Finset.sum_le_sum hstep
+        linarith
+
+/-- **Parametric Taylor-tail constant**: with `|𝐭| ≤ T·X^δ`, the total tail-error constant
+`(3(H')³|𝐭|/X^{2δ})·(2 + log X)` is at most `3(H')³·T·(2 + log X)/X^δ`
+(since `X^{2δ} = X^δ·X^δ`, the twist budget `T·X^δ` cancels one factor). -/
+private lemma tail_const_le_param {X T δ t : ℝ} (hX : 3 ≤ X)
+    (ht : |t| ≤ T * X ^ δ) (H' : ℕ) :
+    3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ) * (2 + Real.log X)
+      ≤ 3 * (H' : ℝ) ^ 3 * T * (2 + Real.log X) / X ^ δ := by
+  have hX0 : (0 : ℝ) < X := by linarith
+  have hlog1 : 1 < Real.log X := one_lt_log_aux hX
+  have hδpos : (0 : ℝ) < X ^ δ := Real.rpow_pos_of_pos hX0 _
+  have h2δ : X ^ (2 * δ) = X ^ δ * X ^ δ := by
+    rw [← Real.rpow_add hX0]
+    congr 1
+    ring
+  have hq : |t| / X ^ (2 * δ) ≤ T / X ^ δ := by
+    have h1 : |t| / X ^ δ ≤ T := by
+      rw [div_le_iff₀ hδpos]
+      exact ht
+    calc |t| / X ^ (2 * δ) = |t| / X ^ δ / X ^ δ := by rw [h2δ, div_div]
+      _ ≤ T / X ^ δ := div_le_div_of_nonneg_denom h1 hδpos.le
+  calc 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ) * (2 + Real.log X)
+      = |t| / X ^ (2 * δ) * (3 * (H' : ℝ) ^ 3 * (2 + Real.log X)) := by ring
+    _ ≤ T / X ^ δ * (3 * (H' : ℝ) ^ 3 * (2 + Real.log X)) :=
+        mul_le_mul_of_nonneg_right hq (mul_nonneg (by positivity) (by linarith))
+    _ = 3 * (H' : ℝ) ^ 3 * T * (2 + Real.log X) / X ^ δ := by ring
+
+/-- **δ-parametric zeta-weighted window transfer across the archimedean twist**
+(Tao 2015, arXiv:1509.05363, §4): additive form of `sum_div_normSq_window_twisted_le`
+with the exponent `δ` a parameter — the paper's "for `n ≥ X^{2δ}` … Taylor expansion …
+for `n < X^{2δ}` crude bound", quantified so the caller can take `δ` small depending on
+`H'` (the loss coefficient of `log X` is `2δ(H')²`, plus an `X`-independent `(H')²` and an
+`X^{−δ}`-decaying tail). No hypothesis on the `g`-side sum is needed: the comparison is
+termwise. -/
+theorem sum_div_normSq_window_twisted_le_add
+    {g w : ℕ → ℂ} {t : ℝ}
+    (hfac : ∀ n : ℕ, n ≠ 0 → g n = w n * (n : ℂ) ^ (Complex.I * (t : ℂ)))
+    (hwb : ∀ n, ‖w n‖ ≤ 1)
+    {X T δ : ℝ} (hX : 3 ≤ X) (hT : 1 ≤ T) (hδ0 : 0 < δ) (ht : |t| ≤ T * X ^ δ)
+    {H' : ℕ} (hH' : 1 ≤ H') :
+    ∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', w (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+      ≤ (∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X))
+        + (H' : ℝ) ^ 2 * (1 + 2 * δ * Real.log X)
+        + 3 * (H' : ℝ) ^ 3 * T * (2 + Real.log X) / X ^ δ := by
+  have hlog1 : 1 < Real.log X := one_lt_log_aux hX
+  have hX0 : (0 : ℝ) < X := by linarith
+  have hσ1 : 1 < 1 + 1 / Real.log X := by
+    have h0 : (0 : ℝ) < 1 / Real.log X := by
+      rw [one_div]
+      exact inv_pos.mpr (by linarith)
+    linarith
+  have hgb : ∀ k : ℕ, k ≠ 0 → ‖g k‖ ≤ 1 := fun k hk => norm_g_le_one hfac hwb hk
+  have hc0 : (0 : ℝ) ≤ 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ) :=
+    div_nonneg (by positivity) (Real.rpow_nonneg hX0.le _)
+  -- summability of all four pieces
+  have hsummZ : Summable fun n : ℕ => 1 / (n : ℝ) ^ (1 + 1 / Real.log X) :=
+    Real.summable_one_div_nat_rpow.mpr hσ1
+  have hsummW : Summable fun n : ℕ =>
+      ‖∑ m ∈ Finset.Icc 1 H', w (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X) :=
+    summable_normSq_window_div (fun k _ => hwb k) H' hσ1
+  have hsummG : Summable fun n : ℕ =>
+      ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X) :=
+    summable_normSq_window_div hgb H' hσ1
+  have hsummE : Summable fun n : ℕ =>
+      3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ) * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) :=
+    hsummZ.mul_left _
+  have hsummI : Summable fun n : ℕ =>
+      if n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊ then
+        (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) else 0 :=
+    summable_of_ne_finset_zero (s := Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊)
+      fun n hn => if_neg hn
+  -- pointwise majorization: `w`-window ≤ `g`-window + Taylor tail + crude region
+  have hpt : ∀ n : ℕ,
+      ‖∑ m ∈ Finset.Icc 1 H', w (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+        ≤ ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+            + 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ)
+              * (1 / (n : ℝ) ^ (1 + 1 / Real.log X))
+            + (if n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊ then
+                (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) else 0) := by
+    intro n
+    rcases eq_or_ne n 0 with rfl | hn0
+    · -- junk row: everything vanishes
+      have hz : ((0 : ℕ) : ℝ) ^ (1 + 1 / Real.log X) = 0 := by
+        rw [Nat.cast_zero]
+        exact Real.zero_rpow (by linarith : (0 : ℝ) < 1 + 1 / Real.log X).ne'
+      simp only [hz, div_zero, mul_zero, ite_self, add_zero, zero_add, le_refl]
+    · have hn1 : 1 ≤ n := Nat.one_le_iff_ne_zero.mpr hn0
+      have hnR : (1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn1
+      have hnp : (0 : ℝ) ≤ (n : ℝ) ^ (1 + 1 / Real.log X) :=
+        Real.rpow_nonneg (by linarith) _
+      by_cases hmem : n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊
+      · -- crude region: charge everything to the `(H')²` column
+        rw [if_pos hmem]
+        have hWH : ‖∑ m ∈ Finset.Icc 1 H', w (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+            ≤ (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) := by
+          rw [mul_one_div]
+          exact div_le_div_of_nonneg_denom
+            (sq_le_sq_of_nonneg (norm_nonneg _)
+              (norm_window_sum_le (fun k _ => hwb k) n H')) hnp
+        have hg0 : (0 : ℝ)
+            ≤ ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X) := by
+          positivity
+        have he0 : (0 : ℝ) ≤ 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ)
+            * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) :=
+          mul_nonneg hc0 (by positivity)
+        linarith
+      · -- Taylor region `n > X^{2δ}`: the pointwise squared comparison
+        rw [if_neg hmem, add_zero]
+        have hBn : ⌊X ^ (2 * δ)⌋₊ < n :=
+          not_le.mp fun hle => hmem (Finset.mem_Icc.mpr ⟨hn1, hle⟩)
+        have hXn : X ^ (2 * δ) ≤ (n : ℝ) := by
+          have hlt : X ^ (2 * δ) < (⌊X ^ (2 * δ)⌋₊ : ℝ) + 1 :=
+            Nat.lt_floor_add_one _
+          have hle : (⌊X ^ (2 * δ)⌋₊ : ℝ) + 1 ≤ (n : ℝ) := by
+            exact_mod_cast Nat.succ_le_of_lt hBn
+          linarith
+        have hdiv : ‖∑ m ∈ Finset.Icc 1 H', w (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+            ≤ (‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 + 3 * (H' : ℝ) ^ 3 * |t| / n)
+              / (n : ℝ) ^ (1 + 1 / Real.log X) :=
+          div_le_div_of_nonneg_denom (normSq_window_le_add hfac hwb hn0 H') hnp
+        have hsplit : (‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2
+              + 3 * (H' : ℝ) ^ 3 * |t| / n) / (n : ℝ) ^ (1 + 1 / Real.log X)
+            = ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+              + 3 * (H' : ℝ) ^ 3 * |t| / n * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) := by
+          rw [add_div, div_eq_mul_one_div (3 * (H' : ℝ) ^ 3 * |t| / n)
+            ((n : ℝ) ^ (1 + 1 / Real.log X))]
+        rw [hsplit] at hdiv
+        have herr : 3 * (H' : ℝ) ^ 3 * |t| / n * (1 / (n : ℝ) ^ (1 + 1 / Real.log X))
+            ≤ 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ)
+              * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) := by
+          refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+          have hx2 : (0 : ℝ) < X ^ (2 * δ) := Real.rpow_pos_of_pos hX0 _
+          have hinv : 1 / (n : ℝ) ≤ 1 / X ^ (2 * δ) :=
+            one_div_le_one_div_of_le hx2 hXn
+          calc 3 * (H' : ℝ) ^ 3 * |t| / n
+              = 3 * (H' : ℝ) ^ 3 * |t| * (1 / (n : ℝ)) := div_eq_mul_one_div _ _
+            _ ≤ 3 * (H' : ℝ) ^ 3 * |t| * (1 / X ^ (2 * δ)) :=
+                mul_le_mul_of_nonneg_left hinv (by positivity)
+            _ = 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ) := mul_one_div _ _
+        linarith
+  -- convert the indicator tsum into the finite crude-region sum
+  have hIsum : (∑ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊,
+        if n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊ then
+          (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) else 0)
+      = ∑ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊,
+          (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) :=
+    Finset.sum_congr rfl fun n hn => if_pos hn
+  -- the two budget lines: Taylor tail and crude region
+  have h2 : 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ)
+        * ∑' n : ℕ, 1 / (n : ℝ) ^ (1 + 1 / Real.log X)
+      ≤ 3 * (H' : ℝ) ^ 3 * T * (2 + Real.log X) / X ^ δ :=
+    (mul_le_mul_of_nonneg_left (tsum_one_div_rpow_le_two_add_log hX) hc0).trans
+      (tail_const_le_param hX ht H')
+  have h3 := sum_crude_region_le_param hX hδ0 H'
+  -- assemble
+  calc ∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', w (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+      ≤ ∑' n : ℕ,
+          (‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X)
+            + 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ)
+              * (1 / (n : ℝ) ^ (1 + 1 / Real.log X))
+            + (if n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊ then
+                (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) else 0)) :=
+        Summable.tsum_le_tsum hpt hsummW ((hsummG.add hsummE).add hsummI)
+    _ = (∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X))
+          + 3 * (H' : ℝ) ^ 3 * |t| / X ^ (2 * δ)
+            * (∑' n : ℕ, 1 / (n : ℝ) ^ (1 + 1 / Real.log X))
+          + ∑ n ∈ Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊,
+              (H' : ℝ) ^ 2 * (1 / (n : ℝ) ^ (1 + 1 / Real.log X)) := by
+        rw [Summable.tsum_add (hsummG.add hsummE) hsummI,
+          Summable.tsum_add hsummG hsummE, tsum_mul_left,
+          tsum_eq_sum (s := Finset.Icc 1 ⌊X ^ (2 * δ)⌋₊) (fun n hn => if_neg hn),
+          hIsum]
+    _ ≤ (∑' n : ℕ, ‖∑ m ∈ Finset.Icc 1 H', g (n + m)‖ ^ 2 / (n : ℝ) ^ (1 + 1 / Real.log X))
+          + (H' : ℝ) ^ 2 * (1 + 2 * δ * Real.log X)
+          + 3 * (H' : ℝ) ^ 3 * T * (2 + Real.log X) / X ^ δ := by linarith
+
 end MoltResearch
