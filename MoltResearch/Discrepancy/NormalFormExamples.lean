@@ -5521,6 +5521,24 @@ example :
         (if (5 : ℝ) < ((p : ℕ) : ℝ) then 1 / ((p : ℕ) : ℝ) ^ (1 + 1 / Real.log 5) else 0) ≤ 8 :=
   tsum_primes_tail_one_div_rpow_le (by norm_num)
 
+-- Principal ratio + equidistribution (§4 substrate, PR E3): the principal-twisted 𝔖 is
+-- comparable to 𝔖 up to exp(±ω(r)), and residue-class zeta sums expand into character
+-- averages by second orthogonality.
+example {r : ℕ} [NeZero r] {h : ℕ → ℂ} (hmul : CompletelyMultiplicativeC h)
+    (h1 : h 1 = 1) (hu : Unimodular h) {X : ℝ} (hX : 3 ≤ X) :
+    Real.exp (-(1 * r.primeFactors.card))
+        * ‖zetaWeightedSum h (1 + 1 / Real.log X)‖
+      ≤ ‖zetaWeightedSum (fun n : ℕ => (1 : DirichletCharacter ℂ r) (n : ZMod r) * h n)
+          (1 + 1 / Real.log X)‖ :=
+  (norm_zetaWeightedSum_principal_mul_bounds hmul h1 hu hX).1
+
+example {r : ℕ} [NeZero r] {h : ℕ → ℂ} (hb : ∀ n, ‖h n‖ ≤ 1) {σ : ℝ} (hσ : 1 < σ)
+    {b : ZMod r} (hbu : IsUnit b) :
+    residueZetaSum h r b σ
+      = (r.totient : ℂ)⁻¹ * ∑ χ : DirichletCharacter ℂ r,
+          (starRingEnd ℂ) (χ b) * zetaWeightedSum (fun n : ℕ => χ (n : ZMod r) * h n) σ :=
+  residueZetaSum_eq_char_average hb hσ hbu
+
 -- Character-twist composition (§4 substrate, Lemma tb input): the distance between two
 -- twists equals the distance from 1 to the composite twist mod q·q' — exactly the shape
 -- the VinogradovKorobovAssumption interface consumes.

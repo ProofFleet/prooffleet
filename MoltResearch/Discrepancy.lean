@@ -31,6 +31,7 @@ import MoltResearch.Discrepancy.CharTwistedSingularSeries
 import MoltResearch.Discrepancy.GoodResidues
 import MoltResearch.Discrepancy.AdditiveCharCancellation
 import MoltResearch.Discrepancy.CharTwistCompose
+import MoltResearch.Discrepancy.PrincipalAndEquidistribution
 import MoltResearch.Discrepancy.LogAvgCorr
 import MoltResearch.Discrepancy.PretentiousDist
 import MoltResearch.Discrepancy.StochasticMultiplicative
