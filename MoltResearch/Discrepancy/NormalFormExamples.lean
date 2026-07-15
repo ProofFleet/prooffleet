@@ -5877,6 +5877,28 @@ example {q k : ℕ} (hq : 1 < q) (hk : 1 ≤ k) {χ : DirichletCharacter ℂ q}
               ‖∑ m ∈ Finset.Icc 1 H', charCutoff χ d (a + m)‖ ^ 2 :=
   sum_normSq_window_charCutoff_comb hq hk hχ c H'
 
+-- Track C §4 endgame (issue #2871): on good residues, `χ̃` IS its divisor-cutoff
+-- combination, and the combination is 1-bounded everywhere (bad-residue reinstatement).
+example {g : ℕ → ℂ} {q : ℕ} {χ : DirichletCharacter ℂ q} {t : ℝ} {k H a : ℕ}
+    (hq : q ≠ 0) (hgood : IsGoodResidue q k H a) {m : ℕ} (hm : m ∈ Finset.Icc 1 (2 * H)) :
+    ∑ d ∈ (q ^ (k - 1)).divisors, chiTilde g q χ t d * charCutoff χ d (a + m)
+      = chiTilde g q χ t (a + m) :=
+  sum_divisors_chiTilde_charCutoff_of_good hq hgood hm
+
+example {g : ℕ → ℂ} {q : ℕ} {χ : DirichletCharacter ℂ q} {t : ℝ}
+    (hu : Unimodular g) (hq : q ≠ 0) (j n : ℕ) :
+    ‖∑ d ∈ (q ^ j).divisors, chiTilde g q χ t d * charCutoff χ d n‖ ≤ 1 :=
+  norm_sum_divisors_chiTilde_charCutoff_le hu hq j n
+
+-- Track C §4 endgame (issue #2871): the pure scales `d = qⁱ` of the diagonal carry
+-- linear mass — each length-`qⁱ` window holds one character value, blocks sweep a period.
+example {q : ℕ} (hq : 1 ≤ q) (χ : DirichletCharacter ℂ q) {i k : ℕ} (hik : i ≤ k)
+    (H' : ℕ) :
+    (q.totient : ℝ) * (((q ^ (k - i) - 1) / q : ℕ) : ℝ) * ((q ^ i : ℕ) : ℝ)
+      ≤ ∑ a ∈ Finset.range (q ^ k),
+          ‖∑ m ∈ Finset.Ioc H' (H' + q ^ i), charCutoff χ (q ^ i) (a + m)‖ ^ 2 :=
+  sum_normSq_window_pure_scale_ge hq χ hik H'
+
 end NormalFormExamples
 
 end MoltResearch
