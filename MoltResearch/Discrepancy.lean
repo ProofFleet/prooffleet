@@ -36,6 +36,7 @@ import MoltResearch.Discrepancy.ArchimedeanTaylor
 import MoltResearch.Discrepancy.PrincipalEulerRatio
 import MoltResearch.Discrepancy.CharacterSecondMoment
 import MoltResearch.Discrepancy.PerfectCancellation
+import MoltResearch.Discrepancy.AlmostOrthogonality
 import MoltResearch.Discrepancy.PretentiousFactorization
 import MoltResearch.Discrepancy.ResidueClassReduction
 import MoltResearch.Discrepancy.ConductorReduction

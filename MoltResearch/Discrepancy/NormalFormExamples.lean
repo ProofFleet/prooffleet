@@ -5865,6 +5865,18 @@ example {q : ℕ} (χ : DirichletCharacter ℂ q) (N : ℕ) :
       ≤ ∑ b ∈ Finset.Icc 1 N, ‖χ ((b : ℕ) : ZMod q)‖ ^ 2 :=
   totient_mul_le_sum_normSq_dirichletChar χ N
 
+-- Track C §4 endgame (issue #2871, eq. (stop-2) → (tex)): windowed second moments of
+-- divisor-cutoff combinations split exactly into their diagonal (perfect cancellation).
+example {q k : ℕ} (hq : 1 < q) (hk : 1 ≤ k) {χ : DirichletCharacter ℂ q}
+    (hχ : χ.IsPrimitive) (c : ℕ → ℂ) (H' : ℕ) :
+    ∑ a ∈ Finset.range (q ^ k),
+        ‖∑ m ∈ Finset.Icc 1 H',
+            ∑ d ∈ (q ^ (k - 1)).divisors, c d * charCutoff χ d (a + m)‖ ^ 2
+      = ∑ d ∈ (q ^ (k - 1)).divisors, ‖c d‖ ^ 2
+          * ∑ a ∈ Finset.range (q ^ k),
+              ‖∑ m ∈ Finset.Icc 1 H', charCutoff χ d (a + m)‖ ^ 2 :=
+  sum_normSq_window_charCutoff_comb hq hk hχ c H'
+
 end NormalFormExamples
 
 end MoltResearch
