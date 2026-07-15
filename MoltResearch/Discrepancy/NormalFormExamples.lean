@@ -5848,6 +5848,16 @@ example {g w : ℕ → ℂ} {t : ℝ}
         + 3 * (H' : ℝ) ^ 3 * T * (2 + Real.log X) / X ^ δ :=
   sum_div_normSq_window_twisted_le_add hfac hwb hX hT hδ0 ht hH'
 
+-- Track C §4 κ-calculus (issue #2907): the `φ(r')`-normalized principal Euler factor is
+-- `1 + O(log(dr')/L)` — the exact shape of the `hkappa` input to the (jock)→(contra) chain.
+example {d r' : ℕ} (hd : 1 ≤ d) (hr' : 1 ≤ r')
+    {L : ℝ} (hL2 : 2 ≤ L) (hLr : 2 * Real.log ((d : ℝ) * (r' : ℝ)) ≤ L) :
+    |((d : ℝ) * (r' : ℝ))
+        * ((1 / (d : ℝ) ^ (1 + 1 / L)) * (1 / (r'.totient : ℝ))
+            * ∏ p ∈ r'.primeFactors, (1 - 1 / (p : ℝ) ^ (1 + 1 / L))) - 1|
+      ≤ 2 * Real.log ((d : ℝ) * (r' : ℝ)) / L :=
+  abs_scaled_euler_prod_sub_one_le hd hr' hL2 hLr
+
 end NormalFormExamples
 
 end MoltResearch
