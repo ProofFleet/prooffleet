@@ -475,7 +475,7 @@ theorem contra_of_pretentious_window (q k H : ℕ) (hq : 1 ≤ q) (hk : 1 ≤ k)
     (fun r' hr' h hm h1 hb σ hσ => by
       haveI : NeZero r' := ⟨hr'⟩
       exact zetaWeightedSum_principal_mul_eq hm h1 hb hσ)
-    (by sorry)  -- κ-calculus: `abs_scaled_euler_prod_sub_one_le` (helpers PR)
+    (fun _ _ hd hr' _ hL2 hLr => abs_scaled_euler_prod_sub_one_le hd hr' hL2 hLr)
   -- constants and the threshold
   set s₀ : ℝ := Real.exp (-(20 + B₂)) with hs₀def
   have hs₀0 : 0 < s₀ := Real.exp_pos _
