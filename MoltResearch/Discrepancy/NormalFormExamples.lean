@@ -5858,6 +5858,13 @@ example {d r' : ℕ} (hd : 1 ≤ d) (hr' : 1 ≤ r')
       ≤ 2 * Real.log ((d : ℝ) * (r' : ℝ)) / L :=
   abs_scaled_euler_prod_sub_one_le hd hr' hL2 hLr
 
+-- Track C §4 endgame count (issue #2908): the windowed character second moment grows
+-- linearly, `φ(q)·⌊N/q⌋ ≤ ∑_{b ≤ N} ‖χ(b)‖²`.
+example {q : ℕ} (χ : DirichletCharacter ℂ q) (N : ℕ) :
+    (q.totient : ℝ) * ((N / q : ℕ) : ℝ)
+      ≤ ∑ b ∈ Finset.Icc 1 N, ‖χ ((b : ℕ) : ZMod q)‖ ^ 2 :=
+  totient_mul_le_sum_normSq_dirichletChar χ N
+
 end NormalFormExamples
 
 end MoltResearch
