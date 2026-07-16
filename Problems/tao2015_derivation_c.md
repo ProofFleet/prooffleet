@@ -193,6 +193,7 @@ Derivation (the real work; open a GitHub issue per box when starting):
   is already the measure-theoretic packaging. Composing the glue also caught a quantifier-order
   bug in `VanDerCorputAssumption` — `K` must precede `ε` to encode `1 − O(ε)` non-vacuously —
   fixed in the same PR, along with factoring the shared `pretentiousEvent` set.)
+- [ ] §2, Fourier reduction: from a bounded-discrepancy sign sequence, construct the stochastic completely multiplicative counterexample (instance of FourierReductionStochasticAssumption). Decomposed as issue #2920.
 - [ ] Endgame: re-prove `stage5_notBounded` from `FourierReductionStochasticAssumption` + `theorem18`, retire the Stage-2 stub axiom, and flip the blueprint card's milestone (C) to done. CI must stay green with the axiom file deleted.
 
 ## 5. References / links
