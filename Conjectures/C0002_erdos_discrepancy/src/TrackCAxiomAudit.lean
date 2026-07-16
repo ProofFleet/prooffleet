@@ -4,6 +4,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Reduction
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5VanDerCorputProof
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5BCCWrapper
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5FourierProof
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LittlewoodWrapper
 -- For the anti-vacuity witnesses (issue #2879) only.
 import Mathlib.NumberTheory.ArithmeticFunction
 
@@ -86,6 +87,18 @@ info: 'MoltResearch.Tao2015.edp_of_logElliott_vinogradovKorobov' depends on axio
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.edp_of_logElliott_vinogradovKorobov
+
+/--
+info: 'MoltResearch.Tao2015.vinogradovKorobov_of_littlewoodLBound' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.vinogradovKorobov_of_littlewoodLBound
+
+/--
+info: 'MoltResearch.Tao2015.edp_of_logElliott_littlewood' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.edp_of_logElliott_littlewood
 
 /-!
 ## Anti-vacuity witnesses (issue #2879)
