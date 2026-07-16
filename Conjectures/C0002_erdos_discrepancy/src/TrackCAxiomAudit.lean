@@ -2,6 +2,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Derivation
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Core
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Reduction
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5VanDerCorputProof
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5BCCWrapper
 -- For the anti-vacuity witnesses (issue #2879) only.
 import Mathlib.NumberTheory.ArithmeticFunction
 
@@ -62,6 +63,14 @@ info: 'MoltResearch.Tao2015.theorem18_of_logElliottNonasymptotic' depends on axi
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.theorem18_of_logElliottNonasymptotic
+
+/--
+info: 'MoltResearch.Tao2015.theorem18_of_logElliott_vinogradovKorobov' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.theorem18_of_logElliott_vinogradovKorobov
 
 /-!
 ## Anti-vacuity witnesses (issue #2879)
