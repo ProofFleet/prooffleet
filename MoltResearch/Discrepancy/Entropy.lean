@@ -282,4 +282,86 @@ theorem mutualInfo_eq_sub_condEntropy (w : α × β → ℝ) :
 
 end Joint
 
+section Fibers
+
+variable {α β : Type*} [Fintype α] [Fintype β]
+
+/-- The conditional distribution on the fiber over `b` (junk `0` off the support of
+the conditioning marginal). -/
+noncomputable def fiber (w : α × β → ℝ) (b : β) : α → ℝ :=
+  fun a => if marginal₂ w b = 0 then 0 else w (a, b) / marginal₂ w b
+
+theorem fiber_nonneg {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x) (b : β) (a : α) :
+    0 ≤ fiber w b a := by
+  rw [show fiber w b a
+      = if marginal₂ w b = 0 then 0 else w (a, b) / marginal₂ w b from rfl]
+  split_ifs with h
+  · exact le_refl 0
+  · have hm : 0 < marginal₂ w b :=
+      lt_of_le_of_ne (marginal₂_nonneg hw0 b) (Ne.symm h)
+    have := hw0 (a, b)
+    positivity
+
+theorem sum_fiber {w : α × β → ℝ} {b : β} (hb : marginal₂ w b ≠ 0) :
+    ∑ a, fiber w b a = 1 := by
+  have hfe : ∀ a, fiber w b a = w (a, b) / marginal₂ w b := fun a => by
+    rw [show fiber w b a
+        = if marginal₂ w b = 0 then 0 else w (a, b) / marginal₂ w b from rfl,
+      if_neg hb]
+  rw [Finset.sum_congr rfl fun a _ => hfe a,
+    Finset.sum_congr rfl fun a _ => div_eq_mul_inv (w (a, b)) _, ← Finset.sum_mul,
+    ← div_eq_mul_inv]
+  exact div_self hb
+
+/-- The joint weight recombines from the fiber and the conditioning marginal. -/
+theorem fiber_mul {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x) (a : α) (b : β) :
+    marginal₂ w b * fiber w b a = w (a, b) := by
+  rw [show fiber w b a
+      = if marginal₂ w b = 0 then 0 else w (a, b) / marginal₂ w b from rfl]
+  split_ifs with h
+  · rw [mul_zero]
+    have h1 := le_marginal₂ hw0 a b
+    have h2 := hw0 (a, b)
+    rw [h] at h1
+    linarith
+  · field_simp
+
+/-- **The fiber decomposition of conditional entropy** (eq. (xy) of arXiv:1509.05422
+§3): `H(X|Y) = ∑_y P(Y=y)·H(X | Y=y)`. -/
+theorem condEntropy_eq_sum_fiber {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x) :
+    condEntropy w = ∑ b, marginal₂ w b * shannonEntropy (fiber w b) := by
+  rw [condEntropy]
+  have hjoint : shannonEntropy w
+      = shannonEntropy (marginal₂ w)
+        + ∑ b, marginal₂ w b * shannonEntropy (fiber w b) := by
+    have hL : shannonEntropy w = ∑ b, ∑ a, Real.negMulLog (w (a, b)) := by
+      rw [shannonEntropy, Fintype.sum_prod_type, Finset.sum_comm]
+    rw [hL]
+    have hper : ∀ b, ∑ a, Real.negMulLog (w (a, b))
+        = Real.negMulLog (marginal₂ w b)
+          + marginal₂ w b * shannonEntropy (fiber w b) := by
+      intro b
+      have hsplit : ∀ a, Real.negMulLog (w (a, b))
+          = fiber w b a * Real.negMulLog (marginal₂ w b)
+            + marginal₂ w b * Real.negMulLog (fiber w b a) := by
+        intro a
+        rw [← fiber_mul hw0 a b, Real.negMulLog_mul]
+      rw [Finset.sum_congr rfl fun a _ => hsplit a, Finset.sum_add_distrib,
+        ← Finset.sum_mul, ← Finset.mul_sum]
+      by_cases hb : marginal₂ w b = 0
+      · rw [hb]
+        have hfz : ∀ a, fiber w b a = 0 := fun a => by
+          rw [show fiber w b a
+              = if marginal₂ w b = 0 then 0 else w (a, b) / marginal₂ w b from rfl,
+            if_pos hb]
+        rw [Finset.sum_congr rfl fun a _ => hfz a]
+        simp [Real.negMulLog_zero]
+      · rw [sum_fiber hb, one_mul, shannonEntropy]
+    rw [Finset.sum_congr rfl fun b _ => hper b, Finset.sum_add_distrib]
+    rfl
+  rw [hjoint]
+  ring
+
+end Fibers
+
 end MoltResearch

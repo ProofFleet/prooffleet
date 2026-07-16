@@ -6105,6 +6105,13 @@ example {α β : Type*} [Fintype α] [Fintype β] {w : α × β → ℝ}
     (hw0 : ∀ x, 0 ≤ w x) (hsum : ∑ x, w x = 1) : 0 ≤ mutualInfo w :=
   mutualInfo_nonneg hw0 hsum
 
+-- Track C Elliott campaign (issue #2946, E1c): the fiber decomposition of
+-- conditional entropy — eq. (xy) of the entropy decrement toolbox.
+example {α β : Type*} [Fintype α] [Fintype β] {w : α × β → ℝ}
+    (hw0 : ∀ x, 0 ≤ w x) :
+    condEntropy w = ∑ b, marginal₂ w b * shannonEntropy (fiber w b) :=
+  condEntropy_eq_sum_fiber hw0
+
 end NormalFormExamples
 
 end MoltResearch
