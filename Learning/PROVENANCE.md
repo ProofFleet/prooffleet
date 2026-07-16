@@ -8,16 +8,16 @@ plus a session link), merged-PR branch prefixes, and git authors.
 
 | Identity | Count |
 |---|---|
-| Claude Fable 5 <noreply@anthropic.com> | 121 |
-| JvN <jvn@local> | 70 |
+| Claude Fable 5 <noreply@anthropic.com> | 123 |
+| JvN <jvn@local> | 72 |
 | Vex <vex@local> | 10 |
 
 ### Merged PRs by branch prefix
 
 | Identity | Count |
 |---|---|
-| vex | 921 |
-| (unprefixed) | 70 |
+| vex | 919 |
+| (unprefixed) | 72 |
 | claude | 5 |
 | codex | 4 |
 
@@ -27,6 +27,15 @@ plus a session link), merged-PR branch prefixes, and git authors.
 |---|---|
 | JvN | 1464 |
 | Vex | 1412 |
-| Sean Huver | 133 |
+| Sean Huver | 135 |
 | Claude | 7 |
+
+### Merge rates by branch prefix
+
+| Prefix | Merged | Closed unmerged | Rate |
+|---|---|---|---|
+| vex | 919 | 0 | 100% |
+| (unprefixed) | 72 | 0 | 100% |
+| claude | 5 | 0 | 100% |
+| codex | 4 | 0 | 100% |
 

@@ -43,6 +43,28 @@ def coauthor_counts(since: str | None) -> collections.Counter:
     return collections.Counter(lines)
 
 
+def pr_rates() -> list[tuple[str, int, int]] | None:
+    """Per-branch-prefix (merged, closed-unmerged) PR counts, for merge rates."""
+    if shutil.which("gh") is None:
+        return None
+    rows: dict[str, list[int]] = {}
+    try:
+        for state, idx in (("merged", 0), ("closed", 1)):
+            out = subprocess.run(
+                ["gh", "pr", "list", "--state", state, "--limit", "1000",
+                 "--json", "headRefName", "-q", ".[].headRefName"],
+                capture_output=True, text=True, check=True, timeout=60,
+            ).stdout
+            for ref in out.splitlines():
+                prefix = ref.split("/", 1)[0] if "/" in ref else "(unprefixed)"
+                rows.setdefault(prefix, [0, 0])[idx] += 1
+    except Exception:
+        return None
+    # gh's "closed" state includes merged PRs; report closed-without-merge
+    return [(k, v[0], max(0, v[1] - v[0])) for k, v in
+            sorted(rows.items(), key=lambda kv: -kv[1][0])]
+
+
 def pr_prefix_counts() -> collections.Counter | None:
     if shutil.which("gh") is None:
         return None
@@ -81,6 +103,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--md", action="store_true", help="emit Markdown")
     ap.add_argument("--since", default=None, help="restrict to commits since a date")
+    ap.add_argument("--rates", action="store_true",
+                    help="also show per-prefix merge rates (merged vs closed)")
     ns = ap.parse_args()
 
     out = []
@@ -95,6 +119,21 @@ def main() -> None:
     if prs is not None:
         out.append(render(prs, "Merged PRs by branch prefix", ns.md))
     out.append(render(author_counts(ns.since), "Git author identities (commits)", ns.md))
+    if ns.rates:
+        rates = pr_rates()
+        if rates is not None:
+            lines = ["### Merge rates by branch prefix\n" if ns.md
+                     else "== Merge rates by branch prefix"]
+            if ns.md:
+                lines.append("| Prefix | Merged | Closed unmerged | Rate |")
+                lines.append("|---|---|---|---|")
+            for prefix, merged, closed in rates[:15]:
+                total = merged + closed
+                rate = f"{merged / total:.0%}" if total else "-"
+                lines.append(f"| {prefix} | {merged} | {closed} | {rate} |" if ns.md
+                             else f"  {prefix:20s} merged {merged:4d}  closed {closed:4d}  rate {rate}")
+            lines.append("")
+            out.append("\n".join(lines))
     print("\n".join(out))
 
 

@@ -55,6 +55,29 @@ Do this instead of silently looping:
 - paste the exact error + what you tried
 - label it `blocked` (or say “blocked by X” in the PR description)
 
+## Routing and claims (soft routing, hard budgets)
+
+Issues carry advisory `effort:` labels — `T0-mechanical` (lint/migration/docs),
+`T1-lemma` (exact statement + route given), `T2-module` (blueprint, real proof search),
+`T3-campaign` (deep-context stitches). **Labels predict cost, not permission**: any
+agent may attempt anything; CI is the arbiter, not identity.
+
+What *is* hard are the budgets:
+
+- A claim (**"I'm on this"**) expires after **72 hours without a draft PR showing
+  progress**, or after **3 consecutive failed CI runs** on the same attempt. Anyone may
+  then re-claim.
+- Unclaiming (or expiring) requires posting **the exact blocking error and what you
+  tried** on the issue — failures must become data, not noise.
+- Escalation is earned, not assumed: `scripts/provenance_report.py --rates` shows
+  per-contributor merge rates; a clean T0/T1 track record is the natural ticket to
+  T2+ work. Small/local models: start in the `effort:T0-mechanical` lanes
+  (see the local-model lane issue) and level up.
+- Content guardrails bind **everyone** regardless of capability: never weaken a theorem
+  statement to make it provable, never touch interface classes (`*Assumption`) or
+  `TrackCAxiomAudit.lean` in lane work, and add your `Co-Authored-By` trailer + a
+  session/run link to every commit.
+
 ## Where the rules live
 
 - Repo structure + invariants: `README.md`
