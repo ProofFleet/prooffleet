@@ -48,6 +48,7 @@ import MoltResearch.Discrepancy.AveragedWindowBound
 import MoltResearch.Discrepancy.SpectralWindowBound
 import MoltResearch.Discrepancy.FiniteSpectralSample
 import MoltResearch.Discrepancy.PrimeDataSpace
+import MoltResearch.Discrepancy.SpectralLaw
 import MoltResearch.Discrepancy.ResidueClassReduction
 import MoltResearch.Discrepancy.ConductorReduction
 import MoltResearch.Discrepancy.TwistedWindowTransfer

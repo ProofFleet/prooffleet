@@ -6020,6 +6020,17 @@ example (n : ℕ) (ω : PrimeData) :
     windowFunctional n ω = ‖apSumC (toCM ω) 1 n‖ ^ 2 :=
   windowFunctional_apply n ω
 
+-- Track C §2 Fourier reduction (issue #2920): the per-scale spectral law transports
+-- the second-moment bound to the compact space of prime data.
+example {X M : ℕ} [NeZero M] {f : ℕ → ℤ} (hs : IsSignSequence f)
+    {B : ℕ} (hB : ∀ d n : ℕ, d > 0 → (apSum f d n).natAbs ≤ B)
+    {n : ℕ} (hnX : n ≤ X)
+    (hM : Fintype.card (PrimeIdx X) * Nat.log 2 X * X ^ 2 ≤ M) :
+    ∫ ω, windowFunctional n ω
+        ∂(spectralLaw f X M hs : MeasureTheory.Measure PrimeData)
+      ≤ (B : ℝ) ^ 2 + 1 :=
+  integral_windowFunctional_spectralLaw_le hs hB hnX hM
+
 end NormalFormExamples
 
 end MoltResearch
