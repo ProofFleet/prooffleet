@@ -6070,6 +6070,14 @@ example {y : ℕ} (hy : 3 ≤ y) :
         (if y ≤ (p : ℕ) then ((p : ℕ) : ℝ) ^ (-(1 + 1 / Real.log y)) else 0) ≤ 8 :=
   tsum_primes_tail_rpow_le hy
 
+-- Track C VK/Littlewood campaign (issue #2935, W2d): the truncated Euler-product
+-- bridge — the VK pretense term against log ‖L‖ just right of the 1-line.
+example {N : ℕ} (χ : DirichletCharacter ℂ N) {y : ℕ} (hy : 3 ≤ y) (t : ℝ) :
+    ∑ p ∈ y.primesBelow, (χ p * (p : ℂ) ^ (Complex.I * t)).re / p
+      ≤ Real.log ‖LSeries (fun n => χ n)
+          (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖ + 13 :=
+  sum_re_twist_div_le_log_norm_LSeries χ hy t
+
 end NormalFormExamples
 
 end MoltResearch
