@@ -5993,6 +5993,23 @@ example {X M : ℕ} [NeZero M] {f : ℕ → ℤ} (hs : IsSignSequence f)
       ≤ (B : ℝ) ^ 2 + 1 :=
   spectral_window_bound hs hB hnX hM
 
+-- Track C §2 Fourier reduction (issue #2920): the finite spectral sample — CM and
+-- unimodular everywhere, and its weighted second moment is ≤ B² + 1 up to scale X.
+example {X M : ℕ} [NeZero M] (ξ : PrimeIdx X → ZMod M) :
+    CompletelyMultiplicativeC (spectralSample X M ξ) ∧
+      Unimodular (spectralSample X M ξ) :=
+  ⟨spectralSample_completelyMultiplicativeC ξ, spectralSample_unimodular ξ⟩
+
+example {X M : ℕ} [NeZero M] {f : ℕ → ℤ} (hs : IsSignSequence f)
+    {B : ℕ} (hB : ∀ d n : ℕ, d > 0 → (apSum f d n).natAbs ≤ B)
+    {n : ℕ} (hnX : n ≤ X)
+    (hM : Fintype.card (PrimeIdx X) * Nat.log 2 X * X ^ 2 ≤ M) :
+    ∑ ξ : PrimeIdx X → ZMod M,
+        ‖prodDFT (smoothEval f X) ξ‖ ^ 2
+          * ‖apSumC (spectralSample X M ξ) 1 n‖ ^ 2
+      ≤ (B : ℝ) ^ 2 + 1 :=
+  weighted_normSq_apSumC_spectralSample_le hs hB hnX hM
+
 end NormalFormExamples
 
 end MoltResearch
