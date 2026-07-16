@@ -6112,6 +6112,13 @@ example {α β : Type*} [Fintype α] [Fintype β] {w : α × β → ℝ}
     condEntropy w = ∑ b, marginal₂ w b * shannonEntropy (fiber w b) :=
   condEntropy_eq_sum_fiber hw0
 
+-- Track C Elliott campaign (issue #2946, E1d): relative subadditivity
+-- (submodularity) — eq. (subadd-rel), the last unproved Shannon inequality of §3.
+example {α β γ : Type*} [Fintype α] [Fintype β] [Fintype γ]
+    {w : (α × β) × γ → ℝ} (hw0 : ∀ x, 0 ≤ w x) :
+    condEntropy w ≤ condEntropy (margAC w) + condEntropy (margBC w) :=
+  condEntropy_le_add_condEntropy hw0
+
 end NormalFormExamples
 
 end MoltResearch

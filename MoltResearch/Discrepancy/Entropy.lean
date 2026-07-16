@@ -364,4 +364,106 @@ theorem condEntropy_eq_sum_fiber {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x)
 
 end Fibers
 
+section Relative
+
+variable {α β γ : Type*} [Fintype α] [Fintype β] [Fintype γ]
+
+/-- The `(α, γ)`-marginal of a triple distribution on `(α × β) × γ`. -/
+noncomputable def margAC (w : (α × β) × γ → ℝ) : α × γ → ℝ :=
+  fun x => ∑ b, w ((x.1, b), x.2)
+
+/-- The `(β, γ)`-marginal of a triple distribution on `(α × β) × γ`. -/
+noncomputable def margBC (w : (α × β) × γ → ℝ) : β × γ → ℝ :=
+  fun x => ∑ a, w ((a, x.1), x.2)
+
+theorem margAC_nonneg {w : (α × β) × γ → ℝ} (hw0 : ∀ x, 0 ≤ w x) (x : α × γ) :
+    0 ≤ margAC w x :=
+  Finset.sum_nonneg fun b _ => hw0 ((x.1, b), x.2)
+
+theorem margBC_nonneg {w : (α × β) × γ → ℝ} (hw0 : ∀ x, 0 ≤ w x) (x : β × γ) :
+    0 ≤ margBC w x :=
+  Finset.sum_nonneg fun a _ => hw0 ((a, x.1), x.2)
+
+/-- The conditioning marginals of the projected distributions agree with the original. -/
+theorem marginal₂_margAC (w : (α × β) × γ → ℝ) (c : γ) :
+    marginal₂ (margAC w) c = marginal₂ w c := by
+  show ∑ a, ∑ b, w ((a, b), c) = ∑ x : α × β, w (x, c)
+  rw [Fintype.sum_prod_type]
+
+theorem marginal₂_margBC (w : (α × β) × γ → ℝ) (c : γ) :
+    marginal₂ (margBC w) c = marginal₂ w c := by
+  show ∑ b, ∑ a, w ((a, b), c) = ∑ x : α × β, w (x, c)
+  rw [Fintype.sum_prod_type, Finset.sum_comm]
+
+/-- Marginalizing the fiber is the fiber of the marginal. -/
+theorem marginal₁_fiber (w : (α × β) × γ → ℝ) (c : γ) :
+    marginal₁ (fiber w c) = fiber (margAC w) c := by
+  funext a
+  show ∑ b, fiber w c (a, b) = fiber (margAC w) c a
+  rw [show fiber (margAC w) c a
+      = if marginal₂ (margAC w) c = 0 then 0
+        else margAC w (a, c) / marginal₂ (margAC w) c from rfl,
+    marginal₂_margAC]
+  by_cases hc : marginal₂ w c = 0
+  · rw [if_pos hc]
+    refine Finset.sum_eq_zero fun b _ => ?_
+    rw [show fiber w c (a, b)
+        = if marginal₂ w c = 0 then 0 else w ((a, b), c) / marginal₂ w c from rfl,
+      if_pos hc]
+  · rw [if_neg hc]
+    rw [Finset.sum_congr rfl fun b _ => show fiber w c (a, b)
+        = w ((a, b), c) / marginal₂ w c from by
+      rw [show fiber w c (a, b)
+          = if marginal₂ w c = 0 then 0 else w ((a, b), c) / marginal₂ w c from rfl,
+        if_neg hc]]
+    rw [Finset.sum_congr rfl fun b _ => div_eq_mul_inv (w ((a, b), c)) _,
+      ← Finset.sum_mul, ← div_eq_mul_inv]
+    rfl
+
+theorem marginal₂_fiber (w : (α × β) × γ → ℝ) (c : γ) :
+    marginal₂ (fiber w c) = fiber (margBC w) c := by
+  funext b
+  show ∑ a, fiber w c (a, b) = fiber (margBC w) c b
+  rw [show fiber (margBC w) c b
+      = if marginal₂ (margBC w) c = 0 then 0
+        else margBC w (b, c) / marginal₂ (margBC w) c from rfl,
+    marginal₂_margBC]
+  by_cases hc : marginal₂ w c = 0
+  · rw [if_pos hc]
+    refine Finset.sum_eq_zero fun a _ => ?_
+    rw [show fiber w c (a, b)
+        = if marginal₂ w c = 0 then 0 else w ((a, b), c) / marginal₂ w c from rfl,
+      if_pos hc]
+  · rw [if_neg hc]
+    rw [Finset.sum_congr rfl fun a _ => show fiber w c (a, b)
+        = w ((a, b), c) / marginal₂ w c from by
+      rw [show fiber w c (a, b)
+          = if marginal₂ w c = 0 then 0 else w ((a, b), c) / marginal₂ w c from rfl,
+        if_neg hc]]
+    rw [Finset.sum_congr rfl fun a _ => div_eq_mul_inv (w ((a, b), c)) _,
+      ← Finset.sum_mul, ← div_eq_mul_inv]
+    rfl
+
+/-- **Relative subadditivity of entropy** (eq. (subadd-rel) of arXiv:1509.05422 §3,
+= submodularity): `H(X,Y|Z) ≤ H(X|Z) + H(Y|Z)` — per-fiber subadditivity, averaged
+over the conditioning variable. -/
+theorem condEntropy_le_add_condEntropy {w : (α × β) × γ → ℝ} (hw0 : ∀ x, 0 ≤ w x) :
+    condEntropy w ≤ condEntropy (margAC w) + condEntropy (margBC w) := by
+  rw [condEntropy_eq_sum_fiber hw0, condEntropy_eq_sum_fiber (margAC_nonneg hw0),
+    condEntropy_eq_sum_fiber (margBC_nonneg hw0)]
+  rw [← Finset.sum_add_distrib]
+  refine Finset.sum_le_sum fun c _ => ?_
+  rw [marginal₂_margAC, marginal₂_margBC, ← marginal₁_fiber, ← marginal₂_fiber]
+  by_cases hc : marginal₂ w c = 0
+  · rw [hc]
+    ring_nf
+    exact le_refl 0
+  · have hm : 0 < marginal₂ w c :=
+      lt_of_le_of_ne (Finset.sum_nonneg fun x _ => hw0 (x, c)) (Ne.symm hc)
+    have hsub := shannonEntropy_le_add_marginals
+      (w := fiber w c) (fiber_nonneg hw0 c) (sum_fiber hc)
+    nlinarith [hsub, hm]
+
+end Relative
+
 end MoltResearch
