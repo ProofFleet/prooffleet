@@ -6078,6 +6078,17 @@ example {N : ℕ} (χ : DirichletCharacter ℂ N) {y : ℕ} (hy : 3 ≤ y) (t : 
           (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖ + 13 :=
   sum_re_twist_div_le_log_norm_LSeries χ hy t
 
+-- Track C Elliott campaign (issue #2946, E1a): Shannon entropy of finite discrete
+-- distributions — nonnegativity and Jensen at the uniform.
+example {α : Type*} [Fintype α] {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
+    (hw1 : ∀ x, w x ≤ 1) : 0 ≤ shannonEntropy w :=
+  shannonEntropy_nonneg hw0 hw1
+
+example {α : Type*} [Fintype α] {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
+    (hsum : ∑ x, w x = 1) :
+    shannonEntropy w ≤ Real.log (Fintype.card α) :=
+  shannonEntropy_le_log_card hw0 hsum
+
 end NormalFormExamples
 
 end MoltResearch
