@@ -44,6 +44,7 @@ import MoltResearch.Discrepancy.EndgameAssembly
 import MoltResearch.Discrepancy.EndgameContradiction
 import MoltResearch.Discrepancy.ProductFourier
 import MoltResearch.Discrepancy.DilationCover
+import MoltResearch.Discrepancy.MertensFloor
 import MoltResearch.Discrepancy.AveragedWindowBound
 import MoltResearch.Discrepancy.SpectralWindowBound
 import MoltResearch.Discrepancy.FiniteSpectralSample

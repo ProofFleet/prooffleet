@@ -6040,6 +6040,12 @@ example {f : ℕ → ℤ} (hs : IsSignSequence f)
         ≤ (B : ℝ) ^ 2 + 1 :=
   exists_limit_law f hs hB
 
+-- Track C VK/Littlewood campaign (issue #2935, W1): the Mertens floor — the harmonic
+-- lower bound of Mertens' second theorem, elementary smooth-number form.
+example {y : ℕ} (hy : 2 ≤ y) :
+    Real.log (Real.log y) ≤ (∑ p ∈ y.primesBelow, (1 : ℝ) / p) + 1 :=
+  log_log_le_sum_one_div_primesBelow hy
+
 end NormalFormExamples
 
 end MoltResearch
