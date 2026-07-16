@@ -5899,6 +5899,20 @@ example {q : ℕ} (hq : 1 ≤ q) (χ : DirichletCharacter ℂ q) {i k : ℕ} (hi
           ‖∑ m ∈ Finset.Ioc H' (H' + q ^ i), charCutoff χ (q ^ i) (a + m)‖ ^ 2 :=
   sum_normSq_window_pure_scale_ge hq χ hik H'
 
+-- Track C §4 endgame assembly (issue #2871): the good-residue window moment of χ̃
+-- dominates the pure-scale mass — the deterministic lower bound contradicting (contra).
+example {g : ℕ → ℂ} {q : ℕ} {χ : DirichletCharacter ℂ q} {t : ℝ} (hq : 1 < q)
+    {k : ℕ} (hk : 1 ≤ k) (hχ : χ.IsPrimitive) (hu : Unimodular g) {H : ℕ} (hH : 1 ≤ H)
+    (S : Finset ℕ) (hSk : ∀ i ∈ S, i ≤ k - 1) (hSH : ∀ i ∈ S, 2 * q ^ i ≤ H) :
+    ((H / 2 : ℕ) : ℝ)
+        * ∑ i ∈ S, (q.totient : ℝ) * (((q ^ (k - i) - 1) / q : ℕ) : ℝ) * ((q ^ i : ℕ) : ℝ)
+      ≤ 4 * ∑ H' ∈ Finset.Ioc H (2 * H),
+            ∑ a ∈ (Finset.Icc 1 (q ^ k)).filter (fun a => IsGoodResidue q k H a),
+              ‖∑ m ∈ Finset.Icc 1 H', chiTilde g q χ t (a + m)‖ ^ 2
+        + 16 * (H : ℝ) ^ 3
+            * ((2 * H * q.primeFactors.card * (q ^ k / 2 ^ k + 1) : ℕ) : ℝ) :=
+  mul_sum_scales_le_good_window_moment hq hk hχ hu hH S hSk hSH
+
 end NormalFormExamples
 
 end MoltResearch
