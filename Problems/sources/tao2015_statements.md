@@ -115,6 +115,13 @@ No instance, no axiom: the §4 target is
 `instance [LogElliottNonasymptoticAssumption] [VinogradovKorobovAssumption] :
 BorweinChoiCoonsAssumption` (issue #2871).
 
+**Ledger update (2026-07-16, PR #2918)**: the target landed *stronger* than planned —
+`instance [VinogradovKorobovAssumption] : BorweinChoiCoonsAssumption`
+(`TrackCStage5BCCWrapper.lean`), with **no Elliott input**: the §4 branch needs only the
+second-moment bound (Markov), the VK t-cut, and the deterministic endgame. Theorem 1.8's
+deep-input set is exactly `{LogElliottNonasymptoticAssumption, VinogradovKorobovAssumption}`
+(`theorem18_of_logElliott_vinogradovKorobov`).
+
 ---
 
 ## arXiv:1509.05422 — log-averaged Chowla/Elliott for two-point correlations
