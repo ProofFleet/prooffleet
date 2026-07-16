@@ -5941,6 +5941,15 @@ example {M : ℕ} [NeZero M] {κ : Type} [Fintype κ] [DecidableEq κ]
       = (1 / ((M : ℝ)) ^ Fintype.card κ) * ∑ x : κ → ZMod M, ‖F x‖ ^ 2 :=
   sum_normSq_prodDFT F
 
+-- Track C §2 Fourier reduction (issue #2920): the dilation identity — group shifts of
+-- exponent vectors are HAP dilations away from wraparound.
+example {X M : ℕ} [NeZero M] {j : ℕ} (hj1 : 1 ≤ j) (hjX : j ≤ X)
+    (x : {p : ℕ // p ∈ (X + 1).primesBelow} → ZMod M)
+    (hgood : ∀ p : {p : ℕ // p ∈ (X + 1).primesBelow},
+      (x p).val + j.factorization p.1 < M) :
+    dExp X (x + piExp X M j) = dExp X x * j :=
+  dExp_add_piExp hj1 hjX x hgood
+
 end NormalFormExamples
 
 end MoltResearch
