@@ -6046,6 +6046,14 @@ example {y : ℕ} (hy : 2 ≤ y) :
     Real.log (Real.log y) ≤ (∑ p ∈ y.primesBelow, (1 : ℝ) / p) + 1 :=
   log_log_le_sum_one_div_primesBelow hy
 
+-- Track C VK/Littlewood campaign (issue #2935, W2a): the Euler-product log bridge —
+-- prime character sums against log ‖L‖, uniformly in the character.
+open scoped LSeries.notation in
+example {N : ℕ} (χ : DirichletCharacter ℂ N) {s : ℂ} (hs : 1 < s.re) :
+    ∑' p : Nat.Primes, (χ (p : ℕ) * (p : ℂ) ^ (-s)).re
+      ≤ Real.log ‖L ↗χ s‖ + 1 :=
+  tsum_re_dirichlet_le_log_norm_LSeries χ hs
+
 end NormalFormExamples
 
 end MoltResearch
