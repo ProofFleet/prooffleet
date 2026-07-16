@@ -27,9 +27,10 @@ Expected footprints (all also include Lean's three standard axioms
   `theorem18_of_logElliottNonasymptotic` (Theorem 1.8 under the new instance chain):
   **standard axioms only** — discharging the van der Corput leg introduced no axiom;
   in particular the Elliott input stays a hypothesis class.
-- `stage5_notBounded`: standard axioms **plus the Stage-2 stub axiom** — the documented
-  current wiring. The derivation card's endgame box is precisely: flip this footprint to
-  standard-only (by re-proving from the interfaces) and delete the stub.
+- `stage5_notBounded`: **standard axioms only** (endgame flipped 2026-07-17) — the body
+  is now `notBounded_of_derivation` through the honest §2/§3/§4 instances; the Stage-2
+  stub no longer feeds Stage 5. (The demoted Stage-2/3/4 stub plane still exists and
+  keeps its own footprints until its scheduled deletion.)
 -/
 
 /--
@@ -127,10 +128,7 @@ example : ∃ G : MoltResearch.StochasticMultiplicative (Measure.dirac ()),
       ArithmeticFunction.cardFactors_apply_prime Nat.prime_two, pow_one]
 
 /--
-info: 'MoltResearch.Tao2015.stage5_notBounded' depends on axioms: [propext,
- Classical.choice,
- Quot.sound,
- MoltResearch.Tao2015.stage2Stub_exists_params_one_le_unboundedDiscOffset]
+info: 'MoltResearch.Tao2015.stage5_notBounded' depends on axioms: [propext, Classical.choice, Quot.sound]
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.stage5_notBounded
