@@ -5928,16 +5928,17 @@ example {q : ℕ} (hq : 1 ≤ q) {χ : DirichletCharacter ℂ q} (hχ : χ.IsPri
 
 -- Track C §2 Fourier reduction (issue #2920): the windowed Plancherel identity on the
 -- product group — eq. (fpi)'s average equals the spectral form.
-example {M : ℕ} [NeZero M] {r : ℕ} {ι : Type} (s : Finset ι)
-    (π : ι → Fin r → ZMod M) (F : (Fin r → ZMod M) → ℂ) :
-    (1 / ((M : ℝ)) ^ r) * ∑ x : Fin r → ZMod M, ‖∑ j ∈ s, F (x + π j)‖ ^ 2
-      = ∑ ξ : Fin r → ZMod M,
+example {M : ℕ} [NeZero M] {κ : Type} [Fintype κ] [DecidableEq κ] {ι : Type}
+    (s : Finset ι) (π : ι → κ → ZMod M) (F : (κ → ZMod M) → ℂ) :
+    (1 / ((M : ℝ)) ^ Fintype.card κ) * ∑ x : κ → ZMod M, ‖∑ j ∈ s, F (x + π j)‖ ^ 2
+      = ∑ ξ : κ → ZMod M,
           ‖prodDFT F ξ‖ ^ 2 * ‖∑ j ∈ s, prodChar (π j) ξ‖ ^ 2 :=
   avg_normSq_shift_sum_eq s π F
 
-example {M : ℕ} [NeZero M] {r : ℕ} (F : (Fin r → ZMod M) → ℂ) :
-    ∑ ξ : Fin r → ZMod M, ‖prodDFT F ξ‖ ^ 2
-      = (1 / ((M : ℝ)) ^ r) * ∑ x : Fin r → ZMod M, ‖F x‖ ^ 2 :=
+example {M : ℕ} [NeZero M] {κ : Type} [Fintype κ] [DecidableEq κ]
+    (F : (κ → ZMod M) → ℂ) :
+    ∑ ξ : κ → ZMod M, ‖prodDFT F ξ‖ ^ 2
+      = (1 / ((M : ℝ)) ^ Fintype.card κ) * ∑ x : κ → ZMod M, ‖F x‖ ^ 2 :=
   sum_normSq_prodDFT F
 
 end NormalFormExamples
