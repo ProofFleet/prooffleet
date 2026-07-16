@@ -5950,6 +5950,21 @@ example {X M : ℕ} [NeZero M] {j : ℕ} (hj1 : 1 ≤ j) (hjX : j ≤ X)
     dExp X (x + piExp X M j) = dExp X x * j :=
   dExp_add_piExp hj1 hjX x hgood
 
+-- Track C §2 Fourier reduction (issue #2920): wrap-free windows are HAP sums bounded by
+-- the discrepancy constant, and wraparound points are rare.
+example {X M : ℕ} [NeZero M] {f : ℕ → ℤ} {B : ℕ}
+    (hB : ∀ d n : ℕ, d > 0 → (apSum f d n).natAbs ≤ B) {n : ℕ} (hnX : n ≤ X)
+    {x : {p : ℕ // p ∈ (X + 1).primesBelow} → ZMod M} (hx : WrapFree X M x) :
+    ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ≤ (B : ℝ) :=
+  norm_window_smoothEval_le_of_wrapFree hB hnX hx
+
+example {X M : ℕ} [NeZero M] :
+    ((Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+        fun x => ¬ WrapFree X M x).card
+      ≤ Fintype.card (PrimeIdx X) * Nat.log 2 X
+        * M ^ (Fintype.card (PrimeIdx X) - 1) :=
+  card_not_wrapFree_le
+
 end NormalFormExamples
 
 end MoltResearch
