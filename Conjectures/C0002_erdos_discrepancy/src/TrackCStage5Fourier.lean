@@ -71,8 +71,8 @@ uniformly bounded second moment `𝔼|∑_{j≤n} 𝐠(j)|² ≤ C`. This is the
 contrapositive of "Theorem 1.8 implies Theorem 1.1"); derivation (C) must consume this class,
 not the stronger deterministic one.
 
-No unconditional instance of this class is (or may be) declared until the reduction is actually
-formalized.
+The reduction is now formalized: `TrackCStage5FourierProof.lean` declares the unconditional
+instance from the nucleus chain (`MoltResearch/Discrepancy/`, P1-P8 of issue #2920).
 -/
 class FourierReductionStochasticAssumption : Prop where
   reduce :
