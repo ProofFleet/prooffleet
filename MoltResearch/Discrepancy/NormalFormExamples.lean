@@ -5965,6 +5965,34 @@ example {X M : ℕ} [NeZero M] :
         * M ^ (Fintype.card (PrimeIdx X) - 1) :=
   card_not_wrapFree_le
 
+-- Track C §2 Fourier reduction (issue #2920): eq. (fpi) — the group average of squared
+-- window sums of a bounded-discrepancy sign sequence is ≤ B² + 1 for M large.
+example {f : ℕ → ℤ} (hs : IsSignSequence f) {B : ℕ}
+    (hB : ∀ d n : ℕ, d > 0 → (apSum f d n).natAbs ≤ B)
+    {X M : ℕ} [NeZero M] {n : ℕ} (hnX : n ≤ X)
+    (hM : Fintype.card (PrimeIdx X) * Nat.log 2 X * X ^ 2 ≤ M) :
+    (1 / ((M : ℝ)) ^ Fintype.card (PrimeIdx X))
+        * ∑ x : PrimeIdx X → ZMod M,
+            ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2
+      ≤ (B : ℝ) ^ 2 + 1 :=
+  avg_normSq_window_smoothEval_le hs hB hnX hM
+
+-- Track C §2 Fourier reduction (issue #2920): the spectral form — ‖F̂‖² is an exact
+-- probability mass and the weighted character windows are ≤ B² + 1.
+example {X M : ℕ} [NeZero M] {f : ℕ → ℤ} (hs : IsSignSequence f) :
+    ∑ ξ : PrimeIdx X → ZMod M, ‖prodDFT (smoothEval f X) ξ‖ ^ 2 = 1 :=
+  sum_normSq_prodDFT_smoothEval hs
+
+example {X M : ℕ} [NeZero M] {f : ℕ → ℤ} (hs : IsSignSequence f)
+    {B : ℕ} (hB : ∀ d n : ℕ, d > 0 → (apSum f d n).natAbs ≤ B)
+    {n : ℕ} (hnX : n ≤ X)
+    (hM : Fintype.card (PrimeIdx X) * Nat.log 2 X * X ^ 2 ≤ M) :
+    ∑ ξ : PrimeIdx X → ZMod M,
+        ‖prodDFT (smoothEval f X) ξ‖ ^ 2
+          * ‖∑ j ∈ Finset.Icc 1 n, prodChar (piExp X M j) ξ‖ ^ 2
+      ≤ (B : ℝ) ^ 2 + 1 :=
+  spectral_window_bound hs hB hnX hM
+
 end NormalFormExamples
 
 end MoltResearch

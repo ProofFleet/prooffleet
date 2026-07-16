@@ -177,4 +177,141 @@ theorem card_not_wrapFree_le [NeZero M] :
         rw [Finset.sum_const, Finset.card_univ, smul_eq_mul]
         ring
 
+/-- **The averaged window bound, eq. (fpi)** (Tao 2015 §2): for a bounded-discrepancy
+sign sequence, the group average of squared window sums is at most `B² + 1` once the
+exponent modulus dominates `r·log₂X·X²`. -/
+theorem avg_normSq_window_smoothEval_le {f : ℕ → ℤ} (hs : IsSignSequence f)
+    {B : ℕ} (hB : ∀ d n : ℕ, d > 0 → (apSum f d n).natAbs ≤ B)
+    {X M : ℕ} [NeZero M] {n : ℕ} (hnX : n ≤ X)
+    (hM : Fintype.card (PrimeIdx X) * Nat.log 2 X * X ^ 2 ≤ M) :
+    (1 / ((M : ℝ)) ^ Fintype.card (PrimeIdx X))
+        * ∑ x : PrimeIdx X → ZMod M,
+            ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2
+      ≤ (B : ℝ) ^ 2 + 1 := by
+  classical
+  have hM0 : (0 : ℝ) < (M : ℝ) := by
+    have := NeZero.ne M
+    exact_mod_cast Nat.pos_of_ne_zero this
+  have hMr0 : (0 : ℝ) < ((M : ℝ)) ^ Fintype.card (PrimeIdx X) := by positivity
+  -- split the sum at the wrap-free set
+  rw [← Finset.sum_filter_add_sum_filter_not
+    (Finset.univ : Finset (PrimeIdx X → ZMod M)) (fun x => WrapFree X M x)]
+  -- good points: at most `M^r` of them, each `≤ B²`
+  have hgood : ∑ x ∈ (Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+      (fun x => WrapFree X M x),
+      ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2
+        ≤ (((M : ℝ)) ^ Fintype.card (PrimeIdx X)) * (B : ℝ) ^ 2 := by
+    have hcardg : (((Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+        (fun x => WrapFree X M x)).card : ℝ)
+          ≤ ((M : ℝ)) ^ Fintype.card (PrimeIdx X) := by
+      have h1 : ((Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+          (fun x => WrapFree X M x)).card ≤ Fintype.card (PrimeIdx X → ZMod M) :=
+        le_trans (Finset.card_filter_le _ _) (Finset.card_univ).le
+      have h2 : Fintype.card (PrimeIdx X → ZMod M)
+          = M ^ Fintype.card (PrimeIdx X) := by
+        rw [Fintype.card_fun, ZMod.card]
+      rw [h2] at h1
+      calc (((Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+          (fun x => WrapFree X M x)).card : ℝ)
+          ≤ ((M ^ Fintype.card (PrimeIdx X) : ℕ) : ℝ) := by exact_mod_cast h1
+        _ = ((M : ℝ)) ^ Fintype.card (PrimeIdx X) := by push_cast; ring
+    have hstep : ∑ x ∈ (Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+        (fun x => WrapFree X M x),
+        ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2
+        ≤ ((Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+            (fun x => WrapFree X M x)).card • ((B : ℝ) ^ 2) := by
+      refine Finset.sum_le_card_nsmul _ _ _ fun x hx => ?_
+      have hxw : WrapFree X M x := (Finset.mem_filter.mp hx).2
+      have hnorm := norm_window_smoothEval_le_of_wrapFree hB hnX hxw
+      have h0 : (0 : ℝ) ≤ ‖∑ j ∈ Finset.Icc 1 n,
+          smoothEval f X (x + piExp X M j)‖ := norm_nonneg _
+      nlinarith
+    rw [nsmul_eq_mul] at hstep
+    refine le_trans hstep ?_
+    exact mul_le_mul_of_nonneg_right hcardg (by positivity)
+  -- bad points: at most `r·L·M^{r−1}` of them, each `≤ X²`
+  have hbad : ∑ x ∈ (Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+      (fun x => ¬ WrapFree X M x),
+      ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2
+        ≤ ((Fintype.card (PrimeIdx X) * Nat.log 2 X
+            * M ^ (Fintype.card (PrimeIdx X) - 1) : ℕ) : ℝ) * (X : ℝ) ^ 2 := by
+    have hstep : ∑ x ∈ (Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+        (fun x => ¬ WrapFree X M x),
+        ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2
+        ≤ ((Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+            (fun x => ¬ WrapFree X M x)).card • ((X : ℝ) ^ 2) := by
+      refine Finset.sum_le_card_nsmul _ _ _ fun x _ => ?_
+      have hnorm := norm_window_smoothEval_le (M := M) hs n x
+      have hnX' : (n : ℝ) ≤ (X : ℝ) := by exact_mod_cast hnX
+      have h0 : (0 : ℝ) ≤ ‖∑ j ∈ Finset.Icc 1 n,
+          smoothEval f X (x + piExp X M j)‖ := norm_nonneg _
+      nlinarith
+    rw [nsmul_eq_mul] at hstep
+    refine le_trans hstep ?_
+    refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+    exact_mod_cast card_not_wrapFree_le (X := X) (M := M)
+  -- assemble and divide
+  rcases Nat.eq_zero_or_pos (Fintype.card (PrimeIdx X)) with hr | hr
+  · -- no primes below `X+1`: the bad set is empty and the good bound closes
+    have hbad0 : ((Fintype.card (PrimeIdx X) * Nat.log 2 X
+        * M ^ (Fintype.card (PrimeIdx X) - 1) : ℕ) : ℝ) = 0 := by
+      rw [hr]
+      push_cast
+      ring
+    rw [hbad0, zero_mul] at hbad
+    have hbad' : ∑ x ∈ (Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+        (fun x => ¬ WrapFree X M x),
+        ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2 ≤ 0 := hbad
+    have hsum_nonneg : (0 : ℝ) ≤ ∑ x ∈ (Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+        (fun x => ¬ WrapFree X M x),
+        ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2 :=
+      Finset.sum_nonneg fun x _ => by positivity
+    have hkey : (1 / ((M : ℝ)) ^ Fintype.card (PrimeIdx X))
+        * ((((M : ℝ)) ^ Fintype.card (PrimeIdx X)) * (B : ℝ) ^ 2 + 0)
+          = (B : ℝ) ^ 2 := by
+      field_simp
+      ring
+    nlinarith [mul_le_mul_of_nonneg_left (add_le_add hgood hbad')
+      (le_of_lt (by positivity : (0:ℝ) < 1 / ((M : ℝ)) ^ Fintype.card (PrimeIdx X)))]
+  · -- the main case: the bad mass is at most `r·L·X²/M ≤ 1` of the average
+    have hMsplit : ((M : ℝ)) ^ Fintype.card (PrimeIdx X)
+        = (M : ℝ) * ((M : ℝ)) ^ (Fintype.card (PrimeIdx X) - 1) := by
+      rw [← pow_succ']
+      congr 1
+      omega
+    have hbadR : ((Fintype.card (PrimeIdx X) * Nat.log 2 X
+        * M ^ (Fintype.card (PrimeIdx X) - 1) : ℕ) : ℝ) * (X : ℝ) ^ 2
+          ≤ ((M : ℝ)) ^ Fintype.card (PrimeIdx X) := by
+      have hMR : ((Fintype.card (PrimeIdx X) * Nat.log 2 X * X ^ 2 : ℕ) : ℝ)
+          ≤ (M : ℝ) := by exact_mod_cast hM
+      have hMr1 : (0 : ℝ) ≤ ((M : ℝ)) ^ (Fintype.card (PrimeIdx X) - 1) := by positivity
+      calc ((Fintype.card (PrimeIdx X) * Nat.log 2 X
+            * M ^ (Fintype.card (PrimeIdx X) - 1) : ℕ) : ℝ) * (X : ℝ) ^ 2
+          = ((Fintype.card (PrimeIdx X) * Nat.log 2 X * X ^ 2 : ℕ) : ℝ)
+            * ((M : ℝ)) ^ (Fintype.card (PrimeIdx X) - 1) := by
+            push_cast
+            ring
+        _ ≤ (M : ℝ) * ((M : ℝ)) ^ (Fintype.card (PrimeIdx X) - 1) :=
+            mul_le_mul_of_nonneg_right hMR hMr1
+        _ = ((M : ℝ)) ^ Fintype.card (PrimeIdx X) := hMsplit.symm
+    have htotal := add_le_add hgood (le_trans hbad hbadR)
+    have hdiv := mul_le_mul_of_nonneg_left htotal
+      (le_of_lt (by positivity : (0:ℝ) < 1 / ((M : ℝ)) ^ Fintype.card (PrimeIdx X)))
+    have hfinal : (1 / ((M : ℝ)) ^ Fintype.card (PrimeIdx X))
+        * ((((M : ℝ)) ^ Fintype.card (PrimeIdx X)) * (B : ℝ) ^ 2
+          + ((M : ℝ)) ^ Fintype.card (PrimeIdx X))
+          = (B : ℝ) ^ 2 + 1 := by
+      field_simp
+    calc (1 / ((M : ℝ)) ^ Fintype.card (PrimeIdx X))
+        * (∑ x ∈ (Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+            (fun x => WrapFree X M x),
+            ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2
+          + ∑ x ∈ (Finset.univ : Finset (PrimeIdx X → ZMod M)).filter
+              (fun x => ¬ WrapFree X M x),
+              ‖∑ j ∈ Finset.Icc 1 n, smoothEval f X (x + piExp X M j)‖ ^ 2)
+        ≤ (1 / ((M : ℝ)) ^ Fintype.card (PrimeIdx X))
+          * ((((M : ℝ)) ^ Fintype.card (PrimeIdx X)) * (B : ℝ) ^ 2
+            + ((M : ℝ)) ^ Fintype.card (PrimeIdx X)) := hdiv
+      _ = (B : ℝ) ^ 2 + 1 := hfinal
+
 end MoltResearch
