@@ -6054,6 +6054,12 @@ example {N : ℕ} (χ : DirichletCharacter ℂ N) {s : ℂ} (hs : 1 < s.re) :
       ≤ Real.log ‖L ↗χ s‖ + 1 :=
   tsum_re_dirichlet_le_log_norm_LSeries χ hs
 
+-- Track C VK/Littlewood campaign (issue #2935, W2b): Mertens' first theorem, upper
+-- form, by the factorial double count.
+example (y : ℕ) :
+    ∑ p ∈ y.primesBelow, Real.log p / p ≤ 4 * Real.log y :=
+  sum_log_div_primesBelow_le y
+
 end NormalFormExamples
 
 end MoltResearch
