@@ -6031,6 +6031,15 @@ example {X M : ℕ} [NeZero M] {f : ℕ → ℤ} (hs : IsSignSequence f)
       ≤ (B : ℝ) ^ 2 + 1 :=
   integral_windowFunctional_spectralLaw_le hs hB hnX hM
 
+-- Track C §2 Fourier reduction (issue #2920): the limiting spectral law carries every
+-- window bound simultaneously (the compactness step).
+example {f : ℕ → ℤ} (hs : IsSignSequence f)
+    {B : ℕ} (hB : ∀ d n : ℕ, d > 0 → (apSum f d n).natAbs ≤ B) :
+    ∃ ν : MeasureTheory.ProbabilityMeasure PrimeData, ∀ n : ℕ,
+      ∫ ω, windowFunctional n ω ∂(ν : MeasureTheory.Measure PrimeData)
+        ≤ (B : ℝ) ^ 2 + 1 :=
+  exists_limit_law f hs hB
+
 end NormalFormExamples
 
 end MoltResearch
