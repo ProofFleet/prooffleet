@@ -6060,6 +6060,16 @@ example (y : ℕ) :
     ∑ p ∈ y.primesBelow, Real.log p / p ≤ 4 * Real.log y :=
   sum_log_div_primesBelow_le y
 
+-- Track C VK/Littlewood campaign (issue #2935, W2c): Chebyshev bound and the prime
+-- tail estimate — the prime-counting saving that the truncation step needs.
+example (y : ℕ) : ∑ p ∈ y.primesBelow, Real.log p ≤ y * Real.log 4 :=
+  sum_log_primesBelow_le y
+
+example {y : ℕ} (hy : 3 ≤ y) :
+    ∑' p : Nat.Primes,
+        (if y ≤ (p : ℕ) then ((p : ℕ) : ℝ) ^ (-(1 + 1 / Real.log y)) else 0) ≤ 8 :=
+  tsum_primes_tail_rpow_le hy
+
 end NormalFormExamples
 
 end MoltResearch
