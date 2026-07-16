@@ -41,6 +41,7 @@ import MoltResearch.Discrepancy.PureScaleCount
 import MoltResearch.Discrepancy.PretentiousFactorization
 import MoltResearch.Discrepancy.ChiTildeCutoff
 import MoltResearch.Discrepancy.EndgameAssembly
+import MoltResearch.Discrepancy.EndgameContradiction
 import MoltResearch.Discrepancy.ResidueClassReduction
 import MoltResearch.Discrepancy.ConductorReduction
 import MoltResearch.Discrepancy.TwistedWindowTransfer

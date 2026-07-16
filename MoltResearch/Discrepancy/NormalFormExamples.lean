@@ -5913,6 +5913,19 @@ example {g : ℕ → ℂ} {q : ℕ} {χ : DirichletCharacter ℂ q} {t : ℝ} (h
             * ((2 * H * q.primeFactors.card * (q ^ k / 2 ^ k + 1) : ℕ) : ℝ) :=
   mul_sum_scales_le_good_window_moment hq hk hχ hu hH S hSk hSH
 
+-- Track C §4 endgame extractor (issue #2871): explicit H, k refuting eq. (contra) for
+-- every unimodular sample — the deterministic contradiction feeding the BCC wrapper.
+example {q : ℕ} (hq : 1 ≤ q) {χ : DirichletCharacter ℂ q} (hχ : χ.IsPrimitive)
+    {E : ℝ} (hE : 0 ≤ E) :
+    ∃ H k : ℕ, 1 ≤ H ∧ 1 ≤ k ∧
+      ∀ (g : ℕ → ℂ) (t : ℝ), Unimodular g →
+        ¬ ((1 / ((q : ℝ) ^ k))
+            * ∑ a ∈ (Finset.Icc 1 (q ^ k)).filter (fun a => IsGoodResidue q k H a),
+                ((1 : ℝ) / H) * ∑ H' ∈ Finset.Ioc H (2 * H),
+                  ‖∑ m ∈ Finset.Icc 1 H', chiTilde g q χ t (a + m)‖ ^ 2
+          ≤ E) :=
+  exists_H_k_refuting_contra hq hχ hE
+
 end NormalFormExamples
 
 end MoltResearch
