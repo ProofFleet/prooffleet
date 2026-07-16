@@ -6089,6 +6089,22 @@ example {α : Type*} [Fintype α] {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
     shannonEntropy w ≤ Real.log (Fintype.card α) :=
   shannonEntropy_le_log_card hw0 hsum
 
+-- Track C Elliott campaign (issue #2946, E1b): joint entropy — subadditivity (finite
+-- Gibbs), the chain rule, and nonnegative mutual information.
+example {α β : Type*} [Fintype α] [Fintype β] {w : α × β → ℝ}
+    (hw0 : ∀ x, 0 ≤ w x) (hsum : ∑ x, w x = 1) :
+    shannonEntropy w
+      ≤ shannonEntropy (marginal₁ w) + shannonEntropy (marginal₂ w) :=
+  shannonEntropy_le_add_marginals hw0 hsum
+
+example {α β : Type*} [Fintype α] [Fintype β] (w : α × β → ℝ) :
+    shannonEntropy w = condEntropy w + shannonEntropy (marginal₂ w) :=
+  shannonEntropy_eq_condEntropy_add w
+
+example {α β : Type*} [Fintype α] [Fintype β] {w : α × β → ℝ}
+    (hw0 : ∀ x, 0 ≤ w x) (hsum : ∑ x, w x = 1) : 0 ≤ mutualInfo w :=
+  mutualInfo_nonneg hw0 hsum
+
 end NormalFormExamples
 
 end MoltResearch

@@ -94,4 +94,192 @@ theorem shannonEntropy_le_log_card {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
     exact_mod_cast Finset.card_pos.mpr hne
   · exact_mod_cast Finset.card_le_univ S
 
+section Joint
+
+variable {α β : Type*} [Fintype α] [Fintype β]
+
+/-- First marginal of a joint distribution on `α × β`. -/
+noncomputable def marginal₁ (w : α × β → ℝ) : α → ℝ :=
+  fun a => ∑ b, w (a, b)
+
+/-- Second marginal of a joint distribution on `α × β`. -/
+noncomputable def marginal₂ (w : α × β → ℝ) : β → ℝ :=
+  fun b => ∑ a, w (a, b)
+
+theorem marginal₁_nonneg {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x) (a : α) :
+    0 ≤ marginal₁ w a :=
+  Finset.sum_nonneg fun b _ => hw0 (a, b)
+
+theorem marginal₂_nonneg {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x) (b : β) :
+    0 ≤ marginal₂ w b :=
+  Finset.sum_nonneg fun a _ => hw0 (a, b)
+
+theorem sum_marginal₁ {w : α × β → ℝ} (hsum : ∑ x, w x = 1) :
+    ∑ a, marginal₁ w a = 1 := by
+  rw [← hsum, Fintype.sum_prod_type]
+  rfl
+
+theorem sum_marginal₂ {w : α × β → ℝ} (hsum : ∑ x, w x = 1) :
+    ∑ b, marginal₂ w b = 1 := by
+  rw [← hsum, Fintype.sum_prod_type, Finset.sum_comm]
+  rfl
+
+/-- The joint weight is dominated by each marginal. -/
+theorem le_marginal₁ {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x) (a : α) (b : β) :
+    w (a, b) ≤ marginal₁ w a :=
+  Finset.single_le_sum (f := fun b => w (a, b)) (fun b _ => hw0 (a, b))
+    (Finset.mem_univ b)
+
+theorem le_marginal₂ {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x) (a : α) (b : β) :
+    w (a, b) ≤ marginal₂ w b :=
+  Finset.single_le_sum (f := fun a => w (a, b)) (fun a _ => hw0 (a, b))
+    (Finset.mem_univ a)
+
+/-- **Subadditivity of Shannon entropy** (eq. (subadd) of arXiv:1509.05422 §3):
+`H(X,Y) ≤ H(X) + H(Y)`, by the finite Gibbs inequality (`log t ≤ t − 1`, no Jensen
+needed). -/
+theorem shannonEntropy_le_add_marginals {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x)
+    (hsum : ∑ x, w x = 1) :
+    shannonEntropy w
+      ≤ shannonEntropy (marginal₁ w) + shannonEntropy (marginal₂ w) := by
+  classical
+  -- distribute the marginal entropies over the joint weights
+  have hm1 : shannonEntropy (marginal₁ w)
+      = ∑ x : α × β, -(w x * Real.log (marginal₁ w x.1)) := by
+    rw [shannonEntropy, Fintype.sum_prod_type]
+    refine Finset.sum_congr rfl fun a _ => ?_
+    calc Real.negMulLog (marginal₁ w a)
+        = -((∑ b, w (a, b)) * Real.log (marginal₁ w a)) := by
+          rw [Real.negMulLog, neg_mul]
+          rfl
+      _ = ∑ b, -(w (a, b) * Real.log (marginal₁ w a)) := by
+          rw [Finset.sum_mul, ← Finset.sum_neg_distrib]
+  have hm2 : shannonEntropy (marginal₂ w)
+      = ∑ x : α × β, -(w x * Real.log (marginal₂ w x.2)) := by
+    rw [shannonEntropy, Fintype.sum_prod_type, Finset.sum_comm]
+    refine Finset.sum_congr rfl fun b _ => ?_
+    calc Real.negMulLog (marginal₂ w b)
+        = -((∑ a, w (a, b)) * Real.log (marginal₂ w b)) := by
+          rw [Real.negMulLog, neg_mul]
+          rfl
+      _ = ∑ a, -(w (a, b) * Real.log (marginal₂ w b)) := by
+          rw [Finset.sum_mul, ← Finset.sum_neg_distrib]
+  -- reduce to the Gibbs sum over the support
+  rw [hm1, hm2, shannonEntropy]
+  rw [← sub_nonneg, ← Finset.sum_add_distrib, ← Finset.sum_sub_distrib]
+  set S : Finset (α × β) := Finset.univ.filter (fun x => w x ≠ 0) with hS
+  have hterm0 : ∀ x ∈ (Finset.univ : Finset (α × β)), x ∉ S →
+      -(w x * Real.log (marginal₁ w x.1)) + -(w x * Real.log (marginal₂ w x.2))
+        - Real.negMulLog (w x) = 0 := by
+    intro x _ hx
+    rw [hS, Finset.mem_filter] at hx
+    push_neg at hx
+    have h0 : w x = 0 := hx (Finset.mem_univ x)
+    rw [h0]
+    simp [Real.negMulLog_zero]
+  rw [← Finset.sum_subset (Finset.subset_univ S) hterm0]
+  -- per-term: w·log(m₁·m₂/w) bounded by m₁·m₂ − w via log t ≤ t − 1
+  have hpos : ∀ x ∈ S, 0 < w x := by
+    intro x hx
+    rw [hS, Finset.mem_filter] at hx
+    exact lt_of_le_of_ne (hw0 x) (Ne.symm hx.2)
+  have hkey : ∀ x ∈ S,
+      w x - marginal₁ w x.1 * marginal₂ w x.2
+        ≤ -(w x * Real.log (marginal₁ w x.1)) + -(w x * Real.log (marginal₂ w x.2))
+          - Real.negMulLog (w x) := by
+    intro x hx
+    have hw := hpos x hx
+    have hm1p : 0 < marginal₁ w x.1 := lt_of_lt_of_le hw (le_marginal₁ hw0 x.1 x.2)
+    have hm2p : 0 < marginal₂ w x.2 := lt_of_lt_of_le hw (le_marginal₂ hw0 x.1 x.2)
+    have hlog := Real.log_le_sub_one_of_pos
+      (show 0 < marginal₁ w x.1 * marginal₂ w x.2 / w x by positivity)
+    have hexpand : Real.log (marginal₁ w x.1 * marginal₂ w x.2 / w x)
+        = Real.log (marginal₁ w x.1) + Real.log (marginal₂ w x.2)
+          - Real.log (w x) := by
+      rw [Real.log_div (by positivity) (ne_of_gt hw),
+        Real.log_mul (ne_of_gt hm1p) (ne_of_gt hm2p)]
+    rw [hexpand] at hlog
+    have hmul := mul_le_mul_of_nonneg_left hlog hw.le
+    have hdiv : w x * (marginal₁ w x.1 * marginal₂ w x.2 / w x - 1)
+        = marginal₁ w x.1 * marginal₂ w x.2 - w x := by
+      field_simp
+    have hexp2 : w x * (Real.log (marginal₁ w x.1) + Real.log (marginal₂ w x.2)
+          - Real.log (w x))
+        = w x * Real.log (marginal₁ w x.1) + w x * Real.log (marginal₂ w x.2)
+          - w x * Real.log (w x) := by ring
+    have hneg : Real.negMulLog (w x) = -(w x * Real.log (w x)) := by
+      rw [Real.negMulLog, neg_mul]
+    rw [hdiv, hexp2] at hmul
+    rw [hneg]
+    linarith
+  -- sum the per-term bounds; the product marginals sum to at most 1
+  have hsum_ge : ∑ x ∈ S, (w x - marginal₁ w x.1 * marginal₂ w x.2)
+      ≤ ∑ x ∈ S,
+        (-(w x * Real.log (marginal₁ w x.1)) + -(w x * Real.log (marginal₂ w x.2))
+          - Real.negMulLog (w x)) :=
+    Finset.sum_le_sum fun x hx => hkey x hx
+  have hprod_le : ∑ x ∈ S, marginal₁ w x.1 * marginal₂ w x.2 ≤ 1 := by
+    have h1 : ∑ x ∈ S, marginal₁ w x.1 * marginal₂ w x.2
+        ≤ ∑ x : α × β, marginal₁ w x.1 * marginal₂ w x.2 := by
+      refine Finset.sum_le_sum_of_subset_of_nonneg (Finset.subset_univ S)
+        fun x _ _ => ?_
+      have := marginal₁_nonneg hw0 x.1
+      have := marginal₂_nonneg hw0 x.2
+      positivity
+    have h2 : ∑ x : α × β, marginal₁ w x.1 * marginal₂ w x.2 = 1 := by
+      rw [Fintype.sum_prod_type]
+      rw [show ∑ a, ∑ b, marginal₁ w a * marginal₂ w b
+          = (∑ a, marginal₁ w a) * (∑ b, marginal₂ w b) from by
+        rw [Finset.sum_mul_sum]]
+      rw [sum_marginal₁ hsum, sum_marginal₂ hsum, one_mul]
+    linarith
+  have h3 : ∑ x ∈ S, w x = 1 := by
+    rw [hS, Finset.sum_filter_ne_zero]
+    exact hsum
+  have h0 : (0 : ℝ) ≤ ∑ x ∈ S, (w x - marginal₁ w x.1 * marginal₂ w x.2) := by
+    rw [Finset.sum_sub_distrib, h3]
+    linarith
+  linarith [hsum_ge, h0]
+
+/-- **Conditional entropy** `H(X|Y)`, defined through the chain rule
+(eq. (haxy) of arXiv:1509.05422 §3): `H(X|Y) = H(X,Y) − H(Y)`. -/
+noncomputable def condEntropy (w : α × β → ℝ) : ℝ :=
+  shannonEntropy w - shannonEntropy (marginal₂ w)
+
+/-- The chain rule `H(X,Y) = H(X|Y) + H(Y)` — definitional. -/
+theorem shannonEntropy_eq_condEntropy_add (w : α × β → ℝ) :
+    shannonEntropy w = condEntropy w + shannonEntropy (marginal₂ w) := by
+  rw [condEntropy]
+  ring
+
+/-- **Conditioning reduces entropy** (eq. (hyx) of arXiv:1509.05422 §3):
+`H(X|Y) ≤ H(X)`. -/
+theorem condEntropy_le_shannonEntropy_marginal₁ {w : α × β → ℝ}
+    (hw0 : ∀ x, 0 ≤ w x) (hsum : ∑ x, w x = 1) :
+    condEntropy w ≤ shannonEntropy (marginal₁ w) := by
+  have := shannonEntropy_le_add_marginals hw0 hsum
+  rw [condEntropy]
+  linarith
+
+/-- **Mutual information** `I(X;Y) = H(X) + H(Y) − H(X,Y)`
+(eq. (mutual) of arXiv:1509.05422 §3). -/
+noncomputable def mutualInfo (w : α × β → ℝ) : ℝ :=
+  shannonEntropy (marginal₁ w) + shannonEntropy (marginal₂ w) - shannonEntropy w
+
+/-- Mutual information is nonnegative. -/
+theorem mutualInfo_nonneg {w : α × β → ℝ} (hw0 : ∀ x, 0 ≤ w x)
+    (hsum : ∑ x, w x = 1) : 0 ≤ mutualInfo w := by
+  have := shannonEntropy_le_add_marginals hw0 hsum
+  rw [mutualInfo]
+  linarith
+
+/-- Mutual information as an entropy drop: `I(X;Y) = H(X) − H(X|Y)` (up to the
+symmetric pairing). -/
+theorem mutualInfo_eq_sub_condEntropy (w : α × β → ℝ) :
+    mutualInfo w = shannonEntropy (marginal₁ w) - condEntropy w := by
+  rw [mutualInfo, condEntropy]
+  ring
+
+end Joint
+
 end MoltResearch
