@@ -193,7 +193,8 @@ Derivation (the real work; open a GitHub issue per box when starting):
   is already the measure-theoretic packaging. Composing the glue also caught a quantifier-order
   bug in `VanDerCorputAssumption` — `K` must precede `ε` to encode `1 − O(ε)` non-vacuously —
   fixed in the same PR, along with factoring the shared `pretentiousEvent` set.)
-- [ ] §2, Fourier reduction: from a bounded-discrepancy sign sequence, construct the stochastic completely multiplicative counterexample (instance of FourierReductionStochasticAssumption). Decomposed as issue #2920.
+- [x] §2, Fourier reduction: from a bounded-discrepancy sign sequence, construct the stochastic completely multiplicative counterexample (instance of FourierReductionStochasticAssumption). Decomposed as issue #2920. **Done** (PRs #2921–#2933): unconditional instance in `TrackCStage5FourierProof.lean`; milestone `edp_of_logElliott_vinogradovKorobov` — EDP for all sign sequences on exactly {LogElliottNonasymptoticAssumption, VinogradovKorobovAssumption}, standard axioms only (audit-pinned).
+- [ ] VK/Littlewood: discharge VinogradovKorobovAssumption down to a standard L-function bound near the 1-line (Mertens floor, Euler-product bridge, LittlewoodLBoundAssumption interface, assembly). Decomposed as issue #2935.
 - [ ] Endgame: re-prove `stage5_notBounded` from `FourierReductionStochasticAssumption` + `theorem18`, retire the Stage-2 stub axiom, and flip the blueprint card's milestone (C) to done. CI must stay green with the axiom file deleted.
 
 ## 5. References / links
