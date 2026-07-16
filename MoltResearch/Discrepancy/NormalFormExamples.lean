@@ -6010,6 +6010,16 @@ example {X M : ℕ} [NeZero M] {f : ℕ → ℤ} (hs : IsSignSequence f)
       ≤ (B : ℝ) ^ 2 + 1 :=
   weighted_normSq_apSumC_spectralSample_le hs hB hnX hM
 
+-- Track C §2 Fourier reduction (issue #2920): the compact space of prime data — every
+-- point encodes a CM unimodular function, and window functionals are bounded continuous.
+example (ω : PrimeData) :
+    CompletelyMultiplicativeC (toCM ω) ∧ Unimodular (toCM ω) :=
+  ⟨toCM_completelyMultiplicativeC ω, toCM_unimodular ω⟩
+
+example (n : ℕ) (ω : PrimeData) :
+    windowFunctional n ω = ‖apSumC (toCM ω) 1 n‖ ^ 2 :=
+  windowFunctional_apply n ω
+
 end NormalFormExamples
 
 end MoltResearch
