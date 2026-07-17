@@ -441,4 +441,112 @@ theorem tvDist_patternLaw_shift_le (g : ℕ → ℂ) (K H : ℕ) {A B s : ℕ}
   rw [patternLaw]
   exact tvDist_pushWeight_logWeight_shift_le hA h2s (patternMap g K H)
 
+/-- Pushforward along an equiv-composed map is relabeling the pushforward. -/
+theorem pushWeight_equiv_comp (s : Finset ℕ) (w : ℕ → ℝ) {β γ : Type*}
+    [Fintype β] [DecidableEq β] [Fintype γ] [DecidableEq γ]
+    (φ : ℕ → β) (e : β ≃ γ) (c : γ) :
+    pushWeight s w (fun n => e (φ n)) c = pushWeight s w φ (e.symm c) := by
+  rw [pushWeight, pushWeight]
+  refine Finset.sum_congr ?_ fun n _ => rfl
+  ext n
+  simp only [Finset.mem_filter, Equiv.eq_symm_apply]
+
+/-- Relabeling the alphabet by an equiv does not change the entropy of a
+pushforward law. -/
+theorem shannonEntropy_pushWeight_equiv (s : Finset ℕ) (w : ℕ → ℝ) {β γ : Type*}
+    [Fintype β] [DecidableEq β] [Fintype γ] [DecidableEq γ]
+    (φ : ℕ → β) (e : β ≃ γ) :
+    shannonEntropy (pushWeight s w (fun n => e (φ n)))
+      = shannonEntropy (pushWeight s w φ) := by
+  have h : pushWeight s w (fun n => e (φ n))
+      = fun c => pushWeight s w φ (e.symm c) :=
+    funext (pushWeight_equiv_comp s w φ e)
+  rw [h, shannonEntropy_comp_equiv (pushWeight s w φ) e.symm]
+
+/-- The first marginal of a paired pushforward is the pushforward of the first
+component. -/
+theorem marginal₁_pushWeight_pair (s : Finset ℕ) (w : ℕ → ℝ) {β γ : Type*}
+    [Fintype β] [DecidableEq β] [Fintype γ] [DecidableEq γ]
+    (φ : ℕ → β) (ψ : ℕ → γ) :
+    marginal₁ (pushWeight s w (fun n => (φ n, ψ n))) = pushWeight s w φ := by
+  classical
+  funext a
+  rw [show marginal₁ (pushWeight s w (fun n => (φ n, ψ n))) a
+      = ∑ b, pushWeight s w (fun n => (φ n, ψ n)) (a, b) from rfl]
+  rw [show pushWeight s w φ a
+      = ∑ n ∈ s.filter (fun n => φ n = a), w n from rfl]
+  rw [show (∑ b, pushWeight s w (fun n => (φ n, ψ n)) (a, b))
+      = ∑ b, ∑ n ∈ s.filter (fun n => (φ n, ψ n) = (a, b)), w n
+      from Finset.sum_congr rfl fun b _ => rfl]
+  rw [← Finset.sum_fiberwise_of_maps_to (g := ψ)
+    (s := s.filter (fun n => φ n = a)) (fun n _ => Finset.mem_univ _) w]
+  refine Finset.sum_congr rfl fun b _ => ?_
+  congr 1
+  ext n
+  simp only [Finset.mem_filter, Prod.mk.injEq, and_assoc]
+
+/-- The second marginal of a paired pushforward is the pushforward of the second
+component. -/
+theorem marginal₂_pushWeight_pair (s : Finset ℕ) (w : ℕ → ℝ) {β γ : Type*}
+    [Fintype β] [DecidableEq β] [Fintype γ] [DecidableEq γ]
+    (φ : ℕ → β) (ψ : ℕ → γ) :
+    marginal₂ (pushWeight s w (fun n => (φ n, ψ n))) = pushWeight s w ψ := by
+  classical
+  funext b
+  rw [show marginal₂ (pushWeight s w (fun n => (φ n, ψ n))) b
+      = ∑ a, pushWeight s w (fun n => (φ n, ψ n)) (a, b) from rfl]
+  rw [show pushWeight s w ψ b
+      = ∑ n ∈ s.filter (fun n => ψ n = b), w n from rfl]
+  rw [show (∑ a, pushWeight s w (fun n => (φ n, ψ n)) (a, b))
+      = ∑ a, ∑ n ∈ s.filter (fun n => (φ n, ψ n) = (a, b)), w n
+      from Finset.sum_congr rfl fun a _ => rfl]
+  rw [← Finset.sum_fiberwise_of_maps_to (g := φ)
+    (s := s.filter (fun n => ψ n = b)) (fun n _ => Finset.mem_univ _) w]
+  refine Finset.sum_congr rfl fun a _ => ?_
+  congr 1
+  ext n
+  simp only [Finset.mem_filter, Prod.mk.injEq, and_assoc]
+  tauto
+
+/-- A pushforward law never exceeds the total mass. -/
+theorem pushWeight_le_sum {s : Finset ℕ} {w : ℕ → ℝ} (hw : ∀ n ∈ s, 0 ≤ w n)
+    {β : Type*} [Fintype β] [DecidableEq β] (f : ℕ → β) (b : β) :
+    pushWeight s w f b ≤ ∑ n ∈ s, w n := by
+  rw [← sum_pushWeight s w f]
+  exact Finset.single_le_sum (fun c _ => pushWeight_nonneg hw f c)
+    (Finset.mem_univ b)
+
+theorem patternLaw_le_one (g : ℕ → ℂ) (K H : ℕ) {A B : ℕ} (hA : 1 ≤ A)
+    (hAB : A < B) (x : PatternSpace K H) : patternLaw g K H A B x ≤ 1 := by
+  have h := pushWeight_le_sum (s := Finset.Ioc A B)
+    (fun n _ => logWeight_nonneg A B n) (patternMap g K H) x
+  rw [sum_logWeight hA hAB] at h
+  rw [patternLaw]
+  exact h
+
+/-- Splitting a length-`(H₁+H₂)` pattern into its two halves. -/
+def patternSplit (K H₁ H₂ : ℕ) :
+    PatternSpace K (H₁ + H₂) ≃ PatternSpace K H₁ × PatternSpace K H₂ :=
+  ((finSumFinEquiv.arrowCongr (Equiv.refl _)).symm).trans
+    (Equiv.sumArrowEquivProdArrow _ _ _)
+
+/-- The split of a pattern at `n` is the `H₁`-pattern at `n` paired with the
+`H₂`-pattern at `n + H₁`: a long window is two consecutive short windows. -/
+theorem patternSplit_patternMap (g : ℕ → ℂ) (K H₁ H₂ n : ℕ) :
+    patternSplit K H₁ H₂ (patternMap g K (H₁ + H₂) n)
+      = (patternMap g K H₁ n, patternMap g K H₂ (n + H₁)) := by
+  refine Prod.ext ?_ ?_
+  · funext i
+    show patternMap g K (H₁ + H₂) n (finSumFinEquiv (Sum.inl i))
+      = patternMap g K H₁ n i
+    rw [finSumFinEquiv_apply_left, patternMap, patternMap]
+    simp only [Fin.val_castAdd]
+  · funext j
+    show patternMap g K (H₁ + H₂) n (finSumFinEquiv (Sum.inr j))
+      = patternMap g K H₂ (n + H₁) j
+    rw [finSumFinEquiv_apply_right, patternMap, patternMap]
+    simp only [Fin.val_natAdd]
+    have harg : n + 1 + (H₁ + (j : ℕ)) = n + H₁ + 1 + (j : ℕ) := by omega
+    rw [harg]
+
 end MoltResearch

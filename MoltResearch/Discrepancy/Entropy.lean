@@ -95,6 +95,12 @@ theorem shannonEntropy_le_log_card {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
     exact_mod_cast Finset.card_pos.mpr hne
   · exact_mod_cast Finset.card_le_univ S
 
+/-- Shannon entropy is invariant under relabeling the alphabet. -/
+theorem shannonEntropy_comp_equiv {β : Type*} [Fintype β] (v : α → ℝ) (e : β ≃ α) :
+    shannonEntropy (fun b => v (e b)) = shannonEntropy v := by
+  rw [shannonEntropy, shannonEntropy]
+  exact Fintype.sum_equiv e _ _ fun b => rfl
+
 section Joint
 
 variable {α β : Type*} [Fintype α] [Fintype β]

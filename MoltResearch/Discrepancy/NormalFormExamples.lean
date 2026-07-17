@@ -6327,6 +6327,24 @@ example (g : ℕ → ℂ) (K H : ℕ) {A B s : ℕ} (hA : 1 ≤ A) (h2s : A + s 
       ≤ 3 * s / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) :=
   tvDist_patternLaw_shift_le g K H hA h2s
 
+-- Track C Elliott campaign (issue #2946, E6d-4a): the pattern-splitting
+-- infrastructure for approximate subadditivity.
+example (g : ℕ → ℂ) (K H₁ H₂ n : ℕ) :
+    patternSplit K H₁ H₂ (patternMap g K (H₁ + H₂) n)
+      = (patternMap g K H₁ n, patternMap g K H₂ (n + H₁)) :=
+  patternSplit_patternMap g K H₁ H₂ n
+
+example (s : Finset ℕ) (w : ℕ → ℝ) {β γ : Type*} [Fintype β] [DecidableEq β]
+    [Fintype γ] [DecidableEq γ] (φ : ℕ → β) (e : β ≃ γ) :
+    shannonEntropy (pushWeight s w (fun n => e (φ n)))
+      = shannonEntropy (pushWeight s w φ) :=
+  shannonEntropy_pushWeight_equiv s w φ e
+
+example (s : Finset ℕ) (w : ℕ → ℝ) {β γ : Type*} [Fintype β] [DecidableEq β]
+    [Fintype γ] [DecidableEq γ] (φ : ℕ → β) (ψ : ℕ → γ) :
+    marginal₁ (pushWeight s w (fun n => (φ n, ψ n))) = pushWeight s w φ :=
+  marginal₁_pushWeight_pair s w φ ψ
+
 end NormalFormExamples
 
 end MoltResearch
