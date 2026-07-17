@@ -21,6 +21,8 @@ simp collections.
 Downstream developments should not need to import this file.
 -/
 
+open scoped NNReal
+
 namespace MoltResearch
 
 section NormalFormExamples
@@ -6436,6 +6438,19 @@ example {ι : Type*} [Fintype ι] [DecidableEq ι] {Ω : ι → Type*}
     [∀ i, MeasurableSingletonClass (Ω i)] (f : Π i, Ω i → ℝ) :
     ProbabilityTheory.iIndepFun (fun i ω => f i (ω i)) (uniformPi Ω) :=
   iIndepFun_eval_uniformPi f
+
+-- Track C Elliott campaign (issue #2946, E6e-2): Hoeffding in counting form on
+-- the product uniform.
+example {ι : Type*} [Fintype ι] [DecidableEq ι] {Ω : ι → Type*}
+    [∀ i, Fintype (Ω i)] [∀ i, Nonempty (Ω i)] [∀ i, MeasurableSpace (Ω i)]
+    [∀ i, MeasurableSingletonClass (Ω i)] (f : Π i, Ω i → ℝ) (c : ι → ℝ≥0)
+    (hbound : ∀ i, ∀ x, f i x ∈ Set.Icc (-(c i : ℝ)) (c i))
+    (hmean : ∀ i, ∑ x, f i x = 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    ((Finset.univ.filter
+        (fun ω : Π i, Ω i => ε ≤ ∑ i, f i (ω i))).card : ℝ)
+        / Fintype.card (Π i, Ω i)
+      ≤ Real.exp (-ε ^ 2 / (2 * ((∑ i, (c i) ^ 2 : ℝ≥0) : ℝ))) :=
+  card_deviation_le_uniformPi f c hbound hmean hε
 
 end NormalFormExamples
 
