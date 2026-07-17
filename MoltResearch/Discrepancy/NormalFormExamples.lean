@@ -6423,6 +6423,20 @@ example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B k : ℕ} (hA : 1 ≤ A)
         + decrementErr K H P A B k / H :=
   mutualInfo_ratio_le g K H P hA hH hk hkB
 
+-- Track C Elliott campaign (issue #2946, E6e-1): the uniform counting
+-- dictionary and coordinate independence.
+example (α : Type*) [Fintype α] [Nonempty α] [MeasurableSpace α]
+    [MeasurableSingletonClass α] (p : α → Prop) [DecidablePred p] :
+    ((PMF.uniformOfFintype α).toMeasure).real {x | p x}
+      = ((Finset.univ.filter p).card : ℝ) / Fintype.card α :=
+  uniform_real_filter α p
+
+example {ι : Type*} [Fintype ι] [DecidableEq ι] {Ω : ι → Type*}
+    [∀ i, Fintype (Ω i)] [∀ i, Nonempty (Ω i)] [∀ i, MeasurableSpace (Ω i)]
+    [∀ i, MeasurableSingletonClass (Ω i)] (f : Π i, Ω i → ℝ) :
+    ProbabilityTheory.iIndepFun (fun i ω => f i (ω i)) (uniformPi Ω) :=
+  iIndepFun_eval_uniformPi f
+
 end NormalFormExamples
 
 end MoltResearch
