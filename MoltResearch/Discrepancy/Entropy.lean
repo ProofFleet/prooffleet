@@ -721,6 +721,26 @@ theorem shannonEntropy_le_event_split {v : α → ℝ} (hv0 : ∀ x, 0 ≤ v x)
     mul_le_mul_of_nonneg_left hHrEc (by linarith)
   linarith
 
+omit [DecidableEq α] in
+/-- **Entropy floor from a pointwise mass bound**: if every point carries mass at
+most `c`, the entropy is at least `−log c` — the mechanism by which near-uniformity
+forces near-full entropy (eq. (hayah) of arXiv:1509.05422 §3). -/
+theorem le_shannonEntropy_of_forall_le {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
+    (hsum : ∑ x, w x = 1) {c : ℝ} (hc : 0 < c) (hwc : ∀ x, w x ≤ c) :
+    -Real.log c ≤ shannonEntropy w := by
+  have hterm : ∀ x, w x * (-Real.log c) ≤ Real.negMulLog (w x) := by
+    intro x
+    rcases eq_or_lt_of_le (hw0 x) with h0 | h0
+    · rw [← h0]
+      simp [Real.negMulLog_zero]
+    · rw [Real.negMulLog, neg_mul]
+      have hlog : Real.log (w x) ≤ Real.log c := Real.log_le_log h0 (hwc x)
+      nlinarith [hlog]
+  calc -Real.log c = (∑ x, w x) * (-Real.log c) := by rw [hsum]; ring
+    _ = ∑ x, w x * (-Real.log c) := by rw [Finset.sum_mul]
+    _ ≤ ∑ x, Real.negMulLog (w x) := Finset.sum_le_sum fun x _ => hterm x
+    _ = shannonEntropy w := rfl
+
 end Events
 
 end MoltResearch

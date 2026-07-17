@@ -6275,6 +6275,18 @@ example {K : ℕ} (hK : 0 < K) (jk : Fin (K + 1) × Fin (K + 1)) :
     ‖roundCVal K jk‖ ≤ 2 :=
   norm_roundCVal_le hK jk
 
+-- Track C Elliott campaign (issue #2946, E6c-1): the entropy floor and the
+-- pattern/residue/joint laws of the decrement argument.
+example {α : Type*} [Fintype α] {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
+    (hsum : ∑ x, w x = 1) {c : ℝ} (hc : 0 < c) (hwc : ∀ x, w x ≤ c) :
+    -Real.log c ≤ shannonEntropy w :=
+  le_shannonEntropy_of_forall_le hw0 hsum hc hwc
+
+example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A) (hAB : A < B) :
+    marginal₁ (jointLaw g K H P A B) = patternLaw g K H A B ∧
+    marginal₂ (jointLaw g K H P A B) = residueLaw P A B :=
+  ⟨marginal₁_jointLaw g K H P A B, marginal₂_jointLaw g K H P A B⟩
+
 end NormalFormExamples
 
 end MoltResearch

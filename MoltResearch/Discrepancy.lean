@@ -55,6 +55,7 @@ import MoltResearch.Discrepancy.ChebyshevBlock
 import MoltResearch.Discrepancy.PropConv
 import MoltResearch.Discrepancy.LogUniformDist
 import MoltResearch.Discrepancy.Discretize
+import MoltResearch.Discrepancy.PatternLaws
 import MoltResearch.Discrepancy.AveragedWindowBound
 import MoltResearch.Discrepancy.SpectralWindowBound
 import MoltResearch.Discrepancy.FiniteSpectralSample
