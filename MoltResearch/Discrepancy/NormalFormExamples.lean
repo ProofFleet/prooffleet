@@ -6395,6 +6395,18 @@ example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A) {k
         + decrementErr K H P A B k :=
   mutualInfo_jointLaw_le g K H P hA hk hkB
 
+-- Track C Elliott campaign (issue #2946, E6d-5c-iii-a): the decrement-grid
+-- arithmetic — telescoping pigeonhole and dyadic divergence.
+example {J : ℕ} {r d t : ℕ → ℝ} {C : ℝ} (hrJ : 0 ≤ r J) (hr0 : r 0 ≤ C)
+    (hchain : ∀ j < J, r (j + 1) ≤ r j - d j)
+    (hbudget : C < ∑ j ∈ Finset.range J, t j) :
+    ∃ j < J, d j < t j :=
+  exists_lt_of_chain_budget hrJ hr0 hchain hbudget
+
+example (C : ℝ) :
+    ∃ J : ℕ, 2 ≤ J ∧ C < ∑ j ∈ Finset.Ioc 1 J, 1 / ((j : ℝ) * Real.log j) :=
+  exists_sum_one_div_mul_log_gt C
+
 end NormalFormExamples
 
 end MoltResearch
