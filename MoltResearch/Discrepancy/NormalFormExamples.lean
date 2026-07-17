@@ -6218,6 +6218,19 @@ example {q : ℕ} (hq : 0 < q) {r : ℕ} (hr : r < q) (A B : ℕ) (hrA : r ≤ A
       = Finset.Ioc ((A - r) / q) ((B - r) / q) :=
   image_div_filter_eq hq hr A B hrA
 
+-- Track C Elliott campaign (issue #2946, E5a-3b-3): the per-(p,j) toc estimate —
+-- the j-shifted p-filtered conjugate-pair correlation is (1/p)·(base correlation)
+-- within 3j/A + (2 log p + 2)/p.
+example {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g) (huni : Unimodular g)
+    {p : ℕ} (hp : 2 ≤ p) {h j A B : ℕ} (hA : p ≤ A) (hpB : p * A ≤ B) :
+    ‖(∑ n ∈ Finset.Ioc A B,
+          (if (n + j) % p = 0
+            then g (n + j) * (starRingEnd ℂ) (g (n + j + p * h)) else 0) / (n : ℂ))
+        - (1 / (p : ℂ)) * ∑ m ∈ Finset.Ioc A B,
+            g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖
+      ≤ 3 * j / A + (2 * Real.log p + 2) / p :=
+  norm_toc_sub_le hcm huni hp hA hpB
+
 end NormalFormExamples
 
 end MoltResearch

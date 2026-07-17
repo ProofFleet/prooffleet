@@ -860,4 +860,203 @@ theorem image_div_filter_eq {q : ℕ} (hq : 0 < q) {r : ℕ} (hr : r < q) (A B :
       have h0 : r / q = 0 := Nat.div_eq_of_lt hr
       omega
 
+/-- Windows nest after division: helper facts for the `(A, B]` vs `(A/p, B/p]`
+comparison. -/
+theorem log_div_window_le {p A : ℕ} (hp : 2 ≤ p) (hA : p ≤ A) :
+    Real.log A - Real.log (A / p : ℕ) ≤ Real.log (2 * p) := by
+  have hp0 : 0 < p := by omega
+  have hA0 : (0 : ℝ) < (A : ℝ) := by
+    have : (2 : ℝ) ≤ (A : ℝ) := by exact_mod_cast le_trans hp hA
+    linarith
+  have hq1 : 1 ≤ A / p := (Nat.one_le_div_iff hp0).mpr hA
+  have hq0 : (0 : ℝ) < ((A / p : ℕ) : ℝ) := by exact_mod_cast hq1
+  rw [← Real.log_div (ne_of_gt hA0) (ne_of_gt hq0)]
+  refine Real.log_le_log (by positivity) ?_
+  -- A ≤ p·(A/p) + p ≤ 2p·(A/p)
+  have hA2 : A ≤ 2 * p * (A / p) := by
+    have hmod := Nat.div_add_mod A p
+    have hlt : A % p < p := Nat.mod_lt _ hp0
+    have h2 : p ≤ p * (A / p) := Nat.le_mul_of_pos_right p hq1
+    have h3 : 2 * p * (A / p) = 2 * (p * (A / p)) := by ring
+    omega
+  have hA2R : (A : ℝ) ≤ 2 * (p : ℝ) * ((A / p : ℕ) : ℝ) := by exact_mod_cast hA2
+  rw [div_le_iff₀ hq0]
+  nlinarith [hA2R]
+
+set_option maxHeartbeats 800000 in
+/-- **The per-`(p, j)` toc estimate** (eq. (toc) of arXiv:1509.05422, Proposition
+`conv`, unit-dilation form): the `j`-shifted `p`-divisibility-filtered conjugate-pair
+correlation is `(1/p)` times the base correlation, within `3j/A + (2 log p + 2)/p` —
+the shift engine prices the `j`-offset, the `p`-division and image window are exact,
+and the window restoration costs two `log(2p)` masses. -/
+theorem norm_toc_sub_le {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g)
+    (huni : Unimodular g) {p : ℕ} (hp : 2 ≤ p) {h j A B : ℕ}
+    (hA : p ≤ A) (hpB : p * A ≤ B) :
+    ‖(∑ n ∈ Finset.Ioc A B,
+          (if (n + j) % p = 0
+            then g (n + j) * (starRingEnd ℂ) (g (n + j + p * h)) else 0) / (n : ℂ))
+        - (1 / (p : ℂ)) * ∑ m ∈ Finset.Ioc A B,
+            g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖
+      ≤ 3 * j / A + (2 * Real.log p + 2) / p := by
+  classical
+  have hp0 : 0 < p := by omega
+  have hA1 : 1 ≤ A := le_trans (by omega) hA
+  have hAR : (1 : ℝ) ≤ (A : ℝ) := by exact_mod_cast hA1
+  have hpR : (2 : ℝ) ≤ (p : ℝ) := by exact_mod_cast hp
+  -- the masked correlation, 1-bounded
+  set G : ℕ → ℂ := fun m =>
+    if m % p = 0 then g m * (starRingEnd ℂ) (g (m + p * h)) else 0 with hG
+  have hG1 : ∀ m, ‖G m‖ ≤ 1 := by
+    intro m
+    rw [hG]
+    dsimp only
+    split_ifs with hcase
+    · rw [norm_mul, RCLike.norm_conj, huni m, huni (m + p * h)]
+      norm_num
+    · rw [norm_zero]
+      norm_num
+  -- step 1: the j-shift
+  have hshift := norm_sum_div_shift_iterate_sub_le (F := G) hG1 (b := B) hA1 j
+  -- step 2: the un-shifted masked sum is the filtered sum
+  have hfilter : ∑ m ∈ Finset.Ioc A B, G m / (m : ℂ)
+      = ∑ m ∈ (Finset.Ioc A B).filter (fun m => m % p = 0),
+          g m * (starRingEnd ℂ) (g (m + p * h)) / (m : ℂ) := by
+    rw [Finset.sum_filter]
+    refine Finset.sum_congr rfl fun m _ => ?_
+    rw [hG]
+    dsimp only
+    split_ifs with hcase
+    · rfl
+    · rw [zero_div]
+  -- step 3: exact p-division through the trivial a = 1 layer
+  have htriv : (Finset.Ioc A B).filter (fun m => m % p = 0)
+      = ((Finset.Ioc A B).filter (fun m => m % 1 = 0)).filter
+          (fun m => m % p = 0) := by
+    congr 1
+    exact (Finset.filter_true_of_mem fun m _ => Nat.mod_one m).symm
+  have hpdiv : ∑ m ∈ (Finset.Ioc A B).filter (fun m => m % p = 0),
+        g m * (starRingEnd ℂ) (g (m + p * h)) / (m : ℂ)
+      = (1 / (p : ℂ)) * ∑ m' ∈ ((Finset.Ioc A B).filter
+            (fun m => m % p = 0)).image (· / p),
+          g m' * (starRingEnd ℂ) (g (m' + h)) / (m' : ℂ) := by
+    rw [htriv, sum_conjPair_pDiv_eq hcm huni (by omega : p ≠ 0) (a := 1) (c := 0),
+      ← htriv]
+  -- step 4: the image window
+  have himg : ((Finset.Ioc A B).filter (fun m => m % p = 0)).image (· / p)
+      = Finset.Ioc (A / p) (B / p) := by
+    have hraw := image_div_filter_eq hp0 (r := 0) hp0 A B (Nat.zero_le A)
+    rw [Nat.sub_zero, Nat.sub_zero] at hraw
+    exact hraw
+  -- step 5: window restoration
+  have hADp : A / p ≤ A := Nat.div_le_self A p
+  have hABp : A ≤ B / p := by
+    rw [Nat.le_div_iff_mul_le hp0]
+    rw [Nat.mul_comm]
+    exact hpB
+  have hBpB : B / p ≤ B := Nat.div_le_self B p
+  have hcorr1 : ∀ m : ℕ, 1 ≤ m →
+      ‖g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖ = 1 / (m : ℝ) := by
+    intro m hm
+    rw [norm_div, norm_mul, RCLike.norm_conj, huni m, huni (m + h),
+      Complex.norm_natCast, one_mul]
+  have hwin : ‖(∑ m' ∈ Finset.Ioc (A / p) (B / p),
+        g m' * (starRingEnd ℂ) (g (m' + h)) / (m' : ℂ))
+      - ∑ m ∈ Finset.Ioc A B, g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖
+      ≤ 2 * Real.log p + 2 := by
+    have hsplit1 : Finset.Ioc (A / p) (B / p)
+        = Finset.Ioc (A / p) A ∪ Finset.Ioc A (B / p) :=
+      (Finset.Ioc_union_Ioc_eq_Ioc hADp hABp).symm
+    have hsplit2 : Finset.Ioc A B
+        = Finset.Ioc A (B / p) ∪ Finset.Ioc (B / p) B :=
+      (Finset.Ioc_union_Ioc_eq_Ioc hABp hBpB).symm
+    have hdisj1 : Disjoint (Finset.Ioc (A / p) A) (Finset.Ioc A (B / p)) := by
+      refine Finset.disjoint_left.mpr fun m hm1 hm2 => ?_
+      rw [Finset.mem_Ioc] at hm1 hm2
+      omega
+    have hdisj2 : Disjoint (Finset.Ioc A (B / p)) (Finset.Ioc (B / p) B) := by
+      refine Finset.disjoint_left.mpr fun m hm1 hm2 => ?_
+      rw [Finset.mem_Ioc] at hm1 hm2
+      omega
+    rw [hsplit1, hsplit2, Finset.sum_union hdisj1, Finset.sum_union hdisj2]
+    rw [show ∀ x y z : ℂ, (x + y) - (y + z) = x - z from fun x y z => by ring]
+    refine le_trans (norm_sub_le _ _) ?_
+    have hmass1 : ‖∑ m ∈ Finset.Ioc (A / p) A,
+        g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖ ≤ Real.log p + 1 := by
+      refine le_trans (norm_sum_le _ _) ?_
+      have hAp1 : 1 ≤ A / p := (Nat.one_le_div_iff hp0).mpr hA
+      have hle : ∀ m ∈ Finset.Ioc (A / p) A,
+          ‖g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖ = 1 / (m : ℝ) := by
+        intro m hm
+        rw [Finset.mem_Ioc] at hm
+        exact hcorr1 m (by omega)
+      rw [Finset.sum_congr rfl hle]
+      refine le_trans (sum_one_div_Ioc_le hAp1 hADp) ?_
+      have hld := log_div_window_le hp hA
+      have hlog2 : Real.log 2 ≤ 1 := by
+        rw [Real.log_le_iff_le_exp (by norm_num)]
+        linarith [Real.exp_one_gt_d9]
+      have hsplit : Real.log (2 * (p : ℝ)) = Real.log 2 + Real.log p := by
+        rw [Real.log_mul (by norm_num) (by positivity)]
+      rw [hsplit] at hld
+      linarith
+    have hmass2 : ‖∑ m ∈ Finset.Ioc (B / p) B,
+        g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖ ≤ Real.log p + 1 := by
+      refine le_trans (norm_sum_le _ _) ?_
+      have hBp1 : 1 ≤ B / p := le_trans (le_trans hA1 hABp) (le_refl _)
+      have hle : ∀ m ∈ Finset.Ioc (B / p) B,
+          ‖g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖ = 1 / (m : ℝ) := by
+        intro m hm
+        rw [Finset.mem_Ioc] at hm
+        exact hcorr1 m (by omega)
+      rw [Finset.sum_congr rfl hle]
+      refine le_trans (sum_one_div_Ioc_le hBp1 hBpB) ?_
+      have hld := log_div_window_le hp (le_trans hA (le_trans (Nat.le_mul_of_pos_left A hp0) hpB))
+      have hlog2 : Real.log 2 ≤ 1 := by
+        rw [Real.log_le_iff_le_exp (by norm_num)]
+        linarith [Real.exp_one_gt_d9]
+      have hsplit : Real.log (2 * (p : ℝ)) = Real.log 2 + Real.log p := by
+        rw [Real.log_mul (by norm_num) (by positivity)]
+      rw [hsplit] at hld
+      linarith
+    linarith
+  -- assemble: triangle through the un-shifted masked sum
+  have hLHS : ∑ n ∈ Finset.Ioc A B,
+      (if (n + j) % p = 0
+        then g (n + j) * (starRingEnd ℂ) (g (n + j + p * h)) else 0) / (n : ℂ)
+      = ∑ n ∈ Finset.Ioc A B, G (n + j) / (n : ℂ) := rfl
+  have hmid : ∑ m ∈ Finset.Ioc A B, G m / (m : ℂ)
+      = (1 / (p : ℂ)) * ∑ m' ∈ Finset.Ioc (A / p) (B / p),
+          g m' * (starRingEnd ℂ) (g (m' + h)) / (m' : ℂ) := by
+    rw [hfilter, hpdiv, himg]
+  have hpnorm : ‖(1 / (p : ℂ))‖ = 1 / (p : ℝ) := by
+    rw [norm_div, norm_one, Complex.norm_natCast]
+  rw [hLHS]
+  calc ‖(∑ n ∈ Finset.Ioc A B, G (n + j) / (n : ℂ))
+        - (1 / (p : ℂ)) * ∑ m ∈ Finset.Ioc A B,
+            g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖
+      ≤ ‖(∑ n ∈ Finset.Ioc A B, G (n + j) / (n : ℂ))
+          - ∑ m ∈ Finset.Ioc A B, G m / (m : ℂ)‖
+        + ‖(∑ m ∈ Finset.Ioc A B, G m / (m : ℂ))
+          - (1 / (p : ℂ)) * ∑ m ∈ Finset.Ioc A B,
+              g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖ := by
+        have := norm_sub_le_norm_sub_add_norm_sub
+          (∑ n ∈ Finset.Ioc A B, G (n + j) / (n : ℂ))
+          (∑ m ∈ Finset.Ioc A B, G m / (m : ℂ))
+          ((1 / (p : ℂ)) * ∑ m ∈ Finset.Ioc A B,
+            g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ))
+        linarith
+    _ ≤ 3 * j / A + (2 * Real.log p + 2) / p := by
+        have h1 : ‖(∑ n ∈ Finset.Ioc A B, G (n + j) / (n : ℂ))
+            - ∑ m ∈ Finset.Ioc A B, G m / (m : ℂ)‖ ≤ 3 * j / A := hshift
+        have h2 : ‖(∑ m ∈ Finset.Ioc A B, G m / (m : ℂ))
+            - (1 / (p : ℂ)) * ∑ m ∈ Finset.Ioc A B,
+                g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖
+            ≤ (2 * Real.log p + 2) / p := by
+          rw [hmid, ← mul_sub, norm_mul, hpnorm]
+          have hp0R : (0 : ℝ) < (p : ℝ) := by linarith
+          rw [div_eq_mul_inv (2 * Real.log p + 2), mul_comm (2 * Real.log p + 2),
+            one_div]
+          exact mul_le_mul_of_nonneg_left hwin (by positivity)
+        linarith
+
 end MoltResearch
