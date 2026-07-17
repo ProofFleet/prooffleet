@@ -6265,6 +6265,16 @@ example {q r A B : ℕ} (hq : 2 ≤ q) (hr : r < q) (h4q : 4 * q ≤ A)
       ≤ 2 * r / q ^ 2 + (2 * Real.log (2 * q) + 2) / q :=
   abs_sum_one_div_residue_sub_le hq hr h4q hqB
 
+-- Track C Elliott campaign (issue #2946, E6b): the coordinate-grid discretization —
+-- disk elements round to a Fin-square alphabet within 4/K, values staying bounded.
+example {K : ℕ} (hK : 0 < K) {z : ℂ} (hz : ‖z‖ ≤ 1) :
+    ‖z - roundCVal K (roundC K z)‖ ≤ 4 / K :=
+  norm_sub_roundCVal_le hK hz
+
+example {K : ℕ} (hK : 0 < K) (jk : Fin (K + 1) × Fin (K + 1)) :
+    ‖roundCVal K jk‖ ≤ 2 :=
+  norm_roundCVal_le hK jk
+
 end NormalFormExamples
 
 end MoltResearch
