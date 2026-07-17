@@ -936,4 +936,67 @@ theorem mutualInfo_jointLaw_le (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B :
   rw [hI]
   linarith
 
+/-- The pattern alphabet has `((K+1)²)^H` letters. -/
+theorem card_patternSpace (K H : ℕ) :
+    Fintype.card (PatternSpace K H) = ((K + 1) * (K + 1)) ^ H := by
+  rw [show Fintype.card (PatternSpace K H)
+      = Fintype.card (Fin (K + 1) × Fin (K + 1)) ^ Fintype.card (Fin H)
+      from Fintype.card_fun]
+  rw [Fintype.card_prod, Fintype.card_fin, Fintype.card_fin]
+
+/-- **The entropy budget**: `H(X_H) ≤ H·log((K+1)²)` — the trivial bound (jens)
+that seeds the decrement chain. -/
+theorem shannonEntropy_patternLaw_le_mul (g : ℕ → ℂ) (K H : ℕ) {A B : ℕ}
+    (hA : 1 ≤ A) (hAB : A < B) :
+    shannonEntropy (patternLaw g K H A B)
+      ≤ (H : ℝ) * Real.log (((K + 1) * (K + 1) : ℕ) : ℝ) := by
+  have h := shannonEntropy_le_log_card
+    (w := patternLaw g K H A B) (patternLaw_nonneg g K H A B)
+    (sum_patternLaw g K H hA hAB)
+  rw [card_patternSpace] at h
+  have hcast : ((((K + 1) * (K + 1)) ^ H : ℕ) : ℝ)
+      = ((((K + 1) * (K + 1) : ℕ) : ℝ)) ^ H := by
+    push_cast
+    ring
+  rw [hcast, Real.log_pow] at h
+  exact h
+
+/-- **The ratio form of splat**: the entropy rate decrements by the mutual
+information density, up to the conditioning and Fannes slacks. This is
+eq. (splat) of arXiv:1509.05422 §3; `E6f`'s grid feeds it to
+`exists_lt_of_chain_budget`. -/
+theorem mutualInfo_ratio_le (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B k : ℕ}
+    (hA : 1 ≤ A) (hH : 1 ≤ H) (hk : 1 ≤ k) (hkB : A + k * H + k * H < B) :
+    shannonEntropy (patternLaw g K (k * H) A B) / ((k * H : ℕ) : ℝ)
+      ≤ shannonEntropy (patternLaw g K H A B) / H
+        - mutualInfo (jointLaw g K H P A B) / H
+        + shannonEntropy (residueLaw P A B) / ((k * H : ℕ) : ℝ)
+        + decrementErr K H P A B k / H := by
+  have hsplat := mutualInfo_jointLaw_le g K H P hA hk hkB
+  have hH0 : (0 : ℝ) < (H : ℝ) := by exact_mod_cast hH
+  have hk0 : (0 : ℝ) < (k : ℝ) := by exact_mod_cast hk
+  have hkH0 : (0 : ℝ) < ((k * H : ℕ) : ℝ) := by
+    exact_mod_cast Nat.mul_pos (by omega) (by omega)
+  -- divide splat by H
+  have hdivH : mutualInfo (jointLaw g K H P A B) / H
+      ≤ (shannonEntropy (patternLaw g K H A B)
+          - shannonEntropy (patternLaw g K (k * H) A B) / k
+          + shannonEntropy (residueLaw P A B) / k
+          + decrementErr K H P A B k) / H := by
+    rw [div_eq_mul_inv, div_eq_mul_inv]
+    exact mul_le_mul_of_nonneg_right hsplat (inv_nonneg.mpr hH0.le)
+  have hexp : (shannonEntropy (patternLaw g K H A B)
+        - shannonEntropy (patternLaw g K (k * H) A B) / k
+        + shannonEntropy (residueLaw P A B) / k
+        + decrementErr K H P A B k) / H
+      = shannonEntropy (patternLaw g K H A B) / H
+        - shannonEntropy (patternLaw g K (k * H) A B) / ((k * H : ℕ) : ℝ)
+        + shannonEntropy (residueLaw P A B) / ((k * H : ℕ) : ℝ)
+        + decrementErr K H P A B k / H := by
+    have hcast : ((k * H : ℕ) : ℝ) = (k : ℝ) * (H : ℝ) := by push_cast; ring
+    rw [hcast]
+    field_simp
+  rw [hexp] at hdivH
+  linarith
+
 end MoltResearch

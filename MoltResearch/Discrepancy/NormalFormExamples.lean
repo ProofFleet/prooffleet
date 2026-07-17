@@ -6407,6 +6407,22 @@ example (C : ℝ) :
     ∃ J : ℕ, 2 ≤ J ∧ C < ∑ j ∈ Finset.Ioc 1 J, 1 / ((j : ℝ) * Real.log j) :=
   exists_sum_one_div_mul_log_gt C
 
+-- Track C Elliott campaign (issue #2946, E6d-5c-iii-b): the entropy budget and
+-- the ratio form of splat — the decrement core is complete.
+example (g : ℕ → ℂ) (K H : ℕ) {A B : ℕ} (hA : 1 ≤ A) (hAB : A < B) :
+    shannonEntropy (patternLaw g K H A B)
+      ≤ (H : ℝ) * Real.log (((K + 1) * (K + 1) : ℕ) : ℝ) :=
+  shannonEntropy_patternLaw_le_mul g K H hA hAB
+
+example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B k : ℕ} (hA : 1 ≤ A)
+    (hH : 1 ≤ H) (hk : 1 ≤ k) (hkB : A + k * H + k * H < B) :
+    shannonEntropy (patternLaw g K (k * H) A B) / ((k * H : ℕ) : ℝ)
+      ≤ shannonEntropy (patternLaw g K H A B) / H
+        - mutualInfo (jointLaw g K H P A B) / H
+        + shannonEntropy (residueLaw P A B) / ((k * H : ℕ) : ℝ)
+        + decrementErr K H P A B k / H :=
+  mutualInfo_ratio_le g K H P hA hH hk hkB
+
 end NormalFormExamples
 
 end MoltResearch
