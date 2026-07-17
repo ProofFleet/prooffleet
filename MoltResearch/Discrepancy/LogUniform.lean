@@ -1,3 +1,4 @@
+import MoltResearch.Discrepancy.MultiplicativeC
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.Normed.Field.Basic
 import Mathlib.Data.Complex.Basic
@@ -404,5 +405,158 @@ theorem filter_mod_mul_eq {a p : ℕ} (hcop : Nat.Coprime a p) (c : ℕ) (s : Fi
     exact ⟨h.1, h1, h2⟩
   · rintro ⟨hs, h1, h2⟩
     exact ⟨hs, (Nat.modEq_and_modEq_iff_modEq_mul hcop).mp ⟨h1, h2⟩⟩
+
+/-- **The conjugate-pair dilation identity** (exact; the reason `c_p = 1` for the
+Erdős-discrepancy application of arXiv:1509.05422): for unimodular completely
+multiplicative `g`, dilating both arguments of a conjugate-pair correlation by `p`
+changes nothing. -/
+theorem conjPair_dilate {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g)
+    (huni : Unimodular g) {p m k : ℕ} (hp : p ≠ 0) (hm : m ≠ 0) (hk : k ≠ 0) :
+    g (p * m) * (starRingEnd ℂ) (g (p * k)) = g m * (starRingEnd ℂ) (g k) := by
+  rw [hcm p m hp hm, hcm p k hp hk, map_mul]
+  have h1 : g p * (starRingEnd ℂ) (g p) = 1 := by
+    rw [Complex.mul_conj]
+    rw [show Complex.normSq (g p) = ‖g p‖ ^ 2 from by
+      rw [Complex.sq_norm]]
+    rw [huni p]
+    norm_num
+  calc g p * g m * ((starRingEnd ℂ) (g p) * (starRingEnd ℂ) (g k))
+      = (g p * (starRingEnd ℂ) (g p)) * (g m * (starRingEnd ℂ) (g k)) := by ring
+    _ = g m * (starRingEnd ℂ) (g k) := by rw [h1, one_mul]
+
+/-- Generalized weight comparison: the `1/n ↦ (1/q)·(1/(n/q))` replacement costs at
+most `2r/q²` over **any** finite set of naturals from the residue class `r (q)` lying
+above `q` — the sub-window form the Proposition-`conv` chain needs. -/
+theorem norm_sum_div_residue_sub_le' {q r : ℕ} (hq : 0 < q) (hr : r < q)
+    {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1) {T : Finset ℕ}
+    (hT : ∀ n ∈ T, q ≤ n ∧ n % q = r) :
+    ‖(∑ n ∈ T, F n / (n : ℂ)) - ∑ n ∈ T, F n / (q : ℂ) / ((n / q : ℕ) : ℂ)‖
+      ≤ 2 * r / q ^ 2 := by
+  classical
+  rw [← Finset.sum_sub_distrib]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hterm : ∀ n ∈ T, ‖F n / (n : ℂ) - F n / (q : ℂ) / ((n / q : ℕ) : ℂ)‖
+      ≤ (r : ℝ) / (q : ℝ) ^ 2 / ((n / q : ℕ) : ℝ) ^ 2 := by
+    intro n hn
+    obtain ⟨hqn, hmod⟩ := hT n hn
+    set m : ℕ := n / q with hm
+    have hn_eq : n = q * m + r := by
+      rw [hm]
+      have h3 := Nat.div_add_mod n q
+      omega
+    have hm1 : 1 ≤ m := by
+      rcases Nat.eq_zero_or_pos m with h0 | h1
+      · rw [h0] at hn_eq
+        omega
+      · exact h1
+    have hmR : (1 : ℝ) ≤ (m : ℝ) := by exact_mod_cast hm1
+    have hqR : (1 : ℝ) ≤ (q : ℝ) := by exact_mod_cast hq
+    have hnR : (n : ℝ) = q * m + r := by exact_mod_cast hn_eq
+    have hn0 : (0 : ℝ) < (n : ℝ) := by rw [hnR]; positivity
+    have hfactor : F n / (n : ℂ) - F n / (q : ℂ) / ((m : ℕ) : ℂ)
+        = F n * ((1 : ℂ) / (n : ℂ) - 1 / ((q : ℂ) * (m : ℂ))) := by
+      field_simp
+    rw [hfactor, norm_mul]
+    have hweights : ‖(1 : ℂ) / (n : ℂ) - 1 / ((q : ℂ) * (m : ℂ))‖
+        ≤ (r : ℝ) / (q : ℝ) ^ 2 / (m : ℝ) ^ 2 := by
+      have hcast : (1 : ℂ) / (n : ℂ) - 1 / ((q : ℂ) * (m : ℂ))
+          = (((1 : ℝ) / (n : ℝ) - 1 / ((q : ℝ) * (m : ℝ)) : ℝ) : ℂ) := by
+        push_cast
+        ring
+      rw [hcast, Complex.norm_real]
+      have hval : (1 : ℝ) / (n : ℝ) - 1 / ((q : ℝ) * (m : ℝ))
+          = -(r : ℝ) / ((q * m) * (q * m + r)) := by
+        rw [hnR]
+        have h1 : (0:ℝ) < (q:ℝ) * m := by positivity
+        field_simp
+        ring
+      have hr0 : (0:ℝ) ≤ (r:ℝ) := Nat.cast_nonneg r
+      have hqm0 : (0:ℝ) ≤ (q:ℝ) * m := by positivity
+      have hge : (q:ℝ)^2 * (m:ℝ)^2 ≤ ((q:ℝ) * m) * ((q:ℝ) * m + (r:ℝ)) := by
+        nlinarith [mul_nonneg hqm0 hr0]
+      have hd1 : (0:ℝ) < ((q:ℝ) * m) * ((q:ℝ) * m + (r:ℝ)) := by positivity
+      have hd2 : (0:ℝ) < (q:ℝ)^2 * (m:ℝ)^2 := by positivity
+      rw [hval, Real.norm_eq_abs, abs_div, abs_neg, abs_of_nonneg hr0,
+        abs_of_pos hd1]
+      calc (r:ℝ) / (((q:ℝ) * m) * ((q:ℝ) * m + (r:ℝ)))
+          ≤ (r:ℝ) / ((q:ℝ)^2 * (m:ℝ)^2) :=
+            div_le_div_of_nonneg_left hr0 hd2 hge
+        _ = (r : ℝ) / (q : ℝ) ^ 2 / (m : ℝ) ^ 2 := by rw [div_div]
+    calc ‖F n‖ * ‖(1 : ℂ) / (n : ℂ) - 1 / ((q : ℂ) * (m : ℂ))‖
+        ≤ 1 * ((r : ℝ) / (q : ℝ) ^ 2 / (m : ℝ) ^ 2) := by
+          have := hF n
+          have h0 := norm_nonneg ((1 : ℂ) / (n : ℂ) - 1 / ((q : ℂ) * (m : ℂ)))
+          nlinarith [hweights]
+      _ = (r : ℝ) / (q : ℝ) ^ 2 / ((n / q : ℕ) : ℝ) ^ 2 := by rw [one_mul]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have himg : ∑ n ∈ T, (r : ℝ) / (q : ℝ) ^ 2 / ((n / q : ℕ) : ℝ) ^ 2
+      = ∑ m ∈ T.image (· / q), (r : ℝ) / (q : ℝ) ^ 2 / (m : ℝ) ^ 2 := by
+    rw [Finset.sum_image]
+    intro n hn m hm h
+    have hn2 : n % q = r := (hT n (by
+      have hn' : n ∈ T := hn
+      exact hn')).2
+    have hm2 : m % q = r := (hT m (by
+      have hm' : m ∈ T := hm
+      exact hm')).2
+    have h' : n / q = m / q := h
+    calc n = q * (n / q) + n % q := (Nat.div_add_mod n q).symm
+      _ = q * (m / q) + m % q := by rw [h', hn2, hm2]
+      _ = m := Nat.div_add_mod m q
+  rw [himg]
+  have hfinal : ∑ m ∈ T.image (· / q), (r : ℝ) / (q : ℝ) ^ 2 / (m : ℝ) ^ 2
+      = (r : ℝ) / (q : ℝ) ^ 2 * ∑ m ∈ T.image (· / q), (1:ℝ) / (m : ℝ) ^ 2 := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl fun m _ => by ring
+  rw [hfinal]
+  have hutil := sum_one_div_sq_le_two (T.image (· / q))
+  have hsum0 : (0:ℝ) ≤ ∑ m ∈ T.image (· / q), (1:ℝ) / (m : ℝ) ^ 2 :=
+    Finset.sum_nonneg fun m _ => by positivity
+  have hcoef : (0:ℝ) ≤ (r : ℝ) / (q : ℝ) ^ 2 := by positivity
+  have h2 : (r : ℝ) / (q : ℝ) ^ 2 * ∑ m ∈ T.image (· / q), (1:ℝ) / (m : ℝ) ^ 2
+      ≤ (r : ℝ) / (q : ℝ) ^ 2 * 2 := by nlinarith
+  have h3 : (r : ℝ) / (q : ℝ) ^ 2 * 2 = 2 * (r : ℝ) / (q : ℝ) ^ 2 := by ring
+  linarith
+
+/-- Iterated shift comparison: advancing the argument by `t` costs at most `3t/a`. -/
+theorem norm_sum_div_shift_iterate_sub_le {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1)
+    {a b : ℕ} (ha : 1 ≤ a) (t : ℕ) :
+    ‖(∑ n ∈ Finset.Ioc a b, F (n + t) / (n : ℂ))
+        - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ ≤ 3 * t / a := by
+  induction t with
+  | zero =>
+    simp
+  | succ u ih =>
+    have hstep := norm_sum_div_shift_sub_le (F := fun n => F (n + u)) (b := b)
+      (fun n => hF (n + u)) ha
+    have htri := norm_sub_le_norm_sub_add_norm_sub
+      (∑ n ∈ Finset.Ioc a b, F (n + (u + 1)) / (n : ℂ))
+      (∑ n ∈ Finset.Ioc a b, F (n + u) / (n : ℂ))
+      (∑ n ∈ Finset.Ioc a b, F n / (n : ℂ))
+    have hshape : ∑ n ∈ Finset.Ioc a b, F (n + (u + 1)) / (n : ℂ)
+        = ∑ n ∈ Finset.Ioc a b, F ((n + 1) + u) / (n : ℂ) := by
+      refine Finset.sum_congr rfl fun n _ => ?_
+      congr 2
+      omega
+    rw [hshape]
+    have haR : (0 : ℝ) < (a : ℝ) := by
+      have : (1 : ℝ) ≤ (a : ℝ) := by exact_mod_cast ha
+      linarith
+    calc ‖(∑ n ∈ Finset.Ioc a b, F ((n + 1) + u) / (n : ℂ))
+          - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖
+        ≤ ‖(∑ n ∈ Finset.Ioc a b, F ((n + 1) + u) / (n : ℂ))
+            - ∑ n ∈ Finset.Ioc a b, F (n + u) / (n : ℂ)‖
+          + ‖(∑ n ∈ Finset.Ioc a b, F (n + u) / (n : ℂ))
+            - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ := by
+          have := norm_sub_le_norm_sub_add_norm_sub
+            (∑ n ∈ Finset.Ioc a b, F ((n + 1) + u) / (n : ℂ))
+            (∑ n ∈ Finset.Ioc a b, F (n + u) / (n : ℂ))
+            (∑ n ∈ Finset.Ioc a b, F n / (n : ℂ))
+          linarith
+      _ ≤ 3 / a + 3 * u / a := add_le_add hstep ih
+      _ = 3 * (u + 1) / a := by
+          field_simp
+          ring
+      _ = 3 * ((u + 1 : ℕ) : ℝ) / a := by push_cast; ring
 
 end MoltResearch

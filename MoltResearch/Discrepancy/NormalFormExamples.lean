@@ -6167,6 +6167,18 @@ example {a p : ℕ} (hcop : Nat.Coprime a p) (c : ℕ) (s : Finset ℕ) :
       = (s.filter (fun n => n % a = c % a)).filter (fun n => n % p = c % p) :=
   filter_mod_mul_eq hcop c s
 
+-- Track C Elliott campaign (issue #2946, E5a-2): the conjugate-pair dilation
+-- identity (exact — the c_p = 1 phenomenon) and the iterated shift comparison.
+example {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g) (huni : Unimodular g)
+    {p m k : ℕ} (hp : p ≠ 0) (hm : m ≠ 0) (hk : k ≠ 0) :
+    g (p * m) * (starRingEnd ℂ) (g (p * k)) = g m * (starRingEnd ℂ) (g k) :=
+  conjPair_dilate hcm huni hp hm hk
+
+example {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1) {a b : ℕ} (ha : 1 ≤ a) (t : ℕ) :
+    ‖(∑ n ∈ Finset.Ioc a b, F (n + t) / (n : ℂ))
+        - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ ≤ 3 * t / a :=
+  norm_sum_div_shift_iterate_sub_le hF ha t
+
 end NormalFormExamples
 
 end MoltResearch
