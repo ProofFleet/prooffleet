@@ -50,6 +50,7 @@ import MoltResearch.Discrepancy.MertensFirst
 import MoltResearch.Discrepancy.ChebyshevTail
 import MoltResearch.Discrepancy.TruncatedBridge
 import MoltResearch.Discrepancy.Entropy
+import MoltResearch.Discrepancy.LogUniform
 import MoltResearch.Discrepancy.AveragedWindowBound
 import MoltResearch.Discrepancy.SpectralWindowBound
 import MoltResearch.Discrepancy.FiniteSpectralSample

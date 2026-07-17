@@ -6128,6 +6128,21 @@ example {α : Type*} [Fintype α] [DecidableEq α] {v : α → ℝ} (hv0 : ∀ x
         + (1 - ∑ y ∈ E, v y) * Real.log (Fintype.card α) :=
   shannonEntropy_le_event_split hv0 hsum E
 
+-- Track C Elliott campaign (issue #2946, E3): log-uniform weights — the exact
+-- residue reindexing and the affine weight comparison of the paper's Lemma linear.
+example {q r : ℕ} (hq : 0 < q) (hr : r < q) (f : ℕ → ℂ) (s : Finset ℕ) :
+    ∑ n ∈ s.filter (fun n => n % q = r), f n
+      = ∑ n' ∈ (s.filter (fun n => n % q = r)).image (· / q), f (q * n' + r) :=
+  sum_filter_residue_eq_sum_image hq hr f s
+
+example {q r : ℕ} (hq : 0 < q) (hr : r < q) {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1)
+    {a b : ℕ} (ha : q ≤ a) :
+    ‖(∑ n ∈ (Finset.Ioc a b).filter (fun n => n % q = r), F n / (n : ℂ))
+        - ∑ n ∈ (Finset.Ioc a b).filter (fun n => n % q = r),
+            F n / (q : ℂ) / ((n / q : ℕ) : ℂ)‖
+      ≤ 2 * r / q ^ 2 :=
+  norm_sum_div_residue_sub_le hq hr hF ha
+
 end NormalFormExamples
 
 end MoltResearch
