@@ -758,6 +758,131 @@ theorem tvDist_comm (v w : α → ℝ) : tvDist v w = tvDist w v := by
   rw [tvDist, tvDist]
   exact Finset.sum_congr rfl fun x _ => abs_sub_comm _ _
 
+/-! Fannes-type continuity: Shannon entropy is continuous in total variation, with
+the elementary modulus `2·|α|·√T + T`. This is weaker than the sharp Fannes
+inequality but suffices for the entropy decrement, where the pattern alphabet is
+fixed while the total variation tends to zero. -/
+
+theorem negMulLog_le_two_mul_sqrt {a : ℝ} (ha : 0 ≤ a) :
+    Real.negMulLog a ≤ 2 * Real.sqrt a := by
+  rcases ha.eq_or_lt with h0 | h0
+  · simp [← h0]
+  · have hkey : Real.negMulLog a = 2 * a * Real.log (1 / Real.sqrt a) := by
+      rw [one_div, Real.log_inv, Real.log_sqrt ha, Real.negMulLog]
+      ring
+    have hs : 0 < Real.sqrt a := Real.sqrt_pos.mpr h0
+    have hlog : Real.log (1 / Real.sqrt a) ≤ 1 / Real.sqrt a - 1 :=
+      Real.log_le_sub_one_of_pos (by positivity)
+    calc Real.negMulLog a = 2 * a * Real.log (1 / Real.sqrt a) := hkey
+      _ ≤ 2 * a * (1 / Real.sqrt a - 1) :=
+          mul_le_mul_of_nonneg_left hlog (by positivity)
+      _ = 2 * (a / Real.sqrt a) - 2 * a := by ring
+      _ ≤ 2 * Real.sqrt a := by rw [Real.div_sqrt]; linarith
+
+theorem negMulLog_add_le {a d : ℝ} (ha : 0 ≤ a) (hd : 0 ≤ d) :
+    Real.negMulLog (a + d) ≤ Real.negMulLog a + Real.negMulLog d := by
+  have h1 : -(a * Real.log (a + d)) ≤ Real.negMulLog a := by
+    rcases ha.eq_or_lt with h0 | h0
+    · simp [← h0]
+    · rw [Real.negMulLog, neg_mul]
+      exact neg_le_neg (mul_le_mul_of_nonneg_left
+        (Real.log_le_log h0 (by linarith)) ha)
+  have h2 : -(d * Real.log (a + d)) ≤ Real.negMulLog d := by
+    rcases hd.eq_or_lt with h0 | h0
+    · simp [← h0]
+    · rw [Real.negMulLog, neg_mul]
+      exact neg_le_neg (mul_le_mul_of_nonneg_left
+        (Real.log_le_log h0 (by linarith)) hd)
+  have hsplit : Real.negMulLog (a + d)
+      = -(a * Real.log (a + d)) + -(d * Real.log (a + d)) := by
+    rw [Real.negMulLog]
+    ring
+  rw [hsplit]
+  exact add_le_add h1 h2
+
+theorem negMulLog_sub_le_of_le {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) (hb1 : b ≤ 1) :
+    Real.negMulLog a - Real.negMulLog b ≤ b - a := by
+  rcases ha.eq_or_lt with h0 | h0
+  · have hnn : 0 ≤ Real.negMulLog b :=
+      Real.negMulLog_nonneg (by linarith) hb1
+    rw [← h0, Real.negMulLog_zero]
+    linarith
+  · have hba : 0 < b := lt_of_lt_of_le h0 hab
+    have hlog1 : Real.log b - Real.log a ≤ b / a - 1 := by
+      have h := Real.log_le_sub_one_of_pos (show 0 < b / a by positivity)
+      rwa [Real.log_div hba.ne' h0.ne'] at h
+    have hterm1 : (b - a) * Real.log b ≤ 0 :=
+      mul_nonpos_of_nonneg_of_nonpos (by linarith)
+        (Real.log_nonpos (by linarith) hb1)
+    have ha' : a ≠ 0 := h0.ne'
+    have hcancel : a * (b / a - 1) = b - a := by
+      field_simp
+    have hterm2 : a * (Real.log b - Real.log a) ≤ b - a := by
+      have h := mul_le_mul_of_nonneg_left hlog1 ha
+      rw [hcancel] at h
+      exact h
+    have hid : b * Real.log b - a * Real.log a
+        = (b - a) * Real.log b + a * (Real.log b - Real.log a) := by
+      ring
+    rw [Real.negMulLog, Real.negMulLog]
+    nlinarith [hid, hterm1, hterm2]
+
+theorem abs_negMulLog_sub_le_of_le {a b : ℝ} (ha0 : 0 ≤ a) (hab : a ≤ b)
+    (hb1 : b ≤ 1) :
+    |Real.negMulLog a - Real.negMulLog b| ≤ 2 * Real.sqrt (b - a) + (b - a) := by
+  have hd0 : (0 : ℝ) ≤ b - a := by linarith
+  have hs0 : 0 ≤ Real.sqrt (b - a) := Real.sqrt_nonneg _
+  have hup : Real.negMulLog a - Real.negMulLog b ≤ b - a :=
+    negMulLog_sub_le_of_le ha0 hab hb1
+  have hdn : Real.negMulLog b - Real.negMulLog a ≤ 2 * Real.sqrt (b - a) := by
+    have hsub := negMulLog_add_le ha0 hd0
+    have heq : a + (b - a) = b := by ring
+    rw [heq] at hsub
+    have h2 := negMulLog_le_two_mul_sqrt hd0
+    linarith
+  rw [abs_sub_le_iff]
+  exact ⟨by linarith, by linarith⟩
+
+theorem abs_negMulLog_sub_le {a b : ℝ} (ha0 : 0 ≤ a) (ha1 : a ≤ 1) (hb0 : 0 ≤ b)
+    (hb1 : b ≤ 1) :
+    |Real.negMulLog a - Real.negMulLog b| ≤ 2 * Real.sqrt |a - b| + |a - b| := by
+  rcases le_total a b with hab | hab
+  · have hd0 : (0 : ℝ) ≤ b - a := by linarith
+    rw [abs_sub_comm a b, abs_of_nonneg hd0]
+    exact abs_negMulLog_sub_le_of_le ha0 hab hb1
+  · have hd0 : (0 : ℝ) ≤ a - b := by linarith
+    rw [abs_of_nonneg hd0, abs_sub_comm (Real.negMulLog a)]
+    exact abs_negMulLog_sub_le_of_le hb0 hab ha1
+
+/-- **Fannes-type continuity** of Shannon entropy in total variation:
+`|H(v) − H(w)| ≤ 2·|α|·√(tvDist v w) + tvDist v w` for `[0,1]`-valued weights. -/
+theorem abs_shannonEntropy_sub_le {v w : α → ℝ} (hv0 : ∀ x, 0 ≤ v x)
+    (hv1 : ∀ x, v x ≤ 1) (hw0 : ∀ x, 0 ≤ w x) (hw1 : ∀ x, w x ≤ 1) :
+    |shannonEntropy v - shannonEntropy w|
+      ≤ 2 * (Fintype.card α : ℝ) * Real.sqrt (tvDist v w) + tvDist v w := by
+  have hstep : |shannonEntropy v - shannonEntropy w|
+      ≤ ∑ x, (2 * Real.sqrt |v x - w x| + |v x - w x|) := by
+    rw [shannonEntropy, shannonEntropy, ← Finset.sum_sub_distrib]
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    exact Finset.sum_le_sum fun x _ =>
+      abs_negMulLog_sub_le (hv0 x) (hv1 x) (hw0 x) (hw1 x)
+  have hper : ∀ x : α, |v x - w x| ≤ tvDist v w := fun x =>
+    Finset.single_le_sum (f := fun y => |v y - w y|)
+      (fun y _ => abs_nonneg _) (Finset.mem_univ x)
+  refine le_trans hstep ?_
+  rw [Finset.sum_add_distrib]
+  have h1 : ∑ x : α, 2 * Real.sqrt |v x - w x|
+      ≤ (Fintype.card α : ℝ) * (2 * Real.sqrt (tvDist v w)) := by
+    calc ∑ x : α, 2 * Real.sqrt |v x - w x|
+        ≤ ∑ _x : α, 2 * Real.sqrt (tvDist v w) :=
+          Finset.sum_le_sum fun x _ =>
+            mul_le_mul_of_nonneg_left (Real.sqrt_le_sqrt (hper x)) (by norm_num)
+      _ = (Fintype.card α : ℝ) * (2 * Real.sqrt (tvDist v w)) := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+  have h2 : ∑ x : α, |v x - w x| = tvDist v w := rfl
+  rw [h2]
+  linarith
+
 end TV
 
 section Pigeonhole

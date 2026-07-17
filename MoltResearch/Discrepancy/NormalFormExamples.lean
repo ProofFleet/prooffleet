@@ -6310,6 +6310,14 @@ example {N : ℕ} (hN : 0 < N) {f : ℕ → ℝ}
     ∃ i ∈ Finset.range N, f i ≤ C / N :=
   exists_le_div_card_of_sum_le hN hf hsum
 
+-- Track C Elliott campaign (issue #2946, E6d-2): Fannes-type continuity of
+-- Shannon entropy in total variation.
+example {α : Type*} [Fintype α] {v w : α → ℝ} (hv0 : ∀ x, 0 ≤ v x)
+    (hv1 : ∀ x, v x ≤ 1) (hw0 : ∀ x, 0 ≤ w x) (hw1 : ∀ x, w x ≤ 1) :
+    |shannonEntropy v - shannonEntropy w|
+      ≤ 2 * (Fintype.card α : ℝ) * Real.sqrt (tvDist v w) + tvDist v w :=
+  abs_shannonEntropy_sub_le hv0 hv1 hw0 hw1
+
 end NormalFormExamples
 
 end MoltResearch
