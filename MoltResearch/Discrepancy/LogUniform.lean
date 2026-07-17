@@ -762,4 +762,102 @@ theorem norm_sum_affine_sub_le {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1)
   have h3 : (b : ℝ) / (a : ℝ) * 2 = 2 * (b : ℝ) / (a : ℝ) := by ring
   linarith
 
+/-- **Harmonic upper bound**, sharp telescoping form: `∑_{c < n ≤ d} 1/n ≤ log d − log c`
+for `1 ≤ c` (each `1/n ≤ log n − log(n−1)` from `log t ≤ t − 1` at `t = (n−1)/n`). -/
+theorem sum_one_div_Ioc_le {c d : ℕ} (hc : 1 ≤ c) (hcd : c ≤ d) :
+    ∑ n ∈ Finset.Ioc c d, (1 : ℝ) / n ≤ Real.log d - Real.log c := by
+  have hterm : ∀ n ∈ Finset.Ioc c d,
+      (1 : ℝ) / n ≤ Real.log n - Real.log ((n - 1 : ℕ) : ℝ) := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn
+    have hn2 : 2 ≤ n := by omega
+    have hn0 : (0 : ℝ) < (n : ℝ) := by
+      have : (2 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn2
+      linarith
+    have hn1R : ((n - 1 : ℕ) : ℝ) = (n : ℝ) - 1 := by
+      push_cast [Nat.cast_sub (by omega : 1 ≤ n)]
+      ring
+    have hn10 : (0 : ℝ) < (n : ℝ) - 1 := by
+      have : (2 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn2
+      linarith
+    have hlog := Real.log_le_sub_one_of_pos
+      (show (0 : ℝ) < ((n : ℝ) - 1) / (n : ℝ) by positivity)
+    rw [Real.log_div (by linarith) (ne_of_gt hn0)] at hlog
+    have hval : ((n : ℝ) - 1) / (n : ℝ) - 1 = -(1 / (n : ℝ)) := by
+      field_simp
+      ring
+    rw [hval] at hlog
+    rw [hn1R]
+    linarith
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  -- telescoping closed form
+  have hclosed : ∀ e : ℕ, c ≤ e →
+      ∑ n ∈ Finset.Ioc c e, (Real.log n - Real.log ((n - 1 : ℕ) : ℝ))
+        = Real.log e - Real.log c := by
+    intro e he
+    induction e with
+    | zero =>
+      have : c = 0 := by omega
+      omega
+    | succ f ihf =>
+      rcases Nat.lt_or_ge f c with hf | hf
+      · have hfe : f + 1 = c := by omega
+        rw [← hfe, Finset.Ioc_self, Finset.sum_empty]
+        rw [hfe]
+        ring
+      · rw [Finset.sum_Ioc_succ_top (by omega), ihf hf]
+        have hcast : ((f + 1 - 1 : ℕ) : ℝ) = (f : ℝ) := by
+          push_cast
+          ring
+      -- wait: (f+1) - 1 = f in ℕ: Nat.add_sub_cancel ✓ so the last term is log(f+1) − log f
+        rw [show ((f + 1 : ℕ) - 1 : ℕ) = f from by omega]
+        push_cast
+        ring
+  rw [hclosed d hcd]
+
+/-- The `r`-general divided image window: the quotients of the `r (q)`-class of
+`(A, B]` form exactly `((A−r)/q, (B−r)/q]`, provided `r ≤ A`. -/
+theorem image_div_filter_eq {q : ℕ} (hq : 0 < q) {r : ℕ} (hr : r < q) (A B : ℕ)
+    (hrA : r ≤ A) :
+    ((Finset.Ioc A B).filter (fun n => n % q = r)).image (· / q)
+      = Finset.Ioc ((A - r) / q) ((B - r) / q) := by
+  classical
+  ext n'
+  rw [Finset.mem_image, Finset.mem_Ioc]
+  constructor
+  · rintro ⟨n, hn, rfl⟩
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hn
+    obtain ⟨⟨hAn, hnB⟩, hmod⟩ := hn
+    have hrn : r ≤ n := by
+      have := Nat.mod_le n q
+      omega
+    have hn_eq : n = q * (n / q) + r := by
+      have h3 := Nat.div_add_mod n q
+      omega
+    constructor
+    · rw [Nat.div_lt_iff_lt_mul hq]
+      have h1 : A - r < q * (n / q) := by omega
+      rw [Nat.mul_comm] at h1
+      exact h1
+    · rw [Nat.le_div_iff_mul_le hq]
+      have h2 : q * (n / q) ≤ B - r := by omega
+      rw [Nat.mul_comm] at h2
+      exact h2
+  · rintro ⟨hA', hB'⟩
+    refine ⟨q * n' + r, ?_, ?_⟩
+    · rw [Finset.mem_filter, Finset.mem_Ioc]
+      rw [Nat.div_lt_iff_lt_mul hq] at hA'
+      rw [Nat.le_div_iff_mul_le hq] at hB'
+      have hsub : A - r + r = A := Nat.sub_add_cancel hrA
+      have hsub2 : B - r + r = B ∨ (B - r = 0 ∧ B ≤ r) := by omega
+      have hcomm : n' * q = q * n' := Nat.mul_comm n' q
+      refine ⟨⟨?_, ?_⟩, ?_⟩
+      · omega
+      · omega
+      · rw [Nat.add_comm, Nat.add_mul_mod_self_left]
+        exact Nat.mod_eq_of_lt hr
+    · rw [Nat.add_comm, Nat.add_mul_div_left _ _ hq]
+      have h0 : r / q = 0 := Nat.div_eq_of_lt hr
+      omega
+
 end MoltResearch

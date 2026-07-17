@@ -6207,6 +6207,17 @@ example {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1) {a b A B : ℕ} (ha : 0 
             (fun m => m % a = b % a), F m / (m : ℂ)‖ ≤ 2 * b / a :=
   norm_sum_affine_sub_le hF ha hA
 
+-- Track C Elliott campaign (issue #2946, E5a-3b-2): the sharp harmonic upper bound
+-- and the r-general divided image window — the window-mismatch toolkit.
+example {c d : ℕ} (hc : 1 ≤ c) (hcd : c ≤ d) :
+    ∑ n ∈ Finset.Ioc c d, (1 : ℝ) / n ≤ Real.log d - Real.log c :=
+  sum_one_div_Ioc_le hc hcd
+
+example {q : ℕ} (hq : 0 < q) {r : ℕ} (hr : r < q) (A B : ℕ) (hrA : r ≤ A) :
+    ((Finset.Ioc A B).filter (fun n => n % q = r)).image (· / q)
+      = Finset.Ioc ((A - r) / q) ((B - r) / q) :=
+  image_div_filter_eq hq hr A B hrA
+
 end NormalFormExamples
 
 end MoltResearch
