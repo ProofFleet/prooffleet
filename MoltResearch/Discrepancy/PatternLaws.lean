@@ -792,4 +792,101 @@ theorem shannonEntropy_jointLaw_step (g : ℕ → ℂ) (K H₁ H₂ P : ℕ) [Ne
   have h2 := mul_le_mul_of_nonneg_left hsqrt hcard0
   linarith [hrelabel, hsubmod, hswapH, h1, h2, hTle]
 
+/-- The per-step Fannes cost of the decrement at shift `k·H` on the window
+`(A, B]`. -/
+noncomputable def decrementErr (K H P A B k : ℕ) [NeZero P] : ℝ :=
+  2 * (Fintype.card (PatternSpace K H × ZMod P) : ℝ)
+      * Real.sqrt (3 * ((k * H : ℕ) : ℝ)
+        / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m))
+    + 3 * ((k * H : ℕ) : ℝ) / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)
+
+theorem decrementErr_nonneg (K H P A B k : ℕ) [NeZero P] :
+    0 ≤ decrementErr K H P A B k := by
+  rw [decrementErr]
+  have hS : (0 : ℝ) ≤ ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m :=
+    Finset.sum_nonneg fun m _ => by positivity
+  have h1 : (0 : ℝ) ≤ 3 * ((k * H : ℕ) : ℝ)
+      / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) :=
+    div_nonneg (by positivity) (by positivity)
+  have h2 := Real.sqrt_nonneg (3 * ((k * H : ℕ) : ℝ)
+    / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m))
+  have hcard0 : (0 : ℝ) ≤ 2 * (Fintype.card (PatternSpace K H × ZMod P) : ℝ) := by
+    positivity
+  nlinarith
+
+theorem decrementErr_mono (K H P A B : ℕ) [NeZero P] {j k : ℕ} (hjk : j ≤ k) :
+    decrementErr K H P A B j ≤ decrementErr K H P A B k := by
+  rw [decrementErr, decrementErr]
+  have hden : (0 : ℝ) ≤ ((A : ℝ) * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)⁻¹ := by
+    have hS : (0 : ℝ) ≤ ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m :=
+      Finset.sum_nonneg fun m _ => by positivity
+    have hAS : (0 : ℝ) ≤ (A : ℝ) * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m := by
+      positivity
+    exact inv_nonneg.mpr hAS
+  have hnum : 3 * ((j * H : ℕ) : ℝ) ≤ 3 * ((k * H : ℕ) : ℝ) := by
+    have : ((j * H : ℕ) : ℝ) ≤ ((k * H : ℕ) : ℝ) := by
+      exact_mod_cast Nat.mul_le_mul_right H hjk
+    linarith
+  have harg : 3 * ((j * H : ℕ) : ℝ) / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)
+      ≤ 3 * ((k * H : ℕ) : ℝ) / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) := by
+    rw [div_eq_mul_inv, div_eq_mul_inv]
+    exact mul_le_mul_of_nonneg_right hnum hden
+  have hsqrt := Real.sqrt_le_sqrt harg
+  have hcard0 : (0 : ℝ) ≤ 2 * (Fintype.card (PatternSpace K H × ZMod P) : ℝ) := by
+    positivity
+  have := mul_le_mul_of_nonneg_left hsqrt hcard0
+  linarith
+
+/-- **The iterated decrement**: `k` applications of the step give
+`H(X_{kH},Y) ≤ k·H(X_H,Y) − (k−1)·H(Y) + k·err`. -/
+theorem shannonEntropy_jointLaw_iterate (g : ℕ → ℂ) (K H P : ℕ) [NeZero P]
+    {A B : ℕ} (hA : 1 ≤ A) {k : ℕ} (hk : 1 ≤ k)
+    (hkB : A + k * H + k * H < B) :
+    shannonEntropy (jointLaw g K (k * H) P A B)
+      ≤ k * shannonEntropy (jointLaw g K H P A B)
+        - ((k : ℝ) - 1) * shannonEntropy (residueLaw P A B)
+        + k * decrementErr K H P A B k := by
+  induction k with
+  | zero => exact absurd hk (by omega)
+  | succ m ih =>
+    rcases Nat.eq_zero_or_pos m with rfl | hm
+    · have hE := decrementErr_nonneg K H P A B 1
+      have hidx : (0 + 1) * H = H := by ring
+      rw [hidx]
+      simp only [zero_add, Nat.cast_one]
+      linarith
+    · have heq : (m + 1) * H = m * H + H := by ring
+      have hle : m * H ≤ (m + 1) * H := Nat.mul_le_mul_right H (by omega)
+      have hmB : A + m * H + m * H < B := by omega
+      have ihm := ih hm hmB
+      have hstep' : shannonEntropy (jointLaw g K (m * H + H) P A B)
+          ≤ shannonEntropy (jointLaw g K (m * H) P A B)
+            + shannonEntropy (jointLaw g K H P A B)
+            - shannonEntropy (residueLaw P A B)
+            + decrementErr K H P A B m := by
+        rw [decrementErr]
+        exact shannonEntropy_jointLaw_step g K (m * H) H P hA hmB
+      have hEmono : decrementErr K H P A B m ≤ decrementErr K H P A B (m + 1) :=
+        decrementErr_mono K H P A B (Nat.le_succ m)
+      have hscale : (m : ℝ) * decrementErr K H P A B m
+          ≤ (m : ℝ) * decrementErr K H P A B (m + 1) :=
+        mul_le_mul_of_nonneg_left hEmono (Nat.cast_nonneg m)
+      have hr1 : ((m + 1 : ℕ) : ℝ) * shannonEntropy (jointLaw g K H P A B)
+          = (m : ℝ) * shannonEntropy (jointLaw g K H P A B)
+            + shannonEntropy (jointLaw g K H P A B) := by
+        push_cast
+        ring
+      have hr2 : (((m + 1 : ℕ) : ℝ) - 1) * shannonEntropy (residueLaw P A B)
+          = ((m : ℝ) - 1) * shannonEntropy (residueLaw P A B)
+            + shannonEntropy (residueLaw P A B) := by
+        push_cast
+        ring
+      have hr3 : ((m + 1 : ℕ) : ℝ) * decrementErr K H P A B (m + 1)
+          = (m : ℝ) * decrementErr K H P A B (m + 1)
+            + decrementErr K H P A B (m + 1) := by
+        push_cast
+        ring
+      rw [heq]
+      linarith [hstep', ihm, hscale, hr1, hr2, hr3]
+
 end MoltResearch

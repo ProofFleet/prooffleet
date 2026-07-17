@@ -6370,6 +6370,15 @@ example (g : ℕ → ℂ) (K H₁ H₂ P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 �
           + 3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) :=
   shannonEntropy_jointLaw_step g K H₁ H₂ P hA hH
 
+-- Track C Elliott campaign (issue #2946, E6d-5b): the iterated decrement.
+example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A) {k : ℕ}
+    (hk : 1 ≤ k) (hkB : A + k * H + k * H < B) :
+    shannonEntropy (jointLaw g K (k * H) P A B)
+      ≤ k * shannonEntropy (jointLaw g K H P A B)
+        - ((k : ℝ) - 1) * shannonEntropy (residueLaw P A B)
+        + k * decrementErr K H P A B k :=
+  shannonEntropy_jointLaw_iterate g K H P hA hk hkB
+
 end NormalFormExamples
 
 end MoltResearch
