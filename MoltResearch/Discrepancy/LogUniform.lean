@@ -662,4 +662,104 @@ theorem image_pDiv_filter_eq {p : ℕ} (hp : 0 < p) (a c A B : ℕ) :
       rw [Nat.mul_comm] at hB
       exact hB
 
+/-- The affine image window, characterized exactly: `n ↦ a·n + b` carries `(A, B]`
+onto the `b`-class of `(aA+b, aB+b]`. -/
+theorem image_affine_eq {a : ℕ} (ha : 0 < a) (b A B : ℕ) :
+    (Finset.Ioc A B).image (fun n => a * n + b)
+      = (Finset.Ioc (a * A + b) (a * B + b)).filter (fun m => m % a = b % a) := by
+  classical
+  ext m
+  rw [Finset.mem_image, Finset.mem_filter, Finset.mem_Ioc]
+  constructor
+  · rintro ⟨n, hn, rfl⟩
+    rw [Finset.mem_Ioc] at hn
+    refine ⟨⟨?_, ?_⟩, ?_⟩
+    · have h1 : a * A < a * n := (Nat.mul_lt_mul_left ha).mpr hn.1
+      omega
+    · have h2 : a * n ≤ a * B := Nat.mul_le_mul_left a hn.2
+      omega
+    · rw [Nat.add_comm, Nat.add_mul_mod_self_left]
+  · rintro ⟨⟨hAm, hmB⟩, hmod⟩
+    have hbm : b ≤ m := by omega
+    have hdvd : a ∣ m - b := (Nat.modEq_iff_dvd' hbm).mp (Nat.ModEq.symm hmod)
+    obtain ⟨k, hk⟩ := hdvd
+    refine ⟨k, ?_, by omega⟩
+    rw [Finset.mem_Ioc]
+    constructor
+    · have h1 : a * A < a * k := by omega
+      exact Nat.lt_of_mul_lt_mul_left h1
+    · have h2 : a * k ≤ a * B := by omega
+      exact Nat.le_of_mul_le_mul_left h2 ha
+
+/-- **The affine conversion** (interface-form ↔ residue-filtered form): the
+interface's correlation `∑ F(a·n+b)/n` matches `a` times the residue-filtered
+log-uniform sum, at total cost `2b/a` — the paper's passage from eq. (face) to
+eq. (face-2). -/
+theorem norm_sum_affine_sub_le {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1)
+    {a b A B : ℕ} (ha : 0 < a) (hA : 1 ≤ A) :
+    ‖(∑ n ∈ Finset.Ioc A B, F (a * n + b) / (n : ℂ))
+        - (a : ℂ) * ∑ m ∈ (Finset.Ioc (a * A + b) (a * B + b)).filter
+            (fun m => m % a = b % a), F m / (m : ℂ)‖ ≤ 2 * b / a := by
+  classical
+  -- reindex the filtered sum through the affine image
+  have himg : ∑ m ∈ (Finset.Ioc (a * A + b) (a * B + b)).filter
+        (fun m => m % a = b % a), F m / (m : ℂ)
+      = ∑ n ∈ Finset.Ioc A B, F (a * n + b) / ((a * n + b : ℕ) : ℂ) := by
+    rw [← image_affine_eq ha b A B]
+    refine Finset.sum_image fun x _ y _ h => ?_
+    have h' : a * x + b = a * y + b := h
+    have h2 : a * x = a * y := by omega
+    exact Nat.eq_of_mul_eq_mul_left ha h2
+  rw [himg, Finset.mul_sum, ← Finset.sum_sub_distrib]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hterm : ∀ n ∈ Finset.Ioc A B,
+      ‖F (a * n + b) / (n : ℂ)
+          - (a : ℂ) * (F (a * n + b) / ((a * n + b : ℕ) : ℂ))‖
+        ≤ (b : ℝ) / (a : ℝ) / (n : ℝ) ^ 2 := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn
+    have hn1 : 1 ≤ n := by omega
+    have hn0 : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn1
+    have ha0 : (0 : ℝ) < (a : ℝ) := by exact_mod_cast ha
+    have hb0 : (0 : ℝ) ≤ (b : ℝ) := Nat.cast_nonneg b
+    have hanb : (0 : ℝ) < (a : ℝ) * (n : ℝ) + (b : ℝ) := by positivity
+    have hfac : F (a * n + b) / (n : ℂ)
+        - (a : ℂ) * (F (a * n + b) / ((a * n + b : ℕ) : ℂ))
+        = F (a * n + b) * ((1 : ℂ) / (n : ℂ) - (a : ℂ) / ((a * n + b : ℕ) : ℂ)) := by
+      field_simp
+    rw [hfac, norm_mul]
+    have hcast : (1 : ℂ) / (n : ℂ) - (a : ℂ) / ((a * n + b : ℕ) : ℂ)
+        = (((1 : ℝ) / (n : ℝ) - (a : ℝ) / ((a : ℝ) * n + b) : ℝ) : ℂ) := by
+      push_cast
+      ring
+    rw [hcast, Complex.norm_real, Real.norm_eq_abs]
+    have hval : (1 : ℝ) / (n : ℝ) - (a : ℝ) / ((a : ℝ) * n + b)
+        = (b : ℝ) / ((n : ℝ) * ((a : ℝ) * n + b)) := by
+      field_simp
+      ring
+    rw [hval, abs_of_nonneg (by positivity)]
+    have hbound : (b : ℝ) / ((n : ℝ) * ((a : ℝ) * n + b))
+        ≤ (b : ℝ) / (a : ℝ) / (n : ℝ) ^ 2 := by
+      rw [div_div]
+      refine div_le_div_of_nonneg_left hb0 (by positivity) ?_
+      calc (a : ℝ) * (n : ℝ) ^ 2 = (n : ℝ) * ((a : ℝ) * n) := by ring
+        _ ≤ (n : ℝ) * ((a : ℝ) * n + b) := by nlinarith
+    have h1 := hF (a * n + b)
+    have h0 : (0 : ℝ) ≤ (b : ℝ) / ((n : ℝ) * ((a : ℝ) * n + b)) := by positivity
+    nlinarith [hbound]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have hfinal : ∑ n ∈ Finset.Ioc A B, (b : ℝ) / (a : ℝ) / (n : ℝ) ^ 2
+      = (b : ℝ) / (a : ℝ) * ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / (n : ℝ) ^ 2 := by
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl fun n _ => by ring
+  rw [hfinal]
+  have hutil := sum_one_div_sq_le_two (Finset.Ioc A B)
+  have hsum0 : (0 : ℝ) ≤ ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / (n : ℝ) ^ 2 :=
+    Finset.sum_nonneg fun n _ => by positivity
+  have hcoef : (0 : ℝ) ≤ (b : ℝ) / (a : ℝ) := by positivity
+  have h2 : (b : ℝ) / (a : ℝ) * ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / (n : ℝ) ^ 2
+      ≤ (b : ℝ) / (a : ℝ) * 2 := by nlinarith
+  have h3 : (b : ℝ) / (a : ℝ) * 2 = 2 * (b : ℝ) / (a : ℝ) := by ring
+  linarith
+
 end MoltResearch

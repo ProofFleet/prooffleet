@@ -6199,6 +6199,14 @@ example {p : ℕ} (hp : 0 < p) (a c A B : ℕ) :
       = (Finset.Ioc (A / p) (B / p)).filter (fun m' => (p * m') % a = c) :=
   image_pDiv_filter_eq hp a c A B
 
+-- Track C Elliott campaign (issue #2946, E5a-3b-1): the affine conversion between
+-- the interface-form correlation and the residue-filtered log-uniform form.
+example {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1) {a b A B : ℕ} (ha : 0 < a) (hA : 1 ≤ A) :
+    ‖(∑ n ∈ Finset.Ioc A B, F (a * n + b) / (n : ℂ))
+        - (a : ℂ) * ∑ m ∈ (Finset.Ioc (a * A + b) (a * B + b)).filter
+            (fun m => m % a = b % a), F m / (m : ℂ)‖ ≤ 2 * b / a :=
+  norm_sum_affine_sub_le hF ha hA
+
 end NormalFormExamples
 
 end MoltResearch
