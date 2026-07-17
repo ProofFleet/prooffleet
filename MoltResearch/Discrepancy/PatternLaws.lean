@@ -623,4 +623,173 @@ theorem shannonEntropy_patternLaw_add_le (g : ℕ → ℂ) (K H₁ H₂ : ℕ) {
   have h2 := mul_le_mul_of_nonneg_left hsqrt hcard0
   linarith [hsub, hrelabel, h1, h2, hTle]
 
+/-- The `(1,3)`-marginal of a triple pushforward drops the middle component. -/
+theorem margAC_pushWeight_triple (s : Finset ℕ) (w : ℕ → ℝ) {α β γ : Type*}
+    [Fintype α] [DecidableEq α] [Fintype β] [DecidableEq β] [Fintype γ]
+    [DecidableEq γ] (φ : ℕ → α) (ψ : ℕ → β) (χ : ℕ → γ) :
+    margAC (pushWeight s w (fun n => ((φ n, ψ n), χ n)))
+      = pushWeight s w (fun n => (φ n, χ n)) := by
+  classical
+  funext x
+  rcases x with ⟨a, c⟩
+  rw [show margAC (pushWeight s w (fun n => ((φ n, ψ n), χ n))) (a, c)
+      = ∑ b, pushWeight s w (fun n => ((φ n, ψ n), χ n)) ((a, b), c) from rfl]
+  rw [show pushWeight s w (fun n => (φ n, χ n)) (a, c)
+      = ∑ n ∈ s.filter (fun n => (φ n, χ n) = (a, c)), w n from rfl]
+  rw [show (∑ b, pushWeight s w (fun n => ((φ n, ψ n), χ n)) ((a, b), c))
+      = ∑ b, ∑ n ∈ s.filter (fun n => ((φ n, ψ n), χ n) = ((a, b), c)), w n
+      from Finset.sum_congr rfl fun b _ => rfl]
+  rw [← Finset.sum_fiberwise_of_maps_to (g := ψ)
+    (s := s.filter (fun n => (φ n, χ n) = (a, c)))
+    (fun n _ => Finset.mem_univ _) w]
+  refine Finset.sum_congr rfl fun b _ => ?_
+  congr 1
+  ext n
+  simp only [Finset.mem_filter, Prod.mk.injEq, and_assoc]
+  tauto
+
+/-- The `(2,3)`-marginal of a triple pushforward drops the first component. -/
+theorem margBC_pushWeight_triple (s : Finset ℕ) (w : ℕ → ℝ) {α β γ : Type*}
+    [Fintype α] [DecidableEq α] [Fintype β] [DecidableEq β] [Fintype γ]
+    [DecidableEq γ] (φ : ℕ → α) (ψ : ℕ → β) (χ : ℕ → γ) :
+    margBC (pushWeight s w (fun n => ((φ n, ψ n), χ n)))
+      = pushWeight s w (fun n => (ψ n, χ n)) := by
+  classical
+  funext x
+  rcases x with ⟨b, c⟩
+  rw [show margBC (pushWeight s w (fun n => ((φ n, ψ n), χ n))) (b, c)
+      = ∑ a, pushWeight s w (fun n => ((φ n, ψ n), χ n)) ((a, b), c) from rfl]
+  rw [show pushWeight s w (fun n => (ψ n, χ n)) (b, c)
+      = ∑ n ∈ s.filter (fun n => (ψ n, χ n) = (b, c)), w n from rfl]
+  rw [show (∑ a, pushWeight s w (fun n => ((φ n, ψ n), χ n)) ((a, b), c))
+      = ∑ a, ∑ n ∈ s.filter (fun n => ((φ n, ψ n), χ n) = ((a, b), c)), w n
+      from Finset.sum_congr rfl fun a _ => rfl]
+  rw [← Finset.sum_fiberwise_of_maps_to (g := φ)
+    (s := s.filter (fun n => (ψ n, χ n) = (b, c)))
+    (fun n _ => Finset.mem_univ _) w]
+  refine Finset.sum_congr rfl fun a _ => ?_
+  congr 1
+  ext n
+  simp only [Finset.mem_filter, Prod.mk.injEq, and_assoc]
+  tauto
+
+/-- **The decrement step**: splitting the window inside the joint law with the
+residue and applying submodularity, the shifted half is swapped back at Fannes
+cost. This is the paper's relative approximate subadditivity
+`H(X_{H₁+H₂}|Y) ≤ H(X_{H₁}|Y) + H(X_{H₂}|Y) + o(1)` in unconditional form. -/
+theorem shannonEntropy_jointLaw_step (g : ℕ → ℂ) (K H₁ H₂ P : ℕ) [NeZero P]
+    {A B : ℕ} (hA : 1 ≤ A) (hH : A + H₁ + H₁ < B) :
+    shannonEntropy (jointLaw g K (H₁ + H₂) P A B)
+      ≤ shannonEntropy (jointLaw g K H₁ P A B)
+        + shannonEntropy (jointLaw g K H₂ P A B)
+        - shannonEntropy (residueLaw P A B)
+        + (2 * (Fintype.card (PatternSpace K H₂ × ZMod P) : ℝ)
+            * Real.sqrt (3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m))
+          + 3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) := by
+  classical
+  have hAB : A < B := by omega
+  -- relabel the long joint law into the triple law
+  have htriple_fun : (fun n => ((patternSplit K H₁ H₂).prodCongr
+        (Equiv.refl (ZMod P)) (patternMap g K (H₁ + H₂) n, (n : ZMod P))))
+      = fun n => ((patternMap g K H₁ n, patternMap g K H₂ (n + H₁)),
+          (n : ZMod P)) := by
+    funext n
+    simp only [Equiv.prodCongr_apply, Prod.map, Equiv.refl_apply]
+    rw [patternSplit_patternMap]
+  have hrelabel : shannonEntropy (jointLaw g K (H₁ + H₂) P A B)
+      = shannonEntropy (pushWeight (Finset.Ioc A B) (logWeight A B)
+          (fun n => ((patternMap g K H₁ n, patternMap g K H₂ (n + H₁)),
+            (n : ZMod P)))) := by
+    rw [jointLaw, ← shannonEntropy_pushWeight_equiv (Finset.Ioc A B)
+      (logWeight A B) (fun n => (patternMap g K (H₁ + H₂) n, (n : ZMod P)))
+      ((patternSplit K H₁ H₂).prodCongr (Equiv.refl (ZMod P))), htriple_fun]
+  -- submodularity on the triple law
+  have hW0 : ∀ x, 0 ≤ pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => ((patternMap g K H₁ n, patternMap g K H₂ (n + H₁)),
+        (n : ZMod P))) x :=
+    pushWeight_nonneg (fun n _ => logWeight_nonneg A B n) _
+  have hsubmod := condEntropy_le_add_condEntropy hW0
+  rw [condEntropy, condEntropy, condEntropy] at hsubmod
+  have hmAC : margAC (pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => ((patternMap g K H₁ n, patternMap g K H₂ (n + H₁)),
+        (n : ZMod P)))) = jointLaw g K H₁ P A B :=
+    margAC_pushWeight_triple (Finset.Ioc A B) (logWeight A B)
+      (fun n => patternMap g K H₁ n) (fun n => patternMap g K H₂ (n + H₁))
+      (fun n => (n : ZMod P))
+  have hmBC : margBC (pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => ((patternMap g K H₁ n, patternMap g K H₂ (n + H₁)),
+        (n : ZMod P))))
+      = pushWeight (Finset.Ioc A B) (logWeight A B)
+          (fun n => (patternMap g K H₂ (n + H₁), (n : ZMod P))) :=
+    margBC_pushWeight_triple (Finset.Ioc A B) (logWeight A B)
+      (fun n => patternMap g K H₁ n) (fun n => patternMap g K H₂ (n + H₁))
+      (fun n => (n : ZMod P))
+  have hm2 : marginal₂ (pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => ((patternMap g K H₁ n, patternMap g K H₂ (n + H₁)),
+        (n : ZMod P)))) = residueLaw P A B :=
+    marginal₂_pushWeight_pair (Finset.Ioc A B) (logWeight A B)
+      (fun n => (patternMap g K H₁ n, patternMap g K H₂ (n + H₁)))
+      (fun n => (n : ZMod P))
+  have hm2BC : marginal₂ (pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => (patternMap g K H₂ (n + H₁), (n : ZMod P))))
+      = residueLaw P A B :=
+    marginal₂_pushWeight_pair (Finset.Ioc A B) (logWeight A B)
+      (fun n => patternMap g K H₂ (n + H₁)) (fun n => (n : ZMod P))
+  rw [hmAC, hmBC, hm2, marginal₂_jointLaw, hm2BC] at hsubmod
+  -- swap the shifted joint half for the unshifted joint law
+  have hTle : tvDist (pushWeight (Finset.Ioc A B) (logWeight A B)
+        (fun n => (patternMap g K H₂ (n + H₁), ((n + H₁ : ℕ) : ZMod P))))
+      (jointLaw g K H₂ P A B)
+      ≤ 3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) :=
+    tvDist_pushWeight_logWeight_shift_le hA hH
+      (fun m => (patternMap g K H₂ m, (m : ZMod P)))
+  have hcast_fun : (fun n => (patternMap g K H₂ (n + H₁),
+        ((n + H₁ : ℕ) : ZMod P)))
+      = fun n => ((Equiv.refl (PatternSpace K H₂)).prodCongr
+          (Equiv.addRight ((H₁ : ℕ) : ZMod P))
+          ((patternMap g K H₂ (n + H₁), (n : ZMod P)))) := by
+    funext n
+    simp only [Equiv.prodCongr_apply, Prod.map, Equiv.refl_apply,
+      Equiv.coe_addRight]
+    rw [Nat.cast_add]
+  have hswapH : shannonEntropy (pushWeight (Finset.Ioc A B) (logWeight A B)
+        (fun n => (patternMap g K H₂ (n + H₁), ((n + H₁ : ℕ) : ZMod P))))
+      = shannonEntropy (pushWeight (Finset.Ioc A B) (logWeight A B)
+          (fun n => (patternMap g K H₂ (n + H₁), (n : ZMod P)))) := by
+    rw [hcast_fun]
+    exact shannonEntropy_pushWeight_equiv (Finset.Ioc A B) (logWeight A B)
+      (fun n => (patternMap g K H₂ (n + H₁), (n : ZMod P)))
+      ((Equiv.refl (PatternSpace K H₂)).prodCongr
+        (Equiv.addRight ((H₁ : ℕ) : ZMod P)))
+  -- Fannes bounds for the swap
+  have hv0 : ∀ x, 0 ≤ pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => (patternMap g K H₂ (n + H₁), ((n + H₁ : ℕ) : ZMod P))) x :=
+    pushWeight_nonneg (fun n _ => logWeight_nonneg A B n) _
+  have hv1 : ∀ x, pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => (patternMap g K H₂ (n + H₁), ((n + H₁ : ℕ) : ZMod P))) x ≤ 1 := by
+    intro x
+    have h := pushWeight_le_sum (s := Finset.Ioc A B)
+      (fun n _ => logWeight_nonneg A B n)
+      (fun n => (patternMap g K H₂ (n + H₁), ((n + H₁ : ℕ) : ZMod P))) x
+    rw [sum_logWeight hA hAB] at h
+    exact h
+  have hw1 : ∀ x, jointLaw g K H₂ P A B x ≤ 1 := by
+    intro x
+    have h := pushWeight_le_sum (s := Finset.Ioc A B)
+      (fun n _ => logWeight_nonneg A B n)
+      (fun n => (patternMap g K H₂ n, (n : ZMod P))) x
+    rw [sum_logWeight hA hAB] at h
+    exact h
+  have hF := abs_shannonEntropy_sub_le hv0 hv1
+    (fun x => jointLaw_nonneg g K H₂ P A B x) hw1
+  have hT0 := tvDist_nonneg (pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => (patternMap g K H₂ (n + H₁), ((n + H₁ : ℕ) : ZMod P))))
+    (jointLaw g K H₂ P A B)
+  have hsqrt := Real.sqrt_le_sqrt hTle
+  have hcard0 : (0 : ℝ)
+      ≤ 2 * (Fintype.card (PatternSpace K H₂ × ZMod P) : ℝ) := by positivity
+  have h1 := le_trans (le_abs_self _) hF
+  have h2 := mul_le_mul_of_nonneg_left hsqrt hcard0
+  linarith [hrelabel, hsubmod, hswapH, h1, h2, hTle]
+
 end MoltResearch

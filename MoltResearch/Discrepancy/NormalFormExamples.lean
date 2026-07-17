@@ -6357,6 +6357,19 @@ example (g : ℕ → ℂ) (K H₁ H₂ : ℕ) {A B : ℕ} (hA : 1 ≤ A)
           + 3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) :=
   shannonEntropy_patternLaw_add_le g K H₁ H₂ hA hH
 
+-- Track C Elliott campaign (issue #2946, E6d-5a): the decrement step at the
+-- joint (X,Y) level.
+example (g : ℕ → ℂ) (K H₁ H₂ P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A)
+    (hH : A + H₁ + H₁ < B) :
+    shannonEntropy (jointLaw g K (H₁ + H₂) P A B)
+      ≤ shannonEntropy (jointLaw g K H₁ P A B)
+        + shannonEntropy (jointLaw g K H₂ P A B)
+        - shannonEntropy (residueLaw P A B)
+        + (2 * (Fintype.card (PatternSpace K H₂ × ZMod P) : ℝ)
+            * Real.sqrt (3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m))
+          + 3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) :=
+  shannonEntropy_jointLaw_step g K H₁ H₂ P hA hH
+
 end NormalFormExamples
 
 end MoltResearch
