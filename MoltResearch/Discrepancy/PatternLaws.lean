@@ -247,4 +247,198 @@ theorem tvDist_pushWeight_le (s : Finset ℕ) (v w : ℕ → ℝ) {β : Type*} [
   rw [Finset.sum_fiberwise_of_maps_to (fun n _ => Finset.mem_univ (f n))
     (fun n => |v n - w n|)]
 
+/-- Reindexing: pushing the `s`-shifted map from `(A, B]` is pushing the original
+map from the shifted window `(A+s, B+s]` with shifted weights. -/
+theorem pushWeight_shift_eq (A B s : ℕ) (w : ℕ → ℝ) {β : Type*} [Fintype β]
+    [DecidableEq β] (f : ℕ → β) :
+    pushWeight (Finset.Ioc A B) w (fun n => f (n + s))
+      = pushWeight (Finset.Ioc (A + s) (B + s)) (fun m => w (m - s)) f := by
+  funext b
+  rw [pushWeight, pushWeight, ← Finset.map_add_right_Ioc, Finset.filter_map,
+    Finset.sum_map]
+  refine Finset.sum_congr rfl fun n _ => ?_
+  simp only [addRightEmbedding_apply]
+  rw [Nat.add_sub_cancel]
+
+/-- Pushing an indicator-extended weight from a superset is pushing the original
+weight from the subset. -/
+theorem pushWeight_extend {s t : Finset ℕ} (hst : s ⊆ t) (w : ℕ → ℝ)
+    {β : Type*} [Fintype β] [DecidableEq β] (f : ℕ → β) :
+    pushWeight t (fun n => if n ∈ s then w n else 0) f = pushWeight s w f := by
+  funext b
+  rw [pushWeight, pushWeight, ← Finset.sum_filter]
+  refine Finset.sum_congr ?_ fun n _ => rfl
+  ext n
+  simp only [Finset.mem_filter]
+  constructor
+  · rintro ⟨⟨-, hfb⟩, hns⟩
+    exact ⟨hns, hfb⟩
+  · rintro ⟨hns, hfb⟩
+    exact ⟨⟨hst hns, hfb⟩, hns⟩
+
+/-- **Shift near-invariance of log-uniform pushforwards**: shifting the sampled
+point by `s` moves the pushed law by at most `3s/(A·S)` in total variation,
+where `S` is the log-mass of the window `(A, B]`. Two boundary strips of `s`
+points each cost `s/(A·S)`; the interior telescopes to a third. -/
+theorem tvDist_pushWeight_logWeight_shift_le {A B s : ℕ} (hA : 1 ≤ A)
+    (h2s : A + s + s < B) {β : Type*} [Fintype β] [DecidableEq β] (f : ℕ → β) :
+    tvDist (pushWeight (Finset.Ioc A B) (logWeight A B) (fun n => f (n + s)))
+        (pushWeight (Finset.Ioc A B) (logWeight A B) f)
+      ≤ 3 * s / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) := by
+  have hApos : (0 : ℝ) < (A : ℝ) := by exact_mod_cast hA
+  have hSpos : (0 : ℝ) < ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m := by
+    refine Finset.sum_pos (fun m hm => ?_) ⟨A + 1, by rw [Finset.mem_Ioc]; omega⟩
+    rw [Finset.mem_Ioc] at hm
+    have h1 : (0 : ℝ) < (m : ℝ) := by exact_mod_cast (by omega : 0 < m)
+    positivity
+  have hsub1 : Finset.Ioc (A + s) (B + s) ⊆ Finset.Ioc A (B + s) := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn ⊢
+    omega
+  have hsub2 : Finset.Ioc A B ⊆ Finset.Ioc A (B + s) := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn ⊢
+    omega
+  rw [pushWeight_shift_eq,
+    ← pushWeight_extend hsub1 (fun m => logWeight A B (m - s)) f,
+    ← pushWeight_extend hsub2 (logWeight A B) f]
+  refine le_trans (tvDist_pushWeight_le (Finset.Ioc A (B + s)) _ _ f) ?_
+  -- the left boundary strip `(A, A+s]`
+  have hP1 : ∑ n ∈ Finset.Ioc A (A + s),
+      |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+        - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+      ≤ s * (1 / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) := by
+    refine le_trans (Finset.sum_le_card_nsmul _ _
+      (1 / ((A : ℝ) * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) fun n hn => ?_) ?_
+    · rw [Finset.mem_Ioc] at hn
+      rw [if_neg (by rw [Finset.mem_Ioc]; omega),
+        if_pos (by rw [Finset.mem_Ioc]; omega), zero_sub, abs_neg,
+        abs_of_nonneg (logWeight_nonneg A B n), logWeight, div_div]
+      refine one_div_le_one_div_of_le (mul_pos hApos hSpos) ?_
+      have hAn : (A : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn.1.le
+      exact mul_le_mul_of_nonneg_right hAn hSpos.le
+    · rw [Nat.card_Ioc, nsmul_eq_mul]
+      have hcard : A + s - A = s := by omega
+      rw [hcard]
+  -- the right boundary strip `(B, B+s]`
+  have hP3 : ∑ n ∈ Finset.Ioc B (B + s),
+      |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+        - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+      ≤ s * (1 / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) := by
+    refine le_trans (Finset.sum_le_card_nsmul _ _
+      (1 / ((A : ℝ) * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) fun n hn => ?_) ?_
+    · rw [Finset.mem_Ioc] at hn
+      rw [if_pos (by rw [Finset.mem_Ioc]; omega),
+        if_neg (by rw [Finset.mem_Ioc]; omega), sub_zero,
+        abs_of_nonneg (logWeight_nonneg A B (n - s)), logWeight, div_div]
+      refine one_div_le_one_div_of_le (mul_pos hApos hSpos) ?_
+      have hAn : (A : ℝ) ≤ ((n - s : ℕ) : ℝ) := by
+        exact_mod_cast (by omega : A ≤ n - s)
+      exact mul_le_mul_of_nonneg_right hAn hSpos.le
+    · rw [Nat.card_Ioc, nsmul_eq_mul]
+      have hcard : B + s - B = s := by omega
+      rw [hcard]
+  -- the interior `(A+s, B]`: exact difference of shifted harmonic sums
+  have hP2 : ∑ n ∈ Finset.Ioc (A + s) B,
+      |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+        - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+      ≤ s * (1 / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) := by
+    have hFeq : ∀ n ∈ Finset.Ioc (A + s) B,
+        |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+          - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+        = (1 / ((n - s : ℕ) : ℝ) - 1 / (n : ℝ))
+            * (1 / ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) := by
+      intro n hn
+      rw [Finset.mem_Ioc] at hn
+      have hns : (0 : ℝ) < ((n - s : ℕ) : ℝ) := by
+        exact_mod_cast (by omega : 0 < n - s)
+      have hmono : (1 : ℝ) / (n : ℝ) ≤ 1 / ((n - s : ℕ) : ℝ) :=
+        one_div_le_one_div_of_le hns (by exact_mod_cast Nat.sub_le n s)
+      rw [if_pos (by rw [Finset.mem_Ioc]; omega),
+        if_pos (by rw [Finset.mem_Ioc]; omega), logWeight, logWeight,
+        div_sub_div_same,
+        abs_of_nonneg (div_nonneg (sub_nonneg.mpr hmono) hSpos.le),
+        div_eq_mul_one_div]
+    calc ∑ n ∈ Finset.Ioc (A + s) B,
+        |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+          - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+        = ∑ n ∈ Finset.Ioc (A + s) B, (1 / ((n - s : ℕ) : ℝ) - 1 / (n : ℝ))
+            * (1 / ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) :=
+          Finset.sum_congr rfl hFeq
+      _ = ((∑ n ∈ Finset.Ioc (A + s) B, 1 / ((n - s : ℕ) : ℝ))
+            - ∑ n ∈ Finset.Ioc (A + s) B, 1 / (n : ℝ))
+            * (1 / ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) := by
+          rw [← Finset.sum_mul, Finset.sum_sub_distrib]
+      _ ≤ (s * (1 / (A : ℝ))) * (1 / ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) := by
+          refine mul_le_mul_of_nonneg_right ?_ (one_div_nonneg.mpr hSpos.le)
+          have hreidx : ∑ n ∈ Finset.Ioc (A + s) B, 1 / ((n - s : ℕ) : ℝ)
+              = ∑ m ∈ Finset.Ioc A (B - s), 1 / (m : ℝ) := by
+            have hmap : Finset.Ioc (A + s) B
+                = (Finset.Ioc A (B - s)).map (addRightEmbedding s) := by
+              have hBs : B - s + s = B := by omega
+              rw [Finset.map_add_right_Ioc, hBs]
+            rw [hmap, Finset.sum_map]
+            refine Finset.sum_congr rfl fun m _ => ?_
+            simp only [addRightEmbedding_apply]
+            rw [Nat.add_sub_cancel]
+          have hsplitL : ∑ m ∈ Finset.Ioc A (B - s), (1 : ℝ) / m
+              = ∑ m ∈ Finset.Ioc A (A + s), (1 : ℝ) / m
+                + ∑ m ∈ Finset.Ioc (A + s) (B - s), (1 : ℝ) / m :=
+            (Finset.sum_Ioc_consecutive _ (by omega) (by omega)).symm
+          have hsplitR : ∑ n ∈ Finset.Ioc (A + s) B, (1 : ℝ) / n
+              = ∑ n ∈ Finset.Ioc (A + s) (B - s), (1 : ℝ) / n
+                + ∑ n ∈ Finset.Ioc (B - s) B, (1 : ℝ) / n :=
+            (Finset.sum_Ioc_consecutive _ (by omega) (by omega)).symm
+          have hedge : ∑ m ∈ Finset.Ioc A (A + s), (1 : ℝ) / m
+              ≤ s * (1 / (A : ℝ)) := by
+            refine le_trans (Finset.sum_le_card_nsmul _ _ (1 / (A : ℝ))
+              fun m hm => ?_) ?_
+            · rw [Finset.mem_Ioc] at hm
+              exact one_div_le_one_div_of_le hApos (by exact_mod_cast hm.1.le)
+            · rw [Nat.card_Ioc, nsmul_eq_mul]
+              have hcard : A + s - A = s := by omega
+              rw [hcard]
+          have hpos3 : 0 ≤ ∑ n ∈ Finset.Ioc (B - s) B, (1 : ℝ) / n :=
+            Finset.sum_nonneg fun n _ => by positivity
+          rw [hreidx, hsplitL, hsplitR]
+          linarith
+      _ = s * (1 / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) := by
+          ring
+  have hU1 : ∑ n ∈ Finset.Ioc A B,
+        |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+          - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+      + ∑ n ∈ Finset.Ioc B (B + s),
+        |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+          - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+      = ∑ n ∈ Finset.Ioc A (B + s),
+        |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+          - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)| :=
+    Finset.sum_Ioc_consecutive _ (by omega) (by omega)
+  have hU2 : ∑ n ∈ Finset.Ioc A (A + s),
+        |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+          - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+      + ∑ n ∈ Finset.Ioc (A + s) B,
+        |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+          - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)|
+      = ∑ n ∈ Finset.Ioc A B,
+        |(if n ∈ Finset.Ioc (A + s) (B + s) then logWeight A B (n - s) else 0)
+          - (if n ∈ Finset.Ioc A B then logWeight A B n else 0)| :=
+    Finset.sum_Ioc_consecutive _ (by omega) (by omega)
+  have hring : 3 * ((s : ℝ) * (1 / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)))
+      = 3 * s / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) := by
+    ring
+  rw [← hU1, ← hU2]
+  linarith
+
+/-- Shift near-invariance of the pattern law, the form consumed by the decrement's
+approximate subadditivity. -/
+theorem tvDist_patternLaw_shift_le (g : ℕ → ℂ) (K H : ℕ) {A B s : ℕ}
+    (hA : 1 ≤ A) (h2s : A + s + s < B) :
+    tvDist (pushWeight (Finset.Ioc A B) (logWeight A B)
+        (fun n => patternMap g K H (n + s)))
+      (patternLaw g K H A B)
+      ≤ 3 * s / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m) := by
+  rw [patternLaw]
+  exact tvDist_pushWeight_logWeight_shift_le hA h2s (patternMap g K H)
+
 end MoltResearch
