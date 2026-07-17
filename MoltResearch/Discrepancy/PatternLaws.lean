@@ -110,4 +110,125 @@ theorem marginal₂_jointLaw (g : ℕ → ℂ) (K H P A B : ℕ) [NeZero P] :
   simp only [Finset.mem_filter, Prod.mk.injEq, and_assoc]
   tauto
 
+/-- The residue-class dictionary: the `ZMod`-level fiber is the `%`-level class. -/
+theorem filter_natCast_zmod_eq {P : ℕ} [NeZero P] (r : ZMod P) (s : Finset ℕ) :
+    s.filter (fun n => ((n : ℕ) : ZMod P) = r)
+      = s.filter (fun n => n % P = r.val) := by
+  refine Finset.filter_congr fun n _ => ?_
+  constructor
+  · intro h
+    rw [← h, ZMod.val_natCast]
+  · intro h
+    have hcast : ((n : ℕ) : ZMod P) = ((n % P : ℕ) : ZMod P) := by
+      rw [ZMod.natCast_mod]
+    rw [hcast, h, ZMod.natCast_val, ZMod.cast_id]
+
+/-- **Per-point mass bound for the residue law**: near-uniformity of `𝐧 mod P`
+(the finitary (hayah)), normalized. -/
+theorem residueLaw_le {P : ℕ} [NeZero P] (hP : 2 ≤ P) {A B : ℕ}
+    (h4P : 4 * P ≤ A) (hPB : P * (A + 1) ≤ B) (r : ZMod P) :
+    residueLaw P A B r
+      ≤ 1 / P + (2 / P + (2 * Real.log (2 * P) + 2) / P)
+          / ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n := by
+  classical
+  have hP0 : 0 < P := by omega
+  have hA1 : 1 ≤ A := by omega
+  have hAB : A < B := by
+    have h1 : 2 * (A + 1) ≤ P * (A + 1) := Nat.mul_le_mul_right _ hP
+    omega
+  have hSpos : (0 : ℝ) < ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n := by
+    refine Finset.sum_pos (fun m hm => ?_) ⟨A + 1, by rw [Finset.mem_Ioc]; omega⟩
+    rw [Finset.mem_Ioc] at hm
+    have : (0 : ℝ) < (m : ℝ) := by
+      have : 1 ≤ m := by omega
+      exact_mod_cast this
+    positivity
+  have hval : residueLaw P A B r
+      = (∑ n ∈ (Finset.Ioc A B).filter (fun n => n % P = r.val), (1 : ℝ) / n)
+        / ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n := by
+    rw [residueLaw, pushWeight, filter_natCast_zmod_eq]
+    rw [div_eq_mul_inv, Finset.sum_mul]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    rw [logWeight, div_eq_mul_inv]
+  have hrval : r.val < P := ZMod.val_lt r
+  have hE := abs_sum_one_div_residue_sub_le hP hrval h4P hPB
+  have hclass : ∑ n ∈ (Finset.Ioc A B).filter (fun n => n % P = r.val), (1 : ℝ) / n
+      ≤ (1 / P) * (∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n)
+        + (2 * r.val / P ^ 2 + (2 * Real.log (2 * P) + 2) / P) := by
+    have h2 := (abs_le.mp hE).2
+    linarith
+  have hEbound : 2 * (r.val : ℝ) / P ^ 2 + (2 * Real.log (2 * P) + 2) / P
+      ≤ 2 / P + (2 * Real.log (2 * P) + 2) / P := by
+    have hrP : (r.val : ℝ) ≤ (P : ℝ) := by exact_mod_cast le_of_lt hrval
+    have hPR : (0 : ℝ) < (P : ℝ) := by exact_mod_cast hP0
+    have h1 : 2 * (r.val : ℝ) / P ^ 2 ≤ 2 * (P : ℝ) / P ^ 2 := by
+      rw [div_le_div_iff₀ (by positivity) (by positivity)]
+      nlinarith
+    have h2 : 2 * (P : ℝ) / P ^ 2 = 2 / P := by
+      rw [pow_two]
+      rw [mul_comm (P:ℝ) (P:ℝ), ← div_div]
+      rw [mul_div_assoc, div_self (by positivity : (P:ℝ) ≠ 0), mul_one]
+    linarith
+  rw [hval, div_le_iff₀ hSpos]
+  have hgoal : (1 / (P : ℝ) + (2 / P + (2 * Real.log (2 * P) + 2) / P)
+        / ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n)
+      * (∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n)
+      = (1 / P) * (∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n)
+        + (2 / P + (2 * Real.log (2 * P) + 2) / P) := by
+    field_simp
+  rw [hgoal]
+  linarith [hclass, hEbound]
+
+/-- **The residue entropy is near-full** (eq. (hayah)):
+`H(𝐧 mod P) ≥ log P − P·E/S`. -/
+theorem le_shannonEntropy_residueLaw {P : ℕ} [NeZero P] (hP : 2 ≤ P) {A B : ℕ}
+    (h4P : 4 * P ≤ A) (hPB : P * (A + 1) ≤ B) :
+    Real.log P
+      - (P : ℝ) * ((2 / P + (2 * Real.log (2 * P) + 2) / P)
+          / ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n)
+      ≤ shannonEntropy (residueLaw P A B) := by
+  classical
+  have hP0 : 0 < P := by omega
+  have hPR : (0 : ℝ) < (P : ℝ) := by exact_mod_cast hP0
+  have hA1 : 1 ≤ A := by omega
+  have hAB : A < B := by
+    have h1 : 2 * (A + 1) ≤ P * (A + 1) := Nat.mul_le_mul_right _ hP
+    omega
+  have hSpos : (0 : ℝ) < ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n := by
+    refine Finset.sum_pos (fun m hm => ?_) ⟨A + 1, by rw [Finset.mem_Ioc]; omega⟩
+    rw [Finset.mem_Ioc] at hm
+    have : (0 : ℝ) < (m : ℝ) := by
+      have : 1 ≤ m := by omega
+      exact_mod_cast this
+    positivity
+  set E : ℝ := (2 / (P : ℝ) + (2 * Real.log (2 * P) + 2) / P)
+      / ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n with hEdef
+  have hE0 : 0 ≤ E := by
+    rw [hEdef]
+    have hP1 : (1 : ℝ) ≤ (P : ℝ) := by exact_mod_cast hP0
+    have hlog : (0 : ℝ) ≤ Real.log (2 * (P : ℝ)) := by
+      refine Real.log_nonneg ?_
+      linarith
+    positivity
+  have hc0 : (0 : ℝ) < 1 / (P : ℝ) + E := by positivity
+  have hfloor := le_shannonEntropy_of_forall_le
+    (fun r => residueLaw_nonneg P A B r)
+    (sum_residueLaw P hA1 hAB)
+    hc0
+    (fun r => residueLaw_le hP h4P hPB r)
+  refine le_trans ?_ hfloor
+  have hlogc : Real.log (1 / (P : ℝ) + E)
+      ≤ Real.log (1 / (P : ℝ)) + (P : ℝ) * E := by
+    have h1 : 1 / (P : ℝ) + E = (1 / P) * (1 + (P : ℝ) * E) := by
+      field_simp
+    rw [h1, Real.log_mul (by positivity) (by positivity)]
+    have h2 : Real.log (1 + (P : ℝ) * E) ≤ (P : ℝ) * E := by
+      have := Real.log_le_sub_one_of_pos
+        (show (0 : ℝ) < 1 + (P : ℝ) * E by positivity)
+      linarith
+    linarith
+  have hlogP : Real.log (1 / (P : ℝ)) = -Real.log P := by
+    rw [one_div, Real.log_inv]
+  linarith [hlogc]
+
 end MoltResearch

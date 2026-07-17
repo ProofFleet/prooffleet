@@ -6287,6 +6287,16 @@ example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A) (h
     marginal₂ (jointLaw g K H P A B) = residueLaw P A B :=
   ⟨marginal₁_jointLaw g K H P A B, marginal₂_jointLaw g K H P A B⟩
 
+-- Track C Elliott campaign (issue #2946, E6c-2): the residue entropy is near-full —
+-- eq. (hayah) in finitary form, from near-uniformity through the entropy floor.
+example {P : ℕ} [NeZero P] (hP : 2 ≤ P) {A B : ℕ}
+    (h4P : 4 * P ≤ A) (hPB : P * (A + 1) ≤ B) :
+    Real.log P
+      - (P : ℝ) * ((2 / P + (2 * Real.log (2 * P) + 2) / P)
+          / ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n)
+      ≤ shannonEntropy (residueLaw P A B) :=
+  le_shannonEntropy_residueLaw hP h4P hPB
+
 end NormalFormExamples
 
 end MoltResearch
