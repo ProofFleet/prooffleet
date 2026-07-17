@@ -6143,6 +6143,18 @@ example {q r : ℕ} (hq : 0 < q) (hr : r < q) {F : ℕ → ℂ} (hF : ∀ n, ‖
       ≤ 2 * r / q ^ 2 :=
   norm_sum_div_residue_sub_le hq hr hF ha
 
+-- Track C Elliott campaign (issue #2946, E5-pre): the Chebyshev block lower bound —
+-- primes in a dyadic block carry log-mass ≥ (log 4/6)·n, hence reciprocal mass
+-- ≥ (log 4/12)/log(2n): the prime-counting input of Proposition conv.
+example {n : ℕ} (hn : 2 ^ 28 ≤ n) :
+    (n : ℝ) * Real.log 4 / 6 ≤ blockLog n :=
+  blockLog_ge hn
+
+example {n : ℕ} (hn : 2 ^ 28 ≤ n) :
+    Real.log 4 / 12 / Real.log (2 * (n : ℝ))
+      ≤ ∑ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), (1 : ℝ) / p :=
+  sum_one_div_prime_block_ge hn
+
 end NormalFormExamples
 
 end MoltResearch
