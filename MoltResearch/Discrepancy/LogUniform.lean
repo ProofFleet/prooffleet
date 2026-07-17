@@ -623,4 +623,43 @@ theorem sum_conjPair_pDiv_eq {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC 
   rw [div_eq_mul_inv, div_eq_mul_inv, hval, hw]
   ring
 
+/-- **The image window, characterized exactly**: dividing the `p`-multiples of a
+congruence-filtered window `(A, B]` by `p` gives the window `(A/p, B/p]` filtered by
+the dilated congruence — with no boundary error. -/
+theorem image_pDiv_filter_eq {p : ℕ} (hp : 0 < p) (a c A B : ℕ) :
+    (((Finset.Ioc A B).filter (fun m => m % a = c)).filter
+        (fun m => m % p = 0)).image (· / p)
+      = (Finset.Ioc (A / p) (B / p)).filter (fun m' => (p * m') % a = c) := by
+  classical
+  ext m'
+  rw [Finset.mem_image, Finset.mem_filter, Finset.mem_Ioc]
+  constructor
+  · rintro ⟨m, hm, rfl⟩
+    rw [Finset.mem_filter, Finset.mem_filter, Finset.mem_Ioc] at hm
+    obtain ⟨⟨⟨hAm, hmB⟩, hma⟩, hmp⟩ := hm
+    have hm_eq : m = p * (m / p) := by
+      have h3 := Nat.div_add_mod m p
+      omega
+    refine ⟨⟨?_, ?_⟩, ?_⟩
+    · rw [Nat.div_lt_iff_lt_mul hp]
+      calc A < m := hAm
+        _ = m / p * p := by rw [Nat.mul_comm] at hm_eq; omega
+    · rw [Nat.le_div_iff_mul_le hp]
+      calc m / p * p = m := by rw [Nat.mul_comm] at hm_eq; omega
+        _ ≤ B := hmB
+    · rw [← hm_eq]
+      exact hma
+  · rintro ⟨⟨hA, hB⟩, hc⟩
+    refine ⟨p * m', ?_, by
+      rw [Nat.mul_div_cancel_left m' hp]⟩
+    rw [Finset.mem_filter, Finset.mem_filter, Finset.mem_Ioc]
+    refine ⟨⟨⟨?_, ?_⟩, hc⟩, by
+      rw [Nat.mul_mod_right]⟩
+    · rw [Nat.div_lt_iff_lt_mul hp] at hA
+      rw [Nat.mul_comm] at hA
+      exact hA
+    · rw [Nat.le_div_iff_mul_le hp] at hB
+      rw [Nat.mul_comm] at hB
+      exact hB
+
 end MoltResearch

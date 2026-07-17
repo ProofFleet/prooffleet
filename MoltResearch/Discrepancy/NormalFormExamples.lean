@@ -6191,6 +6191,14 @@ example {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g) (huni : Unimodular
           g m' * (starRingEnd ℂ) (g (m' + h)) / (m' : ℂ) :=
   sum_conjPair_pDiv_eq hcm huni hp
 
+-- Track C Elliott campaign (issue #2946, E5a-3b prep): the image window of the exact
+-- p-division identity, characterized with no boundary error.
+example {p : ℕ} (hp : 0 < p) (a c A B : ℕ) :
+    (((Finset.Ioc A B).filter (fun m => m % a = c)).filter
+        (fun m => m % p = 0)).image (· / p)
+      = (Finset.Ioc (A / p) (B / p)).filter (fun m' => (p * m') % a = c) :=
+  image_pDiv_filter_eq hp a c A B
+
 end NormalFormExamples
 
 end MoltResearch
