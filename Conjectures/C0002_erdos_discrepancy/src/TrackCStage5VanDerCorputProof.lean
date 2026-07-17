@@ -126,17 +126,16 @@ instance (priority := 90) vanDerCorputAssumption_of_logElliottNonasymptotic
     -- Elliott thresholds for each shift pair, totalized so `choose` applies
     have hbound : ∀ p : ℕ × ℕ, ∃ A₀ : ℝ, p.1 ≠ p.2 →
         ∀ A : ℝ, A₀ ≤ A → 1 ≤ A → ∀ x w : ℝ, A ≤ w → w ≤ x →
-          ∀ g₁ g₂ : ℕ → ℂ,
-            CompletelyMultiplicativeC g₁ → (∀ n, ‖g₁ n‖ ≤ 1) →
-            CompletelyMultiplicativeC g₂ → (∀ n, ‖g₂ n‖ ≤ 1) →
-            NonPretentiousAt g₁ A ⌈x⌉₊ →
+          ∀ g : ℕ → ℂ,
+            CompletelyMultiplicativeC g → Unimodular g →
+            NonPretentiousAt g A ⌈x⌉₊ →
             ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
-                g₁ (1 * n + p.1) * g₂ (1 * n + p.2) / (n : ℂ)‖ ≤ ε' * Real.log w := by
+                g (1 * n + p.1) * (starRingEnd ℂ) (g (1 * n + p.2)) / (n : ℂ)‖
+              ≤ ε' * Real.log w := by
       intro p
       by_cases hne : p.1 = p.2
       · exact ⟨0, fun hcon => absurd hne hcon⟩
-      · obtain ⟨A₀, hA₀⟩ := inst.bound 1 1 p.1 p.2 one_pos one_pos
-          (by simpa using Ne.symm hne) ε' hε'0
+      · obtain ⟨A₀, hA₀⟩ := inst.bound 1 p.1 p.2 one_pos hne ε' hε'0
         exact ⟨A₀, fun _ => hA₀⟩
     choose A₀f hA₀f using hbound
     -- `A` dominates every pair's threshold; `W` additionally forces `log W ≥ 2`
@@ -181,12 +180,6 @@ instance (priority := 90) vanDerCorputAssumption_of_logElliottNonasymptotic
         _ = (H : ℝ) * (∑ n ∈ Finset.Ioc ⌊(X : ℝ) / W⌋₊ X, (1 : ℝ) / n) / 2 := by ring
     obtain ⟨h, hh, h', hh', hne, hcorr⟩ :=
       hguni.exists_pair_windowCorr_le hH1 hSpos hω hB
-    -- the sample and its conjugate are 1-bounded completely multiplicative
-    have hb1 : ∀ n, ‖G.g ω n‖ ≤ 1 := fun n => (hguni n).le
-    have hmulc : CompletelyMultiplicativeC fun n => (starRingEnd ℂ) (G.g ω n) := hgmul.conj
-    have hb1c : ∀ n, ‖(starRingEnd ℂ) (G.g ω n)‖ ≤ 1 := fun n => by
-      rw [RCLike.norm_conj]
-      exact hb1 n
     have hA₀A : A₀f (h, h') ≤ A :=
       le_trans (Finset.le_sup' A₀f (Finset.mem_product.mpr ⟨hh, hh'⟩)) (le_max_right 1 _)
     -- the extracted correlation violates the Elliott bound, so the sample is pretentious
@@ -195,7 +188,7 @@ instance (priority := 90) vanDerCorputAssumption_of_logElliottNonasymptotic
       have hnp' : NonPretentiousAt (G.g ω) A ⌈((X : ℕ) : ℝ)⌉₊ := by
         rwa [Nat.ceil_natCast]
       have hEl := hA₀f (h, h') hne A hA₀A hA1 ((X : ℕ) : ℝ) W hAW hWX
-        (G.g ω) (fun n => (starRingEnd ℂ) (G.g ω n)) hgmul hb1 hmulc hb1c hnp'
+        (G.g ω) hgmul hguni hnp'
       have hsum : (∑ n ∈ Finset.Ioc ⌊((X : ℕ) : ℝ) / W⌋₊ ⌊((X : ℕ) : ℝ)⌋₊,
             (G.g ω) (1 * n + h) * (starRingEnd ℂ) ((G.g ω) (1 * n + h')) / (n : ℂ))
           = windowCorr (G.g ω) (Finset.Ioc ⌊(X : ℝ) / W⌋₊ X) h h' := by

@@ -158,12 +158,17 @@ example [LogElliottAssumption] {g : ℕ → ℂ}
 (arXiv:1509.05422, Theorem 1.3, restricted to the completely multiplicative subclass — a
 strictly weaker statement, sufficient for the van der Corput argument).
 
-Quantifier structure verbatim from the source: affine forms `a₁n+b₁`, `a₂n+b₂` with
-`a₁·b₂ ≠ a₂·b₁` (shifts restricted to `ℕ`, again strictly weaker); for every `ε > 0` a
-threshold `A₀` (depending on `ε` and the affine data) such that for all `A ≥ max A₀ 1`, all
-real `x ≥ w ≥ A`, and all 1-bounded completely multiplicative `g₁, g₂` with `g₁`
-non-pretentious at strength `A` and truncation `⌈x⌉₊`, the log-averaged windowed correlation is
-at most `ε · log w`.
+Quantifier structure from the source's Theorem `elliott-red` specialization, restricted
+per the paper's own §2 footnote to what the Erdős-discrepancy application consumes
+(strictly weaker than Theorem 1.3, per the card's axiom-hygiene rule): **conjugate
+pairs** `g₂ = conj g₁` of a single **unimodular** completely multiplicative `g` at a
+**common** dilation `a` with distinct shifts `b₁ ≠ b₂` (shifts in `ℕ`, again weaker).
+For every `ε > 0` a threshold `A₀` (depending on `ε` and the affine data) such that for
+all `A ≥ max A₀ 1`, all real `x ≥ w ≥ A`, and all such `g` non-pretentious at strength
+`A` and truncation `⌈x⌉₊`, the log-averaged windowed correlation is at most `ε · log w`.
+This restriction descopes the Halász-based §2 reductions of the source and (since the
+twist coefficients `c_p = conj g(p)·g(p) = 1`) the general-`c_p` machinery; the
+formalization target is the source's Theorem `elliott-red` directly.
 
 Encoding notes (junk-value conventions per the derivation card):
 - The window `x/w < n ≤ x` is exactly `Finset.Ioc ⌊x/w⌋₊ ⌊x⌋₊` (`Nat.floor_lt` both ways).
@@ -177,33 +182,31 @@ No instance of this class is (or may be) declared until Theorem 1.3 is actually 
 -/
 class LogElliottNonasymptoticAssumption : Prop where
   bound :
-    ∀ (a₁ a₂ b₁ b₂ : ℕ), 0 < a₁ → 0 < a₂ → a₁ * b₂ ≠ a₂ * b₁ →
+    ∀ (a b₁ b₂ : ℕ), 0 < a → b₁ ≠ b₂ →
       ∀ ε : ℝ, 0 < ε →
         ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
           ∀ x w : ℝ, A ≤ w → w ≤ x →
-            ∀ g₁ g₂ : ℕ → ℂ,
-              CompletelyMultiplicativeC g₁ → (∀ n, ‖g₁ n‖ ≤ 1) →
-              CompletelyMultiplicativeC g₂ → (∀ n, ‖g₂ n‖ ≤ 1) →
-              NonPretentiousAt g₁ A ⌈x⌉₊ →
+            ∀ g : ℕ → ℂ,
+              CompletelyMultiplicativeC g → Unimodular g →
+              NonPretentiousAt g A ⌈x⌉₊ →
               ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
-                  g₁ (a₁ * n + b₁) * g₂ (a₂ * n + b₂) / (n : ℂ)‖ ≤ ε * Real.log w
+                  g (a * n + b₁) * (starRingEnd ℂ) (g (a * n + b₂)) / (n : ℂ)‖
+                ≤ ε * Real.log w
 
 -- Consumer example (compile-only), instantiating every quantifier per the derivation card's
 -- gotcha: the two-point shifted-correlation call site of the van der Corput argument
--- (a₁ = a₂ = 1, distinct shifts, g₂ = conj g₁), at concrete window parameters.
+-- (a = 1, distinct shifts), at concrete window parameters.
 example [inst : LogElliottNonasymptoticAssumption] {g : ℕ → ℂ}
-    (hmul : CompletelyMultiplicativeC g) (hg1 : ∀ n, ‖g n‖ ≤ 1)
-    (hmulc : CompletelyMultiplicativeC fun n => (starRingEnd ℂ) (g n))
-    (hg1c : ∀ n, ‖(starRingEnd ℂ) (g n)‖ ≤ 1)
+    (hmul : CompletelyMultiplicativeC g) (hg1 : Unimodular g)
     (ε : ℝ) (hε : 0 < ε) :
     ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
       ∀ x w : ℝ, A ≤ w → w ≤ x →
         NonPretentiousAt g A ⌈x⌉₊ →
         ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
             g (1 * n + 0) * (starRingEnd ℂ) (g (1 * n + 1)) / (n : ℂ)‖ ≤ ε * Real.log w := by
-  obtain ⟨A₀, hA₀⟩ := inst.bound 1 1 0 1 one_pos one_pos (by norm_num) ε hε
+  obtain ⟨A₀, hA₀⟩ := inst.bound 1 0 1 one_pos (by norm_num) ε hε
   exact ⟨A₀, fun A hA hA1 x w hAw hwx hnp =>
-    hA₀ A hA hA1 x w hAw hwx g (fun n => (starRingEnd ℂ) (g n)) hmul hg1 hmulc hg1c hnp⟩
+    hA₀ A hA hA1 x w hAw hwx g hmul hg1 hnp⟩
 
 /-- **Corollary 1.5** (arXiv:1509.05422; logarithmically averaged Elliott, asymptotic form),
 derived from the nonasymptotic interface.
@@ -223,18 +226,18 @@ The proof composes `LogElliottNonasymptoticAssumption` with the finitely-many-ch
 bridge `NonPretentiousUniform.eventually_nonPretentiousAt`.
 -/
 theorem corollary15 [inst : LogElliottNonasymptoticAssumption]
-    (a₁ a₂ b₁ b₂ : ℕ) (ha₁ : 0 < a₁) (ha₂ : 0 < a₂) (hab : a₁ * b₂ ≠ a₂ * b₁)
-    {g₁ g₂ : ℕ → ℂ}
-    (hm₁ : CompletelyMultiplicativeC g₁) (hb₁ : ∀ n, ‖g₁ n‖ ≤ 1)
-    (hm₂ : CompletelyMultiplicativeC g₂) (hb₂ : ∀ n, ‖g₂ n‖ ≤ 1)
-    (hnp : NonPretentiousUniform g₁)
+    (a b₁ b₂ : ℕ) (ha : 0 < a) (hab : b₁ ≠ b₂)
+    {g : ℕ → ℂ}
+    (hm : CompletelyMultiplicativeC g) (hb : Unimodular g)
+    (hnp : NonPretentiousUniform g)
     (w : ℝ → ℝ) (hwx : ∀ᶠ x in Filter.atTop, w x ≤ x)
     (hw : Filter.Tendsto w Filter.atTop Filter.atTop)
     {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ x : ℝ in Filter.atTop,
       ‖∑ n ∈ Finset.Ioc ⌊x / w x⌋₊ ⌊x⌋₊,
-          g₁ (a₁ * n + b₁) * g₂ (a₂ * n + b₂) / (n : ℂ)‖ ≤ ε * Real.log (w x) := by
-  obtain ⟨A₀, hA₀⟩ := inst.bound a₁ a₂ b₁ b₂ ha₁ ha₂ hab ε hε
+          g (a * n + b₁) * (starRingEnd ℂ) (g (a * n + b₂)) / (n : ℂ)‖
+        ≤ ε * Real.log (w x) := by
+  obtain ⟨A₀, hA₀⟩ := inst.bound a b₁ b₂ ha hab ε hε
   set A : ℝ := max A₀ 1 with hAdef
   have hA1 : (1 : ℝ) ≤ A := le_max_right _ _
   obtain ⟨X₀, hX₀⟩ :=
@@ -244,19 +247,19 @@ theorem corollary15 [inst : LogElliottNonasymptoticAssumption]
   have hceil : X₀ ≤ ⌈x⌉₊ := by
     calc X₀ = ⌈(X₀ : ℝ)⌉₊ := (Nat.ceil_natCast X₀).symm
       _ ≤ ⌈x⌉₊ := Nat.ceil_le_ceil hxX
-  exact hA₀ A (le_max_left _ _) hA1 x (w x) hwA hwxx g₁ g₂ hm₁ hb₁ hm₂ hb₂
+  exact hA₀ A (le_max_left _ _) hA1 x (w x) hwA hwxx g hm hb
     (hX₀ ⌈x⌉₊ hceil)
 
 -- Consumer example (compile-only): the full-window specialization `w = id` — the shape the
 -- derivation uses when it wants the plain log-averaged correlation over `1 < n ≤ x`.
-example [LogElliottNonasymptoticAssumption] {g₁ g₂ : ℕ → ℂ}
-    (hm₁ : CompletelyMultiplicativeC g₁) (hb₁ : ∀ n, ‖g₁ n‖ ≤ 1)
-    (hm₂ : CompletelyMultiplicativeC g₂) (hb₂ : ∀ n, ‖g₂ n‖ ≤ 1)
-    (hnp : NonPretentiousUniform g₁) {ε : ℝ} (hε : 0 < ε) :
+example [LogElliottNonasymptoticAssumption] {g : ℕ → ℂ}
+    (hm : CompletelyMultiplicativeC g) (hb : Unimodular g)
+    (hnp : NonPretentiousUniform g) {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ x : ℝ in Filter.atTop,
       ‖∑ n ∈ Finset.Ioc ⌊x / x⌋₊ ⌊x⌋₊,
-          g₁ (1 * n + 0) * g₂ (1 * n + 1) / (n : ℂ)‖ ≤ ε * Real.log x :=
-  corollary15 1 1 0 1 one_pos one_pos (by norm_num) hm₁ hb₁ hm₂ hb₂ hnp
+          g (1 * n + 0) * (starRingEnd ℂ) (g (1 * n + 1)) / (n : ℂ)‖
+        ≤ ε * Real.log x :=
+  corollary15 1 0 1 one_pos (by norm_num) hm hb hnp
     (fun x => x) (Filter.Eventually.of_forall fun x => le_rfl) Filter.tendsto_id hε
 
 end Tao2015
