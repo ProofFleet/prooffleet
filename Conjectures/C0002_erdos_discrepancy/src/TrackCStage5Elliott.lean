@@ -182,7 +182,7 @@ No instance of this class is (or may be) declared until Theorem 1.3 is actually 
 -/
 class LogElliottNonasymptoticAssumption : Prop where
   bound :
-    ∀ (a b₁ b₂ : ℕ), 0 < a → b₁ ≠ b₂ →
+    ∀ (b₁ b₂ : ℕ), b₁ ≠ b₂ →
       ∀ ε : ℝ, 0 < ε →
         ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
           ∀ x w : ℝ, A ≤ w → w ≤ x →
@@ -190,7 +190,7 @@ class LogElliottNonasymptoticAssumption : Prop where
               CompletelyMultiplicativeC g → Unimodular g →
               NonPretentiousAt g A ⌈x⌉₊ →
               ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
-                  g (a * n + b₁) * (starRingEnd ℂ) (g (a * n + b₂)) / (n : ℂ)‖
+                  g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
                 ≤ ε * Real.log w
 
 -- Consumer example (compile-only), instantiating every quantifier per the derivation card's
@@ -203,8 +203,8 @@ example [inst : LogElliottNonasymptoticAssumption] {g : ℕ → ℂ}
       ∀ x w : ℝ, A ≤ w → w ≤ x →
         NonPretentiousAt g A ⌈x⌉₊ →
         ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
-            g (1 * n + 0) * (starRingEnd ℂ) (g (1 * n + 1)) / (n : ℂ)‖ ≤ ε * Real.log w := by
-  obtain ⟨A₀, hA₀⟩ := inst.bound 1 0 1 one_pos (by norm_num) ε hε
+            g (n + 0) * (starRingEnd ℂ) (g (n + 1)) / (n : ℂ)‖ ≤ ε * Real.log w := by
+  obtain ⟨A₀, hA₀⟩ := inst.bound 0 1 (by norm_num) ε hε
   exact ⟨A₀, fun A hA hA1 x w hAw hwx hnp =>
     hA₀ A hA hA1 x w hAw hwx g hmul hg1 hnp⟩
 
@@ -226,7 +226,7 @@ The proof composes `LogElliottNonasymptoticAssumption` with the finitely-many-ch
 bridge `NonPretentiousUniform.eventually_nonPretentiousAt`.
 -/
 theorem corollary15 [inst : LogElliottNonasymptoticAssumption]
-    (a b₁ b₂ : ℕ) (ha : 0 < a) (hab : b₁ ≠ b₂)
+    (b₁ b₂ : ℕ) (hab : b₁ ≠ b₂)
     {g : ℕ → ℂ}
     (hm : CompletelyMultiplicativeC g) (hb : Unimodular g)
     (hnp : NonPretentiousUniform g)
@@ -235,9 +235,9 @@ theorem corollary15 [inst : LogElliottNonasymptoticAssumption]
     {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ x : ℝ in Filter.atTop,
       ‖∑ n ∈ Finset.Ioc ⌊x / w x⌋₊ ⌊x⌋₊,
-          g (a * n + b₁) * (starRingEnd ℂ) (g (a * n + b₂)) / (n : ℂ)‖
+          g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
         ≤ ε * Real.log (w x) := by
-  obtain ⟨A₀, hA₀⟩ := inst.bound a b₁ b₂ ha hab ε hε
+  obtain ⟨A₀, hA₀⟩ := inst.bound b₁ b₂ hab ε hε
   set A : ℝ := max A₀ 1 with hAdef
   have hA1 : (1 : ℝ) ≤ A := le_max_right _ _
   obtain ⟨X₀, hX₀⟩ :=
@@ -257,9 +257,9 @@ example [LogElliottNonasymptoticAssumption] {g : ℕ → ℂ}
     (hnp : NonPretentiousUniform g) {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ x : ℝ in Filter.atTop,
       ‖∑ n ∈ Finset.Ioc ⌊x / x⌋₊ ⌊x⌋₊,
-          g (1 * n + 0) * (starRingEnd ℂ) (g (1 * n + 1)) / (n : ℂ)‖
+          g (n + 0) * (starRingEnd ℂ) (g (n + 1)) / (n : ℂ)‖
         ≤ ε * Real.log x :=
-  corollary15 1 0 1 one_pos (by norm_num) hm hb hnp
+  corollary15 0 1 (by norm_num) hm hb hnp
     (fun x => x) (Filter.Eventually.of_forall fun x => le_rfl) Filter.tendsto_id hε
 
 end Tao2015

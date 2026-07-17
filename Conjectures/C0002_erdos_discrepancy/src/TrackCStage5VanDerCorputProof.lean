@@ -130,12 +130,12 @@ instance (priority := 90) vanDerCorputAssumption_of_logElliottNonasymptotic
             CompletelyMultiplicativeC g → Unimodular g →
             NonPretentiousAt g A ⌈x⌉₊ →
             ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
-                g (1 * n + p.1) * (starRingEnd ℂ) (g (1 * n + p.2)) / (n : ℂ)‖
+                g (n + p.1) * (starRingEnd ℂ) (g (n + p.2)) / (n : ℂ)‖
               ≤ ε' * Real.log w := by
       intro p
       by_cases hne : p.1 = p.2
       · exact ⟨0, fun hcon => absurd hne hcon⟩
-      · obtain ⟨A₀, hA₀⟩ := inst.bound 1 p.1 p.2 one_pos hne ε' hε'0
+      · obtain ⟨A₀, hA₀⟩ := inst.bound p.1 p.2 hne ε' hε'0
         exact ⟨A₀, fun _ => hA₀⟩
     choose A₀f hA₀f using hbound
     -- `A` dominates every pair's threshold; `W` additionally forces `log W ≥ 2`
@@ -190,11 +190,11 @@ instance (priority := 90) vanDerCorputAssumption_of_logElliottNonasymptotic
       have hEl := hA₀f (h, h') hne A hA₀A hA1 ((X : ℕ) : ℝ) W hAW hWX
         (G.g ω) hgmul hguni hnp'
       have hsum : (∑ n ∈ Finset.Ioc ⌊((X : ℕ) : ℝ) / W⌋₊ ⌊((X : ℕ) : ℝ)⌋₊,
-            (G.g ω) (1 * n + h) * (starRingEnd ℂ) ((G.g ω) (1 * n + h')) / (n : ℂ))
+            (G.g ω) (n + h) * (starRingEnd ℂ) ((G.g ω) (n + h')) / (n : ℂ))
           = windowCorr (G.g ω) (Finset.Ioc ⌊(X : ℝ) / W⌋₊ X) h h' := by
         rw [Nat.floor_natCast]
         unfold windowCorr
-        exact Finset.sum_congr rfl fun n _ => by rw [one_mul]
+        rfl
       rw [hsum] at hEl
       have hup : (∑ n ∈ Finset.Ioc ⌊(X : ℝ) / W⌋₊ X, (1 : ℝ) / n) / (2 * H)
           ≤ ε' * Real.log W := le_trans hcorr hEl
