@@ -231,4 +231,20 @@ theorem le_shannonEntropy_residueLaw {P : ℕ} [NeZero P] (hP : 2 ≤ P) {A B : 
     rw [one_div, Real.log_inv]
   linarith [hlogc]
 
+/-- **Data processing for total variation**: pushing two weighted sets forward along
+the same map cannot increase the total variation. -/
+theorem tvDist_pushWeight_le (s : Finset ℕ) (v w : ℕ → ℝ) {β : Type*} [Fintype β]
+    [DecidableEq β] (f : ℕ → β) :
+    tvDist (pushWeight s v f) (pushWeight s w f) ≤ ∑ n ∈ s, |v n - w n| := by
+  classical
+  rw [tvDist]
+  have hper : ∀ b, |pushWeight s v f b - pushWeight s w f b|
+      ≤ ∑ n ∈ s.filter (fun n => f n = b), |v n - w n| := by
+    intro b
+    rw [pushWeight, pushWeight, ← Finset.sum_sub_distrib]
+    exact Finset.abs_sum_le_sum_abs _ _
+  refine le_trans (Finset.sum_le_sum fun b _ => hper b) ?_
+  rw [Finset.sum_fiberwise_of_maps_to (fun n _ => Finset.mem_univ (f n))
+    (fun n => |v n - w n|)]
+
 end MoltResearch

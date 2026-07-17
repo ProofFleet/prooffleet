@@ -6297,6 +6297,19 @@ example {P : ℕ} [NeZero P] (hP : 2 ≤ P) {A B : ℕ}
       ≤ shannonEntropy (residueLaw P A B) :=
   le_shannonEntropy_residueLaw hP h4P hPB
 
+-- Track C Elliott campaign (issue #2946, E6d-1): total variation with data
+-- processing, and the average pigeonhole of the scale selection.
+example (s : Finset ℕ) (v w : ℕ → ℝ) {β : Type*} [Fintype β] [DecidableEq β]
+    (f : ℕ → β) :
+    tvDist (pushWeight s v f) (pushWeight s w f) ≤ ∑ n ∈ s, |v n - w n| :=
+  tvDist_pushWeight_le s v w f
+
+example {N : ℕ} (hN : 0 < N) {f : ℕ → ℝ}
+    (hf : ∀ i ∈ Finset.range N, 0 ≤ f i) {C : ℝ}
+    (hsum : ∑ i ∈ Finset.range N, f i ≤ C) :
+    ∃ i ∈ Finset.range N, f i ≤ C / N :=
+  exists_le_div_card_of_sum_le hN hf hsum
+
 end NormalFormExamples
 
 end MoltResearch

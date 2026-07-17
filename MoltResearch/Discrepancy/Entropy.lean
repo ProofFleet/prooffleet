@@ -743,4 +743,44 @@ theorem le_shannonEntropy_of_forall_le {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
 
 end Events
 
+section TV
+
+variable {α : Type*} [Fintype α]
+
+/-- Total-variation distance between two finite weight functions. -/
+noncomputable def tvDist (v w : α → ℝ) : ℝ :=
+  ∑ x, |v x - w x|
+
+theorem tvDist_nonneg (v w : α → ℝ) : 0 ≤ tvDist v w :=
+  Finset.sum_nonneg fun x _ => abs_nonneg _
+
+theorem tvDist_comm (v w : α → ℝ) : tvDist v w = tvDist w v := by
+  rw [tvDist, tvDist]
+  exact Finset.sum_congr rfl fun x _ => abs_sub_comm _ _
+
+end TV
+
+section Pigeonhole
+
+/-- **Average pigeonhole**: if `N` nonnegative terms total at most `C`, some term is
+at most `C/N` — the engine of the entropy decrement's scale selection. -/
+theorem exists_le_div_card_of_sum_le {N : ℕ} (hN : 0 < N) {f : ℕ → ℝ}
+    (hf : ∀ i ∈ Finset.range N, 0 ≤ f i) {C : ℝ}
+    (hsum : ∑ i ∈ Finset.range N, f i ≤ C) :
+    ∃ i ∈ Finset.range N, f i ≤ C / N := by
+  by_contra hcon
+  push_neg at hcon
+  have hstrict : (N : ℝ) * (C / N) < ∑ i ∈ Finset.range N, f i := by
+    have h1 : ∑ _i ∈ Finset.range N, C / N < ∑ i ∈ Finset.range N, f i :=
+      Finset.sum_lt_sum_of_nonempty ⟨0, Finset.mem_range.mpr hN⟩ hcon
+    rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul] at h1
+    exact h1
+  have hNR : (0 : ℝ) < (N : ℝ) := by exact_mod_cast hN
+  have hcalc : (N : ℝ) * (C / N) = C := by
+    field_simp
+  rw [hcalc] at hstrict
+  linarith
+
+end Pigeonhole
+
 end MoltResearch
