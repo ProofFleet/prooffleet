@@ -559,4 +559,68 @@ theorem norm_sum_div_shift_iterate_sub_le {F : ℕ → ℂ} (hF : ∀ n, ‖F n�
           ring
       _ = 3 * ((u + 1 : ℕ) : ℝ) / a := by push_cast; ring
 
+/-- **The exact `p`-division identity for conjugate-pair correlations** (the core of
+eq. (toc) in arXiv:1509.05422, Proposition `conv`): on the class `p ∣ m`, the
+log-weighted correlation sum collapses **exactly** to `1/p` times the correlation sum
+at the divided scale — the weights satisfy `1/m = (1/p)·(1/(m/p))` with no error, and
+the conjugate-pair dilation identity has no error. The `a`-congruence rides along
+untouched. -/
+theorem sum_conjPair_pDiv_eq {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g)
+    (huni : Unimodular g) {p : ℕ} (hp : p ≠ 0) {a c h : ℕ} {A B : ℕ} :
+    ∑ m ∈ ((Finset.Ioc A B).filter (fun m => m % a = c)).filter (fun m => m % p = 0),
+        g m * (starRingEnd ℂ) (g (m + p * h)) / (m : ℂ)
+      = (1 / (p : ℂ)) * ∑ m' ∈ (((Finset.Ioc A B).filter (fun m => m % a = c)).filter
+            (fun m => m % p = 0)).image (· / p),
+          g m' * (starRingEnd ℂ) (g (m' + h)) / (m' : ℂ) := by
+  classical
+  set T := ((Finset.Ioc A B).filter (fun m => m % a = c)).filter (fun m => m % p = 0)
+    with hT
+  -- membership facts on the p-class
+  have hmem : ∀ m ∈ T, 1 ≤ m ∧ m % p = 0 := by
+    intro m hm
+    rw [hT, Finset.mem_filter, Finset.mem_filter, Finset.mem_Ioc] at hm
+    exact ⟨by omega, hm.2⟩
+  -- reindex through the quotient map (injective on the p-class)
+  have hinj : ∀ x ∈ T, ∀ y ∈ T, x / p = y / p → x = y := by
+    intro x hx y hy hxy
+    have hx2 := (hmem x hx).2
+    have hy2 := (hmem y hy).2
+    calc x = p * (x / p) + x % p := (Nat.div_add_mod x p).symm
+      _ = p * (y / p) + y % p := by rw [hxy, hx2, hy2]
+      _ = y := Nat.div_add_mod y p
+  rw [Finset.mul_sum]
+  rw [Finset.sum_image (fun x hx y hy h' => hinj x hx y hy h')]
+  refine Finset.sum_congr rfl fun m hm => ?_
+  obtain ⟨hm1, hmp⟩ := hmem m hm
+  -- reconstruct m = p·(m/p)
+  have hm_eq : m = p * (m / p) := by
+    have h3 := Nat.div_add_mod m p
+    omega
+  have hm'1 : 1 ≤ m / p := by
+    rcases Nat.eq_zero_or_pos (m / p) with h0 | h1
+    · rw [h0, Nat.mul_zero] at hm_eq
+      omega
+    · exact h1
+  -- the correlation collapses exactly
+  have hval : g m * (starRingEnd ℂ) (g (m + p * h))
+      = g (m / p) * (starRingEnd ℂ) (g (m / p + h)) := by
+    have harg : m + p * h = p * (m / p + h) := by
+      rw [show p * (m / p + h) = p * (m / p) + p * h from by ring, ← hm_eq]
+    have hd := conjPair_dilate hcm huni (m := m / p) (k := m / p + h) hp
+      (by omega) (by omega)
+    rw [← hm_eq] at hd
+    rw [harg]
+    exact hd
+  -- the weight collapses exactly
+  have hw : ((m : ℂ))⁻¹ = (1 / (p : ℂ)) * ((m / p : ℕ) : ℂ)⁻¹ := by
+    have hpC : ((p : ℕ) : ℂ) ≠ 0 := by exact_mod_cast hp
+    have hm'C : (((m / p : ℕ) : ℕ) : ℂ) ≠ 0 := by
+      exact_mod_cast (by omega : m / p ≠ 0)
+    rw [show ((m : ℕ) : ℂ) = ((p : ℕ) : ℂ) * (((m / p : ℕ) : ℕ) : ℂ) from by
+      rw [← Nat.cast_mul]
+      exact_mod_cast hm_eq]
+    field_simp
+  rw [div_eq_mul_inv, div_eq_mul_inv, hval, hw]
+  ring
+
 end MoltResearch

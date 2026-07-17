@@ -6179,6 +6179,18 @@ example {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1) {a b : ℕ} (ha : 1 ≤ 
         - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ ≤ 3 * t / a :=
   norm_sum_div_shift_iterate_sub_le hF ha t
 
+-- Track C Elliott campaign (issue #2946, E5a-3a): the exact p-division identity —
+-- on the class p ∣ m, the log-weighted conjugate-pair correlation collapses exactly
+-- to (1/p) times the divided-scale correlation (eq. (toc)'s core, error-free).
+example {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g) (huni : Unimodular g)
+    {p : ℕ} (hp : p ≠ 0) {a c h A B : ℕ} :
+    ∑ m ∈ ((Finset.Ioc A B).filter (fun m => m % a = c)).filter (fun m => m % p = 0),
+        g m * (starRingEnd ℂ) (g (m + p * h)) / (m : ℂ)
+      = (1 / (p : ℂ)) * ∑ m' ∈ (((Finset.Ioc A B).filter (fun m => m % a = c)).filter
+            (fun m => m % p = 0)).image (· / p),
+          g m' * (starRingEnd ℂ) (g (m' + h)) / (m' : ℂ) :=
+  sum_conjPair_pDiv_eq hcm huni hp
+
 end NormalFormExamples
 
 end MoltResearch
