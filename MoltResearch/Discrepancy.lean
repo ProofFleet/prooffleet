@@ -53,6 +53,7 @@ import MoltResearch.Discrepancy.Entropy
 import MoltResearch.Discrepancy.LogUniform
 import MoltResearch.Discrepancy.ChebyshevBlock
 import MoltResearch.Discrepancy.PropConv
+import MoltResearch.Discrepancy.LogUniformDist
 import MoltResearch.Discrepancy.AveragedWindowBound
 import MoltResearch.Discrepancy.SpectralWindowBound
 import MoltResearch.Discrepancy.FiniteSpectralSample

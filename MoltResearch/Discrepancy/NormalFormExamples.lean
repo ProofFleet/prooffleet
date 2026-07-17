@@ -6247,6 +6247,24 @@ example {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g) (huni : Unimodular
               / (n : ℂ)‖ :=
   prop_conv hcm huni hn₀ hA hpB hface
 
+-- Track C Elliott campaign (issue #2946, E6a): the finite log-uniform distribution —
+-- normalization, pushforward mass, and near-uniformity mod q (the finitary (hayah)).
+example {A B : ℕ} (hA : 1 ≤ A) (hAB : A < B) :
+    ∑ n ∈ Finset.Ioc A B, logWeight A B n = 1 :=
+  sum_logWeight hA hAB
+
+example (s : Finset ℕ) (w : ℕ → ℝ) {β : Type*} [Fintype β] [DecidableEq β]
+    (f : ℕ → β) :
+    ∑ b, pushWeight s w f b = ∑ n ∈ s, w n :=
+  sum_pushWeight s w f
+
+example {q r A B : ℕ} (hq : 2 ≤ q) (hr : r < q) (h4q : 4 * q ≤ A)
+    (hqB : q * (A + 1) ≤ B) :
+    |(∑ n ∈ (Finset.Ioc A B).filter (fun n => n % q = r), (1 : ℝ) / n)
+        - (1 / q) * ∑ n ∈ Finset.Ioc A B, (1 : ℝ) / n|
+      ≤ 2 * r / q ^ 2 + (2 * Real.log (2 * q) + 2) / q :=
+  abs_sum_one_div_residue_sub_le hq hr h4q hqB
+
 end NormalFormExamples
 
 end MoltResearch
