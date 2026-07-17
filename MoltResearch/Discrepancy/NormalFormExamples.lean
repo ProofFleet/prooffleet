@@ -6119,6 +6119,15 @@ example {α β γ : Type*} [Fintype α] [Fintype β] [Fintype γ]
     condEntropy w ≤ condEntropy (margAC w) + condEntropy (margBC w) :=
   condEntropy_le_add_condEntropy hw0
 
+-- Track C Elliott campaign (issue #2946, E2a): entropy forces spread — the core of
+-- the weak-uniform-distribution step of the entropy decrement argument.
+example {α : Type*} [Fintype α] [DecidableEq α] {v : α → ℝ} (hv0 : ∀ x, 0 ≤ v x)
+    (hsum : ∑ x, v x = 1) (E : Finset α) :
+    shannonEntropy v
+      ≤ Real.log 2 + (∑ y ∈ E, v y) * Real.log E.card
+        + (1 - ∑ y ∈ E, v y) * Real.log (Fintype.card α) :=
+  shannonEntropy_le_event_split hv0 hsum E
+
 end NormalFormExamples
 
 end MoltResearch

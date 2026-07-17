@@ -1,6 +1,7 @@
 import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 import Mathlib.Analysis.Convex.Jensen
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+import Mathlib.Analysis.SpecialFunctions.BinaryEntropy
 
 /-!
 # Discrepancy: Shannon entropy of finite discrete distributions
@@ -465,5 +466,261 @@ theorem condEntropy_le_add_condEntropy {w : (α × β) × γ → ℝ} (hw0 : ∀
     nlinarith [hsub, hm]
 
 end Relative
+
+section Events
+
+variable {α : Type*} [Fintype α] [DecidableEq α]
+
+/-- **Support-refined Jensen**: a distribution vanishing off `E` has entropy at most
+`log |E|`. -/
+theorem shannonEntropy_le_log_card_of_support {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
+    (hsum : ∑ x, w x = 1) {E : Finset α} (hsupp : ∀ x ∉ E, w x = 0) :
+    shannonEntropy w ≤ Real.log E.card := by
+  classical
+  set S : Finset α := Finset.univ.filter (fun x => w x ≠ 0) with hS
+  have hSE : S ⊆ E := by
+    intro x hx
+    rw [hS, Finset.mem_filter] at hx
+    by_contra hxE
+    exact hx.2 (hsupp x hxE)
+  have hSsum : ∑ x ∈ S, w x = 1 := by
+    rw [hS, Finset.sum_filter_ne_zero]
+    exact hsum
+  have hSpos : ∀ x ∈ S, 0 < w x := by
+    intro x hx
+    rw [hS, Finset.mem_filter] at hx
+    exact lt_of_le_of_ne (hw0 x) (Ne.symm hx.2)
+  have hrestrict : shannonEntropy w = ∑ x ∈ S, w x • Real.log (w x)⁻¹ := by
+    have hfilter : ∑ x ∈ S, Real.negMulLog (w x) = ∑ x, Real.negMulLog (w x) := by
+      rw [hS]
+      refine Finset.sum_filter_of_ne fun x _ h => ?_
+      by_contra h0
+      rw [h0] at h
+      exact h Real.negMulLog_zero
+    rw [shannonEntropy, ← hfilter]
+    refine Finset.sum_congr rfl fun x hx => ?_
+    have hx0 := hSpos x hx
+    rw [Real.negMulLog, Real.log_inv, smul_eq_mul]
+    ring
+  rw [hrestrict]
+  have hmem : ∀ x ∈ S, (w x)⁻¹ ∈ Set.Ioi (0 : ℝ) := fun x hx =>
+    Set.mem_Ioi.mpr (by have := hSpos x hx; positivity)
+  have hjensen := (strictConcaveOn_log_Ioi.concaveOn).le_map_sum
+    (fun x hx => (hSpos x hx).le) hSsum hmem
+  have hinner : ∑ x ∈ S, w x • (w x)⁻¹ = (S.card : ℝ) := by
+    rw [show ∑ x ∈ S, w x • (w x)⁻¹ = ∑ _x ∈ S, (1 : ℝ) from
+      Finset.sum_congr rfl fun x hx => by
+        rw [smul_eq_mul, mul_inv_cancel₀ (ne_of_gt (hSpos x hx))]]
+    rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+  rw [hinner] at hjensen
+  refine le_trans hjensen (Real.log_le_log ?_ ?_)
+  · have hne : S.Nonempty := by
+      by_contra h
+      rw [Finset.not_nonempty_iff_eq_empty] at h
+      rw [h, Finset.sum_empty] at hSsum
+      norm_num at hSsum
+    exact_mod_cast Finset.card_pos.mpr hne
+  · exact_mod_cast Finset.card_le_card hSE
+
+/-- The event-restricted renormalization (junk `0` at zero mass and off the event). -/
+noncomputable def eventCond (v : α → ℝ) (E : Finset α) : α → ℝ :=
+  fun y => if y ∈ E then v y / (∑ z ∈ E, v z) else 0
+
+/-- **Entropy forces spread** (the core of arXiv:1509.05422 §3, Lemma weak-unif):
+splitting a distribution across an event `E` costs at most one bit, so
+`H(v) ≤ log 2 + P(E)·log|E| + (1 − P(E))·log|univ|`. Rearranged, high entropy forces
+small mass on small events. -/
+theorem shannonEntropy_le_event_split {v : α → ℝ} (hv0 : ∀ x, 0 ≤ v x)
+    (hsum : ∑ x, v x = 1) (E : Finset α) :
+    shannonEntropy v
+      ≤ Real.log 2 + (∑ y ∈ E, v y) * Real.log E.card
+        + (1 - ∑ y ∈ E, v y) * Real.log (Fintype.card α) := by
+  classical
+  set q : ℝ := ∑ y ∈ E, v y with hq
+  have hq0 : 0 ≤ q := Finset.sum_nonneg fun y _ => hv0 y
+  have hq1 : q ≤ 1 := by
+    rw [hq, ← hsum]
+    exact Finset.sum_le_sum_of_subset_of_nonneg (Finset.subset_univ E)
+      fun y _ _ => hv0 y
+  have hlog2 : (0 : ℝ) ≤ Real.log 2 := Real.log_nonneg (by norm_num)
+  have hlogcard : shannonEntropy v ≤ Real.log (Fintype.card α) :=
+    shannonEntropy_le_log_card hv0 hsum
+  have hlogcard0 : (0 : ℝ) ≤ Real.log (Fintype.card α) := by
+    have hne : (Finset.univ : Finset α).Nonempty := by
+      by_contra h
+      rw [Finset.not_nonempty_iff_eq_empty] at h
+      rw [show ∑ x, v x = ∑ x ∈ (Finset.univ : Finset α), v x from rfl, h,
+        Finset.sum_empty] at hsum
+      norm_num at hsum
+    have hcard : 1 ≤ Fintype.card α := Finset.card_pos.mpr hne
+    exact Real.log_nonneg (by exact_mod_cast hcard)
+  -- degenerate masses: fall back to the coarse bound
+  rcases eq_or_lt_of_le hq0 with hq0' | hq0'
+  · -- q = 0
+    rw [← hq0']
+    have : (1 - (0:ℝ)) * Real.log (Fintype.card α) = Real.log (Fintype.card α) := by ring
+    rw [zero_mul, this]
+    linarith
+  rcases eq_or_lt_of_le hq1 with hq1' | hq1'
+  · -- q = 1: v is supported in E
+    have hsupp : ∀ y ∉ E, v y = 0 := by
+      intro y hyE
+      by_contra hne
+      have hpos : 0 < v y := lt_of_le_of_ne (hv0 y) (Ne.symm hne)
+      have hsplit : ∑ x, v x = q + ∑ y ∈ Finset.univ \ E, v y := by
+        rw [hq, ← Finset.sum_sdiff (Finset.subset_univ E)]
+        ring
+      have hin : v y ≤ ∑ y ∈ Finset.univ \ E, v y :=
+        Finset.single_le_sum (f := v) (fun z _ => hv0 z)
+          (Finset.mem_sdiff.mpr ⟨Finset.mem_univ y, hyE⟩)
+      rw [hsum, ← hq1'] at hsplit
+      linarith
+    have hE := shannonEntropy_le_log_card_of_support hv0 hsum hsupp
+    rw [hq1', sub_self, zero_mul, one_mul, add_zero]
+    linarith
+  -- interior case: the exact decomposition through the two restrictions
+  have hqne : q ≠ 0 := ne_of_gt hq0'
+  have hq1ne : 1 - q ≠ 0 := by
+    intro h
+    have hq1'' : q = 1 := by linarith
+    exact absurd hq1'' (ne_of_lt hq1')
+  set r : α → ℝ := eventCond v E with hr
+  set r' : α → ℝ := eventCond v (Finset.univ \ E) with hr'
+  have hmassE : ∑ z ∈ Finset.univ \ E, v z = 1 - q := by
+    have h0 : ∑ z ∈ Finset.univ \ E, v z + ∑ z ∈ E, v z = ∑ z, v z :=
+      Finset.sum_sdiff (Finset.subset_univ E)
+    rw [hsum] at h0
+    linarith
+  -- decomposition of the E-part
+  have hpartE : ∑ y ∈ E, Real.negMulLog (v y)
+      = Real.negMulLog q + q * shannonEntropy r := by
+    have hvy : ∀ y ∈ E, v y = q * r y := by
+      intro y hy
+      rw [hr, show eventCond v E y = if y ∈ E then v y / (∑ z ∈ E, v z) else 0 from rfl,
+        if_pos hy, ← hq]
+      field_simp
+    have hsplit : ∀ y ∈ E, Real.negMulLog (v y)
+        = r y * Real.negMulLog q + q * Real.negMulLog (r y) := by
+      intro y hy
+      rw [hvy y hy, Real.negMulLog_mul]
+    rw [Finset.sum_congr rfl hsplit, Finset.sum_add_distrib, ← Finset.sum_mul,
+      ← Finset.mul_sum]
+    have hrsum : ∑ y ∈ E, r y = 1 := by
+      have : ∀ y ∈ E, r y = v y / q := fun y hy => by
+        rw [hr, show eventCond v E y
+            = if y ∈ E then v y / (∑ z ∈ E, v z) else 0 from rfl, if_pos hy, ← hq]
+      rw [Finset.sum_congr rfl this,
+        Finset.sum_congr rfl fun y _ => div_eq_mul_inv (v y) q, ← Finset.sum_mul,
+        ← hq, ← div_eq_mul_inv]
+      exact div_self hqne
+    have hHr : ∑ y ∈ E, Real.negMulLog (r y) = shannonEntropy r := by
+      rw [shannonEntropy]
+      refine Finset.sum_subset (Finset.subset_univ E) fun y _ hyE => ?_
+      rw [hr, show eventCond v E y
+          = if y ∈ E then v y / (∑ z ∈ E, v z) else 0 from rfl, if_neg hyE]
+      exact Real.negMulLog_zero
+    rw [hrsum, hHr, one_mul]
+  -- decomposition of the complement part
+  have hpartEc : ∑ y ∈ Finset.univ \ E, Real.negMulLog (v y)
+      = Real.negMulLog (1 - q) + (1 - q) * shannonEntropy r' := by
+    have hvy : ∀ y ∈ Finset.univ \ E, v y = (1 - q) * r' y := by
+      intro y hy
+      rw [hr', show eventCond v (Finset.univ \ E) y
+          = if y ∈ Finset.univ \ E then v y / (∑ z ∈ Finset.univ \ E, v z) else 0
+        from rfl, if_pos hy, hmassE]
+      field_simp
+    have hsplit : ∀ y ∈ Finset.univ \ E, Real.negMulLog (v y)
+        = r' y * Real.negMulLog (1 - q) + (1 - q) * Real.negMulLog (r' y) := by
+      intro y hy
+      rw [hvy y hy, Real.negMulLog_mul]
+    rw [Finset.sum_congr rfl hsplit, Finset.sum_add_distrib, ← Finset.sum_mul,
+      ← Finset.mul_sum]
+    have hrsum : ∑ y ∈ Finset.univ \ E, r' y = 1 := by
+      have hthis : ∀ y ∈ Finset.univ \ E, r' y = v y / (1 - q) := fun y hy => by
+        rw [hr', show eventCond v (Finset.univ \ E) y
+            = if y ∈ Finset.univ \ E then v y / (∑ z ∈ Finset.univ \ E, v z) else 0
+          from rfl, if_pos hy, hmassE]
+      rw [Finset.sum_congr rfl hthis,
+        Finset.sum_congr rfl fun y _ => div_eq_mul_inv (v y) (1 - q), ← Finset.sum_mul,
+        hmassE, ← div_eq_mul_inv]
+      exact div_self hq1ne
+    have hHr : ∑ y ∈ Finset.univ \ E, Real.negMulLog (r' y) = shannonEntropy r' := by
+      rw [shannonEntropy]
+      refine Finset.sum_subset (Finset.subset_univ _) fun y _ hyE => ?_
+      rw [hr', show eventCond v (Finset.univ \ E) y
+          = if y ∈ Finset.univ \ E then v y / (∑ z ∈ Finset.univ \ E, v z) else 0
+        from rfl, if_neg hyE]
+      exact Real.negMulLog_zero
+    rw [hrsum, hHr, one_mul]
+  -- assemble: H(v) = binary entropy + mixture of restricted entropies
+  have hHv : shannonEntropy v
+      = (Real.negMulLog q + Real.negMulLog (1 - q))
+        + (q * shannonEntropy r + (1 - q) * shannonEntropy r') := by
+    rw [shannonEntropy, ← Finset.sum_sdiff (Finset.subset_univ E) (f := fun y =>
+      Real.negMulLog (v y)), hpartE, hpartEc]
+    ring
+  -- binary entropy is at most log 2
+  have hbin : Real.negMulLog q + Real.negMulLog (1 - q) ≤ Real.log 2 := by
+    have := Real.binEntropy_le_log_two (p := q)
+    rwa [Real.binEntropy_eq_negMulLog_add_negMulLog_one_sub] at this
+  -- restricted entropies against their supports
+  have hr0 : ∀ y, 0 ≤ r y := by
+    intro y
+    rw [hr, show eventCond v E y = if y ∈ E then v y / (∑ z ∈ E, v z) else 0 from rfl]
+    split_ifs with h
+    · rw [← hq]
+      have := hv0 y
+      positivity
+    · exact le_refl 0
+  have hrsum1 : ∑ y, r y = 1 := by
+    rw [show ∑ y, r y = ∑ y ∈ E, r y from (Finset.sum_subset (Finset.subset_univ E)
+      fun y _ hyE => by
+        rw [hr, show eventCond v E y
+            = if y ∈ E then v y / (∑ z ∈ E, v z) else 0 from rfl, if_neg hyE]).symm]
+    have hthis : ∀ y ∈ E, r y = v y / q := fun y hy => by
+      rw [hr, show eventCond v E y
+          = if y ∈ E then v y / (∑ z ∈ E, v z) else 0 from rfl, if_pos hy, ← hq]
+    rw [Finset.sum_congr rfl hthis,
+      Finset.sum_congr rfl fun y _ => div_eq_mul_inv (v y) q, ← Finset.sum_mul,
+      ← hq, ← div_eq_mul_inv]
+    exact div_self hqne
+  have hHrE : shannonEntropy r ≤ Real.log E.card := by
+    refine shannonEntropy_le_log_card_of_support hr0 hrsum1 fun y hyE => ?_
+    rw [hr, show eventCond v E y = if y ∈ E then v y / (∑ z ∈ E, v z) else 0 from rfl,
+      if_neg hyE]
+  have hr'0 : ∀ y, 0 ≤ r' y := by
+    intro y
+    rw [hr', show eventCond v (Finset.univ \ E) y
+        = if y ∈ Finset.univ \ E then v y / (∑ z ∈ Finset.univ \ E, v z) else 0
+      from rfl]
+    split_ifs with h
+    · rw [hmassE]
+      exact div_nonneg (hv0 y) (by linarith)
+    · exact le_refl 0
+  have hr'sum1 : ∑ y, r' y = 1 := by
+    rw [show ∑ y, r' y = ∑ y ∈ Finset.univ \ E, r' y from
+      (Finset.sum_subset (Finset.subset_univ _) fun y _ hyE => by
+        rw [hr', show eventCond v (Finset.univ \ E) y
+            = if y ∈ Finset.univ \ E then v y / (∑ z ∈ Finset.univ \ E, v z) else 0
+          from rfl, if_neg hyE]).symm]
+    have hthis : ∀ y ∈ Finset.univ \ E, r' y = v y / (1 - q) := fun y hy => by
+      rw [hr', show eventCond v (Finset.univ \ E) y
+          = if y ∈ Finset.univ \ E then v y / (∑ z ∈ Finset.univ \ E, v z) else 0
+        from rfl, if_pos hy, hmassE]
+    rw [Finset.sum_congr rfl hthis,
+      Finset.sum_congr rfl fun y _ => div_eq_mul_inv (v y) (1 - q), ← Finset.sum_mul,
+      hmassE, ← div_eq_mul_inv]
+    exact div_self hq1ne
+  have hHrEc : shannonEntropy r' ≤ Real.log (Fintype.card α) := by
+    exact shannonEntropy_le_log_card hr'0 hr'sum1
+  -- combine
+  rw [hHv]
+  have h1 : q * shannonEntropy r ≤ q * Real.log E.card :=
+    mul_le_mul_of_nonneg_left hHrE hq0
+  have h2 : (1 - q) * shannonEntropy r' ≤ (1 - q) * Real.log (Fintype.card α) :=
+    mul_le_mul_of_nonneg_left hHrEc (by linarith)
+  linarith
+
+end Events
 
 end MoltResearch
