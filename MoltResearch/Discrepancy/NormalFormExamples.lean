@@ -6155,6 +6155,18 @@ example {n : ℕ} (hn : 2 ^ 28 ≤ n) :
       ≤ ∑ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), (1 : ℝ) / p :=
   sum_one_div_prime_block_ge hn
 
+-- Track C Elliott campaign (issue #2946, E5a-1): the shift comparison and the
+-- Chinese-remainder filter split feeding Proposition conv.
+example {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1) {a b : ℕ} (ha : 1 ≤ a) :
+    ‖(∑ n ∈ Finset.Ioc a b, F (n + 1) / (n : ℂ))
+        - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ ≤ 3 / a :=
+  norm_sum_div_shift_sub_le hF ha
+
+example {a p : ℕ} (hcop : Nat.Coprime a p) (c : ℕ) (s : Finset ℕ) :
+    s.filter (fun n => n % (a * p) = c % (a * p))
+      = (s.filter (fun n => n % a = c % a)).filter (fun n => n % p = c % p) :=
+  filter_mod_mul_eq hcop c s
+
 end NormalFormExamples
 
 end MoltResearch

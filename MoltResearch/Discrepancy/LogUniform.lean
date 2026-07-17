@@ -237,4 +237,172 @@ theorem norm_sum_div_residue_sub_le (hq : 0 < q) (hr : r < q)
   have h3 : (r : ℝ) / (q : ℝ) ^ 2 * 2 = 2 * (r : ℝ) / (q : ℝ) ^ 2 := by ring
   linarith
 
+/-- **Shift comparison for log-uniform sums**: advancing the argument by one changes a
+log-averaged window sum by at most `3/a` — one weight comparison plus two boundary
+terms. The engine of the paper's `Q(s+1) = Q(s) + O(1/p)` fluctuation step
+(arXiv:1509.05422, Proposition `conv`). -/
+theorem norm_sum_div_shift_sub_le {F : ℕ → ℂ} (hF : ∀ n, ‖F n‖ ≤ 1) {a b : ℕ}
+    (ha : 1 ≤ a) :
+    ‖(∑ n ∈ Finset.Ioc a b, F (n + 1) / (n : ℂ))
+        - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ ≤ 3 / a := by
+  classical
+  have haR : (1 : ℝ) ≤ (a : ℝ) := by exact_mod_cast ha
+  have ha0 : (0 : ℝ) < (a : ℝ) := by linarith
+  rcases Nat.lt_or_ge a b with hab | hba
+  swap
+  · rw [Finset.Ioc_eq_empty (by omega), Finset.sum_empty, Finset.sum_empty,
+      sub_zero, norm_zero]
+    positivity
+  -- piece 1: weight comparison at the same index, telescoped
+  have hw : ‖(∑ n ∈ Finset.Ioc a b, F (n + 1) / (n : ℂ))
+      - ∑ n ∈ Finset.Ioc a b, F (n + 1) / ((n + 1 : ℕ) : ℂ)‖ ≤ 1 / a := by
+    rw [← Finset.sum_sub_distrib]
+    refine le_trans (norm_sum_le _ _) ?_
+    have hterm : ∀ n ∈ Finset.Ioc a b,
+        ‖F (n + 1) / (n : ℂ) - F (n + 1) / ((n + 1 : ℕ) : ℂ)‖
+          ≤ 1 / (n : ℝ) - 1 / ((n : ℝ) + 1) := by
+      intro n hn
+      rw [Finset.mem_Ioc] at hn
+      have hn1 : 1 ≤ n := by omega
+      have hn0 : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn1
+      have hfac : F (n + 1) / (n : ℂ) - F (n + 1) / ((n + 1 : ℕ) : ℂ)
+          = F (n + 1) * ((1 : ℂ) / (n : ℂ) - 1 / ((n + 1 : ℕ) : ℂ)) := by
+        field_simp
+      rw [hfac, norm_mul]
+      have hcast : (1 : ℂ) / (n : ℂ) - 1 / ((n + 1 : ℕ) : ℂ)
+          = (((1 : ℝ) / (n : ℝ) - 1 / ((n : ℝ) + 1) : ℝ) : ℂ) := by
+        push_cast
+        ring
+      rw [hcast, Complex.norm_real, Real.norm_eq_abs]
+      have hpos : (0 : ℝ) < 1 / (n : ℝ) - 1 / ((n : ℝ) + 1) := by
+        rw [show (1 : ℝ) / (n : ℝ) - 1 / ((n : ℝ) + 1)
+            = 1 / ((n : ℝ) * ((n : ℝ) + 1)) from by
+          field_simp
+          ring]
+        positivity
+      rw [abs_of_pos hpos]
+      have h1 := hF (n + 1)
+      nlinarith [hpos]
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    have hclosed : ∀ c : ℕ, a ≤ c →
+        ∑ n ∈ Finset.Ioc a c, ((1 : ℝ) / n - 1 / ((n : ℝ) + 1))
+          = 1 / ((a : ℝ) + 1) - 1 / ((c : ℝ) + 1) := by
+      intro c hc
+      induction c with
+      | zero =>
+        exfalso
+        omega
+      | succ d ih =>
+        rcases Nat.lt_or_ge d a with hd | hd
+        · have hde : d + 1 = a := by omega
+          rw [← hde, Finset.Ioc_self, Finset.sum_empty]
+          ring
+        · rw [Finset.sum_Ioc_succ_top (by omega), ih hd]
+          push_cast
+          ring
+    rw [hclosed b (by omega)]
+    have hb1 : (0 : ℝ) < (b : ℝ) + 1 := by positivity
+    have h3 : (1 : ℝ) / ((a : ℝ) + 1) ≤ 1 / (a : ℝ) := by
+      rw [div_le_div_iff₀ (by positivity) ha0]
+      nlinarith
+    have h4 : (0 : ℝ) ≤ 1 / ((b : ℝ) + 1) := by positivity
+    linarith
+  -- piece 2: exact reindex of the corrected sum
+  have hreindex : ∑ m ∈ Finset.Ioc (a + 1) (b + 1), F m / (m : ℂ)
+      = ∑ n ∈ Finset.Ioc a b, F (n + 1) / ((n + 1 : ℕ) : ℂ) := by
+    rw [show Finset.Ioc (a + 1) (b + 1) = (Finset.Ioc a b).image (· + 1) from by
+      ext m
+      rw [Finset.mem_Ioc, Finset.mem_image]
+      constructor
+      · intro hm
+        exact ⟨m - 1, by rw [Finset.mem_Ioc]; omega, by omega⟩
+      · rintro ⟨k, hk, rfl⟩
+        rw [Finset.mem_Ioc] at hk
+        omega]
+    refine Finset.sum_image fun x _ y _ h => ?_
+    have h' : x + 1 = y + 1 := h
+    omega
+  -- piece 3: boundary comparison between the shifted and original windows
+  have hbound : ‖(∑ m ∈ Finset.Ioc (a + 1) (b + 1), F m / (m : ℂ))
+      - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ ≤ 2 / a := by
+    have hsplit1 : ∑ m ∈ Finset.Ioc (a + 1) (b + 1), F m / (m : ℂ)
+        = (∑ m ∈ Finset.Ioc (a + 1) b, F m / (m : ℂ))
+          + F (b + 1) / ((b + 1 : ℕ) : ℂ) :=
+      Finset.sum_Ioc_succ_top (by omega) _
+    have herase : Finset.Ioc (a + 1) b = (Finset.Ioc a b).erase (a + 1) := by
+      ext m
+      rw [Finset.mem_erase, Finset.mem_Ioc, Finset.mem_Ioc]
+      omega
+    have hsplit2 : ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)
+        = (∑ m ∈ Finset.Ioc (a + 1) b, F m / (m : ℂ))
+          + F (a + 1) / ((a + 1 : ℕ) : ℂ) := by
+      rw [herase]
+      exact (Finset.sum_erase_add _ _ (by rw [Finset.mem_Ioc]; omega)).symm
+    rw [hsplit1, hsplit2]
+    rw [show ((∑ m ∈ Finset.Ioc (a + 1) b, F m / (m : ℂ))
+          + F (b + 1) / ((b + 1 : ℕ) : ℂ))
+        - ((∑ m ∈ Finset.Ioc (a + 1) b, F m / (m : ℂ))
+          + F (a + 1) / ((a + 1 : ℕ) : ℂ))
+        = F (b + 1) / ((b + 1 : ℕ) : ℂ) - F (a + 1) / ((a + 1 : ℕ) : ℂ) from by ring]
+    refine le_trans (norm_sub_le _ _) ?_
+    have hnb : ‖F (b + 1) / ((b + 1 : ℕ) : ℂ)‖ ≤ 1 / a := by
+      rw [norm_div]
+      have hb0 : (0 : ℝ) < ((b + 1 : ℕ) : ℝ) := by positivity
+      have hnorm : ‖((b + 1 : ℕ) : ℂ)‖ = ((b + 1 : ℕ) : ℝ) := by
+        rw [Complex.norm_natCast]
+      rw [hnorm]
+      have h1 := hF (b + 1)
+      have hab' : (a : ℝ) ≤ ((b + 1 : ℕ) : ℝ) := by
+        push_cast
+        have : a ≤ b := by omega
+        have : (a : ℝ) ≤ (b : ℝ) := by exact_mod_cast this
+        linarith
+      rw [div_le_div_iff₀ hb0 ha0]
+      nlinarith
+    have hna : ‖F (a + 1) / ((a + 1 : ℕ) : ℂ)‖ ≤ 1 / a := by
+      rw [norm_div]
+      have ha1 : (0 : ℝ) < ((a + 1 : ℕ) : ℝ) := by positivity
+      rw [Complex.norm_natCast]
+      have h1 := hF (a + 1)
+      have haa : (a : ℝ) ≤ ((a + 1 : ℕ) : ℝ) := by push_cast; linarith
+      rw [div_le_div_iff₀ ha1 ha0]
+      nlinarith
+    calc ‖F (b + 1) / ((b + 1 : ℕ) : ℂ)‖ + ‖F (a + 1) / ((a + 1 : ℕ) : ℂ)‖
+        ≤ 1 / a + 1 / a := by linarith
+      _ = 2 / a := by ring
+  -- assemble by the triangle inequality through the corrected sum
+  calc ‖(∑ n ∈ Finset.Ioc a b, F (n + 1) / (n : ℂ))
+        - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖
+      ≤ ‖(∑ n ∈ Finset.Ioc a b, F (n + 1) / (n : ℂ))
+          - ∑ n ∈ Finset.Ioc a b, F (n + 1) / ((n + 1 : ℕ) : ℂ)‖
+        + ‖(∑ n ∈ Finset.Ioc a b, F (n + 1) / ((n + 1 : ℕ) : ℂ))
+          - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ := by
+        have := norm_sub_le_norm_sub_add_norm_sub
+          (∑ n ∈ Finset.Ioc a b, F (n + 1) / (n : ℂ))
+          (∑ n ∈ Finset.Ioc a b, F (n + 1) / ((n + 1 : ℕ) : ℂ))
+          (∑ n ∈ Finset.Ioc a b, F n / (n : ℂ))
+        linarith
+    _ ≤ 1 / a + 2 / a := by
+        have hbound' : ‖(∑ n ∈ Finset.Ioc a b, F (n + 1) / ((n + 1 : ℕ) : ℂ))
+            - ∑ n ∈ Finset.Ioc a b, F n / (n : ℂ)‖ ≤ 2 / a := by
+          rw [← hreindex]
+          exact hbound
+        exact add_le_add hw hbound'
+    _ = 3 / a := by ring
+
+/-- **The two-modulus residue split** (Chinese remainder, filter form): for coprime
+`a`, `p`, the residue class mod `a·p` is the intersection of the classes mod `a` and
+mod `p` — the paper's split of `1_{𝐧+j ≡ pb (ap)}`. -/
+theorem filter_mod_mul_eq {a p : ℕ} (hcop : Nat.Coprime a p) (c : ℕ) (s : Finset ℕ) :
+    s.filter (fun n => n % (a * p) = c % (a * p))
+      = (s.filter (fun n => n % a = c % a)).filter (fun n => n % p = c % p) := by
+  ext n
+  rw [Finset.mem_filter, Finset.mem_filter, Finset.mem_filter, and_assoc]
+  constructor
+  · intro h
+    obtain ⟨h1, h2⟩ := (Nat.modEq_and_modEq_iff_modEq_mul hcop).mpr h.2
+    exact ⟨h.1, h1, h2⟩
+  · rintro ⟨hs, h1, h2⟩
+    exact ⟨hs, (Nat.modEq_and_modEq_iff_modEq_mul hcop).mp ⟨h1, h2⟩⟩
+
 end MoltResearch
