@@ -889,4 +889,51 @@ theorem shannonEntropy_jointLaw_iterate (g : ℕ → ℂ) (K H P : ℕ) [NeZero 
       rw [heq]
       linarith [hstep', ihm, hscale, hr1, hr2, hr3]
 
+/-- **The splat inequality** (eq. (splat) of arXiv:1509.05422 §3, un-normalized):
+the mutual information between `X_H` and `Y` is controlled by the entropy-rate
+drop across `k` blocks. -/
+theorem mutualInfo_jointLaw_le (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ}
+    (hA : 1 ≤ A) {k : ℕ} (hk : 1 ≤ k) (hkB : A + k * H + k * H < B) :
+    mutualInfo (jointLaw g K H P A B)
+      ≤ shannonEntropy (patternLaw g K H A B)
+        - shannonEntropy (patternLaw g K (k * H) A B) / k
+        + shannonEntropy (residueLaw P A B) / k
+        + decrementErr K H P A B k := by
+  have hk0 : (0 : ℝ) < (k : ℝ) := by exact_mod_cast hk
+  have hiter := shannonEntropy_jointLaw_iterate g K H P hA hk hkB
+  have hmarg : shannonEntropy (patternLaw g K (k * H) A B)
+      ≤ shannonEntropy (jointLaw g K (k * H) P A B) := by
+    have h := shannonEntropy_marginal₁_le
+      (w := jointLaw g K (k * H) P A B) (jointLaw_nonneg g K (k * H) P A B)
+    rw [marginal₁_jointLaw] at h
+    exact h
+  have hI : mutualInfo (jointLaw g K H P A B)
+      = shannonEntropy (patternLaw g K H A B)
+        + shannonEntropy (residueLaw P A B)
+        - shannonEntropy (jointLaw g K H P A B) := by
+    rw [mutualInfo, marginal₁_jointLaw, marginal₂_jointLaw]
+  have h1 : shannonEntropy (patternLaw g K (k * H) A B)
+      ≤ k * shannonEntropy (jointLaw g K H P A B)
+        - ((k : ℝ) - 1) * shannonEntropy (residueLaw P A B)
+        + k * decrementErr K H P A B k := le_trans hmarg hiter
+  have h2 : shannonEntropy (patternLaw g K (k * H) A B) / k
+      ≤ shannonEntropy (jointLaw g K H P A B)
+        - shannonEntropy (residueLaw P A B)
+        + shannonEntropy (residueLaw P A B) / k
+        + decrementErr K H P A B k := by
+    rw [div_le_iff₀ hk0]
+    have hexp : (shannonEntropy (jointLaw g K H P A B)
+          - shannonEntropy (residueLaw P A B)
+          + shannonEntropy (residueLaw P A B) / k
+          + decrementErr K H P A B k) * k
+        = k * shannonEntropy (jointLaw g K H P A B)
+          - ((k : ℝ) - 1) * shannonEntropy (residueLaw P A B)
+          + k * decrementErr K H P A B k := by
+      field_simp
+      ring
+    rw [hexp]
+    exact h1
+  rw [hI]
+  linarith
+
 end MoltResearch

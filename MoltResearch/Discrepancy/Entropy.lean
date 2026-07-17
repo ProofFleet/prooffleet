@@ -889,6 +889,28 @@ theorem abs_shannonEntropy_sub_le {v w : α → ℝ} (hv0 : ∀ x, 0 ≤ v x)
   rw [h2]
   linarith
 
+/-- `negMulLog` is superadditive on nonnegative families: `η(∑f) ≤ ∑η(f)`. -/
+theorem negMulLog_sum_le {ι : Type*} (s : Finset ι) (f : ι → ℝ)
+    (hf : ∀ i ∈ s, 0 ≤ f i) :
+    Real.negMulLog (∑ i ∈ s, f i) ≤ ∑ i ∈ s, Real.negMulLog (f i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert a t ha ih =>
+    rw [Finset.sum_insert ha, Finset.sum_insert ha]
+    have h1 := negMulLog_add_le (hf a (Finset.mem_insert_self a t))
+      (Finset.sum_nonneg fun i hi => hf i (Finset.mem_insert_of_mem hi))
+    have h2 := ih fun i hi => hf i (Finset.mem_insert_of_mem hi)
+    linarith
+
+/-- **Marginalizing loses entropy**: `H(X) ≤ H(X,Y)` for nonnegative weights. -/
+theorem shannonEntropy_marginal₁_le {β : Type*} [Fintype β] {w : α × β → ℝ}
+    (hw0 : ∀ x, 0 ≤ w x) :
+    shannonEntropy (marginal₁ w) ≤ shannonEntropy w := by
+  rw [shannonEntropy, shannonEntropy, Fintype.sum_prod_type]
+  refine Finset.sum_le_sum fun a _ => ?_
+  exact negMulLog_sum_le Finset.univ (fun b => w (a, b)) fun b _ => hw0 (a, b)
+
 end TV
 
 section Pigeonhole

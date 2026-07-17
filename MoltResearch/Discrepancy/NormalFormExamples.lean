@@ -6379,6 +6379,22 @@ example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A) {k
         + k * decrementErr K H P A B k :=
   shannonEntropy_jointLaw_iterate g K H P hA hk hkB
 
+-- Track C Elliott campaign (issue #2946, E6d-5c): marginal entropy bound and
+-- the splat inequality.
+example {α β : Type*} [Fintype α] [DecidableEq α] [Fintype β] {w : α × β → ℝ}
+    (hw0 : ∀ x, 0 ≤ w x) :
+    shannonEntropy (marginal₁ w) ≤ shannonEntropy w :=
+  shannonEntropy_marginal₁_le hw0
+
+example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A) {k : ℕ}
+    (hk : 1 ≤ k) (hkB : A + k * H + k * H < B) :
+    mutualInfo (jointLaw g K H P A B)
+      ≤ shannonEntropy (patternLaw g K H A B)
+        - shannonEntropy (patternLaw g K (k * H) A B) / k
+        + shannonEntropy (residueLaw P A B) / k
+        + decrementErr K H P A B k :=
+  mutualInfo_jointLaw_le g K H P hA hk hkB
+
 end NormalFormExamples
 
 end MoltResearch
