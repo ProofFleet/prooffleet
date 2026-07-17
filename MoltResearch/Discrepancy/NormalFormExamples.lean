@@ -6231,6 +6231,22 @@ example {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g) (huni : Unimodular
       ≤ 3 * j / A + (2 * Real.log p + 2) / p :=
   norm_toc_sub_le hcm huni hp hA hpB
 
+-- Track C Elliott campaign (issue #2946, E5 capstone): Proposition conv — a large
+-- base correlation forces a large medium-prime double sum, with explicit constants.
+example {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g) (huni : Unimodular g)
+    {n₀ h J A B : ℕ} (hn₀ : 2 ^ 28 ≤ n₀) (hA : 2 * n₀ ≤ A) (hpB : 2 * n₀ * A ≤ B)
+    {X : ℝ} (hface : X ≤ ‖∑ m ∈ Finset.Ioc A B,
+      g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖) :
+    (J : ℝ) * (Real.log 4 / 12 / Real.log (2 * (n₀ : ℝ))) * X
+      - 3 * (J : ℝ) ^ 2 * (n₀ : ℝ) / A
+      - (J : ℝ) * (2 * Real.log (2 * (n₀ : ℝ)) + 2)
+      ≤ ‖∑ p ∈ (2 * n₀ + 1).primesBelow.filter (fun p => n₀ < p),
+          ∑ j ∈ Finset.Icc 1 J, ∑ n ∈ Finset.Ioc A B,
+            (if (n + j) % p = 0
+              then g (n + j) * (starRingEnd ℂ) (g (n + j + p * h)) else 0)
+              / (n : ℂ)‖ :=
+  prop_conv hcm huni hn₀ hA hpB hface
+
 end NormalFormExamples
 
 end MoltResearch
