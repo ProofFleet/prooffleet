@@ -549,4 +549,78 @@ theorem patternSplit_patternMap (g : ℕ → ℂ) (K H₁ H₂ n : ℕ) :
     have harg : n + 1 + (H₁ + (j : ℕ)) = n + H₁ + 1 + (j : ℕ) := by omega
     rw [harg]
 
+/-- **Approximate subadditivity of pattern entropy**: a long window's entropy is
+at most the sum of its two halves' entropies plus the Fannes cost of the shift
+`n ↦ n + H₁`, which vanishes as the window grows. This is the paper's
+`H(X_{H₁+H₂}) ≤ H(X_{H₁}) + H(X_{H₂}) + o(1)`. -/
+theorem shannonEntropy_patternLaw_add_le (g : ℕ → ℂ) (K H₁ H₂ : ℕ) {A B : ℕ}
+    (hA : 1 ≤ A) (hH : A + H₁ + H₁ < B) :
+    shannonEntropy (patternLaw g K (H₁ + H₂) A B)
+      ≤ shannonEntropy (patternLaw g K H₁ A B)
+        + shannonEntropy (patternLaw g K H₂ A B)
+        + (2 * (Fintype.card (PatternSpace K H₂) : ℝ)
+            * Real.sqrt (3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m))
+          + 3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) := by
+  classical
+  have hAB : A < B := by omega
+  -- relabel the long-window law along the splitting equivalence
+  have hsplit_fun : (fun n => patternSplit K H₁ H₂ (patternMap g K (H₁ + H₂) n))
+      = fun n => (patternMap g K H₁ n, patternMap g K H₂ (n + H₁)) := by
+    funext n
+    rw [patternSplit_patternMap]
+  have hrelabel : shannonEntropy (patternLaw g K (H₁ + H₂) A B)
+      = shannonEntropy (pushWeight (Finset.Ioc A B) (logWeight A B)
+          (fun n => (patternMap g K H₁ n, patternMap g K H₂ (n + H₁)))) := by
+    rw [patternLaw, ← shannonEntropy_pushWeight_equiv (Finset.Ioc A B)
+      (logWeight A B) (patternMap g K (H₁ + H₂)) (patternSplit K H₁ H₂),
+      hsplit_fun]
+  -- E1 subadditivity on the pair law
+  have hW0 : ∀ x, 0 ≤ pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => (patternMap g K H₁ n, patternMap g K H₂ (n + H₁))) x :=
+    pushWeight_nonneg (fun n _ => logWeight_nonneg A B n) _
+  have hWsum : ∑ x, pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => (patternMap g K H₁ n, patternMap g K H₂ (n + H₁))) x = 1 := by
+    rw [sum_pushWeight, sum_logWeight hA hAB]
+  have hsub := shannonEntropy_le_add_marginals hW0 hWsum
+  rw [marginal₁_pushWeight_pair, marginal₂_pushWeight_pair] at hsub
+  have hm1 : pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => patternMap g K H₁ n) = patternLaw g K H₁ A B := rfl
+  rw [hm1] at hsub
+  -- swap the shifted second marginal for the unshifted law via Fannes + shift-TV
+  have hTle := tvDist_patternLaw_shift_le g K H₂ (s := H₁) hA hH
+  have hshift0 : ∀ x, 0 ≤ pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => patternMap g K H₂ (n + H₁)) x :=
+    pushWeight_nonneg (fun n _ => logWeight_nonneg A B n) _
+  have hshift1 : ∀ x, pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => patternMap g K H₂ (n + H₁)) x ≤ 1 := by
+    intro x
+    have h := pushWeight_le_sum (s := Finset.Ioc A B)
+      (fun n _ => logWeight_nonneg A B n)
+      (fun n => patternMap g K H₂ (n + H₁)) x
+    rw [sum_logWeight hA hAB] at h
+    exact h
+  have hF := abs_shannonEntropy_sub_le hshift0 hshift1
+    (fun x => patternLaw_nonneg g K H₂ A B x)
+    (fun x => patternLaw_le_one g K H₂ hA hAB x)
+  have hT0 : 0 ≤ tvDist (pushWeight (Finset.Ioc A B) (logWeight A B)
+      (fun n => patternMap g K H₂ (n + H₁))) (patternLaw g K H₂ A B) :=
+    tvDist_nonneg _ _
+  have hsqrt : Real.sqrt (tvDist (pushWeight (Finset.Ioc A B) (logWeight A B)
+        (fun n => patternMap g K H₂ (n + H₁))) (patternLaw g K H₂ A B))
+      ≤ Real.sqrt (3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) :=
+    Real.sqrt_le_sqrt hTle
+  have hcard0 : (0 : ℝ) ≤ 2 * (Fintype.card (PatternSpace K H₂) : ℝ) := by
+    positivity
+  have h1 : shannonEntropy (pushWeight (Finset.Ioc A B) (logWeight A B)
+        (fun n => patternMap g K H₂ (n + H₁)))
+      - shannonEntropy (patternLaw g K H₂ A B)
+      ≤ 2 * (Fintype.card (PatternSpace K H₂) : ℝ)
+          * Real.sqrt (tvDist (pushWeight (Finset.Ioc A B) (logWeight A B)
+              (fun n => patternMap g K H₂ (n + H₁))) (patternLaw g K H₂ A B))
+        + tvDist (pushWeight (Finset.Ioc A B) (logWeight A B)
+            (fun n => patternMap g K H₂ (n + H₁))) (patternLaw g K H₂ A B) :=
+    le_trans (le_abs_self _) hF
+  have h2 := mul_le_mul_of_nonneg_left hsqrt hcard0
+  linarith [hsub, hrelabel, h1, h2, hTle]
+
 end MoltResearch

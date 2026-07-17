@@ -6345,6 +6345,18 @@ example (s : Finset ℕ) (w : ℕ → ℝ) {β γ : Type*} [Fintype β] [Decidab
     marginal₁ (pushWeight s w (fun n => (φ n, ψ n))) = pushWeight s w φ :=
   marginal₁_pushWeight_pair s w φ ψ
 
+-- Track C Elliott campaign (issue #2946, E6d-4b): approximate subadditivity of
+-- pattern entropy across a window split.
+example (g : ℕ → ℂ) (K H₁ H₂ : ℕ) {A B : ℕ} (hA : 1 ≤ A)
+    (hH : A + H₁ + H₁ < B) :
+    shannonEntropy (patternLaw g K (H₁ + H₂) A B)
+      ≤ shannonEntropy (patternLaw g K H₁ A B)
+        + shannonEntropy (patternLaw g K H₂ A B)
+        + (2 * (Fintype.card (PatternSpace K H₂) : ℝ)
+            * Real.sqrt (3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m))
+          + 3 * H₁ / (A * ∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m)) :=
+  shannonEntropy_patternLaw_add_le g K H₁ H₂ hA hH
+
 end NormalFormExamples
 
 end MoltResearch
