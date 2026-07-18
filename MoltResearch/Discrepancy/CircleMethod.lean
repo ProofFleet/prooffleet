@@ -600,4 +600,186 @@ theorem sum_zmod_eq_sum_range {H : ℕ} [NeZero H] {M : Type*} [AddCommMonoid M]
   · intro j _
     rw [ZMod.natCast_zmod_val]
 
+/-- `C`-bounded variant of the DFT sup bound. -/
+theorem norm_zDFT_le' (F : ZMod H → ℂ) {C : ℝ} (hF : ∀ x, ‖F x‖ ≤ C)
+    (ξ : ZMod H) : ‖zDFT F ξ‖ ≤ C := by
+  have hC0 : 0 ≤ C := le_trans (norm_nonneg _) (hF 0)
+  rw [zDFT]
+  have hHpos : (0 : ℝ) < (H : ℝ) := by
+    exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne H)
+  calc ‖(1 / (H : ℂ)) * ∑ x, F x * (starRingEnd ℂ) (zChar x ξ)‖
+      = (1 / (H : ℝ)) * ‖∑ x, F x * (starRingEnd ℂ) (zChar x ξ)‖ := by
+        rw [norm_mul]
+        congr 1
+        rw [norm_div, norm_one, Complex.norm_natCast]
+    _ ≤ (1 / (H : ℝ)) * ∑ _x : ZMod H, C := by
+        refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+        refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun x _ => ?_)
+        rw [norm_mul, RCLike.norm_conj, norm_zChar, mul_one]
+        exact hF x
+    _ = C := by
+        rw [Finset.sum_const, Finset.card_univ, ZMod.card, nsmul_eq_mul,
+          one_div, ← mul_assoc, inv_mul_cancel₀ (ne_of_gt hHpos), one_mul]
+
+/-- **Lemma (cap), `C`-bounded form**: the frequency-split bilinear bound for
+inputs bounded by `C` — minor frequencies cost `C²·θ·H`, major frequencies
+`H·κ·C·∑_Ξ‖ẑ₁(−ξ)‖`. -/
+theorem norm_block_bilinear_le' {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
+    (sh : ι → ZMod H) (x₁ x₂ : ZMod H → ℂ) {C : ℝ} (hC0 : 0 ≤ C)
+    (h₁ : ∀ j, ‖x₁ j‖ ≤ C) (h₂ : ∀ j, ‖x₂ j‖ ≤ C)
+    (hw0 : ∀ p ∈ Pb, 0 ≤ w p) {κ θ : ℝ}
+    (hκ : ∑ p ∈ Pb, w p ≤ κ) (hθ : 0 ≤ θ) :
+    ‖∑ p ∈ Pb, (w p : ℂ) * ∑ j, x₁ j * x₂ (j + sh p)‖
+      ≤ C ^ 2 * θ * H + (H : ℝ) * κ * C
+          * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+              θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+              ‖zDFT x₁ (-ξ)‖ := by
+  classical
+  have hHpos : (0 : ℝ) < (H : ℝ) := by
+    exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne H)
+  have hκ0 : 0 ≤ κ := le_trans (Finset.sum_nonneg hw0) hκ
+  have hdiag : ∑ p ∈ Pb, (w p : ℂ) * ∑ j, x₁ j * x₂ (j + sh p)
+      = (H : ℂ) * ∑ ξ, zDFT x₁ (-ξ) * zDFT x₂ ξ
+          * ∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ := by
+    rw [Finset.sum_congr rfl fun p _ => by rw [sum_mul_shift_eq x₁ x₂ (sh p)]]
+    rw [show (∑ p ∈ Pb, (w p : ℂ)
+        * ((H : ℂ) * ∑ ξ, zDFT x₁ (-ξ) * zDFT x₂ ξ * zChar (sh p) ξ))
+        = ∑ p ∈ Pb, ∑ ξ, (H : ℂ) * ((w p : ℂ)
+            * (zDFT x₁ (-ξ) * zDFT x₂ ξ * zChar (sh p) ξ)) from
+      Finset.sum_congr rfl fun p _ => by
+        rw [Finset.mul_sum, Finset.mul_sum]
+        exact Finset.sum_congr rfl fun ξ _ => by ring]
+    rw [Finset.sum_comm, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun ξ _ => ?_
+    rw [show zDFT x₁ (-ξ) * zDFT x₂ ξ * ∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ
+        = ∑ p ∈ Pb, zDFT x₁ (-ξ) * zDFT x₂ ξ * ((w p : ℂ) * zChar (sh p) ξ)
+        from Finset.mul_sum _ _ _]
+    rw [Finset.mul_sum]
+    exact Finset.sum_congr rfl fun p _ => by ring
+  rw [hdiag, norm_mul, Complex.norm_natCast]
+  have htri : ‖∑ ξ, zDFT x₁ (-ξ) * zDFT x₂ ξ
+      * ∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖
+      ≤ ∑ ξ, ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+          * ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ := by
+    refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun ξ _ => ?_)
+    rw [norm_mul, norm_mul]
+  have hS : ∀ ξ : ZMod H, ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ≤ κ := by
+    intro ξ
+    refine le_trans (norm_sum_le _ _) (le_trans (Finset.sum_le_sum
+      fun p hp => ?_) hκ)
+    rw [norm_mul, norm_zChar, mul_one, Complex.norm_real]
+    exact le_of_eq (abs_of_nonneg (hw0 p hp))
+  have hsplit : (∑ ξ, ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+        * ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖)
+      = (∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+          θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+          ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+            * ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖)
+        + ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+            ¬ θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+            ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+              * ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ :=
+    (Finset.sum_filter_add_sum_filter_not Finset.univ _ _).symm
+  have hmajor : ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+      θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+      ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+        * ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖
+      ≤ κ * C * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+          θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+          ‖zDFT x₁ (-ξ)‖ := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun ξ _ => ?_
+    have hb2 : ‖zDFT x₂ ξ‖ ≤ C := norm_zDFT_le' x₂ h₂ ξ
+    have hb1 : 0 ≤ ‖zDFT x₁ (-ξ)‖ := norm_nonneg _
+    calc ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+          * ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖
+        ≤ ‖zDFT x₁ (-ξ)‖ * C * κ := by
+          refine mul_le_mul (mul_le_mul_of_nonneg_left hb2 hb1) (hS ξ)
+            (norm_nonneg _) (by positivity)
+      _ = κ * C * ‖zDFT x₁ (-ξ)‖ := by ring
+  have hminor : ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+      ¬ θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+      ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+        * ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖
+      ≤ C ^ 2 * θ := by
+    have hstep : ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+        ¬ θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+        ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+          * ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖
+        ≤ ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+          ¬ θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+          ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖ * θ := by
+      refine Finset.sum_le_sum fun ξ hξ => ?_
+      rw [Finset.mem_filter] at hξ
+      exact mul_le_mul_of_nonneg_left (not_le.mp hξ.2).le (by positivity)
+    refine le_trans hstep ?_
+    have hAMGM : ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+        ¬ θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+        ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖ ≤ C ^ 2 := by
+      have hsub : ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+          ¬ θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+          ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+          ≤ ∑ ξ : ZMod H, ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖ :=
+        Finset.sum_le_sum_of_subset_of_nonneg (Finset.filter_subset _ _)
+          fun ξ _ _ => by positivity
+      have hAM : ∑ ξ : ZMod H, ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖
+          ≤ (∑ ξ : ZMod H, ‖zDFT x₁ (-ξ)‖ ^ 2 / 2)
+            + ∑ ξ : ZMod H, ‖zDFT x₂ ξ‖ ^ 2 / 2 := by
+        rw [← Finset.sum_add_distrib]
+        refine Finset.sum_le_sum fun ξ _ => ?_
+        nlinarith [sq_nonneg (‖zDFT x₁ (-ξ)‖ - ‖zDFT x₂ ξ‖)]
+      have hneg : ∑ ξ : ZMod H, ‖zDFT x₁ (-ξ)‖ ^ 2
+          = ∑ ξ : ZMod H, ‖zDFT x₁ ξ‖ ^ 2 :=
+        Fintype.sum_equiv (Equiv.neg (ZMod H)) _ _ fun ξ => rfl
+      have hbound : ∀ (F : ZMod H → ℂ), (∀ j, ‖F j‖ ≤ C) →
+          (1 / (H : ℝ)) * ∑ x, ‖F x‖ ^ 2 ≤ C ^ 2 := by
+        intro F hF
+        have hs : ∑ x : ZMod H, ‖F x‖ ^ 2 ≤ ∑ _x : ZMod H, C ^ 2 :=
+          Finset.sum_le_sum fun x _ => by
+            have := hF x
+            nlinarith [norm_nonneg (F x)]
+        rw [Finset.sum_const, Finset.card_univ, ZMod.card,
+          nsmul_eq_mul] at hs
+        rw [one_div]
+        calc (H : ℝ)⁻¹ * ∑ x, ‖F x‖ ^ 2
+            ≤ (H : ℝ)⁻¹ * ((H : ℝ) * C ^ 2) :=
+              mul_le_mul_of_nonneg_left hs (by positivity)
+          _ = C ^ 2 := by
+              rw [← mul_assoc, inv_mul_cancel₀ (ne_of_gt hHpos), one_mul]
+      have h1 : ∑ ξ : ZMod H, ‖zDFT x₁ ξ‖ ^ 2 ≤ C ^ 2 := by
+        rw [sum_normSq_zDFT]
+        exact hbound x₁ h₁
+      have h2 : ∑ ξ : ZMod H, ‖zDFT x₂ ξ‖ ^ 2 ≤ C ^ 2 := by
+        rw [sum_normSq_zDFT]
+        exact hbound x₂ h₂
+      have hhalf1 : ∑ ξ : ZMod H, ‖zDFT x₁ (-ξ)‖ ^ 2 / 2 ≤ C ^ 2 / 2 := by
+        rw [← Finset.sum_div, hneg]
+        linarith
+      have hhalf2 : ∑ ξ : ZMod H, ‖zDFT x₂ ξ‖ ^ 2 / 2 ≤ C ^ 2 / 2 := by
+        rw [← Finset.sum_div]
+        linarith
+      have hfinal : (∑ ξ : ZMod H, ‖zDFT x₁ (-ξ)‖ ^ 2 / 2)
+          + ∑ ξ : ZMod H, ‖zDFT x₂ ξ‖ ^ 2 / 2 ≤ C ^ 2 := by
+        linarith
+      linarith [le_trans hsub (le_trans hAM hfinal)]
+    calc ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+          ¬ θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+          ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖ * θ
+        = (∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+            ¬ θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+            ‖zDFT x₁ (-ξ)‖ * ‖zDFT x₂ ξ‖) * θ := by
+          rw [Finset.sum_mul]
+      _ ≤ C ^ 2 * θ := mul_le_mul_of_nonneg_right hAMGM hθ
+  calc (H : ℝ) * ‖∑ ξ, zDFT x₁ (-ξ) * zDFT x₂ ξ
+        * ∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖
+      ≤ (H : ℝ) * (κ * C * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+          θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+          ‖zDFT x₁ (-ξ)‖ + C ^ 2 * θ) := by
+        refine mul_le_mul_of_nonneg_left ?_ hHpos.le
+        linarith [htri, hsplit, hmajor, hminor]
+    _ = C ^ 2 * θ * H + (H : ℝ) * κ * C
+        * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+            θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+            ‖zDFT x₁ (-ξ)‖ := by ring
+
 end MoltResearch

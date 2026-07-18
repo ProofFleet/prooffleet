@@ -6689,6 +6689,20 @@ example {H : ℕ} [NeZero H] (F : ZMod H → ℂ) :
     ∑ j : ZMod H, F j = ∑ m ∈ Finset.range H, F ((m : ℕ) : ZMod H) :=
   sum_zmod_eq_sum_range F
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-iv-pre cont.): the C-bounded
+-- circle-method split for grid-valued patterns.
+example {H : ℕ} [NeZero H] {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
+    (sh : ι → ZMod H) (x₁ x₂ : ZMod H → ℂ) {C : ℝ} (hC0 : 0 ≤ C)
+    (h₁ : ∀ j, ‖x₁ j‖ ≤ C) (h₂ : ∀ j, ‖x₂ j‖ ≤ C)
+    (hw0 : ∀ p ∈ Pb, 0 ≤ w p) {κ θ : ℝ}
+    (hκ : ∑ p ∈ Pb, w p ≤ κ) (hθ : 0 ≤ θ) :
+    ‖∑ p ∈ Pb, (w p : ℂ) * ∑ j, x₁ j * x₂ (j + sh p)‖
+      ≤ C ^ 2 * θ * H + (H : ℝ) * κ * C
+          * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+              θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+              ‖zDFT x₁ (-ξ)‖ :=
+  norm_block_bilinear_le' Pb w sh x₁ x₂ hC0 h₁ h₂ hw0 hκ hθ
+
 end NormalFormExamples
 
 end MoltResearch
