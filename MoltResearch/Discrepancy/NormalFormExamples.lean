@@ -6703,6 +6703,24 @@ example {H : ℕ} [NeZero H] {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
               ‖zDFT x₁ (-ξ)‖ :=
   norm_block_bilinear_le' Pb w sh x₁ x₂ hC0 h₁ h₂ hw0 hκ hθ
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-M2): scale selection on the
+-- polynomial grid.
+example (g : ℕ → ℂ) (K κ H₀ : ℕ) (Pseq : ℕ → ℕ) [∀ j, NeZero (Pseq j)]
+    (hκ : 1 ≤ κ) (hH₀ : 1 ≤ H₀) {δ : ℝ} (hδ : 0 < δ) :
+    ∃ J : ℕ, 1 ≤ J ∧ ∀ {A B : ℕ}, 1 ≤ A →
+      (∀ j < J, A + κ * (j + 2) ^ 2 * polyGrid κ H₀ j
+          + κ * (j + 2) ^ 2 * polyGrid κ H₀ j < B) →
+      (∀ j < J,
+        shannonEntropy (residueLaw (Pseq j) A B)
+            / ((κ * (j + 2) ^ 2 * polyGrid κ H₀ j : ℕ) : ℝ)
+          + decrementErr K (polyGrid κ H₀ j) (Pseq j) A B (κ * (j + 2) ^ 2)
+            / ((polyGrid κ H₀ j : ℕ) : ℝ)
+        ≤ δ / (2 * (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)))) →
+      ∃ j < J, mutualInfo (jointLaw g K (polyGrid κ H₀ j) (Pseq j) A B)
+          / ((polyGrid κ H₀ j : ℕ) : ℝ)
+        < δ / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)) :=
+  exists_polyGrid_scale g K κ H₀ Pseq hκ hH₀ hδ
+
 end NormalFormExamples
 
 end MoltResearch

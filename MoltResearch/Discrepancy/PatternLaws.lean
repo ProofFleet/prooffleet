@@ -1497,4 +1497,105 @@ theorem card_filter_zmod_Icc_le {p J : ℕ} [NeZero p] (r : ZMod p) :
   rw [filter_natCast_zmod_eq]
   exact card_filter_mod_Icc_le (Nat.pos_of_ne_zero (NeZero.ne p)) r.val
 
+/-- **Scale selection on the polynomial grid**: for any density `δ > 0` there is
+a grid length `J` — depending only on `δ` and the alphabet — such that whenever
+the window accommodates the grid and every conditioning-plus-Fannes slack is
+dominated by half the target, some scale `H_j = polyGrid κ H₀ j` has mutual
+information density below `δ/((j+2)·log(j+2))`. -/
+theorem exists_polyGrid_scale (g : ℕ → ℂ) (K κ H₀ : ℕ) (Pseq : ℕ → ℕ)
+    [∀ j, NeZero (Pseq j)] (hκ : 1 ≤ κ) (hH₀ : 1 ≤ H₀)
+    {δ : ℝ} (hδ : 0 < δ) :
+    ∃ J : ℕ, 1 ≤ J ∧ ∀ {A B : ℕ}, 1 ≤ A →
+      (∀ j < J, A + κ * (j + 2) ^ 2 * polyGrid κ H₀ j
+          + κ * (j + 2) ^ 2 * polyGrid κ H₀ j < B) →
+      (∀ j < J,
+        shannonEntropy (residueLaw (Pseq j) A B)
+            / ((κ * (j + 2) ^ 2 * polyGrid κ H₀ j : ℕ) : ℝ)
+          + decrementErr K (polyGrid κ H₀ j) (Pseq j) A B (κ * (j + 2) ^ 2)
+            / ((polyGrid κ H₀ j : ℕ) : ℝ)
+        ≤ δ / (2 * (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)))) →
+      ∃ j < J, mutualInfo (jointLaw g K (polyGrid κ H₀ j) (Pseq j) A B)
+          / ((polyGrid κ H₀ j : ℕ) : ℝ)
+        < δ / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)) := by
+  obtain ⟨J, hJgt⟩ := exists_sum_range_one_div_gt
+    ((2 / δ) * Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ))
+  have hJ1 : 1 ≤ J := by
+    by_contra hJ0
+    have hJz : J = 0 := by omega
+    rw [hJz, Finset.range_zero, Finset.sum_empty] at hJgt
+    have hlogK : 0 ≤ Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ) :=
+      Real.log_nonneg (by
+        have h1 : 1 ≤ (K + 1) * (K + 1) := Nat.mul_pos (by omega) (by omega)
+        exact_mod_cast h1)
+    have h2δ : 0 ≤ 2 / δ := by positivity
+    nlinarith
+  refine ⟨J, hJ1, ?_⟩
+  intro A B hA hkB hslack
+  have hbudget : Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ)
+      < ∑ j ∈ Finset.range J,
+        (δ / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))
+          - shannonEntropy (residueLaw (Pseq j) A B)
+              / ((κ * (j + 2) ^ 2 * polyGrid κ H₀ j : ℕ) : ℝ)
+          - decrementErr K (polyGrid κ H₀ j) (Pseq j) A B (κ * (j + 2) ^ 2)
+            / ((polyGrid κ H₀ j : ℕ) : ℝ)) := by
+    have hhalf : ∀ j ∈ Finset.range J,
+        δ / (2 * (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)))
+        ≤ δ / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))
+          - shannonEntropy (residueLaw (Pseq j) A B)
+              / ((κ * (j + 2) ^ 2 * polyGrid κ H₀ j : ℕ) : ℝ)
+          - decrementErr K (polyGrid κ H₀ j) (Pseq j) A B (κ * (j + 2) ^ 2)
+            / ((polyGrid κ H₀ j : ℕ) : ℝ) := by
+      intro j hj
+      rw [Finset.mem_range] at hj
+      have hs := hslack j hj
+      have hpos : (0 : ℝ) < ((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ) := by
+        have h2 : (2 : ℝ) ≤ ((j + 2 : ℕ) : ℝ) := by exact_mod_cast (by omega : 2 ≤ j + 2)
+        have hlog : 0 < Real.log ((j + 2 : ℕ) : ℝ) :=
+          Real.log_pos (by linarith)
+        positivity
+      have hsplit : δ / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))
+          = δ / (2 * (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)))
+            + δ / (2 * (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))) := by
+        field_simp
+        norm_num
+      linarith [hsplit, hs]
+    have hlow : (2 / δ) * Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ) * (δ / 2)
+        < (∑ j ∈ Finset.range J,
+            1 / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))) * (δ / 2) :=
+      mul_lt_mul_of_pos_right hJgt (by positivity)
+    have hcancel : (2 / δ) * Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ)
+        * (δ / 2) = Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ) := by
+      field_simp
+    have hsum2 : (∑ j ∈ Finset.range J,
+        1 / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))) * (δ / 2)
+        = ∑ j ∈ Finset.range J,
+          δ / (2 * (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))) := by
+      rw [Finset.sum_mul]
+      refine Finset.sum_congr rfl fun j hj => ?_
+      rw [Finset.mem_range] at hj
+      have hpos : (0 : ℝ) < ((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ) := by
+        have h2 : (2 : ℝ) ≤ ((j + 2 : ℕ) : ℝ) := by
+          exact_mod_cast (by omega : 2 ≤ j + 2)
+        have hlog : 0 < Real.log ((j + 2 : ℕ) : ℝ) :=
+          Real.log_pos (by linarith)
+        positivity
+      field_simp
+    rw [hcancel, hsum2] at hlow
+    calc Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ)
+        < ∑ j ∈ Finset.range J,
+            δ / (2 * (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))) := hlow
+      _ ≤ ∑ j ∈ Finset.range J,
+          (δ / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ))
+            - shannonEntropy (residueLaw (Pseq j) A B)
+                / ((κ * (j + 2) ^ 2 * polyGrid κ H₀ j : ℕ) : ℝ)
+            - decrementErr K (polyGrid κ H₀ j) (Pseq j) A B
+                (κ * (j + 2) ^ 2)
+              / ((polyGrid κ H₀ j : ℕ) : ℝ)) :=
+          Finset.sum_le_sum hhalf
+  exact exists_scale_mutualInfo_lt g K (polyGrid κ H₀)
+    Pseq (fun j => κ * (j + 2) ^ 2) hA (polyGrid_pos hκ hH₀)
+    (fun j => Nat.one_le_iff_ne_zero.mpr
+      (Nat.mul_ne_zero (by omega) (by positivity)))
+    (fun j _ => polyGrid_succ κ H₀ j) hkB hJ1 _ hbudget
+
 end MoltResearch
