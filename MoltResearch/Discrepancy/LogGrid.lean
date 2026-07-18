@@ -154,3 +154,33 @@ theorem exists_sum_one_div_mul_log_gt (C : ℝ) :
     rw [hC] at this
     rw [hharm] at hblocks
     linarith
+
+
+/-- **Shifted Markov inequality**: the mass above threshold `τ'` of a family
+whose shifted values are pointwise nonnegative is controlled by the shifted
+average. The decrement uses it to bound the bad-`x` mass. -/
+theorem sum_filter_le_of_avg_le {α : Type*} [Fintype α] {p v : α → ℝ}
+    {θ τ τ' : ℝ} (hp0 : ∀ x, 0 ≤ p x) (hshift : ∀ x, 0 ≤ p x * (v x + θ))
+    (havg : ∑ x, p x * v x ≤ τ) (hsum : ∑ x, p x = 1) (hτ' : 0 < τ' + θ) :
+    ∑ x ∈ Finset.univ.filter (fun x => τ' ≤ v x), p x ≤ (τ + θ) / (τ' + θ) := by
+  classical
+  have htot : ∑ x, p x * (v x + θ) ≤ τ + θ := by
+    have hexp : ∑ x, p x * (v x + θ)
+        = (∑ x, p x * v x) + (∑ x, p x) * θ := by
+      rw [Finset.sum_mul, ← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun x _ => by ring
+    rw [hexp, hsum]
+    linarith
+  have hfilter : (∑ x ∈ Finset.univ.filter (fun x => τ' ≤ v x), p x)
+      * (τ' + θ)
+      ≤ ∑ x ∈ Finset.univ.filter (fun x => τ' ≤ v x), p x * (v x + θ) := by
+    rw [Finset.sum_mul]
+    refine Finset.sum_le_sum fun x hx => ?_
+    rw [Finset.mem_filter] at hx
+    exact mul_le_mul_of_nonneg_left (by linarith [hx.2]) (hp0 x)
+  have hsub : ∑ x ∈ Finset.univ.filter (fun x => τ' ≤ v x), p x * (v x + θ)
+      ≤ ∑ x, p x * (v x + θ) :=
+    Finset.sum_le_sum_of_subset_of_nonneg (Finset.subset_univ _)
+      fun x _ _ => hshift x
+  rw [le_div_iff₀ hτ']
+  linarith

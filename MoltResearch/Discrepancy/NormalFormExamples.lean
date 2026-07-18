@@ -6500,6 +6500,23 @@ example {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
       = (((∏ i, a i) / a i₀ : ℕ) : ℂ) * ∑ j ∈ s, c j :=
   sum_zmod_coord_indicator a hcop i₀ s c ρ
 
+-- Track C Elliott campaign (issue #2946, E6f-1a): mutual information through
+-- the pattern fibers, and the shifted Markov inequality.
+example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A)
+    (hAB : A < B) :
+    mutualInfo (jointLaw g K H P A B)
+      = ∑ x, patternLaw g K H A B x
+          * (shannonEntropy (residueLaw P A B)
+            - shannonEntropy (fiber (swappedJointLaw g K H P A B) x)) :=
+  mutualInfo_jointLaw_eq_sum_fiber g K H P hA hAB
+
+example {α : Type*} [Fintype α] [DecidableEq α] {p v : α → ℝ} {θ τ τ' : ℝ}
+    (hp0 : ∀ x, 0 ≤ p x) (hshift : ∀ x, 0 ≤ p x * (v x + θ))
+    (havg : ∑ x, p x * v x ≤ τ) (hsum : ∑ x, p x = 1) (hτ' : 0 < τ' + θ) :
+    ∑ x ∈ Finset.univ.filter (fun x => τ' ≤ v x), p x
+      ≤ (τ + θ) / (τ' + θ) :=
+  sum_filter_le_of_avg_le hp0 hshift havg hsum hτ'
+
 end NormalFormExamples
 
 end MoltResearch

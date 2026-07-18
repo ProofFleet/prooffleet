@@ -1061,4 +1061,61 @@ theorem exists_scale_mutualInfo_lt (g : ℕ → ℂ) (K : ℕ)
   simp only [] at hlt
   linarith
 
+/-- The joint law with the coordinates swapped: `(Y, X_H)` — the frame in which
+`fiber` conditions on the pattern. -/
+noncomputable def swappedJointLaw (g : ℕ → ℂ) (K H P A B : ℕ) [NeZero P] :
+    ZMod P × PatternSpace K H → ℝ :=
+  pushWeight (Finset.Ioc A B) (logWeight A B)
+    (fun n => ((n : ZMod P), patternMap g K H n))
+
+theorem shannonEntropy_swappedJointLaw (g : ℕ → ℂ) (K H P A B : ℕ)
+    [NeZero P] :
+    shannonEntropy (swappedJointLaw g K H P A B)
+      = shannonEntropy (jointLaw g K H P A B) := by
+  rw [swappedJointLaw, jointLaw]
+  have hfun : (fun n : ℕ => ((n : ZMod P), patternMap g K H n))
+      = fun n : ℕ => (Equiv.prodComm (PatternSpace K H) (ZMod P))
+          (patternMap g K H n, (n : ZMod P)) := rfl
+  rw [hfun]
+  exact shannonEntropy_pushWeight_equiv (Finset.Ioc A B) (logWeight A B)
+    (fun n => (patternMap g K H n, (n : ZMod P)))
+    (Equiv.prodComm (PatternSpace K H) (ZMod P))
+
+theorem marginal₂_swappedJointLaw (g : ℕ → ℂ) (K H P A B : ℕ) [NeZero P] :
+    marginal₂ (swappedJointLaw g K H P A B) = patternLaw g K H A B := by
+  rw [swappedJointLaw]
+  exact marginal₂_pushWeight_pair (Finset.Ioc A B) (logWeight A B)
+    (fun n => (n : ZMod P)) (patternMap g K H)
+
+/-- **Mutual information through the pattern fibers**: `I(X;Y)` is the average
+entropy defect of the conditional residue laws. -/
+theorem mutualInfo_jointLaw_eq_sum_fiber (g : ℕ → ℂ) (K H P : ℕ) [NeZero P]
+    {A B : ℕ} (hA : 1 ≤ A) (hAB : A < B) :
+    mutualInfo (jointLaw g K H P A B)
+      = ∑ x, patternLaw g K H A B x
+          * (shannonEntropy (residueLaw P A B)
+            - shannonEntropy (fiber (swappedJointLaw g K H P A B) x)) := by
+  classical
+  have hw0 : ∀ z, 0 ≤ swappedJointLaw g K H P A B z := fun z =>
+    pushWeight_nonneg (fun n _ => logWeight_nonneg A B n) _ z
+  have hcond := condEntropy_eq_sum_fiber (w := swappedJointLaw g K H P A B) hw0
+  rw [condEntropy, shannonEntropy_swappedJointLaw,
+    marginal₂_swappedJointLaw] at hcond
+  have hI : mutualInfo (jointLaw g K H P A B)
+      = shannonEntropy (patternLaw g K H A B)
+        + shannonEntropy (residueLaw P A B)
+        - shannonEntropy (jointLaw g K H P A B) := by
+    rw [mutualInfo, marginal₁_jointLaw, marginal₂_jointLaw]
+  have hsum1 := sum_patternLaw g K H (A := A) (B := B) hA hAB
+  have hexp : (∑ x, patternLaw g K H A B x
+        * (shannonEntropy (residueLaw P A B)
+          - shannonEntropy (fiber (swappedJointLaw g K H P A B) x)))
+      = (∑ x, patternLaw g K H A B x) * shannonEntropy (residueLaw P A B)
+        - ∑ x, patternLaw g K H A B x
+            * shannonEntropy (fiber (swappedJointLaw g K H P A B) x) := by
+    rw [Finset.sum_mul, ← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun x _ => by ring
+  rw [hI, hexp, hsum1, one_mul]
+  linarith
+
 end MoltResearch
