@@ -6542,6 +6542,23 @@ example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A)
   abs_sum_jointLaw_mul_sub_le g K H P hA hAB F hM0 hM hθ₀ hI hτ' ht hD
     hunif hdev
 
+-- Track C Elliott campaign (issue #2946, E6f-3): the circle method on ZMod H.
+example {H : ℕ} [NeZero H] (x₁ x₂ : ZMod H → ℂ) (s : ZMod H) :
+    ∑ j, x₁ j * x₂ (j + s)
+      = (H : ℂ) * ∑ ξ, zDFT x₁ (-ξ) * zDFT x₂ ξ * zChar s ξ :=
+  sum_mul_shift_eq x₁ x₂ s
+
+example {H : ℕ} [NeZero H] {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
+    (sh : ι → ZMod H) (x₁ x₂ : ZMod H → ℂ)
+    (h₁ : ∀ j, ‖x₁ j‖ ≤ 1) (h₂ : ∀ j, ‖x₂ j‖ ≤ 1)
+    (hw0 : ∀ p ∈ Pb, 0 ≤ w p) {κ θ : ℝ}
+    (hκ : ∑ p ∈ Pb, w p ≤ κ) (hθ : 0 ≤ θ) :
+    ‖∑ p ∈ Pb, (w p : ℂ) * ∑ j, x₁ j * x₂ (j + sh p)‖
+      ≤ θ * H + (H : ℝ) * κ * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+          θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+          ‖zDFT x₁ (-ξ)‖ :=
+  norm_block_bilinear_le Pb w sh x₁ x₂ h₁ h₂ hw0 hκ hθ
+
 end NormalFormExamples
 
 end MoltResearch
