@@ -6598,6 +6598,20 @@ example {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
     ZMod.prodEquivPi a hcop ((n : ZMod (∏ j, a j))) i = (n : ZMod (a i)) :=
   prodEquivPi_natCast a hcop n i
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-i-b): the decrement observable
+-- and its pointwise rounding bridge.
+open scoped Function in
+example (g : ℕ → ℂ) (huni : Unimodular g) (K H J h : ℕ) (hK : 0 < K)
+    {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (hH : ∀ i, J + a i * h ≤ H) (n : ℕ) :
+    ‖decObs K H J h a hcop (patternMap g K H n) ((n : ZMod (∏ i, a i)))
+        - ∑ i, ∑ j ∈ Finset.Icc 1 J,
+          (if (n + j) % a i = 0
+            then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h)) else 0)‖
+      ≤ (Fintype.card ι : ℝ) * J * (12 / K) :=
+  norm_decObs_sub_le g huni K H J h hK a hcop hH n
+
 end NormalFormExamples
 
 end MoltResearch

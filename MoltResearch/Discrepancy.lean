@@ -60,6 +60,7 @@ import MoltResearch.Discrepancy.LogGrid
 import MoltResearch.Discrepancy.UniformCounting
 import MoltResearch.Discrepancy.HoeffdingUniform
 import MoltResearch.Discrepancy.CircleMethod
+import MoltResearch.Discrepancy.DecrementObservable
 import MoltResearch.Discrepancy.AveragedWindowBound
 import MoltResearch.Discrepancy.SpectralWindowBound
 import MoltResearch.Discrepancy.FiniteSpectralSample
