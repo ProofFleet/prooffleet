@@ -6759,6 +6759,26 @@ example (K H J h : ℕ) [NeZero J] (hK : 0 < K) {ι : Type*} [Fintype ι]
               ‖zDFT (fun v : ZMod J => patExt K H x v.val) (-ξ)‖ :=
   norm_avg_decObs_le K H J h hK a hcop hsJ hθ hκ x
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-M1b1): the coordinate gates
+-- and the mean identity.
+open scoped Function in
+example (K H J h : ℕ) {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (y : ZMod (∏ i, a i)) :
+    decObs K H J h a hcop x y
+      = ∑ i, gateC K H J h a x i (ZMod.prodEquivPi a hcop y i) :=
+  decObs_eq_sum_gateC K H J h a hcop x y
+
+open scoped Function in
+example (K H J h : ℕ) {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (φ : ℂ →ₗ[ℝ] ℝ) :
+    (∑ y : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y))
+        / ((∏ i, a i : ℕ) : ℝ)
+      = ∑ i, φ (∑ r : ZMod (a i), gateC K H J h a x i r)
+          / ((a i : ℕ) : ℝ) :=
+  sum_proj_decObs_eq K H J h a hcop x φ
+
 end NormalFormExamples
 
 end MoltResearch

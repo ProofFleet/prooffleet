@@ -548,6 +548,77 @@ theorem norm_avg_decObs_le (K H J h : ℕ) [NeZero J] (hK : 0 < K)
   have h4 : (2 : ℝ) ^ 2 = 4 := by norm_num
   linarith [hswap, hcap', htri, h4.le, h4.ge]
 
+/-- The coordinate gate: the observable is a sum of per-modulus functions of
+the residue coordinates. -/
+noncomputable def gateC (K H J h : ℕ) (a : ι → ℕ) (x : PatternSpace K H)
+    (i : ι) (r : ZMod (a i)) : ℂ :=
+  ∑ j ∈ Finset.Icc 1 J,
+    (if r = -((j : ℕ) : ZMod (a i))
+      then patExt K H x (j - 1)
+        * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) else 0)
+
+theorem decObs_eq_sum_gateC (K H J h : ℕ) (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (y : ZMod (∏ i, a i)) :
+    decObs K H J h a hcop x y
+      = ∑ i, gateC K H J h a x i (ZMod.prodEquivPi a hcop y i) := rfl
+
+/-- The gate sums over its residues to the full truncated correlation. -/
+theorem sum_gateC_eq (K H J h : ℕ) (a : ι → ℕ) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (i : ι) :
+    ∑ r : ZMod (a i), gateC K H J h a x i r
+      = ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+          * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) := by
+  classical
+  rw [show (∑ r : ZMod (a i), gateC K H J h a x i r)
+      = ∑ r : ZMod (a i), ∑ j ∈ Finset.Icc 1 J,
+        (if r = -((j : ℕ) : ZMod (a i))
+          then patExt K H x (j - 1)
+            * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) else 0)
+      from rfl]
+  rw [Finset.sum_comm]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  rw [Finset.sum_ite_eq' Finset.univ (-((j : ℕ) : ZMod (a i)))
+    (fun _ => patExt K H x (j - 1)
+      * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)))]
+  rw [if_pos (Finset.mem_univ _)]
+
+/-- **The mean identity**: the global average of a real projection of the
+observable is the weighted sum of the per-gate projections. -/
+theorem sum_proj_decObs_eq (K H J h : ℕ) (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (φ : ℂ →ₗ[ℝ] ℝ) :
+    (∑ y : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y))
+        / ((∏ i, a i : ℕ) : ℝ)
+      = ∑ i, φ (∑ r : ZMod (a i), gateC K H J h a x i r) / ((a i : ℕ) : ℝ) := by
+  classical
+  have hP0 : 0 < ∏ i, a i :=
+    Finset.prod_pos fun i _ => Nat.pos_of_ne_zero (NeZero.ne (a i))
+  have hPne : ((∏ i, a i : ℕ) : ℝ) ≠ 0 := by
+    exact_mod_cast (by omega : (∏ i, a i) ≠ 0)
+  have hsum : ∑ y : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y)
+      = φ (∑ y : ZMod (∏ i, a i), decObs K H J h a hcop x y) :=
+    (map_sum φ _ _).symm
+  rw [hsum, sum_decObs_eq, map_sum]
+  rw [Finset.sum_div]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  have hdvd : a i ∣ ∏ i', a i' := Finset.dvd_prod_of_mem a (Finset.mem_univ i)
+  have haine : ((a i : ℕ) : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (NeZero.ne (a i))
+  have hsmul : ((((∏ i', a i') / a i : ℕ) : ℂ))
+      * ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+          * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h))
+      = ((((∏ i', a i') / a i : ℕ) : ℝ))
+        • ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+            * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) := by
+    rw [Complex.real_smul]
+    norm_num
+  rw [hsmul, map_smul, smul_eq_mul, sum_gateC_eq]
+  have hcast : (((∏ i', a i') / a i : ℕ) : ℝ)
+      = ((∏ i', a i' : ℕ) : ℝ) / ((a i : ℕ) : ℝ) := by
+    rw [Nat.cast_div hdvd haine]
+  rw [hcast]
+  field_simp
+
 end Observable
 
 end MoltResearch
