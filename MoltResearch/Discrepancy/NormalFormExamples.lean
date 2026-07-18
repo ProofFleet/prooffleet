@@ -6779,6 +6779,21 @@ example (K H J h : ℕ) {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → �
           / ((a i : ℕ) : ℝ) :=
   sum_proj_decObs_eq K H J h a hcop x φ
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-M1b2): the deviation count.
+open scoped Function NNReal in
+example (K H J h : ℕ) (hK : 0 < K) {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (a : ι → ℕ) (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (φ : ℂ →ₗ[ℝ] ℝ) (hφ : ∀ z, |φ z| ≤ ‖z‖)
+    {t : ℝ} (ht : 0 ≤ t) :
+    ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+        t ≤ |φ (decObs K H J h a hcop x y)
+          - (∑ y' : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y'))
+            / ((∏ i, a i : ℕ) : ℝ)|)).card : ℝ)
+      ≤ 2 * Real.exp (-t ^ 2 / (2 * ((∑ i,
+            (((8 * (J / a i + 1) : ℕ) : ℝ≥0)) ^ 2 : ℝ≥0) : ℝ)))
+        * ((∏ i, a i : ℕ) : ℝ) :=
+  card_deviation_decObs_le K H J h hK a hcop x φ hφ ht
+
 end NormalFormExamples
 
 end MoltResearch

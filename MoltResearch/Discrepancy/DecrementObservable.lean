@@ -619,6 +619,188 @@ theorem sum_proj_decObs_eq (K H J h : ℕ) (a : ι → ℕ)
   rw [hcast]
   field_simp
 
+/-- The gate is bounded by four grid-pairs per residue hit. -/
+theorem norm_gateC_le (K H J h : ℕ) (hK : 0 < K) (a : ι → ℕ)
+    [∀ i, NeZero (a i)] (x : PatternSpace K H) (i : ι) (r : ZMod (a i)) :
+    ‖gateC K H J h a x i r‖ ≤ 4 * ((J / a i + 1 : ℕ) : ℝ) := by
+  classical
+  rw [gateC]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hite : ∀ j ∈ Finset.Icc 1 J,
+      ‖(if r = -((j : ℕ) : ZMod (a i))
+        then patExt K H x (j - 1)
+          * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) else 0)‖
+      = if ((j : ℕ) : ZMod (a i)) = -r then
+          ‖patExt K H x (j - 1)
+            * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h))‖ else 0 := by
+    intro j _
+    by_cases hc : r = -((j : ℕ) : ZMod (a i))
+    · rw [if_pos hc, if_pos (by rw [hc, neg_neg])]
+    · rw [if_neg hc, if_neg (fun hcc => hc (by rw [hcc, neg_neg])), norm_zero]
+  rw [Finset.sum_congr rfl hite, ← Finset.sum_filter]
+  have hper : ∀ j ∈ (Finset.Icc 1 J).filter
+      (fun j => ((j : ℕ) : ZMod (a i)) = -r),
+      ‖patExt K H x (j - 1)
+        * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h))‖ ≤ 4 := by
+    intro j _
+    rw [norm_mul, RCLike.norm_conj]
+    calc ‖patExt K H x (j - 1)‖ * ‖patExt K H x (j - 1 + a i * h)‖
+        ≤ 2 * 2 := mul_le_mul (norm_patExt_le hK x _) (norm_patExt_le hK x _)
+          (norm_nonneg _) (by norm_num)
+      _ = 4 := by norm_num
+  refine le_trans (Finset.sum_le_sum hper) ?_
+  rw [Finset.sum_const, nsmul_eq_mul]
+  have hcount := card_filter_zmod_Icc_le (p := a i) (J := J) (-r)
+  calc (((Finset.Icc 1 J).filter
+      (fun j => ((j : ℕ) : ZMod (a i)) = -r)).card : ℝ) * 4
+      ≤ ((J / a i + 1 : ℕ) : ℝ) * 4 :=
+        mul_le_mul_of_nonneg_right (by exact_mod_cast hcount) (by norm_num)
+    _ = 4 * ((J / a i + 1 : ℕ) : ℝ) := by ring
+
+open scoped NNReal in
+/-- **The deviation count for a real projection of the observable**: residues
+where `φ ∘ decObs` deviates from its mean by `t` number at most
+`2·exp(−t²/(2∑cᵢ²))·P` with `cᵢ = 8(J/aᵢ+1)` — the Hoeffding input of the
+decoupling step. -/
+theorem card_deviation_decObs_le (K H J h : ℕ) (hK : 0 < K) (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (φ : ℂ →ₗ[ℝ] ℝ) (hφ : ∀ z, |φ z| ≤ ‖z‖)
+    {t : ℝ} (ht : 0 ≤ t) :
+    ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+        t ≤ |φ (decObs K H J h a hcop x y)
+          - (∑ y' : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y'))
+            / ((∏ i, a i : ℕ) : ℝ)|)).card : ℝ)
+      ≤ 2 * Real.exp (-t ^ 2 / (2 * ((∑ i,
+            (((8 * (J / a i + 1) : ℕ) : ℝ≥0)) ^ 2 : ℝ≥0) : ℝ)))
+        * ((∏ i, a i : ℕ) : ℝ) := by
+  classical
+  have hP0 : 0 < ∏ i, a i :=
+    Finset.prod_pos fun i _ => Nat.pos_of_ne_zero (NeZero.ne (a i))
+  have hPR : (0 : ℝ) < ((∏ i, a i : ℕ) : ℝ) := by exact_mod_cast hP0
+  set c : ι → ℝ≥0 := fun i => (((8 * (J / a i + 1) : ℕ) : ℝ≥0)) with hc_def
+  set f : Π i, ZMod (a i) → ℝ := fun i r =>
+    φ (gateC K H J h a x i r)
+      - φ (∑ r' : ZMod (a i), gateC K H J h a x i r') / ((a i : ℕ) : ℝ)
+    with hf_def
+  have hgatebound : ∀ i r, |φ (gateC K H J h a x i r)|
+      ≤ 4 * ((J / a i + 1 : ℕ) : ℝ) := fun i r =>
+    le_trans (hφ _) (norm_gateC_le K H J h hK a x i r)
+  have havg : ∀ i, |φ (∑ r' : ZMod (a i), gateC K H J h a x i r')
+      / ((a i : ℕ) : ℝ)| ≤ 4 * ((J / a i + 1 : ℕ) : ℝ) := by
+    intro i
+    have hpos : (0 : ℝ) < ((a i : ℕ) : ℝ) := by
+      exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne (a i))
+    rw [abs_div, abs_of_pos hpos, div_le_iff₀ hpos]
+    calc |φ (∑ r' : ZMod (a i), gateC K H J h a x i r')|
+        ≤ ‖∑ r' : ZMod (a i), gateC K H J h a x i r'‖ := hφ _
+      _ ≤ ∑ r' : ZMod (a i), ‖gateC K H J h a x i r'‖ := norm_sum_le _ _
+      _ ≤ ∑ _r' : ZMod (a i), 4 * ((J / a i + 1 : ℕ) : ℝ) :=
+          Finset.sum_le_sum fun r' _ => norm_gateC_le K H J h hK a x i r'
+      _ = 4 * ((J / a i + 1 : ℕ) : ℝ) * ((a i : ℕ) : ℝ) := by
+          rw [Finset.sum_const, Finset.card_univ, ZMod.card, nsmul_eq_mul]
+          ring
+  have hcR : ∀ i, ((c i : ℝ≥0) : ℝ) = 8 * ((J / a i + 1 : ℕ) : ℝ) := by
+    intro i
+    rw [hc_def]
+    push_cast
+    ring
+  have hbound : ∀ i, ∀ r : ZMod (a i), f i r ∈ Set.Icc (-(c i : ℝ)) (c i) := by
+    intro i r
+    rw [Set.mem_Icc, hf_def]
+    simp only []
+    have h1 := abs_le.mp (hgatebound i r)
+    have h2 := abs_le.mp (havg i)
+    rw [hcR i]
+    constructor <;> linarith [h1.1, h1.2, h2.1, h2.2]
+  have hmean : ∀ i, ∑ r, f i r = 0 := by
+    intro i
+    rw [hf_def]
+    simp only []
+    rw [Finset.sum_sub_distrib, ← map_sum, Finset.sum_const,
+      Finset.card_univ, ZMod.card, nsmul_eq_mul]
+    have hne : ((a i : ℕ) : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr (NeZero.ne (a i))
+    field_simp
+    ring
+  have hdev_eq : ∀ y : ZMod (∏ i, a i),
+      φ (decObs K H J h a hcop x y)
+        - (∑ y' : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y'))
+          / ((∏ i, a i : ℕ) : ℝ)
+      = ∑ i, f i (ZMod.prodEquivPi a hcop y i) := by
+    intro y
+    rw [hf_def]
+    simp only []
+    rw [Finset.sum_sub_distrib]
+    congr 1
+    · rw [decObs_eq_sum_gateC, map_sum]
+    · rw [sum_proj_decObs_eq K H J h a hcop x φ]
+  -- split the two-sided event and count each side
+  have hsub : Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+      t ≤ |φ (decObs K H J h a hcop x y)
+        - (∑ y' : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y'))
+          / ((∏ i, a i : ℕ) : ℝ)|)
+      ⊆ (Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+          t ≤ ∑ i, f i (ZMod.prodEquivPi a hcop y i)))
+        ∪ Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+            t ≤ ∑ i, (fun i r => - f i r) i (ZMod.prodEquivPi a hcop y i)) := by
+    intro y hy
+    rw [Finset.mem_filter] at hy
+    rw [hdev_eq y] at hy
+    rw [Finset.mem_union, Finset.mem_filter, Finset.mem_filter]
+    rcases le_abs.mp hy.2 with hpos | hneg
+    · exact Or.inl ⟨Finset.mem_univ _, hpos⟩
+    · refine Or.inr ⟨Finset.mem_univ _, ?_⟩
+      rw [show (∑ i, (fun i r => - f i r) i (ZMod.prodEquivPi a hcop y i))
+          = - ∑ i, f i (ZMod.prodEquivPi a hcop y i) from by
+        rw [← Finset.sum_neg_distrib]]
+      exact hneg
+  have hside1 := card_deviation_le_zmod a hcop f c hbound hmean ht
+  have hside2 := card_deviation_le_zmod a hcop (fun i r => - f i r) c
+    (fun i r => by
+      have := hbound i r
+      rw [Set.mem_Icc] at this ⊢
+      constructor <;> simp only [] <;> linarith [this.1, this.2])
+    (fun i => by
+      simp only []
+      rw [Finset.sum_neg_distrib, hmean i, neg_zero])
+    ht
+  have hcard := Finset.card_le_card hsub
+  have hcard2 := Finset.card_union_le
+    (Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+      t ≤ ∑ i, f i (ZMod.prodEquivPi a hcop y i)))
+    (Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+      t ≤ ∑ i, (fun i r => - f i r) i (ZMod.prodEquivPi a hcop y i)))
+  have hs1 : ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+      t ≤ ∑ i, f i (ZMod.prodEquivPi a hcop y i))).card : ℝ)
+      ≤ Real.exp (-t ^ 2 / (2 * ((∑ i, (c i) ^ 2 : ℝ≥0) : ℝ)))
+        * ((∏ i, a i : ℕ) : ℝ) := by
+    rw [← div_le_iff₀ hPR]
+    exact hside1
+  have hs2 : ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+      t ≤ ∑ i, (fun i r => - f i r) i (ZMod.prodEquivPi a hcop y i))).card : ℝ)
+      ≤ Real.exp (-t ^ 2 / (2 * ((∑ i, (c i) ^ 2 : ℝ≥0) : ℝ)))
+        * ((∏ i, a i : ℕ) : ℝ) := by
+    rw [← div_le_iff₀ hPR]
+    exact hside2
+  have hchain : ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+      t ≤ |φ (decObs K H J h a hcop x y)
+        - (∑ y' : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y'))
+          / ((∏ i, a i : ℕ) : ℝ)|)).card : ℝ)
+      ≤ 2 * Real.exp (-t ^ 2 / (2 * ((∑ i, (c i) ^ 2 : ℝ≥0) : ℝ)))
+        * ((∏ i, a i : ℕ) : ℝ) := by
+    have hc1 : ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+        t ≤ |φ (decObs K H J h a hcop x y)
+          - (∑ y' : ZMod (∏ i, a i), φ (decObs K H J h a hcop x y'))
+            / ((∏ i, a i : ℕ) : ℝ)|)).card : ℝ)
+        ≤ ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+            t ≤ ∑ i, f i (ZMod.prodEquivPi a hcop y i))).card : ℝ)
+          + ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+              t ≤ ∑ i, (fun i r => - f i r) i
+                (ZMod.prodEquivPi a hcop y i))).card : ℝ) := by
+      have := le_trans hcard hcard2
+      exact_mod_cast this
+    linarith [hs1, hs2]
+  exact hchain
+
 end Observable
 
 end MoltResearch
