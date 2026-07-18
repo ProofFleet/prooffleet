@@ -1118,4 +1118,337 @@ theorem mutualInfo_jointLaw_eq_sum_fiber (g : ℕ → ℂ) (K H P : ℕ) [NeZero
   rw [hI, hexp, hsum1, one_mul]
   linarith
 
+/-- The pointwise identity between the two joint frames. -/
+theorem jointLaw_eq_swappedJointLaw (g : ℕ → ℂ) (K H P A B : ℕ) [NeZero P]
+    (x : PatternSpace K H) (y : ZMod P) :
+    jointLaw g K H P A B (x, y) = swappedJointLaw g K H P A B (y, x) := by
+  rw [jointLaw, swappedJointLaw, pushWeight, pushWeight]
+  congr 1
+  ext n
+  simp only [Finset.mem_filter, Prod.mk.injEq]
+  tauto
+
+/-- **Fiber decomposition of expectations**: the joint expectation is the
+pattern-average of the conditional expectations. -/
+theorem sum_jointLaw_mul_eq (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ}
+    (F : PatternSpace K H × ZMod P → ℝ) :
+    ∑ z, jointLaw g K H P A B z * F z
+      = ∑ x, patternLaw g K H A B x
+          * ∑ y, fiber (swappedJointLaw g K H P A B) x y * F (x, y) := by
+  classical
+  have hw0 : ∀ z, 0 ≤ swappedJointLaw g K H P A B z := fun z =>
+    pushWeight_nonneg (fun n _ => logWeight_nonneg A B n) _ z
+  rw [Fintype.sum_prod_type]
+  refine Finset.sum_congr rfl fun x _ => ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun y _ => ?_
+  rw [jointLaw_eq_swappedJointLaw, ← fiber_mul hw0 y x,
+    marginal₂_swappedJointLaw]
+  ring
+
+/-- **The decoupling step** (eq. (epoh) of arXiv:1509.05422 §3): at a scale with
+small mutual information, the joint expectation of a bounded observable equals
+its uniform-`y` decoupling up to the deviation threshold plus the bad mass —
+bad patterns via the shifted Markov inequality, deviant residues via weak
+uniform distribution. -/
+theorem abs_sum_jointLaw_mul_sub_le (g : ℕ → ℂ) (K H P : ℕ) [NeZero P]
+    {A B : ℕ} (hA : 1 ≤ A) (hAB : A < B)
+    (F : PatternSpace K H × ZMod P → ℝ) {M : ℝ} (hM0 : 0 ≤ M)
+    (hM : ∀ z, |F z| ≤ M) {τ τ' θ₀ t D : ℝ} (hθ₀ : 0 ≤ θ₀)
+    (hI : mutualInfo (jointLaw g K H P A B) ≤ τ)
+    (hτ' : 0 < τ' + θ₀) (ht : 0 ≤ t) (hD : 0 < D)
+    (hunif : Real.log (P : ℝ) - θ₀ ≤ shannonEntropy (residueLaw P A B))
+    (hdev : ∀ x : PatternSpace K H,
+      (((Finset.univ.filter (fun y : ZMod P =>
+        t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|)).card : ℝ))
+        ≤ Real.exp (-D) * P) :
+    |∑ z, jointLaw g K H P A B z * F z
+        - ∑ x, patternLaw g K H A B x * ((∑ y, F (x, y)) / (P : ℝ))|
+      ≤ t + 2 * M * ((τ + θ₀) / (τ' + θ₀)
+          + (τ' + θ₀ + Real.log 2) / D) := by
+  classical
+  have hP0 : 0 < P := Nat.pos_of_ne_zero (NeZero.ne P)
+  have hPR : (0 : ℝ) < (P : ℝ) := by exact_mod_cast hP0
+  have hw0 : ∀ z, 0 ≤ swappedJointLaw g K H P A B z := fun z =>
+    pushWeight_nonneg (fun n _ => logWeight_nonneg A B n) _ z
+  have hpat0 : ∀ x, 0 ≤ patternLaw g K H A B x :=
+    patternLaw_nonneg g K H A B
+  have hpatsum : ∑ x, patternLaw g K H A B x = 1 :=
+    sum_patternLaw g K H hA hAB
+  have hfib0 : ∀ x y, 0 ≤ fiber (swappedJointLaw g K H P A B) x y :=
+    fun x y => fiber_nonneg hw0 x y
+  have hmarg : ∀ x, marginal₂ (swappedJointLaw g K H P A B) x
+      = patternLaw g K H A B x := fun x =>
+    congrFun (marginal₂_swappedJointLaw g K H P A B) x
+  have hfibsum : ∀ x, patternLaw g K H A B x ≠ 0 →
+      ∑ y, fiber (swappedJointLaw g K H P A B) x y = 1 := by
+    intro x hx
+    refine sum_fiber ?_
+    rw [hmarg x]
+    exact hx
+  have hfibzero : ∀ x, patternLaw g K H A B x = 0 →
+      ∀ y, fiber (swappedJointLaw g K H P A B) x y = 0 := by
+    intro x hx y
+    rw [show fiber (swappedJointLaw g K H P A B) x y
+      = if marginal₂ (swappedJointLaw g K H P A B) x = 0 then 0
+        else swappedJointLaw g K H P A B (y, x)
+          / marginal₂ (swappedJointLaw g K H P A B) x from rfl]
+    rw [if_pos (by rw [hmarg x]; exact hx)]
+  have havgM : ∀ x, |(∑ y, F (x, y)) / (P : ℝ)| ≤ M := by
+    intro x
+    rw [abs_div, abs_of_pos hPR, div_le_iff₀ hPR]
+    calc |∑ y, F (x, y)| ≤ ∑ y, |F (x, y)| :=
+          Finset.abs_sum_le_sum_abs _ _
+      _ ≤ ∑ _y : ZMod P, M := Finset.sum_le_sum fun y _ => hM (x, y)
+      _ = M * P := by
+          rw [Finset.sum_const, Finset.card_univ, ZMod.card, nsmul_eq_mul]
+          ring
+  -- the deviation mass under the conditional law
+  have hm0 : ∀ x, 0 ≤ ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+      t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+      fiber (swappedJointLaw g K H P A B) x y := fun x =>
+    Finset.sum_nonneg fun y _ => hfib0 x y
+  -- per-pattern estimate
+  have hper : ∀ x, |patternLaw g K H A B x
+      * ((∑ y, fiber (swappedJointLaw g K H P A B) x y * F (x, y))
+        - (∑ y, F (x, y)) / (P : ℝ))|
+      ≤ patternLaw g K H A B x
+        * (t + 2 * M * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+            t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+            fiber (swappedJointLaw g K H P A B) x y) := by
+    intro x
+    by_cases hx : patternLaw g K H A B x = 0
+    · rw [hx]
+      simp
+    · rw [abs_mul, abs_of_nonneg (hpat0 x)]
+      refine mul_le_mul_of_nonneg_left ?_ (hpat0 x)
+      have hEc : (∑ y, fiber (swappedJointLaw g K H P A B) x y * F (x, y))
+          - (∑ y', F (x, y')) / (P : ℝ)
+          = ∑ y, fiber (swappedJointLaw g K H P A B) x y
+              * (F (x, y) - (∑ y', F (x, y')) / (P : ℝ)) := by
+        rw [show (∑ y, fiber (swappedJointLaw g K H P A B) x y
+            * (F (x, y) - (∑ y', F (x, y')) / (P : ℝ)))
+          = (∑ y, fiber (swappedJointLaw g K H P A B) x y * F (x, y))
+            - (∑ y, fiber (swappedJointLaw g K H P A B) x y)
+              * ((∑ y', F (x, y')) / (P : ℝ)) from by
+          rw [Finset.sum_mul, ← Finset.sum_sub_distrib]
+          exact Finset.sum_congr rfl fun y _ => by ring]
+        rw [hfibsum x hx, one_mul]
+      rw [hEc]
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      rw [← Finset.sum_filter_add_sum_filter_not Finset.univ
+        (fun y : ZMod P =>
+          t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|)]
+      have hbad : ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+          t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+          |fiber (swappedJointLaw g K H P A B) x y
+            * (F (x, y) - (∑ y', F (x, y')) / (P : ℝ))|
+          ≤ 2 * M * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+              t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+              fiber (swappedJointLaw g K H P A B) x y := by
+        rw [Finset.mul_sum]
+        refine Finset.sum_le_sum fun y _ => ?_
+        rw [abs_mul, abs_of_nonneg (hfib0 x y)]
+        have h2M : |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)| ≤ 2 * M := by
+          calc |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|
+              ≤ |F (x, y)| + |(∑ y', F (x, y')) / (P : ℝ)| := abs_sub _ _
+            _ ≤ M + M := add_le_add (hM (x, y)) (havgM x)
+            _ = 2 * M := by ring
+        calc fiber (swappedJointLaw g K H P A B) x y
+              * |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|
+            ≤ fiber (swappedJointLaw g K H P A B) x y * (2 * M) :=
+              mul_le_mul_of_nonneg_left h2M (hfib0 x y)
+          _ = 2 * M * fiber (swappedJointLaw g K H P A B) x y := by ring
+      have hgood : ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+          ¬ t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+          |fiber (swappedJointLaw g K H P A B) x y
+            * (F (x, y) - (∑ y', F (x, y')) / (P : ℝ))|
+          ≤ t := by
+        have hstep : ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+            ¬ t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+            |fiber (swappedJointLaw g K H P A B) x y
+              * (F (x, y) - (∑ y', F (x, y')) / (P : ℝ))|
+            ≤ ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+              ¬ t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+              fiber (swappedJointLaw g K H P A B) x y * t := by
+          refine Finset.sum_le_sum fun y hy => ?_
+          rw [Finset.mem_filter] at hy
+          rw [abs_mul, abs_of_nonneg (hfib0 x y)]
+          exact mul_le_mul_of_nonneg_left (not_le.mp hy.2).le (hfib0 x y)
+        refine le_trans hstep ?_
+        rw [← Finset.sum_mul]
+        have hle1 : ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+            ¬ t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+            fiber (swappedJointLaw g K H P A B) x y ≤ 1 := by
+          rw [← hfibsum x hx]
+          exact Finset.sum_le_sum_of_subset_of_nonneg
+            (Finset.filter_subset _ _) fun y _ _ => hfib0 x y
+        calc (∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+              ¬ t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+              fiber (swappedJointLaw g K H P A B) x y) * t
+            ≤ 1 * t := mul_le_mul_of_nonneg_right hle1 ht
+          _ = t := one_mul t
+      linarith [hbad, hgood]
+  -- assemble: triangle + split the pattern mass by the Markov threshold
+  rw [sum_jointLaw_mul_eq]
+  rw [← Finset.sum_sub_distrib]
+  rw [show (∑ x, (patternLaw g K H A B x
+        * ∑ y, fiber (swappedJointLaw g K H P A B) x y * F (x, y)
+      - patternLaw g K H A B x * ((∑ y, F (x, y)) / (P : ℝ))))
+    = ∑ x, patternLaw g K H A B x
+        * ((∑ y, fiber (swappedJointLaw g K H P A B) x y * F (x, y))
+          - (∑ y, F (x, y)) / (P : ℝ)) from
+    Finset.sum_congr rfl fun x _ => by ring]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  refine le_trans (Finset.sum_le_sum fun x _ => hper x) ?_
+  rw [show (∑ x, patternLaw g K H A B x
+      * (t + 2 * M * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+          t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+          fiber (swappedJointLaw g K H P A B) x y))
+    = (∑ x, patternLaw g K H A B x) * t
+      + 2 * M * ∑ x, patternLaw g K H A B x
+        * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+            t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+            fiber (swappedJointLaw g K H P A B) x y from by
+    rw [Finset.sum_mul, Finset.mul_sum, ← Finset.sum_add_distrib]
+    exact Finset.sum_congr rfl fun x _ => by ring]
+  rw [hpatsum, one_mul]
+  -- remains: the deviation-mass average is at most the two bad masses
+  have hmass : ∑ x, patternLaw g K H A B x
+      * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+          t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+          fiber (swappedJointLaw g K H P A B) x y
+      ≤ (τ + θ₀) / (τ' + θ₀) + (τ' + θ₀ + Real.log 2) / D := by
+    have hfibHle : ∀ x, patternLaw g K H A B x ≠ 0 →
+        shannonEntropy (fiber (swappedJointLaw g K H P A B) x)
+          ≤ Real.log (P : ℝ) := by
+      intro x hx
+      have h := shannonEntropy_le_log_card
+        (w := fiber (swappedJointLaw g K H P A B) x)
+        (fun y => hfib0 x y) (hfibsum x hx)
+      rwa [ZMod.card] at h
+    -- Markov: the bad-pattern mass
+    have hmarkov := sum_filter_le_of_avg_le (p := patternLaw g K H A B)
+      (v := fun x => shannonEntropy (residueLaw P A B)
+        - shannonEntropy (fiber (swappedJointLaw g K H P A B) x))
+      (θ := θ₀) (τ := τ) (τ' := τ') hpat0
+      (by
+        intro x
+        by_cases hx : patternLaw g K H A B x = 0
+        · rw [hx, zero_mul]
+        · refine mul_nonneg (hpat0 x) ?_
+          have h1 := hfibHle x hx
+          linarith [hunif])
+      (by
+        have h := mutualInfo_jointLaw_eq_sum_fiber g K H P hA hAB
+        linarith [hI, h.symm.le, h.le])
+      hpatsum hτ'
+    -- weak-unif: the deviation mass for good patterns
+    have hgoodx : ∀ x, patternLaw g K H A B x ≠ 0 →
+        ¬ (τ' ≤ shannonEntropy (residueLaw P A B)
+          - shannonEntropy (fiber (swappedJointLaw g K H P A B) x)) →
+        ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+            t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+            fiber (swappedJointLaw g K H P A B) x y
+          ≤ (τ' + θ₀ + Real.log 2) / D := by
+      intro x hx hgood
+      by_cases hE : (Finset.univ.filter (fun y : ZMod P =>
+          t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|)).card = 0
+      · rw [Finset.card_eq_zero] at hE
+        rw [hE, Finset.sum_empty]
+        positivity
+      · have hE1 : 1 ≤ (Finset.univ.filter (fun y : ZMod P =>
+            t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|)).card := by omega
+        have hlogE : Real.log ((Finset.univ.filter (fun y : ZMod P =>
+            t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|)).card : ℝ)
+            ≤ Real.log (Fintype.card (ZMod P) : ℝ) - D := by
+          have hcardpos : (0 : ℝ) < ((Finset.univ.filter (fun y : ZMod P =>
+              t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|)).card : ℝ) := by
+            exact_mod_cast hE1
+          have hlog := Real.log_le_log hcardpos (hdev x)
+          rw [Real.log_mul (Real.exp_ne_zero (-D)) (ne_of_gt hPR),
+            Real.log_exp] at hlog
+          rw [ZMod.card]
+          linarith
+        have hHfib : Real.log (Fintype.card (ZMod P) : ℝ) - (τ' + θ₀)
+            ≤ shannonEntropy (fiber (swappedJointLaw g K H P A B) x) := by
+          rw [ZMod.card]
+          push_neg at hgood
+          linarith [hunif]
+        exact sum_mem_le_of_le_shannonEntropy (fun y => hfib0 x y)
+          (hfibsum x hx) _ hD hHfib hlogE
+    -- combine over the bad/good split
+    rw [← Finset.sum_filter_add_sum_filter_not Finset.univ
+      (fun x => τ' ≤ shannonEntropy (residueLaw P A B)
+        - shannonEntropy (fiber (swappedJointLaw g K H P A B) x))]
+    have hbadpart : ∑ x ∈ Finset.univ.filter (fun x =>
+        τ' ≤ shannonEntropy (residueLaw P A B)
+          - shannonEntropy (fiber (swappedJointLaw g K H P A B) x)),
+        patternLaw g K H A B x
+          * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+              t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+              fiber (swappedJointLaw g K H P A B) x y
+        ≤ (τ + θ₀) / (τ' + θ₀) := by
+      refine le_trans (Finset.sum_le_sum fun x _ => ?_) hmarkov
+      by_cases hx : patternLaw g K H A B x = 0
+      · rw [hx, zero_mul]
+      · have hle1 : ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+            t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+            fiber (swappedJointLaw g K H P A B) x y ≤ 1 := by
+          rw [← hfibsum x hx]
+          exact Finset.sum_le_sum_of_subset_of_nonneg
+            (Finset.filter_subset _ _) fun y _ _ => hfib0 x y
+        calc patternLaw g K H A B x
+            * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+                t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+                fiber (swappedJointLaw g K H P A B) x y
+            ≤ patternLaw g K H A B x * 1 :=
+              mul_le_mul_of_nonneg_left hle1 (hpat0 x)
+          _ = patternLaw g K H A B x := mul_one _
+    have hgoodpart : ∑ x ∈ Finset.univ.filter (fun x =>
+        ¬ (τ' ≤ shannonEntropy (residueLaw P A B)
+          - shannonEntropy (fiber (swappedJointLaw g K H P A B) x))),
+        patternLaw g K H A B x
+          * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+              t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+              fiber (swappedJointLaw g K H P A B) x y
+        ≤ (τ' + θ₀ + Real.log 2) / D := by
+      have hgb : (0 : ℝ) ≤ (τ' + θ₀ + Real.log 2) / D := by
+        have hlog2 : (0 : ℝ) ≤ Real.log 2 := Real.log_nonneg (by norm_num)
+        positivity
+      have hstep : ∀ x ∈ Finset.univ.filter (fun x =>
+          ¬ (τ' ≤ shannonEntropy (residueLaw P A B)
+            - shannonEntropy (fiber (swappedJointLaw g K H P A B) x))),
+          patternLaw g K H A B x
+            * ∑ y ∈ Finset.univ.filter (fun y : ZMod P =>
+                t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|),
+                fiber (swappedJointLaw g K H P A B) x y
+          ≤ patternLaw g K H A B x * ((τ' + θ₀ + Real.log 2) / D) := by
+        intro x hxmem
+        rw [Finset.mem_filter] at hxmem
+        by_cases hx : patternLaw g K H A B x = 0
+        · rw [hx, zero_mul, zero_mul]
+        · exact mul_le_mul_of_nonneg_left
+            (hgoodx x hx hxmem.2) (hpat0 x)
+      refine le_trans (Finset.sum_le_sum hstep) ?_
+      rw [← Finset.sum_mul]
+      have hsumle : ∑ x ∈ Finset.univ.filter (fun x =>
+          ¬ (τ' ≤ shannonEntropy (residueLaw P A B)
+            - shannonEntropy (fiber (swappedJointLaw g K H P A B) x))),
+          patternLaw g K H A B x ≤ 1 := by
+        rw [← hpatsum]
+        exact Finset.sum_le_sum_of_subset_of_nonneg
+          (Finset.filter_subset _ _) fun x _ _ => hpat0 x
+      calc (∑ x ∈ Finset.univ.filter (fun x =>
+            ¬ (τ' ≤ shannonEntropy (residueLaw P A B)
+              - shannonEntropy (fiber (swappedJointLaw g K H P A B) x))),
+            patternLaw g K H A B x) * ((τ' + θ₀ + Real.log 2) / D)
+          ≤ 1 * ((τ' + θ₀ + Real.log 2) / D) :=
+            mul_le_mul_of_nonneg_right hsumle hgb
+        _ = (τ' + θ₀ + Real.log 2) / D := one_mul _
+    linarith [hbadpart, hgoodpart]
+  have hMnonneg : (0 : ℝ) ≤ 2 * M := by linarith
+  have := mul_le_mul_of_nonneg_left hmass hMnonneg
+  linarith
+
 end MoltResearch

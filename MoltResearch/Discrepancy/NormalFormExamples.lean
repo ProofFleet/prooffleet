@@ -6517,6 +6517,31 @@ example {α : Type*} [Fintype α] [DecidableEq α] {p v : α → ℝ} {θ τ τ'
       ≤ (τ + θ) / (τ' + θ) :=
   sum_filter_le_of_avg_le hp0 hshift havg hsum hτ'
 
+-- Track C Elliott campaign (issue #2946, E6f-1b): the decoupling step.
+example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ}
+    (F : PatternSpace K H × ZMod P → ℝ) :
+    ∑ z, jointLaw g K H P A B z * F z
+      = ∑ x, patternLaw g K H A B x
+          * ∑ y, fiber (swappedJointLaw g K H P A B) x y * F (x, y) :=
+  sum_jointLaw_mul_eq g K H P F
+
+example (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A)
+    (hAB : A < B) (F : PatternSpace K H × ZMod P → ℝ) {M : ℝ} (hM0 : 0 ≤ M)
+    (hM : ∀ z, |F z| ≤ M) {τ τ' θ₀ t D : ℝ} (hθ₀ : 0 ≤ θ₀)
+    (hI : mutualInfo (jointLaw g K H P A B) ≤ τ)
+    (hτ' : 0 < τ' + θ₀) (ht : 0 ≤ t) (hD : 0 < D)
+    (hunif : Real.log (P : ℝ) - θ₀ ≤ shannonEntropy (residueLaw P A B))
+    (hdev : ∀ x : PatternSpace K H,
+      (((Finset.univ.filter (fun y : ZMod P =>
+        t ≤ |F (x, y) - (∑ y', F (x, y')) / (P : ℝ)|)).card : ℝ))
+        ≤ Real.exp (-D) * P) :
+    |∑ z, jointLaw g K H P A B z * F z
+        - ∑ x, patternLaw g K H A B x * ((∑ y, F (x, y)) / (P : ℝ))|
+      ≤ t + 2 * M * ((τ + θ₀) / (τ' + θ₀)
+          + (τ' + θ₀ + Real.log 2) / D) :=
+  abs_sum_jointLaw_mul_sub_le g K H P hA hAB F hM0 hM hθ₀ hI hτ' ht hD
+    hunif hdev
+
 end NormalFormExamples
 
 end MoltResearch
