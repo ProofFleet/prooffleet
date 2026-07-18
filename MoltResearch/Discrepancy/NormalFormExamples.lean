@@ -6721,6 +6721,27 @@ example (g : ℕ → ℂ) (K κ H₀ : ℕ) (Pseq : ℕ → ℕ) [∀ j, NeZero 
         < δ / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)) :=
   exists_polyGrid_scale g K κ H₀ Pseq hκ hH₀ hδ
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-M1a1): the exact y-average of
+-- the observable and the truncated-circular comparison.
+open scoped Function in
+example (K H J h : ℕ) {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) :
+    ∑ y : ZMod (∏ i, a i), decObs K H J h a hcop x y
+      = ∑ i, (((∏ i', a i') / a i : ℕ) : ℂ)
+          * ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+              * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) :=
+  sum_decObs_eq K H J h a hcop x
+
+example {K H : ℕ} (hK : 0 < K) (x : PatternSpace K H) {J s : ℕ} [NeZero J]
+    (hs : s < J) :
+    ‖(∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+        * (starRingEnd ℂ) (patExt K H x (j - 1 + s)))
+      - ∑ v : ZMod J, patExt K H x v.val
+          * (starRingEnd ℂ) (patExt K H x ((v + ((s : ℕ) : ZMod J)).val))‖
+      ≤ 8 * s :=
+  norm_trunc_sub_circular_le hK x hs
+
 end NormalFormExamples
 
 end MoltResearch

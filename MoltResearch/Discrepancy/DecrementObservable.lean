@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.PatternLaws
 import MoltResearch.Discrepancy.HoeffdingUniform
+import MoltResearch.Discrepancy.CircleMethod
 
 /-!
 # Discrepancy: the decrement observable
@@ -292,6 +293,144 @@ theorem norm_decObs_le (K H J h : ℕ) (hK : 0 < K) (a : ι → ℕ)
   refine le_trans (Finset.sum_le_sum fun i _ => hper i) (le_of_eq ?_)
   rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
   ring
+
+/-- **The exact `y`-average of the observable**: summing over all residues
+collapses each gate to its exact share. -/
+theorem sum_decObs_eq (K H J h : ℕ) (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) :
+    ∑ y : ZMod (∏ i, a i), decObs K H J h a hcop x y
+      = ∑ i, (((∏ i', a i') / a i : ℕ) : ℂ)
+          * ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+              * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) := by
+  classical
+  rw [show (∑ y : ZMod (∏ i, a i), decObs K H J h a hcop x y)
+      = ∑ y : ZMod (∏ i, a i), ∑ i, ∑ j ∈ Finset.Icc 1 J,
+        (if ZMod.prodEquivPi a hcop y i = -((j : ℕ) : ZMod (a i))
+          then patExt K H x (j - 1)
+            * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) else 0)
+      from rfl]
+  rw [Finset.sum_comm]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  exact sum_zmod_coord_indicator a hcop i (Finset.Icc 1 J)
+    (fun j => patExt K H x (j - 1)
+      * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)))
+    (fun j => -((j : ℕ) : ZMod (a i)))
+
+/-- **Truncated versus circular correlation**: replacing the interval pair sum
+by its `ZMod J` circular version costs at most `8·s` — the wraparound strip. -/
+theorem norm_trunc_sub_circular_le {K H : ℕ} (hK : 0 < K)
+    (x : PatternSpace K H) {J s : ℕ} [NeZero J] (hs : s < J) :
+    ‖(∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+        * (starRingEnd ℂ) (patExt K H x (j - 1 + s)))
+      - ∑ v : ZMod J, patExt K H x v.val
+          * (starRingEnd ℂ) (patExt K H x ((v + ((s : ℕ) : ZMod J)).val))‖
+      ≤ 8 * s := by
+  classical
+  have hpair : ∀ m m' : ℕ, ‖patExt K H x m * (starRingEnd ℂ) (patExt K H x m')‖
+      ≤ 4 := by
+    intro m m'
+    rw [norm_mul, RCLike.norm_conj]
+    calc ‖patExt K H x m‖ * ‖patExt K H x m'‖
+        ≤ 2 * 2 := mul_le_mul (norm_patExt_le hK x m) (norm_patExt_le hK x m')
+          (norm_nonneg _) (by norm_num)
+      _ = 4 := by norm_num
+  -- reindex the interval sum over the residue values
+  have hreidx : (∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+      * (starRingEnd ℂ) (patExt K H x (j - 1 + s)))
+      = ∑ v : ZMod J, patExt K H x v.val
+          * (starRingEnd ℂ) (patExt K H x (v.val + s)) := by
+    rw [sum_zmod_eq_sum_range (fun v => patExt K H x v.val
+      * (starRingEnd ℂ) (patExt K H x (v.val + s)))]
+    refine Finset.sum_bij' (fun j _ => j - 1) (fun m _ => m + 1)
+      ?_ ?_ ?_ ?_ ?_
+    · intro j hj
+      rw [Finset.mem_Icc] at hj
+      rw [Finset.mem_range]
+      show j - 1 < J
+      omega
+    · intro m hm
+      rw [Finset.mem_range] at hm
+      rw [Finset.mem_Icc]
+      show 1 ≤ m + 1 ∧ m + 1 ≤ J
+      omega
+    · intro j hj
+      rw [Finset.mem_Icc] at hj
+      show j - 1 + 1 = j
+      omega
+    · intro m _
+      show m + 1 - 1 = m
+      omega
+    · intro j hj
+      rw [Finset.mem_Icc] at hj
+      show patExt K H x (j - 1) * (starRingEnd ℂ) (patExt K H x (j - 1 + s))
+        = patExt K H x (((j - 1 : ℕ) : ZMod J)).val
+          * (starRingEnd ℂ) (patExt K H x ((((j - 1 : ℕ) : ZMod J)).val + s))
+      rw [ZMod.val_natCast_of_lt (by omega : j - 1 < J)]
+  rw [hreidx, ← Finset.sum_sub_distrib]
+  refine le_trans (norm_sum_le _ _) ?_
+  -- terms agree off the wraparound strip
+  have hsplit : ∀ v : ZMod J,
+      ‖patExt K H x v.val * (starRingEnd ℂ) (patExt K H x (v.val + s))
+        - patExt K H x v.val
+          * (starRingEnd ℂ) (patExt K H x ((v + ((s : ℕ) : ZMod J)).val))‖
+      ≤ if v.val + s < J then 0 else 8 := by
+    intro v
+    by_cases hv : v.val + s < J
+    · rw [if_pos hv]
+      have hval : (v + ((s : ℕ) : ZMod J)).val = v.val + s := by
+        rw [ZMod.val_add, ZMod.val_natCast_of_lt hs, Nat.mod_eq_of_lt]
+        omega
+      rw [hval, sub_self, norm_zero]
+    · rw [if_neg hv]
+      calc ‖patExt K H x v.val * (starRingEnd ℂ) (patExt K H x (v.val + s))
+          - patExt K H x v.val
+            * (starRingEnd ℂ) (patExt K H x ((v + ((s : ℕ) : ZMod J)).val))‖
+          ≤ ‖patExt K H x v.val
+              * (starRingEnd ℂ) (patExt K H x (v.val + s))‖
+            + ‖patExt K H x v.val
+              * (starRingEnd ℂ)
+                (patExt K H x ((v + ((s : ℕ) : ZMod J)).val))‖ :=
+            norm_sub_le _ _
+        _ ≤ 4 + 4 := add_le_add (hpair _ _) (hpair _ _)
+        _ = 8 := by norm_num
+  refine le_trans (Finset.sum_le_sum fun v _ => hsplit v) ?_
+  -- the wraparound strip has at most `s` residues
+  have hcard : (Finset.univ.filter
+      (fun v : ZMod J => ¬ v.val + s < J)).card ≤ s := by
+    have hmaps : ∀ v ∈ Finset.univ.filter
+        (fun v : ZMod J => ¬ v.val + s < J),
+        v.val - (J - s) ∈ Finset.range s := by
+      intro v hv
+      rw [Finset.mem_filter] at hv
+      rw [Finset.mem_range]
+      have := ZMod.val_lt v
+      omega
+    have hinj : Set.InjOn (fun v : ZMod J => v.val - (J - s))
+        ↑(Finset.univ.filter (fun v : ZMod J => ¬ v.val + s < J)) := by
+      intro v₁ h₁ v₂ h₂ heq
+      simp only [Finset.coe_filter, Set.mem_setOf_eq] at h₁ h₂
+      simp only at heq
+      have hv₁ := ZMod.val_lt v₁
+      have hv₂ := ZMod.val_lt v₂
+      have hveq : v₁.val = v₂.val := by omega
+      exact ZMod.val_injective _ hveq
+    have h := Finset.card_le_card_of_injOn
+      (fun v : ZMod J => v.val - (J - s))
+      (fun v hv => by
+        rw [Finset.mem_coe] at hv
+        exact Finset.mem_coe.mpr (hmaps v hv))
+      hinj
+    rwa [Finset.card_range] at h
+  rw [Finset.sum_ite, Finset.sum_const, Finset.sum_const]
+  simp only [smul_zero, zero_add, nsmul_eq_mul]
+  calc ((Finset.univ.filter
+      (fun v : ZMod J => ¬ v.val + s < J)).card : ℝ) * 8
+      ≤ (s : ℝ) * 8 := by
+        have := hcard
+        exact mul_le_mul_of_nonneg_right (by exact_mod_cast this)
+          (by norm_num)
+    _ = 8 * s := by ring
 
 end Observable
 
