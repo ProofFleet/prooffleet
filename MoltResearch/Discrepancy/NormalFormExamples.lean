@@ -6559,6 +6559,22 @@ example {H : ℕ} [NeZero H] {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
           ‖zDFT x₁ (-ξ)‖ :=
   norm_block_bilinear_le Pb w sh x₁ x₂ h₁ h₂ hw0 hκ hθ
 
+-- Track C Elliott campaign (issue #2946, E6f-4): the L4 restriction machinery.
+example {H : ℕ} [NeZero H] {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
+    (sh : ι → ZMod H) :
+    ∑ ξ : ZMod H, ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4
+      = (H : ℝ) * ∑ x ∈ Pb ×ˢ Pb, ∑ y ∈ Pb ×ˢ Pb,
+          (if sh x.1 + sh x.2 = sh y.1 + sh y.2
+            then w x.1 * w x.2 * w y.1 * w y.2 else 0) :=
+  sum_normPow4_zCharSum Pb w sh
+
+example {H : ℕ} [NeZero H] {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
+    (sh : ι → ZMod H) {θ : ℝ} (hθ : 0 < θ) :
+    ((Finset.univ.filter (fun ξ : ZMod H =>
+        θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖)).card : ℝ) * θ ^ 4
+      ≤ ∑ ξ : ZMod H, ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4 :=
+  card_filter_le_sum_normPow4 Pb w sh hθ
+
 end NormalFormExamples
 
 end MoltResearch

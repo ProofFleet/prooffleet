@@ -399,4 +399,137 @@ theorem norm_block_bilinear_le {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
           θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
           ‖zDFT x₁ (-ξ)‖ := by ring
 
+section L4
+
+variable {ι : Type*}
+
+/-- The square of a weighted character sum is the pair-indexed character sum. -/
+private lemma sq_sum_zChar (Pb : Finset ι) (w : ι → ℝ) (sh : ι → ZMod H)
+    (ξ : ZMod H) :
+    (∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ) ^ 2
+      = ∑ q ∈ Pb ×ˢ Pb, ((w q.1 : ℂ) * (w q.2 : ℂ))
+          * zChar (sh q.1 + sh q.2) ξ := by
+  rw [sq, Finset.sum_mul_sum Pb Pb (fun p => (w p : ℂ) * zChar (sh p) ξ)
+    (fun p => (w p : ℂ) * zChar (sh p) ξ), Finset.sum_product]
+  refine Finset.sum_congr rfl fun p _ => ?_
+  refine Finset.sum_congr rfl fun q _ => ?_
+  rw [zChar_add_left]
+  ring
+
+/-- **The `L⁴` identity**: the fourth moment of the weight exponential sum
+counts weighted shift-congruent quadruples. -/
+theorem sum_normPow4_zCharSum (Pb : Finset ι) (w : ι → ℝ) (sh : ι → ZMod H) :
+    ∑ ξ : ZMod H, ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4
+      = (H : ℝ) * ∑ x ∈ Pb ×ˢ Pb, ∑ y ∈ Pb ×ˢ Pb,
+          (if sh x.1 + sh x.2 = sh y.1 + sh y.2
+            then w x.1 * w x.2 * w y.1 * w y.2 else 0) := by
+  classical
+  have hkey : ∑ ξ : ZMod H, (∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ) ^ 2
+        * (starRingEnd ℂ) ((∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ) ^ 2)
+      = (H : ℂ) * ∑ x ∈ Pb ×ˢ Pb, ∑ y ∈ Pb ×ˢ Pb,
+          (if sh x.1 + sh x.2 = sh y.1 + sh y.2
+            then ((w x.1 * w x.2 * w y.1 * w y.2 : ℝ) : ℂ) else 0) := by
+    have hterm : ∀ ξ : ZMod H,
+        (∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ) ^ 2
+          * (starRingEnd ℂ) ((∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ) ^ 2)
+        = ∑ x ∈ Pb ×ˢ Pb, ∑ y ∈ Pb ×ˢ Pb,
+            ((w x.1 * w x.2 * w y.1 * w y.2 : ℝ) : ℂ)
+              * (zChar (sh x.1 + sh x.2) ξ
+                * zChar (-(sh y.1 + sh y.2)) ξ) := by
+      intro ξ
+      rw [sq_sum_zChar, map_sum]
+      rw [show (∑ q ∈ Pb ×ˢ Pb, (starRingEnd ℂ)
+          (((w q.1 : ℂ) * (w q.2 : ℂ)) * zChar (sh q.1 + sh q.2) ξ))
+          = ∑ q ∈ Pb ×ˢ Pb, ((w q.1 : ℂ) * (w q.2 : ℂ))
+              * zChar (-(sh q.1 + sh q.2)) ξ from
+        Finset.sum_congr rfl fun q _ => by
+          rw [map_mul, conj_zChar, map_mul, Complex.conj_ofReal,
+            Complex.conj_ofReal]]
+      rw [Finset.sum_mul_sum (Pb ×ˢ Pb) (Pb ×ˢ Pb)
+        (fun q => ((w q.1 : ℂ) * (w q.2 : ℂ)) * zChar (sh q.1 + sh q.2) ξ)
+        (fun q => ((w q.1 : ℂ) * (w q.2 : ℂ)) * zChar (-(sh q.1 + sh q.2)) ξ)]
+      refine Finset.sum_congr rfl fun x _ => ?_
+      refine Finset.sum_congr rfl fun y _ => ?_
+      push_cast
+      ring
+    rw [Finset.sum_congr rfl fun ξ _ => hterm ξ, Finset.sum_comm]
+    rw [Finset.sum_congr rfl fun x _ => Finset.sum_comm]
+    have hpick : ∀ x ∈ Pb ×ˢ Pb, ∀ y ∈ Pb ×ˢ Pb,
+        ∑ ξ : ZMod H, ((w x.1 * w x.2 * w y.1 * w y.2 : ℝ) : ℂ)
+            * (zChar (sh x.1 + sh x.2) ξ * zChar (-(sh y.1 + sh y.2)) ξ)
+        = (if sh x.1 + sh x.2 = sh y.1 + sh y.2
+            then ((w x.1 * w x.2 * w y.1 * w y.2 : ℝ) : ℂ) else 0)
+          * (H : ℂ) := by
+      intro x _ y _
+      rw [show (∑ ξ : ZMod H, ((w x.1 * w x.2 * w y.1 * w y.2 : ℝ) : ℂ)
+          * (zChar (sh x.1 + sh x.2) ξ * zChar (-(sh y.1 + sh y.2)) ξ))
+          = ((w x.1 * w x.2 * w y.1 * w y.2 : ℝ) : ℂ)
+            * ∑ ξ : ZMod H, ZMod.stdAddChar
+              ((sh x.1 + sh x.2 + -(sh y.1 + sh y.2)) * ξ) from by
+        rw [Finset.mul_sum]
+        refine Finset.sum_congr rfl fun ξ _ => ?_
+        rw [← zChar_add_left]
+        rfl]
+      rw [sum_zChar_aux]
+      by_cases hq : sh x.1 + sh x.2 = sh y.1 + sh y.2
+      · rw [if_pos (by rw [hq, add_neg_cancel]), if_pos hq]
+      · rw [if_neg (fun h0 => hq (add_neg_eq_zero.mp h0)), if_neg hq,
+          mul_zero, zero_mul]
+    rw [Finset.sum_congr rfl fun x hx =>
+      Finset.sum_congr rfl fun y hy => hpick x hx y hy]
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun x _ => ?_
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun y _ => ?_
+    ring
+  have hL : ∑ ξ : ZMod H, (∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ) ^ 2
+        * (starRingEnd ℂ) ((∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ) ^ 2)
+      = ((∑ ξ : ZMod H, ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4 : ℝ) : ℂ) := by
+    rw [Complex.ofReal_sum]
+    refine Finset.sum_congr rfl fun ξ _ => ?_
+    rw [Complex.mul_conj, map_pow, Complex.normSq_eq_norm_sq]
+    rw [show ((‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 2) ^ 2 : ℝ)
+        = ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4 from by ring]
+  have hR : (H : ℂ) * ∑ x ∈ Pb ×ˢ Pb, ∑ y ∈ Pb ×ˢ Pb,
+        (if sh x.1 + sh x.2 = sh y.1 + sh y.2
+          then ((w x.1 * w x.2 * w y.1 * w y.2 : ℝ) : ℂ) else 0)
+      = (((H : ℝ) * ∑ x ∈ Pb ×ˢ Pb, ∑ y ∈ Pb ×ˢ Pb,
+          (if sh x.1 + sh x.2 = sh y.1 + sh y.2
+            then w x.1 * w x.2 * w y.1 * w y.2 else 0) : ℝ) : ℂ) := by
+    rw [Complex.ofReal_mul, Complex.ofReal_natCast, Complex.ofReal_sum]
+    congr 1
+    refine Finset.sum_congr rfl fun x _ => ?_
+    rw [Complex.ofReal_sum]
+    refine Finset.sum_congr rfl fun y _ => ?_
+    split_ifs
+    · rfl
+    · exact Complex.ofReal_zero.symm
+  rw [hL, hR] at hkey
+  exact_mod_cast hkey
+
+/-- **Markov for the major frequencies**: the count of frequencies where the
+weight sum exceeds `θ` is at most `θ⁻⁴` times its fourth moment. -/
+theorem card_filter_le_sum_normPow4 (Pb : Finset ι) (w : ι → ℝ)
+    (sh : ι → ZMod H) {θ : ℝ} (hθ : 0 < θ) :
+    ((Finset.univ.filter (fun ξ : ZMod H =>
+        θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖)).card : ℝ) * θ ^ 4
+      ≤ ∑ ξ : ZMod H, ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4 := by
+  classical
+  have hper : ∀ ξ ∈ Finset.univ.filter (fun ξ : ZMod H =>
+      θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖),
+      θ ^ 4 ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4 := by
+    intro ξ hξ
+    rw [Finset.mem_filter] at hξ
+    exact pow_le_pow_left₀ hθ.le hξ.2 4
+  have hsum := Finset.card_nsmul_le_sum
+    (Finset.univ.filter (fun ξ : ZMod H =>
+      θ ≤ ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖))
+    (fun ξ => ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4) (θ ^ 4) hper
+  rw [nsmul_eq_mul] at hsum
+  refine le_trans hsum ?_
+  exact Finset.sum_le_sum_of_subset_of_nonneg (Finset.filter_subset _ _)
+    fun ξ _ _ => by positivity
+
+end L4
+
 end MoltResearch
