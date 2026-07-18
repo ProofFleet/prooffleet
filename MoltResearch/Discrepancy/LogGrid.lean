@@ -184,3 +184,67 @@ theorem sum_filter_le_of_avg_le {α : Type*} [Fintype α] {p v : α → ℝ}
       fun x _ _ => hshift x
   rw [le_div_iff₀ hτ']
   linarith
+
+
+/-- The polynomial scale grid: `H_{j+1} = κ·(j+2)²·H_j`. Polynomial step sizes
+keep `log H_j = O(j·log j)` in closed form — no recursive log estimates — while
+still dominating every conditioning slack of the decrement. -/
+def polyGrid (κ H₀ : ℕ) : ℕ → ℕ
+  | 0 => H₀
+  | j + 1 => (κ * (j + 2) ^ 2) * polyGrid κ H₀ j
+
+theorem polyGrid_zero (κ H₀ : ℕ) : polyGrid κ H₀ 0 = H₀ := rfl
+
+theorem polyGrid_succ (κ H₀ j : ℕ) :
+    polyGrid κ H₀ (j + 1) = (κ * (j + 2) ^ 2) * polyGrid κ H₀ j := rfl
+
+theorem polyGrid_pos {κ H₀ : ℕ} (hκ : 1 ≤ κ) (hH : 1 ≤ H₀) :
+    ∀ j, 1 ≤ polyGrid κ H₀ j := by
+  intro j
+  induction j with
+  | zero => exact hH
+  | succ m ih =>
+    rw [polyGrid_succ]
+    exact Nat.mul_pos (Nat.mul_pos (by omega) (pow_pos (by omega) 2)) ih
+
+/-- The grid's log is the closed-form sum of the step logs. -/
+theorem log_polyGrid_eq {κ H₀ : ℕ} (hκ : 1 ≤ κ) (hH : 1 ≤ H₀) (j : ℕ) :
+    Real.log ((polyGrid κ H₀ j : ℕ) : ℝ)
+      = Real.log (H₀ : ℝ)
+        + ∑ m ∈ Finset.range j, Real.log ((κ * (m + 2) ^ 2 : ℕ) : ℝ) := by
+  induction j with
+  | zero =>
+    rw [polyGrid_zero, Finset.range_zero, Finset.sum_empty, add_zero]
+  | succ m ih =>
+    rw [polyGrid_succ, Finset.sum_range_succ]
+    have hstep : ((κ * (m + 2) ^ 2 : ℕ) : ℝ) ≠ 0 := by
+      have h0 : 0 < κ * (m + 2) ^ 2 :=
+        Nat.mul_pos (by omega) (pow_pos (by omega) 2)
+      exact_mod_cast (by omega : κ * (m + 2) ^ 2 ≠ 0)
+    have hgrid : ((polyGrid κ H₀ m : ℕ) : ℝ) ≠ 0 := by
+      have := polyGrid_pos hκ hH m
+      exact_mod_cast (by omega : polyGrid κ H₀ m ≠ 0)
+    rw [Nat.cast_mul, Real.log_mul hstep hgrid, ih]
+    ring
+
+/-- **The shifted budget diverges**: partial sums of `∑ 1/((j+2)·log(j+2))` are
+unbounded — the `range`-indexed form the grid pigeonhole consumes. -/
+theorem exists_sum_range_one_div_gt (C : ℝ) :
+    ∃ J : ℕ, C < ∑ j ∈ Finset.range J,
+      1 / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)) := by
+  obtain ⟨J₀, hJ₀2, hJ₀⟩ := exists_sum_one_div_mul_log_gt C
+  refine ⟨J₀ - 1, ?_⟩
+  have hmap : Finset.Ioc (1 : ℕ) J₀
+      = (Finset.range (J₀ - 1)).map (addRightEmbedding 2) := by
+    ext m
+    simp only [Finset.mem_Ioc, Finset.mem_map, Finset.mem_range,
+      addRightEmbedding_apply]
+    constructor
+    · intro hm
+      exact ⟨m - 2, by omega, by omega⟩
+    · rintro ⟨j, hj, rfl⟩
+      omega
+  rw [hmap, Finset.sum_map] at hJ₀
+  refine lt_of_lt_of_le hJ₀ (le_of_eq ?_)
+  refine Finset.sum_congr rfl fun j _ => ?_
+  simp only [addRightEmbedding_apply]

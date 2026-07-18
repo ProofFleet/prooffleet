@@ -6658,6 +6658,18 @@ example {p J : ℕ} [NeZero p] (r : ZMod p) :
       (fun j => ((j : ℕ) : ZMod p) = r)).card ≤ J / p + 1 :=
   card_filter_zmod_Icc_le r
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-iii-b): the polynomial grid.
+example {κ H₀ : ℕ} (hκ : 1 ≤ κ) (hH : 1 ≤ H₀) (j : ℕ) :
+    Real.log ((polyGrid κ H₀ j : ℕ) : ℝ)
+      = Real.log (H₀ : ℝ)
+        + ∑ m ∈ Finset.range j, Real.log ((κ * (m + 2) ^ 2 : ℕ) : ℝ) :=
+  log_polyGrid_eq hκ hH j
+
+example (C : ℝ) :
+    ∃ J : ℕ, C < ∑ j ∈ Finset.range J,
+      1 / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)) :=
+  exists_sum_range_one_div_gt C
+
 end NormalFormExamples
 
 end MoltResearch
