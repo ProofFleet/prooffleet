@@ -6670,6 +6670,25 @@ example (C : ℝ) :
       1 / (((j + 2 : ℕ) : ℝ) * Real.log ((j + 2 : ℕ) : ℝ)) :=
   exists_sum_range_one_div_gt C
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-iv-pre): master-prep glue.
+example {g : ℕ → ℂ} (huni : Unimodular g) {b₁ h A B : ℕ} (ha : 1 ≤ A) {X : ℝ}
+    (hbig : X ≤ ‖∑ n ∈ Finset.Ioc A B,
+      g (n + b₁) * (starRingEnd ℂ) (g (n + b₁ + h)) / (n : ℂ)‖) :
+    X - 3 * b₁ / A
+      ≤ ‖∑ m ∈ Finset.Ioc A B,
+          g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖ :=
+  shift_pair_window_ge huni ha hbig
+
+example {H : ℕ} [NeZero H] (j : ℕ) (ξ : ZMod H) :
+    zChar ((j : ℕ) : ZMod H) ξ
+      = Complex.exp (2 * Real.pi * Complex.I * (j : ℂ)
+          * (((ξ.val : ℝ) / (H : ℝ) : ℝ) : ℂ)) :=
+  zChar_natCast_eq_exp j ξ
+
+example {H : ℕ} [NeZero H] (F : ZMod H → ℂ) :
+    ∑ j : ZMod H, F j = ∑ m ∈ Finset.range H, F ((m : ℕ) : ZMod H) :=
+  sum_zmod_eq_sum_range F
+
 end NormalFormExamples
 
 end MoltResearch

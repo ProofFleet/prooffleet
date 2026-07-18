@@ -565,4 +565,39 @@ theorem zmod_shift_congr_iff {H h n₀ : ℕ} (hh : 1 ≤ h)
     push_cast at hc
     exact_mod_cast hc
 
+/-- **The modulation dictionary**: the scalar pairing at a cast frequency index
+is the classical additive character `e(jα)` at `α = ξ.val/H`. -/
+theorem zChar_natCast_eq_exp {H : ℕ} [NeZero H] (j : ℕ) (ξ : ZMod H) :
+    zChar ((j : ℕ) : ZMod H) ξ
+      = Complex.exp (2 * Real.pi * Complex.I * (j : ℂ)
+          * (((ξ.val : ℝ) / (H : ℝ) : ℝ) : ℂ)) := by
+  have hmul : ((j : ℕ) : ZMod H) * ξ = ((j * ξ.val : ℕ) : ZMod H) := by
+    push_cast
+    rw [ZMod.natCast_val, ZMod.cast_id]
+  rw [zChar, hmul, ZMod.stdAddChar_apply, ZMod.toCircle_natCast]
+  congr 1
+  push_cast
+  have hH : ((H : ℂ)) ≠ 0 := Nat.cast_ne_zero.mpr (NeZero.ne H)
+  field_simp
+
+/-- Summing over `ZMod H` is summing over the value range. -/
+theorem sum_zmod_eq_sum_range {H : ℕ} [NeZero H] {M : Type*} [AddCommMonoid M]
+    (F : ZMod H → M) :
+    ∑ j : ZMod H, F j = ∑ m ∈ Finset.range H, F ((m : ℕ) : ZMod H) := by
+  classical
+  refine Finset.sum_bij' (fun j _ => j.val) (fun m _ => ((m : ℕ) : ZMod H))
+    ?_ ?_ ?_ ?_ ?_
+  · intro j _
+    rw [Finset.mem_range]
+    exact ZMod.val_lt j
+  · intro m _
+    exact Finset.mem_univ _
+  · intro j _
+    exact ZMod.natCast_zmod_val j
+  · intro m hm
+    rw [Finset.mem_range] at hm
+    exact ZMod.val_natCast_of_lt hm
+  · intro j _
+    rw [ZMod.natCast_zmod_val]
+
 end MoltResearch

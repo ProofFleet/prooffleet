@@ -1059,4 +1059,43 @@ theorem norm_toc_sub_le {g : ℕ → ℂ} (hcm : CompletelyMultiplicativeC g)
           exact mul_le_mul_of_nonneg_left hwin (by positivity)
         linarith
 
+/-- Conjugation symmetry of the two-point correlation: the two shift orders have
+equal norms. -/
+theorem norm_pair_sum_conj_symm (g : ℕ → ℂ) (b₁ b₂ : ℕ) (A B : ℕ) :
+    ‖∑ n ∈ Finset.Ioc A B, g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+      = ‖∑ n ∈ Finset.Ioc A B,
+          g (n + b₂) * (starRingEnd ℂ) (g (n + b₁)) / (n : ℂ)‖ := by
+  rw [← RCLike.norm_conj (K := ℂ)
+    (∑ n ∈ Finset.Ioc A B,
+      g (n + b₂) * (starRingEnd ℂ) (g (n + b₁)) / (n : ℂ)), map_sum]
+  congr 1
+  refine Finset.sum_congr rfl fun n _ => ?_
+  rw [map_div₀, map_mul, RingHomInvPair.comp_apply_eq, Complex.conj_natCast]
+  ring
+
+/-- **The `b`-shift reduction**: a large shifted-pair correlation forces a large
+base-window correlation at shift `h`, at cost `3b₁/A`. -/
+theorem shift_pair_window_ge {g : ℕ → ℂ} (huni : Unimodular g)
+    {b₁ h A B : ℕ} (ha : 1 ≤ A) {X : ℝ}
+    (hbig : X ≤ ‖∑ n ∈ Finset.Ioc A B,
+      g (n + b₁) * (starRingEnd ℂ) (g (n + b₁ + h)) / (n : ℂ)‖) :
+    X - 3 * b₁ / A
+      ≤ ‖∑ m ∈ Finset.Ioc A B,
+          g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ)‖ := by
+  have hFb : ∀ m, ‖g m * (starRingEnd ℂ) (g (m + h))‖ ≤ 1 := by
+    intro m
+    rw [norm_mul, RCLike.norm_conj, huni m, huni (m + h), one_mul]
+  have hshift := norm_sum_div_shift_iterate_sub_le
+    (F := fun m => g m * (starRingEnd ℂ) (g (m + h))) hFb (b := B) ha b₁
+  have htri := norm_sub_norm_le
+    (∑ n ∈ Finset.Ioc A B,
+      (fun m => g m * (starRingEnd ℂ) (g (m + h))) (n + b₁) / (n : ℂ))
+    (∑ m ∈ Finset.Ioc A B, g m * (starRingEnd ℂ) (g (m + h)) / (m : ℂ))
+  have halign : (∑ n ∈ Finset.Ioc A B,
+      (fun m => g m * (starRingEnd ℂ) (g (m + h))) (n + b₁) / (n : ℂ))
+      = ∑ n ∈ Finset.Ioc A B,
+        g (n + b₁) * (starRingEnd ℂ) (g (n + b₁ + h)) / (n : ℂ) := rfl
+  rw [halign] at hshift htri
+  linarith [hshift, htri, hbig]
+
 end MoltResearch
