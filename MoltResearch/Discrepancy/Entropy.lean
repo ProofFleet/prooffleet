@@ -747,6 +747,31 @@ theorem le_shannonEntropy_of_forall_le {w : α → ℝ} (hw0 : ∀ x, 0 ≤ w x)
     _ ≤ ∑ x, Real.negMulLog (w x) := Finset.sum_le_sum fun x _ => hterm x
     _ = shannonEntropy w := rfl
 
+/-- **Weak uniform distribution** (Lemma weak-unif of arXiv:1509.05422 §3): a
+near-full-entropy law cannot concentrate on an exponentially small event — if
+`H(v) ≥ log|α| − θ` and `log|E| ≤ log|α| − δ`, then `v(E) ≤ (θ + log 2)/δ`. -/
+theorem sum_mem_le_of_le_shannonEntropy {v : α → ℝ} (hv0 : ∀ x, 0 ≤ v x)
+    (hsum : ∑ x, v x = 1) (E : Finset α) {θ δ : ℝ} (hδ : 0 < δ)
+    (hH : Real.log (Fintype.card α) - θ ≤ shannonEntropy v)
+    (hE : Real.log E.card ≤ Real.log (Fintype.card α) - δ) :
+    ∑ y ∈ E, v y ≤ (θ + Real.log 2) / δ := by
+  have hsplit := shannonEntropy_le_event_split hv0 hsum E
+  have hq0 : 0 ≤ ∑ y ∈ E, v y := Finset.sum_nonneg fun y _ => hv0 y
+  have hring : (∑ y ∈ E, v y)
+      * (Real.log (Fintype.card α) - Real.log E.card)
+      = (∑ y ∈ E, v y) * Real.log (Fintype.card α)
+        - (∑ y ∈ E, v y) * Real.log E.card := by
+    ring
+  have h1 : (∑ y ∈ E, v y)
+      * (Real.log (Fintype.card α) - Real.log E.card)
+      ≤ θ + Real.log 2 := by
+    rw [hring]
+    nlinarith [hsplit, hH]
+  have h2 : δ ≤ Real.log (Fintype.card α) - Real.log E.card := by linarith
+  have hkey : (∑ y ∈ E, v y) * δ ≤ θ + Real.log 2 :=
+    le_trans (mul_le_mul_of_nonneg_left h2 hq0) h1
+  exact (le_div_iff₀ hδ).mpr hkey
+
 end Events
 
 section TV

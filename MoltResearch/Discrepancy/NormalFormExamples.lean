@@ -6452,6 +6452,27 @@ example {ι : Type*} [Fintype ι] [DecidableEq ι] {Ω : ι → Type*}
       ≤ Real.exp (-ε ^ 2 / (2 * ((∑ i, (c i) ^ 2 : ℝ≥0) : ℝ))) :=
   card_deviation_le_uniformPi f c hbound hmean hε
 
+-- Track C Elliott campaign (issue #2946, E6e-3): weak uniform distribution and
+-- the CRT transfer of the Hoeffding bound.
+example {α : Type*} [Fintype α] [DecidableEq α] {v : α → ℝ} (hv0 : ∀ x, 0 ≤ v x)
+    (hsum : ∑ x, v x = 1) (E : Finset α) {θ δ : ℝ} (hδ : 0 < δ)
+    (hH : Real.log (Fintype.card α) - θ ≤ shannonEntropy v)
+    (hE : Real.log E.card ≤ Real.log (Fintype.card α) - δ) :
+    ∑ y ∈ E, v y ≤ (θ + Real.log 2) / δ :=
+  sum_mem_le_of_le_shannonEntropy hv0 hsum E hδ hH hE
+
+open scoped Function in
+example {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (f : Π i, ZMod (a i) → ℝ) (c : ι → ℝ≥0)
+    (hbound : ∀ i, ∀ x, f i x ∈ Set.Icc (-(c i : ℝ)) (c i))
+    (hmean : ∀ i, ∑ x, f i x = 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+        ε ≤ ∑ i, f i (ZMod.prodEquivPi a hcop y i))).card : ℝ)
+        / ((∏ i, a i : ℕ) : ℝ)
+      ≤ Real.exp (-ε ^ 2 / (2 * ((∑ i, (c i) ^ 2 : ℝ≥0) : ℝ))) :=
+  card_deviation_le_zmod a hcop f c hbound hmean hε
+
 end NormalFormExamples
 
 end MoltResearch

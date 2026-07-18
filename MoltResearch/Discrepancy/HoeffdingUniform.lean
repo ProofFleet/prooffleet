@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.UniformCounting
 import Mathlib.Probability.Moments.SubGaussian
+import Mathlib.Data.ZMod.QuotientRing
 
 /-!
 # Discrepancy: sub-Gaussian bounds on uniform spaces
@@ -88,5 +89,56 @@ theorem card_deviation_le_uniformPi (f : Π i, Ω i → ℝ) (c : ι → ℝ≥0
   exact hH
 
 end ProductLift
+
+section ZModTransfer
+
+/-- A product of nonzero moduli is nonzero — the instance the CRT transfer's
+statement elaborates under. -/
+instance neZero_prod_of_neZero {ι : Type*} [Fintype ι] (a : ι → ℕ)
+    [∀ i, NeZero (a i)] : NeZero (∏ i, a i) :=
+  ⟨Finset.prod_ne_zero_iff.mpr fun i _ => NeZero.ne (a i)⟩
+
+open scoped Function in
+/-- **Hoeffding on a squarefree modulus**: transporting the counting bound
+through the Chinese remainder theorem. The deviation event of
+`y ↦ ∑ i, f i (y mod a i)` on uniform `y : ZMod (∏ a i)` is exponentially
+rare. -/
+theorem card_deviation_le_zmod {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (a : ι → ℕ) (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (f : Π i, ZMod (a i) → ℝ) (c : ι → ℝ≥0)
+    (hbound : ∀ i, ∀ x, f i x ∈ Set.Icc (-(c i : ℝ)) (c i))
+    (hmean : ∀ i, ∑ x, f i x = 0) {ε : ℝ} (hε : 0 ≤ ε) :
+    ((Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+        ε ≤ ∑ i, f i (ZMod.prodEquivPi a hcop y i))).card : ℝ)
+        / ((∏ i, a i : ℕ) : ℝ)
+      ≤ Real.exp (-ε ^ 2 / (2 * ((∑ i, (c i) ^ 2 : ℝ≥0) : ℝ))) := by
+  classical
+  have h := card_deviation_le_uniformPi f c hbound hmean hε
+  have hcard : (Finset.univ.filter (fun y : ZMod (∏ i, a i) =>
+      ε ≤ ∑ i, f i (ZMod.prodEquivPi a hcop y i))).card
+      = (Finset.univ.filter (fun ω : Π i, ZMod (a i) =>
+          ε ≤ ∑ i, f i (ω i))).card := by
+    apply Finset.card_bij (fun y _ => ZMod.prodEquivPi a hcop y)
+    · intro y hy
+      rw [Finset.mem_filter] at hy ⊢
+      exact ⟨Finset.mem_univ _, hy.2⟩
+    · intro y1 h1 y2 h2 heq
+      exact (ZMod.prodEquivPi a hcop).injective heq
+    · intro ω hω
+      rw [Finset.mem_filter] at hω
+      refine ⟨(ZMod.prodEquivPi a hcop).symm ω, ?_, ?_⟩
+      · rw [Finset.mem_filter]
+        refine ⟨Finset.mem_univ _, ?_⟩
+        rw [RingEquiv.apply_symm_apply]
+        exact hω.2
+      · rw [RingEquiv.apply_symm_apply]
+  have hpi : (Fintype.card (Π i, ZMod (a i)) : ℝ) = ((∏ i, a i : ℕ) : ℝ) := by
+    rw [Fintype.card_pi]
+    congr 1
+    exact Finset.prod_congr rfl fun i _ => ZMod.card (a i)
+  rw [hcard, ← hpi]
+  exact h
+
+end ZModTransfer
 
 end MoltResearch
