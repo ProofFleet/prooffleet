@@ -6473,6 +6473,23 @@ example {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
       ≤ Real.exp (-ε ^ 2 / (2 * ((∑ i, (c i) ^ 2 : ℝ≥0) : ℝ))) :=
   card_deviation_le_zmod a hcop f c hbound hmean hε
 
+-- Track C Elliott campaign (issue #2946, E6f-0): the entropy decrement
+-- argument, generic scale selection.
+example (g : ℕ → ℂ) (K : ℕ) (Hseq Pseq kseq : ℕ → ℕ) [∀ j, NeZero (Pseq j)]
+    {A B J : ℕ} (hA : 1 ≤ A) (hH : ∀ j, 1 ≤ Hseq j) (hk : ∀ j, 1 ≤ kseq j)
+    (hrec : ∀ j < J, Hseq (j + 1) = kseq j * Hseq j)
+    (hkB : ∀ j < J, A + kseq j * Hseq j + kseq j * Hseq j < B)
+    (hJ : 1 ≤ J) (t : ℕ → ℝ)
+    (hbudget : Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ)
+      < ∑ j ∈ Finset.range J,
+        (t j
+          - shannonEntropy (residueLaw (Pseq j) A B)
+              / ((kseq j * Hseq j : ℕ) : ℝ)
+          - decrementErr K (Hseq j) (Pseq j) A B (kseq j) / (Hseq j : ℝ))) :
+    ∃ j < J, mutualInfo (jointLaw g K (Hseq j) (Pseq j) A B) / (Hseq j : ℝ)
+      < t j :=
+  exists_scale_mutualInfo_lt g K Hseq Pseq kseq hA hH hk hrec hkB hJ t hbudget
+
 end NormalFormExamples
 
 end MoltResearch

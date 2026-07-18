@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.LogUniformDist
 import MoltResearch.Discrepancy.Discretize
 import MoltResearch.Discrepancy.Entropy
+import MoltResearch.Discrepancy.LogGrid
 import Mathlib.Data.ZMod.Basic
 
 /-!
@@ -997,6 +998,67 @@ theorem mutualInfo_ratio_le (g : ℕ → ℂ) (K H P : ℕ) [NeZero P] {A B k : 
     rw [hcast]
     field_simp
   rw [hexp] at hdivH
+  linarith
+
+/-- **The entropy decrement argument, generic form** (the Lemma of
+arXiv:1509.05422 §3): along any multiplicative scale grid whose claimed
+decrements out-run the entropy budget `log((K+1)²)` plus the conditioning and
+Fannes slacks, some scale has small mutual information density. The concrete
+grid and targets are chosen by the consumer. -/
+theorem exists_scale_mutualInfo_lt (g : ℕ → ℂ) (K : ℕ)
+    (Hseq Pseq kseq : ℕ → ℕ) [∀ j, NeZero (Pseq j)] {A B J : ℕ}
+    (hA : 1 ≤ A) (hH : ∀ j, 1 ≤ Hseq j) (hk : ∀ j, 1 ≤ kseq j)
+    (hrec : ∀ j < J, Hseq (j + 1) = kseq j * Hseq j)
+    (hkB : ∀ j < J, A + kseq j * Hseq j + kseq j * Hseq j < B)
+    (hJ : 1 ≤ J) (t : ℕ → ℝ)
+    (hbudget : Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ)
+      < ∑ j ∈ Finset.range J,
+        (t j
+          - shannonEntropy (residueLaw (Pseq j) A B)
+              / ((kseq j * Hseq j : ℕ) : ℝ)
+          - decrementErr K (Hseq j) (Pseq j) A B (kseq j) / (Hseq j : ℝ))) :
+    ∃ j < J, mutualInfo (jointLaw g K (Hseq j) (Pseq j) A B) / (Hseq j : ℝ)
+      < t j := by
+  have hAB : A < B := by
+    have h0 := hkB 0 (by omega)
+    have hk0 := hk 0
+    have hH0 := hH 0
+    have : 1 ≤ kseq 0 * Hseq 0 := Nat.one_le_iff_ne_zero.mpr
+      (Nat.mul_ne_zero (by omega) (by omega))
+    omega
+  -- the ratio chain and its per-step decrements
+  set r : ℕ → ℝ := fun j =>
+    shannonEntropy (patternLaw g K (Hseq j) A B) / (Hseq j : ℝ) with hr_def
+  set d : ℕ → ℝ := fun j =>
+    mutualInfo (jointLaw g K (Hseq j) (Pseq j) A B) / (Hseq j : ℝ)
+      - shannonEntropy (residueLaw (Pseq j) A B) / ((kseq j * Hseq j : ℕ) : ℝ)
+      - decrementErr K (Hseq j) (Pseq j) A B (kseq j) / (Hseq j : ℝ)
+    with hd_def
+  have hchain : ∀ j < J, r (j + 1) ≤ r j - d j := by
+    intro j hj
+    have hsplat := mutualInfo_ratio_le g K (Hseq j) (Pseq j)
+      (A := A) (B := B) hA (hH j) (hk j) (hkB j hj)
+    rw [hr_def, hd_def]
+    simp only []
+    rw [hrec j hj]
+    push_cast at hsplat ⊢
+    linarith
+  have hrJ : 0 ≤ r J := by
+    rw [hr_def]
+    have hHJ : (0 : ℝ) < (Hseq J : ℝ) := by exact_mod_cast hH J
+    exact div_nonneg (shannonEntropy_nonneg
+      (fun x => patternLaw_nonneg g K (Hseq J) A B x)
+      (fun x => patternLaw_le_one g K (Hseq J) hA hAB x)) hHJ.le
+  have hr0 : r 0 ≤ Real.log ((((K + 1) * (K + 1) : ℕ)) : ℝ) := by
+    rw [hr_def]
+    have hH0 : (0 : ℝ) < (Hseq 0 : ℝ) := by exact_mod_cast hH 0
+    rw [div_le_iff₀ hH0]
+    have h := shannonEntropy_patternLaw_le_mul g K (Hseq 0) hA hAB
+    exact h.trans (le_of_eq (mul_comm _ _))
+  obtain ⟨j, hj, hlt⟩ := exists_lt_of_chain_budget hrJ hr0 hchain hbudget
+  refine ⟨j, hj, ?_⟩
+  rw [hd_def] at hlt
+  simp only [] at hlt
   linarith
 
 end MoltResearch
