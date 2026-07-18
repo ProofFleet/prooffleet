@@ -6742,6 +6742,23 @@ example {K H : ℕ} (hK : 0 < K) (x : PatternSpace K H) {J s : ℕ} [NeZero J]
       ≤ 8 * s :=
   norm_trunc_sub_circular_le hK x hs
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-M1a2): the per-pattern
+-- frequency bound.
+open scoped Function in
+example (K H J h : ℕ) [NeZero J] (hK : 0 < K) {ι : Type*} [Fintype ι]
+    [DecidableEq ι] (a : ι → ℕ) (hcop : Pairwise (Nat.Coprime on a))
+    [∀ i, NeZero (a i)] (hsJ : ∀ i, a i * h < J) {θ κ : ℝ} (hθ : 0 ≤ θ)
+    (hκ : ∑ i, 1 / ((a i : ℝ)) ≤ κ) (x : PatternSpace K H) :
+    ‖(1 / ((∏ i, a i : ℕ) : ℂ))
+        * ∑ y : ZMod (∏ i, a i), decObs K H J h a hcop x y‖
+      ≤ 8 * h * (Fintype.card ι : ℝ) + 4 * θ * J
+        + (J : ℝ) * κ * 2
+          * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod J =>
+              θ ≤ ‖∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+                * zChar (((a i * h : ℕ) : ZMod J)) ξ‖),
+              ‖zDFT (fun v : ZMod J => patExt K H x v.val) (-ξ)‖ :=
+  norm_avg_decObs_le K H J h hK a hcop hsJ hθ hκ x
+
 end NormalFormExamples
 
 end MoltResearch

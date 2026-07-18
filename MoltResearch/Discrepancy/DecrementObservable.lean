@@ -432,6 +432,122 @@ theorem norm_trunc_sub_circular_le {K H : ℕ} (hK : 0 < K)
           (by norm_num)
     _ = 8 * s := by ring
 
+open scoped NNReal in
+/-- **The per-pattern frequency bound**: the normalized `y`-average of the
+observable is controlled by the wraparound strip, the minor frequencies, and
+the major-frequency pattern DFT masses — the M1a2 unit of the master theorem. -/
+theorem norm_avg_decObs_le (K H J h : ℕ) [NeZero J] (hK : 0 < K)
+    (a : ι → ℕ) (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (hsJ : ∀ i, a i * h < J) {θ κ : ℝ} (hθ : 0 ≤ θ)
+    (hκ : ∑ i, 1 / ((a i : ℝ)) ≤ κ) (x : PatternSpace K H) :
+    ‖(1 / ((∏ i, a i : ℕ) : ℂ))
+        * ∑ y : ZMod (∏ i, a i), decObs K H J h a hcop x y‖
+      ≤ 8 * h * (Fintype.card ι : ℝ) + 4 * θ * J
+        + (J : ℝ) * κ * 2
+          * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod J =>
+              θ ≤ ‖∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+                * zChar (((a i * h : ℕ) : ZMod J)) ξ‖),
+              ‖zDFT (fun v : ZMod J => patExt K H x v.val) (-ξ)‖ := by
+  classical
+  have hP0 : 0 < ∏ i, a i :=
+    Finset.prod_pos fun i _ => Nat.pos_of_ne_zero (NeZero.ne (a i))
+  have hPC : ((∏ i, a i : ℕ) : ℂ) ≠ 0 := by
+    exact_mod_cast (by omega : (∏ i, a i) ≠ 0)
+  -- normalize the exact average
+  have hnorm : (1 / ((∏ i, a i : ℕ) : ℂ))
+      * ∑ y : ZMod (∏ i, a i), decObs K H J h a hcop x y
+      = ∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+          * ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+              * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) := by
+    rw [sum_decObs_eq, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    have hdvd : a i ∣ ∏ i', a i' := Finset.dvd_prod_of_mem a (Finset.mem_univ i)
+    have hai : ((a i : ℕ) : ℂ) ≠ 0 :=
+      Nat.cast_ne_zero.mpr (NeZero.ne (a i))
+    have hcast : (((∏ i', a i') / a i : ℕ) : ℂ)
+        = ((∏ i', a i' : ℕ) : ℂ) / ((a i : ℕ) : ℂ) := by
+      rw [Nat.cast_div hdvd hai]
+    rw [hcast]
+    rw [show ((1 / (a i : ℝ) : ℝ) : ℂ) = 1 / ((a i : ℕ) : ℂ) from by
+      push_cast
+      ring]
+    field_simp
+  rw [hnorm]
+  -- swap each truncated correlation for its circular version
+  have hswap : ‖(∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+      * ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+          * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)))
+      - ∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+          * ∑ v : ZMod J, patExt K H x v.val
+              * (starRingEnd ℂ)
+                (patExt K H x ((v + ((a i * h : ℕ) : ZMod J)).val))‖
+      ≤ 8 * h * (Fintype.card ι : ℝ) := by
+    rw [← Finset.sum_sub_distrib]
+    refine le_trans (norm_sum_le _ _) ?_
+    have hper : ∀ i : ι, ‖((1 / (a i : ℝ) : ℝ) : ℂ)
+        * ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+            * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h))
+        - ((1 / (a i : ℝ) : ℝ) : ℂ)
+          * ∑ v : ZMod J, patExt K H x v.val
+              * (starRingEnd ℂ)
+                (patExt K H x ((v + ((a i * h : ℕ) : ZMod J)).val))‖
+        ≤ 8 * h := by
+      intro i
+      rw [← mul_sub, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg (by positivity : (0 : ℝ) ≤ 1 / (a i : ℝ))]
+      have hcirc := norm_trunc_sub_circular_le hK x (hsJ i)
+      have hai1 : (1 : ℝ) ≤ (a i : ℝ) := by
+        exact_mod_cast Nat.pos_of_ne_zero (NeZero.ne (a i))
+      calc (1 / (a i : ℝ))
+          * ‖(∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+              * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)))
+            - ∑ v : ZMod J, patExt K H x v.val
+                * (starRingEnd ℂ)
+                  (patExt K H x ((v + ((a i * h : ℕ) : ZMod J)).val))‖
+          ≤ (1 / (a i : ℝ)) * (8 * (a i * h)) :=
+            mul_le_mul_of_nonneg_left (by exact_mod_cast hcirc)
+              (by positivity)
+        _ = 8 * h * ((a i : ℝ) / (a i : ℝ)) := by
+            ring
+        _ = 8 * h := by
+            rw [div_self (by linarith : (a i : ℝ) ≠ 0), mul_one]
+    refine le_trans (Finset.sum_le_sum fun i _ => hper i) (le_of_eq ?_)
+    rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+    ring
+  -- the circular form is the cap bilinear at C = 2
+  have hpat2 : ∀ v : ZMod J, ‖patExt K H x v.val‖ ≤ 2 := fun v =>
+    norm_patExt_le hK x v.val
+  have hconj2 : ∀ v : ZMod J,
+      ‖(starRingEnd ℂ) (patExt K H x v.val)‖ ≤ 2 := fun v => by
+    rw [RCLike.norm_conj]
+    exact norm_patExt_le hK x v.val
+  have hcap := norm_block_bilinear_le' (H := J) Finset.univ
+    (fun i => 1 / (a i : ℝ)) (fun i => ((a i * h : ℕ) : ZMod J))
+    (fun v : ZMod J => patExt K H x v.val)
+    (fun v : ZMod J => (starRingEnd ℂ) (patExt K H x v.val))
+    (by norm_num : (0 : ℝ) ≤ 2) hpat2 hconj2
+    (fun i _ => by positivity) hκ hθ
+  have hcap' : ‖∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+      * ∑ v : ZMod J, patExt K H x v.val
+          * (starRingEnd ℂ)
+            (patExt K H x ((v + ((a i * h : ℕ) : ZMod J)).val))‖
+      ≤ 2 ^ 2 * θ * J + (J : ℝ) * κ * 2
+          * ∑ ξ ∈ Finset.univ.filter (fun ξ : ZMod J =>
+              θ ≤ ‖∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+                * zChar (((a i * h : ℕ) : ZMod J)) ξ‖),
+              ‖zDFT (fun v : ZMod J => patExt K H x v.val) (-ξ)‖ := hcap
+  -- assemble by the triangle inequality
+  have htri := norm_sub_norm_le
+    (∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+      * ∑ j ∈ Finset.Icc 1 J, patExt K H x (j - 1)
+          * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)))
+    (∑ i, ((1 / (a i : ℝ) : ℝ) : ℂ)
+      * ∑ v : ZMod J, patExt K H x v.val
+          * (starRingEnd ℂ)
+            (patExt K H x ((v + ((a i * h : ℕ) : ZMod J)).val)))
+  have h4 : (2 : ℝ) ^ 2 = 4 := by norm_num
+  linarith [hswap, hcap', htri, h4.le, h4.ge]
+
 end Observable
 
 end MoltResearch
