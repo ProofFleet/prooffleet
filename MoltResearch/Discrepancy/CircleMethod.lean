@@ -532,4 +532,37 @@ theorem card_filter_le_sum_normPow4 (Pb : Finset ι) (w : ι → ℝ)
 
 end L4
 
+/-- **Wrap control**: when the window exceeds the block reach, the `ZMod H`
+congruence between shift sums is genuine equality of the prime sums. -/
+theorem zmod_shift_congr_iff {H h n₀ : ℕ} (hh : 1 ≤ h)
+    {p₁ p₂ p₃ p₄ : ℕ} (h₁ : p₁ ≤ 2 * n₀) (h₂ : p₂ ≤ 2 * n₀)
+    (h₃ : p₃ ≤ 2 * n₀) (h₄ : p₄ ≤ 2 * n₀) (hH : 4 * n₀ * h < H) :
+    (((p₁ * h : ℕ) : ZMod H) + ((p₂ * h : ℕ) : ZMod H)
+        = ((p₃ * h : ℕ) : ZMod H) + ((p₄ * h : ℕ) : ZMod H))
+      ↔ p₁ + p₂ = p₃ + p₄ := by
+  constructor
+  · intro hcast
+    have hsum : (((p₁ * h + p₂ * h : ℕ)) : ZMod H)
+        = ((p₃ * h + p₄ * h : ℕ) : ZMod H) := by
+      push_cast
+      exact_mod_cast hcast
+    have hlt₁ : p₁ * h + p₂ * h < H := by nlinarith
+    have hlt₂ : p₃ * h + p₄ * h < H := by nlinarith
+    have hmod := (ZMod.natCast_eq_natCast_iff _ _ _).mp hsum
+    have heq : p₁ * h + p₂ * h = p₃ * h + p₄ * h := by
+      have := hmod
+      unfold Nat.ModEq at this
+      rwa [Nat.mod_eq_of_lt hlt₁, Nat.mod_eq_of_lt hlt₂] at this
+    have hmul : (p₁ + p₂) * h = (p₃ + p₄) * h := by
+      rw [add_mul, add_mul]
+      exact heq
+    exact Nat.eq_of_mul_eq_mul_right (by omega) hmul
+  · intro hnat
+    have heq : p₁ * h + p₂ * h = p₃ * h + p₄ * h := by
+      have := congrArg (· * h) hnat
+      simpa [add_mul] using this
+    have hc := congrArg (fun n : ℕ => (n : ZMod H)) heq
+    push_cast at hc
+    exact_mod_cast hc
+
 end MoltResearch

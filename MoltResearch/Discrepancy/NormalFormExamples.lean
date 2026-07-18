@@ -6575,6 +6575,15 @@ example {H : ℕ} [NeZero H] {ι : Type*} (Pb : Finset ι) (w : ι → ℝ)
       ≤ ∑ ξ : ZMod H, ‖∑ p ∈ Pb, (w p : ℂ) * zChar (sh p) ξ‖ ^ 4 :=
   card_filter_le_sum_normPow4 Pb w sh hθ
 
+-- Track C Elliott campaign (issue #2946, E6f-5a): wrap control.
+example {H h n₀ : ℕ} (hh : 1 ≤ h) {p₁ p₂ p₃ p₄ : ℕ} (h₁ : p₁ ≤ 2 * n₀)
+    (h₂ : p₂ ≤ 2 * n₀) (h₃ : p₃ ≤ 2 * n₀) (h₄ : p₄ ≤ 2 * n₀)
+    (hH : 4 * n₀ * h < H) :
+    (((p₁ * h : ℕ) : ZMod H) + ((p₂ * h : ℕ) : ZMod H)
+        = ((p₃ * h : ℕ) : ZMod H) + ((p₄ * h : ℕ) : ZMod H))
+      ↔ p₁ + p₂ = p₃ + p₄ :=
+  zmod_shift_congr_iff hh h₁ h₂ h₃ h₄ hH
+
 end NormalFormExamples
 
 end MoltResearch
