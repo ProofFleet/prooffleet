@@ -6490,6 +6490,16 @@ example (g : ℕ → ℂ) (K : ℕ) (Hseq Pseq kseq : ℕ → ℕ) [∀ j, NeZer
       < t j :=
   exists_scale_mutualInfo_lt g K Hseq Pseq kseq hA hH hk hrec hkB hJ t hbudget
 
+-- Track C Elliott campaign (issue #2946, E6f-2): the exact residue average.
+open scoped Function in
+example {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)] (i₀ : ι)
+    {β : Type*} (s : Finset β) (c : β → ℂ) (ρ : β → ZMod (a i₀)) :
+    ∑ y : ZMod (∏ i, a i), ∑ j ∈ s,
+        (if ZMod.prodEquivPi a hcop y i₀ = ρ j then c j else 0)
+      = (((∏ i, a i) / a i₀ : ℕ) : ℂ) * ∑ j ∈ s, c j :=
+  sum_zmod_coord_indicator a hcop i₀ s c ρ
+
 end NormalFormExamples
 
 end MoltResearch

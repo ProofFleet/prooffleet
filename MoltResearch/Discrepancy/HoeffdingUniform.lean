@@ -139,6 +139,95 @@ theorem card_deviation_le_zmod {ι : Type*} [Fintype ι] [DecidableEq ι]
   rw [hcard, ← hpi]
   exact h
 
+/-- The coordinate fibers of a finite product are equinumerous: each has size
+`|Π|/|Ω i₀|`, stated multiplicatively. -/
+theorem card_pi_coord_fiber_mul {ι : Type*} [Fintype ι] [DecidableEq ι]
+    {Ω : ι → Type*} [∀ i, Fintype (Ω i)] [∀ i, DecidableEq (Ω i)]
+    (i₀ : ι) (r : Ω i₀) :
+    (Finset.univ.filter (fun ω : Π i, Ω i => ω i₀ = r)).card
+        * Fintype.card (Ω i₀)
+      = Fintype.card (Π i, Ω i) := by
+  classical
+  have hfib : ∀ r' : Ω i₀,
+      (Finset.univ.filter (fun ω : Π i, Ω i => ω i₀ = r')).card
+        = (Finset.univ.filter (fun ω : Π i, Ω i => ω i₀ = r)).card := by
+    intro r'
+    apply Finset.card_bij (fun ω _ => Function.update ω i₀ r)
+    · intro ω hω
+      rw [Finset.mem_filter]
+      exact ⟨Finset.mem_univ _, Function.update_self i₀ r ω⟩
+    · intro ω₁ h₁ ω₂ h₂ heq
+      rw [Finset.mem_filter] at h₁ h₂
+      funext i
+      by_cases hi : i = i₀
+      · subst hi
+        rw [h₁.2, h₂.2]
+      · have hcoord := congrArg (fun ω : Π i, Ω i => ω i) heq
+        simpa [Function.update, hi] using hcoord
+    · intro ω hω
+      rw [Finset.mem_filter] at hω
+      refine ⟨Function.update ω i₀ r', ?_, ?_⟩
+      · rw [Finset.mem_filter]
+        exact ⟨Finset.mem_univ _, Function.update_self i₀ r' ω⟩
+      · funext i
+        by_cases hi : i = i₀
+        · subst hi
+          simp [Function.update_self, hω.2]
+        · simp [Function.update, hi]
+  have htotal : Fintype.card (Π i, Ω i)
+      = ∑ r' : Ω i₀,
+          (Finset.univ.filter (fun ω : Π i, Ω i => ω i₀ = r')).card := by
+    rw [← Finset.card_univ]
+    exact Finset.card_eq_sum_card_fiberwise fun ω _ => Finset.mem_univ (ω i₀)
+  rw [htotal, Finset.sum_congr rfl fun r' _ => hfib r', Finset.sum_const,
+    Finset.card_univ, smul_eq_mul, mul_comm]
+
+open scoped Function in
+/-- **The exact residue average** (the `(1/P)∑_y F_p(x,y) = (1/p)∑_j (…)`
+computation of arXiv:1509.05422 §3): summing a residue-indicator sum over all
+`y : ZMod (∏ a)` collapses each class to its exact share `(∏ a)/(a i₀)`. -/
+theorem sum_zmod_coord_indicator {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (a : ι → ℕ) (hcop : Pairwise (Nat.Coprime on a))
+    [∀ i, NeZero (a i)] (i₀ : ι) {β : Type*} (s : Finset β) (c : β → ℂ)
+    (ρ : β → ZMod (a i₀)) :
+    ∑ y : ZMod (∏ i, a i), ∑ j ∈ s,
+        (if ZMod.prodEquivPi a hcop y i₀ = ρ j then c j else 0)
+      = (((∏ i, a i) / a i₀ : ℕ) : ℂ) * ∑ j ∈ s, c j := by
+  classical
+  have hcard : ∀ r : ZMod (a i₀),
+      (Finset.univ.filter
+        (fun ω : Π i, ZMod (a i) => ω i₀ = r)).card = (∏ i, a i) / a i₀ := by
+    intro r
+    have h := card_pi_coord_fiber_mul (Ω := fun i => ZMod (a i)) i₀ r
+    rw [ZMod.card, Fintype.card_pi] at h
+    have hprod : ∏ i, Fintype.card (ZMod (a i)) = ∏ i, a i :=
+      Finset.prod_congr rfl fun i _ => ZMod.card (a i)
+    rw [hprod] at h
+    have hpos : 0 < a i₀ := Nat.pos_of_ne_zero (NeZero.ne (a i₀))
+    calc (Finset.univ.filter
+        (fun ω : Π i, ZMod (a i) => ω i₀ = r)).card
+        = (Finset.univ.filter
+            (fun ω : Π i, ZMod (a i) => ω i₀ = r)).card * a i₀ / a i₀ :=
+          (Nat.mul_div_cancel _ hpos).symm
+      _ = (∏ i, a i) / a i₀ := by rw [h]
+  rw [Finset.sum_comm]
+  have hper : ∀ j ∈ s,
+      ∑ y : ZMod (∏ i, a i),
+          (if ZMod.prodEquivPi a hcop y i₀ = ρ j then c j else 0)
+        = (((∏ i, a i) / a i₀ : ℕ) : ℂ) * c j := by
+    intro j _
+    have hcomp := Equiv.sum_comp (ZMod.prodEquivPi a hcop).toEquiv
+      (fun ω : Π i, ZMod (a i) => if ω i₀ = ρ j then c j else 0)
+    rw [show (∑ y : ZMod (∏ i, a i),
+        (fun ω : Π i, ZMod (a i) => if ω i₀ = ρ j then c j else 0)
+          ((ZMod.prodEquivPi a hcop).toEquiv y))
+      = ∑ y : ZMod (∏ i, a i),
+          (if ZMod.prodEquivPi a hcop y i₀ = ρ j then c j else 0) from rfl]
+      at hcomp
+    rw [hcomp, ← Finset.sum_filter, Finset.sum_const, hcard (ρ j),
+      nsmul_eq_mul]
+  rw [Finset.sum_congr rfl hper, ← Finset.mul_sum]
+
 end ZModTransfer
 
 end MoltResearch
