@@ -6584,6 +6584,20 @@ example {H h n₀ : ℕ} (hh : 1 ≤ h) {p₁ p₂ p₃ p₄ : ℕ} (h₁ : p₁
       ↔ p₁ + p₂ = p₃ + p₄ :=
   zmod_shift_congr_iff hh h₁ h₂ h₃ h₄ hH
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-i-a): the pushforward
+-- expectation and CRT coordinate dictionaries.
+example (s : Finset ℕ) (w : ℕ → ℝ) {β : Type*} [Fintype β] [DecidableEq β]
+    (f : ℕ → β) (F : β → ℂ) :
+    ∑ b, ((pushWeight s w f b : ℝ) : ℂ) * F b
+      = ∑ n ∈ s, ((w n : ℝ) : ℂ) * F (f n) :=
+  sum_pushWeight_mul_complex s w f F
+
+open scoped Function in
+example {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)] (n : ℕ) (i : ι) :
+    ZMod.prodEquivPi a hcop ((n : ZMod (∏ j, a j))) i = (n : ZMod (a i)) :=
+  prodEquivPi_natCast a hcop n i
+
 end NormalFormExamples
 
 end MoltResearch

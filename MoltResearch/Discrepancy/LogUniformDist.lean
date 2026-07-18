@@ -79,6 +79,23 @@ theorem sum_pushWeight (s : Finset ℕ) (w : ℕ → ℝ) {β : Type*} [Fintype 
     ∑ b, pushWeight s w f b = ∑ n ∈ s, w n :=
   Finset.sum_fiberwise_of_maps_to (fun n _ => Finset.mem_univ (f n)) w
 
+/-- **Pushforward expectation dictionary** (`ℂ`-valued): integrating an
+observable against the pushed law is integrating its pullback. -/
+theorem sum_pushWeight_mul_complex (s : Finset ℕ) (w : ℕ → ℝ) {β : Type*}
+    [Fintype β] [DecidableEq β] (f : ℕ → β) (F : β → ℂ) :
+    ∑ b, ((pushWeight s w f b : ℝ) : ℂ) * F b
+      = ∑ n ∈ s, ((w n : ℝ) : ℂ) * F (f n) := by
+  classical
+  rw [show (∑ b, ((pushWeight s w f b : ℝ) : ℂ) * F b)
+      = ∑ b, ∑ n ∈ s.filter (fun n => f n = b), ((w n : ℝ) : ℂ) * F b from
+    Finset.sum_congr rfl fun b _ => by
+      rw [pushWeight, Complex.ofReal_sum, Finset.sum_mul]]
+  rw [← Finset.sum_fiberwise_of_maps_to (g := f)
+    (fun n _ => Finset.mem_univ (f n)) (fun n => ((w n : ℝ) : ℂ) * F (f n))]
+  refine Finset.sum_congr rfl fun b _ => Finset.sum_congr rfl fun n hn => ?_
+  rw [Finset.mem_filter] at hn
+  rw [hn.2]
+
 /-- Window-quotient log bound, `r`-shifted form. -/
 theorem log_div_window_le' {q r A : ℕ} (hq : 2 ≤ q) (hr : r < q) (h4q : 4 * q ≤ A) :
     Real.log A - Real.log ((A - r) / q : ℕ) ≤ Real.log (2 * q) := by

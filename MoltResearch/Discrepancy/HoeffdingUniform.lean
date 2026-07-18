@@ -228,6 +228,16 @@ theorem sum_zmod_coord_indicator {ι : Type*} [Fintype ι] [DecidableEq ι]
       nsmul_eq_mul]
   rw [Finset.sum_congr rfl hper, ← Finset.mul_sum]
 
+open scoped Function in
+/-- **The CRT coordinate dictionary**: the `i`-th coordinate of a cast residue
+is the cast residue at the `i`-th modulus. -/
+theorem prodEquivPi_natCast {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (a : ι → ℕ) (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (n : ℕ) (i : ι) :
+    ZMod.prodEquivPi a hcop ((n : ZMod (∏ j, a j))) i = (n : ZMod (a i)) := by
+  have h := map_natCast (ZMod.prodEquivPi a hcop) n
+  rw [h, Pi.natCast_apply]
+
 end ZModTransfer
 
 end MoltResearch
