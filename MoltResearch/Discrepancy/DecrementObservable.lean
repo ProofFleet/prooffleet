@@ -249,6 +249,50 @@ theorem norm_sum_jointLaw_decObs_sub_le (g : ℕ → ℂ) (huni : Unimodular g)
   refine le_trans (Finset.sum_le_sum hper) ?_
   rw [← Finset.sum_mul, sum_logWeight hA hAB, one_mul]
 
+theorem norm_patExt_le {K H : ℕ} (hK : 0 < K) (x : PatternSpace K H) (m : ℕ) :
+    ‖patExt K H x m‖ ≤ 2 := by
+  rw [patExt]
+  split_ifs with hm
+  · exact norm_roundCVal_le hK _
+  · rw [norm_zero]
+    norm_num
+
+/-- The observable is uniformly bounded by `4·|ι|·J`. -/
+theorem norm_decObs_le (K H J h : ℕ) (hK : 0 < K) (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (y : ZMod (∏ i, a i)) :
+    ‖decObs K H J h a hcop x y‖ ≤ (Fintype.card ι : ℝ) * J * 4 := by
+  rw [decObs]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hper : ∀ i : ι, ‖∑ j ∈ Finset.Icc 1 J,
+      (if ZMod.prodEquivPi a hcop y i = -((j : ℕ) : ZMod (a i))
+        then patExt K H x (j - 1)
+          * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) else 0)‖
+      ≤ (J : ℝ) * 4 := by
+    intro i
+    refine le_trans (norm_sum_le _ _) ?_
+    have hterm : ∀ j ∈ Finset.Icc 1 J,
+        ‖(if ZMod.prodEquivPi a hcop y i = -((j : ℕ) : ZMod (a i))
+          then patExt K H x (j - 1)
+            * (starRingEnd ℂ) (patExt K H x (j - 1 + a i * h)) else 0)‖
+        ≤ 4 := by
+      intro j _
+      split_ifs
+      · rw [norm_mul, RCLike.norm_conj]
+        calc ‖patExt K H x (j - 1)‖ * ‖patExt K H x (j - 1 + a i * h)‖
+            ≤ 2 * 2 := mul_le_mul (norm_patExt_le hK x _)
+              (norm_patExt_le hK x _) (norm_nonneg _) (by norm_num)
+          _ = 4 := by norm_num
+      · rw [norm_zero]
+        norm_num
+    refine le_trans (Finset.sum_le_sum hterm) (le_of_eq ?_)
+    rw [Finset.sum_const, Nat.card_Icc, nsmul_eq_mul]
+    have hJc : J + 1 - 1 = J := by omega
+    rw [hJc]
+  refine le_trans (Finset.sum_le_sum fun i _ => hper i) (le_of_eq ?_)
+  rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+  ring
+
 end Observable
 
 end MoltResearch

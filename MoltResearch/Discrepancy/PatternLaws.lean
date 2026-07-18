@@ -1451,4 +1451,50 @@ theorem abs_sum_jointLaw_mul_sub_le (g : ℕ → ℂ) (K H P : ℕ) [NeZero P]
   have := mul_le_mul_of_nonneg_left hmass hMnonneg
   linarith
 
+/-- The residue law never beats the uniform entropy. -/
+theorem shannonEntropy_residueLaw_le (P : ℕ) [NeZero P] {A B : ℕ}
+    (hA : 1 ≤ A) (hAB : A < B) :
+    shannonEntropy (residueLaw P A B) ≤ Real.log (P : ℝ) := by
+  have h := shannonEntropy_le_log_card
+    (w := residueLaw P A B) (residueLaw_nonneg P A B)
+    (sum_residueLaw P hA hAB)
+  rwa [ZMod.card] at h
+
+/-- **The residue-gate count**: an interval of length `J` meets a residue class
+mod `p` at most `J/p + 1` times. -/
+theorem card_filter_mod_Icc_le {p J : ℕ} (hp : 0 < p) (v : ℕ) :
+    ((Finset.Icc 1 J).filter (fun j => j % p = v)).card ≤ J / p + 1 := by
+  classical
+  have hmaps : ∀ j ∈ (Finset.Icc 1 J).filter (fun j => j % p = v),
+      j / p ∈ Finset.range (J / p + 1) := by
+    intro j hj
+    rw [Finset.mem_filter, Finset.mem_Icc] at hj
+    rw [Finset.mem_range]
+    have := Nat.div_le_div_right (c := p) hj.1.2
+    omega
+  have hinj : Set.InjOn (fun j => j / p)
+      ↑((Finset.Icc 1 J).filter (fun j => j % p = v)) := by
+    intro j₁ h₁ j₂ h₂ heq
+    simp only [Finset.coe_filter, Set.mem_setOf_eq, Finset.mem_Icc] at h₁ h₂
+    have e1 := Nat.div_add_mod j₁ p
+    have e2 := Nat.div_add_mod j₂ p
+    have e3 : p * (j₁ / p) = p * (j₂ / p) := by
+      simp only at heq
+      rw [heq]
+    omega
+  have h := Finset.card_le_card_of_injOn (fun j => j / p)
+    (fun j hj => by
+      rw [Finset.mem_coe] at hj
+      exact Finset.mem_coe.mpr (hmaps j hj))
+    hinj
+  rwa [Finset.card_range] at h
+
+/-- The `ZMod`-gate form of the residue-gate count. -/
+theorem card_filter_zmod_Icc_le {p J : ℕ} [NeZero p] (r : ZMod p) :
+    ((Finset.Icc 1 J).filter
+      (fun j => ((j : ℕ) : ZMod p) = r)).card ≤ J / p + 1 := by
+  classical
+  rw [filter_natCast_zmod_eq]
+  exact card_filter_mod_Icc_le (Nat.pos_of_ne_zero (NeZero.ne p)) r.val
+
 end MoltResearch

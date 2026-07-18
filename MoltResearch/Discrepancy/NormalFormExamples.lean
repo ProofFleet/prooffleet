@@ -6629,6 +6629,35 @@ example (g : ℕ → ℂ) (huni : Unimodular g) (K H J h : ℕ) (hK : 0 < K)
       ≤ (Fintype.card ι : ℝ) * J * (12 / K) :=
   norm_sum_jointLaw_decObs_sub_le g huni K H J h hK a hcop hH hA hAB
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-iii-a): assembly bounds.
+example (n : ℕ) :
+    Real.log ((∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p :
+        ℕ) : ℝ)
+      ≤ 2 * (n : ℝ) * Real.log 4 :=
+  log_prod_block_le n
+
+example (P : ℕ) [NeZero P] {A B : ℕ} (hA : 1 ≤ A) (hAB : A < B) :
+    shannonEntropy (residueLaw P A B) ≤ Real.log (P : ℝ) :=
+  shannonEntropy_residueLaw_le P hA hAB
+
+open scoped Function in
+example (K H J h : ℕ) (hK : 0 < K) {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (a : ι → ℕ) (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (x : PatternSpace K H) (y : ZMod (∏ i, a i)) :
+    ‖decObs K H J h a hcop x y‖ ≤ (Fintype.card ι : ℝ) * J * 4 :=
+  norm_decObs_le K H J h hK a hcop x y
+
+-- (E6f-5b-iii-a cont.) block cardinality and the residue-gate count.
+example {n : ℕ} (hn : 2 ≤ n) :
+    (((2 * n + 1).primesBelow.filter (fun p => n < p)).card : ℝ)
+      ≤ 2 * n * Real.log 4 / Real.log n :=
+  card_block_le hn
+
+example {p J : ℕ} [NeZero p] (r : ZMod p) :
+    ((Finset.Icc 1 J).filter
+      (fun j => ((j : ℕ) : ZMod p) = r)).card ≤ J / p + 1 :=
+  card_filter_zmod_Icc_le r
+
 end NormalFormExamples
 
 end MoltResearch

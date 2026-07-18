@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.ChebyshevTail
+import Mathlib.NumberTheory.Primorial
 import Mathlib.Data.Nat.Choose.Factorization
 import Mathlib.Data.Nat.Choose.Central
 
@@ -462,5 +463,83 @@ theorem sum_one_div_prime_block_ge {n : ℕ} (hn : 2 ^ 28 ≤ n) :
       = ((n : ℝ) * Real.log 4 / 6) * Real.log (2 * (n : ℝ)) := by ring
   rw [hexp]
   exact mul_le_mul_of_nonneg_right hblock hlog2n.le
+
+/-- The block product divides the primorial. -/
+theorem prod_block_dvd_primorial (n : ℕ) :
+    ∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p
+      ∣ primorial (2 * n) := by
+  rw [primorial]
+  refine Finset.prod_dvd_prod_of_subset _ _ _ ?_
+  intro p hp
+  rw [Finset.mem_filter] at hp
+  have hpp := Nat.prime_of_mem_primesBelow hp.1
+  have hlt := Nat.lt_of_mem_primesBelow hp.1
+  rw [Finset.mem_filter]
+  exact ⟨Finset.mem_range.mpr hlt, hpp⟩
+
+/-- **The conditioning budget**: the log of the block product is at most
+`2n·log 4` (Erdős's primorial bound). -/
+theorem log_prod_block_le (n : ℕ) :
+    Real.log ((∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p : ℕ) : ℝ)
+      ≤ 2 * (n : ℝ) * Real.log 4 := by
+  have hpos : 0 < ∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p :=
+    Finset.prod_pos fun p hp => by
+      rw [Finset.mem_filter] at hp
+      exact (Nat.prime_of_mem_primesBelow hp.1).pos
+  have hle : (∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p)
+      ≤ 4 ^ (2 * n) :=
+    le_trans (Nat.le_of_dvd (primorial_pos _) (prod_block_dvd_primorial n))
+      (primorial_le_4_pow _)
+  have hlog := Real.log_le_log (by exact_mod_cast hpos)
+    (by exact_mod_cast hle :
+      ((∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p : ℕ) : ℝ)
+        ≤ ((4 : ℝ)) ^ (2 * n))
+  rw [Real.log_pow] at hlog
+  calc Real.log ((∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p :
+        ℕ) : ℝ)
+      ≤ ((2 * n : ℕ) : ℝ) * Real.log 4 := hlog
+    _ = 2 * (n : ℝ) * Real.log 4 := by push_cast; ring
+
+/-- **The block cardinality bound**: at most `2·log 4·n/log n` primes in the
+block — the Chebyshev upper bound the Hoeffding variance needs. -/
+theorem card_block_le {n : ℕ} (hn : 2 ≤ n) :
+    (((2 * n + 1).primesBelow.filter (fun p => n < p)).card : ℝ)
+      ≤ 2 * n * Real.log 4 / Real.log n := by
+  have hlogn : 0 < Real.log (n : ℝ) :=
+    Real.log_pos (by exact_mod_cast hn)
+  have hper : ∀ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p),
+      Real.log (n : ℝ) ≤ Real.log (p : ℝ) := by
+    intro p hp
+    rw [Finset.mem_filter] at hp
+    exact Real.log_le_log (by exact_mod_cast (by omega : 0 < n))
+      (by exact_mod_cast hp.2.le)
+  have hsum : (((2 * n + 1).primesBelow.filter (fun p => n < p)).card : ℝ)
+      * Real.log (n : ℝ)
+      ≤ ∑ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p),
+          Real.log (p : ℝ) := by
+    have h := Finset.card_nsmul_le_sum
+      ((2 * n + 1).primesBelow.filter (fun p => n < p))
+      (fun p => Real.log (p : ℝ)) (Real.log (n : ℝ)) hper
+    rwa [nsmul_eq_mul] at h
+  have hprod : ∑ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p),
+      Real.log (p : ℝ)
+      = Real.log ((∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p :
+          ℕ) : ℝ) := by
+    rw [show ((∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p :
+        ℕ) : ℝ) = ∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p),
+        (p : ℝ) from by push_cast; rfl]
+    rw [Real.log_prod]
+    intro p hp
+    rw [Finset.mem_filter] at hp
+    exact Nat.cast_ne_zero.mpr (Nat.prime_of_mem_primesBelow hp.1).pos.ne'
+  rw [le_div_iff₀ hlogn]
+  calc (((2 * n + 1).primesBelow.filter (fun p => n < p)).card : ℝ)
+      * Real.log (n : ℝ)
+      ≤ ∑ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p),
+          Real.log (p : ℝ) := hsum
+    _ = Real.log ((∏ p ∈ (2 * n + 1).primesBelow.filter (fun p => n < p), p :
+          ℕ) : ℝ) := hprod
+    _ ≤ 2 * (n : ℝ) * Real.log 4 := log_prod_block_le n
+    _ = 2 * n * Real.log 4 := by ring
 
 end MoltResearch
