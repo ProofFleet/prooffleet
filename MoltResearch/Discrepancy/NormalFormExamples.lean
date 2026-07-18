@@ -6612,6 +6612,23 @@ example (g : ℕ → ℂ) (huni : Unimodular g) (K H J h : ℕ) (hK : 0 < K)
       ≤ (Fintype.card ι : ℝ) * J * (12 / K) :=
   norm_decObs_sub_le g huni K H J h hK a hcop hH n
 
+-- Track C Elliott campaign (issue #2946, E6f-5b-i-c): the expectation bridge.
+open scoped Function in
+example (g : ℕ → ℂ) (huni : Unimodular g) (K H J h : ℕ) (hK : 0 < K)
+    {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (hH : ∀ i, J + a i * h ≤ H) {A B : ℕ} (hA : 1 ≤ A) (hAB : A < B) :
+    ‖(∑ z : PatternSpace K H × ZMod (∏ i, a i),
+        ((jointLaw g K H (∏ i, a i) A B z : ℝ) : ℂ)
+          * decObs K H J h a hcop z.1 z.2)
+      - (1 / ((∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m : ℝ) : ℂ))
+        * ∑ i, ∑ j ∈ Finset.Icc 1 J, ∑ n ∈ Finset.Ioc A B,
+            (if (n + j) % a i = 0
+              then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h)) else 0)
+              / (n : ℂ)‖
+      ≤ (Fintype.card ι : ℝ) * J * (12 / K) :=
+  norm_sum_jointLaw_decObs_sub_le g huni K H J h hK a hcop hH hA hAB
+
 end NormalFormExamples
 
 end MoltResearch

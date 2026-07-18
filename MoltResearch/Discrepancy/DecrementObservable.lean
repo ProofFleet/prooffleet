@@ -164,6 +164,91 @@ theorem norm_decObs_sub_le (g : ℕ → ℂ) (huni : Unimodular g)
   rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
   ring
 
+/-- **The expectation bridge**: the joint-law expectation of the observable is
+the normalized triple sum of Proposition `conv`, up to the rounding cost. -/
+theorem norm_sum_jointLaw_decObs_sub_le (g : ℕ → ℂ) (huni : Unimodular g)
+    (K H J h : ℕ) (hK : 0 < K) (a : ι → ℕ)
+    (hcop : Pairwise (Nat.Coprime on a)) [∀ i, NeZero (a i)]
+    (hH : ∀ i, J + a i * h ≤ H) {A B : ℕ} (hA : 1 ≤ A) (hAB : A < B) :
+    ‖(∑ z : PatternSpace K H × ZMod (∏ i, a i),
+        ((jointLaw g K H (∏ i, a i) A B z : ℝ) : ℂ)
+          * decObs K H J h a hcop z.1 z.2)
+      - (1 / ((∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m : ℝ) : ℂ))
+        * ∑ i, ∑ j ∈ Finset.Icc 1 J, ∑ n ∈ Finset.Ioc A B,
+            (if (n + j) % a i = 0
+              then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h)) else 0)
+              / (n : ℂ)‖
+      ≤ (Fintype.card ι : ℝ) * J * (12 / K) := by
+  classical
+  -- the pulled-back expectation
+  have hpush := sum_pushWeight_mul_complex (Finset.Ioc A B) (logWeight A B)
+    (fun n => (patternMap g K H n, (n : ZMod (∏ i, a i))))
+    (fun z => decObs K H J h a hcop z.1 z.2)
+  have hjoint : (∑ z : PatternSpace K H × ZMod (∏ i, a i),
+      ((jointLaw g K H (∏ i, a i) A B z : ℝ) : ℂ)
+        * decObs K H J h a hcop z.1 z.2)
+      = ∑ n ∈ Finset.Ioc A B, ((logWeight A B n : ℝ) : ℂ)
+          * decObs K H J h a hcop (patternMap g K H n)
+            ((n : ZMod (∏ i, a i))) := hpush
+  -- the true divisor-sum observable
+  have hdict := sum_logWeight_mul A B (fun n =>
+    ∑ i, ∑ j ∈ Finset.Icc 1 J,
+      (if (n + j) % a i = 0
+        then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h)) else 0))
+  have hexch : ∑ n ∈ Finset.Ioc A B,
+      (∑ i, ∑ j ∈ Finset.Icc 1 J,
+        (if (n + j) % a i = 0
+          then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h)) else 0))
+        / (n : ℂ)
+      = ∑ i, ∑ j ∈ Finset.Icc 1 J, ∑ n ∈ Finset.Ioc A B,
+          (if (n + j) % a i = 0
+            then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h)) else 0)
+            / (n : ℂ) := by
+    rw [Finset.sum_congr rfl fun n _ => Finset.sum_div _ _ _]
+    rw [Finset.sum_comm]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    rw [Finset.sum_congr rfl fun n _ => Finset.sum_div _ _ _]
+    rw [Finset.sum_comm]
+  -- assemble: the difference is the aggregated per-point rounding error
+  have hsplit : (∑ z : PatternSpace K H × ZMod (∏ i, a i),
+      ((jointLaw g K H (∏ i, a i) A B z : ℝ) : ℂ)
+        * decObs K H J h a hcop z.1 z.2)
+      - (1 / ((∑ m ∈ Finset.Ioc A B, (1 : ℝ) / m : ℝ) : ℂ))
+        * ∑ i, ∑ j ∈ Finset.Icc 1 J, ∑ n ∈ Finset.Ioc A B,
+            (if (n + j) % a i = 0
+              then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h)) else 0)
+              / (n : ℂ)
+      = ∑ n ∈ Finset.Ioc A B, ((logWeight A B n : ℝ) : ℂ)
+          * (decObs K H J h a hcop (patternMap g K H n)
+              ((n : ZMod (∏ i, a i)))
+            - ∑ i, ∑ j ∈ Finset.Icc 1 J,
+                (if (n + j) % a i = 0
+                  then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h))
+                  else 0)) := by
+    rw [hjoint, ← hexch, ← hdict]
+    rw [← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    ring
+  rw [hsplit]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hper : ∀ n ∈ Finset.Ioc A B,
+      ‖((logWeight A B n : ℝ) : ℂ)
+        * (decObs K H J h a hcop (patternMap g K H n)
+            ((n : ZMod (∏ i, a i)))
+          - ∑ i, ∑ j ∈ Finset.Icc 1 J,
+              (if (n + j) % a i = 0
+                then g (n + j) * (starRingEnd ℂ) (g (n + j + a i * h))
+                else 0))‖
+      ≤ logWeight A B n * ((Fintype.card ι : ℝ) * J * (12 / K)) := by
+    intro n _
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (logWeight_nonneg A B n)]
+    exact mul_le_mul_of_nonneg_left
+      (norm_decObs_sub_le g huni K H J h hK a hcop hH n)
+      (logWeight_nonneg A B n)
+  refine le_trans (Finset.sum_le_sum hper) ?_
+  rw [← Finset.sum_mul, sum_logWeight hA hAB, one_mul]
+
 end Observable
 
 end MoltResearch
