@@ -993,6 +993,551 @@ theorem pairwise_coprime_primeBlock (n₀ : ℕ) :
 
 end BlockDictionary
 
+section WindowHandling
+
+/-- Each conjugate-pair summand has norm exactly `1/n`; the pair sum over any
+window is bounded by the harmonic mass. -/
+theorem norm_pair_le_sum_one_div {g : ℕ → ℂ} (huni : Unimodular g)
+    (b₁ b₂ : ℕ) (s : Finset ℕ) :
+    ‖∑ n ∈ s, g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+      ≤ ∑ n ∈ s, (1 : ℝ) / n := by
+  refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun n _ => ?_)
+  rw [norm_div, norm_mul, RCLike.norm_conj, huni (n + b₁), huni (n + b₂),
+    one_mul, Complex.norm_natCast]
+
+/-- **The window trim**: passing to the `max`-trimmed window costs at most
+`log NS` of correlation mass. -/
+theorem norm_pair_trim {g : ℕ → ℂ} (huni : Unimodular g)
+    (b₁ b₂ NS A' B' : ℕ) (hNS1 : 1 ≤ NS) (hA'1 : 1 ≤ A') :
+    ‖∑ n ∈ Finset.Ioc A' B',
+        g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+      ≤ ‖∑ n ∈ Finset.Ioc (max A' NS) B',
+          g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+        + Real.log NS := by
+  have hlogNS : (0 : ℝ) ≤ Real.log NS :=
+    Real.log_nonneg (by exact_mod_cast hNS1)
+  by_cases hcase : NS ≤ A'
+  · rw [max_eq_left hcase]
+    linarith [norm_nonneg (∑ n ∈ Finset.Ioc A' B',
+      g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ))]
+  · push_neg at hcase
+    rw [max_eq_right (le_of_lt hcase)]
+    by_cases hBN : B' ≤ NS
+    · -- the whole window sits inside the trim: its mass is at most `log NS`
+      have hmass : ‖∑ n ∈ Finset.Ioc A' B',
+          g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+          ≤ Real.log NS := by
+        refine le_trans (norm_pair_le_sum_one_div huni b₁ b₂ _) ?_
+        by_cases hAB : A' ≤ B'
+        · refine le_trans (sum_one_div_Ioc_le hA'1 hAB) ?_
+          have h1 : Real.log A' ≥ 0 :=
+            Real.log_nonneg (by exact_mod_cast hA'1)
+          have h2 : Real.log B' ≤ Real.log NS :=
+            Real.log_le_log (by exact_mod_cast (by omega : 0 < B') :
+              (0 : ℝ) < (B' : ℝ)) (by exact_mod_cast hBN)
+          linarith
+        · push_neg at hAB
+          rw [Finset.Ioc_eq_empty (by omega), Finset.sum_empty]
+          exact hlogNS
+      linarith [norm_nonneg (∑ n ∈ Finset.Ioc NS B',
+        g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ))]
+    · push_neg at hBN
+      -- split the window at `NS`
+      have hsplit := Finset.sum_Ioc_consecutive
+        (f := fun n => g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ))
+        (le_of_lt hcase) (le_of_lt hBN)
+      have htri : ‖∑ n ∈ Finset.Ioc A' B',
+          g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+          ≤ ‖∑ n ∈ Finset.Ioc A' NS,
+              g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+            + ‖∑ n ∈ Finset.Ioc NS B',
+              g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖ := by
+        rw [← hsplit]
+        exact norm_add_le _ _
+      have hpre : ‖∑ n ∈ Finset.Ioc A' NS,
+          g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+          ≤ Real.log NS := by
+        refine le_trans (norm_pair_le_sum_one_div huni b₁ b₂ _) ?_
+        refine le_trans (sum_one_div_Ioc_le hA'1 (le_of_lt hcase)) ?_
+        have h1 : Real.log A' ≥ 0 :=
+          Real.log_nonneg (by exact_mod_cast hA'1)
+        linarith
+      linarith
+
+/-- **Harmonic lower bound**, telescoping form: the window mass dominates the
+log-length measured one step out. -/
+theorem log_le_sum_one_div_Ioc {c d : ℕ} (hcd : c ≤ d) :
+    Real.log ((d + 1 : ℕ) : ℝ) - Real.log ((c + 1 : ℕ) : ℝ)
+      ≤ ∑ n ∈ Finset.Ioc c d, (1 : ℝ) / n := by
+  have hreidx : ∑ n ∈ Finset.Ioc c d, (1 : ℝ) / n
+      = ∑ i ∈ Finset.range (d - c), (1 : ℝ) / ((c + 1 + i : ℕ) : ℝ) := by
+    refine Finset.sum_bij' (fun n _ => n - (c + 1)) (fun i _ => c + 1 + i)
+      ?_ ?_ ?_ ?_ ?_
+    · intro n hn
+      rw [Finset.mem_Ioc] at hn
+      show n - (c + 1) ∈ Finset.range (d - c)
+      rw [Finset.mem_range]
+      omega
+    · intro i hi
+      rw [Finset.mem_range] at hi
+      show c + 1 + i ∈ Finset.Ioc c d
+      rw [Finset.mem_Ioc]
+      omega
+    · intro n hn
+      rw [Finset.mem_Ioc] at hn
+      show c + 1 + (n - (c + 1)) = n
+      omega
+    · intro i _
+      show c + 1 + i - (c + 1) = i
+      omega
+    · intro n hn
+      rw [Finset.mem_Ioc] at hn
+      show (1 : ℝ) / n = 1 / ((c + 1 + (n - (c + 1)) : ℕ) : ℝ)
+      congr 2
+      omega
+  have htel := Finset.sum_range_sub
+    (f := fun i => Real.log ((c + 1 + i : ℕ) : ℝ)) (d - c)
+  have hends : Real.log ((c + 1 + (d - c) : ℕ) : ℝ)
+      = Real.log ((d + 1 : ℕ) : ℝ) := by
+    congr 2
+    omega
+  have hper : ∀ i ∈ Finset.range (d - c),
+      Real.log ((c + 1 + (i + 1) : ℕ) : ℝ) - Real.log ((c + 1 + i : ℕ) : ℝ)
+        ≤ (1 : ℝ) / ((c + 1 + i : ℕ) : ℝ) := by
+    intro i _
+    have hn0 : (0 : ℝ) < ((c + 1 + i : ℕ) : ℝ) := by
+      exact_mod_cast (by omega : 0 < c + 1 + i)
+    have hsucc : ((c + 1 + (i + 1) : ℕ) : ℝ) = ((c + 1 + i : ℕ) : ℝ) + 1 := by
+      push_cast
+      ring
+    rw [hsucc, ← Real.log_div (by linarith) (ne_of_gt hn0)]
+    have hpos : (0 : ℝ) < (((c + 1 + i : ℕ) : ℝ) + 1) / ((c + 1 + i : ℕ) : ℝ) := by
+      positivity
+    have h := Real.log_le_sub_one_of_pos hpos
+    have hval : (((c + 1 + i : ℕ) : ℝ) + 1) / ((c + 1 + i : ℕ) : ℝ) - 1
+        = 1 / ((c + 1 + i : ℕ) : ℝ) := by
+      field_simp
+      ring
+    linarith [h, hval.le, hval.ge]
+  rw [hreidx]
+  calc Real.log ((d + 1 : ℕ) : ℝ) - Real.log ((c + 1 : ℕ) : ℝ)
+      = ∑ i ∈ Finset.range (d - c),
+          (Real.log ((c + 1 + (i + 1) : ℕ) : ℝ)
+            - Real.log ((c + 1 + i : ℕ) : ℝ)) := by
+        rw [htel, hends]
+    _ ≤ ∑ i ∈ Finset.range (d - c), (1 : ℝ) / ((c + 1 + i : ℕ) : ℝ) :=
+        Finset.sum_le_sum hper
+
+/-- **Harmonic mass of the trimmed Elliott window, lower bound**:
+`log w − log(NS + 2)`. -/
+theorem harmonic_trim_ge (NS : ℕ) (hNS : 1 ≤ NS) {x w : ℝ}
+    (hw1 : 1 ≤ w) (hwx : w ≤ x) :
+    Real.log w - Real.log ((NS + 2 : ℕ) : ℝ)
+      ≤ ∑ n ∈ Finset.Ioc (max ⌊x / w⌋₊ NS) ⌊x⌋₊, (1 : ℝ) / n := by
+  have hx1 : (1 : ℝ) ≤ x := le_trans hw1 hwx
+  have hw0 : (0 : ℝ) < w := by linarith
+  have hx0 : (0 : ℝ) < x := by linarith
+  set c : ℕ := max ⌊x / w⌋₊ NS with hc_def
+  by_cases hcd : c ≤ ⌊x⌋₊
+  · refine le_trans ?_ (log_le_sum_one_div_Ioc hcd)
+    have hd1 : x ≤ ((⌊x⌋₊ + 1 : ℕ) : ℝ) := by
+      push_cast
+      linarith [Nat.lt_floor_add_one x]
+    have hlogd : Real.log x ≤ Real.log ((⌊x⌋₊ + 1 : ℕ) : ℝ) :=
+      Real.log_le_log hx0 hd1
+    have hcle : ((c + 1 : ℕ) : ℝ) ≤ (x / w) * ((NS + 2 : ℕ) : ℝ) := by
+      have h1 : (⌊x / w⌋₊ : ℝ) ≤ x / w := Nat.floor_le (by positivity)
+      have h2 : (c : ℝ) ≤ x / w + NS := by
+        have hmax : c = max ⌊x / w⌋₊ NS := hc_def
+        have hle1 : (⌊x / w⌋₊ : ℝ) ≤ x / w + NS := by
+          have hNS0 : (0 : ℝ) ≤ (NS : ℝ) := Nat.cast_nonneg NS
+          linarith
+        have hle2 : (NS : ℝ) ≤ x / w + NS := by
+          have hxw1 : (1 : ℝ) ≤ x / w := (one_le_div hw0).mpr hwx
+          linarith
+        rcases max_cases ⌊x / w⌋₊ NS with ⟨heq, _⟩ | ⟨heq, _⟩ <;>
+          rw [hmax, heq]
+        · exact_mod_cast hle1
+        · exact_mod_cast hle2
+      have hxw1 : (1 : ℝ) ≤ x / w := (one_le_div hw0).mpr hwx
+      push_cast
+      push_cast at h2
+      nlinarith [hxw1]
+    have hlogc : Real.log ((c + 1 : ℕ) : ℝ)
+        ≤ Real.log x - Real.log w + Real.log ((NS + 2 : ℕ) : ℝ) := by
+      have hc0 : (0 : ℝ) < ((c + 1 : ℕ) : ℝ) := by
+        exact_mod_cast (by omega : 0 < c + 1)
+      have := Real.log_le_log hc0 hcle
+      rw [Real.log_mul (by positivity) (by positivity),
+        Real.log_div (ne_of_gt hx0) (ne_of_gt hw0)] at this
+      linarith
+    linarith [hlogd, hlogc]
+  · -- the degenerate case `NS > ⌊x⌋₊`: the window is empty, but then
+    -- `w ≤ x < NS + 1`, so the claimed lower bound is nonpositive.
+    push_neg at hcd
+    rw [Finset.Ioc_eq_empty (by omega), Finset.sum_empty]
+    have hflmono : ⌊x / w⌋₊ ≤ ⌊x⌋₊ :=
+      Nat.floor_le_floor (div_le_self hx0.le hw1)
+    have hchoice := max_choice ⌊x / w⌋₊ NS
+    have hcNS : c = NS := by
+      rw [hc_def]
+      rcases hchoice with heq | heq
+      · rw [hc_def] at hcd
+        omega
+      · exact heq
+    have hxNS : x < ((NS + 2 : ℕ) : ℝ) := by
+      have h1 := Nat.lt_floor_add_one x
+      have h2 : (⌊x⌋₊ : ℝ) + 1 ≤ ((NS + 2 : ℕ) : ℝ) := by
+        have : ⌊x⌋₊ + 1 ≤ NS + 2 := by omega
+        exact_mod_cast this
+      linarith
+    have hlogw : Real.log w ≤ Real.log ((NS + 2 : ℕ) : ℝ) :=
+      Real.log_le_log hw0 (by linarith)
+    linarith
+
+/-- **Harmonic mass of the trimmed Elliott window, upper bound**:
+`log w + log(NS + 1)`. -/
+theorem harmonic_trim_le (NS : ℕ) (hNS : 1 ≤ NS) {x w : ℝ}
+    (hw1 : 1 ≤ w) (hwx : w ≤ x) :
+    ∑ n ∈ Finset.Ioc (max ⌊x / w⌋₊ NS) ⌊x⌋₊, (1 : ℝ) / n
+      ≤ Real.log w + Real.log ((NS + 1 : ℕ) : ℝ) := by
+  have hw0 : (0 : ℝ) < w := by linarith
+  have hx0 : (0 : ℝ) < x := by linarith
+  have hlogw : (0 : ℝ) ≤ Real.log w := Real.log_nonneg hw1
+  have hlogNS : (0 : ℝ) ≤ Real.log ((NS + 1 : ℕ) : ℝ) :=
+    Real.log_nonneg (by exact_mod_cast (by omega : 1 ≤ NS + 1))
+  set c : ℕ := max ⌊x / w⌋₊ NS with hc_def
+  have hc1 : 1 ≤ c := le_trans hNS (le_max_right _ _)
+  by_cases hcd : c ≤ ⌊x⌋₊
+  · refine le_trans (sum_one_div_Ioc_le hc1 hcd) ?_
+    have hlogd : Real.log (⌊x⌋₊ : ℝ) ≤ Real.log x :=
+      Real.log_le_log (by exact_mod_cast (by omega : 0 < ⌊x⌋₊))
+        (Nat.floor_le hx0.le)
+    rcases max_choice ⌊x / w⌋₊ NS with heq | heq
+    · -- `c = ⌊x/w⌋₊ ≥ NS ≥ 1`: `c + 1 ≤ 2c` and `c + 1 > x/w`
+      have hcval : c = ⌊x / w⌋₊ := heq
+      have hfl : x / w < (c : ℝ) + 1 := by
+        rw [hcval]
+        exact Nat.lt_floor_add_one _
+      have hc2 : (1 : ℝ) ≤ (c : ℝ) := by exact_mod_cast hc1
+      have hxc : x / w ≤ 2 * (c : ℝ) := by linarith
+      have hlogc : Real.log x - Real.log w - Real.log 2
+          ≤ Real.log (c : ℝ) := by
+        have h1 : (0 : ℝ) < x / w := by positivity
+        have h2 := Real.log_le_log h1 hxc
+        rw [Real.log_div (ne_of_gt hx0) (ne_of_gt hw0),
+          Real.log_mul (by norm_num)
+            (ne_of_gt (show (0 : ℝ) < (c : ℝ) by linarith))] at h2
+        linarith
+      have hlog2NS : Real.log 2 ≤ Real.log ((NS + 1 : ℕ) : ℝ) := by
+        refine Real.log_le_log (by norm_num) ?_
+        exact_mod_cast (by omega : 2 ≤ NS + 1)
+      linarith
+    · -- `c = NS ≥ ⌊x/w⌋₊`: then `x/w < NS + 1`, so `log x < log w + log(NS+1)`
+      have hcval : c = NS := heq
+      have hfl : x / w < ((NS + 1 : ℕ) : ℝ) := by
+        have h1 : ⌊x / w⌋₊ ≤ NS := by
+          rw [hc_def] at hcval
+          omega
+        have h2 := Nat.lt_floor_add_one (x / w)
+        have h3 : (⌊x / w⌋₊ : ℝ) + 1 ≤ ((NS + 1 : ℕ) : ℝ) := by
+          exact_mod_cast (by omega : ⌊x / w⌋₊ + 1 ≤ NS + 1)
+        linarith
+      have hxlt : x < w * ((NS + 1 : ℕ) : ℝ) := by
+        have := (div_lt_iff₀ hw0).mp hfl
+        linarith [this]
+      have hlogx : Real.log x
+          ≤ Real.log w + Real.log ((NS + 1 : ℕ) : ℝ) := by
+        have h1 := Real.log_le_log hx0 hxlt.le
+        rw [Real.log_mul (ne_of_gt hw0) (by positivity)] at h1
+        linarith
+      have hlogc : (0 : ℝ) ≤ Real.log (c : ℝ) :=
+        Real.log_nonneg (by exact_mod_cast hc1)
+      linarith
+  · push_neg at hcd
+    rw [Finset.Ioc_eq_empty (by omega), Finset.sum_empty]
+    positivity
+
+/-- **Window capacity**: once the window bottom is large, the trimmed left
+endpoint fits any fixed multiplicative demand below the right endpoint. -/
+theorem window_capacity {NS Cbig : ℕ} (hNS1 : 1 ≤ NS) (hC1 : 1 ≤ Cbig)
+    {x w : ℝ}
+    (hw : (((Cbig + 1) * (NS + 2) + 4 * Cbig : ℕ) : ℝ) ≤ w) (hwx : w ≤ x) :
+    Cbig * (max ⌊x / w⌋₊ NS + 1) ≤ ⌊x⌋₊ := by
+  have hwR : ((4 * Cbig : ℕ) : ℝ) ≤ w := by
+    refine le_trans ?_ hw
+    exact_mod_cast (by omega : 4 * Cbig ≤ (Cbig + 1) * (NS + 2) + 4 * Cbig)
+  have hw0 : (0 : ℝ) < w := by
+    have : (0 : ℝ) < ((4 * Cbig : ℕ) : ℝ) := by
+      exact_mod_cast (by omega : 0 < 4 * Cbig)
+    linarith
+  have hx0 : (0 : ℝ) < x := by linarith
+  refine Nat.le_floor ?_
+  rcases max_choice ⌊x / w⌋₊ NS with heq | heq <;> rw [heq]
+  · -- left endpoint `⌊x/w⌋₊`: use `⌊x/w⌋₊ + 1 ≤ 2·(x/w)` when it is ≥ 1
+    have hfl : (⌊x / w⌋₊ : ℝ) ≤ x / w := Nat.floor_le (by positivity)
+    have hb : (1 : ℝ) ≤ x / w := (one_le_div hw0).mpr hwx
+    have hfl1 : (1 : ℝ) ≤ (⌊x / w⌋₊ : ℝ) + 1 := by
+      have := Nat.cast_nonneg (α := ℝ) ⌊x / w⌋₊
+      linarith
+    have hkey : ((Cbig * (⌊x / w⌋₊ + 1) : ℕ) : ℝ)
+        ≤ (Cbig : ℝ) * (2 * (x / w)) := by
+      push_cast
+      nlinarith [hfl, hb]
+    have hfin : (Cbig : ℝ) * (2 * (x / w)) ≤ x := by
+      have h2C : 2 * (Cbig : ℝ) ≤ w / 2 := by
+        have h4 : ((4 * Cbig : ℕ) : ℝ) = 4 * (Cbig : ℝ) := by push_cast; ring
+        rw [h4] at hwR
+        linarith
+      have hxw0 : (0 : ℝ) ≤ x / w := by positivity
+      have hxw : x / w * (2 * (Cbig : ℝ)) ≤ x / w * (w / 2) :=
+        mul_le_mul_of_nonneg_left h2C hxw0
+      have hval : x / w * (w / 2) = x / 2 := by
+        field_simp
+      nlinarith [hxw, hval, hx0]
+    calc ((Cbig * (⌊x / w⌋₊ + 1) : ℕ) : ℝ)
+        ≤ (Cbig : ℝ) * (2 * (x / w)) := hkey
+      _ ≤ x := hfin
+  · -- left endpoint `NS`: the fixed demand is below `w ≤ x`
+    have hle : ((Cbig * (NS + 1) : ℕ) : ℝ)
+        ≤ (((Cbig + 1) * (NS + 2) + 4 * Cbig : ℕ) : ℝ) := by
+      exact_mod_cast (by nlinarith :
+        Cbig * (NS + 1) ≤ (Cbig + 1) * (NS + 2) + 4 * Cbig)
+    linarith [hw, hwx]
+
+end WindowHandling
+
+section FinalArithmetic
+
+/-- **The master budget arithmetic**: the `prop_conv` lower bound (`hPC`), the
+bridge upper bound (`hT`), and the M1 expectation bound (`hM1`) are
+incompatible under the audited parameter schedule — the contradiction closing
+the entropy-decrement argument. All quantities are abstract reals; the
+callers' norm expressions and schedule values enter by unification. -/
+theorem elliott_master_arith
+    {ε lw lNS lNS2 msj Jl n0 Amax NSR S TN EN SB Mv Kd Ξc Ξm εmr τv τ' θ₀ Ds
+      ts θsj Cc hR E1 lgn0 Lfj Rg HsR δ₃ δg κb : ℝ}
+    (hε0 : 0 < ε) (hε1 : ε ≤ 1) (hlw1 : 1 ≤ lw)
+    (hPC : Jl * msj * (ε * lw - lNS - 1) - 3 * Jl ^ 2 * n0 / Amax
+      - Jl * (2 * Real.log (2 * n0) + 2) ≤ TN)
+    (hT : TN ≤ S * (EN + SB * (12 / Kd)))
+    (hM1 : EN ≤ 2 * (ts + 2 * Mv * ((τv + θ₀) / (τ' + θ₀)
+        + (τ' + θ₀ + Real.log 2) / Ds))
+      + 2 * (8 * hR * Cc + 4 * θsj * Jl
+        + Jl * κb * 2 * (Ξc * (4 / Kd + 2 * εmr))))
+    (hS_pos : 0 < S) (hS2lw : S ≤ 2 * lw)
+    (hJl0 : 0 < Jl) (hms0 : 0 < msj)
+    (hts_eq : ts = Jl * msj * ε / 64)
+    (hθs_eq : θsj = ε * msj / 256)
+    (hκms : κb ≤ 48 * msj)
+    (hMv4 : Mv = 4 * SB) (hMv0 : 0 ≤ Mv) (hMv_ub : Mv ≤ 193 * (Jl * msj))
+    (hcard_ub : Cc ≤ 64 * δ₃ * (Jl * msj))
+    (hhR1 : 1 ≤ hR) (hδ₃0 : 0 < δ₃) (hδ₃h : δ₃ * hR = ε / 100000)
+    (hΞc0 : 0 ≤ Ξc) (hΞcard : Ξc ≤ Ξm) (hΞm1 : 1 ≤ Ξm)
+    (hKd0 : 0 < Kd) (hKdR : 10 ^ 6 * (Ξm + 1) / ε ≤ Kd)
+    (hεmr_eq : εmr = ε / (10000 * (Ξm + 1)))
+    (hτ'_eq : τ' = ε * Ds / 200000) (hτ'0 : 0 < τ')
+    (hθ₀0 : 0 ≤ θ₀) (hθ₀τ' : θ₀ ≤ τ' * ε / 200000)
+    (hDs0 : 0 < Ds) (hDs_min : 604000 / ε ≤ Ds)
+    (hτv_eq : τv = HsR * δg / Lfj)
+    (hδg_eq : δg = ε ^ 4 * δ₃ / (10 ^ 21 * Rg))
+    (hRg2 : 2 ≤ Rg) (hLf0 : 0 < Lfj) (hHsR0 : 0 < HsR)
+    (hlgn0pos : 0 < lgn0) (hlgn0Rg : lgn0 ≤ Rg * Lfj)
+    (hDs_lb : ε ^ 2 * δ₃ * HsR / (10 ^ 10 * lgn0) ≤ Ds)
+    (hE1_eq : E1 = 3 * Jl ^ 2 * n0 / NSR + Jl * (2 * Real.log (2 * n0) + 2))
+    (hNSR0 : 0 < NSR) (hNSAmax : NSR ≤ Amax) (hn00 : 0 ≤ n0)
+    (hlNSle : lNS ≤ lNS2)
+    (hbud : 4 * (lNS2 + 1 + E1 / (Jl * msj)) / ε ≤ lw) :
+    False := by
+  have hlw0 : (0:ℝ) < lw := by linarith
+  have hQ0 : (0:ℝ) < Jl * msj := mul_pos hJl0 hms0
+  have hRg0 : (0:ℝ) < Rg := by linarith
+  -- ================= the lower bound: `(3/4)·Q·ε·lw ≤ TN` =================
+  have hAmax0 : (0:ℝ) < Amax := lt_of_lt_of_le hNSR0 hNSAmax
+  have herrA : 3 * Jl ^ 2 * n0 / Amax ≤ 3 * Jl ^ 2 * n0 / NSR :=
+    div_le_div_of_nonneg_left
+      (mul_nonneg (by nlinarith only [sq_nonneg Jl] : (0:ℝ) ≤ 3 * Jl ^ 2) hn00)
+      hNSR0 hNSAmax
+  have hbudA : lNS2 + 1 + E1 / (Jl * msj) ≤ ε * lw / 4 := by
+    have h1 := (div_le_iff₀ hε0).mp hbud
+    linarith
+  have hE1Q : Jl * msj * (E1 / (Jl * msj)) = E1 := by
+    field_simp
+  have hbudQ : Jl * msj * (lNS2 + 1) + E1 ≤ Jl * msj * (ε * lw) / 4 := by
+    have h2 := mul_le_mul_of_nonneg_left hbudA hQ0.le
+    have h3 : Jl * msj * (lNS2 + 1 + E1 / (Jl * msj))
+        = Jl * msj * (lNS2 + 1) + Jl * msj * (E1 / (Jl * msj)) := by ring
+    have h4 : Jl * msj * (ε * lw / 4) = Jl * msj * (ε * lw) / 4 := by ring
+    linarith only [h2, h3.le, h3.ge, hE1Q.le, hE1Q.ge, h4.le, h4.ge]
+  have hlow : 3 / 4 * (Jl * msj * (ε * lw)) ≤ TN := by
+    have h5 : Jl * msj * (lNS + 1) ≤ Jl * msj * (lNS2 + 1) :=
+      mul_le_mul_of_nonneg_left (by linarith) hQ0.le
+    have h6 : Jl * msj * (ε * lw - lNS - 1)
+        = Jl * msj * (ε * lw) - Jl * msj * (lNS + 1) := by ring
+    linarith only [hPC, herrA, hE1_eq.le, hE1_eq.ge, h5, h6.le, h6.ge, hbudQ]
+  -- ================= the alphabet and swap caps =================
+  have hεmr0 : (0:ℝ) ≤ εmr := by
+    rw [hεmr_eq]
+    exact div_nonneg hε0.le (by linarith)
+  have hfac0 : (0:ℝ) ≤ 4 / Kd + 2 * εmr := by
+    have := div_nonneg (by norm_num : (0:ℝ) ≤ 4) hKd0.le
+    linarith
+  have hKdinv2e6 : 1 / Kd ≤ ε / (2 * 10 ^ 6) := by
+    have h1 : 2 * 10 ^ 6 / ε ≤ Kd := by
+      have h2 : 2 * 10 ^ 6 / ε ≤ 10 ^ 6 * (Ξm + 1) / ε := by
+        rw [div_le_div_iff₀ hε0 hε0]
+        nlinarith only [hΞm1, hε0]
+      linarith only [h2, hKdR]
+    rw [div_le_div_iff₀ hKd0 (by norm_num : (0:ℝ) < 2 * 10 ^ 6)]
+    have h3 := (div_le_iff₀ hε0).mp h1
+    linarith only [h3]
+  have hswap_ub : Ξc * (4 / Kd + 2 * εmr) ≤ 21 / 100000 * ε := by
+    have h4Kd : 4 / Kd ≤ 4 * ε / (10 ^ 6 * (Ξm + 1)) := by
+      rw [div_le_div_iff₀ hKd0
+        (by nlinarith only [hΞm1] : (0:ℝ) < 10 ^ 6 * (Ξm + 1))]
+      have h5 := (div_le_iff₀ hε0).mp hKdR
+      nlinarith only [h5, hε0]
+    have hΞstep : Ξc * (4 / Kd + 2 * εmr) ≤ Ξm * (4 / Kd + 2 * εmr) :=
+      mul_le_mul_of_nonneg_right hΞcard hfac0
+    have hA : Ξm * (4 / Kd) ≤ 4 / 10 ^ 6 * ε := by
+      have h6 : Ξm * (4 / Kd) ≤ Ξm * (4 * ε / (10 ^ 6 * (Ξm + 1))) :=
+        mul_le_mul_of_nonneg_left h4Kd (by linarith)
+      have h7 : Ξm * (4 * ε / (10 ^ 6 * (Ξm + 1))) ≤ 4 / 10 ^ 6 * ε := by
+        have hb : Ξm * (4 * ε / (10 ^ 6 * (Ξm + 1)))
+            = Ξm * (4 * ε) / (10 ^ 6 * (Ξm + 1)) := by ring
+        rw [hb, div_le_iff₀
+          (by nlinarith only [hΞm1] : (0:ℝ) < 10 ^ 6 * (Ξm + 1))]
+        nlinarith only [hε0]
+      linarith only [h6, h7]
+    have hB : Ξm * (2 * εmr) ≤ 2 / 10000 * ε := by
+      rw [hεmr_eq]
+      have h8 : Ξm * (2 * (ε / (10000 * (Ξm + 1))))
+          = 2 * ε * Ξm / (10000 * (Ξm + 1)) := by ring
+      rw [h8, div_le_iff₀
+        (by nlinarith only [hΞm1] : (0:ℝ) < 10000 * (Ξm + 1))]
+      nlinarith only [hε0]
+    have hsplit : Ξm * (4 / Kd + 2 * εmr)
+        = Ξm * (4 / Kd) + Ξm * (2 * εmr) := by ring
+    nlinarith only [hΞstep, hsplit.le, hsplit.ge, hA, hB, hε0]
+  -- ================= the M1 terms in `Q·ε` units =================
+  have hts2 : 2 * ts = 2 / 64 * (Jl * msj * ε) := by rw [hts_eq]; ring
+  have hθst : 8 * θsj * Jl = 8 / 256 * (Jl * msj * ε) := by rw [hθs_eq]; ring
+  have hMRt : Jl * κb * 2 * (Ξc * (4 / Kd + 2 * εmr))
+      ≤ 2016 / 100000 * (Jl * msj * ε) := by
+    have h9 : Jl * κb * 2 ≤ 48 * (Jl * msj) * 2 := by
+      have := mul_le_mul_of_nonneg_left hκms hJl0.le
+      linarith
+    have hswap0 : (0:ℝ) ≤ Ξc * (4 / Kd + 2 * εmr) := mul_nonneg hΞc0 hfac0
+    have h10 : Jl * κb * 2 * (Ξc * (4 / Kd + 2 * εmr))
+        ≤ 48 * (Jl * msj) * 2 * (21 / 100000 * ε) :=
+      mul_le_mul h9 hswap_ub hswap0 (by nlinarith only [hQ0])
+    have h11 : 48 * (Jl * msj) * 2 * (21 / 100000 * ε)
+        = 2016 / 100000 * (Jl * msj * ε) := by ring
+    linarith only [h10, h11.le, h11.ge]
+  have hstrip : 8 * hR * Cc ≤ 512 / 100000 * (Jl * msj * ε) := by
+    have h12 : 8 * hR * Cc ≤ 8 * hR * (64 * δ₃ * (Jl * msj)) :=
+      mul_le_mul_of_nonneg_left hcard_ub (by nlinarith only [hhR1])
+    have h13 : 8 * hR * (64 * δ₃ * (Jl * msj))
+        = 512 * (δ₃ * hR) * (Jl * msj) := by ring
+    rw [hδ₃h] at h13
+    have h14 : 512 * (ε / 100000) * (Jl * msj)
+        = 512 / 100000 * (Jl * msj * ε) := by ring
+    linarith only [h12, h13.le, h13.ge, h14.le, h14.ge]
+  -- ================= the decoupling ratios =================
+  have hδg0 : (0:ℝ) < δg := by
+    rw [hδg_eq]
+    exact div_pos (mul_pos (pow_pos hε0 4) hδ₃0) (by nlinarith only [hRg0])
+  have hτv0 : (0:ℝ) ≤ τv := by
+    rw [hτv_eq]
+    exact div_nonneg (mul_nonneg hHsR0.le hδg0.le) hLf0.le
+  have hτvτ' : τv ≤ 2 / 10 ^ 6 * (ε * τ') := by
+    have hb1 : τv = ε ^ 4 * δ₃ * HsR / (10 ^ 21 * (Rg * Lfj)) := by
+      rw [hτv_eq, hδg_eq]
+      field_simp [ne_of_gt hRg0, ne_of_gt hLf0]
+    have hb2 : ε ^ 4 * δ₃ * HsR / (10 ^ 21 * (Rg * Lfj))
+        ≤ ε ^ 4 * δ₃ * HsR / (10 ^ 21 * lgn0) := by
+      refine div_le_div_of_nonneg_left ?_ ?_ ?_
+      · exact mul_nonneg (mul_nonneg (pow_pos hε0 4).le hδ₃0.le) hHsR0.le
+      · nlinarith only [hlgn0pos]
+      · nlinarith only [hlgn0Rg]
+    have hb3 : ε ^ 4 * δ₃ * HsR / (10 ^ 21 * lgn0)
+        ≤ 2 / 10 ^ 6 * (ε * τ') := by
+      rw [hτ'_eq]
+      have hc1 : ε ^ 2 * (ε ^ 2 * δ₃ * HsR / (10 ^ 10 * lgn0)) ≤ ε ^ 2 * Ds :=
+        mul_le_mul_of_nonneg_left hDs_lb (by positivity)
+      have hc2 : ε ^ 2 * (ε ^ 2 * δ₃ * HsR / (10 ^ 10 * lgn0))
+          = 10 ^ 11 * (ε ^ 4 * δ₃ * HsR / (10 ^ 21 * lgn0)) := by
+        field_simp [ne_of_gt hlgn0pos]
+      have hc3 : 2 / 10 ^ 6 * (ε * (ε * Ds / 200000)) = ε ^ 2 * Ds / 10 ^ 11 := by
+        ring
+      linarith only [hc1, hc2.le, hc2.ge, hc3.le, hc3.ge]
+    linarith only [hb1.le, hb1.ge, hb2, hb3]
+  have hR1 : (τv + θ₀) / (τ' + θ₀) ≤ 1 / 100000 * ε := by
+    rw [div_le_iff₀ (by linarith : (0:ℝ) < τ' + θ₀)]
+    linarith only [hτvτ', hθ₀τ', mul_nonneg hε0.le hθ₀0, hτv0]
+  have hεDs : (604000:ℝ) ≤ ε * Ds := by
+    have := (div_le_iff₀ hε0).mp hDs_min
+    linarith
+  have hlog2ub : Real.log 2 ≤ 1 := by
+    have := Real.log_two_lt_d9
+    linarith
+  have hlog20 : (0:ℝ) ≤ Real.log 2 := Real.log_nonneg (by norm_num)
+  have hR2 : (τ' + θ₀ + Real.log 2) / Ds ≤ 1 / 100000 * ε := by
+    rw [div_le_iff₀ hDs0]
+    have hd1 : θ₀ ≤ ε * Ds / (4 * 10 ^ 10) := by
+      have hθ := hθ₀τ'
+      rw [hτ'_eq] at hθ
+      have hεε : ε * Ds / 200000 * ε / 200000 ≤ ε * Ds / (4 * 10 ^ 10) := by
+        nlinarith only [mul_nonneg (by linarith : (0:ℝ) ≤ 1 - ε)
+          (by linarith only [hεDs] : (0:ℝ) ≤ ε * Ds)]
+      linarith only [hθ, hεε]
+    have hd2 : Real.log 2 ≤ ε * Ds / 604000 := by
+      linarith only [hεDs, hlog2ub]
+    rw [hτ'_eq]
+    linarith only [hd1, hd2, hεDs]
+  have hdec : 2 * Mv * ((τv + θ₀) / (τ' + θ₀) + (τ' + θ₀ + Real.log 2) / Ds)
+      ≤ 2 * (193 * (Jl * msj)) * (2 / 100000 * ε) := by
+    have hr0a : (0:ℝ) ≤ (τv + θ₀) / (τ' + θ₀) :=
+      div_nonneg (by linarith) (by linarith)
+    have hr0b : (0:ℝ) ≤ (τ' + θ₀ + Real.log 2) / Ds :=
+      div_nonneg (by linarith) hDs0.le
+    have hrsum : (τv + θ₀) / (τ' + θ₀) + (τ' + θ₀ + Real.log 2) / Ds
+        ≤ 2 / 100000 * ε := by linarith only [hR1, hR2]
+    exact mul_le_mul (by linarith only [hMv_ub]) hrsum
+      (by linarith only [hr0a, hr0b]) (by nlinarith only [hQ0])
+  -- ================= the rounding cost =================
+  have hBr : SB * (12 / Kd) ≤ 579 / 2000000 * (Jl * msj * ε) := by
+    have he1 : SB * (12 / Kd) = 3 * Mv * (1 / Kd) := by
+      rw [hMv4]; ring
+    rw [he1]
+    have he2 : 3 * Mv * (1 / Kd) ≤ 3 * Mv * (ε / (2 * 10 ^ 6)) :=
+      mul_le_mul_of_nonneg_left hKdinv2e6 (by linarith only [hMv0])
+    have he3 : 3 * Mv * (ε / (2 * 10 ^ 6))
+        ≤ 3 * (193 * (Jl * msj)) * (ε / (2 * 10 ^ 6)) :=
+      mul_le_mul_of_nonneg_right (by linarith only [hMv_ub])
+        (div_nonneg hε0.le (by norm_num))
+    have he4 : 3 * (193 * (Jl * msj)) * (ε / (2 * 10 ^ 6))
+        = 579 / 2000000 * (Jl * msj * ε) := by ring
+    linarith only [he2, he3, he4.le, he4.ge]
+  -- ================= assembly =================
+  have hEB : EN + SB * (12 / Kd) ≤ 4 / 25 * (Jl * msj * ε) := by
+    linarith only [hM1, hts2.le, hts2.ge, hdec, hstrip, hθst.le, hθst.ge,
+      hMRt, hBr, mul_nonneg hQ0.le hε0.le]
+  have hup : TN ≤ 2 * lw * (4 / 25 * (Jl * msj * ε)) := by
+    have hu1 : S * (EN + SB * (12 / Kd)) ≤ S * (4 / 25 * (Jl * msj * ε)) :=
+      mul_le_mul_of_nonneg_left hEB hS_pos.le
+    have hu2 : S * (4 / 25 * (Jl * msj * ε))
+        ≤ 2 * lw * (4 / 25 * (Jl * msj * ε)) :=
+      mul_le_mul_of_nonneg_right hS2lw (by nlinarith only [hQ0, hε0])
+    linarith only [hT, hu1, hu2]
+  have hbridge : 2 * lw * (4 / 25 * (Jl * msj * ε))
+      = 8 / 25 * (Jl * msj * (ε * lw)) := by ring
+  have hpos : (0:ℝ) < Jl * msj * (ε * lw) :=
+    mul_pos hQ0 (mul_pos hε0 hlw0)
+  linarith only [hlow, hup, hbridge.le, hbridge.ge, hpos]
+
+end FinalArithmetic
+
 end Tao2015
 
 end MoltResearch
