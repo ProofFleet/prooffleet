@@ -5,6 +5,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5VanDerCorputProof
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5BCCWrapper
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5FourierProof
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LittlewoodWrapper
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5EDPMilestone
 -- For the anti-vacuity witnesses (issue #2879) only.
 import Mathlib.NumberTheory.ArithmeticFunction
 
@@ -31,6 +32,11 @@ Expected footprints (all also include Lean's three standard axioms
   is now `notBounded_of_derivation` through the honest §2/§3/§4 instances; the Stage-2
   stub no longer feeds Stage 5. (The demoted Stage-2/3/4 stub plane still exists and
   keeps its own footprints until its scheduled deletion.)
+- `elliott_master`, `logElliottNonasymptotic_of_matomakiRadziwill_quadrupleSieve`, and
+  the milestone `edp_of_matomakiRadziwill_quadrupleSieve_littlewood` (the Elliott
+  campaign, issue #2946): **standard axioms only** — the entropy-decrement proof of the
+  Elliott estimate consumes exactly the Matomäki–Radziwiłł and prime-quadruple-sieve
+  hypothesis classes, and EDP now rests on exactly the three cited-input interfaces.
 -/
 
 /--
@@ -100,6 +106,28 @@ info: 'MoltResearch.Tao2015.edp_of_logElliott_littlewood' depends on axioms: [pr
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.edp_of_logElliott_littlewood
+
+/--
+info: 'MoltResearch.Tao2015.elliott_master' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.elliott_master
+
+/--
+info: 'MoltResearch.Tao2015.logElliottNonasymptotic_of_matomakiRadziwill_quadrupleSieve' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.logElliottNonasymptotic_of_matomakiRadziwill_quadrupleSieve
+
+/--
+info: 'MoltResearch.Tao2015.edp_of_matomakiRadziwill_quadrupleSieve_littlewood' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.edp_of_matomakiRadziwill_quadrupleSieve_littlewood
 
 /-!
 ## Anti-vacuity witnesses (issue #2879)
