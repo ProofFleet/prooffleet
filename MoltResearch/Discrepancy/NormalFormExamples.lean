@@ -6796,4 +6796,27 @@ example (K H J h : ℕ) (hK : 0 < K) {ι : Type*} [Fintype ι] [DecidableEq ι]
 
 end NormalFormExamples
 
+
+-- Track S quadruple-sieve campaign (issue #3004, S2a): the local root counts
+-- of the twin-type sift n ↦ n(s−n) — prime value, CRT multiplicativity, and
+-- the squarefree product formula.
+example {p : ℕ} (hp : p.Prime) (s : ℕ) :
+    sieveRootCard s p = if p ∣ s then 1 else 2 :=
+  sieveRootCard_prime hp s
+
+example {d₁ d₂ : ℕ} (hcop : Nat.Coprime d₁ d₂) (s : ℕ) :
+    sieveRootCard s (d₁ * d₂) = sieveRootCard s d₁ * sieveRootCard s d₂ :=
+  sieveRootCard_mul hcop s
+
+example {d : ℕ} (hd : Squarefree d) (s : ℕ) :
+    sieveRootCard s d = ∏ p ∈ d.primeFactors, sieveRootCard s p :=
+  sieveRootCard_squarefree s d hd
+
+example {d a b : ℕ} (hd : 0 < d) (hab : a ≤ b) (s : ℕ) :
+    |((((Finset.Ioc a b).filter
+        (fun n : ℕ => (d : ℤ) ∣ (n : ℤ) * ((s : ℤ) - (n : ℤ)))).card : ℝ)
+      - (sieveRootCard s d : ℝ) * (((b : ℝ) - a) / d))|
+      ≤ sieveRootCard s d :=
+  abs_card_sift_sub_le hd hab s
+
 end MoltResearch
