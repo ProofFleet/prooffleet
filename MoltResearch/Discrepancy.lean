@@ -54,6 +54,7 @@ import MoltResearch.Discrepancy.LogUniform
 import MoltResearch.Discrepancy.ChebyshevBlock
 import MoltResearch.Discrepancy.SieveResidues
 import MoltResearch.Discrepancy.SelbergQuadratic
+import MoltResearch.Discrepancy.SelbergDiagonal
 import MoltResearch.Discrepancy.PropConv
 import MoltResearch.Discrepancy.LogUniformDist
 import MoltResearch.Discrepancy.Discretize

@@ -6831,4 +6831,21 @@ example {P a b s : ℕ} (hP : Squarefree P) (hab : a ≤ b)
         + (∑ d ∈ P.divisors, |lam d| * (sieveRootCard s d : ℝ)) ^ 2 :=
   card_sift_le_quadratic hP hab lam hlam1
 
+-- Track S quadruple-sieve campaign (issue #3004, S4): the diagonalization of
+-- the Selberg quadratic form, and the Euler expansion it rides on.
+example {m : ℕ} (hm : Squarefree m) (v : ℕ → ℝ) :
+    ∑ k ∈ m.divisors, ∏ p ∈ k.primeFactors, v p
+      = ∏ p ∈ m.primeFactors, (1 + v p) :=
+  sum_divisors_prodPrimeFactors hm v
+
+example {P : ℕ} (hP : Squarefree P) (s : ℕ) (lam : ℕ → ℝ) :
+    ∑ d₁ ∈ P.divisors, ∑ d₂ ∈ P.divisors, lam d₁ * lam d₂
+        * ((sieveRootCard s (Nat.lcm d₁ d₂) : ℝ) / (Nat.lcm d₁ d₂))
+      = ∑ k ∈ P.divisors,
+          (∏ p ∈ k.primeFactors,
+            (((p : ℝ) - sieveRootCard s p) / sieveRootCard s p))
+          * (∑ d ∈ P.divisors.filter (fun d => k ∣ d),
+              lam d * ((sieveRootCard s d : ℝ) / d)) ^ 2 :=
+  selberg_quadratic_diagonalize hP s lam
+
 end MoltResearch
