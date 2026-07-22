@@ -6819,4 +6819,16 @@ example {d a b : ℕ} (hd : 0 < d) (hab : a ≤ b) (s : ℕ) :
       ≤ sieveRootCard s d :=
   abs_card_sift_sub_le hd hab s
 
+-- Track S quadruple-sieve campaign (issue #3004, S3): the Λ² step — the
+-- sifted count against the Selberg quadratic form plus rounding error.
+example {P a b s : ℕ} (hP : Squarefree P) (hab : a ≤ b)
+    (lam : ℕ → ℝ) (hlam1 : lam 1 = 1) :
+    ((((Finset.Ioc a b).filter (fun n : ℕ =>
+        ∀ p ∈ P.primeFactors, ¬ ((p : ℤ) ∣ (n : ℤ) * ((s : ℤ) - (n : ℤ))))).card : ℝ))
+      ≤ ((b : ℝ) - a) * (∑ d₁ ∈ P.divisors, ∑ d₂ ∈ P.divisors,
+          lam d₁ * lam d₂
+            * ((sieveRootCard s (Nat.lcm d₁ d₂) : ℝ) / (Nat.lcm d₁ d₂)))
+        + (∑ d ∈ P.divisors, |lam d| * (sieveRootCard s d : ℝ)) ^ 2 :=
+  card_sift_le_quadratic hP hab lam hlam1
+
 end MoltResearch
