@@ -6848,4 +6848,25 @@ example {P : ℕ} (hP : Squarefree P) (s : ℕ) (lam : ℕ → ℝ) :
               lam d * ((sieveRootCard s d : ℝ) / d)) ^ 2 :=
   selberg_quadratic_diagonalize hP s lam
 
+-- Track S quadruple-sieve campaign (issue #3004, S5): the truncated Selberg
+-- weights — normalization, crude bound, and the optimal value Q(λ) = 1/G(R).
+example {s P R : ℕ} (hP : Squarefree P) (hR : 1 ≤ R)
+    (hρlt : ∀ p ∈ P.primeFactors, sieveRootCard s p < p) :
+    selbergLambda s P R 1 = 1 :=
+  selbergLambda_one hP hR hρlt
+
+example {s P R : ℕ} (hP : Squarefree P)
+    (hρlt : ∀ p ∈ P.primeFactors, sieveRootCard s p < p)
+    {d : ℕ} (hd : d ∈ P.divisors) :
+    |selbergLambda s P R d| ≤ 3 ^ d.primeFactors.card :=
+  abs_selbergLambda_le hP hρlt hd
+
+example {s P R : ℕ} (hP : Squarefree P) (hR : 1 ≤ R)
+    (hρlt : ∀ p ∈ P.primeFactors, sieveRootCard s p < p) :
+    ∑ d₁ ∈ P.divisors, ∑ d₂ ∈ P.divisors,
+        selbergLambda s P R d₁ * selbergLambda s P R d₂
+        * ((sieveRootCard s (Nat.lcm d₁ d₂) : ℝ) / (Nat.lcm d₁ d₂))
+      = 1 / selbergG s P R :=
+  quadratic_selbergLambda_eq hP hR hρlt
+
 end MoltResearch
