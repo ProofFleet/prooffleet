@@ -6869,4 +6869,26 @@ example {s P R : ℕ} (hP : Squarefree P) (hR : 1 ≤ R)
       = 1 / selbergG s P R :=
   quadratic_selbergLambda_eq hP hR hρlt
 
+-- Track S quadruple-sieve campaign (issue #3004, S6): the G-floor chain —
+-- radical-fiber collapse, the coprime-supported floor, the pairs square.
+example {s P R : ℕ} (hP : Squarefree P)
+    (hρlt : ∀ p ∈ P.primeFactors, sieveRootCard s p < p) :
+    ∑ n ∈ (Finset.range (R + 1)).filter
+        (fun n => 0 < n ∧ Nat.Coprime n (2 * s)
+          ∧ ∀ p ∈ n.primeFactors, p ∈ P.primeFactors),
+      ((n.divisors.card : ℝ) / n)
+    ≤ selbergG s P R :=
+  selbergG_ge_sum_div hP hρlt
+
+example {s P R m₀ : ℕ} (hm₀ : m₀ * m₀ ≤ R) :
+    (∑ m ∈ (Finset.Icc 1 m₀).filter
+        (fun m => Nat.Coprime m (2 * s)
+          ∧ ∀ p ∈ m.primeFactors, p ∈ P.primeFactors),
+      (1 : ℝ) / m) ^ 2
+    ≤ ∑ n ∈ (Finset.range (R + 1)).filter
+        (fun n => 0 < n ∧ Nat.Coprime n (2 * s)
+          ∧ ∀ p ∈ n.primeFactors, p ∈ P.primeFactors),
+      ((n.divisors.card : ℝ) / n) :=
+  sq_sum_one_div_le_sum_div hm₀
+
 end MoltResearch
