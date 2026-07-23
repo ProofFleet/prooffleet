@@ -6928,4 +6928,18 @@ example {M N : ℕ} (hMN : M ≤ N) :
       (fun n _ _ => by push_cast; ring_nf; norm_num))
     (by norm_num)
 
+-- Track L Littlewood campaign (issue #3020, L2): the discrete van der
+-- Corput second-derivative test — convex phase, linear climb, level-budget
+-- segmentation; the bound trades `θ` between zone width and block cost.
+example {φ : ℕ → ℝ} {θ r D : ℝ} {M N : ℕ}
+    (hθ : 0 < θ) (hr : 0 < r) (hMN : M ≤ N)
+    (hmono : ∀ n, M ≤ n → n < N →
+      φ (n + 1) - φ n ≤ φ (n + 2) - φ (n + 1))
+    (hsec : ∀ n, M ≤ n → n < N →
+      r ≤ (φ (n + 2) - φ (n + 1)) - (φ (n + 1) - φ n))
+    (hD : (φ (N + 1) - φ N) - (φ (M + 1) - φ M) ≤ D) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), ExpSums.e (φ n)‖
+      ≤ (D + 2) * ((2 * θ / r + 1) + 1 / θ) :=
+  ExpSums.vdc2 hθ hr hMN hmono hsec hD
+
 end MoltResearch

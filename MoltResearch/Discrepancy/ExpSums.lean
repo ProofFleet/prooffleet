@@ -22,10 +22,15 @@ The additive character `e(x) = exp(2πix)`, the nearest-integer distance
   `1`: if the phase increments `φ(n+1) − φ(n)` are monotone and confined to
   `[θ, 1−θ]`, then `‖∑_{M ≤ n ≤ N} e(φ(n))‖ ≤ 1/θ`, uniformly in the length.
 
-Downstream (`#3020`): the van der Corput second-derivative test splits a
-general phase into maximal segments on which `⌊f'⌋` is constant, applies
-`kusmin_landau` on each (after an integer shift of the phase, which `e`
-cannot see: `e_intCast`), and covers the exceptional segments trivially.
+Layer 2 (same campaign): the **discrete van der Corput second-derivative
+test** `vdc2` — convex phases with second differences `≥ r` and total
+increment variation `≤ D` satisfy
+`‖∑ e(φ(n))‖ ≤ (D + 2)·(2θ/r + 1/θ + 1)` for every separation `θ`. The
+proof is calculus-free: `sum_level_le` charges each unit of increment
+growth one short bad prefix (the `delta_climb` through an integer's
+`θ`-neighborhood) plus one Kusmin–Landau block (`kusmin_landau_shift` —
+the character cannot see the integer part of the slope, `e_intCast`), and
+`vdc2_aux` runs the level-budget recursion.
 -/
 
 namespace MoltResearch
@@ -451,6 +456,387 @@ theorem kusmin_landau {φ : ℕ → ℝ} {θ : ℝ} {M N : ℕ}
           field_simp
           ring
         linarith
+
+/-- Increment monotonicity, transitively (`d`-form: no ℕ-subtraction). -/
+theorem delta_mono {φ : ℕ → ℝ} {M N : ℕ}
+    (hmono : ∀ n, M ≤ n → n < N →
+      φ (n + 1) - φ n ≤ φ (n + 2) - φ (n + 1))
+    {i d : ℕ} (hMi : M ≤ i) (hdN : i + d ≤ N) :
+    φ (i + 1) - φ i ≤ φ (i + d + 1) - φ (i + d) := by
+  induction d with
+  | zero => simp
+  | succ d ih =>
+    have h1 := hmono (i + d) (by omega) (by omega)
+    have h2 := ih (by omega)
+    have h3 : i + (d + 1) = i + d + 1 := by omega
+    rw [h3]
+    calc φ (i + 1) - φ i ≤ φ (i + d + 1) - φ (i + d) := h2
+      _ ≤ φ (i + d + 1 + 1) - φ (i + d + 1) := by
+          have h4 : i + d + 2 = i + d + 1 + 1 := by omega
+          rw [← h4]
+          exact h1
+
+/-- The second-difference climb (`d`-form): increments rise linearly. -/
+theorem delta_climb {φ : ℕ → ℝ} {r : ℝ} {M N : ℕ}
+    (hsec : ∀ n, M ≤ n → n < N →
+      r ≤ (φ (n + 2) - φ (n + 1)) - (φ (n + 1) - φ n))
+    {i d : ℕ} (hMi : M ≤ i) (hdN : i + d ≤ N) :
+    (d : ℝ) * r ≤ (φ (i + d + 1) - φ (i + d)) - (φ (i + 1) - φ i) := by
+  induction d with
+  | zero => simp
+  | succ d ih =>
+    have h1 := hsec (i + d) (by omega) (by omega)
+    have h2 := ih (by omega)
+    have h3 : i + (d + 1) = i + d + 1 := by omega
+    rw [h3]
+    have h4 : i + d + 2 = i + d + 1 + 1 := by omega
+    rw [h4] at h1
+    push_cast
+    linarith
+
+/-- Kusmin–Landau after an integer shift: the character cannot see `k·n`. -/
+theorem kusmin_landau_shift {φ : ℕ → ℝ} {θ : ℝ} {M N : ℕ} (k : ℤ)
+    (hθ : 0 < θ) (hMN : M ≤ N)
+    (hlo : ∀ n, M ≤ n → n ≤ N → (k : ℝ) + θ ≤ φ (n + 1) - φ n)
+    (hhi : ∀ n, M ≤ n → n ≤ N → φ (n + 1) - φ n ≤ (k : ℝ) + 1 - θ)
+    (hmono : ∀ n, M ≤ n → n < N →
+      φ (n + 1) - φ n ≤ φ (n + 2) - φ (n + 1)) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖ ≤ 1 / θ := by
+  have hcongr : ∀ n ∈ Finset.Ico M (N + 1),
+      e (φ n) = e (φ n - (k : ℝ) * n) := by
+    intro n _
+    rw [show φ n - (k : ℝ) * n = φ n + ((-(k * n) : ℤ) : ℝ) by
+        push_cast
+        ring,
+      e_add, e_intCast, mul_one]
+  rw [Finset.sum_congr rfl hcongr]
+  refine kusmin_landau hθ hMN ?_ ?_ ?_
+  · intro n h1 h2
+    show θ ≤ (φ (n + 1) - (k : ℝ) * ((n + 1 : ℕ) : ℝ)) - (φ n - (k : ℝ) * n)
+    have hb : (φ (n + 1) - (k : ℝ) * ((n + 1 : ℕ) : ℝ)) - (φ n - (k : ℝ) * n)
+        = φ (n + 1) - φ n - (k : ℝ) := by
+      push_cast
+      ring
+    have h3 := hlo n h1 h2
+    linarith [hb]
+  · intro n h1 h2
+    show (φ (n + 1) - (k : ℝ) * ((n + 1 : ℕ) : ℝ)) - (φ n - (k : ℝ) * n)
+      ≤ 1 - θ
+    have hb : (φ (n + 1) - (k : ℝ) * ((n + 1 : ℕ) : ℝ)) - (φ n - (k : ℝ) * n)
+        = φ (n + 1) - φ n - (k : ℝ) := by
+      push_cast
+      ring
+    have h3 := hhi n h1 h2
+    linarith [hb]
+  · intro n h1 h2
+    show (φ (n + 1) - (k : ℝ) * ((n + 1 : ℕ) : ℝ)) - (φ n - (k : ℝ) * n)
+      ≤ (φ (n + 2) - (k : ℝ) * ((n + 2 : ℕ) : ℝ))
+        - (φ (n + 1) - (k : ℝ) * ((n + 1 : ℕ) : ℝ))
+    have hb1 : (φ (n + 1) - (k : ℝ) * ((n + 1 : ℕ) : ℝ))
+          - (φ n - (k : ℝ) * n)
+        = φ (n + 1) - φ n - (k : ℝ) := by
+      push_cast
+      ring
+    have hb2 : (φ (n + 2) - (k : ℝ) * ((n + 2 : ℕ) : ℝ))
+          - (φ (n + 1) - (k : ℝ) * ((n + 1 : ℕ) : ℝ))
+        = φ (n + 2) - φ (n + 1) - (k : ℝ) := by
+      push_cast
+      ring
+    have h3 := hmono n h1 h2
+    linarith [hb1, hb2]
+
+/-- **The single-level bound**: increments confined to `[k − θ, k + 1 − θ]`
+cost one short bad prefix (the climb through the integer's `θ`-neighborhood)
+plus one Kusmin–Landau block. -/
+theorem sum_level_le {φ : ℕ → ℝ} {θ r : ℝ} {M N : ℕ} (k : ℤ)
+    (hθ : 0 < θ) (hr : 0 < r) (hMN : M ≤ N)
+    (hlo : (k : ℝ) - θ ≤ φ (M + 1) - φ M)
+    (hhi : ∀ n, M ≤ n → n ≤ N → φ (n + 1) - φ n ≤ (k : ℝ) + 1 - θ)
+    (hmono : ∀ n, M ≤ n → n < N →
+      φ (n + 1) - φ n ≤ φ (n + 2) - φ (n + 1))
+    (hsec : ∀ n, M ≤ n → n < N →
+      r ≤ (φ (n + 2) - φ (n + 1)) - (φ (n + 1) - φ n)) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖
+      ≤ (2 * θ / r + 1) + 1 / θ := by
+  classical
+  have hex : ∃ n, N + 1 ≤ n
+      ∨ (M ≤ n ∧ n ≤ N ∧ (k : ℝ) + θ ≤ φ (n + 1) - φ n) :=
+    ⟨N + 1, Or.inl le_rfl⟩
+  set P := Nat.find hex with hPdef
+  have hQP := Nat.find_spec hex
+  have hPle : P ≤ N + 1 := Nat.find_le (Or.inl le_rfl)
+  have hMP : M ≤ P := by
+    rcases hQP with h | h
+    · omega
+    · exact h.1
+  rw [← Finset.sum_Ico_consecutive _ hMP hPle]
+  refine le_trans (norm_add_le _ _) (add_le_add ?_ ?_)
+  · -- the bad prefix: at most 2θ/r + 1 terms, bounded trivially
+    refine le_trans (norm_sum_le _ _) ?_
+    have h1 : ∑ n ∈ Finset.Ico M P, ‖e (φ n)‖ = ((P - M : ℕ) : ℝ) := by
+      rw [Finset.sum_congr rfl (fun n _ => norm_e (φ n)),
+        Finset.sum_const, nsmul_eq_mul, mul_one, Nat.card_Ico]
+    rw [h1]
+    rcases Nat.eq_or_lt_of_le hMP with hPM | hPM
+    · rw [← hPM]
+      simp
+      positivity
+    · -- P ≥ M + 1: look at the last prefix index P − 1 = M + d
+      obtain ⟨d, hd⟩ : ∃ d, P - 1 = M + d := ⟨P - 1 - M, by omega⟩
+      have hdN : M + d ≤ N := by omega
+      have hnotQ : ¬ (N + 1 ≤ P - 1
+          ∨ (M ≤ P - 1 ∧ P - 1 ≤ N
+            ∧ (k : ℝ) + θ ≤ φ (P - 1 + 1) - φ (P - 1))) := by
+        rw [hPdef]
+        exact Nat.find_min hex (by omega)
+      push_neg at hnotQ
+      have hbad : φ (P - 1 + 1) - φ (P - 1) < (k : ℝ) + θ := by
+        have := hnotQ.2 (by omega) (by omega)
+        linarith
+      have hclimb := delta_climb hsec (i := M) (d := d) le_rfl hdN
+      rw [← hd] at hclimb
+      have hcount : ((d : ℝ)) * r < 2 * θ := by
+        have h2 : φ (P - 1 + 1) - φ (P - 1) - (φ (M + 1) - φ M)
+            < ((k : ℝ) + θ) - ((k : ℝ) - θ) := by
+          linarith
+        linarith
+      have hdle : (d : ℝ) < 2 * θ / r := by
+        rw [lt_div_iff₀ hr]
+        linarith
+      have hcast : ((P - M : ℕ) : ℝ) = (d : ℝ) + 1 := by
+        have : P - M = d + 1 := by omega
+        rw [this]
+        push_cast
+        ring
+      rw [hcast]
+      linarith
+  · -- the good suffix: Kusmin–Landau at level k
+    rcases Nat.eq_or_lt_of_le hPle with hPN | hPN
+    · rw [hPN, Finset.Ico_self, Finset.sum_empty, norm_zero]
+      positivity
+    · have hQ : M ≤ P ∧ P ≤ N ∧ (k : ℝ) + θ ≤ φ (P + 1) - φ P := by
+        rcases hQP with h | h
+        · omega
+        · exact h
+      refine kusmin_landau_shift k hθ hQ.2.1 ?_ ?_ ?_
+      · intro n h1 h2
+        obtain ⟨d, hd⟩ : ∃ d, n = P + d := ⟨n - P, by omega⟩
+        have h3 := delta_mono hmono (i := P) (d := d) hMP (by omega)
+        rw [← hd] at h3
+        have h4 := hQ.2.2
+        linarith
+      · intro n h1 h2
+        exact hhi n (by omega) h2
+      · intro n h1 h2
+        exact hmono n (by omega) h2
+
+/-- The level-budget recursion behind the second-derivative test: each unit
+of increment-growth costs one single-level block. -/
+theorem vdc2_aux (φ : ℕ → ℝ) {θ r : ℝ} (hθ : 0 < θ) (hr : 0 < r) :
+    ∀ d : ℕ, ∀ M N : ℕ, M ≤ N →
+      (∀ n, M ≤ n → n < N →
+        φ (n + 1) - φ n ≤ φ (n + 2) - φ (n + 1)) →
+      (∀ n, M ≤ n → n < N →
+        r ≤ (φ (n + 2) - φ (n + 1)) - (φ (n + 1) - φ n)) →
+      ⌊(φ (N + 1) - φ N) + θ⌋ ≤ ⌊(φ (M + 1) - φ M) + θ⌋ + d →
+      ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖
+        ≤ (d + 1) * ((2 * θ / r + 1) + 1 / θ) := by
+  intro d
+  induction d with
+  | zero =>
+    intro M N hMN hmono hsec hbudget
+    have hB : ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖
+        ≤ (2 * θ / r + 1) + 1 / θ := by
+      refine sum_level_le ⌊(φ (M + 1) - φ M) + θ⌋ hθ hr hMN ?_ ?_ hmono hsec
+      · have h1 := Int.floor_le ((φ (M + 1) - φ M) + θ)
+        linarith
+      · intro n h1 h2
+        have h3 : φ (n + 1) - φ n ≤ φ (N + 1) - φ N := by
+          obtain ⟨dd, hdd⟩ : ∃ dd, N = n + dd := ⟨N - n, by omega⟩
+          have h4 := delta_mono hmono (i := n) (d := dd) h1 (by omega)
+          rw [← hdd] at h4
+          exact h4
+        have h5 := Int.lt_floor_add_one ((φ (N + 1) - φ N) + θ)
+        have h6 : (⌊(φ (N + 1) - φ N) + θ⌋ : ℝ)
+            ≤ (⌊(φ (M + 1) - φ M) + θ⌋ : ℝ) := by
+          have h7 : ⌊(φ (N + 1) - φ N) + θ⌋
+              ≤ ⌊(φ (M + 1) - φ M) + θ⌋ := by omega
+          exact_mod_cast h7
+        push_cast at h5
+        linarith
+    have hpos : (0 : ℝ) ≤ (2 * θ / r + 1) + 1 / θ := by positivity
+    calc ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖
+        ≤ (2 * θ / r + 1) + 1 / θ := hB
+      _ ≤ ((0 : ℕ) + 1) * ((2 * θ / r + 1) + 1 / θ) := by
+          push_cast
+          linarith
+  | succ d ih =>
+    intro M N hMN hmono hsec hbudget
+    classical
+    have hex : ∃ n, N + 1 ≤ n
+        ∨ (M ≤ n ∧ n ≤ N
+          ∧ (⌊(φ (M + 1) - φ M) + θ⌋ : ℝ) + 1 - θ ≤ φ (n + 1) - φ n) :=
+      ⟨N + 1, Or.inl le_rfl⟩
+    set P := Nat.find hex with hPdef
+    have hQP := Nat.find_spec hex
+    have hPle : P ≤ N + 1 := Nat.find_le (Or.inl le_rfl)
+    have hδM : φ (M + 1) - φ M
+        < (⌊(φ (M + 1) - φ M) + θ⌋ : ℝ) + 1 - θ := by
+      have h1 := Int.lt_floor_add_one ((φ (M + 1) - φ M) + θ)
+      push_cast at h1
+      linarith
+    have hMP : M + 1 ≤ P := by
+      rcases Nat.lt_or_ge M P with h | h
+      · omega
+      · exfalso
+        have hnQ := Nat.find_spec hex
+        rw [← hPdef] at hnQ
+        rcases hnQ with h1 | h1
+        · omega
+        · have h2 : P = M ∨ P < M := by omega
+          rcases h2 with h2 | h2
+          · rw [h2] at h1
+            linarith [h1.2.2]
+          · omega
+    rcases Nat.eq_or_lt_of_le hPle with hPN | hPN
+    · -- no crossing: single level on the whole range
+      have hB : ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖
+          ≤ (2 * θ / r + 1) + 1 / θ := by
+        refine sum_level_le ⌊(φ (M + 1) - φ M) + θ⌋ hθ hr hMN ?_ ?_
+          hmono hsec
+        · have h1 := Int.floor_le ((φ (M + 1) - φ M) + θ)
+          linarith
+        · intro n h1 h2
+          have h3 : ¬ (N + 1 ≤ n
+              ∨ (M ≤ n ∧ n ≤ N
+                ∧ (⌊(φ (M + 1) - φ M) + θ⌋ : ℝ) + 1 - θ
+                  ≤ φ (n + 1) - φ n)) := by
+            rw [hPdef] at hPN
+            exact Nat.find_min hex (by omega)
+          push_neg at h3
+          have h4 := h3.2 h1 h2
+          linarith
+      have hpos : (0 : ℝ) ≤ (2 * θ / r + 1) + 1 / θ := by positivity
+      calc ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖
+          ≤ (2 * θ / r + 1) + 1 / θ := hB
+        _ ≤ ((d : ℝ) + 1 + 1) * ((2 * θ / r + 1) + 1 / θ) := by
+            nlinarith
+        _ = (((d + 1 : ℕ) : ℝ) + 1) * ((2 * θ / r + 1) + 1 / θ) := by
+            push_cast
+            ring
+    · -- crossing at P ≤ N: split, single level left, recurse right
+      have hPN' : P ≤ N := by omega
+      have hQ : M ≤ P ∧ P ≤ N
+          ∧ (⌊(φ (M + 1) - φ M) + θ⌋ : ℝ) + 1 - θ ≤ φ (P + 1) - φ P := by
+        rcases hQP with h | h
+        · omega
+        · exact h
+      rw [← Finset.sum_Ico_consecutive _ (by omega : M ≤ P)
+        (by omega : P ≤ N + 1)]
+      refine le_trans (norm_add_le _ _) ?_
+      have hleft : ‖∑ n ∈ Finset.Ico M P, e (φ n)‖
+          ≤ (2 * θ / r + 1) + 1 / θ := by
+        have hP1 : P - 1 + 1 = P := by omega
+        rw [← hP1]
+        refine sum_level_le ⌊(φ (M + 1) - φ M) + θ⌋ hθ hr
+          (by omega : M ≤ P - 1) ?_ ?_
+          (fun n h1 h2 => hmono n h1 (by omega))
+          (fun n h1 h2 => hsec n h1 (by omega))
+        · have h1 := Int.floor_le ((φ (M + 1) - φ M) + θ)
+          linarith
+        · intro n h1 h2
+          have h3 : ¬ (N + 1 ≤ n
+              ∨ (M ≤ n ∧ n ≤ N
+                ∧ (⌊(φ (M + 1) - φ M) + θ⌋ : ℝ) + 1 - θ
+                  ≤ φ (n + 1) - φ n)) := by
+            rw [hPdef] at hPN'
+            exact Nat.find_min hex (by omega)
+          push_neg at h3
+          have h4 := h3.2 h1 (by omega)
+          linarith
+      have hright : ‖∑ n ∈ Finset.Ico P (N + 1), e (φ n)‖
+          ≤ ((d : ℝ) + 1) * ((2 * θ / r + 1) + 1 / θ) := by
+        have hbud' : ⌊(φ (N + 1) - φ N) + θ⌋
+            ≤ ⌊(φ (P + 1) - φ P) + θ⌋ + d := by
+          have h1 : (⌊(φ (M + 1) - φ M) + θ⌋ + 1 : ℤ)
+              ≤ ⌊(φ (P + 1) - φ P) + θ⌋ := by
+            rw [Int.le_floor]
+            push_cast
+            linarith [hQ.2.2]
+          omega
+        have h2 := ih P N hPN'
+          (fun n h1 h2 => hmono n (by omega) h2)
+          (fun n h1 h2 => hsec n (by omega) h2)
+          hbud'
+        calc ‖∑ n ∈ Finset.Ico P (N + 1), e (φ n)‖
+            ≤ ((d : ℕ) + 1) * ((2 * θ / r + 1) + 1 / θ) := h2
+          _ = ((d : ℝ) + 1) * ((2 * θ / r + 1) + 1 / θ) := by
+              push_cast
+              ring
+      calc ‖∑ n ∈ Finset.Ico M P, e (φ n)‖
+            + ‖∑ n ∈ Finset.Ico P (N + 1), e (φ n)‖
+          ≤ ((2 * θ / r + 1) + 1 / θ)
+            + ((d : ℝ) + 1) * ((2 * θ / r + 1) + 1 / θ) :=
+            add_le_add hleft hright
+        _ = (((d + 1 : ℕ) : ℝ) + 1) * ((2 * θ / r + 1) + 1 / θ) := by
+            push_cast
+            ring
+
+/-- **The discrete van der Corput second-derivative test**: convex phases
+with second differences at least `r` and total increment variation at most
+`D` have exponential sums bounded by `(D + 2)·(2θ/r + 1/θ + 1)`, for every
+separation parameter `θ`. -/
+theorem vdc2 {φ : ℕ → ℝ} {θ r D : ℝ} {M N : ℕ}
+    (hθ : 0 < θ) (hr : 0 < r) (hMN : M ≤ N)
+    (hmono : ∀ n, M ≤ n → n < N →
+      φ (n + 1) - φ n ≤ φ (n + 2) - φ (n + 1))
+    (hsec : ∀ n, M ≤ n → n < N →
+      r ≤ (φ (n + 2) - φ (n + 1)) - (φ (n + 1) - φ n))
+    (hD : (φ (N + 1) - φ N) - (φ (M + 1) - φ M) ≤ D) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖
+      ≤ (D + 2) * ((2 * θ / r + 1) + 1 / θ) := by
+  have hD0 : (0 : ℝ) ≤ D := by
+    obtain ⟨dd, hdd⟩ : ∃ dd, N = M + dd := ⟨N - M, by omega⟩
+    have h1 := delta_mono hmono (i := M) (d := dd) le_rfl (by omega)
+    rw [← hdd] at h1
+    linarith
+  set d : ℕ := (⌊(φ (N + 1) - φ N) + θ⌋
+    - ⌊(φ (M + 1) - φ M) + θ⌋).toNat with hd
+  have hbudget : ⌊(φ (N + 1) - φ N) + θ⌋
+      ≤ ⌊(φ (M + 1) - φ M) + θ⌋ + d := by
+    rw [hd]
+    omega
+  have h1 := vdc2_aux φ hθ hr d M N hMN hmono hsec hbudget
+  have hdD : ((d : ℕ) : ℝ) ≤ D + 1 := by
+    have h2 : (⌊(φ (N + 1) - φ N) + θ⌋ : ℝ)
+        ≤ (φ (N + 1) - φ N) + θ := Int.floor_le _
+    have h3 : (φ (M + 1) - φ M) + θ - 1
+        < (⌊(φ (M + 1) - φ M) + θ⌋ : ℝ) := by
+      have := Int.lt_floor_add_one ((φ (M + 1) - φ M) + θ)
+      linarith
+    rcases le_or_gt (⌊(φ (N + 1) - φ N) + θ⌋)
+        (⌊(φ (M + 1) - φ M) + θ⌋) with h4 | h4
+    · have h5 : d = 0 := by
+        rw [hd]
+        omega
+      rw [h5]
+      push_cast
+      linarith
+    · have h6 : (0 : ℤ) ≤ ⌊(φ (N + 1) - φ N) + θ⌋
+          - ⌊(φ (M + 1) - φ M) + θ⌋ := by omega
+      have h5 : ((d : ℕ) : ℝ) = (⌊(φ (N + 1) - φ N) + θ⌋ : ℝ)
+          - (⌊(φ (M + 1) - φ M) + θ⌋ : ℝ) := by
+        rw [hd]
+        exact_mod_cast congrArg (fun z : ℤ => (z : ℝ))
+          (Int.toNat_of_nonneg h6)
+      rw [h5]
+      linarith
+  have hpos : (0 : ℝ) ≤ (2 * θ / r + 1) + 1 / θ := by positivity
+  calc ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖
+      ≤ ((d : ℕ) + 1) * ((2 * θ / r + 1) + 1 / θ) := h1
+    _ ≤ (D + 2) * ((2 * θ / r + 1) + 1 / θ) := by
+        have h7 : ((d : ℕ) : ℝ) + 1 ≤ D + 2 := by linarith
+        nlinarith
 
 end ExpSums
 
