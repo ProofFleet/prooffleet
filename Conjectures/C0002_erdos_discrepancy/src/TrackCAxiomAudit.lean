@@ -129,6 +129,18 @@ info: 'MoltResearch.Tao2015.edp_of_matomakiRadziwill_quadrupleSieve_littlewood' 
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.edp_of_matomakiRadziwill_quadrupleSieve_littlewood
 
+/--
+info: 'MoltResearch.Tao2015.instPrimeQuadrupleCountAssumption' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.instPrimeQuadrupleCountAssumption
+
+/--
+info: 'MoltResearch.Tao2015.edp_of_matomakiRadziwill_littlewood' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.edp_of_matomakiRadziwill_littlewood
+
 /-!
 ## Anti-vacuity witnesses (issue #2879)
 

@@ -1,5 +1,6 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Assembly
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LittlewoodWrapper
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5QuadrupleSieveProof
 
 /-!
 # Track C: the EDP milestone on cited-input interfaces (E7 of issue #2946)
@@ -36,6 +37,15 @@ theorem edp_of_matomakiRadziwill_quadrupleSieve_littlewood
     [LittlewoodLBoundAssumption]
     (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f :=
   edp_of_logElliott_littlewood f hf
+
+/-- **EDP on two interfaces (Track S of #3004 closes)**: the prime-quadruple
+sieve is discharged unconditionally by `instPrimeQuadrupleCountAssumption`
+(the Selberg Λ² upper bound), so the Erdős discrepancy theorem is conditional
+on exactly the Matomäki–Radziwiłł and Littlewood interfaces. -/
+theorem edp_of_matomakiRadziwill_littlewood
+    [MatomakiRadziwillAssumption] [LittlewoodLBoundAssumption]
+    (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f :=
+  edp_of_matomakiRadziwill_quadrupleSieve_littlewood f hf
 
 end Tao2015
 
