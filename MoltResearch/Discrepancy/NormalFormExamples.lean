@@ -6899,4 +6899,13 @@ example {y q : ℕ} (hq0 : q ≠ 0) :
           (1 : ℝ) / m :=
   log_le_sum_one_div_coprime hq0
 
+-- Track S quadruple-sieve campaign (issue #3004, S8): the per-target sift
+-- master at the primorial modulus.
+example {s z N a : ℕ} (hs : 2 ∣ s) (hz : 1 ≤ z) :
+    ((((Finset.Ioc a (a + N)).filter (fun n : ℕ =>
+        ∀ p ∈ (primorial z).primeFactors,
+          ¬ ((p : ℤ) ∣ (n : ℤ) * ((s : ℤ) - (n : ℤ))))).card : ℝ))
+      ≤ (N : ℝ) / selbergG s (primorial z) z + ((z : ℝ) ^ 4) ^ 2 :=
+  card_sift_le_primorial_master hs hz
+
 end MoltResearch
