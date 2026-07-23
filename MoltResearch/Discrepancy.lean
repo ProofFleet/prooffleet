@@ -57,6 +57,7 @@ import MoltResearch.Discrepancy.SelbergQuadratic
 import MoltResearch.Discrepancy.SelbergDiagonal
 import MoltResearch.Discrepancy.SelbergWeights
 import MoltResearch.Discrepancy.SelbergGFloor
+import MoltResearch.Discrepancy.CoprimeHarmonic
 import MoltResearch.Discrepancy.PropConv
 import MoltResearch.Discrepancy.LogUniformDist
 import MoltResearch.Discrepancy.Discretize

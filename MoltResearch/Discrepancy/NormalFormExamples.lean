@@ -6891,4 +6891,12 @@ example {s P R m₀ : ℕ} (hm₀ : m₀ * m₀ ≤ R) :
       ((n.divisors.card : ℝ) / n) :=
   sq_sum_one_div_le_sum_div hm₀
 
+-- Track S quadruple-sieve campaign (issue #3004, S7): the coprime harmonic
+-- floor — restricting to (m,q)=1 costs the Euler factor.
+example {y q : ℕ} (hq0 : q ≠ 0) :
+    (∏ p ∈ q.primeFactors, (1 - 1 / (p : ℝ))) * Real.log y
+      ≤ ∑ m ∈ (Finset.Icc 1 y).filter (fun m => Nat.Coprime m q),
+          (1 : ℝ) / m :=
+  log_le_sum_one_div_coprime hq0
+
 end MoltResearch
