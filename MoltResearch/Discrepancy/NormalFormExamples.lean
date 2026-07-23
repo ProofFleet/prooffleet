@@ -6942,4 +6942,16 @@ example {φ : ℕ → ℝ} {θ r D : ℝ} {M N : ℕ}
       ≤ (D + 2) * ((2 * θ / r + 1) + 1 / θ) :=
   ExpSums.vdc2 hθ hr hMN hmono hsec hD
 
+-- Track L Littlewood campaign (issue #3020, L3): Weyl differencing —
+-- the square of an exponential sum against its difference-phase sums.
+example {φ : ℕ → ℝ} {M N H : ℕ}
+    (hH : 1 ≤ H) (hHM : H ≤ M) (hMN : M ≤ N) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), ExpSums.e (φ n)‖ ^ 2
+      ≤ (((N + 1 - M : ℕ) : ℝ) + H) / H
+        * (((N + 1 - M : ℕ) : ℝ)
+          + 2 * ∑ g ∈ Finset.Ico 1 H,
+              ‖∑ m ∈ Finset.Ico M (N + 1 - g),
+                ExpSums.e (φ (m + g) - φ m)‖) :=
+  ExpSums.weyl_differencing hH hHM hMN
+
 end MoltResearch

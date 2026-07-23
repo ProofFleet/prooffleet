@@ -3,6 +3,7 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Algebra.Order.Round
 import Mathlib.Tactic.LinearCombination
+import Mathlib.Algebra.Order.Chebyshev
 
 /-!
 # Discrete exponential sums, layer 1: the Kusmin–Landau inequality (Track L of #3020)
@@ -31,6 +32,13 @@ growth one short bad prefix (the `delta_climb` through an integer's
 `θ`-neighborhood) plus one Kusmin–Landau block (`kusmin_landau_shift` —
 the character cannot see the integer part of the slope, `e_intCast`), and
 `vdc2_aux` runs the level-budget recursion.
+
+Layer 3 (same campaign): **Weyl differencing** (`weyl_differencing`, the
+van der Corput A-process) — `‖∑ e(φ(n))‖² ≤ ((L+H)/H)·(L + 2∑_{g<H} ‖T_g‖)`
+with `T_g` the difference-phase sums `∑ e(φ(m+g) − φ(m))`: the `H`-fold
+shifted-window average, discrete Cauchy–Schwarz, the conjugate-pair
+expansion, and the three-way diagonal/upper/lower split with the
+off-diagonal fibering (each difference `g` occurs at most `H` times).
 -/
 
 namespace MoltResearch
@@ -837,6 +845,461 @@ theorem vdc2 {φ : ℕ → ℝ} {θ r D : ℝ} {M N : ℕ}
     _ ≤ (D + 2) * ((2 * θ / r + 1) + 1 / θ) := by
         have h7 : ((d : ℕ) : ℝ) + 1 ≤ D + 2 := by linarith
         nlinarith
+
+/-- Conjugation negates the phase. -/
+theorem e_conj (x : ℝ) : (starRingEnd ℂ) (e x) = e (-x) := by
+  rw [e, e, ← Complex.exp_conj]
+  have h0 : (2 : ℂ) * (Real.pi : ℂ) * (x : ℂ) * Complex.I
+      = ((2 * Real.pi * x : ℝ) : ℂ) * Complex.I := by
+    push_cast
+    ring
+  rw [h0, map_mul, Complex.conj_ofReal, Complex.conj_I]
+  congr 1
+  push_cast
+  ring
+
+/-- Products against conjugates subtract phases. -/
+theorem e_mul_conj (x y : ℝ) :
+    e x * (starRingEnd ℂ) (e y) = e (x - y) := by
+  rw [e_conj, ← e_add]
+  congr 1
+
+/-- The shift identity: summing a shifted phase over a shifted window. -/
+theorem sum_shift (φ : ℕ → ℝ) {M N : ℕ} (h : ℕ) (hhM : h ≤ M)
+    (hMN : M ≤ N + 1) :
+    ∑ n ∈ Finset.Ico M (N + 1), e (φ n)
+      = ∑ n ∈ Finset.Ico (M - h) (N + 1 - h), e (φ (n + h)) := by
+  have hmap : Finset.Ico M (N + 1)
+      = (Finset.Ico (M - h) (N + 1 - h)).map
+          (addRightEmbedding h) := by
+    rw [Finset.map_add_right_Ico]
+    congr 1 <;> omega
+  rw [hmap, Finset.sum_map]
+  simp only [addRightEmbedding_apply]
+
+/-- Discrete Cauchy–Schwarz for complex sums. -/
+theorem norm_sum_sq_le_card_mul (W : Finset ℕ) (f : ℕ → ℂ) :
+    ‖∑ n ∈ W, f n‖ ^ 2 ≤ (W.card : ℝ) * ∑ n ∈ W, ‖f n‖ ^ 2 := by
+  have h1 : ‖∑ n ∈ W, f n‖ ≤ ∑ n ∈ W, ‖f n‖ := norm_sum_le _ _
+  have h2 : (∑ n ∈ W, ‖f n‖) ^ 2 ≤ (W.card : ℝ) * ∑ n ∈ W, ‖f n‖ ^ 2 := by
+    exact_mod_cast sq_sum_le_card_mul_sum_sq (s := W) (f := fun n => ‖f n‖)
+  calc ‖∑ n ∈ W, f n‖ ^ 2
+      ≤ (∑ n ∈ W, ‖f n‖) ^ 2 :=
+        pow_le_pow_left₀ (norm_nonneg _) h1 2
+    _ ≤ (W.card : ℝ) * ∑ n ∈ W, ‖f n‖ ^ 2 := h2
+
+/-- Expanding the square of an inner sum into conjugate pairs. -/
+theorem sum_norm_sq_expand (W K : Finset ℕ) (c : ℕ → ℕ → ℂ) :
+    ∑ n ∈ W, ‖∑ h ∈ K, c n h‖ ^ 2
+      ≤ ∑ p ∈ K ×ˢ K, ‖∑ n ∈ W, c n p.1 * (starRingEnd ℂ) (c n p.2)‖ := by
+  have hsq : ∀ z : ℂ, (‖z‖ : ℝ) ^ 2 = (z * (starRingEnd ℂ) z).re := by
+    intro z
+    rw [Complex.mul_conj]
+    simp [Complex.sq_norm]
+  have hexp : ∀ n, (∑ h ∈ K, c n h) * (starRingEnd ℂ) (∑ h ∈ K, c n h)
+      = ∑ p ∈ K ×ˢ K, c n p.1 * (starRingEnd ℂ) (c n p.2) := by
+    intro n
+    rw [map_sum, Finset.sum_mul_sum, ← Finset.sum_product']
+  calc ∑ n ∈ W, ‖∑ h ∈ K, c n h‖ ^ 2
+      = ∑ n ∈ W, ((∑ h ∈ K, c n h)
+          * (starRingEnd ℂ) (∑ h ∈ K, c n h)).re := by
+        refine Finset.sum_congr rfl fun n _ => hsq _
+    _ = (∑ n ∈ W, ∑ p ∈ K ×ˢ K,
+          c n p.1 * (starRingEnd ℂ) (c n p.2)).re := by
+        rw [Complex.re_sum]
+        refine Finset.sum_congr rfl fun n _ => ?_
+        rw [hexp]
+    _ = (∑ p ∈ K ×ˢ K, ∑ n ∈ W,
+          c n p.1 * (starRingEnd ℂ) (c n p.2)).re := by
+        rw [Finset.sum_comm]
+    _ ≤ ‖∑ p ∈ K ×ˢ K, ∑ n ∈ W,
+          c n p.1 * (starRingEnd ℂ) (c n p.2)‖ := Complex.re_le_norm _
+    _ ≤ ∑ p ∈ K ×ˢ K, ‖∑ n ∈ W,
+          c n p.1 * (starRingEnd ℂ) (c n p.2)‖ := norm_sum_le _ _
+
+/-- The off-diagonal fibering: pairs at difference `g` number at most `H`. -/
+theorem sum_offdiag_le {H : ℕ} (F : ℕ → ℝ) (hF : ∀ g, 0 ≤ F g) :
+    ∑ p ∈ ((Finset.range H) ×ˢ (Finset.range H)).filter
+        (fun p => p.2 < p.1), F (p.1 - p.2)
+      ≤ (H : ℝ) * ∑ g ∈ Finset.Ico 1 H, F g := by
+  classical
+  have hmaps : ∀ p ∈ ((Finset.range H) ×ˢ (Finset.range H)).filter
+      (fun p => p.2 < p.1), p.1 - p.2 ∈ Finset.Ico 1 H := by
+    intro p hp
+    rw [Finset.mem_filter, Finset.mem_product, Finset.mem_range,
+      Finset.mem_range] at hp
+    rw [Finset.mem_Ico]
+    omega
+  have hfib := Finset.sum_fiberwise_of_maps_to
+    (g := fun p : ℕ × ℕ => p.1 - p.2) (t := Finset.Ico 1 H) hmaps
+    (fun p : ℕ × ℕ => F (p.1 - p.2))
+  rw [← hfib]
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum fun g hg => ?_
+  have hcong : ∀ p ∈ (((Finset.range H) ×ˢ (Finset.range H)).filter
+      (fun p => p.2 < p.1)).filter (fun p => p.1 - p.2 = g),
+      F (p.1 - p.2) = F g := by
+    intro p hp
+    rw [Finset.mem_filter] at hp
+    rw [hp.2]
+  rw [Finset.sum_congr rfl hcong, Finset.sum_const, nsmul_eq_mul]
+  refine mul_le_mul_of_nonneg_right ?_ (hF g)
+  have hcard : ((((Finset.range H) ×ˢ (Finset.range H)).filter
+      (fun p => p.2 < p.1)).filter (fun p => p.1 - p.2 = g)).card
+      ≤ H := by
+    have hinj : Set.MapsTo Prod.snd
+        (↑((((Finset.range H) ×ˢ (Finset.range H)).filter
+          (fun p => p.2 < p.1)).filter (fun p => p.1 - p.2 = g))
+          : Set (ℕ × ℕ))
+        ((Finset.range H : Finset ℕ) : Set ℕ) := by
+      intro p hp
+      rw [Finset.mem_coe, Finset.mem_filter, Finset.mem_filter,
+        Finset.mem_product] at hp
+      rw [Finset.mem_coe]
+      exact hp.1.1.2
+    have h2 := Finset.card_le_card_of_injOn Prod.snd hinj ?_
+    · rw [Finset.card_range] at h2
+      exact h2
+    · intro p hp q hq hpq
+      rw [Finset.mem_coe, Finset.mem_filter, Finset.mem_filter] at hp hq
+      have h3 := hp.2
+      have h4 := hq.2
+      have h5 := hp.1.2
+      have h6 := hq.1.2
+      refine Prod.ext ?_ hpq
+      omega
+  exact_mod_cast hcard
+
+/-- The trivial character value. -/
+theorem e_zero : e 0 = 1 := by
+  rw [e]
+  norm_num
+
+/-- The off-diagonal pair sum collapses to a difference-phase sum. -/
+theorem weyl_offdiag {φ : ℕ → ℝ} {M N H : ℕ} (hHM : H ≤ M) (hMN : M ≤ N)
+    {h h' : ℕ} (hh' : h' < h) (hhH : h < H) :
+    ∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+      (if n ∈ Finset.Ico (M - h) (N + 1 - h) then e (φ (n + h)) else 0)
+        * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - h') (N + 1 - h')
+            then e (φ (n + h')) else 0)
+      = ∑ m ∈ Finset.Ico M (N + 1 - (h - h')),
+          e (φ (m + (h - h')) - φ m) := by
+  classical
+  have h1 : ∀ n, (if n ∈ Finset.Ico (M - h) (N + 1 - h)
+        then e (φ (n + h)) else 0)
+      * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - h') (N + 1 - h')
+          then e (φ (n + h')) else 0)
+      = if n ∈ Finset.Ico (M - h') (N + 1 - h)
+          then e (φ (n + h) - φ (n + h')) else 0 := by
+    intro n
+    by_cases hn1 : n ∈ Finset.Ico (M - h) (N + 1 - h)
+    · by_cases hn2 : n ∈ Finset.Ico (M - h') (N + 1 - h')
+      · rw [if_pos hn1, if_pos hn2, e_mul_conj, if_pos ?_]
+        rw [Finset.mem_Ico] at hn1 hn2 ⊢
+        omega
+      · rw [if_pos hn1, if_neg hn2, map_zero, mul_zero, if_neg ?_]
+        rw [Finset.mem_Ico] at hn1 hn2 ⊢
+        omega
+    · rw [if_neg hn1, zero_mul, if_neg ?_]
+      rw [Finset.mem_Ico] at hn1 ⊢
+      omega
+  rw [Finset.sum_congr rfl (fun n _ => h1 n), Finset.sum_ite_mem]
+  have h2 : Finset.Ico (M - H + 1) (N + 1)
+      ∩ Finset.Ico (M - h') (N + 1 - h)
+      = Finset.Ico (M - h') (N + 1 - h) := by
+    rw [Finset.inter_eq_right]
+    intro n hn
+    rw [Finset.mem_Ico] at hn ⊢
+    omega
+  rw [h2]
+  have h4 : ∑ m ∈ Finset.Ico M (N + 1 - (h - h')),
+      e (φ (m + (h - h')) - φ m)
+      = ∑ n ∈ Finset.Ico (M - h') (N + 1 - h),
+          e (φ (n + h) - φ (n + h')) := by
+    have h5 : Finset.Ico M (N + 1 - (h - h'))
+        = (Finset.Ico (M - h') (N + 1 - h)).map
+            (addRightEmbedding h') := by
+      rw [Finset.map_add_right_Ico]
+      congr 1 <;> omega
+    rw [h5, Finset.sum_map]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    have h6 : (addRightEmbedding h') n = n + h' := rfl
+    rw [h6]
+    have h7 : n + h' + (h - h') = n + h := by omega
+    rw [h7]
+  exact h4.symm
+
+/-- The diagonal pair sums are bounded by the window length. -/
+theorem weyl_diag {φ : ℕ → ℝ} {M N H : ℕ} (hHM : H ≤ M) (hMN : M ≤ N)
+    {h : ℕ} (hhH : h < H) :
+    ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+      (if n ∈ Finset.Ico (M - h) (N + 1 - h) then e (φ (n + h)) else 0)
+        * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - h) (N + 1 - h)
+            then e (φ (n + h)) else 0)‖
+      ≤ ((N + 1 - M : ℕ) : ℝ) := by
+  classical
+  have h1 : ∀ n, (if n ∈ Finset.Ico (M - h) (N + 1 - h)
+        then e (φ (n + h)) else 0)
+      * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - h) (N + 1 - h)
+          then e (φ (n + h)) else 0)
+      = if n ∈ Finset.Ico (M - h) (N + 1 - h) then 1 else 0 := by
+    intro n
+    by_cases hn : n ∈ Finset.Ico (M - h) (N + 1 - h)
+    · rw [if_pos hn, if_pos hn, e_mul_conj, sub_self, e_zero]
+    · rw [if_neg hn, zero_mul, if_neg hn]
+  rw [Finset.sum_congr rfl (fun n _ => h1 n), Finset.sum_ite_mem,
+    Finset.sum_const, nsmul_eq_mul, mul_one]
+  have h2 : Finset.Ico (M - H + 1) (N + 1)
+      ∩ Finset.Ico (M - h) (N + 1 - h)
+      = Finset.Ico (M - h) (N + 1 - h) := by
+    rw [Finset.inter_eq_right]
+    intro n hn
+    rw [Finset.mem_Ico] at hn ⊢
+    omega
+  rw [h2, Nat.card_Ico, Complex.norm_natCast]
+  have h3 : N + 1 - h - (M - h) ≤ N + 1 - M := by omega
+  exact_mod_cast h3
+
+/-- Swapping the roles in a conjugate-pair sum preserves the norm. -/
+theorem norm_sum_mul_conj_comm (W : Finset ℕ) (A B : ℕ → ℂ) :
+    ‖∑ n ∈ W, A n * (starRingEnd ℂ) (B n)‖
+      = ‖∑ n ∈ W, B n * (starRingEnd ℂ) (A n)‖ := by
+  have h1 : ∑ n ∈ W, B n * (starRingEnd ℂ) (A n)
+      = (starRingEnd ℂ) (∑ n ∈ W, A n * (starRingEnd ℂ) (B n)) := by
+    rw [map_sum]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    rw [map_mul, Complex.conj_conj, mul_comm]
+  rw [h1, RCLike.norm_conj]
+
+/-- **Weyl differencing** (the van der Corput A-process): the square of an
+exponential sum is controlled by the difference-phase sums. -/
+theorem weyl_differencing {φ : ℕ → ℝ} {M N H : ℕ}
+    (hH : 1 ≤ H) (hHM : H ≤ M) (hMN : M ≤ N) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖ ^ 2
+      ≤ (((N + 1 - M : ℕ) : ℝ) + H) / H
+        * (((N + 1 - M : ℕ) : ℝ)
+          + 2 * ∑ g ∈ Finset.Ico 1 H,
+              ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (φ (m + g) - φ m)‖) := by
+  classical
+  have hHS : (H : ℂ) * ∑ n ∈ Finset.Ico M (N + 1), e (φ n)
+      = ∑ n ∈ Finset.Ico (M - H + 1) (N + 1), ∑ h ∈ Finset.range H,
+          (if n ∈ Finset.Ico (M - h) (N + 1 - h)
+            then e (φ (n + h)) else 0) := by
+    rw [Finset.sum_comm]
+    have h1 : ∀ h ∈ Finset.range H,
+        ∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+          (if n ∈ Finset.Ico (M - h) (N + 1 - h)
+            then e (φ (n + h)) else 0)
+        = ∑ n ∈ Finset.Ico M (N + 1), e (φ n) := by
+      intro h hh
+      rw [Finset.mem_range] at hh
+      rw [Finset.sum_ite_mem]
+      have h2 : Finset.Ico (M - H + 1) (N + 1)
+          ∩ Finset.Ico (M - h) (N + 1 - h)
+          = Finset.Ico (M - h) (N + 1 - h) := by
+        rw [Finset.inter_eq_right]
+        intro n hn
+        rw [Finset.mem_Ico] at hn ⊢
+        omega
+      rw [h2, ← sum_shift φ h (by omega) (by omega)]
+    rw [Finset.sum_congr rfl h1, Finset.sum_const, Finset.card_range,
+      nsmul_eq_mul]
+  -- the pair-sum bound
+  have hpairs : ∑ p ∈ (Finset.range H) ×ˢ (Finset.range H),
+      ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+        (if n ∈ Finset.Ico (M - p.1) (N + 1 - p.1)
+          then e (φ (n + p.1)) else 0)
+        * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - p.2) (N + 1 - p.2)
+            then e (φ (n + p.2)) else 0)‖
+      ≤ (H : ℝ) * ((N + 1 - M : ℕ) : ℝ)
+        + 2 * ((H : ℝ) * ∑ g ∈ Finset.Ico 1 H,
+            ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (φ (m + g) - φ m)‖) := by
+    rw [← Finset.sum_filter_add_sum_filter_not
+      ((Finset.range H) ×ˢ (Finset.range H)) (fun p => p.2 < p.1),
+      ← Finset.sum_filter_add_sum_filter_not
+      (((Finset.range H) ×ˢ (Finset.range H)).filter
+        (fun p => ¬ p.2 < p.1)) (fun p => p.1 < p.2)]
+    have hS1 : ∑ p ∈ ((Finset.range H) ×ˢ (Finset.range H)).filter
+        (fun p => p.2 < p.1),
+        ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+          (if n ∈ Finset.Ico (M - p.1) (N + 1 - p.1)
+            then e (φ (n + p.1)) else 0)
+          * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - p.2) (N + 1 - p.2)
+              then e (φ (n + p.2)) else 0)‖
+        ≤ (H : ℝ) * ∑ g ∈ Finset.Ico 1 H,
+            ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (φ (m + g) - φ m)‖ := by
+      have he : ∀ p ∈ ((Finset.range H) ×ˢ (Finset.range H)).filter
+          (fun p => p.2 < p.1),
+          ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+            (if n ∈ Finset.Ico (M - p.1) (N + 1 - p.1)
+              then e (φ (n + p.1)) else 0)
+            * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - p.2) (N + 1 - p.2)
+                then e (φ (n + p.2)) else 0)‖
+          = ‖∑ m ∈ Finset.Ico M (N + 1 - (p.1 - p.2)),
+              e (φ (m + (p.1 - p.2)) - φ m)‖ := by
+        intro p hp
+        rw [Finset.mem_filter, Finset.mem_product, Finset.mem_range,
+          Finset.mem_range] at hp
+        rw [weyl_offdiag hHM hMN hp.2 hp.1.1]
+      rw [Finset.sum_congr rfl he]
+      exact sum_offdiag_le (fun g => ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (φ (m + g) - φ m)‖) (fun g => norm_nonneg _)
+    have hS2 : ∑ p ∈ ((((Finset.range H) ×ˢ (Finset.range H)).filter
+        (fun p => ¬ p.2 < p.1)).filter (fun p => p.1 < p.2)),
+        ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+          (if n ∈ Finset.Ico (M - p.1) (N + 1 - p.1)
+            then e (φ (n + p.1)) else 0)
+          * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - p.2) (N + 1 - p.2)
+              then e (φ (n + p.2)) else 0)‖
+        ≤ (H : ℝ) * ∑ g ∈ Finset.Ico 1 H,
+            ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (φ (m + g) - φ m)‖ := by
+      have he : ∀ p ∈ (((Finset.range H) ×ˢ (Finset.range H)).filter
+          (fun p => ¬ p.2 < p.1)).filter (fun p => p.1 < p.2),
+          ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+            (if n ∈ Finset.Ico (M - p.1) (N + 1 - p.1)
+              then e (φ (n + p.1)) else 0)
+            * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - p.2) (N + 1 - p.2)
+                then e (φ (n + p.2)) else 0)‖
+          = ‖∑ m ∈ Finset.Ico M (N + 1 - (p.2 - p.1)),
+              e (φ (m + (p.2 - p.1)) - φ m)‖ := by
+        intro p hp
+        rw [Finset.mem_filter, Finset.mem_filter, Finset.mem_product,
+          Finset.mem_range, Finset.mem_range] at hp
+        rw [norm_sum_mul_conj_comm, weyl_offdiag hHM hMN hp.2 hp.1.1.2]
+      rw [Finset.sum_congr rfl he]
+      have hswap : ∑ p ∈ (((Finset.range H) ×ˢ (Finset.range H)).filter
+          (fun p => ¬ p.2 < p.1)).filter (fun p => p.1 < p.2),
+          ‖∑ m ∈ Finset.Ico M (N + 1 - (p.2 - p.1)),
+            e (φ (m + (p.2 - p.1)) - φ m)‖
+          = ∑ p ∈ ((Finset.range H) ×ˢ (Finset.range H)).filter
+            (fun p => p.2 < p.1),
+            ‖∑ m ∈ Finset.Ico M (N + 1 - (p.1 - p.2)),
+              e (φ (m + (p.1 - p.2)) - φ m)‖ := by
+        refine Finset.sum_nbij' Prod.swap Prod.swap ?_ ?_ ?_ ?_ ?_
+        · intro p hp
+          rw [Finset.mem_filter, Finset.mem_filter,
+            Finset.mem_product] at hp
+          rw [Finset.mem_filter, Finset.mem_product]
+          exact ⟨⟨hp.1.1.2, hp.1.1.1⟩, hp.2⟩
+        · intro p hp
+          rw [Finset.mem_filter, Finset.mem_product] at hp
+          rw [Finset.mem_filter, Finset.mem_filter, Finset.mem_product]
+          simp only [Prod.fst_swap, Prod.snd_swap]
+          have h21 := hp.2
+          exact ⟨⟨⟨hp.1.2, hp.1.1⟩, by omega⟩, hp.2⟩
+        · intro p _
+          exact Prod.swap_swap p
+        · intro p _
+          exact Prod.swap_swap p
+        · intro p _
+          rfl
+      rw [hswap]
+      exact sum_offdiag_le (fun g => ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (φ (m + g) - φ m)‖) (fun g => norm_nonneg _)
+    have hS3 : ∑ p ∈ ((((Finset.range H) ×ˢ (Finset.range H)).filter
+        (fun p => ¬ p.2 < p.1)).filter (fun p => ¬ p.1 < p.2)),
+        ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+          (if n ∈ Finset.Ico (M - p.1) (N + 1 - p.1)
+            then e (φ (n + p.1)) else 0)
+          * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - p.2) (N + 1 - p.2)
+              then e (φ (n + p.2)) else 0)‖
+        ≤ (H : ℝ) * ((N + 1 - M : ℕ) : ℝ) := by
+      have hbound : ∀ p ∈ (((Finset.range H) ×ˢ (Finset.range H)).filter
+          (fun p => ¬ p.2 < p.1)).filter (fun p => ¬ p.1 < p.2),
+          ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+            (if n ∈ Finset.Ico (M - p.1) (N + 1 - p.1)
+              then e (φ (n + p.1)) else 0)
+            * (starRingEnd ℂ) (if n ∈ Finset.Ico (M - p.2) (N + 1 - p.2)
+                then e (φ (n + p.2)) else 0)‖
+          ≤ ((N + 1 - M : ℕ) : ℝ) := by
+        intro p hp
+        rw [Finset.mem_filter, Finset.mem_filter, Finset.mem_product,
+          Finset.mem_range, Finset.mem_range] at hp
+        have hpe : p.2 = p.1 := by omega
+        rw [hpe]
+        exact weyl_diag hHM hMN hp.1.1.1
+      refine le_trans (Finset.sum_le_sum hbound) ?_
+      rw [Finset.sum_const, nsmul_eq_mul]
+      refine mul_le_mul_of_nonneg_right ?_ (Nat.cast_nonneg _)
+      have hcard : ((((Finset.range H) ×ˢ (Finset.range H)).filter
+          (fun p => ¬ p.2 < p.1)).filter (fun p => ¬ p.1 < p.2)).card
+          ≤ H := by
+        have hinj := Finset.card_le_card_of_injOn Prod.fst
+          (s := (((Finset.range H) ×ˢ (Finset.range H)).filter
+            (fun p => ¬ p.2 < p.1)).filter (fun p => ¬ p.1 < p.2))
+          (t := Finset.range H) ?_ ?_
+        · rw [Finset.card_range] at hinj
+          exact hinj
+        · intro p hp
+          rw [Finset.mem_coe, Finset.mem_filter, Finset.mem_filter,
+            Finset.mem_product] at hp
+          rw [Finset.mem_coe]
+          exact hp.1.1.1
+        · intro p hp q hq hpq
+          rw [Finset.mem_coe, Finset.mem_filter, Finset.mem_filter] at hp hq
+          have h5 : p.2 = p.1 := by omega
+          have h6 : q.2 = q.1 := by omega
+          refine Prod.ext hpq ?_
+          rw [h5, h6, hpq]
+      exact_mod_cast hcard
+    linarith [hS1, hS2, hS3]
+  -- assemble
+  have hcs := norm_sum_sq_le_card_mul (Finset.Ico (M - H + 1) (N + 1))
+    (fun n => ∑ h ∈ Finset.range H,
+      (if n ∈ Finset.Ico (M - h) (N + 1 - h) then e (φ (n + h)) else 0))
+  have hex := sum_norm_sq_expand (Finset.Ico (M - H + 1) (N + 1))
+    (Finset.range H)
+    (fun n h => if n ∈ Finset.Ico (M - h) (N + 1 - h)
+      then e (φ (n + h)) else 0)
+  beta_reduce at hcs hex
+  have hWcard : ((Finset.Ico (M - H + 1) (N + 1)).card : ℝ)
+      = ((N + 1 - M : ℕ) : ℝ) + (H : ℝ) - 1 := by
+    rw [Nat.card_Ico]
+    have h8 : N + 1 - (M - H + 1) = (N + 1 - M) + H - 1 := by omega
+    rw [h8]
+    have h9 : (N + 1 - M) + H - 1 + 1 = (N + 1 - M) + H := by omega
+    have h10 := congrArg (fun k : ℕ => (k : ℝ)) h9
+    push_cast at h10
+    linarith
+  have hchain : (H : ℝ) ^ 2
+      * ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖ ^ 2
+      ≤ (((N + 1 - M : ℕ) : ℝ) + (H : ℝ) - 1)
+        * ((H : ℝ) * ((N + 1 - M : ℕ) : ℝ)
+          + 2 * ((H : ℝ) * ∑ g ∈ Finset.Ico 1 H,
+              ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (φ (m + g) - φ m)‖)) := by
+    have h11 : (H : ℝ) ^ 2
+        * ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖ ^ 2
+        = ‖(H : ℂ) * ∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖ ^ 2 := by
+      rw [norm_mul, Complex.norm_natCast, mul_pow]
+    rw [h11, hHS]
+    calc ‖∑ n ∈ Finset.Ico (M - H + 1) (N + 1), ∑ h ∈ Finset.range H,
+          (if n ∈ Finset.Ico (M - h) (N + 1 - h)
+            then e (φ (n + h)) else 0)‖ ^ 2
+        ≤ ((Finset.Ico (M - H + 1) (N + 1)).card : ℝ)
+          * ∑ n ∈ Finset.Ico (M - H + 1) (N + 1),
+            ‖∑ h ∈ Finset.range H,
+              (if n ∈ Finset.Ico (M - h) (N + 1 - h)
+                then e (φ (n + h)) else 0)‖ ^ 2 := hcs
+      _ ≤ ((Finset.Ico (M - H + 1) (N + 1)).card : ℝ)
+          * ((H : ℝ) * ((N + 1 - M : ℕ) : ℝ)
+            + 2 * ((H : ℝ) * ∑ g ∈ Finset.Ico 1 H,
+                ‖∑ m ∈ Finset.Ico M (N + 1 - g),
+                  e (φ (m + g) - φ m)‖)) := by
+          refine mul_le_mul_of_nonneg_left (le_trans hex hpairs)
+            (Nat.cast_nonneg _)
+      _ = (((N + 1 - M : ℕ) : ℝ) + (H : ℝ) - 1)
+          * ((H : ℝ) * ((N + 1 - M : ℕ) : ℝ)
+            + 2 * ((H : ℝ) * ∑ g ∈ Finset.Ico 1 H,
+                ‖∑ m ∈ Finset.Ico M (N + 1 - g),
+                  e (φ (m + g) - φ m)‖)) := by
+          rw [hWcard]
+  have hHpos : (0 : ℝ) < (H : ℝ) := by exact_mod_cast hH
+  have hFpos : (0 : ℝ) ≤ ∑ g ∈ Finset.Ico 1 H,
+      ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (φ (m + g) - φ m)‖ :=
+    Finset.sum_nonneg fun g _ => norm_nonneg _
+  have hLpos : (0 : ℝ) ≤ ((N + 1 - M : ℕ) : ℝ) := Nat.cast_nonneg _
+  rw [div_mul_eq_mul_div, le_div_iff₀ hHpos]
+  have hs0 : (0 : ℝ) ≤ ‖∑ n ∈ Finset.Ico M (N + 1), e (φ n)‖ ^ 2 := by
+    positivity
+  nlinarith [hchain, hHpos, hFpos, hLpos, hs0]
 
 end ExpSums
 
