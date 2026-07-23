@@ -6908,4 +6908,12 @@ example {s z N a : ℕ} (hs : 2 ∣ s) (hz : 1 ≤ z) :
       ≤ (N : ℝ) / selbergG s (primorial z) z + ((z : ℝ) ^ 4) ^ 2 :=
   card_sift_le_primorial_master hs hz
 
+-- Track S quadruple-sieve campaign (issue #3004, S9): the singular-series
+-- second moment — the fourth Euler-factor moment has linear mass.
+example (n₀ : ℕ) :
+    ∑ t ∈ Finset.Ioc (2 * n₀) (4 * n₀),
+        (∏ p ∈ (2 * t).primeFactors, (1 - 1 / (p : ℝ))⁻¹) ^ 4
+      ≤ 12 * Real.exp 30 * (n₀ : ℝ) :=
+  sum_singular_pow_four_le n₀
+
 end MoltResearch
