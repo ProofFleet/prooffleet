@@ -60,6 +60,7 @@ import MoltResearch.Discrepancy.SelbergGFloor
 import MoltResearch.Discrepancy.CoprimeHarmonic
 import MoltResearch.Discrepancy.SelbergPrimorial
 import MoltResearch.Discrepancy.SingularMoment
+import MoltResearch.Discrepancy.ExpSums
 import MoltResearch.Discrepancy.PropConv
 import MoltResearch.Discrepancy.LogUniformDist
 import MoltResearch.Discrepancy.Discretize

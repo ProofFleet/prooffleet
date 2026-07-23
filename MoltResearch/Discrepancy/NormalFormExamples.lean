@@ -6916,4 +6916,16 @@ example (n₀ : ℕ) :
       ≤ 12 * Real.exp 30 * (n₀ : ℝ) :=
   sum_singular_pow_four_le n₀
 
+-- Track L Littlewood campaign (issue #3020, L1): the Kusmin–Landau
+-- inequality on a linear phase — increments constant at 1/2, so any
+-- θ ≤ 1/2 separates them from the integers; length-uniform bound.
+example {M N : ℕ} (hMN : M ≤ N) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), ExpSums.e ((n : ℝ) / 2)‖ ≤ 4 :=
+  le_trans
+    (ExpSums.kusmin_landau (θ := 1 / 4) (by norm_num) hMN
+      (fun n _ _ => by push_cast; ring_nf; norm_num)
+      (fun n _ _ => by push_cast; ring_nf; norm_num)
+      (fun n _ _ => by push_cast; ring_nf; norm_num))
+    (by norm_num)
+
 end MoltResearch
