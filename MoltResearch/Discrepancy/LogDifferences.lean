@@ -902,6 +902,120 @@ theorem log_phase_block_bound (j M N H : ℕ) (t : ℝ)
     exact vdck_pow j (fun m : ℕ => t / (2 * Real.pi) * Real.log m)
       M N H μ ν hμ0 hμν hH hHM hMN hsand
 
+/-- The cascade bound is at least one (needed to fold `1 + B ≤ 2B`). -/
+theorem one_le_cascadeBound (j : ℕ) {L H μ ν : ℝ} (hL : 1 ≤ L)
+    (hH : 1 ≤ H) (hμ : 0 < μ) (hν : 0 ≤ ν) :
+    1 ≤ cascadeBound j L H μ ν := by
+  induction j generalizing ν with
+  | zero =>
+    rw [cascadeBound]
+    have h1 : (0:ℝ) ≤ 3 / Real.sqrt μ := by positivity
+    have h2 : (0:ℝ) ≤ ν * L := mul_nonneg hν (by linarith)
+    nlinarith
+  | succ j ih =>
+    rw [cascadeBound]
+    have hH0 : (0:ℝ) < H := by linarith
+    have h1 := ih (ν := H * ν) (mul_nonneg hH0.le hν)
+    have h2 : (1:ℝ) ≤ (L + H) / H := by
+      rw [le_div_iff₀ hH0]
+      linarith
+    have h3 : (1:ℝ) ≤ ((L + H) / H) ^ (2 ^ j) := one_le_pow₀ h2
+    have h4 : (1:ℝ) ≤ (2:ℝ) ^ (2 ^ j) := one_le_pow₀ (by norm_num)
+    have h5 : (1:ℝ) ≤ L ^ (2 ^ j) := one_le_pow₀ hL
+    have h6 : (0:ℝ) ≤ (4:ℝ) ^ (2 ^ j) * H ^ (2 ^ j)
+        * cascadeBound j L H μ (H * ν) := by
+      have h7 : (0:ℝ) ≤ (4:ℝ) ^ (2 ^ j) := by positivity
+      have h8 : (0:ℝ) ≤ H ^ (2 ^ j) := pow_nonneg hH0.le _
+      exact mul_nonneg (mul_nonneg h7 h8) (by linarith)
+    have h7 : (1:ℝ) ≤ 2 ^ 2 ^ j * L ^ 2 ^ j := by nlinarith
+    have h8 : (1:ℝ) ≤ 2 ^ 2 ^ j * L ^ 2 ^ j
+        + 4 ^ 2 ^ j * H ^ 2 ^ j * cascadeBound j L H μ (H * ν) := by
+      linarith
+    nlinarith [mul_le_mul h3 h8 (by norm_num)
+      (le_trans (by norm_num) h3)]
+
+/-- **The cascade unwind at `H = L`**: the recursion collapses to a single
+closed form. -/
+theorem cascadeBound_unwind (j : ℕ) {L μ ν : ℝ} (hL : 1 ≤ L)
+    (hμ : 0 < μ) (hν : 0 ≤ ν) :
+    cascadeBound j L L μ ν
+      ≤ 16 ^ (2 ^ j) * L ^ (2 ^ j)
+        * ((ν * L ^ (j + 1) + 2) * (3 / Real.sqrt μ + 1)) := by
+  induction j generalizing ν with
+  | zero =>
+    rw [cascadeBound]
+    have h1 : (0:ℝ) ≤ (ν * L ^ (0 + 1) + 2) * (3 / Real.sqrt μ + 1) := by
+      have h2 : (0:ℝ) ≤ 3 / Real.sqrt μ := by positivity
+      have h3 : (0:ℝ) ≤ ν * L ^ (0 + 1) := by
+        have : (0:ℝ) ≤ L ^ (0 + 1) := by positivity
+        exact mul_nonneg hν this
+      exact mul_nonneg (by linarith) (by linarith)
+    have h4 : ν * L + 2 = ν * L ^ (0 + 1) + 2 := by ring
+    rw [h4]
+    nlinarith [h1, mul_nonneg
+      (by linarith : (0:ℝ) ≤ 16 * L - 1) h1]
+  | succ j ih =>
+    rw [cascadeBound]
+    have hL0 : (0:ℝ) < L := by linarith
+    have hIH := ih (ν := L * ν) (mul_nonneg hL0.le hν)
+    have hone := one_le_cascadeBound j (H := L) hL hL hμ
+      (ν := L * ν) (mul_nonneg hL0.le hν)
+    have h2 : (L + L) / L = 2 := by
+      field_simp
+      ring
+    rw [h2]
+    have hq1 : (1:ℝ) ≤ (2:ℝ) ^ (2 ^ j) := one_le_pow₀ (by norm_num)
+    have hLq : (1:ℝ) ≤ L ^ (2 ^ j) := one_le_pow₀ hL
+    have hBnn : (0:ℝ) ≤ cascadeBound j L L μ (L * ν) := by linarith
+    -- fold: 2^q·L^q + 4^q·L^q·B ≤ 2·4^q·L^q·B  (since 2^q·L^q ≤ 4^q·L^q·B)
+    have hfold : (2:ℝ) ^ 2 ^ j * L ^ 2 ^ j
+          + 4 ^ 2 ^ j * L ^ 2 ^ j * cascadeBound j L L μ (L * ν)
+        ≤ 2 * (4 ^ 2 ^ j * L ^ 2 ^ j * cascadeBound j L L μ (L * ν)) := by
+      have h5 : (2:ℝ) ^ 2 ^ j ≤ 4 ^ 2 ^ j := by
+        refine pow_le_pow_left₀ (by norm_num) (by norm_num) _
+      have h6 : (0:ℝ) ≤ L ^ 2 ^ j := by positivity
+      nlinarith [mul_le_mul_of_nonneg_right h5 h6,
+        mul_le_mul_of_nonneg_left hone
+          (mul_nonneg (by positivity : (0:ℝ) ≤ (4:ℝ) ^ 2 ^ j) h6)]
+    calc (2:ℝ) ^ 2 ^ j * (2 ^ 2 ^ j * L ^ 2 ^ j
+          + 4 ^ 2 ^ j * L ^ 2 ^ j * cascadeBound j L L μ (L * ν))
+        ≤ (2:ℝ) ^ 2 ^ j * (2 * (4 ^ 2 ^ j * L ^ 2 ^ j
+            * cascadeBound j L L μ (L * ν))) := by
+          exact mul_le_mul_of_nonneg_left hfold (by positivity)
+      _ = 2 * 8 ^ 2 ^ j * L ^ 2 ^ j
+            * cascadeBound j L L μ (L * ν) := by
+          rw [show (8:ℝ) ^ 2 ^ j = 2 ^ 2 ^ j * 4 ^ 2 ^ j by
+            rw [← mul_pow]
+            norm_num]
+          ring
+      _ ≤ 16 ^ 2 ^ j * L ^ 2 ^ j * cascadeBound j L L μ (L * ν) := by
+          have h8 : 2 * (8:ℝ) ^ 2 ^ j ≤ 16 ^ 2 ^ j := by
+            have h9 : (16:ℝ) ^ 2 ^ j = 2 ^ 2 ^ j * 8 ^ 2 ^ j := by
+              rw [← mul_pow]
+              norm_num
+            have h10 : (2:ℝ) ≤ 2 ^ 2 ^ j := by
+              calc (2:ℝ) = 2 ^ 1 := (pow_one 2).symm
+                _ ≤ 2 ^ 2 ^ j :=
+                  pow_le_pow_right₀ (by norm_num) Nat.one_le_two_pow
+            nlinarith [pow_nonneg (by norm_num : (0:ℝ) ≤ 8) (2 ^ j)]
+          have h11 : (0:ℝ) ≤ L ^ 2 ^ j * cascadeBound j L L μ (L * ν) :=
+            mul_nonneg (by positivity) hBnn
+          nlinarith [mul_le_mul_of_nonneg_right h8 h11]
+      _ ≤ 16 ^ 2 ^ j * L ^ 2 ^ j * (16 ^ 2 ^ j * L ^ 2 ^ j
+            * ((L * ν * L ^ (j + 1) + 2) * (3 / Real.sqrt μ + 1))) := by
+          exact mul_le_mul_of_nonneg_left hIH (by positivity)
+      _ = 16 ^ 2 ^ (j + 1) * L ^ 2 ^ (j + 1)
+            * ((ν * L ^ (j + 1 + 1) + 2) * (3 / Real.sqrt μ + 1)) := by
+          have e0 : (2:ℕ) ^ (j + 1) = 2 ^ j * 2 := pow_succ 2 j
+          have e1 : (16:ℝ) ^ 2 ^ (j + 1) = 16 ^ 2 ^ j * 16 ^ 2 ^ j := by
+            rw [e0, pow_mul]
+            ring
+          have e2 : L ^ 2 ^ (j + 1) = L ^ 2 ^ j * L ^ 2 ^ j := by
+            rw [e0, pow_mul]
+            ring
+          rw [e1, e2]
+          ring
+
 end ExpSums
 
 end MoltResearch

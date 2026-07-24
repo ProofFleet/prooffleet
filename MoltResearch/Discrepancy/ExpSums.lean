@@ -1301,6 +1301,78 @@ theorem weyl_differencing {φ : ℕ → ℝ} {M N H : ℕ}
     positivity
   nlinarith [hchain, hHpos, hFpos, hLpos, hs0]
 
+/-- **The weighted Abel bound**: a decreasing nonnegative weight against
+uniformly bounded partial sums costs only the leading weight. -/
+theorem abel_weight_bound {w : ℕ → ℝ} {a : ℕ → ℂ} {M N : ℕ} {E : ℝ}
+    (hMN : M ≤ N)
+    (hw0 : ∀ n, M ≤ n → n ≤ N → 0 ≤ w n)
+    (hwd : ∀ n, M ≤ n → n < N → w (n + 1) ≤ w n)
+    (hE : ∀ P, M ≤ P → P ≤ N + 1 →
+      ‖∑ n ∈ Finset.Ico M P, a n‖ ≤ E) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), w n • a n‖ ≤ w M * E := by
+  classical
+  have hE0 : 0 ≤ E := by
+    have := hE M le_rfl (by omega)
+    rw [Finset.Ico_self, Finset.sum_empty, norm_zero] at this
+    exact this
+  -- partial sums
+  set A : ℕ → ℂ := fun P => ∑ n ∈ Finset.Ico M P, a n with hA
+  have hstep : ∀ n, M ≤ n → A (n + 1) - A n = a n := by
+    intro n hn
+    show (∑ m ∈ Finset.Ico M (n + 1), a m)
+      - (∑ m ∈ Finset.Ico M n, a m) = a n
+    rw [Finset.sum_Ico_succ_top hn]
+    ring
+  have hsummand : ∀ n ∈ Finset.Ico M (N + 1),
+      w n • a n = (A (n + 1) - A n) * (w n : ℂ) := by
+    intro n hn
+    rw [Finset.mem_Ico] at hn
+    rw [hstep n hn.1]
+    rw [Complex.real_smul]
+    ring
+  rw [Finset.sum_congr rfl hsummand,
+    sum_diff_mul_eq A (fun n => (w n : ℂ)) hMN]
+  have hAM : A M = 0 := by
+    show (∑ m ∈ Finset.Ico M M, a m) = 0
+    rw [Finset.Ico_self, Finset.sum_empty]
+  rw [hAM, zero_mul, sub_zero]
+  refine le_trans (norm_add_le _ _) ?_
+  have h1 : ‖A (N + 1) * ((w N : ℝ) : ℂ)‖ ≤ E * w N := by
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (hw0 N hMN le_rfl)]
+    exact mul_le_mul_of_nonneg_right (hE (N + 1) (by omega) le_rfl)
+      (hw0 N hMN le_rfl)
+  have h2 : ‖∑ n ∈ Finset.Ico M N,
+      A (n + 1) * (((w n : ℝ) : ℂ) - ((w (n + 1) : ℝ) : ℂ))‖
+      ≤ (w M - w N) * E := by
+    refine le_trans (norm_sum_le _ _) ?_
+    have h3 : ∀ n ∈ Finset.Ico M N,
+        ‖A (n + 1) * (((w n : ℝ) : ℂ) - ((w (n + 1) : ℝ) : ℂ))‖
+        ≤ (w n - w (n + 1)) * E := by
+      intro n hn
+      rw [Finset.mem_Ico] at hn
+      rw [norm_mul]
+      have h4 : (((w n : ℝ) : ℂ) - ((w (n + 1) : ℝ) : ℂ))
+          = ((w n - w (n + 1) : ℝ) : ℂ) := by push_cast; ring
+      rw [h4, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg (by linarith [hwd n hn.1 hn.2])]
+      rw [mul_comm ((w n - w (n + 1))) E]
+      exact mul_le_mul_of_nonneg_right
+        (hE (n + 1) (by omega) (by omega))
+        (by linarith [hwd n hn.1 hn.2])
+    refine le_trans (Finset.sum_le_sum h3) ?_
+    have h5 : ∑ n ∈ Finset.Ico M N, (w n - w (n + 1)) * E
+        = (∑ n ∈ Finset.Ico M N, (w n - w (n + 1))) * E := by
+      rw [Finset.sum_mul]
+    rw [h5]
+    have h6 : ∑ n ∈ Finset.Ico M N, (w n - w (n + 1)) = w M - w N := by
+      have h7 := sum_Ico_sub_telescope w hMN
+      exact h7
+    rw [h6]
+  have h8 : E * w N + (w M - w N) * E = w M * E := by ring
+  linarith [h1, h2]
+
+
 end ExpSums
 
 end MoltResearch
