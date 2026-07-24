@@ -1,6 +1,7 @@
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+import MoltResearch.Discrepancy.ExpSums
 
 /-!
 # The unit-difference calculus and iterated differences of `log` (Track L of #3020)
@@ -24,6 +25,12 @@ constants the `k`-th derivative tests consume.
 Downstream, the log-phase `−(t/2π)·log n` inherits `k`-th difference
 control at every scale, powering the cascade of derivative tests behind
 the Weyl-strength zeta bound.
+
+The cascade transfer layer: `dIter_neg` and `norm_sum_e_neg` (sign flips
+are free), `dIter_diff_comm`/`dIter_diff_eq_sum` (differences of the
+`g`-differenced phase are `g`-fold sums of one-deeper differences — how
+each Weyl step hands its sandwich to the next level), and
+`dIter_diff_sandwich` (the two-sided bounds transfer with `[μ, gν]`).
 -/
 
 namespace MoltResearch
@@ -281,6 +288,89 @@ theorem dIter_log_sandwich (k n : ℕ) (hn : 1 ≤ n) :
       positivity
     rw [div_le_div_iff₀ hP0 hn0]
     exact mul_le_mul_of_nonneg_left hPl hfac0
+
+/-- Iterated differences of a negated phase. -/
+theorem dIter_neg (k : ℕ) (f : ℕ → ℝ) :
+    dIter k (fun n => -(f n)) = fun n => -(dIter k f n) := by
+  induction k with
+  | zero => rfl
+  | succ k ih =>
+    funext n
+    rw [dIter_succ, dOp, ih, dIter_succ, dOp]
+    ring
+
+/-- Negating the phase conjugates the sum: same norm. -/
+theorem norm_sum_e_neg (W : Finset ℕ) (ψ : ℕ → ℝ) :
+    ‖∑ n ∈ W, e (-(ψ n))‖ = ‖∑ n ∈ W, e (ψ n)‖ := by
+  have h1 : ∑ n ∈ W, e (-(ψ n)) = (starRingEnd ℂ) (∑ n ∈ W, e (ψ n)) := by
+    rw [map_sum]
+    exact Finset.sum_congr rfl fun n _ => (e_conj (ψ n)).symm
+  rw [h1, RCLike.norm_conj]
+
+/-- Iterated differences commute with the `g`-step difference. -/
+theorem dIter_diff_comm (j g : ℕ) (ψ : ℕ → ℝ) :
+    dIter j (fun m => ψ (m + g) - ψ m)
+      = fun n => dIter j ψ (n + g) - dIter j ψ n := by
+  induction j with
+  | zero => rfl
+  | succ j ih =>
+    funext n
+    have h1 : dIter (j + 1) (fun m => ψ (m + g) - ψ m) n
+        = (dIter j ψ (n + 1 + g) - dIter j ψ (n + 1))
+          - (dIter j ψ (n + g) - dIter j ψ n) := by
+      simp only [dIter_succ, dOp, ih]
+    have h2 : dIter (j + 1) ψ (n + g) - dIter (j + 1) ψ n
+        = (dIter j ψ (n + g + 1) - dIter j ψ (n + g))
+          - (dIter j ψ (n + 1) - dIter j ψ n) := by
+      simp only [dIter_succ, dOp]
+    have hng : n + 1 + g = n + g + 1 := by omega
+    rw [h1, h2, hng]
+    ring
+
+/-- **The cascade transfer**: `j`-th differences of the `g`-differenced
+phase are `g`-fold sums of `(j+1)`-st differences of the original. -/
+theorem dIter_diff_eq_sum (j g : ℕ) (ψ : ℕ → ℝ) (n : ℕ) :
+    dIter j (fun m => ψ (m + g) - ψ m) n
+      = ∑ m ∈ Finset.range g, dIter (j + 1) ψ (n + m) := by
+  rw [dIter_diff_comm]
+  beta_reduce
+  have h := diff_shift_eq_sum (dIter j ψ) g n
+  rw [h]
+  refine Finset.sum_congr rfl fun m _ => ?_
+  rw [dIter_succ]
+
+/-- The sandwich transfers to differenced phases. -/
+theorem dIter_diff_sandwich {ψ : ℕ → ℝ} {j g : ℕ} {μ ν : ℝ} {M N n : ℕ}
+    (hg : 1 ≤ g) (hμpos : 0 ≤ μ)
+    (hsand : ∀ m, M ≤ m → m ≤ N → μ ≤ dIter (j + 1) ψ m
+      ∧ dIter (j + 1) ψ m ≤ ν)
+    (hn : M ≤ n) (hng : n + g - 1 ≤ N) :
+    μ ≤ dIter j (fun m => ψ (m + g) - ψ m) n
+    ∧ dIter j (fun m => ψ (m + g) - ψ m) n ≤ (g : ℝ) * ν := by
+  rw [dIter_diff_eq_sum]
+  have hμ0 : ∀ m ∈ Finset.range g, μ / g ≤ dIter (j + 1) ψ (n + m) := by
+    intro m hm
+    rw [Finset.mem_range] at hm
+    have h1 := (hsand (n + m) (by omega) (by omega)).1
+    have hg1 : (1 : ℝ) ≤ (g : ℝ) := by exact_mod_cast hg
+    have h2 : μ / (g : ℝ) ≤ μ := div_le_self hμpos hg1
+    linarith
+  constructor
+  · have h2 : ∑ m ∈ Finset.range g, μ / (g : ℝ)
+        ≤ ∑ m ∈ Finset.range g, dIter (j + 1) ψ (n + m) :=
+      Finset.sum_le_sum hμ0
+    have h3 : ∑ _m ∈ Finset.range g, μ / (g : ℝ) = μ := by
+      rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+      field_simp
+    linarith
+  · have h2 : ∑ m ∈ Finset.range g, dIter (j + 1) ψ (n + m)
+        ≤ ∑ _m ∈ Finset.range g, ν := by
+      refine Finset.sum_le_sum fun m hm => ?_
+      rw [Finset.mem_range] at hm
+      exact (hsand (n + m) (by omega) (by omega)).2
+    have h3 : ∑ _m ∈ Finset.range g, ν = (g : ℝ) * ν := by
+      rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+    linarith
 
 end ExpSums
 
