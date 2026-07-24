@@ -6961,4 +6961,15 @@ example (k n : ℕ) (hn : 1 ≤ n) :
       ≤ (-1) ^ k * ExpSums.dIter (k + 1) (fun j : ℕ => Real.log j) n :=
   (ExpSums.dIter_log_sandwich k n hn).1
 
+-- Track L Littlewood campaign (issue #3020, cascade): the abstract k-th
+-- derivative test in power form — sandwiched (j+2)-differences give the
+-- recursive cascade bound, all natural powers.
+example {ψ : ℕ → ℝ} {j M N H : ℕ} {μ ν : ℝ}
+    (hμ : 0 < μ) (hμν : μ ≤ ν) (hH : 1 ≤ H) (hHM : H ≤ M) (hMN : M ≤ N)
+    (hsand : ∀ n, M ≤ n → n ≤ N + j * H →
+      μ ≤ ExpSums.dIter (j + 2) ψ n ∧ ExpSums.dIter (j + 2) ψ n ≤ ν) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), ExpSums.e (ψ n)‖ ^ (2 ^ j)
+      ≤ ExpSums.cascadeBound j ((N + 1 - M : ℕ) : ℝ) (H : ℝ) μ ν :=
+  ExpSums.vdck_pow j ψ M N H μ ν hμ hμν hH hHM hMN hsand
+
 end MoltResearch
