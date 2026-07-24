@@ -1264,6 +1264,69 @@ theorem cascadeBound_unwind₂ (j : ℕ) {H μ ν : ℝ} (hH : 1 ≤ H)
           rw [e1, e2]
           ring
 
+/-- **The zeta-block partial bound**: every partial sum of the zeta phase
+over a dyadic block obeys the closed cascade form, with `H = M` and the
+window capped at `(j+4)M`. -/
+theorem zeta_block_partial_bound (j M P : ℕ) (t : ℝ) (ht : 0 < t)
+    (hM : 1 ≤ M) (hMP : M ≤ P) (hP : P ≤ 2 * M)
+    (hj2 : j + 2 ≤ 2 * M) :
+    ‖∑ n ∈ Finset.Ico M (P + 1),
+        e (-(t / (2 * Real.pi) * Real.log n))‖ ^ (2 ^ j)
+      ≤ 48 ^ (2 ^ j) * (M : ℝ) ^ (2 ^ j)
+        * ((2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+          * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1)) := by
+  have hwin : P + j * M + j + 2 ≤ (j + 4) * M := by nlinarith
+  have hcap := log_phase_block_bound_cap j M P M ((j + 4) * M) t ht
+    hM le_rfl hMP hwin
+  have hM0 : (0:ℝ) < (M : ℝ) := by exact_mod_cast hM
+  have hf : (0:ℝ) < ((j + 1).factorial : ℝ) := by
+    exact_mod_cast (j + 1).factorial_pos
+  have hμ0 : (0:ℝ) < t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+      / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2) := by
+    have h1 : (0:ℝ) < (((j + 4) * M : ℕ) : ℝ) := by
+      have : 1 ≤ (j + 4) * M := by nlinarith
+      exact_mod_cast this
+    have hπ : (0:ℝ) < Real.pi := Real.pi_pos
+    positivity
+  have hν0 : (0:ℝ) ≤ t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+      / ((M : ℕ) : ℝ) ^ (j + 2) := by
+    have hπ : (0:ℝ) < Real.pi := Real.pi_pos
+    positivity
+  have hmono := cascadeBound_mono j
+    (L := ((P + 1 - M : ℕ) : ℝ)) (L' := 2 * (M : ℝ))
+    (H := (M : ℝ))
+    (Nat.cast_nonneg _)
+    (by
+      have h2 : (P + 1 - M : ℕ) ≤ 2 * M := by omega
+      have h3 : ((P + 1 - M : ℕ) : ℝ) ≤ ((2 * M : ℕ) : ℝ) := by
+        exact_mod_cast h2
+      push_cast at h3
+      linarith)
+    (show (1:ℝ) ≤ (M:ℝ) by exact_mod_cast hM) hμ0 hν0 le_rfl
+  have hunwind := cascadeBound_unwind₂ j
+    (H := (M : ℝ))
+    (show (1:ℝ) ≤ (M:ℝ) by exact_mod_cast hM) hμ0 hν0
+  calc ‖∑ n ∈ Finset.Ico M (P + 1),
+        e (-(t / (2 * Real.pi) * Real.log n))‖ ^ (2 ^ j)
+      ≤ cascadeBound j ((P + 1 - M : ℕ) : ℝ) ((M : ℕ) : ℝ)
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2))
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)) := hcap
+    _ ≤ cascadeBound j (2 * (M : ℝ)) ((M : ℕ) : ℝ)
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2))
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)) := hmono
+    _ ≤ 48 ^ (2 ^ j) * (M : ℝ) ^ (2 ^ j)
+          * ((2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+                / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+            * (3 / Real.sqrt (t / (2 * Real.pi)
+                * ((j + 1).factorial : ℝ)
+                / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1)) := hunwind
+
 end ExpSums
 
 end MoltResearch
