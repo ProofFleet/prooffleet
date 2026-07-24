@@ -1016,6 +1016,254 @@ theorem cascadeBound_unwind (j : ℕ) {L μ ν : ℝ} (hL : 1 ≤ L)
           rw [e1, e2]
           ring
 
+/-- **The log-phase block bound**: the cascade applied to `−(t/2π)·log n`,
+with the sandwich supplied by the factorially exact bounds. -/
+theorem log_phase_block_bound_cap (j M N H W : ℕ) (t : ℝ)
+    (ht : 0 < t) (hH : 1 ≤ H) (hHM : H ≤ M) (hMN : M ≤ N)
+    (hwin : N + j * H + j + 2 ≤ W) :
+    ‖∑ n ∈ Finset.Ico M (N + 1),
+        e (-(t / (2 * Real.pi) * Real.log n))‖ ^ (2 ^ j)
+      ≤ cascadeBound j ((N + 1 - M : ℕ) : ℝ) (H : ℝ)
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((W : ℕ) : ℝ) ^ (j + 2))
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)) := by
+  have hM1 : 1 ≤ M := le_trans hH hHM
+  set μ := t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+    / ((W : ℕ) : ℝ) ^ (j + 2) with hμdef
+  set ν := t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+    / ((M : ℕ) : ℝ) ^ (j + 2) with hνdef
+  have hπ : (0:ℝ) < 2 * Real.pi := by positivity
+  have hc : (0:ℝ) < t / (2 * Real.pi) := by positivity
+  have hM0 : (0:ℝ) < ((M : ℕ) : ℝ) := by exact_mod_cast hM1
+  have h4M0 : (0:ℝ) < ((W : ℕ) : ℝ) := by
+    have : 1 ≤ W := by omega
+    exact_mod_cast this
+  have hμ0 : (0:ℝ) < t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+      / ((W : ℕ) : ℝ) ^ (j + 2) := by
+    have hf : (0:ℝ) < ((j + 1).factorial : ℝ) := by
+      exact_mod_cast (j + 1).factorial_pos
+    positivity
+  have hμν : t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+      / ((W : ℕ) : ℝ) ^ (j + 2)
+      ≤ t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+        / ((M : ℕ) : ℝ) ^ (j + 2) := by
+    have hf : (0:ℝ) ≤ t / (2 * Real.pi) * ((j + 1).factorial : ℝ) := by
+      have : (0:ℝ) ≤ ((j + 1).factorial : ℝ) := Nat.cast_nonneg _
+      positivity
+    have hle : ((M : ℕ) : ℝ) ^ (j + 2) ≤ ((W : ℕ) : ℝ) ^ (j + 2) := by
+      refine pow_le_pow_left₀ hM0.le ?_ _
+      exact_mod_cast (by omega : M ≤ W)
+    rw [div_le_div_iff₀ (by positivity) (by positivity)]
+    exact mul_le_mul_of_nonneg_left hle hf
+  -- the sandwich for the (parity-corrected) phase
+  have hsand_core : ∀ n : ℕ, M ≤ n → n ≤ N + j * H →
+      t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+        / ((W : ℕ) : ℝ) ^ (j + 2)
+      ≤ t / (2 * Real.pi)
+          * ((-1 : ℝ) ^ (j + 1) * dIter (j + 2) (fun m : ℕ => Real.log m) n)
+      ∧ t / (2 * Real.pi)
+          * ((-1 : ℝ) ^ (j + 1) * dIter (j + 2) (fun m : ℕ => Real.log m) n)
+        ≤ t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+          / ((M : ℕ) : ℝ) ^ (j + 2) := by
+    intro n h1 h2
+    have hn1 : 1 ≤ n := le_trans hM1 h1
+    have hsw := dIter_log_sandwich (j + 1) n hn1
+    have hn0 : (0:ℝ) < (n : ℝ) := by exact_mod_cast hn1
+    constructor
+    · -- lower: c·(j+1)!/(4M)^{j+2} ≤ c·[(−1)^{j+1}Δ] since (n+(j+1)+1) ≤ 4M
+      have h3 : ((j + 1).factorial : ℝ) / ((W : ℕ) : ℝ) ^ (j + 2)
+          ≤ ((j + 1).factorial : ℝ) / ((n : ℝ) + (j + 1) + 1) ^ (j + 2) := by
+        have h4 : ((n : ℝ) + (j + 1) + 1) ^ (j + 2)
+            ≤ ((W : ℕ) : ℝ) ^ (j + 2) := by
+          refine pow_le_pow_left₀ (by positivity) ?_ _
+          have h5 : (n : ℝ) + (j + 1) + 1 ≤ ((W : ℕ) : ℝ) := by
+            have h6 : n + (j + 1) + 1 ≤ W := by omega
+            have h7 := congrArg (fun k : ℕ => (k : ℝ))
+              (rfl : n + (j + 1) + 1 = n + (j + 1) + 1)
+            push_cast
+            exact_mod_cast h6
+          exact h5
+        have hf : (0:ℝ) ≤ ((j + 1).factorial : ℝ) := Nat.cast_nonneg _
+        rw [div_le_div_iff₀ (by positivity) (by positivity)]
+        exact mul_le_mul_of_nonneg_left h4 hf
+      have h8 := hsw.1
+      have h9 : t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((W : ℕ) : ℝ) ^ (j + 2)
+          = t / (2 * Real.pi) * (((j + 1).factorial : ℝ)
+            / ((W : ℕ) : ℝ) ^ (j + 2)) := by ring
+      rw [h9]
+      refine mul_le_mul_of_nonneg_left ?_ hc.le
+      -- chain: (j+1)!/(4M)^{j+2} ≤ (j+1)!/(n+j+2)^{j+2} ≤ (−1)^{j+1}Δ
+      have h10 : ((n : ℝ) + (j + 1) + 1) = (n : ℝ) + (j + 1 : ℕ) + 1 := by
+        push_cast
+        ring
+      calc ((j + 1).factorial : ℝ) / ((W : ℕ) : ℝ) ^ (j + 2)
+          ≤ ((j + 1).factorial : ℝ)
+            / ((n : ℝ) + (j + 1) + 1) ^ (j + 2) := h3
+        _ ≤ (-1 : ℝ) ^ (j + 1)
+            * dIter (j + 1 + 1) (fun m : ℕ => Real.log m) n := by
+            have h11 := hsw.1
+            convert h11 using 3 <;> push_cast <;> ring
+    · have h8 := hsw.2
+      have h9 : t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)
+          = t / (2 * Real.pi) * (((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)) := by ring
+      rw [h9]
+      refine mul_le_mul_of_nonneg_left ?_ hc.le
+      have h12 : ((j + 1).factorial : ℝ) / ((n : ℝ)) ^ (j + 2)
+          ≤ ((j + 1).factorial : ℝ) / ((M : ℕ) : ℝ) ^ (j + 2) := by
+        have h13 : ((M : ℕ) : ℝ) ^ (j + 2) ≤ ((n : ℝ)) ^ (j + 2) := by
+          refine pow_le_pow_left₀ hM0.le ?_ _
+          exact_mod_cast h1
+        have hf : (0:ℝ) ≤ ((j + 1).factorial : ℝ) := Nat.cast_nonneg _
+        rw [div_le_div_iff₀ (by positivity) (by positivity)]
+        exact mul_le_mul_of_nonneg_left h13 hf
+      calc (-1 : ℝ) ^ (j + 1)
+            * dIter (j + 1 + 1) (fun m : ℕ => Real.log m) n
+          ≤ ((j + 1).factorial : ℝ) / (n : ℝ) ^ (j + 1 + 1) := hsw.2
+        _ ≤ ((j + 1).factorial : ℝ) / ((M : ℕ) : ℝ) ^ (j + 2) := by
+            convert h12 using 2
+  -- parity split: the sign of Δ^{j+2}log decides which phase is positive-form
+  rcases Nat.even_or_odd j with hpar | hpar
+  · -- j even: the goal phase itself is positive-form
+    have hneg1 : (-1 : ℝ) ^ (j + 1) = -1 := Odd.neg_one_pow hpar.add_one
+    have hsand : ∀ n, M ≤ n → n ≤ N + j * H →
+        μ ≤ dIter (j + 2)
+            (fun m : ℕ => -(t / (2 * Real.pi) * Real.log m)) n
+        ∧ dIter (j + 2)
+            (fun m : ℕ => -(t / (2 * Real.pi) * Real.log m)) n ≤ ν := by
+      intro n h1 h2
+      have h3 := hsand_core n h1 h2
+      rw [hneg1] at h3
+      have h4a := congrFun (dIter_neg (j + 2)
+        (fun m : ℕ => t / (2 * Real.pi) * Real.log m)) n
+      have h4b := congrFun (dIter_const_mul (j + 2) (t / (2 * Real.pi))
+        (fun m : ℕ => Real.log m)) n
+      have heq : dIter (j + 2)
+          (fun m : ℕ => -(t / (2 * Real.pi) * Real.log m)) n
+          = t / (2 * Real.pi)
+            * (-1 * dIter (j + 2) (fun m : ℕ => Real.log m) n) := by
+        rw [h4a, h4b]
+        ring
+      rw [heq]
+      exact h3
+    exact vdck_pow j (fun m : ℕ => -(t / (2 * Real.pi) * Real.log m))
+      M N H μ ν hμ0 hμν hH hHM hMN hsand
+  · -- j odd: conjugate to the un-negated phase
+    have hneg1 : (-1 : ℝ) ^ (j + 1) = 1 := Even.neg_one_pow hpar.add_one
+    have hnorm : ‖∑ n ∈ Finset.Ico M (N + 1),
+        e (-(t / (2 * Real.pi) * Real.log n))‖
+        = ‖∑ n ∈ Finset.Ico M (N + 1),
+            e (t / (2 * Real.pi) * Real.log n)‖ :=
+      norm_sum_e_neg (Finset.Ico M (N + 1))
+        (fun m : ℕ => t / (2 * Real.pi) * Real.log m)
+    rw [hnorm]
+    have hsand : ∀ n, M ≤ n → n ≤ N + j * H →
+        μ ≤ dIter (j + 2)
+            (fun m : ℕ => t / (2 * Real.pi) * Real.log m) n
+        ∧ dIter (j + 2)
+            (fun m : ℕ => t / (2 * Real.pi) * Real.log m) n ≤ ν := by
+      intro n h1 h2
+      have h3 := hsand_core n h1 h2
+      rw [hneg1] at h3
+      have h4b := congrFun (dIter_const_mul (j + 2) (t / (2 * Real.pi))
+        (fun m : ℕ => Real.log m)) n
+      have heq : dIter (j + 2)
+          (fun m : ℕ => t / (2 * Real.pi) * Real.log m) n
+          = t / (2 * Real.pi)
+            * (1 * dIter (j + 2) (fun m : ℕ => Real.log m) n) := by
+        rw [h4b]
+        ring
+      rw [heq]
+      exact h3
+    exact vdck_pow j (fun m : ℕ => t / (2 * Real.pi) * Real.log m)
+      M N H μ ν hμ0 hμν hH hHM hMN hsand
+
+/-- **The cascade unwind at `L = 2H`**: the closed form for sub-block
+partial sums. -/
+theorem cascadeBound_unwind₂ (j : ℕ) {H μ ν : ℝ} (hH : 1 ≤ H)
+    (hμ : 0 < μ) (hν : 0 ≤ ν) :
+    cascadeBound j (2 * H) H μ ν
+      ≤ 48 ^ (2 ^ j) * H ^ (2 ^ j)
+        * ((2 * ν * H ^ (j + 1) + 2) * (3 / Real.sqrt μ + 1)) := by
+  induction j generalizing ν with
+  | zero =>
+    rw [cascadeBound]
+    have h1 : (0:ℝ) ≤ (2 * ν * H ^ (0 + 1) + 2) * (3 / Real.sqrt μ + 1) := by
+      have h2 : (0:ℝ) ≤ 3 / Real.sqrt μ := by positivity
+      have h3 : (0:ℝ) ≤ 2 * ν * H ^ (0 + 1) := by
+        have : (0:ℝ) ≤ H ^ (0 + 1) := by positivity
+        positivity
+      exact mul_nonneg (by linarith) (by linarith)
+    have h4 : ν * (2 * H) + 2 = 2 * ν * H ^ (0 + 1) + 2 := by ring
+    rw [h4]
+    nlinarith [h1, mul_nonneg
+      (by linarith : (0:ℝ) ≤ 48 * H - 1) h1]
+  | succ j ih =>
+    rw [cascadeBound]
+    have hH0 : (0:ℝ) < H := by linarith
+    have hIH := ih (ν := H * ν) (mul_nonneg hH0.le hν)
+    have hone := one_le_cascadeBound j (L := 2 * H) (H := H)
+      (by linarith) hH hμ (ν := H * ν) (mul_nonneg hH0.le hν)
+    have h2 : (2 * H + H) / H = 3 := by
+      field_simp
+      ring
+    rw [h2]
+    have hBnn : (0:ℝ) ≤ cascadeBound j (2 * H) H μ (H * ν) := by linarith
+    have hfold : (2:ℝ) ^ 2 ^ j * (2 * H) ^ 2 ^ j
+          + 4 ^ 2 ^ j * H ^ 2 ^ j * cascadeBound j (2 * H) H μ (H * ν)
+        ≤ 2 * (4 ^ 2 ^ j * H ^ 2 ^ j
+            * cascadeBound j (2 * H) H μ (H * ν)) := by
+      have h5 : (2:ℝ) ^ 2 ^ j * (2 * H) ^ 2 ^ j = 4 ^ 2 ^ j * H ^ 2 ^ j := by
+        rw [mul_pow, ← mul_assoc, ← mul_pow]
+        norm_num
+      have h6 : (0:ℝ) ≤ H ^ 2 ^ j := by positivity
+      have h8 : (0:ℝ) ≤ (4:ℝ) ^ 2 ^ j * H ^ 2 ^ j := by positivity
+      nlinarith [mul_le_mul_of_nonneg_left hone h8]
+    calc (3:ℝ) ^ 2 ^ j * ((2:ℝ) ^ 2 ^ j * (2 * H) ^ 2 ^ j
+          + 4 ^ 2 ^ j * H ^ 2 ^ j * cascadeBound j (2 * H) H μ (H * ν))
+        ≤ (3:ℝ) ^ 2 ^ j * (2 * (4 ^ 2 ^ j * H ^ 2 ^ j
+            * cascadeBound j (2 * H) H μ (H * ν))) := by
+          exact mul_le_mul_of_nonneg_left hfold (by positivity)
+      _ = 2 * 12 ^ 2 ^ j * H ^ 2 ^ j
+            * cascadeBound j (2 * H) H μ (H * ν) := by
+          rw [show (12:ℝ) ^ 2 ^ j = 3 ^ 2 ^ j * 4 ^ 2 ^ j by
+            rw [← mul_pow]
+            norm_num]
+          ring
+      _ ≤ 48 ^ 2 ^ j * H ^ 2 ^ j
+            * cascadeBound j (2 * H) H μ (H * ν) := by
+          have h8 : 2 * (12:ℝ) ^ 2 ^ j ≤ 48 ^ 2 ^ j := by
+            have h9 : (48:ℝ) ^ 2 ^ j = 4 ^ 2 ^ j * 12 ^ 2 ^ j := by
+              rw [← mul_pow]
+              norm_num
+            have h10 : (2:ℝ) ≤ 4 ^ 2 ^ j := by
+              calc (2:ℝ) ≤ 4 ^ 1 := by norm_num
+                _ ≤ 4 ^ 2 ^ j :=
+                  pow_le_pow_right₀ (by norm_num) Nat.one_le_two_pow
+            nlinarith [pow_nonneg (by norm_num : (0:ℝ) ≤ 12) (2 ^ j)]
+          have h11 : (0:ℝ) ≤ H ^ 2 ^ j
+              * cascadeBound j (2 * H) H μ (H * ν) :=
+            mul_nonneg (by positivity) hBnn
+          nlinarith [mul_le_mul_of_nonneg_right h8 h11]
+      _ ≤ 48 ^ 2 ^ j * H ^ 2 ^ j * (48 ^ 2 ^ j * H ^ 2 ^ j
+            * ((2 * (H * ν) * H ^ (j + 1) + 2)
+              * (3 / Real.sqrt μ + 1))) := by
+          exact mul_le_mul_of_nonneg_left hIH (by positivity)
+      _ = 48 ^ 2 ^ (j + 1) * H ^ 2 ^ (j + 1)
+            * ((2 * ν * H ^ (j + 1 + 1) + 2) * (3 / Real.sqrt μ + 1)) := by
+          have e0 : (2:ℕ) ^ (j + 1) = 2 ^ j * 2 := pow_succ 2 j
+          have e1 : (48:ℝ) ^ 2 ^ (j + 1) = 48 ^ 2 ^ j * 48 ^ 2 ^ j := by
+            rw [e0, pow_mul]
+            ring
+          have e2 : H ^ 2 ^ (j + 1) = H ^ 2 ^ j * H ^ 2 ^ j := by
+            rw [e0, pow_mul]
+            ring
+          rw [e1, e2]
+          ring
+
 end ExpSums
 
 end MoltResearch
