@@ -6972,4 +6972,18 @@ example {ψ : ℕ → ℝ} {j M N H : ℕ} {μ ν : ℝ}
       ≤ ExpSums.cascadeBound j ((N + 1 - M : ℕ) : ℝ) (H : ℝ) μ ν :=
   ExpSums.vdck_pow j ψ M N H μ ν hμ hμν hH hHM hMN hsand
 
+-- Track L Littlewood campaign (issue #3020, log phase): the cascade on
+-- the zeta phase — factorial sandwich in, explicit block bound out.
+example (j M N H : ℕ) (t : ℝ)
+    (ht : 0 < t) (hH : 1 ≤ H) (hHM : H ≤ M) (hMN : M ≤ N)
+    (hwin : N + j * H + j + 2 ≤ 4 * M) :
+    ‖∑ n ∈ Finset.Ico M (N + 1),
+        ExpSums.e (-(t / (2 * Real.pi) * Real.log n))‖ ^ (2 ^ j)
+      ≤ ExpSums.cascadeBound j ((N + 1 - M : ℕ) : ℝ) (H : ℝ)
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((4 * M : ℕ) : ℝ) ^ (j + 2))
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)) :=
+  ExpSums.log_phase_block_bound j M N H t ht hH hHM hMN hwin
+
 end MoltResearch
