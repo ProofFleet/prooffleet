@@ -6954,4 +6954,11 @@ example {φ : ℕ → ℝ} {M N H : ℕ}
                 ExpSums.e (φ (m + g) - φ m)‖) :=
   ExpSums.weyl_differencing hH hHM hMN
 
+-- Track L Littlewood campaign (issue #3020, L4): the two-sided sandwich
+-- for iterated unit differences of log — factorially exact constants.
+example (k n : ℕ) (hn : 1 ≤ n) :
+    (k.factorial : ℝ) / ((n : ℝ) + k + 1) ^ (k + 1)
+      ≤ (-1) ^ k * ExpSums.dIter (k + 1) (fun j : ℕ => Real.log j) n :=
+  (ExpSums.dIter_log_sandwich k n hn).1
+
 end MoltResearch
