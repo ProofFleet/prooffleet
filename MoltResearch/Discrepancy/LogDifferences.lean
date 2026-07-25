@@ -1456,6 +1456,322 @@ theorem zeta_block_weighted (j M N : ℕ) (t : ℝ) (w : ℕ → ℝ)
     · obtain ⟨P', rfl⟩ : ∃ P', P = P' + 1 := ⟨P - 1, by omega⟩
       exact zeta_block_E j M P' t ht hM (by omega) (by omega) hj2
 
+/-- **The honest transfer**: both sandwich bounds scale with the step. -/
+theorem dIter_diff_sandwich' {ψ : ℕ → ℝ} {j g : ℕ} {μ ν : ℝ} {M N n : ℕ}
+    (hsand : ∀ m, M ≤ m → m ≤ N → μ ≤ dIter (j + 1) ψ m
+      ∧ dIter (j + 1) ψ m ≤ ν)
+    (hn : M ≤ n) (hng : n + g - 1 ≤ N) :
+    (g : ℝ) * μ ≤ dIter j (fun m => ψ (m + g) - ψ m) n
+    ∧ dIter j (fun m => ψ (m + g) - ψ m) n ≤ (g : ℝ) * ν := by
+  rw [dIter_diff_eq_sum]
+  constructor
+  · have h2 : ∑ _m ∈ Finset.range g, μ
+        ≤ ∑ m ∈ Finset.range g, dIter (j + 1) ψ (n + m) := by
+      refine Finset.sum_le_sum fun m hm => ?_
+      rw [Finset.mem_range] at hm
+      exact (hsand (n + m) (by omega) (by omega)).1
+    rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul] at h2
+    exact h2
+  · have h2 : ∑ m ∈ Finset.range g, dIter (j + 1) ψ (n + m)
+        ≤ ∑ _m ∈ Finset.range g, ν := by
+      refine Finset.sum_le_sum fun m hm => ?_
+      rw [Finset.mem_range] at hm
+      exact (hsand (n + m) (by omega) (by omega)).2
+    rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul] at h2
+    exact h2
+
+/-- The trivial cap: an exponential sum is at most its length. -/
+theorem norm_sum_e_le_card (W : Finset ℕ) (ψ : ℕ → ℝ) :
+    ‖∑ n ∈ W, e (ψ n)‖ ≤ (W.card : ℝ) := by
+  refine le_trans (norm_sum_le _ _) ?_
+  rw [Finset.sum_congr rfl (fun n _ => norm_e (ψ n)), Finset.sum_const,
+    nsmul_eq_mul, mul_one]
+
+/-- **The per-`g` cascade bound with trivial caps** — the exact object the
+end-to-end numerical check validated. -/
+noncomputable def cascadeBound' : ℕ → ℝ → ℕ → ℝ → ℝ → ℝ
+  | 0, L, _H, μ, ν => min L ((ν * L + 2) * (3 / Real.sqrt μ + 1))
+  | (j + 1), L, H, μ, ν =>
+      min (L ^ 2 ^ (j + 1))
+        (((L + H) / H) ^ 2 ^ j
+          * (2 ^ 2 ^ j * L ^ 2 ^ j
+            + 4 ^ 2 ^ j * (H : ℝ) ^ (2 ^ j - 1)
+              * ∑ g ∈ Finset.Ico 1 H,
+                  cascadeBound' j L H ((g : ℝ) * μ) ((g : ℝ) * ν)))
+
+theorem cascadeBound'_nonneg (j : ℕ) {L : ℝ} {H : ℕ} {μ ν : ℝ}
+    (hL : 0 ≤ L) (hH : 1 ≤ H) (hμ : 0 < μ) (hν : 0 ≤ ν) :
+    0 ≤ cascadeBound' j L H μ ν := by
+  induction j generalizing μ ν with
+  | zero =>
+    rw [cascadeBound']
+    refine le_min hL ?_
+    have h1 : (0:ℝ) ≤ 3 / Real.sqrt μ := by positivity
+    have h2 : (0:ℝ) ≤ ν * L := mul_nonneg hν hL
+    nlinarith [mul_nonneg (by linarith : (0:ℝ) ≤ ν * L + 2) h1]
+  | succ j ih =>
+    rw [cascadeBound']
+    have hHR : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+    refine le_min (pow_nonneg hL _) ?_
+    have h1 : (0:ℝ) ≤ ∑ g ∈ Finset.Ico 1 H,
+        cascadeBound' j L H ((g : ℝ) * μ) ((g : ℝ) * ν) := by
+      refine Finset.sum_nonneg fun g hg => ?_
+      rw [Finset.mem_Ico] at hg
+      have hg0 : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+      exact ih (mul_pos hg0 hμ) (mul_nonneg hg0.le hν)
+    have h2 : (0:ℝ) ≤ (L + H) / H := div_nonneg (by linarith) hHR.le
+    have h3 : (0:ℝ) ≤ (2:ℝ) ^ 2 ^ j * L ^ 2 ^ j :=
+      mul_nonneg (by positivity) (pow_nonneg hL _)
+    have h4 : (0:ℝ) ≤ (4:ℝ) ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1) := by positivity
+    have h5 : (0:ℝ) ≤ ((L + H) / H) ^ 2 ^ j := pow_nonneg h2 _
+    nlinarith [mul_nonneg h5 (add_nonneg h3 (mul_nonneg h4 h1))]
+
+theorem cascadeBound'_mono_L (j : ℕ) {L L' : ℝ} {H : ℕ} {μ ν : ℝ}
+    (hL : 0 ≤ L) (hLL : L ≤ L') (hH : 1 ≤ H) (hμ : 0 < μ) (hν : 0 ≤ ν) :
+    cascadeBound' j L H μ ν ≤ cascadeBound' j L' H μ ν := by
+  induction j generalizing μ ν with
+  | zero =>
+    rw [cascadeBound', cascadeBound']
+    refine min_le_min hLL ?_
+    have h1 : (0:ℝ) ≤ 3 / Real.sqrt μ + 1 := by positivity
+    have h2 : ν * L + 2 ≤ ν * L' + 2 := by nlinarith
+    exact mul_le_mul_of_nonneg_right h2 h1
+  | succ j ih =>
+    rw [cascadeBound', cascadeBound']
+    have hHR : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+    refine min_le_min (pow_le_pow_left₀ hL hLL _) ?_
+    have hsum : ∑ g ∈ Finset.Ico 1 H,
+        cascadeBound' j L H ((g : ℝ) * μ) ((g : ℝ) * ν)
+        ≤ ∑ g ∈ Finset.Ico 1 H,
+          cascadeBound' j L' H ((g : ℝ) * μ) ((g : ℝ) * ν) := by
+      refine Finset.sum_le_sum fun g hg => ?_
+      rw [Finset.mem_Ico] at hg
+      have hg0 : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+      exact ih (mul_pos hg0 hμ) (mul_nonneg hg0.le hν)
+    have hsum0 : (0:ℝ) ≤ ∑ g ∈ Finset.Ico 1 H,
+        cascadeBound' j L H ((g : ℝ) * μ) ((g : ℝ) * ν) := by
+      refine Finset.sum_nonneg fun g hg => ?_
+      rw [Finset.mem_Ico] at hg
+      have hg0 : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+      exact cascadeBound'_nonneg j hL hH (mul_pos hg0 hμ)
+        (mul_nonneg hg0.le hν)
+    have h2 : (0:ℝ) ≤ (L + H) / H := div_nonneg (by linarith) hHR.le
+    have h5 : ((L + H) / H) ^ 2 ^ j ≤ ((L' + H) / H) ^ 2 ^ j := by
+      refine pow_le_pow_left₀ h2 ?_ _
+      exact div_le_div_of_nonneg_right (by linarith) hHR.le
+    have h3 : (0:ℝ) ≤ (2:ℝ) ^ 2 ^ j := by positivity
+    have h4 : (0:ℝ) ≤ (4:ℝ) ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1) := by positivity
+    have hL3 : L ^ 2 ^ j ≤ L' ^ 2 ^ j := pow_le_pow_left₀ hL hLL _
+    have hinner : 2 ^ 2 ^ j * L ^ 2 ^ j
+          + 4 ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1)
+            * ∑ g ∈ Finset.Ico 1 H,
+                cascadeBound' j L H ((g : ℝ) * μ) ((g : ℝ) * ν)
+        ≤ 2 ^ 2 ^ j * L' ^ 2 ^ j
+          + 4 ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1)
+            * ∑ g ∈ Finset.Ico 1 H,
+                cascadeBound' j L' H ((g : ℝ) * μ) ((g : ℝ) * ν) := by
+      have h6 := mul_le_mul_of_nonneg_left hsum h4
+      nlinarith [mul_le_mul_of_nonneg_left hL3 h3]
+    have hinner0 : (0:ℝ) ≤ 2 ^ 2 ^ j * L ^ 2 ^ j
+          + 4 ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1)
+            * ∑ g ∈ Finset.Ico 1 H,
+                cascadeBound' j L H ((g : ℝ) * μ) ((g : ℝ) * ν) := by
+      have h7 : (0:ℝ) ≤ L ^ 2 ^ j := pow_nonneg hL _
+      nlinarith [mul_nonneg h4 hsum0]
+    have h8 : (0:ℝ) ≤ ((L' + H) / H) ^ 2 ^ j :=
+      pow_nonneg (div_nonneg (by linarith) hHR.le) _
+    nlinarith [mul_le_mul h5 hinner hinner0 h8]
+
+/-- **The per-`g` cascade** (honest transfer, trivial caps): the refined
+form of `vdck_pow` that the end-to-end check validated. -/
+theorem vdck_pow' (j : ℕ) :
+    ∀ (ψ : ℕ → ℝ) (M N H : ℕ) (μ ν : ℝ),
+      0 < μ → μ ≤ ν → 1 ≤ H → H ≤ M → M ≤ N →
+      (∀ n, M ≤ n → n ≤ N + j * H →
+        μ ≤ dIter (j + 2) ψ n ∧ dIter (j + 2) ψ n ≤ ν) →
+      ‖∑ n ∈ Finset.Ico M (N + 1), e (ψ n)‖ ^ (2 ^ j)
+        ≤ cascadeBound' j ((N + 1 - M : ℕ) : ℝ) H μ ν := by
+  induction j with
+  | zero =>
+    intro ψ M N H μ ν hμ hμν hH hHM hMN hsand
+    simp only [Nat.zero_add, Nat.zero_mul, Nat.add_zero] at hsand
+    have hpow : (2 : ℕ) ^ 0 = 1 := rfl
+    rw [hpow, pow_one, cascadeBound']
+    refine le_min ?_ ?_
+    · have h1 := norm_sum_e_le_card (Finset.Ico M (N + 1)) ψ
+      rwa [Nat.card_Ico] at h1
+    · have hsqrt : (0:ℝ) < Real.sqrt μ := Real.sqrt_pos.mpr hμ
+      have hθ : (0:ℝ) < Real.sqrt μ / 2 := by linarith
+      have hν0 : (0:ℝ) < ν := lt_of_lt_of_le hμ hμν
+      have hmono : ∀ n, M ≤ n → n < N →
+          ψ (n + 1) - ψ n ≤ ψ (n + 2) - ψ (n + 1) := by
+        intro n h1 h2
+        have h3 := (hsand n h1 (by omega)).1
+        rw [dIter_two] at h3
+        linarith
+      have hsec : ∀ n, M ≤ n → n < N →
+          μ ≤ (ψ (n + 2) - ψ (n + 1)) - (ψ (n + 1) - ψ n) := by
+        intro n h1 h2
+        have h3 := (hsand n h1 (by omega)).1
+        rw [dIter_two] at h3
+        exact h3
+      have hD : (ψ (N + 1) - ψ N) - (ψ (M + 1) - ψ M)
+          ≤ ν * ((N + 1 - M : ℕ) : ℝ) := by
+        have h5 := diff_shift_eq_sum (dOp ψ) (N - M) M
+        have h6 : M + (N - M) = N := by omega
+        rw [h6] at h5
+        have h7 : ∑ m ∈ Finset.range (N - M), dOp (dOp ψ) (M + m)
+            ≤ ∑ _m ∈ Finset.range (N - M), ν := by
+          refine Finset.sum_le_sum fun m hm => ?_
+          rw [Finset.mem_range] at hm
+          have h8 := (hsand (M + m) (by omega) (by omega)).2
+          rw [dIter_two] at h8
+          simp only [dOp]
+          linarith
+        have h10 : ∑ _m ∈ Finset.range (N - M), ν
+            = ((N - M : ℕ) : ℝ) * ν := by
+          rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+        simp only [dOp] at h5 h7
+        have h11 : ((N - M : ℕ) : ℝ) ≤ ((N + 1 - M : ℕ) : ℝ) := by
+          exact_mod_cast (by omega : N - M ≤ N + 1 - M)
+        rw [h10] at h7
+        nlinarith [h7, mul_le_mul_of_nonneg_right h11 hν0.le]
+      have hvdc := vdc2 (φ := ψ) (θ := Real.sqrt μ / 2) (r := μ)
+        (D := ν * ((N + 1 - M : ℕ) : ℝ)) hθ hμ hMN hmono hsec hD
+      refine le_trans hvdc (le_of_eq ?_)
+      have hself : Real.sqrt μ * Real.sqrt μ = μ := Real.mul_self_sqrt hμ.le
+      have key : (2 * (Real.sqrt μ / 2) / μ + 1) + 1 / (Real.sqrt μ / 2)
+          = 3 / Real.sqrt μ + 1 := by
+        set sq := Real.sqrt μ with hsq
+        rw [← hself]
+        field_simp
+        ring
+      rw [key]
+  | succ j ih =>
+    intro ψ M N H μ ν hμ hμν hH hHM hMN hsand
+    have hHR : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+    have hL0 : (0:ℝ) ≤ ((N + 1 - M : ℕ) : ℝ) := Nat.cast_nonneg _
+    have hν0 : (0:ℝ) < ν := lt_of_lt_of_le hμ hμν
+    have hq1 : 1 ≤ 2 ^ j := Nat.one_le_two_pow
+    rw [cascadeBound']
+    refine le_min ?_ ?_
+    · refine pow_le_pow_left₀ (norm_nonneg _) ?_ _
+      have h1 := norm_sum_e_le_card (Finset.Ico M (N + 1)) ψ
+      rwa [Nat.card_Ico] at h1
+    · have hexp : ‖∑ n ∈ Finset.Ico M (N + 1), e (ψ n)‖ ^ 2 ^ (j + 1)
+          = (‖∑ n ∈ Finset.Ico M (N + 1), e (ψ n)‖ ^ 2) ^ 2 ^ j := by
+        rw [← pow_mul]
+        congr 1
+        rw [pow_succ']
+      rw [hexp]
+      have hweyl := weyl_differencing (φ := ψ) (H := H) hH hHM hMN
+      have hs1 := pow_le_pow_left₀ (by positivity) hweyl (2 ^ j)
+      refine le_trans hs1 ?_
+      rw [mul_pow]
+      refine mul_le_mul_of_nonneg_left ?_
+        (pow_nonneg (div_nonneg (by linarith) hHR.le) _)
+      -- per-g bounds
+      have hper : ∀ g ∈ Finset.Ico 1 H,
+          ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖ ^ 2 ^ j
+            ≤ cascadeBound' j ((N + 1 - M : ℕ) : ℝ) H
+                ((g : ℝ) * μ) ((g : ℝ) * ν) := by
+        intro g hg
+        rw [Finset.mem_Ico] at hg
+        have hg0 : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+        have hBnn := cascadeBound'_nonneg j hL0 hH
+          (mul_pos hg0 hμ) (mul_nonneg hg0.le hν0.le)
+        by_cases hempty : N + 1 - g ≤ M
+        · have he : Finset.Ico M (N + 1 - g) = ∅ :=
+            Finset.Ico_eq_empty (by omega)
+          rw [he, Finset.sum_empty, norm_zero,
+            zero_pow (Nat.two_pow_pos j).ne']
+          exact hBnn
+        · have hne : M < N + 1 - g := by omega
+          have hgN : g ≤ N := by omega
+          have hN' : N + 1 - g = (N - g) + 1 := by omega
+          rw [hN']
+          have hsand' : ∀ n, M ≤ n → n ≤ (N - g) + j * H →
+              (g:ℝ) * μ ≤ dIter (j + 2) (fun m => ψ (m + g) - ψ m) n
+              ∧ dIter (j + 2) (fun m => ψ (m + g) - ψ m) n
+                ≤ (g:ℝ) * ν := by
+            intro n h1 h2
+            exact dIter_diff_sandwich' (ψ := ψ) (j := j + 2) (g := g)
+              (μ := μ) (ν := ν) (M := M) (N := N + (j + 1) * H)
+              (fun m hm1 hm2 => hsand m hm1 (by omega))
+              h1 (by
+                have hjH : j * H + H = (j + 1) * H := by ring
+                omega)
+          have hIH := ih (fun m => ψ (m + g) - ψ m) M (N - g) H
+            ((g:ℝ) * μ) ((g:ℝ) * ν) (mul_pos hg0 hμ)
+            (mul_le_mul_of_nonneg_left hμν hg0.le)
+            hH hHM (by omega) hsand'
+          refine le_trans hIH (cascadeBound'_mono_L j (Nat.cast_nonneg _)
+            ?_ hH (mul_pos hg0 hμ) (mul_nonneg hg0.le hν0.le))
+          exact_mod_cast (by omega : (N - g) + 1 - M ≤ N + 1 - M)
+      -- assemble: (L + 2X)^q ≤ 2^q L^q + 4^q H^{q-1} ∑_g (per-g)
+      have hX0 : (0:ℝ) ≤ ∑ g ∈ Finset.Ico 1 H,
+          ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖ :=
+        Finset.sum_nonneg fun g _ => norm_nonneg _
+      have hA := add_pow_le_two_pow_mul (a := ((N + 1 - M : ℕ) : ℝ))
+        (b := 2 * ∑ g ∈ Finset.Ico 1 H,
+          ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖)
+        hL0 (by linarith) (2 ^ j)
+      have hXq := sum_pow_le_card_pow_mul (s := Finset.Ico 1 H)
+        (f := fun g => ‖∑ m ∈ Finset.Ico M (N + 1 - g),
+          e (ψ (m + g) - ψ m)‖)
+        (fun i _ => norm_nonneg _) (2 ^ j) hq1
+      have hsum_per := Finset.sum_le_sum hper
+      have hcard : (((Finset.Ico 1 H).card : ℕ) : ℝ) ^ (2 ^ j - 1)
+          ≤ (H : ℝ) ^ (2 ^ j - 1) := by
+        refine pow_le_pow_left₀ (Nat.cast_nonneg _) ?_ _
+        rw [Nat.card_Ico]
+        exact_mod_cast (by omega : H - 1 ≤ H)
+      have hSnn : (0:ℝ) ≤ ∑ g ∈ Finset.Ico 1 H,
+          ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖ ^ 2 ^ j :=
+        Finset.sum_nonneg fun g _ => pow_nonneg (norm_nonneg _) _
+      have hcnn : (0:ℝ) ≤ (((Finset.Ico 1 H).card : ℕ) : ℝ) ^ (2 ^ j - 1) :=
+        pow_nonneg (Nat.cast_nonneg _) _
+      have hXfin : (∑ g ∈ Finset.Ico 1 H,
+          ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖) ^ 2 ^ j
+          ≤ (H : ℝ) ^ (2 ^ j - 1) * ∑ g ∈ Finset.Ico 1 H,
+              cascadeBound' j ((N + 1 - M : ℕ) : ℝ) H
+                ((g : ℝ) * μ) ((g : ℝ) * ν) := by
+        calc (∑ g ∈ Finset.Ico 1 H,
+              ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖) ^ 2 ^ j
+            ≤ (((Finset.Ico 1 H).card : ℕ) : ℝ) ^ (2 ^ j - 1)
+                * ∑ g ∈ Finset.Ico 1 H,
+                  ‖∑ m ∈ Finset.Ico M (N + 1 - g),
+                    e (ψ (m + g) - ψ m)‖ ^ 2 ^ j := hXq
+          _ ≤ (H : ℝ) ^ (2 ^ j - 1) * ∑ g ∈ Finset.Ico 1 H,
+                cascadeBound' j ((N + 1 - M : ℕ) : ℝ) H
+                  ((g : ℝ) * μ) ((g : ℝ) * ν) := by
+              exact mul_le_mul hcard hsum_per hSnn
+                (pow_nonneg hHR.le _)
+      have h2q : (0:ℝ) ≤ (2:ℝ) ^ 2 ^ j := by positivity
+      have hmp : ((2:ℝ) * ∑ g ∈ Finset.Ico 1 H,
+          ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖) ^ 2 ^ j
+          = 2 ^ 2 ^ j * (∑ g ∈ Finset.Ico 1 H,
+            ‖∑ m ∈ Finset.Ico M (N + 1 - g),
+              e (ψ (m + g) - ψ m)‖) ^ 2 ^ j :=
+        mul_pow 2 _ _
+      have hfour : (2:ℝ) ^ 2 ^ j * 2 ^ 2 ^ j = 4 ^ 2 ^ j := by
+        rw [← mul_pow]
+        norm_num
+      have hstep2 : (2:ℝ) ^ 2 ^ j * ((2 * ∑ g ∈ Finset.Ico 1 H,
+          ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖) ^ 2 ^ j)
+          = 4 ^ 2 ^ j * (∑ g ∈ Finset.Ico 1 H,
+            ‖∑ m ∈ Finset.Ico M (N + 1 - g),
+              e (ψ (m + g) - ψ m)‖) ^ 2 ^ j := by
+        rw [hmp, ← mul_assoc, hfour]
+      have hstep3 : (4:ℝ) ^ 2 ^ j * (∑ g ∈ Finset.Ico 1 H,
+          ‖∑ m ∈ Finset.Ico M (N + 1 - g), e (ψ (m + g) - ψ m)‖) ^ 2 ^ j
+          ≤ 4 ^ 2 ^ j * ((H : ℝ) ^ (2 ^ j - 1)
+            * ∑ g ∈ Finset.Ico 1 H,
+                cascadeBound' j ((N + 1 - M : ℕ) : ℝ) H
+                  ((g : ℝ) * μ) ((g : ℝ) * ν)) :=
+        mul_le_mul_of_nonneg_left hXfin (by positivity)
+      nlinarith [hA, hstep2, hstep3]
+
 end ExpSums
 
 end MoltResearch
