@@ -1327,6 +1327,135 @@ theorem zeta_block_partial_bound (j M P : ℕ) (t : ℝ) (ht : 0 < t)
                 * ((j + 1).factorial : ℝ)
                 / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1)) := hunwind
 
+/-- Root extraction: a `q`-th power bound yields an `rpow` bound — the
+single `rpow` site of the campaign. -/
+theorem le_rpow_inv_of_pow_le {X B : ℝ} {q : ℕ} (hq : q ≠ 0)
+    (hX : 0 ≤ X) (hB : X ^ q ≤ B) :
+    X ≤ B ^ ((q : ℝ)⁻¹) := by
+  have h1 : (X ^ q) ^ ((q : ℝ)⁻¹) ≤ B ^ ((q : ℝ)⁻¹) :=
+    Real.rpow_le_rpow (pow_nonneg hX q) hB (by positivity)
+  rwa [← Real.rpow_natCast X q, ← Real.rpow_mul hX,
+    mul_inv_cancel₀ (by exact_mod_cast hq), Real.rpow_one] at h1
+
+/-- **The per-block partial-sum estimate in root form**: `48·M` times the
+`2^j`-th root of the main factor. -/
+theorem zeta_block_E (j M P : ℕ) (t : ℝ) (ht : 0 < t) (hM : 1 ≤ M)
+    (hMP : M ≤ P) (hP : P ≤ 2 * M) (hj2 : j + 2 ≤ 2 * M) :
+    ‖∑ n ∈ Finset.Ico M (P + 1),
+        e (-(t / (2 * Real.pi) * Real.log n))‖
+      ≤ 48 * (M : ℝ)
+        * ((2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+          * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1))
+          ^ (((2 ^ j : ℕ) : ℝ)⁻¹) := by
+  have hq : (2 : ℕ) ^ j ≠ 0 := (Nat.two_pow_pos j).ne'
+  have h1 := zeta_block_partial_bound j M P t ht hM hMP hP hj2
+  have hM0 : (0:ℝ) ≤ (M : ℝ) := Nat.cast_nonneg _
+  have hπ : (0:ℝ) < Real.pi := Real.pi_pos
+  have hBnn : (0:ℝ)
+      ≤ (2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+        * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1) := by
+    have h2 : (0:ℝ) ≤ t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+        / ((M : ℕ) : ℝ) ^ (j + 2) := by positivity
+    have h3 : (0:ℝ) ≤ 3 / Real.sqrt (t / (2 * Real.pi)
+        * ((j + 1).factorial : ℝ)
+        / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) := by positivity
+    have h4 : (0:ℝ) ≤ 2 * (t / (2 * Real.pi)
+        * ((j + 1).factorial : ℝ) / ((M : ℕ) : ℝ) ^ (j + 2))
+        * (M : ℝ) ^ (j + 1) := by positivity
+    nlinarith
+  have h2 := le_rpow_inv_of_pow_le (q := 2 ^ j) hq (norm_nonneg _) h1
+  have h3 : ((48 : ℝ) ^ 2 ^ j * (M : ℝ) ^ 2 ^ j
+        * ((2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+          * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1)))
+        ^ (((2 ^ j : ℕ) : ℝ)⁻¹)
+      = 48 * (M : ℝ)
+        * ((2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+          * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1))
+          ^ (((2 ^ j : ℕ) : ℝ)⁻¹) := by
+    rw [Real.mul_rpow (by positivity) hBnn,
+      Real.mul_rpow (by positivity) (by positivity),
+      Real.pow_rpow_inv_natCast (by norm_num) hq,
+      Real.pow_rpow_inv_natCast hM0 hq]
+  rw [h3] at h2
+  exact h2
+
+/-- **The weighted zeta block**: with any decreasing weight below `1/M`,
+the block's `M`-factor cancels — each dyadic block costs `48·(main)^{1/2^j}`. -/
+theorem zeta_block_weighted (j M N : ℕ) (t : ℝ) (w : ℕ → ℝ)
+    (ht : 0 < t) (hM : 1 ≤ M) (hMN : M ≤ N) (hN : N + 1 ≤ 2 * M)
+    (hj2 : j + 2 ≤ 2 * M)
+    (hw0 : ∀ n, M ≤ n → n ≤ N → 0 ≤ w n)
+    (hwd : ∀ n, M ≤ n → n < N → w (n + 1) ≤ w n)
+    (hwM : w M ≤ 1 / M) :
+    ‖∑ n ∈ Finset.Ico M (N + 1),
+        w n • e (-(t / (2 * Real.pi) * Real.log n))‖
+      ≤ 48 * ((2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+          * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1))
+          ^ (((2 ^ j : ℕ) : ℝ)⁻¹) := by
+  have hM0 : (0:ℝ) < (M : ℝ) := by exact_mod_cast hM
+  have hE := abel_weight_bound (w := w)
+    (a := fun n => e (-(t / (2 * Real.pi) * Real.log n)))
+    (M := M) (N := N)
+    (E := 48 * (M : ℝ)
+      * ((2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+        * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1))
+        ^ (((2 ^ j : ℕ) : ℝ)⁻¹))
+    hMN hw0 hwd ?_
+  · refine le_trans hE ?_
+    have hπ : (0:ℝ) < Real.pi := Real.pi_pos
+    have hBr : (0:ℝ)
+        ≤ ((2 * (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / ((M : ℕ) : ℝ) ^ (j + 2)) * (M : ℝ) ^ (j + 1) + 2)
+          * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1))
+          ^ (((2 ^ j : ℕ) : ℝ)⁻¹) := by
+      refine Real.rpow_nonneg ?_ _
+      have h2 : (0:ℝ) ≤ t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+          / ((M : ℕ) : ℝ) ^ (j + 2) := by positivity
+      have h3 : (0:ℝ) ≤ 3 / Real.sqrt (t / (2 * Real.pi)
+          * ((j + 1).factorial : ℝ)
+          / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) := by positivity
+      have h4 : (0:ℝ) ≤ 2 * (t / (2 * Real.pi)
+          * ((j + 1).factorial : ℝ) / ((M : ℕ) : ℝ) ^ (j + 2))
+          * (M : ℝ) ^ (j + 1) := by positivity
+      nlinarith
+    have h5 : w M * (48 * (M : ℝ) * ((2 * (t / (2 * Real.pi)
+            * ((j + 1).factorial : ℝ) / ((M : ℕ) : ℝ) ^ (j + 2))
+            * (M : ℝ) ^ (j + 1) + 2)
+          * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1))
+          ^ (((2 ^ j : ℕ) : ℝ)⁻¹))
+        ≤ (1 / (M : ℝ)) * (48 * (M : ℝ) * ((2 * (t / (2 * Real.pi)
+            * ((j + 1).factorial : ℝ) / ((M : ℕ) : ℝ) ^ (j + 2))
+            * (M : ℝ) ^ (j + 1) + 2)
+          * (3 / Real.sqrt (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+              / (((j + 4) * M : ℕ) : ℝ) ^ (j + 2)) + 1))
+          ^ (((2 ^ j : ℕ) : ℝ)⁻¹)) := by
+      refine mul_le_mul_of_nonneg_right hwM ?_
+      positivity
+    have h6 : (1 / (M : ℝ)) * (48 * (M : ℝ)) = 48 := by
+      field_simp
+    nlinarith [h5, hBr, mul_nonneg (mul_nonneg (by norm_num : (0:ℝ) ≤ 48) hM0.le) hBr]
+  · intro P hP1 hP2
+    rcases Nat.eq_or_lt_of_le hP1 with hPM | hPM
+    · rw [← hPM, Finset.Ico_self, Finset.sum_empty, norm_zero]
+      have hπ : (0:ℝ) < Real.pi := Real.pi_pos
+      positivity
+    · obtain ⟨P', rfl⟩ : ∃ P', P = P' + 1 := ⟨P - 1, by omega⟩
+      exact zeta_block_E j M P' t ht hM (by omega) (by omega) hj2
+
 end ExpSums
 
 end MoltResearch
