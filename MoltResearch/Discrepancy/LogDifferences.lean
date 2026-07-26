@@ -1960,6 +1960,131 @@ theorem cascadeBound'_class_one {L : ℝ} {H : ℕ} {μ ν : ℝ}
         rw [h11]
         field_simp
 
+set_option maxHeartbeats 800000 in
+/-- **The class-two savings lemma**: two Weyl unfolds in the regime
+`H²ν ≤ 1` — the `√H`-trade iterates to the `H`-trade. -/
+theorem cascadeBound'_class_two {L : ℝ} {H : ℕ} {μ ν : ℝ}
+    (hμ : 0 < μ) (hμν : μ ≤ ν) (hH : 1 ≤ H) (hHL : (H:ℝ) ≤ L)
+    (hH2ν : (H:ℝ) ^ 2 * ν ≤ 1) (hνL : 1 ≤ ν * L) :
+    cascadeBound' 2 L H μ ν
+      ≤ (272 / H + 6144 * (ν / Real.sqrt μ) * (H:ℝ)) * L ^ 4 := by
+  have hHR : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+  have hH1 : (1:ℝ) ≤ (H:ℝ) := by exact_mod_cast hH
+  have hν0 : (0:ℝ) < ν := lt_of_lt_of_le hμ hμν
+  have hL0 : (0:ℝ) < L := lt_of_lt_of_le hHR hHL
+  have hsμ : (0:ℝ) < Real.sqrt μ := Real.sqrt_pos.mpr hμ
+  have hsH : (0:ℝ) < Real.sqrt H := Real.sqrt_pos.mpr hHR
+  have hHH : Real.sqrt H * Real.sqrt H = (H:ℝ) :=
+    Real.mul_self_sqrt hHR.le
+  rw [show (2:ℕ) = 1 + 1 from rfl, cascadeBound']
+  refine le_trans (min_le_right _ _) ?_
+  rw [show (2:ℕ) ^ 1 = 2 from rfl, show (2:ℕ) - 1 = 1 from rfl,
+    pow_one]
+  -- per-g: class one at (gμ, gν)
+  have hper : ∀ g ∈ Finset.Ico 1 H,
+      cascadeBound' 1 L H ((g:ℝ) * μ) ((g:ℝ) * ν)
+        ≤ (4 / H + 96 * (ν / Real.sqrt μ) * (H:ℝ)) * L ^ 2 := by
+    intro g hg
+    rw [Finset.mem_Ico] at hg
+    have hg0 : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+    have hga : (1:ℝ) ≤ (g:ℝ) := by exact_mod_cast hg.1
+    have hgH : (g:ℝ) ≤ (H:ℝ) := by exact_mod_cast hg.2.le
+    have hgHν : (H:ℝ) * ((g:ℝ) * ν) ≤ 1 := by
+      have h0 : (H:ℝ) * ((g:ℝ) * ν) ≤ (H:ℝ) * ((H:ℝ) * ν) := by
+        have := mul_le_mul_of_nonneg_right hgH hν0.le
+        nlinarith
+      nlinarith
+    have hgνL : 1 ≤ (g:ℝ) * ν * L := by
+      have h0 : (0:ℝ) ≤ ν * L := by positivity
+      have h1 := mul_le_mul_of_nonneg_right hga h0
+      nlinarith
+    have h1 := cascadeBound'_class_one (L := L) (H := H)
+      (μ := (g:ℝ) * μ) (ν := (g:ℝ) * ν)
+      (mul_pos hg0 hμ) (mul_le_mul_of_nonneg_left hμν hg0.le)
+      hH hHL hgHν hgνL
+    refine le_trans h1 ?_
+    -- (gν)/√(gμ) = √g·(ν/√μ) ≤ √H·(ν/√μ); then √g-free bound with √H·√H = H
+    have h2 : Real.sqrt ((g:ℝ) * μ) = Real.sqrt g * Real.sqrt μ :=
+      Real.sqrt_mul hg0.le μ
+    have hsg : (0:ℝ) < Real.sqrt g := Real.sqrt_pos.mpr hg0
+    have h3 : (g:ℝ) * ν / Real.sqrt ((g:ℝ) * μ)
+        = Real.sqrt g * (ν / Real.sqrt μ) := by
+      rw [h2]
+      have h4 : (g:ℝ) = Real.sqrt g * Real.sqrt g :=
+        (Real.mul_self_sqrt hg0.le).symm
+      field_simp
+      nlinarith [h4]
+    rw [h3]
+    have h5 : Real.sqrt g ≤ Real.sqrt H := Real.sqrt_le_sqrt hgH
+    have h6 : Real.sqrt g * (ν / Real.sqrt μ) * Real.sqrt H
+        ≤ (ν / Real.sqrt μ) * (H:ℝ) := by
+      have h7 : Real.sqrt g * Real.sqrt H ≤ (H:ℝ) := by
+        nlinarith [mul_le_mul_of_nonneg_right h5 hsH.le]
+      have h8 : (0:ℝ) ≤ ν / Real.sqrt μ := by positivity
+      nlinarith [mul_le_mul_of_nonneg_right h7 h8]
+    have h9 : (0:ℝ) ≤ L ^ 2 := by positivity
+    refine mul_le_mul_of_nonneg_right ?_ h9
+    nlinarith [h6]
+  -- sum over g
+  have hsum : ∑ g ∈ Finset.Ico 1 H,
+      cascadeBound' 1 L H ((g:ℝ) * μ) ((g:ℝ) * ν)
+      ≤ (4 + 96 * (ν / Real.sqrt μ) * (H:ℝ) ^ 2) * L ^ 2 := by
+    refine le_trans (Finset.sum_le_sum hper) ?_
+    rw [Finset.sum_const, nsmul_eq_mul, Nat.card_Ico]
+    have h8 : ((H - 1 : ℕ) : ℝ) ≤ (H : ℝ) := by
+      exact_mod_cast (by omega : H - 1 ≤ H)
+    have h9 : (0:ℝ) ≤ (4 / H + 96 * (ν / Real.sqrt μ) * (H:ℝ)) * L ^ 2 := by
+      positivity
+    calc ((H - 1 : ℕ) : ℝ)
+          * ((4 / H + 96 * (ν / Real.sqrt μ) * (H:ℝ)) * L ^ 2)
+        ≤ (H:ℝ) * ((4 / H + 96 * (ν / Real.sqrt μ) * (H:ℝ)) * L ^ 2) :=
+          mul_le_mul_of_nonneg_right h8 h9
+      _ = (4 + 96 * (ν / Real.sqrt μ) * (H:ℝ) ^ 2) * L ^ 2 := by
+          field_simp
+  -- assemble
+  have hLH2 : (L + (H:ℝ)) / H ≤ 2 * L / H := by
+    refine div_le_div_of_nonneg_right ?_ hHR.le
+    linarith
+  have hLH0 : (0:ℝ) ≤ (L + (H:ℝ)) / H := div_nonneg (by linarith) hHR.le
+  have hsum0 : (0:ℝ) ≤ ∑ g ∈ Finset.Ico 1 H,
+      cascadeBound' 1 L H ((g:ℝ) * μ) ((g:ℝ) * ν) := by
+    refine Finset.sum_nonneg fun g hg => ?_
+    rw [Finset.mem_Ico] at hg
+    have hg0 : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+    exact cascadeBound'_nonneg 1 hL0.le hH
+      (mul_pos hg0 hμ) (mul_nonneg hg0.le hν0.le)
+  have hinner : 2 ^ 2 * L ^ 2 + 4 ^ 2 * (H:ℝ)
+        * ∑ g ∈ Finset.Ico 1 H,
+            cascadeBound' 1 L H ((g:ℝ) * μ) ((g:ℝ) * ν)
+      ≤ (68 * (H:ℝ) + 1536 * (ν / Real.sqrt μ) * (H:ℝ) ^ 3) * L ^ 2 := by
+    have h11 := mul_le_mul_of_nonneg_left hsum
+      (show (0:ℝ) ≤ 4 ^ 2 * (H:ℝ) by positivity)
+    have h12 : (4:ℝ) ^ 2 * (H:ℝ)
+          * ((4 + 96 * (ν / Real.sqrt μ) * (H:ℝ) ^ 2) * L ^ 2)
+        = (64 * (H:ℝ) + 1536 * (ν / Real.sqrt μ) * (H:ℝ) ^ 3) * L ^ 2 := by
+      ring
+    have h13 : (2:ℝ) ^ 2 * L ^ 2 ≤ 4 * (H:ℝ) * L ^ 2 := by
+      nlinarith [sq_nonneg L]
+    nlinarith [h11, h13]
+  have hinner0 : (0:ℝ) ≤ 2 ^ 2 * L ^ 2 + 4 ^ 2 * (H:ℝ)
+        * ∑ g ∈ Finset.Ico 1 H,
+            cascadeBound' 1 L H ((g:ℝ) * μ) ((g:ℝ) * ν) := by
+    have h14 : (0:ℝ) ≤ (4:ℝ) ^ 2 * (H:ℝ) := by positivity
+    nlinarith [mul_nonneg h14 hsum0, sq_nonneg L]
+  have hpre : ((L + (H:ℝ)) / H) ^ 2 ≤ (2 * L / H) ^ 2 :=
+    pow_le_pow_left₀ hLH0 hLH2 2
+  have hpre0 : (0:ℝ) ≤ ((L + (H:ℝ)) / H) ^ 2 := pow_nonneg hLH0 2
+  calc ((L + (H:ℝ)) / H) ^ 2 * (2 ^ 2 * L ^ 2 + 4 ^ 2 * (H:ℝ)
+        * ∑ g ∈ Finset.Ico 1 H,
+            cascadeBound' 1 L H ((g:ℝ) * μ) ((g:ℝ) * ν))
+      ≤ (2 * L / H) ^ 2
+        * ((68 * (H:ℝ) + 1536 * (ν / Real.sqrt μ) * (H:ℝ) ^ 3) * L ^ 2) := by
+        refine mul_le_mul hpre hinner hinner0 (pow_nonneg ?_ 2)
+        positivity
+    _ = (272 / H + 6144 * (ν / Real.sqrt μ) * (H:ℝ)) * L ^ 4 := by
+        field_simp
+        ring
+
 end ExpSums
 
 end MoltResearch
