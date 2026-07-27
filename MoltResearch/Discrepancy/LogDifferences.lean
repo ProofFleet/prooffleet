@@ -2085,6 +2085,240 @@ theorem cascadeBound'_class_two {L : ℝ} {H : ℕ} {μ ν : ℝ}
         field_simp
         ring
 
+/-- The floor constants of the class invariant. -/
+noncomputable def classA : ℕ → ℝ
+  | 0 => 4
+  | (j + 1) => 8 ^ 2 ^ j * (1 + classA j)
+
+/-- The main-term constants of the class invariant. -/
+noncomputable def classB : ℕ → ℝ
+  | 0 => 12
+  | (j + 1) => 8 ^ 2 ^ j * classB j
+
+theorem classA_pos (j : ℕ) : 0 < classA j := by
+  induction j with
+  | zero => rw [classA]; norm_num
+  | succ j ih =>
+    rw [classA]
+    have h1 : (0:ℝ) < 8 ^ 2 ^ j := by positivity
+    nlinarith
+
+theorem classB_pos (j : ℕ) : 0 < classB j := by
+  induction j with
+  | zero => rw [classB]; norm_num
+  | succ j ih =>
+    rw [classB]
+    have h1 : (0:ℝ) < 8 ^ 2 ^ j := by positivity
+    nlinarith
+
+set_option maxHeartbeats 1600000 in
+/-- **The general class lemma**: the savings invariant of the honest
+cascade, by induction — the shape confirmed by classes zero, one, two. -/
+theorem cascadeBound'_class (j : ℕ) :
+    ∀ {L : ℝ} {H : ℕ} {μ ν : ℝ},
+      0 < μ → μ ≤ ν → 1 ≤ H → (H:ℝ) ≤ L →
+      (H:ℝ) ^ j * ν ≤ 1 → 1 ≤ ν * L →
+      cascadeBound' j L H μ ν
+        ≤ (classA j / H + classB j * (Real.sqrt H) ^ j
+            * (ν / Real.sqrt μ)) * L ^ 2 ^ j := by
+  induction j with
+  | zero =>
+    intro L H μ ν hμ hμν hH hHL hHν hνL
+    rw [pow_zero, one_mul] at hHν
+    have hHR : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+    have hL0 : (0:ℝ) < L := lt_of_lt_of_le hHR hHL
+    have h1 := cascadeBound'_class_zero (L := L) (H := H)
+      hμ hμν hHν hνL
+    refine le_trans h1 ?_
+    rw [classA, classB, pow_zero, mul_one, pow_zero, pow_one]
+    have h2 : (0:ℝ) ≤ 4 / H * L := by positivity
+    nlinarith [h2]
+  | succ j ih =>
+    intro L H μ ν hμ hμν hH hHL hHν hνL
+    have hHR : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+    have hH1 : (1:ℝ) ≤ (H:ℝ) := by exact_mod_cast hH
+    have hν0 : (0:ℝ) < ν := lt_of_lt_of_le hμ hμν
+    have hL0 : (0:ℝ) < L := lt_of_lt_of_le hHR hHL
+    have hsμ : (0:ℝ) < Real.sqrt μ := Real.sqrt_pos.mpr hμ
+    have hsH : (0:ℝ) < Real.sqrt H := Real.sqrt_pos.mpr hHR
+    have hA := classA_pos j
+    have hB := classB_pos j
+    have hHj0 : (0:ℝ) ≤ (H:ℝ) ^ j := by positivity
+    rw [cascadeBound']
+    refine le_trans (min_le_right _ _) ?_
+    -- the per-g bound
+    set PB : ℝ := (classA j / H + classB j * (Real.sqrt H) ^ (j + 1)
+      * (ν / Real.sqrt μ)) * L ^ 2 ^ j with hPBdef
+    have hPB0 : (0:ℝ) ≤ PB := by
+      rw [hPBdef]
+      positivity
+    have hper : ∀ g ∈ Finset.Ico 1 H,
+        cascadeBound' j L H ((g:ℝ) * μ) ((g:ℝ) * ν) ≤ PB := by
+      intro g hg
+      rw [Finset.mem_Ico] at hg
+      have hg0 : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+      have hga : (1:ℝ) ≤ (g:ℝ) := by exact_mod_cast hg.1
+      have hgH : (g:ℝ) ≤ (H:ℝ) := by exact_mod_cast hg.2.le
+      have hgHν : (H:ℝ) ^ j * ((g:ℝ) * ν) ≤ 1 := by
+        have h0 : (H:ℝ) ^ j * ((g:ℝ) * ν)
+            ≤ (H:ℝ) ^ j * ((H:ℝ) * ν) := by
+          have h1 := mul_le_mul_of_nonneg_right hgH hν0.le
+          nlinarith
+        have h2 : (H:ℝ) ^ j * ((H:ℝ) * ν) = (H:ℝ) ^ (j + 1) * ν := by
+          rw [pow_succ]
+          ring
+        nlinarith [hHν, h2 ▸ h0]
+      have hgνL : 1 ≤ (g:ℝ) * ν * L := by
+        have h0 : (0:ℝ) ≤ ν * L := by positivity
+        have h1 := mul_le_mul_of_nonneg_right hga h0
+        nlinarith
+      have h1 := ih (L := L) (H := H) (μ := (g:ℝ) * μ) (ν := (g:ℝ) * ν)
+        (mul_pos hg0 hμ) (mul_le_mul_of_nonneg_left hμν hg0.le)
+        hH hHL hgHν hgνL
+      refine le_trans h1 ?_
+      -- √-split and fold
+      have h2 : Real.sqrt ((g:ℝ) * μ) = Real.sqrt g * Real.sqrt μ :=
+        Real.sqrt_mul hg0.le μ
+      have hsg : (0:ℝ) < Real.sqrt g := Real.sqrt_pos.mpr hg0
+      have h3 : (g:ℝ) * ν / Real.sqrt ((g:ℝ) * μ)
+          = Real.sqrt g * (ν / Real.sqrt μ) := by
+        rw [h2]
+        have h4 : (g:ℝ) = Real.sqrt g * Real.sqrt g :=
+          (Real.mul_self_sqrt hg0.le).symm
+        field_simp
+        nlinarith [h4]
+      rw [h3, hPBdef]
+      have h5 : Real.sqrt g ≤ Real.sqrt H := Real.sqrt_le_sqrt hgH
+      have h6 : (Real.sqrt H) ^ j * (Real.sqrt g * (ν / Real.sqrt μ))
+          ≤ (Real.sqrt H) ^ (j + 1) * (ν / Real.sqrt μ) := by
+        have h7 : (0:ℝ) ≤ ν / Real.sqrt μ := by positivity
+        have h8 : (0:ℝ) ≤ (Real.sqrt H) ^ j := by positivity
+        have h9 : (Real.sqrt H) ^ j * Real.sqrt g
+            ≤ (Real.sqrt H) ^ (j + 1) := by
+          rw [pow_succ]
+          exact mul_le_mul_of_nonneg_left h5 h8
+        nlinarith [mul_le_mul_of_nonneg_right h9 h7]
+      have h10 : (0:ℝ) ≤ L ^ 2 ^ j := by positivity
+      refine mul_le_mul_of_nonneg_right ?_ h10
+      nlinarith [h6]
+    -- sum
+    have hsum : ∑ g ∈ Finset.Ico 1 H,
+        cascadeBound' j L H ((g:ℝ) * μ) ((g:ℝ) * ν) ≤ (H:ℝ) * PB := by
+      refine le_trans (Finset.sum_le_sum hper) ?_
+      rw [Finset.sum_const, nsmul_eq_mul, Nat.card_Ico]
+      have h8 : ((H - 1 : ℕ) : ℝ) ≤ (H : ℝ) := by
+        exact_mod_cast (by omega : H - 1 ≤ H)
+      exact mul_le_mul_of_nonneg_right h8 hPB0
+    have hsum0 : (0:ℝ) ≤ ∑ g ∈ Finset.Ico 1 H,
+        cascadeBound' j L H ((g:ℝ) * μ) ((g:ℝ) * ν) := by
+      refine Finset.sum_nonneg fun g hg => ?_
+      rw [Finset.mem_Ico] at hg
+      have hg0 : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+      exact cascadeBound'_nonneg j hL0.le hH
+        (mul_pos hg0 hμ) (mul_nonneg hg0.le hν0.le)
+    -- H-power algebra
+    have hHpow : (H:ℝ) ^ (2 ^ j - 1) * (H:ℝ) = (H:ℝ) ^ 2 ^ j := by
+      rw [← pow_succ]
+      congr 1
+      have := Nat.one_le_two_pow (n := j)
+      omega
+    -- inner fold
+    have hinner : 2 ^ 2 ^ j * L ^ 2 ^ j
+          + 4 ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1)
+            * ∑ g ∈ Finset.Ico 1 H,
+                cascadeBound' j L H ((g:ℝ) * μ) ((g:ℝ) * ν)
+        ≤ 2 ^ 2 ^ j * L ^ 2 ^ j
+          + 4 ^ 2 ^ j * (H:ℝ) ^ 2 ^ j * PB := by
+      have h11 : (0:ℝ) ≤ (4:ℝ) ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1) := by
+        positivity
+      have h12 := mul_le_mul_of_nonneg_left hsum h11
+      have h13 : (4:ℝ) ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1) * ((H:ℝ) * PB)
+          = 4 ^ 2 ^ j * (H:ℝ) ^ 2 ^ j * PB := by
+        rw [← hHpow]
+        ring
+      nlinarith [h12, h13.ge, h13.le]
+    have hinner0 : (0:ℝ) ≤ 2 ^ 2 ^ j * L ^ 2 ^ j
+          + 4 ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1)
+            * ∑ g ∈ Finset.Ico 1 H,
+                cascadeBound' j L H ((g:ℝ) * μ) ((g:ℝ) * ν) := by
+      have h14 : (0:ℝ) ≤ (4:ℝ) ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1) := by
+        positivity
+      have h15 : (0:ℝ) ≤ (2:ℝ) ^ 2 ^ j * L ^ 2 ^ j := by positivity
+      nlinarith [mul_nonneg h14 hsum0]
+    -- prefactor
+    have hLH2 : (L + (H:ℝ)) / H ≤ 2 * L / H := by
+      refine div_le_div_of_nonneg_right ?_ hHR.le
+      linarith
+    have hLH0 : (0:ℝ) ≤ (L + (H:ℝ)) / H :=
+      div_nonneg (by linarith) hHR.le
+    have hpre : ((L + (H:ℝ)) / H) ^ 2 ^ j ≤ (2 * L / H) ^ 2 ^ j :=
+      pow_le_pow_left₀ hLH0 hLH2 _
+    -- multiply out (small pieces, single denominators)
+    have hq := Nat.one_le_two_pow (n := j)
+    have hE0 : (0:ℝ) < (H:ℝ) ^ 2 ^ j := by positivity
+    have hEne : ((H:ℝ)) ^ 2 ^ j ≠ 0 := ne_of_gt hE0
+    have e1 : (2 * L / (H:ℝ)) ^ 2 ^ j
+        = 2 ^ 2 ^ j * L ^ 2 ^ j / (H:ℝ) ^ 2 ^ j := by
+      rw [div_pow, mul_pow]
+    have hDD : L ^ 2 ^ j * L ^ 2 ^ j = L ^ 2 ^ (j + 1) := by
+      rw [← pow_add]
+      congr 1
+      omega
+    have e2 : 2 ^ 2 ^ j * L ^ 2 ^ j / (H:ℝ) ^ 2 ^ j
+          * (2 ^ 2 ^ j * L ^ 2 ^ j)
+        = 4 ^ 2 ^ j * L ^ 2 ^ (j + 1) / (H:ℝ) ^ 2 ^ j := by
+      rw [← hDD, show (4:ℝ) ^ 2 ^ j = 2 ^ 2 ^ j * 2 ^ 2 ^ j by
+        rw [← mul_pow]; norm_num]
+      field_simp
+    have e3 : 2 ^ 2 ^ j * L ^ 2 ^ j / (H:ℝ) ^ 2 ^ j
+          * (4 ^ 2 ^ j * (H:ℝ) ^ 2 ^ j * PB)
+        = 8 ^ 2 ^ j * L ^ 2 ^ j * PB := by
+      rw [show (8:ℝ) ^ 2 ^ j = 2 ^ 2 ^ j * 4 ^ 2 ^ j by
+        rw [← mul_pow]; norm_num]
+      field_simp
+    have h16 : (4:ℝ) ^ 2 ^ j * L ^ 2 ^ (j + 1) / (H:ℝ) ^ 2 ^ j
+        ≤ 8 ^ 2 ^ j * L ^ 2 ^ (j + 1) / H := by
+      have h17 : (H:ℝ) ≤ (H:ℝ) ^ 2 ^ j := by
+        calc (H:ℝ) = (H:ℝ) ^ 1 := (pow_one _).symm
+          _ ≤ (H:ℝ) ^ 2 ^ j := pow_le_pow_right₀ hH1 hq
+      have h18 : (4:ℝ) ^ 2 ^ j ≤ 8 ^ 2 ^ j :=
+        pow_le_pow_left₀ (by norm_num) (by norm_num) _
+      have h20 : (0:ℝ) ≤ L ^ 2 ^ (j + 1) := by positivity
+      rw [div_le_div_iff₀ hE0 hHR]
+      have h19 := mul_le_mul h18 h17 hHR.le
+        (pow_nonneg (by norm_num : (0:ℝ) ≤ 8) _)
+      nlinarith [mul_le_mul_of_nonneg_left h19 h20]
+    have e4 : 8 ^ 2 ^ j * L ^ 2 ^ j * PB
+        = (8 ^ 2 ^ j * classA j / H
+          + 8 ^ 2 ^ j * classB j * (Real.sqrt H) ^ (j + 1)
+            * (ν / Real.sqrt μ)) * L ^ 2 ^ (j + 1) := by
+      rw [hPBdef, ← hDD]
+      field_simp
+    calc ((L + (H:ℝ)) / H) ^ 2 ^ j * (2 ^ 2 ^ j * L ^ 2 ^ j
+          + 4 ^ 2 ^ j * (H:ℝ) ^ (2 ^ j - 1)
+            * ∑ g ∈ Finset.Ico 1 H,
+                cascadeBound' j L H ((g:ℝ) * μ) ((g:ℝ) * ν))
+        ≤ (2 * L / H) ^ 2 ^ j * (2 ^ 2 ^ j * L ^ 2 ^ j
+            + 4 ^ 2 ^ j * (H:ℝ) ^ 2 ^ j * PB) := by
+          refine mul_le_mul hpre hinner hinner0 (pow_nonneg ?_ _)
+          positivity
+      _ = 4 ^ 2 ^ j * L ^ 2 ^ (j + 1) / (H:ℝ) ^ 2 ^ j
+            + (8 ^ 2 ^ j * classA j / H
+              + 8 ^ 2 ^ j * classB j * (Real.sqrt H) ^ (j + 1)
+                * (ν / Real.sqrt μ)) * L ^ 2 ^ (j + 1) := by
+          rw [e1, mul_add, e2, e3, e4]
+      _ ≤ (8 ^ 2 ^ j * L ^ 2 ^ (j + 1) / H)
+            + (8 ^ 2 ^ j * classA j / H
+              + 8 ^ 2 ^ j * classB j * (Real.sqrt H) ^ (j + 1)
+                * (ν / Real.sqrt μ)) * L ^ 2 ^ (j + 1) := by
+          linarith [h16]
+      _ = (classA (j + 1) / H + classB (j + 1)
+            * (Real.sqrt H) ^ (j + 1) * (ν / Real.sqrt μ))
+            * L ^ 2 ^ (j + 1) := by
+          rw [classA, classB]
+          field_simp
+          ring
+
 end ExpSums
 
 end MoltResearch
