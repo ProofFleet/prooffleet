@@ -2,6 +2,7 @@ import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import MoltResearch.Discrepancy.ExpSums
+import Mathlib.Analysis.Real.Pi.Bounds
 
 /-!
 # The unit-difference calculus and iterated differences of `log` (Track L of #3020)
@@ -2683,6 +2684,288 @@ theorem zeta_block_trivial (M N : ℕ) (w : ℕ → ℝ) (a : ℕ → ℂ)
     calc w M * (M:ℝ)
         ≤ 1 / M * (M:ℝ) := mul_le_mul_of_nonneg_right hwM hMR.le
       _ = 1 := by field_simp
+
+set_option maxHeartbeats 1600000 in
+/-- **The block dispatch**: with valid schedule data `(j, h', u, m)`, a
+weighted zeta block over `[2^i, N]` saves the integer factor `(1/2)^m`. -/
+theorem zeta_block_saving (i j h' u m d N : ℕ) (t : ℝ) (w : ℕ → ℝ)
+    (ht1 : (2:ℝ) ^ d ≤ t) (ht2 : t ≤ 2 ^ (d + 1))
+    (hij : i * (j + 1) + 2 ≤ d)
+    (hu : 2 * u + d + 1 + (j + 1) ^ 2 ≤ i * (j + 2))
+    (hh' : h' * (j + 2) + j + 2 ≤ u)
+    (hm : m * 2 ^ j + 4 * 2 ^ j + 1 ≤ 2 * h')
+    (hwin : j * 4 ^ h' + j + 2 ≤ 2 ^ (i + 1))
+    (hMN : 2 ^ i ≤ N) (hN2 : N + 1 ≤ 2 * 2 ^ i)
+    (hw0 : ∀ n, 2 ^ i ≤ n → n ≤ N → 0 ≤ w n)
+    (hwd : ∀ n, 2 ^ i ≤ n → n < N → w (n + 1) ≤ w n)
+    (hwM : w (2 ^ i) ≤ 1 / ((2 ^ i : ℕ) : ℝ)) :
+    ‖∑ n ∈ Finset.Ico (2 ^ i) (N + 1),
+        w n • e (-(t / (2 * Real.pi) * Real.log n))‖
+      ≤ 2 * (1 / 2 : ℝ) ^ m := by
+  have ht0 : (0:ℝ) < t := lt_of_lt_of_le (by positivity) ht1
+  have hπ : (0:ℝ) < Real.pi := Real.pi_pos
+  have hπ4 : Real.pi ≤ 4 := by nlinarith [Real.pi_le_four]
+  have hf1 : (1:ℝ) ≤ ((j + 1).factorial : ℝ) := by
+    exact_mod_cast (j + 1).factorial_pos
+  -- derived schedule facts
+  have h2h'i : 2 * h' < i := by
+    by_contra hc
+    push_neg at hc
+    have h1 : i * (j + 2) ≤ 2 * h' * (j + 2) :=
+      Nat.mul_le_mul_right _ hc
+    have hb : 2 * h' * (j + 2) = 2 * (h' * (j + 2)) := by ring
+    omega
+  have hi1 : 1 ≤ i := by omega
+  -- exponent inequalities
+  have hexp1 : 2 * h' * j + d + 1 + (j + 1) ^ 2 ≤ i * (j + 2) := by
+    have h1 : h' * j + h' * 2 = h' * (j + 2) := by ring
+    have hb : 2 * h' * j = 2 * (h' * j) := by ring
+    omega
+  -- the ν bounds
+  have hν2M : (2:ℝ) * Real.pi * 2 ^ (i * (j + 2))
+      ≤ t * ((j + 1).factorial : ℝ) * (2 * 2 ^ i) := by
+    have h1 : (2:ℝ) * Real.pi * 2 ^ (i * (j + 2))
+        ≤ 8 * 2 ^ (i * (j + 2)) := by
+      nlinarith [pow_pos (show (0:ℝ) < 2 by norm_num) (i * (j + 2))]
+    have h2 : (8:ℝ) * 2 ^ (i * (j + 2)) = 2 ^ (i * (j + 2) + 3) := by
+      rw [pow_add]
+      ring
+    have h3 : i * (j + 2) + 3 ≤ d + i + 1 := by
+      have h4 : i * (j + 2) = i * (j + 1) + i := by ring
+      omega
+    have h5 : (2:ℝ) ^ (i * (j + 2) + 3) ≤ 2 ^ (d + i + 1) :=
+      pow_le_pow_right₀ (by norm_num) h3
+    have h6 : (2:ℝ) ^ (d + i + 1) = 2 ^ d * (2 * 2 ^ i) := by
+      rw [pow_add, pow_add]
+      ring
+    have h7 : (2:ℝ) ^ d * (2 * 2 ^ i)
+        ≤ t * ((j + 1).factorial : ℝ) * (2 * 2 ^ i) := by
+      have h8 : (2:ℝ) ^ d ≤ t * ((j + 1).factorial : ℝ) := by
+        nlinarith
+      nlinarith [pow_pos (show (0:ℝ) < 2 by norm_num) i]
+    linarith [h1, h2.le, h2.ge, h5, h6.le, h6.ge, h7]
+  -- instantiate the class machinery at M := 2^i, W := 2^(i+2), H := 4^h'
+  have hMcast : (((2 ^ i : ℕ) : ℝ)) = 2 ^ i := by push_cast; ring
+  have hWcast : (((2 ^ (i + 2) : ℕ) : ℝ)) = 2 ^ (i + 2) := by
+    push_cast; ring
+  have hHcast : (((4 ^ h' : ℕ) : ℝ)) = 2 ^ (2 * h') := by
+    push_cast
+    rw [show (4:ℝ) = 2 ^ 2 by norm_num, ← pow_mul]
+  set ν := t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+    / (((2 ^ i : ℕ) : ℝ)) ^ (j + 2) with hνdef
+  set μ := t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+    / (((2 ^ (i + 2) : ℕ) : ℝ)) ^ (j + 2) with hμdef
+  have hν0 : (0:ℝ) < ν := by rw [hνdef]; positivity
+  have hμ0 : (0:ℝ) < μ := by rw [hμdef]; positivity
+  have hpowM : (((2 ^ i : ℕ) : ℝ)) ^ (j + 2) = 2 ^ (i * (j + 2)) := by
+    rw [hMcast, ← pow_mul]
+  -- hcond2
+  have hcond2 : 1 ≤ ν * (2 * (((2 ^ i : ℕ) : ℝ))) := by
+    rw [hνdef, hpowM, hMcast]
+    have h20 : t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+          / 2 ^ (i * (j + 2)) * (2 * 2 ^ i)
+        = t * ((j + 1).factorial : ℝ) * (2 * 2 ^ i)
+          / (2 * Real.pi * 2 ^ (i * (j + 2))) := by
+      field_simp
+    rw [h20, le_div_iff₀ (by positivity)]
+    linarith [hν2M]
+  -- hcond1
+  have hνle : ν * (2:ℝ) ^ (i * (j + 2))
+      ≤ 2 ^ (d + 1) * 2 ^ ((j + 1) ^ 2) := by
+    rw [hνdef, hpowM]
+    have h21 : t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+          / 2 ^ (i * (j + 2)) * 2 ^ (i * (j + 2))
+        = t / (2 * Real.pi) * ((j + 1).factorial : ℝ) := by
+      field_simp
+    rw [h21]
+    have h22 : t / (2 * Real.pi) ≤ 2 ^ (d + 1) := by
+      have h23 : (1:ℝ) ≤ 2 * Real.pi := by nlinarith [Real.pi_gt_three]
+      calc t / (2 * Real.pi) ≤ t / 1 := by
+            refine div_le_div_of_nonneg_left ht0.le (by norm_num) h23
+        _ = t := by ring
+        _ ≤ 2 ^ (d + 1) := ht2
+    have h24 := factorial_le_two_pow_sq j
+    have h25 : (0:ℝ) ≤ t / (2 * Real.pi) := by positivity
+    nlinarith [mul_le_mul h22 h24 (by linarith) (by positivity :
+      (0:ℝ) ≤ (2:ℝ) ^ (d + 1))]
+  have hcond1 : (((4 ^ h' : ℕ) : ℝ)) ^ j * ν ≤ 1 := by
+    rw [hHcast, ← pow_mul]
+    have h26 : (2:ℝ) ^ (2 * h' * j) * ν * 2 ^ (i * (j + 2))
+        ≤ 2 ^ (2 * h' * j) * (2 ^ (d + 1) * 2 ^ ((j + 1) ^ 2)) := by
+      have h27 := mul_le_mul_of_nonneg_left hνle
+        (by positivity : (0:ℝ) ≤ (2:ℝ) ^ (2 * h' * j))
+      nlinarith [h27]
+    have h28 : (2:ℝ) ^ (2 * h' * j) * (2 ^ (d + 1) * 2 ^ ((j + 1) ^ 2))
+        = 2 ^ (2 * h' * j + (d + 1) + (j + 1) ^ 2) := by
+      rw [pow_add, pow_add]
+      ring
+    have h29 : (2:ℝ) ^ (2 * h' * j + (d + 1) + (j + 1) ^ 2)
+        ≤ 2 ^ (i * (j + 2)) := by
+      refine pow_le_pow_right₀ (by norm_num) ?_
+      omega
+    have h30 : (0:ℝ) < (2:ℝ) ^ (i * (j + 2)) := by positivity
+    nlinarith [h26, h28.le, h28.ge, h29]
+  -- apply the class block bound
+  have hH1 : 1 ≤ 4 ^ h' := Nat.one_le_pow _ _ (by norm_num)
+  have hHM : 4 ^ h' ≤ 2 ^ i := by
+    have h31 : 4 ^ h' = 2 ^ (2 * h') := by
+      rw [show (4:ℕ) = 2 ^ 2 by norm_num, ← pow_mul]
+    rw [h31]
+    exact Nat.pow_le_pow_right (by norm_num) (by omega)
+  have hwin' : N + j * 4 ^ h' + j + 2 ≤ 2 ^ (i + 2) := by
+    have h32 : 2 ^ (i + 2) = 2 ^ (i + 1) + 2 ^ (i + 1) := by ring
+    omega
+  have hblock := zeta_block_class_bound j (2 ^ i) N (4 ^ h')
+    (2 ^ (i + 2)) t w ht0 hH1 hHM hMN hN2 hwin' hcond1 hcond2
+    hw0 hwd hwM
+  rw [← hνdef, ← hμdef] at hblock
+  refine le_trans hblock ?_
+  -- evaluate the saving: pb ≤ ((1/2)^m)^(2^j)
+  have hq : (2:ℕ) ^ j ≠ 0 := (Nat.two_pow_pos j).ne'
+  have hsqH : Real.sqrt (((4 ^ h' : ℕ) : ℝ)) = 2 ^ h' := by
+    rw [hHcast, show (2:ℝ) ^ (2 * h') = (2 ^ h') ^ 2 by
+      rw [← pow_mul]; ring_nf]
+    exact Real.sqrt_sq (by positivity)
+  -- μ = ν/4^(j+2), so ν/√μ = 2^(j+2)·√ν
+  have hμν4 : μ = ν / 4 ^ (j + 2) := by
+    rw [hμdef, hνdef, hWcast, hMcast]
+    have h33 : ((2:ℝ) ^ (i + 2)) ^ (j + 2)
+        = 4 ^ (j + 2) * (2 ^ i) ^ (j + 2) := by
+      rw [show (2:ℝ) ^ (i + 2) = 2 ^ i * 4 by rw [pow_add]; norm_num,
+        mul_pow]
+      ring
+    rw [h33]
+    field_simp
+  have hdivsqrt : ν / Real.sqrt μ = 2 ^ (j + 2) * Real.sqrt ν := by
+    rw [hμν4,
+      show (4:ℝ) ^ (j + 2) = (2 ^ (j + 2)) ^ 2 by
+        rw [show (4:ℝ) = 2 ^ 2 by norm_num, ← pow_mul, ← pow_mul,
+          Nat.mul_comm 2 (j + 2)],
+      Real.sqrt_div hν0.le, Real.sqrt_sq (by positivity),
+      div_div_eq_mul_div, mul_comm ν ((2:ℝ) ^ (j + 2)),
+      mul_div_assoc, Real.div_sqrt]
+  -- √ν ≤ (1/2)^u
+  have hν2u : ν * (2:ℝ) ^ (2 * u) ≤ 1 := by
+    have h40 : (2:ℝ) ^ (2 * u) * (2 ^ (d + 1) * 2 ^ ((j + 1) ^ 2))
+        ≤ 2 ^ (i * (j + 2)) := by
+      rw [← pow_add, ← pow_add]
+      refine pow_le_pow_right₀ (by norm_num) ?_
+      omega
+    have h41 := mul_le_mul_of_nonneg_left hνle
+      (by positivity : (0:ℝ) ≤ (2:ℝ) ^ (2 * u))
+    have h42 : (0:ℝ) < (2:ℝ) ^ (i * (j + 2)) := by positivity
+    nlinarith [h41, h40]
+  have hsqν : Real.sqrt ν ≤ (1 / 2 : ℝ) ^ u := by
+    have h44 : ((1 / 2 : ℝ) ^ u) ^ 2 * 2 ^ (2 * u) = 1 := by
+      rw [← pow_mul, div_pow, one_pow]
+      field_simp
+      congr 1
+      omega
+    have h43 : ν ≤ ((1 / 2 : ℝ) ^ u) ^ 2 := by
+      have h45 : (0:ℝ) < (2:ℝ) ^ (2 * u) := by positivity
+      nlinarith [hν2u]
+    calc Real.sqrt ν ≤ Real.sqrt (((1 / 2 : ℝ) ^ u) ^ 2) :=
+        Real.sqrt_le_sqrt h43
+      _ = (1 / 2 : ℝ) ^ u := Real.sqrt_sq (by positivity)
+  -- the pb evaluation
+  have hpb : classA j / (((4 ^ h' : ℕ) : ℝ))
+        + classB j * (Real.sqrt (((4 ^ h' : ℕ) : ℝ))) ^ j
+          * (ν / Real.sqrt μ)
+      ≤ ((1 / 2 : ℝ) ^ m) ^ (2 ^ j) := by
+    rw [hsqH, hdivsqrt, hHcast]
+    have hA := classA_le j
+    have hB := classB_le j
+    have hA0 := classA_pos j
+    have hB0 := classB_pos j
+    have h50 : (0:ℝ) < (2:ℝ) ^ (2 * h') := by positivity
+    have h53 : ((2:ℝ) ^ h') ^ j = 2 ^ (h' * j) := by rw [← pow_mul]
+    have h54 : (0:ℝ) ≤ Real.sqrt ν := Real.sqrt_nonneg _
+    -- term 1: classA j/2^(2h') ≤ (1/2)^(2h' - 4·2^j)-form via mult
+    have hterm1 : classA j / 2 ^ (2 * h') * 2 ^ (2 * h')
+        ≤ 2 ^ (4 * 2 ^ j) := by
+      have h51 : classA j / 2 ^ (2 * h') * 2 ^ (2 * h') = classA j := by
+        field_simp
+      rw [h51]
+      exact hA
+    -- term 2 · 2^(2h') ≤ 2^(4·2^j)
+    have hterm2 : classB j * (2 ^ h') ^ j
+          * (2 ^ (j + 2) * Real.sqrt ν) * 2 ^ (2 * h')
+        ≤ 2 ^ (4 * 2 ^ j) := by
+      rw [h53]
+      have h55 : (2:ℝ) ^ (h' * j) * 2 ^ (j + 2) * 2 ^ (2 * h')
+          ≤ 2 ^ u := by
+        rw [← pow_add, ← pow_add]
+        refine pow_le_pow_right₀ (by norm_num) ?_
+        have hb : h' * j + 2 * h' = h' * (j + 2) := by ring
+        omega
+      have h56 : (2:ℝ) ^ u * (1 / 2 : ℝ) ^ u = 1 := by
+        rw [div_pow, one_pow]
+        field_simp
+      have h57 : Real.sqrt ν * ((2:ℝ) ^ (h' * j) * 2 ^ (j + 2)
+            * 2 ^ (2 * h'))
+          ≤ (1 / 2 : ℝ) ^ u * 2 ^ u := by
+        have h58 := mul_le_mul hsqν h55 (by positivity) (by positivity)
+        nlinarith [h58]
+      calc classB j * (2:ℝ) ^ (h' * j)
+            * (2 ^ (j + 2) * Real.sqrt ν) * 2 ^ (2 * h')
+          = classB j * (Real.sqrt ν * ((2:ℝ) ^ (h' * j) * 2 ^ (j + 2)
+              * 2 ^ (2 * h'))) := by ring
+        _ ≤ classB j * ((1 / 2 : ℝ) ^ u * 2 ^ u) := by
+            exact mul_le_mul_of_nonneg_left h57 hB0.le
+        _ = classB j := by
+            rw [mul_comm ((1 / 2 : ℝ) ^ u) ((2:ℝ) ^ u), h56, mul_one]
+        _ ≤ 2 ^ (4 * 2 ^ j) := hB
+    -- combine: (LHS)·2^(2h') ≤ 2^(4·2^j + 1) ≤ RHS·2^(2h')
+    have hcomb : (classA j / 2 ^ (2 * h')
+          + classB j * ((2:ℝ) ^ h') ^ j * (2 ^ (j + 2) * Real.sqrt ν))
+          * 2 ^ (2 * h')
+        ≤ 2 ^ (4 * 2 ^ j + 1) := by
+      have h59 : (2:ℝ) ^ (4 * 2 ^ j + 1) = 2 ^ (4 * 2 ^ j) + 2 ^ (4 * 2 ^ j) := by
+        rw [pow_succ]
+        ring
+      nlinarith [hterm1, hterm2]
+    have hRHS : (2:ℝ) ^ (4 * 2 ^ j + 1)
+        ≤ ((1 / 2 : ℝ) ^ m) ^ (2 ^ j) * 2 ^ (2 * h') := by
+      have h60 : ((1 / 2 : ℝ) ^ m) ^ (2 ^ j) = (1 / 2 : ℝ) ^ (m * 2 ^ j) := by
+        rw [← pow_mul]
+      rw [h60]
+      have h61 : (1 / 2 : ℝ) ^ (m * 2 ^ j) * 2 ^ (m * 2 ^ j) = 1 := by
+        rw [div_pow, one_pow]
+        field_simp
+      have h62 : (2:ℝ) ^ (4 * 2 ^ j + 1) * 2 ^ (m * 2 ^ j)
+          ≤ 2 ^ (2 * h') := by
+        rw [← pow_add]
+        refine pow_le_pow_right₀ (by norm_num) ?_
+        omega
+      have h63 : (0:ℝ) < (2:ℝ) ^ (m * 2 ^ j) := by positivity
+      nlinarith [h62, h61]
+    have h64 : (0:ℝ) ≤ classA j / 2 ^ (2 * h')
+        + classB j * ((2:ℝ) ^ h') ^ j * (2 ^ (j + 2) * Real.sqrt ν) := by
+      positivity
+    nlinarith [hcomb, hRHS, h50]
+  -- root and finish
+  have hq : (2:ℕ) ^ j ≠ 0 := (Nat.two_pow_pos j).ne'
+  have hpb0 : (0:ℝ) ≤ classA j / (((4 ^ h' : ℕ) : ℝ))
+      + classB j * (Real.sqrt (((4 ^ h' : ℕ) : ℝ))) ^ j
+        * (ν / Real.sqrt μ) := by
+    have hA0 := classA_pos j
+    have hB0 := classB_pos j
+    have h65 : (0:ℝ) < (((4 ^ h' : ℕ) : ℝ)) := by
+      have : 1 ≤ 4 ^ h' := Nat.one_le_pow _ _ (by norm_num)
+      exact_mod_cast this
+    positivity
+  have hroot : (classA j / (((4 ^ h' : ℕ) : ℝ))
+        + classB j * (Real.sqrt (((4 ^ h' : ℕ) : ℝ))) ^ j
+          * (ν / Real.sqrt μ)) ^ (((2 ^ j : ℕ) : ℝ)⁻¹)
+      ≤ (1 / 2 : ℝ) ^ m := by
+    have h66 := Real.rpow_le_rpow hpb0 hpb
+      (by positivity : (0:ℝ) ≤ (((2 ^ j : ℕ) : ℝ))⁻¹)
+    rwa [Real.pow_rpow_inv_natCast (by positivity) hq] at h66
+  calc 2 * (classA j / (((4 ^ h' : ℕ) : ℝ))
+        + classB j * (Real.sqrt (((4 ^ h' : ℕ) : ℝ))) ^ j
+          * (ν / Real.sqrt μ)) ^ (((2 ^ j : ℕ) : ℝ)⁻¹)
+      ≤ 2 * (1 / 2 : ℝ) ^ m := by
+        nlinarith [hroot]
 
 end ExpSums
 
