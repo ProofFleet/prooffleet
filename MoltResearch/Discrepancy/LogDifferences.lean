@@ -2590,6 +2590,100 @@ theorem zeta_block_class_bound (j M N H W : ℕ) (t : ℝ) (w : ℕ → ℝ)
   rw [hpbdef]
   field_simp
 
+/-- The floor constants are dyadically bounded. -/
+theorem classA_le (j : ℕ) : classA j ≤ 2 ^ (4 * 2 ^ j) := by
+  induction j with
+  | zero =>
+    rw [classA]
+    norm_num
+  | succ j ih =>
+    rw [classA]
+    have h1 : (8:ℝ) ^ 2 ^ j = 2 ^ (3 * 2 ^ j) := by
+      rw [show (8:ℝ) = 2 ^ 3 by norm_num, ← pow_mul]
+    have h2 : (1:ℝ) + classA j ≤ 2 ^ (4 * 2 ^ j + 1) := by
+      have h3 : (1:ℝ) ≤ 2 ^ (4 * 2 ^ j) := one_le_pow₀ (by norm_num)
+      have h4 : (2:ℝ) ^ (4 * 2 ^ j + 1) = 2 * 2 ^ (4 * 2 ^ j) := by
+        rw [pow_succ]
+        ring
+      nlinarith [ih]
+    calc (8:ℝ) ^ 2 ^ j * (1 + classA j)
+        ≤ 2 ^ (3 * 2 ^ j) * 2 ^ (4 * 2 ^ j + 1) := by
+          rw [← h1]
+          refine mul_le_mul_of_nonneg_left h2 (by positivity)
+      _ = 2 ^ (3 * 2 ^ j + (4 * 2 ^ j + 1)) := by rw [← pow_add]
+      _ ≤ 2 ^ (4 * 2 ^ (j + 1)) := by
+          refine pow_le_pow_right₀ (by norm_num) ?_
+          have h5 : 1 ≤ 2 ^ j := Nat.one_le_two_pow
+          omega
+
+/-- The main-term constants are dyadically bounded. -/
+theorem classB_le (j : ℕ) : classB j ≤ 2 ^ (4 * 2 ^ j) := by
+  induction j with
+  | zero =>
+    rw [classB]
+    norm_num
+  | succ j ih =>
+    rw [classB]
+    have h1 : (8:ℝ) ^ 2 ^ j = 2 ^ (3 * 2 ^ j) := by
+      rw [show (8:ℝ) = 2 ^ 3 by norm_num, ← pow_mul]
+    calc (8:ℝ) ^ 2 ^ j * classB j
+        ≤ 2 ^ (3 * 2 ^ j) * 2 ^ (4 * 2 ^ j) := by
+          rw [← h1]
+          refine mul_le_mul_of_nonneg_left ih (by positivity)
+      _ = 2 ^ (3 * 2 ^ j + 4 * 2 ^ j) := by rw [← pow_add]
+      _ ≤ 2 ^ (4 * 2 ^ (j + 1)) := by
+          refine pow_le_pow_right₀ (by norm_num) ?_
+          have h5 : 1 ≤ 2 ^ j := Nat.one_le_two_pow
+          omega
+
+/-- Factorials are dyadically bounded: `(j+1)! ≤ 2^{(j+1)²}`. -/
+theorem factorial_le_two_pow_sq (j : ℕ) :
+    ((j + 1).factorial : ℝ) ≤ 2 ^ ((j + 1) ^ 2) := by
+  induction j with
+  | zero => simp [Nat.factorial]
+  | succ j ih =>
+    have h1 : ((j + 2).factorial : ℝ)
+        = ((j + 2 : ℕ) : ℝ) * ((j + 1).factorial : ℝ) := by
+      rw [show j + 2 = (j + 1) + 1 from rfl, Nat.factorial_succ]
+      push_cast
+      ring
+    rw [show j + 1 + 1 = j + 2 from rfl, h1]
+    have h2 : ((j + 2 : ℕ) : ℝ) ≤ 2 ^ (j + 2) := by
+      have h3 : j + 2 ≤ 2 ^ (j + 2) := Nat.lt_two_pow_self.le
+      exact_mod_cast h3
+    calc ((j + 2 : ℕ) : ℝ) * ((j + 1).factorial : ℝ)
+        ≤ 2 ^ (j + 2) * 2 ^ ((j + 1) ^ 2) := by
+          refine mul_le_mul h2 ih (by positivity) (by positivity)
+      _ = 2 ^ ((j + 2) + (j + 1) ^ 2) := by rw [← pow_add]
+      _ ≤ 2 ^ ((j + 2) ^ 2) := by
+          refine pow_le_pow_right₀ (by norm_num) ?_
+          nlinarith
+/-- The trivial weighted block: total mass at most one. -/
+theorem zeta_block_trivial (M N : ℕ) (w : ℕ → ℝ) (a : ℕ → ℂ)
+    (hM : 1 ≤ M) (hN2 : N + 1 ≤ 2 * M)
+    (ha : ∀ n, ‖a n‖ ≤ 1)
+    (hw0 : ∀ n, M ≤ n → n ≤ N → 0 ≤ w n)
+    (hwd : ∀ n, M ≤ n → n < N → w (n + 1) ≤ w n)
+    (hwM : w M ≤ 1 / M) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), w n • a n‖ ≤ 1 := by
+  rcases Nat.lt_or_ge N M with hNM | hNM
+  · rw [Finset.Ico_eq_empty (by omega), Finset.sum_empty, norm_zero]
+    norm_num
+  · have hMR : (0:ℝ) < (M:ℝ) := by exact_mod_cast hM
+    have hE : ∀ P, M ≤ P → P ≤ N + 1 →
+        ‖∑ n ∈ Finset.Ico M P, a n‖ ≤ (M:ℝ) := by
+      intro P h1 h2
+      refine le_trans (norm_sum_le _ _) ?_
+      refine le_trans (Finset.sum_le_sum fun n _ => ha n) ?_
+      rw [Finset.sum_const, nsmul_eq_mul, mul_one, Nat.card_Ico]
+      exact_mod_cast (by omega : P - M ≤ M)
+    have h := abel_weight_bound (w := w) (a := a) (M := M) (N := N)
+      (E := (M:ℝ)) hNM hw0 hwd hE
+    refine le_trans h ?_
+    calc w M * (M:ℝ)
+        ≤ 1 / M * (M:ℝ) := mul_le_mul_of_nonneg_right hwM hMR.le
+      _ = 1 := by field_simp
+
 end ExpSums
 
 end MoltResearch
