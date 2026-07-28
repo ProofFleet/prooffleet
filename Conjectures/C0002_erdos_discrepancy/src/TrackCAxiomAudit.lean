@@ -172,3 +172,15 @@ info: 'MoltResearch.Tao2015.stage5_notBounded' depends on axioms: [propext, Clas
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.stage5_notBounded
+
+/--
+info: 'MoltResearch.Tao2015.edp_of_matomakiRadziwill' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.edp_of_matomakiRadziwill
+
+/--
+info: 'MoltResearch.Tao2015.theorem18_of_matomakiRadziwill' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.theorem18_of_matomakiRadziwill

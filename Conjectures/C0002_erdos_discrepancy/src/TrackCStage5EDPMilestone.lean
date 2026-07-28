@@ -1,6 +1,7 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Assembly
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LittlewoodWrapper
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5QuadrupleSieveProof
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5VKDischarge
 
 /-!
 # Track C: the EDP milestone on cited-input interfaces (E7 of issue #2946)
@@ -46,6 +47,26 @@ theorem edp_of_matomakiRadziwill_littlewood
     [MatomakiRadziwillAssumption] [LittlewoodLBoundAssumption]
     (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f :=
   edp_of_matomakiRadziwill_quadrupleSieve_littlewood f hf
+
+/-- **EDP on one interface (Track L of #3020 closes)**: the Littlewood leg
+is discharged unconditionally — `vinogradovKorobov_unconditional` proves the
+Vinogradov–Korobov interface outright from the elementary van der Corput
+zeta bound — so the Erdős discrepancy theorem is conditional on exactly the
+Matomäki–Radziwiłł interface. -/
+theorem edp_of_matomakiRadziwill
+    [MatomakiRadziwillAssumption]
+    (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f :=
+  edp_of_logElliott_vinogradovKorobov f hf
+
+/-- **Theorem 1.8 on one interface**: the second-moment blowup for stochastic
+completely multiplicative functions, on Matomäki–Radziwiłł alone. -/
+theorem theorem18_of_matomakiRadziwill
+    [MatomakiRadziwillAssumption]
+    {Ω : Type} [MeasurableSpace Ω] (μ : MeasureTheory.Measure Ω)
+    [MeasureTheory.IsProbabilityMeasure μ]
+    (G : StochasticMultiplicative μ) :
+    ¬ ∃ C : ℝ, ∀ n : ℕ, sndMomentPartialSum G n ≤ C :=
+  theorem18_of_logElliott_vinogradovKorobov μ G
 
 end Tao2015
 
