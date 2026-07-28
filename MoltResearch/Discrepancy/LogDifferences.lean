@@ -3092,6 +3092,151 @@ theorem sum_half_pow_div_le (W q : ℕ) (hq : 1 ≤ q) :
       ≤ (q:ℝ) * 2 := mul_le_mul_of_nonneg_left hgeom hq0
     _ = 2 * q := by ring
 
+/-- Division lower bound under an additive shift. -/
+theorem nat_div_add_le {x y k c : ℕ} (hc : 0 < c) (h : x + k * c ≤ y) :
+    x / c + k ≤ y / c := by
+  have h1 : (x + k * c) / c ≤ y / c := Nat.div_le_div_right h
+  rw [Nat.add_mul_div_right _ _ hc] at h1
+  omega
+
+/-- **The saving increment**: within a class, `2^{j+3}` block-steps force
+the saving up by one (on good blocks). -/
+theorem schedM_increment {d i i' : ℕ}
+    (hslack : d + 1 + (schedJ d i + 1) ^ 2 + 2 * (schedJ d i + 2) + 2
+      ≤ i * (schedJ d i + 2))
+    (hj : schedJ d i' = schedJ d i)
+    (hstep : i + 2 ^ (schedJ d i + 4) ≤ i') :
+    schedM d i + 1 ≤ schedM d i' := by
+  set j := schedJ d i with hjdef
+  set A := d + 1 + (j + 1) ^ 2 with hAdef
+  have hstep' : i * (j + 2) + 2 ^ (j + 4) * (j + 2) ≤ i' * (j + 2) := by
+    have h1a := Nat.mul_le_mul_right (j + 2) hstep
+    have h1b : (i + 2 ^ (j + 4)) * (j + 2)
+        = i * (j + 2) + 2 ^ (j + 4) * (j + 2) := by ring
+    omega
+  have hAX : A + 2 * (j + 2) + 2 ≤ i * (j + 2) := hslack
+  -- u increases by at least 2^{j+2}(j+2) − 1
+  have hu : schedU d i + (2 ^ (j + 3) * (j + 2) - 1) ≤ schedU d i' := by
+    rw [schedU, schedU, hj, ← hjdef, ← hAdef]
+    have h5 : 2 ^ (j + 4) * (j + 2) = 2 ^ (j + 3) * (j + 2) * 2 := by
+      rw [pow_succ]
+      ring
+    have h2 : (i * (j + 2) - A) + (2 ^ (j + 3) * (j + 2) * 2 - 2)
+        ≤ i' * (j + 2) - A := by omega
+    have h6 := nat_div_add_le (show 0 < 2 by norm_num)
+      (x := i * (j + 2) - A)
+      (k := 2 ^ (j + 3) * (j + 2) - 1)
+      (y := i' * (j + 2) - A) (by
+        have h7 : 1 ≤ 2 ^ (j + 3) * (j + 2) := by
+          have := Nat.one_le_two_pow (n := j + 3)
+          nlinarith
+        omega)
+    omega
+  -- h' increases by at least 2^{j+2} − 3
+  have hh' : schedH d i + (2 ^ (j + 3) - 3) ≤ schedH d i' := by
+    rw [schedH, schedH, hj, ← hjdef]
+    have h8 : 1 ≤ 2 ^ (j + 3) := Nat.one_le_two_pow
+    have h9 : (schedU d i - (j + 2))
+          + (2 ^ (j + 3) - 3) * (j + 2)
+        ≤ schedU d i' - (j + 2) := by
+      have h10 : (2 ^ (j + 3) - 3) * (j + 2)
+          ≤ 2 ^ (j + 3) * (j + 2) - 3 * (j + 2) := by
+        have h12 : (2 ^ (j + 3) - 3) * (j + 2)
+            = 2 ^ (j + 3) * (j + 2) - 3 * (j + 2) := by
+          rw [Nat.sub_mul]
+        have h13 : 4 ≤ 2 ^ (j + 3) := by
+          calc (4:ℕ) = 2 ^ 2 := by norm_num
+            _ ≤ 2 ^ (j + 3) := Nat.pow_le_pow_right (by norm_num) (by omega)
+        omega
+      omega
+    have h14 := nat_div_add_le (show 0 < j + 2 by omega)
+      (x := schedU d i - (j + 2)) (k := 2 ^ (j + 3) - 3)
+      (y := schedU d i' - (j + 2)) (by omega)
+    omega
+  -- m increases by at least 1
+  rw [schedM, schedM, hj, ← hjdef]
+  have h16 : 1 ≤ 2 ^ j := Nat.one_le_two_pow
+  have h17 : (2 * schedH d i - (4 * 2 ^ j + 1)) + 1 * 2 ^ j
+      ≤ 2 * schedH d i' - (4 * 2 ^ j + 1) := by
+    have h18 : 2 ^ (j + 3) = 8 * 2 ^ j := by
+      rw [pow_add]
+      ring
+    omega
+  have h19 := nat_div_add_le (Nat.two_pow_pos j)
+    (x := 2 * schedH d i - (4 * 2 ^ j + 1)) (k := 1)
+    (y := 2 * schedH d i' - (4 * 2 ^ j + 1)) h17
+  omega
+
+/-- Schedule saving is monotone within a class (given slack at the left). -/
+theorem schedM_mono {d i i' : ℕ}
+    (hj : schedJ d i' = schedJ d i) (hii : i ≤ i') :
+    schedM d i ≤ schedM d i' := by
+  set j := schedJ d i with hjdef
+  have hu : schedU d i ≤ schedU d i' := by
+    rw [schedU, schedU, hj, ← hjdef]
+    refine Nat.div_le_div_right (Nat.sub_le_sub_right ?_ _)
+    exact Nat.mul_le_mul_right _ hii
+  have hh' : schedH d i ≤ schedH d i' := by
+    rw [schedH, schedH, hj, ← hjdef]
+    exact Nat.div_le_div_right (Nat.sub_le_sub_right hu _)
+  rw [schedM, schedM, hj, ← hjdef]
+  exact Nat.div_le_div_right (by omega)
+
+/-- **The affine saving bound**: within a same-class interval with slack
+at its base, the saving grows linearly at rate `2^{-(j+3)}`. -/
+theorem schedM_affine {d i₀ : ℕ}
+    (hslack : d + 1 + (schedJ d i₀ + 1) ^ 2 + 2 * (schedJ d i₀ + 2) + 2
+      ≤ i₀ * (schedJ d i₀ + 2)) :
+    ∀ q i, i₀ ≤ i →
+      (∀ i'', i₀ ≤ i'' → i'' ≤ i → schedJ d i'' = schedJ d i₀) →
+      (i - i₀) / 2 ^ (schedJ d i₀ + 4) ≤ q →
+      schedM d i₀ + (i - i₀) / 2 ^ (schedJ d i₀ + 4) ≤ schedM d i := by
+  intro q
+  induction q with
+  | zero =>
+    intro i hi hcl hq
+    have h1 : (i - i₀) / 2 ^ (schedJ d i₀ + 4) = 0 := Nat.le_zero.mp hq
+    rw [h1, Nat.add_zero]
+    exact schedM_mono (hcl i hi le_rfl) hi
+  | succ q ih =>
+    intro i hi hcl hq
+    by_cases h2 : (i - i₀) / 2 ^ (schedJ d i₀ + 4) ≤ q
+    · exact ih i hi hcl h2
+    · push_neg at h2
+      have hs1 : 1 ≤ 2 ^ (schedJ d i₀ + 4) := Nat.one_le_two_pow
+      have h3 : 2 ^ (schedJ d i₀ + 4) ≤ i - i₀ := by
+        by_contra h4
+        push_neg at h4
+        have h5 : (i - i₀) / 2 ^ (schedJ d i₀ + 4) = 0 :=
+          Nat.div_eq_of_lt h4
+        omega
+      set i₁ := i - 2 ^ (schedJ d i₀ + 4) with hi₁
+      have hi₁0 : i₀ ≤ i₁ := by omega
+      have hcl₁ : ∀ i'', i₀ ≤ i'' → i'' ≤ i₁ → schedJ d i'' = schedJ d i₀ :=
+        fun i'' h1' h2' => hcl i'' h1' (by omega)
+      have hq₁ : (i₁ - i₀) / 2 ^ (schedJ d i₀ + 4) ≤ q := by
+        have h6 : i - i₀ = (i₁ - i₀) + 2 ^ (schedJ d i₀ + 4) := by omega
+        have h7 := Nat.add_div_right (i₁ - i₀)
+          (Nat.two_pow_pos (schedJ d i₀ + 4))
+        rw [h6] at hq
+        omega
+      have hIH := ih i₁ hi₁0 hcl₁ hq₁
+      have hslack₁ : d + 1 + (schedJ d i₁ + 1) ^ 2
+          + 2 * (schedJ d i₁ + 2) + 2 ≤ i₁ * (schedJ d i₁ + 2) := by
+        rw [hcl i₁ hi₁0 (by omega)]
+        have h8 : i₀ * (schedJ d i₀ + 2) ≤ i₁ * (schedJ d i₀ + 2) :=
+          Nat.mul_le_mul_right _ hi₁0
+        exact le_trans hslack h8
+      have hinc := schedM_increment hslack₁
+        (show schedJ d i = schedJ d i₁ by
+          rw [hcl i₁ hi₁0 (by omega), hcl i hi le_rfl])
+        (by rw [hcl i₁ hi₁0 (by omega)]; omega)
+      have h9 : i - i₀ = (i₁ - i₀) + 2 ^ (schedJ d i₀ + 4) := by omega
+      have h10 := Nat.add_div_right (i₁ - i₀)
+        (Nat.two_pow_pos (schedJ d i₀ + 4))
+      rw [h9, h10]
+      omega
+
 end ExpSums
 
 end MoltResearch
