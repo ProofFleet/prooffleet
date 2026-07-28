@@ -2967,6 +2967,131 @@ theorem zeta_block_saving (i j h' u m d N : ℕ) (t : ℝ) (w : ℕ → ℝ)
       ≤ 2 * (1 / 2 : ℝ) ^ m := by
         nlinarith [hroot]
 
+/-- The class of a block. -/
+def schedJ (d i : ℕ) : ℕ := (d - 2) / i - 1
+
+/-- The slack budget of a block. -/
+def schedU (d i : ℕ) : ℕ :=
+  (i * (schedJ d i + 2) - (d + 1 + (schedJ d i + 1) ^ 2)) / 2
+
+/-- The differencing log-length of a block. -/
+def schedH (d i : ℕ) : ℕ :=
+  (schedU d i - (schedJ d i + 2)) / (schedJ d i + 2)
+
+/-- The integer saving of a block. -/
+def schedM (d i : ℕ) : ℕ :=
+  (2 * schedH d i - (4 * 2 ^ schedJ d i + 1)) / 2 ^ schedJ d i
+
+/-- A block is good when the schedule data satisfies every dispatch
+condition with genuine saving. -/
+def goodBlock (d i : ℕ) : Prop :=
+  1 ≤ i ∧ i * (schedJ d i + 1) + 2 ≤ d
+  ∧ d + 1 + (schedJ d i + 1) ^ 2 + 2 * (schedJ d i + 2) + 2
+      ≤ i * (schedJ d i + 2)
+  ∧ 4 * 2 ^ schedJ d i + 1 + 2 ^ schedJ d i ≤ 2 * schedH d i
+  ∧ schedJ d i * 4 ^ schedH d i + schedJ d i + 2 ≤ 2 ^ (i + 1)
+
+instance (d i : ℕ) : Decidable (goodBlock d i) := by
+  unfold goodBlock
+  infer_instance
+
+/-- **The dispatch bridge**: a good block satisfies every hypothesis of
+`zeta_block_saving` at its schedule data. -/
+theorem goodBlock_dispatch {d i : ℕ} (hg : goodBlock d i) :
+    i * (schedJ d i + 1) + 2 ≤ d
+    ∧ 2 * schedU d i + d + 1 + (schedJ d i + 1) ^ 2
+        ≤ i * (schedJ d i + 2)
+    ∧ schedH d i * (schedJ d i + 2) + schedJ d i + 2 ≤ schedU d i
+    ∧ schedM d i * 2 ^ schedJ d i + 4 * 2 ^ schedJ d i + 1
+        ≤ 2 * schedH d i
+    ∧ schedJ d i * 4 ^ schedH d i + schedJ d i + 2 ≤ 2 ^ (i + 1)
+    ∧ 1 ≤ schedM d i := by
+  obtain ⟨hi1, hij, hslack, hsave, hwin⟩ := hg
+  set j := schedJ d i with hj
+  -- u-facts
+  have hu1 : 2 * schedU d i
+      ≤ i * (j + 2) - (d + 1 + (j + 1) ^ 2) := by
+    rw [schedU, ← hj]
+    omega
+  have hu2 : d + 1 + (j + 1) ^ 2 ≤ i * (j + 2) := by omega
+  -- u lower bound: schedU ≥ (j + 2) + 1
+  have hu3 : (j + 2) + 1 ≤ schedU d i := by
+    rw [schedU, ← hj]
+    have h1 : 2 * ((j + 2) + 1) ≤ i * (j + 2) - (d + 1 + (j + 1) ^ 2) := by
+      omega
+    omega
+  -- h'-facts
+  have hh1 : schedH d i * (j + 2) ≤ schedU d i - (j + 2) := by
+    rw [schedH, ← hj]
+    exact Nat.div_mul_le_self _ _
+  -- m-facts
+  have hm1 : schedM d i * 2 ^ j ≤ 2 * schedH d i - (4 * 2 ^ j + 1) := by
+    rw [schedM, ← hj]
+    exact Nat.div_mul_le_self _ _
+  have hm2 : 1 ≤ schedM d i := by
+    rw [schedM, ← hj]
+    refine (Nat.le_div_iff_mul_le (Nat.two_pow_pos j)).mpr ?_
+    omega
+  refine ⟨hij, by omega, by omega, by omega, hwin, hm2⟩
+
+/-- **The geometric fiber sum**: halving powers of a floored quotient sum
+to at most `2q`. -/
+theorem sum_half_pow_div_le (W q : ℕ) (hq : 1 ≤ q) :
+    ∑ x ∈ Finset.range W, (1 / 2 : ℝ) ^ (x / q) ≤ 2 * q := by
+  classical
+  have hmaps : ∀ x ∈ Finset.range W, x / q ∈ Finset.range (W / q + 1) := by
+    intro x hx
+    rw [Finset.mem_range] at hx ⊢
+    have h1 : x / q ≤ W / q := Nat.div_le_div_right hx.le
+    omega
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps
+    (fun x => (1 / 2 : ℝ) ^ (x / q))]
+  have hfiber : ∀ k ∈ Finset.range (W / q + 1),
+      ∑ x ∈ (Finset.range W).filter (fun x => x / q = k),
+        (1 / 2 : ℝ) ^ (x / q)
+      ≤ (q : ℝ) * (1 / 2 : ℝ) ^ k := by
+    intro k hk
+    have h2 : ∀ x ∈ (Finset.range W).filter (fun x => x / q = k),
+        (1 / 2 : ℝ) ^ (x / q) = (1 / 2 : ℝ) ^ k := by
+      intro x hx
+      rw [Finset.mem_filter] at hx
+      rw [hx.2]
+    rw [Finset.sum_congr rfl h2, Finset.sum_const, nsmul_eq_mul]
+    refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+    have h3 : (Finset.range W).filter (fun x => x / q = k)
+        ⊆ Finset.Ico (k * q) ((k + 1) * q) := by
+      intro x hx
+      rw [Finset.mem_filter, Finset.mem_range] at hx
+      rw [Finset.mem_Ico]
+      constructor
+      · rw [← hx.2]
+        exact Nat.div_mul_le_self x q
+      · have h4a := Nat.div_add_mod x q
+        have h4b : x % q < q := Nat.mod_lt _ (by omega)
+        rw [hx.2] at h4a
+        have hb : (k + 1) * q = q * k + q := by ring
+        omega
+    have h5 := Finset.card_le_card h3
+    rw [Nat.card_Ico] at h5
+    have h6 : (k + 1) * q - k * q = q := by
+      have : (k + 1) * q = k * q + q := by ring
+      omega
+    rw [h6] at h5
+    exact_mod_cast h5
+  refine le_trans (Finset.sum_le_sum hfiber) ?_
+  rw [← Finset.mul_sum]
+  have hgeom : ∑ k ∈ Finset.range (W / q + 1), (1 / 2 : ℝ) ^ k ≤ 2 := by
+    have h7 := geom_sum_eq (show (1 / 2 : ℝ) ≠ 1 by norm_num)
+      (W / q + 1)
+    rw [h7]
+    have h8 : (0:ℝ) < (1 / 2 : ℝ) ^ (W / q + 1) := by positivity
+    rw [div_le_iff_of_neg (by norm_num : (1 / 2 : ℝ) - 1 < 0)]
+    nlinarith
+  have hq0 : (0:ℝ) ≤ (q:ℝ) := Nat.cast_nonneg _
+  calc (q:ℝ) * ∑ k ∈ Finset.range (W / q + 1), (1 / 2 : ℝ) ^ k
+      ≤ (q:ℝ) * 2 := mul_le_mul_of_nonneg_left hgeom hq0
+    _ = 2 * q := by ring
+
 end ExpSums
 
 end MoltResearch
