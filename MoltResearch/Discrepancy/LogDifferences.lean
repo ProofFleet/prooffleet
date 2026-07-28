@@ -3237,6 +3237,416 @@ theorem schedM_affine {d i₀ : ℕ}
       rw [h9, h10]
       omega
 
+/-- The class is antitone in the block index. -/
+theorem schedJ_anti (d : ℕ) {i i' : ℕ} (h : i ≤ i') (hi : 1 ≤ i) :
+    schedJ d i' ≤ schedJ d i := by
+  rw [schedJ, schedJ]
+  have h1 : (d - 2) / i' ≤ (d - 2) / i := Nat.div_le_div_left h hi
+  omega
+
+/-- **The class sum**: good same-class blocks have geometrically summable
+savings. -/
+theorem class_sum_le (d j : ℕ) (S : Finset ℕ)
+    (hS : ∀ i ∈ S, goodBlock d i ∧ schedJ d i = j ∧ i ≤ d) :
+    ∑ i ∈ S, (1 / 2 : ℝ) ^ (schedM d i) ≤ 2 ^ (j + 4) := by
+  classical
+  rcases S.eq_empty_or_nonempty with hE | hne
+  · subst hE
+    simp only [Finset.sum_empty]
+    positivity
+  · obtain ⟨i₀, hi₀S, hi₀min⟩ : ∃ i₀ ∈ S, ∀ i ∈ S, i₀ ≤ i :=
+      ⟨S.min' hne, S.min'_mem hne, fun i => S.min'_le i⟩
+    obtain ⟨hg₀, hj₀, hd₀⟩ := hS i₀ hi₀S
+    have hi₀1 : 1 ≤ i₀ := hg₀.1
+    have hm₀ : 1 ≤ schedM d i₀ := (goodBlock_dispatch hg₀).2.2.2.2.2
+    have hslack₀ : d + 1 + (schedJ d i₀ + 1) ^ 2
+        + 2 * (schedJ d i₀ + 2) + 2 ≤ i₀ * (schedJ d i₀ + 2) :=
+      hg₀.2.2.1
+    -- pointwise affine bound
+    have hpt : ∀ i ∈ S, (1 / 2 : ℝ) ^ (schedM d i)
+        ≤ (1 / 2 : ℝ) ^ (1 + (i - i₀) / 2 ^ (j + 4)) := by
+      intro i hiS
+      obtain ⟨hg, hj, hd⟩ := hS i hiS
+      have hi₀i : i₀ ≤ i := hi₀min i hiS
+      have hcl : ∀ i'', i₀ ≤ i'' → i'' ≤ i → schedJ d i'' = schedJ d i₀ := by
+        intro i'' h1 h2
+        have h3 := schedJ_anti d h1 hi₀1
+        have h4 := schedJ_anti d h2 (by omega : 1 ≤ i'')
+        omega
+      have haff := schedM_affine hslack₀ ((i - i₀) / 2 ^ (schedJ d i₀ + 4))
+        i hi₀i hcl le_rfl
+      refine pow_le_pow_of_le_one (by norm_num) (by norm_num) ?_
+      rw [hj₀] at haff
+      omega
+    refine le_trans (Finset.sum_le_sum hpt) ?_
+    -- reindex to shifted range
+    have himg : ∑ i ∈ S, (1 / 2 : ℝ) ^ (1 + (i - i₀) / 2 ^ (j + 4))
+        = ∑ x ∈ S.image (· - i₀),
+            (1 / 2 : ℝ) ^ (1 + x / 2 ^ (j + 4)) := by
+      rw [Finset.sum_image]
+      intro a ha b hb hab
+      have h5 : i₀ ≤ a := hi₀min a ha
+      have h6 : i₀ ≤ b := hi₀min b hb
+      have hab' : a - i₀ = b - i₀ := hab
+      omega
+    rw [himg]
+    have hsub : S.image (· - i₀) ⊆ Finset.range (d + 1) := by
+      intro x hx
+      rw [Finset.mem_image] at hx
+      obtain ⟨i, hiS, rfl⟩ := hx
+      rw [Finset.mem_range]
+      have := (hS i hiS).2.2
+      omega
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun x _ _ => by positivity)) ?_
+    have hsplit : ∀ x ∈ Finset.range (d + 1),
+        (1 / 2 : ℝ) ^ (1 + x / 2 ^ (j + 4))
+        = (1 / 2) * (1 / 2 : ℝ) ^ (x / 2 ^ (j + 4)) := by
+      intro x _
+      rw [pow_add, pow_one]
+    rw [Finset.sum_congr rfl hsplit, ← Finset.mul_sum]
+    have hgeo := sum_half_pow_div_le (d + 1) (2 ^ (j + 4))
+      Nat.one_le_two_pow
+    have h7 : ((2 ^ (j + 4) : ℕ) : ℝ) = 2 ^ (j + 4) := by push_cast; ring
+    rw [h7] at hgeo
+    calc (1 / 2 : ℝ) * ∑ x ∈ Finset.range (d + 1),
+          (1 / 2 : ℝ) ^ (x / 2 ^ (j + 4))
+        ≤ (1 / 2 : ℝ) * (2 * 2 ^ (j + 4)) := by
+          refine mul_le_mul_of_nonneg_left hgeo (by norm_num)
+      _ = 2 ^ (j + 4) := by ring
+
+/-- Quadratic-plus-linear growth is dominated by `2^{j+5}`. -/
+theorem sq_lin_le_two_pow (j : ℕ) : (j + 1) ^ 2 + 3 * j + 12 ≤ 2 ^ (j + 5) := by
+  induction j with
+  | zero => norm_num
+  | succ j ih =>
+    have hb : (j + 1 + 1) ^ 2 = (j + 1) ^ 2 + 2 * j + 3 := by ring
+    have hp : (2:ℕ) ^ (j + 1 + 5) = 2 * 2 ^ (j + 5) := by ring
+    omega
+
+/-- `2j + 2 ≤ 2^{j+2}`. -/
+theorem two_succ_le_two_pow (j : ℕ) : 2 * j + 2 ≤ 2 ^ (j + 2) := by
+  induction j with
+  | zero => norm_num
+  | succ j ih =>
+    have hp : (2:ℕ) ^ (j + 1 + 2) = 2 * 2 ^ (j + 2) := by ring
+    omega
+
+/-- **The goodness threshold**: a class-`j` block at distance `2^{j+5}`
+past the class floor is good. -/
+theorem good_of_range {d j i : ℕ}
+    (hj : schedJ d i = j) (hi1 : 1 ≤ i) (hile : i ≤ d - 2)
+    (hlo : (d - 2) / (j + 2) + 2 ^ (j + 5) ≤ i) :
+    goodBlock d i := by
+  have hd2 : 2 ≤ d := by omega
+  have hdiv1 : 1 ≤ (d - 2) / i := (Nat.one_le_div_iff (by omega)).mpr hile
+  have hdiv : (d - 2) / i = j + 1 := by
+    rw [schedJ] at hj
+    omega
+  -- pointwise class bounds
+  have hup : i * (j + 1) ≤ d - 2 := by
+    have h1 := Nat.div_mul_le_self (d - 2) i
+    rw [hdiv] at h1
+    have hb : (j + 1) * i = i * (j + 1) := by ring
+    omega
+  -- floor-shifted product lower bound
+  have hmod := Nat.div_add_mod (d - 2) (j + 2)
+  have hmlt : (d - 2) % (j + 2) < j + 2 := Nat.mod_lt _ (by omega)
+  have hiprod : ((d - 2) / (j + 2) + 2 ^ (j + 5)) * (j + 2) ≤ i * (j + 2) :=
+    Nat.mul_le_mul_right _ hlo
+  have hbrid : ((d - 2) / (j + 2) + 2 ^ (j + 5)) * (j + 2)
+      = (j + 2) * ((d - 2) / (j + 2)) + 2 ^ (j + 5) * (j + 2) := by ring
+  have hkey : d - 2 + 2 ^ (j + 5) * (j + 2) ≤ i * (j + 2) + j + 1 := by omega
+  have hsq := sq_lin_le_two_pow j
+  have hP3 : 2 ^ (j + 5) * 2 ≤ 2 ^ (j + 5) * (j + 2) :=
+    Nat.mul_le_mul_left _ (by omega)
+  -- the slack conjunct
+  have hslack : d + 1 + (j + 1) ^ 2 + 2 * (j + 2) + 2 ≤ i * (j + 2) := by
+    omega
+  have hc2 : i * (j + 1) + 2 ≤ d := by omega
+  -- u lower bound
+  have hu_lb : (3 * 2 ^ j + 1) * (j + 2) ≤ schedU d i := by
+    rw [schedU, hj]
+    refine (Nat.le_div_iff_mul_le (by norm_num)).mpr ?_
+    have hb2 : (3 * 2 ^ j + 1) * (j + 2) * 2
+        = 6 * (2 ^ j * (j + 2)) + 2 * (j + 2) := by ring
+    have hb3 : 2 ^ (j + 5) * (j + 2) = 32 * (2 ^ j * (j + 2)) := by ring
+    have hb5 : (2:ℕ) ^ (j + 5) = 32 * 2 ^ j := by ring
+    have hQ2 : 2 ^ j * 2 ≤ 2 ^ j * (j + 2) :=
+      Nat.mul_le_mul_left _ (by omega)
+    omega
+  -- h' lower bound
+  have hh_lb : 3 * 2 ^ j ≤ schedH d i := by
+    rw [schedH, hj]
+    refine (Nat.le_div_iff_mul_le (by omega)).mpr ?_
+    have hb6 : (3 * 2 ^ j + 1) * (j + 2)
+        = 3 * 2 ^ j * (j + 2) + (j + 2) := by ring
+    omega
+  -- the save conjunct
+  have hc4 : 4 * 2 ^ j + 1 + 2 ^ j ≤ 2 * schedH d i := by
+    have h1 : 1 ≤ 2 ^ j := Nat.one_le_two_pow
+    omega
+  -- u upper bound
+  have hu_ub : 2 * schedU d i ≤ i - 3 - (j + 1) ^ 2 := by
+    rw [schedU, hj]
+    have h1 : 2 * ((i * (j + 2) - (d + 1 + (j + 1) ^ 2)) / 2)
+        ≤ i * (j + 2) - (d + 1 + (j + 1) ^ 2) := by omega
+    have hb7 : i * (j + 2) = i * (j + 1) + i := by ring
+    omega
+  -- h' upper bound
+  have hh_ub : 2 * schedH d i ≤ schedU d i := by
+    rw [schedH, hj]
+    have h1 : (schedU d i - (j + 2)) / (j + 2)
+        ≤ (schedU d i - (j + 2)) / 2 :=
+      Nat.div_le_div_left (by omega) (by norm_num)
+    have h2 : 2 * ((schedU d i - (j + 2)) / 2)
+        ≤ schedU d i - (j + 2) := by omega
+    omega
+  -- exponent chain for the window
+  have hexp : j + 2 + 2 * schedH d i ≤ i + 1 := by
+    have hb8 : (j + 1) ^ 2 = j * j + 2 * j + 1 := by ring
+    omega
+  -- the window conjunct
+  have hc5 : j * 4 ^ schedH d i + j + 2 ≤ 2 ^ (i + 1) := by
+    have h4h : (4:ℕ) ^ schedH d i = 2 ^ (2 * schedH d i) := by
+      rw [show (4:ℕ) = 2 ^ 2 by norm_num, ← pow_mul]
+    have h1 : 1 ≤ 4 ^ schedH d i := Nat.one_le_pow _ _ (by norm_num)
+    have h2 : j * 4 ^ schedH d i + j + 2
+        ≤ (2 * j + 2) * 4 ^ schedH d i := by
+      have h3 : (j + 2) * 1 ≤ (j + 2) * 4 ^ schedH d i :=
+        Nat.mul_le_mul_left _ h1
+      have hb9 : (2 * j + 2) * 4 ^ schedH d i
+          = j * 4 ^ schedH d i + (j + 2) * 4 ^ schedH d i := by ring
+      omega
+    have h4 : (2 * j + 2) * 4 ^ schedH d i
+        ≤ 2 ^ (j + 2) * 4 ^ schedH d i :=
+      Nat.mul_le_mul_right _ (two_succ_le_two_pow j)
+    have h5 : 2 ^ (j + 2) * 4 ^ schedH d i
+        = 2 ^ (j + 2 + 2 * schedH d i) := by
+      rw [h4h, ← pow_add]
+    have h6 : (2:ℕ) ^ (j + 2 + 2 * schedH d i) ≤ 2 ^ (i + 1) :=
+      Nat.pow_le_pow_right (by norm_num) hexp
+    omega
+  refine ⟨hi1, ?_, ?_, ?_, ?_⟩ <;> rw [hj]
+  · exact hc2
+  · exact hslack
+  · exact hc4
+  · exact hc5
+
+/-- Dyadic partial sums are dominated by the next power. -/
+theorem sum_pow_le (n c : ℕ) :
+    ∑ j ∈ Finset.range n, 2 ^ (j + c) ≤ 2 ^ (n + c) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [Finset.sum_range_succ]
+    have hp : (2:ℕ) ^ (n + 1 + c) = 2 * 2 ^ (n + c) := by ring
+    omega
+
+set_option maxHeartbeats 1600000 in
+/-- **The zeta head bound**: dispatching every dyadic block through the
+schedule, the weighted head sum is bounded by the bad-block count plus
+geometrically summable class savings. -/
+theorem zeta_head_bound (d K : ℕ) (t : ℝ) (w : ℕ → ℝ)
+    (ht1 : (2:ℝ) ^ d ≤ t) (ht2 : t ≤ 2 ^ (d + 1))
+    (hw0 : ∀ n, 1 ≤ n → 0 ≤ w n)
+    (hwd : ∀ n, 1 ≤ n → w (n + 1) ≤ w n)
+    (hwM : ∀ n, 1 ≤ n → w n ≤ 1 / (n : ℝ)) :
+    ‖∑ n ∈ Finset.Ico 1 (2 ^ (d + 1)),
+        w n • e (-(t / (2 * Real.pi) * Real.log n))‖
+      ≤ (((d - 2) / (K + 2) + 2 ^ (K + 7) + 3 : ℕ) : ℝ) := by
+  classical
+  set T : ℕ := 2 ^ (d + 1) - 1 with hT
+  have hT1 : T + 1 = 2 ^ (d + 1) := by
+    have := Nat.one_le_two_pow (n := d + 1)
+    omega
+  -- per-block dispatch
+  have hblock : ∀ i, i < d + 1 →
+      ‖∑ n ∈ Finset.Ico (2 ^ i) (2 ^ (i + 1)),
+          w n • e (-(t / (2 * Real.pi) * Real.log n))‖
+        ≤ (if goodBlock d i ∧ schedJ d i ≤ K
+            then 2 * (1 / 2 : ℝ) ^ (schedM d i) else 1) := by
+    intro i _
+    have h2i : (1:ℕ) ≤ 2 ^ i := Nat.one_le_two_pow
+    have h2i1 : (2:ℕ) ^ (i + 1) = 2 * 2 ^ i := by ring
+    have hNe : (2:ℕ) ^ (i + 1) = (2 ^ (i + 1) - 1) + 1 := by omega
+    have hw0' : ∀ n, 2 ^ i ≤ n → n ≤ 2 ^ (i + 1) - 1 → 0 ≤ w n :=
+      fun n h1 _ => hw0 n (le_trans h2i h1)
+    have hwd' : ∀ n, 2 ^ i ≤ n → n < 2 ^ (i + 1) - 1 → w (n + 1) ≤ w n :=
+      fun n h1 _ => hwd n (le_trans h2i h1)
+    have hwM' : w (2 ^ i) ≤ 1 / ((2 ^ i : ℕ) : ℝ) := hwM _ h2i
+    by_cases hP : goodBlock d i ∧ schedJ d i ≤ K
+    · have hg := hP.1
+      obtain ⟨hij, hu, hh', hm, hwin, _⟩ := goodBlock_dispatch hg
+      have hs := zeta_block_saving i (schedJ d i) (schedH d i) (schedU d i)
+        (schedM d i) d (2 ^ (i + 1) - 1) t w ht1 ht2 hij hu hh' hm hwin
+        (by omega) (by omega) hw0' hwd' hwM'
+      rw [if_pos hP, hNe]
+      exact hs
+    · have hs := zeta_block_trivial (2 ^ i) (2 ^ (i + 1) - 1) w
+        (fun n => e (-(t / (2 * Real.pi) * Real.log n)))
+        h2i (by omega) (fun n => (norm_e _).le) hw0' hwd' hwM'
+      rw [if_neg hP, hNe]
+      exact hs
+  -- the bad-block count
+  have hcard : ((Finset.range (d + 1)).filter
+      (fun i => ¬(goodBlock d i ∧ schedJ d i ≤ K))).card
+      ≤ (d - 2) / (K + 2) + 2 ^ (K + 6) + 3 := by
+    have hsub : (Finset.range (d + 1)).filter
+        (fun i => ¬(goodBlock d i ∧ schedJ d i ≤ K))
+        ⊆ (Finset.range ((d - 2) / (K + 2) + 1) ∪ Finset.Ioc (d - 2) d)
+          ∪ (Finset.range (K + 1)).biUnion (fun j =>
+              Finset.Ico ((d - 2) / (j + 2) + 1)
+                ((d - 2) / (j + 2) + 2 ^ (j + 5))) := by
+      intro i hi
+      rw [Finset.mem_filter, Finset.mem_range] at hi
+      obtain ⟨hid, hnP⟩ := hi
+      rw [Finset.mem_union, Finset.mem_union]
+      by_cases hi0 : i = 0
+      · exact Or.inl (Or.inl (Finset.mem_range.mpr
+          (by rw [hi0]; exact Nat.succ_pos _)))
+      by_cases hup : d - 2 < i
+      · exact Or.inl (Or.inr (Finset.mem_Ioc.mpr ⟨hup, by omega⟩))
+      push_neg at hup
+      set j := schedJ d i with hjdef
+      have hdiv1 : 1 ≤ (d - 2) / i := (Nat.one_le_div_iff (by omega)).mpr hup
+      have hdiv : (d - 2) / i = j + 1 := by
+        rw [hjdef, schedJ]
+        omega
+      by_cases hjK : K + 1 ≤ j
+      · refine Or.inl (Or.inl (Finset.mem_range.mpr ?_))
+        have h2 := Nat.div_mul_le_self (d - 2) i
+        rw [hdiv] at h2
+        have h3 : i * (K + 2) ≤ i * (j + 1) :=
+          Nat.mul_le_mul_left _ (by omega)
+        have hb : (j + 1) * i = i * (j + 1) := by ring
+        have h5 : i ≤ (d - 2) / (K + 2) :=
+          (Nat.le_div_iff_mul_le (by omega)).mpr (by omega)
+        omega
+      · push_neg at hjK
+        have hng : ¬ goodBlock d i := fun hg => hnP ⟨hg, by omega⟩
+        have hlt : i < (d - 2) / (j + 2) + 2 ^ (j + 5) := by
+          by_contra hge
+          push_neg at hge
+          exact hng (good_of_range hjdef.symm (by omega) hup hge)
+        have hgt : (d - 2) / (j + 2) < i := by
+          by_contra hle
+          push_neg at hle
+          have h2 : i * (j + 2) ≤ (d - 2) / (j + 2) * (j + 2) :=
+            Nat.mul_le_mul_right _ hle
+          have h3 := Nat.div_mul_le_self (d - 2) (j + 2)
+          have h4 : j + 2 ≤ (d - 2) / i :=
+            (Nat.le_div_iff_mul_le (by omega)).mpr (by
+              have hb : (j + 2) * i = i * (j + 2) := by ring
+              omega)
+          omega
+        exact Or.inr (Finset.mem_biUnion.mpr
+          ⟨j, Finset.mem_range.mpr (by omega),
+            Finset.mem_Ico.mpr ⟨by omega, by omega⟩⟩)
+    refine le_trans (Finset.card_le_card hsub) ?_
+    refine le_trans (Finset.card_union_le _ _) ?_
+    have h1 := Finset.card_union_le
+      (Finset.range ((d - 2) / (K + 2) + 1)) (Finset.Ioc (d - 2) d)
+    have h2 := Finset.card_biUnion_le (s := Finset.range (K + 1))
+      (t := fun j => Finset.Ico ((d - 2) / (j + 2) + 1)
+        ((d - 2) / (j + 2) + 2 ^ (j + 5)))
+    have h3 : ∑ j ∈ Finset.range (K + 1),
+        (Finset.Ico ((d - 2) / (j + 2) + 1)
+          ((d - 2) / (j + 2) + 2 ^ (j + 5))).card ≤ 2 ^ (K + 6) := by
+      have h4 : ∀ j ∈ Finset.range (K + 1),
+          (Finset.Ico ((d - 2) / (j + 2) + 1)
+            ((d - 2) / (j + 2) + 2 ^ (j + 5))).card ≤ 2 ^ (j + 5) := by
+        intro j _
+        rw [Nat.card_Ico]
+        have h1 : 1 ≤ 2 ^ (j + 5) := Nat.one_le_two_pow
+        omega
+      refine le_trans (Finset.sum_le_sum h4) ?_
+      refine le_trans (sum_pow_le (K + 1) 5) ?_
+      exact le_of_eq (by ring)
+    rw [Finset.card_range] at h1
+    have h6 : (Finset.Ioc (d - 2) d).card ≤ 2 := by
+      rw [Nat.card_Ioc]
+      omega
+    omega
+  -- the good-class sums
+  have hgood : ∑ i ∈ (Finset.range (d + 1)).filter
+      (fun i => goodBlock d i ∧ schedJ d i ≤ K),
+      (if goodBlock d i ∧ schedJ d i ≤ K
+        then 2 * (1 / 2 : ℝ) ^ (schedM d i) else 1)
+      ≤ (2:ℝ) ^ (K + 6) := by
+    rw [Finset.sum_congr rfl
+      (fun i hi => if_pos (Finset.mem_filter.mp hi).2)]
+    have hmaps : ∀ i ∈ (Finset.range (d + 1)).filter
+        (fun i => goodBlock d i ∧ schedJ d i ≤ K),
+        schedJ d i ∈ Finset.range (K + 1) := by
+      intro i hi
+      rw [Finset.mem_filter] at hi
+      exact Finset.mem_range.mpr (by omega)
+    rw [← Finset.sum_fiberwise_of_maps_to hmaps
+      (fun i => 2 * (1 / 2 : ℝ) ^ (schedM d i))]
+    have hinner : ∀ j ∈ Finset.range (K + 1),
+        ∑ i ∈ ((Finset.range (d + 1)).filter
+          (fun i => goodBlock d i ∧ schedJ d i ≤ K)).filter
+            (fun i => schedJ d i = j),
+          2 * (1 / 2 : ℝ) ^ (schedM d i) ≤ 2 * 2 ^ (j + 4) := by
+      intro j _
+      rw [← Finset.mul_sum]
+      refine mul_le_mul_of_nonneg_left ?_ (by norm_num)
+      refine class_sum_le d j _ ?_
+      intro i hi
+      rw [Finset.mem_filter, Finset.mem_filter, Finset.mem_range] at hi
+      exact ⟨hi.1.2.1, hi.2, by omega⟩
+    refine le_trans (Finset.sum_le_sum hinner) ?_
+    have h2 : ∀ j ∈ Finset.range (K + 1),
+        2 * (2:ℝ) ^ (j + 4) = ((2 ^ (j + 5) : ℕ) : ℝ) := by
+      intro j _
+      push_cast
+      ring
+    rw [Finset.sum_congr rfl h2, ← Nat.cast_sum]
+    have h5 := sum_pow_le (K + 1) 5
+    have hb : (2:ℕ) ^ (K + 1 + 5) = 2 ^ (K + 6) := by ring
+    calc ((∑ j ∈ Finset.range (K + 1), 2 ^ (j + 5) : ℕ) : ℝ)
+        ≤ ((2 ^ (K + 6) : ℕ) : ℝ) := Nat.cast_le.mpr (by omega)
+      _ = (2:ℝ) ^ (K + 6) := by push_cast; ring
+  -- assemble
+  have hmain := norm_head_le_of_blocks
+    (fun n => w n • e (-(t / (2 * Real.pi) * Real.log n)))
+    T (d + 1)
+    (fun i => if goodBlock d i ∧ schedJ d i ≤ K
+      then 2 * (1 / 2 : ℝ) ^ (schedM d i) else 1)
+    0 (by omega) hblock
+    (by rw [hT1, Finset.Ico_self, Finset.sum_empty, norm_zero])
+  rw [hT1, add_zero] at hmain
+  refine le_trans hmain ?_
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.range (d + 1))
+    (fun i => goodBlock d i ∧ schedJ d i ≤ K)]
+  have hbad : ∑ i ∈ (Finset.range (d + 1)).filter
+      (fun i => ¬(goodBlock d i ∧ schedJ d i ≤ K)),
+      (if goodBlock d i ∧ schedJ d i ≤ K
+        then 2 * (1 / 2 : ℝ) ^ (schedM d i) else 1)
+      ≤ (((d - 2) / (K + 2) + 2 ^ (K + 6) + 3 : ℕ) : ℝ) := by
+    rw [Finset.sum_congr rfl
+      (fun i hi => if_neg (Finset.mem_filter.mp hi).2)]
+    rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+    exact_mod_cast Nat.cast_le.mpr hcard
+  have hfin : (2:ℝ) ^ (K + 6)
+      + (((d - 2) / (K + 2) + 2 ^ (K + 6) + 3 : ℕ) : ℝ)
+      = (((d - 2) / (K + 2) + 2 ^ (K + 7) + 3 : ℕ) : ℝ) := by
+    push_cast
+    ring
+  calc ∑ i ∈ (Finset.range (d + 1)).filter
+        (fun i => goodBlock d i ∧ schedJ d i ≤ K),
+        (if goodBlock d i ∧ schedJ d i ≤ K
+          then 2 * (1 / 2 : ℝ) ^ (schedM d i) else 1)
+      + ∑ i ∈ (Finset.range (d + 1)).filter
+          (fun i => ¬(goodBlock d i ∧ schedJ d i ≤ K)),
+          (if goodBlock d i ∧ schedJ d i ≤ K
+            then 2 * (1 / 2 : ℝ) ^ (schedM d i) else 1)
+      ≤ (2:ℝ) ^ (K + 6)
+        + (((d - 2) / (K + 2) + 2 ^ (K + 6) + 3 : ℕ) : ℝ) :=
+        add_le_add hgood hbad
+    _ = (((d - 2) / (K + 2) + 2 ^ (K + 7) + 3 : ℕ) : ℝ) := hfin
+
 end ExpSums
 
 end MoltResearch
