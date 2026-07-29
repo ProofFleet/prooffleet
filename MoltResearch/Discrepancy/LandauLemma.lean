@@ -3,6 +3,7 @@ import Mathlib.Analysis.Analytic.Order
 import Mathlib.Analysis.Complex.AbsMax
 import Mathlib.Analysis.Complex.BorelCaratheodory
 import Mathlib.Analysis.Complex.HasPrimitives
+import Mathlib.Analysis.Complex.Liouville
 
 /-!
 # Track C: the Landau lemma substrate (Track R, campaign #3044, phase P3)
@@ -326,6 +327,104 @@ theorem exists_log_branch {g : ℂ → ℂ} {U : Set ℂ} (hU : IsOpen U)
       = Complex.exp (φ z) * (Complex.exp (-φ z) * g z) := by rw [h1']
     _ = (Complex.exp (φ z) * Complex.exp (-φ z)) * g z := by ring
     _ = g z := by rw [h4]; ring
+
+/-- **The Borel–Carathéodory bound on the logarithmic derivative**: if `g` is
+analytic and nonvanishing on `ball c R` with `‖g‖ ≤ e^M·‖g c‖` throughout,
+then `‖g'/g(c)‖ ≤ 4(M+1)/R` — via the normalized log branch, the
+Borel–Carathéodory theorem at strictness pad `M+1`, and the Cauchy derivative
+estimate at radius `R/2`. -/
+theorem norm_logDeriv_le_of_ratio_le {g : ℂ → ℂ} {U : Set ℂ} (hU : IsOpen U)
+    (hg : AnalyticOnNhd ℂ g U) {c : ℂ} {R : ℝ} (hR : 0 < R)
+    (hball : Metric.ball c R ⊆ U)
+    (hne : ∀ z ∈ Metric.ball c R, g z ≠ 0) {M : ℝ}
+    (hratio : ∀ z ∈ Metric.ball c R, ‖g z‖ ≤ Real.exp M * ‖g c‖) :
+    ‖deriv g c / g c‖ ≤ 4 * (M + 1) / R := by
+  have hcball : c ∈ Metric.ball c R := Metric.mem_ball_self hR
+  have hgc : g c ≠ 0 := hne c hcball
+  have hgc0 : (0:ℝ) < ‖g c‖ := norm_pos_iff.mpr hgc
+  -- `M ≥ 0` from the ratio bound at the center
+  have hM0 : 0 ≤ M := by
+    have h1 := hratio c hcball
+    by_contra h
+    push_neg at h
+    have h2 : Real.exp M < 1 := Real.exp_lt_one_iff.mpr h
+    nlinarith [mul_lt_mul_of_pos_right h2 hgc0]
+  -- the log branch and its real-part bound
+  obtain ⟨φ, hφc, hφexp, hφd⟩ := exists_log_branch hU hg hR hball hne
+  have hφre : ∀ z ∈ Metric.ball c R, (φ z).re ≤ M := by
+    intro z hz
+    have h1 : ‖Complex.exp (φ z)‖ = ‖g z‖ / ‖g c‖ := by
+      rw [hφexp z hz, norm_div]
+    have h2 : Real.exp ((φ z).re) ≤ Real.exp M := by
+      rw [← Complex.norm_exp, h1]
+      rw [div_le_iff₀ hgc0]
+      exact hratio z hz
+    exact (Real.exp_le_exp).mp h2
+  -- recenter at the origin
+  set ψ : ℂ → ℂ := fun w => φ (c + w) with hψ_def
+  have htrans : ∀ w : ℂ, w ∈ Metric.ball (0:ℂ) R → c + w ∈ Metric.ball c R := by
+    intro w hw
+    rw [Metric.mem_ball] at hw ⊢
+    simpa [dist_eq_norm] using hw
+  have hψd : ∀ w ∈ Metric.ball (0:ℂ) R,
+      HasDerivAt ψ (deriv g (c + w) / g (c + w)) w := by
+    intro w hw
+    have h1 := hφd (c + w) (htrans w hw)
+    have h2 : HasDerivAt (fun v : ℂ => c + v) 1 w :=
+      (hasDerivAt_id w).const_add c
+    simpa [hψ_def] using (h1.comp w h2)
+  have hψdiff : DifferentiableOn ℂ ψ (Metric.ball (0:ℂ) R) := fun w hw =>
+    ((hψd w hw).differentiableAt).differentiableWithinAt
+  have hψ0 : ψ 0 = 0 := by
+    simp [hψ_def, hφc]
+  -- Borel–Carathéodory at strictness pad `M+1`, evaluated on the `R/2` sphere
+  have hBC : ∀ z ∈ Metric.sphere (0:ℂ) (R/2), ‖ψ z‖ ≤ 2 * (M + 1) := by
+    intro z hz
+    have hz' : z ∈ Metric.ball (0:ℂ) R := by
+      rw [Metric.mem_sphere] at hz
+      rw [Metric.mem_ball]
+      rw [hz]
+      linarith
+    have hmaps : Set.MapsTo ψ (Metric.ball (0:ℂ) R) {w : ℂ | w.re < M + 1} := by
+      intro w hw
+      have h1 : (ψ w).re ≤ M := hφre (c + w) (htrans w hw)
+      simp only [Set.mem_setOf_eq]
+      linarith
+    have hball0 : Metric.ball (0:ℂ) R = Metric.ball 0 R := rfl
+    have h2 := Complex.borelCaratheodory (M := M + 1) (by linarith) hψdiff
+      hmaps hR hz'
+    rw [hψ0] at h2
+    simp only [norm_zero, zero_mul, zero_div, add_zero] at h2
+    have hznorm : ‖z‖ = R/2 := by
+      rw [Metric.mem_sphere] at hz
+      simpa [dist_eq_norm] using hz
+    rw [hznorm] at h2
+    have h3 : R - R/2 = R/2 := by ring
+    rw [h3] at h2
+    calc ‖ψ z‖ ≤ 2 * (M + 1) * (R/2) / (R/2) := h2
+      _ = 2 * (M + 1) := by field_simp
+  -- the Cauchy derivative estimate at radius `R/2`
+  have hR2 : (0:ℝ) < R/2 := by linarith
+  have hdiff2 : DiffContOnCl ℂ ψ (Metric.ball (0:ℂ) (R/2)) := by
+    have h1 : DifferentiableOn ℂ ψ (Metric.closedBall (0:ℂ) (R/2)) := by
+      refine hψdiff.mono ?_
+      intro w hw
+      rw [Metric.mem_closedBall] at hw
+      rw [Metric.mem_ball]
+      linarith
+    rw [← closure_ball (0:ℂ) hR2.ne'] at h1
+    exact h1.diffContOnCl
+  have hcauchy := Complex.norm_deriv_le_of_forall_mem_sphere_norm_le hR2
+    hdiff2 hBC
+  -- identify the derivative at the origin
+  have hψ0d : HasDerivAt ψ (deriv g c / g c) 0 := by
+    have h1 := hψd 0 (Metric.mem_ball_self hR)
+    simpa using h1
+  rw [hψ0d.deriv] at hcauchy
+  calc ‖deriv g c / g c‖ ≤ 2 * (M + 1) / (R/2) := hcauchy
+    _ = 4 * (M + 1) / R := by
+        field_simp
+        ring
 
 end ExpSums
 
