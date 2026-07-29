@@ -3408,6 +3408,43 @@ instance logElliottNonasymptotic_of_matomakiRadziwill_quadrupleSieve
     have hlw0 : 0 ≤ Real.log w := Real.log_nonneg (le_trans hA1 hAw)
     nlinarith only [h1, hlw0, hε1]
 
+/-- The master theorem for arbitrary distinct shifts on the Track R weak pair
+(issue #3044): the `b₁ > b₂` case follows by conjugation symmetry. -/
+theorem elliott_master_ne_majorArc [MatomakiRadziwillMajorArcAssumption]
+    [PrimeBlockMajorArcAssumption] [PrimeQuadrupleCountAssumption]
+    (b₁ b₂ : ℕ) (hb : b₁ ≠ b₂) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε ≤ 1) :
+    ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
+      ∀ x w : ℝ, A ≤ w → w ≤ x →
+        ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → Unimodular g →
+          NonPretentiousAt g A ⌈x⌉₊ →
+          ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
+              g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+            ≤ ε * Real.log w := by
+  rcases Nat.lt_or_ge b₁ b₂ with hlt | hge
+  · exact elliott_master_majorArc b₁ b₂ hlt hε0 hε1
+  · have hgt : b₂ < b₁ := by omega
+    obtain ⟨A₀, hA₀⟩ := elliott_master_majorArc b₂ b₁ hgt hε0 hε1
+    refine ⟨A₀, fun A hA hA1 x w hAw hwx g hcm huni hnp => ?_⟩
+    rw [norm_pair_sum_conj_symm]
+    exact hA₀ A hA hA1 x w hAw hwx g hcm huni hnp
+
+/-- **The Elliott interface is discharged on the Track R weak pair** (issue
+#3044, R1): the nonasymptotic log-averaged Elliott estimate holds conditional
+on exactly the major-arc Matomäki–Radziwiłł interface, the prime-block
+major-arc classification, and the prime-quadruple-sieve interface. -/
+instance (priority := 90) logElliottNonasymptotic_of_majorArc_quadrupleSieve
+    [MatomakiRadziwillMajorArcAssumption] [PrimeBlockMajorArcAssumption]
+    [PrimeQuadrupleCountAssumption] :
+    LogElliottNonasymptoticAssumption := by
+  refine ⟨fun b₁ b₂ hb ε hε0 => ?_⟩
+  rcases le_or_gt ε 1 with hε1 | hε1
+  · exact elliott_master_ne_majorArc b₁ b₂ hb hε0 hε1
+  · obtain ⟨A₀, hA₀⟩ := elliott_master_ne_majorArc b₁ b₂ hb one_pos le_rfl
+    refine ⟨A₀, fun A hA hA1 x w hAw hwx g hcm huni hnp => ?_⟩
+    have h1 := hA₀ A hA hA1 x w hAw hwx g hcm huni hnp
+    have hlw0 : 0 ≤ Real.log w := Real.log_nonneg (le_trans hA1 hAw)
+    nlinarith only [h1, hlw0, hε1]
+
 end Master
 
 end Tao2015

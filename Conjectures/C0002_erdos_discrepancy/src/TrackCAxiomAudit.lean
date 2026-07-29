@@ -184,3 +184,29 @@ info: 'MoltResearch.Tao2015.theorem18_of_matomakiRadziwill' depends on axioms: [
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.theorem18_of_matomakiRadziwill
+
+/--
+info: 'MoltResearch.Tao2015.elliott_master_majorArc' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.elliott_master_majorArc
+
+/--
+info: 'MoltResearch.Tao2015.logElliottNonasymptotic_of_majorArc_quadrupleSieve' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.logElliottNonasymptotic_of_majorArc_quadrupleSieve
+
+/--
+info: 'MoltResearch.Tao2015.edp_of_matomakiRadziwillMajorArc' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.edp_of_matomakiRadziwillMajorArc
+
+/--
+info: 'MoltResearch.Tao2015.theorem18_of_matomakiRadziwillMajorArc' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.theorem18_of_matomakiRadziwillMajorArc

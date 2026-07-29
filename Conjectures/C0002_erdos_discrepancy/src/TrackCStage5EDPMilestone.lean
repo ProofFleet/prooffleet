@@ -68,6 +68,25 @@ theorem theorem18_of_matomakiRadziwill
     ¬ ∃ C : ℝ, ∀ n : ℕ, sndMomentPartialSum G n ≤ C :=
   theorem18_of_logElliott_vinogradovKorobov μ G
 
+/-- **EDP on the Track R weak pair** (issue #3044, R1 closes): the Erdős
+discrepancy theorem conditional on exactly the major-arc Matomäki–Radziwiłł
+interface and the prime-block major-arc classification — the frozen all-`α`
+interface is no longer on this chain.  Track R discharges these two (R2–R7). -/
+theorem edp_of_matomakiRadziwillMajorArc
+    [MatomakiRadziwillMajorArcAssumption] [PrimeBlockMajorArcAssumption]
+    (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f :=
+  edp_of_logElliott_vinogradovKorobov f hf
+
+/-- **Theorem 1.8 on the Track R weak pair**: the second-moment blowup for
+stochastic completely multiplicative functions, on the major-arc interfaces. -/
+theorem theorem18_of_matomakiRadziwillMajorArc
+    [MatomakiRadziwillMajorArcAssumption] [PrimeBlockMajorArcAssumption]
+    {Ω : Type} [MeasurableSpace Ω] (μ : MeasureTheory.Measure Ω)
+    [MeasureTheory.IsProbabilityMeasure μ]
+    (G : StochasticMultiplicative μ) :
+    ¬ ∃ C : ℝ, ∀ n : ℕ, sndMomentPartialSum G n ≤ C :=
+  theorem18_of_logElliott_vinogradovKorobov μ G
+
 end Tao2015
 
 end MoltResearch
