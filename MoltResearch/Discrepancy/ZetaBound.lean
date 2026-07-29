@@ -856,6 +856,230 @@ theorem norm_sum_cpow_middle_le_strip (σ t : ℝ) (d : ℕ) (hσ0 : 0 ≤ σ) :
       ← Real.rpow_add (by positivity), ← sub_eq_add_neg]
   rw [mul_assoc, h2]
 
+/-- **The per-term telescope error in the strip**: for `0 < s.re` and
+`max 1 ‖s-1‖ ≤ n`, the term `n^{-s}` matches the potential difference up to
+`2‖s-1‖/n^{1+re s}`.  Generalizes `cpow_sub_telescope_le` (which required
+`1 ≤ s.re`); the only change is the pointwise size `‖n^{-s}‖ = n^{-re s}`. -/
+theorem cpow_sub_telescope_le_strip (s : ℂ) (n : ℕ)
+    (hσ0 : 0 < s.re) (hs1 : 1 ≤ ‖s - 1‖) (hn : ‖s - 1‖ ≤ n) (hn1 : 1 ≤ n) :
+    ‖(n : ℂ) ^ (-s) - (zPot s n - zPot s (n + 1))‖
+      ≤ 2 * ‖s - 1‖ / (n:ℝ) ^ (1 + s.re) := by
+  have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn1
+  have hnneC : ((n:ℕ):ℂ) ≠ 0 := by
+    exact_mod_cast (by omega : n ≠ 0)
+  have hsne : s - 1 ≠ 0 := by
+    intro h
+    rw [h, norm_zero] at hs1
+    linarith
+  have hs0 : (0:ℝ) < ‖s - 1‖ := by linarith
+  set L : ℝ := Real.log (1 + 1/n) with hLdef
+  have hL0 : 0 ≤ L := by
+    rw [hLdef]
+    exact Real.log_nonneg (le_add_of_nonneg_right (by positivity))
+  have hLle : L ≤ 1/(n:ℝ) := by
+    have h1 := Real.log_le_sub_one_of_pos (show (0:ℝ) < 1 + 1/n by positivity)
+    rw [← hLdef] at h1
+    linarith
+  have hLge : 1/((n:ℝ)+1) ≤ L := by
+    have h1 := Real.log_le_sub_one_of_pos
+      (show (0:ℝ) < (1 + 1/(n:ℝ))⁻¹ by positivity)
+    rw [Real.log_inv, ← hLdef] at h1
+    have h2 : ((1 + 1/(n:ℝ)))⁻¹ - 1 = -(1/((n:ℝ)+1)) := by
+      rw [inv_eq_one_div]
+      field_simp
+      ring
+    rw [h2] at h1
+    linarith
+  have hnL1 : (n:ℝ) * L ≤ 1 := by
+    calc (n:ℝ) * L ≤ (n:ℝ) * (1/n) :=
+          mul_le_mul_of_nonneg_left hLle hn0.le
+      _ = 1 := by field_simp
+  have hnL2 : 1 - 1/(n:ℝ) ≤ (n:ℝ) * L := by
+    have h1 : (n:ℝ) * (1/((n:ℝ)+1)) ≤ (n:ℝ) * L :=
+      mul_le_mul_of_nonneg_left hLge hn0.le
+    have h2 : (n:ℝ) * (1/((n:ℝ)+1)) = 1 - 1/((n:ℝ)+1) := by
+      field_simp
+      ring
+    have h3 : 1/((n:ℝ)+1) ≤ 1/(n:ℝ) :=
+      one_div_le_one_div_of_le hn0 (by linarith)
+    linarith
+  have hplus : (((n+1 : ℕ)):ℂ) = ((n:ℝ):ℂ) * (((1 + 1/(n:ℝ) : ℝ)):ℂ) := by
+    push_cast
+    field_simp
+  have hsplit : (((n+1 : ℕ)):ℂ) ^ ((1:ℂ) - s)
+      = ((n:ℝ):ℂ) ^ ((1:ℂ) - s) * (((1 + 1/(n:ℝ) : ℝ)):ℂ) ^ ((1:ℂ) - s) := by
+    rw [hplus, Complex.mul_cpow_ofReal_nonneg hn0.le (by positivity)]
+  have hexp : (((1 + 1/(n:ℝ) : ℝ)):ℂ) ^ ((1:ℂ) - s)
+      = Complex.exp ((L:ℂ) * ((1:ℂ) - s)) := by
+    rw [Complex.cpow_def_of_ne_zero (by
+        simp only [ne_eq, Complex.ofReal_eq_zero]
+        positivity),
+      ← Complex.ofReal_log (by positivity : (0:ℝ) ≤ 1 + 1/(n:ℝ))]
+  set z : ℂ := (L:ℂ) * ((1:ℂ) - s) with hzdef
+  have hznorm : ‖z‖ = L * ‖s - 1‖ := by
+    rw [hzdef, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg hL0, ← norm_neg ((1:ℂ) - s)]
+    ring_nf
+  have hz1 : ‖z‖ ≤ 1 := by
+    rw [hznorm]
+    calc L * ‖s - 1‖ ≤ (1/n) * (n:ℝ) :=
+          mul_le_mul hLle hn hs0.le (by positivity)
+      _ = 1 := by field_simp
+  set R : ℂ := Complex.exp z - 1 - z with hRdef
+  have hR : ‖R‖ ≤ ‖z‖ ^ 2 := by
+    rw [hRdef]
+    exact Complex.norm_exp_sub_one_sub_id_le hz1
+  have hone : ((n:ℝ):ℂ) = ((n:ℕ):ℂ) := by push_cast; ring
+  have hpow1 : ((n:ℕ):ℂ) ^ ((1:ℂ) - s) = ((n:ℕ):ℂ) * ((n:ℕ):ℂ) ^ (-s) := by
+    rw [show (1:ℂ) - s = 1 + (-s) by ring, Complex.cpow_add _ _ hnneC,
+      Complex.cpow_one]
+  have hexpz : Complex.exp ((L:ℂ) * ((1:ℂ) - s))
+      = 1 + (L:ℂ) * ((1:ℂ) - s) + R := by
+    rw [hRdef, hzdef]
+    ring
+  have hkey : (((n:ℕ)):ℂ) ^ (-s) - (zPot s n - zPot s (n + 1))
+      = ((n:ℕ):ℂ) ^ (-s) * (((1 - (n:ℝ) * L : ℝ)):ℂ)
+        + ((n:ℕ):ℂ) * ((n:ℕ):ℂ) ^ (-s) * R / (s - 1) := by
+    rw [zPot, zPot, hsplit, hone, hexp, hexpz, hpow1]
+    push_cast
+    field_simp [hsne]
+    ring
+  rw [hkey]
+  have hnormpow : ‖((n:ℕ):ℂ) ^ (-s)‖ = (n:ℝ) ^ (-(s.re)) := by
+    rw [Complex.norm_natCast_cpow_of_pos (by omega)]
+    congr 1
+  have habs : ‖(((1 - (n:ℝ) * L : ℝ)):ℂ)‖ ≤ 1/(n:ℝ) := by
+    rw [Complex.norm_real, Real.norm_eq_abs, abs_le]
+    exact ⟨by linarith, by linarith⟩
+  have hsplitpow : (n:ℝ) ^ (-(s.re)) * (1/(n:ℝ)) = (n:ℝ) ^ (-(1 + s.re)) := by
+    rw [show (1:ℝ)/(n:ℝ) = (n:ℝ) ^ (-(1:ℝ)) from by
+        rw [Real.rpow_neg_one, inv_eq_one_div],
+      ← Real.rpow_add hn0]
+    congr 1
+    ring
+  calc ‖((n:ℕ):ℂ) ^ (-s) * (((1 - (n:ℝ) * L : ℝ)):ℂ)
+        + ((n:ℕ):ℂ) * ((n:ℕ):ℂ) ^ (-s) * R / (s - 1)‖
+      ≤ ‖((n:ℕ):ℂ) ^ (-s) * (((1 - (n:ℝ) * L : ℝ)):ℂ)‖
+        + ‖((n:ℕ):ℂ) * ((n:ℕ):ℂ) ^ (-s) * R / (s - 1)‖ := norm_add_le _ _
+    _ ≤ (n:ℝ) ^ (-(s.re)) * (1/(n:ℝ))
+        + ((n:ℝ) * (n:ℝ) ^ (-(s.re)) * ‖R‖) / ‖s - 1‖ := by
+        refine add_le_add ?_ ?_
+        · rw [norm_mul, hnormpow]
+          exact mul_le_mul_of_nonneg_left habs (by positivity)
+        · rw [norm_div, norm_mul, norm_mul, Complex.norm_natCast, hnormpow]
+    _ ≤ (n:ℝ) ^ (-(1 + s.re)) + ‖s - 1‖ * (n:ℝ) ^ (-(1 + s.re)) := by
+        refine add_le_add (le_of_eq hsplitpow) ?_
+        have hRb : ‖R‖ ≤ (L * ‖s - 1‖) ^ 2 := by
+          rw [← hznorm]
+          exact hR
+        have hL2 : (L * ‖s - 1‖) ^ 2 ≤ (1/(n:ℝ)) ^ 2 * ‖s - 1‖ ^ 2 := by
+          have h1 : L ^ 2 ≤ (1/(n:ℝ)) ^ 2 := pow_le_pow_left₀ hL0 hLle 2
+          calc (L * ‖s - 1‖) ^ 2 = L ^ 2 * ‖s - 1‖ ^ 2 := by ring
+            _ ≤ (1/(n:ℝ)) ^ 2 * ‖s - 1‖ ^ 2 :=
+              mul_le_mul_of_nonneg_right h1 (by positivity)
+        calc ((n:ℝ) * (n:ℝ) ^ (-(s.re)) * ‖R‖) / ‖s - 1‖
+            ≤ ((n:ℝ) * (n:ℝ) ^ (-(s.re)) * ((1/(n:ℝ)) ^ 2 * ‖s - 1‖ ^ 2)) / ‖s - 1‖ := by
+              gcongr
+              exact le_trans hRb hL2
+          _ = ‖s - 1‖ * ((n:ℝ) ^ (-(s.re)) * (1/(n:ℝ))) := by
+              field_simp
+          _ = ‖s - 1‖ * (n:ℝ) ^ (-(1 + s.re)) := by rw [hsplitpow]
+    _ ≤ 2 * ‖s - 1‖ / (n:ℝ) ^ (1 + s.re) := by
+        have h1 : (n:ℝ) ^ (-(1 + s.re)) = 1 / (n:ℝ) ^ (1 + s.re) := by
+          rw [Real.rpow_neg hn0.le, inv_eq_one_div]
+        rw [h1]
+        have h3 : 1 / (n:ℝ) ^ (1 + s.re) + ‖s - 1‖ * (1 / (n:ℝ) ^ (1 + s.re))
+            = (1 + ‖s - 1‖) / (n:ℝ) ^ (1 + s.re) := by ring
+        rw [h3]
+        gcongr
+        linarith
+
+/-- **The strip tail sum**: `∑_{N ≤ n < M} n^{-1-σ} ≤ (N-1)^{-σ}/σ`, by
+telescoping against `k ↦ (k-1)^{-σ}` — the Bernoulli step
+`(1-1/n)^{-σ} ≥ 1 + σ/n` comes from `exp x ≥ 1 + x` and
+`log(1-1/n) ≤ -1/n`, keeping the file integration-free. -/
+theorem sum_rpow_neg_Ico_le (σ : ℝ) (N M : ℕ) (hσ0 : 0 < σ) (hN : 2 ≤ N) :
+    ∑ n ∈ Finset.Ico N M, (n:ℝ) ^ (-(1+σ)) ≤ ((N:ℝ)-1) ^ (-σ) / σ := by
+  rcases le_or_gt M N with hMN | hMN
+  · rw [Finset.Ico_eq_empty (by omega), Finset.sum_empty]
+    have hN1 : (0:ℝ) ≤ (N:ℝ) - 1 := by
+      have : (2:ℝ) ≤ (N:ℝ) := by exact_mod_cast hN
+      linarith
+    exact div_nonneg (Real.rpow_nonneg hN1 _) hσ0.le
+  · have hstep : ∀ n ∈ Finset.Ico N M, (n:ℝ) ^ (-(1+σ))
+        ≤ ((fun k : ℕ => ((k:ℝ)-1) ^ (-σ) / σ) n
+            - (fun k : ℕ => ((k:ℝ)-1) ^ (-σ) / σ) (n + 1)) := by
+      intro n hn
+      rw [Finset.mem_Ico] at hn
+      have hn2 : 2 ≤ n := le_trans hN hn.1
+      have hnr : (2:ℝ) ≤ (n:ℝ) := by exact_mod_cast hn2
+      have hn0 : (0:ℝ) < (n:ℝ) := by linarith
+      have hn10 : (0:ℝ) < (n:ℝ) - 1 := by linarith
+      simp only []
+      -- `(n-1)^{-σ} = n^{-σ}·(1-1/n)^{-σ}` and the Bernoulli lower bound
+      have hfrac0 : (0:ℝ) < 1 - 1/(n:ℝ) := by
+        have : 1/(n:ℝ) ≤ 1/2 := by
+          rw [div_le_div_iff₀ hn0 (by norm_num)]
+          linarith
+        linarith
+      have hsplit : ((n:ℝ)-1) ^ (-σ) = (n:ℝ) ^ (-σ) * (1 - 1/(n:ℝ)) ^ (-σ) := by
+        rw [show (n:ℝ) - 1 = (n:ℝ) * (1 - 1/(n:ℝ)) from by field_simp,
+          Real.mul_rpow hn0.le hfrac0.le]
+      have hlog : Real.log (1 - 1/(n:ℝ)) ≤ -(1/(n:ℝ)) := by
+        have h1 := Real.log_le_sub_one_of_pos hfrac0
+        linarith
+      have hbern : 1 + σ/(n:ℝ) ≤ (1 - 1/(n:ℝ)) ^ (-σ) := by
+        rw [Real.rpow_def_of_pos hfrac0]
+        calc 1 + σ/(n:ℝ) ≤ 1 + (-σ) * Real.log (1 - 1/(n:ℝ)) := by
+              have h2 : σ * (1/(n:ℝ)) ≤ (-σ) * Real.log (1 - 1/(n:ℝ)) := by
+                have h3 : (-σ) * Real.log (1 - 1/(n:ℝ)) = σ * (-(Real.log (1 - 1/(n:ℝ)))) := by
+                  ring
+                rw [h3]
+                refine mul_le_mul_of_nonneg_left ?_ hσ0.le
+                linarith
+              have h4 : σ/(n:ℝ) = σ * (1/(n:ℝ)) := by ring
+              linarith [h4.le, h4.ge, h2]
+          _ ≤ Real.exp ((-σ) * Real.log (1 - 1/(n:ℝ))) := by
+              have := Real.add_one_le_exp ((-σ) * Real.log (1 - 1/(n:ℝ)))
+              linarith
+          _ = Real.exp (Real.log (1 - 1/(n:ℝ)) * (-σ)) := by ring_nf
+      have hdiff : σ * (n:ℝ) ^ (-(1+σ)) ≤ ((n:ℝ)-1) ^ (-σ) - (n:ℝ) ^ (-σ) := by
+        have h1 : ((n:ℝ)-1) ^ (-σ) - (n:ℝ) ^ (-σ)
+            = (n:ℝ) ^ (-σ) * ((1 - 1/(n:ℝ)) ^ (-σ) - 1) := by
+          rw [hsplit]
+          ring
+        have h2 : σ/(n:ℝ) ≤ (1 - 1/(n:ℝ)) ^ (-σ) - 1 := by linarith [hbern]
+        have h3 : (n:ℝ) ^ (-σ) * (σ/(n:ℝ)) = σ * (n:ℝ) ^ (-(1+σ)) := by
+          rw [show (n:ℝ) ^ (-(1+σ)) = (n:ℝ) ^ (-σ) * (n:ℝ) ^ (-(1:ℝ)) from by
+              rw [← Real.rpow_add hn0]
+              congr 1
+              ring,
+            Real.rpow_neg_one]
+          field_simp
+        rw [h1]
+        calc σ * (n:ℝ) ^ (-(1+σ)) = (n:ℝ) ^ (-σ) * (σ/(n:ℝ)) := h3.symm
+          _ ≤ (n:ℝ) ^ (-σ) * ((1 - 1/(n:ℝ)) ^ (-σ) - 1) :=
+              mul_le_mul_of_nonneg_left h2 (by positivity)
+      have hcast : ((n + 1 : ℕ):ℝ) - 1 = (n:ℝ) := by push_cast; ring
+      rw [hcast, div_sub_div_same, le_div_iff₀ hσ0]
+      calc (n:ℝ) ^ (-(1+σ)) * σ = σ * (n:ℝ) ^ (-(1+σ)) := by ring
+        _ ≤ ((n:ℝ)-1) ^ (-σ) - (n:ℝ) ^ (-σ) := hdiff
+    calc ∑ n ∈ Finset.Ico N M, (n:ℝ) ^ (-(1+σ))
+        ≤ ∑ n ∈ Finset.Ico N M,
+            ((fun k : ℕ => ((k:ℝ)-1) ^ (-σ) / σ) n
+              - (fun k : ℕ => ((k:ℝ)-1) ^ (-σ) / σ) (n + 1)) :=
+          Finset.sum_le_sum hstep
+      _ = ((N:ℝ)-1) ^ (-σ) / σ - ((M:ℝ)-1) ^ (-σ) / σ := by
+          rw [sum_Ico_sub_succ (fun k : ℕ => ((k:ℝ)-1) ^ (-σ) / σ) N M hMN.le]
+      _ ≤ ((N:ℝ)-1) ^ (-σ) / σ := by
+          have hM0 : (0:ℝ) ≤ ((M:ℝ)-1) ^ (-σ) / σ := by
+            have hMr : (0:ℝ) ≤ (M:ℝ) - 1 := by
+              have h2 : (2:ℕ) ≤ M := le_trans hN hMN.le
+              have h3 : (2:ℝ) ≤ (M:ℝ) := by exact_mod_cast h2
+              linarith
+            exact div_nonneg (Real.rpow_nonneg hMr _) hσ0.le
+          linarith
+
 end ExpSums
 
 end MoltResearch
