@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.LogDifferences
 import Mathlib.NumberTheory.LSeries.Basic
+import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.Analysis.PSeriesComplex
 import Mathlib.Analysis.Complex.ExponentialBounds
 
@@ -1079,6 +1080,177 @@ theorem sum_rpow_neg_Ico_le (σ : ℝ) (N M : ℕ) (hσ0 : 0 < σ) (hN : 2 ≤ N
               linarith
             exact div_nonneg (Real.rpow_nonneg hMr _) hσ0.le
           linarith
+
+/-! #### The tail series and the approximate functional equation (P2b)
+
+`zTail s N` is the telescope-error series from `N`.  For `re s > 1` it equals
+`ζ(s) - ∑_{n<N} n^{-s} - zPot s N` (proved here); it converges absolutely for
+`re s > 0`, which is what continues the identity into the strip (P2b-ii). -/
+
+/-- The telescope-error tail series from `N`. -/
+noncomputable def zTail (s : ℂ) (N : ℕ) : ℂ :=
+  ∑' k : ℕ, ((((N + k : ℕ)) : ℂ) ^ (-s) - (zPot s (N + k) - zPot s (N + k + 1)))
+
+/-- Absolute summability of the tail terms, with the strip-telescope domination
+`2‖s-1‖/(N+k)^{1+re s}`. -/
+theorem summable_zTail_terms (s : ℂ) (N : ℕ)
+    (hσ0 : 0 < s.re) (hs1 : 1 ≤ ‖s - 1‖) (hN : 2 * ‖s - 1‖ ≤ N) (hN2 : 2 ≤ N) :
+    Summable (fun k : ℕ =>
+      ‖(((N + k : ℕ)) : ℂ) ^ (-s) - (zPot s (N + k) - zPot s (N + k + 1))‖) := by
+  have hdom : ∀ k : ℕ,
+      ‖(((N + k : ℕ)) : ℂ) ^ (-s) - (zPot s (N + k) - zPot s (N + k + 1))‖
+        ≤ 2 * ‖s - 1‖ / ((N + k : ℕ):ℝ) ^ (1 + s.re) := by
+    intro k
+    refine cpow_sub_telescope_le_strip s (N + k) hσ0 hs1 ?_ (by omega)
+    have h1 : ‖s - 1‖ ≤ (N:ℝ) := by linarith
+    have h2 : (N:ℝ) ≤ ((N + k : ℕ):ℝ) := by exact_mod_cast Nat.le_add_right N k
+    linarith
+  refine Summable.of_nonneg_of_le (fun k => norm_nonneg _) hdom ?_
+  have hbase : Summable (fun n : ℕ => ((n:ℝ)) ^ (-(1 + s.re))) := by
+    rw [show (fun n : ℕ => ((n:ℝ)) ^ (-(1 + s.re)))
+        = (fun n : ℕ => 1 / ((n:ℝ)) ^ (1 + s.re)) from funext fun n => by
+        rw [Real.rpow_neg (Nat.cast_nonneg n), inv_eq_one_div]]
+    exact (Real.summable_one_div_nat_rpow).mpr (by linarith)
+  have hshift : Summable (fun k : ℕ => (((N + k : ℕ)):ℝ) ^ (-(1 + s.re))) := by
+    have h1 := (summable_nat_add_iff (f := fun n : ℕ => ((n:ℝ)) ^ (-(1 + s.re))) N).mpr hbase
+    refine h1.congr fun k => ?_
+    congr 2
+    push_cast
+    ring
+  have hconst := hshift.mul_left (2 * ‖s - 1‖)
+  refine hconst.congr fun k => ?_
+  rw [Real.rpow_neg (Nat.cast_nonneg _), inv_eq_one_div]
+  ring
+
+/-- **The approximate functional equation at `re s > 1`**: the tail series is
+exactly the zeta remainder. -/
+theorem zeta_eq_partial_add_zPot_add_zTail (s : ℂ) (N : ℕ)
+    (hσ1 : 1 < s.re) (hs1 : 1 ≤ ‖s - 1‖) (hN : 2 * ‖s - 1‖ ≤ N) (hN2 : 2 ≤ N) :
+    riemannZeta s
+      = (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)) + zPot s N + zTail s N := by
+  have hσ0 : 0 < s.re := by linarith
+  have hsne : s - 1 ≠ 0 := by
+    intro h
+    rw [h, norm_zero] at hs1
+    linarith
+  have hs0 : s ≠ 0 := by
+    intro h
+    rw [h] at hσ1
+    norm_num at hσ1
+  -- the full cpow series and its value
+  have hf : Summable (fun n : ℕ => (n:ℂ) ^ (-s)) := by
+    have h1 : Summable (fun n : ℕ => 1/(n:ℂ) ^ s) := by
+      rw [← summable_norm_iff]
+      have h2 : ∀ n : ℕ, ‖1/(n:ℂ) ^ s‖ = 1/((n:ℝ)) ^ s.re := by
+        intro n
+        rcases Nat.eq_zero_or_pos n with h0 | h0
+        · subst h0
+          rw [show ((0:ℕ):ℂ) = 0 from by norm_num, Complex.zero_cpow hs0]
+          simp [Real.zero_rpow (by linarith : s.re ≠ 0)]
+        · rw [norm_div, norm_one, Complex.norm_natCast_cpow_of_pos h0]
+      refine Summable.congr ?_ (fun n => (h2 n).symm)
+      exact (Real.summable_one_div_nat_rpow).mpr hσ1
+    refine h1.congr fun n => ?_
+    rw [Complex.cpow_neg, one_div]
+  have hzeta : riemannZeta s = ∑' n : ℕ, (n:ℂ) ^ (-s) := by
+    rw [zeta_eq_tsum_one_div_nat_cpow hσ1]
+    refine tsum_congr fun n => ?_
+    rw [Complex.cpow_neg, one_div]
+  -- split at N
+  have hsplit := hf.sum_add_tsum_nat_add N
+  have hrange : ∑ n ∈ Finset.range N, (n:ℂ) ^ (-s)
+      = ∑ n ∈ Finset.Ico 1 N, (n:ℂ) ^ (-s) := by
+    rw [Finset.range_eq_Ico, Finset.sum_eq_sum_Ico_succ_bot (by omega : 0 < N)]
+    rw [show ((0:ℕ):ℂ) = 0 from by norm_num, Complex.zero_cpow (by
+      intro h
+      rw [neg_eq_zero] at h
+      exact hs0 h)]
+    ring
+  -- the potential telescope sums to `zPot s N`
+  have hpotdiff : Summable (fun k : ℕ => zPot s (N + k) - zPot s (N + k + 1)) := by
+    have h1 : Summable (fun k : ℕ => (((N + k : ℕ)):ℂ) ^ (-s)) := by
+      have := (summable_nat_add_iff (f := fun n : ℕ => (n:ℂ) ^ (-s)) N).mpr hf
+      refine this.congr fun k => ?_
+      congr 2
+      push_cast
+      ring
+    have h2 : Summable (fun k : ℕ =>
+        (((N + k : ℕ)):ℂ) ^ (-s) - (zPot s (N + k) - zPot s (N + k + 1))) := by
+      rw [← summable_norm_iff]
+      exact summable_zTail_terms s N hσ0 hs1 hN hN2
+    have h3 := h1.sub h2
+    refine h3.congr fun k => ?_
+    ring
+  have hpot_tendsto : Filter.Tendsto (fun K : ℕ => zPot s (N + K)) Filter.atTop
+      (nhds 0) := by
+    rw [show (0:ℂ) = 0 from rfl]
+    rw [tendsto_zero_iff_norm_tendsto_zero]
+    have hbound : ∀ K : ℕ, ‖zPot s (N + K)‖ ≤ ((N + K : ℕ):ℝ) ^ (1 - s.re) := by
+      intro K
+      rw [zPot, norm_div]
+      have hNK : 0 < N + K := by omega
+      have h1 : ‖(((N + K : ℕ)):ℂ) ^ ((1:ℂ) - s)‖ = ((N + K : ℕ):ℝ) ^ (1 - s.re) := by
+        rw [Complex.norm_natCast_cpow_of_pos hNK]
+        congr 1
+      rw [h1]
+      calc ((N + K : ℕ):ℝ) ^ (1 - s.re) / ‖s - 1‖
+          ≤ ((N + K : ℕ):ℝ) ^ (1 - s.re) / 1 := by
+            gcongr
+          _ = ((N + K : ℕ):ℝ) ^ (1 - s.re) := div_one _
+    refine squeeze_zero (fun K => norm_nonneg _) hbound ?_
+    have h1 : Filter.Tendsto (fun K : ℕ => ((N + K : ℕ):ℝ)) Filter.atTop
+        Filter.atTop := by
+      refine Filter.tendsto_atTop_mono (fun K => ?_)
+        tendsto_natCast_atTop_atTop
+      exact_mod_cast Nat.le_add_left K N
+    have h2 : Filter.Tendsto (fun x : ℝ => x ^ (1 - s.re)) Filter.atTop
+        (nhds 0) := by
+      have h3 := tendsto_rpow_neg_atTop (y := s.re - 1) (by linarith)
+      refine h3.congr fun x => ?_
+      congr 1
+      ring
+    exact h2.comp h1
+  have hpot_sum : ∑' k : ℕ, (zPot s (N + k) - zPot s (N + k + 1)) = zPot s N := by
+    have hpartial : ∀ K : ℕ, ∑ k ∈ Finset.range K,
+        (zPot s (N + k) - zPot s (N + k + 1)) = zPot s N - zPot s (N + K) := by
+      intro K
+      calc ∑ k ∈ Finset.range K, (zPot s (N + k) - zPot s (N + k + 1))
+          = ∑ k ∈ Finset.range K,
+            ((fun j => zPot s (N + j)) k - (fun j => zPot s (N + j)) (k + 1)) := rfl
+        _ = zPot s (N + 0) - zPot s (N + K) := Finset.sum_range_sub' _ K
+        _ = zPot s N - zPot s (N + K) := by norm_num
+    have h1 := hpotdiff.hasSum.tendsto_sum_nat
+    have h2 : Filter.Tendsto (fun K : ℕ => zPot s N - zPot s (N + K))
+        Filter.atTop (nhds (zPot s N)) := by
+      have := Filter.Tendsto.const_sub (zPot s N) hpot_tendsto
+      simpa using this
+    have h3 : Filter.Tendsto (fun K : ℕ => ∑ k ∈ Finset.range K,
+        (zPot s (N + k) - zPot s (N + k + 1))) Filter.atTop (nhds (zPot s N)) := by
+      refine h2.congr fun K => ?_
+      rw [hpartial K]
+    exact tendsto_nhds_unique h1 h3
+  -- assemble
+  have hshift : Summable (fun k : ℕ => (((N + k : ℕ)):ℂ) ^ (-s)) := by
+    have := (summable_nat_add_iff (f := fun n : ℕ => (n:ℂ) ^ (-s)) N).mpr hf
+    refine this.congr fun k => ?_
+    congr 2
+    push_cast
+    ring
+  have htail : zTail s N
+      = (∑' k : ℕ, (((N + k : ℕ)):ℂ) ^ (-s)) - zPot s N := by
+    rw [zTail, Summable.tsum_sub hshift hpotdiff, hpot_sum]
+  have htsum_shift : ∑' k : ℕ, (((N + k : ℕ)):ℂ) ^ (-s)
+      = ∑' k : ℕ, ((k + N : ℕ):ℂ) ^ (-s) := by
+    refine tsum_congr fun k => ?_
+    congr 2
+    omega
+  have hkey : ∑' n : ℕ, (n:ℂ) ^ (-s)
+      = (∑ n ∈ Finset.Ico 1 N, (n:ℂ) ^ (-s))
+        + ∑' k : ℕ, (((N + k : ℕ)):ℂ) ^ (-s) := by
+    rw [htsum_shift]
+    rw [← hrange, ← hsplit]
+  rw [hzeta, hkey, htail]
+  ring
 
 end ExpSums
 
