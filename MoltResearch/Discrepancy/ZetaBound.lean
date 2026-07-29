@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.LogDifferences
 import Mathlib.NumberTheory.LSeries.Basic
 import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.Analysis.Complex.LocallyUniformLimit
 import Mathlib.Analysis.PSeriesComplex
 import Mathlib.Analysis.Complex.ExponentialBounds
 
@@ -1251,6 +1252,275 @@ theorem zeta_eq_partial_add_zPot_add_zTail (s : ℂ) (N : ℕ)
     rw [← hrange, ← hsplit]
   rw [hzeta, hkey, htail]
   ring
+
+/-- Differentiability of the tail series on an open set in the strip that is
+bounded away from `s = 1` and has `‖s-1‖` dominated by `N`. -/
+theorem differentiableOn_zTail (N : ℕ) (hN2 : 2 ≤ N) (V : Set ℂ)
+    (hVo : IsOpen V)
+    (hVsub : ∀ s ∈ V, 1/4 < s.re ∧ 1 ≤ ‖s - 1‖ ∧ 2 * ‖s - 1‖ ≤ N) :
+    DifferentiableOn ℂ (fun s => zTail s N) V := by
+  have hu : Summable (fun k : ℕ => (N:ℝ) * (((N + k : ℕ)):ℝ) ^ (-(5/4 : ℝ))) := by
+    have hbase : Summable (fun n : ℕ => ((n:ℝ)) ^ (-(5/4 : ℝ))) := by
+      rw [show (fun n : ℕ => ((n:ℝ)) ^ (-(5/4 : ℝ)))
+          = (fun n : ℕ => 1 / ((n:ℝ)) ^ (5/4 : ℝ)) from funext fun n => by
+          rw [Real.rpow_neg (Nat.cast_nonneg n), inv_eq_one_div]]
+      exact (Real.summable_one_div_nat_rpow).mpr (by norm_num)
+    have hshift := (summable_nat_add_iff
+      (f := fun n : ℕ => ((n:ℝ)) ^ (-(5/4 : ℝ))) N).mpr hbase
+    have hshift' : Summable (fun k : ℕ => (((N + k : ℕ)):ℝ) ^ (-(5/4 : ℝ))) := by
+      refine hshift.congr fun k => ?_
+      congr 2
+      push_cast
+      ring
+    exact hshift'.mul_left _
+  refine Complex.differentiableOn_tsum_of_summable_norm hu ?_ hVo ?_
+  · intro k
+    have hbne : (((N + k : ℕ)):ℂ) ≠ 0 := by
+      exact_mod_cast (by omega : N + k ≠ 0)
+    have hbne' : (((N + k + 1 : ℕ)):ℂ) ≠ 0 := by
+      exact_mod_cast (by omega : N + k + 1 ≠ 0)
+    have hphase : Differentiable ℂ (fun s : ℂ => -s) := differentiable_id.neg
+    have hd1 : DifferentiableOn ℂ (fun s : ℂ => (((N + k : ℕ)):ℂ) ^ (-s)) V :=
+      (hphase.const_cpow (Or.inl hbne)).differentiableOn
+    have hne1 : ∀ w ∈ V, w - 1 ≠ 0 := by
+      intro w hw h0
+      have h1 := (hVsub w hw).2.1
+      rw [h0, norm_zero] at h1
+      linarith
+    have hdpot : ∀ m : ℕ, ((m:ℕ):ℂ) ≠ 0 →
+        DifferentiableOn ℂ (fun s : ℂ => zPot s m) V := by
+      intro m hm
+      have hnum : Differentiable ℂ (fun s : ℂ => (1:ℂ) - s) :=
+        (differentiable_const 1).sub differentiable_id
+      refine DifferentiableOn.div ?_ ?_ hne1
+      · exact (hnum.const_cpow (Or.inl hm)).differentiableOn
+      · exact (differentiable_id.sub_const 1).differentiableOn
+    exact (hd1.sub ((hdpot _ hbne).sub (hdpot _ hbne')))
+  · intro k s hs
+    obtain ⟨hre, hs1, hsN⟩ := hVsub s hs
+    have hσ0 : 0 < s.re := by linarith
+    have hnk : ‖s - 1‖ ≤ ((N + k : ℕ):ℝ) := by
+      have h1 : ‖s - 1‖ ≤ (N:ℝ) := by linarith
+      have h2 : (N:ℝ) ≤ ((N + k : ℕ):ℝ) := by exact_mod_cast Nat.le_add_right N k
+      linarith
+    refine le_trans (cpow_sub_telescope_le_strip s (N + k) hσ0 hs1 hnk (by omega)) ?_
+    have hNK1 : (1:ℝ) ≤ ((N + k : ℕ):ℝ) := by
+      have : (1:ℕ) ≤ N + k := by omega
+      exact_mod_cast this
+    have hexp : (((N + k : ℕ)):ℝ) ^ (-(1 + s.re))
+        ≤ (((N + k : ℕ)):ℝ) ^ (-(5/4 : ℝ)) :=
+      Real.rpow_le_rpow_of_exponent_le hNK1 (by linarith)
+    calc 2 * ‖s - 1‖ / ((N + k : ℕ):ℝ) ^ (1 + s.re)
+        = 2 * ‖s - 1‖ * ((N + k : ℕ):ℝ) ^ (-(1 + s.re)) := by
+          rw [Real.rpow_neg (by linarith), inv_eq_one_div]
+          ring
+      _ ≤ (N:ℝ) * ((N + k : ℕ):ℝ) ^ (-(1 + s.re)) :=
+          mul_le_mul_of_nonneg_right hsN (by positivity)
+      _ ≤ (N:ℝ) * ((N + k : ℕ):ℝ) ^ (-(5/4 : ℝ)) :=
+          mul_le_mul_of_nonneg_left hexp (by positivity)
+
+/-- **The AFE on a convex region** (identity-theorem step): on an open convex
+region inside the strip, avoiding `s = 1` via `1 ≤ ‖s-1‖`, dominated by `N`,
+and containing a point of `re > 1`, the approximate functional equation holds
+throughout. -/
+theorem zeta_eq_partial_add_zPot_add_zTail_of_convex (N : ℕ) (hN2 : 2 ≤ N)
+    (V : Set ℂ) (hVo : IsOpen V) (hVc : Convex ℝ V)
+    (hVsub : ∀ s ∈ V, 1/4 < s.re ∧ 1 ≤ ‖s - 1‖ ∧ 2 * ‖s - 1‖ ≤ N)
+    (s₀ : ℂ) (hs₀V : s₀ ∈ V) (hs₀ : 1 < s₀.re)
+    {s : ℂ} (hs : s ∈ V) :
+    riemannZeta s
+      = (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)) + zPot s N + zTail s N := by
+  have hne1 : ∀ w ∈ V, w ≠ 1 := by
+    intro w hw h1
+    have h2 := (hVsub w hw).2.1
+    rw [h1, sub_self, norm_zero] at h2
+    linarith
+  have hne1' : ∀ w ∈ V, w - 1 ≠ 0 := by
+    intro w hw h0
+    exact hne1 w hw (by
+      have := sub_eq_zero.mp h0
+      exact this)
+  -- both sides analytic on `V`
+  have hlhs : AnalyticOnNhd ℂ riemannZeta V := by
+    refine DifferentiableOn.analyticOnNhd ?_ hVo
+    intro w hw
+    exact (differentiableAt_riemannZeta (hne1 w hw)).differentiableWithinAt
+  have hrhs : AnalyticOnNhd ℂ
+      (fun s => (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)) + zPot s N + zTail s N)
+      V := by
+    refine DifferentiableOn.analyticOnNhd ?_ hVo
+    refine DifferentiableOn.add (DifferentiableOn.add ?_ ?_) ?_
+    · have hterm : ∀ n ∈ Finset.Ico 1 N,
+          DifferentiableOn ℂ (fun s : ℂ => (n : ℂ) ^ (-s)) V := by
+        intro n hn
+        have hnne : ((n:ℕ):ℂ) ≠ 0 := by
+          rw [Finset.mem_Ico] at hn
+          exact_mod_cast (by omega : n ≠ 0)
+        have hphase : Differentiable ℂ (fun s : ℂ => -s) := differentiable_id.neg
+        exact (hphase.const_cpow (Or.inl hnne)).differentiableOn
+      refine (DifferentiableOn.sum hterm).congr fun w _ => ?_
+      simp
+    · have hnum : Differentiable ℂ (fun s : ℂ => (1:ℂ) - s) :=
+        (differentiable_const 1).sub differentiable_id
+      refine DifferentiableOn.div ?_ ?_ hne1'
+      · have hNne : ((N:ℕ):ℂ) ≠ 0 := by
+          exact_mod_cast (by omega : N ≠ 0)
+        exact (hnum.const_cpow (Or.inl hNne)).differentiableOn
+      · exact (differentiable_id.sub_const 1).differentiableOn
+    · exact differentiableOn_zTail N hN2 V hVo hVsub
+  -- they agree near the anchor
+  have hevent : riemannZeta =ᶠ[nhds s₀]
+      (fun s => (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)) + zPot s N + zTail s N) := by
+    have hU : IsOpen ({w : ℂ | 1 < w.re} ∩ V) :=
+      (isOpen_lt continuous_const Complex.continuous_re).inter hVo
+    refine Filter.eventuallyEq_of_mem (hU.mem_nhds ⟨hs₀, hs₀V⟩) ?_
+    intro w hw
+    exact zeta_eq_partial_add_zPot_add_zTail w N hw.1 (hVsub w hw.2).2.1
+      (hVsub w hw.2).2.2 hN2
+  exact hlhs.eqOn_of_preconnected_of_eventuallyEq hrhs hVc.isPreconnected
+    hs₀V hevent hs
+
+/-- **The approximate functional equation in the strip**: for `1/2 ≤ re s`,
+`2 ≤ |im s|`, and `N ≥ 4‖s-1‖`, the zeta function is the partial sum plus the
+potential plus the absolutely convergent tail.  (The convex-region argument is
+run in the upper or lower half-plane according to the sign of `im s`.) -/
+theorem zeta_afe_strip (s : ℂ) (N : ℕ)
+    (hσ : 1/2 ≤ s.re) (him : 2 ≤ |s.im|) (hN : 4 * ‖s - 1‖ ≤ N) :
+    riemannZeta s
+      = (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)) + zPot s N + zTail s N := by
+  have him1 : 1 ≤ ‖s - 1‖ := by
+    have h1 : |s.im| ≤ ‖s - 1‖ := by
+      have h2 : (s - 1).im = s.im := by simp
+      calc |s.im| = |(s - 1).im| := by rw [h2]
+        _ ≤ ‖s - 1‖ := Complex.abs_im_le_norm _
+    linarith
+  have hN2 : 2 ≤ N := by
+    have h1 : (4:ℝ) ≤ (N:ℝ) := by linarith
+    have h2 : (4:ℕ) ≤ N := by exact_mod_cast h1
+    omega
+  have hNhalf : ‖s - 1‖ < (N:ℝ)/2 := by
+    have h0 : (0:ℝ) < N := by
+      have : (2:ℕ) ≤ N := hN2
+      exact_mod_cast lt_of_lt_of_le (by norm_num) this
+    nlinarith
+  -- the membership conditions common to both half-plane regions
+  have hmem : ∀ w : ℂ, 1/4 < w.re → 1 < |w.im| → w ∈ Metric.ball (1:ℂ) ((N:ℝ)/2) →
+      1/4 < w.re ∧ 1 ≤ ‖w - 1‖ ∧ 2 * ‖w - 1‖ ≤ N := by
+    intro w hre him' hball
+    refine ⟨hre, ?_, ?_⟩
+    · have h1 : |w.im| ≤ ‖w - 1‖ := by
+        have h2 : (w - 1).im = w.im := by simp
+        calc |w.im| = |(w - 1).im| := by rw [h2]
+          _ ≤ ‖w - 1‖ := Complex.abs_im_le_norm _
+      linarith
+    · have h1 : ‖w - 1‖ < (N:ℝ)/2 := by
+        rw [Metric.mem_ball, Complex.dist_eq] at hball
+        exact hball
+      linarith
+  rcases le_abs.mp him with hup | hdn
+  · -- upper half-plane region
+    set V : Set ℂ := {w : ℂ | 1/4 < w.re} ∩ ({w : ℂ | 1 < w.im}
+      ∩ Metric.ball (1:ℂ) ((N:ℝ)/2)) with hV_def
+    have hVo : IsOpen V :=
+      ((isOpen_lt continuous_const Complex.continuous_re).inter
+        ((isOpen_lt continuous_const Complex.continuous_im).inter
+          Metric.isOpen_ball))
+    have hVc : Convex ℝ V :=
+      (convex_halfSpace_re_gt _).inter
+        ((convex_halfSpace_im_gt _).inter (convex_ball _ _))
+    have hVsub : ∀ w ∈ V, 1/4 < w.re ∧ 1 ≤ ‖w - 1‖ ∧ 2 * ‖w - 1‖ ≤ N := by
+      intro w hw
+      obtain ⟨h1, h2, h3⟩ := hw
+      have h1' : 1/4 < w.re := h1
+      have h2' : 1 < w.im := h2
+      exact hmem w h1' (by
+        rw [abs_of_pos (by linarith : (0:ℝ) < w.im)]
+        exact h2') h3
+    have hanchorV : (2 + 2*Complex.I : ℂ) ∈ V := by
+      refine ⟨show (1:ℝ)/4 < (2 + 2*Complex.I : ℂ).re from by
+          norm_num [Complex.add_re, Complex.mul_re],
+        show (1:ℝ) < (2 + 2*Complex.I : ℂ).im from by
+          simp [Complex.add_im, Complex.mul_im], ?_⟩
+      rw [Metric.mem_ball, Complex.dist_eq]
+      have h1 : (2 + 2*Complex.I : ℂ) - 1 = 1 + 2*Complex.I := by ring
+      rw [h1]
+      have h2 : ‖(1 + 2*Complex.I : ℂ)‖ ≤ 3 := by
+        calc ‖(1 + 2*Complex.I : ℂ)‖ ≤ ‖(1:ℂ)‖ + ‖(2*Complex.I : ℂ)‖ :=
+              norm_add_le _ _
+          _ = 1 + 2 := by simp
+          _ = 3 := by norm_num
+      have h3 : (3:ℝ) < (N:ℝ)/2 := by
+        have h4 : (4:ℝ) * 1 ≤ (N:ℝ) := by
+          calc (4:ℝ) * 1 ≤ 4 * ‖s - 1‖ := by linarith
+            _ ≤ (N:ℝ) := hN
+        have h5 : (4:ℝ) * 2 ≤ (N:ℝ) := by
+          have h6 : (2:ℝ) ≤ ‖s - 1‖ := by
+            have h7 : |s.im| ≤ ‖s - 1‖ := by
+              have h8 : (s - 1).im = s.im := by simp
+              calc |s.im| = |(s - 1).im| := by rw [h8]
+                _ ≤ ‖s - 1‖ := Complex.abs_im_le_norm _
+            linarith
+          linarith
+        linarith
+      linarith
+    have hsV : s ∈ V := by
+      refine ⟨show (1:ℝ)/4 < s.re from by linarith,
+        show (1:ℝ) < s.im from by linarith, ?_⟩
+      rw [Metric.mem_ball, Complex.dist_eq]
+      exact hNhalf
+    refine zeta_eq_partial_add_zPot_add_zTail_of_convex N hN2 V hVo hVc hVsub
+      (2 + 2*Complex.I) hanchorV ?_ hsV
+    simp [Complex.add_re, Complex.mul_re]
+  · -- lower half-plane region
+    set V : Set ℂ := {w : ℂ | 1/4 < w.re} ∩ ({w : ℂ | w.im < -1}
+      ∩ Metric.ball (1:ℂ) ((N:ℝ)/2)) with hV_def
+    have hVo : IsOpen V :=
+      ((isOpen_lt continuous_const Complex.continuous_re).inter
+        ((isOpen_lt Complex.continuous_im continuous_const).inter
+          Metric.isOpen_ball))
+    have hVc : Convex ℝ V :=
+      (convex_halfSpace_re_gt _).inter
+        ((convex_halfSpace_im_lt _).inter (convex_ball _ _))
+    have hVsub : ∀ w ∈ V, 1/4 < w.re ∧ 1 ≤ ‖w - 1‖ ∧ 2 * ‖w - 1‖ ≤ N := by
+      intro w hw
+      obtain ⟨h1, h2, h3⟩ := hw
+      have h1' : 1/4 < w.re := h1
+      have h2' : w.im < -1 := h2
+      exact hmem w h1' (by
+        rw [abs_of_neg (by linarith : w.im < 0)]
+        linarith) h3
+    have hanchorV : (2 - 2*Complex.I : ℂ) ∈ V := by
+      refine ⟨show (1:ℝ)/4 < (2 - 2*Complex.I : ℂ).re from by
+          norm_num [Complex.sub_re, Complex.mul_re],
+        show (2 - 2*Complex.I : ℂ).im < -1 from by
+          simp [Complex.sub_im, Complex.mul_im], ?_⟩
+      · rw [Metric.mem_ball, Complex.dist_eq]
+        have h1 : (2 - 2*Complex.I : ℂ) - 1 = 1 - 2*Complex.I := by ring
+        rw [h1]
+        have h2 : ‖(1 - 2*Complex.I : ℂ)‖ ≤ 3 := by
+          calc ‖(1 - 2*Complex.I : ℂ)‖ ≤ ‖(1:ℂ)‖ + ‖(2*Complex.I : ℂ)‖ :=
+                norm_sub_le _ _
+            _ = 1 + 2 := by simp
+            _ = 3 := by norm_num
+        have h3 : (3:ℝ) < (N:ℝ)/2 := by
+          have h5 : (4:ℝ) * 2 ≤ (N:ℝ) := by
+            have h6 : (2:ℝ) ≤ ‖s - 1‖ := by
+              have h7 : |s.im| ≤ ‖s - 1‖ := by
+                have h8 : (s - 1).im = s.im := by simp
+                calc |s.im| = |(s - 1).im| := by rw [h8]
+                  _ ≤ ‖s - 1‖ := Complex.abs_im_le_norm _
+              linarith
+            linarith
+          linarith
+        linarith
+    have hsV : s ∈ V := by
+      refine ⟨show (1:ℝ)/4 < s.re from by linarith,
+        show s.im < (-1:ℝ) from by linarith, ?_⟩
+      rw [Metric.mem_ball, Complex.dist_eq]
+      exact hNhalf
+    refine zeta_eq_partial_add_zPot_add_zTail_of_convex N hN2 V hVo hVc hVsub
+      (2 - 2*Complex.I) hanchorV ?_ hsV
+    simp [Complex.sub_re, Complex.mul_re]
 
 end ExpSums
 

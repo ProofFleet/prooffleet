@@ -7003,4 +7003,15 @@ example (t : ℝ) (d : ℕ) :
       ≤ 3 * ((2:ℝ)^(d+1)) ^ (1-(1/2:ℝ)) :=
   ExpSums.norm_sum_cpow_middle_le_strip (1/2) t d (by norm_num)
 
+-- Track R strip substrate (issue #3044, phase P): the approximate functional
+-- equation holds throughout the strip `re ≥ 1/2, |im| ≥ 2` — `riemannZeta`
+-- itself is the finite partial sum plus the potential plus the absolutely
+-- convergent telescope tail, once `N` dominates `4‖s-1‖`.
+example (s : ℂ) (hσ : 1/2 ≤ s.re) (him : 2 ≤ |s.im|) (N : ℕ)
+    (hN : 4 * ‖s - 1‖ ≤ N) :
+    riemannZeta s
+      = (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)) + ExpSums.zPot s N
+        + ExpSums.zTail s N :=
+  ExpSums.zeta_afe_strip s N hσ him hN
+
 end MoltResearch
