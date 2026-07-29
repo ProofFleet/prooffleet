@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Elliott
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5MatomakiRadziwill
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5QuadrupleSieve
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5FilteredMR
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5VanDerCorputProof
 
 /-!
@@ -1543,13 +1544,17 @@ section Master
 
 open scoped NNReal
 
-set_option maxHeartbeats 4000000 in
-/-- **The Elliott master theorem** (arXiv:1509.05422, Theorem `elliott-red`,
-ordered-shift form): the nonasymptotic log-averaged conjugate-pair bound,
-derived from the Matomäki–Radziwiłł and prime-quadruple-sieve interfaces by
-the entropy-decrement contradiction. -/
-theorem elliott_master [MatomakiRadziwillAssumption]
+set_option maxHeartbeats 8000000 in
+/-- **The Elliott master theorem, filtered form** (arXiv:1509.05422, Theorem
+`elliott-red`, ordered-shift form): the nonasymptotic log-averaged
+conjugate-pair bound, derived from the filtered Matomäki–Radziwiłł bound and
+the prime-quadruple-sieve interface by the entropy-decrement contradiction.
+The Matomäki–Radziwiłł input enters only through `hfil` (the single use-site
+is the per-frequency swap input), so both the frozen all-`α` interface and the
+Track R weak pair (#3044) instantiate this theorem. -/
+theorem elliott_master_of_filtered
     [PrimeQuadrupleCountAssumption]
+    (hfil : FilteredMR)
     (b₁ b₂ : ℕ) (hb : b₁ < b₂) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε ≤ 1) :
     ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
       ∀ x w : ℝ, A ≤ w → w ≤ x →
@@ -1589,7 +1594,12 @@ theorem elliott_master [MatomakiRadziwillAssumption]
   -- the Matomäki–Radziwiłł strength and thresholds
   set εmr : ℝ := ε / (10000 * (Ξm + 1)) with hεmr_def
   have hεmr0 : 0 < εmr := by positivity
-  obtain ⟨H₀mr, hMR0⟩ := matomakiRadziwill_bound hεmr0
+  set cθ : ℝ := ε * Real.log 4 / 6144 with hcθ_def
+  have hcθ0 : 0 < cθ := by
+    have h4 : (0 : ℝ) < Real.log 4 := Real.log_pos (by norm_num)
+    rw [hcθ_def]
+    exact div_pos (mul_pos hε0 h4) (by norm_num)
+  obtain ⟨H₀mr, hMR0⟩ := hfil εmr cθ (δ₃ / 2) h hεmr0 hcθ0 (by positivity) hh1
   choose! A₀f hA₀f using hMR0
   -- the base scale
   set H₀ : ℕ := ⌈((10 : ℝ) ^ 20 / (ε ^ 3 * δ₃)) ^ 2⌉₊ + 2 * H₀mr
@@ -2892,7 +2902,7 @@ theorem elliott_master [MatomakiRadziwillAssumption]
           * ‖zDFT (fun v : ZMod (Jls j) =>
               patExt Kd (polyGrid κg H₀ j) x' v.val) (-ξ)‖
         ≤ 4 / Kd + 2 * εmr := by
-    intro ξ _
+    intro ξ hξmem
     have hstep := sum_patternLaw_norm_zDFT_le g huni Kd
       (polyGrid κg H₀ j) (Jls j) hKd0 hJlspoly hA''1 hA''B' ξ
     refine le_trans hstep ?_
@@ -2931,8 +2941,43 @@ theorem elliott_master [MatomakiRadziwillAssumption]
           (Finset.Ioc_subset_Ioc (le_max_left A' NS) le_rfl) ?_
         intro n _ _
         positivity
+      -- the filter largeness, bridged to the real additive-character form
+      have hξθ : θs j ≤ ‖∑ p ∈ primeBlock (n0s j), ((1 / (p : ℝ) : ℝ) : ℂ)
+          * ExpSums.e ((p : ℝ) * ((h : ℝ) * ((ξ.val : ℝ) / ((Jls j : ℕ) : ℝ))))‖ := by
+        have hmem' := (Finset.mem_filter.mp hξmem).2
+        rw [sum_primeBlock_coe (fun p => ((1 / (p : ℝ) : ℝ) : ℂ)
+            * zChar (((p * h : ℕ) : ZMod (Jls j))) ξ),
+          primeBlock_zChar_sum_eq (n0s j) h ξ] at hmem'
+        exact hmem'
+      -- the block-density floor `δ₃/2·J ≤ n₀`
+      have hn₀lo : δ₃ / 2 * ((Jls j : ℕ) : ℝ) ≤ ((n0s j : ℕ) : ℝ) := by
+        have h1 : δ₃ * ((Hs j : ℕ) : ℝ) - 1 < ((n0s j : ℕ) : ℝ) := by
+          simp only [hn0s_def]
+          exact Nat.sub_one_lt_floor _
+        have h2 := hδ₃Hs j
+        have h3 : ((Jls j : ℕ) : ℝ) ≤ ((Hs j : ℕ) : ℝ) := by exact_mod_cast hJlsHs
+        have hprod : δ₃ * ((Jls j : ℕ) : ℝ) ≤ δ₃ * ((Hs j : ℕ) : ℝ) :=
+          mul_le_mul_of_nonneg_left h3 hδ₃0.le
+        have h230 : (2 : ℝ) ≤ (2 : ℝ) ^ 30 := by norm_num
+        linarith
+      -- the threshold floor `cθ/log n₀ ≤ θ`
+      have hLn0 : Real.log ((n0s j : ℕ) : ℝ) ≠ 0 := (hlogn0pos j).ne'
+      have hθc : cθ / Real.log ((n0s j : ℕ) : ℝ) ≤ θs j := by
+        have h1 := hms_lb j
+        have h3 : θs j = ε * ms j / 256 := by simp only [hθs_def]
+        have h4 : ε / 256 * (Real.log 4 / (24 * Real.log ((n0s j : ℕ) : ℝ)))
+            ≤ ε / 256 * ms j :=
+          mul_le_mul_of_nonneg_left h1 (by positivity)
+        calc cθ / Real.log ((n0s j : ℕ) : ℝ)
+            = ε / 256 * (Real.log 4 / (24 * Real.log ((n0s j : ℕ) : ℝ))) := by
+              rw [hcθ_def]
+              field_simp
+              ring
+          _ ≤ ε / 256 * ms j := h4
+          _ = ε * ms j / 256 := by ring
+          _ = θs j := h3.symm
       have hmr := hA₀f (Jls j) hH₀mrJ A (hAMR_w j hjJg) hA1 x w hAw hwx
-        g hcm huni hnp ((ξ.val : ℝ) / ((Jls j : ℕ) : ℝ))
+        g hcm huni hnp (n0s j) hn₀lo (h4n0hJls j) (θs j) hθc ξ hξθ
       rw [← hA'_def, ← hB'_def] at hmr
       have hchain : ∑ n ∈ Finset.Ioc (max A' NS) B',
           ‖∑ j' ∈ Finset.Icc 1 (Jls j), g (n + j')
@@ -3294,6 +3339,37 @@ theorem elliott_master [MatomakiRadziwillAssumption]
     hεmr_def hτ'eq (hτ's_pos j) hθ₀0 hθ₀τ' (hDs_pos j) (hDs_min j) hτv_def
     hδg_def hRg2 (hLf_pos j) hHsR (hlogn0pos j) hlgn0Rg (hDs_lb j) hE1eq
     hNSR0 hNSAmax (Nat.cast_nonneg _) hlNSle hbud
+
+/-- **The Elliott master theorem** (arXiv:1509.05422, Theorem `elliott-red`,
+ordered-shift form): the nonasymptotic log-averaged conjugate-pair bound,
+derived from the Matomäki–Radziwiłł and prime-quadruple-sieve interfaces by
+the entropy-decrement contradiction. -/
+theorem elliott_master [MatomakiRadziwillAssumption]
+    [PrimeQuadrupleCountAssumption]
+    (b₁ b₂ : ℕ) (hb : b₁ < b₂) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε ≤ 1) :
+    ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
+      ∀ x w : ℝ, A ≤ w → w ≤ x →
+        ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → Unimodular g →
+          NonPretentiousAt g A ⌈x⌉₊ →
+          ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
+              g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+            ≤ ε * Real.log w :=
+  elliott_master_of_filtered filteredMR_of_allAlpha b₁ b₂ hb hε0 hε1
+
+/-- **The Elliott master theorem on the Track R weak pair** (issue #3044): the
+same bound with the all-`α` Matomäki–Radziwiłł interface replaced by its
+major-arc form composed with the Vinogradov prime-block classification. -/
+theorem elliott_master_majorArc [MatomakiRadziwillMajorArcAssumption]
+    [PrimeBlockMajorArcAssumption] [PrimeQuadrupleCountAssumption]
+    (b₁ b₂ : ℕ) (hb : b₁ < b₂) {ε : ℝ} (hε0 : 0 < ε) (hε1 : ε ≤ 1) :
+    ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
+      ∀ x w : ℝ, A ≤ w → w ≤ x →
+        ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → Unimodular g →
+          NonPretentiousAt g A ⌈x⌉₊ →
+          ‖∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
+              g (n + b₁) * (starRingEnd ℂ) (g (n + b₂)) / (n : ℂ)‖
+            ≤ ε * Real.log w :=
+  elliott_master_of_filtered filteredMR_of_majorArc b₁ b₂ hb hε0 hε1
 
 /-- The master theorem for an arbitrary pair of distinct shifts: the `b₁ > b₂`
 case follows from the ordered case by conjugation symmetry of the pair sum. -/

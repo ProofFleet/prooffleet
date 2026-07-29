@@ -41,6 +41,18 @@ theorem zChar_natCast_eq_e {H : ℕ} [NeZero H] (m : ℕ) (ξ : ZMod H) :
   rw [zChar, h1, ZMod.stdAddChar_apply, ZMod.toCircle_natCast, e]
   exact congrArg Complex.exp (by push_cast; ring_nf)
 
+/-- The `h`-dilated prime-block filter sum in `zChar` form equals its real
+additive-character form — the bridge consumers use to feed `FilteredMR`. -/
+theorem primeBlock_zChar_sum_eq {J : ℕ} [NeZero J] (n₀ h : ℕ) (ξ : ZMod J) :
+    ∑ p ∈ primeBlock n₀, ((1 / (p : ℝ) : ℝ) : ℂ) * zChar ((p * h : ℕ) : ZMod J) ξ
+      = ∑ p ∈ primeBlock n₀, ((1 / (p : ℝ) : ℝ) : ℂ)
+        * e ((p : ℝ) * ((h : ℝ) * ((ξ.val : ℝ) / (J : ℝ)))) := by
+  refine Finset.sum_congr rfl fun p _ => ?_
+  rw [zChar_natCast_eq_e (p * h) ξ]
+  congr 1
+  push_cast
+  ring_nf
+
 /-- **The filtered Matomäki–Radziwiłł bound**: on the consumer's `θ`-large
 frequency set, the `mrp` bound follows from the major-arc interface composed with
 the Vinogradov classification.  Stated in the exact shape of the use-site in
@@ -190,6 +202,61 @@ theorem matomakiRadziwill_filtered_bound
       _ = C' * Real.log H ^ B * ((n₀ : ℝ) * (q' : ℝ)) := by ring_nf
   -- the major-arc Matomäki–Radziwiłł bound at the transported arc
   exact hA₀ A hA hA1 x w hAw hwx g hcm huni hnp α a' q' hq'1 hq'B hwidth
+
+/-- **The filtered Matomäki–Radziwiłł bound as a standalone proposition** — the
+abstraction point of the Elliott chain.  `elliott_master_of_filtered` consumes
+exactly this; it is supplied either by the frozen all-`α` interface
+(`filteredMR_of_allAlpha` — preserving the audit-pinned `edp_of_matomakiRadziwill`
+chain verbatim) or by the Track R weak pair (`filteredMR_of_majorArc`).  The
+filter condition is stated with the real additive character `e` (not `zChar`), so
+the proposition mentions no `NeZero` instances; consumers bridge their
+circle-method filter via `zChar_natCast_eq_e`. -/
+def FilteredMR : Prop :=
+  ∀ (ε c δ₀ : ℝ) (h : ℕ), 0 < ε → 0 < c → 0 < δ₀ → 1 ≤ h →
+    ∃ H₀ : ℕ, ∀ H : ℕ, H₀ ≤ H →
+      ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
+        ∀ x w : ℝ, A ≤ w → w ≤ x →
+          ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → Unimodular g →
+            NonPretentiousAt g A ⌈x⌉₊ →
+            ∀ n₀ : ℕ, δ₀ * (H : ℝ) ≤ (n₀ : ℝ) → 4 * n₀ * h < H →
+              ∀ θ : ℝ, c / Real.log n₀ ≤ θ →
+                ∀ ξ : ZMod H,
+                  θ ≤ ‖∑ p ∈ primeBlock n₀, ((1 / (p : ℝ) : ℝ) : ℂ)
+                      * e ((p : ℝ) * ((h : ℝ) * ((ξ.val : ℝ) / (H : ℝ))))‖ →
+                  ∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
+                      ‖∑ j ∈ Finset.Icc 1 H,
+                          g (n + j) * Complex.exp (2 * Real.pi * Complex.I * (j : ℂ)
+                            * (((ξ.val : ℝ) / (H : ℝ) : ℝ) : ℂ))‖
+                        / ((H : ℝ) * (n : ℝ))
+                    ≤ ε * Real.log w
+
+/-- The Track R route: the weak pair supplies the filtered bound.  `H₀` is padded
+to `≥ 1` so the `NeZero` instance required by the `zChar`-form theorem is
+available. -/
+theorem filteredMR_of_majorArc
+    [MatomakiRadziwillMajorArcAssumption] [PrimeBlockMajorArcAssumption] :
+    FilteredMR := by
+  intro ε c δ₀ h hε hc hδ₀ hh
+  obtain ⟨H₀, hH₀⟩ := matomakiRadziwill_filtered_bound (ε := ε) (c := c) (δ₀ := δ₀)
+    h hε hc hδ₀ hh
+  refine ⟨max H₀ 1, fun H hH => ?_⟩
+  haveI : NeZero H := ⟨by omega⟩
+  obtain ⟨A₀, hA₀⟩ := hH₀ H (le_trans (le_max_left _ _) hH)
+  refine ⟨A₀, fun A hA hA1 x w hAw hwx g hcm huni hnp n₀ hn₀lo hn₀hi θ hθlo ξ hξ => ?_⟩
+  refine hA₀ A hA hA1 x w hAw hwx g hcm huni hnp n₀ hn₀lo hn₀hi θ hθlo ξ ?_
+  rw [primeBlock_zChar_sum_eq n₀ h ξ]
+  exact hξ
+
+/-- The archaeology route: the frozen all-`α` interface supplies the filtered
+bound by discarding the filter (so the audit-pinned strong-interface milestones
+are preserved by the abstraction). -/
+theorem filteredMR_of_allAlpha [MatomakiRadziwillAssumption] : FilteredMR := by
+  intro ε _c _δ₀ h hε _hc _hδ₀ _hh
+  obtain ⟨H₀, hH₀⟩ := matomakiRadziwill_bound hε
+  refine ⟨H₀, fun H hH => ?_⟩
+  obtain ⟨A₀, hA₀⟩ := hH₀ H hH
+  exact ⟨A₀, fun A hA hA1 x w hAw hwx g hcm huni hnp _n₀ _ _ _θ _ ξ _ =>
+    hA₀ A hA hA1 x w hAw hwx g hcm huni hnp ((ξ.val : ℝ) / (H : ℝ))⟩
 
 end Tao2015
 
