@@ -247,6 +247,86 @@ theorem three_pow_mul_le_of_prod_factor {f g : ℂ → ℂ} {U : Set ℂ}
         mul_le_mul_of_nonneg_left hfc (by positivity)
     _ ≤ B := hkey
 
+/-- **The normalized logarithm of a nonvanishing function on a disk**: a branch
+`φ` with `φ c = 0`, `exp ∘ φ = g/g c`, and `deriv`-witness `g'/g` — built as
+the Morera primitive of the logarithmic derivative, with `exp (-φ) * g`
+constant on the (convex) ball. -/
+theorem exists_log_branch {g : ℂ → ℂ} {U : Set ℂ} (hU : IsOpen U)
+    (hg : AnalyticOnNhd ℂ g U) {c : ℂ} {R : ℝ} (hR : 0 < R)
+    (hball : Metric.ball c R ⊆ U)
+    (hne : ∀ z ∈ Metric.ball c R, g z ≠ 0) :
+    ∃ φ : ℂ → ℂ, φ c = 0 ∧
+      (∀ z ∈ Metric.ball c R, Complex.exp (φ z) = g z / g c) ∧
+      (∀ z ∈ Metric.ball c R, HasDerivAt φ (deriv g z / g z) z) := by
+  have hcball : c ∈ Metric.ball c R := Metric.mem_ball_self hR
+  have hgc : g c ≠ 0 := hne c hcball
+  -- the logarithmic derivative is holomorphic on the ball
+  have hld : DifferentiableOn ℂ (fun z => deriv g z / g z) (Metric.ball c R) := by
+    intro z hz
+    have h1 : AnalyticAt ℂ (deriv g) z := (hg z (hball hz)).deriv
+    have h2 : AnalyticAt ℂ g z := hg z (hball hz)
+    exact ((h1.div h2 (hne z hz)).differentiableAt).differentiableWithinAt
+  -- its Morera primitive, normalized at the center
+  obtain ⟨Φ, hΦ⟩ := hld.isExactOn_ball
+  set φ : ℂ → ℂ := fun z => Φ z - Φ c with hφ_def
+  have hφc : φ c = 0 := by simp [hφ_def]
+  have hφd : ∀ z ∈ Metric.ball c R, HasDerivAt φ (deriv g z / g z) z := by
+    intro z hz
+    simpa [hφ_def] using (hΦ z hz).sub_const (Φ c)
+  refine ⟨φ, hφc, ?_, hφd⟩
+  -- `exp (-φ) * g` has zero derivative, hence is constant on the convex ball
+  set E : ℂ → ℂ := fun z => Complex.exp (-φ z) * g z with hE_def
+  have hEd : ∀ z ∈ Metric.ball c R, HasDerivAt E 0 z := by
+    intro z hz
+    have h1 : HasDerivAt (fun w => Complex.exp (-φ w))
+        (Complex.exp (-φ z) * (-(deriv g z / g z))) z := by
+      have h2 : HasDerivAt (fun w => -φ w) (-(deriv g z / g z)) z :=
+        (hφd z hz).neg
+      simpa using (Complex.hasDerivAt_exp (-φ z)).comp z h2
+    have h3 : HasDerivAt g (deriv g z) z :=
+      ((hg z (hball hz)).differentiableAt).hasDerivAt
+    have h4 := h1.mul h3
+    have hEeq : E = (fun w => Complex.exp (-φ w)) * g := by
+      funext w
+      simp [hE_def]
+    rw [hEeq]
+    convert h4 using 1
+    field_simp [hne z hz]
+    ring
+  have hEconst : ∀ z ∈ Metric.ball c R, E z = E c := by
+    intro z hz
+    have hconv : Convex ℝ (Metric.ball c R) := convex_ball c R
+    have hEdiff : DifferentiableOn ℂ E (Metric.ball c R) := fun w hw =>
+      ((hEd w hw).differentiableAt).differentiableWithinAt
+    have hfz : ∀ w ∈ Metric.ball c R,
+        fderivWithin ℂ E (Metric.ball c R) w = 0 := by
+      intro w hw
+      have h1 : HasFDerivAt E
+          ((ContinuousLinearMap.smulRight (1 : ℂ →L[ℂ] ℂ) (0:ℂ))) w :=
+        (hEd w hw).hasFDerivAt
+      have h2 := h1.hasFDerivWithinAt.fderivWithin
+        ((Metric.isOpen_ball).uniqueDiffWithinAt hw)
+      rw [h2]
+      exact ContinuousLinearMap.ext fun v => by simp
+    exact hconv.is_const_of_fderivWithin_eq_zero hEdiff hfz hz hcball
+  intro z hz
+  have h1 := hEconst z hz
+  have h2 : E c = g c := by
+    simp [hE_def, hφc]
+  rw [h2] at h1
+  have h1' : Complex.exp (-φ z) * g z = g c := by
+    simpa [hE_def] using h1
+  -- from `exp (-φ z) * g z = g c` conclude `exp (φ z) = g z / g c`
+  have h3 : Complex.exp (-φ z) ≠ 0 := Complex.exp_ne_zero _
+  have h4 : Complex.exp (φ z) * Complex.exp (-φ z) = 1 := by
+    rw [← Complex.exp_add]
+    simp
+  field_simp [hgc]
+  calc Complex.exp (φ z) * g c
+      = Complex.exp (φ z) * (Complex.exp (-φ z) * g z) := by rw [h1']
+    _ = (Complex.exp (φ z) * Complex.exp (-φ z)) * g z := by ring
+    _ = g z := by rw [h4]; ring
+
 end ExpSums
 
 end MoltResearch
