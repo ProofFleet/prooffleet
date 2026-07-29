@@ -6986,4 +6986,21 @@ example (j M N H : ℕ) (t : ℝ)
             / ((M : ℕ) : ℝ) ^ (j + 2)) :=
   ExpSums.log_phase_block_bound j M N H t ht hH hHM hMN hwin
 
+-- Track R strip substrate (issue #3044, phase P): the schedule head bound and
+-- the crude middle bound extend left of the 1-line at the cost of the trivial
+-- size `(2^{d+1})^{1-σ}`, here at the critical-strip midpoint `σ = 1/2`.
+example (t : ℝ) (d K : ℕ) (ht1 : (2:ℝ)^d ≤ |t|) (ht2 : |t| ≤ 2^(d+1)) :
+    ‖∑ n ∈ Finset.Ico 1 (2^(d+1)),
+        ((n:ℕ):ℂ) ^ (-(((1/2 : ℝ):ℂ) - Complex.I * t))‖
+      ≤ ((2:ℝ)^(d+1)) ^ (1-(1/2:ℝ))
+        * (((d-2)/(K+2) + 2^(K+7) + 3 : ℕ) : ℝ) :=
+  ExpSums.norm_sum_cpow_head_le_strip (1/2) t d K (by norm_num) (by norm_num)
+    ht1 ht2
+
+example (t : ℝ) (d : ℕ) :
+    ‖∑ n ∈ Finset.Ico (2^(d+1)) (2^(d+3)),
+        ((n:ℕ):ℂ) ^ (-(((1/2 : ℝ):ℂ) - Complex.I * t))‖
+      ≤ 3 * ((2:ℝ)^(d+1)) ^ (1-(1/2:ℝ)) :=
+  ExpSums.norm_sum_cpow_middle_le_strip (1/2) t d (by norm_num)
+
 end MoltResearch

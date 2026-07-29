@@ -720,6 +720,142 @@ theorem zeta_LSeries_bound (σ t : ℝ) (hσ1 : 1 < σ) (hσ2 : σ ≤ 2)
     _ ≤ 523 * ((d:ℝ)+2) / ((K:ℝ)+2) := hcount
     _ ≤ 8192 * Real.log (|t| + 2) / Real.log (Real.log (|t| + 2)) := hfinal
 
+/-! ### The strip (`0 ≤ σ ≤ 1`): head and middle with the trivial-size rescaling
+
+The schedule bound extends left of the 1-line by pulling out the trivial size
+`(2^{d+1})^{1-σ}` of the head range: the capped weight
+`min (n^{-σ}/C) (1/n)` satisfies the `zeta_head_bound` hypotheses globally and
+agrees with `n^{-σ}/C` on the head range.  Substrate for the Track R zero-free
+region (issue #3044, phase P). -/
+
+/-- **The head in the strip** (`0 ≤ σ ≤ 1`): the schedule bound applies after
+rescaling by the trivial size `(2^{d+1})^{1-σ}` of the head range. -/
+theorem norm_sum_cpow_head_le_strip (σ t : ℝ) (d K : ℕ)
+    (hσ0 : 0 ≤ σ) (hσ1 : σ ≤ 1) (ht1 : (2:ℝ)^d ≤ |t|) (ht2 : |t| ≤ 2^(d+1)) :
+    ‖∑ n ∈ Finset.Ico 1 (2^(d+1)),
+        ((n:ℕ):ℂ) ^ (-((σ:ℂ) - Complex.I * t))‖
+      ≤ ((2:ℝ)^(d+1)) ^ (1-σ) * (((d-2)/(K+2) + 2^(K+7) + 3 : ℕ) : ℝ) := by
+  set C : ℝ := ((2:ℝ)^(d+1)) ^ (1-σ) with hC_def
+  have hC0 : (0:ℝ) < C := by
+    rw [hC_def]
+    positivity
+  set w : ℕ → ℝ := fun n => min ((n:ℝ) ^ (-σ) / C) (1/(n:ℝ)) with hwdef
+  have hw0 : ∀ n : ℕ, 1 ≤ n → 0 ≤ w n := by
+    intro n hn
+    rw [hwdef]
+    exact le_min (by positivity) (by positivity)
+  have hwd : ∀ n : ℕ, 1 ≤ n → w (n + 1) ≤ w n := by
+    intro n hn
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn
+    rw [hwdef]
+    simp only []
+    refine min_le_min ?_ ?_
+    · have h1 : ((n:ℕ):ℝ) ^ σ ≤ (((n+1:ℕ)):ℝ) ^ σ := by
+        refine Real.rpow_le_rpow (by positivity) ?_ hσ0
+        push_cast
+        linarith
+      have h2 : (((n+1:ℕ)):ℝ) ^ (-σ) ≤ ((n:ℕ):ℝ) ^ (-σ) := by
+        rw [Real.rpow_neg (by positivity), Real.rpow_neg (by positivity),
+          inv_eq_one_div, inv_eq_one_div]
+        exact one_div_le_one_div_of_le (by positivity) h1
+      exact div_le_div_of_nonneg_right (by exact_mod_cast h2) hC0.le
+    · refine one_div_le_one_div_of_le (by positivity) ?_
+      push_cast
+      linarith
+  have hwM : ∀ n : ℕ, 1 ≤ n → w n ≤ 1/(n:ℝ) := by
+    intro n _
+    rw [hwdef]
+    exact min_le_right _ _
+  -- on the head range the cap is inactive and the weight is `n^{-σ}/C`
+  have hcap : ∀ n ∈ Finset.Ico 1 (2^(d+1) : ℕ), (n:ℝ) ^ (-σ) = C * w n := by
+    intro n hn
+    rw [Finset.mem_Ico] at hn
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn.1
+    have hle : (n:ℝ) ^ (-σ) / C ≤ 1/(n:ℝ) := by
+      rw [div_le_div_iff₀ hC0 hn0]
+      have h1 : (n:ℝ) ^ (-σ) * (n:ℝ) = (n:ℝ) ^ (1-σ) := by
+        rw [show (n:ℝ) ^ (-σ) * (n:ℝ) = (n:ℝ) ^ (-σ) * (n:ℝ) ^ (1:ℝ) from by
+            rw [Real.rpow_one],
+          ← Real.rpow_add hn0, neg_add_eq_sub]
+      have h2 : (n:ℝ) ^ (1-σ) ≤ ((2:ℝ)^(d+1)) ^ (1-σ) := by
+        refine Real.rpow_le_rpow (by positivity) ?_ (by linarith)
+        calc (n:ℝ) ≤ ((2^(d+1) : ℕ):ℝ) := by exact_mod_cast hn.2.le
+          _ = (2:ℝ)^(d+1) := by push_cast; ring
+      rw [hC_def]
+      linarith [h1, h2]
+    rw [hwdef]
+    simp only []
+    rw [min_eq_left hle, mul_comm, div_mul_cancel₀ _ (ne_of_gt hC0)]
+  have hcongr : ∑ n ∈ Finset.Ico 1 (2^(d+1)),
+      ((n:ℕ):ℂ) ^ (-((σ:ℂ) - Complex.I * t))
+      = C • ∑ n ∈ Finset.Ico 1 (2^(d+1)),
+          w n • e (t / (2 * Real.pi) * Real.log n) := by
+    rw [Finset.smul_sum]
+    refine Finset.sum_congr rfl fun n hn => ?_
+    have hn1 : 1 ≤ n := (Finset.mem_Ico.mp hn).1
+    rw [cpow_neg_eq_smul_e σ t n hn1, hcap n hn]
+    exact (smul_smul C (w n) _).symm
+  rw [hcongr, norm_smul, Real.norm_eq_abs, abs_of_pos hC0]
+  refine mul_le_mul_of_nonneg_left ?_ hC0.le
+  rcases le_or_gt t 0 with htneg | htpos
+  · have habs : |t| = -t := abs_of_nonpos htneg
+    have hcongr2 : ∀ n ∈ Finset.Ico 1 (2^(d+1)),
+        w n • e (t / (2 * Real.pi) * Real.log n)
+        = w n • e (-(|t| / (2 * Real.pi) * Real.log n)) := by
+      intro n _
+      congr 1
+      rw [habs]
+      ring
+    rw [Finset.sum_congr rfl hcongr2]
+    exact zeta_head_bound d K |t| w ht1 ht2 hw0 hwd hwM
+  · have habs : |t| = t := abs_of_pos htpos
+    have hcongr2 : ∀ n ∈ Finset.Ico 1 (2^(d+1)),
+        w n • e (t / (2 * Real.pi) * Real.log n)
+        = w n • e (|t| / (2 * Real.pi) * Real.log n) := by
+      intro n _
+      rw [habs]
+    rw [Finset.sum_congr rfl hcongr2,
+      norm_sum_smul_e_neg _ w (fun n => |t| / (2 * Real.pi) * Real.log n)]
+    exact zeta_head_bound d K |t| w ht1 ht2 hw0 hwd hwM
+
+/-- **The middle strip in the strip**: crude bound by length times the largest
+weight, picking up the same trivial-size factor. -/
+theorem norm_sum_cpow_middle_le_strip (σ t : ℝ) (d : ℕ) (hσ0 : 0 ≤ σ) :
+    ‖∑ n ∈ Finset.Ico (2^(d+1)) (2^(d+3)),
+        ((n:ℕ):ℂ) ^ (-((σ:ℂ) - Complex.I * t))‖
+      ≤ 3 * ((2:ℝ)^(d+1)) ^ (1-σ) := by
+  refine le_trans (norm_sum_le _ _) ?_
+  have hptw : ∀ n ∈ Finset.Ico (2^(d+1) : ℕ) (2^(d+3)),
+      ‖((n:ℕ):ℂ) ^ (-((σ:ℂ) - Complex.I * t))‖ ≤ ((2:ℝ)^(d+1)) ^ (-σ) := by
+    intro n hn
+    rw [Finset.mem_Ico] at hn
+    have hn1 : (1:ℕ) ≤ n := le_trans Nat.one_le_two_pow hn.1
+    have hbase : (2:ℝ)^(d+1) ≤ (n:ℝ) := by
+      have h2 : ((2^(d+1) : ℕ) : ℝ) ≤ (n:ℝ) := by exact_mod_cast hn.1
+      push_cast at h2
+      exact h2
+    rw [Complex.norm_natCast_cpow_of_pos (by omega)]
+    have hre : ((-((σ:ℂ) - Complex.I * t)).re) = -σ := by simp
+    rw [hre]
+    have h1 : ((2:ℝ)^(d+1)) ^ σ ≤ (n:ℝ) ^ σ :=
+      Real.rpow_le_rpow (by positivity) hbase hσ0
+    rw [Real.rpow_neg (by positivity), Real.rpow_neg (by positivity),
+      inv_eq_one_div, inv_eq_one_div]
+    exact one_div_le_one_div_of_le (by positivity) h1
+  refine le_trans (Finset.sum_le_sum hptw) ?_
+  rw [Finset.sum_const, Nat.card_Ico, nsmul_eq_mul]
+  have h1 : ((2^(d+3) - 2^(d+1) : ℕ) : ℝ) = 3 * 2^(d+1) := by
+    rw [Nat.cast_sub (Nat.pow_le_pow_right (by norm_num) (by omega))]
+    push_cast
+    ring
+  rw [h1]
+  have h2 : (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ) = ((2:ℝ)^(d+1)) ^ (1-σ) := by
+    rw [show (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ)
+        = ((2:ℝ)^(d+1)) ^ (1:ℝ) * ((2:ℝ)^(d+1)) ^ (-σ) from by
+        rw [Real.rpow_one],
+      ← Real.rpow_add (by positivity), ← sub_eq_add_neg]
+  rw [mul_assoc, h2]
+
 end ExpSums
 
 end MoltResearch
