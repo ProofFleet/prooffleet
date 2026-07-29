@@ -1522,6 +1522,221 @@ theorem zeta_afe_strip (s : ℂ) (N : ℕ)
       (2 - 2*Complex.I) hanchorV ?_ hsV
     simp [Complex.sub_re, Complex.mul_re]
 
+/-- Generic crude block bound in the strip: length times the largest weight. -/
+theorem norm_sum_cpow_block_le_strip (σ t : ℝ) (a b : ℕ)
+    (hσ0 : 0 ≤ σ) (ha : 1 ≤ a) :
+    ‖∑ n ∈ Finset.Ico a b, ((n:ℕ):ℂ) ^ (-((σ:ℂ) - Complex.I * t))‖
+      ≤ ((b - a : ℕ):ℝ) * ((a:ℝ)) ^ (-σ) := by
+  refine le_trans (norm_sum_le _ _) ?_
+  have hptw : ∀ n ∈ Finset.Ico a b,
+      ‖((n:ℕ):ℂ) ^ (-((σ:ℂ) - Complex.I * t))‖ ≤ ((a:ℝ)) ^ (-σ) := by
+    intro n hn
+    rw [Finset.mem_Ico] at hn
+    have hn1 : (1:ℕ) ≤ n := le_trans ha hn.1
+    have hbase : (a:ℝ) ≤ (n:ℝ) := by exact_mod_cast hn.1
+    rw [Complex.norm_natCast_cpow_of_pos (by omega)]
+    have hre : ((-((σ:ℂ) - Complex.I * t)).re) = -σ := by simp
+    rw [hre]
+    have h1 : ((a:ℝ)) ^ σ ≤ (n:ℝ) ^ σ :=
+      Real.rpow_le_rpow (by positivity) hbase hσ0
+    rw [Real.rpow_neg (by positivity), Real.rpow_neg (by positivity),
+      inv_eq_one_div, inv_eq_one_div]
+    exact one_div_le_one_div_of_le (by positivity) h1
+  refine le_trans (Finset.sum_le_sum hptw) ?_
+  rw [Finset.sum_const, Nat.card_Ico, nsmul_eq_mul]
+
+/-- **The strip zeta bound** (Phase P of issue #3044): for `1/2 ≤ σ ≤ 1` and
+`|t| ∈ [2^d, 2^{d+1}]` with `d ≥ 1`, the four AFE components give
+`‖ζ(σ - it)‖ ≤ (2^{d+1})^{1-σ}·(schedule) + crude + potential + tail`. -/
+theorem zeta_strip_bound (σ t : ℝ) (d K : ℕ)
+    (hσl : 1/2 ≤ σ) (hσu : σ ≤ 1) (hd : 1 ≤ d)
+    (ht1 : (2:ℝ)^d ≤ |t|) (ht2 : |t| ≤ 2^(d+1)) :
+    ‖riemannZeta ((σ:ℂ) - Complex.I * t)‖
+      ≤ ((2:ℝ)^(d+1)) ^ (1-σ) * (((d-2)/(K+2) + 2^(K+7) + 3 : ℕ) : ℝ)
+        + 7 * (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ)
+        + ((2^(d+4) : ℕ):ℝ) ^ (1-σ) / ‖((σ:ℂ) - Complex.I * t) - 1‖
+        + 2 * ‖((σ:ℂ) - Complex.I * t) - 1‖
+          * (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) / σ := by
+  set s : ℂ := (σ:ℂ) - Complex.I * t with hs_def
+  set N : ℕ := 2^(d+4) with hN_def
+  have hsre : s.re = σ := by
+    rw [hs_def]
+    simp
+  have hsim : s.im = -t := by
+    rw [hs_def]
+    simp
+  have hσ0 : 0 < σ := by linarith
+  -- AFE hypotheses
+  have him : 2 ≤ |s.im| := by
+    rw [hsim, abs_neg]
+    have h1 : (2:ℝ) ≤ (2:ℝ)^d := by
+      calc (2:ℝ) = 2^1 := (pow_one 2).symm
+        _ ≤ 2^d := by
+          exact pow_le_pow_right₀ (by norm_num) hd
+    linarith
+  have hs1norm : ‖s - 1‖ ≤ 1/2 + (2:ℝ)^(d+1) := by
+    have h1 : s - 1 = ((σ - 1 : ℝ):ℂ) - Complex.I * t := by
+      rw [hs_def]
+      push_cast
+      ring
+    rw [h1]
+    calc ‖((σ - 1 : ℝ):ℂ) - Complex.I * t‖
+        ≤ ‖((σ - 1 : ℝ):ℂ)‖ + ‖Complex.I * (t:ℂ)‖ := norm_sub_le _ _
+      _ = |σ - 1| + |t| := by
+          rw [Complex.norm_real, Real.norm_eq_abs, norm_mul, Complex.norm_I,
+            one_mul, Complex.norm_real, Real.norm_eq_abs]
+      _ ≤ 1/2 + (2:ℝ)^(d+1) := by
+          have h2 : |σ - 1| ≤ 1/2 := by
+            rw [abs_le]
+            constructor <;> linarith
+          linarith
+  have hNbound : 4 * ‖s - 1‖ ≤ (N:ℝ) := by
+    have h1 : ((N:ℕ):ℝ) = (2:ℝ)^(d+4) := by
+      rw [hN_def]
+      push_cast
+      ring
+    rw [h1]
+    have h2 : (2:ℝ) ≤ (2:ℝ)^(d+3) := by
+      calc (2:ℝ) = 2^1 := (pow_one 2).symm
+        _ ≤ 2^(d+3) := by
+          exact pow_le_pow_right₀ (by norm_num) (by omega)
+    have h3 : (2:ℝ)^(d+4) = 2^(d+3) + 2^(d+3) := by ring
+    have h4 : (2:ℝ)^(d+3) = 4 * 2^(d+1) := by ring
+    linarith [hs1norm]
+  have hafe := zeta_afe_strip s N (by rw [hsre]; exact hσl) him hNbound
+  -- split the partial sum
+  have h2pow : (1:ℕ) ≤ 2^(d+1) := Nat.one_le_two_pow
+  have hsplit : ∑ n ∈ Finset.Ico (1:ℕ) N, ((n:ℕ) : ℂ) ^ (-s)
+      = (∑ n ∈ Finset.Ico (1:ℕ) (2^(d+1)), ((n:ℕ) : ℂ) ^ (-s))
+        + ∑ n ∈ Finset.Ico ((2:ℕ)^(d+1)) N, ((n:ℕ) : ℂ) ^ (-s) := by
+    have hle1 : (1:ℕ) ≤ 2^(d+1) := Nat.one_le_two_pow
+    have hle2 : (2:ℕ)^(d+1) ≤ N := by
+      rw [hN_def]
+      exact Nat.pow_le_pow_right (by norm_num) (by omega)
+    exact (Finset.sum_Ico_consecutive _ hle1 hle2).symm
+  -- the four component bounds
+  have hhead : ‖∑ n ∈ Finset.Ico (1:ℕ) (2^(d+1)), ((n:ℕ) : ℂ) ^ (-s)‖
+      ≤ ((2:ℝ)^(d+1)) ^ (1-σ) * (((d-2)/(K+2) + 2^(K+7) + 3 : ℕ) : ℝ) := by
+    rw [hs_def]
+    exact norm_sum_cpow_head_le_strip σ t d K hσ0.le hσu ht1 ht2
+  have hblock : ‖∑ n ∈ Finset.Ico ((2:ℕ)^(d+1)) N, ((n:ℕ) : ℂ) ^ (-s)‖
+      ≤ 7 * (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ) := by
+    have h1 := norm_sum_cpow_block_le_strip σ t (2^(d+1)) N hσ0.le Nat.one_le_two_pow
+    refine le_trans h1 ?_
+    have h2 : ((N - 2^(d+1) : ℕ):ℝ) = 7 * (2:ℝ)^(d+1) := by
+      rw [hN_def, Nat.cast_sub (Nat.pow_le_pow_right (by norm_num) (by omega))]
+      push_cast
+      ring
+    have h3 : (((2^(d+1) : ℕ)):ℝ) = (2:ℝ)^(d+1) := by push_cast; ring
+    rw [h2, h3]
+  have hpot : ‖zPot s N‖ = ((N:ℕ):ℝ) ^ (1-σ) / ‖s - 1‖ := by
+    rw [zPot, norm_div]
+    congr 1
+    rw [Complex.norm_natCast_cpow_of_pos (by rw [hN_def]; positivity)]
+    congr 1
+    rw [Complex.sub_re, Complex.one_re, hsre]
+  have hs1' : 1 ≤ ‖s - 1‖ := by
+    have h1 : |s.im| ≤ ‖s - 1‖ := by
+      have h2 : (s - 1).im = s.im := by simp
+      calc |s.im| = |(s - 1).im| := by rw [h2]
+        _ ≤ ‖s - 1‖ := Complex.abs_im_le_norm _
+    linarith [him]
+  have hN2' : 2 ≤ N := by
+    rw [hN_def]
+    calc (2:ℕ) = 2^1 := (pow_one 2).symm
+      _ ≤ 2^(d+4) := Nat.pow_le_pow_right (by norm_num) (by omega)
+  have h2sN : 2 * ‖s - 1‖ ≤ (N:ℝ) := by
+    have h1 : (0:ℝ) ≤ ‖s - 1‖ := norm_nonneg _
+    linarith [hNbound]
+  have htail : ‖zTail s N‖
+      ≤ 2 * ‖s - 1‖ * (((N:ℕ):ℝ) - 1) ^ (-σ) / σ := by
+    have hσre0 : 0 < s.re := by rw [hsre]; linarith
+    have hsum := summable_zTail_terms s N hσre0 hs1' h2sN hN2'
+    have h1 : ‖zTail s N‖ ≤ ∑' k : ℕ,
+        ‖(((N + k : ℕ)) : ℂ) ^ (-s) - (zPot s (N + k) - zPot s (N + k + 1))‖ := by
+      rw [zTail]
+      exact norm_tsum_le_tsum_norm hsum
+    have hdomsum : Summable (fun k : ℕ =>
+        2 * ‖s - 1‖ * (((N + k : ℕ)):ℝ) ^ (-(1 + σ))) := by
+      have hbase : Summable (fun n : ℕ => ((n:ℝ)) ^ (-(1 + σ))) := by
+        rw [show (fun n : ℕ => ((n:ℝ)) ^ (-(1 + σ)))
+            = (fun n : ℕ => 1 / ((n:ℝ)) ^ (1 + σ)) from funext fun n => by
+            rw [Real.rpow_neg (Nat.cast_nonneg n), inv_eq_one_div]]
+        exact (Real.summable_one_div_nat_rpow).mpr (by linarith)
+      have hshift := (summable_nat_add_iff
+        (f := fun n : ℕ => ((n:ℝ)) ^ (-(1 + σ))) N).mpr hbase
+      have hshift' : Summable (fun k : ℕ => (((N + k : ℕ)):ℝ) ^ (-(1 + σ))) := by
+        refine hshift.congr fun k => ?_
+        congr 2
+        push_cast
+        ring
+      exact hshift'.mul_left _
+    have h2 : ∑' k : ℕ,
+        ‖(((N + k : ℕ)) : ℂ) ^ (-s) - (zPot s (N + k) - zPot s (N + k + 1))‖
+        ≤ ∑' k : ℕ, 2 * ‖s - 1‖ * (((N + k : ℕ)):ℝ) ^ (-(1 + σ)) := by
+      refine hsum.tsum_le_tsum (fun k => ?_) hdomsum
+      have hnk : ‖s - 1‖ ≤ ((N + k : ℕ):ℝ) := by
+        have ha : ‖s - 1‖ ≤ (N:ℝ) := by linarith [h2sN, norm_nonneg (s-1)]
+        have hb : (N:ℝ) ≤ ((N + k : ℕ):ℝ) := by
+          exact_mod_cast Nat.le_add_right N k
+        linarith
+      refine le_trans (cpow_sub_telescope_le_strip s (N + k) hσre0 hs1' hnk
+        (by omega)) ?_
+      rw [hsre]
+      rw [Real.rpow_neg (Nat.cast_nonneg _), inv_eq_one_div]
+      rw [div_eq_mul_one_div]
+    have h3 : ∑' k : ℕ, 2 * ‖s - 1‖ * (((N + k : ℕ)):ℝ) ^ (-(1 + σ))
+        = 2 * ‖s - 1‖ * ∑' k : ℕ, (((N + k : ℕ)):ℝ) ^ (-(1 + σ)) :=
+      tsum_mul_left
+    have h4 : ∑' k : ℕ, (((N + k : ℕ)):ℝ) ^ (-(1 + σ))
+        ≤ (((N:ℕ):ℝ) - 1) ^ (-σ) / σ := by
+      refine Real.tsum_le_of_sum_range_le (fun k => by positivity) (fun K => ?_)
+      have h5 : ∑ k ∈ Finset.range K, (((N + k : ℕ)):ℝ) ^ (-(1 + σ))
+          = ∑ n ∈ Finset.Ico N (N + K), ((n:ℝ)) ^ (-(1 + σ)) := by
+        rw [Finset.sum_Ico_eq_sum_range]
+        have h6 : N + K - N = K := by omega
+        rw [h6]
+      rw [h5]
+      exact sum_rpow_neg_Ico_le σ N (N + K) hσ0 hN2'
+    calc ‖zTail s N‖
+        ≤ ∑' k : ℕ, ‖(((N + k : ℕ)) : ℂ) ^ (-s)
+            - (zPot s (N + k) - zPot s (N + k + 1))‖ := h1
+      _ ≤ ∑' k : ℕ, 2 * ‖s - 1‖ * (((N + k : ℕ)):ℝ) ^ (-(1 + σ)) := h2
+      _ = 2 * ‖s - 1‖ * ∑' k : ℕ, (((N + k : ℕ)):ℝ) ^ (-(1 + σ)) := h3
+      _ ≤ 2 * ‖s - 1‖ * ((((N:ℕ):ℝ) - 1) ^ (-σ) / σ) := by
+          refine mul_le_mul_of_nonneg_left h4 (by positivity)
+      _ = 2 * ‖s - 1‖ * (((N:ℕ):ℝ) - 1) ^ (-σ) / σ := by ring
+  -- assemble the four components through the AFE
+  calc ‖riemannZeta s‖
+      = ‖(∑ n ∈ Finset.Ico (1:ℕ) (2^(d+1)), ((n:ℕ) : ℂ) ^ (-s))
+          + (∑ n ∈ Finset.Ico ((2:ℕ)^(d+1)) N, ((n:ℕ) : ℂ) ^ (-s))
+          + zPot s N + zTail s N‖ := by
+        rw [hafe, hsplit]
+    _ ≤ ‖(∑ n ∈ Finset.Ico (1:ℕ) (2^(d+1)), ((n:ℕ) : ℂ) ^ (-s))
+          + (∑ n ∈ Finset.Ico ((2:ℕ)^(d+1)) N, ((n:ℕ) : ℂ) ^ (-s))
+          + zPot s N‖ + ‖zTail s N‖ := norm_add_le _ _
+    _ ≤ ‖(∑ n ∈ Finset.Ico (1:ℕ) (2^(d+1)), ((n:ℕ) : ℂ) ^ (-s))
+          + (∑ n ∈ Finset.Ico ((2:ℕ)^(d+1)) N, ((n:ℕ) : ℂ) ^ (-s))‖
+        + ‖zPot s N‖ + ‖zTail s N‖ := by
+        have := norm_add_le ((∑ n ∈ Finset.Ico (1:ℕ) (2^(d+1)), ((n:ℕ) : ℂ) ^ (-s))
+          + (∑ n ∈ Finset.Ico ((2:ℕ)^(d+1)) N, ((n:ℕ) : ℂ) ^ (-s))) (zPot s N)
+        linarith
+    _ ≤ ‖∑ n ∈ Finset.Ico (1:ℕ) (2^(d+1)), ((n:ℕ) : ℂ) ^ (-s)‖
+        + ‖∑ n ∈ Finset.Ico ((2:ℕ)^(d+1)) N, ((n:ℕ) : ℂ) ^ (-s)‖
+        + ‖zPot s N‖ + ‖zTail s N‖ := by
+        have := norm_add_le (∑ n ∈ Finset.Ico (1:ℕ) (2^(d+1)), ((n:ℕ) : ℂ) ^ (-s))
+          (∑ n ∈ Finset.Ico ((2:ℕ)^(d+1)) N, ((n:ℕ) : ℂ) ^ (-s))
+        linarith
+    _ ≤ ((2:ℝ)^(d+1)) ^ (1-σ) * (((d-2)/(K+2) + 2^(K+7) + 3 : ℕ) : ℝ)
+        + 7 * (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ)
+        + ((2^(d+4) : ℕ):ℝ) ^ (1-σ) / ‖s - 1‖
+        + 2 * ‖s - 1‖ * (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) / σ := by
+        have hpotle : ‖zPot s N‖ ≤ ((2^(d+4) : ℕ):ℝ) ^ (1-σ) / ‖s - 1‖ := by
+          rw [hpot, hN_def]
+        refine add_le_add (add_le_add (add_le_add hhead hblock) hpotle) ?_
+        rw [hN_def] at htail
+        exact htail
+
 end ExpSums
 
 end MoltResearch

@@ -7014,4 +7014,18 @@ example (s : ℂ) (hσ : 1/2 ≤ s.re) (him : 2 ≤ |s.im|) (N : ℕ)
         + ExpSums.zTail s N :=
   ExpSums.zeta_afe_strip s N hσ him hN
 
+-- Track R strip substrate (issue #3044, phase P): the assembled strip bound —
+-- `‖ζ(σ-it)‖` is controlled by the schedule head, the crude block, the
+-- potential, and the telescope tail, throughout `1/2 ≤ σ ≤ 1`,
+-- `|t| ∈ [2^d, 2^{d+1}]`, `d ≥ 1`.
+example (σ t : ℝ) (d K : ℕ) (hσl : 1/2 ≤ σ) (hσu : σ ≤ 1) (hd : 1 ≤ d)
+    (ht1 : (2:ℝ)^d ≤ |t|) (ht2 : |t| ≤ 2^(d+1)) :
+    ‖riemannZeta ((σ:ℂ) - Complex.I * t)‖
+      ≤ ((2:ℝ)^(d+1)) ^ (1-σ) * (((d-2)/(K+2) + 2^(K+7) + 3 : ℕ) : ℝ)
+        + 7 * (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ)
+        + ((2^(d+4) : ℕ):ℝ) ^ (1-σ) / ‖((σ:ℂ) - Complex.I * t) - 1‖
+        + 2 * ‖((σ:ℂ) - Complex.I * t) - 1‖
+          * (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) / σ :=
+  ExpSums.zeta_strip_bound σ t d K hσl hσu hd ht1 ht2
+
 end MoltResearch
