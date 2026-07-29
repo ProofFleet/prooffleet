@@ -101,12 +101,20 @@ jobs:
       - name: Check task metadata coverage
         run: python3 scripts/check_task_metadata_coverage.py
 
+      # All targets are built inside lean-action (via build-args) rather than in
+      # separate raw `lake build` steps: lean-action saves its GitHub cache right
+      # after its own build, so artifacts produced by later steps were never
+      # cached — every run rebuilt the whole Tasks/Conjectures backlog (~28 min).
+      # With the full target list here, the cache covers everything and one-file
+      # PRs rebuild only the changed file + downstream.
       - uses: leanprover/lean-action@v1
         with:
           build: true
           test: false
           lint: false
           use-mathlib-cache: true
+          use-github-cache: true
+          build-args: MoltResearch MoltResearch.Discrepancy.SurfaceChecklist MoltResearch.Discrepancy.DeprecatedSurfaceChecklist MoltResearch.Discrepancy.SurfaceAudit MoltResearch.Discrepancy.NormalFormExamples Solutions Tasks Conjectures
 
       # The default target only builds what MoltResearch.lean imports. The audit/regression
       # modules are standalone, so build them explicitly — otherwise they can silently decay
