@@ -86,4 +86,12 @@ example (σ t : ℝ) (d K : ℕ) (hσl : 1/2 ≤ σ) (hσu : σ ≤ 1) (hd : 1 �
           * (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) / σ :=
   ExpSums.zeta_strip_bound σ t d K hσl hσu hd ht1 ht2
 
+-- Track R zero-free region (issue #3044, phase P6): the de la Vallée Poussin
+-- region, machine-checked — there is a uniform `c₀ > 0` such that every zero
+-- `β + it` of `ζ` with `|t| ≥ 8` has `β ≤ 1 - c₀/log|t|`.
+example : ∃ c₀ : ℝ, 0 < c₀ ∧ ∀ β t : ℝ, 8 ≤ |t| →
+    riemannZeta ((β:ℂ) + Complex.I * t) = 0 →
+    β ≤ 1 - c₀ / Real.log |t| :=
+  ExpSums.zeta_zero_free_region
+
 end MoltResearch

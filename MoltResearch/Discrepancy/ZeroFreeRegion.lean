@@ -869,6 +869,304 @@ theorem zeta_landau_core (σ₀ τ : ℝ) (hσ1 : 1 < σ₀) (hσ2 : σ₀ ≤ 3
         ≤ 16 * (Real.log (10000*(|τ|+1)^2 / ‖riemannZeta c‖) + 1) / (1/2) := h
       _ = 32 * (Real.log (10000*(|τ|+1)^2 / ‖riemannZeta c‖) + 1) := by ring
 
+
+set_option maxHeartbeats 2000000 in
+open ArithmeticFunction in
+/-- **The zero-free region for `ζ`** (P6c, campaign #3044): there is a
+`c₀ > 0` such that every zero `β + it` of `ζ` with `|t| ≥ 8` has
+`β ≤ 1 - c₀/log|t|` — the de la Vallée Poussin region, machine-checked.
+
+The assembly: the pole bound (`zeta_logDeriv_pole_bound`), Landau's
+inequality at `σ₀ + it` with the designated zero and at `σ₀ + 2it`
+zero-free (`zeta_landau_core`, `M`'s bounded through the cascade-free
+3-4-1 lower bound `zeta_norm_lower_341`), and the additive 3-4-1
+positivity (`vonMangoldt_341_nonneg`), at `σ₀ := 1 + 1/(v²·log|t|)` where
+`v` absorbs the pole constant. The classical `4 > 3` margin closes the
+contradiction. -/
+theorem zeta_zero_free_region :
+    ∃ c₀ : ℝ, 0 < c₀ ∧ ∀ β t : ℝ, 8 ≤ |t| →
+      riemannZeta ((β:ℂ) + Complex.I * t) = 0 →
+      β ≤ 1 - c₀ / Real.log |t| := by
+  classical
+  obtain ⟨cp, hcp⟩ := zeta_logDeriv_pole_bound
+  set P : ℝ := max cp 0 with hP_def
+  have hP0 : 0 ≤ P := le_max_right _ _
+  have hcpP : cp ≤ P := le_max_left _ _
+  set v : ℝ := 3*P + 2002576 with hv_def
+  have hv2000 : 2000 ≤ v := by rw [hv_def]; linarith
+  have hv0 : (0:ℝ) < v := by linarith
+  have hvsq : 2000*v ≤ v^2 := by
+    have h1 := mul_nonneg (by linarith : (0:ℝ) ≤ v)
+      (by linarith : (0:ℝ) ≤ v - 2000)
+    have h2 : v*(v-2000) = v^2 - 2000*v := by ring
+    linarith
+  refine ⟨1/(9*v^2), div_pos one_pos (by nlinarith [hvsq, hv2000]), ?_⟩
+  intro β t ht hzero
+  have ht0 : (0:ℝ) < |t| := by linarith
+  have htne : t ≠ 0 := by
+    intro h
+    rw [h, abs_zero] at ht0
+    exact lt_irrefl 0 ht0
+  -- `L := log|t| ≥ 2`
+  have hL2 : 2 ≤ Real.log |t| := by
+    have h1 : Real.log 8 ≤ Real.log |t| := Real.log_le_log (by norm_num) ht
+    have h2 : (2:ℝ) ≤ Real.log 8 := by
+      rw [show (8:ℝ) = 2^3 from by norm_num, Real.log_pow]
+      have := Real.log_two_gt_d9
+      push_cast
+      linarith
+    linarith
+  have hL0 : (0:ℝ) < Real.log |t| := by linarith
+  -- the zero is strictly left of `re = 1`
+  have hβ1 : β < 1 := by
+    by_contra h
+    push_neg at h
+    refine absurd hzero (riemannZeta_ne_zero_of_one_le_re ?_)
+    simpa using h
+  set x : ℝ := 1 - β with hx_def
+  have hx0 : 0 < x := by rw [hx_def]; linarith
+  by_contra hcon
+  push_neg at hcon
+  have hxc : x < (1/(9*v^2)) / Real.log |t| := by
+    rw [hx_def]; linarith
+  -- the parameters
+  set δ : ℝ := 1/(v^2 * Real.log |t|) with hδ_def
+  have hvsqL : (100:ℝ) ≤ v^2 * Real.log |t| := by nlinarith [hvsq, hv2000, hL2]
+  have hvsqL0 : (0:ℝ) < v^2 * Real.log |t| := by linarith
+  have hδ0 : 0 < δ := by rw [hδ_def]; positivity
+  have hδ100 : δ ≤ 1/100 := by
+    rw [hδ_def]
+    exact one_div_le_one_div_of_le (by norm_num) hvsqL
+  have hc₀100 : (1:ℝ)/(9*v^2) ≤ 1/100 := by
+    exact one_div_le_one_div_of_le (by norm_num) (by nlinarith [hvsq, hv2000])
+  have hx100 : x < 1/100 := by
+    have h1 : (1/(9*v^2)) / Real.log |t| ≤ (1/(9*v^2)) / 2 :=
+      div_le_div_of_nonneg_left (by positivity) (by norm_num) hL2
+    have h2 : (1/(9*v^2)) / 2 ≤ (1/100)/2 := by linarith [hc₀100]
+    linarith
+  set σ₀ : ℝ := 1 + δ with hσ₀_def
+  have hσ₀1 : 1 < σ₀ := by rw [hσ₀_def]; linarith
+  have hσ₀2 : σ₀ ≤ 2 := by rw [hσ₀_def]; linarith
+  have hσ₀32 : σ₀ ≤ 3/2 := by rw [hσ₀_def]; linarith
+  have hσδ : σ₀ - 1 = δ := by rw [hσ₀_def]; ring
+  -- points
+  have hq1re : ((σ₀:ℂ) + Complex.I * t).re = σ₀ := by simp
+  have hq2re : ((σ₀:ℂ) + Complex.I * (2*t:ℝ)).re = σ₀ := by simp
+  have hz1 : riemannZeta ((σ₀:ℂ) + Complex.I * t) ≠ 0 :=
+    riemannZeta_ne_zero_of_one_le_re (by rw [hq1re]; linarith)
+  have hz2 : riemannZeta ((σ₀:ℂ) + Complex.I * (2*t:ℝ)) ≠ 0 :=
+    riemannZeta_ne_zero_of_one_le_re (by rw [hq2re]; linarith)
+  have hz1n : (0:ℝ) < ‖riemannZeta ((σ₀:ℂ) + Complex.I * t)‖ :=
+    norm_pos_iff.mpr hz1
+  have hz2n : (0:ℝ) < ‖riemannZeta ((σ₀:ℂ) + Complex.I * (2*t:ℝ))‖ :=
+    norm_pos_iff.mpr hz2
+  -- log toolkit
+  have hlog1e4 : Real.log 10000 ≤ 9999 := by
+    have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 10000 by norm_num)
+    linarith
+  have hlog2' : Real.log 2 ≤ 1 := by
+    have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 2 by norm_num)
+    linarith
+  have hlog3' : Real.log 3 ≤ 2 := by
+    have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 3 by norm_num)
+    linarith
+  have hlog4' : Real.log 4 ≤ 3 := by
+    have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 4 by norm_num)
+    linarith
+  have hlogv : Real.log v ≤ v := by
+    have := Real.log_le_sub_one_of_pos hv0
+    linarith
+  have hlogL : Real.log (Real.log |t|) ≤ Real.log |t| := by
+    have := Real.log_le_sub_one_of_pos hL0
+    linarith
+  have hlogA : Real.log (1 + 1/δ) ≤ 1 + 2*v + Real.log |t| := by
+    have h1δ : (0:ℝ) < 1/δ := by positivity
+    have h1 : (1:ℝ) + 1/δ ≤ 2/δ := by
+      have h2 : (1:ℝ) ≤ 1/δ := by
+        rw [le_div_iff₀ hδ0]
+        linarith
+      calc (1:ℝ) + 1/δ ≤ 1/δ + 1/δ := by linarith
+        _ = 2/δ := by ring
+    have h3 : Real.log (1 + 1/δ) ≤ Real.log (2/δ) :=
+      Real.log_le_log (by linarith) h1
+    have h4 : Real.log (2/δ) = Real.log 2 - Real.log δ :=
+      Real.log_div (by norm_num) (ne_of_gt hδ0)
+    have h5 : Real.log δ = -Real.log (v^2 * Real.log |t|) := by
+      rw [hδ_def, one_div, Real.log_inv]
+    have h6 : Real.log (v^2 * Real.log |t|)
+        = 2*Real.log v + Real.log (Real.log |t|) := by
+      rw [Real.log_mul (by positivity) (ne_of_gt hL0), Real.log_pow]
+      push_cast
+      ring
+    rw [h4, h5, h6] at h3
+    linarith
+  have hlogT1 : Real.log (|t|+1) ≤ 1 + Real.log |t| := by
+    have h1 : Real.log (|t|+1) ≤ Real.log (2*|t|) :=
+      Real.log_le_log (by linarith) (by linarith)
+    rw [Real.log_mul (by norm_num) (ne_of_gt ht0)] at h1
+    linarith
+  have hlogT2 : Real.log (|2*t|+1) ≤ 2 + Real.log |t| := by
+    have habs2t : |2*t| = 2*|t| := by
+      rw [abs_mul, abs_two]
+    have h1 : Real.log (|2*t|+1) ≤ Real.log (3*|t|) := by
+      refine Real.log_le_log (by rw [habs2t]; linarith) ?_
+      rw [habs2t]
+      linarith
+    rw [Real.log_mul (by norm_num) (ne_of_gt ht0)] at h1
+    linarith
+  have hlog2t : Real.log (2*t) = Real.log 2 + Real.log |t| := by
+    rw [← Real.log_abs (2*t), abs_mul, abs_two,
+      Real.log_mul (by norm_num) (ne_of_gt ht0)]
+  have hlog4t : Real.log (4*t) = Real.log 4 + Real.log |t| := by
+    rw [← Real.log_abs (4*t), abs_mul,
+      show |(4:ℝ)| = 4 from by norm_num,
+      Real.log_mul (by norm_num) (ne_of_gt ht0)]
+  have h2t2 : (0:ℝ) < (2*t)^2 := by positivity
+  have h4t2 : (0:ℝ) < (4*t)^2 := by positivity
+  have hlogU2 : Real.log (10000*(2*t)^2) ≤ 10001 + 2*Real.log |t| := by
+    rw [Real.log_mul (by norm_num) (ne_of_gt h2t2), Real.log_pow]
+    push_cast
+    linarith [hlog1e4, hlog2', hlog2t]
+  have hlogU4 : Real.log (10000*(4*t)^2) ≤ 10005 + 2*Real.log |t| := by
+    rw [Real.log_mul (by norm_num) (ne_of_gt h4t2), Real.log_pow]
+    push_cast
+    linarith [hlog1e4, hlog4', hlog4t]
+  -- the 3-4-1 lower bounds, in log form
+  have hA0 : (0:ℝ) < 1 + 1/δ := by positivity
+  have hlow1 := zeta_norm_lower_341 σ₀ t hσ₀1 hσ₀2 (by linarith : 2 ≤ |t|)
+  rw [hσδ] at hlow1
+  have hlow2 := zeta_norm_lower_341 σ₀ (2*t) hσ₀1 hσ₀2
+    (by rw [abs_mul, abs_two]; linarith : 2 ≤ |2*t|)
+  rw [hσδ, show (2:ℝ)*(2*t) = 4*t from by ring] at hlow2
+  have hlog_low1 : -(4*Real.log ‖riemannZeta ((σ₀:ℂ) + Complex.I * t)‖)
+      ≤ 3*Real.log (1+1/δ) + Real.log (10000*(2*t)^2) := by
+    have hden : (0:ℝ) < (1+1/δ)^3 * (10000*(2*t)^2) := by
+      have := pow_pos hA0 3
+      nlinarith [h2t2]
+    have h1 : Real.log (1/((1+1/δ)^3 * (10000*(2*t)^2)))
+        ≤ Real.log (‖riemannZeta ((σ₀:ℂ) + Complex.I * t)‖^4) :=
+      Real.log_le_log (by positivity) hlow1
+    rw [one_div, Real.log_inv,
+      Real.log_mul (ne_of_gt (pow_pos hA0 3)) (by nlinarith [h2t2]),
+      Real.log_pow, Real.log_pow] at h1
+    push_cast at h1
+    linarith
+  have hlog_low2 : -(4*Real.log ‖riemannZeta ((σ₀:ℂ) + Complex.I * (2*t:ℝ))‖)
+      ≤ 3*Real.log (1+1/δ) + Real.log (10000*(4*t)^2) := by
+    have h1 : Real.log (1/((1+1/δ)^3 * (10000*(4*t)^2)))
+        ≤ Real.log (‖riemannZeta ((σ₀:ℂ) + Complex.I * (2*t:ℝ))‖^4) := by
+      exact Real.log_le_log (by positivity) hlow2
+    rw [one_div, Real.log_inv,
+      Real.log_mul (ne_of_gt (pow_pos hA0 3)) (by nlinarith [h4t2]),
+      Real.log_pow, Real.log_pow] at h1
+    simp only [Nat.cast_ofNat] at h1
+    linarith
+  -- the Landau M bounds
+  have hM1 : Real.log (10000*(|t|+1)^2
+        / ‖riemannZeta ((σ₀:ℂ) + Complex.I * t)‖)
+      ≤ 12502 + 4*Real.log |t| + 2*v := by
+    rw [Real.log_div (by positivity) (ne_of_gt hz1n)]
+    have hup : Real.log (10000*(|t|+1)^2) ≤ 9999 + 2*(1 + Real.log |t|) := by
+      rw [Real.log_mul (by norm_num) (by positivity), Real.log_pow]
+      push_cast
+      linarith [hlog1e4, hlogT1]
+    linarith [hlog_low1, hlogA, hlogU2]
+  have hM2 : Real.log (10000*(|2*t|+1)^2
+        / ‖riemannZeta ((σ₀:ℂ) + Complex.I * (2*t:ℝ))‖)
+      ≤ 12505 + 4*Real.log |t| + 2*v := by
+    rw [Real.log_div (by positivity) (ne_of_gt hz2n)]
+    have hup : Real.log (10000*(|2*t|+1)^2)
+        ≤ 9999 + 2*(2 + Real.log |t|) := by
+      rw [Real.log_mul (by norm_num) (by positivity), Real.log_pow]
+      push_cast
+      linarith [hlog1e4, hlogT2]
+    linarith [hlog_low2, hlogA, hlogU4]
+  -- the designated zero sits in the quarter ball
+  have hδx8 : δ + x ≤ 1/8 := by linarith
+  have hρball : ((β:ℂ) + Complex.I * t)
+      ∈ Metric.closedBall ((σ₀:ℂ) + Complex.I * t) (1/8) := by
+    rw [Metric.mem_closedBall, dist_eq_norm,
+      show ((β:ℂ) + Complex.I * t) - ((σ₀:ℂ) + Complex.I * t)
+        = (((β - σ₀ : ℝ)):ℂ) from by push_cast; ring,
+      Complex.norm_real, Real.norm_eq_abs,
+      abs_of_neg (by linarith : β - σ₀ < 0)]
+    have hsb : σ₀ - β = δ + x := by rw [hσ₀_def, hx_def]; ring
+    linarith
+  -- Landau at the two points
+  have hlan1 := (zeta_landau_core σ₀ t hσ₀1 hσ₀32 ht).1
+    ((β:ℂ) + Complex.I * t) hρball hzero
+  have hlan2 := (zeta_landau_core σ₀ (2*t) hσ₀1 hσ₀32
+    (by rw [abs_mul, abs_two]; linarith)).2
+  -- the real part of the designated-zero term
+  have hReterm : (1/(((σ₀:ℂ) + Complex.I * t) - ((β:ℂ) + Complex.I * t))).re
+      = 1/(δ + x) := by
+    rw [show ((σ₀:ℂ) + Complex.I * t) - ((β:ℂ) + Complex.I * t)
+        = (((δ + x : ℝ)):ℂ) from by
+        rw [hσ₀_def, hx_def]; push_cast; ring,
+      show (1:ℂ)/(((δ + x : ℝ)):ℂ) = (((1/(δ + x) : ℝ)):ℂ) from by
+        push_cast; ring]
+    exact Complex.ofReal_re _
+  rw [hReterm] at hlan1
+  -- the pole bound
+  have hpole := hcp σ₀ hσ₀1 hσ₀2
+  rw [Complex.neg_re, hσδ] at hpole
+  -- the additive 3-4-1 positivity, bridged to `-ζ'/ζ`
+  have hbridge : ∀ s : ℂ, 1 < s.re →
+      (LSeries (fun n => (vonMangoldt n : ℂ)) s).re
+        = -(deriv riemannZeta s / riemannZeta s).re := by
+    intro s hs
+    rw [LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs, neg_div,
+      Complex.neg_re]
+  have h341 := vonMangoldt_341_nonneg σ₀ t hσ₀1
+  rw [show (σ₀:ℂ) + ((0:ℝ):ℂ) * Complex.I = (σ₀:ℂ) from by push_cast; ring,
+    show (σ₀:ℂ) + (t:ℂ) * Complex.I = (σ₀:ℂ) + Complex.I * t from by ring,
+    show (σ₀:ℂ) + ((2*t:ℝ):ℂ) * Complex.I
+      = (σ₀:ℂ) + Complex.I * (2*t:ℝ) from by push_cast; ring] at h341
+  rw [hbridge (σ₀:ℂ) (by simp; linarith),
+    hbridge ((σ₀:ℂ) + Complex.I * t) (by rw [hq1re]; linarith),
+    hbridge ((σ₀:ℂ) + Complex.I * (2*t:ℝ)) (by rw [hq2re]; linarith)] at h341
+  -- the master inequality
+  have hstar : 4/(δ + x) ≤ 3/δ + 3*P + 2000576
+      + 640*Real.log |t| + 320*v := by
+    have h1 : -(deriv riemannZeta (σ₀:ℂ) / riemannZeta (σ₀:ℂ)).re
+        ≤ 1/δ + P := by linarith
+    have h4x : 4/(δ + x) = 4*(1/(δ + x)) := by ring
+    have h3d : 3/δ = 3*(1/δ) := by ring
+    linarith [h341, hlan1, hlan2, hM1, hM2, h1, h4x, h3d]
+  -- the contradiction: `4 > 3` beats the budget
+  have h3δ : 3/δ = 3*(v^2 * Real.log |t|) := by
+    rw [hδ_def, div_div_eq_mul_div, div_one]
+  have hδx0 : (0:ℝ) < δ + x := by linarith
+  have hmul1 : v^2 * Real.log |t| * δ = 1 := by
+    rw [hδ_def]
+    field_simp
+  have hmul2 : v^2 * Real.log |t| * x < 1/9 := by
+    have h1 : v^2 * Real.log |t| * x
+        < v^2 * Real.log |t| * ((1/(9*v^2)) / Real.log |t|) :=
+      mul_lt_mul_of_pos_left hxc hvsqL0
+    have h2 : v^2 * Real.log |t| * ((1/(9*v^2)) / Real.log |t|) = 1/9 := by
+      field_simp
+    linarith
+  have hlhs : (18/5)*(v^2 * Real.log |t|) < 4/(δ + x) := by
+    rw [lt_div_iff₀ hδx0]
+    nlinarith [hmul1, hmul2, hvsqL0]
+  have hend : (3/5)*(v^2 * Real.log |t|)
+      < 3*P + 2000576 + 640*Real.log |t| + 320*v := by
+    have h1 := hstar
+    rw [h3δ] at h1
+    linarith
+  have hnn : (0:ℝ) ≤ (3/5)*v^2 - 640 := by nlinarith [hvsq, hv2000]
+  have helim : 2*((3/5)*v^2 - 640)
+      ≤ Real.log |t| * ((3/5)*v^2 - 640) :=
+    mul_le_mul_of_nonneg_right hL2 hnn
+  have hid : Real.log |t| * ((3/5)*v^2 - 640)
+      = (3/5)*(v^2 * Real.log |t|) - 640*Real.log |t| := by ring
+  have hfinal : (6/5)*v^2 < 3*P + 2001856 + 320*v := by
+    rw [hid] at helim
+    linarith
+  have hvP : 3*P = v - 2002576 := by rw [hv_def]; ring
+  nlinarith [hfinal, hvsq, hv2000, hvP]
+
 end ExpSums
 
 end MoltResearch
