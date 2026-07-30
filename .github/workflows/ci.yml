@@ -114,7 +114,7 @@ jobs:
           lint: false
           use-mathlib-cache: true
           use-github-cache: true
-          build-args: MoltResearch MoltResearch.Discrepancy.SurfaceChecklist MoltResearch.Discrepancy.DeprecatedSurfaceChecklist MoltResearch.Discrepancy.SurfaceAudit MoltResearch.Discrepancy.NormalFormExamples Solutions Tasks Conjectures
+          build-args: MoltResearch MoltResearch.Discrepancy.SurfaceChecklist MoltResearch.Discrepancy.DeprecatedSurfaceChecklist MoltResearch.Discrepancy.SurfaceAudit MoltResearch.Discrepancy.NormalFormExamples MoltResearch.Discrepancy.NormalFormExamplesAnalytic Solutions Tasks Conjectures
 
       # The default target only builds what MoltResearch.lean imports. The audit/regression
       # modules are standalone, so build them explicitly — otherwise they can silently decay
@@ -125,6 +125,7 @@ jobs:
           ~/.elan/bin/lake build MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
           ~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceAudit
           ~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamples
+          ~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamplesAnalytic
 
       # The default target builds only the MoltResearch lib. Solutions/ is part of the verified
       # invariant (no sorry/axiom/unsafe) but is not a default target, and the Tasks/Conjectures

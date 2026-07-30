@@ -1,6 +1,7 @@
 import MoltResearch.Basics
 import MoltResearch.Logic
 import MoltResearch.Discrepancy
+import MoltResearch.DiscrepancyAnalytic
 import MoltResearch.Discrepancy.UserScripts
 
 /-!

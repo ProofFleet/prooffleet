@@ -25,6 +25,7 @@ ci:
 	@~/.elan/bin/lake build MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
 	@~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceAudit
 	@~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamples
+	@~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamplesAnalytic
 	@~/.elan/bin/lake build Solutions
 	@~/.elan/bin/lake build Tasks
 	@~/.elan/bin/lake build Conjectures

@@ -1,0 +1,89 @@
+import MoltResearch.DiscrepancyAnalytic
+
+/-!
+# Normal-form regression examples: the analytic layer
+
+Compile-time checks for the Track L/R analytic substrate (`LogDifferences`,
+`ZetaBound`, `LandauLemma`), split from `NormalFormExamples` so that
+analytic-layer changes rebuild only this file and the analytic consumers —
+not the whole Track C stage tree.  Same conventions as `NormalFormExamples`:
+this module imports the analytic surface and is imported by nothing.
+-/
+
+namespace MoltResearch
+
+-- Track L Littlewood campaign (issue #3020, L4): the two-sided sandwich
+-- for iterated unit differences of log — factorially exact constants.
+example (k n : ℕ) (hn : 1 ≤ n) :
+    (k.factorial : ℝ) / ((n : ℝ) + k + 1) ^ (k + 1)
+      ≤ (-1) ^ k * ExpSums.dIter (k + 1) (fun j : ℕ => Real.log j) n :=
+  (ExpSums.dIter_log_sandwich k n hn).1
+
+-- Track L Littlewood campaign (issue #3020, cascade): the abstract k-th
+-- derivative test in power form — sandwiched (j+2)-differences give the
+-- recursive cascade bound, all natural powers.
+example {ψ : ℕ → ℝ} {j M N H : ℕ} {μ ν : ℝ}
+    (hμ : 0 < μ) (hμν : μ ≤ ν) (hH : 1 ≤ H) (hHM : H ≤ M) (hMN : M ≤ N)
+    (hsand : ∀ n, M ≤ n → n ≤ N + j * H →
+      μ ≤ ExpSums.dIter (j + 2) ψ n ∧ ExpSums.dIter (j + 2) ψ n ≤ ν) :
+    ‖∑ n ∈ Finset.Ico M (N + 1), ExpSums.e (ψ n)‖ ^ (2 ^ j)
+      ≤ ExpSums.cascadeBound j ((N + 1 - M : ℕ) : ℝ) (H : ℝ) μ ν :=
+  ExpSums.vdck_pow j ψ M N H μ ν hμ hμν hH hHM hMN hsand
+
+-- Track L Littlewood campaign (issue #3020, log phase): the cascade on
+-- the zeta phase — factorial sandwich in, explicit block bound out.
+example (j M N H : ℕ) (t : ℝ)
+    (ht : 0 < t) (hH : 1 ≤ H) (hHM : H ≤ M) (hMN : M ≤ N)
+    (hwin : N + j * H + j + 2 ≤ 4 * M) :
+    ‖∑ n ∈ Finset.Ico M (N + 1),
+        ExpSums.e (-(t / (2 * Real.pi) * Real.log n))‖ ^ (2 ^ j)
+      ≤ ExpSums.cascadeBound j ((N + 1 - M : ℕ) : ℝ) (H : ℝ)
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((4 * M : ℕ) : ℝ) ^ (j + 2))
+          (t / (2 * Real.pi) * ((j + 1).factorial : ℝ)
+            / ((M : ℕ) : ℝ) ^ (j + 2)) :=
+  ExpSums.log_phase_block_bound j M N H t ht hH hHM hMN hwin
+
+-- Track R strip substrate (issue #3044, phase P): the schedule head bound and
+-- the crude middle bound extend left of the 1-line at the cost of the trivial
+-- size `(2^{d+1})^{1-σ}`, here at the critical-strip midpoint `σ = 1/2`.
+example (t : ℝ) (d K : ℕ) (ht1 : (2:ℝ)^d ≤ |t|) (ht2 : |t| ≤ 2^(d+1)) :
+    ‖∑ n ∈ Finset.Ico 1 (2^(d+1)),
+        ((n:ℕ):ℂ) ^ (-(((1/2 : ℝ):ℂ) - Complex.I * t))‖
+      ≤ ((2:ℝ)^(d+1)) ^ (1-(1/2:ℝ))
+        * (((d-2)/(K+2) + 2^(K+7) + 3 : ℕ) : ℝ) :=
+  ExpSums.norm_sum_cpow_head_le_strip (1/2) t d K (by norm_num) (by norm_num)
+    ht1 ht2
+
+example (t : ℝ) (d : ℕ) :
+    ‖∑ n ∈ Finset.Ico (2^(d+1)) (2^(d+3)),
+        ((n:ℕ):ℂ) ^ (-(((1/2 : ℝ):ℂ) - Complex.I * t))‖
+      ≤ 3 * ((2:ℝ)^(d+1)) ^ (1-(1/2:ℝ)) :=
+  ExpSums.norm_sum_cpow_middle_le_strip (1/2) t d (by norm_num)
+
+-- Track R strip substrate (issue #3044, phase P): the approximate functional
+-- equation holds throughout the strip `re ≥ 1/2, |im| ≥ 2` — `riemannZeta`
+-- itself is the finite partial sum plus the potential plus the absolutely
+-- convergent telescope tail, once `N` dominates `4‖s-1‖`.
+example (s : ℂ) (hσ : 1/2 ≤ s.re) (him : 2 ≤ |s.im|) (N : ℕ)
+    (hN : 4 * ‖s - 1‖ ≤ N) :
+    riemannZeta s
+      = (∑ n ∈ Finset.Ico 1 N, (n : ℂ) ^ (-s)) + ExpSums.zPot s N
+        + ExpSums.zTail s N :=
+  ExpSums.zeta_afe_strip s N hσ him hN
+
+-- Track R strip substrate (issue #3044, phase P): the assembled strip bound —
+-- `‖ζ(σ-it)‖` is controlled by the schedule head, the crude block, the
+-- potential, and the telescope tail, throughout `1/2 ≤ σ ≤ 1`,
+-- `|t| ∈ [2^d, 2^{d+1}]`, `d ≥ 1`.
+example (σ t : ℝ) (d K : ℕ) (hσl : 1/2 ≤ σ) (hσu : σ ≤ 1) (hd : 1 ≤ d)
+    (ht1 : (2:ℝ)^d ≤ |t|) (ht2 : |t| ≤ 2^(d+1)) :
+    ‖riemannZeta ((σ:ℂ) - Complex.I * t)‖
+      ≤ ((2:ℝ)^(d+1)) ^ (1-σ) * (((d-2)/(K+2) + 2^(K+7) + 3 : ℕ) : ℝ)
+        + 7 * (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ)
+        + ((2^(d+4) : ℕ):ℝ) ^ (1-σ) / ‖((σ:ℂ) - Complex.I * t) - 1‖
+        + 2 * ‖((σ:ℂ) - Complex.I * t) - 1‖
+          * (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) / σ :=
+  ExpSums.zeta_strip_bound σ t d K hσl hσu hd ht1 ht2
+
+end MoltResearch
