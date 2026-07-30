@@ -129,4 +129,14 @@ example (T : ℝ) (hT : 1 ≤ T) (η : ℝ → ℝ)
       ≤ 5 * B :=
   ExpSums.norm_smoothed_sum_le T hT η hηsupp B hηbd a ha S M₁ hS hM₁ hTM y
 
+-- Track R cheap-frame C2-i-b (issue #3044): the smoothed logarithmic sum is
+-- a smooth compactly supported function — the Schwartz-layer entry ticket.
+open scoped ContDiff in
+example (T : ℝ) (hT : 0 < T) (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η)
+    (hηc : HasCompactSupport η) (a : ℕ → ℂ) (S : Finset ℕ) :
+    ContDiff ℝ ∞ (ExpSums.smoothedLogSum T η a S)
+      ∧ HasCompactSupport (ExpSums.smoothedLogSum T η a S) :=
+  ⟨ExpSums.smoothedLogSum_contDiff T η hηs a S,
+   ExpSums.smoothedLogSum_hasCompactSupport T hT η hηc a S⟩
+
 end MoltResearch

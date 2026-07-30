@@ -426,6 +426,54 @@ theorem norm_smoothed_sum_le (T : ℝ) (hT : 1 ≤ T) (η : ℝ → ℝ)
         _ ≤ 5 * B := mul_le_mul_of_nonneg_right h2 hB0
     exact hfinal
 
+/-- The smoothed logarithmic sum of the cheap-MR frame. -/
+noncomputable def smoothedLogSum (T : ℝ) (η : ℝ → ℝ) (a : ℕ → ℂ)
+    (S : Finset ℕ) : ℝ → ℂ :=
+  fun y => (T:ℂ) * ∑ m ∈ S, (a m / m) * ((η (T*(y - Real.log m)) : ℝ) : ℂ)
+
+theorem smoothedLogSum_contDiff (T : ℝ) (η : ℝ → ℝ)
+    (hηs : ContDiff ℝ ∞ η) (a : ℕ → ℂ) (S : Finset ℕ) :
+    ContDiff ℝ ∞ (smoothedLogSum T η a S) := by
+  unfold smoothedLogSum
+  refine ContDiff.mul contDiff_const ?_
+  refine ContDiff.sum fun m _ => ?_
+  refine ContDiff.mul contDiff_const ?_
+  have h1 : ContDiff ℝ ∞ (fun y : ℝ => T*(y - Real.log m)) :=
+    contDiff_const.mul (contDiff_id.sub contDiff_const)
+  exact Complex.ofRealCLM.contDiff.comp (hηs.comp h1)
+
+theorem smoothedLogSum_hasCompactSupport (T : ℝ) (hT : 0 < T)
+    (η : ℝ → ℝ) (hηc : HasCompactSupport η) (a : ℕ → ℂ) (S : Finset ℕ) :
+    HasCompactSupport (smoothedLogSum T η a S) := by
+  unfold smoothedLogSum
+  have h1 : HasCompactSupport (fun y : ℝ =>
+      ∑ m ∈ S, (a m / m) * ((η (T*(y - Real.log m)) : ℝ) : ℂ)) := by
+    refine hasCompactSupport_finset_sum fun m _ => ?_
+    have h2 : HasCompactSupport (fun y : ℝ => η (T*(y - Real.log m))) := by
+      have h3 : (fun y : ℝ => η (T*(y - Real.log m)))
+          = η ∘ ((Homeomorph.mulLeft₀ T (ne_of_gt hT)).trans
+              (Homeomorph.subRight (T * Real.log m))) := by
+        funext y
+        simp [Homeomorph.mulLeft₀, Homeomorph.subRight, mul_sub]
+      rw [h3]
+      exact hηc.comp_homeomorph _
+    have h4 : HasCompactSupport (fun y : ℝ =>
+        ((η (T*(y - Real.log m)) : ℝ) : ℂ)) := by
+      have h5 : (fun y : ℝ => ((η (T*(y - Real.log m)) : ℝ) : ℂ))
+          = (fun x : ℝ => (x : ℂ)) ∘ (fun y : ℝ => η (T*(y - Real.log m))) := rfl
+      rw [h5]
+      exact HasCompactSupport.comp_left h2 Complex.ofReal_zero
+    exact h4.mul_left
+  exact h1.mul_left
+
+/-- The pointwise bound, stated at `smoothedLogSum`. -/
+theorem norm_smoothedLogSum_le (T : ℝ) (hT : 1 ≤ T) (η : ℝ → ℝ)
+    (hηsupp : ∀ u : ℝ, η u ≠ 0 → |u| ≤ 2) (B : ℝ) (hηbd : ∀ u, |η u| ≤ B)
+    (a : ℕ → ℂ) (ha : ∀ m, ‖a m‖ ≤ 1) (S : Finset ℕ) (M₁ : ℕ)
+    (hS : ∀ m ∈ S, M₁ ≤ m) (hM₁ : 1 ≤ M₁) (hTM : T ≤ M₁) (y : ℝ) :
+    ‖smoothedLogSum T η a S y‖ ≤ 5 * B :=
+  norm_smoothed_sum_le T hT η hηsupp B hηbd a ha S M₁ hS hM₁ hTM y
+
 end ExpSums
 
 end MoltResearch
