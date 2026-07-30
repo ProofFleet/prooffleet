@@ -139,4 +139,24 @@ example (T : ℝ) (hT : 0 < T) (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η)
   ⟨ExpSums.smoothedLogSum_contDiff T η hηs a S,
    ExpSums.smoothedLogSum_hasCompactSupport T hT η hηc a S⟩
 
+-- Track R cheap-frame C2-vi (issue #3044): the three-regime frequency split —
+-- low kept explicit for C4, middle by the phase-sum sup, high by the
+-- derivative energy. The C2 phase closes here.
+open scoped FourierTransform ContDiff in
+example (F : ℝ → ℂ) (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F)
+    (S : Finset ℕ) (w : ℕ → ℂ) (s : ℕ → ℝ)
+    (K L Mmid Mtot : ℝ) (hL : 0 < L) (hMmid0 : 0 ≤ Mmid)
+    (hmid : ∀ ξ : ℝ, K ≤ |ξ| → |ξ| ≤ L →
+      ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖ ≤ Mmid)
+    (htot : ∀ ξ : ℝ,
+      ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖ ≤ Mtot) :
+    ∫ y, ‖∑ i ∈ S, w i * F (y - s i)‖^2
+      ≤ (∫ ξ in {ξ : ℝ | |ξ| < K},
+            ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2
+              * ‖𝓕 F ξ‖^2)
+        + Mmid^2 * (∫ ξ, ‖𝓕 F ξ‖^2)
+        + Mtot^2 * ((1/L^2) * ∫ ξ, ξ^2 * ‖𝓕 F ξ‖^2) :=
+  ExpSums.integral_norm_sq_sum_translates_regime_split
+    F hFc hFs S w s K L Mmid Mtot hL hMmid0 hmid htot
+
 end MoltResearch
