@@ -6955,4 +6955,17 @@ example {φ : ℕ → ℝ} {M N H : ℕ}
   ExpSums.weyl_differencing hH hHM hMN
 
 
+-- Track R cheap-frame C1 (issue #3044): the dvd-filtered harmonic window —
+-- multiples of `k` in `[1, N)` contribute `(1/k)·(log N + O(1))` to the
+-- harmonic sum, squeezed from both sides.
+example (k N : ℕ) (hk : 1 ≤ k) (hkN : 2 * k ≤ N) :
+    (1 / k : ℝ) * (Real.log N - Real.log k - 2)
+      ≤ ∑ n ∈ (Finset.Ico 1 N).filter (k ∣ ·), (1 : ℝ) / n :=
+  le_sum_one_div_filter_dvd k N hk hkN
+
+example (k N : ℕ) (hk : 1 ≤ k) :
+    ∑ n ∈ (Finset.Ico 1 N).filter (k ∣ ·), (1 : ℝ) / n
+      ≤ (1 / k : ℝ) * (Real.log N + 1) :=
+  sum_one_div_filter_dvd_le k N hk
+
 end MoltResearch
