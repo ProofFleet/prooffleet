@@ -627,6 +627,248 @@ theorem zeta_norm_upper (σ t : ℝ) (hσl : 1/2 ≤ σ) (hσu : σ ≤ 5/2)
       have h16 : (16:ℝ) ≤ t^2 := by nlinarith [sq_abs t, ht]
       linarith [h1]
 
+
+/-- **Point-form of the strip growth bound**: any `z` in the strip
+`1/2 ≤ re ≤ 5/2` with `|im z| ≥ 4` has `‖ζ(z)‖ ≤ 10⁴·(im z)²`. -/
+theorem zeta_norm_upper_pt (z : ℂ) (h1 : 1/2 ≤ z.re) (h2 : z.re ≤ 5/2)
+    (him : 4 ≤ |z.im|) : ‖riemannZeta z‖ ≤ 10000 * z.im^2 := by
+  have h := zeta_norm_upper z.re (-z.im) h1 h2 (by rwa [abs_neg])
+  have hpt : ((z.re:ℝ):ℂ) - Complex.I * ((-z.im:ℝ):ℂ) = z := by
+    apply Complex.ext <;> simp
+  rw [hpt] at h
+  calc ‖riemannZeta z‖ ≤ 10000 * (-z.im)^2 := h
+    _ = 10000 * z.im^2 := by ring
+
+/-- **The real-axis upper bound near the pole**: `‖ζ(σ)‖ ≤ 1 + 1/(σ-1)`
+for `σ > 1` — the `n = 1` term plus the telescoped tail
+(`sum_rpow_neg_Ico_le` at exponent `-(1+(σ-1))`). -/
+theorem zeta_real_upper (σ : ℝ) (hσ : 1 < σ) :
+    ‖riemannZeta (σ:ℂ)‖ ≤ 1 + 1/(σ - 1) := by
+  have hre : ((σ:ℂ)).re = σ := Complex.ofReal_re σ
+  have hcomp : ∀ n : ℕ, ‖1/(n:ℂ) ^ ((σ:ℂ))‖ ≤ (n:ℝ) ^ (-σ) := by
+    intro n
+    rcases Nat.eq_zero_or_pos n with h0 | h0
+    · subst h0
+      rw [show ((0:ℕ):ℂ) = 0 from by norm_num,
+        Complex.zero_cpow (by
+          intro h
+          rw [Complex.ext_iff] at h
+          simp [hre] at h
+          linarith)]
+      simp [Real.zero_rpow (by linarith : -σ ≠ 0)]
+    · rw [norm_div, norm_one, Complex.norm_natCast_cpow_of_pos h0, hre]
+      rw [show (1:ℝ) / (n:ℝ) ^ σ = (n:ℝ) ^ (-σ) from by
+          rw [Real.rpow_neg (Nat.cast_nonneg n), inv_eq_one_div]]
+  have hnormsum : Summable (fun n : ℕ => ‖1/(n:ℂ) ^ ((σ:ℂ))‖) := by
+    have hs := (Real.summable_one_div_nat_rpow (p := σ)).mpr hσ
+    refine hs.of_nonneg_of_le (fun n => norm_nonneg _) ?_
+    intro n
+    rcases Nat.eq_zero_or_pos n with h0 | h0
+    · subst h0
+      rw [show ((0:ℕ):ℂ) = 0 from by norm_num,
+        Complex.zero_cpow (by
+          intro h
+          rw [Complex.ext_iff] at h
+          simp [hre] at h
+          linarith)]
+      simp
+      positivity
+    · rw [norm_div, norm_one, Complex.norm_natCast_cpow_of_pos h0, hre]
+  rw [zeta_eq_tsum_one_div_nat_cpow (by rw [hre]; linarith)]
+  refine le_trans (norm_tsum_le_tsum_norm hnormsum) ?_
+  refine Real.tsum_le_of_sum_range_le (fun n => norm_nonneg _)
+    (fun K => ?_)
+  have hstep : ∑ n ∈ Finset.range K, ‖1/(n:ℂ) ^ ((σ:ℂ))‖
+      ≤ ∑ n ∈ Finset.range K, (n:ℝ) ^ (-σ) :=
+    Finset.sum_le_sum fun n _ => hcomp n
+  refine le_trans hstep ?_
+  have hpos : (0:ℝ) < 1/(σ-1) := by
+    have : (0:ℝ) < σ - 1 := by linarith
+    positivity
+  rcases le_or_gt K 2 with hK | hK
+  · have hsub : ∑ n ∈ Finset.range K, (n:ℝ) ^ (-σ)
+        ≤ ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-σ) := by
+      refine Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_
+      · intro x hx
+        rw [Finset.mem_range] at *
+        omega
+      · intro n _ _
+        positivity
+    have h2 : ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-σ) ≤ 1 := by
+      rw [Finset.sum_range_succ, Finset.sum_range_one, Nat.cast_zero,
+        Nat.cast_one, Real.zero_rpow (by linarith : -σ ≠ 0), Real.one_rpow]
+      norm_num
+    linarith
+  · have hsplit : ∑ n ∈ Finset.range K, (n:ℝ) ^ (-σ)
+        = ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-σ)
+          + ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-σ) := by
+      rw [Finset.range_eq_Ico,
+        ← Finset.sum_Ico_consecutive _ (by omega : 0 ≤ 2)
+          (by omega : 2 ≤ K)]
+    rw [hsplit]
+    have h2 : ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-σ) ≤ 1 := by
+      rw [Finset.sum_range_succ, Finset.sum_range_one, Nat.cast_zero,
+        Nat.cast_one, Real.zero_rpow (by linarith : -σ ≠ 0), Real.one_rpow]
+      norm_num
+    have h3 : ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-σ) ≤ 1/(σ-1) := by
+      have h4 : ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-σ)
+          = ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-(1+(σ-1))) := by
+        refine Finset.sum_congr rfl fun n _ => ?_
+        rw [show -σ = -(1+(σ-1)) from by ring]
+      rw [h4]
+      have h5 := sum_rpow_neg_Ico_le (σ-1) 2 K (by linarith) (le_refl 2)
+      rw [show ((2:ℕ):ℝ) - 1 = 1 from by norm_num, Real.one_rpow] at h5
+      linarith
+    linarith
+
+/-- **The 3-4-1 lower bound**: for `1 < σ₀ ≤ 2` and `|t| ≥ 2`,
+`‖ζ(σ₀+it)‖⁴ ≥ 1/((1+1/(σ₀-1))³ · 10⁴(2t)²)` — the product bound with the
+real-axis factor bounded by `zeta_real_upper` and the `2t`-factor by the
+strip growth bound. This feeds the Landau `M`'s without any cascade. -/
+theorem zeta_norm_lower_341 (σ₀ t : ℝ) (hσ : 1 < σ₀) (hσ2 : σ₀ ≤ 2)
+    (ht : 2 ≤ |t|) :
+    1/((1 + 1/(σ₀-1))^3 * (10000*(2*t)^2))
+      ≤ ‖riemannZeta ((σ₀:ℂ) + Complex.I * t)‖^4 := by
+  have hA : ‖riemannZeta (σ₀:ℂ)‖ ≤ 1 + 1/(σ₀-1) := zeta_real_upper σ₀ hσ
+  have hApos : (0:ℝ) < 1 + 1/(σ₀-1) := by
+    have : (0:ℝ) < σ₀ - 1 := by linarith
+    positivity
+  have ht0 : (0:ℝ) < t^2 := by
+    have h1 : (0:ℝ) < |t| := by linarith
+    nlinarith [sq_abs t]
+  have hU : ‖riemannZeta ((σ₀:ℂ) + 2 * Complex.I * t)‖ ≤ 10000*(2*t)^2 := by
+    have h1 : ((σ₀:ℂ) + 2 * Complex.I * t).re = σ₀ := by simp
+    have h2 : ((σ₀:ℂ) + 2 * Complex.I * t).im = 2*t := by simp
+    have h3 := zeta_norm_upper_pt ((σ₀:ℂ) + 2 * Complex.I * t)
+      (by rw [h1]; linarith) (by rw [h1]; linarith)
+      (by rw [h2, abs_mul]; norm_num; linarith)
+    rwa [h2] at h3
+  have h341 := zeta_341_prod_ge_one σ₀ t hσ
+  rw [norm_mul, norm_mul, norm_pow, norm_pow] at h341
+  set a := ‖riemannZeta (σ₀:ℂ)‖ with ha_def
+  set b := ‖riemannZeta ((σ₀:ℂ) + Complex.I * t)‖ with hb_def
+  set c := ‖riemannZeta ((σ₀:ℂ) + 2 * Complex.I * t)‖ with hc_def
+  have ha0 : 0 ≤ a := norm_nonneg _
+  have hb0 : 0 ≤ b := norm_nonneg _
+  have hc0 : 0 ≤ c := norm_nonneg _
+  have hchain : (1:ℝ) ≤ (1 + 1/(σ₀-1))^3 * b^4 * (10000*(2*t)^2) := by
+    have h1 : a^3 * b^4 * c ≤ (1 + 1/(σ₀-1))^3 * b^4 * (10000*(2*t)^2) := by
+      have h2 : a^3 ≤ (1 + 1/(σ₀-1))^3 := by
+        exact pow_le_pow_left₀ ha0 hA 3
+      have h3 : a^3 * b^4 ≤ (1 + 1/(σ₀-1))^3 * b^4 :=
+        mul_le_mul_of_nonneg_right h2 (by positivity)
+      calc a^3 * b^4 * c ≤ (1 + 1/(σ₀-1))^3 * b^4 * c :=
+            mul_le_mul_of_nonneg_right h3 hc0
+        _ ≤ (1 + 1/(σ₀-1))^3 * b^4 * (10000*(2*t)^2) :=
+            mul_le_mul_of_nonneg_left hU
+              (mul_nonneg (pow_nonneg hApos.le 3) (by positivity))
+    linarith
+  rw [div_le_iff₀ (mul_pos (pow_pos hApos 3) (by nlinarith [ht0]))]
+  calc (1:ℝ) ≤ (1 + 1/(σ₀-1))^3 * b^4 * (10000*(2*t)^2) := hchain
+    _ = b^4 * ((1 + 1/(σ₀-1))^3 * (10000*(2*t)^2)) := by ring
+
+
+/-- **Landau's inequality instantiated at `ζ`** (P6b): at the center
+`c := σ₀ + iτ` with `1 < σ₀ ≤ 3/2` and `|τ| ≥ 8`, radius `R = 1/2` and
+`M := log(10⁴(|τ|+1)²/‖ζ(c)‖)`, both the designated-zero form and the
+zero-free form. The ratio hypothesis comes from `zeta_norm_upper_pt`
+(every point of the ball stays in the strip with `|im| ≥ 4`), the
+quarter-ball re-condition from `riemannZeta_ne_zero_of_one_le_re`. -/
+theorem zeta_landau_core (σ₀ τ : ℝ) (hσ1 : 1 < σ₀) (hσ2 : σ₀ ≤ 3/2)
+    (hτ : 8 ≤ |τ|) :
+    (∀ ρ ∈ Metric.closedBall ((σ₀:ℂ) + Complex.I * τ) (1/8),
+      riemannZeta ρ = 0 →
+      -(deriv riemannZeta ((σ₀:ℂ) + Complex.I * τ)
+          / riemannZeta ((σ₀:ℂ) + Complex.I * τ)).re
+        ≤ 32 * (Real.log (10000*(|τ|+1)^2
+            / ‖riemannZeta ((σ₀:ℂ) + Complex.I * τ)‖) + 1)
+          - (1/(((σ₀:ℂ) + Complex.I * τ) - ρ)).re)
+    ∧ -(deriv riemannZeta ((σ₀:ℂ) + Complex.I * τ)
+          / riemannZeta ((σ₀:ℂ) + Complex.I * τ)).re
+        ≤ 32 * (Real.log (10000*(|τ|+1)^2
+            / ‖riemannZeta ((σ₀:ℂ) + Complex.I * τ)‖) + 1) := by
+  set c : ℂ := (σ₀:ℂ) + Complex.I * τ with hc_def
+  have hcre : c.re = σ₀ := by rw [hc_def]; simp
+  have hcim : c.im = τ := by rw [hc_def]; simp
+  have hfc : riemannZeta c ≠ 0 :=
+    riemannZeta_ne_zero_of_one_le_re (by rw [hcre]; linarith)
+  have hfc0 : (0:ℝ) < ‖riemannZeta c‖ := norm_pos_iff.mpr hfc
+  have hUopen : IsOpen ({(1:ℂ)}ᶜ : Set ℂ) := isOpen_compl_singleton
+  have hf : AnalyticOnNhd ℂ riemannZeta ({(1:ℂ)}ᶜ : Set ℂ) := by
+    refine DifferentiableOn.analyticOnNhd ?_ hUopen
+    intro z hz
+    exact (differentiableAt_riemannZeta
+      (Set.mem_compl_singleton_iff.mp hz)).differentiableWithinAt
+  have hball : Metric.closedBall c (1/2) ⊆ ({(1:ℂ)}ᶜ : Set ℂ) := by
+    intro z hz
+    rw [Set.mem_compl_iff, Set.mem_singleton_iff]
+    intro h1
+    have h2 : dist z c ≤ 1/2 := Metric.mem_closedBall.mp hz
+    have h3 : |z.im - c.im| ≤ 1/2 := by
+      calc |z.im - c.im| = |(z - c).im| := by rw [Complex.sub_im]
+        _ ≤ ‖z - c‖ := Complex.abs_im_le_norm _
+        _ ≤ 1/2 := by rwa [← dist_eq_norm]
+    rw [h1, hcim] at h3
+    rw [show (1:ℂ).im - τ = -τ from by simp, abs_neg] at h3
+    linarith
+  have hratio : ∀ z ∈ Metric.closedBall c (1/2),
+      ‖riemannZeta z‖
+        ≤ Real.exp (Real.log (10000*(|τ|+1)^2 / ‖riemannZeta c‖))
+          * ‖riemannZeta c‖ := by
+    intro z hz
+    have hBpos : (0:ℝ) < 10000*(|τ|+1)^2 := by positivity
+    rw [Real.exp_log (by positivity), div_mul_cancel₀ _ (ne_of_gt hfc0)]
+    have h2 : dist z c ≤ 1/2 := Metric.mem_closedBall.mp hz
+    have hre1 : |z.re - σ₀| ≤ 1/2 := by
+      calc |z.re - σ₀| = |(z - c).re| := by rw [Complex.sub_re, hcre]
+        _ ≤ ‖z - c‖ := Complex.abs_re_le_norm _
+        _ ≤ 1/2 := by rwa [← dist_eq_norm]
+    have him1 : |z.im - τ| ≤ 1/2 := by
+      calc |z.im - τ| = |(z - c).im| := by rw [Complex.sub_im, hcim]
+        _ ≤ ‖z - c‖ := Complex.abs_im_le_norm _
+        _ ≤ 1/2 := by rwa [← dist_eq_norm]
+    have hre2 := abs_le.mp hre1
+    have him2 := abs_le.mp him1
+    have hzre1 : 1/2 ≤ z.re := by linarith [hre2.1]
+    have hzre2 : z.re ≤ 5/2 := by linarith [hre2.2]
+    have hzim : 4 ≤ |z.im| := by
+      rcases abs_cases τ with ⟨hτ1, hτ2⟩ | ⟨hτ1, hτ2⟩
+      · rw [abs_of_nonneg (by linarith [him2.1] : (0:ℝ) ≤ z.im)]
+        linarith [him2.1]
+      · rw [abs_of_nonpos (by linarith [him2.2] : z.im ≤ 0)]
+        linarith [him2.2]
+    refine le_trans (zeta_norm_upper_pt z hzre1 hzre2 hzim) ?_
+    have h8 : |z.im| ≤ |τ| + 1 := by
+      calc |z.im| = |τ + (z.im - τ)| := by
+            rw [show τ + (z.im - τ) = z.im from by ring]
+        _ ≤ |τ| + |z.im - τ| := abs_add_le _ _
+        _ ≤ |τ| + 1 := by linarith
+    nlinarith [sq_abs z.im, abs_nonneg z.im, abs_nonneg τ]
+  have hrecond : ∀ z ∈ Metric.closedBall c (1/2/4),
+      riemannZeta z = 0 → z.re ≤ c.re := by
+    intro z _ hz0
+    rw [hcre]
+    by_contra h
+    push_neg at h
+    exact absurd hz0 (riemannZeta_ne_zero_of_one_le_re (by linarith))
+  constructor
+  · intro ρ hρ hζρ
+    have hρ' : ρ ∈ Metric.closedBall c (1/2/4) := by
+      rw [show (1:ℝ)/2/4 = 1/8 from by norm_num]
+      exact hρ
+    have h := landau_inequality hUopen hf (by norm_num : (0:ℝ) < 1/2)
+      hball hfc hratio hrecond hρ' hζρ
+    calc -(deriv riemannZeta c / riemannZeta c).re
+        ≤ 16 * (Real.log (10000*(|τ|+1)^2 / ‖riemannZeta c‖) + 1) / (1/2)
+          - (1/(c - ρ)).re := h
+      _ = 32 * (Real.log (10000*(|τ|+1)^2 / ‖riemannZeta c‖) + 1)
+          - (1/(c - ρ)).re := by ring
+  · have h := landau_inequality_free hUopen hf (by norm_num : (0:ℝ) < 1/2)
+      hball hfc hratio hrecond
+    calc -(deriv riemannZeta c / riemannZeta c).re
+        ≤ 16 * (Real.log (10000*(|τ|+1)^2 / ‖riemannZeta c‖) + 1) / (1/2) := h
+      _ = 32 * (Real.log (10000*(|τ|+1)^2 / ‖riemannZeta c‖) + 1) := by ring
+
 end ExpSums
 
 end MoltResearch
