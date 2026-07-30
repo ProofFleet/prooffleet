@@ -94,4 +94,15 @@ example : ∃ c₀ : ℝ, 0 < c₀ ∧ ∀ β t : ℝ, 8 ≤ |t| →
     β ≤ 1 - c₀ / Real.log |t| :=
   ExpSums.zeta_zero_free_region
 
+-- Track R cheap-frame C2 (issue #3044): the Plancherel harness — the square
+-- of a finite weighted translate sum factorizes into the phase sum against
+-- `‖𝓕F‖²`; this is `‖F ∗ μ‖² = ∫|μ̂|²|𝓕F|²` for finitely supported `μ`.
+open scoped FourierTransform ContDiff in
+example (F : ℝ → ℂ) (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F)
+    (S : Finset ℕ) (w : ℕ → ℂ) (s : ℕ → ℝ) :
+    ∫ y, ‖∑ i ∈ S, w i * F (y - s i)‖^2
+      = ∫ ξ, ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2
+          * ‖𝓕 F ξ‖^2 :=
+  ExpSums.integral_norm_sq_sum_translates F hFc hFs S w s
+
 end MoltResearch
