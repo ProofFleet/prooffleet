@@ -6968,4 +6968,19 @@ example (k N : ℕ) (hk : 1 ≤ k) :
       ≤ (1 / k : ℝ) * (Real.log N + 1) :=
   sum_one_div_filter_dvd_le k N hk
 
+-- Track R cheap-frame C1 (issue #3044): the block Turán–Kubilius
+-- inequality, consumer ε-form — most integers see the expected number of
+-- prime factors from the block.
+example (ε : ℝ) (hε : 0 < ε) :
+    ∃ E₀ : ℝ, 0 < E₀ ∧ ∀ P : Finset ℕ, (∀ p ∈ P, p.Prime) →
+      ∀ N Pmax : ℕ, (∀ p ∈ P, p ≤ Pmax) → 2*Pmax ≤ N →
+      E₀ ≤ ∑ p ∈ P, (1:ℝ)/p →
+      (∑ p ∈ P, (1:ℝ)/p) ≤ Real.log N →
+      Real.log (Pmax+1) ≤ Real.log N →
+      1 ≤ Real.log N →
+      ∑ n ∈ Finset.Ico 1 N,
+          |((P.filter (· ∣ n)).card : ℝ)/(∑ p ∈ P, (1:ℝ)/p) - 1| / n
+        ≤ ε * Real.log N :=
+  turan_kubilius_block ε hε
+
 end MoltResearch
