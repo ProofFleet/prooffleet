@@ -119,4 +119,14 @@ example (f : SchwartzMap ℝ ℂ) (K : ℝ) (hK : 0 < K) :
       ≤ (1/K^2) * ∫ ξ, ξ^2 * ‖𝓕 f ξ‖^2 :=
   ExpSums.setIntegral_norm_fourier_sq_le f K hK
 
+-- Track R cheap-frame C2-i (issue #3044): the smoothed logarithmic sum is
+-- uniformly bounded — the O(1)-bound with no exponentials in the proof.
+example (T : ℝ) (hT : 1 ≤ T) (η : ℝ → ℝ)
+    (hηsupp : ∀ u : ℝ, η u ≠ 0 → |u| ≤ 2) (B : ℝ) (hηbd : ∀ u, |η u| ≤ B)
+    (a : ℕ → ℂ) (ha : ∀ m, ‖a m‖ ≤ 1) (S : Finset ℕ) (M₁ : ℕ)
+    (hS : ∀ m ∈ S, M₁ ≤ m) (hM₁ : 1 ≤ M₁) (hTM : T ≤ M₁) (y : ℝ) :
+    ‖(T:ℂ) * ∑ m ∈ S, (a m / m) * ((η (T*(y - Real.log m)) : ℝ) : ℂ)‖
+      ≤ 5 * B :=
+  ExpSums.norm_smoothed_sum_le T hT η hηsupp B hηbd a ha S M₁ hS hM₁ hTM y
+
 end MoltResearch

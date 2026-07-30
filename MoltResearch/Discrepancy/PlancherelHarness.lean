@@ -259,6 +259,173 @@ theorem setIntegral_norm_fourier_sq_le (f : 𝓢(ℝ, ℂ)) (K : ℝ) (hK : 0 < 
   refine Filter.Eventually.of_forall fun ξ => ?_
   positivity
 
+/-- The `+1`-free harmonic window, inclusive form:
+`∑_{a ≤ m ≤ b} 1/m ≤ 1/a + log b − log a`. -/
+theorem sum_one_div_Ico_succ_window_le (a : ℕ) (ha : 1 ≤ a) :
+    ∀ b : ℕ, a ≤ b →
+      ∑ m ∈ Finset.Ico a (b+1), (1:ℝ)/m ≤ 1/a + Real.log b - Real.log a := by
+  intro b hb
+  induction b, hb using Nat.le_induction with
+  | base =>
+    have h1 : Finset.Ico a (a+1) = {a} := by
+      ext m
+      rw [Finset.mem_Ico, Finset.mem_singleton]
+      omega
+    rw [h1, Finset.sum_singleton]
+    simp
+  | succ b hab ih =>
+    rw [Finset.sum_Ico_succ_top (by omega)]
+    have hb1 : (0:ℝ) < b := by
+      have : 1 ≤ b := le_trans ha hab
+      exact_mod_cast this
+    have hstep : (1:ℝ)/(b+1) ≤ Real.log (b+1) - Real.log b := by
+      have h1 : Real.log ((b:ℝ)/(b+1)) ≤ (b:ℝ)/(b+1) - 1 :=
+        Real.log_le_sub_one_of_pos (by positivity)
+      have h2 : Real.log ((b:ℝ)/(b+1)) = Real.log b - Real.log (b+1) :=
+        Real.log_div (ne_of_gt hb1) (by positivity)
+      have h3 : (b:ℝ)/(b+1) - 1 = -(1/(b+1)) := by
+        field_simp
+        ring
+      rw [h2, h3] at h1
+      linarith
+    push_cast
+    push_cast at ih
+    linarith
+
+/-- The `+1`-free harmonic window: `∑_{a ≤ m < b} 1/m ≤ 1/a + log b − log a`
+for `1 ≤ a ≤ b`. -/
+theorem sum_one_div_Ico_window_le (a b : ℕ) (ha : 1 ≤ a) (hab : a ≤ b) :
+    ∑ m ∈ Finset.Ico a b, (1:ℝ)/m ≤ 1/a + Real.log b - Real.log a := by
+  rcases Nat.eq_or_lt_of_le hab with rfl | hlt
+  · rw [Finset.Ico_self, Finset.sum_empty]
+    have h1 : (0:ℝ) < 1/a := by positivity
+    linarith
+  · have h1 : b = (b - 1) + 1 := by omega
+    rw [h1]
+    refine le_trans (sum_one_div_Ico_succ_window_le a ha (b-1) (by omega)) ?_
+    have h2 : Real.log ((b - 1 : ℕ)) ≤ Real.log (((b - 1) + 1 : ℕ)) := by
+      have h3 : 1 ≤ b - 1 ∨ b - 1 = 0 := by omega
+      rcases h3 with h3 | h3
+      · refine Real.log_le_log (by exact_mod_cast h3) ?_
+        exact_mod_cast Nat.le_succ _
+      · rw [h3, Nat.cast_zero, Real.log_zero]
+        exact Real.log_natCast_nonneg _
+    push_cast at h2 ⊢
+    linarith
+
+
+/-- **The pointwise bound for the smoothed logarithmic sum** (C2-i): with
+bounded coefficients `‖a m‖ ≤ 1`, a window `η` supported in `[-2,2]` and
+bounded by `B`, and block start `M₁ ≥ T`, the smoothed sum
+`T·∑_{m ∈ S} (a m/m)·η(T(y − log m))` is uniformly `≤ 5B`: at each `y`
+only `m` in a multiplicative `e^{±2/T}`-window contribute, and the
+harmonic window sum is `≤ 5/T` — the window endpoints are read off the
+contributing set's own min/max, so no exponentials appear. -/
+theorem norm_smoothed_sum_le (T : ℝ) (hT : 1 ≤ T) (η : ℝ → ℝ)
+    (hηsupp : ∀ u : ℝ, η u ≠ 0 → |u| ≤ 2) (B : ℝ) (hηbd : ∀ u, |η u| ≤ B)
+    (a : ℕ → ℂ) (ha : ∀ m, ‖a m‖ ≤ 1) (S : Finset ℕ) (M₁ : ℕ)
+    (hS : ∀ m ∈ S, M₁ ≤ m) (hM₁ : 1 ≤ M₁) (hTM : T ≤ M₁) (y : ℝ) :
+    ‖(T:ℂ) * ∑ m ∈ S, (a m / m) * ((η (T*(y - Real.log m)) : ℝ) : ℂ)‖
+      ≤ 5 * B := by
+  classical
+  have hB0 : 0 ≤ B := le_trans (abs_nonneg _) (hηbd 0)
+  have hT0 : (0:ℝ) < T := by linarith
+  set W : Finset ℕ := S.filter (fun m => η (T*(y - Real.log m)) ≠ 0)
+    with hW_def
+  have hsum : ∑ m ∈ S, (a m / m) * ((η (T*(y - Real.log m)) : ℝ) : ℂ)
+      = ∑ m ∈ W, (a m / m) * ((η (T*(y - Real.log m)) : ℝ) : ℂ) := by
+    rw [hW_def]
+    refine (Finset.sum_filter_of_ne ?_).symm
+    intro m _ hne
+    intro h0
+    refine hne ?_
+    rw [h0]
+    push_cast
+    ring
+  rw [hsum]
+  have hwin : ∀ m ∈ W, y - 2/T ≤ Real.log m ∧ Real.log m ≤ y + 2/T := by
+    intro m hm
+    rw [hW_def, Finset.mem_filter] at hm
+    have h1 := hηsupp _ hm.2
+    have h2 := abs_le.mp h1
+    have hTT : T * (2/T) = 2 := by field_simp
+    constructor
+    · have h4 : T * (y - Real.log m) ≤ T * (2/T) := by
+        rw [hTT]
+        exact h2.2
+      have h5 := le_of_mul_le_mul_left h4 hT0
+      linarith
+    · have h4 : T * (-(2/T)) ≤ T * (y - Real.log m) := by
+        rw [show T * (-(2/T)) = -2 from by rw [mul_neg, hTT]]
+        exact h2.1
+      have h5 := le_of_mul_le_mul_left h4 hT0
+      linarith
+  rcases Finset.eq_empty_or_nonempty W with hWe | hWne
+  · rw [hWe, Finset.sum_empty, mul_zero, norm_zero]
+    positivity
+  · have hmn_mem := W.min'_mem hWne
+    have hmx_mem := W.max'_mem hWne
+    have hmnM : M₁ ≤ W.min' hWne := by
+      refine hS _ ?_
+      exact Finset.mem_of_mem_filter _ hmn_mem
+    have hmn1 : 1 ≤ W.min' hWne := le_trans hM₁ hmnM
+    have hmnmx : W.min' hWne ≤ W.max' hWne := W.min'_le _ hmx_mem
+    have hsub : W ⊆ Finset.Ico (W.min' hWne) (W.max' hWne + 1) := by
+      intro m hm
+      rw [Finset.mem_Ico]
+      exact ⟨W.min'_le m hm, Nat.lt_succ_of_le (W.le_max' m hm)⟩
+    have hharm : ∑ m ∈ W, (1:ℝ)/m
+        ≤ 1/(W.min' hWne) + Real.log (W.max' hWne)
+          - Real.log (W.min' hWne) := by
+      refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub ?_) ?_
+      · intro m _ _
+        positivity
+      · exact sum_one_div_Ico_succ_window_le _ hmn1 _ hmnmx
+    have hspread : Real.log (W.max' hWne) - Real.log (W.min' hWne)
+        ≤ 4/T := by
+      have h1 := (hwin _ hmn_mem).1
+      have h2 := (hwin _ hmx_mem).2
+      have h3 : (2:ℝ)/T + 2/T = 4/T := by ring
+      linarith
+    have hedge : (1:ℝ)/(W.min' hWne) ≤ 1/T := by
+      refine one_div_le_one_div_of_le hT0 ?_
+      calc T ≤ (M₁:ℝ) := hTM
+        _ ≤ (W.min' hWne : ℝ) := by exact_mod_cast hmnM
+    have hnorm : ‖(T:ℂ) * ∑ m ∈ W,
+          (a m / m) * ((η (T*(y - Real.log m)) : ℝ) : ℂ)‖
+        ≤ T * ((∑ m ∈ W, (1:ℝ)/m) * B) := by
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hT0]
+      refine mul_le_mul_of_nonneg_left ?_ hT0.le
+      refine le_trans (norm_sum_le _ _) ?_
+      rw [Finset.sum_mul]
+      refine Finset.sum_le_sum fun m hm => ?_
+      have hm1 : 1 ≤ m := by
+        refine le_trans hM₁ (hS m ?_)
+        exact Finset.mem_of_mem_filter _ hm
+      have hm0 : (0:ℝ) < m := by exact_mod_cast hm1
+      rw [norm_mul, norm_div, Complex.norm_natCast, Complex.norm_real,
+        Real.norm_eq_abs]
+      calc ‖a m‖ / m * |η (T*(y - Real.log m))|
+          ≤ 1 / m * B := by
+            refine mul_le_mul ?_ (hηbd _) (abs_nonneg _) (by positivity)
+            exact div_le_div_of_nonneg_right (ha m) hm0.le
+        _ = (1:ℝ)/m * B := rfl
+    refine le_trans hnorm ?_
+    have hfinal : T * ((∑ m ∈ W, (1:ℝ)/m) * B) ≤ 5 * B := by
+      have h1 : ∑ m ∈ W, (1:ℝ)/m ≤ 1/T + 4/T := by
+        linarith
+      have h2 : T * (∑ m ∈ W, (1:ℝ)/m) ≤ 5 := by
+        have h3 : T * (1/T + 4/T) = 5 := by field_simp; ring
+        have h4 := mul_le_mul_of_nonneg_left h1 hT0.le
+        rw [h3] at h4
+        exact h4
+      have h5 : (0:ℝ) ≤ ∑ m ∈ W, (1:ℝ)/m :=
+        Finset.sum_nonneg fun m _ => by positivity
+      calc T * ((∑ m ∈ W, (1:ℝ)/m) * B)
+          = (T * (∑ m ∈ W, (1:ℝ)/m)) * B := by ring
+        _ ≤ 5 * B := mul_le_mul_of_nonneg_right h2 hB0
+    exact hfinal
+
 end ExpSums
 
 end MoltResearch
