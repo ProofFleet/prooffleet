@@ -105,4 +105,18 @@ example (F : ℝ → ℂ) (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F)
           * ‖𝓕 F ξ‖^2 :=
   ExpSums.integral_norm_sq_sum_translates F hFc hFs S w s
 
+-- Track R cheap-frame C2-iii (issue #3044): the high-frequency regime kill —
+-- derivative Plancherel plus the K⁻²-tail bound.
+open scoped FourierTransform in
+open LineDeriv in
+example (f : SchwartzMap ℝ ℂ) :
+    (4*Real.pi^2) * ∫ ξ, ξ^2 * ‖𝓕 f ξ‖^2 = ∫ y, ‖(∂_{(1:ℝ)} f) y‖^2 :=
+  ExpSums.integral_sq_mul_norm_fourier_sq f
+
+open scoped FourierTransform in
+example (f : SchwartzMap ℝ ℂ) (K : ℝ) (hK : 0 < K) :
+    ∫ ξ in {ξ : ℝ | K ≤ |ξ|}, ‖𝓕 f ξ‖^2
+      ≤ (1/K^2) * ∫ ξ, ξ^2 * ‖𝓕 f ξ‖^2 :=
+  ExpSums.setIntegral_norm_fourier_sq_le f K hK
+
 end MoltResearch
