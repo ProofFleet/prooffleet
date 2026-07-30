@@ -318,6 +318,293 @@ theorem zeta_logDeriv_pole_bound :
   rw [hsplit]
   linarith
 
+/-- **The crude zeta upper bound on the extended strip**: for
+`1/2 ≤ σ ≤ 5/2` and `|t| ≥ 4`, `‖ζ(σ - it)‖ ≤ 10⁴·t²` — three pieces:
+the AFE strip bound on `[1/2, 1]`, the Track-L `log/loglog` bound on
+`(1, 2]`, and the trivial series bound on `(2, 5/2]`. -/
+theorem zeta_norm_upper (σ t : ℝ) (hσl : 1/2 ≤ σ) (hσu : σ ≤ 5/2)
+    (ht : 4 ≤ |t|) :
+    ‖riemannZeta ((σ:ℂ) - Complex.I * t)‖ ≤ 10000 * t^2 := by
+  have ht0 : (0:ℝ) < |t| := by linarith
+  have ht2 : (0:ℝ) < t^2 := by
+    have := sq_abs t
+    nlinarith [ht0]
+  rcases le_or_gt σ 1 with hσ1 | hσ1
+  · -- the strip piece via `zeta_strip_bound` at the dyadic window of `|t|`
+    set m : ℕ := ⌊|t|⌋₊ with hmdef
+    have hm4 : 4 ≤ m := by
+      rw [hmdef]
+      exact Nat.le_floor (by exact_mod_cast ht)
+    set d : ℕ := Nat.log 2 m with hddef
+    have hd2 : 2 ≤ d := by
+      rw [hddef]
+      calc 2 = Nat.log 2 4 := by
+            rw [show (4:ℕ) = 2^2 from by norm_num, Nat.log_pow (by norm_num)]
+        _ ≤ Nat.log 2 m := Nat.log_mono_right hm4
+    have hdlow : (2:ℝ)^d ≤ |t| := by
+      have h1 : (2:ℕ)^d ≤ m := Nat.pow_log_le_self 2 (by omega)
+      have h2 : ((m:ℕ):ℝ) ≤ |t| := Nat.floor_le ht0.le
+      calc (2:ℝ)^d = ((2^d : ℕ):ℝ) := by push_cast; ring
+        _ ≤ ((m:ℕ):ℝ) := by exact_mod_cast h1
+        _ ≤ |t| := h2
+    have hdhigh : |t| ≤ 2^(d+1) := by
+      have h1 : m < 2^(d+1) := Nat.lt_pow_succ_log_self (by norm_num) m
+      have h2 : |t| < ((m:ℕ):ℝ) + 1 := Nat.lt_floor_add_one _
+      have h3 : ((m:ℕ):ℝ) + 1 ≤ ((2^(d+1) : ℕ):ℝ) := by
+        exact_mod_cast h1
+      calc |t| ≤ ((m:ℕ):ℝ) + 1 := h2.le
+        _ ≤ ((2^(d+1) : ℕ):ℝ) := h3
+        _ = (2:ℝ)^(d+1) := by push_cast; ring
+    have hbound := zeta_strip_bound σ t d 0 hσl hσ1 (by omega) hdlow hdhigh
+    -- crude absorption of the four terms
+    have hdR : (d:ℝ) ≤ |t| := by
+      have h1 : (d:ℝ) ≤ (2:ℝ)^d := by
+        exact_mod_cast (Nat.lt_two_pow_self).le
+      linarith [hdlow]
+    have h2d1 : (2:ℝ)^(d+1) ≤ 2*|t| := by
+      calc (2:ℝ)^(d+1) = 2 * 2^d := by ring
+        _ ≤ 2 * |t| := by linarith [hdlow]
+    have h2d4 : ((2^(d+4) : ℕ):ℝ) ≤ 16*|t| := by
+      have h1 : ((2^(d+4) : ℕ):ℝ) = 16 * (2:ℝ)^d := by push_cast; ring
+      rw [h1]
+      linarith [hdlow]
+    have hpow1 : ((2:ℝ)^(d+1)) ^ (1-σ) ≤ 2*|t| := by
+      have h1 : ((2:ℝ)^(d+1)) ^ (1-σ) ≤ ((2:ℝ)^(d+1)) ^ (1:ℝ) := by
+        refine Real.rpow_le_rpow_of_exponent_le ?_ (by linarith)
+        have : (1:ℝ) ≤ 2^(d+1) := one_le_pow₀ (by norm_num)
+        linarith
+      rw [Real.rpow_one] at h1
+      linarith [h2d1]
+    have hpow0 : ((2:ℝ)^(d+1)) ^ (-σ) ≤ 1 := by
+      refine Real.rpow_le_one_of_one_le_of_nonpos ?_ (by linarith)
+      have : (1:ℝ) ≤ 2^(d+1) := one_le_pow₀ (by norm_num)
+      linarith
+    have hpow4 : ((2^(d+4) : ℕ):ℝ) ^ (1-σ) ≤ 16*|t| := by
+      have h0 : (1:ℝ) ≤ ((2^(d+4) : ℕ):ℝ) := by
+        have : (1:ℕ) ≤ 2^(d+4) := Nat.one_le_two_pow
+        exact_mod_cast this
+      have h1 : ((2^(d+4) : ℕ):ℝ) ^ (1-σ) ≤ ((2^(d+4) : ℕ):ℝ) ^ (1:ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le h0 (by linarith)
+      rw [Real.rpow_one] at h1
+      linarith [h2d4]
+    have hsnorm : ‖((σ:ℂ) - Complex.I * t) - 1‖ ≤ 2 + |t| := by
+      calc ‖((σ:ℂ) - Complex.I * t) - 1‖
+          = ‖((σ - 1 : ℝ):ℂ) - Complex.I * (t:ℂ)‖ := by
+            congr 1
+            push_cast
+            ring
+        _ ≤ ‖((σ - 1 : ℝ):ℂ)‖ + ‖Complex.I * (t:ℂ)‖ := norm_sub_le _ _
+        _ = |σ - 1| + |t| := by
+            rw [Complex.norm_real, Real.norm_eq_abs, norm_mul, Complex.norm_I,
+              one_mul, Complex.norm_real, Real.norm_eq_abs]
+        _ ≤ 2 + |t| := by
+            have : |σ - 1| ≤ 2 := by
+              rw [abs_le]
+              constructor <;> linarith
+            linarith
+    have hsnorm_low : 1 ≤ ‖((σ:ℂ) - Complex.I * t) - 1‖ := by
+      have h1 : |t| ≤ ‖((σ:ℂ) - Complex.I * t) - 1‖ := by
+        have h2 : (((σ:ℂ) - Complex.I * t) - 1).im = -t := by
+          simp
+        calc |t| = |(((σ:ℂ) - Complex.I * t) - 1).im| := by
+              rw [h2, abs_neg]
+          _ ≤ ‖((σ:ℂ) - Complex.I * t) - 1‖ := Complex.abs_im_le_norm _
+      linarith
+    have htail : (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) ≤ 1 := by
+      refine Real.rpow_le_one_of_one_le_of_nonpos ?_ (by linarith)
+      have h1 : (32:ℕ) ≤ 2^(d+4) := by
+        calc (32:ℕ) = 2^5 := by norm_num
+          _ ≤ 2^(d+4) := Nat.pow_le_pow_right (by norm_num) (by omega)
+      have h2 : (32:ℝ) ≤ ((2^(d+4) : ℕ):ℝ) := by exact_mod_cast h1
+      linarith
+    -- assemble the four crude pieces
+    have hsched : (((d-2)/(0+2) + 2^(0+7) + 3 : ℕ) : ℝ) ≤ |t| + 131 := by
+      have h1 : ((d-2)/(0+2) + 2^(0+7) + 3 : ℕ) = (d-2)/2 + 131 := by norm_num
+      rw [h1]
+      push_cast
+      have h2 : (((d-2)/2 : ℕ) : ℝ) ≤ (d:ℝ) := by
+        have h3 : ((d-2)/2 : ℕ) ≤ d := by omega
+        exact_mod_cast h3
+      linarith [hdR]
+    refine le_trans hbound ?_
+    have habs : |t| ≤ t^2 / 4 * 4 := by
+      nlinarith [sq_abs t, ht]
+    have habs2 : |t| * |t| = t^2 := by
+      rw [← sq_abs t]
+      ring
+    have hb1 : ((2:ℝ)^(d+1)) ^ (1-σ)
+        * (((d-2)/(0+2) + 2^(0+7) + 3 : ℕ) : ℝ)
+        ≤ 2*|t| * (|t| + 131) := by
+      refine mul_le_mul hpow1 hsched (by positivity) (by positivity)
+    have hb2 : 7 * (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ) ≤ 14*|t| := by
+      calc 7 * (2:ℝ)^(d+1) * ((2:ℝ)^(d+1)) ^ (-σ)
+          ≤ 7 * (2:ℝ)^(d+1) * 1 := by
+            refine mul_le_mul_of_nonneg_left hpow0 (by positivity)
+        _ = 7 * (2:ℝ)^(d+1) := by ring
+        _ ≤ 14*|t| := by linarith [h2d1]
+    have hb3 : ((2^(d+4) : ℕ):ℝ) ^ (1-σ) / ‖((σ:ℂ) - Complex.I * t) - 1‖
+        ≤ 16*|t| := by
+      calc ((2^(d+4) : ℕ):ℝ) ^ (1-σ) / ‖((σ:ℂ) - Complex.I * t) - 1‖
+          ≤ ((2^(d+4) : ℕ):ℝ) ^ (1-σ) / 1 := by
+            gcongr
+        _ = ((2^(d+4) : ℕ):ℝ) ^ (1-σ) := div_one _
+        _ ≤ 16*|t| := hpow4
+    have htail_nonneg : (0:ℝ) ≤ (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) := by
+      refine Real.rpow_nonneg ?_ _
+      have h1 : (32:ℕ) ≤ 2^(d+4) := by
+        calc (32:ℕ) = 2^5 := by norm_num
+          _ ≤ 2^(d+4) := Nat.pow_le_pow_right (by norm_num) (by omega)
+      have h2 : (32:ℝ) ≤ ((2^(d+4) : ℕ):ℝ) := by exact_mod_cast h1
+      linarith
+    have hb4 : 2 * ‖((σ:ℂ) - Complex.I * t) - 1‖
+        * (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) / σ ≤ 8 + 4*|t| := by
+      calc 2 * ‖((σ:ℂ) - Complex.I * t) - 1‖
+          * (((2^(d+4) : ℕ):ℝ) - 1) ^ (-σ) / σ
+          ≤ 2 * (2 + |t|) * 1 / σ := by
+            gcongr <;> first | exact hsnorm | exact htail | positivity | linarith
+        _ ≤ 2 * (2 + |t|) * 1 / (1/2) := by
+            gcongr <;> first | positivity | linarith
+        _ = 8 + 4*|t| := by ring
+    have hfinal : 2*|t| * (|t| + 131) + 14*|t| + 16*|t| + (8 + 4*|t|)
+        ≤ 10000 * t^2 := by
+      nlinarith [sq_abs t, ht, sq_nonneg (|t| - 4)]
+    linarith [hb1, hb2, hb3, hb4, hfinal]
+  · rcases le_or_gt σ 2 with hσ2 | hσ2
+    · -- the Track-L piece on `(1, 2]`
+      have h1 : ‖LSeries (fun _ => 1) ((σ:ℂ) - Complex.I * t)‖
+          ≤ 8192 * Real.log (|t| + 2) / Real.log (Real.log (|t| + 2)) :=
+        zeta_LSeries_bound σ t hσ1 hσ2 (by linarith)
+      have h2 : LSeries (fun _ => 1) ((σ:ℂ) - Complex.I * t)
+          = riemannZeta ((σ:ℂ) - Complex.I * t) := by
+        refine LSeries_one_eq_riemannZeta ?_
+        simp only [Complex.sub_re, Complex.ofReal_re, Complex.mul_re,
+          Complex.I_re, Complex.I_im, Complex.ofReal_im]
+        simp
+        linarith
+      rw [h2] at h1
+      refine le_trans h1 ?_
+      -- `loglog ≥ 1/2` and `log(|t|+2) ≤ |t|+2`
+      have hlog6 : Real.exp (1/2) ≤ Real.log (|t| + 2) := by
+        have ha : Real.exp (1/2) ≤ 1.65 := by
+          have hb : Real.exp (1/2) * Real.exp (1/2) = Real.exp 1 := by
+            rw [← Real.exp_add]
+            norm_num
+          nlinarith [Real.exp_one_lt_d9, Real.exp_pos (1/2:ℝ)]
+        have hc : (1.65:ℝ) ≤ Real.log 6 := by
+          have hd : Real.log 6 = Real.log 2 + Real.log 3 := by
+            rw [← Real.log_mul (by norm_num) (by norm_num)]
+            norm_num
+          have he : (1:ℝ) ≤ Real.log 3 := by
+            have hf : Real.exp 1 ≤ 3 := by
+              nlinarith [Real.exp_one_lt_d9]
+            calc (1:ℝ) = Real.log (Real.exp 1) := (Real.log_exp 1).symm
+              _ ≤ Real.log 3 := Real.log_le_log (Real.exp_pos 1) hf
+          have hg := Real.log_two_gt_d9
+          rw [hd]
+          linarith
+        have hh : Real.log 6 ≤ Real.log (|t| + 2) :=
+          Real.log_le_log (by norm_num) (by linarith)
+        linarith
+      have hloglog : (1/2:ℝ) ≤ Real.log (Real.log (|t| + 2)) := by
+        calc (1/2:ℝ) = Real.log (Real.exp (1/2)) := (Real.log_exp _).symm
+          _ ≤ Real.log (Real.log (|t| + 2)) :=
+            Real.log_le_log (Real.exp_pos _) hlog6
+      have hlogup : Real.log (|t| + 2) ≤ |t| + 2 := by
+        have := Real.log_le_sub_one_of_pos (show (0:ℝ) < |t| + 2 by linarith)
+        linarith
+      calc 8192 * Real.log (|t| + 2) / Real.log (Real.log (|t| + 2))
+          ≤ 8192 * (|t| + 2) / (1/2) := by
+            gcongr <;> first | positivity | linarith
+        _ = 16384 * (|t| + 2) := by ring
+        _ ≤ 10000 * t^2 := by
+            nlinarith [sq_abs t, ht, sq_nonneg (|t| - 4)]
+    · -- the trivial piece on `(2, 5/2]`
+      have hre : ((σ:ℂ) - Complex.I * t).re = σ := by
+        simp
+      have h1 : ‖riemannZeta ((σ:ℂ) - Complex.I * t)‖ ≤ 2 := by
+        have hcomp : ∀ n : ℕ, ‖1/(n:ℂ) ^ ((σ:ℂ) - Complex.I * t)‖
+            ≤ (n:ℝ) ^ (-(2:ℝ)) := by
+          intro n
+          rcases Nat.eq_zero_or_pos n with h0 | h0
+          · subst h0
+            rw [show ((0:ℕ):ℂ) = 0 from by norm_num,
+              Complex.zero_cpow (by
+                intro h
+                rw [Complex.ext_iff] at h
+                simp [hre] at h
+                linarith)]
+            simp [Real.zero_rpow (by norm_num : (-2:ℝ) ≠ 0)]
+          · rw [norm_div, norm_one, Complex.norm_natCast_cpow_of_pos h0, hre]
+            rw [show (1:ℝ) / (n:ℝ) ^ σ = (n:ℝ) ^ (-σ) from by
+                rw [Real.rpow_neg (Nat.cast_nonneg n), inv_eq_one_div]]
+            refine Real.rpow_le_rpow_of_exponent_le ?_ (by linarith)
+            exact_mod_cast h0
+        have hnormsum : Summable (fun n : ℕ =>
+            ‖1/(n:ℂ) ^ ((σ:ℂ) - Complex.I * t)‖) := by
+          have hs := (Real.summable_one_div_nat_rpow (p := σ)).mpr
+            (by linarith : 1 < σ)
+          refine hs.of_nonneg_of_le (fun n => norm_nonneg _) ?_
+          intro n
+          rcases Nat.eq_zero_or_pos n with h0 | h0
+          · subst h0
+            rw [show ((0:ℕ):ℂ) = 0 from by norm_num,
+              Complex.zero_cpow (by
+                intro h
+                rw [Complex.ext_iff] at h
+                simp [hre] at h
+                linarith)]
+            simp
+            positivity
+          · rw [norm_div, norm_one, Complex.norm_natCast_cpow_of_pos h0, hre]
+        have hsum2 : Summable (fun n : ℕ => (n:ℝ) ^ (-(2:ℝ))) := by
+          rw [show (fun n : ℕ => ((n:ℝ)) ^ (-(2:ℝ)))
+              = (fun n : ℕ => 1 / ((n:ℝ)) ^ (2:ℝ)) from funext fun n => by
+              rw [Real.rpow_neg (Nat.cast_nonneg n), inv_eq_one_div]]
+          exact (Real.summable_one_div_nat_rpow).mpr (by norm_num)
+        rw [zeta_eq_tsum_one_div_nat_cpow (by rw [hre]; linarith)]
+        refine le_trans (norm_tsum_le_tsum_norm hnormsum) ?_
+        refine le_trans (hnormsum.tsum_le_tsum hcomp hsum2) ?_
+        refine Real.tsum_le_of_sum_range_le (fun n => by positivity)
+          (fun K => ?_)
+        rcases le_or_gt K 2 with hK | hK
+        · have hsub : ∑ n ∈ Finset.range K, (n:ℝ) ^ (-(2:ℝ))
+              ≤ ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-(2:ℝ)) := by
+            refine Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_
+            · intro x hx
+              rw [Finset.mem_range] at *
+              omega
+            · intro n _ _
+              positivity
+          have h2 : ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-(2:ℝ)) ≤ 2 := by
+            rw [Finset.sum_range_succ, Finset.sum_range_one]
+            norm_num
+          linarith
+        · have hsplit : ∑ n ∈ Finset.range K, (n:ℝ) ^ (-(2:ℝ))
+              = ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-(2:ℝ))
+                + ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-(2:ℝ)) := by
+            rw [Finset.range_eq_Ico,
+              ← Finset.sum_Ico_consecutive _ (by omega : 0 ≤ 2)
+                (by omega : 2 ≤ K)]
+          rw [hsplit]
+          have h2 : ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-(2:ℝ)) ≤ 1 := by
+            rw [Finset.sum_range_succ, Finset.sum_range_one]
+            norm_num
+          have h3 : ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-(2:ℝ)) ≤ 1 := by
+            have h4 : ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-(2:ℝ))
+                = ∑ n ∈ Finset.Ico 2 K, (1:ℝ)/(n:ℝ)^2 := by
+              refine Finset.sum_congr rfl fun n hn => ?_
+              rw [Finset.mem_Ico] at hn
+              rw [Real.rpow_neg (Nat.cast_nonneg n), inv_eq_one_div]
+              congr 1
+              rw [show ((2:ℝ)) = ((2:ℕ):ℝ) from by norm_num,
+                Real.rpow_natCast]
+            rw [h4]
+            have h5 := sum_inv_sq_Ico_le 2 K (le_refl 2)
+            linarith
+          linarith
+      have h16 : (16:ℝ) ≤ t^2 := by nlinarith [sq_abs t, ht]
+      linarith [h1]
+
 end ExpSums
 
 end MoltResearch
