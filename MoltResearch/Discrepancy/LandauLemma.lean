@@ -713,6 +713,200 @@ theorem landau_inequality {f : ℂ → ℂ} {U : Set ℂ} (hU : IsOpen U)
   rw [hfinal]
   linarith
 
+/-- **Landau's inequality, zero-free form**: the same hypotheses without a
+designated zero give `-Re (f'/f)(c) ≤ 16(M+1)/R` outright — every root term
+of the factorization is nonnegative and is dropped. -/
+theorem landau_inequality_free {f : ℂ → ℂ} {U : Set ℂ} (hU : IsOpen U)
+    (hf : AnalyticOnNhd ℂ f U) {c : ℂ} {R : ℝ} (hR : 0 < R)
+    (hball : Metric.closedBall c R ⊆ U) (hfc : f c ≠ 0) {M : ℝ}
+    (hratio : ∀ z ∈ Metric.closedBall c R, ‖f z‖ ≤ Real.exp M * ‖f c‖)
+    (hre : ∀ z ∈ Metric.closedBall c (R/4), f z = 0 → z.re ≤ c.re) :
+    -(deriv f c / f c).re ≤ 16 * (M + 1) / R := by
+  classical
+  have hfc0 : (0:ℝ) < ‖f c‖ := norm_pos_iff.mpr hfc
+  have hM0 : 0 ≤ M := by
+    have h1 := hratio c (Metric.mem_closedBall_self hR.le)
+    by_contra h
+    push_neg at h
+    have h2 : Real.exp M < 1 := Real.exp_lt_one_iff.mpr h
+    nlinarith [mul_lt_mul_of_pos_right h2 hfc0]
+  set S : Set ℂ := {z ∈ Metric.closedBall c (R/4) | f z = 0} with hS_def
+  have hSball : S ⊆ Metric.ball c R := by
+    intro z hz
+    have h1 : dist z c ≤ R/4 := Metric.mem_closedBall.mp hz.1
+    rw [Metric.mem_ball]
+    linarith
+  have hSU : S ⊆ U := fun z hz =>
+    hball (Metric.ball_subset_closedBall (hSball hz))
+  have hne : ∀ ρ ∈ S, ¬ (∀ᶠ z in nhds ρ, f z = 0) := by
+    intro ρ hρ hev
+    have hball_conn : IsPreconnected (Metric.ball c R) :=
+      (convex_ball c R).isPreconnected
+    have hfball : AnalyticOnNhd ℂ f (Metric.ball c R) := fun z hz =>
+      hf z (hball (Metric.ball_subset_closedBall hz))
+    have hzero := hfball.eqOn_zero_of_preconnected_of_eventuallyEq_zero
+      hball_conn (hSball hρ) hev
+    exact hfc (hzero (Metric.mem_ball_self hR))
+  set fuel : ℕ := ⌈M / Real.log 3⌉₊ + 1 with hfuel_def
+  obtain ⟨L, g, hLS, hg, hfac, hlen, hdisj⟩ :=
+    exists_prod_factor_of_zeros f hU hf S hSU hne fuel
+  have hlog3 : (0:ℝ) < Real.log 3 := Real.log_pos (by norm_num)
+  have hnv : ∀ ρ ∈ S, g ρ ≠ 0 := by
+    rcases hdisj with hfull | hnv
+    · exfalso
+      have hcount := three_pow_mul_le_of_prod_factor hU hR hball hg
+        (fun ρ hρ => (hLS ρ hρ).1) hfac
+        (B := Real.exp M * ‖f c‖)
+        (fun z hz => hratio z (Metric.sphere_subset_closedBall hz))
+      rw [hfull] at hcount
+      have h1 : (3:ℝ) ^ fuel ≤ Real.exp M :=
+        le_of_mul_le_mul_right hcount hfc0
+      have h4 : (fuel:ℝ) * Real.log 3 ≤ M := by
+        have h5 := Real.log_le_log (by positivity) h1
+        rw [Real.log_pow, Real.log_exp] at h5
+        exact h5
+      have h6 : (fuel:ℝ) ≤ M / Real.log 3 := by
+        rw [le_div_iff₀ hlog3]
+        exact h4
+      have h7 : M / Real.log 3 ≤ (⌈M / Real.log 3⌉₊ : ℝ) := Nat.le_ceil _
+      have h8 : (fuel:ℝ) = (⌈M / Real.log 3⌉₊ : ℝ) + 1 := by
+        rw [hfuel_def]
+        push_cast
+        ring
+      linarith
+    · exact hnv
+  have hLc : ∀ ρ ∈ L, c ≠ ρ := by
+    intro ρ hρL hcρ
+    exact hfc (hcρ ▸ (hLS ρ hρL).2)
+  have hgq : ∀ z ∈ Metric.ball c (R/4), g z ≠ 0 := by
+    intro z hz hg0
+    by_cases hfz : f z = 0
+    · exact hnv z ⟨Metric.ball_subset_closedBall hz, hfz⟩ hg0
+    · refine hfz ?_
+      rw [hfac z (hball (Metric.ball_subset_closedBall (by
+          rw [Metric.mem_ball] at hz ⊢
+          linarith))), hg0, mul_zero]
+  set k : ℕ := L.length with hk_def
+  have hgcl : ‖f c‖ ≤ (R/4) ^ k * ‖g c‖ := by
+    rw [hfac c (hball (Metric.mem_closedBall_self hR.le)), norm_mul]
+    refine mul_le_mul_of_nonneg_right ?_ (norm_nonneg _)
+    refine norm_list_prod_sub_le fun ρ hρ => ?_
+    have h1 : dist ρ c ≤ R/4 := Metric.mem_closedBall.mp (hLS ρ hρ).1
+    rw [show ‖c - ρ‖ = dist ρ c from by rw [dist_eq_norm, norm_sub_rev]]
+    exact h1
+  have hgball : ∀ z ∈ Metric.ball c R,
+      ‖g z‖ ≤ Real.exp M * ‖f c‖ / ((3/4) * R) ^ k := by
+    intro z hz
+    have hbd : Bornology.IsBounded (Metric.ball c R) := Metric.isBounded_ball
+    have hdiff : DiffContOnCl ℂ g (Metric.ball c R) := by
+      have h1 : DifferentiableOn ℂ g (Metric.closedBall c R) := by
+        intro w hw
+        exact (hg w (hball hw)).differentiableAt.differentiableWithinAt
+      rw [← closure_ball c hR.ne'] at h1
+      exact h1.diffContOnCl
+    have hfr : ∀ w ∈ frontier (Metric.ball c R),
+        ‖g w‖ ≤ Real.exp M * ‖f c‖ / ((3/4) * R) ^ k := by
+      rw [frontier_ball c hR.ne']
+      intro w hw
+      have hwU : w ∈ U := hball (Metric.sphere_subset_closedBall hw)
+      have hwc : dist w c = R := Metric.mem_sphere.mp hw
+      have hroots : ∀ ρ ∈ L, (3/4) * R ≤ ‖w - ρ‖ := by
+        intro ρ hρ
+        have h1 : dist ρ c ≤ R/4 := Metric.mem_closedBall.mp (hLS ρ hρ).1
+        rw [show ‖w - ρ‖ = dist w ρ from by rw [dist_eq_norm]]
+        calc (3/4) * R = R - R/4 := by ring
+          _ ≤ dist w c - dist ρ c := by linarith
+          _ ≤ dist w ρ := by linarith [dist_triangle w ρ c]
+      have hprod : ((3/4) * R) ^ k ≤ ‖(L.map (fun ρ => w - ρ)).prod‖ :=
+        le_norm_list_prod_sub (by positivity) hroots
+      have hfw := hfac w hwU
+      have hfB := hratio w (Metric.sphere_subset_closedBall hw)
+      rw [hfw, norm_mul] at hfB
+      have hpos : (0:ℝ) < ((3/4) * R) ^ k := by positivity
+      rw [le_div_iff₀ hpos]
+      calc ‖g w‖ * ((3/4) * R) ^ k
+          ≤ ‖g w‖ * ‖(L.map (fun ρ => w - ρ)).prod‖ :=
+            mul_le_mul_of_nonneg_left hprod (norm_nonneg _)
+        _ = ‖(L.map (fun ρ => w - ρ)).prod‖ * ‖g w‖ := by ring
+        _ ≤ Real.exp M * ‖f c‖ := hfB
+    have hcc : z ∈ closure (Metric.ball c R) := by
+      rw [closure_ball c hR.ne']
+      exact Metric.ball_subset_closedBall hz
+    exact Complex.norm_le_of_forall_mem_frontier_norm_le hbd hdiff hfr hcc
+  have hgratio : ∀ z ∈ Metric.ball c (R/4),
+      ‖g z‖ ≤ Real.exp M * ‖g c‖ := by
+    intro z hz
+    have hz' : z ∈ Metric.ball c R := by
+      rw [Metric.mem_ball] at hz ⊢
+      linarith
+    have h1 := hgball z hz'
+    have h2 : Real.exp M * ‖f c‖ / ((3/4) * R) ^ k
+        ≤ Real.exp M * ‖g c‖ := by
+      rw [div_le_iff₀ (by positivity)]
+      have h3 : ((3:ℝ)/4 * R) ^ k = 3 ^ k * (R/4) ^ k := by
+        rw [← mul_pow]
+        congr 1
+        ring
+      rw [h3]
+      calc Real.exp M * ‖f c‖
+          ≤ Real.exp M * ((R/4) ^ k * ‖g c‖) :=
+            mul_le_mul_of_nonneg_left hgcl (Real.exp_pos M).le
+        _ = (Real.exp M * ‖g c‖) * ((R/4) ^ k * 1) := by ring
+        _ ≤ (Real.exp M * ‖g c‖) * ((R/4) ^ k * 3 ^ k) := by
+            have h4 : (1:ℝ) ≤ 3 ^ k := one_le_pow₀ (by norm_num)
+            have h5 : (0:ℝ) ≤ (R/4) ^ k := by positivity
+            have h6 : (0:ℝ) ≤ Real.exp M * ‖g c‖ :=
+              mul_nonneg (Real.exp_pos M).le (norm_nonneg _)
+            exact mul_le_mul_of_nonneg_left
+              (mul_le_mul_of_nonneg_left h4 h5) h6
+        _ = Real.exp M * ‖g c‖ * (3 ^ k * (R/4) ^ k) := by ring
+    exact le_trans h1 h2
+  have hR4 : (0:ℝ) < R/4 := by linarith
+  have hball4 : Metric.ball c (R/4) ⊆ U := by
+    intro z hz
+    refine hball (Metric.ball_subset_closedBall ?_)
+    rw [Metric.mem_ball] at hz ⊢
+    linarith
+  have hlogd := norm_logDeriv_le_of_ratio_le hU hg hR4 hball4 hgq hgratio
+  have hlogd4 : ‖deriv g c / g c‖ ≤ 16 * (M + 1) / R := by
+    refine le_trans hlogd ?_
+    rw [show 4 * (M + 1) / (R/4) = 16 * (M + 1) / R from by field_simp; ring]
+  have hgc : g c ≠ 0 := hgq c (Metric.mem_ball_self hR4)
+  have hsplit := deriv_div_of_prod_factor hU hg hfac
+    (hball (Metric.mem_closedBall_self hR.le)) hLc hgc
+  have hsum_nonneg : (0:ℝ) ≤ ((L.map (fun ρ => 1/(c - ρ))).sum).re := by
+    rw [show (((L.map (fun ρ => 1/(c - ρ))).sum).re)
+        = (((L.map (fun ρ => 1/(c - ρ))).map Complex.re).sum) from by
+        rw [← Complex.coe_reAddGroupHom]
+        exact map_list_sum Complex.reAddGroupHom _]
+    refine List.sum_nonneg ?_
+    intro x hx
+    rw [List.mem_map] at hx
+    obtain ⟨y, hy, hyx⟩ := hx
+    rw [List.mem_map] at hy
+    obtain ⟨ρ, hρL, hρy⟩ := hy
+    have hρS : ρ ∈ S := hLS ρ hρL
+    have hρre : ρ.re ≤ c.re := hre ρ hρS.1 hρS.2
+    have hcρ : c - ρ ≠ 0 := sub_ne_zero.mpr (hLc ρ hρL)
+    rw [← hyx, ← hρy]
+    rw [one_div, Complex.inv_re]
+    refine div_nonneg ?_ (Complex.normSq_nonneg _)
+    rw [Complex.sub_re]
+    linarith
+  have hgre : -(deriv g c / g c).re ≤ 16 * (M + 1) / R := by
+    have h1 : -(deriv g c / g c).re ≤ ‖deriv g c / g c‖ := by
+      have h2 := Complex.abs_re_le_norm (deriv g c / g c)
+      have h3 := neg_abs_le (deriv g c / g c).re
+      linarith
+    linarith [hlogd4]
+  rw [hsplit]
+  have hfinal : -(((L.map (fun ρ => 1/(c - ρ))).sum + deriv g c / g c).re)
+      = -(((L.map (fun ρ => 1/(c - ρ))).sum).re) - (deriv g c / g c).re := by
+    simp [Complex.add_re]
+    ring
+  rw [hfinal]
+  linarith
+
 end ExpSums
 
 end MoltResearch
