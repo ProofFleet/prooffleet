@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy
 import MoltResearch.Discrepancy.LogDifferences
 import MoltResearch.Discrepancy.ZetaBound
 import MoltResearch.Discrepancy.LandauLemma
+import MoltResearch.Discrepancy.ZeroFreeRegion
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
