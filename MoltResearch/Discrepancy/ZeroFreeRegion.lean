@@ -1,6 +1,9 @@
 import MoltResearch.Discrepancy.LandauLemma
 import Mathlib.NumberTheory.LSeries.Dirichlet
 import Mathlib.Analysis.Complex.Trigonometric
+import Mathlib.Analysis.Complex.RemovableSingularity
+import Mathlib.NumberTheory.LSeries.Nonvanishing
+import Mathlib.NumberTheory.Harmonic.ZetaAsymp
 
 /-!
 # Track C: the zero-free region substrate (Track R, campaign #3044, phase P4)
@@ -146,6 +149,174 @@ theorem vonMangoldt_341_nonneg (σ t : ℝ) (hσ : 1 < σ) :
       ring
     rw [hkey]
     positivity
+
+/-- **The regularized pole-subtracted zeta**: some entire-on-`ℂ` function
+agreeing with `ζ - 1/(·-1)` away from `1` (the removable singularity is filled
+with the limit from `tendsto_riemannZeta_sub_one_div`; the value itself is
+irrelevant downstream). -/
+theorem exists_zeta_pole_reg :
+    ∃ G : ℂ → ℂ, Differentiable ℂ G ∧
+      ∀ s : ℂ, s ≠ 1 → G s = riemannZeta s - 1 / (s - 1) := by
+  classical
+  set base : ℂ → ℂ := fun s => riemannZeta s - 1 / (s - 1) with hbase_def
+  have hbase_diff : ∀ w : ℂ, w ≠ 1 → DifferentiableAt ℂ base w := by
+    intro w hw
+    exact (differentiableAt_riemannZeta hw).sub
+      ((differentiableAt_const 1).div ((differentiableAt_id).sub_const 1)
+        (sub_ne_zero.mpr hw))
+  obtain ⟨l, hl⟩ : ∃ l : ℂ, Filter.Tendsto base (nhdsWithin 1 {(1:ℂ)}ᶜ)
+      (nhds l) := ⟨_, tendsto_riemannZeta_sub_one_div⟩
+  set G : ℂ → ℂ := Function.update base 1 l with hG_def
+  have hupd : ∀ s : ℂ, s ≠ 1 → G s = base s := by
+    intro s hs
+    rw [hG_def, Function.update_of_ne hs]
+  refine ⟨G, ?_, fun s hs => (hupd s hs).trans (by rw [hbase_def])⟩
+  intro s
+  rcases eq_or_ne s 1 with h1 | h1
+  · subst h1
+    have hpunct : ∀ᶠ w in nhdsWithin 1 {(1:ℂ)}ᶜ, DifferentiableAt ℂ G w := by
+      filter_upwards [self_mem_nhdsWithin] with w hw
+      have hw1 : w ≠ 1 := hw
+      refine (hbase_diff w hw1).congr_of_eventuallyEq ?_
+      filter_upwards [isOpen_ne.mem_nhds hw1] with z hz
+      exact hupd z hz
+    have hcont : ContinuousAt G 1 := by
+      rw [hG_def, continuousAt_update_same]
+      exact hl
+    exact (Complex.analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
+      hpunct hcont).differentiableAt
+  · refine (hbase_diff s h1).congr_of_eventuallyEq ?_
+    filter_upwards [isOpen_ne.mem_nhds h1] with z hz
+    exact hupd z hz
+
+/-- **The pole bound for `-ζ'/ζ` on `(1, 2]`** (the compactness route — the
+ε-form interfaces permit nonconstructive constants, so continuity of
+`-ζ'/ζ - 1/(σ-1)` up to `σ = 1` on the compact `[1,2]` replaces Chebyshev
+partial summation): `∃ c, -Re (ζ'/ζ)(σ) ≤ 1/(σ-1) + c`. -/
+theorem zeta_logDeriv_pole_bound :
+    ∃ c : ℝ, ∀ σ : ℝ, 1 < σ → σ ≤ 2 →
+      (-(deriv riemannZeta (σ:ℂ) / riemannZeta (σ:ℂ))).re ≤ 1/(σ - 1) + c := by
+  classical
+  obtain ⟨G, hGdiff, hGval⟩ := exists_zeta_pole_reg
+  set E : ℝ → ℝ := fun σ =>
+    ((-(((σ:ℂ) - 1) * deriv G (σ:ℂ)) - G (σ:ℂ))
+      / (1 + ((σ:ℂ) - 1) * G (σ:ℂ))).re with hE_def
+  have hden : ∀ σ : ℝ, 1 ≤ σ → σ ≤ 2 →
+      (1 + ((σ:ℂ) - 1) * G (σ:ℂ)) ≠ 0 := by
+    intro σ h1 h2
+    rcases eq_or_lt_of_le h1 with h1' | h1'
+    · rw [← h1']
+      norm_num
+    · have hσne : ((σ:ℂ) - 1) ≠ 0 := by
+        rw [show ((σ:ℂ) - 1) = ((σ - 1 : ℝ) : ℂ) from by push_cast; ring]
+        exact_mod_cast (by linarith : σ - 1 ≠ 0)
+      have h1c : ((σ:ℂ)) ≠ 1 := by
+        intro h
+        exact hσne (by rw [h]; ring)
+      have hζne : riemannZeta (σ:ℂ) ≠ 0 := by
+        refine riemannZeta_ne_zero_of_one_le_re ?_
+        simp only [Complex.ofReal_re]
+        linarith
+      have hkey : 1 + ((σ:ℂ) - 1) * G (σ:ℂ)
+          = ((σ:ℂ) - 1) * riemannZeta (σ:ℂ) := by
+        rw [hGval _ h1c]
+        field_simp
+        ring
+      rw [hkey]
+      exact mul_ne_zero hσne hζne
+  have hG'cont : Continuous (deriv G) := by
+    exact continuous_iff_continuousAt.mpr fun z =>
+      ((hGdiff.analyticAt z).deriv).continuousAt
+  have hEcont : ContinuousOn E (Set.Icc (1:ℝ) 2) := by
+    have hcR : Continuous (fun σ : ℝ => ((σ:ℂ) - 1)) :=
+      Complex.continuous_ofReal.sub continuous_const
+    have hcG : Continuous (fun σ : ℝ => G ((σ:ℂ))) :=
+      hGdiff.continuous.comp Complex.continuous_ofReal
+    have hcG' : Continuous (fun σ : ℝ => deriv G ((σ:ℂ))) :=
+      hG'cont.comp Complex.continuous_ofReal
+    rw [hE_def]
+    refine Complex.continuous_re.comp_continuousOn ?_
+    refine ContinuousOn.div ?_ ?_ ?_
+    · exact (((hcR.mul hcG').neg).sub hcG).continuousOn
+    · exact (continuous_const.add (hcR.mul hcG)).continuousOn
+    · intro σ hσ
+      exact hden σ hσ.1 hσ.2
+  have hbdd : BddAbove (E '' Set.Icc (1:ℝ) 2) :=
+    (isCompact_Icc.image_of_continuousOn hEcont).bddAbove
+  obtain ⟨c, hc⟩ := hbdd
+  refine ⟨c, fun σ hσ1 hσ2 => ?_⟩
+  have hEle : E σ ≤ c := hc (Set.mem_image_of_mem E ⟨hσ1.le, hσ2⟩)
+  have hσne : ((σ:ℂ) - 1) ≠ 0 := by
+    rw [show ((σ:ℂ) - 1) = ((σ - 1 : ℝ) : ℂ) from by push_cast; ring]
+    exact_mod_cast (by linarith : σ - 1 ≠ 0)
+  have h1ne : (σ:ℂ) ≠ 1 := by
+    intro h
+    exact hσne (by rw [h]; ring)
+  have hζne : riemannZeta (σ:ℂ) ≠ 0 := by
+    refine riemannZeta_ne_zero_of_one_le_re ?_
+    simp only [Complex.ofReal_re]
+    linarith
+  -- `ζ' = G' - 1/(s-1)²` at `s = σ`
+  have hinv : HasDerivAt (fun w : ℂ => 1 / (w - 1))
+      (-(1 / ((σ:ℂ) - 1) ^ 2)) (σ:ℂ) := by
+    have h1 : HasDerivAt (fun w : ℂ => w - 1) 1 (σ:ℂ) :=
+      (hasDerivAt_id _).sub_const 1
+    have h2 := h1.inv (sub_ne_zero.mpr h1ne)
+    have h2' : HasDerivAt (fun w : ℂ => 1 / (w - 1))
+        (-1 / ((σ:ℂ) - 1) ^ 2) (σ:ℂ) := by
+      refine h2.congr_of_eventuallyEq ?_
+      filter_upwards with w
+      simp [one_div]
+    have h4 : -1 / ((σ:ℂ) - 1) ^ 2 = -(1 / ((σ:ℂ) - 1) ^ 2) := by ring
+    rw [h4] at h2'
+    exact h2'
+  have hζdiff : DifferentiableAt ℂ riemannZeta (σ:ℂ) :=
+    differentiableAt_riemannZeta h1ne
+  have hGev : G =ᶠ[nhds (σ:ℂ)] (fun s => riemannZeta s - 1 / (s - 1)) := by
+    filter_upwards [isOpen_ne.mem_nhds h1ne] with z hz
+    exact hGval z hz
+  have hζ' : deriv riemannZeta (σ:ℂ)
+      = deriv G (σ:ℂ) - 1 / ((σ:ℂ) - 1) ^ 2 := by
+    have h1 : deriv G (σ:ℂ)
+        = deriv (fun s => riemannZeta s - 1 / (s - 1)) (σ:ℂ) :=
+      hGev.deriv_eq
+    have h2 : deriv (fun s => riemannZeta s - 1 / (s - 1)) (σ:ℂ)
+        = deriv riemannZeta (σ:ℂ) - deriv (fun w : ℂ => 1 / (w - 1)) (σ:ℂ) :=
+      deriv_sub hζdiff hinv.differentiableAt
+    rw [h1, h2, hinv.deriv]
+    ring
+  have hζval : riemannZeta (σ:ℂ) = 1 / ((σ:ℂ) - 1) + G (σ:ℂ) := by
+    rw [hGval _ h1ne]
+    ring
+  -- the identity `-ζ'/ζ - 1/(σ-1) = E σ` and its real part
+  have hdenne := hden σ hσ1.le hσ2
+  have hiden : -(deriv riemannZeta (σ:ℂ) / riemannZeta (σ:ℂ))
+      - 1 / ((σ:ℂ) - 1)
+      = (-(((σ:ℂ) - 1) * deriv G (σ:ℂ)) - G (σ:ℂ))
+        / (1 + ((σ:ℂ) - 1) * G (σ:ℂ)) := by
+    have hdenkey : 1 + ((σ:ℂ) - 1) * G (σ:ℂ)
+        = ((σ:ℂ) - 1) * riemannZeta (σ:ℂ) := by
+      rw [hGval _ h1ne]
+      field_simp
+      ring
+    rw [hdenkey, hζ', hGval _ h1ne]
+    field_simp
+    ring
+  have hre1 : ((1 : ℂ) / ((σ:ℂ) - 1)).re = 1 / (σ - 1) := by
+    rw [show ((σ:ℂ) - 1) = ((σ - 1 : ℝ) : ℂ) from by push_cast; ring,
+      show (1:ℂ) / ((σ - 1 : ℝ) : ℂ) = (((1 / (σ - 1) : ℝ)) : ℂ) from by
+        push_cast
+        ring]
+    exact Complex.ofReal_re _
+  have hsplit : (-(deriv riemannZeta (σ:ℂ) / riemannZeta (σ:ℂ))).re
+      = E σ + 1 / (σ - 1) := by
+    have h1 := congrArg Complex.re hiden
+    rw [Complex.sub_re, hre1] at h1
+    rw [hE_def]
+    simp only []
+    linarith [h1]
+  rw [hsplit]
+  linarith
 
 end ExpSums
 
