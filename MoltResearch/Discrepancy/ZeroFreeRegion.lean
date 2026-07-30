@@ -150,6 +150,28 @@ theorem vonMangoldt_341_nonneg (σ t : ℝ) (hσ : 1 < σ) :
     rw [hkey]
     positivity
 
+/-- **The 3-4-1 product bound for `ζ`** (P4b-iii): for `σ₀ > 1` and any `t`,
+`1 ≤ ‖ζ(σ₀)³ · ζ(σ₀+it)⁴ · ζ(σ₀+2it)‖` — Mathlib's
+`DirichletCharacter.norm_LSeries_product_ge_one` at level `N = 1`, with the
+three L-series rewritten to `riemannZeta`. This is the multiplicative form of
+the classical `3 + 4cos θ + cos 2θ ≥ 0` amplification consumed by the
+zero-free region (P6). -/
+theorem zeta_341_prod_ge_one (σ₀ t : ℝ) (hσ : 1 < σ₀) :
+    1 ≤ ‖riemannZeta (σ₀:ℂ) ^ 3
+        * riemannZeta ((σ₀:ℂ) + Complex.I * t) ^ 4
+        * riemannZeta ((σ₀:ℂ) + 2 * Complex.I * t)‖ := by
+  have hx : (0:ℝ) < σ₀ - 1 := by linarith
+  have h := DirichletCharacter.norm_LSeries_product_ge_one
+    (N := 1) 1 hx t
+  rw [ge_iff_le] at h
+  rw [show ((1 : DirichletCharacter ℂ 1) ^ 2) = 1 from one_pow 2] at h
+  rw [DirichletCharacter.LSeries_modOne_eq] at h
+  rw [show (1 : ℂ) + ((σ₀ - 1 : ℝ):ℂ) = (σ₀:ℂ) from by push_cast; ring] at h
+  rw [LSeries_one_eq_riemannZeta (by simp [hσ]),
+    LSeries_one_eq_riemannZeta (by simp [hσ]),
+    LSeries_one_eq_riemannZeta (by simp [hσ])] at h
+  exact h
+
 /-- **The regularized pole-subtracted zeta**: some entire-on-`ℂ` function
 agreeing with `ζ - 1/(·-1)` away from `1` (the removable singularity is filled
 with the limit from `tendsto_riemannZeta_sub_one_div`; the value itself is
