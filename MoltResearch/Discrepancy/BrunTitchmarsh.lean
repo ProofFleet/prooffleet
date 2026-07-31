@@ -564,4 +564,181 @@ theorem card_primes_Ioc_le (a K : ℕ) (hK : 2 ≤ K) :
         = 128*(K:ℝ)/Real.log K + 128*(K:ℝ)/Real.log K := by ring
     linarith [hsieve, hterm1, hterm23, hbridge]
 
+/-- **The dyadic gap sum**: primes within `2^j` of `p` contribute at most
+`2 + 370·∑_{1≤i<j} 1/i` to the reciprocal-gap sum — each dyadic shell
+`(2^i, 2^{i+1}]` holds at most `256·2^i/(i·log 2)` primes, each with gap
+`> 2^i`. -/
+theorem sum_one_div_gap_shell_le (p : ℕ) :
+    ∀ j : ℕ, 1 ≤ j →
+    ∑ q ∈ (Finset.Ioc p (p + 2^j)).filter Nat.Prime, (1:ℝ)/(q - p)
+      ≤ 2 + 370 * ∑ i ∈ Finset.Ico 1 j, (1:ℝ)/i := by
+  intro j hj
+  induction j, hj using Nat.le_induction with
+  | base =>
+    -- `(p, p+2]`: at most two terms, each `≤ 1`
+    have hcard : ((Finset.Ioc p (p + 2^1)).filter Nat.Prime).card ≤ 2 := by
+      calc ((Finset.Ioc p (p + 2^1)).filter Nat.Prime).card
+          ≤ (Finset.Ioc p (p + 2^1)).card := Finset.card_filter_le _ _
+        _ = 2 := by rw [Nat.card_Ioc]; omega
+    have hterm : ∀ q ∈ (Finset.Ioc p (p + 2^1)).filter Nat.Prime,
+        (1:ℝ)/(q - p) ≤ 1 := by
+      intro q hq
+      rw [Finset.mem_filter, Finset.mem_Ioc] at hq
+      have h1 : p + 1 ≤ q := hq.1.1
+      have h2 : (1:ℝ) ≤ (q:ℝ) - p := by
+        have h3 : ((p:ℝ)) + 1 ≤ q := by exact_mod_cast h1
+        linarith
+      rw [div_le_one (by linarith)]
+      linarith
+    have hsum := Finset.sum_le_card_nsmul
+      ((Finset.Ioc p (p + 2^1)).filter Nat.Prime)
+      (fun q => (1:ℝ)/((q:ℝ) - p)) 1 hterm
+    rw [nsmul_eq_mul, mul_one] at hsum
+    have hfin : (((Finset.Ioc p (p + 2^1)).filter Nat.Prime).card : ℝ)
+        ≤ 2 := by exact_mod_cast hcard
+    refine le_trans (le_trans hsum hfin) ?_
+    rw [Finset.Ico_self, Finset.sum_empty]
+    norm_num
+  | succ j hj1 ih =>
+    -- split `(p, p+2^{j+1}] = (p, p+2^j] ∪ (p+2^j, p+2^{j+1}]`
+    have hsplit : Finset.Ioc p (p + 2^(j+1))
+        = Finset.Ioc p (p + 2^j) ∪ Finset.Ioc (p + 2^j) (p + 2^(j+1)) := by
+      rw [Finset.Ioc_union_Ioc_eq_Ioc (Nat.le_add_right p (2^j)) (by
+        have h := Nat.pow_le_pow_right (show 0 < 2 by norm_num)
+          (Nat.le_succ j)
+        exact Nat.add_le_add_left h p)]
+    have hdisj : Disjoint
+        ((Finset.Ioc p (p + 2^j)).filter Nat.Prime)
+        ((Finset.Ioc (p + 2^j) (p + 2^(j+1))).filter Nat.Prime) := by
+      refine Finset.disjoint_filter_filter ?_
+      refine Finset.disjoint_left.mpr fun q hq1 hq2 => ?_
+      rw [Finset.mem_Ioc] at hq1 hq2
+      omega
+    have hfilter_union : (Finset.Ioc p (p + 2^(j+1))).filter Nat.Prime
+        = ((Finset.Ioc p (p + 2^j)).filter Nat.Prime)
+          ∪ ((Finset.Ioc (p + 2^j) (p + 2^(j+1))).filter Nat.Prime) := by
+      rw [hsplit, Finset.filter_union]
+    rw [hfilter_union, Finset.sum_union hdisj]
+    -- the new shell: count ≤ 256·2^j/(j·log 2), gaps > 2^j
+    have hshell : ∑ q ∈ (Finset.Ioc (p + 2^j) (p + 2^(j+1))).filter
+          Nat.Prime, (1:ℝ)/(q - p)
+        ≤ 370 / j := by
+      have hK2 : 2 ≤ 2^j := by
+        calc 2 = 2^1 := by norm_num
+          _ ≤ 2^j := Nat.pow_le_pow_right (by norm_num) hj1
+      have hcard := card_primes_Ioc_le (p + 2^j) (2^j) hK2
+      rw [show p + 2^j + 2^j = p + 2^(j+1) from by rw [pow_succ]; ring]
+        at hcard
+      have hterm : ∀ q ∈ (Finset.Ioc (p + 2^j) (p + 2^(j+1))).filter
+          Nat.Prime, (1:ℝ)/(q - p) ≤ ((2:ℝ)^j)⁻¹ := by
+        intro q hq
+        rw [Finset.mem_filter, Finset.mem_Ioc] at hq
+        have h1 : p + 2^j + 1 ≤ q := hq.1.1
+        have h2 : ((2:ℝ))^j < (q:ℝ) - p := by
+          have h3 : ((p:ℝ)) + 2^j + 1 ≤ q := by exact_mod_cast h1
+          linarith
+        rw [show ((2:ℝ)^j)⁻¹ = 1/((2:ℝ)^j) from (one_div _).symm]
+        exact one_div_le_one_div_of_le (by positivity) h2.le
+      have hlog2j : Real.log ((2:ℝ)^j) = j * Real.log 2 := by
+        rw [Real.log_pow]
+      have hlogpos : (0:ℝ) < j * Real.log 2 := by
+        have h3 := Real.log_two_gt_d9
+        have h4 : (1:ℝ) ≤ j := by exact_mod_cast hj1
+        nlinarith
+      calc ∑ q ∈ (Finset.Ioc (p + 2^j) (p + 2^(j+1))).filter Nat.Prime,
+            (1:ℝ)/(q - p)
+          ≤ ∑ _q ∈ (Finset.Ioc (p + 2^j) (p + 2^(j+1))).filter Nat.Prime,
+              ((2:ℝ)^j)⁻¹ := Finset.sum_le_sum hterm
+        _ = (((Finset.Ioc (p + 2^j) (p + 2^(j+1))).filter Nat.Prime).card
+              : ℝ) * ((2:ℝ)^j)⁻¹ := by
+            rw [Finset.sum_const, nsmul_eq_mul]
+        _ ≤ (256 * (2^j : ℕ) / Real.log ((2^j : ℕ) : ℝ)) * ((2:ℝ)^j)⁻¹ := by
+            refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+            exact hcard
+        _ ≤ 370 / j := by
+            rw [show (((2^j : ℕ) : ℝ)) = (2:ℝ)^j from by push_cast; ring]
+            rw [hlog2j]
+            rw [div_mul_eq_mul_div, div_le_div_iff₀ (by nlinarith) (by
+              have h4 : (1:ℝ) ≤ j := by exact_mod_cast hj1
+              linarith)]
+            have h3 := Real.log_two_gt_d9
+            have hp2 : (0:ℝ) < (2:ℝ)^j := by positivity
+            have h5 : 256 * (2:ℝ)^j * ((2:ℝ)^j)⁻¹ * (j:ℝ)
+                = 256 * (j:ℝ) := by
+              field_simp
+            nlinarith [mul_pos hp2 hlogpos]
+    -- the harmonic increment
+    have hharm : ∑ i ∈ Finset.Ico 1 (j+1), (1:ℝ)/i
+        = ∑ i ∈ Finset.Ico 1 j, (1:ℝ)/i + 1/j := by
+      rw [Finset.sum_Ico_succ_top (by omega)]
+    rw [hharm]
+    have hj0 : (0:ℝ) < j := by exact_mod_cast hj1
+    have h370 : 370 / (j:ℝ) = 370 * (1/j) := by ring
+    linarith [ih, hshell]
+
+/-- **The reciprocal prime-gap sum**: `∑_{q prime, p < q ≤ p+H} 1/(q−p)` is
+`O(loglog H)` — Brun–Titchmarsh on dyadic shells plus the harmonic ceiling
+on the shell indices. This is the near-diagonal thinning of the C4a
+window-energy bound. -/
+theorem sum_one_div_gap_le (p H : ℕ) (hH : 16 ≤ H) :
+    ∑ q ∈ (Finset.Ioc p (p + H)).filter Nat.Prime, (1:ℝ)/((q:ℝ) - p)
+      ≤ 742 + 370 * Real.log (Real.log H) := by
+  set J := Nat.log 2 H with hJ_def
+  have hJ4 : 4 ≤ J := by
+    rw [hJ_def]
+    calc 4 = Nat.log 2 16 := by
+          rw [show (16:ℕ) = 2^4 from by norm_num, Nat.log_pow (by norm_num)]
+      _ ≤ Nat.log 2 H := Nat.log_mono_right hH
+  have hHJ : H < 2^(J+1) := Nat.lt_pow_succ_log_self (by norm_num) H
+  have hsub : (Finset.Ioc p (p + H)).filter Nat.Prime
+      ⊆ (Finset.Ioc p (p + 2^(J+1))).filter Nat.Prime := by
+    refine Finset.filter_subset_filter _ ?_
+    intro q hq
+    rw [Finset.mem_Ioc] at hq ⊢
+    omega
+  have hnonneg : ∀ q ∈ (Finset.Ioc p (p + 2^(J+1))).filter Nat.Prime,
+      (0:ℝ) ≤ (1:ℝ)/((q:ℝ) - p) := by
+    intro q hq
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hq
+    have h1 : ((p:ℝ)) + 1 ≤ q := by exact_mod_cast hq.1.1
+    have h2 : (0:ℝ) < (q:ℝ) - p := by linarith
+    positivity
+  have hmono := Finset.sum_le_sum_of_subset_of_nonneg hsub
+    (fun q hq _ => hnonneg q hq)
+  have hshell := sum_one_div_gap_shell_le p (J+1) (by omega)
+  -- the harmonic ceiling on the shell indices
+  have hharm : ∑ i ∈ Finset.Ico 1 (J+1), (1:ℝ)/i ≤ Real.log J + 1 :=
+    sum_one_div_Ico_succ_le_log_add_one J
+  -- `log J ≤ 1 + loglog H`
+  have hJlog : Real.log J ≤ 1 + Real.log (Real.log H) := by
+    have h2 : (2:ℕ)^J ≤ H := Nat.pow_log_le_self 2 (by omega)
+    have h3 : (J:ℝ) * Real.log 2 ≤ Real.log H := by
+      have h4 : ((2:ℝ))^(J:ℕ) ≤ (H:ℝ) := by exact_mod_cast h2
+      have h5 := Real.log_le_log (by positivity) h4
+      rw [Real.log_pow] at h5
+      push_cast at h5
+      linarith
+    have h6 := Real.log_two_gt_d9
+    have h7 : (J:ℝ) ≤ 2 * Real.log H := by nlinarith
+    have hJ0 : (0:ℝ) < J := by
+      have : (0:ℕ) < J := by omega
+      exact_mod_cast this
+    have hlogH0 : (0:ℝ) < Real.log H := by
+      have h8 : (J:ℝ) * Real.log 2 ≤ Real.log H := h3
+      nlinarith
+    calc Real.log J ≤ Real.log (2 * Real.log H) :=
+          Real.log_le_log hJ0 h7
+      _ = Real.log 2 + Real.log (Real.log H) := by
+          rw [Real.log_mul (by norm_num) (ne_of_gt hlogH0)]
+      _ ≤ 1 + Real.log (Real.log H) := by
+          have h9 := Real.log_le_sub_one_of_pos (show (0:ℝ) < 2 by norm_num)
+          linarith
+  calc ∑ q ∈ (Finset.Ioc p (p + H)).filter Nat.Prime, (1:ℝ)/((q:ℝ) - p)
+      ≤ ∑ q ∈ (Finset.Ioc p (p + 2^(J+1))).filter Nat.Prime,
+          (1:ℝ)/((q:ℝ) - p) := hmono
+    _ ≤ 2 + 370 * ∑ i ∈ Finset.Ico 1 (J+1), (1:ℝ)/i := hshell
+    _ ≤ 2 + 370 * (Real.log J + 1) := by linarith
+    _ ≤ 2 + 370 * (1 + Real.log (Real.log H) + 1) := by linarith
+    _ = 742 + 370 * Real.log (Real.log H) := by ring
+
 end MoltResearch

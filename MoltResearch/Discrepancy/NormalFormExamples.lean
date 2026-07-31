@@ -7000,4 +7000,12 @@ example (a K : ℕ) (hK : 2 ≤ K) :
       ≤ 256 * K / Real.log K :=
   card_primes_Ioc_le a K hK
 
+-- Track R C4a-1 (issue #3044): the reciprocal prime-gap sum is O(loglog) —
+-- Brun–Titchmarsh on dyadic shells; the near-diagonal thinning of the
+-- window-energy bound.
+example (p H : ℕ) (hH : 16 ≤ H) :
+    ∑ q ∈ (Finset.Ioc p (p + H)).filter Nat.Prime, (1:ℝ)/((q:ℝ) - p)
+      ≤ 742 + 370 * Real.log (Real.log H) :=
+  sum_one_div_gap_le p H hH
+
 end MoltResearch
