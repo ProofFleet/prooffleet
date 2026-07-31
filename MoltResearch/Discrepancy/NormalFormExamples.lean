@@ -6983,4 +6983,14 @@ example (ε : ℝ) (hε : 0 < ε) :
         ≤ ε * Real.log N :=
   turan_kubilius_block ε hε
 
+-- Track R C4a-0 (issue #3044): the squarefree harmonic floor and the
+-- linear-sieve G-floor at the primorial modulus.
+example (z : ℕ) (hz : 1 ≤ z) :
+    Real.log z ≤ 2 * ∑ k ∈ (Finset.Icc 1 z).filter Squarefree, (1:ℝ)/k :=
+  log_le_two_mul_sum_one_div_squarefree z hz
+
+example (z : ℕ) (hz : 1 ≤ z) :
+    (1/2 : ℝ) * Real.log z ≤ selbergG 0 (primorial z) z :=
+  le_selbergG_zero z hz
+
 end MoltResearch

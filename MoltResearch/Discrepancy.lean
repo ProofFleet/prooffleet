@@ -48,6 +48,7 @@ import MoltResearch.Discrepancy.MertensFloor
 import MoltResearch.Discrepancy.EulerLogBridge
 import MoltResearch.Discrepancy.MertensFirst
 import MoltResearch.Discrepancy.TuranKubilius
+import MoltResearch.Discrepancy.BrunTitchmarsh
 import MoltResearch.Discrepancy.ChebyshevTail
 import MoltResearch.Discrepancy.TruncatedBridge
 import MoltResearch.Discrepancy.Entropy
