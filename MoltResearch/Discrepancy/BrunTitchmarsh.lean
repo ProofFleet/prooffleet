@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.SelbergPrimorial
 import MoltResearch.Discrepancy.TuranKubilius
+import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-!
 # Discrepancy: Brun–Titchmarsh, the linear-sieve floor (Track R, C4a-0)
@@ -243,5 +244,324 @@ theorem le_selbergG_zero (z : ℕ) (hz : 1 ≤ z) :
     intro k hk _
     exact hnonneg k hk
   linarith
+
+/-- Primes above the sift level survive the `s = 0` sift. -/
+theorem primes_gt_subset_sift (a K z : ℕ) :
+    (Finset.Ioc a (a + K)).filter (fun q => Nat.Prime q ∧ z < q)
+      ⊆ (Finset.Ioc a (a + K)).filter (fun n : ℕ =>
+          ∀ p ∈ (primorial z).primeFactors,
+            ¬ ((p : ℤ) ∣ (n : ℤ) * ((0 : ℤ) - (n : ℤ)))) := by
+  intro q hq
+  rw [Finset.mem_filter] at hq ⊢
+  obtain ⟨hmem, hqprime, hzq⟩ := hq
+  refine ⟨hmem, fun p hp hdvd => ?_⟩
+  rw [mem_primeFactors_primorial] at hp
+  obtain ⟨hpprime, hpz⟩ := hp
+  have h1 : (p:ℤ) ∣ (q:ℤ)^2 := by
+    have h2 : (q:ℤ) * ((0:ℤ) - q) = -(q:ℤ)^2 := by ring
+    rw [h2] at hdvd
+    exact (dvd_neg).mp hdvd
+  have h3 : p ∣ q^2 := by exact_mod_cast h1
+  have h4 : p ∣ q := hpprime.dvd_of_dvd_pow h3
+  have h5 : p = q := (Nat.prime_dvd_prime_iff_eq hpprime hqprime).mp h4
+  omega
+
+/-- The prime count splits into the small primes and the sifted survivors. -/
+theorem card_primes_le_sift_add (a K z : ℕ) :
+    (((Finset.Ioc a (a + K)).filter Nat.Prime).card : ℝ)
+      ≤ (z : ℝ) + (((Finset.Ioc a (a + K)).filter (fun n : ℕ =>
+          ∀ p ∈ (primorial z).primeFactors,
+            ¬ ((p : ℤ) ∣ (n : ℤ) * ((0 : ℤ) - (n : ℤ))))).card : ℝ) := by
+  classical
+  have hsplit : (Finset.Ioc a (a + K)).filter Nat.Prime
+      ⊆ ((Finset.Ioc a (a + K)).filter (fun q => Nat.Prime q ∧ q ≤ z))
+        ∪ ((Finset.Ioc a (a + K)).filter (fun q => Nat.Prime q ∧ z < q)) := by
+    intro q hq
+    rw [Finset.mem_filter] at hq
+    rw [Finset.mem_union, Finset.mem_filter, Finset.mem_filter]
+    rcases le_or_gt q z with h | h
+    · exact Or.inl ⟨hq.1, hq.2, h⟩
+    · exact Or.inr ⟨hq.1, hq.2, h⟩
+  have hsmall : ((Finset.Ioc a (a + K)).filter
+      (fun q => Nat.Prime q ∧ q ≤ z)).card ≤ z := by
+    have hsub : (Finset.Ioc a (a + K)).filter (fun q => Nat.Prime q ∧ q ≤ z)
+        ⊆ Finset.Icc 1 z := by
+      intro q hq
+      rw [Finset.mem_filter] at hq
+      rw [Finset.mem_Icc]
+      exact ⟨hq.2.1.one_lt.le, hq.2.2⟩
+    calc ((Finset.Ioc a (a + K)).filter (fun q => Nat.Prime q ∧ q ≤ z)).card
+        ≤ (Finset.Icc 1 z).card := Finset.card_le_card hsub
+      _ = z := by rw [Nat.card_Icc]; omega
+  have hbig := Finset.card_le_card (primes_gt_subset_sift a K z)
+  have hcard := Finset.card_union_le
+    ((Finset.Ioc a (a + K)).filter (fun q => Nat.Prime q ∧ q ≤ z))
+    ((Finset.Ioc a (a + K)).filter (fun q => Nat.Prime q ∧ z < q))
+  have h1 := Finset.card_le_card hsplit
+  have hnat : ((Finset.Ioc a (a + K)).filter Nat.Prime).card
+      ≤ z + (((Finset.Ioc a (a + K)).filter (fun n : ℕ =>
+          ∀ p ∈ (primorial z).primeFactors,
+            ¬ ((p : ℤ) ∣ (n : ℤ) * ((0 : ℤ) - (n : ℤ))))).card) := by
+    have h2 := le_trans h1 hcard
+    have h3 := Nat.add_le_add hsmall hbig
+    omega
+  exact_mod_cast hnat
+
+-- (nucleus copies of the Track-S numerics pair, TrackCStage5QuadrupleSieveProof)
+/-- The logarithmic floor of the natural square root:
+`log n / 2 − log 2 ≤ log ⌊√n⌋` for `n ≥ 4`. -/
+theorem log_nat_sqrt_ge {n : ℕ} (hn : 4 ≤ n) :
+    Real.log n / 2 - Real.log 2 ≤ Real.log (Nat.sqrt n) := by
+  have hn0 : (0 : ℝ) < (n : ℝ) := by
+    exact_mod_cast (by omega : 0 < n)
+  have h4 : (2 : ℝ) ≤ Real.sqrt n := by
+    have h1 : ((4 : ℕ) : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
+    have h2 := Real.sqrt_le_sqrt h1
+    have h3 : Real.sqrt ((4 : ℕ) : ℝ) = 2 := by
+      rw [show (((4 : ℕ) : ℝ)) = (2 : ℝ) ^ 2 by norm_num,
+        Real.sqrt_sq (by norm_num)]
+    linarith
+  have hlt : Real.sqrt n < (Nat.sqrt n : ℝ) + 1 := by
+    have h1 : (n : ℝ) < ((Nat.sqrt n : ℝ) + 1) ^ 2 := by
+      have h2 := Nat.lt_succ_sqrt n
+      have h3 : (n : ℝ) < ((Nat.succ (Nat.sqrt n) : ℕ) : ℝ)
+          * ((Nat.succ (Nat.sqrt n) : ℕ) : ℝ) := by
+        exact_mod_cast h2
+      push_cast at h3
+      nlinarith [h3]
+    have h4' := Real.sqrt_lt_sqrt (Nat.cast_nonneg n) h1
+    rwa [Real.sqrt_sq (by positivity)] at h4'
+  have hs : Real.sqrt n / 2 ≤ ((Nat.sqrt n : ℕ) : ℝ) := by
+    linarith
+  have hsq0 : (0 : ℝ) < Real.sqrt n / 2 := by
+    have := Real.sqrt_pos.mpr hn0
+    linarith
+  calc Real.log n / 2 - Real.log 2
+      = Real.log (Real.sqrt n / 2) := by
+        rw [Real.log_div (by positivity) (by norm_num),
+          Real.log_sqrt (Nat.cast_nonneg n)]
+    _ ≤ Real.log ((Nat.sqrt n : ℕ) : ℝ) :=
+        Real.log_le_log hsq0 hs
+
+/-- The five-fold square-root iterate keeps a `1/64` share of the logarithm
+and stays above `2¹⁰`, beyond the threshold `2³²⁰`. -/
+theorem log_iter_sqrt_bounds {n₀ : ℕ} (hn₀ : 2 ^ 320 ≤ n₀) :
+    1024 ≤ Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt n₀))))
+    ∧ Real.log n₀ / 64
+      ≤ Real.log (Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt n₀))))) := by
+  have hstep : ∀ (m k : ℕ), 2 ^ (2 * k) ≤ m → 2 ^ k ≤ Nat.sqrt m := by
+    intro m k h
+    refine Nat.le_sqrt.mpr ?_
+    have he : 2 ^ k * 2 ^ k = 2 ^ (2 * k) := by
+      rw [← pow_add, ← Nat.two_mul]
+    rw [he]
+    exact h
+  have h1 : 2 ^ 160 ≤ Nat.sqrt n₀ := hstep n₀ 160 (by omega)
+  have h2 : 2 ^ 80 ≤ Nat.sqrt (Nat.sqrt n₀) := hstep _ 80 (by
+    calc 2 ^ (2 * 80) = 2 ^ 160 := by norm_num
+      _ ≤ Nat.sqrt n₀ := h1)
+  have h3 : 2 ^ 40 ≤ Nat.sqrt (Nat.sqrt (Nat.sqrt n₀)) := hstep _ 40 (by
+    calc 2 ^ (2 * 40) = 2 ^ 80 := by norm_num
+      _ ≤ Nat.sqrt (Nat.sqrt n₀) := h2)
+  have h4 : 2 ^ 20 ≤ Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt n₀))) :=
+    hstep _ 20 (by
+      calc 2 ^ (2 * 20) = 2 ^ 40 := by norm_num
+        _ ≤ Nat.sqrt (Nat.sqrt (Nat.sqrt n₀)) := h3)
+  have h5 : 2 ^ 10 ≤ Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt n₀)))) :=
+    hstep _ 10 (by
+      calc 2 ^ (2 * 10) = 2 ^ 20 := by norm_num
+        _ ≤ Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt n₀))) := h4)
+  refine ⟨by norm_num at h5 ⊢; omega, ?_⟩
+  -- the log chain
+  have hL1 := log_nat_sqrt_ge (n := n₀) (by omega)
+  have hL2 := log_nat_sqrt_ge (n := Nat.sqrt n₀) (by
+    have := h1
+    omega)
+  have hL3 := log_nat_sqrt_ge (n := Nat.sqrt (Nat.sqrt n₀)) (by
+    have := h2
+    omega)
+  have hL4 := log_nat_sqrt_ge (n := Nat.sqrt (Nat.sqrt (Nat.sqrt n₀))) (by
+    have := h3
+    omega)
+  have hL5 := log_nat_sqrt_ge
+    (n := Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt n₀)))) (by
+    have := h4
+    omega)
+  have hlog2 : (0 : ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hL0 : 320 * Real.log 2 ≤ Real.log n₀ := by
+    have h6 : ((2 ^ 320 : ℕ) : ℝ) ≤ (n₀ : ℝ) := by exact_mod_cast hn₀
+    have h7 := Real.log_le_log (by positivity) h6
+    rw [show ((2 ^ 320 : ℕ) : ℝ) = (2 : ℝ) ^ 320 by push_cast; ring,
+      Real.log_pow] at h7
+    push_cast at h7
+    linarith
+  linarith
+
+/-- **The sieve step**: for any sift level `2 ≤ z`,
+`#{p prime ∈ (a, a+K]} ≤ z + 2K/log z + z⁸`. -/
+theorem card_primes_le_sieve (a K z : ℕ) (hz : 2 ≤ z) :
+    (((Finset.Ioc a (a + K)).filter Nat.Prime).card : ℝ)
+      ≤ (z:ℝ) + 2 * K / Real.log z + (z:ℝ)^8 := by
+  have hlogz : (0:ℝ) < Real.log z := Real.log_pos (by exact_mod_cast hz)
+  have hmaster := card_sift_le_primorial_master (s := 0) (z := z) (N := K)
+    (a := a) (by norm_num) (by omega)
+  have hG := le_selbergG_zero z (by omega)
+  have hG0 : (0:ℝ) < selbergG 0 (primorial z) z := by linarith
+  have hKG : (K:ℝ) / selbergG 0 (primorial z) z ≤ 2*K/Real.log z := by
+    rw [div_le_div_iff₀ hG0 hlogz]
+    have hK0 : (0:ℝ) ≤ (K:ℝ) := Nat.cast_nonneg K
+    nlinarith
+  have hz8 : (((z:ℝ))^4)^2 = (z:ℝ)^8 := by ring
+  have hstep := card_primes_le_sift_add a K z
+  calc (((Finset.Ioc a (a + K)).filter Nat.Prime).card : ℝ)
+      ≤ (z : ℝ) + (((Finset.Ioc a (a + K)).filter (fun n : ℕ =>
+          ∀ p ∈ (primorial z).primeFactors,
+            ¬ ((p : ℤ) ∣ (n : ℤ) * ((0 : ℤ) - (n : ℤ))))).card : ℝ) := hstep
+    _ ≤ (z : ℝ) + ((K : ℝ) / selbergG 0 (primorial z) z + ((z:ℝ)^4)^2) := by
+        linarith [hmaster]
+    _ ≤ (z:ℝ) + 2 * K / Real.log z + (z:ℝ)^8 := by
+        rw [← hz8]
+        linarith [hKG]
+
+/-- One square root halves the logarithm: `log ⌊√m⌋ ≤ log m / 2`. -/
+theorem log_nat_sqrt_le {m : ℕ} (hm : 1 ≤ m) :
+    Real.log (Nat.sqrt m) ≤ Real.log m / 2 := by
+  have hs1 : 1 ≤ Nat.sqrt m := by
+    have := Nat.sqrt_pos.mpr (show 0 < m by omega)
+    omega
+  have h1 : Nat.sqrt m * Nat.sqrt m ≤ m := by
+    have h := Nat.sqrt_le' m
+    rwa [sq] at h
+  have hs0 : (0:ℝ) < (Nat.sqrt m : ℝ) := by exact_mod_cast hs1
+  have h2 : Real.log ((Nat.sqrt m : ℝ) * (Nat.sqrt m : ℝ)) ≤ Real.log m := by
+    refine Real.log_le_log (by positivity) ?_
+    exact_mod_cast h1
+  rw [Real.log_mul (ne_of_gt hs0) (ne_of_gt hs0)] at h2
+  linarith
+
+/-- Five square roots: `log z ≤ log K / 32`. -/
+theorem log_iter_sqrt_le {K : ℕ} (hK : 1 ≤ K) :
+    Real.log (Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt K)))))
+      ≤ Real.log K / 32 := by
+  have hp : ∀ m : ℕ, 1 ≤ m → 1 ≤ Nat.sqrt m := by
+    intro m hm
+    have := Nat.sqrt_pos.mpr (show 0 < m by omega)
+    omega
+  have h1 : 1 ≤ Nat.sqrt K := hp K hK
+  have h2 : 1 ≤ Nat.sqrt (Nat.sqrt K) := hp _ h1
+  have h3 : 1 ≤ Nat.sqrt (Nat.sqrt (Nat.sqrt K)) := hp _ h2
+  have h4 : 1 ≤ Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt K))) := hp _ h3
+  have hL1 := log_nat_sqrt_le hK
+  have hL2 := log_nat_sqrt_le h1
+  have hL3 := log_nat_sqrt_le h2
+  have hL4 := log_nat_sqrt_le h3
+  have hL5 := log_nat_sqrt_le h4
+  linarith
+
+/-- **Brun–Titchmarsh, crude form** (C4a-0): the number of primes in any
+interval `(a, a+K]` is at most `256·K/log K` for `K ≥ 2` — the linear
+Selberg sieve at sift level `K^{1/32}`, with the trivial bound below the
+`2³²⁰` threshold. -/
+theorem card_primes_Ioc_le (a K : ℕ) (hK : 2 ≤ K) :
+    (((Finset.Ioc a (a + K)).filter Nat.Prime).card : ℝ)
+      ≤ 256 * K / Real.log K := by
+  have hK1 : (1:ℝ) < K := by exact_mod_cast hK
+  have hlogK : (0:ℝ) < Real.log K := Real.log_pos hK1
+  have hK0 : (0:ℝ) < K := by linarith
+  rcases lt_or_ge K (2^320) with hsmall | hbig
+  · -- trivial regime: `log K < 222 < 256`
+    have hcard : (((Finset.Ioc a (a + K)).filter Nat.Prime).card : ℝ) ≤ K := by
+      have h1 : ((Finset.Ioc a (a + K)).filter Nat.Prime).card ≤ K := by
+        calc ((Finset.Ioc a (a + K)).filter Nat.Prime).card
+            ≤ (Finset.Ioc a (a + K)).card := Finset.card_filter_le _ _
+          _ = K := by rw [Nat.card_Ioc]; omega
+      exact_mod_cast h1
+    have hlog222 : Real.log K < 222 := by
+      have h1 : (K:ℝ) < 2^320 := by exact_mod_cast hsmall
+      have h2 : Real.log K < Real.log (2^320) :=
+        Real.log_lt_log hK0 h1
+      rw [Real.log_pow] at h2
+      have h3 := Real.log_two_lt_d9
+      push_cast at h2
+      nlinarith
+    rw [le_div_iff₀ hlogK]
+    nlinarith
+  · -- sieve regime
+    set z := Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt (Nat.sqrt K)))) with hz_def
+    obtain ⟨hz1024, hzlog⟩ := log_iter_sqrt_bounds hbig
+    rw [← hz_def] at hz1024 hzlog
+    have hz2 : 2 ≤ z := by omega
+    have hzK : 1 ≤ K := by omega
+    have hsieve := card_primes_le_sieve a K z hz2
+    have hlogz0 : (0:ℝ) < Real.log z :=
+      Real.log_pos (by exact_mod_cast (by omega : 1 < z))
+    have hlogK222 : (221:ℝ) ≤ Real.log K := by
+      have h1 : ((2:ℝ))^320 ≤ K := by exact_mod_cast hbig
+      have h2 := Real.log_le_log (by positivity) h1
+      rw [Real.log_pow] at h2
+      have h3 := Real.log_two_gt_d9
+      push_cast at h2
+      nlinarith
+    -- (i) `2K/log z ≤ 128K/log K`
+    have hterm1 : 2 * (K:ℝ) / Real.log z ≤ 128 * K / Real.log K := by
+      rw [div_le_div_iff₀ hlogz0 hlogK]
+      have h1 : Real.log K / 64 ≤ Real.log z := hzlog
+      nlinarith [hK0.le]
+    -- (ii)+(iii): `z + z⁸ ≤ 2·z⁸ ≤ 2K/log K` via logs
+    have hzlogup := log_iter_sqrt_le hzK
+    rw [← hz_def] at hzlogup
+    have hloglog : Real.log (Real.log K) ≤ Real.log K / 64 + 5 := by
+      have h1 : Real.log (Real.log K)
+          = Real.log (Real.log K / 64) + Real.log 64 := by
+        rw [← Real.log_mul (by linarith) (by norm_num)]
+        congr 1
+        field_simp
+      have h2 : Real.log (Real.log K / 64) ≤ Real.log K / 64 - 1 :=
+        Real.log_le_sub_one_of_pos (by linarith)
+      have h3 : Real.log 64 ≤ 5 := by
+        have h4 : (64:ℝ) = 2^6 := by norm_num
+        rw [h4, Real.log_pow]
+        have := Real.log_two_lt_d9
+        push_cast
+        nlinarith
+      linarith
+    have hz8K : (z:ℝ)^8 * Real.log K ≤ K := by
+      have hz0 : (0:ℝ) < (z:ℝ) := by
+        exact_mod_cast (by omega : 0 < z)
+      have h1 : Real.log ((z:ℝ)^8 * Real.log K)
+          = 8 * Real.log z + Real.log (Real.log K) := by
+        rw [Real.log_mul (by positivity) (ne_of_gt hlogK), Real.log_pow]
+        push_cast
+        ring
+      have h2 : 8 * Real.log z + Real.log (Real.log K) ≤ Real.log K := by
+        have h3 : 8 * Real.log z ≤ Real.log K / 4 := by linarith
+        linarith
+      have h4 : Real.log ((z:ℝ)^8 * Real.log K) ≤ Real.log K := by
+        rw [h1]; exact h2
+      have h7 := Real.exp_le_exp.mpr h4
+      rw [Real.exp_log (show (0:ℝ) < (z:ℝ)^8 * Real.log K by positivity)] at h7
+      rw [Real.exp_log hK0] at h7
+      exact h7
+    have hterm23 : (z:ℝ) + (z:ℝ)^8 ≤ 128 * K / Real.log K := by
+      have hz1 : (1:ℝ) ≤ (z:ℝ) := by exact_mod_cast (by omega : 1 ≤ z)
+      have h1 : (z:ℝ) ≤ (z:ℝ)^8 := by
+        have h := pow_le_pow_right₀ hz1 (show 1 ≤ 8 by omega)
+        rwa [pow_one] at h
+      have h2 : (z:ℝ)^8 ≤ K / Real.log K := by
+        rw [div_eq_mul_inv]
+        rw [show (z:ℝ)^8 = (z:ℝ)^8 * Real.log K * (Real.log K)⁻¹ from by
+            field_simp]
+        exact mul_le_mul_of_nonneg_right hz8K (by positivity)
+      have h3 : (K:ℝ)/Real.log K ≤ 64 * K / Real.log K := by
+        rw [div_le_div_iff₀ hlogK hlogK]
+        nlinarith [hK0.le, hlogK.le]
+      calc (z:ℝ) + (z:ℝ)^8 ≤ 2 * ((z:ℝ)^8) := by linarith
+        _ ≤ 2 * ((K:ℝ)/Real.log K) := by linarith
+        _ = 2*(K:ℝ)/Real.log K := by ring
+        _ ≤ 128 * K / Real.log K :=
+            div_le_div_of_nonneg_right (by linarith) hlogK.le
+    have hbridge : 256 * (K:ℝ) / Real.log K
+        = 128*(K:ℝ)/Real.log K + 128*(K:ℝ)/Real.log K := by ring
+    linarith [hsieve, hterm1, hterm23, hbridge]
 
 end MoltResearch

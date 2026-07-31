@@ -6993,4 +6993,11 @@ example (z : ℕ) (hz : 1 ≤ z) :
     (1/2 : ℝ) * Real.log z ≤ selbergG 0 (primorial z) z :=
   le_selbergG_zero z hz
 
+-- Track R C4a-0 (issue #3044): Brun–Titchmarsh, crude form — the prime count
+-- of any interval of length K is at most 256·K/log K.
+example (a K : ℕ) (hK : 2 ≤ K) :
+    (((Finset.Ioc a (a + K)).filter Nat.Prime).card : ℝ)
+      ≤ 256 * K / Real.log K :=
+  card_primes_Ioc_le a K hK
+
 end MoltResearch
