@@ -159,4 +159,11 @@ example (F : ℝ → ℂ) (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F)
   ExpSums.integral_norm_sq_sum_translates_regime_split
     F hFc hFs S w s K L Mmid Mtot hL hMmid0 hmid htot
 
+-- Track R C4a (issue #3044): the oscillation kernel — the off-diagonal decay
+-- of the window-energy expansion.
+example (s : ℝ) (hs : s ≠ 0) (L : ℝ) :
+    ‖∫ ξ in (-L)..L, ((Real.fourierChar (-(s * ξ)) : Circle) : ℂ)‖
+      ≤ 1/(Real.pi * |s|) :=
+  ExpSums.norm_intervalIntegral_char_le hs L
+
 end MoltResearch
