@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.TuranKubilius
+import MoltResearch.Discrepancy.MultiplicativeC
 
 /-!
 # Track C: the Ramaré double-count identity (Track R, C4e-1)
@@ -179,6 +180,28 @@ theorem norm_sum_collision_le (a b : ℕ) (P : Finset ℕ)
     show b/(p*p) = (b/p)/p from (Nat.div_div_eq_div_mul b p p).symm]
   rw [← sum_Ioc_filter_dvd_eq_sum_Ioc_div (a/p) (b/p) p hp0
     (fun n => ‖g (p * n)‖)]
+
+
+/-- **The CM-factor extraction** (C4e-6): on the collision-free main half
+of the `𝒰`-decomposition, a completely multiplicative `g` factors each
+fibre as `g(p)` times the `G`-weighted block sum — the literal
+`F = ∑_p g(p)·G_p` shape of the `[MR]` 𝒯₁ treatment. The `0`-guards of
+`CompletelyMultiplicativeC` are satisfied since `p` is prime and the
+fibre elements are positive. -/
+theorem main_half_eq_sum_mul (a b : ℕ) (P : Finset ℕ)
+    (hP : ∀ q ∈ P, q.Prime) (g : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC g) :
+    ∑ p ∈ P, ∑ m ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m => ¬ p ∣ m),
+        g (p * m) / (((P.filter (· ∣ m)).card : ℂ) + 1)
+      = ∑ p ∈ P, g p *
+          ∑ m ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m => ¬ p ∣ m),
+            g m / (((P.filter (· ∣ m)).card : ℂ) + 1) := by
+  refine Finset.sum_congr rfl fun p hp => ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun m hm => ?_
+  rw [Finset.mem_filter] at hm
+  have hm0 : m ≠ 0 := fun h => hm.2 (h ▸ dvd_zero p)
+  rw [hcm p m (hP p hp).ne_zero hm0, mul_div_assoc]
 
 
 end MoltResearch
