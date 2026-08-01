@@ -1108,4 +1108,84 @@ theorem slice_cut_points (A s U H n : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s)
     linarith [hc1, hc2, hb1, hb2]
 
 
+/-- **The window transfer** (Track R, W1c): the bump window evaluated at
+the log-ratio phase `T(log n − log m)` has plateau and support given by
+the closed-form cut points `n(1+rᵢ)` — `log_mul` and `exp_log`
+monotonicity; the `m = 0` degenerate case dies on the support's
+negativity since `log n > 0`. -/
+theorem psi_transfer (A n : ℕ) (hA : 1 ≤ A) (hn1 : A < n)
+    (T : ℝ) (hT : 0 < T) (r₀ r₁ r₂ r₃ : ℝ)
+    (hr₀ : 0 < r₀) (hr01 : r₀ ≤ r₁) (hr12 : r₁ ≤ r₂) (hr23 : r₂ ≤ r₃)
+    (η : ℝ → ℝ)
+    (hηplat : ∀ u, -(T*Real.log (1+r₂)) ≤ u → u ≤ -(T*Real.log (1+r₁)) → η u = 1)
+    (hηsupp : ∀ u, η u ≠ 0 → -(T*Real.log (1+r₃)) < u ∧ u < -(T*Real.log (1+r₀))) :
+    (∀ m : ℕ, (n:ℝ)*(1+r₁) ≤ (m:ℝ) → (m:ℝ) ≤ (n:ℝ)*(1+r₂)
+      → η (T*(Real.log n - Real.log m)) = 1)
+    ∧ (∀ m : ℕ, η (T*(Real.log n - Real.log m)) ≠ 0
+      → (n:ℝ)*(1+r₀) < (m:ℝ) ∧ (m:ℝ) ≤ (n:ℝ)*(1+r₃)) := by
+  have hn2 : 2 ≤ n := by omega
+  have hn0 : (0:ℝ) < n := by
+    have : 0 < n := by omega
+    exact_mod_cast this
+  have hlogn : 0 < Real.log n := by
+    refine Real.log_pos ?_
+    exact_mod_cast hn2
+  have h1r₀ : (0:ℝ) < 1 + r₀ := by linarith
+  have h1r₁ : (0:ℝ) < 1 + r₁ := by linarith
+  have h1r₂ : (0:ℝ) < 1 + r₂ := by linarith
+  have h1r₃ : (0:ℝ) < 1 + r₃ := by linarith
+  constructor
+  · -- the plateau
+    intro m hm1 hm2
+    have hm0 : (0:ℝ) < m := by nlinarith
+    have hlog1 : Real.log ((n:ℝ)*(1+r₁)) ≤ Real.log m :=
+      Real.log_le_log (by positivity) hm1
+    have hlog2 : Real.log m ≤ Real.log ((n:ℝ)*(1+r₂)) :=
+      Real.log_le_log hm0 hm2
+    rw [Real.log_mul hn0.ne' h1r₁.ne'] at hlog1
+    rw [Real.log_mul hn0.ne' h1r₂.ne'] at hlog2
+    refine hηplat _ ?_ ?_
+    · nlinarith [hlog2]
+    · nlinarith [hlog1]
+  · -- the support
+    intro m hne
+    obtain ⟨h1, h2⟩ := hηsupp _ hne
+    have hlog₀ : (0:ℝ) < Real.log (1+r₀) := Real.log_pos (by linarith)
+    -- m must be positive
+    have hm0 : (0:ℝ) < m := by
+      by_contra hm
+      push_neg at hm
+      have hmz : (m:ℝ) = 0 := le_antisymm hm (Nat.cast_nonneg m)
+      rw [hmz, Real.log_zero, sub_zero] at h2
+      nlinarith [h2]
+    have hm1 : 1 ≤ m := by exact_mod_cast Nat.one_le_iff_ne_zero.mpr (by
+      intro hz
+      rw [hz] at hm0
+      norm_num at hm0)
+    -- extract the log-inequalities
+    have hL1 : Real.log n + Real.log (1+r₀) < Real.log m := by
+      have := lt_of_mul_lt_mul_left
+        (by linarith [h2] : T*(Real.log n - Real.log m) < T*(-(Real.log (1+r₀))))
+        hT.le
+      linarith
+    have hL2 : Real.log m < Real.log n + Real.log (1+r₃) := by
+      have := lt_of_mul_lt_mul_left
+        (by linarith [h1] : T*(-(Real.log (1+r₃))) < T*(Real.log n - Real.log m))
+        hT.le
+      linarith
+    constructor
+    · have h3 : Real.log ((n:ℝ)*(1+r₀)) < Real.log m := by
+        rw [Real.log_mul hn0.ne' h1r₀.ne']
+        exact hL1
+      have h4 := Real.exp_lt_exp.mpr h3
+      rw [Real.exp_log (by positivity), Real.exp_log hm0] at h4
+      exact h4
+    · have h3 : Real.log m < Real.log ((n:ℝ)*(1+r₃)) := by
+        rw [Real.log_mul hn0.ne' h1r₃.ne']
+        exact hL2
+      have h4 := Real.exp_lt_exp.mpr h3
+      rw [Real.exp_log hm0, Real.exp_log (by positivity)] at h4
+      exact h4.le
+
+
 end MoltResearch
