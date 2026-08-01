@@ -257,4 +257,49 @@ def NonPretentiousAt (g : ℕ → ℂ) (A : ℝ) (x : ℕ) : Prop :=
   ∀ (q : ℕ) (χ : DirichletCharacter ℂ q) (t : ℝ),
     (q : ℝ) ≤ A → |t| ≤ A * x → A ≤ pretentiousDistSq g (charTwist q χ t) x
 
+/-- **Ramaré-weight robustness** (mrt Appendix, Lemma (i)): damping a
+`1`-bounded `f` by a real prime-weight `g ∈ [0,1]` at most halves the
+squared pretentious distance to a unimodular comparison. -/
+theorem pretentiousDistSq_mul_weight_ge (f g h : ℕ → ℂ) (N : ℕ)
+    (hf : ∀ p, ‖f p‖ ≤ 1) (hh : ∀ p, ‖h p‖ = 1)
+    (hg_re : ∀ p, (g p).im = 0) (hg0 : ∀ p, 0 ≤ (g p).re)
+    (hg1 : ∀ p, (g p).re ≤ 1) :
+    (1/2) * pretentiousDistSq f h N
+      ≤ pretentiousDistSq (fun n => f n * g n) h N := by
+  rw [pretentiousDistSq, pretentiousDistSq, Finset.mul_sum]
+  refine Finset.sum_le_sum fun p hp => ?_
+  have hp2 := (Nat.prime_of_mem_primesBelow hp).two_le
+  have hp0 : (0:ℝ) < p := by
+    have : (0:ℕ) < p := by omega
+    exact_mod_cast this
+  set R := (f p * (starRingEnd ℂ) (h p)).re with hR_def
+  have hRabs : |R| ≤ 1 := by
+    rw [hR_def]
+    refine le_trans (Complex.abs_re_le_norm _) ?_
+    rw [norm_mul, RCLike.norm_conj, hh p, mul_one]
+    exact hf p
+  have hR := abs_le.mp hRabs
+  set γ : ℝ := (g p).re with hγ_def
+  have hγdef : g p = (γ : ℂ) := by
+    apply Complex.ext
+    · rw [Complex.ofReal_re]
+    · rw [Complex.ofReal_im]
+      exact hg_re p
+  have hkey : ((fun n => f n * g n) p * (starRingEnd ℂ) (h p)).re
+      = γ * R := by
+    have h1 : (fun n => f n * g n) p * (starRingEnd ℂ) (h p)
+        = (γ : ℂ) * (f p * (starRingEnd ℂ) (h p)) := by
+      dsimp only
+      rw [hγdef]
+      ring
+    rw [h1, Complex.re_ofReal_mul, hR_def]
+  rw [hkey]
+  have hnum : (1/2)*(1 - R) ≤ 1 - γ * R := by
+    nlinarith [mul_nonneg (by linarith [hR.1] : (0:ℝ) ≤ 1 + R)
+        (by linarith [hg1 p] : (0:ℝ) ≤ 1 - γ),
+      mul_nonneg (by linarith [hR.2] : (0:ℝ) ≤ 1 - R) (show (0:ℝ) ≤ γ from hg0 p)]
+  calc (1/2)*((1 - R)/p) = ((1/2)*(1 - R))/p := by ring
+    _ ≤ (1 - γ * R)/p :=
+        div_le_div_of_nonneg_right hnum hp0.le
+
 end MoltResearch
