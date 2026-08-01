@@ -787,4 +787,92 @@ theorem norm_shift_avg_sub_smooth_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ �
   exact le_trans (norm_sum_mul_sub_weights_le M D h hb c ψ hc01 hψ01 hagree) hcard
 
 
+/-- **The collar bound from real cut-points** (Track R, B3-iii-b-2): the
+b-1 collar identification with the plateau/support data given by real
+cut-points `x₀ ≤ x₁ < x₂ ≤ x₃` (as produced by a bump window in log
+coordinates, `xᵢ = n·e^{tᵢ}`), with the collar counted in real terms.
+Floor/ceil packaging on top of `norm_shift_avg_sub_smooth_le`. -/
+theorem norm_shift_avg_sub_smooth_le_of_cuts (h : ℕ → ℂ)
+    (hb : ∀ m, ‖h m‖ ≤ 1) (n U H : ℕ) (hU : 0 < U)
+    (x₀ x₁ x₂ x₃ : ℝ)
+    (h₀₁ : x₀ ≤ x₁) (h₁₂ : x₁ + 1 ≤ x₂) (h₂₃ : x₂ ≤ x₃)
+    (hU₁ : (n:ℝ) + U ≤ x₁) (h₂H : x₂ ≤ (n:ℝ) + H) (h₀n : (n:ℝ) ≤ x₀)
+    (M : Finset ℕ) (hM : Finset.Ioc n (max ⌊x₃⌋₊ (n+U+H)) ⊆ M)
+    (ψ : ℕ → ℝ) (hψ01 : ∀ m, 0 ≤ ψ m ∧ ψ m ≤ 1)
+    (hψ_plateau : ∀ m : ℕ, x₁ ≤ (m:ℝ) → (m:ℝ) ≤ x₂ → ψ m = 1)
+    (hψ_supp : ∀ m : ℕ, ψ m ≠ 0 → x₀ < (m:ℝ) ∧ (m:ℝ) ≤ x₃) :
+    ‖((1/(U:ℂ)) * ∑ u ∈ Finset.range U, ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+        - ∑ m ∈ M, h m * ((ψ m : ℝ) : ℂ)‖
+      ≤ (x₁ - n + 1) + (max x₃ ((n:ℝ)+U+H) - x₂ + 1) := by
+  classical
+  have hn0 : (0:ℝ) ≤ n := Nat.cast_nonneg n
+  have hx₀0 : (0:ℝ) ≤ x₀ := le_trans hn0 h₀n
+  have hx₁0 : (0:ℝ) ≤ x₁ := le_trans hx₀0 h₀₁
+  have hx₂0 : (0:ℝ) ≤ x₂ := by linarith
+  set P : ℕ := ⌈x₁⌉₊ with hP_def
+  set Q : ℕ := ⌊x₂⌋₊ with hQ_def
+  set R : ℕ := ⌊x₀⌋₊ with hR_def
+  set S' : ℕ := ⌊x₃⌋₊ with hS_def
+  -- nat geometry from real geometry
+  have hPU : n+U ≤ P := by
+    have h1 : ((n+U : ℕ) : ℝ) ≤ x₁ := by push_cast; linarith
+    have h2 := Nat.le_ceil x₁
+    have : ((n+U : ℕ) : ℝ) ≤ (P:ℝ) := le_trans h1 h2
+    exact_mod_cast this
+  have hQH : Q ≤ n+H := by
+    have h1 : x₂ ≤ ((n+H : ℕ) : ℝ) := by push_cast; linarith
+    exact Nat.floor_le_of_le h1
+  have hPQ : P ≤ Q := by
+    have h1 : (P:ℝ) < x₁ + 1 := Nat.ceil_lt_add_one hx₁0
+    have h2 : (P:ℝ) ≤ x₂ := by linarith
+    exact_mod_cast Nat.le_floor h2
+  have hRn : n ≤ R := Nat.le_floor h₀n
+  have hQS : Q ≤ S' := Nat.floor_le_floor h₂₃
+  -- the ψ-facts in nat form
+  have hψ_plateau' : ∀ m, P ≤ m → m ≤ Q → ψ m = 1 := by
+    intro m h1 h2
+    refine hψ_plateau m ?_ ?_
+    · have := Nat.ceil_le.mp h1
+      exact this
+    · have h3 : (m:ℝ) ≤ (Q:ℝ) := by exact_mod_cast h2
+      have h4 : (Q:ℝ) ≤ x₂ := Nat.floor_le hx₂0
+      linarith
+  have hψ_supp' : ∀ m, ψ m ≠ 0 → R < m ∧ m ≤ S' := by
+    intro m hne
+    obtain ⟨h1, h2⟩ := hψ_supp m hne
+    constructor
+    · have h3 : (R:ℝ) ≤ x₀ := Nat.floor_le hx₀0
+      have h4 : (R:ℝ) < (m:ℝ) := by linarith
+      exact_mod_cast h4
+    · exact Nat.le_floor h2
+  -- apply b-1
+  have hmain := norm_shift_avg_sub_smooth_le h hb n U H P Q R S' hU
+    hPU hQH hPQ hRn hQS M hM ψ hψ01 hψ_plateau' hψ_supp'
+  refine le_trans hmain ?_
+  -- convert the nat collar counts to real
+  have hc1 : ((P - n : ℕ) : ℝ) ≤ x₁ - n + 1 := by
+    have h1 : (P:ℝ) < x₁ + 1 := Nat.ceil_lt_add_one hx₁0
+    have h2 : n ≤ P := by omega
+    have h3 : ((P - n : ℕ) : ℝ) = (P:ℝ) - n := Nat.cast_sub h2
+    linarith [h3.le, h3.ge]
+  have hc2 : ((max S' (n+U+H) - Q : ℕ) : ℝ)
+      ≤ max x₃ ((n:ℝ)+U+H) - x₂ + 1 := by
+    have hQmax : Q ≤ max S' (n+U+H) := le_trans hQS (le_max_left _ _)
+    have h3 : ((max S' (n+U+H) - Q : ℕ) : ℝ)
+        = ((max S' (n+U+H) : ℕ) : ℝ) - (Q:ℝ) := Nat.cast_sub hQmax
+    have h4 : ((max S' (n+U+H) : ℕ) : ℝ)
+        = max ((S' : ℕ) : ℝ) (((n+U+H : ℕ) : ℝ)) := Nat.cast_max _ _
+    have h5 : ((S' : ℕ) : ℝ) ≤ x₃ := Nat.floor_le (by linarith)
+    have h6 : (((n+U+H : ℕ)) : ℝ) ≤ ((n:ℝ)+U+H) := by
+      push_cast
+      linarith
+    have h7 : max ((S' : ℕ) : ℝ) (((n+U+H : ℕ)) : ℝ)
+        ≤ max x₃ ((n:ℝ)+U+H) := max_le_max h5 h6
+    have h8 : x₂ - 1 < (Q:ℝ) := by
+      have := Nat.lt_floor_add_one x₂
+      linarith
+    linarith [h3.le, h3.ge, h4.le, h4.ge]
+  linarith [hc1, hc2]
+
+
 end MoltResearch
