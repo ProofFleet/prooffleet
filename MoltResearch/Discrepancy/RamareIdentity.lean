@@ -121,4 +121,35 @@ theorem card_filter_dvd_mul_of_prime (P : Finset ℕ) (hP : ∀ q ∈ P, q.Prime
   exact hpm hmem.2
 
 
+/-- **The 𝒰-decomposition normal form** (C4e-4): the sum of `g` over the
+`n ∈ (a,b]` with a factor in the prime set `P` splits into the main
+Ramaré-weighted dilated sums (weight `1/(ω_P(m)+1)`, collision-free
+fibres) plus the collision sums (`p ∣ m`). C4e-1 ∘ C4e-2 ∘ C4e-3. -/
+theorem sum_filter_omega_pos_eq_main_add_collision (a b : ℕ) (P : Finset ℕ)
+    (hP : ∀ q ∈ P, q.Prime) (g : ℕ → ℂ) :
+    ∑ n ∈ (Finset.Ioc a b).filter (fun n => 0 < (P.filter (· ∣ n)).card), g n
+      = (∑ p ∈ P, ∑ m ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m => ¬ p ∣ m),
+          g (p * m) / (((P.filter (· ∣ m)).card : ℂ) + 1))
+        + ∑ p ∈ P, ∑ m ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m => p ∣ m),
+            g (p * m) / (((P.filter (· ∣ p * m)).card : ℂ)) := by
+  classical
+  rw [← sum_div_card_dvd_eq_sum_filter (Finset.Ioc a b) P g]
+  rw [← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  have hp0 : 0 < p := (hP p hp).pos
+  rw [sum_Ioc_filter_dvd_eq_sum_Ioc_div a b p hp0
+    (fun n => g n / ((P.filter (· ∣ n)).card : ℂ))]
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Ioc (a/p) (b/p))
+    (fun m => ¬ p ∣ m)]
+  congr 1
+  · refine Finset.sum_congr rfl fun m hm => ?_
+    rw [Finset.mem_filter] at hm
+    rw [card_filter_dvd_mul_of_prime P hP hp hm.2]
+    push_cast
+    ring
+  · refine Finset.sum_congr ?_ fun m _ => rfl
+    ext m
+    simp only [Finset.mem_filter, not_not]
+
+
 end MoltResearch
