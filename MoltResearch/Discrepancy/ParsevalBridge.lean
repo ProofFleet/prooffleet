@@ -1286,4 +1286,54 @@ theorem exists_slice_window (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
   exact le_trans hmain hc6
 
 
+open scoped ContDiff in
+/-- **The derivative bound** (Track R, W1e): a smooth window supported
+in `[−2,2]` has a globally bounded derivative that is also supported in
+`[−2,2]` — compactness for the bound on the support, and local
+vanishing off it. Supplies the `B′`-data that the smoothed-window
+Lipschitz bound (`abs_norm_sq_smoothedLogSum_sub_le`) consumes. -/
+theorem exists_deriv_bound (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η)
+    (hη2 : ∀ u, η u ≠ 0 → |u| ≤ 2) :
+    ∃ B' : ℝ, 0 ≤ B' ∧ (∀ u, |deriv η u| ≤ B')
+      ∧ (∀ u, deriv η u ≠ 0 → |u| ≤ 2) := by
+  classical
+  have hcont : Continuous (deriv η) := hηs.continuous_deriv (by norm_num)
+  -- the derivative vanishes off the support
+  have hzero : ∀ u : ℝ, 2 < |u| → deriv η u = 0 := by
+    intro u hu
+    have hopen : IsOpen {v : ℝ | 2 < |v|} :=
+      isOpen_lt continuous_const continuous_abs
+    have hmem : u ∈ {v : ℝ | 2 < |v|} := hu
+    have hev : η =ᶠ[nhds u] (fun _ => 0) := by
+      refine Filter.eventuallyEq_of_mem (hopen.mem_nhds hmem) ?_
+      intro v hv
+      by_contra hne
+      exact absurd (hη2 v hne) (by
+        simp only [Set.mem_setOf_eq] at hv
+        linarith)
+    have := hev.deriv_eq
+    rw [this]
+    simp
+  -- bound on the compact support
+  obtain ⟨u₀, -, hmax'⟩ := IsCompact.exists_isMaxOn
+    (isCompact_Icc : IsCompact (Set.Icc (-2:ℝ) 2))
+    ⟨-2, by norm_num⟩
+    ((continuous_abs.comp hcont).continuousOn)
+  have hmax : ∀ u ∈ Set.Icc (-2:ℝ) 2, |deriv η u| ≤ |deriv η u₀| :=
+    fun u hu => hmax' hu
+  refine ⟨|deriv η u₀|, abs_nonneg _, ?_, ?_⟩
+  · intro u
+    rcases le_or_gt |u| 2 with hle | hgt
+    · refine hmax u ?_
+      rw [Set.mem_Icc]
+      rw [abs_le] at hle
+      exact hle
+    · rw [hzero u hgt]
+      simp
+  · intro u hne
+    by_contra hgt
+    push_neg at hgt
+    exact hne (hzero u hgt)
+
+
 end MoltResearch
