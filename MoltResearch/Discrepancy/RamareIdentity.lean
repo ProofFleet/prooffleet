@@ -400,4 +400,48 @@ theorem wirsing_identity (f : ℕ → ℂ) (hcm : CompletelyMultiplicativeC f)
   ring
 
 
+/-- **The sifted-interval count** (Track R, W2c-iv-a): the number of
+integers in `(a, b]` with no prime factor in the finite prime set `P`
+is at most `φ(Q)·((b−a)/Q + 1)` with `Q = ∏ P` — coprimality to the
+squarefree modulus, counted by periodicity. The non-`𝒰` density bound
+of the Ramaré decomposition: at fixed `P = P(ε)` and interval length
+`→ ∞` this is `∏(1−1/p) + o(1)`, Mertens-small. -/
+theorem card_filter_not_dvd_le (a b : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) :
+    ((Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m)).card
+      ≤ (∏ p ∈ P, p).totient * ((b - a)/(∏ p ∈ P, p) + 1) := by
+  classical
+  have hQ0 : (∏ p ∈ P, p) ≠ 0 := by
+    refine Finset.prod_ne_zero_iff.mpr ?_
+    intro p hp
+    exact (hP p hp).ne_zero
+  -- the condition is coprimality to the product
+  have hcond : ∀ m : ℕ, (∀ p ∈ P, ¬ p ∣ m) ↔ (∏ p ∈ P, p).Coprime m := by
+    intro m
+    rw [Nat.coprime_prod_left_iff]
+    constructor
+    · intro h p hp
+      exact ((hP p hp).coprime_iff_not_dvd).mpr (h p hp)
+    · intro h p hp
+      exact ((hP p hp).coprime_iff_not_dvd).mp (h p hp)
+  have hfilter : (Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m)
+      = (Finset.Ioc a b).filter (fun m => (∏ p ∈ P, p).Coprime m) := by
+    refine Finset.filter_congr fun m _ => ?_
+    simp only [hcond m]
+  rw [hfilter]
+  rcases Nat.lt_or_ge b a with hba | hab
+  · have : Finset.Ioc a b = ∅ := by
+      rw [Finset.Ioc_eq_empty]
+      omega
+    rw [this]
+    simp
+  -- convert to the Ico window and apply the periodic count
+  have hIoc : Finset.Ioc a b = Finset.Ico (a+1) ((a+1) + (b-a)) := by
+    ext m
+    simp only [Finset.mem_Ioc, Finset.mem_Ico]
+    omega
+  rw [hIoc]
+  exact Nat.Ico_filter_coprime_le (a+1) (b-a) hQ0
+
+
 end MoltResearch
