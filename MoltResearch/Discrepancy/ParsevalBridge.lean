@@ -495,4 +495,24 @@ theorem sum_log_div_le_two_mul_integral_add (a b : ℕ) (ha : 1 ≤ a)
   linarith [hfin, hsum2]
 
 
+/-- **The slice partition** (Track R, B2′): a range `(A, A+J·s]` is the
+disjoint union of `J` consecutive slices of width `s`. Refines the B2
+dyadic fibres into slices on which the relative window width `H/n`
+varies by only the slice ratio — the alignment the fixed smooth window
+of the Plancherel comparison needs. -/
+theorem sum_range_sum_Ioc_slices {M : Type*} [AddCommMonoid M]
+    (A s J : ℕ) (f : ℕ → M) :
+    ∑ j ∈ Finset.range J, ∑ n ∈ Finset.Ioc (A + j*s) (A + (j+1)*s), f n
+      = ∑ n ∈ Finset.Ioc A (A + J*s), f n := by
+  induction J with
+  | zero => simp
+  | succ K ih =>
+    rw [Finset.sum_range_succ, ih]
+    have h1 : A ≤ A + K*s := by omega
+    have h2 : A + K*s ≤ A + (K+1)*s := by
+      have : K*s ≤ (K+1)*s := Nat.mul_le_mul_right s (by omega)
+      omega
+    exact Finset.sum_Ioc_consecutive f h1 h2
+
+
 end MoltResearch
