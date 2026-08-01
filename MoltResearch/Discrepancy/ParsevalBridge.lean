@@ -533,4 +533,108 @@ theorem card_Ioc_floor_le (x y : ℝ) (hx : 0 ≤ x) (hxy : x ≤ y) :
   linarith
 
 
+/-- **The per-slice mean square** (Track R, B4-scaffold): on a slice,
+the sharp-window mean square is controlled by the smooth-window energy
+integral plus the shift, collar, and Riemann costs. The smooth-window
+data enters as hypotheses (`G`, the collar bound, the Lipschitz
+constant); B3-iii-b discharges them with an explicit `ContDiffBump`
+window, and the harness's `regime_split` then bounds the integral on
+the frequency side. -/
+theorem slice_window_mean_sq_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (A s H U : ℕ) (hA : 1 ≤ A) (hU : 0 < U) (hUH : U ≤ H)
+    (G : ℝ → ℂ) (hGcont : Continuous G)
+    (Dbound : ℝ) (hD0 : 0 ≤ Dbound)
+    (hcollar : ∀ n ∈ Finset.Ioc A (A+s),
+      ‖((1/(U:ℂ)) * ∑ u ∈ Finset.range U, ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+        - G (Real.log n)‖ ≤ Dbound)
+    (Λ : ℝ) (hΛ0 : 0 ≤ Λ)
+    (hLip : ∀ y z, |‖G y‖^2 - ‖G z‖^2| ≤ Λ * |y - z|) :
+    ∑ n ∈ Finset.Ioc A (A+s), ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n
+      ≤ 6 * (∫ y in (Real.log A)..(Real.log (((A+s : ℕ) : ℝ)+1)), ‖G y‖^2)
+        + (3*(U:ℝ)^2 + 3*Dbound^2) * (∑ n ∈ Finset.Ioc A (A+s), (1:ℝ)/n)
+        + 6*Λ/A := by
+  classical
+  have hper : ∀ n ∈ Finset.Ioc A (A+s),
+      ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n
+        ≤ (3*(U:ℝ)^2 + 3*Dbound^2)*(1/n) + 3*(‖G (Real.log n)‖^2/n) := by
+    intro n hn
+    have hmem := hn
+    rw [Finset.mem_Ioc] at hmem
+    have hn0 : (0:ℝ) < n := by
+      have h1 : 1 ≤ n := by omega
+      exact_mod_cast h1
+    have h1 := norm_window_sub_shift_avg_le h hb n H U hU hUH
+    have h2 := hcollar n hn
+    have htri : ‖∑ m ∈ Finset.Ioc n (n+H), h m‖
+        ≤ (U:ℝ) + Dbound + ‖G (Real.log n)‖ := by
+      have e1 : ∑ m ∈ Finset.Ioc n (n+H), h m
+          = ((∑ m ∈ Finset.Ioc n (n+H), h m)
+              - (1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+                  ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+            + (((1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+                  ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+                - G (Real.log n))
+            + G (Real.log n) := by ring
+      calc ‖∑ m ∈ Finset.Ioc n (n+H), h m‖
+          = ‖((∑ m ∈ Finset.Ioc n (n+H), h m)
+              - (1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+                  ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+            + (((1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+                  ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+                - G (Real.log n))
+            + G (Real.log n)‖ := by rw [← e1]
+        _ ≤ ‖(∑ m ∈ Finset.Ioc n (n+H), h m)
+              - (1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+                  ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m‖
+            + ‖((1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+                  ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+                - G (Real.log n)‖
+            + ‖G (Real.log n)‖ := norm_add₃_le
+        _ ≤ (U:ℝ) + Dbound + ‖G (Real.log n)‖ := by
+            refine add_le_add (add_le_add ?_ h2) le_rfl
+            exact h1
+    have hsq : ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2
+        ≤ 3*(U:ℝ)^2 + 3*Dbound^2 + 3*‖G (Real.log n)‖^2 := by
+      have hWnn : (0:ℝ) ≤ ‖∑ m ∈ Finset.Ioc n (n+H), h m‖ := norm_nonneg _
+      have hGnn : (0:ℝ) ≤ ‖G (Real.log n)‖ := norm_nonneg _
+      have hUnn : (0:ℝ) ≤ (U:ℝ) := Nat.cast_nonneg U
+      nlinarith [htri, hWnn, hGnn, hUnn, hD0,
+        sq_nonneg ((U:ℝ) - Dbound), sq_nonneg ((U:ℝ) - ‖G (Real.log n)‖),
+        sq_nonneg (Dbound - ‖G (Real.log n)‖)]
+    have hdiv : ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n
+        ≤ (3*(U:ℝ)^2 + 3*Dbound^2 + 3*‖G (Real.log n)‖^2)/n := by
+      gcongr
+    have hbridge : (3*(U:ℝ)^2 + 3*Dbound^2 + 3*‖G (Real.log n)‖^2)/(n:ℝ)
+        = (3*(U:ℝ)^2 + 3*Dbound^2)*(1/(n:ℝ)) + 3*(‖G (Real.log n)‖^2/(n:ℝ)) := by
+      ring
+    linarith [hdiv, hbridge.le, hbridge.ge]
+  refine le_trans (Finset.sum_le_sum hper) ?_
+  rw [Finset.sum_add_distrib]
+  have hR := sum_log_div_le_two_mul_integral_add A (A+s) hA (by omega)
+    (fun y => ‖G y‖^2) (fun y => by positivity) (hGcont.norm.pow 2)
+    Λ hΛ0 hLip
+  have hsum1 : ∑ n ∈ Finset.Ioc A (A+s), (3*(U:ℝ)^2 + 3*Dbound^2)*(1/(n:ℝ))
+      = (3*(U:ℝ)^2 + 3*Dbound^2) * (∑ n ∈ Finset.Ioc A (A+s), (1:ℝ)/n) := by
+    rw [Finset.mul_sum]
+  have hsum2 : ∑ n ∈ Finset.Ioc A (A+s), 3*(‖G (Real.log n)‖^2/(n:ℝ))
+      = 3 * ∑ n ∈ Finset.Ioc A (A+s), ‖G (Real.log n)‖^2/(n:ℝ) := by
+    rw [Finset.mul_sum]
+  rw [hsum1, hsum2]
+  have h6 : 3 * ∑ n ∈ Finset.Ioc A (A+s), ‖G (Real.log n)‖^2/(n:ℝ)
+      ≤ 6 * (∫ y in (Real.log A)..(Real.log (((A+s : ℕ) : ℝ)+1)), ‖G y‖^2)
+        + 6*Λ/A := by
+    have hb1 : 3 * ∑ n ∈ Finset.Ioc A (A+s), ‖G (Real.log n)‖^2/(n:ℝ)
+        ≤ 3 * (2 * (∫ y in (Real.log A)..(Real.log (((A+s : ℕ) : ℝ)+1)),
+            ‖G y‖^2) + 2*Λ/A) := by
+      refine mul_le_mul_of_nonneg_left ?_ (by norm_num)
+      exact hR
+    have hb2 : 3 * (2 * (∫ y in (Real.log A)..(Real.log (((A+s : ℕ) : ℝ)+1)),
+        ‖G y‖^2) + 2*Λ/A)
+        = 6 * (∫ y in (Real.log A)..(Real.log (((A+s : ℕ) : ℝ)+1)), ‖G y‖^2)
+          + 6*Λ/A := by
+      ring
+    linarith [hb1, hb2.le, hb2.ge]
+  linarith [h6]
+
+
 end MoltResearch
