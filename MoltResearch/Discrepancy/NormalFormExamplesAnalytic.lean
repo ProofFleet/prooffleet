@@ -166,4 +166,17 @@ example (s : ℝ) (hs : s ≠ 0) (L : ℝ) :
       ≤ 1/(Real.pi * |s|) :=
   ExpSums.norm_intervalIntegral_char_le hs L
 
+-- Track R C4a-1 (issue #3044): the window energy of a prime-block phase sum —
+-- diagonal 2L·∑1/p² plus near-diagonal O(loglog)·∑1/p; the block length
+-- never enters.
+example (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) (P₂ : ℕ)
+    (hP₂ : ∀ p ∈ P, p ≤ P₂) (h16 : 16 ≤ P₂) (a : ℕ → ℂ)
+    (ha : ∀ p, ‖a p‖ ≤ 1) (L : ℝ) (hL : 0 ≤ L) :
+    ∫ ξ in (-L)..L,
+        ‖∑ p ∈ P, (a p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+      ≤ 2*L*(∑ p ∈ P, (1:ℝ)/(p:ℝ)^2)
+        + (742 + 370*Real.log (Real.log P₂)) * (∑ p ∈ P, (1:ℝ)/p) :=
+  ExpSums.intervalIntegral_norm_sq_phase_sum_le P hP P₂ hP₂ h16 a ha L hL
+
 end MoltResearch
