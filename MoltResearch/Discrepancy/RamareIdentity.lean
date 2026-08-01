@@ -56,4 +56,42 @@ theorem sum_div_card_dvd_eq_sum_filter (A P : Finset ℕ) (g : ℕ → ℂ) :
       field_simp
   rw [Finset.sum_congr rfl h2, ← Finset.sum_filter]
 
+/-- **The fibre reindex** (C4e-2): the multiples of `p` in a range `(a, b]`
+are exactly the dilates `p·m` for `m ∈ (a/p, b/p]` (floor division), so a
+sum over the `p`-divisibility fibre is a sum over the dilated range. -/
+theorem sum_Ioc_filter_dvd_eq_sum_Ioc_div (a b p : ℕ) (hp : 0 < p) (h : ℕ → ℂ) :
+    ∑ n ∈ (Finset.Ioc a b).filter (fun n => p ∣ n), h n
+      = ∑ m ∈ Finset.Ioc (a / p) (b / p), h (p * m) := by
+  classical
+  refine Finset.sum_bij' (fun n _ => n / p) (fun m _ => p * m) ?_ ?_ ?_ ?_ ?_
+  · intro n hn
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hn
+    obtain ⟨⟨han, hnb⟩, hdvd⟩ := hn
+    obtain ⟨m, rfl⟩ := hdvd
+    rw [Finset.mem_Ioc]
+    dsimp only
+    rw [Nat.mul_div_cancel_left m hp]
+    constructor
+    · exact (Nat.div_lt_iff_lt_mul hp).mpr (by rw [mul_comm]; exact han)
+    · exact (Nat.le_div_iff_mul_le hp).mpr (by rw [mul_comm]; exact hnb)
+  · intro m hm
+    rw [Finset.mem_Ioc] at hm
+    rw [Finset.mem_filter, Finset.mem_Ioc]
+    refine ⟨⟨?_, ?_⟩, dvd_mul_right p m⟩
+    · have h1 := (Nat.div_lt_iff_lt_mul hp).mp hm.1
+      rw [mul_comm] at h1
+      exact h1
+    · have h2 := (Nat.le_div_iff_mul_le hp).mp hm.2
+      rw [mul_comm] at h2
+      exact h2
+  · intro n hn
+    rw [Finset.mem_filter] at hn
+    exact Nat.mul_div_cancel' hn.2
+  · intro m _
+    exact Nat.mul_div_cancel_left m hp
+  · intro n hn
+    rw [Finset.mem_filter] at hn
+    rw [Nat.mul_div_cancel' hn.2]
+
+
 end MoltResearch
