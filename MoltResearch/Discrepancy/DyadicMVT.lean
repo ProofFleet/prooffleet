@@ -440,6 +440,28 @@ theorem intervalIntegral_norm_sq_weighted_blocks_le (P : Finset ℕ) (w : ℕ �
     (hSlow p hp) (hShigh p hp) (a p) (ha p) L hL
 
 
+/-- **The window sup-bound** (C4e-9): the energy of a continuous function
+over an interval is at most the length times the squared sup — the
+`𝒯₀`-leg's integral step: on the one window around the minimizing
+frequency, the pointwise Halász ratio bound (`HalaszEuler.lean`) turns
+into an energy bound at cost `(window length)`. -/
+theorem intervalIntegral_norm_sq_le_of_bound (f : ℝ → ℂ) (c d M : ℝ)
+    (hcd : c ≤ d) (hf : Continuous f)
+    (hM : ∀ t ∈ Set.uIcc c d, ‖f t‖ ≤ M) :
+    ∫ t in c..d, ‖f t‖^2 ≤ (d - c) * M^2 := by
+  have hM0 : (0:ℝ) ≤ M := le_trans (norm_nonneg _) (hM c Set.left_mem_uIcc)
+  calc ∫ t in c..d, ‖f t‖^2
+      ≤ ∫ t in c..d, M^2 := by
+        refine intervalIntegral.integral_mono_on hcd
+          ((hf.norm.pow 2).intervalIntegrable _ _)
+          intervalIntegrable_const fun t ht => ?_
+        have hb := hM t (Set.mem_uIcc_of_le ht.1 ht.2)
+        have hn : (0:ℝ) ≤ ‖f t‖ := norm_nonneg _
+        nlinarith
+    _ = (d - c) * M^2 := by
+        rw [intervalIntegral.integral_const, smul_eq_mul]
+
+
 end ExpSums
 
 end MoltResearch
