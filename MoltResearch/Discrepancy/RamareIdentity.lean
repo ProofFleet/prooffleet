@@ -444,4 +444,55 @@ theorem card_filter_not_dvd_le (a b : ℕ) (P : Finset ℕ)
   exact Nat.Ico_filter_coprime_le (a+1) (b-a) hQ0
 
 
+/-- **The sifted density** (Track R, W2c-iv-b): the totient of a
+squarefree prime product is exponentially damped by the prime
+reciprocal mass — `φ(∏P) ≤ (∏P)·e^{−∑1/p}`. With the Mertens floor
+this makes the sifted-interval density `∏(1−1/p)` as small as desired
+by widening the prime window. -/
+theorem totient_prod_le_exp (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) :
+    (((∏ p ∈ P, p).totient : ℕ) : ℝ)
+      ≤ (((∏ p ∈ P, p) : ℕ) : ℝ) * Real.exp (-(∑ p ∈ P, (1:ℝ)/p)) := by
+  classical
+  induction P using Finset.induction_on with
+  | empty => simp
+  | insert p P' hpnot ih =>
+    have hpp : p.Prime := hP p (Finset.mem_insert_self p P')
+    have hP' : ∀ q ∈ P', q.Prime := fun q hq =>
+      hP q (Finset.mem_insert_of_mem hq)
+    have hcop : Nat.Coprime p (∏ q ∈ P', q) := by
+      rw [Nat.coprime_prod_right_iff]
+      intro q hq
+      refine (Nat.coprime_primes hpp (hP' q hq)).mpr ?_
+      intro heq
+      exact hpnot (heq ▸ hq)
+    rw [Finset.prod_insert hpnot, Finset.sum_insert hpnot,
+      Nat.totient_mul hcop, Nat.totient_prime hpp]
+    have hih := ih hP'
+    have hp0 : (0:ℝ) < p := by exact_mod_cast hpp.pos
+    have hfac : ((p - 1 : ℕ) : ℝ) ≤ (p:ℝ) * Real.exp (-(1/(p:ℝ))) := by
+      have h1 : ((p - 1 : ℕ) : ℝ) = (p:ℝ) - 1 := by
+        have := hpp.one_lt
+        push_cast [Nat.cast_sub (by omega : 1 ≤ p)]
+        ring
+      rw [h1]
+      have h2 : 1 - 1/(p:ℝ) ≤ Real.exp (-(1/(p:ℝ))) := by
+        have := Real.add_one_le_exp (-(1/(p:ℝ)))
+        linarith
+      calc (p:ℝ) - 1 = (p:ℝ) * (1 - 1/(p:ℝ)) := by field_simp
+        _ ≤ (p:ℝ) * Real.exp (-(1/(p:ℝ))) :=
+            mul_le_mul_of_nonneg_left h2 hp0.le
+    calc (((p - 1) * (∏ q ∈ P', q).totient : ℕ) : ℝ)
+        = ((p - 1 : ℕ) : ℝ) * (((∏ q ∈ P', q).totient : ℕ) : ℝ) := by
+          push_cast
+          ring
+      _ ≤ ((p:ℝ) * Real.exp (-(1/(p:ℝ))))
+          * ((((∏ q ∈ P', q) : ℕ) : ℝ) * Real.exp (-(∑ q ∈ P', (1:ℝ)/q))) := by
+          refine mul_le_mul hfac hih (by positivity) (by positivity)
+      _ = (((p * ∏ q ∈ P', q : ℕ)) : ℝ)
+          * Real.exp (-(1/(p:ℝ) + ∑ q ∈ P', (1:ℝ)/q)) := by
+          push_cast
+          rw [neg_add, Real.exp_add]
+          ring
+
+
 end MoltResearch
