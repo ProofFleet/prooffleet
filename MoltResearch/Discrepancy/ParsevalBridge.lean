@@ -943,4 +943,61 @@ theorem exists_bump_window (T t₀ t₁ t₂ t₃ : ℝ) (hT : 0 < T) (h0 : 0 < 
     · nlinarith [hmem'.2, hcv, hrv, mul_pos hT h0]
 
 
+/-- **The slice edge geometry** (Track R, W1a): the four log edge
+offsets of the slice bump window are positive, strictly ordered, and
+`T`-scale admissible (`T·t₃ ≤ 2` at `T := A/H`) under the slice
+parameter conditions `s ≤ A`, `2U ≤ H`, `(U+1)(A+s) ≤ AH`. These are
+exactly `exists_bump_window`'s hypotheses. -/
+theorem slice_edge_geometry (A s U H : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s)
+    (hsA : s ≤ A) (hU : 0 < U) (hUH : 2*U ≤ H)
+    (hplat : ((U:ℝ)+1)*((A:ℝ)+s) ≤ (A:ℝ)*H) :
+    0 < Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s)))
+    ∧ Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))) < Real.log (1 + (U:ℝ)/A)
+    ∧ Real.log (1 + (U:ℝ)/A) < Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+    ∧ Real.log (1 + (H:ℝ)/((A:ℝ)+s)) < Real.log (1 + ((H:ℝ)+2*U)/A)
+    ∧ ((A:ℝ)/H) * Real.log (1 + ((H:ℝ)+2*U)/A) ≤ 2 := by
+  have hA0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hs0 : (0:ℝ) < s := by exact_mod_cast hs
+  have hU0 : (0:ℝ) < U := by exact_mod_cast hU
+  have hH0 : (0:ℝ) < H := by
+    have : 0 < H := by omega
+    exact_mod_cast this
+  have hAs0 : (0:ℝ) < (A:ℝ)+s := by linarith
+  have hsA' : (s:ℝ) ≤ A := by exact_mod_cast hsA
+  have hUH' : 2*(U:ℝ) ≤ H := by exact_mod_cast hUH
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · refine Real.log_pos ?_
+    have : (0:ℝ) < (U:ℝ)/(4*((A:ℝ)+s)) := by positivity
+    linarith
+  · refine Real.log_lt_log (by positivity) ?_
+    have h1 : (U:ℝ)/(4*((A:ℝ)+s)) < (U:ℝ)/A := by
+      refine div_lt_div_of_pos_left hU0 hA0 ?_
+      linarith
+    linarith
+  · refine Real.log_lt_log (by positivity) ?_
+    have h1 : (U:ℝ)/A < (H:ℝ)/((A:ℝ)+s) := by
+      rw [div_lt_div_iff₀ hA0 hAs0]
+      nlinarith
+    linarith
+  · refine Real.log_lt_log (by positivity) ?_
+    have h1 : (H:ℝ)/((A:ℝ)+s) < ((H:ℝ)+2*U)/A := by
+      rw [div_lt_div_iff₀ hAs0 hA0]
+      nlinarith
+    linarith
+  · have hlog : Real.log (1 + ((H:ℝ)+2*U)/A) ≤ ((H:ℝ)+2*U)/A := by
+      have := Real.log_le_sub_one_of_pos
+        (show (0:ℝ) < 1 + ((H:ℝ)+2*U)/A by positivity)
+      linarith
+    have h2 : ((A:ℝ)/H) * (((H:ℝ)+2*U)/A) = 1 + 2*(U:ℝ)/H := by
+      field_simp
+    have h3 : 2*(U:ℝ)/H ≤ 1 := by
+      rw [div_le_one hH0]
+      linarith
+    calc ((A:ℝ)/H) * Real.log (1 + ((H:ℝ)+2*U)/A)
+        ≤ ((A:ℝ)/H) * (((H:ℝ)+2*U)/A) := by
+          refine mul_le_mul_of_nonneg_left hlog (by positivity)
+      _ = 1 + 2*(U:ℝ)/H := h2
+      _ ≤ 2 := by linarith
+
+
 end MoltResearch
