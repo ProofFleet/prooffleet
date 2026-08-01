@@ -269,4 +269,105 @@ theorem sum_mul_log_div_eq_vonMangoldt_conv (f : ℕ → ℂ)
   field_simp
 
 
+/-- **The log-ratio summation by parts** (Track R, W2c-ii-a): the
+`log(x/n)`-weighted harmonic sum is the telescoped average of the
+partial sums `T(k) = ∑_{m≤k} f(m)/m` against the logarithmic mesh —
+exact and discrete, no integral. With W2c-i this gives the Wirsing
+identity `T(x)·log x = (mesh average of T) + (Λf-weighted average of
+T at smaller scales)`. -/
+theorem sum_mul_log_ratio_div_eq (f : ℕ → ℂ) (x : ℕ) :
+    ∑ n ∈ Finset.Ioc 0 x, f n * (((Real.log x - Real.log n : ℝ)) : ℂ) / n
+      = ∑ k ∈ Finset.Ioc 0 (x-1),
+          (∑ m ∈ Finset.Ioc 0 k, f m / m)
+            * (((Real.log (k+1) - Real.log k : ℝ)) : ℂ) := by
+  classical
+  rcases Nat.eq_zero_or_pos x with hx | hx
+  · subst hx
+    simp
+  -- expand the inner partial sums and swap
+  have hswap : ∑ k ∈ Finset.Ioc 0 (x-1),
+      (∑ m ∈ Finset.Ioc 0 k, f m / m)
+        * (((Real.log (k+1) - Real.log k : ℝ)) : ℂ)
+      = ∑ m ∈ Finset.Ioc 0 (x-1), (f m / m)
+          * ∑ k ∈ Finset.Icc m (x-1),
+              (((Real.log (k+1) - Real.log k : ℝ)) : ℂ) := by
+    have h1 : ∀ k ∈ Finset.Ioc 0 (x-1),
+        (∑ m ∈ Finset.Ioc 0 k, f m / m)
+          * (((Real.log (k+1) - Real.log k : ℝ)) : ℂ)
+        = ∑ m ∈ Finset.Ioc 0 (x-1),
+            if m ≤ k then (f m / m) * (((Real.log (k+1) - Real.log k : ℝ)) : ℂ)
+            else 0 := by
+      intro k hk
+      rw [Finset.mem_Ioc] at hk
+      rw [Finset.sum_mul]
+      rw [show Finset.Ioc 0 k
+          = (Finset.Ioc 0 (x-1)).filter (fun m => m ≤ k) from by
+        ext m
+        simp only [Finset.mem_Ioc, Finset.mem_filter]
+        omega]
+      rw [Finset.sum_filter]
+    rw [Finset.sum_congr rfl h1, Finset.sum_comm]
+    refine Finset.sum_congr rfl fun m hm => ?_
+    rw [Finset.mem_Ioc] at hm
+    rw [Finset.mul_sum]
+    rw [show Finset.Icc m (x-1)
+        = (Finset.Ioc 0 (x-1)).filter (fun k => m ≤ k) from by
+      ext k
+      simp only [Finset.mem_Icc, Finset.mem_Ioc, Finset.mem_filter]
+      omega]
+    rw [Finset.sum_filter]
+  rw [hswap]
+  -- telescope per m
+  have htel : ∀ m ∈ Finset.Ioc 0 (x-1),
+      ∑ k ∈ Finset.Icc m (x-1), (((Real.log (k+1) - Real.log k : ℝ)) : ℂ)
+        = (((Real.log x - Real.log m : ℝ)) : ℂ) := by
+    intro m hm
+    rw [Finset.mem_Ioc] at hm
+    have hIccIco : Finset.Icc m (x-1) = Finset.Ico m x := by
+      ext k
+      simp only [Finset.mem_Icc, Finset.mem_Ico]
+      omega
+    rw [hIccIco]
+    have hsum : ∑ k ∈ Finset.Ico m x, (Real.log ((k+1 : ℕ)) - Real.log (k : ℕ))
+        = Real.log x - Real.log m := by
+      have h1 := Finset.sum_Ico_eq_sub
+        (fun k : ℕ => Real.log ((k+1 : ℕ)) - Real.log (k : ℕ))
+        (show m ≤ x by omega)
+      have h2 : ∀ y : ℕ, ∑ k ∈ Finset.range y,
+          (Real.log ((k+1 : ℕ)) - Real.log (k : ℕ))
+          = Real.log (y : ℕ) - Real.log (0 : ℕ) :=
+        fun y => Finset.sum_range_sub (fun k : ℕ => Real.log k) y
+      rw [h1, h2 x, h2 m]
+      simp
+    calc ∑ k ∈ Finset.Ico m x, (((Real.log (k+1) - Real.log k : ℝ)) : ℂ)
+        = (((∑ k ∈ Finset.Ico m x,
+            (Real.log ((k+1 : ℕ)) - Real.log (k : ℕ)) : ℝ)) : ℂ) := by
+          push_cast
+          rfl
+      _ = (((Real.log x - Real.log m : ℝ)) : ℂ) := by
+          rw [hsum]
+  have hconv : ∑ m ∈ Finset.Ioc 0 (x-1), (f m / m)
+      * ∑ k ∈ Finset.Icc m (x-1), (((Real.log (k+1) - Real.log k : ℝ)) : ℂ)
+      = ∑ m ∈ Finset.Ioc 0 (x-1), (f m / m)
+          * (((Real.log x - Real.log m : ℝ)) : ℂ) :=
+    Finset.sum_congr rfl fun m hm => by rw [htel m hm]
+  rw [hconv]
+  -- extend the m-range to Ioc 0 x (the top term vanishes)
+  rcases Nat.eq_or_lt_of_le hx with hx1 | hx1
+  · rw [← hx1]
+    simp
+  have hext : Finset.Ioc 0 x = insert x (Finset.Ioc 0 (x-1)) := by
+    ext n
+    simp only [Finset.mem_Ioc, Finset.mem_insert]
+    omega
+  rw [hext, Finset.sum_insert (by
+    rw [Finset.mem_Ioc]
+    omega)]
+  have hzero : f x * (((Real.log x - Real.log x : ℝ)) : ℂ) / x = 0 := by
+    simp
+  rw [hzero, zero_add]
+  refine Finset.sum_congr rfl fun m _ => ?_
+  ring
+
+
 end MoltResearch
