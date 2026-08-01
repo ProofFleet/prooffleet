@@ -7,6 +7,7 @@ import MoltResearch.Discrepancy.PlancherelHarness
 import MoltResearch.Discrepancy.LargeValues
 import MoltResearch.Discrepancy.Repulsion
 import MoltResearch.Discrepancy.HalaszEuler
+import MoltResearch.Discrepancy.DyadicMVT
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
