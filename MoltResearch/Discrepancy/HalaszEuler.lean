@@ -1,4 +1,6 @@
 import MoltResearch.Discrepancy.MultiplicativeC
+import MoltResearch.Discrepancy.TruncatedBridge
+import MoltResearch.Discrepancy.PretentiousDist
 import MoltResearch.Discrepancy.ChebyshevTail
 import MoltResearch.Discrepancy.MertensFirst
 import Mathlib.NumberTheory.EulerProduct.ExpLog
@@ -516,6 +518,172 @@ theorem log_norm_LSeries_le_sum_re_twist_add (f : ℕ → ℂ)
         linarith [hstep1]
     _ = (∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (Complex.I * t)).re / p) + 13 := by
         ring
+
+
+/-- **The Halász-quality ratio bound** (C4b-3): for completely
+multiplicative `f` bounded by `1`, the L-norm at `1 + 1/log y − it` is
+at most the zeta value at the same abscissa damped by
+`exp(−D(f, n^{−it}; y)²)`, up to `e^{26}`. The prime mass cancels
+exactly between the two bridge directions — no Mertens asymptotic, no
+log-power loss. -/
+theorem norm_LSeries_le_zeta_mul_exp (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1) (hb : ∀ n, ‖f n‖ ≤ 1)
+    {y : ℕ} (hy : 3 ≤ y) (t : ℝ) :
+    ‖LSeries (fun n => f n) (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖
+      ≤ ‖LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ))‖
+        * Real.exp (26
+            - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) y) := by
+  classical
+  have hσ1 : (1 : ℝ) < 1 + 1 / Real.log y := by
+    have hlogy : (1 : ℝ) < Real.log y := by
+      rw [Real.lt_log_iff_exp_lt (by positivity)]
+      have h3 : (3 : ℝ) ≤ y := by exact_mod_cast hy
+      linarith [Real.exp_one_lt_d9]
+    have : (0 : ℝ) < 1 / Real.log y := by positivity
+    linarith
+  -- (A) the truncated twisted sum is mass minus distance
+  have hconj : ∀ (p : ℕ), p.Prime →
+      (starRingEnd ℂ) (((p : ℕ) : ℂ) ^ (-(Complex.I * (t : ℂ))))
+        = ((p : ℕ) : ℂ) ^ (Complex.I * (t : ℂ)) := by
+    intro p hpp
+    have hp0 : (0 : ℝ) < (p : ℝ) := by exact_mod_cast hpp.pos
+    have hplus : ((p : ℕ) : ℂ) ^ (Complex.I * (t : ℂ))
+        = Complex.exp (((t * Real.log p : ℝ) : ℂ) * Complex.I) := by
+      rw [Complex.cpow_def_of_ne_zero
+        (by exact_mod_cast hpp.ne_zero)]
+      congr 1
+      push_cast
+      ring
+    have hminus : ((p : ℕ) : ℂ) ^ (-(Complex.I * (t : ℂ)))
+        = Complex.exp (-(((t * Real.log p : ℝ) : ℂ) * Complex.I)) := by
+      rw [Complex.cpow_def_of_ne_zero
+        (by exact_mod_cast hpp.ne_zero)]
+      congr 1
+      push_cast
+      ring
+    rw [hminus, ← Complex.exp_conj, hplus]
+    congr 1
+    rw [map_neg, map_mul, Complex.conj_ofReal, Complex.conj_I]
+    ring
+  have hDistEq : ∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (Complex.I * t)).re / p
+      = (∑ p ∈ y.primesBelow, (1 : ℝ) / p)
+        - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) y := by
+    rw [pretentiousDistSq, ← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun p hp => ?_
+    have hpp := Nat.prime_of_mem_primesBelow hp
+    rw [hconj p hpp]
+    ring
+  -- (B) the mass is bounded by the zeta log (lower bridge at χ = 1, t = 0)
+  have hlow : (∑ p ∈ y.primesBelow, (1 : ℝ) / p)
+      ≤ Real.log ‖LSeries (fun _ => (1 : ℂ))
+          (((1 + 1 / Real.log y : ℝ) : ℂ))‖ + 13 := by
+    have hbridge := sum_re_twist_div_le_log_norm_LSeries
+      (N := 1) (1 : DirichletCharacter ℂ 1) hy 0
+    have hsummand : ∀ p ∈ y.primesBelow,
+        (((1 : DirichletCharacter ℂ 1) p
+            * (p : ℂ) ^ (Complex.I * ((0 : ℝ) : ℂ))).re) / p = (1 : ℝ) / p := by
+      intro p hp
+      have hχ : (1 : DirichletCharacter ℂ 1) p = 1 :=
+        congrFun (DirichletCharacter.modOne_eq_one
+          (χ := (1 : DirichletCharacter ℂ 1))) p
+      rw [hχ, one_mul]
+      norm_num
+    rw [Finset.sum_congr rfl hsummand] at hbridge
+    have hLconv : LSeries (fun n => (1 : DirichletCharacter ℂ 1) n)
+        = LSeries (fun _ => 1) := by
+      congr 1
+      funext n
+      exact congrFun (DirichletCharacter.modOne_eq_one
+        (χ := (1 : DirichletCharacter ℂ 1))) n
+    rw [hLconv] at hbridge
+    have hpt : (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * ((0 : ℝ) : ℂ))
+        = ((1 + 1 / Real.log y : ℝ) : ℂ) := by
+      simp
+    rw [hpt] at hbridge
+    exact hbridge
+  -- (C) the zeta norm is at least 1
+  have hζsum : LSeriesSummable (fun _ => (1 : ℂ))
+      (((1 + 1 / Real.log y : ℝ) : ℂ)) := by
+    refine LSeriesSummable_of_bounded_of_one_lt_re
+      (m := 1) (fun n _ => by norm_num) ?_
+    rw [Complex.ofReal_re]
+    exact hσ1
+  have hterm_re : ∀ n : ℕ,
+      (LSeries.term (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ)) n).re
+        = if n = 0 then 0 else 1 / (n : ℝ) ^ (1 + 1 / Real.log y) := by
+    intro n
+    rcases eq_or_ne n 0 with hn | hn
+    · rw [hn]
+      simp
+    · rw [LSeries.term_of_ne_zero hn, if_neg hn]
+      have hn0 : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg n
+      have hcpow : ((n : ℕ) : ℂ) ^ (((1 + 1 / Real.log y : ℝ)) : ℂ)
+          = (((n : ℝ) ^ (1 + 1 / Real.log y) : ℝ) : ℂ) := by
+        rw [show ((n : ℕ) : ℂ) = (((n : ℝ)) : ℂ) from by push_cast; rfl,
+          ← Complex.ofReal_cpow hn0]
+      rw [hcpow, show (1 : ℂ) = ((1 : ℝ) : ℂ) from by norm_num,
+        ← Complex.ofReal_div, Complex.ofReal_re]
+  have hζre : (1 : ℝ)
+      ≤ (LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ))).re := by
+    have hsumre : Summable fun n : ℕ =>
+        (LSeries.term (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ)) n).re :=
+      (Complex.hasSum_re hζsum.hasSum).summable
+    have hre_eq : (LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ))).re
+        = ∑' n : ℕ,
+            (LSeries.term (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ)) n).re :=
+      Complex.re_tsum hζsum
+    rw [hre_eq]
+    have hone : (LSeries.term (fun _ => (1 : ℂ))
+        (((1 + 1 / Real.log y : ℝ) : ℂ)) 1).re = 1 := by
+      rw [hterm_re]
+      norm_num
+    calc (1 : ℝ)
+        = (LSeries.term (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ)) 1).re :=
+          hone.symm
+      _ ≤ ∑' n : ℕ, (LSeries.term (fun _ => (1 : ℂ))
+            (((1 + 1 / Real.log y : ℝ) : ℂ)) n).re := by
+          refine hsumre.le_tsum 1 fun n hn => ?_
+          rw [hterm_re]
+          rcases eq_or_ne n 0 with h0 | h0
+          · rw [if_pos h0]
+          · rw [if_neg h0]
+            positivity
+  have hζpos : (0 : ℝ)
+      < ‖LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ))‖ := by
+    have habs := Complex.abs_re_le_norm
+      (LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ)))
+    have := le_abs_self
+      (LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ))).re
+    linarith
+  -- (D) assemble
+  have hup := log_norm_LSeries_le_sum_re_twist_add f hcm h1 hb hy t
+  rw [hDistEq] at hup
+  rcases eq_or_lt_of_le (norm_nonneg (LSeries (fun n => f n)
+      (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t))) with h0 | h0
+  · rw [← h0]
+    positivity
+  · have hlog : Real.log ‖LSeries (fun n => f n)
+        (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖
+        ≤ Real.log ‖LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ))‖
+          + (26 - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) y) := by
+      linarith [hup, hlow]
+    calc ‖LSeries (fun n => f n) (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖
+        = Real.exp (Real.log ‖LSeries (fun n => f n)
+            (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖) :=
+          (Real.exp_log h0).symm
+      _ ≤ Real.exp (Real.log ‖LSeries (fun _ => (1 : ℂ))
+            (((1 + 1 / Real.log y : ℝ) : ℂ))‖
+          + (26 - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) y)) :=
+          Real.exp_le_exp.mpr hlog
+      _ = Real.exp (Real.log ‖LSeries (fun _ => (1 : ℂ))
+            (((1 + 1 / Real.log y : ℝ) : ℂ))‖)
+          * Real.exp (26
+              - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) y) :=
+          Real.exp_add _ _
+      _ = ‖LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ))‖
+          * Real.exp (26
+              - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) y) := by
+          rw [Real.exp_log hζpos]
 
 
 end MoltResearch
