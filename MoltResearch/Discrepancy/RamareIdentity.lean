@@ -94,4 +94,31 @@ theorem sum_Ioc_filter_dvd_eq_sum_Ioc_div (a b p : ℕ) (hp : 0 < p) (h : ℕ �
     rw [Nat.mul_div_cancel' hn.2]
 
 
+/-- **The ω-shift** (C4e-3): adjoining a prime factor `p ∈ P` not dividing
+`m` raises the `P`-factor count by exactly one:
+`ω_P(p·m) = ω_P(m) + 1` for `P` a set of primes. The first
+primality-consuming step of the `𝒰`-assembly: on the collision-free part
+of each fibre the Ramaré weight `1/ω_P(p·m)` is `1/(ω_P(m)+1)` — the
+`[MR]` `G`-weight. -/
+theorem card_filter_dvd_mul_of_prime (P : Finset ℕ) (hP : ∀ q ∈ P, q.Prime)
+    {p : ℕ} (hp : p ∈ P) {m : ℕ} (hpm : ¬ p ∣ m) :
+    (P.filter (· ∣ p * m)).card = (P.filter (· ∣ m)).card + 1 := by
+  classical
+  have hset : P.filter (· ∣ p * m) = insert p (P.filter (· ∣ m)) := by
+    ext q
+    simp only [Finset.mem_filter, Finset.mem_insert]
+    constructor
+    · rintro ⟨hqP, hqdvd⟩
+      rcases (Nat.Prime.dvd_mul (hP q hqP)).mp hqdvd with hqp | hqm
+      · exact Or.inl ((Nat.prime_dvd_prime_iff_eq (hP q hqP) (hP p hp)).mp hqp)
+      · exact Or.inr ⟨hqP, hqm⟩
+    · rintro (rfl | ⟨hqP, hqm⟩)
+      · exact ⟨hp, dvd_mul_right q m⟩
+      · exact ⟨hqP, hqm.mul_left p⟩
+  rw [hset, Finset.card_insert_of_notMem]
+  intro hmem
+  rw [Finset.mem_filter] at hmem
+  exact hpm hmem.2
+
+
 end MoltResearch
