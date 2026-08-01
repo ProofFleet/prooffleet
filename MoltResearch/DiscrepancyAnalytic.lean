@@ -5,6 +5,7 @@ import MoltResearch.Discrepancy.LandauLemma
 import MoltResearch.Discrepancy.ZeroFreeRegion
 import MoltResearch.Discrepancy.PlancherelHarness
 import MoltResearch.Discrepancy.LargeValues
+import MoltResearch.Discrepancy.Repulsion
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
