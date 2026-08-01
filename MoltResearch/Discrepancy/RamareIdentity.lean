@@ -370,4 +370,34 @@ theorem sum_mul_log_ratio_div_eq (f : ℕ → ℂ) (x : ℕ) :
   ring
 
 
+open ArithmeticFunction in
+/-- **The Wirsing identity** (Track R, W2c-ii-b): for completely
+multiplicative `f`, the harmonic partial sum `T(x) = ∑_{m≤x} f(m)/m`
+satisfies the exact scale recursion
+
+  `T(x)·log x = ∑_{k<x} T(k)·Δlog(k) + ∑_{d≤x} Λ(d)f(d)/d · T(x/d)`
+
+— W2c-i plus W2c-ii-a through `log x = log n + log(x/n)`. The
+elementary log-averaged Halász iterates this identity. -/
+theorem wirsing_identity (f : ℕ → ℂ) (hcm : CompletelyMultiplicativeC f)
+    (x : ℕ) :
+    (∑ m ∈ Finset.Ioc 0 x, f m / m) * ((Real.log x : ℝ) : ℂ)
+      = (∑ k ∈ Finset.Ioc 0 (x-1),
+          (∑ m ∈ Finset.Ioc 0 k, f m / m)
+            * (((Real.log (k+1) - Real.log k : ℝ)) : ℂ))
+        + ∑ d ∈ Finset.Ioc 0 x, ((vonMangoldt d : ℝ) : ℂ) * f d / d
+            * ∑ m ∈ Finset.Ioc 0 (x/d), f m / m := by
+  classical
+  have hsplit : (∑ m ∈ Finset.Ioc 0 x, f m / m) * ((Real.log x : ℝ) : ℂ)
+      = (∑ n ∈ Finset.Ioc 0 x, f n * ((Real.log n : ℝ) : ℂ) / n)
+        + ∑ n ∈ Finset.Ioc 0 x, f n * (((Real.log x - Real.log n : ℝ)) : ℂ) / n := by
+    rw [Finset.sum_mul, ← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun n hn => ?_
+    push_cast
+    ring
+  rw [hsplit, sum_mul_log_div_eq_vonMangoldt_conv f hcm x,
+    sum_mul_log_ratio_div_eq f x]
+  ring
+
+
 end MoltResearch
