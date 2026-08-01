@@ -663,6 +663,69 @@ theorem hasDerivAt_smoothedLogSum (T : ℝ) (η : ℝ → ℝ)
   exact hmul
 
 
+/-- **The smoothed-window Lipschitz bound** (Track R, B3-v-b): the
+squared norm of the smoothed log sum is `50BB′T`-Lipschitz — the
+sup bound at `η` and at `η′` through the mean value inequality. This
+is the `Λ` the B4 scaffold's Riemann step consumes. -/
+theorem abs_norm_sq_smoothedLogSum_sub_le (T : ℝ) (hT : 1 ≤ T)
+    (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η)
+    (hηsupp : ∀ u : ℝ, η u ≠ 0 → |u| ≤ 2) (B : ℝ) (hηbd : ∀ u, |η u| ≤ B)
+    (hη'supp : ∀ u : ℝ, deriv η u ≠ 0 → |u| ≤ 2) (B' : ℝ)
+    (hη'bd : ∀ u, |deriv η u| ≤ B')
+    (a : ℕ → ℂ) (ha : ∀ m, ‖a m‖ ≤ 1) (S : Finset ℕ) (M₁ : ℕ)
+    (hS : ∀ m ∈ S, M₁ ≤ m) (hM₁ : 1 ≤ M₁) (hTM : T ≤ M₁) (y z : ℝ) :
+    |‖smoothedLogSum T η a S y‖^2 - ‖smoothedLogSum T η a S z‖^2|
+      ≤ (50*B*B'*T) * |y - z| := by
+  have hB0 : (0:ℝ) ≤ B := le_trans (abs_nonneg _) (hηbd 0)
+  have hB'0 : (0:ℝ) ≤ B' := le_trans (abs_nonneg _) (hη'bd 0)
+  have hT0 : (0:ℝ) < T := by linarith
+  -- the sup bounds
+  have hsupG : ∀ w : ℝ, ‖smoothedLogSum T η a S w‖ ≤ 5*B :=
+    fun w => norm_smoothedLogSum_le T hT η hηsupp B hηbd a ha S M₁ hS hM₁ hTM w
+  have hsupG' : ∀ w : ℝ, ‖(T:ℂ) * smoothedLogSum T (deriv η) a S w‖
+      ≤ 5*B'*T := by
+    intro w
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hT0]
+    calc T * ‖smoothedLogSum T (deriv η) a S w‖
+        ≤ T * (5*B') := by
+          refine mul_le_mul_of_nonneg_left ?_ hT0.le
+          exact norm_smoothedLogSum_le T hT (deriv η) hη'supp B' hη'bd
+            a ha S M₁ hS hM₁ hTM w
+      _ = 5*B'*T := by ring
+  -- the mean value inequality
+  have hMVT : ‖smoothedLogSum T η a S y - smoothedLogSum T η a S z‖
+      ≤ (5*B'*T) * |y - z| := by
+    have hderiv : ∀ x ∈ Set.univ, HasDerivWithinAt (smoothedLogSum T η a S)
+        ((T:ℂ) * smoothedLogSum T (deriv η) a S x) Set.univ x :=
+      fun x _ => (hasDerivAt_smoothedLogSum T η hηs a S x).hasDerivWithinAt
+    have hbound : ∀ x ∈ Set.univ,
+        ‖(T:ℂ) * smoothedLogSum T (deriv η) a S x‖ ≤ 5*B'*T :=
+      fun x _ => hsupG' x
+    have := Convex.norm_image_sub_le_of_norm_hasDerivWithin_le
+      hderiv hbound convex_univ (Set.mem_univ z) (Set.mem_univ y)
+    rw [Real.norm_eq_abs] at this
+    exact this
+  -- the square difference
+  have hfac : ‖smoothedLogSum T η a S y‖^2 - ‖smoothedLogSum T η a S z‖^2
+      = (‖smoothedLogSum T η a S y‖ - ‖smoothedLogSum T η a S z‖)
+        * (‖smoothedLogSum T η a S y‖ + ‖smoothedLogSum T η a S z‖) := by
+    ring
+  rw [hfac, abs_mul]
+  have h1 : |‖smoothedLogSum T η a S y‖ - ‖smoothedLogSum T η a S z‖|
+      ≤ ‖smoothedLogSum T η a S y - smoothedLogSum T η a S z‖ :=
+    abs_norm_sub_norm_le _ _
+  have h2 : |‖smoothedLogSum T η a S y‖ + ‖smoothedLogSum T η a S z‖|
+      ≤ 10*B := by
+    rw [abs_of_nonneg (by positivity)]
+    linarith [hsupG y, hsupG z]
+  calc |‖smoothedLogSum T η a S y‖ - ‖smoothedLogSum T η a S z‖|
+        * |‖smoothedLogSum T η a S y‖ + ‖smoothedLogSum T η a S z‖|
+      ≤ ((5*B'*T) * |y - z|) * (10*B) := by
+        refine mul_le_mul (le_trans h1 hMVT) h2 (abs_nonneg _) ?_
+        positivity
+    _ = (50*B*B'*T) * |y - z| := by ring
+
+
 end ExpSums
 
 end MoltResearch
