@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.ZeroFreeRegion
 import Mathlib.Analysis.Distribution.SchwartzSpace.Fourier
+import Mathlib.Analysis.Complex.RealDeriv
 
 /-!
 # Track C: the Plancherel harness (Track R, campaign #3044, phase C2)
@@ -622,6 +623,45 @@ theorem integral_norm_sq_sum_translates_regime_split
       ((hxi_int.const_mul _).const_mul _)]
     rw [integral_const_mul, integral_const_mul, integral_const_mul]
   linarith [hcompl, hfull, hψ_val.le, hψ_val.ge]
+
+/-- **The smoothed-sum derivative** (Track R, B3-v-a): the
+`smoothedLogSum` differentiates under the finite sum, and its
+derivative is `T` times the smoothed sum at `η'` — so the harness's
+window sup-bound applies verbatim to the derivative. -/
+theorem hasDerivAt_smoothedLogSum (T : ℝ) (η : ℝ → ℝ)
+    (hηs : ContDiff ℝ ∞ η) (a : ℕ → ℂ) (S : Finset ℕ) (y : ℝ) :
+    HasDerivAt (smoothedLogSum T η a S)
+      ((T:ℂ) * smoothedLogSum T (deriv η) a S y) y := by
+  classical
+  have hterm : ∀ m ∈ S,
+      HasDerivAt (fun y : ℝ => (a m / m) * ((η (T*(y - Real.log m)) : ℝ) : ℂ))
+        ((a m / m) * (((deriv η (T*(y - Real.log m)) * T : ℝ)) : ℂ)) y := by
+    intro m _
+    refine HasDerivAt.const_mul _ ?_
+    have hinner : HasDerivAt (fun y : ℝ => T*(y - Real.log m)) T y := by
+      simpa using ((hasDerivAt_id y).sub_const (Real.log m)).const_mul T
+    have houter : HasDerivAt η (deriv η (T*(y - Real.log m)))
+        (T*(y - Real.log m)) :=
+      ((hηs.differentiable (by norm_num)).differentiableAt).hasDerivAt
+    have hcomp := HasDerivAt.comp y houter hinner
+    exact hcomp.ofReal_comp
+  have hsum := HasDerivAt.fun_sum hterm
+  have hmul := hsum.const_mul (T:ℂ)
+  have hval : (T:ℂ) * ∑ m ∈ S, (a m / m)
+        * (((deriv η (T*(y - Real.log m)) * T : ℝ)) : ℂ)
+      = (T:ℂ) * smoothedLogSum T (deriv η) a S y := by
+    have hpt : ∀ m ∈ S, (a m / m)
+          * (((deriv η (T*(y - Real.log m)) * T : ℝ)) : ℂ)
+        = (T:ℂ) * ((a m / m) * ((deriv η (T*(y - Real.log m)) : ℝ) : ℂ)) := by
+      intro m _
+      push_cast
+      ring
+    rw [Finset.sum_congr rfl hpt, ← Finset.mul_sum]
+    unfold smoothedLogSum
+    ring
+  rw [← hval]
+  exact hmul
+
 
 end ExpSums
 
