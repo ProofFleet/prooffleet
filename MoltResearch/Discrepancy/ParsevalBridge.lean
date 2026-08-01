@@ -515,4 +515,22 @@ theorem sum_range_sum_Ioc_slices {M : Type*} [AddCommMonoid M]
     exact Finset.sum_Ioc_consecutive f h1 h2
 
 
+/-- **The floor-window count** (Track R, B3-iii-b prep): the number of
+integers in a real window `(x, y]` is at most `y − x + 1` — the count
+that turns collar widths into collar cardinalities in the
+smooth-vs-trapezoid comparison. -/
+theorem card_Ioc_floor_le (x y : ℝ) (hx : 0 ≤ x) (hxy : x ≤ y) :
+    ((Finset.Ioc ⌊x⌋₊ ⌊y⌋₊).card : ℝ) ≤ y - x + 1 := by
+  rw [Nat.card_Ioc]
+  have h1 : (⌊y⌋₊ : ℝ) ≤ y := Nat.floor_le (le_trans hx hxy)
+  have h2 : x - 1 < (⌊x⌋₊ : ℝ) := by
+    have := Nat.lt_floor_add_one x
+    linarith
+  have h3 : ⌊x⌋₊ ≤ ⌊y⌋₊ := Nat.floor_le_floor hxy
+  have h4 : ((⌊y⌋₊ - ⌊x⌋₊ : ℕ) : ℝ) = (⌊y⌋₊ : ℝ) - (⌊x⌋₊ : ℝ) :=
+    Nat.cast_sub h3
+  rw [h4]
+  linarith
+
+
 end MoltResearch
