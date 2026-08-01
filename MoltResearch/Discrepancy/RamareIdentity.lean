@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.TuranKubilius
 import MoltResearch.Discrepancy.MultiplicativeC
+import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 
 /-!
 # Track C: the Ramaré double-count identity (Track R, C4e-1)
@@ -202,6 +203,70 @@ theorem main_half_eq_sum_mul (a b : ℕ) (P : Finset ℕ)
   rw [Finset.mem_filter] at hm
   have hm0 : m ≠ 0 := fun h => hm.2 (h ▸ dvd_zero p)
   rw [hcm p m (hP p hp).ne_zero hm0, mul_div_assoc]
+
+
+open ArithmeticFunction in
+/-- **The log convolution identity** (Track R, W2c-i): for completely
+multiplicative `f`, the log-weighted harmonic sum factors through von
+Mangoldt — `∑_{n≤x} f(n)log n/n = ∑_{d≤x} Λ(d)f(d)/d · T(x/d)` with
+`T(y) = ∑_{m≤y} f(m)/m`. The engine of the elementary log-averaged
+Halász iteration: the log side ties `T` to itself at smaller scales
+through prime weights. -/
+theorem sum_mul_log_div_eq_vonMangoldt_conv (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (x : ℕ) :
+    ∑ n ∈ Finset.Ioc 0 x, f n * ((Real.log n : ℝ) : ℂ) / n
+      = ∑ d ∈ Finset.Ioc 0 x, ((vonMangoldt d : ℝ) : ℂ) * f d / d
+          * ∑ m ∈ Finset.Ioc 0 (x/d), f m / m := by
+  classical
+  have hstep1 : ∀ n ∈ Finset.Ioc 0 x,
+      f n * ((Real.log n : ℝ) : ℂ) / n
+        = ∑ d ∈ Finset.Ioc 0 x,
+            if d ∣ n then ((vonMangoldt d : ℝ) : ℂ) * (f n / n) else 0 := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn
+    have hset : n.divisors = (Finset.Ioc 0 x).filter (· ∣ n) := by
+      ext d
+      rw [Nat.mem_divisors, Finset.mem_filter, Finset.mem_Ioc]
+      constructor
+      · rintro ⟨hdvd, hne⟩
+        have h1 : 0 < d := Nat.pos_of_dvd_of_pos hdvd (by omega)
+        have h2 : d ≤ n := Nat.le_of_dvd (by omega) hdvd
+        exact ⟨⟨h1, by omega⟩, hdvd⟩
+      · rintro ⟨-, hdvd⟩
+        exact ⟨hdvd, by omega⟩
+    have hlog : ((Real.log n : ℝ) : ℂ) = ∑ d ∈ n.divisors,
+        ((vonMangoldt d : ℝ) : ℂ) := by
+      rw [show ∑ d ∈ n.divisors, ((vonMangoldt d : ℝ) : ℂ)
+          = ((∑ d ∈ n.divisors, vonMangoldt d : ℝ) : ℂ) from by push_cast; rfl]
+      rw [vonMangoldt_sum]
+    rw [hlog, hset, Finset.sum_filter, Finset.mul_sum, Finset.sum_div]
+    refine Finset.sum_congr rfl fun d _ => ?_
+    by_cases hd : d ∣ n
+    · rw [if_pos hd, if_pos hd]
+      ring
+    · rw [if_neg hd, if_neg hd]
+      simp
+  rw [Finset.sum_congr rfl hstep1, Finset.sum_comm]
+  refine Finset.sum_congr rfl fun d hd => ?_
+  rw [Finset.mem_Ioc] at hd
+  rw [← Finset.sum_filter]
+  have hreindex := sum_Ioc_filter_dvd_eq_sum_Ioc_div 0 x d (by omega)
+    (fun n => ((vonMangoldt d : ℝ) : ℂ) * (f n / n))
+  rw [Nat.zero_div] at hreindex
+  rw [hreindex]
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun m hm => ?_
+  rw [Finset.mem_Ioc] at hm
+  have hfdm : f (d * m) = f d * f m := hcm d m (by omega) (by omega)
+  have hdm0 : ((d * m : ℕ) : ℂ) ≠ 0 := by
+    have h1 : d * m ≠ 0 := by
+      have hd0 : d ≠ 0 := by omega
+      have hm0 : m ≠ 0 := by omega
+      exact Nat.mul_ne_zero hd0 hm0
+    exact_mod_cast h1
+  rw [hfdm]
+  push_cast
+  field_simp
 
 
 end MoltResearch
