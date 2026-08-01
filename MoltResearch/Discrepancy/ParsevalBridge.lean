@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.TuranKubilius
+import MoltResearch.Discrepancy.PlancherelHarness
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 
@@ -1334,6 +1335,61 @@ theorem exists_deriv_bound (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η)
     by_contra hgt
     push_neg at hgt
     exact hne (hzero u hgt)
+
+
+open ExpSums in
+/-- **The window normalization** (Track R, W1f-i): the slice window sum
+is exactly `4H` times the harness's `smoothedLogSum` at the truncated
+weights `a_m = 1_S(m)·h_m·m/(4A)` and scale `T = A/H` — and the
+truncation keeps the weights globally `1`-bounded whenever the support
+sits in `(A, 4A]`. -/
+theorem window_sum_eq_smoothedLogSum (h : ℕ → ℂ) (A H : ℕ)
+    (hA : 0 < A) (hH : 0 < H) (η : ℝ → ℝ) (S : Finset ℕ)
+    (hS : ∀ m ∈ S, 0 < m) (y : ℝ) :
+    ∑ m ∈ S, h m * ((η (((A:ℝ)/H)*(y - Real.log m)) : ℝ) : ℂ)
+      = (4*(H:ℂ)) * smoothedLogSum ((A:ℝ)/H) η
+          (fun m => if m ∈ S then h m * (m:ℂ)/(4*(A:ℂ)) else 0) S y := by
+  classical
+  unfold smoothedLogSum
+  rw [← mul_assoc, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun m hm => ?_
+  dsimp only
+  rw [if_pos hm]
+  have hm0 : ((m:ℕ):ℂ) ≠ 0 := by
+    exact_mod_cast (hS m hm).ne'
+  have hA0 : ((A:ℕ):ℂ) ≠ 0 := by
+    exact_mod_cast hA.ne'
+  have hH0 : ((H:ℕ):ℂ) ≠ 0 := by
+    exact_mod_cast hH.ne'
+  have hcast : (((A:ℝ)/H : ℝ) : ℂ) = (A:ℂ)/(H:ℂ) := by
+    push_cast
+    ring
+  rw [hcast]
+  field_simp
+
+/-- The truncated weights are globally `1`-bounded for supports in
+`(A, 4A]`. -/
+theorem norm_truncated_weight_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (A : ℕ) (hA : 0 < A) (S : Finset ℕ) (hS4 : ∀ m ∈ S, m ≤ 4*A) (m : ℕ) :
+    ‖if m ∈ S then h m * (m:ℂ)/(4*(A:ℂ)) else 0‖ ≤ 1 := by
+  by_cases hm : m ∈ S
+  · rw [if_pos hm]
+    rw [norm_div, norm_mul, Complex.norm_natCast]
+    have h4A : ‖4*(A:ℂ)‖ = 4*(A:ℝ) := by
+      rw [norm_mul, Complex.norm_natCast]
+      norm_num
+    rw [h4A]
+    have hA0 : (0:ℝ) < 4*(A:ℝ) := by
+      have : (0:ℝ) < A := by exact_mod_cast hA
+      linarith
+    rw [div_le_one hA0]
+    have hm4 : (m:ℝ) ≤ 4*(A:ℝ) := by exact_mod_cast hS4 m hm
+    calc ‖h m‖ * (m:ℝ) ≤ 1 * (m:ℝ) :=
+          mul_le_mul_of_nonneg_right (hb m) (Nat.cast_nonneg m)
+      _ = (m:ℝ) := one_mul _
+      _ ≤ 4*(A:ℝ) := hm4
+  · rw [if_neg hm]
+    simp
 
 
 end MoltResearch
