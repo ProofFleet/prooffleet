@@ -64,4 +64,23 @@ theorem sum_div_le_sqrt_mul_sqrt (a b : ℕ) (W : ℕ → ℝ) (hW : ∀ n, 0 �
     _ = Real.sqrt (∑ n ∈ Finset.Ioc a b, (1:ℝ)/n)
           * Real.sqrt (∑ n ∈ Finset.Ioc a b, (W n)^2/n) := Real.sqrt_mul h1nn _
 
+/-- **The dyadic decomposition** (Track R, B2): any range sum splits into
+its dyadic fibres `Nat.log 2 n = k`; each fibre sits in `[2^k, 2^{k+1})`
+(by `Nat.pow_log_le_self` / `Nat.lt_pow_succ_log_self`), the dyadic
+block shape that the MVT and the smoothed-window comparison consume,
+and there are at most `log₂ b + 1` fibres. -/
+theorem sum_Ioc_eq_sum_dyadic_fibres {M : Type*} [AddCommMonoid M]
+    (a b : ℕ) (f : ℕ → M) :
+    ∑ n ∈ Finset.Ioc a b, f n
+      = ∑ k ∈ Finset.range (Nat.log 2 b + 1),
+          ∑ n ∈ (Finset.Ioc a b).filter (fun n => Nat.log 2 n = k), f n := by
+  classical
+  refine (Finset.sum_fiberwise_of_maps_to ?_ f).symm
+  intro n hn
+  rw [Finset.mem_Ioc] at hn
+  rw [Finset.mem_range]
+  have := Nat.log_mono_right (b := 2) hn.2
+  omega
+
+
 end MoltResearch
