@@ -1392,4 +1392,128 @@ theorem norm_truncated_weight_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
     simp
 
 
+open scoped ContDiff in
+set_option maxHeartbeats 800000 in
+open ExpSums in
+/-- **The slice time side** (Track R, W1f-ii): the concrete per-slice
+mean-square bound — one bump window and one derivative bound per slice,
+with the sharp-window mean square controlled by the smoothed-window
+energy integral plus explicit shift/collar/Riemann costs. The B4
+scaffold instantiated end-to-end by W1d, W1f-i, W1e and B3-v-b. -/
+theorem slice_time_side (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (A s U H : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s) (hsA : s ≤ A) (hU : 0 < U)
+    (hUH : 2*U ≤ H) (h3H : 3*H ≤ A)
+    (hplat : ((U:ℝ)+1)*((A:ℝ)+s) ≤ (A:ℝ)*H) :
+    ∃ (η : ℝ → ℝ) (B' : ℝ), ContDiff ℝ ∞ η ∧ (∀ u, 0 ≤ η u ∧ η u ≤ 1)
+      ∧ (∀ u, η u ≠ 0 → |u| ≤ 2) ∧ 0 ≤ B'
+      ∧ ∑ n ∈ Finset.Ioc A (A+s), ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n
+        ≤ 6 * (∫ y in (Real.log A)..(Real.log (((A+s : ℕ) : ℝ)+1)),
+            ‖(4*(H:ℂ)) * smoothedLogSum ((A:ℝ)/H) η
+              (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+                then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+              (Finset.Ioc A (A+s+2*H+4*U)) y‖^2)
+          + (3*(U:ℝ)^2 + 3*(6*(U:ℝ) + (H:ℝ)*s/A + 2)^2)
+              * (∑ n ∈ Finset.Ioc A (A+s), (1:ℝ)/n)
+          + 6*(800*(H:ℝ)*(A:ℝ)*B')/A := by
+  classical
+  have hH1 : 1 ≤ H := by omega
+  have hA0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hH0 : (0:ℝ) < H := by exact_mod_cast hH1
+  obtain ⟨η, hηs, hη01, hη2, hηcollar⟩ :=
+    exists_slice_window h hb A s U H hA hs hsA hU hUH hplat
+  obtain ⟨B', hB'0, hB'bd, hB'supp⟩ := exists_deriv_bound η hηs hη2
+  set S : Finset ℕ := Finset.Ioc A (A+s+2*H+4*U) with hS_def
+  set a : ℕ → ℂ := fun m => if m ∈ S then h m * (m:ℂ)/(4*(A:ℂ)) else 0
+    with ha_def
+  set G : ℝ → ℂ := fun y => (4*(H:ℂ)) * smoothedLogSum ((A:ℝ)/H) η a S y
+    with hG_def
+  -- weight facts
+  have hS4A : ∀ m ∈ S, m ≤ 4*A := by
+    intro m hm
+    rw [hS_def, Finset.mem_Ioc] at hm
+    omega
+  have ha1 : ∀ m, ‖a m‖ ≤ 1 := by
+    intro m
+    rw [ha_def]
+    exact norm_truncated_weight_le h hb A (by omega) S hS4A m
+  have hSA1 : ∀ m ∈ S, A+1 ≤ m := by
+    intro m hm
+    rw [hS_def, Finset.mem_Ioc] at hm
+    omega
+  have hTA : ((A:ℝ)/H) ≤ ((A+1 : ℕ) : ℝ) := by
+    push_cast
+    rw [div_le_iff₀ hH0]
+    nlinarith
+  have hT1 : (1:ℝ) ≤ (A:ℝ)/H := by
+    rw [le_div_iff₀ hH0]
+    have : (H:ℝ) ≤ A := by
+      have h1 : H ≤ A := by omega
+      exact_mod_cast h1
+    linarith
+  -- η is 1-bounded in absolute value
+  have hηbd : ∀ u, |η u| ≤ 1 := by
+    intro u
+    rw [abs_of_nonneg (hη01 u).1]
+    exact (hη01 u).2
+  -- continuity of G
+  have hGcont : Continuous G := by
+    rw [hG_def]
+    exact continuous_const.mul ((smoothedLogSum_contDiff _ η hηs a S).continuous)
+  -- the collar for B4
+  have hcollar : ∀ n ∈ Finset.Ioc A (A+s),
+      ‖((1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+          ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m) - G (Real.log n)‖
+        ≤ 6*(U:ℝ) + (H:ℝ)*s/A + 2 := by
+    intro n hn
+    have hid := window_sum_eq_smoothedLogSum h A H (by omega) (by omega) η S
+      (fun m hm => by
+        have := hSA1 m hm
+        omega) (Real.log n)
+    have hGn : G (Real.log n) = ∑ m ∈ S,
+        h m * ((η (((A:ℝ)/H)*(Real.log n - Real.log m)) : ℝ) : ℂ) := by
+      rw [hG_def]
+      dsimp only
+      rw [ha_def]
+      exact hid.symm
+    rw [hGn]
+    exact hηcollar n hn
+  -- the Lipschitz bound for ‖G‖²
+  have hLip : ∀ y z, |‖G y‖^2 - ‖G z‖^2|
+      ≤ (800*(H:ℝ)*(A:ℝ)*B') * |y - z| := by
+    intro y z
+    have hvb := abs_norm_sq_smoothedLogSum_sub_le ((A:ℝ)/H) hT1 η hηs
+      hη2 1 hηbd hB'supp B' hB'bd a ha1 S (A+1) hSA1 (by omega) hTA y z
+    have hnorm4H : ‖(4*(H:ℂ))‖ = 4*(H:ℝ) := by
+      rw [norm_mul, Complex.norm_natCast]
+      norm_num
+    have hGy : ‖G y‖^2 = 16*(H:ℝ)^2 * ‖smoothedLogSum ((A:ℝ)/H) η a S y‖^2 := by
+      rw [hG_def]
+      dsimp only
+      rw [norm_mul, hnorm4H]
+      ring
+    have hGz : ‖G z‖^2 = 16*(H:ℝ)^2 * ‖smoothedLogSum ((A:ℝ)/H) η a S z‖^2 := by
+      rw [hG_def]
+      dsimp only
+      rw [norm_mul, hnorm4H]
+      ring
+    rw [hGy, hGz]
+    have hfac : 16*(H:ℝ)^2 * ‖smoothedLogSum ((A:ℝ)/H) η a S y‖^2
+        - 16*(H:ℝ)^2 * ‖smoothedLogSum ((A:ℝ)/H) η a S z‖^2
+        = 16*(H:ℝ)^2 * (‖smoothedLogSum ((A:ℝ)/H) η a S y‖^2
+            - ‖smoothedLogSum ((A:ℝ)/H) η a S z‖^2) := by ring
+    rw [hfac, abs_mul, abs_of_nonneg (by positivity : (0:ℝ) ≤ 16*(H:ℝ)^2)]
+    calc 16*(H:ℝ)^2 * |‖smoothedLogSum ((A:ℝ)/H) η a S y‖^2
+          - ‖smoothedLogSum ((A:ℝ)/H) η a S z‖^2|
+        ≤ 16*(H:ℝ)^2 * ((50*1*B'*((A:ℝ)/H)) * |y - z|) := by
+          refine mul_le_mul_of_nonneg_left hvb (by positivity)
+      _ = (800*(H:ℝ)*(A:ℝ)*B') * |y - z| := by
+          field_simp
+          ring
+  -- B4
+  have hmain := slice_window_mean_sq_le h hb A s H U hA hU (by omega)
+    G hGcont (6*(U:ℝ) + (H:ℝ)*s/A + 2) (by positivity) hcollar
+    (800*(H:ℝ)*(A:ℝ)*B') (by positivity) hLip
+  exact ⟨η, B', hηs, hη01, hη2, hB'0, hmain⟩
+
+
 end MoltResearch
