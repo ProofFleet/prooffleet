@@ -1000,4 +1000,112 @@ theorem slice_edge_geometry (A s U H : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s)
       _ ≤ 2 := by linarith
 
 
+set_option maxHeartbeats 1600000 in
+/-- **The slice cut points** (Track R, W1b): for `n` in the slice
+`(A, A+s]`, the four window edges `xᵢ = n(1+rᵢ)` (closed forms of
+`n·e^{tᵢ}` via `exp_log`) satisfy the b-2 geometry, and the collar
+count is at most `6U + Hs/A + 2`. Pure field arithmetic. -/
+theorem slice_cut_points (A s U H n : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s)
+    (hsA : s ≤ A) (hU : 0 < U) (hUH : 2*U ≤ H)
+    (hplat : ((U:ℝ)+1)*((A:ℝ)+s) ≤ (A:ℝ)*H)
+    (hn1 : A < n) (hn2 : n ≤ A+s) :
+    ((n:ℝ) ≤ (n:ℝ)*(1+(U:ℝ)/(4*((A:ℝ)+s))))
+    ∧ ((n:ℝ)*(1+(U:ℝ)/(4*((A:ℝ)+s))) ≤ (n:ℝ)*(1+(U:ℝ)/A))
+    ∧ ((n:ℝ)*(1+(U:ℝ)/A) + 1 ≤ (n:ℝ)*(1+(H:ℝ)/((A:ℝ)+s)))
+    ∧ ((n:ℝ)*(1+(H:ℝ)/((A:ℝ)+s)) ≤ (n:ℝ)*(1+((H:ℝ)+2*U)/A))
+    ∧ ((n:ℝ) + U ≤ (n:ℝ)*(1+(U:ℝ)/A))
+    ∧ ((n:ℝ)*(1+(H:ℝ)/((A:ℝ)+s)) ≤ (n:ℝ) + H)
+    ∧ ((n:ℝ)*(1+(U:ℝ)/A) - n + 1)
+        + (max ((n:ℝ)*(1+((H:ℝ)+2*U)/A)) ((n:ℝ)+U+H)
+            - (n:ℝ)*(1+(H:ℝ)/((A:ℝ)+s)) + 1)
+      ≤ 6*(U:ℝ) + (H:ℝ)*s/A + 2 := by
+  have hA0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hs0 : (0:ℝ) < s := by exact_mod_cast hs
+  have hU0 : (0:ℝ) < U := by exact_mod_cast hU
+  have hH0 : (0:ℝ) < H := by
+    have h1 : 0 < H := by omega
+    exact_mod_cast h1
+  have hAs0 : (0:ℝ) < (A:ℝ)+s := by linarith
+  have hsA' : (s:ℝ) ≤ A := by exact_mod_cast hsA
+  have hUH' : 2*(U:ℝ) ≤ H := by exact_mod_cast hUH
+  have hn1' : (A:ℝ) < n := by exact_mod_cast hn1
+  have hn2' : (n:ℝ) ≤ (A:ℝ)+s := by exact_mod_cast hn2
+  have hn0 : (0:ℝ) < n := by linarith
+  have hnA : (A:ℝ) ≤ n := hn1'.le
+  -- key div-facts
+  have hr1 : (U:ℝ) ≤ (n:ℝ)*((U:ℝ)/A) := by
+    rw [mul_div_assoc']
+    rw [le_div_iff₀ hA0]
+    nlinarith
+  have hr2 : (n:ℝ)*((H:ℝ)/((A:ℝ)+s)) ≤ H := by
+    rw [mul_div_assoc']
+    rw [div_le_iff₀ hAs0]
+    nlinarith
+  have hmax : (n:ℝ)+U+H ≤ (n:ℝ)*(1+((H:ℝ)+2*U)/A) := by
+    have h1 : (H:ℝ)+2*U ≤ (n:ℝ)*(((H:ℝ)+2*U)/A) := by
+      rw [mul_div_assoc']
+      rw [le_div_iff₀ hA0]
+      nlinarith
+    nlinarith
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · nlinarith [mul_pos hn0 (div_pos hU0 (by linarith : (0:ℝ) < 4*((A:ℝ)+s)))]
+  · have h1 : (U:ℝ)/(4*((A:ℝ)+s)) ≤ (U:ℝ)/A := by
+      refine div_le_div_of_nonneg_left hU0.le hA0 ?_
+      linarith
+    have h2 : (1:ℝ)+(U:ℝ)/(4*((A:ℝ)+s)) ≤ 1+(U:ℝ)/A := by linarith
+    exact mul_le_mul_of_nonneg_left h2 hn0.le
+  · -- plateau width ≥ 1
+    have h1 : (A:ℝ)*((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A) ≥ 1 := by
+      have h2 : (A:ℝ)*((H:ℝ)/((A:ℝ)+s)) = (A:ℝ)*H/((A:ℝ)+s) := by ring
+      have h3 : (A:ℝ)*((U:ℝ)/A) = U := by field_simp
+      have h4 : ((U:ℝ)+1) ≤ (A:ℝ)*H/((A:ℝ)+s) := by
+        rw [le_div_iff₀ hAs0]
+        linarith
+      nlinarith [h2, h3, h4]
+    have h5 : (n:ℝ)*((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A)
+        ≥ (A:ℝ)*((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A) := by
+      refine mul_le_mul_of_nonneg_right hnA ?_
+      nlinarith [h1]
+    nlinarith [h1, h5]
+  · have h1 : (H:ℝ)/((A:ℝ)+s) ≤ ((H:ℝ)+2*U)/A := by
+      rw [div_le_div_iff₀ hAs0 hA0]
+      nlinarith
+    have h2 : (1:ℝ)+(H:ℝ)/((A:ℝ)+s) ≤ 1+((H:ℝ)+2*U)/A := by linarith
+    exact mul_le_mul_of_nonneg_left h2 hn0.le
+  · nlinarith [hr1]
+  · nlinarith [hr2]
+  · rw [max_eq_left hmax]
+    -- x₁ − n ≤ 2U and x₃ − x₂ ≤ Hs/A + 4U
+    have hc1 : (n:ℝ)*((U:ℝ)/A) ≤ 2*U := by
+      have hn2A : (n:ℝ) ≤ 2*A := by linarith
+      calc (n:ℝ)*((U:ℝ)/A) ≤ 2*(A:ℝ)*((U:ℝ)/A) :=
+            mul_le_mul_of_nonneg_right hn2A (by positivity)
+        _ = 2*U := by field_simp
+    have hc2 : (n:ℝ)*(((H:ℝ)+2*U)/A) - (n:ℝ)*((H:ℝ)/((A:ℝ)+s))
+        ≤ (H:ℝ)*s/A + 4*U := by
+      have he : (n:ℝ)*(((H:ℝ)+2*U)/A) - (n:ℝ)*((H:ℝ)/((A:ℝ)+s))
+          = (n:ℝ)*(((H:ℝ)*s + 2*(U:ℝ)*((A:ℝ)+s))/((A:ℝ)*((A:ℝ)+s))) := by
+        field_simp
+        ring
+      have hb : (n:ℝ)*(((H:ℝ)*s + 2*(U:ℝ)*((A:ℝ)+s))/((A:ℝ)*((A:ℝ)+s)))
+          ≤ ((A:ℝ)+s)*(((H:ℝ)*s + 2*(U:ℝ)*((A:ℝ)+s))/((A:ℝ)*((A:ℝ)+s))) := by
+        refine mul_le_mul_of_nonneg_right hn2' ?_
+        positivity
+      have hcol : ((A:ℝ)+s)*(((H:ℝ)*s + 2*(U:ℝ)*((A:ℝ)+s))/((A:ℝ)*((A:ℝ)+s)))
+          = (H:ℝ)*s/A + 2*(U:ℝ)*((A:ℝ)+s)/A := by
+        field_simp
+      have hfin : 2*(U:ℝ)*((A:ℝ)+s)/A ≤ 4*U := by
+        rw [div_le_iff₀ hA0]
+        nlinarith
+      calc (n:ℝ)*(((H:ℝ)+2*U)/A) - (n:ℝ)*((H:ℝ)/((A:ℝ)+s))
+          = (n:ℝ)*(((H:ℝ)*s + 2*(U:ℝ)*((A:ℝ)+s))/((A:ℝ)*((A:ℝ)+s))) := he
+        _ ≤ ((A:ℝ)+s)*(((H:ℝ)*s + 2*(U:ℝ)*((A:ℝ)+s))/((A:ℝ)*((A:ℝ)+s))) := hb
+        _ = (H:ℝ)*s/A + 2*(U:ℝ)*((A:ℝ)+s)/A := hcol
+        _ ≤ (H:ℝ)*s/A + 4*U := by linarith [hfin]
+    have hb1 : (n:ℝ)*(1+(U:ℝ)/A) - n = (n:ℝ)*((U:ℝ)/A) := by ring
+    have hb2 : (n:ℝ)*(1+((H:ℝ)+2*U)/A) - (n:ℝ)*(1+(H:ℝ)/((A:ℝ)+s))
+        = (n:ℝ)*(((H:ℝ)+2*U)/A) - (n:ℝ)*((H:ℝ)/((A:ℝ)+s)) := by ring
+    linarith [hc1, hc2, hb1, hb2]
+
+
 end MoltResearch
