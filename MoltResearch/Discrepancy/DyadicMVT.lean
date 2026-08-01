@@ -340,6 +340,41 @@ theorem intervalIntegral_norm_sq_dyadic_poly_le (N : ℕ) (hN : 1 ≤ N)
       _ = (Real.log N + 1) * (∑ p ∈ S, (1:ℝ)/p) := by rw [Finset.mul_sum]
   linarith [hgaptot, le_of_eq hdiagtot]
 
+/-- **The block Cauchy–Schwarz** (C4e-7): the squared norm of a
+`w`-weighted combination of block values is at most the total weight
+times the `w`-weighted energy — the pointwise splitting step that turns
+`‖∑_p g(p)·G_p(ξ)‖²` into `(∑_p ‖g p‖)·∑_p ‖g p‖·‖G_p(ξ)‖²`, ready for
+termwise integration against the dyadic MVT. -/
+theorem norm_sq_sum_mul_le_sum_mul_sum (P : Finset ℕ) (w z : ℕ → ℂ) :
+    ‖∑ p ∈ P, w p * z p‖^2
+      ≤ (∑ p ∈ P, ‖w p‖) * (∑ p ∈ P, ‖w p‖ * ‖z p‖^2) := by
+  have h1 : ‖∑ p ∈ P, w p * z p‖ ≤ ∑ p ∈ P, ‖w p‖ * ‖z p‖ := by
+    refine le_trans (norm_sum_le _ _) (le_of_eq ?_)
+    exact Finset.sum_congr rfl fun p _ => norm_mul _ _
+  have h2 : (∑ p ∈ P, ‖w p‖ * ‖z p‖)^2
+      ≤ (∑ p ∈ P, ‖w p‖) * (∑ p ∈ P, ‖w p‖ * ‖z p‖^2) := by
+    have hcs := Finset.sum_mul_sq_le_sq_mul_sq P
+      (fun p => Real.sqrt ‖w p‖) (fun p => Real.sqrt ‖w p‖ * ‖z p‖)
+    have hL : ∀ p ∈ P, Real.sqrt ‖w p‖ * (Real.sqrt ‖w p‖ * ‖z p‖)
+        = ‖w p‖ * ‖z p‖ := by
+      intro p _
+      rw [← mul_assoc, Real.mul_self_sqrt (norm_nonneg _)]
+    have hf : ∀ p ∈ P, Real.sqrt ‖w p‖ ^ 2 = ‖w p‖ := by
+      intro p _
+      exact Real.sq_sqrt (norm_nonneg _)
+    have hg : ∀ p ∈ P, (Real.sqrt ‖w p‖ * ‖z p‖) ^ 2 = ‖w p‖ * ‖z p‖^2 := by
+      intro p _
+      rw [mul_pow, Real.sq_sqrt (norm_nonneg _)]
+    rw [Finset.sum_congr rfl hL, Finset.sum_congr rfl hf,
+      Finset.sum_congr rfl hg] at hcs
+    exact hcs
+  calc ‖∑ p ∈ P, w p * z p‖^2
+      ≤ (∑ p ∈ P, ‖w p‖ * ‖z p‖)^2 := by
+        have hnn : (0:ℝ) ≤ ‖∑ p ∈ P, w p * z p‖ := norm_nonneg _
+        nlinarith [h1, hnn]
+    _ ≤ (∑ p ∈ P, ‖w p‖) * (∑ p ∈ P, ‖w p‖ * ‖z p‖^2) := h2
+
+
 end ExpSums
 
 end MoltResearch
