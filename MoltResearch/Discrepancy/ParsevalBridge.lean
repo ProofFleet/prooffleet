@@ -212,4 +212,45 @@ theorem shift_avg_eq_sum_count (h : ℕ → ℂ) (n H U : ℕ) :
   · simp [hc]
 
 
+/-- **The collar comparison** (Track R, B3-iii-a): two `[0,1]`-valued
+window weights that agree off a disagreement set `D` produce weighted
+sums differing by at most `|D|` — the trivial counting bound that turns
+the B3-ii trapezoid into any aligned smooth window (ramps and mollifier
+collars land in `D`; no cancellation is needed there). -/
+theorem norm_sum_mul_sub_weights_le (S D : Finset ℕ) (h : ℕ → ℂ)
+    (hb : ∀ m, ‖h m‖ ≤ 1) (c ψ : ℕ → ℝ)
+    (hc : ∀ m, 0 ≤ c m ∧ c m ≤ 1) (hψ : ∀ m, 0 ≤ ψ m ∧ ψ m ≤ 1)
+    (hagree : ∀ m ∈ S, m ∉ D → c m = ψ m) :
+    ‖∑ m ∈ S, h m * (((c m - ψ m : ℝ)) : ℂ)‖ ≤ (D.card : ℝ) := by
+  classical
+  have hzero : ∀ m ∈ S, m ∉ D → h m * (((c m - ψ m : ℝ)) : ℂ) = 0 := by
+    intro m hm hd
+    rw [hagree m hm hd]
+    simp
+  rw [← Finset.sum_filter_of_ne (fun m hm hne => by
+    by_contra hd
+    exact hne (hzero m hm hd))]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hpt : ∀ m ∈ S.filter (· ∈ D),
+      ‖h m * (((c m - ψ m : ℝ)) : ℂ)‖ ≤ 1 := by
+    intro m _
+    rw [norm_mul, Complex.norm_real]
+    have h1 := hc m
+    have h2 := hψ m
+    have habs : |c m - ψ m| ≤ 1 := by
+      rw [abs_le]
+      constructor <;> linarith [h1.1, h1.2, h2.1, h2.2]
+    calc ‖h m‖ * |c m - ψ m| ≤ 1 * 1 :=
+          mul_le_mul (hb m) habs (abs_nonneg _) zero_le_one
+      _ = 1 := one_mul 1
+  calc ∑ m ∈ S.filter (· ∈ D), ‖h m * (((c m - ψ m : ℝ)) : ℂ)‖
+      ≤ ∑ _m ∈ S.filter (· ∈ D), (1:ℝ) := Finset.sum_le_sum hpt
+    _ = ((S.filter (· ∈ D)).card : ℝ) := by
+        rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+    _ ≤ (D.card : ℝ) := by
+        have hsub : S.filter (· ∈ D) ⊆ D := fun m hm =>
+          (Finset.mem_filter.mp hm).2
+        exact_mod_cast Finset.card_le_card hsub
+
+
 end MoltResearch
