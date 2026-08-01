@@ -665,4 +665,126 @@ theorem trapWeight_eq_zero_right (n H U m : ℕ) (h : n+U+H ≤ m) :
   omega
 
 
+/-- **The collar identification** (Track R, B3-iii-b-1): the shift-averaged
+window differs from any `[0,1]`-valued smooth window `ψ` — with plateau
+`[P,Q]` inside the trapezoid's plateau and support `(R,S']` — by at most
+the two collar counts `(P−n) + (max S' (n+U+H) − Q)`. The agreement
+regions are: below `n` and above both supports (both weights vanish),
+and `[P,Q]` (both weights are `1`); everything else is counted. -/
+theorem norm_shift_avg_sub_smooth_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (n U H P Q R S' : ℕ) (hU : 0 < U)
+    (hPU : n+U ≤ P) (hQH : Q ≤ n+H) (hPQ : P ≤ Q) (hR : n ≤ R) (hQS : Q ≤ S')
+    (M : Finset ℕ) (hM : Finset.Ioc n (max S' (n+U+H)) ⊆ M)
+    (ψ : ℕ → ℝ) (hψ01 : ∀ m, 0 ≤ ψ m ∧ ψ m ≤ 1)
+    (hψ_plateau : ∀ m, P ≤ m → m ≤ Q → ψ m = 1)
+    (hψ_supp : ∀ m, ψ m ≠ 0 → R < m ∧ m ≤ S') :
+    ‖((1/(U:ℂ)) * ∑ u ∈ Finset.range U, ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+        - ∑ m ∈ M, h m * ((ψ m : ℝ) : ℂ)‖
+      ≤ ((P - n : ℕ) : ℝ) + ((max S' (n+U+H) - Q : ℕ) : ℝ) := by
+  classical
+  have hU0 : ((U:ℂ)) ≠ 0 := by exact_mod_cast hU.ne'
+  have hU0' : ((U:ℝ)) ≠ 0 := by exact_mod_cast hU.ne'
+  set c : ℕ → ℝ := fun m =>
+    (((Finset.range U).filter (fun u => n+u < m ∧ m ≤ n+u+H)).card : ℝ) / U
+    with hc_def
+  -- step 1: the average is the trapezoid-weighted M-sum
+  have h1 : (1/(U:ℂ)) * ∑ u ∈ Finset.range U, ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m
+      = ∑ m ∈ M, h m * ((c m : ℝ) : ℂ) := by
+    rw [shift_avg_eq_sum_count]
+    have hext : ∑ m ∈ Finset.Ioc n (n+U+H),
+        (((Finset.range U).filter (fun u => n+u < m ∧ m ≤ n+u+H)).card : ℂ) * h m
+        = ∑ m ∈ M,
+            (((Finset.range U).filter (fun u => n+u < m ∧ m ≤ n+u+H)).card : ℂ) * h m := by
+      refine Finset.sum_subset ?_ ?_
+      · refine subset_trans ?_ hM
+        intro m hm
+        rw [Finset.mem_Ioc] at hm ⊢
+        omega
+      · intro m _ hm
+        rw [Finset.mem_Ioc] at hm
+        push_neg at hm
+        by_cases hle : m ≤ n
+        · rw [trapWeight_eq_zero_left n H U m hle]
+          simp
+        · have hge : n + U + H ≤ m := by omega
+          rw [trapWeight_eq_zero_right n H U m hge]
+          simp
+    rw [hext, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun m _ => ?_
+    rw [hc_def]
+    push_cast
+    ring
+  rw [h1]
+  -- step 2: the difference is a weight-difference sum
+  have h2 : (∑ m ∈ M, h m * ((c m : ℝ) : ℂ)) - ∑ m ∈ M, h m * ((ψ m : ℝ) : ℂ)
+      = ∑ m ∈ M, h m * (((c m - ψ m : ℝ)) : ℂ) := by
+    rw [← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun m _ => ?_
+    push_cast
+    ring
+  rw [h2]
+  -- step 3: the collar comparison
+  set D : Finset ℕ := (Finset.Ioo n P) ∪ (Finset.Ioc Q (max S' (n+U+H)))
+    with hD_def
+  have hc01 : ∀ m, 0 ≤ c m ∧ c m ≤ 1 := by
+    intro m
+    rw [hc_def]
+    constructor
+    · positivity
+    · rw [div_le_one (by exact_mod_cast hU)]
+      exact_mod_cast le_trans (Finset.card_filter_le _ _) (le_of_eq (Finset.card_range U))
+  have hagree : ∀ m ∈ M, m ∉ D → c m = ψ m := by
+    intro m _ hmD
+    rw [hD_def, Finset.mem_union, Finset.mem_Ioo, Finset.mem_Ioc] at hmD
+    push_neg at hmD
+    obtain ⟨hD1, hD2⟩ := hmD
+    by_cases hle : m ≤ n
+    · -- both vanish below n
+      have hcz : c m = 0 := by
+        rw [hc_def]
+        dsimp only
+        rw [trapWeight_eq_zero_left n H U m hle]
+        simp
+      have hψz : ψ m = 0 := by
+        by_contra hne
+        have := (hψ_supp m hne).1
+        omega
+      rw [hcz, hψz]
+    · have hlt : n < m := by omega
+      by_cases hPm : P ≤ m
+      · by_cases hmQ : m ≤ Q
+        · -- the common plateau
+          have hcU : c m = 1 := by
+            rw [hc_def]
+            dsimp only
+            rw [trapWeight_eq_of_plateau n H U m (by omega) (by omega)]
+            field_simp
+          rw [hcU, hψ_plateau m hPm hmQ]
+        · -- m > Q and not in D₂ ⟹ m > max S' (n+U+H): both vanish
+          have hmax : max S' (n+U+H) < m := hD2 (by omega)
+          have hcz : c m = 0 := by
+            rw [hc_def]
+            dsimp only
+            rw [trapWeight_eq_zero_right n H U m (by omega)]
+            simp
+          have hψz : ψ m = 0 := by
+            by_contra hne
+            have := (hψ_supp m hne).2
+            omega
+          rw [hcz, hψz]
+      · -- n < m < P and not in D₁: contradiction with hD1
+        exact absurd (hD1 hlt) hPm
+  have hcard : ((D.card : ℕ) : ℝ)
+      ≤ ((P - n : ℕ) : ℝ) + ((max S' (n+U+H) - Q : ℕ) : ℝ) := by
+    have h3 : D.card ≤ (Finset.Ioo n P).card + (Finset.Ioc Q (max S' (n+U+H))).card := by
+      rw [hD_def]
+      exact Finset.card_union_le _ _
+    have h4 : (Finset.Ioo n P).card = P - n - 1 := Nat.card_Ioo n P
+    have h5 : (Finset.Ioc Q (max S' (n+U+H))).card = max S' (n+U+H) - Q :=
+      Nat.card_Ioc Q _
+    have h6 : D.card ≤ (P - n) + (max S' (n+U+H) - Q) := by omega
+    exact_mod_cast h6
+  exact le_trans (norm_sum_mul_sub_weights_le M D h hb c ψ hc01 hψ01 hagree) hcard
+
+
 end MoltResearch
