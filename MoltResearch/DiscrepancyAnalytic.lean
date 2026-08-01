@@ -8,6 +8,7 @@ import MoltResearch.Discrepancy.LargeValues
 import MoltResearch.Discrepancy.Repulsion
 import MoltResearch.Discrepancy.HalaszEuler
 import MoltResearch.Discrepancy.DyadicMVT
+import MoltResearch.Discrepancy.RamareIdentity
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
