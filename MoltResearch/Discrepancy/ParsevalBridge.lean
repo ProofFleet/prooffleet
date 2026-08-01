@@ -1516,4 +1516,58 @@ theorem slice_time_side (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
   exact ⟨η, B', hηs, hη01, hη2, hB'0, hmain⟩
 
 
+namespace ExpSums
+
+open scoped ContDiff
+
+/-- **The translate form** (Track R, W2a-i): the smoothed log sum is a
+weighted sum of translates of the scaled window profile — the exact
+shape of the Plancherel harness. -/
+theorem smoothedLogSum_eq_sum_translates (T : ℝ) (η : ℝ → ℝ)
+    (a : ℕ → ℂ) (S : Finset ℕ) (y : ℝ) :
+    smoothedLogSum T η a S y
+      = ∑ m ∈ S, ((T:ℂ) * a m/(m:ℂ))
+          * ((fun v : ℝ => ((η (T*v) : ℝ) : ℂ)) (y - Real.log m)) := by
+  unfold smoothedLogSum
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun m _ => ?_
+  dsimp only
+  ring
+
+/-- **The window profile** (Track R, W2a-ii): the scaled profile
+`v ↦ η(Tv)` (cast to `ℂ`) is smooth with compact support — the
+harness's `F`-class. -/
+theorem window_profile_props (T : ℝ) (hT : 0 < T) (η : ℝ → ℝ)
+    (hηs : ContDiff ℝ ∞ η) (hη2 : ∀ u, η u ≠ 0 → |u| ≤ 2) :
+    HasCompactSupport (fun v : ℝ => ((η (T*v) : ℝ) : ℂ))
+    ∧ ContDiff ℝ ∞ (fun v : ℝ => ((η (T*v) : ℝ) : ℂ)) := by
+  constructor
+  · refine HasCompactSupport.intro (isCompact_Icc (a := -(2/T)) (b := 2/T)) ?_
+    intro v hv
+    have hv' : v < -(2/T) ∨ 2/T < v := by
+      by_contra hcon
+      push_neg at hcon
+      exact hv (Set.mem_Icc.mpr ⟨hcon.1, hcon.2⟩)
+    have h2T : T * (2/T) = 2 := by field_simp
+    have hTv : 2 < |T*v| := by
+      rcases hv' with hcase | hcase
+      · have hneg : T*v < 0 := by nlinarith [div_pos two_pos hT]
+        rw [abs_of_neg hneg]
+        nlinarith [mul_lt_mul_of_pos_left hcase hT]
+      · have hpos : (0:ℝ) < T*v := by nlinarith [div_pos two_pos hT]
+        rw [abs_of_pos hpos]
+        nlinarith [mul_lt_mul_of_pos_left hcase hT]
+    have hz : η (T*v) = 0 := by
+      by_contra hne
+      have := hη2 _ hne
+      linarith [hTv]
+    rw [hz]
+    simp
+  · have h1 : ContDiff ℝ ∞ (fun v : ℝ => η (T*v)) :=
+      hηs.comp (contDiff_const.mul contDiff_id)
+    exact Complex.ofRealCLM.contDiff.comp h1
+
+
+end ExpSums
+
 end MoltResearch
