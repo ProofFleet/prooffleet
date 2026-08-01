@@ -59,7 +59,8 @@ theorem sum_div_card_dvd_eq_sum_filter (A P : Finset ℕ) (g : ℕ → ℂ) :
 /-- **The fibre reindex** (C4e-2): the multiples of `p` in a range `(a, b]`
 are exactly the dilates `p·m` for `m ∈ (a/p, b/p]` (floor division), so a
 sum over the `p`-divisibility fibre is a sum over the dilated range. -/
-theorem sum_Ioc_filter_dvd_eq_sum_Ioc_div (a b p : ℕ) (hp : 0 < p) (h : ℕ → ℂ) :
+theorem sum_Ioc_filter_dvd_eq_sum_Ioc_div {M : Type*} [AddCommMonoid M]
+    (a b p : ℕ) (hp : 0 < p) (h : ℕ → M) :
     ∑ n ∈ (Finset.Ioc a b).filter (fun n => p ∣ n), h n
       = ∑ m ∈ Finset.Ioc (a / p) (b / p), h (p * m) := by
   classical
@@ -150,6 +151,34 @@ theorem sum_filter_omega_pos_eq_main_add_collision (a b : ℕ) (P : Finset ℕ)
   · refine Finset.sum_congr ?_ fun m _ => rfl
     ext m
     simp only [Finset.mem_filter, not_not]
+
+
+/-- **The collision bound** (C4e-5): the collision half of the
+`𝒰`-decomposition is dominated in norm by the `p²`-refibred absolute
+sums — each collision fibre `p ∣ m` is the `p²`-dilate of a shorter
+range, so its total mass is second order in `1/p`. -/
+theorem norm_sum_collision_le (a b : ℕ) (P : Finset ℕ)
+    (hP : ∀ q ∈ P, q.Prime) (g : ℕ → ℂ) :
+    ‖∑ p ∈ P, ∑ m ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m => p ∣ m),
+        g (p * m) / (((P.filter (· ∣ p * m)).card : ℂ))‖
+      ≤ ∑ p ∈ P, ∑ k ∈ Finset.Ioc (a/(p*p)) (b/(p*p)), ‖g (p * (p * k))‖ := by
+  refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun p hp => ?_)
+  have hp0 : 0 < p := (hP p hp).pos
+  refine le_trans (norm_sum_le _ _) ?_
+  have hstep : ∀ m ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m => p ∣ m),
+      ‖g (p * m) / (((P.filter (· ∣ p * m)).card : ℂ))‖ ≤ ‖g (p * m)‖ := by
+    intro m hm
+    rw [norm_div, Complex.norm_natCast]
+    have hω : 1 ≤ ((P.filter (· ∣ p * m)).card : ℝ) := by
+      have hpos : 0 < (P.filter (· ∣ p * m)).card :=
+        Finset.card_pos.mpr ⟨p, Finset.mem_filter.mpr ⟨hp, dvd_mul_right p m⟩⟩
+      exact_mod_cast hpos
+    exact div_le_self (norm_nonneg _) hω
+  refine le_trans (Finset.sum_le_sum hstep) ?_
+  rw [show a/(p*p) = (a/p)/p from (Nat.div_div_eq_div_mul a p p).symm,
+    show b/(p*p) = (b/p)/p from (Nat.div_div_eq_div_mul b p p).symm]
+  rw [← sum_Ioc_filter_dvd_eq_sum_Ioc_div (a/p) (b/p) p hp0
+    (fun n => ‖g (p * n)‖)]
 
 
 end MoltResearch
