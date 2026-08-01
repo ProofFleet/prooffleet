@@ -1,4 +1,7 @@
 import MoltResearch.Discrepancy.ArchimedeanTaylor
+import Mathlib.NumberTheory.DirichletCharacter.Orthogonality
+import Mathlib.RingTheory.RootsOfUnity.AlgebraicallyClosed
+import Mathlib.Analysis.Complex.Polynomial.Basic
 
 /-!
 # Track C: the major-arc phase freeze (Track R, C4e-10)
@@ -165,6 +168,42 @@ theorem norm_sum_mul_exp_le_sum_blocks_add (H ℓ : ℕ) (hℓ : 0 < ℓ)
     rw [hcard] at this
     exact_mod_cast this.symm
   rw [← Finset.sum_mul, hcount]
+
+
+/-- **The residue-to-character expansion** (C4e-12): a block sum
+restricted to a unit residue class `b` mod `q` is the `1/φ(q)`-weighted
+character average of the `χ`-twisted full block sums — Dirichlet
+orthogonality pointwise; non-coprime `j` vanish automatically since
+every `χ` kills them. -/
+theorem sum_filter_residue_eq_char_avg (q : ℕ) [NeZero q] (B : Finset ℕ)
+    (F : ℕ → ℂ) (b : ZMod q) (hb : IsUnit b) :
+    ∑ j ∈ B.filter (fun j : ℕ => ((j : ZMod q)) = b), F j
+      = (1/(q.totient : ℂ)) * ∑ χ : DirichletCharacter ℂ q,
+          χ b⁻¹ * ∑ j ∈ B, χ j * F j := by
+  classical
+  have hφ : (q.totient : ℂ) ≠ 0 := by
+    have h0 : 0 < q.totient := Nat.totient_pos.mpr (Nat.pos_of_ne_zero (NeZero.ne q))
+    exact_mod_cast h0.ne'
+  have hswap : ∑ χ : DirichletCharacter ℂ q, χ b⁻¹ * ∑ j ∈ B, χ j * F j
+      = ∑ j ∈ B, F j * ∑ χ : DirichletCharacter ℂ q, χ b⁻¹ * χ j := by
+    simp_rw [Finset.mul_sum]
+    rw [Finset.sum_comm]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    refine Finset.sum_congr rfl fun χ _ => ?_
+    ring
+  have horth : ∀ j ∈ B, F j * ∑ χ : DirichletCharacter ℂ q, χ b⁻¹ * χ j
+      = if ((j : ZMod q)) = b then (q.totient : ℂ) * F j else 0 := by
+    intro j _
+    rw [DirichletCharacter.sum_char_inv_mul_char_eq ℂ hb ((j : ℕ) : ZMod q)]
+    by_cases h : ((j : ZMod q)) = b
+    · rw [if_pos h.symm, if_pos h]
+      ring
+    · rw [if_neg (fun hc => h hc.symm), if_neg h]
+      ring
+  rw [hswap, Finset.sum_congr rfl horth, ← Finset.sum_filter]
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun j _ => ?_
+  field_simp
 
 
 end MoltResearch
