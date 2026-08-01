@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.TuranKubilius
+import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 
 /-!
 # Track C: the Parseval bridge (Track R, B-arc)
@@ -251,6 +252,247 @@ theorem norm_sum_mul_sub_weights_le (S D : Finset ℕ) (h : ℕ → ℂ)
         have hsub : S.filter (· ∈ D) ⊆ D := fun m hm =>
           (Finset.mem_filter.mp hm).2
         exact_mod_cast Finset.card_le_card hsub
+
+
+/-- **The Riemann comparison** (Track R, B3-iv): a log-sampled harmonic
+sum of a nonnegative Lipschitz function is at most twice its integral
+plus a second-order Lipschitz tail — the discrete-to-continuous step
+that hands the fibre mean square to the Plancherel harness's
+`y`-integral. -/
+theorem sum_log_div_le_two_mul_integral_add (a b : ℕ) (ha : 1 ≤ a)
+    (hab : a ≤ b) (f : ℝ → ℝ) (hf0 : ∀ y, 0 ≤ f y) (hfc : Continuous f)
+    (Λ : ℝ) (hΛ0 : 0 ≤ Λ) (hLip : ∀ y z, |f y - f z| ≤ Λ * |y - z|) :
+    ∑ n ∈ Finset.Ioc a b, f (Real.log n)/n
+      ≤ 2 * (∫ y in (Real.log a)..(Real.log (b+1)), f y) + 2*Λ/a := by
+  classical
+  -- per-piece bound
+  have hpiece : ∀ n ∈ Finset.Ioc a b,
+      f (Real.log n)/n
+        ≤ 2 * (∫ y in (Real.log n)..(Real.log (n+1)), f y) + 2*Λ/(n:ℝ)^2 := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn
+    have hn1 : 1 ≤ n := by omega
+    have hn0 : (0:ℝ) < n := by exact_mod_cast hn1
+    have hlogle : Real.log n ≤ Real.log (n+1) :=
+      Real.log_le_log (by positivity) (by push_cast; linarith)
+    set L : ℝ := Real.log (n+1) - Real.log n with hL_def
+    have hL_eq : L = Real.log (1 + 1/n) := by
+      rw [hL_def, ← Real.log_div (by positivity) (by positivity)]
+      congr 1
+      field_simp
+    have hL_up : L ≤ 1/n := by
+      rw [hL_eq]
+      have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 1 + 1/n by positivity)
+      linarith
+    have hL_low : 1/(2*(n:ℝ)) ≤ L := by
+      rw [hL_eq]
+      have h1 := Real.one_sub_inv_le_log_of_pos
+        (show (0:ℝ) < 1 + 1/n by positivity)
+      have h2 : (1:ℝ) - (1 + 1/(n:ℝ))⁻¹ = 1/((n:ℝ)+1) := by
+        field_simp
+        ring
+      have h3 : 1/(2*(n:ℝ)) ≤ 1/((n:ℝ)+1) := by
+        refine one_div_le_one_div_of_le (by positivity) ?_
+        have : (1:ℝ) ≤ n := by exact_mod_cast hn1
+        linarith
+      linarith [h1, h2 ▸ h1]
+    -- pointwise: f(log n) − Λ/n ≤ f y on the piece
+    have hpt : ∀ y ∈ Set.uIcc (Real.log n) (Real.log (n+1)),
+        f (Real.log n) - Λ/n ≤ f y := by
+      intro y hy
+      rw [Set.uIcc_of_le hlogle] at hy
+      have hdist : |Real.log n - y| ≤ 1/n := by
+        rw [abs_of_nonpos (by linarith [hy.1])]
+        have := hy.2
+        have hLb : y - Real.log n ≤ L := by
+          rw [hL_def]
+          linarith [hy.2]
+        linarith [hL_up]
+      have := hLip (Real.log n) y
+      have habs : f (Real.log n) - f y ≤ Λ * (1/n) := by
+        calc f (Real.log n) - f y ≤ |f (Real.log n) - f y| := le_abs_self _
+          _ ≤ Λ * |Real.log n - y| := this
+          _ ≤ Λ * (1/n) := mul_le_mul_of_nonneg_left hdist hΛ0
+      have hbridge : Λ * (1/(n:ℝ)) = Λ/(n:ℝ) := by ring
+      linarith [hbridge]
+    have hmono : (f (Real.log n) - Λ/n) * L
+        ≤ ∫ y in (Real.log n)..(Real.log (n+1)), f y := by
+      have h1 : ∫ y in (Real.log n)..(Real.log (n+1)), (f (Real.log n) - Λ/n)
+          ≤ ∫ y in (Real.log n)..(Real.log (n+1)), f y := by
+        refine intervalIntegral.integral_mono_on hlogle
+          intervalIntegrable_const (hfc.intervalIntegrable _ _) ?_
+        intro y hy
+        exact hpt y (Set.mem_uIcc_of_le hy.1 hy.2)
+      rw [intervalIntegral.integral_const, smul_eq_mul] at h1
+      calc (f (Real.log n) - Λ/n) * L
+          = (Real.log (n+1) - Real.log n) * (f (Real.log n) - Λ/n) := by
+            rw [hL_def]; ring
+        _ ≤ ∫ y in (Real.log n)..(Real.log (n+1)), f y := h1
+    -- assemble per-piece
+    have hint_nonneg : (0:ℝ) ≤ ∫ y in (Real.log n)..(Real.log (n+1)), f y :=
+      intervalIntegral.integral_nonneg hlogle (fun y _ => hf0 y)
+    have hf0n := hf0 (Real.log n)
+    -- f(logn)/n ≤ 2 f(logn) L ≤ 2∫ + 2ΛL/n ≤ 2∫ + 2Λ/n²
+    have hkey : f (Real.log n) * (1/(n:ℝ)) ≤ 2 * (f (Real.log n) * L) := by
+      have hm := mul_le_mul_of_nonneg_left hL_low hf0n
+      have hbridge : f (Real.log n) * (1/(n:ℝ))
+          = 2 * (f (Real.log n) * (1/(2*(n:ℝ)))) := by ring
+      linarith [hm, hbridge]
+    have hkey2 : f (Real.log n) * L
+        ≤ (∫ y in (Real.log n)..(Real.log (n+1)), f y) + (Λ/n) * L := by
+      have hbridge : (f (Real.log n) - Λ/(n:ℝ)) * L
+          = f (Real.log n) * L - (Λ/(n:ℝ)) * L := by ring
+      linarith [hmono, hbridge]
+    have hkey3 : (Λ/n) * L ≤ Λ/(n:ℝ)^2 := by
+      have h1 : (Λ/n) * L ≤ (Λ/n) * (1/n) :=
+        mul_le_mul_of_nonneg_left hL_up (by positivity)
+      calc (Λ/n) * L ≤ (Λ/n) * (1/n) := h1
+        _ = Λ/(n:ℝ)^2 := by ring
+    calc f (Real.log n)/n = f (Real.log n) * (1/(n:ℝ)) := by ring
+      _ ≤ 2 * (f (Real.log n) * L) := hkey
+      _ ≤ 2 * ((∫ y in (Real.log n)..(Real.log (n+1)), f y) + (Λ/n) * L) := by
+          linarith [hkey2]
+      _ ≤ 2 * (∫ y in (Real.log n)..(Real.log (n+1)), f y) + 2*Λ/(n:ℝ)^2 := by
+          have hb : 2*Λ/(n:ℝ)^2 = 2*(Λ/(n:ℝ)^2) := by ring
+          linarith [hkey3, hb]
+  -- sum the pieces
+  refine le_trans (Finset.sum_le_sum hpiece) ?_
+  rw [Finset.sum_add_distrib]
+  -- (1) telescope the integrals
+  have htele : ∑ n ∈ Finset.Ioc a b,
+      (∫ y in (Real.log n)..(Real.log (n+1)), f y)
+      = ∫ y in (Real.log ((a:ℝ)+1))..(Real.log ((b:ℝ)+1)), f y := by
+    set d : ℕ → ℝ := fun k => Real.log ((a+1+k : ℕ) : ℝ) with hd_def
+    have hreindex : ∑ n ∈ Finset.Ioc a b,
+        (∫ y in (Real.log n)..(Real.log (n+1)), f y)
+        = ∑ k ∈ Finset.range (b - a), (∫ y in (d k)..(d (k+1)), f y) := by
+      refine Finset.sum_bij' (fun n _ => n - (a+1)) (fun k _ => a+1+k)
+        ?_ ?_ ?_ ?_ ?_
+      · intro n hn
+        rw [Finset.mem_Ioc] at hn
+        rw [Finset.mem_range]
+        dsimp only
+        omega
+      · intro k hk
+        rw [Finset.mem_range] at hk
+        rw [Finset.mem_Ioc]
+        dsimp only
+        omega
+      · intro n hn
+        rw [Finset.mem_Ioc] at hn
+        dsimp only
+        omega
+      · intro k _
+        dsimp only
+        omega
+      · intro n hn
+        rw [Finset.mem_Ioc] at hn
+        dsimp only
+        have e1 : d (n - (a+1)) = Real.log n := by
+          rw [hd_def]
+          dsimp only
+          congr 1
+          exact_mod_cast congrArg (Nat.cast : ℕ → ℝ)
+            (by omega : a+1+(n-(a+1)) = n)
+        have e2 : d (n - (a+1) + 1) = Real.log ((n:ℝ)+1) := by
+          rw [hd_def]
+          dsimp only
+          have h5 : a+1+(n-(a+1)+1) = n+1 := by omega
+          rw [h5]
+          congr 1
+          push_cast
+          ring
+        rw [e1, e2]
+    rw [hreindex]
+    have hd2 := intervalIntegral.sum_integral_adjacent_intervals
+      (μ := MeasureTheory.volume) (a := d) (n := b - a)
+      (fun k _ => (hfc.intervalIntegrable _ _))
+    have e0 : d 0 = Real.log ((a:ℝ)+1) := by
+      rw [hd_def]
+      dsimp only
+      congr 1
+      push_cast
+      ring
+    have eN : d (b-a) = Real.log ((b:ℝ)+1) := by
+      rw [hd_def]
+      dsimp only
+      have h5 : a+1+(b-a) = b+1 := by omega
+      rw [h5]
+      congr 1
+      push_cast
+      ring
+    rw [e0, eN] at hd2
+    exact hd2
+  have hext : ∫ y in (Real.log ((a:ℝ)+1))..(Real.log ((b:ℝ)+1)), f y
+      ≤ ∫ y in (Real.log a)..(Real.log ((b:ℝ)+1)), f y := by
+    have ha0 : (0:ℝ) < a := by exact_mod_cast ha
+    have hlog1 : Real.log a ≤ Real.log ((a:ℝ)+1) :=
+      Real.log_le_log ha0 (by linarith)
+    have hlog2 : Real.log ((a:ℝ)+1) ≤ Real.log ((b:ℝ)+1) := by
+      refine Real.log_le_log (by positivity) ?_
+      have : (a:ℝ) ≤ b := by exact_mod_cast hab
+      linarith
+    have hsplit := intervalIntegral.integral_add_adjacent_intervals
+      (μ := MeasureTheory.volume)
+      (a := Real.log a) (b := Real.log ((a:ℝ)+1)) (c := Real.log ((b:ℝ)+1))
+      (hfc.intervalIntegrable _ _) (hfc.intervalIntegrable _ _)
+    have hfirst : (0:ℝ) ≤ ∫ y in (Real.log a)..(Real.log ((a:ℝ)+1)), f y :=
+      intervalIntegral.integral_nonneg hlog1 (fun y _ => hf0 y)
+    linarith [hsplit, hfirst]
+  -- (2) the quadratic tail telescopes
+  have htail : ∑ n ∈ Finset.Ioc a b, (1:ℝ)/(n:ℝ)^2 ≤ 1/a := by
+    have hstep : ∀ b', a ≤ b' →
+        ∑ n ∈ Finset.Ioc a b', (1:ℝ)/(n:ℝ)^2 ≤ 1/a - 1/b' := by
+      intro b' hb'
+      induction b' with
+      | zero => omega
+      | succ m ih =>
+        rcases Nat.lt_or_ge a (m+1) with hlt | hge
+        · have ham : a ≤ m := by omega
+          have hm0 : (0:ℝ) < m := by
+            have : 1 ≤ m := by omega
+            exact_mod_cast this
+          rw [Finset.sum_Ioc_succ_top (by omega : a ≤ m)]
+          have hq : (1:ℝ)/((m+1:ℕ):ℝ)^2 ≤ 1/(m:ℝ) - 1/((m:ℝ)+1) := by
+            push_cast
+            rw [div_sub_div _ _ (by positivity) (by positivity)]
+            rw [div_le_div_iff₀ (by positivity) (by positivity)]
+            ring_nf
+            nlinarith [hm0]
+          have hih := ih ham
+          push_cast at hq ⊢
+          have hlast : (1:ℝ)/(m:ℝ) - 1/((m:ℝ)+1) + (1/a - 1/(m:ℝ))
+              = 1/a - 1/((m:ℝ)+1) := by ring
+          linarith [hq, hih, hlast]
+        · have heq : a = m + 1 := by omega
+          rw [heq]
+          simp
+    have hb0 : (0:ℝ) < b := by
+      have : 1 ≤ b := by omega
+      exact_mod_cast this
+    have := hstep b hab
+    have hbpos : (0:ℝ) ≤ 1/(b:ℝ) := by positivity
+    linarith
+  -- close
+  have hsum2 : ∑ n ∈ Finset.Ioc a b, 2*Λ/(n:ℝ)^2 ≤ 2*Λ/a := by
+    have hfac : ∀ n ∈ Finset.Ioc a b, 2*Λ/(n:ℝ)^2 = 2*Λ*((1:ℝ)/(n:ℝ)^2) := by
+      intro n _
+      ring
+    rw [Finset.sum_congr rfl hfac, ← Finset.mul_sum]
+    have h2 : 2*Λ*((1:ℝ)/a) = 2*Λ/a := by ring
+    calc 2*Λ * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/(n:ℝ)^2
+        ≤ 2*Λ*(1/a) := by
+          refine mul_le_mul_of_nonneg_left htail (by linarith)
+      _ = 2*Λ/a := h2
+  have hsumint : ∑ n ∈ Finset.Ioc a b,
+      2 * (∫ y in (Real.log n)..(Real.log (n+1)), f y)
+      = 2 * ∫ y in (Real.log ((a:ℝ)+1))..(Real.log ((b:ℝ)+1)), f y := by
+    rw [← Finset.mul_sum, htele]
+  rw [hsumint]
+  have hfin : 2 * (∫ y in (Real.log ((a:ℝ)+1))..(Real.log ((b:ℝ)+1)), f y)
+      ≤ 2 * (∫ y in (Real.log a)..(Real.log ((b:ℝ)+1)), f y) := by
+    linarith [hext]
+  linarith [hfin, hsum2]
 
 
 end MoltResearch
