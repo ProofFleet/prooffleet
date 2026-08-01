@@ -1,4 +1,6 @@
 import MoltResearch.Discrepancy.MultiplicativeC
+import MoltResearch.Discrepancy.ChebyshevTail
+import MoltResearch.Discrepancy.MertensFirst
 import Mathlib.NumberTheory.EulerProduct.ExpLog
 import Mathlib.NumberTheory.LSeries.Basic
 import Mathlib.NumberTheory.SumPrimeReciprocals
@@ -262,5 +264,258 @@ theorem log_norm_LSeries_le_tsum_re_add_one
       _ ≤ 1 := tsum_primes_rpow_neg_two_le_one'
   rw [hlogL, hsplit_tsum]
   linarith [herr_tsum]
+
+/-- **The truncated Euler upper bound** (C4b-2): for completely
+multiplicative `f` bounded by `1`, the log of the L-norm at
+`1 + 1/log y − it` is at most the truncated twisted prime sum plus `13`
+— the upper mirror of `sum_re_twist_div_le_log_norm_LSeries`, with the
+same three costs (bridge `1`, tail `8`, weight `4`). -/
+theorem log_norm_LSeries_le_sum_re_twist_add (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1) (hb : ∀ n, ‖f n‖ ≤ 1)
+    {y : ℕ} (hy : 3 ≤ y) (t : ℝ) :
+    Real.log ‖LSeries (fun n => f n)
+        (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖
+      ≤ (∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (Complex.I * t)).re / p) + 13 := by
+  classical
+  set ε : ℝ := 1 / Real.log y with hε
+  have hlogy : (1 : ℝ) < Real.log y := by
+    rw [Real.lt_log_iff_exp_lt (by positivity)]
+    have h3 : (3 : ℝ) ≤ y := by exact_mod_cast hy
+    linarith [Real.exp_one_lt_d9]
+  have hε0 : 0 < ε := by rw [hε]; positivity
+  have hε1 : ε < 1 := by
+    rw [hε, div_lt_one (by linarith)]
+    exact hlogy
+  set s : ℂ := ((1 + ε : ℝ) : ℂ) - Complex.I * t with hs_def
+  have hsre : s.re = 1 + ε := by
+    rw [hs_def]
+    simp
+  have hs1 : 1 < s.re := by rw [hsre]; linarith
+  set w : Nat.Primes → ℂ := fun p => f p * (p : ℂ) ^ (-s) with hw
+  -- norm bound and summability
+  have hnormw : ∀ p : Nat.Primes, ‖w p‖ ≤ ((p : ℕ) : ℝ) ^ (-s.re) := by
+    intro p
+    rw [hw, norm_mul]
+    have hp0 : (0 : ℝ) < ((p : ℕ) : ℝ) := by exact_mod_cast p.prop.pos
+    have hnorm : ‖((p : ℕ) : ℂ) ^ (-s)‖ = ((p : ℕ) : ℝ) ^ (-s.re) := by
+      rw [show ((p : ℕ) : ℂ) = (((p : ℕ) : ℝ) : ℂ) from by push_cast; rfl,
+        Complex.norm_cpow_eq_rpow_re_of_pos hp0]
+      simp
+    rw [hnorm]
+    exact mul_le_of_le_one_left (by positivity) (hb p)
+  have hsumnorm : Summable fun p : Nat.Primes => ‖w p‖ := by
+    refine Summable.of_nonneg_of_le (fun p => norm_nonneg _) (fun p => hnormw p) ?_
+    exact Nat.Primes.summable_rpow.mpr (by rw [hsre]; linarith)
+  have hsum : Summable w := hsumnorm.of_norm
+  -- C4b-1 at s
+  have hbridge0 := log_norm_LSeries_le_tsum_re_add_one f hcm h1 hb hs1
+  have hbridge : Real.log ‖LSeries (fun n => f n) s‖
+      ≤ (∑' p : Nat.Primes, (w p).re) + 1 := hbridge0
+  -- the real-part identity
+  have hreid : ∀ (p : ℕ), p.Prime →
+      (f p * (p : ℂ) ^ (Complex.I * t)).re * (p : ℝ) ^ (-(1 + ε))
+        = (f p * (p : ℂ) ^ (-s)).re := by
+    intro p hpp
+    have hp0 : (0 : ℝ) < (p : ℝ) := by exact_mod_cast hpp.pos
+    have hsplit : ((p : ℕ) : ℂ) ^ (-s)
+        = ((p : ℂ) ^ (Complex.I * t)) * ((((p : ℝ) ^ (-(1 + ε)) : ℝ)) : ℂ) := by
+      rw [Complex.ofReal_cpow hp0.le]
+      push_cast
+      rw [← Complex.cpow_add _ _ (by exact_mod_cast hpp.ne_zero)]
+      congr 1
+      rw [hs_def]
+      push_cast
+      ring
+    rw [hsplit, ← mul_assoc]
+    rw [Complex.mul_re]
+    simp [Complex.ofReal_re, Complex.ofReal_im]
+  -- weight comparison
+  have hweight : ∀ (p : ℕ), 2 ≤ p →
+      0 ≤ 1 / (p : ℝ) - (p : ℝ) ^ (-(1 + ε))
+        ∧ 1 / (p : ℝ) - (p : ℝ) ^ (-(1 + ε)) ≤ ε * Real.log p / p := by
+    intro p hp2
+    have hp0 : (0 : ℝ) < (p : ℝ) := by
+      have : (2 : ℝ) ≤ p := by exact_mod_cast hp2
+      linarith
+    have hfact : (p : ℝ) ^ (-(1 + ε)) = (1 / p) * (p : ℝ) ^ (-ε) := by
+      rw [show -(1 + ε) = -1 + -ε from by ring, Real.rpow_add hp0,
+        Real.rpow_neg_one, one_div]
+    have hexpform : (p : ℝ) ^ (-ε) = Real.exp (-(ε * Real.log p)) := by
+      rw [Real.rpow_def_of_pos hp0]
+      ring_nf
+    have hlogp : (0 : ℝ) ≤ Real.log p :=
+      Real.log_nonneg (by exact_mod_cast Nat.one_le_of_lt hp2)
+    constructor
+    · rw [hfact]
+      have hle1 : (p : ℝ) ^ (-ε) ≤ 1 :=
+        Real.rpow_le_one_of_one_le_of_nonpos
+          (by exact_mod_cast Nat.one_le_of_lt hp2) (by linarith)
+      have : (0 : ℝ) < 1 / p := by positivity
+      nlinarith
+    · rw [hfact, hexpform]
+      have hexp : 1 - Real.exp (-(ε * Real.log p)) ≤ ε * Real.log p := by
+        linarith [Real.add_one_le_exp (-(ε * Real.log p))]
+      have h1p : (0 : ℝ) ≤ 1 / p := by positivity
+      calc 1 / (p : ℝ) - 1 / p * Real.exp (-(ε * Real.log p))
+          = (1 / p) * (1 - Real.exp (-(ε * Real.log p))) := by ring
+        _ ≤ (1 / p) * (ε * Real.log p) := by
+            refine mul_le_mul_of_nonneg_left ?_ h1p
+            exact hexp
+        _ = ε * Real.log p / p := by ring
+  -- the twist has real part in [−1, 1]
+  have htwist1 : ∀ (p : ℕ), p.Prime →
+      |(f p * (p : ℂ) ^ (Complex.I * t)).re| ≤ 1 := by
+    intro p hpp
+    refine le_trans (Complex.abs_re_le_norm _) ?_
+    rw [norm_mul]
+    have hp0 : (0 : ℝ) < ((p : ℕ) : ℝ) := by exact_mod_cast hpp.pos
+    have hnorm : ‖((p : ℕ) : ℂ) ^ (Complex.I * (t : ℂ))‖ = 1 := by
+      rw [show ((p : ℕ) : ℂ) = (((p : ℕ) : ℝ) : ℂ) from by push_cast; rfl,
+        Complex.norm_cpow_eq_rpow_re_of_pos hp0]
+      simp
+    rw [hnorm, mul_one]
+    exact hb p
+  -- reversed STEP 1: damped head ≤ twist head + 4
+  have hstep1 : ∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (-s)).re
+      ≤ (∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (Complex.I * t)).re / p) + 4 := by
+    have hpt : ∀ p ∈ y.primesBelow,
+        (f p * (p : ℂ) ^ (-s)).re
+          ≤ (f p * (p : ℂ) ^ (Complex.I * t)).re / p + ε * Real.log p / p := by
+      intro p hp
+      have hpp := Nat.prime_of_mem_primesBelow hp
+      have hw' := hweight p hpp.two_le
+      rw [← hreid p hpp]
+      set R := (f p * (p : ℂ) ^ (Complex.I * t)).re with hRdef
+      have habs : |R * ((p:ℝ) ^ (-(1+ε)) - 1/p)| ≤ 1/(p:ℝ) - (p:ℝ) ^ (-(1+ε)) := by
+        rw [abs_mul, abs_sub_comm, abs_of_nonneg hw'.1]
+        calc |R| * (1/(p:ℝ) - (p:ℝ) ^ (-(1+ε)))
+            ≤ 1 * (1/(p:ℝ) - (p:ℝ) ^ (-(1+ε))) :=
+              mul_le_mul_of_nonneg_right (htwist1 p hpp) hw'.1
+          _ = 1/(p:ℝ) - (p:ℝ) ^ (-(1+ε)) := one_mul _
+      have hsplit' : R * (p:ℝ) ^ (-(1+ε)) - R/p = R * ((p:ℝ) ^ (-(1+ε)) - 1/p) := by
+        ring
+      have h6 := le_abs_self (R * ((p:ℝ) ^ (-(1+ε)) - 1/p))
+      linarith [hw'.2]
+    calc ∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (-s)).re
+        ≤ ∑ p ∈ y.primesBelow,
+            ((f p * (p : ℂ) ^ (Complex.I * t)).re / p + ε * Real.log p / p) :=
+          Finset.sum_le_sum hpt
+      _ = (∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (Complex.I * t)).re / p)
+            + ε * ∑ p ∈ y.primesBelow, Real.log p / p := by
+          rw [Finset.sum_add_distrib, Finset.mul_sum]
+          congr 1
+          exact Finset.sum_congr rfl fun p _ => by ring
+      _ ≤ (∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (Complex.I * t)).re / p) + 4 := by
+          have hm := sum_log_div_primesBelow_le y
+          have h4 : ε * ∑ p ∈ y.primesBelow, Real.log p / p ≤ 4 := by
+            calc ε * ∑ p ∈ y.primesBelow, Real.log p / p
+                ≤ ε * (4 * Real.log y) :=
+                  mul_le_mul_of_nonneg_left hm hε0.le
+              _ = 4 * (ε * Real.log y) := by ring
+              _ = 4 := by
+                  rw [hε]
+                  field_simp
+          linarith
+  -- the finset of primes below y, as a finset of Nat.Primes
+  set Sy : Finset Nat.Primes := y.primesBelow.attach.image
+    (fun q => (⟨q.1, Nat.prime_of_mem_primesBelow q.2⟩ : Nat.Primes)) with hSy
+  have hmemSy : ∀ P : Nat.Primes, P ∈ Sy ↔ (P : ℕ) < y := by
+    intro P
+    constructor
+    · intro hP
+      rw [hSy, Finset.mem_image] at hP
+      obtain ⟨q, -, rfl⟩ := hP
+      exact Nat.lt_of_mem_primesBelow q.2
+    · intro hP
+      rw [hSy, Finset.mem_image]
+      exact ⟨⟨(P : ℕ), Nat.mem_primesBelow.mpr ⟨hP, P.prop⟩⟩,
+        Finset.mem_attach _ _, Subtype.ext rfl⟩
+  have hsum_eq : ∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (-s)).re
+      = ∑ P ∈ Sy, (w P).re := by
+    have h1' : ∑ P ∈ Sy, (w P).re
+        = ∑ q ∈ y.primesBelow.attach, (f q.1 * (q.1 : ℂ) ^ (-s)).re := by
+      rw [hSy]
+      exact Finset.sum_image fun q _ r _ h =>
+        Subtype.ext (congrArg (Subtype.val : Nat.Primes → ℕ) h)
+    have h2' : ∑ q ∈ y.primesBelow.attach, (f q.1 * (q.1 : ℂ) ^ (-s)).re
+        = ∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (-s)).re :=
+      Finset.sum_attach y.primesBelow (fun p => (f p * (p : ℂ) ^ (-s)).re)
+    exact (h1'.trans h2').symm
+  -- split the full tsum
+  have hsumRe : Summable fun P : Nat.Primes => (w P).re :=
+    (Complex.hasSum_re hsum.hasSum).summable
+  have htail_f : Summable fun P : Nat.Primes =>
+      (if y ≤ (P : ℕ) then (w P).re else 0) := by
+    refine Summable.of_norm_bounded (g := fun P : Nat.Primes => ‖w P‖) hsumnorm ?_
+    intro P
+    by_cases h : y ≤ (P : ℕ) <;> simp [h, Complex.abs_re_le_norm]
+  have hhead_f : Summable fun P : Nat.Primes =>
+      (if (P : ℕ) < y then (w P).re else 0) := by
+    refine Summable.of_norm_bounded (g := fun P : Nat.Primes => ‖w P‖) hsumnorm ?_
+    intro P
+    by_cases h : (P : ℕ) < y <;> simp [h, Complex.abs_re_le_norm]
+  have hsplit_pt : ∀ P : Nat.Primes,
+      (w P).re = (if (P : ℕ) < y then (w P).re else 0)
+        + (if y ≤ (P : ℕ) then (w P).re else 0) := by
+    intro P
+    by_cases h : (P : ℕ) < y
+    · rw [if_pos h, if_neg (by omega), add_zero]
+    · rw [if_neg h, if_pos (by omega), zero_add]
+  have hhead_eq : ∑' P : Nat.Primes, (if (P : ℕ) < y then (w P).re else 0)
+      = ∑ P ∈ Sy, (w P).re := by
+    rw [tsum_eq_sum (s := Sy) (fun P hP => if_neg (fun hlt => hP ((hmemSy P).mpr hlt)))]
+    exact Finset.sum_congr rfl fun P hP => if_pos ((hmemSy P).mp hP)
+  have htsum_split : ∑' P : Nat.Primes, (w P).re
+      = (∑ P ∈ Sy, (w P).re)
+        + ∑' P : Nat.Primes, (if y ≤ (P : ℕ) then (w P).re else 0) := by
+    rw [← hhead_eq, ← Summable.tsum_add hhead_f htail_f]
+    exact tsum_congr hsplit_pt
+  -- the tail is at most 8
+  have htail_le : ∑' P : Nat.Primes, (if y ≤ (P : ℕ) then (w P).re else 0) ≤ 8 := by
+    have hbound : ∀ P : Nat.Primes,
+        (if y ≤ (P : ℕ) then (w P).re else 0)
+          ≤ (if y ≤ (P : ℕ) then ((P : ℕ) : ℝ) ^ (-(1 + ε)) else 0) := by
+      intro P
+      by_cases h : y ≤ (P : ℕ)
+      · rw [if_pos h, if_pos h]
+        have h1' : |(w P).re| ≤ ‖w P‖ := Complex.abs_re_le_norm _
+        have h2' : ‖w P‖ ≤ ((P : ℕ) : ℝ) ^ (-s.re) := hnormw P
+        rw [hsre] at h2'
+        have := le_abs_self (w P).re
+        linarith
+      · rw [if_neg h, if_neg h]
+    have hsummable_tail : Summable fun P : Nat.Primes =>
+        (if y ≤ (P : ℕ) then ((P : ℕ) : ℝ) ^ (-(1 + ε)) else 0) := by
+      refine Summable.of_nonneg_of_le (fun P => by positivity) (fun P => ?_)
+        (Nat.Primes.summable_rpow.mpr (show -(1 + ε) < -1 by linarith))
+      by_cases h : y ≤ (P : ℕ)
+      · rw [if_pos h]
+      · rw [if_neg h]; positivity
+    have htail8 := tsum_primes_tail_rpow_le hy
+    rw [← hε] at htail8
+    calc ∑' P : Nat.Primes, (if y ≤ (P : ℕ) then (w P).re else 0)
+        ≤ ∑' P : Nat.Primes,
+            (if y ≤ (P : ℕ) then ((P : ℕ) : ℝ) ^ (-(1 + ε)) else 0) :=
+          Summable.tsum_le_tsum hbound htail_f hsummable_tail
+      _ ≤ 8 := htail8
+  -- assemble
+  have hLform : LSeries (fun n => f n) s
+      = LSeries (fun n => f n) (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t) := by
+    rw [hs_def, hε]
+  rw [← hLform]
+  calc Real.log ‖LSeries (fun n => f n) s‖
+      ≤ (∑' p : Nat.Primes, (w p).re) + 1 := hbridge
+    _ = ((∑ P ∈ Sy, (w P).re)
+          + ∑' P : Nat.Primes, (if y ≤ (P : ℕ) then (w P).re else 0)) + 1 := by
+        rw [htsum_split]
+    _ ≤ (∑ P ∈ Sy, (w P).re) + 8 + 1 := by linarith [htail_le]
+    _ = (∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (-s)).re) + 9 := by
+        rw [hsum_eq]
+        ring
+    _ ≤ ((∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (Complex.I * t)).re / p) + 4) + 9 := by
+        linarith [hstep1]
+    _ = (∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (Complex.I * t)).re / p) + 13 := by
+        ring
+
 
 end MoltResearch
