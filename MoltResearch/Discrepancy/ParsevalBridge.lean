@@ -637,4 +637,32 @@ theorem slice_window_mean_sq_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
   linarith [h6]
 
 
+/-- **The trapezoid plateau** (Track R, B3-iii-b-0): on `[n+U, n+H]`
+every one of the `U` shifted windows contains `m`, so the B3-ii count
+is exactly `U`. -/
+theorem trapWeight_eq_of_plateau (n H U m : ℕ) (h1 : n+U ≤ m) (h2 : m ≤ n+H) :
+    ((Finset.range U).filter (fun u => n+u < m ∧ m ≤ n+u+H)).card = U := by
+  rw [Finset.filter_true_of_mem, Finset.card_range]
+  intro u hu
+  rw [Finset.mem_range] at hu
+  omega
+
+/-- Off the support on the left (`m ≤ n`): no shifted window contains
+`m`; the count vanishes. -/
+theorem trapWeight_eq_zero_left (n H U m : ℕ) (h : m ≤ n) :
+    ((Finset.range U).filter (fun u => n+u < m ∧ m ≤ n+u+H)).card = 0 := by
+  rw [Finset.card_eq_zero, Finset.filter_eq_empty_iff]
+  intro u _
+  omega
+
+/-- Off the support on the right (`m ≥ n+U+H`): no shifted window
+contains `m`; the count vanishes. -/
+theorem trapWeight_eq_zero_right (n H U m : ℕ) (h : n+U+H ≤ m) :
+    ((Finset.range U).filter (fun u => n+u < m ∧ m ≤ n+u+H)).card = 0 := by
+  rw [Finset.card_eq_zero, Finset.filter_eq_empty_iff]
+  intro u hu
+  rw [Finset.mem_range] at hu
+  omega
+
+
 end MoltResearch
