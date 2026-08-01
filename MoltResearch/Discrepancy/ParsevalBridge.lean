@@ -178,4 +178,38 @@ theorem norm_window_sub_shift_avg_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ �
     _ ≤ (U:ℝ) := by linarith
 
 
+/-- **The trapezoid identity** (Track R, B3-ii): the sum of `U` shifted
+windows is a single weighted sum whose weight at `m` counts the shifts
+whose window contains `m` — the trapezoidal profile (ramp of width `U`,
+plateau, ramp), supported in `(n, n+U+H]`. Exact; the smoothing
+comparison consumes the count's plateau and support facts. -/
+theorem shift_avg_eq_sum_count (h : ℕ → ℂ) (n H U : ℕ) :
+    ∑ u ∈ Finset.range U, ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m
+      = ∑ m ∈ Finset.Ioc n (n+U+H),
+          (((Finset.range U).filter (fun u => n+u < m ∧ m ≤ n+u+H)).card : ℂ)
+            * h m := by
+  classical
+  have hsub : ∀ u ∈ Finset.range U,
+      ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m
+        = ∑ m ∈ Finset.Ioc n (n+U+H),
+            if n+u < m ∧ m ≤ n+u+H then h m else 0 := by
+    intro u hu
+    rw [Finset.mem_range] at hu
+    rw [show Finset.Ioc (n+u) (n+u+H)
+        = (Finset.Ioc n (n+U+H)).filter (fun m => n+u < m ∧ m ≤ n+u+H) from by
+      ext m
+      simp only [Finset.mem_filter, Finset.mem_Ioc]
+      omega]
+    rw [Finset.sum_filter]
+  rw [Finset.sum_congr rfl hsub, Finset.sum_comm]
+  refine Finset.sum_congr rfl fun m hm => ?_
+  rw [Finset.card_filter]
+  push_cast
+  rw [Finset.sum_mul]
+  refine Finset.sum_congr rfl fun u hu => ?_
+  by_cases hc : n+u < m ∧ m ≤ n+u+H
+  · simp [hc]
+  · simp [hc]
+
+
 end MoltResearch
