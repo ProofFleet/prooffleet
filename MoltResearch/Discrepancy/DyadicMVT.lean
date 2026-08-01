@@ -375,6 +375,71 @@ theorem norm_sq_sum_mul_le_sum_mul_sum (P : Finset ℕ) (w z : ℕ → ℂ) :
     _ ≤ (∑ p ∈ P, ‖w p‖) * (∑ p ∈ P, ‖w p‖ * ‖z p‖^2) := h2
 
 
+/-- **The weighted-blocks window energy** (C4e-8): the window energy of a
+`w`-weighted combination of `1`-bounded dyadic block polynomials is at
+most the total weight times the weighted sum of the per-block MVT
+bounds — C4e-7 pointwise under the integral, then the dyadic MVT on
+each block. -/
+theorem intervalIntegral_norm_sq_weighted_blocks_le (P : Finset ℕ) (w : ℕ → ℂ)
+    (S : ℕ → Finset ℕ) (Nf : ℕ → ℕ) (a : ℕ → ℕ → ℂ)
+    (hN : ∀ p ∈ P, 1 ≤ Nf p)
+    (hSlow : ∀ p ∈ P, ∀ m ∈ S p, Nf p ≤ m)
+    (hShigh : ∀ p ∈ P, ∀ m ∈ S p, m ≤ 2 * Nf p)
+    (ha : ∀ p m, ‖a p m‖ ≤ 1) (L : ℝ) (hL : 0 ≤ L) :
+    ∫ ξ in (-L)..L, ‖∑ p ∈ P, w p * ∑ m ∈ S p,
+        (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ (∑ p ∈ P, ‖w p‖) * ∑ p ∈ P, ‖w p‖ *
+          (2*L*(∑ m ∈ S p, (1:ℝ)/(m:ℝ)^2)
+            + (Real.log (Nf p) + 1) * (∑ m ∈ S p, (1:ℝ)/m)) := by
+  classical
+  -- continuity of the block polynomials
+  have hcontG : ∀ p : ℕ, Continuous (fun ξ : ℝ => ∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)) := by
+    intro p
+    refine continuous_finset_sum _ fun m _ => ?_
+    refine Continuous.mul continuous_const ?_
+    exact continuous_subtype_val.comp
+      (Real.continuous_fourierChar.comp (by fun_prop))
+  have hcontF : Continuous (fun ξ : ℝ => ‖∑ p ∈ P, w p * ∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2) := by
+    refine Continuous.pow ?_ 2
+    refine Continuous.norm ?_
+    exact continuous_finset_sum _ fun p _ => (continuous_const.mul (hcontG p))
+  have hcontR : Continuous (fun ξ : ℝ => ∑ p ∈ P, ‖w p‖ * ‖∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2) :=
+    continuous_finset_sum _ fun p _ =>
+      continuous_const.mul ((hcontG p).norm.pow 2)
+  -- pointwise Cauchy–Schwarz
+  have hpt : ∀ ξ ∈ Set.uIcc (-L) L, ‖∑ p ∈ P, w p * ∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ (∑ p ∈ P, ‖w p‖) * ∑ p ∈ P, ‖w p‖ * ‖∑ m ∈ S p,
+          (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 :=
+    fun ξ _ => norm_sq_sum_mul_le_sum_mul_sum P w _
+  -- integrate the pointwise bound
+  have hstep1 : ∫ ξ in (-L)..L, ‖∑ p ∈ P, w p * ∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ ∫ ξ in (-L)..L, (∑ p ∈ P, ‖w p‖) * ∑ p ∈ P, ‖w p‖ * ‖∑ m ∈ S p,
+          (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+    refine intervalIntegral.integral_mono_on (by linarith) ?_ ?_ ?_
+    · exact hcontF.intervalIntegrable _ _
+    · exact (continuous_const.mul hcontR).intervalIntegrable _ _
+    · intro ξ hξ
+      exact hpt ξ (Set.mem_uIcc_of_le hξ.1 hξ.2)
+  refine le_trans hstep1 ?_
+  -- pull the constant and split the sum
+  rw [intervalIntegral.integral_const_mul]
+  have hsum_nonneg : (0:ℝ) ≤ ∑ p ∈ P, ‖w p‖ :=
+    Finset.sum_nonneg fun p _ => norm_nonneg _
+  refine mul_le_mul_of_nonneg_left ?_ hsum_nonneg
+  rw [intervalIntegral.integral_finset_sum (fun p _ =>
+    (continuous_const.mul ((hcontG p).norm.pow 2)).intervalIntegrable _ _)]
+  refine Finset.sum_le_sum fun p hp => ?_
+  rw [intervalIntegral.integral_const_mul]
+  refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
+  exact intervalIntegral_norm_sq_dyadic_poly_le (Nf p) (hN p hp) (S p)
+    (hSlow p hp) (hShigh p hp) (a p) (ha p) L hL
+
+
 end ExpSums
 
 end MoltResearch
