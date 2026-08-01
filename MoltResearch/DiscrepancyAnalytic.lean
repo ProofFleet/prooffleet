@@ -10,6 +10,7 @@ import MoltResearch.Discrepancy.HalaszEuler
 import MoltResearch.Discrepancy.DyadicMVT
 import MoltResearch.Discrepancy.RamareIdentity
 import MoltResearch.Discrepancy.MajorArcFreeze
+import MoltResearch.Discrepancy.ParsevalBridge
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
