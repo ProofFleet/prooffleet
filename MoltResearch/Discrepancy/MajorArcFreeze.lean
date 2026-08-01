@@ -87,4 +87,84 @@ theorem norm_sum_mul_exp_freeze_sub_le (B : Finset ℕ) (j₀ ℓ : ℕ)
     _ = (B.card : ℝ) * (2 * Real.pi * |δ| * ℓ) := by
         rw [Finset.sum_const, nsmul_eq_mul]
 
+/-- **The block partition** (C4e-11): the `δ`-twisted window sum over
+`[1, H]` is bounded by the sum of the untwisted block norms (blocks of
+length `ℓ`) plus the total freeze cost `H·2π|δ|ℓ`. Fibrewise partition
+by `j ↦ (j−1)/ℓ`, the phase freeze on each block, and the fibre-count
+identity. -/
+theorem norm_sum_mul_exp_le_sum_blocks_add (H ℓ : ℕ) (hℓ : 0 < ℓ)
+    (h : ℕ → ℂ) (hb : ∀ j, ‖h j‖ ≤ 1) (δ : ℝ) :
+    ‖∑ j ∈ Finset.Icc 1 H,
+        h j * Complex.exp (2 * Real.pi * Complex.I * (j : ℂ) * (δ : ℂ))‖
+      ≤ (∑ k ∈ Finset.range (H/ℓ + 1),
+          ‖∑ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k), h j‖)
+        + (H : ℝ) * (2 * Real.pi * |δ| * ℓ) := by
+  classical
+  have hmaps : ∀ j ∈ Finset.Icc 1 H, (j - 1)/ℓ ∈ Finset.range (H/ℓ + 1) := by
+    intro j hj
+    rw [Finset.mem_Icc] at hj
+    rw [Finset.mem_range]
+    have hle : (j-1)/ℓ ≤ H/ℓ := Nat.div_le_div_right (by omega)
+    omega
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hfib : ∀ k ∈ Finset.range (H/ℓ + 1),
+      ‖∑ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k),
+          h j * Complex.exp (2 * Real.pi * Complex.I * (j : ℂ) * (δ : ℂ))‖
+      ≤ ‖∑ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k), h j‖
+        + (((Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k)).card : ℝ)
+            * (2 * Real.pi * |δ| * ℓ) := by
+    intro k _
+    have hB : ∀ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k),
+        (k*ℓ + 1) ≤ j ∧ j < (k*ℓ + 1) + ℓ := by
+      intro j hj
+      rw [Finset.mem_filter, Finset.mem_Icc] at hj
+      obtain ⟨⟨hj1, hjH⟩, hdiv⟩ := hj
+      have hlow : k*ℓ ≤ j - 1 := by
+        rw [← hdiv]
+        exact Nat.div_mul_le_self (j-1) ℓ
+      have hup : j - 1 < (k+1)*ℓ := by
+        have hklt : (j-1)/ℓ < k + 1 := by omega
+        exact (Nat.div_lt_iff_lt_mul hℓ).mp hklt
+      rw [Nat.succ_mul] at hup
+      omega
+    have hfreeze := norm_sum_mul_exp_freeze_sub_le
+      ((Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k)) (k*ℓ + 1) ℓ hB h hb δ
+    have hunit : ‖Complex.exp (2 * Real.pi * Complex.I * ((k*ℓ + 1 : ℕ) : ℂ) * (δ : ℂ))‖ = 1 := by
+      rw [Complex.norm_exp]
+      have hre : (2 * Real.pi * Complex.I * ((k*ℓ + 1 : ℕ) : ℂ) * (δ : ℂ)).re = 0 := by
+        simp [Complex.mul_re, Complex.mul_im]
+      rw [hre, Real.exp_zero]
+    calc ‖∑ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k),
+            h j * Complex.exp (2 * Real.pi * Complex.I * (j : ℂ) * (δ : ℂ))‖
+        ≤ ‖Complex.exp (2 * Real.pi * Complex.I * ((k*ℓ + 1 : ℕ) : ℂ) * (δ : ℂ))
+              * ∑ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k), h j‖
+          + ‖(∑ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k),
+                h j * Complex.exp (2 * Real.pi * Complex.I * (j : ℂ) * (δ : ℂ)))
+              - Complex.exp (2 * Real.pi * Complex.I * ((k*ℓ + 1 : ℕ) : ℂ) * (δ : ℂ))
+                * ∑ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k), h j‖ := by
+          exact norm_le_norm_add_norm_sub' _ _
+      _ ≤ ‖∑ j ∈ (Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k), h j‖
+          + (((Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k)).card : ℝ)
+              * (2 * Real.pi * |δ| * ℓ) := by
+          rw [norm_mul, hunit, one_mul]
+          push_cast at hfreeze ⊢
+          linarith [hfreeze]
+  refine le_trans (Finset.sum_le_sum hfib) ?_
+  rw [Finset.sum_add_distrib]
+  have hcount : ∑ k ∈ Finset.range (H/ℓ + 1),
+      (((Finset.Icc 1 H).filter (fun j => (j - 1)/ℓ = k)).card : ℝ) = (H : ℝ) := by
+    have hmapsTo : Set.MapsTo (fun j => (j-1)/ℓ)
+        ↑(Finset.Icc 1 H) ↑(Finset.range (H/ℓ + 1)) := by
+      intro j hj
+      exact hmaps j hj
+    have := Finset.card_eq_sum_card_fiberwise hmapsTo
+    have hcard : (Finset.Icc 1 H).card = H := by
+      rw [Nat.card_Icc]
+      omega
+    rw [hcard] at this
+    exact_mod_cast this.symm
+  rw [← Finset.sum_mul, hcount]
+
+
 end MoltResearch
