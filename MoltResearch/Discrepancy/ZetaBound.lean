@@ -1737,6 +1737,84 @@ theorem zeta_strip_bound (σ t : ℝ) (d K : ℕ)
         rw [hN_def] at htail
         exact htail
 
+/-- **The zeta mass bound** (Track R, W2c-iii-b1): at real abscissa
+`1 + ε` the zeta L-norm is at most `1 + 1/ε` — integral comparison via
+the telescoping bound `sum_rpow_neg_Ico_le`. Makes the right side of
+the Halász ratio bound `norm_LSeries_le_zeta_mul_exp` concrete. -/
+theorem norm_LSeries_one_le_one_add (ε : ℝ) (hε : 0 < ε) :
+    ‖LSeries (fun _ => (1:ℂ)) (((1 + ε : ℝ) : ℂ))‖ ≤ 1 + 1/ε := by
+  classical
+  have hre : (((1 + ε : ℝ) : ℂ)).re = 1 + ε := by simp
+  have hζsum : LSeriesSummable (fun _ => (1 : ℂ)) (((1 + ε : ℝ) : ℂ)) := by
+    refine LSeriesSummable_of_bounded_of_one_lt_re
+      (m := 1) (fun n _ => by norm_num) ?_
+    rw [hre]
+    linarith
+  have hnorm_eq : ∀ n : ℕ,
+      ‖LSeries.term (fun _ => (1 : ℂ)) (((1 + ε : ℝ) : ℂ)) n‖
+        = if n = 0 then 0 else (n : ℝ) ^ (-(1+ε)) := by
+    intro n
+    rw [LSeries.norm_term_eq, hre]
+    rcases eq_or_ne n 0 with hn | hn
+    · simp [hn]
+    · rw [if_neg hn, if_neg hn, norm_one,
+        Real.rpow_neg (Nat.cast_nonneg n), one_div]
+  have hnsum : Summable fun n : ℕ =>
+      ‖LSeries.term (fun _ => (1 : ℂ)) (((1 + ε : ℝ) : ℂ)) n‖ :=
+    summable_norm_iff.mpr hζsum
+  have htri : ‖LSeries (fun _ => (1:ℂ)) (((1 + ε : ℝ) : ℂ))‖
+      ≤ ∑' n : ℕ, ‖LSeries.term (fun _ => (1 : ℂ)) (((1 + ε : ℝ) : ℂ)) n‖ :=
+    norm_tsum_le_tsum_norm hnsum
+  refine le_trans htri (Real.tsum_le_of_sum_le (fun n => norm_nonneg _) fun S => ?_)
+  set M : ℕ := max (S.sup id + 1) 2 with hM
+  have hSM : S ⊆ Finset.range M := by
+    intro n hn
+    rw [Finset.mem_range]
+    have h1 : n ≤ S.sup id := Finset.le_sup (f := id) hn
+    omega
+  have hnonneg : ∀ n : ℕ, (0:ℝ)
+      ≤ ‖LSeries.term (fun _ => (1 : ℂ)) (((1 + ε : ℝ) : ℂ)) n‖ :=
+    fun n => norm_nonneg _
+  refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hSM
+    (fun n _ _ => hnonneg n)) ?_
+  have hM2 : 2 ≤ M := le_max_right _ _
+  rw [Finset.range_eq_Ico,
+    ← Finset.sum_Ico_consecutive _ (Nat.zero_le 2) hM2]
+  have hhead : ∑ n ∈ Finset.Ico 0 2,
+      ‖LSeries.term (fun _ => (1 : ℂ)) (((1 + ε : ℝ) : ℂ)) n‖ = 1 := by
+    rw [show Finset.Ico 0 2 = {0, 1} from rfl]
+    rw [Finset.sum_insert (by norm_num), Finset.sum_singleton,
+      hnorm_eq 0, hnorm_eq 1]
+    norm_num
+  have htail : ∑ n ∈ Finset.Ico 2 M,
+      ‖LSeries.term (fun _ => (1 : ℂ)) (((1 + ε : ℝ) : ℂ)) n‖ ≤ 1/ε := by
+    have hcong : ∀ n ∈ Finset.Ico 2 M,
+        ‖LSeries.term (fun _ => (1 : ℂ)) (((1 + ε : ℝ) : ℂ)) n‖
+          = (n : ℝ) ^ (-(1+ε)) := by
+      intro n hn
+      rw [Finset.mem_Ico] at hn
+      rw [hnorm_eq, if_neg (by omega)]
+    rw [Finset.sum_congr rfl hcong]
+    have h2 := sum_rpow_neg_Ico_le ε 2 M hε (le_refl 2)
+    rw [show ((2:ℕ):ℝ) - 1 = (1:ℝ) from by norm_num,
+      Real.one_rpow] at h2
+    exact h2
+  linarith [hhead, htail]
+
+/-- **The zeta mass at the Halász abscissa** (W2c-iii-b1 corollary):
+`‖ζ(1 + 1/log y)‖ ≤ 1 + log y` — the concrete head for the ratio bound
+`norm_LSeries_le_zeta_mul_exp`, giving
+`‖L_f(1+1/log y − it)‖ ≤ (1 + log y)·exp(26 − D²)`. -/
+theorem norm_LSeries_one_log_le (y : ℕ) (hy : 3 ≤ y) :
+    ‖LSeries (fun _ => (1:ℂ)) (((1 + 1/Real.log y : ℝ) : ℂ))‖
+      ≤ 1 + Real.log y := by
+  have hlogy : (0:ℝ) < Real.log y := by
+    refine Real.log_pos ?_
+    exact_mod_cast (by omega : 1 < y)
+  have h := norm_LSeries_one_le_one_add (1/Real.log y) (by positivity)
+  rwa [one_div_one_div] at h
+
+
 end ExpSums
 
 end MoltResearch
