@@ -536,6 +536,57 @@ theorem intervalIntegral_norm_sq_freq_weighted_blocks_le (P : Finset ℕ)
     (hSlow p hp) (hShigh p hp) (a p) (ha p) L hL
 
 
+/-- **The symbolic-fibres energy** (Track R, W2c-vii-a): the window
+energy of a weighted combination of arbitrary continuous fibre
+functions is at most the total weight times the weighted fibre
+energies — the Cauchy–Schwarz half of the blocks energy with the fibre
+integrals left symbolic, so the `J`-level recursion can bound them by
+induction instead of the MVT. -/
+theorem intervalIntegral_norm_sq_freq_weighted_sum_le (P : Finset ℕ)
+    (w : ℕ → ℝ → ℂ) (v : ℕ → ℝ) (hw : ∀ p ξ, ‖w p ξ‖ ≤ v p)
+    (hwcont : ∀ p, Continuous (w p))
+    (z : ℕ → ℝ → ℂ) (hzcont : ∀ p, Continuous (z p))
+    (L : ℝ) (hL : 0 ≤ L) :
+    ∫ ξ in (-L)..L, ‖∑ p ∈ P, w p ξ * z p ξ‖^2
+      ≤ (∑ p ∈ P, v p) * ∑ p ∈ P, v p * ∫ ξ in (-L)..L, ‖z p ξ‖^2 := by
+  classical
+  have hv0 : ∀ p, 0 ≤ v p := fun p => le_trans (norm_nonneg _) (hw p 0)
+  have hcontF : Continuous (fun ξ : ℝ => ‖∑ p ∈ P, w p ξ * z p ξ‖^2) := by
+    refine Continuous.pow ?_ 2
+    refine Continuous.norm ?_
+    exact continuous_finset_sum _ fun p _ => ((hwcont p).mul (hzcont p))
+  have hcontR : Continuous (fun ξ : ℝ => ∑ p ∈ P, v p * ‖z p ξ‖^2) :=
+    continuous_finset_sum _ fun p _ =>
+      continuous_const.mul ((hzcont p).norm.pow 2)
+  have hpt : ∀ ξ : ℝ, ‖∑ p ∈ P, w p ξ * z p ξ‖^2
+      ≤ (∑ p ∈ P, v p) * ∑ p ∈ P, v p * ‖z p ξ‖^2 := by
+    intro ξ
+    have hcs := norm_sq_sum_mul_le_sum_mul_sum P (fun p => w p ξ)
+      (fun p => z p ξ)
+    refine le_trans hcs ?_
+    refine mul_le_mul (Finset.sum_le_sum fun p _ => hw p ξ)
+      (Finset.sum_le_sum fun p _ => ?_)
+      (Finset.sum_nonneg fun p _ => by positivity)
+      (Finset.sum_nonneg fun p _ => hv0 p)
+    exact mul_le_mul_of_nonneg_right (hw p ξ) (by positivity)
+  have hstep1 : ∫ ξ in (-L)..L, ‖∑ p ∈ P, w p ξ * z p ξ‖^2
+      ≤ ∫ ξ in (-L)..L, (∑ p ∈ P, v p) * ∑ p ∈ P, v p * ‖z p ξ‖^2 := by
+    refine intervalIntegral.integral_mono_on (by linarith) ?_ ?_ ?_
+    · exact hcontF.intervalIntegrable _ _
+    · exact (continuous_const.mul hcontR).intervalIntegrable _ _
+    · intro ξ _
+      exact hpt ξ
+  refine le_trans hstep1 ?_
+  rw [intervalIntegral.integral_const_mul]
+  have hsum_nonneg : (0:ℝ) ≤ ∑ p ∈ P, v p :=
+    Finset.sum_nonneg fun p _ => hv0 p
+  refine mul_le_mul_of_nonneg_left ?_ hsum_nonneg
+  rw [intervalIntegral.integral_finset_sum (fun p _ =>
+    (continuous_const.mul ((hzcont p).norm.pow 2)).intervalIntegrable _ _)]
+  refine Finset.sum_le_sum fun p _ => ?_
+  rw [intervalIntegral.integral_const_mul]
+
+
 end ExpSums
 
 end MoltResearch
