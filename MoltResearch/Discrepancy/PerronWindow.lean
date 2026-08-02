@@ -2,6 +2,7 @@ import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.MeasureTheory.Integral.ExpDecay
 import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
+import Mathlib.Analysis.Distribution.SchwartzSpace.Fourier
 
 /-!
 # Track R: the Perron window (campaign #3044, M2-i1)
@@ -533,6 +534,203 @@ theorem exists_perron_window (σ : ℝ → ℝ) (C : ℝ)
   rw [integral_indicator measurableSet_Ici]
   rw [integral_Ici_eq_integral_Ioi]
   rw [integral_const_mul, integral_exp_neg_Ioi_zero, mul_one, hK_def]
+
+/-- Casting commutes with `deriv`. -/
+theorem deriv_ofReal_comp (f : ℝ → ℝ) (hf : ContDiff ℝ ∞ f) :
+    deriv (fun v => ((f v : ℝ) : ℂ)) = fun v => ((deriv f v : ℝ) : ℂ) := by
+  funext v
+  exact (((hf.differentiable (by simp)) v).hasDerivAt.ofReal_comp).deriv
+
+/-- Casting commutes with the second iterated derivative. -/
+theorem iteratedDeriv_two_ofReal (f : ℝ → ℝ) (hf : ContDiff ℝ ∞ f) :
+    iteratedDeriv 2 (fun v => ((f v : ℝ) : ℂ))
+      = fun v => ((iteratedDeriv 2 f v : ℝ) : ℂ) := by
+  have hf1 : ContDiff ℝ ∞ (deriv f) := by
+    simpa using hf.iterate_deriv 1
+  rw [show (2:ℕ) = 1 + 1 from rfl, iteratedDeriv_succ, iteratedDeriv_one,
+    iteratedDeriv_succ, iteratedDeriv_one]
+  rw [deriv_ofReal_comp f hf, deriv_ofReal_comp (deriv f) hf1]
+
+/-- **The window transform tail** (Track R, M2-i1c): a smooth compactly
+supported real window with second-derivative mass `M₂` has transform
+tail `∫_{|ξ|>L} ‖𝓕V‖ ≤ M₂/(2π²L)` — two integrations by parts against
+the explicit `ξ⁻²`-tail. -/
+theorem fourier_tail_le (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V)
+    (hVc : HasCompactSupport V) (M₂ : ℝ)
+    (hM₂ : ∫ v, |iteratedDeriv 2 V v| ≤ M₂) (L : ℝ) (hL : 0 < L) :
+    ∫ ξ in {ξ : ℝ | L < |ξ|}, ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖
+      ≤ M₂/(2*Real.pi^2*L) := by
+  classical
+  set Vc : ℝ → ℂ := fun v => ((V v : ℝ) : ℂ) with hVc_def
+  have hVcs : ContDiff ℝ ∞ Vc := Complex.ofRealCLM.contDiff.comp hVs
+  have hVcc : HasCompactSupport Vc :=
+    HasCompactSupport.comp_left hVc Complex.ofReal_zero
+  have hM₂0 : 0 ≤ M₂ :=
+    le_trans (integral_nonneg fun v => abs_nonneg _) hM₂
+  -- the iterated-derivative integrabilities
+  have haux : ∀ n : ℕ, ContDiff ℝ ∞ (iteratedDeriv n Vc)
+      ∧ HasCompactSupport (iteratedDeriv n Vc) := by
+    intro n
+    induction n with
+    | zero =>
+      rw [iteratedDeriv_zero]
+      exact ⟨hVcs, hVcc⟩
+    | succ k ih =>
+      rw [iteratedDeriv_succ]
+      refine ⟨?_, ih.2.deriv⟩
+      simpa using ih.1.iterate_deriv 1
+  have hint : ∀ n : ℕ, Integrable (iteratedDeriv n Vc) := fun n =>
+    ((haux n).1.continuous).integrable_of_hasCompactSupport (haux n).2
+  -- pointwise decay from two integrations by parts
+  have hFI := Real.fourier_iteratedDeriv (f := Vc) (N := (2:ℕ∞))
+    (hVcs.of_le (by exact_mod_cast le_top)) (fun n _ => hint n) (le_refl _)
+  have hpt : ∀ ξ : ℝ, ξ ≠ 0 →
+      ‖𝓕 Vc ξ‖ ≤ M₂/(4*Real.pi^2*ξ^2) := by
+    intro ξ hξ
+    have h1 := congrFun hFI ξ
+    have hnorm2 : ‖((2*Real.pi*Complex.I*(ξ:ℂ))^2 : ℂ)‖
+        = 4*Real.pi^2*ξ^2 := by
+      rw [norm_pow]
+      rw [show (2*Real.pi*Complex.I*(ξ:ℂ))
+          = (((2*Real.pi*ξ : ℝ)):ℂ) * Complex.I from by push_cast; ring]
+      rw [norm_mul, Complex.norm_I, mul_one, Complex.norm_real,
+        Real.norm_eq_abs, sq_abs]
+      ring
+    have h2 : ‖𝓕 (iteratedDeriv 2 Vc) ξ‖ = 4*Real.pi^2*ξ^2 * ‖𝓕 Vc ξ‖ := by
+      rw [h1, norm_smul, hnorm2]
+    have h3 : ‖𝓕 (iteratedDeriv 2 Vc) ξ‖ ≤ M₂ := by
+      refine le_trans (VectorFourier.norm_fourierIntegral_le_integral_norm
+        _ _ _ _ _) ?_
+      rw [iteratedDeriv_two_ofReal V hVs]
+      refine le_trans (le_of_eq ?_) hM₂
+      refine integral_congr_ae (Filter.Eventually.of_forall fun v => ?_)
+      dsimp only
+      rw [Complex.norm_real, Real.norm_eq_abs]
+    have h4 : (0:ℝ) < 4*Real.pi^2*ξ^2 := by
+      have := Real.pi_pos
+      have hξ2 : (0:ℝ) < ξ^2 := by positivity
+      positivity
+    rw [le_div_iff₀ h4]
+    calc ‖𝓕 Vc ξ‖ * (4*Real.pi^2*ξ^2)
+        = 4*Real.pi^2*ξ^2 * ‖𝓕 Vc ξ‖ := by ring
+      _ = ‖𝓕 (iteratedDeriv 2 Vc) ξ‖ := h2.symm
+      _ ≤ M₂ := h3
+  -- integrate the tail
+  have hset : {ξ : ℝ | L < |ξ|} = Set.Iio (-L) ∪ Set.Ioi L := by
+    ext ξ
+    rw [Set.mem_setOf_eq, Set.mem_union, Set.mem_Iio, Set.mem_Ioi,
+      lt_abs]
+    constructor
+    · rintro (h | h)
+      · exact Or.inr h
+      · exact Or.inl (by linarith)
+    · rintro (h | h)
+      · exact Or.inr (by linarith)
+      · exact Or.inl h
+  -- Schwartz integrability of the transform norm
+  set G : SchwartzMap ℝ ℂ := hVcc.toSchwartzMap hVcs with hG_def
+  have hFeq : ∀ ξ, ‖𝓕 Vc ξ‖ = ‖(𝓕 G) ξ‖ := fun _ => rfl
+  have hFint : Integrable (fun ξ => ‖𝓕 Vc ξ‖) := by
+    simp only [hFeq]
+    exact (𝓕 G).integrable.norm
+  -- the ξ⁻²-integral over Ioi L
+  have hIoi : ∫ ξ in Set.Ioi L, M₂/(4*Real.pi^2*ξ^2) = M₂/(4*Real.pi^2*L) := by
+    have h1 : ∀ ξ ∈ Set.Ioi L, M₂/(4*Real.pi^2*ξ^2)
+        = M₂/(4*Real.pi^2) * ξ^((-2:ℝ)) := by
+      intro ξ hξ
+      rw [Set.mem_Ioi] at hξ
+      have hξ0 : (0:ℝ) < ξ := lt_trans hL hξ
+      have hval : ξ^((-2):ℝ) = 1/ξ^2 := by
+        rw [show ((-2):ℝ) = -((2:ℕ):ℝ) from by push_cast; ring,
+          Real.rpow_neg hξ0.le, Real.rpow_natCast, one_div]
+      rw [hval]
+      field_simp
+    rw [setIntegral_congr_fun measurableSet_Ioi h1, integral_const_mul,
+      integral_Ioi_rpow_of_lt (by norm_num) hL]
+    rw [show (-2:ℝ) + 1 = -1 from by norm_num,
+      Real.rpow_neg_one]
+    field_simp
+  -- reflection: Iio(−L)-integrals become Ioi L-integrals
+  have hflip : ∀ (g : ℝ → ℝ),
+      (∫ ξ, Set.indicator (Set.Iio (-L)) g ξ)
+        = ∫ ξ, Set.indicator (Set.Ioi L) (fun ξ => g (-ξ)) ξ := by
+    intro g
+    rw [← integral_neg_eq_self
+      (f := Set.indicator (Set.Iio (-L)) g)]
+    refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
+    dsimp only
+    by_cases h : L < ξ
+    · rw [Set.indicator_of_mem (show -ξ ∈ Set.Iio (-L) from by
+        rw [Set.mem_Iio]
+        linarith)]
+      rw [Set.indicator_of_mem (Set.mem_Ioi.mpr h)]
+    · rw [Set.indicator_of_notMem (show -ξ ∉ Set.Iio (-L) from by
+        rw [Set.mem_Iio]
+        push_neg
+        linarith)]
+      rw [Set.indicator_of_notMem (show ξ ∉ Set.Ioi L from by
+        rw [Set.mem_Ioi]
+        exact h)]
+  -- majorant integrability on the right half
+  have hmaj_Ioi : IntegrableOn (fun ξ => M₂/(4*Real.pi^2*ξ^2))
+      (Set.Ioi L) := by
+    have h1 := (integrableOn_Ioi_rpow_of_lt (by norm_num : (-2:ℝ) < -1)
+      hL).const_mul (M₂/(4*Real.pi^2))
+    refine MeasureTheory.IntegrableOn.congr_fun h1
+      (fun ξ hξ => ?_) measurableSet_Ioi
+    rw [Set.mem_Ioi] at hξ
+    have hξ0 : (0:ℝ) < ξ := lt_trans hL hξ
+    have hval : ξ^((-2):ℝ) = 1/ξ^2 := by
+      rw [show ((-2):ℝ) = -((2:ℕ):ℝ) from by push_cast; ring,
+        Real.rpow_neg hξ0.le, Real.rpow_natCast, one_div]
+    rw [hval]
+    field_simp
+  -- the right-half bound
+  have hIoi_bound : ∫ ξ in Set.Ioi L, ‖𝓕 Vc ξ‖ ≤ M₂/(4*Real.pi^2*L) := by
+    refine le_trans (setIntegral_mono_on hFint.integrableOn hmaj_Ioi
+      measurableSet_Ioi ?_) (le_of_eq hIoi)
+    intro ξ hξ
+    rw [Set.mem_Ioi] at hξ
+    exact hpt ξ (ne_of_gt (lt_trans hL hξ))
+  -- the left-half bound via reflection
+  have hIio_bound : ∫ ξ in Set.Iio (-L), ‖𝓕 Vc ξ‖ ≤ M₂/(4*Real.pi^2*L) := by
+    rw [← integral_indicator measurableSet_Iio,
+      hflip (fun ξ => ‖𝓕 Vc ξ‖), integral_indicator measurableSet_Ioi]
+    have hmono : ∫ ξ in Set.Ioi L, ‖𝓕 Vc (-ξ)‖
+        ≤ ∫ ξ in Set.Ioi L, M₂/(4*Real.pi^2*ξ^2) := by
+      have hptneg : ∀ ξ ∈ Set.Ioi L, ‖𝓕 Vc (-ξ)‖ ≤ M₂/(4*Real.pi^2*ξ^2) := by
+        intro ξ hξ
+        rw [Set.mem_Ioi] at hξ
+        have hξ0 : (0:ℝ) < ξ := lt_trans hL hξ
+        have := hpt (-ξ) (by
+          intro h
+          rw [neg_eq_zero] at h
+          linarith)
+        rwa [neg_sq] at this
+      refine setIntegral_mono_on ?_ hmaj_Ioi measurableSet_Ioi hptneg
+      refine hmaj_Ioi.mono' ?_ ?_
+      · refine Continuous.aestronglyMeasurable ?_ |>.restrict
+        simp only [hFeq]
+        exact ((𝓕 G).continuous.norm).comp continuous_neg
+      · refine (ae_restrict_iff' measurableSet_Ioi).mpr ?_
+        refine Filter.Eventually.of_forall fun ξ hξ => ?_
+        rw [Real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
+        exact hptneg ξ hξ
+    exact le_trans hmono (le_of_eq hIoi)
+  -- combine
+  rw [hset]
+  have hdisj : Disjoint (Set.Iio (-L)) (Set.Ioi L) := by
+    refine Set.disjoint_left.mpr fun ξ h1 h2 => ?_
+    rw [Set.mem_Iio] at h1
+    rw [Set.mem_Ioi] at h2
+    linarith
+  rw [setIntegral_union hdisj measurableSet_Ioi
+    hFint.integrableOn hFint.integrableOn]
+  have hval : M₂/(4*Real.pi^2*L) + M₂/(4*Real.pi^2*L) = M₂/(2*Real.pi^2*L) := by
+    field_simp
+    ring
+  linarith [hIoi_bound, hIio_bound, hval]
+
 
 end ExpSums
 
