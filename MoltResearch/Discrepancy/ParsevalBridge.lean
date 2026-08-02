@@ -1,7 +1,9 @@
 import MoltResearch.Discrepancy.TuranKubilius
+import MoltResearch.Discrepancy.ArchimedeanTaylor
 import MoltResearch.Discrepancy.PlancherelHarness
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
+import Mathlib.Analysis.Calculus.BumpFunction.Normed
 
 /-!
 # Track C: the Parseval bridge (Track R, B-arc)
@@ -1566,6 +1568,179 @@ theorem window_profile_props (T : ℝ) (hT : 0 < T) (η : ℝ → ℝ)
   · have h1 : ContDiff ℝ ∞ (fun v : ℝ => η (T*v)) :=
       hηs.comp (contDiff_const.mul contDiff_id)
     exact Complex.ofRealCLM.contDiff.comp h1
+
+
+open Real MeasureTheory in
+open scoped FourierTransform ContDiff in
+set_option maxHeartbeats 1600000 in
+/-- **The plateau window** (Track R, M2-g1): a smooth nonnegative
+normalized window of width `1/(16L)` whose Fourier transform stays
+above `1/2` on the whole band `|ξ| ≤ L` — the Fejér substitute that
+restricts pair interactions to `1/L`-close pairs while keeping the
+band energy comparable. -/
+theorem exists_plateau_window (L : ℝ) (hL : 1 ≤ L) :
+    ∃ F : ℝ → ℂ, ContDiff ℝ ∞ F ∧ HasCompactSupport F
+      ∧ (∀ y, F y ≠ 0 → |y| ≤ 1/(16*L))
+      ∧ (∀ y, ‖F y‖ ≤ 32*L)
+      ∧ (∀ ξ : ℝ, |ξ| ≤ L → 1/2 ≤ ‖𝓕 F ξ‖) := by
+  classical
+  have hL0 : (0:ℝ) < L := by linarith
+  set rIn : ℝ := 1/(32*L) with hrIn_def
+  set rOut : ℝ := 1/(16*L) with hrOut_def
+  have hrIn0 : 0 < rIn := by rw [hrIn_def]; positivity
+  have hrlt : rIn < rOut := by
+    rw [hrIn_def, hrOut_def]
+    rw [div_lt_div_iff₀ (by positivity) (by positivity)]
+    nlinarith
+  set f : ContDiffBump (0:ℝ) := ⟨rIn, rOut, hrIn0, hrlt⟩ with hf_def
+  set g : ℝ → ℝ := f.normed volume with hg_def
+  set F : ℝ → ℂ := fun y => ((g y : ℝ) : ℂ) with hF_def
+  have hI_low : 2*rIn ≤ ∫ y, f y := by
+    have h1 : ∫ y in Metric.closedBall (0:ℝ) rIn, f y
+        = ∫ y in Metric.closedBall (0:ℝ) rIn, (1:ℝ) := by
+      refine setIntegral_congr_fun measurableSet_closedBall fun y hy => ?_
+      exact f.one_of_mem_closedBall hy
+    have h2 : ∫ y in Metric.closedBall (0:ℝ) rIn, (1:ℝ) = 2*rIn := by
+      rw [setIntegral_const, smul_eq_mul, mul_one]
+      rw [MeasureTheory.measureReal_def, Real.volume_closedBall]
+      rw [ENNReal.toReal_ofReal (by linarith)]
+    have h3 : ∫ y in Metric.closedBall (0:ℝ) rIn, f y ≤ ∫ y, f y := by
+      refine setIntegral_le_integral f.integrable ?_
+      exact Filter.Eventually.of_forall fun y => f.nonneg
+    linarith [h1, h2, h3]
+  have hI_pos : 0 < ∫ y, f y := lt_of_lt_of_le (by linarith) hI_low
+  have hg_nonneg : ∀ y, 0 ≤ g y := fun y => f.nonneg_normed y
+  have hg_int1 : ∫ y, g y = 1 := f.integral_normed
+  have hg_smooth : ContDiff ℝ ∞ g := f.contDiff_normed
+  have hg_cs : HasCompactSupport g := f.hasCompactSupport_normed
+  have hg_supp : ∀ y, g y ≠ 0 → |y| < rOut := by
+    intro y hy
+    have hmem : y ∈ Function.support g := hy
+    rw [hg_def, f.support_normed_eq, Metric.mem_ball, Real.dist_eq,
+      sub_zero] at hmem
+    exact hmem
+  have hg_sup : ∀ y, g y ≤ 32*L := by
+    intro y
+    rw [hg_def, f.normed_def, div_le_iff₀ hI_pos]
+    have h2 : (2:ℝ)*rIn = 1/(16*L) := by
+      rw [hrIn_def]
+      field_simp
+      ring
+    calc f y ≤ 1 := f.le_one
+      _ ≤ 32*L*(2*rIn) := by
+          rw [h2]
+          rw [show (32:ℝ)*L*(1/(16*L)) = 2 from by field_simp; ring]
+          norm_num
+      _ ≤ 32*L*∫ y, f y :=
+          mul_le_mul_of_nonneg_left hI_low (by positivity)
+  have hF_smooth : ContDiff ℝ ∞ F :=
+    Complex.ofRealCLM.contDiff.comp hg_smooth
+  have hF_cs : HasCompactSupport F :=
+    HasCompactSupport.comp_left hg_cs Complex.ofReal_zero
+  refine ⟨F, hF_smooth, hF_cs, ?_, ?_, ?_⟩
+  · intro y hy
+    have hgy : g y ≠ 0 := by
+      intro h
+      apply hy
+      rw [hF_def]
+      simp [h]
+    exact le_of_lt (hg_supp y hgy)
+  · intro y
+    rw [hF_def]
+    simp only [Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (hg_nonneg y)]
+    exact hg_sup y
+  · intro ξ hξ
+    have hFi : Integrable F :=
+      hF_smooth.continuous.integrable_of_hasCompactSupport hF_cs
+    have hunfold : 𝓕 F ξ = ∫ y, (𝐞 (-((innerₗ ℝ) y ξ)) : Circle) • F y := rfl
+    have hone : (1:ℂ) = ∫ y, F y := by
+      rw [hF_def]
+      rw [show (∫ y, ((g y : ℝ) : ℂ)) = ((∫ y, g y : ℝ) : ℂ) from
+        integral_ofReal]
+      rw [hg_int1]
+      norm_num
+    have hchar_int : Integrable (fun y =>
+        (𝐞 (-((innerₗ ℝ) y ξ)) : Circle) • F y) := by
+      have hL2 : Continuous fun p : ℝ × ℝ => ((innerₗ ℝ) p.1) p.2 :=
+        continuous_inner
+      exact (VectorFourier.fourierIntegral_convergent_iff
+        (Real.continuous_fourierChar) hL2 ξ).2 hFi
+    have hdiff : 𝓕 F ξ - 1 = ∫ y,
+        ((𝐞 (-((innerₗ ℝ) y ξ)) : Circle) • F y - F y) := by
+      rw [hunfold, hone, ← integral_sub hchar_int hFi]
+    have hpt : ∀ y, ‖(𝐞 (-((innerₗ ℝ) y ξ)) : Circle) • F y - F y‖
+        ≤ (2*Real.pi*rOut*|ξ|) * g y := by
+      intro y
+      by_cases hy : g y = 0
+      · rw [hF_def]
+        simp only [hy, Complex.ofReal_zero, smul_zero, sub_zero, norm_zero]
+        positivity
+      · have hsmul : (𝐞 (-((innerₗ ℝ) y ξ)) : Circle) • F y - F y
+            = (((𝐞 (-((innerₗ ℝ) y ξ)) : Circle) : ℂ) - 1) * F y := by
+          simp only [Circle.smul_def, smul_eq_mul]
+          ring
+        rw [hsmul, norm_mul]
+        have hFy : ‖F y‖ = g y := by
+          rw [hF_def]
+          simp only [Complex.norm_real, Real.norm_eq_abs,
+            abs_of_nonneg (hg_nonneg y)]
+        rw [hFy]
+        refine mul_le_mul_of_nonneg_right ?_ (hg_nonneg y)
+        have happ : ((𝐞 (-((innerₗ ℝ) y ξ)) : Circle) : ℂ)
+            = Complex.exp (Complex.I
+                * ((2*Real.pi*(-((innerₗ ℝ) y ξ)) : ℝ) : ℂ)) := by
+          rw [Real.fourierChar_apply]
+          congr 1
+          push_cast
+          ring
+        rw [happ]
+        refine le_trans (norm_exp_I_mul_sub_one_le _) ?_
+        have hyr : |y| ≤ rOut := le_of_lt (hg_supp y hy)
+        have hinner : ((innerₗ ℝ) y) ξ = y * ξ := by
+          rw [innerₗ_apply_apply, RCLike.inner_apply]
+          simp only [starRingEnd_apply, star_trivial]
+          ring
+        rw [hinner]
+        have hπ : (0:ℝ) < Real.pi := Real.pi_pos
+        calc |2*Real.pi*(-(y*ξ))| = 2*Real.pi*(|y| * |ξ|) := by
+              rw [abs_mul, abs_neg, abs_mul, abs_mul,
+                abs_of_nonneg (by norm_num : (0:ℝ) ≤ 2),
+                abs_of_nonneg Real.pi_pos.le]
+          _ ≤ 2*Real.pi*(rOut * |ξ|) := by
+              refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+              exact mul_le_mul_of_nonneg_right hyr (abs_nonneg ξ)
+          _ = 2*Real.pi*rOut*|ξ| := by ring
+    have hbound : ‖𝓕 F ξ - 1‖ ≤ Real.pi/8 := by
+      rw [hdiff]
+      refine le_trans (norm_integral_le_integral_norm _) ?_
+      have hint1 : Integrable (fun y =>
+          ‖(𝐞 (-((innerₗ ℝ) y ξ)) : Circle) • F y - F y‖) :=
+        (hchar_int.sub hFi).norm
+      have hint2 : Integrable (fun y => (2*Real.pi*rOut*|ξ|) * g y) :=
+        (f.integrable_normed).const_mul _
+      refine le_trans (integral_mono hint1 hint2 hpt) ?_
+      rw [integral_const_mul, hg_int1, mul_one]
+      rw [hrOut_def]
+      have hπ : (0:ℝ) < Real.pi := Real.pi_pos
+      rw [show 2*Real.pi*(1/(16*L))*|ξ| = Real.pi*(|ξ|/(8*L)) from by
+        field_simp
+        ring]
+      have h1 : |ξ|/(8*L) ≤ 1/8 := by
+        rw [div_le_div_iff₀ (by positivity) (by norm_num)]
+        nlinarith [hξ, abs_nonneg ξ]
+      calc Real.pi*(|ξ|/(8*L)) ≤ Real.pi*(1/8) :=
+            mul_le_mul_of_nonneg_left h1 hπ.le
+        _ = Real.pi/8 := by ring
+    have hπ8 : Real.pi/8 ≤ 1/2 := by
+      have := Real.pi_le_four
+      linarith
+    have htri : ‖(1:ℂ)‖ - ‖𝓕 F ξ‖ ≤ ‖𝓕 F ξ - 1‖ := by
+      have h := norm_sub_norm_le (1:ℂ) (𝓕 F ξ)
+      rw [norm_sub_rev] at h
+      linarith [h]
+    have h1n : ‖(1:ℂ)‖ = 1 := by norm_num
+    linarith [hbound, hπ8, htri]
 
 
 end ExpSums
