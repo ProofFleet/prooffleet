@@ -4,6 +4,7 @@ import MoltResearch.Discrepancy.PretentiousDist
 import MoltResearch.Discrepancy.ChebyshevTail
 import MoltResearch.Discrepancy.MertensFirst
 import Mathlib.NumberTheory.EulerProduct.ExpLog
+import Mathlib.NumberTheory.SmoothNumbers
 import Mathlib.NumberTheory.LSeries.Basic
 import Mathlib.NumberTheory.SumPrimeReciprocals
 import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
@@ -684,6 +685,113 @@ theorem norm_LSeries_le_zeta_mul_exp (f : ℕ → ℂ)
           * Real.exp (26
               - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) y) := by
           rw [Real.exp_log hζpos]
+
+
+/-- Primes below the cut are smooth. -/
+theorem prime_mem_smoothNumbers {p y : ℕ} (hp : p.Prime) (hpy : p < y) :
+    p ∈ Nat.smoothNumbers y := by
+  rw [Nat.mem_smoothNumbers']
+  intro q hq hqp
+  have := (Nat.prime_dvd_prime_iff_eq hq hp).mp hqp
+  omega
+
+/-- The smooth restriction of a completely multiplicative function is
+completely multiplicative. -/
+theorem completelyMultiplicativeC_smooth_restrict (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (y : ℕ) :
+    CompletelyMultiplicativeC
+      (fun n => if n ∈ Nat.smoothNumbers y then f n else 0) := by
+  classical
+  intro a b ha hb
+  dsimp only
+  by_cases hab : a * b ∈ Nat.smoothNumbers y
+  · have haS : a ∈ Nat.smoothNumbers y :=
+      Nat.mem_smoothNumbers_of_dvd hab ⟨b, rfl⟩
+    have hbS : b ∈ Nat.smoothNumbers y :=
+      Nat.mem_smoothNumbers_of_dvd hab ⟨a, mul_comm a b⟩
+    rw [if_pos hab, if_pos haS, if_pos hbS, hcm a b ha hb]
+  · rw [if_neg hab]
+    by_cases haS : a ∈ Nat.smoothNumbers y
+    · by_cases hbS : b ∈ Nat.smoothNumbers y
+      · exact absurd (Nat.mul_mem_smoothNumbers haS hbS) hab
+      · rw [if_neg hbS, mul_zero]
+    · rw [if_neg haS, zero_mul]
+
+/-- The smooth restriction agrees with `f` on every distance summand
+below the cut. -/
+theorem pretentiousDistSq_smooth_restrict (f : ℕ → ℂ) (h : ℕ → ℂ)
+    (y : ℕ) :
+    pretentiousDistSq
+        (fun n => if n ∈ Nat.smoothNumbers y then f n else 0) h y
+      = pretentiousDistSq f h y := by
+  classical
+  unfold pretentiousDistSq
+  refine Finset.sum_congr rfl fun p hp => ?_
+  have hpp := Nat.prime_of_mem_primesBelow hp
+  have hpy := (Nat.mem_primesBelow.mp hp).1
+  dsimp only
+  rw [if_pos (prime_mem_smoothNumbers hpp hpy)]
+
+/-- **The cheap-Halász `L^∞` factor** (Track R, M2-h): the small-prime
+Euler factor `F₁ = L_{f·1_{y-smooth}}` on the shifted line is bounded
+by the zeta head damped by the scale-`x` distance, at the affordable
+transfer price `10·(loglog x − loglog y) + 30`. -/
+theorem norm_LSeries_smooth_le_zeta_mul_exp (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) {y x : ℕ} (hy : 4 ≤ y) (hyx : y ≤ x) (t : ℝ) :
+    ‖LSeries (fun n => if n ∈ Nat.smoothNumbers y then f n else 0)
+        (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖
+      ≤ ‖LSeries (fun _ => (1 : ℂ)) (((1 + 1 / Real.log y : ℝ) : ℂ))‖
+        * Real.exp (56
+            + 10*(Real.log (Real.log x) - Real.log (Real.log y))
+            - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) x) := by
+  classical
+  set g : ℕ → ℂ := fun n => if n ∈ Nat.smoothNumbers y then f n else 0
+    with hg_def
+  have hgcm := completelyMultiplicativeC_smooth_restrict f hcm y
+  have hg1 : g 1 = 1 := by
+    rw [hg_def]
+    dsimp only
+    rw [if_pos (by
+      rw [Nat.mem_smoothNumbers']
+      intro q hq hq1
+      have := Nat.le_of_dvd (by norm_num) hq1
+      have := hq.two_le
+      omega), h1]
+  have hgb : ∀ n, ‖g n‖ ≤ 1 := by
+    intro n
+    rw [hg_def]
+    dsimp only
+    split
+    · exact hb n
+    · simp
+  have hratio := norm_LSeries_le_zeta_mul_exp g hgcm hg1 hgb
+    (y := y) (by omega) t
+  refine le_trans hratio ?_
+  refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
+  rw [Real.exp_le_exp]
+  -- distance bookkeeping
+  have hDeq : pretentiousDistSq g
+        (fun n => (n : ℂ) ^ (-(Complex.I * t))) y
+      = pretentiousDistSq f
+        (fun n => (n : ℂ) ^ (-(Complex.I * t))) y :=
+    pretentiousDistSq_smooth_restrict f _ y
+  have hb1 : ∀ p : ℕ, ‖(fun n => (n:ℂ) ^ (-(Complex.I * (t:ℂ)))) p‖ ≤ 1 := by
+    intro p
+    dsimp only
+    rcases Nat.eq_zero_or_pos p with hp | hp
+    · subst hp
+      rcases eq_or_ne (-(Complex.I * (t:ℂ))) 0 with h0 | h0
+      · simp [h0]
+      · simp [Complex.zero_cpow h0]
+    · rw [Complex.norm_natCast_cpow_of_pos hp]
+      rw [show (-(Complex.I * (t:ℂ))).re = 0 from by simp]
+      rw [Real.rpow_zero]
+  have htransfer := pretentiousDistSq_le_add_mass f
+    (fun n => (n : ℂ) ^ (-(Complex.I * t))) hb hb1 hyx
+  have hmass := mass_diff_le y x hy hyx
+  rw [hDeq]
+  linarith [htransfer, hmass]
 
 
 end MoltResearch
