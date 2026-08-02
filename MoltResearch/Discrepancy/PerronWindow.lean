@@ -1053,6 +1053,88 @@ theorem pairing_band_tail_split (P₁ P₂ P₃ : ℝ → ℂ)
       _ = MV * Bband * (t*E₂ + E₃/t)/2 := by ring
   linarith [htail, hband]
 
+/-- **The window transform sup bound** (Track R, M2-i4b): the Fourier
+transform of a Perron window — nonnegative, vanishing on the negative
+axis, dominated by `e^{-v}` — is bounded by `1` in sup norm. This is
+the `MV`-instance of the band/tail Hölder split. -/
+theorem norm_fourier_window_le_one (V : ℝ → ℝ)
+    (hVcont : Continuous V) (hVsupp : HasCompactSupport V)
+    (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVpos : ∀ v, 0 ≤ V v) (hVexp : ∀ v, V v ≤ Real.exp (-v)) (ξ : ℝ) :
+    ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ ≤ 1 := by
+  refine le_trans
+    (VectorFourier.norm_fourierIntegral_le_integral_norm _ _ _ _ _) ?_
+  have hnorm : ∀ v, ‖((V v : ℝ) : ℂ)‖ = V v := fun v => by
+    rw [Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg (hVpos v)]
+  have hVint : Integrable V := hVcont.integrable_of_hasCompactSupport hVsupp
+  have hexpint : IntegrableOn (fun v : ℝ => Real.exp (-v)) (Set.Ioi 0) := by
+    refine MeasureTheory.IntegrableOn.congr_fun
+      (exp_neg_integrableOn_Ioi 0 (by norm_num : (0:ℝ) < 1)) ?_
+      measurableSet_Ioi
+    intro v _
+    norm_num
+  calc ∫ v, ‖((V v : ℝ) : ℂ)‖
+      = ∫ v, V v := by
+        exact integral_congr_ae (Filter.Eventually.of_forall hnorm)
+    _ = ∫ v in Set.Ioi 0, V v := by
+        refine (setIntegral_eq_integral_of_forall_compl_eq_zero
+          fun v hv => ?_).symm
+        simp only [Set.mem_Ioi, not_lt] at hv
+        exact hV0 v hv
+    _ ≤ ∫ v in Set.Ioi 0, Real.exp (-v) := by
+        refine setIntegral_mono_on hVint.integrableOn hexpint
+          measurableSet_Ioi fun v _ => hVexp v
+    _ = 1 := integral_exp_neg_Ioi_zero
+
+/-- **The trivial phase-polynomial sup** (Track R, M2-i4b): a
+`1/n`-weighted phase polynomial is bounded everywhere by its harmonic
+mass — the `B`-instances of the band/tail Hölder split. -/
+theorem norm_char_poly_le_harmonic (S : Finset ℕ) (w : ℕ → ℂ)
+    (hw : ∀ n ∈ S, ‖w n‖ ≤ 1/(n:ℝ)) (a : ℕ → ℝ) (ξ : ℝ) :
+    ‖∑ n ∈ S, w n * ((Real.fourierChar (-(a n * ξ)) : Circle) : ℂ)‖
+      ≤ ∑ n ∈ S, (1:ℝ)/n := by
+  refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun n hn => ?_)
+  rw [norm_mul]
+  have hc : ‖((Real.fourierChar (-(a n * ξ)) : Circle) : ℂ)‖ = 1 := by
+    simp
+  rw [hc, mul_one]
+  exact hw n hn
+
+/-- **The crude harmonic bound** (Track R, M2-i4b): the harmonic sum
+up to `N` is at most `log N + 1` — the `H`-instance for the large
+class, where no smoothness structure is available. -/
+theorem sum_one_div_Icc_le_log (N : ℕ) (hN : 1 ≤ N) :
+    ∑ n ∈ Finset.Icc 1 N, (1:ℝ)/n ≤ Real.log N + 1 := by
+  induction N with
+  | zero => omega
+  | succ k ih =>
+    by_cases hk : 1 ≤ k
+    · rw [show k + 1 = k + 1 from rfl, Finset.sum_Icc_succ_top (by omega)]
+      have hk0 : (0:ℝ) < k := by exact_mod_cast hk
+      have hstep : (1:ℝ)/(k+1) ≤ Real.log (k+1) - Real.log k := by
+        have hexp : (1:ℝ) - 1/(k+1) ≤ Real.exp (-(1/(k+1))) := by
+          have := Real.add_one_le_exp (-(1/((k:ℝ)+1)))
+          linarith
+        have hfrac : (k:ℝ)/(k+1) ≤ Real.exp (-(1/(k+1))) := by
+          have h1 : (k:ℝ)/(k+1) = 1 - 1/(k+1) := by
+            field_simp
+            ring
+          linarith [hexp, h1.le, h1.ge]
+        have hlog : Real.log ((k:ℝ)/(k+1)) ≤ -(1/(k+1)) := by
+          calc Real.log ((k:ℝ)/(k+1))
+              ≤ Real.log (Real.exp (-(1/(k+1)))) :=
+                Real.log_le_log (by positivity) hfrac
+            _ = -(1/(k+1)) := Real.log_exp _
+        rw [Real.log_div (by positivity) (by positivity)] at hlog
+        push_cast
+        linarith
+      push_cast
+      push_cast at ih hstep
+      linarith [ih hk]
+    · have hk0 : k = 0 := by omega
+      subst hk0
+      norm_num
+
 end ExpSums
 
 end MoltResearch
