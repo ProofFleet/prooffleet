@@ -420,4 +420,348 @@ theorem sum_triple_char_eq_mul (S₁ S₂ S₃ : Finset ℕ)
   rw [houter, hinner]
 
 
+/-- **Factorization uniqueness, smooth side** (Track R, M2-i4c0a): the
+smooth part of a smooth × rough product is the smooth factor. -/
+theorem smoothPart_mul_eq_left (y : ℕ) (hy : 1 ≤ y) (a r : ℕ)
+    (ha : a ∈ Nat.smoothNumbers y) (hr0 : r ≠ 0)
+    (hr : Nat.Coprime r (primorial (y-1))) :
+    smoothPart y (a * r) = a := by
+  classical
+  have ha0 : a ≠ 0 := Nat.ne_zero_of_mem_smoothNumbers ha
+  have hprimes_a : ∀ p ∈ a.primeFactors, p < y := by
+    intro p hp
+    exact Nat.mem_smoothNumbers'.mp ha p
+      (Nat.prime_of_mem_primeFactors hp) (Nat.dvd_of_mem_primeFactors hp)
+  have hprimes_r : ∀ p ∈ r.primeFactors, ¬ p < y := by
+    intro p hp hlt
+    have hpp := Nat.prime_of_mem_primeFactors hp
+    have hple : p ≤ y - 1 := by
+      have := hpp.two_le
+      omega
+    have hdvd_prim : p ∣ primorial (y-1) :=
+      Nat.dvd_of_mem_primeFactors
+        (mem_primeFactors_primorial.mpr ⟨hpp, hple⟩)
+    exact Nat.Prime.not_coprime_iff_dvd.mpr
+      ⟨p, hpp, Nat.dvd_of_mem_primeFactors hp, hdvd_prim⟩ hr
+  unfold smoothPart
+  have hpf : (a * r).primeFactors = a.primeFactors ∪ r.primeFactors :=
+    Nat.primeFactors_mul ha0 hr0
+  have hfilter : ((a * r).primeFactors).filter (· < y) = a.primeFactors := by
+    rw [hpf]
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_union]
+    constructor
+    · rintro ⟨hpa | hpr, hlt⟩
+      · exact hpa
+      · exact absurd hlt (hprimes_r p hpr)
+    · intro hpa
+      exact ⟨Or.inl hpa, hprimes_a p hpa⟩
+  rw [hfilter]
+  have hfact : ∀ p ∈ a.primeFactors,
+      (a * r).factorization p = a.factorization p := by
+    intro p hp
+    rw [Nat.factorization_mul ha0 hr0]
+    have hnot : p ∉ r.primeFactors := fun hpr =>
+      (hprimes_r p hpr) (hprimes_a p hp)
+    rw [← Nat.support_factorization] at hnot
+    have hz : r.factorization p = 0 := Finsupp.notMem_support_iff.mp hnot
+    simp [hz]
+  rw [Finset.prod_congr rfl fun p hp => by rw [hfact p hp]]
+  have h := Nat.factorization_prod_pow_eq_self ha0
+  rw [Nat.prod_factorization_eq_prod_primeFactors] at h
+  exact h
+
+/-- **Factorization uniqueness, rough side** (Track R, M2-i4c0a): the
+rough part of a smooth × rough product is the rough factor. -/
+theorem roughPart_mul_eq_right (y : ℕ) (hy : 1 ≤ y) (a r : ℕ)
+    (ha : a ∈ Nat.smoothNumbers y) (hr0 : r ≠ 0)
+    (hr : Nat.Coprime r (primorial (y-1))) :
+    roughPart y (a * r) = r := by
+  have ha0 : a ≠ 0 := Nat.ne_zero_of_mem_smoothNumbers ha
+  have h := smoothPart_mul_roughPart y (a * r) (mul_ne_zero ha0 hr0)
+  rw [smoothPart_mul_eq_left y hy a r ha hr0 hr] at h
+  exact Nat.eq_of_mul_eq_mul_left (Nat.pos_of_ne_zero ha0) h
+
+/-- Smooth numbers are closed under multiplication. -/
+theorem mul_mem_smoothNumbers {y a b : ℕ} (ha : a ∈ Nat.smoothNumbers y)
+    (hb : b ∈ Nat.smoothNumbers y) : a * b ∈ Nat.smoothNumbers y := by
+  rw [Nat.mem_smoothNumbers'] at ha hb ⊢
+  intro p hp hpdvd
+  rcases (Nat.Prime.dvd_mul hp).mp hpdvd with h | h
+  · exact ha p hp h
+  · exact hb p hp h
+
+/-- **Rough-part idempotence across cuts** (Track R, M2-i4c0a): the
+`y₁`-rough part of the `y₂`-rough part is the `y₁`-rough part, for
+`y₂ ≤ y₁`. -/
+theorem roughPart_roughPart (y₂ y₁ n : ℕ) (hy₂ : 1 ≤ y₂)
+    (h12 : y₂ ≤ y₁) (hn : n ≠ 0) :
+    roughPart y₁ (roughPart y₂ n) = roughPart y₁ n := by
+  have hy₁ : 1 ≤ y₁ := le_trans hy₂ h12
+  have hr0 : roughPart y₂ n ≠ 0 := (roughPart_pos y₂ n hn).ne'
+  have hrr0 : roughPart y₁ (roughPart y₂ n) ≠ 0 :=
+    (roughPart_pos y₁ _ hr0).ne'
+  -- n = (smoothPart y₂ n * smoothPart y₁ (roughPart y₂ n)) * large
+  have hsplit1 := smoothPart_mul_roughPart y₂ n hn
+  have hsplit2 := smoothPart_mul_roughPart y₁ (roughPart y₂ n) hr0
+  have hsmooth : smoothPart y₂ n * smoothPart y₁ (roughPart y₂ n)
+      ∈ Nat.smoothNumbers y₁ :=
+    mul_mem_smoothNumbers
+      (Nat.smoothNumbers_mono h12 (smoothPart_mem_smoothNumbers y₂ n hn hy₂))
+      (smoothPart_mem_smoothNumbers y₁ _ hr0 hy₁)
+  have hrough : Nat.Coprime (roughPart y₁ (roughPart y₂ n))
+      (primorial (y₁-1)) :=
+    roughPart_coprime_primorial y₁ _ hr0 hy₁
+  have hn_eq : n = (smoothPart y₂ n * smoothPart y₁ (roughPart y₂ n))
+      * roughPart y₁ (roughPart y₂ n) := by
+    rw [mul_assoc, hsplit2, hsplit1]
+  calc roughPart y₁ (roughPart y₂ n)
+      = roughPart y₁ ((smoothPart y₂ n * smoothPart y₁ (roughPart y₂ n))
+          * roughPart y₁ (roughPart y₂ n)) :=
+        (roughPart_mul_eq_right y₁ hy₁ _ _ hsmooth hrr0 hrough).symm
+    _ = roughPart y₁ n := by rw [← hn_eq]
+
+/-- The primorial divides the primorial at a larger cut. -/
+theorem primorial_dvd_primorial {m m' : ℕ} (h : m ≤ m') :
+    primorial m ∣ primorial m' := by
+  refine Finset.prod_dvd_prod_of_subset _ _ _ ?_
+  intro p hp
+  rw [Finset.mem_filter, Finset.mem_range] at hp ⊢
+  exact ⟨by omega, hp.2⟩
+
+set_option maxHeartbeats 3200000 in
+/-- **The box bridge** (Track R, M2-i4c0b): the window-weighted main
+term of the three-scale split equals the window-weighted sum over the
+full product box small-smooth × medium-class × large-class. Tuples
+whose product exceeds `x` are killed by the window; tuples with
+product at most `x` biject with the main set via the canonical
+three-part factorization. This puts the main term in the exact shape
+of the translate pairing at the triple index. -/
+theorem sum_main_eq_sum_box (f : ℕ → ℂ)
+    (hcm : ∀ a b, a ≠ 0 → b ≠ 0 → f (a * b) = f a * f b)
+    (y₂ y₁ x : ℕ) (hy₂ : 1 ≤ y₂) (h12 : y₂ ≤ y₁) (hx : 1 ≤ x)
+    (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0) :
+    ∑ n ∈ (Finset.Icc 1 x).filter (fun n =>
+        roughPart y₁ n ≠ 1
+          ∧ ¬ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1))),
+      (f n/(n:ℂ)) * ((V (Real.log x - Real.log n) : ℝ) : ℂ)
+    = ∑ t ∈ ((Finset.Icc 1 x).filter (· ∈ Nat.smoothNumbers y₂)) ×ˢ
+        (((Finset.Icc 1 x).filter (fun b => b ≠ 1
+            ∧ b ∈ Nat.smoothNumbers y₁
+            ∧ Nat.Coprime b (primorial (y₂-1)))) ×ˢ
+         ((Finset.Icc 1 x).filter (fun c => c ≠ 1
+            ∧ Nat.Coprime c (primorial (y₁-1))))),
+      (f t.1/(t.1:ℂ) * (f t.2.1/(t.2.1:ℂ) * (f t.2.2/(t.2.2:ℂ))))
+        * ((V (Real.log x
+            - (Real.log t.1 + (Real.log t.2.1 + Real.log t.2.2))) : ℝ) : ℂ) := by
+  classical
+  have hy₁ : 1 ≤ y₁ := le_trans hy₂ h12
+  refine Eq.trans ?_ (Finset.sum_filter_of_ne
+    (p := fun t : ℕ × ℕ × ℕ => t.1 * (t.2.1 * t.2.2) ≤ x) ?_)
+  swap
+  · -- tuples with product beyond x are killed by the window
+    intro t ht hne
+    rw [Finset.mem_product, Finset.mem_product] at ht
+    obtain ⟨ht1, ht2, ht3⟩ := ht
+    rw [Finset.mem_filter, Finset.mem_Icc] at ht1 ht2 ht3
+    by_contra hgt
+    push_neg at hgt
+    refine hne ?_
+    have ha1 : 1 ≤ t.1 := ht1.1.1
+    have hb1 : 1 ≤ t.2.1 := ht2.1.1
+    have hc1 : 1 ≤ t.2.2 := ht3.1.1
+    have hxm : (x:ℝ) ≤ (t.1:ℝ) * ((t.2.1:ℝ) * (t.2.2:ℝ)) := by
+      exact_mod_cast le_of_lt hgt
+    have hlogsum : Real.log t.1 + (Real.log t.2.1 + Real.log t.2.2)
+        = Real.log ((t.1:ℝ) * ((t.2.1:ℝ) * (t.2.2:ℝ))) := by
+      rw [Real.log_mul (by exact_mod_cast (by omega : t.1 ≠ 0))
+          (by positivity),
+        Real.log_mul (by exact_mod_cast (by omega : t.2.1 ≠ 0))
+          (by exact_mod_cast (by omega : t.2.2 ≠ 0))]
+    have hVz : V (Real.log x
+        - (Real.log t.1 + (Real.log t.2.1 + Real.log t.2.2))) = 0 := by
+      refine hV0 _ ?_
+      rw [hlogsum]
+      have hxpos : (0:ℝ) < x := by exact_mod_cast (by omega : 0 < x)
+      have := Real.log_le_log hxpos hxm
+      linarith
+    rw [hVz]
+    simp
+  -- the bijection between the main set and the truncated box
+  refine Finset.sum_bij'
+    (fun n _ => (smoothPart y₂ n,
+      (smoothPart y₁ (roughPart y₂ n), roughPart y₁ n)))
+    (fun t _ => t.1 * (t.2.1 * t.2.2)) ?_ ?_ ?_ ?_ ?_
+  · -- forward membership
+    intro n hn
+    rw [Finset.mem_filter, Finset.mem_Icc] at hn
+    obtain ⟨⟨hn1, hnx⟩, hlarge, hmed⟩ := hn
+    have hn0 : n ≠ 0 := by omega
+    have hnpos : 0 < n := by omega
+    have hr0 : roughPart y₂ n ≠ 0 := (roughPart_pos y₂ n hn0).ne'
+    have hrr := roughPart_roughPart y₂ y₁ n hy₂ h12 hn0
+    have hprod : smoothPart y₂ n
+        * (smoothPart y₁ (roughPart y₂ n) * roughPart y₁ n) = n := by
+      rw [← hrr, smoothPart_mul_roughPart y₁ _ hr0,
+        smoothPart_mul_roughPart y₂ n hn0]
+    rw [Finset.mem_filter, Finset.mem_product, Finset.mem_product]
+    dsimp only
+    refine ⟨⟨?_, ?_, ?_⟩, ?_⟩
+    · -- smooth part in B₁
+      rw [Finset.mem_filter, Finset.mem_Icc]
+      have hdvd := smoothPart_dvd y₂ n hn0
+      exact ⟨⟨Nat.pos_of_ne_zero (smoothPart_pos y₂ n hn0).ne',
+        le_trans (Nat.le_of_dvd hnpos hdvd) hnx⟩,
+        smoothPart_mem_smoothNumbers y₂ n hn0 hy₂⟩
+    · -- medium part in B₂
+      rw [Finset.mem_filter, Finset.mem_Icc]
+      have hdvd : smoothPart y₁ (roughPart y₂ n) ∣ n :=
+        dvd_trans (smoothPart_dvd y₁ _ hr0) (roughPart_dvd y₂ n hn0)
+      refine ⟨⟨Nat.pos_of_ne_zero (smoothPart_pos y₁ _ hr0).ne',
+        le_trans (Nat.le_of_dvd hnpos hdvd) hnx⟩, ?_, ?_, ?_⟩
+      · -- medium part nontrivial: the medium prime witness
+        obtain ⟨p, hp, hp1, hp2⟩ := Nat.Prime.not_coprime_iff_dvd.mp hmed
+        have hsplit := smoothPart_mul_roughPart y₁ (roughPart y₂ n) hr0
+        have hpmed : p ∣ smoothPart y₁ (roughPart y₂ n) := by
+          rcases (Nat.Prime.dvd_mul hp).mp (hsplit ▸ hp1) with h | h
+          · exact h
+          · exfalso
+            rw [hrr] at h
+            exact Nat.Prime.not_coprime_iff_dvd.mpr
+              ⟨p, hp, h, hp2⟩ (roughPart_coprime_primorial y₁ n hn0 hy₁)
+        intro heq
+        rw [heq] at hpmed
+        have h1 := Nat.dvd_one.mp hpmed
+        have h2 := hp.two_le
+        omega
+      · exact smoothPart_mem_smoothNumbers y₁ _ hr0 hy₁
+      · exact Nat.Coprime.coprime_dvd_left (smoothPart_dvd y₁ _ hr0)
+          (roughPart_coprime_primorial y₂ n hn0 hy₂)
+    · -- large part in B₃
+      rw [Finset.mem_filter, Finset.mem_Icc]
+      have hdvd := roughPart_dvd y₁ n hn0
+      exact ⟨⟨Nat.pos_of_ne_zero (roughPart_pos y₁ n hn0).ne',
+        le_trans (Nat.le_of_dvd hnpos hdvd) hnx⟩, hlarge,
+        roughPart_coprime_primorial y₁ n hn0 hy₁⟩
+    · -- the product is back within range
+      rw [hprod]
+      exact hnx
+  · -- backward membership
+    intro t ht
+    rw [Finset.mem_filter, Finset.mem_product, Finset.mem_product] at ht
+    obtain ⟨⟨ht1, ht2, ht3⟩, hprodx⟩ := ht
+    rw [Finset.mem_filter, Finset.mem_Icc] at ht1 ht2 ht3
+    obtain ⟨⟨ha1, hax⟩, hasm⟩ := ht1
+    obtain ⟨⟨hb1, hbx⟩, hbne, hbsm, hbcop⟩ := ht2
+    obtain ⟨⟨hc1, hcx⟩, hcne, hccop⟩ := ht3
+    have hb0 : t.2.1 ≠ 0 := by omega
+    have hc0 : t.2.2 ≠ 0 := by omega
+    have hbc0 : t.2.1 * t.2.2 ≠ 0 := mul_ne_zero hb0 hc0
+    have hccop₂ : Nat.Coprime t.2.2 (primorial (y₂-1)) :=
+      Nat.Coprime.coprime_dvd_right
+        (primorial_dvd_primorial (by omega : y₂-1 ≤ y₁-1)) hccop
+    have hbccop : Nat.Coprime (t.2.1 * t.2.2) (primorial (y₂-1)) :=
+      Nat.Coprime.mul hbcop hccop₂
+    have hr2 : roughPart y₂ (t.1 * (t.2.1 * t.2.2)) = t.2.1 * t.2.2 :=
+      roughPart_mul_eq_right y₂ hy₂ _ _ hasm hbc0 hbccop
+    have habsm : t.1 * t.2.1 ∈ Nat.smoothNumbers y₁ :=
+      mul_mem_smoothNumbers (Nat.smoothNumbers_mono h12 hasm) hbsm
+    have hr3 : roughPart y₁ (t.1 * (t.2.1 * t.2.2)) = t.2.2 := by
+      rw [← mul_assoc]
+      exact roughPart_mul_eq_right y₁ hy₁ _ _ habsm hc0 hccop
+    rw [Finset.mem_filter, Finset.mem_Icc]
+    refine ⟨⟨?_, hprodx⟩, ?_, ?_⟩
+    · have h0 : 0 < t.1 * (t.2.1 * t.2.2) := by positivity
+      exact Nat.one_le_iff_ne_zero.mpr h0.ne'
+    · rw [hr3]
+      exact hcne
+    · rw [hr2]
+      intro hcop
+      obtain ⟨p, hp, hpb⟩ := Nat.exists_prime_and_dvd hbne
+      have hpy₁ : p < y₁ := Nat.mem_smoothNumbers'.mp hbsm p hp hpb
+      have hple : p ≤ y₁ - 1 := by
+        have := hp.two_le
+        omega
+      have hpprim : p ∣ primorial (y₁-1) :=
+        Nat.dvd_of_mem_primeFactors
+          (mem_primeFactors_primorial.mpr ⟨hp, hple⟩)
+      exact Nat.Prime.not_coprime_iff_dvd.mpr
+        ⟨p, hp, dvd_mul_of_dvd_left hpb _, hpprim⟩ hcop
+  · -- left inverse
+    intro n hn
+    rw [Finset.mem_filter, Finset.mem_Icc] at hn
+    obtain ⟨⟨hn1, hnx⟩, _, _⟩ := hn
+    have hn0 : n ≠ 0 := by omega
+    have hr0 : roughPart y₂ n ≠ 0 := (roughPart_pos y₂ n hn0).ne'
+    have hrr := roughPart_roughPart y₂ y₁ n hy₂ h12 hn0
+    dsimp only
+    rw [← hrr, smoothPart_mul_roughPart y₁ _ hr0,
+      smoothPart_mul_roughPart y₂ n hn0]
+  · -- right inverse
+    intro t ht
+    rw [Finset.mem_filter, Finset.mem_product, Finset.mem_product] at ht
+    obtain ⟨⟨ht1, ht2, ht3⟩, hprodx⟩ := ht
+    rw [Finset.mem_filter, Finset.mem_Icc] at ht1 ht2 ht3
+    obtain ⟨⟨ha1, hax⟩, hasm⟩ := ht1
+    obtain ⟨⟨hb1, hbx⟩, hbne, hbsm, hbcop⟩ := ht2
+    obtain ⟨⟨hc1, hcx⟩, hcne, hccop⟩ := ht3
+    have hb0 : t.2.1 ≠ 0 := by omega
+    have hc0 : t.2.2 ≠ 0 := by omega
+    have hbc0 : t.2.1 * t.2.2 ≠ 0 := mul_ne_zero hb0 hc0
+    have hccop₂ : Nat.Coprime t.2.2 (primorial (y₂-1)) :=
+      Nat.Coprime.coprime_dvd_right
+        (primorial_dvd_primorial (by omega : y₂-1 ≤ y₁-1)) hccop
+    have hbccop : Nat.Coprime (t.2.1 * t.2.2) (primorial (y₂-1)) :=
+      Nat.Coprime.mul hbcop hccop₂
+    have h1 : smoothPart y₂ (t.1 * (t.2.1 * t.2.2)) = t.1 :=
+      smoothPart_mul_eq_left y₂ hy₂ _ _ hasm hbc0 hbccop
+    have hr2 : roughPart y₂ (t.1 * (t.2.1 * t.2.2)) = t.2.1 * t.2.2 :=
+      roughPart_mul_eq_right y₂ hy₂ _ _ hasm hbc0 hbccop
+    have h2 : smoothPart y₁ (roughPart y₂ (t.1 * (t.2.1 * t.2.2)))
+        = t.2.1 := by
+      rw [hr2]
+      exact smoothPart_mul_eq_left y₁ hy₁ _ _ hbsm hc0 hccop
+    have habsm : t.1 * t.2.1 ∈ Nat.smoothNumbers y₁ :=
+      mul_mem_smoothNumbers (Nat.smoothNumbers_mono h12 hasm) hbsm
+    have h3 : roughPart y₁ (t.1 * (t.2.1 * t.2.2)) = t.2.2 := by
+      rw [← mul_assoc]
+      exact roughPart_mul_eq_right y₁ hy₁ _ _ habsm hc0 hccop
+    dsimp only
+    exact Prod.ext_iff.mpr ⟨h1, Prod.ext_iff.mpr ⟨h2, h3⟩⟩
+  · -- the summands agree
+    intro n hn
+    rw [Finset.mem_filter, Finset.mem_Icc] at hn
+    obtain ⟨⟨hn1, hnx⟩, _, _⟩ := hn
+    have hn0 : n ≠ 0 := by omega
+    have hr0 : roughPart y₂ n ≠ 0 := (roughPart_pos y₂ n hn0).ne'
+    have hrr := roughPart_roughPart y₂ y₁ n hy₂ h12 hn0
+    have hprod : smoothPart y₂ n
+        * (smoothPart y₁ (roughPart y₂ n) * roughPart y₁ n) = n := by
+      rw [← hrr, smoothPart_mul_roughPart y₁ _ hr0,
+        smoothPart_mul_roughPart y₂ n hn0]
+    have ha0 : smoothPart y₂ n ≠ 0 := (smoothPart_pos y₂ n hn0).ne'
+    have hb0 : smoothPart y₁ (roughPart y₂ n) ≠ 0 :=
+      (smoothPart_pos y₁ _ hr0).ne'
+    have hc0 : roughPart y₁ n ≠ 0 := (roughPart_pos y₁ n hn0).ne'
+    have hf : f n = f (smoothPart y₂ n)
+        * (f (smoothPart y₁ (roughPart y₂ n)) * f (roughPart y₁ n)) := by
+      conv_lhs => rw [← hprod]
+      rw [hcm _ _ ha0 (mul_ne_zero hb0 hc0), hcm _ _ hb0 hc0]
+    have hcast : (n:ℂ) = (smoothPart y₂ n : ℂ)
+        * ((smoothPart y₁ (roughPart y₂ n) : ℂ) * (roughPart y₁ n : ℂ)) := by
+      exact_mod_cast congrArg (fun k : ℕ => (k:ℂ)) hprod.symm
+    have hlogn : Real.log n = Real.log (smoothPart y₂ n)
+        + (Real.log (smoothPart y₁ (roughPart y₂ n))
+          + Real.log (roughPart y₁ n)) := by
+      have hcastR : (n:ℝ) = (smoothPart y₂ n : ℝ)
+          * ((smoothPart y₁ (roughPart y₂ n) : ℝ)
+            * (roughPart y₁ n : ℝ)) := by
+        exact_mod_cast congrArg (fun k : ℕ => (k:ℝ)) hprod.symm
+      rw [hcastR,
+        Real.log_mul (by exact_mod_cast ha0) (by
+          refine mul_ne_zero ?_ ?_ <;> exact_mod_cast ‹_›),
+        Real.log_mul (by exact_mod_cast hb0) (by exact_mod_cast hc0)]
+    dsimp only
+    rw [hf, hcast, hlogn, mul_div_mul_comm, mul_div_mul_comm]
+
 end MoltResearch
