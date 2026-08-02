@@ -11,6 +11,7 @@ import MoltResearch.Discrepancy.DyadicMVT
 import MoltResearch.Discrepancy.RamareIdentity
 import MoltResearch.Discrepancy.SmoothRankin
 import MoltResearch.Discrepancy.SelbergLinear
+import MoltResearch.Discrepancy.ThreeScale
 import MoltResearch.Discrepancy.MajorArcFreeze
 import MoltResearch.Discrepancy.ParsevalBridge
 
