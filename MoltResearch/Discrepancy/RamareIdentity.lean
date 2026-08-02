@@ -801,4 +801,48 @@ theorem intervalIntegral_norm_sq_usum_le (a b : ℕ) (ha1 : 1 ≤ a)
   linarith [hmain_bound, hcoll_bound]
 
 
+/-- **The subset fibre reindex** (Track R, W2c-vii-b1): the `p`-fibre of
+an arbitrary finset is the dilation of its floor-quotient image — the
+`C4e-2` bijection without interval structure, as the `J`-recursion's
+subset-invariant requires. -/
+theorem sum_filter_dvd_eq_sum_image {M : Type*} [AddCommMonoid M]
+    (S : Finset ℕ) {p : ℕ} (hp : 0 < p) (h : ℕ → M) :
+    ∑ n ∈ S.filter (fun n => p ∣ n), h n
+      = ∑ m ∈ (S.filter (fun n => p ∣ n)).image (· / p), h (p * m) := by
+  classical
+  have hinj : Set.InjOn (· / p) ↑(S.filter (fun n => p ∣ n)) := by
+    intro n₁ h₁ n₂ h₂ he
+    have hd₁ := (Finset.mem_filter.mp (Finset.mem_coe.mp h₁)).2
+    have hd₂ := (Finset.mem_filter.mp (Finset.mem_coe.mp h₂)).2
+    simp only at he
+    calc n₁ = p * (n₁ / p) := (Nat.mul_div_cancel' hd₁).symm
+      _ = p * (n₂ / p) := by rw [he]
+      _ = n₂ := Nat.mul_div_cancel' hd₂
+  rw [Finset.sum_image (f := fun m => h (p * m)) hinj]
+  refine Finset.sum_congr rfl fun n hn => ?_
+  have hd := (Finset.mem_filter.mp hn).2
+  rw [Nat.mul_div_cancel' hd]
+
+/-- The quotient image of a fibre inside `(a, b]` lands in `(a/p, b/p]`. -/
+theorem image_div_fibre_subset (a b : ℕ) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc a b) {p : ℕ} (hp : 0 < p) :
+    (S.filter (fun n => p ∣ n)).image (· / p)
+      ⊆ Finset.Ioc (a/p) (b/p) := by
+  intro m hm
+  rw [Finset.mem_image] at hm
+  obtain ⟨n, hn, rfl⟩ := hm
+  have hmem := hS (Finset.mem_filter.mp hn).1
+  have hd := (Finset.mem_filter.mp hn).2
+  rw [Finset.mem_Ioc] at hmem ⊢
+  obtain ⟨m', rfl⟩ := hd
+  rw [Nat.mul_div_cancel_left m' hp]
+  constructor
+  · exact (Nat.div_lt_iff_lt_mul hp).mpr (by
+      rw [mul_comm]
+      exact hmem.1)
+  · exact (Nat.le_div_iff_mul_le hp).mpr (by
+      rw [mul_comm]
+      exact hmem.2)
+
+
 end MoltResearch
