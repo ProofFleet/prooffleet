@@ -462,6 +462,80 @@ theorem intervalIntegral_norm_sq_le_of_bound (f : ℝ → ℂ) (c d M : ℝ)
         rw [intervalIntegral.integral_const, smul_eq_mul]
 
 
+/-- **The frequency-weighted blocks energy** (Track R, W2c-vi-a2): the
+window energy of a combination of `1`-bounded dyadic block polynomials
+with frequency-dependent weights of uniform size `v p` is at most the
+total weight times the weighted per-block MVT bounds — C4e-8 with the
+`char(p)/p`-type weights of the 𝒰-phase decomposition. -/
+theorem intervalIntegral_norm_sq_freq_weighted_blocks_le (P : Finset ℕ)
+    (w : ℕ → ℝ → ℂ) (v : ℕ → ℝ) (hw : ∀ p ξ, ‖w p ξ‖ ≤ v p)
+    (hwcont : ∀ p, Continuous (w p))
+    (S : ℕ → Finset ℕ) (Nf : ℕ → ℕ) (a : ℕ → ℕ → ℂ)
+    (hN : ∀ p ∈ P, 1 ≤ Nf p)
+    (hSlow : ∀ p ∈ P, ∀ m ∈ S p, Nf p ≤ m)
+    (hShigh : ∀ p ∈ P, ∀ m ∈ S p, m ≤ 2 * Nf p)
+    (ha : ∀ p m, ‖a p m‖ ≤ 1) (L : ℝ) (hL : 0 ≤ L) :
+    ∫ ξ in (-L)..L, ‖∑ p ∈ P, w p ξ * ∑ m ∈ S p,
+        (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ (∑ p ∈ P, v p) * ∑ p ∈ P, v p *
+          (2*L*(∑ m ∈ S p, (1:ℝ)/(m:ℝ)^2)
+            + (Real.log (Nf p) + 1) * (∑ m ∈ S p, (1:ℝ)/m)) := by
+  classical
+  have hv0 : ∀ p, 0 ≤ v p := fun p => le_trans (norm_nonneg _) (hw p 0)
+  have hcontG : ∀ p : ℕ, Continuous (fun ξ : ℝ => ∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)) := by
+    intro p
+    refine continuous_finset_sum _ fun m _ => ?_
+    refine Continuous.mul continuous_const ?_
+    exact continuous_subtype_val.comp
+      (Real.continuous_fourierChar.comp (by fun_prop))
+  have hcontF : Continuous (fun ξ : ℝ => ‖∑ p ∈ P, w p ξ * ∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2) := by
+    refine Continuous.pow ?_ 2
+    refine Continuous.norm ?_
+    exact continuous_finset_sum _ fun p _ => ((hwcont p).mul (hcontG p))
+  have hcontR : Continuous (fun ξ : ℝ => ∑ p ∈ P, v p * ‖∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2) :=
+    continuous_finset_sum _ fun p _ =>
+      continuous_const.mul ((hcontG p).norm.pow 2)
+  -- pointwise CS with the uniform weight sizes
+  have hpt : ∀ ξ : ℝ, ‖∑ p ∈ P, w p ξ * ∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ (∑ p ∈ P, v p) * ∑ p ∈ P, v p * ‖∑ m ∈ S p,
+          (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+    intro ξ
+    have hcs := norm_sq_sum_mul_le_sum_mul_sum P (fun p => w p ξ)
+      (fun p => ∑ m ∈ S p,
+        (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+    refine le_trans hcs ?_
+    refine mul_le_mul (Finset.sum_le_sum fun p _ => hw p ξ)
+      (Finset.sum_le_sum fun p _ => ?_)
+      (Finset.sum_nonneg fun p _ => by positivity)
+      (Finset.sum_nonneg fun p _ => hv0 p)
+    exact mul_le_mul_of_nonneg_right (hw p ξ) (by positivity)
+  have hstep1 : ∫ ξ in (-L)..L, ‖∑ p ∈ P, w p ξ * ∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ ∫ ξ in (-L)..L, (∑ p ∈ P, v p) * ∑ p ∈ P, v p * ‖∑ m ∈ S p,
+          (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+    refine intervalIntegral.integral_mono_on (by linarith) ?_ ?_ ?_
+    · exact hcontF.intervalIntegrable _ _
+    · exact (continuous_const.mul hcontR).intervalIntegrable _ _
+    · intro ξ _
+      exact hpt ξ
+  refine le_trans hstep1 ?_
+  rw [intervalIntegral.integral_const_mul]
+  have hsum_nonneg : (0:ℝ) ≤ ∑ p ∈ P, v p :=
+    Finset.sum_nonneg fun p _ => hv0 p
+  refine mul_le_mul_of_nonneg_left ?_ hsum_nonneg
+  rw [intervalIntegral.integral_finset_sum (fun p _ =>
+    (continuous_const.mul ((hcontG p).norm.pow 2)).intervalIntegrable _ _)]
+  refine Finset.sum_le_sum fun p hp => ?_
+  rw [intervalIntegral.integral_const_mul]
+  refine mul_le_mul_of_nonneg_left ?_ (hv0 p)
+  exact intervalIntegral_norm_sq_dyadic_poly_le (Nf p) (hN p hp) (S p)
+    (hSlow p hp) (hShigh p hp) (a p) (ha p) L hL
+
+
 end ExpSums
 
 end MoltResearch
