@@ -889,6 +889,170 @@ theorem perron_sandwich (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
     _ = 2*ρ + 2/(x:ℝ) := by
         field_simp
 
+set_option maxHeartbeats 1600000 in
+/-- **The band/tail Hölder split** (Track R, M2-i3): the `L¹` pairing
+of a triple-product polynomial with a window transform splits into the
+band — where one factor is sup-bounded and the other two meet by
+parametrized AM-GM — and the tail, priced by the transform's tail
+mass. The free parameter `t` is the Cauchy–Schwarz optimizer, chosen
+at tuning time. -/
+theorem pairing_band_tail_split (P₁ P₂ P₃ : ℝ → ℂ)
+    (hc₁ : Continuous P₁) (hc₂ : Continuous P₂) (hc₃ : Continuous P₃)
+    (F : ℝ → ℂ) (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F)
+    (L t B₁ B₂ B₃ Bband MV E₂ E₃ Mtail : ℝ)
+    (hL : 0 < L) (ht : 0 < t) (hMV0 : 0 ≤ MV) (hBb0 : 0 ≤ Bband)
+    (hB₂0 : 0 ≤ B₂) (hB₃0 : 0 ≤ B₃)
+    (hB₁ : ∀ ξ, ‖P₁ ξ‖ ≤ B₁) (hB₂ : ∀ ξ, ‖P₂ ξ‖ ≤ B₂)
+    (hB₃ : ∀ ξ, ‖P₃ ξ‖ ≤ B₃)
+    (hBband : ∀ ξ, |ξ| ≤ L → ‖P₁ ξ‖ ≤ Bband)
+    (hE₂ : ∫ ξ in (-L)..L, ‖P₂ ξ‖^2 ≤ E₂)
+    (hE₃ : ∫ ξ in (-L)..L, ‖P₃ ξ‖^2 ≤ E₃)
+    (hMV : ∀ ξ, ‖𝓕 F ξ‖ ≤ MV)
+    (hMtail : ∫ ξ in {ξ : ℝ | L < |ξ|}, ‖𝓕 F ξ‖ ≤ Mtail) :
+    ∫ ξ, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖
+      ≤ MV * Bband * (t*E₂ + E₃/t)/2 + B₁*B₂*B₃*Mtail := by
+  classical
+  have hB₁0 : 0 ≤ B₁ := le_trans (norm_nonneg _) (hB₁ 0)
+  -- Schwartz integrability of the window transform
+  set G : SchwartzMap ℝ ℂ := hFc.toSchwartzMap hFs with hG_def
+  have hFeq : ∀ ξ, ‖𝓕 F ξ‖ = ‖(𝓕 G) ξ‖ := fun _ => rfl
+  have hFhat_int : Integrable (fun ξ => ‖𝓕 F ξ‖) := by
+    simp only [hFeq]
+    exact (𝓕 G).integrable.norm
+  have hcont_int : Continuous fun ξ => ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖ := by
+    have h1 : Continuous fun ξ => ‖𝓕 F ξ‖ := by
+      simp only [hFeq]
+      exact (𝓕 G).continuous.norm
+    exact (((hc₁.mul hc₂).mul hc₃).norm).mul h1
+  have hint : Integrable (fun ξ => ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖) := by
+    refine (hFhat_int.const_mul (B₁*B₂*B₃)).mono'
+      hcont_int.aestronglyMeasurable ?_
+    refine Filter.Eventually.of_forall fun ξ => ?_
+    rw [Real.norm_eq_abs, abs_of_nonneg
+      (mul_nonneg (norm_nonneg _) (norm_nonneg _))]
+    refine mul_le_mul_of_nonneg_right ?_ (norm_nonneg _)
+    rw [norm_mul, norm_mul]
+    exact mul_le_mul (mul_le_mul (hB₁ ξ) (hB₂ ξ)
+      (norm_nonneg _) hB₁0) (hB₃ ξ) (norm_nonneg _)
+      (mul_nonneg hB₁0 hB₂0)
+  -- split at the band
+  set s : Set ℝ := {ξ : ℝ | |ξ| ≤ L} with hs_def
+  have hs_meas : MeasurableSet s := by
+    rw [hs_def]
+    exact measurableSet_le (continuous_abs.measurable) measurable_const
+  have hsplit : ∫ ξ, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖
+      = (∫ ξ in s, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖)
+        + ∫ ξ in sᶜ, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖ :=
+    (integral_add_compl hs_meas hint).symm
+  rw [hsplit]
+  -- the tail part
+  have hcompl : sᶜ = {ξ : ℝ | L < |ξ|} := by
+    rw [hs_def]
+    ext ξ
+    simp only [Set.mem_compl_iff, Set.mem_setOf_eq, not_le]
+  have htail : ∫ ξ in sᶜ, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖
+      ≤ B₁*B₂*B₃*Mtail := by
+    rw [hcompl]
+    have hmono : ∫ ξ in {ξ : ℝ | L < |ξ|}, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖
+        ≤ ∫ ξ in {ξ : ℝ | L < |ξ|}, (B₁*B₂*B₃) * ‖𝓕 F ξ‖ := by
+      refine setIntegral_mono_on hint.integrableOn
+        ((hFhat_int.const_mul _).integrableOn) ?_ ?_
+      · rw [← hcompl]
+        exact hs_meas.compl
+      · intro ξ _
+        refine mul_le_mul_of_nonneg_right ?_ (norm_nonneg _)
+        rw [norm_mul, norm_mul]
+        refine mul_le_mul (mul_le_mul (hB₁ ξ) (hB₂ ξ)
+          (norm_nonneg _) hB₁0) (hB₃ ξ) (norm_nonneg _) ?_
+        exact mul_nonneg hB₁0 hB₂0
+    refine le_trans hmono ?_
+    rw [integral_const_mul]
+    refine mul_le_mul_of_nonneg_left hMtail ?_
+    exact mul_nonneg (mul_nonneg hB₁0 hB₂0) hB₃0
+  -- the band part
+  have hband : ∫ ξ in s, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖
+      ≤ MV * Bband * (t*E₂ + E₃/t)/2 := by
+    have hpt : ∀ ξ ∈ s, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖
+        ≤ MV * Bband * ((t*‖P₂ ξ‖^2 + ‖P₃ ξ‖^2/t)/2) := by
+      intro ξ hξ
+      rw [hs_def, Set.mem_setOf_eq] at hξ
+      have hamgm : ‖P₂ ξ‖ * ‖P₃ ξ‖ ≤ (t*‖P₂ ξ‖^2 + ‖P₃ ξ‖^2/t)/2 := by
+        have hst : Real.sqrt t > 0 := Real.sqrt_pos.mpr ht
+        have key := two_mul_le_add_sq (Real.sqrt t * ‖P₂ ξ‖)
+          (‖P₃ ξ‖/Real.sqrt t)
+        have hxy : (Real.sqrt t * ‖P₂ ξ‖) * (‖P₃ ξ‖/Real.sqrt t)
+            = ‖P₂ ξ‖*‖P₃ ξ‖ := by
+          field_simp
+        have hx2 : (Real.sqrt t * ‖P₂ ξ‖)^2 = t*‖P₂ ξ‖^2 := by
+          rw [mul_pow, Real.sq_sqrt ht.le]
+        have hy2 : (‖P₃ ξ‖/Real.sqrt t)^2 = ‖P₃ ξ‖^2/t := by
+          rw [div_pow, Real.sq_sqrt ht.le]
+        have key2 : 2 * (‖P₂ ξ‖ * ‖P₃ ξ‖) ≤ t*‖P₂ ξ‖^2 + ‖P₃ ξ‖^2/t := by
+          calc 2 * (‖P₂ ξ‖ * ‖P₃ ξ‖)
+              = 2 * (Real.sqrt t * ‖P₂ ξ‖) * (‖P₃ ξ‖ / Real.sqrt t) := by
+                rw [← hxy]
+                ring
+            _ ≤ (Real.sqrt t * ‖P₂ ξ‖)^2 + (‖P₃ ξ‖ / Real.sqrt t)^2 := key
+            _ = t*‖P₂ ξ‖^2 + ‖P₃ ξ‖^2/t := by rw [hx2, hy2]
+        linarith
+      calc ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * ‖𝓕 F ξ‖
+          = (‖P₁ ξ‖ * (‖P₂ ξ‖ * ‖P₃ ξ‖)) * ‖𝓕 F ξ‖ := by
+            rw [norm_mul, norm_mul]
+            ring
+        _ ≤ (Bband * ((t*‖P₂ ξ‖^2 + ‖P₃ ξ‖^2/t)/2)) * MV := by
+            refine mul_le_mul ?_ (hMV ξ) (norm_nonneg _) ?_
+            · refine mul_le_mul (hBband ξ hξ) hamgm
+                (mul_nonneg (norm_nonneg _) (norm_nonneg _)) hBb0
+            · refine mul_nonneg hBb0 ?_
+              have h2 : 0 ≤ t*‖P₂ ξ‖^2 := by positivity
+              have h3 : 0 ≤ ‖P₃ ξ‖^2/t := by positivity
+              linarith
+        _ = MV * Bband * ((t*‖P₂ ξ‖^2 + ‖P₃ ξ‖^2/t)/2) := by ring
+    have hs_icc : s = Set.Icc (-L) L := by
+      rw [hs_def]
+      ext ξ
+      rw [Set.mem_setOf_eq, Set.mem_Icc, abs_le]
+    have hint₂ : IntegrableOn (fun ξ => ‖P₂ ξ‖^2) s := by
+      rw [hs_icc]
+      exact ((hc₂.norm.pow 2).continuousOn).integrableOn_compact isCompact_Icc
+    have hint₃ : IntegrableOn (fun ξ => ‖P₃ ξ‖^2) s := by
+      rw [hs_icc]
+      exact ((hc₃.norm.pow 2).continuousOn).integrableOn_compact isCompact_Icc
+    have hRint : IntegrableOn
+        (fun ξ => MV * Bband * ((t*‖P₂ ξ‖^2 + ‖P₃ ξ‖^2/t)/2)) s := by
+      exact (((hint₂.const_mul t).add (hint₃.div_const t)).div_const 2
+        ).const_mul (MV*Bband)
+    have hstep := setIntegral_mono_on hint.integrableOn hRint hs_meas hpt
+    refine le_trans hstep ?_
+    rw [integral_const_mul]
+    have hlin : ∫ ξ in s, (t*‖P₂ ξ‖^2 + ‖P₃ ξ‖^2/t)/2
+        = (t * (∫ ξ in s, ‖P₂ ξ‖^2) + (∫ ξ in s, ‖P₃ ξ‖^2)/t)/2 := by
+      rw [integral_div, integral_add (hint₂.const_mul t) (hint₃.div_const t),
+        integral_const_mul, integral_div]
+    rw [hlin]
+    have hconv₂ : ∫ ξ in s, ‖P₂ ξ‖^2 = ∫ ξ in (-L)..L, ‖P₂ ξ‖^2 := by
+      rw [hs_icc, intervalIntegral.integral_of_le (by linarith : -L ≤ L),
+        ← integral_Icc_eq_integral_Ioc]
+    have hconv₃ : ∫ ξ in s, ‖P₃ ξ‖^2 = ∫ ξ in (-L)..L, ‖P₃ ξ‖^2 := by
+      rw [hs_icc, intervalIntegral.integral_of_le (by linarith : -L ≤ L),
+        ← integral_Icc_eq_integral_Ioc]
+    rw [hconv₂, hconv₃]
+    have hMB : 0 ≤ MV * Bband := mul_nonneg hMV0 hBb0
+    have h2 : (∫ ξ in (-L)..L, ‖P₂ ξ‖^2) ≤ E₂ := hE₂
+    have h3 : (∫ ξ in (-L)..L, ‖P₃ ξ‖^2)/t ≤ E₃/t :=
+      div_le_div_of_nonneg_right hE₃ ht.le
+    have hcomb : (t * (∫ ξ in (-L)..L, ‖P₂ ξ‖^2)
+          + (∫ ξ in (-L)..L, ‖P₃ ξ‖^2)/t)/2
+        ≤ (t*E₂ + E₃/t)/2 := by
+      have := mul_le_mul_of_nonneg_left h2 ht.le
+      linarith
+    calc MV * Bband * ((t * (∫ ξ in (-L)..L, ‖P₂ ξ‖^2)
+          + (∫ ξ in (-L)..L, ‖P₃ ξ‖^2)/t)/2)
+        ≤ MV * Bband * ((t*E₂ + E₃/t)/2) :=
+          mul_le_mul_of_nonneg_left hcomb hMB
+      _ = MV * Bband * (t*E₂ + E₃/t)/2 := by ring
+  linarith [htail, hband]
+
 end ExpSums
 
 end MoltResearch
