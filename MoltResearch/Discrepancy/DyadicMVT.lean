@@ -587,6 +587,163 @@ theorem intervalIntegral_norm_sq_freq_weighted_sum_le (P : Finset ℕ)
   rw [intervalIntegral.integral_const_mul]
 
 
+/-- **The general-support pair mean value** (Track R, M2-e): the
+window energy of any `1`-bounded logarithmic Dirichlet polynomial is
+at most the diagonal `2L·∑ 1/n²` plus the resolved off-diagonal pair
+kernels `1/(π·min·gap)` — the dyadic MVT's stages with the support
+left free, feeding the sieve-counted close-pair bounds of the cheap
+Halász `L²` factors. -/
+theorem intervalIntegral_norm_sq_poly_pairs_le
+    (S : Finset ℕ) (hp1 : ∀ n ∈ S, 1 ≤ n)
+    (a : ℕ → ℂ) (ha : ∀ n, ‖a n‖ ≤ 1) (L : ℝ) (hL : 0 ≤ L) :
+    ∫ ξ in (-L)..L,
+        ‖∑ n ∈ S, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      ≤ 2*L*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+        + ∑ p ∈ S,
+            (∑ q ∈ S.filter (fun q => q < p), 1/(Real.pi * q * ((p:ℝ) - q))
+              + ∑ q ∈ S.filter (fun q => p < q), 1/(Real.pi * p * ((q:ℝ) - p))) := by
+  classical
+  -- Stage A: the pointwise expansion
+  have hexpand : ∀ ξ : ℝ,
+      ‖∑ p ∈ S, (a p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+      = ∑ p ∈ S, ∑ q ∈ S, (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+          * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+            : ℂ)).re := by
+    intro ξ
+    rw [norm_sq_eq_mul_conj_re, map_sum, Finset.sum_mul_sum,
+      Complex.re_sum]
+    refine Finset.sum_congr rfl fun p _ => ?_
+    rw [Complex.re_sum]
+    refine Finset.sum_congr rfl fun q _ => ?_
+    congr 1
+    rw [map_mul, mul_mul_mul_comm]
+    congr 1
+    exact char_mul_conj_char (Real.log p) (Real.log q) ξ
+  -- Stage B: integrate and swap
+  have hcont : ∀ p q : ℕ, Continuous (fun ξ : ℝ =>
+      (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+        * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+          : ℂ))) := by
+    intro p q
+    refine Continuous.mul continuous_const ?_
+    exact continuous_subtype_val.comp
+      (Real.continuous_fourierChar.comp (by fun_prop))
+  have hcontre : ∀ p q : ℕ, Continuous (fun ξ : ℝ =>
+      (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+        * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+          : ℂ)).re) := fun p q => Complex.continuous_re.comp (hcont p q)
+  rw [intervalIntegral.integral_congr (fun ξ _ => hexpand ξ)]
+  rw [intervalIntegral.integral_finset_sum (fun p _ =>
+    (continuous_finset_sum _ (fun q _ => hcontre p q)).intervalIntegrable
+      _ _)]
+  have hswap2 : ∀ p ∈ S, (∫ ξ in (-L)..L, ∑ q ∈ S,
+        (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+          * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+            : ℂ)).re)
+      = ∑ q ∈ S, (∫ ξ in (-L)..L,
+          (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+            * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+              : ℂ))).re := by
+    intro p _
+    rw [intervalIntegral.integral_finset_sum (fun q _ =>
+      (hcontre p q).intervalIntegrable _ _)]
+    refine Finset.sum_congr rfl fun q _ => ?_
+    exact intervalIntegral_re _ ((hcont p q).intervalIntegrable _ _)
+  rw [Finset.sum_congr rfl hswap2]
+  -- Stage C: the pair symmetry for `q < p`
+  have hsym : ∀ p q : ℕ, (∫ ξ in (-L)..L,
+        (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+          * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+            : ℂ))).re
+      = (∫ ξ in (-L)..L,
+        (((a q/(q:ℂ)) * (starRingEnd ℂ) (a p/(p:ℂ)))
+          * ((Real.fourierChar (-((Real.log q - Real.log p) * ξ)) : Circle)
+            : ℂ))).re := by
+    intro p q
+    rw [← intervalIntegral_re _ ((hcont p q).intervalIntegrable _ _),
+      ← intervalIntegral_re _ ((hcont q p).intervalIntegrable _ _)]
+    refine intervalIntegral.integral_congr (fun ξ _ => ?_)
+    dsimp only
+    have h1 : (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+        * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+          : ℂ))
+        = (starRingEnd ℂ) (((a q/(q:ℂ)) * (starRingEnd ℂ) (a p/(p:ℂ)))
+          * ((Real.fourierChar (-((Real.log q - Real.log p) * ξ)) : Circle)
+            : ℂ)) := by
+      rw [map_mul, map_mul, Complex.conj_conj, conj_char]
+      rw [show -(-((Real.log q - Real.log p) * ξ))
+          = -((Real.log p - Real.log q) * ξ) from by ring]
+      ring
+    rw [h1, Complex.conj_re]
+  -- Stage D: split and bound per row
+  have hbound : ∀ p ∈ S, ∑ q ∈ S, (∫ ξ in (-L)..L,
+        (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+          * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+            : ℂ))).re
+      ≤ 2*L*(1/(p:ℝ)^2)
+        + (∑ q ∈ S.filter (fun q => q < p), 1/(Real.pi * q * ((p:ℝ) - q))
+          + ∑ q ∈ S.filter (fun q => p < q), 1/(Real.pi * p * ((q:ℝ) - p))) := by
+    intro p hp
+    rw [← Finset.add_sum_erase S (fun q => (∫ ξ in (-L)..L,
+      (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+        * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+          : ℂ))).re) hp]
+    have hdiag := pair_integral_diag_le a ha p (hp1 p hp) L hL
+    have herase : ∑ q ∈ S.erase p, (∫ ξ in (-L)..L,
+        (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+          * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
+            : ℂ))).re
+        ≤ ∑ q ∈ S.filter (fun q => q < p), 1/(Real.pi * q * ((p:ℝ) - q))
+          + ∑ q ∈ S.filter (fun q => p < q), 1/(Real.pi * p * ((q:ℝ) - p)) := by
+      have hsplit : S.erase p
+          = S.filter (fun q => q < p) ∪ S.filter (fun q => p < q) := by
+        ext q
+        simp only [Finset.mem_erase, Finset.mem_union, Finset.mem_filter]
+        constructor
+        · rintro ⟨hne, hq⟩
+          rcases lt_or_gt_of_ne hne with h | h
+          · exact Or.inl ⟨hq, h⟩
+          · exact Or.inr ⟨hq, h⟩
+        · rintro (⟨hq, h⟩ | ⟨hq, h⟩) <;> exact ⟨by omega, hq⟩
+      have hdisj : Disjoint (S.filter (fun q => q < p))
+          (S.filter (fun q => p < q)) := by
+        refine Finset.disjoint_left.mpr fun q hq1 hq2 => ?_
+        rw [Finset.mem_filter] at hq1 hq2
+        omega
+      rw [hsplit, Finset.sum_union hdisj]
+      refine add_le_add ?_ ?_
+      · refine Finset.sum_le_sum fun q hq => ?_
+        rw [Finset.mem_filter] at hq
+        rw [hsym p q]
+        calc (∫ ξ in (-L)..L,
+              (((a q/(q:ℂ)) * (starRingEnd ℂ) (a p/(p:ℂ)))
+                * ((Real.fourierChar (-((Real.log q - Real.log p) * ξ))
+                  : Circle) : ℂ))).re
+            ≤ |(∫ ξ in (-L)..L,
+              (((a q/(q:ℂ)) * (starRingEnd ℂ) (a p/(p:ℂ)))
+                * ((Real.fourierChar (-((Real.log q - Real.log p) * ξ))
+                  : Circle) : ℂ))).re| := le_abs_self _
+          _ ≤ 1/(Real.pi * q * ((p:ℝ) - q)) :=
+              pair_integral_offdiag_le a ha q p (hp1 q hq.1) hq.2 L
+      · refine Finset.sum_le_sum fun q hq => ?_
+        rw [Finset.mem_filter] at hq
+        calc (∫ ξ in (-L)..L,
+              (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+                * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ))
+                  : Circle) : ℂ))).re
+            ≤ |(∫ ξ in (-L)..L,
+              (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
+                * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ))
+                  : Circle) : ℂ))).re| := le_abs_self _
+          _ ≤ 1/(Real.pi * p * ((q:ℝ) - p)) :=
+              pair_integral_offdiag_le a ha p q (hp1 p hp) hq.2 L
+    linarith [hdiag, herase]
+  refine le_trans (Finset.sum_le_sum hbound) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum]
+
+
 end ExpSums
 
 end MoltResearch
