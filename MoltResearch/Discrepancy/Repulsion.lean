@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.TruncatedBridge
 import MoltResearch.Discrepancy.ZetaBound
+import MoltResearch.Discrepancy.PretentiousDist
 
 /-!
 # Track C: the archimedean repulsion core (Track R, C4c-ii)
@@ -147,5 +148,102 @@ theorem sum_one_sub_cos_div_ge (u : ℝ) (y : ℕ) (hy : 3 ≤ y)
     exact Finset.sum_congr rfl fun p _ => by ring
   rw [hsplit]
   linarith [hbridge, hlogL, hexpand, h8192, hlogB_low]
+
+/-- **Repulsion in distance form** (Track R, W2c-iii-b2): at any
+frequency `|u| ≥ 6`, the pure archimedean phase `n ↦ n^{iu}` is
+pretentiously far from `1` — its squared distance retains all but
+`loglog(|u|+2) + 24` of the full prime mass. The `pretentiousDistSq`
+restatement of `sum_one_sub_cos_div_ge`, ready for the quasi-triangle
+composition against the interface's non-pretentiousness. -/
+theorem pretentiousDistSq_phase_one_ge (u : ℝ) (y : ℕ) (hy : 3 ≤ y)
+    (hu : 6 ≤ |u|) :
+    (∑ p ∈ y.primesBelow, (1:ℝ)/p)
+        - Real.log (Real.log (|u| + 2)) - 24
+      ≤ pretentiousDistSq (fun n => (n:ℂ) ^ (Complex.I * (u:ℂ)))
+          (fun _ => 1) y := by
+  classical
+  refine le_trans (sum_one_sub_cos_div_ge u y hy hu) ?_
+  unfold pretentiousDistSq
+  refine le_of_eq (Finset.sum_congr rfl fun p hp => ?_)
+  have hp2 := (Nat.prime_of_mem_primesBelow hp).two_le
+  have hcpow : ((p:ℕ):ℂ) ^ (Complex.I * (u:ℂ))
+      = Complex.exp (((u * Real.log p : ℝ) : ℂ) * Complex.I) := by
+    rw [Complex.cpow_def_of_ne_zero
+      (by exact_mod_cast (by omega : p ≠ 0))]
+    congr 1
+    push_cast
+    ring
+  dsimp only
+  rw [map_one, mul_one, hcpow, Complex.exp_ofReal_mul_I_re]
+
+/-- **The twist-difference identity** (W2c-iii-b2): the squared
+distance between two archimedean twists `n^{−it₀}` and `n^{−iξ}` is
+the phase repulsion sum at the difference frequency `ξ − t₀`. -/
+theorem pretentiousDistSq_twist_twist_eq (t₀ ξ : ℝ) (y : ℕ) :
+    pretentiousDistSq (fun n => (n:ℂ) ^ (-(Complex.I * (t₀:ℂ))))
+        (fun n => (n:ℂ) ^ (-(Complex.I * (ξ:ℂ)))) y
+      = pretentiousDistSq (fun n => (n:ℂ) ^ (Complex.I * ((ξ - t₀ : ℝ):ℂ)))
+          (fun _ => 1) y := by
+  classical
+  unfold pretentiousDistSq
+  refine Finset.sum_congr rfl fun p hp => ?_
+  have hp2 := (Nat.prime_of_mem_primesBelow hp).two_le
+  have hp0 : p ≠ 0 := by omega
+  dsimp only
+  have hm : ∀ v : ℝ, ((p:ℕ):ℂ) ^ (-(Complex.I * (v:ℂ)))
+      = Complex.exp (((-(v * Real.log p) : ℝ) : ℂ) * Complex.I) := by
+    intro v
+    rw [Complex.cpow_def_of_ne_zero (by exact_mod_cast hp0)]
+    congr 1
+    push_cast
+    ring
+  have hplus : ((p:ℕ):ℂ) ^ (Complex.I * (((ξ - t₀ : ℝ)):ℂ))
+      = Complex.exp ((((ξ - t₀) * Real.log p : ℝ) : ℂ) * Complex.I) := by
+    rw [Complex.cpow_def_of_ne_zero (by exact_mod_cast hp0)]
+    congr 1
+    push_cast
+    ring
+  rw [hm t₀, hm ξ, hplus, map_one, mul_one,
+    ← Complex.exp_conj]
+  rw [map_mul, Complex.conj_ofReal, Complex.conj_I]
+  rw [show (((-(ξ * Real.log p) : ℝ)) : ℂ) * -Complex.I
+      = ((ξ * Real.log p : ℝ) : ℂ) * Complex.I from by push_cast; ring]
+  rw [← Complex.exp_add]
+  rw [show (((-(t₀ * Real.log p) : ℝ)) : ℂ) * Complex.I
+        + ((ξ * Real.log p : ℝ) : ℂ) * Complex.I
+      = (((ξ - t₀) * Real.log p : ℝ) : ℂ) * Complex.I from by push_cast; ring]
+
+/-- **The mid-regime distance floor** (W2c-iii-b2): for unimodular `f`
+pretending to `n^{−it₀}` within `A` at scale `y`, every frequency `ξ`
+separated from `t₀` by at least `6` keeps the twisted distance in the
+Halász ratio bound above a third of the repulsion mass minus the
+pretense: `D²(f, n^{−iξ}; y) ≥ (mass − loglog(|ξ−t₀|+2) − 24)/3 − A`.
+The mid-regime input of `norm_LSeries_le_zeta_mul_exp`. -/
+theorem pretentiousDistSq_twist_ge (f : ℕ → ℂ) (hf : Unimodular f)
+    (t₀ ξ : ℝ) (y : ℕ) (hy : 3 ≤ y) (hsep : 6 ≤ |ξ - t₀|) (A : ℝ)
+    (hA : pretentiousDistSq f (fun n => (n:ℂ) ^ (-(Complex.I * (t₀:ℂ)))) y ≤ A) :
+    ((∑ p ∈ y.primesBelow, (1:ℝ)/p)
+        - Real.log (Real.log (|ξ - t₀| + 2)) - 24) / 3 - A
+      ≤ pretentiousDistSq f (fun n => (n:ℂ) ^ (-(Complex.I * (ξ:ℂ)))) y := by
+  classical
+  have hb1 : ∀ v : ℝ, ∀ p : ℕ, ‖(fun n => (n:ℂ) ^ (-(Complex.I * (v:ℂ)))) p‖ ≤ 1 := by
+    intro v p
+    dsimp only
+    rcases Nat.eq_zero_or_pos p with hp | hp
+    · subst hp
+      rcases eq_or_ne (-(Complex.I * (v:ℂ))) 0 with h0 | h0
+      · simp [h0]
+      · simp [Complex.zero_cpow h0]
+    · have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+      rw [Complex.norm_natCast_cpow_of_pos (by exact_mod_cast hp)]
+      rw [show (-(Complex.I * (v:ℂ))).re = 0 from by simp]
+      rw [Real.rpow_zero]
+  have htri := pretentiousDistSq_quasi_triangle (g := f) hf
+    (hb1 t₀) (hb1 ξ) y
+  have hrep := pretentiousDistSq_phase_one_ge (ξ - t₀) y hy hsep
+  rw [← pretentiousDistSq_twist_twist_eq t₀ ξ y] at hrep
+  linarith [hrep, htri, hA]
+
+
 
 end MoltResearch
