@@ -249,4 +249,175 @@ theorem card_medfree_large_le (y₂ y₁ x : ℕ) (h2 : 4 ≤ y₂)
 
 
 
+/-- Trivial rough part persists under raising the cut. -/
+theorem roughPart_eq_one_of_le {y y' n : ℕ} (hn : n ≠ 0) (h : y ≤ y')
+    (h1 : roughPart y n = 1) : roughPart y' n = 1 := by
+  classical
+  unfold roughPart at h1 ⊢
+  have hempty : n.primeFactors.filter (fun p => ¬ p < y) = ∅ := by
+    by_contra hne
+    obtain ⟨p, hp⟩ := Finset.nonempty_iff_ne_empty.mpr hne
+    have hdvd : p ^ n.factorization p
+        ∣ ∏ q ∈ n.primeFactors.filter (fun q => ¬ q < y),
+            q ^ n.factorization q :=
+      Finset.dvd_prod_of_mem _ hp
+    rw [h1] at hdvd
+    have hone := Nat.dvd_one.mp hdvd
+    rw [Finset.mem_filter] at hp
+    have hpp := Nat.prime_of_mem_primeFactors hp.1
+    have hν : 0 < n.factorization p :=
+      Nat.Prime.factorization_pos_of_dvd hpp hn
+        (Nat.dvd_of_mem_primeFactors hp.1)
+    have h2 : 2 ≤ p ^ n.factorization p :=
+      le_trans hpp.two_le (Nat.le_self_pow (by omega) p)
+    omega
+  have hsub : n.primeFactors.filter (fun p => ¬ p < y')
+      ⊆ n.primeFactors.filter (fun p => ¬ p < y) := by
+    intro p hp
+    rw [Finset.mem_filter] at hp ⊢
+    exact ⟨hp.1, by omega⟩
+  have : n.primeFactors.filter (fun p => ¬ p < y') = ∅ :=
+    Finset.subset_empty.mp (hempty ▸ hsub)
+  rw [this, Finset.prod_empty]
+
+/-- Numbers with trivial rough part are smooth. -/
+theorem mem_smoothNumbersUpTo_of_roughPart_eq_one {y x n : ℕ}
+    (hn : n ∈ Finset.Icc 1 x) (hr : roughPart y n = 1) (hy : 1 ≤ y) :
+    n ∈ Nat.smoothNumbersUpTo x y := by
+  rw [Finset.mem_Icc] at hn
+  have hn0 : n ≠ 0 := by omega
+  rw [Nat.mem_smoothNumbersUpTo]
+  refine ⟨hn.2, ?_⟩
+  have h := smoothPart_mul_roughPart y n hn0
+  rw [hr, mul_one] at h
+  rw [← h]
+  exact smoothPart_mem_smoothNumbers y n hn0 hy
+
+/-- **The three-scale split** (Track R, M2-a3): the Cesàro sum differs
+from its main term — the numbers with both a medium and a large prime
+part — by at most the `y₁`-smooth count plus the medium-free large
+count. -/
+theorem norm_cesaro_sub_main_le (f : ℕ → ℂ) (hb : ∀ n, ‖f n‖ ≤ 1)
+    (y₂ y₁ x : ℕ) (hy₁ : 1 ≤ y₁) (h12 : y₂ ≤ y₁) :
+    ‖(∑ n ∈ Finset.Icc 1 x, f n)
+        - ∑ n ∈ (Finset.Icc 1 x).filter (fun n =>
+            roughPart y₁ n ≠ 1
+              ∧ ¬ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1))), f n‖
+      ≤ ((Nat.smoothNumbersUpTo x y₁).card : ℝ)
+        + (((Finset.Icc 1 x).filter (fun n =>
+            roughPart y₂ n ≠ 1
+              ∧ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1)))).card : ℝ) := by
+  classical
+  set MAIN := (Finset.Icc 1 x).filter (fun n =>
+    roughPart y₁ n ≠ 1
+      ∧ ¬ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1))) with hM_def
+  have hdiff : (∑ n ∈ Finset.Icc 1 x, f n) - ∑ n ∈ MAIN, f n
+      = ∑ n ∈ (Finset.Icc 1 x).filter (fun n => ¬(
+          roughPart y₁ n ≠ 1
+            ∧ ¬ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1)))), f n := by
+    rw [hM_def, ← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 x)
+      (fun n => roughPart y₁ n ≠ 1
+        ∧ ¬ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1)))]
+    ring
+  rw [hdiff]
+  -- the complement splits into smooth and medium-free-large
+  have hcompl : ∀ n ∈ (Finset.Icc 1 x).filter (fun n => ¬(
+      roughPart y₁ n ≠ 1
+        ∧ ¬ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1)))),
+      n ∈ Nat.smoothNumbersUpTo x y₁
+        ∨ n ∈ (Finset.Icc 1 x).filter (fun n =>
+            roughPart y₂ n ≠ 1
+              ∧ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1))) := by
+    intro n hn
+    rw [Finset.mem_filter] at hn
+    obtain ⟨hnI, hnc⟩ := hn
+    push_neg at hnc
+    by_cases hr : roughPart y₁ n = 1
+    · exact Or.inl (mem_smoothNumbersUpTo_of_roughPart_eq_one hnI hr hy₁)
+    · right
+      have hcop := hnc hr
+      rw [Finset.mem_filter]
+      refine ⟨hnI, ?_, hcop⟩
+      rw [Finset.mem_Icc] at hnI
+      have hn0 : n ≠ 0 := by omega
+      intro hr2
+      exact hr (roughPart_eq_one_of_le hn0 h12 hr2)
+  -- bound by the two cardinalities
+  set S := (Finset.Icc 1 x).filter (fun n => ¬(
+    roughPart y₁ n ≠ 1
+      ∧ ¬ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1)))) with hS_def
+  have hsub : S ⊆ Nat.smoothNumbersUpTo x y₁
+      ∪ (Finset.Icc 1 x).filter (fun n =>
+          roughPart y₂ n ≠ 1
+            ∧ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1))) := by
+    intro n hn
+    rw [Finset.mem_union]
+    exact hcompl n hn
+  calc ‖∑ n ∈ S, f n‖
+      ≤ ∑ n ∈ S, ‖f n‖ := norm_sum_le _ _
+    _ ≤ ∑ n ∈ S, 1 := Finset.sum_le_sum (fun n _ => hb n)
+    _ = (S.card : ℝ) := by
+        rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+    _ ≤ ((Nat.smoothNumbersUpTo x y₁
+          ∪ (Finset.Icc 1 x).filter (fun n =>
+              roughPart y₂ n ≠ 1
+                ∧ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1)))).card : ℝ) := by
+        exact_mod_cast Finset.card_le_card hsub
+    _ ≤ ((Nat.smoothNumbersUpTo x y₁).card : ℝ)
+        + (((Finset.Icc 1 x).filter (fun n =>
+            roughPart y₂ n ≠ 1
+              ∧ Nat.Coprime (roughPart y₂ n) (primorial (y₁-1)))).card : ℝ) := by
+        exact_mod_cast Finset.card_union_le _ _
+
+
+
+/-- Additive frequencies split the character. -/
+theorem char_add_mul (a b ξ : ℝ) :
+    ((Real.fourierChar (-((a + b) * ξ)) : Circle) : ℂ)
+      = ((Real.fourierChar (-(a * ξ)) : Circle) : ℂ)
+        * ((Real.fourierChar (-(b * ξ)) : Circle) : ℂ) := by
+  rw [Real.fourierChar_apply, Real.fourierChar_apply, Real.fourierChar_apply]
+  rw [← Complex.exp_add]
+  congr 1
+  push_cast
+  ring
+
+/-- **The box-polynomial factorization, binary form** (Track R, M2-a4):
+the phase polynomial of a product box with additive log-frequencies
+splits into the product of the factor polynomials. -/
+theorem sum_box_char_eq_mul {ι κ : Type*} (S : Finset ι) (T : Finset κ)
+    (w : ι → ℂ) (v : κ → ℂ) (s : ι → ℝ) (r : κ → ℝ) (ξ : ℝ) :
+    ∑ p ∈ S ×ˢ T, (w p.1 * v p.2)
+        * ((Real.fourierChar (-((s p.1 + r p.2) * ξ)) : Circle) : ℂ)
+      = (∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ))
+        * (∑ j ∈ T, v j * ((Real.fourierChar (-(r j * ξ)) : Circle) : ℂ)) := by
+  classical
+  rw [Finset.sum_mul_sum, Finset.sum_product]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  refine Finset.sum_congr rfl fun j _ => ?_
+  rw [char_add_mul]
+  ring
+
+/-- **The box-polynomial factorization, triple form** (M2-a4): three
+factors. -/
+theorem sum_triple_char_eq_mul (S₁ S₂ S₃ : Finset ℕ)
+    (w₁ w₂ w₃ : ℕ → ℂ) (ξ : ℝ) :
+    ∑ t ∈ S₁ ×ˢ (S₂ ×ˢ S₃),
+        (w₁ t.1 * (w₂ t.2.1 * w₃ t.2.2))
+          * ((Real.fourierChar
+              (-((Real.log t.1 + (Real.log t.2.1 + Real.log t.2.2)) * ξ))
+              : Circle) : ℂ)
+      = (∑ i ∈ S₁, w₁ i * ((Real.fourierChar (-(Real.log i * ξ)) : Circle) : ℂ))
+        * ((∑ j ∈ S₂, w₂ j * ((Real.fourierChar (-(Real.log j * ξ)) : Circle) : ℂ))
+          * (∑ k ∈ S₃, w₃ k * ((Real.fourierChar (-(Real.log k * ξ)) : Circle) : ℂ))) := by
+  classical
+  have hinner := sum_box_char_eq_mul S₂ S₃ w₂ w₃
+    (fun j => Real.log j) (fun k => Real.log k) ξ
+  have houter := sum_box_char_eq_mul S₁ (S₂ ×ˢ S₃) w₁
+    (fun p : ℕ × ℕ => w₂ p.1 * w₃ p.2)
+    (fun i => Real.log i)
+    (fun p : ℕ × ℕ => Real.log p.1 + Real.log p.2) ξ
+  rw [houter, hinner]
+
+
 end MoltResearch
