@@ -967,4 +967,165 @@ theorem smooth_tsum_eq_finprod (f : ℕ → ℂ)
         rw [if_pos (prime_mem_smoothNumbers hpp hpy)]
 
 
+set_option maxHeartbeats 1600000 in
+/-- **The 1-line smooth Euler bound** (Track R, M2-i4a2): the finite
+Euler product of a `1`-bounded function over the primes below `y`,
+evaluated on the 1-line at frequency `ξ`, is exponentially controlled
+by the prime mass minus the pretentious distance to the `ξ`-twist —
+the `L^∞` input of the cheap-Halász band term, with no abscissa
+shift. -/
+theorem norm_smooth_finprod_le (f : ℕ → ℂ) (hb : ∀ n, ‖f n‖ ≤ 1)
+    (y : ℕ) (ξ : ℝ) :
+    ‖∏ p ∈ y.primesBelow, (1 - (f p) * (p:ℂ)^(-(1 + Complex.I*(ξ:ℂ))))⁻¹‖
+      ≤ Real.exp ((∑ p ∈ y.primesBelow, (1:ℝ)/p)
+          - pretentiousDistSq f (fun n => (n:ℂ)^(Complex.I*(ξ:ℂ))) y + 1) := by
+  classical
+  set s : ℂ := 1 + Complex.I*(ξ:ℂ) with hs_def
+  set w : ℕ → ℂ := fun p => f p * (p:ℂ)^(-s) with hw_def
+  have hsre : s.re = 1 := by
+    rw [hs_def]
+    simp
+  -- per-prime norm facts
+  have hnw : ∀ p ∈ y.primesBelow, ‖w p‖ ≤ 1/(p:ℝ) := by
+    intro p hp
+    have hpp := Nat.prime_of_mem_primesBelow hp
+    have hp0 : 0 < p := hpp.pos
+    rw [hw_def]
+    dsimp only
+    rw [norm_mul, Complex.norm_natCast_cpow_of_pos hp0]
+    have hre : (-s).re = -1 := by
+      rw [Complex.neg_re, hsre]
+    rw [hre, Real.rpow_neg_one]
+    rw [one_div]
+    have h1 : ‖f p‖ * ((p:ℝ))⁻¹ ≤ 1 * ((p:ℝ))⁻¹ := by
+      refine mul_le_mul_of_nonneg_right (hb p) ?_
+      positivity
+    linarith [h1]
+  have hhalf : ∀ p ∈ y.primesBelow, ‖w p‖ ≤ 1/2 := by
+    intro p hp
+    have hp2 := (Nat.prime_of_mem_primesBelow hp).two_le
+    refine le_trans (hnw p hp) ?_
+    rw [div_le_div_iff₀ (by exact_mod_cast (by omega : 0 < p)) (by norm_num)]
+    have : (2:ℝ) ≤ p := by exact_mod_cast hp2
+    linarith
+  have hlt1 : ∀ p ∈ y.primesBelow, ‖w p‖ < 1 := by
+    intro p hp
+    have := hhalf p hp
+    linarith
+  -- per-factor exponential bound
+  have hfac : ∀ p ∈ y.primesBelow,
+      ‖(1 - w p)⁻¹‖ ≤ Real.exp ((w p).re + ‖w p‖^2) := by
+    intro p hp
+    have hne : (1 : ℂ) - w p ≠ 0 := by
+      intro h
+      have h1 : ‖(1:ℂ)‖ = ‖w p‖ := by
+        rw [show (1:ℂ) = w p from by linear_combination h]
+      rw [norm_one] at h1
+      have := hlt1 p hp
+      linarith
+    have hpos : 0 < ‖(1 - w p)⁻¹‖ := by
+      rw [norm_inv]
+      have : 0 < ‖(1:ℂ) - w p‖ := norm_pos_iff.mpr hne
+      positivity
+    rw [← Real.exp_log hpos, Real.exp_le_exp]
+    have hlogre : Real.log ‖(1 - w p)⁻¹‖
+        = (Complex.log ((1 - w p)⁻¹)).re := by
+      rw [Complex.log_re]
+    rw [hlogre]
+    have hbound := Complex.norm_log_one_sub_inv_sub_self_le (hlt1 p hp)
+    have hre_diff : (Complex.log ((1 - w p)⁻¹)).re - (w p).re
+        ≤ ‖Complex.log ((1 - w p)⁻¹) - w p‖ := by
+      calc (Complex.log ((1 - w p)⁻¹)).re - (w p).re
+          = (Complex.log ((1 - w p)⁻¹) - w p).re := by
+            rw [Complex.sub_re]
+        _ ≤ ‖Complex.log ((1 - w p)⁻¹) - w p‖ := Complex.re_le_norm _
+    have hinv2 : (1 - ‖w p‖)⁻¹ ≤ 2 := by
+      have := hhalf p hp
+      rw [inv_le_comm₀ (by linarith) (by norm_num)]
+      linarith
+    have hsq : ‖w p‖^2 * (1 - ‖w p‖)⁻¹ / 2 ≤ ‖w p‖^2 := by
+      have h0 : (0:ℝ) ≤ ‖w p‖^2 := sq_nonneg _
+      nlinarith
+    linarith [hbound, hre_diff, hsq]
+  -- assemble the product
+  calc ‖∏ p ∈ y.primesBelow, (1 - w p)⁻¹‖
+      = ∏ p ∈ y.primesBelow, ‖(1 - w p)⁻¹‖ := norm_prod _ _
+    _ ≤ ∏ p ∈ y.primesBelow, Real.exp ((w p).re + ‖w p‖^2) := by
+        refine Finset.prod_le_prod (fun p _ => norm_nonneg _) hfac
+    _ = Real.exp (∑ p ∈ y.primesBelow, ((w p).re + ‖w p‖^2)) := by
+        rw [Real.exp_sum]
+    _ ≤ Real.exp ((∑ p ∈ y.primesBelow, (1:ℝ)/p)
+          - pretentiousDistSq f (fun n => (n:ℂ)^(Complex.I*(ξ:ℂ))) y + 1) := by
+        rw [Real.exp_le_exp]
+        have hsum_re : ∑ p ∈ y.primesBelow, (w p).re
+            = (∑ p ∈ y.primesBelow, (1:ℝ)/p)
+              - pretentiousDistSq f (fun n => (n:ℂ)^(Complex.I*(ξ:ℂ))) y := by
+          unfold pretentiousDistSq
+          rw [← Finset.sum_sub_distrib]
+          refine Finset.sum_congr rfl fun p hp => ?_
+          have hpp := Nat.prime_of_mem_primesBelow hp
+          have hp0 : (0:ℝ) < p := by exact_mod_cast hpp.pos
+          have hsplit : w p = (f p * (p:ℂ)^(-(Complex.I*(ξ:ℂ)))) / (p:ℂ) := by
+            rw [hw_def]
+            dsimp only
+            rw [hs_def]
+            rw [show -(1 + Complex.I*(ξ:ℂ))
+                = (-(Complex.I*(ξ:ℂ))) + (-1) from by ring]
+            rw [Complex.cpow_add _ _ (by
+              exact_mod_cast hpp.ne_zero : ((p:ℕ):ℂ) ≠ 0)]
+            rw [Complex.cpow_neg_one]
+            field_simp
+          rw [hsplit]
+          have hdiv_re : ((f p * (p:ℂ)^(-(Complex.I*(ξ:ℂ)))) / (p:ℂ)).re
+              = (f p * (p:ℂ)^(-(Complex.I*(ξ:ℂ)))).re / (p:ℝ) := by
+            have h1 : (f p * (p:ℂ)^(-(Complex.I*(ξ:ℂ)))) / (p:ℂ)
+                = (f p * (p:ℂ)^(-(Complex.I*(ξ:ℂ))))
+                  * (((1/(p:ℝ)):ℝ):ℂ) := by
+              push_cast
+              field_simp
+            rw [h1, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im,
+              mul_zero, sub_zero, mul_one_div]
+          rw [hdiv_re]
+          have hconjp : (starRingEnd ℂ) (((p:ℕ):ℂ)^(Complex.I*(ξ:ℂ)))
+              = ((p:ℕ):ℂ)^(-(Complex.I*(ξ:ℂ))) := by
+            have hplus : ((p:ℕ):ℂ) ^ (Complex.I * (ξ:ℂ))
+                = Complex.exp (((ξ * Real.log p : ℝ) : ℂ) * Complex.I) := by
+              rw [Complex.cpow_def_of_ne_zero
+                (by exact_mod_cast hpp.ne_zero)]
+              congr 1
+              push_cast
+              ring
+            have hminus : ((p:ℕ):ℂ) ^ (-(Complex.I * (ξ:ℂ)))
+                = Complex.exp (-(((ξ * Real.log p : ℝ) : ℂ) * Complex.I)) := by
+              rw [Complex.cpow_def_of_ne_zero
+                (by exact_mod_cast hpp.ne_zero)]
+              congr 1
+              push_cast
+              ring
+            rw [hplus, hminus, ← Complex.exp_conj, map_mul,
+              Complex.conj_ofReal, Complex.conj_I]
+            ring_nf
+          dsimp only
+          rw [hconjp]
+          ring
+        have hsum_sq : ∑ p ∈ y.primesBelow, ‖w p‖^2 ≤ 1 := by
+          have h1 : ∑ p ∈ y.primesBelow, ‖w p‖^2
+              ≤ ∑ p ∈ y.primesBelow, (1/(p:ℝ))^2 := by
+            refine Finset.sum_le_sum fun p hp => ?_
+            have hle := hnw p hp
+            have h0 : (0:ℝ) ≤ ‖w p‖ := norm_nonneg _
+            nlinarith
+          have h2 : ∑ p ∈ y.primesBelow, (1/(p:ℝ))^2
+              ≤ ∑ p ∈ y.primesBelow, 1/((p:ℝ)*((p:ℝ)-1)) := by
+            refine Finset.sum_le_sum fun p hp => ?_
+            have hp2 : (2:ℝ) ≤ p := by
+              exact_mod_cast (Nat.prime_of_mem_primesBelow hp).two_le
+            rw [div_pow, one_pow]
+            rw [div_le_div_iff₀ (by positivity) (by nlinarith)]
+            nlinarith
+          linarith [h1, h2, sum_one_div_mul_pred_primesBelow_le y]
+        rw [Finset.sum_add_distrib, hsum_re]
+        linarith [hsum_sq]
+
+
 end MoltResearch
