@@ -845,4 +845,37 @@ theorem image_div_fibre_subset (a b : ℕ) (S : Finset ℕ)
       exact hmem.2)
 
 
+/-- **The subset 𝒰-decomposition** (Track R, W2c-vii-b2a): the C4e-4
+normal form at an arbitrary finset, with the prime fibres given by the
+quotient images — the shape every level of the `J`-recursion produces
+and consumes. -/
+theorem subset_sum_omega_pos_eq_main_add_coll (S : Finset ℕ)
+    (P : Finset ℕ) (hP : ∀ q ∈ P, q.Prime) (g : ℕ → ℂ) :
+    ∑ m ∈ S.filter (fun m => 0 < (P.filter (· ∣ m)).card), g m
+      = (∑ p ∈ P, ∑ m' ∈ ((S.filter (fun n => p ∣ n)).image (· / p)).filter
+            (fun m' => ¬ p ∣ m'),
+          g (p*m') / (((P.filter (· ∣ m')).card : ℂ) + 1))
+        + ∑ p ∈ P, ∑ m' ∈ ((S.filter (fun n => p ∣ n)).image (· / p)).filter
+            (fun m' => p ∣ m'),
+            g (p*m') / (((P.filter (· ∣ (p*m'))).card : ℂ)) := by
+  classical
+  rw [← sum_div_card_dvd_eq_sum_filter S P g]
+  rw [← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  have hp0 : 0 < p := (hP p hp).pos
+  rw [sum_filter_dvd_eq_sum_image S hp0
+    (fun n => g n / ((P.filter (· ∣ n)).card : ℂ))]
+  rw [← Finset.sum_filter_add_sum_filter_not
+    ((S.filter (fun n => p ∣ n)).image (· / p)) (fun m' => ¬ p ∣ m')]
+  congr 1
+  · refine Finset.sum_congr rfl fun m' hm' => ?_
+    rw [Finset.mem_filter] at hm'
+    rw [card_filter_dvd_mul_of_prime P hP hp hm'.2]
+    push_cast
+    ring
+  · refine Finset.sum_congr ?_ fun m' _ => rfl
+    ext m'
+    simp only [Finset.mem_filter, not_not]
+
+
 end MoltResearch
