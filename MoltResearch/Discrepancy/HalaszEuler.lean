@@ -5,6 +5,7 @@ import MoltResearch.Discrepancy.ChebyshevTail
 import MoltResearch.Discrepancy.MertensFirst
 import Mathlib.NumberTheory.EulerProduct.ExpLog
 import Mathlib.NumberTheory.SmoothNumbers
+import MoltResearch.Discrepancy.SmoothRankin
 import Mathlib.NumberTheory.LSeries.Basic
 import Mathlib.NumberTheory.SumPrimeReciprocals
 import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
@@ -792,6 +793,178 @@ theorem norm_LSeries_smooth_le_zeta_mul_exp (f : ℕ → ℂ)
   have hmass := mass_diff_le y x hy hyx
   rw [hDeq]
   linarith [htransfer, hmass]
+
+
+/-- **The finite Euler identity on the closed half-plane**
+(Track R, M2-i4a1): a `y`-smooth completely multiplicative `1`-bounded
+function has an absolutely convergent Dirichlet series at any `s` with
+`Re s = 1`, equal to the finite Euler product over the primes below
+the cut. -/
+theorem smooth_tsum_eq_finprod (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (y : ℕ) (hy : 1 ≤ y) (s : ℂ) (hs : s.re = 1) :
+    ∑' n : ℕ, (if n ∈ Nat.smoothNumbers y then f n else 0)
+        * (if n = 0 then 0 else (n:ℂ)^(-s))
+      = ∏ p ∈ y.primesBelow,
+          (1 - (f p) * (p:ℂ)^(-s))⁻¹ := by
+  classical
+  set g : ℕ → ℂ := fun n => if n ∈ Nat.smoothNumbers y then f n else 0
+    with hg_def
+  have hgcm : ∀ a b : ℕ, a ≠ 0 → b ≠ 0 → g (a*b) = g a * g b := by
+    intro a b ha hb
+    rw [hg_def]
+    exact completelyMultiplicativeC_smooth_restrict f hcm y a b ha hb
+  have hg1 : g 1 = 1 := by
+    rw [hg_def]
+    dsimp only
+    rw [if_pos (by
+      rw [Nat.mem_smoothNumbers']
+      intro q hq hq1
+      have := Nat.le_of_dvd (by norm_num) hq1
+      have := hq.two_le
+      omega), h1]
+  have hgb : ∀ n, ‖g n‖ ≤ 1 := by
+    intro n
+    rw [hg_def]
+    dsimp only
+    split
+    · exact hb n
+    · simp
+  -- the monoid-hom packaging
+  set F : ℕ →*₀ ℂ :=
+    { toFun := fun n => g n * (if n = 0 then 0 else (n:ℂ)^(-s))
+      map_zero' := by simp
+      map_one' := by simp [hg1]
+      map_mul' := by
+        intro a b
+        rcases eq_or_ne a 0 with ha | ha
+        · simp [ha, hg_def]
+        rcases eq_or_ne b 0 with hb0 | hb0
+        · simp [hb0, hg_def]
+        have hab : a * b ≠ 0 := mul_ne_zero ha hb0
+        simp only [if_neg ha, if_neg hb0, if_neg hab]
+        have hcast : ((a * b : ℕ) : ℂ) ^ (-s)
+            = ((a : ℕ) : ℂ) ^ (-s) * ((b : ℕ) : ℂ) ^ (-s) := by
+          have h1' : ((a * b : ℕ) : ℂ)
+              = (((a : ℕ) : ℝ) : ℂ) * (((b : ℕ) : ℝ) : ℂ) := by
+            push_cast
+            ring
+          have h2' : ((a : ℕ) : ℂ) = (((a : ℕ) : ℝ) : ℂ) := by
+            push_cast
+            ring
+          have h3' : ((b : ℕ) : ℂ) = (((b : ℕ) : ℝ) : ℂ) := by
+            push_cast
+            ring
+          rw [h1', h2', h3',
+            mul_cpow_ofReal_nonneg (Nat.cast_nonneg a) (Nat.cast_nonneg b)]
+        rw [hcast, hgcm a b ha hb0]
+        ring }
+    with hF_def
+  -- norm-summability at Re s = 1: the smooth harmonic mass converges
+  have hFapply : ∀ n : ℕ, F n = g n * (if n = 0 then 0 else (n:ℂ)^(-s)) :=
+    fun n => rfl
+  set h : ℕ → ℝ := fun n =>
+    if n ∈ Nat.smoothNumbers y then 1/(n:ℝ) else 0 with hh_def
+  have hh_nonneg : ∀ n, 0 ≤ h n := by
+    intro n
+    rw [hh_def]
+    dsimp only
+    split
+    · positivity
+    · exact le_refl 0
+  have hh_sum : Summable h := by
+    refine summable_of_sum_le
+      (c := ∏ p ∈ y.primesBelow, (1 - (p:ℝ)^(-(1:ℝ)))⁻¹)
+      hh_nonneg fun u => ?_
+    have h1 : ∑ n ∈ u, h n
+        ≤ ∑ n ∈ Nat.smoothNumbersUpTo (u.sup id + 1) y, (1:ℝ)/n := by
+      rw [hh_def]
+      rw [← Finset.sum_filter]
+      refine Finset.sum_le_sum_of_subset_of_nonneg ?_
+        (fun n _ _ => by positivity)
+      intro n hn
+      rw [Finset.mem_filter] at hn
+      rw [Nat.mem_smoothNumbersUpTo]
+      refine ⟨?_, hn.2⟩
+      have h2 := Finset.le_sup (f := id) hn.1
+      simp only [id_eq] at h2
+      omega
+    have h2 : ∑ n ∈ Nat.smoothNumbersUpTo (u.sup id + 1) y, (1:ℝ)/n
+        ≤ ∏ p ∈ y.primesBelow, (1 - (p:ℝ)^(-(1:ℝ)))⁻¹ := by
+      have hr := sum_rpow_smoothNumbersUpTo_le 1 (by norm_num) y
+        (u.sup id + 1)
+      refine le_trans (le_of_eq ?_) hr
+      refine Finset.sum_congr rfl fun n _ => ?_
+      rw [Real.rpow_neg_one, one_div]
+    exact le_trans h1 h2
+  have hFle : ∀ n, ‖F n‖ ≤ h n := by
+    intro n
+    rcases eq_or_ne n 0 with hn | hn
+    · rw [hFapply, hn]
+      simpa using hh_nonneg 0
+    · rw [hFapply, if_neg hn, norm_mul]
+      have hn0 : 0 < n := Nat.pos_of_ne_zero hn
+      have hnorm : ‖((n:ℕ):ℂ)^(-s)‖ = 1/(n:ℝ) := by
+        rw [Complex.norm_natCast_cpow_of_pos hn0]
+        rw [show (-s).re = -1 from by rw [Complex.neg_re, hs]]
+        rw [Real.rpow_neg_one, one_div]
+      rw [hnorm, hh_def]
+      dsimp only
+      rw [hg_def]
+      dsimp only
+      by_cases hsm : n ∈ Nat.smoothNumbers y
+      · rw [if_pos hsm, if_pos hsm]
+        calc ‖f n‖ * (1/(n:ℝ)) ≤ 1 * (1/(n:ℝ)) :=
+            mul_le_mul_of_nonneg_right (hb n)
+              (one_div_nonneg.mpr (Nat.cast_nonneg n))
+          _ = 1/(n:ℝ) := one_mul _
+      · rw [if_neg hsm, if_neg hsm, norm_zero, zero_mul]
+  have hsum : Summable (fun n => ‖F n‖) :=
+    Summable.of_nonneg_of_le (fun n => norm_nonneg _) hFle hh_sum
+  have hEuler := EulerProduct.eulerProduct_completely_multiplicative
+    (f := F) hsum
+  have hzero_beyond : ∀ p : ℕ, p.Prime → y ≤ p → F p = 0 := by
+    intro p hp hyp
+    rw [hFapply, hg_def]
+    dsimp only
+    rw [if_neg (by
+      intro hmem
+      have := Nat.mem_smoothNumbers'.mp hmem p hp dvd_rfl
+      omega), zero_mul]
+  have hconst : ∀ n, y ≤ n → ∏ p ∈ Nat.primesBelow n, (1 - F p)⁻¹
+      = ∏ p ∈ y.primesBelow, (1 - F p)⁻¹ := by
+    intro n hn
+    refine (Finset.prod_subset ?_ ?_).symm
+    · intro p hp
+      rw [Nat.mem_primesBelow] at hp ⊢
+      exact ⟨by omega, hp.2⟩
+    · intro p hp hnot
+      rw [Nat.mem_primesBelow] at hp
+      have hyp : y ≤ p := by
+        by_contra hlt
+        push_neg at hlt
+        exact hnot (Nat.mem_primesBelow.mpr ⟨hlt, hp.2⟩)
+      rw [hzero_beyond p hp.2 hyp, sub_zero, inv_one]
+  have hconstT : Filter.Tendsto
+      (fun n : ℕ => ∏ p ∈ Nat.primesBelow n, (1 - F p)⁻¹)
+      Filter.atTop (nhds (∏ p ∈ y.primesBelow, (1 - F p)⁻¹)) := by
+    refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
+    filter_upwards [Filter.eventually_ge_atTop y] with n hn
+    exact (hconst n hn).symm
+  have hkey := tendsto_nhds_unique hEuler hconstT
+  calc ∑' n : ℕ, (if n ∈ Nat.smoothNumbers y then f n else 0)
+        * (if n = 0 then 0 else (n:ℂ)^(-s))
+      = ∑' n, F n := by
+        refine tsum_congr fun n => ?_
+        rw [hFapply, hg_def]
+    _ = ∏ p ∈ y.primesBelow, (1 - F p)⁻¹ := hkey
+    _ = ∏ p ∈ y.primesBelow, (1 - (f p) * (p:ℂ)^(-s))⁻¹ := by
+        refine Finset.prod_congr rfl fun p hp => ?_
+        have hpp := Nat.prime_of_mem_primesBelow hp
+        have hpy := (Nat.mem_primesBelow.mp hp).1
+        rw [hFapply, if_neg hpp.ne_zero, hg_def]
+        dsimp only
+        rw [if_pos (prime_mem_smoothNumbers hpp hpy)]
 
 
 end MoltResearch
