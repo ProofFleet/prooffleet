@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.MertensFloor
 import Mathlib.Data.Nat.Choose.Factorization
+import MoltResearch.Discrepancy.ChebyshevTail
 
 /-!
 # Discrepancy: Mertens' first theorem, upper form
@@ -187,5 +188,106 @@ theorem sum_log_div_primesBelow_le (y : ℕ) :
         have h1 : (1 : ℝ) ≤ (y : ℝ) := by exact_mod_cast (by omega : 1 ≤ y)
         have h2 := Real.log_nonneg h1
         linarith
+
+/-- **Mertens' first theorem, sharp upper form** (Track R, E2-i):
+`∑_{p<y} log p/p ≤ log y + 2` — the Legendre double count kept at
+factor one, with the `+1`-floor cost priced by Chebyshev's θ-bound.
+The constant-`1` leading term is what keeps the smooth-harmonic Euler
+product at a single power of `log`. -/
+theorem sum_log_div_primesBelow_le_sharp (y : ℕ) (hy : 2 ≤ y) :
+    ∑ p ∈ y.primesBelow, Real.log p / p ≤ Real.log y + 2 := by
+  classical
+  have hy0 : (0:ℝ) < y := by exact_mod_cast (by omega : 0 < y)
+  -- floor sum against the factorial
+  have hsub : y.primesBelow ⊆ (y.factorial).primeFactors := by
+    intro p hp
+    have h := Nat.mem_primesBelow.mp hp
+    exact Nat.mem_primeFactors.mpr
+      ⟨h.2, Nat.dvd_factorial h.2.pos (le_of_lt h.1), y.factorial_ne_zero⟩
+  have hnonneg : ∀ p ∈ (y.factorial).primeFactors,
+      0 ≤ ((y.factorial).factorization p : ℝ) * Real.log p := by
+    intro p hp
+    have hpp := Nat.prime_of_mem_primeFactors hp
+    have h1 : (1 : ℝ) ≤ p := by exact_mod_cast hpp.one_lt.le
+    have := Real.log_nonneg h1
+    positivity
+  have hfloor : ∑ p ∈ y.primesBelow, ((y / p : ℕ) : ℝ) * Real.log p
+      ≤ Real.log (y.factorial) := by
+    have hterm : ∀ p ∈ y.primesBelow, ((y / p : ℕ) : ℝ) * Real.log p
+        ≤ ((y.factorial).factorization p : ℝ) * Real.log p := by
+      intro p hp
+      have h := Nat.mem_primesBelow.mp hp
+      have hlog0 : 0 ≤ Real.log p :=
+        Real.log_nonneg (by exact_mod_cast h.2.one_lt.le)
+      have hdiv := div_le_factorization_factorial h.2 (le_of_lt h.1)
+      have hcast : ((y / p : ℕ) : ℝ) ≤ ((y.factorial).factorization p : ℝ) := by
+        exact_mod_cast hdiv
+      exact mul_le_mul_of_nonneg_right hcast hlog0
+    calc ∑ p ∈ y.primesBelow, ((y / p : ℕ) : ℝ) * Real.log p
+        ≤ ∑ p ∈ y.primesBelow,
+            ((y.factorial).factorization p : ℝ) * Real.log p :=
+          Finset.sum_le_sum hterm
+      _ ≤ ∑ p ∈ (y.factorial).primeFactors,
+            ((y.factorial).factorization p : ℝ) * Real.log p :=
+          Finset.sum_le_sum_of_subset_of_nonneg hsub
+            (fun p hp _ => hnonneg p hp)
+      _ = Real.log (y.factorial) := (log_factorial_eq y).symm
+  -- real division against the floor
+  have hpt : ∀ p ∈ y.primesBelow, (y:ℝ) * (Real.log p / p)
+      ≤ ((y / p : ℕ) : ℝ) * Real.log p + Real.log p := by
+    intro p hp
+    have h := Nat.mem_primesBelow.mp hp
+    have hp0 : (0:ℝ) < p := by exact_mod_cast h.2.pos
+    have hlog0 : 0 ≤ Real.log p :=
+      Real.log_nonneg (by exact_mod_cast h.2.one_lt.le)
+    have hfl : (y:ℝ)/p ≤ ((y / p : ℕ) : ℝ) + 1 := by
+      rw [div_le_iff₀ hp0]
+      have hdm := Nat.div_add_mod y p
+      have hm := Nat.mod_lt y h.2.pos
+      have hnat : y < (y/p + 1) * p := by
+        have hdm := Nat.div_add_mod y p
+        have hm : y % p < p := Nat.mod_lt y h.2.pos
+        calc y = p * (y/p) + y % p := hdm.symm
+          _ < p * (y/p) + p := by omega
+          _ = (y/p + 1) * p := by ring
+      have hcast : (y:ℝ) < (((y/p : ℕ) : ℝ) + 1) * p := by
+        exact_mod_cast hnat
+      linarith
+    calc (y:ℝ) * (Real.log p / p) = ((y:ℝ)/p) * Real.log p := by ring
+      _ ≤ (((y / p : ℕ) : ℝ) + 1) * Real.log p :=
+          mul_le_mul_of_nonneg_right hfl hlog0
+      _ = ((y / p : ℕ) : ℝ) * Real.log p + Real.log p := by ring
+  have hθ := sum_log_primesBelow_le y
+  have hfac := log_factorial_le y
+  have hlog4 : Real.log 4 ≤ 2 := by
+    rw [show (4:ℝ) = 2^2 from by norm_num, Real.log_pow]
+    have := Real.log_two_lt_d9
+    push_cast
+    linarith
+  have hsum : (y:ℝ) * ∑ p ∈ y.primesBelow, Real.log p / p
+      ≤ (y:ℝ) * Real.log y + (y:ℝ) * Real.log 4 := by
+    calc (y:ℝ) * ∑ p ∈ y.primesBelow, Real.log p / p
+        = ∑ p ∈ y.primesBelow, (y:ℝ) * (Real.log p / p) := by
+          rw [Finset.mul_sum]
+      _ ≤ ∑ p ∈ y.primesBelow,
+            (((y / p : ℕ) : ℝ) * Real.log p + Real.log p) :=
+          Finset.sum_le_sum hpt
+      _ = (∑ p ∈ y.primesBelow, ((y / p : ℕ) : ℝ) * Real.log p)
+            + ∑ p ∈ y.primesBelow, Real.log p := by
+          rw [Finset.sum_add_distrib]
+      _ ≤ Real.log (y.factorial) + (y:ℝ) * Real.log 4 := by
+          have := hθ
+          linarith [hfloor]
+      _ ≤ (y:ℝ) * Real.log y + (y:ℝ) * Real.log 4 := by
+          linarith [hfac]
+  have hfinal : ∑ p ∈ y.primesBelow, Real.log p / p
+      ≤ Real.log y + Real.log 4 := by
+    have h1 := hsum
+    have h2 : (y:ℝ) * (Real.log y + Real.log 4)
+        = (y:ℝ) * Real.log y + (y:ℝ) * Real.log 4 := by ring
+    nlinarith [hy0]
+  linarith [hlog4, hfinal,
+    Real.log_nonneg (by exact_mod_cast (by omega : 1 ≤ y) : (1:ℝ) ≤ y)]
+
 
 end MoltResearch
