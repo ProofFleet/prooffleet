@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.TuranKubilius
 import MoltResearch.Discrepancy.ArchimedeanTaylor
+import MoltResearch.Discrepancy.LargeValues
 import MoltResearch.Discrepancy.PlancherelHarness
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
@@ -1741,6 +1742,295 @@ theorem exists_plateau_window (L : ℝ) (hL : 1 ≤ L) :
       linarith [h]
     have h1n : ‖(1:ℂ)‖ = 1 := by norm_num
     linarith [hbound, hπ8, htri]
+
+
+open Real MeasureTheory
+open scoped FourierTransform ContDiff
+
+/-- Time-side pair expansion: the squared translate sum integrates to
+the pair matrix of translate correlations. -/
+theorem integral_norm_sq_translates_eq_pairs (F : ℝ → ℂ)
+    (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F) {ι : Type*}
+    (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ) :
+    ∫ y, ‖∑ i ∈ S, w i * F (y - s i)‖^2
+      = ∑ i ∈ S, ∑ j ∈ S,
+          ((w i * (starRingEnd ℂ) (w j))
+            * ∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))).re := by
+  classical
+  have hFcont := hFs.continuous
+  have hci : ∀ i : ι, Continuous fun y => w i * F (y - s i) := fun i =>
+    continuous_const.mul (hFcont.comp (continuous_id.sub continuous_const))
+  have hcsi : ∀ i : ι, HasCompactSupport fun y => w i * F (y - s i) := by
+    intro i
+    have h2 : HasCompactSupport fun y : ℝ => F (y - s i) :=
+      hFc.comp_homeomorph (Homeomorph.subRight (s i))
+    exact h2.mul_left
+  have hpair_int : ∀ i j : ι, Integrable (fun y =>
+      (w i * F (y - s i)) * (starRingEnd ℂ) (w j * F (y - s j))) := by
+    intro i j
+    refine Continuous.integrable_of_hasCompactSupport ?_ ?_
+    · exact (hci i).mul (Complex.continuous_conj.comp (hci j))
+    · exact ((hcsi i).mul_right)
+  have hexpand : ∀ y : ℝ, (‖∑ i ∈ S, w i * F (y - s i)‖^2 : ℝ)
+      = ∑ i ∈ S, ∑ j ∈ S,
+          ((w i * F (y - s i))
+            * (starRingEnd ℂ) (w j * F (y - s j))).re := by
+    intro y
+    rw [norm_sq_eq_mul_conj_re, map_sum, Finset.sum_mul_sum,
+      Complex.re_sum]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    rw [Complex.re_sum]
+  rw [integral_congr_ae (Filter.Eventually.of_forall hexpand)]
+  have hint_pair_re : ∀ i j : ι, Integrable (fun y =>
+      ((w i * F (y - s i)) * (starRingEnd ℂ) (w j * F (y - s j))).re) :=
+    fun i j => (hpair_int i j).re
+  rw [integral_finset_sum S (fun i _ =>
+    integrable_finset_sum S (fun j _ => hint_pair_re i j))]
+  refine Finset.sum_congr rfl fun i hi => ?_
+  rw [integral_finset_sum S (fun j _ => hint_pair_re i j)]
+  refine Finset.sum_congr rfl fun j hj => ?_
+  have hpt : ∀ y : ℝ, (w i * F (y - s i))
+        * (starRingEnd ℂ) (w j * F (y - s j))
+      = (w i * (starRingEnd ℂ) (w j))
+        * (F (y - s i) * (starRingEnd ℂ) (F (y - s j))) := by
+    intro y
+    rw [map_mul]
+    ring
+  have hre := integral_re (hpair_int i j)
+  rw [show (fun y => ((w i * F (y - s i))
+      * (starRingEnd ℂ) (w j * F (y - s j))).re)
+    = (fun y => RCLike.re ((w i * F (y - s i))
+      * (starRingEnd ℂ) (w j * F (y - s j)))) from rfl]
+  rw [hre]
+  rw [integral_congr_ae (Filter.Eventually.of_forall hpt),
+    integral_const_mul]
+  rfl
+
+
+/-- Far translates have vanishing correlation. -/
+theorem integral_translate_corr_eq_zero (F : ℝ → ℂ) (δ : ℝ)
+    (hsupp : ∀ y, F y ≠ 0 → |y| ≤ δ) {a b : ℝ} (hfar : 2*δ < |a - b|) :
+    ∫ y, F (y - a) * (starRingEnd ℂ) (F (y - b)) = 0 := by
+  have hzero : ∀ y : ℝ, F (y - a) * (starRingEnd ℂ) (F (y - b)) = 0 := by
+    intro y
+    by_cases ha : F (y - a) = 0
+    · rw [ha, zero_mul]
+    by_cases hb : F (y - b) = 0
+    · rw [hb, map_zero, mul_zero]
+    exfalso
+    have h1 := hsupp _ ha
+    have h2 := hsupp _ hb
+    have : |a - b| ≤ 2*δ := by
+      calc |a - b| = |(y - b) - (y - a)| := by ring_nf
+        _ ≤ |y - b| + |y - a| := abs_sub _ _
+        _ ≤ δ + δ := add_le_add h2 h1
+        _ = 2*δ := by ring
+    linarith
+  rw [integral_congr_ae (Filter.Eventually.of_forall hzero)]
+  simp
+
+/-- Close translates have correlation at most `M²·2δ`. -/
+theorem norm_integral_translate_corr_le (F : ℝ → ℂ) (δ M : ℝ)
+    (hδ : 0 < δ) (hM : 0 ≤ M)
+    (hsupp : ∀ y, F y ≠ 0 → |y| ≤ δ) (hsup : ∀ y, ‖F y‖ ≤ M)
+    (hFc : HasCompactSupport F) (hFs : Continuous F) (a b : ℝ) :
+    ‖∫ y, F (y - a) * (starRingEnd ℂ) (F (y - b))‖ ≤ M^2 * (2*δ) := by
+  have hint : Integrable (fun y => F (y - a) * (starRingEnd ℂ) (F (y - b))) := by
+    refine Continuous.integrable_of_hasCompactSupport ?_ ?_
+    · exact (hFs.comp (continuous_id.sub continuous_const)).mul
+        (Complex.continuous_conj.comp
+          (hFs.comp (continuous_id.sub continuous_const)))
+    · exact (hFc.comp_homeomorph (Homeomorph.subRight a)).mul_right
+  refine le_trans (norm_integral_le_integral_norm _) ?_
+  have hptw : ∀ y : ℝ, ‖F (y - a) * (starRingEnd ℂ) (F (y - b))‖
+      ≤ Set.indicator (Metric.closedBall a δ) (fun _ => M^2) y := by
+    intro y
+    by_cases hy : F (y - a) = 0
+    · rw [hy, zero_mul, norm_zero]
+      exact Set.indicator_nonneg (fun _ _ => by positivity) y
+    · have h1 := hsupp _ hy
+      have hmem : y ∈ Metric.closedBall a δ := by
+        rw [Metric.mem_closedBall, Real.dist_eq]
+        exact h1
+      rw [Set.indicator_of_mem hmem, norm_mul, RingHomIsometric.norm_map]
+      calc ‖F (y - a)‖ * ‖F (y - b)‖
+          ≤ M * M := mul_le_mul (hsup _) (hsup _) (norm_nonneg _) hM
+        _ = M^2 := by ring
+  have hind_int : Integrable
+      (Set.indicator (Metric.closedBall a δ) (fun _ : ℝ => M^2)) := by
+    rw [integrable_indicator_iff measurableSet_closedBall]
+    exact integrableOn_const measure_closedBall_lt_top.ne
+  refine le_trans (integral_mono hint.norm hind_int hptw) ?_
+  rw [integral_indicator_const _ measurableSet_closedBall]
+  rw [smul_eq_mul, MeasureTheory.measureReal_def, Real.volume_closedBall,
+    ENNReal.toReal_ofReal (by linarith)]
+  ring_nf
+  rfl
+
+
+
+set_option maxHeartbeats 1600000 in
+/-- **The close-pair band energy** (Track R, M2-g2): the band energy of
+a phase polynomial is controlled by its `1/(8L)`-close pairs alone —
+the plateau window turns the band into the harness Plancherel, whose
+time side sees only overlapping translates. The Fejér-quality mean
+value that removes the sharp-window log-losses. -/
+theorem integral_band_norm_sq_le_close_pairs {ι : Type*} (S : Finset ι)
+    (w : ι → ℂ) (s : ι → ℝ) (L : ℝ) (hL : 1 ≤ L) :
+    ∫ ξ in (-L)..L,
+        ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2
+      ≤ 512*L*∑ i ∈ S,
+          ∑ j ∈ S.filter (fun j => |s i - s j| ≤ 1/(8*L)), ‖w i‖*‖w j‖ := by
+  classical
+  have hL0 : (0:ℝ) < L := by linarith
+  obtain ⟨F, hFs, hFc, hsupp, hsup, hlow⟩ := exists_plateau_window L hL
+  set P : ℝ → ℂ := fun ξ =>
+    ∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ) with hP_def
+  set B : ℝ := ∑ i ∈ S, ‖w i‖ with hB_def
+  have hPB : ∀ ξ, ‖P ξ‖ ≤ B := by
+    intro ξ
+    rw [hP_def, hB_def]
+    refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
+    rw [norm_mul, norm_eq_of_mem_sphere, mul_one]
+  have hPcont : Continuous P := by
+    rw [hP_def]
+    refine continuous_finset_sum _ fun i _ => ?_
+    exact continuous_const.mul (Continuous.comp continuous_subtype_val
+      (Real.continuous_fourierChar.comp (by fun_prop)))
+  -- Schwartz packaging of the window transform
+  set G : SchwartzMap ℝ ℂ := hFc.toSchwartzMap hFs with hG_def
+  have hFhat_eq : ∀ ξ, ‖𝓕 F ξ‖ = ‖(𝓕 G) ξ‖ := fun _ => rfl
+  obtain ⟨C, hC⟩ := (𝓕 G).decay' 0 0
+  have hC' : ∀ ξ : ℝ, ‖(𝓕 G) ξ‖ ≤ C := fun ξ => by
+    have := hC ξ
+    simpa using this
+  have hFhat_sq_int : Integrable (fun ξ : ℝ => ‖𝓕 F ξ‖^2) := by
+    simp only [hFhat_eq]
+    refine ((𝓕 G).integrable.norm.const_mul C).mono' ?_ ?_
+    · exact ((𝓕 G).continuous.norm.pow 2).aestronglyMeasurable
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]
+      calc ‖(𝓕 G) ξ‖^2 = ‖(𝓕 G) ξ‖ * ‖(𝓕 G) ξ‖ := by ring
+        _ ≤ C * ‖(𝓕 G) ξ‖ :=
+            mul_le_mul_of_nonneg_right (hC' ξ) (norm_nonneg _)
+  have hmaj_int : Integrable (fun ξ : ℝ => 4*‖P ξ‖^2*‖𝓕 F ξ‖^2) := by
+    refine (hFhat_sq_int.const_mul (4*B^2)).mono' ?_ ?_
+    · refine Continuous.aestronglyMeasurable ?_
+      refine Continuous.mul (continuous_const.mul (hPcont.norm.pow 2)) ?_
+      simp only [hFhat_eq]
+      exact (𝓕 G).continuous.norm.pow 2
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]
+      have h1 : ‖P ξ‖^2 ≤ B^2 := by
+        have := hPB ξ
+        have h0 : (0:ℝ) ≤ ‖P ξ‖ := norm_nonneg _
+        nlinarith
+      have h2 : (0:ℝ) ≤ ‖𝓕 F ξ‖^2 := by positivity
+      nlinarith
+  -- the band sits under the weighted full-line energy
+  have hband : ∫ ξ in (-L)..L, ‖P ξ‖^2
+      ≤ ∫ ξ, 4*‖P ξ‖^2*‖𝓕 F ξ‖^2 := by
+    rw [intervalIntegral.integral_of_le (by linarith : -L ≤ L)]
+    have hmono : ∫ ξ in Set.Ioc (-L) L, ‖P ξ‖^2
+        ≤ ∫ ξ in Set.Ioc (-L) L, 4*‖P ξ‖^2*‖𝓕 F ξ‖^2 := by
+      refine setIntegral_mono_on ?_ ?_ measurableSet_Ioc ?_
+      · exact ((hPcont.norm.pow 2).continuousOn).integrableOn_compact
+          isCompact_Icc |>.mono_set Set.Ioc_subset_Icc_self
+      · exact hmaj_int.integrableOn
+      · intro ξ hξ
+        rw [Set.mem_Ioc] at hξ
+        have habs : |ξ| ≤ L := by
+          rw [abs_le]
+          exact ⟨le_of_lt hξ.1, hξ.2⟩
+        have hl := hlow ξ habs
+        have h0 : (0:ℝ) ≤ ‖P ξ‖^2 := by positivity
+        have h1 : (1:ℝ) ≤ 4*‖𝓕 F ξ‖^2 := by nlinarith [hl]
+        nlinarith
+    refine le_trans hmono ?_
+    refine setIntegral_le_integral hmaj_int ?_
+    refine Filter.Eventually.of_forall fun ξ => ?_
+    positivity
+  -- Plancherel to the time side
+  have hplanch := integral_norm_sq_sum_translates F hFc hFs S w s
+  have hweight_eq : ∫ ξ, 4*‖P ξ‖^2*‖𝓕 F ξ‖^2
+      = 4 * ∫ y, ‖∑ i ∈ S, w i * F (y - s i)‖^2 := by
+    rw [hplanch]
+    rw [← integral_const_mul]
+    refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
+    rw [hP_def]
+    ring
+  -- pairs, split into close and far
+  have hpairs := integral_norm_sq_translates_eq_pairs F hFc hFs S w s
+  set δ : ℝ := 1/(16*L) with hδ_def
+  have hδ0 : 0 < δ := by rw [hδ_def]; positivity
+  have hcorr_far : ∀ i j : ι, ¬(|s i - s j| ≤ 1/(8*L)) →
+      (∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))) = 0 := by
+    intro i j hfar
+    refine integral_translate_corr_eq_zero F δ hsupp ?_
+    push_neg at hfar
+    rw [hδ_def]
+    calc 2*(1/(16*L)) = 1/(8*L) := by field_simp; ring
+      _ < |s i - s j| := hfar
+  have hcorr_close : ∀ i j : ι,
+      ‖∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))‖ ≤ 128*L := by
+    intro i j
+    have h := norm_integral_translate_corr_le F δ (32*L) hδ0
+      (by positivity) hsupp hsup hFc hFs.continuous (s i) (s j)
+    refine le_trans h ?_
+    rw [hδ_def]
+    rw [show (32*L)^2*(2*(1/(16*L))) = 128*L from by field_simp; ring]
+  -- assemble
+  have hsum_bound : ∑ i ∈ S, ∑ j ∈ S,
+        ((w i * (starRingEnd ℂ) (w j))
+          * ∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))).re
+      ≤ ∑ i ∈ S,
+          ∑ j ∈ S.filter (fun j => |s i - s j| ≤ 1/(8*L)),
+            (128*L) * (‖w i‖*‖w j‖) := by
+    refine Finset.sum_le_sum fun i _ => ?_
+    rw [← Finset.sum_filter_add_sum_filter_not S
+      (fun j => |s i - s j| ≤ 1/(8*L))]
+    have hfar0 : ∑ j ∈ S.filter (fun j => ¬(|s i - s j| ≤ 1/(8*L))),
+        ((w i * (starRingEnd ℂ) (w j))
+          * ∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))).re = 0 := by
+      refine Finset.sum_eq_zero fun j hj => ?_
+      rw [Finset.mem_filter] at hj
+      rw [hcorr_far i j hj.2, mul_zero]
+      simp
+    rw [hfar0, add_zero]
+    refine Finset.sum_le_sum fun j hj => ?_
+    calc ((w i * (starRingEnd ℂ) (w j))
+          * ∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))).re
+        ≤ ‖(w i * (starRingEnd ℂ) (w j))
+            * ∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))‖ :=
+          Complex.re_le_norm _
+      _ = ‖w i‖ * ‖w j‖
+            * ‖∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))‖ := by
+          rw [norm_mul, norm_mul, RingHomIsometric.norm_map]
+      _ ≤ ‖w i‖ * ‖w j‖ * (128*L) := by
+          refine mul_le_mul_of_nonneg_left (hcorr_close i j) ?_
+          positivity
+      _ = (128*L) * (‖w i‖*‖w j‖) := by ring
+  -- chain everything
+  calc ∫ ξ in (-L)..L, ‖P ξ‖^2
+      ≤ ∫ ξ, 4*‖P ξ‖^2*‖𝓕 F ξ‖^2 := hband
+    _ = 4 * ∫ y, ‖∑ i ∈ S, w i * F (y - s i)‖^2 := hweight_eq
+    _ = 4 * ∑ i ∈ S, ∑ j ∈ S,
+          ((w i * (starRingEnd ℂ) (w j))
+            * ∫ y, F (y - s i) * (starRingEnd ℂ) (F (y - s j))).re := by
+        rw [hpairs]
+    _ ≤ 4 * ∑ i ∈ S,
+          ∑ j ∈ S.filter (fun j => |s i - s j| ≤ 1/(8*L)),
+            (128*L) * (‖w i‖*‖w j‖) := by
+        linarith [hsum_bound]
+    _ = 512*L*∑ i ∈ S,
+          ∑ j ∈ S.filter (fun j => |s i - s j| ≤ 1/(8*L)), ‖w i‖*‖w j‖ := by
+        rw [Finset.mul_sum]
+        rw [Finset.mul_sum]
+        refine Finset.sum_congr rfl fun i _ => ?_
+        rw [Finset.mul_sum, Finset.mul_sum]
+        refine Finset.sum_congr rfl fun j _ => ?_
+        ring
+
 
 
 end ExpSums
