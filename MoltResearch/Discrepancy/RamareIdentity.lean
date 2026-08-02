@@ -495,4 +495,55 @@ theorem totient_prod_le_exp (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) :
           ring
 
 
+/-- **The 𝒰-split** (Track R, W2c-v-i): restricting a `1`-bounded sum
+over an interval to the integers with a factor in the prime set `P`
+costs at most the sifted count `φ(Q)((b−a)/Q + 1)` — and the
+restricted sum is exactly the `ω_P ≥ 1` set that the Ramaré
+decomposition (C4e-4/5/6) factors through the prime fibres. -/
+theorem norm_sum_sub_sift_le (a b : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) (g : ℕ → ℂ) (hg : ∀ m, ‖g m‖ ≤ 1) :
+    ‖(∑ m ∈ Finset.Ioc a b, g m)
+        - ∑ m ∈ (Finset.Ioc a b).filter
+            (fun m => 0 < (P.filter (· ∣ m)).card), g m‖
+      ≤ (((∏ p ∈ P, p).totient : ℕ) : ℝ) * (((b - a)/(∏ p ∈ P, p) + 1 : ℕ) : ℝ) := by
+  classical
+  have hsplit : (∑ m ∈ Finset.Ioc a b, g m)
+      - ∑ m ∈ (Finset.Ioc a b).filter
+          (fun m => 0 < (P.filter (· ∣ m)).card), g m
+      = ∑ m ∈ (Finset.Ioc a b).filter
+          (fun m => ¬ 0 < (P.filter (· ∣ m)).card), g m := by
+    rw [← Finset.sum_filter_add_sum_filter_not (Finset.Ioc a b)
+      (fun m => 0 < (P.filter (· ∣ m)).card) g]
+    ring
+  rw [hsplit]
+  have hchar : (Finset.Ioc a b).filter
+      (fun m => ¬ 0 < (P.filter (· ∣ m)).card)
+      = (Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m) := by
+    refine Finset.filter_congr fun m _ => ?_
+    simp only [Nat.pos_iff_ne_zero, not_not, Finset.card_eq_zero,
+      Finset.filter_eq_empty_iff]
+  rw [hchar]
+  calc ‖∑ m ∈ (Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m), g m‖
+      ≤ ∑ m ∈ (Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m), ‖g m‖ :=
+        norm_sum_le _ _
+    _ ≤ ∑ _m ∈ (Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m), (1:ℝ) :=
+        Finset.sum_le_sum fun m _ => hg m
+    _ = (((Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m)).card : ℝ) := by
+        rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+    _ ≤ (((∏ p ∈ P, p).totient : ℕ) : ℝ)
+          * (((b - a)/(∏ p ∈ P, p) + 1 : ℕ) : ℝ) := by
+        have h1 := card_filter_not_dvd_le a b P hP
+        have h2 : (((Finset.Ioc a b).filter
+            (fun m => ∀ p ∈ P, ¬ p ∣ m)).card : ℝ)
+            ≤ (((∏ p ∈ P, p).totient * ((b - a)/(∏ p ∈ P, p) + 1) : ℕ) : ℝ) := by
+          exact_mod_cast h1
+        calc (((Finset.Ioc a b).filter
+            (fun m => ∀ p ∈ P, ¬ p ∣ m)).card : ℝ)
+            ≤ (((∏ p ∈ P, p).totient * ((b - a)/(∏ p ∈ P, p) + 1) : ℕ) : ℝ) := h2
+          _ = (((∏ p ∈ P, p).totient : ℕ) : ℝ)
+              * (((b - a)/(∏ p ∈ P, p) + 1 : ℕ) : ℝ) := by
+              push_cast
+              ring
+
+
 end MoltResearch
