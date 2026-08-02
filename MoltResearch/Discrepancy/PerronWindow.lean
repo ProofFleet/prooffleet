@@ -732,6 +732,163 @@ theorem fourier_tail_le (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V)
   linarith [hIoi_bound, hIio_bound, hval]
 
 
+set_option maxHeartbeats 1600000 in
+/-- **The Perron sandwich** (Track R, M2-i2): the window-weighted sum
+reproduces the normalized Cesàro mean up to the edge budget
+`2ρ + 2/x` — the plateau weights are exactly `1/x`, the edge carries
+at most `ρx + 1` terms of size `2/x`, and everything beyond `x`
+vanishes. -/
+theorem perron_sandwich (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (V : ℝ → ℝ) (ρ : ℝ) (x : ℕ) (hx : 4 ≤ x) (hρ0 : 0 < ρ) (hρ1 : ρ ≤ 1)
+    (hVplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log x + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (S : Finset ℕ) (hS : Finset.Icc 1 x ⊆ S) (hS1 : ∀ n ∈ S, 1 ≤ n) :
+    ‖(∑ n ∈ S, (g n/(n:ℂ))
+          * ((V (Real.log x - Real.log n) : ℝ) : ℂ))
+        - (∑ n ∈ Finset.Icc 1 x, g n)/(x:ℂ)‖
+      ≤ 2*ρ + 2/(x:ℝ) := by
+  classical
+  have hx0 : (0:ℝ) < x := by exact_mod_cast (by omega : 0 < x)
+  have hlogx : (0:ℝ) ≤ Real.log x :=
+    Real.log_nonneg (by exact_mod_cast (by omega : 1 ≤ x))
+  -- terms beyond x vanish
+  have hbeyond : ∀ n ∈ S \ Finset.Icc 1 x,
+      (g n/(n:ℂ)) * ((V (Real.log x - Real.log n) : ℝ) : ℂ) = 0 := by
+    intro n hn
+    rw [Finset.mem_sdiff, Finset.mem_Icc] at hn
+    have h1 := hS1 n hn.1
+    have hnx : x < n := by omega
+    have hlog : Real.log x - Real.log n ≤ 0 := by
+      have := Real.log_le_log hx0 (by exact_mod_cast hnx.le : (x:ℝ) ≤ n)
+      linarith
+    rw [hV0 _ hlog]
+    simp
+  have hsum_eq : ∑ n ∈ S, (g n/(n:ℂ))
+        * ((V (Real.log x - Real.log n) : ℝ) : ℂ)
+      = ∑ n ∈ Finset.Icc 1 x, (g n/(n:ℂ))
+        * ((V (Real.log x - Real.log n) : ℝ) : ℂ) := by
+    rw [← Finset.sum_sdiff hS]
+    rw [Finset.sum_congr rfl hbeyond, Finset.sum_const_zero, zero_add]
+  rw [hsum_eq]
+  -- rewrite the Cesàro side as a sum of 1/x-weights
+  have hces : (∑ n ∈ Finset.Icc 1 x, g n)/(x:ℂ)
+      = ∑ n ∈ Finset.Icc 1 x, g n/(x:ℂ) := by
+    rw [Finset.sum_div]
+  rw [hces, ← Finset.sum_sub_distrib]
+  -- split at the plateau threshold
+  set P : ℕ → Prop := fun n => (n:ℝ) ≤ (x:ℝ)*Real.exp (-ρ) with hP_def
+  have hplat_exact : ∀ n ∈ (Finset.Icc 1 x).filter (fun n => P n),
+      (g n/(n:ℂ)) * ((V (Real.log x - Real.log n) : ℝ) : ℂ) - g n/(x:ℂ)
+        = 0 := by
+    intro n hn
+    rw [Finset.mem_filter, Finset.mem_Icc] at hn
+    have hn1 : 1 ≤ n := hn.1.1
+    have hnr : (1:ℝ) ≤ n := by exact_mod_cast hn1
+    have hv1 : ρ ≤ Real.log x - Real.log n := by
+      have h2 : Real.log n ≤ Real.log ((x:ℝ)*Real.exp (-ρ)) :=
+        Real.log_le_log (by linarith) hn.2
+      rw [Real.log_mul (by positivity) (Real.exp_pos _).ne',
+        Real.log_exp] at h2
+      linarith
+    have hv2 : Real.log x - Real.log n ≤ 2*Real.log x + 1 := by
+      have := Real.log_nonneg hnr
+      linarith
+    rw [hVplat _ hv1 hv2]
+    have hexp : Real.exp (-(Real.log x - Real.log n)) = (n:ℝ)/(x:ℝ) := by
+      rw [neg_sub, Real.exp_sub, Real.exp_log (by linarith),
+        Real.exp_log hx0]
+    rw [hexp]
+    have hn0 : (n:ℂ) ≠ 0 := by
+      exact_mod_cast (by omega : n ≠ 0)
+    have hx0' : (x:ℂ) ≠ 0 := by
+      exact_mod_cast (by omega : x ≠ 0)
+    push_cast
+    field_simp
+    ring
+  -- the edge terms
+  have hedge_bound : ∀ n ∈ (Finset.Icc 1 x).filter (fun n => ¬ P n),
+      ‖(g n/(n:ℂ)) * ((V (Real.log x - Real.log n) : ℝ) : ℂ) - g n/(x:ℂ)‖
+        ≤ 2/(x:ℝ) := by
+    intro n hn
+    rw [Finset.mem_filter, Finset.mem_Icc] at hn
+    have hn1 : 1 ≤ n := hn.1.1
+    have hnr : (1:ℝ) ≤ n := by exact_mod_cast hn1
+    have hnx : (n:ℝ) ≤ x := by exact_mod_cast hn.1.2
+    refine le_trans (norm_sub_le _ _) ?_
+    have h1 : ‖(g n/(n:ℂ)) * ((V (Real.log x - Real.log n) : ℝ) : ℂ)‖
+        ≤ 1/(x:ℝ) := by
+      rw [norm_mul, norm_div, Complex.norm_natCast, Complex.norm_real,
+        Real.norm_eq_abs, abs_of_nonneg (hVnn _)]
+      have hV1 : V (Real.log x - Real.log n) ≤ (n:ℝ)/(x:ℝ) := by
+        refine le_trans (hVle _) (le_of_eq ?_)
+        rw [neg_sub, Real.exp_sub, Real.exp_log (by linarith),
+          Real.exp_log hx0]
+      calc ‖g n‖/(n:ℝ) * V (Real.log x - Real.log n)
+          ≤ 1/(n:ℝ) * ((n:ℝ)/(x:ℝ)) := by
+            refine mul_le_mul ?_ hV1 (hVnn _) (by positivity)
+            exact div_le_div_of_nonneg_right (hg n) (by linarith)
+        _ = 1/(x:ℝ) := by
+            field_simp
+    have h2 : ‖g n/(x:ℂ)‖ ≤ 1/(x:ℝ) := by
+      rw [norm_div, Complex.norm_natCast]
+      exact div_le_div_of_nonneg_right (hg n) hx0.le
+    have hsum : 1/(x:ℝ) + 1/(x:ℝ) = 2/(x:ℝ) := by ring
+    linarith
+  -- the edge count
+  have hedge_card : (((Finset.Icc 1 x).filter (fun n => ¬ P n)).card : ℝ)
+      ≤ ρ*(x:ℝ) + 1 := by
+    set m₀ : ℕ := ⌊(x:ℝ)*Real.exp (-ρ)⌋₊ with hm₀_def
+    have hsub : (Finset.Icc 1 x).filter (fun n => ¬ P n)
+        ⊆ Finset.Icc (m₀+1) x := by
+      intro n hn
+      rw [Finset.mem_filter, Finset.mem_Icc] at hn
+      rw [Finset.mem_Icc]
+      refine ⟨?_, hn.1.2⟩
+      have h1 : ¬((n:ℝ) ≤ (x:ℝ)*Real.exp (-ρ)) := hn.2
+      push_neg at h1
+      have h2 : m₀ < n := by
+        rw [hm₀_def]
+        exact (Nat.floor_lt (by positivity)).mpr h1
+      omega
+    have hm₀x : m₀ ≤ x := by
+      rw [hm₀_def]
+      have h1 : (x:ℝ)*Real.exp (-ρ) ≤ x := by
+        have := Real.exp_le_one_iff.mpr (by linarith : -ρ ≤ 0)
+        nlinarith
+      calc ⌊(x:ℝ)*Real.exp (-ρ)⌋₊ ≤ ⌊(x:ℝ)⌋₊ := Nat.floor_le_floor h1
+        _ = x := Nat.floor_natCast x
+    have hm₀low : (x:ℝ)*Real.exp (-ρ) - 1 < m₀ := by
+      rw [hm₀_def]
+      exact Nat.sub_one_lt_floor _
+    calc (((Finset.Icc 1 x).filter (fun n => ¬ P n)).card : ℝ)
+        ≤ ((Finset.Icc (m₀+1) x).card : ℝ) := by
+          exact_mod_cast Finset.card_le_card hsub
+      _ = ((x - m₀ : ℕ) : ℝ) := by
+          rw [Nat.card_Icc]
+          congr 1
+          omega
+      _ ≤ (x:ℝ) - ((x:ℝ)*Real.exp (-ρ) - 1) := by
+          rw [Nat.cast_sub hm₀x]
+          linarith [hm₀low]
+      _ ≤ ρ*(x:ℝ) + 1 := by
+          have hexp : 1 - ρ ≤ Real.exp (-ρ) := by
+            have := Real.add_one_le_exp (-ρ)
+            linarith
+          nlinarith
+  -- assemble
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 x)
+    (fun n => P n)]
+  rw [Finset.sum_congr rfl hplat_exact, Finset.sum_const_zero, zero_add]
+  refine le_trans (norm_sum_le _ _) ?_
+  refine le_trans (Finset.sum_le_card_nsmul _ _ (2/(x:ℝ)) hedge_bound) ?_
+  rw [nsmul_eq_mul]
+  calc (((Finset.Icc 1 x).filter (fun n => ¬ P n)).card : ℝ) * (2/(x:ℝ))
+      ≤ (ρ*(x:ℝ) + 1) * (2/(x:ℝ)) :=
+        mul_le_mul_of_nonneg_right hedge_card (by positivity)
+    _ = 2*ρ + 2/(x:ℝ) := by
+        field_simp
+
 end ExpSums
 
 end MoltResearch
