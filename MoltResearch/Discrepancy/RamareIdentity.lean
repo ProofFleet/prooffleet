@@ -1479,4 +1479,56 @@ theorem intervalIntegral_norm_sq_subset_le (K : ℝ) (hK : 0 ≤ K)
     linarith [h2U, hmain, hcoll, hsift]
 
 
+open ArithmeticFunction in
+/-- **The Wirsing iteration inequality** (Track R, W2c-iii-a): the normed
+scale recursion — `|T(x)|·log x` is at most the log-mesh average of
+`|T|` plus the `Λ/d`-weighted averages of `|T|` at smaller scales. The
+distance decay extraction iterates this inequality; the `Λf`-weights'
+cancellation enters through the second sum. -/
+theorem norm_T_mul_log_le (f : ℕ → ℂ) (hcm : CompletelyMultiplicativeC f)
+    (hf : ∀ m, ‖f m‖ ≤ 1) (x : ℕ) :
+    ‖∑ m ∈ Finset.Ioc 0 x, f m / m‖ * Real.log x
+      ≤ (∑ k ∈ Finset.Ioc 0 (x-1),
+          ‖∑ m ∈ Finset.Ioc 0 k, f m / m‖ * (Real.log (k+1) - Real.log k))
+        + ∑ d ∈ Finset.Ioc 0 x, (vonMangoldt d) / d
+            * ‖∑ m ∈ Finset.Ioc 0 (x/d), f m / m‖ := by
+  classical
+  rcases Nat.eq_zero_or_pos x with hx | hx
+  · subst hx
+    simp
+  have hid := wirsing_identity f hcm x
+  have hlhs : ‖∑ m ∈ Finset.Ioc 0 x, f m / m‖ * Real.log x
+      = ‖(∑ m ∈ Finset.Ioc 0 x, f m / m) * ((Real.log x : ℝ) : ℂ)‖ := by
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (Real.log_nonneg (by exact_mod_cast hx))]
+  rw [hlhs, hid]
+  refine le_trans (norm_add_le _ _) ?_
+  refine add_le_add ?_ ?_
+  · refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun k hk => ?_)
+    rw [Finset.mem_Ioc] at hk
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs]
+    have hΔ : (0:ℝ) ≤ Real.log (k+1) - Real.log k := by
+      have h1 : Real.log k ≤ Real.log (k+1) := by
+        refine Real.log_le_log ?_ ?_
+        · exact_mod_cast hk.1
+        · push_cast
+          linarith
+      linarith
+    rw [abs_of_nonneg hΔ]
+  · refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun d hd => ?_)
+    rw [Finset.mem_Ioc] at hd
+    have hΛ0 : (0:ℝ) ≤ vonMangoldt d := vonMangoldt_nonneg
+    have hd0 : (0:ℝ) < d := by exact_mod_cast hd.1
+    rw [norm_mul, norm_div, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg hΛ0, Complex.norm_natCast]
+    calc vonMangoldt d * ‖f d‖ / (d:ℝ)
+          * ‖∑ m ∈ Finset.Ioc 0 (x/d), f m / m‖
+        ≤ vonMangoldt d * 1 / (d:ℝ)
+            * ‖∑ m ∈ Finset.Ioc 0 (x/d), f m / m‖ := by
+          gcongr
+          exact hf d
+      _ = vonMangoldt d / d * ‖∑ m ∈ Finset.Ioc 0 (x/d), f m / m‖ := by
+          ring
+
+
 end MoltResearch
