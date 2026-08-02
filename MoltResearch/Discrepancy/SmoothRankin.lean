@@ -465,4 +465,147 @@ theorem smoothNumbersUpTo_card_mul_log_le (y x : ℕ) (hy : 2 ≤ y) :
 
 
 
+/-- Telescoped square-ish tail on an integer interval. -/
+theorem sum_Icc_inv_mul_pred_le (y : ℕ) (hy : 1 ≤ y) :
+    ∑ n ∈ Finset.Icc 2 y, 1/((n:ℝ)*((n:ℝ)-1)) ≤ 1 - 1/(y:ℝ) := by
+  induction y with
+  | zero => omega
+  | succ k ih =>
+    rcases Nat.eq_zero_or_pos k with hk | hk
+    · subst hk
+      norm_num
+    · rw [Finset.sum_Icc_succ_top (by omega : 2 ≤ k+1)]
+      have hk1 : (1:ℝ) ≤ (k:ℝ) := by exact_mod_cast hk
+      have hid : 1/(((k+1:ℕ):ℝ)*(((k+1:ℕ):ℝ)-1))
+          = 1/(k:ℝ) - 1/((k:ℝ)+1) := by
+        push_cast
+        rw [div_sub_div _ _ (by linarith) (by linarith)]
+        congr 1
+        · ring
+        · ring
+      rw [hid]
+      have := ih hk
+      push_cast
+      linarith
+
+/-- The prime tail `∑_{p<y} 1/(p(p−1)) ≤ 1`. -/
+theorem sum_one_div_mul_pred_primesBelow_le (y : ℕ) :
+    ∑ p ∈ y.primesBelow, 1/((p:ℝ)*((p:ℝ)-1)) ≤ 1 := by
+  classical
+  rcases Nat.lt_or_ge y 1 with hy | hy
+  · have : y.primesBelow = ∅ := by
+      ext p
+      rw [Nat.mem_primesBelow]
+      simp only [Finset.notMem_empty, iff_false, not_and]
+      intro h
+      omega
+    rw [this]
+    simp
+  have hsub : y.primesBelow ⊆ (Finset.Icc 2 y) := by
+    intro p hp
+    rw [Nat.mem_primesBelow] at hp
+    rw [Finset.mem_Icc]
+    exact ⟨hp.2.two_le, by omega⟩
+  have hnn : ∀ n ∈ Finset.Icc 2 y, (0:ℝ) ≤ 1/((n:ℝ)*((n:ℝ)-1)) := by
+    intro n hn
+    rw [Finset.mem_Icc] at hn
+    have h2 : (2:ℝ) ≤ n := by exact_mod_cast hn.1
+    have : (0:ℝ) < (n:ℝ)*((n:ℝ)-1) := by nlinarith
+    positivity
+  have hy0 : (0:ℝ) < y := by exact_mod_cast hy
+  calc ∑ p ∈ y.primesBelow, 1/((p:ℝ)*((p:ℝ)-1))
+      ≤ ∑ n ∈ Finset.Icc 2 y, 1/((n:ℝ)*((n:ℝ)-1)) :=
+        Finset.sum_le_sum_of_subset_of_nonneg hsub (fun n hn _ => hnn n hn)
+    _ ≤ 1 - 1/(y:ℝ) := sum_Icc_inv_mul_pred_le y hy
+    _ ≤ 1 := by
+        have : (0:ℝ) ≤ 1/(y:ℝ) := by positivity
+        linarith
+
+/-- **The Mertens product bound** (Track R, E2-iii): the harmonic Euler
+product over primes below `y` is a single power of `log` —
+`∏_{p<y}(1−1/p)⁻¹ ≤ e¹²·log y` for `y ≥ 4`, from the sharp mass bound
+with the telescoped tail. -/
+theorem prod_one_sub_inv_primesBelow_le (y : ℕ) (hy : 4 ≤ y) :
+    ∏ p ∈ y.primesBelow, (1 - 1/(p:ℝ))⁻¹ ≤ Real.exp 12 * Real.log y := by
+  classical
+  have hp_pos : ∀ p ∈ y.primesBelow, (0:ℝ) < 1 - 1/(p:ℝ) := by
+    intro p hp
+    have hp2 : (2:ℝ) ≤ p := by
+      exact_mod_cast (Nat.prime_of_mem_primesBelow hp).two_le
+    have : 1/(p:ℝ) ≤ 1/2 := by
+      rw [div_le_div_iff₀ (by linarith) (by norm_num)]
+      linarith
+    linarith
+  have hfac : ∀ p ∈ y.primesBelow, (1 - 1/(p:ℝ))⁻¹
+      = Real.exp (Real.log ((1 - 1/(p:ℝ))⁻¹)) := by
+    intro p hp
+    rw [Real.exp_log (by
+      have := hp_pos p hp
+      positivity)]
+  rw [Finset.prod_congr rfl hfac, ← Real.exp_sum]
+  have hterm : ∀ p ∈ y.primesBelow,
+      Real.log ((1 - 1/(p:ℝ))⁻¹) ≤ 1/(p:ℝ) + 1/((p:ℝ)*((p:ℝ)-1)) := by
+    intro p hp
+    have hpp := hp_pos p hp
+    have hp2 : (2:ℝ) ≤ p := by
+      exact_mod_cast (Nat.prime_of_mem_primesBelow hp).two_le
+    have hlog := Real.log_le_sub_one_of_pos
+      (show (0:ℝ) < (1 - 1/(p:ℝ))⁻¹ from by positivity)
+    have hp1 : (0:ℝ) < (p:ℝ) - 1 := by linarith
+    have hinv : (1 - 1/(p:ℝ))⁻¹ - 1 = 1/((p:ℝ)-1) := by
+      have h1 : (1 - 1/(p:ℝ))⁻¹ = (p:ℝ)/((p:ℝ)-1) := by
+        rw [inv_eq_one_div]
+        rw [div_eq_div_iff (by linarith) (by linarith)]
+        field_simp
+      rw [h1, div_sub_one (by linarith : ((p:ℝ)-1) ≠ 0)]
+      congr 1
+      ring
+    have hsplit : 1/((p:ℝ)-1) = 1/(p:ℝ) + 1/((p:ℝ)*((p:ℝ)-1)) := by
+      rw [div_add_div _ _ (by linarith : (p:ℝ) ≠ 0)
+        (by positivity : (p:ℝ)*((p:ℝ)-1) ≠ 0)]
+      rw [div_eq_div_iff (by linarith) (by positivity)]
+      ring
+    linarith [hlog, hinv ▸ hlog]
+  have hsum := Finset.sum_le_sum hterm
+  rw [Finset.sum_add_distrib] at hsum
+  have hmass := sum_one_div_primesBelow_le_sharp y hy
+  have htail := sum_one_div_mul_pred_primesBelow_le y
+  have hlogy : (1:ℝ) < Real.log y := by
+    have h4 : Real.log 4 ≤ Real.log y :=
+      Real.log_le_log (by norm_num) (by exact_mod_cast hy)
+    rw [show (4:ℝ) = 2^2 from by norm_num, Real.log_pow] at h4
+    have := Real.log_two_gt_d9
+    push_cast at h4
+    nlinarith
+  calc Real.exp (∑ p ∈ y.primesBelow, Real.log ((1 - 1/(p:ℝ))⁻¹))
+      ≤ Real.exp (Real.log (Real.log y) + 12) := by
+        rw [Real.exp_le_exp]
+        have hone : ∑ p ∈ y.primesBelow, 1/(p:ℝ)
+            = ∑ p ∈ y.primesBelow, (1:ℝ)/p := rfl
+        linarith [hsum, hmass, htail]
+    _ = Real.exp 12 * Real.log y := by
+        rw [Real.exp_add, Real.exp_log (by linarith)]
+        ring
+
+/-- **The smooth harmonic bound** (E2-iii corollary): the harmonic mass
+of `y`-smooth numbers is a single power of `log`. -/
+theorem sum_smooth_one_div_le (y N : ℕ) (hy : 4 ≤ y) :
+    ∑ n ∈ Nat.smoothNumbersUpTo N y, (1:ℝ)/n
+      ≤ Real.exp 12 * Real.log y := by
+  have hrankin := sum_rpow_smoothNumbersUpTo_le 1 (by norm_num) y N
+  have hconv1 : ∀ n : ℕ, (n:ℝ)^(-(1:ℝ)) = 1/(n:ℝ) := by
+    intro n
+    rw [Real.rpow_neg_one, one_div]
+  have hconv2 : ∀ p : ℕ, (1 - (p:ℝ)^(-(1:ℝ)))⁻¹ = (1 - 1/(p:ℝ))⁻¹ := by
+    intro p
+    rw [hconv1]
+  calc ∑ n ∈ Nat.smoothNumbersUpTo N y, (1:ℝ)/n
+      = ∑ n ∈ Nat.smoothNumbersUpTo N y, (n:ℝ)^(-(1:ℝ)) := by
+        refine Finset.sum_congr rfl fun n _ => (hconv1 n).symm
+    _ ≤ ∏ p ∈ y.primesBelow, (1 - (p:ℝ)^(-(1:ℝ)))⁻¹ := hrankin
+    _ = ∏ p ∈ y.primesBelow, (1 - 1/(p:ℝ))⁻¹ :=
+        Finset.prod_congr rfl fun p _ => hconv2 p
+    _ ≤ Real.exp 12 * Real.log y := prod_one_sub_inv_primesBelow_le y hy
+
+
 end MoltResearch
