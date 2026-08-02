@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.TuranKubilius
 import MoltResearch.Discrepancy.ArchimedeanTaylor
 import MoltResearch.Discrepancy.LargeValues
+import MoltResearch.Discrepancy.SelbergLinear
 import MoltResearch.Discrepancy.PlancherelHarness
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
@@ -2029,6 +2030,239 @@ theorem integral_band_norm_sq_le_close_pairs {ι : Type*} (S : Finset ι)
         refine Finset.sum_congr rfl fun i _ => ?_
         rw [Finset.mul_sum, Finset.mul_sum]
         refine Finset.sum_congr rfl fun j _ => ?_
+        ring
+
+
+
+/-- Exponential window to integer window: `|log n₂ − log n₁| ≤ u ≤ 1/8`
+puts `n₂` within the `(2u·n₁ + 1)`-neighbourhood of `n₁`. -/
+theorem close_log_window {n₁ n₂ : ℕ} (h₁ : 1 ≤ n₁) (h₂ : 1 ≤ n₂)
+    {u : ℝ} (hu0 : 0 ≤ u) (hu : u ≤ 1/8)
+    (hlog : |Real.log n₂ - Real.log n₁| ≤ u) :
+    ((n₁:ℝ) - 2*u*n₁ ≤ n₂) ∧ ((n₂:ℝ) ≤ n₁ + 2*u*n₁) := by
+  have hn₁ : (0:ℝ) < n₁ := by exact_mod_cast h₁
+  have hn₂ : (0:ℝ) < n₂ := by exact_mod_cast h₂
+  rw [abs_le] at hlog
+  constructor
+  · -- n₂ ≥ n₁·e^{−u} ≥ n₁(1−u) ≥ n₁ − 2u·n₁
+    have h1 : Real.log n₁ - u ≤ Real.log n₂ := by linarith [hlog.1]
+    have h2 : (n₁:ℝ) * Real.exp (-u) ≤ n₂ := by
+      have h3 := Real.exp_le_exp.mpr h1
+      rw [Real.exp_sub, Real.exp_log hn₁, Real.exp_log hn₂] at h3
+      rw [Real.exp_neg]
+      rw [show (n₁:ℝ) * (Real.exp u)⁻¹ = (n₁:ℝ) / Real.exp u from by ring]
+      exact h3
+    have h4 : 1 - u ≤ Real.exp (-u) := by
+      have := Real.add_one_le_exp (-u)
+      linarith
+    have h5 : (n₁:ℝ)*(1 - u) ≤ (n₁:ℝ)*Real.exp (-u) :=
+      mul_le_mul_of_nonneg_left h4 hn₁.le
+    nlinarith [h2, h5, hu0]
+  · have h1 : Real.log n₂ ≤ Real.log n₁ + u := by linarith [hlog.2]
+    have h2 : (n₂:ℝ) ≤ (n₁:ℝ) * Real.exp u := by
+      calc (n₂:ℝ) = Real.exp (Real.log n₂) := (Real.exp_log hn₂).symm
+        _ ≤ Real.exp (Real.log n₁ + u) := Real.exp_le_exp.mpr h1
+        _ = (n₁:ℝ) * Real.exp u := by
+            rw [Real.exp_add, Real.exp_log hn₁]
+    have h3 : Real.exp u ≤ 1 + 2*u := by
+      have h4 : 1 - u ≤ Real.exp (-u) := by
+        have := Real.add_one_le_exp (-u)
+        linarith
+      have h5 : Real.exp u = 1 / Real.exp (-u) := by
+        rw [Real.exp_neg]
+        field_simp
+      rw [h5]
+      rw [div_le_iff₀ (Real.exp_pos _)]
+      nlinarith [h4, hu0, hu]
+    nlinarith [h2, h3, hn₁]
+
+
+set_option maxHeartbeats 1600000 in
+/-- **The class band energy** (Track R, M2-g3): a `1/n`-weighted phase
+polynomial supported on `z`-rough numbers has band energy at most
+`1024·H/log(z+1) + 512·L·(12/log(z+1) + 2z⁸)`, where `H` bounds the
+support's harmonic mass — close pairs are rough-counted by the linear
+sieve, far pairs vanish. The `L²` factor bound of the cheap-Halász
+Hölder step. -/
+theorem class_band_energy_le (S : Finset ℕ) (z : ℕ) (hz : 1 ≤ z)
+    (hrough : ∀ n ∈ S, Nat.Coprime n (primorial z))
+    (hS2 : ∀ n ∈ S, 2 ≤ n)
+    (w : ℕ → ℂ) (hw : ∀ n ∈ S, ‖w n‖ ≤ 1/(n:ℝ))
+    (L : ℝ) (hL : 1 ≤ L) (H : ℝ) (hH : ∑ n ∈ S, (1:ℝ)/n ≤ H) :
+    ∫ ξ in (-L)..L,
+        ‖∑ n ∈ S, w n * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      ≤ 1024*H/Real.log ((z:ℝ)+1) + 512*L*(12/Real.log ((z:ℝ)+1) + 2*((z:ℝ)^4)^2) := by
+  classical
+  have hL0 : (0:ℝ) < L := by linarith
+  have hlogz : (0:ℝ) < Real.log ((z:ℝ)+1) := by
+    refine Real.log_pos ?_
+    have : (1:ℝ) ≤ z := by exact_mod_cast hz
+    linarith
+  have hband := integral_band_norm_sq_le_close_pairs S w
+    (fun n => Real.log n) L hL
+  refine le_trans hband ?_
+  -- bound the close-pair double sum
+  set u : ℝ := 1/(8*L) with hu_def
+  have hu0 : 0 ≤ u := by rw [hu_def]; positivity
+  have hu8 : u ≤ 1/8 := by
+    rw [hu_def]
+    rw [div_le_div_iff₀ (by positivity) (by norm_num)]
+    nlinarith
+  have hinner : ∀ n₁ ∈ S,
+      ∑ n₂ ∈ S.filter (fun n₂ : ℕ => |Real.log n₁ - Real.log (n₂:ℕ)| ≤ 1/(8*L)),
+        ‖w n₁‖*‖w n₂‖
+      ≤ (1/(n₁:ℝ)) * ((2/L)/Real.log ((z:ℝ)+1)
+          + (12/Real.log ((z:ℝ)+1) + 2*((z:ℝ)^4)^2)/(n₁:ℝ)) := by
+    intro n₁ hn₁
+    have h2n₁ := hS2 n₁ hn₁
+    have hn₁r : (2:ℝ) ≤ n₁ := by exact_mod_cast h2n₁
+    set K : ℕ := Nat.ceil (2*u*(n₁:ℝ)) with hK_def
+    -- the close set injects into the rough interval
+    have hsub : S.filter (fun n₂ : ℕ => |Real.log n₁ - Real.log (n₂:ℕ)| ≤ 1/(8*L))
+        ⊆ (Finset.Ioc (n₁ - K - 1) (n₁ - K - 1 + (2*K + 1))).filter
+            (fun m => Nat.Coprime m (primorial z)) := by
+      intro n₂ hn₂
+      rw [Finset.mem_filter] at hn₂
+      have h2n₂ := hS2 n₂ hn₂.1
+      have hwin := close_log_window (n₁ := n₁) (n₂ := n₂)
+        (by omega) (by omega) hu0 hu8
+        (by rw [hu_def, abs_sub_comm]; exact hn₂.2)
+      have hcl : (2*u*(n₁:ℝ)) ≤ K := Nat.le_ceil _
+      rw [Finset.mem_filter, Finset.mem_Ioc]
+      refine ⟨⟨?_, ?_⟩, hrough n₂ hn₂.1⟩
+      · -- n₁ − K − 1 < n₂
+        have h1 : (n₁:ℝ) - 2*u*n₁ ≤ n₂ := hwin.1
+        have h2 : ((n₁ - K - 1 : ℕ):ℝ) < n₂ := by
+          have h3 : ((n₁ - K - 1 : ℕ):ℝ) ≤ (n₁:ℝ) - K - 1 ∨ n₁ - K - 1 = 0 := by
+            by_cases h : K + 1 ≤ n₁
+            · left
+              have hc1 : ((n₁ - K - 1 : ℕ):ℝ) = (n₁:ℝ) - K - 1 := by
+                have e1 : n₁ - K - 1 = n₁ - (K+1) := by omega
+                rw [e1, Nat.cast_sub (by omega : K + 1 ≤ n₁)]
+                push_cast
+                ring
+              rw [hc1]
+            · right
+              omega
+          rcases h3 with h3 | h3
+          · have : (n₁:ℝ) - K - 1 < n₂ := by linarith [hcl, h1]
+            linarith
+          · rw [h3]
+            push_cast
+            have : (0:ℝ) < n₂ := by exact_mod_cast (by omega : 0 < n₂)
+            linarith
+        exact_mod_cast h2
+      · -- n₂ ≤ n₁ + K
+        have h1 : (n₂:ℝ) ≤ n₁ + 2*u*n₁ := hwin.2
+        have h2 : (n₂:ℝ) ≤ n₁ + K := by linarith [hcl]
+        have h3 : n₂ ≤ n₁ + K := by exact_mod_cast h2
+        omega
+    have hcount := card_rough_interval_le z (2*K + 1) (n₁ - K - 1) hz
+    have hcard : ((S.filter (fun n₂ : ℕ =>
+        |Real.log n₁ - Real.log (n₂:ℕ)| ≤ 1/(8*L))).card : ℝ)
+        ≤ 2*((2*K+1 : ℕ):ℝ)/Real.log ((z:ℝ)+1) + ((z:ℝ)^4)^2 := by
+      refine le_trans ?_ hcount
+      exact_mod_cast Finset.card_le_card hsub
+    have hKb : (K:ℝ) ≤ 2*u*n₁ + 1 := by
+      rw [hK_def]
+      have := Nat.ceil_lt_add_one (by positivity : (0:ℝ) ≤ 2*u*(n₁:ℝ))
+      linarith
+    have hterm : ∀ n₂ ∈ S.filter (fun n₂ : ℕ =>
+        |Real.log n₁ - Real.log (n₂:ℕ)| ≤ 1/(8*L)),
+        ‖w n₁‖*‖w n₂‖ ≤ (1/(n₁:ℝ))*(2/(n₁:ℝ)) := by
+      intro n₂ hn₂
+      rw [Finset.mem_filter] at hn₂
+      have h2n₂ := hS2 n₂ hn₂.1
+      have hwin := close_log_window (n₁ := n₁) (n₂ := n₂)
+        (by omega) (by omega) hu0 hu8
+        (by rw [hu_def, abs_sub_comm]; exact hn₂.2)
+      have hn₂half : (n₁:ℝ)/2 ≤ n₂ := by
+        have h1 := hwin.1
+        nlinarith [hu8, hn₁r]
+      have hw₂ : ‖w n₂‖ ≤ 2/(n₁:ℝ) := by
+        refine le_trans (hw n₂ hn₂.1) ?_
+        rw [div_le_div_iff₀ (by exact_mod_cast (by omega : 0 < n₂))
+          (by linarith)]
+        nlinarith [hn₂half]
+      exact mul_le_mul (hw n₁ hn₁) hw₂ (norm_nonneg _)
+        (by positivity)
+    refine le_trans (Finset.sum_le_card_nsmul _ _ _ hterm) ?_
+    rw [nsmul_eq_mul]
+    have hK21 : ((2*K+1 : ℕ):ℝ) ≤ (n₁:ℝ)/(2*L) + 3 := by
+      push_cast
+      rw [hu_def] at hKb
+      have : 2*(1/(8*L))*(n₁:ℝ) = (n₁:ℝ)/(4*L) := by
+        field_simp
+        ring
+      rw [this] at hKb
+      have h4L : (n₁:ℝ)/(4*L) = (n₁:ℝ)/(2*L)/2 := by
+        rw [div_div]
+        congr 1
+        ring
+      linarith
+    calc ((S.filter (fun n₂ : ℕ =>
+          |Real.log n₁ - Real.log (n₂:ℕ)| ≤ 1/(8*L))).card : ℝ)
+          * ((1/(n₁:ℝ))*(2/(n₁:ℝ)))
+        ≤ (2*((2*K+1 : ℕ):ℝ)/Real.log ((z:ℝ)+1) + ((z:ℝ)^4)^2)
+            * ((1/(n₁:ℝ))*(2/(n₁:ℝ))) := by
+          refine mul_le_mul_of_nonneg_right hcard ?_
+          positivity
+      _ ≤ (2*((n₁:ℝ)/(2*L) + 3)/Real.log ((z:ℝ)+1) + ((z:ℝ)^4)^2)
+            * ((1/(n₁:ℝ))*(2/(n₁:ℝ))) := by
+          refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+          refine add_le_add ?_ (le_refl _)
+          refine div_le_div_of_nonneg_right ?_ hlogz.le
+          linarith [hK21]
+      _ ≤ (1/(n₁:ℝ)) * ((2/L)/Real.log ((z:ℝ)+1)
+            + (12/Real.log ((z:ℝ)+1) + 2*((z:ℝ)^4)^2)/(n₁:ℝ)) := by
+          have hn₁0 : (0:ℝ) < n₁ := by linarith
+          refine le_of_eq ?_
+          field_simp
+          ring
+  -- outer sum
+  have hinvsq : ∑ n₁ ∈ S, (1/(n₁:ℝ))*(1/(n₁:ℝ)) ≤ 1 := by
+    have hsub2 : S ⊆ Finset.Ico 2 ((S.sup id) + 1) := by
+      intro n hn
+      rw [Finset.mem_Ico]
+      refine ⟨hS2 n hn, ?_⟩
+      have h := Finset.le_sup (f := id) hn
+      simp only [id_eq] at h
+      omega
+    calc ∑ n₁ ∈ S, (1/(n₁:ℝ))*(1/(n₁:ℝ))
+        ≤ ∑ n₁ ∈ Finset.Ico 2 ((S.sup id) + 1), (1/(n₁:ℝ))*(1/(n₁:ℝ)) :=
+          Finset.sum_le_sum_of_subset_of_nonneg hsub2
+            (fun n _ _ => by positivity)
+      _ = ∑ n₁ ∈ Finset.Ico 2 ((S.sup id) + 1), (1:ℝ)/(n₁:ℝ)^2 := by
+          refine Finset.sum_congr rfl fun n _ => ?_
+          rw [div_mul_div_comm, one_mul]
+          ring_nf
+      _ ≤ 2/(2:ℝ) := by
+          have := ExpSums.sum_inv_sq_Ico_le 2 ((S.sup id) + 1) (le_refl 2)
+          push_cast at this ⊢
+          linarith
+      _ = 1 := by norm_num
+  calc 512*L*∑ n₁ ∈ S, ∑ n₂ ∈ S.filter (fun n₂ : ℕ =>
+        |Real.log n₁ - Real.log (n₂:ℕ)| ≤ 1/(8*L)), ‖w n₁‖*‖w n₂‖
+      ≤ 512*L*∑ n₁ ∈ S, (1/(n₁:ℝ)) * ((2/L)/Real.log ((z:ℝ)+1)
+          + (12/Real.log ((z:ℝ)+1) + 2*((z:ℝ)^4)^2)/(n₁:ℝ)) := by
+        refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum hinner)
+          (by positivity)
+    _ = 512*L*(((2/L)/Real.log ((z:ℝ)+1)) * (∑ n₁ ∈ S, (1:ℝ)/n₁)
+          + (12/Real.log ((z:ℝ)+1) + 2*((z:ℝ)^4)^2)
+            * ∑ n₁ ∈ S, (1/(n₁:ℝ))*(1/(n₁:ℝ))) := by
+        congr 1
+        rw [Finset.mul_sum, Finset.mul_sum, ← Finset.sum_add_distrib]
+        refine Finset.sum_congr rfl fun n₁ _ => ?_
+        ring
+    _ ≤ 512*L*(((2/L)/Real.log ((z:ℝ)+1)) * H
+          + (12/Real.log ((z:ℝ)+1) + 2*((z:ℝ)^4)^2) * 1) := by
+        refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+        refine add_le_add ?_ ?_
+        · exact mul_le_mul_of_nonneg_left hH (by positivity)
+        · exact mul_le_mul_of_nonneg_left hinvsq (by positivity)
+    _ = 1024*H/Real.log ((z:ℝ)+1)
+          + 512*L*(12/Real.log ((z:ℝ)+1) + 2*((z:ℝ)^4)^2) := by
+        field_simp
         ring
 
 
