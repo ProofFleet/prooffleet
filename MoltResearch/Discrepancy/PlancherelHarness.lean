@@ -726,6 +726,94 @@ theorem abs_norm_sq_smoothedLogSum_sub_le (T : ℝ) (hT : 1 ≤ T)
     _ = (50*B*B'*T) * |y - z| := by ring
 
 
+/-- **The pointwise Fourier inversion for translate sums** (Track R,
+M2-d): the smoothed sum at a point is the integral of the phase
+polynomial against the window transform — the Perron-by-smoothing
+identity of the cheap Halász argument. -/
+theorem sum_translates_eq_integral_char (F : ℝ → ℂ)
+    (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F) {ι : Type*}
+    (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ) (y : ℝ) :
+    ∑ i ∈ S, w i * F (y - s i)
+      = ∫ ξ, (𝐞 (ξ * y) : Circle)
+          • ((∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)) * 𝓕 F ξ) := by
+  classical
+  set G : ℝ → ℂ := fun y => ∑ i ∈ S, w i * F (y - s i) with hG_def
+  have hGc : HasCompactSupport G := by
+    refine hasCompactSupport_finset_sum fun i _ => ?_
+    have h2 : HasCompactSupport (fun y : ℝ => F (y - s i)) :=
+      hFc.comp_homeomorph (Homeomorph.subRight (s i))
+    exact h2.mul_left
+  have hGs : Continuous G := by
+    refine continuous_finset_sum _ fun i _ => ?_
+    exact continuous_const.mul
+      ((hFs.continuous).comp (continuous_id.sub continuous_const))
+  have hGi : Integrable G := hGs.integrable_of_hasCompactSupport hGc
+  -- 𝓕 G is integrable: it is the phase polynomial times the Schwartz 𝓕
+  have hGsm : ContDiff ℝ ∞ G := by
+    refine ContDiff.sum fun i _ => ?_
+    exact contDiff_const.mul
+      (hFs.comp (contDiff_id.sub contDiff_const))
+  set Gs : 𝓢(ℝ, ℂ) := hGc.toSchwartzMap hGsm with hGs_def
+  have hGeq : G = (Gs : ℝ → ℂ) := rfl
+  have hFGi : Integrable (𝓕 G) := by
+    rw [hGeq]
+    exact (𝓕 Gs).integrable
+  have hinv := hGs.fourierInv_fourier_eq hGi hFGi
+  have hy := congrFun hinv y
+  have hval : 𝓕⁻ (𝓕 G) y
+      = ∫ ξ, (𝐞 (ξ * y) : Circle) • (𝓕 G ξ) := by
+    rw [Real.fourierIntegralInv_eq]
+    refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
+    norm_num
+    rw [mul_comm y ξ]
+  rw [show (∑ i ∈ S, w i * F (y - s i)) = G y from rfl, ← hy, hval]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
+  dsimp only
+  congr 1
+  exact fourier_sum_translates F hFc hFs.continuous S w s ξ
+
+/-- **The Perron-by-smoothing bound** (Track R, M2-d corollary): the
+smoothed sum is at most the `L¹` pairing of the phase polynomial with
+the window transform. -/
+theorem norm_sum_translates_le_integral_char (F : ℝ → ℂ)
+    (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F) {ι : Type*}
+    (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ) (y : ℝ) :
+    ‖∑ i ∈ S, w i * F (y - s i)‖
+      ≤ ∫ ξ, ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖ * ‖𝓕 F ξ‖ := by
+  rw [sum_translates_eq_integral_char F hFc hFs S w s y]
+  refine le_trans (norm_integral_le_integral_norm _) ?_
+  refine integral_mono_of_nonneg
+    (Filter.Eventually.of_forall fun ξ => norm_nonneg _)
+    ?_ (Filter.Eventually.of_forall fun ξ => ?_)
+  · -- integrability of the majorant
+    set Fs : 𝓢(ℝ, ℂ) := hFc.toSchwartzMap hFs with hFs_def
+    have hFeq : ∀ ξ, ‖𝓕 F ξ‖ = ‖(𝓕 Fs) ξ‖ := fun _ => rfl
+    have hpoly : ∀ ξ : ℝ,
+        ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖
+          ≤ ∑ i ∈ S, ‖w i‖ := by
+      intro ξ
+      refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
+      rw [norm_mul, norm_eq_of_mem_sphere]
+      simp
+    refine (((𝓕 Fs).integrable.norm).const_mul (∑ i ∈ S, ‖w i‖)).mono'
+      ?_ ?_
+    · have hpc : Continuous fun ξ : ℝ =>
+          ∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ) := by
+        refine continuous_finset_sum _ fun i _ => ?_
+        refine continuous_const.mul ?_
+        exact Continuous.comp continuous_subtype_val
+          (Real.continuous_fourierChar.comp (by fun_prop))
+      exact (hpc.norm.mul ((𝓕 Fs).continuous.norm)).aestronglyMeasurable
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      rw [Real.norm_eq_abs, abs_of_nonneg
+        (mul_nonneg (norm_nonneg _) (norm_nonneg _)), hFeq]
+      exact mul_le_mul_of_nonneg_right (hpoly ξ) (norm_nonneg _)
+  · dsimp only
+    simp only [Circle.smul_def, smul_eq_mul, norm_mul]
+    have h1 : ‖((𝐞 (ξ * y) : Circle) : ℂ)‖ = 1 := norm_eq_of_mem_sphere _
+    rw [h1, one_mul]
+
+
 end ExpSums
 
 end MoltResearch
