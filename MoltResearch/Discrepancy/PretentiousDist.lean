@@ -302,4 +302,49 @@ theorem pretentiousDistSq_mul_weight_ge (f g h : ℕ → ℂ) (N : ℕ)
     _ ≤ (1 - γ * R)/p :=
         div_le_div_of_nonneg_right hnum hp0.le
 
+/-- **The distance truncation transfer** (Track R, M2-h′): enlarging
+the truncation grows the squared pretentious distance by at most twice
+the added prime mass — so a distance floor at scale `x` transfers down
+to scale `y ≤ x` at the cost `2(mass x − mass y)`. The scale-transfer
+input of the cheap Halász `L^∞` bound. -/
+theorem pretentiousDistSq_le_add_mass (g h : ℕ → ℂ)
+    (hg : ∀ p, ‖g p‖ ≤ 1) (hh : ∀ p, ‖h p‖ ≤ 1) {y x : ℕ} (hyx : y ≤ x) :
+    pretentiousDistSq g h x
+      ≤ pretentiousDistSq g h y
+        + 2*((∑ p ∈ x.primesBelow, (1:ℝ)/p)
+              - (∑ p ∈ y.primesBelow, (1:ℝ)/p)) := by
+  classical
+  have hsub : y.primesBelow ⊆ x.primesBelow := by
+    intro p hp
+    rw [Nat.mem_primesBelow] at hp ⊢
+    exact ⟨by omega, hp.2⟩
+  unfold pretentiousDistSq
+  rw [← Finset.sum_sdiff hsub]
+  have hmass : ∑ p ∈ x.primesBelow \ y.primesBelow, (1:ℝ)/(p:ℝ)
+      = (∑ p ∈ x.primesBelow, (1:ℝ)/p)
+        - (∑ p ∈ y.primesBelow, (1:ℝ)/p) :=
+    Finset.sum_sdiff_eq_sub hsub
+  have hextra : ∑ p ∈ x.primesBelow \ y.primesBelow,
+      (1 - (g p * (starRingEnd ℂ) (h p)).re) / p
+        ≤ ∑ p ∈ x.primesBelow \ y.primesBelow, 2*((1:ℝ)/p) := by
+    refine Finset.sum_le_sum fun p hp => ?_
+    have hpp : p.Prime :=
+      Nat.prime_of_mem_primesBelow (Finset.mem_sdiff.mp hp).1
+    have hp0 : (0:ℝ) < p := by exact_mod_cast hpp.pos
+    have hre : |(g p * (starRingEnd ℂ) (h p)).re| ≤ 1 := by
+      calc |(g p * (starRingEnd ℂ) (h p)).re|
+          ≤ ‖g p * (starRingEnd ℂ) (h p)‖ := Complex.abs_re_le_norm _
+        _ = ‖g p‖ * ‖h p‖ := by rw [norm_mul, RingHomIsometric.norm_map]
+        _ ≤ 1 * 1 := mul_le_mul (hg p) (hh p) (norm_nonneg _) zero_le_one
+        _ = 1 := one_mul 1
+    have h1 : 1 - (g p * (starRingEnd ℂ) (h p)).re ≤ 2 := by
+      have := abs_le.mp hre
+      linarith [this.1]
+    rw [div_le_iff₀ hp0, mul_assoc, one_div, inv_mul_cancel₀ (ne_of_gt hp0),
+      mul_one]
+    exact h1
+  rw [← hmass, Finset.mul_sum]
+  linarith [hextra]
+
+
 end MoltResearch
