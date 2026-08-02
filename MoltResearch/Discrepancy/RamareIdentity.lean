@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.TuranKubilius
 import MoltResearch.Discrepancy.MultiplicativeC
 import MoltResearch.Discrepancy.LargeValues
+import MoltResearch.Discrepancy.DyadicMVT
 import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 
 /-!
@@ -596,6 +597,208 @@ theorem usum_phase_eq_main_add_coll (a b : ℕ) (P : Finset ℕ)
     field_simp
     push_cast
     ring
+
+
+open ExpSums in
+set_option maxHeartbeats 1600000 in
+/-- **The one-level 𝒰-energy** (Track R, W2c-vi-b): the window energy of
+the `ω_P ≥ 1`-restricted `1/m`-weighted phase sum over a near-dyadic
+range is at most twice the prime-window mass times the weighted
+per-fibre MVT bounds, plus a second-order collision term — the
+recursion step of the `J`-level `𝒰`-iteration. -/
+theorem intervalIntegral_norm_sq_usum_le (a b : ℕ) (ha1 : 1 ≤ a)
+    (hab : b ≤ 2*a) (P : Finset ℕ) (hP : ∀ q ∈ P, q.Prime)
+    (c : ℕ → ℂ) (hc : ∀ m, ‖c m‖ ≤ 1) (K : ℝ) (hK : 0 ≤ K) :
+    ∫ ξ in (-K)..K, ‖∑ m ∈ (Finset.Ioc a b).filter
+        (fun m => 0 < (P.filter (· ∣ m)).card),
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ 2*((∑ p ∈ P, (1:ℝ)/p) * ∑ p ∈ P, (1:ℝ)/p *
+            (2*K*(∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => ¬ p ∣ m'),
+                (1:ℝ)/(m':ℝ)^2)
+              + (Real.log ((a/p+1 : ℕ)) + 1)
+                * (∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => ¬ p ∣ m'),
+                    (1:ℝ)/m')))
+        + 2*(2*K*(∑ p ∈ P, (1:ℝ)/p *
+            ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+              (1:ℝ)/m')^2) := by
+  classical
+  set main : ℝ → ℂ := fun ξ => ∑ p ∈ P,
+      (((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)/(p:ℂ))
+        * ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => ¬ p ∣ m'),
+            ((c (p*m')/(((P.filter (· ∣ m')).card : ℂ) + 1))/(m':ℂ))
+              * ((Real.fourierChar (-(Real.log m' * ξ)) : Circle) : ℂ)
+    with hmain_def
+  set coll : ℝ → ℂ := fun ξ => ∑ p ∈ P,
+      ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+        ((c (p*m')/((p*m' : ℕ) : ℂ))
+            * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+          / (((P.filter (· ∣ (p*m'))).card : ℂ))
+    with hcoll_def
+  have hcont_char : ∀ u : ℕ, Continuous (fun ξ : ℝ =>
+      ((Real.fourierChar (-(Real.log u * ξ)) : Circle) : ℂ)) := by
+    intro u
+    exact continuous_subtype_val.comp
+      (Real.continuous_fourierChar.comp (by fun_prop))
+  have hcont_main : Continuous main := by
+    rw [hmain_def]
+    refine continuous_finset_sum _ fun p _ => ?_
+    refine Continuous.mul ((hcont_char p).div_const _) ?_
+    exact continuous_finset_sum _ fun m' _ =>
+      continuous_const.mul (hcont_char m')
+  have hcont_coll : Continuous coll := by
+    rw [hcoll_def]
+    refine continuous_finset_sum _ fun p _ => ?_
+    refine continuous_finset_sum _ fun m' _ => ?_
+    exact (continuous_const.mul (hcont_char _)).div_const _
+  have hdecomp : ∀ ξ : ℝ, ∑ m ∈ (Finset.Ioc a b).filter
+      (fun m => 0 < (P.filter (· ∣ m)).card),
+      (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+      = main ξ + coll ξ := by
+    intro ξ
+    rw [hmain_def, hcoll_def]
+    exact usum_phase_eq_main_add_coll a b P hP c ξ
+  rw [intervalIntegral.integral_congr (g := fun ξ => ‖main ξ + coll ξ‖^2)
+    (fun ξ _ => by rw [hdecomp ξ])]
+  -- split the square
+  have hIadd : ∫ ξ in (-K)..K, ‖main ξ + coll ξ‖^2
+      ≤ 2*(∫ ξ in (-K)..K, ‖main ξ‖^2) + 2*∫ ξ in (-K)..K, ‖coll ξ‖^2 := by
+    have hstep : ∫ ξ in (-K)..K, ‖main ξ + coll ξ‖^2
+        ≤ ∫ ξ in (-K)..K, (2*‖main ξ‖^2 + 2*‖coll ξ‖^2) := by
+      refine intervalIntegral.integral_mono_on (by linarith) ?_ ?_ ?_
+      · exact ((hcont_main.add hcont_coll).norm.pow 2).intervalIntegrable _ _
+      · exact ((continuous_const.mul (hcont_main.norm.pow 2)).add
+          (continuous_const.mul (hcont_coll.norm.pow 2))).intervalIntegrable _ _
+      · intro ξ _
+        have h1 := norm_add_le (main ξ) (coll ξ)
+        have h2 : (0:ℝ) ≤ ‖main ξ‖ := norm_nonneg _
+        have h3 : (0:ℝ) ≤ ‖coll ξ‖ := norm_nonneg _
+        have h4 : ‖main ξ + coll ξ‖^2 ≤ (‖main ξ‖ + ‖coll ξ‖)^2 :=
+          pow_le_pow_left₀ (norm_nonneg _) h1 2
+        nlinarith [h4, sq_nonneg (‖main ξ‖ - ‖coll ξ‖)]
+    rw [intervalIntegral.integral_add
+      ((continuous_const.mul (hcont_main.norm.pow 2)).intervalIntegrable _ _)
+      ((continuous_const.mul (hcont_coll.norm.pow 2)).intervalIntegrable _ _),
+      intervalIntegral.integral_const_mul, intervalIntegral.integral_const_mul]
+      at hstep
+    exact hstep
+  refine le_trans hIadd ?_
+  -- the main-half via the frequency-weighted energy
+  have hmain_bound : ∫ ξ in (-K)..K, ‖main ξ‖^2
+      ≤ (∑ p ∈ P, (1:ℝ)/p) * ∑ p ∈ P, (1:ℝ)/p *
+          (2*K*(∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => ¬ p ∣ m'),
+              (1:ℝ)/(m':ℝ)^2)
+            + (Real.log ((a/p+1 : ℕ)) + 1)
+              * (∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => ¬ p ∣ m'),
+                  (1:ℝ)/m')) := by
+    have happ := intervalIntegral_norm_sq_freq_weighted_blocks_le P
+      (fun p ξ => ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)/(p:ℂ))
+      (fun p => (1:ℝ)/p)
+      (by
+        intro p ξ
+        rw [norm_div, Complex.norm_natCast]
+        have h1 : ‖((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖ = 1 := by
+          exact norm_eq_of_mem_sphere _
+        rw [h1])
+      (fun p => (hcont_char p).div_const _)
+      (fun p => (Finset.Ioc (a/p) (b/p)).filter (fun m' => ¬ p ∣ m'))
+      (fun p => a/p + 1)
+      (fun p m' => c (p*m')/(((P.filter (· ∣ m')).card : ℂ) + 1))
+      (fun p _ => Nat.succ_le_succ (Nat.zero_le _))
+      (by
+        intro p _ m' hm'
+        rw [Finset.mem_filter, Finset.mem_Ioc] at hm'
+        exact hm'.1.1)
+      (by
+        intro p hp m' hm'
+        rw [Finset.mem_filter, Finset.mem_Ioc] at hm'
+        have hp0 : 0 < p := (hP p hp).pos
+        have hdiv2 : b/p ≤ 2*(a/p) + 1 := by
+          have h1 : b/p ≤ (2*a)/p := Nat.div_le_div_right hab
+          have h2 : (2*a)/p < 2*(a/p) + 2 := by
+            rw [Nat.div_lt_iff_lt_mul hp0]
+            have h3 := Nat.div_add_mod a p
+            have h4 := Nat.mod_lt a hp0
+            nlinarith [h3, h4]
+          omega
+        dsimp only
+        omega)
+      (by
+        intro p m'
+        rw [norm_div]
+        have hden : ‖(((P.filter (· ∣ m')).card : ℂ) + 1)‖
+            = ((P.filter (· ∣ m')).card : ℝ) + 1 := by
+          rw [show (((P.filter (· ∣ m')).card : ℂ) + 1)
+              = (((P.filter (· ∣ m')).card + 1 : ℕ) : ℂ) from by push_cast; ring,
+            Complex.norm_natCast]
+          push_cast
+          ring
+        rw [hden]
+        have h1 : ((P.filter (· ∣ m')).card : ℝ) + 1 ≥ 1 := by
+          have : (0:ℝ) ≤ ((P.filter (· ∣ m')).card : ℝ) := Nat.cast_nonneg _
+          linarith
+        rw [div_le_one (by linarith)]
+        exact le_trans (hc _) h1)
+      K hK
+    exact happ
+  -- the collision-half: trivial sup then integrate
+  have hcoll_sup : ∀ ξ : ℝ, ‖coll ξ‖
+      ≤ ∑ p ∈ P, (1:ℝ)/p *
+          ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+            (1:ℝ)/m' := by
+    intro ξ
+    rw [hcoll_def]
+    refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun p hp => ?_)
+    have hp0 : 0 < p := (hP p hp).pos
+    rw [Finset.mul_sum]
+    refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun m' hm' => ?_)
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hm'
+    have hm'0 : 0 < m' := lt_of_le_of_lt (Nat.zero_le _) hm'.1.1
+    have hω : (1:ℝ) ≤ (((P.filter (· ∣ (p*m'))).card : ℕ) : ℝ) := by
+      have hpos : 0 < (P.filter (· ∣ (p*m'))).card :=
+        Finset.card_pos.mpr ⟨p, Finset.mem_filter.mpr ⟨hp, dvd_mul_right p m'⟩⟩
+      exact_mod_cast hpos
+    rw [norm_div, norm_mul, norm_div, Complex.norm_natCast, Complex.norm_natCast]
+    have hchar1 : ‖((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ)‖ = 1 :=
+      norm_eq_of_mem_sphere _
+    rw [hchar1, mul_one]
+    have hpm0 : (0:ℝ) < ((p*m' : ℕ) : ℝ) := by
+      have : 0 < p*m' := by positivity
+      exact_mod_cast this
+    calc ‖c (p*m')‖/((p*m' : ℕ) : ℝ)/(((P.filter (· ∣ (p*m'))).card : ℕ) : ℝ)
+        ≤ 1/((p*m' : ℕ) : ℝ)/1 := by
+          gcongr
+          exact hc _
+      _ = 1/((p*m' : ℕ) : ℝ) := by ring
+      _ = (1:ℝ)/p * (1/(m':ℝ)) := by
+          push_cast
+          field_simp
+      _ ≤ (1:ℝ)/p * ((1:ℝ)/m') := le_of_eq (by ring)
+  have hcoll_bound : ∫ ξ in (-K)..K, ‖coll ξ‖^2
+      ≤ 2*K*(∑ p ∈ P, (1:ℝ)/p *
+          ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+            (1:ℝ)/m')^2 := by
+    have hCnn : (0:ℝ) ≤ ∑ p ∈ P, (1:ℝ)/p *
+        ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'), (1:ℝ)/m' := by
+      refine Finset.sum_nonneg fun p _ => ?_
+      refine mul_nonneg (by positivity) ?_
+      exact Finset.sum_nonneg fun m' _ => by positivity
+    calc ∫ ξ in (-K)..K, ‖coll ξ‖^2
+        ≤ ∫ ξ in (-K)..K, (∑ p ∈ P, (1:ℝ)/p *
+            ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+              (1:ℝ)/m')^2 := by
+          refine intervalIntegral.integral_mono_on (by linarith) ?_
+            intervalIntegrable_const ?_
+          · exact (hcont_coll.norm.pow 2).intervalIntegrable _ _
+          · intro ξ _
+            have h1 := hcoll_sup ξ
+            have h2 : (0:ℝ) ≤ ‖coll ξ‖ := norm_nonneg _
+            nlinarith [h1, h2]
+      _ = 2*K*(∑ p ∈ P, (1:ℝ)/p *
+            ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+              (1:ℝ)/m')^2 := by
+          rw [intervalIntegral.integral_const, smul_eq_mul]
+          ring
+  linarith [hmain_bound, hcoll_bound]
 
 
 end MoltResearch
