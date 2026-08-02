@@ -878,4 +878,605 @@ theorem subset_sum_omega_pos_eq_main_add_coll (S : Finset ℕ)
     simp only [Finset.mem_filter, not_not]
 
 
+/-- The recursive `J`-level energy bound: the base is the dyadic MVT
+mass (with the top-element slack for the `b ≤ 2a+1` recursion-stable
+window), and each level pays the weighted fibre bounds one scale down
+plus its collision and sift masses. -/
+noncomputable def uBound (K : ℝ) : List (Finset ℕ) → ℕ → ℕ → ℝ
+  | [], a, b => 2*(2*K*(∑ m ∈ Finset.Ioc a b, (1:ℝ)/(m:ℝ)^2)
+        + (Real.log a + 1) * (∑ m ∈ Finset.Ioc a b, (1:ℝ)/m))
+      + 4*K/(a:ℝ)^2
+  | (P :: rest), a, b =>
+      4*((∑ p ∈ P, (1:ℝ)/p) * ∑ p ∈ P, (1:ℝ)/p * uBound K rest (a/p) (b/p))
+      + 4*(2*K*(∑ p ∈ P, (1:ℝ)/p *
+          ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+            (1:ℝ)/m')^2)
+      + 2*(2*K*(∑ m ∈ (Finset.Ioc a b).filter
+          (fun m => ∀ p ∈ P, ¬ p ∣ m), (1:ℝ)/m)^2)
+
+set_option maxHeartbeats 1600000 in
+open ExpSums in
+/-- **The J-level 𝒰-energy** (Track R, W2c-vii-b2b): for any level list
+of prime sets, any subset of the recursion-stable window `(a, 2a+1]`,
+and any `1`-bounded coefficients, the window energy is at most the
+recursive bound — the MVT log is paid once, at the bottom scale. -/
+theorem intervalIntegral_norm_sq_subset_le (K : ℝ) (hK : 0 ≤ K)
+    (levels : List (Finset ℕ))
+    (hlv : ∀ P ∈ levels, ∀ q ∈ P, q.Prime) :
+    ∀ (a b : ℕ), b ≤ 2*a+1 →
+    ∀ (S : Finset ℕ), S ⊆ Finset.Ioc a b →
+    ∀ (c : ℕ → ℂ), (∀ m, ‖c m‖ ≤ 1) →
+    ∫ ξ in (-K)..K, ‖∑ m ∈ S, (c m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ uBound K levels a b := by
+  induction levels with
+  | nil =>
+    intro a b hab S hS c hc
+    classical
+    have hcont : ∀ (T : Finset ℕ), Continuous (fun ξ : ℝ => ∑ m ∈ T,
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)) := by
+      intro T
+      refine continuous_finset_sum _ fun m _ => ?_
+      refine Continuous.mul continuous_const ?_
+      exact continuous_subtype_val.comp
+        (Real.continuous_fourierChar.comp (by fun_prop))
+    rcases Nat.eq_zero_or_pos a with ha0 | ha1
+    · -- degenerate window: S ⊆ {1} (or empty), direct sup bound
+      subst ha0
+      have hSsub : S ⊆ {1} := by
+        intro m hm
+        have := hS hm
+        rw [Finset.mem_Ioc] at this
+        rw [Finset.mem_singleton]
+        omega
+      have hsup : ∀ ξ : ℝ, ‖∑ m ∈ S, (c m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ 1 := by
+        intro ξ
+        refine le_trans (norm_sum_le _ _) ?_
+        have hpt : ∀ m ∈ S, ‖(c m/(m:ℂ))
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ 1 := by
+          intro m hm
+          have hmem := hSsub hm
+          rw [Finset.mem_singleton] at hmem
+          subst hmem
+          rw [norm_mul, norm_div, Complex.norm_natCast]
+          have hchar : ‖((Real.fourierChar (-(Real.log (1:ℕ) * ξ)) : Circle) : ℂ)‖ = 1 :=
+            norm_eq_of_mem_sphere _
+          rw [hchar, mul_one]
+          norm_num
+          exact hc 1
+        calc ∑ m ∈ S, ‖(c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
+            ≤ ∑ _m ∈ S, (1:ℝ) := Finset.sum_le_sum hpt
+          _ = (S.card : ℝ) := by rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+          _ ≤ 1 := by
+              have : S.card ≤ 1 := by
+                calc S.card ≤ ({1} : Finset ℕ).card := Finset.card_le_card hSsub
+                  _ = 1 := Finset.card_singleton _
+              exact_mod_cast this
+      have hint : ∫ ξ in (-K)..K, ‖∑ m ∈ S, (c m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 ≤ 2*K := by
+        calc ∫ ξ in (-K)..K, ‖∑ m ∈ S, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+            ≤ ∫ ξ in (-K)..K, (1:ℝ) := by
+              refine intervalIntegral.integral_mono_on (by linarith) ?_
+                intervalIntegrable_const ?_
+              · exact ((hcont S).norm.pow 2).intervalIntegrable _ _
+              · intro ξ _
+                have h1 := hsup ξ
+                have h2 : (0:ℝ) ≤ ‖∑ m ∈ S, (c m/(m:ℂ))
+                    * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ :=
+                  norm_nonneg _
+                nlinarith [h1, h2]
+          _ = 2*K := by
+              rw [intervalIntegral.integral_const, smul_eq_mul]
+              ring
+      interval_cases b
+      · -- b = 0: S is empty, both sides zero-ish
+        have hSempty : S = ∅ := by
+          rw [← Finset.subset_empty]
+          intro m hm
+          have h1 := hS hm
+          rw [Finset.mem_Ioc] at h1
+          omega
+        rw [hSempty]
+        simp [uBound]
+      · -- b = 1: the sup bound against the degenerate value
+        refine le_trans hint ?_
+        show (2:ℝ)*K ≤ 2*(2*K*(∑ m ∈ Finset.Ioc (0:ℕ) 1, (1:ℝ)/(m:ℝ)^2)
+            + (Real.log (0:ℕ) + 1) * (∑ m ∈ Finset.Ioc (0:ℕ) 1, (1:ℝ)/m))
+          + 4*K/((0:ℕ):ℝ)^2
+        have hM : (∑ m ∈ Finset.Ioc (0:ℕ) 1, (1:ℝ)/(m:ℝ)^2) = 1 := by
+          rw [show Finset.Ioc (0:ℕ) 1 = {1} from rfl]
+          norm_num
+        have hM1 : (∑ m ∈ Finset.Ioc (0:ℕ) 1, (1:ℝ)/m) = 1 := by
+          rw [show Finset.Ioc (0:ℕ) 1 = {1} from rfl]
+          norm_num
+        have hlog0 : Real.log ((0:ℕ):ℝ) = 0 := by norm_num
+        have hdiv0 : (4:ℝ)*K/((0:ℕ):ℝ)^2 = 0 := by norm_num
+        rw [hM, hM1, hlog0, hdiv0]
+        linarith
+    set S₀ := S.filter (fun m => m ≤ 2*a) with hS₀_def
+    set S₁ := S.filter (fun m => ¬ m ≤ 2*a) with hS₁_def
+    have hsplit : ∀ ξ : ℝ, ∑ m ∈ S,
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+        = (∑ m ∈ S₀,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          + ∑ m ∈ S₁,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+      intro ξ
+      rw [hS₀_def, hS₁_def]
+      exact (Finset.sum_filter_add_sum_filter_not S _ _).symm
+    rw [intervalIntegral.integral_congr (g := fun ξ =>
+      ‖(∑ m ∈ S₀,
+          (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+        + ∑ m ∈ S₁,
+          (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+      (fun ξ _ => by rw [hsplit ξ])]
+    have h2 : ∫ ξ in (-K)..K,
+        ‖(∑ m ∈ S₀,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          + ∑ m ∈ S₁,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ 2*(∫ ξ in (-K)..K, ‖∑ m ∈ S₀,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+          + 2*∫ ξ in (-K)..K, ‖∑ m ∈ S₁,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+      have hstep : ∫ ξ in (-K)..K,
+          ‖(∑ m ∈ S₀, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+            + ∑ m ∈ S₁, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+          ≤ ∫ ξ in (-K)..K,
+          (2*‖∑ m ∈ S₀, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+            + 2*‖∑ m ∈ S₁, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2) := by
+        refine intervalIntegral.integral_mono_on (by linarith) ?_ ?_ ?_
+        · exact (((hcont S₀).add (hcont S₁)).norm.pow 2).intervalIntegrable _ _
+        · exact ((continuous_const.mul ((hcont S₀).norm.pow 2)).add
+            (continuous_const.mul ((hcont S₁).norm.pow 2))).intervalIntegrable _ _
+        · intro ξ _
+          have h1 := norm_add_le
+            (∑ m ∈ S₀, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+            (∑ m ∈ S₁, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          have h4 : ‖(∑ m ∈ S₀, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+              + ∑ m ∈ S₁, (c m/(m:ℂ))
+                * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+              ≤ (‖∑ m ∈ S₀, (c m/(m:ℂ))
+                  * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
+                + ‖∑ m ∈ S₁, (c m/(m:ℂ))
+                  * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖)^2 :=
+            pow_le_pow_left₀ (norm_nonneg _) h1 2
+          nlinarith [h4, sq_nonneg (‖∑ m ∈ S₀, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
+            - ‖∑ m ∈ S₁, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖)]
+      rw [intervalIntegral.integral_add
+        ((continuous_const.mul ((hcont S₀).norm.pow 2)).intervalIntegrable _ _)
+        ((continuous_const.mul ((hcont S₁).norm.pow 2)).intervalIntegrable _ _),
+        intervalIntegral.integral_const_mul,
+        intervalIntegral.integral_const_mul] at hstep
+      exact hstep
+    refine le_trans h2 ?_
+    -- the S₀-part via the MVT, masses extended to the window
+    have hMVT := ExpSums.intervalIntegral_norm_sq_dyadic_poly_le a ha1 S₀
+      (by
+        intro m hm
+        rw [hS₀_def, Finset.mem_filter] at hm
+        have := hS hm.1
+        rw [Finset.mem_Ioc] at this
+        omega)
+      (by
+        intro m hm
+        rw [hS₀_def, Finset.mem_filter] at hm
+        exact hm.2)
+      c hc K hK
+    have hmono₀ : 2*K*(∑ m ∈ S₀, (1:ℝ)/(m:ℝ)^2)
+        + (Real.log a + 1) * (∑ m ∈ S₀, (1:ℝ)/m)
+        ≤ 2*K*(∑ m ∈ Finset.Ioc a b, (1:ℝ)/(m:ℝ)^2)
+          + (Real.log a + 1) * (∑ m ∈ Finset.Ioc a b, (1:ℝ)/m) := by
+      have hsub : S₀ ⊆ Finset.Ioc a b := by
+        rw [hS₀_def]
+        exact subset_trans (Finset.filter_subset _ _) hS
+      have hm1 : (∑ m ∈ S₀, (1:ℝ)/(m:ℝ)^2)
+          ≤ ∑ m ∈ Finset.Ioc a b, (1:ℝ)/(m:ℝ)^2 :=
+        Finset.sum_le_sum_of_subset_of_nonneg hsub (fun m _ _ => by positivity)
+      have hm2 : (∑ m ∈ S₀, (1:ℝ)/m) ≤ ∑ m ∈ Finset.Ioc a b, (1:ℝ)/m :=
+        Finset.sum_le_sum_of_subset_of_nonneg hsub (fun m _ _ => by positivity)
+      have hlog0 : (0:ℝ) ≤ Real.log a + 1 := by
+        have := Real.log_nonneg (by exact_mod_cast ha1 : (1:ℝ) ≤ a)
+        linarith
+      nlinarith [hm1, hm2, hlog0, hK]
+    -- the S₁-part: at most one element, above 2a
+    have hS₁sub : S₁ ⊆ {2*a+1} := by
+      intro m hm
+      rw [hS₁_def, Finset.mem_filter] at hm
+      have := hS hm.1
+      rw [Finset.mem_Ioc] at this
+      rw [Finset.mem_singleton]
+      omega
+    have hsup₁ : ∀ ξ : ℝ, ‖∑ m ∈ S₁,
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
+        ≤ 1/(a:ℝ) := by
+      intro ξ
+      refine le_trans (norm_sum_le _ _) ?_
+      have hpt : ∀ m ∈ S₁, ‖(c m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ 1/(a:ℝ) := by
+        intro m hm
+        have hmem := hS₁sub hm
+        rw [Finset.mem_singleton] at hmem
+        subst hmem
+        rw [norm_mul, norm_div, Complex.norm_natCast]
+        have hchar : ‖((Real.fourierChar (-(Real.log ((2*a+1 : ℕ)) * ξ)) : Circle) : ℂ)‖ = 1 :=
+          norm_eq_of_mem_sphere _
+        rw [hchar, mul_one]
+        have ha0 : (0:ℝ) < a := by exact_mod_cast ha1
+        have h2a : (a:ℝ) ≤ ((2*a+1 : ℕ) : ℝ) := by push_cast; linarith
+        have hden : (0:ℝ) < ((2*a+1 : ℕ) : ℝ) := by push_cast; linarith
+        calc ‖c (2*a+1)‖/((2*a+1 : ℕ) : ℝ) ≤ 1/((2*a+1 : ℕ) : ℝ) := by
+              gcongr
+              exact hc _
+          _ ≤ 1/(a:ℝ) := one_div_le_one_div_of_le ha0 h2a
+      calc ∑ m ∈ S₁, ‖(c m/(m:ℂ))
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
+          ≤ ∑ _m ∈ S₁, 1/(a:ℝ) := Finset.sum_le_sum hpt
+        _ = (S₁.card : ℝ) * (1/(a:ℝ)) := by
+            rw [Finset.sum_const, nsmul_eq_mul]
+        _ ≤ 1 * (1/(a:ℝ)) := by
+            have hcard : S₁.card ≤ 1 := by
+              calc S₁.card ≤ ({2*a+1} : Finset ℕ).card :=
+                    Finset.card_le_card hS₁sub
+                _ = 1 := Finset.card_singleton _
+            have ha0 : (0:ℝ) < a := by exact_mod_cast ha1
+            have hcr : (S₁.card : ℝ) ≤ 1 := by exact_mod_cast hcard
+            exact mul_le_mul_of_nonneg_right hcr (by positivity)
+        _ = 1/(a:ℝ) := one_mul _
+    have hint₁ : ∫ ξ in (-K)..K, ‖∑ m ∈ S₁,
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ 2*K/(a:ℝ)^2 := by
+      have ha0 : (0:ℝ) < a := by exact_mod_cast ha1
+      calc ∫ ξ in (-K)..K, ‖∑ m ∈ S₁,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+          ≤ ∫ ξ in (-K)..K, (1/(a:ℝ))^2 := by
+            refine intervalIntegral.integral_mono_on (by linarith) ?_
+              intervalIntegrable_const ?_
+            · exact ((hcont S₁).norm.pow 2).intervalIntegrable _ _
+            · intro ξ _
+              have h1 := hsup₁ ξ
+              have h2 : (0:ℝ) ≤ ‖∑ m ∈ S₁, (c m/(m:ℂ))
+                  * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ :=
+                norm_nonneg _
+              nlinarith [h1, h2]
+        _ = 2*K/(a:ℝ)^2 := by
+            rw [intervalIntegral.integral_const, smul_eq_mul]
+            field_simp
+            ring
+    show _ ≤ 2*(2*K*(∑ m ∈ Finset.Ioc a b, (1:ℝ)/(m:ℝ)^2)
+        + (Real.log a + 1) * (∑ m ∈ Finset.Ioc a b, (1:ℝ)/m)) + 4*K/(a:ℝ)^2
+    have hbridge : 4*K/(a:ℝ)^2 = 2*(2*K/(a:ℝ)^2) := by ring
+    linarith [hMVT, hmono₀, hint₁, hbridge]
+  | cons P rest ih =>
+    intro a b hab S hS c hc
+    classical
+    have hP : ∀ q ∈ P, q.Prime := hlv P (by simp)
+    have hrest : ∀ Q ∈ rest, ∀ q ∈ Q, q.Prime :=
+      fun Q hQ => hlv Q (List.mem_cons_of_mem P hQ)
+    have hcont : ∀ (T : Finset ℕ) (d : ℕ → ℂ), Continuous (fun ξ : ℝ => ∑ m ∈ T,
+        (d m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)) := by
+      intro T d
+      refine continuous_finset_sum _ fun m _ => ?_
+      refine Continuous.mul continuous_const ?_
+      exact continuous_subtype_val.comp
+        (Real.continuous_fourierChar.comp (by fun_prop))
+    have hcont_char : ∀ u : ℕ, Continuous (fun ξ : ℝ =>
+        ((Real.fourierChar (-(Real.log u * ξ)) : Circle) : ℂ)) := by
+      intro u
+      exact continuous_subtype_val.comp
+        (Real.continuous_fourierChar.comp (by fun_prop))
+    -- named objects
+    set U := S.filter (fun m => 0 < (P.filter (· ∣ m)).card) with hU_def
+    set V := S.filter (fun m => ¬ 0 < (P.filter (· ∣ m)).card) with hV_def
+    set Fm : ℕ → Finset ℕ := fun p =>
+      ((S.filter (fun n => p ∣ n)).image (· / p)).filter (fun m' => ¬ p ∣ m')
+      with hFm_def
+    set Fc : ℕ → Finset ℕ := fun p =>
+      ((S.filter (fun n => p ∣ n)).image (· / p)).filter (fun m' => p ∣ m')
+      with hFc_def
+    set cP : ℕ → ℕ → ℂ := fun p m' =>
+      c (p*m') / (((P.filter (· ∣ m')).card : ℂ) + 1) with hcP_def
+    -- (1) the 𝒰-split and square split
+    have hsplitS : ∀ ξ : ℝ, ∑ m ∈ S,
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+        = (∑ m ∈ U,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          + ∑ m ∈ V,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+      intro ξ
+      rw [hU_def, hV_def]
+      exact (Finset.sum_filter_add_sum_filter_not S _ _).symm
+    rw [intervalIntegral.integral_congr (g := fun ξ =>
+      ‖(∑ m ∈ U,
+          (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+        + ∑ m ∈ V,
+          (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+      (fun ξ _ => by rw [hsplitS ξ])]
+    have hsq2 : ∀ (f g : ℝ → ℂ), Continuous f → Continuous g →
+        (∫ ξ in (-K)..K, ‖f ξ + g ξ‖^2)
+          ≤ 2*(∫ ξ in (-K)..K, ‖f ξ‖^2) + 2*∫ ξ in (-K)..K, ‖g ξ‖^2 := by
+      intro f g hf hg
+      have hstep : ∫ ξ in (-K)..K, ‖f ξ + g ξ‖^2
+          ≤ ∫ ξ in (-K)..K, (2*‖f ξ‖^2 + 2*‖g ξ‖^2) := by
+        refine intervalIntegral.integral_mono_on (by linarith) ?_ ?_ ?_
+        · exact ((hf.add hg).norm.pow 2).intervalIntegrable _ _
+        · exact ((continuous_const.mul (hf.norm.pow 2)).add
+            (continuous_const.mul (hg.norm.pow 2))).intervalIntegrable _ _
+        · intro ξ _
+          have h1 := norm_add_le (f ξ) (g ξ)
+          have h4 : ‖f ξ + g ξ‖^2 ≤ (‖f ξ‖ + ‖g ξ‖)^2 :=
+            pow_le_pow_left₀ (norm_nonneg _) h1 2
+          nlinarith [h4, sq_nonneg (‖f ξ‖ - ‖g ξ‖)]
+      rw [intervalIntegral.integral_add
+        ((continuous_const.mul (hf.norm.pow 2)).intervalIntegrable _ _)
+        ((continuous_const.mul (hg.norm.pow 2)).intervalIntegrable _ _),
+        intervalIntegral.integral_const_mul,
+        intervalIntegral.integral_const_mul] at hstep
+      exact hstep
+    refine le_trans (hsq2 _ _ (hcont U c) (hcont V c)) ?_
+    -- (2) the sift part
+    have hsift : ∫ ξ in (-K)..K, ‖∑ m ∈ V,
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ 2*K*(∑ m ∈ (Finset.Ioc a b).filter
+            (fun m => ∀ p ∈ P, ¬ p ∣ m), (1:ℝ)/m)^2 := by
+      have hVsub : V ⊆ (Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m) := by
+        intro m hm
+        rw [hV_def, Finset.mem_filter] at hm
+        rw [Finset.mem_filter]
+        refine ⟨hS hm.1, ?_⟩
+        intro p hp
+        have h0 := hm.2
+        simp only [Nat.pos_iff_ne_zero, not_not, Finset.card_eq_zero,
+          Finset.filter_eq_empty_iff] at h0
+        exact h0 hp
+      have hsup : ∀ ξ : ℝ, ‖∑ m ∈ V,
+          (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
+          ≤ ∑ m ∈ (Finset.Ioc a b).filter (fun m => ∀ p ∈ P, ¬ p ∣ m), (1:ℝ)/m := by
+        intro ξ
+        refine le_trans (norm_sum_le _ _) ?_
+        refine le_trans (Finset.sum_le_sum (fun m hm => ?_))
+          (Finset.sum_le_sum_of_subset_of_nonneg hVsub (fun m _ _ => by positivity))
+        rw [norm_mul, norm_div, Complex.norm_natCast]
+        have hchar : ‖((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ = 1 :=
+          norm_eq_of_mem_sphere _
+        rw [hchar, mul_one]
+        gcongr
+        exact hc m
+      have hMnn : (0:ℝ) ≤ ∑ m ∈ (Finset.Ioc a b).filter
+          (fun m => ∀ p ∈ P, ¬ p ∣ m), (1:ℝ)/m :=
+        Finset.sum_nonneg fun m _ => by positivity
+      calc ∫ ξ in (-K)..K, ‖∑ m ∈ V,
+            (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+          ≤ ∫ ξ in (-K)..K, (∑ m ∈ (Finset.Ioc a b).filter
+              (fun m => ∀ p ∈ P, ¬ p ∣ m), (1:ℝ)/m)^2 := by
+            refine intervalIntegral.integral_mono_on (by linarith) ?_
+              intervalIntegrable_const ?_
+            · exact ((hcont V c).norm.pow 2).intervalIntegrable _ _
+            · intro ξ _
+              have h1 := hsup ξ
+              have h2 : (0:ℝ) ≤ ‖∑ m ∈ V, (c m/(m:ℂ))
+                  * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ :=
+                norm_nonneg _
+              nlinarith [h1, h2]
+        _ = 2*K*(∑ m ∈ (Finset.Ioc a b).filter
+              (fun m => ∀ p ∈ P, ¬ p ∣ m), (1:ℝ)/m)^2 := by
+            rw [intervalIntegral.integral_const, smul_eq_mul]
+            ring
+    -- (3) the 𝒰-part decomposition
+    have hdecomp : ∀ ξ : ℝ, ∑ m ∈ U,
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+        = (∑ p ∈ P, (((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)/(p:ℂ))
+            * ∑ m' ∈ Fm p, (cP p m'/(m':ℂ))
+              * ((Real.fourierChar (-(Real.log m' * ξ)) : Circle) : ℂ))
+          + ∑ p ∈ P, ∑ m' ∈ Fc p,
+              ((c (p*m')/((p*m' : ℕ) : ℂ))
+                * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+                / (((P.filter (· ∣ (p*m'))).card : ℂ)) := by
+      intro ξ
+      rw [hU_def]
+      have hb2a := subset_sum_omega_pos_eq_main_add_coll S P hP
+        (fun m => (c m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+      rw [hb2a]
+      congr 1
+      · refine Finset.sum_congr rfl fun p hp => ?_
+        rw [hFm_def, Finset.mul_sum]
+        refine Finset.sum_congr rfl fun m' hm' => ?_
+        rw [Finset.mem_filter] at hm'
+        have hm'0 : m' ≠ 0 := fun h => hm'.2 (h ▸ dvd_zero p)
+        have hp2 := (hP p hp).two_le
+        rw [char_log_mul p m' (by omega) hm'0 ξ]
+        rw [hcP_def]
+        dsimp only
+        push_cast
+        ring
+    rw [show (2:ℝ)*(∫ ξ in (-K)..K, ‖∑ m ∈ U,
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+        = 2*(∫ ξ in (-K)..K, ‖(∑ p ∈ P,
+            (((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)/(p:ℂ))
+              * ∑ m' ∈ Fm p, (cP p m'/(m':ℂ))
+                * ((Real.fourierChar (-(Real.log m' * ξ)) : Circle) : ℂ))
+          + ∑ p ∈ P, ∑ m' ∈ Fc p,
+              ((c (p*m')/((p*m' : ℕ) : ℂ))
+                * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+                / (((P.filter (· ∣ (p*m'))).card : ℂ))‖^2) from by
+      congr 1
+      exact intervalIntegral.integral_congr (fun ξ _ => by rw [hdecomp ξ])]
+    -- continuity of the two decomposition halves
+    have hcont_main : Continuous (fun ξ : ℝ => ∑ p ∈ P,
+        (((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)/(p:ℂ))
+          * ∑ m' ∈ Fm p, (cP p m'/(m':ℂ))
+            * ((Real.fourierChar (-(Real.log m' * ξ)) : Circle) : ℂ)) := by
+      refine continuous_finset_sum _ fun p _ => ?_
+      refine Continuous.mul ((hcont_char p).div_const _) ?_
+      exact continuous_finset_sum _ fun m' _ =>
+        continuous_const.mul (hcont_char m')
+    have hcont_coll : Continuous (fun ξ : ℝ => ∑ p ∈ P, ∑ m' ∈ Fc p,
+        ((c (p*m')/((p*m' : ℕ) : ℂ))
+          * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+          / (((P.filter (· ∣ (p*m'))).card : ℂ))) := by
+      refine continuous_finset_sum _ fun p _ => ?_
+      refine continuous_finset_sum _ fun m' _ => ?_
+      exact (continuous_const.mul (hcont_char _)).div_const _
+    have h2U := hsq2 _ _ hcont_main hcont_coll
+    -- (4) the collision part
+    have hcoll : ∫ ξ in (-K)..K, ‖∑ p ∈ P, ∑ m' ∈ Fc p,
+        ((c (p*m')/((p*m' : ℕ) : ℂ))
+          * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+          / (((P.filter (· ∣ (p*m'))).card : ℂ))‖^2
+        ≤ 2*K*(∑ p ∈ P, (1:ℝ)/p *
+            ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+              (1:ℝ)/m')^2 := by
+      have hsupc : ∀ ξ : ℝ, ‖∑ p ∈ P, ∑ m' ∈ Fc p,
+          ((c (p*m')/((p*m' : ℕ) : ℂ))
+            * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+            / (((P.filter (· ∣ (p*m'))).card : ℂ))‖
+          ≤ ∑ p ∈ P, (1:ℝ)/p *
+              ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+                (1:ℝ)/m' := by
+        intro ξ
+        refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun p hp => ?_)
+        have hp0 : 0 < p := (hP p hp).pos
+        have hFcsub : Fc p ⊆ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m') := by
+          rw [hFc_def]
+          intro m' hm'
+          rw [Finset.mem_filter] at hm'
+          rw [Finset.mem_filter]
+          refine ⟨?_, hm'.2⟩
+          exact image_div_fibre_subset a b S hS hp0 hm'.1
+        rw [Finset.mul_sum]
+        refine le_trans (norm_sum_le _ _) ?_
+        refine le_trans (Finset.sum_le_sum (fun m' hm' => ?_))
+          (Finset.sum_le_sum_of_subset_of_nonneg hFcsub (fun m' _ _ => by positivity))
+        have hm'mem := hFcsub hm'
+        rw [Finset.mem_filter, Finset.mem_Ioc] at hm'mem
+        have hm'0 : 0 < m' := lt_of_le_of_lt (Nat.zero_le _) hm'mem.1.1
+        have hω : (1:ℝ) ≤ (((P.filter (· ∣ (p*m'))).card : ℕ) : ℝ) := by
+          have hpos : 0 < (P.filter (· ∣ (p*m'))).card :=
+            Finset.card_pos.mpr ⟨p, Finset.mem_filter.mpr ⟨hp, dvd_mul_right p m'⟩⟩
+          exact_mod_cast hpos
+        rw [norm_div, norm_mul, norm_div, Complex.norm_natCast, Complex.norm_natCast]
+        have hchar1 : ‖((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ)‖ = 1 :=
+          norm_eq_of_mem_sphere _
+        rw [hchar1, mul_one]
+        have hpm0 : (0:ℝ) < ((p*m' : ℕ) : ℝ) := by
+          have h1 : 0 < p*m' := by positivity
+          exact_mod_cast h1
+        calc ‖c (p*m')‖/((p*m' : ℕ) : ℝ)/(((P.filter (· ∣ (p*m'))).card : ℕ) : ℝ)
+            ≤ 1/((p*m' : ℕ) : ℝ)/1 := by
+              gcongr
+              exact hc _
+          _ = 1/((p*m' : ℕ) : ℝ) := by ring
+          _ = (1:ℝ)/p * (1/(m':ℝ)) := by
+              push_cast
+              field_simp
+          _ ≤ (1:ℝ)/p * ((1:ℝ)/m') := le_of_eq (by ring)
+      have hCnn : (0:ℝ) ≤ ∑ p ∈ P, (1:ℝ)/p *
+          ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'), (1:ℝ)/m' := by
+        refine Finset.sum_nonneg fun p _ => ?_
+        refine mul_nonneg (by positivity) ?_
+        exact Finset.sum_nonneg fun m' _ => by positivity
+      calc ∫ ξ in (-K)..K, ‖∑ p ∈ P, ∑ m' ∈ Fc p,
+            ((c (p*m')/((p*m' : ℕ) : ℂ))
+              * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+              / (((P.filter (· ∣ (p*m'))).card : ℂ))‖^2
+          ≤ ∫ ξ in (-K)..K, (∑ p ∈ P, (1:ℝ)/p *
+              ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+                (1:ℝ)/m')^2 := by
+            refine intervalIntegral.integral_mono_on (by linarith) ?_
+              intervalIntegrable_const ?_
+            · exact (hcont_coll.norm.pow 2).intervalIntegrable _ _
+            · intro ξ _
+              have h1 := hsupc ξ
+              have h2 : (0:ℝ) ≤ ‖∑ p ∈ P, ∑ m' ∈ Fc p,
+                  ((c (p*m')/((p*m' : ℕ) : ℂ))
+                    * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+                    / (((P.filter (· ∣ (p*m'))).card : ℂ))‖ := norm_nonneg _
+              nlinarith [h1, h2]
+        _ = 2*K*(∑ p ∈ P, (1:ℝ)/p *
+              ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+                (1:ℝ)/m')^2 := by
+            rw [intervalIntegral.integral_const, smul_eq_mul]
+            ring
+    -- (5) the main part: CS then the induction hypothesis per fibre
+    have hmain : ∫ ξ in (-K)..K, ‖∑ p ∈ P,
+        (((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)/(p:ℂ))
+          * ∑ m' ∈ Fm p, (cP p m'/(m':ℂ))
+            * ((Real.fourierChar (-(Real.log m' * ξ)) : Circle) : ℂ)‖^2
+        ≤ (∑ p ∈ P, (1:ℝ)/p) * ∑ p ∈ P, (1:ℝ)/p * uBound K rest (a/p) (b/p) := by
+      have hCS := ExpSums.intervalIntegral_norm_sq_freq_weighted_sum_le P
+        (fun p ξ => ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)/(p:ℂ))
+        (fun p => (1:ℝ)/p)
+        (by
+          intro p ξ
+          rw [norm_div, Complex.norm_natCast]
+          have h1 : ‖((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖ = 1 :=
+            norm_eq_of_mem_sphere _
+          rw [h1])
+        (fun p => (hcont_char p).div_const _)
+        (fun p ξ => ∑ m' ∈ Fm p, (cP p m'/(m':ℂ))
+          * ((Real.fourierChar (-(Real.log m' * ξ)) : Circle) : ℂ))
+        (fun p => hcont (Fm p) (cP p))
+        K hK
+      refine le_trans hCS ?_
+      refine mul_le_mul_of_nonneg_left ?_
+        (Finset.sum_nonneg fun p _ => by positivity)
+      refine Finset.sum_le_sum fun p hp => ?_
+      refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+      -- the induction hypothesis at the fibre window
+      have hp0 : 0 < p := (hP p hp).pos
+      have hFmsub : Fm p ⊆ Finset.Ioc (a/p) (b/p) := by
+        rw [hFm_def]
+        intro m' hm'
+        rw [Finset.mem_filter] at hm'
+        exact image_div_fibre_subset a b S hS hp0 hm'.1
+      have hdd : b/p ≤ 2*(a/p)+1 := by
+        have h1 : b/p ≤ (2*a+1)/p := Nat.div_le_div_right hab
+        have h2 : (2*a+1)/p < 2*(a/p) + 2 := by
+          rw [Nat.div_lt_iff_lt_mul hp0]
+          have h3 := Nat.div_add_mod a p
+          have h4 := Nat.mod_lt a hp0
+          nlinarith [h3, h4]
+        omega
+      have hcP1 : ∀ m', ‖cP p m'‖ ≤ 1 := by
+        intro m'
+        rw [hcP_def]
+        dsimp only
+        rw [norm_div]
+        have hden : ‖(((P.filter (· ∣ m')).card : ℂ) + 1)‖
+            = ((P.filter (· ∣ m')).card : ℝ) + 1 := by
+          rw [show (((P.filter (· ∣ m')).card : ℂ) + 1)
+              = (((P.filter (· ∣ m')).card + 1 : ℕ) : ℂ) from by push_cast; ring,
+            Complex.norm_natCast]
+          push_cast
+          ring
+        rw [hden]
+        have h1 : ((P.filter (· ∣ m')).card : ℝ) + 1 ≥ 1 := by
+          have h2 : (0:ℝ) ≤ ((P.filter (· ∣ m')).card : ℝ) := Nat.cast_nonneg _
+          linarith
+        rw [div_le_one (by linarith)]
+        exact le_trans (hc _) h1
+      exact ih hrest (a/p) (b/p) hdd (Fm p) hFmsub (cP p) hcP1
+    -- assemble
+    show _ ≤ 4*((∑ p ∈ P, (1:ℝ)/p) * ∑ p ∈ P, (1:ℝ)/p * uBound K rest (a/p) (b/p))
+        + 4*(2*K*(∑ p ∈ P, (1:ℝ)/p *
+            ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+              (1:ℝ)/m')^2)
+        + 2*(2*K*(∑ m ∈ (Finset.Ioc a b).filter
+            (fun m => ∀ p ∈ P, ¬ p ∣ m), (1:ℝ)/m)^2)
+    linarith [h2U, hmain, hcoll, hsift]
+
+
 end MoltResearch
