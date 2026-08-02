@@ -1358,4 +1358,126 @@ theorem norm_smooth_tsum_sub_sum_le (f : ℕ → ℂ) (hb : ∀ n, ‖f n‖ ≤
   linarith [hsub_le, hsub_full, hfull]
 
 
+set_option maxHeartbeats 1600000 in
+/-- **The band sup for the smooth polynomial** (Track R, M2-i4c1a):
+on any frequency `ξ`, the `y₂`-smooth phase polynomial truncated at
+`x` is bounded by the 1-line Euler product bound — the prime mass
+minus the pretentious distance floor `M` at scale `x`, corrected by
+twice the mass difference (the truncation transfer) — plus the
+Rankin-`δ` polynomial-versus-series tail. This is the `Bband` input
+of the band/tail Hölder split, with every constant explicit. -/
+theorem norm_smooth_poly_band_le (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (y₂ x : ℕ) (hy₂ : 1 ≤ y₂) (hyx : y₂ ≤ x)
+    (hx : 1 ≤ x) (ξ M δ : ℝ) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (hM : M ≤ pretentiousDistSq f
+      (fun n => (n:ℂ)^(Complex.I*((2*Real.pi*ξ : ℝ):ℂ))) x) :
+    ‖∑ n ∈ (Finset.Icc 1 x).filter (· ∈ Nat.smoothNumbers y₂),
+        (f n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖
+      ≤ Real.exp ((∑ p ∈ y₂.primesBelow, (1:ℝ)/p) - M
+            + 2*((∑ p ∈ x.primesBelow, (1:ℝ)/p)
+              - (∑ p ∈ y₂.primesBelow, (1:ℝ)/p)) + 1)
+        + (x:ℝ)^(-δ) * ∏ p ∈ y₂.primesBelow, (1 - (p:ℝ)^(δ-1))⁻¹ := by
+  classical
+  set c : ℝ := 2*Real.pi*ξ with hc_def
+  set s : ℂ := 1 + Complex.I*((c:ℝ):ℂ) with hs_def
+  have hsre : s.re = 1 := by
+    rw [hs_def]
+    simp
+  -- the polynomial index set is the smooth-numbers-up-to Finset
+  have hconv : (Finset.Icc 1 x).filter (· ∈ Nat.smoothNumbers y₂)
+      = Nat.smoothNumbersUpTo x y₂ := by
+    ext n
+    rw [Finset.mem_filter, Finset.mem_Icc, Nat.mem_smoothNumbersUpTo]
+    constructor
+    · rintro ⟨⟨_, h2⟩, h3⟩
+      exact ⟨h2, h3⟩
+    · rintro ⟨h2, h3⟩
+      exact ⟨⟨Nat.pos_of_ne_zero (Nat.ne_zero_of_mem_smoothNumbers h3),
+        h2⟩, h3⟩
+  -- each term is the L-series term at s = 1 + 2πiξ
+  have hterm : ∀ n ∈ Nat.smoothNumbersUpTo x y₂,
+      (f n/(n:ℂ)) * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)
+        = (if n ∈ Nat.smoothNumbers y₂ then f n else 0)
+            * (if n = 0 then 0 else (n:ℂ)^(-s)) := by
+    intro n hn
+    rw [Nat.mem_smoothNumbersUpTo] at hn
+    have hn0 : n ≠ 0 := Nat.ne_zero_of_mem_smoothNumbers hn.2
+    have hnpos : (0:ℝ) < n := by exact_mod_cast Nat.pos_of_ne_zero hn0
+    rw [if_pos hn.2, if_neg hn0]
+    have hn0' : (n:ℂ) ≠ 0 := by exact_mod_cast hn0
+    have hlogn : Complex.log (n:ℂ) = ((Real.log n : ℝ) : ℂ) := by
+      rw [show ((n:ℕ):ℂ) = (((n:ℕ):ℝ):ℂ) from by norm_cast]
+      exact (Complex.ofReal_log hnpos.le).symm
+    have hcpow : (n:ℂ)^(-s)
+        = ((1:ℂ)/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+      rw [Complex.cpow_def_of_ne_zero hn0', hlogn,
+        Real.fourierChar_apply]
+      rw [show ((Real.log n : ℝ) : ℂ) * (-s)
+          = ((-(Real.log n) : ℝ) : ℂ)
+            + ((2*Real.pi*(-(Real.log n * ξ)) : ℝ) : ℂ) * Complex.I from by
+        rw [hs_def, hc_def]
+        push_cast
+        ring]
+      rw [Complex.exp_add]
+      congr 1
+      rw [← Complex.ofReal_exp, Real.exp_neg, Real.exp_log hnpos]
+      rw [one_div]
+      push_cast
+      ring
+    rw [hcpow]
+    ring
+  rw [hconv, Finset.sum_congr rfl hterm]
+  -- triangle against the full smooth series
+  set T : ℂ := ∑' n : ℕ, (if n ∈ Nat.smoothNumbers y₂ then f n else 0)
+    * (if n = 0 then 0 else (n:ℂ)^(-s)) with hT_def
+  set A : ℂ := ∑ n ∈ Nat.smoothNumbersUpTo x y₂,
+    (if n ∈ Nat.smoothNumbers y₂ then f n else 0)
+      * (if n = 0 then 0 else (n:ℂ)^(-s)) with hA_def
+  have htri : ‖A‖ ≤ ‖T‖ + ‖T - A‖ := by
+    calc ‖A‖ = ‖T - (T - A)‖ := by
+          congr 1
+          ring
+      _ ≤ ‖T‖ + ‖T - A‖ := norm_sub_le _ _
+  refine le_trans htri (add_le_add ?_ ?_)
+  · -- the head: Euler product bound + distance transfer
+    have heq := smooth_tsum_eq_finprod f hcm h1 hb y₂ hy₂ s hsre
+    rw [hT_def, heq]
+    have hprod := norm_smooth_finprod_le f hb y₂ c
+    have hshape : ∏ p ∈ y₂.primesBelow,
+        (1 - (f p) * (p:ℂ)^(-(1 + Complex.I*((c:ℝ):ℂ))))⁻¹
+          = ∏ p ∈ y₂.primesBelow, (1 - (f p) * (p:ℂ)^(-s))⁻¹ := by
+      rw [hs_def]
+    rw [hshape] at hprod
+    refine le_trans hprod ?_
+    rw [Real.exp_le_exp]
+    -- the truncation transfer on the pretentious distance
+    have htwist_norm : ∀ p,
+        ‖(fun n : ℕ => (n:ℂ)^(Complex.I*((c:ℝ):ℂ))) p‖ ≤ 1 := by
+      intro p
+      dsimp only
+      rcases Nat.eq_zero_or_pos p with hp | hp
+      · subst hp
+        rcases eq_or_ne (Complex.I*((c:ℝ):ℂ)) 0 with h | h
+        · rw [h, Complex.cpow_zero]
+          norm_num
+        · rw [show ((0:ℕ):ℂ) = 0 from by norm_cast,
+            Complex.zero_cpow h]
+          norm_num
+      · rw [Complex.norm_natCast_cpow_of_pos hp]
+        have hre : (Complex.I*((c:ℝ):ℂ)).re = 0 := by
+          simp [Complex.mul_re]
+        rw [hre, Real.rpow_zero]
+    have htrans := pretentiousDistSq_le_add_mass f
+      (fun n : ℕ => (n:ℂ)^(Complex.I*((c:ℝ):ℂ)))
+      (fun p => hb p) htwist_norm hyx
+    have hMc : M ≤ pretentiousDistSq f
+        (fun n : ℕ => (n:ℂ)^(Complex.I*((c:ℝ):ℂ))) x := hM
+    linarith [htrans, hMc]
+  · -- the tail: the Rankin-δ polynomial-versus-series gap
+    exact norm_smooth_tsum_sub_sum_le f hb y₂ x hx s hsre δ hδ0 hδ1
+
+
 end MoltResearch
