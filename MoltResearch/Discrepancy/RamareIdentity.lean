@@ -1531,4 +1531,160 @@ theorem norm_T_mul_log_le (f : ℕ → ℂ) (hcm : CompletelyMultiplicativeC f)
           ring
 
 
+open ArithmeticFunction in
+/-- **The Cesàro von Mangoldt convolution** (Track R, M1-a): the
+log-weighted Cesàro sum is the `Λf`-weighted average of the plain
+Cesàro sums at divided scales — the unweighted mirror of
+`sum_mul_log_div_eq_vonMangoldt_conv`. -/
+theorem cesaro_mul_log_eq_vonMangoldt_conv (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (x : ℕ) :
+    ∑ n ∈ Finset.Ioc 0 x, f n * ((Real.log n : ℝ) : ℂ)
+      = ∑ d ∈ Finset.Ioc 0 x, ((vonMangoldt d : ℝ) : ℂ) * f d
+          * ∑ m ∈ Finset.Ioc 0 (x/d), f m := by
+  classical
+  have hstep1 : ∀ n ∈ Finset.Ioc 0 x,
+      f n * ((Real.log n : ℝ) : ℂ)
+        = ∑ d ∈ Finset.Ioc 0 x,
+            if d ∣ n then ((vonMangoldt d : ℝ) : ℂ) * f n else 0 := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn
+    have hset : n.divisors = (Finset.Ioc 0 x).filter (· ∣ n) := by
+      ext d
+      rw [Nat.mem_divisors, Finset.mem_filter, Finset.mem_Ioc]
+      constructor
+      · rintro ⟨hdvd, hne⟩
+        have h1 : 0 < d := Nat.pos_of_dvd_of_pos hdvd (by omega)
+        have h2 : d ≤ n := Nat.le_of_dvd (by omega) hdvd
+        exact ⟨⟨h1, by omega⟩, hdvd⟩
+      · rintro ⟨-, hdvd⟩
+        exact ⟨hdvd, by omega⟩
+    have hlog : ((Real.log n : ℝ) : ℂ) = ∑ d ∈ n.divisors,
+        ((vonMangoldt d : ℝ) : ℂ) := by
+      rw [show ∑ d ∈ n.divisors, ((vonMangoldt d : ℝ) : ℂ)
+          = ((∑ d ∈ n.divisors, vonMangoldt d : ℝ) : ℂ) from by push_cast; rfl]
+      rw [vonMangoldt_sum]
+    rw [hlog, hset, Finset.sum_filter, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun d _ => ?_
+    by_cases hd : d ∣ n
+    · rw [if_pos hd, if_pos hd]
+      ring
+    · rw [if_neg hd, if_neg hd]
+      simp
+  rw [Finset.sum_congr rfl hstep1, Finset.sum_comm]
+  refine Finset.sum_congr rfl fun d hd => ?_
+  rw [Finset.mem_Ioc] at hd
+  rw [← Finset.sum_filter]
+  have hreindex := sum_Ioc_filter_dvd_eq_sum_Ioc_div 0 x d (by omega)
+    (fun n => ((vonMangoldt d : ℝ) : ℂ) * f n)
+  rw [Nat.zero_div] at hreindex
+  rw [hreindex]
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun m hm => ?_
+  rw [Finset.mem_Ioc] at hm
+  have hfdm : f (d * m) = f d * f m := hcm d m (by omega) (by omega)
+  rw [hfdm]
+  ring
+
+/-- **The log-ratio mesh bound** (Track R, M1-b): the Cesàro log mesh
+is at most `N − 1` — Stirling by bare induction, one `log(1+1/N)`
+per step. -/
+theorem sum_log_ratio_le (N : ℕ) (hN : 1 ≤ N) :
+    ∑ n ∈ Finset.Ioc 0 N, (Real.log N - Real.log n) ≤ (N : ℝ) - 1 := by
+  induction N with
+  | zero => omega
+  | succ k ih =>
+    rcases Nat.eq_zero_or_pos k with hk | hk
+    · subst hk
+      rw [Finset.sum_Ioc_succ_top (le_refl 0)]
+      simp
+    · push_cast
+      have hstep : ∑ n ∈ Finset.Ioc 0 (k+1), (Real.log ((k:ℝ)+1) - Real.log n)
+          = (∑ n ∈ Finset.Ioc 0 k, (Real.log k - Real.log n))
+            + (k : ℝ) * (Real.log ((k:ℝ)+1) - Real.log k) := by
+        rw [Finset.sum_Ioc_succ_top (Nat.zero_le k)]
+        push_cast
+        rw [show (∑ n ∈ Finset.Ioc 0 k, (Real.log ((k:ℝ)+1) - Real.log n))
+            = ∑ n ∈ Finset.Ioc 0 k, ((Real.log k - Real.log n)
+                + (Real.log ((k:ℝ)+1) - Real.log k)) from
+          Finset.sum_congr rfl fun n _ => by ring]
+        rw [Finset.sum_add_distrib, Finset.sum_const, Nat.card_Ioc]
+        push_cast [Nat.sub_zero]
+        ring
+      rw [hstep]
+      have hk0 : (0:ℝ) < k := by exact_mod_cast hk
+      have hlog1 : Real.log ((k:ℝ)+1) - Real.log k ≤ 1 / (k : ℝ) := by
+        rw [← Real.log_div (by positivity) (by positivity)]
+        have hdiv : ((k:ℝ)+1) / k = 1 + 1/(k:ℝ) := by field_simp
+        rw [hdiv]
+        have := Real.log_le_sub_one_of_pos
+          (by positivity : (0:ℝ) < 1 + 1/(k:ℝ))
+        linarith
+      have hmul : (k : ℝ) * (Real.log ((k:ℝ)+1) - Real.log k) ≤ 1 := by
+        calc (k : ℝ) * (Real.log ((k:ℝ)+1) - Real.log k)
+            ≤ (k : ℝ) * (1/(k:ℝ)) :=
+              mul_le_mul_of_nonneg_left hlog1 hk0.le
+          _ = 1 := by field_simp
+      have hih := ih hk
+      linarith
+
+open ArithmeticFunction in
+/-- **The Cesàro Wirsing inequality** (Track R, M1-c): the Halász
+elementary preamble — `|A(x)|·log x ≤ x + ∑_{d≤x} Λ(d)·|A(x/d)|`
+for completely multiplicative `1`-bounded `f`. The Cesàro mirror of
+`norm_T_mul_log_le`; the analytic content of Halász enters by bounding
+the `Λ`-averaged smaller-scale Cesàro sums. -/
+theorem norm_cesaro_mul_log_le (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (hf : ∀ m, ‖f m‖ ≤ 1) (x : ℕ) :
+    ‖∑ n ∈ Finset.Ioc 0 x, f n‖ * Real.log x
+      ≤ (x : ℝ)
+        + ∑ d ∈ Finset.Ioc 0 x, (vonMangoldt d)
+            * ‖∑ m ∈ Finset.Ioc 0 (x/d), f m‖ := by
+  classical
+  rcases Nat.eq_zero_or_pos x with hx | hx
+  · subst hx
+    simp
+  have hsplit : (∑ n ∈ Finset.Ioc 0 x, f n) * ((Real.log x : ℝ) : ℂ)
+      = (∑ n ∈ Finset.Ioc 0 x, f n * (((Real.log x - Real.log n : ℝ)) : ℂ))
+        + ∑ n ∈ Finset.Ioc 0 x, f n * ((Real.log n : ℝ) : ℂ) := by
+    rw [Finset.sum_mul, ← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    push_cast
+    ring
+  have hlhs : ‖∑ n ∈ Finset.Ioc 0 x, f n‖ * Real.log x
+      = ‖(∑ n ∈ Finset.Ioc 0 x, f n) * ((Real.log x : ℝ) : ℂ)‖ := by
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (Real.log_nonneg (by exact_mod_cast hx))]
+  rw [hlhs, hsplit, cesaro_mul_log_eq_vonMangoldt_conv f hcm x]
+  refine le_trans (norm_add_le _ _) (add_le_add ?_ ?_)
+  · refine le_trans (norm_sum_le _ _) ?_
+    have hbd : ∀ n ∈ Finset.Ioc 0 x,
+        ‖f n * (((Real.log x - Real.log n : ℝ)) : ℂ)‖
+          ≤ Real.log x - Real.log n := by
+      intro n hn
+      rw [Finset.mem_Ioc] at hn
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs]
+      have hΔ : (0:ℝ) ≤ Real.log x - Real.log n := by
+        have := Real.log_le_log (by exact_mod_cast hn.1 : (0:ℝ) < n)
+          (by exact_mod_cast hn.2 : (n:ℝ) ≤ x)
+        linarith
+      rw [abs_of_nonneg hΔ]
+      calc ‖f n‖ * (Real.log x - Real.log n)
+          ≤ 1 * (Real.log x - Real.log n) :=
+            mul_le_mul_of_nonneg_right (hf n) hΔ
+        _ = Real.log x - Real.log n := one_mul _
+    refine le_trans (Finset.sum_le_sum hbd) ?_
+    have := sum_log_ratio_le x hx
+    linarith
+  · refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun d hd => ?_)
+    rw [Finset.mem_Ioc] at hd
+    have hΛ0 : (0:ℝ) ≤ vonMangoldt d := vonMangoldt_nonneg
+    rw [norm_mul, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg hΛ0]
+    calc vonMangoldt d * ‖f d‖ * ‖∑ m ∈ Finset.Ioc 0 (x/d), f m‖
+        ≤ vonMangoldt d * 1 * ‖∑ m ∈ Finset.Ioc 0 (x/d), f m‖ := by
+          gcongr
+          exact hf d
+      _ = vonMangoldt d * ‖∑ m ∈ Finset.Ioc 0 (x/d), f m‖ := by ring
+
+
 end MoltResearch
