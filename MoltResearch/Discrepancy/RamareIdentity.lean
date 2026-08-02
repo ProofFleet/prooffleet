@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.TuranKubilius
 import MoltResearch.Discrepancy.MultiplicativeC
+import MoltResearch.Discrepancy.LargeValues
 import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 
 /-!
@@ -544,6 +545,57 @@ theorem norm_sum_sub_sift_le (a b : ℕ) (P : Finset ℕ)
               * (((b - a)/(∏ p ∈ P, p) + 1 : ℕ) : ℝ) := by
               push_cast
               ring
+
+
+/-- Phase multiplicativity at a product index: `e(−log(pm)·ξ) =
+e(−log p·ξ)·e(−log m·ξ)` for nonzero `p, m`. -/
+theorem char_log_mul (p m : ℕ) (hp : p ≠ 0) (hm : m ≠ 0) (ξ : ℝ) :
+    ((Real.fourierChar (-(Real.log ((p*m : ℕ)) * ξ)) : Circle) : ℂ)
+      = ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+  rw [Real.fourierChar_apply, Real.fourierChar_apply, Real.fourierChar_apply,
+    ← Complex.exp_add]
+  congr 1
+  have hlog : Real.log ((p*m : ℕ)) = Real.log p + Real.log m := by
+    push_cast
+    exact Real.log_mul (by exact_mod_cast hp) (by exact_mod_cast hm)
+  rw [hlog]
+  push_cast
+  ring
+
+/-- **The 𝒰-phase decomposition** (Track R, W2c-vi-a1): at any frequency,
+the `ω_P ≥ 1`-restricted `1/m`-weighted phase sum splits as the
+prime-fibre main terms — each a `char(p)/p`-weighted block phase sum in
+the harness currency — plus the collision terms. C4e-4 at the
+phase-carrying weights plus phase multiplicativity. -/
+theorem usum_phase_eq_main_add_coll (a b : ℕ) (P : Finset ℕ)
+    (hP : ∀ q ∈ P, q.Prime) (c : ℕ → ℂ) (ξ : ℝ) :
+    ∑ m ∈ (Finset.Ioc a b).filter (fun m => 0 < (P.filter (· ∣ m)).card),
+        (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+      = (∑ p ∈ P, (((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)/(p:ℂ))
+          * ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => ¬ p ∣ m'),
+              ((c (p*m')/(((P.filter (· ∣ m')).card : ℂ) + 1))/(m':ℂ))
+                * ((Real.fourierChar (-(Real.log m' * ξ)) : Circle) : ℂ))
+        + ∑ p ∈ P, ∑ m' ∈ (Finset.Ioc (a/p) (b/p)).filter (fun m' => p ∣ m'),
+            ((c (p*m')/((p*m' : ℕ) : ℂ))
+                * ((Real.fourierChar (-(Real.log ((p*m' : ℕ)) * ξ)) : Circle) : ℂ))
+              / (((P.filter (· ∣ (p*m'))).card : ℂ)) := by
+  classical
+  have hmain := sum_filter_omega_pos_eq_main_add_collision a b P hP
+    (fun m => (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+  rw [hmain]
+  congr 1
+  · refine Finset.sum_congr rfl fun p hp => ?_
+    have hp2 := (hP p hp).two_le
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun m' hm' => ?_
+    rw [Finset.mem_filter] at hm'
+    have hm'0 : m' ≠ 0 := fun h => hm'.2 (h ▸ dvd_zero p)
+    rw [char_log_mul p m' (by omega) hm'0 ξ]
+    have hpm'c : ((p*m' : ℕ) : ℂ) = (p:ℂ)*(m':ℂ) := by push_cast; ring
+    field_simp
+    push_cast
+    ring
 
 
 end MoltResearch
