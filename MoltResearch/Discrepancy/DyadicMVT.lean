@@ -1112,6 +1112,76 @@ theorem fourier_gaussian_scaled {T : ℝ} (hT : 0 < T) :
   push_cast
   field_simp
 
+open MeasureTheory in
+/-- **The weighted double-sum expansion** (Track R, M0-i): the
+weighted mean square of a Dirichlet polynomial is the double sum of
+its pair correlations against the weight.  This is the step of GHS
+Lemma 2.6 that turns the Gaussian-majorised integral into an
+arithmetic double sum; evaluating each pair integral as `𝓕W` at
+`log m − log n` is the next step, and the Gaussian's transform is what
+then localises the off-diagonal. -/
+theorem integral_norm_sq_poly_weight_eq (S : Finset ℕ) (c : ℕ → ℂ)
+    (W : ℝ → ℝ) (hWc : Continuous W) (hWi : Integrable W) :
+    ∫ ξ, ‖∑ n ∈ S, c n
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 * W ξ
+      = ∑ m ∈ S, ∑ n ∈ S, ∫ ξ, (((c m * (starRingEnd ℂ) (c n))
+          * ((Real.fourierChar (-((Real.log m - Real.log n) * ξ)) : Circle)
+            : ℂ)).re) * W ξ := by
+  classical
+  -- the pointwise expansion, as in the dyadic mean value theorem
+  have hexpand : ∀ ξ : ℝ,
+      ‖∑ n ∈ S, c n
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      = ∑ m ∈ S, ∑ n ∈ S, ((c m * (starRingEnd ℂ) (c n))
+          * ((Real.fourierChar (-((Real.log m - Real.log n) * ξ)) : Circle)
+            : ℂ)).re := by
+    intro ξ
+    rw [norm_sq_eq_mul_conj_re, map_sum, Finset.sum_mul_sum, Complex.re_sum]
+    refine Finset.sum_congr rfl fun m _ => ?_
+    rw [Complex.re_sum]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    congr 1
+    rw [map_mul, mul_mul_mul_comm]
+    congr 1
+    exact char_mul_conj_char (Real.log m) (Real.log n) ξ
+  -- each pair term is integrable against the weight
+  have hterm : ∀ m n : ℕ, Integrable (fun ξ : ℝ =>
+      (((c m * (starRingEnd ℂ) (c n))
+        * ((Real.fourierChar (-((Real.log m - Real.log n) * ξ)) : Circle)
+          : ℂ)).re) * W ξ) := by
+    intro m n
+    refine ((hWi.abs).const_mul (‖c m‖ * ‖c n‖)).mono' ?_ ?_
+    · refine (Complex.continuous_re.comp ?_).mul hWc |>.aestronglyMeasurable
+      refine continuous_const.mul ?_
+      exact continuous_subtype_val.comp
+        (Real.continuous_fourierChar.comp (by fun_prop))
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      set z : ℂ := (c m * (starRingEnd ℂ) (c n))
+        * ((Real.fourierChar (-((Real.log m - Real.log n) * ξ)) : Circle) : ℂ)
+        with hz_def
+      have h1 : |z.re| ≤ ‖c m‖ * ‖c n‖ := by
+        refine le_trans (Complex.abs_re_le_norm _) ?_
+        rw [hz_def, norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one,
+          RCLike.norm_conj]
+      rw [Real.norm_eq_abs, abs_mul]
+      calc |z.re| * |W ξ| ≤ (‖c m‖ * ‖c n‖) * |W ξ| :=
+            mul_le_mul_of_nonneg_right h1 (abs_nonneg _)
+        _ = ‖c m‖ * ‖c n‖ * |W ξ| := by ring
+  -- expand, then exchange the finite sums with the integral
+  have hpt : ∀ ξ : ℝ, ‖∑ n ∈ S, c n
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 * W ξ
+      = ∑ m ∈ S, ∑ n ∈ S, (((c m * (starRingEnd ℂ) (c n))
+          * ((Real.fourierChar (-((Real.log m - Real.log n) * ξ)) : Circle)
+            : ℂ)).re) * W ξ := by
+    intro ξ
+    rw [hexpand ξ, Finset.sum_mul]
+    exact Finset.sum_congr rfl fun m _ => by rw [Finset.sum_mul]
+  rw [MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall hpt)]
+  rw [MeasureTheory.integral_finset_sum _ (fun m _ =>
+    MeasureTheory.integrable_finset_sum _ (fun n _ => hterm m n))]
+  refine Finset.sum_congr rfl fun m _ => ?_
+  rw [MeasureTheory.integral_finset_sum _ (fun n _ => hterm m n)]
+
 end ExpSums
 
 end MoltResearch
