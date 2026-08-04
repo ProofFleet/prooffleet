@@ -804,6 +804,96 @@ theorem intervalIntegral_sq_mul_split (f g : ℝ → ℂ)
           (hint3.const_mul _), intervalIntegral.integral_const_mul,
           intervalIntegral.integral_const_mul]
 
+/-- **The large-values split at order `2k`** (Track R, R2b): the
+value threshold `V` trades the weighted second moment for the
+`2k`-th moment, at the cost of `V^{2k-2}` in the denominator.  For
+`k = 1` this is trivial and for `k = 2` it is `sq_mul_split`; larger
+`k` buys a stronger trade when higher moments of the polynomial are
+available. -/
+theorem sq_mul_split_pow (u v Sup V : ℝ) (k : ℕ) (hk : 1 ≤ k) (hu : 0 ≤ u)
+    (hv : 0 ≤ v) (hvS : v ≤ Sup) (hV : 0 < V) :
+    u^2*v^2 ≤ V^2*v^2 + (Sup^2/V^(2*k-2))*u^(2*k) := by
+  have hSup0 : (0:ℝ) ≤ Sup := le_trans hv hvS
+  have hVk : (0:ℝ) < V^(2*k-2) := by positivity
+  rcases le_or_gt u V with h | h
+  · have h1 : u^2*v^2 ≤ V^2*v^2 := by
+      have h2 : u^2 ≤ V^2 := by nlinarith
+      nlinarith [sq_nonneg v]
+    have h2 : (0:ℝ) ≤ (Sup^2/V^(2*k-2))*u^(2*k) := by positivity
+    linarith
+  · -- above the threshold the ratio `u/V ≥ 1` upgrades the exponent
+    have hV0 : (0:ℝ) < u := lt_of_lt_of_le hV h.le
+    have hpow : V^(2*k-2)*u^2 ≤ u^(2*k) := by
+      have hsplit : u^(2*k) = u^(2*k-2)*u^2 := by
+        rw [← pow_add]
+        congr 1
+        omega
+      rw [hsplit]
+      refine mul_le_mul_of_nonneg_right ?_ (sq_nonneg u)
+      exact pow_le_pow_left₀ hV.le h.le _
+    have hvs2 : v^2 ≤ Sup^2 := by nlinarith
+    have hkey : u^2*v^2 ≤ (Sup^2/V^(2*k-2))*u^(2*k) := by
+      rw [div_mul_eq_mul_div, le_div_iff₀ hVk]
+      calc u^2*v^2*V^(2*k-2) ≤ u^2*Sup^2*V^(2*k-2) := by
+            nlinarith [mul_nonneg (mul_nonneg (sub_nonneg.mpr hvs2)
+              (sq_nonneg u)) hVk.le]
+        _ = Sup^2*(V^(2*k-2)*u^2) := by ring
+        _ ≤ Sup^2*u^(2*k) :=
+            mul_le_mul_of_nonneg_left hpow (sq_nonneg Sup)
+    nlinarith [sq_nonneg v, mul_nonneg (sq_nonneg V) (sq_nonneg v)]
+
+/-- **The dyadic mean value theorem, weighted** (Track R, R2b): the
+`1`-bounded hypothesis of `intervalIntegral_norm_sq_dyadic_poly_le`
+relaxed to any uniform coefficient bound `B`, which the bound pays for
+by `B²`.  The factored polynomials of the Ramaré decomposition carry
+divisor-type coefficients, so the unnormalised form is the one the
+large-values leg consumes. -/
+theorem intervalIntegral_norm_sq_dyadic_poly_le_of_bound (N : ℕ) (hN : 1 ≤ N)
+    (S : Finset ℕ) (hSlow : ∀ n ∈ S, N ≤ n) (hShigh : ∀ n ∈ S, n ≤ 2*N)
+    (a : ℕ → ℂ) (B : ℝ) (hB : 0 < B) (ha : ∀ n, ‖a n‖ ≤ B)
+    (L : ℝ) (hL : 0 ≤ L) :
+    ∫ ξ in (-L)..L,
+        ‖∑ n ∈ S, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      ≤ B^2*(2*L*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+        + (Real.log N + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
+  classical
+  have hBne : (B:ℂ) ≠ 0 := by
+    simpa using (ne_of_gt hB)
+  -- normalise the coefficients
+  have hnorm : ∀ n : ℕ, ‖(fun m => a m/(B:ℂ)) n‖ ≤ 1 := by
+    intro n
+    rw [norm_div, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hB,
+      div_le_one hB]
+    exact ha n
+  have hbase := intervalIntegral_norm_sq_dyadic_poly_le N hN S hSlow hShigh
+    (fun m => a m/(B:ℂ)) hnorm L hL
+  have hpt : ∀ ξ : ℝ, ‖∑ n ∈ S, (a n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      = B^2 * ‖∑ n ∈ S, ((a n/(B:ℂ))/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 := by
+    intro ξ
+    have hfac : ∑ n ∈ S, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)
+        = (B:ℂ) * ∑ n ∈ S, ((a n/(B:ℂ))/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl fun n _ => ?_
+      field_simp
+    rw [hfac, norm_mul, mul_pow, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_pos hB]
+  calc ∫ ξ in (-L)..L, ‖∑ n ∈ S, (a n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      = ∫ ξ in (-L)..L, B^2 * ‖∑ n ∈ S, ((a n/(B:ℂ))/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 := by
+        exact intervalIntegral.integral_congr (fun ξ _ => hpt ξ)
+    _ = B^2 * ∫ ξ in (-L)..L, ‖∑ n ∈ S, ((a n/(B:ℂ))/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 :=
+        intervalIntegral.integral_const_mul _ _
+    _ ≤ B^2*(2*L*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+        + (Real.log N + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
+        refine mul_le_mul_of_nonneg_left hbase (by positivity)
+
 end ExpSums
 
 end MoltResearch
