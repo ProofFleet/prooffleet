@@ -743,6 +743,66 @@ theorem intervalIntegral_norm_sq_poly_pairs_le
   refine le_trans (Finset.sum_le_sum hbound) ?_
   rw [Finset.sum_add_distrib, ← Finset.mul_sum]
 
+/-- **The large-values split, pointwise** (Track R, R2a): a value
+threshold `V` converts a second moment against a bounded weight into a
+`V²`-term plus a *fourth* moment.  For `u ≤ V` the first term already
+dominates; for `u > V` the ratio `u²/V² > 1` upgrades the square to a
+fourth power.  This is the measure-free form of the large-values
+dichotomy — no set of large values is ever constructed. -/
+theorem sq_mul_split (u v Sup V : ℝ) (hu : 0 ≤ u) (hv : 0 ≤ v)
+    (hvS : v ≤ Sup) (hV : 0 < V) :
+    u^2*v^2 ≤ V^2*v^2 + (Sup^2/V^2)*u^4 := by
+  have hSup0 : (0:ℝ) ≤ Sup := le_trans hv hvS
+  rcases le_or_gt u V with h | h
+  · have h1 : u^2*v^2 ≤ V^2*v^2 := by
+      have : u^2 ≤ V^2 := by nlinarith
+      nlinarith [sq_nonneg v]
+    have h2 : (0:ℝ) ≤ (Sup^2/V^2)*u^4 := by positivity
+    linarith
+  · have hV2 : (0:ℝ) < V^2 := by positivity
+    have hratio : V^2 ≤ u^2 := by nlinarith
+    have hvs2 : v^2 ≤ Sup^2 := by nlinarith
+    have hkey : u^2*v^2 ≤ (Sup^2/V^2)*u^4 := by
+      rw [div_mul_eq_mul_div, le_div_iff₀ hV2]
+      calc u^2*v^2*V^2 ≤ u^2*Sup^2*V^2 := by
+            nlinarith [mul_nonneg (mul_nonneg (sub_nonneg.mpr hvs2)
+              (sq_nonneg u)) (sq_nonneg V)]
+        _ ≤ Sup^2*u^4 := by
+            nlinarith [mul_nonneg (mul_nonneg (sq_nonneg Sup) (sq_nonneg u))
+              (sub_nonneg.mpr hratio)]
+    nlinarith [sq_nonneg v, mul_nonneg (sq_nonneg V) (sq_nonneg v)]
+
+/-- **The large-values split, integrated** (Track R, R2a): against a
+uniformly bounded weight `g`, the weighted second moment of `f` splits
+into a `V²`-multiple of the weight mass plus `Sup²/V²` times the
+fourth moment of `f`.  Choosing `V` trades the two — the moment-method
+form of Halász–Montgomery. -/
+theorem intervalIntegral_sq_mul_split (f g : ℝ → ℂ)
+    (hf : Continuous f) (hg : Continuous g) (a b Sup V : ℝ) (hab : a ≤ b)
+    (hgS : ∀ ξ, ‖g ξ‖ ≤ Sup) (hV : 0 < V) :
+    ∫ ξ in a..b, ‖f ξ‖^2*‖g ξ‖^2
+      ≤ V^2*(∫ ξ in a..b, ‖g ξ‖^2)
+        + (Sup^2/V^2)*(∫ ξ in a..b, ‖f ξ‖^4) := by
+  have hint1 : IntervalIntegrable (fun ξ => ‖f ξ‖^2*‖g ξ‖^2) MeasureTheory.volume a b :=
+    ((hf.norm.pow 2).mul (hg.norm.pow 2)).intervalIntegrable _ _
+  have hint2 : IntervalIntegrable (fun ξ => ‖g ξ‖^2) MeasureTheory.volume a b :=
+    (hg.norm.pow 2).intervalIntegrable _ _
+  have hint3 : IntervalIntegrable (fun ξ => ‖f ξ‖^4) MeasureTheory.volume a b :=
+    (hf.norm.pow 4).intervalIntegrable _ _
+  have hmono : ∫ ξ in a..b, ‖f ξ‖^2*‖g ξ‖^2
+      ≤ ∫ ξ in a..b, (V^2*‖g ξ‖^2 + (Sup^2/V^2)*‖f ξ‖^4) := by
+    refine intervalIntegral.integral_mono_on hab hint1 ?_ ?_
+    · exact ((hint2.const_mul _).add (hint3.const_mul _))
+    · intro ξ _
+      exact sq_mul_split (‖f ξ‖) (‖g ξ‖) Sup V (norm_nonneg _)
+        (norm_nonneg _) (hgS ξ) hV
+  calc ∫ ξ in a..b, ‖f ξ‖^2*‖g ξ‖^2
+      ≤ ∫ ξ in a..b, (V^2*‖g ξ‖^2 + (Sup^2/V^2)*‖f ξ‖^4) := hmono
+    _ = V^2*(∫ ξ in a..b, ‖g ξ‖^2)
+        + (Sup^2/V^2)*(∫ ξ in a..b, ‖f ξ‖^4) := by
+        rw [intervalIntegral.integral_add (hint2.const_mul _)
+          (hint3.const_mul _), intervalIntegral.integral_const_mul,
+          intervalIntegral.integral_const_mul]
 
 end ExpSums
 
