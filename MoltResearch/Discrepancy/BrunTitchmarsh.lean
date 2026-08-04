@@ -741,4 +741,45 @@ theorem sum_one_div_gap_le (p H : ℕ) (hH : 16 ≤ H) :
     _ ≤ 2 + 370 * (1 + Real.log (Real.log H) + 1) := by linarith
     _ = 742 + 370 * Real.log (Real.log H) := by ring
 
+/-- **The prime log-mass of a short interval** (Track R, M0-h): the
+Brun–Titchmarsh count weighted by `log p`.  For `K ≥ 2`,
+
+`∑_{p ∈ (a, a+K], p prime} log p ≤ 256·K·log(a+K+2)/log K`.
+
+This is the inner count of GHS Lemma 2.6: after the Gaussian
+transform localises the off-diagonal to `|n − m| ≪ m/T`, the sum over
+`n` is a `Λ`-weighted count over an interval of length `≈ m/T`, and
+Brun–Titchmarsh is exactly what keeps it at `≪ m/T` rather than
+`≪ (m/T)·log`. -/
+theorem sum_log_primes_Ioc_le (a K : ℕ) (hK : 2 ≤ K) :
+    ∑ p ∈ (Finset.Ioc a (a + K)).filter Nat.Prime, Real.log p
+      ≤ 256 * K * Real.log (a + K + 2) / Real.log K := by
+  classical
+  have hK1 : (1:ℝ) < K := by exact_mod_cast hK
+  have hlogK : (0:ℝ) < Real.log K := Real.log_pos hK1
+  have hbound : ∀ p ∈ (Finset.Ioc a (a + K)).filter Nat.Prime,
+      Real.log p ≤ Real.log (a + K + 2) := by
+    intro p hp
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hp
+    have hp0 : (0:ℝ) < p := by
+      have := hp.2.pos
+      exact_mod_cast this
+    refine Real.log_le_log hp0 ?_
+    have : (p:ℝ) ≤ ((a + K : ℕ) : ℝ) := by exact_mod_cast hp.1.2
+    push_cast at this ⊢
+    linarith
+  have hcard := card_primes_Ioc_le a K hK
+  have hlog0 : (0:ℝ) ≤ Real.log (a + K + 2) := by
+    refine Real.log_nonneg ?_
+    linarith [Nat.cast_nonneg (α := ℝ) a, Nat.cast_nonneg (α := ℝ) K]
+  calc ∑ p ∈ (Finset.Ioc a (a + K)).filter Nat.Prime, Real.log p
+      ≤ ∑ _p ∈ (Finset.Ioc a (a + K)).filter Nat.Prime,
+          Real.log (a + K + 2) := Finset.sum_le_sum hbound
+    _ = (((Finset.Ioc a (a + K)).filter Nat.Prime).card : ℝ)
+          * Real.log (a + K + 2) := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ (256 * K / Real.log K) * Real.log (a + K + 2) :=
+        mul_le_mul_of_nonneg_right hcard hlog0
+    _ = 256 * K * Real.log (a + K + 2) / Real.log K := by ring
+
 end MoltResearch
