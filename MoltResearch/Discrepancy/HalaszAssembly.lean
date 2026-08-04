@@ -33,6 +33,7 @@ import MoltResearch.Discrepancy.PerronWindow
 import MoltResearch.Discrepancy.PlancherelHarness
 import MoltResearch.Discrepancy.HalaszEuler
 import MoltResearch.Discrepancy.ParsevalBridge
+import MoltResearch.Discrepancy.PretentiousFactorization
 
 namespace MoltResearch
 
@@ -1652,5 +1653,107 @@ theorem cheap_halasz_nonpretentious (ε : ℝ) (hε : 0 < ε) :
     funext (charTwist_level_one _ _)
   rw [heq] at hnp'
   exact hnp'
+
+/-- **The archimedean twist shifts the comparison frequency** (Track R,
+M2-k): damping `g` by `n^{−iξ}` moves the pretentious distance to the
+character twist at frequency `t` onto the distance from `g` itself to
+the twist at frequency `t + ξ`. -/
+theorem pretentiousDistSq_archTwist (g : ℕ → ℂ) (q : ℕ)
+    (χ : DirichletCharacter ℂ q) (ξ t : ℝ) (N : ℕ) :
+    pretentiousDistSq (fun n => g n * (n:ℂ)^(Complex.I*((-ξ : ℝ):ℂ)))
+        (charTwist q χ t) N
+      = pretentiousDistSq g (charTwist q χ (t + ξ)) N := by
+  classical
+  unfold pretentiousDistSq
+  refine Finset.sum_congr rfl fun p hp => ?_
+  have hp2 := (Nat.prime_of_mem_primesBelow hp).two_le
+  have hp0 : p ≠ 0 := by omega
+  have hpC : ((p:ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr hp0
+  have hconj : ∀ u : ℝ, (starRingEnd ℂ) (charTwist q χ u p)
+      = (starRingEnd ℂ) (χ (p : ZMod q))
+        * ((p:ℕ):ℂ)^(Complex.I*((-u : ℝ):ℂ)) := by
+    intro u
+    simp only [charTwist, map_mul]
+    rw [conj_natCast_cpow_I_mul hp0]
+  have hkey : g p * ((p:ℕ):ℂ)^(Complex.I*((-ξ : ℝ):ℂ))
+        * (starRingEnd ℂ) (charTwist q χ t p)
+      = g p * (starRingEnd ℂ) (charTwist q χ (t + ξ) p) := by
+    rw [hconj t, hconj (t + ξ),
+      show Complex.I*((-(t+ξ) : ℝ):ℂ)
+        = Complex.I*((-ξ : ℝ):ℂ) + Complex.I*((-t : ℝ):ℂ) from by
+          push_cast; ring,
+      Complex.cpow_add _ _ hpC]
+    ring
+  dsimp only
+  rw [hkey]
+
+/-- **Non-pretentiousness survives an archimedean twist** (Track R,
+M2-k): if `g` is `A`-non-pretentious at scale `N`, then the damped
+function `g·n^{−iξ}` is `A'`-non-pretentious for any `A' ≤ A` and any
+frequency shift with `|ξ| ≤ (A − A')·N` — the shift is absorbed by the
+frequency range of the original hypothesis. -/
+theorem nonPretentiousAt_archTwist {g : ℕ → ℂ} {A A' : ℝ} {N : ℕ}
+    (h : NonPretentiousAt g A N) (hA' : A' ≤ A) {ξ : ℝ}
+    (hξ : |ξ| ≤ (A - A')*N) :
+    NonPretentiousAt (fun n => g n * (n:ℂ)^(Complex.I*((-ξ : ℝ):ℂ)))
+      A' N := by
+  intro q χ t hq ht
+  have hqA : (q:ℝ) ≤ A := le_trans hq hA'
+  have htA : |t + ξ| ≤ A*(N:ℝ) := by
+    calc |t + ξ| ≤ |t| + |ξ| := abs_add_le _ _
+      _ ≤ A'*(N:ℝ) + (A - A')*(N:ℝ) := add_le_add ht hξ
+      _ = A*(N:ℝ) := by ring
+  have hmain := h q χ (t + ξ) hqA htA
+  rw [pretentiousDistSq_archTwist]
+  linarith
+
+/-- The archimedean twist is `1`-bounded. -/
+theorem norm_natCast_cpow_I_mul_le_one (t : ℝ) (m : ℕ) :
+    ‖(m:ℂ)^(Complex.I*(t:ℂ))‖ ≤ 1 := by
+  rcases Nat.eq_zero_or_pos m with hm | hm
+  · subst hm
+    rcases eq_or_ne (Complex.I * (t : ℂ)) 0 with h0 | h0
+    · simp [h0]
+    · simp [Complex.zero_cpow h0]
+  · have hm' : (0 : ℝ) < (m : ℝ) := by exact_mod_cast hm
+    have hcast : ((m : ℕ) : ℂ) = (((m : ℕ) : ℝ) : ℂ) := by push_cast; rfl
+    rw [hcast, Complex.norm_cpow_eq_rpow_re_of_pos hm']
+    simp [Complex.mul_re]
+
+set_option maxHeartbeats 800000 in
+/-- **The twisted cheap Halász bound** (Track R, M2-k): the mid-regime
+input.  For an `A`-non-pretentious `g` the Cesàro means of *every*
+archimedean twist `g(n)n^{−iξ}`, uniformly over the whole frequency
+range `|ξ| ≤ (A/2)·x`, are at most `ε + e^{W loglog x + W − A/2}`.
+This is the frequency-swept form the slice-Plancherel assembly
+consumes: one threshold `x₀` and one constant `W` for all `ξ`. -/
+theorem cheap_halasz_twisted (ε : ℝ) (hε : 0 < ε) :
+    ∃ (x₀ : ℕ) (W : ℝ), 0 < W ∧
+      ∀ x : ℕ, x₀ ≤ x → ∀ A : ℝ, 2 ≤ A → ∀ g : ℕ → ℂ,
+        CompletelyMultiplicativeC g → g 1 = 1 → (∀ n, ‖g n‖ ≤ 1) →
+        NonPretentiousAt g A x → ∀ ξ : ℝ, |ξ| ≤ (A/2)*(x:ℝ) →
+          ‖∑ n ∈ Finset.Icc 1 x, g n * (n:ℂ)^(Complex.I*((-ξ : ℝ):ℂ))‖
+              /(x:ℝ)
+            ≤ ε + Real.exp (W*Real.log (Real.log x) + W - A/2) := by
+  obtain ⟨x₀, W, hW0, hmain⟩ := cheap_halasz_nonpretentious ε hε
+  refine ⟨x₀, W, hW0, ?_⟩
+  intro x hx A hA g hcm h1 hb hnp ξ hξ
+  have hA2 : (1:ℝ) ≤ A/2 := by linarith
+  have hshift : |ξ| ≤ (A - A/2)*(x:ℝ) := by
+    have : A - A/2 = A/2 := by ring
+    rw [this]
+    exact hξ
+  refine hmain x hx (A/2) hA2 _ ?_ ?_ ?_
+    (nonPretentiousAt_archTwist hnp (by linarith) hshift)
+  · exact hcm.mul (completelyMultiplicativeC_natCast_cpow _)
+  · show g 1 * ((1:ℕ):ℂ)^(Complex.I*((-ξ : ℝ):ℂ)) = 1
+    rw [h1, Nat.cast_one, Complex.one_cpow, mul_one]
+  · intro n
+    show ‖g n * ((n:ℕ):ℂ)^(Complex.I*((-ξ : ℝ):ℂ))‖ ≤ 1
+    rw [norm_mul]
+    calc ‖g n‖ * ‖((n:ℕ):ℂ)^(Complex.I*((-ξ : ℝ):ℂ))‖
+        ≤ 1 * 1 := mul_le_mul (hb n) (norm_natCast_cpow_I_mul_le_one _ _)
+          (norm_nonneg _) zero_le_one
+      _ = 1 := mul_one 1
 
 end MoltResearch
