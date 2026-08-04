@@ -1573,4 +1573,84 @@ theorem cheap_halasz_eps (ε : ℝ) (hε : 0 < ε) :
       (by positivity) (le_of_eq hR) hX (le_of_eq hc₃.symm) hW1 hW2 hT2a
       hA hK1 hK2 hT5
 
+/-- **Level-one twists are archimedean** (Track R, M2-j): modulo `1`
+every Dirichlet character is trivial, so `charTwist 1 χ t` is the bare
+twist `n ↦ n^{it}` — the bridge between the `NonPretentiousAt`
+character-twist family and the archimedean band hypothesis of the
+cheap Halász theorem. -/
+theorem charTwist_level_one (χ : DirichletCharacter ℂ 1) (t : ℝ) (m : ℕ) :
+    charTwist 1 χ t m = (m:ℂ)^(Complex.I*(t:ℂ)) := by
+  simp only [charTwist, Subsingleton.elim ((m : ℕ) : ZMod 1) 1, map_one,
+    one_mul]
+
+/-- **The band radius fits the scale** (Track R, M2-j): once
+`x ≥ e⁸` and `(log x)⁵ ≤ x`, the frequency radius `2π(log x)⁴` of the
+cheap-Halász band is below `x`, so it is inside every
+`NonPretentiousAt`-range `|t| ≤ A·x` with `A ≥ 1`. -/
+theorem two_pi_log_pow_le_self {x : ℝ} (hx : Real.exp 8 ≤ x)
+    (h5 : (Real.log x)^5 ≤ x) : 2*Real.pi*(Real.log x)^4 ≤ x := by
+  have hx0 : (0:ℝ) < x := lt_of_lt_of_le (Real.exp_pos 8) hx
+  have hlog8 : (8:ℝ) ≤ Real.log x := by
+    rw [Real.le_log_iff_exp_le hx0]
+    exact hx
+  have hπ : 2*Real.pi ≤ 8 := by
+    linarith [Real.pi_le_four]
+  have hp4 : (0:ℝ) ≤ (Real.log x)^4 := by positivity
+  calc 2*Real.pi*(Real.log x)^4 ≤ 8*(Real.log x)^4 :=
+        mul_le_mul_of_nonneg_right hπ hp4
+    _ ≤ Real.log x*(Real.log x)^4 :=
+        mul_le_mul_of_nonneg_right hlog8 hp4
+    _ = (Real.log x)^5 := by ring
+    _ ≤ x := h5
+
+set_option maxHeartbeats 800000 in
+/-- **The cheap Halász theorem under non-pretentiousness** (Track R,
+M2-j): the twist-uniform corollary.  A `1`-bounded completely
+multiplicative `g` that is `A`-non-pretentious at scale `x` — no
+Dirichlet twist `χ(n)n^{it}` with `q ≤ A`, `|t| ≤ A·x` comes within
+squared pretentious distance `A` — has Cesàro mean at most
+`ε + e^{W loglog x + W − A}`.  The band hypothesis of
+`cheap_halasz_eps` is the `q = 1` slice of `NonPretentiousAt`, and its
+frequency radius `2π(log x)⁴` fits inside `A·x` for `x ≥ x₀`. -/
+theorem cheap_halasz_nonpretentious (ε : ℝ) (hε : 0 < ε) :
+    ∃ (x₀ : ℕ) (W : ℝ), 0 < W ∧
+      ∀ x : ℕ, x₀ ≤ x → ∀ A : ℝ, 1 ≤ A → ∀ g : ℕ → ℂ,
+        CompletelyMultiplicativeC g → g 1 = 1 → (∀ n, ‖g n‖ ≤ 1) →
+        NonPretentiousAt g A x →
+        ‖∑ n ∈ Finset.Icc 1 x, g n‖/(x:ℝ)
+          ≤ ε + Real.exp (W*Real.log (Real.log x) + W - A) := by
+  obtain ⟨x₁, W, hW0, hmain⟩ := cheap_halasz_eps ε hε
+  refine ⟨max x₁ (max (⌈Real.exp 8⌉₊ + 1) (⌈((2*(5:ℝ))^5)^2⌉₊ + 1)), W,
+    hW0, ?_⟩
+  intro x hx A hA g hcm h1 hb hnp
+  have hx1 : x₁ ≤ x := le_trans (le_max_left _ _) hx
+  have hexp8 : Real.exp 8 ≤ (x:ℝ) := le_of_ceil_succ_le (by omega)
+  have hxD : ((2*(5:ℝ))^5)^2 ≤ (x:ℝ) := le_of_ceil_succ_le (by omega)
+  have hx0R : (0:ℝ) < (x:ℝ) := lt_of_lt_of_le (Real.exp_pos 8) hexp8
+  have hxR1 : (1:ℝ) ≤ (x:ℝ) := by
+    have h1' : (1:ℝ) ≤ Real.exp 8 := by
+      linarith [Real.add_one_le_exp (8:ℝ)]
+    linarith
+  have h5 : (Real.log x)^5 ≤ (x:ℝ) :=
+    log_pow_le_self (by norm_num) (x:ℝ) (max_le hxR1 hxD)
+  have hrange : 2*Real.pi*(Real.log x)^4 ≤ (x:ℝ) :=
+    two_pi_log_pow_le_self hexp8 h5
+  refine hmain x hx1 g hcm h1 hb A ?_
+  intro ξ hξ
+  have hq : ((1:ℕ):ℝ) ≤ A := by exact_mod_cast hA
+  have ht : |2*Real.pi*ξ| ≤ A*(x:ℝ) := by
+    have habs : |2*Real.pi*ξ| = 2*Real.pi*|ξ| := by
+      rw [abs_mul, abs_of_pos (by positivity : (0:ℝ) < 2*Real.pi)]
+    have hmono : 2*Real.pi*|ξ| ≤ 2*Real.pi*(Real.log x)^4 :=
+      mul_le_mul_of_nonneg_left hξ (by positivity)
+    have hAx : (x:ℝ) ≤ A*(x:ℝ) := by nlinarith [hx0R, hA]
+    rw [habs]
+    linarith
+  have hnp' := hnp 1 (1 : DirichletCharacter ℂ 1) (2*Real.pi*ξ) hq ht
+  have heq : charTwist 1 (1 : DirichletCharacter ℂ 1) (2*Real.pi*ξ)
+      = fun n : ℕ => (n:ℂ)^(Complex.I*((2*Real.pi*ξ : ℝ):ℂ)) :=
+    funext (charTwist_level_one _ _)
+  rw [heq] at hnp'
+  exact hnp'
+
 end MoltResearch
