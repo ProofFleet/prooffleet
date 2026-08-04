@@ -1182,6 +1182,56 @@ theorem integral_norm_sq_poly_weight_eq (S : Finset ℕ) (c : ℕ → ℂ)
   refine Finset.sum_congr rfl fun m _ => ?_
   rw [MeasureTheory.integral_finset_sum _ (fun n _ => hterm m n)]
 
+open MeasureTheory in
+/-- **The pair integral is a transform value** (Track R, M0-j): each
+pair term of the weighted double-sum expansion is the real part of the
+coefficient product against `𝓕W` at the log-difference.  With the
+Gaussian weight of `intervalIntegral_norm_sq_le_gaussian` this is
+where the localisation enters: `𝓕W` at `log m − log n` decays like
+`e^{−πT²(log m − log n)²}`, so only `|n − m| ≪ m/T` survives. -/
+theorem integral_re_char_mul_weight (z : ℂ) (v : ℝ) (W : ℝ → ℝ)
+    (hWc : Continuous W) (hWi : Integrable W) :
+    ∫ ξ, ((z * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ)).re) * W ξ
+      = (z * ∫ ξ, ((W ξ : ℝ) : ℂ)
+          * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ)).re := by
+  classical
+  have hchar : Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ) :=
+    continuous_subtype_val.comp
+      (Real.continuous_fourierChar.comp (by fun_prop))
+  -- the complex integrand is integrable: the character has modulus one
+  have hint : Integrable fun ξ : ℝ => ((W ξ : ℝ) : ℂ)
+      * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ) := by
+    refine ((hWi.abs).const_mul 1).mono' ?_ ?_
+    · exact ((Complex.continuous_ofReal.comp hWc).mul hchar).aestronglyMeasurable
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, norm_eq_of_mem_sphere,
+        mul_one, one_mul]
+  have hintz : Integrable fun ξ : ℝ => z * (((W ξ : ℝ) : ℂ)
+      * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ)) := hint.const_mul z
+  -- the integrands agree pointwise, then `re` exchanges with the integral
+  have hpt : ∀ ξ : ℝ,
+      ((z * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ)).re) * W ξ
+      = (z * (((W ξ : ℝ) : ℂ)
+          * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ))).re := by
+    intro ξ
+    rw [show z * (((W ξ : ℝ) : ℂ)
+          * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ))
+        = (z * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ))
+          * ((W ξ : ℝ) : ℂ) from by ring]
+    conv_rhs => rw [Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
+    ring
+  calc ∫ ξ, ((z * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ)).re) * W ξ
+      = ∫ ξ, (z * (((W ξ : ℝ) : ℂ)
+          * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ))).re :=
+        MeasureTheory.integral_congr_ae (Filter.Eventually.of_forall hpt)
+    _ = (∫ ξ, z * (((W ξ : ℝ) : ℂ)
+          * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ))).re :=
+        integral_re hintz
+    _ = (z * ∫ ξ, ((W ξ : ℝ) : ℂ)
+          * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ)).re := by
+        rw [MeasureTheory.integral_const_mul]
+
 end ExpSums
 
 end MoltResearch
