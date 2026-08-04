@@ -894,6 +894,99 @@ theorem intervalIntegral_norm_sq_dyadic_poly_le_of_bound (N : ℕ) (hN : 1 ≤ N
         + (Real.log N + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
         refine mul_le_mul_of_nonneg_left hbase (by positivity)
 
+/-- **Abel summation on a block** (Track R, M0-b): the `1/n`-weighted
+sum expressed through the partial sums — a boundary term at the top
+and the telescoping weight `1/n − 1/(n+1)` inside. -/
+theorem sum_div_eq_partial (c : ℕ → ℂ) (a : ℕ) (ha : 1 ≤ a) :
+    ∀ b : ℕ, a ≤ b →
+      ∑ n ∈ Finset.Icc a b, c n/(n:ℂ)
+        = (∑ n ∈ Finset.Icc a b, c n)/(b:ℂ)
+          + ∑ n ∈ Finset.Ico a b, (∑ m ∈ Finset.Icc a n, c m)
+              * ((1:ℂ)/(n:ℂ) - (1:ℂ)/((n:ℂ)+1)) := by
+  intro b hb
+  induction b with
+  | zero => omega
+  | succ b ih =>
+    rcases eq_or_lt_of_le hb with heq | hlt
+    · subst heq
+      simp
+    · have hab : a ≤ b := by omega
+      rw [Finset.sum_Icc_succ_top (by omega : a ≤ b + 1),
+        Finset.sum_Icc_succ_top (by omega : a ≤ b + 1),
+        Finset.sum_Ico_succ_top hab, ih hab]
+      push_cast
+      ring
+
+/-- The telescoping weight sums to `1/a − 1/b`. -/
+theorem sum_Ico_one_div_sub (a : ℕ) (ha : 1 ≤ a) :
+    ∀ b : ℕ, a ≤ b →
+      ∑ n ∈ Finset.Ico a b, ((1:ℝ)/(n:ℝ) - (1:ℝ)/((n:ℝ)+1))
+        = (1:ℝ)/(a:ℝ) - (1:ℝ)/(b:ℝ) := by
+  intro b hb
+  induction b with
+  | zero => omega
+  | succ b ih =>
+    rcases eq_or_lt_of_le hb with heq | hlt
+    · subst heq
+      simp
+    · have hab : a ≤ b := by omega
+      rw [Finset.sum_Ico_succ_top hab, ih hab]
+      push_cast
+      ring
+
+/-- **The plain-to-logarithmic transfer** (Track R, M0-b): if every
+partial sum of `c` over the block `[a, b]` has norm at most `B`, then
+the `1/n`-weighted sum over that block has norm at most `B/a`.  This is
+the step that hands a plain-sum Halász bound to the consumer, whose
+object is the logarithmically weighted block sum: over a dyadic block
+`1/n ≈ 1/a`, so no logarithm is lost. -/
+theorem norm_sum_div_le_of_partial (c : ℕ → ℂ) (a b : ℕ) (ha : 1 ≤ a)
+    (hab : a ≤ b) (B : ℝ)
+    (hB : ∀ u : ℕ, a ≤ u → u ≤ b → ‖∑ n ∈ Finset.Icc a u, c n‖ ≤ B) :
+    ‖∑ n ∈ Finset.Icc a b, c n/(n:ℂ)‖ ≤ B/(a:ℝ) := by
+  have ha0 : (0:ℝ) < a := by exact_mod_cast ha
+  have hb0 : (0:ℝ) < b := by
+    have h1 : 1 ≤ b := le_trans ha hab
+    exact_mod_cast h1
+  have hB0 : (0:ℝ) ≤ B := le_trans (norm_nonneg _) (hB a le_rfl hab)
+  rw [sum_div_eq_partial c a ha b hab]
+  refine le_trans (norm_add_le _ _) ?_
+  have hhead : ‖(∑ n ∈ Finset.Icc a b, c n)/(b:ℂ)‖ ≤ B/(b:ℝ) := by
+    rw [norm_div, Complex.norm_natCast]
+    rw [div_le_div_iff₀ hb0 hb0]
+    nlinarith [hB b hab le_rfl, hb0]
+  have hstep : ∀ n ∈ Finset.Ico a b,
+      ‖(∑ m ∈ Finset.Icc a n, c m) * ((1:ℂ)/(n:ℂ) - (1:ℂ)/((n:ℂ)+1))‖
+        ≤ B * ((1:ℝ)/(n:ℝ) - (1:ℝ)/((n:ℝ)+1)) := by
+    intro n hn
+    rw [Finset.mem_Ico] at hn
+    have hn1 : 1 ≤ n := le_trans ha hn.1
+    have hn0 : (0:ℝ) < n := by exact_mod_cast hn1
+    have hwnn : (0:ℝ) ≤ (1:ℝ)/(n:ℝ) - (1:ℝ)/((n:ℝ)+1) := by
+      have h1 : (1:ℝ)/((n:ℝ)+1) ≤ (1:ℝ)/(n:ℝ) :=
+        one_div_le_one_div_of_le hn0 (by linarith)
+      linarith
+    have hval : ((1:ℂ)/(n:ℂ) - (1:ℂ)/((n:ℂ)+1))
+        = (((1:ℝ)/(n:ℝ) - (1:ℝ)/((n:ℝ)+1) : ℝ) : ℂ) := by
+      push_cast
+      ring
+    rw [hval, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg hwnn]
+    exact mul_le_mul_of_nonneg_right (hB n hn.1 (le_of_lt hn.2)) hwnn
+  have htail : ‖∑ n ∈ Finset.Ico a b, (∑ m ∈ Finset.Icc a n, c m)
+        * ((1:ℂ)/(n:ℂ) - (1:ℂ)/((n:ℂ)+1))‖
+      ≤ ∑ n ∈ Finset.Ico a b, B * ((1:ℝ)/(n:ℝ) - (1:ℝ)/((n:ℝ)+1)) :=
+    le_trans (norm_sum_le _ _) (Finset.sum_le_sum hstep)
+  have htel : ∑ n ∈ Finset.Ico a b, B * ((1:ℝ)/(n:ℝ) - (1:ℝ)/((n:ℝ)+1))
+      = B * ((1:ℝ)/(a:ℝ) - (1:ℝ)/(b:ℝ)) := by
+    rw [← Finset.mul_sum, sum_Ico_one_div_sub a ha b hab]
+  rw [htel] at htail
+  have hsplit : B/(a:ℝ) = B/(b:ℝ) + B * ((1:ℝ)/(a:ℝ) - (1:ℝ)/(b:ℝ)) := by
+    field_simp
+    ring
+  rw [hsplit]
+  linarith [hhead, htail]
+
 end ExpSums
 
 end MoltResearch
