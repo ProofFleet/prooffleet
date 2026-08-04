@@ -1281,6 +1281,47 @@ theorem sum_pair_re_le_of_symm (S : Finset ℕ) (c : ℕ → ℂ) (K : ℕ → �
     ring
   rw [hcollect]
 
+open Real in
+/-- **Gaussian decay from an integer gap** (Track R, M0-l): if `n` lies
+in the dyadic window `(m, 2m]` and is at least `d` away from `m`, the
+Gaussian factor at the log-difference already decays like
+`e^{−πT²d²/(4m²)}`.  This is the shell estimate of GHS Lemma 2.6: with
+`d = 2^{j}·m/T` the exponent is `π4^{j}/4`, so the shells are killed
+super-exponentially and only `|n − m| ≪ m/T` contributes. -/
+theorem gaussian_decay_of_gap (T : ℝ) (m n : ℕ) (hm : 1 ≤ m) (hmn : m < n)
+    (hn2 : n ≤ 2*m) (d : ℝ) (hd0 : 0 ≤ d) (hd : d ≤ (n:ℝ) - m) :
+    Real.exp (-(π*T^2*(Real.log n - Real.log m)^2))
+      ≤ Real.exp (-(π*T^2*d^2/(4*(m:ℝ)^2))) := by
+  have hm0 : (0:ℝ) < m := by exact_mod_cast hm
+  have hn0 : (0:ℝ) < n := by
+    have : (0:ℕ) < n := by omega
+    exact_mod_cast this
+  have hn2R : (n:ℝ) ≤ 2*m := by exact_mod_cast hn2
+  -- the log-difference dominates the normalised gap
+  have hlog : ((n:ℝ) - m)/n ≤ Real.log n - Real.log m :=
+    log_sub_log_ge m n hm hmn
+  have hgap : d/(2*(m:ℝ)) ≤ Real.log n - Real.log m := by
+    refine le_trans ?_ hlog
+    rw [div_le_div_iff₀ (by positivity) hn0]
+    nlinarith [hd, hn2R, hm0, hd0]
+  have hlog0 : (0:ℝ) ≤ Real.log n - Real.log m :=
+    le_trans (by positivity) hgap
+  -- squaring is monotone on the non-negatives
+  have hsq : (d/(2*(m:ℝ)))^2 ≤ (Real.log n - Real.log m)^2 := by
+    refine pow_le_pow_left₀ (by positivity) hgap 2
+  refine Real.exp_le_exp.mpr ?_
+  have hkey : π*T^2*d^2/(4*(m:ℝ)^2) ≤ π*T^2*(Real.log n - Real.log m)^2 := by
+    have hd2 : d^2/(4*(m:ℝ)^2) = (d/(2*(m:ℝ)))^2 := by
+      field_simp
+      ring
+    have hpi : (0:ℝ) ≤ π*T^2 := by positivity
+    calc π*T^2*d^2/(4*(m:ℝ)^2) = (π*T^2)*(d^2/(4*(m:ℝ)^2)) := by ring
+      _ = (π*T^2)*((d/(2*(m:ℝ)))^2) := by rw [hd2]
+      _ ≤ (π*T^2)*((Real.log n - Real.log m)^2) :=
+          mul_le_mul_of_nonneg_left hsq hpi
+      _ = π*T^2*(Real.log n - Real.log m)^2 := by ring
+  linarith
+
 end ExpSums
 
 end MoltResearch
