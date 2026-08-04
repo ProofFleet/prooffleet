@@ -813,6 +813,156 @@ theorem norm_sum_translates_le_integral_char (F : ℝ → ℂ)
     have h1 : ‖((𝐞 (ξ * y) : Circle) : ℂ)‖ = 1 := norm_eq_of_mem_sphere _
     rw [h1, one_mul]
 
+set_option maxHeartbeats 1600000 in
+/-- **The three-regime split at moment `2k`** (Track R, W2-高): the
+`ξ²`-tail of `integral_norm_sq_sum_translates_regime_split` sharpened
+to any even moment.  The high-frequency piece is priced by
+`Mtot²/L^{2k}·∫ξ^{2k}‖𝓕F‖²`, so a smooth window — whose Fourier
+transform decays faster than every polynomial — makes the tail beyond
+`L` negligible at a cost of `k` derivatives instead of one. -/
+theorem integral_norm_sq_sum_translates_regime_split_pow
+    (F : ℝ → ℂ) (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F)
+    {ι : Type*} (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ)
+    (K L Mmid Mtot : ℝ) (k : ℕ) (hL : 0 < L) (hMmid0 : 0 ≤ Mmid)
+    (hmid : ∀ ξ : ℝ, K ≤ |ξ| → |ξ| ≤ L →
+      ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖ ≤ Mmid)
+    (htot : ∀ ξ : ℝ,
+      ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖ ≤ Mtot) :
+    ∫ y, ‖∑ i ∈ S, w i * F (y - s i)‖^2
+      ≤ (∫ ξ in {ξ : ℝ | |ξ| < K},
+            ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2
+              * ‖𝓕 F ξ‖^2)
+        + Mmid^2 * (∫ ξ, ‖𝓕 F ξ‖^2)
+        + Mtot^2 * ((1/L^(2*k)) * ∫ ξ, ξ^(2*k) * ‖𝓕 F ξ‖^2) := by
+  classical
+  have hev : Even (2*k) := even_two_mul k
+  have hxinn : ∀ ξ : ℝ, (0:ℝ) ≤ ξ^(2*k) := fun ξ => hev.pow_nonneg ξ
+  have hxabs : ∀ ξ : ℝ, |ξ|^(2*k) = ξ^(2*k) := fun ξ => hev.pow_abs ξ
+  have hMtot0 : 0 ≤ Mtot := le_trans (norm_nonneg _) (htot 0)
+  set G : SchwartzMap ℝ ℂ := hFc.toSchwartzMap hFs with hG_def
+  have hbase := integral_norm_sq_sum_translates F hFc hFs S w s
+  rw [hbase]
+  set φ : ℝ → ℝ := fun ξ =>
+    ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2
+      * ‖𝓕 F ξ‖^2 with hφ_def
+  obtain ⟨C, hC⟩ := (𝓕 G).decay' 0 0
+  have hC' : ∀ ξ : ℝ, ‖(𝓕 G) ξ‖ ≤ C := fun ξ => by
+    have := hC ξ
+    simpa using this
+  have hFG : (fun ξ : ℝ => ‖𝓕 F ξ‖^2) = (fun ξ : ℝ => ‖(𝓕 G) ξ‖^2) := rfl
+  have hFhat_int : Integrable (fun ξ : ℝ => ‖𝓕 F ξ‖^2) := by
+    rw [hFG]
+    refine ((𝓕 G).integrable.norm.const_mul C).mono' ?_ ?_
+    · exact ((𝓕 G).continuous.norm.pow 2).aestronglyMeasurable
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      rw [Real.norm_eq_abs, abs_of_nonneg (by positivity)]
+      calc ‖(𝓕 G) ξ‖^2 = ‖(𝓕 G) ξ‖ * ‖(𝓕 G) ξ‖ := by ring
+        _ ≤ C * ‖(𝓕 G) ξ‖ :=
+            mul_le_mul_of_nonneg_right (hC' ξ) (norm_nonneg _)
+  have hFGpt : ∀ ξ : ℝ, ‖𝓕 F ξ‖ = ‖(𝓕 G) ξ‖ := fun _ => rfl
+  have hxi_int : Integrable (fun ξ : ℝ => ξ^(2*k) * ‖𝓕 F ξ‖^2) := by
+    simp only [hFGpt]
+    refine (((𝓕 G).integrable_pow_mul volume (2*k)).const_mul C).mono' ?_ ?_
+    · exact (((continuous_id.pow (2*k))).mul
+        ((𝓕 G).continuous.norm.pow 2)).aestronglyMeasurable
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      rw [Real.norm_eq_abs,
+        abs_of_nonneg (mul_nonneg (hxinn ξ) (by positivity))]
+      calc ξ^(2*k) * ‖(𝓕 G) ξ‖^2
+          = (‖(𝓕 G) ξ‖ * ξ^(2*k)) * ‖(𝓕 G) ξ‖ := by ring
+        _ ≤ (C * ξ^(2*k)) * ‖(𝓕 G) ξ‖ := by
+            refine mul_le_mul_of_nonneg_right ?_ (norm_nonneg _)
+            exact mul_le_mul_of_nonneg_right (hC' ξ) (hxinn ξ)
+        _ = C * (ξ^(2*k) * ‖(𝓕 G) ξ‖) := by ring
+        _ = C * (‖ξ‖^(2*k) * ‖(𝓕 G) ξ‖) := by
+            rw [Real.norm_eq_abs, hxabs]
+  have hphase_cont : Continuous fun ξ : ℝ =>
+      ∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ) := by
+    refine continuous_finset_sum _ fun i _ => ?_
+    refine Continuous.mul continuous_const ?_
+    refine Continuous.comp continuous_subtype_val ?_
+    exact Real.continuous_fourierChar.comp (by fun_prop)
+  have hφ_int : Integrable φ := by
+    refine (hFhat_int.const_mul (Mtot^2)).mono' ?_ ?_
+    · rw [hφ_def]
+      simp only [hFGpt]
+      exact ((hphase_cont.norm.pow 2).mul
+        ((𝓕 G).continuous.norm.pow 2)).aestronglyMeasurable
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      rw [hφ_def, Real.norm_eq_abs]
+      dsimp only
+      rw [abs_of_nonneg (by positivity)]
+      refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+      have h1 := htot ξ
+      nlinarith [norm_nonneg (∑ i ∈ S, w i
+        * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ))]
+  set ψ : ℝ → ℝ := fun ξ =>
+    Mmid^2 * ‖𝓕 F ξ‖^2
+      + Mtot^2 * ((1/L^(2*k)) * (ξ^(2*k) * ‖𝓕 F ξ‖^2)) with hψ_def
+  have hψ_int : Integrable ψ := by
+    refine Integrable.add (hFhat_int.const_mul _) ?_
+    exact (hxi_int.const_mul _).const_mul _
+  have hmeas : MeasurableSet {ξ : ℝ | |ξ| < K} :=
+    measurableSet_lt continuous_abs.measurable measurable_const
+  have hsplit := (integral_add_compl hmeas hφ_int).symm
+  rw [hsplit]
+  have hpt : ∀ ξ ∈ {ξ : ℝ | |ξ| < K}ᶜ, φ ξ ≤ ψ ξ := by
+    intro ξ hξ
+    have hKξ : K ≤ |ξ| := by
+      rw [Set.mem_compl_iff, Set.mem_setOf_eq] at hξ
+      linarith [not_lt.mp hξ]
+    rw [hφ_def, hψ_def]
+    dsimp only
+    rcases le_or_gt |ξ| L with hξL | hξL
+    · have h1 := hmid ξ hKξ hξL
+      have h2 : ‖∑ i ∈ S, w i
+            * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2 ≤ Mmid^2 := by
+        nlinarith [norm_nonneg (∑ i ∈ S, w i
+          * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ))]
+      have h3 : (0:ℝ) ≤ Mtot^2 * ((1/L^(2*k)) * (ξ^(2*k) * ‖𝓕 F ξ‖^2)) := by
+        have := hxinn ξ
+        positivity
+      nlinarith [sq_nonneg (‖𝓕 F ξ‖), mul_le_mul_of_nonneg_right h2
+        (sq_nonneg (‖𝓕 F ξ‖))]
+    · have h1 := htot ξ
+      have h2 : ‖∑ i ∈ S, w i
+            * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2 ≤ Mtot^2 := by
+        nlinarith [norm_nonneg (∑ i ∈ S, w i
+          * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ))]
+      have hLpow : (0:ℝ) < L^(2*k) := by positivity
+      have h3 : (1:ℝ) ≤ ξ^(2*k) / L^(2*k) := by
+        rw [le_div_iff₀ hLpow]
+        have h4 : L^(2*k) ≤ ξ^(2*k) := by
+          rw [← hxabs ξ]
+          exact pow_le_pow_left₀ hL.le hξL.le _
+        linarith
+      have h4 : ‖𝓕 F ξ‖^2 ≤ (1/L^(2*k)) * (ξ^(2*k) * ‖𝓕 F ξ‖^2) := by
+        have h5 : (1/L^(2*k)) * (ξ^(2*k) * ‖𝓕 F ξ‖^2)
+            = (ξ^(2*k)/L^(2*k)) * ‖𝓕 F ξ‖^2 := by ring
+        rw [h5]
+        nlinarith [sq_nonneg (‖𝓕 F ξ‖)]
+      have h5 : (0:ℝ) ≤ Mmid^2 * ‖𝓕 F ξ‖^2 := by positivity
+      nlinarith [sq_nonneg (‖𝓕 F ξ‖), mul_le_mul_of_nonneg_right h2
+        (sq_nonneg (‖𝓕 F ξ‖)), mul_le_mul_of_nonneg_left h4 (sq_nonneg Mtot)]
+  have hcompl : ∫ ξ in {ξ : ℝ | |ξ| < K}ᶜ, φ ξ
+      ≤ ∫ ξ in {ξ : ℝ | |ξ| < K}ᶜ, ψ ξ :=
+    setIntegral_mono_on hφ_int.integrableOn hψ_int.integrableOn
+      hmeas.compl hpt
+  have hfull : ∫ ξ in {ξ : ℝ | |ξ| < K}ᶜ, ψ ξ ≤ ∫ ξ, ψ ξ := by
+    refine setIntegral_le_integral hψ_int ?_
+    refine Filter.Eventually.of_forall fun ξ => ?_
+    rw [hψ_def]
+    dsimp only
+    have := hxinn ξ
+    positivity
+  have hψ_val : ∫ ξ, ψ ξ
+      = Mmid^2 * (∫ ξ, ‖𝓕 F ξ‖^2)
+        + Mtot^2 * ((1/L^(2*k)) * ∫ ξ, ξ^(2*k) * ‖𝓕 F ξ‖^2) := by
+    rw [hψ_def]
+    rw [integral_add (hFhat_int.const_mul _)
+      ((hxi_int.const_mul _).const_mul _)]
+    rw [integral_const_mul, integral_const_mul, integral_const_mul]
+  linarith [hcompl, hfull, hψ_val.le, hψ_val.ge]
 
 end ExpSums
 
