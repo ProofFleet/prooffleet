@@ -1135,6 +1135,50 @@ theorem sum_one_div_Icc_le_log (N : ℕ) (hN : 1 ≤ N) :
       subst hk0
       norm_num
 
+/-- **The abscissa shift of a window sum** (Track R, M0-c): damping the
+window by `e^{−αv}` moves the coefficients from the `1`-line to the
+`1+α`-line, at the price of the explicit factor `x^α`:
+
+`∑ₙ (f n/n)·V(log x − log n) = x^α · ∑ₙ (f n/n^{1+α})·(e^{−αv}V(v))`.
+
+The window keeps its support, so the sum stays truncated at `n ≤ x`;
+only the abscissa moves.  This is the bridge that lets the shipped
+Perron-window machinery, which lives on the `1`-line, be priced by
+L-series bounds on shifted lines — where the pretentious distance is
+available (`norm_LSeries_le_log_mul_exp`). -/
+theorem window_sum_abscissa_shift (f : ℕ → ℂ) (V : ℝ → ℝ) (α : ℝ)
+    (x : ℕ) (hx : 1 ≤ x) (S : Finset ℕ) (hS : ∀ n ∈ S, 1 ≤ n) :
+    ∑ n ∈ S, (f n/(n:ℂ))
+        * ((V (Real.log x - Real.log n) : ℝ) : ℂ)
+      = ((x:ℝ)^α : ℝ) * ∑ n ∈ S, (f n/((n:ℝ)^((1:ℝ)+α) : ℝ))
+          * ((Real.exp (-(α*(Real.log x - Real.log n)))
+              * V (Real.log x - Real.log n) : ℝ) : ℂ) := by
+  classical
+  have hx0 : (0:ℝ) < x := by exact_mod_cast hx
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun n hn => ?_
+  have hn1 : 1 ≤ n := hS n hn
+  have hn0 : (0:ℝ) < n := by exact_mod_cast hn1
+  -- the real identity behind the shift
+  have hsplit : ((n:ℝ)^((1:ℝ)+α)) = (n:ℝ) * (n:ℝ)^α := by
+    rw [Real.rpow_add hn0, Real.rpow_one]
+  have hexp : Real.exp (-(α*(Real.log x - Real.log n)))
+      = (x:ℝ)^(-α) * (n:ℝ)^α := by
+    rw [Real.rpow_def_of_pos hx0, Real.rpow_def_of_pos hn0, ← Real.exp_add]
+    congr 1
+    ring
+  have hxa0 : (0:ℝ) < (x:ℝ)^α := Real.rpow_pos_of_pos hx0 α
+  have hna0 : (0:ℝ) < (n:ℝ)^α := Real.rpow_pos_of_pos hn0 α
+  have hneg : (x:ℝ)^(-α) = ((x:ℝ)^α)⁻¹ := Real.rpow_neg hx0.le α
+  rw [hsplit, hexp, hneg]
+  have hA : ((x:ℝ)^α : ℝ) ≠ 0 := ne_of_gt hxa0
+  have hB : ((n:ℝ)^α : ℝ) ≠ 0 := ne_of_gt hna0
+  have hn' : (n:ℝ) ≠ 0 := ne_of_gt hn0
+  have hAC : ((((x:ℝ)^α : ℝ)) : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hA
+  have hBC : ((((n:ℝ)^α : ℝ)) : ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr hB
+  push_cast
+  field_simp
+
 end ExpSums
 
 end MoltResearch
