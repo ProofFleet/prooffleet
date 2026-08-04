@@ -607,5 +607,70 @@ theorem sum_smooth_one_div_le (y N : ℕ) (hy : 4 ≤ y) :
         Finset.prod_congr rfl fun p _ => hconv2 p
     _ ≤ Real.exp 12 * Real.log y := prod_one_sub_inv_primesBelow_le y hy
 
+open ArithmeticFunction in
+/-- **The von Mangoldt mass** (Track R, M0-e): the unrestricted
+`Λ/d`-mass up to `z` is at most `8·log(z+2)`.  Every `d ≤ z` is
+`(z+2)`-smooth, so this is the smooth mass bound at the trivial cut. -/
+theorem sum_vonMangoldt_div_le (z : ℕ) :
+    ∑ d ∈ Finset.Ioc 0 z, vonMangoldt d / d ≤ 8 * Real.log (z+2) := by
+  classical
+  have hsmooth : ∀ d ∈ Finset.Ioc 0 z, d ∈ Nat.smoothNumbers (z+2) := by
+    intro d hd
+    rw [Finset.mem_Ioc] at hd
+    rw [Nat.mem_smoothNumbers]
+    refine ⟨by omega, fun p hp => ?_⟩
+    have hple : p ≤ d :=
+      Nat.le_of_dvd (by omega) (Nat.dvd_of_mem_primeFactorsList hp)
+    omega
+  have hfilter : (Finset.Ioc 0 z).filter (· ∈ Nat.smoothNumbers (z+2))
+      = Finset.Ioc 0 z := Finset.filter_true_of_mem hsmooth
+  have h := sum_vonMangoldt_div_smooth_le (z+2) z (by omega)
+  rw [hfilter] at h
+  refine le_trans h ?_
+  refine mul_le_mul_of_nonneg_left ?_ (by norm_num)
+  refine Real.log_le_log (by positivity) ?_
+  push_cast
+  linarith
+
+open ArithmeticFunction in
+/-- **The shifted von Mangoldt mass** (Track R, M0-e, GHS (2.6)): for
+any real shift `λ`, the `Λ(m)m^λ/m`-mass over a block `(y, z]` is at
+most `max 1 (z^λ)` times the unshifted mass.  The `max` is the two
+regimes of GHS's `(x/y)^{max(λ,0)}`: for `λ ≥ 0` the largest term sits
+at the top of the block, for `λ < 0` at the bottom. -/
+theorem sum_vonMangoldt_rpow_div_le (y z : ℕ) (lam : ℝ) :
+    ∑ m ∈ Finset.Ioc y z, vonMangoldt m * (m:ℝ)^lam/m
+      ≤ max 1 ((z:ℝ)^lam) * (8 * Real.log (z+2)) := by
+  classical
+  have hstep : ∀ m ∈ Finset.Ioc y z,
+      vonMangoldt m * (m:ℝ)^lam/m
+        ≤ max 1 ((z:ℝ)^lam) * (vonMangoldt m / m) := by
+    intro m hm
+    rw [Finset.mem_Ioc] at hm
+    have hm1 : 1 ≤ m := by omega
+    have hm1R : (1:ℝ) ≤ (m:ℝ) := by exact_mod_cast hm1
+    have hmz : (m:ℝ) ≤ (z:ℝ) := by exact_mod_cast hm.2
+    have hpow : (m:ℝ)^lam ≤ max 1 ((z:ℝ)^lam) := by
+      rcases le_or_gt 0 lam with hlam | hlam
+      · refine le_trans (Real.rpow_le_rpow (by linarith) hmz hlam) ?_
+        exact le_max_right _ _
+      · refine le_trans ?_ (le_max_left _ _)
+        exact Real.rpow_le_one_of_one_le_of_nonpos hm1R (by linarith)
+    have hΛ : (0:ℝ) ≤ vonMangoldt m := vonMangoldt_nonneg
+    have hm0 : (0:ℝ) < (m:ℝ) := by linarith
+    have heq : vonMangoldt m * (m:ℝ)^lam/m
+        = (vonMangoldt m/m) * (m:ℝ)^lam := by ring
+    rw [heq, mul_comm (max 1 ((z:ℝ)^lam))]
+    exact mul_le_mul_of_nonneg_left hpow (div_nonneg hΛ hm0.le)
+  refine le_trans (Finset.sum_le_sum hstep) ?_
+  rw [← Finset.mul_sum]
+  refine mul_le_mul_of_nonneg_left ?_ (le_trans zero_le_one (le_max_left _ _))
+  refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg ?_ ?_)
+    (sum_vonMangoldt_div_le z)
+  · intro m hm
+    rw [Finset.mem_Ioc] at hm ⊢
+    exact ⟨by omega, hm.2⟩
+  · intro m _ _
+    exact div_nonneg vonMangoldt_nonneg (by positivity)
 
 end MoltResearch
