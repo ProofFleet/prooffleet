@@ -1232,6 +1232,55 @@ theorem integral_re_char_mul_weight (z : ℂ) (v : ℝ) (W : ℝ → ℝ)
           * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ)).re := by
         rw [MeasureTheory.integral_const_mul]
 
+/-- **The symmetric pair bound** (Track R, M0-k): against a
+non-negative symmetric kernel, the double sum of pair correlations
+collapses to a diagonal sum.  This is the `2|a(m)a(n)| ≤ |a(m)|² +
+|a(n)|²` step of GHS Lemma 2.6: the cross terms are traded for squares
+and the symmetry of the kernel folds the two halves together, leaving
+one factor free for the Brun–Titchmarsh count. -/
+theorem sum_pair_re_le_of_symm (S : Finset ℕ) (c : ℕ → ℂ) (K : ℕ → ℕ → ℝ)
+    (hK0 : ∀ m n, 0 ≤ K m n) (hKsymm : ∀ m n, K m n = K n m) :
+    ∑ m ∈ S, ∑ n ∈ S, (c m * (starRingEnd ℂ) (c n)).re * K m n
+      ≤ ∑ m ∈ S, ‖c m‖^2 * ∑ n ∈ S, K m n := by
+  classical
+  -- the cross term is at most the average of the squares
+  have hstep : ∀ m n : ℕ, (c m * (starRingEnd ℂ) (c n)).re * K m n
+      ≤ ((‖c m‖^2 + ‖c n‖^2)/2) * K m n := by
+    intro m n
+    refine mul_le_mul_of_nonneg_right ?_ (hK0 m n)
+    have h1 : (c m * (starRingEnd ℂ) (c n)).re ≤ ‖c m‖ * ‖c n‖ := by
+      refine le_trans (Complex.re_le_norm _) ?_
+      rw [norm_mul, RCLike.norm_conj]
+    nlinarith [sq_nonneg (‖c m‖ - ‖c n‖), h1]
+  refine le_trans (Finset.sum_le_sum fun m _ =>
+    Finset.sum_le_sum fun n _ => hstep m n) ?_
+  -- split the average into the two halves
+  have hsplit : ∑ m ∈ S, ∑ n ∈ S, ((‖c m‖^2 + ‖c n‖^2)/2) * K m n
+      = (∑ m ∈ S, ∑ n ∈ S, (‖c m‖^2/2) * K m n)
+        + ∑ m ∈ S, ∑ n ∈ S, (‖c n‖^2/2) * K m n := by
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun m _ => ?_
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    ring
+  -- the second half is the first, after exchanging the indices
+  have hswap : ∑ m ∈ S, ∑ n ∈ S, (‖c n‖^2/2) * K m n
+      = ∑ m ∈ S, ∑ n ∈ S, (‖c m‖^2/2) * K m n := by
+    rw [Finset.sum_comm]
+    refine Finset.sum_congr rfl fun m _ => ?_
+    refine Finset.sum_congr rfl fun n _ => ?_
+    rw [hKsymm n m]
+  rw [hsplit, hswap]
+  have hcollect : (∑ m ∈ S, ∑ n ∈ S, (‖c m‖^2/2) * K m n)
+      + ∑ m ∈ S, ∑ n ∈ S, (‖c m‖^2/2) * K m n
+      = ∑ m ∈ S, ‖c m‖^2 * ∑ n ∈ S, K m n := by
+    rw [← two_mul, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun m _ => ?_
+    rw [Finset.mul_sum, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    ring
+  rw [hcollect]
+
 end ExpSums
 
 end MoltResearch
