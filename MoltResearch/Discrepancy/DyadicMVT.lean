@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.LargeValues
 import MoltResearch.Discrepancy.TuranKubilius
+import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
 
 /-!
 # Track C: the dyadic mean value theorem (Track R, C4d-1)
@@ -986,6 +987,78 @@ theorem norm_sum_div_le_of_partial (c : ℕ → ℂ) (a b : ℕ) (ha : 1 ≤ a)
     ring
   rw [hsplit]
   linarith [hhead, htail]
+
+open MeasureTheory Real in
+/-- **The Gaussian majorant** (Track R, M0-f): `e^{π}e^{−πt²} ≥ 1`
+exactly on `[−1,1]`.  This is the majorant of GHS Lemma 2.6 — they use
+a Fejér-type `Φ` with compactly supported transform, but only rapid
+decay of `𝓕Φ` is actually needed, and the Gaussian is its own
+transform (`fourierIntegral_gaussian_pi`), which Mathlib supplies. -/
+theorem one_le_gaussian_majorant {t : ℝ} (ht : |t| ≤ 1) :
+    1 ≤ Real.exp π * Real.exp (-(π*t^2)) := by
+  rw [← Real.exp_add]
+  refine Real.one_le_exp ?_
+  have h1 : t^2 ≤ 1 := by
+    have := abs_le.mp ht
+    nlinarith [this.1, this.2]
+  nlinarith [Real.pi_pos]
+
+open MeasureTheory Real in
+/-- **The majorant step of GHS Lemma 2.6** (Track R, M0-f): a sharp
+interval integral is dominated by the Gaussian-weighted integral over
+the whole line.  The weight is `≥ 1` on `[−T,T]` and the integrand is
+non-negative, so no cancellation is lost; on the frequency side the
+Gaussian's own transform then localises the off-diagonal. -/
+theorem intervalIntegral_norm_sq_le_gaussian (D : ℝ → ℂ) (hD : Continuous D)
+    (C : ℝ) (hC : ∀ t, ‖D t‖ ≤ C) (T : ℝ) (hT : 0 < T) :
+    ∫ t in (-T)..T, ‖D t‖^2
+      ≤ ∫ t, ‖D t‖^2 * (Real.exp π * Real.exp (-(π*(t/T)^2))) := by
+  have hC0 : (0:ℝ) ≤ C := le_trans (norm_nonneg _) (hC 0)
+  -- the Gaussian weight is integrable
+  have hgauss : Integrable (fun t : ℝ => Real.exp (-(π/T^2) * t^2)) := by
+    refine integrable_exp_neg_mul_sq ?_
+    positivity
+  have hweight : ∀ t : ℝ, Real.exp (-(π*(t/T)^2)) = Real.exp (-(π/T^2) * t^2) := by
+    intro t
+    congr 1
+    field_simp
+  have hmajint : Integrable
+      (fun t : ℝ => ‖D t‖^2 * (Real.exp π * Real.exp (-(π*(t/T)^2)))) := by
+    refine Integrable.mono' ((hgauss.const_mul (C^2 * Real.exp π))) ?_ ?_
+    · exact ((hD.norm.pow 2).mul
+        (continuous_const.mul (by fun_prop))).aestronglyMeasurable
+    · refine Filter.Eventually.of_forall fun t => ?_
+      rw [Real.norm_eq_abs, abs_of_nonneg (by positivity), hweight t]
+      have hsq : ‖D t‖^2 ≤ C^2 := by
+        have := hC t
+        nlinarith [norm_nonneg (D t)]
+      calc ‖D t‖^2 * (Real.exp π * Real.exp (-(π/T^2) * t^2))
+          ≤ C^2 * (Real.exp π * Real.exp (-(π/T^2) * t^2)) := by
+            refine mul_le_mul_of_nonneg_right hsq (by positivity)
+        _ = C^2 * Real.exp π * Real.exp (-(π/T^2) * t^2) := by ring
+  -- on the interval the weight is at least one
+  have hstep : ∀ t ∈ Set.uIcc (-T) T, ‖D t‖^2
+      ≤ ‖D t‖^2 * (Real.exp π * Real.exp (-(π*(t/T)^2))) := by
+    intro t ht
+    rw [Set.uIcc_of_le (by linarith)] at ht
+    have habs : |t/T| ≤ 1 := by
+      rw [abs_div, abs_of_pos hT, div_le_one hT]
+      rcases abs_le.mp (abs_le.mpr ⟨ht.1, ht.2⟩) with ⟨h1, h2⟩
+      exact abs_le.mpr ⟨h1, h2⟩
+    have h1 := one_le_gaussian_majorant habs
+    nlinarith [sq_nonneg ‖D t‖, norm_nonneg (D t)]
+  have hle1 : ∫ t in (-T)..T, ‖D t‖^2
+      ≤ ∫ t in (-T)..T, ‖D t‖^2 * (Real.exp π * Real.exp (-(π*(t/T)^2))) := by
+    refine intervalIntegral.integral_mono_on (by linarith) ?_ ?_ ?_
+    · exact ((hD.norm.pow 2)).intervalIntegrable _ _
+    · exact hmajint.intervalIntegrable
+    · intro t ht
+      exact hstep t (by rw [Set.uIcc_of_le (by linarith)]; exact ht)
+  refine le_trans hle1 ?_
+  rw [intervalIntegral.integral_of_le (by linarith)]
+  refine setIntegral_le_integral hmajint ?_
+  refine Filter.Eventually.of_forall fun t => ?_
+  positivity
 
 end ExpSums
 
