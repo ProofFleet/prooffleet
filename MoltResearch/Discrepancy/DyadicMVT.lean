@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.LargeValues
 import MoltResearch.Discrepancy.TuranKubilius
 import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+import Mathlib.Analysis.SpecialFunctions.Gaussian.FourierTransform
 
 /-!
 # Track C: the dyadic mean value theorem (Track R, C4d-1)
@@ -1059,6 +1060,57 @@ theorem intervalIntegral_norm_sq_le_gaussian (D : ℝ → ℂ) (hD : Continuous 
   refine setIntegral_le_integral hmajint ?_
   refine Filter.Eventually.of_forall fun t => ?_
   positivity
+
+open MeasureTheory Real Complex in
+open scoped FourierTransform in
+/-- **The scaled Gaussian transform** (Track R, M0-g): the Fourier
+transform of the width-`T` Gaussian is the width-`1/T` Gaussian, with
+the explicit factor `T`.  This is the frequency side of the majorant
+`e^{π}e^{−π(t/T)²}` of `intervalIntegral_norm_sq_le_gaussian`: the
+transform decays like `e^{−πT²ξ²}`, which is what localises the
+off-diagonal of the mean value theorem to `|log(n/m)| ≲ 1/T`. -/
+theorem fourier_gaussian_scaled {T : ℝ} (hT : 0 < T) :
+    (𝓕 fun x : ℝ => ((Real.exp (-(π*(x/T)^2)) : ℝ) : ℂ))
+      = fun ξ : ℝ => ((T : ℝ) : ℂ) * ((Real.exp (-(π*T^2*ξ^2)) : ℝ) : ℂ) := by
+  have hTne : (T:ℝ) ≠ 0 := ne_of_gt hT
+  set b : ℂ := ((1/T^2 : ℝ) : ℂ) with hb_def
+  have hbre : 0 < b.re := by
+    rw [hb_def, Complex.ofReal_re]
+    positivity
+  have hfun : (fun x : ℝ => ((Real.exp (-(π*(x/T)^2)) : ℝ) : ℂ))
+      = fun x : ℝ => Complex.exp (-π * b * (x:ℂ)^2) := by
+    funext x
+    rw [Complex.ofReal_exp]
+    congr 1
+    rw [hb_def]
+    push_cast
+    field_simp
+  have hbhalf : b^(1/2 : ℂ) = ((1/T : ℝ) : ℂ) := by
+    have h1 : ((1/T^2 : ℝ)) ^ ((1/2 : ℝ)) = (1/T : ℝ) := by
+      rw [show (1/T^2 : ℝ) = (1/T)^2 from by field_simp]
+      rw [← Real.rpow_natCast (1/T) 2, ← Real.rpow_mul (by positivity)]
+      norm_num
+    calc b^(1/2 : ℂ) = ((1/T^2 : ℝ) : ℂ)^((((1/2 : ℝ)) : ℝ) : ℂ) := by
+          rw [hb_def]
+          congr 1
+          push_cast
+          ring
+      _ = (((1/T^2 : ℝ) ^ ((1/2 : ℝ)) : ℝ) : ℂ) :=
+          (Complex.ofReal_cpow (by positivity) _).symm
+      _ = ((1/T : ℝ) : ℂ) := by rw [h1]
+  rw [hfun, fourier_gaussian_pi hbre]
+  funext ξ
+  rw [hbhalf]
+  have h2 : (1:ℂ)/((1/T : ℝ) : ℂ) = ((T:ℝ):ℂ) := by
+    push_cast
+    field_simp
+  rw [h2]
+  congr 1
+  rw [Complex.ofReal_exp]
+  congr 1
+  rw [hb_def]
+  push_cast
+  field_simp
 
 end ExpSums
 
