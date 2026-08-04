@@ -1756,4 +1756,26 @@ theorem cheap_halasz_twisted (ε : ℝ) (hε : 0 < ε) :
           (norm_nonneg _) zero_le_one
       _ = 1 := mul_one 1
 
+/-- **The Halász L-input in concrete form** (Track R, M0-a): composing
+the Halász-quality ratio bound with the zeta mass bound, the L-norm of
+a `1`-bounded completely multiplicative `f` at the abscissa
+`1 + 1/log y`, twisted by `n^{−it}`, is
+
+`‖L_f(1 + 1/log y − it)‖ ≤ (1 + log y)·exp(26 − 𝔻(f, n^{−it}; y)²)`.
+
+This is the shape the Halász/Montgomery `α`-integral consumes at the
+matched truncation `α = 1/log y`: the `1 + log y ≈ 1/α` head is the
+zeta pole, and the pretentious distance is the entire saving. -/
+theorem norm_LSeries_le_log_mul_exp (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) {y : ℕ} (hy : 3 ≤ y) (t : ℝ) :
+    ‖LSeries (fun n => f n) (((1 + 1 / Real.log y : ℝ) : ℂ) - Complex.I * t)‖
+      ≤ (1 + Real.log y)
+        * Real.exp (26
+            - pretentiousDistSq f (fun n => (n : ℂ) ^ (-(Complex.I * t))) y) := by
+  have hratio := norm_LSeries_le_zeta_mul_exp f hcm h1 hb hy t
+  have hzeta := norm_LSeries_one_log_le y hy
+  refine le_trans hratio ?_
+  refine mul_le_mul_of_nonneg_right hzeta (Real.exp_pos _).le
+
 end MoltResearch
