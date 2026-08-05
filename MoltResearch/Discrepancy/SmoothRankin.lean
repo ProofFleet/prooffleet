@@ -1546,4 +1546,108 @@ theorem sum_mul_log_x_prime_restrict (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   refine le_trans (abs_add_le _ _) ?_
   linarith [hmain, htail]
 
+open ArithmeticFunction Finset in
+/-- **Discarding the small primes** (Track R, N6a): the part of the
+double convolution with `p < y` costs only `x·(log y + 2)`.
+
+§3 of the `κ = 1` paper drops the primes below `log⁴x` before iterating,
+because the inner sum `∑_{m≤x/p}` must be long enough for the second
+application of the identity to be meaningful.  The cost is
+`x·∑_{p<y} log p/p`, which Mertens' first theorem keeps at
+`x·(log y + 2)` — at `y ≈ log⁴x` that is `O(x·loglog x)`, and after the
+division by `log x` it is the `O(x·loglog x/log x)` error of (3.1). -/
+theorem prime_head_sum_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x y : ℕ)
+    (hy : 2 ≤ y) :
+    |∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => p < y),
+        Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)|
+      ≤ (x:ℝ) * (Real.log (y:ℝ) + 2) := by
+  classical
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => p < y),
+      |Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)|
+        ≤ (x:ℝ) * (Real.log (p:ℝ) / (p:ℝ)) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    obtain ⟨⟨⟨hp1, hpx⟩, hpp⟩, hpy⟩ := hp
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+    have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) :=
+      Real.log_natCast_nonneg p
+    have hinner : |∑ m ∈ Finset.Icc 1 (x/p), f (p*m)| ≤ ((x/p : ℕ):ℝ) := by
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      calc ∑ m ∈ Finset.Icc 1 (x/p), |f (p*m)|
+          ≤ ∑ _m ∈ Finset.Icc 1 (x/p), (1:ℝ) :=
+            Finset.sum_le_sum fun m _ => hf (p*m)
+        _ = ((Finset.Icc 1 (x/p)).card : ℝ) := by
+            rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+        _ = ((x/p : ℕ):ℝ) := by rw [Nat.card_Icc]; norm_num
+    have hcast : ((x/p : ℕ):ℝ) ≤ (x:ℝ)/(p:ℝ) := Nat.cast_div_le
+    rw [abs_mul, abs_of_nonneg hlog0]
+    calc Real.log (p:ℝ) * |∑ m ∈ Finset.Icc 1 (x/p), f (p*m)|
+        ≤ Real.log (p:ℝ) * ((x:ℝ)/(p:ℝ)) :=
+          mul_le_mul_of_nonneg_left (le_trans hinner hcast) hlog0
+      _ = (x:ℝ) * (Real.log (p:ℝ) / (p:ℝ)) := by ring
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hsub : ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => p < y)
+      ⊆ y.primesBelow := by
+    intro p hp
+    simp only [Finset.mem_filter] at hp
+    rw [Nat.mem_primesBelow]
+    exact ⟨hp.2, hp.1.2⟩
+  have hmass : ∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => p < y), Real.log (p:ℝ) / (p:ℝ) ≤ Real.log (y:ℝ) + 2 := by
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => div_nonneg (Real.log_natCast_nonneg i)
+        (Nat.cast_nonneg _))) ?_
+    exact sum_log_div_primesBelow_le_sharp y hy
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  exact mul_le_mul_of_nonneg_left hmass hx0
+
+open ArithmeticFunction Finset in
+/-- **Discarding the large primes** (Track R, N6b): the part with
+`2p > x` costs only `(x+1)·log 4`.
+
+Here the saving is structural rather than analytic: for `x/2 < p ≤ x`
+the natural-number quotient `x/p` is exactly `1`, so each inner sum has
+a single term and contributes at most `log p`.  What remains is
+Chebyshev's `θ`-bound. -/
+theorem prime_tail_sum_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x : ℕ) :
+    |∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => x < 2*p),
+        Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)|
+      ≤ ((x:ℝ)+1) * Real.log 4 := by
+  classical
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => x < 2*p),
+      |Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)|
+        ≤ Real.log (p:ℝ) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    obtain ⟨⟨⟨hp1, hpx⟩, hpp⟩, hpt⟩ := hp
+    have hp0 : 0 < p := by omega
+    have hge : 1 ≤ x / p := (Nat.one_le_div_iff hp0).mpr hpx
+    have hlt : x / p < 2 := (Nat.div_lt_iff_lt_mul hp0).mpr (by omega)
+    have hq : x / p = 1 := by omega
+    have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    rw [hq, abs_mul, abs_of_nonneg hlog0]
+    have hone : |∑ m ∈ Finset.Icc 1 1, f (p*m)| ≤ 1 := by
+      rw [show Finset.Icc 1 1 = ({1} : Finset ℕ) by rfl, Finset.sum_singleton]
+      exact hf (p*1)
+    calc Real.log (p:ℝ) * |∑ m ∈ Finset.Icc 1 1, f (p*m)|
+        ≤ Real.log (p:ℝ) * 1 := mul_le_mul_of_nonneg_left hone hlog0
+      _ = Real.log (p:ℝ) := mul_one _
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have hsub : ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => x < 2*p)
+      ⊆ (x+1).primesBelow := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    rw [Nat.mem_primesBelow]
+    exact ⟨by omega, hp.1.2⟩
+  refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+    (fun i _ _ => Real.log_natCast_nonneg i)) ?_
+  have h := sum_log_primesBelow_le (x+1)
+  have hcast : (((x+1 : ℕ)):ℝ) = (x:ℝ) + 1 := by push_cast; ring
+  rwa [hcast] at h
+
 end MoltResearch
