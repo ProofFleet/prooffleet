@@ -673,4 +673,91 @@ theorem sum_vonMangoldt_rpow_div_le (y z : ℕ) (lam : ℝ) :
   · intro m _ _
     exact div_nonneg vonMangoldt_nonneg (by positivity)
 
+open ArithmeticFunction Finset in
+/-- **The prime-power correction** (Track R, M0-r): the `Λ`-mass
+carried by proper prime powers up to `N` is `≪ √N·log₂N·log N`.  Every
+such `n = p^k` has `k ≥ 2`, hence `p ≤ √N`, so the whole set injects
+into `primesBelow (√N+1) ×ˢ Icc 2 (log₂ N)`.  This is the lower-order
+term separating the prime count of Brun–Titchmarsh from the full von
+Mangoldt weight of GHS Lemma 2.6. -/
+theorem sum_vonMangoldt_properPrimePow_le (N : ℕ) (hN : 1 ≤ N) :
+    ∑ n ∈ (Finset.Icc 1 N).filter (fun n => IsPrimePow n ∧ ¬ n.Prime),
+        vonMangoldt n
+      ≤ ((Nat.sqrt N + 1 : ℕ) : ℝ) * ((Nat.log 2 N : ℕ) : ℝ)
+          * Real.log (N : ℝ) := by
+  classical
+  set S := (Finset.Icc 1 N).filter (fun n => IsPrimePow n ∧ ¬ n.Prime) with hS_def
+  set K : ℕ := Nat.log 2 N with hK_def
+  -- every element is a proper prime power, so `p ≤ √N` and `k ≤ log₂ N`
+  have hcover : S ⊆ Finset.image (fun pk : ℕ × ℕ => pk.1 ^ pk.2)
+      ((Nat.sqrt N + 1).primesBelow ×ˢ Finset.Icc 2 K) := by
+    intro n hn
+    rw [hS_def, Finset.mem_filter, Finset.mem_Icc] at hn
+    obtain ⟨⟨hn1, hnN⟩, hpp, hnp⟩ := hn
+    obtain ⟨p, k, hp, hk, hpk⟩ := (isPrimePow_nat_iff n).mp hpp
+    have hk2 : 2 ≤ k := by
+      rcases Nat.lt_or_ge k 2 with hk1 | hk2
+      · interval_cases k
+        exact absurd (by rw [← hpk, pow_one]; exact hp) hnp
+      · exact hk2
+    have hpsq : p^2 ≤ n := by
+      calc p^2 ≤ p^k := Nat.pow_le_pow_right hp.one_lt.le hk2
+        _ = n := hpk
+    have hpsqrt : p ≤ Nat.sqrt N := by
+      refine Nat.le_sqrt.mpr ?_
+      calc p*p = p^2 := by ring
+        _ ≤ n := hpsq
+        _ ≤ N := hnN
+    have hkK : k ≤ K := by
+      have h2k : 2^k ≤ N := by
+        calc 2^k ≤ p^k := Nat.pow_le_pow_left hp.two_le k
+          _ = n := hpk
+          _ ≤ N := hnN
+      rw [hK_def]
+      exact (Nat.le_log_iff_pow_le (by norm_num) (by omega : N ≠ 0)).mpr h2k
+    rw [Finset.mem_image]
+    refine ⟨(p, k), ?_, hpk⟩
+    rw [Finset.mem_product, Nat.mem_primesBelow, Finset.mem_Icc]
+    exact ⟨⟨by omega, hp⟩, hk2, hkK⟩
+  -- bound each term by `log N`, then count
+  have hterm : ∀ n ∈ S, vonMangoldt n ≤ Real.log (N:ℝ) := by
+    intro n hn
+    rw [hS_def, Finset.mem_filter, Finset.mem_Icc] at hn
+    refine le_trans vonMangoldt_le_log ?_
+    refine Real.log_le_log ?_ ?_
+    · have : (1:ℕ) ≤ n := hn.1.1
+      exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_one this
+    · exact_mod_cast hn.1.2
+  have hcard : (S.card : ℝ)
+      ≤ ((Nat.sqrt N + 1 : ℕ) : ℝ) * ((K : ℕ) : ℝ) := by
+    have h1 : S.card ≤ ((Nat.sqrt N + 1).primesBelow ×ˢ Finset.Icc 2 K).card :=
+      le_trans (Finset.card_le_card hcover) (Finset.card_image_le)
+    have h2 : ((Nat.sqrt N + 1).primesBelow ×ˢ Finset.Icc 2 K).card
+        = (Nat.sqrt N + 1).primesBelow.card * (Finset.Icc 2 K).card :=
+      Finset.card_product _ _
+    have h3 : (Nat.sqrt N + 1).primesBelow.card ≤ Nat.sqrt N + 1 := by
+      have hsub : (Nat.sqrt N + 1).primesBelow ⊆ Finset.range (Nat.sqrt N + 1) := by
+        rw [Nat.primesBelow]
+        exact Finset.filter_subset _ _
+      calc (Nat.sqrt N + 1).primesBelow.card
+          ≤ (Finset.range (Nat.sqrt N + 1)).card := Finset.card_le_card hsub
+        _ = Nat.sqrt N + 1 := Finset.card_range _
+    have h4 : (Finset.Icc 2 K).card ≤ K := by
+      rw [Nat.card_Icc]
+      omega
+    have h5 : S.card ≤ (Nat.sqrt N + 1) * K := by
+      refine le_trans h1 ?_
+      rw [h2]
+      exact Nat.mul_le_mul h3 h4
+    exact_mod_cast h5
+  have hlogN : (0:ℝ) ≤ Real.log (N:ℝ) := by
+    refine Real.log_nonneg ?_
+    exact_mod_cast hN
+  calc ∑ n ∈ S, vonMangoldt n
+      ≤ ∑ _n ∈ S, Real.log (N:ℝ) := Finset.sum_le_sum hterm
+    _ = (S.card : ℝ) * Real.log (N:ℝ) := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ (((Nat.sqrt N + 1 : ℕ) : ℝ) * ((K : ℕ) : ℝ)) * Real.log (N:ℝ) :=
+        mul_le_mul_of_nonneg_right hcard hlogN
+
 end MoltResearch
