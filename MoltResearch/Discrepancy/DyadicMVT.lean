@@ -1651,6 +1651,89 @@ theorem shell_log_ratio_le (m h : ℕ) (hh : 2 ≤ h) (j : ℕ)
     linarith
   nlinarith [h1, h2, h3, hlogh.le]
 
+open Finset Real in
+/-- **The inner sum** (Track R, M0-u): the Gaussian-weighted prime
+log-mass around `m` is `≪ h·log(4m+2)/log h`, where `h ≈ 2m/T` is the
+dyadic scale.  This is the payoff of the shell chain: the shells are
+instantiated at `(2^j−1)h`, each decays by `shell_exponent_le`, and
+`sum_shell_series_le` collapses the geometric count against the
+Gaussian decay to an absolute constant. -/
+theorem inner_sum_le (T : ℝ) (m h J : ℕ) (hm : 1 ≤ m) (hh : 2 ≤ h)
+    (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T) (hfit : (2^J - 1)*h ≤ m)
+    (hwfit : ∀ j < J, 2^j*h ≤ 2*m) :
+    ∑ p ∈ (Finset.Ioc m (m + (2^J - 1)*h)).filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 512*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ)) := by
+  classical
+  set L : ℝ := Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) with hL_def
+  have hh2 : (2:ℝ) ≤ (h:ℝ) := by exact_mod_cast hh
+  have hlogh : (0:ℝ) < Real.log ((h:ℕ):ℝ) := Real.log_pos (by linarith)
+  have hL0 : (0:ℝ) ≤ L := by
+    rw [hL_def]
+    refine div_nonneg (Real.log_nonneg ?_) hlogh.le
+    have : (0:ℝ) ≤ (m:ℝ) := by positivity
+    linarith
+  -- the shell sum, at the dyadic cut points
+  have hstep := shell_sum_le T m J (fun j => (2^j - 1)*h) (fun j => 2^j*h)
+    hm (dyadic_cut_zero h) (dyadic_cut_monotone h)
+    (fun j => dyadic_cut_succ h j) (by simp only; omega)
+    (fun j _ => by
+      have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
+      calc (2:ℕ) ≤ h := hh
+        _ = 1*h := by ring
+        _ ≤ 2^j*h := Nat.mul_le_mul_right h h1)
+    L (fun j hj => shell_log_ratio_le m h hh j (by
+        have := dyadic_cut_monotone h (show j ≤ J by omega)
+        simp only at this
+        omega) (hwfit j hj))
+  refine le_trans hstep ?_
+  -- collapse the shells: `j = 0` is trivial, `j ≥ 1` is the series
+  have hterm : ∀ j ∈ Finset.range J,
+      Real.exp (-(π*T^2*(((2^j - 1)*h : ℕ):ℝ)^2/(4*(m:ℝ)^2)))
+          * (256*((2^j*h : ℕ):ℝ)*L)
+        ≤ 256*(h:ℝ)*L * ((2:ℝ)^j * Real.exp (-(π/4 * 4^j)) + if j = 0 then 1 else 0) := by
+    intro j _
+    have hcast : (((2^j - 1)*h : ℕ):ℝ) = ((2:ℝ)^j - 1)*(h:ℝ) := by
+      have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
+      push_cast [Nat.cast_sub h1]
+      ring
+    have hcastw : ((2^j*h : ℕ):ℝ) = (2:ℝ)^j*(h:ℝ) := by push_cast; ring
+    rcases Nat.eq_zero_or_pos j with hj0 | hj1
+    · subst hj0
+      rw [hcast, hcastw, if_pos rfl]
+      have hz : ((2:ℝ)^0 - 1)*(h:ℝ) = 0 := by norm_num
+      rw [hz]
+      have hz2 : -(π*T^2*(0:ℝ)^2/(4*(m:ℝ)^2)) = 0 := by ring
+      rw [hz2, Real.exp_zero, one_mul, pow_zero, one_mul]
+      have hpos : (0:ℝ) ≤ 256*(h:ℝ)*L := by positivity
+      nlinarith [Real.exp_pos (-(π/4 * (4:ℝ)^0)), hpos]
+    · have hj1' : 1 ≤ j := hj1
+      rw [if_neg (by omega), add_zero, hcast, hcastw]
+      have hdecay := shell_exponent_le T (m:ℝ) (h:ℝ)
+        (by exact_mod_cast hm) (by positivity) hscale hj1'
+      calc Real.exp (-(π*T^2*(((2:ℝ)^j - 1)*(h:ℝ))^2/(4*(m:ℝ)^2)))
+            * (256*((2:ℝ)^j*(h:ℝ))*L)
+          ≤ Real.exp (-(π/4 * 4^j)) * (256*((2:ℝ)^j*(h:ℝ))*L) := by
+            refine mul_le_mul_of_nonneg_right hdecay (by positivity)
+        _ = 256*(h:ℝ)*L * ((2:ℝ)^j * Real.exp (-(π/4 * 4^j))) := by ring
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hsum : ∑ j ∈ Finset.range J,
+      ((2:ℝ)^j * Real.exp (-(π/4 * 4^j)) + if j = 0 then 1 else 0) ≤ 2 := by
+    rw [Finset.sum_add_distrib]
+    have h1 := sum_shell_series_le J
+    have h2 : ∑ j ∈ Finset.range J, (if j = 0 then (1:ℝ) else 0) ≤ 1 := by
+      rcases Nat.eq_zero_or_pos J with hJ | hJ
+      · subst hJ; simp
+      · rw [Finset.sum_ite_eq' (Finset.range J) 0 (fun _ => (1:ℝ))]
+        rw [if_pos (Finset.mem_range.mpr hJ)]
+    linarith
+  have hcoef : (0:ℝ) ≤ 256*(h:ℝ)*L := by positivity
+  calc 256*(h:ℝ)*L * ∑ j ∈ Finset.range J,
+        ((2:ℝ)^j * Real.exp (-(π/4 * 4^j)) + if j = 0 then 1 else 0)
+      ≤ 256*(h:ℝ)*L * 2 := mul_le_mul_of_nonneg_left hsum hcoef
+    _ = 512*(h:ℝ)*L := by ring
+
 end ExpSums
 
 end MoltResearch
