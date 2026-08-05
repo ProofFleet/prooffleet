@@ -1063,4 +1063,86 @@ theorem intervalIntegral_vonMangoldt_mvt_block_le (T : ℝ) (N : ℕ)
   intervalIntegral_vonMangoldt_mvt_le T (by linarith) S a _
     (inner_sum_block_uniform_le T N S hS hN hT hTN hsmall B hB)
 
+open Finset in
+/-- **The divisor swap** (Track R, N1): the hyperbola reindexing
+`∑_{n≤x} ∑_{d ∣ n} = ∑_{d≤x} ∑_{m ≤ x/d}`, with `n = dm`.
+
+This is the entry point to §3 of the `κ = 1` Halász paper, where
+`log n = ∑_{d ∣ n} Λ(d)` is turned into a convolution over `(d, m)`.
+Mathlib has the divisor identity but not this swap — `Nat.sum_div_divisors`
+is the reflection `d ↔ n/d` *within a single* `n`, a different thing.
+
+Natural-number division is exactly right on the right-hand side, since
+`d·m ≤ x ↔ m ≤ x/d` for `d ≥ 1`. -/
+theorem sum_divisors_swap {M : Type*} [AddCommMonoid M] (x : ℕ)
+    (g : ℕ → ℕ → M) :
+    ∑ n ∈ Finset.Icc 1 x, ∑ d ∈ n.divisors, g d n
+      = ∑ d ∈ Finset.Icc 1 x, ∑ m ∈ Finset.Icc 1 (x/d), g d (d*m) := by
+  classical
+  rw [Finset.sum_sigma', Finset.sum_sigma']
+  refine Finset.sum_nbij' (fun p => Sigma.mk p.2 (p.1 / p.2))
+    (fun q => Sigma.mk (q.1 * q.2) q.1) ?_ ?_ ?_ ?_ ?_
+  · -- the forward map lands in the target
+    rintro ⟨n, d⟩ hp
+    simp only [Finset.mem_sigma, Finset.mem_Icc, Nat.mem_divisors] at hp
+    obtain ⟨⟨hn1, hnx⟩, hdvd, hn0⟩ := hp
+    have hd0 : 0 < d := Nat.pos_of_dvd_of_pos hdvd (by omega)
+    have hdn : d ≤ n := Nat.le_of_dvd (by omega) hdvd
+    simp only [Finset.mem_sigma, Finset.mem_Icc]
+    exact ⟨⟨hd0, by omega⟩, (Nat.one_le_div_iff hd0).mpr hdn,
+      Nat.div_le_div_right hnx⟩
+  · -- and the backward map lands in the source
+    rintro ⟨d, m⟩ hq
+    simp only [Finset.mem_sigma, Finset.mem_Icc] at hq
+    obtain ⟨⟨hd1, hdx⟩, hm1, hmx⟩ := hq
+    have hd0 : 0 < d := hd1
+    have hdm : d * m ≤ x := by
+      rw [mul_comm]
+      exact (Nat.le_div_iff_mul_le hd0).mp hmx
+    have hdm0 : 0 < d * m := Nat.mul_pos hd0 hm1
+    simp only [Finset.mem_sigma, Finset.mem_Icc, Nat.mem_divisors]
+    exact ⟨⟨hdm0, hdm⟩, dvd_mul_right d m, by omega⟩
+  · -- the two maps are mutually inverse
+    rintro ⟨n, d⟩ hp
+    simp only [Finset.mem_sigma, Finset.mem_Icc, Nat.mem_divisors] at hp
+    obtain ⟨⟨hn1, hnx⟩, hdvd, hn0⟩ := hp
+    simp only [Nat.mul_div_cancel' hdvd]
+  · rintro ⟨d, m⟩ hq
+    simp only [Finset.mem_sigma, Finset.mem_Icc] at hq
+    obtain ⟨⟨hd1, hdx⟩, hm1, hmx⟩ := hq
+    have hd0 : 0 < d := hd1
+    simp only [Nat.mul_div_cancel_left m hd0]
+  · -- and the summand is carried across
+    rintro ⟨n, d⟩ hp
+    simp only [Finset.mem_sigma, Finset.mem_Icc, Nat.mem_divisors] at hp
+    obtain ⟨⟨hn1, hnx⟩, hdvd, hn0⟩ := hp
+    simp only [Nat.mul_div_cancel' hdvd]
+
+open ArithmeticFunction Finset in
+/-- **The log-weighted convolution** (Track R, N2): weighting by `log n`
+turns any sum into a `Λ`-convolution,
+
+  `∑_{n≤x} f(n)·log n = ∑_{d≤x} Λ(d)·∑_{m≤x/d} f(dm)`.
+
+This is the first move of §3 of the `κ = 1` Halász paper, and the reason
+the whole argument is driven by `log`: the identity
+`log n = ∑_{d∣n} Λ(d)` is what converts a plain mean value into
+something with arithmetic structure to exploit.  Restricting `d` to
+primes (at a cost of `O(x)`) then produces the double convolution, and
+iterating produces the triple one. -/
+theorem sum_mul_log_eq (f : ℕ → ℝ) (x : ℕ) :
+    ∑ n ∈ Finset.Icc 1 x, f n * Real.log (n:ℝ)
+      = ∑ d ∈ Finset.Icc 1 x, vonMangoldt d
+          * ∑ m ∈ Finset.Icc 1 (x/d), f (d*m) := by
+  classical
+  have hstep : ∀ n ∈ Finset.Icc 1 x, f n * Real.log (n:ℝ)
+      = ∑ d ∈ n.divisors, f n * vonMangoldt d := by
+    intro n _
+    rw [← Finset.mul_sum, vonMangoldt_sum]
+  rw [Finset.sum_congr rfl hstep,
+    sum_divisors_swap x (fun d n => f n * vonMangoldt d)]
+  refine Finset.sum_congr rfl fun d _ => ?_
+  rw [Finset.mul_sum]
+  exact Finset.sum_congr rfl fun m _ => by ring
+
 end MoltResearch
