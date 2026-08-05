@@ -1838,6 +1838,92 @@ theorem intervalIntegral_norm_sq_gaussian_pairs_le (S : Finset ℕ) (c : ℕ →
         rw [Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
         ring
 
+open MeasureTheory Real Complex in
+/-- **The Gaussian diagonal bound** (Track R, M0-w): for a Dirichlet
+polynomial whose coefficients carry a **non-negative real weight** `r`,
+the window energy collapses onto the diagonal with `r` moved into the
+kernel:
+
+  `∫_{−T}^{T}‖∑ a(n)r(n)n^{−iξ}‖² ≤ ∑ₘ |a(m)|²r(m)·∑ₙ r(n)K(m,n)`.
+
+Carrying `r` in the kernel rather than in the coefficients is the whole
+point.  Applying `sum_pair_re_le_of_symm` directly to `c = a·r` would
+produce `|a(m)|²r(m)²` on the diagonal — with `r = Λ` that is one
+logarithm worse than GHS Lemma 2.6 allows.  Splitting the pair as
+`a(m)·conj a(n)` against the weighted kernel `r(m)r(n)K(m,n)` leaves
+exactly one `r(m)` outside, which is the `Λ(n)` of `∑ n|a(n)|²Λ(n)`. -/
+theorem intervalIntegral_norm_sq_gaussian_diag_le (S : Finset ℕ) (a : ℕ → ℂ)
+    (r : ℕ → ℝ) (hr : ∀ n, 0 ≤ r n) (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((r n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ ∑ m ∈ S, ‖a m‖^2 * r m
+          * ∑ n ∈ S, r n * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2))) := by
+  classical
+  -- the weighted kernel is non-negative and symmetric
+  have hK0 : ∀ m n : ℕ, 0 ≤ r m * r n
+      * (Real.exp π * T
+          * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2))) := by
+    intro m n
+    refine mul_nonneg (mul_nonneg (hr m) (hr n)) ?_
+    exact mul_nonneg (mul_nonneg (Real.exp_pos _).le hT.le) (Real.exp_pos _).le
+  have hKsymm : ∀ m n : ℕ, r m * r n
+      * (Real.exp π * T
+          * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2)))
+      = r n * r m
+      * (Real.exp π * T
+          * Real.exp (-(π*T^2*(Real.log n - Real.log m)^2))) := by
+    intro m n
+    have hsq : (Real.log m - Real.log n)^2 = (Real.log n - Real.log m)^2 := by
+      ring
+    rw [hsq]
+    ring
+  -- the weight is real, so it passes through the real part
+  have hpair : ∀ m n : ℕ,
+      ((a m * ((r m : ℝ) : ℂ)) * (starRingEnd ℂ) (a n * ((r n : ℝ) : ℂ))).re
+          * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2)))
+        = (a m * (starRingEnd ℂ) (a n)).re
+          * (r m * r n * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2)))) := by
+    intro m n
+    have hz : (a m * ((r m : ℝ) : ℂ))
+          * (starRingEnd ℂ) (a n * ((r n : ℝ) : ℂ))
+        = (a m * (starRingEnd ℂ) (a n)) * (((r m * r n : ℝ)) : ℂ) := by
+      rw [map_mul, Complex.conj_ofReal, Complex.ofReal_mul]
+      ring
+    rw [hz, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
+    ring
+  calc (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((r n : ℝ) : ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ ∑ m ∈ S, ∑ n ∈ S, ((a m * ((r m : ℝ) : ℂ))
+          * (starRingEnd ℂ) (a n * ((r n : ℝ) : ℂ))).re
+            * (Real.exp π * T
+                * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2))) :=
+        intervalIntegral_norm_sq_gaussian_pairs_le S _ T hT
+    _ = ∑ m ∈ S, ∑ n ∈ S, (a m * (starRingEnd ℂ) (a n)).re
+          * (r m * r n * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2)))) :=
+        Finset.sum_congr rfl fun m _ =>
+          Finset.sum_congr rfl fun n _ => hpair m n
+    _ ≤ ∑ m ∈ S, ‖a m‖^2
+          * ∑ n ∈ S, (r m * r n * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2)))) :=
+        sum_pair_re_le_of_symm S a
+          (fun m n => r m * r n * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2)))) hK0 hKsymm
+    _ = ∑ m ∈ S, ‖a m‖^2 * r m
+          * ∑ n ∈ S, r n * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2))) := by
+        refine Finset.sum_congr rfl fun m _ => ?_
+        have hfac : ∑ n ∈ S, (r m * r n * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2))))
+            = r m * ∑ n ∈ S, r n * (Real.exp π * T
+                * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2))) := by
+          rw [Finset.mul_sum]
+          exact Finset.sum_congr rfl fun n _ => by ring
+        rw [hfac, ← mul_assoc]
+
 end ExpSums
 
 end MoltResearch
