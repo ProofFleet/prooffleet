@@ -1768,4 +1768,55 @@ theorem sum_log_div_Ico_le (A B : ℕ) :
   rw [Finset.sum_const, nsmul_eq_mul]
   exact le_of_eq (mul_comm _ _)
 
+open Finset in
+/-- **The Mertens difference bound** (Track R, N8c):
+`∑_{A ≤ p < B} log p/p ≤ 4·(log B − log A) + 4·log 4`.
+
+The block count of `sum_log_div_Ico_le` is turned into a logarithm by
+the two defining inequalities of `Nat.log`: `2^{⌊log₂n⌋} ≤ n` bounds it
+above and `n < 2^{⌊log₂n⌋+1}` bounds it below, so the count is
+`(log B − log A)/log 2 + 2`, and `2·log 4/log 2 = 4`.
+
+This is the Mertens difference in the form §3 uses it — for the
+`loglog x` error of the iteration, and for `∑_{p ∈ P_k} log p/p ≪
+e^{−k}·log x` in the trivial bound on `S_k`.  It is derived from
+Chebyshev alone; no lower bound for Mertens is involved. -/
+theorem sum_log_div_Ico_le_log (A B : ℕ) (hA : 1 ≤ A) (hAB : A ≤ B) :
+    ∑ p ∈ (Finset.Ico A B).filter Nat.Prime, Real.log (p:ℝ) / (p:ℝ)
+      ≤ 4 * (Real.log (B:ℝ) - Real.log (A:ℝ)) + 4 * Real.log 4 := by
+  classical
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hA0 : (0:ℝ) < (A:ℝ) := by exact_mod_cast hA
+  have hB1 : 1 ≤ B := le_trans hA hAB
+  have hB0 : (0:ℝ) < (B:ℝ) := by exact_mod_cast hB1
+  have hmono : Nat.log 2 A ≤ Nat.log 2 B := Nat.log_mono_right hAB
+  -- the number of dyadic blocks met
+  have hcard : (((Finset.Icc (Nat.log 2 A) (Nat.log 2 B)).card : ℕ) : ℝ)
+      = (Nat.log 2 B : ℝ) + 1 - (Nat.log 2 A : ℝ) := by
+    rw [Nat.card_Icc, Nat.cast_sub (by omega)]
+    push_cast
+    ring
+  -- `⌊log₂B⌋·log 2 ≤ log B`
+  have hupper : (Nat.log 2 B : ℝ) * Real.log 2 ≤ Real.log (B:ℝ) := by
+    have h1 : (2:ℕ)^(Nat.log 2 B) ≤ B := Nat.pow_log_le_self 2 (by omega)
+    have h2 : ((2:ℝ))^(Nat.log 2 B) ≤ (B:ℝ) := by exact_mod_cast h1
+    have h3 := Real.log_le_log (by positivity) h2
+    rwa [Real.log_pow] at h3
+  -- `log A ≤ (⌊log₂A⌋ + 1)·log 2`
+  have hlower : Real.log (A:ℝ) ≤ ((Nat.log 2 A : ℝ) + 1) * Real.log 2 := by
+    have h1 : A < 2^(Nat.log 2 A + 1) := Nat.lt_pow_succ_log_self (by norm_num) A
+    have h2 : (A:ℝ) ≤ ((2:ℝ))^(Nat.log 2 A + 1) := by exact_mod_cast h1.le
+    have h3 := Real.log_le_log hA0 h2
+    rw [Real.log_pow] at h3
+    push_cast at h3
+    linarith
+  have hlog4 : Real.log 4 = 2 * Real.log 2 := by
+    have h : (4:ℝ) = 2^(2:ℕ) := by norm_num
+    rw [h, Real.log_pow]
+    push_cast
+    ring
+  refine le_trans (sum_log_div_Ico_le A B) ?_
+  rw [hcard, hlog4]
+  nlinarith [hupper, hlower, hlog2]
+
 end MoltResearch
