@@ -1322,6 +1322,71 @@ theorem gaussian_decay_of_gap (T : ℝ) (m n : ℕ) (hm : 1 ≤ m) (hmn : m < n)
       _ = π*T^2*(Real.log n - Real.log m)^2 := by ring
   linarith
 
+open Finset Real in
+/-- **The shell series converges** (Track R, M0-m): the dyadic shell
+count `2^j` against the Gaussian shell decay `e^{−(π/4)4^j}` sums to at
+most `1`, uniformly in the number of shells.  Each term is already
+below `2^{−j−1}`, because `(π/4)·4^j ≥ (2j+1)·log 2` — the quadratic
+Gaussian exponent beats the linear count. -/
+theorem sum_shell_series_le (J : ℕ) :
+    ∑ j ∈ Finset.range J, (2:ℝ)^j * Real.exp (-(π/4 * 4^j)) ≤ 1 := by
+  classical
+  have hlog2 : Real.log 2 < 0.6932 := by
+    have := Real.log_two_lt_d9
+    linarith
+  have hpi : (3:ℝ) < π := Real.pi_gt_three
+  have hbern : ∀ j : ℕ, (1:ℝ) + 3*j ≤ (4:ℝ)^j := by
+    intro j
+    have h := one_add_mul_le_pow (a := (3:ℝ)) (by norm_num) j
+    calc (1:ℝ) + 3*j = 1 + j*3 := by ring
+      _ ≤ (1+3)^j := h
+      _ = (4:ℝ)^j := by norm_num
+  have hstep : ∀ j : ℕ,
+      (2:ℝ)^j * Real.exp (-(π/4 * 4^j)) ≤ (1/2:ℝ)^(j+1) := by
+    intro j
+    have hj0 : (0:ℝ) ≤ (j:ℝ) := Nat.cast_nonneg j
+    have hexp : (2*(j:ℝ)+1) * Real.log 2 ≤ π/4 * 4^j := by
+      have h1 : (2*(j:ℝ)+1) * Real.log 2 ≤ (2*(j:ℝ)+1) * 0.6932 :=
+        mul_le_mul_of_nonneg_left hlog2.le (by linarith)
+      have h2 : (2*(j:ℝ)+1) * 0.6932 ≤ (3/4 : ℝ) * (1 + 3*(j:ℝ)) := by
+        nlinarith [hj0]
+      have h3 : (3/4 : ℝ) * (1 + 3*(j:ℝ)) ≤ (π/4) * (1 + 3*(j:ℝ)) :=
+        mul_le_mul_of_nonneg_right (by linarith) (by linarith)
+      have h4 : (π/4) * (1 + 3*(j:ℝ)) ≤ (π/4) * (4:ℝ)^j :=
+        mul_le_mul_of_nonneg_left (hbern j) (by positivity)
+      linarith
+    have hval : (1/2:ℝ)^(2*j+1) = Real.exp (-((2*(j:ℝ)+1) * Real.log 2)) := by
+      have h1 : ((1:ℝ)/2)^(2*j+1) = Real.exp (Real.log (((1:ℝ)/2)^(2*j+1))) :=
+        (Real.exp_log (by positivity)).symm
+      rw [h1, Real.log_pow, Real.log_div one_ne_zero two_ne_zero, Real.log_one]
+      congr 1
+      push_cast
+      ring
+    have hpow : Real.exp (-(π/4 * 4^j)) ≤ (1/2:ℝ)^(2*j+1) := by
+      rw [hval]
+      exact Real.exp_le_exp.mpr (by linarith)
+    have hcollapse : (2:ℝ)^j * (1/2:ℝ)^(2*j+1) = (1/2:ℝ)^(j+1) := by
+      have e1 : (2:ℝ)^(2*j+1) = (2:ℝ)^j * (2:ℝ)^(j+1) := by
+        rw [← pow_add]
+        congr 1
+        omega
+      rw [one_div, inv_pow, inv_pow, e1]
+      field_simp
+    calc (2:ℝ)^j * Real.exp (-(π/4 * 4^j))
+        ≤ (2:ℝ)^j * (1/2:ℝ)^(2*j+1) :=
+          mul_le_mul_of_nonneg_left hpow (by positivity)
+      _ = (1/2:ℝ)^(j+1) := hcollapse
+  refine le_trans (Finset.sum_le_sum fun j _ => hstep j) ?_
+  have hgeom : ∑ j ∈ Finset.range J, (1/2:ℝ)^(j+1)
+      = (1/2:ℝ) * ∑ j ∈ Finset.range J, (1/2:ℝ)^j := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    rw [pow_succ]
+    ring
+  rw [hgeom]
+  have h2 : ∑ j ∈ Finset.range J, (1/2:ℝ)^j ≤ 2 := sum_geometric_two_le J
+  linarith
+
 end ExpSums
 
 end MoltResearch
