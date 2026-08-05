@@ -2351,6 +2351,95 @@ theorem inner_sum_two_sided_le (T : ℝ) (m h J : ℕ) (hh : 2 ≤ h)
     _ = 1024*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ))
           + Real.log (m:ℝ) := by ring
 
+open Finset Real in
+/-- **The log-gap inside a dyadic block** (Track R, M0-bb): two points
+of `(N, 2N]` separated by at least `A` are separated multiplicatively
+by at least `A/(2N)`.  This is what makes the tail of the mean value
+theorem harmless: the shells of `inner_sum_two_sided_le` reach only to
+`a_J ≈ N/2` (they cannot reach `2N`, since `inner_sum_le` needs
+`a_J ≤ m`), so everything beyond them is at multiplicative distance
+`≳ 1/4` from the centre — a *fixed* gap, not a shrinking one, which the
+Gaussian kills super-exponentially in `T`. -/
+theorem log_gap_of_dyadic (N n m : ℕ) (hn : N < n) (hn2 : n ≤ 2*N)
+    (hm : N < m) (hm2 : m ≤ 2*N) (A : ℝ) (hA : 0 ≤ A)
+    (hgap : A ≤ |(n:ℝ) - (m:ℝ)|) :
+    A/(2*(N:ℝ)) ≤ |Real.log (n:ℝ) - Real.log (m:ℝ)| := by
+  have hN1 : 1 ≤ N := by omega
+  have hN0 : (0:ℝ) < (N:ℝ) := by exact_mod_cast hN1
+  have hn1 : 1 ≤ n := by omega
+  have hm1 : 1 ≤ m := by omega
+  -- the ordered case, applied to whichever of `n`, `m` is larger
+  have key : ∀ u v : ℕ, 1 ≤ u → u < v → v ≤ 2*N → A ≤ (v:ℝ) - (u:ℝ) →
+      A/(2*(N:ℝ)) ≤ Real.log (v:ℝ) - Real.log (u:ℝ) := by
+    intro u v hu huv hv2 hA'
+    have hlog := log_sub_log_ge u v hu huv
+    refine le_trans ?_ hlog
+    have hv1 : 1 ≤ v := by omega
+    have hv0 : (0:ℝ) < (v:ℝ) := by exact_mod_cast hv1
+    have hv2R : (v:ℝ) ≤ 2*(N:ℝ) := by exact_mod_cast hv2
+    have huvR : (u:ℝ) ≤ (v:ℝ) := by exact_mod_cast huv.le
+    rw [div_le_div_iff₀ (by positivity) hv0]
+    nlinarith [hA', hv2R, huvR, hN0]
+  rcases lt_trichotomy n m with hlt | heq | hgt
+  · have hnm : (n:ℝ) ≤ (m:ℝ) := by exact_mod_cast hlt.le
+    have habs : |(n:ℝ) - (m:ℝ)| = (m:ℝ) - (n:ℝ) := by
+      rw [abs_sub_comm]
+      exact abs_of_nonneg (by linarith)
+    rw [habs] at hgap
+    rw [abs_sub_comm]
+    exact le_trans (key n m hn1 hlt hm2 hgap) (le_abs_self _)
+  · subst heq
+    have hA0 : A = 0 := by
+      have hz : |(n:ℝ) - (n:ℝ)| = 0 := by simp
+      rw [hz] at hgap
+      linarith
+    rw [hA0]
+    simp
+  · have hmn : (m:ℝ) ≤ (n:ℝ) := by exact_mod_cast hgt.le
+    have habs : |(n:ℝ) - (m:ℝ)| = (n:ℝ) - (m:ℝ) :=
+      abs_of_nonneg (by linarith)
+    rw [habs] at hgap
+    exact le_trans (key m n hm1 hgt hn2 hgap) (le_abs_self _)
+
+open Finset Real in
+/-- **The Gaussian tail** (Track R, M0-bb): a sum whose every term sits
+at multiplicative distance at least `g` from the centre is damped by the
+single factor `e^{−πT²g²}`.  Together with `log_gap_of_dyadic` this
+disposes of everything the shells of `inner_sum_two_sided_le` do not
+reach: there `g` is bounded below by a constant, so the factor decays
+super-exponentially in `T` and beats the trivial count `∑ log n`. -/
+theorem gaussian_tail_sum_le (T : ℝ) (S : Finset ℕ) (m : ℕ) (g : ℝ)
+    (hg : 0 ≤ g)
+    (hgap : ∀ n ∈ S, g ≤ |Real.log (n:ℝ) - Real.log (m:ℝ)|)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ n ∈ S, Real.log (n:ℝ)
+        * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+      ≤ Real.exp (-(π*T^2*g^2)) * B := by
+  classical
+  have hterm : ∀ n ∈ S, Real.log (n:ℝ)
+      * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+      ≤ Real.exp (-(π*T^2*g^2)) * Real.log (n:ℝ) := by
+    intro n hn
+    have hlog0 : (0:ℝ) ≤ Real.log (n:ℝ) := Real.log_natCast_nonneg n
+    have hsq : g^2 ≤ (Real.log (n:ℝ) - Real.log (m:ℝ))^2 := by
+      have h1 := hgap n hn
+      calc g^2 ≤ |Real.log (n:ℝ) - Real.log (m:ℝ)|^2 :=
+            pow_le_pow_left₀ hg h1 2
+        _ = (Real.log (n:ℝ) - Real.log (m:ℝ))^2 := sq_abs _
+    have hexp : Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+        ≤ Real.exp (-(π*T^2*g^2)) := by
+      refine Real.exp_le_exp.mpr ?_
+      have hpi : (0:ℝ) ≤ π*T^2 := by positivity
+      nlinarith [hsq, hpi]
+    calc Real.log (n:ℝ)
+          * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+        ≤ Real.log (n:ℝ) * Real.exp (-(π*T^2*g^2)) :=
+          mul_le_mul_of_nonneg_left hexp hlog0
+      _ = Real.exp (-(π*T^2*g^2)) * Real.log (n:ℝ) := by ring
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  exact mul_le_mul_of_nonneg_left hB (Real.exp_pos _).le
+
 end ExpSums
 
 end MoltResearch
