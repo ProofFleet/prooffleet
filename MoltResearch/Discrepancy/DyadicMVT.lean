@@ -1599,6 +1599,58 @@ theorem dyadic_cut_succ (h j : ℕ) :
   congr 1
   omega
 
+open Real in
+/-- **The shell log-ratio is uniform** (Track R, M0-t): across the
+dyadic shells inside `(m, 2m]`, the Brun–Titchmarsh log-ratio is
+bounded by the single constant `log(4m+2)/log h`.  The numerator never
+exceeds `log(4m+2)` because every shell sits inside `(m, 2m]`, and the
+denominator never falls below `log h` because every shell has width at
+least `h`.  This is the uniform `L` that `shell_sum_le` takes as a
+hypothesis. -/
+theorem shell_log_ratio_le (m h : ℕ) (hh : 2 ≤ h) (j : ℕ)
+    (haj : (2^j - 1)*h ≤ m) (hwj : 2^j*h ≤ 2*m) :
+    Real.log (((m + (2^j - 1)*h : ℕ):ℝ) + ((2^j*h : ℕ):ℝ) + 2)
+        / Real.log ((2^j*h : ℕ):ℝ)
+      ≤ Real.log (4*(m:ℝ) + 2) / Real.log ((h:ℕ):ℝ) := by
+  have hh2 : (2:ℝ) ≤ (h:ℝ) := by exact_mod_cast hh
+  have hlogh : (0:ℝ) < Real.log ((h:ℕ):ℝ) := by
+    refine Real.log_pos ?_
+    linarith
+  -- every shell is at least as wide as `h`
+  have hwh : (h:ℕ) ≤ 2^j*h := by
+    have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
+    calc (h:ℕ) = 1*h := by ring
+      _ ≤ 2^j*h := Nat.mul_le_mul_right h h1
+  have hwhR : ((h:ℕ):ℝ) ≤ ((2^j*h : ℕ):ℝ) := by exact_mod_cast hwh
+  have hlogw : (0:ℝ) < Real.log ((2^j*h : ℕ):ℝ) :=
+    lt_of_lt_of_le hlogh (Real.log_le_log (by linarith) hwhR)
+  -- and sits inside `(m, 2m]`
+  have hnum : ((m + (2^j - 1)*h : ℕ):ℝ) + ((2^j*h : ℕ):ℝ) + 2
+      ≤ 4*(m:ℝ) + 2 := by
+    have h1 : ((m + (2^j - 1)*h : ℕ):ℝ) ≤ 2*(m:ℝ) := by
+      have : m + (2^j - 1)*h ≤ 2*m := by omega
+      exact_mod_cast this
+    have h2 : ((2^j*h : ℕ):ℝ) ≤ 2*(m:ℝ) := by exact_mod_cast hwj
+    linarith
+  rw [div_le_div_iff₀ hlogw hlogh]
+  have h1 : Real.log (((m + (2^j - 1)*h : ℕ):ℝ) + ((2^j*h : ℕ):ℝ) + 2)
+      ≤ Real.log (4*(m:ℝ) + 2) := by
+    refine Real.log_le_log ?_ hnum
+    have hm0 : (0:ℝ) ≤ (m:ℝ) := by positivity
+    have hw0 : (0:ℝ) ≤ ((2^j*h : ℕ):ℝ) := by positivity
+    have ha0 : (0:ℝ) ≤ ((m + (2^j - 1)*h : ℕ):ℝ) := by positivity
+    linarith
+  have h2 : Real.log ((h:ℕ):ℝ) ≤ Real.log ((2^j*h : ℕ):ℝ) :=
+    Real.log_le_log (by linarith) hwhR
+  have h3 : (0:ℝ) ≤ Real.log (((m + (2^j - 1)*h : ℕ):ℝ)
+      + ((2^j*h : ℕ):ℝ) + 2) := by
+    refine Real.log_nonneg ?_
+    have hm0 : (0:ℝ) ≤ (m:ℝ) := by positivity
+    have hw0 : (0:ℝ) ≤ ((2^j*h : ℕ):ℝ) := by positivity
+    have ha0 : (0:ℝ) ≤ ((m + (2^j - 1)*h : ℕ):ℝ) := by positivity
+    linarith
+  nlinarith [h1, h2, h3, hlogh.le]
+
 end ExpSums
 
 end MoltResearch
