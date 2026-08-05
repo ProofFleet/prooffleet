@@ -2093,6 +2093,264 @@ theorem shell_sum_le_left (T : ℝ) (m J : ℕ) (c : ℕ → ℕ) (hanti : Antit
         mul_le_mul_of_nonneg_left (hLbound j hj) hpos
     _ = 256*((c j - c (j+1) : ℕ):ℝ)*L := by ring
 
+open Finset Real in
+/-- **The log-ratio, uniformly** (Track R, M0-z): whenever a shell
+`(u, u+w]` sits inside `(0, 2m]` and is at least `h` wide, its
+Brun–Titchmarsh log-ratio is bounded by the single constant
+`log(4m+2)/log h`.  This is `shell_log_ratio_le` with the dyadic
+parametrisation stripped out, so that the same lemma serves the shells
+on *both* sides of the Gaussian's centre. -/
+theorem log_ratio_le_of_le (m u w h : ℕ) (hh : 2 ≤ h) (hw : h ≤ w)
+    (huw : u + w ≤ 2*m) :
+    Real.log ((u:ℝ) + (w:ℝ) + 2)/Real.log ((w:ℕ):ℝ)
+      ≤ Real.log (4*(m:ℝ) + 2)/Real.log ((h:ℕ):ℝ) := by
+  have hh2 : (2:ℝ) ≤ (h:ℝ) := by exact_mod_cast hh
+  have hlogh : (0:ℝ) < Real.log ((h:ℕ):ℝ) := Real.log_pos (by linarith)
+  have hwR : ((h:ℕ):ℝ) ≤ ((w:ℕ):ℝ) := by exact_mod_cast hw
+  have hlogw : (0:ℝ) < Real.log ((w:ℕ):ℝ) :=
+    lt_of_lt_of_le hlogh (Real.log_le_log (by linarith) hwR)
+  have hu0 : (0:ℝ) ≤ (u:ℝ) := by positivity
+  have hw0 : (0:ℝ) ≤ (w:ℝ) := by positivity
+  have hnum : (u:ℝ) + (w:ℝ) + 2 ≤ 4*(m:ℝ) + 2 := by
+    have hc : ((u + w : ℕ):ℝ) ≤ ((2*m : ℕ):ℝ) := by exact_mod_cast huw
+    push_cast at hc
+    linarith
+  rw [div_le_div_iff₀ hlogw hlogh]
+  have h1 : Real.log ((u:ℝ) + (w:ℝ) + 2) ≤ Real.log (4*(m:ℝ) + 2) :=
+    Real.log_le_log (by linarith) hnum
+  have h2 : Real.log ((h:ℕ):ℝ) ≤ Real.log ((w:ℕ):ℝ) :=
+    Real.log_le_log (by linarith) hwR
+  have h3 : (0:ℝ) ≤ Real.log ((u:ℝ) + (w:ℝ) + 2) :=
+    Real.log_nonneg (by linarith)
+  nlinarith [h1, h2, h3, hlogh.le]
+
+open Finset Real in
+/-- **The inner sum, on the left** (Track R, M0-z): the mirror of
+`inner_sum_le`.  The cut points are `c j = m − 1 − (2^j − 1)h`, marching
+*down* from `m − 1`; the `−1` keeps `p = m` out of the range, which is
+what `shell_gaussian_count_le_left` requires and which leaves the
+diagonal term `p = m` to be handled once at the top level.  Shell `j`
+sits at distance `1 + (2^j − 1)h` from the centre, so the same
+`shell_exponent_le` calibration applies and the constant `512` is the
+same as on the right. -/
+theorem inner_sum_le_left (T : ℝ) (m h J : ℕ) (hh : 2 ≤ h)
+    (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T) (hfit : (2^J - 1)*h + 1 ≤ m) :
+    ∑ p ∈ (Finset.Ioc (m - 1 - (2^J - 1)*h) (m - 1)).filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 512*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ)) := by
+  classical
+  set L : ℝ := Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) with hL_def
+  have hm1 : 1 ≤ m := by omega
+  have hm0 : (0:ℝ) < (m:ℝ) := by exact_mod_cast hm1
+  have hh2 : (2:ℝ) ≤ (h:ℝ) := by exact_mod_cast hh
+  have hlogh : (0:ℝ) < Real.log ((h:ℕ):ℝ) := Real.log_pos (by linarith)
+  have hL0 : (0:ℝ) ≤ L := by
+    rw [hL_def]
+    exact div_nonneg (Real.log_nonneg (by linarith)) hlogh.le
+  -- every shell fits below `m`
+  have hfitj : ∀ j ≤ J, (2^j - 1)*h + 1 ≤ m := by
+    intro j hj
+    have h2 : (2:ℕ)^j ≤ 2^J := Nat.pow_le_pow_right (by norm_num) hj
+    have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
+    have hmul : (2^j - 1)*h ≤ (2^J - 1)*h := Nat.mul_le_mul_right h (by omega)
+    omega
+  have hcast : ∀ j ≤ J, (((m - 1 - (2^j - 1)*h : ℕ)):ℝ)
+      = (m:ℝ) - 1 - ((2:ℝ)^j - 1)*(h:ℝ) := by
+    intro j hj
+    have hf := hfitj j hj
+    have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
+    have hsub1 : ((2^j - 1 : ℕ):ℝ) = (2:ℝ)^j - 1 := by
+      push_cast [Nat.cast_sub h1]
+      ring
+    rw [Nat.cast_sub (by omega : (2^j - 1)*h ≤ m - 1),
+      Nat.cast_sub (by omega : 1 ≤ m), Nat.cast_mul, hsub1]
+    push_cast
+    ring
+  have hwidthN : ∀ j < J,
+      (m - 1 - (2^j - 1)*h) - (m - 1 - (2^(j+1) - 1)*h) = 2^j*h := by
+    intro j hj
+    have hsucc := dyadic_cut_succ h j
+    have hf := hfitj (j+1) (by omega)
+    omega
+  -- the cut sequence is antitone and stays below `m`
+  have hanti : Antitone (fun j : ℕ => m - 1 - (2^j - 1)*h) := by
+    intro i j hij
+    simp only
+    have h2 : (2:ℕ)^i ≤ 2^j := Nat.pow_le_pow_right (by norm_num) hij
+    have h1 : (1:ℕ) ≤ 2^i := Nat.one_le_two_pow
+    have hmul : (2^i - 1)*h ≤ (2^j - 1)*h := Nat.mul_le_mul_right h (by omega)
+    omega
+  have hc0v : (fun j : ℕ => m - 1 - (2^j - 1)*h) 0 = m - 1 := by norm_num
+  have hc0 : (fun j : ℕ => m - 1 - (2^j - 1)*h) 0 < m := by
+    rw [hc0v]
+    omega
+  have hwN : ∀ j < J, 2 ≤ (fun j : ℕ => m - 1 - (2^j - 1)*h) j
+      - (fun j : ℕ => m - 1 - (2^j - 1)*h) (j+1) := by
+    intro j hj
+    simp only
+    rw [hwidthN j hj]
+    have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
+    calc (2:ℕ) ≤ h := hh
+      _ = 1*h := by ring
+      _ ≤ 2^j*h := Nat.mul_le_mul_right h h1
+  have hLb : ∀ j < J,
+      Real.log ((((fun j : ℕ => m - 1 - (2^j - 1)*h) (j+1) : ℕ):ℝ)
+          + (((fun j : ℕ => m - 1 - (2^j - 1)*h) j
+              - (fun j : ℕ => m - 1 - (2^j - 1)*h) (j+1) : ℕ):ℝ) + 2)
+        / Real.log ((((fun j : ℕ => m - 1 - (2^j - 1)*h) j
+            - (fun j : ℕ => m - 1 - (2^j - 1)*h) (j+1) : ℕ)):ℝ) ≤ L := by
+    intro j hj
+    simp only
+    rw [hwidthN j hj, hL_def]
+    refine log_ratio_le_of_le m (m - 1 - (2^(j+1) - 1)*h) (2^j*h) h hh ?_ ?_
+    · have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
+      calc h = 1*h := by ring
+        _ ≤ 2^j*h := Nat.mul_le_mul_right h h1
+    · have hsucc := dyadic_cut_succ h j
+      have hf := hfitj (j+1) (by omega)
+      omega
+  have hstep := shell_sum_le_left T m J (fun j : ℕ => m - 1 - (2^j - 1)*h)
+    hanti hc0 hwN L hLb
+  rw [hc0v] at hstep
+  refine le_trans hstep ?_
+  simp only
+  -- collapse the shells: `j = 0` is trivial, `j ≥ 1` is the series
+  have hterm : ∀ j ∈ Finset.range J,
+      Real.exp (-(π*T^2*((m:ℝ) - ((m - 1 - (2^j - 1)*h : ℕ):ℝ))^2
+          /(4*(m:ℝ)^2)))
+        * (256*(((m - 1 - (2^j - 1)*h)
+            - (m - 1 - (2^(j+1) - 1)*h) : ℕ):ℝ)*L)
+      ≤ 256*(h:ℝ)*L
+          * ((2:ℝ)^j * Real.exp (-(π/4 * 4^j)) + if j = 0 then 1 else 0) := by
+    intro j hj
+    rw [Finset.mem_range] at hj
+    rw [hcast j hj.le, hwidthN j hj]
+    have hcw : ((2^j*h : ℕ):ℝ) = (2:ℝ)^j*(h:ℝ) := by push_cast; ring
+    rw [hcw]
+    have hgap : (m:ℝ) - ((m:ℝ) - 1 - ((2:ℝ)^j - 1)*(h:ℝ))
+        = 1 + ((2:ℝ)^j - 1)*(h:ℝ) := by ring
+    rw [hgap]
+    have hh0 : (0:ℝ) ≤ (h:ℝ) := by linarith
+    have hp1 : (1:ℝ) ≤ (2:ℝ)^j := one_le_pow₀ (by norm_num)
+    have hbase : (0:ℝ) ≤ ((2:ℝ)^j - 1)*(h:ℝ) := mul_nonneg (by linarith) hh0
+    rcases Nat.eq_zero_or_pos j with hj0 | hj1
+    · subst hj0
+      rw [if_pos rfl, pow_zero, one_mul]
+      have hz : ((1:ℝ) - 1)*(h:ℝ) = 0 := by ring
+      rw [hz]
+      have hdec : Real.exp (-(π*T^2*(1 + (0:ℝ))^2/(4*(m:ℝ)^2))) ≤ 1 := by
+        refine Real.exp_le_one_iff.mpr ?_
+        have : (0:ℝ) ≤ π*T^2*(1 + (0:ℝ))^2/(4*(m:ℝ)^2) := by positivity
+        linarith
+      have hpos : (0:ℝ) ≤ 256*(h:ℝ)*L := by positivity
+      nlinarith [Real.exp_pos (-(π/4 * (4:ℝ)^0)), hpos, hdec]
+    · have hj1' : 1 ≤ j := hj1
+      rw [if_neg (by omega), add_zero]
+      -- the extra `+1` in the gap only helps
+      have hmono : Real.exp (-(π*T^2*(1 + ((2:ℝ)^j - 1)*(h:ℝ))^2/(4*(m:ℝ)^2)))
+          ≤ Real.exp (-(π*T^2*(((2:ℝ)^j - 1)*(h:ℝ))^2/(4*(m:ℝ)^2))) := by
+        refine Real.exp_le_exp.mpr ?_
+        have hpi : (0:ℝ) ≤ π*T^2 := by positivity
+        have hsq : (((2:ℝ)^j - 1)*(h:ℝ))^2
+            ≤ (1 + ((2:ℝ)^j - 1)*(h:ℝ))^2 := by nlinarith [hbase]
+        have h4m : (0:ℝ) < 4*(m:ℝ)^2 := by positivity
+        rw [neg_le_neg_iff, div_le_div_iff₀ h4m h4m]
+        have hprod : (0:ℝ) ≤ π*T^2*(4*(m:ℝ)^2) := mul_nonneg hpi h4m.le
+        nlinarith [mul_le_mul_of_nonneg_left hsq hprod]
+      have hdecay := shell_exponent_le T (m:ℝ) (h:ℝ) hm0 hh0 hscale hj1'
+      calc Real.exp (-(π*T^2*(1 + ((2:ℝ)^j - 1)*(h:ℝ))^2/(4*(m:ℝ)^2)))
+            * (256*((2:ℝ)^j*(h:ℝ))*L)
+          ≤ Real.exp (-(π*T^2*(((2:ℝ)^j - 1)*(h:ℝ))^2/(4*(m:ℝ)^2)))
+              * (256*((2:ℝ)^j*(h:ℝ))*L) :=
+            mul_le_mul_of_nonneg_right hmono (by positivity)
+        _ ≤ Real.exp (-(π/4 * 4^j)) * (256*((2:ℝ)^j*(h:ℝ))*L) :=
+            mul_le_mul_of_nonneg_right hdecay (by positivity)
+        _ = 256*(h:ℝ)*L * ((2:ℝ)^j * Real.exp (-(π/4 * 4^j))) := by ring
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hsum : ∑ j ∈ Finset.range J,
+      ((2:ℝ)^j * Real.exp (-(π/4 * 4^j)) + if j = 0 then 1 else 0) ≤ 2 := by
+    rw [Finset.sum_add_distrib]
+    have h1 := sum_shell_series_le J
+    have h2 : ∑ j ∈ Finset.range J, (if j = 0 then (1:ℝ) else 0) ≤ 1 := by
+      rcases Nat.eq_zero_or_pos J with hJ | hJ
+      · subst hJ; simp
+      · rw [Finset.sum_ite_eq' (Finset.range J) 0 (fun _ => (1:ℝ))]
+        rw [if_pos (Finset.mem_range.mpr hJ)]
+    linarith
+  have hcoef : (0:ℝ) ≤ 256*(h:ℝ)*L := by positivity
+  calc 256*(h:ℝ)*L * ∑ j ∈ Finset.range J,
+        ((2:ℝ)^j * Real.exp (-(π/4 * 4^j)) + if j = 0 then 1 else 0)
+      ≤ 256*(h:ℝ)*L * 2 := mul_le_mul_of_nonneg_left hsum hcoef
+    _ = 512*(h:ℝ)*L := by ring
+
+open Finset Real in
+/-- **The two-sided inner sum** (Track R, M0-aa): the full
+Gaussian-weighted prime log-mass around `m`, on both sides of the
+centre.  The range `(m − 1 − a_J, m + a_J]` splits at `m − 1` and at
+`m` into the left shells (`inner_sum_le_left`), the single diagonal
+term `p = m`, and the right shells (`inner_sum_le`).  The diagonal is
+exactly what the `−1` in the left cut points was reserving: it carries
+no Gaussian decay at all (`e^0 = 1`), so it contributes a bare
+`log m` — harmless beside the main term, but it cannot be swept into
+either shell family, since both require a strictly positive gap. -/
+theorem inner_sum_two_sided_le (T : ℝ) (m h J : ℕ) (hh : 2 ≤ h)
+    (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T) (hfit : (2^J - 1)*h + 1 ≤ m)
+    (hwfit : ∀ j < J, 2^j*h ≤ 2*m) :
+    ∑ p ∈ (Finset.Ioc (m - 1 - (2^J - 1)*h)
+        (m + (2^J - 1)*h)).filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 1024*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ))
+          + Real.log (m:ℝ) := by
+  classical
+  have hm1 : 1 ≤ m := by omega
+  have hfitR : (2^J - 1)*h ≤ m := by omega
+  have hleAB : m - 1 - (2^J - 1)*h ≤ m - 1 := by omega
+  have hleBD : m - 1 ≤ m + (2^J - 1)*h := by omega
+  have hleBC : m - 1 ≤ m := by omega
+  have hleCD : m ≤ m + (2^J - 1)*h := by omega
+  -- the diagonal term carries no decay
+  have hmid : ∑ p ∈ (Finset.Ioc (m - 1) m).filter Nat.Prime,
+      Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ Real.log (m:ℝ) := by
+    have hsub : (Finset.Ioc (m - 1) m).filter Nat.Prime ⊆ {m} := by
+      intro p hp
+      rw [Finset.mem_filter, Finset.mem_Ioc] at hp
+      rw [Finset.mem_singleton]
+      omega
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub ?_) ?_
+    · intro i _ _
+      have h0 : (0:ℝ) ≤ Real.log i := Real.log_natCast_nonneg i
+      exact mul_nonneg h0 (Real.exp_pos _).le
+    · rw [Finset.sum_singleton]
+      have hz : Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (m:ℝ))^2)) = 1 := by
+        simp
+      rw [hz, mul_one]
+  have hright := inner_sum_le T m h J hm1 hh hscale hfitR hwfit
+  have hleft := inner_sum_le_left T m h J hh hscale hfit
+  calc ∑ p ∈ (Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h)).filter Nat.Prime,
+          Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      = (∑ p ∈ (Finset.Ioc (m - 1 - (2^J - 1)*h) (m - 1)).filter Nat.Prime,
+            Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2)))
+          + (∑ p ∈ (Finset.Ioc (m - 1) m).filter Nat.Prime,
+              Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2)))
+          + (∑ p ∈ (Finset.Ioc m (m + (2^J - 1)*h)).filter Nat.Prime,
+              Real.log p
+                * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))) := by
+        rw [Finset.sum_filter, Finset.sum_filter, Finset.sum_filter,
+          Finset.sum_filter,
+          ← Finset.sum_Ioc_consecutive _ hleAB hleBD,
+          ← Finset.sum_Ioc_consecutive _ hleBC hleCD]
+        ring
+    _ ≤ 512*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ))
+          + Real.log (m:ℝ)
+          + 512*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ)) := by
+        have := add_le_add (add_le_add hleft hmid) hright
+        linarith
+    _ = 1024*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ))
+          + Real.log (m:ℝ) := by ring
+
 end ExpSums
 
 end MoltResearch
