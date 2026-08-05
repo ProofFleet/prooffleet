@@ -920,4 +920,147 @@ theorem intervalIntegral_vonMangoldt_mvt_le (T : ℝ) (hT : 0 < T)
   rw [← Finset.sum_mul]
   exact le_of_eq (mul_comm _ _)
 
+open ArithmeticFunction Finset Real in
+/-- **The inner sum at the canonical scale** (Track R, M0-jj): with the
+free parameters fixed — `h = ⌈2m/T⌉` and `J` maximal — the Gaussian
+inner sum over a dyadic block is bounded by `6144·h` plus three lower
+order terms: the undecayed diagonal `log m`, the Gaussian tail, and the
+prime-power remainder.
+
+The `6144 = 1024·6` is where `log_ratio_ceil_scale_le` pays off: the
+Brun–Titchmarsh ratio is an absolute constant at this scale, so the
+main term is a clean multiple of `h ≈ 2m/T`.  Multiplied by the `T`
+that the Gaussian transform contributes, that is `O(m)` — which is
+exactly the shape GHS Lemma 2.6 needs.
+
+The hypothesis `2h ≤ N` is what makes the shells reach a quarter of the
+block: from maximality `m ≤ 2a_J + h`, so `4a_J ≥ 2m − 2h > 2N − N = N`.
+It is mild — `h ≈ 2m/T ≤ 4N/T`, so it holds once `T` is a large
+constant. -/
+theorem inner_sum_block_le (T : ℝ) (N m : ℕ) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc N (2*N)) (hmS : m ∈ S) (hN : 1 ≤ N)
+    (hT : 2 ≤ T) (hTm : T^2 ≤ (m:ℝ))
+    (hsmall : 2*(⌈2*(m:ℝ)/T⌉₊) ≤ N)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      ≤ 6144*((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (m:ℝ)
+        + Real.exp (-(π*T^2/64)) * B
+        + ((Nat.sqrt (2*N) + 1 : ℕ):ℝ) * ((Nat.log 2 (2*N) : ℕ):ℝ)
+            * Real.log ((2*N : ℕ):ℝ) := by
+  classical
+  set h : ℕ := ⌈2*(m:ℝ)/T⌉₊ with hh_def
+  have hT0 : (0:ℝ) < T := by linarith
+  have hm4 : (4:ℝ) ≤ (m:ℝ) := by nlinarith [hTm, hT]
+  have hm1 : 1 ≤ m := by
+    have : (1:ℝ) ≤ (m:ℝ) := by linarith
+    exact_mod_cast this
+  have hh2 : 2 ≤ h := ExpSums.two_le_ceil_scale T m hT hTm
+  have hscale : 2*(m:ℝ) ≤ (h:ℝ)*T := ExpSums.ceil_scale_mul_le T m hT0
+  have hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ 6 :=
+    ExpSums.log_ratio_ceil_scale_le T m hT hTm
+  -- the maximal shell count, and the reach it guarantees
+  obtain ⟨J, hfit, hmax, hwfit⟩ :=
+    ExpSums.exists_shell_count m h hm1 (by omega)
+  have hmIoc := hS hmS
+  rw [Finset.mem_Ioc] at hmIoc
+  have hsucc : (2^(J+1) - 1)*h = (2^J - 1)*h + 2^J*h :=
+    ExpSums.dyadic_cut_succ h J
+  have hJh : (2:ℕ)^J*h = (2^J - 1)*h + h := by
+    have h1 : (1:ℕ) ≤ 2^J := Nat.one_le_two_pow
+    have h2 : (2:ℕ)^J = (2^J - 1) + 1 := by omega
+    calc (2:ℕ)^J*h = ((2^J - 1) + 1)*h := by rw [← h2]
+      _ = (2^J - 1)*h + h := by ring
+  have hreach : N ≤ 4*((2^J - 1)*h) := by omega
+  -- flip the kernel to the orientation of `vonMangoldt_gaussian_block_le`
+  have hflip : ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      = ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2)) := by
+    refine Finset.sum_congr rfl fun n _ => ?_
+    congr 2
+    ring
+  rw [hflip]
+  refine le_trans (vonMangoldt_gaussian_block_le T N m h J S hS hmS hN hh2
+    hscale hfit hwfit hreach 6 hL B hB) ?_
+  have hh0 : (0:ℝ) ≤ (h:ℝ) := Nat.cast_nonneg _
+  have : 1024*(h:ℝ)*6 = 6144*(h:ℝ) := by ring
+  linarith [this]
+
+open ArithmeticFunction Finset Real in
+/-- **The inner sum, uniformly over the block** (Track R, M0-kk): the
+bound of `inner_sum_block_le` made independent of the centre `m`.
+
+`intervalIntegral_vonMangoldt_mvt_le` needs a *single* `Q` valid for
+every `m ∈ S` — the diagonal collapse produces one inner sum per centre
+and they must all be bounded together.  Replacing `⌈2m/T⌉` by
+`⌈4N/T⌉` and `log m` by `log 2N` costs only a factor of two in the main
+term, since every centre lies in `(N, 2N]`, so the block is dyadic
+precisely to make this uniformity cheap. -/
+theorem inner_sum_block_uniform_le (T : ℝ) (N : ℕ) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc N (2*N)) (hN : 1 ≤ N)
+    (hT : 2 ≤ T) (hTN : T^2 ≤ (N:ℝ))
+    (hsmall : 2*(⌈4*(N:ℝ)/T⌉₊) ≤ N)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∀ m ∈ S, ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      ≤ 6144*((⌈4*(N:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log ((2*N : ℕ):ℝ)
+        + Real.exp (-(π*T^2/64)) * B
+        + ((Nat.sqrt (2*N) + 1 : ℕ):ℝ) * ((Nat.log 2 (2*N) : ℕ):ℝ)
+            * Real.log ((2*N : ℕ):ℝ) := by
+  classical
+  intro m hmS
+  have hT0 : (0:ℝ) < T := by linarith
+  have hmIoc := hS hmS
+  rw [Finset.mem_Ioc] at hmIoc
+  have hNm : (N:ℝ) < (m:ℝ) := by exact_mod_cast hmIoc.1
+  have hm2N : (m:ℝ) ≤ ((2*N : ℕ):ℝ) := by exact_mod_cast hmIoc.2
+  have hTm : T^2 ≤ (m:ℝ) := by linarith
+  -- the centre's scale is dominated by the block's
+  have h2NR : ((2*N : ℕ):ℝ) = 2*(N:ℝ) := by push_cast; ring
+  have h2N : (m:ℝ) ≤ 2*(N:ℝ) := by rw [← h2NR]; exact hm2N
+  have hdiv : 2*(m:ℝ)/T ≤ 4*(N:ℝ)/T := by
+    rw [div_le_div_iff₀ hT0 hT0]
+    nlinarith [h2N, hT0]
+  have hceil : (⌈2*(m:ℝ)/T⌉₊ : ℕ) ≤ ⌈4*(N:ℝ)/T⌉₊ := Nat.ceil_mono hdiv
+  have hsmallm : 2*(⌈2*(m:ℝ)/T⌉₊) ≤ N := by omega
+  refine le_trans (inner_sum_block_le T N m S hS hmS hN hT hTm hsmallm B hB) ?_
+  -- upgrade the two `m`-dependent terms to their block-wide values
+  have hceilR : ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) ≤ ((⌈4*(N:ℝ)/T⌉₊ : ℕ):ℝ) := by
+    exact_mod_cast hceil
+  have hlogm : Real.log (m:ℝ) ≤ Real.log ((2*N : ℕ):ℝ) := by
+    refine Real.log_le_log ?_ hm2N
+    have : (0:ℝ) ≤ (N:ℝ) := Nat.cast_nonneg _
+    linarith
+  linarith
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **GHS Lemma 2.6 over a dyadic block** (Track R, M0-ll): the mean
+value theorem with the inner sum discharged.
+
+`intervalIntegral_vonMangoldt_mvt_le` reduced the analysis to a uniform
+inner-sum bound `Q`; `inner_sum_block_uniform_le` supplies one.  The
+composite constant `e^π·T·Q` has main term `e^π·T·6144·⌈4N/T⌉ ≈
+24576·e^π·N`, which is `O(N)` — the `T` cancels against the `1/T` in the
+scale, and that cancellation is the whole point of taking
+`h = ⌈2m/T⌉`.  The remaining three terms are lower order.
+
+With the coefficients `a(n)/n` this is Lemma 1 of the `κ = 1` paper,
+whose right-hand side is `∑ |a(n)|²Λ(n)/n`. -/
+theorem intervalIntegral_vonMangoldt_mvt_block_le (T : ℝ) (N : ℕ)
+    (S : Finset ℕ) (a : ℕ → ℂ) (hS : S ⊆ Finset.Ioc N (2*N)) (hN : 1 ≤ N)
+    (hT : 2 ≤ T) (hTN : T^2 ≤ (N:ℝ))
+    (hsmall : 2*(⌈4*(N:ℝ)/T⌉₊) ≤ N)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((vonMangoldt n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T
+          * (6144*((⌈4*(N:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log ((2*N : ℕ):ℝ)
+              + Real.exp (-(π*T^2/64)) * B
+              + ((Nat.sqrt (2*N) + 1 : ℕ):ℝ) * ((Nat.log 2 (2*N) : ℕ):ℝ)
+                  * Real.log ((2*N : ℕ):ℝ))
+        * ∑ m ∈ S, ‖a m‖^2 * vonMangoldt m :=
+  intervalIntegral_vonMangoldt_mvt_le T (by linarith) S a _
+    (inner_sum_block_uniform_le T N S hS hN hT hTN hsmall B hB)
+
 end MoltResearch
