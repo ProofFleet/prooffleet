@@ -1650,4 +1650,122 @@ theorem prime_tail_sum_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x : ℕ) 
   have hcast : (((x+1 : ℕ)):ℝ) = (x:ℝ) + 1 := by push_cast; ring
   rwa [hcast] at h
 
+open ArithmeticFunction Finset in
+/-- **Factoring the convolution** (Track R, N7): for completely
+multiplicative `f`, the inner sum of the double convolution splits,
+
+  `∑_p log p·∑_{m≤x/p} f(pm) = ∑_p (log p·f(p))·∑_{m≤x/p} f(m)`.
+
+This is what makes the convolution *iterable*: the inner sum is now a
+mean value of `f` in its own right, over the shorter range `x/p`, so
+the identity of `sum_mul_log_x_prime_restrict` can be applied to it a
+second time to reach the triple convolution of §3.
+
+For merely multiplicative `f` the same split holds up to the terms with
+`p ∣ m`, of which there are at most `x/p²`; the resulting error is
+`2x·∑_p log p/p²`, which `sum_log_div_sq_le` bounds by `8x` — the same
+order as the discards already made. -/
+theorem sum_prime_conv_factor (f : ℕ → ℝ) (hmul : ∀ a b, f (a*b) = f a * f b)
+    (x : ℕ) :
+    ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+        Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)
+      = ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+          (Real.log (p:ℝ) * f p) * ∑ m ∈ Finset.Icc 1 (x/p), f m := by
+  refine Finset.sum_congr rfl fun p _ => ?_
+  rw [Finset.mul_sum, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun m _ => by rw [hmul]; ring
+
+open Finset in
+/-- **A dyadic block of the prime log-harmonic mass** (Track R, N8a-i):
+`∑_{2^i ≤ p < 2^{i+1}} log p/p ≤ 2·log 4`, an absolute constant.
+
+Only Chebyshev's `θ`-bound is used: on the block `1/p ≤ 2^{−i}` while
+`∑_{p<2^{i+1}} log p ≤ 2^{i+1}·log 4`, and the two powers cancel.  This
+is what lets a *difference* of Mertens masses be bounded from above
+without a matching lower bound for Mertens — which the repository does
+not have. -/
+theorem sum_log_div_dyadic_block_le (i : ℕ) :
+    ∑ p ∈ (Finset.Ico (2^i) (2^(i+1))).filter Nat.Prime,
+        Real.log (p:ℝ) / (p:ℝ) ≤ 2 * Real.log 4 := by
+  classical
+  have h2i : (0:ℝ) < (2:ℝ)^i := by positivity
+  -- on the block, `1/p ≤ 2^{-i}`
+  have hterm : ∀ p ∈ (Finset.Ico (2^i) (2^(i+1))).filter Nat.Prime,
+      Real.log (p:ℝ) / (p:ℝ) ≤ Real.log (p:ℝ) / (2:ℝ)^i := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+    obtain ⟨⟨hlo, hhi⟩, hpp⟩ := hp
+    have hpR : (2:ℝ)^i ≤ (p:ℝ) := by exact_mod_cast hlo
+    refine div_le_div_of_nonneg_left (Real.log_natCast_nonneg p) h2i hpR
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  -- and Chebyshev bounds the numerator
+  rw [← Finset.sum_div]
+  have hsub : (Finset.Ico (2^i) (2^(i+1))).filter Nat.Prime
+      ⊆ (2^(i+1)).primesBelow := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+    rw [Nat.mem_primesBelow]
+    exact ⟨hp.1.2, hp.2⟩
+  have hcheb : ∑ p ∈ (Finset.Ico (2^i) (2^(i+1))).filter Nat.Prime,
+      Real.log (p:ℝ) ≤ ((2^(i+1) : ℕ):ℝ) * Real.log 4 := by
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun j _ _ => Real.log_natCast_nonneg j)) ?_
+    exact sum_log_primesBelow_le (2^(i+1))
+  rw [div_le_iff₀ h2i]
+  have hcast : ((2^(i+1) : ℕ):ℝ) = 2 * (2:ℝ)^i := by push_cast; ring
+  rw [hcast] at hcheb
+  nlinarith [hcheb, h2i, Real.log_nonneg (by norm_num : (1:ℝ) ≤ 4)]
+
+open Finset in
+/-- **The prime log-harmonic mass over a range** (Track R, N8b):
+`∑_{A ≤ p < B} log p/p` is at most `2·log 4` times the number of dyadic
+blocks the range meets.
+
+Fibering the primes over `i = ⌊log₂ p⌋` puts each fibre inside
+`[2^i, 2^{i+1})`, where `sum_log_div_dyadic_block_le` gives an absolute
+constant; the range meets at most `⌊log₂B⌋ − ⌊log₂A⌋ + 1` such blocks,
+so the whole mass is `≪ log B − log A`.
+
+This is a Mertens *difference* bound proved from an upper bound alone —
+no lower bound for Mertens is needed, which matters because the
+repository has none. -/
+theorem sum_log_div_Ico_le (A B : ℕ) :
+    ∑ p ∈ (Finset.Ico A B).filter Nat.Prime, Real.log (p:ℝ) / (p:ℝ)
+      ≤ 2 * Real.log 4
+          * (((Finset.Icc (Nat.log 2 A) (Nat.log 2 B)).card : ℕ) : ℝ) := by
+  classical
+  have hmaps : ∀ p ∈ (Finset.Ico A B).filter Nat.Prime,
+      Nat.log 2 p ∈ Finset.Icc (Nat.log 2 A) (Nat.log 2 B) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+    rw [Finset.mem_Icc]
+    exact ⟨Nat.log_mono_right hp.1.1, Nat.log_mono_right (le_of_lt hp.1.2)⟩
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  have hfib : ∀ i ∈ Finset.Icc (Nat.log 2 A) (Nat.log 2 B),
+      ∑ p ∈ ((Finset.Ico A B).filter Nat.Prime).filter
+          (fun p => Nat.log 2 p = i), Real.log (p:ℝ) / (p:ℝ)
+        ≤ 2 * Real.log 4 := by
+    intro i _
+    have hsub : ((Finset.Ico A B).filter Nat.Prime).filter
+        (fun p => Nat.log 2 p = i)
+        ⊆ (Finset.Ico (2^i) (2^(i+1))).filter Nat.Prime := by
+      intro p hp
+      simp only [Finset.mem_filter, Finset.mem_Ico] at hp ⊢
+      obtain ⟨⟨⟨hA', hB'⟩, hpp⟩, hlog⟩ := hp
+      have hp0 : p ≠ 0 := by
+        have := hpp.one_lt
+        omega
+      refine ⟨⟨?_, ?_⟩, hpp⟩
+      · rw [← hlog]
+        exact Nat.pow_log_le_self 2 hp0
+      · rw [← hlog]
+        exact Nat.lt_pow_succ_log_self (by norm_num) p
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun j _ _ => div_nonneg (Real.log_natCast_nonneg j)
+        (Nat.cast_nonneg _))) ?_
+    exact sum_log_div_dyadic_block_le i
+  refine le_trans (Finset.sum_le_sum hfib) ?_
+  rw [Finset.sum_const, nsmul_eq_mul]
+  exact le_of_eq (mul_comm _ _)
+
 end MoltResearch
