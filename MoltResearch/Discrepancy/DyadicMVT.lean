@@ -1924,6 +1924,175 @@ theorem intervalIntegral_norm_sq_gaussian_diag_le (S : Finset ℕ) (a : ℕ → 
           exact Finset.sum_congr rfl fun n _ => by ring
         rw [hfac, ← mul_assoc]
 
+open Real in
+/-- **Gaussian decay from an integer gap, on the left** (Track R,
+M0-x): the mirror of `gaussian_decay_of_gap` for `n < m`.  Here the
+estimate is *unconditional* — no dyadic hypothesis `m ≤ 2n` is needed,
+because `log(m/n) ≥ 1 − n/m = (m − n)/m` already beats the required
+`(m − n)/(2m)` outright, whereas on the right `log(n/m) ≥ (n − m)/n`
+only gives `(n − m)/(2m)` after using `n ≤ 2m`.  The factor `4m²` is
+kept (rather than the sharper `m²` the left side would allow) so that
+the shell calibration of `shell_exponent_le` transfers verbatim. -/
+theorem gaussian_decay_of_gap_left (T : ℝ) (m n : ℕ) (hn : 1 ≤ n)
+    (hnm : n < m) (d : ℝ) (hd0 : 0 ≤ d) (hd : d ≤ (m:ℝ) - n) :
+    Real.exp (-(π*T^2*(Real.log n - Real.log m)^2))
+      ≤ Real.exp (-(π*T^2*d^2/(4*(m:ℝ)^2))) := by
+  have hn0 : (0:ℝ) < n := by exact_mod_cast hn
+  have hm0 : (0:ℝ) < m := by
+    have : (0:ℕ) < m := by omega
+    exact_mod_cast this
+  -- the log-difference dominates the normalised gap
+  have hlog : ((m:ℝ) - n)/m ≤ Real.log m - Real.log n :=
+    log_sub_log_ge n m hn hnm
+  have hgap : d/(2*(m:ℝ)) ≤ Real.log m - Real.log n := by
+    refine le_trans ?_ hlog
+    rw [div_le_div_iff₀ (by positivity) hm0]
+    nlinarith [hd, hd0, hm0]
+  have hsq : (d/(2*(m:ℝ)))^2 ≤ (Real.log m - Real.log n)^2 :=
+    pow_le_pow_left₀ (by positivity) hgap 2
+  refine Real.exp_le_exp.mpr ?_
+  have hflip : (Real.log n - Real.log m)^2 = (Real.log m - Real.log n)^2 := by
+    ring
+  rw [hflip]
+  have hd2 : d^2/(4*(m:ℝ)^2) = (d/(2*(m:ℝ)))^2 := by
+    field_simp
+    ring
+  have hpi : (0:ℝ) ≤ π*T^2 := by positivity
+  have hkey : π*T^2*d^2/(4*(m:ℝ)^2)
+      ≤ π*T^2*(Real.log m - Real.log n)^2 := by
+    calc π*T^2*d^2/(4*(m:ℝ)^2) = (π*T^2)*(d^2/(4*(m:ℝ)^2)) := by ring
+      _ = (π*T^2)*((d/(2*(m:ℝ)))^2) := by rw [hd2]
+      _ ≤ (π*T^2)*((Real.log m - Real.log n)^2) :=
+          mul_le_mul_of_nonneg_left hsq hpi
+      _ = π*T^2*(Real.log m - Real.log n)^2 := by ring
+  linarith
+
+open Finset Real in
+/-- **The single-shell bound, on the left** (Track R, M0-x): on a shell
+`(u, v]` lying entirely below `m`, the Gaussian-weighted prime log-mass
+is at most the shell's decay factor times its Brun–Titchmarsh count.
+The mirror of `shell_gaussian_count_le`, and strictly cheaper: the
+uniform gap is `m − v` (attained at the shell's *right* endpoint, the
+one nearest `m`), and no `v ≤ 2m` hypothesis is required because
+`gaussian_decay_of_gap_left` needs none. -/
+theorem shell_gaussian_count_le_left (T : ℝ) (m u v : ℕ) (hvm : v < m)
+    (huv : u < v) (hK : 2 ≤ v - u) :
+    ∑ p ∈ (Finset.Ioc u v).filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ Real.exp (-(π*T^2*((m:ℝ) - (v:ℝ))^2/(4*(m:ℝ)^2)))
+        * (256*((v:ℝ)-(u:ℝ))*Real.log ((u:ℝ) + ((v:ℝ)-(u:ℝ)) + 2)
+            /Real.log ((v:ℝ)-(u:ℝ))) := by
+  classical
+  have hvmR : (v:ℝ) < (m:ℝ) := by exact_mod_cast hvm
+  -- the shell's decay factor dominates every term
+  have hdecay : ∀ p ∈ (Finset.Ioc u v).filter Nat.Prime,
+      Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+        ≤ Real.exp (-(π*T^2*((m:ℝ) - (v:ℝ))^2/(4*(m:ℝ)^2)))
+            * Real.log p := by
+    intro p hp
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hp
+    have hp1 : 1 ≤ p := hp.2.one_lt.le
+    have hpm : p < m := lt_of_le_of_lt hp.1.2 hvm
+    have hpR : (p:ℝ) ≤ (v:ℝ) := by exact_mod_cast hp.1.2
+    have hdle : ((m:ℝ) - (v:ℝ)) ≤ (m:ℝ) - p := by linarith
+    have hd0 : (0:ℝ) ≤ (m:ℝ) - (v:ℝ) := by linarith
+    have hg := gaussian_decay_of_gap_left T m p hp1 hpm
+      ((m:ℝ) - (v:ℝ)) hd0 hdle
+    have hlogp : (0:ℝ) ≤ Real.log p := by
+      refine Real.log_nonneg ?_
+      exact_mod_cast hp1
+    calc Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+        ≤ Real.log p
+            * Real.exp (-(π*T^2*((m:ℝ) - (v:ℝ))^2/(4*(m:ℝ)^2))) :=
+          mul_le_mul_of_nonneg_left hg hlogp
+      _ = Real.exp (-(π*T^2*((m:ℝ) - (v:ℝ))^2/(4*(m:ℝ)^2)))
+            * Real.log p := by ring
+  refine le_trans (Finset.sum_le_sum hdecay) ?_
+  rw [← Finset.mul_sum]
+  refine mul_le_mul_of_nonneg_left ?_ (Real.exp_pos _).le
+  -- the sieve count on the shell
+  have hvu : v = u + (v - u) := by omega
+  have hcount := sum_log_primes_Ioc_le u (v - u) hK
+  have hcast : ((v - u : ℕ) : ℝ) = (v:ℝ) - (u:ℝ) := by
+    have : u ≤ v := huv.le
+    push_cast [Nat.cast_sub this]
+    ring
+  rw [← hvu] at hcount
+  rw [hcast] at hcount
+  exact hcount
+
+/-- **The shell split, downward** (Track R, M0-y): a sum over
+`(c J, c 0]` breaks into the shells `(c (j+1), c j]` for an *antitone*
+cut sequence.  The mirror of `sum_Ioc_shell_split`: on the left of the
+Gaussian's centre the shells march away from `m` as `j` grows, so the
+cut points decrease and the shell nearest `m` is `j = 0` — exactly as
+on the right, which is what lets the two sides share
+`sum_shell_series_le` and hence the same constant. -/
+theorem sum_Ioc_shell_split_down {M : Type*} [AddCommMonoid M] (f : ℕ → M)
+    (c : ℕ → ℕ) (hanti : Antitone c) :
+    ∀ J : ℕ, ∑ n ∈ Finset.Ioc (c J) (c 0), f n
+      = ∑ j ∈ Finset.range J,
+          ∑ n ∈ Finset.Ioc (c (j+1)) (c j), f n := by
+  intro J
+  induction J with
+  | zero => simp
+  | succ J ih =>
+    rw [Finset.sum_range_succ, ← ih]
+    have h1 : c (J+1) ≤ c J := hanti (by omega)
+    have h2 : c J ≤ c 0 := hanti (by omega)
+    rw [← Finset.sum_Ioc_consecutive f h1 h2]
+    exact add_comm _ _
+
+open Finset Real in
+/-- **The shell sum, on the left** (Track R, M0-y): summing the
+single-shell bound over a nested family of shells lying below `m`.  The
+mirror of `shell_sum_le`, stated for an abstract antitone cut sequence
+`c` so that the dyadic instance `c j = m − 1 − (2^j − 1)h` is a
+substitution at the call site.  Shell `j` sits at distance `m − c j`
+from the centre, which is what its decay factor is measured against. -/
+theorem shell_sum_le_left (T : ℝ) (m J : ℕ) (c : ℕ → ℕ) (hanti : Antitone c)
+    (hc0 : c 0 < m) (hw : ∀ j < J, 2 ≤ c j - c (j+1))
+    (L : ℝ)
+    (hLbound : ∀ j < J,
+      Real.log (((c (j+1) : ℕ):ℝ) + ((c j - c (j+1) : ℕ):ℝ) + 2)
+          / Real.log ((c j - c (j+1) : ℕ):ℝ) ≤ L) :
+    ∑ p ∈ (Finset.Ioc (c J) (c 0)).filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ ∑ j ∈ Finset.range J,
+          Real.exp (-(π*T^2*((m:ℝ) - ((c j : ℕ):ℝ))^2/(4*(m:ℝ)^2)))
+            * (256*((c j - c (j+1) : ℕ):ℝ)*L) := by
+  classical
+  have hsplit := sum_Ioc_shell_split_down
+    (fun p => if p.Prime then
+      Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2)) else 0)
+    c hanti J
+  rw [Finset.sum_filter, hsplit]
+  refine Finset.sum_le_sum fun j hj => ?_
+  rw [Finset.mem_range] at hj
+  rw [← Finset.sum_filter]
+  have hwj : 2 ≤ c j - c (j+1) := hw j hj
+  have huv : c (j+1) < c j := by omega
+  have hvm : c j < m := lt_of_le_of_lt (hanti (Nat.zero_le j)) hc0
+  have hbound := shell_gaussian_count_le_left T m (c (j+1)) (c j) hvm huv hwj
+  refine le_trans hbound ?_
+  have hwidth : ((c j : ℕ):ℝ) - ((c (j+1) : ℕ):ℝ)
+      = ((c j - c (j+1) : ℕ):ℝ) := by
+    have hle : c (j+1) ≤ c j := huv.le
+    push_cast [Nat.cast_sub hle]
+    ring
+  rw [hwidth]
+  refine mul_le_mul_of_nonneg_left ?_ (Real.exp_pos _).le
+  have hpos : (0:ℝ) ≤ 256*((c j - c (j+1) : ℕ):ℝ) := by positivity
+  calc 256*((c j - c (j+1) : ℕ):ℝ)
+        * Real.log (((c (j+1) : ℕ):ℝ) + ((c j - c (j+1) : ℕ):ℝ) + 2)
+        / Real.log ((c j - c (j+1) : ℕ):ℝ)
+      = 256*((c j - c (j+1) : ℕ):ℝ)
+        * (Real.log (((c (j+1) : ℕ):ℝ) + ((c j - c (j+1) : ℕ):ℝ) + 2)
+            / Real.log ((c j - c (j+1) : ℕ):ℝ)) := by ring
+    _ ≤ 256*((c j - c (j+1) : ℕ):ℝ) * L :=
+        mul_le_mul_of_nonneg_left (hLbound j hj) hpos
+    _ = 256*((c j - c (j+1) : ℕ):ℝ)*L := by ring
+
 end ExpSums
 
 end MoltResearch
