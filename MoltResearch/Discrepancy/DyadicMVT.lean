@@ -1463,6 +1463,57 @@ theorem shell_gaussian_count_le (T : ℝ) (m u v : ℕ) (hm : 1 ≤ m)
   rw [hcast] at hcount
   exact hcount
 
+open Real in
+/-- **The shell exponent meets the series** (Track R, M0-p): at the
+dyadic scale `h ≥ 2m/T`, the shell-`j` decay of `gaussian_decay_of_gap`
+is at least the `e^{−(π/4)4^j}` demanded by `sum_shell_series_le`.  The
+two halves of the shell estimate are calibrated by this one inequality:
+`(2^j − 1)² ≥ 4^{j−1}` for `j ≥ 1`, and the scale condition supplies the
+remaining factor `4`. -/
+theorem shell_exponent_le (T m h : ℝ) (hm : 0 < m) (hh : 0 ≤ h)
+    (hhT : 2*m ≤ h*T) {j : ℕ} (hj : 1 ≤ j) :
+    Real.exp (-(π*T^2*((2^j - 1)*h)^2/(4*m^2)))
+      ≤ Real.exp (-(π/4 * 4^j)) := by
+  have hm2 : (0:ℝ) < m^2 := by positivity
+  have hT0 : (0:ℝ) < T := by
+    by_contra hT
+    push_neg at hT
+    nlinarith [mul_nonpos_of_nonneg_of_nonpos hh hT]
+  -- `2^j − 1 ≥ 2^{j−1}` for `j ≥ 1`
+  have hhalf : (2:ℝ)^(j-1) ≤ (2:ℝ)^j - 1 := by
+    obtain ⟨i, rfl⟩ : ∃ i, j = i + 1 := ⟨j - 1, by omega⟩
+    simp only [Nat.add_sub_cancel]
+    have h1 : (1:ℝ) ≤ (2:ℝ)^i := one_le_pow₀ (by norm_num)
+    calc (2:ℝ)^i = 2*(2:ℝ)^i - (2:ℝ)^i := by ring
+      _ ≤ 2*(2:ℝ)^i - 1 := by linarith
+      _ = (2:ℝ)^(i+1) - 1 := by rw [pow_succ]; ring
+  have hpow0 : (0:ℝ) ≤ (2:ℝ)^(j-1) := by positivity
+  -- so `(2^j − 1)² ≥ 4^{j−1}`, and the scale condition gives the factor 4
+  have h4sq : ((2:ℝ)^(j-1))^2 = (4:ℝ)^(j-1) := by
+    rw [← pow_mul, mul_comm, pow_mul]
+    norm_num
+  have hsq : (4:ℝ)^(j-1) ≤ ((2:ℝ)^j - 1)^2 := by
+    rw [← h4sq]
+    exact pow_le_pow_left₀ hpow0 hhalf 2
+  have h4j : (4:ℝ)^j = 4 * (4:ℝ)^(j-1) := by
+    obtain ⟨i, rfl⟩ : ∃ i, j = i + 1 := ⟨j - 1, by omega⟩
+    simp only [Nat.add_sub_cancel]
+    rw [pow_succ]
+    ring
+  refine Real.exp_le_exp.mpr ?_
+  have hstep : (4:ℝ)^j * m^2 ≤ T^2*((2^j-1)*h)^2 := by
+    have hscale : 4*m^2 ≤ (h*T)^2 := by nlinarith [hhT, hm]
+    calc (4:ℝ)^j * m^2 = 4*(4:ℝ)^(j-1) * m^2 := by rw [h4j]
+      _ ≤ 4*((2:ℝ)^j-1)^2 * m^2 := by nlinarith [hsq, hm2]
+      _ = ((2:ℝ)^j-1)^2 * (4*m^2) := by ring
+      _ ≤ ((2:ℝ)^j-1)^2 * (h*T)^2 :=
+          mul_le_mul_of_nonneg_left hscale (by positivity)
+      _ = T^2*((2^j-1)*h)^2 := by ring
+  have hkey : π/4 * 4^j ≤ π*T^2*((2^j - 1)*h)^2/(4*m^2) := by
+    rw [le_div_iff₀ (by positivity : (0:ℝ) < 4*m^2)]
+    nlinarith [hstep, Real.pi_pos]
+  linarith
+
 end ExpSums
 
 end MoltResearch
