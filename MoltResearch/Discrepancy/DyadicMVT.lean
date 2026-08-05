@@ -1574,6 +1574,31 @@ theorem shell_sum_le (T : ℝ) (m J : ℕ) (a w : ℕ → ℕ) (hm : 1 ≤ m)
         mul_le_mul_of_nonneg_left (hLbound j hj) hpos
     _ = 256*((w j : ℕ):ℝ)*L := by ring
 
+/-- **The dyadic cut points** (Track R, M0-s): `a j = (2^j − 1)h` with
+widths `w j = 2^j h` satisfies the structural hypotheses of
+`shell_sum_le` — it starts at `0`, is monotone, and each shell width is
+the successive difference.  The `−1` is what makes `a 0 = 0`; the
+shells are then `(m + (2^j−1)h, m + (2^{j+1}−1)h]`, of width `2^j h`
+and at distance `(2^j−1)h` from the centre, which is exactly the
+calibration `shell_exponent_le` expects. -/
+theorem dyadic_cut_zero (h : ℕ) : (2^0 - 1)*h = 0 := by
+  simp
+
+theorem dyadic_cut_monotone (h : ℕ) :
+    Monotone (fun j : ℕ => (2^j - 1)*h) := by
+  intro i j hij
+  have h2 : (2:ℕ)^i ≤ 2^j := Nat.pow_le_pow_right (by norm_num) hij
+  have h1 : (1:ℕ) ≤ 2^i := Nat.one_le_two_pow
+  exact Nat.mul_le_mul_right h (by omega)
+
+theorem dyadic_cut_succ (h j : ℕ) :
+    (2^(j+1) - 1)*h = (2^j - 1)*h + 2^j*h := by
+  have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
+  have h2 : (2:ℕ)^(j+1) = 2*2^j := by rw [pow_succ]; ring
+  rw [h2, ← Nat.add_mul]
+  congr 1
+  omega
+
 end ExpSums
 
 end MoltResearch
