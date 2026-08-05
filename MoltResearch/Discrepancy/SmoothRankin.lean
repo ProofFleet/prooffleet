@@ -1145,4 +1145,221 @@ theorem sum_mul_log_eq (f : ℕ → ℝ) (x : ℕ) :
   rw [Finset.mul_sum]
   exact Finset.sum_congr rfl fun m _ => by ring
 
+open Finset in
+/-- **The log-over-square sum is bounded** (Track R, N3a):
+`∑_{2≤n≤N} log n / n² ≤ 4`, uniformly in `N`.
+
+This is what makes the prime-power error in §3 genuinely `O(x)` rather
+than `O(x log x)`.  Bounding `Λ(d) ≤ log x` and counting proper prime
+powers loses a logarithm and is fatal — the main term is itself
+`O(x log x)`.  The convergent sum is needed, and it is available over
+*all* integers, so no prime counting is required at all.
+
+The proof telescopes: `log n ≤ 2(√n − 1)` from `log t ≤ t − 1` at
+`t = √n`, and then `1/(n√n) ≤ 2(1/√(n−1) − 1/√n)` — which reduces,
+after clearing denominators with `√n − √(n−1) = 1/(√n + √(n−1))`, to
+`a² + ab ≤ 2b²` with `a² = b² − 1`. -/
+theorem sum_log_div_sq_le (N : ℕ) (hN : 1 ≤ N) :
+    ∑ n ∈ Finset.Icc 2 N, Real.log (n:ℝ) / (n:ℝ)^2
+      ≤ 4 - 4/Real.sqrt (N:ℝ) := by
+  induction N, hN using Nat.le_induction with
+  | base => norm_num
+  | succ N hN ih =>
+    have hN0 : (0:ℝ) < (N:ℝ) := by exact_mod_cast hN
+    have hN1 : (1:ℝ) ≤ (N:ℝ) := by exact_mod_cast hN
+    set a : ℝ := Real.sqrt (N:ℝ) with ha_def
+    set b : ℝ := Real.sqrt ((N:ℝ)+1) with hb_def
+    have ha0 : (0:ℝ) < a := Real.sqrt_pos.mpr hN0
+    have hb0 : (0:ℝ) < b := Real.sqrt_pos.mpr (by linarith)
+    have hasq : a^2 = (N:ℝ) := Real.sq_sqrt hN0.le
+    have hbsq : b^2 = (N:ℝ)+1 := Real.sq_sqrt (by linarith)
+    have hab : a ≤ b := by nlinarith [hasq, hbsq, ha0, hb0]
+    -- `log(N+1) ≤ 2b − 2`
+    have hlogb : Real.log b ≤ b - 1 := Real.log_le_sub_one_of_pos hb0
+    have hlogsplit : Real.log b = Real.log ((N:ℝ)+1) / 2 := by
+      rw [hb_def]
+      exact Real.log_sqrt (by linarith)
+    have hlog : Real.log ((N:ℝ)+1) ≤ 2*b - 2 := by linarith
+    -- the telescoping step
+    have hkey : a^2 + a*b ≤ 2*b^2 := by nlinarith [hasq, hbsq, hab, ha0, hb0]
+    have hprod : (b - a)*(a + b) = 1 := by nlinarith [hasq, hbsq]
+    have hnum : Real.log ((N:ℝ)+1) / ((N:ℝ)+1)^2 ≤ 2/b^3 := by
+      have hb4 : ((N:ℝ)+1)^2 = b^3*b := by
+        have hbb : b^3*b = (b^2)^2 := by ring
+        rw [hbb, hbsq]
+      rw [hb4, div_le_div_iff₀ (by positivity) (by positivity)]
+      nlinarith [hlog, hb0, pow_pos hb0 3]
+    have hrhs : 2/b^3 ≤ 4/a - 4/b := by
+      have heq : 4/a - 4/b = 4*(b-a)/(a*b) := by field_simp
+      rw [heq, div_le_div_iff₀ (by positivity) (by positivity)]
+      have hab0 : (0:ℝ) < a + b := by linarith
+      have h4 : (2*(a*b))*(a+b) ≤ (4*(b-a)*b^3)*(a+b) := by
+        have hre : (4*(b-a)*b^3)*(a+b) = 4*b^3*((b-a)*(a+b)) := by ring
+        rw [hre, hprod]
+        nlinarith [mul_le_mul_of_nonneg_left hkey
+          (show (0:ℝ) ≤ 2*b by positivity)]
+      exact le_of_mul_le_mul_right h4 hab0
+    have hstep : Real.log ((N:ℝ)+1) / ((N:ℝ)+1)^2 ≤ 4/a - 4/b := by
+      linarith [hnum, hrhs]
+    rw [Finset.sum_Icc_succ_top (by omega : 2 ≤ N + 1)]
+    have hcast2 : (((N+1 : ℕ)):ℝ) = (N:ℝ) + 1 := by push_cast; ring
+    rw [hcast2]
+    linarith [ih, hstep]
+
+open ArithmeticFunction Finset in
+/-- **The proper prime-power mass is bounded** (Track R, N3b):
+`∑_{d ≤ x, d a proper prime power} Λ(d)/d ≤ 8`, uniformly in `x`.
+
+This is what makes the first error term of §3 `O(x)` rather than
+`O(x log x)` — and the latter would be fatal, since the main term is
+itself of size `x log x`.
+
+It cannot be obtained termwise from `sum_log_div_sq_le`: the summand is
+`log p/p^k`, not `log d/d²`, and `d ↦ p` is far from injective.  The sum
+must be regrouped over pairs `(p, k)` — the map `(p,k) ↦ p^k` *is*
+injective on primes with `k ≥ 2`, by unique factorisation — after which
+the geometric tail `∑_{k≥2} p^{−k} ≤ 2p^{−2}` reduces everything to
+`∑_p log p/p²`, dominated by the integer sum. -/
+theorem sum_vonMangoldt_div_properPrimePow_le (x : ℕ) :
+    ∑ d ∈ (Finset.Icc 1 x).filter (fun d => IsPrimePow d ∧ ¬ d.Prime),
+        vonMangoldt d / (d:ℝ) ≤ 8 := by
+  classical
+  rcases Nat.eq_zero_or_pos x with rfl | hx
+  · simp
+  set K : ℕ := Nat.log 2 x + 1 with hK_def
+  set Y : ℕ := Nat.sqrt x + 1 with hY_def
+  set D : Finset (ℕ × ℕ) := Y.primesBelow ×ˢ Finset.Icc 2 K with hD_def
+  set S := (Finset.Icc 1 x).filter (fun d => IsPrimePow d ∧ ¬ d.Prime)
+    with hS_def
+  have hnn : ∀ d : ℕ, (0:ℝ) ≤ vonMangoldt d / (d:ℝ) :=
+    fun d => div_nonneg vonMangoldt_nonneg (Nat.cast_nonneg _)
+  -- every proper prime power is `p^k` with `p ≤ √x` and `2 ≤ k ≤ log₂x + 1`
+  have hcover : S ⊆ Finset.image (fun pk : ℕ × ℕ => pk.1 ^ pk.2) D := by
+    intro n hn
+    rw [hS_def, Finset.mem_filter, Finset.mem_Icc] at hn
+    obtain ⟨⟨hn1, hnx⟩, hpp, hnp⟩ := hn
+    obtain ⟨p, k, hp, hk, hpk⟩ := (isPrimePow_nat_iff n).mp hpp
+    have hk2 : 2 ≤ k := by
+      rcases Nat.lt_or_ge k 2 with hk1 | hk2
+      · interval_cases k
+        exact absurd (by rw [← hpk, pow_one]; exact hp) hnp
+      · exact hk2
+    have hpsqrt : p ≤ Nat.sqrt x := by
+      refine Nat.le_sqrt.mpr ?_
+      calc p*p = p^2 := by ring
+        _ ≤ p^k := Nat.pow_le_pow_right hp.one_lt.le hk2
+        _ = n := hpk
+        _ ≤ x := hnx
+    have hkK : k ≤ K := by
+      have h2k : 2^k ≤ x := by
+        calc 2^k ≤ p^k := Nat.pow_le_pow_left hp.two_le k
+          _ = n := hpk
+          _ ≤ x := hnx
+      have hle : k ≤ Nat.log 2 x :=
+        (Nat.le_log_iff_pow_le (by norm_num) (by omega : x ≠ 0)).mpr h2k
+      omega
+    rw [Finset.mem_image]
+    refine ⟨(p, k), ?_, hpk⟩
+    rw [hD_def, Finset.mem_product, Nat.mem_primesBelow, Finset.mem_Icc]
+    exact ⟨⟨by omega, hp⟩, hk2, hkK⟩
+  -- the parametrisation is injective, by unique factorisation
+  have hinj : Set.InjOn (fun pk : ℕ × ℕ => pk.1 ^ pk.2) ↑D := by
+    rintro ⟨p, k⟩ hu ⟨q, j⟩ hv heq
+    simp only [hD_def, Finset.coe_product, Set.mem_prod, Finset.mem_coe,
+      Nat.mem_primesBelow, Finset.mem_Icc] at hu hv
+    obtain ⟨⟨_, hp⟩, hk2, _⟩ := hu
+    obtain ⟨⟨_, hq⟩, hj2, _⟩ := hv
+    simp only at heq
+    have hpq : p = q := by
+      have hdvd : p ∣ q ^ j := by
+        rw [← heq]
+        exact dvd_pow_self p (by omega)
+      exact (Nat.prime_dvd_prime_iff_eq hp hq).mp (hp.dvd_of_dvd_pow hdvd)
+    subst hpq
+    have hkj : k = j := Nat.pow_right_injective hp.two_le heq
+    simp [hkj]
+  -- pass to the pair sum
+  have hstep : ∑ d ∈ S, vonMangoldt d / (d:ℝ)
+      ≤ ∑ pk ∈ D, vonMangoldt (pk.1 ^ pk.2) / ((pk.1 ^ pk.2 : ℕ):ℝ) := by
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hcover
+      (fun i _ _ => hnn i)) ?_
+    exact le_of_eq (Finset.sum_image hinj)
+  refine le_trans hstep ?_
+  rw [hD_def, Finset.sum_product]
+  -- each prime contributes at most `2·log p/p²`
+  have hrow : ∀ p ∈ Y.primesBelow,
+      ∑ k ∈ Finset.Icc 2 K, vonMangoldt (p ^ k) / ((p ^ k : ℕ):ℝ)
+        ≤ 2 * (Real.log (p:ℝ) / (p:ℝ)^2) := by
+    intro p hp
+    rw [Nat.mem_primesBelow] at hp
+    have hp2 : (2:ℝ) ≤ (p:ℝ) := by exact_mod_cast hp.2.two_le
+    have hp0 : (0:ℝ) < (p:ℝ) := by linarith
+    have hr0 : (0:ℝ) ≤ 1/(p:ℝ) := by positivity
+    have hr1 : 1/(p:ℝ) ≤ 1/2 := by
+      rw [div_le_div_iff₀ hp0 (by norm_num)]
+      linarith
+    have hterm : ∀ k ∈ Finset.Icc 2 K,
+        vonMangoldt (p ^ k) / ((p ^ k : ℕ):ℝ)
+          = Real.log (p:ℝ) * ((1/(p:ℝ))^2 * (1/(p:ℝ))^(k-2)) := by
+      intro k hk
+      rw [Finset.mem_Icc] at hk
+      rw [vonMangoldt_apply_pow (by omega : k ≠ 0),
+        vonMangoldt_apply_prime hp.2]
+      have hcast : ((p ^ k : ℕ):ℝ) = (p:ℝ)^k := by push_cast; ring
+      rw [hcast, ← pow_add]
+      have hk2 : 2 + (k - 2) = k := by omega
+      rw [hk2, div_pow, one_pow]
+      field_simp
+    rw [Finset.sum_congr rfl hterm, ← Finset.mul_sum, ← Finset.mul_sum]
+    -- the geometric tail
+    have hgeom : ∑ k ∈ Finset.Icc 2 K, (1/(p:ℝ))^(k-2) ≤ 2 := by
+      have hinj2 : Set.InjOn (fun k => k - 2) ↑(Finset.Icc 2 K) := by
+        intro a ha b hb h
+        simp only [Finset.coe_Icc, Set.mem_Icc] at ha hb
+        simp only at h
+        omega
+      have himg : (Finset.Icc 2 K).image (fun k => k - 2)
+          ⊆ Finset.range (K+1) := by
+        intro j hj
+        rw [Finset.mem_image] at hj
+        obtain ⟨k, hk, rfl⟩ := hj
+        rw [Finset.mem_Icc] at hk
+        exact Finset.mem_range.mpr (by omega)
+      calc ∑ k ∈ Finset.Icc 2 K, (1/(p:ℝ))^(k-2)
+          = ∑ j ∈ (Finset.Icc 2 K).image (fun k => k - 2), (1/(p:ℝ))^j :=
+            (Finset.sum_image hinj2).symm
+        _ ≤ ∑ j ∈ Finset.range (K+1), (1/(p:ℝ))^j :=
+            Finset.sum_le_sum_of_subset_of_nonneg himg
+              (fun i _ _ => by positivity)
+        _ ≤ 2 := by
+            have hg := geom_sum_mul (1/(p:ℝ)) (K+1)
+            have hpow : (0:ℝ) ≤ (1/(p:ℝ))^(K+1) := by positivity
+            have hS0 : (0:ℝ) ≤ ∑ j ∈ Finset.range (K+1), (1/(p:ℝ))^j :=
+              Finset.sum_nonneg fun i _ => pow_nonneg hr0 i
+            nlinarith [hg, hpow, hr1, hS0]
+    have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_nonneg (by linarith)
+    have hsq0 : (0:ℝ) ≤ (1/(p:ℝ))^2 := by positivity
+    calc Real.log (p:ℝ) * ((1/(p:ℝ))^2
+            * ∑ k ∈ Finset.Icc 2 K, (1/(p:ℝ))^(k-2))
+        ≤ Real.log (p:ℝ) * ((1/(p:ℝ))^2 * 2) := by
+          refine mul_le_mul_of_nonneg_left ?_ hlog0
+          exact mul_le_mul_of_nonneg_left hgeom hsq0
+      _ = 2 * (Real.log (p:ℝ) / (p:ℝ)^2) := by
+          field_simp
+  refine le_trans (Finset.sum_le_sum hrow) ?_
+  -- and the prime sum is dominated by the integer sum
+  rw [← Finset.mul_sum]
+  have hsub : Y.primesBelow ⊆ Finset.Icc 2 Y := by
+    intro p hp
+    rw [Nat.mem_primesBelow] at hp
+    rw [Finset.mem_Icc]
+    exact ⟨hp.2.two_le, by omega⟩
+  have h1 : ∑ p ∈ Y.primesBelow, Real.log (p:ℝ)/(p:ℝ)^2
+      ≤ ∑ n ∈ Finset.Icc 2 Y, Real.log (n:ℝ)/(n:ℝ)^2 :=
+    Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => div_nonneg (Real.log_natCast_nonneg i) (by positivity))
+  have h2 := sum_log_div_sq_le Y (by omega)
+  have h3 : (0:ℝ) ≤ 4/Real.sqrt (Y:ℝ) := by positivity
+  linarith
+
 end MoltResearch
