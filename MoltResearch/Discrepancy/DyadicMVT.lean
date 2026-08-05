@@ -1387,6 +1387,28 @@ theorem sum_shell_series_le (J : ℕ) :
   have h2 : ∑ j ∈ Finset.range J, (1/2:ℝ)^j ≤ 2 := sum_geometric_two_le J
   linarith
 
+/-- **The shell split** (Track R, M0-n): a sum over `(m, m + a J]`
+breaks into the shells `(m + a j, m + a (j+1)]`.  This is the skeleton
+of the dyadic decomposition in GHS Lemma 2.6, where `a j = 2^j·⌈m/T⌉`:
+the Gaussian decay is estimated once per shell (`gaussian_decay_of_gap`)
+and the count once per shell (`sum_log_primes_Ioc_le`), then the shells
+are summed by `sum_shell_series_le`. -/
+theorem sum_Ioc_shell_split {M : Type*} [AddCommMonoid M] (f : ℕ → M)
+    (m : ℕ) (a : ℕ → ℕ) (ha0 : a 0 = 0) (hmono : Monotone a) :
+    ∀ J : ℕ, ∑ n ∈ Finset.Ioc m (m + a J), f n
+      = ∑ j ∈ Finset.range J,
+          ∑ n ∈ Finset.Ioc (m + a j) (m + a (j+1)), f n := by
+  intro J
+  induction J with
+  | zero => simp [ha0]
+  | succ J ih =>
+    rw [Finset.sum_range_succ, ← ih]
+    exact (Finset.sum_Ioc_consecutive f
+      (by omega : m ≤ m + a J)
+      (by
+        have h := hmono (show J ≤ J + 1 by omega)
+        omega : m + a J ≤ m + a (J+1))).symm
+
 end ExpSums
 
 end MoltResearch
