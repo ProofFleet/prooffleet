@@ -802,4 +802,122 @@ theorem sum_vonMangoldt_split (S : Finset ℕ) (g : ℕ → ℝ) :
   · -- the rest is the proper prime powers
     rw [Finset.filter_filter]
 
+open ArithmeticFunction Finset Real in
+/-- **The inner sum of GHS Lemma 2.6** (Track R, M0-hh): over a dyadic
+block, the full `Λ`-weighted Gaussian mass around a centre `m` is
+bounded by the shells, the undecayed diagonal, the Gaussian tail, and a
+prime-power remainder.
+
+The remainder is the price of `Λ` being supported on prime powers
+rather than primes.  It is genuinely lower order — `√(2N)·log₂(2N)·log(2N)`
+against a main term of size `h ≈ 2m/T` — but it cannot be dropped,
+only bounded, since the Brun–Titchmarsh machinery underneath counts
+primes and says nothing about higher powers.  Each such term carries a
+Gaussian factor `≤ 1`, so the crude bound of
+`sum_vonMangoldt_properPrimePow_le` suffices. -/
+theorem vonMangoldt_gaussian_block_le (T : ℝ) (N m h J : ℕ) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc N (2*N)) (hmS : m ∈ S) (hN : 1 ≤ N)
+    (hh : 2 ≤ h) (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T)
+    (hfit : (2^J - 1)*h + 1 ≤ m) (hwfit : ∀ j < J, 2^j*h ≤ 2*m)
+    (hreach : N ≤ 4*((2^J - 1)*h))
+    (L : ℝ) (hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ L)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ) + Real.exp (-(π*T^2/64)) * B
+        + ((Nat.sqrt (2*N) + 1 : ℕ):ℝ) * ((Nat.log 2 (2*N) : ℕ):ℝ)
+            * Real.log ((2*N : ℕ):ℝ) := by
+  classical
+  rw [sum_vonMangoldt_split S
+    (fun n => Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2)))]
+  have hprime := ExpSums.prime_gaussian_block_le T N m h J S hS hmS hN hh
+    hscale hfit hwfit hreach L hL B hB
+  -- the prime-power remainder: every Gaussian factor is at most one
+  have hpp : ∑ n ∈ S.filter (fun n => IsPrimePow n ∧ ¬ n.Prime),
+      vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+      ≤ ((Nat.sqrt (2*N) + 1 : ℕ):ℝ) * ((Nat.log 2 (2*N) : ℕ):ℝ)
+          * Real.log ((2*N : ℕ):ℝ) := by
+    have hstep : ∀ n ∈ S.filter (fun n => IsPrimePow n ∧ ¬ n.Prime),
+        vonMangoldt n
+            * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+          ≤ vonMangoldt n := by
+      intro n _
+      have h1 : Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+          ≤ 1 := by
+        refine Real.exp_le_one_iff.mpr ?_
+        have hnn : (0:ℝ)
+            ≤ π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2 := by positivity
+        linarith
+      calc vonMangoldt n
+            * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+          ≤ vonMangoldt n * 1 :=
+            mul_le_mul_of_nonneg_left h1 vonMangoldt_nonneg
+        _ = vonMangoldt n := mul_one _
+    refine le_trans (Finset.sum_le_sum hstep) ?_
+    have hsub : S.filter (fun n => IsPrimePow n ∧ ¬ n.Prime)
+        ⊆ (Finset.Icc 1 (2*N)).filter (fun n => IsPrimePow n ∧ ¬ n.Prime) := by
+      intro n hn
+      simp only [Finset.mem_filter] at hn ⊢
+      have hmem := hS hn.1
+      rw [Finset.mem_Ioc] at hmem
+      exact ⟨Finset.mem_Icc.mpr ⟨by omega, hmem.2⟩, hn.2⟩
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => vonMangoldt_nonneg)) ?_
+    exact sum_vonMangoldt_properPrimePow_le (2*N) (by omega)
+  linarith
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The sharp mean value theorem, in terms of the inner sum**
+(Track R, M0-ii): the window energy of a `Λ`-weighted Dirichlet
+polynomial is bounded by the diagonal `∑ |a(m)|²Λ(m)`, with constant
+`e^π·T·Q` where `Q` is any uniform bound on the Gaussian inner sum.
+
+This is GHS Lemma 2.6 (equivalently Lemma 1 of the `κ = 1` paper) with
+the arithmetic factored out into `Q`.  The point of the factoring is
+that `Q ≪ m` is what the whole shell-and-tail apparatus establishes,
+and once it is in hand this lemma delivers the theorem: the weight `Λ`
+appears to the *first* power on the right, not the second, because
+`intervalIntegral_norm_sq_gaussian_diag_le` carries it in the kernel
+rather than in the coefficients. -/
+theorem intervalIntegral_vonMangoldt_mvt_le (T : ℝ) (hT : 0 < T)
+    (S : Finset ℕ) (a : ℕ → ℂ) (Q : ℝ)
+    (hQ : ∀ m ∈ S, ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)) ≤ Q) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((vonMangoldt n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T * Q * ∑ m ∈ S, ‖a m‖^2 * vonMangoldt m := by
+  classical
+  have hexpT : (0:ℝ) ≤ Real.exp π * T :=
+    mul_nonneg (Real.exp_pos _).le hT.le
+  -- the weight is non-negative, so the diagonal collapse applies
+  refine le_trans (ExpSums.intervalIntegral_norm_sq_gaussian_diag_le S a
+    (fun n => vonMangoldt n) (fun n => vonMangoldt_nonneg) T hT) ?_
+  -- each inner sum is at most `e^π·T·Q`
+  have hinner : ∀ m ∈ S, ∑ n ∈ S, (vonMangoldt n : ℝ)
+      * (Real.exp π * T
+          * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)))
+      ≤ Real.exp π * T * Q := by
+    intro m hm
+    have heq : ∑ n ∈ S, (vonMangoldt n : ℝ)
+        * (Real.exp π * T
+            * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)))
+        = Real.exp π * T * ∑ n ∈ S, (vonMangoldt n : ℝ)
+            * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)) := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun n _ => by ring
+    rw [heq]
+    exact mul_le_mul_of_nonneg_left (hQ m hm) hexpT
+  have hmid : ∑ m ∈ S, ‖a m‖^2 * (vonMangoldt m : ℝ)
+        * ∑ n ∈ S, (vonMangoldt n : ℝ)
+            * (Real.exp π * T
+                * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)))
+      ≤ ∑ m ∈ S, ‖a m‖^2 * (vonMangoldt m : ℝ) * (Real.exp π * T * Q) := by
+    refine Finset.sum_le_sum fun m hm => ?_
+    exact mul_le_mul_of_nonneg_left (hinner m hm)
+      (mul_nonneg (sq_nonneg _) vonMangoldt_nonneg)
+  refine le_trans hmid ?_
+  rw [← Finset.sum_mul]
+  exact le_of_eq (mul_comm _ _)
+
 end MoltResearch

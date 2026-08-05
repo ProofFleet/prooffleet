@@ -2633,6 +2633,91 @@ theorem tail_gap_of_block (N m A n : ℕ) (hN : 1 ≤ N)
   rw [div_le_div_iff₀ (by norm_num) (by positivity)]
   linarith
 
+open Finset Real in
+/-- **The prime part of the inner sum** (Track R, M0-gg): over a dyadic
+block `(N, 2N]`, the Gaussian-weighted prime log-mass around a centre
+`m` of the block splits into the shells and everything they miss, and
+both are controlled.
+
+This is where the two halves of the construction meet.  The shells
+(`inner_sum_two_sided_le`) give `1024·h·L + log m` — the `log m` being
+the undecayed diagonal.  Everything outside them is at multiplicative
+distance `≥ 1/8` by `tail_gap_of_block`, so `gaussian_tail_sum_le`
+damps it by `e^{−πT²/64}`, which is super-exponentially small in `T`
+and multiplies only the trivial count `∑ log n`. -/
+theorem prime_gaussian_block_le (T : ℝ) (N m h J : ℕ) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc N (2*N)) (hmS : m ∈ S) (hN : 1 ≤ N)
+    (hh : 2 ≤ h) (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T)
+    (hfit : (2^J - 1)*h + 1 ≤ m) (hwfit : ∀ j < J, 2^j*h ≤ 2*m)
+    (hreach : N ≤ 4*((2^J - 1)*h))
+    (L : ℝ) (hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ L)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ p ∈ S.filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ) + Real.exp (-(π*T^2/64)) * B := by
+  classical
+  have hmIoc := hS hmS
+  rw [Finset.mem_Ioc] at hmIoc
+  -- split at the shells' reach
+  rw [← Finset.sum_filter_add_sum_filter_not (S.filter Nat.Prime)
+    (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h) (m + (2^J - 1)*h))]
+  have hnn : ∀ n : ℕ, (0:ℝ)
+      ≤ Real.log (n:ℝ) * Real.exp (-(π*T^2*(Real.log n - Real.log m)^2)) :=
+    fun n => mul_nonneg (Real.log_natCast_nonneg n) (Real.exp_pos _).le
+  -- the covered part: the shells
+  have hcov : ∑ p ∈ (S.filter Nat.Prime).filter
+        (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h) (m + (2^J - 1)*h)),
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ) := by
+    have hsub : (S.filter Nat.Prime).filter
+        (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h) (m + (2^J - 1)*h))
+        ⊆ (Finset.Ioc (m - 1 - (2^J - 1)*h)
+            (m + (2^J - 1)*h)).filter Nat.Prime := by
+      intro p hp
+      simp only [Finset.mem_filter] at hp ⊢
+      exact ⟨hp.2, hp.1.2⟩
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => hnn i)) ?_
+    refine le_trans (inner_sum_two_sided_le T m h J hh hscale hfit hwfit) ?_
+    have hh2 : (2:ℝ) ≤ (h:ℝ) := by exact_mod_cast hh
+    have hh0 : (0:ℝ) ≤ (h:ℝ) := by linarith
+    have hstep : 1024*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ))
+        ≤ 1024*(h:ℝ)*L := by
+      refine mul_le_mul_of_nonneg_left hL ?_
+      positivity
+    linarith
+  -- the uncovered part: the Gaussian tail
+  have htail : ∑ p ∈ (S.filter Nat.Prime).filter
+        (fun n => ¬ (n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))),
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ Real.exp (-(π*T^2/64)) * B := by
+    have hgap : ∀ n ∈ (S.filter Nat.Prime).filter
+        (fun n => ¬ (n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))),
+        (1:ℝ)/8 ≤ |Real.log (n:ℝ) - Real.log (m:ℝ)| := by
+      intro n hn
+      simp only [Finset.mem_filter] at hn
+      have hnIoc := hS hn.1.1
+      rw [Finset.mem_Ioc] at hnIoc
+      exact tail_gap_of_block N m ((2^J - 1)*h) n hN hmIoc.1 hmIoc.2
+        hnIoc.1 hnIoc.2 hreach hn.2
+    have hBsub : ∑ n ∈ (S.filter Nat.Prime).filter
+        (fun n => ¬ (n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))), Real.log (n:ℝ) ≤ B := by
+      refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg ?_
+        (fun i _ _ => Real.log_natCast_nonneg i)) hB
+      intro p hp
+      simp only [Finset.mem_filter] at hp
+      exact hp.1.1
+    have hres := gaussian_tail_sum_le T _ m (1/8) (by norm_num) hgap B hBsub
+    have hexp : Real.exp (-(π*T^2*((1:ℝ)/8)^2))
+        = Real.exp (-(π*T^2/64)) := by
+      congr 1
+      ring
+    rwa [hexp] at hres
+  linarith
+
 end ExpSums
 
 end MoltResearch
