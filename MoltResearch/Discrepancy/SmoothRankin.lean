@@ -1863,4 +1863,135 @@ theorem block_mass_le (x j : ℕ) :
   rw [hlog4]
   linarith
 
+open Finset in
+/-- **The iteration error, fibered** (Track R, N9b):
+
+  `∑_{p ≤ x/2} log p/(p·log(x/p)) ≤ 12·∑_{1 ≤ j ≤ ⌊log₂x⌋} 1/j`.
+
+Fibering over `j = ⌊log₂(x/p)⌋` sends each prime into the dyadic block
+of `block_mass_le`, where the mass is `12·log 2`, while the denominator
+is at least `j·log 2` — so block `j` contributes `12/j` and the total is
+a harmonic sum, i.e. `O(log log x)`.
+
+Restricting to `p ≤ x/2` does double duty: it is what §3 needs
+mathematically, and it forces `x/p ≥ 2`, hence `j ≥ 1`, so the weights
+`1/(j·log 2)` never divide by zero.
+
+The harmonic sum is left symbolic; bounding it by `1 + log⌊log₂x⌋` is a
+separate step. -/
+theorem sum_log_div_mul_log_ratio_le (x : ℕ) :
+    ∑ p ∈ (Finset.Icc 1 (x/2)).filter Nat.Prime,
+        Real.log (p:ℝ) / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+      ≤ 12 * ∑ j ∈ Finset.Icc 1 (Nat.log 2 x), 1/(j:ℝ) := by
+  classical
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  -- every prime in range lands in a block with `1 ≤ j ≤ ⌊log₂x⌋`
+  have hmaps : ∀ p ∈ (Finset.Icc 1 (x/2)).filter Nat.Prime,
+      Nat.log 2 (x/p) ∈ Finset.Icc 1 (Nat.log 2 x) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    obtain ⟨⟨hp1, hpx⟩, hpp⟩ := hp
+    have hp0 : 0 < p := by omega
+    have h2 : 2 ≤ x/p := by
+      rw [Nat.le_div_iff_mul_le hp0]
+      have : p * 2 ≤ x := by
+        have := Nat.le_div_iff_mul_le (k := 2) (by norm_num) |>.mp hpx
+        omega
+      omega
+    rw [Finset.mem_Icc]
+    refine ⟨Nat.log_pos (by norm_num) h2, ?_⟩
+    exact Nat.log_mono_right (Nat.div_le_self x p)
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  have hmid : ∀ j ∈ Finset.Icc 1 (Nat.log 2 x),
+      ∑ p ∈ ((Finset.Icc 1 (x/2)).filter Nat.Prime).filter
+          (fun p => Nat.log 2 (x/p) = j),
+          Real.log (p:ℝ) / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+        ≤ 12 * (1/(j:ℝ)) := by
+    intro j hj
+    rw [Finset.mem_Icc] at hj
+    have hj0 : (0:ℝ) < (j:ℝ) := by exact_mod_cast hj.1
+    have hjlog : (0:ℝ) < (j:ℝ) * Real.log 2 := by positivity
+    have hsub : ((Finset.Icc 1 (x/2)).filter Nat.Prime).filter
+        (fun p => Nat.log 2 (x/p) = j)
+        ⊆ (Finset.Ico (x/2^(j+1) + 1) (x/2^j + 1)).filter Nat.Prime := by
+      intro p hp
+      simp only [Finset.mem_filter, Finset.mem_Icc, Finset.mem_Ico] at hp ⊢
+      obtain ⟨⟨⟨hp1, hpx⟩, hpp⟩, hlogeq⟩ := hp
+      have hp0 : 0 < p := by omega
+      have hlo : 2^j ≤ x/p := by
+        rw [← hlogeq]
+        exact Nat.pow_log_le_self 2 (by
+          intro h
+          rw [h] at hlogeq
+          simp at hlogeq
+          omega)
+      have hhi : x/p < 2^(j+1) := by
+        rw [← hlogeq]
+        exact Nat.lt_pow_succ_log_self (by norm_num) _
+      refine ⟨⟨?_, ?_⟩, hpp⟩
+      · -- `x/2^{j+1} < p`
+        by_contra hcon
+        push_neg at hcon
+        have hple : p ≤ x/2^(j+1) := by omega
+        have hmul := (Nat.le_div_iff_mul_le (k := 2^(j+1)) (by positivity)).mp hple
+        have hcontra : 2^(j+1) ≤ x/p := by
+          rw [Nat.le_div_iff_mul_le hp0, mul_comm]
+          exact hmul
+        omega
+      · -- `p ≤ x/2^j`
+        have hmul2 := (Nat.le_div_iff_mul_le hp0).mp hlo
+        have hle : p ≤ x/2^j := by
+          rw [Nat.le_div_iff_mul_le (by positivity), mul_comm]
+          exact hmul2
+        omega
+    have hterm : ∀ p ∈ ((Finset.Icc 1 (x/2)).filter Nat.Prime).filter
+        (fun p => Nat.log 2 (x/p) = j),
+        Real.log (p:ℝ) / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+          ≤ (Real.log (p:ℝ) / (p:ℝ)) * (1/((j:ℝ) * Real.log 2)) := by
+      intro p hp
+      simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+      obtain ⟨⟨⟨hp1, hpx⟩, hpp⟩, hlogeq⟩ := hp
+      have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+      have hlo : 2^j ≤ x/p := by
+        rw [← hlogeq]
+        refine Nat.pow_log_le_self 2 ?_
+        intro h
+        rw [h] at hlogeq
+        simp at hlogeq
+        omega
+      -- `(x:ℝ)/p ≥ (x/p : ℕ) ≥ 2^j`
+      have hcast : ((x/p : ℕ):ℝ) ≤ (x:ℝ)/(p:ℝ) := Nat.cast_div_le
+      have hpow : ((2:ℝ))^j ≤ ((x/p : ℕ):ℝ) := by exact_mod_cast hlo
+      have hden : (j:ℝ) * Real.log 2 ≤ Real.log ((x:ℝ)/(p:ℝ)) := by
+        have h1 : Real.log (((2:ℝ))^j) ≤ Real.log ((x:ℝ)/(p:ℝ)) :=
+          Real.log_le_log (by positivity) (le_trans hpow hcast)
+        rwa [Real.log_pow] at h1
+      have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+      have hlogpos : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := lt_of_lt_of_le hjlog hden
+      have heq : Real.log (p:ℝ) / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+          = (Real.log (p:ℝ)/(p:ℝ)) * (1/Real.log ((x:ℝ)/(p:ℝ))) := by
+        field_simp
+      rw [heq]
+      refine mul_le_mul_of_nonneg_left ?_ (div_nonneg hlogp hp0.le)
+      rw [div_le_div_iff₀ hlogpos hjlog]
+      linarith [hden]
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [← Finset.sum_mul]
+    have hmass := block_mass_le x j
+    have hblock : ∑ p ∈ ((Finset.Icc 1 (x/2)).filter Nat.Prime).filter
+        (fun p => Nat.log 2 (x/p) = j), Real.log (p:ℝ) / (p:ℝ)
+        ≤ 12 * Real.log 2 := by
+      refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+        (fun i _ _ => div_nonneg (Real.log_natCast_nonneg i)
+          (Nat.cast_nonneg _))) hmass
+    have hinv : (0:ℝ) ≤ 1/((j:ℝ) * Real.log 2) := by positivity
+    calc (∑ p ∈ ((Finset.Icc 1 (x/2)).filter Nat.Prime).filter
+            (fun p => Nat.log 2 (x/p) = j), Real.log (p:ℝ) / (p:ℝ))
+          * (1/((j:ℝ) * Real.log 2))
+        ≤ (12 * Real.log 2) * (1/((j:ℝ) * Real.log 2)) :=
+          mul_le_mul_of_nonneg_right hblock hinv
+      _ = 12 * (1/(j:ℝ)) := by field_simp
+  refine le_trans (Finset.sum_le_sum hmid) ?_
+  rw [Finset.mul_sum]
+
 end MoltResearch
