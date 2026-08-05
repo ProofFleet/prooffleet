@@ -1819,4 +1819,48 @@ theorem sum_log_div_Ico_le_log (A B : ℕ) (hA : 1 ≤ A) (hAB : A ≤ B) :
   rw [hcard, hlog4]
   nlinarith [hupper, hlower, hlog2]
 
+open Finset in
+/-- **A block of the iteration error** (Track R, N9a): the primes with
+`x/p` in a fixed dyadic range carry log-harmonic mass at most
+`12·log 2`, an absolute constant.
+
+The block is `(x/2^{j+1}, x/2^j]`, whose endpoints differ by a factor
+of two — and, pleasingly, natural-number division only helps: since
+`x/2^{j+1} = (x/2^j)/2`, the shifted endpoints satisfy
+`x/2^j + 1 ≤ 2·(x/2^{j+1} + 1)` exactly, so the log difference is at
+most `log 2` with no error term at all.  `sum_log_div_Ico_le_log` then
+gives `4·log 2 + 4·log 4 = 12·log 2`. -/
+theorem block_mass_le (x j : ℕ) :
+    ∑ p ∈ (Finset.Ico (x/2^(j+1) + 1) (x/2^j + 1)).filter Nat.Prime,
+        Real.log (p:ℝ) / (p:ℝ) ≤ 12 * Real.log 2 := by
+  classical
+  have hdiv : x/2^(j+1) = (x/2^j)/2 := by
+    rw [pow_succ, ← Nat.div_div_eq_div_mul]
+  rw [hdiv]
+  generalize hq : x/2^j = q
+  have hAB : q/2 + 1 ≤ q + 1 := by omega
+  have hfac : q + 1 ≤ 2*(q/2 + 1) := by omega
+  refine le_trans (sum_log_div_Ico_le_log (q/2 + 1) (q + 1) (by omega) hAB) ?_
+  -- the endpoints differ by at most a factor of two
+  have hpos : (0:ℝ) < ((q/2 + 1 : ℕ):ℝ) := by
+    have : (0:ℕ) < q/2 + 1 := by omega
+    exact_mod_cast this
+  have hcast : ((q + 1 : ℕ):ℝ) ≤ 2 * ((q/2 + 1 : ℕ):ℝ) := by
+    have h : ((q + 1 : ℕ):ℝ) ≤ ((2*(q/2 + 1) : ℕ):ℝ) := by exact_mod_cast hfac
+    push_cast at h ⊢
+    linarith
+  have hlogdiff : Real.log ((q + 1 : ℕ):ℝ) - Real.log ((q/2 + 1 : ℕ):ℝ)
+      ≤ Real.log 2 := by
+    have h1 : Real.log ((q + 1 : ℕ):ℝ) ≤ Real.log (2 * ((q/2 + 1 : ℕ):ℝ)) :=
+      Real.log_le_log (by positivity) hcast
+    rw [Real.log_mul (by norm_num) (ne_of_gt hpos)] at h1
+    linarith
+  have hlog4 : Real.log 4 = 2 * Real.log 2 := by
+    have h : (4:ℝ) = 2^(2:ℕ) := by norm_num
+    rw [h, Real.log_pow]
+    push_cast
+    ring
+  rw [hlog4]
+  linarith
+
 end MoltResearch
