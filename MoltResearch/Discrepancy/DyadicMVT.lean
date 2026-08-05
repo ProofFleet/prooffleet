@@ -1514,6 +1514,66 @@ theorem shell_exponent_le (T m h : ℝ) (hm : 0 < m) (hh : 0 ≤ h)
     nlinarith [hstep, Real.pi_pos]
   linarith
 
+open Finset Real in
+/-- **The shell sum** (Track R, M0-q): summing the single-shell bound
+over a nested family of shells.  Each shell contributes its decay — set
+by the distance `a j` from the centre — times its Brun–Titchmarsh
+count, with the log-ratio bounded uniformly by `L`.  Stated for
+abstract cut points `a` and widths `w`, so the dyadic instance
+`a j = (2^j − 1)h`, `w j = 2^j h` is a substitution at the call site
+and no power arithmetic enters the proof. -/
+theorem shell_sum_le (T : ℝ) (m J : ℕ) (a w : ℕ → ℕ) (hm : 1 ≤ m)
+    (ha0 : a 0 = 0) (hamono : Monotone a) (hdiff : ∀ j, a (j+1) = a j + w j)
+    (hfit : m + a J ≤ 2*m) (hw : ∀ j < J, 2 ≤ w j)
+    (L : ℝ)
+    (hLbound : ∀ j < J,
+      Real.log (((m + a j : ℕ):ℝ) + ((w j : ℕ):ℝ) + 2)
+          / Real.log ((w j : ℕ):ℝ) ≤ L) :
+    ∑ p ∈ (Finset.Ioc m (m + a J)).filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ ∑ j ∈ Finset.range J,
+          Real.exp (-(π*T^2*((a j : ℕ):ℝ)^2/(4*(m:ℝ)^2)))
+            * (256*((w j : ℕ):ℝ)*L) := by
+  classical
+  have hsplit := sum_Ioc_shell_split
+    (fun p => if p.Prime then
+      Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2)) else 0)
+    m a ha0 hamono J
+  rw [Finset.sum_filter, hsplit]
+  refine Finset.sum_le_sum fun j hj => ?_
+  rw [Finset.mem_range] at hj
+  rw [← Finset.sum_filter]
+  have hmu : m ≤ m + a j := by omega
+  have hvfit : m + a (j+1) ≤ 2*m := by
+    have h1 : a (j+1) ≤ a J := hamono (by omega)
+    omega
+  have hwj : 2 ≤ w j := hw j hj
+  have hd := hdiff j
+  have huv : m + a j < m + a (j+1) := by omega
+  have hKshell : 2 ≤ (m + a (j+1)) - (m + a j) := by omega
+  have hbound := shell_gaussian_count_le T m (m + a j) (m + a (j+1))
+    hm hmu huv hvfit hKshell
+  refine le_trans hbound ?_
+  have hwidth : ((m + a (j+1) : ℕ):ℝ) - ((m + a j : ℕ):ℝ) = ((w j : ℕ):ℝ) := by
+    rw [hd]
+    push_cast
+    ring
+  have hu : ((m + a j : ℕ):ℝ) - (m:ℝ) = ((a j : ℕ):ℝ) := by
+    push_cast
+    ring
+  rw [hwidth, hu]
+  refine mul_le_mul_of_nonneg_left ?_ (Real.exp_pos _).le
+  have hpos : (0:ℝ) ≤ 256*((w j : ℕ):ℝ) := by positivity
+  calc 256*((w j : ℕ):ℝ)
+        * Real.log (((m + a j : ℕ):ℝ) + ((w j : ℕ):ℝ) + 2)
+        / Real.log ((w j : ℕ):ℝ)
+      = 256*((w j : ℕ):ℝ)
+        * (Real.log (((m + a j : ℕ):ℝ) + ((w j : ℕ):ℝ) + 2)
+            / Real.log ((w j : ℕ):ℝ)) := by ring
+    _ ≤ 256*((w j : ℕ):ℝ) * L :=
+        mul_le_mul_of_nonneg_left (hLbound j hj) hpos
+    _ = 256*((w j : ℕ):ℝ)*L := by ring
+
 end ExpSums
 
 end MoltResearch
