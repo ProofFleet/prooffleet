@@ -1409,6 +1409,60 @@ theorem sum_Ioc_shell_split {M : Type*} [AddCommMonoid M] (f : ℕ → M)
         have h := hmono (show J ≤ J + 1 by omega)
         omega : m + a J ≤ m + a (J+1))).symm
 
+open Finset Real in
+/-- **The single-shell bound** (Track R, M0-o): on a shell
+`(u, v] ⊆ (m, 2m]`, the Gaussian-weighted prime log-mass is at most the
+shell's decay factor times its Brun–Titchmarsh count.  This is the atom
+of the dyadic sum in GHS Lemma 2.6: the decay is uniform over the shell
+because the gap `u − m` is a lower bound for every `p` in it, and the
+count is `#{p ∈ (u,v]}·log` from the sieve. -/
+theorem shell_gaussian_count_le (T : ℝ) (m u v : ℕ) (hm : 1 ≤ m)
+    (hmu : m ≤ u) (huv : u < v) (hv : v ≤ 2*m) (hK : 2 ≤ v - u) :
+    ∑ p ∈ (Finset.Ioc u v).filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ Real.exp (-(π*T^2*((u:ℝ) - m)^2/(4*(m:ℝ)^2)))
+        * (256*((v:ℝ)-(u:ℝ))*Real.log ((u:ℝ) + ((v:ℝ)-(u:ℝ)) + 2)
+            /Real.log ((v:ℝ)-(u:ℝ))) := by
+  classical
+  have hm0 : (0:ℝ) < m := by exact_mod_cast hm
+  -- the shell's decay factor dominates every term
+  have hdecay : ∀ p ∈ (Finset.Ioc u v).filter Nat.Prime,
+      Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+        ≤ Real.exp (-(π*T^2*((u:ℝ) - m)^2/(4*(m:ℝ)^2))) * Real.log p := by
+    intro p hp
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hp
+    have hmp : m < p := lt_of_le_of_lt hmu hp.1.1
+    have hp2m : p ≤ 2*m := le_trans hp.1.2 hv
+    have hdle : ((u:ℝ) - m) ≤ (p:ℝ) - m := by
+      have : (u:ℝ) ≤ (p:ℝ) := by exact_mod_cast hp.1.1.le
+      linarith
+    have hd0 : (0:ℝ) ≤ (u:ℝ) - m := by
+      have : (m:ℝ) ≤ (u:ℝ) := by exact_mod_cast hmu
+      linarith
+    have hg := gaussian_decay_of_gap T m p hm hmp hp2m ((u:ℝ) - m) hd0 hdle
+    have hlogp : (0:ℝ) ≤ Real.log p := by
+      refine Real.log_nonneg ?_
+      have : (1:ℕ) ≤ p := hp.2.one_lt.le
+      exact_mod_cast this
+    calc Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+        ≤ Real.log p * Real.exp (-(π*T^2*((u:ℝ) - m)^2/(4*(m:ℝ)^2))) :=
+          mul_le_mul_of_nonneg_left hg hlogp
+      _ = Real.exp (-(π*T^2*((u:ℝ) - m)^2/(4*(m:ℝ)^2))) * Real.log p := by
+          ring
+  refine le_trans (Finset.sum_le_sum hdecay) ?_
+  rw [← Finset.mul_sum]
+  refine mul_le_mul_of_nonneg_left ?_ (Real.exp_pos _).le
+  -- the sieve count on the shell
+  have hvu : v = u + (v - u) := by omega
+  have hcount := sum_log_primes_Ioc_le u (v - u) hK
+  have hcast : ((v - u : ℕ) : ℝ) = (v:ℝ) - (u:ℝ) := by
+    have : u ≤ v := huv.le
+    push_cast [Nat.cast_sub this]
+    ring
+  rw [← hvu] at hcount
+  rw [hcast] at hcount
+  exact hcount
+
 end ExpSums
 
 end MoltResearch
