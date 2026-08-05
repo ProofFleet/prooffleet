@@ -2440,6 +2440,137 @@ theorem gaussian_tail_sum_le (T : ℝ) (S : Finset ℕ) (m : ℕ) (g : ℝ)
   rw [← Finset.mul_sum]
   exact mul_le_mul_of_nonneg_left hB (Real.exp_pos _).le
 
+open Finset Real in
+/-- **The scale is admissible** (Track R, M0-cc): the dyadic scale
+`h = ⌈2m/T⌉` satisfies the calibration `2m ≤ hT` that
+`shell_exponent_le` demands.  This is the whole reason the ceiling is
+taken upward. -/
+theorem ceil_scale_mul_le (T : ℝ) (m : ℕ) (hT : 0 < T) :
+    2*(m:ℝ) ≤ ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) * T := by
+  have hle : 2*(m:ℝ)/T ≤ ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) := Nat.le_ceil _
+  rw [div_le_iff₀ hT] at hle
+  exact hle
+
+open Finset Real in
+/-- **The scale is at least two** (Track R, M0-cc): `⌈2m/T⌉ ≥ 2`, which
+is what the Brun–Titchmarsh count needs (`log h` must be positive).
+Uses only `T ≥ 2` and `T² ≤ m`, which together give `m ≥ 2T > T`. -/
+theorem two_le_ceil_scale (T : ℝ) (m : ℕ) (hT : 2 ≤ T) (hTm : T^2 ≤ (m:ℝ)) :
+    2 ≤ ⌈2*(m:ℝ)/T⌉₊ := by
+  have hT0 : (0:ℝ) < T := by linarith
+  have hm : (2:ℝ) ≤ (m:ℝ) := by nlinarith [hTm, hT]
+  have hlt : (1:ℝ) < 2*(m:ℝ)/T := by
+    rw [lt_div_iff₀ hT0]
+    nlinarith [hTm, hT, hm]
+  have h1 : 1 < ⌈2*(m:ℝ)/T⌉₊ := by
+    rw [Nat.lt_ceil]
+    exact_mod_cast hlt
+  omega
+
+open Finset Real in
+/-- **The log-ratio at the dyadic scale** (Track R, M0-cc): with
+`h = ⌈2m/T⌉` and `T² ≤ m`, the Brun–Titchmarsh ratio
+`log(4m+2)/log h` is bounded by the absolute constant `6`.
+
+The mechanism is that `h` is *polynomially large* in `m`: from
+`h ≥ 2m/T` and `T² ≤ m` we get `h² ≥ 4m²/T² ≥ 4m ≥ m`, so
+`log h ≥ ½·log m` — no square roots needed, just squaring the scale.
+Against `log(4m+2) ≤ 3·log m` this gives `6`.  This is the step that
+turns the inner sum's `h·log(4m+2)/log h` into a clean `O(h)`, and
+hence — after the factor `T` from the Gaussian transform — into the
+`O(m)` that GHS Lemma 2.6 requires. -/
+theorem log_ratio_ceil_scale_le (T : ℝ) (m : ℕ) (hT : 2 ≤ T)
+    (hTm : T^2 ≤ (m:ℝ)) :
+    Real.log (4*(m:ℝ)+2)/Real.log ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) ≤ 6 := by
+  have hT0 : (0:ℝ) < T := by linarith
+  have hm4 : (4:ℝ) ≤ (m:ℝ) := by nlinarith [hTm, hT]
+  have hm0 : (0:ℝ) < (m:ℝ) := by linarith
+  -- the scale is polynomially large: `h² ≥ m`
+  have hge : 2*(m:ℝ)/T ≤ ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) := Nat.le_ceil _
+  have hh0 : (0:ℝ) ≤ ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) := Nat.cast_nonneg _
+  have hdiv : (0:ℝ) < 2*(m:ℝ)/T := by positivity
+  have hsq : (m:ℝ) ≤ ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ)^2 := by
+    have hstep : (2*(m:ℝ)/T)^2 ≤ ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ)^2 :=
+      pow_le_pow_left₀ hdiv.le hge 2
+    have hexp : (2*(m:ℝ)/T)^2 = 4*(m:ℝ)^2/T^2 := by
+      field_simp
+      ring
+    rw [hexp] at hstep
+    have hT2 : (0:ℝ) < T^2 := by positivity
+    have hfrac : (m:ℝ) ≤ 4*(m:ℝ)^2/T^2 := by
+      rw [le_div_iff₀ hT2]
+      nlinarith [hTm, hm0]
+    linarith
+  -- hence `log h ≥ ½ log m`
+  have hlogm : (0:ℝ) < Real.log (m:ℝ) := Real.log_pos (by linarith)
+  have hlogsq : Real.log (m:ℝ)
+      ≤ 2 * Real.log ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) := by
+    have h1 : Real.log (m:ℝ)
+        ≤ Real.log (((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ)^2) := Real.log_le_log hm0 hsq
+    rwa [Real.log_pow] at h1
+  have hlogh : (0:ℝ) < Real.log ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) := by linarith
+  -- and the numerator is at most `3 log m`
+  have hnum : Real.log (4*(m:ℝ)+2) ≤ 3 * Real.log (m:ℝ) := by
+    have hcube : 4*(m:ℝ)+2 ≤ (m:ℝ)^3 := by
+      have h2 : (0:ℝ) ≤ (m:ℝ)^2 * ((m:ℝ) - 4) :=
+        mul_nonneg (sq_nonneg _) (by linarith)
+      have h3 : (0:ℝ) ≤ (m:ℝ) * ((m:ℝ) - 4) :=
+        mul_nonneg (by linarith) (by linarith)
+      nlinarith [h2, h3, hm4]
+    have h1 : Real.log (4*(m:ℝ)+2) ≤ Real.log ((m:ℝ)^3) :=
+      Real.log_le_log (by linarith) hcube
+    rwa [Real.log_pow] at h1
+  rw [div_le_iff₀ hlogh]
+  linarith
+
+open Finset Real in
+/-- **The shell count exists** (Track R, M0-dd): for any centre `m` and
+scale `h` there is a number of shells `J` reaching as far as possible
+without overshooting — `a_J = (2^J − 1)h` stays strictly below `m`,
+while one more shell would reach `m`.
+
+Both bounds are needed downstream and for opposite reasons.  `a_J < m`
+is the fitting hypothesis of `inner_sum_two_sided_le` (the shells must
+stay inside `(m/2, 2m]`, and on the left they must not run past `0`).
+`m ≤ a_{J+1} = 2a_J + h` is what makes the shells *reach*: it forces
+`a_J ≥ (m − h)/2`, so everything the shells miss is at additive
+distance `≳ m/2` and hence — by `log_gap_of_dyadic` — at a fixed
+multiplicative distance, where the Gaussian tail takes over.  The two
+together are exactly the maximality of `J`. -/
+theorem exists_shell_count (m h : ℕ) (hm : 1 ≤ m) (hh : 1 ≤ h) :
+    ∃ J, (2^J - 1)*h + 1 ≤ m ∧ m ≤ (2^(J+1) - 1)*h
+      ∧ ∀ j < J, 2^j*h ≤ 2*m := by
+  classical
+  -- some shell count overshoots, so there is a least one
+  have hex : ∃ K, m ≤ (2^K - 1)*h := by
+    refine ⟨m + 1, ?_⟩
+    have hpow : m + 1 < 2^(m+1) := Nat.lt_two_pow_self
+    have h1 : m + 1 ≤ (2^(m+1) - 1) := by omega
+    calc m ≤ m + 1 := by omega
+      _ = (m+1)*1 := by ring
+      _ ≤ (2^(m+1) - 1)*h := Nat.mul_le_mul h1 hh
+  set K := Nat.find hex with hK_def
+  have hKspec : m ≤ (2^K - 1)*h := Nat.find_spec hex
+  -- the least overshooting count is not `0`, since `a_0 = 0 < m`
+  have hK0 : K ≠ 0 := by
+    intro h0
+    rw [h0] at hKspec
+    simp at hKspec
+    omega
+  obtain ⟨J, hJ⟩ : ∃ J, K = J + 1 := ⟨K - 1, by omega⟩
+  refine ⟨J, ?_, ?_, ?_⟩
+  · -- `J` itself does not overshoot, by minimality
+    have hnot : ¬ (m ≤ (2^J - 1)*h) := Nat.find_min hex (by omega)
+    omega
+  · rw [← hJ]
+    exact hKspec
+  · intro j hj
+    have hnot : ¬ (m ≤ (2^J - 1)*h) := Nat.find_min hex (by omega)
+    have hlt : (2:ℕ)^j < 2^J := Nat.pow_lt_pow_right (by norm_num) hj
+    have hle : (2:ℕ)^j ≤ 2^J - 1 := by omega
+    have hmul : 2^j*h ≤ (2^J - 1)*h := Nat.mul_le_mul_right h hle
+    omega
+
 end ExpSums
 
 end MoltResearch
