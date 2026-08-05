@@ -1440,4 +1440,110 @@ theorem sum_mul_log_prime_restrict (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   have hmass := sum_vonMangoldt_div_properPrimePow_le x
   nlinarith [hmass, hx0]
 
+open Finset in
+/-- **A Stirling-type lower bound** (Track R, N4a):
+`∑_{n≤x} log n ≥ x·log x − x`.
+
+The induction step is exactly `x·log(1 + 1/x) ≤ 1`, which is
+`log t ≤ t − 1` at `t = (x+1)/x`.  No Stirling series is needed — only
+the concavity of `log` in the crudest available form. -/
+theorem sum_log_ge (x : ℕ) (hx : 1 ≤ x) :
+    (x:ℝ) * Real.log (x:ℝ) - (x:ℝ)
+      ≤ ∑ n ∈ Finset.Icc 1 x, Real.log (n:ℝ) := by
+  induction x, hx using Nat.le_induction with
+  | base => norm_num
+  | succ x hx ih =>
+    have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast hx
+    rw [Finset.sum_Icc_succ_top (by omega : 1 ≤ x + 1)]
+    have hcast : (((x+1 : ℕ)):ℝ) = (x:ℝ) + 1 := by push_cast; ring
+    rw [hcast]
+    have hlog : Real.log ((x:ℝ)+1) - Real.log (x:ℝ) ≤ 1/(x:ℝ) := by
+      have h1 : Real.log (((x:ℝ)+1)/(x:ℝ)) ≤ ((x:ℝ)+1)/(x:ℝ) - 1 :=
+        Real.log_le_sub_one_of_pos (by positivity)
+      rw [Real.log_div (by linarith) (by linarith)] at h1
+      have h2 : ((x:ℝ)+1)/(x:ℝ) - 1 = 1/(x:ℝ) := by
+        field_simp
+        ring
+      linarith [h1, h2]
+    have hmul : (x:ℝ) * (Real.log ((x:ℝ)+1) - Real.log (x:ℝ)) ≤ 1 := by
+      have h := mul_le_mul_of_nonneg_left hlog hx0.le
+      rwa [mul_one_div, div_self (ne_of_gt hx0)] at h
+    nlinarith [ih, hmul]
+
+open Finset in
+/-- **The log-ratio mass** (Track R, N4b): `∑_{n≤x} log(x/n) ≤ x`.
+
+This is what lets `log n` be traded for `log x` inside the mean value:
+`S(x)·log x = ∑_{n≤x} f(n)·log n + ∑_{n≤x} f(n)·log(x/n)`, and the
+second sum is `O(x)` regardless of `f`, since `|f| ≤ 1`. -/
+theorem sum_log_ratio_mass_le (x : ℕ) (hx : 1 ≤ x) :
+    ∑ n ∈ Finset.Icc 1 x, (Real.log (x:ℝ) - Real.log (n:ℝ)) ≤ (x:ℝ) := by
+  rw [Finset.sum_sub_distrib, Finset.sum_const, nsmul_eq_mul, Nat.card_Icc]
+  simp only [Nat.add_sub_cancel]
+  linarith [sum_log_ge x hx]
+
+open ArithmeticFunction Finset in
+/-- **The mean value as a double convolution** (Track R, N5): for
+`1`-bounded `f`,
+
+  `S(x)·log x = ∑_{p≤x} log p·∑_{m≤x/p} f(pm) + O(x)`,
+
+with error at most `9x`, where `S(x) = ∑_{n≤x} f(n)`.
+
+This is the second displayed identity of §3 of the `κ = 1` Halász
+paper, and the form the argument actually iterates.  Dividing by
+`log x` gives `S(x) = (1/log x)·∑_{mp≤x} f(m)f(p)·log p + O(x/log x)`
+— the mean value expressed as a convolution, at the cost of a factor
+`log x` in the error.
+
+The trade of `log n` for `log x` is free up to `O(x)`: the discrepancy
+is `∑_{n≤x} f(n)·log(x/n)`, and `|f| ≤ 1` makes it at most
+`∑_{n≤x} log(x/n) ≤ x` regardless of `f`. -/
+theorem sum_mul_log_x_prime_restrict (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) (hx : 1 ≤ x) :
+    |(∑ n ∈ Finset.Icc 1 x, f n) * Real.log (x:ℝ)
+        - ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+            Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)|
+      ≤ 9 * (x:ℝ) := by
+  classical
+  -- split `log x = log n + log(x/n)`
+  have hsplit : (∑ n ∈ Finset.Icc 1 x, f n) * Real.log (x:ℝ)
+      = (∑ n ∈ Finset.Icc 1 x, f n * Real.log (n:ℝ))
+        + ∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)) := by
+    rw [Finset.sum_mul, ← Finset.sum_add_distrib]
+    exact Finset.sum_congr rfl fun n _ => by ring
+  -- the traded part is `O(x)` regardless of `f`
+  have htail : |∑ n ∈ Finset.Icc 1 x,
+      f n * (Real.log (x:ℝ) - Real.log (n:ℝ))| ≤ (x:ℝ) := by
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    have hterm : ∀ n ∈ Finset.Icc 1 x,
+        |f n * (Real.log (x:ℝ) - Real.log (n:ℝ))|
+          ≤ Real.log (x:ℝ) - Real.log (n:ℝ) := by
+      intro n hn
+      rw [Finset.mem_Icc] at hn
+      have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn.1
+      have hnx : (n:ℝ) ≤ (x:ℝ) := by exact_mod_cast hn.2
+      have hpos : (0:ℝ) ≤ Real.log (x:ℝ) - Real.log (n:ℝ) := by
+        linarith [Real.log_le_log hn0 hnx]
+      rw [abs_mul, abs_of_nonneg hpos]
+      calc |f n| * (Real.log (x:ℝ) - Real.log (n:ℝ))
+          ≤ 1 * (Real.log (x:ℝ) - Real.log (n:ℝ)) :=
+            mul_le_mul_of_nonneg_right (hf n) hpos
+        _ = Real.log (x:ℝ) - Real.log (n:ℝ) := one_mul _
+    exact le_trans (Finset.sum_le_sum hterm) (sum_log_ratio_mass_le x hx)
+  have hmain := sum_mul_log_prime_restrict f hf x
+  rw [hsplit]
+  have hre : (∑ n ∈ Finset.Icc 1 x, f n * Real.log (n:ℝ))
+        + (∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        - ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+            Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)
+      = ((∑ n ∈ Finset.Icc 1 x, f n * Real.log (n:ℝ))
+          - ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+              Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m))
+        + ∑ n ∈ Finset.Icc 1 x,
+            f n * (Real.log (x:ℝ) - Real.log (n:ℝ)) := by ring
+  rw [hre]
+  refine le_trans (abs_add_le _ _) ?_
+  linarith [hmain, htail]
+
 end MoltResearch
