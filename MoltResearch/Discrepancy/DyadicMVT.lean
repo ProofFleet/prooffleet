@@ -2571,6 +2571,68 @@ theorem exists_shell_count (m h : ℕ) (hm : 1 ≤ m) (hh : 1 ≤ h) :
     have hmul : 2^j*h ≤ (2^J - 1)*h := Nat.mul_le_mul_right h hle
     omega
 
+open Finset Real in
+/-- **The uncovered points are far** (Track R, M0-ff): if the shells
+around `m` reach at least a quarter of the block `(N, 2N]`, then every
+point of the block they miss is at multiplicative distance at least
+`1/8` from `m`.
+
+This is the hinge of the tail argument.  The shells cannot cover the
+whole block — `inner_sum_le` caps them at `a_J ≤ m` and consecutive
+`a_J` roughly double, so they reach about `1.5m`, never `2m`.  What
+saves the estimate is that the shortfall is *proportional to the
+block*: reaching a quarter of it leaves a gap bounded below by an
+absolute constant, independent of `N`, `T` and `m`.  A shrinking gap
+would have forced a second dyadic decomposition; a fixed one is killed
+outright by `gaussian_tail_sum_le`. -/
+theorem tail_gap_of_block (N m A n : ℕ) (hN : 1 ≤ N)
+    (hm : N < m) (hm2 : m ≤ 2*N) (hn : N < n) (hn2 : n ≤ 2*N)
+    (hA : N ≤ 4*A) (hout : n ∉ Finset.Ioc (m - 1 - A) (m + A)) :
+    (1:ℝ)/8 ≤ |Real.log (n:ℝ) - Real.log (m:ℝ)| := by
+  have hN0 : (0:ℝ) < (N:ℝ) := by exact_mod_cast hN
+  have hn1 : 1 ≤ n := by omega
+  -- the missed points are at additive distance at least `A`
+  have hgapN : A ≤ n - m ∨ A ≤ m - n := by
+    rw [Finset.mem_Ioc] at hout
+    push_neg at hout
+    rcases Nat.lt_or_ge (m + A) n with hgt | hle
+    · left; omega
+    · right
+      have hlow : ¬ (m - 1 - A < n) := by
+        intro hc
+        have := hout hc
+        omega
+      omega
+  have hgap : (A:ℝ) ≤ |(n:ℝ) - (m:ℝ)| := by
+    rcases hgapN with hr | hl
+    · have h1 : (m:ℝ) ≤ (n:ℝ) := by
+        have : m ≤ n := by omega
+        exact_mod_cast this
+      have h2 : (A:ℝ) ≤ (n:ℝ) - (m:ℝ) := by
+        have : (A:ℕ) + m ≤ n := by omega
+        have hc : ((A + m : ℕ):ℝ) ≤ (n:ℝ) := by exact_mod_cast this
+        push_cast at hc
+        linarith
+      rw [abs_of_nonneg (by linarith)]
+      exact h2
+    · have h1 : (n:ℝ) ≤ (m:ℝ) := by
+        have : n ≤ m := by omega
+        exact_mod_cast this
+      have h2 : (A:ℝ) ≤ (m:ℝ) - (n:ℝ) := by
+        have : (A:ℕ) + n ≤ m := by omega
+        have hc : ((A + n : ℕ):ℝ) ≤ (m:ℝ) := by exact_mod_cast this
+        push_cast at hc
+        linarith
+      rw [abs_sub_comm, abs_of_nonneg (by linarith)]
+      exact h2
+  -- so at multiplicative distance at least `A/(2N) ≥ 1/8`
+  have hA0 : (0:ℝ) ≤ (A:ℝ) := Nat.cast_nonneg _
+  have hstep := log_gap_of_dyadic N n m hn hn2 hm hm2 (A:ℝ) hA0 hgap
+  refine le_trans ?_ hstep
+  have hAR : (N:ℝ) ≤ 4*(A:ℝ) := by exact_mod_cast hA
+  rw [div_le_div_iff₀ (by norm_num) (by positivity)]
+  linarith
+
 end ExpSums
 
 end MoltResearch

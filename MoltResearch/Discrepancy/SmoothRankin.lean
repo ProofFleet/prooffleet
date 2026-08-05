@@ -760,4 +760,46 @@ theorem sum_vonMangoldt_properPrimePow_le (N : ℕ) (hN : 1 ≤ N) :
     _ ≤ (((Nat.sqrt N + 1 : ℕ) : ℝ) * ((K : ℕ) : ℝ)) * Real.log (N:ℝ) :=
         mul_le_mul_of_nonneg_right hcard hlogN
 
+open ArithmeticFunction Finset in
+/-- **Splitting the von Mangoldt weight** (Track R, M0-ee): a
+`Λ`-weighted sum splits into its prime part, where `Λ(p) = log p`
+exactly, and its proper prime-power part.  Only prime powers contribute
+at all, so the two pieces are the whole sum.
+
+This is the step that lets the Brun–Titchmarsh shell machinery — which
+counts *primes* — be applied to a `Λ`-weighted sum.  The prime-power
+remainder is genuinely lower order (`sum_vonMangoldt_properPrimePow_le`
+bounds it by `√N·log₂N·log N`), but it cannot simply be dropped: `Λ`
+is supported on prime powers, not on primes. -/
+theorem sum_vonMangoldt_split (S : Finset ℕ) (g : ℕ → ℝ) :
+    ∑ n ∈ S, vonMangoldt n * g n
+      = (∑ p ∈ S.filter Nat.Prime, Real.log p * g p)
+        + ∑ n ∈ S.filter (fun n => IsPrimePow n ∧ ¬ n.Prime),
+            vonMangoldt n * g n := by
+  classical
+  -- only prime powers contribute
+  have hzero : ∀ n ∈ S, n ∉ S.filter IsPrimePow → vonMangoldt n * g n = 0 := by
+    intro n hn hnot
+    rw [Finset.mem_filter] at hnot
+    have hnp : ¬ IsPrimePow n := fun hpp => hnot ⟨hn, hpp⟩
+    rw [vonMangoldt_eq_zero_iff.mpr hnp, zero_mul]
+  rw [← Finset.sum_subset (Finset.filter_subset IsPrimePow S) hzero,
+    ← Finset.sum_filter_add_sum_filter_not (S.filter IsPrimePow) Nat.Prime]
+  congr 1
+  · -- on the primes the weight is exactly `log p`
+    have hset : (S.filter IsPrimePow).filter Nat.Prime = S.filter Nat.Prime := by
+      ext p
+      simp only [Finset.mem_filter]
+      constructor
+      · rintro ⟨⟨hS, _⟩, hp⟩
+        exact ⟨hS, hp⟩
+      · rintro ⟨hS, hp⟩
+        exact ⟨⟨hS, hp.isPrimePow⟩, hp⟩
+    rw [hset]
+    refine Finset.sum_congr rfl fun p hp => ?_
+    rw [Finset.mem_filter] at hp
+    rw [vonMangoldt_apply_prime hp.2]
+  · -- the rest is the proper prime powers
+    rw [Finset.filter_filter]
+
 end MoltResearch
