@@ -1362,4 +1362,82 @@ theorem sum_vonMangoldt_div_properPrimePow_le (x : ℕ) :
   have h3 : (0:ℝ) ≤ 4/Real.sqrt (Y:ℝ) := by positivity
   linarith
 
+open ArithmeticFunction Finset in
+/-- **The convolution restricted to primes** (Track R, N3): for
+`1`-bounded `f`,
+
+  `∑_{n≤x} f(n)·log n = ∑_{p≤x} log p·∑_{m≤x/p} f(pm) + O(x)`,
+
+with the error at most `8x`.
+
+This is the first displayed identity of §3 of the `κ = 1` Halász paper.
+The `Λ`-convolution of `sum_mul_log_eq` is supported on prime powers;
+discarding the proper ones is what turns it into a genuine double
+convolution over `(p, m)`.  The discard is affordable exactly because
+`sum_vonMangoldt_div_properPrimePow_le` is `O(1)` — the inner sum is
+trivially `≤ x/d` in absolute value, so the whole error is
+`x·∑_{d proper} Λ(d)/d`. -/
+theorem sum_mul_log_prime_restrict (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) :
+    |∑ n ∈ Finset.Icc 1 x, f n * Real.log (n:ℝ)
+        - ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+            Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)|
+      ≤ 8 * (x:ℝ) := by
+  classical
+  rw [sum_mul_log_eq f x]
+  -- split the convolution at the primes
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 x) Nat.Prime
+    (fun d => vonMangoldt d * ∑ m ∈ Finset.Icc 1 (x/d), f (d*m))]
+  have hprime : ∑ d ∈ (Finset.Icc 1 x).filter Nat.Prime,
+        vonMangoldt d * ∑ m ∈ Finset.Icc 1 (x/d), f (d*m)
+      = ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+          Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m) := by
+    refine Finset.sum_congr rfl fun p hp => ?_
+    rw [Finset.mem_filter] at hp
+    rw [vonMangoldt_apply_prime hp.2]
+  rw [hprime, add_sub_cancel_left]
+  -- what remains is supported on the proper prime powers
+  have hsupp : ∑ d ∈ (Finset.Icc 1 x).filter (fun d => ¬ d.Prime),
+        vonMangoldt d * ∑ m ∈ Finset.Icc 1 (x/d), f (d*m)
+      = ∑ d ∈ (Finset.Icc 1 x).filter (fun d => IsPrimePow d ∧ ¬ d.Prime),
+          vonMangoldt d * ∑ m ∈ Finset.Icc 1 (x/d), f (d*m) := by
+    refine (Finset.sum_subset ?_ ?_).symm
+    · intro d hd
+      simp only [Finset.mem_filter] at hd ⊢
+      exact ⟨hd.1, hd.2.2⟩
+    · intro d hd hnot
+      simp only [Finset.mem_filter] at hd hnot
+      have hnp : ¬ IsPrimePow d := fun hpp => hnot ⟨hd.1, hpp, hd.2⟩
+      rw [vonMangoldt_eq_zero_iff.mpr hnp, zero_mul]
+  rw [hsupp]
+  -- each inner sum is at most `x/d` in absolute value
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ d ∈ (Finset.Icc 1 x).filter
+      (fun d => IsPrimePow d ∧ ¬ d.Prime),
+      |vonMangoldt d * ∑ m ∈ Finset.Icc 1 (x/d), f (d*m)|
+        ≤ (x:ℝ) * (vonMangoldt d / (d:ℝ)) := by
+    intro d hd
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hd
+    obtain ⟨⟨hd1, hdx⟩, _, _⟩ := hd
+    have hd0 : (0:ℝ) < (d:ℝ) := by exact_mod_cast hd1
+    have hinner : |∑ m ∈ Finset.Icc 1 (x/d), f (d*m)| ≤ ((x/d : ℕ):ℝ) := by
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      calc ∑ m ∈ Finset.Icc 1 (x/d), |f (d*m)|
+          ≤ ∑ _m ∈ Finset.Icc 1 (x/d), (1:ℝ) :=
+            Finset.sum_le_sum fun m _ => hf (d*m)
+        _ = ((Finset.Icc 1 (x/d)).card : ℝ) := by
+            rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+        _ = ((x/d : ℕ):ℝ) := by rw [Nat.card_Icc]; norm_num
+    have hcast : ((x/d : ℕ):ℝ) ≤ (x:ℝ)/(d:ℝ) := Nat.cast_div_le
+    rw [abs_mul, abs_of_nonneg vonMangoldt_nonneg]
+    calc vonMangoldt d * |∑ m ∈ Finset.Icc 1 (x/d), f (d*m)|
+        ≤ vonMangoldt d * ((x:ℝ)/(d:ℝ)) :=
+          mul_le_mul_of_nonneg_left (le_trans hinner hcast) vonMangoldt_nonneg
+      _ = (x:ℝ) * (vonMangoldt d / (d:ℝ)) := by ring
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  have hmass := sum_vonMangoldt_div_properPrimePow_le x
+  nlinarith [hmass, hx0]
+
 end MoltResearch
