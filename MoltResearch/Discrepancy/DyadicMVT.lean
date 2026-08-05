@@ -1734,6 +1734,110 @@ theorem inner_sum_le (T : ℝ) (m h J : ℕ) (hm : 1 ≤ m) (hh : 2 ≤ h)
       ≤ 256*(h:ℝ)*L * 2 := mul_le_mul_of_nonneg_left hsum hcoef
     _ = 512*(h:ℝ)*L := by ring
 
+open MeasureTheory Real Complex in
+open scoped FourierTransform in
+/-- **The Gaussian pair bound** (Track R, M0-v): the sharp window
+energy of a Dirichlet polynomial is dominated by the double sum of its
+pair correlations against the Gaussian kernel
+`e^{π}·T·e^{−πT²(log m − log n)²}`.  This is the whole outer chain of
+GHS Lemma 2.6 in one step — majorise by the Gaussian
+(`intervalIntegral_norm_sq_le_gaussian`), expand into pairs
+(`integral_norm_sq_poly_weight_eq`), evaluate each pair integral as a
+transform value (`integral_re_char_mul_weight`), and read that value
+off the Gaussian's self-duality (`fourier_gaussian_scaled`).  What
+remains is arithmetic: the kernel is symmetric and non-negative, so
+`sum_pair_re_le_of_symm` folds it onto the diagonal and `inner_sum_le`
+counts the surviving primes. -/
+theorem intervalIntegral_norm_sq_gaussian_pairs_le (S : Finset ℕ) (c : ℕ → ℂ)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, c n
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ ∑ m ∈ S, ∑ n ∈ S, (c m * (starRingEnd ℂ) (c n)).re
+          * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2))) := by
+  classical
+  -- the Gaussian weight is continuous and integrable
+  have hWc : Continuous
+      (fun ξ : ℝ => Real.exp π * Real.exp (-(π*(ξ/T)^2))) := by fun_prop
+  have hweight : ∀ ξ : ℝ,
+      Real.exp (-(π*(ξ/T)^2)) = Real.exp (-(π/T^2) * ξ^2) := by
+    intro ξ
+    congr 1
+    field_simp
+  have hWi : Integrable
+      (fun ξ : ℝ => Real.exp π * Real.exp (-(π*(ξ/T)^2))) := by
+    have hfun : (fun ξ : ℝ => Real.exp π * Real.exp (-(π*(ξ/T)^2)))
+        = fun ξ : ℝ => Real.exp π * Real.exp (-(π/T^2) * ξ^2) := by
+      funext ξ
+      rw [hweight ξ]
+    rw [hfun]
+    exact (integrable_exp_neg_mul_sq (by positivity)).const_mul _
+  -- the polynomial is continuous and bounded, so the majorant applies
+  have hchar : ∀ v : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ) := fun v =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  have hDc : Continuous fun ξ : ℝ => ∑ n ∈ S, c n
+      * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun n _ => continuous_const.mul (hchar (Real.log n))
+  have hDbound : ∀ ξ : ℝ, ‖∑ n ∈ S, c n
+      * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖
+        ≤ ∑ n ∈ S, ‖c n‖ := by
+    intro ξ
+    refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun n _ => ?_)
+    rw [norm_mul, norm_eq_of_mem_sphere, mul_one]
+  -- the transform of the weight, at the log-difference
+  have hFourier : ∀ v : ℝ,
+      (∫ ξ : ℝ, ((Real.exp π * Real.exp (-(π*(ξ/T)^2)) : ℝ) : ℂ)
+          * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ))
+        = ((Real.exp π * T * Real.exp (-(π*T^2*v^2)) : ℝ) : ℂ) := by
+    intro v
+    have hg : (𝓕 fun x : ℝ => ((Real.exp (-(π*(x/T)^2)) : ℝ) : ℂ)) v
+        = ((T : ℝ) : ℂ) * ((Real.exp (-(π*T^2*v^2)) : ℝ) : ℂ) :=
+      congrFun (fourier_gaussian_scaled hT) v
+    simp only [fourier_real_eq] at hg
+    have hcomm : (∫ ξ : ℝ, ((Real.exp π * Real.exp (-(π*(ξ/T)^2)) : ℝ) : ℂ)
+          * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ))
+        = ((Real.exp π : ℝ) : ℂ) * ∫ ξ : ℝ,
+            (Real.fourierChar (-(ξ * v)) : Circle)
+              • ((Real.exp (-(π*(ξ/T)^2)) : ℝ) : ℂ) := by
+      rw [← MeasureTheory.integral_const_mul]
+      refine MeasureTheory.integral_congr_ae
+        (Filter.Eventually.of_forall fun ξ => ?_)
+      simp only [Circle.smul_def, smul_eq_mul]
+      rw [mul_comm ξ v, Complex.ofReal_mul]
+      ring
+    rw [hcomm, hg, Complex.ofReal_mul, Complex.ofReal_mul]
+    ring
+  calc (∫ ξ in (-T)..T, ‖∑ n ∈ S, c n
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ ∫ ξ : ℝ, ‖∑ n ∈ S, c n
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+            * (Real.exp π * Real.exp (-(π*(ξ/T)^2))) :=
+        intervalIntegral_norm_sq_le_gaussian _ hDc _ hDbound T hT
+    _ = ∑ m ∈ S, ∑ n ∈ S, ∫ ξ : ℝ, (((c m * (starRingEnd ℂ) (c n))
+          * ((Real.fourierChar (-((Real.log m - Real.log n) * ξ)) : Circle)
+            : ℂ)).re) * (Real.exp π * Real.exp (-(π*(ξ/T)^2))) :=
+        integral_norm_sq_poly_weight_eq S c _ hWc hWi
+    _ = ∑ m ∈ S, ∑ n ∈ S, ((c m * (starRingEnd ℂ) (c n))
+          * ((Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2)) : ℝ) : ℂ)).re := by
+        refine Finset.sum_congr rfl fun m _ => Finset.sum_congr rfl fun n _ => ?_
+        have h1 : (∫ ξ : ℝ, (((c m * (starRingEnd ℂ) (c n))
+                * ((Real.fourierChar (-((Real.log m - Real.log n) * ξ)) : Circle)
+                  : ℂ)).re) * (Real.exp π * Real.exp (-(π*(ξ/T)^2))))
+              = ((c m * (starRingEnd ℂ) (c n)) * ∫ ξ : ℝ,
+                  ((Real.exp π * Real.exp (-(π*(ξ/T)^2)) : ℝ) : ℂ)
+                    * ((Real.fourierChar (-((Real.log m - Real.log n) * ξ))
+                        : Circle) : ℂ)).re :=
+          integral_re_char_mul_weight _ _ _ hWc hWi
+        rw [h1, hFourier]
+    _ = ∑ m ∈ S, ∑ n ∈ S, (c m * (starRingEnd ℂ) (c n)).re
+          * (Real.exp π * T
+              * Real.exp (-(π*T^2*(Real.log m - Real.log n)^2))) := by
+        refine Finset.sum_congr rfl fun m _ => Finset.sum_congr rfl fun n _ => ?_
+        rw [Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
+        ring
+
 end ExpSums
 
 end MoltResearch
