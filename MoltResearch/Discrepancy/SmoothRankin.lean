@@ -2195,4 +2195,82 @@ theorem norm_tripleConv_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x A B : 
   rw [← Finset.mul_sum]
   exact mul_le_mul_of_nonneg_left (Sk_trivial_mass_le x A B hA hAB hB) hx0
 
+open Finset in
+/-- **The geometric tail of the block decomposition** (Track R, N13):
+`∑_{k > K} e^{−k} ≤ e^{−K}`.
+
+§3 bounds block `k` of the triple convolution by `≪ e^{−k}·x·log x`, so
+discarding every block beyond `K` costs `≪ e^{−K}·x·log x`.  This is
+what makes the decomposition finite in practice: only
+`O(log(log x/L))` blocks need to be treated analytically, and the rest
+vanish geometrically.
+
+The constant works out because `e^{−1} < 1/2`, so the tail
+`e^{−(K+1)}/(1 − e^{−1}) = e^{−K}/(e−1)` is already below `e^{−K}`. -/
+theorem sum_exp_neg_tail_le (K M : ℕ) :
+    ∑ k ∈ Finset.Icc (K+1) M, Real.exp (-(k:ℝ)) ≤ Real.exp (-(K:ℝ)) := by
+  classical
+  set r : ℝ := Real.exp (-1) with hr_def
+  have hr0 : (0:ℝ) < r := Real.exp_pos _
+  have hrhalf : r ≤ 1/2 := by
+    have he : (2:ℝ) < Real.exp 1 := by linarith [Real.exp_one_gt_d9]
+    have hkey : r * Real.exp 1 = 1 := by
+      rw [hr_def, ← Real.exp_add]
+      norm_num
+    nlinarith [hkey, he, hr0]
+  have hr1 : (0:ℝ) < 1 - r := by linarith
+  -- rewrite each term as a power of `r`
+  have hpow : ∀ k : ℕ, Real.exp (-(k:ℝ)) = r^k := by
+    intro k
+    rw [hr_def, ← Real.exp_nat_mul]
+    congr 1
+    ring
+  simp only [hpow]
+  -- factor out `r^(K+1)` and bound the remaining geometric sum
+  have hsplit : ∑ k ∈ Finset.Icc (K+1) M, r^k
+      = r^(K+1) * ∑ k ∈ Finset.Icc (K+1) M, r^(k-(K+1)) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun k hk => ?_
+    rw [Finset.mem_Icc] at hk
+    rw [← pow_add]
+    congr 1
+    omega
+  have hinj : Set.InjOn (fun k => k - (K+1)) ↑(Finset.Icc (K+1) M) := by
+    intro a ha b hb h
+    simp only [Finset.coe_Icc, Set.mem_Icc] at ha hb
+    simp only at h
+    omega
+  have himg : (Finset.Icc (K+1) M).image (fun k => k - (K+1))
+      ⊆ Finset.range (M+1) := by
+    intro j hj
+    rw [Finset.mem_image] at hj
+    obtain ⟨k, hk, rfl⟩ := hj
+    rw [Finset.mem_Icc] at hk
+    exact Finset.mem_range.mpr (by omega)
+  have hgeom : ∑ k ∈ Finset.Icc (K+1) M, r^(k-(K+1)) ≤ 1/(1-r) := by
+    calc ∑ k ∈ Finset.Icc (K+1) M, r^(k-(K+1))
+        = ∑ j ∈ (Finset.Icc (K+1) M).image (fun k => k - (K+1)), r^j :=
+          (Finset.sum_image hinj).symm
+      _ ≤ ∑ j ∈ Finset.range (M+1), r^j :=
+          Finset.sum_le_sum_of_subset_of_nonneg himg
+            (fun i _ _ => by positivity)
+      _ ≤ 1/(1-r) := by
+          have hg := geom_sum_mul r (M+1)
+          have hpw : (0:ℝ) ≤ r^(M+1) := by positivity
+          have hS0 : (0:ℝ) ≤ ∑ j ∈ Finset.range (M+1), r^j :=
+            Finset.sum_nonneg fun i _ => pow_nonneg hr0.le i
+          rw [le_div_iff₀ hr1]
+          nlinarith [hg, hpw, hS0]
+  rw [hsplit]
+  have hpK : r^(K+1) = r^K * r := by ring
+  calc r^(K+1) * ∑ k ∈ Finset.Icc (K+1) M, r^(k-(K+1))
+      ≤ r^(K+1) * (1/(1-r)) :=
+        mul_le_mul_of_nonneg_left hgeom (by positivity)
+    _ = r^K * (r/(1-r)) := by rw [hpK]; ring
+    _ ≤ r^K * 1 := by
+        refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+        rw [div_le_one hr1]
+        linarith
+    _ = r^K := mul_one _
+
 end MoltResearch
