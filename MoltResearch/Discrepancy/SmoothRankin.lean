@@ -4099,4 +4099,186 @@ theorem integral_le_band_add_tail (h : ℝ → ℝ) (hint : Integrable h) (a : �
   rw [integral_eq_band_add_tail h hint a ha]
   linarith
 
+open MeasureTheory Real Complex Finset in
+/-- **The `I₂` estimate over the whole line** (Track R, N43):
+
+  `∫_ℝ ‖D‖²·W·‖F‖² ≤ 5·C·V·L(x)² + Mtail`.
+
+The composition of §4's `I₂` chain: `integral_le_band_add_tail` splits
+off the tail, `sum_halaszRange_integral_eq` tiles the band into the unit
+intervals around the integers of the Halász range, and
+`sum_unit_interval_weight_halasz_le` charges each to its weight.
+
+This is the form the Perron pairing produces — `∫` over the whole line,
+from `norm_sum_translates_le_integral_char` — bounded by `L(x)²` with
+only a tail remainder, which `ExpSums.fourier_tail_le` prices at
+`M₂/(2π²a)`.
+
+The band is never bounded by a uniform supremum.  That is the single
+difference from `pairing_band_tail_split`, and it is the whole of the
+cheap/sharp gap. -/
+theorem integral_line_halasz_le (D Fn : ℝ → ℂ) (W : ℝ → ℝ) (B : ℤ → ℝ)
+    (x : ℕ) (C V Mtail : ℝ) (hC0 : 0 ≤ C) (hWle : ∀ t, W t ≤ C/(1+t^2))
+    (hB : ∀ N ∈ halaszRange x, ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+      ‖Fn t‖ ≤ B N)
+    (hB0 : ∀ N, 0 ≤ B N)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖D t‖^2) ≤ V)
+    (hintg : Integrable (fun t => ‖D t‖^2 * W t * ‖Fn t‖^2))
+    (htail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|},
+        ‖D ξ‖^2 * W ξ * ‖Fn ξ‖^2) ≤ Mtail)
+    (htile : ∀ i : ℕ, i < 2*(halaszM x)+1 → IntervalIntegrable
+      (fun t => ‖D t‖^2 * W t * ‖Fn t‖^2) volume
+      (-((halaszM x : ℕ):ℝ) - 1/2 + i) (-((halaszM x : ℕ):ℝ) - 1/2 + (i+1)))
+    (hj : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖D t‖^2 * W t * ‖Fn t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hi1 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => (‖D t‖^2/(1+t^2)) * ‖Fn t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hi2 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖D t‖^2/(1+t^2)) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hi3 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖D t‖^2) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2)) :
+    (∫ ξ, ‖D ξ‖^2 * W ξ * ‖Fn ξ‖^2) ≤ 5 * C * V * halaszLSq B x + Mtail := by
+  classical
+  set h : ℝ → ℝ := fun t => ‖D t‖^2 * W t * ‖Fn t‖^2 with hh_def
+  set a : ℝ := ((halaszM x : ℕ):ℝ) + 1/2 with ha_def
+  have ha0 : (0:ℝ) ≤ a := by
+    have : (0:ℝ) ≤ ((halaszM x : ℕ):ℝ) := Nat.cast_nonneg _
+    simp only [ha_def]; linarith
+  -- split off the tail
+  have hsplit := integral_le_band_add_tail h hintg a ha0 Mtail htail
+  refine le_trans hsplit ?_
+  -- the band tiles into unit intervals
+  have hneg : -a = -((halaszM x : ℕ):ℝ) - 1/2 := by simp only [ha_def]; ring
+  have hband : (∫ ξ in (-a)..a, h ξ)
+      = ∑ N ∈ halaszRange x, (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), h t) := by
+    rw [hneg, ha_def]
+    exact (sum_halaszRange_integral_eq h x htile).symm
+  rw [hband]
+  -- charge each interval to its Halász weight
+  have hmain := sum_unit_interval_weight_halasz_le D Fn W B x C V hC0 hWle
+    hB hB0 hV hj hi1 hi2 hi3
+  linarith [hmain]
+
+open MeasureTheory Real Complex Finset in
+/-- **The pairing splits into `I₁` and `I₂`** (Track R, N44): for
+`λ > 0` and a nonnegative weight `w`,
+
+  `∫ ‖P₁·P₂·P₃‖·w ≤ (λ/2)·∫‖P₂‖²·w + (1/(2λ))·∫‖P₁‖²‖P₃‖²·w`.
+
+GHS §4 writes this as `√(I₁·I₂)`; keeping `λ` free avoids the square
+root, and §4 never needs the optimal constant — only `≪ L(x) + 1`.
+
+The grouping is what matters: `P₂` (the `P_k` polynomial) alone on one
+side, and `P₁·P₃` (the Euler product together with the `q`-polynomial)
+on the other.  The first integral is then `I₁`, bounded by
+`sum_log_div_sq_ratio_block_mass_le`; the second is exactly the shape of
+`integral_line_halasz_le`, which returns `L(x)²`.  Pairing `P₁` with
+`P₃` rather than with `P₂` is the choice that makes both sides land on
+lemmas that already exist.
+
+No square roots appear anywhere, and `w` needs only nonnegativity. -/
+theorem pairing_le_amgm (P₁ P₂ P₃ : ℝ → ℂ) (w : ℝ → ℝ) (lam : ℝ)
+    (hlam : 0 < lam) (hw0 : ∀ t, 0 ≤ w t)
+    (hi0 : Integrable (fun ξ => ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * w ξ))
+    (hi1 : Integrable (fun ξ => ‖P₂ ξ‖^2 * w ξ))
+    (hi2 : Integrable (fun ξ => ‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2)) :
+    (∫ ξ, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * w ξ)
+      ≤ (lam/2) * (∫ ξ, ‖P₂ ξ‖^2 * w ξ)
+        + (1/(2*lam)) * (∫ ξ, ‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2) := by
+  have hpt : ∀ ξ, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * w ξ
+      ≤ (lam/2) * (‖P₂ ξ‖^2 * w ξ)
+        + (1/(2*lam)) * (‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2) := by
+    intro ξ
+    have hw := hw0 ξ
+    have hamgm : ‖P₂ ξ‖ * (‖P₁ ξ‖ * ‖P₃ ξ‖)
+        ≤ (lam/2) * ‖P₂ ξ‖^2 + (1/(2*lam)) * (‖P₁ ξ‖^2 * ‖P₃ ξ‖^2) := by
+      rw [← sub_nonneg]
+      have hexp : (lam/2) * ‖P₂ ξ‖^2
+            + (1/(2*lam)) * (‖P₁ ξ‖^2 * ‖P₃ ξ‖^2)
+            - ‖P₂ ξ‖ * (‖P₁ ξ‖ * ‖P₃ ξ‖)
+          = (lam * ‖P₂ ξ‖ - ‖P₁ ξ‖ * ‖P₃ ξ‖)^2 / (2*lam) := by
+        field_simp
+        ring
+      rw [hexp]
+      positivity
+    have heq : ‖P₁ ξ * P₂ ξ * P₃ ξ‖ = ‖P₂ ξ‖ * (‖P₁ ξ‖ * ‖P₃ ξ‖) := by
+      rw [norm_mul, norm_mul]; ring
+    rw [heq]
+    calc ‖P₂ ξ‖ * (‖P₁ ξ‖ * ‖P₃ ξ‖) * w ξ
+        ≤ ((lam/2) * ‖P₂ ξ‖^2
+            + (1/(2*lam)) * (‖P₁ ξ‖^2 * ‖P₃ ξ‖^2)) * w ξ :=
+          mul_le_mul_of_nonneg_right hamgm hw
+      _ = (lam/2) * (‖P₂ ξ‖^2 * w ξ)
+            + (1/(2*lam)) * (‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2) := by ring
+  have hsum : Integrable (fun ξ => (lam/2) * (‖P₂ ξ‖^2 * w ξ)
+      + (1/(2*lam)) * (‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2)) :=
+    (hi1.const_mul _).add (hi2.const_mul _)
+  refine le_trans (MeasureTheory.integral_mono hi0 hsum hpt) ?_
+  rw [MeasureTheory.integral_add (hi1.const_mul _) (hi2.const_mul _),
+    MeasureTheory.integral_const_mul, MeasureTheory.integral_const_mul]
+
+open MeasureTheory Real Complex Finset in
+/-- **The §4 pairing estimate** (Track R, N45):
+
+  `∫ ‖P₁·P₂·P₃‖·w ≤ (λ/2)·E₁ + (1/(2λ))·(5·C·V·L(x)² + Mtail)`.
+
+This is GHS §4's `√(I₁·I₂)`, with `λ` free in place of the optimiser.
+`E₁` bounds `I₁` — for the `P_k` polynomial,
+`sum_log_div_sq_ratio_block_mass_le` gives `≪ e^{k}/log x` — and the
+second factor is `I₂`, which `integral_line_halasz_le` returns as
+`L(x)²` with `V ≪ e^{−k}·log x` from Lemma 1.
+
+The `e^{±k}` cancel between the two, which is why §4 produces `L(x)`
+with no residual `k`; choosing `λ` to balance them is the last
+arithmetic step.
+
+Everything here is abstract in the three polynomials: instantiating
+`P₁ := F_x`, `P₂ := ∑_{p ∈ P_k}`, `P₃ := ∑_q` is what remains of §4. -/
+theorem pairing_halasz_le (P₁ P₂ P₃ : ℝ → ℂ) (w : ℝ → ℝ) (B : ℤ → ℝ)
+    (x : ℕ) (lam C V Mtail E₁ : ℝ) (hlam : 0 < lam) (hC0 : 0 ≤ C)
+    (hw0 : ∀ t, 0 ≤ w t) (hwle : ∀ t, w t ≤ C/(1+t^2))
+    (hE₁ : (∫ ξ, ‖P₂ ξ‖^2 * w ξ) ≤ E₁)
+    (hB : ∀ N ∈ halaszRange x, ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+      ‖P₁ t‖ ≤ B N)
+    (hB0 : ∀ N, 0 ≤ B N)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖P₃ t‖^2) ≤ V)
+    (hg0 : Integrable (fun ξ => ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * w ξ))
+    (hg1 : Integrable (fun ξ => ‖P₂ ξ‖^2 * w ξ))
+    (hg2 : Integrable (fun ξ => ‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2))
+    (htail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|},
+        ‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2) ≤ Mtail)
+    (htile : ∀ i : ℕ, i < 2*(halaszM x)+1 → IntervalIntegrable
+      (fun t => ‖P₃ t‖^2 * w t * ‖P₁ t‖^2) volume
+      (-((halaszM x : ℕ):ℝ) - 1/2 + i) (-((halaszM x : ℕ):ℝ) - 1/2 + (i+1)))
+    (hj : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖P₃ t‖^2 * w t * ‖P₁ t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hk1 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => (‖P₃ t‖^2/(1+t^2)) * ‖P₁ t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hk2 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖P₃ t‖^2/(1+t^2)) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hk3 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖P₃ t‖^2) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2)) :
+    (∫ ξ, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * w ξ)
+      ≤ (lam/2) * E₁
+        + (1/(2*lam)) * (5 * C * V * halaszLSq B x + Mtail) := by
+  classical
+  have hsplit := pairing_le_amgm P₁ P₂ P₃ w lam hlam hw0 hg0 hg1 hg2
+  refine le_trans hsplit ?_
+  have hI2 := integral_line_halasz_le P₃ P₁ w B x C V Mtail hC0 hwle
+    hB hB0 hV hg2 htail htile hj hk1 hk2 hk3
+  have hlam0 : (0:ℝ) ≤ lam/2 := by linarith
+  have hlam1 : (0:ℝ) ≤ 1/(2*lam) := by positivity
+  have h1 : (lam/2) * (∫ ξ, ‖P₂ ξ‖^2 * w ξ) ≤ (lam/2) * E₁ :=
+    mul_le_mul_of_nonneg_left hE₁ hlam0
+  have h2 : (1/(2*lam)) * (∫ ξ, ‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2)
+      ≤ (1/(2*lam)) * (5 * C * V * halaszLSq B x + Mtail) :=
+    mul_le_mul_of_nonneg_left hI2 hlam1
+  linarith [h1, h2]
+
 end MoltResearch
