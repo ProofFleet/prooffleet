@@ -2447,4 +2447,99 @@ theorem Icc_filter_prime_eq_primesBelow (X : ℕ) :
   · rintro ⟨hqX, hq⟩
     exact ⟨⟨hq.one_lt.le, by omega⟩, hq⟩
 
+open Finset in
+/-- **The endpoint term of the inner prime range** (Track R, N15c): the
+two prime ranges of `Icc_filter_prime_eq_primesBelow` differ by at most
+one summand, of size `≤ 2·log⌊x/p⌋`.
+
+`sum_mul_log_x_prime_restrict` applied at `⌊x/p⌋` produces primes
+`≤ ⌊x/p⌋`; `tripleConv` consumes primes `< ⌊x/p⌋`.  The gap is the
+single term `q = ⌊x/p⌋`, and its innermost range has at most two
+elements because `p·⌊x/p⌋ > x − p ≥ x/2`.  So the whole discrepancy is
+`≤ 2·log⌊x/p⌋`. -/
+theorem inner_endpoint_diff_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x p : ℕ) (hp : 1 ≤ p) (h2 : 2*p ≤ x) :
+    |(∑ q ∈ ((x/p)+1).primesBelow, (Real.log (q:ℝ) * f q)
+          * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n)
+        - ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+      ≤ 2 * Real.log ((x/p : ℕ):ℝ) := by
+  classical
+  have hp0 : 0 < p := by omega
+  have hsub : (x/p).primesBelow ⊆ ((x/p)+1).primesBelow := by
+    intro q hq
+    rw [Nat.mem_primesBelow] at hq ⊢
+    exact ⟨by omega, hq.2⟩
+  have hdiff : ((x/p)+1).primesBelow \ (x/p).primesBelow ⊆ {x/p} := by
+    intro q hq
+    rw [Finset.mem_sdiff, Nat.mem_primesBelow, Nat.mem_primesBelow] at hq
+    rw [Finset.mem_singleton]
+    by_contra hne
+    exact hq.2 ⟨by omega, hq.1.2⟩
+  -- the difference collapses to the sdiff
+  have hsd := Finset.sum_sdiff (f := fun q : ℕ => (Real.log (q:ℝ) * f q)
+      * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n) hsub
+  have hsplit : (∑ q ∈ ((x/p)+1).primesBelow, (Real.log (q:ℝ) * f q)
+        * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n)
+      - ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n
+      = ∑ q ∈ ((x/p)+1).primesBelow \ (x/p).primesBelow,
+          (Real.log (q:ℝ) * f q) * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n := by
+    linarith [hsd]
+  rw [hsplit]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  -- the single surviving term is small
+  have hterm : ∀ q ∈ ((x/p)+1).primesBelow \ (x/p).primesBelow,
+      |(Real.log (q:ℝ) * f q) * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+        ≤ 2 * Real.log ((x/p : ℕ):ℝ) := by
+    intro q hq
+    have hqX : q = x/p := Finset.mem_singleton.mp (hdiff hq)
+    have hq0 : 0 < q := by
+      rw [hqX]
+      rw [Nat.lt_div_iff_mul_lt hp0]
+      omega
+    -- `p·q > x − p`, so the innermost range has at most two elements
+    have hexp : p * (x/p + 1) = p * (x/p) + p := by ring
+    have hlt := Nat.lt_mul_div_succ x hp0
+    have hpq_lb : x < p * q + p := by
+      rw [hqX]
+      omega
+    have hpq_ub : p * q ≤ x := by
+      rw [hqX]
+      exact Nat.mul_div_le x p
+    have hcard : x/(p*q) ≤ 2 := by
+      rw [Nat.div_le_iff_le_mul_add_pred (by positivity)]
+      omega
+    have hinner : |∑ n ∈ Finset.Icc 1 (x/(p*q)), f n| ≤ 2 := by
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      calc ∑ n ∈ Finset.Icc 1 (x/(p*q)), |f n|
+          ≤ ∑ _n ∈ Finset.Icc 1 (x/(p*q)), (1:ℝ) :=
+            Finset.sum_le_sum fun n _ => hf n
+        _ = ((Finset.Icc 1 (x/(p*q))).card : ℝ) := by
+            rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+        _ ≤ 2 := by
+            rw [Nat.card_Icc, Nat.add_sub_cancel]
+            exact_mod_cast hcard
+    have hlogq : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+    have hlogeq : Real.log (q:ℝ) = Real.log ((x/p : ℕ):ℝ) := by rw [hqX]
+    rw [abs_mul, abs_mul, abs_of_nonneg hlogq]
+    calc Real.log (q:ℝ) * |f q| * |∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+        ≤ Real.log (q:ℝ) * 1 * 2 := by
+          refine mul_le_mul (mul_le_mul_of_nonneg_left (hf q) hlogq) hinner
+            (abs_nonneg _) (by positivity)
+      _ = 2 * Real.log (q:ℝ) := by ring
+      _ = 2 * Real.log ((x/p : ℕ):ℝ) := by rw [hlogeq]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have hcard1 : (((x/p)+1).primesBelow \ (x/p).primesBelow).card ≤ 1 := by
+    have h := Finset.card_le_card hdiff
+    simpa using h
+  have hlogX : (0:ℝ) ≤ Real.log ((x/p : ℕ):ℝ) := Real.log_natCast_nonneg _
+  rw [Finset.sum_const, nsmul_eq_mul]
+  calc ((((x/p)+1).primesBelow \ (x/p).primesBelow).card : ℝ)
+        * (2 * Real.log ((x/p : ℕ):ℝ))
+      ≤ 1 * (2 * Real.log ((x/p : ℕ):ℝ)) := by
+        refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+        exact_mod_cast hcard1
+    _ = 2 * Real.log ((x/p : ℕ):ℝ) := one_mul _
+
 end MoltResearch
