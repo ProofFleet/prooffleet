@@ -2862,4 +2862,22 @@ theorem sum_after_discards (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     linarith [hN5, hHead]
   linarith [h1, hTail]
 
+/-- **The blocks tile** (Track R, N19): `blockLo x (k+1) = blockHi x k`.
+
+Consecutive blocks of §3 abut exactly — the upper endpoint of block `k`
+*is* the lower endpoint of block `k+1`, because
+`1 − e^{1−(k+1)} = 1 − e^{−k}` on the nose.  So the blocks
+`[blockLo x k, blockHi x k)` for `k = 1, …, K` partition
+`[blockLo x 1, blockHi x K)` with no gaps and no overlaps, which is what
+lets the mean value be reassembled from them.
+
+`blockLo x 1 = ⌈x⁰⌉ = 1`, so the tiling starts at the bottom of the
+prime range. -/
+theorem blockLo_succ_eq_blockHi (x k : ℕ) :
+    blockLo x (k+1) = blockHi x k := by
+  rw [blockLo, blockHi]
+  congr 2
+  push_cast
+  norm_num
+
 end MoltResearch
