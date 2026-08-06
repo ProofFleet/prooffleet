@@ -2424,4 +2424,27 @@ theorem log_div_le_two_mul_log_natDiv (x p : ℕ) (hp : 1 ≤ p) (h2 : 2*p ≤ x
         rw [Real.log_mul (by norm_num) (by linarith)]
     _ ≤ 2 * Real.log ((x/p : ℕ):ℝ) := by linarith
 
+open Finset in
+/-- **The two prime ranges agree, off by one** (Track R, N15b):
+
+  `(Icc 1 X).filter Nat.Prime = (X+1).primesBelow`.
+
+`sum_mul_log_x_prime_restrict` produces its primes as
+`(Icc 1 X).filter Nat.Prime` — the primes `≤ X` — whereas `tripleConv`
+and the mass bounds are written with `X.primesBelow`, the primes
+`< X`.  The two differ by the single endpoint `X`, and this identity
+pins the relationship exactly rather than leaving it to be rediscovered
+at the point of use.
+
+The `1 ≤ q` side condition is free: it follows from primality. -/
+theorem Icc_filter_prime_eq_primesBelow (X : ℕ) :
+    (Finset.Icc 1 X).filter Nat.Prime = (X+1).primesBelow := by
+  ext q
+  simp only [Finset.mem_filter, Finset.mem_Icc, Nat.mem_primesBelow]
+  constructor
+  · rintro ⟨⟨_, hqX⟩, hq⟩
+    exact ⟨by omega, hq⟩
+  · rintro ⟨hqX, hq⟩
+    exact ⟨⟨hq.one_lt.le, by omega⟩, hq⟩
+
 end MoltResearch
