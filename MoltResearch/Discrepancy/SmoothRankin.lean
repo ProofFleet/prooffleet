@@ -2741,4 +2741,52 @@ theorem iteration_diff_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   refine le_trans (Finset.sum_le_sum hterm) ?_
   rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
 
+open Finset in
+/-- **The trivial bound at the `k`-th block** (Track R, N16): combining
+the modulus bound with the block geometry,
+
+  `|tripleConv f x P_k| ≤ x·(16·((e−1)·e^{−k}·log x + log 2) + 16·log 4)`,
+
+i.e. `≪ e^{−k}·x·log x`.  This is §3's trivial estimate in the form it
+is actually used, and its geometric decay in `k` is what
+`sum_exp_neg_tail_le` then exploits to discard all but boundedly many
+blocks.
+
+The hypothesis `2·blockHi x k ≤ x` is not an artifact: the upper
+endpoint is `⌈x^{1−e^{−k}}⌉`, which approaches `x` as `k` grows, so the
+blocks only fit inside the range while `k ≲ log log x`.  That is exactly
+the cutoff §3 imposes, and it is the caller's job to supply it. -/
+theorem tripleConv_block_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x k : ℕ)
+    (hx : 2 ≤ x) (hk : 1 ≤ k) (hfit : 2 * blockHi x k ≤ x) :
+    |tripleConv f x
+        ((Finset.Ico (blockLo x k) (blockHi x k)).filter Nat.Prime)|
+      ≤ (x:ℝ) * (16 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+          + Real.log 2) + 16 * Real.log 4) := by
+  have hx1 : 1 ≤ x := by omega
+  obtain ⟨hlo1, hlohi⟩ := blockLo_le_blockHi x k hx1
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  refine le_trans (norm_tripleConv_le f hf x (blockLo x k) (blockHi x k)
+    hlo1 hlohi hfit) ?_
+  refine mul_le_mul_of_nonneg_left ?_ hx0
+  have hgeom := log_blockHi_sub_log_blockLo_le x k hx hk
+  linarith [hgeom]
+
+open Finset in
+/-- **Factoring over an arbitrary prime set** (Track R, N17):
+`sum_prime_conv_factor` holds over any finset, not only
+`(Icc 1 x).filter Nat.Prime`.
+
+§3 discards the extreme primes *before* factoring — the discard bounds
+(`prime_head_sum_le`, `prime_tail_sum_le`) are stated for the
+unfactored form `log p · ∑ f(pm)` — so the factoring has to be applied
+afterwards to whatever survives.  The proof is termwise and never used
+the shape of the index set, so the generalisation is free. -/
+theorem sum_prime_conv_factor' (f : ℕ → ℝ)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (x : ℕ) (P : Finset ℕ) :
+    ∑ p ∈ P, Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)
+      = ∑ p ∈ P, (Real.log (p:ℝ) * f p) * ∑ m ∈ Finset.Icc 1 (x/p), f m := by
+  refine Finset.sum_congr rfl fun p _ => ?_
+  rw [Finset.mul_sum, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun m _ => by rw [hmul]; ring
+
 end MoltResearch
