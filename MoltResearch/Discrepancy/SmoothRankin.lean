@@ -4541,4 +4541,98 @@ theorem integral_sq_weight_le (P : ℝ → ℂ) (w : ℝ → ℝ) (T C Bsup Wtai
     exact mul_le_mul_of_nonneg_left hWtail (by positivity)
   linarith [hb, ht]
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The mean value theorem with a pointwise majorant** (Track R,
+N54): if the Gaussian pair sum at `m` is at most `Q m` — a bound
+allowed to depend on `m` — then
+
+  `∫_{−T}^{T} ‖∑ a(n)Λ(n)·𝐞(−ξ log n)‖² dξ
+     ≤ e^π·T·∑_m Q(m)·‖a(m)‖²·Λ(m)`.
+
+`intervalIntegral_vonMangoldt_mvt_le` takes `Q` uniform over `S`, which
+forces the coefficients to live on a dyadic block: the pair sum at `m`
+is `≍ m·log m/T`, so a uniform `Q` is the value at the top of the range
+and is lossy everywhere below it.  Decomposing a long range into dyadic
+blocks recovers sharpness only at the cost of a factor equal to the
+number of blocks — a `log`, which is exactly what this argument cannot
+afford.
+
+A pointwise `Q` avoids both.  The proof needs nothing new: the uniform
+version already ends in a `Finset.sum_le_sum` over `m`, so the majorant
+may as well vary with `m`.
+
+This is what puts GHS's Lemma 1 in reach for the full range: their
+right-hand side `∑ n·|a(n)|²·Λ(n)` is precisely this statement with
+`Q(m) ≍ m`, and no dyadic decomposition anywhere. -/
+theorem intervalIntegral_vonMangoldt_mvt_pointwise_le (T : ℝ) (hT : 0 < T)
+    (S : Finset ℕ) (a : ℕ → ℂ) (Q : ℕ → ℝ)
+    (hQ : ∀ m ∈ S, ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)) ≤ Q m) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((vonMangoldt n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T * ∑ m ∈ S, Q m * (‖a m‖^2 * vonMangoldt m) := by
+  classical
+  have hexpT : (0:ℝ) ≤ Real.exp π * T :=
+    mul_nonneg (Real.exp_pos _).le hT.le
+  refine le_trans (ExpSums.intervalIntegral_norm_sq_gaussian_diag_le S a
+    (fun n => vonMangoldt n) (fun n => vonMangoldt_nonneg) T hT) ?_
+  have hinner : ∀ m ∈ S, ∑ n ∈ S, (vonMangoldt n : ℝ)
+      * (Real.exp π * T
+          * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)))
+      ≤ Real.exp π * T * Q m := by
+    intro m hm
+    have heq : ∑ n ∈ S, (vonMangoldt n : ℝ)
+        * (Real.exp π * T
+            * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)))
+        = Real.exp π * T * ∑ n ∈ S, (vonMangoldt n : ℝ)
+            * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)) := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun n _ => by ring
+    rw [heq]
+    exact mul_le_mul_of_nonneg_left (hQ m hm) hexpT
+  have hmid : ∑ m ∈ S, ‖a m‖^2 * (vonMangoldt m : ℝ)
+        * ∑ n ∈ S, (vonMangoldt n : ℝ)
+            * (Real.exp π * T
+                * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)))
+      ≤ ∑ m ∈ S, ‖a m‖^2 * (vonMangoldt m : ℝ) * (Real.exp π * T * Q m) := by
+    refine Finset.sum_le_sum fun m hm => ?_
+    exact mul_le_mul_of_nonneg_left (hinner m hm)
+      (mul_nonneg (sq_nonneg _) vonMangoldt_nonneg)
+  refine le_trans hmid (le_of_eq ?_)
+  rw [Finset.mul_sum]
+  exact Finset.sum_congr rfl fun m _ => by ring
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The sharp mean value theorem on a block** (Track R, N55): with
+the pointwise majorant,
+
+  `∫_{−T}^{T}‖∑ a(n)Λ(n)𝐞(−ξ log n)‖²
+     ≤ e^π·T·∑_m (6144⌈2m/T⌉ + log m + …)·‖a(m)‖²Λ(m)`.
+
+The leading term is `≍ ∑_m m·‖a(m)‖²·Λ(m)/T`, which is GHS's Lemma 1
+shape — the weight `m` appearing on each coefficient rather than the
+top of the range appearing on all of them.
+
+`inner_sum_block_le` was already stated with an `m`-dependent leading
+term `6144⌈2m/T⌉`; only `intervalIntegral_vonMangoldt_mvt_le`'s uniform
+`Q` was discarding that dependence.  With
+`intervalIntegral_vonMangoldt_mvt_pointwise_le` it survives, and the
+composition is immediate. -/
+theorem intervalIntegral_vonMangoldt_mvt_block_pointwise_le (T : ℝ) (N : ℕ)
+    (S : Finset ℕ) (a : ℕ → ℂ) (hS : S ⊆ Finset.Ioc N (2*N)) (hN : 1 ≤ N)
+    (hT : 2 ≤ T) (hTm : ∀ m ∈ S, T^2 ≤ (m:ℝ))
+    (hsmall : ∀ m ∈ S, 2*(⌈2*(m:ℝ)/T⌉₊) ≤ N)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((vonMangoldt n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T * ∑ m ∈ S,
+          (6144*((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (m:ℝ)
+            + Real.exp (-(π*T^2/64)) * B
+            + ((Nat.sqrt (2*N) + 1 : ℕ):ℝ) * ((Nat.log 2 (2*N) : ℕ):ℝ)
+                * Real.log ((2*N : ℕ):ℝ))
+          * (‖a m‖^2 * vonMangoldt m) := by
+  refine intervalIntegral_vonMangoldt_mvt_pointwise_le T (by linarith) S a _ ?_
+  intro m hm
+  exact inner_sum_block_le T N m S hS hm hN hT (hTm m hm) (hsmall m hm) B hB
+
 end MoltResearch
