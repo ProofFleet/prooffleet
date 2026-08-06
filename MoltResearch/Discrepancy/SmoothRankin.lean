@@ -3879,4 +3879,74 @@ theorem integral_mul_le_param (A G : ℝ → ℝ) (lam a b : ℝ) (hlam : 0 < la
   rw [intervalIntegral.integral_add (hi2.const_mul _) (hi3.const_mul _),
     intervalIntegral.integral_const_mul, intervalIntegral.integral_const_mul]
 
+open MeasureTheory Real Complex Finset in
+/-- **The `I₂` estimate against an abstract Perron weight** (Track R,
+N39): if `W(t) ≤ C/(1+t²)` then
+
+  `∑_N ∫_{N−1/2}^{N+1/2} ‖D(t)‖²·W(t)·‖F(t)‖² dt ≤ 5·C·V·L(x)²`.
+
+`sum_unit_interval_halasz_le` with the contour weight `1/(1+t²)`
+replaced by anything dominated by it.
+
+Parametrising by `W` rather than by `‖𝓕V‖` is the same choice made for
+`L(x)` itself: the estimate only ever needs an upper bound on the
+weight, so the Fourier machinery stays out of the statement and the
+caller supplies `W := ‖𝓕V‖` through
+`ExpSums.fourier_window_le_inv_one_add_sq`.  It also means the lemma is
+equally usable with the genuine contour kernel, should that ever be
+preferred. -/
+theorem sum_unit_interval_weight_halasz_le (D Fn : ℝ → ℂ) (W : ℝ → ℝ)
+    (B : ℤ → ℝ) (x : ℕ) (C V : ℝ) (hC0 : 0 ≤ C)
+    (hWle : ∀ t, W t ≤ C/(1+t^2))
+    (hB : ∀ N ∈ halaszRange x, ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+      ‖Fn t‖ ≤ B N)
+    (hB0 : ∀ N, 0 ≤ B N)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖D t‖^2) ≤ V)
+    (hj : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖D t‖^2 * W t * ‖Fn t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hi1 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => (‖D t‖^2/(1+t^2)) * ‖Fn t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hi2 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖D t‖^2/(1+t^2)) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hi3 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖D t‖^2) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2)) :
+    ∑ N ∈ halaszRange x,
+        (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖D t‖^2 * W t * ‖Fn t‖^2)
+      ≤ 5 * C * V * halaszLSq B x := by
+  classical
+  have hstep : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖D t‖^2 * W t * ‖Fn t‖^2)
+        ≤ C * ∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+            (‖D t‖^2/(1+t^2)) * ‖Fn t‖^2 := by
+    intro N hN
+    have hle : ((N:ℝ) - 1/2) ≤ ((N:ℝ) + 1/2) := by linarith
+    have hpt : ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+        ‖D t‖^2 * W t * ‖Fn t‖^2
+          ≤ C * ((‖D t‖^2/(1+t^2)) * ‖Fn t‖^2) := by
+      intro t _
+      have hD : (0:ℝ) ≤ ‖D t‖^2 := by positivity
+      have hF : (0:ℝ) ≤ ‖Fn t‖^2 := by positivity
+      have hw := hWle t
+      have heq : C * ((‖D t‖^2/(1+t^2)) * ‖Fn t‖^2)
+          = ‖D t‖^2 * (C/(1+t^2)) * ‖Fn t‖^2 := by ring
+      rw [heq]
+      exact mul_le_mul_of_nonneg_right
+        (mul_le_mul_of_nonneg_left hw hD) hF
+    have hcm : IntervalIntegrable
+        (fun t => C * ((‖D t‖^2/(1+t^2)) * ‖Fn t‖^2)) volume
+        ((N:ℝ) - 1/2) ((N:ℝ) + 1/2) := (hi1 N hN).const_mul _
+    refine le_trans
+      (intervalIntegral.integral_mono_on hle (hj N hN) hcm hpt) ?_
+    rw [intervalIntegral.integral_const_mul]
+  refine le_trans (Finset.sum_le_sum hstep) ?_
+  rw [← Finset.mul_sum]
+  have hmain := sum_unit_interval_halasz_le D Fn B x V hB hB0 hV hi1 hi2 hi3
+  calc C * ∑ N ∈ halaszRange x,
+        (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), (‖D t‖^2/(1+t^2)) * ‖Fn t‖^2)
+      ≤ C * (5 * V * halaszLSq B x) := mul_le_mul_of_nonneg_left hmain hC0
+    _ = 5 * C * V * halaszLSq B x := by ring
+
 end MoltResearch

@@ -621,6 +621,64 @@ theorem fourier_pointwise_decay (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V)
     _ = ‖𝓕 (iteratedDeriv 2 Vc) ξ‖ := h2.symm
     _ ≤ M₂ := h3
 
+/-- **The window transform is a Perron weight** (Track R, N38): for `V`
+smooth and compactly supported,
+
+  `‖𝓕V(ξ)‖ ≤ (2·MV + M₂/(2π²))/(1 + ξ²)`,
+
+where `MV` bounds `‖𝓕V‖` and `M₂ = ∫|V''|`.
+
+This is the join between the smoothed Perron setting and the sharp
+Halász argument.  GHS take the contour weight `|ds|/|s|² = dt/(1+t²)`
+directly; here the same shape is produced from the window, by using the
+sup bound near the origin and `fourier_pointwise_decay` away from it.
+
+Both regimes are needed and neither suffices alone: the pointwise decay
+is vacuous at `ξ = 0`, and the sup carries no decay.  Splitting at
+`|ξ| = 1` costs only the factor `2` in each, since `1 + ξ² ≤ 2` there
+and `1 + ξ² ≤ 2ξ²` beyond.
+
+With this, `sum_unit_interval_halasz_le` can be applied to the smoothed
+Perron integral — no contour required. -/
+theorem fourier_window_le_inv_one_add_sq (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V)
+    (hVc : HasCompactSupport V) (M₂ MV : ℝ)
+    (hM₂ : ∫ v, |iteratedDeriv 2 V v| ≤ M₂)
+    (hMV : ∀ ξ, ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ ≤ MV) (ξ : ℝ) :
+    ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖
+      ≤ (2*MV + M₂/(2*Real.pi^2))/(1+ξ^2) := by
+  have hpi : (0:ℝ) < Real.pi := Real.pi_pos
+  have hMV0 : (0:ℝ) ≤ MV := le_trans (norm_nonneg _) (hMV 0)
+  have hM₂0 : (0:ℝ) ≤ M₂ :=
+    le_trans (integral_nonneg fun v => abs_nonneg _) hM₂
+  have hden : (0:ℝ) < 1 + ξ^2 := by positivity
+  rw [le_div_iff₀ hden]
+  by_cases hsmall : ξ^2 ≤ 1
+  · -- near the origin: the sup bound, at a cost of 2
+    calc ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ * (1+ξ^2)
+        ≤ MV * (1+ξ^2) := mul_le_mul_of_nonneg_right (hMV ξ) hden.le
+      _ ≤ MV * 2 := by nlinarith [hMV0, hsmall]
+      _ ≤ 2*MV + M₂/(2*Real.pi^2) := by
+          have : (0:ℝ) ≤ M₂/(2*Real.pi^2) := by positivity
+          linarith
+  · -- away from the origin: two integrations by parts
+    push_neg at hsmall
+    have hξ0 : ξ ≠ 0 := by
+      intro h
+      rw [h] at hsmall
+      norm_num at hsmall
+    have hξsq : (0:ℝ) < ξ^2 := by positivity
+    have hdec := fourier_pointwise_decay V hVs hVc M₂ hM₂ ξ hξ0
+    have hcoef : (0:ℝ) < 4*Real.pi^2*ξ^2 := by positivity
+    calc ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ * (1+ξ^2)
+        ≤ (M₂/(4*Real.pi^2*ξ^2)) * (1+ξ^2) :=
+          mul_le_mul_of_nonneg_right hdec hden.le
+      _ ≤ M₂/(2*Real.pi^2) := by
+          rw [div_mul_eq_mul_div, div_le_div_iff₀ hcoef (by positivity)]
+          nlinarith [mul_nonneg (mul_nonneg
+            (by positivity : (0:ℝ) ≤ 2*Real.pi^2) hM₂0)
+            (by linarith : (0:ℝ) ≤ ξ^2 - 1)]
+      _ ≤ 2*MV + M₂/(2*Real.pi^2) := by linarith
+
 /-- **The window transform tail** (Track R, M2-i1c): a smooth compactly
 supported real window with second-derivative mass `M₂` has transform
 tail `∫_{|ξ|>L} ‖𝓕V‖ ≤ M₂/(2π²L)` — two integrations by parts against
