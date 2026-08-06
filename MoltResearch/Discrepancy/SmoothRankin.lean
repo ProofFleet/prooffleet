@@ -2375,4 +2375,53 @@ theorem log_blockHi_sub_log_blockLo_le (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k)
     ring
   linarith [hlogHi, hlogLo, hdiff]
 
+open Finset in
+/-- **Real quotient versus natural quotient** (Track R, N15a): for
+`2p ≤ x`,
+
+  `log(x/p) ≤ 2·log⌊x/p⌋`.
+
+The two are not interchangeable and the direction matters.  The
+iteration of §3 applies the log-identity at the *natural number*
+`⌊x/p⌋`, so it produces `log⌊x/p⌋` in the denominator; but
+`tripleConv` and the mass bounds are stated with the real quotient
+`log(x/p)`.  Since these sit in a denominator, replacing one by the
+other weakens or strengthens a bound depending on the direction, and
+`log⌊x/p⌋ ≤ log(x/p)` is the *wrong* way round for transferring an
+upper bound.
+
+This supplies the missing direction, at the cost of a factor two:
+`x/p < ⌊x/p⌋ + 1 ≤ 2⌊x/p⌋`, and `⌊x/p⌋ ≥ 2` makes `log 2 ≤ log⌊x/p⌋`,
+so `log(x/p) < log 2 + log⌊x/p⌋ ≤ 2·log⌊x/p⌋`. -/
+theorem log_div_le_two_mul_log_natDiv (x p : ℕ) (hp : 1 ≤ p) (h2 : 2*p ≤ x) :
+    Real.log ((x:ℝ)/(p:ℝ)) ≤ 2 * Real.log ((x/p : ℕ):ℝ) := by
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+  -- the natural quotient is at least two
+  have hN2 : 2 ≤ x/p := by
+    rw [Nat.le_div_iff_mul_le (by omega)]
+    omega
+  have hN2R : (2:ℝ) ≤ ((x/p : ℕ):ℝ) := by exact_mod_cast hN2
+  have hlogN : Real.log 2 ≤ Real.log ((x/p : ℕ):ℝ) :=
+    Real.log_le_log (by norm_num) hN2R
+  -- the real quotient is below twice the natural one
+  have hlt : (x:ℝ)/(p:ℝ) < ((x/p : ℕ):ℝ) + 1 := by
+    rw [div_lt_iff₀ hp0]
+    have hnat : x < (x/p + 1) * p := by
+      have hlt' : x < p * (x/p + 1) := Nat.lt_mul_div_succ x (by omega)
+      rwa [mul_comm] at hlt'
+    have hc : (x:ℝ) < (((x/p + 1) * p : ℕ):ℝ) := by exact_mod_cast hnat
+    push_cast at hc
+    linarith
+  have hdouble : (x:ℝ)/(p:ℝ) ≤ 2 * ((x/p : ℕ):ℝ) := by linarith
+  have hpos : (0:ℝ) < (x:ℝ)/(p:ℝ) := by
+    have : (0:ℝ) < (x:ℝ) := by
+      have : 0 < x := by omega
+      exact_mod_cast this
+    positivity
+  calc Real.log ((x:ℝ)/(p:ℝ))
+      ≤ Real.log (2 * ((x/p : ℕ):ℝ)) := Real.log_le_log hpos hdouble
+    _ = Real.log 2 + Real.log ((x/p : ℕ):ℝ) := by
+        rw [Real.log_mul (by norm_num) (by linarith)]
+    _ ≤ 2 * Real.log ((x/p : ℕ):ℝ) := by linarith
+
 end MoltResearch
