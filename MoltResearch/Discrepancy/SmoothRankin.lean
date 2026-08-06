@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.RamareIdentity
 import MoltResearch.Discrepancy.MertensFirst
 import MoltResearch.Discrepancy.LogUniform
+import MoltResearch.Discrepancy.PerronWindow
 import Mathlib.NumberTheory.SmoothNumbers
 
 /-!
@@ -4361,5 +4362,123 @@ theorem pairing_halasz_sqrt_le (P₁ P₂ P₃ : ℝ → ℂ) (w : ℝ → ℝ) 
     hj hk1 hk2 hk3
   rw [← pairing_optimal_lambda E₁ Q hE₁0 hQ0]
   exact hmain
+
+open Finset Real Complex in
+/-- **The `P_k` polynomial** (Track R, N48): GHS §4's
+`∑_{p ∈ P_k} f(p)·log p/(p^s·log(x/p))` on the `1`-line. -/
+noncomputable def ghsBlockPoly (f : ℕ → ℂ) (x : ℕ) (P : Finset ℕ) : ℝ → ℂ :=
+  fun ξ => ∑ p ∈ P,
+    (((Real.log (p:ℝ) : ℂ) * f p)
+        / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ) : ℂ)))
+      * ((Real.fourierChar (-(Real.log (p:ℝ) * ξ)) : Circle) : ℂ)
+
+open Finset Real Complex in
+/-- **The `q` polynomial** (Track R, N48): GHS §4's
+`∑_{q ≤ x^{e^{1−k}}} f(q)·log q/q^s`, `q` prime. -/
+noncomputable def ghsPrimePoly (f : ℕ → ℂ) (Q : Finset ℕ) : ℝ → ℂ :=
+  fun ξ => ∑ q ∈ Q, (((Real.log (q:ℝ) : ℂ) * f q) / (q:ℂ))
+      * ((Real.fourierChar (-(Real.log (q:ℝ) * ξ)) : Circle) : ℂ)
+
+open Finset Real Complex in
+/-- **The main Dirichlet polynomial** (Track R, N48): `∑_{n} f(n)/n^s`,
+which plays the role of GHS's truncated Euler product `F_x` — it is the
+factor bounded in `L∞`, and whose unit-interval suprema define `L(x)`. -/
+noncomputable def ghsMainPoly (f : ℕ → ℂ) (S : Finset ℕ) : ℝ → ℂ :=
+  fun ξ => ∑ n ∈ S, (f n / (n:ℂ))
+      * ((Real.fourierChar (-(Real.log (n:ℝ) * ξ)) : Circle) : ℂ)
+
+open Finset Real Complex in
+/-- The three §4 polynomials are continuous (Track R, N48) — the
+regularity that discharges the integrability side conditions of
+`pairing_halasz_sqrt_le`. -/
+theorem continuous_ghsBlockPoly (f : ℕ → ℂ) (x : ℕ) (P : Finset ℕ) :
+    Continuous (ghsBlockPoly f x P) :=
+  ExpSums.continuous_char_poly P _ _
+
+open Finset Real Complex in
+theorem continuous_ghsPrimePoly (f : ℕ → ℂ) (Q : Finset ℕ) :
+    Continuous (ghsPrimePoly f Q) :=
+  ExpSums.continuous_char_poly Q _ _
+
+open Finset Real Complex in
+theorem continuous_ghsMainPoly (f : ℕ → ℂ) (S : Finset ℕ) :
+    Continuous (ghsMainPoly f S) :=
+  ExpSums.continuous_char_poly S _ _
+
+open Finset Real Complex in
+/-- **The trivial sup of the `q` polynomial** (Track R, N48): for
+`‖f‖ ≤ 1`,
+
+  `‖P₃(ξ)‖ ≤ ∑_{q ∈ Q} log q/q`,  uniformly in `ξ`.
+
+Mertens' first theorem bounds the right side by `log(max Q) + O(1)`,
+which is the `e^{−k}·log x` that `I₂` needs. -/
+theorem norm_ghsPrimePoly_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (Q : Finset ℕ) (ξ : ℝ) :
+    ‖ghsPrimePoly f Q ξ‖ ≤ ∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ) := by
+  refine le_trans (ExpSums.norm_char_poly_le_sum Q _ _ ξ) ?_
+  refine Finset.sum_le_sum fun q _ => ?_
+  rw [norm_div, norm_mul, Complex.norm_real, Complex.norm_natCast,
+    Real.norm_eq_abs]
+  have hq : ‖f q‖ ≤ 1 := hf q
+  have hlog : |Real.log (q:ℝ)| = Real.log (q:ℝ) :=
+    abs_of_nonneg (Real.log_natCast_nonneg q)
+  rw [hlog]
+  have hq0 : (0:ℝ) ≤ (q:ℝ) := Nat.cast_nonneg _
+  have hlog0 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+  rcases eq_or_lt_of_le hq0 with h | h
+  · rw [← h]; simp
+  · refine div_le_div_of_nonneg_right ?_ h.le
+    nlinarith [hq, hlog0]
+
+open Finset Real Complex in
+/-- **The trivial sup of the main polynomial** (Track R, N49): for
+`‖f‖ ≤ 1`,
+
+  `‖P₁(ξ)‖ ≤ ∑_{n ∈ S} 1/n`,  uniformly in `ξ`.
+
+This is the crude `L∞` bound, `≍ log x` over `[1, x]`.  It is *not* what
+`L(x)` uses — that takes the supremum on each unit interval separately
+and weights it — but it is the bound that prices the tail, where no
+cancellation is available. -/
+theorem norm_ghsMainPoly_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (S : Finset ℕ) (ξ : ℝ) :
+    ‖ghsMainPoly f S ξ‖ ≤ ∑ n ∈ S, (1:ℝ)/(n:ℝ) := by
+  refine le_trans (ExpSums.norm_char_poly_le_sum S _ _ ξ) ?_
+  refine Finset.sum_le_sum fun n _ => ?_
+  rw [norm_div, Complex.norm_natCast]
+  have hn0 : (0:ℝ) ≤ (n:ℝ) := Nat.cast_nonneg _
+  rcases eq_or_lt_of_le hn0 with h | h
+  · rw [← h]; simp
+  · exact div_le_div_of_nonneg_right (hf n) h.le
+
+open Finset Real Complex in
+/-- **The trivial sup of the `P_k` polynomial** (Track R, N49): for
+`‖f‖ ≤ 1`,
+
+  `‖P₂(ξ)‖ ≤ ∑_{p ∈ P} log p/(p·|log(x/p)|)`.
+
+Over a block this is `≍ e^{k}·(e−1)e^{−k} = O(1)` by
+`sum_log_div_sq_ratio_block_le`'s companion — the same mass that feeds
+`I₁`, which is why `E₁` and this sup are controlled by one estimate. -/
+theorem norm_ghsBlockPoly_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1) (x : ℕ)
+    (P : Finset ℕ) (ξ : ℝ) :
+    ‖ghsBlockPoly f x P ξ‖
+      ≤ ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|) := by
+  refine le_trans (ExpSums.norm_char_poly_le_sum P _ _ ξ) ?_
+  refine Finset.sum_le_sum fun p _ => ?_
+  rw [norm_div, norm_mul, norm_mul, Complex.norm_real, Complex.norm_real,
+    Complex.norm_natCast, Real.norm_eq_abs, Real.norm_eq_abs]
+  have hlog : |Real.log (p:ℝ)| = Real.log (p:ℝ) :=
+    abs_of_nonneg (Real.log_natCast_nonneg p)
+  rw [hlog]
+  have hp0 : (0:ℝ) ≤ (p:ℝ) := Nat.cast_nonneg _
+  have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+  have hden : (0:ℝ) ≤ (p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))| :=
+    mul_nonneg hp0 (abs_nonneg _)
+  rcases eq_or_lt_of_le hden with h | h
+  · rw [← h]; simp
+  · refine div_le_div_of_nonneg_right ?_ h.le
+    nlinarith [hf p, hlog0]
 
 end MoltResearch
