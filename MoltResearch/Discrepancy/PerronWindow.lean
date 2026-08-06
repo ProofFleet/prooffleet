@@ -718,6 +718,87 @@ theorem norm_char_poly_le_sum {ι : Type*} (S : Finset ι) (w : ι → ℂ)
   have hc : ‖((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖ = 1 := by simp
   rw [hc, mul_one]
 
+/-- **Shifting a character polynomial** (Track R, N51):
+
+  `∑_i w_i·𝐞(−s_i·(N+u)) = ∑_i (w_i·𝐞(−s_i·N))·𝐞(−s_i·u)`.
+
+The frequency shift is absorbed into the coefficients, and does so
+*without changing their moduli* — the characters are unimodular.
+
+That is what lets the mean value theorem, which is stated on an interval
+centred at the origin, be applied on the unit interval around any
+frequency `N`: the shifted coefficients have the same `‖w_i‖`, so every
+bound in terms of `∑‖w_i‖²Λ(i)` is unchanged.  GHS say this as "apply
+Lemma 1 with `a_q = f(q)q^{−ih}`". -/
+theorem char_poly_shift {ι : Type*} (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ)
+    (N u : ℝ) :
+    (∑ i ∈ S, w i * ((Real.fourierChar (-(s i * (N + u))) : Circle) : ℂ))
+      = ∑ i ∈ S, (w i * ((Real.fourierChar (-(s i * N)) : Circle) : ℂ))
+          * ((Real.fourierChar (-(s i * u)) : Circle) : ℂ) := by
+  refine Finset.sum_congr rfl fun i _ => ?_
+  have hadd : -(s i * (N + u)) = -(s i * N) + -(s i * u) := by ring
+  rw [hadd, Real.fourierChar_apply, Real.fourierChar_apply,
+    Real.fourierChar_apply]
+  push_cast
+  conv_rhs => rw [mul_assoc, ← Complex.exp_add]
+  ring_nf
+
+/-- **The shifted coefficients have the same moduli** (Track R, N51) —
+the reason the shift is free. -/
+theorem norm_shifted_coeff {ι : Type*} (w : ι → ℂ) (s : ι → ℝ) (N : ℝ)
+    (i : ι) :
+    ‖w i * ((Real.fourierChar (-(s i * N)) : Circle) : ℂ)‖ = ‖w i‖ := by
+  rw [norm_mul]
+  have hc : ‖((Real.fourierChar (-(s i * N)) : Circle) : ℂ)‖ = 1 := by simp
+  rw [hc, mul_one]
+
+/-- **Recentring a unit-interval integral** (Track R, N51):
+`∫_{N−1/2}^{N+1/2} g = ∫_{−1/2}^{1/2} g(N+·)`. -/
+theorem integral_unit_shift (g : ℝ → ℝ) (N : ℝ) :
+    (∫ ξ in (N - 1/2)..(N + 1/2), g ξ)
+      = ∫ u in (-(1:ℝ)/2)..((1:ℝ)/2), g (N + u) := by
+  rw [intervalIntegral.integral_comp_add_left (fun x => g x) N]
+  congr 1
+  ring
+
+/-- **A unit-interval energy is a centred one** (Track R, N52):
+
+  `∫_{N−1/2}^{N+1/2} ‖∑ w_i·𝐞(−s_i·ξ)‖² dξ
+     = ∫_{−1/2}^{1/2} ‖∑ (w_i·𝐞(−s_i·N))·𝐞(−s_i·u)‖² du`.
+
+The mean value theorem is proved on an interval centred at the origin;
+this is what lets it be used on the unit interval around any frequency
+`N`.  By `norm_shifted_coeff` the shifted coefficients have the same
+moduli, so any bound in terms of `∑‖w_i‖²Λ(i)` transfers verbatim — the
+shift costs nothing at all.
+
+This is the last piece needed to supply `hV` to
+`integral_line_halasz_le`, which asks for a bound on
+`∫_{N−1/2}^{N+1/2} ‖P₃‖²` uniformly in `N`. -/
+theorem integral_unit_sq_shift {ι : Type*} (S : Finset ι) (w : ι → ℂ)
+    (s : ι → ℝ) (N : ℝ) :
+    (∫ ξ in (N - 1/2)..(N + 1/2),
+        ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2)
+      = ∫ u in (-(1:ℝ)/2)..((1:ℝ)/2),
+          ‖∑ i ∈ S, (w i * ((Real.fourierChar (-(s i * N)) : Circle) : ℂ))
+            * ((Real.fourierChar (-(s i * u)) : Circle) : ℂ)‖^2 := by
+  rw [integral_unit_shift (fun ξ =>
+    ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2) N]
+  refine intervalIntegral.integral_congr fun u _ => ?_
+  rw [char_poly_shift S w s N u]
+
+/-- **The shift preserves the coefficient energy** (Track R, N52):
+`∑ ‖w_i·𝐞(−s_i·N)‖² = ∑ ‖w_i‖²`.
+
+The right-hand side of the mean value theorem is untouched by the
+shift, which is why applying it off-centre is free. -/
+theorem sum_norm_sq_shifted {ι : Type*} (S : Finset ι) (w : ι → ℂ)
+    (s : ι → ℝ) (N : ℝ) :
+    (∑ i ∈ S, ‖w i * ((Real.fourierChar (-(s i * N)) : Circle) : ℂ)‖^2)
+      = ∑ i ∈ S, ‖w i‖^2 := by
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [norm_shifted_coeff w s N i]
+
 /-- **The window transform tail** (Track R, M2-i1c): a smooth compactly
 supported real window with second-derivative mass `M₂` has transform
 tail `∫_{|ξ|>L} ‖𝓕V‖ ≤ M₂/(2π²L)` — two integrations by parts against

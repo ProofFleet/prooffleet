@@ -4481,4 +4481,64 @@ theorem norm_ghsBlockPoly_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1) (x 
   · refine div_le_div_of_nonneg_right ?_ h.le
     nlinarith [hf p, hlog0]
 
+open MeasureTheory Real Complex Finset in
+/-- **The weighted energy, reduced to a band integral** (Track R, N50):
+for `0 ≤ w ≤ C` and `‖P‖ ≤ Bsup`,
+
+  `∫_ℝ ‖P‖²·w ≤ C·∫_{−T}^{T} ‖P‖² + Bsup²·Wtail`.
+
+This is what turns `E₁` — the whole-line weighted energy that
+`pairing_halasz_le` consumes — into the plain band integral that the
+mean value theorem bounds.  On the band the weight is discarded against
+its sup `C`; beyond it the polynomial is discarded against its own sup
+and the weight's tail mass pays.
+
+Both discards are lossless where it matters: `C` is `O(1)` for a
+normalised window, and the tail mass is `O(1/T)` by
+`ExpSums.fourier_tail_le`, so with `T` a power of `log x` the second
+term is negligible against the first even at the crude sup `Bsup`.
+
+Applied to `ghsBlockPoly` the band integral is Lemma 1's, landing on
+`∑_p log p/(p·log²(x/p))` — the `I₁` mass of
+`sum_log_div_sq_ratio_block_mass_le`. -/
+theorem integral_sq_weight_le (P : ℝ → ℂ) (w : ℝ → ℝ) (T C Bsup Wtail : ℝ)
+    (hT : 0 ≤ T) (hC : ∀ ξ, w ξ ≤ C) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hB : ∀ ξ, ‖P ξ‖ ≤ Bsup)
+    (hWtail : (∫ ξ in {ξ : ℝ | T < |ξ|}, w ξ) ≤ Wtail)
+    (hint : Integrable (fun ξ => ‖P ξ‖^2 * w ξ))
+    (hband : IntervalIntegrable (fun ξ => ‖P ξ‖^2 * w ξ) volume (-T) T)
+    (hband2 : IntervalIntegrable (fun ξ => ‖P ξ‖^2) volume (-T) T)
+    (htailP : IntegrableOn (fun ξ => ‖P ξ‖^2 * w ξ) {ξ : ℝ | T < |ξ|})
+    (htailw : IntegrableOn w {ξ : ℝ | T < |ξ|}) :
+    (∫ ξ, ‖P ξ‖^2 * w ξ)
+      ≤ C * (∫ ξ in (-T)..T, ‖P ξ‖^2) + Bsup^2 * Wtail := by
+  classical
+  have hB0 : (0:ℝ) ≤ Bsup := le_trans (norm_nonneg _) (hB 0)
+  rw [integral_eq_band_add_tail _ hint T hT]
+  -- on the band: discard the weight against its sup
+  have hb : (∫ ξ in (-T)..T, ‖P ξ‖^2 * w ξ)
+      ≤ C * ∫ ξ in (-T)..T, ‖P ξ‖^2 := by
+    have hle : (-T) ≤ T := by linarith
+    have hpt : ∀ ξ ∈ Set.Icc (-T) T, ‖P ξ‖^2 * w ξ ≤ C * ‖P ξ‖^2 := by
+      intro ξ _
+      have hP2 : (0:ℝ) ≤ ‖P ξ‖^2 := by positivity
+      nlinarith [hC ξ, hP2]
+    have hcm : IntervalIntegrable (fun ξ => C * ‖P ξ‖^2) volume (-T) T :=
+      hband2.const_mul _
+    refine le_trans (intervalIntegral.integral_mono_on hle hband hcm hpt) ?_
+    rw [intervalIntegral.integral_const_mul]
+  -- beyond it: discard the polynomial against its sup
+  have ht : (∫ ξ in {ξ : ℝ | T < |ξ|}, ‖P ξ‖^2 * w ξ) ≤ Bsup^2 * Wtail := by
+    have hpt : ∀ ξ, ‖P ξ‖^2 * w ξ ≤ Bsup^2 * w ξ := by
+      intro ξ
+      have h1 : ‖P ξ‖^2 ≤ Bsup^2 := by nlinarith [hB ξ, norm_nonneg (P ξ)]
+      exact mul_le_mul_of_nonneg_right h1 (hw0 ξ)
+    have hmono : (∫ ξ in {ξ : ℝ | T < |ξ|}, ‖P ξ‖^2 * w ξ)
+        ≤ ∫ ξ in {ξ : ℝ | T < |ξ|}, Bsup^2 * w ξ :=
+      MeasureTheory.setIntegral_mono htailP (htailw.const_mul _) hpt
+    refine le_trans hmono ?_
+    rw [MeasureTheory.integral_const_mul]
+    exact mul_le_mul_of_nonneg_left hWtail (by positivity)
+  linarith [hb, ht]
+
 end MoltResearch
