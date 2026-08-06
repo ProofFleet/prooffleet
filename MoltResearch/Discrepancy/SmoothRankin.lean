@@ -3704,4 +3704,179 @@ theorem sum_unit_interval_halasz_le (D Fn : ℝ → ℂ) (B : ℤ → ℝ) (x : 
   rw [← Finset.mul_sum]
   exact le_of_eq rfl
 
+open Finset Real in
+/-- **`log(x/p)` is bounded below on a block** (Track R, N34): for
+`p < blockHi x k`,
+
+  `e^{−k}·log x ≤ log(x/p)`.
+
+This is the inequality the whole block decomposition exists to provide.
+Across `P_k` the quantity `log(x/p)` is essentially constant — bounded
+below here and above by `e·e^{−k}·log x` at the other endpoint — so the
+factor `1/log(x/p)` appearing in the Ramaré/Halász identity can be
+pulled out of the `p`-sum at a bounded cost.  Without the blocks it
+varies over the whole range `[1, log x]` and no such extraction is
+possible.
+
+Note that `p < blockHi x k` is exactly `(p:ℝ) < x^{1−e^{−k}}` via
+`Nat.lt_ceil`, which is why the blocks are defined with `⌈·⌉₊` and
+half-open intervals. -/
+theorem exp_neg_mul_log_le_log_ratio (x k p : ℕ) (hx : 2 ≤ x) (hp : 1 ≤ p)
+    (hpk : p < blockHi x k) :
+    Real.exp (-(k:ℝ)) * Real.log (x:ℝ) ≤ Real.log ((x:ℝ)/(p:ℝ)) := by
+  have hx0 : (0:ℝ) < (x:ℝ) := by
+    have : (2:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+    linarith
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+  have hlt : (p:ℝ) < (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) := by
+    rw [blockHi] at hpk
+    exact Nat.lt_ceil.mp hpk
+  have hlog : Real.log (p:ℝ) ≤ (1 - Real.exp (-(k:ℝ))) * Real.log (x:ℝ) := by
+    have h1 : Real.log (p:ℝ) ≤ Real.log ((x:ℝ) ^ (1 - Real.exp (-(k:ℝ)))) :=
+      Real.log_le_log hp0 hlt.le
+    rwa [Real.log_rpow hx0] at h1
+  rw [Real.log_div (ne_of_gt hx0) (ne_of_gt hp0)]
+  nlinarith [hlog]
+
+open Finset in
+/-- **The `I₁` mass over a block** (Track R, N34):
+
+  `∑_{p ∈ P} log p/(p·log²(x/p)) ≤ (e^{2k}/log²x)·∑_{p ∈ P} log p/p`
+
+for any set of primes inside the `k`-th block.  Squaring the previous
+lemma turns the `log²(x/p)` in the denominator into the constant
+`e^{-2k}·log²x`, leaving a plain Mertens mass — which
+`sum_log_div_Ico_le_log` bounds by `≍ e^{−k}·log x`, giving
+`I₁ ≪ e^{k}/log x` overall.
+
+Against `I₂ ≪ L(x)²·e^{−k}·log x` the `e^{±k}` and `log x` both cancel
+in `√(I₁·I₂)`, which is why §4 produces `L(x)` with no residual `k`. -/
+theorem sum_log_div_sq_ratio_block_le (x k : ℕ) (hx : 2 ≤ x) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ p < blockHi x k) :
+    ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+      ≤ (Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+          * ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ) := by
+  classical
+  have hxR : (2:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  have hlogx : (0:ℝ) < Real.log (x:ℝ) := Real.log_pos (by linarith)
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum fun p hp => ?_
+  obtain ⟨hpp, hpk⟩ := hP p hp
+  have hp1 : 1 ≤ p := hpp.one_lt.le
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+  have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+  have hlow := exp_neg_mul_log_le_log_ratio x k p hx hp1 hpk
+  have hepos : (0:ℝ) < Real.exp (-(k:ℝ)) := Real.exp_pos _
+  have hratio0 : (0:ℝ) < Real.exp (-(k:ℝ)) * Real.log (x:ℝ) := by positivity
+  have hsq : (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))^2
+      ≤ (Real.log ((x:ℝ)/(p:ℝ)))^2 := by nlinarith [hlow, hratio0]
+  have hden0 : (0:ℝ) < (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))^2 := by positivity
+  have hkey : Real.log (p:ℝ)/((p:ℝ) * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+      ≤ Real.log (p:ℝ)/((p:ℝ) * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))^2) := by
+    refine div_le_div_of_nonneg_left hlogp (by positivity) ?_
+    nlinarith [hsq, hp0]
+  refine le_trans hkey (le_of_eq ?_)
+  rw [Real.exp_neg]
+  field_simp
+  congr 1
+  rw [sq, ← Real.exp_add]
+  ring_nf
+
+open Finset in
+/-- **The `I₁` estimate** (Track R, N35): for any set of primes inside
+the `k`-th block,
+
+  `∑_{p ∈ P} log p/(p·log²(x/p))
+     ≤ (e^{2k}/log²x)·(4·((e−1)e^{−k}·log x + log 2) + 4·log 4)`,
+
+whose leading term is `4(e−1)·e^{k}/log x`.
+
+This is GHS §4's `I₁ ≪ e^{k}/log x`.  Two ingredients: the block lower
+bound on `log(x/p)` (`sum_log_div_sq_ratio_block_le`) converts the
+squared denominator into the constant `e^{−2k}log²x`, and the remaining
+Mertens mass over the block is `≍ (e−1)e^{−k}·log x`.
+
+The additive `4·log 4` is an artifact of the elementary Mertens bound —
+the paper absorbs it into `≍`.  It survives here as a term
+`≪ e^{2k}/log²x`, which against `I₂ ≪ L(x)²e^{−k}log x` contributes
+`≪ L(x)²·e^{k}/log x` to `I₁·I₂`; on the range `k ≤ log(100 log x/L(x))`
+where §4 is applied this is `≪ L(x)`, so `√(I₁I₂) ≪ L(x) + 1`.  That is
+exactly the shape (3.2) allows, so the constant costs nothing. -/
+theorem sum_log_div_sq_ratio_block_mass_le (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k)
+    (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k) :
+    ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+      ≤ (Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+          * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+              + Real.log 2) + 4 * Real.log 4) := by
+  classical
+  have hx1 : 1 ≤ x := by omega
+  have hxR : (2:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  have hlogx : (0:ℝ) < Real.log (x:ℝ) := Real.log_pos (by linarith)
+  obtain ⟨hlo1, hlohi⟩ := blockLo_le_blockHi x k hx1
+  -- the squared-denominator step
+  have hstep := sum_log_div_sq_ratio_block_le x k hx P
+    (fun p hp => ⟨(hP p hp).1, (hP p hp).2.2⟩)
+  refine le_trans hstep ?_
+  -- the block Mertens mass
+  have hsub : P ⊆ (Finset.Ico (blockLo x k) (blockHi x k)).filter Nat.Prime := by
+    intro p hp
+    obtain ⟨hpp, hlo, hhi⟩ := hP p hp
+    simp only [Finset.mem_filter, Finset.mem_Ico]
+    exact ⟨⟨hlo, hhi⟩, hpp⟩
+  have hmono : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ)
+      ≤ ∑ p ∈ (Finset.Ico (blockLo x k) (blockHi x k)).filter Nat.Prime,
+          Real.log (p:ℝ)/(p:ℝ) :=
+    Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => div_nonneg (Real.log_natCast_nonneg i) (Nat.cast_nonneg _))
+  have hmass := sum_log_div_Ico_le_log (blockLo x k) (blockHi x k) hlo1 hlohi
+  have hgeom := log_blockHi_sub_log_blockLo_le x k hx hk
+  have hcoef : (0:ℝ) ≤ Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2 := by positivity
+  refine mul_le_mul_of_nonneg_left ?_ hcoef
+  linarith [hmono, hmass, hgeom]
+
+open MeasureTheory Real Finset in
+/-- **The Cauchy–Schwarz step, in parametrised form** (Track R, N36):
+for `λ > 0` and *any* real `A`, `G`,
+
+  `∫ A·G ≤ (λ/2)·∫A² + (1/(2λ))·∫G²`.
+
+GHS §4 bounds the Perron integral by `√(I₁·I₂)`.  That is this
+inequality at the optimal `λ = √(I₂/I₁)`; keeping `λ` free instead is a
+deliberate choice.
+
+Mathlib's Hölder inequality is stated for `lintegral` over `ℝ≥0∞`, and
+routing a Bochner interval integral through it costs far more than the
+`√` is worth — especially since §4 never needs the optimal constant.
+The final bound only has to reach `≪ L(x) + 1`, so a concrete `λ`
+substituted downstream does the same work.
+
+The pointwise inequality is `λA² + G²/λ − 2AG = (λA − G)²/λ ≥ 0`, which
+needs no sign condition on `A` or `G` — only `λ > 0`. -/
+theorem integral_mul_le_param (A G : ℝ → ℝ) (lam a b : ℝ) (hlam : 0 < lam)
+    (hab : a ≤ b)
+    (hi1 : IntervalIntegrable (fun t => A t * G t) volume a b)
+    (hi2 : IntervalIntegrable (fun t => (A t)^2) volume a b)
+    (hi3 : IntervalIntegrable (fun t => (G t)^2) volume a b) :
+    (∫ t in a..b, A t * G t)
+      ≤ (lam/2) * (∫ t in a..b, (A t)^2)
+        + (1/(2*lam)) * (∫ t in a..b, (G t)^2) := by
+  have hpt : ∀ t ∈ Set.Icc a b,
+      A t * G t ≤ (lam/2) * (A t)^2 + (1/(2*lam)) * (G t)^2 := by
+    intro t _
+    have h2l : (0:ℝ) < 2*lam := by linarith
+    rw [← sub_nonneg]
+    have hexp : (lam/2) * (A t)^2 + (1/(2*lam)) * (G t)^2 - A t * G t
+        = (lam * A t - G t)^2 / (2*lam) := by
+      field_simp
+      ring
+    rw [hexp]
+    positivity
+  have hsum : IntervalIntegrable
+      (fun t => (lam/2) * (A t)^2 + (1/(2*lam)) * (G t)^2) volume a b :=
+    (hi2.const_mul _).add (hi3.const_mul _)
+  refine le_trans (intervalIntegral.integral_mono_on hab hi1 hsum hpt) ?_
+  rw [intervalIntegral.integral_add (hi2.const_mul _) (hi3.const_mul _),
+    intervalIntegral.integral_const_mul, intervalIntegral.integral_const_mul]
+
 end MoltResearch
