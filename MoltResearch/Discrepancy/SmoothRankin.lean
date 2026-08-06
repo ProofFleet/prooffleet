@@ -3949,4 +3949,154 @@ theorem sum_unit_interval_weight_halasz_le (D Fn : ℝ → ℂ) (W : ℝ → ℝ
       ≤ C * (5 * V * halaszLSq B x) := mul_le_mul_of_nonneg_left hmain hC0
     _ = 5 * C * V * halaszLSq B x := by ring
 
+open MeasureTheory Real Finset in
+/-- **The unit-interval cover of a symmetric range** (Track R, N40):
+
+  `∑_{|N| ≤ M} ∫_{N−1/2}^{N+1/2} g = ∫_{−M−1/2}^{M+1/2} g`.
+
+The integers `N ∈ [−M, M]` have unit intervals that tile
+`[−M−1/2, M+1/2]` exactly, so the decomposition is an identity, not an
+estimate.
+
+This is the join between the Perron pairing integral — produced over a
+whole range by `norm_sum_translates_le_integral_char` — and the
+per-interval estimates `sum_unit_interval_weight_halasz_le` consumes.
+Without it the `ℓ²`-weighted argument has nothing to attach to.
+
+`intervalIntegral.sum_integral_adjacent_intervals` supplies the tiling
+over `Finset.range (2M+1)`; the work here is the reindexing to `ℤ`,
+where the frequency `N` naturally lives. -/
+theorem sum_unit_intervals_eq (g : ℝ → ℝ) (M : ℕ)
+    (hint : ∀ i : ℕ, i < 2*M+1 → IntervalIntegrable g volume
+      (-(M:ℝ) - 1/2 + i) (-(M:ℝ) - 1/2 + (i+1))) :
+    ∑ N ∈ Finset.Icc (-(M:ℤ)) (M:ℤ),
+        (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), g t)
+      = ∫ t in (-(M:ℝ) - 1/2)..((M:ℝ) + 1/2), g t := by
+  classical
+  set a : ℕ → ℝ := fun i => -(M:ℝ) - 1/2 + i with ha_def
+  have hadj := intervalIntegral.sum_integral_adjacent_intervals
+    (a := a) (f := g) (μ := volume) (n := 2*M+1)
+    (fun i hi => by simpa [ha_def, Nat.cast_add, Nat.cast_one] using hint i hi)
+  have haend : a (2*M+1) = (M:ℝ) + 1/2 := by
+    simp only [ha_def]
+    push_cast
+    ring
+  have ha0 : a 0 = -(M:ℝ) - 1/2 := by simp [ha_def]
+  rw [ha0, haend] at hadj
+  rw [← hadj]
+  refine Finset.sum_nbij' (i := fun N => (N + (M:ℤ)).toNat)
+    (j := fun i => (i:ℤ) - (M:ℤ)) ?_ ?_ ?_ ?_ ?_
+  · intro N hN
+    simp only [Finset.mem_Icc] at hN
+    simp only [Finset.mem_range]
+    omega
+  · intro i hi
+    simp only [Finset.mem_range] at hi
+    simp only [Finset.mem_Icc]
+    omega
+  · intro N hN
+    simp only [Finset.mem_Icc] at hN
+    show ((N + (M:ℤ)).toNat : ℤ) - (M:ℤ) = N
+    omega
+  · intro i hi
+    simp only [Finset.mem_range] at hi
+    show ((((i:ℕ):ℤ) - (M:ℤ)) + (M:ℤ)).toNat = i
+    omega
+  · intro N hN
+    simp only [Finset.mem_Icc] at hN
+    have hcast : (((N + (M:ℤ)).toNat : ℕ) : ℝ) = (N:ℝ) + (M:ℝ) := by
+      have : ((N + (M:ℤ)).toNat : ℤ) = N + (M:ℤ) :=
+        Int.toNat_of_nonneg (by omega)
+      exact_mod_cast congrArg (fun z : ℤ => (z : ℝ)) this
+    have h1 : a ((N + (M:ℤ)).toNat) = (N:ℝ) - 1/2 := by
+      simp only [ha_def, hcast]; ring
+    have h2 : a ((N + (M:ℤ)).toNat + 1) = (N:ℝ) + 1/2 := by
+      simp only [ha_def]
+      push_cast [hcast]
+      ring
+    rw [h1, h2]
+
+open Finset Real in
+/-- **The half-width of the Halász range** (Track R, N41): the natural
+number `M` with `halaszRange x = [−M, M] ∩ ℤ`, namely
+`⌈log²x⌉ + 1`. -/
+noncomputable def halaszM (x : ℕ) : ℕ := (⌈(Real.log (x:ℝ))^2⌉ + 1).toNat
+
+open Finset Real in
+/-- **The Halász range is a symmetric integer interval** (Track R,
+N41): `halaszRange x = Finset.Icc (−halaszM x) (halaszM x)`.
+
+`⌈log²x⌉ ≥ 0` always — including at `x = 0`, where `log 0 = 0` — so the
+`toNat` is faithful and the range really is symmetric about the origin.
+
+The fact was previously available only inside `halaszLSq_le_of_bound`'s
+proof; stating it is what lets `sum_unit_intervals_eq` be applied to
+the Halász range, which is the form §4 needs. -/
+theorem halaszRange_eq_Icc (x : ℕ) :
+    halaszRange x = Finset.Icc (-(halaszM x : ℤ)) ((halaszM x : ℤ)) := by
+  have hc0 : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^2⌉ := Int.ceil_nonneg (sq_nonneg _)
+  have hM : ((halaszM x : ℕ) : ℤ) = ⌈(Real.log (x:ℝ))^2⌉ + 1 := by
+    rw [halaszM]
+    exact Int.toNat_of_nonneg (by omega)
+  rw [halaszRange, hM]
+
+open MeasureTheory Real Finset in
+/-- **The Halász range tiles an interval** (Track R, N41): combining
+`halaszRange_eq_Icc` with `sum_unit_intervals_eq`,
+
+  `∑_{N ∈ halaszRange x} ∫_{N−1/2}^{N+1/2} g = ∫_{−M−1/2}^{M+1/2} g`.
+
+This is the identity that attaches the `ℓ²`-weighted per-interval
+estimates to a single Perron integral over a range — the last
+structural join in §4's `I₂` chain. -/
+theorem sum_halaszRange_integral_eq (g : ℝ → ℝ) (x : ℕ)
+    (hint : ∀ i : ℕ, i < 2*(halaszM x)+1 → IntervalIntegrable g volume
+      (-((halaszM x : ℕ):ℝ) - 1/2 + i) (-((halaszM x : ℕ):ℝ) - 1/2 + (i+1))) :
+    ∑ N ∈ halaszRange x, (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), g t)
+      = ∫ t in (-((halaszM x : ℕ):ℝ) - 1/2)..(((halaszM x : ℕ):ℝ) + 1/2), g t := by
+  rw [halaszRange_eq_Icc]
+  exact sum_unit_intervals_eq g (halaszM x) hint
+
+open MeasureTheory Real Finset in
+/-- **Band/tail decomposition of a line integral** (Track R, N42):
+
+  `∫_ℝ h = ∫_{−a}^{a} h + ∫_{|ξ| > a} h`.
+
+An identity: `[−a, a]` and `{|ξ| > a}` are exactly complementary, since
+`ξ ∈ [−a, a] ↔ |ξ| ≤ a`. -/
+theorem integral_eq_band_add_tail (h : ℝ → ℝ) (hint : Integrable h) (a : ℝ)
+    (ha : 0 ≤ a) :
+    ∫ ξ, h ξ = (∫ ξ in (-a)..a, h ξ) + ∫ ξ in {ξ : ℝ | a < |ξ|}, h ξ := by
+  have hset : {ξ : ℝ | a < |ξ|} = (Set.Icc (-a) a)ᶜ := by
+    ext ξ
+    simp only [Set.mem_setOf_eq, Set.mem_compl_iff, Set.mem_Icc, ← abs_le,
+      not_le]
+  rw [hset, ← MeasureTheory.integral_add_compl measurableSet_Icc hint]
+  congr 1
+  rw [intervalIntegral.integral_of_le (by linarith : (-a:ℝ) ≤ a)]
+  exact MeasureTheory.integral_Icc_eq_integral_Ioc
+
+open MeasureTheory Real Finset in
+/-- **The band/tail split, as an estimate** (Track R, N42): with the
+tail priced by `Mtail`,
+
+  `∫_ℝ h ≤ ∫_{−a}^{a} h + Mtail`.
+
+This is the sharp route's analogue of the split inside
+`pairing_band_tail_split`.  The difference is what happens to the band:
+there it is bounded by a *uniform sup* of the `L∞` factor over
+`|ξ| ≤ a`, which is the cheap Halász shape; here the band is left as an
+integral, to be tiled by `sum_halaszRange_integral_eq` and charged
+frequency by frequency to the `ℓ²` weights of `L(x)`.  That single
+difference is the whole cheap/sharp gap.
+
+Downstream `Mtail` comes from `ExpSums.fourier_tail_le`
+(`≤ M₂/(2π²·a)`), so taking `a` a power of `log x` makes it negligible. -/
+theorem integral_le_band_add_tail (h : ℝ → ℝ) (hint : Integrable h) (a : ℝ)
+    (ha : 0 ≤ a) (Mtail : ℝ)
+    (htail : (∫ ξ in {ξ : ℝ | a < |ξ|}, h ξ) ≤ Mtail) :
+    ∫ ξ, h ξ ≤ (∫ ξ in (-a)..a, h ξ) + Mtail := by
+  rw [integral_eq_band_add_tail h hint a ha]
+  linarith
+
 end MoltResearch
