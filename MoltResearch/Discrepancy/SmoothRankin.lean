@@ -1994,4 +1994,52 @@ theorem sum_log_div_mul_log_ratio_le (x : ℕ) :
   refine le_trans (Finset.sum_le_sum hmid) ?_
   rw [Finset.mul_sum]
 
+open Finset in
+/-- **The inner Mertens cancellation** (Track R, N10): the inner prime
+sum of the triple convolution cancels the `1/log(x/p)` weight,
+
+  `(log p/(p·log(x/p)))·∑_{q ≤ x/p} log q/q ≤ 4·log p/p`.
+
+This is the step that makes the trivial bound on `S_k` come out at
+`e^{−k}·x·log x`.  The inner sum is `≪ log(x/p)` by Mertens, exactly
+matching the denominator produced when the convolution was iterated, so
+what survives is a bare `∑_{p ∈ P_k} log p/p` — which
+`sum_log_div_Ico_le_log` then bounds by the length of the range in
+logarithmic scale, and `P_k` was chosen to make that `e^{−k}·log x`. -/
+theorem inner_mertens_cancel (x p : ℕ) (hp : 1 ≤ p) (h2 : 2*p ≤ x) :
+    (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+        * (∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ))
+      ≤ 4 * (Real.log (p:ℝ)/(p:ℝ)) := by
+  classical
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+  have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+    rw [le_div_iff₀ hp0]
+    have : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2
+    push_cast at this
+    linarith
+  have hlogpos : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) :=
+    Real.log_pos (by linarith)
+  -- Mertens on the inner range, then compare with the real quotient
+  have hcast : ((x/p : ℕ):ℝ) ≤ (x:ℝ)/(p:ℝ) := Nat.cast_div_le
+  have hinner : ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)
+      ≤ 4 * Real.log ((x:ℝ)/(p:ℝ)) := by
+    refine le_trans (sum_log_div_primesBelow_le (x/p)) ?_
+    refine mul_le_mul_of_nonneg_left ?_ (by norm_num)
+    rcases Nat.eq_zero_or_pos (x/p) with h0 | h0
+    · rw [h0]
+      simp only [Nat.cast_zero, Real.log_zero]
+      linarith
+    · refine Real.log_le_log ?_ hcast
+      exact_mod_cast h0
+  have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+  have hcoef : (0:ℝ) ≤ Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))) :=
+    div_nonneg hlogp (by positivity)
+  calc (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+        * (∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ))
+      ≤ (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * (4 * Real.log ((x:ℝ)/(p:ℝ))) :=
+        mul_le_mul_of_nonneg_left hinner hcoef
+    _ = 4 * (Real.log (p:ℝ)/(p:ℝ)) := by
+        field_simp
+
 end MoltResearch
