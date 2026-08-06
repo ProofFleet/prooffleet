@@ -2042,4 +2042,157 @@ theorem inner_mertens_cancel (x p : ℕ) (hp : 1 ≤ p) (h2 : 2*p ≤ x) :
     _ = 4 * (Real.log (p:ℝ)/(p:ℝ)) := by
         field_simp
 
+open Finset in
+/-- **The `S_k` trivial mass** (Track R, N11): summing the inner
+cancellation over a prime range,
+
+  `∑_{A ≤ p < B} (log p/(p·log(x/p)))·∑_{q ≤ x/p} log q/q
+     ≤ 16·(log B − log A) + 16·log 4`.
+
+This is the trivial bound on `S_k` reduced to its arithmetic core.
+`inner_mertens_cancel` removes the `1/log(x/p)` weight the iteration
+left behind, and `sum_log_div_Ico_le_log` measures what survives by the
+logarithmic length of the range.
+
+At `P_k = (x^{1−e^{1−k}}, x^{1−e^{−k}}]` the length is
+`(e^{1−k} − e^{−k})·log x = (e−1)·e^{−k}·log x`, so the bound is
+`≪ e^{−k}·log x` — which, against the `x` from the innermost count, is
+the `|S_k| ≪ e^{−k}·x·log x` of §3.  Summing over `k` then converges
+geometrically, which is what lets all but `O(log(log x/L))` of the
+blocks be discarded. -/
+theorem Sk_trivial_mass_le (x A B : ℕ) (hA : 1 ≤ A) (hAB : A ≤ B)
+    (hB : 2*B ≤ x) :
+    ∑ p ∈ (Finset.Ico A B).filter Nat.Prime,
+        (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * (∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ))
+      ≤ 16 * (Real.log (B:ℝ) - Real.log (A:ℝ)) + 16 * Real.log 4 := by
+  classical
+  have hterm : ∀ p ∈ (Finset.Ico A B).filter Nat.Prime,
+      (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * (∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ))
+        ≤ 4 * (Real.log (p:ℝ)/(p:ℝ)) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+    obtain ⟨⟨hAp, hpB⟩, hpp⟩ := hp
+    have hp1 : 1 ≤ p := hpp.one_lt.le
+    exact inner_mertens_cancel x p hp1 (by omega)
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hmass := sum_log_div_Ico_le_log A B hA hAB
+  linarith [hmass]
+
+open Finset in
+/-- **The triple convolution** (Track R, N12): the object §3 of the
+`κ = 1` Halász paper arrives at after applying the log-identity twice,
+
+  `∑_{p ∈ P} (f(p)·log p/log(x/p))·∑_{q < x/p} f(q)·log q·∑_{n ≤ x/pq} f(n)`.
+
+The outer weight `1/log(x/p)` is what the second application produces;
+the inner double sum is a mean value of `f` over the shorter range
+`x/p`.  Restricting `p` to a block `P` is how §3 splits the sum before
+bounding each piece. -/
+noncomputable def tripleConv (f : ℕ → ℝ) (x : ℕ) (P : Finset ℕ) : ℝ :=
+  ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+    * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+        * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n
+
+open Finset in
+/-- **The trivial bound on a block** (Track R, N12): bounding every
+factor by its modulus turns the triple convolution into `x` times the
+arithmetic mass of `Sk_trivial_mass_le`,
+
+  `|tripleConv f x P| ≤ x·(16·(log B − log A) + 16·log 4)`.
+
+This is §3's trivial estimate on `S_k`.  At `P_k` the logarithmic
+length is `(e−1)·e^{−k}·log x`, so the bound is `≪ e^{−k}·x·log x` and
+summing over `k` converges geometrically — which is what allows all but
+boundedly many blocks to be discarded. -/
+theorem norm_tripleConv_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x A B : ℕ)
+    (hA : 1 ≤ A) (hAB : A ≤ B) (hB : 2*B ≤ x) :
+    |tripleConv f x ((Finset.Ico A B).filter Nat.Prime)|
+      ≤ (x:ℝ) * (16 * (Real.log (B:ℝ) - Real.log (A:ℝ)) + 16 * Real.log 4) := by
+  classical
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  rw [tripleConv]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  -- each outer term is at most `x` times its arithmetic weight
+  have hterm : ∀ p ∈ (Finset.Ico A B).filter Nat.Prime,
+      |(Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+      ≤ (x:ℝ) * ((Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+    obtain ⟨⟨hAp, hpB⟩, hpp⟩ := hp
+    have hp1 : 1 ≤ p := hpp.one_lt.le
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+    have h2p : 2*p ≤ x := by omega
+    have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+      push_cast at hc
+      linarith
+    have hlogpos : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+    have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    -- the innermost sum is at most the length of its range
+    have hinner : ∀ q : ℕ, |∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+        ≤ ((x/(p*q) : ℕ):ℝ) := by
+      intro q
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      calc ∑ n ∈ Finset.Icc 1 (x/(p*q)), |f n|
+          ≤ ∑ _n ∈ Finset.Icc 1 (x/(p*q)), (1:ℝ) :=
+            Finset.sum_le_sum fun n _ => hf n
+        _ = ((Finset.Icc 1 (x/(p*q))).card : ℝ) := by
+            rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+        _ = ((x/(p*q) : ℕ):ℝ) := by rw [Nat.card_Icc]; norm_num
+    -- so the middle sum is at most `(x/p)·∑ log q/q`
+    have hmid : |∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+        ≤ ((x:ℝ)/(p:ℝ)) * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ) := by
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      rw [Finset.mul_sum]
+      refine Finset.sum_le_sum fun q hq => ?_
+      rw [Nat.mem_primesBelow] at hq
+      have hq1 : 1 ≤ q := hq.2.one_lt.le
+      have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq1
+      have hlogq : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+      have hcastq : ((x/(p*q) : ℕ):ℝ) ≤ (x:ℝ)/((p:ℝ)*(q:ℝ)) := by
+        have h := Nat.cast_div_le (α := ℝ) (m := x) (n := p*q)
+        push_cast at h
+        exact h
+      rw [abs_mul, abs_mul, abs_of_nonneg hlogq]
+      calc Real.log (q:ℝ) * |f q| * |∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+          ≤ Real.log (q:ℝ) * 1 * ((x:ℝ)/((p:ℝ)*(q:ℝ))) := by
+            refine mul_le_mul (mul_le_mul_of_nonneg_left (hf q) hlogq)
+              (le_trans (hinner q) hcastq) (abs_nonneg _) (by positivity)
+        _ = (x:ℝ)/(p:ℝ) * (Real.log (q:ℝ)/(q:ℝ)) := by
+            field_simp
+    rw [abs_mul]
+    have houter : |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        ≤ Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)) := by
+      rw [abs_div, abs_mul, abs_of_nonneg hlogp,
+        abs_of_nonneg hlogpos.le]
+      refine div_le_div_of_nonneg_right ?_ hlogpos.le
+      calc Real.log (p:ℝ) * |f p| ≤ Real.log (p:ℝ) * 1 :=
+            mul_le_mul_of_nonneg_left (hf p) hlogp
+        _ = Real.log (p:ℝ) := mul_one _
+    have hsum0 : (0:ℝ) ≤ ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ) :=
+      Finset.sum_nonneg fun q _ =>
+        div_nonneg (Real.log_natCast_nonneg q) (Nat.cast_nonneg _)
+    calc |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+          * |∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+        ≤ (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+            * (((x:ℝ)/(p:ℝ)) * ∑ q ∈ (x/p).primesBelow,
+                Real.log (q:ℝ)/(q:ℝ)) := by
+          refine mul_le_mul houter hmid (abs_nonneg _) ?_
+          exact div_nonneg hlogp hlogpos.le
+      _ = (x:ℝ) * ((Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+            * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)) := by
+          field_simp
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  exact mul_le_mul_of_nonneg_left (Sk_trivial_mass_le x A B hA hAB hB) hx0
+
 end MoltResearch
