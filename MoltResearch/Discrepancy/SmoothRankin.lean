@@ -3088,4 +3088,274 @@ theorem tripleConv_block_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x k : 
   have hgeom := log_blockHi_sub_log_blockLo_le x k hx hk
   linarith [hgeom]
 
+/-- **The tiling starts at 1** (Track R, N23): `blockLo x 1 = 1`, since
+`1 − e^{1−1} = 0` and `x⁰ = 1`.  So the blocks reach down to the bottom
+of the prime range and the survivor set needs no lower-end coverage
+argument. -/
+theorem blockLo_one (x : ℕ) : blockLo x 1 = 1 := by
+  rw [blockLo]
+  norm_num
+
+open Finset in
+/-- **The block decomposition survives a filter** (Track R, N23): for any
+predicate `sv`,
+
+  `∑_{p ∈ [1, blockHi x K), prime, sv p} g p
+     = ∑_{k=1}^{K} ∑_{p ∈ block k, prime, sv p} g p`.
+
+This is `sum_block_split` in the form the §3 capstone needs.  The
+survivors are cut out of the prime range by the discards of N18, so what
+gets decomposed is never a whole block — it is a block intersected with
+the survivor condition.  Pushing the predicate through costs nothing:
+apply the unfiltered split to `fun p => if sv p then g p else 0`. -/
+theorem sum_block_split_filter {M : Type*} [AddCommMonoid M] (g : ℕ → M)
+    (sv : ℕ → Prop) [DecidablePred sv] (x : ℕ) (hx : 1 ≤ x) (K : ℕ) :
+    ∑ p ∈ ((Finset.Ico (blockLo x 1) (blockHi x K)).filter Nat.Prime).filter sv,
+        g p
+      = ∑ k ∈ Finset.Icc 1 K,
+          ∑ p ∈ ((Finset.Ico (blockLo x k) (blockHi x k)).filter
+            Nat.Prime).filter sv, g p := by
+  classical
+  have h := sum_block_split (fun p => if sv p then g p else 0) x hx K
+  simp only [Finset.sum_filter] at h ⊢
+  exact h
+
+/-- **The tiling reaches the survivors** (Track R, N24): if
+`e^{−K}·log x < log 2` then every `p` with `2p ≤ x` satisfies
+`p < blockHi x K`.
+
+The discards of N18 leave only primes with `2p ≤ x`, so this is exactly
+the condition under which the blocks `k = 1, …, K` cover what is left.
+The computation is `x^{1−e^{−K}} = x / x^{e^{−K}}` together with
+`x^{e^{−K}} = exp(e^{−K}·log x) < 2`.
+
+The hypothesis is strict because the conclusion is: `2p ≤ x` allows
+`p = x/2` exactly, and a non-strict bound would only give
+`p ≤ blockHi x K`, putting `p` outside the half-open block. -/
+theorem lt_blockHi_of_two_mul_le (x K p : ℕ) (hx : 2 ≤ x) (hp : 2*p ≤ x)
+    (hK : Real.exp (-(K:ℝ)) * Real.log (x:ℝ) < Real.log 2) :
+    p < blockHi x K := by
+  have hxR : (2:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  have hx0 : (0:ℝ) < (x:ℝ) := by linarith
+  set t := Real.exp (-(K:ℝ)) with ht_def
+  have ht0 : 0 < t := Real.exp_pos _
+  have hxt : (x:ℝ) ^ t < 2 := by
+    rw [Real.rpow_def_of_pos hx0, mul_comm]
+    calc Real.exp (t * Real.log (x:ℝ)) < Real.exp (Real.log 2) :=
+          Real.exp_lt_exp.mpr hK
+      _ = 2 := Real.exp_log (by norm_num)
+  have hxt0 : (0:ℝ) < (x:ℝ) ^ t := Real.rpow_pos_of_pos hx0 t
+  have hkey : (x:ℝ)/2 < (x:ℝ) ^ (1 - t) := by
+    rw [Real.rpow_sub hx0, Real.rpow_one, div_lt_div_iff₀ (by norm_num) hxt0]
+    nlinarith
+  have hpR : (p:ℝ) ≤ (x:ℝ)/2 := by
+    have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast hp
+    push_cast at hc
+    linarith
+  rw [blockHi]
+  exact Nat.lt_ceil.mpr (by linarith)
+
+/-- **A covering depth always exists** (Track R, N24): for every `x`
+there is a `K` with `e^{−K}·log x < log 2`, so the block tiling can
+always be taken deep enough to contain every survivor.
+
+`K ≍ log log x` is the honest size — the witness here is any natural
+above `log x / log 2`, via `K < K + 1 ≤ e^K`. §3 pays for the depth
+through the `∑_k e^{−k}` factor of `tripleConv_block_le'`, which is why
+the blocks are geometric rather than dyadic. -/
+theorem exists_block_cover (x : ℕ) :
+    ∃ K : ℕ, Real.exp (-(K:ℝ)) * Real.log (x:ℝ) < Real.log 2 := by
+  obtain ⟨K, hK⟩ := exists_nat_gt (Real.log (x:ℝ) / Real.log 2)
+  refine ⟨K, ?_⟩
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hexpK : (K:ℝ) < Real.exp (K:ℝ) := by
+    have := Real.add_one_le_exp (K:ℝ)
+    linarith
+  have hlt : Real.log (x:ℝ) < (K:ℝ) * Real.log 2 := by
+    rw [div_lt_iff₀ hlog2] at hK
+    linarith
+  rw [Real.exp_neg, inv_mul_eq_div, div_lt_iff₀ (Real.exp_pos _)]
+  nlinarith [Real.exp_pos (K:ℝ)]
+
+open Finset in
+/-- **The survivors are exactly the tiled range** (Track R, N25): once
+the depth `K` covers `x/2`,
+
+  `(((Icc 1 x).filter prime).filter (y ≤ ·)).filter (2· ≤ x)
+     = ((Ico (blockLo x 1) (blockHi x K)).filter prime).filter (survivor)`.
+
+Both inclusions are cheap but neither is free.  Forwards needs
+`lt_blockHi_of_two_mul_le` — a survivor has `2p ≤ x`, which is what puts
+it strictly below the top block.  Backwards needs only `2p ≤ x ⟹ p ≤ x`,
+since `blockLo x 1 = 1` already supplies the lower bound.
+
+This is the join between N18 (which produces the survivor set) and
+`sum_block_split_filter` (which consumes a tiled one). -/
+theorem survivor_eq_blocks (x y K : ℕ)
+    (hK : Real.exp (-(K:ℝ)) * Real.log (x:ℝ) < Real.log 2) :
+    (((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => ¬ p < y)).filter
+        (fun p => ¬ x < 2*p)
+      = ((Finset.Ico (blockLo x 1) (blockHi x K)).filter Nat.Prime).filter
+          (fun p => ¬ p < y ∧ ¬ x < 2*p) := by
+  classical
+  rw [blockLo_one]
+  ext p
+  simp only [Finset.mem_filter, Finset.mem_Icc, Finset.mem_Ico]
+  constructor
+  · rintro ⟨⟨⟨⟨hp1, hpx⟩, hpp⟩, hyp⟩, h2p⟩
+    have hp2 : 2 ≤ p := hpp.two_le
+    have hx2 : 2 ≤ x := by omega
+    exact ⟨⟨⟨by omega, lt_blockHi_of_two_mul_le x K p hx2 (by omega) hK⟩, hpp⟩,
+      hyp, h2p⟩
+  · rintro ⟨⟨⟨hp1, _⟩, hpp⟩, hyp, h2p⟩
+    exact ⟨⟨⟨⟨by omega, by omega⟩, hpp⟩, hyp⟩, h2p⟩
+
+open Finset in
+/-- **The survivor sum decomposes over blocks** (Track R, N25): N25's
+set identity fed through `sum_block_split_filter`.  This is the shape
+§3's capstone consumes — the mean value, after the discards, is a sum of
+`K` per-block contributions, each of which `iteration_diff_le` and
+`tripleConv_block_le'` can then bound. -/
+theorem survivor_sum_split {M : Type*} [AddCommMonoid M] (g : ℕ → M)
+    (x y K : ℕ) (hx : 1 ≤ x)
+    (hK : Real.exp (-(K:ℝ)) * Real.log (x:ℝ) < Real.log 2) :
+    ∑ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+        (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p), g p
+      = ∑ k ∈ Finset.Icc 1 K,
+          ∑ p ∈ ((Finset.Ico (blockLo x k) (blockHi x k)).filter
+            Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p), g p := by
+  classical
+  rw [survivor_eq_blocks x y K hK]
+  exact sum_block_split_filter g _ x hx K
+
+open Finset in
+/-- **The mean value, block by block** (Track R, N26): N18's discard
+estimate with its survivor sum tiled,
+
+  `|S(x)·log x − ∑_{k=1}^{K} ∑_{p ∈ block k, survivor} (log p·f p)·∑_{m ≤ x/p} f(m)|
+     ≤ 9x + x·(log y + 2) + (x+1)·log 4`.
+
+This is §3's mean value in the form the per-block machinery consumes:
+`iteration_diff_le` replaces each inner sum by its iterated form, and
+`tripleConv_block_le'` then bounds the result on each block, with the
+`k`-sum converging by `sum_exp_neg_tail_le`.
+
+The rewrite is free — all the content is in N18 and `survivor_sum_split`;
+the point is that the two fit together with no residue. -/
+theorem sum_after_discards_blocks (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (x y K : ℕ) (hx : 1 ≤ x) (hy : 2 ≤ y)
+    (hyx : 2*y ≤ x)
+    (hK : Real.exp (-(K:ℝ)) * Real.log (x:ℝ) < Real.log 2) :
+    |(∑ n ∈ Finset.Icc 1 x, f n) * Real.log (x:ℝ)
+        - ∑ k ∈ Finset.Icc 1 K,
+            ∑ p ∈ ((Finset.Ico (blockLo x k) (blockHi x k)).filter
+              Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p),
+              (Real.log (p:ℝ) * f p) * ∑ m ∈ Finset.Icc 1 (x/p), f m|
+      ≤ 9*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + ((x:ℝ)+1)*Real.log 4 := by
+  classical
+  rw [← survivor_sum_split
+    (fun p => (Real.log (p:ℝ) * f p) * ∑ m ∈ Finset.Icc 1 (x/p), f m)
+    x y K hx hK]
+  exact sum_after_discards f hf hmul x y hx hy hyx
+
+open Finset in
+/-- **Survivors sit below `x/2`** (Track R, N27): the discard
+`¬ x < 2p` puts every survivor in `[1, x/2]`, so the global mass
+estimates apply to them. -/
+theorem survivor_subset_half (x y : ℕ) :
+    (((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => ¬ p < y)).filter
+        (fun p => ¬ x < 2*p)
+      ⊆ (Finset.Icc 1 (x/2)).filter Nat.Prime := by
+  classical
+  intro p hp
+  simp only [Finset.mem_filter, Finset.mem_Icc] at hp ⊢
+  obtain ⟨⟨⟨⟨hp1, _⟩, hpp⟩, _⟩, h2p⟩ := hp
+  exact ⟨⟨hp1, Nat.le_div_iff_mul_le (by norm_num) |>.mpr (by omega)⟩, hpp⟩
+
+open Finset in
+/-- **The blocks reassemble** (Track R, N27):
+`∑_{k=1}^{K} tripleConv f x (block k ∩ survivors) = tripleConv f x survivors`.
+
+`tripleConv` is a sum over its index set, so the tiling passes straight
+through it.  Worth stating separately because it is what shows the block
+decomposition is *lossless*: §4 will estimate the blocks one at a time,
+and this is the identity that puts them back together. -/
+theorem sum_tripleConv_blocks_eq (f : ℕ → ℝ) (x y K : ℕ) (hx : 1 ≤ x)
+    (hK : Real.exp (-(K:ℝ)) * Real.log (x:ℝ) < Real.log 2) :
+    ∑ k ∈ Finset.Icc 1 K,
+        tripleConv f x (((Finset.Ico (blockLo x k) (blockHi x k)).filter
+          Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p))
+      = tripleConv f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+          (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p)) := by
+  classical
+  rw [tripleConv]
+  rw [survivor_sum_split
+    (fun p => (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+      * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n) x y K hx hK]
+  rfl
+
+open Finset in
+/-- **The iteration difference, over the survivors** (Track R, N27):
+
+  `|∑_{surv} (log p·f p)·∑_{m ≤ x/p} f(m) − tripleConv f x surv|
+     ≤ 120·x·∑_{j ≤ log₂ x} 1/j + 2·∑_{surv} log p`.
+
+`iteration_diff_le` applied to the survivor set, with its first error
+term discharged by `sum_log_div_mul_log_ratio_le`.  The blocks are not
+needed here — the difference is bounded globally, and the tiling is only
+required later, for the `L`-series estimate of §4.
+
+The `∑_j 1/j` is `≍ log log x`, so this whole term is
+`O(x·log log x)` — negligible against the `x·log x` the identity
+produces. -/
+theorem iteration_diff_survivors_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (x y : ℕ) :
+    |∑ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+          (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+          (Real.log (p:ℝ) * f p) * (∑ m ∈ Finset.Icc 1 (x/p), f m)
+        - tripleConv f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+            (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p))|
+      ≤ 120 * (x:ℝ) * (∑ j ∈ Finset.Icc 1 (Nat.log 2 x), 1/(j:ℝ))
+          + 2 * ∑ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+              (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+              Real.log (p:ℝ) := by
+  classical
+  set S : Finset ℕ := (((Finset.Icc 1 x).filter Nat.Prime).filter
+    (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p) with hS_def
+  have hmem : ∀ p ∈ S, p.Prime ∧ 2*p ≤ x := by
+    intro p hp
+    rw [hS_def] at hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    obtain ⟨⟨⟨_, hpp⟩, _⟩, h2p⟩ := hp
+    exact ⟨hpp, by omega⟩
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  -- the mass term, bounded globally
+  have hnn : ∀ p ∈ (Finset.Icc 1 (x/2)).filter Nat.Prime,
+      (0:ℝ) ≤ Real.log (p:ℝ) / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    obtain ⟨⟨hp1, hph⟩, hpp⟩ := hp
+    have h2p : 2*p ≤ x := by
+      have := Nat.div_mul_le_self x 2
+      omega
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+    have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+      push_cast at hc; linarith
+    have hlogpos : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+    exact div_nonneg (Real.log_natCast_nonneg p) (by positivity)
+  have hmass : ∑ p ∈ S, Real.log (p:ℝ) / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+      ≤ 12 * ∑ j ∈ Finset.Icc 1 (Nat.log 2 x), 1/(j:ℝ) := by
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg
+      (survivor_subset_half x y) (fun i hi _ => hnn i hi)) ?_
+    exact sum_log_div_mul_log_ratio_le x
+  refine le_trans (iteration_diff_le f hf hmul x S hmem) ?_
+  have hstep : 10 * (x:ℝ)
+      * (∑ p ∈ S, Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+      ≤ 10 * (x:ℝ) * (12 * ∑ j ∈ Finset.Icc 1 (Nat.log 2 x), 1/(j:ℝ)) := by
+    refine mul_le_mul_of_nonneg_left hmass (by linarith)
+  linarith [hstep]
+
 end MoltResearch
