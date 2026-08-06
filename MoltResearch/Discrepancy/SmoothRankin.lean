@@ -2880,4 +2880,56 @@ theorem blockLo_succ_eq_blockHi (x k : ℕ) :
   push_cast
   norm_num
 
+open Finset in
+/-- **The upper endpoints increase** (Track R, N20): `blockHi x` is
+monotone in `k`, since `1 − e^{−k}` is and `x ≥ 1` makes `rpow`
+monotone in the exponent. -/
+theorem blockHi_mono (x : ℕ) (hx : 1 ≤ x) {k l : ℕ} (hkl : k ≤ l) :
+    blockHi x k ≤ blockHi x l := by
+  have hx1 : (1:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  have hexp : Real.exp (-(l:ℝ)) ≤ Real.exp (-(k:ℝ)) := by
+    refine Real.exp_le_exp.mpr ?_
+    have : (k:ℝ) ≤ (l:ℝ) := by exact_mod_cast hkl
+    linarith
+  rw [blockHi, blockHi]
+  exact Nat.ceil_mono (Real.rpow_le_rpow_of_exponent_le hx1 (by linarith))
+
+open Finset in
+/-- **The block decomposition of a prime sum** (Track R, N20): the
+primes of `[blockLo x 1, blockHi x K)` split as the disjoint union of
+the blocks,
+
+  `∑_{p ∈ [blockLo x 1, blockHi x K)} g(p) = ∑_{k=1}^{K} ∑_{p ∈ block k} g(p)`.
+
+This is `blockLo_succ_eq_blockHi` in the form §3 uses it: the survivor
+range is exactly the union of the blocks, so the mean value can be
+reassembled from the per-block estimates.  Note `blockHi x 0 = ⌈x⁰⌉ = 1
+= blockLo x 1`, which makes the empty case degenerate correctly. -/
+theorem sum_block_split {M : Type*} [AddCommMonoid M] (g : ℕ → M) (x : ℕ)
+    (hx : 1 ≤ x) :
+    ∀ K : ℕ,
+      ∑ p ∈ (Finset.Ico (blockLo x 1) (blockHi x K)).filter Nat.Prime, g p
+        = ∑ k ∈ Finset.Icc 1 K,
+            ∑ p ∈ (Finset.Ico (blockLo x k) (blockHi x k)).filter Nat.Prime,
+              g p := by
+  classical
+  intro K
+  induction K with
+  | zero =>
+    have h0 : blockHi x 0 = blockLo x 1 := (blockLo_succ_eq_blockHi x 0).symm
+    rw [h0]
+    simp
+  | succ K ih =>
+    have hlo : blockLo x 1 ≤ blockHi x K := by
+      have h1 : blockLo x 1 = blockHi x 0 := blockLo_succ_eq_blockHi x 0
+      rw [h1]
+      exact blockHi_mono x hx (Nat.zero_le K)
+    have hhi : blockHi x K ≤ blockHi x (K+1) :=
+      blockHi_mono x hx (Nat.le_succ K)
+    have hstep : blockLo x (K+1) = blockHi x K := blockLo_succ_eq_blockHi x K
+    rw [Finset.sum_Icc_succ_top (by omega : 1 ≤ K + 1), ← ih, hstep]
+    rw [Finset.sum_filter, Finset.sum_filter, Finset.sum_filter]
+    exact (Finset.sum_Ico_consecutive
+      (fun p => if p.Prime then g p else 0) hlo hhi).symm
+
 end MoltResearch
