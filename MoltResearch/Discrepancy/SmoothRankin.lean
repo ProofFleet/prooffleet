@@ -2789,4 +2789,77 @@ theorem sum_prime_conv_factor' (f : ℕ → ℝ)
   rw [Finset.mul_sum, Finset.mul_sum]
   exact Finset.sum_congr rfl fun m _ => by rw [hmul]; ring
 
+open Finset in
+/-- **The mean value after the discards** (Track R, N18): combining the
+log-identity at `x` with both extreme-prime discards,
+
+  `|S(x)·log x − ∑_{y ≤ p, 2p ≤ x} (log p·f(p))·∑_{m ≤ x/p} f(m)|
+     ≤ 9x + x·(log y + 2) + (x+1)·log 4`.
+
+**The two discarded ranges are disjoint once `2y ≤ x`** — a prime with
+`p < y` and `x < 2p` would force `x < 2y`.  That is what lets
+`prime_head_sum_le` and `prime_tail_sum_le` be applied exactly as
+stated, with no subset-generalisation: the prime range splits cleanly
+into three parts.  The hypothesis is harmless, since §3 takes
+`y ≈ log⁴x`.
+
+The factoring is applied last, via `sum_prime_conv_factor'`, because
+the discard bounds are stated for the unfactored summand. -/
+theorem sum_after_discards (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (x y : ℕ) (hx : 1 ≤ x) (hy : 2 ≤ y)
+    (hyx : 2*y ≤ x) :
+    |(∑ n ∈ Finset.Icc 1 x, f n) * Real.log (x:ℝ)
+        - ∑ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+            (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+            (Real.log (p:ℝ) * f p) * ∑ m ∈ Finset.Icc 1 (x/p), f m|
+      ≤ 9*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + ((x:ℝ)+1)*Real.log 4 := by
+  classical
+  set S : Finset ℕ := (Finset.Icc 1 x).filter Nat.Prime with hS_def
+  -- the two discarded ranges are disjoint, so the tail filter simplifies
+  have hfe : ((S.filter (fun p => ¬ p < y)).filter (fun p => x < 2*p))
+      = S.filter (fun p => x < 2*p) := by
+    ext p
+    simp only [Finset.mem_filter]
+    constructor
+    · rintro ⟨⟨hS, _⟩, h2⟩
+      exact ⟨hS, h2⟩
+    · rintro ⟨hS, h2⟩
+      exact ⟨⟨hS, by omega⟩, h2⟩
+  -- split the prime range into head, tail and survivors
+  have hsplit1 := Finset.sum_filter_add_sum_filter_not S (fun p => p < y)
+    (fun p => Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m))
+  have hsplit2 := Finset.sum_filter_add_sum_filter_not
+    (S.filter (fun p => ¬ p < y)) (fun p => x < 2*p)
+    (fun p => Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m))
+  rw [hfe] at hsplit2
+  -- the identity, and the two discard bounds
+  have hN5 := sum_mul_log_x_prime_restrict f hf x hx
+  have hHead := prime_head_sum_le f hf x y hy
+  have hTail := prime_tail_sum_le f hf x
+  -- factor the survivors
+  have hfact := sum_prime_conv_factor' f hmul x
+    ((S.filter (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p))
+  rw [← hfact]
+  -- assemble
+  have hchain : (∑ n ∈ Finset.Icc 1 x, f n) * Real.log (x:ℝ)
+      - ∑ p ∈ (S.filter (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+          Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)
+      = ((∑ n ∈ Finset.Icc 1 x, f n) * Real.log (x:ℝ)
+          - ∑ p ∈ S, Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m))
+        + (∑ p ∈ S.filter (fun p => p < y),
+            Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m))
+        + (∑ p ∈ S.filter (fun p => x < 2*p),
+            Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m)) := by
+    linarith [hsplit1, hsplit2]
+  rw [hchain]
+  refine le_trans (abs_add_le _ _) ?_
+  have h1 : |((∑ n ∈ Finset.Icc 1 x, f n) * Real.log (x:ℝ)
+          - ∑ p ∈ S, Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m))
+        + (∑ p ∈ S.filter (fun p => p < y),
+            Real.log (p:ℝ) * ∑ m ∈ Finset.Icc 1 (x/p), f (p*m))|
+      ≤ 9*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) := by
+    refine le_trans (abs_add_le _ _) ?_
+    linarith [hN5, hHead]
+  linarith [h1, hTail]
+
 end MoltResearch
