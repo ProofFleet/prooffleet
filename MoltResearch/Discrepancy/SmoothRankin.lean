@@ -2273,4 +2273,106 @@ theorem sum_exp_neg_tail_le (K M : ℕ) :
         linarith
     _ = r^K := mul_one _
 
+/-- The lower endpoint of §3's `k`-th prime block, `⌈x^{1−e^{1−k}}⌉`. -/
+noncomputable def blockLo (x k : ℕ) : ℕ :=
+  ⌈(x:ℝ) ^ (1 - Real.exp (1 - (k:ℝ)))⌉₊
+
+/-- The upper endpoint of §3's `k`-th prime block, `⌈x^{1−e^{−k}}⌉`. -/
+noncomputable def blockHi (x k : ℕ) : ℕ :=
+  ⌈(x:ℝ) ^ (1 - Real.exp (-(k:ℝ)))⌉₊
+
+open Finset in
+/-- **The block endpoints are ordered and non-degenerate** (Track R,
+N14): `1 ≤ blockLo x k ≤ blockHi x k`.
+
+The exponents `1 − e^{1−k} ≤ 1 − e^{−k}` are increasing in `k`, and
+`x ≥ 1` makes `rpow` monotone in the exponent. -/
+theorem blockLo_le_blockHi (x k : ℕ) (hx : 1 ≤ x) :
+    1 ≤ blockLo x k ∧ blockLo x k ≤ blockHi x k := by
+  have hx1 : (1:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  have hexp : Real.exp (-(k:ℝ)) ≤ Real.exp (1 - (k:ℝ)) :=
+    Real.exp_le_exp.mpr (by linarith)
+  have hmono : (x:ℝ) ^ (1 - Real.exp (1 - (k:ℝ)))
+      ≤ (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) :=
+    Real.rpow_le_rpow_of_exponent_le hx1 (by linarith)
+  constructor
+  · rw [blockLo, Nat.one_le_ceil_iff]
+    exact Real.rpow_pos_of_pos (by linarith) _
+  · rw [blockLo, blockHi]
+    exact Nat.ceil_mono hmono
+
+open Finset in
+/-- **The block has logarithmic length `(e−1)e^{−k}·log x`** (Track R,
+N14):
+
+  `log(blockHi x k) − log(blockLo x k) ≤ (e−1)·e^{−k}·log x + log 2`.
+
+This is the geometry that makes §3's partition work.  Fed to
+`norm_tripleConv_le`, it turns the trivial bound into
+`≪ e^{−k}·x·log x` — geometric in `k`, so `sum_exp_neg_tail_le`
+discards all but boundedly many blocks.
+
+The ceilings cost only `log 2`: `⌈y⌉ ≤ y + 1 ≤ 2y` once `y ≥ 1`, and
+the lower endpoint is bounded below by the power itself. -/
+theorem log_blockHi_sub_log_blockLo_le (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) :
+    Real.log (blockHi x k : ℝ) - Real.log (blockLo x k : ℝ)
+      ≤ (Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+          + Real.log 2 := by
+  have hx1 : (1:ℝ) ≤ (x:ℝ) := by
+    have : (1:ℕ) ≤ x := by omega
+    exact_mod_cast this
+  have hlogx : (0:ℝ) ≤ Real.log (x:ℝ) := Real.log_nonneg hx1
+  set a : ℝ := (x:ℝ) ^ (1 - Real.exp (1 - (k:ℝ))) with ha_def
+  set b : ℝ := (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) with hb_def
+  have ha1 : (1:ℝ) ≤ a := by
+    rw [ha_def]
+    refine Real.one_le_rpow hx1 ?_
+    have : Real.exp (1 - (k:ℝ)) ≤ 1 := by
+      refine Real.exp_le_one_iff.mpr ?_
+      have : (1:ℝ) ≤ (k:ℝ) := by exact_mod_cast hk
+      linarith
+    linarith
+  have hb1 : (1:ℝ) ≤ b := by
+    rw [hb_def]
+    refine Real.one_le_rpow hx1 ?_
+    have : Real.exp (-(k:ℝ)) ≤ 1 := by
+      refine Real.exp_le_one_iff.mpr ?_
+      have : (0:ℝ) ≤ (k:ℝ) := Nat.cast_nonneg _
+      linarith
+    linarith
+  -- the ceiling costs at most a factor two
+  have hceil : ((blockHi x k : ℕ):ℝ) ≤ 2 * b := by
+    have h1 : ((blockHi x k : ℕ):ℝ) < b + 1 := by
+      rw [blockHi, ← hb_def]
+      exact Nat.ceil_lt_add_one (by linarith)
+    linarith
+  have hfloor : a ≤ ((blockLo x k : ℕ):ℝ) := by
+    rw [blockLo, ← ha_def]
+    exact Nat.le_ceil _
+  -- compare logarithms
+  have hHi1 : 1 ≤ blockHi x k := by
+    rw [blockHi, Nat.one_le_ceil_iff]
+    exact lt_of_lt_of_le (by norm_num) hb1
+  have hHi0 : (0:ℝ) < ((blockHi x k : ℕ):ℝ) := by
+    have : (0:ℕ) < blockHi x k := by omega
+    exact_mod_cast this
+  have hlogHi : Real.log ((blockHi x k : ℕ):ℝ) ≤ Real.log 2 + Real.log b := by
+    have h := Real.log_le_log hHi0 hceil
+    rwa [Real.log_mul (by norm_num) (by linarith)] at h
+  have hlogLo : Real.log a ≤ Real.log ((blockLo x k : ℕ):ℝ) :=
+    Real.log_le_log (by linarith) hfloor
+  -- and evaluate the two powers
+  have hla : Real.log a = (1 - Real.exp (1 - (k:ℝ))) * Real.log (x:ℝ) := by
+    rw [ha_def, Real.log_rpow (by linarith)]
+  have hlb : Real.log b = (1 - Real.exp (-(k:ℝ))) * Real.log (x:ℝ) := by
+    rw [hb_def, Real.log_rpow (by linarith)]
+  have hsplit : Real.exp (1 - (k:ℝ)) = Real.exp 1 * Real.exp (-(k:ℝ)) := by
+    rw [← Real.exp_add]
+    congr 1
+  have hdiff : Real.log b - Real.log a
+      = (Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ) := by
+    rw [hla, hlb, hsplit]
+    ring
+  linarith [hlogHi, hlogLo, hdiff]
+
 end MoltResearch
