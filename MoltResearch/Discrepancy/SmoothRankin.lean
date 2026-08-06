@@ -3531,4 +3531,177 @@ theorem sum_inv_sq_add_one_Icc_le (M : ℕ) :
   have hbase := sum_one_div_sq_le_two (Finset.Icc 1 M)
   linarith [htail, hbase]
 
+open Finset Real in
+/-- **The Perron weight is comparable to the Halász weight** (Track R,
+N31): if `|t − N| ≤ 1/2` then `1/(1+t²) ≤ 5/(N²+1)`.
+
+§4's factor `I₂` carries `|ds|/|s|²` with `s = 1+it`, so `|s|² = 1+t²`;
+`L(x)` carries `1/(N²+1)`.  This is the comparison that lets the
+integral over the unit interval around `N` be charged to the `N`-th
+Halász weight.
+
+The constant `5` is not optimal but is uniform, which is all that is
+needed: the worst case is `|N| = 1`, where `1+t²` can be as small as
+`5/4` while `(N²+1) = 2`. -/
+theorem inv_one_add_sq_le_halasz_weight (t : ℝ) (N : ℤ) (h : |t - (N:ℝ)| ≤ 1/2) :
+    1/(1+t^2) ≤ 5/((N:ℝ)^2+1) := by
+  have hd : (t - (N:ℝ))^2 ≤ 1/4 := by
+    have := abs_nonneg (t - (N:ℝ))
+    nlinarith [sq_abs (t - (N:ℝ))]
+  have h1 : (0:ℝ) < 1 + t^2 := by positivity
+  have h2 : (0:ℝ) < (N:ℝ)^2 + 1 := by positivity
+  rw [div_le_div_iff₀ h1 h2]
+  nlinarith [hd, sq_nonneg (3*t - (N:ℝ)), sq_nonneg t, sq_nonneg (t - (N:ℝ))]
+
+open Finset Real in
+/-- **A uniform bound on the suprema bounds `L`** (Track R, N31): if
+`|B N| ≤ C` throughout the Halász range then `L(x)² ≤ 6C²`.
+
+This is the payoff of `sum_inv_sq_add_one_Icc_le`.  The range has
+`≍ log²x` frequencies, so a naive termwise bound would give
+`L(x)² ≪ C²log²x`; because the weights have total mass `O(1)`, the
+`log` disappears entirely and `L(x) ≪ C`.  That is exactly what makes
+Halász's theorem sharp rather than log-lossy. -/
+theorem halaszLSq_le_of_bound (B : ℤ → ℝ) (x : ℕ) (C : ℝ)
+    (hB : ∀ N ∈ halaszRange x, |B N| ≤ C) :
+    halaszLSq B x ≤ 6 * C^2 := by
+  classical
+  have hc0 : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^2⌉ := Int.ceil_nonneg (sq_nonneg _)
+  set M : ℕ := (⌈(Real.log (x:ℝ))^2⌉ + 1).toNat with hM_def
+  have hMcast : ((M:ℕ):ℤ) = ⌈(Real.log (x:ℝ))^2⌉ + 1 := by
+    rw [hM_def]; exact Int.toNat_of_nonneg (by omega)
+  have hrange : halaszRange x = Finset.Icc (-(M:ℤ)) (M:ℤ) := by
+    rw [halaszRange, hMcast]
+  -- termwise: B(N)²/(N²+1) ≤ C²·(1/(N²+1))
+  have hterm : ∀ N ∈ halaszRange x,
+      (B N)^2 / ((N:ℝ)^2 + 1) ≤ C^2 * (1/((N:ℝ)^2+1)) := by
+    intro N hN
+    have hden : (0:ℝ) < (N:ℝ)^2 + 1 := by positivity
+    have hsq : (B N)^2 ≤ C^2 := by
+      have h1 := hB N hN
+      have h2 : (0:ℝ) ≤ |B N| := abs_nonneg _
+      nlinarith [sq_abs (B N)]
+    rw [mul_one_div]
+    exact div_le_div_of_nonneg_right hsq hden.le
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum, hrange]
+  have hC2 : (0:ℝ) ≤ C^2 := sq_nonneg C
+  have hw := sum_inv_sq_add_one_Icc_le M
+  nlinarith [hw, hC2]
+
+open MeasureTheory Real Complex Finset in
+/-- **The unit-interval estimate** (Track R, N32): on an interval where
+`‖F‖ ≤ b`,
+
+  `∫ G·‖F‖² ≤ b²·∫ G`,
+
+for any nonnegative `G`.
+
+This is the step in §4 that replaces `|F_x(1+it)|²` by its supremum over
+the unit interval around `N` — the move that turns the Perron integral
+into the `ℓ²` quantity `L(x)`.  Stating it for a *bound* `b` rather than
+a supremum is what keeps `L(x)`'s parametrisation by a dominating
+function usable here.
+
+Integrability is taken as a hypothesis rather than derived: the
+integrand's regularity comes from whichever Dirichlet polynomial is
+substituted for `F` downstream, and proving it once there is cheaper
+than carrying a continuity assumption through the whole section. -/
+theorem integral_unit_interval_le (G : ℝ → ℝ) (F : ℝ → ℂ) (N : ℤ) (b : ℝ)
+    (hG : ∀ t, 0 ≤ G t) (hb : 0 ≤ b)
+    (hF : ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2), ‖F t‖ ≤ b)
+    (hint1 : IntervalIntegrable (fun t => G t * ‖F t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hint2 : IntervalIntegrable G volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2)) :
+    (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), G t * ‖F t‖^2)
+      ≤ b^2 * ∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), G t := by
+  have hle : ((N:ℝ) - 1/2) ≤ ((N:ℝ) + 1/2) := by linarith
+  have hmono : ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+      G t * ‖F t‖^2 ≤ b^2 * G t := by
+    intro t ht
+    have h1 : ‖F t‖ ≤ b := hF t ht
+    have h2 : (0:ℝ) ≤ ‖F t‖ := norm_nonneg _
+    have h3 : ‖F t‖^2 ≤ b^2 := by nlinarith
+    have h4 : (0:ℝ) ≤ G t := hG t
+    nlinarith [h3, h4]
+  have hcm : IntervalIntegrable (fun t => b^2 * G t) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2) := hint2.const_mul _
+  refine le_trans (intervalIntegral.integral_mono_on hle hint1 hcm hmono) ?_
+  rw [intervalIntegral.integral_const_mul]
+
+open MeasureTheory Real Complex Finset in
+/-- **The Cauchy–Schwarz factor `I₂`, bounded by `L(x)`** (Track R, N33):
+
+  `∑_{N} ∫_{N−1/2}^{N+1/2} (‖D(t)‖²/(1+t²))·‖F(t)‖² dt ≤ 5·V·L(x)²`,
+
+where `V` bounds `∫ ‖D‖²` on each unit interval and `B` dominates `‖F‖`
+on it.
+
+This is the heart of §4's `I₂` estimate.  Three things combine: `F` is
+replaced by its bound on each unit interval (`integral_unit_interval_le`),
+the Perron weight `1/(1+t²)` is charged to the Halász weight
+`1/(N²+1)` (`inv_one_add_sq_le_halasz_weight`), and what remains is
+exactly `∑ B(N)²/(N²+1) = L(x)²`.
+
+Downstream `V` comes from Lemma 1 — for `D` a prime-supported Dirichlet
+polynomial over `q ≤ x^{e^{1−k}}` it is `≪ ∑_{q} log q/q ≪ e^{−k}log x`,
+which is where the `e^{−k}` that cancels against `I₁` is produced. -/
+theorem sum_unit_interval_halasz_le (D Fn : ℝ → ℂ) (B : ℤ → ℝ) (x : ℕ)
+    (V : ℝ)
+    (hB : ∀ N ∈ halaszRange x, ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+      ‖Fn t‖ ≤ B N)
+    (hB0 : ∀ N, 0 ≤ B N)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖D t‖^2) ≤ V)
+    (hi1 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => (‖D t‖^2/(1+t^2)) * ‖Fn t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hi2 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖D t‖^2/(1+t^2)) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hi3 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖D t‖^2) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2)) :
+    ∑ N ∈ halaszRange x,
+        (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), (‖D t‖^2/(1+t^2)) * ‖Fn t‖^2)
+      ≤ 5 * V * halaszLSq B x := by
+  classical
+  have hterm : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), (‖D t‖^2/(1+t^2)) * ‖Fn t‖^2)
+        ≤ 5 * V * ((B N)^2 / ((N:ℝ)^2 + 1)) := by
+    intro N hN
+    have hle : ((N:ℝ) - 1/2) ≤ ((N:ℝ) + 1/2) := by linarith
+    have hden : (0:ℝ) < (N:ℝ)^2 + 1 := by positivity
+    -- (1) replace ‖Fn‖ by its bound on the interval
+    have hstep1 := integral_unit_interval_le
+      (fun t => ‖D t‖^2/(1+t^2)) Fn N (B N)
+      (fun t => by positivity) (hB0 N) (hB N hN) (hi1 N hN) (hi2 N hN)
+    -- (2) charge the Perron weight to the Halász weight
+    have hpt : ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+        ‖D t‖^2/(1+t^2) ≤ (5/((N:ℝ)^2+1)) * ‖D t‖^2 := by
+      intro t ht
+      have habs : |t - (N:ℝ)| ≤ 1/2 :=
+        abs_le.mpr ⟨by linarith [ht.1], by linarith [ht.2]⟩
+      have hw := inv_one_add_sq_le_halasz_weight t N habs
+      have hD : (0:ℝ) ≤ ‖D t‖^2 := by positivity
+      have ht2 : (0:ℝ) < 1 + t^2 := by positivity
+      rw [div_eq_mul_one_div]
+      exact mul_le_mul_of_nonneg_left hw hD |>.trans_eq (by ring)
+    have hcm : IntervalIntegrable (fun t => (5/((N:ℝ)^2+1)) * ‖D t‖^2) volume
+        ((N:ℝ) - 1/2) ((N:ℝ) + 1/2) := (hi3 N hN).const_mul _
+    have hstep2 : (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖D t‖^2/(1+t^2))
+        ≤ (5/((N:ℝ)^2+1)) * V := by
+      refine le_trans (intervalIntegral.integral_mono_on hle (hi2 N hN) hcm hpt) ?_
+      rw [intervalIntegral.integral_const_mul]
+      exact mul_le_mul_of_nonneg_left (hV N hN) (by positivity)
+    -- combine
+    have hBsq : (0:ℝ) ≤ (B N)^2 := sq_nonneg _
+    calc (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), (‖D t‖^2/(1+t^2)) * ‖Fn t‖^2)
+        ≤ (B N)^2 * ∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖D t‖^2/(1+t^2) :=
+          hstep1
+      _ ≤ (B N)^2 * ((5/((N:ℝ)^2+1)) * V) :=
+          mul_le_mul_of_nonneg_left hstep2 hBsq
+      _ = 5 * V * ((B N)^2 / ((N:ℝ)^2 + 1)) := by field_simp
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  exact le_of_eq rfl
+
 end MoltResearch
