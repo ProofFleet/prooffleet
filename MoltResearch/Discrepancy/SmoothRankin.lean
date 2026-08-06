@@ -4281,4 +4281,85 @@ theorem pairing_halasz_le (P₁ P₂ P₃ : ℝ → ℂ) (w : ℝ → ℝ) (B : 
     mul_le_mul_of_nonneg_left hI2 hlam1
   linarith [h1, h2]
 
+open Real in
+/-- **The Cauchy–Schwarz optimiser** (Track R, N46): for `P, Q > 0`,
+
+  `(√(Q/P)/2)·P + (1/(2√(Q/P)))·Q = √(P·Q)`.
+
+At `λ = √(Q/P)` the free-parameter form `pairing_le_amgm` collapses
+exactly to GHS's `√(I₁·I₂)` — the two halves contribute `√(PQ)/2`
+apiece.
+
+Keeping `λ` free through the whole of §4 and only balancing here is what
+kept `Real.sqrt` out of every intermediate statement.  The square root
+is intrinsic to Cauchy–Schwarz and has to appear somewhere; this is the
+one place it does.
+
+With `P ≍ e^{k}/log x` and `Q ≍ L(x)²·e^{−k}·log x` the product is
+`≍ L(x)²`, so `√(P·Q) ≍ L(x)` — the `e^{±k}` and `log x` cancelling is
+what leaves no residual `k`. -/
+theorem pairing_optimal_lambda (P Q : ℝ) (hP : 0 < P) (hQ : 0 < Q) :
+    (Real.sqrt (Q/P)/2) * P + (1/(2*Real.sqrt (Q/P))) * Q
+      = Real.sqrt (P*Q) := by
+  have hsp : 0 < Real.sqrt P := Real.sqrt_pos.mpr hP
+  have hsq : 0 < Real.sqrt Q := Real.sqrt_pos.mpr hQ
+  have hP' : Real.sqrt P ^ 2 = P := Real.sq_sqrt hP.le
+  have hQ' : Real.sqrt Q ^ 2 = Q := Real.sq_sqrt hQ.le
+  have hdiv : Real.sqrt (Q/P) = Real.sqrt Q / Real.sqrt P := by
+    rw [show Q/P = (Real.sqrt Q / Real.sqrt P)^2 by rw [div_pow, hP', hQ']]
+    exact Real.sqrt_sq (by positivity)
+  have hmul : Real.sqrt (P*Q) = Real.sqrt P * Real.sqrt Q :=
+    Real.sqrt_mul hP.le Q
+  rw [hdiv, hmul]
+  field_simp
+  rw [hP', hQ']
+  ring
+
+open MeasureTheory Real Complex Finset in
+/-- **The pairing estimate at the optimal `λ`** (Track R, N46): with
+`E₁ > 0` and the `I₂` bound positive,
+
+  `∫ ‖P₁·P₂·P₃‖·w ≤ √(E₁ · (5·C·V·L(x)² + Mtail))`.
+
+`pairing_halasz_le` balanced by `pairing_optimal_lambda`.  This is GHS
+§4's estimate in its published form. -/
+theorem pairing_halasz_sqrt_le (P₁ P₂ P₃ : ℝ → ℂ) (w : ℝ → ℝ) (B : ℤ → ℝ)
+    (x : ℕ) (C V Mtail E₁ : ℝ) (hE₁0 : 0 < E₁) (hC0 : 0 ≤ C)
+    (hQ0 : 0 < 5 * C * V * halaszLSq B x + Mtail)
+    (hw0 : ∀ t, 0 ≤ w t) (hwle : ∀ t, w t ≤ C/(1+t^2))
+    (hE₁ : (∫ ξ, ‖P₂ ξ‖^2 * w ξ) ≤ E₁)
+    (hB : ∀ N ∈ halaszRange x, ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+      ‖P₁ t‖ ≤ B N)
+    (hB0 : ∀ N, 0 ≤ B N)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖P₃ t‖^2) ≤ V)
+    (hg0 : Integrable (fun ξ => ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * w ξ))
+    (hg1 : Integrable (fun ξ => ‖P₂ ξ‖^2 * w ξ))
+    (hg2 : Integrable (fun ξ => ‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2))
+    (htail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|},
+        ‖P₃ ξ‖^2 * w ξ * ‖P₁ ξ‖^2) ≤ Mtail)
+    (htile : ∀ i : ℕ, i < 2*(halaszM x)+1 → IntervalIntegrable
+      (fun t => ‖P₃ t‖^2 * w t * ‖P₁ t‖^2) volume
+      (-((halaszM x : ℕ):ℝ) - 1/2 + i) (-((halaszM x : ℕ):ℝ) - 1/2 + (i+1)))
+    (hj : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖P₃ t‖^2 * w t * ‖P₁ t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hk1 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => (‖P₃ t‖^2/(1+t^2)) * ‖P₁ t‖^2) volume
+      ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hk2 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖P₃ t‖^2/(1+t^2)) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2))
+    (hk3 : ∀ N ∈ halaszRange x, IntervalIntegrable
+      (fun t => ‖P₃ t‖^2) volume ((N:ℝ) - 1/2) ((N:ℝ) + 1/2)) :
+    (∫ ξ, ‖P₁ ξ * P₂ ξ * P₃ ξ‖ * w ξ)
+      ≤ Real.sqrt (E₁ * (5 * C * V * halaszLSq B x + Mtail)) := by
+  classical
+  set Q : ℝ := 5 * C * V * halaszLSq B x + Mtail with hQ_def
+  have hlam : 0 < Real.sqrt (Q/E₁) := Real.sqrt_pos.mpr (by positivity)
+  have hmain := pairing_halasz_le P₁ P₂ P₃ w B x (Real.sqrt (Q/E₁)) C V
+    Mtail E₁ hlam hC0 hw0 hwle hE₁ hB hB0 hV hg0 hg1 hg2 htail htile
+    hj hk1 hk2 hk3
+  rw [← pairing_optimal_lambda E₁ Q hE₁0 hQ0]
+  exact hmain
+
 end MoltResearch

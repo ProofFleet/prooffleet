@@ -679,6 +679,45 @@ theorem fourier_window_le_inv_one_add_sq (V : ℝ → ℝ) (hVs : ContDiff ℝ �
             (by linarith : (0:ℝ) ≤ ξ^2 - 1)]
       _ ≤ 2*MV + M₂/(2*Real.pi^2) := by linarith
 
+/-- **Character polynomials are continuous** (Track R, N47): for any
+finite index set, weights and frequencies,
+
+  `ξ ↦ ∑_i w_i·𝐞(−s_i·ξ)`  is continuous.
+
+Stated at the same generality as
+`norm_sum_translates_le_integral_char`, whose conclusion is an integral
+of exactly this shape — so the integrability side conditions of §4's
+pairing estimate can be discharged directly from it, for whichever
+polynomials are substituted.
+
+The fact was previously available only as a local step inside
+`HalaszAssembly`, specialised to `ℕ`-indexed sums with weights `f n/n`. -/
+theorem continuous_char_poly {ι : Type*} (S : Finset ι) (w : ι → ℂ)
+    (s : ι → ℝ) :
+    Continuous (fun ξ : ℝ =>
+      ∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)) := by
+  refine continuous_finset_sum _ fun i _ => ?_
+  refine Continuous.mul continuous_const ?_
+  exact continuous_subtype_val.comp
+    (Real.continuous_fourierChar.comp (by fun_prop))
+
+/-- **The trivial sup of a character polynomial** (Track R, N47):
+
+  `‖∑_i w_i·𝐞(−s_i·ξ)‖ ≤ ∑_i ‖w_i‖`,  uniformly in `ξ`.
+
+The characters are unimodular, so the triangle inequality is sharp at
+`ξ = 0` when the weights are aligned.  This is the `B₁`/`B₂`/`B₃` input
+of the pairing estimate — the crude bound that prices the tail, where no
+cancellation is available. -/
+theorem norm_char_poly_le_sum {ι : Type*} (S : Finset ι) (w : ι → ℂ)
+    (s : ι → ℝ) (ξ : ℝ) :
+    ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖
+      ≤ ∑ i ∈ S, ‖w i‖ := by
+  refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
+  rw [norm_mul]
+  have hc : ‖((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖ = 1 := by simp
+  rw [hc, mul_one]
+
 /-- **The window transform tail** (Track R, M2-i1c): a smooth compactly
 supported real window with second-derivative mass `M₂` has transform
 tail `∫_{|ξ|>L} ‖𝓕V‖ ≤ M₂/(2π²L)` — two integrations by parts against
