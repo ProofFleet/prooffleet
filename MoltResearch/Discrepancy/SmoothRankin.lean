@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.RamareIdentity
 import MoltResearch.Discrepancy.MertensFirst
+import MoltResearch.Discrepancy.LogUniform
 import Mathlib.NumberTheory.SmoothNumbers
 
 /-!
@@ -3357,5 +3358,177 @@ theorem iteration_diff_survivors_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
       ≤ 10 * (x:ℝ) * (12 * ∑ j ∈ Finset.Icc 1 (Nat.log 2 x), 1/(j:ℝ)) := by
     refine mul_le_mul_of_nonneg_left hmass (by linarith)
   linarith [hstep]
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **Lemma 1 of GHS κ=1, in the `n^{−1−it}` normalisation** (Track R,
+N28): for coefficients supported above `N`,
+
+  `∫_{−T}^{T} |∑ b(n)Λ(n)·n^{−1}·e(−ξ log n)|² dξ
+     ≤ (e^π·T·Q/N)·∑ ‖b(m)‖²Λ(m)/m`.
+
+`intervalIntegral_vonMangoldt_mvt_le` with `a n := b n / n`.  The
+substitution alone gives `∑ ‖b(m)‖²Λ(m)/m²`; the paper's shape has a
+single power of `m`, and the missing factor is recovered from
+`N < m`, which turns `1/m² ≤ 1/(N·m)`.
+
+So this is *not* a free rewrite of Lemma 2.6 — it needs the support
+restriction, which is why GHS state their Lemma 1 with the range
+`T² ≤ n ≤ x` rather than for arbitrary coefficients.  On a dyadic block
+the `N` here cancels against the `Q ≍ N/T` of
+`intervalIntegral_vonMangoldt_mvt_block_le`, reproducing the paper's
+constant. -/
+theorem intervalIntegral_vonMangoldt_inv_mvt_le (T : ℝ) (hT : 0 < T)
+    (N : ℕ) (hN : 1 ≤ N) (S : Finset ℕ) (hS : ∀ m ∈ S, N < m) (b : ℕ → ℂ)
+    (Q : ℝ) (hQ0 : 0 ≤ Q)
+    (hQ : ∀ m ∈ S, ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2)) ≤ Q) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, ((b n / (n:ℂ)) * ((vonMangoldt n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T * Q / (N:ℝ)
+          * ∑ m ∈ S, ‖b m‖^2 * vonMangoldt m / (m:ℝ) := by
+  classical
+  have hN0 : (0:ℝ) < (N:ℝ) := by exact_mod_cast hN
+  have hcoef : (0:ℝ) ≤ Real.exp π * T * Q := by positivity
+  have hinner : ∑ m ∈ S, ‖b m / (m:ℂ)‖^2 * vonMangoldt m
+      ≤ (1/(N:ℝ)) * ∑ m ∈ S, ‖b m‖^2 * vonMangoldt m / (m:ℝ) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun m hm => ?_
+    have hmN : N < m := hS m hm
+    have hm0 : (0:ℝ) < (m:ℝ) := by exact_mod_cast (by omega : 0 < m)
+    have hmR : (N:ℝ) ≤ (m:ℝ) := by exact_mod_cast hmN.le
+    have hL : (0:ℝ) ≤ vonMangoldt m := vonMangoldt_nonneg
+    have hnorm : ‖b m / (m:ℂ)‖^2 = ‖b m‖^2 / (m:ℝ)^2 := by
+      rw [norm_div, div_pow, Complex.norm_natCast]
+    rw [hnorm, div_mul_eq_mul_div, one_div, inv_mul_eq_div, div_div]
+    have hA : (0:ℝ) ≤ ‖b m‖^2 * vonMangoldt m := mul_nonneg (sq_nonneg _) hL
+    have hpos1 : (0:ℝ) < (m:ℝ)^2 := by positivity
+    have hpos2 : (0:ℝ) < (m:ℝ)*(N:ℝ) := by positivity
+    rw [div_le_div_iff₀ hpos1 hpos2]
+    nlinarith [hA, mul_le_mul_of_nonneg_left hmR hm0.le]
+  refine le_trans
+    (intervalIntegral_vonMangoldt_mvt_le T hT S (fun n => b n / (n:ℂ)) Q hQ) ?_
+  calc Real.exp π * T * Q * ∑ m ∈ S, ‖b m / (m:ℂ)‖^2 * vonMangoldt m
+      ≤ Real.exp π * T * Q
+          * ((1/(N:ℝ)) * ∑ m ∈ S, ‖b m‖^2 * vonMangoldt m / (m:ℝ)) :=
+        mul_le_mul_of_nonneg_left hinner hcoef
+    _ = Real.exp π * T * Q / (N:ℝ)
+          * ∑ m ∈ S, ‖b m‖^2 * vonMangoldt m / (m:ℝ) := by ring
+
+open Finset Real in
+/-- **The frequency range of Halász's `L(x)`** (Track R, N29): the
+integers `N` with `|N| ≤ log²x + 1`, over which the unit-interval
+suprema of `|F_x(1+it)|` are weighted. -/
+noncomputable def halaszRange (x : ℕ) : Finset ℤ :=
+  Finset.Icc (-(⌈(Real.log (x:ℝ))^2⌉ + 1)) (⌈(Real.log (x:ℝ))^2⌉ + 1)
+
+open Finset Real in
+/-- **`L(x)²`, parametrised by a dominating function** (Track R, N29):
+
+  `L(x)² = ∑_{|N| ≤ log²x+1} B(N)²/(N²+1)`.
+
+GHS define this with `B N = sup_{|t−N| ≤ 1/2} |F_x(1+it)|`.  Taking `B`
+as a parameter instead of a supremum is deliberate: every use of `L(x)`
+in the argument is an *upper* bound on the Cauchy–Schwarz factor `I₂`,
+so any dominating `B` suffices, and the supremum is merely the least
+such.  This avoids carrying `BddAbove` and measurability side conditions
+through the whole of §4 for no gain.
+
+`halaszLSq_mono` is what makes the parametrisation sound: a smaller
+dominating function gives a smaller `L`. -/
+noncomputable def halaszLSq (B : ℤ → ℝ) (x : ℕ) : ℝ :=
+  ∑ N ∈ halaszRange x, (B N)^2 / ((N:ℝ)^2 + 1)
+
+open Finset Real in
+/-- `L(x)² ≥ 0` (Track R, N29): each weight `1/(N²+1)` is positive. -/
+theorem halaszLSq_nonneg (B : ℤ → ℝ) (x : ℕ) : 0 ≤ halaszLSq B x := by
+  refine Finset.sum_nonneg fun N _ => ?_
+  have : (0:ℝ) < (N:ℝ)^2 + 1 := by positivity
+  positivity
+
+open Finset Real in
+/-- **`L` is monotone in the dominating function** (Track R, N29).  This
+is the lemma that justifies parametrising by `B` rather than taking a
+supremum: a bound proved for any dominating `B` transfers to the
+smallest one. -/
+theorem halaszLSq_mono (B₁ B₂ : ℤ → ℝ) (x : ℕ) (h : ∀ N, |B₁ N| ≤ |B₂ N|) :
+    halaszLSq B₁ x ≤ halaszLSq B₂ x := by
+  refine Finset.sum_le_sum fun N _ => ?_
+  have hden : (0:ℝ) < (N:ℝ)^2 + 1 := by positivity
+  refine div_le_div_of_nonneg_right ?_ hden.le
+  calc (B₁ N)^2 = |B₁ N|^2 := (sq_abs _).symm
+    _ ≤ |B₂ N|^2 := by nlinarith [abs_nonneg (B₁ N), abs_nonneg (B₂ N), h N]
+    _ = (B₂ N)^2 := sq_abs _
+
+open Finset Real in
+/-- **The Halász weights have bounded total mass** (Track R, N30):
+
+  `∑_{|N| ≤ M} 1/(N²+1) ≤ 6`,  uniformly in `M`.
+
+This is what makes `L(x)` a genuine `ℓ²` quantity rather than a
+`log`-growing one: the number of frequencies is `≍ log²x`, but their
+weights sum to `O(1)`, so a uniform bound on the suprema gives a uniform
+bound on `L(x)`.
+
+The proof fibres `[−M, M] ∩ ℤ` over `|N|`: each fibre is contained in
+`{n, −n}`, so has at most two elements, and `1/(N²+1)` is constant on
+it.  The resulting `∑_{n ≤ M} 2/(n²+1)` splits as the `n = 0` term plus
+`2·∑_{n ≥ 1} 1/n² ≤ 4`. -/
+theorem sum_inv_sq_add_one_Icc_le (M : ℕ) :
+    ∑ N ∈ Finset.Icc (-(M:ℤ)) (M:ℤ), 1/((N:ℝ)^2+1) ≤ 6 := by
+  classical
+  have hmaps : ∀ N ∈ Finset.Icc (-(M:ℤ)) (M:ℤ), N.natAbs ∈ Finset.Icc 0 M := by
+    intro N hN
+    simp only [Finset.mem_Icc] at hN ⊢
+    omega
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  have hinner : ∀ n ∈ Finset.Icc 0 M,
+      ∑ N ∈ (Finset.Icc (-(M:ℤ)) (M:ℤ)).filter (fun N => N.natAbs = n),
+          1/((N:ℝ)^2+1)
+        ≤ 2 * (1/((n:ℝ)^2+1)) := by
+    intro n _
+    have heq : ∀ N ∈ (Finset.Icc (-(M:ℤ)) (M:ℤ)).filter (fun N => N.natAbs = n),
+        1/((N:ℝ)^2+1) = 1/((n:ℝ)^2+1) := by
+      intro N hN
+      simp only [Finset.mem_filter] at hN
+      rcases Int.natAbs_eq_iff.mp hN.2 with h | h <;> subst h <;> push_cast <;>
+        ring
+    rw [Finset.sum_congr rfl heq, Finset.sum_const, nsmul_eq_mul]
+    have hsub : (Finset.Icc (-(M:ℤ)) (M:ℤ)).filter (fun N => N.natAbs = n)
+        ⊆ ({(n:ℤ), -(n:ℤ)} : Finset ℤ) := by
+      intro N hN
+      simp only [Finset.mem_filter] at hN
+      simp only [Finset.mem_insert, Finset.mem_singleton]
+      exact Int.natAbs_eq_iff.mp hN.2
+    have hcard : (((Finset.Icc (-(M:ℤ)) (M:ℤ)).filter
+        (fun N => N.natAbs = n)).card : ℝ) ≤ 2 := by
+      have h1 := Finset.card_le_card hsub
+      have h2 : ({(n:ℤ), -(n:ℤ)} : Finset ℤ).card ≤ 2 :=
+        le_trans (Finset.card_insert_le _ _) (by simp)
+      have : ((Finset.Icc (-(M:ℤ)) (M:ℤ)).filter
+        (fun N => N.natAbs = n)).card ≤ 2 := le_trans h1 h2
+      exact_mod_cast this
+    have hpos : (0:ℝ) < (n:ℝ)^2+1 := by positivity
+    exact mul_le_mul_of_nonneg_right hcard (by positivity)
+  refine le_trans (Finset.sum_le_sum hinner) ?_
+  -- split off n = 0 and telescope the rest
+  have h0 : Finset.Icc 0 M = insert 0 (Finset.Icc 1 M) := by
+    ext n; simp only [Finset.mem_Icc, Finset.mem_insert]; omega
+  have hsplit : ∑ n ∈ Finset.Icc 0 M, 2 * (1/((n:ℝ)^2+1))
+      = 2 + ∑ n ∈ Finset.Icc 1 M, 2 * (1/((n:ℝ)^2+1)) := by
+    rw [h0, Finset.sum_insert (by simp)]
+    norm_num
+  rw [hsplit]
+  have htail : ∑ n ∈ Finset.Icc 1 M, 2 * (1/((n:ℝ)^2+1))
+      ≤ 2 * ∑ n ∈ Finset.Icc 1 M, (1:ℝ)/(n:ℝ)^2 := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun n hn => ?_
+    simp only [Finset.mem_Icc] at hn
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn.1
+    have h1 : (0:ℝ) < (n:ℝ)^2 := by positivity
+    refine mul_le_mul_of_nonneg_left ?_ (by norm_num)
+    rw [div_le_div_iff₀ (by positivity) h1]
+    nlinarith
+  have hbase := sum_one_div_sq_le_two (Finset.Icc 1 M)
+  linarith [htail, hbase]
 
 end MoltResearch
