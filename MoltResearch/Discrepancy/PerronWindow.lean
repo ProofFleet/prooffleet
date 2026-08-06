@@ -799,6 +799,40 @@ theorem sum_norm_sq_shifted {ι : Type*} (S : Finset ι) (w : ι → ℂ)
   refine Finset.sum_congr rfl fun i _ => ?_
   rw [norm_shifted_coeff w s N i]
 
+/-- **A centred energy bound holds at every frequency** (Track R, N53):
+if
+
+  `∫_{−1/2}^{1/2} ‖∑ w'_i·𝐞(−s_i·u)‖² du ≤ V`
+
+for *every* coefficient vector `w'` with the same moduli as `w`, then
+
+  `∫_{N−1/2}^{N+1/2} ‖∑ w_i·𝐞(−s_i·ξ)‖² dξ ≤ V`  for every `N`.
+
+This is the form `integral_line_halasz_le` consumes: it asks for a
+uniform bound on the energy of `P₃` over the unit interval around each
+frequency of the Halász range, and the mean value theorem supplies one
+only at the origin.
+
+Quantifying over all `w'` of equal modulus is exactly right, and is not
+a weakening: every mean value theorem for Dirichlet polynomials bounds
+the energy by `∑‖w_i‖²Λ(i)`, which depends on the coefficients only
+through their moduli.  So a hypothesis in this shape is no harder to
+supply than the centred bound itself, and it makes the transfer to
+arbitrary `N` immediate. -/
+theorem integral_unit_sq_le_of_centred {ι : Type*} (S : Finset ι)
+    (w : ι → ℂ) (s : ι → ℝ) (V : ℝ)
+    (hcen : ∀ w' : ι → ℂ, (∀ i, ‖w' i‖ = ‖w i‖) →
+      (∫ u in (-(1:ℝ)/2)..((1:ℝ)/2),
+        ‖∑ i ∈ S, w' i * ((Real.fourierChar (-(s i * u)) : Circle) : ℂ)‖^2)
+        ≤ V)
+    (N : ℝ) :
+    (∫ ξ in (N - 1/2)..(N + 1/2),
+      ‖∑ i ∈ S, w i * ((Real.fourierChar (-(s i * ξ)) : Circle) : ℂ)‖^2)
+      ≤ V := by
+  rw [integral_unit_sq_shift S w s N]
+  exact hcen (fun i => w i * ((Real.fourierChar (-(s i * N)) : Circle) : ℂ))
+    (fun i => norm_shifted_coeff w s N i)
+
 /-- **The window transform tail** (Track R, M2-i1c): a smooth compactly
 supported real window with second-derivative mass `M₂` has transform
 tail `∫_{|ξ|>L} ‖𝓕V‖ ≤ M₂/(2π²L)` — two integrations by parts against
