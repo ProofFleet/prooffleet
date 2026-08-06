@@ -2542,4 +2542,165 @@ theorem inner_endpoint_diff_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
         exact_mod_cast hcard1
     _ = 2 * Real.log ((x/p : ℕ):ℝ) := one_mul _
 
+open Finset in
+/-- **The iteration, one prime at a time** (Track R, N15d): replacing
+the inner mean value `∑_{m ≤ x/p} f(m)` by the double convolution it
+expands into costs
+
+  `≤ 10·x·(log p/(p·log(x/p))) + 2·log p`.
+
+This is §3's second application of the log-identity, done at `⌊x/p⌋`
+and then reconciled with the shape `tripleConv` expects.  Three
+separate reconciliations are needed and each contributes:
+
+* `sum_mul_log_x_prime_restrict` at `⌊x/p⌋` gives `9·⌊x/p⌋`;
+* the identity's `log⌊x/p⌋` must become `log(x/p)`, costing `|A|·log 2`
+  — another `⌊x/p⌋·log 2`, which is why the constant is `10` and not `9`;
+* the prime ranges differ by an endpoint (`inner_endpoint_diff_le`),
+  contributing `2·log⌊x/p⌋ ≤ 2·log(x/p)` and hence the `2·log p`. -/
+theorem iteration_term_diff_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (x p : ℕ) (hp : p.Prime)
+    (h2 : 2*p ≤ x) :
+    |(Real.log (p:ℝ) * f p) * (∑ m ∈ Finset.Icc 1 (x/p), f m)
+        - (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+          * (∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n)|
+      ≤ 10 * (x:ℝ) * (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+        + 2 * Real.log (p:ℝ) := by
+  classical
+  have hp1 : 1 ≤ p := hp.one_lt.le
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+  have hx0 : (0:ℝ) < (x:ℝ) := by
+    have : 0 < x := by omega
+    exact_mod_cast this
+  have hX2 : 2 ≤ x/p := by
+    rw [Nat.le_div_iff_mul_le (by omega)]
+    omega
+  have hX1 : 1 ≤ x/p := by omega
+  have hXR : (2:ℝ) ≤ ((x/p : ℕ):ℝ) := by exact_mod_cast hX2
+  have hLX : (0:ℝ) < Real.log ((x/p : ℕ):ℝ) := Real.log_pos (by linarith)
+  have hcast : ((x/p : ℕ):ℝ) ≤ (x:ℝ)/(p:ℝ) := Nat.cast_div_le
+  have hL : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) :=
+    lt_of_lt_of_le hLX (Real.log_le_log (by linarith) hcast)
+  have hLXL : Real.log ((x/p : ℕ):ℝ) ≤ Real.log ((x:ℝ)/(p:ℝ)) :=
+    Real.log_le_log (by linarith) hcast
+  -- the identity at `⌊x/p⌋`, reconciled to the shape `tripleConv` uses
+  have hN5 := sum_mul_log_x_prime_restrict f hf (x/p) hX1
+  have hN7 := sum_prime_conv_factor f hmul (x/p)
+  rw [hN7] at hN5
+  rw [Icc_filter_prime_eq_primesBelow] at hN5
+  have hinner : ∀ q : ℕ, (x/p)/q = x/(p*q) := by
+    intro q
+    rw [Nat.div_div_eq_div_mul]
+  simp only [hinner] at hN5
+  -- the endpoint discrepancy between the two prime ranges
+  have hEnd := inner_endpoint_diff_le f hf x p hp1 h2
+  -- the inner mean value is bounded by the length of its range
+  have hA : |∑ m ∈ Finset.Icc 1 (x/p), f m| ≤ ((x/p : ℕ):ℝ) := by
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    calc ∑ m ∈ Finset.Icc 1 (x/p), |f m|
+        ≤ ∑ _m ∈ Finset.Icc 1 (x/p), (1:ℝ) :=
+          Finset.sum_le_sum fun m _ => hf m
+      _ = ((Finset.Icc 1 (x/p)).card : ℝ) := by
+          rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+      _ = ((x/p : ℕ):ℝ) := by rw [Nat.card_Icc, Nat.add_sub_cancel]
+  -- swapping `log⌊x/p⌋` for `log(x/p)` costs `|A|·log 2`
+  have hLgap : Real.log ((x:ℝ)/(p:ℝ)) - Real.log ((x/p : ℕ):ℝ) ≤ Real.log 2 := by
+    have hlt : (x:ℝ)/(p:ℝ) ≤ 2 * ((x/p : ℕ):ℝ) := by
+      have hnat : x < p * (x/p) + p := by
+        have hexp : p * (x/p + 1) = p * (x/p) + p := by ring
+        have := Nat.lt_mul_div_succ x (show 0 < p by omega)
+        omega
+      have hc : (x:ℝ) < ((p * (x/p) + p : ℕ):ℝ) := by exact_mod_cast hnat
+      push_cast at hc
+      rw [div_le_iff₀ hp0]
+      nlinarith [hc, hp0, hXR]
+    have h := Real.log_le_log (by positivity : (0:ℝ) < (x:ℝ)/(p:ℝ)) hlt
+    rw [Real.log_mul (by norm_num) (by linarith)] at h
+    linarith
+  -- assemble the three reconciliations
+  set A : ℝ := ∑ m ∈ Finset.Icc 1 (x/p), f m with hA_def
+  set C : ℝ := ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+      * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n with hC_def
+  set C' : ℝ := ∑ q ∈ ((x/p)+1).primesBelow, (Real.log (q:ℝ) * f q)
+      * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n with hC'_def
+  have hkey : |Real.log ((x:ℝ)/(p:ℝ)) * A - C|
+      ≤ ((x/p : ℕ):ℝ) * (9 + Real.log 2) + 2 * Real.log ((x/p : ℕ):ℝ) := by
+    have h1 : |A * Real.log ((x/p : ℕ):ℝ) - C'| ≤ 9 * ((x/p : ℕ):ℝ) := hN5
+    have h2' : |C' - C| ≤ 2 * Real.log ((x/p : ℕ):ℝ) := hEnd
+    have h3 : |Real.log ((x:ℝ)/(p:ℝ)) * A - A * Real.log ((x/p : ℕ):ℝ)|
+        ≤ ((x/p : ℕ):ℝ) * Real.log 2 := by
+      have heq : Real.log ((x:ℝ)/(p:ℝ)) * A - A * Real.log ((x/p : ℕ):ℝ)
+          = A * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log ((x/p : ℕ):ℝ)) := by ring
+      rw [heq, abs_mul]
+      refine mul_le_mul hA ?_ (abs_nonneg _) (by positivity)
+      rw [abs_of_nonneg (by linarith)]
+      exact hLgap
+    have htri : |Real.log ((x:ℝ)/(p:ℝ)) * A - C|
+        ≤ |Real.log ((x:ℝ)/(p:ℝ)) * A - A * Real.log ((x/p : ℕ):ℝ)|
+            + |A * Real.log ((x/p : ℕ):ℝ) - C'| + |C' - C| := by
+      have e1 : Real.log ((x:ℝ)/(p:ℝ)) * A - C
+          = (Real.log ((x:ℝ)/(p:ℝ)) * A - A * Real.log ((x/p : ℕ):ℝ))
+            + ((A * Real.log ((x/p : ℕ):ℝ) - C') + (C' - C)) := by ring
+      rw [e1]
+      refine le_trans (abs_add_le _ _) ?_
+      linarith [abs_add_le (A * Real.log ((x/p : ℕ):ℝ) - C') (C' - C)]
+    have hfin : ((x/p : ℕ):ℝ) * (9 + Real.log 2) + 2 * Real.log ((x/p : ℕ):ℝ)
+        = ((x/p : ℕ):ℝ) * Real.log 2 + 9 * ((x/p : ℕ):ℝ)
+          + 2 * Real.log ((x/p : ℕ):ℝ) := by ring
+    rw [hfin]
+    linarith [htri, h1, h2', h3]
+  -- divide through by `log(x/p)`
+  have hfactor : (Real.log (p:ℝ) * f p) * A
+      - (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))) * C
+      = (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * (Real.log ((x:ℝ)/(p:ℝ)) * A - C) := by
+    field_simp
+  rw [hfactor, abs_mul]
+  have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+  have hcoef : |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+      ≤ Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)) := by
+    rw [abs_div, abs_mul, abs_of_nonneg hlogp, abs_of_nonneg hL.le]
+    refine div_le_div_of_nonneg_right ?_ hL.le
+    calc Real.log (p:ℝ) * |f p| ≤ Real.log (p:ℝ) * 1 :=
+          mul_le_mul_of_nonneg_left (hf p) hlogp
+      _ = Real.log (p:ℝ) := mul_one _
+  have hlog2 : Real.log 2 ≤ 1 := by
+    have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 2 by norm_num)
+    linarith
+  have hstep : (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+      * (((x/p : ℕ):ℝ) * (9 + Real.log 2) + 2 * Real.log ((x/p : ℕ):ℝ))
+      ≤ 10 * (x:ℝ) * (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+        + 2 * Real.log (p:ℝ) := by
+    have hd : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := hL
+    have hq : ((x/p : ℕ):ℝ) ≤ (x:ℝ)/(p:ℝ) := hcast
+    have hmain : (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+        * (((x/p : ℕ):ℝ) * (9 + Real.log 2))
+        ≤ 10 * (x:ℝ) * (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))) := by
+      have hQ0 : (0:ℝ) ≤ ((x/p : ℕ):ℝ) := Nat.cast_nonneg _
+      have hQR : ((x/p : ℕ):ℝ) * (9 + Real.log 2) ≤ ((x:ℝ)/(p:ℝ)) * 10 := by
+        nlinarith [hq, hlog2, hQ0]
+      have hL0 : (0:ℝ) ≤ Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)) :=
+        div_nonneg hlogp hd.le
+      calc (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+            * (((x/p : ℕ):ℝ) * (9 + Real.log 2))
+          ≤ (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ))) * (((x:ℝ)/(p:ℝ)) * 10) :=
+            mul_le_mul_of_nonneg_left hQR hL0
+        _ = 10 * (x:ℝ) * (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))) := by
+            field_simp
+    have htail : (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+        * (2 * Real.log ((x/p : ℕ):ℝ)) ≤ 2 * Real.log (p:ℝ) := by
+      rw [div_mul_eq_mul_div, div_le_iff₀ hd]
+      nlinarith [hLXL, hlogp, hd]
+    linarith [hmain, htail]
+  calc |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        * |Real.log ((x:ℝ)/(p:ℝ)) * A - C|
+      ≤ (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+          * (((x/p : ℕ):ℝ) * (9 + Real.log 2)
+              + 2 * Real.log ((x/p : ℕ):ℝ)) := by
+        refine mul_le_mul hcoef hkey (abs_nonneg _) ?_
+        exact div_nonneg hlogp hL.le
+    _ ≤ 10 * (x:ℝ) * (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          + 2 * Real.log (p:ℝ) := hstep
+
 end MoltResearch
