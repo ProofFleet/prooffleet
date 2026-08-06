@@ -2703,4 +2703,42 @@ theorem iteration_term_diff_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     _ ≤ 10 * (x:ℝ) * (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
           + 2 * Real.log (p:ℝ) := hstep
 
+open Finset in
+/-- **The iteration, over a whole block** (Track R, N15e): summing
+`iteration_term_diff_le`,
+
+  `|∑_{p∈P} (log p·f(p))·∑_{m ≤ x/p} f(m) − tripleConv f x P|
+     ≤ 10·x·∑_{p∈P} log p/(p·log(x/p)) + 2·∑_{p∈P} log p`.
+
+This completes §3's second application of the log-identity.  Both error
+terms are already controlled: the first is the harmonic sum bounded by
+`sum_log_div_mul_log_ratio_le` (`O(log log x)` after the dyadic split),
+and the second is Chebyshev's `θ`-bound over the block.
+
+With this, the passage from the mean value to the triple convolution is
+complete, and what remains of §3 is choosing the blocks. -/
+theorem iteration_diff_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (x : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ 2*p ≤ x) :
+    |∑ p ∈ P, (Real.log (p:ℝ) * f p) * (∑ m ∈ Finset.Icc 1 (x/p), f m)
+        - tripleConv f x P|
+      ≤ 10 * (x:ℝ)
+          * (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+        + 2 * ∑ p ∈ P, Real.log (p:ℝ) := by
+  classical
+  rw [tripleConv, ← Finset.sum_sub_distrib]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ p ∈ P,
+      |(Real.log (p:ℝ) * f p) * (∑ m ∈ Finset.Icc 1 (x/p), f m)
+          - (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+            * (∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+                * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n)|
+        ≤ 10 * (x:ℝ) * (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          + 2 * Real.log (p:ℝ) := by
+    intro p hp
+    obtain ⟨hpp, h2p⟩ := hP p hp
+    exact iteration_term_diff_le f hf hmul x p hpp h2p
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+
 end MoltResearch
