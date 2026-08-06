@@ -551,6 +551,76 @@ theorem iteratedDeriv_two_ofReal (f : ℝ → ℝ) (hf : ContDiff ℝ ∞ f) :
     iteratedDeriv_succ, iteratedDeriv_one]
   rw [deriv_ofReal_comp f hf, deriv_ofReal_comp (deriv f) hf1]
 
+/-- **Pointwise decay of a smooth window's transform** (Track R, N37):
+for `V` smooth and compactly supported and `ξ ≠ 0`,
+
+  `‖𝓕V(ξ)‖ ≤ M₂/(4π²ξ²)`,  `M₂ = ∫|V''|`.
+
+Two integrations by parts: `𝓕V(ξ) = 𝓕(V'')(ξ)/(2πiξ)²`.
+
+This is the ingredient that lets the sharp Halász argument run in the
+*smoothed* Perron setting.  GHS's `I₂` carries the contour weight
+`|ds|/|s|² = dt/(1+t²)`; here the same weight is supplied by the window
+transform, so `sum_unit_interval_halasz_le` applies with no contour
+integral anywhere.
+
+The bound already existed inside `fourier_tail_le`'s proof as a local
+step on the way to the tail mass `M₂/(2π²L)`; the pointwise form is
+what the unit-interval decomposition needs, since it must be charged to
+`1/(N²+1)` frequency by frequency rather than integrated away. -/
+theorem fourier_pointwise_decay (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V)
+    (hVc : HasCompactSupport V) (M₂ : ℝ)
+    (hM₂ : ∫ v, |iteratedDeriv 2 V v| ≤ M₂) (ξ : ℝ) (hξ : ξ ≠ 0) :
+    ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ ≤ M₂/(4*Real.pi^2*ξ^2) := by
+  classical
+  set Vc : ℝ → ℂ := fun v => ((V v : ℝ) : ℂ) with hVc_def
+  have hVcs : ContDiff ℝ ∞ Vc := Complex.ofRealCLM.contDiff.comp hVs
+  have hVcc : HasCompactSupport Vc :=
+    HasCompactSupport.comp_left hVc Complex.ofReal_zero
+  have haux : ∀ n : ℕ, ContDiff ℝ ∞ (iteratedDeriv n Vc)
+      ∧ HasCompactSupport (iteratedDeriv n Vc) := by
+    intro n
+    induction n with
+    | zero =>
+      rw [iteratedDeriv_zero]
+      exact ⟨hVcs, hVcc⟩
+    | succ k ih =>
+      rw [iteratedDeriv_succ]
+      refine ⟨?_, ih.2.deriv⟩
+      simpa using ih.1.iterate_deriv 1
+  have hint : ∀ n : ℕ, Integrable (iteratedDeriv n Vc) := fun n =>
+    ((haux n).1.continuous).integrable_of_hasCompactSupport (haux n).2
+  have hFI := Real.fourier_iteratedDeriv (f := Vc) (N := (2:ℕ∞))
+    (hVcs.of_le (by exact_mod_cast le_top)) (fun n _ => hint n) (le_refl _)
+  have h1 := congrFun hFI ξ
+  have hnorm2 : ‖((2*Real.pi*Complex.I*(ξ:ℂ))^2 : ℂ)‖
+      = 4*Real.pi^2*ξ^2 := by
+    rw [norm_pow]
+    rw [show (2*Real.pi*Complex.I*(ξ:ℂ))
+        = (((2*Real.pi*ξ : ℝ)):ℂ) * Complex.I from by push_cast; ring]
+    rw [norm_mul, Complex.norm_I, mul_one, Complex.norm_real,
+      Real.norm_eq_abs, sq_abs]
+    ring
+  have h2 : ‖𝓕 (iteratedDeriv 2 Vc) ξ‖ = 4*Real.pi^2*ξ^2 * ‖𝓕 Vc ξ‖ := by
+    rw [h1, norm_smul, hnorm2]
+  have h3 : ‖𝓕 (iteratedDeriv 2 Vc) ξ‖ ≤ M₂ := by
+    refine le_trans (VectorFourier.norm_fourierIntegral_le_integral_norm
+      _ _ _ _ _) ?_
+    rw [iteratedDeriv_two_ofReal V hVs]
+    refine le_trans (le_of_eq ?_) hM₂
+    refine integral_congr_ae (Filter.Eventually.of_forall fun v => ?_)
+    dsimp only
+    rw [Complex.norm_real, Real.norm_eq_abs]
+  have h4 : (0:ℝ) < 4*Real.pi^2*ξ^2 := by
+    have := Real.pi_pos
+    have hξ2 : (0:ℝ) < ξ^2 := by positivity
+    positivity
+  rw [le_div_iff₀ h4]
+  calc ‖𝓕 Vc ξ‖ * (4*Real.pi^2*ξ^2)
+      = 4*Real.pi^2*ξ^2 * ‖𝓕 Vc ξ‖ := by ring
+    _ = ‖𝓕 (iteratedDeriv 2 Vc) ξ‖ := h2.symm
+    _ ≤ M₂ := h3
+
 /-- **The window transform tail** (Track R, M2-i1c): a smooth compactly
 supported real window with second-derivative mass `M₂` has transform
 tail `∫_{|ξ|>L} ‖𝓕V‖ ≤ M₂/(2π²L)` — two integrations by parts against
