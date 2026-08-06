@@ -2932,4 +2932,160 @@ theorem sum_block_split {M : Type*} [AddCommMonoid M] (g : ℕ → M) (x : ℕ)
     exact (Finset.sum_Ico_consecutive
       (fun p => if p.Prime then g p else 0) hlo hhi).symm
 
+open Finset in
+/-- **The `S_k` mass over an arbitrary sub-collection** (Track R, N21):
+`Sk_trivial_mass_le` for any prime set contained in `[A, B)`, not only
+for the whole of `(Ico A B).filter Nat.Prime`.
+
+§3's blocks have to be intersected with the survivor range: the
+partition `blockLo x k … blockHi x k` starts at `blockLo x 1 = 1`,
+whereas the discards leave only the primes with `y ≤ p` and `2p ≤ x`.
+So the sets that actually appear are sub-collections of the blocks, and
+the block estimates must accept them.
+
+As with `sum_prime_conv_factor'`, the original proof was termwise and
+the index set only entered through a monotone sum, so the
+generalisation costs nothing. -/
+theorem Sk_trivial_mass_le' (x A B : ℕ) (hA : 1 ≤ A) (hAB : A ≤ B)
+    (hB : 2*B ≤ x) (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime ∧ A ≤ p ∧ p < B) :
+    ∑ p ∈ P, (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+        * (∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ))
+      ≤ 16 * (Real.log (B:ℝ) - Real.log (A:ℝ)) + 16 * Real.log 4 := by
+  classical
+  have hterm : ∀ p ∈ P,
+      (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * (∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ))
+        ≤ 4 * (Real.log (p:ℝ)/(p:ℝ)) := by
+    intro p hp
+    obtain ⟨hpp, hAp, hpB⟩ := hP p hp
+    have hp1 : 1 ≤ p := hpp.one_lt.le
+    exact inner_mertens_cancel x p hp1 (by omega)
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  -- the index set embeds in the full block
+  have hsub : P ⊆ (Finset.Ico A B).filter Nat.Prime := by
+    intro p hp
+    obtain ⟨hpp, hAp, hpB⟩ := hP p hp
+    simp only [Finset.mem_filter, Finset.mem_Ico]
+    exact ⟨⟨hAp, hpB⟩, hpp⟩
+  have hmono : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ)
+      ≤ ∑ p ∈ (Finset.Ico A B).filter Nat.Prime, Real.log (p:ℝ)/(p:ℝ) :=
+    Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => div_nonneg (Real.log_natCast_nonneg i) (Nat.cast_nonneg _))
+  have hmass := sum_log_div_Ico_le_log A B hA hAB
+  linarith [hmono, hmass]
+
+open Finset in
+/-- **The trivial bound over an arbitrary sub-collection** (Track R,
+N22): `norm_tripleConv_le` for any prime set contained in `[A, B)`.
+
+Needed for the same reason as `Sk_trivial_mass_le'`: §3's blocks are
+intersected with the survivor range, so the sets that appear are
+sub-collections.  Because `tripleConv` is a *signed* sum, passing to a
+subset is not a monotonicity step — the estimate genuinely has to be
+restated, though its termwise proof makes that free. -/
+theorem norm_tripleConv_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x A B : ℕ)
+    (hA : 1 ≤ A) (hAB : A ≤ B) (hB : 2*B ≤ x)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime ∧ A ≤ p ∧ p < B) :
+    |tripleConv f x P|
+      ≤ (x:ℝ) * (16 * (Real.log (B:ℝ) - Real.log (A:ℝ)) + 16 * Real.log 4) := by
+  classical
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  rw [tripleConv]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ p ∈ P,
+      |(Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+      ≤ (x:ℝ) * ((Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)) := by
+    intro p hp
+    obtain ⟨hpp, hAp, hpB⟩ := hP p hp
+    have hp1 : 1 ≤ p := hpp.one_lt.le
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+    have h2p : 2*p ≤ x := by omega
+    have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+      push_cast at hc
+      linarith
+    have hlogpos : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+    have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    have hinner : ∀ q : ℕ, |∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+        ≤ ((x/(p*q) : ℕ):ℝ) := by
+      intro q
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      calc ∑ n ∈ Finset.Icc 1 (x/(p*q)), |f n|
+          ≤ ∑ _n ∈ Finset.Icc 1 (x/(p*q)), (1:ℝ) :=
+            Finset.sum_le_sum fun n _ => hf n
+        _ = ((Finset.Icc 1 (x/(p*q))).card : ℝ) := by
+            rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+        _ = ((x/(p*q) : ℕ):ℝ) := by rw [Nat.card_Icc]; norm_num
+    have hmid : |∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+        ≤ ((x:ℝ)/(p:ℝ)) * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ) := by
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      rw [Finset.mul_sum]
+      refine Finset.sum_le_sum fun q hq => ?_
+      rw [Nat.mem_primesBelow] at hq
+      have hq1 : 1 ≤ q := hq.2.one_lt.le
+      have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq1
+      have hlogq : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+      have hcastq : ((x/(p*q) : ℕ):ℝ) ≤ (x:ℝ)/((p:ℝ)*(q:ℝ)) := by
+        have h := Nat.cast_div_le (α := ℝ) (m := x) (n := p*q)
+        push_cast at h
+        exact h
+      rw [abs_mul, abs_mul, abs_of_nonneg hlogq]
+      calc Real.log (q:ℝ) * |f q| * |∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+          ≤ Real.log (q:ℝ) * 1 * ((x:ℝ)/((p:ℝ)*(q:ℝ))) := by
+            refine mul_le_mul (mul_le_mul_of_nonneg_left (hf q) hlogq)
+              (le_trans (hinner q) hcastq) (abs_nonneg _) (by positivity)
+        _ = (x:ℝ)/(p:ℝ) * (Real.log (q:ℝ)/(q:ℝ)) := by field_simp
+    rw [abs_mul]
+    have houter : |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        ≤ Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)) := by
+      rw [abs_div, abs_mul, abs_of_nonneg hlogp, abs_of_nonneg hlogpos.le]
+      refine div_le_div_of_nonneg_right ?_ hlogpos.le
+      calc Real.log (p:ℝ) * |f p| ≤ Real.log (p:ℝ) * 1 :=
+            mul_le_mul_of_nonneg_left (hf p) hlogp
+        _ = Real.log (p:ℝ) := mul_one _
+    have hsum0 : (0:ℝ) ≤ ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ) :=
+      Finset.sum_nonneg fun q _ =>
+        div_nonneg (Real.log_natCast_nonneg q) (Nat.cast_nonneg _)
+    calc |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+          * |∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n|
+        ≤ (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+            * (((x:ℝ)/(p:ℝ)) * ∑ q ∈ (x/p).primesBelow,
+                Real.log (q:ℝ)/(q:ℝ)) := by
+          refine mul_le_mul houter hmid (abs_nonneg _) ?_
+          exact div_nonneg hlogp hlogpos.le
+      _ = (x:ℝ) * ((Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+            * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)) := by field_simp
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  exact mul_le_mul_of_nonneg_left
+    (Sk_trivial_mass_le' x A B hA hAB hB P hP) hx0
+
+open Finset in
+/-- **The block bound over an arbitrary sub-collection** (Track R,
+N22): `tripleConv_block_le` for any prime set inside the `k`-th block.
+This is the form §3's capstone consumes, since the blocks are
+intersected with the survivor range. -/
+theorem tripleConv_block_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x k : ℕ)
+    (hx : 2 ≤ x) (hk : 1 ≤ k) (hfit : 2 * blockHi x k ≤ x)
+    (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k) :
+    |tripleConv f x P|
+      ≤ (x:ℝ) * (16 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+          + Real.log 2) + 16 * Real.log 4) := by
+  have hx1 : 1 ≤ x := by omega
+  obtain ⟨hlo1, hlohi⟩ := blockLo_le_blockHi x k hx1
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  refine le_trans (norm_tripleConv_le' f hf x (blockLo x k) (blockHi x k)
+    hlo1 hlohi hfit P hP) ?_
+  refine mul_le_mul_of_nonneg_left ?_ hx0
+  have hgeom := log_blockHi_sub_log_blockLo_le x k hx hk
+  linarith [hgeom]
+
 end MoltResearch
