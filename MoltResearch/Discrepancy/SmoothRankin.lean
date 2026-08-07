@@ -6098,4 +6098,75 @@ theorem ghs_pairing_estimate_uniform (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ �
     mul_le_mul_of_nonneg_left hLSq hcoef
   exact mul_le_mul_of_nonneg_left (by linarith) hE₁0.le
 
+open MeasureTheory Real Complex Finset in
+open scoped FourierTransform ContDiff in
+/-- **§4's pairing estimate at a Perron window** (Track R, N83): for any
+smooth compactly supported `V`, with `w := ‖𝓕V‖`,
+
+  `∫_ℝ ‖P₁·P₂·P₃‖·‖𝓕V‖
+     ≤ √(E₁·(30·(2M_V + M₂/2π²)·V₃·b² + Mtail))`.
+
+`ghs_pairing_estimate_uniform` with the window's own hypotheses
+discharged.  Nothing about the window survives except three of its
+norms:
+
+* `hwle` is `fourier_window_le_inv_one_add_sq`, which turns the sup
+  `M_V` and the second-derivative mass `M₂` into GHS's contour weight
+  `C/(1+ξ²)` with `C = 2M_V + M₂/(2π²)` — no contour required;
+* `hWtail` is `fourier_tail_cube_le` at `L = halaszM x + 1/2`, giving
+  `Wtail = M₃/(8π³(halaszM x + 1/2)²)` — the **third**-derivative mass,
+  because the second-order tail is a factor of `log x` short of what
+  `Mtail` can afford;
+* `hw0` and continuity are free, `w` being the norm of a Schwartz
+  function's transform.
+
+So §4 needs no *particular* window: it needs one whose second and third
+derivative masses and transform sup are controlled, and the estimate is
+uniform over that class.  Choosing the window is therefore a §3
+decision, not a §4 one. -/
+theorem ghs_pairing_estimate_window (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ)
+    (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V) (hVc : HasCompactSupport V)
+    (M₂ M₃ MV : ℝ)
+    (hM₂ : ∫ v, |iteratedDeriv 2 V v| ≤ M₂)
+    (hM₃ : ∫ v, |iteratedDeriv 3 V v| ≤ M₃)
+    (hMV : ∀ ξ, ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ ≤ MV)
+    (V₃ Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2
+        * (M₃/(8*Real.pi^3*(((halaszM x : ℕ):ℝ) + 1/2)^2)) ≤ Mtail) :
+    (∫ ξ, ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+        * ghsPrimePoly f Q ξ‖ * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖)
+      ≤ Real.sqrt (E₁ * (5 * (2*MV + M₂/(2*Real.pi^2)) * V₃ * (6*b^2)
+          + Mtail)) := by
+  classical
+  set Vc : ℝ → ℂ := fun v => ((V v : ℝ) : ℂ) with hVc_def
+  have hVcs : ContDiff ℝ ∞ Vc := Complex.ofRealCLM.contDiff.comp hVs
+  have hVcc : HasCompactSupport Vc :=
+    HasCompactSupport.comp_left hVc Complex.ofReal_zero
+  set G : SchwartzMap ℝ ℂ := hVcc.toSchwartzMap hVcs with hG_def
+  -- the window is continuous and non-negative
+  have hw : Continuous (fun ξ => ‖𝓕 Vc ξ‖) := ((𝓕 G).continuous).norm
+  have hw0 : ∀ t : ℝ, 0 ≤ ‖𝓕 Vc t‖ := fun t => norm_nonneg _
+  -- GHS's contour weight, from the sup and the second-derivative mass
+  have hwle : ∀ t : ℝ, ‖𝓕 Vc t‖ ≤ (2*MV + M₂/(2*Real.pi^2))/(1+t^2) :=
+    fun t => ExpSums.fourier_window_le_inv_one_add_sq V hVs hVc M₂ MV
+      hM₂ hMV t
+  -- the tail, at third order
+  have hL0 : (0:ℝ) < ((halaszM x : ℕ):ℝ) + 1/2 := by positivity
+  have hWtail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|},
+      ‖𝓕 Vc ξ‖)
+      ≤ M₃/(8*Real.pi^3*(((halaszM x : ℕ):ℝ) + 1/2)^2) :=
+    ExpSums.fourier_tail_cube_le V hVs hVc M₃ hM₃ _ hL0
+  exact ghs_pairing_estimate_uniform f hf x S P Q (fun ξ => ‖𝓕 Vc ξ‖) hw
+    (2*MV + M₂/(2*Real.pi^2)) V₃ Mtail E₁
+    (M₃/(8*Real.pi^3*(((halaszM x : ℕ):ℝ) + 1/2)^2)) b
+    hE₁0 hb0 hV₃0 hMtail0 hw0 hwle hE₁ hBu hV hWtail hMtail
+
 end MoltResearch
