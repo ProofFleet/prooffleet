@@ -6226,4 +6226,84 @@ theorem ghs_triple_product (f : ℕ → ℂ) (x : ℕ) (S P Q : Finset ℕ)
     rw [Real.log_mul (by positivity) (ne_of_gt hq)]
   rw [hlog]
 
+open MeasureTheory Real Complex Finset in
+open scoped FourierTransform ContDiff in
+/-- **The smoothed triple convolution, bounded by §4** (Track R, N86):
+
+  `‖∑_{(n,p,q)} (f(n)/n)(log p·f(p)/(p log(x/p)))(log q·f(q)/q)·V(y − log(npq))‖
+     ≤ √(E₁·(30·(2M_V + M₂/2π²)·V₃·b² + Mtail))`.
+
+§3 meets §4 here.  Three facts compose and nothing new is proved:
+
+* `norm_sum_translates_le_integral_char` (the Perron-by-smoothing
+  bound) turns the smoothed sum into the `L¹` pairing of its phase
+  polynomial with `𝓕V`;
+* `ghs_triple_product` identifies that polynomial as `P₁·P₂·P₃` — the
+  step that needs the coefficients to be the Dirichlet convolution of
+  the three, which they are;
+* `ghs_pairing_estimate_window` estimates the pairing.
+
+What remains between this and §3's `S_k` is the *truncated Perron*
+step: this sum is smoothed and carries the Dirichlet weight `1/npq`,
+whereas `tripleConv` has a sharp cutoff and no weight.  That
+conversion is `perron_sandwich`, and it is not done here. -/
+theorem ghs_smoothed_triple_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ)
+    (hS : ∀ n ∈ S, 0 < n) (hP : ∀ p ∈ P, 0 < p) (hQ : ∀ q ∈ Q, 0 < q)
+    (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V) (hVc : HasCompactSupport V)
+    (M₂ M₃ MV : ℝ)
+    (hM₂ : ∫ v, |iteratedDeriv 2 V v| ≤ M₂)
+    (hM₃ : ∫ v, |iteratedDeriv 3 V v| ≤ M₃)
+    (hMV : ∀ ξ, ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ ≤ MV)
+    (V₃ Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2
+        * (M₃/(8*Real.pi^3*(((halaszM x : ℕ):ℝ) + 1/2)^2)) ≤ Mtail)
+    (y : ℝ) :
+    ‖∑ r ∈ (S ×ˢ P) ×ˢ Q,
+        ((f r.1.1 / (r.1.1:ℂ))
+          * (((Real.log (r.1.2:ℝ) : ℂ) * f r.1.2)
+              / ((r.1.2:ℂ) * ((Real.log ((x:ℝ)/(r.1.2:ℝ)) : ℝ):ℂ)))
+          * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+        * ((fun v => ((V v : ℝ) : ℂ))
+            (y - Real.log ((r.1.1 * r.1.2 * r.2 : ℕ):ℝ)))‖
+      ≤ Real.sqrt (E₁ * (5 * (2*MV + M₂/(2*Real.pi^2)) * V₃ * (6*b^2)
+          + Mtail)) := by
+  classical
+  set Vc : ℝ → ℂ := fun v => ((V v : ℝ) : ℂ) with hVc_def
+  have hVcs : ContDiff ℝ ∞ Vc := Complex.ofRealCLM.contDiff.comp hVs
+  have hVcc : HasCompactSupport Vc :=
+    HasCompactSupport.comp_left hVc Complex.ofReal_zero
+  -- Perron by smoothing: the sum is the L¹ pairing of its polynomial
+  refine le_trans (ExpSums.norm_sum_translates_le_integral_char Vc hVcc hVcs
+    ((S ×ˢ P) ×ˢ Q)
+    (fun r => (f r.1.1 / (r.1.1:ℂ))
+      * (((Real.log (r.1.2:ℝ) : ℂ) * f r.1.2)
+          / ((r.1.2:ℂ) * ((Real.log ((x:ℝ)/(r.1.2:ℝ)) : ℝ):ℂ)))
+      * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+    (fun r => Real.log ((r.1.1 * r.1.2 * r.2 : ℕ):ℝ)) y) ?_
+  -- that polynomial is the triple product
+  have hcongr : (∫ ξ, ‖∑ r ∈ (S ×ˢ P) ×ˢ Q,
+        ((f r.1.1 / (r.1.1:ℂ))
+          * (((Real.log (r.1.2:ℝ) : ℂ) * f r.1.2)
+              / ((r.1.2:ℂ) * ((Real.log ((x:ℝ)/(r.1.2:ℝ)) : ℝ):ℂ)))
+          * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+        * ((Real.fourierChar
+            (-(Real.log ((r.1.1 * r.1.2 * r.2 : ℕ):ℝ) * ξ)) : Circle) : ℂ)‖
+        * ‖𝓕 Vc ξ‖)
+      = ∫ ξ, ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+          * ghsPrimePoly f Q ξ‖ * ‖𝓕 Vc ξ‖ := by
+    refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
+    dsimp only
+    rw [← ghs_triple_product f x S P Q hS hP hQ ξ]
+  rw [hcongr]
+  exact ghs_pairing_estimate_window f hf x S P Q V hVs hVc M₂ M₃ MV
+    hM₂ hM₃ hMV V₃ Mtail E₁ b hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail
+
 end MoltResearch
