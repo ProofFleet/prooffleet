@@ -5296,4 +5296,41 @@ theorem norm_ghsBlock_coeff_sq_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1
   refine div_le_div_of_nonneg_right ?_ (by positivity)
   nlinarith [hf2, hlog0]
 
+open Real Finset in
+/-- **The `E₁` summand splits into the `I₁` mass plus a convergent tail**
+(Track R, N69): for `p ≥ 2`, any `R`, and any `D ≥ 0`,
+
+  `(6144·⌈2p/8⌉ + log p + R)·(log p/(p²·D))
+     ≤ 1536·(log p/(p·D)) + (6144 + R + log p)·(log p/(p²·D))`.
+
+The `E₁` analogue of `ghsPrime_mvt_summand_le`.  It is that lemma
+divided by `D`: the mean value theorem's leading factor `⌈2m/T⌉` at
+`T = 8` is `⌈p/4⌉ ≤ p/4 + 1`, and multiplying by `log p/(p²·D)` turns
+the `p/4` into `log p/(p·D)`, leaving everything else on the
+convergent `log p/(p²·D)`.
+
+At `D = log²(x/p)` the leading mass is `∑_p log p/(p·log²(x/p))` —
+exactly `sum_log_div_sq_ratio_block_mass_le`, GHS §4's `I₁ ≪ e^{k}/log x`
+— while the tail is dominated by `∑_p log p/p² ≤ 4` up to the factor
+`1/log²2`.  Keeping `D` abstract is what lets the same statement serve
+both the block form and any later reweighting. -/
+theorem ghsBlock_mvt_summand_le (p : ℕ) (hp : 2 ≤ p) (R D : ℝ) (hD : 0 ≤ D) :
+    (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
+        * (Real.log (p:ℝ)/((p:ℝ)^2 * D))
+      ≤ 1536 * (Real.log (p:ℝ)/((p:ℝ) * D))
+        + (6144 + R + Real.log (p:ℝ)) * (Real.log (p:ℝ)/((p:ℝ)^2 * D)) := by
+  have hkey := ghsPrime_mvt_summand_le p hp R
+  have hL : (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
+        * (Real.log (p:ℝ)/((p:ℝ)^2 * D))
+      = ((6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
+          * (Real.log (p:ℝ)/(p:ℝ)^2)) / D := by
+    rw [div_mul_eq_div_div]; ring
+  have hR : 1536 * (Real.log (p:ℝ)/((p:ℝ) * D))
+        + (6144 + R + Real.log (p:ℝ)) * (Real.log (p:ℝ)/((p:ℝ)^2 * D))
+      = (1536 * (Real.log (p:ℝ)/(p:ℝ))
+          + (6144 + R + Real.log (p:ℝ)) * (Real.log (p:ℝ)/(p:ℝ)^2)) / D := by
+    rw [div_mul_eq_div_div, div_mul_eq_div_div]; ring
+  rw [hL, hR]
+  exact div_le_div_of_nonneg_right hkey hD
+
 end MoltResearch
