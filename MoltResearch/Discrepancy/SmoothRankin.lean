@@ -5984,4 +5984,62 @@ theorem ghs_pairing_tail_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   rw [MeasureTheory.integral_const_mul]
   exact mul_le_mul_of_nonneg_left hWtail (by positivity)
 
+open MeasureTheory Real Complex Finset in
+/-- **§4's pairing estimate, assembled** (Track R, N81): for the three
+GHS polynomials and any continuous window with `0 ≤ w ≤ C/(1+t²)`,
+
+  `∫_ℝ ‖P₁·P₂·P₃‖·w ≤ √(E₁·(5·C·V·L(x)² + Mtail))`.
+
+`pairing_halasz_sqrt_le` with **every side condition discharged**.  Of
+its twenty hypotheses only the four estimates survive — `hE₁`, `hB`,
+`hV`, and the window's tail mass — because the eight integrability
+conditions come from `ghs_pairing_integrability` and `htail` from
+`ghs_pairing_tail_le`.  That is what makes this the form §4 can
+actually consume.
+
+`Mtail` is supplied through the window's tail mass `Wtail`, priced at
+the two trivial sups, and it is **not** derived from `hwle`: the crude
+`∫_ℝ C/(1+ξ²) = πC` — and even the second-order window bound
+`M₂/(2π²L)` — are too weak by a factor of `log x` once `E₁ ≍ C·e^{k}/log x`
+and `Mtail ≍ (e^{−k}log x)²(log x)²·Wtail` are put together.  The
+third-order bound `fourier_tail_cube_le` is what clears it.  Keeping
+`Wtail` a parameter is what lets the caller make that choice explicitly.
+
+`0 ≤ C` is not a hypothesis: it follows from `0 ≤ w 0 ≤ C/(1+0²)`. -/
+theorem ghs_pairing_estimate (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ) (w : ℝ → ℝ) (hw : Continuous w)
+    (B : ℤ → ℝ) (C V Mtail E₁ Wtail : ℝ)
+    (hE₁0 : 0 < E₁) (hQ0 : 0 < 5 * C * V * halaszLSq B x + Mtail)
+    (hw0 : ∀ t, 0 ≤ w t) (hwle : ∀ t, w t ≤ C/(1+t^2))
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ) ≤ E₁)
+    (hB : ∀ N ∈ halaszRange x, ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+      ‖ghsMainPoly f S t‖ ≤ B N)
+    (hB0 : ∀ N, 0 ≤ B N)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V)
+    (hWtail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|}, w ξ)
+      ≤ Wtail)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2 * Wtail ≤ Mtail) :
+    (∫ ξ, ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+        * ghsPrimePoly f Q ξ‖ * w ξ)
+      ≤ Real.sqrt (E₁ * (5 * C * V * halaszLSq B x + Mtail)) := by
+  classical
+  have hC0 : (0:ℝ) ≤ C := by
+    have h0 := hwle 0
+    have hw00 := hw0 0
+    norm_num at h0
+    linarith
+  obtain ⟨hg0, hg1, hg2, hjt, hk1, hk2, hk3⟩ :=
+    ghs_pairing_integrability f hf x S P Q w hw C hw0 hwle
+  -- the tail estimate: the window's mass, priced at the two trivial sups
+  have htail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|},
+      ‖ghsPrimePoly f Q ξ‖^2 * w ξ * ‖ghsMainPoly f S ξ‖^2) ≤ Mtail :=
+    le_trans (ghs_pairing_tail_le f hf x S P Q w hw C hw0 hwle _ Wtail hWtail)
+      hMtail
+  exact pairing_halasz_sqrt_le (ghsMainPoly f S) (ghsBlockPoly f x P)
+    (ghsPrimePoly f Q) w B x C V Mtail E₁ hE₁0 hC0 hQ0 hw0 hwle hE₁ hB hB0 hV
+    hg0 hg1 hg2 htail (fun i _ => hjt _ _) (fun N _ => hjt _ _)
+    (fun N _ => hk1 _ _) (fun N _ => hk2 _ _) (fun N _ => hk3 _ _)
+
 end MoltResearch
