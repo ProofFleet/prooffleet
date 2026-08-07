@@ -1797,6 +1797,122 @@ theorem perron_sandwich_scaled (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
   rw [hdist, norm_neg] at hmul
   refine le_trans hmul (le_of_eq ?_)
   field_simp
+
+/-- **The rescaled sandwich at every scale** (Track R, N88): the
+`4 ≤ M` hypothesis of `perron_sandwich_scaled` costs only a constant to
+remove —
+
+  `‖∑_{n ≤ M} g(n) − M·∑_{n∈S}(g(n)/n)·V(log M − log n)‖ ≤ 2ρ·M + 6`
+
+for every `M ≥ 1`.
+
+§3 applies the sandwich to `tripleConv`'s inner sum at `M = x/(pq)`,
+which drops below `4` once `pq > x/4`.  Rather than carry that range
+restriction through the substitution and discharge it separately, it is
+cheaper to observe that the small-scale case is trivial: at `M ≤ 3` the
+sharp sum has at most three terms, and `V(v) = 0` for `v ≤ 0` kills
+every smoothed term with `n ≥ M`, leaving at most `M − 1 ≤ 2` of them,
+each at most `1/M` after the rescaling.  So both sides are `O(1)` and
+the difference is at most `5`.
+
+Keeping the constant at `6` rather than `5` leaves the statement stable
+if the plateau constant ever moves. -/
+theorem perron_sandwich_uniform (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (V : ℝ → ℝ) (ρ : ℝ) (M : ℕ) (hM : 1 ≤ M) (hρ0 : 0 < ρ) (hρ1 : ρ ≤ 1)
+    (hVplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log M + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (S : Finset ℕ) (hS : Finset.Icc 1 M ⊆ S) (hS1 : ∀ n ∈ S, 1 ≤ n) :
+    ‖(∑ n ∈ Finset.Icc 1 M, g n)
+        - (M:ℂ) * ∑ n ∈ S, (g n/(n:ℂ))
+            * ((V (Real.log M - Real.log n) : ℝ) : ℂ)‖
+      ≤ 2*ρ*(M:ℝ) + 6 := by
+  classical
+  have hM0 : (0:ℝ) < (M:ℝ) := by exact_mod_cast (by omega : 0 < M)
+  by_cases hbig : 4 ≤ M
+  · -- the genuine case
+    refine le_trans (perron_sandwich_scaled g hg V ρ M hbig hρ0 hρ1 hVplat
+      hV0 hVle hVnn S hS hS1) ?_
+    linarith
+  · -- `M ≤ 3`: both sides are `O(1)`
+    push_neg at hbig
+    have hM3 : M ≤ 3 := by omega
+    -- the smoothed terms with `n ≥ M` vanish
+    have hvanish : ∀ n ∈ S, n ∉ S.filter (fun n => n < M) →
+        (g n/(n:ℂ)) * ((V (Real.log M - Real.log n) : ℝ) : ℂ) = 0 := by
+      intro n hn hnot
+      simp only [Finset.mem_filter, not_and, not_lt] at hnot
+      have hnM : M ≤ n := hnot hn
+      have hle : Real.log (M:ℝ) - Real.log (n:ℝ) ≤ 0 := by
+        have hn1 : (1:ℝ) ≤ (n:ℝ) := by exact_mod_cast hS1 n hn
+        have := Real.log_le_log hM0 (by exact_mod_cast hnM : (M:ℝ) ≤ (n:ℝ))
+        linarith
+      rw [hV0 _ hle]
+      simp
+    have hrestrict : (∑ n ∈ S, (g n/(n:ℂ))
+          * ((V (Real.log M - Real.log n) : ℝ) : ℂ))
+        = ∑ n ∈ S.filter (fun n => n < M), (g n/(n:ℂ))
+            * ((V (Real.log M - Real.log n) : ℝ) : ℂ) :=
+      (Finset.sum_subset (Finset.filter_subset _ _)
+        (fun n hn hnot => hvanish n hn hnot)).symm
+    -- each surviving term is at most `1/M` after rescaling
+    have hterm : ∀ n ∈ S.filter (fun n => n < M),
+        ‖(M:ℂ) * ((g n/(n:ℂ))
+          * ((V (Real.log M - Real.log n) : ℝ) : ℂ))‖ ≤ 1 := by
+      intro n hn
+      simp only [Finset.mem_filter] at hn
+      have hn1 : 1 ≤ n := hS1 n hn.1
+      have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn1
+      have hVb : V (Real.log M - Real.log n) ≤ (n:ℝ)/(M:ℝ) := by
+        refine le_trans (hVle _) (le_of_eq ?_)
+        rw [neg_sub, Real.exp_sub, Real.exp_log hn0, Real.exp_log hM0]
+      rw [norm_mul, norm_mul, Complex.norm_natCast, norm_div,
+        Complex.norm_natCast, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg (hVnn _)]
+      have hgn : ‖g n‖ ≤ 1 := hg n
+      have hstep : ‖g n‖/(n:ℝ) * V (Real.log M - Real.log n)
+          ≤ (1/(n:ℝ)) * ((n:ℝ)/(M:ℝ)) := by
+        refine mul_le_mul (by exact div_le_div_of_nonneg_right hgn hn0.le)
+          hVb (hVnn _) (by positivity)
+      have hval : (1/(n:ℝ)) * ((n:ℝ)/(M:ℝ)) = 1/(M:ℝ) := by
+        field_simp
+      have hMge : (1:ℝ) ≤ (M:ℝ) := by exact_mod_cast hM
+      calc (M:ℝ) * (‖g n‖/(n:ℝ) * V (Real.log M - Real.log n))
+          ≤ (M:ℝ) * ((1/(n:ℝ)) * ((n:ℝ)/(M:ℝ))) :=
+            mul_le_mul_of_nonneg_left hstep hM0.le
+        _ = 1 := by rw [hval]; field_simp
+    -- collect: at most `M − 1 ≤ 2` surviving terms
+    have hcard : (S.filter (fun n => n < M)).card ≤ 2 := by
+      have hsub : S.filter (fun n => n < M) ⊆ Finset.Ico 1 M := by
+        intro n hn
+        simp only [Finset.mem_filter] at hn
+        exact Finset.mem_Ico.mpr ⟨hS1 n hn.1, hn.2⟩
+      have := Finset.card_le_card hsub
+      simp only [Nat.card_Ico] at this
+      omega
+    have hsmooth : ‖(M:ℂ) * ∑ n ∈ S, (g n/(n:ℂ))
+        * ((V (Real.log M - Real.log n) : ℝ) : ℂ)‖ ≤ 2 := by
+      rw [hrestrict, Finset.mul_sum]
+      refine le_trans (norm_sum_le _ _) ?_
+      refine le_trans (Finset.sum_le_sum hterm) ?_
+      simp only [Finset.sum_const, nsmul_eq_mul, mul_one]
+      exact_mod_cast hcard
+    -- the sharp sum has at most `M ≤ 3` terms
+    have hsharp : ‖∑ n ∈ Finset.Icc 1 M, g n‖ ≤ 3 := by
+      refine le_trans (norm_sum_le _ _) ?_
+      refine le_trans (Finset.sum_le_sum (fun n _ => hg n)) ?_
+      simp only [Finset.sum_const, nsmul_eq_mul, mul_one, Nat.card_Icc]
+      have : (M + 1 - 1) ≤ 3 := by omega
+      exact_mod_cast this
+    have hρM : (0:ℝ) ≤ 2*ρ*(M:ℝ) := by positivity
+    calc ‖(∑ n ∈ Finset.Icc 1 M, g n)
+          - (M:ℂ) * ∑ n ∈ S, (g n/(n:ℂ))
+              * ((V (Real.log M - Real.log n) : ℝ) : ℂ)‖
+        ≤ ‖∑ n ∈ Finset.Icc 1 M, g n‖
+          + ‖(M:ℂ) * ∑ n ∈ S, (g n/(n:ℂ))
+              * ((V (Real.log M - Real.log n) : ℝ) : ℂ)‖ := norm_sub_le _ _
+      _ ≤ 3 + 2 := add_le_add hsharp hsmooth
+      _ ≤ 2*ρ*(M:ℝ) + 6 := by linarith
 end ExpSums
 
 end MoltResearch
