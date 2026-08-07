@@ -4997,4 +4997,135 @@ theorem ghsPrime_mvt_summand_le (q : ℕ) (hq : 2 ≤ q) (R : ℝ) :
     ring
   nlinarith [hlead, hmass, hlog0]
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **An arbitrary prime-supported polynomial is a von Mangoldt one**
+(Track R, N65): for `Q` a set of primes and any coefficients `w`,
+
+  `∑_q w(q)·𝐞(−u log q) = ∑_q ((w(q)/Λ(q))·Λ(q))·𝐞(−u log q)`.
+
+Trivial as an identity — it is `vonMangoldt_coeff_recover` applied
+termwise — but it is the step that lets the mean value theorem be used
+on the coefficient vectors that `integral_unit_sq_le_of_centred`
+quantifies over, which are *not* `P₃`'s own.
+
+Kept separate from the estimate that follows: the rewrite is exact, and
+isolating it means the inequality chain never has to carry a division
+that might be undefined. -/
+theorem prime_poly_as_vonMangoldt (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime)
+    (w : ℕ → ℂ) (u : ℝ) :
+    (∑ q ∈ Q, w q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ))
+      = ∑ q ∈ Q, ((w q / ((vonMangoldt q : ℝ):ℂ)) * ((vonMangoldt q : ℝ):ℂ))
+          * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ) := by
+  refine Finset.sum_congr rfl fun q hq => ?_
+  rw [(vonMangoldt_coeff_recover q (hQp q hq) (w q)).1]
+
+open Real Finset in
+/-- **The smallness condition at `T = 8`** (Track R, N65):
+`2·⌈2m/8⌉ ≤ m` for `m ≥ 4`.
+
+`inner_sum_long_le` needs the shells' step `h = ⌈2m/T⌉` to be at most
+half the centre, so that the reach `a_J ≥ m/4` follows from maximality.
+At `T = 8` this is `2·⌈m/4⌉ ≤ m/2 + 2 ≤ m`, which holds from `m ≥ 4` on
+— so it imposes nothing beyond what `T² ≤ m` already demands. -/
+theorem two_mul_ceil_quarter_le (m : ℕ) (hm : 4 ≤ m) :
+    2*(⌈2*(m:ℝ)/8⌉₊) ≤ m := by
+  have hmR : (4:ℝ) ≤ (m:ℝ) := by exact_mod_cast hm
+  have hceil : ((⌈2*(m:ℝ)/8⌉₊ : ℕ):ℝ) < 2*(m:ℝ)/8 + 1 :=
+    Nat.ceil_lt_add_one (by positivity)
+  have hreal : ((2*(⌈2*(m:ℝ)/8⌉₊) : ℕ):ℝ) ≤ (m:ℝ) := by
+    push_cast
+    linarith
+  exact_mod_cast hreal
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The centred energy of the `q`-polynomial** (Track R, N65): for any
+coefficients of the right moduli,
+
+  `∫_{−8}^{8} ‖∑_q w(q)·𝐞(−u log q)‖² du
+     ≤ e^π·8·∑_q (6144·⌈2q/8⌉ + log q + e^{−π}·B + (√X+1)log₂X·log X)·(log q/q²)`.
+
+This is GHS's Lemma 1 applied to `P₃`, at `T = 8` and for an arbitrary
+member of the equal-modulus family that
+`integral_unit_sq_le_of_centred` ranges over.
+
+`T = 8` is forced from both sides: `inner_sum_long_le` needs
+`T² ≤ q`, so `q ≥ 64` — which is GHS's own `T² ≤ n ≤ x` — while
+`2·⌈2q/8⌉ ≤ q` costs nothing beyond that.  Smaller `T` fails the
+smallness condition; larger `T` would raise the threshold on `q`
+without benefit.
+
+By `ghsPrime_mvt_summand_le` the right side is
+`≍ ∑_q log q/q`, which Mertens makes `≍ log Q`. -/
+theorem ghsPrime_centred_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (Q : Finset ℕ) (X : ℕ) (hX : 1 ≤ X)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQ64 : ∀ q ∈ Q, 64 ≤ q) (hQX : ∀ q ∈ Q, q ≤ X)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ q ∈ Q, Real.log (q:ℝ) ≤ B)
+    (w : ℕ → ℂ)
+    (hw : ∀ q ∈ Q, ‖w q‖ = ‖(((Real.log (q:ℝ) : ℝ):ℂ) * f q) / (q:ℂ)‖) :
+    (∫ u in (-(8:ℝ))..(8:ℝ),
+        ‖∑ q ∈ Q, w q
+          * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * 8 * ∑ q ∈ Q,
+          (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+            + Real.exp (-(π*(8:ℝ)^2/64)) * B
+            + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+                * Real.log ((X:ℕ):ℝ))
+          * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+  classical
+  -- rewrite into von Mangoldt shape
+  have hrw : (∫ u in (-(8:ℝ))..(8:ℝ),
+      ‖∑ q ∈ Q, w q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      = ∫ u in (-(8:ℝ))..(8:ℝ),
+        ‖∑ q ∈ Q, ((w q / ((vonMangoldt q : ℝ):ℂ))
+            * ((vonMangoldt q : ℝ):ℂ))
+          * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2 := by
+    refine intervalIntegral.integral_congr fun u _ => ?_
+    rw [prime_poly_as_vonMangoldt Q hQp w u]
+  rw [hrw]
+  -- the mean value theorem at T = 8
+  have hmvt := intervalIntegral_vonMangoldt_mvt_long_le (8:ℝ) X Q
+    (fun q => w q / ((vonMangoldt q : ℝ):ℂ))
+    (fun q hq => by have := hQ64 q hq; omega)
+    hQX hX (by norm_num)
+    (fun m hm => by
+      have h64 : (64:ℝ) ≤ (m:ℝ) := by exact_mod_cast hQ64 m hm
+      have hsq : ((8:ℝ))^2 = 64 := by norm_num
+      rw [hsq]
+      exact h64)
+    (fun m hm => two_mul_ceil_quarter_le m (by have := hQ64 m hm; omega))
+    B hB
+  refine le_trans hmvt ?_
+  -- replace the coefficient energy by its bound
+  have hcoef : ∀ q ∈ Q,
+      (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + Real.exp (-(π*(8:ℝ)^2/64)) * B
+        + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+            * Real.log ((X:ℕ):ℝ))
+      * (‖w q / ((vonMangoldt q : ℝ):ℂ)‖^2 * vonMangoldt q)
+      ≤ (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+          + Real.exp (-(π*(8:ℝ)^2/64)) * B
+          + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+              * Real.log ((X:ℕ):ℝ))
+        * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+    intro q hq
+    have hbig : (0:ℝ) ≤ 6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + Real.exp (-(π*(8:ℝ)^2/64)) * B
+        + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+            * Real.log ((X:ℕ):ℝ) := by
+      have h1 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+      have h2 : (0:ℝ) ≤ Real.exp (-(π*(8:ℝ)^2/64)) * B :=
+        mul_nonneg (Real.exp_pos _).le hB0
+      have h3 : (0:ℝ) ≤ ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+          * Real.log ((X:ℕ):ℝ) := by
+        have := Real.log_natCast_nonneg X
+        positivity
+      positivity
+    refine mul_le_mul_of_nonneg_left ?_ hbig
+    exact recovered_coeff_sq_le f hf q (hQp q hq) (w q) (hw q hq)
+  have hstep := Finset.sum_le_sum hcoef
+  have hexp0 : (0:ℝ) ≤ Real.exp π * 8 := by positivity
+  exact mul_le_mul_of_nonneg_left hstep hexp0
+
 end MoltResearch
