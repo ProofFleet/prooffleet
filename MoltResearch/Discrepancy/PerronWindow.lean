@@ -2068,6 +2068,33 @@ theorem scale_mul_window_eq (V : ℝ → ℝ) (ρ B M n : ℝ)
   rw [hplat _ hlo hhi, neg_sub, Real.exp_sub, Real.exp_log hn,
     Real.exp_log hM]
   field_simp
+
+/-- **On the plateau, the weighted term is the coefficient** (Track R,
+N95): for `n ≥ 1` and `log M − log n` in the plateau range,
+
+  `(g(n)/n) · (M · V(log M − log n)) = g(n)`,
+
+independently of `M`.
+
+`scale_mul_window_eq` divided by `n`.  This is the form the edge
+analysis consumes: it says the smoothed sum, *rescaled*, reproduces the
+sharp sum term by term wherever the plateau reaches — so the two
+scales `⌊x/pq⌋` and `x/pq` contribute *identically* in the bulk and
+their difference is supported entirely on the edges.
+
+Stated separately from `scale_mul_window_eq` because the edge argument
+needs it at this weight: the difference of the two scaled sums is
+`∑_n (g(n)/n)(M·V(…) − Q·V(…))`, whose summand vanishes exactly when
+this applies to both scales at once. -/
+theorem weighted_window_eq_of_plateau (g : ℕ → ℝ) (V : ℝ → ℝ) (ρ B M : ℝ)
+    (n : ℕ) (hM : 0 < M) (hn : 1 ≤ n)
+    (hplat : ∀ v, ρ ≤ v → v ≤ B → V v = Real.exp (-v))
+    (hlo : ρ ≤ Real.log M - Real.log n)
+    (hhi : Real.log M - Real.log n ≤ B) :
+    (g n/(n:ℝ)) * (M * V (Real.log M - Real.log n)) = g n := by
+  have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn
+  rw [scale_mul_window_eq V ρ B M (n:ℝ) hM hn0 hplat hlo hhi]
+  field_simp
 end ExpSums
 
 end MoltResearch
