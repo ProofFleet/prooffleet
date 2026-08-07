@@ -4955,4 +4955,46 @@ theorem recovered_coeff_sq_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1) (q
   rw [hkey]
   exact norm_ghsPrime_coeff_sq_le f hf q hq
 
+open Real Finset in
+/-- **The `I₂` summand splits into Mertens plus a convergent tail**
+(Track R, N64): for `q ≥ 2` and any `R`,
+
+  `(6144·⌈2q/8⌉ + log q + R)·(log q/q²)
+     ≤ 1536·(log q/q) + (6144 + R)·(log q/q²)`.
+
+This is what the mean value theorem's right-hand side becomes once the
+coefficients of `P₃` are substituted.  The leading factor `⌈2m/T⌉` at
+`T = 8` is `⌈q/4⌉ ≤ q/4 + 1`, and multiplying by `log q/q²` turns the
+`q/4` into `log q/q` — the Mertens sum, which is `≍ log Q` — while
+everything else lands on `log q/q²`, which converges.
+
+So `V ≍ ∑_{q ≤ Q} log q/q ≍ log Q`, and with `Q = x^{e^{1−k}}` that is
+the `e^{−k}·log x` the `I₂` estimate needs. -/
+theorem ghsPrime_mvt_summand_le (q : ℕ) (hq : 2 ≤ q) (R : ℝ) :
+    (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ) + R)
+        * (Real.log (q:ℝ)/(q:ℝ)^2)
+      ≤ 1536 * (Real.log (q:ℝ)/(q:ℝ))
+        + (6144 + R + Real.log (q:ℝ)) * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+  have hq0 : (0:ℝ) < (q:ℝ) := by
+    have : (2:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+    linarith
+  have hlog0 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+  -- the ceiling is at most q/4 + 1
+  have hceil : ((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) ≤ (q:ℝ)/4 + 1 := by
+    have h1 : ((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) ≤ 2*(q:ℝ)/8 + 1 :=
+      Nat.ceil_lt_add_one (by positivity) |>.le
+    linarith
+  have hmass : (0:ℝ) ≤ Real.log (q:ℝ)/(q:ℝ)^2 := by positivity
+  -- 6144·⌈q/4⌉·(log q/q²) ≤ 1536·(log q/q) + 6144·(log q/q²)
+  have hlead : 6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) * (Real.log (q:ℝ)/(q:ℝ)^2)
+      ≤ 1536 * (Real.log (q:ℝ)/(q:ℝ)) + 6144 * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+    have hstep : 6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) * (Real.log (q:ℝ)/(q:ℝ)^2)
+        ≤ 6144*((q:ℝ)/4 + 1) * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+      refine mul_le_mul_of_nonneg_right ?_ hmass
+      linarith [hceil]
+    refine le_trans hstep (le_of_eq ?_)
+    field_simp
+    ring
+  nlinarith [hlead, hmass, hlog0]
+
 end MoltResearch
