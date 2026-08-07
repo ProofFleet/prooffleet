@@ -2718,6 +2718,192 @@ theorem prime_gaussian_block_le (T : ℝ) (N m h J : ℕ) (S : Finset ℕ)
     rwa [hexp] at hres
   linarith
 
+open Finset Real in
+/-- **Multiplicative gap from an additive one** (Track R, N56):
+for `0 < a ≤ b`,
+
+  `(b − a)/b ≤ log b − log a`.
+
+From `1 + log(a/b) ≤ a/b`.  This is the inequality behind
+`log_gap_of_dyadic`, stated without reference to a block so it can be
+used when the two points are not confined to one. -/
+theorem log_gap_of_ratio (a b : ℝ) (ha : 0 < a) (hab : a ≤ b) :
+    (b - a)/b ≤ Real.log b - Real.log a := by
+  have hb : (0:ℝ) < b := lt_of_lt_of_le ha hab
+  have hlog : Real.log b - Real.log a = -Real.log (a/b) := by
+    rw [Real.log_div ha.ne' hb.ne']; ring
+  have h2 : 1 + Real.log (a/b) ≤ a/b := by
+    have h := Real.add_one_le_exp (Real.log (a/b))
+    rw [Real.exp_log (by positivity)] at h
+    linarith
+  have heq : (b - a)/b = 1 - a/b := by field_simp
+  rw [hlog, heq]
+  linarith
+
+open Finset Real in
+/-- **The tail gap, without a block** (Track R, N56): if the shells
+around `m` reach at least a quarter of `m`, then every natural number
+they miss is at multiplicative distance at least `1/8` from `m`.
+
+`tail_gap_of_block` obtains this for points confined to a dyadic block
+`(N, 2N]`, using `A ≥ N/4` and `max(n,m) ≤ 2N`.  Over an unrestricted
+range `max(n,m)` is unbounded, but that only helps: a point far from
+`m` multiplicatively has a large log-gap for free.  Splitting at
+`n = 2m` handles both regimes —
+
+* `n > 2m`: the gap already exceeds `log 2 > 1/8`;
+* `n ≤ 2m`: the additive gap `A` divided by `max(n,m) ≤ 2m` is at least
+  `A/(2m) ≥ 1/8` exactly when `m ≤ 4A`.
+
+So the block hypothesis is replaced by the single condition `m ≤ 4A`,
+which mentions only the centre and the reach.  This is what lets the
+mean value theorem be applied to a long range rather than a dyadic
+block — which is what GHS's Lemma 1 needs. -/
+theorem tail_gap_of_long (m A n : ℕ) (hm : 1 ≤ m) (hn : 1 ≤ n)
+    (hA : m ≤ 4*A) (hout : n ∉ Finset.Ioc (m - 1 - A) (m + A)) :
+    (1:ℝ)/8 ≤ |Real.log (n:ℝ) - Real.log (m:ℝ)| := by
+  have hm0 : (0:ℝ) < (m:ℝ) := by exact_mod_cast hm
+  have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn
+  rcases Nat.lt_or_ge (2*m) n with hfar | hnear
+  · -- far above: the gap already exceeds log 2
+    have h2m : (2:ℝ)*(m:ℝ) ≤ (n:ℝ) := by
+      have : ((2*m : ℕ):ℝ) ≤ (n:ℝ) := by exact_mod_cast hfar.le
+      push_cast at this; linarith
+    have hstep := log_gap_of_ratio (m:ℝ) (n:ℝ) hm0 (by linarith)
+    have hquot : (1:ℝ)/2 ≤ ((n:ℝ) - (m:ℝ))/(n:ℝ) := by
+      rw [le_div_iff₀ hn0]; linarith
+    rw [abs_of_nonneg (by linarith)]
+    linarith
+  · -- the additive gap, from missing the window
+    have hgapN : A ≤ n - m ∨ A ≤ m - n := by
+      rw [Finset.mem_Ioc] at hout
+      push_neg at hout
+      rcases Nat.lt_or_ge (m + A) n with hgt | hle
+      · left; omega
+      · right
+        have hlow : ¬ (m - 1 - A < n) := by
+          intro hc
+          have := hout hc
+          omega
+        omega
+    have hnle : (n:ℝ) ≤ 2*(m:ℝ) := by
+      have : (n:ℝ) ≤ ((2*m : ℕ):ℝ) := by exact_mod_cast hnear
+      push_cast at this; linarith
+    have hAR : (m:ℝ) ≤ 4*(A:ℝ) := by
+      have : ((m:ℕ):ℝ) ≤ ((4*A : ℕ):ℝ) := by exact_mod_cast hA
+      push_cast at this; linarith
+    rcases hgapN with hup | hdown
+    · -- n above m
+      have hmn : (m:ℝ) ≤ (n:ℝ) := by
+        have : m ≤ n := by omega
+        exact_mod_cast this
+      have hAd : (A:ℝ) ≤ (n:ℝ) - (m:ℝ) := by
+        have hc : ((A + m : ℕ):ℝ) ≤ (n:ℝ) := by
+          exact_mod_cast (by omega : A + m ≤ n)
+        push_cast at hc; linarith
+      have hstep := log_gap_of_ratio (m:ℝ) (n:ℝ) hm0 hmn
+      have hquot : (1:ℝ)/8 ≤ ((n:ℝ) - (m:ℝ))/(n:ℝ) := by
+        rw [le_div_iff₀ hn0]; linarith
+      rw [abs_of_nonneg (by linarith)]
+      linarith
+    · -- n below m
+      have hnm : (n:ℝ) ≤ (m:ℝ) := by
+        have : n ≤ m := by omega
+        exact_mod_cast this
+      have hAd : (A:ℝ) ≤ (m:ℝ) - (n:ℝ) := by
+        have hc : ((A + n : ℕ):ℝ) ≤ (m:ℝ) := by
+          exact_mod_cast (by omega : A + n ≤ m)
+        push_cast at hc; linarith
+      have hstep := log_gap_of_ratio (n:ℝ) (m:ℝ) hn0 hnm
+      have hquot : (1:ℝ)/8 ≤ ((m:ℝ) - (n:ℝ))/(m:ℝ) := by
+        rw [le_div_iff₀ hm0]; linarith
+      rw [abs_sub_comm, abs_of_nonneg (by linarith)]
+      linarith
+
+open Finset Real in
+/-- **The prime part of the inner sum, over an arbitrary range**
+(Track R, N57): the block hypothesis of `prime_gaussian_block_le` is
+replaced by the single condition `m ≤ 4·(2^J−1)h` — that the shells
+around `m` reach a quarter of `m`.
+
+  `∑_{p ∈ S, prime} log p·e^{−πT²(log p − log m)²}
+     ≤ 1024·h·L + log m + e^{−πT²/64}·B`
+
+for *any* finite `S` of positive integers.
+
+The proof is the same split — shells, then everything they miss — with
+`tail_gap_of_long` in place of `tail_gap_of_block`.  Nothing else
+changes: `inner_sum_two_sided_le`, which bounds the shells, never
+mentioned a block to begin with.
+
+This is what lets the mean value theorem be applied to the long ranges
+GHS §4 actually uses (`q ≤ x^{e^{1−k}}` and `P_k`), where a dyadic
+decomposition would cost a factor equal to the number of blocks. -/
+theorem prime_gaussian_long_le (T : ℝ) (m h J : ℕ) (S : Finset ℕ)
+    (hS1 : ∀ n ∈ S, 1 ≤ n) (hm1 : 1 ≤ m)
+    (hh : 2 ≤ h) (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T)
+    (hfit : (2^J - 1)*h + 1 ≤ m) (hwfit : ∀ j < J, 2^j*h ≤ 2*m)
+    (hreach : m ≤ 4*((2^J - 1)*h))
+    (L : ℝ) (hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ L)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ p ∈ S.filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ) + Real.exp (-(π*T^2/64)) * B := by
+  classical
+  rw [← Finset.sum_filter_add_sum_filter_not (S.filter Nat.Prime)
+    (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h) (m + (2^J - 1)*h))]
+  have hnn : ∀ n : ℕ, (0:ℝ)
+      ≤ Real.log (n:ℝ) * Real.exp (-(π*T^2*(Real.log n - Real.log m)^2)) :=
+    fun n => mul_nonneg (Real.log_natCast_nonneg n) (Real.exp_pos _).le
+  have hcov : ∑ p ∈ (S.filter Nat.Prime).filter
+        (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h) (m + (2^J - 1)*h)),
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ) := by
+    have hsub : (S.filter Nat.Prime).filter
+        (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))
+        ⊆ (Finset.Ioc (m - 1 - (2^J - 1)*h)
+            (m + (2^J - 1)*h)).filter Nat.Prime := by
+      intro p hp
+      simp only [Finset.mem_filter] at hp ⊢
+      exact ⟨hp.2, hp.1.2⟩
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => hnn i)) ?_
+    refine le_trans (inner_sum_two_sided_le T m h J hh hscale hfit hwfit) ?_
+    have hh2 : (2:ℝ) ≤ (h:ℝ) := by exact_mod_cast hh
+    have hstep : 1024*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ))
+        ≤ 1024*(h:ℝ)*L := by
+      refine mul_le_mul_of_nonneg_left hL ?_
+      positivity
+    linarith
+  have htail : ∑ p ∈ (S.filter Nat.Prime).filter
+        (fun n => ¬ (n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))),
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ Real.exp (-(π*T^2/64)) * B := by
+    have hgap : ∀ n ∈ (S.filter Nat.Prime).filter
+        (fun n => ¬ (n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))),
+        (1:ℝ)/8 ≤ |Real.log (n:ℝ) - Real.log (m:ℝ)| := by
+      intro n hn
+      simp only [Finset.mem_filter] at hn
+      exact tail_gap_of_long m ((2^J - 1)*h) n hm1 (hS1 n hn.1.1) hreach hn.2
+    have hBsub : ∑ n ∈ (S.filter Nat.Prime).filter
+        (fun n => ¬ (n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))), Real.log (n:ℝ) ≤ B := by
+      refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg ?_
+        (fun i _ _ => Real.log_natCast_nonneg i)) hB
+      intro p hp
+      simp only [Finset.mem_filter] at hp
+      exact hp.1.1
+    have hres := gaussian_tail_sum_le T _ m (1/8) (by norm_num) hgap B hBsub
+    have hexp : Real.exp (-(π*T^2*((1:ℝ)/8)^2))
+        = Real.exp (-(π*T^2/64)) := by
+      congr 1
+      ring
+    rwa [hexp] at hres
+  linarith
+
 end ExpSums
 
 end MoltResearch
