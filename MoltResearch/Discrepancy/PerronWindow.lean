@@ -1672,6 +1672,76 @@ theorem fourier_tail_cube_le (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V)
     field_simp
     ring
   linarith [hIio_bound, hIoi_bound, hhalf.le, hhalf.ge]
+
+/-- **Character polynomials multiply by adding frequencies** (Track R,
+N84): for any two finite index sets,
+
+  `(∑_i a_i·𝐞(−α_i ξ))·(∑_j b_j·𝐞(−β_j ξ))
+     = ∑_{(i,j)} a_i b_j·𝐞(−(α_i + β_j)ξ)`.
+
+`𝐞` is an additive character, so a product of phase polynomials is
+again a phase polynomial — over the product index set, with the
+frequencies added.
+
+This is the algebraic join between GHS §3 and §4.  §4's pairing
+estimate bounds `∫‖P₁·P₂·P₃‖·w`; §3 needs a bound on a *single* sum,
+which `norm_sum_translates_le_integral_char` turns into an integral
+against one phase polynomial.  The two meet exactly here: the triple
+product is the polynomial of the convolved coefficients. -/
+theorem char_poly_mul {ι κ : Type*} (A : Finset ι) (B : Finset κ)
+    (a : ι → ℂ) (b : κ → ℂ) (α : ι → ℝ) (β : κ → ℝ) (ξ : ℝ) :
+    (∑ i ∈ A, a i * ((Real.fourierChar (-(α i * ξ)) : Circle) : ℂ))
+        * (∑ j ∈ B, b j * ((Real.fourierChar (-(β j * ξ)) : Circle) : ℂ))
+      = ∑ p ∈ A ×ˢ B, (a p.1 * b p.2)
+          * ((Real.fourierChar (-((α p.1 + β p.2) * ξ)) : Circle) : ℂ) := by
+  classical
+  rw [Finset.sum_product,
+    Finset.sum_mul_sum A B
+      (fun i => a i * ((Real.fourierChar (-(α i * ξ)) : Circle) : ℂ))
+      (fun j => b j * ((Real.fourierChar (-(β j * ξ)) : Circle) : ℂ))]
+  refine Finset.sum_congr rfl fun i _ => Finset.sum_congr rfl fun j _ => ?_
+  have hchar : ((Real.fourierChar (-((α i + β j) * ξ)) : Circle) : ℂ)
+      = ((Real.fourierChar (-(α i * ξ)) : Circle) : ℂ)
+        * ((Real.fourierChar (-(β j * ξ)) : Circle) : ℂ) := by
+    rw [show -((α i + β j) * ξ) = -(α i * ξ) + -(β j * ξ) from by ring,
+      Real.fourierChar.map_add_eq_mul]
+    push_cast
+    ring
+  rw [hchar]
+  ring
+
+/-- **The Dirichlet form of the product** (Track R, N84): at the
+frequencies `log n`, the added frequency is the frequency of the
+product,
+
+  `(∑_m a_m·𝐞(−log m·ξ))·(∑_n b_n·𝐞(−log n·ξ))
+     = ∑_{(m,n)} a_m b_n·𝐞(−log(mn)·ξ)`.
+
+`char_poly_mul` with `log m + log n = log(mn)`, which is what makes a
+product of Dirichlet polynomials the polynomial of the *Dirichlet
+convolution* — the form GHS §3 consumes.  Positivity of the indices is
+what `Real.log_mul` needs. -/
+theorem char_poly_mul_log (A B : Finset ℕ) (a b : ℕ → ℂ)
+    (hA : ∀ m ∈ A, 0 < m) (hB : ∀ n ∈ B, 0 < n) (ξ : ℝ) :
+    (∑ m ∈ A, a m
+        * ((Real.fourierChar (-(Real.log (m:ℝ) * ξ)) : Circle) : ℂ))
+        * (∑ n ∈ B, b n
+          * ((Real.fourierChar (-(Real.log (n:ℝ) * ξ)) : Circle) : ℂ))
+      = ∑ p ∈ A ×ˢ B, (a p.1 * b p.2)
+          * ((Real.fourierChar
+              (-(Real.log ((p.1 * p.2 : ℕ):ℝ) * ξ)) : Circle) : ℂ) := by
+  classical
+  rw [char_poly_mul A B a b (fun m => Real.log (m:ℝ))
+    (fun n => Real.log (n:ℝ)) ξ]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  rw [Finset.mem_product] at hp
+  have h1 : (0:ℝ) < (p.1:ℝ) := by exact_mod_cast hA p.1 hp.1
+  have h2 : (0:ℝ) < (p.2:ℝ) := by exact_mod_cast hB p.2 hp.2
+  have hlog : Real.log ((p.1 * p.2 : ℕ):ℝ)
+      = Real.log (p.1:ℝ) + Real.log (p.2:ℝ) := by
+    push_cast
+    exact Real.log_mul (ne_of_gt h1) (ne_of_gt h2)
+  rw [hlog]
 end ExpSums
 
 end MoltResearch
