@@ -2035,6 +2035,39 @@ theorem smoothed_sum_le_one (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1)
       ≤ (M:ℝ) * (1/(M:ℝ)) := by
         refine mul_le_mul_of_nonneg_right hcard (by positivity)
     _ = 1 := by field_simp
+
+/-- **On the plateau, the scale cancels** (Track R, N94): whenever
+`log M − log n` lies in the plateau range,
+
+  `M · V(log M − log n) = n`,
+
+**independently of `M`**.
+
+`V(v) = exp(−v)` there, so `V(log M − log n) = n/M` and the `M` cancels
+outright.  Two consequences, and the second is why this is a lemma
+rather than a step:
+
+* the sandwich's main term reconstructs `n` exactly on the plateau —
+  the smoothing is lossless in the bulk, and all of its cost sits at
+  the two edges;
+* **the integer and real scales agree.** §3 applies the sandwich at the
+  integer scale `⌊x/pq⌋`, while §4's polynomials carry the window at
+  `log x − log(npq)`, i.e. the real scale `x/pq`.  Since both give `n`
+  on the plateau, the floor shift `log(x/pq) − log⌊x/pq⌋` costs
+  *nothing* in the bulk, and only the edge terms have to be paid for.
+
+That was not obvious: the shift is nonzero (up to `≈ 1/M`), so the two
+windows genuinely differ pointwise.  It is the *product with the
+scale* that is invariant, not the window. -/
+theorem scale_mul_window_eq (V : ℝ → ℝ) (ρ B M n : ℝ)
+    (hM : 0 < M) (hn : 0 < n)
+    (hplat : ∀ v, ρ ≤ v → v ≤ B → V v = Real.exp (-v))
+    (hlo : ρ ≤ Real.log M - Real.log n)
+    (hhi : Real.log M - Real.log n ≤ B) :
+    M * V (Real.log M - Real.log n) = n := by
+  rw [hplat _ hlo hhi, neg_sub, Real.exp_sub, Real.exp_log hn,
+    Real.exp_log hM]
+  field_simp
 end ExpSums
 
 end MoltResearch
