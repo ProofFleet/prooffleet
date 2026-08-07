@@ -5472,4 +5472,134 @@ theorem block_masses_le (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (X : ℕ) (hX 
     (fun p hp => (hP p hp).1.two_le) hPX).2
   exact div_le_div_of_nonneg_right htail (by positivity)
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **`E₁`, the whole-line weighted energy of `P_k`** (Track R, N72):
+with `S := ∑_p log p/(p·|log(x/p)|)` the trivial sup of `P₂`,
+
+  `∫_ℝ ‖P₂(ξ)‖²·w(ξ) dξ
+     ≤ C·e^π·8·∑_p (6144·⌈2p/8⌉ + log p + e^{−π}B + (√X+1)log₂X·log X)
+              ·(log p/(p²·log²(x/p)))
+       + S²·Wtail`.
+
+This is the quantity `pairing_halasz_le` consumes as `hE₁`, in the form
+it asks for.  Two facts compose: `integral_sq_weight_le` reduces the
+whole line to the band `[−8, 8]` (weight discarded against its sup `C`)
+plus a tail (polynomial discarded against its own sup `S`, paid for by
+the weight's tail mass `Wtail`), and `ghsBlock_centred_energy_le` is
+Lemma 1 on the band.
+
+The band width is `8` because that is where Lemma 1 lives — `T² ≤ p`
+forces `p ≥ 64`, GHS's own `T² ≤ n ≤ x` — and the tail mass is
+`O(1/T)` for a normalised window, so the split costs nothing.
+
+The integrability side conditions stay as hypotheses: they concern the
+window `w`, which §4 has not yet fixed.  `P₂` itself is continuous
+(`continuous_ghsBlockPoly`), so nothing is hidden on that side. -/
+theorem ghsBlock_weighted_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (P : Finset ℕ) (X : ℕ) (hX : 1 ≤ X)
+    (hPp : ∀ p ∈ P, p.Prime) (hP64 : ∀ p ∈ P, 64 ≤ p) (hPX : ∀ p ∈ P, p ≤ X)
+    (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B)
+    (w : ℝ → ℝ) (C Wtail : ℝ)
+    (hC : ∀ ξ, w ξ ≤ C) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hWtail : (∫ ξ in {ξ : ℝ | (8:ℝ) < |ξ|}, w ξ) ≤ Wtail)
+    (hint : Integrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ))
+    (hband : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      volume (-(8:ℝ)) (8:ℝ))
+    (hband2 : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2)
+      volume (-(8:ℝ)) (8:ℝ))
+    (htailP : IntegrableOn (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      {ξ : ℝ | (8:ℝ) < |ξ|})
+    (htailw : IntegrableOn w {ξ : ℝ | (8:ℝ) < |ξ|}) :
+    (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      ≤ C * (Real.exp π * 8 * ∑ p ∈ P,
+          (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+            + Real.exp (-(π*(8:ℝ)^2/64)) * B
+            + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+                * Real.log ((X:ℕ):ℝ))
+          * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)))
+        + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+            * Wtail := by
+  classical
+  have hC0 : (0:ℝ) ≤ C := le_trans (hw0 0) (hC 0)
+  have hsplit := integral_sq_weight_le (ghsBlockPoly f x P) w (8:ℝ) C
+    (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|)) Wtail
+    (by norm_num) hC hw0 (norm_ghsBlockPoly_le f hf x P) hWtail
+    hint hband hband2 htailP htailw
+  refine le_trans hsplit ?_
+  have hband_le := ghsBlock_centred_energy_le f hf x P X hX hPp hP64 hPX h2p
+    B hB0 hB
+  have := mul_le_mul_of_nonneg_left hband_le hC0
+  linarith
+
+open Real Finset in
+/-- **The `E₁` energy sum over a block** (Track R, N73): for `P` a set of
+primes in the `k`-th block of `x` with `2p ≤ x` and `p ≤ X`, and any
+`R ≥ 0`,
+
+  `∑_p (6144·⌈2p/8⌉ + log p + R)·(log p/(p²·log²(x/p)))
+     ≤ 1536·(e^{2k}/log²x)·(4((e−1)e^{−k}log x + log 2) + 4log 4)
+       + (6144 + R + log X)·(4/log²2)`.
+
+This is what `ghsBlock_centred_energy_le`'s right-hand side becomes on a
+block.  The leading term is `≍ e^{k}/log x` — GHS §4's `I₁` — and the
+remainder is `O(R + log X)`, which the mean value theorem's `p` has
+already paid for.
+
+Three facts compose and nothing new is proved: `ghsBlock_mvt_summand_le`
+splits each summand at `D = log²(x/p)`, and the two halves land exactly
+on the two masses of `block_masses_le`.  The only extra step is
+`log p ≤ log X`, which pulls the varying `log p` out of the convergent
+half. -/
+theorem ghsBlock_energy_sum_le (x k X : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k)
+    (hX : 2 ≤ X) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (h2p : ∀ p ∈ P, 2*p ≤ x) (hPX : ∀ p ∈ P, p ≤ X)
+    (R : ℝ) (hR : 0 ≤ R) :
+    ∑ p ∈ P, (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
+        * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2))
+      ≤ 1536 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+            * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+                + Real.log 2) + 4 * Real.log 4))
+        + (6144 + R + Real.log (X:ℝ)) * (4/(Real.log 2)^2) := by
+  classical
+  obtain ⟨hmass1, hmass2⟩ := block_masses_le x k hx hk X hX P hP h2p hPX
+  -- split each summand at `D = log²(x/p)`
+  have hterm : ∀ p ∈ P,
+      (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
+          * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2))
+        ≤ 1536 * (Real.log (p:ℝ)/((p:ℝ) * (Real.log ((x:ℝ)/(p:ℝ)))^2))
+          + (6144 + R + Real.log (X:ℝ))
+              * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)) := by
+    intro p hp
+    have hpp : p.Prime := (hP p hp).1
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+    have hsplit := ghsBlock_mvt_summand_le p hpp.two_le R
+      ((Real.log ((x:ℝ)/(p:ℝ)))^2) (sq_nonneg _)
+    -- replace the varying `log p` by `log X`
+    have hlogX : Real.log (p:ℝ) ≤ Real.log (X:ℝ) := by
+      have hpX : (p:ℝ) ≤ (X:ℝ) := by exact_mod_cast hPX p hp
+      exact Real.log_le_log hp0 hpX
+    have hmass : (0:ℝ)
+        ≤ Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2) := by
+      have := Real.log_natCast_nonneg p
+      positivity
+    nlinarith [hsplit, hmass, hlogX]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  have hRX : (0:ℝ) ≤ 6144 + R + Real.log (X:ℝ) := by
+    have := Real.log_natCast_nonneg X
+    linarith
+  have h1 : 1536 * (∑ p ∈ P,
+      Real.log (p:ℝ)/((p:ℝ) * (Real.log ((x:ℝ)/(p:ℝ)))^2))
+      ≤ 1536 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+          * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+              + Real.log 2) + 4 * Real.log 4)) :=
+    mul_le_mul_of_nonneg_left hmass1 (by norm_num)
+  have h2 : (6144 + R + Real.log (X:ℝ)) * (∑ p ∈ P,
+      Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2))
+      ≤ (6144 + R + Real.log (X:ℝ)) * (4/(Real.log 2)^2) :=
+    mul_le_mul_of_nonneg_left hmass2 hRX
+  linarith
+
 end MoltResearch
