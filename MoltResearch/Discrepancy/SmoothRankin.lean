@@ -5191,4 +5191,50 @@ theorem ghsPrimePoly_unit_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤
   exact ghsPrime_centred_energy_le f hf Q X hX hQp hQ64 hQX B hB0 hB w'
     (fun q _ => hw' q)
 
+open Finset Real in
+/-- **The two prime masses over `Q`** (Track R, N67): for a set of
+primes in `[2, X]`,
+
+  `∑_q log q/q ≤ log X + 2`  and  `∑_q log q/q² ≤ 4`.
+
+Both are already available and need no new analysis: the first is
+`MertensFirst.sum_log_div_primesBelow_le_sharp`, whose leading constant
+is `1`; the second is `sum_log_div_sq_le`, proved over the *integers*,
+so it covers any set of primes for free.
+
+These are the two masses `ghsPrime_mvt_summand_le` produces — the
+Mertens sum, which carries the `log X`, and the convergent tail, which
+contributes `O(1)`.  So `V ≍ log X`, and with `X = x^{e^{1−k}}` that is
+`≍ e^{−k}·log x`: the factor whose cancellation against `I₁`'s `e^{k}`
+leaves `L(x)` with no residual `k`. -/
+theorem prime_masses_le (Q : Finset ℕ) (X : ℕ) (hX : 2 ≤ X)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQ2 : ∀ q ∈ Q, 2 ≤ q) (hQX : ∀ q ∈ Q, q ≤ X) :
+    (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ) ≤ Real.log ((X+1 : ℕ):ℝ) + 2)
+      ∧ (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ)^2 ≤ 4) := by
+  classical
+  constructor
+  · -- Mertens, sharp form
+    have hsub : Q ⊆ (X+1).primesBelow := by
+      intro q hq
+      rw [Nat.mem_primesBelow]
+      exact ⟨by have := hQX q hq; omega, hQp q hq⟩
+    have hmono : ∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ)
+        ≤ ∑ p ∈ (X+1).primesBelow, Real.log (p:ℝ)/(p:ℝ) :=
+      Finset.sum_le_sum_of_subset_of_nonneg hsub
+        (fun i _ _ => div_nonneg (Real.log_natCast_nonneg i) (Nat.cast_nonneg _))
+    exact le_trans hmono
+      (sum_log_div_primesBelow_le_sharp (X+1) (by omega))
+  · -- the convergent tail, over the integers
+    have hsub : Q ⊆ Finset.Icc 2 X := by
+      intro q hq
+      exact Finset.mem_Icc.mpr ⟨hQ2 q hq, hQX q hq⟩
+    have hmono : ∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ)^2
+        ≤ ∑ n ∈ Finset.Icc 2 X, Real.log (n:ℝ)/(n:ℝ)^2 :=
+      Finset.sum_le_sum_of_subset_of_nonneg hsub
+        (fun i _ _ => by positivity)
+    refine le_trans hmono ?_
+    have hbase := sum_log_div_sq_le X (by omega)
+    have hsqrt : (0:ℝ) ≤ 4/Real.sqrt (X:ℝ) := by positivity
+    linarith
+
 end MoltResearch
