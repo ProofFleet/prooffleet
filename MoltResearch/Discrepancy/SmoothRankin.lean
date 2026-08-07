@@ -6306,4 +6306,71 @@ theorem ghs_smoothed_triple_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   exact ghs_pairing_estimate_window f hf x S P Q V hVs hVc M₂ M₃ MV
     hM₂ hM₃ hMV V₃ Mtail E₁ b hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail
 
+open Real Finset in
+/-- **The Perron error over the inner prime range** (Track R, N90): for
+`1`-bounded `g` and any `ρ ≥ 0`,
+
+  `∑_{q < y} |log q·g(q)|·(2ρ⌊y/q⌋ + 6) ≤ 2ρ·y·(log y + 2) + 6·y·log 4`.
+
+The error `perron_sandwich_uniform_real` leaves behind, summed over
+`tripleConv`'s inner prime range.  Both halves are already on main and
+neither needs new analysis: the `2ρ` half is `2ρy·∑_q log q/q`, bounded
+by Mertens' sharp form (`sum_log_div_primesBelow_le_sharp`), and the
+constant half is `6·∑_q log q`, bounded by Chebyshev's θ-bound
+(`sum_log_primesBelow_le`).
+
+The floor matters and is handled rather than ignored: the sandwich is
+applied at the *integer* scale `⌊x/(pq)⌋`, not at `x/(pq)`, so the
+bound goes through `Nat.cast_div_le` before Mertens is reached.
+
+Against `tripleConv`'s outer weight this contributes `O(ρ·x·log x)`
+from the first half and `O(x)` from the second — the second is what
+(3.2) already allows, and the first is what the choice of `ρ` has to
+control. -/
+theorem perron_error_inner_le (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1) (y : ℕ)
+    (ρ : ℝ) (hρ : 0 ≤ ρ) :
+    ∑ q ∈ y.primesBelow,
+        |Real.log (q:ℝ) * g q| * (2*ρ*(((y/q : ℕ)):ℝ) + 6)
+      ≤ 2*ρ*(y:ℝ)*(Real.log (y:ℝ) + 2) + 6*(y:ℝ)*Real.log 4 := by
+  classical
+  have hy0 : (0:ℝ) ≤ (y:ℝ) := Nat.cast_nonneg _
+  -- termwise: drop `g`, and the floor against the true quotient
+  have hterm : ∀ q ∈ y.primesBelow,
+      |Real.log (q:ℝ) * g q| * (2*ρ*(((y/q : ℕ)):ℝ) + 6)
+        ≤ 2*ρ*(y:ℝ) * (Real.log (q:ℝ)/(q:ℝ)) + 6*Real.log (q:ℝ) := by
+    intro q hq
+    have hqp : q.Prime := (Nat.mem_primesBelow.mp hq).2
+    have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hqp.pos
+    have hlog0 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+    have habs : |Real.log (q:ℝ) * g q| ≤ Real.log (q:ℝ) := by
+      rw [abs_mul, abs_of_nonneg hlog0]
+      nlinarith [hg q, abs_nonneg (g q), hlog0]
+    have hfloor : (((y/q : ℕ)):ℝ) ≤ (y:ℝ)/(q:ℝ) := Nat.cast_div_le
+    have hbig : (0:ℝ) ≤ 2*ρ*(((y/q : ℕ)):ℝ) + 6 := by positivity
+    have hstep : |Real.log (q:ℝ) * g q| * (2*ρ*(((y/q : ℕ)):ℝ) + 6)
+        ≤ Real.log (q:ℝ) * (2*ρ*((y:ℝ)/(q:ℝ)) + 6) := by
+      refine le_trans (mul_le_mul_of_nonneg_right habs hbig) ?_
+      refine mul_le_mul_of_nonneg_left ?_ hlog0
+      have : 2*ρ*(((y/q : ℕ)):ℝ) ≤ 2*ρ*((y:ℝ)/(q:ℝ)) :=
+        mul_le_mul_of_nonneg_left hfloor (by positivity)
+      linarith
+    refine le_trans hstep (le_of_eq ?_)
+    field_simp
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  -- Chebyshev's θ-bound
+  have hcheb : ∑ q ∈ y.primesBelow, Real.log (q:ℝ) ≤ (y:ℝ) * Real.log 4 :=
+    sum_log_primesBelow_le y
+  -- Mertens, sharp form (vacuous below `2`)
+  have hmert : ∑ q ∈ y.primesBelow, Real.log (q:ℝ)/(q:ℝ)
+      ≤ Real.log (y:ℝ) + 2 := by
+    rcases lt_or_ge y 2 with hy | hy
+    · have hempty : y.primesBelow = ∅ := by interval_cases y <;> decide
+      rw [hempty, Finset.sum_empty]
+      have hlog : (0:ℝ) ≤ Real.log (y:ℝ) := Real.log_natCast_nonneg y
+      linarith
+    · exact sum_log_div_primesBelow_le_sharp y hy
+  have hc1 : (0:ℝ) ≤ 2*ρ*(y:ℝ) := by positivity
+  nlinarith [hmert, hcheb, hc1, Real.log_nonneg (by norm_num : (1:ℝ) ≤ 4)]
+
 end MoltResearch
