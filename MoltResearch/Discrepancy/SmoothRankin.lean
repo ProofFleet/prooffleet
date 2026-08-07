@@ -5918,4 +5918,70 @@ theorem ghs_pairing_integrability (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1
   · exact ((hc₃.pow 2).div hden hden0).intervalIntegrable a b
   · exact (hc₃.pow 2).intervalIntegrable a b
 
+open MeasureTheory Real Complex Finset in
+/-- **§4's `Mtail`** (Track R, N79): on any set, the pairing tail is the
+window's mass there, priced at the two trivial sups —
+
+  `∫_{ξ ∈ s} ‖P₃‖²·w·‖P₁‖² ≤ (∑_q log q/q)²·(∑_n 1/n)²·Wtail`
+
+whenever `∫_{ξ ∈ s} w ≤ Wtail`.
+
+This is the last hypothesis of `pairing_halasz_sqrt_le` that is not an
+integrability fact, and it is deliberately left parametric in `Wtail`,
+exactly as `ghsBlock_weighted_energy_le` leaves it: beyond the band no
+cancellation is available, so the polynomials are discarded against
+their sups and the window's tail mass pays for everything.  What that
+mass actually is depends on the window §4 chooses, and that choice is
+not made here.
+
+The two sups are the crude `L∞` bounds `norm_ghsPrimePoly_le` and
+`norm_ghsMainPoly_le` — `≍ log X` and `≍ log x` — which is why the
+window must be chosen with enough decay for `Mtail` to stay below
+`C·V·L(x)²`.  Recording that as a parameter rather than a number keeps
+the dependence visible. -/
+theorem ghs_pairing_tail_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ) (w : ℝ → ℝ) (hw : Continuous w) (C : ℝ)
+    (hw0 : ∀ ξ, 0 ≤ w ξ) (hwle : ∀ ξ, w ξ ≤ C/(1+ξ^2))
+    (s : Set ℝ) (Wtail : ℝ) (hWtail : (∫ ξ in s, w ξ) ≤ Wtail) :
+    (∫ ξ in s, ‖ghsPrimePoly f Q ξ‖^2 * w ξ * ‖ghsMainPoly f S ξ‖^2)
+      ≤ (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+          * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2 * Wtail := by
+  classical
+  set S₁ : ℝ := ∑ n ∈ S, (1:ℝ)/(n:ℝ) with hS₁_def
+  set S₃ : ℝ := ∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ) with hS₃_def
+  have hb₁ : ∀ ξ, ‖ghsMainPoly f S ξ‖ ≤ S₁ := norm_ghsMainPoly_le f hf S
+  have hb₃ : ∀ ξ, ‖ghsPrimePoly f Q ξ‖ ≤ S₃ := norm_ghsPrimePoly_le f hf Q
+  have hS₁0 : (0:ℝ) ≤ S₁ := le_trans (norm_nonneg _) (hb₁ 0)
+  have hS₃0 : (0:ℝ) ≤ S₃ := le_trans (norm_nonneg _) (hb₃ 0)
+  obtain ⟨-, -, hg2, -, -, -, -⟩ :=
+    ghs_pairing_integrability f hf x S P Q w hw C hw0 hwle
+  obtain ⟨-, -, honw⟩ :=
+    integrable_of_le_const_div_one_add_sq w hw hw0 C hwle
+  -- discard both polynomials against their sups
+  have hpt : ∀ ξ, ‖ghsPrimePoly f Q ξ‖^2 * w ξ * ‖ghsMainPoly f S ξ‖^2
+      ≤ (S₃^2 * S₁^2) * w ξ := by
+    intro ξ
+    have hsq₃ : ‖ghsPrimePoly f Q ξ‖^2 ≤ S₃^2 := by
+      nlinarith [norm_nonneg (ghsPrimePoly f Q ξ), hb₃ ξ, hS₃0]
+    have hsq₁ : ‖ghsMainPoly f S ξ‖^2 ≤ S₁^2 := by
+      nlinarith [norm_nonneg (ghsMainPoly f S ξ), hb₁ ξ, hS₁0]
+    have hn₁ : (0:ℝ) ≤ ‖ghsMainPoly f S ξ‖^2 := by positivity
+    -- peel one factor at a time
+    have hstep : ‖ghsPrimePoly f Q ξ‖^2 * w ξ ≤ (S₃^2) * w ξ :=
+      mul_le_mul_of_nonneg_right hsq₃ (hw0 ξ)
+    have h1 : ‖ghsPrimePoly f Q ξ‖^2 * w ξ * ‖ghsMainPoly f S ξ‖^2
+        ≤ (S₃^2 * w ξ) * S₁^2 :=
+      le_trans (mul_le_mul_of_nonneg_right hstep hn₁)
+        (mul_le_mul_of_nonneg_left hsq₁ (mul_nonneg (sq_nonneg S₃) (hw0 ξ)))
+    have h2 : (S₃^2 * w ξ) * S₁^2 = (S₃^2 * S₁^2) * w ξ := by ring
+    linarith [h1, h2.le, h2.ge]
+  have hmono : (∫ ξ in s, ‖ghsPrimePoly f Q ξ‖^2 * w ξ
+        * ‖ghsMainPoly f S ξ‖^2)
+      ≤ ∫ ξ in s, (S₃^2 * S₁^2) * w ξ :=
+    MeasureTheory.setIntegral_mono hg2.integrableOn
+      ((honw s).const_mul _) hpt
+  refine le_trans hmono ?_
+  rw [MeasureTheory.integral_const_mul]
+  exact mul_le_mul_of_nonneg_left hWtail (by positivity)
+
 end MoltResearch
