@@ -4635,4 +4635,206 @@ theorem intervalIntegral_vonMangoldt_mvt_block_pointwise_le (T : ℝ) (N : ℕ)
   intro m hm
   exact inner_sum_block_le T N m S hS hm hN hT (hTm m hm) (hsmall m hm) B hB
 
+open ArithmeticFunction Finset Real in
+/-- **The inner sum over an arbitrary range** (Track R, N58):
+`vonMangoldt_gaussian_block_le` with the block hypothesis replaced by
+`S ⊆ [1, X]` and the reach condition `m ≤ 4·(2^J−1)h`.
+
+  `∑_{n ∈ S} Λ(n)·e^{−πT²(log n − log m)²}
+     ≤ 1024·h·L + log m + e^{−πT²/64}·B + (√X + 1)·log₂X·log X`.
+
+Two changes from the block version, both mechanical.  The prime part is
+`prime_gaussian_long_le`.  The proper-prime-power remainder is bounded
+over `[1, X]` rather than `[1, 2N]` — every Gaussian factor is at most
+one there, so only the range matters.
+
+The remainder is `O(√X·log²X)`, which is why it never competes with the
+main term even for `X` as large as `x`: the mean value theorem's
+leading term is of size `h ≍ m/T`. -/
+theorem vonMangoldt_gaussian_long_le (T : ℝ) (X m h J : ℕ) (S : Finset ℕ)
+    (hS1 : ∀ n ∈ S, 1 ≤ n) (hSX : ∀ n ∈ S, n ≤ X) (hX : 1 ≤ X)
+    (hm1 : 1 ≤ m) (hh : 2 ≤ h) (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T)
+    (hfit : (2^J - 1)*h + 1 ≤ m) (hwfit : ∀ j < J, 2^j*h ≤ 2*m)
+    (hreach : m ≤ 4*((2^J - 1)*h))
+    (L : ℝ) (hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ L)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ) + Real.exp (-(π*T^2/64)) * B
+        + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+            * Real.log ((X : ℕ):ℝ) := by
+  classical
+  rw [sum_vonMangoldt_split S
+    (fun n => Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2)))]
+  have hprime := ExpSums.prime_gaussian_long_le T m h J S hS1 hm1 hh
+    hscale hfit hwfit hreach L hL B hB
+  have hpp : ∑ n ∈ S.filter (fun n => IsPrimePow n ∧ ¬ n.Prime),
+      vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+      ≤ ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+          * Real.log ((X : ℕ):ℝ) := by
+    have hstep : ∀ n ∈ S.filter (fun n => IsPrimePow n ∧ ¬ n.Prime),
+        vonMangoldt n
+            * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+          ≤ vonMangoldt n := by
+      intro n _
+      have h1 : Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+          ≤ 1 := by
+        refine Real.exp_le_one_iff.mpr ?_
+        have hnn : (0:ℝ)
+            ≤ π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2 := by positivity
+        linarith
+      calc vonMangoldt n
+            * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+          ≤ vonMangoldt n * 1 :=
+            mul_le_mul_of_nonneg_left h1 vonMangoldt_nonneg
+        _ = vonMangoldt n := mul_one _
+    refine le_trans (Finset.sum_le_sum hstep) ?_
+    have hsub : S.filter (fun n => IsPrimePow n ∧ ¬ n.Prime)
+        ⊆ (Finset.Icc 1 X).filter (fun n => IsPrimePow n ∧ ¬ n.Prime) := by
+      intro n hn
+      simp only [Finset.mem_filter] at hn ⊢
+      exact ⟨Finset.mem_Icc.mpr ⟨hS1 n hn.1, hSX n hn.1⟩, hn.2⟩
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => vonMangoldt_nonneg)) ?_
+    exact sum_vonMangoldt_properPrimePow_le X hX
+  linarith
+
+open ArithmeticFunction Finset Real in
+/-- **The inner sum at the canonical scale, over an arbitrary range**
+(Track R, N59): `inner_sum_block_le` with the block replaced by
+`S ⊆ [1, X]` and the smallness condition stated in terms of `m` alone.
+
+  `∑_{n ∈ S} Λ(n)·e^{−πT²(log m − log n)²}
+     ≤ 6144·⌈2m/T⌉ + log m + e^{−πT²/64}·B + (√X + 1)·log₂X·log X`.
+
+The reach condition of `prime_gaussian_long_le` is what `2h ≤ m`
+delivers.  Maximality of the shell count gives `m ≤ 2·a_J + h`; with
+`h ≤ m/2` that forces `a_J ≥ m/4`, which is exactly `m ≤ 4·a_J`.  In
+the block version the same role is played by `2h ≤ N` — the hypothesis
+is no stronger here, only stated about the centre rather than the
+block.
+
+With this the mean value theorem applies to any finite set of integers,
+which is what GHS's Lemma 1 asks for. -/
+theorem inner_sum_long_le (T : ℝ) (X m : ℕ) (S : Finset ℕ)
+    (hS1 : ∀ n ∈ S, 1 ≤ n) (hSX : ∀ n ∈ S, n ≤ X) (hX : 1 ≤ X)
+    (hT : 2 ≤ T) (hTm : T^2 ≤ (m:ℝ))
+    (hsmall : 2*(⌈2*(m:ℝ)/T⌉₊) ≤ m)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      ≤ 6144*((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (m:ℝ)
+        + Real.exp (-(π*T^2/64)) * B
+        + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+            * Real.log ((X : ℕ):ℝ) := by
+  classical
+  set h : ℕ := ⌈2*(m:ℝ)/T⌉₊ with hh_def
+  have hT0 : (0:ℝ) < T := by linarith
+  have hm4 : (4:ℝ) ≤ (m:ℝ) := by nlinarith [hTm, hT]
+  have hm1 : 1 ≤ m := by
+    have : (1:ℝ) ≤ (m:ℝ) := by linarith
+    exact_mod_cast this
+  have hh2 : 2 ≤ h := ExpSums.two_le_ceil_scale T m hT hTm
+  have hscale : 2*(m:ℝ) ≤ (h:ℝ)*T := ExpSums.ceil_scale_mul_le T m hT0
+  have hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ 6 :=
+    ExpSums.log_ratio_ceil_scale_le T m hT hTm
+  obtain ⟨J, hfit, hmax, hwfit⟩ :=
+    ExpSums.exists_shell_count m h hm1 (by omega)
+  have hsucc : (2^(J+1) - 1)*h = (2^J - 1)*h + 2^J*h :=
+    ExpSums.dyadic_cut_succ h J
+  have hJh : (2:ℕ)^J*h = (2^J - 1)*h + h := by
+    have h1 : (1:ℕ) ≤ 2^J := Nat.one_le_two_pow
+    have h2 : (2:ℕ)^J = (2^J - 1) + 1 := by omega
+    calc (2:ℕ)^J*h = ((2^J - 1) + 1)*h := by rw [← h2]
+      _ = (2^J - 1)*h + h := by ring
+  have hreach : m ≤ 4*((2^J - 1)*h) := by omega
+  have hflip : ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      = ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2)) := by
+    refine Finset.sum_congr rfl fun n _ => ?_
+    congr 2
+    ring
+  rw [hflip]
+  refine le_trans (vonMangoldt_gaussian_long_le T X m h J S hS1 hSX hX hm1
+    hh2 hscale hfit hwfit hreach 6 hL B hB) ?_
+  have hh0 : (0:ℝ) ≤ (h:ℝ) := Nat.cast_nonneg _
+  have hcalc : 1024*(h:ℝ)*6 = 6144*(h:ℝ) := by ring
+  linarith [hcalc]
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **GHS Lemma 1, over the full range** (Track R, N60): for any finite
+set of integers in `[1, X]`,
+
+  `∫_{−T}^{T}‖∑ a(n)Λ(n)·𝐞(−ξ log n)‖² dξ
+     ≤ e^π·T·∑_m (6144·⌈2m/T⌉ + log m + e^{−πT²/64}·B + (√X+1)log₂X·log X)
+              ·‖a(m)‖²·Λ(m)`.
+
+The leading term is `≍ ∑_m m·‖a(m)‖²·Λ(m)`, which is exactly the shape
+of GHS's Lemma 1 — and no dyadic decomposition appears anywhere.
+
+Two things were needed to get here.  The mean value theorem had to
+accept a majorant depending on `m`
+(`intervalIntegral_vonMangoldt_mvt_pointwise_le`), since a uniform one
+is the value at the top of the range and is lossy below it.  And the
+inner sum had to be bounded without a block hypothesis
+(`inner_sum_long_le`), which followed once the `1/8` multiplicative gap
+was derived from the reach condition `m ≤ 4a_J` alone rather than from
+`(N, 2N]`.
+
+This is what §4 applies to `q ≤ x^{e^{1−k}}` and to `P_k`, neither of
+which is dyadic. -/
+theorem intervalIntegral_vonMangoldt_mvt_long_le (T : ℝ) (X : ℕ)
+    (S : Finset ℕ) (a : ℕ → ℂ)
+    (hS1 : ∀ n ∈ S, 1 ≤ n) (hSX : ∀ n ∈ S, n ≤ X) (hX : 1 ≤ X)
+    (hT : 2 ≤ T) (hTm : ∀ m ∈ S, T^2 ≤ (m:ℝ))
+    (hsmall : ∀ m ∈ S, 2*(⌈2*(m:ℝ)/T⌉₊) ≤ m)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((vonMangoldt n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T * ∑ m ∈ S,
+          (6144*((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (m:ℝ)
+            + Real.exp (-(π*T^2/64)) * B
+            + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+                * Real.log ((X : ℕ):ℝ))
+          * (‖a m‖^2 * vonMangoldt m) := by
+  refine intervalIntegral_vonMangoldt_mvt_pointwise_le T (by linarith) S a _ ?_
+  intro m hm
+  exact inner_sum_long_le T X m S hS1 hSX hX hT (hTm m hm) (hsmall m hm) B hB
+
+open MeasureTheory Real Finset in
+/-- **Widening a symmetric window** (Track R, N61): for `g ≥ 0` and
+`0 ≤ a ≤ T`,
+
+  `∫_{−a}^{a} g ≤ ∫_{−T}^{T} g`.
+
+Needed because the two halves of §4's `I₂` estimate are stated at
+different widths.  `integral_unit_sq_le_of_centred` asks for the energy
+on `[−1/2, 1/2]`, while the mean value theorem
+(`intervalIntegral_vonMangoldt_mvt_long_le`) is stated for `T ≥ 2` — its
+shell construction needs `T` large enough that `⌈2m/T⌉` is small
+compared with `m`.
+
+Since the integrand is a squared norm, widening the window only adds
+non-negative mass, so the mismatch costs nothing: apply the mean value
+theorem at `T = 2` and restrict. -/
+theorem integral_symm_widen (g : ℝ → ℝ) (hg : ∀ t, 0 ≤ g t) (a T : ℝ)
+    (ha : 0 ≤ a) (haT : a ≤ T)
+    (hint : IntervalIntegrable g volume (-T) T) :
+    (∫ t in (-a)..a, g t) ≤ ∫ t in (-T)..T, g t := by
+  have hle : (-T) ≤ T := by linarith
+  have hsub : Set.uIcc (-a) a ⊆ Set.uIcc (-T) T := by
+    rw [Set.uIcc_of_le (by linarith), Set.uIcc_of_le hle]
+    exact Set.Icc_subset_Icc (by linarith) haT
+  have hnonneg : ∀ t ∈ Set.Icc (-T) T, 0 ≤ g t := fun t _ => hg t
+  have hia : IntervalIntegrable g volume (-a) a :=
+    hint.mono_set hsub
+  rw [intervalIntegral.integral_of_le (by linarith : (-a:ℝ) ≤ a),
+    intervalIntegral.integral_of_le hle]
+  refine MeasureTheory.setIntegral_mono_set (hint.1) ?_ ?_
+  · exact Filter.Eventually.of_forall fun t => hg t
+  · exact Filter.Eventually.of_forall
+      (fun x hx => Set.Ioc_subset_Ioc (by linarith) haT hx)
+
 end MoltResearch
