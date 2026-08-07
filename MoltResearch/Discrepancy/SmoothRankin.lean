@@ -4818,7 +4818,11 @@ compared with `m`.
 
 Since the integrand is a squared norm, widening the window only adds
 non-negative mass, so the mismatch costs nothing: apply the mean value
-theorem at `T = 2` and restrict. -/
+theorem at a suitable `T` and restrict.
+
+`T = 2` will not do: `inner_sum_long_le` needs `2·⌈2m/T⌉ ≤ m`, which at
+`T = 2` reads `2m ≤ m`.  `T = 8` gives `2·⌈m/4⌉ ≤ m/2 + 2 ≤ m` for
+`m ≥ 4`. -/
 theorem integral_symm_widen (g : ℝ → ℝ) (hg : ∀ t, 0 ≤ g t) (a T : ℝ)
     (ha : 0 ≤ a) (haT : a ≤ T)
     (hint : IntervalIntegrable g volume (-T) T) :
@@ -4836,5 +4840,54 @@ theorem integral_symm_widen (g : ℝ → ℝ) (hg : ∀ t, 0 ≤ g t) (a T : ℝ
   · exact Filter.Eventually.of_forall fun t => hg t
   · exact Filter.Eventually.of_forall
       (fun x hx => Set.Ioc_subset_Ioc (by linarith) haT hx)
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The `q`-polynomial is a von Mangoldt polynomial** (Track R, N62):
+for `Q` a set of primes,
+
+  `P₃(ξ) = ∑_{q ∈ Q} ((f(q)/q)·Λ(q))·𝐞(−ξ log q)`.
+
+`Λ(q) = log q` on primes, so GHS's `∑ f(q)log q/q^s` is literally the
+shape the mean value theorem is stated for, with coefficients
+`a(q) = f(q)/q`.  No rearrangement is needed beyond commuting a product.
+
+This is the join between §4's polynomials and Lemma 1: with it,
+`intervalIntegral_vonMangoldt_mvt_long_le` applies to `ghsPrimePoly`
+directly. -/
+theorem ghsPrimePoly_eq_vonMangoldt_poly (f : ℕ → ℂ) (Q : Finset ℕ)
+    (hQp : ∀ q ∈ Q, q.Prime) (ξ : ℝ) :
+    ghsPrimePoly f Q ξ
+      = ∑ q ∈ Q, ((f q / (q:ℂ)) * ((vonMangoldt q : ℝ) : ℂ))
+          * ((Real.fourierChar (-(Real.log (q:ℝ) * ξ)) : Circle) : ℂ) := by
+  rw [ghsPrimePoly]
+  refine Finset.sum_congr rfl fun q hq => ?_
+  have hΛ : vonMangoldt q = Real.log (q:ℝ) :=
+    ArithmeticFunction.vonMangoldt_apply_prime (hQp q hq)
+  rw [hΛ]
+  congr 1
+  field_simp
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The coefficients of the `q`-polynomial are small** (Track R,
+N62): for `‖f‖ ≤ 1` and `q` prime,
+
+  `‖f(q)/q‖²·Λ(q) ≤ log q / q²`.
+
+This is what the mean value theorem's right-hand side becomes.  Against
+its leading factor `≍ m`, the product is `≍ log q/q`, whose sum over
+`q ≤ Q` is `≍ log Q` by Mertens — the `e^{−k}·log x` that `I₂` needs. -/
+theorem norm_ghsPrime_coeff_sq_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (q : ℕ) (hq : q.Prime) :
+    ‖f q / (q:ℂ)‖^2 * vonMangoldt q ≤ Real.log (q:ℝ) / (q:ℝ)^2 := by
+  have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq.pos
+  have hΛ : vonMangoldt q = Real.log (q:ℝ) :=
+    ArithmeticFunction.vonMangoldt_apply_prime hq
+  have hnorm : ‖f q / (q:ℂ)‖^2 = ‖f q‖^2 / (q:ℝ)^2 := by
+    rw [norm_div, div_pow, Complex.norm_natCast]
+  have hlog0 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+  have hf2 : ‖f q‖^2 ≤ 1 := by nlinarith [hf q, norm_nonneg (f q)]
+  rw [hΛ, hnorm, div_mul_eq_mul_div]
+  refine div_le_div_of_nonneg_right ?_ (by positivity)
+  nlinarith [hf2, hlog0]
 
 end MoltResearch
