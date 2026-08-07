@@ -6373,4 +6373,127 @@ theorem perron_error_inner_le (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1) (y : �
   have hc1 : (0:ℝ) ≤ 2*ρ*(y:ℝ) := by positivity
   nlinarith [hmert, hcheb, hc1, Real.log_nonneg (by norm_num : (1:ℝ) ≤ 4)]
 
+open Real Finset in
+/-- **The Perron error over the outer prime range** (Track R, N91):
+with the two block masses supplied,
+
+  `∑_{p∈P} |log p·f(p)/log(x/p)|·(2ρ⌊x/p⌋(log⌊x/p⌋ + 2) + 6⌊x/p⌋log 4)`
+  `  ≤ 2ρ·x·Mass₁ + 4ρ·x·Mass₂ + 6·x·log 4·Mass₂`,
+
+where `Mass₁ ≥ ∑_p log p/p` and `Mass₂ ≥ ∑_p log p/(p·log(x/p))`.
+
+`perron_error_inner_le` summed over the outer range.  Each term
+contributes three pieces once `⌊x/p⌋ ≤ x/p` and `log⌊x/p⌋ ≤ log(x/p)`
+are applied:
+`2ρx·(log p/p)` from the leading `log(x/p)`, and `4ρx` and `6x·log 4`
+times `log p/(p·log(x/p))` from the `+2` and the θ-term.
+
+The two masses are left as parameters, as `Wtail` was: on a block the
+first is Mertens (`≍ log x`) and the second is `≍ e^{k}/log x`, both
+already on main, but which block is a §3 decision.  So the `2ρ` half is
+`≍ ρ·x·log x` — **this is exactly what the choice of `ρ` must
+control** — and the constant half is `O(x)`, which (3.2) already
+allows.
+
+`2p ≤ x` is what makes `log(x/p) > 0`, so the outer weight is defined
+and `⌊x/p⌋ ≥ 2`. -/
+theorem perron_error_outer_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) (P : Finset ℕ) (ρ : ℝ) (hρ : 0 ≤ ρ)
+    (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (Mass₁ Mass₂ : ℝ)
+    (h1 : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ) ≤ Mass₁)
+    (h2 : ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+      ≤ Mass₂) :
+    ∑ p ∈ P, |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        * (2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+           + 6*(((x/p : ℕ)):ℝ)*Real.log 4)
+      ≤ 2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂
+        + 6*(x:ℝ)*Real.log 4*Mass₂ := by
+  classical
+  have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+  have hterm : ∀ p ∈ P,
+      |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        * (2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+           + 6*(((x/p : ℕ)):ℝ)*Real.log 4)
+      ≤ 2*ρ*(x:ℝ) * (Real.log (p:ℝ)/(p:ℝ))
+        + (4*ρ*(x:ℝ) + 6*(x:ℝ)*Real.log 4)
+            * (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))) := by
+    intro p hp
+    have hpp : p.Prime := hPp p hp
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+    have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p p hp
+      push_cast at hc; linarith
+    have hL : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+    have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    -- the outer weight
+    have hw : |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        ≤ Real.log (p:ℝ)/Real.log ((x:ℝ)/(p:ℝ)) := by
+      rw [abs_div, abs_mul, abs_of_pos hL, abs_of_nonneg hlog0]
+      refine div_le_div_of_nonneg_right ?_ hL.le
+      nlinarith [hf p, abs_nonneg (f p), hlog0]
+    -- the floor, and its logarithm
+    have hfl : (((x/p : ℕ)):ℝ) ≤ (x:ℝ)/(p:ℝ) := Nat.cast_div_le
+    have hfl0 : (0:ℝ) ≤ (((x/p : ℕ)):ℝ) := Nat.cast_nonneg _
+    have hlogfl : Real.log (((x/p : ℕ)):ℝ) ≤ Real.log ((x:ℝ)/(p:ℝ)) := by
+      rcases eq_or_lt_of_le hfl0 with h | h
+      · rw [← h]; simpa using hL.le
+      · exact Real.log_le_log h hfl
+    -- the bracket, bounded by the true quotient
+    have hbr : 2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+          + 6*(((x/p : ℕ)):ℝ)*Real.log 4
+        ≤ 2*ρ*((x:ℝ)/(p:ℝ))*(Real.log ((x:ℝ)/(p:ℝ)) + 2)
+          + 6*((x:ℝ)/(p:ℝ))*Real.log 4 := by
+      have hlpos : (0:ℝ) ≤ Real.log (((x/p : ℕ)):ℝ) + 2 := by
+        nlinarith [Real.log_natCast_nonneg (x/p)]
+      have hQ0 : (0:ℝ) ≤ (x:ℝ)/(p:ℝ) := by positivity
+      have h2ρ : (0:ℝ) ≤ 2*ρ := by linarith
+      have hs1 : (((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+          ≤ ((x:ℝ)/(p:ℝ))*(Real.log (((x/p : ℕ)):ℝ) + 2) :=
+        mul_le_mul_of_nonneg_right hfl hlpos
+      have hs2 : ((x:ℝ)/(p:ℝ))*(Real.log (((x/p : ℕ)):ℝ) + 2)
+          ≤ ((x:ℝ)/(p:ℝ))*(Real.log ((x:ℝ)/(p:ℝ)) + 2) :=
+        mul_le_mul_of_nonneg_left (by linarith [hlogfl]) hQ0
+      have hA : 2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+          ≤ 2*ρ*((x:ℝ)/(p:ℝ))*(Real.log ((x:ℝ)/(p:ℝ)) + 2) := by
+        calc 2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+            = 2*ρ*((((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)) := by ring
+          _ ≤ 2*ρ*(((x:ℝ)/(p:ℝ))*(Real.log ((x:ℝ)/(p:ℝ)) + 2)) :=
+              mul_le_mul_of_nonneg_left (le_trans hs1 hs2) h2ρ
+          _ = 2*ρ*((x:ℝ)/(p:ℝ))*(Real.log ((x:ℝ)/(p:ℝ)) + 2) := by ring
+      have hB : 6*(((x/p : ℕ)):ℝ)*Real.log 4
+          ≤ 6*((x:ℝ)/(p:ℝ))*Real.log 4 := by
+        calc 6*(((x/p : ℕ)):ℝ)*Real.log 4
+            = 6*((((x/p : ℕ)):ℝ)*Real.log 4) := by ring
+          _ ≤ 6*(((x:ℝ)/(p:ℝ))*Real.log 4) :=
+              mul_le_mul_of_nonneg_left
+                (mul_le_mul_of_nonneg_right hfl hlog4) (by norm_num)
+          _ = 6*((x:ℝ)/(p:ℝ))*Real.log 4 := by ring
+      linarith
+    have hbr0 : (0:ℝ) ≤ 2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+        + 6*(((x/p : ℕ)):ℝ)*Real.log 4 := by
+      have hlpos : (0:ℝ) ≤ Real.log (((x/p : ℕ)):ℝ) + 2 := by
+        nlinarith [Real.log_natCast_nonneg (x/p)]
+      have : (0:ℝ) ≤ 2*ρ*(((x/p : ℕ)):ℝ) := by positivity
+      nlinarith [hfl0, hlog4]
+    -- combine, then expand
+    have hstep : |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        * (2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+           + 6*(((x/p : ℕ)):ℝ)*Real.log 4)
+        ≤ (Real.log (p:ℝ)/Real.log ((x:ℝ)/(p:ℝ)))
+            * (2*ρ*((x:ℝ)/(p:ℝ))*(Real.log ((x:ℝ)/(p:ℝ)) + 2)
+              + 6*((x:ℝ)/(p:ℝ))*Real.log 4) := by
+      refine le_trans (mul_le_mul_of_nonneg_right hw hbr0) ?_
+      refine mul_le_mul_of_nonneg_left hbr ?_
+      positivity
+    refine le_trans hstep (le_of_eq ?_)
+    field_simp
+    ring
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  have hc1 : (0:ℝ) ≤ 2*ρ*(x:ℝ) := by positivity
+  have hc2 : (0:ℝ) ≤ 4*ρ*(x:ℝ) + 6*(x:ℝ)*Real.log 4 := by positivity
+  nlinarith [h1, h2, hc1, hc2]
+
 end MoltResearch
