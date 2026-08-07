@@ -6169,4 +6169,61 @@ theorem ghs_pairing_estimate_window (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤
     (M₃/(8*Real.pi^3*(((halaszM x : ℕ):ℝ) + 1/2)^2)) b
     hE₁0 hb0 hV₃0 hMtail0 hw0 hwle hE₁ hBu hV hWtail hMtail
 
+open MeasureTheory Real Complex Finset in
+/-- **The three §4 polynomials multiply into one** (Track R, N85):
+
+  `P₁(ξ)·P₂(ξ)·P₃(ξ)
+     = ∑_{(n,p,q)} (f(n)/n)·(log p·f(p)/(p·log(x/p)))·(log q·f(q)/q)
+                    ·𝐞(−log(npq)·ξ)`.
+
+`char_poly_mul_log` applied twice, then `char_poly_mul` to append the
+third factor (its intermediate index set is a product, not `ℕ`, so the
+`log`-specialised form no longer applies and the general one is used).
+
+**This is what makes §4 a bound on §3's object.**  The coefficient
+attached to `npq` is exactly `tripleConv`'s summand divided by `npq` —
+the `1/npq` being the Dirichlet normalisation that the three
+polynomials carry on the `1`-line, and that the Perron step restores.
+So the triple product is the phase polynomial of the smoothed triple
+convolution, and `norm_sum_translates_le_integral_char` bounds that
+convolution by an integral of exactly the shape
+`ghs_pairing_estimate_window` estimates. -/
+theorem ghs_triple_product (f : ℕ → ℂ) (x : ℕ) (S P Q : Finset ℕ)
+    (hS : ∀ n ∈ S, 0 < n) (hP : ∀ p ∈ P, 0 < p) (hQ : ∀ q ∈ Q, 0 < q)
+    (ξ : ℝ) :
+    ghsMainPoly f S ξ * ghsBlockPoly f x P ξ * ghsPrimePoly f Q ξ
+      = ∑ r ∈ (S ×ˢ P) ×ˢ Q,
+          ((f r.1.1 / (r.1.1:ℂ))
+            * (((Real.log (r.1.2:ℝ) : ℂ) * f r.1.2)
+                / ((r.1.2:ℂ) * ((Real.log ((x:ℝ)/(r.1.2:ℝ)) : ℝ):ℂ)))
+            * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+          * ((Real.fourierChar
+              (-(Real.log ((r.1.1 * r.1.2 * r.2 : ℕ):ℝ) * ξ)) : Circle) : ℂ) := by
+  classical
+  rw [ghsMainPoly, ghsBlockPoly, ghsPrimePoly]
+  -- first two factors: the `log`-specialised product
+  rw [ExpSums.char_poly_mul_log S P (fun n => f n / (n:ℂ))
+    (fun p => ((Real.log (p:ℝ) : ℂ) * f p)
+      / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ))) hS hP ξ]
+  -- third factor: the general product, the index set now being a pair
+  rw [ExpSums.char_poly_mul (S ×ˢ P) Q
+    (fun r => (f r.1 / (r.1:ℂ))
+      * (((Real.log (r.2:ℝ) : ℂ) * f r.2)
+        / ((r.2:ℂ) * ((Real.log ((x:ℝ)/(r.2:ℝ)) : ℝ):ℂ))))
+    (fun q => ((Real.log (q:ℝ) : ℂ) * f q) / (q:ℂ))
+    (fun r => Real.log ((r.1 * r.2 : ℕ):ℝ))
+    (fun q => Real.log (q:ℝ)) ξ]
+  refine Finset.sum_congr rfl fun r hr => ?_
+  rw [Finset.mem_product] at hr
+  obtain ⟨hr1, hr2⟩ := hr
+  rw [Finset.mem_product] at hr1
+  have hn : (0:ℝ) < (r.1.1:ℝ) := by exact_mod_cast hS r.1.1 hr1.1
+  have hp : (0:ℝ) < (r.1.2:ℝ) := by exact_mod_cast hP r.1.2 hr1.2
+  have hq : (0:ℝ) < (r.2:ℝ) := by exact_mod_cast hQ r.2 hr2
+  have hlog : Real.log ((r.1.1 * r.1.2 * r.2 : ℕ):ℝ)
+      = Real.log ((r.1.1 * r.1.2 : ℕ):ℝ) + Real.log (r.2:ℝ) := by
+    push_cast
+    rw [Real.log_mul (by positivity) (ne_of_gt hq)]
+  rw [hlog]
+
 end MoltResearch
