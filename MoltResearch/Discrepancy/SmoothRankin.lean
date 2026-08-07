@@ -5128,4 +5128,67 @@ theorem ghsPrime_centred_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 
   have hexp0 : (0:ℝ) ≤ Real.exp π * 8 := by positivity
   exact mul_le_mul_of_nonneg_left hstep hexp0
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The per-frequency energy of `P₃`** (Track R, N66): for every
+frequency `N`,
+
+  `∫_{N−1/2}^{N+1/2} ‖P₃(t)‖² dt
+     ≤ e^π·8·∑_q (6144·⌈2q/8⌉ + log q + e^{−π}·B + (√X+1)log₂X·log X)·(log q/q²)`.
+
+This is `integral_line_halasz_le`'s `hV`, in the form it asks for: a
+bound uniform in `N`.
+
+Three facts combine.  `integral_unit_sq_le_of_centred` reduces the
+frequency `N` to the origin, at the cost of quantifying over every
+coefficient vector of the same moduli.  `integral_symm_widen` opens the
+window from `[−1/2, 1/2]` to `[−8, 8]`, free because the integrand is a
+squared norm.  And `ghsPrime_centred_energy_le` bounds the widened
+integral for the whole equal-modulus family at once — which is exactly
+why the quantifier costs nothing. -/
+theorem ghsPrimePoly_unit_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (Q : Finset ℕ) (X : ℕ) (hX : 1 ≤ X)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQ64 : ∀ q ∈ Q, 64 ≤ q) (hQX : ∀ q ∈ Q, q ≤ X)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ q ∈ Q, Real.log (q:ℝ) ≤ B)
+    (hwide : ∀ w : ℕ → ℂ, IntervalIntegrable
+      (fun u => ‖∑ q ∈ Q, w q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      volume (-(8:ℝ)) (8:ℝ))
+    (N : ℝ) :
+    (∫ t in (N - 1/2)..(N + 1/2), ‖ghsPrimePoly f Q t‖^2)
+      ≤ Real.exp π * 8 * ∑ q ∈ Q,
+          (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+            + Real.exp (-(π*(8:ℝ)^2/64)) * B
+            + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+                * Real.log ((X:ℕ):ℝ))
+          * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+  classical
+  set V : ℝ := Real.exp π * 8 * ∑ q ∈ Q,
+      (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + Real.exp (-(π*(8:ℝ)^2/64)) * B
+        + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+            * Real.log ((X:ℕ):ℝ))
+      * (Real.log (q:ℝ)/(q:ℝ)^2) with hV_def
+  -- the coefficients of P₃
+  set c : ℕ → ℂ := fun q =>
+    (((Real.log (q:ℝ) : ℝ):ℂ) * f q) / (q:ℂ) with hc_def
+  have hpoly : ∀ t : ℝ, ghsPrimePoly f Q t
+      = ∑ q ∈ Q, c q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * t)) : Circle) : ℂ) := by
+    intro t
+    rw [ghsPrimePoly]
+  simp only [hpoly]
+  refine ExpSums.integral_unit_sq_le_of_centred Q c
+    (fun q => Real.log (q:ℝ)) V ?_ N
+  intro w' hw'
+  -- widen the window, then apply the centred estimate
+  have hb : (-(1:ℝ)/2) = -((1:ℝ)/2) := by ring
+  rw [hb]
+  refine le_trans (integral_symm_widen
+    (fun u => ‖∑ q ∈ Q, w' q
+      * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+    (fun t => by positivity) ((1:ℝ)/2) 8 (by norm_num) (by norm_num)
+    (hwide w')) ?_
+  exact ghsPrime_centred_energy_le f hf Q X hX hQp hQ64 hQX B hB0 hB w'
+    (fun q _ => hw' q)
+
 end MoltResearch
