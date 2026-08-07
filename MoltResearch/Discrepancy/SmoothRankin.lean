@@ -5237,4 +5237,63 @@ theorem prime_masses_le (Q : Finset ℕ) (X : ℕ) (hX : 2 ≤ X)
     have hsqrt : (0:ℝ) ≤ 4/Real.sqrt (X:ℝ) := by positivity
     linarith
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The `P_k` polynomial is a von Mangoldt polynomial** (Track R,
+N68): for `P` a set of primes,
+
+  `P₂(ξ) = ∑_p ((f(p)/(p·log(x/p)))·Λ(p))·𝐞(−ξ log p)`.
+
+The same match as for `P₃`, with the extra `1/log(x/p)` absorbed into
+the coefficient: `Λ(p) = log p` on primes, so GHS's
+`∑ f(p)log p/(p^s log(x/p))` is again literally the mean value
+theorem's shape, now with `a(p) = f(p)/(p·log(x/p))`. -/
+theorem ghsBlockPoly_eq_vonMangoldt_poly (f : ℕ → ℂ) (x : ℕ) (P : Finset ℕ)
+    (hPp : ∀ p ∈ P, p.Prime) (ξ : ℝ) :
+    ghsBlockPoly f x P ξ
+      = ∑ p ∈ P, ((f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ)))
+            * ((vonMangoldt p : ℝ):ℂ))
+          * ((Real.fourierChar (-(Real.log (p:ℝ) * ξ)) : Circle) : ℂ) := by
+  rw [ghsBlockPoly]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  have hΛ : vonMangoldt p = Real.log (p:ℝ) :=
+    ArithmeticFunction.vonMangoldt_apply_prime (hPp p hp)
+  rw [hΛ]
+  congr 1
+  ring
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The coefficients of the `P_k` polynomial are small** (Track R,
+N68): for `‖f‖ ≤ 1`, `p` prime and `2p ≤ x`,
+
+  `‖f(p)/(p·log(x/p))‖²·Λ(p) ≤ log p / (p²·log²(x/p))`.
+
+Against the mean value theorem's leading factor `≍ p` this becomes
+`log p/(p·log²(x/p))`, which is exactly the mass
+`sum_log_div_sq_ratio_block_mass_le` bounds by `≍ e^{k}/log x` — the
+`I₁` estimate.
+
+`2p ≤ x` is what makes `log(x/p) ≥ log 2 > 0`, so the coefficient is
+defined; on a block it holds because the discards already imposed it. -/
+theorem norm_ghsBlock_coeff_sq_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x p : ℕ) (hp : p.Prime) (h2p : 2*p ≤ x) :
+    ‖f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ))‖^2 * vonMangoldt p
+      ≤ Real.log (p:ℝ) / ((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2) := by
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp.pos
+  have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+    rw [le_div_iff₀ hp0]
+    have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+    push_cast at hc; linarith
+  have hlogpos : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+  have hΛ : vonMangoldt p = Real.log (p:ℝ) :=
+    ArithmeticFunction.vonMangoldt_apply_prime hp
+  have hnorm : ‖f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ))‖^2
+      = ‖f p‖^2 / ((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2) := by
+    rw [norm_div, div_pow, norm_mul, Complex.norm_natCast, Complex.norm_real,
+      Real.norm_eq_abs, abs_of_nonneg hlogpos.le, mul_pow]
+  have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+  have hf2 : ‖f p‖^2 ≤ 1 := by nlinarith [hf p, norm_nonneg (f p)]
+  rw [hΛ, hnorm, div_mul_eq_mul_div]
+  refine div_le_div_of_nonneg_right ?_ (by positivity)
+  nlinarith [hf2, hlog0]
+
 end MoltResearch
