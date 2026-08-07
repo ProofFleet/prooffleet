@@ -4890,4 +4890,69 @@ theorem norm_ghsPrime_coeff_sq_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1
   refine div_le_div_of_nonneg_right ?_ (by positivity)
   nlinarith [hf2, hlog0]
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **Recovering von Mangoldt coefficients** (Track R, N63): for `q`
+prime and any `w`,
+
+  `(w/Λ(q))·Λ(q) = w`  and  `‖w/Λ(q)‖ = ‖w‖/log q`.
+
+`integral_unit_sq_le_of_centred` quantifies over *every* coefficient
+vector of the same moduli as the original, so the bound has to be
+supplied for an arbitrary such `w'` rather than for the specific
+coefficients of `P₃`.  This is the step that puts an arbitrary `w'`
+into the mean value theorem's shape `a(q)·Λ(q)`: divide by `Λ(q)`,
+which is legitimate since `Λ(q) = log q ≥ log 2 > 0` on primes.
+
+The second identity is what makes the transfer free: the recovered
+`a(q)` has modulus `‖w'(q)‖/log q`, which depends on `w'` only through
+its modulus — so `norm_ghsPrime_coeff_sq_le`, stated on moduli,
+applies to every member of the equal-modulus family at once. -/
+theorem vonMangoldt_coeff_recover (q : ℕ) (hq : q.Prime) (w : ℂ) :
+    (w / ((vonMangoldt q : ℝ):ℂ)) * ((vonMangoldt q : ℝ):ℂ) = w
+      ∧ ‖w / ((vonMangoldt q : ℝ):ℂ)‖ = ‖w‖ / Real.log (q:ℝ) := by
+  have hΛ : vonMangoldt q = Real.log (q:ℝ) :=
+    ArithmeticFunction.vonMangoldt_apply_prime hq
+  have hq2 : (2:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq.two_le
+  have hlogpos : (0:ℝ) < Real.log (q:ℝ) := by
+    have : (1:ℝ) < (q:ℝ) := by linarith
+    exact Real.log_pos this
+  have hne : ((vonMangoldt q : ℝ):ℂ) ≠ 0 := by
+    rw [hΛ]
+    exact Complex.ofReal_ne_zero.mpr hlogpos.ne'
+  refine ⟨div_mul_cancel₀ w hne, ?_⟩
+  rw [norm_div, hΛ, Complex.norm_real, Real.norm_eq_abs,
+    abs_of_nonneg hlogpos.le]
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The recovered coefficients are small** (Track R, N63): if `w` has
+the modulus of one of `P₃`'s coefficients, then
+
+  `‖w/Λ(q)‖²·Λ(q) ≤ log q / q²`.
+
+The modulus computation collapses exactly: `‖w/Λ(q)‖ = ‖w‖/log q =
+(log q·‖f(q)‖/q)/log q = ‖f(q)/q‖`, so the recovered coefficient has
+*precisely* the modulus of `f(q)/q` and
+`norm_ghsPrime_coeff_sq_le` applies unchanged.
+
+This is the whole content of the equal-modulus quantifier in
+`integral_unit_sq_le_of_centred`: the bound never saw the phases, so
+shifting them costs nothing. -/
+theorem recovered_coeff_sq_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1) (q : ℕ)
+    (hq : q.Prime) (w : ℂ)
+    (hw : ‖w‖ = ‖(((Real.log (q:ℝ) : ℝ):ℂ) * f q) / (q:ℂ)‖) :
+    ‖w / ((vonMangoldt q : ℝ):ℂ)‖^2 * vonMangoldt q
+      ≤ Real.log (q:ℝ) / (q:ℝ)^2 := by
+  have hq2 : (2:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq.two_le
+  have hlogpos : (0:ℝ) < Real.log (q:ℝ) := Real.log_pos (by linarith)
+  have hq0 : (0:ℝ) < (q:ℝ) := by linarith
+  obtain ⟨-, hmod⟩ := vonMangoldt_coeff_recover q hq w
+  have hwval : ‖w‖ = Real.log (q:ℝ) * ‖f q‖ / (q:ℝ) := by
+    rw [hw, norm_div, norm_mul, Complex.norm_real, Complex.norm_natCast,
+      Real.norm_eq_abs, abs_of_nonneg hlogpos.le]
+  have hkey : ‖w / ((vonMangoldt q : ℝ):ℂ)‖ = ‖f q / (q:ℂ)‖ := by
+    rw [hmod, hwval, norm_div, Complex.norm_natCast]
+    field_simp
+  rw [hkey]
+  exact norm_ghsPrime_coeff_sq_le f hf q hq
+
 end MoltResearch
