@@ -6042,4 +6042,60 @@ theorem ghs_pairing_estimate (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     hg0 hg1 hg2 htail (fun i _ => hjt _ _) (fun N _ => hjt _ _)
     (fun N _ => hk1 _ _) (fun N _ => hk2 _ _) (fun N _ => hk3 _ _)
 
+open MeasureTheory Real Complex Finset in
+/-- **§4's pairing estimate at a uniform band sup** (Track R, N82): if
+`‖P₁‖ ≤ b` on the whole line then
+
+  `∫_ℝ ‖P₁·P₂·P₃‖·w ≤ √(E₁·(30·C·V·b² + Mtail))`.
+
+The form §4 actually meets, because `norm_ghsMainPoly_smooth_band_le`
+is **uniform in the frequency**: the Halász Euler-product bound does not
+vary from one unit interval to the next, so `halaszLSq`'s dominating
+function may be taken constant and `halaszLSq_le_of_bound` collapses
+`L(x)²` to `6b²`.  The `≍ log²x` frequencies in `halaszRange` cost
+nothing — that is what makes Halász sharp rather than log-lossy.
+
+`0 < Mtail` is what supplies `pairing_halasz_sqrt_le`'s positivity
+side condition: the `5·C·V·L(x)²` term is only known to be non-negative
+(`halaszLSq_nonneg`), so strict positivity has to come from the tail,
+which is a genuine positive bound in any application. -/
+theorem ghs_pairing_estimate_uniform (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ) (w : ℝ → ℝ) (hw : Continuous w)
+    (C V Mtail E₁ Wtail b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV0 : 0 ≤ V) (hMtail0 : 0 < Mtail)
+    (hw0 : ∀ t, 0 ≤ w t) (hwle : ∀ t, w t ≤ C/(1+t^2))
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ) ≤ E₁)
+    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V)
+    (hWtail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|}, w ξ)
+      ≤ Wtail)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2 * Wtail ≤ Mtail) :
+    (∫ ξ, ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+        * ghsPrimePoly f Q ξ‖ * w ξ)
+      ≤ Real.sqrt (E₁ * (5 * C * V * (6*b^2) + Mtail)) := by
+  classical
+  have hC0 : (0:ℝ) ≤ C := by
+    have h0 := hwle 0
+    have hw00 := hw0 0
+    norm_num at h0
+    linarith
+  -- the constant dominating function
+  have hLSq : halaszLSq (fun _ => b) x ≤ 6*b^2 :=
+    halaszLSq_le_of_bound (fun _ => b) x b
+      (fun N _ => by rw [abs_of_nonneg hb0])
+  have hLSq0 : (0:ℝ) ≤ halaszLSq (fun _ => b) x := halaszLSq_nonneg _ _
+  have hcoef : (0:ℝ) ≤ 5 * C * V := by positivity
+  have hQ0 : 0 < 5 * C * V * halaszLSq (fun _ => b) x + Mtail := by
+    nlinarith [hcoef, hLSq0, hMtail0]
+  have hmain := ghs_pairing_estimate f hf x S P Q w hw (fun _ => b)
+    C V Mtail E₁ Wtail hE₁0 hQ0 hw0 hwle hE₁
+    (fun N _ t _ => hBu t) (fun _ => hb0) hV hWtail hMtail
+  refine le_trans hmain ?_
+  refine Real.sqrt_le_sqrt ?_
+  have hstep : 5 * C * V * halaszLSq (fun _ => b) x ≤ 5 * C * V * (6*b^2) :=
+    mul_le_mul_of_nonneg_left hLSq hcoef
+  exact mul_le_mul_of_nonneg_left (by linarith) hE₁0.le
+
 end MoltResearch
