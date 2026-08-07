@@ -5777,4 +5777,145 @@ theorem ghsBlock_energy_integrability (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ �
     integrable_of_le_const_div_one_add_sq w hw hw0 C hwle
   exact ⟨hint, hitv, fun a b => hcont2.intervalIntegrable a b, hon, honw⟩
 
+open MeasureTheory Real Complex Finset in
+/-- **§4's side conditions, discharged** (Track R, N78): for a
+continuous window with `0 ≤ w ≤ C/(1+ξ²)`, every integrability
+hypothesis of `pairing_halasz_sqrt_le` holds at the three GHS
+polynomials.
+
+Seven conclusions cover all eight hypotheses (`hj` and `htile` differ
+only in which interval they name, so one `∀ a b` serves both), and they
+split into two kinds:
+
+* `hg0`, `hg1`, `hg2` are whole-line integrals, so they need the
+  domination: each polynomial is bounded by its trivial sup
+  (`norm_ghsMainPoly_le` and companions), so every product is at most a
+  constant times `C/(1+ξ²)` and
+  `integrable_of_le_const_div_one_add_sq` applies.
+* `hj`, `htile`, `hk1`, `hk2`, `hk3` are *interval* integrals, and the
+  integrands are continuous — so they need no domination at all, only
+  `Continuous.intervalIntegrable`.  The `1/(1+t²)` that `hk1` and `hk2`
+  carry is harmless: its denominator never vanishes.
+
+Recognising the second group for what it is, is what keeps this one
+lemma rather than a stack of them.  Only `htail` — an *estimate*, not
+an integrability fact — is left to the caller. -/
+theorem ghs_pairing_integrability (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ) (w : ℝ → ℝ) (hw : Continuous w) (C : ℝ)
+    (hw0 : ∀ ξ, 0 ≤ w ξ) (hwle : ∀ ξ, w ξ ≤ C/(1+ξ^2)) :
+    Integrable (fun ξ => ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+          * ghsPrimePoly f Q ξ‖ * w ξ)
+      ∧ Integrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      ∧ Integrable (fun ξ => ‖ghsPrimePoly f Q ξ‖^2 * w ξ
+          * ‖ghsMainPoly f S ξ‖^2)
+      ∧ (∀ a b : ℝ, IntervalIntegrable
+          (fun t => ‖ghsPrimePoly f Q t‖^2 * w t * ‖ghsMainPoly f S t‖^2)
+          volume a b)
+      ∧ (∀ a b : ℝ, IntervalIntegrable
+          (fun t => (‖ghsPrimePoly f Q t‖^2/(1+t^2)) * ‖ghsMainPoly f S t‖^2)
+          volume a b)
+      ∧ (∀ a b : ℝ, IntervalIntegrable
+          (fun t => ‖ghsPrimePoly f Q t‖^2/(1+t^2)) volume a b)
+      ∧ (∀ a b : ℝ, IntervalIntegrable
+          (fun t => ‖ghsPrimePoly f Q t‖^2) volume a b) := by
+  classical
+  -- the three trivial sups
+  set S₁ : ℝ := ∑ n ∈ S, (1:ℝ)/(n:ℝ) with hS₁_def
+  set S₂ : ℝ := ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|)
+    with hS₂_def
+  set S₃ : ℝ := ∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ) with hS₃_def
+  have hb₁ : ∀ ξ, ‖ghsMainPoly f S ξ‖ ≤ S₁ := norm_ghsMainPoly_le f hf S
+  have hb₂ : ∀ ξ, ‖ghsBlockPoly f x P ξ‖ ≤ S₂ := norm_ghsBlockPoly_le f hf x P
+  have hb₃ : ∀ ξ, ‖ghsPrimePoly f Q ξ‖ ≤ S₃ := norm_ghsPrimePoly_le f hf Q
+  have hS₁0 : (0:ℝ) ≤ S₁ := le_trans (norm_nonneg _) (hb₁ 0)
+  have hS₂0 : (0:ℝ) ≤ S₂ := le_trans (norm_nonneg _) (hb₂ 0)
+  have hS₃0 : (0:ℝ) ≤ S₃ := le_trans (norm_nonneg _) (hb₃ 0)
+  -- continuity of the three polynomials
+  have hc₁ : Continuous (fun ξ => ‖ghsMainPoly f S ξ‖) :=
+    (continuous_ghsMainPoly f S).norm
+  have hc₂ : Continuous (fun ξ => ‖ghsBlockPoly f x P ξ‖) :=
+    (continuous_ghsBlockPoly f x P).norm
+  have hc₃ : Continuous (fun ξ => ‖ghsPrimePoly f Q ξ‖) :=
+    (continuous_ghsPrimePoly f Q).norm
+  have hden : Continuous (fun t : ℝ => 1 + t^2) := by continuity
+  have hden0 : ∀ t : ℝ, (1:ℝ) + t^2 ≠ 0 := fun t => by positivity
+  -- `hg0`
+  have hg0 : Integrable (fun ξ => ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+      * ghsPrimePoly f Q ξ‖ * w ξ) := by
+    have hcont : Continuous (fun ξ => ‖ghsMainPoly f S ξ
+        * ghsBlockPoly f x P ξ * ghsPrimePoly f Q ξ‖ * w ξ) :=
+      (((continuous_ghsMainPoly f S).mul (continuous_ghsBlockPoly f x P)).mul
+        (continuous_ghsPrimePoly f Q)).norm.mul hw
+    have hnn : ∀ ξ, (0:ℝ) ≤ ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+        * ghsPrimePoly f Q ξ‖ * w ξ :=
+      fun ξ => mul_nonneg (norm_nonneg _) (hw0 ξ)
+    have hdom : ∀ ξ, ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+        * ghsPrimePoly f Q ξ‖ * w ξ ≤ (S₁*S₂*S₃*C)/(1+ξ^2) := by
+      intro ξ
+      rw [norm_mul, norm_mul]
+      have hprod : ‖ghsMainPoly f S ξ‖ * ‖ghsBlockPoly f x P ξ‖
+          * ‖ghsPrimePoly f Q ξ‖ ≤ S₁ * S₂ * S₃ := by
+        gcongr <;> [exact hb₁ ξ; exact hb₂ ξ; exact hb₃ ξ]
+      have h1 : ‖ghsMainPoly f S ξ‖ * ‖ghsBlockPoly f x P ξ‖
+          * ‖ghsPrimePoly f Q ξ‖ * w ξ ≤ (S₁*S₂*S₃) * w ξ :=
+        mul_le_mul_of_nonneg_right hprod (hw0 ξ)
+      have h2 : (S₁*S₂*S₃) * w ξ ≤ (S₁*S₂*S₃) * (C/(1+ξ^2)) :=
+        mul_le_mul_of_nonneg_left (hwle ξ) (by positivity)
+      have h3 : (S₁*S₂*S₃) * (C/(1+ξ^2)) = (S₁*S₂*S₃*C)/(1+ξ^2) := by ring
+      linarith [h1, h2, h3.le, h3.ge]
+    exact (integrable_of_le_const_div_one_add_sq _ hcont hnn _ hdom).1
+  -- `hg1`
+  have hg1 : Integrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ) := by
+    have hcont : Continuous (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ) :=
+      (hc₂.pow 2).mul hw
+    have hnn : ∀ ξ, (0:ℝ) ≤ ‖ghsBlockPoly f x P ξ‖^2 * w ξ :=
+      fun ξ => mul_nonneg (by positivity) (hw0 ξ)
+    have hdom : ∀ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ ≤ (S₂^2*C)/(1+ξ^2) := by
+      intro ξ
+      have hsq : ‖ghsBlockPoly f x P ξ‖^2 ≤ S₂^2 := by
+        nlinarith [norm_nonneg (ghsBlockPoly f x P ξ), hb₂ ξ, hS₂0]
+      have h1 : ‖ghsBlockPoly f x P ξ‖^2 * w ξ ≤ S₂^2 * w ξ :=
+        mul_le_mul_of_nonneg_right hsq (hw0 ξ)
+      have h2 : S₂^2 * w ξ ≤ S₂^2 * (C/(1+ξ^2)) :=
+        mul_le_mul_of_nonneg_left (hwle ξ) (sq_nonneg S₂)
+      have h3 : S₂^2 * (C/(1+ξ^2)) = (S₂^2*C)/(1+ξ^2) := by ring
+      linarith [h1, h2, h3.le, h3.ge]
+    exact (integrable_of_le_const_div_one_add_sq _ hcont hnn _ hdom).1
+  -- `hg2`
+  have hg2 : Integrable (fun ξ => ‖ghsPrimePoly f Q ξ‖^2 * w ξ
+      * ‖ghsMainPoly f S ξ‖^2) := by
+    have hcont : Continuous (fun ξ => ‖ghsPrimePoly f Q ξ‖^2 * w ξ
+        * ‖ghsMainPoly f S ξ‖^2) := ((hc₃.pow 2).mul hw).mul (hc₁.pow 2)
+    have hnn : ∀ ξ, (0:ℝ) ≤ ‖ghsPrimePoly f Q ξ‖^2 * w ξ
+        * ‖ghsMainPoly f S ξ‖^2 :=
+      fun ξ => mul_nonneg (mul_nonneg (by positivity) (hw0 ξ)) (by positivity)
+    have hdom : ∀ ξ, ‖ghsPrimePoly f Q ξ‖^2 * w ξ * ‖ghsMainPoly f S ξ‖^2
+        ≤ (S₃^2*S₁^2*C)/(1+ξ^2) := by
+      intro ξ
+      have hsq₃ : ‖ghsPrimePoly f Q ξ‖^2 ≤ S₃^2 := by
+        nlinarith [norm_nonneg (ghsPrimePoly f Q ξ), hb₃ ξ, hS₃0]
+      have hsq₁ : ‖ghsMainPoly f S ξ‖^2 ≤ S₁^2 := by
+        nlinarith [norm_nonneg (ghsMainPoly f S ξ), hb₁ ξ, hS₁0]
+      have hw' : w ξ ≤ C/(1+ξ^2) := hwle ξ
+      have hn₁ : (0:ℝ) ≤ ‖ghsMainPoly f S ξ‖^2 := by positivity
+      have hCq : (0:ℝ) ≤ C/(1+ξ^2) := le_trans (hw0 ξ) hw'
+      -- peel the factors one at a time; `nlinarith` will not do a triple
+      have hstep : ‖ghsPrimePoly f Q ξ‖^2 * w ξ ≤ S₃^2 * (C/(1+ξ^2)) :=
+        le_trans (mul_le_mul_of_nonneg_right hsq₃ (hw0 ξ))
+          (mul_le_mul_of_nonneg_left hw' (sq_nonneg S₃))
+      have h1 : ‖ghsPrimePoly f Q ξ‖^2 * w ξ * ‖ghsMainPoly f S ξ‖^2
+          ≤ S₃^2 * (C/(1+ξ^2)) * S₁^2 :=
+        le_trans (mul_le_mul_of_nonneg_right hstep hn₁)
+          (mul_le_mul_of_nonneg_left hsq₁ (by positivity))
+      have h3 : S₃^2 * (C/(1+ξ^2)) * S₁^2 = (S₃^2*S₁^2*C)/(1+ξ^2) := by ring
+      linarith [h1, h3.le, h3.ge]
+    exact (integrable_of_le_const_div_one_add_sq _ hcont hnn _ hdom).1
+  -- the interval conditions: continuity is enough
+  refine ⟨hg0, hg1, hg2, fun a b => ?_, fun a b => ?_, fun a b => ?_,
+    fun a b => ?_⟩
+  · exact (((hc₃.pow 2).mul hw).mul (hc₁.pow 2)).intervalIntegrable a b
+  · exact (((hc₃.pow 2).div hden hden0).mul (hc₁.pow 2)).intervalIntegrable a b
+  · exact ((hc₃.pow 2).div hden hden0).intervalIntegrable a b
+  · exact (hc₃.pow 2).intervalIntegrable a b
+
 end MoltResearch
