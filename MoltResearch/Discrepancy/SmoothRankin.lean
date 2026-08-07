@@ -5602,4 +5602,90 @@ theorem ghsBlock_energy_sum_le (x k X : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k)
     mul_le_mul_of_nonneg_left hmass2 hRX
   linarith
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **`E₁ ≪ e^{k}/log x`** (Track R, N74): the `hE₁` that
+`pairing_halasz_le` consumes, for `P` a set of primes in the `k`-th
+block of `x`.  With
+`R := e^{−π}·B + (√X+1)·log₂X·log X` and `S` the trivial sup of `P₂`,
+
+  `∫_ℝ ‖P₂‖²·w
+     ≤ C·e^π·8·(1536·(e^{2k}/log²x)(4((e−1)e^{−k}log x + log 2) + 4log 4)
+                 + (6144 + R + log X)·(4/log²2))
+       + S²·Wtail`,
+
+whose leading term is `≍ C·e^{k}/log x`.
+
+The `E₁` sub-chain closes here.  `ghsBlock_weighted_energy_le` reduces
+the whole line to Lemma 1 on `[−8, 8]`, and `ghsBlock_energy_sum_le`
+evaluates Lemma 1's right-hand side on a block.  Nothing else is
+needed: the two were built to meet.
+
+Against `V ≍ e^{−k}·log x` the product `E₁·V` is `≍ 1`, with the `k`
+cancelling — which is what leaves `L(x)` in §4's final bound with no
+residual dependence on the block index. -/
+theorem ghsBlock_E1_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x k X : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (hX : 2 ≤ X) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (hP64 : ∀ p ∈ P, 64 ≤ p) (hPX : ∀ p ∈ P, p ≤ X)
+    (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B)
+    (w : ℝ → ℝ) (C Wtail : ℝ)
+    (hC : ∀ ξ, w ξ ≤ C) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hWtail : (∫ ξ in {ξ : ℝ | (8:ℝ) < |ξ|}, w ξ) ≤ Wtail)
+    (hint : Integrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ))
+    (hband : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      volume (-(8:ℝ)) (8:ℝ))
+    (hband2 : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2)
+      volume (-(8:ℝ)) (8:ℝ))
+    (htailP : IntegrableOn (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      {ξ : ℝ | (8:ℝ) < |ξ|})
+    (htailw : IntegrableOn w {ξ : ℝ | (8:ℝ) < |ξ|}) :
+    (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      ≤ C * (Real.exp π * 8 *
+          (1536 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+              * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+                  + Real.log 2) + 4 * Real.log 4))
+            + (6144 + (Real.exp (-(π*(8:ℝ)^2/64)) * B
+                + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+                    * Real.log ((X:ℕ):ℝ))
+              + Real.log (X:ℝ)) * (4/(Real.log 2)^2)))
+        + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+            * Wtail := by
+  classical
+  have hC0 : (0:ℝ) ≤ C := le_trans (hw0 0) (hC 0)
+  have hX1 : 1 ≤ X := by omega
+  have hband_le := ghsBlock_weighted_energy_le f hf x P X hX1
+    (fun p hp => (hP p hp).1) hP64 hPX h2p B hB0 hB w C Wtail hC hw0 hWtail
+    hint hband hband2 htailP htailw
+  refine le_trans hband_le ?_
+  -- the residue `R` collected from Lemma 1's additive terms
+  set R : ℝ := Real.exp (-(π*(8:ℝ)^2/64)) * B
+      + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+          * Real.log ((X:ℕ):ℝ) with hR_def
+  have hR : (0:ℝ) ≤ R := by
+    have h1 : (0:ℝ) ≤ Real.exp (-(π*(8:ℝ)^2/64)) * B :=
+      mul_nonneg (Real.exp_pos _).le hB0
+    have h2 : (0:ℝ) ≤ ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+        * Real.log ((X:ℕ):ℝ) := by
+      have := Real.log_natCast_nonneg X
+      positivity
+    rw [hR_def]; linarith
+  -- reassociate Lemma 1's coefficient into `(… + log p + R)`
+  have hcongr : (∑ p ∈ P,
+      (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+        + Real.exp (-(π*(8:ℝ)^2/64)) * B
+        + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+            * Real.log ((X:ℕ):ℝ))
+      * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)))
+      = ∑ p ∈ P, (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
+          * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)) := by
+    refine Finset.sum_congr rfl fun p _ => ?_
+    rw [hR_def]; ring
+  rw [hcongr]
+  have hsum := ghsBlock_energy_sum_le x k X hx hk hX P hP h2p hPX R hR
+  have hexp0 : (0:ℝ) ≤ Real.exp π * 8 := by positivity
+  have hstep := mul_le_mul_of_nonneg_left
+    (mul_le_mul_of_nonneg_left hsum hexp0) hC0
+  linarith
+
 end MoltResearch
