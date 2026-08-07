@@ -5688,4 +5688,93 @@ theorem ghsBlock_E1_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     (mul_le_mul_of_nonneg_left hsum hexp0) hC0
   linarith
 
+open MeasureTheory Real Finset in
+/-- **The integrability workhorse for §4** (Track R, N76): a continuous
+non-negative `g` with `g ξ ≤ K/(1+ξ²)` is integrable on `ℝ`, on every
+interval, and on every tail set.
+
+Every integrability side condition of `pairing_halasz_sqrt_le` and of
+`integral_sq_weight_le` has this shape.  The three §4 polynomials are
+continuous (`continuous_ghsBlockPoly` and companions) and uniformly
+bounded (`norm_ghsBlockPoly_le` and companions), and the window obeys
+`w ξ ≤ C/(1+ξ²)` by hypothesis — so every product of them is dominated
+by a constant multiple of `(1+ξ²)⁻¹`, whose integral is `π`.
+
+Stated as one lemma with three conclusions because the side conditions
+always arrive together, and separating them would mean re-deriving the
+same domination three times. -/
+theorem integrable_of_le_const_div_one_add_sq (g : ℝ → ℝ) (hg : Continuous g)
+    (hg0 : ∀ ξ, 0 ≤ g ξ) (K : ℝ) (hK : ∀ ξ, g ξ ≤ K/(1+ξ^2)) :
+    Integrable g
+      ∧ (∀ a b : ℝ, IntervalIntegrable g volume a b)
+      ∧ (∀ s : Set ℝ, IntegrableOn g s) := by
+  have hdom : ∀ ξ : ℝ, ‖g ξ‖ ≤ K * (1+ξ^2)⁻¹ := by
+    intro ξ
+    rw [Real.norm_eq_abs, abs_of_nonneg (hg0 ξ)]
+    have hpos : (0:ℝ) < 1 + ξ^2 := by positivity
+    rw [← div_eq_mul_inv]
+    exact hK ξ
+  have hint : Integrable g := by
+    refine Integrable.mono' (integrable_inv_one_add_sq.const_mul K)
+      hg.aestronglyMeasurable ?_
+    filter_upwards with ξ using hdom ξ
+  exact ⟨hint, fun a b => hint.intervalIntegrable,
+    fun s => hint.integrableOn⟩
+
+open MeasureTheory Real Complex Finset in
+/-- **`E₁`'s side conditions, discharged** (Track R, N77): for a
+continuous window with `0 ≤ w ≤ C/(1+ξ²)`, every integrability
+hypothesis of `ghsBlock_weighted_energy_le` holds.
+
+`P₂` is continuous (`continuous_ghsBlockPoly`) and uniformly bounded by
+`S := ∑_p log p/(p·|log(x/p)|)` (`norm_ghsBlockPoly_le`), so
+`‖P₂‖²·w ≤ S²·C/(1+ξ²)` and `integrable_of_le_const_div_one_add_sq`
+applies to it and to `w` alike.  The one condition that is not of that
+shape — `‖P₂‖²` alone on a bounded interval — is continuous, hence
+interval-integrable outright.
+
+With this, `ghsBlock_weighted_energy_le` needs nothing of the caller but
+the window's shape: `E₁` is discharged for any admissible `w`. -/
+theorem ghsBlock_energy_integrability (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (P : Finset ℕ) (w : ℝ → ℝ) (hw : Continuous w) (C : ℝ)
+    (hw0 : ∀ ξ, 0 ≤ w ξ) (hwle : ∀ ξ, w ξ ≤ C/(1+ξ^2)) :
+    Integrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      ∧ (∀ a b : ℝ, IntervalIntegrable
+          (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ) volume a b)
+      ∧ (∀ a b : ℝ, IntervalIntegrable
+          (fun ξ => ‖ghsBlockPoly f x P ξ‖^2) volume a b)
+      ∧ (∀ s : Set ℝ, IntegrableOn
+          (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ) s)
+      ∧ (∀ s : Set ℝ, IntegrableOn w s) := by
+  classical
+  set S : ℝ := ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|)
+    with hS_def
+  have hS0 : (0:ℝ) ≤ S := by
+    refine Finset.sum_nonneg fun p _ => ?_
+    have := Real.log_natCast_nonneg p
+    positivity
+  have hcont : Continuous (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ) :=
+    (((continuous_ghsBlockPoly f x P).norm).pow 2).mul hw
+  have hcont2 : Continuous (fun ξ => ‖ghsBlockPoly f x P ξ‖^2) :=
+    ((continuous_ghsBlockPoly f x P).norm).pow 2
+  -- the product is dominated by `S²C/(1+ξ²)`
+  have hdom : ∀ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ ≤ (S^2*C)/(1+ξ^2) := by
+    intro ξ
+    have hb : ‖ghsBlockPoly f x P ξ‖ ≤ S := norm_ghsBlockPoly_le f hf x P ξ
+    have hsq : ‖ghsBlockPoly f x P ξ‖^2 ≤ S^2 := by
+      nlinarith [norm_nonneg (ghsBlockPoly f x P ξ), hb, hS0]
+    have h1 : ‖ghsBlockPoly f x P ξ‖^2 * w ξ ≤ S^2 * w ξ :=
+      mul_le_mul_of_nonneg_right hsq (hw0 ξ)
+    have h2 : S^2 * w ξ ≤ S^2 * (C/(1+ξ^2)) :=
+      mul_le_mul_of_nonneg_left (hwle ξ) (sq_nonneg S)
+    have h3 : S^2 * (C/(1+ξ^2)) = (S^2*C)/(1+ξ^2) := by ring
+    linarith [h1, h2, h3.le, h3.ge]
+  have hprod0 : ∀ ξ, (0:ℝ) ≤ ‖ghsBlockPoly f x P ξ‖^2 * w ξ :=
+    fun ξ => mul_nonneg (by positivity) (hw0 ξ)
+  obtain ⟨hint, hitv, hon⟩ :=
+    integrable_of_le_const_div_one_add_sq _ hcont hprod0 (S^2*C) hdom
+  obtain ⟨-, -, honw⟩ :=
+    integrable_of_le_const_div_one_add_sq w hw hw0 C hwle
+  exact ⟨hint, hitv, fun a b => hcont2.intervalIntegrable a b, hon, honw⟩
+
 end MoltResearch
