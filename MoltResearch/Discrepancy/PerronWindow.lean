@@ -1742,6 +1742,61 @@ theorem char_poly_mul_log (A B : Finset ℕ) (a b : ℕ → ℂ)
     push_cast
     exact Real.log_mul (ne_of_gt h1) (ne_of_gt h2)
   rw [hlog]
+
+/-- **The Perron sandwich, rescaled** (Track R, N87): multiplying
+`perron_sandwich` through by the scale,
+
+  `‖∑_{n ≤ M} g(n) − M·∑_{n∈S}(g(n)/n)·V(log M − log n)‖ ≤ 2ρ·M + 2`.
+
+The form §3 consumes.  `perron_sandwich` compares the window-weighted
+sum with the *normalized* Cesàro mean `(∑_{n≤M} g)/M`; §3's triple
+convolution contains the *unnormalized* inner sum `∑_{n ≤ x/pq} f(n)`,
+so the scale has to be carried across.  The edge budget `2ρ + 2/M`
+becomes `2ρ·M + 2`.
+
+This is the step that makes `perron_sandwich` usable at all in §3.
+Applied to the triple convolution it is used at `g := f` and
+`M := x/(pq)` — the inner sum is the only one of the three factors
+whose coefficients are `1`-bounded, so it is the only place the
+sandwich can be applied.  Collecting the triple sum by `npq` instead
+would present a Dirichlet convolution carrying `log p·log q`, which is
+not `1`-bounded and to which the sandwich does not apply. -/
+theorem perron_sandwich_scaled (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (V : ℝ → ℝ) (ρ : ℝ) (M : ℕ) (hM : 4 ≤ M) (hρ0 : 0 < ρ) (hρ1 : ρ ≤ 1)
+    (hVplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log M + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (S : Finset ℕ) (hS : Finset.Icc 1 M ⊆ S) (hS1 : ∀ n ∈ S, 1 ≤ n) :
+    ‖(∑ n ∈ Finset.Icc 1 M, g n)
+        - (M:ℂ) * ∑ n ∈ S, (g n/(n:ℂ))
+            * ((V (Real.log M - Real.log n) : ℝ) : ℂ)‖
+      ≤ 2*ρ*(M:ℝ) + 2 := by
+  classical
+  have hM0 : (0:ℝ) < (M:ℝ) := by exact_mod_cast (by omega : 0 < M)
+  have hbase := perron_sandwich g hg V ρ M hM hρ0 hρ1 hVplat hV0 hVle hVnn
+    S hS hS1
+  -- multiply the sandwich through by the scale
+  have hmul : ‖(M:ℂ)‖ * ‖(∑ n ∈ S, (g n/(n:ℂ))
+        * ((V (Real.log M - Real.log n) : ℝ) : ℂ))
+      - (∑ n ∈ Finset.Icc 1 M, g n)/(M:ℂ)‖
+      ≤ (M:ℝ) * (2*ρ + 2/(M:ℝ)) := by
+    rw [Complex.norm_natCast]
+    exact mul_le_mul_of_nonneg_left hbase hM0.le
+  rw [← norm_mul] at hmul
+  have hdist : (M:ℂ) * ((∑ n ∈ S, (g n/(n:ℂ))
+        * ((V (Real.log M - Real.log n) : ℝ) : ℂ))
+      - (∑ n ∈ Finset.Icc 1 M, g n)/(M:ℂ))
+      = -((∑ n ∈ Finset.Icc 1 M, g n)
+        - (M:ℂ) * ∑ n ∈ S, (g n/(n:ℂ))
+            * ((V (Real.log M - Real.log n) : ℝ) : ℂ)) := by
+    have hMne : (M:ℂ) ≠ 0 := by
+      simp only [ne_eq, Nat.cast_eq_zero]
+      omega
+    field_simp
+    ring
+  rw [hdist, norm_neg] at hmul
+  refine le_trans hmul (le_of_eq ?_)
+  field_simp
 end ExpSums
 
 end MoltResearch
