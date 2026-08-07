@@ -1479,5 +1479,42 @@ theorem norm_smooth_poly_band_le (f : ℕ → ℂ)
   · -- the tail: the Rankin-δ polynomial-versus-series gap
     exact norm_smooth_tsum_sub_sum_le f hb y₂ x hx s hsre δ hδ0 hδ1
 
+open MeasureTheory Real Complex Finset in
+/-- **`P₁`'s band sup, in `L(x)`'s shape** (Track R, N75): on the
+`y₂`-smooth integers up to `x`, `ghsMainPoly` *is* the smooth phase
+polynomial, so
+
+  `‖P₁(ξ)‖ ≤ exp(∑_{p<y₂}1/p − M + 2(∑_{p<x}1/p − ∑_{p<y₂}1/p) + 1)
+              + x^{−δ}·∏_{p<y₂}(1 − p^{δ−1})⁻¹`
+
+for every `ξ`, whenever `M` is a lower bound for the pretentious
+distance at scale `x`.
+
+This is the `hB` that `pairing_halasz_sqrt_le` asks for, and hence the
+entry point to `halaszLSq`.  Nothing is proved here that
+`norm_smooth_poly_band_le` did not already prove: the content is that
+the two sums are the same expression, so §4's `P₁` and the Halász
+Euler-product bound are about the same object.
+
+The bound is **uniform in `ξ`**, so the dominating function `B` of
+`halaszLSq` may be taken constant — which is what makes
+`L(x)² = B²·∑_{|N| ≤ log²x+1} 1/(N²+1)` a bounded multiple of `B²`.
+
+Lives in `HalaszEuler` rather than `SmoothRankin` because the import
+runs that way: `HalaszEuler` imports `SmoothRankin`, so this is the
+first module that sees both `ghsMainPoly` and `pretentiousDistSq`. -/
+theorem norm_ghsMainPoly_smooth_band_le (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (y₂ x : ℕ) (hy₂ : 1 ≤ y₂) (hyx : y₂ ≤ x)
+    (hx : 1 ≤ x) (ξ M δ : ℝ) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (hM : M ≤ pretentiousDistSq f
+      (fun n => (n:ℂ)^(Complex.I*((2*Real.pi*ξ : ℝ):ℂ))) x) :
+    ‖ghsMainPoly f ((Finset.Icc 1 x).filter (· ∈ Nat.smoothNumbers y₂)) ξ‖
+      ≤ Real.exp ((∑ p ∈ y₂.primesBelow, (1:ℝ)/p) - M
+            + 2*((∑ p ∈ x.primesBelow, (1:ℝ)/p)
+              - (∑ p ∈ y₂.primesBelow, (1:ℝ)/p)) + 1)
+        + (x:ℝ)^(-δ) * ∏ p ∈ y₂.primesBelow, (1 - (p:ℝ)^(δ-1))⁻¹ := by
+  rw [ghsMainPoly]
+  exact norm_smooth_poly_band_le f hcm h1 hb y₂ x hy₂ hyx hx ξ M δ hδ0 hδ1 hM
 
 end MoltResearch
