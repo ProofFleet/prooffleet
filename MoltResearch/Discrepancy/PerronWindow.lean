@@ -1913,6 +1913,47 @@ theorem perron_sandwich_uniform (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
               * ((V (Real.log M - Real.log n) : ℝ) : ℂ)‖ := norm_sub_le _ _
       _ ≤ 3 + 2 := add_le_add hsharp hsmooth
       _ ≤ 2*ρ*(M:ℝ) + 6 := by linarith
+
+/-- **The rescaled sandwich, real-valued** (Track R, N89): for a real
+`1`-bounded `g` and every `M ≥ 1`,
+
+  `|∑_{n ≤ M} g(n) − M·∑_{n∈S}(g(n)/n)·V(log M − log n)| ≤ 2ρ·M + 6`.
+
+`perron_sandwich_uniform` reads `g : ℕ → ℂ`, but §3's `tripleConv` is
+real-valued (`f : ℕ → ℝ`).  The mismatch is mechanical — every term is
+the coercion of a real one, and `‖(r : ℂ)‖ = |r|` — but it would
+otherwise have to be re-derived at each of the three places the
+substitution touches, so it is discharged once here.
+
+Same principle as removing the `4 ≤ M` hypothesis: take the friction
+out at the source rather than carry it through every consumer. -/
+theorem perron_sandwich_uniform_real (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1)
+    (V : ℝ → ℝ) (ρ : ℝ) (M : ℕ) (hM : 1 ≤ M) (hρ0 : 0 < ρ) (hρ1 : ρ ≤ 1)
+    (hVplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log M + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (S : Finset ℕ) (hS : Finset.Icc 1 M ⊆ S) (hS1 : ∀ n ∈ S, 1 ≤ n) :
+    |(∑ n ∈ Finset.Icc 1 M, g n)
+        - (M:ℝ) * ∑ n ∈ S, (g n/(n:ℝ)) * V (Real.log M - Real.log n)|
+      ≤ 2*ρ*(M:ℝ) + 6 := by
+  classical
+  have hgc : ∀ n, ‖((g n : ℝ) : ℂ)‖ ≤ 1 := by
+    intro n
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact hg n
+  have hbase := perron_sandwich_uniform (fun n => ((g n : ℝ) : ℂ)) hgc
+    V ρ M hM hρ0 hρ1 hVplat hV0 hVle hVnn S hS hS1
+  -- the complex expression is the coercion of the real one
+  have hcoe : ((∑ n ∈ Finset.Icc 1 M, ((g n : ℝ) : ℂ))
+        - (M:ℂ) * ∑ n ∈ S, (((g n : ℝ) : ℂ)/(n:ℂ))
+            * ((V (Real.log M - Real.log n) : ℝ) : ℂ))
+      = ((((∑ n ∈ Finset.Icc 1 M, g n)
+          - (M:ℝ) * ∑ n ∈ S, (g n/(n:ℝ))
+              * V (Real.log M - Real.log n) : ℝ)) : ℂ) := by
+    push_cast
+    ring
+  rw [hcoe, Complex.norm_real, Real.norm_eq_abs] at hbase
+  exact hbase
 end ExpSums
 
 end MoltResearch
