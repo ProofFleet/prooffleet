@@ -6496,4 +6496,116 @@ theorem perron_error_outer_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   have hc2 : (0:ℝ) ≤ 4*ρ*(x:ℝ) + 6*(x:ℝ)*Real.log 4 := by positivity
   nlinarith [h1, h2, hc1, hc2]
 
+open Real Finset in
+/-- **`tripleConv` is its smoothed form, up to the Perron error**
+(Track R, N93): with the two block masses supplied,
+
+  `|tripleConv f x P − ∑_p A(p)∑_q B(q)·⌊x/pq⌋·∑_n (f(n)/n)V(log⌊x/pq⌋ − log n)|`
+  `  ≤ 2ρ·x·Mass₁ + 4ρ·x·Mass₂ + 6·x·log 4·Mass₂`.
+
+The substitution §3 needs, assembled.  `perron_sandwich_uniform_real`
+replaces `tripleConv`'s innermost sum — the only one of the three
+factors whose coefficients are `1`-bounded — and the error it leaves
+is summed by `perron_error_inner_le` over `q` and
+`perron_error_outer_le` over `p`.
+
+Three earlier checks are what make this a composition rather than an
+argument: the sandwich holds at *every* scale (so the `pq > x/4` range
+needs no separate treatment), it holds for *real* `g` (so `tripleConv`
+needs no complex detour), and `⌊x/(pq)⌋ = ⌊⌊x/p⌋/q⌋` lets the inner
+error be summed at `y = ⌊x/p⌋`.
+
+The window's plateau is required only out to `2 log x + 1`; each
+application needs it out to `2 log⌊x/(pq)⌋ + 1`, which is shorter.
+
+`S := Icc 1 x` serves every scale at once, since `⌊x/(pq)⌋ ≤ x`. -/
+theorem tripleConv_sub_smoothed_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) (P : Finset ℕ) (ρ : ℝ) (hρ0 : 0 < ρ) (hρ1 : ρ ≤ 1)
+    (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (V : ℝ → ℝ)
+    (hVplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log (x:ℝ) + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (Mass₁ Mass₂ : ℝ)
+    (h1 : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ) ≤ Mass₁)
+    (h2 : ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+      ≤ Mass₂) :
+    |tripleConv f x P
+        - ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+            * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+                * ((((x/(p*q) : ℕ)):ℝ)
+                  * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                      * V (Real.log (((x/(p*q) : ℕ)):ℝ) - Real.log (n:ℝ)))|
+      ≤ 2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂
+        + 6*(x:ℝ)*Real.log 4*Mass₂ := by
+  classical
+  -- the per-(p,q) sandwich, at `S = Icc 1 x`
+  have hsand : ∀ p ∈ P, ∀ q ∈ (x/p).primesBelow,
+      |(∑ n ∈ Finset.Icc 1 (x/(p*q)), f n)
+          - (((x/(p*q) : ℕ)):ℝ) * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+              * V (Real.log (((x/(p*q) : ℕ)):ℝ) - Real.log (n:ℝ))|
+        ≤ 2*ρ*(((x/(p*q) : ℕ)):ℝ) + 6 := by
+    intro p hp q hq
+    set M : ℕ := x/(p*q) with hM_def
+    have hMx : M ≤ x := by
+      rw [hM_def]; exact Nat.div_le_self _ _
+    have hM1 : 1 ≤ M := by
+      have hqlt : q < x/p := (Nat.mem_primesBelow.mp hq).1
+      have hq0 : 0 < q := (Nat.mem_primesBelow.mp hq).2.pos
+      rw [hM_def, ← Nat.div_div_eq_div_mul]
+      exact (Nat.one_le_div_iff hq0).mpr hqlt.le
+    have hsub : Finset.Icc 1 M ⊆ Finset.Icc 1 x := by
+      intro n hn
+      rw [Finset.mem_Icc] at hn ⊢
+      exact ⟨hn.1, le_trans hn.2 hMx⟩
+    have hplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log (M:ℝ) + 1 →
+        V v = Real.exp (-v) := by
+      intro v hv1 hv2
+      refine hVplat v hv1 (le_trans hv2 ?_)
+      have hMR : (M:ℝ) ≤ (x:ℝ) := by exact_mod_cast hMx
+      have hM0 : (0:ℝ) < (M:ℝ) := by exact_mod_cast hM1
+      have := Real.log_le_log hM0 hMR
+      linarith
+    exact ExpSums.perron_sandwich_uniform_real f hf V ρ M hM1 hρ0 hρ1
+      hplat hV0 hVle hVnn (Finset.Icc 1 x) hsub
+      (fun n hn => (Finset.mem_Icc.mp hn).1)
+  -- collect over `q`, then over `p`
+  rw [tripleConv, ← Finset.sum_sub_distrib]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hstep : ∀ p ∈ P,
+      |(Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+          * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * ∑ n ∈ Finset.Icc 1 (x/(p*q)), f n
+        - (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+          * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * ((((x/(p*q) : ℕ)):ℝ)
+                * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                    * V (Real.log (((x/(p*q) : ℕ)):ℝ) - Real.log (n:ℝ)))|
+      ≤ |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+          * (2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+             + 6*(((x/p : ℕ)):ℝ)*Real.log 4) := by
+    intro p hp
+    rw [← mul_sub, abs_mul, ← Finset.sum_sub_distrib]
+    refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    -- per `q`: pull out `B(q)` and apply the sandwich
+    have hq : ∀ q ∈ (x/p).primesBelow,
+        |(Real.log (q:ℝ) * f q) * (∑ n ∈ Finset.Icc 1 (x/(p*q)), f n)
+          - (Real.log (q:ℝ) * f q)
+            * ((((x/(p*q) : ℕ)):ℝ)
+              * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                  * V (Real.log (((x/(p*q) : ℕ)):ℝ) - Real.log (n:ℝ)))|
+          ≤ |Real.log (q:ℝ) * f q|
+              * (2*ρ*((((x/p : ℕ)/q : ℕ)):ℝ) + 6) := by
+      intro q hqm
+      rw [← mul_sub, abs_mul]
+      refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+      have hdd : ((x/p : ℕ)/q : ℕ) = x/(p*q) := Nat.div_div_eq_div_mul x p q
+      rw [hdd]
+      exact hsand p hp q hqm
+    refine le_trans (Finset.sum_le_sum hq) ?_
+    exact perron_error_inner_le f hf (x/p) ρ hρ0.le
+  refine le_trans (Finset.sum_le_sum hstep) ?_
+  exact perron_error_outer_le f hf x P ρ hρ0.le hPp h2p Mass₁ Mass₂ h1 h2
+
 end MoltResearch
