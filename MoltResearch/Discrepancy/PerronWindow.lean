@@ -1954,6 +1954,87 @@ theorem perron_sandwich_uniform_real (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1)
     ring
   rw [hcoe, Complex.norm_real, Real.norm_eq_abs] at hbase
   exact hbase
+
+/-- **The smoothed sum is at most `1`** (Track R, N92): for `1`-bounded
+real `g` and any admissible window,
+
+  `|∑_{n∈S} (g(n)/n)·V(log M − log n)| ≤ 1`,
+
+uniformly in `M` and `S`.
+
+Two window properties do all the work and no cancellation is needed:
+`V(v) = 0` for `v ≤ 0` kills every term with `n ≥ M`, and
+`V(v) ≤ exp(−v)` makes each survivor at most `(1/n)·(n/M) = 1/M`.  There
+are fewer than `M` survivors, so the total is at most `(M−1)/M < 1`.
+
+This is what prices the *floor* in §3's substitution.  The sandwich is
+applied at the integer scale `⌊x/(pq)⌋`, so replacing it by `x/(pq)`
+costs `|⌊x/(pq)⌋ − x/(pq)| < 1` times this sum, per term — and against
+`tripleConv`'s weights that is `O(∑_p|A(p)|∑_q|B(q)|)`, which is `O(x)`
+and so within what (3.2) allows.
+
+The `M`-free form matters: `perron_sandwich_uniform`'s small-scale case
+bounds `M` times this sum, which is a different statement — that one
+degrades as `M` grows, this one does not. -/
+theorem smoothed_sum_le_one (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1)
+    (V : ℝ → ℝ) (M : ℕ) (hM : 1 ≤ M)
+    (hV0 : ∀ v, v ≤ 0 → V v = 0) (hVle : ∀ v, V v ≤ Real.exp (-v))
+    (hVnn : ∀ v, 0 ≤ V v)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n) :
+    |∑ n ∈ S, (g n/(n:ℝ)) * V (Real.log M - Real.log n)| ≤ 1 := by
+  classical
+  have hM0 : (0:ℝ) < (M:ℝ) := by exact_mod_cast (by omega : 0 < M)
+  -- terms with `n ≥ M` vanish
+  have hvanish : ∀ n ∈ S, n ∉ S.filter (fun n => n < M) →
+      (g n/(n:ℝ)) * V (Real.log M - Real.log n) = 0 := by
+    intro n hn hnot
+    simp only [Finset.mem_filter, not_and, not_lt] at hnot
+    have hnM : M ≤ n := hnot hn
+    have hle : Real.log (M:ℝ) - Real.log (n:ℝ) ≤ 0 := by
+      have := Real.log_le_log hM0 (by exact_mod_cast hnM : (M:ℝ) ≤ (n:ℝ))
+      linarith
+    rw [hV0 _ hle, mul_zero]
+  have hrestrict : (∑ n ∈ S, (g n/(n:ℝ)) * V (Real.log M - Real.log n))
+      = ∑ n ∈ S.filter (fun n => n < M),
+          (g n/(n:ℝ)) * V (Real.log M - Real.log n) :=
+    (Finset.sum_subset (Finset.filter_subset _ _)
+      (fun n hn hnot => hvanish n hn hnot)).symm
+  -- each survivor is at most `1/M`
+  have hterm : ∀ n ∈ S.filter (fun n => n < M),
+      |(g n/(n:ℝ)) * V (Real.log M - Real.log n)| ≤ 1/(M:ℝ) := by
+    intro n hn
+    simp only [Finset.mem_filter] at hn
+    have hn1 : 1 ≤ n := hS1 n hn.1
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn1
+    have hVb : V (Real.log M - Real.log n) ≤ (n:ℝ)/(M:ℝ) := by
+      refine le_trans (hVle _) (le_of_eq ?_)
+      rw [neg_sub, Real.exp_sub, Real.exp_log hn0, Real.exp_log hM0]
+    rw [abs_mul, abs_div, abs_of_nonneg hn0.le,
+      abs_of_nonneg (hVnn _)]
+    have hstep : |g n|/(n:ℝ) * V (Real.log M - Real.log n)
+        ≤ (1/(n:ℝ)) * ((n:ℝ)/(M:ℝ)) :=
+      mul_le_mul (div_le_div_of_nonneg_right (hg n) hn0.le) hVb
+        (hVnn _) (by positivity)
+    refine le_trans hstep (le_of_eq ?_)
+    field_simp
+  refine le_trans (le_of_eq (by rw [hrestrict])) ?_
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  simp only [Finset.sum_const, nsmul_eq_mul]
+  -- fewer than `M` survivors
+  have hcard : ((S.filter (fun n => n < M)).card : ℝ) ≤ (M:ℝ) := by
+    have hsub : S.filter (fun n => n < M) ⊆ Finset.Ico 1 M := by
+      intro n hn
+      simp only [Finset.mem_filter] at hn
+      exact Finset.mem_Ico.mpr ⟨hS1 n hn.1, hn.2⟩
+    have hc := Finset.card_le_card hsub
+    simp only [Nat.card_Ico] at hc
+    have : (S.filter (fun n => n < M)).card ≤ M := by omega
+    exact_mod_cast this
+  calc ((S.filter (fun n => n < M)).card : ℝ) * (1/(M:ℝ))
+      ≤ (M:ℝ) * (1/(M:ℝ)) := by
+        refine mul_le_mul_of_nonneg_right hcard (by positivity)
+    _ = 1 := by field_simp
 end ExpSums
 
 end MoltResearch
