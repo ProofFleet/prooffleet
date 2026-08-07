@@ -5333,4 +5333,143 @@ theorem ghsBlock_mvt_summand_le (p : ℕ) (hp : 2 ≤ p) (R D : ℝ) (hD : 0 ≤
   rw [hL, hR]
   exact div_le_div_of_nonneg_right hkey hD
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The band energy of the `P_k` polynomial** (Track R, N70): for `P`
+a set of primes in `[64, X]` with `2p ≤ x`,
+
+  `∫_{−8}^{8} ‖P₂(ξ)‖² dξ
+     ≤ e^π·8·∑_p (6144·⌈2p/8⌉ + log p + e^{−π}·B + (√X+1)log₂X·log X)
+              ·(log p/(p²·log²(x/p)))`.
+
+GHS's Lemma 1 applied to `P₂`, at `T = 8`.  Unlike `P₃`'s route this
+needs no equal-modulus family: `E₁` is a *whole-line weighted* energy,
+so `integral_sq_weight_le` asks for the band integral of `P₂` itself
+rather than a per-frequency bound, and the mean value theorem applies
+to the polynomial directly.
+
+`T = 8` is forced exactly as before — `inner_sum_long_le` needs
+`T² ≤ p`, so `p ≥ 64`, which is GHS's own `T² ≤ n ≤ x`, and
+`2·⌈2p/8⌉ ≤ p` costs nothing beyond that.
+
+By `ghsBlock_mvt_summand_le` the right side is
+`≍ ∑_p log p/(p·log²(x/p))`, which
+`sum_log_div_sq_ratio_block_mass_le` makes `≍ e^{k}/log x`. -/
+theorem ghsBlock_centred_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (P : Finset ℕ) (X : ℕ) (hX : 1 ≤ X)
+    (hPp : ∀ p ∈ P, p.Prime) (hP64 : ∀ p ∈ P, 64 ≤ p) (hPX : ∀ p ∈ P, p ≤ X)
+    (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B) :
+    (∫ ξ in (-(8:ℝ))..(8:ℝ), ‖ghsBlockPoly f x P ξ‖^2)
+      ≤ Real.exp π * 8 * ∑ p ∈ P,
+          (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+            + Real.exp (-(π*(8:ℝ)^2/64)) * B
+            + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+                * Real.log ((X:ℕ):ℝ))
+          * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)) := by
+  classical
+  -- rewrite into von Mangoldt shape
+  have hrw : (∫ ξ in (-(8:ℝ))..(8:ℝ), ‖ghsBlockPoly f x P ξ‖^2)
+      = ∫ ξ in (-(8:ℝ))..(8:ℝ),
+        ‖∑ p ∈ P, ((f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ)))
+            * ((vonMangoldt p : ℝ):ℂ))
+          * ((Real.fourierChar (-(Real.log (p:ℝ) * ξ)) : Circle) : ℂ)‖^2 := by
+    refine intervalIntegral.integral_congr fun ξ _ => ?_
+    rw [ghsBlockPoly_eq_vonMangoldt_poly f x P hPp ξ]
+  rw [hrw]
+  -- the mean value theorem at T = 8
+  have hmvt := intervalIntegral_vonMangoldt_mvt_long_le (8:ℝ) X P
+    (fun p => f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ)))
+    (fun p hp => by have := hP64 p hp; omega)
+    hPX hX (by norm_num)
+    (fun m hm => by
+      have h64 : (64:ℝ) ≤ (m:ℝ) := by exact_mod_cast hP64 m hm
+      have hsq : ((8:ℝ))^2 = 64 := by norm_num
+      rw [hsq]
+      exact h64)
+    (fun m hm => two_mul_ceil_quarter_le m (by have := hP64 m hm; omega))
+    B hB
+  refine le_trans hmvt ?_
+  -- replace the coefficient energy by its bound
+  have hcoef : ∀ p ∈ P,
+      (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+        + Real.exp (-(π*(8:ℝ)^2/64)) * B
+        + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+            * Real.log ((X:ℕ):ℝ))
+      * (‖f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ))‖^2 * vonMangoldt p)
+      ≤ (6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+          + Real.exp (-(π*(8:ℝ)^2/64)) * B
+          + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+              * Real.log ((X:ℕ):ℝ))
+        * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)) := by
+    intro p hp
+    have hbig : (0:ℝ) ≤ 6144*((⌈2*(p:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+        + Real.exp (-(π*(8:ℝ)^2/64)) * B
+        + ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+            * Real.log ((X:ℕ):ℝ) := by
+      have h1 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+      have h2 : (0:ℝ) ≤ Real.exp (-(π*(8:ℝ)^2/64)) * B :=
+        mul_nonneg (Real.exp_pos _).le hB0
+      have h3 : (0:ℝ) ≤ ((Nat.sqrt X + 1 : ℕ):ℝ) * ((Nat.log 2 X : ℕ):ℝ)
+          * Real.log ((X:ℕ):ℝ) := by
+        have := Real.log_natCast_nonneg X
+        positivity
+      positivity
+    refine mul_le_mul_of_nonneg_left ?_ hbig
+    exact norm_ghsBlock_coeff_sq_le f hf x p (hPp p hp) (h2p p hp)
+  have hstep := Finset.sum_le_sum hcoef
+  have hexp0 : (0:ℝ) ≤ Real.exp π * 8 := by positivity
+  exact mul_le_mul_of_nonneg_left hstep hexp0
+
+open Real Finset in
+/-- **The two block masses** (Track R, N71): for `P` a set of primes in
+the `k`-th block of `x` with `2p ≤ x` and `p ≤ X`,
+
+  `∑_p log p/(p·log²(x/p)) ≤ (e^{2k}/log²x)·(4((e−1)e^{−k}log x + log 2) + 4log 4)`
+  `∑_p log p/(p²·log²(x/p)) ≤ 4/log²2`.
+
+The `E₁` analogue of `prime_masses_le`, and again no new analysis: the
+first conjunct *is* `sum_log_div_sq_ratio_block_mass_le`, and the second
+is `prime_masses_le`'s convergent tail divided by `log²2`, since
+`2p ≤ x` forces `log(x/p) ≥ log 2`.
+
+These are the two masses `ghsBlock_mvt_summand_le` produces.  The first
+carries the whole `e^{k}/log x` — GHS §4's `I₁` — and the second is
+`O(1)`, so it is dominated once the leading term is multiplied by the
+mean value theorem's `p`. -/
+theorem block_masses_le (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (X : ℕ) (hX : 2 ≤ X)
+    (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (h2p : ∀ p ∈ P, 2*p ≤ x) (hPX : ∀ p ∈ P, p ≤ X) :
+    (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+        ≤ (Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+            * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+                + Real.log 2) + 4 * Real.log 4))
+      ∧ (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+        ≤ 4/(Real.log 2)^2) := by
+  classical
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  refine ⟨sum_log_div_sq_ratio_block_mass_le x k hx hk P hP, ?_⟩
+  -- the squared denominator is at least `log²2` on the block
+  have hterm : ∀ p ∈ P, Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+      ≤ (Real.log (p:ℝ)/(p:ℝ)^2)/(Real.log 2)^2 := by
+    intro p hp
+    have hpp : p.Prime := (hP p hp).1
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+    have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p p hp
+      push_cast at hc; linarith
+    have hlogle : Real.log 2 ≤ Real.log ((x:ℝ)/(p:ℝ)) :=
+      Real.log_le_log (by norm_num) hquot
+    have hsq : (Real.log 2)^2 ≤ (Real.log ((x:ℝ)/(p:ℝ)))^2 := by nlinarith
+    have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    rw [div_div]
+    refine div_le_div_of_nonneg_left hlog0 (by positivity) ?_
+    exact mul_le_mul_of_nonneg_left hsq (sq_nonneg (p:ℝ))
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.sum_div]
+  have htail := (prime_masses_le P X hX (fun p hp => (hP p hp).1)
+    (fun p hp => (hP p hp).1.two_le) hPX).2
+  exact div_le_div_of_nonneg_right htail (by positivity)
+
 end MoltResearch
