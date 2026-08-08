@@ -7049,4 +7049,84 @@ theorem ghs_smoothed_triple_le_real (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     Complex.norm_real, Real.norm_eq_abs] at h86
   exact h86
 
+open Real Finset in
+/-- **The scale swap at §3's own quotient** (Track R, N111): for
+`1 ≤ ⌊x/pq⌋`,
+
+  `|∑_{n∈S} (f(n)/n)·(⌊x/pq⌋·V(log⌊x/pq⌋ − log n) − (x/pq)·V(log(x/pq) − log n))|`
+  `  ≤ 2ρ·⌊x/pq⌋ + 2`.
+
+`scale_diff_le` with the two scales it is actually used at, so the
+floor relations are discharged once here rather than at every call.
+
+Three hypotheses of the general form become facts about `ℕ`-division:
+`⌊x/pq⌋ ≤ x/pq` is `Nat.cast_div_le`, `x/pq < ⌊x/pq⌋ + 1` is
+`Nat.lt_div_add_one_mul_self`, and the plateau reach
+`log(x/pq) ≤ 2 log x + 1` follows from `x/pq ≤ x`.
+
+The resulting `2ρ⌊x/pq⌋ + 2` is below the `2ρ⌊x/pq⌋ + 6` that
+`perron_sandwich_uniform_real` already produces, so
+`perron_error_inner_le` and `perron_error_outer_le` absorb it over `q`
+and `p` with no new machinery — the scale swap costs the same order as
+the Perron error it sits beside. -/
+theorem scale_diff_at_quotient_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (V : ℝ → ℝ) (ρ : ℝ) (hρ0 : 0 ≤ ρ) (x p q : ℕ) (hp : 0 < p) (hq : 0 < q)
+    (hM1 : 1 ≤ x/(p*q))
+    (hplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log (x:ℝ) + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0) (hVle : ∀ v, V v ≤ Real.exp (-v))
+    (hVnn : ∀ v, 0 ≤ V v)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n) :
+    |∑ n ∈ S, (f n/(n:ℝ))
+        * ((((x/(p*q) : ℕ)):ℝ)
+            * V (Real.log ((((x/(p*q) : ℕ)):ℝ)) - Real.log (n:ℝ))
+          - ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+            * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))|
+      ≤ 2*ρ*((((x/(p*q) : ℕ)):ℝ)) + 2 := by
+  classical
+  have hpq0 : 0 < p*q := Nat.mul_pos hp hq
+  have hpqR : (0:ℝ) < (p:ℝ)*(q:ℝ) := by
+    have h1 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+    have h2 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+    positivity
+  have hx1 : 1 ≤ x := by
+    have := Nat.div_le_self x (p*q)
+    omega
+  have hxR : (1:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx1
+  -- the floor sits below the quotient
+  have hMQ : (((x/(p*q) : ℕ)):ℝ) ≤ (x:ℝ)/((p:ℝ)*(q:ℝ)) := by
+    have h := Nat.cast_div_le (α := ℝ) (m := x) (n := p*q)
+    push_cast at h
+    exact h
+  -- and the quotient below the next integer
+  have hQM : (x:ℝ)/((p:ℝ)*(q:ℝ)) < (((x/(p*q) : ℕ)):ℝ) + 1 := by
+    have hlt : x < (x/(p*q) + 1) * (p*q) := by
+      have hdm := Nat.div_add_mod x (p*q)
+      have hmod : x % (p*q) < p*q := Nat.mod_lt _ hpq0
+      have hexp : (x/(p*q) + 1) * (p*q) = (p*q) * (x/(p*q)) + (p*q) := by ring
+      omega
+    have hltR : (x:ℝ) < ((((x/(p*q) : ℕ)):ℝ) + 1) * ((p:ℝ)*(q:ℝ)) := by
+      have : ((x:ℕ):ℝ) < (((x/(p*q) + 1) * (p*q) : ℕ):ℝ) := by exact_mod_cast hlt
+      push_cast at this
+      linarith
+    rw [div_lt_iff₀ hpqR]
+    exact hltR
+  -- the plateau reaches the quotient
+  have hB : Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) ≤ 2*Real.log (x:ℝ) + 1 := by
+    have hle : (x:ℝ)/((p:ℝ)*(q:ℝ)) ≤ (x:ℝ) := by
+      rw [div_le_iff₀ hpqR]
+      have h1 : (1:ℝ) ≤ (p:ℝ) := by exact_mod_cast hp
+      have h2 : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+      have hpq1 : (1:ℝ) ≤ (p:ℝ)*(q:ℝ) := by nlinarith
+      nlinarith [hxR, hpq1]
+    have hpos : (0:ℝ) < (x:ℝ)/((p:ℝ)*(q:ℝ)) := by
+      have hM0 : (0:ℝ) < (((x/(p*q) : ℕ)):ℝ) := by
+        have : (1:ℝ) ≤ (((x/(p*q) : ℕ)):ℝ) := by exact_mod_cast hM1
+        linarith
+      linarith
+    have hmono := Real.log_le_log hpos hle
+    have hlogx : (0:ℝ) ≤ Real.log (x:ℝ) := Real.log_nonneg hxR
+    linarith
+  exact ExpSums.scale_diff_le f hf V ρ (2*Real.log (x:ℝ) + 1) hρ0
+    (x/(p*q)) ((x:ℝ)/((p:ℝ)*(q:ℝ))) hM1 hMQ hQM hplat hV0 hVle hVnn hB S hS1
+
 end MoltResearch
