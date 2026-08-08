@@ -6848,4 +6848,31 @@ theorem log_scale_sub_eq (x n p q : ℕ) (hx : 0 < x) (hn : 0 < n)
     Real.log_mul (ne_of_gt hnR) (ne_of_gt hpR)]
   ring
 
+open Finset in
+/-- **Flattening §4's index set** (Track R, N106): for any `g`,
+
+  `∑_{r ∈ (S ×ˢ P) ×ˢ Q} g(r.1.1, r.1.2, r.2) = ∑_{n∈S} ∑_{p∈P} ∑_{q∈Q} g(n,p,q)`.
+
+`Finset.sum_product` twice.  `ghs_triple_product` and
+`ghs_smoothed_triple_le` index the triple convolution by
+`(S ×ˢ P) ×ˢ Q` — a single `Finset` of nested pairs, which is what the
+Plancherel pairing needs, since it takes one index set.  §3 instead
+writes three nested sums, `p` outermost.
+
+This is the structural half of the reindex between them.  What is left
+after it is a transposition (§3's order is `p, q, n`; this produces
+`n, p, q`) and the termwise rewriting supplied by
+`ghs_summand_regroup` and `log_scale_sub_eq`.
+
+Kept separate and fully general in `g` because the flattening is
+purely combinatorial — it holds for any summand, with no positivity or
+primality — whereas the two rewrites need `x, n, p, q > 0`.  Mixing
+them would attach those hypotheses to a step that does not use
+them. -/
+theorem sum_triple_product_eq {M : Type*} [AddCommMonoid M]
+    (g : ℕ → ℕ → ℕ → M) (S P Q : Finset ℕ) :
+    (∑ r ∈ (S ×ˢ P) ×ˢ Q, g r.1.1 r.1.2 r.2)
+      = ∑ n ∈ S, ∑ p ∈ P, ∑ q ∈ Q, g n p q := by
+  rw [Finset.sum_product, Finset.sum_product]
+
 end MoltResearch
