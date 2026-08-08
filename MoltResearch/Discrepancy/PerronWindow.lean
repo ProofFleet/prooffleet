@@ -2095,6 +2095,55 @@ theorem weighted_window_eq_of_plateau (g : ℕ → ℝ) (V : ℝ → ℝ) (ρ B 
   have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn
   rw [scale_mul_window_eq V ρ B M (n:ℝ) hM hn0 hplat hlo hhi]
   field_simp
+
+/-- **Counting the integers above a real threshold** (Track R, N96):
+for `0 ≤ c ≤ N`,
+
+  `#{n ∈ [1, N] : c < n} ≤ N − c + 1`.
+
+The off-plateau count of the edge analysis.  `V(v) = exp(−v)` fails
+only for `v < ρ`, i.e. for `n > M·e^{−ρ}`, so the terms where the two
+scales `⌊x/pq⌋` and `x/pq` disagree are exactly those counted here at
+`c = M·e^{−ρ}` — and `1 − e^{−ρ} ≤ ρ` then turns the count into
+`≤ ρ·M + 1`, matching the `2ρM + 6` shape the sandwich already
+produces, so `perron_error_inner_le` and `perron_error_outer_le` sum it
+unchanged.
+
+`c ≤ N` is not cosmetic: without it the right side goes negative while
+the count is `0`.  In the application `c = M·e^{−ρ} ≤ M ≤ x = N`. -/
+theorem card_gt_le (N : ℕ) (c : ℝ) (hc0 : 0 ≤ c) (hcN : c ≤ (N:ℝ)) :
+    (((Finset.Icc 1 N).filter (fun n : ℕ => c < (n:ℝ))).card : ℝ)
+      ≤ (N:ℝ) - c + 1 := by
+  classical
+  -- every counted `n` exceeds `⌊c⌋₊`
+  have hsub : (Finset.Icc 1 N).filter (fun n : ℕ => c < (n:ℝ))
+      ⊆ Finset.Icc (⌊c⌋₊ + 1) N := by
+    intro n hn
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hn
+    rw [Finset.mem_Icc]
+    refine ⟨?_, hn.1.2⟩
+    have h1 : (⌊c⌋₊:ℝ) ≤ c := Nat.floor_le hc0
+    have h2 : (⌊c⌋₊:ℝ) < (n:ℝ) := lt_of_le_of_lt h1 hn.2
+    have h3 : ⌊c⌋₊ < n := by exact_mod_cast h2
+    omega
+  have hcard := Finset.card_le_card hsub
+  rw [Nat.card_Icc] at hcard
+  -- the floor sits below `N`
+  have hflN : ⌊c⌋₊ ≤ N := by
+    have := Nat.floor_le_floor hcN
+    simpa using this
+  have hcast : (((Finset.Icc 1 N).filter (fun n : ℕ => c < (n:ℝ))).card : ℝ)
+      ≤ ((N:ℝ) - (⌊c⌋₊:ℝ)) := by
+    have h : ((Finset.Icc 1 N).filter (fun n : ℕ => c < (n:ℝ))).card
+        ≤ N - ⌊c⌋₊ := by omega
+    have hc : ((N - ⌊c⌋₊ : ℕ):ℝ) = (N:ℝ) - (⌊c⌋₊:ℝ) := by
+      rw [Nat.cast_sub hflN]
+    calc (((Finset.Icc 1 N).filter (fun n : ℕ => c < (n:ℝ))).card : ℝ)
+        ≤ ((N - ⌊c⌋₊ : ℕ):ℝ) := by exact_mod_cast h
+      _ = (N:ℝ) - (⌊c⌋₊:ℝ) := hc
+  -- and above `c − 1`
+  have hfl : c < (⌊c⌋₊:ℝ) + 1 := Nat.lt_floor_add_one c
+  linarith [hcast, hfl]
 end ExpSums
 
 end MoltResearch
