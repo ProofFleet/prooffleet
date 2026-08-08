@@ -6989,4 +6989,64 @@ theorem ghs_triple_sum_ofReal (f : ℕ → ℝ) (V : ℝ → ℝ) (x : ℕ)
   push_cast
   ring
 
+open MeasureTheory Real Complex Finset in
+open scoped FourierTransform ContDiff in
+/-- **§4's bound, real-valued** (Track R, N110): for real `1`-bounded
+`f`,
+
+  `|∑_{r ∈ (S ×ˢ P) ×ˢ Q} (c·a·b)·V(log x − log(npq))|`
+  `  ≤ √(E₁·(30·(2M_V + M₂/2π²)·V₃·b² + Mtail))`.
+
+`ghs_smoothed_triple_le` at the coerced coefficients, read back through
+`ghs_triple_sum_ofReal`.
+
+This is the half of §3's assembly that carries no error terms: §4's
+estimate applies to the reindexed sum verbatim once the coefficients
+are real.  The other half — collecting the Perron error, the scale
+swap and the range discard — shares no machinery with it and is
+separate.
+
+`‖(r : ℂ)‖ = |r|` is what makes the two bounds the same statement; the
+`ℂ` norm on the left of `ghs_smoothed_triple_le` and the `ℝ` absolute
+value here are not interchangeable by notation, only by that
+lemma. -/
+theorem ghs_smoothed_triple_le_real (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ)
+    (hS : ∀ n ∈ S, 0 < n) (hP : ∀ p ∈ P, 0 < p) (hQ : ∀ q ∈ Q, 0 < q)
+    (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V) (hVc : HasCompactSupport V)
+    (M₂ M₃ MV : ℝ)
+    (hM₂ : ∫ v, |iteratedDeriv 2 V v| ≤ M₂)
+    (hM₃ : ∫ v, |iteratedDeriv 3 V v| ≤ M₃)
+    (hMV : ∀ ξ, ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ ≤ MV)
+    (V₃ Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
+        * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) S t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+        ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ)) Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2
+        * (M₃/(8*Real.pi^3*(((halaszM x : ℕ):ℝ) + 1/2)^2)) ≤ Mtail) :
+    |∑ r ∈ (S ×ˢ P) ×ˢ Q,
+        ((f r.1.1/(r.1.1:ℝ))
+          * (Real.log (r.1.2:ℝ) * f r.1.2
+              / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+          * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+        * V (Real.log (x:ℝ) - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ))|
+      ≤ Real.sqrt (E₁ * (5 * (2*MV + M₂/(2*Real.pi^2)) * V₃ * (6*b^2)
+          + Mtail)) := by
+  classical
+  have hfc : ∀ n, ‖((f n : ℝ) : ℂ)‖ ≤ 1 := by
+    intro n
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact hf n
+  have h86 := ghs_smoothed_triple_le (fun n => ((f n : ℝ) : ℂ)) hfc
+    x S P Q hS hP hQ V hVs hVc M₂ M₃ MV hM₂ hM₃ hMV V₃ Mtail E₁ b
+    hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail (Real.log (x:ℝ))
+  rw [ghs_triple_sum_ofReal f V x S P Q (Real.log (x:ℝ)),
+    Complex.norm_real, Real.norm_eq_abs] at h86
+  exact h86
+
 end MoltResearch
