@@ -7336,4 +7336,68 @@ theorem enlargement_error_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     sum_log_primesBelow_le x
   linarith [hmono, hcheb]
 
+open Real Finset in
+/-- **Extending the inner range** (Track R, N115): when every
+`(x/p).primesBelow` sits inside a fixed `Q`,
+
+  `|∑_p A(p)·∑_{q∈Q} T(p,q) − ∑_p A(p)·∑_{q<x/p} T(p,q)| ≤ 2·x·log 4`.
+
+`enlargement_error_le` in the form the assembly consumes: a *difference*
+between §3's `p`-dependent inner range and §4's fixed one, rather than a
+bound on the added terms.
+
+The two are the same statement only because `Finset.sum_sdiff` makes the
+added terms exactly `Q \ (x/p).primesBelow`; that identity needs the
+inclusion, which is why it appears here and not in
+`enlargement_error_le`.  Taking `Q := x.primesBelow` discharges it, since
+`⌊x/p⌋ ≤ x`.
+
+This is the third and last of the three differences the error half
+chains through — after the Perron substitution and the scale swap — and
+the only one whose statement had to be reshaped to fit. -/
+theorem enlargement_extend_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (x : ℕ) (P : Finset ℕ) (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime)
+    (hQsub : ∀ p ∈ P, (x/p).primesBelow ⊆ Q) :
+    |(∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ Q, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ S, (f n/(n:ℝ))
+                  * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))))
+      - (∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ S, (f n/(n:ℝ))
+                  * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))))|
+      ≤ 2 * (x:ℝ) * Real.log 4 := by
+  classical
+  -- the two `p`-sums differ termwise by the added inner range
+  have hsplit : (∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ Q, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ S, (f n/(n:ℝ))
+                  * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))))
+      - (∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ S, (f n/(n:ℝ))
+                  * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))))
+      = ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+          * ∑ q ∈ Q \ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                * ∑ n ∈ S, (f n/(n:ℝ))
+                    * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ))) := by
+    rw [← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun p hp => ?_
+    rw [← mul_sub]
+    congr 1
+    rw [sub_eq_iff_eq_add]
+    exact (Finset.sum_sdiff (hQsub p hp)).symm
+  rw [hsplit]
+  exact enlargement_error_le f hf V hV0 hVle hVnn x P hPp h2p S hS1 Q hQp
+
 end MoltResearch
