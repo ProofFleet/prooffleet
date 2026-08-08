@@ -7400,4 +7400,126 @@ theorem enlargement_extend_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   rw [hsplit]
   exact enlargement_error_le f hf V hV0 hVle hVnn x P hPp h2p S hS1 Q hQp
 
+open Real Finset in
+/-- **`tripleConv` is `x` times §4's sum, up to the three errors**
+(Track R, N116):
+
+  `|tripleConv f x P − x·∑_{r ∈ (Finset.Icc 1 x ×ˢ P) ×ˢ Q} (c·a·b)·V(log x − log(npq))|`
+  `  ≤ 2·(2ρx·Mass₁ + 4ρx·Mass₂ + 6x·log 4·Mass₂) + 2x·log 4`.
+
+The error half of §3's assembly.  Three differences chain by the
+triangle inequality, and the fourth step is an equality:
+
+* `tripleConv` → the smoothed form at the integer scale — the Perron
+  substitution, `tripleConv_sub_smoothed_le`;
+* → the same at the real scale `x/pq` — the scale swap,
+  `scale_swap_error_le`;
+* → the same over the fixed inner range `Q` — the enlargement,
+  `enlargement_extend_le`;
+* → `x` times §4's product-indexed sum — `ghs_reindex`, **exact**.
+
+The order is forced: the substitution lands on `(x/p).primesBelow` at
+the integer scale, the swap changes the scale on that same range, and
+only then can the range be widened.  Each intermediate form is the
+next step's left-hand side, which is why the three error lemmas were
+shaped as differences rather than as bounds on their own terms. -/
+theorem tripleConv_sub_ghs_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (V : ℝ → ℝ) (ρ : ℝ) (hρ0 : 0 < ρ) (hρ1 : ρ ≤ 1)
+    (x : ℕ) (hx : 0 < x) (P : Finset ℕ)
+    (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (hplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log (x:ℝ) + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) (hQ : ∀ q ∈ Q, 0 < q)
+    (hQsub : ∀ p ∈ P, (x/p).primesBelow ⊆ Q)
+    (Mass₁ Mass₂ : ℝ)
+    (h1 : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ) ≤ Mass₁)
+    (h2 : ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+      ≤ Mass₂) :
+    |tripleConv f x P
+        - (x:ℝ) * ∑ r ∈ (Finset.Icc 1 x ×ˢ P) ×ˢ Q,
+            ((f r.1.1/(r.1.1:ℝ))
+              * (Real.log (r.1.2:ℝ) * f r.1.2
+                  / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+              * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+            * V (Real.log (x:ℝ)
+              - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ))|
+      ≤ 2*(2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂ + 6*(x:ℝ)*Real.log 4*Mass₂)
+        + 2*(x:ℝ)*Real.log 4 := by
+  classical
+  -- the three intermediate forms
+  set B : ℝ := ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+      * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * ((((x/(p*q) : ℕ)):ℝ)
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                * V (Real.log ((((x/(p*q) : ℕ)):ℝ)) - Real.log (n:ℝ)))
+    with hB_def
+  set C : ℝ := ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+      * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))
+    with hC_def
+  set D : ℝ := ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+      * ∑ q ∈ Q, (Real.log (q:ℝ) * f q)
+          * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))
+    with hD_def
+  -- the last step is the reindex, exactly
+  have hDeq : D = (x:ℝ) * ∑ r ∈ (Finset.Icc 1 x ×ˢ P) ×ˢ Q,
+      ((f r.1.1/(r.1.1:ℝ))
+        * (Real.log (r.1.2:ℝ) * f r.1.2
+            / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+        * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+      * V (Real.log (x:ℝ) - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ)) := by
+    rw [hD_def]
+    exact ghs_reindex f V x hx (Finset.Icc 1 x) P Q
+      (fun n hn => (Finset.mem_Icc.mp hn).1) (fun p hp => (hPp p hp).pos) hQ
+  rw [← hDeq]
+  -- chain the three differences
+  have hAB : |tripleConv f x P - B|
+      ≤ 2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂ + 6*(x:ℝ)*Real.log 4*Mass₂ := by
+    rw [hB_def]
+    exact tripleConv_sub_smoothed_le f hf x P ρ hρ0 hρ1 hPp h2p V hplat hV0
+      hVle hVnn Mass₁ Mass₂ h1 h2
+  have hBC : |B - C|
+      ≤ 2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂ + 6*(x:ℝ)*Real.log 4*Mass₂ := by
+    have hswap := scale_swap_error_le f hf V ρ hρ0 x P hPp h2p hplat hV0
+      hVle hVnn (Finset.Icc 1 x) (fun n hn => (Finset.mem_Icc.mp hn).1)
+      Mass₁ Mass₂ h1 h2
+    have heq : B - C = ∑ p ∈ P,
+        (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+          * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                  * ((((x/(p*q) : ℕ)):ℝ)
+                      * V (Real.log ((((x/(p*q) : ℕ)):ℝ)) - Real.log (n:ℝ))
+                    - ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                        - Real.log (n:ℝ))) := by
+      rw [hB_def, hC_def, ← Finset.sum_sub_distrib]
+      refine Finset.sum_congr rfl fun p _ => ?_
+      rw [← mul_sub, ← Finset.sum_sub_distrib]
+      congr 1
+      refine Finset.sum_congr rfl fun q _ => ?_
+      rw [← mul_sub]
+      congr 1
+      rw [Finset.mul_sum, Finset.mul_sum, ← Finset.sum_sub_distrib]
+      refine Finset.sum_congr rfl fun n _ => ?_
+      ring
+    rw [heq]
+    exact hswap
+  have hCD : |C - D| ≤ 2*(x:ℝ)*Real.log 4 := by
+    have hext := enlargement_extend_le f hf V hV0 hVle hVnn x P hPp h2p
+      (Finset.Icc 1 x) (fun n hn => (Finset.mem_Icc.mp hn).1) Q hQp hQsub
+    rw [hC_def, hD_def, ← abs_neg]
+    simpa [neg_sub] using hext
+  calc |tripleConv f x P - D|
+      ≤ |tripleConv f x P - B| + |B - D| := abs_sub_le _ _ _
+    _ ≤ |tripleConv f x P - B| + (|B - C| + |C - D|) := by
+        have := abs_sub_le B C D
+        linarith
+    _ ≤ 2*(2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂ + 6*(x:ℝ)*Real.log 4*Mass₂)
+        + 2*(x:ℝ)*Real.log 4 := by linarith [hAB, hBC, hCD]
+
 end MoltResearch
