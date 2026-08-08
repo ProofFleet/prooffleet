@@ -7614,4 +7614,66 @@ theorem tripleConv_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     exact mul_le_mul_of_nonneg_left hmain hxR
   linarith [hsplit, herr, hxG]
 
+open Real Finset in
+/-- **The discarded blocks cost `e^{−K}·x·log x`** (Track R, N118):
+for any family of block-supported prime sets,
+
+  `∑_{k = K+1}^{M} |tripleConv f x (P k)|`
+  `  ≤ x·(16(e−1)·e^{−K}·log x + (M−K)·(16 log 2 + 16 log 4))`.
+
+The half of §3's `k`-split that needs no analysis.  Each block is
+bounded trivially by `tripleConv_block_le'`, whose leading term
+`16(e−1)e^{−k}·x·log x` is geometric in `k`; `sum_exp_neg_tail_le`
+collapses the tail to `e^{−K}`.
+
+So all blocks past `K` together contribute `≍ e^{−K}·x·log x`, and at
+`K = log(100 log x/L)` that is `x·L/100` — the shape `(3.2)` allows.
+The remaining `O(1)` per block is what forces `K` to be counted: the
+additive `16 log 2 + 16 log 4` does not decay, so the split has to be
+made at a `K` that is `O(log(log x/L))`, not merely large.
+
+Stated with the block count `M − K` explicit rather than absorbed, so
+that the caller can see exactly what the non-decaying part costs. -/
+theorem tripleConv_tail_blocks_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) (hx : 2 ≤ x) (K M : ℕ) (Pk : ℕ → Finset ℕ)
+    (hk1 : ∀ k ∈ Finset.Icc (K+1) M, 1 ≤ k)
+    (hfit : ∀ k ∈ Finset.Icc (K+1) M, 2 * blockHi x k ≤ x)
+    (hP : ∀ k ∈ Finset.Icc (K+1) M, ∀ p ∈ Pk k,
+      p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k) :
+    ∑ k ∈ Finset.Icc (K+1) M, |tripleConv f x (Pk k)|
+      ≤ (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.exp (-(K:ℝ)) * Real.log (x:ℝ))
+        + ((Finset.Icc (K+1) M).card : ℝ)
+            * ((x:ℝ) * (16 * Real.log 2 + 16 * Real.log 4)) := by
+  classical
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  -- termwise: the trivial block bound
+  have hterm : ∀ k ∈ Finset.Icc (K+1) M, |tripleConv f x (Pk k)|
+      ≤ (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.log (x:ℝ))
+          * Real.exp (-(k:ℝ))
+        + (x:ℝ) * (16 * Real.log 2 + 16 * Real.log 4) := by
+    intro k hk
+    refine le_trans (tripleConv_block_le' f hf x k hx (hk1 k hk) (hfit k hk)
+      (Pk k) (hP k hk)) ?_
+    have hexp : (0:ℝ) ≤ Real.exp (-(k:ℝ)) := (Real.exp_pos _).le
+    nlinarith [hx0, hexp]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum]
+  -- the geometric tail
+  have hgeo := sum_exp_neg_tail_le K M
+  have hcoef : (0:ℝ) ≤ (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.log (x:ℝ)) := by
+    have h1 : (0:ℝ) ≤ Real.log (x:ℝ) :=
+      Real.log_nonneg (by exact_mod_cast (by omega : 1 ≤ x))
+    have h2 : (0:ℝ) ≤ Real.exp 1 - 1 := by
+      have := Real.add_one_le_exp (1:ℝ)
+      linarith
+    positivity
+  have hmain : (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.log (x:ℝ))
+      * (∑ k ∈ Finset.Icc (K+1) M, Real.exp (-(k:ℝ)))
+      ≤ (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.exp (-(K:ℝ))
+          * Real.log (x:ℝ)) := by
+    refine le_trans (mul_le_mul_of_nonneg_left hgeo hcoef) (le_of_eq ?_)
+    ring
+  simp only [Finset.sum_const, nsmul_eq_mul]
+  linarith [hmain]
+
 end MoltResearch
