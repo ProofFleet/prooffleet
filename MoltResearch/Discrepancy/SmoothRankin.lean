@@ -6816,4 +6816,36 @@ theorem enlargement_discard_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     exact_mod_cast hcard
   nlinarith [hc, hlogm]
 
+open Real Finset in
+/-- **The two window arguments agree** (Track R, N105): for
+`x, n, p, q > 0`,
+
+  `log(x/pq) − log n = log x − log(npq)`.
+
+§3 and §4 write the window's argument differently.  After the scale
+swap, §3's smoothed sum carries `V(log(x/pq) − log n)` — the Perron
+scale minus the summation variable — while `ghs_smoothed_triple_le`
+carries `V(y − log(npq))` at `y = log x`, the abscissa minus the whole
+product.  They are the same real number, but not the same *term*, so
+the reindex cannot proceed without this.
+
+Positivity of all four is needed and is not a formality: at `x = 0` the
+two sides are `−log n` and `−log(npq)`, which differ.  Lean's
+`log 0 = 0` makes the statement silently false rather than
+undefined. -/
+theorem log_scale_sub_eq (x n p q : ℕ) (hx : 0 < x) (hn : 0 < n)
+    (hp : 0 < p) (hq : 0 < q) :
+    Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)
+      = Real.log (x:ℝ) - Real.log (((n*p*q : ℕ)):ℝ) := by
+  have hxR : (0:ℝ) < (x:ℝ) := by exact_mod_cast hx
+  have hnR : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn
+  have hpR : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+  have hqR : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+  have hpq : ((p:ℝ)*(q:ℝ)) ≠ 0 := by positivity
+  rw [Real.log_div (ne_of_gt hxR) hpq, Real.log_mul (ne_of_gt hpR) (ne_of_gt hqR)]
+  push_cast
+  rw [Real.log_mul (by positivity) (ne_of_gt hqR),
+    Real.log_mul (ne_of_gt hnR) (ne_of_gt hpR)]
+  ring
+
 end MoltResearch
