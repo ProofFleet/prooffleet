@@ -2312,6 +2312,36 @@ theorem scale_diff_le (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1) (V : ℝ → �
   refine le_trans (Finset.sum_le_sum hterm) ?_
   simp only [Finset.sum_const, nsmul_eq_mul]
   nlinarith [hcount]
+
+/-- **Below scale `1` the window vanishes** (Track R, N100): for
+`0 ≤ Q ≤ 1` and any `n`,
+
+  `V(log Q − log n) = 0`.
+
+Immediate — `log Q ≤ 0 ≤ log n` — but it is what makes §3's
+`p`-dependent inner range compatible with §4's fixed one.
+
+`tripleConv` sums `q` over `(x/p).primesBelow`, which moves with `p`,
+whereas `ghs_smoothed_triple_le` uses a single index set.  Enlarging the
+inner range to a fixed superset adds terms at `q ≥ ⌊x/p⌋`, and this
+kills every one of them with `pq > x`: there the real scale `x/pq` is
+below `1`, so the whole smoothed sum is zero.
+
+**What it does not kill** is `q = ⌊x/p⌋` itself, where `pq ≤ x` still
+holds — at most one prime per `p`.  That term survives at size
+`≤ 2·|log q·f(q)|`, and against the outer weight
+`|log p·f(p)/log(x/p)|` it contributes `≤ 2 log p` per `p`, hence
+`O(x)` overall by Chebyshev's θ-bound — within what (3.2) allows, but
+not free.  The enlargement is therefore a real (if cheap) discard, not
+a relabelling. -/
+theorem window_vanishes_of_scale_le_one (V : ℝ → ℝ)
+    (hV0 : ∀ v, v ≤ 0 → V v = 0) (Q : ℝ) (hQ0 : 0 ≤ Q) (hQ1 : Q ≤ 1)
+    (n : ℕ) :
+    V (Real.log Q - Real.log (n:ℝ)) = 0 := by
+  refine hV0 _ ?_
+  have hlogQ : Real.log Q ≤ 0 := Real.log_nonpos hQ0 hQ1
+  have hlogn : (0:ℝ) ≤ Real.log (n:ℝ) := Real.log_natCast_nonneg n
+  linarith
 end ExpSums
 
 end MoltResearch
