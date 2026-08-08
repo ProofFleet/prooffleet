@@ -6875,4 +6875,34 @@ theorem sum_triple_product_eq {M : Type*} [AddCommMonoid M]
       = ∑ n ∈ S, ∑ p ∈ P, ∑ q ∈ Q, g n p q := by
   rw [Finset.sum_product, Finset.sum_product]
 
+open Finset in
+/-- **§4's index set, in §3's order** (Track R, N107): for any `g`,
+
+  `∑_{r ∈ (S ×ˢ P) ×ˢ Q} g(r.1.1, r.1.2, r.2) = ∑_{p∈P} ∑_{q∈Q} ∑_{n∈S} g(n,p,q)`.
+
+`sum_triple_product_eq` followed by two transpositions.
+
+The two sections disagree on more than bracketing.  §4 indexes the
+triple convolution by `(S ×ˢ P) ×ˢ Q` with `n` innermost in the pair
+structure, because the Plancherel pairing takes one index set and the
+polynomial `P₁` (the `n`-sum) is its first factor.  §3 sums `p`
+outermost — the block variable — then `q < x/p`, then `n ≤ x/pq`,
+because that is the order the two applications of the log-identity
+produce.
+
+Flattening alone lands on `n, p, q`; getting to `p, q, n` needs
+`Finset.sum_comm` twice, once at the outer level and once under the
+`p`-binder.
+
+Still general in `g` and hypothesis-free, for the same reason as the
+flattening: reordering is combinatorial, and attaching the positivity
+that the termwise rewrites need would misplace it. -/
+theorem sum_triple_transpose {M : Type*} [AddCommMonoid M]
+    (g : ℕ → ℕ → ℕ → M) (S P Q : Finset ℕ) :
+    (∑ r ∈ (S ×ˢ P) ×ˢ Q, g r.1.1 r.1.2 r.2)
+      = ∑ p ∈ P, ∑ q ∈ Q, ∑ n ∈ S, g n p q := by
+  rw [sum_triple_product_eq, Finset.sum_comm]
+  refine Finset.sum_congr rfl fun p _ => ?_
+  rw [Finset.sum_comm]
+
 end MoltResearch
