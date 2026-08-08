@@ -7129,4 +7129,88 @@ theorem scale_diff_at_quotient_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   exact ExpSums.scale_diff_le f hf V ρ (2*Real.log (x:ℝ) + 1) hρ0
     (x/(p*q)) ((x:ℝ)/((p:ℝ)*(q:ℝ))) hM1 hMQ hQM hplat hV0 hVle hVnn hB S hS1
 
+open Real Finset in
+/-- **The scale swap, summed** (Track R, N112): with the two block
+masses supplied,
+
+  `|∑_p A(p)·∑_q B(q)·∑_n (f(n)/n)·(⌊x/pq⌋·V(log⌊x/pq⌋ − log n) − (x/pq)·V(log(x/pq) − log n))|`
+  `  ≤ 2ρ·x·Mass₁ + 4ρ·x·Mass₂ + 6·x·log 4·Mass₂`.
+
+`scale_diff_at_quotient_le` summed by `perron_error_inner_le` over `q`
+and `perron_error_outer_le` over `p` — **the same two lemmas, with the
+same bound, that already absorb the Perron error itself**.
+
+That is the economy the constants bought: the per-pair scale cost
+`2ρ⌊x/pq⌋ + 2` sits under the `2ρ⌊x/pq⌋ + 6` those lemmas are stated
+for, so trading §3's integer scale for §4's real one is free of new
+machinery and costs the same order as the substitution it accompanies.
+
+`⌊(x/p)/q⌋ = ⌊x/pq⌋` (`Nat.div_div_eq_div_mul`) is what lets the inner
+summation happen at `y = ⌊x/p⌋`, which is the range `q` actually runs
+over. -/
+theorem scale_swap_error_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (V : ℝ → ℝ) (ρ : ℝ) (hρ0 : 0 < ρ)
+    (x : ℕ) (P : Finset ℕ) (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (hplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log (x:ℝ) + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0) (hVle : ∀ v, V v ≤ Real.exp (-v))
+    (hVnn : ∀ v, 0 ≤ V v)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (Mass₁ Mass₂ : ℝ)
+    (h1 : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ) ≤ Mass₁)
+    (h2 : ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+      ≤ Mass₂) :
+    |∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * ∑ n ∈ S, (f n/(n:ℝ))
+                * ((((x/(p*q) : ℕ)):ℝ)
+                    * V (Real.log ((((x/(p*q) : ℕ)):ℝ)) - Real.log (n:ℝ))
+                  - ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                    * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))|
+      ≤ 2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂
+        + 6*(x:ℝ)*Real.log 4*Mass₂ := by
+  classical
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hstep : ∀ p ∈ P,
+      |(Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * ∑ n ∈ S, (f n/(n:ℝ))
+                * ((((x/(p*q) : ℕ)):ℝ)
+                    * V (Real.log ((((x/(p*q) : ℕ)):ℝ)) - Real.log (n:ℝ))
+                  - ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                    * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))|
+      ≤ |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+          * (2*ρ*(((x/p : ℕ)):ℝ)*(Real.log (((x/p : ℕ)):ℝ) + 2)
+             + 6*(((x/p : ℕ)):ℝ)*Real.log 4) := by
+    intro p hp
+    have hp0 : 0 < p := (hPp p hp).pos
+    rw [abs_mul]
+    refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    have hq : ∀ q ∈ (x/p).primesBelow,
+        |(Real.log (q:ℝ) * f q)
+          * ∑ n ∈ S, (f n/(n:ℝ))
+              * ((((x/(p*q) : ℕ)):ℝ)
+                  * V (Real.log ((((x/(p*q) : ℕ)):ℝ)) - Real.log (n:ℝ))
+                - ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                  * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))|
+          ≤ |Real.log (q:ℝ) * f q|
+              * (2*ρ*((((x/p : ℕ)/q : ℕ)):ℝ) + 6) := by
+      intro q hqm
+      have hq0 : 0 < q := (Nat.mem_primesBelow.mp hqm).2.pos
+      have hM1 : 1 ≤ x/(p*q) := by
+        have hqlt : q < x/p := (Nat.mem_primesBelow.mp hqm).1
+        rw [← Nat.div_div_eq_div_mul]
+        exact (Nat.one_le_div_iff hq0).mpr hqlt.le
+      rw [abs_mul]
+      refine mul_le_mul_of_nonneg_left ?_ (abs_nonneg _)
+      have hdd : ((x/p : ℕ)/q : ℕ) = x/(p*q) := Nat.div_div_eq_div_mul x p q
+      rw [hdd]
+      refine le_trans (scale_diff_at_quotient_le f hf V ρ hρ0.le x p q hp0 hq0
+        hM1 hplat hV0 hVle hVnn S hS1) ?_
+      linarith
+    refine le_trans (Finset.sum_le_sum hq) ?_
+    exact perron_error_inner_le f hf (x/p) ρ hρ0.le
+  refine le_trans (Finset.sum_le_sum hstep) ?_
+  exact perron_error_outer_le f hf x P ρ hρ0.le hPp h2p Mass₁ Mass₂ h1 h2
+
 end MoltResearch
