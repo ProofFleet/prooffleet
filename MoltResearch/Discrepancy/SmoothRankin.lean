@@ -6639,4 +6639,48 @@ theorem ghs_summand_regroup (f : ℕ → ℝ) (x p q n : ℕ) :
           * (Real.log (q:ℝ) * f q / (q:ℝ))) := by
   ring
 
+open Real Finset in
+/-- **The survivor's scale is bounded** (Track R, N102): for `2p ≤ x`,
+
+  `x / (p·⌊x/p⌋) ≤ 2`.
+
+The one arithmetic fact the range-enlargement discard needs.  When the
+inner `q`-range is widened to a fixed set, every added prime with
+`pq > x` dies (`smoothed_vanishes_of_lt_mul`); the single survivor is
+`q = ⌊x/p⌋`, and its Perron scale is `x/(p·⌊x/p⌋)` — which is *not*
+`1`, because the floor loses up to `p`.
+
+It is at most `2`: `p·⌊x/p⌋ = x − (x mod p) ≥ x − p ≥ x/2` under
+`2p ≤ x`.  That is what makes the survivor's contribution
+`≤ 2·log⌊x/p⌋ ≤ 2·log(x/p)`, so against the outer weight
+`|log p·f(p)/log(x/p)|` the `log(x/p)` cancels and the term costs
+`≤ 2 log p` — summing to `O(x)` by Chebyshev's θ-bound, which `(3.2)`
+allows.
+
+Without the cancellation the discard would carry a `log x` and not
+close, so the factor `2` here is doing real work. -/
+theorem x_div_mul_floor_le_two (x p : ℕ) (hp : 0 < p) (h2p : 2*p ≤ x) :
+    (x:ℝ)/((p:ℝ) * (((x/p : ℕ)):ℝ)) ≤ 2 := by
+  have hx0 : (0:ℝ) < (x:ℝ) := by
+    have : 0 < x := by omega
+    exact_mod_cast this
+  have hpR : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+  have h2pR : 2*(p:ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+  -- `p·⌊x/p⌋ = x − (x mod p)`
+  have hdm : (p:ℝ) * (((x/p : ℕ)):ℝ) = (x:ℝ) - ((x % p : ℕ):ℝ) := by
+    have h := Nat.div_add_mod x p
+    have : ((p * (x/p) + x % p : ℕ):ℝ) = ((x:ℕ):ℝ) := by exact_mod_cast h
+    push_cast at this
+    linarith
+  have hmod : ((x % p : ℕ):ℝ) < (p:ℝ) := by
+    have : x % p < p := Nat.mod_lt _ hp
+    exact_mod_cast this
+  have hden : (x:ℝ)/2 ≤ (p:ℝ) * (((x/p : ℕ)):ℝ) := by
+    rw [hdm]; linarith
+  have hden0 : (0:ℝ) < (p:ℝ) * (((x/p : ℕ)):ℝ) := by
+    have : (0:ℝ) < (x:ℝ)/2 := by linarith
+    linarith
+  rw [div_le_iff₀ hden0]
+  linarith
+
 end MoltResearch
