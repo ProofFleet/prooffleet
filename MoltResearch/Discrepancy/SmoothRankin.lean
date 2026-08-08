@@ -7522,4 +7522,96 @@ theorem tripleConv_sub_ghs_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     _ ≤ 2*(2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂ + 6*(x:ℝ)*Real.log 4*Mass₂)
         + 2*(x:ℝ)*Real.log 4 := by linarith [hAB, hBC, hCD]
 
+open MeasureTheory Real Complex Finset in
+open scoped FourierTransform ContDiff in
+/-- **§3's bound on the triple convolution** (Track R, N117):
+
+  `|tripleConv f x P|`
+  `  ≤ x·√(E₁·(30·(2M_V + M₂/2π²)·V₃·b² + Mtail))`
+  `    + 2·(2ρx·Mass₁ + 4ρx·Mass₂ + 6x·log 4·Mass₂) + 2x·log 4`.
+
+The two halves meet.  `tripleConv_sub_ghs_le` bounds the distance from
+`tripleConv` to `x` times §4's sum by the three errors, and
+`ghs_smoothed_triple_le_real` bounds that sum by Halász's estimate —
+so the triangle inequality finishes it.
+
+This is GHS §3's `S_k` bound with every constant explicit and nothing
+assumed: the Perron substitution, the scale swap, the range
+enlargement and the reindex are all discharged, and the analytic input
+is exactly §4's pairing estimate.
+
+What it is *not* yet is `(3.2)`.  The leading term is `≍ x·L(x)` only
+once the window is chosen and `ρ` is fixed — the errors carry
+`ρ·x·log x`, and the `Mtail` inside the square root carries `M₃`, so
+the two must be balanced against each other.  That balance is the next
+step, and it is where the choice of `V` finally gets made. -/
+theorem tripleConv_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (V : ℝ → ℝ) (ρ : ℝ) (hρ0 : 0 < ρ) (hρ1 : ρ ≤ 1)
+    (x : ℕ) (hx : 0 < x) (P : Finset ℕ)
+    (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (hVs : ContDiff ℝ ∞ V) (hVc : HasCompactSupport V)
+    (hplat : ∀ v, ρ ≤ v → v ≤ 2*Real.log (x:ℝ) + 1 → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) (hQ : ∀ q ∈ Q, 0 < q)
+    (hQsub : ∀ p ∈ P, (x/p).primesBelow ⊆ Q)
+    (Mass₁ Mass₂ : ℝ)
+    (h1 : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ) ≤ Mass₁)
+    (h2 : ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+      ≤ Mass₂)
+    (M₂ M₃ MV : ℝ)
+    (hM₂ : ∫ v, |iteratedDeriv 2 V v| ≤ M₂)
+    (hM₃ : ∫ v, |iteratedDeriv 3 V v| ≤ M₃)
+    (hMV : ∀ ξ, ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖ ≤ MV)
+    (V₃ Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
+        * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ,
+      ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+        ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ)) Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2
+        * (M₃/(8*Real.pi^3*(((halaszM x : ℕ):ℝ) + 1/2)^2)) ≤ Mtail) :
+    |tripleConv f x P|
+      ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * (2*MV + M₂/(2*Real.pi^2)) * V₃ * (6*b^2)
+            + Mtail))
+        + (2*(2*ρ*(x:ℝ)*Mass₁ + 4*ρ*(x:ℝ)*Mass₂
+              + 6*(x:ℝ)*Real.log 4*Mass₂)
+          + 2*(x:ℝ)*Real.log 4) := by
+  classical
+  set G : ℝ := ∑ r ∈ (Finset.Icc 1 x ×ˢ P) ×ˢ Q,
+      ((f r.1.1/(r.1.1:ℝ))
+        * (Real.log (r.1.2:ℝ) * f r.1.2
+            / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+        * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+      * V (Real.log (x:ℝ) - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ))
+    with hG_def
+  have hxR : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  -- the error half
+  have herr := tripleConv_sub_ghs_le f hf V ρ hρ0 hρ1 x hx P hPp h2p hplat
+    hV0 hVle hVnn Q hQp hQ hQsub Mass₁ Mass₂ h1 h2
+  rw [← hG_def] at herr
+  -- §4's estimate on the sum itself
+  have hmain : |G| ≤ Real.sqrt (E₁ * (5 * (2*MV + M₂/(2*Real.pi^2)) * V₃
+      * (6*b^2) + Mtail)) := by
+    rw [hG_def]
+    exact ghs_smoothed_triple_le_real f hf x (Finset.Icc 1 x) P Q
+      (fun n hn => (Finset.mem_Icc.mp hn).1)
+      (fun p hp => (hPp p hp).pos) hQ V hVs hVc M₂ M₃ MV hM₂ hM₃ hMV
+      V₃ Mtail E₁ b hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail
+  -- combine
+  have hsplit : |tripleConv f x P|
+      ≤ |tripleConv f x P - (x:ℝ) * G| + |(x:ℝ) * G| := by
+    calc |tripleConv f x P|
+        = |(tripleConv f x P - (x:ℝ) * G) + (x:ℝ) * G| := by ring_nf
+      _ ≤ |tripleConv f x P - (x:ℝ) * G| + |(x:ℝ) * G| := abs_add_le _ _
+  have hxG : |(x:ℝ) * G| ≤ (x:ℝ) * Real.sqrt (E₁
+      * (5 * (2*MV + M₂/(2*Real.pi^2)) * V₃ * (6*b^2) + Mtail)) := by
+    rw [abs_mul, abs_of_nonneg hxR]
+    exact mul_le_mul_of_nonneg_left hmain hxR
+  linarith [hsplit, herr, hxG]
+
 end MoltResearch
