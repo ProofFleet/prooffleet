@@ -7271,4 +7271,69 @@ theorem discard_weight_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     _ = 2 * Real.log (p:ℝ) := by
         field_simp
 
+open Real Finset in
+/-- **The range enlargement, summed** (Track R, N114): for `P` a set of
+primes with `2p ≤ x`,
+
+  `|∑_p A(p)·∑_{q ∈ Q \ (x/p).primesBelow} B(q)·((x/pq)·Smoothed(p,q))|`
+  `  ≤ 2·x·log 4`.
+
+The last of §3's three error terms, and the only one that is `O(x)`
+outright rather than `O(ρ·x·log x)`.
+
+Three facts compose.  `enlargement_discard_le` bounds the added range
+at `2 log⌊x/p⌋` per `p`; `discard_weight_le` cancels that against the
+outer weight's `1/log(x/p)`, leaving `2 log p`; and Chebyshev's
+`θ`-bound sums `∑_p 2 log p` over primes below `x` to `2x·log 4`.
+
+`P ⊆ x.primesBelow` is what the last step needs, and it comes from
+`2p ≤ x` — the same hypothesis that makes the outer weight defined.
+So the enlargement is affordable for exactly the reason the weight is
+well-formed. -/
+theorem enlargement_error_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (x : ℕ) (P : Finset ℕ) (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) :
+    |∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ Q \ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ S, (f n/(n:ℝ))
+                  * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))|
+      ≤ 2 * (x:ℝ) * Real.log 4 := by
+  classical
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  -- per `p`: the discard, then the cancellation
+  have hstep : ∀ p ∈ P,
+      |(Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ Q \ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ S, (f n/(n:ℝ))
+                  * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))|
+      ≤ 2 * Real.log (p:ℝ) := by
+    intro p hp
+    have hpp : p.Prime := hPp p hp
+    rw [abs_mul]
+    refine le_trans (mul_le_mul_of_nonneg_left
+      (enlargement_discard_le f hf V hV0 hVle hVnn x p hpp.pos (h2p p hp)
+        S hS1 Q hQp) (abs_nonneg _)) ?_
+    exact discard_weight_le f hf x p hpp (h2p p hp)
+  refine le_trans (Finset.sum_le_sum hstep) ?_
+  -- Chebyshev over the primes below `x`
+  rw [← Finset.mul_sum]
+  have hsub : P ⊆ x.primesBelow := by
+    intro p hp
+    have hpp : p.Prime := hPp p hp
+    have h2 := h2p p hp
+    have hp2 : 2 ≤ p := hpp.two_le
+    exact Nat.mem_primesBelow.mpr ⟨by omega, hpp⟩
+  have hmono : ∑ p ∈ P, Real.log (p:ℝ)
+      ≤ ∑ p ∈ x.primesBelow, Real.log (p:ℝ) :=
+    Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => Real.log_natCast_nonneg i)
+  have hcheb : ∑ p ∈ x.primesBelow, Real.log (p:ℝ) ≤ (x:ℝ) * Real.log 4 :=
+    sum_log_primesBelow_le x
+  linarith [hmono, hcheb]
+
 end MoltResearch
