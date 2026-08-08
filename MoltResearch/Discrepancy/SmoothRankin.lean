@@ -6905,4 +6905,52 @@ theorem sum_triple_transpose {M : Type*} [AddCommMonoid M]
   refine Finset.sum_congr rfl fun p _ => ?_
   rw [Finset.sum_comm]
 
+open Real Finset in
+/-- **§3's triple sum is `x` times §4's** (Track R, N108): for
+`x, n, p, q > 0` throughout,
+
+  `∑_p A(p)·∑_q B(q)·((x/pq)·∑_n (f(n)/n)·V(log(x/pq) − log n))`
+  `  = x · ∑_{r ∈ (S ×ˢ P) ×ˢ Q} (c·a·b)·V(log x − log(npq))`.
+
+The reindex, assembled.  `sum_triple_transpose` puts §4's index set in
+§3's order, `Finset.mul_sum` distributes the outer weights inward, and
+then each term is matched by `log_scale_sub_eq` (the window argument)
+and pure field algebra (the coefficients).
+
+The coefficient step needs no lemma: with the window factor opaque and
+identical on both sides, `ring` normalises straight through
+`ghs_summand_regroup`'s identity, since that is a field identity with
+no side conditions.  Only the window argument has to be rewritten
+first, and that is where the positivity hypotheses are spent.
+
+This is the last purely structural step between `tripleConv` and §4's
+estimate; what remains is the `ℝ`-to-`ℂ` coercion and the final
+assembly. -/
+theorem ghs_reindex (f : ℕ → ℝ) (V : ℝ → ℝ) (x : ℕ) (hx : 0 < x)
+    (S P Q : Finset ℕ) (hS : ∀ n ∈ S, 0 < n) (hP : ∀ p ∈ P, 0 < p)
+    (hQ : ∀ q ∈ Q, 0 < q) :
+    (∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ Q, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ S, (f n/(n:ℝ))
+                  * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))))
+      = (x:ℝ) * ∑ r ∈ (S ×ˢ P) ×ˢ Q,
+          ((f r.1.1/(r.1.1:ℝ))
+            * (Real.log (r.1.2:ℝ) * f r.1.2
+                / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+            * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+          * V (Real.log (x:ℝ) - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ)) := by
+  classical
+  rw [sum_triple_transpose
+    (fun n p q => ((f n/(n:ℝ))
+        * (Real.log (p:ℝ) * f p / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+        * (Real.log (q:ℝ) * f q / (q:ℝ)))
+      * V (Real.log (x:ℝ) - Real.log (((n * p * q : ℕ)):ℝ))) S P Q]
+  simp only [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  refine Finset.sum_congr rfl fun q hq => ?_
+  refine Finset.sum_congr rfl fun n hn => ?_
+  rw [← log_scale_sub_eq x n p q hx (hS n hn) (hP p hp) (hQ q hq)]
+  ring
+
 end MoltResearch
