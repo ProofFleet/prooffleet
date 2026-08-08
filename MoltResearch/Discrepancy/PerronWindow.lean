@@ -2144,6 +2144,41 @@ theorem card_gt_le (N : ℕ) (c : ℝ) (hc0 : 0 ≤ c) (hcN : c ≤ (N:ℝ)) :
   -- and above `c − 1`
   have hfl : c < (⌊c⌋₊:ℝ) + 1 := Nat.lt_floor_add_one c
   linarith [hcast, hfl]
+
+/-- **A single scaled window term is at most `1`** (Track R, N97): for
+`1`-bounded `g`, `n ≥ 1` and `M > 0`,
+
+  `|(g(n)/n) · (M · V(log M − log n))| ≤ 1`,
+
+with no plateau hypothesis — only `0 ≤ V ≤ exp(−·)`.
+
+`V(log M − log n) ≤ exp(log n − log M) = n/M`, so the whole term is at
+most `(1/n)·M·(n/M) = 1`.  The scale cancels here for the same reason
+it cancels in `scale_mul_window_eq`, except that this is an inequality
+holding *everywhere* rather than an identity holding on the plateau.
+
+That is what the edge analysis needs.  Off the plateau the two scales
+`⌊x/pq⌋` and `x/pq` no longer agree, but each is still bounded by this,
+so their difference is at most `2` per term — and
+`weighted_window_eq_of_plateau` plus `card_gt_le` confine those terms
+to the `≤ ρ·M + 1` integers in `(M·e^{−ρ}, M]`. -/
+theorem weighted_window_term_le_one (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1)
+    (V : ℝ → ℝ) (M : ℝ) (hM : 0 < M) (n : ℕ) (hn : 1 ≤ n)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v) :
+    |(g n/(n:ℝ)) * (M * V (Real.log M - Real.log n))| ≤ 1 := by
+  have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn
+  have hVb : V (Real.log M - Real.log n) ≤ (n:ℝ)/M := by
+    refine le_trans (hVle _) (le_of_eq ?_)
+    rw [neg_sub, Real.exp_sub, Real.exp_log hn0, Real.exp_log hM]
+  rw [abs_mul, abs_div, abs_of_nonneg hn0.le, abs_mul, abs_of_pos hM,
+    abs_of_nonneg (hVnn _)]
+  have hstep : |g n|/(n:ℝ) * (M * V (Real.log M - Real.log n))
+      ≤ (1/(n:ℝ)) * (M * ((n:ℝ)/M)) := by
+    refine mul_le_mul (div_le_div_of_nonneg_right (hg n) hn0.le)
+      (mul_le_mul_of_nonneg_left hVb hM.le)
+      (mul_nonneg hM.le (hVnn _)) (by positivity)
+  refine le_trans hstep (le_of_eq ?_)
+  field_simp
 end ExpSums
 
 end MoltResearch
