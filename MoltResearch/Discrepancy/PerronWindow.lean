@@ -2179,6 +2179,139 @@ theorem weighted_window_term_le_one (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1)
       (mul_nonneg hM.le (hVnn _)) (by positivity)
   refine le_trans hstep (le_of_eq ?_)
   field_simp
+
+/-- **The two scales differ only on the edge** (Track R, N98): for
+`M = ⌊Q⌋`,
+
+  `|∑_{n∈S} (g(n)/n)·(M·V(log M − log n) − Q·V(log Q − log n))| ≤ 2ρ·M + 2`.
+
+This is what lets §3's integer scale `⌊x/pq⌋` be traded for §4's real
+scale `x/pq`.  Three facts combine and nothing new is proved:
+
+* **the bulk vanishes** — for `n ≤ M·e^{−ρ}` both scales sit on the
+  plateau, where `weighted_window_eq_of_plateau` makes each term
+  `g(n)`, so the difference is `0`;
+* **the far tail vanishes** — for `n > M` we have `n ≥ M+1 > Q`, so
+  `hV0` kills both terms;
+* **the edge is short** — what is left lies in `(M·e^{−ρ}, M]`, which
+  `card_gt_le` counts at `≤ ρ·M + 1` via `1 − e^{−ρ} ≤ ρ`, and each
+  term there is `≤ 2` by `weighted_window_term_le_one` applied twice.
+
+The ceiling of the band is `M`, **not** the summation range: beyond `Q`
+both scales vanish, and `M ≤ n < Q` holds for no integer since
+`Q < M+1`.  Counting over the range instead would give `O(#S)` per
+pair rather than `O(ρM)` — the difference between an error that closes
+against `(3.2)` and one that does not. -/
+theorem scale_diff_le (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1) (V : ℝ → ℝ)
+    (ρ B : ℝ) (hρ0 : 0 ≤ ρ) (M : ℕ) (Q : ℝ) (hM1 : 1 ≤ M)
+    (hMQ : (M:ℝ) ≤ Q) (hQM : Q < (M:ℝ) + 1)
+    (hplat : ∀ v, ρ ≤ v → v ≤ B → V v = Real.exp (-v))
+    (hV0 : ∀ v, v ≤ 0 → V v = 0) (hVle : ∀ v, V v ≤ Real.exp (-v))
+    (hVnn : ∀ v, 0 ≤ V v) (hB : Real.log Q ≤ B)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n) :
+    |∑ n ∈ S, (g n/(n:ℝ)) * ((M:ℝ) * V (Real.log (M:ℝ) - Real.log (n:ℝ))
+        - Q * V (Real.log Q - Real.log (n:ℝ)))|
+      ≤ 2*ρ*(M:ℝ) + 2 := by
+  classical
+  have hM0 : (0:ℝ) < (M:ℝ) := by exact_mod_cast hM1
+  have hQ0 : (0:ℝ) < Q := lt_of_lt_of_le hM0 hMQ
+  have hlogMQ : Real.log (M:ℝ) ≤ Real.log Q := Real.log_le_log hM0 hMQ
+  set c : ℝ := (M:ℝ) * Real.exp (-ρ) with hc_def
+  set E : Finset ℕ := S.filter (fun n : ℕ => c < (n:ℝ) ∧ n ≤ M) with hE_def
+  -- outside the edge band the summand vanishes
+  have hvanish : ∀ n ∈ S, n ∉ E →
+      (g n/(n:ℝ)) * ((M:ℝ) * V (Real.log (M:ℝ) - Real.log (n:ℝ))
+        - Q * V (Real.log Q - Real.log (n:ℝ))) = 0 := by
+    intro n hn hnot
+    have hn1 : 1 ≤ n := hS1 n hn
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn1
+    have hlogn : (0:ℝ) ≤ Real.log (n:ℝ) := Real.log_natCast_nonneg n
+    simp only [hE_def, Finset.mem_filter, not_and] at hnot
+    rcases le_or_gt ((n:ℝ)) c with hlo | hhi
+    · -- the bulk: both scales on the plateau, each term is `g n`
+      have hplo : ρ ≤ Real.log (M:ℝ) - Real.log (n:ℝ) := by
+        have h1 : Real.log (n:ℝ) ≤ Real.log c := Real.log_le_log hn0 hlo
+        have h2 : Real.log c = Real.log (M:ℝ) + (-ρ) := by
+          rw [hc_def, Real.log_mul (ne_of_gt hM0) (Real.exp_ne_zero _),
+            Real.log_exp]
+        linarith
+      have hphi : Real.log (M:ℝ) - Real.log (n:ℝ) ≤ B := by linarith
+      have hqlo : ρ ≤ Real.log Q - Real.log (n:ℝ) := by linarith
+      have hqhi : Real.log Q - Real.log (n:ℝ) ≤ B := by linarith
+      rw [mul_sub,
+        weighted_window_eq_of_plateau g V ρ B (M:ℝ) n hM0 hn1 hplat hplo hphi,
+        weighted_window_eq_of_plateau g V ρ B Q n hQ0 hn1 hplat hqlo hqhi,
+        sub_self]
+    · -- the far tail: `n > M ≥ Q − 1`, so both windows are at `≤ 0`
+      have hnM : M < n := by
+        by_contra hcon
+        push_neg at hcon
+        exact absurd (hnot hn hhi) (by omega)
+      have hnMR : (M:ℝ) + 1 ≤ (n:ℝ) := by exact_mod_cast hnM
+      have hQn : Q ≤ (n:ℝ) := by linarith
+      have h1 : Real.log (M:ℝ) - Real.log (n:ℝ) ≤ 0 := by
+        have := Real.log_le_log hM0 (by linarith : (M:ℝ) ≤ (n:ℝ))
+        linarith
+      have h2 : Real.log Q - Real.log (n:ℝ) ≤ 0 := by
+        have := Real.log_le_log hQ0 hQn
+        linarith
+      rw [hV0 _ h1, hV0 _ h2]
+      ring
+  have hrestrict : (∑ n ∈ S, (g n/(n:ℝ))
+        * ((M:ℝ) * V (Real.log (M:ℝ) - Real.log (n:ℝ))
+          - Q * V (Real.log Q - Real.log (n:ℝ))))
+      = ∑ n ∈ E, (g n/(n:ℝ))
+          * ((M:ℝ) * V (Real.log (M:ℝ) - Real.log (n:ℝ))
+            - Q * V (Real.log Q - Real.log (n:ℝ))) :=
+    (Finset.sum_subset (by rw [hE_def]; exact Finset.filter_subset _ _)
+      (fun n hn hnot => hvanish n hn hnot)).symm
+  -- each edge term is at most `2`
+  have hterm : ∀ n ∈ E,
+      |(g n/(n:ℝ)) * ((M:ℝ) * V (Real.log (M:ℝ) - Real.log (n:ℝ))
+        - Q * V (Real.log Q - Real.log (n:ℝ)))| ≤ 2 := by
+    intro n hn
+    simp only [hE_def, Finset.mem_filter] at hn
+    have hn1 : 1 ≤ n := hS1 n hn.1
+    have h1 := weighted_window_term_le_one g hg V (M:ℝ) hM0 n hn1 hVle hVnn
+    have h2 := weighted_window_term_le_one g hg V Q hQ0 n hn1 hVle hVnn
+    calc |(g n/(n:ℝ)) * ((M:ℝ) * V (Real.log (M:ℝ) - Real.log (n:ℝ))
+          - Q * V (Real.log Q - Real.log (n:ℝ)))|
+        = |(g n/(n:ℝ)) * ((M:ℝ) * V (Real.log (M:ℝ) - Real.log (n:ℝ)))
+            - (g n/(n:ℝ)) * (Q * V (Real.log Q - Real.log (n:ℝ)))| := by
+          rw [mul_sub]
+      _ ≤ |(g n/(n:ℝ)) * ((M:ℝ) * V (Real.log (M:ℝ) - Real.log (n:ℝ)))|
+            + |(g n/(n:ℝ)) * (Q * V (Real.log Q - Real.log (n:ℝ)))| :=
+          abs_sub _ _
+      _ ≤ 1 + 1 := add_le_add h1 h2
+      _ = 2 := by norm_num
+  -- and the band is short
+  have hsub : E ⊆ (Finset.Icc 1 M).filter (fun n : ℕ => c < (n:ℝ)) := by
+    intro n hn
+    simp only [hE_def, Finset.mem_filter] at hn
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    exact ⟨⟨hS1 n hn.1, hn.2.2⟩, hn.2.1⟩
+  have hc0 : (0:ℝ) ≤ c := by rw [hc_def]; positivity
+  have hcM : c ≤ (M:ℝ) := by
+    rw [hc_def]
+    have hexp : Real.exp (-ρ) ≤ 1 := Real.exp_le_one_iff.mpr (by linarith)
+    nlinarith [hM0]
+  have hcount : ((E.card : ℕ):ℝ) ≤ ρ*(M:ℝ) + 1 := by
+    have h1 : ((E.card : ℕ):ℝ)
+        ≤ ((((Finset.Icc 1 M).filter (fun n : ℕ => c < (n:ℝ))).card : ℕ):ℝ) := by
+      exact_mod_cast Finset.card_le_card hsub
+    have h2 := card_gt_le M c hc0 hcM
+    have h3 : (M:ℝ) - c ≤ ρ*(M:ℝ) := by
+      have hexp : 1 - ρ ≤ Real.exp (-ρ) := by
+        have := Real.add_one_le_exp (-ρ)
+        linarith
+      rw [hc_def]
+      nlinarith [hM0]
+    linarith
+  rw [hrestrict]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  simp only [Finset.sum_const, nsmul_eq_mul]
+  nlinarith [hcount]
 end ExpSums
 
 end MoltResearch
