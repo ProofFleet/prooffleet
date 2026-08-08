@@ -2342,6 +2342,43 @@ theorem window_vanishes_of_scale_le_one (V : ℝ → ℝ)
   have hlogQ : Real.log Q ≤ 0 := Real.log_nonpos hQ0 hQ1
   have hlogn : (0:ℝ) ≤ Real.log (n:ℝ) := Real.log_natCast_nonneg n
   linarith
+
+/-- **Past the inner range the smoothed sum is zero** (Track R, N101):
+if `x < p·q` then
+
+  `∑_{n∈S} (f(n)/n)·V(log(x/pq) − log n) = 0`.
+
+The vanishing half of §3's range enlargement.  `tripleConv` sums `q`
+over `(x/p).primesBelow`, a range that moves with `p`, while
+`ghs_smoothed_triple_le` wants one fixed index set.  Enlarging to a
+fixed superset adds exactly the primes `q ≥ ⌊x/p⌋`, and every one with
+`q > ⌊x/p⌋` has `p·q > x` — so the scale falls below `1` and
+`window_vanishes_of_scale_le_one` kills the sum outright, term by term.
+
+What is left over is the single prime `q = ⌊x/p⌋`, where `p·q ≤ x`
+still holds.  That one does not vanish and has to be discarded
+explicitly; at `≤ 2 log p` per `p` it costs `O(x)` by Chebyshev, which
+`(3.2)` allows.  Isolating the vanishing part here means that discard
+can be stated against a single term rather than against the whole
+added range — bounding the added range crudely would give `O(x log x)`
+and not close. -/
+theorem smoothed_vanishes_of_lt_mul (V : ℝ → ℝ)
+    (hV0 : ∀ v, v ≤ 0 → V v = 0) (f : ℕ → ℝ) (x p q : ℕ)
+    (hp : 0 < p) (hq : 0 < q) (hpq : x < p*q) (S : Finset ℕ) :
+    ∑ n ∈ S, (f n/(n:ℝ))
+        * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)) = 0 := by
+  refine Finset.sum_eq_zero fun n _ => ?_
+  have hpq0 : (0:ℝ) < (p:ℝ)*(q:ℝ) := by
+    have h1 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+    have h2 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+    positivity
+  have hle : (x:ℝ)/((p:ℝ)*(q:ℝ)) ≤ 1 := by
+    rw [div_le_one hpq0]
+    have : ((x:ℕ):ℝ) ≤ ((p*q : ℕ):ℝ) := by exact_mod_cast hpq.le
+    push_cast at this
+    linarith
+  have hnn : (0:ℝ) ≤ (x:ℝ)/((p:ℝ)*(q:ℝ)) := by positivity
+  rw [window_vanishes_of_scale_le_one V hV0 _ hnn hle n, mul_zero]
 end ExpSums
 
 end MoltResearch
