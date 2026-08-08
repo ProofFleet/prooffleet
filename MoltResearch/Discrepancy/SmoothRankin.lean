@@ -6953,4 +6953,40 @@ theorem ghs_reindex (f : ℕ → ℝ) (V : ℝ → ℝ) (x : ℕ) (hx : 0 < x)
   rw [← log_scale_sub_eq x n p q hx (hS n hn) (hP p hp) (hQ q hq)]
   ring
 
+open Real Complex Finset in
+/-- **§4's triple sum at a real coefficient sequence** (Track R, N109):
+for real `f`, the `ℂ`-valued sum `ghs_smoothed_triple_le` bounds is the
+coercion of the `ℝ`-valued one `ghs_reindex` produces.
+
+`ghs_smoothed_triple_le` is stated for `f : ℕ → ℂ`, because §4's
+polynomials are `ℂ`-valued phase sums; `tripleConv` and the whole of §3
+are real.  Every factor is the coercion of a real one, so the two sums
+agree under `Complex.ofReal` — but they are not the same *term*, and
+the assembly has to move between them.
+
+This is the third type mismatch on the path from `tripleConv` to §4's
+estimate, after the sandwich's `ℝ`/`ℂ` (`perron_sandwich_uniform_real`)
+and the scale's `ℕ`/`ℝ` (`smoothed_sum_le_one_real`).  All three were
+cheap to fix at the source and would have been expensive to meet inside
+the assembly, which is why each is its own lemma rather than an inline
+`push_cast`. -/
+theorem ghs_triple_sum_ofReal (f : ℕ → ℝ) (V : ℝ → ℝ) (x : ℕ)
+    (S P Q : Finset ℕ) (y : ℝ) :
+    (∑ r ∈ (S ×ˢ P) ×ˢ Q,
+        ((((f r.1.1 : ℝ):ℂ) / (r.1.1:ℂ))
+          * (((Real.log (r.1.2:ℝ) : ℂ) * ((f r.1.2 : ℝ):ℂ))
+              / ((r.1.2:ℂ) * ((Real.log ((x:ℝ)/(r.1.2:ℝ)) : ℝ):ℂ)))
+          * (((Real.log (r.2:ℝ) : ℂ) * ((f r.2 : ℝ):ℂ)) / (r.2:ℂ)))
+        * ((((V (y - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ)) : ℝ)):ℂ)))
+      = (((∑ r ∈ (S ×ˢ P) ×ˢ Q,
+          ((f r.1.1/(r.1.1:ℝ))
+            * (Real.log (r.1.2:ℝ) * f r.1.2
+                / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+            * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+          * V (y - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ)) : ℝ)) : ℂ) := by
+  rw [Complex.ofReal_sum]
+  refine Finset.sum_congr rfl fun r _ => ?_
+  push_cast
+  ring
+
 end MoltResearch
