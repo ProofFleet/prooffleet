@@ -6608,4 +6608,35 @@ theorem tripleConv_sub_smoothed_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   refine le_trans (Finset.sum_le_sum hstep) ?_
   exact perron_error_outer_le f hf x P ρ hρ0.le hPp h2p Mass₁ Mass₂ h1 h2
 
+open Real Finset in
+/-- **§3's summand is `x` times §4's** (Track R, N99): for every
+`(n, p, q)`,
+
+  `(log p·f(p)/log(x/p)) · (log q·f(q)) · (x/pq) · (f(n)/n)`
+  `  = x · ((f(n)/n) · (log p·f(p)/(p·log(x/p))) · (log q·f(q)/q))`.
+
+The last unchecked conversion between §3 and §4, and it is exact.
+
+`tripleConv`'s weights carry no `1/pq` — the inner sum is unnormalized —
+while §4's polynomials are Dirichlet, carrying `1/p`, `1/q`, `1/n` on
+the `1`-line.  Once the Perron substitution has produced the factor
+`x/pq` (`perron_sandwich_uniform_real` at scale `x/pq`), the two agree:
+the `x/pq` splits as `x` out front and `1/p`, `1/q` into the
+coefficients, which is precisely `ghs_triple_product`'s summand.
+
+The window arguments already match without any rewriting, since
+`log(x/pq) − log n = log x − log(npq)`.
+
+A field identity, so no positivity is needed: division is total, and
+both sides normalise to `x·log p·f(p)·log q·f(q)·f(n) / (p·q·n·log(x/p))`. -/
+theorem ghs_summand_regroup (f : ℕ → ℝ) (x p q n : ℕ) :
+    (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * (Real.log (q:ℝ) * f q)
+        * ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+        * (f n/(n:ℝ))
+      = (x:ℝ) * ((f n/(n:ℝ))
+          * (Real.log (p:ℝ) * f p / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * (Real.log (q:ℝ) * f q / (q:ℝ))) := by
+  ring
+
 end MoltResearch
