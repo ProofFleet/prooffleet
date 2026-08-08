@@ -7213,4 +7213,62 @@ theorem scale_swap_error_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   refine le_trans (Finset.sum_le_sum hstep) ?_
   exact perron_error_outer_le f hf x P ρ hρ0.le hPp h2p Mass₁ Mass₂ h1 h2
 
+open Real Finset in
+/-- **The discard's `log` cancels** (Track R, N113): for `p` prime with
+`2p ≤ x`,
+
+  `|log p·f(p)/log(x/p)| · (2·log⌊x/p⌋) ≤ 2·log p`.
+
+The step that keeps the range enlargement affordable.
+`enlargement_discard_le` costs `2 log⌊x/p⌋` per `p`, and the outer
+weight carries `1/log(x/p)`; since `⌊x/p⌋ ≤ x/p` the two logs cancel
+and only `2 log p` survives — which Chebyshev's `θ`-bound sums to
+`O(x)`, within what `(3.2)` allows.
+
+Bounding `log⌊x/p⌋` by `log x` instead would leave
+`2 log p·log x/log(x/p)`, whose sum carries a `log x`; on the top block
+(`p ≍ x/e`) the ratio `log x/log(x/p)` is itself of size `log x`, so
+this is not a slack estimate but the difference between closing and
+not.
+
+`2p ≤ x` gives `log(x/p) ≥ log 2 > 0`, so the division is safe, and
+`⌊x/p⌋ ≥ 2`, so `log⌊x/p⌋ ≥ 0`. -/
+theorem discard_weight_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x p : ℕ) (hp : p.Prime) (h2p : 2*p ≤ x) :
+    |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        * (2 * Real.log (((x/p : ℕ)):ℝ))
+      ≤ 2 * Real.log (p:ℝ) := by
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp.pos
+  have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+    rw [le_div_iff₀ hp0]
+    have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+    push_cast at hc; linarith
+  have hL : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+  have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+  -- the floor's log is at most the quotient's
+  have hfl : (((x/p : ℕ)):ℝ) ≤ (x:ℝ)/(p:ℝ) := Nat.cast_div_le
+  have hfl0 : (0:ℝ) ≤ Real.log (((x/p : ℕ)):ℝ) :=
+    Real.log_natCast_nonneg (x/p)
+  have hlogfl : Real.log (((x/p : ℕ)):ℝ) ≤ Real.log ((x:ℝ)/(p:ℝ)) := by
+    rcases eq_or_lt_of_le (Nat.cast_nonneg (α := ℝ) (x/p)) with h | h
+    · rw [← h]; simpa using hL.le
+    · exact Real.log_le_log h hfl
+  -- the outer weight
+  have hw : |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+      ≤ Real.log (p:ℝ)/Real.log ((x:ℝ)/(p:ℝ)) := by
+    rw [abs_div, abs_mul, abs_of_pos hL, abs_of_nonneg hlogp]
+    refine div_le_div_of_nonneg_right ?_ hL.le
+    nlinarith [hf p, abs_nonneg (f p), hlogp]
+  calc |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        * (2 * Real.log (((x/p : ℕ)):ℝ))
+      ≤ (Real.log (p:ℝ)/Real.log ((x:ℝ)/(p:ℝ)))
+          * (2 * Real.log (((x/p : ℕ)):ℝ)) := by
+        refine mul_le_mul_of_nonneg_right hw (by linarith)
+    _ ≤ (Real.log (p:ℝ)/Real.log ((x:ℝ)/(p:ℝ)))
+          * (2 * Real.log ((x:ℝ)/(p:ℝ))) := by
+        refine mul_le_mul_of_nonneg_left (by linarith) ?_
+        positivity
+    _ = 2 * Real.log (p:ℝ) := by
+        field_simp
+
 end MoltResearch
