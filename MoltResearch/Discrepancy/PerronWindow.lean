@@ -2551,6 +2551,84 @@ theorem exists_master_transition_three :
     exact le_trans (hC₂ v) (le_trans (le_max_left _ _) (le_max_right _ _))
   · intro v
     exact le_trans (hC₃ v) (le_trans (le_max_right _ _) (le_max_right _ _))
+
+/-- **Leibniz for `e^{−v}·g`, to third order** (Track R, N122): if `g`
+has successive derivatives `g₁, g₂, g₃`, then
+
+  `(e^{−v}·g)''' = e^{−v}·(g₃ − 3g₂ + 3g₁ − g)`.
+
+Each differentiation sends `e^{−v}·h` to `e^{−v}·(h' − h)`, so the
+alternating binomial coefficients accumulate in the bracket while the
+prefactor stays positive — the sign pattern is `+ − + −` inside, not a
+sign out front.
+
+`exists_perron_window` computes `(e^{−v}·S)'' = e^{−v}(S₂ − 2S₁ + S)`
+inline, on the way to `M₂`; the same computation one order further is
+what `M₃` needs, and `M₃` is what §4's tail estimate requires
+(`fourier_tail_cube_le` — the second-order tail is a factor of `log x`
+short).
+
+Stated abstractly in `g, g₁, g₂, g₃` rather than at the window's own
+`S`, because the derivative bookkeeping and the *bounds* on `S`'s
+derivatives are independent problems: this settles the shape, and the
+`|S₃| ≲ C³/ρ³` estimate is separate.  Doing both at once is what makes
+the `M₂` proof two hundred lines. -/
+theorem iteratedDeriv_three_exp_neg_mul (g g₁ g₂ g₃ : ℝ → ℝ)
+    (h1 : ∀ v, HasDerivAt g (g₁ v) v) (h2 : ∀ v, HasDerivAt g₁ (g₂ v) v)
+    (h3 : ∀ v, HasDerivAt g₂ (g₃ v) v) :
+    iteratedDeriv 3 (fun v => Real.exp (-v) * g v)
+      = fun v => Real.exp (-v) * (g₃ v - 3*g₂ v + 3*g₁ v - g v) := by
+  have hexp : ∀ v : ℝ, HasDerivAt (fun v : ℝ => Real.exp (-v))
+      (-(Real.exp (-v))) v := by
+    intro v
+    have := (Real.hasDerivAt_exp (-v)).comp v ((hasDerivAt_id v).neg)
+    simpa using this
+  -- first derivative
+  have hd1 : ∀ v, HasDerivAt (fun v => Real.exp (-v) * g v)
+      (Real.exp (-v) * (g₁ v - g v)) v := by
+    intro v
+    have := (hexp v).mul (h1 v)
+    convert this using 1
+    ring
+  -- second
+  have hd2 : ∀ v, HasDerivAt (fun v => Real.exp (-v) * (g₁ v - g v))
+      (Real.exp (-v) * (g₂ v - 2*g₁ v + g v)) v := by
+    intro v
+    have hs := (h2 v).sub (h1 v)
+    have := (hexp v).mul hs
+    convert this using 1
+    simp only [Pi.sub_apply]
+    ring
+  -- third
+  have hd3 : ∀ v, HasDerivAt
+      (fun v => Real.exp (-v) * (g₂ v - 2*g₁ v + g v))
+      (Real.exp (-v) * (g₃ v - 3*g₂ v + 3*g₁ v - g v)) v := by
+    intro v
+    have hs : HasDerivAt (fun v => g₂ v - 2*g₁ v + g v)
+        (g₃ v - 2*g₂ v + g₁ v) v := by
+      have := ((h3 v).sub ((h2 v).const_mul 2)).add (h1 v)
+      convert this using 1
+    have hfun : ((fun v : ℝ => Real.exp (-v))
+        * fun v : ℝ => g₂ v - 2*g₁ v + g v)
+        = fun v : ℝ => Real.exp (-v) * (g₂ v - 2*g₁ v + g v) := rfl
+    have h2' := (hexp v).mul hs
+    rw [hfun] at h2'
+    convert h2' using 1
+    ring
+  -- assemble
+  have hexpand : iteratedDeriv 3 (fun v => Real.exp (-v) * g v)
+      = deriv (deriv (deriv (fun v => Real.exp (-v) * g v))) := by
+    rw [iteratedDeriv_succ, iteratedDeriv_succ, iteratedDeriv_one]
+  rw [hexpand]
+  have he1 : deriv (fun v => Real.exp (-v) * g v)
+      = fun v => Real.exp (-v) * (g₁ v - g v) :=
+    funext fun v => (hd1 v).deriv
+  rw [he1]
+  have he2 : deriv (fun v => Real.exp (-v) * (g₁ v - g v))
+      = fun v => Real.exp (-v) * (g₂ v - 2*g₁ v + g v) :=
+    funext fun v => (hd2 v).deriv
+  rw [he2]
+  exact funext fun v => (hd3 v).deriv
 end ExpSums
 
 end MoltResearch
