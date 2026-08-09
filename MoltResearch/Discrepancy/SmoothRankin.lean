@@ -7729,4 +7729,49 @@ theorem block_index_le_of_fit (x k : ℕ) (hx : 2 ≤ x)
   rw [Real.log_rpow hx0] at hlog
   linarith
 
+open Real Finset in
+/-- **§3's `k`-split** (Track R, N120): if every block up to `K` obeys
+the analytic bound `A` and the blocks past `K` obey the trivial one,
+
+  `∑_{k ∈ [1, M]} |tripleConv f x (P k)| ≤ (K:ℝ)·A + T`,
+
+where `T` is `tripleConv_tail_blocks_le`'s bound.
+
+The split itself, stated with both halves as parameters.  Splitting
+`Icc 1 M` at `K` is `Finset.sum_Icc_consecutive`-style bookkeeping; what
+matters is that the two halves are bounded by different mechanisms —
+the head by §4's pairing estimate through `tripleConv_le`, the tail by
+the geometric trivial bound — and that neither is assumed of the other.
+
+Left parametric in `A` deliberately.  `tripleConv_le` still carries the
+window `V` and the Perron parameter `ρ` as free choices, and the whole
+point of the design has been to strike that balance once, in the open,
+rather than bake it into the split.  Substituting the concrete `A` is
+the next step, and it is where `V` finally gets chosen. -/
+theorem tripleConv_ksplit_le (f : ℕ → ℝ) (x : ℕ) (K M : ℕ) (hKM : K ≤ M)
+    (Pk : ℕ → Finset ℕ) (A T : ℝ)
+    (hhead : ∀ k ∈ Finset.Icc 1 K, |tripleConv f x (Pk k)| ≤ A)
+    (htail : ∑ k ∈ Finset.Icc (K+1) M, |tripleConv f x (Pk k)| ≤ T) :
+    ∑ k ∈ Finset.Icc 1 M, |tripleConv f x (Pk k)| ≤ (K:ℝ) * A + T := by
+  classical
+  -- split the index range at `K`
+  have hsplit : Finset.Icc 1 M
+      = Finset.Icc 1 K ∪ Finset.Icc (K+1) M := by
+    ext k
+    simp only [Finset.mem_Icc, Finset.mem_union]
+    omega
+  have hdisj : Disjoint (Finset.Icc 1 K) (Finset.Icc (K+1) M) := by
+    refine Finset.disjoint_left.mpr fun k hk1 hk2 => ?_
+    rw [Finset.mem_Icc] at hk1 hk2
+    omega
+  rw [hsplit, Finset.sum_union hdisj]
+  -- the head: at most `K` terms, each at most `A`
+  have hhead' : ∑ k ∈ Finset.Icc 1 K, |tripleConv f x (Pk k)| ≤ (K:ℝ) * A := by
+    refine le_trans (Finset.sum_le_sum hhead) ?_
+    simp only [Finset.sum_const, nsmul_eq_mul, Nat.card_Icc]
+    have hcard : ((K + 1 - 1 : ℕ):ℝ) = (K:ℝ) := by
+      simp
+    rw [hcard]
+  linarith [hhead', htail]
+
 end MoltResearch
