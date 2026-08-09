@@ -2904,6 +2904,62 @@ theorem hasDerivAt_S_three (σ : ℝ → ℝ) (hσd : Differentiable ℝ σ)
   convert this using 1
   field_simp
   ring
+
+/-- **From an exponential majorant to a derivative mass** (Track R,
+N128): if `g` is continuous with compact support and
+
+  `|g v| ≤ 1_{[0,∞)}(v)·K·e^{−v}`  pointwise,
+
+then `∫|g| ≤ K`.
+
+The step that turns the Perron window's pointwise derivative bounds
+into the masses `M₂`, `M₃` the tail estimates consume.  The whole
+content is `∫_{[0,∞)} e^{−v} dv = 1`: the majorant is `K` times a
+probability density, so no scale enters and the constant passes
+through unchanged.
+
+`exists_perron_window` does this inline for `M₂`; `M₃` needs it again
+at one order higher, with the same `K·e^{−v}` shape and a different
+`K`.  Extracting it means the third-order bound is an application
+rather than a repeat of the measure-theoretic bookkeeping.
+
+Compact support is what makes `|g|` integrable; the majorant alone
+would not, since it is only an upper bound. -/
+theorem integral_abs_le_of_indicator_exp (g : ℝ → ℝ) (hg : Continuous g)
+    (hcs : HasCompactSupport g) (K : ℝ)
+    (hpt : ∀ v, |g v|
+      ≤ Set.indicator (Set.Ici (0:ℝ)) (fun v => K * Real.exp (-v)) v) :
+    ∫ v, |g v| ≤ K := by
+  have hK0 : 0 ≤ K := by
+    have h := hpt 0
+    rw [Set.indicator_of_mem (Set.mem_Ici.mpr le_rfl)] at h
+    simp only [neg_zero, Real.exp_zero, mul_one] at h
+    exact le_trans (abs_nonneg _) h
+  -- `|g|` is integrable
+  have hgi : Integrable g := hg.integrable_of_hasCompactSupport hcs
+  have habs : Integrable (fun v => |g v|) := hgi.abs
+  -- the majorant is integrable, with integral `K`
+  have hexp : IntegrableOn (fun v : ℝ => Real.exp (-v)) (Set.Ici 0) := by
+    have := exp_neg_integrableOn_Ioi (0:ℝ) (by norm_num : (0:ℝ) < 1)
+    simpa using this.congr_set_ae Ioi_ae_eq_Ici.symm
+  have hmaji : Integrable
+      (Set.indicator (Set.Ici (0:ℝ)) (fun v => K * Real.exp (-v))) := by
+    rw [integrable_indicator_iff measurableSet_Ici]
+    exact (hexp.const_mul K)
+  have hmaj_int : (∫ v, Set.indicator (Set.Ici (0:ℝ))
+      (fun v => K * Real.exp (-v)) v) = K := by
+    rw [integral_indicator measurableSet_Ici, integral_const_mul]
+    have hone : (∫ v in Set.Ici (0:ℝ), Real.exp (-v)) = 1 := by
+      have h := integral_exp_neg_Ioi (0:ℝ)
+      rw [neg_zero, Real.exp_zero] at h
+      rw [← h]
+      exact setIntegral_congr_set Ioi_ae_eq_Ici.symm
+    rw [hone, mul_one]
+  calc ∫ v, |g v|
+      ≤ ∫ v, Set.indicator (Set.Ici (0:ℝ))
+          (fun v => K * Real.exp (-v)) v :=
+        integral_mono habs hmaji hpt
+    _ = K := hmaj_int
 end ExpSums
 
 end MoltResearch
