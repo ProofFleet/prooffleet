@@ -2457,6 +2457,100 @@ theorem smoothed_sum_le_one_real (g : ℕ → ℝ) (hg : ∀ n, |g n| ≤ 1)
   calc ((S.filter (fun n : ℕ => (n:ℝ) < M)).card : ℝ) * (1/M)
       ≤ M * (1/M) := mul_le_mul_of_nonneg_right hcard (by positivity)
     _ = 1 := by field_simp
+
+/-- **The master transition, to third order** (Track R, N121):
+`Real.smoothTransition` has all three of its first derivatives
+uniformly bounded by one absolute constant.
+
+`exists_master_transition` stops at the second derivative, because the
+Perron window's `M₂` was all the cheap-Halász main term needed.  §4's
+tail estimate needs `M₃`: the second-order window tail `M₂/(2π²L)` is a
+factor of `log x` short of what `Mtail` can afford, and only the
+third-order bound `M₃/(8π³L²)` closes it (see `fourier_tail_cube_le`).
+
+Since every Perron window scales from this transition, the third
+derivative has to be bounded here or nowhere.  The proof is the
+existing one with one more layer: derivatives of a function constant
+off `[0,1]` vanish there, so each is continuous with compact support
+and therefore attains a maximum.
+
+The constant is not computed.  It is a single absolute number, and
+every downstream threshold depends on it only through `C`. -/
+theorem exists_master_transition_three :
+    ∃ (σ : ℝ → ℝ) (C : ℝ), ContDiff ℝ ∞ σ
+      ∧ (∀ v, 0 ≤ σ v ∧ σ v ≤ 1)
+      ∧ (∀ v, v ≤ 0 → σ v = 0) ∧ (∀ v, 1 ≤ v → σ v = 1)
+      ∧ 0 ≤ C
+      ∧ (∀ v, |deriv σ v| ≤ C)
+      ∧ (∀ v, |deriv (deriv σ) v| ≤ C)
+      ∧ (∀ v, |deriv (deriv (deriv σ)) v| ≤ C) := by
+  classical
+  set σ : ℝ → ℝ := Real.smoothTransition with hσ_def
+  have hsm : ContDiff ℝ ∞ σ := Real.smoothTransition.contDiff
+  have hzero : ∀ v, v ≤ 0 → σ v = 0 := fun v hv =>
+    Real.smoothTransition.zero_of_nonpos hv
+  have hone : ∀ v, 1 ≤ v → σ v = 1 := fun v hv =>
+    Real.smoothTransition.one_of_one_le hv
+  -- a function locally constant off `[0,1]` has vanishing derivative there
+  have hd_of_const : ∀ (g : ℝ → ℝ) (c₀ c₁ : ℝ),
+      (∀ v, v < 0 → g v = c₀) → (∀ v, 1 < v → g v = c₁) →
+      ∀ v, v < 0 ∨ 1 < v → deriv g v = 0 := by
+    intro g c₀ c₁ hg0 hg1 v hv
+    rcases hv with hv | hv
+    · have heq : g =ᶠ[nhds v] (fun _ => c₀) :=
+        Filter.eventuallyEq_of_mem (IsOpen.mem_nhds isOpen_Iio hv)
+          (fun u hu => hg0 u hu)
+      rw [heq.deriv_eq, deriv_const]
+    · have heq : g =ᶠ[nhds v] (fun _ => c₁) :=
+        Filter.eventuallyEq_of_mem (IsOpen.mem_nhds isOpen_Ioi hv)
+          (fun u hu => hg1 u hu)
+      rw [heq.deriv_eq, deriv_const]
+  have hd1_zero : ∀ v, v < 0 ∨ 1 < v → deriv σ v = 0 :=
+    hd_of_const σ 0 1 (fun v hv => hzero v hv.le) (fun v hv => hone v hv.le)
+  have hd2_zero : ∀ v, v < 0 ∨ 1 < v → deriv (deriv σ) v = 0 :=
+    hd_of_const (deriv σ) 0 0 (fun v hv => hd1_zero v (Or.inl hv))
+      (fun v hv => hd1_zero v (Or.inr hv))
+  have hd3_zero : ∀ v, v < 0 ∨ 1 < v → deriv (deriv (deriv σ)) v = 0 :=
+    hd_of_const (deriv (deriv σ)) 0 0 (fun v hv => hd2_zero v (Or.inl hv))
+      (fun v hv => hd2_zero v (Or.inr hv))
+  -- each derivative is continuous
+  have hsm1 : ContDiff ℝ ∞ (deriv σ) := by simpa using hsm.iterate_deriv 1
+  have hsm2 : ContDiff ℝ ∞ (deriv (deriv σ)) := by
+    simpa using hsm1.iterate_deriv 1
+  have hsm3 : ContDiff ℝ ∞ (deriv (deriv (deriv σ))) := by
+    simpa using hsm2.iterate_deriv 1
+  -- and compactly supported
+  have hcs : ∀ (g : ℝ → ℝ), (∀ v, v < 0 ∨ 1 < v → g v = 0) →
+      HasCompactSupport g := by
+    intro g hg
+    refine HasCompactSupport.intro isCompact_Icc (K := Set.Icc (0:ℝ) 1) ?_
+    intro v hv
+    rw [Set.mem_Icc] at hv
+    push_neg at hv
+    by_cases h0 : v < 0
+    · exact hg v (Or.inl h0)
+    · push_neg at h0
+      exact hg v (Or.inr (hv h0))
+  -- so each attains a maximum
+  have hbound : ∀ (g : ℝ → ℝ), Continuous g →
+      (∀ v, v < 0 ∨ 1 < v → g v = 0) → ∃ Cg, ∀ v, |g v| ≤ Cg := by
+    intro g hgc hg0
+    obtain ⟨v₀, hv₀⟩ := Continuous.exists_forall_ge_of_hasCompactSupport
+      hgc.abs ((hcs g hg0).abs)
+    exact ⟨|g v₀|, hv₀⟩
+  obtain ⟨C₁, hC₁⟩ := hbound _ hsm1.continuous hd1_zero
+  obtain ⟨C₂, hC₂⟩ := hbound _ hsm2.continuous hd2_zero
+  obtain ⟨C₃, hC₃⟩ := hbound _ hsm3.continuous hd3_zero
+  refine ⟨σ, max C₁ (max C₂ C₃), hsm, ?_, hzero, hone, ?_, ?_, ?_, ?_⟩
+  · intro v
+    exact ⟨Real.smoothTransition.nonneg v, Real.smoothTransition.le_one v⟩
+  · exact le_trans (abs_nonneg _) (le_trans (hC₁ 0) (le_max_left _ _))
+  · intro v
+    exact le_trans (hC₁ v) (le_max_left _ _)
+  · intro v
+    exact le_trans (hC₂ v) (le_trans (le_max_left _ _) (le_max_right _ _))
+  · intro v
+    exact le_trans (hC₃ v) (le_trans (le_max_right _ _) (le_max_right _ _))
 end ExpSums
 
 end MoltResearch
