@@ -2960,6 +2960,39 @@ theorem integral_abs_le_of_indicator_exp (g : ℝ → ℝ) (hg : Continuous g)
           (fun v => K * Real.exp (-v)) v :=
         integral_mono habs hmaji hpt
     _ = K := hmaj_int
+
+/-- **Derivatives vanish where the transition is constant** (Track R,
+N129): if `g` is locally constant on `Iio c` — that is, `g u = k` for
+all `u < c` — then `deriv g u = 0` there, and likewise on `Ioi c`.
+
+The `M₂` proof needs this at orders `1` and `2`, on both sides
+(`hσ'zero`, `hσ''zero`, `hσ'one`, `hσ''one` — four near-identical
+`Filter.eventuallyEq_of_mem` + `deriv_const` blocks); `M₃` needs it at
+order `3` on both sides as well.  One lemma covers all six.
+
+The two directions are separate statements only because `Iio` and `Ioi`
+are different open sets; the argument is the same, and both are needed
+because `σ` is constant at `0` below its transition and at `1` above
+it, so *every* derivative of the window vanishes outside `[0, 2Y+2]`.
+
+That vanishing is what gives `iteratedDeriv 3 V` compact support, which
+is what `integral_abs_le_of_indicator_exp` needs to conclude the mass
+bound — so this is the last `S`-specific ingredient of `M₃`. -/
+theorem deriv_eq_zero_of_eventually_const_Iio (g : ℝ → ℝ) (k c : ℝ)
+    (hg : ∀ u, u < c → g u = k) (u : ℝ) (hu : u < c) : deriv g u = 0 := by
+  have heq : g =ᶠ[nhds u] (fun _ => k) :=
+    Filter.eventuallyEq_of_mem (IsOpen.mem_nhds isOpen_Iio hu)
+      (fun x hx => hg x hx)
+  rw [heq.deriv_eq, deriv_const]
+
+/-- The upper-side companion — see
+`deriv_eq_zero_of_eventually_const_Iio`. -/
+theorem deriv_eq_zero_of_eventually_const_Ioi (g : ℝ → ℝ) (k c : ℝ)
+    (hg : ∀ u, c < u → g u = k) (u : ℝ) (hu : c < u) : deriv g u = 0 := by
+  have heq : g =ᶠ[nhds u] (fun _ => k) :=
+    Filter.eventuallyEq_of_mem (IsOpen.mem_nhds isOpen_Ioi hu)
+      (fun x hx => hg x hx)
+  rw [heq.deriv_eq, deriv_const]
 end ExpSums
 
 end MoltResearch
