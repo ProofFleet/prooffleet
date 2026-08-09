@@ -3034,6 +3034,86 @@ theorem iteratedDeriv_succ_eq_zero_of_const_on (f : ℝ → ℝ) (k : ℝ)
       rw [heq.deriv_eq, deriv_const]
     rw [iteratedDeriv_succ']
     exact ih (deriv f) 0 hd v hv
+
+/-- **The third-derivative mass of a damped cutoff** (Track R, N131):
+for `V = e^{−v}·S` with derivative chain `S, S₁, S₂, S₃`, if the
+alternating combination is bounded by `K` on `[0,∞)` and `S` vanishes
+off `[0, b]`, then
+
+  `∫|V'''| ≤ K`.
+
+The `M₃` integration, with the chain and its bounds as hypotheses.
+Three facts compose: `iteratedDeriv_three_exp_neg_mul` gives the shape
+`e^{−v}(S₃ − 3S₂ + 3S₁ − S)`, the pointwise hypothesis bounds it by
+`K·e^{−v}` on `[0,∞)` while `iteratedDeriv_succ_eq_zero_of_const_on`
+kills it off `[0,b]`, and `integral_abs_le_of_indicator_exp` integrates.
+
+Parametrised rather than instantiated at the Perron window, for the
+reason this whole leg has followed: the analytic content is independent
+of which `σ` builds the cutoff, and separating it means the window's own
+construction contributes only the hypotheses.  Instantiating gives
+`M₃ ≤ 27(C+1)³/ρ³` from `abs_S_three_le` and `alternating_three_bound`.
+
+Note the vanishing hypothesis is on `S` alone: `V = e^{−v}S` inherits
+it, and *all* derivatives of `V` then vanish off `[0,b]` by the
+all-orders lemma — the chain's own vanishing is not needed. -/
+theorem integral_abs_iteratedDeriv_three_le (S S₁ S₂ S₃ : ℝ → ℝ) (K b : ℝ)
+    (h1 : ∀ v, HasDerivAt S (S₁ v) v) (h2 : ∀ v, HasDerivAt S₁ (S₂ v) v)
+    (h3 : ∀ v, HasDerivAt S₂ (S₃ v) v)
+    (hcont : Continuous (fun v => S₃ v - 3*S₂ v + 3*S₁ v - S v))
+    (hlo : ∀ v, v < 0 → S v = 0) (hhi : ∀ v, b < v → S v = 0)
+    (hpt : ∀ v, 0 ≤ v → |S₃ v - 3*S₂ v + 3*S₁ v - S v| ≤ K) :
+    ∫ v, |iteratedDeriv 3 (fun v => Real.exp (-v) * S v) v| ≤ K := by
+  classical
+  set V : ℝ → ℝ := fun v => Real.exp (-v) * S v with hV_def
+  set W : ℝ → ℝ := fun v => S₃ v - 3*S₂ v + 3*S₁ v - S v with hW_def
+  -- the shape
+  have hiter : iteratedDeriv 3 V = fun v => Real.exp (-v) * W v := by
+    rw [hV_def, hW_def]
+    exact iteratedDeriv_three_exp_neg_mul S S₁ S₂ S₃ h1 h2 h3
+  -- `V` vanishes off `[0, b]`, hence so does every derivative
+  have hVlo : ∀ v ∈ Set.Iio (0:ℝ), V v = 0 := by
+    intro v hv
+    rw [hV_def]
+    dsimp only
+    rw [hlo v (Set.mem_Iio.mp hv), mul_zero]
+  have hVhi : ∀ v ∈ Set.Ioi b, V v = 0 := by
+    intro v hv
+    rw [hV_def]
+    dsimp only
+    rw [hhi v (Set.mem_Ioi.mp hv), mul_zero]
+  have hzlo : ∀ v ∈ Set.Iio (0:ℝ), iteratedDeriv 3 V v = 0 :=
+    iteratedDeriv_succ_eq_zero_of_const_on V 0 (Set.Iio 0) isOpen_Iio hVlo 2
+  have hzhi : ∀ v ∈ Set.Ioi b, iteratedDeriv 3 V v = 0 :=
+    iteratedDeriv_succ_eq_zero_of_const_on V 0 (Set.Ioi b) isOpen_Ioi hVhi 2
+  -- continuity and compact support
+  have hcont3 : Continuous (iteratedDeriv 3 V) := by
+    rw [hiter]
+    exact (Real.continuous_exp.comp continuous_neg).mul hcont
+  have hcs3 : HasCompactSupport (iteratedDeriv 3 V) := by
+    refine HasCompactSupport.intro (isCompact_Icc (a := (0:ℝ)) (b := b)) ?_
+    intro v hv
+    rw [Set.mem_Icc] at hv
+    push_neg at hv
+    by_cases h0 : v < 0
+    · exact hzlo v (Set.mem_Iio.mpr h0)
+    · push_neg at h0
+      exact hzhi v (Set.mem_Ioi.mpr (hv h0))
+  -- the pointwise majorant
+  have hmaj : ∀ v, |iteratedDeriv 3 V v|
+      ≤ Set.indicator (Set.Ici (0:ℝ)) (fun v => K * Real.exp (-v)) v := by
+    intro v
+    by_cases hv : (0:ℝ) ≤ v
+    · rw [Set.indicator_of_mem (Set.mem_Ici.mpr hv), hiter]
+      dsimp only
+      rw [abs_mul, Real.abs_exp,
+        show K * Real.exp (-v) = Real.exp (-v) * K from by ring]
+      exact mul_le_mul_of_nonneg_left (hpt v hv) (Real.exp_pos _).le
+    · push_neg at hv
+      rw [Set.indicator_of_notMem (by
+        rw [Set.mem_Ici]; push_neg; exact hv)]
+      rw [hzlo v (Set.mem_Iio.mpr hv), abs_zero]
+  exact integral_abs_le_of_indicator_exp _ hcont3 hcs3 K hmaj
 end ExpSums
 
 end MoltResearch
