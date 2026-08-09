@@ -7676,4 +7676,57 @@ theorem tripleConv_tail_blocks_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   simp only [Finset.sum_const, nsmul_eq_mul]
   linarith [hmain]
 
+open Real Finset in
+/-- **The fit condition caps the block index** (Track R, N119): if
+`2·blockHi x k ≤ x` and `x ≥ 2` then
+
+  `log 2 ≤ e^{−k}·log x`,
+
+i.e. `e^k ≤ log x/log 2`, so `k ≤ log(log x/log 2) ≍ log log x`.
+
+This is what bounds the *number* of blocks, and the count matters:
+`tripleConv_tail_blocks_le` carries a non-decaying `O(1)` per block, so
+the trivial half of §3's `k`-split costs `(#blocks)·x·O(1)`.  Were the
+decomposition to run to `k ≍ log x` that would be `x·log x` and `(3.2)`
+would fail.
+
+It does not, and the reason is already in the hypothesis rather than in
+any extra argument: `blockHi x k = ⌈x^{1−e^{−k}}⌉ ≥ x^{1−e^{−k}}`, so
+`2·blockHi ≤ x` forces `2 ≤ x^{e^{−k}}`.  The blocks that satisfy the
+fit condition are exactly those with `e^k ≲ log x`, of which there are
+`≍ log log x`.
+
+That `x·log log x` is not slack either — it is precisely the second
+term of GHS's Theorem 1, `x·loglog x/log x` after the outer weight. -/
+theorem block_index_le_of_fit (x k : ℕ) (hx : 2 ≤ x)
+    (hfit : 2 * blockHi x k ≤ x) :
+    Real.log 2 ≤ Real.exp (-(k:ℝ)) * Real.log (x:ℝ) := by
+  have hx1 : (1:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 1 < x)
+  have hx0 : (0:ℝ) < (x:ℝ) := by linarith
+  have hlogx : (0:ℝ) < Real.log (x:ℝ) := Real.log_pos hx1
+  -- the ceiling dominates the power
+  have hceil : (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) ≤ ((blockHi x k : ℕ):ℝ) := by
+    rw [blockHi]
+    exact Nat.le_ceil _
+  have hfitR : 2 * ((blockHi x k : ℕ):ℝ) ≤ (x:ℝ) := by
+    have : ((2 * blockHi x k : ℕ):ℝ) ≤ ((x:ℕ):ℝ) := by exact_mod_cast hfit
+    push_cast at this
+    linarith
+  -- so `2·x^{1−e^{−k}} ≤ x`, i.e. `2 ≤ x^{e^{−k}}`
+  have hstep : 2 * (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) ≤ (x:ℝ) := by
+    linarith [hceil, hfitR]
+  have hsplit : (x:ℝ) = (x:ℝ) ^ (1 - Real.exp (-(k:ℝ)))
+      * (x:ℝ) ^ (Real.exp (-(k:ℝ))) := by
+    rw [← Real.rpow_add hx0]
+    norm_num
+  have hpow0 : (0:ℝ) < (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) :=
+    Real.rpow_pos_of_pos hx0 _
+  have hge : (2:ℝ) ≤ (x:ℝ) ^ (Real.exp (-(k:ℝ))) := by
+    rw [hsplit] at hstep
+    nlinarith [hstep, hpow0]
+  -- take logs
+  have hlog := Real.log_le_log (by norm_num) hge
+  rw [Real.log_rpow hx0] at hlog
+  linarith
+
 end MoltResearch
