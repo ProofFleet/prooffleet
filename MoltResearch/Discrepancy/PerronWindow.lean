@@ -2829,6 +2829,81 @@ theorem hasDerivAt_comp_sub_const (g : ℝ → ℝ) (hg : Differentiable ℝ g)
   have hin : HasDerivAt (fun v : ℝ => v - a) 1 v := (hasDerivAt_id v).sub_const a
   have := hout.comp v hin
   simpa using this
+
+/-- **The window cutoff's third derivative** (Track R, N127): for
+`ρ ≠ 0` and `σ` three times differentiable, the second derivative of
+`S = σ(·/ρ)·(1 − σ(·−a))` differentiates to
+
+  `S₃ = σ'''(v/ρ)/ρ³·(1−σ(v−a)) − 3(σ''(v/ρ)/ρ²)·σ'(v−a)`
+  `     − 3(σ'(v/ρ)/ρ)·σ''(v−a) − σ(v/ρ)·σ'''(v−a)`.
+
+Differentiating `S₂` term by term with the product rule over the two
+chain rules of `hasDerivAt_comp_div_const` and
+`hasDerivAt_comp_sub_const`.  The binomial pattern `1, 3, 3, 1` appears
+because `S` is a product of exactly two factors, each depending on `v`
+through one substitution.
+
+Stated as a `HasDerivAt` of the explicit `S₂` rather than of
+`iteratedDeriv 2 S`, matching how `exists_perron_window` carries its
+derivative chain: the `M₂` proof keeps `S₁` and `S₂` as named functions
+and only converts to `iteratedDeriv` at the very end.  Following that
+convention means this composes with the existing chain directly.
+
+With `abs_S_three_le` this closes the `S`-side of `M₃`; what remains is
+the integration. -/
+theorem hasDerivAt_S_three (σ : ℝ → ℝ) (hσd : Differentiable ℝ σ)
+    (hσd' : Differentiable ℝ (deriv σ))
+    (hσd'' : Differentiable ℝ (deriv (deriv σ)))
+    (ρ a : ℝ) (hρ : ρ ≠ 0) (v : ℝ) :
+    HasDerivAt
+      (fun v : ℝ => deriv (deriv σ) (v/ρ) / ρ^2 * (1 - σ (v - a))
+        - 2 * (deriv σ (v/ρ) / ρ) * deriv σ (v - a)
+        - σ (v/ρ) * deriv (deriv σ) (v - a))
+      (deriv (deriv (deriv σ)) (v/ρ) / ρ^3 * (1 - σ (v - a))
+        - 3 * (deriv (deriv σ) (v/ρ) / ρ^2) * deriv σ (v - a)
+        - 3 * (deriv σ (v/ρ) / ρ) * deriv (deriv σ) (v - a)
+        - σ (v/ρ) * deriv (deriv (deriv σ)) (v - a)) v := by
+  -- the six substitution derivatives
+  have h0 : HasDerivAt (fun v : ℝ => σ (v/ρ)) (deriv σ (v/ρ) / ρ) v :=
+    hasDerivAt_comp_div_const σ hσd ρ v
+  have h1 : HasDerivAt (fun v : ℝ => deriv σ (v/ρ))
+      (deriv (deriv σ) (v/ρ) / ρ) v :=
+    hasDerivAt_comp_div_const (deriv σ) hσd' ρ v
+  have h2 : HasDerivAt (fun v : ℝ => deriv (deriv σ) (v/ρ))
+      (deriv (deriv (deriv σ)) (v/ρ) / ρ) v :=
+    hasDerivAt_comp_div_const (deriv (deriv σ)) hσd'' ρ v
+  have k0 : HasDerivAt (fun v : ℝ => σ (v - a)) (deriv σ (v - a)) v :=
+    hasDerivAt_comp_sub_const σ hσd a v
+  have k1 : HasDerivAt (fun v : ℝ => deriv σ (v - a))
+      (deriv (deriv σ) (v - a)) v :=
+    hasDerivAt_comp_sub_const (deriv σ) hσd' a v
+  have k2 : HasDerivAt (fun v : ℝ => deriv (deriv σ) (v - a))
+      (deriv (deriv (deriv σ)) (v - a)) v :=
+    hasDerivAt_comp_sub_const (deriv (deriv σ)) hσd'' a v
+  -- the complement factor
+  have kc : HasDerivAt (fun v : ℝ => 1 - σ (v - a))
+      (-(deriv σ (v - a))) v := by
+    simpa using (hasDerivAt_const v (1:ℝ)).sub k0
+  -- differentiate the three products of `S₂`
+  have hA : HasDerivAt
+      (fun v : ℝ => deriv (deriv σ) (v/ρ) / ρ^2 * (1 - σ (v - a)))
+      (deriv (deriv (deriv σ)) (v/ρ) / ρ / ρ^2 * (1 - σ (v - a))
+        + deriv (deriv σ) (v/ρ) / ρ^2 * (-(deriv σ (v - a)))) v :=
+    (h2.div_const (ρ^2)).mul kc
+  have hB : HasDerivAt
+      (fun v : ℝ => 2 * (deriv σ (v/ρ) / ρ) * deriv σ (v - a))
+      ((2 * (deriv (deriv σ) (v/ρ) / ρ / ρ)) * deriv σ (v - a)
+        + 2 * (deriv σ (v/ρ) / ρ) * deriv (deriv σ) (v - a)) v :=
+    (((h1.div_const ρ).const_mul 2)).mul k1
+  have hC : HasDerivAt
+      (fun v : ℝ => σ (v/ρ) * deriv (deriv σ) (v - a))
+      (deriv σ (v/ρ) / ρ * deriv (deriv σ) (v - a)
+        + σ (v/ρ) * deriv (deriv (deriv σ)) (v - a)) v :=
+    h0.mul k2
+  have := (hA.sub hB).sub hC
+  convert this using 1
+  field_simp
+  ring
 end ExpSums
 
 end MoltResearch
