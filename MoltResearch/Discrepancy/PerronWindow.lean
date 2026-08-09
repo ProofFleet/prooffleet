@@ -2793,6 +2793,42 @@ theorem abs_S_three_le (t₀ t₁ t₂ t₃ w₀ w₁ w₂ w₃ C ρ : ℝ)
   have r2 : 3*C^2/ρ^2 = 3*(C^2/ρ^2) := by ring
   have r3 : 3*C^2/ρ = 3*(C^2/ρ) := by ring
   linarith [e₀', e₁', e₂', e₃', r2.le, r2.ge, r3.le, r3.ge]
+
+/-- **The window's two chain rules** (Track R, N126): for `ρ ≠ 0` and
+differentiable `g`,
+
+  `(v ↦ g(v/ρ))' = g'(v/ρ)/ρ`  and  `(v ↦ g(v−a))' = g'(v−a)`.
+
+The two substitutions `S = σ(·/ρ)·(1 − σ(·−a))` is built from, so every
+derivative of `S` is assembled from these by the product rule.
+
+`exists_perron_window` proves both inline as `hσ_at`/`hσ_at2` while
+computing `S₁` and `S₂`; `S₃` needs them again, and a fourth
+application each.  Extracting them removes the `HasDerivAt.comp`
+plumbing from the third-order computation, which is otherwise the
+bulkiest part of it.
+
+Stated for arbitrary differentiable `g` rather than for `σ` and its
+derivatives separately, since all four uses instantiate the same
+statement. -/
+theorem hasDerivAt_comp_div_const (g : ℝ → ℝ) (hg : Differentiable ℝ g)
+    (ρ : ℝ) (v : ℝ) :
+    HasDerivAt (fun v : ℝ => g (v/ρ)) (deriv g (v/ρ) / ρ) v := by
+  have hout : HasDerivAt g (deriv g (v/ρ)) (v/ρ) := (hg (v/ρ)).hasDerivAt
+  have hin : HasDerivAt (fun v : ℝ => v/ρ) (1/ρ) v := by
+    simpa using (hasDerivAt_id v).div_const ρ
+  have := hout.comp v hin
+  convert this using 1
+  ring
+
+/-- The shift substitution — see `hasDerivAt_comp_div_const`. -/
+theorem hasDerivAt_comp_sub_const (g : ℝ → ℝ) (hg : Differentiable ℝ g)
+    (a : ℝ) (v : ℝ) :
+    HasDerivAt (fun v : ℝ => g (v - a)) (deriv g (v - a)) v := by
+  have hout : HasDerivAt g (deriv g (v - a)) (v - a) := (hg (v - a)).hasDerivAt
+  have hin : HasDerivAt (fun v : ℝ => v - a) 1 v := (hasDerivAt_id v).sub_const a
+  have := hout.comp v hin
+  simpa using this
 end ExpSums
 
 end MoltResearch
