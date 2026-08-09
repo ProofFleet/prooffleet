@@ -2722,6 +2722,77 @@ theorem abs_div_pow_mul_le (u w B D ρ : ℝ) (j : ℕ) (hρ0 : 0 < ρ)
         refine mul_le_mul ?_ hw (abs_nonneg _) (by positivity)
         exact div_le_div_of_nonneg_right hu hρj.le
     _ = B*D/ρ^j := by ring
+
+/-- **The third derivative of the window's cutoff** (Track R, N125):
+for the four Leibniz terms of `S₃`,
+
+  `|t₃/ρ³·w₀ − 3·(t₂/ρ²)·w₁ − 3·(t₁/ρ)·w₂ − t₀·w₃|`
+  `  ≤ C/ρ³ + 3C²/ρ² + 3C²/ρ + C`,
+
+given `|tⱼ| ≤ C` for `j ≥ 1`, `|t₀| ≤ 1`, `|w₀| ≤ 1` and `|wⱼ| ≤ C`
+for `j ≥ 1`.
+
+`S = σ(·/ρ)·(1 − σ(·−a))`, so `S₃` is exactly this alternating
+combination with `tⱼ = σ^{(j)}(v/ρ)`, `w₀ = 1 − σ(v−a)` and
+`wⱼ = −σ^{(j)}(v−a)`.  Four applications of `abs_div_pow_mul_le` at
+`j = 3, 2, 1, 0`, chained by the triangle inequality.
+
+This is precisely `alternating_three_bound`'s `hS₃` hypothesis, so with
+it the `M₃` constant follows from lemmas already on main; what is left
+is the derivative *formula* `hS'''at` and the integration.
+
+Stated over abstract `tⱼ, wⱼ` rather than at `σ` itself, for the same
+reason as the term estimate: the shape is independent of which
+transition is used, and separating it keeps the chain-rule bookkeeping
+out of the arithmetic. -/
+theorem abs_S_three_le (t₀ t₁ t₂ t₃ w₀ w₁ w₂ w₃ C ρ : ℝ)
+    (hρ0 : 0 < ρ)
+    (ht₀ : |t₀| ≤ 1) (ht₁ : |t₁| ≤ C) (ht₂ : |t₂| ≤ C) (ht₃ : |t₃| ≤ C)
+    (hw₀ : |w₀| ≤ 1) (hw₁ : |w₁| ≤ C) (hw₂ : |w₂| ≤ C) (hw₃ : |w₃| ≤ C) :
+    |t₃/ρ^3 * w₀ - 3*(t₂/ρ^2 * w₁) - 3*(t₁/ρ^1 * w₂) - t₀/ρ^0 * w₃|
+      ≤ C/ρ^3 + 3*C^2/ρ^2 + 3*C^2/ρ + C := by
+  -- the four terms
+  have e₃ : |t₃/ρ^3 * w₀| ≤ C*1/ρ^3 :=
+    abs_div_pow_mul_le t₃ w₀ C 1 ρ 3 hρ0 ht₃ hw₀
+  have e₂ : |t₂/ρ^2 * w₁| ≤ C*C/ρ^2 :=
+    abs_div_pow_mul_le t₂ w₁ C C ρ 2 hρ0 ht₂ hw₁
+  have e₁ : |t₁/ρ^1 * w₂| ≤ C*C/ρ^1 :=
+    abs_div_pow_mul_le t₁ w₂ C C ρ 1 hρ0 ht₁ hw₂
+  have e₀ : |t₀/ρ^0 * w₃| ≤ 1*C/ρ^0 :=
+    abs_div_pow_mul_le t₀ w₃ 1 C ρ 0 hρ0 ht₀ hw₃
+  -- chain the triangle inequality
+  have h3 : |3*(t₂/ρ^2 * w₁)| = 3*|t₂/ρ^2 * w₁| := by
+    rw [abs_mul, show |(3:ℝ)| = 3 from by norm_num]
+  have h3' : |3*(t₁/ρ^1 * w₂)| = 3*|t₁/ρ^1 * w₂| := by
+    rw [abs_mul, show |(3:ℝ)| = 3 from by norm_num]
+  have htri : |t₃/ρ^3 * w₀ - 3*(t₂/ρ^2 * w₁) - 3*(t₁/ρ^1 * w₂)
+        - t₀/ρ^0 * w₃|
+      ≤ |t₃/ρ^3 * w₀| + 3*|t₂/ρ^2 * w₁| + 3*|t₁/ρ^1 * w₂|
+        + |t₀/ρ^0 * w₃| := by
+    calc |t₃/ρ^3 * w₀ - 3*(t₂/ρ^2 * w₁) - 3*(t₁/ρ^1 * w₂) - t₀/ρ^0 * w₃|
+        ≤ |t₃/ρ^3 * w₀ - 3*(t₂/ρ^2 * w₁) - 3*(t₁/ρ^1 * w₂)|
+            + |t₀/ρ^0 * w₃| := abs_sub _ _
+      _ ≤ (|t₃/ρ^3 * w₀ - 3*(t₂/ρ^2 * w₁)| + |3*(t₁/ρ^1 * w₂)|)
+            + |t₀/ρ^0 * w₃| := by
+          linarith [abs_sub (t₃/ρ^3 * w₀ - 3*(t₂/ρ^2 * w₁)) (3*(t₁/ρ^1 * w₂))]
+      _ ≤ ((|t₃/ρ^3 * w₀| + |3*(t₂/ρ^2 * w₁)|) + |3*(t₁/ρ^1 * w₂)|)
+            + |t₀/ρ^0 * w₃| := by
+          linarith [abs_sub (t₃/ρ^3 * w₀) (3*(t₂/ρ^2 * w₁))]
+      _ = |t₃/ρ^3 * w₀| + 3*|t₂/ρ^2 * w₁| + 3*|t₁/ρ^1 * w₂|
+            + |t₀/ρ^0 * w₃| := by rw [h3, h3']
+  refine le_trans htri ?_
+  -- collect: normalise the powers in each bound
+  have e₃' : |t₃/ρ^3 * w₀| ≤ C/ρ^3 := by
+    refine le_trans e₃ (le_of_eq ?_); ring
+  have e₂' : |t₂/ρ^2 * w₁| ≤ C^2/ρ^2 := by
+    refine le_trans e₂ (le_of_eq ?_); ring
+  have e₁' : |t₁/ρ^1 * w₂| ≤ C^2/ρ := by
+    refine le_trans e₁ (le_of_eq ?_); rw [pow_one]; ring
+  have e₀' : |t₀/ρ^0 * w₃| ≤ C := by
+    refine le_trans e₀ (le_of_eq ?_); rw [pow_zero]; ring
+  have r2 : 3*C^2/ρ^2 = 3*(C^2/ρ^2) := by ring
+  have r3 : 3*C^2/ρ = 3*(C^2/ρ) := by ring
+  linarith [e₀', e₁', e₂', e₃', r2.le, r2.ge, r3.le, r3.ge]
 end ExpSums
 
 end MoltResearch
