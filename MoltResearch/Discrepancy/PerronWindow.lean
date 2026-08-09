@@ -2694,6 +2694,34 @@ theorem alternating_three_bound (S S₁ S₂ S₃ C ρ : ℝ)
   have hC2 : (0:ℝ) ≤ C^2 := sq_nonneg C
   nlinarith [hC0, hC2, hp1, hp2, hp3, hρ0.le, pow_nonneg hC0 3,
     mul_nonneg hC0 hC0]
+
+/-- **A Leibniz term of the window's derivatives** (Track R, N124): for
+`0 < ρ`, `|u| ≤ B`, `|w| ≤ D` and `j : ℕ`,
+
+  `|u/ρ^j · w| ≤ B·D/ρ^j`.
+
+Every term of `S^{(i)} = (σ(·/ρ)·(1−σ(·−a)))^{(i)}` has this shape: the
+chain rule puts `σ^{(j)}(v/ρ)` over `ρ^j`, and the other factor is some
+`σ^{(i−j)}(v−a)` or `1−σ(v−a)`, each bounded by `C` or `1`.
+
+The `M₂` proof does this inline four times, at `j = 0, 1, 2`, with the
+`abs_mul`/`abs_div`/`abs_of_pos`/`mul_le_mul` dance written out each
+time; `M₃` needs it four more times at `j = 0, 1, 2, 3`.  Extracting it
+once turns each of those into a single `exact`.
+
+Stated with `ρ^j` rather than a fixed power so the same lemma covers
+every order, which is what makes it worth extracting rather than
+copying. -/
+theorem abs_div_pow_mul_le (u w B D ρ : ℝ) (j : ℕ) (hρ0 : 0 < ρ)
+    (hu : |u| ≤ B) (hw : |w| ≤ D) :
+    |u/ρ^j * w| ≤ B*D/ρ^j := by
+  have hρj : (0:ℝ) < ρ^j := by positivity
+  have hB0 : (0:ℝ) ≤ B := le_trans (abs_nonneg u) hu
+  rw [abs_mul, abs_div, abs_of_pos hρj]
+  calc |u|/ρ^j * |w| ≤ B/ρ^j * D := by
+        refine mul_le_mul ?_ hw (abs_nonneg _) (by positivity)
+        exact div_le_div_of_nonneg_right hu hρj.le
+    _ = B*D/ρ^j := by ring
 end ExpSums
 
 end MoltResearch
