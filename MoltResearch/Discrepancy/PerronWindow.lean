@@ -2629,6 +2629,71 @@ theorem iteratedDeriv_three_exp_neg_mul (g g₁ g₂ g₃ : ℝ → ℝ)
     funext fun v => (hd2 v).deriv
   rw [he2]
   exact funext fun v => (hd3 v).deriv
+
+/-- **The third-order window constant** (Track R, N123): with the
+Perron window's derivative bounds,
+
+  `|S₃ − 3S₂ + 3S₁ − S| ≤ 27(C+1)³/ρ³`.
+
+The arithmetic the `M₃` bound rests on, packaged.  The hypotheses are
+exactly the shapes the `M₂` proof already establishes for `S`, `S₁`,
+`S₂` — each Leibniz term of `S^{(i)} = (σ(·/ρ)·(1−σ(·−a)))^{(i)}`
+contributes `σ^{(j)}(v/ρ)/ρ^j` against `σ^{(i−j)}(v−a)`, so the
+`ρ`-powers accumulate exactly as stated.
+
+Collecting under `ρ ≤ 1` turns the whole alternating sum into
+`(12C² + 14C + 1)/ρ³`, which `27(C+1)³/ρ³` dominates with room to
+spare.  The constant is not sharp and does not need to be: it enters
+`M₃` and thence `Mtail`, and the audit that fixes `ρ` only needs the
+`ρ^{−3}` scaling.
+
+Separated from the derivative formula deliberately.  This can be
+checked before `S₃` is computed, and it is the part the `M₂` proof
+spends most of its length on. -/
+theorem alternating_three_bound (S S₁ S₂ S₃ C ρ : ℝ)
+    (hC0 : 0 ≤ C) (hρ0 : 0 < ρ) (hρ1 : ρ ≤ 1)
+    (hS : |S| ≤ 1) (hS₁ : |S₁| ≤ C/ρ + C)
+    (hS₂ : |S₂| ≤ C/ρ^2 + 2*C^2/ρ + C)
+    (hS₃ : |S₃| ≤ C/ρ^3 + 3*C^2/ρ^2 + 3*C^2/ρ + C) :
+    |S₃ - 3*S₂ + 3*S₁ - S| ≤ 27*(C+1)^3/ρ^3 := by
+  have hρ2 : (0:ℝ) < ρ^2 := by positivity
+  have hρ3 : (0:ℝ) < ρ^3 := by positivity
+  -- the triangle inequality on the alternating sum
+  have htri : |S₃ - 3*S₂ + 3*S₁ - S| ≤ |S₃| + 3*|S₂| + 3*|S₁| + |S| := by
+    have h3 : |3*S₂| = 3*|S₂| := by
+      rw [abs_mul, show |(3:ℝ)| = 3 from by norm_num]
+    have h3' : |3*S₁| = 3*|S₁| := by
+      rw [abs_mul, show |(3:ℝ)| = 3 from by norm_num]
+    calc |S₃ - 3*S₂ + 3*S₁ - S|
+        ≤ |S₃ - 3*S₂ + 3*S₁| + |S| := abs_sub _ _
+      _ ≤ (|S₃ - 3*S₂| + |3*S₁|) + |S| := by
+          linarith [abs_add_le (S₃ - 3*S₂) (3*S₁)]
+      _ ≤ ((|S₃| + |3*S₂|) + |3*S₁|) + |S| := by
+          linarith [abs_sub S₃ (3*S₂)]
+      _ = |S₃| + 3*|S₂| + 3*|S₁| + |S| := by rw [h3, h3']
+  refine le_trans htri ?_
+  -- collect the four bounds
+  have hsum : |S₃| + 3*|S₂| + 3*|S₁| + |S|
+      ≤ (C/ρ^3 + 3*C^2/ρ^2 + 3*C^2/ρ + C)
+        + 3*(C/ρ^2 + 2*C^2/ρ + C) + 3*(C/ρ + C) + 1 := by
+    linarith [hS, hS₁, hS₂, hS₃]
+  refine le_trans hsum ?_
+  -- clear the denominators once, then compare coefficient by coefficient
+  have hρne : ρ ≠ 0 := ne_of_gt hρ0
+  rw [le_div_iff₀ hρ3]
+  have hexp : ((C/ρ^3 + 3*C^2/ρ^2 + 3*C^2/ρ + C)
+      + 3*(C/ρ^2 + 2*C^2/ρ + C) + 3*(C/ρ + C) + 1) * ρ^3
+      = C + 3*C^2*ρ + 9*C^2*ρ^2 + 7*C*ρ^3 + 3*C*ρ + 3*C*ρ^2 + ρ^3 := by
+    field_simp
+    ring
+  rw [hexp]
+  -- every power of `ρ` is at most `1`
+  have hp1 : ρ^1 ≤ 1 := by simpa using hρ1
+  have hp2 : ρ^2 ≤ 1 := by nlinarith [hρ0.le, hρ1]
+  have hp3 : ρ^3 ≤ 1 := by nlinarith [hρ0.le, hρ1, hp2]
+  have hC2 : (0:ℝ) ≤ C^2 := sq_nonneg C
+  nlinarith [hC0, hC2, hp1, hp2, hp3, hρ0.le, pow_nonneg hC0 3,
+    mul_nonneg hC0 hC0]
 end ExpSums
 
 end MoltResearch
