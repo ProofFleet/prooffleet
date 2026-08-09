@@ -2993,6 +2993,47 @@ theorem deriv_eq_zero_of_eventually_const_Ioi (g : ℝ → ℝ) (k c : ℝ)
     Filter.eventuallyEq_of_mem (IsOpen.mem_nhds isOpen_Ioi hu)
       (fun x hx => hg x hx)
   rw [heq.deriv_eq, deriv_const]
+
+/-- **Every derivative vanishes where a function is locally constant**
+(Track R, N130): if `f = k` throughout an open `s` and `v ∈ s`, then
+
+  `iteratedDeriv (n+1) f v = 0`  for every `n`.
+
+The all-orders form of `deriv_eq_zero_of_eventually_const_Iio`.  The
+induction is on the *function* rather than the order: `deriv f` is
+identically `0` on `s`, so it is itself locally constant there and the
+hypothesis reproduces itself.
+
+This is what the window needs off its support.  `V` vanishes on
+`(−∞, 0)` and on `(2Y+2, ∞)`, both open, so **all** of its derivatives
+vanish there — including the third, without computing `S₃` at those
+points.  That gives `iteratedDeriv 3 V` compact support, the last
+hypothesis `integral_abs_le_of_indicator_exp` needs.
+
+Stated for an arbitrary open set rather than for `Iio`/`Ioi`
+separately, so the two sides of the window are one instantiation each
+rather than two proofs. -/
+theorem iteratedDeriv_succ_eq_zero_of_const_on (f : ℝ → ℝ) (k : ℝ)
+    (s : Set ℝ) (hs : IsOpen s) (hf : ∀ u ∈ s, f u = k) :
+    ∀ (n : ℕ), ∀ v ∈ s, iteratedDeriv (n+1) f v = 0 := by
+  intro n
+  induction n generalizing f k with
+  | zero =>
+    intro v hv
+    rw [iteratedDeriv_one]
+    have heq : f =ᶠ[nhds v] (fun _ => k) :=
+      Filter.eventuallyEq_of_mem (hs.mem_nhds hv) (fun x hx => hf x hx)
+    rw [heq.deriv_eq, deriv_const]
+  | succ m ih =>
+    intro v hv
+    -- `deriv f` is identically `0` on `s`
+    have hd : ∀ u ∈ s, deriv f u = 0 := by
+      intro u hu
+      have heq : f =ᶠ[nhds u] (fun _ => k) :=
+        Filter.eventuallyEq_of_mem (hs.mem_nhds hu) (fun x hx => hf x hx)
+      rw [heq.deriv_eq, deriv_const]
+    rw [iteratedDeriv_succ']
+    exact ih (deriv f) 0 hd v hv
 end ExpSums
 
 end MoltResearch
