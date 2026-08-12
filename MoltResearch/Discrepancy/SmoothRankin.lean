@@ -7972,4 +7972,81 @@ theorem two_mul_ceil_scale_le_of_sq_le (T : ℝ) (m : ℕ) (hT : 5 ≤ T)
     linarith [hceil, hkey]
   exact_mod_cast hreal
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The centred energy of the `q`-polynomial, at free `T`** (Track R,
+N137): for `Q` a set of primes with `T² ≤ q` throughout,
+
+  `∫_{−T}^{T}‖∑_q w(q)·𝐞(−u log q)‖² du
+     ≤ e^π·T·∑_q (6144·⌈2q/T⌉ + log q + e^{−πT²/64}·B)·(log q/q²)`.
+
+`ghsPrime_centred_energy_le` re-derived through
+`intervalIntegral_vonMangoldt_mvt_prime_le`, with **no `√X` term** and
+`T` left free.
+
+The two changes are what make the bound say something.  Summed against
+`∑_q log q/q² = O(1)`, the old `(√X+1)log₂X·logX` contributed
+`≍ √X·log²X` and `e^{−π}·B` contributed `≍ X`, while the intended main
+term is `≍ log X` — so the old statement was true but vacuous.  Here
+the first is gone identically, and the second is `e^{−πT²/64}·B`, which
+the caller kills by taking `T ≍ √(log X)`.
+
+`T` does not appear in the leading term's size: `T·⌈2q/T⌉ ≍ q`, so the
+prefactor `e^π·T` and the `1/T` inside cancel, and the main term stays
+`≍ ∑_q log q/q ≍ log X` at every `T`.  Raising `T` is therefore free,
+and `two_mul_ceil_scale_le_of_sq_le` supplies the shell condition from
+the threshold alone. -/
+theorem ghsPrime_centred_energy_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (Q : Finset ℕ) (T : ℝ) (hT : 5 ≤ T)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQT : ∀ q ∈ Q, T^2 ≤ (q:ℝ))
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ q ∈ Q, Real.log (q:ℝ) ≤ B)
+    (w : ℕ → ℂ)
+    (hw : ∀ q ∈ Q, ‖w q‖ = ‖(((Real.log (q:ℝ) : ℝ):ℂ) * f q) / (q:ℂ)‖) :
+    (∫ u in (-T)..T,
+        ‖∑ q ∈ Q, w q
+          * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T * ∑ q ∈ Q,
+          (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+            + Real.exp (-(π*T^2/64)) * B)
+          * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+  classical
+  -- rewrite into von Mangoldt shape
+  have hrw : (∫ u in (-T)..T,
+      ‖∑ q ∈ Q, w q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      = ∫ u in (-T)..T,
+        ‖∑ q ∈ Q, ((w q / ((vonMangoldt q : ℝ):ℂ))
+            * ((vonMangoldt q : ℝ):ℂ))
+          * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2 := by
+    refine intervalIntegral.integral_congr fun u _ => ?_
+    rw [prime_poly_as_vonMangoldt Q hQp w u]
+  rw [hrw]
+  -- the mean value theorem, prime-restricted, at this `T`
+  have hmvt := intervalIntegral_vonMangoldt_mvt_prime_le T Q
+    (fun q => w q / ((vonMangoldt q : ℝ):ℂ)) hQp
+    (fun q hq => (hQp q hq).one_lt.le) (by linarith)
+    hQT
+    (fun m hm => two_mul_ceil_scale_le_of_sq_le T m hT (hQT m hm))
+    B hB
+  refine le_trans hmvt ?_
+  -- replace the coefficient energy by its bound
+  have hcoef : ∀ q ∈ Q,
+      (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + Real.exp (-(π*T^2/64)) * B)
+      * (‖w q / ((vonMangoldt q : ℝ):ℂ)‖^2 * vonMangoldt q)
+      ≤ (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+          + Real.exp (-(π*T^2/64)) * B)
+        * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+    intro q hq
+    have hbig : (0:ℝ) ≤ 6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + Real.exp (-(π*T^2/64)) * B := by
+      have h1 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+      have h2 : (0:ℝ) ≤ Real.exp (-(π*T^2/64)) * B :=
+        mul_nonneg (Real.exp_pos _).le hB0
+      positivity
+    refine mul_le_mul_of_nonneg_left ?_ hbig
+    exact recovered_coeff_sq_le f hf q (hQp q hq) (w q) (hw q hq)
+  have hstep := Finset.sum_le_sum hcoef
+  have hexp0 : (0:ℝ) ≤ Real.exp π * T := by positivity
+  exact mul_le_mul_of_nonneg_left hstep hexp0
+
 end MoltResearch
