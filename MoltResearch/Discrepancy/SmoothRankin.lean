@@ -8075,6 +8075,65 @@ theorem ghsPrime_centred_energy_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖
   exact mul_le_mul_of_nonneg_left hstep hexp0
 
 open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The per-frequency energy of `P₃`, at free `T`** (Track R, N140):
+for every frequency `N`, with `Q` a set of primes and `T² ≤ q`
+throughout,
+
+  `∫_{N−1/2}^{N+1/2} ‖P₃(t)‖² dt
+     ≤ e^π·T·∑_q (6144·⌈2q/T⌉ + log q + e^{−πT²/64}·B)·(log q/q²)`.
+
+`ghsPrimePoly_unit_energy_le` re-derived through
+`ghsPrime_centred_energy_free_le`.  The three-step structure is
+unchanged — `integral_unit_sq_le_of_centred` moves `N` to the origin,
+`integral_symm_widen` opens `[−1/2, 1/2]` to `[−T, T]`, the centred
+estimate closes it — and `integral_symm_widen` never cared what `T`
+was, only that `1/2 ≤ T`, which `5 ≤ T` gives.
+
+This is the `V₃` half of the repair.  With the `√X` term gone and `T`
+free, `V₃ ≍ ∑_q log q/q ≍ log X` at `T ≍ √(log X)` — the magnitude
+`ghsPrimePoly_unit_energy_le`'s docstring claimed but did not
+deliver. -/
+theorem ghsPrimePoly_unit_energy_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (Q : Finset ℕ) (T : ℝ) (hT : 5 ≤ T)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQT : ∀ q ∈ Q, T^2 ≤ (q:ℝ))
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ q ∈ Q, Real.log (q:ℝ) ≤ B)
+    (hwide : ∀ w : ℕ → ℂ, IntervalIntegrable
+      (fun u => ‖∑ q ∈ Q, w q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      volume (-T) T)
+    (N : ℝ) :
+    (∫ t in (N - 1/2)..(N + 1/2), ‖ghsPrimePoly f Q t‖^2)
+      ≤ Real.exp π * T * ∑ q ∈ Q,
+          (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+            + Real.exp (-(π*T^2/64)) * B)
+          * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+  classical
+  set V : ℝ := Real.exp π * T * ∑ q ∈ Q,
+      (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + Real.exp (-(π*T^2/64)) * B)
+      * (Real.log (q:ℝ)/(q:ℝ)^2) with hV_def
+  set c : ℕ → ℂ := fun q =>
+    (((Real.log (q:ℝ) : ℝ):ℂ) * f q) / (q:ℂ) with hc_def
+  have hpoly : ∀ t : ℝ, ghsPrimePoly f Q t
+      = ∑ q ∈ Q, c q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * t)) : Circle) : ℂ) := by
+    intro t
+    rw [ghsPrimePoly]
+  simp only [hpoly]
+  refine ExpSums.integral_unit_sq_le_of_centred Q c
+    (fun q => Real.log (q:ℝ)) V ?_ N
+  intro w' hw'
+  have hb : (-(1:ℝ)/2) = -((1:ℝ)/2) := by ring
+  rw [hb]
+  refine le_trans (integral_symm_widen
+    (fun u => ‖∑ q ∈ Q, w' q
+      * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+    (fun t => by positivity) ((1:ℝ)/2) T (by norm_num) (by linarith)
+    (hwide w')) ?_
+  exact ghsPrime_centred_energy_free_le f hf Q T hT hQp hQT B hB0 hB w'
+    (fun q _ => hw' q)
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
 /-- **The band energy of `P_k` at free `T`** (Track R, N138): for `P` a
 set of primes with `T² ≤ p` throughout and `2p ≤ x`,
 
