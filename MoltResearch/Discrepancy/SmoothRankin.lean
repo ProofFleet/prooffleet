@@ -7930,4 +7930,46 @@ theorem intervalIntegral_vonMangoldt_mvt_prime_le (T : ℝ)
   intro m hm
   exact inner_sum_prime_le T m S hSp hS1 hT (hTm m hm) (hsmall m hm) B hB
 
+open Real Finset in
+/-- **The smallness condition follows from the threshold** (Track R,
+N136): for `5 ≤ T` and `T² ≤ m`,
+
+  `2·⌈2m/T⌉ ≤ m`.
+
+`two_mul_ceil_quarter_le` proves this at `T = 8` from `4 ≤ m`; at
+general `T` the threshold `T² ≤ m` already gives it, so the mean value
+theorem's two side conditions collapse into one.
+
+The computation: `2⌈2m/T⌉ ≤ 4m/T + 2 ≤ m` iff `m(T−4)/T ≥ 2`, and
+`m ≥ T²` makes the left side at least `T(T−4)`, which exceeds `2` from
+`T ≥ 5` on.
+
+This is what lets `T` be raised without carrying a second hypothesis.
+It matters because raising `T` is the fix for the mean value theorem's
+`e^{−πT²/64}·B` term — free on the main term, since `T·⌈2m/T⌉ ≍ m` —
+and a `T`-dependent smallness condition would have made that
+re-parametrisation cost a lemma at every call site. -/
+theorem two_mul_ceil_scale_le_of_sq_le (T : ℝ) (m : ℕ) (hT : 5 ≤ T)
+    (hTm : T^2 ≤ (m:ℝ)) :
+    2*(⌈2*(m:ℝ)/T⌉₊) ≤ m := by
+  have hT0 : (0:ℝ) < T := by linarith
+  have hm0 : (0:ℝ) ≤ (m:ℝ) := Nat.cast_nonneg _
+  -- `m ≥ T²  ⟹  m ≥ 25`
+  have hm25 : (25:ℝ) ≤ (m:ℝ) := by nlinarith [hTm, hT]
+  -- name the quotient: `linarith` will not identify `4m/T` with `2*(2m/T)`
+  set u : ℝ := (m:ℝ)/T with hu_def
+  have h2u : 2*(m:ℝ)/T = 2*u := by rw [hu_def]; ring
+  have h4u : 4*(m:ℝ)/T = 4*u := by rw [hu_def]; ring
+  have hceil : ((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) < 2*u + 1 := by
+    rw [← h2u]
+    exact Nat.ceil_lt_add_one (by positivity)
+  -- `4u + 2 ≤ m` since `m(T−4) ≥ T²(T−4) ≥ 2T`
+  have hkey : 4*u + 2 ≤ (m:ℝ) := by
+    rw [← h4u, div_add' _ _ _ (ne_of_gt hT0), div_le_iff₀ hT0]
+    nlinarith [hTm, hT, hm25, hT0]
+  have hreal : ((2*(⌈2*(m:ℝ)/T⌉₊) : ℕ):ℝ) ≤ (m:ℝ) := by
+    push_cast
+    linarith [hceil, hkey]
+  exact_mod_cast hreal
+
 end MoltResearch
