@@ -8144,4 +8144,54 @@ theorem ghsBlock_centred_energy_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖
   have hexp0 : (0:ℝ) ≤ Real.exp π * T := by positivity
   exact mul_le_mul_of_nonneg_left hstep hexp0
 
+open Real in
+/-- **The mean value theorem's summand, at free `T`** (Track R, N142):
+for `2 ≤ q`, `0 < T`, any `R`, and any weight `D ≥ 0`,
+
+  `(6144·⌈2q/T⌉ + log q + R)·(log q/(q²D))
+     ≤ (12288/T)·(log q/(qD)) + (6144 + R + log q)·(log q/(q²D))`.
+
+`ghsPrime_mvt_summand_le` and `ghsBlock_mvt_summand_le` at once, with
+`8` replaced by a free `T`.  The single change is arithmetic:
+`⌈2q/T⌉ ≤ 2q/T + 1`, so the leading constant is `6144·2/T = 12288/T`
+rather than the `1536` that `T = 8` produced.
+
+That `1/T` is the whole reason raising `T` is free.  The mean value
+theorem carries a prefactor `T`, so `T·(12288/T) = 12288` — the leading
+term does not move.  The additive `e^{−πT²/64}·B`, which is what forced
+this repair, is damped by `T` with nothing to pay for it.
+
+`D` is carried as a parameter so that both call sites use this: `D = 1`
+for `P₃`'s `log q/q²`, and `D = log²(x/p)` for `P₂`'s. -/
+theorem mvt_summand_free_le (q : ℕ) (hq : 2 ≤ q) (T : ℝ) (hT : 0 < T)
+    (R D : ℝ) (hD : 0 ≤ D) :
+    (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ) + R)
+        * (Real.log (q:ℝ)/((q:ℝ)^2 * D))
+      ≤ (12288/T) * (Real.log (q:ℝ)/((q:ℝ) * D))
+        + (6144 + R + Real.log (q:ℝ)) * (Real.log (q:ℝ)/((q:ℝ)^2 * D)) := by
+  have hq0 : (0:ℝ) < (q:ℝ) := by
+    have : (2:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+    linarith
+  have hlog0 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+  -- the ceiling is at most `2q/T + 1`
+  have hceil : ((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) ≤ 2*(q:ℝ)/T + 1 :=
+    (Nat.ceil_lt_add_one (by positivity)).le
+  have hmass : (0:ℝ) ≤ Real.log (q:ℝ)/((q:ℝ)^2 * D) := by positivity
+  -- the leading piece, where the `1/T` and one power of `q` cancel
+  have hlead : 6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ)
+        * (Real.log (q:ℝ)/((q:ℝ)^2 * D))
+      ≤ (12288/T) * (Real.log (q:ℝ)/((q:ℝ) * D))
+        + 6144 * (Real.log (q:ℝ)/((q:ℝ)^2 * D)) := by
+    have hstep : 6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ)
+          * (Real.log (q:ℝ)/((q:ℝ)^2 * D))
+        ≤ 6144*(2*(q:ℝ)/T + 1) * (Real.log (q:ℝ)/((q:ℝ)^2 * D)) := by
+      refine mul_le_mul_of_nonneg_right ?_ hmass
+      linarith [hceil]
+    refine le_trans hstep (le_of_eq ?_)
+    rcases eq_or_lt_of_le hD with hD0 | hDpos
+    · simp [← hD0]
+    · field_simp
+      ring
+  nlinarith [hlead, hmass, hlog0]
+
 end MoltResearch
