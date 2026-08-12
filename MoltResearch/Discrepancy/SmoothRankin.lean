@@ -8416,6 +8416,57 @@ theorem mvt_summand_absorbed_le (q : ℕ) (hq : 2 ≤ q) (T : ℝ) (hT : 0 < T)
   linarith [hbase, habs, hlead]
 
 open Real Finset in
+/-- **The `V₃` energy sum, at free `T`** (Track R, N146): for `Q` a set
+of primes in `[2, X]` with `T² ≤ q`, and any `R ≥ 0`,
+
+  `∑_q (6144·⌈2q/T⌉ + log q + R)·(log q/q²)
+     ≤ (12290/T)·(log(X+1) + 2) + (6144 + R)·4`.
+
+The `V₃` counterpart of `ghsBlock_energy_sum_free_le`, and the point at
+which `V₃`'s magnitude finally reads off correctly.  After the mean
+value theorem's prefactor `T`,
+
+  `T·[(12290/T)(log(X+1) + 2) + (6144 + R)·4]
+     = 12290·(log(X+1) + 2) + 4T·(6144 + R)`,
+
+so `V₃ ≍ log X + T·R` with `R = e^{−πT²/64}·B`.  Taking `T = 5√(log X)`
+makes `πT²/64 = (25π/64)log X` and `B ≍ X`, so `T·R ≍ X^{−0.22}√(log X)
+→ 0`, leaving `V₃ ≍ log X` — which at `X = x^{e^{1−k}}` is the
+`≍ e^{−k}log x` whose cancellation against `E₁`'s `e^{k}` leaves `L(x)`
+with no residual `k`.
+
+That is the magnitude `ghsPrimePoly_unit_energy_le`'s docstring claimed
+from the start.  It is true here and was not true there: at `T = 8` the
+`e^{−π}·B ≍ 0.043X` term alone exceeded it by `≍ X/log X`. -/
+theorem ghsPrime_energy_sum_free_le (Q : Finset ℕ) (X : ℕ) (hX : 2 ≤ X)
+    (T : ℝ) (hT : 0 < T)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQX : ∀ q ∈ Q, q ≤ X)
+    (hQT : ∀ q ∈ Q, T^2 ≤ (q:ℝ)) (R : ℝ) (hR : 0 ≤ R) :
+    ∑ q ∈ Q, (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ) + R)
+        * (Real.log (q:ℝ)/(q:ℝ)^2)
+      ≤ (12290/T) * (Real.log ((X+1 : ℕ):ℝ) + 2) + (6144 + R) * 4 := by
+  classical
+  obtain ⟨hmass1, hmass2⟩ := prime_masses_le Q X hX hQp
+    (fun q hq => (hQp q hq).two_le) hQX
+  -- the absorbed summand at `D = 1`
+  have hterm : ∀ q ∈ Q,
+      (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ) + R)
+          * (Real.log (q:ℝ)/(q:ℝ)^2)
+        ≤ (12290/T) * (Real.log (q:ℝ)/(q:ℝ))
+          + (6144 + R) * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+    intro q hq
+    have h := mvt_summand_absorbed_le q (hQp q hq).two_le T hT (hQT q hq)
+      R 1 zero_le_one
+    simpa using h
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  have hR6 : (0:ℝ) ≤ 6144 + R := by linarith
+  have hT0 : (0:ℝ) ≤ 12290/T := by positivity
+  have h1 := mul_le_mul_of_nonneg_left hmass1 hT0
+  have h2 := mul_le_mul_of_nonneg_left hmass2 hR6
+  linarith
+
+open Real Finset in
 /-- **The `E₁` energy sum over a block, at free `T`** (Track R, N145):
 for `P` a set of primes in the `k`-th block of `x` with `2p ≤ x` and
 `T² ≤ p`, and any `R ≥ 0`,
