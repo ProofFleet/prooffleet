@@ -7821,4 +7821,73 @@ theorem vonMangoldt_gaussian_prime_le (T : ℝ) (m h J : ℕ) (S : Finset ℕ)
   exact ExpSums.prime_gaussian_long_le T m h J S hS1 hm1 hh hscale hfit
     hwfit hreach L hL B hB
 
+open Real Finset ArithmeticFunction in
+/-- **The inner pair sum over a prime set** (Track R, N134): for `S` a
+set of primes and `T² ≤ m`,
+
+  `∑_{n∈S} Λ(n)·e^{−πT²(log n − log m)²}
+     ≤ 6144·⌈2m/T⌉ + log m + e^{−πT²/64}·B`.
+
+`inner_sum_long_le` with the `√X` term removed, by
+`vonMangoldt_gaussian_prime_le`.  The shell construction is unchanged —
+only the prime-power branch it never needed is gone.
+
+Two consequences for the mean value theorem this feeds:
+
+* the bound no longer mentions the *range* `X` at all, so it does not
+  degrade as the prime set grows;
+* the only surviving additive term is `e^{−πT²/64}·B`, and that one is
+  killed by taking `T` large rather than fixed — at `T ≍ √(log X)` it
+  is `O(1)` while the leading `6144·⌈2m/T⌉` still gives `≍ m` after the
+  mean value theorem's factor `T`, since `T·⌈2m/T⌉ ≍ m` is
+  `T`-independent.
+
+That second point is what the original `T = 8` choice missed: `T` was
+fixed at the smallest value satisfying the shell conditions, on the
+grounds that larger `T` only raises the threshold `T² ≤ m`.  It also
+damps `B`, which is the difference between a usable bound and a
+vacuous one. -/
+theorem inner_sum_prime_le (T : ℝ) (m : ℕ) (S : Finset ℕ)
+    (hSp : ∀ n ∈ S, n.Prime) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (hT : 2 ≤ T) (hTm : T^2 ≤ (m:ℝ))
+    (hsmall : 2*(⌈2*(m:ℝ)/T⌉₊) ≤ m)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      ≤ 6144*((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (m:ℝ)
+        + Real.exp (-(π*T^2/64)) * B := by
+  classical
+  set h : ℕ := ⌈2*(m:ℝ)/T⌉₊ with hh_def
+  have hT0 : (0:ℝ) < T := by linarith
+  have hm4 : (4:ℝ) ≤ (m:ℝ) := by nlinarith [hTm, hT]
+  have hm1 : 1 ≤ m := by
+    have : (1:ℝ) ≤ (m:ℝ) := by linarith
+    exact_mod_cast this
+  have hh2 : 2 ≤ h := ExpSums.two_le_ceil_scale T m hT hTm
+  have hscale : 2*(m:ℝ) ≤ (h:ℝ)*T := ExpSums.ceil_scale_mul_le T m hT0
+  have hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ 6 :=
+    ExpSums.log_ratio_ceil_scale_le T m hT hTm
+  obtain ⟨J, hfit, hmax, hwfit⟩ :=
+    ExpSums.exists_shell_count m h hm1 (by omega)
+  have hsucc : (2^(J+1) - 1)*h = (2^J - 1)*h + 2^J*h :=
+    ExpSums.dyadic_cut_succ h J
+  have hJh : (2:ℕ)^J*h = (2^J - 1)*h + h := by
+    have h1 : (1:ℕ) ≤ 2^J := Nat.one_le_two_pow
+    have h2 : (2:ℕ)^J = (2^J - 1) + 1 := by omega
+    calc (2:ℕ)^J*h = ((2^J - 1) + 1)*h := by rw [← h2]
+      _ = (2^J - 1)*h + h := by ring
+  have hreach : m ≤ 4*((2^J - 1)*h) := by omega
+  -- the pair sum, with the arguments in the order the prime lemma wants
+  have hsym : ∀ n : ℕ, Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      = Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2)) := by
+    intro n
+    congr 2
+    ring
+  simp only [hsym]
+  refine le_trans (vonMangoldt_gaussian_prime_le T m h J S hSp hS1 hm1 hh2
+    hscale hfit hwfit hreach 6 hL B hB) ?_
+  have hh0 : (0:ℝ) ≤ (h:ℝ) := Nat.cast_nonneg _
+  have hcalc : 1024*(h:ℝ)*6 = 6144*(h:ℝ) := by ring
+  linarith [hcalc]
+
 end MoltResearch
