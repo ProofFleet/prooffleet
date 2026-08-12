@@ -4784,7 +4784,17 @@ was derived from the reach condition `m ≤ 4a_J` alone rather than from
 `(N, 2N]`.
 
 This is what §4 applies to `q ≤ x^{e^{1−k}}` and to `P_k`, neither of
-which is dyadic. -/
+which is dyadic.
+
+**Superseded for §4 by `intervalIntegral_vonMangoldt_mvt_prime_le`.**
+The statement is correct, but the two *additive* bracket terms —
+`e^{−πT²/64}·B` and `(√X+1)·log₂X·log X` — are multiplied by
+`∑_m ‖a(m)‖²Λ(m)` when summed.  For coefficients that decay like
+`log q/q` that sum is `O(1)` while the leading term is only `≍ log⁴X`,
+so the additive terms dominate by `≍ X/log⁴X` and the bound says
+nothing.  On a *prime* set the `√X` term is identically zero, and the
+`B` term is killed by taking `T ≍ √(log X)` rather than `8` — free,
+since `T·⌈2m/T⌉ ≍ m` is `T`-independent. -/
 theorem intervalIntegral_vonMangoldt_mvt_long_le (T : ℝ) (X : ℕ)
     (S : Finset ℕ) (a : ℕ → ℂ)
     (hS1 : ∀ n ∈ S, 1 ≤ n) (hSX : ∀ n ∈ S, n ≤ X) (hX : 1 ≤ X)
@@ -5056,7 +5066,13 @@ smallness condition; larger `T` would raise the threshold on `q`
 without benefit.
 
 By `ghsPrime_mvt_summand_le` the right side is
-`≍ ∑_q log q/q`, which Mertens makes `≍ log Q`. -/
+`≍ ∑_q log q/q`, which Mertens makes `≍ log Q` — **but only for the
+`6144·⌈2q/8⌉` term.**  The additive `e^{−π}·B` and
+`(√X+1)log₂X·log X` are multiplied by `∑_q log q/q² = O(1)` and
+contribute `≍ X` and `≍ √X log²X`, so they dominate the `≍ log Q` they
+are compared against.  **Use `ghsPrime_centred_energy_free_le`**, which
+removes the first identically (prime support) and the second by leaving
+`T` free. -/
 theorem ghsPrime_centred_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     (Q : Finset ℕ) (X : ℕ) (hX : 1 ≤ X)
     (hQp : ∀ q ∈ Q, q.Prime) (hQ64 : ∀ q ∈ Q, 64 ≤ q) (hQX : ∀ q ∈ Q, q ≤ X)
@@ -5353,7 +5369,10 @@ to the polynomial directly.
 
 By `ghsBlock_mvt_summand_le` the right side is
 `≍ ∑_p log p/(p·log²(x/p))`, which
-`sum_log_div_sq_ratio_block_mass_le` makes `≍ e^{k}/log x`. -/
+`sum_log_div_sq_ratio_block_mass_le` makes `≍ e^{k}/log x` — **for the
+leading term only.**  As in `ghsPrime_centred_energy_le`, the additive
+`e^{−π}·B` and `(√X+1)log₂X·log X` are multiplied by an `O(1)` mass and
+swamp it.  **Use `ghsBlock_centred_energy_free_le`.** -/
 theorem ghsBlock_centred_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     (x : ℕ) (P : Finset ℕ) (X : ℕ) (hX : 1 ≤ X)
     (hPp : ∀ p ∈ P, p.Prime) (hP64 : ∀ p ∈ P, 64 ≤ p) (hPX : ∀ p ∈ P, p ≤ X)
@@ -5622,7 +5641,13 @@ needed: the two were built to meet.
 
 Against `V ≍ e^{−k}·log x` the product `E₁·V` is `≍ 1`, with the `k`
 cancelling — which is what leaves `L(x)` in §4's final bound with no
-residual dependence on the block index. -/
+residual dependence on the block index.
+
+**The `≍ e^{k}/log x` reading holds only for the leading term.**  This
+routes through `ghsBlock_centred_energy_le`, whose additive `e^{−π}·B`
+and `(√X+1)log₂X·log X` are multiplied by an `O(1)` mass and dominate
+at `≍ X`.  Re-derive through `ghsBlock_centred_energy_free_le` at
+`T ≍ √(log X)` for a bound that delivers the stated magnitude. -/
 theorem ghsBlock_E1_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     (x k X : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (hX : 2 ≤ X) (P : Finset ℕ)
     (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
