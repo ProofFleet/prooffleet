@@ -7890,4 +7890,44 @@ theorem inner_sum_prime_le (T : ℝ) (m : ℕ) (S : Finset ℕ)
   have hcalc : 1024*(h:ℝ)*6 = 6144*(h:ℝ) := by ring
   linarith [hcalc]
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **GHS Lemma 1 on a prime set, at any `T`** (Track R, N135): for `S`
+a set of primes with `T² ≤ m` throughout,
+
+  `∫_{−T}^{T}‖∑ a(n)Λ(n)·𝐞(−ξ log n)‖² dξ
+     ≤ e^π·T·∑_m (6144·⌈2m/T⌉ + log m + e^{−πT²/64}·B)·‖a(m)‖²·Λ(m)`.
+
+`intervalIntegral_vonMangoldt_mvt_long_le` with the `√X` term gone
+(`inner_sum_prime_le`) and `T` left free rather than instantiated at
+`8`.
+
+**Both changes matter, and the second only became visible once the
+first was made.**  The leading term is `T·⌈2m/T⌉ ≍ m`, *independent of
+`T`* — so raising `T` costs nothing on the main term while damping
+`e^{−πT²/64}·B` exponentially.  With `B ≥ ∑_{q≤X} log q ≍ X` and
+`T = 8` the damping factor is only `e^{−π} ≈ 0.043`, leaving `≍ X`;
+at `T ≍ √(log X)` it is `O(1)`.
+
+The price is the threshold `T² ≤ m`, which discards primes below
+`≍ log X`.  Against §4's coefficients their mass is `≍ log⁴log X`,
+negligible beside the `≍ log⁴X` main term.
+
+This is the statement §4 should have been using: no `X`-dependence, and
+the one remaining additive term under the caller's control. -/
+theorem intervalIntegral_vonMangoldt_mvt_prime_le (T : ℝ)
+    (S : Finset ℕ) (a : ℕ → ℂ)
+    (hSp : ∀ n ∈ S, n.Prime) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (hT : 2 ≤ T) (hTm : ∀ m ∈ S, T^2 ≤ (m:ℝ))
+    (hsmall : ∀ m ∈ S, 2*(⌈2*(m:ℝ)/T⌉₊) ≤ m)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((vonMangoldt n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T * ∑ m ∈ S,
+          (6144*((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (m:ℝ)
+            + Real.exp (-(π*T^2/64)) * B)
+          * (‖a m‖^2 * vonMangoldt m) := by
+  refine intervalIntegral_vonMangoldt_mvt_pointwise_le T (by linarith) S a _ ?_
+  intro m hm
+  exact inner_sum_prime_le T m S hSp hS1 hT (hTm m hm) (hsmall m hm) B hB
+
 end MoltResearch
