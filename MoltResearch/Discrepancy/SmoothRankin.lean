@@ -8194,4 +8194,63 @@ theorem mvt_summand_free_le (q : ℕ) (hq : 2 ≤ q) (T : ℝ) (hT : 0 < T)
       ring
   nlinarith [hlead, hmass, hlog0]
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **`E₁`, the whole-line weighted energy of `P_k`, at free `T`**
+(Track R, N141): with `S := ∑_p log p/(p·|log(x/p)|)` the trivial sup
+of `P₂`,
+
+  `∫_ℝ ‖P₂(ξ)‖²·w(ξ) dξ
+     ≤ C·e^π·T·∑_p (6144·⌈2p/T⌉ + log p + e^{−πT²/64}·B)
+              ·(log p/(p²·log²(x/p)))
+       + S²·Wtail`.
+
+`ghsBlock_weighted_energy_le` re-derived through
+`ghsBlock_centred_energy_free_le`.  `integral_sq_weight_le` was already
+stated at a free band width, so the split needs nothing new: only the
+band estimate changes.
+
+The band width now carries the threshold `T² ≤ p`, which is why `hP64`
+is gone — `64 ≤ p` was exactly that condition frozen at `T = 8`, and
+at free `T` the caller supplies it directly.  `X` disappears with the
+`√X` term it existed to name.
+
+The `Wtail` hypothesis moves with the band: the tail mass is measured
+beyond `T`, not beyond `8`.  For a normalised window that mass is
+`O(1/T)`, so widening the band makes this term *smaller* — the split
+keeps costing nothing. -/
+theorem ghsBlock_weighted_energy_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (P : Finset ℕ) (T : ℝ) (hT : 5 ≤ T)
+    (hPp : ∀ p ∈ P, p.Prime) (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ))
+    (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B)
+    (w : ℝ → ℝ) (C Wtail : ℝ)
+    (hC : ∀ ξ, w ξ ≤ C) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hWtail : (∫ ξ in {ξ : ℝ | T < |ξ|}, w ξ) ≤ Wtail)
+    (hint : Integrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ))
+    (hband : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      volume (-T) T)
+    (hband2 : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2)
+      volume (-T) T)
+    (htailP : IntegrableOn (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      {ξ : ℝ | T < |ξ|})
+    (htailw : IntegrableOn w {ξ : ℝ | T < |ξ|}) :
+    (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      ≤ C * (Real.exp π * T * ∑ p ∈ P,
+          (6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+            + Real.exp (-(π*T^2/64)) * B)
+          * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)))
+        + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+            * Wtail := by
+  classical
+  have hC0 : (0:ℝ) ≤ C := le_trans (hw0 0) (hC 0)
+  have hsplit := integral_sq_weight_le (ghsBlockPoly f x P) w T C
+    (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|)) Wtail
+    (by linarith) hC hw0 (norm_ghsBlockPoly_le f hf x P) hWtail
+    hint hband hband2 htailP htailw
+  refine le_trans hsplit ?_
+  have hband_le := ghsBlock_centred_energy_free_le f hf x P T hT hPp hPT h2p
+    B hB0 hB
+  have := mul_le_mul_of_nonneg_left hband_le hC0
+  linarith
+
 end MoltResearch
