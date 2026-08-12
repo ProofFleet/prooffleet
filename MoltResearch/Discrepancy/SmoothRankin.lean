@@ -8356,4 +8356,63 @@ theorem mvt_summand_absorbed_le (q : ℕ) (hq : 2 ≤ q) (T : ℝ) (hT : 0 < T)
   rw [hexp] at hbase
   linarith [hbase, habs, hlead]
 
+open Real Finset in
+/-- **The `E₁` energy sum over a block, at free `T`** (Track R, N145):
+for `P` a set of primes in the `k`-th block of `x` with `2p ≤ x` and
+`T² ≤ p`, and any `R ≥ 0`,
+
+  `∑_p (6144·⌈2p/T⌉ + log p + R)·(log p/(p²·log²(x/p)))
+     ≤ (12290/T)·(e^{2k}/log²x)(4((e−1)e^{−k}log x + log 2) + 4log 4)
+       + (6144 + R)·(4/log²2)`.
+
+`ghsBlock_energy_sum_le` re-derived through `mvt_summand_absorbed_le`.
+Two things changed and both matter.
+
+The leading constant is `12290/T` rather than `1536`, which is what
+makes the mean value theorem's prefactor `T` cancel: the product is
+`12290`, independent of `T`.
+
+And the residue is `6144 + R`, not `6144 + R + log X`.  The `log X`
+came from bounding the diagonal `log p` by its largest value over the
+whole range; multiplied by `T` it was the term that would have
+reintroduced a `√(log X)` loss.  `mvt_summand_absorbed_le` sends it
+into the leading term instead, where the threshold `T² ≤ p` pays for
+it.  `X` therefore disappears from the statement — this bound no longer
+degrades as the range grows.
+
+`hPX` is discharged from `2p ≤ x`, so no new hypothesis is needed to
+reach `block_masses_le`. -/
+theorem ghsBlock_energy_sum_free_le (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k)
+    (P : Finset ℕ) (T : ℝ) (hT : 0 < T)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ)) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (R : ℝ) (hR : 0 ≤ R) :
+    ∑ p ∈ P, (6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
+        * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2))
+      ≤ (12290/T) * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+            * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+                + Real.log 2) + 4 * Real.log 4))
+        + (6144 + R) * (4/(Real.log 2)^2) := by
+  classical
+  have hPx : ∀ p ∈ P, p ≤ x := fun p hp => by
+    have := h2p p hp; omega
+  obtain ⟨hmass1, hmass2⟩ := block_masses_le x k hx hk x hx P hP h2p hPx
+  -- the absorbed summand, at `D = log²(x/p)`
+  have hterm : ∀ p ∈ P,
+      (6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
+          * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2))
+        ≤ (12290/T)
+            * (Real.log (p:ℝ)/((p:ℝ) * (Real.log ((x:ℝ)/(p:ℝ)))^2))
+          + (6144 + R)
+            * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)) :=
+    fun p hp => mvt_summand_absorbed_le p (hP p hp).1.two_le T hT (hPT p hp)
+      R ((Real.log ((x:ℝ)/(p:ℝ)))^2) (sq_nonneg _)
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  have hR6 : (0:ℝ) ≤ 6144 + R := by linarith
+  have hT0 : (0:ℝ) ≤ 12290/T := by positivity
+  have h1 := mul_le_mul_of_nonneg_left hmass1 hT0
+  have h2 := mul_le_mul_of_nonneg_left hmass2 hR6
+  linarith
+
 end MoltResearch
