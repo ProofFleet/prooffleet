@@ -8049,4 +8049,74 @@ theorem ghsPrime_centred_energy_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖
   have hexp0 : (0:ℝ) ≤ Real.exp π * T := by positivity
   exact mul_le_mul_of_nonneg_left hstep hexp0
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The band energy of `P_k` at free `T`** (Track R, N138): for `P` a
+set of primes with `T² ≤ p` throughout and `2p ≤ x`,
+
+  `∫_{−T}^{T}‖P₂(ξ)‖² dξ
+     ≤ e^π·T·∑_p (6144·⌈2p/T⌉ + log p + e^{−πT²/64}·B)
+              ·(log p/(p²·log²(x/p)))`.
+
+The `E₁` counterpart of `ghsPrime_centred_energy_free_le`: GHS's
+Lemma 1 applied to `P₂` through the prime-restricted mean value theorem,
+with no `√X` term and `T` free.
+
+Same repair, same reason.  Against `∑_p log p/(p²log²(x/p)) = O(1)` the
+old statement's `√X`- and `B`-terms contributed `≍ √X log²X` and `≍ X`
+while the intended main term is `≍ e^{k}/log x`, so `ghsBlock_E1_le`'s
+docstring claim was not what the formal bound gave.  With both removed,
+`E₁ ≍ e^{k}/log x` is what the statement actually delivers at
+`T ≍ √(log X)`.
+
+`P₂` is prime-supported for the same reason `P₃` is — the block is a
+set of primes — so the restriction costs nothing here either. -/
+theorem ghsBlock_centred_energy_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (P : Finset ℕ) (T : ℝ) (hT : 5 ≤ T)
+    (hPp : ∀ p ∈ P, p.Prime) (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ))
+    (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B) :
+    (∫ ξ in (-T)..T, ‖ghsBlockPoly f x P ξ‖^2)
+      ≤ Real.exp π * T * ∑ p ∈ P,
+          (6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+            + Real.exp (-(π*T^2/64)) * B)
+          * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)) := by
+  classical
+  -- rewrite into von Mangoldt shape
+  have hrw : (∫ ξ in (-T)..T, ‖ghsBlockPoly f x P ξ‖^2)
+      = ∫ ξ in (-T)..T,
+        ‖∑ p ∈ P, ((f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ)))
+            * ((vonMangoldt p : ℝ):ℂ))
+          * ((Real.fourierChar (-(Real.log (p:ℝ) * ξ)) : Circle) : ℂ)‖^2 := by
+    refine intervalIntegral.integral_congr fun ξ _ => ?_
+    rw [ghsBlockPoly_eq_vonMangoldt_poly f x P hPp ξ]
+  rw [hrw]
+  -- the prime-restricted mean value theorem at this `T`
+  have hmvt := intervalIntegral_vonMangoldt_mvt_prime_le T P
+    (fun p => f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ))) hPp
+    (fun p hp => (hPp p hp).one_lt.le) (by linarith)
+    hPT
+    (fun m hm => two_mul_ceil_scale_le_of_sq_le T m hT (hPT m hm))
+    B hB
+  refine le_trans hmvt ?_
+  -- replace the coefficient energy by its bound
+  have hcoef : ∀ p ∈ P,
+      (6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+        + Real.exp (-(π*T^2/64)) * B)
+      * (‖f p / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ):ℂ))‖^2 * vonMangoldt p)
+      ≤ (6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+          + Real.exp (-(π*T^2/64)) * B)
+        * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)) := by
+    intro p hp
+    have hbig : (0:ℝ) ≤ 6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ)
+        + Real.exp (-(π*T^2/64)) * B := by
+      have h1 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+      have h2 : (0:ℝ) ≤ Real.exp (-(π*T^2/64)) * B :=
+        mul_nonneg (Real.exp_pos _).le hB0
+      positivity
+    refine mul_le_mul_of_nonneg_left ?_ hbig
+    exact norm_ghsBlock_coeff_sq_le f hf x p (hPp p hp) (h2p p hp)
+  have hstep := Finset.sum_le_sum hcoef
+  have hexp0 : (0:ℝ) ≤ Real.exp π * T := by positivity
+  exact mul_le_mul_of_nonneg_left hstep hexp0
+
 end MoltResearch
