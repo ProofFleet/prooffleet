@@ -8253,4 +8253,49 @@ theorem ghsBlock_weighted_energy_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n�
   have := mul_le_mul_of_nonneg_left hband_le hC0
   linarith
 
+open Real in
+/-- **The diagonal term is absorbed by the leading one** (Track R,
+N143): for `0 < T` and `T² ≤ m`,
+
+  `log m ≤ 2m/T`.
+
+Small, but it is what keeps the free-`T` repair from trading one
+vacuous bound for another.  The mean value theorem's bracket is
+`6144·⌈2m/T⌉ + log m + e^{−πT²/64}·B`, and it is multiplied by the
+prefactor `T`.  The first term is `T`-free after that multiplication
+(`T·⌈2m/T⌉ ≍ m`), but `log m` is *not*: against the convergent mass
+`∑_q log q/q² = O(1)` it contributes `≍ T·log Q`, which at
+`T ≍ √(log X)` overshoots the intended `≍ log Q` by `√(log X)`.
+
+Raising `T` to kill `e^{−πT²/64}·B` would therefore have re-broken the
+bound through a different term — the same failure mode as the one being
+repaired, one term over.
+
+It does not, because the threshold `T² ≤ m` that raising `T` imposes is
+itself what absorbs the diagonal: `T ≤ √m` gives `2m/T ≥ 2√m ≥ log m`.
+The hypothesis introduced by the fix pays for the fix.  So
+`log m ≤ 6144·⌈2m/T⌉` and the bracket collapses to
+`2·6144·⌈2m/T⌉ + e^{−πT²/64}·B`, both terms behaving as intended. -/
+theorem log_le_two_mul_div_of_sq_le (T : ℝ) (m : ℕ) (hT : 0 < T)
+    (hTm : T^2 ≤ (m:ℝ)) :
+    Real.log (m:ℝ) ≤ 2*(m:ℝ)/T := by
+  have hm0 : (0:ℝ) < (m:ℝ) := lt_of_lt_of_le (by positivity) hTm
+  have hs0 : (0:ℝ) < Real.sqrt (m:ℝ) := Real.sqrt_pos.mpr hm0
+  have hss : Real.sqrt (m:ℝ) * Real.sqrt (m:ℝ) = (m:ℝ) :=
+    Real.mul_self_sqrt hm0.le
+  -- `T ≤ √m` is the threshold, restated
+  have hTs : T ≤ Real.sqrt (m:ℝ) := by
+    have h := Real.sqrt_le_sqrt hTm
+    rwa [Real.sqrt_sq hT.le] at h
+  -- `log m = 2 log √m ≤ 2(√m − 1)`
+  have hhalf : Real.log (Real.sqrt (m:ℝ)) = Real.log (m:ℝ) / 2 :=
+    Real.log_sqrt hm0.le
+  have hlogs : Real.log (Real.sqrt (m:ℝ)) ≤ Real.sqrt (m:ℝ) - 1 :=
+    Real.log_le_sub_one_of_pos hs0
+  have hlog2 : Real.log (m:ℝ) ≤ 2*Real.sqrt (m:ℝ) - 2 := by
+    rw [hhalf] at hlogs; linarith
+  have hlog0 : (0:ℝ) ≤ Real.log (m:ℝ) := Real.log_natCast_nonneg m
+  rw [le_div_iff₀ hT]
+  nlinarith [hlog2, hTs, hlog0, hs0, hss]
+
 end MoltResearch
