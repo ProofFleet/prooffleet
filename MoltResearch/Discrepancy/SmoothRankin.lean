@@ -8525,4 +8525,77 @@ theorem ghsBlock_energy_sum_free_le (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k)
   have h2 := mul_le_mul_of_nonneg_left hmass2 hR6
   linarith
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **`E₁ ≪ e^{k}/log x`, and this time it is true** (Track R, N147):
+the `hE₁` that `pairing_halasz_le` consumes, for `P` a set of primes in
+the `k`-th block of `x` with `T² ≤ p`.  With `S` the trivial sup of
+`P₂`,
+
+  `∫_ℝ ‖P₂‖²·w
+     ≤ C·e^π·(12290·(e^{2k}/log²x)(4((e−1)e^{−k}log x + log 2) + 4log 4)
+               + T·(6144 + e^{−πT²/64}·B)·(4/log²2))
+       + S²·Wtail`.
+
+`ghsBlock_E1_le` re-derived through the free-`T` chain
+(`ghsBlock_weighted_energy_free_le` + `ghsBlock_energy_sum_free_le`),
+closing the `E₁` half of the N132 repair.
+
+**The prefactor `T` has been distributed and cancelled in the leading
+term**, which is the whole content of the repair made visible in the
+statement: `T·(12290/T) = 12290`, so the first term is `≍ e^{k}/log x`
+at every `T`.  Only the second carries `T`, and it carries it against
+`e^{−πT²/64}·B`, which `T` damps far faster than it grows.
+
+At `T = 5√(log X)` and `B ≍ X`: `T·e^{−πT²/64}B ≍ X^{−0.22}√(log X)
+→ 0`, and `T·6144·(4/log²2) ≍ √(log X)`, negligible beside
+`e^{k}/log x` for `k ≍ 1`.  So `E₁ ≍ e^{k}/log x` — the magnitude
+`ghsBlock_E1_le` asserted but did not deliver, where the old chain's
+`e^{−π}B ≍ 0.043X` exceeded it by `≍ X·log x`.
+
+Against `V₃ ≍ e^{−k}log x` (`ghsPrime_energy_sum_free_le`) the product
+`E₁·V₃` is `≍ 1` with the `k` cancelling, exactly as §4 needs. -/
+theorem ghsBlock_E1_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (P : Finset ℕ)
+    (T : ℝ) (hT : 5 ≤ T)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ)) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B)
+    (w : ℝ → ℝ) (C Wtail : ℝ)
+    (hC : ∀ ξ, w ξ ≤ C) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hWtail : (∫ ξ in {ξ : ℝ | T < |ξ|}, w ξ) ≤ Wtail)
+    (hint : Integrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ))
+    (hband : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      volume (-T) T)
+    (hband2 : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2)
+      volume (-T) T)
+    (htailP : IntegrableOn (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      {ξ : ℝ | T < |ξ|})
+    (htailw : IntegrableOn w {ξ : ℝ | T < |ξ|}) :
+    (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      ≤ C * (Real.exp π *
+          (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+              * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+                  + Real.log 2) + 4 * Real.log 4))
+            + T * (6144 + Real.exp (-(π*T^2/64)) * B) * (4/(Real.log 2)^2)))
+        + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+            * Wtail := by
+  classical
+  have hT0 : (0:ℝ) < T := by linarith
+  have hC0 : (0:ℝ) ≤ C := le_trans (hw0 0) (hC 0)
+  have hband_le := ghsBlock_weighted_energy_free_le f hf x P T hT
+    (fun p hp => (hP p hp).1) hPT h2p B hB0 hB w C Wtail hC hw0 hWtail
+    hint hband hband2 htailP htailw
+  refine le_trans hband_le ?_
+  -- the residue collected from Lemma 1's one remaining additive term
+  set R : ℝ := Real.exp (-(π*T^2/64)) * B with hR_def
+  have hR : (0:ℝ) ≤ R := mul_nonneg (Real.exp_pos _).le hB0
+  have hsum := ghsBlock_energy_sum_free_le x k hx hk P T hT0 hP hPT h2p R hR
+  have hexp0 : (0:ℝ) ≤ Real.exp π * T := by positivity
+  have hstep := mul_le_mul_of_nonneg_left
+    (mul_le_mul_of_nonneg_left hsum hexp0) hC0
+  -- distribute the prefactor `T`; it cancels against `12290/T`
+  refine add_le_add (le_trans hstep (le_of_eq ?_)) le_rfl
+  have hTne : T ≠ 0 := ne_of_gt hT0
+  field_simp
+
 end MoltResearch
