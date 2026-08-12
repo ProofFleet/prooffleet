@@ -7774,4 +7774,51 @@ theorem tripleConv_ksplit_le (f : ℕ → ℝ) (x : ℕ) (K M : ℕ) (hKM : K �
     rw [hcard]
   linarith [hhead', htail]
 
+open Real Finset ArithmeticFunction in
+/-- **The Gaussian pair sum over a prime set** (Track R, N133): if every
+element of `S` is prime then
+
+  `∑_{n∈S} Λ(n)·e^{−πT²(log n − log m)²} ≤ 1024·h·L + log m + e^{−πT²/64}·B`,
+
+with **no `√X` term**.
+
+`vonMangoldt_gaussian_long_le` carries an extra
+`(√X+1)·log₂X·log X`, which bounds the *proper prime power* branch of
+`sum_vonMangoldt_split`.  On a set of primes that branch is empty, so
+the term is not merely small — it is identically zero.
+
+This matters because the term is additive in the bracket and therefore
+gets multiplied by `∑_m ‖a_m‖²Λ(m)` when the mean value theorem is
+applied.  For §4's polynomials the coefficients decay like `log q/q`,
+so that sum is `O(1)` while the intended main term is `≍ log⁴X`; a
+`√X·log²X` additive error then dominates by `≍ √X/log²X` and the bound
+says nothing.  `P₂` and `P₃` are prime-supported, so restricting here
+removes it at no cost.
+
+The `X` parameter disappears entirely, which is the point: the bound no
+longer degrades with the *range*, only with the coefficients. -/
+theorem vonMangoldt_gaussian_prime_le (T : ℝ) (m h J : ℕ) (S : Finset ℕ)
+    (hSp : ∀ n ∈ S, n.Prime) (hS1 : ∀ n ∈ S, 1 ≤ n) (hm1 : 1 ≤ m)
+    (hh : 2 ≤ h) (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T)
+    (hfit : (2^J - 1)*h + 1 ≤ m) (hwfit : ∀ j < J, 2^j*h ≤ 2*m)
+    (hreach : m ≤ 4*((2^J - 1)*h))
+    (L : ℝ) (hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ L)
+    (B : ℝ) (hB : ∑ n ∈ S, Real.log (n:ℝ) ≤ B) :
+    ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ) + Real.exp (-(π*T^2/64)) * B := by
+  classical
+  -- on a prime set the filter is everything, and `Λ = log`
+  have hfil : S.filter Nat.Prime = S := Finset.filter_true_of_mem hSp
+  have hrw : ∑ n ∈ S, vonMangoldt n
+      * Real.exp (-(π*T^2*(Real.log (n:ℝ) - Real.log (m:ℝ))^2))
+      = ∑ p ∈ S.filter Nat.Prime,
+          Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2)) := by
+    rw [hfil]
+    refine Finset.sum_congr rfl fun n hn => ?_
+    rw [ArithmeticFunction.vonMangoldt_apply_prime (hSp n hn)]
+  rw [hrw]
+  exact ExpSums.prime_gaussian_long_le T m h J S hS1 hm1 hh hscale hfit
+    hwfit hreach L hL B hB
+
 end MoltResearch
