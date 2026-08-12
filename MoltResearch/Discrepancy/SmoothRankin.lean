@@ -8298,4 +8298,62 @@ theorem log_le_two_mul_div_of_sq_le (T : ℝ) (m : ℕ) (hT : 0 < T)
   rw [le_div_iff₀ hT]
   nlinarith [hlog2, hTs, hlog0, hs0, hss]
 
+open Real in
+/-- **The summand with the diagonal absorbed** (Track R, N144): for
+`2 ≤ q`, `0 < T`, `T² ≤ q`, any `R`, and any `D ≥ 0`,
+
+  `(6144·⌈2q/T⌉ + log q + R)·(log q/(q²D))
+     ≤ (12290/T)·(log q/(qD)) + (6144 + R)·(log q/(q²D))`.
+
+`mvt_summand_free_le` with the leftover `log q` moved into the leading
+term by `log_le_two_mul_div_of_sq_le`, at a cost of `2/T` on the
+constant `12288 → 12290`.
+
+This is the form the energy sums want.  Both surviving masses are then
+`T`-free after the mean value theorem's prefactor `T`:
+
+* `T·(12290/T)·∑_q log q/q = 12290·∑_q log q/q ≍ log Q`, and
+* `T·(6144 + R)·∑_q log q/q² ≍ T·(6144 + R)`,
+
+so the whole bound is `≍ log Q + T·R`, with `R = e^{−πT²/64}·B`.  At
+`T ≍ 5√(log X)` the second is `o(1)` and the first is the intended
+`≍ log Q`.  Nothing left carries a hidden `T`.
+
+That is the point of doing the absorption here rather than leaving
+`log q` to be summed on its own: `∑_q log²q/q²` converges, but it is
+multiplied by the prefactor `T`, so on its own it would have
+reintroduced a `T·log Q`. -/
+theorem mvt_summand_absorbed_le (q : ℕ) (hq : 2 ≤ q) (T : ℝ) (hT : 0 < T)
+    (hTq : T^2 ≤ (q:ℝ)) (R D : ℝ) (hD : 0 ≤ D) :
+    (6144*((⌈2*(q:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (q:ℝ) + R)
+        * (Real.log (q:ℝ)/((q:ℝ)^2 * D))
+      ≤ (12290/T) * (Real.log (q:ℝ)/((q:ℝ) * D))
+        + (6144 + R) * (Real.log (q:ℝ)/((q:ℝ)^2 * D)) := by
+  have hq0 : (0:ℝ) < (q:ℝ) := by
+    have : (2:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+    linarith
+  have hlog0 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+  have hmass : (0:ℝ) ≤ Real.log (q:ℝ)/((q:ℝ)^2 * D) := by positivity
+  have hbase := mvt_summand_free_le q hq T hT R D hD
+  -- move the leftover `log q` into the leading term
+  have habs : Real.log (q:ℝ) * (Real.log (q:ℝ)/((q:ℝ)^2 * D))
+      ≤ (2/T) * (Real.log (q:ℝ)/((q:ℝ) * D)) := by
+    have hlq := log_le_two_mul_div_of_sq_le T q hT hTq
+    have hstep : Real.log (q:ℝ) * (Real.log (q:ℝ)/((q:ℝ)^2 * D))
+        ≤ (2*(q:ℝ)/T) * (Real.log (q:ℝ)/((q:ℝ)^2 * D)) :=
+      mul_le_mul_of_nonneg_right hlq hmass
+    refine le_trans hstep (le_of_eq ?_)
+    rcases eq_or_lt_of_le hD with hD0 | hDpos
+    · simp [← hD0]
+    · field_simp
+  -- and reassociate
+  have hexp : (6144 + R + Real.log (q:ℝ)) * (Real.log (q:ℝ)/((q:ℝ)^2 * D))
+      = (6144 + R) * (Real.log (q:ℝ)/((q:ℝ)^2 * D))
+        + Real.log (q:ℝ) * (Real.log (q:ℝ)/((q:ℝ)^2 * D)) := by ring
+  have hlead : (12288/T) * (Real.log (q:ℝ)/((q:ℝ) * D))
+      + (2/T) * (Real.log (q:ℝ)/((q:ℝ) * D))
+      = (12290/T) * (Real.log (q:ℝ)/((q:ℝ) * D)) := by ring
+  rw [hexp] at hbase
+  linarith [hbase, habs, hlead]
+
 end MoltResearch
