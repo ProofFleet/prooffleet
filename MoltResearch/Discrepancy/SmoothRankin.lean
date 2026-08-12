@@ -8598,4 +8598,52 @@ theorem ghsBlock_E1_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   have hTne : T ≠ 0 := ne_of_gt hT0
   field_simp
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **`V₃ ≪ log X`, and this time it is true** (Track R, N149): the
+`hV` that `pairing_halasz_le` consumes, for `Q` a set of primes in
+`[2, X]` with `T² ≤ q`.  For every frequency `N`,
+
+  `∫_{N−1/2}^{N+1/2} ‖P₃(t)‖² dt
+     ≤ e^π·(12290·(log(X+1) + 2) + 4T·(6144 + e^{−πT²/64}·B))`.
+
+`ghsPrimePoly_unit_energy_le` re-derived through the free-`T` chain,
+closing the `V₃` half of the N132 repair as `ghsBlock_E1_free_le`
+closes the `E₁` half.
+
+As there, the prefactor `T` is distributed and cancels in the leading
+term — `T·(12290/T) = 12290` — so `V₃ ≍ log X` at every `T`, and only
+the second term carries `T`, against the `e^{−πT²/64}` that outruns it.
+At `T = 5√(log X)` with `B ≍ X`, that term is `≍ √(log X)`, so
+`V₃ ≍ log X`; with `X = x^{e^{1−k}}` this is `≍ e^{−k}·log x`.
+
+**The two halves now meet as intended.**  `E₁·V₃ ≍ (e^{k}/log x)·
+(e^{−k}log x) = O(1)` with the block index cancelling — which is what
+leaves `L(x)` in §4's bound with no residual `k`.  Both factors were
+vacuous before the repair, and the cancellation could not have been
+read off either of them. -/
+theorem ghsPrimePoly_unit_energy_final_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (Q : Finset ℕ) (X : ℕ) (hX : 2 ≤ X) (T : ℝ) (hT : 5 ≤ T)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQX : ∀ q ∈ Q, q ≤ X)
+    (hQT : ∀ q ∈ Q, T^2 ≤ (q:ℝ))
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ q ∈ Q, Real.log (q:ℝ) ≤ B)
+    (hwide : ∀ w : ℕ → ℂ, IntervalIntegrable
+      (fun u => ‖∑ q ∈ Q, w q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      volume (-T) T)
+    (N : ℝ) :
+    (∫ t in (N - 1/2)..(N + 1/2), ‖ghsPrimePoly f Q t‖^2)
+      ≤ Real.exp π * (12290 * (Real.log ((X+1 : ℕ):ℝ) + 2)
+          + 4*T * (6144 + Real.exp (-(π*T^2/64)) * B)) := by
+  classical
+  have hT0 : (0:ℝ) < T := by linarith
+  refine le_trans (ghsPrimePoly_unit_energy_free_le f hf Q T hT hQp hQT
+    B hB0 hB hwide N) ?_
+  set R : ℝ := Real.exp (-(π*T^2/64)) * B with hR_def
+  have hR : (0:ℝ) ≤ R := mul_nonneg (Real.exp_pos _).le hB0
+  have hsum := ghsPrime_energy_sum_free_le Q X hX T hT0 hQp hQX hQT R hR
+  have hexp0 : (0:ℝ) ≤ Real.exp π * T := by positivity
+  refine le_trans (mul_le_mul_of_nonneg_left hsum hexp0) (le_of_eq ?_)
+  have hTne : T ≠ 0 := ne_of_gt hT0
+  field_simp
+
 end MoltResearch
