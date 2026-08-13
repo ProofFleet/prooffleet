@@ -3114,6 +3114,131 @@ theorem integral_abs_iteratedDeriv_three_le (S S₁ S₂ S₃ : ℝ → ℝ) (K 
         rw [Set.mem_Ici]; push_neg; exact hv)]
       rw [hzlo v (Set.mem_Iio.mpr hv), abs_zero]
   exact integral_abs_le_of_indicator_exp _ hcont3 hcs3 K hmaj
+open Complex Filter Set in
+/-- **The order-2 Perron integral** (Track R, N150): for `Re a > 0`,
+
+  `∫_0^∞ v·e^{−av} dv = 1/a²`.
+
+The computation the Riesz route rests on.  With `a = 1 + 2πiξ` this is
+the Fourier transform of the window `V(v) = v·e^{−v}·1_{v≥0}`, whose
+Perron realisation is the Riesz mean `∑_{n≤y} f(n)·log(y/n)` — and
+whose transform therefore has modulus `1/(1 + 4π²ξ²)` **exactly**, with
+no smoothing parameter and no error term.
+
+That is the whole point.  The N148 audit showed that a *smoothed*
+window can never beat `‖V''‖₁ ≥ 1/ρ`, so its Perron weight constant is
+`≳ 1/ρ` while its Perron error is `≍ ρ·(trivial bound)` — a balance
+that loses `(log x)^{1/3}` no matter how the window is chosen.  The
+Riesz kernel has no `ρ` to balance.
+
+Proved by the fundamental theorem of calculus on `(0, ∞)`, with
+antiderivative `F(v) = −(av + 1)e^{−av}/a²`: the derivative is `v·e^{−av}`
+by the product rule, `F(0) = −1/a²`, and `F(v) → 0` because
+`Re a > 0` makes `e^{−av}` outrun the linear factor. -/
+theorem integral_Ioi_mul_cexp_neg (a : ℂ) (ha : 0 < a.re) :
+    ∫ v in Set.Ioi (0:ℝ), (v:ℂ) * Complex.exp (-(a * (v:ℂ))) = 1/a^2 := by
+  have ha0 : a ≠ 0 := by
+    intro h; rw [h] at ha; simp at ha
+  have hna : (0:ℝ) < ‖a‖ := by positivity
+  set F : ℝ → ℂ := fun v => -((a*(v:ℂ) + 1) * Complex.exp (-(a*(v:ℂ))))/a^2 with hF
+  have hderiv : ∀ v : ℝ, HasDerivAt F ((v:ℂ) * Complex.exp (-(a*(v:ℂ)))) v := by
+    intro v
+    have hre : HasDerivAt (fun t : ℝ => (t:ℂ)) 1 v := by
+      simpa using (Complex.ofRealCLM.hasDerivAt (x := v))
+    have h1 : HasDerivAt (fun t : ℝ => a*(t:ℂ) + 1) a v := by
+      simpa using (hre.const_mul a).add_const 1
+    have h2 : HasDerivAt (fun t : ℝ => -(a*(t:ℂ))) (-a) v := by
+      simpa using (hre.const_mul a).neg
+    have h3 : HasDerivAt (fun t : ℝ => Complex.exp (-(a*(t:ℂ))))
+        (Complex.exp (-(a*(v:ℂ))) * (-a)) v := h2.cexp
+    have h5 := ((h1.mul h3).neg).div_const (a^2)
+    refine h5.congr_deriv ?_
+    field_simp
+    ring
+  have hnorm : ∀ v : ℝ, ‖F v‖ = ‖a*(v:ℂ) + 1‖ * Real.exp (-(a.re * v)) / ‖a‖^2 := by
+    intro v
+    rw [hF]
+    simp only [norm_div, norm_neg, norm_mul, Complex.norm_exp, norm_pow]
+    congr 2
+    simp [Complex.neg_re, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im]
+  -- `e^{−cv}` and `v·e^{−cv}` both vanish at infinity
+  have hcv : Filter.Tendsto (fun v : ℝ => a.re * v) atTop atTop :=
+    Filter.Tendsto.const_mul_atTop ha tendsto_id
+  have hE : Filter.Tendsto (fun v : ℝ => Real.exp (-(a.re*v))) atTop (nhds 0) :=
+    Real.tendsto_exp_neg_atTop_nhds_zero.comp hcv
+  have hVE : Filter.Tendsto (fun v : ℝ => (a.re*v)^1 * Real.exp (-(a.re*v)))
+      atTop (nhds 0) := (tendsto_pow_mul_exp_neg_atTop_nhds_zero 1).comp hcv
+  have hmaj : Filter.Tendsto
+      (fun v : ℝ => (‖a‖*v + 1) * Real.exp (-(a.re * v)) / ‖a‖^2)
+      atTop (nhds 0) := by
+    have hsum : Filter.Tendsto
+        (fun v : ℝ => (‖a‖/a.re) * ((a.re*v)^1 * Real.exp (-(a.re*v)))
+          + Real.exp (-(a.re*v))) atTop (nhds 0) := by
+      simpa using (hVE.const_mul (‖a‖/a.re)).add hE
+    have hz : Filter.Tendsto
+        (fun v : ℝ => (‖a‖*v + 1) * Real.exp (-(a.re * v))) atTop (nhds 0) := by
+      refine hsum.congr fun v => ?_
+      field_simp
+    simpa using hz.div_const (‖a‖^2)
+  have hlim : Filter.Tendsto F Filter.atTop (nhds 0) := by
+    rw [tendsto_zero_iff_norm_tendsto_zero]
+    refine squeeze_zero' (Filter.Eventually.of_forall fun v => norm_nonneg _) ?_ hmaj
+    filter_upwards [eventually_ge_atTop (0:ℝ)] with v hv
+    rw [hnorm v]
+    have h1 : ‖a*(v:ℂ) + 1‖ ≤ ‖a‖*v + 1 := by
+      refine le_trans (norm_add_le _ _) ?_
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg hv, norm_one]
+    have h2 : (0:ℝ) ≤ Real.exp (-(a.re * v)) := (Real.exp_pos _).le
+    have h3 : (0:ℝ) < ‖a‖^2 := by positivity
+    have := mul_le_mul_of_nonneg_right h1 h2
+    gcongr
+  -- integrability, by domination against `C·e^{−(c/2)v}`
+  have hint : IntegrableOn (fun v : ℝ => (v:ℂ) * Complex.exp (-(a*(v:ℂ))))
+      (Set.Ioi 0) := by
+    have hc2 : (0:ℝ) < a.re/2 := by linarith
+    have hg : IntegrableOn
+        (fun v : ℝ => (2/(a.re*Real.exp 1)) * Real.exp (-(a.re/2) * v))
+        (Set.Ioi 0) :=
+      (exp_neg_integrableOn_Ioi 0 hc2).const_mul _
+    refine Integrable.mono' hg ?_ ?_
+    · have hcont : Continuous
+          (fun v : ℝ => (v:ℂ) * Complex.exp (-(a*(v:ℂ)))) := by
+        fun_prop
+      exact hcont.aestronglyMeasurable
+    · filter_upwards [ae_restrict_mem measurableSet_Ioi] with v hv
+      have hv0 : (0:ℝ) < v := hv
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hv0,
+        Complex.norm_exp]
+      have hre : (-(a * (v:ℂ))).re = -(a.re * v) := by
+        simp [Complex.neg_re, Complex.mul_re]
+      rw [hre]
+      -- `v·e^{−cv} ≤ (2/(ce))·e^{−(c/2)v)}`, since `x ≤ e^{x−1}`
+      have hxe : (a.re/2)*v * Real.exp 1 ≤ Real.exp ((a.re/2)*v) := by
+        have hx := Real.add_one_le_exp ((a.re/2)*v - 1)
+        have hex : Real.exp ((a.re/2)*v - 1) * Real.exp 1
+            = Real.exp ((a.re/2)*v) := by
+          rw [← Real.exp_add]; congr 1; ring
+        nlinarith [hx, Real.exp_pos (1:ℝ), hex]
+      have hkey : v * Real.exp (-(a.re/2) * v) ≤ 2/(a.re*Real.exp 1) := by
+        rw [neg_mul, Real.exp_neg, ← div_eq_mul_inv,
+          div_le_iff₀ (Real.exp_pos _)]
+        have h4 : (0:ℝ) < 2/(a.re*Real.exp 1) := by positivity
+        calc v = 2/(a.re*Real.exp 1) * ((a.re/2)*v*Real.exp 1) := by
+              field_simp
+          _ ≤ 2/(a.re*Real.exp 1) * Real.exp ((a.re/2)*v) :=
+              mul_le_mul_of_nonneg_left hxe h4.le
+      have hsplit : Real.exp (-(a.re*v)) = Real.exp (-(a.re/2)*v) * Real.exp (-(a.re/2)*v) := by
+        rw [← Real.exp_add]; congr 1; ring
+      rw [hsplit, ← mul_assoc]
+      exact mul_le_mul_of_nonneg_right hkey (Real.exp_pos _).le
+  have hmain := integral_Ioi_of_hasDerivAt_of_tendsto
+    (f := F) (f' := fun v : ℝ => (v:ℂ) * Complex.exp (-(a*(v:ℂ)))) (a := 0) (m := 0)
+    ((hderiv 0).continuousAt.continuousWithinAt)
+    (fun v _ => hderiv v) hint hlim
+  rw [hmain, hF]
+  simp
+  field_simp
+
 end ExpSums
 
 end MoltResearch
