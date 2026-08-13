@@ -621,6 +621,46 @@ theorem fourier_pointwise_decay (V : ℝ → ℝ) (hVs : ContDiff ℝ ∞ V)
     _ = ‖𝓕 (iteratedDeriv 2 Vc) ξ‖ := h2.symm
     _ ≤ M₂ := h3
 
+open Complex in
+/-- **The Riesz kernel is a Perron weight with constant `1`** (Track R,
+N151):
+
+  `‖1/(1 + 2πiξ)²‖ ≤ 1/(1 + ξ²)`.
+
+`pairing_halasz_le`'s hypothesis is `w t ≤ C/(1+t²)`.  For the Riesz
+window that holds **with `C = 1`**, and by an equality rather than an
+estimate: `‖1 + 2πiξ‖² = 1 + 4π²ξ²`, so the left side is exactly
+`1/(1 + 4π²ξ²)`, and `4π² > 1` gives the rest with room to spare.
+
+Compare `fourier_window_le_inv_one_add_sq`, which reaches the same
+shape for a smoothed window at `C = 2M_V + M₂/(2π²)`.  That `M₂` is
+`≥ 1/ρ` for every admissible window (N148), so its `C` diverges as the
+cutoff sharpens; here there is no cutoff to sharpen and `C` is `1`
+outright.  This is the inequality that removes `ρ` from §3. -/
+theorem norm_inv_one_add_two_pi_I_sq_le (xi : ℝ) :
+    ‖(1/(1 + 2*(Real.pi:ℂ)*Complex.I*(xi:ℂ))^2 : ℂ)‖ ≤ 1/(1+xi^2) := by
+  have hpi : (0:ℝ) < Real.pi := Real.pi_pos
+  set z : ℂ := 1 + 2*(Real.pi:ℂ)*Complex.I*(xi:ℂ) with hz
+  have hre : z.re = 1 := by simp [hz]
+  have him : z.im = 2*Real.pi*xi := by simp [hz]
+  have hnsq : ‖z‖^2 = 1 + 4*Real.pi^2*xi^2 := by
+    rw [← Complex.normSq_eq_norm_sq, Complex.normSq_apply, hre, him]
+    ring
+  have hz0 : z ≠ 0 := by
+    intro h
+    rw [h] at hre
+    simp at hre
+  have hnpos : (0:ℝ) < ‖z‖ := norm_pos_iff.mpr hz0
+  have hnorm : ‖(1/z^2 : ℂ)‖ = 1/(1 + 4*Real.pi^2*xi^2) := by
+    rw [norm_div, norm_one, norm_pow, hnsq]
+  rw [hnorm]
+  have hd1 : (0:ℝ) < 1 + xi^2 := by positivity
+  have hd2 : (0:ℝ) < 1 + 4*Real.pi^2*xi^2 := by positivity
+  rw [div_le_div_iff₀ hd2 hd1]
+  have hk : (1:ℝ) ≤ 4*Real.pi^2 := by nlinarith [Real.two_le_pi]
+  have := mul_le_mul_of_nonneg_right hk (sq_nonneg xi)
+  linarith
+
 /-- **The window transform is a Perron weight** (Track R, N38): for `V`
 smooth and compactly supported,
 
