@@ -3488,6 +3488,82 @@ theorem fourier_rieszWindow_tail_le (L : ℝ) (hL : 0 < L) :
     ring
   linarith [hIoi, hIio, hval]
 
+/-- **The Riesz mean is the window sum, exactly** (Track R, N159): for
+`0 < y ≤ N`,
+
+  `∑_{n≤y} f(n)·log(y/n) = y·∑_{n≤N} (f(n)/n)·V(log y − log n)`,
+
+with `V = rieszWindow`.
+
+The Perron realisation of the Riesz mean — and it is an **identity**,
+with no error term at any scale.  `V(v) = v·e^{−v}` for `v > 0` gives
+`V(log y − log n) = log(y/n)·(n/y)`, so the `n` cancels the `1/n`, the
+`y` cancels the `1/y`, and each term is `f(n)·log(y/n)` on the nose.
+Terms with `n > y` vanish because `V` is supported on `v > 0`; the term
+at `n = y` vanishes on both sides at once.
+
+This is what replaces `perron_sandwich_uniform_real`.  There the
+smoothed window agreed with `e^{−v}` only on a plateau, so the sharp
+sum and the window sum differed by the edge budget `2ρ + 2/x` — the
+error that `tripleConv_sub_ghs_le` then had to carry through the whole
+of §3, and that the N148 audit showed could not be balanced against the
+window's own Perron constant.  With the exact window there is nothing
+left to balance.
+
+The upper limit `N` is free above `y` precisely because the extra terms
+are zero, which is what lets §3 sum over a fixed range `Icc 1 x` while
+the Riesz mean runs to a moving `y = x/pq`. -/
+theorem rieszMean_eq_window_sum (f : ℕ → ℝ) (y : ℝ) (hy : 0 < y) (N : ℕ)
+    (hN : y ≤ (N:ℝ)) :
+    ∑ n ∈ Finset.Icc 1 ⌊y⌋₊, f n * (Real.log y - Real.log (n:ℝ))
+      = y * ∑ n ∈ Finset.Icc 1 N, (f n/(n:ℝ))
+          * rieszWindow (Real.log y - Real.log (n:ℝ)) := by
+  classical
+  rw [Finset.mul_sum]
+  have hfl : ⌊y⌋₊ ≤ N := by
+    have h1 := Nat.floor_le_of_le hN
+    simpa using h1
+  have hsub : Finset.Icc 1 ⌊y⌋₊ ⊆ Finset.Icc 1 N :=
+    Finset.Icc_subset_Icc_right hfl
+  -- terms above `y` vanish: the window is supported on `v > 0`
+  have hzero : ∀ n ∈ Finset.Icc 1 N, n ∉ Finset.Icc 1 ⌊y⌋₊ →
+      y * ((f n/(n:ℝ)) * rieszWindow (Real.log y - Real.log (n:ℝ))) = 0 := by
+    intro n hn hnot
+    rw [Finset.mem_Icc] at hn
+    rw [Finset.mem_Icc] at hnot
+    push_neg at hnot
+    have hgt : ⌊y⌋₊ < n := hnot hn.1
+    have hyn : y < (n:ℝ) := by
+      have h1 : y < (⌊y⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one y
+      have h2 : ((⌊y⌋₊ : ℕ):ℝ) + 1 ≤ (n:ℝ) := by exact_mod_cast hgt
+      linarith
+    have hn0 : (0:ℝ) < (n:ℝ) := by linarith
+    have hlt : Real.log y - Real.log (n:ℝ) < 0 := by
+      have := Real.log_lt_log hy hyn
+      linarith
+    have : ¬ (0 < Real.log y - Real.log (n:ℝ)) := by linarith
+    rw [rieszWindow, if_neg this, mul_zero, mul_zero]
+  rw [← Finset.sum_subset hsub hzero]
+  refine Finset.sum_congr rfl fun n hn => ?_
+  rw [Finset.mem_Icc] at hn
+  have hn1 : 1 ≤ n := hn.1
+  have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn1
+  have hnle : (n:ℝ) ≤ y := (Nat.le_floor_iff hy.le).mp hn.2
+  rcases eq_or_lt_of_le hnle with heq | hlt
+  · -- `n = y`: both sides vanish, the window at `0` and the log at `1`
+    have hlog : Real.log y - Real.log (n:ℝ) = 0 := by rw [heq]; ring
+    rw [hlog, rieszWindow]
+    simp
+  · have hpos : 0 < Real.log y - Real.log (n:ℝ) := by
+      have := Real.log_lt_log hn0 hlt
+      linarith
+    rw [rieszWindow, if_pos hpos]
+    have hexp : Real.exp (-(Real.log y - Real.log (n:ℝ))) = (n:ℝ)/y := by
+      rw [show -(Real.log y - Real.log (n:ℝ)) = Real.log (n:ℝ) - Real.log y from by
+        ring, Real.exp_sub, Real.exp_log hn0, Real.exp_log hy]
+    rw [hexp]
+    field_simp
+
 end ExpSums
 
 end MoltResearch
