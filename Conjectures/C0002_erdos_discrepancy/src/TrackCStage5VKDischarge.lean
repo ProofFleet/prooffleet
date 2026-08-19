@@ -1,5 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5VinogradovKorobov
-import MoltResearch.DiscrepancyAnalytic
+import MoltResearch.Discrepancy.ZetaBound
 
 /-!
 # Track C: Stage 5 — the Vinogradov–Korobov interface, discharged (Track L, #3020)
