@@ -7204,35 +7204,34 @@ theorem x_div_mul_floor_le_two (x p : ℕ) (hp : 0 < p) (h2p : 2*p ≤ x) :
   linarith
 
 open Real Finset in
-/-- **The range enlargement costs one term** (Track R, N104): for
-`2p ≤ x` and any set of primes `Q`,
+/-- **The range enlargement costs one term**, for any window whose unit
+sums are bounded (Track R, N173): for `2p ≤ x` and any set of primes
+`Q`,
 
   `|∑_{q ∈ Q \ (x/p).primesBelow} (log q·f(q))·((x/pq)·Smoothed(p,q))|`
   `  ≤ 2·log⌊x/p⌋`.
 
-§3 sums `q` over `(x/p).primesBelow`, a range that moves with `p`;
-§4 wants one fixed index set.  Widening to a fixed `Q` adds the primes
-`q ≥ ⌊x/p⌋`, and this bounds what that costs.
+`enlargement_discard_le` with `hVle` and `hVnn` replaced by the single
+fact they were used to produce: `|∑_n (f(n)/n)·V(log y − log n)| ≤ 1`,
+and only for `y ∈ [1,2]`, which is the range
+`x/(p·⌊x/p⌋)` actually lives in (`x_div_mul_floor_le_two` above,
+`p·⌊x/p⌋ ≤ x` below).
 
-Every added prime except one dies: `q ∉ (x/p).primesBelow` and `q`
-prime give `q ≥ ⌊x/p⌋`, so `q ≠ ⌊x/p⌋` forces `q > ⌊x/p⌋`, hence
-`p·q ≥ p·⌊x/p⌋ + p = (x − x mod p) + p > x`, and
-`smoothed_vanishes_of_lt_mul` zeroes the whole inner sum.
+Everything else in the argument uses `hV0` alone, through
+`smoothed_vanishes_of_lt_mul`: every added prime beyond `⌊x/p⌋` has
+`pq > x` and dies outright, leaving `q = ⌊x/p⌋` as the only possible
+survivor.
 
-The survivor is `q = ⌊x/p⌋` alone — a set of cardinality at most one,
-**possibly empty**, since `⌊x/p⌋` need not be prime.  Its size is
-`log⌊x/p⌋` from the coefficient, times `x/(p⌊x/p⌋) ≤ 2`
-(`x_div_mul_floor_le_two`) times `≤ 1` from
-`smoothed_sum_le_one_real`.
-
-Against the outer weight `|log p·f(p)/log(x/p)|` the `log⌊x/p⌋ ≤
-log(x/p)` cancels the denominator, leaving `≤ 2 log p` per `p` — so the
-enlargement costs `O(x)` overall by Chebyshev, which `(3.2)` allows. -/
-theorem enlargement_discard_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+Separating the two is what lets `rieszWindow` through.  It satisfies
+`hV0`, but **not** `hVle` — `v·e^{−v}` exceeds `e^{−v}` for every
+`v > 1` — while satisfying the unit-sum bound with the same constant
+`1`, by `riesz_smoothed_sum_le_one`. -/
+theorem enlargement_discard_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0)
-    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
     (x p : ℕ) (hp : 0 < p) (h2p : 2*p ≤ x)
     (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (hsum : ∀ y : ℝ, 1 ≤ y → y ≤ 2 →
+      |∑ n ∈ S, (f n/(n:ℝ)) * V (Real.log y - Real.log (n:ℝ))| ≤ 1)
     (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) :
     |∑ q ∈ Q \ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
         * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
@@ -7303,9 +7302,14 @@ theorem enlargement_discard_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     have hcoef : |Real.log (m:ℝ) * f m| ≤ Real.log (m:ℝ) := by
       rw [abs_mul, abs_of_nonneg (Real.log_natCast_nonneg m)]
       nlinarith [hf m, abs_nonneg (f m), Real.log_natCast_nonneg m]
-    have hsm := ExpSums.smoothed_sum_le_one_real f hf V _ hscale hV0 hVle
-      hVnn S hS1
     have hsc2 : (x:ℝ)/((p:ℝ)*(m:ℝ)) ≤ 2 := x_div_mul_floor_le_two x p hp h2p
+    have hsc1 : (1:ℝ) ≤ (x:ℝ)/((p:ℝ)*(m:ℝ)) := by
+      rw [le_div_iff₀ (by positivity)]
+      have hpm : p * m ≤ x := by
+        rw [hm_def, Nat.mul_comm]; exact Nat.div_mul_le_self x p
+      have : ((p*m : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast hpm
+      push_cast at this; linarith
+    have hsm := hsum _ hsc1 hsc2
     have hinner : |((x:ℝ)/((p:ℝ)*(m:ℝ)))
         * ∑ n ∈ S, (f n/(n:ℝ))
             * V (Real.log ((x:ℝ)/((p:ℝ)*(m:ℝ))) - Real.log (n:ℝ))| ≤ 2 := by
@@ -7335,6 +7339,26 @@ theorem enlargement_discard_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   have hc : ((A.filter (fun q : ℕ => q = m)).card : ℝ) ≤ 1 := by
     exact_mod_cast hcard
   nlinarith [hc, hlogm]
+
+open Real Finset in
+/-- **The range enlargement costs one term** (Track R, N104):
+`enlargement_discard_le'` at a window dominated by `e^{−v}`, where
+`smoothed_sum_le_one_real` supplies the unit-sum bound. -/
+theorem enlargement_discard_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (hVle : ∀ v, V v ≤ Real.exp (-v)) (hVnn : ∀ v, 0 ≤ V v)
+    (x p : ℕ) (hp : 0 < p) (h2p : 2*p ≤ x)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) :
+    |∑ q ∈ Q \ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+        * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+          * ∑ n ∈ S, (f n/(n:ℝ))
+              * V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))|
+      ≤ 2 * Real.log (((x/p : ℕ)):ℝ) := by
+  refine enlargement_discard_le' f hf V hV0 x p hp h2p S hS1 ?_ Q hQp
+  intro y h1 _
+  exact ExpSums.smoothed_sum_le_one_real f hf V y (by linarith) hV0 hVle
+    hVnn S hS1
 
 open Real Finset in
 /-- **The two window arguments agree** (Track R, N105): for
