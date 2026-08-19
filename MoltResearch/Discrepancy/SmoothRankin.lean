@@ -8224,6 +8224,126 @@ theorem tripleConv_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     exact mul_le_mul_of_nonneg_left hmain hxR
   linarith [hsplit, herr, hxG]
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+open scoped FourierTransform in
+/-- **§3's bound on the Riesz triple convolution** (Track R, N175):
+
+  `|tripleConvR f x P| ≤ x·√(E₁·(5·V₃·6b² + Mtail)) + 2·x·log 4`.
+
+The Riesz counterpart of `tripleConv_le`, and the point of the whole
+route.  Compare the two error halves:
+
+* `tripleConv_le`:
+  `2·(2ρx·Mass₁ + 4ρx·Mass₂ + 6x·log 4·Mass₂) + 2x·log 4`,
+  with a main-term constant `5·(2M_V + M₂/2π²)·V₃·6b²`;
+* here: `2x·log 4` alone, with main-term constant `5·V₃·6b²`.
+
+Everything carrying `ρ` is gone, and so is every window mass.  The
+N148 audit showed those two could not be made small together — `M₂` is
+`≳ 1/ρ` for *every* admissible window, so shrinking the Perron error
+inflates the Perron weight, and the optimum loses `(log x)^{1/3}`.
+There is nothing left to balance: the Perron step is an identity
+(`tripleConvR_eq_scaled`), the scale swap does not arise because the
+Riesz mean is taken at the real scale, and the weight constant is `1`.
+
+What survives is the range enlargement, `≤ 2x·log 4` by
+`enlargement_extend_le'` — an `O(x)` term, which is exactly what the
+`+ x` of (3.2) is there to absorb.  It survives for a structural
+reason rather than an analytic one: §4 needs one `ghsPrimePoly` for
+every `p`, so the inner prime range has to stop moving.
+
+Assembled from four steps, three of them exact: the realisation
+(`tripleConvR_eq_scaled`), the enlargement (`enlargement_extend_le'`,
+the only inequality), the reindex (`ghs_reindex`, already parametric in
+the window), and §4's estimate (`ghs_riesz_triple_le_real`). -/
+theorem tripleConvR_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) (hx : 2 ≤ x) (P : Finset ℕ)
+    (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) (hQ : ∀ q ∈ Q, 0 < q)
+    (hQsub : ∀ p ∈ P, (x/p).primesBelow ⊆ Q)
+    (V₃ Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ,
+      ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+        ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ)) Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail) :
+    |tripleConvR f x P|
+      ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail))
+        + 2*(x:ℝ)*Real.log 4 := by
+  classical
+  have hx0 : 0 < x := by omega
+  have hxR : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  have hx2 : (2:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  set W : ℝ → ℝ := ExpSums.rieszWindow with hW_def
+  have hW0 : ∀ v, v ≤ 0 → W v = 0 := by
+    intro v hv
+    rw [hW_def, ExpSums.rieszWindow, if_neg (not_lt.mpr hv)]
+  have hsum : ∀ y : ℝ, 1 ≤ y → y ≤ 2 →
+      |∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+          * W (Real.log y - Real.log (n:ℝ))| ≤ 1 := by
+    intro y h1 h2
+    exact ExpSums.riesz_smoothed_sum_le_one f hf y h1 x (by linarith)
+  have hS1 : ∀ n ∈ Finset.Icc 1 x, 1 ≤ n :=
+    fun n hn => (Finset.mem_Icc.mp hn).1
+  -- the two forms: over the moving range, and over the fixed `Q`
+  set C : ℝ := ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+      * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                * W (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))
+    with hC_def
+  set D : ℝ := ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+      * ∑ q ∈ Q, (Real.log (q:ℝ) * f q)
+          * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                * W (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))
+    with hD_def
+  have hCeq : tripleConvR f x P = C := by
+    rw [hC_def, hW_def]
+    exact tripleConvR_eq_scaled f x hx0 P (fun p hp => (hPp p hp).pos)
+  -- the enlargement, the only error term left
+  have hCD : |D - C| ≤ 2*(x:ℝ)*Real.log 4 := by
+    rw [hD_def, hC_def]
+    exact enlargement_extend_le' f hf W hW0 x P hPp h2p (Finset.Icc 1 x) hS1
+      hsum Q hQp hQsub
+  -- the reindex, exact
+  have hDeq : D = (x:ℝ) * ∑ r ∈ (Finset.Icc 1 x ×ˢ P) ×ˢ Q,
+      ((f r.1.1/(r.1.1:ℝ))
+        * (Real.log (r.1.2:ℝ) * f r.1.2
+            / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+        * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+      * W (Real.log (x:ℝ) - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ)) := by
+    rw [hD_def]
+    exact ghs_reindex f W x hx0 (Finset.Icc 1 x) P Q hS1
+      (fun p hp => (hPp p hp).pos) hQ
+  -- §4's estimate on the reindexed sum
+  have hmain : |∑ r ∈ (Finset.Icc 1 x ×ˢ P) ×ˢ Q,
+      ((f r.1.1/(r.1.1:ℝ))
+        * (Real.log (r.1.2:ℝ) * f r.1.2
+            / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+        * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+      * W (Real.log (x:ℝ) - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ))|
+      ≤ Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail)) := by
+    rw [hW_def]
+    exact ghs_riesz_triple_le_real f hf x (Finset.Icc 1 x) P Q
+      (fun n hn => (Finset.mem_Icc.mp hn).1)
+      (fun p hp => (hPp p hp).pos) hQ V₃ Mtail E₁ b
+      hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail
+  have hDle : |D| ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail)) := by
+    rw [hDeq, abs_mul, abs_of_nonneg hxR]
+    exact mul_le_mul_of_nonneg_left hmain hxR
+  rw [hCeq]
+  calc |C| = |D - (D - C)| := by ring_nf
+    _ ≤ |D| + |D - C| := abs_sub _ _
+    _ ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail))
+          + 2*(x:ℝ)*Real.log 4 := by linarith [hDle, hCD]
+
 open Real Finset in
 /-- **The discarded blocks cost `e^{−K}·x·log x`** (Track R, N118):
 for any family of block-supported prime sets,
