@@ -3371,6 +3371,123 @@ theorem norm_fourier_rieszWindow_le (xi : ℝ) :
   rw [fourier_rieszWindow]
   exact norm_inv_one_add_two_pi_I_sq_le xi
 
+/-- **The Riesz window's band tail** (Track R, N154): for `L > 0`,
+
+  `∫_{|ξ|>L} ‖𝓕(rieszWindow)(ξ)‖ dξ ≤ 1/(2π²L)`.
+
+The `hWtail` hypothesis of `ghs_pairing_estimate_uniform`, in closed
+form.  `norm_fourier_rieszWindow_eq` turns the integrand into
+`1/(1+4π²ξ²)`, which is bounded by the majorant `1/(4π²ξ²)` off the
+origin; `integral_Ioi_rpow_of_lt` integrates it to `1/(4π²L)` on the
+right half, and the integrand is even, so `integral_comp_neg_Ioi`
+supplies the left half for free.
+
+This is only *second*-order decay, and `fourier_tail_cube_le`'s
+docstring warns that second order is a factor of `log x` short at the
+band `halaszM x ≍ log²x`.  That warning applies here — the Riesz window
+is not even `C¹`, so no third-order bound exists for it.  It is not an
+obstruction, because **the band is free**: `halaszLSq_le_of_bound`
+collapses to `6b²` through `sum_inv_sq_add_one_Icc_le`, whose bound `6`
+is uniform in the half-width, and `V₃` (N149) and the sup `b` are both
+uniform in the frequency.  So `halaszM` occurs nowhere but in this
+tail's own domain, and widening it to `≍ log⁴x` clears the requirement
+with room while costing nothing anywhere else.
+
+That is the trade the smoothed route could not make: there, widening
+the band did not help, because the tail's `M₂` and `M₃` were themselves
+growing like `ρ^{−2}` and `ρ^{−3}`. -/
+theorem fourier_rieszWindow_tail_le (L : ℝ) (hL : 0 < L) :
+    ∫ ξ in {ξ : ℝ | L < |ξ|}, ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖
+      ≤ 1/(2*Real.pi^2*L) := by
+  have hpi : (0:ℝ) < Real.pi := Real.pi_pos
+  have hk : (1:ℝ) ≤ 4*Real.pi^2 := by nlinarith [Real.two_le_pi]
+  set g : ℝ → ℝ := fun ξ => 1/(1+4*Real.pi^2*ξ^2) with hg_def
+  have hgeq : (fun ξ => ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖) = g := by
+    funext ξ; exact norm_fourier_rieszWindow_eq ξ
+  have hgpos : ∀ ξ, (0:ℝ) < g ξ := by
+    intro ξ; rw [hg_def]; dsimp only; positivity
+  have hgeven : ∀ ξ, g (-ξ) = g ξ := by
+    intro ξ; simp [hg_def]
+  have hgcont : Continuous g := by
+    rw [hg_def]
+    exact Continuous.div continuous_const (by fun_prop)
+      (fun ξ => by positivity)
+  -- `g` is integrable, being dominated by `(1+ξ²)⁻¹`
+  have hgint : Integrable g := by
+    refine integrable_inv_one_add_sq.mono' hgcont.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun ξ => ?_)
+    rw [Real.norm_eq_abs, abs_of_pos (hgpos ξ), hg_def]
+    dsimp only
+    rw [one_div, inv_le_inv₀ (by positivity) (by positivity)]
+    nlinarith [sq_nonneg ξ]
+  -- the `ξ⁻²`-majorant on the right half, and its integral
+  have hmaj : IntegrableOn (fun ξ => 1/(4*Real.pi^2*ξ^2)) (Set.Ioi L) := by
+    have h1 := (integrableOn_Ioi_rpow_of_lt (by norm_num : (-2:ℝ) < -1)
+      hL).const_mul (1/(4*Real.pi^2))
+    refine MeasureTheory.IntegrableOn.congr_fun h1
+      (fun ξ hξ => ?_) measurableSet_Ioi
+    rw [Set.mem_Ioi] at hξ
+    have hξ0 : (0:ℝ) < ξ := lt_trans hL hξ
+    have hval : ξ^((-2):ℝ) = 1/ξ^2 := by
+      rw [show ((-2):ℝ) = -((2:ℕ):ℝ) from by push_cast; ring,
+        Real.rpow_neg hξ0.le, Real.rpow_natCast, one_div]
+    rw [hval]
+    field_simp
+  have hIoi_val : ∫ ξ in Set.Ioi L, 1/(4*Real.pi^2*ξ^2)
+      = 1/(4*Real.pi^2*L) := by
+    have h1 : ∀ ξ ∈ Set.Ioi L, 1/(4*Real.pi^2*ξ^2)
+        = (1/(4*Real.pi^2)) * ξ^((-2:ℝ)) := by
+      intro ξ hξ
+      rw [Set.mem_Ioi] at hξ
+      have hξ0 : (0:ℝ) < ξ := lt_trans hL hξ
+      have hval : ξ^((-2):ℝ) = 1/ξ^2 := by
+        rw [show ((-2):ℝ) = -((2:ℕ):ℝ) from by push_cast; ring,
+          Real.rpow_neg hξ0.le, Real.rpow_natCast, one_div]
+      rw [hval]
+      field_simp
+    rw [setIntegral_congr_fun measurableSet_Ioi h1, integral_const_mul,
+      integral_Ioi_rpow_of_lt (by norm_num) hL]
+    rw [show (-2:ℝ) + 1 = -1 from by norm_num, Real.rpow_neg_one]
+    field_simp
+  have hIoi : ∫ ξ in Set.Ioi L, g ξ ≤ 1/(4*Real.pi^2*L) := by
+    refine le_trans (setIntegral_mono_on hgint.integrableOn hmaj
+      measurableSet_Ioi ?_) (le_of_eq hIoi_val)
+    intro ξ hξ
+    rw [Set.mem_Ioi] at hξ
+    have hξ0 : (0:ℝ) < ξ := lt_trans hL hξ
+    rw [hg_def]
+    dsimp only
+    rw [div_le_div_iff₀ (by positivity) (by positivity)]
+    nlinarith [sq_nonneg ξ, hpi]
+  have hIio : ∫ ξ in Set.Iio (-L), g ξ ≤ 1/(4*Real.pi^2*L) := by
+    have hflip : ∫ ξ in Set.Iio (-L), g ξ = ∫ ξ in Set.Ioi L, g ξ := by
+      rw [← integral_Iic_eq_integral_Iio, ← integral_comp_neg_Ioi L g]
+      exact setIntegral_congr_fun measurableSet_Ioi fun ξ _ => hgeven ξ
+    rw [hflip]
+    exact hIoi
+  -- combine the two halves
+  have hset : {ξ : ℝ | L < |ξ|} = Set.Iio (-L) ∪ Set.Ioi L := by
+    ext ξ
+    rw [Set.mem_setOf_eq, Set.mem_union, Set.mem_Iio, Set.mem_Ioi, lt_abs]
+    constructor
+    · rintro (h | h)
+      · exact Or.inr h
+      · exact Or.inl (by linarith)
+    · rintro (h | h)
+      · exact Or.inr (by linarith)
+      · exact Or.inl h
+  have hdisj : Disjoint (Set.Iio (-L)) (Set.Ioi L) := by
+    refine Set.disjoint_left.mpr fun ξ h1 h2 => ?_
+    rw [Set.mem_Iio] at h1
+    rw [Set.mem_Ioi] at h2
+    linarith
+  rw [hgeq, hset, setIntegral_union hdisj measurableSet_Ioi
+    hgint.integrableOn hgint.integrableOn]
+  have hval : 1/(4*Real.pi^2*L) + 1/(4*Real.pi^2*L) = 1/(2*Real.pi^2*L) := by
+    field_simp
+    ring
+  linarith [hIoi, hIio, hval]
+
 end ExpSums
 
 end MoltResearch
