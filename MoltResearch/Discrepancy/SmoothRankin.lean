@@ -3416,6 +3416,190 @@ theorem tripleConv_block_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x k : 
   have hgeom := log_blockHi_sub_log_blockLo_le x k hx hk
   linarith [hgeom]
 
+
+open Real Finset in
+/-- **The trivial bound on a Riesz block, for any subset** (Track R,
+N177): `norm_tripleConvR_le` with `P` an arbitrary set of primes in
+`[A, B)` rather than all of them.
+
+The same proof; only the mass step changes, from `Sk_trivial_mass_le`
+to `Sk_trivial_mass_le'`.  §3 needs this form because the blocks it
+discards carry whatever primes survived N18's earlier reductions, not
+the full interval. -/
+theorem norm_tripleConvR_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x A B : ℕ)
+    (hA : 1 ≤ A) (hAB : A ≤ B) (hB : 2*B ≤ x)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime ∧ A ≤ p ∧ p < B) :
+    |tripleConvR f x P|
+      ≤ (x:ℝ) * (16 * (Real.log (B:ℝ) - Real.log (A:ℝ)) + 16 * Real.log 4) := by
+  classical
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  rw [tripleConvR]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ p ∈ P,
+      |(Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))|
+      ≤ (x:ℝ) * ((Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)) := by
+    intro p hp
+    obtain ⟨hpp, hAp, hpB⟩ := hP p hp
+    have hp1 : 1 ≤ p := hpp.one_lt.le
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+    have h2p : 2*p ≤ x := by omega
+    have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+      push_cast at hc
+      linarith
+    have hlogpos : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+    have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    -- the Riesz mean at `x/pq`, priced by `|R_f(y)| ≤ y`
+    have hmid : |∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+              f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))|
+        ≤ ((x:ℝ)/(p:ℝ)) * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ) := by
+      refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+      rw [Finset.mul_sum]
+      refine Finset.sum_le_sum fun q hq => ?_
+      rw [Nat.mem_primesBelow] at hq
+      obtain ⟨hqlt, hqp⟩ := hq
+      have hq1 : 1 ≤ q := hqp.one_lt.le
+      have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq1
+      have hlogq : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+      -- `pq < x`, so the scale exceeds `1` and `norm_rieszMean_le` applies
+      have hpqx : p*q < x := by
+        have h1 : p*q < p*(x/p) := by
+          have hp0' : 0 < p := hpp.pos
+          exact (Nat.mul_lt_mul_left hp0').mpr hqlt
+        have h2 : p*(x/p) ≤ x := by
+          rw [Nat.mul_comm]; exact Nat.div_mul_le_self x p
+        omega
+      have hy1 : (1:ℝ) ≤ (x:ℝ)/((p:ℝ)*(q:ℝ)) := by
+        rw [le_div_iff₀ (by positivity)]
+        have : ((p*q : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast hpqx.le
+        push_cast at this; linarith
+      have hinner := ExpSums.norm_rieszMean_le f hf
+        ((x:ℝ)/((p:ℝ)*(q:ℝ))) hy1
+      rw [abs_mul, abs_mul, abs_of_nonneg hlogq]
+      calc Real.log (q:ℝ) * |f q|
+            * |∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))|
+          ≤ Real.log (q:ℝ) * 1 * ((x:ℝ)/((p:ℝ)*(q:ℝ))) := by
+            refine mul_le_mul (mul_le_mul_of_nonneg_left (hf q) hlogq)
+              hinner (abs_nonneg _) (by positivity)
+        _ = (x:ℝ)/(p:ℝ) * (Real.log (q:ℝ)/(q:ℝ)) := by field_simp
+    rw [abs_mul]
+    have houter : |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        ≤ Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)) := by
+      rw [abs_div, abs_mul, abs_of_nonneg hlogp, abs_of_nonneg hlogpos.le]
+      refine div_le_div_of_nonneg_right ?_ hlogpos.le
+      calc Real.log (p:ℝ) * |f p| ≤ Real.log (p:ℝ) * 1 :=
+            mul_le_mul_of_nonneg_left (hf p) hlogp
+        _ = Real.log (p:ℝ) := mul_one _
+    calc |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+          * |∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                  f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))|
+        ≤ (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+            * (((x:ℝ)/(p:ℝ)) * ∑ q ∈ (x/p).primesBelow,
+                Real.log (q:ℝ)/(q:ℝ)) := by
+          refine mul_le_mul houter hmid (abs_nonneg _) ?_
+          exact div_nonneg hlogp hlogpos.le
+      _ = (x:ℝ) * ((Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+            * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)) := by
+          field_simp
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  exact mul_le_mul_of_nonneg_left
+    (Sk_trivial_mass_le' x A B hA hAB hB P hP) hx0
+
+open Real Finset in
+/-- **The trivial bound at a Riesz block** (Track R, N177):
+
+  `|tripleConvR f x P| ≤ x·(16((e−1)e^{−k}log x + log 2) + 16 log 4)`
+
+for `P` inside the `k`-th block, with `2·blockHi x k ≤ x`.
+
+`tripleConv_block_le'`'s counterpart, at the block endpoints:
+`log blockHi − log blockLo ≤ (e−1)e^{−k}log x + log 2`
+(`log_blockHi_sub_log_blockLo_le`), which is where the geometric decay
+in `k` enters. -/
+theorem tripleConvR_block_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x k : ℕ)
+    (hx : 2 ≤ x) (hk : 1 ≤ k) (hfit : 2 * blockHi x k ≤ x)
+    (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k) :
+    |tripleConvR f x P|
+      ≤ (x:ℝ) * (16 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+          + Real.log 2) + 16 * Real.log 4) := by
+  have hx1 : 1 ≤ x := by omega
+  obtain ⟨hlo1, hlohi⟩ := blockLo_le_blockHi x k hx1
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  refine le_trans (norm_tripleConvR_le' f hf x (blockLo x k) (blockHi x k)
+    hlo1 hlohi hfit P hP) ?_
+  refine mul_le_mul_of_nonneg_left ?_ hx0
+  have hgeom := log_blockHi_sub_log_blockLo_le x k hx hk
+  linarith [hgeom]
+
+open Real Finset in
+/-- **The discarded Riesz blocks cost `e^{−K}·x·log x`** (Track R,
+N177):
+
+  `∑_{k = K+1}^{M} |tripleConvR f x (P k)|`
+  `  ≤ x·16(e−1)·e^{−K}·log x + (M−K)·x·(16 log 2 + 16 log 4)`.
+
+`tripleConv_tail_blocks_le` ported verbatim — the Riesz kernel changes
+nothing here, because `norm_rieszMean_le` prices the inner mean at
+exactly what the sharp inner sum costs.
+
+So §3's `k`-split has the same shape on both paths: blocks past `K`
+contribute `≍ e^{−K}·x·log x`, which at `K ≍ log(log x/L)` is `≍ x·L`,
+and the non-decaying `O(1)` per block is what forces the count to be
+`O(log log x)` rather than merely finite (`block_index_le_of_fit`).
+
+What differs is the *other* half.  Where `tripleConv_le` spends
+`2(2ρx·Mass₁ + 4ρx·Mass₂ + 6x·log 4·Mass₂) + 2x·log 4` on the retained
+blocks, `tripleConvR_le` spends `2x·log 4`. -/
+theorem tripleConvR_tail_blocks_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) (hx : 2 ≤ x) (K M : ℕ) (Pk : ℕ → Finset ℕ)
+    (hk1 : ∀ k ∈ Finset.Icc (K+1) M, 1 ≤ k)
+    (hfit : ∀ k ∈ Finset.Icc (K+1) M, 2 * blockHi x k ≤ x)
+    (hP : ∀ k ∈ Finset.Icc (K+1) M, ∀ p ∈ Pk k,
+      p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k) :
+    ∑ k ∈ Finset.Icc (K+1) M, |tripleConvR f x (Pk k)|
+      ≤ (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.exp (-(K:ℝ)) * Real.log (x:ℝ))
+        + ((Finset.Icc (K+1) M).card : ℝ)
+            * ((x:ℝ) * (16 * Real.log 2 + 16 * Real.log 4)) := by
+  classical
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  have hterm : ∀ k ∈ Finset.Icc (K+1) M, |tripleConvR f x (Pk k)|
+      ≤ (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.log (x:ℝ))
+          * Real.exp (-(k:ℝ))
+        + (x:ℝ) * (16 * Real.log 2 + 16 * Real.log 4) := by
+    intro k hk
+    refine le_trans (tripleConvR_block_le' f hf x k hx (hk1 k hk) (hfit k hk)
+      (Pk k) (hP k hk)) ?_
+    have hexp : (0:ℝ) ≤ Real.exp (-(k:ℝ)) := (Real.exp_pos _).le
+    nlinarith [hx0, hexp]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum]
+  have hgeo := sum_exp_neg_tail_le K M
+  have hcoef : (0:ℝ) ≤ (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.log (x:ℝ)) := by
+    have h1 : (0:ℝ) ≤ Real.log (x:ℝ) :=
+      Real.log_nonneg (by exact_mod_cast (by omega : 1 ≤ x))
+    have h2 : (0:ℝ) ≤ Real.exp 1 - 1 := by
+      have := Real.add_one_le_exp (1:ℝ)
+      linarith
+    positivity
+  have hmain : (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.log (x:ℝ))
+      * (∑ k ∈ Finset.Icc (K+1) M, Real.exp (-(k:ℝ)))
+      ≤ (x:ℝ) * (16 * (Real.exp 1 - 1) * Real.exp (-(K:ℝ))
+          * Real.log (x:ℝ)) := by
+    refine le_trans (mul_le_mul_of_nonneg_left hgeo hcoef) (le_of_eq ?_)
+    ring
+  simp only [Finset.sum_const, nsmul_eq_mul]
+  linarith [hmain]
+
 /-- **The tiling starts at 1** (Track R, N23): `blockLo x 1 = 1`, since
 `1 − e^{1−1} = 0` and `x⁰ = 1`.  So the blocks reach down to the bottom
 of the prime range and the survivor set needs no lower-end coverage
