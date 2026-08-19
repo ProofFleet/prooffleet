@@ -3371,6 +3371,58 @@ theorem norm_fourier_rieszWindow_le (xi : ℝ) :
   rw [fourier_rieszWindow]
   exact norm_inv_one_add_two_pi_I_sq_le xi
 
+/-- **The Riesz weight is bounded by `1`** (Track R, N163):
+
+  `‖𝓕(rieszWindow)(ξ)‖ ≤ 1`.
+
+`ghsBlock_E1_free_le`'s `hC`, at `C = 1`.  The maximum is attained, at
+`ξ = 0`, where the transform is `1` — so this is the sharp uniform
+bound and not merely a convenient one. -/
+theorem norm_fourier_rieszWindow_le_one (xi : ℝ) :
+    ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) xi‖ ≤ 1 := by
+  rw [norm_fourier_rieszWindow_eq]
+  rw [div_le_one (by positivity)]
+  nlinarith [sq_nonneg xi, Real.pi_pos]
+
+/-- **The Riesz weight is continuous** (Track R, N163).
+
+`1/(1 + 4π²ξ²)` has a denominator that never vanishes, so
+`norm_fourier_rieszWindow_eq` reduces continuity to a division of
+polynomials.  Doing it this way rather than through continuity of the
+Fourier transform matters: `rieszWindow` is not Schwartz, so the usual
+route through `SchwartzMap` is unavailable, and the closed form is the
+only thing that makes these side conditions cheap. -/
+theorem continuous_norm_fourier_rieszWindow :
+    Continuous (fun ξ : ℝ => ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖) := by
+  have heq : (fun ξ : ℝ => ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖)
+      = fun ξ : ℝ => 1/(1+4*Real.pi^2*ξ^2) := by
+    funext ξ; exact norm_fourier_rieszWindow_eq ξ
+  rw [heq]
+  exact Continuous.div continuous_const (by fun_prop) (fun ξ => by positivity)
+
+/-- **The Riesz weight is integrable** (Track R, N163).
+
+`4π² ≥ 1` gives `1/(1 + 4π²ξ²) ≤ (1 + ξ²)⁻¹` pointwise, and
+`integrable_inv_one_add_sq` supplies the majorant.
+
+With `norm_fourier_rieszWindow_le_one` and
+`continuous_norm_fourier_rieszWindow`, this is everything §4's pairing
+estimate asks of the weight beyond the two bounds
+`norm_fourier_rieszWindow_le` and `fourier_rieszWindow_tail_le` — so
+the integrability side conditions of `ghsBlock_E1_free_le` and
+`ghs_pairing_estimate_uniform` are discharged from the closed form
+alone, with no smoothness or support hypotheses anywhere. -/
+theorem integrable_norm_fourier_rieszWindow :
+    Integrable (fun ξ : ℝ => ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖) := by
+  have hk : (1:ℝ) ≤ 4*Real.pi^2 := by nlinarith [Real.two_le_pi]
+  refine integrable_inv_one_add_sq.mono'
+    continuous_norm_fourier_rieszWindow.aestronglyMeasurable
+    (Filter.Eventually.of_forall fun ξ => ?_)
+  rw [Real.norm_eq_abs, abs_of_nonneg (norm_nonneg _),
+    norm_fourier_rieszWindow_eq, one_div,
+    inv_le_inv₀ (by positivity) (by positivity)]
+  nlinarith [sq_nonneg ξ]
+
 /-- **The Riesz window's band tail** (Track R, N154): for `L > 0`,
 
   `∫_{|ξ|>L} ‖𝓕(rieszWindow)(ξ)‖ dξ ≤ 1/(2π²L)`.
