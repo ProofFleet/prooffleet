@@ -3564,6 +3564,126 @@ theorem rieszMean_eq_window_sum (f : ℕ → ℝ) (y : ℝ) (hy : 0 < y) (N : �
     rw [hexp]
     field_simp
 
+/-- **The Riesz kernel has mass `N`** (Track R, N161):
+
+  `∑_{n≤N} log(N/n) ≤ N`.
+
+By induction: `A(N+1) − A(N) = N·log(1 + 1/N) ≤ 1`, since
+`log t ≤ t − 1`.  (Equivalently `N log N − log N! ≤ N`, i.e. the weak
+half of Stirling, but the telescoping form needs nothing about
+factorials.)
+
+`log(y/n)` is the weight the Riesz mean puts on `n`, so this says the
+weights total `≤ y` — the Riesz analogue of `∑_{n≤y} 1 ≤ y` for the
+sharp sum, and what makes `norm_rieszMean_le` come out at exactly `y`
+rather than `y·log y`. -/
+theorem sum_log_ratio_le (N : ℕ) :
+    ∑ n ∈ Finset.Icc 1 N, (Real.log (N:ℝ) - Real.log (n:ℝ)) ≤ (N:ℝ) := by
+  induction N with
+  | zero => simp
+  | succ N ih =>
+    rcases Nat.eq_zero_or_pos N with rfl | hN
+    · norm_num
+    have hN0 : (0:ℝ) < (N:ℝ) := by exact_mod_cast hN
+    have hcast : (((N+1 : ℕ)):ℝ) = (N:ℝ) + 1 := by push_cast; ring
+    -- `A(N+1) = A(N) + N·(log(N+1) − log N)`
+    have hstep : ∑ n ∈ Finset.Icc 1 (N+1),
+          (Real.log (((N+1 : ℕ)):ℝ) - Real.log (n:ℝ))
+        = (∑ n ∈ Finset.Icc 1 N, (Real.log (N:ℝ) - Real.log (n:ℝ)))
+          + (N:ℝ) * (Real.log ((N:ℝ)+1) - Real.log (N:ℝ)) := by
+      rw [Finset.sum_Icc_succ_top (by omega : 1 ≤ N + 1), hcast]
+      have hshift : ∑ n ∈ Finset.Icc 1 N, (Real.log ((N:ℝ)+1) - Real.log (n:ℝ))
+          = (∑ n ∈ Finset.Icc 1 N, (Real.log (N:ℝ) - Real.log (n:ℝ)))
+            + (N:ℝ) * (Real.log ((N:ℝ)+1) - Real.log (N:ℝ)) := by
+        have hpt : ∀ n ∈ Finset.Icc 1 N,
+            Real.log ((N:ℝ)+1) - Real.log (n:ℝ)
+              = (Real.log (N:ℝ) - Real.log (n:ℝ))
+                + (Real.log ((N:ℝ)+1) - Real.log (N:ℝ)) := fun n _ => by ring
+        rw [Finset.sum_congr rfl hpt, Finset.sum_add_distrib,
+          Finset.sum_const, Nat.card_Icc, nsmul_eq_mul]
+        norm_num
+      rw [hshift]
+      ring
+    rw [hstep]
+    -- `N·log(1 + 1/N) ≤ 1`
+    have hlog : (N:ℝ) * (Real.log ((N:ℝ)+1) - Real.log (N:ℝ)) ≤ 1 := by
+      have h1 : Real.log ((N:ℝ)+1) - Real.log (N:ℝ)
+          = Real.log (((N:ℝ)+1)/(N:ℝ)) := by
+        rw [Real.log_div (by linarith) (ne_of_gt hN0)]
+      rw [h1]
+      have h2 : Real.log (((N:ℝ)+1)/(N:ℝ)) ≤ ((N:ℝ)+1)/(N:ℝ) - 1 :=
+        Real.log_le_sub_one_of_pos (by positivity)
+      have h3 : ((N:ℝ)+1)/(N:ℝ) - 1 = 1/(N:ℝ) := by
+        field_simp
+        ring
+      rw [h3] at h2
+      calc (N:ℝ) * Real.log (((N:ℝ)+1)/(N:ℝ)) ≤ (N:ℝ) * (1/(N:ℝ)) :=
+            mul_le_mul_of_nonneg_left h2 hN0.le
+        _ = 1 := by field_simp
+    push_cast
+    linarith [ih, hlog]
+
+/-- **The trivial bound on the Riesz mean** (Track R, N161): for
+`|f| ≤ 1` and `y ≥ 1`,
+
+  `|∑_{n≤y} f(n)·log(y/n)| ≤ y`.
+
+The same shape as `|∑_{n≤y} f(n)| ≤ y`, and with the same constant —
+the logarithmic weights cost nothing, because they total `≤ y` by
+`sum_log_ratio_le`.
+
+This is what prices the blocks §3 discards: `norm_tripleConv_le` bounds
+the sharp triple convolution by `x` times an arithmetic mass, and the
+Riesz version needs this bound in exactly the same place.  Splitting off
+`log(y/M)` at `M = ⌊y⌋` is what keeps the constant at `1`: the head
+contributes `M·log(y/M) ≤ y − M` and the rest is `≤ M`. -/
+theorem norm_rieszMean_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (y : ℝ)
+    (hy : 1 ≤ y) :
+    |∑ n ∈ Finset.Icc 1 ⌊y⌋₊, f n * (Real.log y - Real.log (n:ℝ))| ≤ y := by
+  classical
+  have hy0 : (0:ℝ) < y := by linarith
+  set M : ℕ := ⌊y⌋₊ with hM_def
+  have hM1 : 1 ≤ M := Nat.le_floor (by exact_mod_cast hy)
+  have hMR : (0:ℝ) < (M:ℝ) := by exact_mod_cast hM1
+  have hMy : (M:ℝ) ≤ y := Nat.floor_le hy0.le
+  have hterm : ∀ n ∈ Finset.Icc 1 M,
+      |f n * (Real.log y - Real.log (n:ℝ))| ≤ Real.log y - Real.log (n:ℝ) := by
+    intro n hn
+    rw [Finset.mem_Icc] at hn
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn.1
+    have hnM : (n:ℝ) ≤ (M:ℝ) := by exact_mod_cast hn.2
+    have hny : (n:ℝ) ≤ y := le_trans hnM hMy
+    have hnn : 0 ≤ Real.log y - Real.log (n:ℝ) := by
+      have := Real.log_le_log hn0 hny
+      linarith
+    rw [abs_mul, abs_of_nonneg hnn]
+    calc |f n| * (Real.log y - Real.log (n:ℝ))
+        ≤ 1 * (Real.log y - Real.log (n:ℝ)) :=
+          mul_le_mul_of_nonneg_right (hf n) hnn
+      _ = Real.log y - Real.log (n:ℝ) := one_mul _
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have hsplit : ∑ n ∈ Finset.Icc 1 M, (Real.log y - Real.log (n:ℝ))
+      = (M:ℝ)*(Real.log y - Real.log (M:ℝ))
+        + ∑ n ∈ Finset.Icc 1 M, (Real.log (M:ℝ) - Real.log (n:ℝ)) := by
+    have hpt : ∀ n ∈ Finset.Icc 1 M, Real.log y - Real.log (n:ℝ)
+        = (Real.log y - Real.log (M:ℝ))
+          + (Real.log (M:ℝ) - Real.log (n:ℝ)) := fun n _ => by ring
+    rw [Finset.sum_congr rfl hpt, Finset.sum_add_distrib,
+      Finset.sum_const, Nat.card_Icc, nsmul_eq_mul]
+    norm_num
+  rw [hsplit]
+  have hhead : (M:ℝ)*(Real.log y - Real.log (M:ℝ)) ≤ y - (M:ℝ) := by
+    have hlog : Real.log y - Real.log (M:ℝ) = Real.log (y/(M:ℝ)) := by
+      rw [Real.log_div (ne_of_gt hy0) (ne_of_gt hMR)]
+    rw [hlog]
+    have h2 : Real.log (y/(M:ℝ)) ≤ y/(M:ℝ) - 1 :=
+      Real.log_le_sub_one_of_pos (by positivity)
+    calc (M:ℝ) * Real.log (y/(M:ℝ)) ≤ (M:ℝ) * (y/(M:ℝ) - 1) :=
+          mul_le_mul_of_nonneg_left h2 hMR.le
+      _ = y - (M:ℝ) := by field_simp
+  linarith [hhead, sum_log_ratio_le M]
+
 end ExpSums
 
 end MoltResearch
