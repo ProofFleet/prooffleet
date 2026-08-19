@@ -3741,6 +3741,53 @@ theorem survivor_sum_split {M : Type*} [AddCommMonoid M] (g : ℕ → M)
   exact sum_block_split_filter g _ x hx K
 
 open Finset in
+/-- **The Riesz triple convolution splits over blocks** (Track R,
+N178):
+
+  `tripleConvR f x (primes of [blockLo x 1, blockHi x K))`
+  `  = ∑_{k=1}^{K} tripleConvR f x (primes of block k)`.
+
+`sum_block_split` applied to `tripleConvR`'s summand, which is what
+makes this three lines: the block machinery of N20 was stated for an
+arbitrary `g : ℕ → M`, so it never had to know which convolution it was
+tiling. -/
+theorem tripleConvR_block_split (f : ℕ → ℝ) (x : ℕ) (hx : 1 ≤ x) (K : ℕ) :
+    tripleConvR f x
+        ((Finset.Ico (blockLo x 1) (blockHi x K)).filter Nat.Prime)
+      = ∑ k ∈ Finset.Icc 1 K,
+          tripleConvR f x
+            ((Finset.Ico (blockLo x k) (blockHi x k)).filter Nat.Prime) := by
+  classical
+  simp only [tripleConvR]
+  exact sum_block_split _ x hx K
+
+open Finset in
+/-- **The Riesz survivor sum splits over blocks** (Track R, N178):
+`survivor_sum_split` at `tripleConvR`'s summand.
+
+The shape §3's capstone consumes.  After N18's discards the surviving
+primes are those with `y ≤ p` and `2p ≤ x`, and this tiles them into
+the `K` blocks — on each of which `tripleConvR_le` supplies the sharp
+estimate and `tripleConvR_block_le'` the trivial one, the split between
+the two being the choice of where to stop trusting Halász.
+
+`tripleConvR_tail_blocks_le` is the second half already assembled:
+blocks past `K₀` cost `≍ e^{−K₀}·x·log x`.  What is left for the
+capstone is the first half — instantiating `E₁`, `V₃`, `b` and `Mtail`
+on each retained block — and the choice of `K₀`. -/
+theorem tripleConvR_survivor_split (f : ℕ → ℝ) (x y K : ℕ) (hx : 1 ≤ x)
+    (hK : Real.exp (-(K:ℝ)) * Real.log (x:ℝ) < Real.log 2) :
+    tripleConvR f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+        (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p))
+      = ∑ k ∈ Finset.Icc 1 K,
+          tripleConvR f x
+            (((Finset.Ico (blockLo x k) (blockHi x k)).filter
+              Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p)) := by
+  classical
+  simp only [tripleConvR]
+  exact survivor_sum_split _ x y K hx hK
+
+open Finset in
 /-- **The mean value, block by block** (Track R, N26): N18's discard
 estimate with its survivor sum tiled,
 
