@@ -6423,6 +6423,61 @@ theorem ghs_pairing_estimate_uniform (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ �
     mul_le_mul_of_nonneg_left hLSq hcoef
   exact mul_le_mul_of_nonneg_left (by linarith) hE₁0.le
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+open scoped FourierTransform in
+/-- **§4's pairing estimate at the Riesz weight** (Track R, N165):
+
+  `∫_ℝ ‖P₁·P₂·P₃‖·‖𝓕V‖ ≤ √(E₁·(5·V₃·6b² + Mtail))`,
+
+with `V = rieszWindow` and
+
+  `Mtail ≥ (∑_q log q/q)²·(∑_{n∈S} 1/n)²·1/(2π²(halaszM x + ½))`.
+
+`ghs_pairing_estimate_uniform` with the weight fixed.  The constant `C`
+has left the main term entirely — it was `2M_V + M₂/(2π²)` for a
+smoothed window, and the N148 audit showed that quantity is `≳ 1/ρ` for
+*every* admissible window, so it could not be held bounded while the
+Perron error `≍ ρ·(trivial bound)` was held small.  Here it is `1`.
+
+`Wtail` is `1/(2π²(halaszM x + ½))` from `fourier_rieszWindow_tail_le`,
+which at the widened band `halaszM x ≍ log⁴x` is `≍ log^{−4}x` — below
+the `≲ e^{k}/log³x` that `E₁·Mtail ≲ (main term)²` demands, with a
+factor of `log x` in hand.
+
+Together with `ghsBlock_E1_riesz_le` for `E₁`,
+`ghsPrimePoly_unit_energy_final_le` for `V₃` (both uniform in the
+frequency, hence unaffected by the band width), and
+`norm_ghsMainPoly_smooth_band_le` for `b`, this is §4's half of the
+argument at the Riesz window, with no free window parameters left. -/
+theorem ghs_riesz_pairing_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ)
+    (V Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV0 : 0 ≤ V) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail) :
+    (∫ ξ, ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ * ghsPrimePoly f Q ξ‖
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖)
+      ≤ Real.sqrt (E₁ * (5 * V * (6*b^2) + Mtail)) := by
+  classical
+  have hL0 : (0:ℝ) < ((halaszM x : ℕ):ℝ) + 1/2 := by positivity
+  have h := ghs_pairing_estimate_uniform f hf x S P Q
+    (fun ξ => ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖)
+    ExpSums.continuous_norm_fourier_rieszWindow
+    1 V Mtail E₁ (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) b
+    hE₁0 hb0 hV0 hMtail0
+    (fun t => norm_nonneg _)
+    ExpSums.norm_fourier_rieszWindow_le
+    hE₁ hBu hV
+    (ExpSums.fourier_rieszWindow_tail_le _ hL0)
+    hMtail
+  simpa using h
+
 open MeasureTheory Real Complex Finset in
 open scoped FourierTransform ContDiff in
 /-- **§4's pairing estimate at a Perron window** (Track R, N83): for any
