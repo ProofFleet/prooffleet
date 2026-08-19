@@ -1148,6 +1148,59 @@ theorem sum_mul_log_eq (f : ℕ → ℝ) (x : ℕ) :
   exact Finset.sum_congr rfl fun m _ => by ring
 
 open Finset in
+/-- **The telescoping step of the log-over-square sum** (Track R, N155):
+
+  `log(n+1)/(n+1)² ≤ 4/√n − 4/√(n+1)`,  for `n ≥ 1`.
+
+`sum_log_div_sq_le`'s inductive step, extracted so that partial sums
+can be bounded as well as the whole.  The proof is the one that was
+inline there: `log(n+1) ≤ 2√(n+1) − 2` from `log t ≤ t − 1` at
+`t = √(n+1)`, then `2/b³ ≤ 4/a − 4/b` after clearing denominators with
+`(b−a)(a+b) = 1`, which reduces to `a² + ab ≤ 2b²` with `a² = b² − 1`.
+
+Having it separately is what makes `sum_log_div_sq_tail_le` free: the
+same telescoping run from any starting point bounds the tail by its
+first term's `4/√a`, and *that* is what distinguishes a mass of
+`O(1/log²x)` from a mass of `O(1)` in `block_masses_le`. -/
+theorem log_div_sq_le_sqrt_diff (N : ℕ) (hN : 1 ≤ N) :
+    Real.log ((N:ℝ)+1) / ((N:ℝ)+1)^2
+      ≤ 4/Real.sqrt (N:ℝ) - 4/Real.sqrt ((N:ℝ)+1) := by
+  have hN0 : (0:ℝ) < (N:ℝ) := by exact_mod_cast hN
+  set a : ℝ := Real.sqrt (N:ℝ) with ha_def
+  set b : ℝ := Real.sqrt ((N:ℝ)+1) with hb_def
+  have ha0 : (0:ℝ) < a := Real.sqrt_pos.mpr hN0
+  have hb0 : (0:ℝ) < b := Real.sqrt_pos.mpr (by linarith)
+  have hasq : a^2 = (N:ℝ) := Real.sq_sqrt hN0.le
+  have hbsq : b^2 = (N:ℝ)+1 := Real.sq_sqrt (by linarith)
+  have hab : a ≤ b := by nlinarith [hasq, hbsq, ha0, hb0]
+  -- `log(N+1) ≤ 2b − 2`
+  have hlogb : Real.log b ≤ b - 1 := Real.log_le_sub_one_of_pos hb0
+  have hlogsplit : Real.log b = Real.log ((N:ℝ)+1) / 2 := by
+    rw [hb_def]
+    exact Real.log_sqrt (by linarith)
+  have hlog : Real.log ((N:ℝ)+1) ≤ 2*b - 2 := by linarith
+  -- the telescoping step
+  have hkey : a^2 + a*b ≤ 2*b^2 := by nlinarith [hasq, hbsq, hab, ha0, hb0]
+  have hprod : (b - a)*(a + b) = 1 := by nlinarith [hasq, hbsq]
+  have hnum : Real.log ((N:ℝ)+1) / ((N:ℝ)+1)^2 ≤ 2/b^3 := by
+    have hb4 : ((N:ℝ)+1)^2 = b^3*b := by
+      have hbb : b^3*b = (b^2)^2 := by ring
+      rw [hbb, hbsq]
+    rw [hb4, div_le_div_iff₀ (by positivity) (by positivity)]
+    nlinarith [hlog, hb0, pow_pos hb0 3]
+  have hrhs : 2/b^3 ≤ 4/a - 4/b := by
+    have heq : 4/a - 4/b = 4*(b-a)/(a*b) := by field_simp
+    rw [heq, div_le_div_iff₀ (by positivity) (by positivity)]
+    have hab0 : (0:ℝ) < a + b := by linarith
+    have h4 : (2*(a*b))*(a+b) ≤ (4*(b-a)*b^3)*(a+b) := by
+      have hre : (4*(b-a)*b^3)*(a+b) = 4*b^3*((b-a)*(a+b)) := by ring
+      rw [hre, hprod]
+      nlinarith [mul_le_mul_of_nonneg_left hkey
+        (show (0:ℝ) ≤ 2*b by positivity)]
+    exact le_of_mul_le_mul_right h4 hab0
+  linarith [hnum, hrhs]
+
+open Finset in
 /-- **The log-over-square sum is bounded** (Track R, N3a):
 `∑_{2≤n≤N} log n / n² ≤ 4`, uniformly in `N`.
 
@@ -1167,46 +1220,49 @@ theorem sum_log_div_sq_le (N : ℕ) (hN : 1 ≤ N) :
   induction N, hN using Nat.le_induction with
   | base => norm_num
   | succ N hN ih =>
-    have hN0 : (0:ℝ) < (N:ℝ) := by exact_mod_cast hN
-    have hN1 : (1:ℝ) ≤ (N:ℝ) := by exact_mod_cast hN
-    set a : ℝ := Real.sqrt (N:ℝ) with ha_def
-    set b : ℝ := Real.sqrt ((N:ℝ)+1) with hb_def
-    have ha0 : (0:ℝ) < a := Real.sqrt_pos.mpr hN0
-    have hb0 : (0:ℝ) < b := Real.sqrt_pos.mpr (by linarith)
-    have hasq : a^2 = (N:ℝ) := Real.sq_sqrt hN0.le
-    have hbsq : b^2 = (N:ℝ)+1 := Real.sq_sqrt (by linarith)
-    have hab : a ≤ b := by nlinarith [hasq, hbsq, ha0, hb0]
-    -- `log(N+1) ≤ 2b − 2`
-    have hlogb : Real.log b ≤ b - 1 := Real.log_le_sub_one_of_pos hb0
-    have hlogsplit : Real.log b = Real.log ((N:ℝ)+1) / 2 := by
-      rw [hb_def]
-      exact Real.log_sqrt (by linarith)
-    have hlog : Real.log ((N:ℝ)+1) ≤ 2*b - 2 := by linarith
-    -- the telescoping step
-    have hkey : a^2 + a*b ≤ 2*b^2 := by nlinarith [hasq, hbsq, hab, ha0, hb0]
-    have hprod : (b - a)*(a + b) = 1 := by nlinarith [hasq, hbsq]
-    have hnum : Real.log ((N:ℝ)+1) / ((N:ℝ)+1)^2 ≤ 2/b^3 := by
-      have hb4 : ((N:ℝ)+1)^2 = b^3*b := by
-        have hbb : b^3*b = (b^2)^2 := by ring
-        rw [hbb, hbsq]
-      rw [hb4, div_le_div_iff₀ (by positivity) (by positivity)]
-      nlinarith [hlog, hb0, pow_pos hb0 3]
-    have hrhs : 2/b^3 ≤ 4/a - 4/b := by
-      have heq : 4/a - 4/b = 4*(b-a)/(a*b) := by field_simp
-      rw [heq, div_le_div_iff₀ (by positivity) (by positivity)]
-      have hab0 : (0:ℝ) < a + b := by linarith
-      have h4 : (2*(a*b))*(a+b) ≤ (4*(b-a)*b^3)*(a+b) := by
-        have hre : (4*(b-a)*b^3)*(a+b) = 4*b^3*((b-a)*(a+b)) := by ring
-        rw [hre, hprod]
-        nlinarith [mul_le_mul_of_nonneg_left hkey
-          (show (0:ℝ) ≤ 2*b by positivity)]
-      exact le_of_mul_le_mul_right h4 hab0
-    have hstep : Real.log ((N:ℝ)+1) / ((N:ℝ)+1)^2 ≤ 4/a - 4/b := by
-      linarith [hnum, hrhs]
-    rw [Finset.sum_Icc_succ_top (by omega : 2 ≤ N + 1)]
-    have hcast2 : (((N+1 : ℕ)):ℝ) = (N:ℝ) + 1 := by push_cast; ring
-    rw [hcast2]
+    have hstep := log_div_sq_le_sqrt_diff N hN
+    have hcast : (((N+1 : ℕ)):ℝ) = (N:ℝ) + 1 := by push_cast; ring
+    rw [Finset.sum_Icc_succ_top (by omega : 2 ≤ N + 1), hcast]
     linarith [ih, hstep]
+
+open Finset in
+/-- **The tail of the log-over-square sum** (Track R, N155):
+
+  `∑_{a<n≤N} log n / n² ≤ 4/√a`,  for `a ≥ 1`, uniformly in `N`.
+
+`sum_log_div_sq_le` telescoped from `a` instead of from `1`.  The full
+sum is the case `a = 1`; what is new is that the *tail* decays, and
+that is what the sum needs to be useful beyond "it converges".
+
+The application is `sum_log_div_sq_ratio_sq_le`: the primes above `√x`
+in `∑_p log p/(p² log²(x/p))` cannot be handled by the `log(x/p) ≥ log 2`
+bound alone, because that bound is `O(1)` where the truth is
+`O(1/log²x)`.  They are instead discarded against this tail, at a cost
+of `4/x^{1/4}` — which is smaller than any power of `1/log x`. -/
+theorem sum_log_div_sq_tail_le (a N : ℕ) (ha : 1 ≤ a) :
+    ∑ n ∈ Finset.Icc (a+1) N, Real.log (n:ℝ)/(n:ℝ)^2
+      ≤ 4/Real.sqrt (a:ℝ) := by
+  have ha0 : (0:ℝ) < (a:ℝ) := by exact_mod_cast ha
+  have hsa : (0:ℝ) < Real.sqrt (a:ℝ) := Real.sqrt_pos.mpr ha0
+  rcases le_or_gt a N with hN | hN
+  · have key : ∀ M : ℕ, a ≤ M →
+        ∑ n ∈ Finset.Icc (a+1) M, Real.log (n:ℝ)/(n:ℝ)^2
+          ≤ 4/Real.sqrt (a:ℝ) - 4/Real.sqrt (M:ℝ) := by
+      intro M hM
+      induction M, hM using Nat.le_induction with
+      | base => simp
+      | succ M hM ih =>
+        have hM1 : 1 ≤ M := le_trans ha hM
+        have hstep := log_div_sq_le_sqrt_diff M hM1
+        rw [Finset.sum_Icc_succ_top (by omega : a + 1 ≤ M + 1)]
+        have hcast : (((M+1 : ℕ)):ℝ) = (M:ℝ) + 1 := by push_cast; ring
+        rw [hcast]
+        linarith [ih, hstep]
+    have hpos : (0:ℝ) ≤ 4/Real.sqrt (N:ℝ) := by positivity
+    linarith [key N hN]
+  · rw [Finset.Icc_eq_empty (by omega)]
+    simp
+    positivity
 
 open ArithmeticFunction Finset in
 /-- **The proper prime-power mass is bounded** (Track R, N3b):
