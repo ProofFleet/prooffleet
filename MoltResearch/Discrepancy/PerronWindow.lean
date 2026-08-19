@@ -3279,6 +3279,53 @@ theorem integral_Ioi_mul_cexp_neg (a : ℂ) (ha : 0 < a.re) :
   simp
   field_simp
 
+/-- **The Riesz window** (Track R, N152): `V(v) = v·e^{−v}·1_{v>0}`.
+
+The window whose Perron realisation is the Riesz mean
+`R_f(y) = ∑_{n≤y} f(n)·log(y/n)`, replacing the smoothed cutoff of
+`exists_perron_window`.  It is not smooth and not compactly supported —
+it does not need to be.  Everything §3 asks of a window is supplied by
+`fourier_rieszWindow` below, in closed form. -/
+noncomputable def rieszWindow (v : ℝ) : ℝ := if 0 < v then v * Real.exp (-v) else 0
+
+open Complex in
+/-- **The Riesz window transform** (Track R, N152):
+
+  `𝓕(rieszWindow)(ξ) = 1/(1 + 2πiξ)²`,  exactly.
+
+Immediate from `integral_Ioi_mul_cexp_neg` at `a = 1 + 2πiξ`, whose real
+part is `1 > 0`: the character folds into the exponential, and the
+window vanishes off `(0,∞)` so the line integral is the half-line one.
+
+This is the replacement for the whole `exists_perron_window` apparatus.
+That family carried `ContDiff ℝ ∞`, `HasCompactSupport`, a plateau
+condition, a cutoff `ρ`, and second- and third-derivative masses `M₂`,
+`M₃` — all of it in service of bounding this transform.  Here the
+transform is simply known, so `norm_fourier_rieszWindow_le` reads it off
+with constant `1` and no side conditions. -/
+theorem fourier_rieszWindow (xi : ℝ) :
+    𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) xi
+      = 1/(1 + 2*(Real.pi:ℂ)*Complex.I*(xi:ℂ))^2 := by
+  set a : ℂ := 1 + 2*(Real.pi:ℂ)*Complex.I*(xi:ℂ) with ha
+  have hare : a.re = 1 := by simp [ha]
+  rw [fourier_real_eq_integral_exp_smul]
+  rw [← setIntegral_eq_integral_of_forall_compl_eq_zero
+    (s := Set.Ioi (0:ℝ)) (fun v hv => ?_)]
+  · rw [← integral_Ioi_mul_cexp_neg a (by rw [hare]; norm_num)]
+    refine setIntegral_congr_fun measurableSet_Ioi fun v hv => ?_
+    have hv0 : (0:ℝ) < v := hv
+    simp only [rieszWindow, if_pos hv0, smul_eq_mul, Complex.ofReal_mul,
+      Complex.ofReal_exp]
+    have key : ∀ X Y : ℂ, Complex.exp X * ((v:ℂ) * Complex.exp Y)
+        = (v:ℂ) * Complex.exp (X + Y) := by
+      intro X Y; rw [Complex.exp_add]; ring
+    rw [key, ha]
+    congr 2
+    push_cast
+    ring
+  · have hv' : ¬ (0 < v) := by simpa using hv
+    simp [rieszWindow, hv']
+
 end ExpSums
 
 end MoltResearch
