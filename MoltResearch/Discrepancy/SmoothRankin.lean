@@ -5496,6 +5496,138 @@ theorem ghsBlock_centred_energy_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 
   exact mul_le_mul_of_nonneg_left hstep hexp0
 
 open Real Finset in
+/-- **The honest second block mass** (Track R, N157): for `P` a set of
+primes with `2p ≤ x`,
+
+  `∑_{p∈P} log p/(p²·log²(x/p)) ≤ 16/log²x + 4/(√⌊√x⌋·log²2)`.
+
+`block_masses_le`'s second component is `4/log²2 ≈ 8.3`, obtained by
+discarding `log²(x/p) ≥ log²2`.  That is `O(1)` where the truth is
+`O(1/log²x)`, and the slack is fatal downstream: in
+`ghsBlock_E1_free_le` this mass multiplies a **forced** `T ≍ √(log x)`,
+so an `O(1)` bound gives `E₁ ≍ √(log x)` rather than `≍ e^{k}/log x`
+and the final estimate overshoots `x·L(x)` by `(log x)^{3/4}`.
+
+The `log²2` bound is tight only at `p ≈ x/2`, where `log p/p²` is
+negligible — so splitting at `√x` recovers everything:
+
+* `p ≤ ⌊√x⌋` gives `p² ≤ x`, hence `x ≤ (x/p)²` and
+  `log x ≤ 2·log(x/p)`; the term is then `≤ log p/(p²·(log²x/4))`, and
+  `sum_log_div_sq_le`'s `∑ log n/n² ≤ 4` closes the half at `16/log²x`.
+* `p > ⌊√x⌋` keeps only `log(x/p) ≥ log 2`, and the primes are
+  discarded wholesale against `sum_log_div_sq_tail_le`, costing
+  `4/(√⌊√x⌋·log²2)` — smaller than any power of `1/log x`.
+
+No block hypothesis is used: the bound holds for any set of primes
+below `x/2`, which is why it is stated separately from
+`block_masses_le` rather than inside it. -/
+theorem sum_log_div_sq_ratio_sq_le (x : ℕ) (hx : 2 ≤ x) (P : Finset ℕ)
+    (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x) :
+    ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+      ≤ 16/(Real.log (x:ℝ))^2
+        + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2) := by
+  classical
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hxR : (2:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  have hlogx : (0:ℝ) < Real.log (x:ℝ) := Real.log_pos (by linarith)
+  have hs1 : 1 ≤ Nat.sqrt x := Nat.sqrt_pos.mpr (by omega)
+  have hsR : (0:ℝ) < Real.sqrt ((Nat.sqrt x : ℕ):ℝ) := by
+    refine Real.sqrt_pos.mpr ?_
+    exact_mod_cast hs1
+  rw [← Finset.sum_filter_add_sum_filter_not P (fun p => p ≤ Nat.sqrt x)]
+  refine add_le_add ?_ ?_
+  · -- small primes: `x/p ≥ √x`, so `log(x/p) ≥ ½·log x`
+    have hterm : ∀ p ∈ P.filter (fun p => p ≤ Nat.sqrt x),
+        Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+          ≤ 4 * (Real.log (p:ℝ)/(p:ℝ)^2) / (Real.log (x:ℝ))^2 := by
+      intro p hp
+      rw [Finset.mem_filter] at hp
+      have hpp : p.Prime := hPp p hp.1
+      have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+      have hpsq : (p:ℝ)^2 ≤ (x:ℝ) := by
+        have hsq : Nat.sqrt x * Nat.sqrt x ≤ x := by
+          simpa [pow_two] using Nat.sqrt_le' x
+        have h1 : p * p ≤ x := le_trans (Nat.mul_le_mul hp.2 hp.2) hsq
+        have h2 : ((p*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h1
+        push_cast at h2; nlinarith
+      have hhalf : Real.log (x:ℝ) ≤ 2 * Real.log ((x:ℝ)/(p:ℝ)) := by
+        have hxq : (x:ℝ) ≤ ((x:ℝ)/(p:ℝ))^2 := by
+          rw [div_pow, le_div_iff₀ (by positivity)]
+          nlinarith [hpsq, hxR]
+        calc Real.log (x:ℝ) ≤ Real.log (((x:ℝ)/(p:ℝ))^2) :=
+              Real.log_le_log (by linarith) hxq
+          _ = 2 * Real.log ((x:ℝ)/(p:ℝ)) := by
+              rw [Real.log_pow]; push_cast; ring
+      have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+      have hq4 : (Real.log (x:ℝ))^2/4 ≤ (Real.log ((x:ℝ)/(p:ℝ)))^2 := by
+        nlinarith [hhalf, hlogx]
+      have hrw : 4 * (Real.log (p:ℝ)/(p:ℝ)^2) / (Real.log (x:ℝ))^2
+          = Real.log (p:ℝ)/((p:ℝ)^2 * ((Real.log (x:ℝ))^2/4)) := by
+        field_simp
+      rw [hrw]
+      refine div_le_div_of_nonneg_left hlogp (by positivity) ?_
+      exact mul_le_mul_of_nonneg_left hq4 (sq_nonneg (p:ℝ))
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [← Finset.sum_div, ← Finset.mul_sum]
+    have hsub : P.filter (fun p => p ≤ Nat.sqrt x) ⊆ Finset.Icc 2 x := by
+      intro p hp
+      rw [Finset.mem_filter] at hp
+      refine Finset.mem_Icc.mpr ⟨(hPp p hp.1).two_le, ?_⟩
+      have := h2p p hp.1; omega
+    have hmono : ∑ p ∈ P.filter (fun p => p ≤ Nat.sqrt x),
+          Real.log (p:ℝ)/(p:ℝ)^2
+        ≤ ∑ n ∈ Finset.Icc 2 x, Real.log (n:ℝ)/(n:ℝ)^2 :=
+      Finset.sum_le_sum_of_subset_of_nonneg hsub (fun i _ _ => by positivity)
+    have hmass : ∑ p ∈ P.filter (fun p => p ≤ Nat.sqrt x),
+        Real.log (p:ℝ)/(p:ℝ)^2 ≤ 4 := by
+      have hfull := sum_log_div_sq_le x (by omega)
+      have h4 : (0:ℝ) ≤ 4/Real.sqrt (x:ℝ) := by positivity
+      linarith
+    have h16 : 4 * ∑ p ∈ P.filter (fun p => p ≤ Nat.sqrt x),
+        Real.log (p:ℝ)/(p:ℝ)^2 ≤ 16 := by linarith
+    gcongr
+  · -- large primes: `log(x/p) ≥ log 2`, discarded against the tail
+    have hterm : ∀ p ∈ P.filter (fun p => ¬ (p ≤ Nat.sqrt x)),
+        Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2)
+          ≤ (Real.log (p:ℝ)/(p:ℝ)^2) / (Real.log 2)^2 := by
+      intro p hp
+      rw [Finset.mem_filter] at hp
+      have hpp : p.Prime := hPp p hp.1
+      have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+      have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+        rw [le_div_iff₀ hp0]
+        have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p p hp.1
+        push_cast at hc; linarith
+      have hlogle : Real.log 2 ≤ Real.log ((x:ℝ)/(p:ℝ)) :=
+        Real.log_le_log (by norm_num) hquot
+      have hsq : (Real.log 2)^2 ≤ (Real.log ((x:ℝ)/(p:ℝ)))^2 := by nlinarith
+      have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+      rw [div_div]
+      refine div_le_div_of_nonneg_left hlogp (by positivity) ?_
+      exact mul_le_mul_of_nonneg_left hsq (sq_nonneg (p:ℝ))
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [← Finset.sum_div]
+    have hsub : P.filter (fun p => ¬ (p ≤ Nat.sqrt x))
+        ⊆ Finset.Icc (Nat.sqrt x + 1) x := by
+      intro p hp
+      rw [Finset.mem_filter] at hp
+      refine Finset.mem_Icc.mpr ⟨by omega, ?_⟩
+      have := h2p p hp.1; omega
+    have hmono : ∑ p ∈ P.filter (fun p => ¬ (p ≤ Nat.sqrt x)),
+          Real.log (p:ℝ)/(p:ℝ)^2
+        ≤ ∑ n ∈ Finset.Icc (Nat.sqrt x + 1) x, Real.log (n:ℝ)/(n:ℝ)^2 :=
+      Finset.sum_le_sum_of_subset_of_nonneg hsub (fun i _ _ => by positivity)
+    have hchain : ∑ p ∈ P.filter (fun p => ¬ (p ≤ Nat.sqrt x)),
+        Real.log (p:ℝ)/(p:ℝ)^2
+          ≤ 4/Real.sqrt ((Nat.sqrt x : ℕ):ℝ) :=
+      le_trans hmono (sum_log_div_sq_tail_le (Nat.sqrt x) x hs1)
+    have hfin : 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)
+        = (4/Real.sqrt ((Nat.sqrt x : ℕ):ℝ))/(Real.log 2)^2 := by
+      rw [div_div]
+    rw [hfin]
+    gcongr
+
+open Real Finset in
 /-- **The two block masses** (Track R, N71): for `P` a set of primes in
 the `k`-th block of `x` with `2p ≤ x` and `p ≤ X`,
 
