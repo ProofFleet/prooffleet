@@ -3499,6 +3499,38 @@ theorem integrable_norm_fourier_rieszWindow :
     inv_le_inv₀ (by positivity) (by positivity)]
   nlinarith [sq_nonneg ξ]
 
+/-- **The Riesz window, complex-valued** (Track R, N168): continuity,
+integrability, and integrability of the transform, for
+`v ↦ ((rieszWindow v : ℝ) : ℂ)`.
+
+These are the three hypotheses of `sum_translates_eq_integral_char'`,
+in the exact form the Plancherel harness consumes them — the harness
+works with `ℂ`-valued windows, and the real-valued facts of N166 do not
+transport for free, because `Integrable (𝓕 V)` is a statement about the
+`ℂ`-valued transform rather than its norm.
+
+The last of the three is where the norm has to be undone:
+`integrable_norm_fourier_rieszWindow` gives `Integrable ‖𝓕 V‖`, and
+`integrable_norm_iff` converts it back given measurability, which comes
+from `VectorFourier.fourierIntegral_continuous` — the transform of an
+`L¹` function is continuous, and that is all the regularity available
+here. -/
+theorem continuous_rieszWindow_ofReal :
+    Continuous (fun v : ℝ => ((rieszWindow v : ℝ) : ℂ)) :=
+  Complex.continuous_ofReal.comp continuous_rieszWindow
+
+theorem integrable_rieszWindow_ofReal :
+    Integrable (fun v : ℝ => ((rieszWindow v : ℝ) : ℂ)) :=
+  integrable_rieszWindow.ofReal
+
+theorem integrable_fourier_rieszWindow :
+    Integrable (𝓕 (fun v : ℝ => ((rieszWindow v : ℝ) : ℂ))) := by
+  have hcont : Continuous (𝓕 (fun v : ℝ => ((rieszWindow v : ℝ) : ℂ))) :=
+    VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar
+      (by fun_prop) integrable_rieszWindow_ofReal
+  exact (integrable_norm_iff hcont.aestronglyMeasurable).mp
+    integrable_norm_fourier_rieszWindow
+
 /-- **The Riesz window's band tail** (Track R, N154): for `L > 0`,
 
   `∫_{|ξ|>L} ‖𝓕(rieszWindow)(ξ)‖ dξ ≤ 1/(2π²L)`.
