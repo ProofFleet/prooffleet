@@ -3288,6 +3288,82 @@ it does not need to be.  Everything §3 asks of a window is supplied by
 `fourier_rieszWindow` below, in closed form. -/
 noncomputable def rieszWindow (v : ℝ) : ℝ := if 0 < v then v * Real.exp (-v) else 0
 
+/-- **The Riesz window without the branch** (Track R, N166):
+
+  `rieszWindow v = (max v 0)·e^{−max v 0}`.
+
+The `if` in the definition is what makes the Perron realisation
+transparent, but it obstructs `fun_prop`.  Pushing the branch into
+`max` removes it at no cost: the two agree because `max v 0 = 0` sends
+the product to `0·e^0 = 0`, which is exactly the value the `else`
+branch supplies.
+
+This is the reason `rieszWindow` is continuous despite being defined by
+cases — the pieces meet at `v = 0`, where both vanish.  It is *not*
+differentiable there (`V'(0⁻) = 0`, `V'(0⁺) = 1`), which is why the
+transform decays only to second order. -/
+theorem rieszWindow_eq_max (v : ℝ) :
+    rieszWindow v = (max v 0) * Real.exp (-(max v 0)) := by
+  rw [rieszWindow]
+  rcases lt_or_ge 0 v with h | h
+  · rw [if_pos h, max_eq_left h.le]
+  · rw [if_neg (not_lt.mpr h), max_eq_right h]
+    simp
+
+/-- **The Riesz window is continuous** (Track R, N166). -/
+theorem continuous_rieszWindow : Continuous rieszWindow := by
+  have h : rieszWindow = fun v : ℝ => (max v 0) * Real.exp (-(max v 0)) :=
+    funext rieszWindow_eq_max
+  rw [h]
+  fun_prop
+
+/-- **The Riesz window is integrable** (Track R, N166).
+
+Supported on `(0,∞)`, where `v·e^{−v} ≤ (2/e)·e^{−v/2}` — the same
+`x ≤ e^{x−1}` domination that `integral_Ioi_mul_cexp_neg` uses, at
+`x = v/2`.
+
+With `continuous_rieszWindow` and `integrable_norm_fourier_rieszWindow`
+this is the third hypothesis of `Continuous.fourierInv_fourier_eq`, so
+Fourier inversion holds for this window even though it is neither
+smooth nor compactly supported — which is what the Plancherel harness
+needs, and all it needs. -/
+theorem integrable_rieszWindow : Integrable rieszWindow := by
+  have heq : rieszWindow = Set.indicator (Set.Ioi (0:ℝ)) rieszWindow := by
+    funext v
+    by_cases hv : (0:ℝ) < v
+    · rw [Set.indicator_of_mem (Set.mem_Ioi.mpr hv)]
+    · rw [Set.indicator_of_notMem (by rwa [Set.mem_Ioi]), rieszWindow,
+        if_neg hv]
+  rw [heq, integrable_indicator_iff measurableSet_Ioi]
+  -- on `Ioi 0` dominate `v·e^{−v}` by `(2/e)·e^{−v/2}`
+  have hg : IntegrableOn
+      (fun v : ℝ => (2/Real.exp 1) * Real.exp (-(1/2 : ℝ) * v))
+      (Set.Ioi 0) :=
+    (exp_neg_integrableOn_Ioi 0 (by norm_num : (0:ℝ) < 1/2)).const_mul _
+  refine Integrable.mono' hg
+    (continuous_rieszWindow.aestronglyMeasurable.restrict) ?_
+  filter_upwards [ae_restrict_mem measurableSet_Ioi] with v hv
+  have hv0 : (0:ℝ) < v := hv
+  rw [rieszWindow, if_pos hv0, Real.norm_eq_abs,
+    abs_of_nonneg (by positivity)]
+  -- `v ≤ (2/e)·e^{v/2}`, since `x ≤ e^{x−1}` at `x = v/2`
+  have hxe : (v/2) * Real.exp 1 ≤ Real.exp (v/2) := by
+    have hx := Real.add_one_le_exp (v/2 - 1)
+    have hex : Real.exp (v/2 - 1) * Real.exp 1 = Real.exp (v/2) := by
+      rw [← Real.exp_add]; congr 1; ring
+    nlinarith [hx, Real.exp_pos (1:ℝ), hex]
+  have hkey : v ≤ (2/Real.exp 1) * Real.exp (v/2) := by
+    have he : (0:ℝ) < Real.exp 1 := Real.exp_pos 1
+    rw [div_mul_eq_mul_div, le_div_iff₀ he]
+    nlinarith [hxe]
+  have hmul := mul_le_mul_of_nonneg_right hkey (Real.exp_pos (-v)).le
+  have hcollapse : (2/Real.exp 1) * Real.exp (v/2) * Real.exp (-v)
+      = (2/Real.exp 1) * Real.exp (-(1/2 : ℝ)*v) := by
+    rw [mul_assoc, ← Real.exp_add, show v/2 + -v = -(1/2:ℝ)*v from by ring]
+  rw [hcollapse] at hmul
+  exact hmul
+
 open Complex in
 /-- **The Riesz window transform** (Track R, N152):
 
