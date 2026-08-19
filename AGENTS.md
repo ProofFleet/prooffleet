@@ -38,6 +38,25 @@ Avoid:
 - giant `simp`/automation explosions
 - mega‑PRs with multiple tasks
 
+### CI-efficiency rule (keep the rebuild cone small)
+
+CI rebuilds your changed file **plus everything downstream of it**; that cone
+is your PR's wall-clock cost (and everyone queues behind it).
+
+- **Prefer a new leaf file over appending to a big module.** Appending to a
+  multi-thousand-line module (e.g. `Discrepancy/SmoothRankin.lean`, ~3 min to
+  recompile) pays the whole file plus its importers on every PR. A new
+  `Discrepancy/<Topic>.lean` that imports what it needs and is registered in
+  the aggregator (`Discrepancy.lean` or `DiscrepancyAnalytic.lean`) compiles
+  in seconds.
+- **Don't import a fatter surface than you consume.** The *stable* core
+  surface (`import MoltResearch.Discrepancy`) is the designed API boundary for
+  stage/backlog files — importing it is fine. But the *analytic* aggregator
+  (`MoltResearch.DiscrepancyAnalytic`) is fast-moving: importing it from a
+  `Conjectures/`/`Tasks/` file puts that file in the rebuild cone of every
+  analytic-layer PR. If you only need one lemma, import its module directly
+  (e.g. `MoltResearch.Discrepancy.ZetaBound`).
+
 ## Local commands
 
 These work even if `lake` isn’t on PATH:

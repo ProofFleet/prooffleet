@@ -7,9 +7,17 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
+# Cancel superseded runs of the same PR (agents push fixups; the stale run's
+# result is dead on arrival). Push/dispatch runs are never grouped — run_id is
+# unique — so every main commit keeps its own verification + cache save.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
         with:
@@ -101,47 +109,69 @@ jobs:
       - name: Check task metadata coverage
         run: python3 scripts/check_task_metadata_coverage.py
 
-      # All targets are built inside lean-action (via build-args) rather than in
-      # separate raw `lake build` steps: lean-action saves its GitHub cache right
-      # after its own build, so artifacts produced by later steps were never
-      # cached — every run rebuilt the whole Tasks/Conjectures backlog (~28 min).
-      # With the full target list here, the cache covers everything and one-file
-      # PRs rebuild only the changed file + downstream.
-      - uses: leanprover/lean-action@v1
+      - name: Install elan
+        run: |
+          curl -sSfL https://elan.lean-lang.org/elan-init.sh \
+            | sh -s -- -y --default-toolchain "$(cat lean-toolchain)"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      # `./.lake` holds the workspace build AND `.lake/packages/*` (dependency
+      # sources + mathlib's prebuilt oleans), so a prefix hit on the latest main
+      # cache makes `lake exe cache get` redundant (it re-downloads ~8k files
+      # into an empty ~/.cache/mathlib, ~60s/run). The key mirrors lean-action's
+      # scheme (os-arch-toolchain-manifest-sha) so existing caches stay usable.
+      - name: Restore Lake build cache
+        id: lake-cache
+        uses: actions/cache/restore@v5
         with:
-          build: true
-          test: false
-          lint: false
-          use-mathlib-cache: true
-          use-github-cache: true
-          build-args: MoltResearch MoltResearch.Discrepancy.SurfaceChecklist MoltResearch.Discrepancy.DeprecatedSurfaceChecklist MoltResearch.Discrepancy.SurfaceAudit MoltResearch.Discrepancy.NormalFormExamples MoltResearch.Discrepancy.NormalFormExamplesAnalytic Solutions Tasks Conjectures
+          path: ./.lake
+          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: |
+            lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
 
-      # The default target only builds what MoltResearch.lean imports. The audit/regression
-      # modules are standalone, so build them explicitly — otherwise they can silently decay
-      # (this happened: NormalFormExamples accumulated ~95 compile errors unnoticed).
-      - name: Build audit + regression example modules
-        run: |
-          ~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceChecklist
-          ~/.elan/bin/lake build MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
-          ~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceAudit
-          ~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamples
-          ~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamplesAnalytic
+      # Cold cache only (first run after a toolchain/mathlib bump): fetch the
+      # prebuilt Mathlib oleans instead of compiling Mathlib from source.
+      - name: Get Mathlib cache (cold cache only)
+        if: steps.lake-cache.outputs.cache-matched-key == ''
+        run: ~/.elan/bin/lake exe cache get
 
-      # The default target builds only the MoltResearch lib. Solutions/ is part of the verified
-      # invariant (no sorry/axiom/unsafe) but is not a default target, and the Tasks/Conjectures
-      # backlog (including the Track C stage pipeline + its single axiom stub) was previously
-      # never typechecked in CI at all — which is how a false Stage-2 stub axiom sat unnoticed
-      # (see issue #2843). Build all of them explicitly.
-      - name: Build Solutions (verified target)
-        run: ~/.elan/bin/lake build Solutions
-
-      - name: Build backlog (Tasks + Conjectures, may contain sorry)
-        run: |
-          ~/.elan/bin/lake build Tasks
-          ~/.elan/bin/lake build Conjectures
+      # One invocation, every target. The default target only builds what
+      # MoltResearch.lean imports; the standalone audit/regression modules, the
+      # Solutions lib, and the Tasks/Conjectures backlog must be listed
+      # explicitly or they silently decay (NormalFormExamples once accumulated
+      # ~95 compile errors unnoticed; a false Stage-2 stub axiom sat unnoticed —
+      # issue #2843). This list is the canonical CI target set; `make ci`
+      # mirrors it.
+      - name: Build all targets
+        run: >
+          ~/.elan/bin/lake build
+          MoltResearch
+          MoltResearch.Discrepancy.SurfaceChecklist
+          MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
+          MoltResearch.Discrepancy.SurfaceAudit
+          MoltResearch.Discrepancy.NormalFormExamples
+          MoltResearch.Discrepancy.NormalFormExamplesAnalytic
+          Solutions
+          Tasks
+          Conjectures
 
       - name: Forbid sorry in verified targets
         run: bash scripts/forbid_sorry.sh
 
       - name: Forbid axiom/unsafe in verified targets
         run: bash scripts/forbid_axiom_unsafe.sh
+
+      # PR-branch caches are invisible to other PRs, so saving them buys nothing
+      # for the fleet and evicts useful main-branch entries (10 GB repo cache
+      # limit, ~2.3 GB per entry). Save from main pushes only — except a total
+      # cache miss on a PR (a toolchain/mathlib bump PR), which checkpoints so
+      # that PR's next push is warm.
+      - name: Save Lake build cache
+        if: >
+          steps.lake-cache.outputs.cache-hit != 'true' &&
+          (github.event_name != 'pull_request' ||
+           steps.lake-cache.outputs.cache-matched-key == '')
+        uses: actions/cache/save@v5
+        with:
+          path: ./.lake
+          key: ${{ steps.lake-cache.outputs.cache-primary-key }}

@@ -18,17 +18,13 @@ update:
 build:
 	@~/.elan/bin/lake build
 
+# Mirrors .github/workflows/ci.yml: one lake invocation covering the canonical
+# CI target set (default lib + standalone audit/regression modules + Solutions
+# + the Tasks/Conjectures backlog), plus both forbid scripts.
 ci:
 	@./scripts/forbid_sorry.sh
-	@~/.elan/bin/lake build
-	@~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceChecklist
-	@~/.elan/bin/lake build MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
-	@~/.elan/bin/lake build MoltResearch.Discrepancy.SurfaceAudit
-	@~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamples
-	@~/.elan/bin/lake build MoltResearch.Discrepancy.NormalFormExamplesAnalytic
-	@~/.elan/bin/lake build Solutions
-	@~/.elan/bin/lake build Tasks
-	@~/.elan/bin/lake build Conjectures
+	@./scripts/forbid_axiom_unsafe.sh
+	@~/.elan/bin/lake build MoltResearch MoltResearch.Discrepancy.SurfaceChecklist MoltResearch.Discrepancy.DeprecatedSurfaceChecklist MoltResearch.Discrepancy.SurfaceAudit MoltResearch.Discrepancy.NormalFormExamples MoltResearch.Discrepancy.NormalFormExamplesAnalytic Solutions Tasks Conjectures
 
 backlog:
 	@~/.elan/bin/lake build Tasks
