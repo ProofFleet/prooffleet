@@ -1200,6 +1200,97 @@ theorem log_div_sq_le_sqrt_diff (N : ℕ) (hN : 1 ≤ N) :
     exact le_of_mul_le_mul_right h4 hab0
   linarith [hnum, hrhs]
 
+open ArithmeticFunction Finset in
+/-- **The Riesz identity closes** (Track R, N160): for completely
+multiplicative `f` and `y > 0`, with `R(y) = ∑_{n≤y} f(n)·log(y/n)` and
+`R₂(y) = ∑_{n≤y} f(n)·log²(y/n)`,
+
+  `R(y)·log y = ∑_{d≤y} f(d)·Λ(d)·R(y/d) + R₂(y)`.
+
+**The fact the whole Riesz route rests on.**  Iterating this produces
+only Riesz means: the right-hand side is again `R` at a smaller scale,
+so the sharp sum `∑_{n≤y} f(n)` never reappears and nothing is ever
+differenced back.  That was the open question when the route was
+chosen, and this is its affirmative answer.
+
+Compare the sharp-sum identity, where `S(y)·log y` picks up
+`∑_{n≤y} f(n)·log(y/n)` — an object of a *different* kind — so each
+iteration alternates between two shapes and the differencing that
+converts one to the other costs `≍ h·y` every time round.  Under the
+`1/s²` kernel the two shapes coincide, because
+`log n·log(y/n) = log y·log(y/n) − log²(y/n)` sends the diagonal into
+the same family.
+
+Three ingredients: `vonMangoldt_sum` (`∑_{d ∣ n} Λ(d) = log n`),
+`sum_divisors_swap` for the reindex, and complete multiplicativity to
+factor `f(dm) = f(d)f(m)` — after which `log y − log(dm)` is
+`log(y/d) − log m` and the inner sum is `R(y/d)` verbatim, its range
+`⌊y⌋/d = ⌊y/d⌋` by `Nat.floor_div_natCast`.
+
+`R₂` is the order-2 Riesz mean up to the factorial: with
+`R_k(y) = ∑_{n≤y} f(n)log^k(y/n)/k!` the statement reads
+`R₁·log y = ∑ Λ_f·R₁(y/d) + 2R₂`. -/
+theorem rieszMean_log_identity (f : ℕ → ℝ)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (y : ℝ) (hy : 0 < y) :
+    (∑ n ∈ Finset.Icc 1 ⌊y⌋₊, f n * (Real.log y - Real.log (n:ℝ)))
+        * Real.log y
+      = (∑ d ∈ Finset.Icc 1 ⌊y⌋₊, f d * vonMangoldt d
+            * ∑ m ∈ Finset.Icc 1 ⌊y/(d:ℝ)⌋₊, f m
+                * (Real.log (y/(d:ℝ)) - Real.log (m:ℝ)))
+        + ∑ n ∈ Finset.Icc 1 ⌊y⌋₊, f n * (Real.log y - Real.log (n:ℝ))^2 := by
+  classical
+  set N : ℕ := ⌊y⌋₊ with hN_def
+  -- Step 1: the two `R`-terms combine into the diagonal `log n`
+  have hsplit : (∑ n ∈ Finset.Icc 1 N, f n * (Real.log y - Real.log (n:ℝ)))
+        * Real.log y
+      - ∑ n ∈ Finset.Icc 1 N, f n * (Real.log y - Real.log (n:ℝ))^2
+      = ∑ n ∈ Finset.Icc 1 N,
+          f n * Real.log (n:ℝ) * (Real.log y - Real.log (n:ℝ)) := by
+    rw [Finset.sum_mul, ← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    ring
+  -- Step 2: `log n = ∑_{d ∣ n} Λ(d)`
+  have hlog : ∀ n ∈ Finset.Icc 1 N,
+      f n * Real.log (n:ℝ) * (Real.log y - Real.log (n:ℝ))
+        = ∑ d ∈ n.divisors,
+            vonMangoldt d * (f n * (Real.log y - Real.log (n:ℝ))) := by
+    intro n _
+    rw [← Finset.sum_mul, vonMangoldt_sum]
+    ring
+  -- Step 3: swap the order of summation
+  have hswap := sum_divisors_swap N
+    (fun d n => vonMangoldt d * (f n * (Real.log y - Real.log (n:ℝ))))
+  -- Step 4: complete multiplicativity and the log split
+  have hinner : ∀ d ∈ Finset.Icc 1 N,
+      (∑ m ∈ Finset.Icc 1 (N/d),
+          vonMangoldt d * (f (d*m) * (Real.log y - Real.log ((d*m : ℕ):ℝ))))
+        = f d * vonMangoldt d
+            * ∑ m ∈ Finset.Icc 1 ⌊y/(d:ℝ)⌋₊, f m
+                * (Real.log (y/(d:ℝ)) - Real.log (m:ℝ)) := by
+    intro d hd
+    rw [Finset.mem_Icc] at hd
+    have hd1 : 1 ≤ d := hd.1
+    have hd0 : (0:ℝ) < (d:ℝ) := by exact_mod_cast hd1
+    have hfloor : N/d = ⌊y/(d:ℝ)⌋₊ := by
+      rw [hN_def, Nat.floor_div_natCast]
+    rw [← hfloor, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun m hm => ?_
+    rw [Finset.mem_Icc] at hm
+    have hm1 : 1 ≤ m := hm.1
+    have hm0 : (0:ℝ) < (m:ℝ) := by exact_mod_cast hm1
+    have hcast : (((d*m : ℕ)):ℝ) = (d:ℝ) * (m:ℝ) := by push_cast; ring
+    rw [hmul d m, hcast, Real.log_mul (ne_of_gt hd0) (ne_of_gt hm0),
+      Real.log_div (ne_of_gt hy) (ne_of_gt hd0)]
+    ring
+  -- assemble
+  have hchain : ∑ n ∈ Finset.Icc 1 N,
+      f n * Real.log (n:ℝ) * (Real.log y - Real.log (n:ℝ))
+      = ∑ d ∈ Finset.Icc 1 N, f d * vonMangoldt d
+          * ∑ m ∈ Finset.Icc 1 ⌊y/(d:ℝ)⌋₊, f m
+              * (Real.log (y/(d:ℝ)) - Real.log (m:ℝ)) := by
+    rw [Finset.sum_congr rfl hlog, hswap, Finset.sum_congr rfl hinner]
+  linarith [hsplit, hchain]
+
 open Finset in
 /-- **The log-over-square sum is bounded** (Track R, N3a):
 `∑_{2≤n≤N} log n / n² ≤ 4`, uniformly in `N`.
