@@ -2345,6 +2345,78 @@ theorem norm_tripleConv_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (x A B : 
   exact mul_le_mul_of_nonneg_left (Sk_trivial_mass_le x A B hA hAB hB) hx0
 
 open Finset in
+/-- **The Riesz triple convolution** (Track R, N171): `tripleConv` with
+the inner sharp sum replaced by a Riesz mean,
+
+  `∑_{p ∈ P} (f(p)·log p/log(x/p))·∑_{q < x/p} f(q)·log q·R_f(x/pq)`,
+  `R_f(y) = ∑_{n≤y} f(n)·log(y/n)`.
+
+The object §3 works with on the Riesz path.  Two things differ from
+`tripleConv` besides the kernel, and both are what make the Perron step
+exact:
+
+* the innermost range is `⌊x/pq⌋` at the **real** scale, not the
+  integer quotient `⌊x/(pq)⌋` of `ℕ`-division — so no scale swap is
+  needed later;
+* the mean itself is the Riesz mean, whose window realisation
+  (`rieszMean_eq_window_sum`) is an identity rather than a sandwich.
+
+`tripleConv`'s two error steps therefore have no counterpart here.
+Only the third — widening the inner prime range from `(x/p).primesBelow`
+to a fixed `Q` — survives, because §4 needs one `ghsPrimePoly` for all
+`p`. -/
+noncomputable def tripleConvR (f : ℕ → ℝ) (x : ℕ) (P : Finset ℕ) : ℝ :=
+  ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+    * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+        * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+            f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))
+
+open Real Finset in
+/-- **The Riesz triple convolution, realised** (Track R, N171):
+
+  `tripleConvR f x P
+     = ∑_p A(p)·∑_q B(q)·((x/pq)·∑_{n≤x} (f(n)/n)·V(log(x/pq) − log n))`,
+
+with `V = rieszWindow`.
+
+Termwise `rieszMean_eq_window_sum` at `y = x/pq` and `N = x`; the
+hypothesis `y ≤ x` is `pq ≥ 1`.  **An identity**, with no `ρ` and no
+edge budget.
+
+This is `tripleConv_sub_ghs_le`'s chain with its first two links
+removed.  There, `tripleConv → B` paid for the Perron substitution
+(`perron_sandwich_uniform_real`, `2ρ⌊y⌋ + 6` per term) and `B → C` paid
+for the scale swap between `⌊x/(pq)⌋` and `x/pq`.  Here the right-hand
+side *is* `C`, reached in one step and for free, and what remains
+before `ghs_reindex` applies is only the range enlargement. -/
+theorem tripleConvR_eq_scaled (f : ℕ → ℝ) (x : ℕ) (hx : 0 < x)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, 0 < p) :
+    tripleConvR f x P
+      = ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+          * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+              * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                    * ExpSums.rieszWindow
+                        (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ))) := by
+  classical
+  have hxR : (0:ℝ) < (x:ℝ) := by exact_mod_cast hx
+  rw [tripleConvR]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  refine congrArg _ (Finset.sum_congr rfl fun q hq => ?_)
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hP p hp
+  have hqp : q.Prime := (Nat.mem_primesBelow.mp hq).2
+  have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hqp.pos
+  have hy0 : (0:ℝ) < (x:ℝ)/((p:ℝ)*(q:ℝ)) := by positivity
+  have hp1 : (1:ℝ) ≤ (p:ℝ) := by exact_mod_cast hP p hp
+  have hq1 : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hqp.one_lt.le
+  have hyx : (x:ℝ)/((p:ℝ)*(q:ℝ)) ≤ (x:ℝ) := by
+    rw [div_le_iff₀ (by positivity)]
+    have hpq1 : (1:ℝ) ≤ (p:ℝ)*(q:ℝ) := by nlinarith
+    nlinarith [mul_le_mul_of_nonneg_left hpq1 hxR.le]
+  refine congrArg _ ?_
+  exact ExpSums.rieszMean_eq_window_sum f ((x:ℝ)/((p:ℝ)*(q:ℝ))) hy0 x hyx
+
+open Finset in
 /-- **The geometric tail of the block decomposition** (Track R, N13):
 `∑_{k > K} e^{−k} ≤ e^{−K}`.
 
