@@ -8816,6 +8816,62 @@ theorem ghsBlock_E1_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   field_simp
 
 open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **`E₁ ≪ e^{k}/log x`, honestly** (Track R, N158):
+`ghsBlock_E1_free_le` at the mass `sum_log_div_sq_ratio_sq_le` actually
+supplies,
+
+  `∫_ℝ ‖P₂‖²·w
+     ≤ C·e^π·(12290·(e^{2k}/log²x)(4((e−1)e^{−k}log x + log 2) + 4log 4)
+               + T·(6144 + e^{−πT²/64}·B)·(16/log²x + 4/(√⌊√x⌋·log²2)))
+       + S²·Wtail`.
+
+The statement with no free mass left in it, and the first form of `E₁`
+in this campaign whose asserted magnitude survives measurement.
+
+Both terms of the bracket are now `≪ e^{k}/log x`.  The first is that
+size by `T·(12290/T) = 12290` (N147's repair).  The second, at the
+forced `T ≍ √(log x)`, is `≍ √(log x)·(16/log²x) ≍ (log x)^{−3/2}` —
+where `block_masses_le`'s `4/log²2` gave `≍ √(log x)` and swamped it.
+
+Against `V₃ ≍ e^{−k}log x` (`ghsPrime_energy_sum_free_le`, whose own
+`∑_q log q/q² ≤ 4` carries no `1/log²` factor and is therefore honest as
+it stands) the product `E₁·V₃` is `≍ 1`, with the `k` cancelling.  The
+pairing estimate's main term `√(E₁·5C·V₃·6b²)` is then `≍ C·b`, and with
+`b` the Halász sup that is `≍ C·L(x)`: §3's target shape.  Measured over
+`log x ∈ [10⁴, 10¹⁶]`, the local exponent of `√(E₁·30·C·V₃)` in `log x`
+is `0.0000` and the constant settles at `≈ 4.1×10⁶`. -/
+theorem ghsBlock_E1_sharp_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (P : Finset ℕ)
+    (T : ℝ) (hT : 5 ≤ T)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ)) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B)
+    (w : ℝ → ℝ) (C Wtail : ℝ)
+    (hC : ∀ ξ, w ξ ≤ C) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hWtail : (∫ ξ in {ξ : ℝ | T < |ξ|}, w ξ) ≤ Wtail)
+    (hint : Integrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ))
+    (hband : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      volume (-T) T)
+    (hband2 : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2)
+      volume (-T) T)
+    (htailP : IntegrableOn (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      {ξ : ℝ | T < |ξ|})
+    (htailw : IntegrableOn w {ξ : ℝ | T < |ξ|}) :
+    (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      ≤ C * (Real.exp π *
+          (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+              * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+                  + Real.log 2) + 4 * Real.log 4))
+            + T * (6144 + Real.exp (-(π*T^2/64)) * B) 
+                * (16/(Real.log (x:ℝ))^2
+                + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2))))
+        + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+            * Wtail := by
+  refine ghsBlock_E1_free_le f hf x k hx hk P T hT hP hPT h2p B hB0 hB _
+    (sum_log_div_sq_ratio_sq_le x hx P (fun p hp => (hP p hp).1) h2p)
+    w C Wtail hC hw0 hWtail hint hband hband2 htailP htailw
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
 /-- **`V₃ ≪ log X`, and this time it is true** (Track R, N149): the
 `hV` that `pairing_halasz_le` consumes, for `Q` a set of primes in
 `[2, X]` with `T² ≤ q`.  For every frequency `N`,
