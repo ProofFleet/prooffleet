@@ -3844,6 +3844,36 @@ theorem norm_rieszMean_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1) (y : ℝ)
       _ = y - (M:ℝ) := by field_simp
   linarith [hhead, sum_log_ratio_le M]
 
+/-- **The Riesz window sum is at most `1`** (Track R, N172): for
+`|f| ≤ 1` and `1 ≤ y ≤ N`,
+
+  `|∑_{n≤N} (f(n)/n)·V(log y − log n)| ≤ 1`,  `V = rieszWindow`.
+
+`smoothed_sum_le_one_real`'s counterpart, and the one place where the
+smoothed proof does not transport.  That proof runs on the pointwise
+bound `V v ≤ e^{−v}`, which `rieszWindow` **fails**: `v·e^{−v}` exceeds
+`e^{−v}` for every `v > 1`, by a factor as large as `log x`.
+
+The right route is through the mean instead of the window.
+`rieszMean_eq_window_sum` says the sum is `R_f(y)/y` exactly, and
+`norm_rieszMean_le` says `|R_f(y)| ≤ y` — so the quotient is `≤ 1` for
+the same reason the sharp version is, and with the same constant.  The
+pointwise excess is an artefact of comparing windows; the sums agree.
+
+This is what `enlargement_discard_le` needs from a window: it uses
+`hVle` and `hVnn` for nothing else. -/
+theorem riesz_smoothed_sum_le_one (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (y : ℝ) (hy : 1 ≤ y) (N : ℕ) (hN : y ≤ (N:ℝ)) :
+    |∑ n ∈ Finset.Icc 1 N, (f n/(n:ℝ))
+        * rieszWindow (Real.log y - Real.log (n:ℝ))| ≤ 1 := by
+  have hy0 : (0:ℝ) < y := by linarith
+  have hreal := rieszMean_eq_window_sum f y hy0 N hN
+  have htriv := norm_rieszMean_le f hf y hy
+  rw [hreal, abs_mul, abs_of_pos hy0] at htriv
+  by_contra hcon
+  push_neg at hcon
+  nlinarith [htriv, hcon, hy0]
+
 end ExpSums
 
 end MoltResearch
