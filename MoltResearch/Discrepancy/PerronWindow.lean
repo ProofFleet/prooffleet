@@ -3326,6 +3326,51 @@ theorem fourier_rieszWindow (xi : ℝ) :
   · have hv' : ¬ (0 < v) := by simpa using hv
     simp [rieszWindow, hv']
 
+open Complex in
+/-- **The Riesz weight, exactly** (Track R, N153):
+
+  `‖𝓕(rieszWindow)(ξ)‖ = 1/(1 + 4π²ξ²)`.
+
+The modulus of `fourier_rieszWindow`, computed rather than estimated:
+`‖1 + 2πiξ‖² = 1 + 4π²ξ²` by `normSq`, and the square in the
+denominator turns that into the norm outright.
+
+This is the weight `w` that §4's pairing estimate is applied at.  Every
+quantity §4 asks of a window — the `C/(1+ξ²)` Perron bound
+(`norm_fourier_rieszWindow_le`) and the band tail
+(`fourier_rieszWindow_tail_le`) — is read off this single identity, with
+no derivative masses and no smoothness hypotheses anywhere. -/
+theorem norm_fourier_rieszWindow_eq (xi : ℝ) :
+    ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) xi‖ = 1/(1+4*Real.pi^2*xi^2) := by
+  rw [fourier_rieszWindow]
+  set z : ℂ := 1 + 2*(Real.pi:ℂ)*Complex.I*(xi:ℂ) with hz
+  have hre : z.re = 1 := by simp [hz]
+  have him : z.im = 2*Real.pi*xi := by simp [hz]
+  have hnsq : ‖z‖^2 = 1 + 4*Real.pi^2*xi^2 := by
+    rw [← Complex.normSq_eq_norm_sq, Complex.normSq_apply, hre, him]
+    ring
+  rw [norm_div, norm_one, norm_pow, hnsq]
+
+open Complex in
+/-- **The Riesz window is a Perron weight with constant `1`** (Track R,
+N153):
+
+  `‖𝓕(rieszWindow)(ξ)‖ ≤ 1/(1 + ξ²)`.
+
+`norm_inv_one_add_two_pi_I_sq_le` read through `fourier_rieszWindow` —
+this is the hypothesis `hwle : ∀ t, w t ≤ C/(1+t²)` of
+`ghs_pairing_estimate_uniform`, satisfied at `C = 1`.
+
+The smoothed route reaches the same shape only at
+`C = 2M_V + M₂/(2π²)`, and the N148 audit showed `M₂ ≥ 1/ρ` is *forced*
+for every admissible window, so that `C` diverges as the cutoff
+sharpens.  Here `C` is an absolute `1`, and `ρ` has left the argument
+entirely. -/
+theorem norm_fourier_rieszWindow_le (xi : ℝ) :
+    ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) xi‖ ≤ 1/(1+xi^2) := by
+  rw [fourier_rieszWindow]
+  exact norm_inv_one_add_two_pi_I_sq_le xi
+
 end ExpSums
 
 end MoltResearch
