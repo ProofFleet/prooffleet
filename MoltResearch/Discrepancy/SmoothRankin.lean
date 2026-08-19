@@ -8984,6 +8984,69 @@ theorem ghsBlock_E1_sharp_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     w C Wtail hC hw0 hWtail hint hband hband2 htailP htailw
 
 open MeasureTheory Real Complex ArithmeticFunction Finset in
+open scoped FourierTransform in
+/-- **`E₁` at the Riesz weight** (Track R, N164): `ghsBlock_E1_sharp_le`
+with `w = ‖𝓕(rieszWindow)‖`, all side conditions discharged,
+
+  `∫_ℝ ‖P₂‖²·‖𝓕V‖
+     ≤ e^π·(12290·(e^{2k}/log²x)(4((e−1)e^{−k}log x + log 2) + 4log 4)
+             + T·(6144 + e^{−πT²/64}·B)·(16/log²x + 4/(√⌊√x⌋·log²2)))
+       + S²/(2π²T)`.
+
+The `C` has gone, because it is `1`: `norm_fourier_rieszWindow_le_one`
+is sharp, the transform attaining `1` at the origin.  And `Wtail` has
+gone, because `fourier_rieszWindow_tail_le` names it — `1/(2π²T)`, in
+closed form, with no derivative mass anywhere.
+
+The five integrability hypotheses come from the weight's own regularity
+(N163) and `ghs_pairing_integrability`, which already accepts any
+continuous `w` with `0 ≤ w ≤ C/(1+ξ²)`; `norm_fourier_rieszWindow_le`
+supplies that at `C = 1` directly.  Nothing here needs `rieszWindow` to
+be smooth or compactly supported, which is the point — it is neither. -/
+theorem ghsBlock_E1_riesz_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (P : Finset ℕ)
+    (T : ℝ) (hT : 5 ≤ T)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ)) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B) :
+    (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖)
+      ≤ Real.exp π *
+          (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+              * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+                  + Real.log 2) + 4 * Real.log 4))
+            + T * (6144 + Real.exp (-(π*T^2/64)) * B)
+                * (16/(Real.log (x:ℝ))^2
+                    + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)))
+        + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+            * (1/(2*Real.pi^2*T)) := by
+  classical
+  have hT0 : (0:ℝ) < T := by linarith
+  set w : ℝ → ℝ :=
+    fun ξ => ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖ with hw_def
+  have hwcont : Continuous w := ExpSums.continuous_norm_fourier_rieszWindow
+  have hwint : Integrable w := ExpSums.integrable_norm_fourier_rieszWindow
+  have hw0 : ∀ ξ, 0 ≤ w ξ := fun ξ => norm_nonneg _
+  have hwle : ∀ ξ, w ξ ≤ 1/(1+ξ^2) := ExpSums.norm_fourier_rieszWindow_le
+  have hC : ∀ ξ, w ξ ≤ 1 := ExpSums.norm_fourier_rieszWindow_le_one
+  have hWtail : (∫ ξ in {ξ : ℝ | T < |ξ|}, w ξ) ≤ 1/(2*Real.pi^2*T) :=
+    ExpSums.fourier_rieszWindow_tail_le T hT0
+  -- integrability, all from the closed form
+  obtain ⟨-, hint, -, -, -, -, -⟩ :=
+    ghs_pairing_integrability f hf x ∅ P ∅ w hwcont 1 hw0 hwle
+  have hband : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      volume (-T) T := hint.intervalIntegrable
+  have hband2 : IntervalIntegrable (fun ξ => ‖ghsBlockPoly f x P ξ‖^2)
+      volume (-T) T :=
+    (((continuous_ghsBlockPoly f x P).norm.pow 2)).intervalIntegrable _ _
+  have htailP : IntegrableOn (fun ξ => ‖ghsBlockPoly f x P ξ‖^2 * w ξ)
+      {ξ : ℝ | T < |ξ|} := hint.integrableOn
+  have htailw : IntegrableOn w {ξ : ℝ | T < |ξ|} := hwint.integrableOn
+  have h := ghsBlock_E1_sharp_le f hf x k hx hk P T hT hP hPT h2p B hB0 hB
+    w 1 (1/(2*Real.pi^2*T)) hC hw0 hWtail hint hband hband2 htailP htailw
+  simpa using h
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
 /-- **`V₃ ≪ log X`, and this time it is true** (Track R, N149): the
 `hV` that `pairing_halasz_le` consumes, for `Q` a set of primes in
 `[2, X]` with `T² ≤ q`.  For every frequency `N`,
