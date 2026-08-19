@@ -6758,6 +6758,74 @@ theorem ghs_smoothed_triple_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   exact ghs_pairing_estimate_window f hf x S P Q V hVs hVc M₂ M₃ MV
     hM₂ hM₃ hMV V₃ Mtail E₁ b hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail
 
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+open scoped FourierTransform in
+/-- **§4's bound at the Riesz window** (Track R, N169):
+
+  `‖∑_{r ∈ (S ×ˢ P) ×ˢ Q} (c·a·b)·V(y − log(npq))‖
+     ≤ √(E₁·(5·V₃·6b² + Mtail))`,  `V = rieszWindow`.
+
+`ghs_smoothed_triple_le` with the window fixed, and with every
+window parameter gone from the conclusion: no `M_V`, no `M₂`, no `M₃`,
+and no `C` — the Perron-weight constant is `1`.
+
+The proof is the same three steps — Perron by smoothing, the triple
+product, the pairing estimate — but the first now runs through
+`norm_sum_translates_le_integral_char'`, which asks only for
+continuity, integrability and integrability of the transform (N168).
+`rieszWindow` is not smooth and not compactly supported, so the
+Schwartz form was unusable; nothing else in the step ever needed it. -/
+theorem ghs_riesz_triple_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ)
+    (hS : ∀ n ∈ S, 0 < n) (hP : ∀ p ∈ P, 0 < p) (hQ : ∀ q ∈ Q, 0 < q)
+    (V₃ Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail)
+    (y : ℝ) :
+    ‖∑ r ∈ (S ×ˢ P) ×ˢ Q,
+        ((f r.1.1 / (r.1.1:ℂ))
+          * (((Real.log (r.1.2:ℝ) : ℂ) * f r.1.2)
+              / ((r.1.2:ℂ) * ((Real.log ((x:ℝ)/(r.1.2:ℝ)) : ℝ):ℂ)))
+          * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+        * ((fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ))
+            (y - Real.log ((r.1.1 * r.1.2 * r.2 : ℕ):ℝ)))‖
+      ≤ Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail)) := by
+  classical
+  set Vc : ℝ → ℂ := fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ) with hVc_def
+  refine le_trans (ExpSums.norm_sum_translates_le_integral_char' Vc
+    ExpSums.continuous_rieszWindow_ofReal
+    ExpSums.integrable_rieszWindow_ofReal
+    ExpSums.integrable_fourier_rieszWindow
+    ((S ×ˢ P) ×ˢ Q)
+    (fun r => (f r.1.1 / (r.1.1:ℂ))
+      * (((Real.log (r.1.2:ℝ) : ℂ) * f r.1.2)
+          / ((r.1.2:ℂ) * ((Real.log ((x:ℝ)/(r.1.2:ℝ)) : ℝ):ℂ)))
+      * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+    (fun r => Real.log ((r.1.1 * r.1.2 * r.2 : ℕ):ℝ)) y) ?_
+  have hcongr : (∫ ξ, ‖∑ r ∈ (S ×ˢ P) ×ˢ Q,
+        ((f r.1.1 / (r.1.1:ℂ))
+          * (((Real.log (r.1.2:ℝ) : ℂ) * f r.1.2)
+              / ((r.1.2:ℂ) * ((Real.log ((x:ℝ)/(r.1.2:ℝ)) : ℝ):ℂ)))
+          * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+        * ((Real.fourierChar
+            (-(Real.log ((r.1.1 * r.1.2 * r.2 : ℕ):ℝ) * ξ)) : Circle) : ℂ)‖
+        * ‖𝓕 Vc ξ‖)
+      = ∫ ξ, ‖ghsMainPoly f S ξ * ghsBlockPoly f x P ξ
+          * ghsPrimePoly f Q ξ‖ * ‖𝓕 Vc ξ‖ := by
+    refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
+    dsimp only
+    rw [← ghs_triple_product f x S P Q hS hP hQ ξ]
+  rw [hcongr]
+  exact ghs_riesz_pairing_le f hf x S P Q V₃ Mtail E₁ b
+    hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail
+
 open Real Finset in
 /-- **The Perron error over the inner prime range** (Track R, N90): for
 `1`-bounded `g` and any `ρ ≥ 0`,
@@ -7440,6 +7508,51 @@ theorem ghs_triple_sum_ofReal (f : ℕ → ℝ) (V : ℝ → ℝ) (x : ℕ)
   refine Finset.sum_congr rfl fun r _ => ?_
   push_cast
   ring
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+open scoped FourierTransform in
+/-- **§4's bound at the Riesz window, real-valued** (Track R, N170):
+`ghs_riesz_triple_le` at the coerced coefficients, read back through
+`ghs_triple_sum_ofReal`.
+
+The `ℝ`/`ℂ` step is the same one `ghs_smoothed_triple_le_real` makes,
+and for the same reason: `‖(r : ℂ)‖ = |r|` is what makes the two
+statements the same, and it is a lemma rather than notation.  Kept as
+its own declaration so §3, which is real-valued throughout, meets §4 at
+a single interface. -/
+theorem ghs_riesz_triple_le_real (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) (S P Q : Finset ℕ)
+    (hS : ∀ n ∈ S, 0 < n) (hP : ∀ p ∈ P, 0 < p) (hQ : ∀ q ∈ Q, 0 < q)
+    (V₃ Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) S t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+        ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ)) Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
+        * (∑ n ∈ S, (1:ℝ)/(n:ℝ))^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail) :
+    |∑ r ∈ (S ×ˢ P) ×ˢ Q,
+        ((f r.1.1/(r.1.1:ℝ))
+          * (Real.log (r.1.2:ℝ) * f r.1.2
+              / ((r.1.2:ℝ) * Real.log ((x:ℝ)/(r.1.2:ℝ))))
+          * (Real.log (r.2:ℝ) * f r.2 / (r.2:ℝ)))
+        * ExpSums.rieszWindow
+            (Real.log (x:ℝ) - Real.log (((r.1.1 * r.1.2 * r.2 : ℕ)):ℝ))|
+      ≤ Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail)) := by
+  classical
+  have hfc : ∀ n, ‖((f n : ℝ) : ℂ)‖ ≤ 1 := by
+    intro n
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact hf n
+  have h := ghs_riesz_triple_le (fun n => ((f n : ℝ) : ℂ)) hfc
+    x S P Q hS hP hQ V₃ Mtail E₁ b
+    hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail (Real.log (x:ℝ))
+  rw [ghs_triple_sum_ofReal f ExpSums.rieszWindow x S P Q (Real.log (x:ℝ)),
+    Complex.norm_real, Real.norm_eq_abs] at h
+  exact h
 
 open MeasureTheory Real Complex Finset in
 open scoped FourierTransform ContDiff in
