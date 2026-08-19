@@ -8529,7 +8529,9 @@ for `P` a set of primes in the `k`-th block of `x` with `2p ≤ x` and
 
   `∑_p (6144·⌈2p/T⌉ + log p + R)·(log p/(p²·log²(x/p)))
      ≤ (12290/T)·(e^{2k}/log²x)(4((e−1)e^{−k}log x + log 2) + 4log 4)
-       + (6144 + R)·(4/log²2)`.
+       + (6144 + R)·SqMass`,
+
+where `SqMass` is any bound on `∑_p log p/(p²·log²(x/p))`.
 
 `ghsBlock_energy_sum_le` re-derived through `mvt_summand_absorbed_le`.
 Two things changed and both matter.
@@ -8546,23 +8548,36 @@ into the leading term instead, where the threshold `T² ≤ p` pays for
 it.  `X` therefore disappears from the statement — this bound no longer
 degrades as the range grows.
 
-`hPX` is discharged from `2p ≤ x`, so no new hypothesis is needed to
-reach `block_masses_le`. -/
+`SqMass` is a parameter rather than `block_masses_le`'s `4/log²2`, and
+that is the third change.  `4/log²2 ≈ 8.3` is `O(1)` where the truth is
+`O(1/log²x)`: it discards `log²(x/p) ≥ log²2`, tight only at `p ≈ x/2`,
+where `log p/p²` is negligible anyway.  The slack is not harmless —
+downstream in `ghsBlock_E1_free_le` this factor multiplies a **forced**
+`T ≍ √(log x)`, so an `O(1)` bound makes `E₁ ≍ √(log x)` instead of
+`≍ e^{k}/log x`.  `sum_log_div_sq_ratio_sq_le` supplies the honest
+`16/log²x + 4/(√⌊√x⌋·log²2)`; keeping the parameter free is what lets
+that substitution be made at the call site rather than fixed here.
+
+The first mass still comes from `block_masses_le`, whose `hPX` is
+discharged from `2p ≤ x`. -/
 theorem ghsBlock_energy_sum_free_le (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k)
     (P : Finset ℕ) (T : ℝ) (hT : 0 < T)
     (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
     (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ)) (h2p : ∀ p ∈ P, 2*p ≤ x)
-    (R : ℝ) (hR : 0 ≤ R) :
+    (R : ℝ) (hR : 0 ≤ R) (SqMass : ℝ)
+    (hSqMass : ∑ p ∈ P,
+      Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2) ≤ SqMass) :
     ∑ p ∈ P, (6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
         * (Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2))
       ≤ (12290/T) * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
             * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
                 + Real.log 2) + 4 * Real.log 4))
-        + (6144 + R) * (4/(Real.log 2)^2) := by
+        + (6144 + R) * SqMass := by
   classical
   have hPx : ∀ p ∈ P, p ≤ x := fun p hp => by
     have := h2p p hp; omega
-  obtain ⟨hmass1, hmass2⟩ := block_masses_le x k hx hk x hx P hP h2p hPx
+  obtain ⟨hmass1, -⟩ := block_masses_le x k hx hk x hx P hP h2p hPx
+  have hmass2 := hSqMass
   -- the absorbed summand, at `D = log²(x/p)`
   have hterm : ∀ p ∈ P,
       (6144*((⌈2*(p:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (p:ℝ) + R)
@@ -8589,8 +8604,10 @@ the `k`-th block of `x` with `T² ≤ p`.  With `S` the trivial sup of
 
   `∫_ℝ ‖P₂‖²·w
      ≤ C·e^π·(12290·(e^{2k}/log²x)(4((e−1)e^{−k}log x + log 2) + 4log 4)
-               + T·(6144 + e^{−πT²/64}·B)·(4/log²2))
-       + S²·Wtail`.
+               + T·(6144 + e^{−πT²/64}·B)·SqMass)
+       + S²·Wtail`,
+
+where `SqMass ≥ ∑_p log p/(p²·log²(x/p))`.
 
 `ghsBlock_E1_le` re-derived through the free-`T` chain
 (`ghsBlock_weighted_energy_free_le` + `ghsBlock_energy_sum_free_le`),
@@ -8602,11 +8619,19 @@ statement: `T·(12290/T) = 12290`, so the first term is `≍ e^{k}/log x`
 at every `T`.  Only the second carries `T`, and it carries it against
 `e^{−πT²/64}·B`, which `T` damps far faster than it grows.
 
-At `T = 5√(log X)` and `B ≍ X`: `T·e^{−πT²/64}B ≍ X^{−0.22}√(log X)
-→ 0`, and `T·6144·(4/log²2) ≍ √(log X)`, negligible beside
-`e^{k}/log x` for `k ≍ 1`.  So `E₁ ≍ e^{k}/log x` — the magnitude
-`ghsBlock_E1_le` asserted but did not deliver, where the old chain's
-`e^{−π}B ≍ 0.043X` exceeded it by `≍ X·log x`.
+At `T = 5√(log X)` and `B ≍ X` the damped part vanishes:
+`T·e^{−πT²/64}B ≍ X^{−0.22}√(log X) → 0`.  What is left is `T·6144·SqMass`,
+and **that term decides the whole estimate**.  `T` is not free —
+`πT²/64 ≳ log B ≍ log x` is exactly what kills the damped part — so
+`T ≍ √(log x)` is forced.  At `block_masses_le`'s `SqMass = 4/log²2`, an
+absolute constant, that term is `≍ √(log x)` and **dominates**
+`≍ e^{k}/log x` for every `k` once `log x ≳ 10³`, and the final estimate
+overshoots `x·L(x)` by `(log x)^{3/4}`.  At the honest
+`SqMass ≍ 16/log²x` (`sum_log_div_sq_ratio_sq_le`) it is
+`≍ (log x)^{−3/2}`, genuinely negligible, and `E₁ ≍ e^{k}/log x` holds —
+the magnitude `ghsBlock_E1_le` asserted, `ghsBlock_E1_free_le` freed
+from `B` (the old chain's `e^{−π}B ≍ 0.043X` exceeded it by `≍ X·log x`),
+and only a free `SqMass` actually delivers.
 
 Against `V₃ ≍ e^{−k}log x` (`ghsPrime_energy_sum_free_le`) the product
 `E₁·V₃` is `≍ 1` with the `k` cancelling, exactly as §4 needs. -/
@@ -8616,6 +8641,9 @@ theorem ghsBlock_E1_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
     (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ)) (h2p : ∀ p ∈ P, 2*p ≤ x)
     (B : ℝ) (hB0 : 0 ≤ B) (hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ B)
+    (SqMass : ℝ)
+    (hSqMass : ∑ p ∈ P,
+      Real.log (p:ℝ)/((p:ℝ)^2 * (Real.log ((x:ℝ)/(p:ℝ)))^2) ≤ SqMass)
     (w : ℝ → ℝ) (C Wtail : ℝ)
     (hC : ∀ ξ, w ξ ≤ C) (hw0 : ∀ ξ, 0 ≤ w ξ)
     (hWtail : (∫ ξ in {ξ : ℝ | T < |ξ|}, w ξ) ≤ Wtail)
@@ -8632,7 +8660,7 @@ theorem ghsBlock_E1_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
           (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
               * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
                   + Real.log 2) + 4 * Real.log 4))
-            + T * (6144 + Real.exp (-(π*T^2/64)) * B) * (4/(Real.log 2)^2)))
+            + T * (6144 + Real.exp (-(π*T^2/64)) * B) * SqMass))
         + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
             * Wtail := by
   classical
@@ -8646,6 +8674,7 @@ theorem ghsBlock_E1_free_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   set R : ℝ := Real.exp (-(π*T^2/64)) * B with hR_def
   have hR : (0:ℝ) ≤ R := mul_nonneg (Real.exp_pos _).le hB0
   have hsum := ghsBlock_energy_sum_free_le x k hx hk P T hT0 hP hPT h2p R hR
+    SqMass hSqMass
   have hexp0 : (0:ℝ) ≤ Real.exp π * T := by positivity
   have hstep := mul_le_mul_of_nonneg_left
     (mul_le_mul_of_nonneg_left hsum hexp0) hC0
