@@ -3564,15 +3564,31 @@ theorem intervalIntegral_vonMangoldt_inv_mvt_le (T : ℝ) (hT : 0 < T)
 
 open Finset Real in
 /-- **The frequency range of Halász's `L(x)`** (Track R, N29): the
-integers `N` with `|N| ≤ log²x + 1`, over which the unit-interval
-suprema of `|F_x(1+it)|` are weighted. -/
+integers `N` with `|N| ≤ log⁴x + 1`, over which the unit-interval
+suprema of `|F_x(1+it)|` are weighted.
+
+The half-width is `log⁴x` rather than `log²x` (Track R, N162).  Widening
+it is **free**: `halaszLSq_le_of_bound` collapses `L(x)²` to `6C²`
+through `sum_inv_sq_add_one_Icc_le`, whose bound `6` does not depend on
+the half-width at all, and the `hV`/`hB` hypotheses of the pairing
+estimate are uniform in the frequency.  So the half-width survives only
+in the domain of the window tail `hWtail`, where wider is strictly
+better.
+
+That is what lets a **second-order** window tail be used.
+`fourier_rieszWindow_tail_le` gives `≤ 1/(2π²L)`, and §4 needs
+`Wtail ≲ e^{k}/(C·log³x)`; at `L ≍ log²x` that fails by a factor of
+`log x`, at `L ≍ log⁴x` it clears with room.  The smoothed window could
+not make this trade — its `M₂` and `M₃` grew like `ρ^{−2}` and `ρ^{−3}`
+— which is why `fourier_tail_cube_le` exists to buy the same factor by
+one more integration by parts instead. -/
 noncomputable def halaszRange (x : ℕ) : Finset ℤ :=
-  Finset.Icc (-(⌈(Real.log (x:ℝ))^2⌉ + 1)) (⌈(Real.log (x:ℝ))^2⌉ + 1)
+  Finset.Icc (-(⌈(Real.log (x:ℝ))^4⌉ + 1)) (⌈(Real.log (x:ℝ))^4⌉ + 1)
 
 open Finset Real in
 /-- **`L(x)²`, parametrised by a dominating function** (Track R, N29):
 
-  `L(x)² = ∑_{|N| ≤ log²x+1} B(N)²/(N²+1)`.
+  `L(x)² = ∑_{|N| ≤ log⁴x+1} B(N)²/(N²+1)`.
 
 GHS define this with `B N = sup_{|t−N| ≤ 1/2} |F_x(1+it)|`.  Taking `B`
 as a parameter instead of a supremum is deliberate: every use of `L(x)`
@@ -3613,7 +3629,7 @@ open Finset Real in
   `∑_{|N| ≤ M} 1/(N²+1) ≤ 6`,  uniformly in `M`.
 
 This is what makes `L(x)` a genuine `ℓ²` quantity rather than a
-`log`-growing one: the number of frequencies is `≍ log²x`, but their
+`log`-growing one: the number of frequencies is `≍ log⁴x`, but their
 weights sum to `O(1)`, so a uniform bound on the suprema gives a uniform
 bound on `L(x)`.
 
@@ -3706,17 +3722,22 @@ open Finset Real in
 `|B N| ≤ C` throughout the Halász range then `L(x)² ≤ 6C²`.
 
 This is the payoff of `sum_inv_sq_add_one_Icc_le`.  The range has
-`≍ log²x` frequencies, so a naive termwise bound would give
-`L(x)² ≪ C²log²x`; because the weights have total mass `O(1)`, the
+`≍ log⁴x` frequencies, so a naive termwise bound would give
+`L(x)² ≪ C²log⁴x`; because the weights have total mass `O(1)`, the
 `log` disappears entirely and `L(x) ≪ C`.  That is exactly what makes
-Halász's theorem sharp rather than log-lossy. -/
+Halász's theorem sharp rather than log-lossy.
+
+The bound `6` holds for **every** half-width —
+`sum_inv_sq_add_one_Icc_le` is uniform in `M` — which is what makes the
+band width a free parameter of the argument rather than a quantity to
+be balanced against anything. -/
 theorem halaszLSq_le_of_bound (B : ℤ → ℝ) (x : ℕ) (C : ℝ)
     (hB : ∀ N ∈ halaszRange x, |B N| ≤ C) :
     halaszLSq B x ≤ 6 * C^2 := by
   classical
-  have hc0 : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^2⌉ := Int.ceil_nonneg (sq_nonneg _)
-  set M : ℕ := (⌈(Real.log (x:ℝ))^2⌉ + 1).toNat with hM_def
-  have hMcast : ((M:ℕ):ℤ) = ⌈(Real.log (x:ℝ))^2⌉ + 1 := by
+  have hc0 : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^4⌉ := Int.ceil_nonneg (by positivity)
+  set M : ℕ := (⌈(Real.log (x:ℝ))^4⌉ + 1).toNat with hM_def
+  have hMcast : ((M:ℕ):ℤ) = ⌈(Real.log (x:ℝ))^4⌉ + 1 := by
     rw [hM_def]; exact Int.toNat_of_nonneg (by omega)
   have hrange : halaszRange x = Finset.Icc (-(M:ℤ)) (M:ℤ) := by
     rw [halaszRange, hMcast]
@@ -4166,15 +4187,15 @@ theorem sum_unit_intervals_eq (g : ℝ → ℝ) (M : ℕ)
 
 open Finset Real in
 /-- **The half-width of the Halász range** (Track R, N41): the natural
-number `M` with `halaszRange x = [−M, M] ∩ ℤ`, namely
-`⌈log²x⌉ + 1`. -/
-noncomputable def halaszM (x : ℕ) : ℕ := (⌈(Real.log (x:ℝ))^2⌉ + 1).toNat
+number `M` with `halaszRange x = [−M, M] ∩ ℤ`, namely `⌈log⁴x⌉ + 1`.
+See `halaszRange` for why the fourth power costs nothing. -/
+noncomputable def halaszM (x : ℕ) : ℕ := (⌈(Real.log (x:ℝ))^4⌉ + 1).toNat
 
 open Finset Real in
 /-- **The Halász range is a symmetric integer interval** (Track R,
 N41): `halaszRange x = Finset.Icc (−halaszM x) (halaszM x)`.
 
-`⌈log²x⌉ ≥ 0` always — including at `x = 0`, where `log 0 = 0` — so the
+`⌈log⁴x⌉ ≥ 0` always — including at `x = 0`, where `log 0 = 0` — so the
 `toNat` is faithful and the range really is symmetric about the origin.
 
 The fact was previously available only inside `halaszLSq_le_of_bound`'s
@@ -4182,8 +4203,8 @@ proof; stating it is what lets `sum_unit_intervals_eq` be applied to
 the Halász range, which is the form §4 needs. -/
 theorem halaszRange_eq_Icc (x : ℕ) :
     halaszRange x = Finset.Icc (-(halaszM x : ℤ)) ((halaszM x : ℤ)) := by
-  have hc0 : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^2⌉ := Int.ceil_nonneg (sq_nonneg _)
-  have hM : ((halaszM x : ℕ) : ℤ) = ⌈(Real.log (x:ℝ))^2⌉ + 1 := by
+  have hc0 : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^4⌉ := Int.ceil_nonneg (by positivity)
+  have hM : ((halaszM x : ℕ) : ℤ) = ⌈(Real.log (x:ℝ))^4⌉ + 1 := by
     rw [halaszM]
     exact Int.toNat_of_nonneg (by omega)
   rw [halaszRange, hM]
@@ -6356,7 +6377,7 @@ The form §4 actually meets, because `norm_ghsMainPoly_smooth_band_le`
 is **uniform in the frequency**: the Halász Euler-product bound does not
 vary from one unit interval to the next, so `halaszLSq`'s dominating
 function may be taken constant and `halaszLSq_le_of_bound` collapses
-`L(x)²` to `6b²`.  The `≍ log²x` frequencies in `halaszRange` cost
+`L(x)²` to `6b²`.  The `≍ log⁴x` frequencies in `halaszRange` cost
 nothing — that is what makes Halász sharp rather than log-lossy.
 
 `0 < Mtail` is what supplies `pairing_halasz_sqrt_le`'s positivity
