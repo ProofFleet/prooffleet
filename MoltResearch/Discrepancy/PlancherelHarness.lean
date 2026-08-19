@@ -63,15 +63,20 @@ theorem fourier_translate (f : ℝ → ℂ) (s : ℝ) (ξ : ℝ) :
   rw [h4] at h3
   exact h3
 
-/-- **The Fourier transform of a finite weighted translate sum**:
-`𝓕(∑ᵢ wᵢ·F(· − sᵢ))(ξ) = (∑ᵢ wᵢ·e(−sᵢξ))·𝓕F(ξ)`. -/
-theorem fourier_sum_translates (F : ℝ → ℂ) (hFc : HasCompactSupport F)
-    (hFs : Continuous F) {ι : Type*} (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ)
+/-- **The Fourier transform of a finite weighted translate sum**, for
+any integrable window (Track R, N167):
+`𝓕(∑ᵢ wᵢ·F(· − sᵢ))(ξ) = (∑ᵢ wᵢ·e(−sᵢξ))·𝓕F(ξ)`.
+
+Compact support and smoothness were only ever used to produce
+`Integrable F`, so this is the same proof with that fact taken as the
+hypothesis it always was — and the Riesz window, which has neither,
+now qualifies. -/
+theorem fourier_sum_translates' (F : ℝ → ℂ) (hFi : Integrable F)
+    {ι : Type*} (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ)
     (ξ : ℝ) :
     𝓕 (fun y => ∑ i ∈ S, w i * F (y - s i)) ξ
       = (∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)) * 𝓕 F ξ := by
   classical
-  have hFi : Integrable F := hFs.integrable_of_hasCompactSupport hFc
   have hint : ∀ i : ι, Integrable (fun y => w i * F (y - s i)) := by
     intro i
     exact ((hFi.comp_sub_right (s i)).const_mul (w i))
@@ -118,6 +123,24 @@ theorem fourier_sum_translates (F : ℝ → ℂ) (hFc : HasCompactSupport F)
       continuous_inner
     exact (VectorFourier.fourierIntegral_convergent_iff
       (Real.continuous_fourierChar) hL ξ).2 (hint i)
+
+/-- **A compactly supported smooth window has integrable transform**
+(Track R, N167): the `SchwartzMap` route, packaged once so that the
+Schwartz specialisations below read as one-line corollaries. -/
+theorem integrable_fourier_of_hasCompactSupport (F : ℝ → ℂ)
+    (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F) :
+    Integrable (𝓕 F) := by
+  set Fs : 𝓢(ℝ, ℂ) := hFc.toSchwartzMap hFs with hFs_def
+  exact (𝓕 Fs).integrable
+
+/-- **The Fourier transform of a finite weighted translate sum**:
+`𝓕(∑ᵢ wᵢ·F(· − sᵢ))(ξ) = (∑ᵢ wᵢ·e(−sᵢξ))·𝓕F(ξ)`. -/
+theorem fourier_sum_translates (F : ℝ → ℂ) (hFc : HasCompactSupport F)
+    (hFs : Continuous F) {ι : Type*} (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ)
+    (ξ : ℝ) :
+    𝓕 (fun y => ∑ i ∈ S, w i * F (y - s i)) ξ
+      = (∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)) * 𝓕 F ξ :=
+  fourier_sum_translates' F (hFs.integrable_of_hasCompactSupport hFc) S w s ξ
 
 /-- **The Plancherel harness** (C2-ii): for smooth compactly supported `F`,
 `∫ ‖∑ᵢ wᵢ·F(y − sᵢ)‖² dy = ∫ ‖∑ᵢ wᵢ·e(−sᵢξ)‖² · ‖𝓕F(ξ)‖² dξ` — the
@@ -726,43 +749,65 @@ theorem abs_norm_sq_smoothedLogSum_sub_le (T : ℝ) (hT : 1 ≤ T)
     _ = (50*B*B'*T) * |y - z| := by ring
 
 
-/-- **The pointwise Fourier inversion for translate sums** (Track R,
-M2-d): the smoothed sum at a point is the integral of the phase
-polynomial against the window transform — the Perron-by-smoothing
-identity of the cheap Halász argument. -/
-theorem sum_translates_eq_integral_char (F : ℝ → ℂ)
-    (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F) {ι : Type*}
-    (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ) (y : ℝ) :
+/-- **The translate sum as a character pairing**, for any window with
+Fourier inversion (Track R, N167):
+
+  `∑ᵢ wᵢ·F(y − sᵢ) = ∫_ℝ e(ξy)·(∑ᵢ wᵢ·e(−sᵢξ))·𝓕F(ξ) dξ`.
+
+`Continuous.fourierInv_fourier_eq` asks for exactly `Continuous F`,
+`Integrable F` and `Integrable (𝓕 F)`, and nothing in this argument
+asks for more.  The Schwartz hypotheses of the specialisation below
+were a convenient way to supply those three, not a requirement of the
+identity.
+
+That distinction is what admits `rieszWindow`, which is not `C¹` and
+has unbounded support, but is continuous and integrable
+(`continuous_rieszWindow`, `integrable_rieszWindow`) with integrable
+transform (`integrable_norm_fourier_rieszWindow`). -/
+theorem sum_translates_eq_integral_char' (F : ℝ → ℂ)
+    (hFcont : Continuous F) (hFi : Integrable F) (hFFi : Integrable (𝓕 F))
+    {ι : Type*} (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ) (y : ℝ) :
     ∑ i ∈ S, w i * F (y - s i)
       = ∫ ξ, (𝐞 (ξ * y) : Circle)
           • ((∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)) * 𝓕 F ξ) := by
   classical
   set G : ℝ → ℂ := fun y => ∑ i ∈ S, w i * F (y - s i) with hG_def
-  have hGc : HasCompactSupport G := by
-    refine hasCompactSupport_finset_sum fun i _ => ?_
-    have h2 : HasCompactSupport (fun y : ℝ => F (y - s i)) :=
-      hFc.comp_homeomorph (Homeomorph.subRight (s i))
-    exact h2.mul_left
   have hGs : Continuous G := by
     refine continuous_finset_sum _ fun i _ => ?_
     exact continuous_const.mul
-      ((hFs.continuous).comp (continuous_id.sub continuous_const))
-  have hGi : Integrable G := hGs.integrable_of_hasCompactSupport hGc
-  -- 𝓕 G is integrable: it is the phase polynomial times the Schwartz 𝓕
-  have hGsm : ContDiff ℝ ∞ G := by
-    refine ContDiff.sum fun i _ => ?_
-    exact contDiff_const.mul
-      (hFs.comp (contDiff_id.sub contDiff_const))
-  set Gs : 𝓢(ℝ, ℂ) := hGc.toSchwartzMap hGsm with hGs_def
-  have hGeq : G = (Gs : ℝ → ℂ) := rfl
+      (hFcont.comp (continuous_id.sub continuous_const))
+  have hGi : Integrable G := by
+    refine integrable_finset_sum _ fun i _ => ?_
+    exact (hFi.comp_sub_right (s i)).const_mul (w i)
+  have hpc : Continuous fun ξ : ℝ =>
+      ∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ) := by
+    refine continuous_finset_sum _ fun i _ => ?_
+    refine continuous_const.mul ?_
+    exact Continuous.comp continuous_subtype_val
+      (Real.continuous_fourierChar.comp (by fun_prop))
+  have hpoly : ∀ ξ : ℝ,
+      ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖ ≤ ∑ i ∈ S, ‖w i‖ := by
+    intro ξ
+    refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
+    rw [norm_mul, norm_eq_of_mem_sphere]
+    simp
+  have hGF : ∀ ξ, 𝓕 G ξ
+      = (∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)) * 𝓕 F ξ :=
+    fun ξ => fourier_sum_translates' F hFi S w s ξ
   have hFGi : Integrable (𝓕 G) := by
-    rw [hGeq]
-    exact (𝓕 Gs).integrable
+    have hcont : Continuous (𝓕 G) := by
+      rw [funext hGF]
+      exact hpc.mul (VectorFourier.fourierIntegral_continuous
+        Real.continuous_fourierChar (by fun_prop) hFi)
+    refine Integrable.mono' (hFFi.norm.const_mul (∑ i ∈ S, ‖w i‖))
+      hcont.aestronglyMeasurable (Filter.Eventually.of_forall fun ξ => ?_)
+    rw [hGF ξ, norm_mul]
+    exact mul_le_mul_of_nonneg_right (hpoly ξ) (norm_nonneg _)
   have hinv := hGs.fourierInv_fourier_eq hGi hFGi
   have hy := congrFun hinv y
   have hval : 𝓕⁻ (𝓕 G) y
       = ∫ ξ, (𝐞 (ξ * y) : Circle) • (𝓕 G ξ) := by
-    rw [Real.fourierIntegralInv_eq]
+    rw [Real.fourierInv_eq]
     refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
     norm_num
     rw [mul_comm y ξ]
@@ -770,7 +815,64 @@ theorem sum_translates_eq_integral_char (F : ℝ → ℂ)
   refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
   dsimp only
   congr 1
-  exact fourier_sum_translates F hFc hFs.continuous S w s ξ
+  exact hGF ξ
+
+/-- **The translate sum as a character pairing** (Track R, M2-d):
+`sum_translates_eq_integral_char'` at a compactly supported smooth
+window, which supplies the three analytic facts through `SchwartzMap`. -/
+theorem sum_translates_eq_integral_char (F : ℝ → ℂ)
+    (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F) {ι : Type*}
+    (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ) (y : ℝ) :
+    ∑ i ∈ S, w i * F (y - s i)
+      = ∫ ξ, (𝐞 (ξ * y) : Circle)
+          • ((∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)) * 𝓕 F ξ) :=
+  sum_translates_eq_integral_char' F hFs.continuous
+    (hFs.continuous.integrable_of_hasCompactSupport hFc)
+    (integrable_fourier_of_hasCompactSupport F hFc hFs) S w s y
+
+/-- **The Perron-by-smoothing bound**, for any window with Fourier
+inversion (Track R, N167): the smoothed sum is at most the `L¹` pairing
+of the phase polynomial with the window transform.
+
+The majorant is `(∑ᵢ‖wᵢ‖)·‖𝓕F‖`, integrable by hypothesis rather than
+by Schwartz decay — which is the only place the old hypotheses were
+doing work here. -/
+theorem norm_sum_translates_le_integral_char' (F : ℝ → ℂ)
+    (hFcont : Continuous F) (hFi : Integrable F) (hFFi : Integrable (𝓕 F))
+    {ι : Type*} (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ) (y : ℝ) :
+    ‖∑ i ∈ S, w i * F (y - s i)‖
+      ≤ ∫ ξ, ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖ * ‖𝓕 F ξ‖ := by
+  rw [sum_translates_eq_integral_char' F hFcont hFi hFFi S w s y]
+  refine le_trans (norm_integral_le_integral_norm _) ?_
+  refine integral_mono_of_nonneg
+    (Filter.Eventually.of_forall fun ξ => norm_nonneg _)
+    ?_ (Filter.Eventually.of_forall fun ξ => ?_)
+  · have hpc : Continuous fun ξ : ℝ =>
+        ∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ) := by
+      refine continuous_finset_sum _ fun i _ => ?_
+      refine continuous_const.mul ?_
+      exact Continuous.comp continuous_subtype_val
+        (Real.continuous_fourierChar.comp (by fun_prop))
+    have hpoly : ∀ ξ : ℝ,
+        ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖
+          ≤ ∑ i ∈ S, ‖w i‖ := by
+      intro ξ
+      refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
+      rw [norm_mul, norm_eq_of_mem_sphere]
+      simp
+    have hcontF : Continuous (𝓕 F) :=
+      VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar
+        (by fun_prop) hFi
+    refine ((hFFi.norm).const_mul (∑ i ∈ S, ‖w i‖)).mono' ?_ ?_
+    · exact (hpc.norm.mul hcontF.norm).aestronglyMeasurable
+    · refine Filter.Eventually.of_forall fun ξ => ?_
+      rw [Real.norm_eq_abs, abs_of_nonneg
+        (mul_nonneg (norm_nonneg _) (norm_nonneg _))]
+      exact mul_le_mul_of_nonneg_right (hpoly ξ) (norm_nonneg _)
+  · dsimp only
+    simp only [Circle.smul_def, smul_eq_mul, norm_mul]
+    have h1 : ‖((𝐞 (ξ * y) : Circle) : ℂ)‖ = 1 := norm_eq_of_mem_sphere _
+    rw [h1, one_mul]
 
 /-- **The Perron-by-smoothing bound** (Track R, M2-d corollary): the
 smoothed sum is at most the `L¹` pairing of the phase polynomial with
@@ -779,41 +881,11 @@ theorem norm_sum_translates_le_integral_char (F : ℝ → ℂ)
     (hFc : HasCompactSupport F) (hFs : ContDiff ℝ ∞ F) {ι : Type*}
     (S : Finset ι) (w : ι → ℂ) (s : ι → ℝ) (y : ℝ) :
     ‖∑ i ∈ S, w i * F (y - s i)‖
-      ≤ ∫ ξ, ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖ * ‖𝓕 F ξ‖ := by
-  rw [sum_translates_eq_integral_char F hFc hFs S w s y]
-  refine le_trans (norm_integral_le_integral_norm _) ?_
-  refine integral_mono_of_nonneg
-    (Filter.Eventually.of_forall fun ξ => norm_nonneg _)
-    ?_ (Filter.Eventually.of_forall fun ξ => ?_)
-  · -- integrability of the majorant
-    set Fs : 𝓢(ℝ, ℂ) := hFc.toSchwartzMap hFs with hFs_def
-    have hFeq : ∀ ξ, ‖𝓕 F ξ‖ = ‖(𝓕 Fs) ξ‖ := fun _ => rfl
-    have hpoly : ∀ ξ : ℝ,
-        ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖
-          ≤ ∑ i ∈ S, ‖w i‖ := by
-      intro ξ
-      refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
-      rw [norm_mul, norm_eq_of_mem_sphere]
-      simp
-    refine (((𝓕 Fs).integrable.norm).const_mul (∑ i ∈ S, ‖w i‖)).mono'
-      ?_ ?_
-    · have hpc : Continuous fun ξ : ℝ =>
-          ∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ) := by
-        refine continuous_finset_sum _ fun i _ => ?_
-        refine continuous_const.mul ?_
-        exact Continuous.comp continuous_subtype_val
-          (Real.continuous_fourierChar.comp (by fun_prop))
-      exact (hpc.norm.mul ((𝓕 Fs).continuous.norm)).aestronglyMeasurable
-    · refine Filter.Eventually.of_forall fun ξ => ?_
-      rw [Real.norm_eq_abs, abs_of_nonneg
-        (mul_nonneg (norm_nonneg _) (norm_nonneg _)), hFeq]
-      exact mul_le_mul_of_nonneg_right (hpoly ξ) (norm_nonneg _)
-  · dsimp only
-    simp only [Circle.smul_def, smul_eq_mul, norm_mul]
-    have h1 : ‖((𝐞 (ξ * y) : Circle) : ℂ)‖ = 1 := norm_eq_of_mem_sphere _
-    rw [h1, one_mul]
+      ≤ ∫ ξ, ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖ * ‖𝓕 F ξ‖ :=
+  norm_sum_translates_le_integral_char' F hFs.continuous
+    (hFs.continuous.integrable_of_hasCompactSupport hFc)
+    (integrable_fourier_of_hasCompactSupport F hFc hFs) S w s y
 
-set_option maxHeartbeats 1600000 in
 /-- **The three-regime split at moment `2k`** (Track R, W2-高): the
 `ξ²`-tail of `integral_norm_sq_sum_translates_regime_split` sharpened
 to any even moment.  The high-frequency piece is priced by
