@@ -134,4 +134,48 @@ theorem ghsPrimePoly_unit_energy_split_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n�
     exact h
   linarith [hmono, hlarge, hsmall]
 
+
+open Finset in
+/-- **The smooth restriction moves into the index set** (Track R,
+N180): for the main polynomial, killing `f` off the `y`-smooth numbers
+is the same as filtering the summation range,
+
+  `ghsMainPoly (f·1_{y-smooth}) S = ghsMainPoly f (S ∩ smooth)`.
+
+The bridge between `tripleConvR_le` and the Halász Euler-product bound:
+the former hardwires the index set `Icc 1 x` and varies `f`, the latter
+(`norm_ghsMainPoly_smooth_band_le`) hardwires `f` and filters the set.
+With this identity the smooth-restricted `g` — still completely
+multiplicative by `completelyMultiplicativeC_smooth_restrict`, so the
+whole §3 chain runs on it unchanged — hands `hBu` straight to the band
+bound. -/
+theorem ghsMainPoly_smooth_restrict_eq (f : ℕ → ℂ) (y : ℕ) (S : Finset ℕ) :
+    ghsMainPoly (fun n => if n ∈ Nat.smoothNumbers y then f n else 0) S
+      = ghsMainPoly f (S.filter (· ∈ Nat.smoothNumbers y)) := by
+  classical
+  funext ξ
+  simp only [ghsMainPoly]
+  rw [Finset.sum_filter]
+  refine Finset.sum_congr rfl fun n _ => ?_
+  by_cases h : n ∈ Nat.smoothNumbers y
+  · rw [if_pos h, if_pos h]
+  · rw [if_neg h, if_neg h, zero_div, zero_mul]
+
+open Finset in
+/-- **The real smooth restriction complexifies pointwise** (Track R,
+N180): the `ℝ → ℂ` coercion `tripleConvR_le` applies to its `f`
+commutes with the smooth cut, so `hBu` for the real restricted `g`
+is `hBu` for the complex restricted `(f:ℂ)`.
+
+`Complex.ofReal` through `ite`, recorded once so the instantiation
+never has to push coercions by hand. -/
+theorem smooth_restrict_ofReal (f : ℕ → ℝ) (y : ℕ) :
+    (fun n : ℕ => (((if n ∈ Nat.smoothNumbers y then f n else 0 : ℝ)) : ℂ))
+      = fun n : ℕ => if n ∈ Nat.smoothNumbers y then ((f n : ℝ) : ℂ) else 0 := by
+  classical
+  funext n
+  by_cases h : n ∈ Nat.smoothNumbers y
+  · rw [if_pos h, if_pos h]
+  · rw [if_neg h, if_neg h, Complex.ofReal_zero]
+
 end MoltResearch
