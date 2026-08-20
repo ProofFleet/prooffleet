@@ -1022,4 +1022,43 @@ theorem balance_product_le (L u T b γ S Mp SM HS W : ℝ)
   refine le_trans (add_le_add (add_le_add (add_le_add h1 h2) h3) h4) ?_
   exact bal_sum b T SM (Real.exp π) hb0 hT0 hSM0 heπ0
 
+
+open Real in
+/-- **The block index, as `u = e^{−k}`** (Track R, N188): the two
+exponential shapes of the energy bound coincide,
+`e^{2k}/L² = 1/((e^{−k})²·L²)`. -/
+private lemma exp_two_k_div_sq (k : ℕ) (L : ℝ) :
+    Real.exp (2*(k:ℝ)) / L^2 = 1/((Real.exp (-(k:ℝ)))^2 * L^2) := by
+  have h : (Real.exp (-(k:ℝ)))^2 = Real.exp (-(2*(k:ℝ))) := by
+    rw [pow_two, ← Real.exp_add]
+    congr 1
+    ring
+  rw [h, Real.exp_neg]
+  field_simp
+
+open Real in
+/-- `4·(e−1)·e^{−k}·L` in the `u`-form the balance lemma reads. -/
+private lemma exp_neg_k_mul_shape (k : ℕ) (L : ℝ) :
+    4*(Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * L
+      = 4*(Real.exp 1 - 1) * (Real.exp (-(k:ℝ)) * L) := by
+  ring
+
+open Real in
+/-- `e^{1−k}·L = e·(e^{−k}·L)` — N185's decay in the balance's `e·P` shape. -/
+private lemma exp_one_sub_k_mul (k : ℕ) (L : ℝ) :
+    Real.exp (1 - (k:ℝ)) * L = Real.exp 1 * (Real.exp (-(k:ℝ)) * L) := by
+  rw [show (1 - (k:ℝ)) = 1 + (-(k:ℝ)) by ring, Real.exp_add]
+  ring
+
+open Real in
+/-- `1 ≤ log x` for `x ≥ 3` — the balance's `hL1`. -/
+private lemma one_le_log_of_three_le (x : ℕ) (hx : 3 ≤ x) :
+    (1:ℝ) ≤ Real.log (x:ℝ) := by
+  have he : Real.exp 1 ≤ (x:ℝ) := by
+    have h3 : (3:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+    have := Real.exp_one_lt_d9
+    linarith
+  calc (1:ℝ) = Real.log (Real.exp 1) := (Real.log_exp 1).symm
+    _ ≤ Real.log (x:ℝ) := Real.log_le_log (Real.exp_pos 1) he
+
 end MoltResearch
