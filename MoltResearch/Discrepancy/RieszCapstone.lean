@@ -542,4 +542,96 @@ theorem log_div_blockLo_le (x k : ℕ) (hx : 2 ≤ x) :
           exact le_trans hdiv hdiv2
       _ = Real.exp (1 - (k:ℝ)) * Real.log (x:ℝ) := Real.log_rpow hx0 _
 
+
+open Real Finset in
+/-- **The harmonic sum, priced** (Track R, N186): `∑_{n ≤ x} 1/n ≤ 1 + log x`.
+`sum_one_div_add_le_log`'s telescope from `c = 2`, plus the `n = 1` term.
+The `HSum` factor of the Riesz tail mass `Mtail`. -/
+theorem harmonic_Icc_le (x : ℕ) (hx : 1 ≤ x) :
+    ∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ) ≤ 1 + Real.log (x:ℝ) := by
+  classical
+  have hsplit : Finset.Icc 1 x = insert 1 (Finset.Ico 2 (x+1)) := by
+    ext n
+    simp only [Finset.mem_Icc, Finset.mem_insert, Finset.mem_Ico]
+    omega
+  have hnotmem : 1 ∉ Finset.Ico 2 (x+1) := by
+    simp [Finset.mem_Ico]
+  rw [hsplit, Finset.sum_insert hnotmem]
+  have h1 : (1:ℝ)/((1:ℕ):ℝ) = 1 := by norm_num
+  rw [h1]
+  have hre : ∑ n ∈ Finset.Ico 2 (x+1), (1:ℝ)/(n:ℝ)
+      = ∑ j ∈ Finset.range (x + 1 - 2), (1:ℝ)/((2 + j : ℕ):ℝ) := by
+    rw [Finset.sum_Ico_eq_sum_range]
+  rcases Nat.lt_or_ge x 2 with hx2 | hx2
+  · -- `x = 1`: the upper sum is empty and `log x = 0` is fine
+    have hxe : x = 1 := by omega
+    subst hxe
+    simp
+  · rw [hre]
+    have htel := sum_one_div_add_le_log 2 (by norm_num) (x + 1 - 2)
+    have hcast : ∀ j : ℕ, (1:ℝ)/((2 + j : ℕ):ℝ) = 1/((2:ℝ) + (j:ℝ)) := by
+      intro j
+      push_cast
+      ring_nf
+    rw [Finset.sum_congr rfl fun j _ => hcast j]
+    have hRHS : Real.log (2 + ((x + 1 - 2 : ℕ):ℝ) - 1) - Real.log (2 - 1)
+        = Real.log (x:ℝ) := by
+      have hJ : ((x + 1 - 2 : ℕ):ℝ) = (x:ℝ) - 1 := by
+        have h' : x + 1 - 2 = x - 1 := by omega
+        rw [h']
+        push_cast [Nat.cast_sub (by omega : 1 ≤ x)]
+        ring
+      have h1 : (2:ℝ) + ((x:ℝ) - 1) - 1 = (x:ℝ) := by ring
+      rw [hJ, h1, show (2:ℝ) - 1 = 1 by norm_num, Real.log_one, sub_zero]
+    have hS := le_trans htel (le_of_eq hRHS)
+    linarith
+
+
+open Real Finset in
+/-- **The small-prime mass is a `T`-quantity** (Track R, N186): the
+below-threshold half of N179's split has Mertens mass
+
+  `∑_{q < X prime, q < T²} log q/q ≤ log ⌈T²⌉ + 2`,
+
+independent of `X`.  At the forced `T ≍ √(log x)` this is
+`≍ log log x`, entering `V₃` squared and doubled, against the
+`≍ e^{−k}·log x` of the main term — the price of N179's threshold
+removal, now in closed form. -/
+theorem smallMass_le (X : ℕ) (T : ℝ) (hT : 5 ≤ T) :
+    ∑ q ∈ X.primesBelow.filter (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+        Real.log (q:ℝ)/(q:ℝ)
+      ≤ Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2 := by
+  classical
+  have hceil2 : 2 ≤ ⌈T^2⌉₊ := by
+    have h25 : (25:ℝ) ≤ T^2 := by nlinarith
+    have h2 : (2:ℝ) ≤ (⌈T^2⌉₊ : ℝ) :=
+      le_trans (by norm_num) (le_trans h25 (Nat.le_ceil _))
+    exact_mod_cast h2
+  have hsub : X.primesBelow.filter (fun q : ℕ => ¬ T^2 ≤ (q:ℝ))
+      ⊆ (⌈T^2⌉₊).primesBelow := by
+    intro q hq
+    rw [Finset.mem_filter] at hq
+    obtain ⟨hqm, hqT⟩ := hq
+    rw [Nat.mem_primesBelow] at hqm ⊢
+    exact ⟨Nat.lt_ceil.mpr (not_le.mp hqT), hqm.2⟩
+  refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+    (fun q _ _ => div_nonneg (Real.log_natCast_nonneg q)
+      (Nat.cast_nonneg q))) ?_
+  exact sum_log_div_primesBelow_le_sharp _ hceil2
+
+open Real Finset in
+/-- **The inner-range Mertens mass decays with the block** (Track R,
+N186): `∑_{q < x/blockLo x k} log q/q ≤ e^{1−k}·log x + 2`.
+
+Sharp Mertens (`sum_log_div_primesBelow_le_sharp`) at the enlarged
+inner range, transported through N185: the `QMass` factor of `Mtail`
+carries the same `e^{−k}` decay as `V₃`, which is what keeps
+`E₁·Mtail ≍ e^{−k}/log x` negligible in the balance. -/
+theorem qMass_le (x k : ℕ) (hx : 2 ≤ x) (hX2 : 2 ≤ x / blockLo x k) :
+    ∑ q ∈ (x / blockLo x k).primesBelow, Real.log (q:ℝ)/(q:ℝ)
+      ≤ Real.exp (1 - (k:ℝ)) * Real.log (x:ℝ) + 2 := by
+  refine le_trans (sum_log_div_primesBelow_le_sharp _ hX2) ?_
+  have := log_div_blockLo_le x k hx
+  linarith
+
 end MoltResearch
