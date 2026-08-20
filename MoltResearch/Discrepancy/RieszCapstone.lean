@@ -178,4 +178,44 @@ theorem smooth_restrict_ofReal (f : ℕ → ℝ) (y : ℕ) :
   · rw [if_pos h, if_pos h]
   · rw [if_neg h, if_neg h, Complex.ofReal_zero]
 
+
+open MeasureTheory Real Complex Finset in
+/-- **The unit-interval energy at `Q = primesBelow X`, all hypotheses
+discharged** (Track R, N181): for any `X ≥ 2`, `T ≥ 5` and frequency
+`N`,
+
+  `∫_{N−1/2}^{N+1/2} ‖P₃(t)‖² dt`
+  `  ≤ 2·e^π·(12290·(log(X+1) + 2) + 4T·(6144 + e^{−πT²/64}·X·log 4))`
+  `    + 2·(∑_{q < X, q < T²} log q/q)²`.
+
+`ghsPrimePoly_unit_energy_split_le` at the concrete inner range the
+per-block instantiation feeds `tripleConvR_le`: `Q = (x/blockLo x k).
+primesBelow ⊇ (x/p).primesBelow` for every `p` in block `k`.  The three
+side inputs close for free at this `Q`: membership gives primality and
+`q ≤ X`, Chebyshev's `θ`-bound (`sum_log_primesBelow_le`) gives
+`B = X·log 4`, and `hwide` is the continuity of finite character sums
+(`ExpSums.continuous_char_poly`).
+
+This is the `hV` that block `k` hands to `tripleConvR_le`, with only
+the frequency `N` left quantified — exactly `halaszRange`'s shape. -/
+theorem ghsPrimePoly_unit_energy_primesBelow_le (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (X : ℕ) (hX : 2 ≤ X) (T : ℝ) (hT : 5 ≤ T)
+    (N : ℝ) :
+    (∫ t in (N - 1/2)..(N + 1/2), ‖ghsPrimePoly f X.primesBelow t‖^2)
+      ≤ 2 * (Real.exp π * (12290 * (Real.log ((X+1 : ℕ):ℝ) + 2)
+            + 4*T * (6144 + Real.exp (-(π*T^2/64)) * ((X:ℝ) * Real.log 4))))
+        + 2 * (∑ q ∈ X.primesBelow.filter (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+            Real.log (q:ℝ)/(q:ℝ))^2 := by
+  classical
+  refine ghsPrimePoly_unit_energy_split_le f hf X.primesBelow X hX T hT
+    (fun q hq => (Nat.mem_primesBelow.mp hq).2)
+    (fun q hq => le_of_lt (Nat.mem_primesBelow.mp hq).1)
+    ((X:ℝ) * Real.log 4)
+    (mul_nonneg (Nat.cast_nonneg X) (Real.log_nonneg (by norm_num)))
+    (sum_log_primesBelow_le X)
+    (fun w => ((ExpSums.continuous_char_poly
+      (X.primesBelow.filter (fun q : ℕ => T^2 ≤ (q:ℝ))) w
+      (fun q => Real.log (q:ℝ))).norm.pow 2).intervalIntegrable _ _)
+    N
+
 end MoltResearch
