@@ -16,6 +16,7 @@ import MoltResearch.Discrepancy.PerronWindow
 import MoltResearch.Discrepancy.MajorArcFreeze
 import MoltResearch.Discrepancy.ParsevalBridge
 import MoltResearch.Discrepancy.HalaszAssembly
+import MoltResearch.Discrepancy.RieszCapstone
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
