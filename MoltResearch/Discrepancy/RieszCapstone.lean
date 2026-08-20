@@ -218,4 +218,60 @@ theorem ghsPrimePoly_unit_energy_primesBelow_le (f : ℕ → ℂ)
       (fun q => Real.log (q:ℝ))).norm.pow 2).intervalIntegrable _ _)
     N
 
+
+open MeasureTheory Real Complex Finset in
+open scoped FourierTransform in
+/-- **The Riesz block energy on a fitted block, Chebyshev priced**
+(Track R, N182): for `P` inside block `k` of a fitted tiling
+(`2·blockHi ≤ x`) with `T² ≤ p` throughout,
+
+  `∫ ‖P₂‖²·‖𝓕V‖ ≤ e^π·(12290·(e^{2k}/log²x)·(4((e−1)e^{−k}·log x + log 2) + 4·log 4)`
+  `      + T·(6144 + e^{−πT²/64}·x·log 4)·(16/log²x + 4/(√⌊√x⌋·log²2)))`
+  `    + (∑_{p∈P} log p/(p·|log(x/p)|))²·(1/(2π²T))`.
+
+`ghsBlock_E1_riesz_le` with its two remaining generic inputs closed on
+the block: `2p ≤ x` from `p < blockHi` and the fit, and the Chebyshev
+budget `B = x·log 4` from `P ⊆ x.primesBelow` and
+`sum_log_primesBelow_le` — the same `θ`-pricing as N181's inner range,
+so the two halves of §4 now quote constants from the same source.
+
+`hPT` stays a hypothesis: on retained blocks it is free from
+`y ≤ blockLo ≤ p` once the capstone fixes `T ≍ √(log x) ≪ √y`, and
+that choice belongs to the balance, not to the block. -/
+theorem ghsBlock_E1_riesz_block_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (P : Finset ℕ)
+    (T : ℝ) (hT : 5 ≤ T)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (hfit : 2 * blockHi x k ≤ x)
+    (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ)) :
+    (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖)
+      ≤ Real.exp π *
+          (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+              * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+                  + Real.log 2) + 4 * Real.log 4))
+            + T * (6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))
+                * (16/(Real.log (x:ℝ))^2
+                    + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)))
+        + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+            * (1/(2*Real.pi^2*T)) := by
+  classical
+  have h2p : ∀ p ∈ P, 2*p ≤ x := by
+    intro p hp
+    obtain ⟨-, -, hpB⟩ := hP p hp
+    omega
+  have hsub : P ⊆ x.primesBelow := by
+    intro p hp
+    obtain ⟨hpp, -, hpB⟩ := hP p hp
+    rw [Nat.mem_primesBelow]
+    exact ⟨by omega, hpp⟩
+  have hB : ∑ p ∈ P, Real.log (p:ℝ) ≤ (x:ℝ) * Real.log 4 := by
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun p _ _ => Real.log_natCast_nonneg p)) ?_
+    exact sum_log_primesBelow_le x
+  exact ghsBlock_E1_riesz_le f hf x k hx hk P T hT hP hPT h2p
+    ((x:ℝ) * Real.log 4)
+    (mul_nonneg (Nat.cast_nonneg x) (Real.log_nonneg (by norm_num)))
+    hB
+
 end MoltResearch
