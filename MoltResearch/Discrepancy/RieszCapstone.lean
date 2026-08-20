@@ -634,4 +634,392 @@ theorem qMass_le (x k : ℕ) (hx : 2 ≤ x) (hX2 : 2 ≤ x / blockLo x k) :
   have := log_div_blockLo_le x k hx
   linarith
 
+
+
+/-- The tail absorption `81T ≤ epi·81T` folded into the bracket. -/
+private lemma bal_prodOne (Y b T epi eone : ℝ) (hepi : 1 ≤ epi)
+    (hepi0 : 0 < epi) (hT0 : 0 < T) (hb0 : 0 ≤ b)
+    (heone0 : 0 ≤ eone) (heone : eone ≤ 2.72)
+    (hY0 : 0 ≤ Y) (hY : Y ≤ epi * (331830 + 6145*T) + 81*T) :
+    (60*12290) * (eone * (epi * b^2)) * Y
+      ≤ epi^2 * ((3*10^12) * b^2 + (2*10^10) * (T * b^2)) := by
+  have hcoef0 : (0:ℝ) ≤ (60*12290) * (eone * (epi * b^2)) := by positivity
+  have h1 := mul_le_mul_of_nonneg_left hY hcoef0
+  refine le_trans h1 ?_
+  have h81 : (81:ℝ)*T ≤ epi * (81*T) := by nlinarith [hepi, hT0]
+  have hfac : epi * (331830 + 6145*T) + 81*T
+      ≤ epi * (331830 + 6226*T) := by nlinarith [h81]
+  refine le_trans (mul_le_mul_of_nonneg_left hfac hcoef0) ?_
+  have hb2 : (0:ℝ) ≤ b^2 := sq_nonneg b
+  have hepi2b : (0:ℝ) ≤ epi^2 * b^2 := by positivity
+  have hepi2Tb : (0:ℝ) ≤ epi^2 * (T*b^2) := by positivity
+  nlinarith [heone, heone0, hepi0, hb2, hepi2b, hepi2Tb, hT0,
+    mul_nonneg (mul_nonneg hepi0.le hepi0.le) hb2,
+    mul_nonneg (mul_nonneg (mul_nonneg hepi0.le hepi0.le) hb2) hT0.le]
+
+private lemma bal_prodTwo (E b T γ lg2 epi : ℝ) (hepi0 : 0 < epi)
+    (hE0 : 0 ≤ E) (hE : E ≤ epi * 448602) (hT0 : 0 < T)
+    (hγ0 : 0 ≤ γ) (hγ1 : γ ≤ 1) (hb0 : 0 ≤ b)
+    (hlg2 : 0 ≤ lg2) (hlg2u : lg2 ≤ 0.694) :
+    E * (60 * (epi * (12290 * (lg2 + 2) + 4*T*(6144 + γ))) * b^2)
+      ≤ epi^2 * ((9*10^11) * b^2 + (7*10^11) * (T * b^2)) := by
+  have hin : 12290 * (lg2 + 2) + 4*T*(6144 + γ) ≤ 33110 + 24580*T := by
+    nlinarith [hlg2u, hγ1, hT0]
+  have hin0 : (0:ℝ) ≤ 12290 * (lg2 + 2) + 4*T*(6144 + γ) := by positivity
+  have hV : 60 * (epi * (12290 * (lg2 + 2) + 4*T*(6144 + γ))) * b^2
+      ≤ 60 * (epi * (33110 + 24580*T)) * b^2 := by
+    have h1 : epi * (12290 * (lg2 + 2) + 4*T*(6144 + γ))
+        ≤ epi * (33110 + 24580*T) := mul_le_mul_of_nonneg_left hin hepi0.le
+    have h2 : (60:ℝ) * (epi * (12290 * (lg2 + 2) + 4*T*(6144 + γ)))
+        ≤ 60 * (epi * (33110 + 24580*T)) :=
+      mul_le_mul_of_nonneg_left h1 (by norm_num)
+    exact mul_le_mul_of_nonneg_right h2 (sq_nonneg b)
+  have hV0 : (0:ℝ) ≤ 60 * (epi * (12290 * (lg2 + 2) + 4*T*(6144 + γ))) * b^2 := by
+    positivity
+  have hstep := mul_le_mul hE hV hV0 (by positivity : (0:ℝ) ≤ epi * 448602)
+  refine le_trans hstep ?_
+  have hb2 : (0:ℝ) ≤ b^2 := sq_nonneg b
+  have hepi2b : (0:ℝ) ≤ epi^2 * b^2 := by positivity
+  have hepi2Tb : (0:ℝ) ≤ epi^2 * (T*b^2) := by positivity
+  nlinarith [hepi0, hb2, hepi2b, hepi2Tb, hT0,
+    mul_nonneg (mul_nonneg hepi0.le hepi0.le) hb2,
+    mul_nonneg (mul_nonneg (mul_nonneg hepi0.le hepi0.le) hb2) hT0.le]
+
+private lemma bal_prodThree (E b SM epi : ℝ) (hepi : 1 ≤ epi)
+    (hepi0 : 0 < epi) (hE0 : 0 ≤ E) (hE : E ≤ epi * 448602)
+    (hb0 : 0 ≤ b) (hSM0 : 0 ≤ SM) :
+    E * (60 * SM^2 * b^2) ≤ epi^2 * ((3*10^7) * (SM^2 * b^2)) := by
+  have hX0 : (0:ℝ) ≤ 60 * SM^2 * b^2 := by positivity
+  have hstep := mul_le_mul_of_nonneg_right hE hX0
+  refine le_trans hstep ?_
+  have hSb : (0:ℝ) ≤ SM^2 * b^2 := by positivity
+  have h1 : (0:ℝ) ≤ epi * (SM^2 * b^2) := by positivity
+  nlinarith [hepi, hepi0, hSb, h1,
+    mul_nonneg (mul_nonneg hepi0.le hepi0.le) hSb]
+
+private lemma bal_prodFour (E M epi : ℝ) (hepi : 1 ≤ epi)
+    (hepi0 : 0 < epi) (hE0 : 0 ≤ E) (hE : E ≤ epi * 448602)
+    (hM0 : 0 ≤ M) (hM : M ≤ 23) :
+    E * M ≤ epi^2 * (11*10^6) := by
+  have hstep := mul_le_mul hE hM hM0 (by positivity : (0:ℝ) ≤ epi * 448602)
+  refine le_trans hstep ?_
+  nlinarith [hepi, hepi0, mul_pos hepi0 hepi0]
+
+private lemma bal_Ec17 (X u epi : ℝ) (hX : X ≤ 17 * u^2)
+    (hu0 : 0 < u) (hu1 : u ≤ 1) (hepi : 1 ≤ epi) : X ≤ epi * 17 := by
+  nlinarith [hX, hu0, hu1, hepi]
+
+private lemma bal_sum (b T SM epi : ℝ) (hb0 : 0 ≤ b) (hT0 : 0 < T)
+    (hSM0 : 0 ≤ SM) (hepi0 : 0 < epi) :
+    epi^2 * ((3*10^12) * b^2 + (2*10^10) * (T * b^2))
+      + epi^2 * ((9*10^11) * b^2 + (7*10^11) * (T * b^2))
+      + epi^2 * ((3*10^7) * (SM^2 * b^2))
+      + epi^2 * (11*10^6)
+      ≤ epi^2 * 10^15 * ((SM^2 + T + 1) * b^2 + 1) := by
+  have hb2 : (0:ℝ) ≤ b^2 := sq_nonneg b
+  have h1 : (0:ℝ) ≤ epi^2 * b^2 := by positivity
+  have h2 : (0:ℝ) ≤ epi^2 * (T*b^2) := by
+    have : (0:ℝ) ≤ T * b^2 := mul_nonneg hT0.le hb2
+    positivity
+  have h3 : (0:ℝ) ≤ epi^2 * (SM^2*b^2) := by positivity
+  have h4 : (0:ℝ) ≤ epi^2 := by positivity
+  nlinarith [h1, h2, h3, h4]
+
+set_option maxHeartbeats 3200000 in
+open Real in
+/-- **The balance, as pure algebra** (Track R, N187): with `P = u·L`
+standing for `e^{−k}·log x`, the per-block √-argument of N183 — its
+three energy summands against the four V-side pieces — is bounded,
+`k`-freely, by
+
+  `(e^π)²·10¹⁵·((SM² + T + 1)·b² + 1)`.
+
+The twelve products reduce to three mechanisms: the diagonal
+`(1/P)·P`-cancellations (with `c₀ = 12·log 2 ≤ 12·P` exact, no
+numerics), the fit condition `log 2 ≤ P` capping every `1/P`, and
+`L ≤ T²` killing the `u³L/T` cross term of the Fourier tail (audit
+correction 2).  `V₃`'s `4T·(6144+γ)` term survives undamped — it is
+the `T·b²` of the target, `≍ √(log x)·b²` at the forced `T ≍ √(log x)`,
+harmless against a Halász-small `b` (audit correction 1).
+
+No Finsets, no integrals: N188's instantiation feeds this with the
+N186 masses and N183's expressions, and `gcongr` does the rest. -/
+theorem balance_product_le (L u T b γ S Mp SM HS W : ℝ)
+    (hL2 : Real.log 2 ≤ u * L) (hu0 : 0 < u) (hu1 : u ≤ 1) (hL1 : 1 ≤ L)
+    (hT5 : 5 ≤ T) (hTL : T ≤ L) (hLT : L ≤ T^2)
+    (hγ0 : 0 ≤ γ) (hγ1 : γ ≤ 1)
+    (hS0 : 0 ≤ S) (hSL : S * L ≤ 1)
+    (hMp0 : 0 ≤ Mp) (hMp : Mp ≤ 38 * u)
+    (hSM0 : 0 ≤ SM) (hHS0 : 0 ≤ HS)
+    (hW0 : 0 ≤ W) (hW : W * (L^2 * HS^2) ≤ 1)
+    (hb0 : 0 ≤ b) :
+    (Real.exp π * (12290 * ((1/(u^2*L^2))
+          * (4*(Real.exp 1 - 1)*(u*L) + (4*Real.log 2 + 4*Real.log 4))))
+        + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T)))
+    * (5 * (2 * (Real.exp π * (12290 * (Real.exp 1 * (u*L) + Real.log 2 + 2)
+          + 4*T*(6144 + γ))) + 2*SM^2) * (6*b^2)
+      + (Real.exp 1 * (u*L) + 2)^2 * HS^2 * W)
+    ≤ (Real.exp π)^2 * 10^15 * ((SM^2 + T + 1) * b^2 + 1) := by
+  -- opaque `P = u·L`: a `set` here let-binds and poisons every later
+  -- `nlinarith` through whnf unfolding (the pin's set-poisoning gotcha)
+  obtain ⟨P, hP_def⟩ : ∃ p : ℝ, p = u * L := ⟨u * L, rfl⟩
+  have hL2P : Real.log 2 ≤ P := by rw [hP_def]; exact hL2
+  have hP0 : (0:ℝ) < P := lt_of_lt_of_le (Real.log_pos (by norm_num)) hL2P
+  have hPL : P ≤ L := by
+    rw [hP_def]
+    nlinarith [hL1, hu1, hu0]
+  have hL0 : (0:ℝ) < L := by linarith
+  have hT0 : (0:ℝ) < T := by linarith
+  have hlog2l : (0.693:ℝ) ≤ Real.log 2 := by
+    have := Real.log_two_gt_d9
+    linarith
+  have hlog2u : Real.log 2 ≤ (0.694:ℝ) := by
+    have := Real.log_two_lt_d9
+    linarith
+  have hlog4 : Real.log 4 = 2 * Real.log 2 := by
+    rw [show (4:ℝ) = 2^2 by norm_num, Real.log_pow]
+    push_cast
+    ring
+  have he_lt : Real.exp 1 ≤ (2.7182818286:ℝ) := Real.exp_one_lt_d9.le
+  have he272 : Real.exp 1 ≤ (2.72:ℝ) := by linarith
+  have heπ : (1:ℝ) ≤ Real.exp π := by
+    have h1 := Real.add_one_le_exp π
+    have h2 := Real.pi_gt_three
+    linarith
+  have heπ0 : (0:ℝ) < Real.exp π := Real.exp_pos _
+  have hπ2 : (9:ℝ) ≤ Real.pi^2 := by
+    have := Real.pi_gt_three
+    nlinarith
+  have hP69 : (0.693:ℝ) ≤ P := le_trans hlog2l hL2P
+  -- fold the goal into `P`-form
+  rw [show u^2*L^2 = (u*L)^2 by ring,
+    show (4:ℝ)*Real.log 2 + 4*Real.log 4 = 12*Real.log 2 by rw [hlog4]; ring,
+    ← hP_def]
+  -- ===== E-side bounds (literal expressions) =====
+  have hEa_le : Real.exp π * (12290 * (1/P^2
+      * (4*(Real.exp 1 - 1)*P + 12*Real.log 2))) ≤ Real.exp π * 344120 := by
+    have hkey : 1/P^2 * (4*(Real.exp 1 - 1)*P + 12*Real.log 2) ≤ 28 := by
+      rw [show 1/P^2 * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)
+          = (4*(Real.exp 1 - 1)*P + 12*Real.log 2)/P^2 by ring,
+        div_le_iff₀ (by positivity)]
+      have h1 : 4*(Real.exp 1 - 1)*P ≤ 6.88 * P := by nlinarith [he272, hP0]
+      have h2 : 12*Real.log 2 ≤ 12 * P := by linarith [hL2P]
+      have h3 : (18.88:ℝ) * P ≤ 28 * P^2 := by nlinarith [hP69, hP0]
+      linarith
+    calc Real.exp π * (12290 * (1/P^2
+        * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+        ≤ Real.exp π * (12290 * 28) := by
+          have h12 : 12290 * (1/P^2 * (4*(Real.exp 1 - 1)*P + 12*Real.log 2))
+              ≤ 12290 * 28 := by linarith
+          exact mul_le_mul_of_nonneg_left h12 heπ0.le
+      _ = Real.exp π * 344120 := by norm_num
+  have hPEa_le : P * (Real.exp π * (12290 * (1/P^2
+      * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))) ≤ Real.exp π * 233510 := by
+    have hkey : P * (1/P^2 * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)) ≤ 19 := by
+      rw [show P * (1/P^2 * (4*(Real.exp 1 - 1)*P + 12*Real.log 2))
+          = (4*(Real.exp 1 - 1)*P + 12*Real.log 2)/P by field_simp,
+        div_le_iff₀ hP0]
+      have h1 : 4*(Real.exp 1 - 1)*P ≤ 6.88 * P := by nlinarith [he272, hP0]
+      have h2 : 12*Real.log 2 ≤ 12 * P := by linarith [hL2P]
+      linarith
+    calc P * (Real.exp π * (12290 * (1/P^2
+        * (4*(Real.exp 1 - 1)*P + 12*Real.log 2))))
+        = Real.exp π * (12290
+          * (P * (1/P^2 * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))) := by ring
+      _ ≤ Real.exp π * (12290 * 19) := by
+          have h12 : 12290 * (P * (1/P^2
+              * (4*(Real.exp 1 - 1)*P + 12*Real.log 2))) ≤ 12290 * 19 := by
+            linarith
+          exact mul_le_mul_of_nonneg_left h12 heπ0.le
+      _ = Real.exp π * 233510 := by norm_num
+  have hEb_le : Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      ≤ Real.exp π * 104465 := by
+    have h16 : T * (16/L^2) ≤ 16 := by
+      rw [show T * (16/L^2) = 16*T/L^2 by ring,
+        div_le_iff₀ (by positivity : (0:ℝ) < L^2)]
+      nlinarith [hTL, hL1, hL0]
+    have hTS : T * S ≤ 1 := by nlinarith [hSL, hTL, hS0, hT0, hL0]
+    have hexp : T * (6144 + γ) * (16/L^2 + S) ≤ 104465 := by
+      have hg : (6144 + γ) ≤ 6145 := by linarith
+      have hsum : T * (16/L^2 + S) ≤ 17 := by
+        have hh : T * (16/L^2 + S) = T * (16/L^2) + T * S := by ring
+        rw [hh]; linarith
+      have hns : (0:ℝ) ≤ 16/L^2 + S := by positivity
+      nlinarith [hT0.le, hsum, hg, mul_nonneg hT0.le hns]
+    exact mul_le_mul_of_nonneg_left hexp heπ0.le
+  have hPEb_le : P * (Real.exp π * (T * (6144 + γ) * (16/L^2 + S)))
+      ≤ Real.exp π * (98320 + 6145*T) := by
+    have h16P : T * (6144 + γ) * (16*P/L^2) ≤ 98320 := by
+      rw [show T * (6144 + γ) * (16*P/L^2)
+          = (T * (6144 + γ) * (16*P))/L^2 by ring,
+        div_le_iff₀ (by positivity : (0:ℝ) < L^2)]
+      have hTP : T * P ≤ L^2 := by nlinarith [hTL, hPL, hP0, hT0, hL0]
+      have hTg : T * (6144 + γ) ≤ 6145 * T := by nlinarith [hγ1, hT0]
+      calc T * (6144 + γ) * (16*P)
+          ≤ 6145 * T * (16*P) :=
+            mul_le_mul_of_nonneg_right hTg (by positivity)
+        _ = 98320 * (T*P) := by ring
+        _ ≤ 98320 * L^2 := by nlinarith [hTP]
+    have hSP : T * (6144 + γ) * (S*P) ≤ 6145 * T := by
+      have hSP1 : S * P ≤ 1 := by nlinarith [hSL, hPL, hS0, hL0]
+      have hTg0 : (0:ℝ) ≤ T * (6144 + γ) := by positivity
+      calc T * (6144 + γ) * (S*P)
+          ≤ T * (6144 + γ) * 1 := mul_le_mul_of_nonneg_left hSP1 hTg0
+        _ = T * (6144 + γ) := mul_one _
+        _ ≤ 6145 * T := by nlinarith [hγ1, hT0]
+    calc P * (Real.exp π * (T * (6144 + γ) * (16/L^2 + S)))
+        = Real.exp π * (T * (6144 + γ) * (16*P/L^2)
+            + T * (6144 + γ) * (S*P)) := by ring
+      _ ≤ Real.exp π * (98320 + 6145*T) := by
+          have hcomb : T * (6144 + γ) * (16*P/L^2)
+              + T * (6144 + γ) * (S*P) ≤ 98320 + 6145*T := by linarith
+          exact mul_le_mul_of_nonneg_left hcomb heπ0.le
+  have hEc_le : Mp^2 * (1/(2*Real.pi^2*T)) ≤ 17 * u^2 := by
+    have hMp2 : Mp^2 ≤ 1444 * u^2 := by nlinarith [hMp, hMp0, hu0]
+    have hinv : 1/(2*Real.pi^2*T) ≤ 1/90 := by
+      rw [div_le_div_iff₀ (by nlinarith [hπ2, hT5] : (0:ℝ) < 2*Real.pi^2*T)
+        (by norm_num : (0:ℝ) < 90)]
+      nlinarith [hπ2, hT5]
+    have hinv0 : (0:ℝ) ≤ 1/(2*Real.pi^2*T) := by positivity
+    calc Mp^2 * (1/(2*Real.pi^2*T))
+        ≤ 1444 * u^2 * (1/(2*Real.pi^2*T)) :=
+          mul_le_mul_of_nonneg_right hMp2 hinv0
+      _ ≤ 1444 * u^2 * (1/90) :=
+          mul_le_mul_of_nonneg_left hinv
+            (by positivity : (0:ℝ) ≤ 1444 * u^2)
+      _ ≤ 17 * u^2 := by linarith [sq_nonneg u]
+  have hPEc_le : P * (Mp^2 * (1/(2*Real.pi^2*T))) ≤ 81 * T := by
+    have hMp2 : Mp^2 ≤ 1444 * u^2 := by nlinarith [hMp, hMp0, hu0]
+    have hden0 : (0:ℝ) < 2*Real.pi^2*T := by nlinarith [hπ2, hT5]
+    have hu3 : u^3 ≤ 1 := pow_le_one₀ hu0.le hu1
+    have hu3L : u^3 * L ≤ T^2 := by nlinarith [hLT, hu3, hL0]
+    rw [show P * (Mp^2 * (1/(2*Real.pi^2*T)))
+        = P * Mp^2 / (2*Real.pi^2*T) by ring,
+      div_le_iff₀ hden0]
+    have hPMp : P * Mp^2 ≤ 1444 * (u^3 * L) := by
+      rw [hP_def]
+      nlinarith [hMp2, hu0, hL0, sq_nonneg u]
+    nlinarith [hPMp, hu3L, hπ2, hT5, hT0, sq_nonneg T]
+  -- ===== V-side pieces and non-negativity =====
+  have he1nn : (0:ℝ) ≤ Real.exp 1 - 1 := by
+    linarith [Real.exp_one_gt_d9.le]
+  have hEa0 : (0:ℝ) ≤ Real.exp π * (12290 * (1/P^2
+      * (4*(Real.exp 1 - 1)*P + 12*Real.log 2))) := by
+    have hnum : (0:ℝ) ≤ 4*(Real.exp 1 - 1)*P + 12*Real.log 2 := by
+      nlinarith [mul_nonneg he1nn hP0.le, hlog2l]
+    positivity
+  have hEb0 : (0:ℝ) ≤ Real.exp π * (T * (6144 + γ) * (16/L^2 + S)) := by
+    positivity
+  have hEc0 : (0:ℝ) ≤ Mp^2 * (1/(2*Real.pi^2*T)) := by positivity
+  have hE0 : (0:ℝ) ≤ Real.exp π * (12290 * (1/P^2
+      * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+      + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T)) := by linarith [hEa0, hEb0, hEc0]
+  have hE_le : Real.exp π * (12290 * (1/P^2
+        * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+      + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T)) ≤ Real.exp π * 448602 := by
+    have hEc17 : Mp^2 * (1/(2*Real.pi^2*T)) ≤ Real.exp π * 17 :=
+      bal_Ec17 _ u (Real.exp π) hEc_le hu0 hu1 heπ
+    linarith [hEa_le, hEb_le]
+  have hPE_le : P * (Real.exp π * (12290 * (1/P^2
+        * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+      + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T)))
+      ≤ Real.exp π * (331830 + 6145*T) + 81*T := by
+    have hexpand : P * (Real.exp π * (12290 * (1/P^2
+          * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+        + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+        + Mp^2 * (1/(2*Real.pi^2*T)))
+        = P * (Real.exp π * (12290 * (1/P^2
+            * (4*(Real.exp 1 - 1)*P + 12*Real.log 2))))
+          + P * (Real.exp π * (T * (6144 + γ) * (16/L^2 + S)))
+          + P * (Mp^2 * (1/(2*Real.pi^2*T))) := by ring
+    rw [hexpand]
+    have hsum := add_le_add (add_le_add hPEa_le hPEb_le) hPEc_le
+    refine le_trans hsum (le_of_eq ?_)
+    ring
+  have hMt_le : (Real.exp 1 * P + 2)^2 * HS^2 * W ≤ 23 := by
+    have h1 : Real.exp 1 * P + 2 ≤ 4.72 * L := by
+      have ha : Real.exp 1 * P ≤ 2.72 * P :=
+        mul_le_mul_of_nonneg_right he272 hP0.le
+      have hb2 : (2.72:ℝ) * P ≤ 2.72 * L :=
+        mul_le_mul_of_nonneg_left hPL (by norm_num)
+      linarith [hL1]
+    have h10 : (0:ℝ) ≤ Real.exp 1 * P + 2 := by positivity
+    have h2 : (Real.exp 1 * P + 2)^2 ≤ 22.2784 * L^2 := by
+      have hsq := mul_self_le_mul_self h10 h1
+      calc (Real.exp 1 * P + 2)^2
+          = (Real.exp 1 * P + 2) * (Real.exp 1 * P + 2) := sq (Real.exp 1 * P + 2) ▸ by ring
+        _ ≤ (4.72 * L) * (4.72 * L) := hsq
+        _ = 22.2784 * L^2 := by ring
+    have h4 : (0:ℝ) ≤ HS^2 * W := by positivity
+    calc (Real.exp 1 * P + 2)^2 * HS^2 * W
+        = (Real.exp 1 * P + 2)^2 * (HS^2 * W) := by ring
+      _ ≤ 22.2784 * L^2 * (HS^2 * W) :=
+          mul_le_mul_of_nonneg_right h2 h4
+      _ = 22.2784 * (W * (L^2 * HS^2)) := by ring
+      _ ≤ 22.2784 * 1 :=
+          mul_le_mul_of_nonneg_left hW (by norm_num)
+      _ ≤ 23 := by norm_num
+  have hMt0 : (0:ℝ) ≤ (Real.exp 1 * P + 2)^2 * HS^2 * W := by positivity
+  -- ===== the assembly =====
+  have hVsplit : 5 * (2 * (Real.exp π * (12290 * (Real.exp 1 * P
+        + Real.log 2 + 2) + 4*T*(6144 + γ))) + 2*SM^2) * (6*b^2)
+      + (Real.exp 1 * P + 2)^2 * HS^2 * W
+      = (60*12290) * (Real.exp 1 * (Real.exp π * b^2)) * P
+        + 60 * (Real.exp π * (12290 * (Real.log 2 + 2)
+            + 4*T*(6144 + γ))) * b^2
+        + 60 * SM^2 * b^2
+        + (Real.exp 1 * P + 2)^2 * HS^2 * W := by ring
+  rw [hVsplit, mul_add, mul_add, mul_add]
+  have hPE0 : (0:ℝ) ≤ P * (Real.exp π * (12290 * (1/P^2
+      * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+      + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T))) := mul_nonneg hP0.le hE0
+  have h1 : (Real.exp π * (12290 * (1/P^2
+        * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+      + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T)))
+      * ((60*12290) * (Real.exp 1 * (Real.exp π * b^2)) * P)
+      ≤ (Real.exp π)^2 * ((3*10^12) * b^2 + (2*10^10) * (T * b^2)) := by
+    rw [show (Real.exp π * (12290 * (1/P^2
+          * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+        + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+        + Mp^2 * (1/(2*Real.pi^2*T)))
+        * ((60*12290) * (Real.exp 1 * (Real.exp π * b^2)) * P)
+        = (60*12290) * (Real.exp 1 * (Real.exp π * b^2))
+          * (P * (Real.exp π * (12290 * (1/P^2
+              * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+            + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+            + Mp^2 * (1/(2*Real.pi^2*T)))) by ring]
+    exact bal_prodOne _ b T (Real.exp π) (Real.exp 1) heπ heπ0 hT0 hb0
+      (Real.exp_pos 1).le he272 hPE0 hPE_le
+  have h2 : (Real.exp π * (12290 * (1/P^2
+        * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+      + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T)))
+      * (60 * (Real.exp π * (12290 * (Real.log 2 + 2)
+          + 4*T*(6144 + γ))) * b^2)
+      ≤ (Real.exp π)^2 * ((9*10^11) * b^2 + (7*10^11) * (T * b^2)) :=
+    bal_prodTwo _ b T γ (Real.log 2) (Real.exp π) heπ0 hE0 hE_le hT0
+      hγ0 hγ1 hb0 (Real.log_nonneg (by norm_num)) hlog2u
+  have h3 : (Real.exp π * (12290 * (1/P^2
+        * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+      + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T)))
+      * (60 * SM^2 * b^2)
+      ≤ (Real.exp π)^2 * ((3*10^7) * (SM^2 * b^2)) :=
+    bal_prodThree _ b SM (Real.exp π) heπ heπ0 hE0 hE_le hb0 hSM0
+  have h4 : (Real.exp π * (12290 * (1/P^2
+        * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
+      + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*T)))
+      * ((Real.exp 1 * P + 2)^2 * HS^2 * W)
+      ≤ (Real.exp π)^2 * (11*10^6) :=
+    bal_prodFour _ _ (Real.exp π) heπ heπ0 hE0 hE_le hMt0 hMt_le
+  refine le_trans (add_le_add (add_le_add (add_le_add h1 h2) h3) h4) ?_
+  exact bal_sum b T SM (Real.exp π) hb0 hT0 hSM0 heπ0
+
 end MoltResearch
