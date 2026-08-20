@@ -494,4 +494,52 @@ theorem tripleConvR_ksplit_le (f : ℕ → ℝ) (x : ℕ) (K M : ℕ) (hKM : K �
     rw [hcard]
   linarith [hhead', htail]
 
+
+open Real in
+/-- **The enlarged inner range is the block-scaled one** (Track R,
+N185): for `x ≥ 2`,
+
+  `log(x / blockLo x k) ≤ e^{1−k}·log x`.
+
+The fact behind the N185 balance audit: `blockLo x k = ⌈x^{1−e^{1−k}}⌉`
+never undershoots its power, so the inner range `X = x/blockLo x k`
+that N181 feeds `tripleConvR_le` satisfies `log X ≤ e^{1−k}·log x` —
+which is `V₃(k) ≍ e^{−k}·log x`, the decay that meets `E₁(k) ≍
+e^{k}/log x` and makes the per-block bound uniform in `k`.  Without
+this the enlargement would have traded GHS's block-scaled inner sum
+for a `log x` loss per block; with it, the trade is free. -/
+theorem log_div_blockLo_le (x k : ℕ) (hx : 2 ≤ x) :
+    Real.log ((x / blockLo x k : ℕ):ℝ)
+      ≤ Real.exp (1 - (k:ℝ)) * Real.log (x:ℝ) := by
+  have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+  have hlogx : (0:ℝ) ≤ Real.log (x:ℝ) := Real.log_natCast_nonneg x
+  have hrhs0 : (0:ℝ) ≤ Real.exp (1 - (k:ℝ)) * Real.log (x:ℝ) :=
+    mul_nonneg (Real.exp_pos _).le hlogx
+  rcases Nat.eq_zero_or_pos (x / blockLo x k) with h0 | hpos
+  · rw [h0]
+    simpa using hrhs0
+  · have hcast : (0:ℝ) < ((x / blockLo x k : ℕ):ℝ) := by exact_mod_cast hpos
+    have hpow0 : (0:ℝ) < (x:ℝ) ^ (1 - Real.exp (1 - (k:ℝ))) :=
+      Real.rpow_pos_of_pos hx0 _
+    have hlo : (x:ℝ) ^ (1 - Real.exp (1 - (k:ℝ))) ≤ ((blockLo x k : ℕ):ℝ) := by
+      rw [blockLo]
+      exact Nat.le_ceil _
+    have hdiv : ((x / blockLo x k : ℕ):ℝ) ≤ (x:ℝ) / ((blockLo x k : ℕ):ℝ) :=
+      Nat.cast_div_le
+    have hdiv2 : (x:ℝ) / ((blockLo x k : ℕ):ℝ)
+        ≤ (x:ℝ) / (x:ℝ) ^ (1 - Real.exp (1 - (k:ℝ))) :=
+      div_le_div_of_nonneg_left hx0.le hpow0 hlo
+    have hrw : (x:ℝ) ^ (Real.exp (1 - (k:ℝ)))
+        = (x:ℝ) / (x:ℝ) ^ (1 - Real.exp (1 - (k:ℝ))) := by
+      rw [show Real.exp (1 - (k:ℝ)) = 1 - (1 - Real.exp (1 - (k:ℝ))) by ring,
+        Real.rpow_sub hx0, Real.rpow_one]
+      congr 2
+      ring
+    calc Real.log ((x / blockLo x k : ℕ):ℝ)
+        ≤ Real.log ((x:ℝ) ^ (Real.exp (1 - (k:ℝ)))) := by
+          refine Real.log_le_log hcast ?_
+          rw [hrw]
+          exact le_trans hdiv hdiv2
+      _ = Real.exp (1 - (k:ℝ)) * Real.log (x:ℝ) := Real.log_rpow hx0 _
+
 end MoltResearch
