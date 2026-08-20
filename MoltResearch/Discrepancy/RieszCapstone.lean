@@ -455,4 +455,43 @@ theorem tripleConvR_block_sharp_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     (x / blockLo x k).primesBelow hQp hQpos hQsub
     _ _ _ b hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV le_rfl
 
+
+open Real Finset in
+/-- **§3's `k`-split at the Riesz window** (Track R, N184):
+
+  `∑_{k ∈ [1, M]} |tripleConvR f x (P k)| ≤ K·A + T`,
+
+`tripleConv_ksplit_le` ported verbatim — the split is bookkeeping over
+the index range and never looks inside the convolution, so the Riesz
+kernel changes nothing.
+
+Left parametric in `A` and `T` as on the sharp side, and for the same
+reason: the head is `tripleConvR_block_sharp_le` (N183) with the block
+mass and the Halász sup still free, the tail is
+`tripleConvR_tail_blocks_le` (N177), and the balance — `K₀`, `T`, and
+the smooth cut — is struck once, in the open, in the capstone. -/
+theorem tripleConvR_ksplit_le (f : ℕ → ℝ) (x : ℕ) (K M : ℕ) (hKM : K ≤ M)
+    (Pk : ℕ → Finset ℕ) (A T : ℝ)
+    (hhead : ∀ k ∈ Finset.Icc 1 K, |tripleConvR f x (Pk k)| ≤ A)
+    (htail : ∑ k ∈ Finset.Icc (K+1) M, |tripleConvR f x (Pk k)| ≤ T) :
+    ∑ k ∈ Finset.Icc 1 M, |tripleConvR f x (Pk k)| ≤ (K:ℝ) * A + T := by
+  classical
+  have hsplit : Finset.Icc 1 M
+      = Finset.Icc 1 K ∪ Finset.Icc (K+1) M := by
+    ext k
+    simp only [Finset.mem_Icc, Finset.mem_union]
+    omega
+  have hdisj : Disjoint (Finset.Icc 1 K) (Finset.Icc (K+1) M) := by
+    refine Finset.disjoint_left.mpr fun k hk1 hk2 => ?_
+    rw [Finset.mem_Icc] at hk1 hk2
+    omega
+  rw [hsplit, Finset.sum_union hdisj]
+  have hhead' : ∑ k ∈ Finset.Icc 1 K, |tripleConvR f x (Pk k)| ≤ (K:ℝ) * A := by
+    refine le_trans (Finset.sum_le_sum hhead) ?_
+    simp only [Finset.sum_const, nsmul_eq_mul, Nat.card_Icc]
+    have hcard : ((K + 1 - 1 : ℕ):ℝ) = (K:ℝ) := by
+      simp
+    rw [hcard]
+  linarith [hhead', htail]
+
 end MoltResearch
