@@ -749,7 +749,7 @@ theorem balance_product_le (L u T b γ S Mp SM HS W : ℝ)
     (hT5 : 5 ≤ T) (hTL : T ≤ L) (hLT : L ≤ T^2)
     (hγ0 : 0 ≤ γ) (hγ1 : γ ≤ 1)
     (hS0 : 0 ≤ S) (hSL : S * L ≤ 1)
-    (hMp0 : 0 ≤ Mp) (hMp : Mp ≤ 38 * u)
+    (hMp0 : 0 ≤ Mp) (hMp : Mp ≤ 18)
     (hSM0 : 0 ≤ SM) (hHS0 : 0 ≤ HS)
     (hW0 : 0 ≤ W) (hW : W * (L^2 * HS^2) ≤ 1)
     (hb0 : 0 ≤ b) :
@@ -875,32 +875,29 @@ theorem balance_product_le (L u T b γ S Mp SM HS W : ℝ)
           have hcomb : T * (6144 + γ) * (16*P/L^2)
               + T * (6144 + γ) * (S*P) ≤ 98320 + 6145*T := by linarith
           exact mul_le_mul_of_nonneg_left hcomb heπ0.le
-  have hEc_le : Mp^2 * (1/(2*Real.pi^2*T)) ≤ 17 * u^2 := by
-    have hMp2 : Mp^2 ≤ 1444 * u^2 := by nlinarith [hMp, hMp0, hu0]
+  have hEc_le : Mp^2 * (1/(2*Real.pi^2*T)) ≤ 4 := by
+    have hMp2 : Mp^2 ≤ 324 := by nlinarith [hMp, hMp0]
     have hinv : 1/(2*Real.pi^2*T) ≤ 1/90 := by
       rw [div_le_div_iff₀ (by nlinarith [hπ2, hT5] : (0:ℝ) < 2*Real.pi^2*T)
         (by norm_num : (0:ℝ) < 90)]
       nlinarith [hπ2, hT5]
     have hinv0 : (0:ℝ) ≤ 1/(2*Real.pi^2*T) := by positivity
     calc Mp^2 * (1/(2*Real.pi^2*T))
-        ≤ 1444 * u^2 * (1/(2*Real.pi^2*T)) :=
+        ≤ 324 * (1/(2*Real.pi^2*T)) :=
           mul_le_mul_of_nonneg_right hMp2 hinv0
-      _ ≤ 1444 * u^2 * (1/90) :=
-          mul_le_mul_of_nonneg_left hinv
-            (by positivity : (0:ℝ) ≤ 1444 * u^2)
-      _ ≤ 17 * u^2 := by linarith [sq_nonneg u]
+      _ ≤ 324 * (1/90) :=
+          mul_le_mul_of_nonneg_left hinv (by norm_num)
+      _ ≤ 4 := by norm_num
   have hPEc_le : P * (Mp^2 * (1/(2*Real.pi^2*T))) ≤ 81 * T := by
-    have hMp2 : Mp^2 ≤ 1444 * u^2 := by nlinarith [hMp, hMp0, hu0]
+    have hMp2 : Mp^2 ≤ 324 := by nlinarith [hMp, hMp0]
     have hden0 : (0:ℝ) < 2*Real.pi^2*T := by nlinarith [hπ2, hT5]
-    have hu3 : u^3 ≤ 1 := pow_le_one₀ hu0.le hu1
-    have hu3L : u^3 * L ≤ T^2 := by nlinarith [hLT, hu3, hL0]
     rw [show P * (Mp^2 * (1/(2*Real.pi^2*T)))
         = P * Mp^2 / (2*Real.pi^2*T) by ring,
       div_le_iff₀ hden0]
-    have hPMp : P * Mp^2 ≤ 1444 * (u^3 * L) := by
-      rw [hP_def]
-      nlinarith [hMp2, hu0, hL0, sq_nonneg u]
-    nlinarith [hPMp, hu3L, hπ2, hT5, hT0, sq_nonneg T]
+    -- `P·Mp² ≤ 324·L ≤ 324·T² ≤ 81·T·(2π²T)` via `L ≤ T²`, `π² ≥ 9`
+    have hPMp : P * Mp^2 ≤ 324 * L := by
+      nlinarith [hMp2, hP0, hPL, hL0, sq_nonneg Mp]
+    nlinarith [hPMp, hLT, hπ2, hT5, hT0, sq_nonneg T]
   -- ===== V-side pieces and non-negativity =====
   have he1nn : (0:ℝ) ≤ Real.exp 1 - 1 := by
     linarith [Real.exp_one_gt_d9.le]
@@ -920,8 +917,8 @@ theorem balance_product_le (L u T b γ S Mp SM HS W : ℝ)
         * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
       + Real.exp π * (T * (6144 + γ) * (16/L^2 + S))
       + Mp^2 * (1/(2*Real.pi^2*T)) ≤ Real.exp π * 448602 := by
-    have hEc17 : Mp^2 * (1/(2*Real.pi^2*T)) ≤ Real.exp π * 17 :=
-      bal_Ec17 _ u (Real.exp π) hEc_le hu0 hu1 heπ
+    have hEc17 : Mp^2 * (1/(2*Real.pi^2*T)) ≤ Real.exp π * 17 := by
+      nlinarith [hEc_le, heπ]
     linarith [hEa_le, hEb_le]
   have hPE_le : P * (Real.exp π * (12290 * (1/P^2
         * (4*(Real.exp 1 - 1)*P + 12*Real.log 2)))
@@ -1094,7 +1091,7 @@ theorem tripleConvR_block_balanced_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1
     (hSL : 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)
       * Real.log (x:ℝ) ≤ 1)
     (hMp : ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|)
-      ≤ 38 * Real.exp (-(k:ℝ)))
+      ≤ 18)
     (hW : (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)))
       * ((Real.log (x:ℝ))^2
         * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2) ≤ 1) :
@@ -1334,5 +1331,451 @@ theorem tripleConvR_block_balanced_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1
   have hs := Real.sqrt_le_sqrt harg
   have hxs := mul_le_mul_of_nonneg_left hs hxR0
   linarith
+
+
+open Real Finset in
+/-- **The band weight absorbs the harmonic mass, unconditionally**
+(Track R, N190): for every `x ≥ 2`,
+
+  `(1/(2π²·(halaszM x + ½)))·((log x)²·(∑_{n≤x} 1/n)²) ≤ 1`.
+
+N189's `hW`, discharged with no side condition: the widened band
+`halaszM x = ⌈log⁴x⌉ + 1` dominates `log⁴x + 1`, the harmonic sum is
+`≤ 1 + log x` (`harmonic_Icc_le`), and `L²(1+L)² ≤ 4(L⁴+1)` for every
+`L ≥ 0` — the reason the band was widened to the fourth power in the
+first place. -/
+theorem bandWeight_mass_le_one (x : ℕ) (hx : 2 ≤ x) :
+    (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)))
+      * ((Real.log (x:ℝ))^2
+        * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2) ≤ 1 := by
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have hHS0 : (0:ℝ) ≤ ∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ) :=
+    Finset.sum_nonneg fun n _ => div_nonneg zero_le_one (Nat.cast_nonneg n)
+  have hH := harmonic_Icc_le x (by omega)
+  have hπ2 : (9:ℝ) ≤ Real.pi^2 := by
+    have := Real.pi_gt_three
+    nlinarith
+  -- the band dominates `L⁴ + 1`
+  have hM : (Real.log (x:ℝ))^4 + 1 ≤ ((halaszM x : ℕ):ℝ) := by
+    have h4 : (0:ℝ) ≤ (Real.log (x:ℝ))^4 := by positivity
+    have hle := Int.le_ceil ((Real.log (x:ℝ))^4)
+    have hnn : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^4⌉ + 1 := by
+      have := Int.ceil_nonneg h4
+      omega
+    calc (Real.log (x:ℝ))^4 + 1
+        ≤ ((⌈(Real.log (x:ℝ))^4⌉ : ℤ):ℝ) + 1 := by
+          push_cast
+          linarith
+      _ = ((⌈(Real.log (x:ℝ))^4⌉ + 1 : ℤ):ℝ) := by push_cast; ring
+      _ = (((⌈(Real.log (x:ℝ))^4⌉ + 1).toNat : ℕ):ℝ) := by
+          rw [show ((((⌈(Real.log (x:ℝ))^4⌉ + 1).toNat : ℕ)):ℝ)
+              = ((((⌈(Real.log (x:ℝ))^4⌉ + 1).toNat : ℕ) : ℤ):ℝ) by push_cast; ring,
+            Int.toNat_of_nonneg hnn]
+      _ = ((halaszM x : ℕ):ℝ) := by rw [halaszM]
+  -- numerator against `4(L⁴+1)`
+  have hsq : (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2
+      ≤ (1 + Real.log (x:ℝ))^2 := by
+    rw [pow_two, pow_two]
+    exact mul_self_le_mul_self hHS0 hH
+  have hnum : (Real.log (x:ℝ))^2
+      * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2
+      ≤ 4 * ((Real.log (x:ℝ))^4 + 1) := by
+    have h1 := mul_le_mul_of_nonneg_left hsq (sq_nonneg (Real.log (x:ℝ)))
+    have h2 : (Real.log (x:ℝ))^2 * (1 + Real.log (x:ℝ))^2
+        ≤ 4 * ((Real.log (x:ℝ))^4 + 1) := by
+      nlinarith [sq_nonneg (Real.log (x:ℝ)), hL0,
+        sq_nonneg ((Real.log (x:ℝ))^2 - Real.log (x:ℝ)),
+        sq_nonneg ((Real.log (x:ℝ))^2 - 1),
+        sq_nonneg (Real.log (x:ℝ) - 1)]
+    linarith
+  -- denominator dominates
+  have hden0 : (0:ℝ) < 2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2) := by
+    have : (0:ℝ) ≤ ((halaszM x : ℕ):ℝ) := Nat.cast_nonneg _
+    nlinarith [hπ2]
+  rw [show (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)))
+      * ((Real.log (x:ℝ))^2
+        * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2)
+      = ((Real.log (x:ℝ))^2
+        * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2)
+        / (2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)) by ring,
+    div_le_one hden0]
+  have hfin : 4 * ((Real.log (x:ℝ))^4 + 1)
+      ≤ 2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2) := by
+    nlinarith [hπ2, hM, (show (0:ℝ) ≤ ((halaszM x : ℕ):ℝ) from Nat.cast_nonneg _), pow_nonneg hL0.le 4]
+  linarith
+
+
+open Real in
+/-- **The Gaussian damping wins past the threshold** (Track R, N191):
+if `(64/π)·log(x·log 4) ≤ T²` then `e^{−πT²/64}·x·log 4 ≤ 1` — N189's
+`hγ1`, reduced to a lower bound on the Gaussian width.  At the campaign
+`T ≍ 4.5·√(log x)` the hypothesis reads `T² ≳ 20.4·log x`, which is
+where the constant `4.5 > √(64/π)/√{≈}` comes from. -/
+theorem gamma_le_one_of (x : ℕ) (T : ℝ) (hx : 2 ≤ x)
+    (hT : (64/π) * Real.log ((x:ℝ) * Real.log 4) ≤ T^2) :
+    Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4) ≤ 1 := by
+  have hπ0 : (0:ℝ) < π := Real.pi_pos
+  have hA0 : (0:ℝ) < (x:ℝ) * Real.log 4 := by
+    have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+    have h4 : (0:ℝ) < Real.log 4 := Real.log_pos (by norm_num)
+    positivity
+  -- `log A ≤ πT²/64` from the hypothesis
+  have hlogA : Real.log ((x:ℝ) * Real.log 4) ≤ π*T^2/64 := by
+    have h := mul_le_mul_of_nonneg_left hT (by positivity : (0:ℝ) ≤ π/64)
+    calc Real.log ((x:ℝ) * Real.log 4)
+        = (π/64) * ((64/π) * Real.log ((x:ℝ) * Real.log 4)) := by
+          field_simp
+      _ ≤ (π/64) * T^2 := h
+      _ = π*T^2/64 := by ring
+  -- so `A ≤ e^{πT²/64}`, i.e. the damping is at least `1/A`
+  have hAexp : (x:ℝ) * Real.log 4 ≤ Real.exp (π*T^2/64) :=
+    (Real.log_le_iff_le_exp hA0).mp hlogA
+  calc Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4)
+      ≤ Real.exp (-(π*T^2/64)) * Real.exp (π*T^2/64) :=
+        mul_le_mul_of_nonneg_left hAexp (Real.exp_pos _).le
+    _ = 1 := by rw [← Real.exp_add]; simp
+
+
+open Real Finset in
+/-- **The survivor-block mass is at most 18** (Track R, N193): for `P`
+inside block `k`, one step short of the boundary
+(`e·log 2 ≤ e^{−k}·log x`),
+
+  `∑_{p ∈ P} log p/(p·|log(x/p)|) ≤ 18`.
+
+N192's `hMp`, discharged.  Every `p < blockHi = ⌈x^{1−u}⌉` has
+`log(x/p) ≥ u·log x − log 2 > 0`, the block Mertens mass is
+`≤ 4((e−1)·u·log x + log 2) + 4·log 4` (`sum_log_div_Ico_le_log` +
+`log_blockHi_sub_log_blockLo_le`), and the quotient closes at
+`(22−4e)·e ≥ 30` — under one percent to spare, so `18` is honest.
+The boundary block fails the hypothesis and goes to the geometric
+tail, which is free. -/
+theorem blockMass_le_const (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k)
+    (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (huL : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(k:ℝ)) * Real.log (x:ℝ)) :
+    ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|) ≤ 18 := by
+  classical
+  have hx1 : 1 ≤ x := by omega
+  obtain ⟨hlo1, hlohi⟩ := blockLo_le_blockHi x k hx1
+  have hxR : (1:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx1
+  have hx0 : (0:ℝ) < (x:ℝ) := by linarith
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hlog4 : Real.log 4 = 2 * Real.log 2 := by
+    rw [show (4:ℝ) = 2^2 by norm_num, Real.log_pow]
+    push_cast
+    ring
+  have hu0 : (0:ℝ) < Real.exp (-(k:ℝ)) := Real.exp_pos _
+  have hu1 : Real.exp (-(k:ℝ)) ≤ 1 := by
+    rw [show (1:ℝ) = Real.exp 0 from (Real.exp_zero).symm]
+    exact Real.exp_le_exp.mpr (neg_nonpos.mpr (Nat.cast_nonneg k))
+  have he_lt : Real.exp 1 ≤ (2.7182818286:ℝ) := Real.exp_one_lt_d9.le
+  have he_gt : (2.7182818283:ℝ) ≤ Real.exp 1 := Real.exp_one_gt_d9.le
+  have hgap0 : (0:ℝ) < Real.exp (-(k:ℝ)) * Real.log (x:ℝ) - Real.log 2 := by
+    have h1 : Real.log 2 < Real.exp 1 * Real.log 2 := by
+      nlinarith [he_gt, hlog2]
+    linarith [huL]
+  -- the denominator floor on the block
+  have hden : ∀ p ∈ P, Real.exp (-(k:ℝ)) * Real.log (x:ℝ) - Real.log 2
+      ≤ Real.log ((x:ℝ)/(p:ℝ)) := by
+    intro p hp
+    obtain ⟨hpp, -, hpB⟩ := hP p hp
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+    rw [Real.log_div (ne_of_gt hx0) (ne_of_gt hp0)]
+    -- `log p ≤ log 2 + (1−u)·log x`
+    have hexp0 : (0:ℝ) ≤ 1 - Real.exp (-(k:ℝ)) := by linarith
+    have hpow1 : (1:ℝ) ≤ (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) := by
+      have h := Real.rpow_le_rpow_of_exponent_le hxR hexp0
+      rwa [Real.rpow_zero] at h
+    have hceil : ((blockHi x k : ℕ):ℝ)
+        ≤ 2 * (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) := by
+      rw [blockHi]
+      have h1 := Nat.ceil_lt_add_one
+        (by positivity : (0:ℝ) ≤ (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))))
+      linarith [hpow1, h1.le]
+    have hlogp : Real.log (p:ℝ)
+        ≤ Real.log 2 + (1 - Real.exp (-(k:ℝ))) * Real.log (x:ℝ) := by
+      have hpB' : (p:ℝ) ≤ 2 * (x:ℝ) ^ (1 - Real.exp (-(k:ℝ))) := by
+        have h1 : (p:ℝ) ≤ ((blockHi x k : ℕ):ℝ) := by
+          exact_mod_cast Nat.le_of_lt hpB
+        linarith [hceil]
+      calc Real.log (p:ℝ)
+          ≤ Real.log (2 * (x:ℝ) ^ (1 - Real.exp (-(k:ℝ)))) :=
+            Real.log_le_log hp0 hpB'
+        _ = Real.log 2 + (1 - Real.exp (-(k:ℝ))) * Real.log (x:ℝ) := by
+            rw [Real.log_mul (by norm_num)
+              (ne_of_gt (Real.rpow_pos_of_pos hx0 _)),
+              Real.log_rpow hx0]
+    linarith
+  -- termwise: pull the denominator floor out
+  have hterm : ∀ p ∈ P,
+      Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|)
+      ≤ (Real.log (p:ℝ)/(p:ℝ))
+        * (1/(Real.exp (-(k:ℝ)) * Real.log (x:ℝ) - Real.log 2)) := by
+    intro p hp
+    obtain ⟨hpp, -, -⟩ := hP p hp
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+    have hlp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    have hd := hden p hp
+    have habs : |Real.log ((x:ℝ)/(p:ℝ))| = Real.log ((x:ℝ)/(p:ℝ)) :=
+      abs_of_nonneg (le_trans hgap0.le hd)
+    rw [habs]
+    have h1 : 1/Real.log ((x:ℝ)/(p:ℝ))
+        ≤ 1/(Real.exp (-(k:ℝ)) * Real.log (x:ℝ) - Real.log 2) :=
+      one_div_le_one_div_of_le hgap0 hd
+    calc Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+        = (Real.log (p:ℝ)/(p:ℝ)) * (1/Real.log ((x:ℝ)/(p:ℝ))) := by
+          rw [div_mul_eq_div_div, div_eq_mul_one_div]
+      _ ≤ (Real.log (p:ℝ)/(p:ℝ))
+          * (1/(Real.exp (-(k:ℝ)) * Real.log (x:ℝ) - Real.log 2)) :=
+          mul_le_mul_of_nonneg_left h1 (div_nonneg hlp hp0.le)
+  -- the block Mertens mass
+  have hsub : P ⊆ (Finset.Ico (blockLo x k) (blockHi x k)).filter Nat.Prime := by
+    intro p hp
+    obtain ⟨hpp, hlop, hpB⟩ := hP p hp
+    rw [Finset.mem_filter, Finset.mem_Ico]
+    exact ⟨⟨hlop, hpB⟩, hpp⟩
+  have hmass : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ)
+      ≤ 4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+          + Real.log 2) + 4 * Real.log 4 := by
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun p _ _ => div_nonneg (Real.log_natCast_nonneg p)
+        (Nat.cast_nonneg p))) ?_
+    refine le_trans (sum_log_div_Ico_le_log (blockLo x k) (blockHi x k)
+      hlo1 hlohi) ?_
+    have hwidth := log_blockHi_sub_log_blockLo_le x k hx hk
+    linarith
+  -- assemble and close numerically
+  have hsum := Finset.sum_le_sum hterm
+  rw [← Finset.sum_mul] at hsum
+  refine le_trans hsum ?_
+  have hnn : (0:ℝ) ≤ ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ) :=
+    Finset.sum_nonneg fun p _ => div_nonneg (Real.log_natCast_nonneg p)
+      (Nat.cast_nonneg p)
+  have hstep : (∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ))
+      * (1/(Real.exp (-(k:ℝ)) * Real.log (x:ℝ) - Real.log 2))
+      ≤ (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+          + Real.log 2) + 4 * Real.log 4)
+        * (1/(Real.exp (-(k:ℝ)) * Real.log (x:ℝ) - Real.log 2)) :=
+    mul_le_mul_of_nonneg_right hmass (by positivity)
+  refine le_trans hstep ?_
+  rw [mul_one_div, div_le_iff₀ hgap0]
+  -- `4(e−1)uL + 12·log2 ≤ 18·(uL − log2)` from `uL ≥ e·log2`, `(22−4e)e ≥ 30`
+  rw [hlog4]
+  have hcoef : (0:ℝ) < 22 - 4*Real.exp 1 := by nlinarith [he_lt]
+  have h1 : (22 - 4*Real.exp 1)
+      * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))
+      ≥ (22 - 4*Real.exp 1) * (Real.exp 1 * Real.log 2) :=
+    mul_le_mul_of_nonneg_left huL hcoef.le
+  have h2 : (22 - 4*Real.exp 1) * (Real.exp 1 * Real.log 2)
+      ≥ 30 * Real.log 2 := by
+    have he2 : (22 - 4*Real.exp 1) * Real.exp 1 ≥ 30 := by
+      nlinarith [he_gt, he_lt]
+    nlinarith [he2, hlog2]
+  nlinarith [h1, h2]
+
+
+open Real in
+/-- **The fourth-root tail beats the logarithm** (Track R, N194): for
+`x ≥ 10¹⁶`,
+
+  `(4/(√⌊√x⌋·log²2))·log x ≤ 1`,
+
+N189's `hSL`.  The route: `log x ≤ 8·x^{1/8}` (the log-linear bound at
+the eighth root), `⌊√x⌋ ≥ √x/2`, so `√⌊√x⌋ ≥ x^{1/4}/√2`, and at
+`x ≥ 10¹⁶` the exact `x^{1/8} ≥ 100` closes `32·x^{1/8} ≤
+(log²2/√2)·x^{1/4}` with six percent to spare.  A large-`x` statement,
+as the asymptotic interface permits. -/
+theorem tailS_mul_log_le_one (x : ℕ) (hx : 10^16 ≤ x) :
+    4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)
+      * Real.log (x:ℝ) ≤ 1 := by
+  have hx2 : (2:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+  have hxR : (10:ℝ)^16 ≤ (x:ℝ) := by exact_mod_cast hx
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have hlog2 : (0.693:ℝ) ≤ Real.log 2 := by
+    have := Real.log_two_gt_d9
+    linarith
+  -- `x^{1/8} ≥ 100`, exactly at the threshold
+  have h8 : (100:ℝ) ≤ (x:ℝ) ^ ((1:ℝ)/8) := by
+    have h1 : ((10:ℝ)^16) ^ ((1:ℝ)/8) ≤ (x:ℝ) ^ ((1:ℝ)/8) :=
+      Real.rpow_le_rpow (by positivity) hxR (by norm_num)
+    have h2 : ((10:ℝ)^16) ^ ((1:ℝ)/8) = 100 := by
+      rw [← Real.rpow_natCast (10:ℝ) 16, ← Real.rpow_mul (by norm_num)]
+      norm_num
+    linarith
+  have h80 : (0:ℝ) < (x:ℝ) ^ ((1:ℝ)/8) := Real.rpow_pos_of_pos hx0 _
+  -- `log x ≤ 8·x^{1/8}`
+  have hlogx : Real.log (x:ℝ) ≤ 8 * (x:ℝ) ^ ((1:ℝ)/8) := by
+    have h1 : Real.log ((x:ℝ) ^ ((1:ℝ)/8)) = (1/8) * Real.log (x:ℝ) :=
+      Real.log_rpow hx0 _
+    have h2 : Real.log ((x:ℝ) ^ ((1:ℝ)/8)) ≤ (x:ℝ) ^ ((1:ℝ)/8) - 1 :=
+      Real.log_le_sub_one_of_pos h80
+    nlinarith [h1, h2, h80]
+  -- `⌊√x⌋ ≥ √x/2`
+  have hs2 : (2:ℝ) ≤ Real.sqrt (x:ℝ) := by
+    have h4 : (4:ℝ) ≤ (x:ℝ) := by nlinarith [hxR]
+    have := Real.sqrt_le_sqrt h4
+    rwa [show Real.sqrt 4 = 2 by
+      rw [show (4:ℝ) = 2^2 by norm_num, Real.sqrt_sq (by norm_num)]] at this
+  have hfloor : Real.sqrt (x:ℝ)/2 ≤ ((Nat.sqrt x : ℕ):ℝ) := by
+    have h1 : x < (Nat.sqrt x + 1)^2 := Nat.lt_succ_sqrt' x
+    have h2 : (x:ℝ) < (((Nat.sqrt x + 1):ℕ):ℝ)^2 := by exact_mod_cast h1
+    have h3 : Real.sqrt (x:ℝ) < ((Nat.sqrt x : ℕ):ℝ) + 1 := by
+      have h4 : Real.sqrt (x:ℝ) < Real.sqrt ((((Nat.sqrt x + 1):ℕ):ℝ)^2) :=
+        Real.sqrt_lt_sqrt (Nat.cast_nonneg x) h2
+      rwa [Real.sqrt_sq (by positivity), Nat.cast_add, Nat.cast_one] at h4
+    linarith [hs2]
+  -- `√⌊√x⌋ ≥ x^{1/4}/√2`
+  have hsq2 : Real.sqrt 2 ≤ 1.415 := by
+    have h1 : (Real.sqrt 2)^2 = 2 := Real.sq_sqrt (by norm_num)
+    nlinarith [Real.sqrt_nonneg 2, h1]
+  have hsq20 : (0:ℝ) < Real.sqrt 2 := Real.sqrt_pos.mpr (by norm_num)
+  have hquarter : Real.sqrt (Real.sqrt (x:ℝ)) = (x:ℝ) ^ ((1:ℝ)/4) := by
+    rw [Real.sqrt_eq_rpow, Real.sqrt_eq_rpow, ← Real.rpow_mul hx0.le]
+    norm_num
+  have hroot : (x:ℝ) ^ ((1:ℝ)/4) / Real.sqrt 2
+      ≤ Real.sqrt ((Nat.sqrt x : ℕ):ℝ) := by
+    have h1 : Real.sqrt (Real.sqrt (x:ℝ)/2)
+        ≤ Real.sqrt ((Nat.sqrt x : ℕ):ℝ) := Real.sqrt_le_sqrt hfloor
+    rwa [show Real.sqrt (Real.sqrt (x:ℝ)/2)
+        = Real.sqrt (Real.sqrt (x:ℝ))/Real.sqrt 2 from
+      Real.sqrt_div (Real.sqrt_nonneg _) 2, hquarter] at h1
+  -- assemble: `4·log x ≤ √⌊√x⌋·log²2`
+  have hA0 : (0:ℝ) < Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2 := by
+    have := lt_of_lt_of_le (by positivity : (0:ℝ) < (x:ℝ)^((1:ℝ)/4)/Real.sqrt 2)
+      hroot
+    positivity
+  rw [div_mul_eq_mul_div, div_le_one hA0]
+  -- `x^{1/4} = x^{1/8}·x^{1/8}`
+  have hquarter8 : (x:ℝ) ^ ((1:ℝ)/4)
+      = (x:ℝ) ^ ((1:ℝ)/8) * (x:ℝ) ^ ((1:ℝ)/8) := by
+    rw [← Real.rpow_add hx0]
+    norm_num
+  have hkey : 32 * (x:ℝ) ^ ((1:ℝ)/8)
+      ≤ Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2 := by
+    have h1 : (x:ℝ) ^ ((1:ℝ)/4) / Real.sqrt 2 * (Real.log 2)^2
+        ≤ Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2 :=
+      mul_le_mul_of_nonneg_right hroot (sq_nonneg _)
+    refine le_trans ?_ h1
+    rw [hquarter8, div_mul_eq_mul_div, le_div_iff₀ hsq20]
+    -- `32·x^{1/8}·√2 ≤ x^{1/8}·x^{1/8}·log²2`, stepwise
+    have hlog2sq : (0.48:ℝ) ≤ (Real.log 2)^2 := by nlinarith [hlog2]
+    calc 32 * (x:ℝ)^((1:ℝ)/8) * Real.sqrt 2
+        ≤ 32 * (x:ℝ)^((1:ℝ)/8) * 1.415 :=
+          mul_le_mul_of_nonneg_left hsq2 (by positivity)
+      _ ≤ 0.48 * (100 * (x:ℝ)^((1:ℝ)/8)) := by nlinarith [h80]
+      _ ≤ 0.48 * ((x:ℝ)^((1:ℝ)/8) * (x:ℝ)^((1:ℝ)/8)) := by
+          have h100 := mul_le_mul_of_nonneg_right h8 h80.le
+          nlinarith [h100]
+      _ ≤ (x:ℝ)^((1:ℝ)/8) * (x:ℝ)^((1:ℝ)/8) * (Real.log 2)^2 := by
+          nlinarith [hlog2sq, mul_nonneg h80.le h80.le]
+  linarith [hlogx, hkey]
+
+
+open Real in
+/-- **The Gaussian window** (Track R, N195): for `x ≥ 10¹⁶` and any
+`T` in the window `√(21·log x) ≤ T ≤ log x`, the three scalar side
+conditions of N189 hold at once:
+
+  `5 ≤ T`, `log x ≤ T²`, and `(64/π)·log(x·log 4) ≤ T²`.
+
+The window is nonempty (`21·L ≤ L²` at `L ≥ 32`), and its lower edge
+is exactly the Gaussian threshold of N191 with one unit of slack:
+`(64/π)·(L + log log 4) ≤ 20.38·L + 8 ≤ 21·L`. -/
+theorem T_window_conditions (x : ℕ) (T : ℝ) (hx : 10^16 ≤ x)
+    (hT1 : Real.sqrt (21 * Real.log (x:ℝ)) ≤ T)
+    (hT2 : T ≤ Real.log (x:ℝ)) :
+    5 ≤ T ∧ Real.log (x:ℝ) ≤ T^2
+      ∧ (64/π) * Real.log ((x:ℝ) * Real.log 4) ≤ T^2 := by
+  have hx0 : (0:ℝ) < (x:ℝ) := by
+    have : (0:ℕ) < x := by
+      calc 0 < 10^16 := by norm_num
+        _ ≤ x := hx
+    exact_mod_cast this
+  have hxR : (10:ℝ)^16 ≤ (x:ℝ) := by exact_mod_cast hx
+  have he_lt : Real.exp 1 ≤ (2.7182818286:ℝ) := Real.exp_one_lt_d9.le
+  -- `L ≥ 32` from `log 10 ≥ 2` (i.e. `e² ≤ 10`)
+  have hL32 : (32:ℝ) ≤ Real.log (x:ℝ) := by
+    have hlog10 : (2:ℝ) ≤ Real.log 10 := by
+      have h1 : Real.exp 2 ≤ 10 := by
+        have h2 : Real.exp 2 = Real.exp 1 * Real.exp 1 := by
+          rw [← Real.exp_add]; norm_num
+        nlinarith [Real.exp_pos 1, he_lt]
+      calc (2:ℝ) = Real.log (Real.exp 2) := (Real.log_exp 2).symm
+        _ ≤ Real.log 10 := Real.log_le_log (Real.exp_pos 2) h1
+    have h1 : Real.log ((10:ℝ)^16) = 16 * Real.log 10 := by
+      rw [Real.log_pow]
+      push_cast
+      ring
+    have h2 : Real.log ((10:ℝ)^16) ≤ Real.log (x:ℝ) :=
+      Real.log_le_log (by positivity) hxR
+    nlinarith [hlog10]
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) := by linarith
+  -- `T² ≥ 21·L` from the window's lower edge
+  have hT0 : (0:ℝ) ≤ T := le_trans (Real.sqrt_nonneg _) hT1
+  have hTsq : 21 * Real.log (x:ℝ) ≤ T^2 := by
+    have h1 : (0:ℝ) ≤ 21 * Real.log (x:ℝ) := by linarith
+    have h2 := Real.sq_sqrt h1
+    have h3 := mul_self_le_mul_self (Real.sqrt_nonneg (21 * Real.log (x:ℝ))) hT1
+    calc 21 * Real.log (x:ℝ)
+        = Real.sqrt (21 * Real.log (x:ℝ))^2 := h2.symm
+      _ = Real.sqrt (21 * Real.log (x:ℝ))
+          * Real.sqrt (21 * Real.log (x:ℝ)) := by ring
+      _ ≤ T * T := h3
+      _ = T^2 := by ring
+  refine ⟨?_, ?_, ?_⟩
+  · -- `5 ≤ T` from `T² ≥ 21·32`
+    nlinarith [hTsq, hL32, hT0]
+  · -- `L ≤ 21·L ≤ T²`
+    linarith [hTsq, hL0]
+  · -- the Gaussian threshold with slack
+    have hlog4u : Real.log 4 ≤ (1.39:ℝ) := by
+      have := Real.log_two_lt_d9
+      have h4 : Real.log 4 = 2 * Real.log 2 := by
+        rw [show (4:ℝ) = 2^2 by norm_num, Real.log_pow]
+        push_cast
+        ring
+      linarith [h4]
+    have hlog4l : (1:ℝ) ≤ Real.log 4 := by
+      have := Real.log_two_gt_d9
+      have h4 : Real.log 4 = 2 * Real.log 2 := by
+        rw [show (4:ℝ) = 2^2 by norm_num, Real.log_pow]
+        push_cast
+        ring
+      linarith [h4]
+    have hll4 : Real.log (Real.log 4) ≤ 0.39 := by
+      have h1 : Real.log (Real.log 4) ≤ Real.log 4 - 1 :=
+        Real.log_le_sub_one_of_pos (by linarith)
+      linarith
+    have hsplit : Real.log ((x:ℝ) * Real.log 4)
+        = Real.log (x:ℝ) + Real.log (Real.log 4) :=
+      Real.log_mul (ne_of_gt hx0) (by linarith)
+    have hπ : (3.1415:ℝ) ≤ π := Real.pi_gt_d4.le
+    have hπ0 : (0:ℝ) < π := Real.pi_pos
+    -- `(64/π)·(L + 0.39) ≤ 20.38·L + 8 ≤ 21·L ≤ T²`
+    have h64π : 64/π ≤ 20.38 := by
+      rw [div_le_iff₀ hπ0]
+      nlinarith [hπ]
+    have harg : Real.log ((x:ℝ) * Real.log 4) ≤ Real.log (x:ℝ) + 0.39 := by
+      rw [hsplit]
+      linarith [hll4]
+    have harg0 : (0:ℝ) ≤ Real.log ((x:ℝ) * Real.log 4) := by
+      rw [hsplit]
+      have : (0:ℝ) ≤ Real.log (Real.log 4) :=
+        Real.log_nonneg (by linarith)
+      linarith
+    calc (64/π) * Real.log ((x:ℝ) * Real.log 4)
+        ≤ 20.38 * Real.log ((x:ℝ) * Real.log 4) :=
+          mul_le_mul_of_nonneg_right h64π harg0
+      _ ≤ 20.38 * (Real.log (x:ℝ) + 0.39) :=
+          mul_le_mul_of_nonneg_left harg (by norm_num)
+      _ ≤ 21 * Real.log (x:ℝ) := by nlinarith [hL32]
+      _ ≤ T^2 := hTsq
 
 end MoltResearch
