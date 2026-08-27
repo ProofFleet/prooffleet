@@ -950,6 +950,54 @@ theorem ghs_riesz_triple_tsum_le_real (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1
   rw [← hcast, Complex.norm_real, Real.norm_eq_abs] at h
   exact h
 
+open Real in
+open scoped FourierTransform in
+/-- **The smooth mass is at most `e⁵·(2 + log x)`** (Track R, M0R-5):
+
+  `∑'_{n x-smooth} 1/n ≤ e⁵·(2 + log x)`,  `x ≥ 3`.
+
+The numeric form of the abstract chain's `Gmax`: the smooth mass is the
+truncated Euler product at the trivial phase, so the factor bound
+`norm_phase_euler_prod_le` and the one-line prime mass
+`sum_one_div_primesBelow_le_log_log` price it exactly as they priced
+the band sup — same constants, distance term absent.  This is the
+`≍ log x` that replaces `∑_{n ≤ x} 1/n` in the tail budget when the
+capstone chain is rewired through `tripleConvR_le'`. -/
+theorem smooth_mass_le (x : ℕ) (hx : 3 ≤ x) :
+    ∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹
+      ≤ Real.exp 5 * (2 + Real.log (x:ℝ)) := by
+  have hone : CompletelyMultiplicativeC (fun _ : ℕ => (1:ℂ)) :=
+    fun a b _ _ => by simp
+  have hb1 : ∀ n : ℕ, ‖(fun _ : ℕ => (1:ℂ)) n‖ ≤ 1 := fun n => by simp
+  -- the mass is the norm of the smooth phase sum at the trivial data
+  have hofreal : ((∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹ : ℝ) : ℂ)
+      = smoothPhaseSum (fun _ => 1) x 0 := by
+    rw [Complex.ofReal_tsum]
+    unfold smoothPhaseSum
+    refine tsum_congr fun m => ?_
+    simp [Complex.ofReal_inv]
+  have hnn : (0:ℝ) ≤ ∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹ :=
+    tsum_nonneg fun m => by positivity
+  have hmass : ∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹
+      = ‖smoothPhaseSum (fun _ : ℕ => (1:ℂ)) x 0‖ := by
+    rw [← hofreal, Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg hnn]
+  rw [hmass, smoothPhaseSum_eq_prod (fun _ => 1) hone rfl hb1 x 0]
+  refine le_trans (norm_phase_euler_prod_le (fun _ => 1) hb1 x 0) ?_
+  -- the exponent is the plain prime mass
+  have hexp_eq : (∑ p ∈ x.primesBelow,
+        ((fun _ : ℕ => (1:ℂ)) p
+          * ((𝐞 (-(Real.log (p:ℝ) * 0)) : Circle) : ℂ)).re / (p:ℝ))
+      = ∑ p ∈ x.primesBelow, 1/(p:ℝ) :=
+    Finset.sum_congr rfl fun p _ => by simp
+  rw [hexp_eq]
+  have h3c := sum_one_div_primesBelow_le_log_log x hx
+  have hxR : (3:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  have hlogx : (0:ℝ) < Real.log (x:ℝ) := Real.log_pos (by linarith)
+  refine le_trans (Real.exp_le_exp.mpr
+    (show (∑ p ∈ x.primesBelow, 1/(p:ℝ)) + 2
+      ≤ 5 + Real.log (2 + Real.log (x:ℝ)) from by linarith)) ?_
+  rw [Real.exp_add, Real.exp_log (by linarith)]
+
 end ExpSums
 
 
