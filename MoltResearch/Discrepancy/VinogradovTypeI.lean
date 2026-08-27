@@ -5022,6 +5022,159 @@ theorem typeII_total_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
   refine le_trans hfin (le_of_eq ?_)
   ring
 
+
+open ArithmeticFunction in
+/-- **The master minor-arc bound** (Track R, V6d-vii): Vaughan's
+identity over `(n₀, N]` at the exponential weight, all three legs
+priced through the refined counting machinery — every right-hand term
+carries a `1/q`, a `D/q`, or the Type II square root. -/
+theorem vaughan_minor_arc_le (a q : ℕ) (hq : 1 ≤ q)
+    (hcop : Nat.Coprime a q) (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2)
+    (U V n₀ N : ℕ) (hU : 1 ≤ U) (hV : 1 ≤ V) (hVn₀ : V < n₀)
+    (hUV : U*V ≤ N) (hn₀N : n₀ ≤ N) (hN : 2 ≤ N) :
+    ‖∑ n ∈ Finset.Ioc n₀ N, ((vonMangoldt n : ℝ):ℂ)
+        * e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ 2*Real.log (N:ℝ)
+          * (13*(N:ℝ)*(Real.log (U:ℝ) + 3)/(q:ℝ)
+            + 2*((U:ℝ)/(q:ℝ) + 1)
+              * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        + Real.log (N:ℝ)
+          * (13*(N:ℝ)*(Real.log ((U*V : ℕ):ℝ) + 3)/(q:ℝ)
+            + 2*(((U*V : ℕ):ℝ)/(q:ℝ) + 1)
+              * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        + 3*(Real.log (N:ℝ))^2
+          * Real.sqrt ((1 + Real.log (N:ℝ))^3
+            * (27*(N:ℝ)^2/(V:ℝ) + 52*(N:ℝ)^2/(q:ℝ)
+              + 2112*(N:ℝ)^2*(Real.log (8*(q:ℝ)) + 1)/(U:ℝ)
+              + 1056*(N:ℝ)*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))) := by
+  classical
+  have hlogN : (0:ℝ) < Real.log (N:ℝ) :=
+    Real.log_pos (by exact_mod_cast hN)
+  have hUN : U ≤ N := by
+    calc U = U*1 := (mul_one U).symm
+      _ ≤ U*V := mul_le_mul_left' hV U
+      _ ≤ N := hUV
+  have hvw := vaughan_weighted U V n₀ N hVn₀
+    (fun n => e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+  rw [hvw]
+  refine le_trans (le_trans (norm_add_le _ _)
+    (add_le_add (norm_sub_le _ _) le_rfl)) ?_
+  refine add_le_add (add_le_add ?_ ?_) ?_
+  · -- Leg 1: the log-weighted Type I term
+    have hfil : (Finset.Icc 1 N).filter (· ≤ U) = Finset.Icc 1 U := by
+      ext b
+      simp only [Finset.mem_filter, Finset.mem_Icc]
+      constructor
+      · rintro ⟨⟨h1b, -⟩, hbU⟩
+        exact ⟨h1b, hbU⟩
+      · rintro ⟨h1b, hbU⟩
+        exact ⟨⟨h1b, le_trans hbU hUN⟩, hbU⟩
+    rw [hfil]
+    have hph : ∀ b ∈ Finset.Icc 1 U,
+        (((moebius b : ℤ):ℝ):ℂ)
+          * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+            ((Real.log (m:ℝ) : ℝ):ℂ)
+              * e (((b*m : ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        = (((moebius b : ℤ):ℝ):ℂ)
+          * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+            ((Real.log (m:ℝ) : ℝ):ℂ)
+              * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := by
+      intro b _
+      congr 1
+      refine Finset.sum_congr rfl fun m _ => ?_
+      congr 2
+      push_cast
+      ring
+    rw [Finset.sum_congr rfl hph]
+    refine le_trans (norm_sum_le _ _) ?_
+    refine typeI_abel_sum_le a q hq hcop δ hδ U n₀ N hU hn₀N
+      (fun b => (((moebius b : ℤ):ℝ):ℂ)) ?_
+    intro b
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact_mod_cast ArithmeticFunction.abs_moebius_le_one (n := b)
+  · -- Leg 2: the regrouped Type I' term
+    rw [vaughan_typeI'_regroup U V n₀ N hU hV hUV
+      (fun n => e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ)))]
+    have hsplit : ∀ t ∈ Finset.Icc 1 (U*V),
+        ((∑ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+            (fun p => p.1 * p.2 = t),
+          ((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ) : ℝ):ℂ)
+          * ∑ k ∈ Finset.Ioc (n₀/t) (N/t),
+            e (((t*k : ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        = ((Real.log (N:ℝ) : ℝ):ℂ)
+          * ((((∑ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+              (fun p => p.1 * p.2 = t),
+            ((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ))
+              / Real.log (N:ℝ) : ℝ):ℂ)
+            * ∑ k ∈ Finset.Ioc (n₀/t) (N/t),
+              e ((t:ℝ)*(k:ℝ)*((a:ℝ)/(q:ℝ) + δ))) := by
+      intro t _
+      have hcoe : ((∑ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+          (fun p => p.1 * p.2 = t),
+          ((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ) : ℝ):ℂ)
+          = ((Real.log (N:ℝ) : ℝ):ℂ)
+            * (((∑ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+                (fun p => p.1 * p.2 = t),
+              ((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ))
+                / Real.log (N:ℝ) : ℝ):ℂ) := by
+        rw [← Complex.ofReal_mul]
+        congr 1
+        field_simp
+      have hphk : ∑ k ∈ Finset.Ioc (n₀/t) (N/t),
+          e (((t*k : ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          = ∑ k ∈ Finset.Ioc (n₀/t) (N/t),
+            e ((t:ℝ)*(k:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := by
+        refine Finset.sum_congr rfl fun k _ => ?_
+        congr 1
+        push_cast
+        ring
+      rw [hcoe, hphk, mul_assoc]
+    rw [Finset.sum_congr rfl hsplit, ← Finset.mul_sum, norm_mul,
+      Complex.norm_real, Real.norm_eq_abs, abs_of_pos hlogN]
+    refine mul_le_mul_of_nonneg_left ?_ hlogN.le
+    refine le_trans (norm_sum_le _ _) ?_
+    refine typeI_Ioc_sum_le a q hq hcop δ hδ (U*V) n₀ N
+      (Nat.mul_pos hU hV)
+      (fun t => (((∑ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+          (fun p => p.1 * p.2 = t),
+        ((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ))
+          / Real.log (N:ℝ) : ℝ):ℂ)) ?_
+    intro t
+    rw [Complex.norm_real, Real.norm_eq_abs, abs_div,
+      abs_of_pos hlogN, div_le_one hlogN]
+    rcases Nat.eq_zero_or_pos t with rfl | ht1
+    · have hemp : (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+          (fun p => p.1 * p.2 = 0) = ∅ := by
+        refine Finset.filter_false_of_mem fun p hp => ?_
+        rw [Finset.mem_product] at hp
+        obtain ⟨hp1, hp2⟩ := hp
+        rw [Finset.mem_Icc] at hp1 hp2
+        intro h0
+        have hpos : 0 < p.1 * p.2 :=
+          Nat.mul_pos (by omega) (by omega)
+        omega
+      rw [hemp, Finset.sum_empty, abs_zero]
+      exact hlogN.le
+    · rcases le_or_gt t (U*V) with hle | hgt
+      · refine le_trans (vaughan_typeI'_coeff_le U V t ht1) ?_
+        refine Real.log_le_log ?_ ?_
+        · exact_mod_cast ht1
+        · exact_mod_cast le_trans hle hUV
+      · have hemp : (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+            (fun p => p.1 * p.2 = t) = ∅ := by
+          refine Finset.filter_false_of_mem fun p hp => ?_
+          rw [Finset.mem_product] at hp
+          obtain ⟨hp1, hp2⟩ := hp
+          rw [Finset.mem_Icc] at hp1 hp2
+          intro heq
+          have h1 : p.1 * p.2 ≤ U * V := Nat.mul_le_mul hp1.2 hp2.2
+          omega
+        rw [hemp, Finset.sum_empty, abs_zero]
+        exact hlogN.le
+  · -- Leg 3: the Type II term
+    exact typeII_total_le a q hq hcop δ hδ U V n₀ N hU hV
+      (by omega) hN
+
 end ExpSums
 
 end MoltResearch
