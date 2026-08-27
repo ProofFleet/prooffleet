@@ -4174,6 +4174,83 @@ theorem typeI_abel_sum_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
     rw [hd']
     linarith [h]
 
+
+/-- **Möbius tail sums are divisor-bounded** (Track R, V6d-vi): the
+Type II outer coefficients of Vaughan's identity, `∑_{d ∣ m, d > U}
+μ(d)`, have absolute value at most `τ(m)` — the tail variant of
+`abs_moebius_partial_le_tau`. -/
+theorem abs_moebius_tail_le_tau (U m : ℕ) :
+    |∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+      ((ArithmeticFunction.moebius b : ℤ):ℝ)|
+      ≤ ((m.divisors.card : ℝ)) := by
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have h1 : ∀ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+      |((ArithmeticFunction.moebius b : ℤ):ℝ)| ≤ 1 := by
+    intro b _
+    have := ArithmeticFunction.abs_moebius_le_one (n := b)
+    exact_mod_cast this
+  refine le_trans (Finset.sum_le_sum h1) ?_
+  rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+  exact_mod_cast Finset.card_filter_le _ _
+
+
+/-- **The Type II range swap** (Track R, V6d-vi): the third Vaughan
+term, with the modulus `c` outer, re-indexed with the free variable
+`m` outer — the hyperbola constraint `n₀ < c·m ≤ N` becomes the inner
+filter, exactly the shape the coupled Type II estimate consumes. -/
+theorem sum_typeII_swap {M : Type*} [AddCommMonoid M] (V n₀ N : ℕ)
+    (h : ℕ → ℕ → M) :
+    ∑ c ∈ (Finset.Icc 1 N).filter (fun c => ¬ c ≤ V),
+        ∑ m ∈ Finset.Ioc (n₀/c) (N/c), h c m
+      = ∑ m ∈ Finset.Icc 1 (N/(V+1)),
+          ∑ c ∈ (Finset.Ioc V N).filter
+            (fun c => n₀ < c*m ∧ c*m ≤ N), h c m := by
+  classical
+  have hdiv1 : ∀ c m : ℕ, 1 ≤ c → (n₀/c < m ↔ n₀ < c*m) := by
+    intro c m hc
+    rw [Nat.div_lt_iff_lt_mul (by omega : 0 < c)]
+    exact ⟨fun hx => by rwa [Nat.mul_comm m c] at hx,
+      fun hx => by rwa [Nat.mul_comm c m] at hx⟩
+  have hdiv2 : ∀ c m : ℕ, 1 ≤ c → (m ≤ N/c ↔ c*m ≤ N) := by
+    intro c m hc
+    rw [Nat.le_div_iff_mul_le (by omega : 0 < c)]
+    exact ⟨fun hx => by rwa [Nat.mul_comm m c] at hx,
+      fun hx => by rwa [Nat.mul_comm c m] at hx⟩
+  rw [Finset.sum_sigma', Finset.sum_sigma']
+  refine Finset.sum_nbij' (fun p => Sigma.mk p.2 p.1)
+    (fun p => Sigma.mk p.2 p.1) ?_ ?_ ?_ ?_ ?_
+  · rintro ⟨c, m⟩ hp
+    simp only [Finset.mem_sigma, Finset.mem_filter, Finset.mem_Icc,
+      Finset.mem_Ioc] at hp ⊢
+    obtain ⟨⟨⟨hc1, hcN⟩, hcV⟩, hm1, hm2⟩ := hp
+    have ha := (hdiv1 c m hc1).mp hm1
+    have hb := (hdiv2 c m hc1).mp hm2
+    refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩, ha, hb⟩
+    · by_contra hm0
+      have hz : m = 0 := by omega
+      rw [hz, Nat.mul_zero] at ha
+      omega
+    · rw [Nat.le_div_iff_mul_le (by omega : 0 < V+1)]
+      calc m * (V+1) ≤ m * c := mul_le_mul_left' (by omega) m
+        _ = c * m := Nat.mul_comm m c
+        _ ≤ N := hb
+    · omega
+    · exact hcN
+  · rintro ⟨m, c⟩ hq
+    simp only [Finset.mem_sigma, Finset.mem_filter, Finset.mem_Icc,
+      Finset.mem_Ioc] at hq ⊢
+    obtain ⟨⟨hm1, hmB⟩, ⟨hcV, hcN⟩, ha, hb⟩ := hq
+    have hc1 : 1 ≤ c := by omega
+    refine ⟨⟨⟨hc1, hcN⟩, by omega⟩, ?_, ?_⟩
+    · exact (hdiv1 c m hc1).mpr ha
+    · exact (hdiv2 c m hc1).mpr hb
+  · rintro ⟨c, m⟩ _
+    rfl
+  · rintro ⟨m, c⟩ _
+    rfl
+  · rintro ⟨c, m⟩ _
+    rfl
+
 end ExpSums
 
 end MoltResearch
