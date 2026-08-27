@@ -1311,6 +1311,116 @@ theorem typeI_sum_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
       rw [h9]
       linarith [h8]
 
+
+/-- **The constant-cap counting lemma** (Track R, V4a): the Type II
+variant of `sum_range_g_le` — when the cap is a constant `A` rather
+than `N/d`, each of the `H/q + 1` blocks pays the same
+`13A + 264q(log 8q + 1)`, with no harmonic factor. -/
+theorem sum_range_g_const_le (a q : ℕ) (hq : 1 ≤ q)
+    (hcop : Nat.Coprime a q) (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (H : ℕ)
+    (A : ℝ) (hA : 0 ≤ A) (g : ℕ → ℝ)
+    (hg0 : ∀ h ∈ Finset.Icc 1 H, 0 ≤ g h)
+    (hgA : ∀ h ∈ Finset.Icc 1 H, g h ≤ A)
+    (hg2 : ∀ h ∈ Finset.Icc 1 H,
+      0 < nint ((h:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) →
+      g h ≤ 1/(2 * nint ((h:ℝ) * ((a:ℝ)/(q:ℝ) + δ)))) :
+    ∑ h ∈ Finset.Icc 1 H, g h
+      ≤ ((H:ℝ)/(q:ℝ) + 1)
+        * (13*A + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+  classical
+  have hq0R : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+  set g' : ℕ → ℝ := fun h => if h ∈ Finset.Icc 1 H then g h else 0
+    with hg'_def
+  have hg'0 : ∀ h, 0 ≤ g' h := by
+    intro h
+    simp only [hg'_def]
+    split
+    · exact hg0 h (by assumption)
+    · exact le_refl 0
+  have heqsum : ∑ h ∈ Finset.Icc 1 H, g h
+      = ∑ h ∈ Finset.Icc 1 H, g' h := by
+    refine Finset.sum_congr rfl fun h hh => ?_
+    simp only [hg'_def]
+    rw [if_pos hh]
+  have hcover : Finset.Icc 1 H ⊆ (Finset.range (H/q + 1)).biUnion
+      (fun j => Finset.Ioc (j*q) (j*q + q)) := by
+    intro h hh
+    rw [Finset.mem_Icc] at hh
+    rw [Finset.mem_biUnion]
+    refine ⟨(h - 1)/q, ?_, ?_⟩
+    · rw [Finset.mem_range]
+      have h1 : (h - 1)/q ≤ H/q := Nat.div_le_div_right (by omega)
+      omega
+    · rw [Finset.mem_Ioc]
+      have h2 : (h - 1) % q < q := Nat.mod_lt _ (by omega)
+      have h3 : (h - 1)/q * q + (h - 1) % q = h - 1 :=
+        Nat.div_add_mod' (h - 1) q
+      omega
+  have hdisjb : (↑(Finset.range (H/q + 1)) : Set ℕ).PairwiseDisjoint
+      (fun j => Finset.Ioc (j*q) (j*q + q)) := by
+    intro j hj j' hj' hne
+    rw [Function.onFun, Finset.disjoint_left]
+    intro d hd hd'
+    rw [Finset.mem_Ioc] at hd hd'
+    rcases Nat.lt_or_ge j j' with hlt | hge
+    · have h1 : (j + 1) * q ≤ j' * q := Nat.mul_le_mul_right q hlt
+      have h2 : j*q + q = (j + 1) * q := by ring
+      omega
+    · have hlt' : j' < j := by omega
+      have h1 : (j' + 1) * q ≤ j * q := Nat.mul_le_mul_right q hlt'
+      have h2 : j'*q + q = (j' + 1) * q := by ring
+      omega
+  have hstep1 : ∑ h ∈ Finset.Icc 1 H, g' h
+      ≤ ∑ h ∈ (Finset.range (H/q + 1)).biUnion
+        (fun j => Finset.Ioc (j*q) (j*q + q)), g' h :=
+    Finset.sum_le_sum_of_subset_of_nonneg hcover (fun h _ _ => hg'0 h)
+  have hstep2 : ∑ h ∈ (Finset.range (H/q + 1)).biUnion
+      (fun j => Finset.Ioc (j*q) (j*q + q)), g' h
+      = ∑ j ∈ Finset.range (H/q + 1),
+          ∑ h ∈ Finset.Ioc (j*q) (j*q + q), g' h :=
+    Finset.sum_biUnion hdisjb
+  have hblock : ∀ j ∈ Finset.range (H/q + 1),
+      ∑ h ∈ Finset.Ioc (j*q) (j*q + q), g' h
+      ≤ 13*A + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1) := by
+    intro j _
+    refine sum_block_g_le a q hq hcop δ hδ j A hA g'
+      (fun h _ => hg'0 h) ?_ ?_
+    · intro h _
+      simp only [hg'_def]
+      split
+      · exact hgA h (by assumption)
+      · exact hA
+    · intro h _ hpos
+      simp only [hg'_def]
+      split
+      · exact hg2 h (by assumption) hpos
+      · positivity
+  have hsum3 : ∑ j ∈ Finset.range (H/q + 1),
+      ∑ h ∈ Finset.Ioc (j*q) (j*q + q), g' h
+      ≤ ∑ j ∈ Finset.range (H/q + 1),
+        (13*A + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) :=
+    Finset.sum_le_sum hblock
+  have hconst : ∑ j ∈ Finset.range (H/q + 1),
+      (13*A + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))
+      = ((H/q + 1 : ℕ):ℝ)
+        * (13*A + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+    rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+  have hJcast : ((H/q + 1 : ℕ):ℝ) ≤ (H:ℝ)/(q:ℝ) + 1 := by
+    have h1 : ((H/q : ℕ):ℝ) ≤ (H:ℝ)/(q:ℝ) := Nat.cast_div_le
+    push_cast
+    linarith [h1]
+  have hC0 : (0:ℝ) ≤ 13*A + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1) := by
+    have hq1R : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+    have h8 : (1:ℝ) ≤ 8*(q:ℝ) := by linarith
+    have := Real.log_nonneg h8
+    positivity
+  rw [heqsum]
+  refine le_trans hstep1 ?_
+  rw [hstep2]
+  refine le_trans hsum3 ?_
+  rw [hconst]
+  exact mul_le_mul_of_nonneg_right hJcast hC0
+
 end ExpSums
 
 end MoltResearch
