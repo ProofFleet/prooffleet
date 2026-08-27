@@ -2345,4 +2345,328 @@ theorem bandSup_smooth_restrict_of_nonPretentious (f : ℕ → ℝ)
   exact bandSup_of_nonPretentious _ hcm hfc1 hfcb y₂ x hy₂ hyx hx
     A hA h1A hband δ hδ0 hδ1 t ht
 
+
+open Finset in
+/-- **The real smooth restriction is completely multiplicative**
+(Track R, N202): `completelyMultiplicativeC_smooth_restrict`, over
+`ℝ` — smoothness is divisor-closed, so the cut respects products.
+The `hmul` that `sum_after_discards` demands of the outer chain's
+`g = f·1_{y-smooth}`. -/
+theorem smooth_restrict_mul (f : ℕ → ℝ) (y : ℕ)
+    (hmul : ∀ a b, f (a*b) = f a * f b) :
+    ∀ a b, (if a*b ∈ Nat.smoothNumbers y then f (a*b) else 0)
+      = (if a ∈ Nat.smoothNumbers y then f a else 0)
+        * (if b ∈ Nat.smoothNumbers y then f b else 0) := by
+  classical
+  intro a b
+  by_cases hab : a*b ∈ Nat.smoothNumbers y
+  · have haS : a ∈ Nat.smoothNumbers y :=
+      Nat.mem_smoothNumbers_of_dvd hab ⟨b, rfl⟩
+    have hbS : b ∈ Nat.smoothNumbers y :=
+      Nat.mem_smoothNumbers_of_dvd hab ⟨a, mul_comm a b⟩
+    rw [if_pos hab, if_pos haS, if_pos hbS, hmul]
+  · rw [if_neg hab]
+    by_cases haS : a ∈ Nat.smoothNumbers y
+    · by_cases hbS : b ∈ Nat.smoothNumbers y
+      · exact absurd (Nat.mul_mem_smoothNumbers haS hbS) hab
+      · rw [if_neg hbS, mul_zero]
+    · rw [if_neg haS, zero_mul]
+
+open Finset in
+/-- **The real smooth restriction stays 1-bounded** (Track R, N202). -/
+theorem smooth_restrict_abs_le (f : ℕ → ℝ) (y : ℕ)
+    (hf : ∀ n, |f n| ≤ 1) :
+    ∀ n, |(if n ∈ Nat.smoothNumbers y then f n else 0 : ℝ)| ≤ 1 := by
+  classical
+  intro n
+  split
+  · exact hf n
+  · simp
+
+
+open Real in
+/-- **The logarithm under the cube root** (Track R, N203):
+`log t ≤ 3·t^{1/3}` for `t ≥ 1` — the exponent that keeps the diagonal
+sum linear. -/
+theorem log_le_three_rpow_third (t : ℝ) (ht : 1 ≤ t) :
+    Real.log t ≤ 3 * t ^ ((1:ℝ)/3) := by
+  have ht0 : (0:ℝ) < t := by linarith
+  have h30 : (0:ℝ) < t ^ ((1:ℝ)/3) := Real.rpow_pos_of_pos ht0 _
+  have h1 : Real.log (t ^ ((1:ℝ)/3)) = (1/3) * Real.log t :=
+    Real.log_rpow ht0 _
+  have h2 : Real.log (t ^ ((1:ℝ)/3)) ≤ t ^ ((1:ℝ)/3) - 1 :=
+    Real.log_le_sub_one_of_pos h30
+  nlinarith [h1, h2, h30]
+
+open Real Finset in
+/-- **The `2/3`-power partial sum telescopes** (Track R, N203):
+`∑_{n≤x} n^{−2/3} ≤ 3·x^{1/3}` — cube-root differences, mirroring the
+`√`-telescope of `sum_log_div_sq_le`. -/
+theorem sum_rpow_neg_twothirds_le (x : ℕ) (hx : 1 ≤ x) :
+    ∑ n ∈ Finset.Icc 1 x, ((n:ℝ)) ^ (-(2:ℝ)/3)
+      ≤ 3 * (x:ℝ) ^ ((1:ℝ)/3) := by
+  induction x, hx using Nat.le_induction with
+  | base =>
+    norm_num
+  | succ N hN ih =>
+    rw [Finset.sum_Icc_succ_top (by omega : 1 ≤ N+1)]
+    have hN0 : (0:ℝ) < ((N:ℕ):ℝ) := by exact_mod_cast (by omega : 0 < N)
+    have hN10 : (0:ℝ) < (((N+1):ℕ):ℝ) := by
+      exact_mod_cast (by omega : 0 < N+1)
+    -- the key step: `(N+1)^{−2/3} ≤ 3((N+1)^{1/3} − N^{1/3})`
+    have hkey : (((N+1):ℕ):ℝ) ^ (-(2:ℝ)/3)
+        ≤ 3 * ((((N+1):ℕ):ℝ) ^ ((1:ℝ)/3) - ((N:ℕ):ℝ) ^ ((1:ℝ)/3)) := by
+      set a : ℝ := (((N+1):ℕ):ℝ) ^ ((1:ℝ)/3) with ha_def
+      set b : ℝ := ((N:ℕ):ℝ) ^ ((1:ℝ)/3) with hb_def
+      have ha0 : (0:ℝ) < a := Real.rpow_pos_of_pos hN10 _
+      have hb0 : (0:ℝ) < b := Real.rpow_pos_of_pos hN0 _
+      have ha3 : a^3 = (((N+1):ℕ):ℝ) := by
+        rw [ha_def, ← Real.rpow_natCast ((((N+1):ℕ):ℝ) ^ ((1:ℝ)/3)) 3,
+          ← Real.rpow_mul hN10.le]
+        norm_num
+      have hb3 : b^3 = ((N:ℕ):ℝ) := by
+        rw [hb_def, ← Real.rpow_natCast (((N:ℕ):ℝ) ^ ((1:ℝ)/3)) 3,
+          ← Real.rpow_mul hN0.le]
+        norm_num
+      have hdiff : a^3 - b^3 = 1 := by
+        rw [ha3, hb3]
+        push_cast
+        ring
+      have hba : b ≤ a := by
+        have h1 : b^3 ≤ a^3 := by
+          rw [ha3, hb3]
+          exact_mod_cast (by omega : N ≤ N+1)
+        nlinarith [ha0, hb0, sq_nonneg (a-b), sq_nonneg (a+b)]
+      -- `1 = (a−b)(a²+ab+b²) ≤ (a−b)·3a²`, so `3(a−b) ≥ 1/a² = (N+1)^{−2/3}`
+      have hfac : (a - b) * (a^2 + a*b + b^2) = 1 := by
+        nlinarith [hdiff]
+      have hinv : (((N+1):ℕ):ℝ) ^ (-(2:ℝ)/3) = 1 / a^2 := by
+        rw [ha_def, ← Real.rpow_natCast ((((N+1):ℕ):ℝ) ^ ((1:ℝ)/3)) 2,
+          ← Real.rpow_mul hN10.le, one_div, ← Real.rpow_neg hN10.le]
+        norm_num
+      rw [hinv, div_le_iff₀ (by positivity : (0:ℝ) < a^2)]
+      nlinarith [hfac, hba, ha0, hb0, sq_nonneg a, sq_nonneg b,
+        mul_pos ha0 hb0]
+    linarith [ih, hkey]
+
+open Real Finset in
+/-- **The Riesz diagonal is linear** (Track R, N203):
+`∑_{n≤x} (log x − log n)² ≤ 27·x` — the second term of
+`rieszMean_log_identity`, priced.  `log(x/n) ≤ 3(x/n)^{1/3}` squares to
+`9·x^{2/3}·n^{−2/3}`, and the `2/3`-telescope closes at `27x`. -/
+theorem sum_log_sub_sq_le (x : ℕ) (hx : 1 ≤ x) :
+    ∑ n ∈ Finset.Icc 1 x, (Real.log (x:ℝ) - Real.log (n:ℝ))^2
+      ≤ 27 * (x:ℝ) := by
+  have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+  have hterm : ∀ n ∈ Finset.Icc 1 x,
+      (Real.log (x:ℝ) - Real.log (n:ℝ))^2
+      ≤ 9 * ((x:ℝ) ^ ((2:ℝ)/3) * ((n:ℝ)) ^ (-(2:ℝ)/3)) := by
+    intro n hn
+    rw [Finset.mem_Icc] at hn
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast (by omega : 0 < n)
+    have hnx : (n:ℝ) ≤ (x:ℝ) := by exact_mod_cast hn.2
+    have hq1 : (1:ℝ) ≤ (x:ℝ)/(n:ℝ) := by
+      rw [le_div_iff₀ hn0]
+      linarith
+    have hlogd : Real.log (x:ℝ) - Real.log (n:ℝ)
+        = Real.log ((x:ℝ)/(n:ℝ)) := (Real.log_div (ne_of_gt hx0)
+          (ne_of_gt hn0)).symm
+    have hlog0 : (0:ℝ) ≤ Real.log ((x:ℝ)/(n:ℝ)) := Real.log_nonneg hq1
+    have hcube := log_le_three_rpow_third ((x:ℝ)/(n:ℝ)) hq1
+    have hsq : (Real.log ((x:ℝ)/(n:ℝ)))^2
+        ≤ 9 * (((x:ℝ)/(n:ℝ)) ^ ((1:ℝ)/3))^2 := by
+      nlinarith [hcube, hlog0,
+        Real.rpow_pos_of_pos (by positivity : (0:ℝ) < (x:ℝ)/(n:ℝ)) ((1:ℝ)/3)]
+    have hpow : (((x:ℝ)/(n:ℝ)) ^ ((1:ℝ)/3))^2
+        = (x:ℝ) ^ ((2:ℝ)/3) * ((n:ℝ)) ^ (-(2:ℝ)/3) := by
+      rw [← Real.rpow_natCast (((x:ℝ)/(n:ℝ)) ^ ((1:ℝ)/3)) 2,
+        ← Real.rpow_mul (by positivity : (0:ℝ) ≤ (x:ℝ)/(n:ℝ)),
+        Real.div_rpow hx0.le hn0.le, div_eq_mul_inv,
+        ← Real.rpow_neg hn0.le]
+      norm_num
+    rw [hlogd]
+    calc (Real.log ((x:ℝ)/(n:ℝ)))^2
+        ≤ 9 * (((x:ℝ)/(n:ℝ)) ^ ((1:ℝ)/3))^2 := hsq
+      _ = 9 * ((x:ℝ) ^ ((2:ℝ)/3) * ((n:ℝ)) ^ (-(2:ℝ)/3)) := by rw [hpow]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum, ← Finset.mul_sum]
+  have hsum := sum_rpow_neg_twothirds_le x hx
+  have hx23 : (0:ℝ) ≤ (x:ℝ) ^ ((2:ℝ)/3) := by positivity
+  calc 9 * ((x:ℝ) ^ ((2:ℝ)/3)
+        * ∑ n ∈ Finset.Icc 1 x, ((n:ℝ)) ^ (-(2:ℝ)/3))
+      ≤ 9 * ((x:ℝ) ^ ((2:ℝ)/3) * (3 * (x:ℝ) ^ ((1:ℝ)/3))) := by
+        have := mul_le_mul_of_nonneg_left hsum hx23
+        linarith
+    _ = 27 * ((x:ℝ) ^ ((2:ℝ)/3) * (x:ℝ) ^ ((1:ℝ)/3)) := by ring
+    _ = 27 * (x:ℝ) := by
+        rw [← Real.rpow_add hx0]
+        norm_num
+
+
+open Real Finset in
+/-- **The raw Riesz mean is priced by its scale** (Track R, N203):
+`|∑_{m ≤ ⌊Y⌋} f(m)·(log Y − log m)| ≤ Y` for `1`-bounded `f` — every
+inner sum of the R-world discard chain is worth its scale and nothing
+more.  `∑(log N − log m) ≤ N` is `sum_log_ratio_mass_le`; the
+real-scale correction `N·log(Y/N) ≤ Y − N` is the log-linear bound. -/
+theorem abs_rieszMean_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (Y : ℝ) (hY : 1 ≤ Y) :
+    |∑ m ∈ Finset.Icc 1 ⌊Y⌋₊, f m * (Real.log Y - Real.log (m:ℝ))|
+      ≤ Y := by
+  classical
+  have hY0 : (0:ℝ) < Y := by linarith
+  have hN1 : 1 ≤ ⌊Y⌋₊ := Nat.le_floor (by exact_mod_cast hY)
+  have hNY : ((⌊Y⌋₊ : ℕ):ℝ) ≤ Y := Nat.floor_le hY0.le
+  have hN0 : (0:ℝ) < ((⌊Y⌋₊ : ℕ):ℝ) := by
+    exact_mod_cast (by omega : 0 < ⌊Y⌋₊)
+  have hterm : ∀ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+      |f m * (Real.log Y - Real.log (m:ℝ))|
+      ≤ Real.log Y - Real.log (m:ℝ) := by
+    intro m hm
+    rw [Finset.mem_Icc] at hm
+    have hm0 : (0:ℝ) < (m:ℝ) := by exact_mod_cast (by omega : 0 < m)
+    have hmY : (m:ℝ) ≤ Y := le_trans (by exact_mod_cast hm.2) hNY
+    have hpos : (0:ℝ) ≤ Real.log Y - Real.log (m:ℝ) := by
+      have := Real.log_le_log hm0 hmY
+      linarith
+    rw [abs_mul, abs_of_nonneg hpos]
+    nlinarith [hf m, abs_nonneg (f m)]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have hcard : (Finset.Icc 1 ⌊Y⌋₊).card = ⌊Y⌋₊ := by
+    rw [Nat.card_Icc]
+    omega
+  have hsum_eq : ∑ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+      (Real.log Y - Real.log (m:ℝ))
+      = (∑ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+          (Real.log ((⌊Y⌋₊ : ℕ):ℝ) - Real.log (m:ℝ)))
+        + ((⌊Y⌋₊ : ℕ):ℝ) * (Real.log Y - Real.log ((⌊Y⌋₊ : ℕ):ℝ)) := by
+    have h1 : ∑ m ∈ Finset.Icc 1 ⌊Y⌋₊, (Real.log Y - Real.log (m:ℝ))
+        = ∑ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+            ((Real.log ((⌊Y⌋₊ : ℕ):ℝ) - Real.log (m:ℝ))
+              + (Real.log Y - Real.log ((⌊Y⌋₊ : ℕ):ℝ))) :=
+      Finset.sum_congr rfl fun m _ => by ring
+    rw [h1, Finset.sum_add_distrib, Finset.sum_const, hcard, nsmul_eq_mul]
+  rw [hsum_eq]
+  have h2 := sum_log_ratio_mass_le ⌊Y⌋₊ hN1
+  have hdivpos : (0:ℝ) < Y/((⌊Y⌋₊ : ℕ):ℝ) := by positivity
+  have h3 : Real.log Y - Real.log ((⌊Y⌋₊ : ℕ):ℝ)
+      ≤ Y/((⌊Y⌋₊ : ℕ):ℝ) - 1 := by
+    have hlg := Real.log_le_sub_one_of_pos hdivpos
+    rw [Real.log_div (ne_of_gt hY0) (ne_of_gt hN0)] at hlg
+    linarith
+  have hcancel : ((⌊Y⌋₊ : ℕ):ℝ) * (Y/((⌊Y⌋₊ : ℕ):ℝ)) = Y :=
+    mul_div_cancel₀ Y (ne_of_gt hN0)
+  have h4 : ((⌊Y⌋₊ : ℕ):ℝ) * (Real.log Y - Real.log ((⌊Y⌋₊ : ℕ):ℝ))
+      ≤ Y - ((⌊Y⌋₊ : ℕ):ℝ) := by
+    have := mul_le_mul_of_nonneg_left h3 hN0.le
+    nlinarith [this, hcancel]
+  linarith [h2, h4]
+
+
+open Real Finset ArithmeticFunction in
+/-- **The R-world mean value, prime-restricted** (Track R, N203):
+
+  `|R_f(x)·log x − ∑_p f(p)·log p·R-inner(x/p)| ≤ 35·x`,
+
+`rieszMean_log_identity`'s maiden application — the R-analogue of
+`sum_mul_log_prime_restrict`, with the identity already factored so no
+convolution-splitting is needed.  The non-prime Λ-support prices at
+`8x` (`sum_vonMangoldt_div_properPrimePow_le` against
+`abs_rieszMean_le`), the diagonal at `27x` (`sum_log_sub_sq_le`). -/
+theorem rieszMean_mul_log_prime_restrict (f : ℕ → ℝ)
+    (hf : ∀ n, |f n| ≤ 1) (hmul : ∀ a b, f (a*b) = f a * f b)
+    (x : ℕ) (hx : 1 ≤ x) :
+    |(∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        * Real.log (x:ℝ)
+      - ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+          f p * vonMangoldt p
+            * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+                f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))|
+      ≤ 35 * (x:ℝ) := by
+  classical
+  have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+  have hid := rieszMean_log_identity f hmul (x:ℝ) hx0
+  rw [Nat.floor_natCast] at hid
+  rw [hid]
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 x) Nat.Prime
+    (fun d => f d * vonMangoldt d
+      * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+          f m * (Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ)))]
+  -- the prime part cancels; the rest is the non-prime Λ-support + diagonal
+  have hcancel : ∀ A B C : ℝ, (A + B) + C - A = B + C := by
+    intro A B C
+    ring
+  rw [hcancel]
+  refine le_trans (abs_add_le _ _) ?_
+  -- the non-prime branch
+  have hNP : |∑ d ∈ (Finset.Icc 1 x).filter (fun d => ¬ d.Prime),
+      f d * vonMangoldt d
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+            f m * (Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ))|
+      ≤ 8 * (x:ℝ) := by
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    have hterm : ∀ d ∈ (Finset.Icc 1 x).filter (fun d => ¬ d.Prime),
+        |f d * vonMangoldt d
+          * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+              f m * (Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ))|
+        ≤ (x:ℝ) * (vonMangoldt d / (d:ℝ)) := by
+      intro d hd
+      rw [Finset.mem_filter, Finset.mem_Icc] at hd
+      have hd1 : 1 ≤ d := hd.1.1
+      have hd0 : (0:ℝ) < (d:ℝ) := by exact_mod_cast hd1
+      have hdx : (d:ℝ) ≤ (x:ℝ) := by exact_mod_cast hd.1.2
+      have hY1 : (1:ℝ) ≤ (x:ℝ)/(d:ℝ) := by
+        rw [le_div_iff₀ hd0]
+        linarith
+      have hR := abs_rieszMean_le f hf ((x:ℝ)/(d:ℝ)) hY1
+      rw [abs_mul, abs_mul, abs_of_nonneg vonMangoldt_nonneg]
+      calc |f d| * vonMangoldt d
+            * |∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+                f m * (Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ))|
+          ≤ 1 * vonMangoldt d * ((x:ℝ)/(d:ℝ)) := by
+            have h1 := hf d
+            have h2 : (0:ℝ) ≤ vonMangoldt d := vonMangoldt_nonneg
+            have h3 := abs_nonneg (∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+              f m * (Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ)))
+            nlinarith [hR, mul_nonneg h2 h3, abs_nonneg (f d),
+              mul_nonneg (abs_nonneg (f d)) h2]
+        _ = (x:ℝ) * (vonMangoldt d / (d:ℝ)) := by
+            field_simp
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [← Finset.mul_sum]
+    -- restrict to the proper prime powers, where `Λ` lives
+    have hsupp : ∑ d ∈ (Finset.Icc 1 x).filter (fun d => ¬ d.Prime),
+        vonMangoldt d / (d:ℝ)
+        = ∑ d ∈ (Finset.Icc 1 x).filter
+            (fun d => IsPrimePow d ∧ ¬ d.Prime),
+            vonMangoldt d / (d:ℝ) := by
+      refine (Finset.sum_subset ?_ ?_).symm
+      · intro d hd
+        rw [Finset.mem_filter] at hd ⊢
+        exact ⟨hd.1, hd.2.2⟩
+      · intro d hd hnd
+        rw [Finset.mem_filter] at hd hnd
+        have : ¬ IsPrimePow d := by
+          intro hpp
+          exact hnd ⟨hd.1, hpp, hd.2⟩
+        rw [vonMangoldt_eq_zero_iff.mpr this, zero_div]
+    rw [hsupp]
+    have hmass := sum_vonMangoldt_div_properPrimePow_le x
+    nlinarith [hmass, hx0]
+  -- the diagonal
+  have hD : |∑ n ∈ Finset.Icc 1 x,
+      f n * (Real.log (x:ℝ) - Real.log (n:ℝ))^2| ≤ 27 * (x:ℝ) := by
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    have hterm : ∀ n ∈ Finset.Icc 1 x,
+        |f n * (Real.log (x:ℝ) - Real.log (n:ℝ))^2|
+        ≤ (Real.log (x:ℝ) - Real.log (n:ℝ))^2 := by
+      intro n _
+      rw [abs_mul, abs_of_nonneg
+        (sq_nonneg (Real.log (x:ℝ) - Real.log (n:ℝ)))]
+      nlinarith [hf n, abs_nonneg (f n), sq_nonneg
+        (Real.log (x:ℝ) - Real.log (n:ℝ))]
+    exact le_trans (Finset.sum_le_sum hterm) (sum_log_sub_sq_le x hx)
+  linarith [hNP, hD]
+
 end MoltResearch
