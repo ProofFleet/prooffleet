@@ -1533,6 +1533,71 @@ theorem sum_pairs_gap_le (K : Finset ℕ) (KM : ℕ)
   refine le_trans (Finset.sum_le_sum hper) ?_
   rw [Finset.sum_const, nsmul_eq_mul]
 
+
+/-- **The per-pair reduction** (Track R, V4c-i): a conjugate-pair inner
+sum of the Type II expansion is bounded by the gap phase sum
+`F(|n − n'|) = ‖∑_m e(m·|n−n'|·β)‖` — the coefficient product has unit
+norm and `e_mul_conj` subtracts the phases; a negative gap conjugates
+the whole sum without changing its norm. -/
+theorem norm_pair_sum_le_gap (β : ℝ) (M₁ M₂ : ℕ) (bn : ℕ → ℂ)
+    (hbn : ∀ n, ‖bn n‖ ≤ 1) (n n' : ℕ) :
+    ‖∑ m ∈ Finset.Ico M₁ M₂,
+        (bn n * e ((m:ℝ)*(n:ℝ)*β))
+          * (starRingEnd ℂ) (bn n' * e ((m:ℝ)*(n':ℝ)*β))‖
+      ≤ ‖∑ m ∈ Finset.Ico M₁ M₂,
+          e ((m:ℝ)*((max n n' - min n n' : ℕ):ℝ)*β)‖ := by
+  classical
+  have hfactor : ∀ m : ℕ,
+      (bn n * e ((m:ℝ)*(n:ℝ)*β))
+        * (starRingEnd ℂ) (bn n' * e ((m:ℝ)*(n':ℝ)*β))
+      = (bn n * (starRingEnd ℂ) (bn n'))
+        * e ((m:ℝ)*((n:ℝ) - (n':ℝ))*β) := by
+    intro m
+    have he := e_mul_conj ((m:ℝ)*(n:ℝ)*β) ((m:ℝ)*(n':ℝ)*β)
+    have harg : (m:ℝ)*(n:ℝ)*β - (m:ℝ)*(n':ℝ)*β
+        = (m:ℝ)*((n:ℝ) - (n':ℝ))*β := by
+      ring
+    rw [harg] at he
+    rw [map_mul, mul_mul_mul_comm, he]
+  rw [Finset.sum_congr rfl (fun m _ => hfactor m), ← Finset.mul_sum,
+    norm_mul]
+  have hb1 : ‖bn n * (starRingEnd ℂ) (bn n')‖ ≤ 1 := by
+    rw [norm_mul, RCLike.norm_conj]
+    have h1 := hbn n
+    have h2 := hbn n'
+    nlinarith [norm_nonneg (bn n), norm_nonneg (bn n')]
+  have hnn : ‖∑ m ∈ Finset.Ico M₁ M₂, e ((m:ℝ)*((n:ℝ) - (n':ℝ))*β)‖
+      = ‖∑ m ∈ Finset.Ico M₁ M₂,
+          e ((m:ℝ)*((max n n' - min n n' : ℕ):ℝ)*β)‖ := by
+    rcases le_or_gt n' n with hle | hgt
+    · have hcast : (n:ℝ) - (n':ℝ) = ((n - n' : ℕ):ℝ) := by
+        have : ((n - n' : ℕ):ℝ) = (n:ℝ) - (n':ℝ) := by
+          push_cast [hle]
+          ring
+        linarith [this.le, this.ge]
+      have hmm : max n n' - min n n' = n - n' := by
+        omega
+      rw [hcast, hmm]
+    · have hmm : max n n' - min n n' = n' - n := by
+        omega
+      have hcast : (n:ℝ) - (n':ℝ) = -(((n' - n : ℕ)):ℝ) := by
+        have : ((n' - n : ℕ):ℝ) = (n':ℝ) - (n:ℝ) := by
+          push_cast [le_of_lt hgt]
+          ring
+        linarith [this.le, this.ge]
+      rw [hcast, hmm]
+      rw [← RCLike.norm_conj (∑ m ∈ Finset.Ico M₁ M₂,
+        e ((m:ℝ)*(-(((n' - n : ℕ)):ℝ))*β)), map_sum]
+      congr 1
+      refine Finset.sum_congr rfl fun m _ => ?_
+      rw [e_conj]
+      congr 1
+      ring
+  rw [hnn]
+  have h0 := norm_nonneg (∑ m ∈ Finset.Ico M₁ M₂,
+    e ((m:ℝ)*((max n n' - min n n' : ℕ):ℝ)*β))
+  nlinarith [hb1, h0, norm_nonneg (bn n * (starRingEnd ℂ) (bn n'))]
+
 end ExpSums
 
 end MoltResearch
