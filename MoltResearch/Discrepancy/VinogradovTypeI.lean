@@ -2501,6 +2501,61 @@ theorem vaughan_pointwise (U V n : ℕ) (hV : V < n) :
     linarith [h1]
   linarith [hkey]
 
+
+/-- **The two-sided range divisor swap** (Track R, V5c-iii-a): summing
+over `n ∈ (A, N]` and its divisors equals summing over each modulus `d`
+and the cofactors `m` with `A < dm ≤ N` — the exchange that turns the
+weighted Vaughan identity into its Type I/II range shapes. -/
+theorem sum_Ioc_divisors_swap {M : Type*} [AddCommMonoid M] (A N : ℕ)
+    (g : ℕ → ℕ → M) :
+    ∑ n ∈ Finset.Ioc A N, ∑ d ∈ n.divisors, g d n
+      = ∑ d ∈ Finset.Icc 1 N, ∑ m ∈ Finset.Ioc (A/d) (N/d), g d (d*m) := by
+  classical
+  rw [Finset.sum_sigma', Finset.sum_sigma']
+  refine Finset.sum_nbij' (fun p => Sigma.mk p.2 (p.1 / p.2))
+    (fun q => Sigma.mk (q.1 * q.2) q.1) ?_ ?_ ?_ ?_ ?_
+  · rintro ⟨n, d⟩ hp
+    simp only [Finset.mem_sigma, Finset.mem_Ioc, Finset.mem_Icc,
+      Nat.mem_divisors] at hp ⊢
+    obtain ⟨⟨hAn, hnN⟩, hdvd, hn0⟩ := hp
+    have hd0 : 0 < d := Nat.pos_of_dvd_of_pos hdvd (by omega)
+    have hdN : d ≤ N := le_trans (Nat.le_of_dvd (by omega) hdvd) hnN
+    have hmul : n / d * d = n := Nat.div_mul_cancel hdvd
+    refine ⟨⟨by omega, hdN⟩, ?_, Nat.div_le_div_right hnN⟩
+    rw [Nat.div_lt_iff_lt_mul hd0]
+    omega
+  · rintro ⟨d, m⟩ hq
+    simp only [Finset.mem_sigma, Finset.mem_Ioc, Finset.mem_Icc,
+      Nat.mem_divisors] at hq ⊢
+    obtain ⟨⟨hd1, hdN⟩, hAm, hmN⟩ := hq
+    have hd0 : 0 < d := by omega
+    rw [Nat.div_lt_iff_lt_mul hd0] at hAm
+    rw [Nat.le_div_iff_mul_le hd0] at hmN
+    have hcomm : m * d = d * m := Nat.mul_comm m d
+    refine ⟨⟨by omega, by omega⟩, Dvd.intro m rfl, ?_⟩
+    intro hc
+    have h0 : m * d = 0 := by
+      rw [hcomm]
+      exact hc
+    omega
+  · rintro ⟨n, d⟩ hp
+    simp only [Finset.mem_sigma, Nat.mem_divisors] at hp
+    obtain ⟨-, hdvd, -⟩ := hp
+    have h1 : d * (n / d) = n := Nat.mul_div_cancel' hdvd
+    simp only [Sigma.mk.injEq, heq_iff_eq]
+    exact ⟨h1, trivial⟩
+  · rintro ⟨d, m⟩ hq
+    simp only [Finset.mem_sigma, Finset.mem_Icc] at hq
+    obtain ⟨⟨hd1, -⟩, -⟩ := hq
+    have h1 : d * m / d = m := Nat.mul_div_cancel_left m (by omega)
+    simp only [Sigma.mk.injEq, heq_iff_eq]
+    exact ⟨trivial, h1⟩
+  · rintro ⟨n, d⟩ hp
+    simp only [Finset.mem_sigma, Nat.mem_divisors] at hp
+    obtain ⟨-, hdvd, -⟩ := hp
+    have h1 : d * (n / d) = n := Nat.mul_div_cancel' hdvd
+    rw [h1]
+
 end ExpSums
 
 end MoltResearch
