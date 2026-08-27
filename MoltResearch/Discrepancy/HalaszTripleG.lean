@@ -952,4 +952,100 @@ theorem ghs_riesz_triple_tsum_le_real (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1
 
 end ExpSums
 
+
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+open scoped FourierTransform in
+/-- **§3's bound on the Riesz triple convolution, through the smooth
+tsum** (Track R, M0R-4b):
+
+  `|tripleConvR f x P| ≤ x·√(E₁·(5·V₃·6b² + Mtail)) + 2·x·log 4`,
+
+with the band sup `b` demanded of `smoothPhaseSum` — the truncated
+Euler product — instead of the finite `ghsMainPoly f (Icc 1 x)`.
+
+`tripleConvR_le` re-plumbed: the realisation
+(`tripleConvR_eq_scaled`, exact) and the enlargement
+(`enlargement_extend_le'`, the only error term) are untouched, and the
+reindex + §4 step is replaced by `ghs_riesz_triple_tsum_le_real`,
+which pairs the enlarged form `D` against the smooth tsum directly.
+This is the cure of the M0R campaign applied at §3's level: `hBu` is
+now a statement about `F_x(1 + 2πiξ)`, dischargeable log-freely by
+`norm_smoothPhaseSum_le_of_nonPretentious` at
+`b = e⁵(2+log x)e^{−A}` — no smooth restriction, no Rankin term, no
+second scale.  The prices: complete multiplicativity of `f` (the Euler
+product needs it) and the `Gmax` bound (the smooth mass, `≍ log x`
+like the sup it replaces). -/
+theorem tripleConvR_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hcm : CompletelyMultiplicativeC (fun n => ((f n : ℝ) : ℂ)))
+    (h1 : f 1 = 1)
+    (x : ℕ) (hx : 2 ≤ x) (P : Finset ℕ)
+    (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) (hQ : ∀ q ∈ Q, 0 < q)
+    (hQsub : ∀ p ∈ P, (x/p).primesBelow ⊆ Q)
+    (V₃ Mtail E₁ b Gmax : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hGb : ∀ ξ, ‖ExpSums.smoothPhaseSum
+      (fun n => ((f n : ℝ) : ℂ)) x ξ‖ ≤ Gmax)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum (fun n => ((f n : ℝ) : ℂ)) x t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+        ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ)) Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2 * Gmax^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail) :
+    |tripleConvR f x P|
+      ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail))
+        + 2*(x:ℝ)*Real.log 4 := by
+  classical
+  have hx0 : 0 < x := by omega
+  have hx1 : 1 ≤ x := by omega
+  have hxR : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  have hx2 : (2:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+  set W : ℝ → ℝ := ExpSums.rieszWindow with hW_def
+  have hW0 : ∀ v, v ≤ 0 → W v = 0 := by
+    intro v hv
+    rw [hW_def, ExpSums.rieszWindow, if_neg (not_lt.mpr hv)]
+  have hsum : ∀ y : ℝ, 1 ≤ y → y ≤ 2 →
+      |∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+          * W (Real.log y - Real.log (n:ℝ))| ≤ 1 := by
+    intro y h1y h2y
+    exact ExpSums.riesz_smoothed_sum_le_one f hf y h1y x (by linarith)
+  have hS1 : ∀ n ∈ Finset.Icc 1 x, 1 ≤ n :=
+    fun n hn => (Finset.mem_Icc.mp hn).1
+  -- the two forms: over the moving range, and over the fixed `Q`
+  set C : ℝ := ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+      * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+          * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                * W (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))
+    with hC_def
+  set D : ℝ := ∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+      * ∑ q ∈ Q, (Real.log (q:ℝ) * f q)
+          * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                * W (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))
+    with hD_def
+  have hCeq : tripleConvR f x P = C := by
+    rw [hC_def, hW_def]
+    exact tripleConvR_eq_scaled f x hx0 P (fun p hp => (hPp p hp).pos)
+  -- the enlargement, the only error term left
+  have hCD : |D - C| ≤ 2*(x:ℝ)*Real.log 4 := by
+    rw [hD_def, hC_def]
+    exact enlargement_extend_le' f hf W hW0 x P hPp h2p (Finset.Icc 1 x) hS1
+      hsum Q hQp hQsub
+  -- §4 through the smooth tsum, on the enlarged form directly
+  have hDle : |D| ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail)) := by
+    rw [hD_def, hW_def]
+    exact ExpSums.ghs_riesz_triple_tsum_le_real f hf hcm h1 x hx1 P Q
+      (fun p hp => (hPp p hp).pos) hQ V₃ Mtail E₁ b Gmax
+      hE₁0 hb0 hV₃0 hMtail0 hGb hE₁ hBu hV hMtail
+  rw [hCeq]
+  calc |C| = |D - (D - C)| := by ring_nf
+    _ ≤ |D| + |D - C| := abs_sub _ _
+    _ ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail))
+          + 2*(x:ℝ)*Real.log 4 := by linarith [hDle, hCD]
+
 end MoltResearch
