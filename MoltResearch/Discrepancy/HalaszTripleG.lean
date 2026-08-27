@@ -370,4 +370,117 @@ theorem ghs_riesz_pairing_le_G (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     hMtail
   simpa using h
 
+namespace ExpSums
+
+open Real MeasureTheory Filter
+open scoped FourierTransform
+
+/-- **The smooth phase sum** (Track R, M0R-4b): the `x`-smooth tsum
+
+  `G_x(ξ) = ∑'_{n x-smooth} f(n)·n⁻¹·e(−ξ·log n)`,
+
+the abstract main factor of the re-plumbed §4 chain.  This is the
+object that replaces the finite `ghsMainPoly f (Icc 1 x)`: on the
+Riesz window's support the two agree exactly (every index the window
+keeps is `x`-smooth), but the tsum is a truncated Euler product, so its
+band sup is log-free where the partial sum's was not. -/
+noncomputable def smoothPhaseSum (f : ℕ → ℂ) (x : ℕ) : ℝ → ℂ :=
+  fun ξ => ∑' m : (Nat.smoothNumbers x),
+    f m * ((m : ℕ) : ℂ)⁻¹ * ((𝐞 (-(Real.log m * ξ)) : Circle) : ℂ)
+
+/-- **The smooth phase sum is the truncated Euler product** (Track R,
+M0R-4b): `hasSum_smooth_phase_prod`, read at the tsum. -/
+theorem smoothPhaseSum_eq_prod (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (ξ : ℝ) :
+    smoothPhaseSum f x ξ
+      = ∏ p ∈ x.primesBelow,
+          (1 - f p * ((p : ℕ) : ℂ)⁻¹
+              * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ))⁻¹ :=
+  (hasSum_smooth_phase_prod f hcm h1 hb x ξ).tsum_eq
+
+/-- **The log-free band sup of the smooth phase sum** (Track R,
+M0R-4b): for `1`-bounded completely multiplicative `f` with
+`NonPretentiousAt f A x` and any frequency `|2πξ| ≤ A·x`,
+
+  `‖G_x(ξ)‖ ≤ e⁵·(2 + log x)·e^{−A}`.
+
+`norm_phase_euler_prod_le_of_nonPretentious` transported through
+`smoothPhaseSum_eq_prod` — the band-sup hypothesis `hBu` of the
+abstract §4 chain, met by the main factor itself.  This is the M0R
+campaign's point of contact: the finite polynomial's band sup could
+only be reached through the smooth-restriction detour and its
+`W ≈ 2×10⁷` losses; the tsum's is a single Euler-product estimate. -/
+theorem norm_smoothPhaseSum_le_of_nonPretentious (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (hx : 3 ≤ x)
+    (A : ℝ) (h1A : 1 ≤ A) (hA : NonPretentiousAt f A x)
+    (ξ : ℝ) (hξ : |2 * Real.pi * ξ| ≤ A * (x:ℝ)) :
+    ‖smoothPhaseSum f x ξ‖
+      ≤ Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A) := by
+  rw [smoothPhaseSum_eq_prod f hcm h1 hb x ξ]
+  exact norm_phase_euler_prod_le_of_nonPretentious f hb x hx A h1A hA ξ hξ
+
+/-- **The smooth phase sum is continuous** (Track R, M0R-4b): the
+regularity half of the abstract main-factor hypotheses.  Uniform
+convergence: each term is a constant times a unimodular phase, so the
+majorant is the frequency-free weight mass
+(`summable_norm_smooth_phase`). -/
+theorem continuous_smoothPhaseSum (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) :
+    Continuous (smoothPhaseSum f x) := by
+  unfold smoothPhaseSum
+  refine continuous_tsum
+    (u := fun m : (Nat.smoothNumbers x) =>
+      ‖f m * ((m : ℕ) : ℂ)⁻¹ * ((𝐞 (-(Real.log m * 0)) : Circle) : ℂ)‖)
+    (fun m => ?_) (summable_norm_smooth_phase f hcm h1 hb x 0)
+    (fun m ξ => ?_)
+  · exact continuous_const.mul
+      (Continuous.comp continuous_subtype_val
+        (Real.continuous_fourierChar.comp (by fun_prop)))
+  · have hphase : ∀ (t : ℝ),
+        ‖f ↑m * (((m : ℕ) : ℕ) : ℂ)⁻¹
+            * ((𝐞 (-(Real.log ↑m * t)) : Circle) : ℂ)‖
+          = ‖f ↑m * (((m : ℕ) : ℕ) : ℂ)⁻¹‖ := by
+      intro t
+      rw [norm_mul, norm_eq_of_mem_sphere, mul_one]
+    exact le_of_eq ((hphase ξ).trans (hphase 0).symm)
+
+/-- **The global sup of the smooth phase sum is the smooth mass**
+(Track R, M0R-4b):
+
+  `‖G_x(ξ)‖ ≤ ∑'_{n x-smooth} 1/n`,  uniformly in `ξ`.
+
+The abstract chain's `Gmax`: the crude bound that prices the tail,
+exactly as `norm_ghsMainPoly_le` did for the finite polynomial —
+`≍ log x` in both cases, so the tail budget is unchanged by the
+swap. -/
+theorem norm_smoothPhaseSum_le (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (ξ : ℝ) :
+    ‖smoothPhaseSum f x ξ‖
+      ≤ ∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹ := by
+  have hsummass : Summable
+      (fun m : (Nat.smoothNumbers x) => (((m : ℕ) : ℝ))⁻¹) := by
+    have hone : CompletelyMultiplicativeC (fun _ : ℕ => (1:ℂ)) :=
+      fun a b _ _ => by simp
+    refine (summable_norm_smooth_phase (fun _ => 1) hone rfl
+      (fun n => by simp) x 0).congr fun m => ?_
+    rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_one,
+      one_mul, norm_inv, Complex.norm_natCast]
+  unfold smoothPhaseSum
+  refine le_trans (norm_tsum_le_tsum_norm
+    (summable_norm_smooth_phase f hcm h1 hb x ξ)) ?_
+  refine Summable.tsum_le_tsum (fun m => ?_)
+    (summable_norm_smooth_phase f hcm h1 hb x ξ) hsummass
+  rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_inv,
+    Complex.norm_natCast]
+  calc ‖f ↑m‖ * (((m : ℕ) : ℝ))⁻¹
+      ≤ 1 * (((m : ℕ) : ℝ))⁻¹ :=
+        mul_le_mul_of_nonneg_right (hb ↑m) (by positivity)
+    _ = (((m : ℕ) : ℝ))⁻¹ := one_mul _
+
+end ExpSums
+
 end MoltResearch
