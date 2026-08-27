@@ -6,6 +6,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5BCCWrapper
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5FourierProof
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LittlewoodWrapper
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5EDPMilestone
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5PrimeBlockMajorArcProof
 -- For the anti-vacuity witnesses (issue #2879) only.
 import Mathlib.NumberTheory.ArithmeticFunction
 
@@ -210,3 +211,9 @@ info: 'MoltResearch.Tao2015.theorem18_of_matomakiRadziwillMajorArc' depends on a
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.theorem18_of_matomakiRadziwillMajorArc
+
+/--
+info: 'MoltResearch.Tao2015.instPrimeBlockMajorArcAssumption' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.instPrimeBlockMajorArcAssumption
