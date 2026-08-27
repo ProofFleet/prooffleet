@@ -5814,6 +5814,157 @@ theorem typeII_term_small (ε x u Q l L G : ℝ) (hε : 0 < ε) (hx : 0 < x)
         mul_le_mul_of_nonneg_left h1 (by positivity)
     _ = ε*x := by field_simp
 
+
+set_option maxHeartbeats 1000000 in
+/-- **The Type I terms and the remainder are small on the window**
+(Track R, V8c): pure real variables — both Vaughan Type I legs and the
+prime-power remainder together stay below `3εx` on the window. -/
+theorem typeI_terms_small (ε x u u2 Q l L G v v2 s : ℝ)
+    (hε : 0 < ε) (hx1 : 1 ≤ x)
+    (hl1 : 1 ≤ l) (hlL : l ≤ L) (hL2 : L ≤ 2*l)
+    (hG0 : 0 ≤ G) (hG5 : G ≤ 5*l)
+    (hu0 : 0 < u) (hu20 : 0 < u2) (hQ0 : 0 < Q)
+    (hv0 : 0 ≤ v) (hv : v + 3 ≤ 4*l) (hv20 : 0 ≤ v2)
+    (hv2 : v2 + 3 ≤ 4*l)
+    (hs0 : 0 ≤ s) (hs2 : s*s ≤ 2*x*((3*L)*(3*L)))
+    (hwin1 : l^20 ≤ Q) (hwin2 : Q*l^20 ≤ x)
+    (hu3u : u*u*u ≤ x) (hu23 : u2*u2*u2 ≤ x*x)
+    (hb6m : 27*14720^3*l^6 ≤ ε^3*x)
+    (hb4m : 288*l^4 ≤ ε^2*x)
+    (hεl : 44160 ≤ ε*l) :
+    2*L*(13*(2*x)*(v+3)/Q + 2*(u/Q + 1)*(368*Q*G))
+      + L*(13*(2*x)*(v2+3)/Q + 2*(u2/Q + 1)*(368*Q*G))
+      + s*L ≤ 3*(ε*x) := by
+  have hx : (0:ℝ) < x := by linarith
+  have hl0 : (0:ℝ) < l := by linarith
+  have hL0 : (0:ℝ) < L := by linarith
+  have hQchain : ε*l^20 ≤ ε*Q :=
+    mul_le_mul_of_nonneg_left hwin1 hε.le
+  have hxchain : ε*(Q*l^20) ≤ ε*x :=
+    mul_le_mul_of_nonneg_left hwin2 hε.le
+  -- generic `Q`-window piece: `K·l²·Q ≤ (K·3/44160)·εx` at `3K ≤ 44160`
+  have hQpiece : ∀ K : ℝ, 0 < K → 3*K ≤ 44160 →
+      K*l^2*Q ≤ (ε/3)*x := by
+    intro K hK h3K
+    have hf0 : Q*l^2 ≤ Q*l^19 := by
+      have h1 : l^2 ≤ l^19 := pow_le_pow_right₀ hl1 (by norm_num)
+      exact mul_le_mul_of_nonneg_left h1 hQ0.le
+    have hf2 : 44160*(Q*l^19) ≤ (ε*l)*(Q*l^19) :=
+      mul_le_mul_of_nonneg_right (by linarith) (by positivity)
+    have hf3 : (ε*l)*(Q*l^19) = ε*(Q*l^20) := by ring
+    have hchain : 44160*(Q*l^2) ≤ ε*x := by
+      have h4 : 44160*(Q*l^2) ≤ 44160*(Q*l^19) := by linarith [hf0]
+      linarith [h4, hf2, hf3.le, hf3.ge, hxchain]
+    have h5 : 3*(K*l^2*Q) ≤ 44160*(Q*l^2) := by
+      nlinarith [mul_le_mul_of_nonneg_right h3K
+        (mul_nonneg hQ0.le (by positivity : (0:ℝ) ≤ l^2))]
+    linarith [h5, hchain]
+  -- generic first piece: `2L·13·2x·(w+3)/Q ≤ (ε/3)x` for `w+3 ≤ 4l`
+  have hP1 : ∀ w : ℝ, 0 ≤ w → w + 3 ≤ 4*l →
+      2*L*(13*(2*x)*(w+3)/Q) ≤ (ε/3)*x := by
+    intro w hw0 hw
+    have h1 : 2*L*(13*(2*x)*(w+3)/Q)
+        ≤ 2*(2*l)*(13*(2*x)*(4*l)/Q) := by
+      gcongr
+    refine le_trans h1 ?_
+    have h2 : 2*(2*l)*(13*(2*x)*(4*l)/Q) = (416*x*l^2)/Q := by
+      ring
+    rw [h2, div_le_iff₀ hQ0]
+    have hQb : 1248*l^2 ≤ ε*Q := by
+      have hc1 : (1248:ℝ) ≤ ε*l := by linarith
+      have hc2 : l^2 ≤ l^19 := pow_le_pow_right₀ hl1 (by norm_num)
+      have hc3 : 1248*l^19 ≤ (ε*l)*l^19 :=
+        mul_le_mul_of_nonneg_right hc1 (by positivity)
+      have hc4 : (ε*l)*l^19 = ε*l^20 := by ring
+      have hc6 : 1248*l^2 ≤ 1248*l^19 := by linarith [hc2]
+      linarith [hc6, hc3, hc4.le, hc4.ge, hQchain]
+    nlinarith [mul_le_mul_of_nonneg_right hQb hx.le]
+  -- the `u`-piece by cubing
+  have hUpiece : 14720*l^2*u ≤ (ε/3)*x := by
+    have hd1 : (14720:ℝ)^3*l^6*(u*u*u) ≤ 14720^3*l^6*x :=
+      mul_le_mul_of_nonneg_left hu3u (by positivity)
+    have hd2 := mul_le_mul_of_nonneg_right hb6m hx.le
+    have hx3 : ε^3*x*x ≤ ε^3*(x*x*x) := by
+      have h := mul_le_mul_of_nonneg_left hx1
+        (by positivity : (0:ℝ) ≤ ε^3*(x*x))
+      nlinarith [h]
+    have hc : (14720*l^2*u)^3 ≤ ((ε/3)*x)^3 := by
+      nlinarith [hd1, hd2, hx3]
+    exact le_of_pow_le_pow_left₀ (by norm_num) (by positivity) hc
+  have hU2piece : 7360*l^2*u2 ≤ (ε/3)*x := by
+    have hd1 : (7360:ℝ)^3*l^6*(u2*u2*u2) ≤ 7360^3*l^6*(x*x) :=
+      mul_le_mul_of_nonneg_left hu23 (by positivity)
+    have hd2 := mul_le_mul_of_nonneg_right hb6m hx.le
+    have hc : (7360*l^2*u2)^3 ≤ ((ε/3)*x)^3 := by
+      nlinarith [hd1, hd2, pow_nonneg hl0.le 6]
+    exact le_of_pow_le_pow_left₀ (by norm_num) (by positivity) hc
+  -- the two Type I legs
+  have hid1 : 2*(u/Q + 1)*(368*Q*G) = 736*(u+Q)*G := by
+    field_simp
+    ring
+  have hid2 : 2*(u2/Q + 1)*(368*Q*G) = 736*(u2+Q)*G := by
+    field_simp
+    ring
+  have hA1 : 2*L*(13*(2*x)*(v+3)/Q + 2*(u/Q + 1)*(368*Q*G))
+      ≤ ε*x := by
+    have hsplit : 2*L*(13*(2*x)*(v+3)/Q + 2*(u/Q + 1)*(368*Q*G))
+        = 2*L*(13*(2*x)*(v+3)/Q) + 2*L*(736*(u+Q)*G) := by
+      rw [hid1]
+      ring
+    rw [hsplit]
+    have hp2 : 2*L*(736*(u+Q)*G) ≤ (2*ε/3)*x := by
+      have h1 : 2*L*(736*(u+Q)*G)
+          ≤ 2*(2*l)*(736*(u+Q)*(5*l)) := by
+        gcongr
+      refine le_trans h1 ?_
+      have h2 : 2*(2*l)*(736*(u+Q)*(5*l))
+          = 14720*l^2*u + 14720*l^2*Q := by
+        ring
+      rw [h2]
+      have h3 := hQpiece 14720 (by norm_num) (by norm_num)
+      linarith [hUpiece, h3]
+    have hp1 := hP1 v hv0 hv
+    linarith [hp1, hp2]
+  have hA2 : L*(13*(2*x)*(v2+3)/Q + 2*(u2/Q + 1)*(368*Q*G))
+      ≤ ε*x := by
+    have hsplit : L*(13*(2*x)*(v2+3)/Q + 2*(u2/Q + 1)*(368*Q*G))
+        = L*(13*(2*x)*(v2+3)/Q) + L*(736*(u2+Q)*G) := by
+      rw [hid2]
+      ring
+    rw [hsplit]
+    have hp1 : L*(13*(2*x)*(v2+3)/Q) ≤ (ε/3)*x := by
+      have h1 := hP1 v2 hv20 hv2
+      have h2 : L*(13*(2*x)*(v2+3)/Q)
+          ≤ 2*L*(13*(2*x)*(v2+3)/Q) := by
+        have h3 : (0:ℝ) ≤ 13*(2*x)*(v2+3)/Q := by positivity
+        nlinarith [hL0, h3]
+      linarith [h1, h2]
+    have hp2 : L*(736*(u2+Q)*G) ≤ (2*ε/3)*x := by
+      have h1 : L*(736*(u2+Q)*G) ≤ (2*l)*(736*(u2+Q)*(5*l)) := by
+        gcongr
+      refine le_trans h1 ?_
+      have h2 : (2*l)*(736*(u2+Q)*(5*l))
+          = 7360*l^2*u2 + 7360*l^2*Q := by
+        ring
+      rw [h2]
+      have h3 := hQpiece 7360 (by norm_num) (by norm_num)
+      linarith [hU2piece, h3]
+    linarith [hp1, hp2]
+  -- the remainder, by squaring
+  have hcorr : s*L ≤ ε*x := by
+    have hg1 : (s*L)^2 ≤ 18*x*L^4 := by
+      nlinarith [mul_le_mul_of_nonneg_right hs2 (sq_nonneg L)]
+    have hg2 : L^4 ≤ 16*l^4 := by
+      have hc := pow_le_pow_left₀ hL0.le hL2 4
+      nlinarith [hc]
+    have hg3 : 288*l^4*x ≤ ε^2*x*x :=
+      mul_le_mul_of_nonneg_right hb4m hx.le
+    have hg4 : (s*L)^2 ≤ (ε*x)^2 := by
+      nlinarith [hg1, hg3,
+        mul_le_mul_of_nonneg_left hg2 (by positivity : (0:ℝ) ≤ 18*x)]
+    exact le_of_pow_le_pow_left₀ (by norm_num) (by positivity) hg4
+  linarith [hA1, hA2, hcorr]
+
 end ExpSums
 
 end MoltResearch
