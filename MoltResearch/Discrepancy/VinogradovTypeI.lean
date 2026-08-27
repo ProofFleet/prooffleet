@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.ExpSums
+import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 
 /-!
 # Track R, phase R4v: the linear-phase exponential sum (V1)
@@ -2234,6 +2235,31 @@ theorem lcm_sum_le (M : ℕ) (hM : 1 ≤ M) :
         mul_le_mul_of_nonneg_left hsum1 hc0
     _ = (M:ℝ) * (1 + Real.log (M:ℝ))^3 := by
         ring
+
+
+/-- **The divisor-square mean value** (Track R, V5b-ii):
+`∑_{m ≤ M} τ(m)² ≤ M(1 + log M)³` — the double count against the lcm
+lattice sum. -/
+theorem sum_tau_sq_le (M : ℕ) (hM : 1 ≤ M) :
+    ∑ m ∈ Finset.Icc 1 M, ((m.divisors.card : ℝ))^2
+      ≤ (M:ℝ) * (1 + Real.log (M:ℝ))^3 :=
+  le_trans (sum_tau_sq_le_lcm_sum M hM) (lcm_sum_le M hM)
+
+/-- **Möbius partial sums are divisor-bounded** (Track R, V5b-ii): the
+Type II coefficients of Vaughan's identity, `∑_{d ∣ m, d ≤ U} μ(d)`,
+have absolute value at most `τ(m)`. -/
+theorem abs_moebius_partial_le_tau (U m : ℕ) :
+    |∑ d ∈ m.divisors.filter (· ≤ U), ((ArithmeticFunction.moebius d : ℤ):ℝ)|
+      ≤ ((m.divisors.card : ℝ)) := by
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have h1 : ∀ d ∈ m.divisors.filter (· ≤ U),
+      |((ArithmeticFunction.moebius d : ℤ):ℝ)| ≤ 1 := by
+    intro d _
+    have := ArithmeticFunction.abs_moebius_le_one (n := d)
+    exact_mod_cast this
+  refine le_trans (Finset.sum_le_sum h1) ?_
+  rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+  exact_mod_cast Finset.card_filter_le _ _
 
 end ExpSums
 
