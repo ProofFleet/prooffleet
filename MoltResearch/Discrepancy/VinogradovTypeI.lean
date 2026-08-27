@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy.ExpSums
 import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 import Mathlib.Analysis.Complex.ExponentialBounds
+import Mathlib.NumberTheory.DiophantineApproximation.Basic
 
 /-!
 # Track R, phase R4v: the linear-phase exponential sum (V1)
@@ -5549,6 +5550,76 @@ theorem primeBlock_sum_le (a q : ℕ) (hq : 1 ≤ q)
       exact mul_le_mul hcast hlog (Real.log_natCast_nonneg t)
         (Nat.cast_nonneg _)
     linarith [hpart, hcorr, hcorrmono]
+
+
+/-- **Block-sum periodicity** (Track R, V8a): the prime-block sum only
+sees its frequency modulo `1`. -/
+theorem primeBlock_sum_period (n₀ : ℕ) (β : ℝ) (k : ℤ) :
+    ∑ p ∈ (Finset.Ioc n₀ (2*n₀)).filter (fun p => p.Prime),
+        ((1/(p:ℝ) : ℝ):ℂ) * e ((p:ℝ)*β)
+      = ∑ p ∈ (Finset.Ioc n₀ (2*n₀)).filter (fun p => p.Prime),
+          ((1/(p:ℝ) : ℝ):ℂ) * e ((p:ℝ)*(β - (k:ℝ))) := by
+  refine Finset.sum_congr rfl fun p _ => ?_
+  congr 1
+  have harg : (p:ℝ)*β = (p:ℝ)*(β - (k:ℝ)) + (((p:ℤ)*k : ℤ):ℝ) := by
+    push_cast
+    ring
+  rw [harg, e_add, e_intCast, mul_one]
+
+
+/-- **Dirichlet frequency preparation** (Track R, V8b): every real
+frequency is, up to an integer shift, of the form `a/q + δ` with
+`q ≤ n`, `gcd(a,q) = 1`, and `|δ| ≤ 1/((n+1)q)`. -/
+theorem dirichlet_frequency_split (β : ℝ) (n : ℕ) (hn : 0 < n) :
+    ∃ (a q : ℕ) (k : ℤ), 1 ≤ q ∧ q ≤ n ∧ Nat.Coprime a q ∧
+      |(β - (k:ℝ)) - (a:ℝ)/(q:ℝ)| ≤ 1/(((n:ℝ)+1)*(q:ℝ)) := by
+  obtain ⟨r, hr1, hr2⟩ := Real.exists_rat_abs_sub_le_and_den_le β hn
+  have hdenz : (r.den : ℤ) ≠ 0 := by
+    exact_mod_cast Rat.den_ne_zero r
+  have h0 : (0:ℤ) ≤ r.num % (r.den:ℤ) := Int.emod_nonneg r.num hdenz
+  have hmod : (r.den:ℤ) * (r.num / (r.den:ℤ)) + r.num % (r.den:ℤ)
+      = r.num := Int.ediv_add_emod r.num (r.den:ℤ)
+  refine ⟨(r.num % (r.den:ℤ)).toNat, r.den, r.num / (r.den:ℤ),
+    Rat.den_pos r, hr2, ?_, ?_⟩
+  · -- coprimality survives the shift
+    have hred : r.num.natAbs.Coprime r.den := r.reduced
+    have hkey : ∀ d : ℕ, d ∣ (r.num % (r.den:ℤ)).toNat → d ∣ r.den →
+        d ∣ r.num.natAbs := by
+      intro d hd1 hd2
+      have h1 : (d:ℤ) ∣ (r.num % (r.den:ℤ)) := by
+        have h1' := Int.natCast_dvd_natCast.mpr hd1
+        rwa [Int.toNat_of_nonneg h0] at h1'
+      have h2 : (d:ℤ) ∣ (r.den:ℤ) := Int.natCast_dvd_natCast.mpr hd2
+      have h3 : (d:ℤ) ∣ r.num := by
+        have h4 : (d:ℤ) ∣ (r.den:ℤ) * (r.num / (r.den:ℤ))
+            + r.num % (r.den:ℤ) :=
+          dvd_add (Dvd.dvd.mul_right h2 _) h1
+        rwa [hmod] at h4
+      have h5 := Int.natAbs_dvd_natAbs.mpr h3
+      rwa [Int.natAbs_natCast] at h5
+    have hd1 := Nat.gcd_dvd_left ((r.num % (r.den:ℤ)).toNat) r.den
+    have hd2 := Nat.gcd_dvd_right ((r.num % (r.den:ℤ)).toNat) r.den
+    have hdvd := Nat.dvd_gcd (hkey _ hd1 hd2) hd2
+    exact Nat.dvd_one.mp (hred.gcd_eq_one ▸ hdvd)
+  · -- the shifted frequency error is the Dirichlet error
+    have hcast : (((r.num % (r.den:ℤ)).toNat : ℕ):ℝ)
+        = ((r.num % (r.den:ℤ) : ℤ):ℝ) := by
+      rw [← Int.cast_natCast, Int.toNat_of_nonneg h0]
+    have hden0 : (0:ℝ) < (r.den:ℝ) := by
+      exact_mod_cast Rat.den_pos r
+    have hmodR : (r.den:ℝ) * ((r.num / (r.den:ℤ) : ℤ):ℝ)
+        + ((r.num % (r.den:ℤ) : ℤ):ℝ) = (r.num:ℝ) := by
+      exact_mod_cast hmod
+    have hkey2 : (β - ((r.num / (r.den:ℤ) : ℤ):ℝ))
+        - (((r.num % (r.den:ℤ)).toNat : ℕ):ℝ)/(r.den:ℝ)
+        = β - (r:ℝ) := by
+      rw [hcast]
+      have hrcast : (r:ℝ) = (r.num:ℝ)/(r.den:ℝ) := Rat.cast_def r
+      rw [hrcast]
+      field_simp
+      linarith [hmodR]
+    rw [hkey2]
+    exact hr1
 
 end ExpSums
 
