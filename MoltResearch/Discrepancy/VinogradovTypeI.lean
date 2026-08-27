@@ -3140,6 +3140,218 @@ theorem norm_pair_sum_le_gap_hyperbola (β : ℝ) (M₁ M₂ n₀ N : ℕ)
   · rw [if_neg hpos]
     exact htriv
 
+
+/-- **The hyperbola-filtered inner-square bound** (Track R, V6c-ii):
+the fixed-set inner-square estimate survives the hyperbola coupling
+`n₀ < n*m ≤ N` unchanged — the filter is absorbed into the
+coefficients, each conjugate pair collapses to a gap phase sum over a
+sub-interval, and the pair-to-gap machinery prices every gap by
+`min(length, Kusmin–Landau)`. -/
+theorem sum_inner_sq_le_hyperbola (a q : ℕ) (hq : 1 ≤ q)
+    (hcop : Nat.Coprime a q) (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2)
+    (M₁ M₂ KM n₀ N : ℕ) (K : Finset ℕ) (hK : K ⊆ Finset.Icc 1 KM)
+    (bn : ℕ → ℂ) (hbn : ∀ n, ‖bn n‖ ≤ 1) :
+    ∑ m ∈ Finset.Ico M₁ M₂,
+      ‖∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+        bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+      ≤ (K.card:ℝ) * (((M₂ - M₁ : ℕ):ℝ)
+          + 2*(((KM:ℝ)/(q:ℝ) + 1)
+            *(13*((M₂ - M₁ : ℕ):ℝ)
+              + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))) := by
+  classical
+  have hfilter : ∀ m : ℕ,
+      ∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+        bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+      = ∑ n ∈ K,
+          (if n₀ < n*m ∧ n*m ≤ N then bn n else 0)
+            * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := by
+    intro m
+    rw [Finset.sum_filter]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    by_cases hP : n₀ < n*m ∧ n*m ≤ N
+    · rw [if_pos hP, if_pos hP]
+    · rw [if_neg hP, if_neg hP, zero_mul]
+  have hLHS : ∑ m ∈ Finset.Ico M₁ M₂,
+      ‖∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+        bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+      = ∑ m ∈ Finset.Ico M₁ M₂,
+        ‖∑ n ∈ K,
+          (if n₀ < n*m ∧ n*m ≤ N then bn n else 0)
+            * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2 :=
+    Finset.sum_congr rfl fun m _ => by rw [hfilter m]
+  rw [hLHS]
+  have hexp := sum_norm_sq_expand (Finset.Ico M₁ M₂) K
+    (fun m n => (if n₀ < n*m ∧ n*m ≤ N then bn n else 0)
+      * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+  refine le_trans hexp ?_
+  have hpair : ∀ p ∈ K ×ˢ K,
+      ‖∑ m ∈ Finset.Ico M₁ M₂,
+        ((if n₀ < p.1*m ∧ p.1*m ≤ N then bn p.1 else 0)
+          * e ((m:ℝ)*(p.1:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+          * (starRingEnd ℂ)
+            ((if n₀ < p.2*m ∧ p.2*m ≤ N then bn p.2 else 0)
+              * e ((m:ℝ)*(p.2:ℝ)*((a:ℝ)/(q:ℝ) + δ)))‖
+      ≤ min (((M₂ - M₁ : ℕ):ℝ))
+          (if 0 < nint (((max p.1 p.2 - min p.1 p.2 : ℕ):ℝ)
+              *((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint (((max p.1 p.2 - min p.1 p.2 : ℕ):ℝ)
+              *((a:ℝ)/(q:ℝ) + δ))
+            else ((M₂ - M₁ : ℕ):ℝ)) := by
+    intro p hp
+    rw [Finset.mem_product] at hp
+    have h1 := hK hp.1
+    have h2 := hK hp.2
+    rw [Finset.mem_Icc] at h1 h2
+    exact norm_pair_sum_le_gap_hyperbola ((a:ℝ)/(q:ℝ) + δ) M₁ M₂ n₀ N
+      bn hbn p.1 p.2 h1.1 h2.1
+  refine le_trans (Finset.sum_le_sum hpair) ?_
+  have hFnn : ∀ h : ℕ,
+      (0:ℝ) ≤ min (((M₂ - M₁ : ℕ):ℝ))
+        (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          else ((M₂ - M₁ : ℕ):ℝ)) := by
+    intro h
+    refine le_min (Nat.cast_nonneg _) ?_
+    by_cases hpos : 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+    · rw [if_pos hpos]
+      exact div_nonneg zero_le_one hpos.le
+    · rw [if_neg hpos]
+      exact Nat.cast_nonneg _
+  refine le_trans (sum_pairs_gap_le K KM hK
+    (fun h => min (((M₂ - M₁ : ℕ):ℝ))
+      (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        else ((M₂ - M₁ : ℕ):ℝ))) hFnn) ?_
+  refine mul_le_mul_of_nonneg_left ?_ (Nat.cast_nonneg _)
+  simp only []
+  have hdiag : min (((M₂ - M₁ : ℕ):ℝ))
+      (if 0 < nint (((0:ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        then 1 / nint (((0:ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        else ((M₂ - M₁ : ℕ):ℝ)) ≤ ((M₂ - M₁ : ℕ):ℝ) :=
+    min_le_left _ _
+  have hsum : ∑ h ∈ Finset.Icc 1 KM,
+      min (((M₂ - M₁ : ℕ):ℝ))
+        (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          else ((M₂ - M₁ : ℕ):ℝ))
+      ≤ ((KM:ℝ)/(q:ℝ) + 1) * (13*((M₂ - M₁ : ℕ):ℝ)
+          + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+    have hhalf : ∑ h ∈ Finset.Icc 1 KM,
+        min (((M₂ - M₁ : ℕ):ℝ))
+          (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            else ((M₂ - M₁ : ℕ):ℝ))
+        = 2 * ∑ h ∈ Finset.Icc 1 KM,
+          (min (((M₂ - M₁ : ℕ):ℝ))
+            (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              else ((M₂ - M₁ : ℕ):ℝ)) / 2) := by
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl fun h _ => ?_
+      ring
+    have hcc := sum_range_g_const_le a q hq hcop δ hδ KM
+      (((M₂ - M₁ : ℕ):ℝ)/2) (by positivity)
+      (fun h => min (((M₂ - M₁ : ℕ):ℝ))
+        (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          else ((M₂ - M₁ : ℕ):ℝ)) / 2)
+      (fun h _ => div_nonneg (hFnn h) (by norm_num))
+      (fun h _ => by
+        have := min_le_left (((M₂ - M₁ : ℕ):ℝ))
+          (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            else ((M₂ - M₁ : ℕ):ℝ))
+        linarith)
+      (fun h _ hpos => by
+        have hite : (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            else ((M₂ - M₁ : ℕ):ℝ))
+            = 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := if_pos hpos
+        have hle : min (((M₂ - M₁ : ℕ):ℝ))
+            (if 0 < nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              else ((M₂ - M₁ : ℕ):ℝ))
+            ≤ 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ)) :=
+          le_trans (min_le_right _ _) (le_of_eq hite)
+        have hd : 1/(2 * nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+            = (1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ)))/2 := by
+          rw [div_div]
+          ring_nf
+        rw [hd]
+        linarith)
+    rw [hhalf]
+    have hring : 2*(((KM:ℝ)/(q:ℝ) + 1)
+        *(13*(((M₂ - M₁ : ℕ):ℝ)/2)
+          + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        = ((KM:ℝ)/(q:ℝ) + 1) * (13*((M₂ - M₁ : ℕ):ℝ)
+          + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+      ring
+    linarith [hcc, hring.le, hring.ge]
+  linarith [hdiag, hsum]
+
+
+/-- **The hyperbola-filtered `ℓ²`-coefficient Type II estimate**
+(Track R, V6c-iii): Cauchy–Schwarz in the outer variable on top of the
+hyperbola-filtered inner-square bound — the exact shape the third
+Vaughan term takes after its dyadic split. -/
+theorem typeII_sum_sq_hyperbola (a q : ℕ) (hq : 1 ≤ q)
+    (hcop : Nat.Coprime a q) (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2)
+    (M₁ M₂ KM n₀ N : ℕ) (K : Finset ℕ) (hK : K ⊆ Finset.Icc 1 KM)
+    (am bn : ℕ → ℂ) (hbn : ∀ n, ‖bn n‖ ≤ 1) :
+    ‖∑ m ∈ Finset.Ico M₁ M₂,
+        am m * ∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+          bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+      ≤ (∑ m ∈ Finset.Ico M₁ M₂, ‖am m‖^2)
+        * ((K.card:ℝ) * (((M₂ - M₁ : ℕ):ℝ)
+          + 2*(((KM:ℝ)/(q:ℝ) + 1)
+            *(13*((M₂ - M₁ : ℕ):ℝ)
+              + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))))) := by
+  classical
+  have hcs : ‖∑ m ∈ Finset.Ico M₁ M₂,
+      am m * ∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+        bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+      ≤ (∑ m ∈ Finset.Ico M₁ M₂, ‖am m‖^2)
+        * ∑ m ∈ Finset.Ico M₁ M₂,
+          ‖∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+            bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2 := by
+    have h1 : ‖∑ m ∈ Finset.Ico M₁ M₂,
+        am m * ∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+          bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+        ≤ ∑ m ∈ Finset.Ico M₁ M₂,
+          ‖am m‖ * ‖∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+            bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ := by
+      refine le_trans (norm_sum_le _ _) ?_
+      refine Finset.sum_le_sum fun m _ => ?_
+      rw [norm_mul]
+    have h2 := sum_mul_sq_le_sq_mul_sq (Finset.Ico M₁ M₂)
+      (fun m => ‖am m‖)
+      (fun m => ‖∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+        bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖)
+    have h3 : (0:ℝ) ≤ ∑ m ∈ Finset.Ico M₁ M₂,
+        ‖am m‖ * ‖∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+          bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ :=
+      Finset.sum_nonneg fun m _ =>
+        mul_nonneg (norm_nonneg _) (norm_nonneg _)
+    calc ‖∑ m ∈ Finset.Ico M₁ M₂,
+        am m * ∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+          bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+        ≤ (∑ m ∈ Finset.Ico M₁ M₂,
+            ‖am m‖ * ‖∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+              bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖)^2 := by
+          nlinarith [h1, norm_nonneg (∑ m ∈ Finset.Ico M₁ M₂,
+            am m * ∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+              bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))), h3]
+      _ ≤ (∑ m ∈ Finset.Ico M₁ M₂, ‖am m‖^2)
+          * ∑ m ∈ Finset.Ico M₁ M₂,
+            ‖∑ n ∈ K.filter (fun n => n₀ < n*m ∧ n*m ≤ N),
+              bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2 :=
+          h2
+  refine le_trans hcs ?_
+  refine mul_le_mul_of_nonneg_left ?_ ?_
+  · exact sum_inner_sq_le_hyperbola a q hq hcop δ hδ M₁ M₂ KM n₀ N K hK
+      bn hbn
+  · exact Finset.sum_nonneg fun m _ => sq_nonneg _
+
 end ExpSums
 
 end MoltResearch
