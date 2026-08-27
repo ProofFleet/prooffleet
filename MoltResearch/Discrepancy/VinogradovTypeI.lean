@@ -2556,6 +2556,208 @@ theorem sum_Ioc_divisors_swap {M : Type*} [AddCommMonoid M] (A N : ℕ)
     have h1 : d * (n / d) = n := Nat.mul_div_cancel' hdvd
     rw [h1]
 
+
+open ArithmeticFunction in
+/-- **Vaughan's identity, weighted and exchanged** (Track R,
+V5c-iii-b): summing the pointwise identity against any weight over
+`(n₀, N]` and exchanging each term to modulus-major form.  The three
+right-hand sums are the Type I (log weight), Type I' (short von
+Mangoldt coefficient), and Type II (Möbius-tail coefficient) shapes. -/
+theorem vaughan_weighted (U V n₀ N : ℕ) (hV : V < n₀) (w : ℕ → ℂ) :
+    ∑ n ∈ Finset.Ioc n₀ N, ((vonMangoldt n : ℝ):ℂ) * w n
+      = (∑ b ∈ (Finset.Icc 1 N).filter (· ≤ U),
+          (((moebius b : ℤ):ℝ):ℂ)
+            * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+              ((Real.log (m:ℝ) : ℝ):ℂ) * w (b*m))
+        - (∑ b ∈ (Finset.Icc 1 N).filter (· ≤ U),
+            (((moebius b : ℤ):ℝ):ℂ)
+              * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+                ((∑ c ∈ m.divisors.filter (· ≤ V),
+                  (vonMangoldt c : ℝ) : ℝ):ℂ) * w (b*m))
+        + (∑ c ∈ (Finset.Icc 1 N).filter (fun c => ¬ c ≤ V),
+            ((vonMangoldt c : ℝ):ℂ)
+              * ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+                ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+                  ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m)) := by
+  classical
+  -- expand each `Λ(n)·w(n)` by the pointwise identity
+  have hpt : ∀ n ∈ Finset.Ioc n₀ N, ((vonMangoldt n : ℝ):ℂ) * w n
+      = (∑ b ∈ n.divisors.filter (· ≤ U),
+          (((moebius b : ℤ):ℝ):ℂ) * ((Real.log ((n/b : ℕ):ℝ) : ℝ):ℂ))
+            * w n
+        - (∑ b ∈ n.divisors.filter (· ≤ U),
+            (((moebius b : ℤ):ℝ):ℂ)
+              * ((∑ c ∈ (n/b).divisors.filter (· ≤ V),
+                (vonMangoldt c : ℝ) : ℝ):ℂ)) * w n
+        + (∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+            ((vonMangoldt c : ℝ):ℂ)
+              * ((∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+                ((moebius b : ℤ):ℝ) : ℝ):ℂ)) * w n := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn
+    have hid := vaughan_pointwise U V n (by omega)
+    have hidC : ((vonMangoldt n : ℝ):ℂ)
+        = (∑ b ∈ n.divisors.filter (· ≤ U),
+            (((moebius b : ℤ):ℝ):ℂ) * ((Real.log ((n/b : ℕ):ℝ) : ℝ):ℂ))
+          - (∑ b ∈ n.divisors.filter (· ≤ U),
+              (((moebius b : ℤ):ℝ):ℂ)
+                * ((∑ c ∈ (n/b).divisors.filter (· ≤ V),
+                  (vonMangoldt c : ℝ) : ℝ):ℂ))
+          + (∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+              ((vonMangoldt c : ℝ):ℂ)
+                * ((∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+                  ((moebius b : ℤ):ℝ) : ℝ):ℂ)) := by
+      rw [show ((vonMangoldt n : ℝ):ℂ)
+          = (((∑ b ∈ n.divisors.filter (· ≤ U),
+              ((moebius b : ℤ):ℝ) * Real.log ((n/b : ℕ):ℝ))
+            - (∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+                * ∑ c ∈ (n/b).divisors.filter (· ≤ V),
+                  (vonMangoldt c : ℝ))
+            + (∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+                (vonMangoldt c : ℝ)
+                  * ∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+                    ((moebius b : ℤ):ℝ)) : ℝ):ℂ) from by
+        rw [← hid]]
+      push_cast
+      ring_nf
+    rw [hidC]
+    ring
+  rw [Finset.sum_congr rfl hpt]
+  rw [Finset.sum_add_distrib, Finset.sum_sub_distrib]
+  congr 1
+  · congr 1
+    · -- Type I exchange
+      have h1 : ∀ n ∈ Finset.Ioc n₀ N,
+          (∑ b ∈ n.divisors.filter (· ≤ U),
+            (((moebius b : ℤ):ℝ):ℂ)
+              * ((Real.log ((n/b : ℕ):ℝ) : ℝ):ℂ)) * w n
+          = ∑ b ∈ n.divisors,
+            (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+              * ((Real.log ((n/b : ℕ):ℝ) : ℝ):ℂ) * w n := by
+        intro n _
+        rw [Finset.sum_mul, Finset.sum_filter]
+        refine Finset.sum_congr rfl fun b _ => ?_
+        split <;> simp
+      rw [Finset.sum_congr rfl h1, sum_Ioc_divisors_swap n₀ N
+        (fun b n => (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+          * ((Real.log ((n/b : ℕ):ℝ) : ℝ):ℂ) * w n)]
+      have h2 : ∀ b ∈ Finset.Icc 1 N,
+          ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+            (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+              * ((Real.log ((b*m/b : ℕ):ℝ) : ℝ):ℂ) * w (b*m)
+          = (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+            * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+              ((Real.log (m:ℝ) : ℝ):ℂ) * w (b*m) := by
+        intro b hb
+        rw [Finset.mem_Icc] at hb
+        rw [Finset.mul_sum]
+        refine Finset.sum_congr rfl fun m _ => ?_
+        rw [Nat.mul_div_cancel_left m (by omega)]
+        ring
+      have h3 : ∀ b ∈ Finset.Icc 1 N,
+          (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+            * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+              ((Real.log (m:ℝ) : ℝ):ℂ) * w (b*m)
+          = if b ≤ U then (((moebius b : ℤ):ℝ):ℂ)
+              * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+                ((Real.log (m:ℝ) : ℝ):ℂ) * w (b*m) else 0 := by
+        intro b _
+        split <;> simp
+      rw [Finset.sum_congr rfl h2, Finset.sum_congr rfl h3,
+        ← Finset.sum_filter]
+    · -- Type I' exchange
+      have h1 : ∀ n ∈ Finset.Ioc n₀ N,
+          (∑ b ∈ n.divisors.filter (· ≤ U),
+            (((moebius b : ℤ):ℝ):ℂ)
+              * ((∑ c ∈ (n/b).divisors.filter (· ≤ V),
+                (vonMangoldt c : ℝ) : ℝ):ℂ)) * w n
+          = ∑ b ∈ n.divisors,
+            (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+              * ((∑ c ∈ (n/b).divisors.filter (· ≤ V),
+                (vonMangoldt c : ℝ) : ℝ):ℂ) * w n := by
+        intro n _
+        rw [Finset.sum_mul, Finset.sum_filter]
+        refine Finset.sum_congr rfl fun b _ => ?_
+        split <;> simp
+      rw [Finset.sum_congr rfl h1, sum_Ioc_divisors_swap n₀ N
+        (fun b n => (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+          * ((∑ c ∈ (n/b).divisors.filter (· ≤ V),
+            (vonMangoldt c : ℝ) : ℝ):ℂ) * w n)]
+      have h2 : ∀ b ∈ Finset.Icc 1 N,
+          ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+            (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+              * ((∑ c ∈ (b*m/b).divisors.filter (· ≤ V),
+                (vonMangoldt c : ℝ) : ℝ):ℂ) * w (b*m)
+          = (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+            * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+              ((∑ c ∈ m.divisors.filter (· ≤ V),
+                (vonMangoldt c : ℝ) : ℝ):ℂ) * w (b*m) := by
+        intro b hb
+        rw [Finset.mem_Icc] at hb
+        rw [Finset.mul_sum]
+        refine Finset.sum_congr rfl fun m _ => ?_
+        rw [Nat.mul_div_cancel_left m (by omega)]
+        ring
+      have h3 : ∀ b ∈ Finset.Icc 1 N,
+          (if b ≤ U then (((moebius b : ℤ):ℝ):ℂ) else 0)
+            * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+              ((∑ c ∈ m.divisors.filter (· ≤ V),
+                (vonMangoldt c : ℝ) : ℝ):ℂ) * w (b*m)
+          = if b ≤ U then (((moebius b : ℤ):ℝ):ℂ)
+              * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+                ((∑ c ∈ m.divisors.filter (· ≤ V),
+                  (vonMangoldt c : ℝ) : ℝ):ℂ) * w (b*m) else 0 := by
+        intro b _
+        split <;> simp
+      rw [Finset.sum_congr rfl h2, Finset.sum_congr rfl h3,
+        ← Finset.sum_filter]
+  · -- Type II exchange
+    have h1 : ∀ n ∈ Finset.Ioc n₀ N,
+        (∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+          ((vonMangoldt c : ℝ):ℂ)
+            * ((∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+              ((moebius b : ℤ):ℝ) : ℝ):ℂ)) * w n
+        = ∑ c ∈ n.divisors,
+          (if ¬ c ≤ V then ((vonMangoldt c : ℝ):ℂ) else 0)
+            * ((∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+              ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w n := by
+      intro n _
+      rw [Finset.sum_mul, Finset.sum_filter]
+      refine Finset.sum_congr rfl fun c _ => ?_
+      split <;> simp
+    rw [Finset.sum_congr rfl h1, sum_Ioc_divisors_swap n₀ N
+      (fun c n => (if ¬ c ≤ V then ((vonMangoldt c : ℝ):ℂ) else 0)
+        * ((∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+          ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w n)]
+    have h2 : ∀ c ∈ Finset.Icc 1 N,
+        ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+          (if ¬ c ≤ V then ((vonMangoldt c : ℝ):ℂ) else 0)
+            * ((∑ b ∈ (c*m/c).divisors.filter (fun b => ¬ b ≤ U),
+              ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m)
+        = (if ¬ c ≤ V then ((vonMangoldt c : ℝ):ℂ) else 0)
+          * ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+            ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+              ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m) := by
+      intro c hc
+      rw [Finset.mem_Icc] at hc
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl fun m _ => ?_
+      rw [Nat.mul_div_cancel_left m (by omega)]
+      ring
+    have h3 : ∀ c ∈ Finset.Icc 1 N,
+        (if ¬ c ≤ V then ((vonMangoldt c : ℝ):ℂ) else 0)
+          * ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+            ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+              ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m)
+        = if ¬ c ≤ V then ((vonMangoldt c : ℝ):ℂ)
+            * ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+              ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+                ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m) else 0 := by
+      intro c _
+      split <;> simp
+    rw [Finset.sum_congr rfl h2, Finset.sum_congr rfl h3,
+      ← Finset.sum_filter]
+
 end ExpSums
 
 end MoltResearch
