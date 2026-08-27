@@ -5621,6 +5621,51 @@ theorem dirichlet_frequency_split (β : ℝ) (n : ℕ) (hn : 0 < n) :
     rw [hkey2]
     exact hr1
 
+
+/-- **Eventual log-largeness** (Track R, V8c): past `⌈exp C⌉`, the
+logarithm exceeds `C`. -/
+theorem exists_log_ge (C : ℝ) :
+    ∃ N₀ : ℕ, ∀ n : ℕ, N₀ ≤ n → C ≤ Real.log (n:ℝ) := by
+  refine ⟨⌈Real.exp C⌉₊ + 1, fun n hn => ?_⟩
+  have h1 : Real.exp C ≤ (n:ℝ) := by
+    calc Real.exp C ≤ (⌈Real.exp C⌉₊ : ℝ) := Nat.le_ceil _
+      _ ≤ (n:ℝ) := by
+          exact_mod_cast le_trans (Nat.le_succ _) hn
+  calc C = Real.log (Real.exp C) := (Real.log_exp C).symm
+    _ ≤ Real.log (n:ℝ) := Real.log_le_log (Real.exp_pos C) h1
+
+
+/-- **Log powers are eventually below any linear function** (Track R,
+V8c): `(log n)^k ≤ ε·n` for `n` large — by `x^k e^{−x} → 0` composed
+with `log → ∞`. -/
+theorem exists_log_pow_le (k : ℕ) (ε : ℝ) (hε : 0 < ε) :
+    ∃ N₀ : ℕ, ∀ n : ℕ, N₀ ≤ n → (Real.log (n:ℝ))^k ≤ ε*(n:ℝ) := by
+  have h2 : Filter.Tendsto
+      (fun x : ℝ => (Real.log x)^k * Real.exp (-(Real.log x)))
+      Filter.atTop (nhds 0) :=
+    (Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero k).comp
+      Real.tendsto_log_atTop
+  have h3 : ∀ᶠ x : ℝ in Filter.atTop,
+      (Real.log x)^k * Real.exp (-(Real.log x)) < ε :=
+    h2.eventually_lt_const hε
+  rw [Filter.eventually_atTop] at h3
+  obtain ⟨x₀, hx₀⟩ := h3
+  refine ⟨⌈x₀⌉₊ + 2, fun n hn => ?_⟩
+  have hnx : x₀ ≤ (n:ℝ) := by
+    calc x₀ ≤ (⌈x₀⌉₊ : ℝ) := Nat.le_ceil _
+      _ ≤ (n:ℝ) := by
+          exact_mod_cast le_trans (by omega : ⌈x₀⌉₊ ≤ ⌈x₀⌉₊ + 2) hn
+  have hn0 : (0:ℝ) < (n:ℝ) := by
+    have h0 : 0 < n := by omega
+    exact_mod_cast h0
+  have h4 := hx₀ (n:ℝ) hnx
+  rw [Real.exp_neg, Real.exp_log hn0] at h4
+  have h5 : (Real.log (n:ℝ))^k
+      = ((Real.log (n:ℝ))^k * (n:ℝ)⁻¹) * (n:ℝ) := by
+    field_simp
+  rw [h5]
+  exact mul_le_mul_of_nonneg_right h4.le hn0.le
+
 end ExpSums
 
 end MoltResearch
