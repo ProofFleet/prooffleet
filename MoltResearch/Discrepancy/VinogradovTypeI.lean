@@ -5965,6 +5965,274 @@ theorem typeI_terms_small (ε x u u2 Q l L G v v2 s : ℝ)
     exact le_of_pow_le_pow_left₀ (by norm_num) (by positivity) hg4
   linarith [hA1, hA2, hcorr]
 
+
+set_option maxHeartbeats 1000000 in
+open ArithmeticFunction in
+/-- **The minor-arc expression is small** (Track R, V8d): with the
+dyadic cube root `U = 2^{⌊log₂n₀⌋/3}` and `B = 20`, the whole master
+bound (plus the prime-power remainder) is at most `(c/4)·n₀` for every
+denominator in the window — the `∃N₀` wrapper over the two pure-real
+crunch lemmas. -/
+theorem minor_arc_expr_le (c : ℝ) (hc : 0 < c) :
+    ∃ N₀ : ℕ, ∀ n₀ : ℕ, N₀ ≤ n₀ → ∀ q : ℕ, 1 ≤ q →
+      (Real.log (n₀:ℝ))^20 < (q:ℝ) →
+      (q:ℝ)*(Real.log (n₀:ℝ))^20 ≤ (n₀:ℝ) →
+      (2*Real.log ((2*n₀ : ℕ):ℝ)
+          * (13*((2*n₀ : ℕ):ℝ)
+              *(Real.log ((2^(n₀.log2/3) : ℕ):ℝ) + 3)/(q:ℝ)
+            + 2*(((2^(n₀.log2/3) : ℕ):ℝ)/(q:ℝ) + 1)
+              * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        + Real.log ((2*n₀ : ℕ):ℝ)
+          * (13*((2*n₀ : ℕ):ℝ)
+              *(Real.log ((2^(n₀.log2/3) * 2^(n₀.log2/3) : ℕ):ℝ) + 3)
+                /(q:ℝ)
+            + 2*(((2^(n₀.log2/3) * 2^(n₀.log2/3) : ℕ):ℝ)/(q:ℝ) + 1)
+              * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        + 3*(Real.log ((2*n₀ : ℕ):ℝ))^2
+          * Real.sqrt ((1 + Real.log ((2*n₀ : ℕ):ℝ))^3
+            * (27*((2*n₀ : ℕ):ℝ)^2/((2^(n₀.log2/3) : ℕ):ℝ)
+              + 52*((2*n₀ : ℕ):ℝ)^2/(q:ℝ)
+              + 2112*((2*n₀ : ℕ):ℝ)^2
+                *(Real.log (8*(q:ℝ)) + 1)/((2^(n₀.log2/3) : ℕ):ℝ)
+              + 1056*((2*n₀ : ℕ):ℝ)*(q:ℝ)
+                *(Real.log (8*(q:ℝ)) + 1))))
+        + ((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ)
+          * Real.log ((2*n₀ : ℕ):ℝ)
+      ≤ (c/4)*(n₀:ℝ) := by
+  classical
+  set ε := c/16 with hεdef
+  have hε : 0 < ε := by
+    rw [hεdef]
+    positivity
+  obtain ⟨N₁, hN₁⟩ := exists_log_ge (1 + 44160/ε + 164229120/ε^2)
+  obtain ⟨N₂, hN₂⟩ := exists_log_pow_le 6 (ε^3/(27*14720^3))
+    (by positivity)
+  obtain ⟨N₃, hN₃⟩ := exists_log_pow_le 21 (ε^6/(8*1679616^3))
+    (by positivity)
+  obtain ⟨N₄, hN₄⟩ := exists_log_pow_le 24 (ε^6/(8*656916480^3))
+    (by positivity)
+  obtain ⟨N₅, hN₅⟩ := exists_log_pow_le 4 (ε^2/288) (by positivity)
+  refine ⟨N₁ + N₂ + N₃ + N₄ + N₅ + 16, fun n₀ hn₀ q hq1 hql hqu => ?_⟩
+  have h16 : 16 ≤ n₀ := by omega
+  have hn₀0 : 0 < n₀ := by omega
+  have hx : (0:ℝ) < (n₀:ℝ) := by exact_mod_cast hn₀0
+  have hx1 : (1:ℝ) ≤ (n₀:ℝ) := by exact_mod_cast hn₀0
+  have hqR : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq1
+  -- the largeness facts
+  have hN₁' := hN₁ n₀ (by omega)
+  have hN₂' := hN₂ n₀ (by omega)
+  have hN₃' := hN₃ n₀ (by omega)
+  have hN₄' := hN₄ n₀ (by omega)
+  have hN₅' := hN₅ n₀ (by omega)
+  have hdivε1 : (0:ℝ) ≤ 44160/ε := by positivity
+  have hdivε2 : (0:ℝ) ≤ 164229120/ε^2 := by positivity
+  have hl1 : (1:ℝ) ≤ Real.log (n₀:ℝ) := by linarith
+  have hl0 : (0:ℝ) < Real.log (n₀:ℝ) := by linarith
+  have hεl : (44160:ℝ) ≤ ε*Real.log (n₀:ℝ) := by
+    have h1 : 44160/ε ≤ Real.log (n₀:ℝ) := by linarith
+    have h2 := mul_le_mul_of_nonneg_left h1 hε.le
+    have h3 : ε*(44160/ε) = 44160 := by field_simp
+    linarith [h2, h3.le, h3.ge]
+  have hll : (164229120:ℝ) ≤ ε^2*Real.log (n₀:ℝ) := by
+    have h1 : 164229120/ε^2 ≤ Real.log (n₀:ℝ) := by linarith
+    have h2 := mul_le_mul_of_nonneg_left h1 (by positivity : (0:ℝ) ≤ ε^2)
+    have h3 : ε^2*(164229120/ε^2) = 164229120 := by field_simp
+    linarith [h2, h3.le, h3.ge]
+  have hb6m : 27*14720^3*(Real.log (n₀:ℝ))^6 ≤ ε^3*(n₀:ℝ) := by
+    have h2 := mul_le_mul_of_nonneg_left hN₂'
+      (by norm_num : (0:ℝ) ≤ 27*14720^3)
+    have h3 : 27*14720^3*(ε^3/(27*14720^3)*(n₀:ℝ)) = ε^3*(n₀:ℝ) := by
+      field_simp
+    linarith [h2, h3.le, h3.ge]
+  have hb21m : 8*1679616^3*(Real.log (n₀:ℝ))^21 ≤ ε^6*(n₀:ℝ) := by
+    have h2 := mul_le_mul_of_nonneg_left hN₃'
+      (by norm_num : (0:ℝ) ≤ 8*1679616^3)
+    have h3 : 8*1679616^3*(ε^6/(8*1679616^3)*(n₀:ℝ)) = ε^6*(n₀:ℝ) := by
+      field_simp
+    linarith [h2, h3.le, h3.ge]
+  have hb24m : 8*656916480^3*(Real.log (n₀:ℝ))^24 ≤ ε^6*(n₀:ℝ) := by
+    have h2 := mul_le_mul_of_nonneg_left hN₄'
+      (by norm_num : (0:ℝ) ≤ 8*656916480^3)
+    have h3 : 8*656916480^3*(ε^6/(8*656916480^3)*(n₀:ℝ))
+        = ε^6*(n₀:ℝ) := by
+      field_simp
+    linarith [h2, h3.le, h3.ge]
+  have hb4m : 288*(Real.log (n₀:ℝ))^4 ≤ ε^2*(n₀:ℝ) := by
+    have h2 := mul_le_mul_of_nonneg_left hN₅'
+      (by norm_num : (0:ℝ) ≤ 288)
+    have h3 : 288*(ε^2/288*(n₀:ℝ)) = ε^2*(n₀:ℝ) := by
+      field_simp
+    linarith [h2, h3.le, h3.ge]
+  -- the dyadic cube root, in `ℕ`
+  have hE4 : 4 ≤ n₀.log2 := by
+    by_contra hcon
+    push_neg at hcon
+    have h1 := (Nat.log2_lt (by omega)).mp hcon
+    have h2 : (2:ℕ)^4 = 16 := by norm_num
+    omega
+  have hU1 : 1 ≤ 2^(n₀.log2/3) := Nat.one_le_two_pow
+  have hU3n : 2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3) ≤ n₀ := by
+    calc 2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3)
+        = 2^(n₀.log2/3 + n₀.log2/3 + n₀.log2/3) := by
+          rw [← pow_add, ← pow_add]
+      _ ≤ 2^(n₀.log2) :=
+          Nat.pow_le_pow_right (by norm_num) (by omega)
+      _ ≤ n₀ := Nat.log2_self_le (by omega)
+  have hUUn : 2^(n₀.log2/3)*2^(n₀.log2/3) ≤ n₀ := by
+    calc 2^(n₀.log2/3)*2^(n₀.log2/3)
+        = 2^(n₀.log2/3 + n₀.log2/3) := by rw [← pow_add]
+      _ ≤ 2^(n₀.log2) :=
+          Nat.pow_le_pow_right (by norm_num) (by omega)
+      _ ≤ n₀ := Nat.log2_self_le (by omega)
+  have hUn : 2^(n₀.log2/3) ≤ n₀ := by
+    calc 2^(n₀.log2/3) ≤ 2^(n₀.log2) :=
+          Nat.pow_le_pow_right (by norm_num) (by omega)
+      _ ≤ n₀ := Nat.log2_self_le (by omega)
+  have hn8U : n₀ < 8*(2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3)) := by
+    have h1 : n₀ < 2^(n₀.log2 + 1) := lt_two_pow_log2_succ n₀ (by omega)
+    calc n₀ < 2^(n₀.log2 + 1) := h1
+      _ ≤ 2^(n₀.log2/3 + n₀.log2/3 + n₀.log2/3 + 3) :=
+          Nat.pow_le_pow_right (by norm_num) (by omega)
+      _ = 8*(2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3)) := by
+          rw [← pow_add, ← pow_add]
+          ring
+  -- pass to `ℝ`
+  have h2x : ((2*n₀ : ℕ):ℝ) = 2*(n₀:ℝ) := by push_cast; ring
+  rw [h2x]
+  have hu0 : (0:ℝ) < ((2^(n₀.log2/3) : ℕ):ℝ) := by
+    exact_mod_cast hU1
+  have hu20 : (0:ℝ) < ((2^(n₀.log2/3) * 2^(n₀.log2/3) : ℕ):ℝ) := by
+    have h1 : 1 ≤ 2^(n₀.log2/3) * 2^(n₀.log2/3) :=
+      Nat.mul_le_mul hU1 hU1
+    exact_mod_cast h1
+  have hu3u : ((2^(n₀.log2/3) : ℕ):ℝ)*((2^(n₀.log2/3) : ℕ):ℝ)
+      *((2^(n₀.log2/3) : ℕ):ℝ) ≤ (n₀:ℝ) := by
+    exact_mod_cast hU3n
+  have hu3 : (n₀:ℝ) ≤ 8*(((2^(n₀.log2/3) : ℕ):ℝ)
+      *((2^(n₀.log2/3) : ℕ):ℝ)*((2^(n₀.log2/3) : ℕ):ℝ)) := by
+    have h1 : (n₀:ℝ)
+        ≤ ((8*(2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3)) : ℕ):ℝ) := by
+      exact_mod_cast hn8U.le
+    calc (n₀:ℝ)
+        ≤ ((8*(2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3)) : ℕ):ℝ) := h1
+      _ = 8*(((2^(n₀.log2/3) : ℕ):ℝ)*((2^(n₀.log2/3) : ℕ):ℝ)
+          *((2^(n₀.log2/3) : ℕ):ℝ)) := by
+          push_cast
+          ring
+  have hu23 : ((2^(n₀.log2/3) * 2^(n₀.log2/3) : ℕ):ℝ)
+      *((2^(n₀.log2/3) * 2^(n₀.log2/3) : ℕ):ℝ)
+      *((2^(n₀.log2/3) * 2^(n₀.log2/3) : ℕ):ℝ) ≤ (n₀:ℝ)*(n₀:ℝ) := by
+    have h1 : (2^(n₀.log2/3)*2^(n₀.log2/3))*(2^(n₀.log2/3)*2^(n₀.log2/3))
+        *(2^(n₀.log2/3)*2^(n₀.log2/3))
+        = (2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3))
+          *(2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3)) := by
+      ring
+    have h2 : (2^(n₀.log2/3)*2^(n₀.log2/3))*(2^(n₀.log2/3)*2^(n₀.log2/3))
+        *(2^(n₀.log2/3)*2^(n₀.log2/3)) ≤ n₀*n₀ := by
+      rw [h1]
+      exact Nat.mul_le_mul hU3n hU3n
+    exact_mod_cast h2
+  -- log facts
+  have hlL : Real.log (n₀:ℝ) ≤ Real.log (2*(n₀:ℝ)) := by
+    refine Real.log_le_log hx ?_
+    linarith
+  have hlog2 : Real.log 2 < 0.6931471808 := Real.log_two_lt_d9
+  have hlog2' : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hL2 : Real.log (2*(n₀:ℝ)) ≤ 2*Real.log (n₀:ℝ) := by
+    rw [Real.log_mul (by norm_num) (ne_of_gt hx)]
+    linarith
+  have hqx : (q:ℝ) ≤ (n₀:ℝ) := by
+    have h1 : (1:ℝ) ≤ (Real.log (n₀:ℝ))^20 := by
+      have h2 := pow_le_pow_left₀ zero_le_one hl1 20
+      simpa using h2
+    nlinarith [hqu, hqR]
+  have hG0 : (0:ℝ) ≤ Real.log (8*(q:ℝ)) + 1 := by
+    have h1 : (0:ℝ) ≤ Real.log (8*(q:ℝ)) := by
+      refine Real.log_nonneg ?_
+      have : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq1
+      linarith
+    linarith
+  have hG5 : Real.log (8*(q:ℝ)) + 1 ≤ 5*Real.log (n₀:ℝ) := by
+    have h1 : Real.log (8*(q:ℝ))
+        = Real.log 8 + Real.log (q:ℝ) := by
+      rw [Real.log_mul (by norm_num) (ne_of_gt hqR)]
+    have h2 : Real.log (8:ℝ) = 3*Real.log 2 := by
+      rw [show (8:ℝ) = 2^3 by norm_num, Real.log_pow]
+      push_cast
+      ring
+    have h3 : Real.log (q:ℝ) ≤ Real.log (n₀:ℝ) :=
+      Real.log_le_log hqR hqx
+    rw [h1, h2]
+    linarith
+  have hv0 : (0:ℝ) ≤ Real.log ((2^(n₀.log2/3) : ℕ):ℝ) :=
+    Real.log_natCast_nonneg _
+  have hv : Real.log ((2^(n₀.log2/3) : ℕ):ℝ) + 3
+      ≤ 4*Real.log (n₀:ℝ) := by
+    have h1 : Real.log ((2^(n₀.log2/3) : ℕ):ℝ) ≤ Real.log (n₀:ℝ) := by
+      refine Real.log_le_log hu0 ?_
+      exact_mod_cast hUn
+    linarith
+  have hv20 : (0:ℝ) ≤ Real.log ((2^(n₀.log2/3)*2^(n₀.log2/3) : ℕ):ℝ) :=
+    Real.log_natCast_nonneg _
+  have hv2 : Real.log ((2^(n₀.log2/3)*2^(n₀.log2/3) : ℕ):ℝ) + 3
+      ≤ 4*Real.log (n₀:ℝ) := by
+    have h1 : Real.log ((2^(n₀.log2/3)*2^(n₀.log2/3) : ℕ):ℝ)
+        ≤ Real.log (n₀:ℝ) := by
+      refine Real.log_le_log hu20 ?_
+      exact_mod_cast hUUn
+    linarith
+  -- the remainder coefficient
+  have hs0 : (0:ℝ) ≤ ((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ) :=
+    Nat.cast_nonneg _
+  have hs2 : ((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ)
+      *((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ)
+      ≤ 2*(n₀:ℝ)*((3*Real.log (2*(n₀:ℝ)))*(3*Real.log (2*(n₀:ℝ)))) := by
+    have hsplit : ((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ)
+        = ((Nat.sqrt (2*n₀) : ℕ):ℝ)*(((2*n₀).log2 : ℕ):ℝ) := by
+      push_cast
+      ring
+    have hsq : ((Nat.sqrt (2*n₀) : ℕ):ℝ)*((Nat.sqrt (2*n₀) : ℕ):ℝ)
+        ≤ 2*(n₀:ℝ) := by
+      have h1 : Nat.sqrt (2*n₀) * Nat.sqrt (2*n₀) ≤ 2*n₀ :=
+        Nat.le_sqrt.mp (le_refl _)
+      calc ((Nat.sqrt (2*n₀) : ℕ):ℝ)*((Nat.sqrt (2*n₀) : ℕ):ℝ)
+          ≤ ((2*n₀ : ℕ):ℝ) := by exact_mod_cast h1
+        _ = 2*(n₀:ℝ) := h2x
+    have hlg : (((2*n₀).log2 : ℕ):ℝ) ≤ 3*Real.log (2*(n₀:ℝ)) := by
+      have h1 := natLog2_succ_le_log (2*n₀) (by omega)
+      rw [h2x] at h1
+      have h2 : (((2*n₀).log2 : ℕ):ℝ) ≤ (((2*n₀).log2 + 1 : ℕ):ℝ) := by
+        exact_mod_cast Nat.le_succ _
+      linarith
+    have hlg0 : (0:ℝ) ≤ (((2*n₀).log2 : ℕ):ℝ) := Nat.cast_nonneg _
+    have hmul2 : (((2*n₀).log2 : ℕ):ℝ)*(((2*n₀).log2 : ℕ):ℝ)
+        ≤ (3*Real.log (2*(n₀:ℝ)))*(3*Real.log (2*(n₀:ℝ))) :=
+      mul_self_le_mul_self hlg0 hlg
+    rw [hsplit]
+    nlinarith [mul_le_mul hsq hmul2
+      (mul_nonneg hlg0 hlg0) (by linarith [hsq, mul_self_nonneg (((Nat.sqrt (2*n₀) : ℕ):ℝ))] : (0:ℝ) ≤ 2*(n₀:ℝ))]
+  -- windows
+  have hwin1 : (Real.log (n₀:ℝ))^20 ≤ (q:ℝ) := hql.le
+  have hwin2 : (q:ℝ)*(Real.log (n₀:ℝ))^20 ≤ (n₀:ℝ) := hqu
+  -- apply the two crunch lemmas
+  have hT2 := typeII_term_small ε (n₀:ℝ) ((2^(n₀.log2/3) : ℕ):ℝ)
+    (q:ℝ) (Real.log (n₀:ℝ)) (Real.log (2*(n₀:ℝ)))
+    (Real.log (8*(q:ℝ)) + 1) hε hx hl1 hlL hL2 hG0 hG5 hu0 hqR
+    hwin1 hwin2 hu3 hb21m hb24m hll
+  have hT1 := typeI_terms_small ε (n₀:ℝ) ((2^(n₀.log2/3) : ℕ):ℝ)
+    ((2^(n₀.log2/3) * 2^(n₀.log2/3) : ℕ):ℝ) (q:ℝ)
+    (Real.log (n₀:ℝ)) (Real.log (2*(n₀:ℝ)))
+    (Real.log (8*(q:ℝ)) + 1)
+    (Real.log ((2^(n₀.log2/3) : ℕ):ℝ))
+    (Real.log ((2^(n₀.log2/3) * 2^(n₀.log2/3) : ℕ):ℝ))
+    ((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ)
+    hε hx1 hl1 hlL hL2 hG0 hG5 hu0 hu20 hqR hv0 hv hv20 hv2 hs0 hs2
+    hwin1 hwin2 hu3u hu23 hb6m hb4m hεl
+  have hfin : 3*(ε*(n₀:ℝ)) + ε*(n₀:ℝ) = (c/4)*(n₀:ℝ) := by
+    rw [hεdef]
+    ring
+  linarith [hT1, hT2, hfin.le, hfin.ge]
+
 end ExpSums
 
 end MoltResearch
