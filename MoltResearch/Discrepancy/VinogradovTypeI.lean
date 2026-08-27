@@ -430,6 +430,183 @@ theorem card_block_nint_lt_le (a q : ℕ) (hq : 1 ≤ q)
     _ ≤ 8*(q:ℝ)*(t + (q:ℝ)*|δ|) + 4 :=
         card_nint_window_le q (((j*q : ℕ):ℝ) * δ) (t + (q:ℝ)*|δ|) hs0
 
+
+/-- Auxiliary count: a `biUnion` of `n` real-interval filters of common
+length bound `L` holds at most `n(L+1)` points. -/
+theorem card_biUnion_Ioo_le (q n : ℕ) (A B : ℕ → ℝ) (L : ℝ)
+    (hAB : ∀ i ∈ Finset.range n, A i ≤ B i)
+    (hlen : ∀ i ∈ Finset.range n, B i - A i ≤ L) :
+    ((((Finset.range n).biUnion (fun i => (Finset.range q).filter
+        (fun k : ℕ => A i < (k:ℝ) ∧ (k:ℝ) < B i))).card : ℕ) : ℝ)
+      ≤ (n:ℝ) * (L + 1) := by
+  classical
+  calc ((((Finset.range n).biUnion (fun i => (Finset.range q).filter
+        (fun k : ℕ => A i < (k:ℝ) ∧ (k:ℝ) < B i))).card : ℕ) : ℝ)
+      ≤ ((∑ i ∈ Finset.range n,
+          ((Finset.range q).filter
+            (fun k : ℕ => A i < (k:ℝ) ∧ (k:ℝ) < B i)).card : ℕ) : ℝ) := by
+        exact_mod_cast Finset.card_biUnion_le
+    _ = ∑ i ∈ Finset.range n,
+          (((Finset.range q).filter
+            (fun k : ℕ => A i < (k:ℝ) ∧ (k:ℝ) < B i)).card : ℝ) := by
+        push_cast
+        ring
+    _ ≤ ∑ i ∈ Finset.range n, (L + 1) := by
+        refine Finset.sum_le_sum fun i hi => ?_
+        refine le_trans (card_range_filter_Ioo_le q (hAB i hi)) ?_
+        linarith [hlen i hi]
+    _ = (n:ℝ) * (L + 1) := by
+        rw [Finset.sum_const, Finset.card_range]
+        push_cast
+        ring
+
+/-- **The annulus window count** (Track R, V2b-i): among the `q` shifted
+lattice points `k/q + η`, at most `8qw + 16` have `nint` in the annulus
+`[t, t+w)`.  Each of the four rounding candidates contributes one
+interval of length `≤ qw + 1` on each side of its integer.  Unlike the
+cumulative count, this is bounded by a constant on `1/q`-fine shells —
+the fact the harmonic assembly of the Type I counting lemma needs. -/
+theorem card_nint_annulus_le (q : ℕ) (η t w : ℝ) (ht : 0 ≤ t)
+    (hw : 0 ≤ w) :
+    (((Finset.range q).filter
+        (fun k : ℕ => t ≤ nint ((k:ℝ)/(q:ℝ) + η)
+          ∧ nint ((k:ℝ)/(q:ℝ) + η) < t + w)).card : ℝ)
+      ≤ 8*(q:ℝ)*w + 16 := by
+  classical
+  rcases Nat.eq_zero_or_pos q with rfl | hq0
+  · simp
+  have hq0R : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq0
+  set R : Finset ℕ := (Finset.range 4).biUnion (fun i =>
+      (Finset.range q).filter (fun k : ℕ =>
+        (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) + t - η) - 1 < (k:ℝ)
+        ∧ (k:ℝ) < (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) + t + w - η)))
+    with hR_def
+  set Lset : Finset ℕ := (Finset.range 4).biUnion (fun i =>
+      (Finset.range q).filter (fun k : ℕ =>
+        (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - t - w - η) < (k:ℝ)
+        ∧ (k:ℝ) < (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - t - η) + 1))
+    with hL_def
+  have hsub : (Finset.range q).filter
+      (fun k : ℕ => t ≤ nint ((k:ℝ)/(q:ℝ) + η)
+        ∧ nint ((k:ℝ)/(q:ℝ) + η) < t + w) ⊆ R ∪ Lset := by
+    intro k hk
+    rw [Finset.mem_filter] at hk
+    obtain ⟨hkq', hann⟩ := hk
+    have hkq : k < q := Finset.mem_range.mp hkq'
+    have hx_lo : η ≤ (k:ℝ)/(q:ℝ) + η := by
+      have h0 : (0:ℝ) ≤ (k:ℝ)/(q:ℝ) := by positivity
+      linarith
+    have hx_hi : (k:ℝ)/(q:ℝ) + η < η + 1 := by
+      have h0 : (k:ℝ)/(q:ℝ) < 1 :=
+        (div_lt_one hq0R).mpr (by exact_mod_cast hkq)
+      linarith
+    have hround := abs_sub_round ((k:ℝ)/(q:ℝ) + η)
+    have hround' := abs_le.mp hround
+    have hfl_le : ((⌊η⌋ : ℤ):ℝ) ≤ η := Int.floor_le η
+    have hfl_gt : η < ((⌊η⌋ : ℤ):ℝ) + 1 := Int.lt_floor_add_one η
+    have hM_lo : ⌊η⌋ - 1 ≤ round ((k:ℝ)/(q:ℝ) + η) := by
+      by_contra hc
+      push_neg at hc
+      have h3 : ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ)
+          ≤ ((⌊η⌋ : ℤ):ℝ) - 2 := by
+        exact_mod_cast (by omega : (round ((k:ℝ)/(q:ℝ) + η) : ℤ)
+          ≤ ⌊η⌋ - 2)
+      linarith [hround'.2]
+    have hM_hi : round ((k:ℝ)/(q:ℝ) + η) ≤ ⌊η⌋ + 2 := by
+      by_contra hc
+      push_neg at hc
+      have h3 : ((⌊η⌋ : ℤ):ℝ) + 3
+          ≤ ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) := by
+        exact_mod_cast (by omega : (⌊η⌋ + 3 : ℤ)
+          ≤ round ((k:ℝ)/(q:ℝ) + η))
+      linarith [hround'.1]
+    rw [nint] at hann
+    have hcastM : ((⌊η⌋ - 1
+          + ((round ((k:ℝ)/(q:ℝ) + η) - (⌊η⌋ - 1)).toNat : ℤ) : ℤ):ℝ)
+        = ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) := by
+      exact_mod_cast (by omega : (⌊η⌋ - 1
+          + ((round ((k:ℝ)/(q:ℝ) + η) - (⌊η⌋ - 1)).toNat : ℤ) : ℤ)
+        = round ((k:ℝ)/(q:ℝ) + η))
+    have hdiv : (q:ℝ) * ((k:ℝ)/(q:ℝ)) = (k:ℝ) := by
+      field_simp
+    rw [Finset.mem_union]
+    rcases le_or_gt ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ)
+        ((k:ℝ)/(q:ℝ) + η) with hside | hside
+    · left
+      rw [hR_def, Finset.mem_biUnion]
+      refine ⟨(round ((k:ℝ)/(q:ℝ) + η) - (⌊η⌋ - 1)).toNat, ?_, ?_⟩
+      · rw [Finset.mem_range]
+        omega
+      · rw [Finset.mem_filter]
+        refine ⟨hkq', ?_⟩
+        rw [hcastM]
+        have habs : |(k:ℝ)/(q:ℝ) + η
+            - ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ)|
+            = (k:ℝ)/(q:ℝ) + η
+              - ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) :=
+          abs_of_nonneg (by linarith)
+        rw [habs] at hann
+        constructor
+        · have h6 : ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) + t - η
+              ≤ (k:ℝ)/(q:ℝ) := by
+            linarith [hann.1]
+          have h7 := mul_le_mul_of_nonneg_left h6 hq0R.le
+          linarith [h7, hdiv]
+        · have h6 : (k:ℝ)/(q:ℝ)
+              < ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) + t + w - η := by
+            linarith [hann.2]
+          have h7 := mul_lt_mul_of_pos_left h6 hq0R
+          linarith [h7, hdiv]
+    · right
+      rw [hL_def, Finset.mem_biUnion]
+      refine ⟨(round ((k:ℝ)/(q:ℝ) + η) - (⌊η⌋ - 1)).toNat, ?_, ?_⟩
+      · rw [Finset.mem_range]
+        omega
+      · rw [Finset.mem_filter]
+        refine ⟨hkq', ?_⟩
+        rw [hcastM]
+        have habs : |(k:ℝ)/(q:ℝ) + η
+            - ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ)|
+            = ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ)
+              - ((k:ℝ)/(q:ℝ) + η) := by
+          rw [abs_of_neg (by linarith)]
+          ring
+        rw [habs] at hann
+        constructor
+        · have h6 : ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) - t - w - η
+              < (k:ℝ)/(q:ℝ) := by
+            linarith [hann.2]
+          have h7 := mul_lt_mul_of_pos_left h6 hq0R
+          linarith [h7, hdiv]
+        · have h6 : (k:ℝ)/(q:ℝ)
+              ≤ ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) - t - η := by
+            linarith [hann.1]
+          have h7 := mul_le_mul_of_nonneg_left h6 hq0R.le
+          linarith [h7, hdiv]
+  have hcR : ((R.card : ℕ) : ℝ) ≤ 4 * ((q:ℝ)*w + 1 + 1) := by
+    rw [hR_def]
+    refine card_biUnion_Ioo_le q 4 _ _ ((q:ℝ)*w + 1) ?_ ?_
+    · intro i _
+      nlinarith [hq0R.le, hw, ht]
+    · intro i _
+      nlinarith [hq0R.le, hw]
+  have hcL : ((Lset.card : ℕ) : ℝ) ≤ 4 * ((q:ℝ)*w + 1 + 1) := by
+    rw [hL_def]
+    refine card_biUnion_Ioo_le q 4 _ _ ((q:ℝ)*w + 1) ?_ ?_
+    · intro i _
+      nlinarith [hq0R.le, hw, ht]
+    · intro i _
+      nlinarith [hq0R.le, hw]
+  have hcU : ((R ∪ Lset).card : ℝ) ≤ 8*(q:ℝ)*w + 16 := by
+    have h1 : (R ∪ Lset).card ≤ R.card + Lset.card := Finset.card_union_le R Lset
+    have h2 : (((R ∪ Lset).card : ℕ) : ℝ)
+        ≤ ((R.card + Lset.card : ℕ) : ℝ) := by
+      exact_mod_cast h1
+    push_cast at h2
+    linarith [hcR, hcL]
+  refine le_trans ?_ hcU
+  exact_mod_cast Finset.card_le_card hsub
+
 end ExpSums
 
 end MoltResearch
