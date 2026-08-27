@@ -6777,6 +6777,33 @@ theorem ghs_pairing_estimate (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     hg0 hg1 hg2 htail (fun i _ => hjt _ _) (fun N _ => hjt _ _)
     (fun N _ => hk1 _ _) (fun N _ => hk2 _ _) (fun N _ => hk3 _ _)
 
+
+open Real Finset in
+/-- **A Halász band frequency is at most `halaszM + 1`** (Track R,
+N199): the bound that lets `hBu` be demanded only on the band. -/
+theorem abs_le_halaszM_of_band (x : ℕ) (N : ℤ) (hN : N ∈ halaszRange x)
+    (t : ℝ) (ht : t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2)) :
+    |t| ≤ ((halaszM x : ℕ):ℝ) + 1 := by
+  rw [halaszRange, Finset.mem_Icc] at hN
+  have hM : ((halaszM x : ℕ):ℝ) = ((⌈(Real.log (x:ℝ))^4⌉ + 1 : ℤ):ℝ) := by
+    rw [halaszM]
+    have h4 : (0:ℝ) ≤ (Real.log (x:ℝ))^4 := by positivity
+    have hnn : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^4⌉ + 1 := by
+      have := Int.ceil_nonneg h4
+      omega
+    rw [show ((((⌈(Real.log (x:ℝ))^4⌉ + 1).toNat : ℕ)):ℝ)
+        = ((((⌈(Real.log (x:ℝ))^4⌉ + 1).toNat : ℕ) : ℤ):ℝ) by push_cast; ring,
+      Int.toNat_of_nonneg hnn]
+  have htN : |t - (N:ℝ)| ≤ 1/2 := by
+    rw [abs_le]
+    exact ⟨by linarith [ht.1], by linarith [ht.2]⟩
+  have hNr : |(N:ℝ)| ≤ ((halaszM x : ℕ):ℝ) := by
+    rw [hM, abs_le]
+    exact ⟨by exact_mod_cast hN.1, by exact_mod_cast hN.2⟩
+  calc |t| = |(N:ℝ) + (t - (N:ℝ))| := by congr 1; ring
+    _ ≤ |(N:ℝ)| + |t - (N:ℝ)| := abs_add_le _ _
+    _ ≤ ((halaszM x : ℕ):ℝ) + 1 := by linarith
+
 open MeasureTheory Real Complex Finset in
 /-- **§4's pairing estimate at a uniform band sup** (Track R, N82): if
 `‖P₁‖ ≤ b` on the whole line then
@@ -6800,7 +6827,7 @@ theorem ghs_pairing_estimate_uniform (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ �
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV0 : 0 ≤ V) (hMtail0 : 0 < Mtail)
     (hw0 : ∀ t, 0 ≤ w t) (hwle : ∀ t, w t ≤ C/(1+t^2))
     (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ) ≤ E₁)
-    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 → ‖ghsMainPoly f S t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V)
     (hWtail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|}, w ξ)
@@ -6826,7 +6853,8 @@ theorem ghs_pairing_estimate_uniform (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ �
     nlinarith [hcoef, hLSq0, hMtail0]
   have hmain := ghs_pairing_estimate f hf x S P Q w hw (fun _ => b)
     C V Mtail E₁ Wtail hE₁0 hQ0 hw0 hwle hE₁
-    (fun N _ t _ => hBu t) (fun _ => hb0) hV hWtail hMtail
+    (fun N hN t ht => hBu t (abs_le_halaszM_of_band x N hN t ht))
+    (fun _ => hb0) hV hWtail hMtail
   refine le_trans hmain ?_
   refine Real.sqrt_le_sqrt ?_
   have hstep : 5 * C * V * halaszLSq (fun _ => b) x ≤ 5 * C * V * (6*b^2) :=
@@ -6865,7 +6893,7 @@ theorem ghs_riesz_pairing_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV0 : 0 ≤ V) (hMtail0 : 0 < Mtail)
     (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
         * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
-    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 → ‖ghsMainPoly f S t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V)
     (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
@@ -6925,7 +6953,7 @@ theorem ghs_pairing_estimate_window (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
     (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
         * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖) ≤ E₁)
-    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 → ‖ghsMainPoly f S t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V₃)
     (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
@@ -7049,7 +7077,7 @@ theorem ghs_smoothed_triple_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
     (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
         * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖) ≤ E₁)
-    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 → ‖ghsMainPoly f S t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V₃)
     (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
@@ -7120,7 +7148,7 @@ theorem ghs_riesz_triple_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
     (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
         * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
-    (hBu : ∀ t : ℝ, ‖ghsMainPoly f S t‖ ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 → ‖ghsMainPoly f S t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V₃)
     (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2
@@ -7889,7 +7917,8 @@ theorem ghs_riesz_triple_le_real (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
     (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
         * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
-    (hBu : ∀ t : ℝ, ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) S t‖ ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) S t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
         ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ)) Q t‖^2) ≤ V₃)
@@ -7949,7 +7978,8 @@ theorem ghs_smoothed_triple_le_real (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
     (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
         * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖) ≤ E₁)
-    (hBu : ∀ t : ℝ, ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) S t‖ ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) S t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
         ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ)) Q t‖^2) ≤ V₃)
@@ -8515,7 +8545,7 @@ theorem tripleConv_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
     (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
         * ‖𝓕 (fun v => ((V v : ℝ) : ℂ)) ξ‖) ≤ E₁)
-    (hBu : ∀ t : ℝ,
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
       ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
@@ -8603,7 +8633,7 @@ theorem tripleConvR_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
     (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
         * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
-    (hBu : ∀ t : ℝ,
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
       ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b)
     (hV : ∀ N ∈ halaszRange x,
       (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),

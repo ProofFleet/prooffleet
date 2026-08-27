@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.SmoothRankin
+import MoltResearch.Discrepancy.HalaszEuler
 
 /-!
 # The §3 capstone at the Riesz window (Track R)
@@ -306,7 +307,7 @@ theorem tripleConvR_block_sharp_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     (hX3 : 3 ≤ x / blockLo x k)
     (T : ℝ) (hT : 5 ≤ T) (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ))
     (b : ℝ) (hb0 : 0 ≤ b)
-    (hBu : ∀ t : ℝ,
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
       ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b) :
     |tripleConvR f x P|
       ≤ (x:ℝ) * Real.sqrt
@@ -1084,7 +1085,7 @@ theorem tripleConvR_block_balanced_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1
     (hX3 : 3 ≤ x / blockLo x k)
     (T : ℝ) (hT : 5 ≤ T) (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ))
     (b : ℝ) (hb0 : 0 ≤ b)
-    (hBu : ∀ t : ℝ,
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
       ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b)
     (hTL : T ≤ Real.log (x:ℝ)) (hLT : Real.log (x:ℝ) ≤ T^2)
     (hγ1 : Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4) ≤ 1)
@@ -1984,7 +1985,7 @@ theorem tripleConvR_survivors_balanced_le (f : ℕ → ℝ) (hf : ∀ n, |f n| �
       < Real.exp 1 * Real.log 2)
     (hX3 : ∀ k ∈ Finset.Icc 1 K₀, 3 ≤ x / blockLo x k)
     (b : ℝ) (hb0 : 0 ≤ b)
-    (hBu : ∀ t : ℝ,
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
       ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b) :
     |tripleConvR f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
         (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p))|
@@ -2249,5 +2250,99 @@ theorem exists_K₀ (x : ℕ) (hx : 10^16 ≤ x) :
     rw [inv_mul_eq_div, div_lt_iff₀ (Real.exp_pos _)]
     rw [div_lt_iff₀ hden0] at h1
     linarith [h1]
+
+
+open Real Complex in
+/-- **The trivial character twist is the pure phase** (Track R, N200):
+at modulus one, `charTwist` is `m ↦ m^{it}` — `ZMod 1` has one
+element, and every character sends it to `1`. -/
+theorem charTwist_one (χ : DirichletCharacter ℂ 1) (t : ℝ) :
+    charTwist 1 χ t = fun m : ℕ => (m:ℂ) ^ (Complex.I * (t:ℂ)) := by
+  funext m
+  rw [charTwist]
+  have h1 : ((m : ZMod 1)) = 1 := Subsingleton.elim _ _
+  rw [h1, map_one, one_mul]
+
+open Real Complex Finset in
+/-- **The Halász band sup, priced by non-pretentiousness** (Track R,
+N200): if `f` is `A`-non-pretentious at scale `x` and the band fits
+under the frequency budget (`7·(halaszM + 1) ≤ A·x`), then on the whole
+band the smooth main polynomial obeys the Euler-product bound with
+`M := A`,
+
+  `‖P₁(ξ)‖ ≤ exp(∑_{p<y₂}1/p − A + 2(∑_{p<x}1/p − ∑_{p<y₂}1/p) + 1)
+      + x^{−δ}·∏_{p<y₂}(1 − p^{δ−1})⁻¹`.
+
+`norm_ghsMainPoly_smooth_band_le` at the trivial character:
+`NonPretentiousAt` hands the distance floor at `q = 1`, `t = 2πξ`
+(`charTwist_one`), and `|2πξ| ≤ 7·(halaszM+1) ≤ A·x` keeps the
+frequency inside the hypothesis range.  This is `hBu`'s content —
+band-restricted exactly as N199 demands. -/
+theorem bandSup_of_nonPretentious (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (y₂ x : ℕ) (hy₂ : 1 ≤ y₂) (hyx : y₂ ≤ x)
+    (hx : 1 ≤ x) (A : ℝ) (hA : NonPretentiousAt f A x) (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * x)
+    (δ : ℝ) (hδ0 : 0 < δ) (hδ1 : δ < 1) :
+    ∀ ξ : ℝ, |ξ| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ghsMainPoly f ((Finset.Icc 1 x).filter
+          (· ∈ Nat.smoothNumbers y₂)) ξ‖
+        ≤ Real.exp ((∑ p ∈ y₂.primesBelow, (1:ℝ)/p) - A
+              + 2*((∑ p ∈ x.primesBelow, (1:ℝ)/p)
+                - (∑ p ∈ y₂.primesBelow, (1:ℝ)/p)) + 1)
+          + (x:ℝ)^(-δ) * ∏ p ∈ y₂.primesBelow, (1 - (p:ℝ)^(δ-1))⁻¹ := by
+  intro ξ hξ
+  -- the distance floor at the trivial character
+  have hπ7 : (2:ℝ) * π ≤ 7 := by
+    have := Real.pi_lt_d2
+    linarith
+  have hfreq : |2 * π * ξ| ≤ A * (x:ℝ) := by
+    have h0 : (0:ℝ) ≤ ((halaszM x : ℕ):ℝ) + 1 := by positivity
+    calc |2 * π * ξ| = (2 * π) * |ξ| := by
+          rw [abs_mul, abs_of_nonneg (by positivity : (0:ℝ) ≤ 2*π)]
+      _ ≤ 7 * (((halaszM x : ℕ):ℝ) + 1) := by
+          have := mul_le_mul (le_refl (2*π)) hξ (abs_nonneg ξ) (by positivity : (0:ℝ) ≤ 2*π)
+          nlinarith [hπ7, abs_nonneg ξ, hξ, h0]
+      _ ≤ A * (x:ℝ) := hband
+  have hM := hA 1 1 (2 * π * ξ) (by exact_mod_cast h1A) hfreq
+  rw [charTwist_one] at hM
+  -- feed the band lemma
+  exact norm_ghsMainPoly_smooth_band_le f hcm h1 hb y₂ x hy₂ hyx hx ξ A δ
+    hδ0 hδ1 (by
+      convert hM using 2)
+
+
+open Real Complex Finset in
+/-- **`hBu` for the smooth-restricted `f`, delivered** (Track R, N201):
+under `A`-non-pretentiousness of `f`'s complexification, the closer's
+band hypothesis holds for `g = f·1_{y₂-smooth}` with the Euler-product
+bound as `b` — N180's two transfers feed N200's pricing.  The last
+gluing of the analytic side: what enters `tripleConvR_survivors_
+balanced_le`'s `hBu` is exactly this statement's conclusion. -/
+theorem bandSup_smooth_restrict_of_nonPretentious (f : ℕ → ℝ)
+    (hcm : CompletelyMultiplicativeC (fun n => ((f n : ℝ) : ℂ)))
+    (h1 : f 1 = 1) (hf : ∀ n, |f n| ≤ 1)
+    (y₂ x : ℕ) (hy₂ : 1 ≤ y₂) (hyx : y₂ ≤ x) (hx : 1 ≤ x)
+    (A : ℝ) (hA : NonPretentiousAt (fun n => ((f n : ℝ) : ℂ)) A x)
+    (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * x)
+    (δ : ℝ) (hδ0 : 0 < δ) (hδ1 : δ < 1) :
+    ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ghsMainPoly (fun n => (((if n ∈ Nat.smoothNumbers y₂ then f n
+          else 0 : ℝ)) : ℂ)) (Finset.Icc 1 x) t‖
+        ≤ Real.exp ((∑ p ∈ y₂.primesBelow, (1:ℝ)/p) - A
+              + 2*((∑ p ∈ x.primesBelow, (1:ℝ)/p)
+                - (∑ p ∈ y₂.primesBelow, (1:ℝ)/p)) + 1)
+          + (x:ℝ)^(-δ) * ∏ p ∈ y₂.primesBelow, (1 - (p:ℝ)^(δ-1))⁻¹ := by
+  intro t ht
+  rw [smooth_restrict_ofReal, ghsMainPoly_smooth_restrict_eq]
+  have hfc1 : (fun n : ℕ => ((f n : ℝ) : ℂ)) 1 = 1 := by
+    simp [h1]
+  have hfcb : ∀ n, ‖(fun n : ℕ => ((f n : ℝ) : ℂ)) n‖ ≤ 1 := by
+    intro n
+    simp only [Complex.norm_real, Real.norm_eq_abs]
+    exact hf n
+  exact bandSup_of_nonPretentious _ hcm hfc1 hfcb y₂ x hy₂ hyx hx
+    A hA h1A hband δ hδ0 hδ1 t ht
 
 end MoltResearch
