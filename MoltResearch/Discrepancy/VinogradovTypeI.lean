@@ -1421,6 +1421,118 @@ theorem sum_range_g_const_le (a q : ℕ) (hq : 1 ≤ q)
   rw [hconst]
   exact mul_le_mul_of_nonneg_right hJcast hC0
 
+
+/-- **The pair-to-gap count** (Track R, V4b): a sum of a nonnegative
+function of the gap `|n − n'|` over all pairs of a set `K ⊆ [1, KM]`
+costs at most `|K|` diagonal terms plus twice the gap-sum — for each
+fixed `n`, every positive gap has at most one partner on each side. -/
+theorem sum_pairs_gap_le (K : Finset ℕ) (KM : ℕ)
+    (hK : K ⊆ Finset.Icc 1 KM) (F : ℕ → ℝ) (hF0 : ∀ h, 0 ≤ F h) :
+    ∑ p ∈ K ×ˢ K, F (max p.1 p.2 - min p.1 p.2)
+      ≤ (K.card : ℝ) * (F 0 + 2 * ∑ h ∈ Finset.Icc 1 KM, F h) := by
+  classical
+  rw [Finset.sum_product]
+  have hper : ∀ n ∈ K, ∑ n' ∈ K, F (max n n' - min n n')
+      ≤ F 0 + 2 * ∑ h ∈ Finset.Icc 1 KM, F h := by
+    intro n hn
+    have hnKM := hK hn
+    rw [Finset.mem_Icc] at hnKM
+    have hsplit : K = (K.filter (fun n' => n' = n))
+        ∪ (K.filter (fun n' => n' ≠ n)) :=
+      (Finset.filter_union_filter_neg_eq _ K).symm
+    nth_rewrite 1 [hsplit]
+    rw [Finset.sum_union (Finset.disjoint_filter_filter_neg K K _)]
+    have hdiag : ∑ n' ∈ K.filter (fun n' => n' = n),
+        F (max n n' - min n n') ≤ F 0 := by
+      have hsub : K.filter (fun n' => n' = n) ⊆ {n} := by
+        intro m hm
+        rw [Finset.mem_filter] at hm
+        rw [Finset.mem_singleton]
+        exact hm.2
+      refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+        (fun m _ _ => hF0 _)) ?_
+      rw [Finset.sum_singleton]
+      simp
+    have hgt : ∑ n' ∈ K.filter (fun n' => n < n'),
+        F (max n n' - min n n') ≤ ∑ h ∈ Finset.Icc 1 KM, F h := by
+      have heq : ∑ n' ∈ K.filter (fun n' => n < n'),
+          F (max n n' - min n n')
+          = ∑ n' ∈ K.filter (fun n' => n < n'), F (n' - n) := by
+        refine Finset.sum_congr rfl fun n' hn' => ?_
+        rw [Finset.mem_filter] at hn'
+        congr 1
+        omega
+      have hinj : ∀ x ∈ K.filter (fun n' => n < n'),
+          ∀ y ∈ K.filter (fun n' => n < n'),
+          x - n = y - n → x = y := by
+        intro x hx y hy hxy
+        rw [Finset.mem_filter] at hx hy
+        omega
+      rw [heq, ← Finset.sum_image hinj]
+      refine Finset.sum_le_sum_of_subset_of_nonneg ?_
+        (fun h _ _ => hF0 h)
+      intro h hh
+      rw [Finset.mem_image] at hh
+      obtain ⟨n', hn', rfl⟩ := hh
+      rw [Finset.mem_filter] at hn'
+      have h1 := hK hn'.1
+      rw [Finset.mem_Icc] at h1
+      rw [Finset.mem_Icc]
+      omega
+    have hlt : ∑ n' ∈ K.filter (fun n' => n' < n),
+        F (max n n' - min n n') ≤ ∑ h ∈ Finset.Icc 1 KM, F h := by
+      have heq : ∑ n' ∈ K.filter (fun n' => n' < n),
+          F (max n n' - min n n')
+          = ∑ n' ∈ K.filter (fun n' => n' < n), F (n - n') := by
+        refine Finset.sum_congr rfl fun n' hn' => ?_
+        rw [Finset.mem_filter] at hn'
+        congr 1
+        omega
+      have hinj : ∀ x ∈ K.filter (fun n' => n' < n),
+          ∀ y ∈ K.filter (fun n' => n' < n),
+          n - x = n - y → x = y := by
+        intro x hx y hy hxy
+        rw [Finset.mem_filter] at hx hy
+        omega
+      rw [heq, ← Finset.sum_image hinj]
+      refine Finset.sum_le_sum_of_subset_of_nonneg ?_
+        (fun h _ _ => hF0 h)
+      intro h hh
+      rw [Finset.mem_image] at hh
+      obtain ⟨n', hn', rfl⟩ := hh
+      rw [Finset.mem_filter] at hn'
+      have h1 := hK hn'.1
+      rw [Finset.mem_Icc] at h1
+      rw [Finset.mem_Icc]
+      omega
+    have hoff : ∑ n' ∈ K.filter (fun n' => n' ≠ n),
+        F (max n n' - min n n')
+        ≤ 2 * ∑ h ∈ Finset.Icc 1 KM, F h := by
+      have hsplit2 : K.filter (fun n' => n' ≠ n)
+          = (K.filter (fun n' => n < n'))
+            ∪ (K.filter (fun n' => n' < n)) := by
+        ext m
+        simp only [Finset.mem_filter, Finset.mem_union]
+        constructor
+        · rintro ⟨hmK, hne⟩
+          rcases Nat.lt_or_ge n m with h | h
+          · exact Or.inl ⟨hmK, h⟩
+          · exact Or.inr ⟨hmK, by omega⟩
+        · rintro (⟨hmK, h⟩ | ⟨hmK, h⟩)
+          · exact ⟨hmK, by omega⟩
+          · exact ⟨hmK, by omega⟩
+      have hdisj2 : Disjoint (K.filter (fun n' => n < n'))
+          (K.filter (fun n' => n' < n)) := by
+        rw [Finset.disjoint_left]
+        intro m hm hm'
+        rw [Finset.mem_filter] at hm hm'
+        omega
+      rw [hsplit2, Finset.sum_union hdisj2]
+      linarith [hgt, hlt]
+    linarith [hdiag, hoff]
+  refine le_trans (Finset.sum_le_sum hper) ?_
+  rw [Finset.sum_const, nsmul_eq_mul]
+
 end ExpSums
 
 end MoltResearch
