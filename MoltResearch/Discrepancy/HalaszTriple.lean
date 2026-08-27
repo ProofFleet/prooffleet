@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.PlancherelHarness
+import MoltResearch.Discrepancy.MultiplicativeC
 
 /-!
 # Track C: the Halász triple convolution, frequency side (Track R, M0R)
@@ -139,6 +140,111 @@ theorem tsum_translates_eq_integral_char (F : ℝ → ℂ)
   rw [hgoal]
   refine integral_congr_ae (Eventually.of_forall fun ξ => ?_)
   simp only [Circle.smul_def, smul_eq_mul]
+
+/-- **The phase-twisted Dirichlet weight, bundled** (Track R, M0R-2):
+for a completely multiplicative `f`, the family
+
+  `n ↦ f(n)·n⁻¹·e(−ξ·log n)`
+
+is multiplicative as a map of monoids `ℕ →* ℂ`.  The value at `0` is
+`0` because `(0 : ℂ)⁻¹ = 0`, so no case split is needed in the
+definition; multiplicativity at `0` is `0 = 0`.
+
+This is the weight family whose sum over `x`-smooth numbers is the
+truncated Euler product `F_x(1 + 2πiξ)` — the object §4 of the GHS
+argument takes a supremum of.  Bundling it is what Mathlib's
+`EulerProduct.summable_and_hasSum_smoothNumbers_prod_primesBelow_geometric`
+consumes. -/
+noncomputable def phaseHom (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1) (ξ : ℝ) : ℕ →* ℂ where
+  toFun n := f n * ((n : ℕ) : ℂ)⁻¹ * ((𝐞 (-(Real.log n * ξ)) : Circle) : ℂ)
+  map_one' := by
+    simp [h1]
+  map_mul' m n := by
+    rcases Nat.eq_zero_or_pos m with hm | hm
+    · subst hm
+      simp
+    rcases Nat.eq_zero_or_pos n with hn | hn
+    · subst hn
+      simp
+    have hm0 : ((m : ℕ) : ℝ) ≠ 0 := by positivity
+    have hn0 : ((n : ℕ) : ℝ) ≠ 0 := by positivity
+    have hlog : Real.log ((m * n : ℕ) : ℝ)
+        = Real.log ((m : ℕ) : ℝ) + Real.log ((n : ℕ) : ℝ) := by
+      push_cast
+      exact Real.log_mul hm0 hn0
+    have hchar : ((𝐞 (-(Real.log ((m * n : ℕ) : ℝ) * ξ)) : Circle) : ℂ)
+        = ((𝐞 (-(Real.log ((m : ℕ) : ℝ) * ξ)) : Circle) : ℂ)
+          * ((𝐞 (-(Real.log ((n : ℕ) : ℝ) * ξ)) : Circle) : ℂ) := by
+      rw [show -(Real.log ((m * n : ℕ) : ℝ) * ξ)
+          = -(Real.log ((m : ℕ) : ℝ) * ξ) + -(Real.log ((n : ℕ) : ℝ) * ξ) by
+        rw [hlog]; ring]
+      rw [AddChar.map_add_eq_mul]
+      simp
+    have hf : f (m * n) = f m * f n := hcm m n (by omega) (by omega)
+    have hcast : ((m * n : ℕ) : ℂ)⁻¹ = ((m : ℕ) : ℂ)⁻¹ * ((n : ℕ) : ℂ)⁻¹ := by
+      push_cast
+      rw [mul_inv]
+    rw [hf, hcast, hchar]
+    ring
+
+/-- **The phase weight is small at every prime** (Track R, M0R-2):
+`‖f(p)·p⁻¹·e(−ξ·log p)‖ ≤ 1/p < 1` — the hypothesis of the geometric
+Euler product. -/
+theorem norm_phaseHom_prime_lt_one (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (ξ : ℝ) {p : ℕ} (hp : p.Prime) :
+    ‖phaseHom f hcm h1 ξ p‖ < 1 := by
+  have hp2 : (2 : ℝ) ≤ (p : ℝ) := by exact_mod_cast hp.two_le
+  have hp0 : (0 : ℝ) < (p : ℝ) := by linarith
+  have hval : ‖phaseHom f hcm h1 ξ p‖
+      = ‖f p‖ * ((p : ℝ))⁻¹ := by
+    show ‖f p * ((p : ℕ) : ℂ)⁻¹ * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ)‖
+      = ‖f p‖ * ((p : ℝ))⁻¹
+    rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_inv,
+      Complex.norm_natCast]
+  rw [hval]
+  calc ‖f p‖ * ((p : ℝ))⁻¹ ≤ 1 * ((p : ℝ))⁻¹ :=
+        mul_le_mul_of_nonneg_right (hb p) (by positivity)
+    _ = ((p : ℝ))⁻¹ := one_mul _
+    _ < 1 := by
+        rw [inv_lt_one_iff₀]
+        right
+        linarith
+
+/-- **The smooth phase sum is absolutely summable** (Track R, M0R-2):
+over the `x`-smooth numbers, `∑ ‖f(n)·n⁻¹·e(−ξ·log n)‖` converges — the
+weight at a prime has norm at most `1/p < 1`, which is all the geometric
+Euler-product machinery asks. -/
+theorem summable_norm_smooth_phase (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (ξ : ℝ) :
+    Summable (fun m : (Nat.smoothNumbers x) =>
+      ‖f m * ((m : ℕ) : ℂ)⁻¹ * ((𝐞 (-(Real.log m * ξ)) : Circle) : ℂ)‖) :=
+  (EulerProduct.summable_and_hasSum_smoothNumbers_prod_primesBelow_geometric
+    (f := phaseHom f hcm h1 ξ)
+    (norm_phaseHom_prime_lt_one f hcm h1 hb ξ) x).1
+
+/-- **The smooth phase sum is the truncated Euler product** (Track R,
+M0R-2):
+
+  `∑_{n x-smooth} f(n)·n⁻¹·e(−ξ·log n)
+     = ∏_{p < x} (1 − f(p)·p⁻¹·e(−ξ·log p))⁻¹`.
+
+This is the identity that replaces the smooth-restriction detour: the
+phase polynomial that the triple-convolution pairing produces *is*
+`F_x(1 + 2πiξ)`, exactly, with no Rankin term and no second scale. -/
+theorem hasSum_smooth_phase_prod (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (ξ : ℝ) :
+    HasSum (fun m : (Nat.smoothNumbers x) =>
+        f m * ((m : ℕ) : ℂ)⁻¹ * ((𝐞 (-(Real.log m * ξ)) : Circle) : ℂ))
+      (∏ p ∈ x.primesBelow,
+        (1 - f p * ((p : ℕ) : ℂ)⁻¹
+            * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ))⁻¹) :=
+  (EulerProduct.summable_and_hasSum_smoothNumbers_prod_primesBelow_geometric
+    (f := phaseHom f hcm h1 ξ)
+    (norm_phaseHom_prime_lt_one f hcm h1 hb ξ) x).2
 
 end ExpSums
 
