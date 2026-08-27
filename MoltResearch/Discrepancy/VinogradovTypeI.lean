@@ -1955,6 +1955,86 @@ theorem typeII_sum_sq_le' (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
   · exact sum_inner_sq_le a q hq hcop δ hδ M₁ M₂ KM K hK bn hbn
   · exact Finset.sum_nonneg fun m _ => sq_nonneg _
 
+
+/-- **The divisor-pair double count** (Track R, V5b-i-a): the mean
+square of the divisor function is a lattice count —
+`∑_{m ≤ M} τ(m)² ≤ ∑_{a,b ≤ M} M/lcm(a,b)`: expand `τ(m)²` as the
+divisor pairs of `m`, swap the order, and count multiples of each
+pair's lcm. -/
+theorem sum_tau_sq_le_lcm_sum (M : ℕ) (hM : 1 ≤ M) :
+    ∑ m ∈ Finset.Icc 1 M, ((m.divisors.card : ℝ))^2
+      ≤ ∑ p ∈ (Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M),
+          (M:ℝ)/(Nat.lcm p.1 p.2 : ℝ) := by
+  classical
+  have hdiv_eq : ∀ m ∈ Finset.Icc 1 M,
+      m.divisors = (Finset.Icc 1 M).filter (· ∣ m) := by
+    intro m hm
+    rw [Finset.mem_Icc] at hm
+    ext d
+    rw [Nat.mem_divisors, Finset.mem_filter, Finset.mem_Icc]
+    constructor
+    · rintro ⟨hd, hm0⟩
+      have h1 : 1 ≤ d := Nat.one_le_iff_ne_zero.mpr (by
+        rintro rfl
+        exact hm0 (Nat.eq_zero_of_zero_dvd hd))
+      have h2 : d ≤ m := Nat.le_of_dvd (by omega) hd
+      exact ⟨⟨h1, by omega⟩, hd⟩
+    · rintro ⟨-, hd⟩
+      exact ⟨hd, by omega⟩
+  have hper : ∀ m ∈ Finset.Icc 1 M, ((m.divisors.card : ℝ))^2
+      = ((((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+          (fun p => p.1 ∣ m ∧ p.2 ∣ m)).card : ℝ) := by
+    intro m hm
+    have h1 : ((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+        (fun p => p.1 ∣ m ∧ p.2 ∣ m)
+        = ((Finset.Icc 1 M).filter (· ∣ m))
+          ×ˢ ((Finset.Icc 1 M).filter (· ∣ m)) :=
+      Finset.filter_product (· ∣ m) (· ∣ m)
+    rw [h1, Finset.card_product, ← hdiv_eq m hm]
+    push_cast
+    ring
+  rw [Finset.sum_congr rfl hper]
+  have hswap : ∑ m ∈ Finset.Icc 1 M,
+      ((((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+        (fun p => p.1 ∣ m ∧ p.2 ∣ m)).card : ℝ)
+      = ∑ p ∈ (Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M),
+        (((Finset.Icc 1 M).filter
+          (fun m => p.1 ∣ m ∧ p.2 ∣ m)).card : ℝ) := by
+    have h1 : ∀ m ∈ Finset.Icc 1 M,
+        ((((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+          (fun p => p.1 ∣ m ∧ p.2 ∣ m)).card : ℝ)
+        = ∑ p ∈ (Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M),
+          (if p.1 ∣ m ∧ p.2 ∣ m then (1:ℝ) else 0) := by
+      intro m _
+      rw [Finset.sum_boole]
+    have h2 : ∀ p ∈ (Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M),
+        (((Finset.Icc 1 M).filter
+          (fun m => p.1 ∣ m ∧ p.2 ∣ m)).card : ℝ)
+        = ∑ m ∈ Finset.Icc 1 M,
+          (if p.1 ∣ m ∧ p.2 ∣ m then (1:ℝ) else 0) := by
+      intro p _
+      rw [Finset.sum_boole]
+    rw [Finset.sum_congr rfl h1, Finset.sum_congr rfl h2]
+    exact Finset.sum_comm
+  rw [hswap]
+  refine Finset.sum_le_sum fun p hp => ?_
+  rw [Finset.mem_product, Finset.mem_Icc, Finset.mem_Icc] at hp
+  have hlcm_pos : 0 < Nat.lcm p.1 p.2 :=
+    Nat.pos_of_ne_zero (Nat.lcm_ne_zero (by omega) (by omega))
+  have hIoc : Finset.Icc 1 M = Finset.Ioc 0 M := by
+    ext x
+    rw [Finset.mem_Icc, Finset.mem_Ioc]
+    omega
+  have hpred : (Finset.Icc 1 M).filter (fun m => p.1 ∣ m ∧ p.2 ∣ m)
+      = (Finset.Ioc 0 M).filter (fun m => Nat.lcm p.1 p.2 ∣ m) := by
+    rw [hIoc]
+    refine Finset.filter_congr fun m _ => ?_
+    rw [Nat.lcm_dvd_iff]
+  rw [hpred, Nat.Ioc_filter_dvd_card_eq_div]
+  have h3 : ((M / Nat.lcm p.1 p.2 : ℕ):ℝ)
+      ≤ (M:ℝ)/(Nat.lcm p.1 p.2 : ℝ) := Nat.cast_div_le
+  exact h3
+
 end ExpSums
 
 end MoltResearch
