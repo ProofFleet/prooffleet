@@ -2261,6 +2261,72 @@ theorem abs_moebius_partial_le_tau (U m : ℕ) :
   rw [Finset.sum_const, nsmul_eq_mul, mul_one]
   exact_mod_cast Finset.card_filter_le _ _
 
+
+/-- **The pointwise divisor-pair swap** (Track R, V5c-i): the two
+nestings of a double divisor sum agree —
+`∑_{b ∣ n} ∑_{c ∣ n/b} = ∑_{c ∣ n} ∑_{b ∣ n/c}`.  The Vaughan
+decomposition reorders its triple products through this. -/
+theorem sum_divisors_pair_swap {M : Type*} [AddCommMonoid M] (n : ℕ)
+    (F : ℕ → ℕ → M) :
+    ∑ b ∈ n.divisors, ∑ c ∈ (n/b).divisors, F b c
+      = ∑ c ∈ n.divisors, ∑ b ∈ (n/c).divisors, F b c := by
+  classical
+  rcases Nat.eq_zero_or_pos n with rfl | hn0
+  · simp
+  rw [Finset.sum_sigma', Finset.sum_sigma']
+  refine Finset.sum_nbij' (fun p => Sigma.mk p.2 p.1)
+    (fun q => Sigma.mk q.2 q.1) ?_ ?_ ?_ ?_ ?_
+  · rintro ⟨b, c⟩ hp
+    simp only [Finset.mem_sigma, Nat.mem_divisors] at hp ⊢
+    obtain ⟨⟨hb, -⟩, hc, hnb⟩ := hp
+    have hcb : b * c ∣ n := (Nat.dvd_div_iff_mul_dvd hb).mp hc
+    have hcn : c ∣ n := dvd_trans (dvd_mul_left c b) hcb
+    refine ⟨⟨hcn, by omega⟩, ?_, ?_⟩
+    · refine (Nat.dvd_div_iff_mul_dvd hcn).mpr ?_
+      rw [Nat.mul_comm c b]
+      exact hcb
+    · refine Nat.div_ne_zero_iff.mpr ⟨?_, Nat.le_of_dvd (by omega) hcn⟩
+      intro hc0
+      rw [hc0] at hcn
+      have := Nat.eq_zero_of_zero_dvd hcn
+      omega
+  · rintro ⟨c, b⟩ hq
+    simp only [Finset.mem_sigma, Nat.mem_divisors] at hq ⊢
+    obtain ⟨⟨hc, -⟩, hb, hnc⟩ := hq
+    have hbc : c * b ∣ n := (Nat.dvd_div_iff_mul_dvd hc).mp hb
+    have hbn : b ∣ n := dvd_trans (dvd_mul_left b c) hbc
+    refine ⟨⟨hbn, by omega⟩, ?_, ?_⟩
+    · refine (Nat.dvd_div_iff_mul_dvd hbn).mpr ?_
+      rw [Nat.mul_comm b c]
+      exact hbc
+    · refine Nat.div_ne_zero_iff.mpr ⟨?_, Nat.le_of_dvd (by omega) hbn⟩
+      intro hb0
+      rw [hb0] at hbn
+      have := Nat.eq_zero_of_zero_dvd hbn
+      omega
+  · rintro ⟨b, c⟩ _
+    rfl
+  · rintro ⟨c, b⟩ _
+    rfl
+  · rintro ⟨b, c⟩ _
+    rfl
+
+/-- **The Möbius divisor sum detects `1`** (Track R, V5c-i):
+`∑_{b ∣ m} μ(b) = [m = 1]`, in real form. -/
+theorem sum_divisors_moebius_ite (m : ℕ) (hm : m ≠ 0) :
+    ∑ b ∈ m.divisors, ((ArithmeticFunction.moebius b : ℤ):ℝ)
+      = if m = 1 then 1 else 0 := by
+  have h1 : (ArithmeticFunction.moebius * ArithmeticFunction.zeta
+      : ArithmeticFunction ℤ) m = (1 : ArithmeticFunction ℤ) m := by
+    rw [ArithmeticFunction.moebius_mul_coe_zeta]
+  rw [ArithmeticFunction.coe_mul_zeta_apply,
+    ArithmeticFunction.one_apply] at h1
+  have h2 : ((∑ i ∈ m.divisors, ArithmeticFunction.moebius i : ℤ):ℝ)
+      = ((if m = 1 then 1 else 0 : ℤ):ℝ) := by
+    exact_mod_cast congrArg (fun z : ℤ => (z:ℝ)) h1
+  push_cast at h2
+  exact h2
+
 end ExpSums
 
 end MoltResearch
