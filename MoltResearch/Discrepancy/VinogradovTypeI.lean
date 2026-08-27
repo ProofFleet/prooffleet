@@ -5666,6 +5666,154 @@ theorem exists_log_pow_le (k : ℕ) (ε : ℝ) (hε : 0 < ε) :
   rw [h5]
   exact mul_le_mul_of_nonneg_right h4.le hn0.le
 
+
+set_option maxHeartbeats 1000000 in
+/-- **The Type II term is small on the window** (Track R, V8c): a pure
+real-variable inequality — with `x = n₀`, `u ≈ x^{1/3}` (via
+`x ≤ 8u³`), the window `l²⁰ ≤ Q`, `Q·l²⁰ ≤ x`, and the largeness
+facts, the square-root term of the master bound is at most `ε·x`. -/
+theorem typeII_term_small (ε x u Q l L G : ℝ) (hε : 0 < ε) (hx : 0 < x)
+    (hl1 : 1 ≤ l) (hlL : l ≤ L) (hL2 : L ≤ 2*l) (hG0 : 0 ≤ G)
+    (hG5 : G ≤ 5*l) (hu0 : 0 < u) (hQ0 : 0 < Q)
+    (hwin1 : l^20 ≤ Q) (hwin2 : Q*l^20 ≤ x) (hu3 : x ≤ 8*(u*u*u))
+    (hb21m : 8*1679616^3*l^21 ≤ ε^6*x)
+    (hb24m : 8*656916480^3*l^24 ≤ ε^6*x)
+    (hll : 164229120 ≤ ε^2*l) :
+    3*L^2*Real.sqrt ((1 + L)^3
+        * (27*(2*x)^2/u + 52*(2*x)^2/Q + 2112*(2*x)^2*G/u
+          + 1056*(2*x)*Q*G))
+      ≤ ε*x := by
+  have hL0 : (0:ℝ) < L := by linarith
+  have hl0 : (0:ℝ) < l := by linarith
+  have hcube : ∀ K : ℝ, 0 < K → 8*K^3*l^21 ≤ ε^6*x → K*l^7 ≤ ε^2*u := by
+    intro K hK hKb
+    have h1 : ε^6*x ≤ ε^6*(8*(u*u*u)) :=
+      mul_le_mul_of_nonneg_left hu3 (by positivity)
+    have h2 : K^3*l^21 ≤ ε^6*(u*u*u) := by nlinarith [hKb, h1]
+    have h3 : (K*l^7)^3 ≤ (ε^2*u)^3 := by nlinarith [h2]
+    exact le_of_pow_le_pow_left₀ (by norm_num) (by positivity) h3
+  have hcube24 : ∀ K : ℝ, 0 < K → 8*K^3*l^24 ≤ ε^6*x →
+      K*l^8 ≤ ε^2*u := by
+    intro K hK hKb
+    have h1 : ε^6*x ≤ ε^6*(8*(u*u*u)) :=
+      mul_le_mul_of_nonneg_left hu3 (by positivity)
+    have h2 : K^3*l^24 ≤ ε^6*(u*u*u) := by nlinarith [hKb, h1]
+    have h3 : (K*l^8)^3 ≤ (ε^2*u)^3 := by nlinarith [h2]
+    exact le_of_pow_le_pow_left₀ (by norm_num) (by positivity) h3
+  have hKu : 1679616*l^7 ≤ ε^2*u := hcube 1679616 (by norm_num) hb21m
+  have hKu24 : 656916480*l^8 ≤ ε^2*u :=
+    hcube24 656916480 (by norm_num) hb24m
+  have hD : (1 + L)^3 ≤ 27*l^3 := by
+    have h1 : 1 + L ≤ 3*l := by linarith
+    have h2 : (1 + L)^3 ≤ (3*l)^3 :=
+      pow_le_pow_left₀ (by linarith) h1 3
+    nlinarith [h2]
+  -- the four quarter-pieces against `(εx)²/(576 l⁴)`
+  have hα : (1 + L)^3 * (27*(2*x)^2/u) ≤ (ε*x)^2/(576*l^4) := by
+    have h1 : (1 + L)^3 * (27*(2*x)^2/u)
+        ≤ 27*l^3 * (108*x^2/u) := by
+      have hE : (1 + L)^3 * (27*(2*x)^2/u)
+          = (1 + L)^3 * (108*x^2/u) := by ring
+      rw [hE]
+      gcongr
+    refine le_trans h1 ?_
+    have hE2 : 27*l^3 * (108*x^2/u) = (27*l^3*(108*x^2))/u := by ring
+    rw [hE2, div_le_div_iff₀ hu0 (by positivity)]
+    nlinarith [mul_le_mul_of_nonneg_right hKu (sq_nonneg x)]
+  have hβ : (1 + L)^3 * (52*(2*x)^2/Q) ≤ (ε*x)^2/(576*l^4) := by
+    have h1 : (1 + L)^3 * (52*(2*x)^2/Q)
+        ≤ 27*l^3 * (208*x^2/Q) := by
+      have hE : (1 + L)^3 * (52*(2*x)^2/Q)
+          = (1 + L)^3 * (208*x^2/Q) := by ring
+      rw [hE]
+      gcongr
+    refine le_trans h1 ?_
+    have hE2 : 27*l^3 * (208*x^2/Q) = (27*l^3*(208*x^2))/Q := by ring
+    rw [hE2, div_le_div_iff₀ hQ0 (by positivity)]
+    have hQl : 3234816*l^7 ≤ ε^2*Q := by
+      have hc1 : (3234816:ℝ) ≤ ε^2*l := by linarith
+      have hc2 : 3234816*l^7 ≤ (ε^2*l)*l^7 :=
+        mul_le_mul_of_nonneg_right hc1 (pow_nonneg hl0.le 7)
+      have hc3 : (ε^2*l)*l^7 = ε^2*l^8 := by ring
+      have h2 : l^8 ≤ l^20 := pow_le_pow_right₀ hl1 (by norm_num)
+      have h6 : ε^2*l^8 ≤ ε^2*l^20 :=
+        mul_le_mul_of_nonneg_left h2 (by positivity)
+      have h4 : ε^2*l^20 ≤ ε^2*Q :=
+        mul_le_mul_of_nonneg_left hwin1 (by positivity)
+      linarith [hc2, hc3.le, hc3.ge, h6, h4]
+    nlinarith [mul_le_mul_of_nonneg_right hQl (sq_nonneg x)]
+  have hγ : (1 + L)^3 * (2112*(2*x)^2*G/u) ≤ (ε*x)^2/(576*l^4) := by
+    have h1 : (1 + L)^3 * (2112*(2*x)^2*G/u)
+        ≤ 27*l^3 * (8448*x^2*(5*l)/u) := by
+      have hE : (1 + L)^3 * (2112*(2*x)^2*G/u)
+          = (1 + L)^3 * (8448*x^2*G/u) := by ring
+      rw [hE]
+      gcongr
+    refine le_trans h1 ?_
+    have hE2 : 27*l^3 * (8448*x^2*(5*l)/u)
+        = (27*l^3*(8448*x^2*(5*l)))/u := by ring
+    rw [hE2, div_le_div_iff₀ hu0 (by positivity)]
+    nlinarith [mul_le_mul_of_nonneg_right hKu24 (sq_nonneg x)]
+  have hδ : (1 + L)^3 * (1056*(2*x)*Q*G) ≤ (ε*x)^2/(576*l^4) := by
+    have h1 : (1 + L)^3 * (1056*(2*x)*Q*G)
+        ≤ 27*l^3 * (2112*x*Q*(5*l)) := by
+      have hE : (1 + L)^3 * (1056*(2*x)*Q*G)
+          = (1 + L)^3 * (2112*x*Q*G) := by ring
+      rw [hE]
+      gcongr
+    refine le_trans h1 ?_
+    rw [le_div_iff₀ (by positivity : (0:ℝ) < 576*l^4)]
+    have hA : 164229120*l^8 ≤ ε^2*l^20 := by
+      have h2 : l^8 ≤ l^19 := pow_le_pow_right₀ hl1 (by norm_num)
+      have h3 : 164229120*l^19 ≤ (ε^2*l)*l^19 := by
+        nlinarith [hll, pow_nonneg hl0.le 19]
+      have h4 : 164229120*l^8 ≤ 164229120*l^19 := by
+        nlinarith [h2]
+      nlinarith [h3, h4]
+    nlinarith [mul_le_mul_of_nonneg_right hA
+        (mul_nonneg hx.le hQ0.le),
+      mul_le_mul_of_nonneg_left hwin2
+        (mul_nonneg (sq_nonneg ε) hx.le)]
+  -- assemble under the square root
+  have hsq0 : (0:ℝ) ≤ ε*x/(3*L^2) := by positivity
+  have htgt : (ε*x)^2/(144*l^4) ≤ (ε*x/(3*L^2))^2 := by
+    rw [div_pow]
+    have h1 : (3*L^2)^2 ≤ 144*l^4 := by
+      have hc := pow_le_pow_left₀ (sq_nonneg L)
+        (pow_le_pow_left₀ hL0.le hL2 2) 2
+      have ha : (3*L^2)^2 = 9*(L^2)^2 := by ring
+      have hb : (((2*l)^2)^2 : ℝ) = 16*l^4 := by ring
+      linarith [hc, ha.le, ha.ge, hb.le, hb.ge]
+    gcongr
+  have hW : (1 + L)^3
+      * (27*(2*x)^2/u + 52*(2*x)^2/Q + 2112*(2*x)^2*G/u
+        + 1056*(2*x)*Q*G)
+      ≤ (ε*x/(3*L^2))^2 := by
+    have hdist : (1 + L)^3
+        * (27*(2*x)^2/u + 52*(2*x)^2/Q + 2112*(2*x)^2*G/u
+          + 1056*(2*x)*Q*G)
+        = (1 + L)^3 * (27*(2*x)^2/u)
+          + (1 + L)^3 * (52*(2*x)^2/Q)
+          + (1 + L)^3 * (2112*(2*x)^2*G/u)
+          + (1 + L)^3 * (1056*(2*x)*Q*G) := by ring
+    have hquarter : (ε*x)^2/(576*l^4) + (ε*x)^2/(576*l^4)
+        + (ε*x)^2/(576*l^4) + (ε*x)^2/(576*l^4)
+        = (ε*x)^2/(144*l^4) := by ring
+    rw [hdist]
+    linarith [hα, hβ, hγ, hδ, hquarter.le, hquarter.ge, htgt]
+  have h1 : Real.sqrt ((1 + L)^3
+      * (27*(2*x)^2/u + 52*(2*x)^2/Q + 2112*(2*x)^2*G/u
+        + 1056*(2*x)*Q*G)) ≤ ε*x/(3*L^2) := by
+    rw [show ε*x/(3*L^2) = Real.sqrt ((ε*x/(3*L^2))^2) from
+      (Real.sqrt_sq hsq0).symm]
+    exact Real.sqrt_le_sqrt hW
+  calc 3*L^2*Real.sqrt ((1 + L)^3
+      * (27*(2*x)^2/u + 52*(2*x)^2/Q + 2112*(2*x)^2*G/u
+        + 1056*(2*x)*Q*G))
+      ≤ 3*L^2*(ε*x/(3*L^2)) :=
+        mul_le_mul_of_nonneg_left h1 (by positivity)
+    _ = ε*x := by field_simp
+
 end ExpSums
 
 end MoltResearch
