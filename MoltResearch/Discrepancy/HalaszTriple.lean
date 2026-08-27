@@ -2,6 +2,7 @@ import MoltResearch.Discrepancy.PlancherelHarness
 import MoltResearch.Discrepancy.MultiplicativeC
 import MoltResearch.Discrepancy.BrunTitchmarsh
 import MoltResearch.Discrepancy.PretentiousDist
+import MoltResearch.Discrepancy.PrimeSumBounds
 
 /-!
 # Track C: the Halász triple convolution, frequency side (Track R, M0R)
@@ -469,6 +470,149 @@ theorem sum_re_phase_eq_mass_sub_distSq (f : ℕ → ℂ) (x : ℕ) (ξ : ℝ)
     ring
   rw [hkey]
   ring
+
+/-- **The zeta weight, bundled** (Track R, M0R-3c): the family
+`n ↦ n^{−(1+1/log x)}` as a map of monoids `ℕ →* ℝ` — `rpow` is
+multiplicative on nonnegative reals, and the value at `0` is `0`
+because the exponent is nonzero. -/
+noncomputable def zetaAbscissaHom (x : ℕ) : ℕ →* ℝ where
+  toFun n := (n : ℝ) ^ (-(1 + 1/Real.log x))
+  map_one' := by
+    rw [Nat.cast_one, Real.one_rpow]
+  map_mul' m n := by
+    push_cast
+    exact Real.mul_rpow (Nat.cast_nonneg m) (Nat.cast_nonneg n)
+
+/-- **The partial zeta Euler product is at most the zeta mass**
+(Track R, M0R-3c):
+
+  `∏_{p<x} (1 − p^{−(1+1/log x)})⁻¹ ≤ 2 + log x`.
+
+The geometric Euler product over the `x`-smooth numbers evaluates the
+product as `∑_{n x-smooth} n^{−σ}`, which is at most the full zeta mass
+`tsum_one_div_rpow_le_two_add_log` prices. -/
+theorem prod_one_sub_rpow_inv_le (x : ℕ) (hx : 3 ≤ x) :
+    ∏ p ∈ x.primesBelow, (1 - (p : ℝ) ^ (-(1 + 1/Real.log x)))⁻¹
+      ≤ 2 + Real.log x := by
+  classical
+  have hxR : (3 : ℝ) ≤ (x : ℝ) := by exact_mod_cast hx
+  have hlog1 : (1 : ℝ) < Real.log x := by
+    have he : Real.exp 1 < 3 := by
+      have := Real.exp_one_lt_d9
+      linarith
+    calc (1 : ℝ) = Real.log (Real.exp 1) := (Real.log_exp 1).symm
+      _ < Real.log 3 := Real.log_lt_log (Real.exp_pos 1) he
+      _ ≤ Real.log x := Real.log_le_log (by norm_num) hxR
+  have hσ1 : (1 : ℝ) < 1 + 1/Real.log x := by
+    have : (0 : ℝ) < 1/Real.log x := by positivity
+    linarith
+  -- the prime weights are strictly inside the unit ball
+  have hprime : ∀ {p : ℕ}, p.Prime → ‖zetaAbscissaHom x p‖ < 1 := by
+    intro p hp
+    have hp2 : (2 : ℝ) ≤ (p : ℝ) := by exact_mod_cast hp.two_le
+    have hp1 : (1 : ℝ) ≤ (p : ℝ) := by linarith
+    have hmono : (p : ℝ) ^ (1:ℝ) ≤ (p : ℝ) ^ (1 + 1/Real.log x) :=
+      Real.rpow_le_rpow_of_exponent_le hp1 (by linarith)
+    have hpσ : (2 : ℝ) ≤ (p : ℝ) ^ (1 + 1/Real.log x) := by
+      rw [Real.rpow_one] at hmono
+      linarith
+    show |(p : ℝ) ^ (-(1 + 1/Real.log x))| < 1
+    rw [abs_of_nonneg (Real.rpow_nonneg (by positivity) _),
+      Real.rpow_neg (by positivity)]
+    have hh : 1/((p : ℝ) ^ (1 + 1/Real.log x)) ≤ 1/2 :=
+      one_div_le_one_div_of_le (by norm_num) hpσ
+    rw [one_div] at hh
+    exact lt_of_le_of_lt hh (by norm_num)
+  obtain ⟨hsummable, hhassum⟩ :=
+    EulerProduct.summable_and_hasSum_smoothNumbers_prod_primesBelow_geometric
+      (f := zetaAbscissaHom x) hprime x
+  -- the product is the smooth zeta sum
+  have hval : ∏ p ∈ x.primesBelow, (1 - (p : ℝ) ^ (-(1 + 1/Real.log x)))⁻¹
+      = ∑' m : x.smoothNumbers, ((m : ℕ) : ℝ) ^ (-(1 + 1/Real.log x)) :=
+    hhassum.tsum_eq.symm
+  rw [hval]
+  -- and the smooth sum is at most the full one
+  have hfull : Summable (fun n : ℕ => 1/(n : ℝ) ^ (1 + 1/Real.log x)) :=
+    Real.summable_one_div_nat_rpow.mpr hσ1
+  have hform : ∀ n : ℕ, (n : ℝ) ^ (-(1 + 1/Real.log x))
+      = 1/(n : ℝ) ^ (1 + 1/Real.log x) := by
+    intro n
+    rw [Real.rpow_neg (Nat.cast_nonneg n)]
+    exact (one_div _).symm
+  have hind : ∀ n : ℕ,
+      (Nat.smoothNumbers x).indicator
+        (fun n : ℕ => (n : ℝ) ^ (-(1 + 1/Real.log x))) n
+        ≤ 1/(n : ℝ) ^ (1 + 1/Real.log x) := by
+    intro n
+    refine le_trans (Set.indicator_le_self' (fun m _ =>
+      Real.rpow_nonneg (Nat.cast_nonneg _) _) n) (le_of_eq (hform n))
+  have hle : ∑' m : x.smoothNumbers, ((m : ℕ) : ℝ) ^ (-(1 + 1/Real.log x))
+      ≤ ∑' n : ℕ, 1/(n : ℝ) ^ (1 + 1/Real.log x) := by
+    rw [tsum_subtype (Nat.smoothNumbers x)
+      (fun n : ℕ => (n : ℝ) ^ (-(1 + 1/Real.log x)))]
+    refine Summable.tsum_le_tsum hind ?_ hfull
+    refine Summable.of_nonneg_of_le (fun n => ?_) hind hfull
+    exact Set.indicator_nonneg
+      (fun m _ => Real.rpow_nonneg (Nat.cast_nonneg _) _) n
+  exact le_trans hle (tsum_one_div_rpow_le_two_add_log hxR)
+
+/-- **The prime mass at the shifted abscissa** (Track R, M0R-3c):
+
+  `∑_{p<x} p^{−(1+1/log x)} ≤ log(2 + log x)`.
+
+Exponentiate: `e^{∑} = ∏ e^{p^{−σ}} ≤ ∏ (1−p^{−σ})⁻¹ ≤ 2 + log x`,
+the middle step being `eᵘ ≤ (1−u)⁻¹` per factor. -/
+theorem sum_rpow_primesBelow_le_log (x : ℕ) (hx : 3 ≤ x) :
+    ∑ p ∈ x.primesBelow, (p : ℝ) ^ (-(1 + 1/Real.log x))
+      ≤ Real.log (2 + Real.log x) := by
+  classical
+  have hxR : (3 : ℝ) ≤ (x : ℝ) := by exact_mod_cast hx
+  have hlog1 : (1 : ℝ) < Real.log x := by
+    have he : Real.exp 1 < 3 := by
+      have := Real.exp_one_lt_d9
+      linarith
+    calc (1 : ℝ) = Real.log (Real.exp 1) := (Real.log_exp 1).symm
+      _ < Real.log 3 := Real.log_lt_log (Real.exp_pos 1) he
+      _ ≤ Real.log x := Real.log_le_log (by norm_num) hxR
+  -- each factor: `eᵘ ≤ (1−u)⁻¹` at `u = p^{−σ} ≤ 1/2`
+  have hfac : ∀ p ∈ x.primesBelow,
+      Real.exp ((p : ℝ) ^ (-(1 + 1/Real.log x)))
+        ≤ (1 - (p : ℝ) ^ (-(1 + 1/Real.log x)))⁻¹ := by
+    intro p hp
+    have hpp := Nat.prime_of_mem_primesBelow hp
+    have hp2 : (2 : ℝ) ≤ (p : ℝ) := by exact_mod_cast hpp.two_le
+    set u : ℝ := (p : ℝ) ^ (-(1 + 1/Real.log x)) with hu_def
+    have hu0 : 0 ≤ u := Real.rpow_nonneg (by positivity) _
+    have huhalf : u ≤ 1/2 := by
+      rw [hu_def, Real.rpow_neg (by positivity)]
+      have hmono : (p : ℝ) ^ (1:ℝ) ≤ (p : ℝ) ^ (1 + 1/Real.log x) := by
+        refine Real.rpow_le_rpow_of_exponent_le (by linarith) ?_
+        have h5 : (0 : ℝ) < 1/Real.log x := by positivity
+        linarith
+      rw [Real.rpow_one] at hmono
+      have h2σ : (2 : ℝ) ≤ (p : ℝ) ^ (1 + 1/Real.log x) := by linarith
+      have hh : 1/((p : ℝ) ^ (1 + 1/Real.log x)) ≤ 1/2 :=
+        one_div_le_one_div_of_le (by norm_num) h2σ
+      rw [one_div] at hh
+      exact hh
+    have h1u : (0 : ℝ) < 1 - u := by linarith
+    -- `(1−u)·eᵘ ≤ 1` from `1+(−u) ≤ e^{−u}`
+    have h2 : (1 - u) * Real.exp u ≤ 1 := by
+      have h3 : 1 - u ≤ Real.exp (-u) := by
+        linarith [Real.add_one_le_exp (-u)]
+      have h4 := mul_le_mul_of_nonneg_right h3 (Real.exp_pos u).le
+      rw [← Real.exp_add, show -u + u = 0 by ring, Real.exp_zero] at h4
+      exact h4
+    rw [inv_eq_one_div, le_div_iff₀ h1u]
+    linarith [h2]
+  have hexp : Real.exp (∑ p ∈ x.primesBelow,
+      (p : ℝ) ^ (-(1 + 1/Real.log x))) ≤ 2 + Real.log x := by
+    rw [Real.exp_sum]
+    exact le_trans
+      (Finset.prod_le_prod (fun p _ => (Real.exp_pos _).le) hfac)
+      (prod_one_sub_rpow_inv_le x hx)
+  have hlog := Real.log_le_log (Real.exp_pos _) hexp
+  rwa [Real.log_exp] at hlog
 
 end ExpSums
 
