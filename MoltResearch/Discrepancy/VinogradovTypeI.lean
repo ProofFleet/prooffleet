@@ -3031,6 +3031,115 @@ theorem vaughan_typeI'_coeff_le (U V t : ℕ) (ht : 1 ≤ t) :
     (fun c _ _ => vonMangoldt_nonneg)) ?_
   rw [vonMangoldt_sum]
 
+
+/-- **The hyperbola window is an interval** (Track R, V6c-i): filtering
+an `m`-interval by two hyperbola constraints `n₀ < n*m ≤ N`,
+`n₀ < n'*m ≤ N` leaves an interval of `m`. -/
+theorem hyperbola_filter_eq_Ico (M₁ M₂ n₀ N n n' : ℕ) (hn : 1 ≤ n)
+    (hn' : 1 ≤ n') :
+    (Finset.Ico M₁ M₂).filter
+        (fun m => (n₀ < n*m ∧ n*m ≤ N) ∧ (n₀ < n'*m ∧ n'*m ≤ N))
+      = Finset.Ico (max M₁ (max (n₀/n + 1) (n₀/n' + 1)))
+          (min M₂ (min (N/n + 1) (N/n' + 1))) := by
+  have h1 : ∀ k m : ℕ, 1 ≤ k → (n₀ < k*m ↔ n₀/k + 1 ≤ m) := by
+    intro k m hk
+    rw [Nat.add_one_le_iff, Nat.div_lt_iff_lt_mul (by omega : 0 < k)]
+    exact ⟨fun h => by rwa [Nat.mul_comm k m] at h,
+      fun h => by rwa [Nat.mul_comm m k] at h⟩
+  have h2 : ∀ k m : ℕ, 1 ≤ k → (k*m ≤ N ↔ m < N/k + 1) := by
+    intro k m hk
+    rw [Nat.lt_add_one_iff, Nat.le_div_iff_mul_le (by omega : 0 < k)]
+    exact ⟨fun h => by rwa [Nat.mul_comm k m] at h,
+      fun h => by rwa [Nat.mul_comm m k] at h⟩
+  ext m
+  simp only [Finset.mem_filter, Finset.mem_Ico, max_le_iff, lt_min_iff]
+  constructor
+  · rintro ⟨⟨hm1, hm2⟩, ⟨ha1, ha2⟩, hb1, hb2⟩
+    exact ⟨⟨hm1, (h1 n m hn).mp ha1, (h1 n' m hn').mp hb1⟩,
+      hm2, (h2 n m hn).mp ha2, (h2 n' m hn').mp hb2⟩
+  · rintro ⟨⟨hm1, ha1, hb1⟩, hm2, ha2, hb2⟩
+    exact ⟨⟨hm1, hm2⟩, ⟨(h1 n m hn).mpr ha1, (h2 n m hn).mpr ha2⟩,
+      (h1 n' m hn').mpr hb1, (h2 n' m hn').mpr hb2⟩
+
+
+/-- **The hyperbola pair bound** (Track R, V6c-i): a conjugate pair of
+hyperbola-filtered inner terms summed over the outer interval collapses
+to a gap phase sum over a sub-interval, so it is bounded both by the
+full interval length and — when the gap frequency is separated from the
+integers — by the Kusmin–Landau reciprocal. -/
+theorem norm_pair_sum_le_gap_hyperbola (β : ℝ) (M₁ M₂ n₀ N : ℕ)
+    (bn : ℕ → ℂ) (hbn : ∀ n, ‖bn n‖ ≤ 1) (n n' : ℕ) (hn : 1 ≤ n)
+    (hn' : 1 ≤ n') :
+    ‖∑ m ∈ Finset.Ico M₁ M₂,
+        ((if n₀ < n*m ∧ n*m ≤ N then bn n else 0) * e ((m:ℝ)*(n:ℝ)*β))
+          * (starRingEnd ℂ)
+            ((if n₀ < n'*m ∧ n'*m ≤ N then bn n' else 0)
+              * e ((m:ℝ)*(n':ℝ)*β))‖
+      ≤ min (((M₂ - M₁ : ℕ):ℝ))
+          (if 0 < nint (((max n n' - min n n' : ℕ):ℝ)*β)
+            then 1 / nint (((max n n' - min n n' : ℕ):ℝ)*β)
+            else ((M₂ - M₁ : ℕ):ℝ)) := by
+  classical
+  have hcollapse : ∀ m : ℕ,
+      ((if n₀ < n*m ∧ n*m ≤ N then bn n else 0) * e ((m:ℝ)*(n:ℝ)*β))
+        * (starRingEnd ℂ)
+          ((if n₀ < n'*m ∧ n'*m ≤ N then bn n' else 0)
+            * e ((m:ℝ)*(n':ℝ)*β))
+      = if (n₀ < n*m ∧ n*m ≤ N) ∧ (n₀ < n'*m ∧ n'*m ≤ N) then
+          (bn n * e ((m:ℝ)*(n:ℝ)*β))
+            * (starRingEnd ℂ) (bn n' * e ((m:ℝ)*(n':ℝ)*β))
+        else 0 := by
+    intro m
+    by_cases h1 : n₀ < n*m ∧ n*m ≤ N
+    · by_cases h2 : n₀ < n'*m ∧ n'*m ≤ N
+      · rw [if_pos h1, if_pos h2, if_pos ⟨h1, h2⟩]
+      · rw [if_pos h1, if_neg h2, if_neg (fun hc => h2 hc.2), zero_mul,
+          map_zero, mul_zero]
+    · rw [if_neg h1, zero_mul, zero_mul, if_neg (fun hc => h1 hc.1)]
+  rw [Finset.sum_congr rfl (fun m _ => hcollapse m), ← Finset.sum_filter,
+    hyperbola_filter_eq_Ico M₁ M₂ n₀ N n n' hn hn']
+  set A := max M₁ (max (n₀/n + 1) (n₀/n' + 1)) with hA
+  set B := min M₂ (min (N/n + 1) (N/n' + 1)) with hB
+  have hAB1 : M₁ ≤ A := by
+    rw [hA]
+    exact le_max_left _ _
+  have hAB2 : B ≤ M₂ := by
+    rw [hB]
+    exact min_le_left _ _
+  have hgap := norm_pair_sum_le_gap β A B bn hbn n n'
+  have htriv : ‖∑ m ∈ Finset.Ico A B,
+      e ((m:ℝ)*((max n n' - min n n' : ℕ):ℝ)*β)‖
+      ≤ ((M₂ - M₁ : ℕ):ℝ) := by
+    refine le_trans (norm_sum_le _ _) ?_
+    have h1 : ∀ m ∈ Finset.Ico A B,
+        ‖e ((m:ℝ)*((max n n' - min n n' : ℕ):ℝ)*β)‖ = 1 :=
+      fun m _ => norm_e _
+    rw [Finset.sum_congr rfl h1, Finset.sum_const, nsmul_eq_mul, mul_one,
+      Nat.card_Ico]
+    have hsub : B - A ≤ M₂ - M₁ := tsub_le_tsub hAB2 hAB1
+    exact_mod_cast hsub
+  refine le_trans hgap (le_min htriv ?_)
+  by_cases hpos : 0 < nint (((max n n' - min n n' : ℕ):ℝ)*β)
+  · rw [if_pos hpos]
+    rcases Nat.lt_or_ge A B with hlt | hge
+    · have hBe : B = (B - 1) + 1 := by omega
+      have hphase : ∀ m ∈ Finset.Ico A ((B - 1) + 1),
+          e ((m:ℝ)*((max n n' - min n n' : ℕ):ℝ)*β)
+          = e ((m:ℝ) * (((max n n' - min n n' : ℕ):ℝ)*β)) := by
+        intro m _
+        congr 1
+        ring
+      have hkl := norm_sum_e_linear_le
+        (β := ((max n n' - min n n' : ℕ):ℝ)*β) hpos A (B - 1) (by omega)
+      rw [hBe, Finset.sum_congr rfl hphase]
+      exact hkl
+    · have hempty : Finset.Ico A B = ∅ := Finset.Ico_eq_empty (by omega)
+      rw [hempty]
+      simp only [Finset.sum_empty, norm_zero]
+      exact div_nonneg zero_le_one hpos.le
+  · rw [if_neg hpos]
+    exact htriv
+
 end ExpSums
 
 end MoltResearch
