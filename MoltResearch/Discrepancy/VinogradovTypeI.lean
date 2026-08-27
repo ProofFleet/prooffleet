@@ -3929,6 +3929,251 @@ theorem typeI_Ioc_sum_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
     rw [hd']
     linarith [h]
 
+
+/-- **The log-weighted Type I estimate** (Track R, V6d-v): the first
+Vaughan leg — inner sums carry the weight `log m`, which Abel
+summation trades for one factor `2·log N` against the partial-sum gap
+function, and the refined counting lemma prices the rest. -/
+theorem typeI_abel_sum_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
+    (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (D n₀ N : ℕ) (hD : 1 ≤ D)
+    (hn₀N : n₀ ≤ N) (c : ℕ → ℂ) (hc : ∀ d, ‖c d‖ ≤ 1) :
+    ∑ b ∈ Finset.Icc 1 D,
+        ‖c b * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+          ((Real.log (m:ℝ) : ℝ):ℂ)
+            * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ 2*Real.log (N:ℝ)
+        * (13*(N:ℝ)*(Real.log (D:ℝ) + 3)/(q:ℝ)
+          + 2*((D:ℝ)/(q:ℝ) + 1)
+            * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))) := by
+  classical
+  have hq0R : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+  have hφ0 : ∀ m : ℕ, 0 ≤ Real.log (m:ℝ) :=
+    fun m => Real.log_natCast_nonneg m
+  have hmono : ∀ m : ℕ, Real.log (m:ℝ) ≤ Real.log ((m+1 : ℕ):ℝ) := by
+    intro m
+    rcases Nat.eq_zero_or_pos m with rfl | hm
+    · norm_num [Real.log_zero, Real.log_one]
+    · refine Real.log_le_log ?_ ?_
+      · exact_mod_cast hm
+      · exact_mod_cast Nat.le_succ m
+  -- the uniform bound on all partial phase sums
+  have hpartial : ∀ b : ℕ, ∀ t : ℕ, t ≤ N/b →
+      ‖∑ m ∈ Finset.Ioc (n₀/b) t,
+        e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ min ((N:ℝ)/(b:ℝ))
+          (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            else (N:ℝ)/(b:ℝ)) := by
+    intro b t ht2
+    have htriv : ‖∑ m ∈ Finset.Ioc (n₀/b) t,
+        e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ ≤ (N:ℝ)/(b:ℝ) := by
+      refine le_trans (norm_sum_le _ _) ?_
+      have h4 : ∀ m ∈ Finset.Ioc (n₀/b) t,
+          ‖e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ = 1 :=
+        fun m _ => norm_e _
+      rw [Finset.sum_congr rfl h4, Finset.sum_const, nsmul_eq_mul,
+        mul_one, Nat.card_Ioc]
+      have h5 : (t - n₀/b : ℕ) ≤ N/b := le_trans (Nat.sub_le _ _) ht2
+      have h6 : ((N/b : ℕ):ℝ) ≤ (N:ℝ)/(b:ℝ) := Nat.cast_div_le
+      have h7 : ((t - n₀/b : ℕ):ℝ) ≤ ((N/b : ℕ):ℝ) := by
+        exact_mod_cast h5
+      linarith
+    refine le_min htriv ?_
+    by_cases hpos : 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+    · rw [if_pos hpos]
+      rcases Nat.lt_or_ge (n₀/b) t with hlt | hge
+      · have hIoc : Finset.Ioc (n₀/b) t
+            = Finset.Ico (n₀/b + 1) (t + 1) := by
+          ext m
+          rw [Finset.mem_Ioc, Finset.mem_Ico]
+          exact ⟨fun h => ⟨h.1, Nat.lt_add_one_iff.mpr h.2⟩,
+            fun h => ⟨h.1, Nat.lt_add_one_iff.mp h.2⟩⟩
+        have hphase : ∀ m ∈ Finset.Ico (n₀/b + 1) (t + 1),
+            e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            = e ((m:ℝ) * ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))) := by
+          intro m _
+          congr 1
+          ring
+        have hkl := norm_sum_e_linear_le
+          (β := (b:ℝ)*((a:ℝ)/(q:ℝ) + δ)) hpos (n₀/b + 1) t hlt
+        rw [hIoc, Finset.sum_congr rfl hphase]
+        exact hkl
+      · have hempty : Finset.Ioc (n₀/b) t = ∅ :=
+          Finset.Ioc_eq_empty (not_lt.mpr hge)
+        rw [hempty]
+        simp only [Finset.sum_empty, norm_zero]
+        exact div_nonneg zero_le_one hpos.le
+    · rw [if_neg hpos]
+      exact htriv
+  have hF0 : ∀ b : ℕ,
+      (0:ℝ) ≤ min ((N:ℝ)/(b:ℝ))
+        (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          else (N:ℝ)/(b:ℝ)) := by
+    intro b
+    refine le_min (by positivity) ?_
+    by_cases hpos : 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+    · rw [if_pos hpos]
+      exact div_nonneg zero_le_one hpos.le
+    · rw [if_neg hpos]
+      positivity
+  -- per-`b` Abel summation
+  have hperb : ∀ b ∈ Finset.Icc 1 D,
+      ‖c b * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+        ((Real.log (m:ℝ) : ℝ):ℂ)
+          * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ 2*Real.log (N:ℝ)
+        * min ((N:ℝ)/(b:ℝ))
+          (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            else (N:ℝ)/(b:ℝ)) := by
+    intro b hb
+    rw [Finset.mem_Icc] at hb
+    have hcoef : ‖c b * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+        ((Real.log (m:ℝ) : ℝ):ℂ)
+          * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+        ≤ ‖∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+          ((Real.log (m:ℝ) : ℝ):ℂ)
+            * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ := by
+      rw [norm_mul]
+      have h2 := hc b
+      have h3 := norm_nonneg (∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+        ((Real.log (m:ℝ) : ℝ):ℂ)
+          * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+      nlinarith [norm_nonneg (c b)]
+    have habel := abel_mono_bound (n₀/b) (N/b)
+      (Nat.div_le_div_right hn₀N)
+      (fun m => Real.log (m:ℝ))
+      (fun m => e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+      (min ((N:ℝ)/(b:ℝ))
+        (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          else (N:ℝ)/(b:ℝ)))
+      hφ0 hmono
+      (fun t _ ht2 => hpartial b t ht2)
+    have hlogNb : Real.log ((N/b : ℕ):ℝ) ≤ Real.log (N:ℝ) := by
+      rcases Nat.eq_zero_or_pos (N/b) with h0 | hpos'
+      · rw [h0, Nat.cast_zero, Real.log_zero]
+        exact Real.log_natCast_nonneg N
+      · refine Real.log_le_log ?_ ?_
+        · exact_mod_cast hpos'
+        · exact_mod_cast Nat.div_le_self N b
+    have hstep := mul_le_mul_of_nonneg_right
+      (mul_le_mul_of_nonneg_left hlogNb (by norm_num : (0:ℝ) ≤ 2))
+      (hF0 b)
+    calc ‖c b * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+        ((Real.log (m:ℝ) : ℝ):ℂ)
+          * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+        ≤ ‖∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+          ((Real.log (m:ℝ) : ℝ):ℂ)
+            * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ := hcoef
+      _ ≤ 2 * Real.log ((N/b : ℕ):ℝ)
+          * min ((N:ℝ)/(b:ℝ))
+            (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              else (N:ℝ)/(b:ℝ)) := habel
+      _ ≤ 2*Real.log (N:ℝ)
+          * min ((N:ℝ)/(b:ℝ))
+            (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              else (N:ℝ)/(b:ℝ)) := hstep
+  -- sum the per-`b` bounds and price the gap function
+  have hsum := Finset.sum_le_sum hperb
+  have hpull : ∑ b ∈ Finset.Icc 1 D,
+      2*Real.log (N:ℝ)
+        * min ((N:ℝ)/(b:ℝ))
+          (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            else (N:ℝ)/(b:ℝ))
+      = 2*Real.log (N:ℝ)
+        * ∑ b ∈ Finset.Icc 1 D,
+          min ((N:ℝ)/(b:ℝ))
+            (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              else (N:ℝ)/(b:ℝ)) :=
+    (Finset.mul_sum _ _ _).symm
+  have hcount := sum_range_g_le' a q hq hcop δ hδ D hD ((N:ℝ)/2)
+    (by positivity)
+    (fun b => min ((N:ℝ)/(b:ℝ))
+      (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        else (N:ℝ)/(b:ℝ)) / 2)
+    (fun b _ => div_nonneg (hF0 b) (by norm_num))
+    ?_ ?_
+  · have hhalf : ∑ b ∈ Finset.Icc 1 D,
+        min ((N:ℝ)/(b:ℝ))
+          (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            else (N:ℝ)/(b:ℝ))
+        = 2 * ∑ b ∈ Finset.Icc 1 D,
+          (min ((N:ℝ)/(b:ℝ))
+            (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              else (N:ℝ)/(b:ℝ)) / 2) := by
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl fun b _ => ?_
+      ring
+    have hfin : 2 * (13*((N:ℝ)/2)*(Real.log (D:ℝ) + 3)/(q:ℝ)
+        + ((D:ℝ)/(q:ℝ) + 1) * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        = 13*(N:ℝ)*(Real.log (D:ℝ) + 3)/(q:ℝ)
+          + 2*((D:ℝ)/(q:ℝ) + 1)
+            * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+      field_simp
+    have hFsum : ∑ b ∈ Finset.Icc 1 D,
+        min ((N:ℝ)/(b:ℝ))
+          (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            else (N:ℝ)/(b:ℝ))
+        ≤ 13*(N:ℝ)*(Real.log (D:ℝ) + 3)/(q:ℝ)
+          + 2*((D:ℝ)/(q:ℝ) + 1)
+            * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+      rw [hhalf]
+      linarith [hcount, hfin.le, hfin.ge]
+    have hlogN0 : (0:ℝ) ≤ Real.log (N:ℝ) := Real.log_natCast_nonneg N
+    have hmul := mul_le_mul_of_nonneg_left hFsum
+      (by linarith : (0:ℝ) ≤ 2*Real.log (N:ℝ))
+    calc ∑ b ∈ Finset.Icc 1 D,
+        ‖c b * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+          ((Real.log (m:ℝ) : ℝ):ℂ)
+            * e ((b:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+        ≤ ∑ b ∈ Finset.Icc 1 D,
+          2*Real.log (N:ℝ)
+            * min ((N:ℝ)/(b:ℝ))
+              (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+                then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+                else (N:ℝ)/(b:ℝ)) := hsum
+      _ = 2*Real.log (N:ℝ)
+          * ∑ b ∈ Finset.Icc 1 D,
+            min ((N:ℝ)/(b:ℝ))
+              (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+                then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+                else (N:ℝ)/(b:ℝ)) := hpull
+      _ ≤ 2*Real.log (N:ℝ)
+          * (13*(N:ℝ)*(Real.log (D:ℝ) + 3)/(q:ℝ)
+            + 2*((D:ℝ)/(q:ℝ) + 1)
+              * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))) := hmul
+  · intro b hb
+    rw [Finset.mem_Icc] at hb
+    have h := min_le_left ((N:ℝ)/(b:ℝ))
+      (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        else (N:ℝ)/(b:ℝ))
+    have hbr : ((N:ℝ)/2)/(b:ℝ) = ((N:ℝ)/(b:ℝ))/2 := by
+      ring
+    linarith [h, hbr.le, hbr.ge]
+  · intro b hb hpos
+    have hite : (if 0 < nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        then 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        else (N:ℝ)/(b:ℝ))
+        = 1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := if_pos hpos
+    have h := le_trans (min_le_right ((N:ℝ)/(b:ℝ)) _) (le_of_eq hite)
+    have hd' : 1/(2 * nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+        = (1 / nint ((b:ℝ)*((a:ℝ)/(q:ℝ) + δ)))/2 := by
+      rw [div_div]
+      ring_nf
+    rw [hd']
+    linarith [h]
+
 end ExpSums
 
 end MoltResearch
