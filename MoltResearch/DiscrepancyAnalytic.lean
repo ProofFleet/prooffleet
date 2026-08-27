@@ -17,6 +17,7 @@ import MoltResearch.Discrepancy.MajorArcFreeze
 import MoltResearch.Discrepancy.ParsevalBridge
 import MoltResearch.Discrepancy.HalaszAssembly
 import MoltResearch.Discrepancy.RieszCapstone
+import MoltResearch.Discrepancy.VinogradovTypeI
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
