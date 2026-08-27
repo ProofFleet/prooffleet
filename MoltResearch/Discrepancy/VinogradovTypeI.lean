@@ -2758,6 +2758,93 @@ theorem vaughan_weighted (U V n₀ N : ℕ) (hV : V < n₀) (w : ℕ → ℂ) :
     rw [Finset.sum_congr rfl h2, Finset.sum_congr rfl h3,
       ← Finset.sum_filter]
 
+
+/-- **Discrete Abel summation, monotone-coefficient bound** (Track R,
+V6a): if all window partials of `z` are bounded by `B` and `φ` is
+nonnegative and nondecreasing, then `‖∑ φ(m) z(m)‖ ≤ 2 φ(Q) B` — the
+log-weighted Type I leg reduces to the unweighted one at the price of
+one logarithm. -/
+theorem abel_mono_bound (P Q : ℕ) (hPQ : P ≤ Q) (φ : ℕ → ℝ) (z : ℕ → ℂ)
+    (B : ℝ) (hφ0 : ∀ m, 0 ≤ φ m) (hmono : ∀ m, φ m ≤ φ (m+1))
+    (hB : ∀ t, P ≤ t → t ≤ Q → ‖∑ m ∈ Finset.Ioc P t, z m‖ ≤ B) :
+    ‖∑ m ∈ Finset.Ioc P Q, ((φ m : ℝ):ℂ) * z m‖ ≤ 2 * φ Q * B := by
+  classical
+  have hB0 : 0 ≤ B := le_trans (norm_nonneg _) (hB P le_rfl hPQ)
+  -- the Abel identity
+  have habel : ∀ R, P ≤ R → R ≤ Q →
+      ∑ m ∈ Finset.Ioc P R, ((φ m : ℝ):ℂ) * z m
+      = ((φ R : ℝ):ℂ) * (∑ m ∈ Finset.Ioc P R, z m)
+        - ∑ t ∈ Finset.Ico (P+1) R,
+          ((φ (t+1) - φ t : ℝ):ℂ) * (∑ m ∈ Finset.Ioc P t, z m) := by
+    intro R hPR hRQ
+    clear hRQ
+    induction R, hPR using Nat.le_induction with
+    | base =>
+      simp
+    | succ R hPR ih =>
+      rw [Finset.sum_Ioc_succ_top (by omega), ih]
+      rcases Nat.eq_or_lt_of_le hPR with rfl | hlt
+      · have he : Finset.Ico (P+1) P = ∅ := Finset.Ico_eq_empty (by omega)
+        have he2 : Finset.Ico (P+1) (P+1) = ∅ :=
+          Finset.Ico_eq_empty (by omega)
+        rw [he, he2]
+        have he3 : Finset.Ioc P P = ∅ := Finset.Ioc_self P
+        rw [he3]
+        rw [Finset.sum_Ioc_succ_top (le_refl P), he3]
+        simp
+      · rw [Finset.sum_Ico_succ_top (by omega : P + 1 ≤ R)]
+        rw [Finset.sum_Ioc_succ_top (by omega : P ≤ R)]
+        push_cast
+        ring
+  rcases Nat.eq_or_lt_of_le hPQ with rfl | hPQ'
+  · simp only [Finset.Ioc_self, Finset.sum_empty, norm_zero]
+    have := hφ0 P
+    nlinarith [hB0]
+  rw [habel Q hPQ le_rfl]
+  refine le_trans (norm_sub_le _ _) ?_
+  have h1 : ‖((φ Q : ℝ):ℂ) * (∑ m ∈ Finset.Ioc P Q, z m)‖
+      ≤ φ Q * B := by
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg (hφ0 Q)]
+    exact mul_le_mul_of_nonneg_left (hB Q hPQ le_rfl) (hφ0 Q)
+  have h2 : ‖∑ t ∈ Finset.Ico (P+1) Q,
+      ((φ (t+1) - φ t : ℝ):ℂ) * (∑ m ∈ Finset.Ioc P t, z m)‖
+      ≤ (φ Q - φ (P+1)) * B := by
+    refine le_trans (norm_sum_le _ _) ?_
+    have hterm : ∀ t ∈ Finset.Ico (P+1) Q,
+        ‖((φ (t+1) - φ t : ℝ):ℂ) * (∑ m ∈ Finset.Ioc P t, z m)‖
+        ≤ (φ (t+1) - φ t) * B := by
+      intro t ht
+      rw [Finset.mem_Ico] at ht
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg (by linarith [hmono t])]
+      exact mul_le_mul (le_refl _) (hB t (by omega) (by omega))
+        (norm_nonneg _) (by linarith [hmono t])
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [← Finset.sum_mul]
+    have htel : ∑ t ∈ Finset.Ico (P+1) Q, (φ (t+1) - φ t)
+        = φ Q - φ (P+1) := by
+      have h := sum_Ico_sub_telescope φ (by omega : P + 1 ≤ Q)
+      have h2 : ∑ t ∈ Finset.Ico (P+1) Q, (φ (t+1) - φ t)
+          = - ∑ t ∈ Finset.Ico (P+1) Q, (φ t - φ (t+1)) := by
+        rw [← Finset.sum_neg_distrib]
+        refine Finset.sum_congr rfl fun t _ => ?_
+        ring
+      rw [h2, h]
+      ring
+    rw [htel]
+  have hle : φ (P+1) ≤ φ Q := by
+    have h : P + 1 ≤ Q := by omega
+    clear hB habel h1 h2
+    induction Q, h using Nat.le_induction with
+    | base => exact le_refl _
+    | succ Q hQ ih =>
+      exact le_trans (ih (by omega) (by omega)) (hmono Q)
+  have hpb : 0 ≤ φ (P+1) * B := mul_nonneg (hφ0 _) hB0
+  have hexp : (φ Q - φ (P+1)) * B = φ Q * B - φ (P+1) * B := by
+    ring
+  linarith [h1, h2, hpb, hexp.le, hexp.ge]
+
 end ExpSums
 
 end MoltResearch
