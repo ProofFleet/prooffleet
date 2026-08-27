@@ -481,6 +481,163 @@ theorem norm_smoothPhaseSum_le (f : ℕ → ℂ)
         mul_le_mul_of_nonneg_right (hb ↑m) (by positivity)
     _ = (((m : ℕ) : ℝ))⁻¹ := one_mul _
 
+-- PR-D1: appended inside namespace ExpSums of HalaszTripleG.lean
+
+/-- **The smooth indicator weight** (Track R, M0R-4b): the `ℕ`-indexed
+weight family `n ↦ f(n)/n` on the `x`-smooth numbers and `0` elsewhere —
+the form the countable pairing `tsum_translates_eq_integral_char`
+consumes.  Its phase sum is `smoothPhaseSum` (the subtype tsum), and
+against a window vanishing at non-positive arguments its translate sum
+collapses to the finite window sum over `Icc 1 x`. -/
+noncomputable def smoothWeight (f : ℕ → ℂ) (x : ℕ) : ℕ → ℂ :=
+  fun n => if n ∈ Nat.smoothNumbers x then f n * ((n : ℕ) : ℂ)⁻¹ else 0
+
+/-- **The smooth weight is absolutely summable** (Track R, M0R-4b):
+`summable_norm_smooth_phase` read through the indicator. -/
+theorem summable_norm_smoothWeight (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) :
+    Summable (fun n : ℕ => ‖smoothWeight f x n‖) := by
+  have hsub : Summable
+      (fun m : (Nat.smoothNumbers x) => ‖f m * ((m : ℕ) : ℂ)⁻¹‖) := by
+    refine (summable_norm_smooth_phase f hcm h1 hb x 0).congr fun m => ?_
+    rw [norm_mul, norm_eq_of_mem_sphere, mul_one]
+  have hind := (summable_subtype_iff_indicator
+    (f := fun n : ℕ => ‖f n * ((n : ℕ) : ℂ)⁻¹‖)
+    (s := Nat.smoothNumbers x)).mp hsub
+  refine hind.congr fun n => ?_
+  by_cases hn : n ∈ Nat.smoothNumbers x <;>
+    simp [smoothWeight, hn]
+
+open scoped FourierTransform in
+/-- **The smooth weight's phase sum is the smooth phase sum** (Track R,
+M0R-4b): the indicator bridge between the `ℕ`-indexed pairing and the
+subtype tsum. -/
+theorem tsum_smoothWeight_char (f : ℕ → ℂ) (x : ℕ) (ξ : ℝ) :
+    ∑' n : ℕ, smoothWeight f x n
+        * ((𝐞 (-(Real.log (n:ℝ) * ξ)) : Circle) : ℂ)
+      = smoothPhaseSum f x ξ := by
+  unfold smoothPhaseSum
+  rw [tsum_subtype (Nat.smoothNumbers x)
+    (fun n : ℕ => f n * ((n : ℕ) : ℂ)⁻¹
+      * ((𝐞 (-(Real.log (n:ℝ) * ξ)) : Circle) : ℂ))]
+  refine tsum_congr fun n => ?_
+  by_cases hn : n ∈ Nat.smoothNumbers x <;>
+    simp [smoothWeight, hn]
+
+/-- **The window kills everything the smooth weight adds** (Track R,
+M0R-4b): for a window vanishing at non-positive arguments and any
+`u ≤ log x`, the smooth translate tsum *is* the finite window sum over
+`Icc 1 x`:
+
+  `∑'_n smoothWeight(n)·V(u − log n) = ∑_{n ∈ Icc 1 x} (f n/n)·V(u − log n)`.
+
+Three regimes: `n` smooth and `≤ x` — the terms agree; `n > x` — the
+window argument is `≤ u − log x ≤ 0`, so both sides vanish; `n ≤ x` not
+smooth — then `n = x` exactly (everything *below* `x` is `x`-smooth),
+and the window vanishes there too.  This is the observation that makes
+the tsum swap free on the time side: the Riesz window never sees an
+index where the finite sum and the smooth tsum differ. -/
+theorem tsum_smoothWeight_window (f : ℕ → ℂ) (x : ℕ) (hx : 1 ≤ x)
+    (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (u : ℝ) (hu : u ≤ Real.log (x:ℝ)) :
+    ∑' n : ℕ, smoothWeight f x n * ((V (u - Real.log (n:ℝ)) : ℝ) : ℂ)
+      = ∑ n ∈ Finset.Icc 1 x,
+          (f n / (n:ℂ)) * ((V (u - Real.log (n:ℝ)) : ℝ) : ℂ) := by
+  have hxR : (0:ℝ) < (x:ℝ) := by
+    have : (1:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+    linarith
+  rw [tsum_eq_sum (s := Finset.Icc 1 x) ?_]
+  · refine Finset.sum_congr rfl fun n hn => ?_
+    obtain ⟨hn1, hnx⟩ := Finset.mem_Icc.mp hn
+    by_cases hsm : n ∈ Nat.smoothNumbers x
+    · rw [smoothWeight, if_pos hsm, div_eq_mul_inv]
+    · -- not smooth and `≤ x` forces `n = x`, where the window vanishes
+      have hnx' : n = x := by
+        rcases Nat.lt_or_ge n x with hlt | hge
+        · exact absurd (Nat.mem_smoothNumbers_of_lt (by omega) hlt) hsm
+        · omega
+      have hV : V (u - Real.log (n:ℝ)) = 0 := by
+        refine hV0 _ ?_
+        rw [hnx']
+        linarith
+      rw [smoothWeight, if_neg hsm, hV]
+      simp
+  · intro b hb
+    rcases Nat.eq_zero_or_pos b with hb0 | hb1
+    · subst hb0
+      have h0 : (0:ℕ) ∉ Nat.smoothNumbers x :=
+        fun h => (Nat.mem_smoothNumbers.mp h).1 rfl
+      rw [smoothWeight, if_neg h0, zero_mul]
+    · have hbx : x < b := by
+        rcases Nat.lt_or_ge x b with h | h
+        · exact h
+        · exact absurd (Finset.mem_Icc.mpr ⟨hb1, h⟩) hb
+      have hV : V (u - Real.log (b:ℝ)) = 0 := by
+        refine hV0 _ ?_
+        have hlog : Real.log (x:ℝ) ≤ Real.log (b:ℝ) :=
+          Real.log_le_log hxR (by exact_mod_cast hbx.le)
+        linarith
+      rw [hV]
+      simp
+
+/-- **The Riesz window is at most one** (Track R, M0R-4b): the crude
+sup that the countable pairing's dominated-convergence step asks for —
+`v·e^{−v} ≤ 1` on the support, `0` off it. -/
+theorem norm_rieszWindow_ofReal_le_one (v : ℝ) :
+    ‖((rieszWindow v : ℝ) : ℂ)‖ ≤ 1 := by
+  have hnn : 0 ≤ rieszWindow v := by
+    rw [rieszWindow_eq_max]
+    positivity
+  have hle : rieszWindow v ≤ 1 := by
+    rw [rieszWindow_eq_max]
+    set m := max v 0 with hm_def
+    have hm0 : 0 ≤ m := le_max_right v 0
+    have hme : m ≤ Real.exp m := by
+      linarith [Real.add_one_le_exp m]
+    rw [Real.exp_neg, ← div_eq_mul_inv, div_le_one (Real.exp_pos m)]
+    exact hme
+  rw [Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg hnn]
+  exact hle
+
+open MeasureTheory Filter in
+open scoped FourierTransform in
+/-- **The inner window sum as a pairing against the smooth phase sum**
+(Track R, M0R-4b): for `u ≤ log x`,
+
+  `∑_{n ∈ Icc 1 x} (f n/n)·V(u − log n)
+     = ∫ e(ξu)·G_x(ξ)·𝓕V(ξ) dξ`,  `V = rieszWindow`.
+
+The countable pairing `tsum_translates_eq_integral_char` at the smooth
+indicator weight, with the time side collapsed to the finite window sum
+(`tsum_smoothWeight_window`) and the frequency side identified as
+`smoothPhaseSum` (`tsum_smoothWeight_char`).  Applied at
+`u = log(x/pq)`, the prefactor `e(ξu)` is what carries the `p`- and
+`q`-phases out of the tsum — no reindex of the infinite sum is ever
+needed. -/
+theorem sum_Icc_window_eq_integral_smoothPhase (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (hx : 1 ≤ x)
+    (u : ℝ) (hu : u ≤ Real.log (x:ℝ)) :
+    ∑ n ∈ Finset.Icc 1 x,
+        (f n / (n:ℂ)) * ((rieszWindow (u - Real.log (n:ℝ)) : ℝ) : ℂ)
+      = ∫ ξ, (𝐞 (ξ * u) : Circle)
+          • (smoothPhaseSum f x ξ
+            * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ) := by
+  have hV0 : ∀ v : ℝ, v ≤ 0 → rieszWindow v = 0 := by
+    intro v hv
+    rw [rieszWindow, if_neg (not_lt.mpr hv)]
+  rw [← tsum_smoothWeight_window f x hx rieszWindow hV0 u hu]
+  rw [tsum_translates_eq_integral_char
+    (fun v => ((rieszWindow v : ℝ) : ℂ))
+    continuous_rieszWindow_ofReal integrable_rieszWindow_ofReal
+    integrable_fourier_rieszWindow 1 norm_rieszWindow_ofReal_le_one
+    (smoothWeight f x) (fun n => Real.log (n:ℝ))
+    (summable_norm_smoothWeight f hcm h1 hb x) u]
+  refine integral_congr_ae (Eventually.of_forall fun ξ => ?_)
+  dsimp only
+  rw [tsum_smoothWeight_char f x ξ]
+
 end ExpSums
 
 end MoltResearch
