@@ -6233,6 +6233,184 @@ theorem minor_arc_expr_le (c : ℝ) (hc : 0 < c) :
     ring
   linarith [hT1, hT2, hfin.le, hfin.ge]
 
+
+set_option maxHeartbeats 1000000 in
+open ArithmeticFunction in
+/-- **The prime-block classification** (Track R, V8e): if the
+`1/p`-weighted prime-block sum at frequency `β` is at least
+`c/log n₀`, then `β` lies in a major arc of denominator at most
+`log²⁰n₀` and width at most `log²⁰n₀/(n₀q)` — Dirichlet approximation
+at `n = ⌊n₀/log²⁰n₀⌋` and, on the complementary window, the full
+Vinogradov minor-arc bound. -/
+theorem primeBlock_classification (c : ℝ) (hc : 0 < c) :
+    ∃ N₀ : ℕ, ∀ n₀ : ℕ, N₀ ≤ n₀ → ∀ β : ℝ,
+      c/Real.log (n₀:ℝ)
+        ≤ ‖∑ p ∈ (Finset.Ioc n₀ (2*n₀)).filter (fun p => p.Prime),
+            ((1/(p:ℝ) : ℝ):ℂ) * e ((p:ℝ)*β)‖ →
+      ∃ a : ℤ, ∃ q : ℕ, 1 ≤ q ∧
+        (q:ℝ) ≤ (Real.log (n₀:ℝ))^20 ∧
+        |β - (a:ℝ)/(q:ℝ)|
+          ≤ (Real.log (n₀:ℝ))^20/((n₀:ℝ)*(q:ℝ)) := by
+  classical
+  obtain ⟨N₁, hN₁⟩ := minor_arc_expr_le c hc
+  obtain ⟨N₂, hN₂⟩ := exists_log_pow_le 20 1 (by norm_num)
+  obtain ⟨N₃, hN₃⟩ := exists_log_ge 1
+  refine ⟨N₁ + N₂ + N₃ + 16, fun n₀ hn₀ β hβ => ?_⟩
+  have h16 : 16 ≤ n₀ := by omega
+  have hx : (0:ℝ) < (n₀:ℝ) := by
+    have h0 : 0 < n₀ := by omega
+    exact_mod_cast h0
+  have hl1 : (1:ℝ) ≤ Real.log (n₀:ℝ) := hN₃ n₀ (by omega)
+  have hl0 : (0:ℝ) < Real.log (n₀:ℝ) := by linarith
+  have hl20pos : (0:ℝ) < (Real.log (n₀:ℝ))^20 := by positivity
+  have hl20n : (Real.log (n₀:ℝ))^20 ≤ (n₀:ℝ) := by
+    have h := hN₂ n₀ (by omega)
+    linarith
+  set n := ⌊(n₀:ℝ)/(Real.log (n₀:ℝ))^20⌋₊ with hndef
+  have hn1 : 1 ≤ n := by
+    rw [hndef]
+    refine Nat.le_floor ?_
+    rw [Nat.cast_one, le_div_iff₀ hl20pos]
+    linarith
+  obtain ⟨a, q, k, hq1, hqn, hcop, hδ⟩ :=
+    dirichlet_frequency_split β n (by omega)
+  have hqR : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq1
+  have hnfloor : ((n:ℕ):ℝ) ≤ (n₀:ℝ)/(Real.log (n₀:ℝ))^20 := by
+    rw [hndef]
+    exact Nat.floor_le (by positivity)
+  have hnlt : (n₀:ℝ)/(Real.log (n₀:ℝ))^20 < (n:ℝ) + 1 := by
+    rw [hndef]
+    exact Nat.lt_floor_add_one _
+  rcases le_or_gt (q:ℝ) ((Real.log (n₀:ℝ))^20) with hql | hqg
+  · -- major arc
+    refine ⟨(a:ℤ) + k*(q:ℤ), q, hq1, hql, ?_⟩
+    have hshift : (((a:ℤ) + k*(q:ℤ) : ℤ):ℝ)/(q:ℝ)
+        = (a:ℝ)/(q:ℝ) + (k:ℝ) := by
+      push_cast
+      field_simp
+    have habs : |β - (((a:ℤ) + k*(q:ℤ) : ℤ):ℝ)/(q:ℝ)|
+        = |(β - (k:ℝ)) - (a:ℝ)/(q:ℝ)| := by
+      rw [hshift]
+      ring_nf
+    rw [habs]
+    refine le_trans hδ ?_
+    rw [div_le_div_iff₀ (by positivity) (by positivity)]
+    have h1 : (n₀:ℝ) ≤ (Real.log (n₀:ℝ))^20*((n:ℝ)+1) := by
+      have h2 := hnlt
+      rw [div_lt_iff₀ hl20pos] at h2
+      nlinarith [h2]
+    nlinarith [mul_le_mul_of_nonneg_right h1 hqR.le]
+  · -- minor arc: contradict the norm hypothesis
+    exfalso
+    have hwin2 : (q:ℝ)*(Real.log (n₀:ℝ))^20 ≤ (n₀:ℝ) := by
+      have h2 : (q:ℝ) ≤ (n:ℝ) := by exact_mod_cast hqn
+      have h3 : (q:ℝ) ≤ (n₀:ℝ)/(Real.log (n₀:ℝ))^20 :=
+        le_trans h2 hnfloor
+      rw [le_div_iff₀ hl20pos] at h3
+      exact h3
+    have hδ2 : |(β - (k:ℝ)) - (a:ℝ)/(q:ℝ)| ≤ 1/(q:ℝ)^2 := by
+      refine le_trans hδ ?_
+      have h1 : (q:ℝ) ≤ (n:ℝ)+1 := by
+        have h2 : (q:ℝ) ≤ (n:ℝ) := by exact_mod_cast hqn
+        linarith
+      rw [div_le_div_iff₀ (by positivity) (by positivity)]
+      nlinarith [h1, hqR]
+    have hE3 : 3 ≤ n₀.log2 := by
+      by_contra hcon
+      push_neg at hcon
+      have h1 := (Nat.log2_lt (by omega)).mp hcon
+      have h2 : (2:ℕ)^3 = 8 := by norm_num
+      omega
+    have hU1 : 1 ≤ 2^(n₀.log2/3) := Nat.one_le_two_pow
+    have hU2 : 2 ≤ 2^(n₀.log2/3) := by
+      calc (2:ℕ) = 2^1 := (pow_one 2).symm
+        _ ≤ 2^(n₀.log2/3) :=
+          Nat.pow_le_pow_right (by norm_num) (by omega)
+    have hU3n : 2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3) ≤ n₀ := by
+      calc 2^(n₀.log2/3)*2^(n₀.log2/3)*2^(n₀.log2/3)
+          = 2^(n₀.log2/3 + n₀.log2/3 + n₀.log2/3) := by
+            rw [← pow_add, ← pow_add]
+        _ ≤ 2^(n₀.log2) :=
+            Nat.pow_le_pow_right (by norm_num) (by omega)
+        _ ≤ n₀ := Nat.log2_self_le (by omega)
+    have hUUn : 2^(n₀.log2/3)*2^(n₀.log2/3) ≤ n₀ := by
+      calc 2^(n₀.log2/3)*2^(n₀.log2/3)
+          = 2^(n₀.log2/3 + n₀.log2/3) := by rw [← pow_add]
+        _ ≤ 2^(n₀.log2) :=
+            Nat.pow_le_pow_right (by norm_num) (by omega)
+        _ ≤ n₀ := Nat.log2_self_le (by omega)
+    have hVn₀ : 2^(n₀.log2/3) < n₀ := by
+      have h1 : (2:ℕ)*2 ≤ 2^(n₀.log2/3)*2^(n₀.log2/3) :=
+        Nat.mul_le_mul hU2 hU2
+      have h2 : 4*2^(n₀.log2/3) ≤ n₀ := by
+        calc 4*2^(n₀.log2/3) = (2*2)*2^(n₀.log2/3) := by norm_num
+          _ ≤ (2^(n₀.log2/3)*2^(n₀.log2/3))*2^(n₀.log2/3) :=
+              mul_le_mul_right' h1 _
+          _ ≤ n₀ := hU3n
+      have h3 : 2^(n₀.log2/3) < 4*2^(n₀.log2/3) := by
+        calc 2^(n₀.log2/3) = 1*2^(n₀.log2/3) := (one_mul _).symm
+          _ < 4*2^(n₀.log2/3) :=
+              mul_lt_mul_of_pos_right (by norm_num) (Nat.two_pow_pos _)
+      exact lt_of_lt_of_le h3 h2
+    have hper := primeBlock_sum_period n₀ β k
+    have hsle := primeBlock_sum_le a q hq1 hcop
+      ((β - (k:ℝ)) - (a:ℝ)/(q:ℝ)) hδ2 (2^(n₀.log2/3)) (2^(n₀.log2/3))
+      n₀ hU1 hU1 hVn₀ hUUn (by omega)
+    have hsum_eq : ∑ p ∈ (Finset.Ioc n₀ (2*n₀)).filter
+        (fun p => p.Prime),
+        ((1/(p:ℝ) : ℝ):ℂ)
+          * e ((p:ℝ)*((a:ℝ)/(q:ℝ)
+            + ((β - (k:ℝ)) - (a:ℝ)/(q:ℝ))))
+        = ∑ p ∈ (Finset.Ioc n₀ (2*n₀)).filter (fun p => p.Prime),
+            ((1/(p:ℝ) : ℝ):ℂ) * e ((p:ℝ)*(β - (k:ℝ))) :=
+      Finset.sum_congr rfl fun p _ => by
+        rw [show (p:ℝ)*((a:ℝ)/(q:ℝ)
+            + ((β - (k:ℝ)) - (a:ℝ)/(q:ℝ)))
+          = (p:ℝ)*(β - (k:ℝ)) from by ring]
+    rw [hsum_eq] at hsle
+    rw [hper] at hβ
+    have hN₁' := hN₁ n₀ (by omega) q hq1 hqg hwin2
+    have hD0 : (0:ℝ) < ((n₀+1 : ℕ):ℝ)*Real.log ((n₀+1 : ℕ):ℝ) := by
+      have h1 : (1:ℝ) < ((n₀+1 : ℕ):ℝ) := by
+        exact_mod_cast (by omega : 1 < n₀+1)
+      have h2 : (0:ℝ) < Real.log ((n₀+1 : ℕ):ℝ) := Real.log_pos h1
+      positivity
+    have hmul := mul_le_mul_of_nonneg_left hN₁'
+      (by positivity :
+        (0:ℝ) ≤ 2*(1/(((n₀+1 : ℕ):ℝ)*Real.log ((n₀+1 : ℕ):ℝ))))
+    have hmono : (n₀:ℝ)*Real.log (n₀:ℝ)
+        ≤ ((n₀+1 : ℕ):ℝ)*Real.log ((n₀+1 : ℕ):ℝ) := by
+      have h1 : (n₀:ℝ) ≤ ((n₀+1 : ℕ):ℝ) := by
+        exact_mod_cast Nat.le_succ n₀
+      have h2 : Real.log (n₀:ℝ) ≤ Real.log ((n₀+1 : ℕ):ℝ) :=
+        Real.log_le_log hx h1
+      exact mul_le_mul h1 h2 hl0.le (by positivity)
+    have hchain : 2*(1/(((n₀+1 : ℕ):ℝ)*Real.log ((n₀+1 : ℕ):ℝ)))
+        *((c/4)*(n₀:ℝ)) < c/Real.log (n₀:ℝ) := by
+      have h2 : 2*(1/(((n₀+1 : ℕ):ℝ)*Real.log ((n₀+1 : ℕ):ℝ)))
+          *((c/4)*(n₀:ℝ))
+          = (c/2)*((n₀:ℝ)/(((n₀+1 : ℕ):ℝ)
+            *Real.log ((n₀+1 : ℕ):ℝ))) := by
+        ring
+      have h3 : (n₀:ℝ)/(((n₀+1 : ℕ):ℝ)*Real.log ((n₀+1 : ℕ):ℝ))
+          ≤ 1/Real.log (n₀:ℝ) := by
+        rw [div_le_div_iff₀ hD0 hl0]
+        nlinarith [hmono]
+      have h4 : (c/2)*((n₀:ℝ)/(((n₀+1 : ℕ):ℝ)
+          *Real.log ((n₀+1 : ℕ):ℝ)))
+          ≤ (c/2)*(1/Real.log (n₀:ℝ)) :=
+        mul_le_mul_of_nonneg_left h3 (by positivity)
+      have h5 : (c/2)*(1/Real.log (n₀:ℝ)) < c/Real.log (n₀:ℝ) := by
+        have h6 : c/Real.log (n₀:ℝ) - (c/2)*(1/Real.log (n₀:ℝ))
+            = (c/2)*(1/Real.log (n₀:ℝ)) := by
+          field_simp
+          ring
+        have h7 : (0:ℝ) < (c/2)*(1/Real.log (n₀:ℝ)) := by positivity
+        linarith [h6.le, h6.ge, h7]
+      rw [h2]
+      exact lt_of_le_of_lt h4 h5
+    linarith [hβ, hsle, hmul, hchain]
+
 end ExpSums
 
 end MoltResearch
