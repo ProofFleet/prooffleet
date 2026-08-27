@@ -388,4 +388,308 @@ theorem balance_product_le' (L u T b γ S Mp SM HS W : ℝ)
   rw [hexp2] at hbal
   linarith
 
+
+open Real in
+/-- `e^{2k}/L² = 1/((e^{−k})²·L²)` — N188's bridge, the block index as
+`u = e^{−k}` (restated: the capstone's copy is private). -/
+private lemma exp_two_k_div_sq (k : ℕ) (L : ℝ) :
+    Real.exp (2*(k:ℝ)) / L^2 = 1/((Real.exp (-(k:ℝ)))^2 * L^2) := by
+  have h : (Real.exp (-(k:ℝ)))^2 = Real.exp (-(2*(k:ℝ))) := by
+    rw [pow_two, ← Real.exp_add]
+    congr 1
+    ring
+  rw [h, Real.exp_neg]
+  field_simp
+
+open Real in
+/-- `e^{1−k}·L = e·(e^{−k}·L)` — N185's decay in the balance's `e·P`
+shape (restated: the capstone's copy is private). -/
+private lemma exp_one_sub_k_mul (k : ℕ) (L : ℝ) :
+    Real.exp (1 - (k:ℝ)) * L = Real.exp 1 * (Real.exp (-(k:ℝ)) * L) := by
+  rw [show (1 - (k:ℝ)) = 1 + (-(k:ℝ)) by ring, Real.exp_add]
+  ring
+
+open Real in
+/-- `1 ≤ log x` for `x ≥ 3` — the balance's `hL1` (restated: the
+capstone's copy is private). -/
+private lemma one_le_log_of_three_le (x : ℕ) (hx : 3 ≤ x) :
+    (1:ℝ) ≤ Real.log (x:ℝ) := by
+  have he : Real.exp 1 ≤ (x:ℝ) := by
+    have h3 : (3:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+    have := Real.exp_one_lt_d9
+    linarith
+  calc (1:ℝ) = Real.log (Real.exp 1) := (Real.log_exp 1).symm
+    _ ≤ Real.log (x:ℝ) := Real.log_le_log (Real.exp_pos 1) he
+
+set_option maxHeartbeats 3200000 in
+open MeasureTheory Real Complex Finset in
+/-- **§3's per-block estimate, balanced, through the smooth tsum**
+(Track R, M0R-5): N189 with the band sup demanded of the smooth phase
+sum and the tail weight at the smooth-mass budget:
+
+  `|tripleConvR f x P| ≤ x·√(2000·(e^π)²·10¹⁵·((SM² + T + 1)·b² + 1)) + 2x·log 4`.
+
+The chain is verbatim N189 with `tripleConvR_block_sharp_le'` at the
+bottom and `balance_product_le'` at the top: the energy side is
+ring-equal to the `u`-form, the `V`-side and tail lose exactly the
+N185/N186 monotonicities, and `hW` is now the smooth-mass budget
+`≤ 2000` (discharged later by `bandWeight_smooth_mass_le`).  Complete
+multiplicativity is the one new hypothesis — the Euler product behind
+the band sup needs it. -/
+theorem tripleConvR_block_balanced_le' (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (h1 : f 1 = 1)
+    (x k : ℕ) (hx3 : 3 ≤ x) (hk : 1 ≤ k) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (hfit : 2 * blockHi x k ≤ x)
+    (hX3 : 3 ≤ x / blockLo x k)
+    (T : ℝ) (hT : 5 ≤ T) (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ))
+    (b : ℝ) (hb0 : 0 ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum (fun n => ((f n : ℝ) : ℂ)) x t‖ ≤ b)
+    (hTL : T ≤ Real.log (x:ℝ)) (hLT : Real.log (x:ℝ) ≤ T^2)
+    (hγ1 : Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4) ≤ 1)
+    (hSL : 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)
+      * Real.log (x:ℝ) ≤ 1)
+    (hMp : ∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|)
+      ≤ 18)
+    (hW : (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)))
+      * ((Real.log (x:ℝ))^2
+        * (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹)^2) ≤ 2000) :
+    |tripleConvR f x P|
+      ≤ (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+          * (((∑ q ∈ (x / blockLo x k).primesBelow.filter
+                (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+              Real.log (q:ℝ)/(q:ℝ))^2 + T + 1) * b^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4 := by
+  classical
+  have hx : 2 ≤ x := by omega
+  have hxR0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have hu0 : (0:ℝ) < Real.exp (-(k:ℝ)) := Real.exp_pos _
+  have hu1 : Real.exp (-(k:ℝ)) ≤ 1 := by
+    rw [show (1:ℝ) = Real.exp 0 from (Real.exp_zero).symm]
+    exact Real.exp_le_exp.mpr (neg_nonpos.mpr (Nat.cast_nonneg k))
+  refine le_trans (tripleConvR_block_sharp_le' f hf hmul h1 x k hx hk P hP
+    hfit hX3 T hT hPT b hb0 hBu) ?_
+  -- the √-argument chain
+  have hX1 : 1 ≤ x / blockLo x k := by omega
+  have hXx : x / blockLo x k ≤ x := Nat.div_le_self x _
+  -- (i) the enlarged-range γ is dominated by the global one
+  have hγmono : Real.exp (-(π*T^2/64)) * (((x / blockLo x k : ℕ):ℝ) * Real.log 4)
+      ≤ Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4) := by
+    have hc : ((x / blockLo x k : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast hXx
+    have h4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+    exact mul_le_mul_of_nonneg_left
+      (mul_le_mul_of_nonneg_right hc h4) (Real.exp_pos _).le
+  -- (ii) `log(X+1) + 2 ≤ e·(u·L) + log 2 + 2`
+  have hlogX1 : Real.log ((x / blockLo x k + 1 : ℕ):ℝ)
+      ≤ Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ)) + Real.log 2 := by
+    have hle2X : ((x / blockLo x k + 1 : ℕ):ℝ)
+        ≤ 2 * ((x / blockLo x k : ℕ):ℝ) := by
+      have : x / blockLo x k + 1 ≤ 2 * (x / blockLo x k) := by omega
+      exact_mod_cast this
+    have hX0 : (0:ℝ) < ((x / blockLo x k : ℕ):ℝ) := by
+      exact_mod_cast (by omega : 0 < x / blockLo x k)
+    calc Real.log ((x / blockLo x k + 1 : ℕ):ℝ)
+        ≤ Real.log (2 * ((x / blockLo x k : ℕ):ℝ)) :=
+          Real.log_le_log (by exact_mod_cast (by omega : 0 < x / blockLo x k + 1))
+            hle2X
+      _ = Real.log 2 + Real.log ((x / blockLo x k : ℕ):ℝ) :=
+          Real.log_mul (by norm_num) (ne_of_gt hX0)
+      _ ≤ Real.log 2 + Real.exp (1 - (k:ℝ)) * Real.log (x:ℝ) := by
+          linarith [log_div_blockLo_le x k hx]
+      _ = Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ)) + Real.log 2 := by
+          rw [exp_one_sub_k_mul]
+          ring
+  -- (iii) the tail mass in the `e·P + 2` shape
+  have hqm : ∑ q ∈ (x / blockLo x k).primesBelow, Real.log (q:ℝ)/(q:ℝ)
+      ≤ Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ)) + 2 := by
+    have h := qMass_le x k hx (by omega)
+    rw [exp_one_sub_k_mul] at h
+    linarith
+  have hqm0 : (0:ℝ) ≤ ∑ q ∈ (x / blockLo x k).primesBelow,
+      Real.log (q:ℝ)/(q:ℝ) :=
+    Finset.sum_nonneg fun q _ => div_nonneg (Real.log_natCast_nonneg q)
+      (Nat.cast_nonneg q)
+  have hqm_sq : (∑ q ∈ (x / blockLo x k).primesBelow,
+        Real.log (q:ℝ)/(q:ℝ))^2
+      ≤ (Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ)) + 2)^2 := by
+    rw [pow_two, pow_two]
+    exact mul_self_le_mul_self hqm0 hqm
+  -- non-negativity of the energy factor
+  have he1nn : (0:ℝ) ≤ Real.exp 1 - 1 := by linarith [Real.exp_one_gt_d9.le]
+  have hA1nn : (0:ℝ) ≤ 4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ))
+      * Real.log (x:ℝ) + Real.log 2) + 4 * Real.log 4 := by
+    have hp1 : (0:ℝ) ≤ (Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ) :=
+      mul_nonneg (mul_nonneg he1nn hu0.le) hL0.le
+    have hp2 := Real.log_nonneg (show (1:ℝ) ≤ 2 by norm_num)
+    have hp4 := Real.log_nonneg (show (1:ℝ) ≤ 4 by norm_num)
+    linarith
+  have hE0 : (0:ℝ) ≤ Real.exp π *
+      (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+          * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+              + Real.log 2) + 4 * Real.log 4))
+        + T * (6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))
+            * (16/(Real.log (x:ℝ))^2
+                + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)))
+      + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+          * (1/(2*Real.pi^2*T)) := by
+    have hT0 : (0:ℝ) < T := by linarith
+    have hb1 : (0:ℝ) ≤ Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2 := by positivity
+    have hb2 : (0:ℝ) ≤ T * (6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))
+        * (16/(Real.log (x:ℝ))^2
+            + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)) := by
+      positivity
+    have hb3 : (0:ℝ) ≤ (∑ p ∈ P, Real.log (p:ℝ)
+        /((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2 * (1/(2*Real.pi^2*T)) := by
+      positivity
+    have hb4 : (0:ℝ) ≤ 12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+        * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+            + Real.log 2) + 4 * Real.log 4)) := by
+      have := mul_nonneg hb1 hA1nn
+      nlinarith [this]
+    have := mul_nonneg (Real.exp_pos π).le (add_nonneg hb4 hb2)
+    linarith
+  -- the V-side monotonicity
+  have hT0' : (0:ℝ) ≤ T := by linarith
+  have hVinner : 12290 * (Real.log ((x / blockLo x k + 1 : ℕ):ℝ) + 2)
+        + 4*T*(6144 + Real.exp (-(π*T^2/64))
+            * (((x / blockLo x k : ℕ):ℝ) * Real.log 4))
+      ≤ 12290 * (Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))
+            + Real.log 2 + 2)
+        + 4*T*(6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4)) := by
+    have hm1 : Real.log ((x / blockLo x k + 1 : ℕ):ℝ) + 2
+        ≤ Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))
+          + Real.log 2 + 2 := by linarith [hlogX1]
+    have hm2 : (6144:ℝ) + Real.exp (-(π*T^2/64))
+        * (((x / blockLo x k : ℕ):ℝ) * Real.log 4)
+        ≤ 6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4) := by
+      linarith [hγmono]
+    have hm3 := mul_le_mul_of_nonneg_left hm1 (by norm_num : (0:ℝ) ≤ 12290)
+    have hm4 := mul_le_mul_of_nonneg_left hm2
+      (by positivity : (0:ℝ) ≤ 4*T)
+    linarith
+  have hVle : 2 * (Real.exp π * (12290
+        * (Real.log ((x / blockLo x k + 1 : ℕ):ℝ) + 2)
+        + 4*T*(6144 + Real.exp (-(π*T^2/64))
+            * (((x / blockLo x k : ℕ):ℝ) * Real.log 4))))
+      + 2 * (∑ q ∈ (x / blockLo x k).primesBelow.filter
+            (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+          Real.log (q:ℝ)/(q:ℝ))^2
+      ≤ 2 * (Real.exp π * (12290
+            * (Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))
+              + Real.log 2 + 2)
+            + 4*T*(6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))))
+        + 2 * (∑ q ∈ (x / blockLo x k).primesBelow.filter
+              (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+            Real.log (q:ℝ)/(q:ℝ))^2 := by
+    have := mul_le_mul_of_nonneg_left hVinner (Real.exp_pos π).le
+    linarith
+  -- the tail-mass monotonicity, at the smooth mass
+  have hMtle : (∑ q ∈ (x / blockLo x k).primesBelow,
+        Real.log (q:ℝ)/(q:ℝ))^2
+      * (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹)^2
+      * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)))
+      ≤ (Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ)) + 2)^2
+        * (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹)^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) := by
+    have hm1 := mul_le_mul_of_nonneg_right hqm_sq
+      (sq_nonneg (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹))
+    exact mul_le_mul_of_nonneg_right hm1 (by positivity)
+  -- the bracket
+  have hbrk : 5 * (2 * (Real.exp π * (12290
+        * (Real.log ((x / blockLo x k + 1 : ℕ):ℝ) + 2)
+        + 4*T*(6144 + Real.exp (-(π*T^2/64))
+            * (((x / blockLo x k : ℕ):ℝ) * Real.log 4))))
+      + 2 * (∑ q ∈ (x / blockLo x k).primesBelow.filter
+            (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+          Real.log (q:ℝ)/(q:ℝ))^2) * (6*b^2)
+      + (∑ q ∈ (x / blockLo x k).primesBelow,
+            Real.log (q:ℝ)/(q:ℝ))^2
+          * (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹)^2
+          * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)))
+      ≤ 5 * (2 * (Real.exp π * (12290
+            * (Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))
+              + Real.log 2 + 2)
+            + 4*T*(6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))))
+          + 2 * (∑ q ∈ (x / blockLo x k).primesBelow.filter
+                (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+              Real.log (q:ℝ)/(q:ℝ))^2) * (6*b^2)
+        + (Real.exp 1 * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ)) + 2)^2
+          * (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹)^2
+          * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) := by
+    have hm5 := mul_le_mul_of_nonneg_left hVle (by norm_num : (0:ℝ) ≤ 5)
+    have hm56 := mul_le_mul_of_nonneg_right hm5
+      (by positivity : (0:ℝ) ≤ 6*b^2)
+    linarith [hMtle]
+  -- E-rewrite into the u-form
+  have hEeq : Real.exp π *
+      (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+          * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+              + Real.log 2) + 4 * Real.log 4))
+        + T * (6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))
+            * (16/(Real.log (x:ℝ))^2
+                + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)))
+      + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+          * (1/(2*Real.pi^2*T))
+      = Real.exp π * (12290 * (1/((Real.exp (-(k:ℝ)))^2*(Real.log (x:ℝ))^2)
+          * (4*(Real.exp 1 - 1)*(Real.exp (-(k:ℝ)) * Real.log (x:ℝ))
+            + (4*Real.log 2 + 4*Real.log 4))))
+        + Real.exp π * (T * (6144 + Real.exp (-(π*T^2/64))
+            * ((x:ℝ) * Real.log 4))
+          * (16/(Real.log (x:ℝ))^2
+              + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)))
+        + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+            * (1/(2*Real.pi^2*T)) := by
+    rw [exp_two_k_div_sq]
+    ring
+  -- the full argument bound
+  have harg : (Real.exp π *
+      (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+          * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+              + Real.log 2) + 4 * Real.log 4))
+        + T * (6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))
+            * (16/(Real.log (x:ℝ))^2
+                + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)))
+      + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+          * (1/(2*Real.pi^2*T)))
+      * (5 * (2 * (Real.exp π * (12290
+            * (Real.log ((x / blockLo x k + 1 : ℕ):ℝ) + 2)
+            + 4*T*(6144 + Real.exp (-(π*T^2/64))
+                * (((x / blockLo x k : ℕ):ℝ) * Real.log 4))))
+          + 2 * (∑ q ∈ (x / blockLo x k).primesBelow.filter
+                (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+              Real.log (q:ℝ)/(q:ℝ))^2) * (6*b^2)
+        + (∑ q ∈ (x / blockLo x k).primesBelow,
+              Real.log (q:ℝ)/(q:ℝ))^2
+            * (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹)^2
+            * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))))
+      ≤ 2000 * ((Real.exp π)^2 * 10^15
+          * (((∑ q ∈ (x / blockLo x k).primesBelow.filter
+                (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)),
+              Real.log (q:ℝ)/(q:ℝ))^2 + T + 1) * b^2 + 1)) := by
+    refine le_trans (mul_le_mul_of_nonneg_left hbrk hE0) ?_
+    rw [hEeq]
+    exact balance_product_le' (Real.log (x:ℝ)) (Real.exp (-(k:ℝ))) T b
+      (Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))
+      (4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2))
+      (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))
+      (∑ q ∈ (x / blockLo x k).primesBelow.filter
+          (fun q : ℕ => ¬ T^2 ≤ (q:ℝ)), Real.log (q:ℝ)/(q:ℝ))
+      (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹)
+      (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)))
+      (block_index_le_of_fit x k hx hfit) hu0 hu1
+      (one_le_log_of_three_le x hx3) hT hTL hLT
+      (by positivity) hγ1 (by positivity) hSL
+      (Finset.sum_nonneg fun p _ => div_nonneg (Real.log_natCast_nonneg p)
+        (by positivity)) hMp
+      (Finset.sum_nonneg fun q _ => div_nonneg (Real.log_natCast_nonneg q)
+        (Nat.cast_nonneg q))
+      (tsum_nonneg fun m => by positivity)
+      (by positivity) hW hb0
+  have hs := Real.sqrt_le_sqrt harg
+  have hxs := mul_le_mul_of_nonneg_left hs hxR0
+  linarith
+
 end MoltResearch
