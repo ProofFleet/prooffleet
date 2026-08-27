@@ -217,3 +217,15 @@ info: 'MoltResearch.Tao2015.instPrimeBlockMajorArcAssumption' depends on axioms:
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.instPrimeBlockMajorArcAssumption
+
+/--
+info: 'MoltResearch.Tao2015.edp_of_majorArcMR' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.edp_of_majorArcMR
+
+/--
+info: 'MoltResearch.Tao2015.theorem18_of_majorArcMR' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.theorem18_of_majorArcMR

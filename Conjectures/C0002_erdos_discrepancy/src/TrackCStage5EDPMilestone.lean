@@ -2,6 +2,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Assembly
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LittlewoodWrapper
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5QuadrupleSieveProof
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5VKDischarge
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5PrimeBlockMajorArcProof
 
 /-!
 # Track C: the EDP milestone on cited-input interfaces (E7 of issue #2946)
@@ -71,7 +72,9 @@ theorem theorem18_of_matomakiRadziwill
 /-- **EDP on the Track R weak pair** (issue #3044, R1 closes): the Erdős
 discrepancy theorem conditional on exactly the major-arc Matomäki–Radziwiłł
 interface and the prime-block major-arc classification — the frozen all-`α`
-interface is no longer on this chain.  Track R discharges these two (R2–R7). -/
+interface is no longer on this chain.  The classification is discharged
+(`instPrimeBlockMajorArcAssumption`, R4v of #3044); see `edp_of_majorArcMR`
+below for the one-interface form. -/
 theorem edp_of_matomakiRadziwillMajorArc
     [MatomakiRadziwillMajorArcAssumption] [PrimeBlockMajorArcAssumption]
     (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f :=
@@ -86,6 +89,27 @@ theorem theorem18_of_matomakiRadziwillMajorArc
     (G : StochasticMultiplicative μ) :
     ¬ ∃ C : ℝ, ∀ n : ℕ, sndMomentPartialSum G n ≤ C :=
   theorem18_of_logElliott_vinogradovKorobov μ G
+
+/-- **EDP on the single remaining interface** (Track R, #3044, after the R4v
+Vinogradov classification): the Erdős discrepancy theorem conditional on
+exactly the major-arc Matomäki–Radziwiłł interface — the prime-block
+classification is now unconditional (`instPrimeBlockMajorArcAssumption`),
+so one proposition stands between this and the unconditional theorem. -/
+theorem edp_of_majorArcMR
+    [MatomakiRadziwillMajorArcAssumption]
+    (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f :=
+  edp_of_matomakiRadziwillMajorArc f hf
+
+/-- **Theorem 1.8 on the single remaining interface**: the second-moment
+blowup for stochastic completely multiplicative functions, on the major-arc
+Matomäki–Radziwiłł interface alone. -/
+theorem theorem18_of_majorArcMR
+    [MatomakiRadziwillMajorArcAssumption]
+    {Ω : Type} [MeasurableSpace Ω] (μ : MeasureTheory.Measure Ω)
+    [MeasureTheory.IsProbabilityMeasure μ]
+    (G : StochasticMultiplicative μ) :
+    ¬ ∃ C : ℝ, ∀ n : ℕ, sndMomentPartialSum G n ≤ C :=
+  theorem18_of_matomakiRadziwillMajorArc μ G
 
 end Tao2015
 
