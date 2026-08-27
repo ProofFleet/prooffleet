@@ -1203,6 +1203,114 @@ theorem sum_range_g_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
     mul_le_mul_of_nonneg_right hJcast hC0
   linarith [h1, h2]
 
+
+/-- **The Type I estimate** (Track R, V3): a divisor-weighted sum of
+geometric inner sums at frequency `β = a/q + δ` is controlled by the
+counting lemma — each inner sum is priced by its length and by the
+linear-phase Kusmin–Landau bound at `nint(dβ)`, and `sum_range_g_le`
+does the bookkeeping at summand `‖·‖/2`. -/
+theorem typeI_sum_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
+    (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (D N : ℕ) (hD : 1 ≤ D)
+    (c : ℕ → ℂ) (hc : ∀ d, ‖c d‖ ≤ 1) :
+    ∑ d ∈ Finset.Icc 1 D,
+        ‖c d * ∑ m ∈ Finset.Icc 1 (N/d),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ 13*(N:ℝ)*(1 + (Real.log (D:ℝ) + 1)/(q:ℝ))
+        + 2*((D:ℝ)/(q:ℝ) + 1) * (264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+  classical
+  have hkey : ∀ d ∈ Finset.Icc 1 D,
+      ‖c d * ∑ m ∈ Finset.Icc 1 (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      = 2 * (‖c d * ∑ m ∈ Finset.Icc 1 (N/d),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ / 2) := by
+    intro d _
+    ring
+  rw [Finset.sum_congr rfl hkey, ← Finset.mul_sum]
+  have hbound := sum_range_g_le a q hq hcop δ hδ D hD ((N:ℝ)/2)
+    (by positivity)
+    (fun d => ‖c d * ∑ m ∈ Finset.Icc 1 (N/d),
+      e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ / 2)
+    (fun d _ => by positivity)
+    ?_ ?_
+  · have hfin : 2 * (13*((N:ℝ)/2)*(1 + (Real.log (D:ℝ) + 1)/(q:ℝ))
+        + ((D:ℝ)/(q:ℝ) + 1) * (264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        = 13*(N:ℝ)*(1 + (Real.log (D:ℝ) + 1)/(q:ℝ))
+          + 2*((D:ℝ)/(q:ℝ) + 1)
+            * (264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+      ring
+    rw [← hfin]
+    linarith [hbound]
+  · -- the length bound: `‖inner‖ ≤ ⌊N/d⌋ ≤ N/d`
+    intro d hd
+    rw [Finset.mem_Icc] at hd
+    have hd0 : (0:ℝ) < (d:ℝ) := by
+      exact_mod_cast (by omega : 0 < d)
+    have h1 : ‖c d * ∑ m ∈ Finset.Icc 1 (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+        ≤ ((N/d : ℕ):ℝ) := by
+      rw [norm_mul]
+      have h2 : ‖∑ m ∈ Finset.Icc 1 (N/d),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ ≤ ((N/d : ℕ):ℝ) := by
+        refine le_trans (norm_sum_le _ _) ?_
+        have h3 : ∀ m ∈ Finset.Icc 1 (N/d),
+            ‖e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ = 1 :=
+          fun m _ => norm_e _
+        rw [Finset.sum_congr rfl h3, Finset.sum_const, nsmul_eq_mul,
+          mul_one, Nat.card_Icc]
+        simp
+      have h4 := hc d
+      have h5 := norm_nonneg (∑ m ∈ Finset.Icc 1 (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+      nlinarith [h2, h4, h5, norm_nonneg (c d)]
+    have h6 : ((N/d : ℕ):ℝ) ≤ (N:ℝ)/(d:ℝ) := Nat.cast_div_le
+    have h7 : (N:ℝ)/2/(d:ℝ) = ((N:ℝ)/(d:ℝ))/2 := by
+      ring
+    rw [h7]
+    linarith [h1, h6]
+  · -- the Kusmin–Landau bound at positive `nint(dβ)`
+    intro d hd hpos
+    rw [Finset.mem_Icc] at hd
+    rcases Nat.eq_zero_or_pos (N/d) with hnd | hnd
+    · show ‖c d * ∑ m ∈ Finset.Icc 1 (N/d),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ / 2
+        ≤ 1/(2 * nint ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+      rw [hnd, show Finset.Icc 1 0 = (∅ : Finset ℕ) from
+        Finset.Icc_eq_empty (by omega)]
+      simp only [Finset.sum_empty, mul_zero, norm_zero, zero_div]
+      positivity
+    · have hphase : ∀ m ∈ Finset.Ico 1 (N/d + 1),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          = e ((m:ℝ) * ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ))) := by
+        intro m _
+        congr 1
+        ring
+      have hIcc : Finset.Icc 1 (N/d) = Finset.Ico 1 (N/d + 1) := by
+        ext m
+        rw [Finset.mem_Icc, Finset.mem_Ico]
+        omega
+      have hkl := norm_sum_e_linear_le
+        (β := (d:ℝ)*((a:ℝ)/(q:ℝ) + δ)) hpos 1 (N/d) hnd
+      have hnorm : ‖∑ m ∈ Finset.Icc 1 (N/d),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+          ≤ 1 / nint ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := by
+        rw [hIcc, Finset.sum_congr rfl hphase]
+        exact hkl
+      have h4 := hc d
+      have h5 := norm_nonneg (∑ m ∈ Finset.Icc 1 (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+      have h8 : ‖c d * ∑ m ∈ Finset.Icc 1 (N/d),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+          ≤ 1 / nint ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := by
+        rw [norm_mul]
+        nlinarith [hnorm, h4, h5, norm_nonneg (c d),
+          le_of_lt (one_div_pos.mpr hpos)]
+      have h9 : 1/(2 * nint ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+          = (1 / nint ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ)))/2 := by
+        rw [div_div]
+        ring_nf
+      rw [h9]
+      linarith [h8]
+
 end ExpSums
 
 end MoltResearch
