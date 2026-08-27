@@ -4306,6 +4306,223 @@ theorem natLog2_succ_le_log (N : ℕ) (hN : 2 ≤ N) :
   push_cast
   nlinarith [hlogpow, hc, hL, hL0, hk0]
 
+
+open ArithmeticFunction in
+/-- **The block outer range** (Track R, V6d-vi): in the swapped third
+Vaughan term, restricted to one dyadic block, the outer sum lives on
+`[U+1, N/(2^j·V+1)]` — below `U+1` the Möbius tail coefficient is an
+empty sum, and beyond the cap the hyperbola filter is empty.  In
+particular blocks with `2^j·V ≥ N/U` contribute nothing. -/
+theorem typeII_block_outer_restrict (U V n₀ N j : ℕ) (F : ℕ → ℕ → ℂ) :
+    ∑ m ∈ Finset.Icc 1 (N/(V+1)),
+        ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+          ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+          * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+              (min (2^(j+1) * V) N)).filter
+              (fun c => n₀ < c*m ∧ c*m ≤ N), F c m
+      = ∑ m ∈ Finset.Ico (U+1) (N/(2^j * V + 1) + 1),
+          ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+            * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+                (min (2^(j+1) * V) N)).filter
+                (fun c => n₀ < c*m ∧ c*m ≤ N), F c m := by
+  classical
+  have hsub : Finset.Ico (U+1) (N/(2^j * V + 1) + 1)
+      ⊆ Finset.Icc 1 (N/(V+1)) := by
+    intro m hm
+    rw [Finset.mem_Ico] at hm
+    rw [Finset.mem_Icc]
+    refine ⟨by omega, ?_⟩
+    have h1 : m ≤ N/(2^j * V + 1) := Nat.lt_add_one_iff.mp hm.2
+    refine le_trans h1 (Nat.div_le_div_left ?_ (by omega))
+    have hV : V ≤ 2^j * V := by
+      calc V = 1 * V := (one_mul V).symm
+        _ ≤ 2^j * V := mul_le_mul_right' Nat.one_le_two_pow V
+    omega
+  have hzero : ∀ m ∈ Finset.Icc 1 (N/(V+1)),
+      m ∉ Finset.Ico (U+1) (N/(2^j * V + 1) + 1) →
+      ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+        ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+        * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+            (min (2^(j+1) * V) N)).filter
+            (fun c => n₀ < c*m ∧ c*m ≤ N), F c m = 0 := by
+    intro m hm hnot
+    rw [Finset.mem_Icc] at hm
+    rw [Finset.mem_Ico] at hnot
+    push_neg at hnot
+    by_cases hU : m ≤ U
+    · have hemp : m.divisors.filter (fun b => ¬ b ≤ U) = ∅ := by
+        refine Finset.filter_false_of_mem fun b hb => ?_
+        rw [Nat.mem_divisors] at hb
+        have hbm : b ≤ m := Nat.le_of_dvd (by omega) hb.1
+        omega
+      rw [hemp, Finset.sum_empty, Complex.ofReal_zero, zero_mul]
+    · have hm2 : N/(2^j * V + 1) < m := by
+        have := hnot (by omega)
+        omega
+      have hNlt : N < m * (2^j * V + 1) :=
+        (Nat.div_lt_iff_lt_mul (Nat.succ_pos _)).mp hm2
+      have hemp : (Finset.Ioc (min (2^j * V) N)
+          (min (2^(j+1) * V) N)).filter
+          (fun c => n₀ < c*m ∧ c*m ≤ N) = ∅ := by
+        refine Finset.filter_false_of_mem fun c hc => ?_
+        rw [Finset.mem_Ioc] at hc
+        rintro ⟨-, hcmN⟩
+        rcases le_or_gt (2^j * V) N with hAN | hAN
+        · have hc1 : 2^j * V + 1 ≤ c := by
+            have h := hc.1
+            rw [min_eq_left hAN] at h
+            omega
+          exact absurd (calc N < m * (2^j * V + 1) := hNlt
+            _ ≤ m * c := mul_le_mul_left' hc1 m
+            _ = c * m := Nat.mul_comm m c
+            _ ≤ N := hcmN) (lt_irrefl N)
+        · have hcN : N < c := by
+            have h := hc.1
+            rw [min_eq_right hAN.le] at h
+            exact h
+          exact absurd (calc N < c := hcN
+            _ = c * 1 := (mul_one c).symm
+            _ ≤ c * m := mul_le_mul_left' (by omega) c
+            _ ≤ N := hcmN) (lt_irrefl N)
+      rw [hemp, Finset.sum_empty, mul_zero]
+  exact (Finset.sum_subset hsub hzero).symm
+
+
+open ArithmeticFunction in
+/-- **The per-block Type II bound** (Track R, V6d-vi): one dyadic
+block of the swapped third Vaughan term, squared — the Möbius-tail
+`ℓ²`-mass is `≤ MJ(1+log N)³` by the divisor-square moment, the
+normalized `Λ`-coefficients are unit, and the coupled Type II estimate
+prices the block at scale `C = 2^j·V`, outer length `MJ = N/(C+1)`. -/
+theorem typeII_block_sq_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
+    (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (U V n₀ N j : ℕ) (hN : 2 ≤ N) :
+    ‖∑ m ∈ Finset.Ico (U+1) (N/(2^j * V + 1) + 1),
+        ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+          ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+          * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+              (min (2^(j+1) * V) N)).filter
+              (fun c => n₀ < c*m ∧ c*m ≤ N),
+            (if c ≤ N then
+              ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+              * e ((m:ℝ)*(c:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+      ≤ ((N/(2^j * V + 1) : ℕ):ℝ) * (1 + Real.log (N:ℝ))^3
+        * (((2^j * V : ℕ):ℝ)
+          * (((N/(2^j * V + 1) : ℕ):ℝ)
+            + 2*(((2*((2^j * V : ℕ):ℝ))/(q:ℝ) + 1)
+              *(13*((N/(2^j * V + 1) : ℕ):ℝ)
+                + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))))) := by
+  classical
+  have hq0R : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+  have hlogN : 0 < Real.log (N:ℝ) := by
+    refine Real.log_pos ?_
+    exact_mod_cast hN
+  have hlog8q : (0:ℝ) ≤ Real.log (8*(q:ℝ)) := by
+    refine Real.log_nonneg ?_
+    have hq1R : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+    linarith
+  have hbn : ∀ c : ℕ,
+      ‖(if c ≤ N then
+        ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)‖ ≤ 1 := by
+    intro c
+    by_cases hc : c ≤ N
+    · rw [if_pos hc, Complex.norm_real, Real.norm_eq_abs]
+      have h1 : (0:ℝ) ≤ vonMangoldt c := vonMangoldt_nonneg
+      have h2 : vonMangoldt c ≤ Real.log (N:ℝ) := by
+        refine le_trans vonMangoldt_le_log ?_
+        rcases Nat.eq_zero_or_pos c with rfl | hc0
+        · rw [Nat.cast_zero, Real.log_zero]
+          exact hlogN.le
+        · refine Real.log_le_log ?_ ?_
+          · exact_mod_cast hc0
+          · exact_mod_cast hc
+      rw [abs_of_nonneg (by positivity)]
+      rw [div_le_one hlogN]
+      exact h2
+    · rw [if_neg hc, norm_zero]
+      norm_num
+  have hK : Finset.Ioc (min (2^j * V) N) (min (2^(j+1) * V) N)
+      ⊆ Finset.Icc 1 (min (2^(j+1) * V) N) := by
+    intro c hc
+    rw [Finset.mem_Ioc] at hc
+    rw [Finset.mem_Icc]
+    omega
+  have happ := typeII_sum_sq_hyperbola a q hq hcop δ hδ
+    (U+1) (N/(2^j * V + 1) + 1) (min (2^(j+1) * V) N) n₀ N
+    (Finset.Ioc (min (2^j * V) N) (min (2^(j+1) * V) N)) hK
+    (fun m => ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+      ((moebius b : ℤ):ℝ) : ℝ):ℂ))
+    (fun c => if c ≤ N then
+      ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+    hbn
+  have hmass : ∑ m ∈ Finset.Ico (U+1) (N/(2^j * V + 1) + 1),
+      ‖((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+        ((moebius b : ℤ):ℝ) : ℝ):ℂ)‖^2
+      ≤ ((N/(2^j * V + 1) : ℕ):ℝ) * (1 + Real.log (N:ℝ))^3 := by
+    rcases Nat.eq_zero_or_pos (N/(2^j * V + 1)) with hMJ0 | hMJpos
+    · rw [hMJ0]
+      have hemp : Finset.Ico (U+1) (0 + 1) = ∅ :=
+        Finset.Ico_eq_empty (by omega)
+      rw [hemp, Finset.sum_empty]
+      norm_num
+    · have hsub2 : Finset.Ico (U+1) (N/(2^j * V + 1) + 1)
+          ⊆ Finset.Icc 1 (N/(2^j * V + 1)) := by
+        intro m hm
+        rw [Finset.mem_Ico] at hm
+        rw [Finset.mem_Icc]
+        exact ⟨by omega, Nat.lt_add_one_iff.mp hm.2⟩
+      have hterm : ∀ m ∈ Finset.Ico (U+1) (N/(2^j * V + 1) + 1),
+          ‖((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) : ℝ):ℂ)‖^2
+            ≤ ((m.divisors.card : ℝ))^2 := by
+        intro m _
+        rw [Complex.norm_real, Real.norm_eq_abs]
+        have h1 := abs_moebius_tail_le_tau U m
+        have h2 : (0:ℝ) ≤ |∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ)| := abs_nonneg _
+        nlinarith [h1, h2]
+      refine le_trans (Finset.sum_le_sum hterm) ?_
+      refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub2
+        (fun m _ _ => sq_nonneg _)) ?_
+      refine le_trans (sum_tau_sq_le (N/(2^j * V + 1)) hMJpos) ?_
+      have hMJN : Real.log ((N/(2^j * V + 1) : ℕ):ℝ)
+          ≤ Real.log (N:ℝ) := by
+        refine Real.log_le_log ?_ ?_
+        · exact_mod_cast hMJpos
+        · exact_mod_cast Nat.div_le_self N (2^j * V + 1)
+      have h1log : (0:ℝ) ≤ 1 + Real.log ((N/(2^j * V + 1) : ℕ):ℝ) := by
+        have := Real.log_natCast_nonneg (N/(2^j * V + 1))
+        linarith
+      refine mul_le_mul_of_nonneg_left ?_ (Nat.cast_nonneg _)
+      refine pow_le_pow_left₀ h1log (by linarith) 3
+  have hcard : ((Finset.Ioc (min (2^j * V) N)
+      (min (2^(j+1) * V) N)).card : ℝ) ≤ ((2^j * V : ℕ):ℝ) := by
+    rw [Nat.card_Ioc]
+    have hnat : min (2^(j+1) * V) N - min (2^j * V) N ≤ 2^j * V := by
+      have h2A : 2^(j+1) * V = 2 * (2^j * V) := by
+        rw [pow_succ]
+        ring
+      rw [h2A]
+      generalize (2^j * V) = A
+      omega
+    exact_mod_cast hnat
+  have hlen : (((N/(2^j * V + 1) + 1) - (U+1) : ℕ):ℝ)
+      ≤ ((N/(2^j * V + 1) : ℕ):ℝ) := by
+    have h : (N/(2^j * V + 1) + 1) - (U+1) ≤ N/(2^j * V + 1) := by
+      generalize (N/(2^j * V + 1)) = MJ
+      omega
+    exact_mod_cast h
+  have hKM : ((min (2^(j+1) * V) N : ℕ):ℝ) ≤ 2*((2^j * V : ℕ):ℝ) := by
+    have h : min (2^(j+1) * V) N ≤ 2 * (2^j * V) := by
+      have h2A : 2^(j+1) * V = 2 * (2^j * V) := by
+        rw [pow_succ]
+        ring
+      rw [← h2A]
+      exact min_le_left _ _
+    exact_mod_cast h
+  refine le_trans happ ?_
+  gcongr
+
 end ExpSums
 
 end MoltResearch
