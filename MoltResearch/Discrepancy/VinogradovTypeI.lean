@@ -607,6 +607,143 @@ theorem card_nint_annulus_le (q : ℕ) (η t w : ℝ) (ht : 0 ≤ t)
   refine le_trans ?_ hcU
   exact_mod_cast Finset.card_le_card hsub
 
+
+/-- **The annulus block count** (Track R, V2b-ii): over one block of `q`
+consecutive integers at frequency `a/q + δ` with `gcd(a,q) = 1`, at most
+`8q(w + 2q|δ|) + 16` values of `d` put `nint(d·β)` in the annulus
+`[t, t+w)`.  The coprime permutation carries the block onto the lattice,
+and the two-sided Lipschitz transfer widens the annulus by `q|δ|` on
+each side (clipped at `0` by `max`). -/
+theorem card_block_nint_annulus_le (a q : ℕ) (hq : 1 ≤ q)
+    (hcop : Nat.Coprime a q) (δ : ℝ) (j : ℕ) (t w : ℝ) (ht : 0 ≤ t)
+    (hw : 0 ≤ w) :
+    (((Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => t ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+          ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < t + w)).card : ℝ)
+      ≤ 8*(q:ℝ)*(w + 2*(q:ℝ)*|δ|) + 16 := by
+  classical
+  have hq0R : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+  have hjit : (0:ℝ) ≤ (q:ℝ)*|δ| := by positivity
+  have ht0 : (0:ℝ) ≤ max 0 (t - (q:ℝ)*|δ|) := le_max_left 0 _
+  have hw0 : (0:ℝ) ≤ w + 2*(q:ℝ)*|δ| := by positivity
+  have hpoint : ∀ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
+      (fun d : ℕ => t ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+        ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < t + w),
+      ((d - j*q) * a) % q ∈ (Finset.range q).filter
+        (fun k : ℕ => max 0 (t - (q:ℝ)*|δ|)
+            ≤ nint ((k:ℝ)/(q:ℝ) + ((j*q : ℕ):ℝ) * δ)
+          ∧ nint ((k:ℝ)/(q:ℝ) + ((j*q : ℕ):ℝ) * δ)
+            < max 0 (t - (q:ℝ)*|δ|) + (w + 2*(q:ℝ)*|δ|)) := by
+    intro d hd
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hd
+    obtain ⟨⟨hd1, hd2⟩, hdn1, hdn2⟩ := hd
+    rw [Finset.mem_filter, Finset.mem_range]
+    refine ⟨Nat.mod_lt _ (by omega), ?_⟩
+    have hr1 : 1 ≤ d - j*q := by omega
+    have hrq : d - j*q ≤ q := by omega
+    have hd_eq : d = j*q + (d - j*q) := by omega
+    have hdm : (q:ℝ) * ((((d - j*q)*a)/q : ℕ):ℝ)
+        + ((((d - j*q)*a) % q : ℕ):ℝ) = (((d - j*q)*a : ℕ):ℝ) := by
+      exact_mod_cast Nat.div_add_mod ((d - j*q)*a) q
+    have hsplit : (d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)
+        = (((((d - j*q)*a) % q : ℕ):ℝ)/(q:ℝ) + (d:ℝ)*δ)
+          + ((j*a + ((d - j*q)*a)/q : ℕ):ℝ) := by
+      have hd_castR : (d:ℝ) = ((j*q : ℕ):ℝ) + (((d - j*q) : ℕ):ℝ) := by
+        exact_mod_cast congrArg (fun n : ℕ => (n:ℝ)) hd_eq
+      rw [hd_castR]
+      have hne : (q:ℝ) ≠ 0 := ne_of_gt hq0R
+      field_simp
+      push_cast
+      push_cast at hdm
+      ring_nf
+      ring_nf at hdm
+      nlinarith [hdm]
+    rw [hsplit, nint_add_natCast] at hdn1 hdn2
+    have hdist : |(((((d - j*q)*a) % q : ℕ):ℝ)/(q:ℝ)
+          + ((j*q : ℕ):ℝ) * δ)
+        - ((((((d - j*q)*a) % q : ℕ):ℝ))/(q:ℝ) + (d:ℝ)*δ)|
+        ≤ (q:ℝ)*|δ| := by
+      have hd_castR : (d:ℝ) = ((j*q : ℕ):ℝ) + (((d - j*q) : ℕ):ℝ) := by
+        exact_mod_cast congrArg (fun n : ℕ => (n:ℝ)) hd_eq
+      have h1 : (((((d - j*q)*a) % q : ℕ):ℝ)/(q:ℝ)
+            + ((j*q : ℕ):ℝ) * δ)
+          - ((((((d - j*q)*a) % q : ℕ):ℝ))/(q:ℝ) + (d:ℝ)*δ)
+          = -((((d - j*q) : ℕ):ℝ) * δ) := by
+        rw [hd_castR]
+        ring
+      rw [h1, abs_neg, abs_mul]
+      have h2 : |(((d - j*q) : ℕ):ℝ)| ≤ (q:ℝ) := by
+        rw [abs_of_nonneg (Nat.cast_nonneg _)]
+        exact_mod_cast hrq
+      nlinarith [h2, abs_nonneg δ]
+    have hlip1 := nint_le_nint_add_abs
+      ((((((d - j*q)*a) % q : ℕ):ℝ))/(q:ℝ) + ((j*q : ℕ):ℝ) * δ)
+      ((((((d - j*q)*a) % q : ℕ):ℝ))/(q:ℝ) + (d:ℝ)*δ)
+    have hlip2 := nint_le_nint_add_abs
+      ((((((d - j*q)*a) % q : ℕ):ℝ))/(q:ℝ) + (d:ℝ)*δ)
+      ((((((d - j*q)*a) % q : ℕ):ℝ))/(q:ℝ) + ((j*q : ℕ):ℝ) * δ)
+    have hdist' : |(((((d - j*q)*a) % q : ℕ):ℝ)/(q:ℝ) + (d:ℝ)*δ)
+        - ((((((d - j*q)*a) % q : ℕ):ℝ))/(q:ℝ)
+          + ((j*q : ℕ):ℝ) * δ)| ≤ (q:ℝ)*|δ| := by
+      rw [abs_sub_comm]
+      exact hdist
+    constructor
+    · refine max_le (nint_nonneg _) ?_
+      linarith [hlip2, hdn1, hdist']
+    · have hmax : t - (q:ℝ)*|δ| ≤ max 0 (t - (q:ℝ)*|δ|) :=
+        le_max_right 0 _
+      linarith [hlip1, hdn2, hdist, hmax]
+  have hinj : Set.InjOn (fun d : ℕ => ((d - j*q) * a) % q)
+      ↑((Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => t ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+          ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < t + w)) := by
+    intro d hd d' hd' heq
+    simp only [Finset.coe_filter, Set.mem_setOf_eq, Finset.mem_Ioc] at hd hd'
+    have heq' : ((d - j*q) * a) % q = ((d' - j*q) * a) % q := heq
+    have h1 : (d - j*q) * a ≡ (d' - j*q) * a [MOD q] := heq'
+    have h2 : (d - j*q) ≡ (d' - j*q) [MOD q] :=
+      Nat.ModEq.cancel_right_of_coprime hcop.symm h1
+    have h3 : (d - j*q) % q = (d' - j*q) % q := h2
+    obtain ⟨⟨hda, hdb⟩, -⟩ := hd
+    obtain ⟨⟨hda', hdb'⟩, -⟩ := hd'
+    have hr1 : 1 ≤ d - j*q := by omega
+    have hrq : d - j*q ≤ q := by omega
+    have hr1' : 1 ≤ d' - j*q := by omega
+    have hrq' : d' - j*q ≤ q := by omega
+    rcases eq_or_lt_of_le hrq with hcase | hcase <;>
+      rcases eq_or_lt_of_le hrq' with hcase' | hcase'
+    · omega
+    · rw [hcase, Nat.mod_self, Nat.mod_eq_of_lt hcase'] at h3
+      omega
+    · rw [hcase', Nat.mod_self, Nat.mod_eq_of_lt hcase] at h3
+      omega
+    · rw [Nat.mod_eq_of_lt hcase, Nat.mod_eq_of_lt hcase'] at h3
+      omega
+  have hmaps : Set.MapsTo (fun d : ℕ => ((d - j*q) * a) % q)
+      ↑((Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => t ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+          ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < t + w))
+      ↑((Finset.range q).filter
+        (fun k : ℕ => max 0 (t - (q:ℝ)*|δ|)
+            ≤ nint ((k:ℝ)/(q:ℝ) + ((j*q : ℕ):ℝ) * δ)
+          ∧ nint ((k:ℝ)/(q:ℝ) + ((j*q : ℕ):ℝ) * δ)
+            < max 0 (t - (q:ℝ)*|δ|) + (w + 2*(q:ℝ)*|δ|))) := by
+    intro d hd
+    rw [Finset.mem_coe] at hd ⊢
+    exact hpoint d hd
+  calc (((Finset.Ioc (j*q) (j*q + q)).filter
+      (fun d : ℕ => t ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+        ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < t + w)).card : ℝ)
+      ≤ (((Finset.range q).filter
+          (fun k : ℕ => max 0 (t - (q:ℝ)*|δ|)
+              ≤ nint ((k:ℝ)/(q:ℝ) + ((j*q : ℕ):ℝ) * δ)
+            ∧ nint ((k:ℝ)/(q:ℝ) + ((j*q : ℕ):ℝ) * δ)
+              < max 0 (t - (q:ℝ)*|δ|) + (w + 2*(q:ℝ)*|δ|))).card : ℝ) := by
+        exact_mod_cast Finset.card_le_card_of_injOn _ hmaps hinj
+    _ ≤ 8*(q:ℝ)*(w + 2*(q:ℝ)*|δ|) + 16 :=
+        card_nint_annulus_le q (((j*q : ℕ):ℝ) * δ)
+          (max 0 (t - (q:ℝ)*|δ|)) (w + 2*(q:ℝ)*|δ|) ht0 hw0
+
 end ExpSums
 
 end MoltResearch
