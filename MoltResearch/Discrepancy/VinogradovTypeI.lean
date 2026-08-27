@@ -181,6 +181,143 @@ theorem card_range_filter_Ioo_le (q : ℕ) {A B : ℝ} (hAB : A ≤ B) :
           push_cast
           linarith
 
+
+/-- **The near-integer window count** (Track R, V2a-ii-b): among the `q`
+shifted lattice points `k/q + η`, `k < q`, at most `8qs + 4` lie within
+`s` of an integer.  Four rounding candidates `⌊η⌋−1, …, ⌊η⌋+2` cover all
+possible nearest integers, and each contributes a real interval of
+length `2qs` priced by `card_range_filter_Ioo_le`. -/
+theorem card_nint_window_le (q : ℕ) (η s : ℝ) (hs : 0 ≤ s) :
+    (((Finset.range q).filter
+        (fun k : ℕ => nint ((k:ℝ)/(q:ℝ) + η) < s)).card : ℝ)
+      ≤ 8*(q:ℝ)*s + 4 := by
+  classical
+  rcases Nat.eq_zero_or_pos q with rfl | hq0
+  · simp
+  rcases le_or_gt (1/2 : ℝ) s with hs2 | hs2
+  · have h1 : ((Finset.range q).filter
+        (fun k : ℕ => nint ((k:ℝ)/(q:ℝ) + η) < s)).card ≤ q := by
+      refine le_trans (Finset.card_filter_le _ _) ?_
+      rw [Finset.card_range]
+    have h2 : (q:ℝ) ≤ 8*(q:ℝ)*s := by
+      have hq1 : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq0
+      nlinarith
+    have h3 : (((Finset.range q).filter
+        (fun k : ℕ => nint ((k:ℝ)/(q:ℝ) + η) < s)).card : ℝ) ≤ (q:ℝ) := by
+      exact_mod_cast h1
+    linarith
+  · have hq0R : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq0
+    have hsub : (Finset.range q).filter
+        (fun k : ℕ => nint ((k:ℝ)/(q:ℝ) + η) < s)
+        ⊆ (Finset.range 4).biUnion (fun i =>
+            (Finset.range q).filter (fun k : ℕ =>
+              (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η - s) < (k:ℝ)
+              ∧ (k:ℝ) < (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η + s))) := by
+      intro k hk
+      rw [Finset.mem_filter] at hk
+      obtain ⟨hkq', hnint⟩ := hk
+      have hkq : k < q := Finset.mem_range.mp hkq'
+      have hx_lo : η ≤ (k:ℝ)/(q:ℝ) + η := by
+        have h0 : (0:ℝ) ≤ (k:ℝ)/(q:ℝ) := by positivity
+        linarith
+      have hx_hi : (k:ℝ)/(q:ℝ) + η < η + 1 := by
+        have h0 : (k:ℝ)/(q:ℝ) < 1 :=
+          (div_lt_one hq0R).mpr (by exact_mod_cast hkq)
+        linarith
+      have hround := abs_sub_round ((k:ℝ)/(q:ℝ) + η)
+      have hround' := abs_le.mp hround
+      have hfl_le : ((⌊η⌋ : ℤ):ℝ) ≤ η := Int.floor_le η
+      have hfl_gt : η < ((⌊η⌋ : ℤ):ℝ) + 1 := Int.lt_floor_add_one η
+      have hM_lo : ⌊η⌋ - 1 ≤ round ((k:ℝ)/(q:ℝ) + η) := by
+        by_contra hc
+        push_neg at hc
+        have h3 : ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ)
+            ≤ ((⌊η⌋ : ℤ):ℝ) - 2 := by
+          exact_mod_cast (by omega : (round ((k:ℝ)/(q:ℝ) + η) : ℤ)
+            ≤ ⌊η⌋ - 2)
+        linarith [hround'.2]
+      have hM_hi : round ((k:ℝ)/(q:ℝ) + η) ≤ ⌊η⌋ + 2 := by
+        by_contra hc
+        push_neg at hc
+        have h3 : ((⌊η⌋ : ℤ):ℝ) + 3
+            ≤ ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) := by
+          exact_mod_cast (by omega : (⌊η⌋ + 3 : ℤ)
+            ≤ round ((k:ℝ)/(q:ℝ) + η))
+        linarith [hround'.1]
+      rw [Finset.mem_biUnion]
+      refine ⟨(round ((k:ℝ)/(q:ℝ) + η) - (⌊η⌋ - 1)).toNat, ?_, ?_⟩
+      · rw [Finset.mem_range]
+        omega
+      · rw [Finset.mem_filter]
+        refine ⟨hkq', ?_⟩
+        have hcast : ((⌊η⌋ - 1
+              + ((round ((k:ℝ)/(q:ℝ) + η) - (⌊η⌋ - 1)).toNat : ℤ) : ℤ):ℝ)
+            = ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) := by
+          exact_mod_cast (by omega : (⌊η⌋ - 1
+              + ((round ((k:ℝ)/(q:ℝ) + η) - (⌊η⌋ - 1)).toNat : ℤ) : ℤ)
+            = round ((k:ℝ)/(q:ℝ) + η))
+        rw [hcast]
+        rw [nint] at hnint
+        have h5 := abs_lt.mp hnint
+        have hdiv : (q:ℝ) * ((k:ℝ)/(q:ℝ)) = (k:ℝ) := by
+          field_simp
+        constructor
+        · have h6 : ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) - η - s
+              < (k:ℝ)/(q:ℝ) := by
+            linarith [h5.1]
+          calc (q:ℝ) * (((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) - η - s)
+              < (q:ℝ) * ((k:ℝ)/(q:ℝ)) := mul_lt_mul_of_pos_left h6 hq0R
+            _ = (k:ℝ) := hdiv
+        · have h6 : (k:ℝ)/(q:ℝ)
+              < ((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) - η + s := by
+            linarith [h5.2]
+          calc (k:ℝ) = (q:ℝ) * ((k:ℝ)/(q:ℝ)) := hdiv.symm
+            _ < (q:ℝ) * (((round ((k:ℝ)/(q:ℝ) + η) : ℤ):ℝ) - η + s) :=
+                mul_lt_mul_of_pos_left h6 hq0R
+    have hcard1 : ((Finset.range q).filter
+        (fun k : ℕ => nint ((k:ℝ)/(q:ℝ) + η) < s)).card
+        ≤ ∑ i ∈ Finset.range 4,
+            ((Finset.range q).filter (fun k : ℕ =>
+              (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η - s) < (k:ℝ)
+              ∧ (k:ℝ) < (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η + s))).card :=
+      le_trans (Finset.card_le_card hsub) (Finset.card_biUnion_le)
+    have hcard2 : ∀ i ∈ Finset.range 4,
+        (((Finset.range q).filter (fun k : ℕ =>
+            (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η - s) < (k:ℝ)
+            ∧ (k:ℝ) < (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η + s))).card : ℝ)
+          ≤ 2*(q:ℝ)*s + 1 := by
+      intro i _
+      have hAB : (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η - s)
+          ≤ (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η + s) := by
+        refine mul_le_mul_of_nonneg_left ?_ hq0R.le
+        linarith
+      refine le_trans (card_range_filter_Ioo_le q hAB) ?_
+      have hexp : (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η + s)
+          - (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η - s) = 2*(q:ℝ)*s := by
+        ring
+      linarith [hexp.le, hexp.ge]
+    calc (((Finset.range q).filter
+        (fun k : ℕ => nint ((k:ℝ)/(q:ℝ) + η) < s)).card : ℝ)
+        ≤ (∑ i ∈ Finset.range 4,
+            ((Finset.range q).filter (fun k : ℕ =>
+              (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η - s) < (k:ℝ)
+              ∧ (k:ℝ) < (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η + s))).card
+            : ℝ) := by
+          exact_mod_cast hcard1
+      _ = ∑ i ∈ Finset.range 4,
+            (((Finset.range q).filter (fun k : ℕ =>
+              (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η - s) < (k:ℝ)
+              ∧ (k:ℝ) < (q:ℝ)*(((⌊η⌋ - 1 + (i:ℤ) : ℤ):ℝ) - η + s))).card
+              : ℝ) := by
+          push_cast
+          ring
+      _ ≤ ∑ i ∈ Finset.range 4, (2*(q:ℝ)*s + 1) :=
+          Finset.sum_le_sum hcard2
+      _ = 8*(q:ℝ)*s + 4 := by
+          rw [Finset.sum_const, Finset.card_range]
+          push_cast
+          ring
+
 end ExpSums
 
 end MoltResearch
