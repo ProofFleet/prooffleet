@@ -91,6 +91,47 @@ theorem norm_sum_e_linear_le_card (β : ℝ) (s : Finset ℕ) :
   have h : ∀ n ∈ s, ‖e ((n : ℝ) * β)‖ = 1 := fun n _ => norm_e _
   rw [Finset.sum_congr rfl h, Finset.sum_const, nsmul_eq_mul, mul_one]
 
+
+/-- `nint` is invariant under integer shifts. -/
+theorem nint_add_intCast (x : ℝ) (m : ℤ) : nint (x + m) = nint x := by
+  rw [nint, nint, round_add_intCast]
+  push_cast
+  ring_nf
+
+/-- `nint` is invariant under natural shifts. -/
+theorem nint_add_natCast (x : ℝ) (m : ℕ) : nint (x + m) = nint x := by
+  have h := nint_add_intCast x (m : ℤ)
+  push_cast at h
+  exact h
+
+/-- **Nearest-integer minimality**: `nint x` is at most the distance from
+`x` to any integer. -/
+theorem nint_le_abs_sub_intCast (x : ℝ) (m : ℤ) : nint x ≤ |x - m| := by
+  rcases le_or_gt (1/2 : ℝ) |x - m| with h | h
+  · exact le_trans (nint_le_half x) h
+  · have hm : round x = m := by
+      rw [round_eq]
+      have h1 : x - m < 1/2 := lt_of_abs_lt h
+      have h2 : -(1/2) < x - m := neg_lt_of_abs_lt h
+      have h3 : (m : ℝ) ≤ x + 1/2 := by linarith
+      have h4 : x + 1/2 < (m : ℝ) + 1 := by linarith
+      have := Int.floor_eq_iff.mpr ⟨h3, by push_cast; linarith⟩
+      exact this
+    rw [nint, hm]
+
+/-- **`nint` is 1-Lipschitz**: `nint x ≤ nint y + |x − y|`. -/
+theorem nint_le_nint_add_abs (x y : ℝ) :
+    nint x ≤ nint y + |x - y| := by
+  have h1 := nint_le_abs_sub_intCast x (round y)
+  have h2 : |x - (round y : ℝ)| ≤ |y - (round y : ℝ)| + |x - y| := by
+    have := abs_sub_abs_le_abs_sub (x - (round y : ℝ)) (y - (round y : ℝ))
+    calc |x - (round y : ℝ)|
+        = |(y - (round y : ℝ)) + (x - y)| := by ring_nf
+      _ ≤ |y - (round y : ℝ)| + |x - y| := abs_add_le _ _
+  calc nint x ≤ |x - (round y : ℝ)| := h1
+    _ ≤ |y - (round y : ℝ)| + |x - y| := h2
+    _ = nint y + |x - y| := by rw [nint]
+
 end ExpSums
 
 end MoltResearch
