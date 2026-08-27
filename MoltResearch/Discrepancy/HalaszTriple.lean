@@ -614,6 +614,114 @@ theorem sum_rpow_primesBelow_le_log (x : ℕ) (hx : 3 ≤ x) :
   have hlog := Real.log_le_log (Real.exp_pos _) hexp
   rwa [Real.log_exp] at hlog
 
+/-- **The prime mass on the 1-line** (Track R, M0R-3c):
+
+  `∑_{p<x} 1/p ≤ log(2 + log x) + 3`   for `x ≥ 3`.
+
+Split each term against the shifted abscissa:
+`1/p − p^{−(1+1/log x)} = (1/p)(1 − e^{−log p/log x}) ≤ (log p/p)/log x`,
+so the difference sums to at most `(log x + 2)/log x ≤ 3` by the sharp
+Mertens bound, and the shifted mass is `sum_rpow_primesBelow_le_log`.
+
+Leading coefficient exactly `1` — this is what keeps the Halász band
+sup at a single power of `log x`, where the crude `4·loglog + 13`
+Mertens bound would cost `log⁴x`. -/
+theorem sum_one_div_primesBelow_le_log_log (x : ℕ) (hx : 3 ≤ x) :
+    ∑ p ∈ x.primesBelow, (1 : ℝ)/(p : ℝ)
+      ≤ Real.log (2 + Real.log x) + 3 := by
+  classical
+  have hxR : (3 : ℝ) ≤ (x : ℝ) := by exact_mod_cast hx
+  have hlog1 : (1 : ℝ) < Real.log x := by
+    have he : Real.exp 1 < 3 := by
+      have := Real.exp_one_lt_d9
+      linarith
+    calc (1 : ℝ) = Real.log (Real.exp 1) := (Real.log_exp 1).symm
+      _ < Real.log 3 := Real.log_lt_log (Real.exp_pos 1) he
+      _ ≤ Real.log x := Real.log_le_log (by norm_num) hxR
+  -- termwise comparison with the shifted abscissa
+  have hsplit : ∀ p ∈ x.primesBelow,
+      (1 : ℝ)/(p : ℝ) ≤ (p : ℝ) ^ (-(1 + 1/Real.log x))
+        + (Real.log p/(p : ℝ))/Real.log x := by
+    intro p hp
+    have hpp := Nat.prime_of_mem_primesBelow hp
+    have hp2 : (2 : ℝ) ≤ (p : ℝ) := by exact_mod_cast hpp.two_le
+    have hp0 : (0 : ℝ) < (p : ℝ) := by linarith
+    have hexp : (p : ℝ) ^ (-(1 + 1/Real.log x))
+        = (1/(p : ℝ)) * Real.exp (-(Real.log p/Real.log x)) := by
+      rw [Real.rpow_def_of_pos hp0,
+        show Real.log (p : ℝ) * -(1 + 1/Real.log x)
+          = -Real.log (p : ℝ) + -(Real.log p/Real.log x) by ring,
+        Real.exp_add, Real.exp_neg, Real.exp_log hp0, one_div]
+    have hbound : 1 - Real.exp (-(Real.log p/Real.log x))
+        ≤ Real.log p/Real.log x := by
+      linarith [Real.add_one_le_exp (-(Real.log p/Real.log x))]
+    have h2 : (1 : ℝ)/(p : ℝ) - (p : ℝ) ^ (-(1 + 1/Real.log x))
+        ≤ (Real.log p/(p : ℝ))/Real.log x := by
+      rw [hexp,
+        show (1 : ℝ)/(p : ℝ) - (1/(p : ℝ))
+            * Real.exp (-(Real.log p/Real.log x))
+          = (1/(p : ℝ)) * (1 - Real.exp (-(Real.log p/Real.log x)))
+          by ring]
+      calc (1/(p : ℝ)) * (1 - Real.exp (-(Real.log p/Real.log x)))
+          ≤ (1/(p : ℝ)) * (Real.log p/Real.log x) :=
+            mul_le_mul_of_nonneg_left hbound (by positivity)
+        _ = (Real.log p/(p : ℝ))/Real.log x := by ring
+    linarith
+  have hsum := Finset.sum_le_sum hsplit
+  rw [Finset.sum_add_distrib] at hsum
+  have hshift := sum_rpow_primesBelow_le_log x hx
+  have hmertens := sum_log_div_primesBelow_le_sharp x (by omega)
+  have hdiv : ∑ p ∈ x.primesBelow, (Real.log p/(p : ℝ))/Real.log x
+      = (∑ p ∈ x.primesBelow, Real.log p/(p : ℝ))/Real.log x :=
+    (Finset.sum_div _ _ _).symm
+  have h5 : (∑ p ∈ x.primesBelow, Real.log p/(p : ℝ))/Real.log x ≤ 3 := by
+    rw [div_le_iff₀ (by linarith)]
+    nlinarith [hmertens]
+  rw [hdiv] at hsum
+  linarith
+
+/-- **The band sup of the truncated Euler product, under
+non-pretentiousness** (Track R, M0R-3d):
+
+  `‖F_x(1 + 2πiξ)‖ ≤ e⁵·(2 + log x)·e^{−A}`,
+
+for any frequency with `|2πξ| ≤ A·x`.  The full M0R-3 chain: the
+product is `exp(mass − 𝔻² + 2)` (M0R-3a/b/c-i), the mass is at most
+`log(2 + log x) + 3` (M0R-3c-ii/iii), and `NonPretentiousAt` supplies
+`𝔻² ≥ A` at the level-one twist.
+
+This is the log-free replacement for the `bandSup_*` smooth-restriction
+route: one scale, an absolute constant, and the full strength of the
+distance hypothesis — where the three-scale transfer retained only
+`A − 2(mass(x) − mass(y₂))` and a Rankin remainder. -/
+theorem norm_phase_euler_prod_le_of_nonPretentious (f : ℕ → ℂ)
+    (hb : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (hx : 3 ≤ x)
+    (A : ℝ) (h1A : 1 ≤ A) (hA : NonPretentiousAt f A x)
+    (ξ : ℝ) (hξ : |2*Real.pi*ξ| ≤ A * x) :
+    ‖∏ p ∈ x.primesBelow,
+        (1 - f p * ((p : ℕ) : ℂ)⁻¹
+            * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ))⁻¹‖
+      ≤ Real.exp 5 * (2 + Real.log x) * Real.exp (-A) := by
+  have hxR : (3 : ℝ) ≤ (x : ℝ) := by exact_mod_cast hx
+  have hlogx : (0 : ℝ) < Real.log x :=
+    Real.log_pos (by linarith)
+  have hdist := hA 1 1 (2*Real.pi*ξ) (by exact_mod_cast h1A) hξ
+  have hmass := sum_one_div_primesBelow_le_log_log x hx
+  have hprod := norm_phase_euler_prod_le f hb x ξ
+  have hre := sum_re_phase_eq_mass_sub_distSq f x ξ 1
+  refine le_trans hprod ?_
+  rw [hre]
+  have hexp : (∑ p ∈ x.primesBelow, (1 : ℝ)/(p : ℝ))
+      - pretentiousDistSq f (charTwist 1 1 (2*Real.pi*ξ)) x + 2
+      ≤ Real.log (2 + Real.log x) + 5 - A := by
+    linarith
+  refine le_trans (Real.exp_le_exp.mpr hexp) ?_
+  rw [show Real.log (2 + Real.log x) + 5 - A
+      = Real.log (2 + Real.log x) + 5 + -A by ring,
+    Real.exp_add, Real.exp_add, Real.exp_log (by linarith)]
+  ring_nf
+  exact le_refl _
+
 end ExpSums
 
 end MoltResearch
