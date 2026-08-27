@@ -4523,6 +4523,96 @@ theorem typeII_block_sq_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
   refine le_trans happ ?_
   gcongr
 
+
+open ArithmeticFunction in
+/-- **The Type II reshape** (Track R, V6d-vi): the raw third Vaughan
+term equals `log N` times the swapped, `Λ/log N`-normalized `m`-outer
+form — the shape the dyadic block machinery prices. -/
+theorem typeII_reshape (U V n₀ N : ℕ) (hN : 2 ≤ N) (w : ℕ → ℂ) :
+    (∑ c ∈ (Finset.Icc 1 N).filter (fun c => ¬ c ≤ V),
+        ((vonMangoldt c : ℝ):ℂ)
+          * ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+            ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+              ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m))
+      = ((Real.log (N:ℝ) : ℝ):ℂ)
+        * ∑ m ∈ Finset.Icc 1 (N/(V+1)),
+            ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+              ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+              * ∑ c ∈ (Finset.Ioc V N).filter
+                  (fun c => n₀ < c*m ∧ c*m ≤ N),
+                (if c ≤ N then
+                  ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+                  * w (c*m) := by
+  classical
+  have hlogN : (0:ℝ) < Real.log (N:ℝ) := by
+    refine Real.log_pos ?_
+    exact_mod_cast hN
+  have h1 : (∑ c ∈ (Finset.Icc 1 N).filter (fun c => ¬ c ≤ V),
+      ((vonMangoldt c : ℝ):ℂ)
+        * ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+          ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m))
+      = ∑ c ∈ (Finset.Icc 1 N).filter (fun c => ¬ c ≤ V),
+          ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+            ((vonMangoldt c : ℝ):ℂ)
+              * (((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+                ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m)) :=
+    Finset.sum_congr rfl fun c _ => Finset.mul_sum _ _ _
+  have h2 : (∑ c ∈ (Finset.Icc 1 N).filter (fun c => ¬ c ≤ V),
+      ∑ m ∈ Finset.Ioc (n₀/c) (N/c),
+        ((vonMangoldt c : ℝ):ℂ)
+          * (((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m)))
+      = ∑ m ∈ Finset.Icc 1 (N/(V+1)),
+          ∑ c ∈ (Finset.Ioc V N).filter
+            (fun c => n₀ < c*m ∧ c*m ≤ N),
+            ((vonMangoldt c : ℝ):ℂ)
+              * (((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+                ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m)) :=
+    sum_typeII_swap V n₀ N
+      (fun c m => ((vonMangoldt c : ℝ):ℂ)
+        * (((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+          ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m)))
+  have h3 : ∀ m ∈ Finset.Icc 1 (N/(V+1)),
+      ∑ c ∈ (Finset.Ioc V N).filter
+        (fun c => n₀ < c*m ∧ c*m ≤ N),
+        ((vonMangoldt c : ℝ):ℂ)
+          * (((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m))
+      = ((Real.log (N:ℝ) : ℝ):ℂ)
+        * (((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+          ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+          * ∑ c ∈ (Finset.Ioc V N).filter
+              (fun c => n₀ < c*m ∧ c*m ≤ N),
+            (if c ≤ N then
+              ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+              * w (c*m)) := by
+    intro m _
+    have hstep : ∀ c ∈ (Finset.Ioc V N).filter
+        (fun c => n₀ < c*m ∧ c*m ≤ N),
+        ((vonMangoldt c : ℝ):ℂ)
+          * (((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) : ℝ):ℂ) * w (c*m))
+        = ((Real.log (N:ℝ) : ℝ):ℂ)
+          * (((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+            * ((if c ≤ N then
+              ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+              * w (c*m))) := by
+      intro c hc
+      simp only [Finset.mem_filter, Finset.mem_Ioc] at hc
+      rw [if_pos hc.1.2]
+      have hval : ((vonMangoldt c : ℝ):ℂ)
+          = ((Real.log (N:ℝ) : ℝ):ℂ)
+            * ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) := by
+        rw [← Complex.ofReal_mul]
+        congr 1
+        field_simp
+      rw [hval]
+      ring
+    rw [Finset.sum_congr rfl hstep, ← Finset.mul_sum, ← Finset.mul_sum]
+  rw [h1, h2, Finset.sum_congr rfl h3, ← Finset.mul_sum]
+
 end ExpSums
 
 end MoltResearch
