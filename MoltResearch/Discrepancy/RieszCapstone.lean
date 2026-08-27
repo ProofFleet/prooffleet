@@ -2669,4 +2669,590 @@ theorem rieszMean_mul_log_prime_restrict (f : ℕ → ℝ)
     exact le_trans (Finset.sum_le_sum hterm) (sum_log_sub_sq_le x hx)
   linarith [hNP, hD]
 
+
+open Real Finset ArithmeticFunction in
+/-- **The R-world head discard** (Track R, N204): the primes below `y`
+cost `x·(log y + 2)` — `prime_head_sum_le` with the Riesz inner priced
+by `abs_rieszMean_le`. -/
+theorem rieszMean_prime_head_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x y : ℕ) (hy : 2 ≤ y) :
+    |∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => p < y),
+        f p * vonMangoldt p
+          * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+              f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))|
+      ≤ (x:ℝ) * (Real.log (y:ℝ) + 2) := by
+  classical
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => p < y),
+      |f p * vonMangoldt p
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))|
+      ≤ (x:ℝ) * (Real.log (p:ℝ)/(p:ℝ)) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    obtain ⟨⟨⟨hp1, hpx⟩, hpp⟩, -⟩ := hp
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+    have hY1 : (1:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have : (p:ℝ) ≤ (x:ℝ) := by exact_mod_cast hpx
+      linarith
+    have hR := abs_rieszMean_le f hf ((x:ℝ)/(p:ℝ)) hY1
+    rw [vonMangoldt_apply_prime hpp, abs_mul, abs_mul,
+      abs_of_nonneg (Real.log_natCast_nonneg p)]
+    have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    calc |f p| * Real.log (p:ℝ)
+          * |∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+              f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))|
+        ≤ 1 * Real.log (p:ℝ) * ((x:ℝ)/(p:ℝ)) := by
+          have h1 := hf p
+          have h3 := abs_nonneg (∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)))
+          nlinarith [hR, abs_nonneg (f p),
+            mul_nonneg (abs_nonneg (f p)) hlog0,
+            mul_nonneg hlog0 h3]
+      _ = (x:ℝ) * (Real.log (p:ℝ)/(p:ℝ)) := by
+          field_simp
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hsub : ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => p < y)
+      ⊆ y.primesBelow := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    rw [Nat.mem_primesBelow]
+    exact ⟨hp.2, hp.1.2⟩
+  have hmono := Finset.sum_le_sum_of_subset_of_nonneg hsub
+    (fun p _ _ => div_nonneg (Real.log_natCast_nonneg p) (Nat.cast_nonneg p))
+  have hmass := sum_log_div_primesBelow_le_sharp y hy
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  nlinarith [hmono, hmass, hx0]
+
+open Real Finset ArithmeticFunction in
+/-- **The R-world tail discard** (Track R, N204): the primes above
+`x/2` cost `(x+1)·log 4` — Chebyshev against the scale-2 inner. -/
+theorem rieszMean_prime_tail_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x : ℕ) :
+    |∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => x < 2*p),
+        f p * vonMangoldt p
+          * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+              f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))|
+      ≤ 2*((x:ℝ)+1) * Real.log 4 := by
+  classical
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => x < 2*p),
+      |f p * vonMangoldt p
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))|
+      ≤ 2 * Real.log (p:ℝ) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    obtain ⟨⟨⟨hp1, hpx⟩, hpp⟩, h2p⟩ := hp
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+    have hY1 : (1:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have : (p:ℝ) ≤ (x:ℝ) := by exact_mod_cast hpx
+      linarith
+    have hY2 : (x:ℝ)/(p:ℝ) ≤ 2 := by
+      rw [div_le_iff₀ hp0]
+      have : (x:ℝ) < 2*(p:ℝ) := by exact_mod_cast h2p
+      linarith
+    have hR := abs_rieszMean_le f hf ((x:ℝ)/(p:ℝ)) hY1
+    rw [vonMangoldt_apply_prime hpp, abs_mul, abs_mul,
+      abs_of_nonneg (Real.log_natCast_nonneg p)]
+    have hlog0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    have h3 := abs_nonneg (∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+      f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)))
+    nlinarith [hR, hY2, hf p, abs_nonneg (f p),
+      mul_nonneg (abs_nonneg (f p)) hlog0, mul_nonneg hlog0 h3]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hsub : ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => x < 2*p)
+      ⊆ (x+1).primesBelow := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    rw [Nat.mem_primesBelow]
+    exact ⟨by omega, hp.1.2⟩
+  have hmono := Finset.sum_le_sum_of_subset_of_nonneg hsub
+    (fun p _ _ => Real.log_natCast_nonneg p)
+  have hmass := sum_log_primesBelow_le (x+1)
+  have hcast : ((x+1 : ℕ):ℝ) = (x:ℝ)+1 := by push_cast; ring
+  rw [hcast] at hmass
+  have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+  nlinarith [hmono, hmass, hlog4]
+
+
+open Real Finset in
+/-- **The Riesz diagonal at real scale** (Track R, N205a): the `R₂`
+diagonal costs `55·Y` at any real scale — `sum_log_sub_sq_le` pushed
+through `log Y ≤ log 2 + log ⌊Y⌋`. -/
+theorem sum_log_sub_sq_le' (Y : ℝ) (hY : 1 ≤ Y) :
+    ∑ n ∈ Finset.Icc 1 ⌊Y⌋₊, (Real.log Y - Real.log (n:ℝ))^2
+      ≤ 55 * Y := by
+  have hY0 : (0:ℝ) < Y := by linarith
+  have hN1 : 1 ≤ ⌊Y⌋₊ := Nat.le_floor (by exact_mod_cast hY)
+  have hNR : (1:ℝ) ≤ ((⌊Y⌋₊:ℕ):ℝ) := by exact_mod_cast hN1
+  have hNY : ((⌊Y⌋₊:ℕ):ℝ) ≤ Y := Nat.floor_le hY0.le
+  have hYN : Y < ((⌊Y⌋₊:ℕ):ℝ) + 1 := Nat.lt_floor_add_one Y
+  have hlogY : Real.log Y ≤ Real.log 2 + Real.log ((⌊Y⌋₊:ℕ):ℝ) := by
+    rw [← Real.log_mul (by norm_num) (by positivity)]
+    exact Real.log_le_log hY0 (by linarith)
+  have hterm : ∀ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+      (Real.log Y - Real.log (n:ℝ))^2
+      ≤ 1 + 2*(Real.log ((⌊Y⌋₊:ℕ):ℝ) - Real.log (n:ℝ))^2 := by
+    intro n hn
+    rw [Finset.mem_Icc] at hn
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn.1
+    have hnN : (n:ℝ) ≤ ((⌊Y⌋₊:ℕ):ℝ) := by exact_mod_cast hn.2
+    have ha : 0 ≤ Real.log ((⌊Y⌋₊:ℕ):ℝ) - Real.log (n:ℝ) := by
+      have := Real.log_le_log hn0 hnN
+      linarith
+    have hb : 0 ≤ Real.log Y - Real.log (n:ℝ) := by
+      have := Real.log_le_log hn0 (le_trans hnN hNY)
+      linarith
+    have hc : Real.log Y - Real.log (n:ℝ)
+        ≤ Real.log 2 + (Real.log ((⌊Y⌋₊:ℕ):ℝ) - Real.log (n:ℝ)) := by
+      linarith
+    nlinarith [sq_nonneg (Real.log 2
+        - (Real.log ((⌊Y⌋₊:ℕ):ℝ) - Real.log (n:ℝ))),
+      Real.log_two_lt_d9, Real.log_two_gt_d9, ha, hb, hc]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have hsq := sum_log_sub_sq_le ⌊Y⌋₊ hN1
+  calc ∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+        (1 + 2*(Real.log ((⌊Y⌋₊:ℕ):ℝ) - Real.log (n:ℝ))^2)
+      = ((⌊Y⌋₊:ℕ):ℝ) + 2 * ∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+          (Real.log ((⌊Y⌋₊:ℕ):ℝ) - Real.log (n:ℝ))^2 := by
+        rw [Finset.sum_add_distrib, Finset.sum_const, ← Finset.mul_sum,
+          Nat.card_Icc]
+        simp
+    _ ≤ ((⌊Y⌋₊:ℕ):ℝ) + 2 * (27*((⌊Y⌋₊:ℕ):ℝ)) := by linarith
+    _ = 55 * ((⌊Y⌋₊:ℕ):ℝ) := by ring
+    _ ≤ 55 * Y := by linarith
+
+open Real Finset ArithmeticFunction in
+/-- **The R-mean value at real scale** (Track R, N205a): the identity
+error is linear at any real scale `Y ≥ 1` — the mirror of
+`rieszMean_mul_log_prime_restrict` with `x` replaced by `⌊Y⌋` and the
+diagonal priced by `sum_log_sub_sq_le'`. -/
+theorem rieszMean_mul_log_prime_restrict' (f : ℕ → ℝ)
+    (hf : ∀ n, |f n| ≤ 1) (hmul : ∀ a b, f (a*b) = f a * f b)
+    (Y : ℝ) (hY : 1 ≤ Y) :
+    |(∑ n ∈ Finset.Icc 1 ⌊Y⌋₊, f n * (Real.log Y - Real.log (n:ℝ)))
+        * Real.log Y
+      - ∑ p ∈ (Finset.Icc 1 ⌊Y⌋₊).filter Nat.Prime,
+          f p * vonMangoldt p
+            * ∑ m ∈ Finset.Icc 1 ⌊Y/(p:ℝ)⌋₊,
+                f m * (Real.log (Y/(p:ℝ)) - Real.log (m:ℝ))|
+      ≤ 63 * Y := by
+  classical
+  have hY0 : (0:ℝ) < Y := by linarith
+  have hid := rieszMean_log_identity f hmul Y hY0
+  rw [hid]
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 ⌊Y⌋₊) Nat.Prime
+    (fun d => f d * vonMangoldt d
+      * ∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+          f m * (Real.log (Y/(d:ℝ)) - Real.log (m:ℝ)))]
+  have hcancel : ∀ A B C : ℝ, (A + B) + C - A = B + C := by
+    intro A B C
+    ring
+  rw [hcancel]
+  refine le_trans (abs_add_le _ _) ?_
+  -- the non-prime branch
+  have hNP : |∑ d ∈ (Finset.Icc 1 ⌊Y⌋₊).filter (fun d => ¬ d.Prime),
+      f d * vonMangoldt d
+        * ∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+            f m * (Real.log (Y/(d:ℝ)) - Real.log (m:ℝ))|
+      ≤ 8 * Y := by
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    have hterm : ∀ d ∈ (Finset.Icc 1 ⌊Y⌋₊).filter (fun d => ¬ d.Prime),
+        |f d * vonMangoldt d
+          * ∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+              f m * (Real.log (Y/(d:ℝ)) - Real.log (m:ℝ))|
+        ≤ Y * (vonMangoldt d / (d:ℝ)) := by
+      intro d hd
+      rw [Finset.mem_filter, Finset.mem_Icc] at hd
+      have hd1 : 1 ≤ d := hd.1.1
+      have hd0 : (0:ℝ) < (d:ℝ) := by exact_mod_cast hd1
+      have hdN : (d:ℝ) ≤ ((⌊Y⌋₊:ℕ):ℝ) := by exact_mod_cast hd.1.2
+      have hdx : (d:ℝ) ≤ Y := le_trans hdN (Nat.floor_le hY0.le)
+      have hY1 : (1:ℝ) ≤ Y/(d:ℝ) := by
+        rw [le_div_iff₀ hd0]
+        linarith
+      have hR := abs_rieszMean_le f hf (Y/(d:ℝ)) hY1
+      rw [abs_mul, abs_mul, abs_of_nonneg vonMangoldt_nonneg]
+      calc |f d| * vonMangoldt d
+            * |∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+                f m * (Real.log (Y/(d:ℝ)) - Real.log (m:ℝ))|
+          ≤ 1 * vonMangoldt d * (Y/(d:ℝ)) := by
+            have h1 := hf d
+            have h2 : (0:ℝ) ≤ vonMangoldt d := vonMangoldt_nonneg
+            have h3 := abs_nonneg (∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+              f m * (Real.log (Y/(d:ℝ)) - Real.log (m:ℝ)))
+            nlinarith [hR, mul_nonneg h2 h3, abs_nonneg (f d),
+              mul_nonneg (abs_nonneg (f d)) h2]
+        _ = Y * (vonMangoldt d / (d:ℝ)) := by
+            field_simp
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [← Finset.mul_sum]
+    have hsupp : ∑ d ∈ (Finset.Icc 1 ⌊Y⌋₊).filter (fun d => ¬ d.Prime),
+        vonMangoldt d / (d:ℝ)
+        = ∑ d ∈ (Finset.Icc 1 ⌊Y⌋₊).filter
+            (fun d => IsPrimePow d ∧ ¬ d.Prime),
+            vonMangoldt d / (d:ℝ) := by
+      refine (Finset.sum_subset ?_ ?_).symm
+      · intro d hd
+        rw [Finset.mem_filter] at hd ⊢
+        exact ⟨hd.1, hd.2.2⟩
+      · intro d hd hnd
+        rw [Finset.mem_filter] at hd hnd
+        have : ¬ IsPrimePow d := by
+          intro hpp
+          exact hnd ⟨hd.1, hpp, hd.2⟩
+        rw [vonMangoldt_eq_zero_iff.mpr this, zero_div]
+    rw [hsupp]
+    have hmass := sum_vonMangoldt_div_properPrimePow_le ⌊Y⌋₊
+    nlinarith [hmass, hY0]
+  -- the diagonal
+  have hD : |∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+      f n * (Real.log Y - Real.log (n:ℝ))^2| ≤ 55 * Y := by
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    have hterm : ∀ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+        |f n * (Real.log Y - Real.log (n:ℝ))^2|
+        ≤ (Real.log Y - Real.log (n:ℝ))^2 := by
+      intro n _
+      rw [abs_mul, abs_of_nonneg
+        (sq_nonneg (Real.log Y - Real.log (n:ℝ)))]
+      nlinarith [hf n, abs_nonneg (f n), sq_nonneg
+        (Real.log Y - Real.log (n:ℝ))]
+    exact le_trans (Finset.sum_le_sum hterm) (sum_log_sub_sq_le' Y hY)
+  linarith [hNP, hD]
+
+open Real Finset ArithmeticFunction in
+/-- **The R-mean value in `primesBelow` form** (Track R, N205b): the
+boundary prime `⌊Y⌋` costs one more `Y` — this is the identity error in
+exactly the range `tripleConvR`'s inner sum uses. -/
+theorem rieszMean_mul_log_primesBelow_le (f : ℕ → ℝ)
+    (hf : ∀ n, |f n| ≤ 1) (hmul : ∀ a b, f (a*b) = f a * f b)
+    (Y : ℝ) (hY : 1 ≤ Y) :
+    |(∑ n ∈ Finset.Icc 1 ⌊Y⌋₊, f n * (Real.log Y - Real.log (n:ℝ)))
+        * Real.log Y
+      - ∑ q ∈ (⌊Y⌋₊).primesBelow,
+          f q * vonMangoldt q
+            * ∑ m ∈ Finset.Icc 1 ⌊Y/(q:ℝ)⌋₊,
+                f m * (Real.log (Y/(q:ℝ)) - Real.log (m:ℝ))|
+      ≤ 64 * Y := by
+  classical
+  have hY0 : (0:ℝ) < Y := by linarith
+  have hbase := rieszMean_mul_log_prime_restrict' f hf hmul Y hY
+  by_cases hNp : (⌊Y⌋₊).Prime
+  · have hset : (Finset.Icc 1 ⌊Y⌋₊).filter Nat.Prime
+        = insert ⌊Y⌋₊ ((⌊Y⌋₊).primesBelow) := by
+      ext q
+      simp only [Finset.mem_filter, Finset.mem_Icc, Finset.mem_insert,
+        Nat.mem_primesBelow]
+      constructor
+      · rintro ⟨⟨hq1, hqN⟩, hqp⟩
+        rcases eq_or_lt_of_le hqN with h | h
+        · exact Or.inl h
+        · exact Or.inr ⟨h, hqp⟩
+      · rintro (rfl | ⟨hlt, hqp⟩)
+        · exact ⟨⟨hNp.one_lt.le, le_refl _⟩, hNp⟩
+        · exact ⟨⟨hqp.one_lt.le, hlt.le⟩, hqp⟩
+    have hnotmem : ⌊Y⌋₊ ∉ (⌊Y⌋₊).primesBelow := by
+      simp [Nat.mem_primesBelow]
+    rw [hset, Finset.sum_insert hnotmem] at hbase
+    have hN1 : 1 ≤ ⌊Y⌋₊ := Nat.le_floor (by exact_mod_cast hY)
+    have hN0 : (0:ℝ) < ((⌊Y⌋₊:ℕ):ℝ) := by exact_mod_cast hN1
+    have hNY : ((⌊Y⌋₊:ℕ):ℝ) ≤ Y := Nat.floor_le hY0.le
+    have hY1' : (1:ℝ) ≤ Y/((⌊Y⌋₊:ℕ):ℝ) := by
+      rw [le_div_iff₀ hN0]
+      linarith
+    have hR := abs_rieszMean_le f hf (Y/((⌊Y⌋₊:ℕ):ℝ)) hY1'
+    have hlogN : Real.log ((⌊Y⌋₊:ℕ):ℝ) ≤ ((⌊Y⌋₊:ℕ):ℝ) := by
+      have := Real.log_le_sub_one_of_pos hN0
+      linarith
+    have hterm : |f ⌊Y⌋₊ * vonMangoldt ⌊Y⌋₊
+        * ∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+            f m * (Real.log (Y/((⌊Y⌋₊:ℕ):ℝ)) - Real.log (m:ℝ))| ≤ Y := by
+      rw [vonMangoldt_apply_prime hNp, abs_mul, abs_mul,
+        abs_of_nonneg (Real.log_natCast_nonneg _)]
+      have hq0 : (0:ℝ) ≤ Y/((⌊Y⌋₊:ℕ):ℝ) := by positivity
+      calc |f ⌊Y⌋₊| * Real.log ((⌊Y⌋₊:ℕ):ℝ)
+            * |∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+                f m * (Real.log (Y/((⌊Y⌋₊:ℕ):ℝ)) - Real.log (m:ℝ))|
+          ≤ 1 * Real.log ((⌊Y⌋₊:ℕ):ℝ) * (Y/((⌊Y⌋₊:ℕ):ℝ)) := by
+            have h1 := hf ⌊Y⌋₊
+            have h2 : (0:ℝ) ≤ Real.log ((⌊Y⌋₊:ℕ):ℝ) :=
+              Real.log_natCast_nonneg _
+            have h3 := abs_nonneg (∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+              f m * (Real.log (Y/((⌊Y⌋₊:ℕ):ℝ)) - Real.log (m:ℝ)))
+            nlinarith [hR, abs_nonneg (f ⌊Y⌋₊),
+              mul_nonneg (abs_nonneg (f ⌊Y⌋₊)) h2,
+              mul_nonneg h2 h3]
+        _ ≤ ((⌊Y⌋₊:ℕ):ℝ) * (Y/((⌊Y⌋₊:ℕ):ℝ)) := by
+            nlinarith [hlogN, hq0]
+        _ = Y := by
+            field_simp
+    have hsplit : (∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+          f n * (Real.log Y - Real.log (n:ℝ))) * Real.log Y
+        - ∑ q ∈ (⌊Y⌋₊).primesBelow,
+            f q * vonMangoldt q
+              * ∑ m ∈ Finset.Icc 1 ⌊Y/(q:ℝ)⌋₊,
+                  f m * (Real.log (Y/(q:ℝ)) - Real.log (m:ℝ))
+        = ((∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+              f n * (Real.log Y - Real.log (n:ℝ))) * Real.log Y
+            - (f ⌊Y⌋₊ * vonMangoldt ⌊Y⌋₊
+                * ∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+                    f m * (Real.log (Y/((⌊Y⌋₊:ℕ):ℝ)) - Real.log (m:ℝ))
+              + ∑ q ∈ (⌊Y⌋₊).primesBelow,
+                  f q * vonMangoldt q
+                    * ∑ m ∈ Finset.Icc 1 ⌊Y/(q:ℝ)⌋₊,
+                        f m * (Real.log (Y/(q:ℝ)) - Real.log (m:ℝ))))
+          + f ⌊Y⌋₊ * vonMangoldt ⌊Y⌋₊
+              * ∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+                  f m * (Real.log (Y/((⌊Y⌋₊:ℕ):ℝ)) - Real.log (m:ℝ)) := by
+      ring
+    rw [hsplit]
+    refine le_trans (abs_add_le _ _) ?_
+    linarith [hbase, hterm]
+  · have hset : (Finset.Icc 1 ⌊Y⌋₊).filter Nat.Prime
+        = (⌊Y⌋₊).primesBelow := by
+      ext q
+      simp only [Finset.mem_filter, Finset.mem_Icc, Nat.mem_primesBelow]
+      constructor
+      · rintro ⟨⟨hq1, hqN⟩, hqp⟩
+        rcases eq_or_lt_of_le hqN with h | h
+        · exact absurd (h ▸ hqp) hNp
+        · exact ⟨h, hqp⟩
+      · rintro ⟨hlt, hqp⟩
+        exact ⟨⟨hqp.one_lt.le, hlt.le⟩, hqp⟩
+    rw [hset] at hbase
+    linarith [hbase, hY0]
+
+
+open Real Finset ArithmeticFunction in
+/-- **The survivor sum becomes the triple convolution** (Track R,
+N205cd): over the survivors `y ≤ p`, `2p ≤ x`, iterating the identity
+once more (`rieszMean_mul_log_primesBelow_le` at `Y = x/p`) turns
+`∑_p f(p)Λ(p)·R(x/p)` into `tripleConvR` at Mertens cost — the scale
+floor `log(x/p) ≥ log 2` prices the division. -/
+theorem rieszMean_survivors_to_tripleConvR (f : ℕ → ℝ)
+    (hf : ∀ n, |f n| ≤ 1) (hmul : ∀ a b, f (a*b) = f a * f b)
+    (x y : ℕ) (hx : 1 ≤ x) :
+    |∑ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+          (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+        f p * vonMangoldt p
+          * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+              f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))
+      - tripleConvR f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+          (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p))|
+      ≤ 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2) := by
+  classical
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  rw [tripleConvR, ← Finset.sum_sub_distrib]
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have hterm : ∀ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+      |f p * vonMangoldt p
+          * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+              f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))
+        - (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+            * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+                * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                    f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ))|
+      ≤ 64 * (x:ℝ) / Real.log 2 * (Real.log (p:ℝ)/(p:ℝ)) := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    obtain ⟨⟨⟨⟨hp1, hpx⟩, hpp⟩, -⟩, h2p⟩ := hp
+    have h2p' : 2*p ≤ x := by omega
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hpp.pos
+    have hY2 : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      exact_mod_cast h2p'
+    have hY1 : (1:ℝ) ≤ (x:ℝ)/(p:ℝ) := by linarith
+    have hlogY : Real.log 2 ≤ Real.log ((x:ℝ)/(p:ℝ)) :=
+      Real.log_le_log (by norm_num) hY2
+    have hlogY0 : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) :=
+      lt_of_lt_of_le hlog2 hlogY
+    have hfloor : ⌊(x:ℝ)/(p:ℝ)⌋₊ = x/p := by
+      rw [Nat.floor_div_natCast, Nat.floor_natCast]
+    rw [hfloor]
+    have hb := rieszMean_mul_log_primesBelow_le f hf hmul
+      ((x:ℝ)/(p:ℝ)) hY1
+    rw [hfloor] at hb
+    have hstuff : ∑ q ∈ (x/p).primesBelow,
+        f q * vonMangoldt q
+          * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)/(q:ℝ)⌋₊,
+              f m * (Real.log ((x:ℝ)/(p:ℝ)/(q:ℝ)) - Real.log (m:ℝ))
+        = ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+            * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)) := by
+      refine Finset.sum_congr rfl fun q hq => ?_
+      have hqp := (Nat.mem_primesBelow.mp hq).2
+      rw [vonMangoldt_apply_prime hqp, div_div]
+      ring
+    rw [hstuff] at hb
+    have hdiff : f p * vonMangoldt p
+          * ∑ m ∈ Finset.Icc 1 (x/p),
+              f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ))
+        - (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+            * ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+                * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                    f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ))
+        = (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+            * ((∑ m ∈ Finset.Icc 1 (x/p),
+                  f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)))
+                * Real.log ((x:ℝ)/(p:ℝ))
+              - ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+                  * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                      f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                        - Real.log (n:ℝ))) := by
+      rw [vonMangoldt_apply_prime hpp]
+      field_simp
+    rw [hdiff, abs_mul]
+    have habs1 : |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+        ≤ Real.log (p:ℝ) / Real.log 2 := by
+      rw [abs_div, abs_mul, abs_of_nonneg (Real.log_natCast_nonneg p),
+        abs_of_pos hlogY0, div_le_div_iff₀ hlogY0 hlog2]
+      nlinarith [hf p, abs_nonneg (f p), Real.log_natCast_nonneg p,
+        hlog2.le, hlogY, mul_nonneg (Real.log_natCast_nonneg p) hlog2.le]
+    calc |Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ))|
+          * |(∑ m ∈ Finset.Icc 1 (x/p),
+                f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)))
+              * Real.log ((x:ℝ)/(p:ℝ))
+            - ∑ q ∈ (x/p).primesBelow, (Real.log (q:ℝ) * f q)
+                * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                    f n * (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ))|
+        ≤ (Real.log (p:ℝ) / Real.log 2) * (64 * ((x:ℝ)/(p:ℝ))) :=
+          mul_le_mul habs1 hb (abs_nonneg _)
+            (div_nonneg (Real.log_natCast_nonneg p) hlog2.le)
+      _ = 64 * (x:ℝ) / Real.log 2 * (Real.log (p:ℝ)/(p:ℝ)) := by
+          field_simp
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hsub : (((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p)
+      ⊆ (x+1).primesBelow := by
+    intro p hp
+    simp only [Finset.mem_filter, Finset.mem_Icc] at hp
+    rw [Nat.mem_primesBelow]
+    exact ⟨by omega, hp.1.1.2⟩
+  have hmono := Finset.sum_le_sum_of_subset_of_nonneg hsub
+    (fun p _ _ => div_nonneg (Real.log_natCast_nonneg p) (Nat.cast_nonneg p))
+  have hmass := sum_log_div_primesBelow_le_sharp (x+1) (by omega)
+  have hc0 : (0:ℝ) ≤ 64 * (x:ℝ) / Real.log 2 := by positivity
+  exact mul_le_mul_of_nonneg_left (le_trans hmono hmass) hc0
+
+
+open Real Finset ArithmeticFunction in
+/-- **§3, end to end** (Track R, N205e): the Riesz mean at the top
+scale is priced by the balanced triple convolution plus linear and
+Mertens errors.  The chain: the identity error (N203), the head and
+tail discards (N204), the survivor iteration (N205cd), and the
+balanced per-block estimate over the survivors (N197c). -/
+theorem rieszMean_log_le_of_nonPretentious (f : ℕ → ℝ)
+    (hf : ∀ n, |f n| ≤ 1) (hmul : ∀ a b, f (a*b) = f a * f b)
+    (x y K₀ : ℕ) (hx : 10^16 ≤ x) (hy2 : 2 ≤ y) (hyx : 2*y ≤ x)
+    (T : ℝ) (hT1 : Real.sqrt (21 * Real.log (x:ℝ)) ≤ T)
+    (hT2 : T ≤ Real.log (x:ℝ)) (hTy : T^2 ≤ (y:ℝ))
+    (hK₀1 : 1 ≤ K₀)
+    (hK₀low : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+    (hK₀max : Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+      < Real.exp 1 * Real.log 2)
+    (hX3 : ∀ k ∈ Finset.Icc 1 K₀, 3 ≤ x / blockLo x k)
+    (b : ℝ) (hb0 : 0 ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b) :
+    |(∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        * Real.log (x:ℝ)|
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)
+        + ((K₀:ℝ) * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+              * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1) * b^2 + 1))
+            + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  have hx1 : (1:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hid := rieszMean_mul_log_prime_restrict f hf hmul x hx1
+  have hhead := rieszMean_prime_head_le f hf x y hy2
+  have htail := rieszMean_prime_tail_le f hf x
+  have hbridge := rieszMean_survivors_to_tripleConvR f hf hmul x y hx1
+  have hconv := tripleConvR_survivors_balanced_le f hf x y K₀ hx hy2
+    T hT1 hT2 hTy hK₀1 hK₀low hK₀max hX3 b hb0 hBu
+  -- the three-way split of the prime sum
+  have hfe : (((Finset.Icc 1 x).filter Nat.Prime).filter
+        (fun p => ¬ p < y)).filter (fun p => x < 2*p)
+      = ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => x < 2*p) := by
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    constructor
+    · rintro ⟨⟨hS, _⟩, h2⟩
+      exact ⟨hS, h2⟩
+    · rintro ⟨hS, h2⟩
+      exact ⟨⟨hS, by omega⟩, h2⟩
+  have hsplit1 := Finset.sum_filter_add_sum_filter_not
+    ((Finset.Icc 1 x).filter Nat.Prime) (fun p => p < y)
+    (fun p => f p * vonMangoldt p
+      * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+          f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)))
+  have hsplit2 := Finset.sum_filter_add_sum_filter_not
+    (((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => ¬ p < y))
+    (fun p => x < 2*p)
+    (fun p => f p * vonMangoldt p
+      * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+          f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)))
+  rw [hfe] at hsplit2
+  -- name the five quantities
+  set A := (∑ n ∈ Finset.Icc 1 x,
+      f n * (Real.log (x:ℝ) - Real.log (n:ℝ))) * Real.log (x:ℝ) with hA_def
+  set H := ∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => p < y),
+      f p * vonMangoldt p
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)) with hH_def
+  set Tl := ∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => x < 2*p),
+      f p * vonMangoldt p
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)) with hTl_def
+  set Sv := ∑ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+      f p * vonMangoldt p
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)) with hSv_def
+  set C := tripleConvR f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p)) with hC_def
+  set Sp := ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+      f p * vonMangoldt p
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * (Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ)) with hSp_def
+  -- the split as an equation between the named sums
+  have hSp : Sp = H + (Tl + Sv) := by
+    rw [← hsplit1, ← hsplit2]
+  -- triangle chain
+  have habs1 : |A| ≤ |A - Sp| + |Sp| := by
+    have h : A = (A - Sp) + Sp := by ring
+    calc |A| = |(A - Sp) + Sp| := by rw [← h]
+      _ ≤ |A - Sp| + |Sp| := abs_add_le _ _
+  have habs2 : |Sp| ≤ |H| + (|Tl| + |Sv|) := by
+    rw [hSp]
+    calc |H + (Tl + Sv)| ≤ |H| + |Tl + Sv| := abs_add_le _ _
+      _ ≤ |H| + (|Tl| + |Sv|) := by
+          have := abs_add_le Tl Sv
+          linarith
+  have habs3 : |Sv| ≤ |Sv - C| + |C| := by
+    have h : Sv = (Sv - C) + C := by ring
+    calc |Sv| = |(Sv - C) + C| := by rw [← h]
+      _ ≤ |Sv - C| + |C| := abs_add_le _ _
+  have hsum := add_le_add hid (add_le_add hhead (add_le_add htail
+    (add_le_add hbridge hconv)))
+  have hchain : |A| ≤ |A - Sp| + (|H| + (|Tl| + (|Sv - C| + |C|))) := by
+    linarith [habs1, habs2, habs3]
+  linarith [le_trans hchain hsum]
+
 end MoltResearch
