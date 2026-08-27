@@ -4613,6 +4613,215 @@ theorem typeII_reshape (U V n₀ N : ℕ) (hN : 2 ≤ N) (w : ℕ → ℂ) :
     rw [Finset.sum_congr rfl hstep, ← Finset.mul_sum, ← Finset.mul_sum]
   rw [h1, h2, Finset.sum_congr rfl h3, ← Finset.mul_sum]
 
+
+open ArithmeticFunction in
+/-- **The uniform per-block bound** (Track R, V6d-vi): every dyadic
+block of the swapped, normalized third Vaughan term — good or empty —
+is at most `√X⋆`, where `X⋆` collects the hyperbola saving
+`C·MJ ≤ N` over the good range `V ≤ C ≲ N/U`. -/
+theorem typeII_block_le_sqrt (a q : ℕ) (hq : 1 ≤ q)
+    (hcop : Nat.Coprime a q) (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2)
+    (U V n₀ N j : ℕ) (hU : 1 ≤ U) (hV : 1 ≤ V) (hN : 2 ≤ N) :
+    ‖∑ m ∈ Finset.Icc 1 (N/(V+1)),
+        ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+          ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+          * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+              (min (2^(j+1) * V) N)).filter
+              (fun c => n₀ < c*m ∧ c*m ≤ N),
+            (if c ≤ N then
+              ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+              * e ((m:ℝ)*(c:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ Real.sqrt ((1 + Real.log (N:ℝ))^3
+          * (27*(N:ℝ)^2/(V:ℝ) + 52*(N:ℝ)^2/(q:ℝ)
+            + 2112*(N:ℝ)^2*(Real.log (8*(q:ℝ)) + 1)/(U:ℝ)
+            + 1056*(N:ℝ)*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))) := by
+  classical
+  have hrw : ∑ m ∈ Finset.Icc 1 (N/(V+1)),
+      ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+        ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+        * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+            (min (2^(j+1) * V) N)).filter
+            (fun c => n₀ < c*m ∧ c*m ≤ N),
+          (if c ≤ N then
+            ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+            * e ((m:ℝ)*(c:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+      = ∑ m ∈ Finset.Ico (U+1) (N/(2^j * V + 1) + 1),
+          ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+            * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+                (min (2^(j+1) * V) N)).filter
+                (fun c => n₀ < c*m ∧ c*m ≤ N),
+              (if c ≤ N then
+                ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+                * e ((m:ℝ)*(c:ℝ)*((a:ℝ)/(q:ℝ) + δ)) :=
+    typeII_block_outer_restrict U V n₀ N j
+      (fun c m => (if c ≤ N then
+        ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+        * e ((m:ℝ)*(c:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+  rw [hrw]
+  rcases Nat.lt_or_ge (N/(2^j * V + 1)) (U+1) with hbad | hgood
+  · have hemp : Finset.Ico (U+1) (N/(2^j * V + 1) + 1) = ∅ := by
+      refine Finset.Ico_eq_empty ?_
+      intro hlt
+      have h1 : N/(2^j * V + 1) + 1 ≤ U + 1 :=
+        Nat.succ_le_succ (Nat.lt_succ_iff.mp hbad)
+      exact absurd (lt_of_lt_of_le hlt h1) (lt_irrefl _)
+    rw [hemp, Finset.sum_empty, norm_zero]
+    exact Real.sqrt_nonneg _
+  · have hsq := typeII_block_sq_le a q hq hcop δ hδ U V n₀ N j hN
+    have hlogN : (0:ℝ) < Real.log (N:ℝ) :=
+      Real.log_pos (by exact_mod_cast hN)
+    have hL0 : (0:ℝ) ≤ Real.log (8*(q:ℝ)) + 1 := by
+      have h8 : (1:ℝ) ≤ 8*(q:ℝ) := by
+        have : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+        linarith
+      have := Real.log_nonneg h8
+      linarith
+    have hUR : (1:ℝ) ≤ (U:ℝ) := by exact_mod_cast hU
+    have hVR : (1:ℝ) ≤ (V:ℝ) := by exact_mod_cast hV
+    have hNR : (0:ℝ) < (N:ℝ) := by
+      have h0 : 0 < N := by omega
+      exact_mod_cast h0
+    have hqR : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+    have hf2n : 2^j * V * (N/(2^j * V + 1)) ≤ N := by
+      calc 2^j * V * (N/(2^j * V + 1))
+          ≤ (2^j * V + 1) * (N/(2^j * V + 1)) :=
+            mul_le_mul_right' (Nat.le_succ _) _
+        _ = (N/(2^j * V + 1)) * (2^j * V + 1) := Nat.mul_comm _ _
+        _ ≤ N := Nat.div_mul_le_self N (2^j * V + 1)
+    have hf2 : ((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ) ≤ (N:ℝ) := by
+      exact_mod_cast hf2n
+    have hf3n : N/(2^j * V + 1) ≤ N/V := by
+      refine Nat.div_le_div_left ?_ (by omega)
+      have hVC : V ≤ 2^j * V := by
+        calc V = 1 * V := (one_mul V).symm
+          _ ≤ 2^j * V := mul_le_mul_right' Nat.one_le_two_pow V
+      exact le_trans hVC (Nat.le_succ _)
+    have hf3 : ((N/(2^j * V + 1) : ℕ):ℝ) ≤ (N:ℝ)/(V:ℝ) := by
+      refine le_trans ?_ Nat.cast_div_le
+      exact_mod_cast hf3n
+    have hgoodn : (U+1) * (2^j * V + 1) ≤ N :=
+      (Nat.le_div_iff_mul_le (Nat.succ_pos _)).mp hgood
+    have hf4 : ((2^j * V : ℕ):ℝ) ≤ (N:ℝ)/(U:ℝ) := by
+      rw [le_div_iff₀ (by linarith : (0:ℝ) < (U:ℝ))]
+      have hn : 2^j * V * U ≤ N := by
+        calc 2^j * V * U = U * (2^j * V) := Nat.mul_comm _ _
+          _ ≤ U * (2^j * V) + (2^j * V + U + 1) := Nat.le_add_right _ _
+          _ = (U+1) * (2^j * V + 1) := by ring
+          _ ≤ N := hgoodn
+      exact_mod_cast hn
+    have ht14 : 27*(((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ))
+        * ((N/(2^j * V + 1) : ℕ):ℝ)
+        ≤ 27*(N:ℝ)*((N:ℝ)/(V:ℝ)) := by
+      gcongr
+    have ht2 : 52*((((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ))
+        * (((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ)))/(q:ℝ)
+        ≤ 52*((N:ℝ)*(N:ℝ))/(q:ℝ) := by
+      gcongr
+    have ht3 : 2112*(((2^j * V : ℕ):ℝ)
+        * (((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ))
+        * (Real.log (8*(q:ℝ)) + 1))
+        ≤ 2112*(((N:ℝ)/(U:ℝ)) * (N:ℝ) * (Real.log (8*(q:ℝ)) + 1)) := by
+      gcongr
+    have ht5 : 1056*((((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ))
+        * ((q:ℝ) * (Real.log (8*(q:ℝ)) + 1)))
+        ≤ 1056*((N:ℝ) * ((q:ℝ) * (Real.log (8*(q:ℝ)) + 1))) := by
+      gcongr
+    have hinner : ((N/(2^j * V + 1) : ℕ):ℝ)
+        * (((2^j * V : ℕ):ℝ)
+          * (((N/(2^j * V + 1) : ℕ):ℝ)
+            + 2*(((2*((2^j * V : ℕ):ℝ))/(q:ℝ) + 1)
+              *(13*((N/(2^j * V + 1) : ℕ):ℝ)
+                + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))))
+        ≤ 27*(N:ℝ)^2/(V:ℝ) + 52*(N:ℝ)^2/(q:ℝ)
+          + 2112*(N:ℝ)^2*(Real.log (8*(q:ℝ)) + 1)/(U:ℝ)
+          + 1056*(N:ℝ)*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1) := by
+      have hq' : (q:ℝ) ≠ 0 := ne_of_gt hqR
+      have hexp : ((N/(2^j * V + 1) : ℕ):ℝ)
+          * (((2^j * V : ℕ):ℝ)
+            * (((N/(2^j * V + 1) : ℕ):ℝ)
+              + 2*(((2*((2^j * V : ℕ):ℝ))/(q:ℝ) + 1)
+                *(13*((N/(2^j * V + 1) : ℕ):ℝ)
+                  + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))))
+          = 27*(((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ))
+              * ((N/(2^j * V + 1) : ℕ):ℝ)
+            + 52*((((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ))
+              * (((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ)))/(q:ℝ)
+            + 2112*(((2^j * V : ℕ):ℝ)
+              * (((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ))
+              * (Real.log (8*(q:ℝ)) + 1))
+            + 1056*((((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ))
+              * ((q:ℝ) * (Real.log (8*(q:ℝ)) + 1))) := by
+        field_simp
+        ring
+      rw [hexp]
+      refine le_trans
+        (add_le_add (add_le_add (add_le_add ht14 ht2) ht3) ht5)
+        (le_of_eq ?_)
+      ring
+    have hpow3 : (0:ℝ) ≤ (1 + Real.log (N:ℝ))^3 :=
+      pow_nonneg (by linarith) 3
+    have hXle : ((N/(2^j * V + 1) : ℕ):ℝ) * (1 + Real.log (N:ℝ))^3
+        * (((2^j * V : ℕ):ℝ)
+          * (((N/(2^j * V + 1) : ℕ):ℝ)
+            + 2*(((2*((2^j * V : ℕ):ℝ))/(q:ℝ) + 1)
+              *(13*((N/(2^j * V + 1) : ℕ):ℝ)
+                + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))))
+        ≤ (1 + Real.log (N:ℝ))^3
+          * (27*(N:ℝ)^2/(V:ℝ) + 52*(N:ℝ)^2/(q:ℝ)
+            + 2112*(N:ℝ)^2*(Real.log (8*(q:ℝ)) + 1)/(U:ℝ)
+            + 1056*(N:ℝ)*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+      have hre : ((N/(2^j * V + 1) : ℕ):ℝ) * (1 + Real.log (N:ℝ))^3
+          * (((2^j * V : ℕ):ℝ)
+            * (((N/(2^j * V + 1) : ℕ):ℝ)
+              + 2*(((2*((2^j * V : ℕ):ℝ))/(q:ℝ) + 1)
+                *(13*((N/(2^j * V + 1) : ℕ):ℝ)
+                  + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))))
+          = (1 + Real.log (N:ℝ))^3
+            * (((N/(2^j * V + 1) : ℕ):ℝ)
+              * (((2^j * V : ℕ):ℝ)
+                * (((N/(2^j * V + 1) : ℕ):ℝ)
+                  + 2*(((2*((2^j * V : ℕ):ℝ))/(q:ℝ) + 1)
+                    *(13*((N/(2^j * V + 1) : ℕ):ℝ)
+                      + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))))) := by
+        ring
+      rw [hre]
+      exact mul_le_mul_of_nonneg_left hinner hpow3
+    have hnn := norm_nonneg (∑ m ∈ Finset.Ico (U+1)
+        (N/(2^j * V + 1) + 1),
+      ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+        ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+        * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+            (min (2^(j+1) * V) N)).filter
+            (fun c => n₀ < c*m ∧ c*m ≤ N),
+          (if c ≤ N then
+            ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+            * e ((m:ℝ)*(c:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+    calc ‖∑ m ∈ Finset.Ico (U+1) (N/(2^j * V + 1) + 1),
+        ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+          ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+          * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+              (min (2^(j+1) * V) N)).filter
+              (fun c => n₀ < c*m ∧ c*m ≤ N),
+            (if c ≤ N then
+              ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+              * e ((m:ℝ)*(c:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+        = Real.sqrt (‖∑ m ∈ Finset.Ico (U+1) (N/(2^j * V + 1) + 1),
+            ((∑ b ∈ m.divisors.filter (fun b => ¬ b ≤ U),
+              ((moebius b : ℤ):ℝ) : ℝ):ℂ)
+              * ∑ c ∈ (Finset.Ioc (min (2^j * V) N)
+                  (min (2^(j+1) * V) N)).filter
+                  (fun c => n₀ < c*m ∧ c*m ≤ N),
+                (if c ≤ N then
+                  ((vonMangoldt c / Real.log (N:ℝ) : ℝ):ℂ) else 0)
+                  * e ((m:ℝ)*(c:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2) :=
+          (Real.sqrt_sq hnn).symm
+      _ ≤ Real.sqrt ((1 + Real.log (N:ℝ))^3
+          * (27*(N:ℝ)^2/(V:ℝ) + 52*(N:ℝ)^2/(q:ℝ)
+            + 2112*(N:ℝ)^2*(Real.log (8*(q:ℝ)) + 1)/(U:ℝ)
+            + 1056*(N:ℝ)*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))) :=
+          Real.sqrt_le_sqrt (le_trans hsq hXle)
+
 end ExpSums
 
 end MoltResearch
