@@ -18,6 +18,7 @@ import MoltResearch.Discrepancy.ParsevalBridge
 import MoltResearch.Discrepancy.HalaszAssembly
 import MoltResearch.Discrepancy.RieszCapstone
 import MoltResearch.Discrepancy.VinogradovTypeI
+import MoltResearch.Discrepancy.HalaszTriple
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
