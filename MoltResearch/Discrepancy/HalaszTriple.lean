@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.PlancherelHarness
 import MoltResearch.Discrepancy.MultiplicativeC
 import MoltResearch.Discrepancy.BrunTitchmarsh
+import MoltResearch.Discrepancy.PretentiousDist
 
 /-!
 # Track C: the Halász triple convolution, frequency side (Track R, M0R)
@@ -421,6 +422,53 @@ theorem norm_phase_euler_prod_le (f : ℕ → ℂ) (hb : ∀ n, ‖f n‖ ≤ 1)
       _ ≤ 2 * 1 := by linarith
       _ = 2 := mul_one 2
   linarith
+
+/-- **The phase mass is the prime mass minus the pretentious distance**
+(Track R, M0R-3c):
+
+  `∑_{p<x} Re(f(p)e(−ξ·log p))/p
+     = ∑_{p<x} 1/p − 𝔻(f, n^{i·2πξ}; x)²`,
+
+with the comparison point written as the level-one character twist —
+the exact shape `NonPretentiousAt` quantifies over at `q = 1`.
+
+Per prime, `conj(charTwist 1 χ (2πξ) p) = e(−ξ·log p)`: the character
+factor is `1` (level one is a subsingleton), and conjugating
+`p^{i·2πξ}` flips the phase.  So the summand of `pretentiousDistSq` is
+`(1 − Re(f(p)e(−ξ·log p)))/p`, and the sum telescopes against the
+mass. -/
+theorem sum_re_phase_eq_mass_sub_distSq (f : ℕ → ℂ) (x : ℕ) (ξ : ℝ)
+    (χ : DirichletCharacter ℂ 1) :
+    ∑ p ∈ x.primesBelow,
+        (f p * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ)).re / (p : ℝ)
+      = (∑ p ∈ x.primesBelow, (1 : ℝ)/(p : ℝ))
+        - pretentiousDistSq f (charTwist 1 χ (2*Real.pi*ξ)) x := by
+  classical
+  rw [pretentiousDistSq, ← Finset.sum_sub_distrib]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  have hpp := Nat.prime_of_mem_primesBelow hp
+  have hp0 : (0 : ℝ) < (p : ℝ) := by exact_mod_cast hpp.pos
+  have hpc0 : ((p : ℕ) : ℂ) ≠ 0 := by exact_mod_cast hpp.ne_zero
+  -- the conjugated twist is the phase factor
+  have hkey : (starRingEnd ℂ) (charTwist 1 χ (2*Real.pi*ξ) p)
+      = ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ) := by
+    rw [charTwist]
+    have hχ : χ ((p : ℕ) : ZMod 1) = 1 := by
+      rw [Subsingleton.elim χ 1]
+      exact MulChar.one_apply (isUnit_of_subsingleton _)
+    rw [hχ, one_mul]
+    have hlog : Complex.log ((p : ℕ) : ℂ) = ((Real.log p : ℝ) : ℂ) := by
+      rw [show ((p : ℕ) : ℂ) = (((p : ℝ) : ℝ) : ℂ) by push_cast; rfl]
+      exact (Complex.ofReal_log hp0.le).symm
+    rw [Complex.cpow_def_of_ne_zero hpc0, ← Complex.exp_conj]
+    rw [Real.fourierChar_apply]
+    congr 1
+    rw [map_mul, hlog, Complex.conj_ofReal, map_mul, Complex.conj_I,
+      Complex.conj_ofReal]
+    push_cast
+    ring
+  rw [hkey]
+  ring
 
 end ExpSums
 
