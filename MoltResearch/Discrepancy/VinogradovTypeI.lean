@@ -1781,6 +1781,180 @@ theorem typeII_sum_sq_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
     linarith [hFsum]
   linarith [h2S]
 
+
+/-- **The inner-mass bound** (Track R, V5a-i): the `m`-mean square of
+the `K`-polynomials — steps 2–6 of the Type II argument, factored out
+so both the unit-coefficient and `ℓ²`-coefficient forms consume it. -/
+theorem sum_inner_sq_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
+    (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (M₁ M₂ KM : ℕ)
+    (K : Finset ℕ) (hK : K ⊆ Finset.Icc 1 KM)
+    (bn : ℕ → ℂ) (hbn : ∀ n, ‖bn n‖ ≤ 1) :
+    ∑ m ∈ Finset.Ico M₁ M₂,
+      ‖∑ n ∈ K, bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+      ≤ (K.card:ℝ) * (((M₂ - M₁ : ℕ):ℝ)
+          + 2*(((KM:ℝ)/(q:ℝ) + 1)
+            *(13*((M₂ - M₁ : ℕ):ℝ)
+              + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))) := by
+  classical
+  have hFtriv : ∀ h : ℕ,
+      ‖∑ m ∈ Finset.Ico M₁ M₂,
+        e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ ≤ ((M₂ - M₁ : ℕ):ℝ) := by
+    intro h
+    refine le_trans (norm_sum_le _ _) ?_
+    have h1 : ∀ m ∈ Finset.Ico M₁ M₂,
+        ‖e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ = 1 := fun m _ => norm_e _
+    rw [Finset.sum_congr rfl h1, Finset.sum_const, nsmul_eq_mul, mul_one,
+      Nat.card_Ico]
+  have hexp := sum_norm_sq_expand (Finset.Ico M₁ M₂) K
+    (fun m n => bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+  have hstep3 : ∑ p ∈ K ×ˢ K,
+      ‖∑ m ∈ Finset.Ico M₁ M₂,
+        (bn p.1 * e ((m:ℝ)*(p.1:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+          * (starRingEnd ℂ)
+            (bn p.2 * e ((m:ℝ)*(p.2:ℝ)*((a:ℝ)/(q:ℝ) + δ)))‖
+      ≤ ∑ p ∈ K ×ˢ K,
+        ‖∑ m ∈ Finset.Ico M₁ M₂,
+          e ((m:ℝ)*((max p.1 p.2 - min p.1 p.2 : ℕ):ℝ)
+            *((a:ℝ)/(q:ℝ) + δ))‖ :=
+    Finset.sum_le_sum fun p _ =>
+      norm_pair_sum_le_gap ((a:ℝ)/(q:ℝ) + δ) M₁ M₂ bn hbn p.1 p.2
+  have hgap := sum_pairs_gap_le K KM hK
+    (fun h => ‖∑ m ∈ Finset.Ico M₁ M₂,
+      e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖)
+    (fun h => norm_nonneg _)
+  have hF0 : ‖∑ m ∈ Finset.Ico M₁ M₂,
+      e ((m:ℝ)*((0:ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ = ((M₂ - M₁ : ℕ):ℝ) := by
+    have h1 : ∀ m ∈ Finset.Ico M₁ M₂,
+        e ((m:ℝ)*((0:ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ)) = 1 := by
+      intro m _
+      have h2 : (m:ℝ)*((0:ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ) = ((0:ℤ):ℝ) := by
+        push_cast
+        ring
+      rw [h2, e_intCast]
+    rw [Finset.sum_congr rfl h1, Finset.sum_const, nsmul_eq_mul, mul_one]
+    rw [Nat.card_Ico]
+    simp
+  have hFsum : ∑ h ∈ Finset.Icc 1 KM,
+      ‖∑ m ∈ Finset.Ico M₁ M₂,
+        e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ ((KM:ℝ)/(q:ℝ) + 1) * (13*((M₂ - M₁ : ℕ):ℝ)
+          + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+    have hhalf : ∑ h ∈ Finset.Icc 1 KM,
+        ‖∑ m ∈ Finset.Ico M₁ M₂,
+          e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+        = 2 * ∑ h ∈ Finset.Icc 1 KM,
+          (‖∑ m ∈ Finset.Ico M₁ M₂,
+            e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ / 2) := by
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl fun h _ => ?_
+      ring
+    have hcc := sum_range_g_const_le a q hq hcop δ hδ KM
+      (((M₂ - M₁ : ℕ):ℝ)/2) (by positivity)
+      (fun h => ‖∑ m ∈ Finset.Ico M₁ M₂,
+        e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ / 2)
+      (fun h _ => by positivity)
+      (fun h _ => by
+        have := hFtriv h
+        linarith)
+      ?_
+    · rw [hhalf]
+      have hring : 2*(((KM:ℝ)/(q:ℝ) + 1)
+          *(13*(((M₂ - M₁ : ℕ):ℝ)/2)
+            + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+          = ((KM:ℝ)/(q:ℝ) + 1) * (13*((M₂ - M₁ : ℕ):ℝ)
+            + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+        ring
+      linarith [hcc, hring.le, hring.ge]
+    · intro h hh hpos
+      rcases Nat.lt_or_ge M₁ M₂ with hM | hM
+      · have hM2 : M₂ = (M₂ - 1) + 1 := by omega
+        have hphase : ∀ m ∈ Finset.Ico M₁ ((M₂ - 1) + 1),
+            e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+            = e ((m:ℝ) * ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))) := by
+          intro m _
+          congr 1
+          ring
+        have hkl := norm_sum_e_linear_le
+          (β := (h:ℝ)*((a:ℝ)/(q:ℝ) + δ)) hpos M₁ (M₂ - 1) (by omega)
+        have hb : ‖∑ m ∈ Finset.Ico M₁ M₂,
+            e ((m:ℝ)*(h:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+            ≤ 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := by
+          rw [hM2, Finset.sum_congr rfl hphase]
+          exact hkl
+        have hd : 1/(2 * nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+            = (1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ)))/2 := by
+          rw [div_div]
+          ring_nf
+        rw [hd]
+        linarith [hb]
+      · have hempty : Finset.Ico M₁ M₂ = ∅ :=
+          Finset.Ico_eq_empty (by omega)
+        rw [hempty]
+        simp only [Finset.sum_empty, norm_zero, zero_div]
+        positivity
+  have hKc0 : (0:ℝ) ≤ (K.card:ℝ) := Nat.cast_nonneg _
+  refine le_trans hexp ?_
+  refine le_trans hstep3 ?_
+  refine le_trans hgap ?_
+  refine mul_le_mul_of_nonneg_left ?_ hKc0
+  simp only []
+  rw [hF0]
+  linarith [hFsum]
+
+/-- **The `ℓ²`-coefficient Type II estimate** (Track R, V5a-ii): the
+form Vaughan's identity needs — the `m`-coefficients enter only through
+their square mass, so Möbius partial sums (bounded by the divisor
+function, not by `1`) are admissible. -/
+theorem typeII_sum_sq_le' (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
+    (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (M₁ M₂ KM : ℕ)
+    (K : Finset ℕ) (hK : K ⊆ Finset.Icc 1 KM)
+    (am bn : ℕ → ℂ) (hbn : ∀ n, ‖bn n‖ ≤ 1) :
+    ‖∑ m ∈ Finset.Ico M₁ M₂,
+        am m * ∑ n ∈ K, bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+      ≤ (∑ m ∈ Finset.Ico M₁ M₂, ‖am m‖^2)
+        * ((K.card:ℝ) * (((M₂ - M₁ : ℕ):ℝ)
+          + 2*(((KM:ℝ)/(q:ℝ) + 1)
+            *(13*((M₂ - M₁ : ℕ):ℝ)
+              + 528*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))))) := by
+  classical
+  have hcs : ‖∑ m ∈ Finset.Ico M₁ M₂,
+      am m * ∑ n ∈ K, bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+      ≤ (∑ m ∈ Finset.Ico M₁ M₂, ‖am m‖^2)
+        * ∑ m ∈ Finset.Ico M₁ M₂,
+          ‖∑ n ∈ K, bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2 := by
+    have h1 : ‖∑ m ∈ Finset.Ico M₁ M₂,
+        am m * ∑ n ∈ K, bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+        ≤ ∑ m ∈ Finset.Ico M₁ M₂,
+          ‖am m‖ * ‖∑ n ∈ K,
+            bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ := by
+      refine le_trans (norm_sum_le _ _) ?_
+      refine Finset.sum_le_sum fun m _ => ?_
+      rw [norm_mul]
+    have h2 := sum_mul_sq_le_sq_mul_sq (Finset.Ico M₁ M₂)
+      (fun m => ‖am m‖)
+      (fun m => ‖∑ n ∈ K, bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖)
+    have h3 : (0:ℝ) ≤ ∑ m ∈ Finset.Ico M₁ M₂,
+        ‖am m‖ * ‖∑ n ∈ K,
+          bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ :=
+      Finset.sum_nonneg fun m _ =>
+        mul_nonneg (norm_nonneg _) (norm_nonneg _)
+    calc ‖∑ m ∈ Finset.Ico M₁ M₂,
+        am m * ∑ n ∈ K, bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2
+        ≤ (∑ m ∈ Finset.Ico M₁ M₂,
+            ‖am m‖ * ‖∑ n ∈ K,
+              bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖)^2 := by
+          nlinarith [h1, norm_nonneg (∑ m ∈ Finset.Ico M₁ M₂,
+            am m * ∑ n ∈ K,
+              bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))), h3]
+      _ ≤ (∑ m ∈ Finset.Ico M₁ M₂, ‖am m‖^2)
+          * ∑ m ∈ Finset.Ico M₁ M₂,
+            ‖∑ n ∈ K, bn n * e ((m:ℝ)*(n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖^2 :=
+          h2
+  refine le_trans hcs ?_
+  refine mul_le_mul_of_nonneg_left ?_ ?_
+  · exact sum_inner_sq_le a q hq hcop δ hδ M₁ M₂ KM K hK bn hbn
+  · exact Finset.sum_nonneg fun m _ => sq_nonneg _
+
 end ExpSums
 
 end MoltResearch
