@@ -3824,6 +3824,111 @@ theorem sum_range_g_le' (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
   linarith [hsum3, hexpand.le, hexpand.ge, h1, h2, hblock0, hslack,
     hE1.le, hE1.ge, hE2.le, hE2.ge, hE3.le, hE3.ge, hE6.le, hE6.ge]
 
+
+/-- **The refined Type I estimate on offset ranges** (Track R,
+V6d-iv): the divisor-weighted sum of geometric inner sums over
+`(n₀/d, N/d]` through the refined counting lemma — every term saves a
+`1/q` or a `D/q`.  This is the shape both Vaughan Type I legs take. -/
+theorem typeI_Ioc_sum_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
+    (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (D n₀ N : ℕ) (hD : 1 ≤ D)
+    (c : ℕ → ℂ) (hc : ∀ d, ‖c d‖ ≤ 1) :
+    ∑ d ∈ Finset.Icc 1 D,
+        ‖c d * ∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ 13*(N:ℝ)*(Real.log (D:ℝ) + 3)/(q:ℝ)
+        + 2*((D:ℝ)/(q:ℝ) + 1)
+          * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+  classical
+  have hcoef : ∀ d : ℕ,
+      ‖c d * ∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ ‖∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ := by
+    intro d
+    rw [norm_mul]
+    have h2 := hc d
+    have h3 := norm_nonneg (∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+      e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+    nlinarith [norm_nonneg (c d)]
+  have hnorm_le : ∀ d : ℕ, 1 ≤ d →
+      ‖∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ (N:ℝ)/(d:ℝ) := by
+    intro d hd1
+    refine le_trans (norm_sum_le _ _) ?_
+    have h4 : ∀ m ∈ Finset.Ioc (n₀/d) (N/d),
+        ‖e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ = 1 :=
+      fun m _ => norm_e _
+    rw [Finset.sum_congr rfl h4, Finset.sum_const, nsmul_eq_mul, mul_one,
+      Nat.card_Ioc]
+    have h5 : (N/d - n₀/d : ℕ) ≤ N/d := Nat.sub_le _ _
+    have h6 : ((N/d : ℕ):ℝ) ≤ (N:ℝ)/(d:ℝ) := Nat.cast_div_le
+    have h7 : ((N/d - n₀/d : ℕ):ℝ) ≤ ((N/d : ℕ):ℝ) := by exact_mod_cast h5
+    linarith
+  have hKL : ∀ d : ℕ,
+      0 < nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) →
+      ‖∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ 1 / nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) := by
+    intro d hpos
+    rcases Nat.lt_or_ge (n₀/d) (N/d) with hlt | hge
+    · have hIoc : Finset.Ioc (n₀/d) (N/d)
+          = Finset.Ico (n₀/d + 1) (N/d + 1) := by
+        ext m
+        rw [Finset.mem_Ioc, Finset.mem_Ico]
+        exact ⟨fun h => ⟨h.1, Nat.lt_add_one_iff.mpr h.2⟩,
+          fun h => ⟨h.1, Nat.lt_add_one_iff.mp h.2⟩⟩
+      have hphase : ∀ m ∈ Finset.Ico (n₀/d + 1) (N/d + 1),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+          = e ((m:ℝ) * ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ))) := by
+        intro m _
+        congr 1
+        ring
+      have hkl := norm_sum_e_linear_le
+        (β := (d:ℝ)*((a:ℝ)/(q:ℝ) + δ)) hpos (n₀/d + 1) (N/d) hlt
+      rw [hIoc, Finset.sum_congr rfl hphase]
+      exact hkl
+    · have hempty : Finset.Ioc (n₀/d) (N/d) = ∅ :=
+        Finset.Ioc_eq_empty (not_lt.mpr hge)
+      rw [hempty]
+      simp only [Finset.sum_empty, norm_zero]
+      exact div_nonneg zero_le_one hpos.le
+  have hkey : ∀ d ∈ Finset.Icc 1 D,
+      ‖c d * ∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+        e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      = 2 * (‖c d * ∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+          e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ / 2) := by
+    intro d _
+    ring
+  rw [Finset.sum_congr rfl hkey, ← Finset.mul_sum]
+  have hbound := sum_range_g_le' a q hq hcop δ hδ D hD ((N:ℝ)/2)
+    (by positivity)
+    (fun d => ‖c d * ∑ m ∈ Finset.Ioc (n₀/d) (N/d),
+      e ((d:ℝ)*(m:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖ / 2)
+    (fun d _ => by positivity)
+    ?_ ?_
+  · have hfin : 2 * (13*((N:ℝ)/2)*(Real.log (D:ℝ) + 3)/(q:ℝ)
+        + ((D:ℝ)/(q:ℝ) + 1) * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        = 13*(N:ℝ)*(Real.log (D:ℝ) + 3)/(q:ℝ)
+          + 2*((D:ℝ)/(q:ℝ) + 1)
+            * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+      field_simp
+    linarith [hbound, hfin.le, hfin.ge]
+  · intro d hd
+    rw [Finset.mem_Icc] at hd
+    have h := le_trans (hcoef d) (hnorm_le d hd.1)
+    have hbr : ((N:ℝ)/2)/(d:ℝ) = ((N:ℝ)/(d:ℝ))/2 := by
+      ring
+    linarith [h, hbr.le, hbr.ge]
+  · intro d hd hpos
+    have h := le_trans (hcoef d) (hKL d hpos)
+    have hd' : 1/(2 * nint ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+        = (1 / nint ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ)))/2 := by
+      rw [div_div]
+      ring_nf
+    rw [hd']
+    linarith [h]
+
 end ExpSums
 
 end MoltResearch
