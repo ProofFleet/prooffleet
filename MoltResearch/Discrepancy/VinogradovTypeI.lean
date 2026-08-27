@@ -132,6 +132,55 @@ theorem nint_le_nint_add_abs (x y : ℝ) :
     _ ≤ |y - (round y : ℝ)| + |x - y| := h2
     _ = nint y + |x - y| := by rw [nint]
 
+
+/-- **Real-interval lattice count**: at most `B − A + 1` naturals below `q`
+lie strictly between the reals `A` and `B`. -/
+theorem card_range_filter_Ioo_le (q : ℕ) {A B : ℝ} (hAB : A ≤ B) :
+    (((Finset.range q).filter
+        (fun k : ℕ => A < (k:ℝ) ∧ (k:ℝ) < B)).card : ℝ) ≤ B - A + 1 := by
+  classical
+  have hsub : ((Finset.range q).filter (fun k : ℕ => A < (k:ℝ) ∧ (k:ℝ) < B))
+      ⊆ (Finset.Icc (⌊A⌋ + 1) (⌈B⌉ - 1)).image Int.toNat := by
+    intro k hk
+    rw [Finset.mem_filter] at hk
+    obtain ⟨-, hA, hB⟩ := hk
+    rw [Finset.mem_image]
+    refine ⟨(k : ℤ), ?_, Int.toNat_natCast k⟩
+    rw [Finset.mem_Icc]
+    constructor
+    · rw [Int.add_one_le_iff, Int.floor_lt]
+      exact_mod_cast hA
+    · rw [Int.le_sub_one_iff, Int.lt_ceil]
+      exact_mod_cast hB
+  calc (((Finset.range q).filter
+        (fun k : ℕ => A < (k:ℝ) ∧ (k:ℝ) < B)).card : ℝ)
+      ≤ (((Finset.Icc (⌊A⌋ + 1) (⌈B⌉ - 1)).image Int.toNat).card : ℝ) := by
+        exact_mod_cast Finset.card_le_card hsub
+    _ ≤ ((Finset.Icc (⌊A⌋ + 1) (⌈B⌉ - 1)).card : ℝ) := by
+        exact_mod_cast Finset.card_image_le
+    _ ≤ B - A + 1 := by
+        rw [Int.card_Icc]
+        rcases le_or_gt (⌊A⌋ + 1) (⌈B⌉ - 1) with h | h
+        · have h1 : ((⌈B⌉ - 1 + 1 - (⌊A⌋ + 1)).toNat : ℝ)
+              = (⌈B⌉ : ℝ) - (⌊A⌋ : ℝ) - 1 := by
+            exact_mod_cast (by omega :
+              ((⌈B⌉ - 1 + 1 - (⌊A⌋ + 1)).toNat : ℤ) = ⌈B⌉ - ⌊A⌋ - 1)
+          rw [h1]
+          have h2 : (⌈B⌉ : ℝ) ≤ B + 1 := by
+            have ha : ((⌈B⌉ : ℤ) : ℝ) ≤ ((⌊B⌋ + 1 : ℤ) : ℝ) := by
+              exact_mod_cast Int.ceil_le_floor_add_one B
+            have hb : ((⌊B⌋ : ℤ) : ℝ) ≤ B := Int.floor_le B
+            push_cast at ha
+            linarith
+          have h4 : A - 1 ≤ (⌊A⌋ : ℝ) := by
+            have := Int.sub_one_lt_floor A
+            linarith [this]
+          linarith
+        · have h1 : (⌈B⌉ - 1 + 1 - (⌊A⌋ + 1)).toNat = 0 := by omega
+          rw [h1]
+          push_cast
+          linarith
+
 end ExpSums
 
 end MoltResearch
