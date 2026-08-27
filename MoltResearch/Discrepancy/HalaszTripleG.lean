@@ -638,6 +638,318 @@ theorem sum_Icc_window_eq_integral_smoothPhase (f : ℕ → ℂ)
   dsimp only
   rw [tsum_smoothWeight_char f x ξ]
 
+-- PR-D2: appended inside namespace ExpSums of HalaszTripleG.lean (after D1)
+
+open MeasureTheory Real Complex Finset Filter in
+open scoped FourierTransform in
+/-- **§3's fixed-range triple sum as one frequency integral** (Track R,
+M0R-4b): with `G = smoothPhaseSum f x`,
+
+  `∑_p (log p·f_p/log(x/p)) ∑_q (log q·f_q)·((x/pq)·∑_{n ≤ x} (f_n/n)·V(log(x/pq) − log n))`
+  `  = ∫ x·e(ξ·log x)·G(ξ)·P₂(ξ)·P₃(ξ)·𝓕V(ξ) dξ`,  `V = rieszWindow`.
+
+The reindex-free realisation of §4's pairing: each inner window sum is
+the pairing integral (`sum_Icc_window_eq_integral_smoothPhase`), the
+finite `p, q` sums move inside the integral
+(`MeasureTheory.integral_finset_sum`, each summand dominated by the
+smooth mass times `‖𝓕V‖`), and per frequency the double sum factors
+through `char_poly_mul_log` into the block and prime polynomials — the
+`e(ξ·log(x/pq))` prefactor is what carries the `p`- and `q`-phases, so
+the infinite `n`-sum is never reindexed.  Exact: no error term. -/
+theorem ghs_riesz_triple_tsum_eq (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (hx : 1 ≤ x) (P Q : Finset ℕ)
+    (hP : ∀ p ∈ P, 0 < p) (hQ : ∀ q ∈ Q, 0 < q) :
+    ∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p
+        / ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ) : ℂ))
+        * ∑ q ∈ Q, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ Finset.Icc 1 x, (f n / (n:ℂ))
+                  * ((ExpSums.rieszWindow
+                      (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                        - Real.log (n:ℝ)) : ℝ) : ℂ))
+      = ∫ ξ, ((x:ℂ))
+          * ((𝐞 (ξ * Real.log (x:ℝ)) : Circle) : ℂ)
+          * (smoothPhaseSum f x ξ * ghsBlockPoly f x P ξ
+            * ghsPrimePoly f Q ξ
+            * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ) := by
+  classical
+  have hxR : (0:ℝ) < (x:ℝ) := by exact_mod_cast hx
+  -- each inner window sum is the pairing integral
+  have hswap : ∀ p ∈ P, ∀ q ∈ Q,
+      (∑ n ∈ Finset.Icc 1 x, (f n / (n:ℂ))
+          * ((ExpSums.rieszWindow
+              (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)) : ℝ) : ℂ))
+        = ∫ ξ, (𝐞 (ξ * Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))) : Circle)
+            • (smoothPhaseSum f x ξ
+              * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ) := by
+    intro p hp q hq
+    refine sum_Icc_window_eq_integral_smoothPhase f hcm h1 hf x hx _ ?_
+    have hp1 : (1:ℝ) ≤ (p:ℝ) := by exact_mod_cast hP p hp
+    have hq1 : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hQ q hq
+    have hpq : (1:ℝ) ≤ (p:ℝ) * (q:ℝ) := by nlinarith
+    have hle : (x:ℝ)/((p:ℝ)*(q:ℝ)) ≤ (x:ℝ) := by
+      rw [div_le_iff₀ (by positivity)]
+      nlinarith
+    exact Real.log_le_log (by positivity) hle
+  -- the per-pair integrand, and its integrability
+  have hGc : Continuous (smoothPhaseSum f x) :=
+    continuous_smoothPhaseSum f hcm h1 hf x
+  have hInt : ∀ (c d s : ℂ) (u : ℝ), Integrable (fun ξ =>
+      c * (d * (s * (((𝐞 (ξ * u) : Circle) : ℂ)
+        * (smoothPhaseSum f x ξ
+          * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ))))) := by
+    intro c d s u
+    have hshape : ∀ ξ : ℝ,
+        (c * d * s * ((𝐞 (ξ * u) : Circle) : ℂ) * smoothPhaseSum f x ξ)
+            * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ
+        = c * (d * (s * (((𝐞 (ξ * u) : Circle) : ℂ)
+            * (smoothPhaseSum f x ξ
+              * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ)))) := by
+      intro ξ
+      ring
+    have hmeas : AEStronglyMeasurable (fun ξ : ℝ =>
+        c * d * s * ((𝐞 (ξ * u) : Circle) : ℂ)
+          * smoothPhaseSum f x ξ) volume := by
+      refine Continuous.aestronglyMeasurable ?_
+      refine (continuous_const.mul ?_).mul hGc
+      exact Continuous.comp continuous_subtype_val
+        (Real.continuous_fourierChar.comp (by fun_prop))
+    have hbound : ∀ᵐ ξ : ℝ ∂volume,
+        ‖c * d * s * ((𝐞 (ξ * u) : Circle) : ℂ) * smoothPhaseSum f x ξ‖
+          ≤ ‖c * d * s‖
+            * (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹) := by
+      refine Eventually.of_forall fun ξ => ?_
+      rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one]
+      exact mul_le_mul_of_nonneg_left
+        (norm_smoothPhaseSum_le f hcm h1 hf x ξ) (norm_nonneg _)
+    exact Integrable.congr
+      (integrable_fourier_rieszWindow.bdd_mul hmeas hbound)
+      (Eventually.of_forall fun ξ => hshape ξ)
+  -- substitute the pairing and move the finite sums inside the integral
+  have hstep : ∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p
+        / ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ) : ℂ))
+        * ∑ q ∈ Q, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ Finset.Icc 1 x, (f n / (n:ℂ))
+                  * ((ExpSums.rieszWindow
+                      (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                        - Real.log (n:ℝ)) : ℝ) : ℂ))
+      = ∑ r ∈ P ×ˢ Q, ∫ ξ,
+          ((Real.log (r.1:ℝ) : ℂ) * f r.1
+              / ((Real.log ((x:ℝ)/(r.1:ℝ)) : ℝ) : ℂ))
+            * (((Real.log (r.2:ℝ) : ℂ) * f r.2)
+              * ((((x:ℝ)/((r.1:ℝ)*(r.2:ℝ)) : ℝ) : ℂ)
+                * (((𝐞 (ξ * Real.log ((x:ℝ)/((r.1:ℝ)*(r.2:ℝ)))) : Circle) : ℂ)
+                  * (smoothPhaseSum f x ξ
+                    * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ)))) := by
+    rw [Finset.sum_product]
+    refine Finset.sum_congr rfl fun p hp => ?_
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun q hq => ?_
+    rw [hswap p hp q hq, ← MeasureTheory.integral_const_mul,
+      ← MeasureTheory.integral_const_mul, ← MeasureTheory.integral_const_mul]
+    refine integral_congr_ae (Eventually.of_forall fun ξ => ?_)
+    dsimp only
+    simp only [Circle.smul_def, smul_eq_mul]
+  rw [hstep, ← MeasureTheory.integral_finset_sum _
+    (fun r _ => hInt _ _ _ _)]
+  -- per frequency: the double sum is the product of the two polynomials
+  refine integral_congr_ae (Eventually.of_forall fun ξ => ?_)
+  dsimp only
+  -- split each phase at `log(x/pq) = log x − log(pq)`
+  have hphase : ∀ r ∈ P ×ˢ Q,
+      ((Real.log (r.1:ℝ) : ℂ) * f r.1
+          / ((Real.log ((x:ℝ)/(r.1:ℝ)) : ℝ) : ℂ))
+        * (((Real.log (r.2:ℝ) : ℂ) * f r.2)
+          * ((((x:ℝ)/((r.1:ℝ)*(r.2:ℝ)) : ℝ) : ℂ)
+            * (((𝐞 (ξ * Real.log ((x:ℝ)/((r.1:ℝ)*(r.2:ℝ)))) : Circle) : ℂ)
+              * (smoothPhaseSum f x ξ
+                * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ))))
+      = (((x:ℂ))
+          * ((𝐞 (ξ * Real.log (x:ℝ)) : Circle) : ℂ)
+          * (smoothPhaseSum f x ξ
+            * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ))
+        * (((((Real.log (r.1:ℝ) : ℂ) * f r.1)
+              / ((r.1:ℂ) * ((Real.log ((x:ℝ)/(r.1:ℝ)) : ℝ) : ℂ)))
+            * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+          * ((Real.fourierChar
+              (-(Real.log ((r.1 * r.2 : ℕ):ℝ) * ξ)) : Circle) : ℂ)) := by
+    intro r hr
+    rw [Finset.mem_product] at hr
+    have hp0 : (0:ℝ) < (r.1:ℝ) := by exact_mod_cast hP r.1 hr.1
+    have hq0 : (0:ℝ) < (r.2:ℝ) := by exact_mod_cast hQ r.2 hr.2
+    have hlog : Real.log ((x:ℝ)/((r.1:ℝ)*(r.2:ℝ)))
+        = Real.log (x:ℝ) - Real.log ((r.1 * r.2 : ℕ):ℝ) := by
+      push_cast
+      rw [Real.log_div (ne_of_gt hxR) (by positivity),
+        Real.log_mul (ne_of_gt hp0) (ne_of_gt hq0)]
+    have hchar : ((𝐞 (ξ * Real.log ((x:ℝ)/((r.1:ℝ)*(r.2:ℝ)))) : Circle) : ℂ)
+        = ((𝐞 (ξ * Real.log (x:ℝ)) : Circle) : ℂ)
+          * ((Real.fourierChar
+              (-(Real.log ((r.1 * r.2 : ℕ):ℝ) * ξ)) : Circle) : ℂ) := by
+      rw [show ξ * Real.log ((x:ℝ)/((r.1:ℝ)*(r.2:ℝ)))
+          = ξ * Real.log (x:ℝ)
+            + -(Real.log ((r.1 * r.2 : ℕ):ℝ) * ξ) from by
+        rw [hlog]; ring]
+      rw [Real.fourierChar.map_add_eq_mul]
+      push_cast
+      ring
+    rw [hchar]
+    push_cast
+    ring
+  rw [Finset.sum_congr rfl hphase, ← Finset.mul_sum]
+  -- the coefficient sum is the product of the two §4 polynomials
+  have hpoly : ∑ r ∈ P ×ˢ Q,
+      (((((Real.log (r.1:ℝ) : ℂ) * f r.1)
+            / ((r.1:ℂ) * ((Real.log ((x:ℝ)/(r.1:ℝ)) : ℝ) : ℂ)))
+          * (((Real.log (r.2:ℝ) : ℂ) * f r.2) / (r.2:ℂ)))
+        * ((Real.fourierChar
+            (-(Real.log ((r.1 * r.2 : ℕ):ℝ) * ξ)) : Circle) : ℂ))
+      = ghsBlockPoly f x P ξ * ghsPrimePoly f Q ξ := by
+    rw [ghsBlockPoly, ghsPrimePoly]
+    rw [char_poly_mul_log P Q
+      (fun p => ((Real.log (p:ℝ) : ℂ) * f p)
+        / ((p:ℂ) * ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ) : ℂ)))
+      (fun q => ((Real.log (q:ℝ) : ℂ) * f q) / (q:ℂ)) hP hQ ξ]
+  rw [hpoly]
+  ring
+
+open MeasureTheory Real Complex Finset in
+open scoped FourierTransform in
+/-- **§3's fixed-range triple sum, bounded through the smooth tsum**
+(Track R, M0R-4b):
+
+  `‖∑_p (log p·f_p/log(x/p)) ∑_q (log q·f_q)·((x/pq)·∑_{n≤x}(f_n/n)·V(log(x/pq) − log n))‖`
+  `  ≤ x·√(E₁·(5·V₃·6b² + Mtail))`,  `V = rieszWindow`,
+
+with the band sup `b` demanded of `smoothPhaseSum` — the slot the
+log-free `e⁵(2+log x)e^{−A}` of M0R-3d fills — and the tail priced at
+its global bound `Gmax`.
+
+`ghs_riesz_triple_tsum_eq` followed by `ghs_riesz_pairing_le_G`: take
+norms under the integral (the `x·e(ξ·log x)` prefactor contributes
+exactly `x`), and what remains is the abstract Riesz pairing.  This is
+the tsum counterpart of `ghs_riesz_triple_le_real`'s role: the bound on
+the enlarged form `D` of the triple convolution, with no smooth
+restriction anywhere. -/
+theorem ghs_riesz_triple_tsum_le (f : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (x : ℕ) (hx : 1 ≤ x) (P Q : Finset ℕ)
+    (hP : ∀ p ∈ P, 0 < p) (hQ : ∀ q ∈ Q, 0 < q)
+    (V₃ Mtail E₁ b Gmax : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hGb : ∀ ξ, ‖smoothPhaseSum f x ξ‖ ≤ Gmax)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖smoothPhaseSum f x t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2 * Gmax^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail) :
+    ‖∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p
+        / ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ) : ℂ))
+        * ∑ q ∈ Q, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ Finset.Icc 1 x, (f n / (n:ℂ))
+                  * ((ExpSums.rieszWindow
+                      (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                        - Real.log (n:ℝ)) : ℝ) : ℂ))‖
+      ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail)) := by
+  classical
+  have hxR : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  rw [ghs_riesz_triple_tsum_eq f hcm h1 hf x hx P Q hP hQ]
+  refine le_trans (MeasureTheory.norm_integral_le_integral_norm _) ?_
+  have hcongr : (∫ ξ, ‖((x:ℂ))
+        * ((𝐞 (ξ * Real.log (x:ℝ)) : Circle) : ℂ)
+        * (smoothPhaseSum f x ξ * ghsBlockPoly f x P ξ
+          * ghsPrimePoly f Q ξ
+          * 𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ)‖)
+      = ∫ ξ, (x:ℝ) * (‖smoothPhaseSum f x ξ * ghsBlockPoly f x P ξ
+          * ghsPrimePoly f Q ξ‖
+        * ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖) := by
+    refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
+    dsimp only
+    rw [norm_mul, norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one,
+      Complex.norm_natCast]
+  rw [hcongr, MeasureTheory.integral_const_mul]
+  refine mul_le_mul_of_nonneg_left ?_ hxR
+  exact ghs_riesz_pairing_le_G f hf x P Q (smoothPhaseSum f x) Gmax
+    (continuous_smoothPhaseSum f hcm h1 hf x) hGb V₃ Mtail E₁ b
+    hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV hMtail
+
+open Real Complex Finset in
+/-- **The tsum triple bound at a real coefficient sequence** (Track R,
+M0R-4b): `ghs_riesz_triple_tsum_le` at the coerced coefficients — the
+`ℝ`/`ℂ` interface §3's assembly meets, in exactly the shape of the
+enlarged form `D` inside `tripleConvR_le`. -/
+theorem ghs_riesz_triple_tsum_le_real (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hcm : CompletelyMultiplicativeC (fun n => ((f n : ℝ) : ℂ)))
+    (h1 : f 1 = 1) (x : ℕ) (hx : 1 ≤ x) (P Q : Finset ℕ)
+    (hP : ∀ p ∈ P, 0 < p) (hQ : ∀ q ∈ Q, 0 < q)
+    (V₃ Mtail E₁ b Gmax : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hGb : ∀ ξ, ‖smoothPhaseSum (fun n => ((f n : ℝ) : ℂ)) x ξ‖ ≤ Gmax)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly (fun n => ((f n : ℝ) : ℂ)) x P ξ‖^2
+        * ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖smoothPhaseSum (fun n => ((f n : ℝ) : ℂ)) x t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+        ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ)) Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2 * Gmax^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail) :
+    |∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ Q, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                  * ExpSums.rieszWindow
+                      (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)))|
+      ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail)) := by
+  classical
+  have hfc : ∀ n, ‖((f n : ℝ) : ℂ)‖ ≤ 1 := by
+    intro n
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact hf n
+  have h1c : ((f 1 : ℝ) : ℂ) = 1 := by
+    rw [h1]
+    norm_num
+  have hcast : ((∑ p ∈ P, (Real.log (p:ℝ) * f p / Real.log ((x:ℝ)/(p:ℝ)))
+        * ∑ q ∈ Q, (Real.log (q:ℝ) * f q)
+            * (((x:ℝ)/((p:ℝ)*(q:ℝ)))
+              * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℝ))
+                  * ExpSums.rieszWindow
+                      (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                        - Real.log (n:ℝ))) : ℝ) : ℂ)
+      = ∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * ((f p : ℝ) : ℂ)
+          / ((Real.log ((x:ℝ)/(p:ℝ)) : ℝ) : ℂ))
+          * ∑ q ∈ Q, ((Real.log (q:ℝ) : ℂ) * ((f q : ℝ) : ℂ))
+              * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+                * ∑ n ∈ Finset.Icc 1 x, (((f n : ℝ) : ℂ) / (n:ℂ))
+                    * ((ExpSums.rieszWindow
+                        (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                          - Real.log (n:ℝ)) : ℝ) : ℂ)) := by
+    rw [Complex.ofReal_sum]
+    refine Finset.sum_congr rfl fun p _ => ?_
+    rw [Complex.ofReal_mul]
+    refine congrArg₂ (· * ·) (by norm_cast) ?_
+    rw [Complex.ofReal_sum]
+    refine Finset.sum_congr rfl fun q _ => ?_
+    rw [Complex.ofReal_mul]
+    refine congrArg₂ (· * ·) (by norm_cast) ?_
+    rw [Complex.ofReal_mul]
+    refine congrArg₂ (· * ·) (by norm_cast) ?_
+    rw [Complex.ofReal_sum]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    push_cast
+    ring
+  have h := ghs_riesz_triple_tsum_le (fun n => ((f n : ℝ) : ℂ))
+    hcm h1c hfc x hx P Q hP hQ V₃ Mtail E₁ b Gmax
+    hE₁0 hb0 hV₃0 hMtail0 hGb hE₁ hBu hV hMtail
+  rw [← hcast, Complex.norm_real, Real.norm_eq_abs] at h
+  exact h
+
 end ExpSums
 
 end MoltResearch
