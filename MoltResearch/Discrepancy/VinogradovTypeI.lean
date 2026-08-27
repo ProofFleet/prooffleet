@@ -782,6 +782,232 @@ theorem sum_inv_le_log (K : ℕ) (hK : 1 ≤ K) :
     rw [hcast]
     linarith [ih, hstep]
 
+
+/-- **The per-block sum against the counting machinery** (Track R,
+V2b-iii-b): for any summand `g` bounded by `A` and by the reciprocal
+distance `1/(2·nint(dβ))` wherever that distance is positive, the block
+sum costs `13A` (the near-integer points, priced by the cumulative
+count) plus `264q(log 8q + 1)` (the shells, `O(1)` points each by the
+annulus count against the harmonic sum).  Stated against an abstract
+`g` so that `nint = 0` — where Lean's `1/0 = 0` would poison a `min`
+formulation — is priced at `A` like every other near point. -/
+theorem sum_block_g_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
+    (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (j : ℕ) (A : ℝ) (hA : 0 ≤ A)
+    (g : ℕ → ℝ)
+    (hg0 : ∀ d ∈ Finset.Ioc (j*q) (j*q + q), 0 ≤ g d)
+    (hgA : ∀ d ∈ Finset.Ioc (j*q) (j*q + q), g d ≤ A)
+    (hg2 : ∀ d ∈ Finset.Ioc (j*q) (j*q + q),
+      0 < nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) →
+      g d ≤ 1/(2 * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)))) :
+    ∑ d ∈ Finset.Ioc (j*q) (j*q + q), g d
+      ≤ 13*A + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1) := by
+  classical
+  have hq0R : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+  have hqd2 : (q:ℝ)^2*|δ| ≤ 1 := by
+    have h1 := mul_le_mul_of_nonneg_left hδ (by positivity : (0:ℝ) ≤ (q:ℝ)^2)
+    calc (q:ℝ)^2*|δ| ≤ (q:ℝ)^2*(1/(q:ℝ)^2) := h1
+      _ = 1 := by field_simp
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Ioc (j*q) (j*q + q))
+    (fun d : ℕ => nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < 1/(16*(q:ℝ)))]
+  have hS0 : ∑ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
+      (fun d : ℕ => nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < 1/(16*(q:ℝ))), g d
+      ≤ 13*A := by
+    have hcard := card_block_nint_lt_le a q hq hcop δ j
+      (1/(16*(q:ℝ))) (by positivity)
+    have h16 : 8*(q:ℝ)*(1/(16*(q:ℝ)) + (q:ℝ)*|δ|) + 4 ≤ 13 := by
+      have hexp : 8*(q:ℝ)*(1/(16*(q:ℝ))) = 1/2 := by
+        field_simp
+        ring
+      nlinarith [hqd2, hexp]
+    have hcard' : (((Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+          < 1/(16*(q:ℝ)))).card : ℝ) ≤ 13 := le_trans hcard h16
+    have hsum : ∑ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < 1/(16*(q:ℝ))), g d
+        ≤ (((Finset.Ioc (j*q) (j*q + q)).filter
+          (fun d : ℕ => nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            < 1/(16*(q:ℝ)))).card : ℝ) * A := by
+      have h := Finset.sum_le_card_nsmul ((Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < 1/(16*(q:ℝ)))) g A
+        (fun d hd => hgA d (Finset.filter_subset _ _ hd))
+      rwa [nsmul_eq_mul] at h
+    have hfin : (((Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+          < 1/(16*(q:ℝ)))).card : ℝ) * A ≤ 13*A := by
+      nlinarith [hcard', hA]
+    linarith [hsum, hfin]
+  have hcomp : ∑ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
+      (fun d : ℕ => ¬ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < 1/(16*(q:ℝ))), g d
+      ≤ 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1) := by
+    have hsub : (Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => ¬ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < 1/(16*(q:ℝ)))
+        ⊆ (Finset.Icc 1 (8*q)).biUnion (fun k =>
+          (Finset.Ioc (j*q) (j*q + q)).filter (fun d : ℕ =>
+            (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+              < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)))) := by
+      intro d hd
+      rw [Finset.mem_filter] at hd
+      obtain ⟨hdblk, hdge⟩ := hd
+      push_neg at hdge
+      have hpos16 : (0:ℝ) < 16*(q:ℝ) := by positivity
+      have hk1 : 1 ≤ ⌊16*(q:ℝ) * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))⌋₊ := by
+        refine Nat.le_floor ?_
+        push_cast
+        rw [div_le_iff₀ hpos16] at hdge
+        linarith [hdge]
+      have hk2 : ⌊16*(q:ℝ) * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))⌋₊ ≤ 8*q := by
+        have hhalf := nint_le_half ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+        have h1 : 16*(q:ℝ) * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ≤ ((8*q : ℕ):ℝ) := by
+          push_cast
+          nlinarith [hhalf, hq0R.le]
+        calc ⌊16*(q:ℝ) * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))⌋₊
+            ≤ ⌊((8*q : ℕ):ℝ)⌋₊ := Nat.floor_le_floor h1
+          _ = 8*q := Nat.floor_natCast _
+      rw [Finset.mem_biUnion]
+      refine ⟨⌊16*(q:ℝ) * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))⌋₊, ?_, ?_⟩
+      · rw [Finset.mem_Icc]
+        exact ⟨hk1, hk2⟩
+      · rw [Finset.mem_filter]
+        refine ⟨hdblk, ?_, ?_⟩
+        · rw [div_le_iff₀ hpos16]
+          have := Nat.floor_le (mul_nonneg (le_of_lt hpos16)
+            (nint_nonneg ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))))
+          linarith
+        · have h2 := Nat.lt_floor_add_one
+            (16*(q:ℝ) * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)))
+          rw [div_add_div_same, lt_div_iff₀ hpos16]
+          push_cast
+          linarith
+    have hdisj : (↑(Finset.Icc 1 (8*q)) : Set ℕ).PairwiseDisjoint
+        (fun k => (Finset.Ioc (j*q) (j*q + q)).filter (fun d : ℕ =>
+          (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+          ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)))) := by
+      intro k hk k' hk' hne
+      rw [Function.onFun, Finset.disjoint_left]
+      intro d hd hd'
+      rw [Finset.mem_filter] at hd hd'
+      obtain ⟨-, h1, h2⟩ := hd
+      obtain ⟨-, h1', h2'⟩ := hd'
+      have hpos16 : (0:ℝ) < 16*(q:ℝ) := by positivity
+      rcases Nat.lt_or_ge k k' with hlt | hge
+      · have hstep : (k:ℝ) + 1 ≤ (k':ℝ) := by exact_mod_cast hlt
+        have : (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)) ≤ (k':ℝ)/(16*(q:ℝ)) := by
+          rw [div_add_div_same, div_le_div_iff₀ hpos16 hpos16]
+          nlinarith [hstep, hpos16]
+        linarith
+      · have hne' : k' < k := by omega
+        have hstep : (k':ℝ) + 1 ≤ (k:ℝ) := by exact_mod_cast hne'
+        have : (k':ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)) ≤ (k:ℝ)/(16*(q:ℝ)) := by
+          rw [div_add_div_same, div_le_div_iff₀ hpos16 hpos16]
+          nlinarith [hstep, hpos16]
+        linarith
+    have hstep1 : ∑ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
+        (fun d : ℕ => ¬ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) < 1/(16*(q:ℝ))), g d
+        ≤ ∑ d ∈ (Finset.Icc 1 (8*q)).biUnion (fun k =>
+          (Finset.Ioc (j*q) (j*q + q)).filter (fun d : ℕ =>
+            (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+              < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)))), g d := by
+      refine Finset.sum_le_sum_of_subset_of_nonneg hsub ?_
+      intro d hd _
+      rw [Finset.mem_biUnion] at hd
+      obtain ⟨k, -, hdk⟩ := hd
+      exact hg0 d (Finset.filter_subset _ _ hdk)
+    have hstep2 : ∑ d ∈ (Finset.Icc 1 (8*q)).biUnion (fun k =>
+        (Finset.Ioc (j*q) (j*q + q)).filter (fun d : ℕ =>
+          (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+          ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)))), g d
+        = ∑ k ∈ Finset.Icc 1 (8*q), ∑ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
+          (fun d : ℕ => (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+              < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ))), g d :=
+      Finset.sum_biUnion hdisj
+    have hshell : ∀ k ∈ Finset.Icc 1 (8*q),
+        ∑ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
+          (fun d : ℕ => (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+              < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ))), g d
+        ≤ 264*(q:ℝ)/(k:ℝ) := by
+      intro k hk
+      rw [Finset.mem_Icc] at hk
+      have hk0 : (0:ℝ) < (k:ℝ) := by exact_mod_cast hk.1
+      have hcard := card_block_nint_annulus_le a q hq hcop δ j
+        ((k:ℝ)/(16*(q:ℝ))) (1/(16*(q:ℝ))) (by positivity) (by positivity)
+      have hcard33 : (((Finset.Ioc (j*q) (j*q + q)).filter
+          (fun d : ℕ => (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+              < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)))).card : ℝ) ≤ 33 := by
+        have hexp : 8*(q:ℝ)*(1/(16*(q:ℝ)) + 2*(q:ℝ)*|δ|) + 16
+            = 1/2 + 16*((q:ℝ)^2*|δ|) + 16 := by
+          field_simp
+          ring
+        refine le_trans hcard ?_
+        rw [hexp]
+        linarith [hqd2]
+      have hgk : ∀ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
+          (fun d : ℕ => (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+              < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ))),
+          g d ≤ 8*(q:ℝ)/(k:ℝ) := by
+        intro d hd
+        rw [Finset.mem_filter] at hd
+        obtain ⟨hdblk, hlo, -⟩ := hd
+        have hnpos : (0:ℝ) < nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) := by
+          have : (0:ℝ) < (k:ℝ)/(16*(q:ℝ)) := by positivity
+          linarith
+        refine le_trans (hg2 d hdblk hnpos) ?_
+        have h2n : (k:ℝ)/(8*(q:ℝ))
+            ≤ 2 * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) := by
+          have : (k:ℝ)/(8*(q:ℝ)) = 2*((k:ℝ)/(16*(q:ℝ))) := by
+            field_simp
+            ring
+          linarith [hlo, this.ge, this.le]
+        have hpos8 : (0:ℝ) < (k:ℝ)/(8*(q:ℝ)) := by positivity
+        calc 1/(2 * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)))
+            ≤ 1/((k:ℝ)/(8*(q:ℝ))) := one_div_le_one_div_of_le hpos8 h2n
+          _ = 8*(q:ℝ)/(k:ℝ) := by
+              field_simp
+      have hsumk := Finset.sum_le_card_nsmul
+        ((Finset.Ioc (j*q) (j*q + q)).filter
+          (fun d : ℕ => (k:ℝ)/(16*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+              < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)))) g (8*(q:ℝ)/(k:ℝ)) hgk
+      rw [nsmul_eq_mul] at hsumk
+      have h8q0 : (0:ℝ) ≤ 8*(q:ℝ)/(k:ℝ) := by positivity
+      have hfin2 : (((Finset.Ioc (j*q) (j*q + q)).filter
+          (fun d : ℕ => (k:ℝ)/(16*(q:ℝ))
+              ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+            ∧ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ))
+              < (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)))).card : ℝ)
+          * (8*(q:ℝ)/(k:ℝ)) ≤ 33 * (8*(q:ℝ)/(k:ℝ)) :=
+        mul_le_mul_of_nonneg_right hcard33 h8q0
+      have heqk : 33 * (8*(q:ℝ)/(k:ℝ)) = 264*(q:ℝ)/(k:ℝ) := by
+        ring
+      rw [heqk] at hfin2
+      linarith [hsumk, hfin2]
+    have h8q1 : 1 ≤ 8*q := by omega
+    have hharm := sum_inv_le_log (8*q) h8q1
+    have hcast8 : ((8*q : ℕ):ℝ) = 8*(q:ℝ) := by push_cast; ring
+    rw [hcast8] at hharm
+    rw [hstep2] at hstep1
+    have hsum3 := Finset.sum_le_sum hshell
+    have heq4 : ∑ k ∈ Finset.Icc 1 (8*q), 264*(q:ℝ)/(k:ℝ)
+        = 264*(q:ℝ) * ∑ k ∈ Finset.Icc 1 (8*q), (1:ℝ)/(k:ℝ) := by
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl fun k _ => ?_
+      ring
+    rw [heq4] at hsum3
+    have hfin : 264*(q:ℝ) * ∑ k ∈ Finset.Icc 1 (8*q), (1:ℝ)/(k:ℝ)
+        ≤ 264*(q:ℝ) * (Real.log (8*(q:ℝ)) + 1) := by
+      refine mul_le_mul_of_nonneg_left hharm ?_
+      positivity
+    linarith [hstep1, hsum3, hfin]
+  linarith [hS0, hcomp]
+
 end ExpSums
 
 end MoltResearch
