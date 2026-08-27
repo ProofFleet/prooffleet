@@ -223,4 +223,151 @@ theorem ghs_pairing_tail_le_G (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   rw [MeasureTheory.integral_const_mul]
   exact mul_le_mul_of_nonneg_left hWtail (by positivity)
 
+open MeasureTheory Real Complex Finset in
+/-- **§4's pairing estimate at an abstract main factor** (Track R,
+M0R-4a): for a continuous main factor `G` bounded by `Gmax`, the block
+and prime polynomials, and any continuous window with
+`0 ≤ w ≤ C/(1+t²)`,
+
+  `∫_ℝ ‖G·P₂·P₃‖·w ≤ √(E₁·(5·C·V·L(x)² + Mtail))`.
+
+`ghs_pairing_estimate` with the main-factor slot abstracted: the
+integrability package comes from `ghs_pairing_integrability_G` and the
+tail from `ghs_pairing_tail_le_G`, so only the four estimates survive —
+`hE₁`, `hB`, `hV`, and the window's tail mass, the last now priced at
+`Gmax` instead of the finite polynomial's trivial sup. -/
+theorem ghs_pairing_estimate_G (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (P Q : Finset ℕ) (G : ℝ → ℂ) (Gmax : ℝ)
+    (hGc : Continuous G) (hGb : ∀ ξ, ‖G ξ‖ ≤ Gmax)
+    (w : ℝ → ℝ) (hw : Continuous w)
+    (B : ℤ → ℝ) (C V Mtail E₁ Wtail : ℝ)
+    (hE₁0 : 0 < E₁) (hQ0 : 0 < 5 * C * V * halaszLSq B x + Mtail)
+    (hw0 : ∀ t, 0 ≤ w t) (hwle : ∀ t, w t ≤ C/(1+t^2))
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ) ≤ E₁)
+    (hB : ∀ N ∈ halaszRange x, ∀ t ∈ Set.Icc ((N:ℝ) - 1/2) ((N:ℝ) + 1/2),
+      ‖G t‖ ≤ B N)
+    (hB0 : ∀ N, 0 ≤ B N)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V)
+    (hWtail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|}, w ξ)
+      ≤ Wtail)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2 * Gmax^2 * Wtail ≤ Mtail) :
+    (∫ ξ, ‖G ξ * ghsBlockPoly f x P ξ
+        * ghsPrimePoly f Q ξ‖ * w ξ)
+      ≤ Real.sqrt (E₁ * (5 * C * V * halaszLSq B x + Mtail)) := by
+  classical
+  have hC0 : (0:ℝ) ≤ C := by
+    have h0 := hwle 0
+    have hw00 := hw0 0
+    norm_num at h0
+    linarith
+  obtain ⟨hg0, hg1, hg2, hjt, hk1, hk2, hk3⟩ :=
+    ghs_pairing_integrability_G f hf x P Q G Gmax hGc hGb w hw C hw0 hwle
+  -- the tail estimate: the window's mass, priced at the two sups
+  have htail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|},
+      ‖ghsPrimePoly f Q ξ‖^2 * w ξ * ‖G ξ‖^2) ≤ Mtail :=
+    le_trans (ghs_pairing_tail_le_G f hf x P Q G Gmax hGc hGb w hw C hw0
+      hwle _ Wtail hWtail) hMtail
+  exact pairing_halasz_sqrt_le G (ghsBlockPoly f x P)
+    (ghsPrimePoly f Q) w B x C V Mtail E₁ hE₁0 hC0 hQ0 hw0 hwle hE₁ hB hB0 hV
+    hg0 hg1 hg2 htail (fun i _ => hjt _ _) (fun N _ => hjt _ _)
+    (fun N _ => hk1 _ _) (fun N _ => hk2 _ _) (fun N _ => hk3 _ _)
+
+open MeasureTheory Real Complex Finset in
+/-- **§4's pairing estimate at an abstract main factor, uniform band
+sup** (Track R, M0R-4a): if `‖G‖ ≤ b` on the whole band then
+
+  `∫_ℝ ‖G·P₂·P₃‖·w ≤ √(E₁·(30·C·V·b² + Mtail))`.
+
+`ghs_pairing_estimate_uniform` abstracted.  This is the form the smooth
+phase tsum meets: its band sup is *uniform in the frequency* —
+`norm_phase_euler_prod_le_of_nonPretentious` does not vary from one
+unit interval to the next — so `halaszLSq`'s dominating function may be
+taken constant and `halaszLSq_le_of_bound` collapses `L(x)²` to
+`6b²`. -/
+theorem ghs_pairing_estimate_uniform_G (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (P Q : Finset ℕ) (G : ℝ → ℂ) (Gmax : ℝ)
+    (hGc : Continuous G) (hGb : ∀ ξ, ‖G ξ‖ ≤ Gmax)
+    (w : ℝ → ℝ) (hw : Continuous w)
+    (C V Mtail E₁ Wtail b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV0 : 0 ≤ V) (hMtail0 : 0 < Mtail)
+    (hw0 : ∀ t, 0 ≤ w t) (hwle : ∀ t, w t ≤ C/(1+t^2))
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2 * w ξ) ≤ E₁)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 → ‖G t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V)
+    (hWtail : (∫ ξ in {ξ : ℝ | ((halaszM x : ℕ):ℝ) + 1/2 < |ξ|}, w ξ)
+      ≤ Wtail)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2 * Gmax^2 * Wtail ≤ Mtail) :
+    (∫ ξ, ‖G ξ * ghsBlockPoly f x P ξ
+        * ghsPrimePoly f Q ξ‖ * w ξ)
+      ≤ Real.sqrt (E₁ * (5 * C * V * (6*b^2) + Mtail)) := by
+  classical
+  have hC0 : (0:ℝ) ≤ C := by
+    have h0 := hwle 0
+    have hw00 := hw0 0
+    norm_num at h0
+    linarith
+  -- the constant dominating function
+  have hLSq : halaszLSq (fun _ => b) x ≤ 6*b^2 :=
+    halaszLSq_le_of_bound (fun _ => b) x b
+      (fun N _ => by rw [abs_of_nonneg hb0])
+  have hLSq0 : (0:ℝ) ≤ halaszLSq (fun _ => b) x := halaszLSq_nonneg _ _
+  have hcoef : (0:ℝ) ≤ 5 * C * V := by positivity
+  have hQ0 : 0 < 5 * C * V * halaszLSq (fun _ => b) x + Mtail := by
+    nlinarith [hcoef, hLSq0, hMtail0]
+  have hmain := ghs_pairing_estimate_G f hf x P Q G Gmax hGc hGb w hw
+    (fun _ => b) C V Mtail E₁ Wtail hE₁0 hQ0 hw0 hwle hE₁
+    (fun N hN t ht => hBu t (abs_le_halaszM_of_band x N hN t ht))
+    (fun _ => hb0) hV hWtail hMtail
+  refine le_trans hmain ?_
+  refine Real.sqrt_le_sqrt ?_
+  have hstep : 5 * C * V * halaszLSq (fun _ => b) x ≤ 5 * C * V * (6*b^2) :=
+    mul_le_mul_of_nonneg_left hLSq hcoef
+  exact mul_le_mul_of_nonneg_left (by linarith) hE₁0.le
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+open scoped FourierTransform in
+/-- **§4's pairing estimate at the Riesz weight, abstract main factor**
+(Track R, M0R-4a):
+
+  `∫_ℝ ‖G·P₂·P₃‖·‖𝓕V‖ ≤ √(E₁·(5·V₃·6b² + Mtail))`,
+
+with `V = rieszWindow` and
+
+  `Mtail ≥ (∑_q log q/q)²·Gmax²·1/(2π²(halaszM x + ½))`.
+
+`ghs_riesz_pairing_le` abstracted: the weight's own hypotheses are
+discharged by the same three `rieszWindow` facts — sup `1`, decay
+`1/(1+ξ²)`, third-order tail — and nothing about the main factor
+survives except its continuity, its global bound, and its band sup. -/
+theorem ghs_riesz_pairing_le_G (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (P Q : Finset ℕ) (G : ℝ → ℂ) (Gmax : ℝ)
+    (hGc : Continuous G) (hGb : ∀ ξ, ‖G ξ‖ ≤ Gmax)
+    (V Mtail E₁ b : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV0 : 0 ≤ V) (hMtail0 : 0 < Mtail)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 → ‖G t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2), ‖ghsPrimePoly f Q t‖^2) ≤ V)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2 * Gmax^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail) :
+    (∫ ξ, ‖G ξ * ghsBlockPoly f x P ξ * ghsPrimePoly f Q ξ‖
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖)
+      ≤ Real.sqrt (E₁ * (5 * V * (6*b^2) + Mtail)) := by
+  classical
+  have hL0 : (0:ℝ) < ((halaszM x : ℕ):ℝ) + 1/2 := by positivity
+  have h := ghs_pairing_estimate_uniform_G f hf x P Q G Gmax hGc hGb
+    (fun ξ => ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖)
+    ExpSums.continuous_norm_fourier_rieszWindow
+    1 V Mtail E₁ (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) b
+    hE₁0 hb0 hV0 hMtail0
+    (fun t => norm_nonneg _)
+    ExpSums.norm_fourier_rieszWindow_le
+    hE₁ hBu hV
+    (ExpSums.fourier_rieszWindow_tail_le _ hL0)
+    hMtail
+  simpa using h
+
 end MoltResearch
