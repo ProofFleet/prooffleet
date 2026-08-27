@@ -744,6 +744,44 @@ theorem card_block_nint_annulus_le (a q : ℕ) (hq : 1 ≤ q)
         card_nint_annulus_le q (((j*q : ℕ):ℝ) * δ)
           (max 0 (t - (q:ℝ)*|δ|)) (w + 2*(q:ℝ)*|δ|) ht0 hw0
 
+
+/-- **The harmonic sum against the logarithm** (Track R, V2b-iii-a):
+`∑_{k=1}^{K} 1/k ≤ log K + 1`, by the telescoping bound
+`1/(k+1) ≤ log(k+1) − log k`. -/
+theorem sum_inv_le_log (K : ℕ) (hK : 1 ≤ K) :
+    ∑ k ∈ Finset.Icc 1 K, (1:ℝ)/(k:ℝ) ≤ Real.log (K:ℝ) + 1 := by
+  induction K, hK using Nat.le_induction with
+  | base => simp
+  | succ K hK ih =>
+    have hmem : K + 1 ∉ Finset.Icc 1 K := by
+      rw [Finset.mem_Icc]
+      omega
+    have hins : Finset.Icc 1 (K + 1) = insert (K + 1) (Finset.Icc 1 K) := by
+      ext m
+      rw [Finset.mem_insert, Finset.mem_Icc, Finset.mem_Icc]
+      omega
+    rw [hins, Finset.sum_insert hmem]
+    have hK0 : (0:ℝ) < (K:ℝ) := by exact_mod_cast hK
+    have hK10 : (0:ℝ) < ((K:ℝ) + 1) := by linarith
+    have hstep : (1:ℝ)/((K:ℝ) + 1)
+        ≤ Real.log ((K:ℝ) + 1) - Real.log (K:ℝ) := by
+      have hq0 : (0:ℝ) < (K:ℝ)/((K:ℝ) + 1) := by positivity
+      have h1 := Real.log_le_sub_one_of_pos hq0
+      have h2 : Real.log ((K:ℝ)/((K:ℝ) + 1))
+          = Real.log (K:ℝ) - Real.log ((K:ℝ) + 1) :=
+        Real.log_div (ne_of_gt hK0) (ne_of_gt hK10)
+      rw [h2] at h1
+      have h3 : (K:ℝ)/((K:ℝ) + 1) - 1 = -(1/((K:ℝ) + 1)) := by
+        field_simp
+        ring
+      rw [h3] at h1
+      linarith
+    have hcast : ((K + 1 : ℕ):ℝ) = (K:ℝ) + 1 := by
+      push_cast
+      ring
+    rw [hcast]
+    linarith [ih, hstep]
+
 end ExpSums
 
 end MoltResearch
