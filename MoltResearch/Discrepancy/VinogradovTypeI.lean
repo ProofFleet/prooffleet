@@ -3352,6 +3352,81 @@ theorem typeII_sum_sq_hyperbola (a q : ℕ) (hq : 1 ≤ q)
       bn hbn
   · exact Finset.sum_nonneg fun m _ => sq_nonneg _
 
+
+/-- **Nonresonant rationals are `1/q`-separated from the integers**
+(Track R, V6d-i): if `q ∤ k` then `nint (k/q) ≥ 1/q` — the numerator
+`k − q·round(k/q)` is a nonzero integer. -/
+theorem nint_natCast_div_lower (k q : ℕ) (hq : 1 ≤ q)
+    (hnd : ¬ ((q:ℤ) ∣ (k:ℤ))) :
+    1/(q:ℝ) ≤ nint ((k:ℝ)/(q:ℝ)) := by
+  have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+  set r := round ((k:ℝ)/(q:ℝ)) with hr
+  have hne : (k:ℤ) - (q:ℤ)*r ≠ 0 := by
+    intro h
+    exact hnd ⟨r, by omega⟩
+  have habs : (1:ℝ) ≤ |(((k:ℤ) - (q:ℤ)*r : ℤ):ℝ)| := by
+    have h1 : (1:ℤ) ≤ |(k:ℤ) - (q:ℤ)*r| := Int.one_le_abs hne
+    exact_mod_cast h1
+  have hkey : 1/(q:ℝ) ≤ |(k:ℝ)/(q:ℝ) - (r:ℝ)| := by
+    have h2 : (k:ℝ)/(q:ℝ) - (r:ℝ) = (((k:ℤ) - (q:ℤ)*r : ℤ):ℝ)/(q:ℝ) := by
+      push_cast
+      field_simp
+    rw [h2, abs_div, abs_of_pos hq0]
+    gcongr
+  exact hkey
+
+
+/-- **The lower half of the first block is never deep** (Track R,
+V6d-i): for `1 ≤ d` with `2d ≤ q` and `gcd(a,q) = 1`, the frequency
+`d·(a/q + δ)` stays `1/(2q)` away from the integers — the resonance
+`q ∣ da` would force `q ∣ d`, impossible below `q`, and the
+perturbation `d·|δ| ≤ 1/(2q)` cannot bridge the `1/q` gap.  This is
+what lets the first-block near-integer charge be priced at `2N/q`
+rather than `N`. -/
+theorem nint_block0_lower (a q : ℕ) (hcop : Nat.Coprime a q) (δ : ℝ)
+    (hδ : |δ| ≤ 1/(q:ℝ)^2) (d : ℕ) (hd1 : 1 ≤ d) (hd2 : 2*d ≤ q) :
+    1/(2*(q:ℝ)) ≤ nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) := by
+  have hq2 : 2 ≤ q := by omega
+  have hq0 : (0:ℝ) < (q:ℝ) := by
+    have : (0:ℕ) < q := by omega
+    exact_mod_cast this
+  have hd0 : (0:ℝ) < (d:ℝ) := by
+    have : (0:ℕ) < d := by omega
+    exact_mod_cast this
+  -- no resonance: `q ∤ d*a`
+  have hnd : ¬ ((q:ℤ) ∣ ((d*a : ℕ):ℤ)) := by
+    intro h
+    have hnat : q ∣ d*a := by exact_mod_cast h
+    have hdvd : q ∣ d := (Nat.Coprime.dvd_of_dvd_mul_right
+      (Nat.Coprime.symm hcop)) hnat
+    have := Nat.le_of_dvd (by omega) hdvd
+    omega
+  have hlow := nint_natCast_div_lower (d*a) q (by omega) hnd
+  -- the perturbation is at most `1/(2q)`
+  have hpert : |((d*a : ℕ):ℝ)/(q:ℝ) - (d:ℝ)*((a:ℝ)/(q:ℝ) + δ)|
+      ≤ 1/(2*(q:ℝ)) := by
+    have heq : ((d*a : ℕ):ℝ)/(q:ℝ) - (d:ℝ)*((a:ℝ)/(q:ℝ) + δ)
+        = -((d:ℝ)*δ) := by
+      push_cast
+      field_simp
+      ring
+    rw [heq, abs_neg, abs_mul, abs_of_pos hd0]
+    have hdq : (d:ℝ) ≤ (q:ℝ)/2 := by
+      have h2d : ((2*d : ℕ):ℝ) ≤ (q:ℝ) := by exact_mod_cast hd2
+      push_cast at h2d
+      linarith
+    calc (d:ℝ) * |δ| ≤ ((q:ℝ)/2) * (1/(q:ℝ)^2) :=
+          mul_le_mul hdq hδ (abs_nonneg _) (by positivity)
+      _ = 1/(2*(q:ℝ)) := by
+          field_simp
+  -- Lipschitz transfer
+  have hlip := nint_le_nint_add_abs (((d*a : ℕ):ℝ)/(q:ℝ))
+    ((d:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+  have hhalf : 1/(2*(q:ℝ)) = 1/(q:ℝ) - 1/(2*(q:ℝ)) := by
+    field_simp
+    ring
+  linarith [hlow, hpert, hlip]
+
 end ExpSums
 
 end MoltResearch
