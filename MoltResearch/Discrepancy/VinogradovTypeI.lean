@@ -5250,6 +5250,122 @@ theorem abel_anti_bound (P Q : ℕ) (hPQ : P ≤ Q) (φ : ℕ → ℝ) (z : ℕ 
     ring
   linarith [h1, h2, hqb, hpb, hexp.le, hexp.ge]
 
+
+open ArithmeticFunction in
+/-- **The prime split** (Track R, V7b): a von Mangoldt sum splits into
+its prime part — where `Λ(p) = log p` — and a prime-power remainder. -/
+theorem lambda_prime_split (n₀ t : ℕ) (w : ℕ → ℂ) :
+    ∑ n ∈ Finset.Ioc n₀ t, ((vonMangoldt n : ℝ):ℂ) * w n
+      = (∑ p ∈ (Finset.Ioc n₀ t).filter (fun p => p.Prime),
+          ((Real.log (p:ℝ) : ℝ):ℂ) * w p)
+        + ∑ n ∈ (Finset.Ioc n₀ t).filter (fun n => ¬ n.Prime),
+          ((vonMangoldt n : ℝ):ℂ) * w n := by
+  classical
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Ioc n₀ t)
+    (fun n => n.Prime)]
+  congr 1
+  refine Finset.sum_congr rfl fun p hp => ?_
+  simp only [Finset.mem_filter] at hp
+  rw [vonMangoldt_apply_prime hp.2]
+
+
+open ArithmeticFunction in
+/-- **The prime-power remainder is tiny** (Track R, V7b): non-prime
+von Mangoldt support in `(n₀, M]` consists of proper prime powers
+`p^k`, `p ≤ √M`, `2 ≤ k ≤ log₂ M` — at most `√M·log₂M` points, each
+worth at most `log M`. -/
+theorem nonprime_lambda_norm_le (n₀ M : ℕ) (hM : 2 ≤ M) (w : ℕ → ℂ)
+    (hw : ∀ n, ‖w n‖ ≤ 1) :
+    ‖∑ n ∈ (Finset.Ioc n₀ M).filter (fun n => ¬ n.Prime),
+        ((vonMangoldt n : ℝ):ℂ) * w n‖
+      ≤ ((Nat.sqrt M * M.log2 : ℕ):ℝ) * Real.log (M:ℝ) := by
+  classical
+  have hM0 : M ≠ 0 := by omega
+  have hTsub : (Finset.Ioc n₀ M).filter
+      (fun n => ¬ n.Prime ∧ vonMangoldt n ≠ 0)
+      ⊆ (Finset.Ioc n₀ M).filter (fun n => ¬ n.Prime) := by
+    intro n hn
+    simp only [Finset.mem_filter] at hn ⊢
+    exact ⟨hn.1, hn.2.1⟩
+  have hzero : ∀ n ∈ (Finset.Ioc n₀ M).filter (fun n => ¬ n.Prime),
+      n ∉ (Finset.Ioc n₀ M).filter
+        (fun n => ¬ n.Prime ∧ vonMangoldt n ≠ 0) →
+      ((vonMangoldt n : ℝ):ℂ) * w n = 0 := by
+    intro n hn hnot
+    simp only [Finset.mem_filter] at hn hnot
+    push_neg at hnot
+    have hΛ : vonMangoldt n = 0 := hnot hn.1 hn.2
+    rw [hΛ, Complex.ofReal_zero, zero_mul]
+  rw [← Finset.sum_subset hTsub hzero]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hterm : ∀ n ∈ (Finset.Ioc n₀ M).filter
+      (fun n => ¬ n.Prime ∧ vonMangoldt n ≠ 0),
+      ‖((vonMangoldt n : ℝ):ℂ) * w n‖ ≤ Real.log (M:ℝ) := by
+    intro n hn
+    simp only [Finset.mem_filter, Finset.mem_Ioc] at hn
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_nonneg vonMangoldt_nonneg]
+    have h1 : vonMangoldt n ≤ Real.log (n:ℝ) := vonMangoldt_le_log
+    have h2 : Real.log (n:ℝ) ≤ Real.log (M:ℝ) := by
+      refine Real.log_le_log ?_ ?_
+      · have h0 : 0 < n := by omega
+        exact_mod_cast h0
+      · exact_mod_cast hn.1.2
+    have h3 := hw n
+    have h4 := norm_nonneg (w n)
+    nlinarith [vonMangoldt_nonneg (n := n)]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [Finset.sum_const, nsmul_eq_mul]
+  have hcount : ((Finset.Ioc n₀ M).filter
+      (fun n => ¬ n.Prime ∧ vonMangoldt n ≠ 0)).card
+      ≤ Nat.sqrt M * M.log2 := by
+    have hsub2 : (Finset.Ioc n₀ M).filter
+        (fun n => ¬ n.Prime ∧ vonMangoldt n ≠ 0)
+        ⊆ ((Finset.Icc 2 (Nat.sqrt M)) ×ˢ (Finset.Icc 2 (M.log2))).image
+          (fun pk => pk.1 ^ pk.2) := by
+      intro n hn
+      simp only [Finset.mem_filter, Finset.mem_Ioc] at hn
+      obtain ⟨⟨hn1, hn2⟩, hnp, hΛ⟩ := hn
+      have hpp : IsPrimePow n := vonMangoldt_ne_zero_iff.mp hΛ
+      rw [isPrimePow_nat_iff] at hpp
+      obtain ⟨p, k, hp, hk, hpk⟩ := hpp
+      have hk2 : 2 ≤ k := by
+        rcases Nat.lt_or_ge k 2 with hk1 | hk2
+        · have hke : k = 1 := by omega
+          rw [hke, pow_one] at hpk
+          rw [← hpk] at hnp
+          exact absurd hp hnp
+        · exact hk2
+      rw [Finset.mem_image]
+      refine ⟨(p, k), ?_, hpk⟩
+      rw [Finset.mem_product, Finset.mem_Icc, Finset.mem_Icc]
+      refine ⟨⟨hp.two_le, ?_⟩, hk2, ?_⟩
+      · rw [Nat.le_sqrt]
+        calc p * p = p^2 := (Nat.pow_two p).symm
+          _ ≤ p^k := Nat.pow_le_pow_right hp.pos hk2
+          _ = n := hpk
+          _ ≤ M := hn2
+      · have h2k : 2^k ≤ M := by
+          calc 2^k ≤ p^k := Nat.pow_le_pow_left hp.two_le k
+            _ = n := hpk
+            _ ≤ M := hn2
+        by_contra hcon
+        push_neg at hcon
+        have hlt := (Nat.log2_lt hM0).mp hcon
+        exact absurd h2k (not_le.mpr hlt)
+    refine le_trans (Finset.card_le_card hsub2) ?_
+    refine le_trans Finset.card_image_le ?_
+    rw [Finset.card_product, Nat.card_Icc, Nat.card_Icc]
+    have h1 : Nat.sqrt M + 1 - 2 ≤ Nat.sqrt M := by omega
+    have h2 : M.log2 + 1 - 2 ≤ M.log2 := by omega
+    exact Nat.mul_le_mul h1 h2
+  have hlogM : 0 ≤ Real.log (M:ℝ) := Real.log_natCast_nonneg M
+  have hc : (((Finset.Ioc n₀ M).filter
+      (fun n => ¬ n.Prime ∧ vonMangoldt n ≠ 0)).card : ℝ)
+      ≤ ((Nat.sqrt M * M.log2 : ℕ):ℝ) := by
+    exact_mod_cast hcount
+  exact mul_le_mul_of_nonneg_right hc hlogM
+
 end ExpSums
 
 end MoltResearch
