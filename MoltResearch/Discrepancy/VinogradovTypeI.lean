@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.ExpSums
 import Mathlib.NumberTheory.ArithmeticFunction.Moebius
+import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 
 /-!
 # Track R, phase R4v: the linear-phase exponential sum (V1)
@@ -2326,6 +2327,179 @@ theorem sum_divisors_moebius_ite (m : ℕ) (hm : m ≠ 0) :
     exact_mod_cast congrArg (fun z : ℤ => (z:ℝ)) h1
   push_cast at h2
   exact h2
+
+
+open ArithmeticFunction in
+/-- **Vaughan's identity, pointwise** (Track R, V5c-ii): for `V < n`,
+
+`Λ(n) = ∑_{b∣n, b≤U} μ(b) log(n/b) − ∑_{b∣n, b≤U} μ(b) ∑_{c∣n/b, c≤V} Λ(c)
+        + ∑_{c∣n, c>V} Λ(c) ∑_{b∣n/c, b>U} μ(b)`
+
+— the two divisor-pair swaps against `vonMangoldt_sum` and the Möbius
+detector.  The three terms are the Type I, Type I', and Type II shapes
+of the prime exponential sum estimate. -/
+theorem vaughan_pointwise (U V n : ℕ) (hV : V < n) :
+    (vonMangoldt n : ℝ)
+      = (∑ b ∈ n.divisors.filter (· ≤ U),
+          ((moebius b : ℤ):ℝ) * Real.log ((n/b : ℕ):ℝ))
+        - (∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+            * ∑ c ∈ (n/b).divisors.filter (· ≤ V), (vonMangoldt c : ℝ))
+        + (∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+            (vonMangoldt c : ℝ)
+              * ∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+                ((moebius b : ℤ):ℝ)) := by
+  classical
+  have hn0 : n ≠ 0 := by omega
+  -- (1) expand the logarithm in T1
+  have hT1 : ∑ b ∈ n.divisors.filter (· ≤ U),
+      ((moebius b : ℤ):ℝ) * Real.log ((n/b : ℕ):ℝ)
+      = ∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+          * ∑ c ∈ (n/b).divisors, (vonMangoldt c : ℝ) := by
+    refine Finset.sum_congr rfl fun b hb => ?_
+    rw [Finset.mem_filter, Nat.mem_divisors] at hb
+    rw [vonMangoldt_sum]
+  -- (2) split the inner sum at V
+  have hsplit1 : ∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+      * ∑ c ∈ (n/b).divisors, (vonMangoldt c : ℝ)
+      = (∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+          * ∑ c ∈ (n/b).divisors.filter (· ≤ V), (vonMangoldt c : ℝ))
+        + ∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+          * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+            (vonMangoldt c : ℝ) := by
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun b _ => ?_
+    rw [← mul_add, ← Finset.sum_filter_add_sum_filter_not
+      ((n/b).divisors) (· ≤ V)]
+  -- (3) the full-b sum with the `c > V` inner collapses to `Λ(n)`
+  have hfull : ∑ b ∈ n.divisors, ((moebius b : ℤ):ℝ)
+      * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+        (vonMangoldt c : ℝ)
+      = (vonMangoldt n : ℝ) := by
+    have hstep : ∑ b ∈ n.divisors, ((moebius b : ℤ):ℝ)
+        * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+          (vonMangoldt c : ℝ)
+        = ∑ b ∈ n.divisors, ∑ c ∈ (n/b).divisors,
+          ((moebius b : ℤ):ℝ)
+            * (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0) := by
+      refine Finset.sum_congr rfl fun b _ => ?_
+      rw [Finset.mul_sum, Finset.sum_filter]
+      refine Finset.sum_congr rfl fun c _ => ?_
+      split <;> simp
+    rw [hstep, sum_divisors_pair_swap n (fun b c =>
+      ((moebius b : ℤ):ℝ) * (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0))]
+    have hinner : ∀ c ∈ n.divisors,
+        ∑ b ∈ (n/c).divisors, ((moebius b : ℤ):ℝ)
+          * (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0)
+        = (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0)
+          * (if n/c = 1 then 1 else 0) := by
+      intro c hc
+      rw [Nat.mem_divisors] at hc
+      rw [← Finset.sum_mul, mul_comm, sum_divisors_moebius_ite (n/c)
+        (Nat.div_ne_zero_iff.mpr ⟨(by
+          intro hc0
+          rw [hc0] at hc
+          have := Nat.eq_zero_of_zero_dvd hc.1
+          omega), Nat.le_of_dvd (by omega) hc.1⟩)]
+    rw [Finset.sum_congr rfl hinner]
+    have hset : ∀ c ∈ n.divisors,
+        (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0)
+          * (if n/c = 1 then 1 else 0)
+        = if c = n then (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0)
+          else 0 := by
+      intro c hc
+      rw [Nat.mem_divisors] at hc
+      have hiff : n/c = 1 ↔ c = n := by
+        constructor
+        · intro h1
+          have h2 : n/c * c = n := Nat.div_mul_cancel hc.1
+          rw [h1, one_mul] at h2
+          exact h2
+        · rintro rfl
+          exact Nat.div_self (by omega)
+      rcases Classical.em (c = n) with rfl | hne
+      · rw [if_pos rfl, if_pos (hiff.mpr rfl), mul_one]
+      · rw [if_neg hne, if_neg (fun h => hne (hiff.mp h)), mul_zero]
+    rw [Finset.sum_congr rfl hset, Finset.sum_ite_eq' n.divisors n
+      (fun c => if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0)]
+    rw [if_pos (Nat.mem_divisors_self n hn0)]
+    rw [if_pos (by omega : ¬ n ≤ V)]
+  -- (4) split the full-b sum at U and swap the `b > U` half
+  have hsplit2 : ∑ b ∈ n.divisors, ((moebius b : ℤ):ℝ)
+      * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+        (vonMangoldt c : ℝ)
+      = (∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+          * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+            (vonMangoldt c : ℝ))
+        + ∑ b ∈ n.divisors.filter (fun b => ¬ b ≤ U),
+          ((moebius b : ℤ):ℝ)
+            * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+              (vonMangoldt c : ℝ) :=
+    (Finset.sum_filter_add_sum_filter_not n.divisors (· ≤ U) _).symm
+  have hswap2 : ∑ b ∈ n.divisors.filter (fun b => ¬ b ≤ U),
+      ((moebius b : ℤ):ℝ)
+        * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+          (vonMangoldt c : ℝ)
+      = ∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+        (vonMangoldt c : ℝ)
+          * ∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ) := by
+    have hL : ∑ b ∈ n.divisors.filter (fun b => ¬ b ≤ U),
+        ((moebius b : ℤ):ℝ)
+          * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+            (vonMangoldt c : ℝ)
+        = ∑ b ∈ n.divisors, ∑ c ∈ (n/b).divisors,
+          (if ¬ b ≤ U then ((moebius b : ℤ):ℝ) else 0)
+            * (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0) := by
+      rw [Finset.sum_filter]
+      refine Finset.sum_congr rfl fun b _ => ?_
+      split
+      · rw [Finset.mul_sum, Finset.sum_filter]
+        refine Finset.sum_congr rfl fun c _ => ?_
+        split <;> simp
+      · simp
+    have hR : ∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+        (vonMangoldt c : ℝ)
+          * ∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+            ((moebius b : ℤ):ℝ)
+        = ∑ c ∈ n.divisors, ∑ b ∈ (n/c).divisors,
+          (if ¬ b ≤ U then ((moebius b : ℤ):ℝ) else 0)
+            * (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0) := by
+      rw [Finset.sum_filter]
+      refine Finset.sum_congr rfl fun c _ => ?_
+      split
+      · rw [Finset.mul_sum, Finset.sum_filter]
+        refine Finset.sum_congr rfl fun b _ => ?_
+        split
+        · ring
+        · simp
+      · simp
+    rw [hL, hR, sum_divisors_pair_swap n (fun b c =>
+      (if ¬ b ≤ U then ((moebius b : ℤ):ℝ) else 0)
+        * (if ¬ c ≤ V then (vonMangoldt c : ℝ) else 0))]
+  -- assemble
+  have hkey : (∑ b ∈ n.divisors.filter (· ≤ U),
+      ((moebius b : ℤ):ℝ) * Real.log ((n/b : ℕ):ℝ))
+      = (∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+          * ∑ c ∈ (n/b).divisors.filter (· ≤ V), (vonMangoldt c : ℝ))
+        + ((vonMangoldt n : ℝ)
+          - ∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+            (vonMangoldt c : ℝ)
+              * ∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+                ((moebius b : ℤ):ℝ)) := by
+    rw [hT1, hsplit1]
+    have h1 : ∑ b ∈ n.divisors.filter (· ≤ U), ((moebius b : ℤ):ℝ)
+        * ∑ c ∈ (n/b).divisors.filter (fun c => ¬ c ≤ V),
+          (vonMangoldt c : ℝ)
+        = (vonMangoldt n : ℝ)
+          - ∑ c ∈ n.divisors.filter (fun c => ¬ c ≤ V),
+            (vonMangoldt c : ℝ)
+              * ∑ b ∈ (n/c).divisors.filter (fun b => ¬ b ≤ U),
+                ((moebius b : ℤ):ℝ) := by
+      have h2 := hsplit2
+      rw [hfull, hswap2] at h2
+      linarith [h2]
+    linarith [h1]
+  linarith [hkey]
 
 end ExpSums
 
