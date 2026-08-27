@@ -3591,6 +3591,239 @@ theorem sum_block0_g_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
     ring
   linarith [hdeep, hshell, hql, hexp1.le, hexp1.ge, hexp2.le, hexp2.ge]
 
+
+/-- **The refined counting lemma** (Track R, V6d-iii): the range
+assembly with the first block priced through `sum_block0_g_le` — the
+standalone `13N` of `sum_range_g_le` becomes `26N/q`, so the whole
+divisor sum is `O(N·log D/q + (D/q + 1)·q·log q)`.  This is the form
+that saves a power of `log` on the minor arc. -/
+theorem sum_range_g_le' (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
+    (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2) (D : ℕ) (hD : 1 ≤ D)
+    (N : ℝ) (hN : 0 ≤ N) (g : ℕ → ℝ)
+    (hg0 : ∀ d ∈ Finset.Icc 1 D, 0 ≤ g d)
+    (hgN : ∀ d ∈ Finset.Icc 1 D, g d ≤ N/(d:ℝ))
+    (hg2 : ∀ d ∈ Finset.Icc 1 D,
+      0 < nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)) →
+      g d ≤ 1/(2 * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)))) :
+    ∑ d ∈ Finset.Icc 1 D, g d
+      ≤ 13*N*(Real.log (D:ℝ) + 3)/(q:ℝ)
+        + ((D:ℝ)/(q:ℝ) + 1) * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+  classical
+  have hq0R : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+  have hq1R : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+  have h8 : (1:ℝ) ≤ 8*(q:ℝ) := by linarith
+  have hlogq : 0 ≤ Real.log (8*(q:ℝ)) := Real.log_nonneg h8
+  set g' : ℕ → ℝ := fun d => if d ∈ Finset.Icc 1 D then g d else 0
+    with hg'_def
+  have hg'0 : ∀ d, 0 ≤ g' d := by
+    intro d
+    simp only [hg'_def]
+    split
+    · exact hg0 d (by assumption)
+    · exact le_refl 0
+  have heqsum : ∑ d ∈ Finset.Icc 1 D, g d
+      = ∑ d ∈ Finset.Icc 1 D, g' d := by
+    refine Finset.sum_congr rfl fun d hd => ?_
+    simp only [hg'_def]
+    rw [if_pos hd]
+  have hcover : Finset.Icc 1 D ⊆ (Finset.range (D/q + 1)).biUnion
+      (fun j => Finset.Ioc (j*q) (j*q + q)) := by
+    intro d hd
+    rw [Finset.mem_Icc] at hd
+    rw [Finset.mem_biUnion]
+    refine ⟨(d - 1)/q, ?_, ?_⟩
+    · rw [Finset.mem_range]
+      have h1 : (d - 1)/q ≤ D/q := Nat.div_le_div_right (by omega)
+      omega
+    · rw [Finset.mem_Ioc]
+      have h2 : (d - 1) % q < q := Nat.mod_lt _ (by omega)
+      have h3 : (d - 1)/q * q + (d - 1) % q = d - 1 :=
+        Nat.div_add_mod' (d - 1) q
+      omega
+  have hdisjb : (↑(Finset.range (D/q + 1)) : Set ℕ).PairwiseDisjoint
+      (fun j => Finset.Ioc (j*q) (j*q + q)) := by
+    intro j hj j' hj' hne
+    rw [Function.onFun, Finset.disjoint_left]
+    intro d hd hd'
+    rw [Finset.mem_Ioc] at hd hd'
+    rcases Nat.lt_or_ge j j' with hlt | hge
+    · have h1 : (j + 1) * q ≤ j' * q := Nat.mul_le_mul_right q hlt
+      have h2 : j*q + q = (j + 1) * q := by ring
+      omega
+    · have hlt' : j' < j := by omega
+      have h1 : (j' + 1) * q ≤ j * q := Nat.mul_le_mul_right q hlt'
+      have h2 : j'*q + q = (j' + 1) * q := by ring
+      omega
+  have hstep1 : ∑ d ∈ Finset.Icc 1 D, g' d
+      ≤ ∑ d ∈ (Finset.range (D/q + 1)).biUnion
+        (fun j => Finset.Ioc (j*q) (j*q + q)), g' d :=
+    Finset.sum_le_sum_of_subset_of_nonneg hcover (fun d _ _ => hg'0 d)
+  have hstep2 : ∑ d ∈ (Finset.range (D/q + 1)).biUnion
+      (fun j => Finset.Ioc (j*q) (j*q + q)), g' d
+      = ∑ j ∈ Finset.range (D/q + 1),
+          ∑ d ∈ Finset.Ioc (j*q) (j*q + q), g' d :=
+    Finset.sum_biUnion hdisjb
+  -- the refined first block
+  have hset0 : Finset.Ioc (0*q) (0*q + q) = Finset.Icc 1 q := by
+    ext d
+    rw [Finset.mem_Ioc, Finset.mem_Icc]
+    omega
+  have hblock0 : ∑ d ∈ Finset.Ioc (0*q) (0*q + q), g' d
+      ≤ 26*N/(q:ℝ) + 368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1) := by
+    rw [hset0]
+    refine sum_block0_g_le a q hq hcop δ hδ N hN g'
+      (fun d _ => hg'0 d) ?_ ?_
+    · intro d hd
+      simp only [hg'_def]
+      split
+      · rename_i hdIcc
+        exact hgN d hdIcc
+      · positivity
+    · intro d hd hpos
+      simp only [hg'_def]
+      split
+      · rename_i hdIcc
+        exact hg2 d hdIcc hpos
+      · positivity
+  -- blocks `j ≥ 1`, with per-block cap `N/(jq+1)`
+  have hblock : ∀ i ∈ Finset.range (D/q),
+      ∑ d ∈ Finset.Ioc ((i+1)*q) ((i+1)*q + q), g' d
+      ≤ 13*(N/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1))
+        + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1) := by
+    intro i _
+    have hA0 : (0:ℝ) ≤ N/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1) := by positivity
+    refine sum_block_g_le a q hq hcop δ hδ (i+1)
+      (N/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1)) hA0 g' (fun d _ => hg'0 d) ?_ ?_
+    · intro d hd
+      rw [Finset.mem_Ioc] at hd
+      simp only [hg'_def]
+      split
+      · rename_i hdIcc
+        have hdc : ((i+1 : ℕ):ℝ)*(q:ℝ) + 1 ≤ (d:ℝ) := by
+          have h1 : (i+1)*q + 1 ≤ d := by omega
+          have h2 : (((i+1)*q + 1 : ℕ):ℝ) ≤ (d:ℝ) := by exact_mod_cast h1
+          push_cast at h2
+          push_cast
+          linarith
+        have hd0 : (0:ℝ) < ((i+1 : ℕ):ℝ)*(q:ℝ) + 1 := by positivity
+        have hdpos : (0:ℝ) < (d:ℝ) := by
+          have : 0 < d := by omega
+          exact_mod_cast this
+        refine le_trans (hgN d hdIcc) ?_
+        rw [div_le_div_iff₀ hdpos hd0]
+        nlinarith [hdc, hN]
+      · exact hA0
+    · intro d hd hpos
+      simp only [hg'_def]
+      split
+      · rename_i hdIcc
+        exact hg2 d hdIcc hpos
+      · positivity
+  have hsplit : ∑ j ∈ Finset.range (D/q + 1),
+      ∑ d ∈ Finset.Ioc (j*q) (j*q + q), g' d
+      = (∑ i ∈ Finset.range (D/q),
+          ∑ d ∈ Finset.Ioc ((i+1)*q) ((i+1)*q + q), g' d)
+        + ∑ d ∈ Finset.Ioc (0*q) (0*q + q), g' d :=
+    Finset.sum_range_succ'
+      (fun j => ∑ d ∈ Finset.Ioc (j*q) (j*q + q), g' d) (D/q)
+  have hsum3 : ∑ i ∈ Finset.range (D/q),
+      ∑ d ∈ Finset.Ioc ((i+1)*q) ((i+1)*q + q), g' d
+      ≤ ∑ i ∈ Finset.range (D/q),
+        (13*(N/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1))
+          + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) :=
+    Finset.sum_le_sum hblock
+  have hexpand : ∑ i ∈ Finset.range (D/q),
+      (13*(N/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1))
+        + 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))
+      = 13*N * (∑ i ∈ Finset.range (D/q), 1/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1))
+        + ((D/q : ℕ):ℝ) * (264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+    rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_range,
+      nsmul_eq_mul, Finset.mul_sum]
+    congr 1
+    refine Finset.sum_congr rfl fun i _ => ?_
+    ring
+  have hrest : ∑ i ∈ Finset.range (D/q), 1/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1)
+      ≤ (Real.log (D:ℝ) + 1)/(q:ℝ) := by
+    rcases Nat.eq_zero_or_pos (D/q) with hJ0 | hJ0
+    · rw [hJ0]
+      simp
+      have hlogD : (0:ℝ) ≤ Real.log (D:ℝ) :=
+        Real.log_natCast_nonneg D
+      positivity
+    · have hterm : ∀ i ∈ Finset.range (D/q),
+          1/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1)
+          ≤ (1/(q:ℝ)) * (1/((i+1 : ℕ):ℝ)) := by
+        intro i _
+        have hi0 : (0:ℝ) < ((i+1 : ℕ):ℝ) := by
+          exact_mod_cast Nat.succ_pos i
+        have h1 : (0:ℝ) < ((i+1 : ℕ):ℝ)*(q:ℝ) := by positivity
+        have h2 : ((i+1 : ℕ):ℝ)*(q:ℝ) ≤ ((i+1 : ℕ):ℝ)*(q:ℝ) + 1 := by
+          linarith
+        calc 1/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1)
+            ≤ 1/(((i+1 : ℕ):ℝ)*(q:ℝ)) :=
+              one_div_le_one_div_of_le h1 h2
+          _ = (1/(q:ℝ)) * (1/((i+1 : ℕ):ℝ)) := by
+              field_simp
+      refine le_trans (Finset.sum_le_sum hterm) ?_
+      rw [← Finset.mul_sum]
+      have hreidx : ∑ i ∈ Finset.range (D/q), 1/((i+1 : ℕ):ℝ)
+          = ∑ k ∈ Finset.Icc 1 (D/q), (1:ℝ)/(k:ℝ) := by
+        rw [show Finset.Icc 1 (D/q) = Finset.Ico 1 (D/q + 1) by
+          ext m
+          rw [Finset.mem_Icc, Finset.mem_Ico]
+          omega]
+        rw [Finset.sum_Ico_eq_sum_range]
+        refine Finset.sum_congr ?_ fun i _ => ?_
+        · rw [Nat.add_sub_cancel]
+        · rw [Nat.add_comm 1 i]
+      have hharm := sum_inv_le_log (D/q) hJ0
+      have hJD : Real.log ((D/q : ℕ):ℝ) ≤ Real.log (D:ℝ) := by
+        refine Real.log_le_log ?_ ?_
+        · exact_mod_cast hJ0
+        · exact_mod_cast Nat.div_le_self D q
+      rw [hreidx]
+      have hcomb : ∑ k ∈ Finset.Icc 1 (D/q), (1:ℝ)/(k:ℝ)
+          ≤ Real.log (D:ℝ) + 1 := by
+        linarith [hharm, hJD]
+      rw [div_eq_mul_one_div (Real.log (D:ℝ) + 1) (q:ℝ), mul_comm
+        (Real.log (D:ℝ) + 1) (1/(q:ℝ))]
+      refine mul_le_mul_of_nonneg_left hcomb ?_
+      positivity
+  have hC0 : (0:ℝ) ≤ 264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1) := by
+    positivity
+  have h13N : (0:ℝ) ≤ 13*N := by linarith
+  have hJcast : ((D/q : ℕ):ℝ) ≤ (D:ℝ)/(q:ℝ) := Nat.cast_div_le
+  have h1 : 13*N * (∑ i ∈ Finset.range (D/q), 1/(((i+1 : ℕ):ℝ)*(q:ℝ) + 1))
+      ≤ 13*N*((Real.log (D:ℝ) + 1)/(q:ℝ)) :=
+    mul_le_mul_of_nonneg_left hrest h13N
+  have h2 : ((D/q : ℕ):ℝ) * (264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))
+      ≤ ((D:ℝ)/(q:ℝ)) * (264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) :=
+    mul_le_mul_of_nonneg_right hJcast hC0
+  have hqL0 : (0:ℝ) ≤ (q:ℝ)*(Real.log (8*(q:ℝ)) + 1) :=
+    mul_nonneg (by linarith) (by linarith)
+  have hslack : (0:ℝ)
+      ≤ ((D:ℝ)/(q:ℝ))*((q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) :=
+    mul_nonneg (by positivity) hqL0
+  have hE1 : ((D:ℝ)/(q:ℝ) + 1) * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))
+      = 368*(((D:ℝ)/(q:ℝ))*((q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        + 368*((q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+    ring
+  have hE2 : ((D:ℝ)/(q:ℝ)) * (264*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1))
+      = 264*(((D:ℝ)/(q:ℝ))*((q:ℝ)*(Real.log (8*(q:ℝ)) + 1))) := by
+    ring
+  have hE3 : 368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)
+      = 368*((q:ℝ)*(Real.log (8*(q:ℝ)) + 1)) := by
+    ring
+  have hE6 : 13*N*(Real.log (D:ℝ) + 3)/(q:ℝ)
+      = 13*N*((Real.log (D:ℝ) + 1)/(q:ℝ)) + 26*N/(q:ℝ) := by
+    field_simp
+    ring
+  rw [heqsum]
+  refine le_trans hstep1 ?_
+  rw [hstep2, hsplit]
+  linarith [hsum3, hexpand.le, hexpand.ge, h1, h2, hblock0, hslack,
+    hE1.le, hE1.ge, hE2.le, hE2.ge, hE3.le, hE3.ge, hE6.le, hE6.ge]
+
 end ExpSums
 
 end MoltResearch
