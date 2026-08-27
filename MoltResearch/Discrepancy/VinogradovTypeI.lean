@@ -2845,6 +2845,192 @@ theorem abel_mono_bound (P Q : ℕ) (hPQ : P ≤ Q) (φ : ℕ → ℝ) (z : ℕ 
     ring
   linarith [h1, h2, hpb, hexp.le, hexp.ge]
 
+
+open ArithmeticFunction in
+/-- **The Type I' regroup** (Track R, V6b-i): in the middle Vaughan
+term, expanding `m` through its short `Λ`-divisor `c` and fibering the
+double `(b, c)`-sum over the product `t = b*c` produces a Type I shape
+at modulus `t ≤ U*V`, with the Dirichlet-convolution partial
+`∑_{bc=t, b≤U, c≤V} μ(b)Λ(c)` as coefficient. -/
+theorem vaughan_typeI'_regroup (U V n₀ N : ℕ) (hU : 1 ≤ U) (hV : 1 ≤ V)
+    (hUV : U*V ≤ N) (w : ℕ → ℂ) :
+    ∑ b ∈ (Finset.Icc 1 N).filter (· ≤ U),
+        (((moebius b : ℤ):ℝ):ℂ)
+          * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+            ((∑ c ∈ m.divisors.filter (· ≤ V),
+              (vonMangoldt c : ℝ) : ℝ):ℂ) * w (b*m)
+      = ∑ t ∈ Finset.Icc 1 (U*V),
+          ((∑ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+              (fun p => p.1 * p.2 = t),
+            ((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ) : ℝ):ℂ)
+            * ∑ k ∈ Finset.Ioc (n₀/t) (N/t), w (t*k) := by
+  classical
+  have hUN : U ≤ N := by
+    calc U = U * 1 := (mul_one U).symm
+      _ ≤ U * V := mul_le_mul_left' hV U
+      _ ≤ N := hUV
+  have hfil : (Finset.Icc 1 N).filter (· ≤ U) = Finset.Icc 1 U := by
+    ext b
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    constructor
+    · rintro ⟨⟨h1b, -⟩, hbU⟩
+      exact ⟨h1b, hbU⟩
+    · rintro ⟨h1b, hbU⟩
+      exact ⟨⟨h1b, le_trans hbU hUN⟩, hbU⟩
+  rw [hfil]
+  -- per-`b`: expand the `Λ`-coefficient and swap the divisor out
+  have hswap : ∀ b ∈ Finset.Icc 1 U,
+      (((moebius b : ℤ):ℝ):ℂ)
+          * ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+            ((∑ c ∈ m.divisors.filter (· ≤ V),
+              (vonMangoldt c : ℝ) : ℝ):ℂ) * w (b*m)
+        = ∑ c ∈ Finset.Icc 1 V,
+            ((((moebius b : ℤ):ℝ) * (vonMangoldt c : ℝ) : ℝ):ℂ)
+              * ∑ k ∈ Finset.Ioc (n₀/(b*c)) (N/(b*c)), w ((b*c)*k) := by
+    intro b hb
+    rw [Finset.mem_Icc] at hb
+    obtain ⟨hb1, hbU⟩ := hb
+    have hVNb : V ≤ N/b := by
+      rw [Nat.le_div_iff_mul_le (show 0 < b by omega)]
+      calc V * b ≤ V * U := mul_le_mul_left' hbU V
+        _ = U * V := Nat.mul_comm V U
+        _ ≤ N := hUV
+    have hinner : ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
+        ((∑ c ∈ m.divisors.filter (· ≤ V),
+          (vonMangoldt c : ℝ) : ℝ):ℂ) * w (b*m)
+        = ∑ m ∈ Finset.Ioc (n₀/b) (N/b), ∑ c ∈ m.divisors,
+            (if c ≤ V then ((vonMangoldt c : ℝ):ℂ) * w (b*m) else 0) := by
+      refine Finset.sum_congr rfl fun m _ => ?_
+      rw [Complex.ofReal_sum, Finset.sum_mul, Finset.sum_filter]
+    have hswapped : ∑ m ∈ Finset.Ioc (n₀/b) (N/b), ∑ c ∈ m.divisors,
+          (if c ≤ V then ((vonMangoldt c : ℝ):ℂ) * w (b*m) else 0)
+        = ∑ c ∈ Finset.Icc 1 (N/b),
+            ∑ k ∈ Finset.Ioc ((n₀/b)/c) ((N/b)/c),
+              (if c ≤ V then ((vonMangoldt c : ℝ):ℂ) * w (b*(c*k)) else 0) :=
+      sum_Ioc_divisors_swap (n₀/b) (N/b)
+        (fun c m => if c ≤ V then ((vonMangoldt c : ℝ):ℂ) * w (b*m) else 0)
+    have hite : ∀ c ∈ Finset.Icc 1 (N/b),
+        ∑ k ∈ Finset.Ioc ((n₀/b)/c) ((N/b)/c),
+          (if c ≤ V then ((vonMangoldt c : ℝ):ℂ) * w (b*(c*k)) else 0)
+        = if c ≤ V then
+            ∑ k ∈ Finset.Ioc ((n₀/b)/c) ((N/b)/c),
+              ((vonMangoldt c : ℝ):ℂ) * w (b*(c*k))
+          else 0 := by
+      intro c _
+      by_cases hc : c ≤ V
+      · simp only [if_pos hc]
+      · simp only [if_neg hc, Finset.sum_const_zero]
+    have hfe : (Finset.Icc 1 (N/b)).filter (· ≤ V) = Finset.Icc 1 V := by
+      ext c
+      simp only [Finset.mem_filter, Finset.mem_Icc]
+      constructor
+      · rintro ⟨⟨h1c, -⟩, hcV⟩
+        exact ⟨h1c, hcV⟩
+      · rintro ⟨h1c, hcV⟩
+        exact ⟨⟨h1c, le_trans hcV hVNb⟩, hcV⟩
+    have hidx : ∀ c ∈ Finset.Icc 1 V,
+        ∑ k ∈ Finset.Ioc ((n₀/b)/c) ((N/b)/c),
+          ((vonMangoldt c : ℝ):ℂ) * w (b*(c*k))
+        = ((vonMangoldt c : ℝ):ℂ)
+            * ∑ k ∈ Finset.Ioc (n₀/(b*c)) (N/(b*c)), w ((b*c)*k) := by
+      intro c _
+      rw [Nat.div_div_eq_div_mul, Nat.div_div_eq_div_mul, Finset.mul_sum]
+      refine Finset.sum_congr rfl fun k _ => ?_
+      rw [← mul_assoc]
+    rw [hinner, hswapped, Finset.sum_congr rfl hite, ← Finset.sum_filter,
+      hfe, Finset.sum_congr rfl hidx, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun c _ => ?_
+    push_cast
+    ring
+  have hprod : ∑ p ∈ Finset.Icc 1 U ×ˢ Finset.Icc 1 V,
+      ((((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ) : ℝ):ℂ)
+        * ∑ k ∈ Finset.Ioc (n₀/(p.1*p.2)) (N/(p.1*p.2)), w ((p.1*p.2)*k)
+      = ∑ b ∈ Finset.Icc 1 U, ∑ c ∈ Finset.Icc 1 V,
+          ((((moebius b : ℤ):ℝ) * (vonMangoldt c : ℝ) : ℝ):ℂ)
+            * ∑ k ∈ Finset.Ioc (n₀/(b*c)) (N/(b*c)), w ((b*c)*k) :=
+    Finset.sum_product' (Finset.Icc 1 U) (Finset.Icc 1 V)
+      (fun b c => ((((moebius b : ℤ):ℝ) * (vonMangoldt c : ℝ) : ℝ):ℂ)
+        * ∑ k ∈ Finset.Ioc (n₀/(b*c)) (N/(b*c)), w ((b*c)*k))
+  have hmaps : ∀ p ∈ Finset.Icc 1 U ×ˢ Finset.Icc 1 V,
+      p.1 * p.2 ∈ Finset.Icc 1 (U*V) := by
+    rintro ⟨b, c⟩ hp
+    simp only [Finset.mem_product, Finset.mem_Icc] at hp
+    rw [Finset.mem_Icc]
+    obtain ⟨⟨hb1, hbU⟩, hc1, hcV⟩ := hp
+    exact ⟨Nat.mul_pos hb1 hc1, Nat.mul_le_mul hbU hcV⟩
+  rw [Finset.sum_congr rfl hswap, ← hprod,
+    ← Finset.sum_fiberwise_of_maps_to hmaps]
+  refine Finset.sum_congr rfl fun t _ => ?_
+  rw [Complex.ofReal_sum, Finset.sum_mul]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  simp only [Finset.mem_filter] at hp
+  rw [hp.2]
+
+
+open ArithmeticFunction in
+/-- **The Type I' coefficient bound** (Track R, V6b-ii): the regrouped
+coefficient is at most `log t` in absolute value — a factorization
+`t = b*c` is determined by its `c`-leg, `|μ| ≤ 1`, and
+`∑_{c ∣ t} Λ(c) = log t`. -/
+theorem vaughan_typeI'_coeff_le (U V t : ℕ) (ht : 1 ≤ t) :
+    |∑ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+        (fun p => p.1 * p.2 = t),
+      ((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ)|
+      ≤ Real.log t := by
+  classical
+  refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+  have h1 : ∀ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+      (fun p => p.1 * p.2 = t),
+      |((moebius p.1 : ℤ):ℝ) * (vonMangoldt p.2 : ℝ)|
+        ≤ (vonMangoldt p.2 : ℝ) := by
+    intro p _
+    rw [abs_mul]
+    have hμ : |((moebius p.1 : ℤ):ℝ)| ≤ 1 := by
+      have := ArithmeticFunction.abs_moebius_le_one (n := p.1)
+      exact_mod_cast this
+    have hΛ : |(vonMangoldt p.2 : ℝ)| = (vonMangoldt p.2 : ℝ) :=
+      abs_of_nonneg vonMangoldt_nonneg
+    rw [hΛ]
+    calc |((moebius p.1 : ℤ):ℝ)| * (vonMangoldt p.2 : ℝ)
+        ≤ 1 * (vonMangoldt p.2 : ℝ) :=
+          mul_le_mul_of_nonneg_right hμ vonMangoldt_nonneg
+      _ = (vonMangoldt p.2 : ℝ) := one_mul _
+  refine le_trans (Finset.sum_le_sum h1) ?_
+  -- push forward along the (injective) `c`-projection into `t.divisors`
+  have hinj : Set.InjOn (Prod.snd : ℕ × ℕ → ℕ)
+      ↑((Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+        (fun p => p.1 * p.2 = t)) := by
+    intro p hp p' hp' h
+    have hp2 : p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+        (fun p => p.1 * p.2 = t) := hp
+    have hp2' : p' ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+        (fun p => p.1 * p.2 = t) := hp'
+    simp only [Finset.mem_filter, Finset.mem_product, Finset.mem_Icc]
+      at hp2 hp2'
+    have hc1 : 1 ≤ p.2 := hp2.1.2.1
+    have hmul : p.1 * p.2 = p'.1 * p.2 := by
+      rw [hp2.2, h, hp2'.2]
+    have hfst : p.1 = p'.1 :=
+      Nat.eq_of_mul_eq_mul_right (by omega) hmul
+    exact Prod.ext hfst h
+  have himg : ∑ p ∈ (Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+      (fun p => p.1 * p.2 = t), (vonMangoldt p.2 : ℝ)
+      = ∑ c ∈ ((Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+          (fun p => p.1 * p.2 = t)).image Prod.snd,
+        (vonMangoldt c : ℝ) := (Finset.sum_image hinj).symm
+  have hsub : ((Finset.Icc 1 U ×ˢ Finset.Icc 1 V).filter
+      (fun p => p.1 * p.2 = t)).image Prod.snd ⊆ t.divisors := by
+    intro c hc
+    simp only [Finset.mem_image, Finset.mem_filter, Finset.mem_product,
+      Finset.mem_Icc] at hc
+    obtain ⟨p, ⟨-, hpt⟩, rfl⟩ := hc
+    rw [Nat.mem_divisors]
+    exact ⟨⟨p.1, by rw [← hpt]; exact Nat.mul_comm p.1 p.2⟩, by omega⟩
+  rw [himg]
+  refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+    (fun c _ _ => vonMangoldt_nonneg)) ?_
+  rw [vonMangoldt_sum]
+
 end ExpSums
 
 end MoltResearch
