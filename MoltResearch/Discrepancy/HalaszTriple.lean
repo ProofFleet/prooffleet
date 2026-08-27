@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.PlancherelHarness
 import MoltResearch.Discrepancy.MultiplicativeC
+import MoltResearch.Discrepancy.BrunTitchmarsh
 
 /-!
 # Track C: the Halász triple convolution, frequency side (Track R, M0R)
@@ -319,6 +320,107 @@ theorem norm_one_sub_inv_le_exp {z : ℂ} (hz : ‖z‖ ≤ 1/2) :
     one_div_le_one_div_of_le (Real.exp_pos _) hZ
   rw [one_div, one_div, Real.exp_neg, inv_inv] at h3
   exact h3
+
+/-- **The truncated Euler product, priced by the prime phase mass**
+(Track R, M0R-3b):
+
+  `‖∏_{p<x} (1 − f(p)p⁻¹e(−ξ·log p))⁻¹‖
+     ≤ exp(∑_{p<x} Re(f(p)e(−ξ·log p))/p + 2)`.
+
+`norm_one_sub_inv_le_exp` at every factor — `‖z_p‖ ≤ 1/p ≤ 1/2` — and
+the quadratic overhead is absolute: `2∑_p 1/p² ≤ 2∑_{m≥2} 1/m² ≤ 2`.
+
+The exponent is `mass − 𝔻²`: adding and subtracting `∑ 1/p` writes it
+as the prime mass minus the squared pretentious distance to the
+archimedean twist `e(ξ·log ·)`, which is how `NonPretentiousAt` prices
+the band sup of `F_x` at a single scale. -/
+theorem norm_phase_euler_prod_le (f : ℕ → ℂ) (hb : ∀ n, ‖f n‖ ≤ 1)
+    (x : ℕ) (ξ : ℝ) :
+    ‖∏ p ∈ x.primesBelow,
+        (1 - f p * ((p : ℕ) : ℂ)⁻¹
+            * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ))⁻¹‖
+      ≤ Real.exp ((∑ p ∈ x.primesBelow,
+          (f p * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ)).re / (p : ℝ)) + 2) := by
+  classical
+  rw [norm_prod]
+  -- the factor bound, with the weight split off the phase
+  have hfac : ∀ p ∈ x.primesBelow,
+      ‖(1 - f p * ((p : ℕ) : ℂ)⁻¹
+          * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ))⁻¹‖
+        ≤ Real.exp ((f p * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ)).re / (p : ℝ)
+            + 2 * (1/((p : ℝ))^2)) := by
+    intro p hp
+    have hpp := Nat.prime_of_mem_primesBelow hp
+    have hp2 : (2 : ℝ) ≤ (p : ℝ) := by exact_mod_cast hpp.two_le
+    have hp0 : (0 : ℝ) < (p : ℝ) := by linarith
+    set z : ℂ := f p * ((p : ℕ) : ℂ)⁻¹
+        * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ) with hz_def
+    have hznorm : ‖z‖ ≤ 1/(p : ℝ) := by
+      rw [hz_def, norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one,
+        norm_inv, Complex.norm_natCast, ← one_div]
+      calc ‖f p‖ * (1/(p : ℝ))
+          ≤ 1 * (1/(p : ℝ)) :=
+            mul_le_mul_of_nonneg_right (hb p) (by positivity)
+        _ = 1/(p : ℝ) := one_mul _
+    have hzhalf : ‖z‖ ≤ 1/2 :=
+      le_trans hznorm (one_div_le_one_div_of_le (by norm_num) hp2)
+    refine le_trans (norm_one_sub_inv_le_exp hzhalf) ?_
+    refine Real.exp_le_exp.mpr ?_
+    have hre : z.re = (f p * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ)).re
+        / (p : ℝ) := by
+      have hswap : z = (f p * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ))
+          * ((((p : ℝ))⁻¹ : ℝ) : ℂ) := by
+        rw [hz_def]
+        push_cast
+        ring
+      rw [hswap, Complex.mul_re, Complex.ofReal_re, Complex.ofReal_im,
+        mul_zero, sub_zero, div_eq_mul_inv]
+    have hsq : ‖z‖^2 ≤ 1/((p : ℝ))^2 := by
+      have h1 := pow_le_pow_left₀ (norm_nonneg z) hznorm 2
+      calc ‖z‖^2 ≤ (1/(p : ℝ))^2 := h1
+        _ = 1/((p : ℝ))^2 := by ring
+    linarith [hre.le, hre.ge]
+  refine le_trans (Finset.prod_le_prod (fun p _ => norm_nonneg _) hfac) ?_
+  rw [← Real.exp_sum]
+  refine Real.exp_le_exp.mpr ?_
+  rw [Finset.sum_add_distrib]
+  -- the quadratic overhead is at most `2`, from the telescoping bound
+  have htail : ∑ p ∈ x.primesBelow, 2 * (1/((p : ℝ))^2) ≤ 2 := by
+    have hsub : x.primesBelow ⊆ Finset.Icc 2 x := by
+      intro p hp
+      rw [Nat.mem_primesBelow] at hp
+      rw [Finset.mem_Icc]
+      exact ⟨hp.2.two_le, by omega⟩
+    have h1 : ∑ p ∈ x.primesBelow, (1 : ℝ)/((p : ℝ))^2
+        ≤ ∑ m ∈ Finset.Icc 2 x, (1 : ℝ)/((m : ℝ))^2 :=
+      Finset.sum_le_sum_of_subset_of_nonneg hsub
+        (fun m _ _ => by positivity)
+    have h2 : ∑ m ∈ Finset.Icc 2 x, (1 : ℝ)/((m : ℝ))^2 ≤ 1 := by
+      rcases Nat.lt_or_ge x 2 with hx2 | hx2
+      · rw [Finset.Icc_eq_empty_of_lt hx2, Finset.sum_empty]
+        norm_num
+      · have hsplit : Finset.Icc 1 x = insert 1 (Finset.Icc 2 x) := by
+          ext m
+          simp only [Finset.mem_Icc, Finset.mem_insert]
+          omega
+        have hbig := MoltResearch.sum_one_div_sq_Icc_le_two x
+        rw [hsplit, Finset.sum_insert (by
+          rw [Finset.mem_Icc]
+          omega)] at hbig
+        have hone : (1 : ℝ)/((1 : ℕ) : ℝ)^2 = 1 := by norm_num
+        have hcongr : ∑ m ∈ Finset.Icc 2 x, (1 : ℝ)/((m : ℝ))^2
+            = ∑ m ∈ Finset.Icc 2 x, (1 : ℝ)/((m : ℝ)^2) := by
+          refine Finset.sum_congr rfl fun m _ => ?_
+          ring
+        rw [hcongr]
+        push_cast at hbig
+        linarith
+    calc ∑ p ∈ x.primesBelow, 2 * (1/((p : ℝ))^2)
+        = 2 * ∑ p ∈ x.primesBelow, (1 : ℝ)/((p : ℝ))^2 := by
+          rw [Finset.mul_sum]
+      _ ≤ 2 * 1 := by linarith
+      _ = 2 := mul_one 2
+  linarith
 
 end ExpSums
 
