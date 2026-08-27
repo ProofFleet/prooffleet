@@ -993,4 +993,86 @@ theorem rieszMean_log_le'_of_nonPretentious (f : ℕ → ℝ)
     linarith [habs1, habs2, habs3]
   linarith [le_trans hchain hsum]
 
+
+open Real Finset in
+/-- **The log-free Halász Riesz mean** (Track R, M0R-5, the campaign
+goal): under `NonPretentiousAt` at strength `A` with the band inside
+the frequency range (`7(halaszM+1) ≤ A·x`, using `2π < 7`), the FULL
+Riesz mean at the top scale obeys
+
+  `|R_f(x)·log x| ≤ … + K₀·(x·√(2000·(e^π)²·10¹⁵·(((log⌈T²⌉+2)² + T + 1)·(e⁵(2+log x)e^{−A})² + 1)) + …) + …`
+
+— `rieszMean_log_le'_of_nonPretentious` at
+`b := e⁵·(2+log x)·e^{−A}`, discharged by
+`norm_smoothPhaseSum_le_of_nonPretentious`.  No `y₂`-smooth
+restriction, no `W ≈ 2×10⁷` detour losses: the band-sup quality is
+`e^{−A}` against the *log-free* prefactor `e⁵(2+log x)` — Halász for
+the Riesz mean, through the truncated Euler product. -/
+theorem rieszMean_log_le_halasz_of_nonPretentious (f : ℕ → ℝ)
+    (hf : ∀ n, |f n| ≤ 1) (hmul : ∀ a b, f (a*b) = f a * f b)
+    (h1 : f 1 = 1)
+    (x y K₀ : ℕ) (hx : 10^16 ≤ x) (hy2 : 2 ≤ y) (hyx : 2*y ≤ x)
+    (T : ℝ) (hT1 : Real.sqrt (21 * Real.log (x:ℝ)) ≤ T)
+    (hT2 : T ≤ Real.log (x:ℝ)) (hTy : T^2 ≤ (y:ℝ))
+    (hK₀1 : 1 ≤ K₀)
+    (hK₀low : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+    (hK₀max : Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+      < Real.exp 1 * Real.log 2)
+    (A : ℝ) (hA : NonPretentiousAt (fun n => ((f n : ℝ) : ℂ)) A x)
+    (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ)) :
+    |(∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        * Real.log (x:ℝ)|
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)
+        + ((K₀:ℝ) * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+              * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+                * (Real.exp 5 * (2 + Real.log (x:ℝ))
+                    * Real.exp (-A))^2 + 1)))
+            + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  have hx3 : (3:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hfc : ∀ n, ‖((f n : ℝ) : ℂ)‖ ≤ 1 := by
+    intro n
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact hf n
+  have hcm : CompletelyMultiplicativeC (fun n => ((f n : ℝ) : ℂ)) := by
+    intro a b _ _
+    show ((f (a*b) : ℝ) : ℂ) = ((f a : ℝ) : ℂ) * ((f b : ℝ) : ℂ)
+    rw [hmul]
+    push_cast
+    ring
+  have h1c : ((f 1 : ℝ) : ℂ) = 1 := by
+    rw [h1]
+    norm_num
+  have hb0 : (0:ℝ) ≤ Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A) := by
+    have h2L : (0:ℝ) ≤ 2 + Real.log (x:ℝ) := by
+      have := Real.log_natCast_nonneg x
+      linarith
+    exact mul_nonneg (mul_nonneg (Real.exp_pos 5).le h2L)
+      (Real.exp_pos (-A)).le
+  have hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum (fun n => ((f n : ℝ) : ℂ)) x t‖
+        ≤ Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A) := by
+    intro t ht
+    refine ExpSums.norm_smoothPhaseSum_le_of_nonPretentious
+      (fun n => ((f n : ℝ) : ℂ)) hcm h1c hfc x hx3 A h1A hA t ?_
+    -- `|2πt| ≤ 7·(M+1) ≤ A·x`, using `2π < 7`
+    have hpi7 : 2 * Real.pi ≤ 7 := by
+      have := Real.pi_lt_d2
+      linarith
+    rw [abs_mul, abs_of_pos Real.two_pi_pos]
+    calc 2 * Real.pi * |t| ≤ 7 * |t| :=
+          mul_le_mul_of_nonneg_right hpi7 (abs_nonneg t)
+      _ ≤ 7 * (((halaszM x : ℕ):ℝ) + 1) :=
+          mul_le_mul_of_nonneg_left ht (by norm_num)
+      _ ≤ A * (x:ℝ) := hband
+  exact rieszMean_log_le'_of_nonPretentious f hf hmul h1 x y K₀ hx hy2 hyx
+    T hT1 hT2 hTy hK₀1 hK₀low hK₀max
+    (three_le_div_blockLo x K₀ hx hK₀low)
+    (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A)) hb0 hBu
+
 end MoltResearch
