@@ -2035,6 +2035,206 @@ theorem sum_tau_sq_le_lcm_sum (M : ℕ) (hM : 1 ≤ M) :
       ≤ (M:ℝ)/(Nat.lcm p.1 p.2 : ℝ) := Nat.cast_div_le
   exact h3
 
+
+/-- **The lcm lattice sum** (Track R, V5b-i-b): grouping by the gcd,
+`∑_{a,b ≤ M} M/lcm(a,b) ≤ M(1 + log M)³` — each gcd class contributes
+`M·g` times the square of a multiples-harmonic sum `(1/g)(1 + log M)`,
+and the class sum is one more harmonic factor. -/
+theorem lcm_sum_le (M : ℕ) (hM : 1 ≤ M) :
+    ∑ p ∈ (Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M),
+        (M:ℝ)/(Nat.lcm p.1 p.2 : ℝ)
+      ≤ (M:ℝ) * (1 + Real.log (M:ℝ))^3 := by
+  classical
+  have hlogM0 : (0:ℝ) ≤ Real.log (M:ℝ) := Real.log_natCast_nonneg M
+  -- the multiples-harmonic bound, per gcd class
+  have hmult : ∀ g ∈ Finset.Icc 1 M,
+      ∑ x ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(x:ℝ)
+      ≤ (1/(g:ℝ)) * (1 + Real.log (M:ℝ)) := by
+    intro g hg
+    rw [Finset.mem_Icc] at hg
+    have hg0R : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+    have himg : (Finset.Icc 1 (M/g)).image (fun a' => g * a')
+        = (Finset.Icc 1 M).filter (g ∣ ·) := by
+      ext x
+      rw [Finset.mem_image, Finset.mem_filter, Finset.mem_Icc]
+      constructor
+      · rintro ⟨a', ha', rfl⟩
+        rw [Finset.mem_Icc] at ha'
+        have h1 : g * a' ≤ g * (M/g) := Nat.mul_le_mul_left g ha'.2
+        have h2 : g * (M/g) ≤ M := Nat.mul_div_le M g
+        exact ⟨⟨by nlinarith [hg.1, ha'.1], by omega⟩, ⟨a', rfl⟩⟩
+      · rintro ⟨⟨hx1, hxM⟩, a', rfl⟩
+        refine ⟨a', ?_, rfl⟩
+        rw [Finset.mem_Icc]
+        constructor
+        · by_contra hc
+          push_neg at hc
+          have ha0 : a' = 0 := Nat.lt_one_iff.mp hc
+          rw [ha0, Nat.mul_zero] at hx1
+          omega
+        · have h1 : a' ≤ (g * a')/g := by
+            rw [Nat.mul_div_cancel_left a' (by omega)]
+          have h2 : (g * a')/g ≤ M/g := Nat.div_le_div_right hxM
+          omega
+    have hinj : Set.InjOn (fun a' => g * a')
+        ↑(Finset.Icc 1 (M/g)) := by
+      intro x _ y _ h
+      exact Nat.eq_of_mul_eq_mul_left (by omega) h
+    rw [← himg, Finset.sum_image hinj]
+    have hterm : ∀ a' ∈ Finset.Icc 1 (M/g),
+        (1:ℝ)/((g * a' : ℕ):ℝ) = (1/(g:ℝ)) * ((1:ℝ)/(a':ℝ)) := by
+      intro a' ha'
+      rw [Finset.mem_Icc] at ha'
+      have ha'0 : (0:ℝ) < (a':ℝ) := by exact_mod_cast ha'.1
+      push_cast
+      field_simp
+    rw [Finset.sum_congr rfl hterm, ← Finset.mul_sum]
+    have hMg1 : 1 ≤ M/g := (Nat.one_le_div_iff (by omega)).mpr hg.2
+    have hharm := sum_inv_le_log (M/g) hMg1
+    have hlogle : Real.log ((M/g : ℕ):ℝ) ≤ Real.log (M:ℝ) := by
+      refine Real.log_le_log ?_ ?_
+      · exact_mod_cast hMg1
+      · exact_mod_cast Nat.div_le_self M g
+    have h3 : ∑ k ∈ Finset.Icc 1 (M/g), (1:ℝ)/(k:ℝ)
+        ≤ 1 + Real.log (M:ℝ) := by
+      linarith [hharm, hlogle]
+    refine mul_le_mul_of_nonneg_left h3 ?_
+    positivity
+  -- rewrite each term by `gcd·lcm = a·b` and group by the gcd
+  have hper : ∀ p ∈ (Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M),
+      (M:ℝ)/(Nat.lcm p.1 p.2 : ℝ)
+      = (M:ℝ) * (Nat.gcd p.1 p.2 : ℝ)
+        * ((1:ℝ)/(p.1:ℝ) * ((1:ℝ)/(p.2:ℝ))) := by
+    intro p hp
+    rw [Finset.mem_product, Finset.mem_Icc, Finset.mem_Icc] at hp
+    have h1 : (Nat.gcd p.1 p.2 : ℝ) * (Nat.lcm p.1 p.2 : ℝ)
+        = (p.1:ℝ) * (p.2:ℝ) := by
+      exact_mod_cast congrArg (fun n : ℕ => (n:ℝ))
+        (Nat.gcd_mul_lcm p.1 p.2)
+    have hp10 : (0:ℝ) < (p.1:ℝ) := by exact_mod_cast (by omega : 0 < p.1)
+    have hp20 : (0:ℝ) < (p.2:ℝ) := by exact_mod_cast (by omega : 0 < p.2)
+    have hlcm0 : (0:ℝ) < (Nat.lcm p.1 p.2 : ℝ) := by
+      have hl : 0 < Nat.lcm p.1 p.2 := Nat.pos_of_ne_zero (by
+        intro hc
+        rw [Nat.lcm_eq_zero_iff] at hc
+        omega)
+      exact_mod_cast hl
+    have hgcd0 : (0:ℝ) < (Nat.gcd p.1 p.2 : ℝ) := by
+      have hgz : 0 < Nat.gcd p.1 p.2 := Nat.pos_of_ne_zero (by
+        intro hc
+        rw [Nat.gcd_eq_zero_iff] at hc
+        omega)
+      exact_mod_cast hgz
+    field_simp
+    nlinarith [h1]
+  rw [Finset.sum_congr rfl hper]
+  have hmaps : ∀ p ∈ (Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M),
+      Nat.gcd p.1 p.2 ∈ Finset.Icc 1 M := by
+    intro p hp
+    rw [Finset.mem_product, Finset.mem_Icc, Finset.mem_Icc] at hp
+    rw [Finset.mem_Icc]
+    have h1 : 0 < Nat.gcd p.1 p.2 := Nat.pos_of_ne_zero (by
+      intro hc
+      rw [Nat.gcd_eq_zero_iff] at hc
+      omega)
+    have h2 : Nat.gcd p.1 p.2 ≤ p.1 := Nat.gcd_le_left _ (by omega)
+    omega
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  have hfiber : ∀ g ∈ Finset.Icc 1 M,
+      ∑ p ∈ ((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+        (fun p => Nat.gcd p.1 p.2 = g),
+        (M:ℝ) * (Nat.gcd p.1 p.2 : ℝ)
+          * ((1:ℝ)/(p.1:ℝ) * ((1:ℝ)/(p.2:ℝ)))
+      ≤ (M:ℝ) * (1 + Real.log (M:ℝ))^2 * (1/(g:ℝ)) := by
+    intro g hg
+    rw [Finset.mem_Icc] at hg
+    have hg0R : (0:ℝ) < (g:ℝ) := by exact_mod_cast hg.1
+    have hsub : ((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+        (fun p => Nat.gcd p.1 p.2 = g)
+        ⊆ ((Finset.Icc 1 M).filter (g ∣ ·))
+          ×ˢ ((Finset.Icc 1 M).filter (g ∣ ·)) := by
+      intro p hp
+      rw [Finset.mem_filter, Finset.mem_product] at hp
+      obtain ⟨⟨h1, h2⟩, h3⟩ := hp
+      rw [Finset.mem_product, Finset.mem_filter, Finset.mem_filter]
+      exact ⟨⟨h1, h3 ▸ Nat.gcd_dvd_left p.1 p.2⟩,
+        ⟨h2, h3 ▸ Nat.gcd_dvd_right p.1 p.2⟩⟩
+    have hstep : ∑ p ∈ ((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+        (fun p => Nat.gcd p.1 p.2 = g),
+        (M:ℝ) * (Nat.gcd p.1 p.2 : ℝ)
+          * ((1:ℝ)/(p.1:ℝ) * ((1:ℝ)/(p.2:ℝ)))
+        = ∑ p ∈ ((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+          (fun p => Nat.gcd p.1 p.2 = g),
+          (M:ℝ) * (g:ℝ) * ((1:ℝ)/(p.1:ℝ) * ((1:ℝ)/(p.2:ℝ))) := by
+      refine Finset.sum_congr rfl fun p hp => ?_
+      rw [Finset.mem_filter] at hp
+      rw [hp.2]
+    rw [hstep]
+    have hmono : ∑ p ∈ ((Finset.Icc 1 M) ×ˢ (Finset.Icc 1 M)).filter
+        (fun p => Nat.gcd p.1 p.2 = g),
+        (M:ℝ) * (g:ℝ) * ((1:ℝ)/(p.1:ℝ) * ((1:ℝ)/(p.2:ℝ)))
+        ≤ ∑ p ∈ ((Finset.Icc 1 M).filter (g ∣ ·))
+          ×ˢ ((Finset.Icc 1 M).filter (g ∣ ·)),
+          (M:ℝ) * (g:ℝ) * ((1:ℝ)/(p.1:ℝ) * ((1:ℝ)/(p.2:ℝ))) := by
+      refine Finset.sum_le_sum_of_subset_of_nonneg hsub ?_
+      intro p _ _
+      positivity
+    refine le_trans hmono ?_
+    rw [Finset.sum_product]
+    have hfact : ∑ x ∈ (Finset.Icc 1 M).filter (g ∣ ·),
+        ∑ y ∈ (Finset.Icc 1 M).filter (g ∣ ·),
+          (M:ℝ) * (g:ℝ) * ((1:ℝ)/(x:ℝ) * ((1:ℝ)/(y:ℝ)))
+        = (M:ℝ) * (g:ℝ)
+          * ((∑ x ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(x:ℝ))
+            * (∑ y ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(y:ℝ))) := by
+      have h1 : ∀ x ∈ (Finset.Icc 1 M).filter (g ∣ ·),
+          ∑ y ∈ (Finset.Icc 1 M).filter (g ∣ ·),
+            (M:ℝ) * (g:ℝ) * ((1:ℝ)/(x:ℝ) * ((1:ℝ)/(y:ℝ)))
+          = ((M:ℝ) * (g:ℝ) * ((1:ℝ)/(x:ℝ)))
+            * ∑ y ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(y:ℝ) := by
+        intro x _
+        rw [Finset.mul_sum]
+        refine Finset.sum_congr rfl fun y _ => ?_
+        ring
+      have h2 : ∑ x ∈ (Finset.Icc 1 M).filter (g ∣ ·),
+          (M:ℝ) * (g:ℝ) * ((1:ℝ)/(x:ℝ))
+          = (M:ℝ) * (g:ℝ)
+            * ∑ x ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(x:ℝ) := by
+        rw [Finset.mul_sum]
+      rw [Finset.sum_congr rfl h1, ← Finset.sum_mul, h2]
+      ring
+    rw [hfact]
+    have hm := hmult g (by rw [Finset.mem_Icc]; omega)
+    have hs0 : (0:ℝ) ≤ ∑ x ∈ (Finset.Icc 1 M).filter (g ∣ ·),
+        (1:ℝ)/(x:ℝ) :=
+      Finset.sum_nonneg fun x _ => by positivity
+    have hMg0 : (0:ℝ) ≤ (M:ℝ) * (g:ℝ) := by positivity
+    have hbound : (∑ x ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(x:ℝ))
+        * (∑ y ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(y:ℝ))
+        ≤ ((1/(g:ℝ)) * (1 + Real.log (M:ℝ)))^2 := by
+      rw [pow_two]
+      exact mul_le_mul hm hm hs0 (by positivity)
+    calc (M:ℝ) * (g:ℝ)
+        * ((∑ x ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(x:ℝ))
+          * (∑ y ∈ (Finset.Icc 1 M).filter (g ∣ ·), (1:ℝ)/(y:ℝ)))
+        ≤ (M:ℝ) * (g:ℝ) * ((1/(g:ℝ)) * (1 + Real.log (M:ℝ)))^2 :=
+          mul_le_mul_of_nonneg_left hbound hMg0
+      _ = (M:ℝ) * (1 + Real.log (M:ℝ))^2 * (1/(g:ℝ)) := by
+          field_simp
+  refine le_trans (Finset.sum_le_sum hfiber) ?_
+  rw [← Finset.mul_sum]
+  have hharmM := sum_inv_le_log M hM
+  have hsum1 : ∑ g ∈ Finset.Icc 1 M, (1:ℝ)/(g:ℝ)
+      ≤ 1 + Real.log (M:ℝ) := by
+    linarith [hharmM]
+  have hc0 : (0:ℝ) ≤ (M:ℝ) * (1 + Real.log (M:ℝ))^2 := by positivity
+  calc (M:ℝ) * (1 + Real.log (M:ℝ))^2
+      * ∑ g ∈ Finset.Icc 1 M, (1:ℝ)/(g:ℝ)
+      ≤ (M:ℝ) * (1 + Real.log (M:ℝ))^2 * (1 + Real.log (M:ℝ)) :=
+        mul_le_mul_of_nonneg_left hsum1 hc0
+    _ = (M:ℝ) * (1 + Real.log (M:ℝ))^3 := by
+        ring
+
 end ExpSums
 
 end MoltResearch
