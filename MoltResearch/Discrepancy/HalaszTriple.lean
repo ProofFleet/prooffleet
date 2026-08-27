@@ -246,6 +246,80 @@ theorem hasSum_smooth_phase_prod (f : ℕ → ℂ)
     (f := phaseHom f hcm h1 ξ)
     (norm_phaseHom_prime_lt_one f hcm h1 hb ξ) x).2
 
+/-- **The Euler factor, priced by its real part** (Track R, M0R-3):
+for `‖z‖ ≤ 1/2`,
+
+  `‖(1 − z)⁻¹‖ ≤ exp(Re z + 2‖z‖²)`.
+
+The factor-level input to the band bound: taking the product over
+`p < x` at `z = f(p)·p⁻¹·e(−ξ·log p)` turns the truncated Euler product
+into `exp(∑_p Re(f(p)e(−ξ·log p))/p + 2∑_p 1/p²)`, whose exponent is
+the prime mass minus the pretentious distance.
+
+The proof runs on squares.  The core is the one-variable inequality
+`e^{−(u+2u²)} ≤ 1 − u` for `u = Re z ∈ [−1/2, 1/2]`, which needs no
+sign split: `(1−u)(1+u+2u²) = 1 + u²(1−2u) ≥ 1`, and `1+x ≤ eˣ` does
+the rest.  Squaring and using `Re² ≤ ‖·‖²` twice gives
+`e^{−2(u+2‖z‖²)} ≤ 1 − 2u + ‖z‖² = ‖1−z‖²`. -/
+theorem norm_one_sub_inv_le_exp {z : ℂ} (hz : ‖z‖ ≤ 1/2) :
+    ‖(1 - z)⁻¹‖ ≤ Real.exp (z.re + 2*‖z‖^2) := by
+  set u : ℝ := z.re with hu_def
+  set v : ℝ := ‖z‖^2 with hv_def
+  have hu2v : u^2 ≤ v := by
+    have h1 := Complex.abs_re_le_norm z
+    have h3 : |z.re|^2 ≤ ‖z‖^2 :=
+      pow_le_pow_left₀ (abs_nonneg _) h1 2
+    rw [sq_abs] at h3
+    exact h3
+  have huhalf : |u| ≤ 1/2 := le_trans (Complex.abs_re_le_norm z) hz
+  have hub := abs_le.mp huhalf
+  -- the one-variable core: `e^{−(u+2u²)} ≤ 1 − u`
+  have hcore : Real.exp (-(u + 2*u^2)) ≤ 1 - u := by
+    have hx : 1 + (u + 2*u^2) ≤ Real.exp (u + 2*u^2) := by
+      linarith [Real.add_one_le_exp (u + 2*u^2)]
+    have h1u : (0:ℝ) ≤ 1 - u := by linarith [hub.2]
+    have hprod : (1:ℝ) ≤ (1 - u) * (1 + (u + 2*u^2)) := by nlinarith [hub.2]
+    have h1 : (1:ℝ) ≤ (1 - u) * Real.exp (u + 2*u^2) :=
+      le_trans hprod (mul_le_mul_of_nonneg_left hx h1u)
+    have h2 := mul_le_mul_of_nonneg_right h1
+      (Real.exp_pos (-(u + 2*u^2))).le
+    rw [one_mul, mul_assoc, ← Real.exp_add,
+      show (u + 2*u^2) + -(u + 2*u^2) = 0 by ring,
+      Real.exp_zero, mul_one] at h2
+    exact h2
+  -- the squared form, with `u² ≤ v` feeding both slots
+  have hnormsq : ‖(1:ℂ) - z‖^2 = 1 - 2*u + v := by
+    rw [hu_def, hv_def, ← Complex.normSq_eq_norm_sq, ← Complex.normSq_eq_norm_sq,
+      Complex.normSq_apply, Complex.normSq_apply, Complex.sub_re, Complex.sub_im,
+      Complex.one_re, Complex.one_im]
+    ring
+  have hsq : Real.exp (-(u + 2*v))^2 ≤ ‖(1:ℂ) - z‖^2 := by
+    calc Real.exp (-(u + 2*v))^2
+        = Real.exp (-(u + 2*v) + -(u + 2*v)) := by
+          rw [pow_two (Real.exp (-(u + 2*v))), ← Real.exp_add]
+      _ ≤ Real.exp (-(u + 2*u^2) + -(u + 2*u^2)) := by
+          refine Real.exp_le_exp.mpr ?_
+          linarith [hu2v]
+      _ = Real.exp (-(u + 2*u^2))^2 := by
+          rw [pow_two (Real.exp (-(u + 2*u^2))), ← Real.exp_add]
+      _ ≤ (1 - u)^2 :=
+          pow_le_pow_left₀ (Real.exp_pos _).le hcore 2
+      _ = 1 - 2*u + u^2 := by ring
+      _ ≤ 1 - 2*u + v := by linarith [hu2v]
+      _ = ‖(1:ℂ) - z‖^2 := hnormsq.symm
+  -- undo the squares and invert
+  have hZ : Real.exp (-(u + 2*v)) ≤ ‖(1:ℂ) - z‖ := by
+    calc Real.exp (-(u + 2*v))
+        = Real.sqrt (Real.exp (-(u + 2*v))^2) :=
+          (Real.sqrt_sq (Real.exp_pos _).le).symm
+      _ ≤ Real.sqrt (‖(1:ℂ) - z‖^2) := Real.sqrt_le_sqrt hsq
+      _ = ‖(1:ℂ) - z‖ := Real.sqrt_sq (norm_nonneg _)
+  rw [norm_inv]
+  have h3 : 1/‖(1:ℂ) - z‖ ≤ 1/Real.exp (-(u + 2*v)) :=
+    one_div_le_one_div_of_le (Real.exp_pos _) hZ
+  rw [one_div, one_div, Real.exp_neg, inv_inv] at h3
+  exact h3
+
 end ExpSums
 
 end MoltResearch
