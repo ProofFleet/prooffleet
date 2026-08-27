@@ -5366,6 +5366,190 @@ theorem nonprime_lambda_norm_le (n₀ M : ℕ) (hM : 2 ≤ M) (w : ℕ → ℂ)
     exact_mod_cast hcount
   exact mul_le_mul_of_nonneg_right hc hlogM
 
+
+open ArithmeticFunction in
+/-- **The uniform von Mangoldt partial bound** (Track R, V7c): every
+partial sum `∑_{(n₀, t]} Λ(n) e(nβ)`, `n₀ ≤ t ≤ 2n₀`, obeys the
+master minor-arc bound evaluated at `N = 2n₀` — each factor of the
+right-hand side is monotone in the range endpoint. -/
+theorem lambda_partial_le (a q : ℕ) (hq : 1 ≤ q)
+    (hcop : Nat.Coprime a q) (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2)
+    (U V n₀ : ℕ) (hU : 1 ≤ U) (hV : 1 ≤ V) (hVn₀ : V < n₀)
+    (hUVn₀ : U*V ≤ n₀) (hn₀2 : 2 ≤ n₀) (t : ℕ) (ht1 : n₀ ≤ t)
+    (ht2 : t ≤ 2*n₀) :
+    ‖∑ n ∈ Finset.Ioc n₀ t, ((vonMangoldt n : ℝ):ℂ)
+        * e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ 2*Real.log ((2*n₀ : ℕ):ℝ)
+          * (13*((2*n₀ : ℕ):ℝ)*(Real.log (U:ℝ) + 3)/(q:ℝ)
+            + 2*((U:ℝ)/(q:ℝ) + 1)
+              * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        + Real.log ((2*n₀ : ℕ):ℝ)
+          * (13*((2*n₀ : ℕ):ℝ)*(Real.log ((U*V : ℕ):ℝ) + 3)/(q:ℝ)
+            + 2*(((U*V : ℕ):ℝ)/(q:ℝ) + 1)
+              * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+        + 3*(Real.log ((2*n₀ : ℕ):ℝ))^2
+          * Real.sqrt ((1 + Real.log ((2*n₀ : ℕ):ℝ))^3
+            * (27*((2*n₀ : ℕ):ℝ)^2/(V:ℝ) + 52*((2*n₀ : ℕ):ℝ)^2/(q:ℝ)
+              + 2112*((2*n₀ : ℕ):ℝ)^2
+                *(Real.log (8*(q:ℝ)) + 1)/(U:ℝ)
+              + 1056*((2*n₀ : ℕ):ℝ)*(q:ℝ)
+                *(Real.log (8*(q:ℝ)) + 1))) := by
+  classical
+  have hmaster := vaughan_minor_arc_le a q hq hcop δ hδ U V n₀ t
+    hU hV hVn₀ (le_trans hUVn₀ ht1) ht1 (by omega)
+  refine le_trans hmaster ?_
+  have htc : (t:ℝ) ≤ ((2*n₀ : ℕ):ℝ) := by exact_mod_cast ht2
+  have hlogt : Real.log (t:ℝ) ≤ Real.log ((2*n₀ : ℕ):ℝ) := by
+    refine Real.log_le_log ?_ htc
+    have h0 : 0 < t := by omega
+    exact_mod_cast h0
+  have hlogt0 : (0:ℝ) ≤ Real.log (t:ℝ) := Real.log_natCast_nonneg t
+  have hlog8q : (0:ℝ) ≤ Real.log (8*(q:ℝ)) := by
+    refine Real.log_nonneg ?_
+    have hq1R : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hq
+    linarith
+  have hlogU0 : (0:ℝ) ≤ Real.log (U:ℝ) := Real.log_natCast_nonneg U
+  have hlogUV0 : (0:ℝ) ≤ Real.log ((U*V : ℕ):ℝ) :=
+    Real.log_natCast_nonneg _
+  gcongr
+
+
+open ArithmeticFunction in
+/-- **The prime-block sum under the minor-arc bound** (Track R, V7c):
+the consumer's `1/p`-weighted prime-block exponential sum, priced by
+antitone Abel summation at the weight `1/(p·log p)` against the
+uniform von Mangoldt partial bound plus the prime-power remainder. -/
+theorem primeBlock_sum_le (a q : ℕ) (hq : 1 ≤ q)
+    (hcop : Nat.Coprime a q) (δ : ℝ) (hδ : |δ| ≤ 1/(q:ℝ)^2)
+    (U V n₀ : ℕ) (hU : 1 ≤ U) (hV : 1 ≤ V) (hVn₀ : V < n₀)
+    (hUVn₀ : U*V ≤ n₀) (hn₀2 : 2 ≤ n₀) :
+    ‖∑ p ∈ (Finset.Ioc n₀ (2*n₀)).filter (fun p => p.Prime),
+        ((1/(p:ℝ) : ℝ):ℂ) * e ((p:ℝ)*((a:ℝ)/(q:ℝ) + δ))‖
+      ≤ 2 * (1/(((n₀+1 : ℕ):ℝ) * Real.log ((n₀+1 : ℕ):ℝ)))
+        * ((2*Real.log ((2*n₀ : ℕ):ℝ)
+            * (13*((2*n₀ : ℕ):ℝ)*(Real.log (U:ℝ) + 3)/(q:ℝ)
+              + 2*((U:ℝ)/(q:ℝ) + 1)
+                * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+          + Real.log ((2*n₀ : ℕ):ℝ)
+            * (13*((2*n₀ : ℕ):ℝ)*(Real.log ((U*V : ℕ):ℝ) + 3)/(q:ℝ)
+              + 2*(((U*V : ℕ):ℝ)/(q:ℝ) + 1)
+                * (368*(q:ℝ)*(Real.log (8*(q:ℝ)) + 1)))
+          + 3*(Real.log ((2*n₀ : ℕ):ℝ))^2
+            * Real.sqrt ((1 + Real.log ((2*n₀ : ℕ):ℝ))^3
+              * (27*((2*n₀ : ℕ):ℝ)^2/(V:ℝ)
+                + 52*((2*n₀ : ℕ):ℝ)^2/(q:ℝ)
+                + 2112*((2*n₀ : ℕ):ℝ)^2
+                  *(Real.log (8*(q:ℝ)) + 1)/(U:ℝ)
+                + 1056*((2*n₀ : ℕ):ℝ)*(q:ℝ)
+                  *(Real.log (8*(q:ℝ)) + 1))))
+          + ((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ)
+            * Real.log ((2*n₀ : ℕ):ℝ)) := by
+  classical
+  have hzsum : ∑ p ∈ (Finset.Ioc n₀ (2*n₀)).filter
+      (fun p => p.Prime),
+      ((1/(p:ℝ) : ℝ):ℂ) * e ((p:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+      = ∑ m ∈ Finset.Ioc n₀ (2*n₀),
+          ((1/((m:ℝ) * Real.log (m:ℝ)) : ℝ):ℂ)
+            * (if m.Prime then
+                ((Real.log (m:ℝ) : ℝ):ℂ) * e ((m:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+              else 0) := by
+    rw [Finset.sum_filter]
+    refine Finset.sum_congr rfl fun m hm => ?_
+    rw [Finset.mem_Ioc] at hm
+    by_cases hp : m.Prime
+    · rw [if_pos hp, if_pos hp]
+      have hm2 : (2:ℝ) ≤ (m:ℝ) := by exact_mod_cast hp.two_le
+      have hlogm : (0:ℝ) < Real.log (m:ℝ) := by
+        refine Real.log_pos ?_
+        linarith
+      have hm0 : (0:ℝ) < (m:ℝ) := by linarith
+      have hcoe : ((1/(m:ℝ) : ℝ):ℂ)
+          = ((1/((m:ℝ) * Real.log (m:ℝ)) : ℝ):ℂ)
+            * ((Real.log (m:ℝ) : ℝ):ℂ) := by
+        rw [← Complex.ofReal_mul]
+        congr 1
+        field_simp
+      rw [hcoe]
+      ring
+    · rw [if_neg hp, if_neg hp, mul_zero]
+  rw [hzsum]
+  refine abel_anti_bound n₀ (2*n₀) (by omega)
+    (fun m => 1/((m:ℝ) * Real.log (m:ℝ)))
+    (fun m => if m.Prime then
+      ((Real.log (m:ℝ) : ℝ):ℂ) * e ((m:ℝ)*((a:ℝ)/(q:ℝ) + δ)) else 0)
+    _ ?_ ?_ ?_
+  · intro m
+    exact div_nonneg zero_le_one
+      (mul_nonneg (Nat.cast_nonneg m) (Real.log_natCast_nonneg m))
+  · intro m hm
+    have hm3 : 3 ≤ m := by omega
+    have hmR : (3:ℝ) ≤ (m:ℝ) := by exact_mod_cast hm3
+    have hlogm : (0:ℝ) < Real.log (m:ℝ) := by
+      refine Real.log_pos ?_
+      linarith
+    have hpos : (0:ℝ) < (m:ℝ) * Real.log (m:ℝ) :=
+      mul_pos (by linarith) hlogm
+    refine one_div_le_one_div_of_le hpos ?_
+    have hc1 : (m:ℝ) ≤ ((m+1 : ℕ):ℝ) := by
+      push_cast
+      linarith
+    have hc2 : Real.log (m:ℝ) ≤ Real.log ((m+1 : ℕ):ℝ) := by
+      refine Real.log_le_log (by linarith) hc1
+    exact mul_le_mul hc1 hc2 (Real.log_natCast_nonneg m)
+      (Nat.cast_nonneg _)
+  · intro t ht1 ht2
+    have hzt : ∑ m ∈ Finset.Ioc n₀ t,
+        (if m.Prime then
+          ((Real.log (m:ℝ) : ℝ):ℂ) * e ((m:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        else 0)
+        = ∑ p ∈ (Finset.Ioc n₀ t).filter (fun p => p.Prime),
+            ((Real.log (p:ℝ) : ℝ):ℂ) * e ((p:ℝ)*((a:ℝ)/(q:ℝ) + δ)) :=
+      (Finset.sum_filter _ _).symm
+    rw [hzt]
+    have hsplit := lambda_prime_split n₀ t
+      (fun n => e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+    have hprime_eq : ∑ p ∈ (Finset.Ioc n₀ t).filter
+        (fun p => p.Prime),
+        ((Real.log (p:ℝ) : ℝ):ℂ) * e ((p:ℝ)*((a:ℝ)/(q:ℝ) + δ))
+        = (∑ n ∈ Finset.Ioc n₀ t, ((vonMangoldt n : ℝ):ℂ)
+            * e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+          - ∑ n ∈ (Finset.Ioc n₀ t).filter (fun n => ¬ n.Prime),
+              ((vonMangoldt n : ℝ):ℂ)
+                * e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ)) := by
+      rw [hsplit]
+      ring
+    rw [hprime_eq]
+    refine le_trans (norm_sub_le _ _) ?_
+    have hpart := lambda_partial_le a q hq hcop δ hδ U V n₀
+      hU hV hVn₀ hUVn₀ hn₀2 t ht1 ht2
+    have hcorr := nonprime_lambda_norm_le n₀ t (by omega)
+      (fun n => e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
+      (fun n => le_of_eq (norm_e _))
+    have hcorrmono : ((Nat.sqrt t * t.log2 : ℕ):ℝ) * Real.log (t:ℝ)
+        ≤ ((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ)
+          * Real.log ((2*n₀ : ℕ):ℝ) := by
+      have hs : Nat.sqrt t ≤ Nat.sqrt (2*n₀) := Nat.sqrt_le_sqrt ht2
+      have hl2 : t.log2 ≤ (2*n₀).log2 := by
+        by_contra hcon
+        push_neg at hcon
+        have h1 := Nat.log2_self_le (n := t) (by omega)
+        have h2 := (Nat.log2_lt (n := 2*n₀) (by omega)).mp hcon
+        have h3 : 2*n₀ < t := lt_of_lt_of_le h2 h1
+        omega
+      have hnat : Nat.sqrt t * t.log2
+          ≤ Nat.sqrt (2*n₀) * (2*n₀).log2 := Nat.mul_le_mul hs hl2
+      have hcast : ((Nat.sqrt t * t.log2 : ℕ):ℝ)
+          ≤ ((Nat.sqrt (2*n₀) * (2*n₀).log2 : ℕ):ℝ) := by
+        exact_mod_cast hnat
+      have hlog : Real.log (t:ℝ) ≤ Real.log ((2*n₀ : ℕ):ℝ) := by
+        refine Real.log_le_log ?_ ?_
+        · have h0 : 0 < t := by omega
+          exact_mod_cast h0
+        · exact_mod_cast ht2
+      exact mul_le_mul hcast hlog (Real.log_natCast_nonneg t)
+        (Nat.cast_nonneg _)
+    linarith [hpart, hcorr, hcorrmono]
+
 end ExpSums
 
 end MoltResearch
