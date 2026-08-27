@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.ExpSums
 import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
+import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-!
 # Track R, phase R4v: the linear-phase exponential sum (V1)
@@ -4250,6 +4251,60 @@ theorem sum_typeII_swap {M : Type*} [AddCommMonoid M] (V n₀ N : ℕ)
     rfl
   · rintro ⟨c, m⟩ _
     rfl
+
+
+/-- **The dyadic telescope** (Track R, V6d-vi): capped dyadic blocks
+`(min(2^j·V, N), min(2^{j+1}·V, N)]` tile `(min(V,N), min(2^J·V, N)]`. -/
+theorem sum_dyadic_tiling {M : Type*} [AddCommMonoid M] (V N J : ℕ)
+    (f : ℕ → M) :
+    ∑ j ∈ Finset.range J,
+        ∑ c ∈ Finset.Ioc (min (2^j * V) N) (min (2^(j+1) * V) N), f c
+      = ∑ c ∈ Finset.Ioc (min V N) (min (2^J * V) N), f c := by
+  induction J with
+  | zero =>
+    simp
+  | succ J ih =>
+    rw [Finset.sum_range_succ, ih]
+    have h1 : min V N ≤ min (2^J * V) N := by
+      have hVp : V ≤ 2^J * V := by
+        calc V = 1 * V := (one_mul V).symm
+          _ ≤ 2^J * V := mul_le_mul_right' Nat.one_le_two_pow V
+      exact min_le_min hVp le_rfl
+    have h2 : min (2^J * V) N ≤ min (2^(J+1) * V) N := by
+      have hpow : 2^J * V ≤ 2^(J+1) * V :=
+        mul_le_mul_right'
+          (Nat.pow_le_pow_right (by norm_num) (Nat.le_succ J)) V
+      exact min_le_min hpow le_rfl
+    exact Finset.sum_Ioc_consecutive f h1 h2
+
+
+/-- **`log₂ N + 1` dyadic blocks suffice** (Track R, V6d-vi). -/
+theorem lt_two_pow_log2_succ (N : ℕ) (hN : N ≠ 0) :
+    N < 2^(N.log2 + 1) :=
+  (Nat.log2_lt hN).mp (Nat.lt_succ_self _)
+
+
+/-- **The dyadic block count is `O(log N)`** (Track R, V6d-vi):
+`log₂ N + 1 ≤ 3·log N` for `N ≥ 2`. -/
+theorem natLog2_succ_le_log (N : ℕ) (hN : 2 ≤ N) :
+    ((N.log2 + 1 : ℕ):ℝ) ≤ 3*Real.log (N:ℝ) := by
+  have hN0 : N ≠ 0 := by omega
+  have hpow : (2:ℝ)^(N.log2) ≤ (N:ℝ) := by
+    have h := Nat.log2_self_le hN0
+    exact_mod_cast h
+  have hlogpow : (N.log2 : ℝ) * Real.log 2 ≤ Real.log (N:ℝ) := by
+    have h1 : Real.log ((2:ℝ)^(N.log2)) ≤ Real.log (N:ℝ) :=
+      Real.log_le_log (by positivity) hpow
+    rwa [Real.log_pow] at h1
+  have hc := Real.log_two_gt_d9
+  have hL : Real.log 2 ≤ Real.log (N:ℝ) := by
+    refine Real.log_le_log (by norm_num) ?_
+    exact_mod_cast hN
+  have hL0 : (0:ℝ) ≤ Real.log (N:ℝ) := by
+    linarith
+  have hk0 : (0:ℝ) ≤ (N.log2 : ℝ) := Nat.cast_nonneg _
+  push_cast
+  nlinarith [hlogpow, hc, hL, hL0, hk0]
 
 end ExpSums
 
