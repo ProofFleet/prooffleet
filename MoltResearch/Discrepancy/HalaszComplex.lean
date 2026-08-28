@@ -1263,4 +1263,138 @@ theorem rieszMeanC_survivors_to_tripleConvRC (f : ℕ → ℂ)
   have hc0 : (0:ℝ) ≤ 64 * (x:ℝ) / Real.log 2 := by positivity
   exact mul_le_mul_of_nonneg_left (le_trans hmono hmass) hc0
 
+
+open Real Finset in
+/-- The per-block trivial mass (restated: the capstone's copy is
+private): `∑_p (log p/(p·log(x/p)))·(∑_q log q/q) ≤ 16·(log B − log A)
++ 16·log 4` over primes of `[A,B)` with `2p ≤ x`. -/
+private theorem Sk_trivial_mass_le'' (x A B : ℕ) (hA : 1 ≤ A) (hAB : A ≤ B)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime ∧ A ≤ p ∧ p < B)
+    (h2P : ∀ p ∈ P, 2*p ≤ x) :
+    ∑ p ∈ P, (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+        * (∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ))
+      ≤ 16 * (Real.log (B:ℝ) - Real.log (A:ℝ)) + 16 * Real.log 4 := by
+  classical
+  have hterm : ∀ p ∈ P,
+      (Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * (∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ))
+        ≤ 4 * (Real.log (p:ℝ)/(p:ℝ)) := by
+    intro p hp
+    obtain ⟨hpp, hAp, hpB⟩ := hP p hp
+    have hp1 : 1 ≤ p := hpp.one_lt.le
+    exact inner_mertens_cancel x p hp1 (h2P p hp)
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  have hsub : P ⊆ (Finset.Ico A B).filter Nat.Prime := by
+    intro p hp
+    obtain ⟨hpp, hAp, hpB⟩ := hP p hp
+    simp only [Finset.mem_filter, Finset.mem_Ico]
+    exact ⟨⟨hAp, hpB⟩, hpp⟩
+  have hmono : ∑ p ∈ P, Real.log (p:ℝ)/(p:ℝ)
+      ≤ ∑ p ∈ (Finset.Ico A B).filter Nat.Prime, Real.log (p:ℝ)/(p:ℝ) :=
+    Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => div_nonneg (Real.log_natCast_nonneg i) (Nat.cast_nonneg _))
+  have hmass := sum_log_div_Ico_le_log A B hA hAB
+  linarith [hmono, hmass]
+
+open Real Finset in
+/-- **The trivial ℂ-Riesz block bound, fit-free** (Track R, A2-0): the
+mirror of `norm_tripleConvR_le''` — per-element `2p ≤ x` suffices, and
+
+  `‖tripleConvRC f x P‖ ≤ x·(16·(log B − log A) + 16·log 4)`. -/
+theorem norm_tripleConvRC_le'' (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1) (x A B : ℕ)
+    (hA : 1 ≤ A) (hAB : A ≤ B)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime ∧ A ≤ p ∧ p < B)
+    (h2P : ∀ p ∈ P, 2*p ≤ x) :
+    ‖tripleConvRC f x P‖
+      ≤ (x:ℝ) * (16 * (Real.log (B:ℝ) - Real.log (A:ℝ)) + 16 * Real.log 4) := by
+  classical
+  have hx0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  rw [tripleConvRC]
+  refine le_trans (norm_sum_le _ _) ?_
+  have hterm : ∀ p ∈ P,
+      ‖((Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+        * ∑ q ∈ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                f n * ((Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                  - Real.log (n:ℝ) : ℝ) : ℂ)‖
+      ≤ (x:ℝ) * ((Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+          * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)) := by
+    intro p hp
+    obtain ⟨hpp, hAp, hpB⟩ := hP p hp
+    have hp1 : 1 ≤ p := hpp.one_lt.le
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp1
+    have h2p : 2*p ≤ x := h2P p hp
+    have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+      rw [le_div_iff₀ hp0]
+      have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+      push_cast at hc
+      linarith
+    have hlogpos : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+    have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+    have hmid : ‖∑ q ∈ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+          * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+              f n * ((Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        ≤ ((x:ℝ)/(p:ℝ)) * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ) := by
+      refine le_trans (norm_sum_le _ _) ?_
+      rw [Finset.mul_sum]
+      refine Finset.sum_le_sum fun q hq => ?_
+      rw [Nat.mem_primesBelow] at hq
+      obtain ⟨hqlt, hqp⟩ := hq
+      have hq1 : 1 ≤ q := hqp.one_lt.le
+      have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq1
+      have hlogq : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+      have hpqx : p*q < x := by
+        have h1 : p*q < p*(x/p) := by
+          have hp0' : 0 < p := hpp.pos
+          exact (Nat.mul_lt_mul_left hp0').mpr hqlt
+        have h2 : p*(x/p) ≤ x := by
+          rw [Nat.mul_comm]; exact Nat.div_mul_le_self x p
+        omega
+      have hy1 : (1:ℝ) ≤ (x:ℝ)/((p:ℝ)*(q:ℝ)) := by
+        rw [le_div_iff₀ (by positivity)]
+        have : ((p*q : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast hpqx.le
+        push_cast at this; linarith
+      have hinner := norm_rieszMeanC_le' f hf
+        ((x:ℝ)/((p:ℝ)*(q:ℝ))) hy1
+      rw [norm_mul, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg hlogq]
+      calc Real.log (q:ℝ) * ‖f q‖
+            * ‖∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                f n * ((Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                  - Real.log (n:ℝ) : ℝ) : ℂ)‖
+          ≤ Real.log (q:ℝ) * 1 * ((x:ℝ)/((p:ℝ)*(q:ℝ))) := by
+            refine mul_le_mul (mul_le_mul_of_nonneg_left (hf q) hlogq)
+              hinner (norm_nonneg _) (by positivity)
+        _ = (x:ℝ)/(p:ℝ) * (Real.log (q:ℝ)/(q:ℝ)) := by field_simp
+    rw [norm_mul]
+    have houter : ‖(Real.log (p:ℝ) : ℂ) * f p
+        / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ)‖
+        ≤ Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)) := by
+      rw [norm_div, norm_mul, Complex.norm_real, Complex.norm_real,
+        Real.norm_eq_abs, Real.norm_eq_abs, abs_of_nonneg hlogp,
+        abs_of_nonneg hlogpos.le]
+      refine div_le_div_of_nonneg_right ?_ hlogpos.le
+      calc Real.log (p:ℝ) * ‖f p‖ ≤ Real.log (p:ℝ) * 1 :=
+            mul_le_mul_of_nonneg_left (hf p) hlogp
+        _ = Real.log (p:ℝ) := mul_one _
+    calc ‖(Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ)‖
+          * ‖∑ q ∈ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+              * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+                  f n * ((Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                    - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        ≤ (Real.log (p:ℝ) / Real.log ((x:ℝ)/(p:ℝ)))
+            * (((x:ℝ)/(p:ℝ)) * ∑ q ∈ (x/p).primesBelow,
+                Real.log (q:ℝ)/(q:ℝ)) := by
+          refine mul_le_mul houter hmid (norm_nonneg _) ?_
+          exact div_nonneg hlogp hlogpos.le
+      _ = (x:ℝ) * ((Real.log (p:ℝ)/((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ))))
+            * ∑ q ∈ (x/p).primesBelow, Real.log (q:ℝ)/(q:ℝ)) := by
+          field_simp
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  rw [← Finset.mul_sum]
+  exact mul_le_mul_of_nonneg_left
+    (Sk_trivial_mass_le'' x A B hA hAB P hP h2P) hx0
+
 end MoltResearch
