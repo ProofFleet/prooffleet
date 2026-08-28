@@ -1483,4 +1483,64 @@ theorem halaszM_band_le (x : ℕ) (hx : 10^16 ≤ x) (A : ℝ) (h1A : 1 ≤ A) :
     _ = 1 * (x:ℝ) := (one_mul _).symm
     _ ≤ A * (x:ℝ) := mul_le_mul_of_nonneg_right h1A hx0.le
 
+
+open Real Finset in
+/-- **The plain-sum log-free Halász bound** (Track R, M0R-6e, the M0R
+campaign's final product): for `10¹⁶ ≤ x ≤ X` and `f` completely
+multiplicative, `1`-bounded, non-pretentious at strength `A ≥ 1` at
+both scales,
+
+  `|∑_{n≤x} f(n)|·(log X − log x) ≤ Ĥ(X,A)/log X + Ĥ(x,A)/log x + (X−x)·(log X − log x)`,
+
+with `Ĥ(z,A)` the windowed Halász budget of `rieszMean_log_halasz_le`
+— every constant absolute, the quality `e⁵(2+log z)e^{−A}` log-free.
+The consumer picks the scale ratio: `log(X/x) ≍ e^{−A/2}` balances the
+two error groups (the √-loss), and any fixed ratio yields a
+`(1+A)e^{−A}·polylog + loglog/log`-type saving — exactly what the
+[mrt] A.2 layer's `ε`-form needs.  Both `hband`s are discharged by
+`halaszM_band_le`; the window hypotheses by `exists_section3_window`
+inside the windowed capstone. -/
+theorem plain_sum_le_halasz_of_nonPretentious (f : ℕ → ℝ)
+    (hf : ∀ n, |f n| ≤ 1) (hmul : ∀ a b, f (a*b) = f a * f b)
+    (h1 : f 1 = 1)
+    (x X : ℕ) (hx : 10^16 ≤ x) (hxX : x ≤ X)
+    (A : ℝ) (h1A : 1 ≤ A)
+    (hAx : NonPretentiousAt (fun n => ((f n : ℝ) : ℂ)) A x)
+    (hAX : NonPretentiousAt (fun n => ((f n : ℝ) : ℂ)) A X) :
+    |∑ n ∈ Finset.Icc 1 x, f n| * (Real.log (X:ℝ) - Real.log (x:ℝ))
+      ≤ (35*(X:ℝ) + (X:ℝ)*(Real.log (2*(Real.log (X:ℝ))^2) + 2)
+          + 2*((X:ℝ)+1)*Real.log 4
+          + 64 * (X:ℝ) / Real.log 2 * (Real.log ((X+1:ℕ):ℝ) + 2)
+          + (Real.log (Real.log (X:ℝ))
+              * ((X:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+                  * (((Real.log (2*(Real.log (X:ℝ))^2 + 1) + 2)^2
+                      + Real.log (X:ℝ) + 1)
+                    * (Real.exp 5 * (2 + Real.log (X:ℝ))
+                        * Real.exp (-A))^2 + 1)))
+                + 2*(X:ℝ)*Real.log 4)
+            + 2 * ((X:ℝ) * (16 * ((Real.exp 1 - 1)
+                * (Real.exp 1 * Real.log 2)
+                + Real.log 2) + 16 * Real.log 4)))) / Real.log (X:ℝ)
+        + (35*(x:ℝ) + (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2)
+          + 2*((x:ℝ)+1)*Real.log 4
+          + 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)
+          + (Real.log (Real.log (x:ℝ))
+              * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+                  * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+                      + Real.log (x:ℝ) + 1)
+                    * (Real.exp 5 * (2 + Real.log (x:ℝ))
+                        * Real.exp (-A))^2 + 1)))
+                + 2*(x:ℝ)*Real.log 4)
+            + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1)
+                * (Real.exp 1 * Real.log 2)
+                + Real.log 2) + 16 * Real.log 4)))) / Real.log (x:ℝ)
+        + ((X:ℝ) - (x:ℝ)) * (Real.log (X:ℝ) - Real.log (x:ℝ)) := by
+  have hX : 10^16 ≤ X := le_trans hx hxX
+  have hx2 : 2 ≤ x := le_trans (by norm_num) hx
+  have hRx := rieszMean_log_halasz_le f hf hmul h1 x hx A hAx h1A
+    (halaszM_band_le x hx A h1A)
+  have hRX := rieszMean_log_halasz_le f hf hmul h1 X hX A hAX h1A
+    (halaszM_band_le X hX A h1A)
+  exact plain_sum_le_of_riesz_bounds f hf x X hx2 hxX _ _ hRx hRX
+
 end MoltResearch
