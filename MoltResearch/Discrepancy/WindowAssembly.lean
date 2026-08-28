@@ -770,6 +770,206 @@ theorem exists_slice_window' (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
     (fun m => hη01 _) hψplat hψsupp
   exact le_trans hmain hc6
 
+
+open MeasureTheory Real in
+/-- **G10a: the per-slice energy, fully composed** (Track R, A2-III):
+the slice mean square priced end-to-end — the exported slice window,
+the explicit derivative slots (`C₀`/`B′`, discharged by
+`exists_bump_deriv_bound` at the schedule's ratio window), the
+collar/Lipschitz/Riemann costs, the regime split (G4) with the
+derivative energy (G3c), and the `𝒰`-band energy (G5).  Only
+`Mmid`/`Mtot` and the ratio-window data remain parametric — the
+schedule's business. -/
+theorem slice_energy_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (A s U H : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s) (hsA : s ≤ A) (hU : 0 < U)
+    (hUH : 2*U ≤ H) (h3H : 3*H ≤ A)
+    (hplat : ((U:ℝ)+1)*((A:ℝ)+s) ≤ (A:ℝ)*H)
+    (hfit : A + s + 2*H + 4*U ≤ 2*A + 1)
+    (C₀ B' : ℝ) (hB'0 : 0 ≤ B')
+    (hC₀ : ∀ (c : ℝ) (f : ContDiffBump c),
+      f.rIn = ((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+          - Real.log (1 + (U:ℝ)/A))/2 →
+      f.rOut - f.rIn = ((A:ℝ)/H)
+          * (min (Real.log (1 + (U:ℝ)/A)
+              - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+            (Real.log (1 + ((H:ℝ)+2*U)/A)
+              - Real.log (1 + (H:ℝ)/((A:ℝ)+s)))) →
+      ∀ u : ℝ, |deriv (⇑f) u| ≤ C₀/f.rIn)
+    (hB' : C₀/(((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+        - Real.log (1 + (U:ℝ)/A))/2) ≤ B')
+    (K L Mmid Mtot : ℝ) (hK : 0 ≤ K) (hL : 0 < L) (hMmid0 : 0 ≤ Mmid)
+    (hmid : ∀ ξ : ℝ, K ≤ |ξ| → |ξ| ≤ L →
+      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mmid)
+    (htot : ∀ ξ : ℝ,
+      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mtot)
+    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ q ∈ P, q.Prime) :
+    ∑ n ∈ Finset.Ioc A (A+s), ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n
+      ≤ 6*((4*(H:ℝ)/A)^2*((2*(A:ℝ)+1)^2
+            * uBound K levels A (A+s+2*H+4*U))
+          + Mmid^2*(4*(H:ℝ)/A)
+          + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)))
+        + (3*(U:ℝ)^2 + 3*(6*(U:ℝ)+(H:ℝ)*s/A+2)^2)
+            * (∑ n ∈ Finset.Ioc A (A+s), (1:ℝ)/n)
+        + 6*(800*(H:ℝ)*(A:ℝ)*B')/A := by
+  classical
+  have hH : 0 < H := by omega
+  have hA0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hH0 : (0:ℝ) < H := by exact_mod_cast hH
+  have hT : (0:ℝ) < (A:ℝ)/H := by positivity
+  have hT1 : (1:ℝ) ≤ (A:ℝ)/H := by
+    rw [le_div_iff₀ hH0]
+    have h3 : (3:ℝ)*H ≤ A := by exact_mod_cast h3H
+    linarith
+  obtain ⟨c, f, hrIn, hrOutsub, hηs, hη01, hη2, hcollar⟩ :=
+    exists_slice_window' h hb A s U H hA hs hsA hU hUH hplat
+  obtain ⟨B₂, hB₂0, hB₂, hd2⟩ := exists_deriv_bound (⇑f) hηs hη2
+  have hderiv : ∀ u : ℝ, |deriv (⇑f) u| ≤ B' := by
+    intro u
+    refine le_trans (hC₀ c f hrIn hrOutsub u) ?_
+    rw [hrIn]
+    exact hB'
+  have hf1 : ∀ u, |(⇑f) u| ≤ 1 := by
+    intro u
+    rw [abs_le]
+    exact ⟨by linarith [(hη01 u).1], (hη01 u).2⟩
+  have hS'pos : ∀ m ∈ Finset.Ioc A (A+s+2*H+4*U), 0 < m := by
+    intro m hm
+    rw [Finset.mem_Ioc] at hm
+    omega
+  have hS'A : ∀ m ∈ Finset.Ioc A (A+s+2*H+4*U), A ≤ m := by
+    intro m hm
+    rw [Finset.mem_Ioc] at hm
+    omega
+  have ha1 : ∀ m, ‖(fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+      then h m * (m:ℂ)/(4*(A:ℂ)) else 0) m‖ ≤ 1 := by
+    intro m
+    refine norm_truncated_weight_le h hb A (by omega) _ ?_ m
+    intro k hk
+    rw [Finset.mem_Ioc] at hk
+    omega
+  set G : ℝ → ℂ := fun y => (4*(H:ℂ)) * smoothedLogSum ((A:ℝ)/H) (⇑f)
+      (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+        then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+      (Finset.Ioc A (A+s+2*H+4*U)) y
+    with hG_def
+  have hGcont : Continuous G := by
+    rw [hG_def]
+    exact continuous_const.mul
+      ((smoothedLogSum_contDiff ((A:ℝ)/H) (⇑f) hηs _ _).continuous)
+  -- the collar at the smoothed form
+  have hcollar' : ∀ n ∈ Finset.Ioc A (A+s),
+      ‖((1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+          ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m) - G (Real.log n)‖
+        ≤ 6*(U:ℝ) + (H:ℝ)*s/A + 2 := by
+    intro n hn
+    have hcn := hcollar n hn
+    have hid := window_sum_eq_smoothedLogSum h A H (by omega) hH (⇑f)
+      (Finset.Ioc A (A+s+2*H+4*U)) hS'pos (Real.log n)
+    rw [hG_def]
+    dsimp only
+    rw [← hid]
+    exact hcn
+  -- the Lipschitz data
+  have hLip : ∀ y z : ℝ, |‖G y‖^2 - ‖G z‖^2|
+      ≤ (800*(H:ℝ)*(A:ℝ)*B') * |y - z| := by
+    intro y z
+    have hbase := abs_norm_sq_smoothedLogSum_sub_le ((A:ℝ)/H) hT1 (⇑f) hηs
+      hη2 1 hf1 hd2 B' hderiv _ ha1
+      (Finset.Ioc A (A+s+2*H+4*U)) A hS'A hA
+      (by
+        rw [div_le_iff₀ hH0]
+        have h1H : (1:ℝ) ≤ H := by exact_mod_cast hH
+        nlinarith) y z
+    have hGsq : ∀ w : ℝ, ‖G w‖^2
+        = 16*(H:ℝ)^2 * ‖smoothedLogSum ((A:ℝ)/H) (⇑f)
+            (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+              then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+            (Finset.Ioc A (A+s+2*H+4*U)) w‖^2 := by
+      intro w
+      rw [hG_def]
+      dsimp only
+      rw [norm_mul]
+      have h4H : ‖(4*(H:ℂ) : ℂ)‖ = 4*(H:ℝ) := by
+        rw [norm_mul, Complex.norm_natCast]
+        norm_num
+      rw [h4H, mul_pow]
+      ring
+    rw [hGsq y, hGsq z, ← mul_sub, abs_mul,
+      abs_of_nonneg (by positivity : (0:ℝ) ≤ 16*(H:ℝ)^2)]
+    calc 16*(H:ℝ)^2 * |‖smoothedLogSum ((A:ℝ)/H) (⇑f)
+          (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+            then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+          (Finset.Ioc A (A+s+2*H+4*U)) y‖^2
+        - ‖smoothedLogSum ((A:ℝ)/H) (⇑f)
+          (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+            then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+          (Finset.Ioc A (A+s+2*H+4*U)) z‖^2|
+        ≤ 16*(H:ℝ)^2 * ((50*1*B'*((A:ℝ)/H)) * |y - z|) :=
+          mul_le_mul_of_nonneg_left hbase (by positivity)
+      _ = (800*(H:ℝ)*(A:ℝ)*B') * |y - z| := by
+          field_simp
+          ring
+  -- the scaffold
+  have hmean := slice_window_mean_sq_le h hb A s H U hA hU (by omega)
+    G hGcont (6*(U:ℝ) + (H:ℝ)*s/A + 2) (by positivity) hcollar'
+    (800*(H:ℝ)*(A:ℝ)*B') (by positivity) hLip
+  -- interval energy → line energy
+  have hGcs : HasCompactSupport G := by
+    rw [hG_def]
+    have hfcs : HasCompactSupport (⇑f) := by
+      refine HasCompactSupport.intro
+        (isCompact_Icc (a := (-2:ℝ)) (b := 2)) ?_
+      intro u hu
+      by_contra hne
+      have h2 := hη2 u hne
+      rw [Set.mem_Icc, not_and_or] at hu
+      rw [abs_le] at h2
+      rcases hu with h | h
+      · push_neg at h
+        linarith [h2.1]
+      · push_neg at h
+        linarith [h2.2]
+    have := smoothedLogSum_hasCompactSupport ((A:ℝ)/H) hT (⇑f) hfcs
+      (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+        then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+      (Finset.Ioc A (A+s+2*H+4*U))
+    exact this.mul_left
+  have hG1 := intervalIntegral_norm_sq_le_integral G hGcont hGcs
+    (Real.log A) (Real.log (((A+s : ℕ):ℝ)+1))
+  -- the regime split with the derivative energy
+  have hG3c := integral_sq_norm_fourier_slice_window_le ((A:ℝ)/H) hT (⇑f)
+    hηs hη2 B' hB'0 hderiv hd2
+  have hG4 := window_energy_regime_le h A s H U hA hH (⇑f) hηs hη01 hη2
+    K L Mmid Mtot ((A:ℝ)/H*B'^2/π^2) hK hL hMmid0 hmid htot hG3c
+  -- the band energy through the 𝒰-recursion
+  have hG5 := intervalIntegral_norm_sq_plain_le K hK levels hlv
+    A (A+s+2*H+4*U) hfit (Finset.Ioc A (A+s+2*H+4*U))
+    (Finset.Subset.refl _) h hb
+  -- assemble
+  have hint : ∫ y, ‖G y‖^2
+      ≤ (4*(H:ℝ)/A)^2*((2*(A:ℝ)+1)^2
+          * uBound K levels A (A+s+2*H+4*U))
+        + Mmid^2*(4*(H:ℝ)/A)
+        + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)) := by
+    have hG4' : ∫ y, ‖G y‖^2
+        ≤ (4*(H:ℝ)/A)^2
+            * (∫ ξ in (-K)..K, ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+                h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+          + Mmid^2*(4*(H:ℝ)/A) + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)) := hG4
+    refine le_trans hG4' ?_
+    have := mul_le_mul_of_nonneg_left hG5
+      (by positivity : (0:ℝ) ≤ (4*(H:ℝ)/A)^2)
+    linarith
+  have hstep : ∫ y in (Real.log A)..(Real.log (((A+s : ℕ):ℝ)+1)), ‖G y‖^2
+      ≤ (4*(H:ℝ)/A)^2*((2*(A:ℝ)+1)^2
+          * uBound K levels A (A+s+2*H+4*U))
+        + Mmid^2*(4*(H:ℝ)/A)
+        + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)) := le_trans hG1 hint
+  have h6 := mul_le_mul_of_nonneg_left hstep (by norm_num : (0:ℝ) ≤ 6)
+  linarith [hmean, h6]
+
 end ExpSums
 
 end MoltResearch
