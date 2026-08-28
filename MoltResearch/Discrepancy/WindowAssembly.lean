@@ -461,6 +461,27 @@ theorem norm_sum_Ioc_le_two_prefix (f : ℕ → ℂ) (a b : ℕ) (hab : a ≤ b)
         norm_sub_le _ _
     _ ≤ 2*E := by linarith
 
+
+open Finset in
+/-- **G8: slice aggregation** (Track R, A2-III): per-slice bounds sum
+over the `B2′` slice partition to a bound on the full range. -/
+theorem sum_Ioc_le_of_slice_bounds (A s J : ℕ) (f : ℕ → ℝ) (B : ℕ → ℝ)
+    (hslice : ∀ j ∈ Finset.range J,
+      ∑ n ∈ Finset.Ioc (A + j*s) (A + (j+1)*s), f n ≤ B j) :
+    ∑ n ∈ Finset.Ioc A (A + J*s), f n ≤ ∑ j ∈ Finset.range J, B j := by
+  rw [← sum_range_sum_Ioc_slices]
+  exact Finset.sum_le_sum hslice
+
+open Finset in
+/-- **G8, uniform form** (Track R, A2-III): a uniform per-slice budget
+costs `J` times itself. -/
+theorem sum_Ioc_le_of_slice_bounds_const (A s J : ℕ) (f : ℕ → ℝ) (B : ℝ)
+    (hslice : ∀ j ∈ Finset.range J,
+      ∑ n ∈ Finset.Ioc (A + j*s) (A + (j+1)*s), f n ≤ B) :
+    ∑ n ∈ Finset.Ioc A (A + J*s), f n ≤ (J:ℝ) * B := by
+  refine le_trans (sum_Ioc_le_of_slice_bounds A s J f (fun _ => B) hslice) ?_
+  rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+
 end ExpSums
 
 end MoltResearch
