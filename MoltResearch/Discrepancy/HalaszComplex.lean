@@ -292,4 +292,38 @@ theorem rieszC_smoothed_sum_le_one (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 
 
 end ExpSums
 
+
+open Real Finset in
+/-- **The ℂ-Riesz triple convolution, realised** (Track R, A2-0): the
+mirror of `tripleConvR_eq_scaled` — termwise
+`rieszMeanC_eq_window_sum` at `y = x/pq`, an identity with no `ρ` and
+no edge budget. -/
+theorem tripleConvRC_eq_scaled (f : ℕ → ℂ) (x : ℕ) (hx : 0 < x)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, 0 < p) :
+    tripleConvRC f x P
+      = ∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+          * ∑ q ∈ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+              * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+                * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℂ))
+                    * ((ExpSums.rieszWindow
+                        (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                          - Real.log (n:ℝ)) : ℝ) : ℂ)) := by
+  classical
+  have hxR : (0:ℝ) < (x:ℝ) := by exact_mod_cast hx
+  rw [tripleConvRC]
+  refine Finset.sum_congr rfl fun p hp => ?_
+  refine congrArg _ (Finset.sum_congr rfl fun q hq => ?_)
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hP p hp
+  have hqp : q.Prime := (Nat.mem_primesBelow.mp hq).2
+  have hq0 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hqp.pos
+  have hy0 : (0:ℝ) < (x:ℝ)/((p:ℝ)*(q:ℝ)) := by positivity
+  have hp1 : (1:ℝ) ≤ (p:ℝ) := by exact_mod_cast hP p hp
+  have hq1 : (1:ℝ) ≤ (q:ℝ) := by exact_mod_cast hqp.one_lt.le
+  have hyx : (x:ℝ)/((p:ℝ)*(q:ℝ)) ≤ (x:ℝ) := by
+    rw [div_le_iff₀ (by positivity)]
+    have hpq1 : (1:ℝ) ≤ (p:ℝ)*(q:ℝ) := by nlinarith
+    nlinarith [mul_le_mul_of_nonneg_left hpq1 hxR.le]
+  refine congrArg _ ?_
+  exact ExpSums.rieszMeanC_eq_window_sum f ((x:ℝ)/((p:ℝ)*(q:ℝ))) hy0 x hyx
+
 end MoltResearch
