@@ -1189,4 +1189,52 @@ theorem plain_sum_mul_log_ratio_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
         + ((x:ℝ) - (x':ℝ)) * (Real.log (x:ℝ) - Real.log (x':ℝ)) := by
       linarith [hedge]
 
+
+open Real Finset in
+/-- **The plain sum from two Riesz-mean bounds** (Track R, M0R-6b):
+abstract glue over the differencing lemma — if the log-weighted Riesz
+means at a target scale `x` and a top scale `X` are priced
+(`|R(x)·log x| ≤ Bx`, `|R(X)·log X| ≤ BX`), then
+
+  `|S(x)|·(log X − log x) ≤ BX/log X + Bx/log x + (X−x)·(log X − log x)`.
+
+`B`-parametric on purpose: the Halász instantiation (`#3443` at both
+scales) and the scale-ratio choice `log(X/x) ≍ e^{−A/2}` happen at
+packaging time, keeping this statement small. -/
+theorem plain_sum_le_of_riesz_bounds (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x X : ℕ) (hx2 : 2 ≤ x) (hxX : x ≤ X)
+    (Bx BX : ℝ)
+    (hRx : |(∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        * Real.log (x:ℝ)| ≤ Bx)
+    (hRX : |(∑ n ∈ Finset.Icc 1 X, f n * (Real.log (X:ℝ) - Real.log (n:ℝ)))
+        * Real.log (X:ℝ)| ≤ BX) :
+    |∑ n ∈ Finset.Icc 1 x, f n| * (Real.log (X:ℝ) - Real.log (x:ℝ))
+      ≤ BX / Real.log (X:ℝ) + Bx / Real.log (x:ℝ)
+        + ((X:ℝ) - (x:ℝ)) * (Real.log (X:ℝ) - Real.log (x:ℝ)) := by
+  have hLx : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have hLX : (0:ℝ) < Real.log (X:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ X))
+  -- each Riesz mean is priced by its budget over its own log
+  have hRx' : |∑ n ∈ Finset.Icc 1 x,
+      f n * (Real.log (x:ℝ) - Real.log (n:ℝ))| ≤ Bx / Real.log (x:ℝ) := by
+    rw [le_div_iff₀ hLx]
+    calc |∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ))|
+          * Real.log (x:ℝ)
+        = |(∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+            * Real.log (x:ℝ)| := by
+          rw [abs_mul, abs_of_pos hLx]
+      _ ≤ Bx := hRx
+  have hRX' : |∑ n ∈ Finset.Icc 1 X,
+      f n * (Real.log (X:ℝ) - Real.log (n:ℝ))| ≤ BX / Real.log (X:ℝ) := by
+    rw [le_div_iff₀ hLX]
+    calc |∑ n ∈ Finset.Icc 1 X, f n * (Real.log (X:ℝ) - Real.log (n:ℝ))|
+          * Real.log (X:ℝ)
+        = |(∑ n ∈ Finset.Icc 1 X, f n * (Real.log (X:ℝ) - Real.log (n:ℝ)))
+            * Real.log (X:ℝ)| := by
+          rw [abs_mul, abs_of_pos hLX]
+      _ ≤ BX := hRX
+  have hdiff := plain_sum_mul_log_ratio_le f hf x X (by omega) hxX
+  linarith [hdiff, hRx', hRX']
+
 end MoltResearch
