@@ -23,6 +23,7 @@ import MoltResearch.Discrepancy.HalaszTripleG
 import MoltResearch.Discrepancy.HalaszCapstone
 import MoltResearch.Discrepancy.HalaszComplex
 import MoltResearch.Discrepancy.TypicalFactorization
+import MoltResearch.Discrepancy.WindowAssembly
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
