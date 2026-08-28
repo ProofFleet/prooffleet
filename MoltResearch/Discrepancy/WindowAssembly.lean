@@ -594,6 +594,77 @@ theorem integral_sq_norm_fourier_slice_window_le (T : ℝ) (hT : 0 < T)
   rw [le_div_iff₀ hπ2]
   linarith [hgoal]
 
+
+open Metric in
+/-- **The bump window with exported radii** (Track R, A2): the variant
+of `exists_bump_window` exposing the `ContDiffBump` structure and its
+exact radii — `rIn = T(t₂−t₁)/2`, `rOut − rIn = T·min(t₁−t₀, t₃−t₂)` —
+so the uniform derivative bound (`exists_bump_deriv_bound`) can price
+the window's Lipschitz data explicitly. -/
+theorem exists_bump_window' (T t₀ t₁ t₂ t₃ : ℝ) (hT : 0 < T) (h0 : 0 < t₀)
+    (h01 : t₀ < t₁) (h12 : t₁ < t₂) (h23 : t₂ < t₃) (h3 : T * t₃ ≤ 2) :
+    ∃ (c : ℝ) (f : ContDiffBump c),
+      f.rIn = T*(t₂-t₁)/2
+      ∧ f.rOut = T*(t₂-t₁)/2 + T*(min (t₁-t₀) (t₃-t₂))
+      ∧ ContDiff ℝ ∞ (⇑f) ∧ (∀ u, 0 ≤ f u ∧ f u ≤ 1)
+      ∧ (∀ u, -(T*t₂) ≤ u → u ≤ -(T*t₁) → f u = 1)
+      ∧ (∀ u, f u ≠ 0 → -(T*t₃) < u ∧ u < -(T*t₀))
+      ∧ (∀ u, f u ≠ 0 → |u| ≤ 2) := by
+  classical
+  set c : ℝ := -(T*(t₁+t₂)/2) with hc_def
+  set rIn : ℝ := T*(t₂-t₁)/2 with hrIn_def
+  set rOut : ℝ := rIn + T*(min (t₁-t₀) (t₃-t₂)) with hrOut_def
+  have hrIn_pos : 0 < rIn := by
+    rw [hrIn_def]
+    nlinarith
+  have hmin_pos : 0 < min (t₁-t₀) (t₃-t₂) := by
+    rw [lt_min_iff]
+    constructor <;> linarith
+  have hrlt : rIn < rOut := by
+    rw [hrOut_def]
+    nlinarith
+  set f : ContDiffBump c := ⟨rIn, rOut, hrIn_pos, hrlt⟩ with hf_def
+  refine ⟨c, f, rfl, by rw [hrOut_def, hrIn_def], f.contDiff,
+    fun u => ⟨f.nonneg, f.le_one⟩, ?_, ?_, ?_⟩
+  · -- the plateau
+    intro u h1 h2
+    refine f.one_of_mem_closedBall ?_
+    rw [Metric.mem_closedBall, Real.dist_eq]
+    show |u - c| ≤ rIn
+    rw [abs_le]
+    have hcv : c = -(T*(t₁+t₂)/2) := hc_def
+    have hrv : rIn = T*(t₂-t₁)/2 := hrIn_def
+    constructor <;> nlinarith [hcv, hrv]
+  · -- the support
+    intro u hne
+    have hmem : u ∈ Function.support (fun u => f u) := hne
+    rw [f.support_eq, Metric.mem_ball, Real.dist_eq] at hmem
+    have hmem' : |u - c| < rOut := hmem
+    rw [abs_lt] at hmem'
+    have hmin1 : min (t₁-t₀) (t₃-t₂) ≤ t₁-t₀ := min_le_left _ _
+    have hmin2 : min (t₁-t₀) (t₃-t₂) ≤ t₃-t₂ := min_le_right _ _
+    have hcv : c = -(T*(t₁+t₂)/2) := hc_def
+    have hrv : rOut = T*(t₂-t₁)/2 + T*(min (t₁-t₀) (t₃-t₂)) := by
+      rw [hrOut_def, hrIn_def]
+    constructor
+    · nlinarith [hmem'.1, hcv, hrv]
+    · nlinarith [hmem'.2, hcv, hrv]
+  · -- the support is within [−2, 2]
+    intro u hne
+    have hmem : u ∈ Function.support (fun u => f u) := hne
+    rw [f.support_eq, Metric.mem_ball, Real.dist_eq] at hmem
+    have hmem' : |u - c| < rOut := hmem
+    rw [abs_lt] at hmem'
+    have hmin1 : min (t₁-t₀) (t₃-t₂) ≤ t₁-t₀ := min_le_left _ _
+    have hmin2 : min (t₁-t₀) (t₃-t₂) ≤ t₃-t₂ := min_le_right _ _
+    have hcv : c = -(T*(t₁+t₂)/2) := hc_def
+    have hrv : rOut = T*(t₂-t₁)/2 + T*(min (t₁-t₀) (t₃-t₂)) := by
+      rw [hrOut_def, hrIn_def]
+    rw [abs_le]
+    constructor
+    · nlinarith [hmem'.1, hcv, hrv]
+    · nlinarith [hmem'.2, hcv, hrv, mul_pos hT h0]
+
 end ExpSums
 
 end MoltResearch
