@@ -172,6 +172,145 @@ theorem integral_norm_sq_fourier_slice_window_le (T : ℝ) (hT : 0 < T)
             linarith : (0:ℝ) ≤ 2/T - (-(2/T)))]
         ring
 
+
+open MeasureTheory in
+/-- **G4, the pivot** (Track R, A2-II): the slice frequency energy
+through the regime split — for `1`-bounded-in-norm `h` on the slice
+index range `S`, the smoothed-window line energy is priced by the
+low-band interval energy of the *plain* phase polynomial (the weight
+identity `4H·(A/H)·(h·m/(4A))/m = h`), the mid-regime sup, and the
+derivative-energy tail:
+
+  `∫‖4H·sLS‖² ≤ (4H/A)²·∫_{−K}^{K}‖P‖² + Mmid²·(4H/A) + Mtot²·Eder/L²`.
+
+`smoothedLogSum_eq_sum_translates` + `window_profile_props` put the
+integrand in the harness's translate class; `regime_split` does the
+work; G3 supplies the window constants. -/
+theorem window_energy_regime_le (h : ℕ → ℂ)
+    (A s H U : ℕ) (hA : 1 ≤ A) (hH : 0 < H)
+    (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η)
+    (hη01 : ∀ u, 0 ≤ η u ∧ η u ≤ 1) (hη2 : ∀ u, η u ≠ 0 → |u| ≤ 2)
+    (K L Mmid Mtot Eder : ℝ) (hK : 0 ≤ K) (hL : 0 < L)
+    (hMmid0 : 0 ≤ Mmid)
+    (hmid : ∀ ξ : ℝ, K ≤ |ξ| → |ξ| ≤ L →
+      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mmid)
+    (htot : ∀ ξ : ℝ,
+      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mtot)
+    (hder : ∫ ξ, ξ^2 * ‖𝓕 (fun v =>
+        ((η (((A:ℝ)/H)*v) : ℝ) : ℂ)) ξ‖^2 ≤ Eder) :
+    ∫ y, ‖(4*(H:ℂ)) * smoothedLogSum ((A:ℝ)/H) η
+        (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+          then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+        (Finset.Ioc A (A+s+2*H+4*U)) y‖^2
+      ≤ (4*(H:ℝ)/A)^2
+          * (∫ ξ in (-K)..K, ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+              h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+        + Mmid^2 * (4*(H:ℝ)/A) + Mtot^2 * ((1/L^2) * Eder) := by
+  classical
+  have hAR : (0:ℝ) < (A:ℝ) := by exact_mod_cast (by omega : 0 < A)
+  have hHR : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+  set T : ℝ := (A:ℝ)/H with hT_def
+  have hT : 0 < T := by positivity
+  set S : Finset ℕ := Finset.Ioc A (A+s+2*H+4*U) with hS_def
+  set F : ℝ → ℂ := fun v => ((η (T*v) : ℝ) : ℂ) with hF_def
+  obtain ⟨hFc, hFs⟩ := window_profile_props T hT η hηs hη2
+  -- the weight identity: the translate weights are the raw `h`
+  have htrans : ∀ y : ℝ, (4*(H:ℂ)) * smoothedLogSum T η
+      (fun m => if m ∈ S then h m * (m:ℂ)/(4*(A:ℂ)) else 0) S y
+      = ∑ m ∈ S, h m * F (y - Real.log m) := by
+    intro y
+    rw [smoothedLogSum_eq_sum_translates, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun m hm => ?_
+    rw [if_pos hm]
+    have hm1 : 1 ≤ m := by
+      rw [hS_def, Finset.mem_Ioc] at hm
+      omega
+    have hmC : (m:ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+    have hAC : ((A:ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+    have hHC : ((H:ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+    have hTC : ((T:ℝ):ℂ) = ((A:ℕ):ℂ)/((H:ℕ):ℂ) := by
+      rw [hT_def]
+      push_cast
+      ring
+    rw [hF_def, hTC]
+    field_simp
+  have hcongr : ∫ y, ‖(4*(H:ℂ)) * smoothedLogSum T η
+      (fun m => if m ∈ S then h m * (m:ℂ)/(4*(A:ℂ)) else 0) S y‖^2
+      = ∫ y, ‖∑ m ∈ S, h m * F (y - Real.log m)‖^2 :=
+    integral_congr_ae (Filter.Eventually.of_forall fun y => by
+      simpa using congrArg (fun z : ℂ => ‖z‖^2) (htrans y))
+  rw [hcongr]
+  -- the regime split
+  have hsplit := integral_norm_sq_sum_translates_regime_split F hFc hFs
+    S h (fun m => Real.log m) K L Mmid Mtot hL hMmid0
+    (fun ξ h1 h2 => hmid ξ h1 h2) (fun ξ => htot ξ)
+  refine le_trans hsplit ?_
+  -- the phase polynomial and its continuity
+  set P : ℝ → ℂ := fun ξ => ∑ m ∈ S,
+      h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+    with hP_def
+  have hPc : Continuous P := by
+    rw [hP_def]
+    refine continuous_finset_sum _ fun m _ => ?_
+    exact continuous_const.mul
+      (Continuous.comp continuous_subtype_val
+        (Real.continuous_fourierChar.comp (by fun_prop)))
+  -- low band: sup out the window transform, then close the ball
+  have hFsup : ∀ ξ : ℝ, ‖𝓕 F ξ‖ ≤ 4/T := by
+    intro ξ
+    rw [hF_def]
+    exact norm_fourier_slice_window_le T hT η hηs.continuous hη01 hη2 ξ
+  have hFF : Continuous (𝓕 F) :=
+    VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar
+      (by fun_prop) (hFs.continuous.integrable_of_hasCompactSupport hFc)
+  have hlow : ∫ ξ in {ξ : ℝ | |ξ| < K}, ‖P ξ‖^2 * ‖𝓕 F ξ‖^2
+      ≤ (4/T)^2 * ∫ ξ in (-K)..K, ‖P ξ‖^2 := by
+    have hball : {ξ : ℝ | |ξ| < K} = Set.Ioo (-K) K := by
+      ext ξ
+      simp [abs_lt]
+    have hint1 : IntegrableOn (fun ξ => ‖P ξ‖^2 * ‖𝓕 F ξ‖^2)
+        (Set.Ioo (-K) K) :=
+      (((hPc.norm.pow 2).mul (hFF.norm.pow 2)).integrableOn_Icc).mono_set
+        Set.Ioo_subset_Icc_self
+    have hint2 : IntegrableOn (fun ξ => (4/T)^2 * ‖P ξ‖^2)
+        (Set.Ioo (-K) K) :=
+      ((continuous_const.mul (hPc.norm.pow 2)).integrableOn_Icc).mono_set
+        Set.Ioo_subset_Icc_self
+    have hmono : ∫ ξ in Set.Ioo (-K) K, ‖P ξ‖^2 * ‖𝓕 F ξ‖^2
+        ≤ ∫ ξ in Set.Ioo (-K) K, (4/T)^2 * ‖P ξ‖^2 := by
+      refine setIntegral_mono_on hint1 hint2 measurableSet_Ioo fun ξ _ => ?_
+      have h1 := hFsup ξ
+      have h2 : ‖𝓕 F ξ‖^2 ≤ (4/T)^2 := by
+        have h40 : (0:ℝ) ≤ 4/T := by positivity
+        nlinarith [norm_nonneg (𝓕 F ξ)]
+      nlinarith [sq_nonneg ‖P ξ‖, norm_nonneg (P ξ)]
+    have hIoo_le : ∫ ξ in Set.Ioo (-K) K, (4/T)^2 * ‖P ξ‖^2
+        ≤ (4/T)^2 * ∫ ξ in (-K)..K, ‖P ξ‖^2 := by
+      rw [intervalIntegral.integral_of_le (by linarith),
+        ← integral_Ioc_eq_integral_Ioo, ← integral_const_mul]
+    rw [hball]
+    linarith [hmono, hIoo_le]
+  -- middle: the window mass
+  have hmidE : Mmid^2 * (∫ ξ, ‖𝓕 F ξ‖^2) ≤ Mmid^2 * (4/T) := by
+    refine mul_le_mul_of_nonneg_left ?_ (sq_nonneg Mmid)
+    rw [hF_def]
+    exact integral_norm_sq_fourier_slice_window_le T hT η hηs hη01 hη2
+  -- tail: the derivative energy
+  have htailE : Mtot^2 * ((1/L^2) * ∫ ξ, ξ^2 * ‖𝓕 F ξ‖^2)
+      ≤ Mtot^2 * ((1/L^2) * Eder) := by
+    refine mul_le_mul_of_nonneg_left ?_ (sq_nonneg Mtot)
+    refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+    rw [hF_def, hT_def]
+    exact hder
+  -- the T-arithmetic and assembly
+  have hTid : 4/T = 4*(H:ℝ)/A := by
+    rw [hT_def]
+    field_simp
+  rw [hTid] at hlow hmidE
+  linarith [hlow, hmidE, htailE]
+
 end ExpSums
 
 end MoltResearch
