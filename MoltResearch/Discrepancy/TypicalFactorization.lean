@@ -138,4 +138,100 @@ theorem sifted_logavg_le (ε : ℝ) (hε : 0 < ε) :
       |((P.filter (· ∣ n)).card : ℝ)/(∑ p ∈ P, (1:ℝ)/p) - 1| / n :=
     Finset.sum_nonneg fun n _ => by positivity
   linarith
+
+open Real Finset in
+/-- **The typical set's complement is log-thin** (Track R, A2-I): the
+multi-level telescope over `sifted_logavg_le` — for any `ε > 0` there
+is a mass threshold `E₀` such that any family of prime blocks, each of
+mass `≥ E₀` (with the Turán–Kubilius side conditions), has
+
+  `∑_{n < N, n ∉ 𝒮} 1/n ≤ (#levels)·ε·log N`.
+
+Missing membership means missing some level, and each level's
+exceptional set is priced by `sifted_logavg_le`. -/
+theorem typicalS_complement_logavg_le (ε : ℝ) (hε : 0 < ε) :
+    ∃ E₀ : ℝ, 0 < E₀ ∧ ∀ levels : List (Finset ℕ),
+      (∀ P ∈ levels, ∀ p ∈ P, p.Prime) →
+      ∀ N Pmax : ℕ, (∀ P ∈ levels, ∀ p ∈ P, p ≤ Pmax) → 2*Pmax ≤ N →
+      (∀ P ∈ levels, E₀ ≤ ∑ p ∈ P, (1:ℝ)/p) →
+      (∀ P ∈ levels, (∑ p ∈ P, (1:ℝ)/p) ≤ Real.log N) →
+      Real.log (Pmax+1) ≤ Real.log N →
+      1 ≤ Real.log N →
+      ∑ n ∈ (Finset.Ico 1 N).filter
+          (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
+        ≤ (levels.length : ℝ) * ε * Real.log N := by
+  obtain ⟨E₀, hE₀0, hsift⟩ := sifted_logavg_le ε hε
+  refine ⟨E₀, hE₀0, ?_⟩
+  intro levels
+  induction levels with
+  | nil =>
+      intro _ N Pmax _ _ _ _ _ _
+      simp
+  | cons P rest ih =>
+      intro hPr N Pmax hPle h2P hE hEA hBA hA1
+      have hPr' : ∀ Q ∈ rest, ∀ p ∈ Q, p.Prime :=
+        fun Q hQ => hPr Q (List.mem_cons_of_mem _ hQ)
+      have hPle' : ∀ Q ∈ rest, ∀ p ∈ Q, p ≤ Pmax :=
+        fun Q hQ => hPle Q (List.mem_cons_of_mem _ hQ)
+      have hE' : ∀ Q ∈ rest, E₀ ≤ ∑ p ∈ Q, (1:ℝ)/p :=
+        fun Q hQ => hE Q (List.mem_cons_of_mem _ hQ)
+      have hEA' : ∀ Q ∈ rest, (∑ p ∈ Q, (1:ℝ)/p) ≤ Real.log N :=
+        fun Q hQ => hEA Q (List.mem_cons_of_mem _ hQ)
+      have hrest := ih hPr' N Pmax hPle' h2P hE' hEA' hBA hA1
+      have hhead := hsift P (hPr P (List.mem_cons_self ..)) N Pmax
+        (hPle P (List.mem_cons_self ..)) h2P
+        (hE P (List.mem_cons_self ..)) (hEA P (List.mem_cons_self ..))
+        hBA hA1
+      -- the union bound: missing `P :: rest` means missing `P` or missing `rest`
+      have hsub : (Finset.Ico 1 N).filter
+          (fun n => ¬ HasFactorInAll (P :: rest) n)
+          ⊆ ((Finset.Ico 1 N).filter
+              (fun n => (P.filter (· ∣ n)).card = 0))
+            ∪ ((Finset.Ico 1 N).filter
+              (fun n => ¬ HasFactorInAll rest n)) := by
+        intro n hn
+        rw [Finset.mem_filter] at hn
+        rw [Finset.mem_union, Finset.mem_filter, Finset.mem_filter]
+        rw [hasFactorInAll_cons, not_and_or] at hn
+        rcases hn.2 with h | h
+        · exact Or.inl ⟨hn.1, by omega⟩
+        · exact Or.inr ⟨hn.1, h⟩
+      have hmono := Finset.sum_le_sum_of_subset_of_nonneg hsub
+        (fun n _ _ => by positivity :
+          ∀ n ∈ ((Finset.Ico 1 N).filter
+              (fun n => (P.filter (· ∣ n)).card = 0))
+            ∪ ((Finset.Ico 1 N).filter
+              (fun n => ¬ HasFactorInAll rest n)),
+            n ∉ (Finset.Ico 1 N).filter
+              (fun n => ¬ HasFactorInAll (P :: rest) n) → (0:ℝ) ≤ 1/n)
+      have hunion : ∑ n ∈ ((Finset.Ico 1 N).filter
+            (fun n => (P.filter (· ∣ n)).card = 0))
+          ∪ ((Finset.Ico 1 N).filter
+            (fun n => ¬ HasFactorInAll rest n)), (1:ℝ)/n
+          ≤ (∑ n ∈ (Finset.Ico 1 N).filter
+              (fun n => (P.filter (· ∣ n)).card = 0), (1:ℝ)/n)
+            + ∑ n ∈ (Finset.Ico 1 N).filter
+              (fun n => ¬ HasFactorInAll rest n), (1:ℝ)/n := by
+        have hui := Finset.sum_union_inter
+          (s₁ := (Finset.Ico 1 N).filter
+            (fun n => (P.filter (· ∣ n)).card = 0))
+          (s₂ := (Finset.Ico 1 N).filter
+            (fun n => ¬ HasFactorInAll rest n))
+          (f := fun n => (1:ℝ)/n)
+        have hint : (0:ℝ) ≤ ∑ n ∈ ((Finset.Ico 1 N).filter
+            (fun n => (P.filter (· ∣ n)).card = 0))
+          ∩ ((Finset.Ico 1 N).filter
+            (fun n => ¬ HasFactorInAll rest n)), (1:ℝ)/n :=
+          Finset.sum_nonneg fun n _ => by positivity
+        linarith
+      have hlen : ((P :: rest).length : ℝ) = (rest.length : ℝ) + 1 := by
+        simp
+      rw [hlen]
+      calc ∑ n ∈ (Finset.Ico 1 N).filter
+            (fun n => ¬ HasFactorInAll (P :: rest) n), (1:ℝ)/n
+          ≤ _ := hmono
+        _ ≤ _ := hunion
+        _ ≤ ε * Real.log N + (rest.length : ℝ) * ε * Real.log N := by
+            linarith [hhead, hrest]
+        _ = ((rest.length : ℝ) + 1) * ε * Real.log N := by ring
 end MoltResearch
