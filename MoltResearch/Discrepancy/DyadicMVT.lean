@@ -3222,6 +3222,110 @@ theorem intervalIntegral_norm_sq_short_poly_le (A Δ : ℕ)
       _ = (Real.log Δ + 1) * (∑ p ∈ S, (1:ℝ)/p) := by rw [Finset.mul_sum]
   linarith [hgaptot, le_of_eq hdiagtot]
 
+
+/-- **The short-interval mean value theorem, weighted** (Track R,
+A2-III, N3-e): the `1`-bounded hypothesis of
+`intervalIntegral_norm_sq_short_poly_le` relaxed to any uniform
+coefficient bound `B`, paid by `B²` — the form the anchored-remainder
+polynomial of the plain split consumes (its coefficients are
+`(n−A)·c_n`-sized, so `B := Δ`). -/
+theorem intervalIntegral_norm_sq_short_poly_le_of_bound (A Δ : ℕ)
+    (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A) (S : Finset ℕ)
+    (hSlow : ∀ n ∈ S, A < n) (hShigh : ∀ n ∈ S, n ≤ A + Δ)
+    (a : ℕ → ℂ) (B : ℝ) (hB : 0 < B) (ha : ∀ n, ‖a n‖ ≤ B)
+    (L : ℝ) (hL : 0 ≤ L) :
+    ∫ ξ in (-L)..L,
+        ‖∑ n ∈ S, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      ≤ B^2*(2*L*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+        + (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
+  classical
+  have hBne : (B:ℂ) ≠ 0 := by
+    simpa using (ne_of_gt hB)
+  have hnorm : ∀ n : ℕ, ‖(fun m => a m/(B:ℂ)) n‖ ≤ 1 := by
+    intro n
+    rw [norm_div, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hB,
+      div_le_one hB]
+    exact ha n
+  have hbase := intervalIntegral_norm_sq_short_poly_le A Δ hΔ hΔA S
+    hSlow hShigh (fun m => a m/(B:ℂ)) hnorm L hL
+  have hpt : ∀ ξ : ℝ, ‖∑ n ∈ S, (a n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      = B^2 * ‖∑ n ∈ S, ((a n/(B:ℂ))/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 := by
+    intro ξ
+    have hfac : ∑ n ∈ S, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)
+        = (B:ℂ) * ∑ n ∈ S, ((a n/(B:ℂ))/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl fun n _ => ?_
+      field_simp
+    rw [hfac, norm_mul, mul_pow, Complex.norm_real, Real.norm_eq_abs,
+      abs_of_pos hB]
+  calc ∫ ξ in (-L)..L, ‖∑ n ∈ S, (a n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      = ∫ ξ in (-L)..L, B^2 * ‖∑ n ∈ S, ((a n/(B:ℂ))/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 := by
+        exact intervalIntegral.integral_congr (fun ξ _ => hpt ξ)
+    _ = B^2 * ∫ ξ in (-L)..L, ‖∑ n ∈ S, ((a n/(B:ℂ))/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 :=
+        intervalIntegral.integral_const_mul _ _
+    _ ≤ B^2*(2*L*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+        + (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
+        refine mul_le_mul_of_nonneg_left hbase (by positivity)
+
+/-- **The plain split at the block anchor** (Track R, A2-III, N3-d):
+an unnormalized phase polynomial on a block splits, termwise via
+`c = A·(c/n) + (n−A)·c/n`, into `2A²` times the `1/n`-normalized
+polynomial plus twice the `(n−A)`-anchored remainder — the bridge
+from the harness's plain weights to the mean-value normal form. -/
+theorem norm_sq_plain_split (A : ℕ) (S : Finset ℕ)
+    (hS : ∀ n ∈ S, 0 < n) (c : ℕ → ℂ) (ξ : ℝ) :
+    ‖∑ n ∈ S, c n
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      ≤ 2*((A:ℝ))^2 * ‖∑ n ∈ S, (c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+        + 2*‖∑ n ∈ S, (((n:ℂ) - (A:ℂ)) * c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 := by
+  classical
+  have hsplit : ∑ n ∈ S, c n
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)
+      = (A:ℂ) * (∑ n ∈ S, (c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))
+        + ∑ n ∈ S, (((n:ℂ) - (A:ℂ)) * c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+    rw [Finset.mul_sum, ← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun n hn => ?_
+    have hn0 : (n:ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (hS n hn).ne'
+    field_simp
+    ring
+  rw [hsplit]
+  have h1 : ‖(A:ℂ) * (∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))
+      + ∑ n ∈ S, (((n:ℂ) - (A:ℂ)) * c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖
+      ≤ ‖(A:ℂ) * (∑ n ∈ S, (c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))‖
+        + ‖∑ n ∈ S, (((n:ℂ) - (A:ℂ)) * c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖ :=
+    norm_add_le _ _
+  have hA : ‖(A:ℂ) * (∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))‖
+      = (A:ℝ) * ‖∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖ := by
+    rw [norm_mul, Complex.norm_natCast]
+  have hsq := pow_le_pow_left₀ (norm_nonneg _) h1 2
+  rw [hA] at hsq
+  nlinarith [hsq, sq_nonneg ((A:ℝ) * ‖∑ n ∈ S, (c n/(n:ℂ))
+      * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖
+    - ‖∑ n ∈ S, (((n:ℂ) - (A:ℂ)) * c n/(n:ℂ))
+      * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖),
+    norm_nonneg (∑ n ∈ S, (c n/(n:ℂ))
+      * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)),
+    norm_nonneg (∑ n ∈ S, (((n:ℂ) - (A:ℂ)) * c n/(n:ℂ))
+      * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))]
+
 end ExpSums
 
 end MoltResearch
