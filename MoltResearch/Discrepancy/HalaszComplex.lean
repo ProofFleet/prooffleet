@@ -640,4 +640,65 @@ theorem enlargement_extend_le'C (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   rw [hsplit]
   exact enlargement_error_le'C f hf V hV0 x P hPp h2p S hS1 hsum Q hQp
 
+
+open Real Finset in
+/-- **The raw ℂ-Riesz mean is priced by its scale** (Track R, A2-0):
+the mirror of `abs_rieszMean_le` — `‖R_f(Y)‖ ≤ Y` at a real scale,
+every inner sum of the R-world discard chain worth its scale and
+nothing more. -/
+theorem norm_rieszMeanC_le' (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (Y : ℝ) (hY : 1 ≤ Y) :
+    ‖∑ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+        f m * ((Real.log Y - Real.log (m:ℝ) : ℝ) : ℂ)‖
+      ≤ Y := by
+  classical
+  have hY0 : (0:ℝ) < Y := by linarith
+  have hN1 : 1 ≤ ⌊Y⌋₊ := Nat.le_floor (by exact_mod_cast hY)
+  have hNY : ((⌊Y⌋₊ : ℕ):ℝ) ≤ Y := Nat.floor_le hY0.le
+  have hN0 : (0:ℝ) < ((⌊Y⌋₊ : ℕ):ℝ) := by
+    exact_mod_cast (by omega : 0 < ⌊Y⌋₊)
+  have hterm : ∀ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+      ‖f m * ((Real.log Y - Real.log (m:ℝ) : ℝ) : ℂ)‖
+      ≤ Real.log Y - Real.log (m:ℝ) := by
+    intro m hm
+    rw [Finset.mem_Icc] at hm
+    have hm0 : (0:ℝ) < (m:ℝ) := by exact_mod_cast (by omega : 0 < m)
+    have hmY : (m:ℝ) ≤ Y := le_trans (by exact_mod_cast hm.2) hNY
+    have hpos : (0:ℝ) ≤ Real.log Y - Real.log (m:ℝ) := by
+      have := Real.log_le_log hm0 hmY
+      linarith
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg hpos]
+    nlinarith [hf m, norm_nonneg (f m)]
+  refine le_trans (norm_sum_le _ _) ?_
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have hcard : (Finset.Icc 1 ⌊Y⌋₊).card = ⌊Y⌋₊ := by
+    rw [Nat.card_Icc]
+    omega
+  have hsum_eq : ∑ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+      (Real.log Y - Real.log (m:ℝ))
+      = (∑ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+          (Real.log ((⌊Y⌋₊ : ℕ):ℝ) - Real.log (m:ℝ)))
+        + ((⌊Y⌋₊ : ℕ):ℝ) * (Real.log Y - Real.log ((⌊Y⌋₊ : ℕ):ℝ)) := by
+    have h1 : ∑ m ∈ Finset.Icc 1 ⌊Y⌋₊, (Real.log Y - Real.log (m:ℝ))
+        = ∑ m ∈ Finset.Icc 1 ⌊Y⌋₊,
+            ((Real.log ((⌊Y⌋₊ : ℕ):ℝ) - Real.log (m:ℝ))
+              + (Real.log Y - Real.log ((⌊Y⌋₊ : ℕ):ℝ))) :=
+      Finset.sum_congr rfl fun m _ => by ring
+    rw [h1, Finset.sum_add_distrib, Finset.sum_const, hcard, nsmul_eq_mul]
+  rw [hsum_eq]
+  have h2 := sum_log_ratio_mass_le ⌊Y⌋₊ hN1
+  have hdivpos : (0:ℝ) < Y/((⌊Y⌋₊ : ℕ):ℝ) := by positivity
+  have h3 : Real.log Y - Real.log ((⌊Y⌋₊ : ℕ):ℝ)
+      ≤ Y/((⌊Y⌋₊ : ℕ):ℝ) - 1 := by
+    have hlg := Real.log_le_sub_one_of_pos hdivpos
+    rw [Real.log_div (ne_of_gt hY0) (ne_of_gt hN0)] at hlg
+    linarith
+  have hcancel : ((⌊Y⌋₊ : ℕ):ℝ) * (Y/((⌊Y⌋₊ : ℕ):ℝ)) = Y :=
+    mul_div_cancel₀ Y (ne_of_gt hN0)
+  have h4 : ((⌊Y⌋₊ : ℕ):ℝ) * (Real.log Y - Real.log ((⌊Y⌋₊ : ℕ):ℝ))
+      ≤ Y - ((⌊Y⌋₊ : ℕ):ℝ) := by
+    have := mul_le_mul_of_nonneg_left h3 hN0.le
+    nlinarith [this, hcancel]
+  linarith [h2, h4]
+
 end MoltResearch
