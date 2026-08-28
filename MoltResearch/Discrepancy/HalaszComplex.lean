@@ -701,4 +701,111 @@ theorem norm_rieszMeanC_le' (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     nlinarith [this, hcancel]
   linarith [h2, h4]
 
+
+open Real Finset ArithmeticFunction in
+/-- **The ℂ-R-world mean value, prime-restricted** (Track R, A2-0): the
+mirror of `rieszMean_mul_log_prime_restrict` —
+
+  `‖R_f(x)·log x − ∑_p f(p)·Λ(p)·R-inner(x/p)‖ ≤ 35·x`,
+
+`rieszMean_log_identityC`'s maiden application: the non-prime
+Λ-support prices at `8x` against `norm_rieszMeanC_le'`, the diagonal
+at `27x` against `sum_log_sub_sq_le`. -/
+theorem rieszMeanC_mul_log_prime_restrict (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (x : ℕ) (hx : 1 ≤ x) :
+    ‖(∑ n ∈ Finset.Icc 1 x,
+        f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)
+      - ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+          f p * ((vonMangoldt p : ℝ) : ℂ)
+            * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+                f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+      ≤ 35 * (x:ℝ) := by
+  classical
+  have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+  have hid := rieszMean_log_identityC f hcm (x:ℝ) hx0
+  rw [Nat.floor_natCast] at hid
+  rw [hid]
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 x) Nat.Prime
+    (fun d => f d * ((vonMangoldt d : ℝ) : ℂ)
+      * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+          f m * ((Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ))]
+  -- the prime part cancels; the rest is the non-prime Λ-support + diagonal
+  have hcancel : ∀ A B C : ℂ, (A + B) + C - A = B + C := by
+    intro A B C
+    ring
+  rw [hcancel]
+  refine le_trans (norm_add_le _ _) ?_
+  -- the non-prime branch
+  have hNP : ‖∑ d ∈ (Finset.Icc 1 x).filter (fun d => ¬ d.Prime),
+      f d * ((vonMangoldt d : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+      ≤ 8 * (x:ℝ) := by
+    refine le_trans (norm_sum_le _ _) ?_
+    have hterm : ∀ d ∈ (Finset.Icc 1 x).filter (fun d => ¬ d.Prime),
+        ‖f d * ((vonMangoldt d : ℝ) : ℂ)
+          * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+              f m * ((Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+        ≤ (x:ℝ) * (vonMangoldt d / (d:ℝ)) := by
+      intro d hd
+      rw [Finset.mem_filter, Finset.mem_Icc] at hd
+      have hd1 : 1 ≤ d := hd.1.1
+      have hd0 : (0:ℝ) < (d:ℝ) := by exact_mod_cast hd1
+      have hdx : (d:ℝ) ≤ (x:ℝ) := by exact_mod_cast hd.1.2
+      have hY1 : (1:ℝ) ≤ (x:ℝ)/(d:ℝ) := by
+        rw [le_div_iff₀ hd0]
+        linarith
+      have hR := norm_rieszMeanC_le' f hf ((x:ℝ)/(d:ℝ)) hY1
+      rw [norm_mul, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg vonMangoldt_nonneg]
+      calc ‖f d‖ * vonMangoldt d
+            * ‖∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+                f m * ((Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+          ≤ 1 * vonMangoldt d * ((x:ℝ)/(d:ℝ)) := by
+            have h1 := hf d
+            have h2 : (0:ℝ) ≤ vonMangoldt d := vonMangoldt_nonneg
+            have h3 := norm_nonneg (∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(d:ℝ)⌋₊,
+              f m * ((Real.log ((x:ℝ)/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ))
+            nlinarith [hR, mul_nonneg h2 h3, norm_nonneg (f d),
+              mul_nonneg (norm_nonneg (f d)) h2]
+        _ = (x:ℝ) * (vonMangoldt d / (d:ℝ)) := by
+            field_simp
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [← Finset.mul_sum]
+    -- restrict to the proper prime powers, where `Λ` lives
+    have hsupp : ∑ d ∈ (Finset.Icc 1 x).filter (fun d => ¬ d.Prime),
+        vonMangoldt d / (d:ℝ)
+        = ∑ d ∈ (Finset.Icc 1 x).filter
+            (fun d => IsPrimePow d ∧ ¬ d.Prime),
+            vonMangoldt d / (d:ℝ) := by
+      refine (Finset.sum_subset ?_ ?_).symm
+      · intro d hd
+        rw [Finset.mem_filter] at hd ⊢
+        exact ⟨hd.1, hd.2.2⟩
+      · intro d hd hnd
+        rw [Finset.mem_filter] at hd hnd
+        have : ¬ IsPrimePow d := by
+          intro hpp
+          exact hnd ⟨hd.1, hpp, hd.2⟩
+        rw [vonMangoldt_eq_zero_iff.mpr this, zero_div]
+    rw [hsupp]
+    have hmass := sum_vonMangoldt_div_properPrimePow_le x
+    nlinarith [hmass, hx0]
+  -- the diagonal
+  have hD : ‖∑ n ∈ Finset.Icc 1 x,
+      f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)^2‖
+      ≤ 27 * (x:ℝ) := by
+    refine le_trans (norm_sum_le _ _) ?_
+    have hterm : ∀ n ∈ Finset.Icc 1 x,
+        ‖f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)^2‖
+        ≤ (Real.log (x:ℝ) - Real.log (n:ℝ))^2 := by
+      intro n _
+      rw [norm_mul, norm_pow, Complex.norm_real, Real.norm_eq_abs, sq_abs]
+      nlinarith [hf n, norm_nonneg (f n), sq_nonneg
+        (Real.log (x:ℝ) - Real.log (n:ℝ))]
+    exact le_trans (Finset.sum_le_sum hterm) (sum_log_sub_sq_le x hx)
+  linarith [hNP, hD]
+
 end MoltResearch
