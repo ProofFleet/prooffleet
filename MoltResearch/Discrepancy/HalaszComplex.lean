@@ -923,4 +923,105 @@ theorem rieszMeanC_prime_tail_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
   have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
   nlinarith [hmono, hmass, hlog4]
 
+
+open Real Finset ArithmeticFunction in
+/-- **The ℂ-R-mean value at real scale** (Track R, A2-0): the mirror of
+`rieszMean_mul_log_prime_restrict'` — the identity error is linear at
+any real scale `Y ≥ 1`, the diagonal priced by `sum_log_sub_sq_le'`. -/
+theorem rieszMeanC_mul_log_prime_restrict' (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (Y : ℝ) (hY : 1 ≤ Y) :
+    ‖(∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+        f n * ((Real.log Y - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log Y : ℝ) : ℂ)
+      - ∑ p ∈ (Finset.Icc 1 ⌊Y⌋₊).filter Nat.Prime,
+          f p * ((vonMangoldt p : ℝ) : ℂ)
+            * ∑ m ∈ Finset.Icc 1 ⌊Y/(p:ℝ)⌋₊,
+                f m * ((Real.log (Y/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+      ≤ 63 * Y := by
+  classical
+  have hY0 : (0:ℝ) < Y := by linarith
+  have hid := rieszMean_log_identityC f hcm Y hY0
+  rw [hid]
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.Icc 1 ⌊Y⌋₊) Nat.Prime
+    (fun d => f d * ((vonMangoldt d : ℝ) : ℂ)
+      * ∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+          f m * ((Real.log (Y/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ))]
+  have hcancel : ∀ A B C : ℂ, (A + B) + C - A = B + C := by
+    intro A B C
+    ring
+  rw [hcancel]
+  refine le_trans (norm_add_le _ _) ?_
+  -- the non-prime branch
+  have hNP : ‖∑ d ∈ (Finset.Icc 1 ⌊Y⌋₊).filter (fun d => ¬ d.Prime),
+      f d * ((vonMangoldt d : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+            f m * ((Real.log (Y/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+      ≤ 8 * Y := by
+    refine le_trans (norm_sum_le _ _) ?_
+    have hterm : ∀ d ∈ (Finset.Icc 1 ⌊Y⌋₊).filter (fun d => ¬ d.Prime),
+        ‖f d * ((vonMangoldt d : ℝ) : ℂ)
+          * ∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+              f m * ((Real.log (Y/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+        ≤ Y * (vonMangoldt d / (d:ℝ)) := by
+      intro d hd
+      rw [Finset.mem_filter, Finset.mem_Icc] at hd
+      have hd1 : 1 ≤ d := hd.1.1
+      have hd0 : (0:ℝ) < (d:ℝ) := by exact_mod_cast hd1
+      have hdN : (d:ℝ) ≤ ((⌊Y⌋₊:ℕ):ℝ) := by exact_mod_cast hd.1.2
+      have hdx : (d:ℝ) ≤ Y := le_trans hdN (Nat.floor_le hY0.le)
+      have hY1 : (1:ℝ) ≤ Y/(d:ℝ) := by
+        rw [le_div_iff₀ hd0]
+        linarith
+      have hR := norm_rieszMeanC_le' f hf (Y/(d:ℝ)) hY1
+      rw [norm_mul, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg vonMangoldt_nonneg]
+      calc ‖f d‖ * vonMangoldt d
+            * ‖∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+                f m * ((Real.log (Y/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+          ≤ 1 * vonMangoldt d * (Y/(d:ℝ)) := by
+            have h1 := hf d
+            have h2 : (0:ℝ) ≤ vonMangoldt d := vonMangoldt_nonneg
+            have h3 := norm_nonneg (∑ m ∈ Finset.Icc 1 ⌊Y/(d:ℝ)⌋₊,
+              f m * ((Real.log (Y/(d:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ))
+            nlinarith [hR, mul_nonneg h2 h3, norm_nonneg (f d),
+              mul_nonneg (norm_nonneg (f d)) h2]
+        _ = Y * (vonMangoldt d / (d:ℝ)) := by
+            field_simp
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [← Finset.mul_sum]
+    have hsupp : ∑ d ∈ (Finset.Icc 1 ⌊Y⌋₊).filter (fun d => ¬ d.Prime),
+        vonMangoldt d / (d:ℝ)
+        = ∑ d ∈ (Finset.Icc 1 ⌊Y⌋₊).filter
+            (fun d => IsPrimePow d ∧ ¬ d.Prime),
+            vonMangoldt d / (d:ℝ) := by
+      refine (Finset.sum_subset ?_ ?_).symm
+      · intro d hd
+        rw [Finset.mem_filter] at hd ⊢
+        exact ⟨hd.1, hd.2.2⟩
+      · intro d hd hnd
+        rw [Finset.mem_filter] at hd hnd
+        have : ¬ IsPrimePow d := by
+          intro hpp
+          exact hnd ⟨hd.1, hpp, hd.2⟩
+        rw [vonMangoldt_eq_zero_iff.mpr this, zero_div]
+    rw [hsupp]
+    have hmass := sum_vonMangoldt_div_properPrimePow_le ⌊Y⌋₊
+    have hNY : ((⌊Y⌋₊:ℕ):ℝ) ≤ Y := Nat.floor_le hY0.le
+    nlinarith [hmass, hY0, hNY]
+  -- the diagonal
+  have hD : ‖∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+      f n * ((Real.log Y - Real.log (n:ℝ) : ℝ) : ℂ)^2‖
+      ≤ 55 * Y := by
+    refine le_trans (norm_sum_le _ _) ?_
+    have hterm : ∀ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+        ‖f n * ((Real.log Y - Real.log (n:ℝ) : ℝ) : ℂ)^2‖
+        ≤ (Real.log Y - Real.log (n:ℝ))^2 := by
+      intro n _
+      rw [norm_mul, norm_pow, Complex.norm_real, Real.norm_eq_abs, sq_abs]
+      nlinarith [hf n, norm_nonneg (f n), sq_nonneg
+        (Real.log Y - Real.log (n:ℝ))]
+    exact le_trans (Finset.sum_le_sum hterm) (sum_log_sub_sq_le' Y hY)
+  linarith [hNP, hD]
+
 end MoltResearch
