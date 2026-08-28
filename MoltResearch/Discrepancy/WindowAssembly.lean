@@ -311,6 +311,69 @@ theorem window_energy_regime_le (h : ℕ → ℂ)
   rw [hTid] at hlow hmidE
   linarith [hlow, hmidE, htailE]
 
+
+open MeasureTheory in
+/-- **G5: the plain band energy through the `𝒰`-recursion** (Track R,
+A2-II): the plain phase polynomial of a `1`-bounded `h` on a
+near-dyadic range rescales into the Ramaré multi-level energy —
+
+  `∫_{−K}^{K} ‖∑_{m∈S} h(m)e(−ξ log m)‖² ≤ (2a+1)²·uBound K levels a b`,
+
+by `c(m) := m·h(m)/(2a+1)` (still `1`-bounded on the range) and
+`intervalIntegral_norm_sq_subset_le`. -/
+theorem intervalIntegral_norm_sq_plain_le (K : ℝ) (hK : 0 ≤ K)
+    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ q ∈ P, q.Prime)
+    (a b : ℕ) (hab : b ≤ 2*a+1)
+    (S : Finset ℕ) (hS : S ⊆ Finset.Ioc a b)
+    (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1) :
+    ∫ ξ in (-K)..K, ‖∑ m ∈ S,
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ (2*(a:ℝ)+1)^2 * uBound K levels a b := by
+  classical
+  set c : ℕ → ℂ := fun m => if m ≤ 2*a+1
+      then (m:ℂ) * h m / (2*(a:ℕ)+1 : ℕ) else 0 with hc_def
+  have hcb : ∀ m, ‖c m‖ ≤ 1 := by
+    intro m
+    simp only [hc_def]
+    by_cases hm : m ≤ 2*a+1
+    · rw [if_pos hm, norm_div, norm_mul, Complex.norm_natCast,
+        Complex.norm_natCast]
+      have hden : (0:ℝ) < ((2*a+1 : ℕ):ℝ) := by
+        exact_mod_cast (by omega : 0 < 2*a+1)
+      rw [div_le_one hden]
+      have h1 : (m:ℝ) ≤ ((2*a+1 : ℕ):ℝ) := by exact_mod_cast hm
+      have h2 := hb m
+      nlinarith [norm_nonneg (h m), Nat.cast_nonneg (α := ℝ) m]
+    · rw [if_neg hm]
+      simp
+  have hpoint : ∀ ξ : ℝ, ‖∑ m ∈ S,
+      h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      = (2*(a:ℝ)+1)^2 * ‖∑ m ∈ S, (c m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+    intro ξ
+    have hfac : ∑ m ∈ S,
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+        = ((2*(a:ℕ)+1 : ℕ):ℂ) * ∑ m ∈ S, (c m/(m:ℂ))
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+      rw [Finset.mul_sum]
+      refine Finset.sum_congr rfl fun m hm => ?_
+      have hmIoc := hS hm
+      rw [Finset.mem_Ioc] at hmIoc
+      have hmle : m ≤ 2*a+1 := by omega
+      have hm0 : (m:ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+      have hden : ((2*(a:ℕ)+1 : ℕ):ℂ) ≠ 0 :=
+        Nat.cast_ne_zero.mpr (by omega)
+      simp only [hc_def, if_pos hmle]
+      field_simp
+    rw [hfac, norm_mul, Complex.norm_natCast, mul_pow]
+    congr 2
+    push_cast
+    ring
+  rw [intervalIntegral.integral_congr
+    (fun ξ _ => hpoint ξ), intervalIntegral.integral_const_mul]
+  refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+  exact intervalIntegral_norm_sq_subset_le K hK levels hlv a b hab S hS c hcb
+
 end ExpSums
 
 end MoltResearch
