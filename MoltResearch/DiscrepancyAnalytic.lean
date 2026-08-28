@@ -21,6 +21,7 @@ import MoltResearch.Discrepancy.VinogradovTypeI
 import MoltResearch.Discrepancy.HalaszTriple
 import MoltResearch.Discrepancy.HalaszTripleG
 import MoltResearch.Discrepancy.HalaszCapstone
+import MoltResearch.Discrepancy.HalaszComplex
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
