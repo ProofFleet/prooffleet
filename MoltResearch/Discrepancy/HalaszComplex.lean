@@ -1397,4 +1397,88 @@ theorem norm_tripleConvRC_le'' (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1) (
   exact mul_le_mul_of_nonneg_left
     (Sk_trivial_mass_le'' x A B hA hAB P hP h2P) hx0
 
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+open scoped FourierTransform in
+/-- **§3's bound on the ℂ-Riesz triple convolution, through the smooth
+tsum** (Track R, A2-0): the mirror of `tripleConvR_le'`, with `f`
+ℂ-valued natively — the realisation (`tripleConvRC_eq_scaled`) and the
+enlargement (`enlargement_extend_le'C`) feed
+`ghs_riesz_triple_tsum_le` directly: the `_real` coercion bridge of the
+ℝ-chain has no counterpart here. -/
+theorem tripleConvRC_le' (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (x : ℕ) (hx : 2 ≤ x) (P : Finset ℕ)
+    (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) (hQ : ∀ q ∈ Q, 0 < q)
+    (hQsub : ∀ p ∈ P, (x/p).primesBelow ⊆ Q)
+    (V₃ Mtail E₁ b Gmax : ℝ)
+    (hE₁0 : 0 < E₁) (hb0 : 0 ≤ b) (hV₃0 : 0 ≤ V₃) (hMtail0 : 0 < Mtail)
+    (hGb : ∀ ξ, ‖ExpSums.smoothPhaseSum f x ξ‖ ≤ Gmax)
+    (hE₁ : (∫ ξ, ‖ghsBlockPoly f x P ξ‖^2
+        * ‖𝓕 (fun v => ((ExpSums.rieszWindow v : ℝ) : ℂ)) ξ‖) ≤ E₁)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum f x t‖ ≤ b)
+    (hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+        ‖ghsPrimePoly f Q t‖^2) ≤ V₃)
+    (hMtail : (∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))^2 * Gmax^2
+        * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) ≤ Mtail) :
+    ‖tripleConvRC f x P‖
+      ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail))
+        + 2*(x:ℝ)*Real.log 4 := by
+  classical
+  have hx0 : 0 < x := by omega
+  have hx1 : 1 ≤ x := by omega
+  set W : ℝ → ℝ := ExpSums.rieszWindow with hW_def
+  have hW0 : ∀ v, v ≤ 0 → W v = 0 := by
+    intro v hv
+    rw [hW_def, ExpSums.rieszWindow, if_neg (not_lt.mpr hv)]
+  have hsum : ∀ y : ℝ, 1 ≤ y → y ≤ 2 →
+      ‖∑ n ∈ Finset.Icc 1 x, (f n/(n:ℂ))
+          * ((W (Real.log y - Real.log (n:ℝ)) : ℝ) : ℂ)‖ ≤ 1 := by
+    intro y h1y h2y
+    refine ExpSums.rieszC_smoothed_sum_le_one f hf y h1y x ?_
+    have : (2:ℝ) ≤ (x:ℝ) := by exact_mod_cast hx
+    linarith
+  have hS1 : ∀ n ∈ Finset.Icc 1 x, 1 ≤ n :=
+    fun n hn => (Finset.mem_Icc.mp hn).1
+  -- the two forms: over the moving range, and over the fixed `Q`
+  set C : ℂ := ∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p
+      / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+      * ∑ q ∈ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+          * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℂ))
+                * ((W (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                    - Real.log (n:ℝ)) : ℝ) : ℂ))
+    with hC_def
+  set D : ℂ := ∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p
+      / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+      * ∑ q ∈ Q, ((Real.log (q:ℝ) : ℂ) * f q)
+          * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+            * ∑ n ∈ Finset.Icc 1 x, (f n/(n:ℂ))
+                * ((W (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                    - Real.log (n:ℝ)) : ℝ) : ℂ))
+    with hD_def
+  have hCeq : tripleConvRC f x P = C := by
+    rw [hC_def, hW_def]
+    exact tripleConvRC_eq_scaled f x hx0 P (fun p hp => (hPp p hp).pos)
+  -- the enlargement, the only error term left
+  have hCD : ‖D - C‖ ≤ 2*(x:ℝ)*Real.log 4 := by
+    rw [hD_def, hC_def]
+    exact enlargement_extend_le'C f hf W hW0 x P hPp h2p (Finset.Icc 1 x) hS1
+      hsum Q hQp hQsub
+  -- §4 through the smooth tsum, on the enlarged form directly
+  have hDle : ‖D‖ ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail)) := by
+    rw [hD_def, hW_def]
+    exact ExpSums.ghs_riesz_triple_tsum_le f hcm h1 hf x hx1 P Q
+      (fun p hp => (hPp p hp).pos) hQ V₃ Mtail E₁ b Gmax
+      hE₁0 hb0 hV₃0 hMtail0 hGb hE₁ hBu hV hMtail
+  rw [hCeq]
+  have hCDC : C = D - (D - C) := by ring
+  rw [hCDC]
+  calc ‖D - (D - C)‖ ≤ ‖D‖ + ‖D - C‖ := norm_sub_le _ _
+    _ ≤ (x:ℝ) * Real.sqrt (E₁ * (5 * V₃ * (6*b^2) + Mtail))
+          + 2*(x:ℝ)*Real.log 4 := by linarith [hDle, hCD]
+
 end MoltResearch
