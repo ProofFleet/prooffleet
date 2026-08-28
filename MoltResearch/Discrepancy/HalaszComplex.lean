@@ -1024,4 +1024,118 @@ theorem rieszMeanC_mul_log_prime_restrict' (f : ℕ → ℂ)
     exact le_trans (Finset.sum_le_sum hterm) (sum_log_sub_sq_le' Y hY)
   linarith [hNP, hD]
 
+
+open Real Finset ArithmeticFunction in
+/-- **The ℂ-R-mean value in `primesBelow` form** (Track R, A2-0): the
+mirror of `rieszMean_mul_log_primesBelow_le` — the boundary prime
+`⌊Y⌋` costs one more `Y`, giving the identity error in exactly the
+range `tripleConvRC`'s inner sum uses. -/
+theorem rieszMeanC_mul_log_primesBelow_le (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (Y : ℝ) (hY : 1 ≤ Y) :
+    ‖(∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+        f n * ((Real.log Y - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log Y : ℝ) : ℂ)
+      - ∑ q ∈ (⌊Y⌋₊).primesBelow,
+          f q * ((vonMangoldt q : ℝ) : ℂ)
+            * ∑ m ∈ Finset.Icc 1 ⌊Y/(q:ℝ)⌋₊,
+                f m * ((Real.log (Y/(q:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)‖
+      ≤ 64 * Y := by
+  classical
+  have hY0 : (0:ℝ) < Y := by linarith
+  have hbase := rieszMeanC_mul_log_prime_restrict' f hf hcm Y hY
+  by_cases hNp : (⌊Y⌋₊).Prime
+  · have hset : (Finset.Icc 1 ⌊Y⌋₊).filter Nat.Prime
+        = insert ⌊Y⌋₊ ((⌊Y⌋₊).primesBelow) := by
+      ext q
+      simp only [Finset.mem_filter, Finset.mem_Icc, Finset.mem_insert,
+        Nat.mem_primesBelow]
+      constructor
+      · rintro ⟨⟨hq1, hqN⟩, hqp⟩
+        rcases eq_or_lt_of_le hqN with h | h
+        · exact Or.inl h
+        · exact Or.inr ⟨h, hqp⟩
+      · rintro (rfl | ⟨hlt, hqp⟩)
+        · exact ⟨⟨hNp.one_lt.le, le_refl _⟩, hNp⟩
+        · exact ⟨⟨hqp.one_lt.le, hlt.le⟩, hqp⟩
+    have hnotmem : ⌊Y⌋₊ ∉ (⌊Y⌋₊).primesBelow := by
+      simp [Nat.mem_primesBelow]
+    rw [hset, Finset.sum_insert hnotmem] at hbase
+    have hN1 : 1 ≤ ⌊Y⌋₊ := Nat.le_floor (by exact_mod_cast hY)
+    have hN0 : (0:ℝ) < ((⌊Y⌋₊:ℕ):ℝ) := by exact_mod_cast hN1
+    have hNY : ((⌊Y⌋₊:ℕ):ℝ) ≤ Y := Nat.floor_le hY0.le
+    have hY1' : (1:ℝ) ≤ Y/((⌊Y⌋₊:ℕ):ℝ) := by
+      rw [le_div_iff₀ hN0]
+      linarith
+    have hR := norm_rieszMeanC_le' f hf (Y/((⌊Y⌋₊:ℕ):ℝ)) hY1'
+    have hlogN : Real.log ((⌊Y⌋₊:ℕ):ℝ) ≤ ((⌊Y⌋₊:ℕ):ℝ) := by
+      have := Real.log_le_sub_one_of_pos hN0
+      linarith
+    have hterm : ‖f ⌊Y⌋₊ * ((vonMangoldt ⌊Y⌋₊ : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+            f m * ((Real.log (Y/((⌊Y⌋₊:ℕ):ℝ))
+              - Real.log (m:ℝ) : ℝ) : ℂ)‖ ≤ Y := by
+      rw [vonMangoldt_apply_prime hNp, norm_mul, norm_mul,
+        Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg (Real.log_natCast_nonneg _)]
+      have hq0 : (0:ℝ) ≤ Y/((⌊Y⌋₊:ℕ):ℝ) := by positivity
+      calc ‖f ⌊Y⌋₊‖ * Real.log ((⌊Y⌋₊:ℕ):ℝ)
+            * ‖∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+                f m * ((Real.log (Y/((⌊Y⌋₊:ℕ):ℝ))
+                  - Real.log (m:ℝ) : ℝ) : ℂ)‖
+          ≤ 1 * Real.log ((⌊Y⌋₊:ℕ):ℝ) * (Y/((⌊Y⌋₊:ℕ):ℝ)) := by
+            have h1 := hf ⌊Y⌋₊
+            have h2 : (0:ℝ) ≤ Real.log ((⌊Y⌋₊:ℕ):ℝ) :=
+              Real.log_natCast_nonneg _
+            have h3 := norm_nonneg (∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+              f m * ((Real.log (Y/((⌊Y⌋₊:ℕ):ℝ))
+                - Real.log (m:ℝ) : ℝ) : ℂ))
+            nlinarith [hR, norm_nonneg (f ⌊Y⌋₊),
+              mul_nonneg (norm_nonneg (f ⌊Y⌋₊)) h2,
+              mul_nonneg h2 h3]
+        _ ≤ ((⌊Y⌋₊:ℕ):ℝ) * (Y/((⌊Y⌋₊:ℕ):ℝ)) := by
+            nlinarith [hlogN, hq0]
+        _ = Y := by
+            field_simp
+    have hsplit : (∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+          f n * ((Real.log Y - Real.log (n:ℝ) : ℝ) : ℂ))
+          * ((Real.log Y : ℝ) : ℂ)
+        - ∑ q ∈ (⌊Y⌋₊).primesBelow,
+            f q * ((vonMangoldt q : ℝ) : ℂ)
+              * ∑ m ∈ Finset.Icc 1 ⌊Y/(q:ℝ)⌋₊,
+                  f m * ((Real.log (Y/(q:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ)
+        = ((∑ n ∈ Finset.Icc 1 ⌊Y⌋₊,
+              f n * ((Real.log Y - Real.log (n:ℝ) : ℝ) : ℂ))
+              * ((Real.log Y : ℝ) : ℂ)
+            - (f ⌊Y⌋₊ * ((vonMangoldt ⌊Y⌋₊ : ℝ) : ℂ)
+                * ∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+                    f m * ((Real.log (Y/((⌊Y⌋₊:ℕ):ℝ))
+                      - Real.log (m:ℝ) : ℝ) : ℂ)
+              + ∑ q ∈ (⌊Y⌋₊).primesBelow,
+                  f q * ((vonMangoldt q : ℝ) : ℂ)
+                    * ∑ m ∈ Finset.Icc 1 ⌊Y/(q:ℝ)⌋₊,
+                        f m * ((Real.log (Y/(q:ℝ))
+                          - Real.log (m:ℝ) : ℝ) : ℂ)))
+          + f ⌊Y⌋₊ * ((vonMangoldt ⌊Y⌋₊ : ℝ) : ℂ)
+              * ∑ m ∈ Finset.Icc 1 ⌊Y/((⌊Y⌋₊:ℕ):ℝ)⌋₊,
+                  f m * ((Real.log (Y/((⌊Y⌋₊:ℕ):ℝ))
+                    - Real.log (m:ℝ) : ℝ) : ℂ) := by
+      ring
+    rw [hsplit]
+    refine le_trans (norm_add_le _ _) ?_
+    linarith [hbase, hterm]
+  · have hset : (Finset.Icc 1 ⌊Y⌋₊).filter Nat.Prime
+        = (⌊Y⌋₊).primesBelow := by
+      ext q
+      simp only [Finset.mem_filter, Finset.mem_Icc, Nat.mem_primesBelow]
+      constructor
+      · rintro ⟨⟨hq1, hqN⟩, hqp⟩
+        rcases eq_or_lt_of_le hqN with h | h
+        · exact absurd (h ▸ hqp) hNp
+        · exact ⟨h, hqp⟩
+      · rintro ⟨hlt, hqp⟩
+        exact ⟨⟨hqp.one_lt.le, hlt.le⟩, hqp⟩
+    rw [hset] at hbase
+    linarith [hbase, hY0]
+
 end MoltResearch
