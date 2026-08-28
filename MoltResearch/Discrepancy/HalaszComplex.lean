@@ -527,4 +527,117 @@ theorem enlargement_discard_le'C (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     exact_mod_cast hcard
   nlinarith [hc, hlogm]
 
+
+open Real Finset in
+/-- **The range enlargement, summed, over ℂ** (Track R, A2-0): the
+mirror of `enlargement_error_le'` — per `p` the discard costs
+`2·log p` (`enlargement_discard_le'C` × `discard_weight_leC`), and
+Chebyshev prices the sum at `2x·log 4`. -/
+theorem enlargement_error_le'C (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (x : ℕ) (P : Finset ℕ) (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (hsum : ∀ y : ℝ, 1 ≤ y → y ≤ 2 →
+      ‖∑ n ∈ S, (f n/(n:ℂ)) * ((V (Real.log y - Real.log (n:ℝ)) : ℝ) : ℂ)‖
+        ≤ 1)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) :
+    ‖∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+        * ∑ q ∈ Q \ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ S, (f n/(n:ℂ))
+                  * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ)) : ℝ) : ℂ))‖
+      ≤ 2 * (x:ℝ) * Real.log 4 := by
+  classical
+  refine le_trans (norm_sum_le _ _) ?_
+  -- per `p`: the discard, then the cancellation
+  have hstep : ∀ p ∈ P,
+      ‖((Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+        * ∑ q ∈ Q \ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ S, (f n/(n:ℂ))
+                  * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ)) : ℝ) : ℂ))‖
+      ≤ 2 * Real.log (p:ℝ) := by
+    intro p hp
+    have hpp : p.Prime := hPp p hp
+    rw [norm_mul]
+    refine le_trans (mul_le_mul_of_nonneg_left
+      (enlargement_discard_le'C f hf V hV0 x p hpp.pos (h2p p hp)
+        S hS1 hsum Q hQp) (norm_nonneg _)) ?_
+    exact discard_weight_leC f hf x p hpp (h2p p hp)
+  refine le_trans (Finset.sum_le_sum hstep) ?_
+  -- Chebyshev over the primes below `x`
+  rw [← Finset.mul_sum]
+  have hsub : P ⊆ x.primesBelow := by
+    intro p hp
+    have hpp : p.Prime := hPp p hp
+    have h2 := h2p p hp
+    have hp2 : 2 ≤ p := hpp.two_le
+    exact Nat.mem_primesBelow.mpr ⟨by omega, hpp⟩
+  have hmono : ∑ p ∈ P, Real.log (p:ℝ)
+      ≤ ∑ p ∈ x.primesBelow, Real.log (p:ℝ) :=
+    Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => Real.log_natCast_nonneg i)
+  have hcheb : ∑ p ∈ x.primesBelow, Real.log (p:ℝ) ≤ (x:ℝ) * Real.log 4 :=
+    sum_log_primesBelow_le x
+  linarith [hmono, hcheb]
+
+open Real Finset in
+/-- **The range enlargement as a difference, over ℂ** (Track R, A2-0):
+the mirror of `enlargement_extend_le'` — `Finset.sum_sdiff` and the
+summed error, verbatim. -/
+theorem enlargement_extend_le'C (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (x : ℕ) (P : Finset ℕ) (hPp : ∀ p ∈ P, p.Prime) (h2p : ∀ p ∈ P, 2*p ≤ x)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (hsum : ∀ y : ℝ, 1 ≤ y → y ≤ 2 →
+      ‖∑ n ∈ S, (f n/(n:ℂ)) * ((V (Real.log y - Real.log (n:ℝ)) : ℝ) : ℂ)‖
+        ≤ 1)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime)
+    (hQsub : ∀ p ∈ P, (x/p).primesBelow ⊆ Q) :
+    ‖(∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+        * ∑ q ∈ Q, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ S, (f n/(n:ℂ))
+                  * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ)) : ℝ) : ℂ)))
+      - (∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+        * ∑ q ∈ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ S, (f n/(n:ℂ))
+                  * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ)) : ℝ) : ℂ)))‖
+      ≤ 2 * (x:ℝ) * Real.log 4 := by
+  classical
+  have hsplit : (∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p
+          / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+        * ∑ q ∈ Q, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ S, (f n/(n:ℂ))
+                  * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ)) : ℝ) : ℂ)))
+      - (∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p
+          / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+        * ∑ q ∈ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ S, (f n/(n:ℂ))
+                  * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ)) : ℝ) : ℂ)))
+      = ∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p
+          / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+          * ∑ q ∈ Q \ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+              * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+                * ∑ n ∈ S, (f n/(n:ℂ))
+                    * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                        - Real.log (n:ℝ)) : ℝ) : ℂ)) := by
+    rw [← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl fun p hp => ?_
+    rw [← mul_sub]
+    congr 1
+    rw [sub_eq_iff_eq_add]
+    exact (Finset.sum_sdiff (hQsub p hp)).symm
+  rw [hsplit]
+  exact enlargement_error_le'C f hf V hV0 x P hPp h2p S hS1 hsum Q hQp
+
 end MoltResearch
