@@ -374,6 +374,93 @@ theorem intervalIntegral_norm_sq_plain_le (K : ℝ) (hK : 0 ≤ K)
   refine mul_le_mul_of_nonneg_left ?_ (by positivity)
   exact intervalIntegral_norm_sq_subset_le K hK levels hlv a b hab S hS c hcb
 
+
+/-- **G7-i: the phase weight is the archimedean twist** (Track R,
+A2-III): `e(−ξ·log m) = m^{−2πiξ·i}` — the band polynomial's weight is
+a completely multiplicative unimodular twist, so the block sum is a
+difference of prefix sums of a twisted multiplicative function. -/
+theorem archTwist_phase_eq (ξ : ℝ) (m : ℕ) (hm : m ≠ 0) :
+    ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+      = (m:ℂ)^(Complex.I*((-(2*Real.pi*ξ) : ℝ):ℂ)) := by
+  have hm0 : (0:ℝ) < (m:ℝ) := by exact_mod_cast Nat.pos_of_ne_zero hm
+  have hmc : ((m:ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr hm
+  have hlog : Complex.log ((m:ℕ):ℂ) = ((Real.log m : ℝ) : ℂ) := by
+    rw [show ((m:ℕ):ℂ) = (((m:ℝ) : ℝ) : ℂ) by push_cast; rfl]
+    exact (Complex.ofReal_log hm0.le).symm
+  rw [Real.fourierChar_apply, Complex.cpow_def_of_ne_zero hmc, hlog]
+  congr 1
+  push_cast
+  ring
+
+open Finset in
+/-- **G7-ii: non-pretentiousness transfers down in scale** (Track R,
+A2-III): an `A`-floor at truncation `x` gives an `A′`-floor at any
+truncation `z ≤ x`, at the price of twice the prime-mass difference —
+`pretentiousDistSq_le_add_mass` read backwards. -/
+theorem nonPretentiousAt_scale_transfer {g : ℕ → ℂ}
+    (hg : ∀ p, ‖g p‖ ≤ 1) {A A' : ℝ} {x z : ℕ}
+    (h : NonPretentiousAt g A x) (hzx : z ≤ x) (hA'0 : 0 ≤ A')
+    (hA' : A' ≤ A - 2*((∑ p ∈ x.primesBelow, (1:ℝ)/p)
+      - (∑ p ∈ z.primesBelow, (1:ℝ)/p))) :
+    NonPretentiousAt g A' z := by
+  intro q χ t hq ht
+  have hΔ0 : (0:ℝ) ≤ (∑ p ∈ x.primesBelow, (1:ℝ)/p)
+      - ∑ p ∈ z.primesBelow, (1:ℝ)/p := by
+    have hsub : z.primesBelow ⊆ x.primesBelow := by
+      intro p hp
+      rw [Nat.mem_primesBelow] at hp ⊢
+      exact ⟨lt_of_lt_of_le hp.1 hzx, hp.2⟩
+    have hmono : ∑ p ∈ z.primesBelow, (1:ℝ)/p
+        ≤ ∑ p ∈ x.primesBelow, (1:ℝ)/p :=
+      Finset.sum_le_sum_of_subset_of_nonneg hsub
+        (fun p _ _ => div_nonneg zero_le_one (Nat.cast_nonneg p))
+    linarith
+  have hq' : (q:ℝ) ≤ A := le_trans hq (by linarith)
+  have hzr : (z:ℝ) ≤ (x:ℝ) := by exact_mod_cast hzx
+  have ht' : |t| ≤ A*(x:ℝ) := by
+    have hz0 : (0:ℝ) ≤ (z:ℝ) := Nat.cast_nonneg _
+    have hAA' : A' ≤ A := by linarith
+    calc |t| ≤ A'*(z:ℝ) := ht
+      _ ≤ A*(x:ℝ) := by nlinarith
+  have hx := h q χ t hq' ht'
+  have htrans := pretentiousDistSq_le_add_mass g (charTwist q χ t)
+    (fun p => hg p) (fun p => charTwist_norm_le_one q χ t p) hzx
+  linarith
+
+open Finset in
+/-- **G7-iii: a block sum is two prefix sums** (Track R, A2-III): if
+both prefix sums of `f` are at most `E`, the block sum is at most
+`2E` — the mid-regime sup from the plain-sum Halász, no partial
+summation needed. -/
+theorem norm_sum_Ioc_le_two_prefix (f : ℕ → ℂ) (a b : ℕ) (hab : a ≤ b)
+    (E : ℝ)
+    (hEa : ‖∑ m ∈ Finset.Icc 1 a, f m‖ ≤ E)
+    (hEb : ‖∑ m ∈ Finset.Icc 1 b, f m‖ ≤ E) :
+    ‖∑ m ∈ Finset.Ioc a b, f m‖ ≤ 2*E := by
+  classical
+  have hunion : Finset.Icc 1 a ∪ Finset.Ioc a b = Finset.Icc 1 b := by
+    ext n
+    simp only [Finset.mem_union, Finset.mem_Icc, Finset.mem_Ioc]
+    omega
+  have hdisj : Disjoint (Finset.Icc 1 a) (Finset.Ioc a b) := by
+    rw [Finset.disjoint_left]
+    intro n hn hn'
+    rw [Finset.mem_Icc] at hn
+    rw [Finset.mem_Ioc] at hn'
+    omega
+  have hsplit : ∑ m ∈ Finset.Icc 1 b, f m
+      = (∑ m ∈ Finset.Icc 1 a, f m) + ∑ m ∈ Finset.Ioc a b, f m := by
+    rw [← hunion, Finset.sum_union hdisj]
+  have hdiff : ∑ m ∈ Finset.Ioc a b, f m
+      = (∑ m ∈ Finset.Icc 1 b, f m) - ∑ m ∈ Finset.Icc 1 a, f m := by
+    rw [hsplit]
+    ring
+  rw [hdiff]
+  calc ‖(∑ m ∈ Finset.Icc 1 b, f m) - ∑ m ∈ Finset.Icc 1 a, f m‖
+      ≤ ‖∑ m ∈ Finset.Icc 1 b, f m‖ + ‖∑ m ∈ Finset.Icc 1 a, f m‖ :=
+        norm_sub_le _ _
+    _ ≤ 2*E := by linarith
+
 end ExpSums
 
 end MoltResearch
