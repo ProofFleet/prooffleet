@@ -2144,4 +2144,573 @@ theorem tripleConvRC_survivors_balanced_le' (f : ℕ → ℂ) (hf : ∀ n, ‖f 
     simp [nsmul_eq_mul]
 
 
+
+open Real Finset ArithmeticFunction in
+/-- **§3, end to end, through the smooth tsum** (Track R, M0R-5): the
+`b`-parametric assembly `rieszMean_log_le_of_nonPretentious` with the
+band sup demanded of the smooth phase sum — the survivor estimate is
+`tripleConvR_survivors_balanced_le'`, so the envelope carries the
+smooth-mass constant `2000` and `b` can be instantiated log-freely.
+The identity error, head/tail discards, and the survivor bridge are
+untouched: they never see the band sup. -/
+theorem rieszMeanC_log_le'_of_nonPretentious (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (x y K₀ : ℕ) (hx : 10^16 ≤ x) (hy2 : 2 ≤ y) (hyx : 2*y ≤ x)
+    (T : ℝ) (hT1 : Real.sqrt (21 * Real.log (x:ℝ)) ≤ T)
+    (hT2 : T ≤ Real.log (x:ℝ)) (hTy : T^2 ≤ (y:ℝ))
+    (hK₀1 : 1 ≤ K₀)
+    (hK₀low : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+    (hK₀max : Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+      < Real.exp 1 * Real.log 2)
+    (hX3 : ∀ k ∈ Finset.Icc 1 K₀, 3 ≤ x / blockLo x k)
+    (b : ℝ) (hb0 : 0 ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum f x t‖ ≤ b) :
+    ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)
+        + ((K₀:ℝ) * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+              * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1) * b^2 + 1)))
+            + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  have hx1 : (1:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hid := rieszMeanC_mul_log_prime_restrict f hf hcm x hx1
+  have hhead := rieszMeanC_prime_head_le f hf x y hy2
+  have htail := rieszMeanC_prime_tail_le f hf x
+  have hbridge := rieszMeanC_survivors_to_tripleConvRC f hf hcm x y hx1
+  have hconv := tripleConvRC_survivors_balanced_le' f hf hcm h1 x y K₀ hx hy2
+    T hT1 hT2 hTy hK₀1 hK₀low hK₀max hX3 b hb0 hBu
+  -- the three-way split of the prime sum
+  have hfe : (((Finset.Icc 1 x).filter Nat.Prime).filter
+        (fun p => ¬ p < y)).filter (fun p => x < 2*p)
+      = ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => x < 2*p) := by
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    constructor
+    · rintro ⟨⟨hS, _⟩, h2⟩
+      exact ⟨hS, h2⟩
+    · rintro ⟨hS, h2⟩
+      exact ⟨⟨hS, by omega⟩, h2⟩
+  have hsplit1 := Finset.sum_filter_add_sum_filter_not
+    ((Finset.Icc 1 x).filter Nat.Prime) (fun p => p < y)
+    (fun p => f p * ((vonMangoldt p : ℝ) : ℂ)
+      * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+          f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ))
+  have hsplit2 := Finset.sum_filter_add_sum_filter_not
+    (((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => ¬ p < y))
+    (fun p => x < 2*p)
+    (fun p => f p * ((vonMangoldt p : ℝ) : ℂ)
+      * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+          f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ))
+  rw [hfe] at hsplit2
+  -- name the five quantities
+  set A := (∑ n ∈ Finset.Icc 1 x,
+      f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)) * Real.log (x:ℝ) with hA_def
+  set H := ∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => p < y),
+      f p * ((vonMangoldt p : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ) with hH_def
+  set Tl := ∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => x < 2*p),
+      f p * ((vonMangoldt p : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ) with hTl_def
+  set Sv := ∑ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+      f p * ((vonMangoldt p : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ) with hSv_def
+  set C := tripleConvRC f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p)) with hC_def
+  set Sp := ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+      f p * ((vonMangoldt p : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ) with hSp_def
+  -- the split as an equation between the named sums
+  have hSp : Sp = H + (Tl + Sv) := by
+    rw [← hsplit1, ← hsplit2]
+  -- triangle chain
+  have habs1 : ‖A‖ ≤ ‖A - Sp‖ + ‖Sp‖ := by
+    have h : A = (A - Sp) + Sp := by ring
+    calc ‖A‖ = ‖(A - Sp) + Sp‖ := by rw [← h]
+      _ ≤ ‖A - Sp‖ + ‖Sp‖ := norm_add_le _ _
+  have habs2 : ‖Sp‖ ≤ ‖H‖ + (‖Tl‖ + ‖Sv‖) := by
+    rw [hSp]
+    calc ‖H + (Tl + Sv)‖ ≤ ‖H‖ + ‖Tl + Sv‖ := norm_add_le _ _
+      _ ≤ ‖H‖ + (‖Tl‖ + ‖Sv‖) := by
+          have := norm_add_le Tl Sv
+          linarith
+  have habs3 : ‖Sv‖ ≤ ‖Sv - C‖ + ‖C‖ := by
+    have h : Sv = (Sv - C) + C := by ring
+    calc ‖Sv‖ = ‖(Sv - C) + C‖ := by rw [← h]
+      _ ≤ ‖Sv - C‖ + ‖C‖ := norm_add_le _ _
+  have hsum := add_le_add hid (add_le_add hhead (add_le_add htail
+    (add_le_add hbridge hconv)))
+  have hchain : ‖A‖ ≤ ‖A - Sp‖ + (‖H‖ + (‖Tl‖ + (‖Sv - C‖ + ‖C‖))) := by
+    linarith [habs1, habs2, habs3]
+  linarith [le_trans hchain hsum]
+
+
+open Real Finset in
+/-- **The log-free Halász Riesz mean** (Track R, M0R-5, the campaign
+goal): under `NonPretentiousAt` at strength `A` with the band inside
+the frequency range (`7(halaszM+1) ≤ A·x`, using `2π < 7`), the FULL
+Riesz mean at the top scale obeys
+
+  `‖R_f(x)·log x| ≤ … + K₀·(x·√(2000·(e^π)²·10¹⁵·(((log⌈T²⌉+2)² + T + 1)·(e⁵(2+log x)e^{−A})² + 1)) + …) + …`
+
+— `rieszMean_log_le'_of_nonPretentious` at
+`b := e⁵·(2+log x)·e^{−A}`, discharged by
+`norm_smoothPhaseSum_le_of_nonPretentious`.  No `y₂`-smooth
+restriction, no `W ≈ 2×10⁷` detour losses: the band-sup quality is
+`e^{−A}` against the *log-free* prefactor `e⁵(2+log x)` — Halász for
+the Riesz mean, through the truncated Euler product. -/
+theorem rieszMeanC_log_le_halasz_of_nonPretentious (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (x y K₀ : ℕ) (hx : 10^16 ≤ x) (hy2 : 2 ≤ y) (hyx : 2*y ≤ x)
+    (T : ℝ) (hT1 : Real.sqrt (21 * Real.log (x:ℝ)) ≤ T)
+    (hT2 : T ≤ Real.log (x:ℝ)) (hTy : T^2 ≤ (y:ℝ))
+    (hK₀1 : 1 ≤ K₀)
+    (hK₀low : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+    (hK₀max : Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+      < Real.exp 1 * Real.log 2)
+    (A : ℝ) (hA : NonPretentiousAt f A x)
+    (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ)) :
+    ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)
+        + ((K₀:ℝ) * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+              * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+                * (Real.exp 5 * (2 + Real.log (x:ℝ))
+                    * Real.exp (-A))^2 + 1)))
+            + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  have hx3 : (3:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hb0 : (0:ℝ) ≤ Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A) := by
+    have h2L : (0:ℝ) ≤ 2 + Real.log (x:ℝ) := by
+      have := Real.log_natCast_nonneg x
+      linarith
+    exact mul_nonneg (mul_nonneg (Real.exp_pos 5).le h2L)
+      (Real.exp_pos (-A)).le
+  have hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum f x t‖
+        ≤ Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A) := by
+    intro t ht
+    refine ExpSums.norm_smoothPhaseSum_le_of_nonPretentious
+      f hcm h1 hf x hx3 A h1A hA t ?_
+    -- `|2πt| ≤ 7·(M+1) ≤ A·x`, using `2π < 7`
+    have hpi7 : 2 * Real.pi ≤ 7 := by
+      have := Real.pi_lt_d2
+      linarith
+    rw [abs_mul, abs_of_pos Real.two_pi_pos]
+    calc 2 * Real.pi * |t| ≤ 7 * |t| :=
+          mul_le_mul_of_nonneg_right hpi7 (abs_nonneg t)
+      _ ≤ 7 * (((halaszM x : ℕ):ℝ) + 1) :=
+          mul_le_mul_of_nonneg_left ht (by norm_num)
+      _ ≤ A * (x:ℝ) := hband
+  exact rieszMeanC_log_le'_of_nonPretentious f hf hcm h1 x y K₀ hx hy2 hyx
+    T hT1 hT2 hTy hK₀1 hK₀low hK₀max
+    (three_le_div_blockLo x K₀ hx hK₀low)
+    (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A)) hb0 hBu
+
+
+open Real Finset in
+/-- **Flat differencing** (Track R, M0R-6a): the plain sum at `x'` is
+priced by two Riesz means and the edge mass —
+
+  `|S(x')|·(log x − log x') ≤ |R(x)| + |R(x')| + (x−x')·(log x − log x')`.
+
+Splitting `Icc 1 x` at `x'` gives the exact identity
+`R(x) = R(x') + S(x')·log(x/x') + ∑_{x'<n≤x} f(n)·log(x/n)`, and every
+edge term is at most `log(x/x')` in absolute value.  Downstream the
+two Riesz means carry the log-free Halász bound at scales `x` and
+`x'`, and choosing `log(x/x') ≍ e^{−A/2}` splits the quality evenly —
+the √-loss of the flat recovery. -/
+theorem plain_sumC_mul_log_ratio_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x' x : ℕ) (hx'1 : 1 ≤ x') (hx'x : x' ≤ x) :
+    ‖∑ n ∈ Finset.Icc 1 x', f n‖ * (Real.log (x:ℝ) - Real.log (x':ℝ))
+      ≤ ‖∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        + ‖∑ n ∈ Finset.Icc 1 x', f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        + ((x:ℝ) - (x':ℝ)) * (Real.log (x:ℝ) - Real.log (x':ℝ)) := by
+  classical
+  have hx'0 : (0:ℝ) < (x':ℝ) := by exact_mod_cast (by omega : 0 < x')
+  have hlogd0 : (0:ℝ) ≤ Real.log (x:ℝ) - Real.log (x':ℝ) := by
+    have := Real.log_le_log hx'0 (by exact_mod_cast hx'x : (x':ℝ) ≤ (x:ℝ))
+    linarith
+  -- the split of the index range at `x'`
+  have hunion : Finset.Icc 1 x' ∪ Finset.Ioc x' x = Finset.Icc 1 x := by
+    ext n
+    simp only [Finset.mem_union, Finset.mem_Icc, Finset.mem_Ioc]
+    omega
+  have hdisj : Disjoint (Finset.Icc 1 x') (Finset.Ioc x' x) := by
+    rw [Finset.disjoint_left]
+    intro n hn hn'
+    rw [Finset.mem_Icc] at hn
+    rw [Finset.mem_Ioc] at hn'
+    omega
+  -- the exact differencing identity
+  have hkey : ∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)
+      = (∑ n ∈ Finset.Icc 1 x', f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        + (∑ n ∈ Finset.Icc 1 x', f n)
+            * ((Real.log (x:ℝ) - Real.log (x':ℝ) : ℝ) : ℂ)
+        + ∑ n ∈ Finset.Ioc x' x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ) := by
+    rw [← hunion, Finset.sum_union hdisj]
+    have hhead : ∑ n ∈ Finset.Icc 1 x',
+        f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)
+        = (∑ n ∈ Finset.Icc 1 x', f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+          + (∑ n ∈ Finset.Icc 1 x', f n)
+              * ((Real.log (x:ℝ) - Real.log (x':ℝ) : ℝ) : ℂ) := by
+      rw [Finset.sum_mul, ← Finset.sum_add_distrib]
+      refine Finset.sum_congr rfl fun n _ => ?_
+      push_cast
+      ring
+    rw [hhead]
+  -- the edge mass: each term at most `log x − log x'`
+  have hedge : ‖∑ n ∈ Finset.Ioc x' x,
+      f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+      ≤ ((x:ℝ) - (x':ℝ)) * (Real.log (x:ℝ) - Real.log (x':ℝ)) := by
+    refine le_trans (norm_sum_le _ _) ?_
+    have hterm : ∀ n ∈ Finset.Ioc x' x,
+        ‖f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+          ≤ Real.log (x:ℝ) - Real.log (x':ℝ) := by
+      intro n hn
+      rw [Finset.mem_Ioc] at hn
+      have hn0 : (0:ℝ) < (n:ℝ) := by
+        exact_mod_cast (by omega : 0 < n)
+      have hlogn : Real.log (x':ℝ) ≤ Real.log (n:ℝ) :=
+        Real.log_le_log hx'0 (by exact_mod_cast hn.1.le : (x':ℝ) ≤ (n:ℝ))
+      have hlognx : Real.log (n:ℝ) ≤ Real.log (x:ℝ) :=
+        Real.log_le_log hn0 (by exact_mod_cast hn.2 : (n:ℝ) ≤ (x:ℝ))
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg (by linarith : (0:ℝ)
+          ≤ Real.log (x:ℝ) - Real.log (n:ℝ))]
+      calc ‖f n‖ * (Real.log (x:ℝ) - Real.log (n:ℝ))
+          ≤ 1 * (Real.log (x:ℝ) - Real.log (n:ℝ)) :=
+            mul_le_mul_of_nonneg_right (hf n) (by linarith)
+        _ = Real.log (x:ℝ) - Real.log (n:ℝ) := one_mul _
+        _ ≤ Real.log (x:ℝ) - Real.log (x':ℝ) := by linarith
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [Finset.sum_const, Nat.card_Ioc, nsmul_eq_mul]
+    have hcast : ((x - x' : ℕ):ℝ) = (x:ℝ) - (x':ℝ) := by
+      rw [Nat.cast_sub hx'x]
+    rw [hcast]
+  -- assemble: `S(x')·(log x − log x') = R(x) − R(x') − edge`
+  have hS : (∑ n ∈ Finset.Icc 1 x', f n)
+        * ((Real.log (x:ℝ) - Real.log (x':ℝ) : ℝ) : ℂ)
+      = (∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        - (∑ n ∈ Finset.Icc 1 x', f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        - ∑ n ∈ Finset.Ioc x' x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ) := by
+    rw [hkey]
+    ring
+  have hLHS : ‖∑ n ∈ Finset.Icc 1 x', f n‖
+        * (Real.log (x:ℝ) - Real.log (x':ℝ))
+      = ‖(∑ n ∈ Finset.Icc 1 x', f n)
+          * ((Real.log (x:ℝ) - Real.log (x':ℝ) : ℝ) : ℂ)‖ := by
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg hlogd0]
+  rw [hLHS, hS]
+  calc ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        - (∑ n ∈ Finset.Icc 1 x', f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        - ∑ n ∈ Finset.Ioc x' x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+      ≤ ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+          - (∑ n ∈ Finset.Icc 1 x',
+              f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))‖
+        + ‖∑ n ∈ Finset.Ioc x' x,
+            f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖ := norm_sub_le _ _
+    _ ≤ ‖∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        + ‖∑ n ∈ Finset.Icc 1 x', f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        + ‖∑ n ∈ Finset.Ioc x' x,
+            f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖ := by
+      have := norm_sub_le (∑ n ∈ Finset.Icc 1 x,
+          f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        (∑ n ∈ Finset.Icc 1 x', f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+      linarith
+    _ ≤ ‖∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        + ‖∑ n ∈ Finset.Icc 1 x', f n * ((Real.log (x':ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        + ((x:ℝ) - (x':ℝ)) * (Real.log (x:ℝ) - Real.log (x':ℝ)) := by
+      linarith [hedge]
+
+
+open Real Finset in
+/-- **The plain sum from two Riesz-mean bounds** (Track R, M0R-6b):
+abstract glue over the differencing lemma — if the log-weighted Riesz
+means at a target scale `x` and a top scale `X` are priced
+(`|R(x)·log x| ≤ Bx`, `|R(X)·log X| ≤ BX`), then
+
+  `|S(x)|·(log X − log x) ≤ BX/log X + Bx/log x + (X−x)·(log X − log x)`.
+
+`B`-parametric on purpose: the Halász instantiation (`#3443` at both
+scales) and the scale-ratio choice `log(X/x) ≍ e^{−A/2}` happen at
+packaging time, keeping this statement small. -/
+theorem plain_sumC_le_of_riesz_bounds (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x X : ℕ) (hx2 : 2 ≤ x) (hxX : x ≤ X)
+    (Bx BX : ℝ)
+    (hRx : ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖ ≤ Bx)
+    (hRX : ‖(∑ n ∈ Finset.Icc 1 X, f n * ((Real.log (X:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (X:ℝ) : ℝ) : ℂ)‖ ≤ BX) :
+    ‖∑ n ∈ Finset.Icc 1 x, f n‖ * (Real.log (X:ℝ) - Real.log (x:ℝ))
+      ≤ BX / Real.log (X:ℝ) + Bx / Real.log (x:ℝ)
+        + ((X:ℝ) - (x:ℝ)) * (Real.log (X:ℝ) - Real.log (x:ℝ)) := by
+  have hLx : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have hLX : (0:ℝ) < Real.log (X:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ X))
+  -- each Riesz mean is priced by its budget over its own log
+  have hRx' : ‖∑ n ∈ Finset.Icc 1 x,
+      f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖ ≤ Bx / Real.log (x:ℝ) := by
+    rw [le_div_iff₀ hLx]
+    calc ‖∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+          * Real.log (x:ℝ)
+        = ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+            * ((Real.log (x:ℝ) : ℝ) : ℂ)‖ := by
+          rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hLx]
+      _ ≤ Bx := hRx
+  have hRX' : ‖∑ n ∈ Finset.Icc 1 X,
+      f n * ((Real.log (X:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖ ≤ BX / Real.log (X:ℝ) := by
+    rw [le_div_iff₀ hLX]
+    calc ‖∑ n ∈ Finset.Icc 1 X, f n * ((Real.log (X:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)‖
+          * Real.log (X:ℝ)
+        = ‖(∑ n ∈ Finset.Icc 1 X, f n * ((Real.log (X:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+            * ((Real.log (X:ℝ) : ℝ) : ℂ)‖ := by
+          rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hLX]
+      _ ≤ BX := hRX
+  have hdiff := plain_sumC_mul_log_ratio_le f hf x X (by omega) hxX
+  linarith [hdiff, hRx', hRX']
+
+
+set_option maxHeartbeats 1600000 in
+open Real Finset in
+/-- **The log-free Halász Riesz mean, windowed** (Track R, M0R-6c):
+`rieszMean_log_le_halasz_of_nonPretentious` with the §3 window
+destructured (`exists_section3_window`) and every window quantity
+priced in `x` alone: `log y ≤ log(2·log²x)`, `K₀ ≤ log log x`
+(from the mass floor `e·log 2 ≤ e^{−K₀}·log x` and `e·log 2 ≥ 1`),
+`log⌈T²⌉ ≤ log(2·log²x + 1)`, `T ≤ log x`.  The RHS depends only on
+`x` and `A` — the shape the flat-differencing glue consumes at two
+scales. -/
+theorem rieszMeanC_log_halasz_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (x : ℕ) (hx : 10^16 ≤ x)
+    (A : ℝ) (hA : NonPretentiousAt f A x)
+    (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ)) :
+    ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2)
+        + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)
+        + (Real.log (Real.log (x:ℝ))
+            * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+                * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+                    + Real.log (x:ℝ) + 1)
+                  * (Real.exp 5 * (2 + Real.log (x:ℝ))
+                      * Real.exp (-A))^2 + 1)))
+              + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  obtain ⟨y, K₀, T, hy2, hyx, hT1, hT2, hTy, hylog, hK₀1, hK₀low, hK₀max⟩ :=
+    exists_section3_window x hx
+  have hcap := rieszMeanC_log_le_halasz_of_nonPretentious f hf hcm h1
+    x y K₀ hx hy2 hyx T hT1 hT2 hTy hK₀1 hK₀low hK₀max A hA h1A hband
+  refine le_trans hcap ?_
+  have hxR0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by
+      have : (2:ℕ) ≤ x := le_trans (by norm_num) hx
+      omega : (1:ℕ) < x))
+  obtain ⟨h5T, hLT2, hγT⟩ := T_window_conditions x T hx hT1 hT2
+  have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+  -- the y-term: `log y ≤ log(2·log²x)`
+  have hy0 : (0:ℝ) < (y:ℝ) := by exact_mod_cast (by omega : 0 < y)
+  have hylog' : Real.log (y:ℝ) ≤ Real.log (2*(Real.log (x:ℝ))^2) :=
+    Real.log_le_log hy0 hylog
+  have hyterm : (x:ℝ)*(Real.log (y:ℝ) + 2)
+      ≤ (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2) :=
+    mul_le_mul_of_nonneg_left (by linarith) hxR0
+  -- the K₀-multiplier: `K₀ ≤ log log x`
+  have he_log2 : (1:ℝ) ≤ Real.exp 1 * Real.log 2 := by
+    nlinarith [Real.exp_one_gt_d9, Real.log_two_gt_d9]
+  have hexpK : Real.exp ((K₀:ℝ)) * (Real.exp 1 * Real.log 2)
+      ≤ Real.log (x:ℝ) := by
+    have h := mul_le_mul_of_nonneg_left hK₀low (Real.exp_pos ((K₀:ℝ))).le
+    have hid : Real.exp ((K₀:ℝ)) * (Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+        = Real.log (x:ℝ) := by
+      rw [← mul_assoc, ← Real.exp_add]
+      simp
+    rw [hid] at h
+    exact h
+  have hexpK' : Real.exp ((K₀:ℝ)) ≤ Real.log (x:ℝ) := by
+    nlinarith [Real.exp_pos ((K₀:ℝ)), he_log2, hexpK]
+  have hK₀le : ((K₀:ℕ):ℝ) ≤ Real.log (Real.log (x:ℝ)) :=
+    calc ((K₀:ℕ):ℝ) = Real.log (Real.exp ((K₀:ℝ))) := (Real.log_exp _).symm
+      _ ≤ Real.log (Real.log (x:ℝ)) :=
+          Real.log_le_log (Real.exp_pos _) hexpK'
+  -- the √-argument monotonicity
+  have hT0 : (0:ℝ) < T := by linarith
+  have hceil0 : (0:ℝ) < ((⌈T^2⌉₊ : ℕ):ℝ) := by
+    have : (0:ℕ) < ⌈T^2⌉₊ := Nat.ceil_pos.mpr (by positivity)
+    exact_mod_cast this
+  have hceil_le : ((⌈T^2⌉₊ : ℕ):ℝ) ≤ 2*(Real.log (x:ℝ))^2 + 1 := by
+    have h1' := Nat.ceil_lt_add_one (by positivity : (0:ℝ) ≤ T^2)
+    linarith [hTy, hylog]
+  have hc1 : Real.log ((⌈T^2⌉₊ : ℕ):ℝ)
+      ≤ Real.log (2*(Real.log (x:ℝ))^2 + 1) :=
+    Real.log_le_log hceil0 hceil_le
+  have hc10 : (0:ℝ) ≤ Real.log ((⌈T^2⌉₊ : ℕ):ℝ) :=
+    Real.log_natCast_nonneg _
+  have hc1sq : (Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2
+      ≤ (Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2 := by
+    have hc1a : (0:ℝ) ≤ Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2 := by linarith
+    have hc1b : Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2
+        ≤ Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2 := by linarith
+    exact pow_le_pow_left₀ hc1a hc1b 2
+  have hb2 : (0:ℝ) ≤ (Real.exp 5 * (2 + Real.log (x:ℝ))
+      * Real.exp (-A))^2 := sq_nonneg _
+  have hargle : 2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1))
+      ≤ 2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+            + Real.log (x:ℝ) + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)) := by
+    have hin : ((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+        * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2
+        ≤ ((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+            + Real.log (x:ℝ) + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 :=
+      mul_le_mul_of_nonneg_right (by linarith [hc1sq, hT2]) hb2
+    have hC0 : (0:ℝ) ≤ 2000 * ((Real.exp π)^2 * 10^15) := by positivity
+    nlinarith [hin, hC0]
+  -- the bracket and the K₀-product
+  have hbrk_le : (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4
+      ≤ (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+          * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+              + Real.log (x:ℝ) + 1)
+            * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4 := by
+    have hs := Real.sqrt_le_sqrt hargle
+    have := mul_le_mul_of_nonneg_left hs hxR0
+    linarith
+  have hbrk0 : (0:ℝ) ≤ (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4 := by
+    have h1' : (0:ℝ) ≤ (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1))) :=
+      mul_nonneg hxR0 (Real.sqrt_nonneg _)
+    have h2' : (0:ℝ) ≤ 2*(x:ℝ)*Real.log 4 := by
+      have := mul_nonneg (by linarith : (0:ℝ) ≤ 2*(x:ℝ)) hlog4
+      linarith
+    linarith
+  have hLL0 : (0:ℝ) ≤ Real.log (Real.log (x:ℝ)) := by
+    have h21 : (21:ℝ) ≤ Real.log (x:ℝ) := by
+      have hs21 : Real.sqrt (21 * Real.log (x:ℝ)) ≤ Real.log (x:ℝ) :=
+        le_trans hT1 hT2
+      have hnn : (0:ℝ) ≤ 21 * Real.log (x:ℝ) := by positivity
+      have := mul_self_le_mul_self (Real.sqrt_nonneg _) hs21
+      rw [Real.mul_self_sqrt hnn] at this
+      nlinarith [hL0]
+    exact Real.log_nonneg (by linarith)
+  have hKprod : ((K₀:ℕ):ℝ) * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2
+          * 10^15 * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4)
+      ≤ Real.log (Real.log (x:ℝ))
+        * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+            * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+                + Real.log (x:ℝ) + 1)
+              * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+          + 2*(x:ℝ)*Real.log 4) :=
+    mul_le_mul hK₀le hbrk_le hbrk0 hLL0
+  have hstep : 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+      + Real.log 2) + 16 * Real.log 4))
+      ≤ 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+      + Real.log 2) + 16 * Real.log 4)) := le_rfl
+  exact add_le_add
+    (add_le_add_left
+      (add_le_add_left
+        (add_le_add_right hyterm (35*(x:ℝ)))
+        (2*((x:ℝ)+1)*Real.log 4))
+      (64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)))
+    (add_le_add hKprod hstep)
+
+
+
+
+open Real Finset in
+/-- **The plain-sum log-free Halász bound** (Track R, M0R-6e, the M0R
+campaign's final product): for `10¹⁶ ≤ x ≤ X` and `f` completely
+multiplicative, `1`-bounded, non-pretentious at strength `A ≥ 1` at
+both scales,
+
+  `‖∑_{n≤x} f(n)‖·(log X − log x) ≤ Ĥ(X,A)/log X + Ĥ(x,A)/log x + (X−x)·(log X − log x)`,
+
+with `Ĥ(z,A)` the windowed Halász budget of `rieszMean_log_halasz_le`
+— every constant absolute, the quality `e⁵(2+log z)e^{−A}` log-free.
+The consumer picks the scale ratio: `log(X/x) ≍ e^{−A/2}` balances the
+two error groups (the √-loss), and any fixed ratio yields a
+`(1+A)e^{−A}·polylog + loglog/log`-type saving — exactly what the
+[mrt] A.2 layer's `ε`-form needs.  Both `hband`s are discharged by
+`halaszM_band_le`; the window hypotheses by `exists_section3_window`
+inside the windowed capstone. -/
+theorem plain_sumC_le_halasz_of_nonPretentious (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (x X : ℕ) (hx : 10^16 ≤ x) (hxX : x ≤ X)
+    (A : ℝ) (h1A : 1 ≤ A)
+    (hAx : NonPretentiousAt f A x)
+    (hAX : NonPretentiousAt f A X) :
+    ‖∑ n ∈ Finset.Icc 1 x, f n‖ * (Real.log (X:ℝ) - Real.log (x:ℝ))
+      ≤ (35*(X:ℝ) + (X:ℝ)*(Real.log (2*(Real.log (X:ℝ))^2) + 2)
+          + 2*((X:ℝ)+1)*Real.log 4
+          + 64 * (X:ℝ) / Real.log 2 * (Real.log ((X+1:ℕ):ℝ) + 2)
+          + (Real.log (Real.log (X:ℝ))
+              * ((X:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+                  * (((Real.log (2*(Real.log (X:ℝ))^2 + 1) + 2)^2
+                      + Real.log (X:ℝ) + 1)
+                    * (Real.exp 5 * (2 + Real.log (X:ℝ))
+                        * Real.exp (-A))^2 + 1)))
+                + 2*(X:ℝ)*Real.log 4)
+            + 2 * ((X:ℝ) * (16 * ((Real.exp 1 - 1)
+                * (Real.exp 1 * Real.log 2)
+                + Real.log 2) + 16 * Real.log 4)))) / Real.log (X:ℝ)
+        + (35*(x:ℝ) + (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2)
+          + 2*((x:ℝ)+1)*Real.log 4
+          + 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)
+          + (Real.log (Real.log (x:ℝ))
+              * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+                  * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+                      + Real.log (x:ℝ) + 1)
+                    * (Real.exp 5 * (2 + Real.log (x:ℝ))
+                        * Real.exp (-A))^2 + 1)))
+                + 2*(x:ℝ)*Real.log 4)
+            + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1)
+                * (Real.exp 1 * Real.log 2)
+                + Real.log 2) + 16 * Real.log 4)))) / Real.log (x:ℝ)
+        + ((X:ℝ) - (x:ℝ)) * (Real.log (X:ℝ) - Real.log (x:ℝ)) := by
+  have hX : 10^16 ≤ X := le_trans hx hxX
+  have hx2 : 2 ≤ x := le_trans (by norm_num) hx
+  have hRx := rieszMeanC_log_halasz_le f hf hcm h1 x hx A hAx h1A
+    (halaszM_band_le x hx A h1A)
+  have hRX := rieszMeanC_log_halasz_le f hf hcm h1 X hX A hAX h1A
+    (halaszM_band_le X hX A h1A)
+  exact plain_sumC_le_of_riesz_bounds f hf x X hx2 hxX _ _ hRx hRX
+
 end MoltResearch
