@@ -372,4 +372,159 @@ theorem discard_weight_leC (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     _ = 2 * Real.log (p:ℝ) := by
         field_simp
 
+
+open Real Finset in
+/-- **Vanishing beyond the scale, over ℂ** (Track R, A2-0): the mirror
+of `smoothed_vanishes_of_lt_mul` — for `p·q > x` the scale falls below
+`1` and the windowed sum dies term by term
+(`window_vanishes_of_scale_le_one` is window-only, shared). -/
+theorem smoothed_vanishes_of_lt_mulC (V : ℝ → ℝ)
+    (hV0 : ∀ v, v ≤ 0 → V v = 0) (f : ℕ → ℂ) (x p q : ℕ)
+    (hp : 0 < p) (hq : 0 < q) (hpq : x < p*q) (S : Finset ℕ) :
+    ∑ n ∈ S, (f n/(n:ℂ))
+        * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ)) : ℝ) : ℂ)
+      = 0 := by
+  refine Finset.sum_eq_zero fun n _ => ?_
+  have hpq0 : (0:ℝ) < (p:ℝ)*(q:ℝ) := by
+    have h1 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+    have h2 : (0:ℝ) < (q:ℝ) := by exact_mod_cast hq
+    positivity
+  have hle : (x:ℝ)/((p:ℝ)*(q:ℝ)) ≤ 1 := by
+    rw [div_le_one hpq0]
+    have : ((x:ℕ):ℝ) ≤ ((p*q : ℕ):ℝ) := by exact_mod_cast hpq.le
+    push_cast at this
+    linarith
+  have hnn : (0:ℝ) ≤ (x:ℝ)/((p:ℝ)*(q:ℝ)) := by positivity
+  rw [ExpSums.window_vanishes_of_scale_le_one V hV0 _ hnn hle n,
+    Complex.ofReal_zero, mul_zero]
+
+open Real Finset in
+/-- **The range enlargement costs one term, over ℂ** (Track R, A2-0):
+the mirror of `enlargement_discard_le'` — every added prime beyond
+`⌊x/p⌋` dies outright, and the single survivor costs `2·log⌊x/p⌋`
+against the threaded unit-sum bound. -/
+theorem enlargement_discard_le'C (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (V : ℝ → ℝ) (hV0 : ∀ v, v ≤ 0 → V v = 0)
+    (x p : ℕ) (hp : 0 < p) (h2p : 2*p ≤ x)
+    (S : Finset ℕ) (hS1 : ∀ n ∈ S, 1 ≤ n)
+    (hsum : ∀ y : ℝ, 1 ≤ y → y ≤ 2 →
+      ‖∑ n ∈ S, (f n/(n:ℂ)) * ((V (Real.log y - Real.log (n:ℝ)) : ℝ) : ℂ)‖
+        ≤ 1)
+    (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) :
+    ‖∑ q ∈ Q \ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+        * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+          * ∑ n ∈ S, (f n/(n:ℂ))
+              * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                  - Real.log (n:ℝ)) : ℝ) : ℂ))‖
+      ≤ 2 * Real.log (((x/p : ℕ)):ℝ) := by
+  classical
+  set A : Finset ℕ := Q \ (x/p).primesBelow with hA_def
+  set m : ℕ := x/p with hm_def
+  have hm2 : 2 ≤ m := by
+    rw [hm_def]
+    exact Nat.le_div_iff_mul_le hp |>.mpr (by omega)
+  have hmR : (2:ℝ) ≤ (m:ℝ) := by exact_mod_cast hm2
+  have hlogm : (0:ℝ) ≤ Real.log (m:ℝ) := Real.log_natCast_nonneg m
+  -- every added prime but `m` zeroes the inner sum
+  have hvanish : ∀ q ∈ A, q ∉ A.filter (fun q : ℕ => q = m) →
+      ‖((Real.log (q:ℝ) : ℂ) * f q)
+        * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+          * ∑ n ∈ S, (f n/(n:ℂ))
+              * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                  - Real.log (n:ℝ)) : ℝ) : ℂ))‖ = 0 := by
+    intro q hq hnot
+    simp only [Finset.mem_filter, not_and] at hnot
+    have hqne : q ≠ m := hnot hq
+    rw [hA_def, Finset.mem_sdiff] at hq
+    have hqp : q.Prime := hQp q hq.1
+    have hqm : m ≤ q := by
+      by_contra hcon
+      push_neg at hcon
+      exact hq.2 (Nat.mem_primesBelow.mpr ⟨hcon, hqp⟩)
+    have hqgt : m < q := lt_of_le_of_ne hqm (Ne.symm hqne)
+    have hpq : x < p*q := by
+      have hdm : p*m + x % p = x := by rw [hm_def]; exact Nat.div_add_mod x p
+      have hmod : x % p < p := Nat.mod_lt _ hp
+      have h1 : p*(m+1) ≤ p*q := Nat.mul_le_mul_left p hqgt
+      have h2 : p*(m+1) = p*m + p := by ring
+      omega
+    rw [smoothed_vanishes_of_lt_mulC V hV0 f x p q hp hqp.pos hpq S,
+      mul_zero, mul_zero, norm_zero]
+  have hrestrict : (∑ q ∈ A, ‖((Real.log (q:ℝ) : ℂ) * f q)
+        * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+          * ∑ n ∈ S, (f n/(n:ℂ))
+              * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                  - Real.log (n:ℝ)) : ℝ) : ℂ))‖)
+      = ∑ q ∈ A.filter (fun q : ℕ => q = m),
+          ‖((Real.log (q:ℝ) : ℂ) * f q)
+            * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+              * ∑ n ∈ S, (f n/(n:ℂ))
+                  * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                      - Real.log (n:ℝ)) : ℝ) : ℂ))‖ :=
+    (Finset.sum_subset (Finset.filter_subset _ _)
+      (fun q hq hnot => hvanish q hq hnot)).symm
+  -- the survivor's size
+  have hterm : ∀ q ∈ A.filter (fun q : ℕ => q = m),
+      ‖((Real.log (q:ℝ) : ℂ) * f q)
+        * ((((x:ℝ)/((p:ℝ)*(q:ℝ)) : ℝ) : ℂ)
+          * ∑ n ∈ S, (f n/(n:ℂ))
+              * ((V (Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ)))
+                  - Real.log (n:ℝ)) : ℝ) : ℂ))‖
+      ≤ 2 * Real.log (m:ℝ) := by
+    intro q hq
+    simp only [Finset.mem_filter] at hq
+    obtain ⟨-, hqm⟩ := hq
+    rw [hqm]
+    have hm0 : (0:ℝ) < (m:ℝ) := by linarith
+    have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp
+    have hscale : (0:ℝ) < (x:ℝ)/((p:ℝ)*(m:ℝ)) := by
+      have hx0 : (0:ℝ) < (x:ℝ) := by
+        have : 0 < x := by omega
+        exact_mod_cast this
+      positivity
+    have hcoef : ‖(Real.log (m:ℝ) : ℂ) * f m‖ ≤ Real.log (m:ℝ) := by
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs,
+        abs_of_nonneg (Real.log_natCast_nonneg m)]
+      nlinarith [hf m, norm_nonneg (f m), Real.log_natCast_nonneg m]
+    have hsc2 : (x:ℝ)/((p:ℝ)*(m:ℝ)) ≤ 2 := x_div_mul_floor_le_two x p hp h2p
+    have hsc1 : (1:ℝ) ≤ (x:ℝ)/((p:ℝ)*(m:ℝ)) := by
+      rw [le_div_iff₀ (by positivity)]
+      have hpm : p * m ≤ x := by
+        rw [hm_def, Nat.mul_comm]; exact Nat.div_mul_le_self x p
+      have : ((p*m : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast hpm
+      push_cast at this; linarith
+    have hsm := hsum _ hsc1 hsc2
+    have hinner : ‖(((x:ℝ)/((p:ℝ)*(m:ℝ)) : ℝ) : ℂ)
+        * ∑ n ∈ S, (f n/(n:ℂ))
+            * ((V (Real.log ((x:ℝ)/((p:ℝ)*(m:ℝ)))
+                - Real.log (n:ℝ)) : ℝ) : ℂ)‖ ≤ 2 := by
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hscale]
+      calc (x:ℝ)/((p:ℝ)*(m:ℝ)) * ‖∑ n ∈ S, (f n/(n:ℂ))
+              * ((V (Real.log ((x:ℝ)/((p:ℝ)*(m:ℝ)))
+                  - Real.log (n:ℝ)) : ℝ) : ℂ)‖
+          ≤ (x:ℝ)/((p:ℝ)*(m:ℝ)) * 1 :=
+            mul_le_mul_of_nonneg_left hsm hscale.le
+        _ ≤ 2 := by linarith
+    rw [norm_mul]
+    calc ‖(Real.log (m:ℝ) : ℂ) * f m‖ * ‖(((x:ℝ)/((p:ℝ)*(m:ℝ)) : ℝ) : ℂ)
+            * ∑ n ∈ S, (f n/(n:ℂ))
+                * ((V (Real.log ((x:ℝ)/((p:ℝ)*(m:ℝ)))
+                    - Real.log (n:ℝ)) : ℝ) : ℂ)‖
+        ≤ Real.log (m:ℝ) * 2 :=
+          mul_le_mul hcoef hinner (norm_nonneg _)
+            (Real.log_natCast_nonneg m)
+      _ = 2 * Real.log (m:ℝ) := by ring
+  -- at most one survivor
+  have hcard : (A.filter (fun q : ℕ => q = m)).card ≤ 1 := by
+    refine Finset.card_le_one.mpr fun a ha b hb => ?_
+    simp only [Finset.mem_filter] at ha hb
+    rw [ha.2, hb.2]
+  refine le_trans (norm_sum_le _ _) ?_
+  rw [hrestrict]
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  simp only [Finset.sum_const, nsmul_eq_mul]
+  have hc : ((A.filter (fun q : ℕ => q = m)).card : ℝ) ≤ 1 := by
+    exact_mod_cast hcard
+  nlinarith [hc, hlogm]
+
 end MoltResearch
