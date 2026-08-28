@@ -1399,4 +1399,88 @@ theorem rieszMean_log_halasz_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
       (64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)))
     (add_le_add hKprod hstep)
 
+
+open Real in
+/-- **The band sits inside the frequency range, numerically** (Track R,
+M0R-6d): for `x ≥ 10¹⁶` and `A ≥ 1`,
+
+  `7·(halaszM x + 1) ≤ A·x`.
+
+`halaszM x ≤ log⁴x + 2`, and `log x ≤ 12·x^{1/12}` (from
+`log u ≤ u − 1` at `u = x^{1/12}`) gives `7·log⁴x + 21 ≤
+145152·x^{1/3} + 21 ≤ x^{1/3}·10¹⁰ ≤ x` since `x^{1/3} ≥ 10⁵`.
+Discharges the capstone's `hband` hypothesis with no side condition
+beyond the campaign window. -/
+theorem halaszM_band_le (x : ℕ) (hx : 10^16 ≤ x) (A : ℝ) (h1A : 1 ≤ A) :
+    7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ) := by
+  have hx0 : (0:ℝ) < (x:ℝ) := by
+    exact_mod_cast (by positivity : (0:ℕ) < 10^16).trans_le hx
+  have hxR : (10:ℝ)^16 ≤ (x:ℝ) := by exact_mod_cast hx
+  have hL0 : (0:ℝ) ≤ Real.log (x:ℝ) := Real.log_natCast_nonneg x
+  -- `halaszM x ≤ log⁴x + 2`
+  have hM : ((halaszM x : ℕ):ℝ) ≤ (Real.log (x:ℝ))^4 + 2 := by
+    have hnn : (0:ℤ) ≤ ⌈(Real.log (x:ℝ))^4⌉ + 1 := by
+      have := Int.ceil_nonneg (by positivity : (0:ℝ) ≤ (Real.log (x:ℝ))^4)
+      omega
+    have hceil : ((⌈(Real.log (x:ℝ))^4⌉ : ℤ):ℝ) < (Real.log (x:ℝ))^4 + 1 :=
+      Int.ceil_lt_add_one _
+    calc ((halaszM x : ℕ):ℝ)
+        = (((⌈(Real.log (x:ℝ))^4⌉ + 1).toNat : ℕ):ℝ) := by rw [halaszM]
+      _ = ((⌈(Real.log (x:ℝ))^4⌉ + 1 : ℤ):ℝ) := by
+          rw [show ((((⌈(Real.log (x:ℝ))^4⌉ + 1).toNat : ℕ)):ℝ)
+              = ((((⌈(Real.log (x:ℝ))^4⌉ + 1).toNat : ℕ) : ℤ):ℝ) by
+            push_cast; ring,
+            Int.toNat_of_nonneg hnn]
+      _ = ((⌈(Real.log (x:ℝ))^4⌉ : ℤ):ℝ) + 1 := by push_cast; ring
+      _ ≤ (Real.log (x:ℝ))^4 + 2 := by linarith [hceil]
+  -- `log x ≤ 12·x^{1/12}`
+  have hu0 : (0:ℝ) < (x:ℝ)^((1:ℝ)/12) := Real.rpow_pos_of_pos hx0 _
+  have hlogu : Real.log (x:ℝ) = 12 * Real.log ((x:ℝ)^((1:ℝ)/12)) := by
+    rw [Real.log_rpow hx0]
+    ring
+  have hL12 : Real.log (x:ℝ) ≤ 12 * (x:ℝ)^((1:ℝ)/12) := by
+    rw [hlogu]
+    have := Real.log_le_sub_one_of_pos hu0
+    nlinarith [this]
+  -- `log⁴x ≤ 20736·x^{1/3}`
+  have hpow4 : (Real.log (x:ℝ))^4 ≤ 20736 * (x:ℝ)^((1:ℝ)/3) := by
+    have h4 := pow_le_pow_left₀ hL0 hL12 4
+    have hru : ((x:ℝ)^((1:ℝ)/12))^(4:ℕ) = (x:ℝ)^((1:ℝ)/3) := by
+      rw [← Real.rpow_natCast ((x:ℝ)^((1:ℝ)/12)) 4, ← Real.rpow_mul hx0.le]
+      norm_num
+    calc (Real.log (x:ℝ))^4 ≤ (12 * (x:ℝ)^((1:ℝ)/12))^4 := h4
+      _ = 20736 * ((x:ℝ)^((1:ℝ)/12))^(4:ℕ) := by ring
+      _ = 20736 * (x:ℝ)^((1:ℝ)/3) := by rw [hru]
+  -- `x^{1/3} ≥ 10⁵`
+  have hx13 : (10:ℝ)^5 ≤ (x:ℝ)^((1:ℝ)/3) := by
+    have h15 : ((10:ℝ)^15) ≤ (x:ℝ) := by
+      calc ((10:ℝ)^15) ≤ (10:ℝ)^16 := by norm_num
+        _ ≤ (x:ℝ) := hxR
+    have hid : ((10:ℝ)^15)^((1:ℝ)/3) = (10:ℝ)^5 := by
+      rw [show ((10:ℝ)^15) = ((10:ℝ)^5)^(3:ℕ) by norm_num,
+        ← Real.rpow_natCast ((10:ℝ)^5) 3, ← Real.rpow_mul (by norm_num)]
+      norm_num
+    calc (10:ℝ)^5 = ((10:ℝ)^15)^((1:ℝ)/3) := hid.symm
+      _ ≤ (x:ℝ)^((1:ℝ)/3) := Real.rpow_le_rpow (by norm_num) h15 (by norm_num)
+  -- assemble: `7·(log⁴x + 3) ≤ x^{1/3}·10¹⁰ ≤ x ≤ A·x`
+  have hsplit : (x:ℝ)^((1:ℝ)/3) * ((x:ℝ)^((1:ℝ)/3) * (x:ℝ)^((1:ℝ)/3))
+      = (x:ℝ) := by
+    rw [← Real.rpow_add hx0, ← Real.rpow_add hx0]
+    norm_num
+  have hx13_1 : (1:ℝ) ≤ (x:ℝ)^((1:ℝ)/3) := by
+    have : (1:ℝ) ≤ (10:ℝ)^5 := by norm_num
+    linarith [hx13]
+  have hband1 : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ (x:ℝ) := by
+    have hchain : 7 * (((halaszM x : ℕ):ℝ) + 1)
+        ≤ 145152 * (x:ℝ)^((1:ℝ)/3) + 21 := by
+      nlinarith [hM, hpow4]
+    have hbig : 145152 * (x:ℝ)^((1:ℝ)/3) + 21 ≤ (x:ℝ) := by
+      nlinarith [hx13, hx13_1, hsplit,
+        mul_le_mul_of_nonneg_left hx13 (by positivity :
+          (0:ℝ) ≤ (x:ℝ)^((1:ℝ)/3) * (x:ℝ)^((1:ℝ)/3))]
+    linarith
+  calc 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ (x:ℝ) := hband1
+    _ = 1 * (x:ℝ) := (one_mul _).symm
+    _ ≤ A * (x:ℝ) := mul_le_mul_of_nonneg_right h1A hx0.le
+
 end MoltResearch
