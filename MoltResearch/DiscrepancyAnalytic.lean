@@ -24,6 +24,7 @@ import MoltResearch.Discrepancy.HalaszCapstone
 import MoltResearch.Discrepancy.HalaszComplex
 import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.WindowAssembly
+import MoltResearch.Discrepancy.BumpDeriv
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
