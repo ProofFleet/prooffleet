@@ -1081,6 +1081,306 @@ theorem window_logavg_eps_of_slice_budget (h : ℕ → ℂ)
     _ = ε * ∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n := by
         rw [Real.sq_sqrt hharm0]
 
+
+open Real in
+/-- **Upper log-difference quotient** (Track R, A2-III schedule
+geometry): for `0 ≤ y ≤ x`,
+
+  `log(1+x) − log(1+y) ≤ (x−y)/(1+y)`.
+
+With its partner `le_log_one_add_sub_log_one_add` this brackets every
+slice-window edge difference between explicit rational functions —
+the whole G10c radii/ratio arithmetic prices against this pair. -/
+theorem log_one_add_sub_log_one_add_le (x y : ℝ)
+    (hy : 0 ≤ y) (hxy : y ≤ x) :
+    Real.log (1+x) - Real.log (1+y) ≤ (x-y)/(1+y) := by
+  have h1y : (0:ℝ) < 1+y := by linarith
+  have h1x : (0:ℝ) < 1+x := by linarith
+  have hlog := Real.log_le_sub_one_of_pos (div_pos h1x h1y)
+  rw [Real.log_div h1x.ne' h1y.ne'] at hlog
+  have hq : (1+x)/(1+y) - 1 = (x-y)/(1+y) := by field_simp; ring
+  linarith [hlog, hq.le, hq.ge]
+
+open Real in
+/-- **Lower log-difference quotient** (Track R, A2-III schedule
+geometry): for `0 ≤ y ≤ x`,
+
+  `(x−y)/(1+x) ≤ log(1+x) − log(1+y)`.
+
+Proof: apply `log z ≤ z − 1` at the reciprocal ratio `(1+y)/(1+x)`
+and negate — no second transcendental input needed. -/
+theorem le_log_one_add_sub_log_one_add (x y : ℝ)
+    (hy : 0 ≤ y) (hxy : y ≤ x) :
+    (x-y)/(1+x) ≤ Real.log (1+x) - Real.log (1+y) := by
+  have h1y : (0:ℝ) < 1+y := by linarith
+  have h1x : (0:ℝ) < 1+x := by linarith
+  have hlog := Real.log_le_sub_one_of_pos (div_pos h1y h1x)
+  rw [Real.log_div h1y.ne' h1x.ne'] at hlog
+  have hq : (1+y)/(1+x) - 1 = -((x-y)/(1+x)) := by field_simp; ring
+  linarith [hlog, hq.le, hq.ge]
+
+
+open Real in
+/-- **The slice window's inner radius is at least `1/3`** (Track R,
+A2-III schedule geometry, G10c-1): under the schedule constraints
+`30s ≤ A`, `3H ≤ A`, `50U ≤ εH`, `ε ≤ 1`, the `exists_slice_window'`
+bump's inner radius `(A/H)·(log(1+H/(A+s)) − log(1+U/A))/2` is at
+least `1/3` — so the uniform derivative bound `C₀/rIn` from
+`exists_bump_deriv_bound` is at most `3C₀`, pricing
+`slice_energy_le`'s `B′`-slot by an absolute constant. -/
+theorem slice_rIn_lower (A s U H : ℕ) (ε : ℝ)
+    (hA : 1 ≤ A) (hH : 0 < H) (hs30 : 30*s ≤ A) (h3H : 3*H ≤ A)
+    (hε1 : ε ≤ 1) (hU50 : 50*(U:ℝ) ≤ ε*H) :
+    (1:ℝ)/3 ≤ ((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+        - Real.log (1 + (U:ℝ)/A))/2 := by
+  have ha0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hh0 : (0:ℝ) < H := by exact_mod_cast hH
+  have hs0 : (0:ℝ) ≤ s := Nat.cast_nonneg s
+  have hu0 : (0:ℝ) ≤ U := Nat.cast_nonneg U
+  have hs30' : 30*(s:ℝ) ≤ A := by exact_mod_cast hs30
+  have h3H' : 3*(H:ℝ) ≤ A := by exact_mod_cast h3H
+  have huh : 50*(U:ℝ) ≤ H := by nlinarith
+  have hD0 : (0:ℝ) < (A:ℝ)+s := by linarith
+  have hx1x2 : (U:ℝ)/A ≤ (H:ℝ)/((A:ℝ)+s) := by
+    rw [div_le_div_iff₀ ha0 hD0]
+    nlinarith [mul_nonneg (sub_nonneg.2 huh) hD0.le,
+      mul_nonneg hh0.le (sub_nonneg.2 hs30'),
+      mul_nonneg hh0.le ha0.le]
+  have hkey := le_log_one_add_sub_log_one_add ((H:ℝ)/((A:ℝ)+s))
+    ((U:ℝ)/A) (by positivity) hx1x2
+  have hAH0 : (0:ℝ) ≤ (A:ℝ)/H := by positivity
+  have hmono : ((A:ℝ)/H)*(((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A)
+        /(1 + (H:ℝ)/((A:ℝ)+s)))/2
+      ≤ ((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+          - Real.log (1 + (U:ℝ)/A))/2 :=
+    div_le_div_of_nonneg_right
+      (mul_le_mul_of_nonneg_left hkey hAH0) (by norm_num)
+  refine le_trans ?_ hmono
+  have hEq : ((A:ℝ)/H)*(((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A)
+        /(1 + (H:ℝ)/((A:ℝ)+s)))/2
+      = ((H:ℝ)*A - (U:ℝ)*((A:ℝ)+s))/(2*(H:ℝ)*(((A:ℝ)+s)+H)) := by
+    field_simp
+  rw [hEq, le_div_iff₀ (by positivity)]
+  nlinarith [mul_nonneg (sub_nonneg.2 huh) hD0.le,
+    mul_nonneg hh0.le (sub_nonneg.2 hs30'),
+    mul_nonneg hh0.le (sub_nonneg.2 h3H'),
+    mul_nonneg hh0.le ha0.le]
+
+
+open Real in
+/-- **Slice ratio window, upper edge** (Track R, A2-III schedule
+geometry, G10c-1): under the schedule `30s ≤ A`, `3H ≤ A`,
+`50U ≤ εH ≤ H`, the `exists_slice_window'` bump's radius gap
+`(A/H)·min(t₁−t₀, t₃−t₂)` is at most `ε/20` times the inner radius
+`(A/H)·(t₂−t₁)/2` — the upper half of the `[1+ε/600, 1+ε/20]`
+ratio-window membership that `exists_bump_deriv_bound` prices `C₀`
+against. -/
+theorem slice_ratio_upper (A s U H : ℕ) (ε : ℝ)
+    (hA : 1 ≤ A) (hH : 0 < H) (hs30 : 30*s ≤ A) (h3H : 3*H ≤ A)
+    (hε0 : 0 ≤ ε) (hε1 : ε ≤ 1) (hU50 : 50*(U:ℝ) ≤ ε*H) :
+    ((A:ℝ)/H) * (min (Real.log (1 + (U:ℝ)/A)
+          - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+        (Real.log (1 + ((H:ℝ)+2*U)/A)
+          - Real.log (1 + (H:ℝ)/((A:ℝ)+s))))
+      ≤ (ε/20) * (((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+          - Real.log (1 + (U:ℝ)/A))/2) := by
+  have ha0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hh0 : (0:ℝ) < H := by exact_mod_cast hH
+  have hs0 : (0:ℝ) ≤ s := Nat.cast_nonneg s
+  have hu0 : (0:ℝ) ≤ U := Nat.cast_nonneg U
+  have hs30' : 30*(s:ℝ) ≤ A := by exact_mod_cast hs30
+  have h3H' : 3*(H:ℝ) ≤ A := by exact_mod_cast h3H
+  have huh : 50*(U:ℝ) ≤ H := by nlinarith
+  have hD0 : (0:ℝ) < (A:ℝ)+s := by linarith
+  have hεh0 : (0:ℝ) ≤ ε*H := le_trans (by positivity) hU50
+  have hAH0 : (0:ℝ) ≤ (A:ℝ)/H := by positivity
+  have hx01 : (U:ℝ)/(4*((A:ℝ)+s)) ≤ (U:ℝ)/A := by
+    rw [div_le_div_iff₀ (by positivity) ha0]
+    nlinarith [mul_nonneg hu0 hs0, mul_nonneg hu0 ha0.le]
+  have hx12 : (U:ℝ)/A ≤ (H:ℝ)/((A:ℝ)+s) := by
+    rw [div_le_div_iff₀ ha0 hD0]
+    nlinarith [mul_nonneg (sub_nonneg.2 huh) hD0.le,
+      mul_nonneg hh0.le (sub_nonneg.2 hs30'),
+      mul_nonneg hh0.le ha0.le]
+  have hL10 := log_one_add_sub_log_one_add_le ((U:ℝ)/A)
+    ((U:ℝ)/(4*((A:ℝ)+s))) (by positivity) hx01
+  have hL21 := le_log_one_add_sub_log_one_add ((H:ℝ)/((A:ℝ)+s))
+    ((U:ℝ)/A) (by positivity) hx12
+  -- scalar bound 1: `(A/H)·(x₁−x₀)/(1+x₀) ≤ (47/3000)·ε`
+  have hs1 : ((A:ℝ)/H) * (((U:ℝ)/A - (U:ℝ)/(4*((A:ℝ)+s)))
+        /(1 + (U:ℝ)/(4*((A:ℝ)+s)))) ≤ (47/3000)*ε := by
+    have hden : (1:ℝ) ≤ 1 + (U:ℝ)/(4*((A:ℝ)+s)) :=
+      le_add_of_nonneg_right (by positivity)
+    have hq : ((U:ℝ)/A - (U:ℝ)/(4*((A:ℝ)+s)))
+          /(1 + (U:ℝ)/(4*((A:ℝ)+s)))
+        ≤ (U:ℝ)/A - (U:ℝ)/(4*((A:ℝ)+s)) :=
+      div_le_self (sub_nonneg.2 hx01) hden
+    have hstep : ((A:ℝ)/H) * ((U:ℝ)/A - (U:ℝ)/(4*((A:ℝ)+s)))
+        ≤ (47/3000)*ε := by
+      have heq : ((A:ℝ)/H) * ((U:ℝ)/A - (U:ℝ)/(4*((A:ℝ)+s)))
+          = (U:ℝ)*(3*(A:ℝ)+4*s)/(4*(H:ℝ)*((A:ℝ)+s)) := by
+        field_simp
+        ring
+      rw [heq, div_le_iff₀ (by positivity)]
+      nlinarith [mul_nonneg (sub_nonneg.2 hU50)
+          (by linarith : (0:ℝ) ≤ 3*(A:ℝ)+4*s),
+        mul_nonneg hεh0 (sub_nonneg.2 (by linarith : 13*(s:ℝ) ≤ 2*A))]
+    exact le_trans (mul_le_mul_of_nonneg_left hq hAH0) hstep
+  -- scalar bound 2: `4407/6200 ≤ (A/H)·(x₂−x₁)/(1+x₂)`
+  have hs2 : (4407/6200 : ℝ) ≤ ((A:ℝ)/H)
+      * (((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A)/(1 + (H:ℝ)/((A:ℝ)+s))) := by
+    have heq : ((A:ℝ)/H)
+        * (((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A)/(1 + (H:ℝ)/((A:ℝ)+s)))
+        = ((H:ℝ)*A - (U:ℝ)*((A:ℝ)+s))/((H:ℝ)*(((A:ℝ)+s)+H)) := by
+      field_simp
+    rw [heq, le_div_iff₀ (by positivity)]
+    nlinarith [mul_nonneg (sub_nonneg.2 huh) hD0.le,
+      mul_nonneg hh0.le (sub_nonneg.2 hs30'),
+      mul_nonneg hh0.le (sub_nonneg.2 h3H'),
+      mul_nonneg hh0.le ha0.le]
+  -- assemble
+  have t1 : ((A:ℝ)/H) * (min (Real.log (1 + (U:ℝ)/A)
+          - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+        (Real.log (1 + ((H:ℝ)+2*U)/A)
+          - Real.log (1 + (H:ℝ)/((A:ℝ)+s))))
+      ≤ (47/3000)*ε :=
+    le_trans (mul_le_mul_of_nonneg_left
+      (le_trans (min_le_left _ _) hL10) hAH0) hs1
+  have t2 : (ε/40)*(4407/6200 : ℝ)
+      ≤ (ε/40)*(((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+          - Real.log (1 + (U:ℝ)/A))) := by
+    refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+    exact le_trans hs2 (mul_le_mul_of_nonneg_left hL21 hAH0)
+  have t3 : (47/3000)*ε ≤ (ε/40)*(4407/6200 : ℝ) := by nlinarith
+  linarith [t1, t2, t3]
+
+
+set_option maxHeartbeats 1600000 in
+open Real in
+/-- **Slice ratio window, lower edge** (Track R, A2-III schedule
+geometry, G10c-1): under the schedule `30s ≤ A`, `3H ≤ A`,
+`εH ≤ 100U`, `50U ≤ εH ≤ H`, the radius gap `(A/H)·min(t₁−t₀, t₃−t₂)`
+is at least `ε/600` times the inner radius `(A/H)·(t₂−t₁)/2` — the
+lower half of the ratio-window membership, keeping the pinned
+`R₀ = 1+ε/600` below the actual bump ratio so
+`exists_bump_deriv_bound`'s compact window contains it. -/
+theorem slice_ratio_lower (A s U H : ℕ) (ε : ℝ)
+    (hA : 1 ≤ A) (hH : 0 < H) (hs30 : 30*s ≤ A) (h3H : 3*H ≤ A)
+    (hε0 : 0 ≤ ε) (hε1 : ε ≤ 1)
+    (hU100 : ε*(H:ℝ) ≤ 100*U) (hU50 : 50*(U:ℝ) ≤ ε*H) :
+    (ε/600) * (((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+        - Real.log (1 + (U:ℝ)/A))/2)
+      ≤ ((A:ℝ)/H) * (min (Real.log (1 + (U:ℝ)/A)
+            - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+          (Real.log (1 + ((H:ℝ)+2*U)/A)
+            - Real.log (1 + (H:ℝ)/((A:ℝ)+s)))) := by
+  have ha0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hh0 : (0:ℝ) < H := by exact_mod_cast hH
+  have hs0 : (0:ℝ) ≤ s := Nat.cast_nonneg s
+  have hu0 : (0:ℝ) ≤ U := Nat.cast_nonneg U
+  have hs30' : 30*(s:ℝ) ≤ A := by exact_mod_cast hs30
+  have h3H' : 3*(H:ℝ) ≤ A := by exact_mod_cast h3H
+  have huh : 50*(U:ℝ) ≤ H := by nlinarith
+  have hu150 : 150*(U:ℝ) ≤ A := by linarith
+  have hD0 : (0:ℝ) < (A:ℝ)+s := by linarith
+  have hεh0 : (0:ℝ) ≤ ε*H := le_trans (by positivity) hU50
+  have hAH0 : (0:ℝ) ≤ (A:ℝ)/H := by positivity
+  have hx01 : (U:ℝ)/(4*((A:ℝ)+s)) ≤ (U:ℝ)/A := by
+    rw [div_le_div_iff₀ (by positivity) ha0]
+    nlinarith [mul_nonneg hu0 hs0, mul_nonneg hu0 ha0.le]
+  have hx12 : (U:ℝ)/A ≤ (H:ℝ)/((A:ℝ)+s) := by
+    rw [div_le_div_iff₀ ha0 hD0]
+    nlinarith [mul_nonneg (sub_nonneg.2 huh) hD0.le,
+      mul_nonneg hh0.le (sub_nonneg.2 hs30'),
+      mul_nonneg hh0.le ha0.le]
+  have hx23 : (H:ℝ)/((A:ℝ)+s) ≤ ((H:ℝ)+2*U)/A := by
+    rw [div_le_div_iff₀ hD0 ha0]
+    nlinarith [mul_nonneg hh0.le hs0, mul_nonneg hu0 hD0.le]
+  have hL10 := le_log_one_add_sub_log_one_add ((U:ℝ)/A)
+    ((U:ℝ)/(4*((A:ℝ)+s))) (by positivity) hx01
+  have hL32 := le_log_one_add_sub_log_one_add (((H:ℝ)+2*U)/A)
+    ((H:ℝ)/((A:ℝ)+s)) (by positivity) hx23
+  have hL21 := log_one_add_sub_log_one_add_le ((H:ℝ)/((A:ℝ)+s))
+    ((U:ℝ)/A) (by positivity) hx12
+  -- the (t₂−t₁)-side is at most `1` after the `A/H`-scaling
+  have t_up : ((A:ℝ)/H) * (((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A)
+        /(1 + (U:ℝ)/A)) ≤ 1 := by
+    have heq : ((A:ℝ)/H) * (((H:ℝ)/((A:ℝ)+s) - (U:ℝ)/A)
+          /(1 + (U:ℝ)/A))
+        = ((A:ℝ)*((H:ℝ)*A - (U:ℝ)*((A:ℝ)+s)))
+            /((H:ℝ)*(((A:ℝ)+s)*((A:ℝ)+U))) := by
+      field_simp
+    rw [heq, div_le_one (by positivity)]
+    nlinarith [mul_nonneg (mul_nonneg hh0.le ha0.le) hu0,
+      mul_nonneg (mul_nonneg hh0.le hs0) ha0.le,
+      mul_nonneg (mul_nonneg hh0.le hs0) hu0,
+      mul_nonneg (mul_nonneg hu0 ha0.le) hD0.le]
+  -- lower-bounding the first min-branch: `ε/1200 ≤ (A/H)·(t₁−t₀)`-side
+  have b_left : ε/1200 ≤ ((A:ℝ)/H) * (((U:ℝ)/A
+        - (U:ℝ)/(4*((A:ℝ)+s)))/(1 + (U:ℝ)/A)) := by
+    have heq : ((A:ℝ)/H) * (((U:ℝ)/A - (U:ℝ)/(4*((A:ℝ)+s)))
+          /(1 + (U:ℝ)/A))
+        = ((A:ℝ)*((U:ℝ)*(3*(A:ℝ)+4*s)))
+            /((H:ℝ)*(4*(((A:ℝ)+s)*((A:ℝ)+U)))) := by
+      field_simp
+      ring
+    rw [heq, le_div_iff₀ (by positivity)]
+    have hX0 : (0:ℝ) ≤ 4*(((A:ℝ)+s)*((A:ℝ)+U)) := by positivity
+    have hstep1 : ε/1200 * ((H:ℝ)*(4*(((A:ℝ)+s)*((A:ℝ)+U))))
+        ≤ (U:ℝ)/12 * (4*(((A:ℝ)+s)*((A:ℝ)+U))) := by
+      nlinarith [mul_le_mul_of_nonneg_right hU100 hX0]
+    have hsa : (s:ℝ) ≤ A := by linarith
+    have hua : (U:ℝ) ≤ A := by linarith
+    have hprod : ((A:ℝ)+s)*((A:ℝ)+U) ≤ 9*(A:ℝ)^2 := by
+      nlinarith [mul_nonneg (sub_nonneg.2 hsa) (sub_nonneg.2 hua),
+        mul_nonneg hs0 hu0]
+    have hstep2 : (U:ℝ)/12 * (4*(((A:ℝ)+s)*((A:ℝ)+U)))
+        ≤ (A:ℝ)*((U:ℝ)*(3*(A:ℝ)+4*s)) := by
+      nlinarith [mul_le_mul_of_nonneg_left hprod (by positivity : (0:ℝ) ≤ (U:ℝ)/3),
+        mul_nonneg (mul_nonneg ha0.le hs0) hu0]
+    linarith [hstep1, hstep2]
+  -- lower-bounding the second min-branch: `ε/1200 ≤ (A/H)·(t₃−t₂)`-side
+  have b_right : ε/1200 ≤ ((A:ℝ)/H) * ((((H:ℝ)+2*U)/A
+        - (H:ℝ)/((A:ℝ)+s))/(1 + ((H:ℝ)+2*U)/A)) := by
+    have heq : ((A:ℝ)/H) * ((((H:ℝ)+2*U)/A - (H:ℝ)/((A:ℝ)+s))
+          /(1 + ((H:ℝ)+2*U)/A))
+        = ((A:ℝ)*((H:ℝ)*s + 2*(U:ℝ)*((A:ℝ)+s)))
+            /((H:ℝ)*(((A:ℝ)+s)*((A:ℝ)+((H:ℝ)+2*U)))) := by
+      field_simp
+      ring
+    rw [heq, le_div_iff₀ (by positivity)]
+    have hX0 : (0:ℝ) ≤ ((A:ℝ)+s)*((A:ℝ)+((H:ℝ)+2*U)) := by positivity
+    have hstep1 : ε/1200 * ((H:ℝ)*(((A:ℝ)+s)*((A:ℝ)+((H:ℝ)+2*U))))
+        ≤ (U:ℝ)/12 * (((A:ℝ)+s)*((A:ℝ)+((H:ℝ)+2*U))) := by
+      nlinarith [mul_le_mul_of_nonneg_right hU100 hX0]
+    have h24 : ((A:ℝ)+((H:ℝ)+2*U)) ≤ 24*(A:ℝ) := by linarith
+    have hstep2 : (U:ℝ)/12 * (((A:ℝ)+s)*((A:ℝ)+((H:ℝ)+2*U)))
+        ≤ (A:ℝ)*((H:ℝ)*s + 2*(U:ℝ)*((A:ℝ)+s)) := by
+      nlinarith [mul_le_mul_of_nonneg_left h24
+          (by positivity : (0:ℝ) ≤ (U:ℝ)/12*(((A:ℝ)+s))),
+        mul_nonneg (mul_nonneg hh0.le hs0) ha0.le]
+    linarith [hstep1, hstep2]
+  -- assemble through the min
+  have hminlift : ε/1200 ≤ ((A:ℝ)/H) * (min (Real.log (1 + (U:ℝ)/A)
+        - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+      (Real.log (1 + ((H:ℝ)+2*U)/A)
+        - Real.log (1 + (H:ℝ)/((A:ℝ)+s)))) := by
+    rcases le_total (Real.log (1 + (U:ℝ)/A)
+        - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+      (Real.log (1 + ((H:ℝ)+2*U)/A)
+        - Real.log (1 + (H:ℝ)/((A:ℝ)+s))) with hc | hc
+    · rw [min_eq_left hc]
+      exact le_trans b_left (mul_le_mul_of_nonneg_left hL10 hAH0)
+    · rw [min_eq_right hc]
+      exact le_trans b_right (mul_le_mul_of_nonneg_left hL32 hAH0)
+  have hchain : (ε/600) * (((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+      - Real.log (1 + (U:ℝ)/A))/2) ≤ ε/1200 := by
+    have h1 : ((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+        - Real.log (1 + (U:ℝ)/A)) ≤ 1 :=
+      le_trans (mul_le_mul_of_nonneg_left hL21 hAH0) t_up
+    nlinarith [mul_le_mul_of_nonneg_left h1 hε0]
+  linarith [hchain, hminlift]
+
 end ExpSums
 
 end MoltResearch
