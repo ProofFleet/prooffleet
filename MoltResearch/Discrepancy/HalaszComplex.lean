@@ -326,4 +326,50 @@ theorem tripleConvRC_eq_scaled (f : ℕ → ℂ) (x : ℕ) (hx : 0 < x)
   refine congrArg _ ?_
   exact ExpSums.rieszMeanC_eq_window_sum f ((x:ℝ)/((p:ℝ)*(q:ℝ))) hy0 x hyx
 
+
+open Real Finset in
+/-- **The discarded top-block weight, over ℂ** (Track R, A2-0): the
+mirror of `discard_weight_le` —
+
+  `‖log p·f(p)/log(x/p)‖·(2·log⌊x/p⌋) ≤ 2·log p`  for `2p ≤ x`. -/
+theorem discard_weight_leC (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (x p : ℕ) (hp : p.Prime) (h2p : 2*p ≤ x) :
+    ‖(Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ)‖
+        * (2 * Real.log (((x/p : ℕ)):ℝ))
+      ≤ 2 * Real.log (p:ℝ) := by
+  have hp0 : (0:ℝ) < (p:ℝ) := by exact_mod_cast hp.pos
+  have hquot : (2:ℝ) ≤ (x:ℝ)/(p:ℝ) := by
+    rw [le_div_iff₀ hp0]
+    have hc : ((2*p : ℕ):ℝ) ≤ (x:ℝ) := by exact_mod_cast h2p
+    push_cast at hc; linarith
+  have hL : (0:ℝ) < Real.log ((x:ℝ)/(p:ℝ)) := Real.log_pos (by linarith)
+  have hlogp : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+  -- the floor's log is at most the quotient's
+  have hfl : (((x/p : ℕ)):ℝ) ≤ (x:ℝ)/(p:ℝ) := Nat.cast_div_le
+  have hfl0 : (0:ℝ) ≤ Real.log (((x/p : ℕ)):ℝ) :=
+    Real.log_natCast_nonneg (x/p)
+  have hlogfl : Real.log (((x/p : ℕ)):ℝ) ≤ Real.log ((x:ℝ)/(p:ℝ)) := by
+    rcases eq_or_lt_of_le (Nat.cast_nonneg (α := ℝ) (x/p)) with h | h
+    · rw [← h]; simpa using hL.le
+    · exact Real.log_le_log h hfl
+  -- the outer weight
+  have hw : ‖(Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ)‖
+      ≤ Real.log (p:ℝ)/Real.log ((x:ℝ)/(p:ℝ)) := by
+    rw [norm_div, norm_mul, Complex.norm_real, Complex.norm_real,
+      Real.norm_eq_abs, Real.norm_eq_abs, abs_of_pos hL,
+      abs_of_nonneg hlogp]
+    refine div_le_div_of_nonneg_right ?_ hL.le
+    nlinarith [hf p, norm_nonneg (f p), hlogp]
+  calc ‖(Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ)‖
+        * (2 * Real.log (((x/p : ℕ)):ℝ))
+      ≤ (Real.log (p:ℝ)/Real.log ((x:ℝ)/(p:ℝ)))
+          * (2 * Real.log (((x/p : ℕ)):ℝ)) := by
+        refine mul_le_mul_of_nonneg_right hw (by linarith)
+    _ ≤ (Real.log (p:ℝ)/Real.log ((x:ℝ)/(p:ℝ)))
+          * (2 * Real.log ((x:ℝ)/(p:ℝ))) := by
+        refine mul_le_mul_of_nonneg_left (by linarith) ?_
+        positivity
+    _ = 2 * Real.log (p:ℝ) := by
+        field_simp
+
 end MoltResearch
