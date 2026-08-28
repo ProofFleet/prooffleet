@@ -1479,6 +1479,123 @@ theorem low_band_block_sup (ε' : ℝ) (hε' : 0 < ε') :
     le_rfl hnp2
   exact norm_sum_Ioc_le_two_prefix _ n₁ n₂ h12 _ hE1 hE2
 
+
+open MeasureTheory SchwartzMap LineDeriv in
+/-- **N3-a: the slice-window kernel decay** (Track R, A2-III): the
+transform of the profile `v ↦ η(Tv)` decays like the inverse
+frequency —
+
+  `‖𝓕F(ξ)‖ ≤ 2B′/(π|ξ|)`,
+
+via `𝓕(∂F) = 2πiξ·𝓕F` and the `L¹` mass of the derivative
+(`∂F = T·η′(T·)`, support of length `4/T`, sup `T·B′`).  The band
+estimate prices the outer mid-band frequencies against exactly this
+decay instead of the flat `4/T` sup. -/
+theorem norm_fourier_slice_window_decay (T : ℝ) (hT : 0 < T)
+    (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η)
+    (hη2 : ∀ u, η u ≠ 0 → |u| ≤ 2)
+    (B' : ℝ) (hB'0 : 0 ≤ B') (hB' : ∀ u, |deriv η u| ≤ B')
+    (hd2 : ∀ u, deriv η u ≠ 0 → |u| ≤ 2)
+    (ξ : ℝ) (hξ : ξ ≠ 0) :
+    ‖𝓕 (fun v => ((η (T*v) : ℝ) : ℂ)) ξ‖ ≤ 2*B'/(π*|ξ|) := by
+  obtain ⟨hcs, hcd⟩ := window_profile_props T hT η hηs hη2
+  set G : SchwartzMap ℝ ℂ := hcs.toSchwartzMap hcd with hG_def
+  have hfun : (fun v : ℝ => ((η (T*v) : ℝ) : ℂ)) = ⇑G := funext fun y => rfl
+  rw [hfun]
+  -- pointwise derivative of the profile
+  have hderiv : ∀ y : ℝ, (∂_{(1:ℝ)} G) y
+      = ((T * deriv η (T*y) : ℝ) : ℂ) := by
+    intro y
+    rw [lineDerivOp_apply_eq_fderiv]
+    have hηd : HasDerivAt η (deriv η (T*y)) (T*y) :=
+      ((hηs.differentiable (by norm_num)) (T*y)).hasDerivAt
+    have hTd : HasDerivAt (fun v : ℝ => T*v) T y := by
+      simpa using (hasDerivAt_id y).const_mul T
+    have hcomp : HasDerivAt (fun v : ℝ => η (T*v))
+        (deriv η (T*y) * T) y := hηd.comp y hTd
+    have hC : HasDerivAt (fun v : ℝ => ((η (T*v) : ℝ) : ℂ))
+        ((deriv η (T*y) * T : ℝ) : ℂ) y := hcomp.ofReal_comp
+    have hfd : fderiv ℝ (⇑G) y 1 = deriv (⇑G) y := fderiv_deriv
+    rw [hfd]
+    have hdG : deriv (⇑G) y = ((deriv η (T*y) * T : ℝ) : ℂ) := by
+      rw [← hfun]
+      exact hC.deriv
+    rw [hdG]
+    push_cast
+    ring
+  -- the derivative vanishes off the support window
+  have hsupp : ∀ y : ℝ, y ∉ Set.Icc (-(2/T)) (2/T) →
+      (∂_{(1:ℝ)} G) y = 0 := by
+    intro y hy
+    rw [hderiv y]
+    have hzero : deriv η (T*y) = 0 := by
+      by_contra hne
+      have h2 := hd2 _ hne
+      rw [abs_le] at h2
+      rw [Set.mem_Icc, not_and_or] at hy
+      have hid2 : T * (2/T) = 2 := by field_simp
+      rcases hy with h | h
+      · push_neg at h
+        have := mul_lt_mul_of_pos_left h hT
+        nlinarith [h2.1]
+      · push_neg at h
+        have := mul_lt_mul_of_pos_left h hT
+        nlinarith [h2.2]
+    rw [hzero]
+    simp
+  -- the `L¹` mass of the derivative
+  have hcont : Continuous (fun y : ℝ => ‖(∂_{(1:ℝ)} G) y‖) :=
+    (∂_{(1:ℝ)} G).continuous.norm
+  have hcsD : HasCompactSupport (fun y : ℝ => ‖(∂_{(1:ℝ)} G) y‖) := by
+    refine HasCompactSupport.intro
+      (isCompact_Icc (a := -(2/T)) (b := 2/T)) ?_
+    intro y hy
+    rw [hsupp y hy]
+    simp
+  have hint : Integrable (fun y : ℝ => ‖(∂_{(1:ℝ)} G) y‖) :=
+    hcont.integrable_of_hasCompactSupport hcsD
+  have hL1 : ∫ y, ‖(∂_{(1:ℝ)} G) y‖ ≤ 4*B' := by
+    rw [← MeasureTheory.setIntegral_eq_integral_of_forall_compl_eq_zero
+      (s := Set.Icc (-(2/T)) (2/T))
+      (fun y hy => by rw [hsupp y hy]; simp)]
+    have hnorm_le : ∀ y ∈ Set.Icc (-(2/T)) (2/T),
+        ‖(∂_{(1:ℝ)} G) y‖ ≤ T*B' := by
+      intro y _
+      rw [hderiv y, Complex.norm_real, Real.norm_eq_abs, abs_mul,
+        abs_of_pos hT]
+      exact mul_le_mul_of_nonneg_left (hB' (T*y)) hT.le
+    calc ∫ y in Set.Icc (-(2/T)) (2/T), ‖(∂_{(1:ℝ)} G) y‖
+        ≤ ∫ _ in Set.Icc (-(2/T)) (2/T), T*B' := by
+          refine setIntegral_mono_on hint.integrableOn
+            (integrableOn_const measure_Icc_lt_top.ne)
+            measurableSet_Icc hnorm_le
+      _ = 4*B' := by
+          rw [setIntegral_const, smul_eq_mul,
+            MeasureTheory.measureReal_def, Real.volume_Icc,
+            ENNReal.toReal_ofReal (by
+              have h4 : (0:ℝ) < 2/T := by positivity
+              linarith : (0:ℝ) ≤ 2/T - (-(2/T)))]
+          field_simp
+          ring
+  -- the derivative identity turns decay into the `L¹` bound
+  have hFbound : ‖𝓕 (∂_{(1:ℝ)} G) ξ‖ ≤ ∫ y, ‖(∂_{(1:ℝ)} G) y‖ :=
+    VectorFourier.norm_fourierIntegral_le_integral_norm _ _ _ _ _
+  have hnorm : ‖𝓕 (∂_{(1:ℝ)} G) ξ‖ = 2*π*|ξ| * ‖𝓕 (⇑G) ξ‖ := by
+    have h1 : ‖(2 * (π:ℂ) * Complex.I)‖ = 2*π := by
+      rw [norm_mul, norm_mul, Complex.norm_I, mul_one, Complex.norm_ofNat,
+        Complex.norm_real, Real.norm_eq_abs, abs_of_pos Real.pi_pos]
+    have h2 : ‖((ξ:ℝ):ℂ)‖ = |ξ| := by
+      rw [Complex.norm_real, Real.norm_eq_abs]
+    have hraw : ‖𝓕 (∂_{(1:ℝ)} G) ξ‖ = 2*π*|ξ| * ‖𝓕 G ξ‖ := by
+      rw [fourier_lineDeriv_apply, norm_mul, norm_mul, h1, h2]
+    exact hraw
+  have hξ0 : (0:ℝ) < |ξ| := abs_pos.mpr hξ
+  have hchain : 2*π*|ξ| * ‖𝓕 (⇑G) ξ‖ ≤ 4*B' := by
+    rw [← hnorm]
+    exact le_trans hFbound hL1
+  rw [le_div_iff₀ (by positivity)]
+  nlinarith [hchain, Real.pi_pos]
+
 end ExpSums
 
 end MoltResearch
