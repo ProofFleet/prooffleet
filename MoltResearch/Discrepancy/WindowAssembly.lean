@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.ParsevalBridge
 import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.HalaszComplex
+import MoltResearch.Discrepancy.HalaszAssembly
 
 /-!
 # Track C: the window assembly (Track R, A.2 leg, G-ladder)
@@ -1380,6 +1381,103 @@ theorem slice_ratio_lower (A s U H : ℕ) (ε : ℝ)
       le_trans (mul_le_mul_of_nonneg_left hL21 hAH0) t_up
     nlinarith [mul_le_mul_of_nonneg_left h1 hε0]
   linarith [hchain, hminlift]
+
+
+/-- **The Mertens mass difference is a log-ratio** (Track R, A2-III,
+G10c-2): for `4 ≤ z ≤ x`, the prime harmonic mass between the two
+scales is at most `log log x − log log z + 12` — the sharp upper
+Mertens bound at `x` against the elementary Mertens floor at `z`.
+Feeds `nonPretentiousAt_scale_transfer`: transferring strength from
+scale `x` down to `z` costs `2·(loglog-gap) + 24` of the
+non-pretentiousness budget. -/
+theorem mertens_mass_diff_le (z x : ℕ) (hz : 4 ≤ z) (hzx : z ≤ x) :
+    (∑ p ∈ x.primesBelow, (1:ℝ)/p) - (∑ p ∈ z.primesBelow, (1:ℝ)/p)
+      ≤ Real.log (Real.log x) - Real.log (Real.log z) + 12 := by
+  have hx4 : 4 ≤ x := le_trans hz hzx
+  have hupper := sum_one_div_primesBelow_le_sharp x hx4
+  have hlower := log_log_le_sum_one_div_primesBelow
+    (le_trans (by norm_num) hz)
+  linarith
+
+
+open Finset in
+/-- **G10c-2: the low-band block sup** (Track R, A2-III): for every
+`ε′ > 0` there are `x₀, W` such that any completely multiplicative
+`1`-bounded `g`, non-pretentious at strength `A′ ≥ 2` at both block
+endpoints `x₀ ≤ n₁ ≤ n₂`, has
+
+  `‖∑_{n₁<m≤n₂} g(m)·e(−ξ·log m)‖ ≤ 2n₂(ε′ + e^{W loglog n₂ + W − A′/2})`
+
+for every low frequency `|2πξ| ≤ (A′/2)·n₁`.  The phase is the
+archimedean cpow twist (`archTwist_phase_eq`), the block is a prefix
+difference (`norm_sum_Ioc_le_two_prefix`), and each prefix is priced
+by `cheap_halasz_twisted` at its own scale — this is the sup `M_low`
+that the trivial low-band energy estimate consumes. -/
+theorem low_band_block_sup (ε' : ℝ) (hε' : 0 < ε') :
+    ∃ (x₀ : ℕ) (W : ℝ), 0 < W ∧
+      ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → g 1 = 1 →
+        (∀ n, ‖g n‖ ≤ 1) →
+      ∀ n₁ n₂ : ℕ, x₀ ≤ n₁ → n₁ ≤ n₂ →
+      ∀ A' : ℝ, 2 ≤ A' →
+        NonPretentiousAt g A' n₁ → NonPretentiousAt g A' n₂ →
+      ∀ ξ : ℝ, |2*Real.pi*ξ| ≤ (A'/2)*n₁ →
+        ‖∑ m ∈ Finset.Ioc n₁ n₂,
+            g m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
+          ≤ 2*((n₂:ℝ)*(ε' + Real.exp (W*Real.log (Real.log n₂)
+              + W - A'/2))) := by
+  obtain ⟨x₀, W, hW0, hb⟩ := cheap_halasz_twisted ε' hε'
+  refine ⟨max x₀ 3, W, hW0, ?_⟩
+  intro g hcm hg1 hgb n₁ n₂ hx₀ h12 A' hA' hnp1 hnp2 ξ hξ
+  have hn₁3 : 3 ≤ n₁ := le_trans (le_max_right _ _) hx₀
+  have hn₁x₀ : x₀ ≤ n₁ := le_trans (le_max_left _ _) hx₀
+  have hA'0 : (0:ℝ) ≤ A'/2 := by linarith
+  -- the phase is the archimedean cpow twist
+  have hrw : ∑ m ∈ Finset.Ioc n₁ n₂,
+      g m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+      = ∑ m ∈ Finset.Ioc n₁ n₂,
+          g m * (m:ℂ)^(Complex.I*((-(2*Real.pi*ξ) : ℝ):ℂ)) := by
+    refine Finset.sum_congr rfl fun m hm => ?_
+    rw [Finset.mem_Ioc] at hm
+    rw [archTwist_phase_eq ξ m (by omega)]
+  rw [hrw]
+  -- both endpoint prefixes obey the cheap twisted bound at scale n₂
+  have hend : ∀ n : ℕ, x₀ ≤ n → 3 ≤ n → n₁ ≤ n → n ≤ n₂ →
+      NonPretentiousAt g A' n →
+      ‖∑ m ∈ Finset.Icc 1 n,
+          g m * (m:ℂ)^(Complex.I*((-(2*Real.pi*ξ) : ℝ):ℂ))‖
+        ≤ (n₂:ℝ)*(ε' + Real.exp (W*Real.log (Real.log n₂)
+            + W - A'/2)) := by
+    intro n hn hn3 hn1n hn2 hnp
+    have hn0 : (0:ℝ) < n := by
+      have : (0:ℕ) < n := by omega
+      exact_mod_cast this
+    have hncast : (n:ℝ) ≤ n₂ := by exact_mod_cast hn2
+    have hξn : |2*Real.pi*ξ| ≤ (A'/2)*n := by
+      refine le_trans hξ (mul_le_mul_of_nonneg_left ?_ hA'0)
+      exact_mod_cast hn1n
+    have hcheap := hb n hn A' hA' g hcm hg1 hgb hnp (2*Real.pi*ξ) hξn
+    rw [div_le_iff₀ hn0] at hcheap
+    have hlog_pos : (0:ℝ) < Real.log n :=
+      Real.log_pos (by exact_mod_cast (by omega : 1 < n))
+    have hll : Real.log (Real.log n) ≤ Real.log (Real.log n₂) :=
+      Real.log_le_log hlog_pos (Real.log_le_log hn0 hncast)
+    have hexp : Real.exp (W*Real.log (Real.log n) + W - A'/2)
+        ≤ Real.exp (W*Real.log (Real.log n₂) + W - A'/2) := by
+      apply Real.exp_le_exp.2
+      have := mul_le_mul_of_nonneg_left hll hW0.le
+      linarith
+    calc ‖∑ m ∈ Finset.Icc 1 n,
+        g m * (m:ℂ)^(Complex.I*((-(2*Real.pi*ξ) : ℝ):ℂ))‖
+        ≤ (ε' + Real.exp (W*Real.log (Real.log n) + W - A'/2))*(n:ℝ) :=
+          hcheap
+      _ ≤ (ε' + Real.exp (W*Real.log (Real.log n₂) + W - A'/2))*(n₂:ℝ) := by
+          refine mul_le_mul (by linarith) hncast hn0.le (by positivity)
+      _ = (n₂:ℝ)*(ε' + Real.exp (W*Real.log (Real.log n₂)
+            + W - A'/2)) := by ring
+  have hE1 := hend n₁ hn₁x₀ hn₁3 le_rfl h12 hnp1
+  have hE2 := hend n₂ (le_trans hn₁x₀ h12) (le_trans hn₁3 h12) h12
+    le_rfl hnp2
+  exact norm_sum_Ioc_le_two_prefix _ n₁ n₂ h12 _ hE1 hE2
 
 end ExpSums
 
