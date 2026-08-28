@@ -482,6 +482,118 @@ theorem sum_Ioc_le_of_slice_bounds_const (A s J : ℕ) (f : ℕ → ℝ) (B : �
   refine le_trans (sum_Ioc_le_of_slice_bounds A s J f (fun _ => B) hslice) ?_
   rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
 
+
+open MeasureTheory SchwartzMap LineDeriv in
+/-- **G3c: the slice-window derivative energy** (Track R, A2-II): the
+frequency-weighted transform energy of the profile `v ↦ η(Tv)` is
+priced by the derivative bound —
+
+  `∫ ξ²‖𝓕F‖² ≤ T·B′²/π²`,
+
+via the derivative Plancherel identity, the chain rule
+(`∂F = T·η′(T·)`), and the support/sup argument.  `B′` and the
+derivative support come from `exists_deriv_bound`. -/
+theorem integral_sq_norm_fourier_slice_window_le (T : ℝ) (hT : 0 < T)
+    (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η)
+    (hη2 : ∀ u, η u ≠ 0 → |u| ≤ 2)
+    (B' : ℝ) (hB'0 : 0 ≤ B') (hB' : ∀ u, |deriv η u| ≤ B')
+    (hd2 : ∀ u, deriv η u ≠ 0 → |u| ≤ 2) :
+    ∫ ξ, ξ^2 * ‖𝓕 (fun v => ((η (T*v) : ℝ) : ℂ)) ξ‖^2
+      ≤ T * B'^2 / π^2 := by
+  obtain ⟨hcs, hcd⟩ := window_profile_props T hT η hηs hη2
+  set G : SchwartzMap ℝ ℂ := hcs.toSchwartzMap hcd with hG_def
+  have hfun : (fun v : ℝ => ((η (T*v) : ℝ) : ℂ)) = ⇑G := funext fun y => rfl
+  rw [hfun]
+  have hid := integral_sq_mul_norm_fourier_sq G
+  -- pointwise derivative of the profile
+  have hderiv : ∀ y : ℝ, (∂_{(1:ℝ)} G) y
+      = ((T * deriv η (T*y) : ℝ) : ℂ) := by
+    intro y
+    rw [lineDerivOp_apply_eq_fderiv]
+    have hηd : HasDerivAt η (deriv η (T*y)) (T*y) :=
+      ((hηs.differentiable (by norm_num)) (T*y)).hasDerivAt
+    have hTd : HasDerivAt (fun v : ℝ => T*v) T y := by
+      simpa using (hasDerivAt_id y).const_mul T
+    have hcomp : HasDerivAt (fun v : ℝ => η (T*v))
+        (deriv η (T*y) * T) y := hηd.comp y hTd
+    have hC : HasDerivAt (fun v : ℝ => ((η (T*v) : ℝ) : ℂ))
+        ((deriv η (T*y) * T : ℝ) : ℂ) y := hcomp.ofReal_comp
+    have hfd : fderiv ℝ (⇑G) y 1 = deriv (⇑G) y := fderiv_deriv
+    rw [hfd]
+    have hdG : deriv (⇑G) y = ((deriv η (T*y) * T : ℝ) : ℂ) := by
+      rw [← hfun]
+      exact hC.deriv
+    rw [hdG]
+    push_cast
+    ring
+  -- the derivative vanishes off the support window
+  have hsupp : ∀ y : ℝ, y ∉ Set.Icc (-(2/T)) (2/T) →
+      (∂_{(1:ℝ)} G) y = 0 := by
+    intro y hy
+    rw [hderiv y]
+    have hzero : deriv η (T*y) = 0 := by
+      by_contra hne
+      have h2 := hd2 _ hne
+      rw [abs_le] at h2
+      rw [Set.mem_Icc, not_and_or] at hy
+      have hid2 : T * (2/T) = 2 := by field_simp
+      rcases hy with h | h
+      · push_neg at h
+        have := mul_lt_mul_of_pos_left h hT
+        nlinarith [h2.1]
+      · push_neg at h
+        have := mul_lt_mul_of_pos_left h hT
+        nlinarith [h2.2]
+    rw [hzero]
+    simp
+  -- the derivative energy
+  have hcont : Continuous (fun y : ℝ => ‖(∂_{(1:ℝ)} G) y‖^2) :=
+    ((∂_{(1:ℝ)} G).continuous.norm.pow 2)
+  have hcsD : HasCompactSupport (fun y : ℝ => ‖(∂_{(1:ℝ)} G) y‖^2) := by
+    refine HasCompactSupport.intro
+      (isCompact_Icc (a := -(2/T)) (b := 2/T)) ?_
+    intro y hy
+    rw [hsupp y hy]
+    simp
+  have hint : Integrable (fun y : ℝ => ‖(∂_{(1:ℝ)} G) y‖^2) :=
+    hcont.integrable_of_hasCompactSupport hcsD
+  have hE : ∫ y, ‖(∂_{(1:ℝ)} G) y‖^2 ≤ (4/T) * (T*B')^2 := by
+    rw [← MeasureTheory.setIntegral_eq_integral_of_forall_compl_eq_zero
+      (s := Set.Icc (-(2/T)) (2/T))
+      (fun y hy => by rw [hsupp y hy]; simp)]
+    have hnorm_le : ∀ y ∈ Set.Icc (-(2/T)) (2/T),
+        ‖(∂_{(1:ℝ)} G) y‖^2 ≤ (T*B')^2 := by
+      intro y _
+      rw [hderiv y, Complex.norm_real, Real.norm_eq_abs, abs_mul,
+        abs_of_pos hT]
+      have h1 := hB' (T*y)
+      have h2 : (0:ℝ) ≤ |deriv η (T*y)| := abs_nonneg _
+      have h3 : T * |deriv η (T*y)| ≤ T*B' :=
+        mul_le_mul_of_nonneg_left h1 hT.le
+      have h4 : (0:ℝ) ≤ T * |deriv η (T*y)| := mul_nonneg hT.le h2
+      exact pow_le_pow_left₀ h4 h3 2
+    calc ∫ y in Set.Icc (-(2/T)) (2/T), ‖(∂_{(1:ℝ)} G) y‖^2
+        ≤ ∫ _ in Set.Icc (-(2/T)) (2/T), (T*B')^2 := by
+          refine setIntegral_mono_on hint.integrableOn
+            (integrableOn_const measure_Icc_lt_top.ne)
+            measurableSet_Icc hnorm_le
+      _ = (4/T) * (T*B')^2 := by
+          rw [setIntegral_const, smul_eq_mul,
+            MeasureTheory.measureReal_def, Real.volume_Icc,
+            ENNReal.toReal_ofReal (by
+              have h4 : (0:ℝ) < 2/T := by positivity
+              linarith : (0:ℝ) ≤ 2/T - (-(2/T)))]
+          ring
+  have hπ2 : (0:ℝ) < π^2 := by positivity
+  have hgoal : (4*π^2) * (∫ ξ, ξ^2 * ‖𝓕 (⇑G) ξ‖^2) ≤ 4*(T*B'^2) := by
+    have hid' : (4*π^2) * (∫ ξ, ξ^2 * ‖𝓕 (⇑G) ξ‖^2)
+        = ∫ y, ‖(∂_{(1:ℝ)} G) y‖^2 := hid
+    rw [hid']
+    calc ∫ y, ‖(∂_{(1:ℝ)} G) y‖^2 ≤ (4/T) * (T*B')^2 := hE
+      _ = 4*(T*B'^2) := by field_simp
+  rw [le_div_iff₀ hπ2]
+  linarith [hgoal]
+
 end ExpSums
 
 end MoltResearch
