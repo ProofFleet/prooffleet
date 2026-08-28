@@ -1237,4 +1237,166 @@ theorem plain_sum_le_of_riesz_bounds (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
   have hdiff := plain_sum_mul_log_ratio_le f hf x X (by omega) hxX
   linarith [hdiff, hRx', hRX']
 
+
+set_option maxHeartbeats 1600000 in
+open Real Finset in
+/-- **The log-free Halász Riesz mean, windowed** (Track R, M0R-6c):
+`rieszMean_log_le_halasz_of_nonPretentious` with the §3 window
+destructured (`exists_section3_window`) and every window quantity
+priced in `x` alone: `log y ≤ log(2·log²x)`, `K₀ ≤ log log x`
+(from the mass floor `e·log 2 ≤ e^{−K₀}·log x` and `e·log 2 ≥ 1`),
+`log⌈T²⌉ ≤ log(2·log²x + 1)`, `T ≤ log x`.  The RHS depends only on
+`x` and `A` — the shape the flat-differencing glue consumes at two
+scales. -/
+theorem rieszMean_log_halasz_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (hmul : ∀ a b, f (a*b) = f a * f b) (h1 : f 1 = 1)
+    (x : ℕ) (hx : 10^16 ≤ x)
+    (A : ℝ) (hA : NonPretentiousAt (fun n => ((f n : ℝ) : ℂ)) A x)
+    (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ)) :
+    |(∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        * Real.log (x:ℝ)|
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2)
+        + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)
+        + (Real.log (Real.log (x:ℝ))
+            * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+                * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+                    + Real.log (x:ℝ) + 1)
+                  * (Real.exp 5 * (2 + Real.log (x:ℝ))
+                      * Real.exp (-A))^2 + 1)))
+              + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  obtain ⟨y, K₀, T, hy2, hyx, hT1, hT2, hTy, hylog, hK₀1, hK₀low, hK₀max⟩ :=
+    exists_section3_window x hx
+  have hcap := rieszMean_log_le_halasz_of_nonPretentious f hf hmul h1
+    x y K₀ hx hy2 hyx T hT1 hT2 hTy hK₀1 hK₀low hK₀max A hA h1A hband
+  refine le_trans hcap ?_
+  have hxR0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by
+      have : (2:ℕ) ≤ x := le_trans (by norm_num) hx
+      omega : (1:ℕ) < x))
+  obtain ⟨h5T, hLT2, hγT⟩ := T_window_conditions x T hx hT1 hT2
+  have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+  -- the y-term: `log y ≤ log(2·log²x)`
+  have hy0 : (0:ℝ) < (y:ℝ) := by exact_mod_cast (by omega : 0 < y)
+  have hylog' : Real.log (y:ℝ) ≤ Real.log (2*(Real.log (x:ℝ))^2) :=
+    Real.log_le_log hy0 hylog
+  have hyterm : (x:ℝ)*(Real.log (y:ℝ) + 2)
+      ≤ (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2) :=
+    mul_le_mul_of_nonneg_left (by linarith) hxR0
+  -- the K₀-multiplier: `K₀ ≤ log log x`
+  have he_log2 : (1:ℝ) ≤ Real.exp 1 * Real.log 2 := by
+    nlinarith [Real.exp_one_gt_d9, Real.log_two_gt_d9]
+  have hexpK : Real.exp ((K₀:ℝ)) * (Real.exp 1 * Real.log 2)
+      ≤ Real.log (x:ℝ) := by
+    have h := mul_le_mul_of_nonneg_left hK₀low (Real.exp_pos ((K₀:ℝ))).le
+    have hid : Real.exp ((K₀:ℝ)) * (Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+        = Real.log (x:ℝ) := by
+      rw [← mul_assoc, ← Real.exp_add]
+      simp
+    rw [hid] at h
+    exact h
+  have hexpK' : Real.exp ((K₀:ℝ)) ≤ Real.log (x:ℝ) := by
+    nlinarith [Real.exp_pos ((K₀:ℝ)), he_log2, hexpK]
+  have hK₀le : ((K₀:ℕ):ℝ) ≤ Real.log (Real.log (x:ℝ)) :=
+    calc ((K₀:ℕ):ℝ) = Real.log (Real.exp ((K₀:ℝ))) := (Real.log_exp _).symm
+      _ ≤ Real.log (Real.log (x:ℝ)) :=
+          Real.log_le_log (Real.exp_pos _) hexpK'
+  -- the √-argument monotonicity
+  have hT0 : (0:ℝ) < T := by linarith
+  have hceil0 : (0:ℝ) < ((⌈T^2⌉₊ : ℕ):ℝ) := by
+    have : (0:ℕ) < ⌈T^2⌉₊ := Nat.ceil_pos.mpr (by positivity)
+    exact_mod_cast this
+  have hceil_le : ((⌈T^2⌉₊ : ℕ):ℝ) ≤ 2*(Real.log (x:ℝ))^2 + 1 := by
+    have h1' := Nat.ceil_lt_add_one (by positivity : (0:ℝ) ≤ T^2)
+    linarith [hTy, hylog]
+  have hc1 : Real.log ((⌈T^2⌉₊ : ℕ):ℝ)
+      ≤ Real.log (2*(Real.log (x:ℝ))^2 + 1) :=
+    Real.log_le_log hceil0 hceil_le
+  have hc10 : (0:ℝ) ≤ Real.log ((⌈T^2⌉₊ : ℕ):ℝ) :=
+    Real.log_natCast_nonneg _
+  have hc1sq : (Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2
+      ≤ (Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2 := by
+    have hc1a : (0:ℝ) ≤ Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2 := by linarith
+    have hc1b : Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2
+        ≤ Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2 := by linarith
+    exact pow_le_pow_left₀ hc1a hc1b 2
+  have hb2 : (0:ℝ) ≤ (Real.exp 5 * (2 + Real.log (x:ℝ))
+      * Real.exp (-A))^2 := sq_nonneg _
+  have hargle : 2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1))
+      ≤ 2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+            + Real.log (x:ℝ) + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)) := by
+    have hin : ((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+        * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2
+        ≤ ((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+            + Real.log (x:ℝ) + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 :=
+      mul_le_mul_of_nonneg_right (by linarith [hc1sq, hT2]) hb2
+    have hC0 : (0:ℝ) ≤ 2000 * ((Real.exp π)^2 * 10^15) := by positivity
+    nlinarith [hin, hC0]
+  -- the bracket and the K₀-product
+  have hbrk_le : (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4
+      ≤ (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+          * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+              + Real.log (x:ℝ) + 1)
+            * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4 := by
+    have hs := Real.sqrt_le_sqrt hargle
+    have := mul_le_mul_of_nonneg_left hs hxR0
+    linarith
+  have hbrk0 : (0:ℝ) ≤ (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4 := by
+    have h1' : (0:ℝ) ≤ (x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1))) :=
+      mul_nonneg hxR0 (Real.sqrt_nonneg _)
+    have h2' : (0:ℝ) ≤ 2*(x:ℝ)*Real.log 4 := by
+      have := mul_nonneg (by linarith : (0:ℝ) ≤ 2*(x:ℝ)) hlog4
+      linarith
+    linarith
+  have hLL0 : (0:ℝ) ≤ Real.log (Real.log (x:ℝ)) := by
+    have h21 : (21:ℝ) ≤ Real.log (x:ℝ) := by
+      have hs21 : Real.sqrt (21 * Real.log (x:ℝ)) ≤ Real.log (x:ℝ) :=
+        le_trans hT1 hT2
+      have hnn : (0:ℝ) ≤ 21 * Real.log (x:ℝ) := by positivity
+      have := mul_self_le_mul_self (Real.sqrt_nonneg _) hs21
+      rw [Real.mul_self_sqrt hnn] at this
+      nlinarith [hL0]
+    exact Real.log_nonneg (by linarith)
+  have hKprod : ((K₀:ℕ):ℝ) * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2
+          * 10^15 * (((Real.log ((⌈T^2⌉₊ : ℕ):ℝ) + 2)^2 + T + 1)
+          * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+        + 2*(x:ℝ)*Real.log 4)
+      ≤ Real.log (Real.log (x:ℝ))
+        * ((x:ℝ) * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+            * (((Real.log (2*(Real.log (x:ℝ))^2 + 1) + 2)^2
+                + Real.log (x:ℝ) + 1)
+              * (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A))^2 + 1)))
+          + 2*(x:ℝ)*Real.log 4) :=
+    mul_le_mul hK₀le hbrk_le hbrk0 hLL0
+  have hstep : 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+      + Real.log 2) + 16 * Real.log 4))
+      ≤ 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+      + Real.log 2) + 16 * Real.log 4)) := le_rfl
+  exact add_le_add
+    (add_le_add_left
+      (add_le_add_left
+        (add_le_add_right hyterm (35*(x:ℝ)))
+        (2*((x:ℝ)+1)*Real.log 4))
+      (64 * (x:ℝ) / Real.log 2 * (Real.log ((x+1:ℕ):ℝ) + 2)))
+    (add_le_add hKprod hstep)
+
 end MoltResearch
