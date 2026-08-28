@@ -234,4 +234,82 @@ theorem typicalS_complement_logavg_le (ε : ℝ) (hε : 0 < ε) :
         _ ≤ ε * Real.log N + (rest.length : ℝ) * ε * Real.log N := by
             linarith [hhead, hrest]
         _ = ((rest.length : ℝ) + 1) * ε * Real.log N := by ring
+
+/-- **The log-phase character is completely multiplicative** (Track R,
+A2-III, N3-f0): `e(−ξ·log(pm)) = e(−ξ·log p)·e(−ξ·log m)` — the glue
+that lets complete multiplicativity of the coefficients factor a
+Ramaré fibre through the phase. -/
+theorem char_mul (p m : ℕ) (hp : 0 < p) (hm : 0 < m) (ξ : ℝ) :
+    ((Real.fourierChar (-(Real.log (p*m : ℕ) * ξ)) : Circle) : ℂ)
+      = ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+  have hp0 : ((p:ℝ)) ≠ 0 := by exact_mod_cast hp.ne'
+  have hm0 : ((m:ℝ)) ≠ 0 := by exact_mod_cast hm.ne'
+  have hlog : Real.log ((p:ℝ)*(m:ℝ)) = Real.log p + Real.log m :=
+    Real.log_mul hp0 hm0
+  rw [Real.fourierChar_apply, Real.fourierChar_apply,
+    Real.fourierChar_apply, ← Complex.exp_add]
+  congr 1
+  push_cast
+  rw [hlog]
+  push_cast
+  ring
+
+open Finset in
+/-- **The typical band polynomial splits main + collision** (Track R,
+A2-III, N3-f): peeling one `𝒰`-level, the `1/n`-normalized phase
+polynomial over `typicalS (P :: rest)` factors — each main fibre is
+the prime phase `(g p/p)·e(−ξ log p)` times the `1/(ω_P+1)`-weighted
+quotient polynomial, and the collision term keeps its raw
+`1/ω_P`-weight.  `subset_sum_omega_pos_eq_main_add_coll` through
+`typicalS_cons`, with complete multiplicativity and `char_mul`
+factoring the fibres. -/
+theorem typicalS_phase_main_add_coll (g : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC g) (A Δ : ℕ) (P : Finset ℕ)
+    (hP : ∀ q ∈ P, q.Prime) (rest : List (Finset ℕ)) (ξ : ℝ) :
+    ∑ m ∈ typicalS A (A+Δ) (P :: rest),
+        (g m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+      = (∑ p ∈ P, (g p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)
+            * ∑ m' ∈ (((typicalS A (A+Δ) rest).filter
+                  (fun n => p ∣ n)).image (· / p)).filter
+                (fun m' => ¬ p ∣ m'),
+              ((g m'/(m':ℂ))
+                  * ((Real.fourierChar (-(Real.log m' * ξ)) : Circle) : ℂ))
+                / (((P.filter (· ∣ m')).card : ℂ) + 1))
+        + ∑ p ∈ P, ∑ m' ∈ (((typicalS A (A+Δ) rest).filter
+              (fun n => p ∣ n)).image (· / p)).filter (fun m' => p ∣ m'),
+            ((g (p*m')/((p*m' : ℕ):ℂ))
+                * ((Real.fourierChar (-(Real.log (p*m' : ℕ) * ξ))
+                  : Circle) : ℂ))
+              / (((P.filter (· ∣ (p*m'))).card : ℂ)) := by
+  classical
+  have hkey := subset_sum_omega_pos_eq_main_add_coll
+    (typicalS A (A+Δ) rest) P hP
+    (fun m => (g m/(m:ℂ))
+      * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+  rw [typicalS_cons, hkey]
+  congr 1
+  refine Finset.sum_congr rfl fun p hp => ?_
+  have hp2 : 2 ≤ p := (hP p hp).two_le
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun m' hm' => ?_
+  rw [Finset.mem_filter, Finset.mem_image] at hm'
+  obtain ⟨⟨n, hn, rfl⟩, hnd⟩ := hm'
+  rw [Finset.mem_filter] at hn
+  have hnA : A < n := by
+    have := (mem_typicalS.mp hn.1).1
+    exact this.1
+  have hn0 : 0 < n := by omega
+  have hm'0 : 0 < n / p :=
+    Nat.div_pos (Nat.le_of_dvd hn0 hn.2) (by omega)
+  have hgm : g (p * (n/p)) = g p * g (n/p) :=
+    hcm p (n/p) (by omega) hm'0.ne'
+  have hcast : ((p * (n/p) : ℕ) : ℂ) = (p:ℂ) * ((n/p : ℕ):ℂ) := by
+    push_cast
+    ring
+  have hchar := char_mul p (n/p) (by omega) hm'0 ξ
+  rw [hgm, hcast, hchar]
+  ring
+
 end MoltResearch
