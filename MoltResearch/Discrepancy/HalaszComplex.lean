@@ -131,4 +131,32 @@ theorem rieszMean_log_identityC (f : ℕ → ℂ)
     rw [Finset.sum_congr rfl hlog, hswap, Finset.sum_congr rfl hinner]
   linear_combination hsplit + hchain
 
+
+open Real Finset in
+/-- **The Riesz triple convolution over ℂ** (Track R, A2-0): the mirror
+of `tripleConvR` for ℂ-valued `f` — §3's central object, the
+log-weights riding under `ofReal`. -/
+noncomputable def tripleConvRC (f : ℕ → ℂ) (x : ℕ) (P : Finset ℕ) : ℂ :=
+  ∑ p ∈ P, ((Real.log (p:ℝ) : ℂ) * f p / (Real.log ((x:ℝ)/(p:ℝ)) : ℂ))
+    * ∑ q ∈ (x/p).primesBelow, ((Real.log (q:ℝ) : ℂ) * f q)
+        * ∑ n ∈ Finset.Icc 1 ⌊(x:ℝ)/((p:ℝ)*(q:ℝ))⌋₊,
+            f n * ((Real.log ((x:ℝ)/((p:ℝ)*(q:ℝ))) - Real.log (n:ℝ) : ℝ) : ℂ)
+
+open Finset in
+/-- **The survivor sum decomposes over blocks, over ℂ** (Track R,
+A2-0): `tripleConvRC` at the survivor set is the sum of its `K`
+per-block values.  `survivor_sum_split` is `AddCommMonoid`-generic, so
+the mirror is verbatim. -/
+theorem tripleConvRC_survivor_split (f : ℕ → ℂ) (x y K : ℕ) (hx : 1 ≤ x)
+    (hK : Real.exp (-(K:ℝ)) * Real.log (x:ℝ) < Real.log 2) :
+    tripleConvRC f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+        (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p))
+      = ∑ k ∈ Finset.Icc 1 K,
+          tripleConvRC f x
+            (((Finset.Ico (blockLo x k) (blockHi x k)).filter
+              Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p)) := by
+  classical
+  simp only [tripleConvRC]
+  exact survivor_sum_split _ x y K hx hK
+
 end MoltResearch
