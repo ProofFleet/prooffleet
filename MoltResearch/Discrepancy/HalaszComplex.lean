@@ -159,4 +159,137 @@ theorem tripleConvRC_survivor_split (f : ℕ → ℂ) (x y K : ℕ) (hx : 1 ≤ 
   simp only [tripleConvRC]
   exact survivor_sum_split _ x y K hx hK
 
+
+namespace ExpSums
+
+open Real Finset in
+/-- **The Riesz mean is the window sum, over ℂ** (Track R, A2-0): the
+mirror of `rieszMean_eq_window_sum` — an identity, the window facts
+staying real under `ofReal`. -/
+theorem rieszMeanC_eq_window_sum (f : ℕ → ℂ) (y : ℝ) (hy : 0 < y) (N : ℕ)
+    (hN : y ≤ (N:ℝ)) :
+    ∑ n ∈ Finset.Icc 1 ⌊y⌋₊, f n * ((Real.log y - Real.log (n:ℝ) : ℝ) : ℂ)
+      = (y : ℂ) * ∑ n ∈ Finset.Icc 1 N, (f n/(n:ℂ))
+          * ((rieszWindow (Real.log y - Real.log (n:ℝ)) : ℝ) : ℂ) := by
+  classical
+  rw [Finset.mul_sum]
+  have hfl : ⌊y⌋₊ ≤ N := by
+    have h1 := Nat.floor_le_of_le hN
+    simpa using h1
+  have hsub : Finset.Icc 1 ⌊y⌋₊ ⊆ Finset.Icc 1 N :=
+    Finset.Icc_subset_Icc_right hfl
+  -- terms above `y` vanish: the window is supported on `v > 0`
+  have hzero : ∀ n ∈ Finset.Icc 1 N, n ∉ Finset.Icc 1 ⌊y⌋₊ →
+      (y : ℂ) * ((f n/(n:ℂ))
+        * ((rieszWindow (Real.log y - Real.log (n:ℝ)) : ℝ) : ℂ)) = 0 := by
+    intro n hn hnot
+    rw [Finset.mem_Icc] at hn
+    rw [Finset.mem_Icc] at hnot
+    push_neg at hnot
+    have hgt : ⌊y⌋₊ < n := hnot hn.1
+    have hyn : y < (n:ℝ) := by
+      have h1 : y < (⌊y⌋₊ : ℝ) + 1 := Nat.lt_floor_add_one y
+      have h2 : ((⌊y⌋₊ : ℕ):ℝ) + 1 ≤ (n:ℝ) := by exact_mod_cast hgt
+      linarith
+    have hlt : Real.log y - Real.log (n:ℝ) < 0 := by
+      have := Real.log_lt_log hy hyn
+      linarith
+    have hneg : ¬ (0 < Real.log y - Real.log (n:ℝ)) := by linarith
+    rw [rieszWindow, if_neg hneg, Complex.ofReal_zero, mul_zero, mul_zero]
+  rw [← Finset.sum_subset hsub hzero]
+  refine Finset.sum_congr rfl fun n hn => ?_
+  rw [Finset.mem_Icc] at hn
+  have hn1 : 1 ≤ n := hn.1
+  have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn1
+  have hnle : (n:ℝ) ≤ y := (Nat.le_floor_iff hy.le).mp hn.2
+  rcases eq_or_lt_of_le hnle with heq | hlt
+  · -- `n = y`: both sides vanish, the window at `0` and the log at `1`
+    have hlog : Real.log y - Real.log (n:ℝ) = 0 := by rw [heq]; ring
+    rw [hlog, rieszWindow]
+    simp
+  · have hpos : 0 < Real.log y - Real.log (n:ℝ) := by
+      have := Real.log_lt_log hn0 hlt
+      linarith
+    rw [rieszWindow, if_pos hpos]
+    have hexp : Real.exp (-(Real.log y - Real.log (n:ℝ))) = (n:ℝ)/y := by
+      rw [show -(Real.log y - Real.log (n:ℝ))
+          = Real.log (n:ℝ) - Real.log y from by ring,
+        Real.exp_sub, Real.exp_log hn0, Real.exp_log hy]
+    rw [hexp]
+    have hyC : ((y:ℝ):ℂ) ≠ 0 := Complex.ofReal_ne_zero.mpr (ne_of_gt hy)
+    have hnC : ((n:ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+    push_cast
+    field_simp
+
+open Real Finset in
+/-- **The trivial bound on the ℂ-Riesz mean** (Track R, A2-0): the
+mirror of `norm_rieszMean_le` — `‖R_f(y)‖ ≤ y` for `‖f‖ ≤ 1`. -/
+theorem norm_rieszMeanC_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1) (y : ℝ)
+    (hy : 1 ≤ y) :
+    ‖∑ n ∈ Finset.Icc 1 ⌊y⌋₊,
+        f n * ((Real.log y - Real.log (n:ℝ) : ℝ) : ℂ)‖ ≤ y := by
+  classical
+  have hy0 : (0:ℝ) < y := by linarith
+  set M : ℕ := ⌊y⌋₊ with hM_def
+  have hM1 : 1 ≤ M := Nat.le_floor (by exact_mod_cast hy)
+  have hMR : (0:ℝ) < (M:ℝ) := by exact_mod_cast hM1
+  have hMy : (M:ℝ) ≤ y := Nat.floor_le hy0.le
+  have hterm : ∀ n ∈ Finset.Icc 1 M,
+      ‖f n * ((Real.log y - Real.log (n:ℝ) : ℝ) : ℂ)‖
+        ≤ Real.log y - Real.log (n:ℝ) := by
+    intro n hn
+    rw [Finset.mem_Icc] at hn
+    have hn0 : (0:ℝ) < (n:ℝ) := by exact_mod_cast hn.1
+    have hnM : (n:ℝ) ≤ (M:ℝ) := by exact_mod_cast hn.2
+    have hny : (n:ℝ) ≤ y := le_trans hnM hMy
+    have hnn : 0 ≤ Real.log y - Real.log (n:ℝ) := by
+      have := Real.log_le_log hn0 hny
+      linarith
+    rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg hnn]
+    calc ‖f n‖ * (Real.log y - Real.log (n:ℝ))
+        ≤ 1 * (Real.log y - Real.log (n:ℝ)) :=
+          mul_le_mul_of_nonneg_right (hf n) hnn
+      _ = Real.log y - Real.log (n:ℝ) := one_mul _
+  refine le_trans (norm_sum_le _ _) ?_
+  refine le_trans (Finset.sum_le_sum hterm) ?_
+  have hsplit : ∑ n ∈ Finset.Icc 1 M, (Real.log y - Real.log (n:ℝ))
+      = (M:ℝ)*(Real.log y - Real.log (M:ℝ))
+        + ∑ n ∈ Finset.Icc 1 M, (Real.log (M:ℝ) - Real.log (n:ℝ)) := by
+    have hpt : ∀ n ∈ Finset.Icc 1 M, Real.log y - Real.log (n:ℝ)
+        = (Real.log y - Real.log (M:ℝ))
+          + (Real.log (M:ℝ) - Real.log (n:ℝ)) := fun n _ => by ring
+    rw [Finset.sum_congr rfl hpt, Finset.sum_add_distrib,
+      Finset.sum_const, Nat.card_Icc, nsmul_eq_mul]
+    norm_num
+  rw [hsplit]
+  have hhead : (M:ℝ)*(Real.log y - Real.log (M:ℝ)) ≤ y - (M:ℝ) := by
+    have hlog : Real.log y - Real.log (M:ℝ) = Real.log (y/(M:ℝ)) := by
+      rw [Real.log_div (ne_of_gt hy0) (ne_of_gt hMR)]
+    rw [hlog]
+    have h2 : Real.log (y/(M:ℝ)) ≤ y/(M:ℝ) - 1 :=
+      Real.log_le_sub_one_of_pos (by positivity)
+    calc (M:ℝ) * Real.log (y/(M:ℝ)) ≤ (M:ℝ) * (y/(M:ℝ) - 1) :=
+          mul_le_mul_of_nonneg_left h2 hMR.le
+      _ = y - (M:ℝ) := by field_simp
+  linarith [hhead, sum_log_ratio_le M]
+
+open Real Finset in
+/-- **The ℂ-Riesz window sum is at most `1`** (Track R, A2-0): the
+mirror of `riesz_smoothed_sum_le_one`, through the mean rather than the
+window, for the same reason. -/
+theorem rieszC_smoothed_sum_le_one (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (y : ℝ) (hy : 1 ≤ y) (N : ℕ) (hN : y ≤ (N:ℝ)) :
+    ‖∑ n ∈ Finset.Icc 1 N, (f n/(n:ℂ))
+        * ((rieszWindow (Real.log y - Real.log (n:ℝ)) : ℝ) : ℂ)‖ ≤ 1 := by
+  have hy0 : (0:ℝ) < y := by linarith
+  have hreal := rieszMeanC_eq_window_sum f y hy0 N hN
+  have htriv := norm_rieszMeanC_le f hf y hy
+  rw [hreal, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+    abs_of_pos hy0] at htriv
+  by_contra hcon
+  push_neg at hcon
+  nlinarith [htriv, hcon, hy0]
+
+end ExpSums
+
 end MoltResearch
