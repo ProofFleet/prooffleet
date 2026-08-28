@@ -970,6 +970,64 @@ theorem slice_energy_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
   have h6 := mul_le_mul_of_nonneg_left hstep (by norm_num : (0:ℝ) ≤ 6)
   linarith [hmean, h6]
 
+
+open Real Finset in
+/-- **G10b: the log-averaged window bound from slice energies** (Track
+R, A2-III): aggregate per-slice mean-square bounds over the slice
+partition and close with the outer Cauchy–Schwarz —
+
+  `∑_{n∈(A, A+Js]} ‖W_n‖/(H·n) ≤ √(∑ 1/n)·√(∑_j B_j)/H`.
+
+`slice_energy_le` supplies the `B_j`; the harmonic factor is priced by
+the consumer's `log w`. -/
+theorem window_logavg_le_of_slice_bounds (h : ℕ → ℂ)
+    (A s J H : ℕ) (hH : 0 < H) (B : ℕ → ℝ)
+    (hB0 : ∀ j ∈ Finset.range J, 0 ≤ B j)
+    (hslice : ∀ j ∈ Finset.range J,
+      ∑ n ∈ Finset.Ioc (A + j*s) (A + (j+1)*s),
+        ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n ≤ B j) :
+    ∑ n ∈ Finset.Ioc A (A + J*s),
+        ‖∑ m ∈ Finset.Ioc n (n+H), h m‖/((H:ℝ)*n)
+      ≤ Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n)
+        * Real.sqrt (∑ j ∈ Finset.range J, B j) / H := by
+  classical
+  have hH0 : (0:ℝ) < H := by exact_mod_cast hH
+  -- the mean square over the full range
+  have hagg := sum_Ioc_le_of_slice_bounds A s J
+    (fun n => ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n) B hslice
+  -- the outer Cauchy–Schwarz
+  have hcs := sum_div_le_sqrt_mul_sqrt A (A + J*s)
+    (fun n => ‖∑ m ∈ Finset.Ioc n (n+H), h m‖)
+    (fun n => norm_nonneg _)
+  -- rescale by `1/H`
+  have hfactor : ∑ n ∈ Finset.Ioc A (A + J*s),
+      ‖∑ m ∈ Finset.Ioc n (n+H), h m‖/((H:ℝ)*n)
+      = (1/(H:ℝ)) * ∑ n ∈ Finset.Ioc A (A + J*s),
+          ‖∑ m ∈ Finset.Ioc n (n+H), h m‖/n := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun n _ => ?_
+    field_simp
+  rw [hfactor]
+  have hsq_mono : Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s),
+      ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n)
+      ≤ Real.sqrt (∑ j ∈ Finset.range J, B j) :=
+    Real.sqrt_le_sqrt hagg
+  have hsqrt1 : (0:ℝ) ≤ Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n) :=
+    Real.sqrt_nonneg _
+  calc (1/(H:ℝ)) * ∑ n ∈ Finset.Ioc A (A + J*s),
+        ‖∑ m ∈ Finset.Ioc n (n+H), h m‖/n
+      ≤ (1/(H:ℝ)) * (Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n)
+          * Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s),
+              ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n)) := by
+        refine mul_le_mul_of_nonneg_left hcs (by positivity)
+    _ ≤ (1/(H:ℝ)) * (Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n)
+          * Real.sqrt (∑ j ∈ Finset.range J, B j)) := by
+        refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+        exact mul_le_mul_of_nonneg_left hsq_mono hsqrt1
+    _ = Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n)
+        * Real.sqrt (∑ j ∈ Finset.range J, B j) / H := by
+        field_simp
+
 end ExpSums
 
 end MoltResearch
