@@ -1075,4 +1075,118 @@ theorem rieszMean_log_le_halasz_of_nonPretentious (f : ℕ → ℝ)
     (three_le_div_blockLo x K₀ hx hK₀low)
     (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A)) hb0 hBu
 
+
+open Real Finset in
+/-- **Flat differencing** (Track R, M0R-6a): the plain sum at `x'` is
+priced by two Riesz means and the edge mass —
+
+  `|S(x')|·(log x − log x') ≤ |R(x)| + |R(x')| + (x−x')·(log x − log x')`.
+
+Splitting `Icc 1 x` at `x'` gives the exact identity
+`R(x) = R(x') + S(x')·log(x/x') + ∑_{x'<n≤x} f(n)·log(x/n)`, and every
+edge term is at most `log(x/x')` in absolute value.  Downstream the
+two Riesz means carry the log-free Halász bound at scales `x` and
+`x'`, and choosing `log(x/x') ≍ e^{−A/2}` splits the quality evenly —
+the √-loss of the flat recovery. -/
+theorem plain_sum_mul_log_ratio_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x' x : ℕ) (hx'1 : 1 ≤ x') (hx'x : x' ≤ x) :
+    |∑ n ∈ Finset.Icc 1 x', f n| * (Real.log (x:ℝ) - Real.log (x':ℝ))
+      ≤ |∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ))|
+        + |∑ n ∈ Finset.Icc 1 x', f n * (Real.log (x':ℝ) - Real.log (n:ℝ))|
+        + ((x:ℝ) - (x':ℝ)) * (Real.log (x:ℝ) - Real.log (x':ℝ)) := by
+  classical
+  have hx'0 : (0:ℝ) < (x':ℝ) := by exact_mod_cast (by omega : 0 < x')
+  have hlogd0 : (0:ℝ) ≤ Real.log (x:ℝ) - Real.log (x':ℝ) := by
+    have := Real.log_le_log hx'0 (by exact_mod_cast hx'x : (x':ℝ) ≤ (x:ℝ))
+    linarith
+  -- the split of the index range at `x'`
+  have hunion : Finset.Icc 1 x' ∪ Finset.Ioc x' x = Finset.Icc 1 x := by
+    ext n
+    simp only [Finset.mem_union, Finset.mem_Icc, Finset.mem_Ioc]
+    omega
+  have hdisj : Disjoint (Finset.Icc 1 x') (Finset.Ioc x' x) := by
+    rw [Finset.disjoint_left]
+    intro n hn hn'
+    rw [Finset.mem_Icc] at hn
+    rw [Finset.mem_Ioc] at hn'
+    omega
+  -- the exact differencing identity
+  have hkey : ∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ))
+      = (∑ n ∈ Finset.Icc 1 x', f n * (Real.log (x':ℝ) - Real.log (n:ℝ)))
+        + (∑ n ∈ Finset.Icc 1 x', f n)
+            * (Real.log (x:ℝ) - Real.log (x':ℝ))
+        + ∑ n ∈ Finset.Ioc x' x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)) := by
+    rw [← hunion, Finset.sum_union hdisj]
+    have hhead : ∑ n ∈ Finset.Icc 1 x',
+        f n * (Real.log (x:ℝ) - Real.log (n:ℝ))
+        = (∑ n ∈ Finset.Icc 1 x', f n * (Real.log (x':ℝ) - Real.log (n:ℝ)))
+          + (∑ n ∈ Finset.Icc 1 x', f n)
+              * (Real.log (x:ℝ) - Real.log (x':ℝ)) := by
+      rw [Finset.sum_mul, ← Finset.sum_add_distrib]
+      refine Finset.sum_congr rfl fun n _ => ?_
+      ring
+    rw [hhead]
+  -- the edge mass: each term at most `log x − log x'`
+  have hedge : |∑ n ∈ Finset.Ioc x' x,
+      f n * (Real.log (x:ℝ) - Real.log (n:ℝ))|
+      ≤ ((x:ℝ) - (x':ℝ)) * (Real.log (x:ℝ) - Real.log (x':ℝ)) := by
+    refine le_trans (Finset.abs_sum_le_sum_abs _ _) ?_
+    have hterm : ∀ n ∈ Finset.Ioc x' x,
+        |f n * (Real.log (x:ℝ) - Real.log (n:ℝ))|
+          ≤ Real.log (x:ℝ) - Real.log (x':ℝ) := by
+      intro n hn
+      rw [Finset.mem_Ioc] at hn
+      have hn0 : (0:ℝ) < (n:ℝ) := by
+        exact_mod_cast (by omega : 0 < n)
+      have hlogn : Real.log (x':ℝ) ≤ Real.log (n:ℝ) :=
+        Real.log_le_log hx'0 (by exact_mod_cast hn.1.le : (x':ℝ) ≤ (n:ℝ))
+      have hlognx : Real.log (n:ℝ) ≤ Real.log (x:ℝ) :=
+        Real.log_le_log hn0 (by exact_mod_cast hn.2 : (n:ℝ) ≤ (x:ℝ))
+      rw [abs_mul, abs_of_nonneg (by linarith : (0:ℝ)
+          ≤ Real.log (x:ℝ) - Real.log (n:ℝ))]
+      calc |f n| * (Real.log (x:ℝ) - Real.log (n:ℝ))
+          ≤ 1 * (Real.log (x:ℝ) - Real.log (n:ℝ)) :=
+            mul_le_mul_of_nonneg_right (hf n) (by linarith)
+        _ = Real.log (x:ℝ) - Real.log (n:ℝ) := one_mul _
+        _ ≤ Real.log (x:ℝ) - Real.log (x':ℝ) := by linarith
+    refine le_trans (Finset.sum_le_sum hterm) ?_
+    rw [Finset.sum_const, Nat.card_Ioc, nsmul_eq_mul]
+    have hcast : ((x - x' : ℕ):ℝ) = (x:ℝ) - (x':ℝ) := by
+      rw [Nat.cast_sub hx'x]
+    rw [hcast]
+  -- assemble: `S(x')·(log x − log x') = R(x) − R(x') − edge`
+  have hS : (∑ n ∈ Finset.Icc 1 x', f n)
+        * (Real.log (x:ℝ) - Real.log (x':ℝ))
+      = (∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        - (∑ n ∈ Finset.Icc 1 x', f n * (Real.log (x':ℝ) - Real.log (n:ℝ)))
+        - ∑ n ∈ Finset.Ioc x' x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)) := by
+    rw [hkey]
+    ring
+  have hLHS : |∑ n ∈ Finset.Icc 1 x', f n|
+        * (Real.log (x:ℝ) - Real.log (x':ℝ))
+      = |(∑ n ∈ Finset.Icc 1 x', f n)
+          * (Real.log (x:ℝ) - Real.log (x':ℝ))| := by
+    rw [abs_mul, abs_of_nonneg hlogd0]
+  rw [hLHS, hS]
+  calc |(∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        - (∑ n ∈ Finset.Icc 1 x', f n * (Real.log (x':ℝ) - Real.log (n:ℝ)))
+        - ∑ n ∈ Finset.Ioc x' x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ))|
+      ≤ |(∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+          - (∑ n ∈ Finset.Icc 1 x',
+              f n * (Real.log (x':ℝ) - Real.log (n:ℝ)))|
+        + |∑ n ∈ Finset.Ioc x' x,
+            f n * (Real.log (x:ℝ) - Real.log (n:ℝ))| := abs_sub _ _
+    _ ≤ |∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ))|
+        + |∑ n ∈ Finset.Icc 1 x', f n * (Real.log (x':ℝ) - Real.log (n:ℝ))|
+        + |∑ n ∈ Finset.Ioc x' x,
+            f n * (Real.log (x:ℝ) - Real.log (n:ℝ))| := by
+      have := abs_sub (∑ n ∈ Finset.Icc 1 x,
+          f n * (Real.log (x:ℝ) - Real.log (n:ℝ)))
+        (∑ n ∈ Finset.Icc 1 x', f n * (Real.log (x':ℝ) - Real.log (n:ℝ)))
+      linarith
+    _ ≤ |∑ n ∈ Finset.Icc 1 x, f n * (Real.log (x:ℝ) - Real.log (n:ℝ))|
+        + |∑ n ∈ Finset.Icc 1 x', f n * (Real.log (x':ℝ) - Real.log (n:ℝ))|
+        + ((x:ℝ) - (x':ℝ)) * (Real.log (x:ℝ) - Real.log (x':ℝ)) := by
+      linarith [hedge]
+
 end MoltResearch
