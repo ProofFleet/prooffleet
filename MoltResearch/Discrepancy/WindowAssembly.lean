@@ -1028,6 +1028,59 @@ theorem window_logavg_le_of_slice_bounds (h : ℕ → ℂ)
         * Real.sqrt (∑ j ∈ Finset.range J, B j) / H := by
         field_simp
 
+
+open Real Finset in
+/-- **G10c-0: the ε-form closer** (Track R, A2-III): a total slice
+budget of `ε²H²·(range harmonic)` closes the log-averaged window bound
+at `ε` times the harmonic mass — the quantitative target the schedule
+prices everything against. -/
+theorem window_logavg_eps_of_slice_budget (h : ℕ → ℂ)
+    (A s J H : ℕ) (hH : 0 < H) (ε : ℝ) (hε : 0 ≤ ε) (B : ℕ → ℝ)
+    (hB0 : ∀ j ∈ Finset.range J, 0 ≤ B j)
+    (hslice : ∀ j ∈ Finset.range J,
+      ∑ n ∈ Finset.Ioc (A + j*s) (A + (j+1)*s),
+        ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n ≤ B j)
+    (hbudget : ∑ j ∈ Finset.range J, B j
+      ≤ ε^2 * H^2 * ∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n) :
+    ∑ n ∈ Finset.Ioc A (A + J*s),
+        ‖∑ m ∈ Finset.Ioc n (n+H), h m‖/((H:ℝ)*n)
+      ≤ ε * ∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n := by
+  classical
+  have hH0 : (0:ℝ) < H := by exact_mod_cast hH
+  have hharm0 : (0:ℝ) ≤ ∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n :=
+    Finset.sum_nonneg fun n _ => by positivity
+  refine le_trans (window_logavg_le_of_slice_bounds h A s J H hH B hB0
+    hslice) ?_
+  have hsqB : Real.sqrt (∑ j ∈ Finset.range J, B j)
+      ≤ ε * H * Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n) := by
+    have hsq : (Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n))^2
+        = ∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n :=
+      Real.sq_sqrt hharm0
+    have h1 : ∑ j ∈ Finset.range J, B j
+        ≤ (ε * H * Real.sqrt (∑ n ∈ Finset.Ioc A
+            (A + J*s), (1:ℝ)/n))^2 := by
+      calc ∑ j ∈ Finset.range J, B j
+          ≤ ε^2 * H^2 * ∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n := hbudget
+        _ = (ε * H * Real.sqrt (∑ n ∈ Finset.Ioc A
+            (A + J*s), (1:ℝ)/n))^2 := by
+            rw [mul_pow, mul_pow, hsq]
+    calc Real.sqrt (∑ j ∈ Finset.range J, B j)
+        ≤ Real.sqrt ((ε * H * Real.sqrt (∑ n ∈ Finset.Ioc A
+            (A + J*s), (1:ℝ)/n))^2) := Real.sqrt_le_sqrt h1
+      _ = ε * H * Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n) := by
+          rw [Real.sqrt_sq (by positivity)]
+  calc Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n)
+        * Real.sqrt (∑ j ∈ Finset.range J, B j) / H
+      ≤ Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n)
+        * (ε * H * Real.sqrt (∑ n ∈ Finset.Ioc A
+            (A + J*s), (1:ℝ)/n)) / H := by
+        refine div_le_div_of_nonneg_right ?_ hH0.le
+        exact mul_le_mul_of_nonneg_left hsqB (Real.sqrt_nonneg _)
+    _ = ε * ((Real.sqrt (∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n))^2) := by
+        field_simp
+    _ = ε * ∑ n ∈ Finset.Ioc A (A + J*s), (1:ℝ)/n := by
+        rw [Real.sq_sqrt hharm0]
+
 end ExpSums
 
 end MoltResearch
