@@ -665,6 +665,111 @@ theorem exists_bump_window' (T t₀ t₁ t₂ t₃ : ℝ) (hT : 0 < T) (h0 : 0 <
     · nlinarith [hmem'.1, hcv, hrv]
     · nlinarith [hmem'.2, hcv, hrv, mul_pos hT h0]
 
+
+open Real in
+/-- **The slice window with exported bump data** (Track R, A2, W1d″):
+`exists_slice_window` re-run through `exists_bump_window'` — the same
+collar bound, with the `ContDiffBump` structure and its radii exposed
+so the uniform derivative bound prices the window's Lipschitz data
+explicitly.  The radii are the `T`-scaled slice log-edges. -/
+theorem exists_slice_window' (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (A s U H : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s) (hsA : s ≤ A) (hU : 0 < U)
+    (hUH : 2*U ≤ H) (hplat : ((U:ℝ)+1)*((A:ℝ)+s) ≤ (A:ℝ)*H) :
+    ∃ (c : ℝ) (f : ContDiffBump c),
+      f.rIn = ((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+          - Real.log (1 + (U:ℝ)/A))/2
+      ∧ f.rOut - f.rIn = ((A:ℝ)/H)
+          * (min (Real.log (1 + (U:ℝ)/A)
+              - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+            (Real.log (1 + ((H:ℝ)+2*U)/A)
+              - Real.log (1 + (H:ℝ)/((A:ℝ)+s))))
+      ∧ ContDiff ℝ ∞ (⇑f) ∧ (∀ u, 0 ≤ f u ∧ f u ≤ 1)
+      ∧ (∀ u, f u ≠ 0 → |u| ≤ 2)
+      ∧ ∀ n ∈ Finset.Ioc A (A+s),
+          ‖((1/(U:ℂ)) * ∑ u ∈ Finset.range U,
+                ∑ m ∈ Finset.Ioc (n+u) (n+u+H), h m)
+              - ∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+                  h m * ((f (((A:ℝ)/H)*(Real.log n - Real.log m)) : ℝ) : ℂ)‖
+            ≤ 6*(U:ℝ) + (H:ℝ)*s/A + 2 := by
+  classical
+  have hA0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hH0 : (0:ℝ) < H := by
+    have h1 : 0 < H := by omega
+    exact_mod_cast h1
+  have hAs0 : (0:ℝ) < (A:ℝ)+s := by
+    have : (0:ℝ) < s := by exact_mod_cast hs
+    linarith
+  have hT : (0:ℝ) < (A:ℝ)/H := by positivity
+  obtain ⟨hg0, hg1, hg2, hg3, hg4⟩ :=
+    slice_edge_geometry A s U H hA hs hsA hU hUH hplat
+  obtain ⟨c, f, hrIn, hrOut, hηs, hη01, hηplat, hηsupp, hη2⟩ :=
+    exists_bump_window' ((A:ℝ)/H)
+      (Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s)))) (Real.log (1 + (U:ℝ)/A))
+      (Real.log (1 + (H:ℝ)/((A:ℝ)+s))) (Real.log (1 + ((H:ℝ)+2*U)/A))
+      hT hg0 hg1 hg2 hg3 hg4
+  refine ⟨c, f, ?_, ?_, hηs, hη01, hη2, ?_⟩
+  · rw [hrIn]
+  · rw [hrOut, hrIn]
+    ring
+  intro n hn
+  rw [Finset.mem_Ioc] at hn
+  obtain ⟨hn1, hn2⟩ := hn
+  have hr₀0 : (0:ℝ) < (U:ℝ)/(4*((A:ℝ)+s)) := by positivity
+  have hr01 : (U:ℝ)/(4*((A:ℝ)+s)) ≤ (U:ℝ)/A := by
+    refine div_le_div_of_nonneg_left (by positivity) hA0 ?_
+    linarith
+  have hr12 : (U:ℝ)/A ≤ (H:ℝ)/((A:ℝ)+s) := by
+    rw [div_le_div_iff₀ hA0 hAs0]
+    have hU0 : (0:ℝ) < U := by exact_mod_cast hU
+    have hs0 : (0:ℝ) < s := by exact_mod_cast hs
+    have hUH' : 2*(U:ℝ) ≤ H := by exact_mod_cast hUH
+    have hsA' : (s:ℝ) ≤ A := by exact_mod_cast hsA
+    nlinarith
+  have hr23 : (H:ℝ)/((A:ℝ)+s) ≤ ((H:ℝ)+2*U)/A := by
+    rw [div_le_div_iff₀ hAs0 hA0]
+    have hU0 : (0:ℝ) < U := by exact_mod_cast hU
+    have hsA' : (s:ℝ) ≤ A := by exact_mod_cast hsA
+    nlinarith
+  obtain ⟨hψplat, hψsupp⟩ := psi_transfer A n hA hn1 ((A:ℝ)/H) hT
+    ((U:ℝ)/(4*((A:ℝ)+s))) ((U:ℝ)/A) ((H:ℝ)/((A:ℝ)+s)) (((H:ℝ)+2*U)/A)
+    hr₀0 hr01 hr12 hr23 (⇑f) hηplat hηsupp
+  obtain ⟨hc0, hc1, hc2, hc3, hc4, hc5, hc6⟩ :=
+    slice_cut_points A s U H n hA hs hsA hU hUH hplat hn1 hn2
+  have hMsub : Finset.Ioc n (max ⌊(n:ℝ)*(1+((H:ℝ)+2*U)/A)⌋₊ (n+U+H))
+      ⊆ Finset.Ioc A (A+s+2*H+4*U) := by
+    intro k hk
+    rw [Finset.mem_Ioc] at hk ⊢
+    have hfl : ⌊(n:ℝ)*(1+((H:ℝ)+2*U)/A)⌋₊ ≤ A+s+2*H+4*U := by
+      refine Nat.floor_le_of_le ?_
+      have hn2' : (n:ℝ) ≤ (A:ℝ)+s := by exact_mod_cast hn2
+      have hx : (n:ℝ)*(1+((H:ℝ)+2*U)/A) ≤ ((A:ℝ)+s)*(1+((H:ℝ)+2*U)/A) := by
+        refine mul_le_mul_of_nonneg_right hn2' ?_
+        positivity
+      have hy : ((A:ℝ)+s)*(((H:ℝ)+2*U)/A) ≤ 2*((H:ℝ)+2*U) := by
+        rw [mul_div_assoc']
+        rw [div_le_iff₀ hA0]
+        have hsA' : (s:ℝ) ≤ A := by exact_mod_cast hsA
+        nlinarith
+      push_cast
+      nlinarith [hx, hy]
+    constructor
+    · omega
+    · have := hk.2
+      have h2 : max ⌊(n:ℝ)*(1+((H:ℝ)+2*U)/A)⌋₊ (n+U+H) ≤ A+s+2*H+4*U := by
+        rw [max_le_iff]
+        constructor
+        · exact hfl
+        · omega
+      omega
+  have hmain := norm_shift_avg_sub_smooth_le_of_cuts h hb n U H hU
+    ((n:ℝ)*(1+(U:ℝ)/(4*((A:ℝ)+s)))) ((n:ℝ)*(1+(U:ℝ)/A))
+    ((n:ℝ)*(1+(H:ℝ)/((A:ℝ)+s))) ((n:ℝ)*(1+((H:ℝ)+2*U)/A))
+    hc1 hc2 hc3 hc4 hc5 hc0
+    (Finset.Ioc A (A+s+2*H+4*U)) hMsub
+    (fun m => f (((A:ℝ)/H)*(Real.log n - Real.log m)))
+    (fun m => hη01 _) hψplat hψsupp
+  exact le_trans hmain hc6
+
 end ExpSums
 
 end MoltResearch
