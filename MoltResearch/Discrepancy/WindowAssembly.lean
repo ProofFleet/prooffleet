@@ -1891,6 +1891,228 @@ theorem setIntegral_band_le_sum_rings (f : ℝ → ℝ) (hf0 : ∀ ξ, 0 ≤ f �
         exact HasSubset.Subset.eventuallyLE (hsub J)
       linarith [ih, hlast]
 
+
+/-- Finite geometric sums are at most `1/(1 − x)` on `[0, 1)` (the
+copy in `MertensFloor` is private). -/
+private theorem geom_sum_le_one_div' (K : ℕ) {x : ℝ} (hx0 : 0 ≤ x)
+    (hx1 : x < 1) :
+    ∑ k ∈ Finset.range K, x ^ k ≤ 1 / (1 - x) := by
+  have h1x : (0 : ℝ) < 1 - x := by linarith
+  have h := geom_sum_mul x K
+  have hpow : (0 : ℝ) ≤ x ^ K := pow_nonneg hx0 K
+  rw [le_div_iff₀ h1x]
+  nlinarith [h, hpow]
+
+open MeasureTheory in
+/-- **N3-c2b: the outer band closes with no number theory** (Track R,
+A2-III): summing the dyadic ring estimate over `K₂ ≤ |ξ| ≤ L`, the
+geometric gains `∑ 2^{-j} ≤ 2` and `∑ 4^{-j} ≤ 4/3` give
+
+  `∫ ≤ (4B′²/π²)·(2A+1)²·((8/K₂)·∑1/n² + (2/K₂²)·(log Δ+1)·∑1/n)`
+
+for any `J` with `L < 2^J·K₂` — kernel decay and the short-interval
+mean value theorem only.  The `[MR]` 𝒰-machinery is needed strictly
+below `K₂`. -/
+theorem band_energy_outer_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
+    (S : Finset ℕ) (hS : S ⊆ Finset.Ioc A (A+Δ))
+    (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (B' K₂ L : ℝ) (hB' : 0 ≤ B') (hK₂ : 0 < K₂)
+    (J : ℕ) (hJ : L < 2^J*K₂) :
+    ∫ ξ in {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| ≤ L},
+        ‖∑ m ∈ S, h m
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+          * (2*B'/(π*|ξ|))^2
+      ≤ (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+          * ((8/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+            + (2/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))) := by
+  classical
+  set f : ℝ → ℝ := fun ξ =>
+    ‖∑ m ∈ S, h m
+      * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      * (2*B'/(π*|ξ|))^2 with hf_def
+  have hf0 : ∀ ξ, 0 ≤ f ξ := fun ξ => by
+    rw [hf_def]
+    positivity
+  have hphase_cont : Continuous fun ξ : ℝ =>
+      ∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+    refine continuous_finset_sum _ fun m _ => ?_
+    refine Continuous.mul continuous_const ?_
+    refine Continuous.comp continuous_subtype_val ?_
+    exact Real.continuous_fourierChar.comp (by fun_prop)
+  -- `f` is integrable on any closed annulus away from the origin
+  have hintAnn : ∀ c d : ℝ, 0 < c →
+      IntegrableOn f {ξ : ℝ | c ≤ |ξ| ∧ |ξ| ≤ d} := by
+    intro c d hc
+    have hclosed : IsClosed {ξ : ℝ | c ≤ |ξ| ∧ |ξ| ≤ d} :=
+      (isClosed_le continuous_const continuous_abs).inter
+        (isClosed_le continuous_abs continuous_const)
+    have hsubIcc : {ξ : ℝ | c ≤ |ξ| ∧ |ξ| ≤ d} ⊆ Set.Icc (-d) d := by
+      rintro ξ ⟨_, h2⟩
+      exact abs_le.mp h2
+    have hcomp : IsCompact {ξ : ℝ | c ≤ |ξ| ∧ |ξ| ≤ d} :=
+      (isCompact_Icc (a := -d) (b := d)).of_isClosed_subset hclosed
+        hsubIcc
+    refine ContinuousOn.integrableOn_compact hcomp ?_
+    rw [hf_def]
+    refine ContinuousOn.mul (hphase_cont.norm.pow 2).continuousOn ?_
+    refine ContinuousOn.pow ?_ 2
+    refine ContinuousOn.div continuousOn_const
+      (continuous_const.mul continuous_abs).continuousOn ?_
+    rintro ξ ⟨h1, _⟩
+    have : (0:ℝ) < |ξ| := lt_of_lt_of_le hc h1
+    positivity
+  -- the band embeds in the dyadic sweep
+  have hsubBand : {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| ≤ L}
+      ⊆ {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| < 2^J*K₂} := by
+    rintro ξ ⟨h1, h2⟩
+    exact ⟨h1, lt_of_le_of_lt h2 hJ⟩
+  have hstep0 : ∫ ξ in {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| ≤ L}, f ξ
+      ≤ ∫ ξ in {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| < 2^J*K₂}, f ξ := by
+    have hbandInt : IntegrableOn f
+        {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| < 2^J*K₂} := by
+      refine (hintAnn K₂ (2^J*K₂) hK₂).mono_set ?_
+      rintro ξ ⟨h1, h2⟩
+      exact ⟨h1, h2.le⟩
+    refine setIntegral_mono_set hbandInt
+      (Filter.Eventually.of_forall fun ξ => hf0 ξ) ?_
+    exact HasSubset.Subset.eventuallyLE hsubBand
+  -- the ring cover
+  have hrings := setIntegral_band_le_sum_rings f hf0 K₂ hK₂ J
+    (fun j => hintAnn (2^j*K₂) (2^(j+1)*K₂) (by positivity))
+  -- each ring by the dyadic ring estimate
+  have hring : ∀ j ∈ Finset.range J,
+      ∫ ξ in {ξ : ℝ | 2^j*K₂ ≤ |ξ| ∧ |ξ| ≤ 2^(j+1)*K₂}, f ξ
+        ≤ (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+            * ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+              + (1/(2^j*K₂)^2)
+                  * ((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))) := by
+    intro j _
+    have hj0 : (0:ℝ) < 2^j*K₂ := by positivity
+    have hpow : (2:ℝ)^(j+1)*K₂ = 2*(2^j*K₂) := by
+      rw [pow_succ]
+      ring
+    have hbase := ring_energy_decay_le A Δ hΔ hΔA S hS h hb B'
+      (2^j*K₂) hB' hj0
+    rw [hpow]
+    refine le_trans hbase (le_of_eq ?_)
+    have hne : (2:ℝ)^j*K₂ ≠ 0 := ne_of_gt hj0
+    have hπ : (π:ℝ) ≠ 0 := ne_of_gt Real.pi_pos
+    field_simp
+    ring
+  -- collect the geometric sums
+  have hgeo2 : ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j ≤ 2 :=
+    sum_geometric_two_le J
+  have hgeo4 : ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j ≤ 4/3 := by
+    have := geom_sum_le_one_div' J (x := (1:ℝ)/4) (by norm_num)
+      (by norm_num)
+    norm_num at this
+    linarith
+  have hKne : (K₂:ℝ) ≠ 0 := ne_of_gt hK₂
+  have hinner : ∑ j ∈ Finset.range J,
+      ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+        + (1/(2^j*K₂)^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
+      = (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+            * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
+        + (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
+            * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j := by
+    have hterm : ∀ j ∈ Finset.range J,
+        ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+          + (1/(2^j*K₂)^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
+        = ((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)) * ((1:ℝ)/2)^j
+          + ((1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
+              * ((1:ℝ)/4)^j := by
+      intro j _
+      have hne : ((2:ℝ)^j) ≠ 0 := by positivity
+      have h2 : ((1:ℝ)/2)^j = 1/((2:ℝ)^j) := by
+        rw [div_pow, one_pow]
+      have h4 : ((1:ℝ)/4)^j = 1/(((2:ℝ)^j)^2) := by
+        rw [div_pow, one_pow, show (4:ℝ) = 2^2 by norm_num,
+          ← pow_mul, ← pow_mul, Nat.mul_comm]
+      rw [h2, h4]
+      field_simp
+    calc ∑ j ∈ Finset.range J,
+        ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+          + (1/(2^j*K₂)^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
+        = ∑ j ∈ Finset.range J,
+            (((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)) * ((1:ℝ)/2)^j
+              + ((1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
+                  * ((1:ℝ)/4)^j) := Finset.sum_congr rfl hterm
+      _ = (∑ j ∈ Finset.range J,
+              ((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)) * ((1:ℝ)/2)^j)
+            + ∑ j ∈ Finset.range J,
+              ((1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
+                * ((1:ℝ)/4)^j := Finset.sum_add_distrib
+      _ = (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+              * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
+            + (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
+              * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j := by
+          rw [← Finset.mul_sum, ← Finset.mul_sum]
+  have hsplit : ∑ j ∈ Finset.range J,
+      ((4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+        * ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+          + (1/(2^j*K₂)^2)
+              * ((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))))
+      = (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+          * ((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+                * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
+            + (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
+                * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j)) := by
+    rw [← Finset.mul_sum, ← Finset.mul_sum, hinner]
+  -- assemble
+  have hmass2 : (0:ℝ) ≤ ∑ n ∈ S, (1:ℝ)/(n:ℝ)^2 :=
+    Finset.sum_nonneg fun n _ => by positivity
+  have hmass1 : (0:ℝ) ≤ (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n) := by
+    have h1 : (0:ℝ) ≤ Real.log Δ :=
+      Real.log_nonneg (by exact_mod_cast hΔ)
+    have h2 : (0:ℝ) ≤ ∑ n ∈ S, (1:ℝ)/n :=
+      Finset.sum_nonneg fun n _ => by positivity
+    positivity
+  have hb2 : (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+        * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
+      ≤ (8/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2) := by
+    have hco : (0:ℝ) ≤ (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2) := by positivity
+    calc (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+          * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
+        ≤ (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2) * 2 :=
+          mul_le_mul_of_nonneg_left hgeo2 hco
+      _ = (8/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2) := by ring
+  have hb4 : (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
+        * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j
+      ≤ (2/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
+    have hco : (0:ℝ)
+        ≤ (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
+      positivity
+    calc (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
+          * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j
+        ≤ (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) * (4/3) :=
+          mul_le_mul_of_nonneg_left hgeo4 hco
+      _ ≤ (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) * 2 := by
+          nlinarith [hco]
+      _ = (2/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by ring
+  calc ∫ ξ in {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| ≤ L}, f ξ
+      ≤ ∫ ξ in {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| < 2^J*K₂}, f ξ := hstep0
+    _ ≤ ∑ j ∈ Finset.range J,
+          ∫ ξ in {ξ : ℝ | 2^j*K₂ ≤ |ξ| ∧ |ξ| ≤ 2^(j+1)*K₂}, f ξ :=
+        hrings
+    _ ≤ ∑ j ∈ Finset.range J,
+          ((4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+            * ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+              + (1/(2^j*K₂)^2)
+                  * ((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))))) :=
+        Finset.sum_le_sum hring
+    _ = (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+          * ((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+                * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
+            + (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
+                * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j)) := hsplit
+    _ ≤ (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+          * ((8/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+            + (2/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))) := by
+        refine mul_le_mul_of_nonneg_left
+          (mul_le_mul_of_nonneg_left (add_le_add hb2 hb4)
+            (by positivity)) (by positivity)
+
 end ExpSums
 
 end MoltResearch
