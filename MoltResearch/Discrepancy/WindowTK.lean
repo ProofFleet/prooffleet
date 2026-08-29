@@ -15,6 +15,7 @@ windows.
 -/
 import MoltResearch.Discrepancy.TuranKubilius
 import MoltResearch.Discrepancy.RamareIdentity
+import MoltResearch.Discrepancy.PlancherelHarness
 
 namespace MoltResearch
 
@@ -55,5 +56,235 @@ theorem sum_one_div_Ioc_dvd_eq (A B d : ℕ) (hd : 0 < d) :
   have hdc : ((d:ℝ)) ≠ 0 := by exact_mod_cast hd.ne'
   push_cast
   field_simp
+
+
+/-- **The windowed harmonic floor** (Track R, A2-III, N3-h1a): the
+window log-ratio lower bound `log b − log a ≤ ∑_{a ≤ m < b} 1/m` —
+the missing partner of `sum_one_div_Ico_window_le`, by the same
+telescoping `log(m+1) − log m ≤ 1/m` step. -/
+theorem log_sub_log_le_sum_one_div_Ico (a b : ℕ) (ha : 1 ≤ a) :
+    Real.log b - Real.log a ≤ ∑ m ∈ Finset.Ico a b, (1:ℝ)/m := by
+  induction b with
+  | zero =>
+      simp only [Nat.cast_zero, Real.log_zero, Finset.Ico_eq_empty_of_le
+        (Nat.zero_le a), Finset.sum_empty]
+      have h0 : (0:ℝ) ≤ Real.log a :=
+        Real.log_nonneg (by exact_mod_cast ha)
+      linarith
+  | succ m ih =>
+      rcases Nat.lt_or_ge m a with hma | hma
+      · -- `b = m+1 ≤ a`: empty or singleton-degenerate window
+        rcases Nat.lt_or_ge (m+1) a with hm1a | hm1a
+        · rw [Finset.Ico_eq_empty_of_le (by omega)]
+          simp only [Finset.sum_empty]
+          have hlog : Real.log (m+1 : ℕ) ≤ Real.log a := by
+            have : ((m+1 : ℕ):ℝ) ≤ (a:ℝ) := by exact_mod_cast hm1a.le
+            exact Real.log_le_log (by positivity) this
+          push_cast at hlog ⊢
+          linarith
+        · have hae : a = m+1 := by omega
+          rw [hae]
+          simp
+      · -- `a ≤ m`: peel the top element
+        rw [Finset.sum_Ico_succ_top hma]
+        have hm0 : (0:ℝ) < m := by
+          have : (1:ℕ) ≤ m := le_trans ha hma
+          exact_mod_cast this
+        have hstep : Real.log ((m:ℝ)+1) - Real.log m ≤ 1/m := by
+          rw [← Real.log_div (by positivity) (ne_of_gt hm0)]
+          have h1 : ((m:ℝ)+1)/m = 1 + 1/m := by field_simp
+          have h2 := Real.log_le_sub_one_of_pos
+            (x := ((m:ℝ)+1)/m) (by positivity)
+          rw [h1] at h2 ⊢
+          linarith
+        have ihm := ih
+        push_cast
+        push_cast at ihm
+        linarith
+
+
+set_option maxHeartbeats 1600000 in
+/-- **The quotient window has the same harmonic mass** (Track R,
+A2-III, N3-h1b): dividing a window `(A, B]` by `d ≤ A` moves its
+harmonic mass by at most `3d/A` — the two-sided log bracket on both
+windows, with the floor error `d·(⌊x/d⌋+1) ∈ (x, x+d]` absorbed into
+one `log(1+d/x) ≤ d/x` step each.  Combined with the exact reindex
+`sum_one_div_Ioc_dvd_eq`, every prime moment on a window is the
+prime's harmonic weight times the window mass, up to `3/A` per
+prime. -/
+theorem sum_one_div_Ioc_div_sub_le (A B d : ℕ) (hd : 0 < d)
+    (hdA : d ≤ A) (hAB : A ≤ B) :
+    |(∑ k ∈ Finset.Ioc (A/d) (B/d), (1:ℝ)/k)
+        - ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n| ≤ 3*((d:ℝ)/A) := by
+  have hA0 : (0:ℝ) < A := by
+    have : (1:ℕ) ≤ A := le_trans hd hdA
+    exact_mod_cast this
+  have hB0 : (0:ℝ) < B := lt_of_lt_of_le hA0 (by exact_mod_cast hAB)
+  have hd0 : (0:ℝ) < d := by exact_mod_cast hd
+  have hdmA := Nat.div_add_mod A d
+  have hmodA := Nat.mod_lt A hd
+  have hdmB := Nat.div_add_mod B d
+  have hmodB := Nat.mod_lt B hd
+  have hab' : A/d ≤ B/d := Nat.div_le_div_right hAB
+  have hIco1 : Finset.Ioc A B = Finset.Ico (A+1) (B+1) := by
+    ext n
+    simp only [Finset.mem_Ioc, Finset.mem_Ico]
+    omega
+  have hIco2 : Finset.Ioc (A/d) (B/d) = Finset.Ico (A/d+1) (B/d+1) := by
+    ext n
+    simp only [Finset.mem_Ioc, Finset.mem_Ico]
+    omega
+  have hU1 : ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+      ≤ 1/((A:ℝ)+1) + Real.log ((B:ℝ)+1) - Real.log ((A:ℝ)+1) := by
+    rw [hIco1]
+    have := ExpSums.sum_one_div_Ico_window_le (A+1) (B+1)
+      (Nat.succ_le_succ (Nat.zero_le _)) (Nat.succ_le_succ hAB)
+    push_cast at this ⊢
+    linarith
+  have hL1 : Real.log ((B:ℝ)+1) - Real.log ((A:ℝ)+1)
+      ≤ ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n := by
+    rw [hIco1]
+    have := log_sub_log_le_sum_one_div_Ico (A+1) (B+1)
+      (Nat.succ_le_succ (Nat.zero_le _))
+    push_cast at this ⊢
+    linarith
+  have hU2 : ∑ k ∈ Finset.Ioc (A/d) (B/d), (1:ℝ)/k
+      ≤ 1/(((A/d : ℕ):ℝ)+1) + Real.log (((B/d : ℕ):ℝ)+1)
+        - Real.log (((A/d : ℕ):ℝ)+1) := by
+    rw [hIco2]
+    have := ExpSums.sum_one_div_Ico_window_le (A/d+1) (B/d+1)
+      (Nat.succ_le_succ (Nat.zero_le _)) (Nat.succ_le_succ hab')
+    push_cast at this ⊢
+    linarith
+  have hL2 : Real.log (((B/d : ℕ):ℝ)+1) - Real.log (((A/d : ℕ):ℝ)+1)
+      ≤ ∑ k ∈ Finset.Ioc (A/d) (B/d), (1:ℝ)/k := by
+    rw [hIco2]
+    have := log_sub_log_le_sum_one_div_Ico (A/d+1) (B/d+1)
+      (Nat.succ_le_succ (Nat.zero_le _))
+    push_cast at this ⊢
+    linarith
+  have hcastB : ((d*(B/d) + d : ℕ):ℝ) = (d:ℝ)*(((B/d : ℕ):ℝ)+1) := by
+    push_cast
+    ring
+  have hcastA : ((d*(A/d) + d : ℕ):ℝ) = (d:ℝ)*(((A/d : ℕ):ℝ)+1) := by
+    push_cast
+    ring
+  have hb1 : ((B:ℝ)+1) ≤ (d:ℝ)*(((B/d : ℕ):ℝ)+1) := by
+    have h1 : B + 1 ≤ d*(B/d) + d := by omega
+    calc ((B:ℝ)+1) ≤ ((d*(B/d) + d : ℕ):ℝ) := by exact_mod_cast h1
+      _ = (d:ℝ)*(((B/d : ℕ):ℝ)+1) := hcastB
+  have hb2 : (d:ℝ)*(((B/d : ℕ):ℝ)+1) ≤ (B:ℝ)+d := by
+    have h1 : d*(B/d) + d ≤ B + d := by omega
+    calc (d:ℝ)*(((B/d : ℕ):ℝ)+1) = ((d*(B/d) + d : ℕ):ℝ) := hcastB.symm
+      _ ≤ ((B + d : ℕ):ℝ) := by exact_mod_cast h1
+      _ = (B:ℝ)+d := by push_cast; ring
+  have ha1 : ((A:ℝ)+1) ≤ (d:ℝ)*(((A/d : ℕ):ℝ)+1) := by
+    have h1 : A + 1 ≤ d*(A/d) + d := by omega
+    calc ((A:ℝ)+1) ≤ ((d*(A/d) + d : ℕ):ℝ) := by exact_mod_cast h1
+      _ = (d:ℝ)*(((A/d : ℕ):ℝ)+1) := hcastA
+  have ha2 : (d:ℝ)*(((A/d : ℕ):ℝ)+1) ≤ (A:ℝ)+d := by
+    have h1 : d*(A/d) + d ≤ A + d := by omega
+    calc (d:ℝ)*(((A/d : ℕ):ℝ)+1) = ((d*(A/d) + d : ℕ):ℝ) := hcastA.symm
+      _ ≤ ((A + d : ℕ):ℝ) := by exact_mod_cast h1
+      _ = (A:ℝ)+d := by push_cast; ring
+  have hq0 : (0:ℝ) < ((A/d : ℕ):ℝ)+1 := by positivity
+  have hqB0 : (0:ℝ) < ((B/d : ℕ):ℝ)+1 := by positivity
+  have hsplitB : Real.log ((d:ℝ)*(((B/d : ℕ):ℝ)+1))
+      = Real.log d + Real.log (((B/d : ℕ):ℝ)+1) :=
+    Real.log_mul (ne_of_gt hd0) (ne_of_gt hqB0)
+  have hsplitA : Real.log ((d:ℝ)*(((A/d : ℕ):ℝ)+1))
+      = Real.log d + Real.log (((A/d : ℕ):ℝ)+1) :=
+    Real.log_mul (ne_of_gt hd0) (ne_of_gt hq0)
+  have hlogB_lo : Real.log ((B:ℝ)+1)
+      ≤ Real.log ((d:ℝ)*(((B/d : ℕ):ℝ)+1)) :=
+    Real.log_le_log (by positivity) hb1
+  have hlogB_hi : Real.log ((d:ℝ)*(((B/d : ℕ):ℝ)+1))
+      ≤ Real.log ((B:ℝ)+d) :=
+    Real.log_le_log (by positivity) hb2
+  have hlogA_lo : Real.log ((A:ℝ)+1)
+      ≤ Real.log ((d:ℝ)*(((A/d : ℕ):ℝ)+1)) :=
+    Real.log_le_log (by positivity) ha1
+  have hlogA_hi : Real.log ((d:ℝ)*(((A/d : ℕ):ℝ)+1))
+      ≤ Real.log ((A:ℝ)+d) :=
+    Real.log_le_log (by positivity) ha2
+  have hedgeB : Real.log ((B:ℝ)+d) - Real.log ((B:ℝ)+1) ≤ (d:ℝ)/A := by
+    have h1 := Real.log_le_sub_one_of_pos
+      (x := ((B:ℝ)+d)/((B:ℝ)+1)) (by positivity)
+    rw [← Real.log_div (by positivity) (by positivity)]
+    have h2 : ((B:ℝ)+d)/((B:ℝ)+1) - 1 = ((d:ℝ)-1)/((B:ℝ)+1) := by
+      field_simp
+      ring
+    have h3 : ((d:ℝ)-1)/((B:ℝ)+1) ≤ (d:ℝ)/A := by
+      rw [div_le_div_iff₀ (by positivity) hA0]
+      nlinarith [hA0, hB0, hd0, (by exact_mod_cast hAB : (A:ℝ) ≤ B)]
+    linarith
+  have hedgeA : Real.log ((A:ℝ)+d) - Real.log ((A:ℝ)+1) ≤ (d:ℝ)/A := by
+    have h1 := Real.log_le_sub_one_of_pos
+      (x := ((A:ℝ)+d)/((A:ℝ)+1)) (by positivity)
+    rw [← Real.log_div (by positivity) (by positivity)]
+    have h2 : ((A:ℝ)+d)/((A:ℝ)+1) - 1 = ((d:ℝ)-1)/((A:ℝ)+1) := by
+      field_simp
+      ring
+    have h3 : ((d:ℝ)-1)/((A:ℝ)+1) ≤ (d:ℝ)/A := by
+      rw [div_le_div_iff₀ (by positivity) hA0]
+      nlinarith [hA0, hd0]
+    linarith
+  have hrecq : 1/(((A/d : ℕ):ℝ)+1) ≤ (d:ℝ)/A := by
+    rw [div_le_div_iff₀ hq0 hA0]
+    nlinarith [ha1, hd0, hA0]
+  have hrecA : 1/((A:ℝ)+1) ≤ (d:ℝ)/A := by
+    rw [div_le_div_iff₀ (by positivity) hA0]
+    nlinarith [hA0, hd0]
+  have hdA0 : (0:ℝ) ≤ (d:ℝ)/A := by positivity
+  rw [abs_le]
+  constructor
+  · have hD : Real.log ((A:ℝ)+1) - Real.log ((A:ℝ)+d)
+        ≤ (Real.log (((B/d : ℕ):ℝ)+1) - Real.log (((A/d : ℕ):ℝ)+1))
+          - (Real.log ((B:ℝ)+1) - Real.log ((A:ℝ)+1)) := by
+      have e1 : Real.log (((B/d : ℕ):ℝ)+1)
+          = Real.log ((d:ℝ)*(((B/d : ℕ):ℝ)+1)) - Real.log d := by
+        rw [hsplitB]
+        ring
+      have e2 : Real.log (((A/d : ℕ):ℝ)+1)
+          = Real.log ((d:ℝ)*(((A/d : ℕ):ℝ)+1)) - Real.log d := by
+        rw [hsplitA]
+        ring
+      rw [e1, e2]
+      linarith [hlogB_lo, hlogA_hi]
+    have hs1 : (Real.log (((B/d : ℕ):ℝ)+1) - Real.log (((A/d : ℕ):ℝ)+1))
+          - (1/((A:ℝ)+1) + Real.log ((B:ℝ)+1) - Real.log ((A:ℝ)+1))
+        ≤ (∑ k ∈ Finset.Ioc (A/d) (B/d), (1:ℝ)/k)
+          - ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n := by
+      linarith [hL2, hU1]
+    have hs2 : -((d:ℝ)/A) - (d:ℝ)/A
+        ≤ (Real.log (((B/d : ℕ):ℝ)+1) - Real.log (((A/d : ℕ):ℝ)+1))
+          - (1/((A:ℝ)+1) + Real.log ((B:ℝ)+1) - Real.log ((A:ℝ)+1)) := by
+      linarith [hD, hedgeA, hrecA]
+    linarith [hs1, hs2, hdA0]
+  · have hD : (Real.log (((B/d : ℕ):ℝ)+1) - Real.log (((A/d : ℕ):ℝ)+1))
+          - (Real.log ((B:ℝ)+1) - Real.log ((A:ℝ)+1))
+        ≤ Real.log ((B:ℝ)+d) - Real.log ((B:ℝ)+1) := by
+      have e1 : Real.log (((B/d : ℕ):ℝ)+1)
+          = Real.log ((d:ℝ)*(((B/d : ℕ):ℝ)+1)) - Real.log d := by
+        rw [hsplitB]
+        ring
+      have e2 : Real.log (((A/d : ℕ):ℝ)+1)
+          = Real.log ((d:ℝ)*(((A/d : ℕ):ℝ)+1)) - Real.log d := by
+        rw [hsplitA]
+        ring
+      rw [e1, e2]
+      linarith [hlogB_hi, hlogA_lo]
+    have hs1 : (∑ k ∈ Finset.Ioc (A/d) (B/d), (1:ℝ)/k)
+        - ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+        ≤ (1/(((A/d : ℕ):ℝ)+1) + Real.log (((B/d : ℕ):ℝ)+1)
+            - Real.log (((A/d : ℕ):ℝ)+1))
+          - (Real.log ((B:ℝ)+1) - Real.log ((A:ℝ)+1)) := by
+      linarith [hU2, hL1]
+    have hs2 : (1/(((A/d : ℕ):ℝ)+1) + Real.log (((B/d : ℕ):ℝ)+1)
+            - Real.log (((A/d : ℕ):ℝ)+1))
+          - (Real.log ((B:ℝ)+1) - Real.log ((A:ℝ)+1))
+        ≤ (d:ℝ)/A + (d:ℝ)/A := by
+      linarith [hD, hedgeB, hrecq]
+    linarith [hs1, hs2, hdA0]
 
 end MoltResearch
