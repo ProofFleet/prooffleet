@@ -287,4 +287,71 @@ theorem sum_one_div_Ioc_div_sub_le (A B d : ℕ) (hd : 0 < d)
       linarith [hD, hedgeB, hrecq]
     linarith [hs1, hs2, hdA0]
 
+
+/-- **The window first prime moment** (Track R, A2-III, N3-h2): over a
+window `(A, B]`, the log-averaged prime-divisor count sits within
+`3·#P/A` of the prime harmonic mass times the window mass —
+
+  `|∑_{A<n≤B} ω_P(n)/n − (∑_p 1/p)·∑_{A<n≤B} 1/n| ≤ 3·#P/A`,
+
+by the exact fibre reindex and the quotient-window comparison, one
+prime at a time.  This is the windowed Turán–Kubilius first moment. -/
+theorem window_omega_first_moment (A B : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) (hPA : ∀ p ∈ P, p ≤ A) (hAB : A ≤ B) :
+    |(∑ n ∈ Finset.Ioc A B, ((P.filter (· ∣ n)).card : ℝ)/n)
+        - (∑ p ∈ P, (1:ℝ)/p) * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n|
+      ≤ 3*((P.card : ℝ)/A) := by
+  classical
+  -- the count splits into prime fibres
+  have hswap : ∑ n ∈ Finset.Ioc A B, ((P.filter (· ∣ n)).card : ℝ)/n
+      = ∑ p ∈ P, ∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n),
+          (1:ℝ)/n := by
+    have h1 : ∀ n ∈ Finset.Ioc A B,
+        ((P.filter (· ∣ n)).card : ℝ)/n
+          = ∑ p ∈ P, (if p ∣ n then (1:ℝ)/n else 0) := by
+      intro n _
+      rw [Finset.card_filter]
+      push_cast
+      rw [Finset.sum_div]
+      refine Finset.sum_congr rfl fun p _ => ?_
+      split_ifs <;> simp
+    rw [Finset.sum_congr rfl h1, Finset.sum_comm]
+    refine Finset.sum_congr rfl fun p _ => ?_
+    rw [Finset.sum_filter]
+  rw [hswap, Finset.sum_mul, ← Finset.sum_sub_distrib]
+  -- the per-prime deviation
+  have hper : ∀ p ∈ P,
+      |(∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n), (1:ℝ)/n)
+          - (1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n|
+        ≤ 3*((1:ℝ)/A) := by
+    intro p hp
+    have hp0 : 0 < p := (hP p hp).pos
+    have hpr : (0:ℝ) < p := by exact_mod_cast hp0
+    have hA1 : 1 ≤ A := le_trans hp0 (hPA p hp)
+    have hA0 : (0:ℝ) < A := by exact_mod_cast hA1
+    rw [sum_one_div_Ioc_dvd_eq A B p hp0]
+    have hcomp := sum_one_div_Ioc_div_sub_le A B p hp0 (hPA p hp) hAB
+    have hfac : (1:ℝ)/p * (∑ k ∈ Finset.Ioc (A/p) (B/p), (1:ℝ)/k)
+          - (1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+        = (1:ℝ)/p * ((∑ k ∈ Finset.Ioc (A/p) (B/p), (1:ℝ)/k)
+          - ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n) := by
+      ring
+    rw [hfac, abs_mul, abs_of_pos (by positivity : (0:ℝ) < (1:ℝ)/p)]
+    have hstep := mul_le_mul_of_nonneg_left hcomp
+      (by positivity : (0:ℝ) ≤ (1:ℝ)/p)
+    have hcan : (1:ℝ)/p * (3*((p:ℝ)/A)) = 3*((1:ℝ)/A) := by
+      field_simp
+    linarith [hstep, hcan.le, hcan.ge]
+  -- triangle and count
+  calc |∑ p ∈ P, ((∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n),
+          (1:ℝ)/n) - (1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)|
+      ≤ ∑ p ∈ P, |(∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n),
+          (1:ℝ)/n) - (1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n| :=
+        Finset.abs_sum_le_sum_abs _ _
+    _ ≤ ∑ _p ∈ P, 3*((1:ℝ)/A) := Finset.sum_le_sum hper
+    _ = (P.card : ℝ) * (3*((1:ℝ)/A)) := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ = 3*((P.card : ℝ)/A) := by
+        ring
+
 end MoltResearch
