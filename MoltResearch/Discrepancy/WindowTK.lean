@@ -16,6 +16,7 @@ windows.
 import MoltResearch.Discrepancy.TuranKubilius
 import MoltResearch.Discrepancy.RamareIdentity
 import MoltResearch.Discrepancy.PlancherelHarness
+import MoltResearch.Discrepancy.TypicalFactorization
 
 namespace MoltResearch
 
@@ -710,5 +711,105 @@ theorem window_sifted_le (A B : ℕ) (P : Finset ℕ)
           rw [← Finset.sum_div]
   refine le_trans hsub ?_
   refine div_le_div_of_nonneg_right hvar (by positivity)
+
+
+open Real Finset in
+/-- **The window typical-set complement telescope** (Track R, A2-III,
+N3-h6): over a window `(A, B]`, missing a factor in some level means
+being sifted at that level, so the atypical log-mass is at most the
+sum of the per-level window sifted bounds —
+
+  `∑_{n atypical} 1/n ≤ ∑_{P ∈ levels} (E_P·H + errs_P)/E_P²`.
+
+The union-bound induction of `typicalS_complement_logavg_le`, with
+`window_sifted_le` pricing each level against the window mass. -/
+theorem window_typicalS_complement_le (A B : ℕ)
+    (levels : List (Finset ℕ))
+    (hP : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
+    (hPA2 : ∀ P ∈ levels, ∀ p ∈ P, ∀ q ∈ P, p*q ≤ A)
+    (hAB : A ≤ B)
+    (hE0 : ∀ P ∈ levels, (0:ℝ) < ∑ p ∈ P, (1:ℝ)/p) :
+    ∑ n ∈ (Finset.Ioc A B).filter
+        (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
+      ≤ (levels.map (fun (P : Finset ℕ) =>
+          ((∑ p ∈ P, (1:ℝ)/p) * (∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)
+            + (3*(((P.card : ℝ) + ((P.card : ℝ))^2)/A)
+              + 2*(∑ p ∈ P, (1:ℝ)/p) * (3*((P.card : ℝ)/A))))
+          / ((∑ p ∈ P, (1:ℝ)/p))^2)).sum := by
+  classical
+  induction levels with
+  | nil =>
+      simp [HasFactorInAll]
+  | cons P rest ih =>
+      have hP' : ∀ Q ∈ rest, ∀ p ∈ Q, p.Prime :=
+        fun Q hQ => hP Q (List.mem_cons_of_mem _ hQ)
+      have hPA2' : ∀ Q ∈ rest, ∀ p ∈ Q, ∀ q ∈ Q, p*q ≤ A :=
+        fun Q hQ => hPA2 Q (List.mem_cons_of_mem _ hQ)
+      have hE0' : ∀ Q ∈ rest, (0:ℝ) < ∑ p ∈ Q, (1:ℝ)/p :=
+        fun Q hQ => hE0 Q (List.mem_cons_of_mem _ hQ)
+      have hrest := ih hP' hPA2' hE0'
+      have hhead := window_sifted_le A B P
+        (hP P (List.mem_cons_self ..))
+        (hPA2 P (List.mem_cons_self ..)) hAB
+        (hE0 P (List.mem_cons_self ..))
+      -- missing `P :: rest` means sifted at `P` or missing `rest`
+      have hsub : (Finset.Ioc A B).filter
+          (fun n => ¬ HasFactorInAll (P :: rest) n)
+          ⊆ ((Finset.Ioc A B).filter
+              (fun n => (P.filter (· ∣ n)).card = 0))
+            ∪ ((Finset.Ioc A B).filter
+              (fun n => ¬ HasFactorInAll rest n)) := by
+        intro n hn
+        rw [Finset.mem_filter] at hn
+        rw [Finset.mem_union, Finset.mem_filter, Finset.mem_filter]
+        rw [hasFactorInAll_cons, not_and_or] at hn
+        rcases hn.2 with h | h
+        · exact Or.inl ⟨hn.1, by omega⟩
+        · exact Or.inr ⟨hn.1, h⟩
+      have hmono := Finset.sum_le_sum_of_subset_of_nonneg hsub
+        (fun n _ _ => by positivity :
+          ∀ n ∈ ((Finset.Ioc A B).filter
+              (fun n => (P.filter (· ∣ n)).card = 0))
+            ∪ ((Finset.Ioc A B).filter
+              (fun n => ¬ HasFactorInAll rest n)),
+            n ∉ (Finset.Ioc A B).filter
+              (fun n => ¬ HasFactorInAll (P :: rest) n) → (0:ℝ) ≤ 1/n)
+      have hunion : ∑ n ∈ ((Finset.Ioc A B).filter
+            (fun n => (P.filter (· ∣ n)).card = 0))
+          ∪ ((Finset.Ioc A B).filter
+            (fun n => ¬ HasFactorInAll rest n)), (1:ℝ)/n
+          ≤ (∑ n ∈ (Finset.Ioc A B).filter
+              (fun n => (P.filter (· ∣ n)).card = 0), (1:ℝ)/n)
+            + ∑ n ∈ (Finset.Ioc A B).filter
+              (fun n => ¬ HasFactorInAll rest n), (1:ℝ)/n := by
+        have hui := Finset.sum_union_inter
+          (s₁ := (Finset.Ioc A B).filter
+            (fun n => (P.filter (· ∣ n)).card = 0))
+          (s₂ := (Finset.Ioc A B).filter
+            (fun n => ¬ HasFactorInAll rest n))
+          (f := fun n => (1:ℝ)/n)
+        have hint : (0:ℝ) ≤ ∑ n ∈ ((Finset.Ioc A B).filter
+            (fun n => (P.filter (· ∣ n)).card = 0))
+          ∩ ((Finset.Ioc A B).filter
+            (fun n => ¬ HasFactorInAll rest n)), (1:ℝ)/n :=
+          Finset.sum_nonneg fun n _ => by positivity
+        linarith
+      rw [List.map_cons, List.sum_cons]
+      calc ∑ n ∈ (Finset.Ioc A B).filter
+            (fun n => ¬ HasFactorInAll (P :: rest) n), (1:ℝ)/n
+          ≤ _ := hmono
+        _ ≤ _ := hunion
+        _ ≤ ((∑ p ∈ P, (1:ℝ)/p) * (∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)
+              + (3*(((P.card : ℝ) + ((P.card : ℝ))^2)/A)
+                + 2*(∑ p ∈ P, (1:ℝ)/p) * (3*((P.card : ℝ)/A))))
+            / ((∑ p ∈ P, (1:ℝ)/p))^2
+            + (rest.map (fun (Q : Finset ℕ) =>
+                ((∑ p ∈ Q, (1:ℝ)/p)
+                    * (∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)
+                  + (3*(((Q.card : ℝ) + ((Q.card : ℝ))^2)/A)
+                    + 2*(∑ p ∈ Q, (1:ℝ)/p)
+                        * (3*((Q.card : ℝ)/A))))
+                / ((∑ p ∈ Q, (1:ℝ)/p))^2)).sum := by
+            linarith [hhead, hrest]
 
 end MoltResearch
