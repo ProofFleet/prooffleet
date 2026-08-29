@@ -17,6 +17,14 @@ MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
 MoltResearch.Discrepancy.SurfaceAudit
 MoltResearch.Discrepancy.NormalFormExamples
 MoltResearch.Discrepancy.NormalFormExamplesAnalytic
+# Added 2026-08-29: these three landed in #3404 and were never registered anywhere, so
+# CI had never compiled them. AffineEndpointSimp is opt-in (it enables a simp attribute
+# its own docstring warns against enabling globally) and the two Examples files are
+# compile-only regressions that deliberately stay out of the stable surface -- so all
+# three belong here rather than in an aggregator. The two Examples files turned out not
+# to compile at all (never having been built); they are recorded in
+# scripts/uncompiled_allowlist.txt instead of being registered here.
+MoltResearch.Discrepancy.AffineEndpointSimp
 Solutions
 Tasks
 Conjectures

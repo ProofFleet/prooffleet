@@ -49,6 +49,13 @@ is your PR's wall-clock cost (and everyone queues behind it).
   `Discrepancy/<Topic>.lean` that imports what it needs and is registered in
   the aggregator (`Discrepancy.lean` or `DiscrepancyAnalytic.lean`) compiles
   in seconds.
+- **Register it, or CI never compiles it.** The aggregator is the usual home,
+  but a module that must stay *outside* the stable surface belongs in
+  `scripts/ci_targets.txt` instead: an opt-in simp module (adding it to the
+  surface would change the simp set for every downstream proof) or a
+  compile-only regression file (the surface cannot import its own tests
+  without a cycle). Miss both and the file is invisible —
+  `scripts/check_aggregator_coverage.py` now fails the build for it.
 - **Don't import a fatter surface than you consume.** The *stable* core
   surface (`import MoltResearch.Discrepancy`) is the designed API boundary for
   stage/backlog files — importing it is fine. But the *analytic* aggregator

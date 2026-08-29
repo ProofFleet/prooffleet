@@ -119,6 +119,9 @@ jobs:
       - name: Check interface hygiene (warning mode)
         run: python3 scripts/check_interfaces.py
 
+      - name: Check every module is compiled by CI
+        run: python3 scripts/check_aggregator_coverage.py
+
       - name: Forbid sorry in verified targets
         run: bash scripts/forbid_sorry.sh
 

@@ -1,0 +1,26 @@
+# Modules that CI does not compile, and that we have deliberately not fixed yet.
+#
+# check_aggregator_coverage.py fails on any module outside the CI target closure. An entry
+# here downgrades that to a warning for one module. This is debt, recorded so it stays
+# visible — not a way to ignore a module permanently. Removing a line is the fix.
+#
+# Do NOT add a newly written module here. If a module you are adding does not compile, fix
+# it; the allowlist exists only for files that were already broken before the check existed.
+
+# Both landed in #3404 (2026-08-27) unregistered, so CI never compiled them, and they do not
+# currently build. Each is a compile-only regression file whose examples are proved `by simp`.
+#
+# EndpointSimpExamples asserts, verbatim, the statement of `apSumOffset_succ_succ` — an
+# existing `@[simp]` lemma in EndpointSimp.lean. So the example checks that a simp lemma
+# applies to its own statement, and it does not: simp normalises `Nat.succ n` to `n + 1`,
+# so a lemma keyed on `Nat.succ` never fires. PaperSimpExamples fails the same way on the
+# paper-endpoint pipeline.
+#
+# These are NOT mechanically fixable. Changing `by simp` to `by exact apSumOffset_succ_succ …`
+# would make the example tautological and destroy the thing it was written to test — that the
+# endpoint simp set actually reaches these goals from the stable surface. The real choices are
+# to strengthen the simp surface so plain `simp` closes them, or to restate the examples
+# against goals the surface genuinely handles. Both are design calls needing a Lean toolchain
+# to iterate against, so they are left to someone who has one.
+MoltResearch.Discrepancy.EndpointSimpExamples
+MoltResearch.Discrepancy.PaperSimpExamples

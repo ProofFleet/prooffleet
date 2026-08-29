@@ -24,7 +24,9 @@ make backlog                        # typecheck the whole Tasks/ + Conjectures/ 
 
 **Never build Mathlib from source.** If `lake build` starts compiling thousands of `Mathlib.*` files, interrupt it and run `~/.elan/bin/lake exe cache get` first.
 
-The default target only builds what `MoltResearch.lean` imports. CI (and `make ci`) additionally builds these explicitly, because they can silently decay otherwise: the standalone audit modules (`MoltResearch.Discrepancy.SurfaceChecklist`, `DeprecatedSurfaceChecklist`, `SurfaceAudit`, `NormalFormExamples`), the `Solutions` lib, and the whole `Tasks` + `Conjectures` backlog (including the Track C stage pipeline).
+The default target only builds what `MoltResearch.lean` imports, so the standalone audit and regression modules, the `Solutions` lib and the `Tasks` + `Conjectures` backlog must be named explicitly or they silently decay. That list lives in **`scripts/ci_targets.txt`** — the single source of truth, read by both `.github/workflows/ci.yml` and `make ci`, so the two cannot drift. Add targets there, not in either consumer.
+
+`scripts/check_aggregator_coverage.py` enforces the invariant behind it: every `MoltResearch/**/*.lean` must be in the transitive import closure of some CI target. A module that no aggregator imports and that nobody lists is compiled by nothing — it can rot, or never have compiled at all, with nothing reporting it. Three such modules were found this way in August 2026, two of which had never once been typechecked.
 
 ## Architecture
 
@@ -53,11 +55,29 @@ Enforced by `.github/workflows/ci.yml`:
 2. **Overlay rule**: PRs changing a canonical module (`MoltResearch/Basics.lean`, `MoltResearch/Logic.lean`, `MoltResearch/Discrepancy/Basic.lean`) must also update `Learning/EDUCATIONAL_OVERLAYS.md`.
 3. **No `sorry`/`axiom`/`unsafe`** anywhere under `MoltResearch/` or `Solutions/` (grep-based, includes comments — don't even write the word `sorry` in those trees).
 4. Task metadata coverage check: `python3 scripts/check_task_metadata_coverage.py`.
+5. **Layering** (`scripts/check_layering.sh`): the analytic layer must not import the discrepancy
+   nucleus, and the `Tasks`/`Conjectures`/`Solutions` trees stay import-leaves.
+6. **Module coverage** (`scripts/check_aggregator_coverage.py`): every module under
+   `MoltResearch/` must be compiled by some CI target — see the build section above.
+   Pre-existing exceptions are listed, with diagnoses, in `scripts/uncompiled_allowlist.txt`.
+
+Also run, in warning mode: `scripts/check_interfaces.py` audits the `*Assumption` hypothesis
+classes (citation present, listed in the registry, and "no instance may be declared" docstrings
+matching reality). It does not fail the build yet.
+
+Gates 3–6 plus the metadata check are pure grep/regex and run **before** the build, so a
+violation reports in about five seconds rather than after a full compile.
 
 ## Contribution conventions
 
 - **One lemma / one task per PR.** A good PR touches 1 file (maybe 2), adds 0–1 imports. Small diffs win.
 - **Stable-surface rule**: if you add/change a lemma meant to be usable via `import MoltResearch.Discrepancy`, add a usage example to `MoltResearch/Discrepancy/NormalFormExamples.lean`.
+- **Register every new module.** A new `MoltResearch/` file must be reachable from a CI target or
+  CI will never compile it. Wire it into the aggregator it belongs to (`Discrepancy.lean` /
+  `DiscrepancyAnalytic.lean`) — or, if it must stay *outside* the stable surface, add it to
+  `scripts/ci_targets.txt`. The second case is easy to forget and covers opt-in simp modules
+  (which would change the simp set for every downstream proof) and compile-only regression files
+  (which the surface cannot import without a cycle).
 - Prefer helper lemmas over giant `simp`/automation blobs; short comment or docstring when a proof is non-obvious.
 - If you generalize a task solution, consider promoting it into `MoltResearch/`.
 - Tier-1 / Repair / card items: claim the issue first (comment "I'm on this"). Tier-0: just open a PR.
