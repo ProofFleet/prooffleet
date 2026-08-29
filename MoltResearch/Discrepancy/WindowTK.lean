@@ -354,4 +354,36 @@ theorem window_omega_first_moment (A B : ℕ) (P : Finset ℕ)
     _ = 3*((P.card : ℝ)/A) := by
         ring
 
+
+/-- **The window second-moment expansion** (Track R, A2-III, N3-h3a):
+the squared prime-divisor count expands into pair fibres —
+
+  `∑ ω_P(n)²/n = ∑_{p,q ∈ P} ∑_{n ∈ (A,B], p∣n, q∣n} 1/n`,
+
+pure counting, no primality: `ω² = (∑_p [p∣n])²` opened by
+`Finset.sum_mul_sum` and the `n`-sum swapped inside. -/
+theorem window_omega_sq_expand (A B : ℕ) (P : Finset ℕ) :
+    ∑ n ∈ Finset.Ioc A B, (((P.filter (· ∣ n)).card : ℝ))^2/n
+      = ∑ p ∈ P, ∑ q ∈ P, ∑ n ∈ (Finset.Ioc A B).filter
+          (fun n => p ∣ n ∧ q ∣ n), (1:ℝ)/n := by
+  classical
+  have h1 : ∀ n ∈ Finset.Ioc A B,
+      (((P.filter (· ∣ n)).card : ℝ))^2/n
+        = ∑ p ∈ P, ∑ q ∈ P,
+            (if p ∣ n ∧ q ∣ n then (1:ℝ)/n else 0) := by
+    intro n _
+    rw [Finset.card_filter]
+    push_cast
+    rw [pow_two, Finset.sum_mul_sum]
+    rw [Finset.sum_div]
+    refine Finset.sum_congr rfl fun p _ => ?_
+    rw [Finset.sum_div]
+    refine Finset.sum_congr rfl fun q _ => ?_
+    split_ifs with h₁ h₂ h₃ <;> simp_all
+  rw [Finset.sum_congr rfl h1, Finset.sum_comm]
+  refine Finset.sum_congr rfl fun p _ => ?_
+  rw [Finset.sum_comm]
+  refine Finset.sum_congr rfl fun q _ => ?_
+  rw [Finset.sum_filter]
+
 end MoltResearch
