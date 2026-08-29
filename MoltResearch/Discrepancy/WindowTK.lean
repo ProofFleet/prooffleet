@@ -654,4 +654,61 @@ theorem window_variance_le (A B : ℕ) (P : Finset ℕ)
       (by linarith : (0:ℝ) ≤ 2*(∑ p ∈ P, (1:ℝ)/p)),
     mul_le_mul_of_nonneg_right hSoff hH0, hE0, hH0]
 
+
+/-- **The window sifted bound** (Track R, A2-III, N3-h5): elements of
+`(A, B]` with no prime factor in `P` have `(ω_P − E)² = E²`, so their
+log-mass is at most `1/E²` times the window variance —
+
+  `∑_{n sifted} 1/n ≤ (E·H + 3(#P+#P²)/A + 6E·#P/A)/E²`.
+
+With `E ≥ E₀` the main term is `H/E₀`: the block-level `[mrt]`
+Lemma-"excep" shape with everything measured against the window
+harmonic mass. -/
+theorem window_sifted_le (A B : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) (hPA2 : ∀ p ∈ P, ∀ q ∈ P, p*q ≤ A)
+    (hAB : A ≤ B) (hE0 : (0:ℝ) < ∑ p ∈ P, (1:ℝ)/p) :
+    ∑ n ∈ (Finset.Ioc A B).filter
+        (fun n => (P.filter (· ∣ n)).card = 0), (1:ℝ)/n
+      ≤ ((∑ p ∈ P, (1:ℝ)/p) * (∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)
+          + (3*(((P.card : ℝ) + ((P.card : ℝ))^2)/A)
+            + 2*(∑ p ∈ P, (1:ℝ)/p) * (3*((P.card : ℝ)/A))))
+        / ((∑ p ∈ P, (1:ℝ)/p))^2 := by
+  classical
+  have hvar := window_variance_le A B P hP hPA2 hAB
+  -- the sifted mass is dominated termwise by the variance summand
+  have hterm : ∀ n ∈ (Finset.Ioc A B).filter
+      (fun n => (P.filter (· ∣ n)).card = 0),
+      (1:ℝ)/n = (((P.filter (· ∣ n)).card : ℝ)
+          - ∑ p ∈ P, (1:ℝ)/p)^2/n / ((∑ p ∈ P, (1:ℝ)/p))^2 := by
+    intro n hn
+    rw [Finset.mem_filter] at hn
+    rw [hn.2]
+    rw [show ((0:ℕ):ℝ) - ∑ p ∈ P, (1:ℝ)/p = -(∑ p ∈ P, (1:ℝ)/p) by
+      push_cast; ring]
+    rw [neg_pow]
+    field_simp
+  have hsub : ∑ n ∈ (Finset.Ioc A B).filter
+      (fun n => (P.filter (· ∣ n)).card = 0), (1:ℝ)/n
+      ≤ (∑ n ∈ Finset.Ioc A B,
+          (((P.filter (· ∣ n)).card : ℝ) - ∑ p ∈ P, (1:ℝ)/p)^2/n)
+        / ((∑ p ∈ P, (1:ℝ)/p))^2 := by
+    calc (∑ n ∈ (Finset.Ioc A B).filter
+          (fun n => (P.filter (· ∣ n)).card = 0), (1:ℝ)/n)
+        = ∑ n ∈ (Finset.Ioc A B).filter
+            (fun n => (P.filter (· ∣ n)).card = 0),
+            (((P.filter (· ∣ n)).card : ℝ)
+              - ∑ p ∈ P, (1:ℝ)/p)^2/n / ((∑ p ∈ P, (1:ℝ)/p))^2 :=
+          Finset.sum_congr rfl hterm
+      _ ≤ ∑ n ∈ Finset.Ioc A B,
+            (((P.filter (· ∣ n)).card : ℝ)
+              - ∑ p ∈ P, (1:ℝ)/p)^2/n / ((∑ p ∈ P, (1:ℝ)/p))^2 :=
+          Finset.sum_le_sum_of_subset_of_nonneg
+            (Finset.filter_subset _ _) fun n _ _ => by positivity
+      _ = (∑ n ∈ Finset.Ioc A B,
+            (((P.filter (· ∣ n)).card : ℝ)
+              - ∑ p ∈ P, (1:ℝ)/p)^2/n) / ((∑ p ∈ P, (1:ℝ)/p))^2 := by
+          rw [← Finset.sum_div]
+  refine le_trans hsub ?_
+  refine div_le_div_of_nonneg_right hvar (by positivity)
+
 end MoltResearch
