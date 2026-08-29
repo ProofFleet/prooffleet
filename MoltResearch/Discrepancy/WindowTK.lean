@@ -386,4 +386,173 @@ theorem window_omega_sq_expand (A B : ℕ) (P : Finset ℕ) :
   refine Finset.sum_congr rfl fun q _ => ?_
   rw [Finset.sum_filter]
 
+
+/-- **Distinct-prime pair fibres are product fibres** (Track R,
+A2-III): for primes `p ≠ q`, divisibility by both is divisibility by
+`pq` — the coprimality step that turns the second-moment pair fibres
+into single reindexable fibres. -/
+theorem filter_dvd_pair_eq (A B : ℕ) {p q : ℕ}
+    (hp : p.Prime) (hq : q.Prime) (hne : p ≠ q) :
+    (Finset.Ioc A B).filter (fun n => p ∣ n ∧ q ∣ n)
+      = (Finset.Ioc A B).filter (fun n => (p*q) ∣ n) := by
+  classical
+  refine Finset.filter_congr fun n _ => ?_
+  constructor
+  · rintro ⟨h1, h2⟩
+    exact Nat.Coprime.mul_dvd_of_dvd_of_dvd
+      ((Nat.coprime_primes hp hq).mpr hne) h1 h2
+  · intro h
+    exact ⟨dvd_trans (dvd_mul_right p q) h,
+      dvd_trans (dvd_mul_left q p) h⟩
+
+/-- **The window second prime moment** (Track R, A2-III, N3-h3b): over
+a window `(A, B]` with all prime products `pq ≤ A`, the log-averaged
+squared divisor count sits within `3(#P + #P²)/A` of its main term —
+
+  `|∑ ω_P(n)²/n − (E + ∑_{p≠q} 1/(pq))·∑ 1/n| ≤ 3(#P + #P²)/A`,
+
+by the pair expansion, the diagonal/off-diagonal split, and the
+generic-modulus fibre deviation (`3/A` per modulus).  The windowed
+Turán–Kubilius second moment. -/
+theorem window_omega_sq_first_moment (A B : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) (hPA2 : ∀ p ∈ P, ∀ q ∈ P, p*q ≤ A)
+    (hAB : A ≤ B) :
+    |(∑ n ∈ Finset.Ioc A B, (((P.filter (· ∣ n)).card : ℝ))^2/n)
+        - ((∑ p ∈ P, (1:ℝ)/p)
+            + ∑ p ∈ P, ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q))
+          * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n|
+      ≤ 3*(((P.card : ℝ) + ((P.card : ℝ))^2)/A) := by
+  classical
+  -- generic modulus deviation
+  have hdev : ∀ d : ℕ, 0 < d → d ≤ A →
+      |(∑ n ∈ (Finset.Ioc A B).filter (fun n => d ∣ n), (1:ℝ)/n)
+          - (1:ℝ)/d * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n|
+        ≤ 3*((1:ℝ)/A) := by
+    intro d hd0 hdA
+    rw [sum_one_div_Ioc_dvd_eq A B d hd0]
+    have hcomp := sum_one_div_Ioc_div_sub_le A B d hd0 hdA hAB
+    have hdr : (0:ℝ) < d := by exact_mod_cast hd0
+    have hfac : (1:ℝ)/d * (∑ k ∈ Finset.Ioc (A/d) (B/d), (1:ℝ)/k)
+          - (1:ℝ)/d * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+        = (1:ℝ)/d * ((∑ k ∈ Finset.Ioc (A/d) (B/d), (1:ℝ)/k)
+          - ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n) := by
+      ring
+    rw [hfac, abs_mul, abs_of_pos (by positivity : (0:ℝ) < (1:ℝ)/d)]
+    have hstep := mul_le_mul_of_nonneg_left hcomp
+      (by positivity : (0:ℝ) ≤ (1:ℝ)/d)
+    have hA0 : (0:ℝ) < A := by
+      have : (1:ℕ) ≤ A := le_trans hd0 hdA
+      exact_mod_cast this
+    have hcan : (1:ℝ)/d * (3*((d:ℝ)/A)) = 3*((1:ℝ)/A) := by
+      field_simp
+    linarith [hstep, hcan.le, hcan.ge]
+  rw [window_omega_sq_expand]
+  -- reorganize both sides per `p`
+  have hexp : ∀ p ∈ P, ∑ q ∈ P, ∑ n ∈ (Finset.Ioc A B).filter
+        (fun n => p ∣ n ∧ q ∣ n), (1:ℝ)/n
+      = (∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n), (1:ℝ)/n)
+        + ∑ q ∈ P.erase p, ∑ n ∈ (Finset.Ioc A B).filter
+            (fun n => (p*q) ∣ n), (1:ℝ)/n := by
+    intro p hp
+    rw [← Finset.add_sum_erase P _ hp]
+    congr 1
+    · refine Finset.sum_congr (Finset.filter_congr fun n _ => ?_) fun _ _ => rfl
+      simp
+    · refine Finset.sum_congr rfl fun q hq => ?_
+      rw [Finset.mem_erase] at hq
+      rw [filter_dvd_pair_eq A B (hP p hp) (hP q hq.2) (Ne.symm hq.1)]
+  have hmain : ((∑ p ∈ P, (1:ℝ)/p)
+        + ∑ p ∈ P, ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q))
+      * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+      = ∑ p ∈ P, ((1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+        + ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q)
+            * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n) := by
+    rw [add_mul, Finset.sum_mul, Finset.sum_mul, ← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun p _ => ?_
+    rw [Finset.sum_mul]
+  rw [Finset.sum_congr rfl hexp, hmain, ← Finset.sum_sub_distrib]
+  -- per-`p` deviations
+  have hper : ∀ p ∈ P,
+      |((∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n), (1:ℝ)/n)
+          + ∑ q ∈ P.erase p, ∑ n ∈ (Finset.Ioc A B).filter
+              (fun n => (p*q) ∣ n), (1:ℝ)/n)
+        - ((1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+          + ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q)
+              * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)|
+        ≤ 3*((1:ℝ)/A) + (P.card : ℝ) * (3*((1:ℝ)/A)) := by
+    intro p hp
+    have hp0 : 0 < p := (hP p hp).pos
+    have hpA : p ≤ A :=
+      le_trans (Nat.le_mul_of_pos_left p hp0) (hPA2 p hp p hp)
+    have hdiag := hdev p hp0 hpA
+    have hoff : ∀ q ∈ P.erase p,
+        |(∑ n ∈ (Finset.Ioc A B).filter (fun n => (p*q) ∣ n), (1:ℝ)/n)
+            - (1:ℝ)/((p:ℝ)*q) * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n|
+          ≤ 3*((1:ℝ)/A) := by
+      intro q hq
+      rw [Finset.mem_erase] at hq
+      have hq0 : 0 < q := (hP q hq.2).pos
+      have hcast : (1:ℝ)/((p:ℝ)*q) = (1:ℝ)/((p*q : ℕ):ℝ) := by
+        push_cast
+        ring
+      rw [hcast]
+      exact hdev (p*q) (Nat.mul_pos hp0 hq0) (hPA2 p hp q hq.2)
+    have htri : |((∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n),
+            (1:ℝ)/n)
+          + ∑ q ∈ P.erase p, ∑ n ∈ (Finset.Ioc A B).filter
+              (fun n => (p*q) ∣ n), (1:ℝ)/n)
+        - ((1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+          + ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q)
+              * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)|
+        ≤ |(∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n), (1:ℝ)/n)
+            - (1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n|
+          + ∑ q ∈ P.erase p,
+            |(∑ n ∈ (Finset.Ioc A B).filter (fun n => (p*q) ∣ n),
+                (1:ℝ)/n)
+              - (1:ℝ)/((p:ℝ)*q) * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n| := by
+      have hrw : ((∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n),
+            (1:ℝ)/n)
+          + ∑ q ∈ P.erase p, ∑ n ∈ (Finset.Ioc A B).filter
+              (fun n => (p*q) ∣ n), (1:ℝ)/n)
+        - ((1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+          + ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q)
+              * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)
+          = ((∑ n ∈ (Finset.Ioc A B).filter (fun n => p ∣ n), (1:ℝ)/n)
+              - (1:ℝ)/p * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)
+            + ∑ q ∈ P.erase p,
+              ((∑ n ∈ (Finset.Ioc A B).filter (fun n => (p*q) ∣ n),
+                  (1:ℝ)/n)
+                - (1:ℝ)/((p:ℝ)*q) * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n) := by
+        rw [Finset.sum_sub_distrib]
+        ring
+      rw [hrw]
+      refine le_trans (abs_add_le _ _) ?_
+      gcongr
+      exact Finset.abs_sum_le_sum_abs _ _
+    refine le_trans htri ?_
+    have hsum : ∑ q ∈ P.erase p,
+        |(∑ n ∈ (Finset.Ioc A B).filter (fun n => (p*q) ∣ n), (1:ℝ)/n)
+          - (1:ℝ)/((p:ℝ)*q) * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n|
+        ≤ (P.card : ℝ) * (3*((1:ℝ)/A)) := by
+      calc ∑ q ∈ P.erase p, |_| ≤ ∑ _q ∈ P.erase p, 3*((1:ℝ)/A) :=
+            Finset.sum_le_sum hoff
+        _ = ((P.erase p).card : ℝ) * (3*((1:ℝ)/A)) := by
+            rw [Finset.sum_const, nsmul_eq_mul]
+        _ ≤ (P.card : ℝ) * (3*((1:ℝ)/A)) := by
+            have hc : (P.erase p).card ≤ P.card :=
+              Finset.card_le_card (Finset.erase_subset _ _)
+            have hc' : ((P.erase p).card : ℝ) ≤ (P.card : ℝ) := by
+              exact_mod_cast hc
+            have h30 : (0:ℝ) ≤ 3*((1:ℝ)/A) := by positivity
+            exact mul_le_mul_of_nonneg_right hc' h30
+    linarith [hdiag, hsum]
+  -- total
+  calc |∑ p ∈ P, _| ≤ ∑ p ∈ P, _ := Finset.abs_sum_le_sum_abs _ _
+    _ ≤ ∑ _p ∈ P, (3*((1:ℝ)/A) + (P.card : ℝ) * (3*((1:ℝ)/A))) :=
+        Finset.sum_le_sum hper
+    _ = (P.card : ℝ) * (3*((1:ℝ)/A) + (P.card : ℝ) * (3*((1:ℝ)/A))) := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ = 3*(((P.card : ℝ) + ((P.card : ℝ))^2)/A) := by
+        ring
+
 end MoltResearch
