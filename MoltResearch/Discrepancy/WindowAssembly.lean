@@ -1596,6 +1596,200 @@ theorem norm_fourier_slice_window_decay (T : ℝ) (hT : 0 < T)
   rw [le_div_iff₀ (by positivity)]
   nlinarith [hchain, Real.pi_pos]
 
+
+open MeasureTheory in
+/-- **N3-c1: one dyadic ring of the outer band** (Track R, A2-III):
+on the ring `a ≤ |ξ| ≤ 2a`, the kernel decay is flat at the inner
+edge and the ring energy embeds into the `±2a` window, where the
+plain-weight rescale and the short-interval MVT price it —
+
+  `∫_ring ‖P(ξ)‖²·(2B′/(π|ξ|))² ≤ (2B′/(πa))²·(2A+1)²·(4a·Σ1/n² + (log Δ+1)·Σ1/n)`.
+
+The dyadic ring sum over these closes the outer mid-band with no
+number theory. -/
+theorem ring_energy_decay_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
+    (S : Finset ℕ) (hS : S ⊆ Finset.Ioc A (A+Δ))
+    (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (B' a : ℝ) (hB' : 0 ≤ B') (ha : 0 < a) :
+    ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+        ‖∑ m ∈ S, h m
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+          * (2*B'/(π*|ξ|))^2
+      ≤ (2*B'/(π*a))^2 * ((2*(A:ℝ)+1)^2
+          * (2*(2*a)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+            + (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))) := by
+  classical
+  have hphase_cont : Continuous fun ξ : ℝ =>
+      ∑ m ∈ S, h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+    refine continuous_finset_sum _ fun m _ => ?_
+    refine Continuous.mul continuous_const ?_
+    refine Continuous.comp continuous_subtype_val ?_
+    exact Real.continuous_fourierChar.comp (by fun_prop)
+  have hPc : Continuous fun ξ : ℝ =>
+      ‖∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 :=
+    hphase_cont.norm.pow 2
+  -- ring geometry
+  have hclosed : IsClosed {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a} :=
+    (isClosed_le continuous_const continuous_abs).inter
+      (isClosed_le continuous_abs continuous_const)
+  have hsubIcc : {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a}
+      ⊆ Set.Icc (-(2*a)) (2*a) := by
+    rintro ξ ⟨_, h2⟩
+    exact abs_le.mp h2
+  have hcomp : IsCompact {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a} :=
+    (isCompact_Icc (a := -(2*a)) (b := 2*a)).of_isClosed_subset
+      hclosed hsubIcc
+  have hmeas : MeasurableSet {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a} :=
+    hclosed.measurableSet
+  -- flatten the decay on the ring
+  have hint1 : IntegrableOn (fun ξ : ℝ =>
+      ‖∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        * (2*B'/(π*|ξ|))^2) {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a} := by
+    refine ContinuousOn.integrableOn_compact hcomp ?_
+    refine ContinuousOn.mul hPc.continuousOn ?_
+    refine ContinuousOn.pow ?_ 2
+    refine ContinuousOn.div continuousOn_const ?_ ?_
+    · exact (continuous_const.mul continuous_abs).continuousOn
+    · rintro ξ ⟨h1, _⟩
+      have : (0:ℝ) < |ξ| := lt_of_lt_of_le ha h1
+      positivity
+  have hint2 : IntegrableOn (fun ξ : ℝ =>
+      (2*B'/(π*a))^2 * ‖∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+      {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a} :=
+    (hPc.continuousOn.integrableOn_compact hcomp).const_mul _
+  have hstep1 : ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+      ‖∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        * (2*B'/(π*|ξ|))^2
+      ≤ ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+        (2*B'/(π*a))^2 * ‖∑ m ∈ S, h m
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+    refine setIntegral_mono_on hint1 hint2 hmeas ?_
+    rintro ξ ⟨h1, _⟩
+    have hξ0 : (0:ℝ) < |ξ| := lt_of_lt_of_le ha h1
+    have hdec : (2*B'/(π*|ξ|))^2 ≤ (2*B'/(π*a))^2 := by
+      have hle : 2*B'/(π*|ξ|) ≤ 2*B'/(π*a) := by
+        refine div_le_div_of_nonneg_left (by linarith) (by positivity) ?_
+        exact mul_le_mul_of_nonneg_left h1 Real.pi_pos.le
+      have h0 : (0:ℝ) ≤ 2*B'/(π*|ξ|) := by positivity
+      exact pow_le_pow_left₀ h0 hle 2
+    calc ‖∑ m ∈ S, h m
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+          * (2*B'/(π*|ξ|))^2
+        ≤ ‖∑ m ∈ S, h m
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+            * (2*B'/(π*a))^2 :=
+          mul_le_mul_of_nonneg_left hdec (by positivity)
+      _ = (2*B'/(π*a))^2 * ‖∑ m ∈ S, h m
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+          ring
+  -- pull the constant, embed the ring into the window
+  have hstep2 : ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+      (2*B'/(π*a))^2 * ‖∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      = (2*B'/(π*a))^2 * ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+        ‖∑ m ∈ S, h m
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 :=
+    integral_const_mul _ _
+  have hstep3 : ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+      ‖∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ ∫ ξ in (-(2*a))..(2*a),
+        ‖∑ m ∈ S, h m
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+    have hIccInt : IntegrableOn (fun ξ : ℝ =>
+        ‖∑ m ∈ S, h m
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+        (Set.Icc (-(2*a)) (2*a)) :=
+      hPc.continuousOn.integrableOn_compact isCompact_Icc
+    have h1 : ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+        ‖∑ m ∈ S, h m
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ ∫ ξ in Set.Icc (-(2*a)) (2*a),
+          ‖∑ m ∈ S, h m
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+      refine setIntegral_mono_set hIccInt ?_ ?_
+      · exact Filter.Eventually.of_forall fun ξ => by positivity
+      · exact HasSubset.Subset.eventuallyLE hsubIcc
+    rw [intervalIntegral.integral_of_le (by linarith)]
+    calc ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+        ‖∑ m ∈ S, h m
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ ∫ ξ in Set.Icc (-(2*a)) (2*a),
+          ‖∑ m ∈ S, h m
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := h1
+      _ = ∫ ξ in Set.Ioc (-(2*a)) (2*a),
+          ‖∑ m ∈ S, h m
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 :=
+          integral_Icc_eq_integral_Ioc
+  -- the plain rescale into the short MVT
+  have hstep4 : ∫ ξ in (-(2*a))..(2*a),
+      ‖∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ (2*(A:ℝ)+1)^2
+        * (2*(2*a)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+          + (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
+    set c : ℕ → ℂ := fun m => if m ≤ 2*A+1
+        then (m:ℂ) * h m / (2*(A:ℕ)+1 : ℕ) else 0 with hc_def
+    have hcb : ∀ m, ‖c m‖ ≤ 1 := by
+      intro m
+      simp only [hc_def]
+      by_cases hm : m ≤ 2*A+1
+      · rw [if_pos hm, norm_div, norm_mul, Complex.norm_natCast,
+          Complex.norm_natCast]
+        have hden : (0:ℝ) < ((2*A+1 : ℕ):ℝ) := by
+          exact_mod_cast (by omega : 0 < 2*A+1)
+        rw [div_le_one hden]
+        have h1 : (m:ℝ) ≤ ((2*A+1 : ℕ):ℝ) := by exact_mod_cast hm
+        have h2 := hb m
+        nlinarith [norm_nonneg (h m), Nat.cast_nonneg (α := ℝ) m]
+      · rw [if_neg hm]
+        simp
+    have hpoint : ∀ ξ : ℝ, ‖∑ m ∈ S,
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        = (2*(A:ℝ)+1)^2 * ‖∑ m ∈ S, (c m/(m:ℂ))
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 := by
+      intro ξ
+      have hfac : ∑ m ∈ S,
+          h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+          = ((2*(A:ℕ)+1 : ℕ):ℂ) * ∑ m ∈ S, (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+        rw [Finset.mul_sum]
+        refine Finset.sum_congr rfl fun m hm => ?_
+        have hmIoc := hS hm
+        rw [Finset.mem_Ioc] at hmIoc
+        have hmle : m ≤ 2*A+1 := by omega
+        have hm0 : (m:ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+        have hden : ((2*(A:ℕ)+1 : ℕ):ℂ) ≠ 0 :=
+          Nat.cast_ne_zero.mpr (by omega)
+        simp only [hc_def, if_pos hmle]
+        field_simp
+      rw [hfac, norm_mul, Complex.norm_natCast, mul_pow]
+      congr 2
+      push_cast
+      ring
+    rw [intervalIntegral.integral_congr
+      (fun ξ _ => hpoint ξ), intervalIntegral.integral_const_mul]
+    refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+    exact intervalIntegral_norm_sq_short_poly_le A Δ hΔ hΔA S
+      (fun n hn => (Finset.mem_Ioc.mp (hS hn)).1)
+      (fun n hn => (Finset.mem_Ioc.mp (hS hn)).2)
+      c hcb (2*a) (by linarith)
+  calc ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
+      ‖∑ m ∈ S, h m
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        * (2*B'/(π*|ξ|))^2
+      ≤ _ := hstep1
+    _ = _ := hstep2
+    _ ≤ (2*B'/(π*a))^2 * ((2*(A:ℝ)+1)^2
+        * (2*(2*a)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
+          + (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))) := by
+      refine mul_le_mul_of_nonneg_left (le_trans hstep3 hstep4)
+        (by positivity)
+
 end ExpSums
 
 end MoltResearch
