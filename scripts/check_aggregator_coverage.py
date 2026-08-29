@@ -142,4 +142,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # Behave like a normal CLI filter when piped into `head`.
+    import signal
+
+    if hasattr(signal, "SIGPIPE"):
+        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
     raise SystemExit(main())
