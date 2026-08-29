@@ -1790,6 +1790,107 @@ theorem ring_energy_decay_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
       refine mul_le_mul_of_nonneg_left (le_trans hstep3 hstep4)
         (by positivity)
 
+
+open MeasureTheory in
+/-- **N3-c2a: a band is covered by its dyadic rings** (Track R,
+A2-III): for a nonnegative integrand, the band `a ≤ |ξ| < 2^J·a`
+splits into the `J` half-open dyadic rings, each dominated by its
+closed ring — the covering step of the outer-band estimate. -/
+theorem setIntegral_band_le_sum_rings (f : ℝ → ℝ) (hf0 : ∀ ξ, 0 ≤ f ξ)
+    (a : ℝ) (ha : 0 < a) (J : ℕ)
+    (hint : ∀ j : ℕ, IntegrableOn f
+      {ξ : ℝ | 2^j*a ≤ |ξ| ∧ |ξ| ≤ 2^(j+1)*a}) :
+    ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^J*a}, f ξ
+      ≤ ∑ j ∈ Finset.range J,
+          ∫ ξ in {ξ : ℝ | 2^j*a ≤ |ξ| ∧ |ξ| ≤ 2^(j+1)*a}, f ξ := by
+  classical
+  -- the half-open rings sit inside the closed ones
+  have hsub : ∀ j : ℕ, {ξ : ℝ | 2^j*a ≤ |ξ| ∧ |ξ| < 2^(j+1)*a}
+      ⊆ {ξ : ℝ | 2^j*a ≤ |ξ| ∧ |ξ| ≤ 2^(j+1)*a} := by
+    rintro j ξ ⟨h1, h2⟩
+    exact ⟨h1, h2.le⟩
+  have hmeasHalf : ∀ c d : ℝ,
+      MeasurableSet {ξ : ℝ | c ≤ |ξ| ∧ |ξ| < d} :=
+    fun c d => (measurableSet_le measurable_const continuous_abs.measurable).inter
+      (measurableSet_lt continuous_abs.measurable measurable_const)
+  have hintHalf : ∀ j : ℕ, IntegrableOn f
+      {ξ : ℝ | 2^j*a ≤ |ξ| ∧ |ξ| < 2^(j+1)*a} :=
+    fun j => (hint j).mono_set (hsub j)
+  -- the growing band is integrable
+  have hband : ∀ K : ℕ, IntegrableOn f
+      {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^K*a} := by
+    intro K
+    induction K with
+    | zero =>
+        have hempty : {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^(0:ℕ)*a} = ∅ := by
+          ext ξ
+          simp only [pow_zero, one_mul, Set.mem_setOf_eq,
+            Set.mem_empty_iff_false, iff_false, not_and, not_lt]
+          exact fun h => h
+        rw [hempty]
+        exact integrableOn_empty
+    | succ K ih =>
+        have hsplit : {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^(K+1)*a}
+            = {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^K*a}
+              ∪ {ξ : ℝ | 2^K*a ≤ |ξ| ∧ |ξ| < 2^(K+1)*a} := by
+          have h1 : (1:ℝ) ≤ 2^K := one_le_pow₀ (by norm_num)
+          have haK : a ≤ 2^K*a := by nlinarith
+          ext ξ
+          simp only [Set.mem_setOf_eq, Set.mem_union]
+          constructor
+          · rintro ⟨h1', h2'⟩
+            rcases lt_or_ge |ξ| (2^K*a) with h | h
+            · exact Or.inl ⟨h1', h⟩
+            · exact Or.inr ⟨h, h2'⟩
+          · rintro (⟨h1', h2'⟩ | ⟨h1', h2'⟩)
+            · refine ⟨h1', lt_of_lt_of_le h2' ?_⟩
+              rw [pow_succ]
+              nlinarith
+            · exact ⟨le_trans haK h1', h2'⟩
+        rw [hsplit]
+        exact ih.union (hintHalf K)
+  -- the main induction
+  induction J with
+  | zero =>
+      have hempty : {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^(0:ℕ)*a} = ∅ := by
+        ext ξ
+        simp only [pow_zero, one_mul, Set.mem_setOf_eq,
+          Set.mem_empty_iff_false, iff_false, not_and, not_lt]
+        exact fun h => h
+      rw [hempty]
+      simp
+  | succ J ih =>
+      have h1 : (1:ℝ) ≤ 2^J := one_le_pow₀ (by norm_num)
+      have haJ : a ≤ 2^J*a := by nlinarith
+      have hsplit : {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^(J+1)*a}
+          = {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^J*a}
+            ∪ {ξ : ℝ | 2^J*a ≤ |ξ| ∧ |ξ| < 2^(J+1)*a} := by
+        ext ξ
+        simp only [Set.mem_setOf_eq, Set.mem_union]
+        constructor
+        · rintro ⟨h1', h2'⟩
+          rcases lt_or_ge |ξ| (2^J*a) with h | h
+          · exact Or.inl ⟨h1', h⟩
+          · exact Or.inr ⟨h, h2'⟩
+        · rintro (⟨h1', h2'⟩ | ⟨h1', h2'⟩)
+          · refine ⟨h1', lt_of_lt_of_le h2' ?_⟩
+            rw [pow_succ]
+            nlinarith
+          · exact ⟨le_trans haJ h1', h2'⟩
+      have hdisj : Disjoint {ξ : ℝ | a ≤ |ξ| ∧ |ξ| < 2^J*a}
+          {ξ : ℝ | 2^J*a ≤ |ξ| ∧ |ξ| < 2^(J+1)*a} := by
+        rw [Set.disjoint_left]
+        rintro ξ ⟨_, h2⟩ ⟨h3, _⟩
+        linarith
+      rw [hsplit, setIntegral_union hdisj (hmeasHalf _ _)
+        (hband J) (hintHalf J), Finset.sum_range_succ]
+      have hlast : ∫ ξ in {ξ : ℝ | 2^J*a ≤ |ξ| ∧ |ξ| < 2^(J+1)*a}, f ξ
+          ≤ ∫ ξ in {ξ : ℝ | 2^J*a ≤ |ξ| ∧ |ξ| ≤ 2^(J+1)*a}, f ξ := by
+        refine setIntegral_mono_set (hint J)
+          (Filter.Eventually.of_forall fun ξ => hf0 ξ) ?_
+        exact HasSubset.Subset.eventuallyLE (hsub J)
+      linarith [ih, hlast]
+
 end ExpSums
 
 end MoltResearch
