@@ -555,4 +555,103 @@ theorem window_omega_sq_first_moment (A B : ℕ) (P : Finset ℕ)
     _ = 3*(((P.card : ℝ) + ((P.card : ℝ))^2)/A) := by
         ring
 
+
+/-- **The window variance bound** (Track R, A2-III, N3-h4): the
+windowed Turán–Kubilius variance —
+
+  `∑_{A<n≤B} (ω_P(n) − E)²/n ≤ E·∑ 1/n + 3(#P+#P²)/A + 6E·#P/A`,
+
+from the two window moments: the expansion
+`(ω−E)² = ω² − 2Eω + E²`, the second moment's main coefficient
+`E + ∑_{p≠q} 1/(pq) ≤ E + E²`, and the cross term priced by the first
+moment.  The `E·H` main term (not `E²·H`) is the whole point: the
+sifted set pays `E²` per element, so its mass is `H/E`-small. -/
+theorem window_variance_le (A B : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) (hPA2 : ∀ p ∈ P, ∀ q ∈ P, p*q ≤ A)
+    (hAB : A ≤ B) :
+    ∑ n ∈ Finset.Ioc A B,
+        (((P.filter (· ∣ n)).card : ℝ) - ∑ p ∈ P, (1:ℝ)/p)^2/n
+      ≤ (∑ p ∈ P, (1:ℝ)/p) * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n
+        + (3*(((P.card : ℝ) + ((P.card : ℝ))^2)/A)
+          + 2*(∑ p ∈ P, (1:ℝ)/p) * (3*((P.card : ℝ)/A))) := by
+  classical
+  have hE0 : (0:ℝ) ≤ ∑ p ∈ P, (1:ℝ)/p :=
+    Finset.sum_nonneg fun p _ => by positivity
+  have hH0 : (0:ℝ) ≤ ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n :=
+    Finset.sum_nonneg fun n _ => by positivity
+  -- the square expands
+  have hident : ∑ n ∈ Finset.Ioc A B,
+      (((P.filter (· ∣ n)).card : ℝ) - ∑ p ∈ P, (1:ℝ)/p)^2/n
+      = (∑ n ∈ Finset.Ioc A B, (((P.filter (· ∣ n)).card : ℝ))^2/n)
+        - 2*(∑ p ∈ P, (1:ℝ)/p)
+            * (∑ n ∈ Finset.Ioc A B, ((P.filter (· ∣ n)).card : ℝ)/n)
+        + ((∑ p ∈ P, (1:ℝ)/p))^2 * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n := by
+    have hpt : ∀ n ∈ Finset.Ioc A B,
+        (((P.filter (· ∣ n)).card : ℝ) - ∑ p ∈ P, (1:ℝ)/p)^2/n
+          = (((P.filter (· ∣ n)).card : ℝ))^2/n
+            - (2*(∑ p ∈ P, (1:ℝ)/p))
+                * (((P.filter (· ∣ n)).card : ℝ)/n)
+            + ((∑ p ∈ P, (1:ℝ)/p))^2 * ((1:ℝ)/n) := by
+      intro n hn
+      rw [Finset.mem_Ioc] at hn
+      have hn0 : ((n:ℝ)) ≠ 0 := by
+        have : (0:ℕ) < n := by omega
+        exact_mod_cast this.ne'
+      field_simp
+      ring
+    calc ∑ n ∈ Finset.Ioc A B,
+        (((P.filter (· ∣ n)).card : ℝ) - ∑ p ∈ P, (1:ℝ)/p)^2/n
+        = ∑ n ∈ Finset.Ioc A B,
+            ((((P.filter (· ∣ n)).card : ℝ))^2/n
+              - (2*(∑ p ∈ P, (1:ℝ)/p))
+                  * (((P.filter (· ∣ n)).card : ℝ)/n)
+              + ((∑ p ∈ P, (1:ℝ)/p))^2 * ((1:ℝ)/n)) :=
+          Finset.sum_congr rfl hpt
+      _ = (∑ n ∈ Finset.Ioc A B, (((P.filter (· ∣ n)).card : ℝ))^2/n)
+            - 2*(∑ p ∈ P, (1:ℝ)/p)
+                * (∑ n ∈ Finset.Ioc A B,
+                    ((P.filter (· ∣ n)).card : ℝ)/n)
+            + ((∑ p ∈ P, (1:ℝ)/p))^2
+                * ∑ n ∈ Finset.Ioc A B, (1:ℝ)/n := by
+          rw [Finset.sum_add_distrib, Finset.sum_sub_distrib,
+            ← Finset.mul_sum, ← Finset.mul_sum]
+  -- the moment inputs
+  have h2m := window_omega_first_moment A B P hP
+    (fun p hp => le_trans (Nat.le_mul_of_pos_left p (hP p hp).pos)
+      (hPA2 p hp p hp)) hAB
+  have h3m := window_omega_sq_first_moment A B P hP hPA2 hAB
+  -- the off-diagonal coefficient sits below `E²`
+  have hSoff : ∑ p ∈ P, ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q)
+      ≤ ((∑ p ∈ P, (1:ℝ)/p))^2 := by
+    have h1 : ∀ p ∈ P, ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q)
+        ≤ ∑ q ∈ P, (1:ℝ)/((p:ℝ)*q) := fun p _ =>
+      Finset.sum_le_sum_of_subset_of_nonneg (Finset.erase_subset _ _)
+        (fun q _ _ => by positivity)
+    have h2 : ∑ p ∈ P, ∑ q ∈ P, (1:ℝ)/((p:ℝ)*q)
+        = ((∑ p ∈ P, (1:ℝ)/p))^2 := by
+      rw [pow_two, Finset.sum_mul_sum]
+      refine Finset.sum_congr rfl fun p _ => ?_
+      refine Finset.sum_congr rfl fun q _ => ?_
+      rw [div_mul_div_comm, one_mul]
+    calc ∑ p ∈ P, ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q)
+        ≤ ∑ p ∈ P, ∑ q ∈ P, (1:ℝ)/((p:ℝ)*q) := Finset.sum_le_sum h1
+      _ = ((∑ p ∈ P, (1:ℝ)/p))^2 := h2
+  -- unpack the moment bounds
+  have h3up : (∑ n ∈ Finset.Ioc A B, (((P.filter (· ∣ n)).card : ℝ))^2/n)
+      ≤ ((∑ p ∈ P, (1:ℝ)/p)
+          + ∑ p ∈ P, ∑ q ∈ P.erase p, (1:ℝ)/((p:ℝ)*q))
+        * (∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)
+        + 3*(((P.card : ℝ) + ((P.card : ℝ))^2)/A) := by
+    linarith [(abs_le.mp h3m).2]
+  have h2lo : (∑ p ∈ P, (1:ℝ)/p) * (∑ n ∈ Finset.Ioc A B, (1:ℝ)/n)
+      - 3*((P.card : ℝ)/A)
+      ≤ ∑ n ∈ Finset.Ioc A B, ((P.filter (· ∣ n)).card : ℝ)/n := by
+    linarith [(abs_le.mp h2m).1]
+  -- assemble
+  rw [hident]
+  nlinarith [h3up,
+    mul_le_mul_of_nonneg_left h2lo
+      (by linarith : (0:ℝ) ≤ 2*(∑ p ∈ P, (1:ℝ)/p)),
+    mul_le_mul_of_nonneg_right hSoff hH0, hE0, hH0]
+
 end MoltResearch
