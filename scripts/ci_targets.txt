@@ -1,0 +1,22 @@
+# The canonical CI build target set — the single source of truth for `make ci` and the
+# "Build all targets" step in .github/workflows/ci.yml. Keep the two in lockstep by reading
+# this file; do not re-type the list in either place.
+#
+# Why the list is explicit rather than just the default target: `lake build` alone builds only
+# the import closure of MoltResearch.lean. The standalone audit and regression modules are
+# deliberately NOT imported by the stable surface (NormalFormExamples would create a cycle),
+# and the backlog libraries are not imported by anything, so each must be named here or it
+# silently decays. That has happened twice: NormalFormExamples once accumulated ~95 compile
+# errors unnoticed, and a false Stage-2 stub axiom sat unnoticed (issue #2843).
+#
+# Blank lines and #-comments are ignored.
+
+MoltResearch
+MoltResearch.Discrepancy.SurfaceChecklist
+MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
+MoltResearch.Discrepancy.SurfaceAudit
+MoltResearch.Discrepancy.NormalFormExamples
+MoltResearch.Discrepancy.NormalFormExamplesAnalytic
+Solutions
+Tasks
+Conjectures

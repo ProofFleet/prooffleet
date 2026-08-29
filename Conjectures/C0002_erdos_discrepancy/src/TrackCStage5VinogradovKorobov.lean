@@ -51,9 +51,10 @@ qualitative form): a character twist `n ↦ χ(n)·n^{is}` of bounded period who
 large for the scale (`X^δ ≤ |s| ≤ T·X`) is eventually arbitrarily far from `1` in pretentious
 distance at scale `X^δ`.
 
-No instance of this class is (or may be) declared until the Vinogradov–Korobov zero-free
-region and the attendant `log L` estimates are actually formalized; consumers carry it as a
-hypothesis. -/
+Discharged unconditionally by `vinogradovKorobov_unconditional`
+(`TrackCStage5VKDischarge.lean`), which proves the interface outright from the elementary
+van der Corput zeta bound, so consumers need not carry it as a hypothesis. The class is kept
+as the named boundary the §4 branch is stated against. -/
 class VinogradovKorobovAssumption : Prop where
   twist_far :
     ∀ Q T M : ℝ, 1 ≤ Q → 1 ≤ T →

@@ -21,8 +21,9 @@ Through the `L⁴` identity and Markov (`sum_normPow4_zCharSum`,
 circle method `H`-independent — which is what lets the Matomäki–Radziwiłł
 smallness (fixed before the scale is chosen) win.
 
-No instance of this class is (or may be) declared until the count is actually
-formalized; consumers carry it as a hypothesis.
+Discharged unconditionally by the instance in `TrackCStage5QuadrupleSieveProof.lean`
+(Track S of issue #3004), which supplies the count from the elementary Selberg Λ² upper
+sieve.
 -/
 
 namespace MoltResearch

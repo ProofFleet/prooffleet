@@ -109,31 +109,83 @@ jobs:
       - name: Check task metadata coverage
         run: python3 scripts/check_task_metadata_coverage.py
 
+      # Toolchain-free gates, all grep/regex. They run before elan and the caches so a
+      # sorry, an axiom, a layering violation or an interface regression fails in seconds
+      # rather than after a minute of cache restores or a full build. Mirrors `make ci`,
+      # which has always run the forbid scripts before the build.
+      - name: Check library layering
+        run: bash scripts/check_layering.sh
+
+      - name: Check interface hygiene (warning mode)
+        run: python3 scripts/check_interfaces.py
+
+      - name: Forbid sorry in verified targets
+        run: bash scripts/forbid_sorry.sh
+
+      - name: Forbid axiom/unsafe in verified targets
+        run: bash scripts/forbid_axiom_unsafe.sh
+
       - name: Install elan
         run: |
           curl -sSfL https://elan.lean-lang.org/elan-init.sh \
             | sh -s -- -y --default-toolchain "$(cat lean-toolchain)"
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      # `./.lake` holds the workspace build AND `.lake/packages/*` (dependency
-      # sources + mathlib's prebuilt oleans), so a prefix hit on the latest main
-      # cache makes `lake exe cache get` redundant (it re-downloads ~8k files
-      # into an empty ~/.cache/mathlib, ~60s/run). The key mirrors lean-action's
-      # scheme (os-arch-toolchain-manifest-sha) so existing caches stay usable.
-      - name: Restore Lake build cache
-        id: lake-cache
+      # Two caches, split at the immutability boundary.
+      #
+      # .lake/packages (Mathlib sources + its prebuilt oleans, ~2 GB) changes only when
+      # lean-toolchain or lake-manifest.json changes, so it is keyed on exactly those and
+      # written once per bump. .lake/build (this repo's own oleans) changes every commit, so
+      # it is keyed per-sha with a prefix fallback.
+      #
+      # Before the split, one ~2.4 GB entry was re-tarred and re-uploaded on every main push.
+      # That ~57 s save is what the merge cadence outruns: at ~30 merges/day runs start before
+      # the previous run has published, fall back to an older prefix match, and rebuild the
+      # whole analytic cone — turning a 1.5-minute build into 23 minutes. Writing only the
+      # small half per push shortens that window, cuts eviction pressure against the 10 GB
+      # repo budget, and makes running out of space while writing the tar far less likely.
+      - name: Restore Mathlib/deps cache
+        id: deps-cache
         uses: actions/cache/restore@v5
         with:
-          path: ./.lake
-          key: lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.sha }}
-          restore-keys: |
-            lake-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
+          path: ./.lake/packages
+          key: lake-deps-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}
 
-      # Cold cache only (first run after a toolchain/mathlib bump): fetch the
+      - name: Restore Lake build cache
+        id: build-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: ./.lake/build
+          key: lake-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: |
+            lake-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
+
+      # Cold deps only (first run after a toolchain/mathlib bump): fetch the
       # prebuilt Mathlib oleans instead of compiling Mathlib from source.
-      - name: Get Mathlib cache (cold cache only)
-        if: steps.lake-cache.outputs.cache-matched-key == ''
+      - name: Get Mathlib cache (cold deps only)
+        if: steps.deps-cache.outputs.cache-hit != 'true'
         run: ~/.elan/bin/lake exe cache get
+
+      # How stale is the build cache we actually got? This is the number that explains a slow
+      # run: an exact hit rebuilds only what this commit touched, while a match N commits back
+      # rebuilds everything those N commits touched. Printed every run so the correlation
+      # between staleness and wall-clock is visible without digging through logs.
+      - name: Report build-cache freshness
+        run: |
+          matched='${{ steps.build-cache.outputs.cache-matched-key }}'
+          primary='${{ steps.build-cache.outputs.cache-primary-key }}'
+          if [ -z "$matched" ]; then
+            echo "build cache: MISS (cold) - full rebuild expected"
+            echo "build cache: MISS (cold)" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$matched" = "$primary" ]; then
+            echo "build cache: exact hit for this commit"
+            echo "build cache: exact hit" >> "$GITHUB_STEP_SUMMARY"
+          else
+            base="${matched##*-}"
+            behind="$(git rev-list --count "$base..HEAD" 2>/dev/null || echo '?')"
+            echo "build cache: prefix hit on $base - $behind commit(s) behind HEAD"
+            echo "build cache: stale by $behind commit(s) (base $base)" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       # One invocation, every target. The default target only builds what
       # MoltResearch.lean imports; the standalone audit/regression modules, the
@@ -142,36 +194,114 @@ jobs:
       # ~95 compile errors unnoticed; a false Stage-2 stub axiom sat unnoticed —
       # issue #2843). This list is the canonical CI target set; `make ci`
       # mirrors it.
+      # Cheap structural gates: pure grep/regex, about a second each, and they run before the
+      # build so a layering or interface regression reports in seconds rather than after a
+      # full compile.
       - name: Build all targets
-        run: >
-          ~/.elan/bin/lake build
-          MoltResearch
-          MoltResearch.Discrepancy.SurfaceChecklist
-          MoltResearch.Discrepancy.DeprecatedSurfaceChecklist
-          MoltResearch.Discrepancy.SurfaceAudit
-          MoltResearch.Discrepancy.NormalFormExamples
-          MoltResearch.Discrepancy.NormalFormExamplesAnalytic
-          Solutions
-          Tasks
-          Conjectures
+        run: |
+          targets="$(grep -vE '^[[:space:]]*(#|$)' scripts/ci_targets.txt | tr '\n' ' ')"
+          if [ -z "${targets// /}" ]; then
+            echo "::error::no build targets resolved from scripts/ci_targets.txt"
+            exit 1
+          fi
+          echo "Building: $targets"
+          ~/.elan/bin/lake build $targets
 
-      - name: Forbid sorry in verified targets
-        run: bash scripts/forbid_sorry.sh
+      # A cache save that fails is invisible by default: actions/cache/save only emits a
+      # warning, so the run stays green while every later run silently falls back to an older
+      # entry. One such failure has been observed (`zstd: error 70 ... No space left on
+      # device` while writing the ~2.4 GB tar). Record the disk state a failure would be
+      # blamed on, so the next occurrence is diagnosed rather than guessed at.
+      - name: Disk and cache size before save
+        run: |
+          echo "== blocks ==" ; df -h /
+          echo "== inodes ==" ; df -i /
+          echo "== sizes ==" ; du -sh .lake/build .lake/packages 2>/dev/null || true
 
-      - name: Forbid axiom/unsafe in verified targets
-        run: bash scripts/forbid_axiom_unsafe.sh
-
-      # PR-branch caches are invisible to other PRs, so saving them buys nothing
-      # for the fleet and evicts useful main-branch entries (10 GB repo cache
-      # limit, ~2.3 GB per entry). Save from main pushes only — except a total
-      # cache miss on a PR (a toolchain/mathlib bump PR), which checkpoints so
-      # that PR's next push is warm.
-      - name: Save Lake build cache
+      # ubuntu-latest ships ~20 GB of toolchains this build never touches, and the runner
+      # arrives 98% full once .lake is populated — measured on this workflow: 72 G disk,
+      # 1.8 G available, .lake/packages 6.9 G, .lake/build 1.3 G. actions/cache/save writes
+      # its tar to that same filesystem, so a 6.9 GB packages tree could not be archived at
+      # all and the deps cache failed to save on every run (silently — the action only warns).
+      # Reclaiming is what makes the deps cache viable, and it is why the deps cache is
+      # kept rather than dropped: `lake exe cache get` costs 2m30s a run because it clones
+      # Mathlib's source as well as fetching oleans, against ~60 s to restore the archive.
+      # hostedtoolcache is left alone apart from CodeQL — python3 lives there.
+      - name: Reclaim runner disk
         if: >
-          steps.lake-cache.outputs.cache-hit != 'true' &&
-          (github.event_name != 'pull_request' ||
-           steps.lake-cache.outputs.cache-matched-key == '')
+          steps.deps-cache.outputs.cache-hit != 'true' ||
+          (steps.build-cache.outputs.cache-hit != 'true' &&
+           (github.event_name != 'pull_request' ||
+            steps.build-cache.outputs.cache-matched-key == ''))
+        run: |
+          before="$(df --output=avail -BG / | tail -1 | tr -dc '0-9')"
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/share/swift \
+                      /opt/hostedtoolcache/CodeQL 2>/dev/null || true
+          docker image prune -af >/dev/null 2>&1 || true
+          after="$(df --output=avail -BG / | tail -1 | tr -dc '0-9')"
+          echo "reclaimed disk: ${before}G -> ${after}G available"
+          df -h /
+
+      - name: Save Mathlib/deps cache
+        if: steps.deps-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
-          path: ./.lake
-          key: ${{ steps.lake-cache.outputs.cache-primary-key }}
+          path: ./.lake/packages
+          key: ${{ steps.deps-cache.outputs.cache-primary-key }}
+
+      # PR-branch caches are invisible to other PRs, so saving them buys nothing
+      # for the fleet and evicts useful main-branch entries. Save from main pushes
+      # only — except a total cache miss on a PR (a toolchain/mathlib bump PR),
+      # which checkpoints so that PR's next push is warm.
+      - name: Save Lake build cache
+        if: >
+          steps.build-cache.outputs.cache-hit != 'true' &&
+          (github.event_name != 'pull_request' ||
+           steps.build-cache.outputs.cache-matched-key == '')
+        uses: actions/cache/save@v5
+        with:
+          path: ./.lake/build
+          key: ${{ steps.build-cache.outputs.cache-primary-key }}
+
+      # Did they actually land? lookup-only re-queries the key without downloading.
+      - name: Verify the deps cache persisted
+        id: verify-deps
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v5
+        with:
+          path: ./.lake/packages
+          key: ${{ steps.deps-cache.outputs.cache-primary-key }}
+          lookup-only: true
+
+      - name: Verify the build cache persisted
+        id: verify-save
+        if: >
+          steps.build-cache.outputs.cache-hit != 'true' &&
+          (github.event_name != 'pull_request' ||
+           steps.build-cache.outputs.cache-matched-key == '')
+        uses: actions/cache/restore@v5
+        with:
+          path: ./.lake/build
+          key: ${{ steps.build-cache.outputs.cache-primary-key }}
+          lookup-only: true
+
+      # Deliberately an annotation, not a failed job: a lost cache costs the *next* run time,
+      # and turning main red for it would trip the ci-main-red response for something no
+      # revert can fix. The annotation and summary line make it impossible to miss.
+      - name: Report a lost cache save
+        if: >
+          (steps.verify-save.outcome == 'success' &&
+           steps.verify-save.outputs.cache-hit != 'true') ||
+          (steps.verify-deps.outcome == 'success' &&
+           steps.verify-deps.outputs.cache-hit != 'true')
+        run: |
+          if [ '${{ steps.verify-deps.outcome }}' = 'success' ] \
+             && [ '${{ steps.verify-deps.outputs.cache-hit }}' != 'true' ]; then
+            echo "::error::Mathlib/deps cache save did not persist - every later run pays 2m30s for 'lake exe cache get'. See the disk report above."
+            echo "WARNING: deps cache save did not persist" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ '${{ steps.verify-save.outcome }}' = 'success' ] \
+             && [ '${{ steps.verify-save.outputs.cache-hit }}' != 'true' ]; then
+            echo "::error::Build cache save did not persist - later runs will fall back to an older cache and rebuild more. See the disk report above."
+            echo "WARNING: build cache save did not persist" >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -21,10 +21,15 @@ build:
 # Mirrors .github/workflows/ci.yml: one lake invocation covering the canonical
 # CI target set (default lib + standalone audit/regression modules + Solutions
 # + the Tasks/Conjectures backlog), plus both forbid scripts.
+# The target list itself lives in scripts/ci_targets.txt so this recipe and the
+# workflow cannot drift apart.
+CI_TARGETS = $(shell grep -vE '^[[:space:]]*(\#|$$)' scripts/ci_targets.txt | tr '\n' ' ')
+
 ci:
 	@./scripts/forbid_sorry.sh
 	@./scripts/forbid_axiom_unsafe.sh
-	@~/.elan/bin/lake build MoltResearch MoltResearch.Discrepancy.SurfaceChecklist MoltResearch.Discrepancy.DeprecatedSurfaceChecklist MoltResearch.Discrepancy.SurfaceAudit MoltResearch.Discrepancy.NormalFormExamples MoltResearch.Discrepancy.NormalFormExamplesAnalytic Solutions Tasks Conjectures
+	@test -n "$(strip $(CI_TARGETS))" || (echo "ERROR: no targets in scripts/ci_targets.txt" && exit 1)
+	@~/.elan/bin/lake build $(CI_TARGETS)
 
 backlog:
 	@~/.elan/bin/lake build Tasks

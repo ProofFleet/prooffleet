@@ -1,0 +1,27 @@
+# Interface classes not yet extracted into a `Conjectures/<card>/src/Interfaces/` directory.
+#
+# `scripts/check_interfaces.py` requires every `*Assumption` class to live under an
+# `Interfaces/` directory, so path-based CI gates can detect interface changes. This file
+# is the migration ratchet: it starts holding every existing class, and each extraction PR
+# deletes exactly one line. When the file is empty the location check is fully live and the
+# allowlist can be removed.
+#
+# Do NOT add new entries. A newly written interface class belongs under `Interfaces/` from
+# its first commit.
+
+BorweinChoiCoonsAssumption
+FourierReductionAssumption
+FourierReductionStochasticAssumption
+LittlewoodLBoundAssumption
+LogElliottAssumption
+LogElliottNonasymptoticAssumption
+MatomakiRadziwillAssumption
+MatomakiRadziwillMajorArcAssumption
+PrimeBlockMajorArcAssumption
+PrimeQuadrupleCountAssumption
+VanDerCorputAssumption
+VinogradovKorobovAssumption
+
+# Legacy: the Stage-2 conjecture stub, slated for deletion (see the endgame box in
+# Problems/tao2015_derivation_c.md). Remove this line together with the file.
+Stage2Assumption

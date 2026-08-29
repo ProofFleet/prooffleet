@@ -30,8 +30,9 @@ Design notes (Track R, issue #3044):
   `MatomakiRadziwillMajorArcAssumption` after the frequency substitution
   `β = h·α` (lemma `majorArc_of_mul` below): denominators multiply by `h`, widths
   divide by `h`.
-- No instance of this class is (or may be) declared until the Vinogradov estimate
-  is actually formalized; consumers carry it as a hypothesis.
+- Discharged unconditionally by `instPrimeBlockMajorArcAssumption`
+  (`TrackCStage5PrimeBlockMajorArcProof.lean`, R4v of issue #3044), which supplies the
+  Vinogradov Type I/II classification with `B = 20`, `C = 1`.
 -/
 
 namespace MoltResearch
