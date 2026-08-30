@@ -312,4 +312,25 @@ theorem typicalS_phase_main_add_coll (g : ℕ → ℂ)
   rw [hgm, hcast, hchar]
   ring
 
+
+/-- **The sifted term vanishes on the typical set** (Track R, A2-III,
+II-0): a number typical for `P :: rest` has, by definition, a prime
+factor in `P`, so the `P`-sifted part of `typicalS` is empty.
+
+In `[MR]`'s decomposition lemma the analogous term is a genuine error
+`∑_{(n, ∏_{P≤p≤Q} p) = 1} |a_n|²/n`; restricting the coefficients to
+`𝒮` kills it outright at every level of the ladder.  Only the
+exceptional-frequency treatment, whose prime range is unrelated to
+`𝒮`, still pays for it. -/
+theorem typicalS_filter_card_eq_zero_eq_empty (a b : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) :
+    (typicalS a b (P :: rest)).filter
+        (fun n => (P.filter (· ∣ n)).card = 0) = ∅ := by
+  classical
+  ext n
+  simp only [Finset.mem_filter, mem_typicalS, hasFactorInAll_cons,
+    Finset.notMem_empty, iff_false, not_and]
+  rintro ⟨-, hpos, -⟩
+  omega
+
 end MoltResearch
