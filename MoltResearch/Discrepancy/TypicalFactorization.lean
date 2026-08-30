@@ -982,4 +982,203 @@ theorem dvd_split_image_prod {ℓ : ℕ} (Y : Finset ℕ)
     exact fun p hp =>
       hrsub (Nat.primeFactors_mono (Nat.div_dvd_of_dvd hd) hr0 hp)
 
+
+/-! ## The pair-divisor sum over an `ℓ`-fold product set (Track R, A2-III,
+III-2e) -/
+
+open Finset in
+/-- **The pair-divisor sum over an `ℓ`-fold product set** (Track R,
+A2-III, III-2e): for a `Finset` of primes `Y` of harmonic mass
+`σ = ∑_{p∈Y} 1/p ≤ 1`,
+
+  `∑_{r, r' ∈ Y^ℓ} 1/[r,r'] ≤ (ℓ+1)·σ^ℓ`.
+
+This is the elementary substitute for Shiu's theorem in the `[MR]`
+moment estimate, and it replaces the design note's route: rather than an
+Euler product over the infinitely many `Y`-smooth numbers — on which the
+note's constant was in any case false (#3532) — the sum is priced
+against the **finite** ladder `Y^0, …, Y^ℓ`.
+
+The mechanism.  Partition `Y^ℓ × Y^ℓ` into the fibres of
+`(r,r') ↦ Ω(gcd r r')`.  On the fibre over `k`, the map
+
+  `(r,r') ↦ (g, r/g, r'/g)`,  `g = gcd(r,r')`,
+
+is injective — `r = g·(r/g)` recovers the pair — it lands in
+`Y^k × Y^{ℓ−k} × Y^{ℓ−k}` by `dvd_split_image_prod`, and it carries
+`1/[r,r']` to `1/(g·(r/g)·(r'/g))` because `g·[r,r'] = r·r'`.  So the
+fibre is at most `σ^k·σ^{ℓ−k}·σ^{ℓ−k}` by `sum_one_div_image_prod_le`,
+and `σ ≤ 1` collapses the exponent `k + 2(ℓ−k) ≥ ℓ` to `σ^ℓ`.  There are
+`ℓ+1` fibres.
+
+`σ ≤ 1` is the only hypothesis beyond primality, and it is harmless in
+the application: `Y` is a set of primes in `(P, 2P]`, where
+`σ ≍ 1/log P`. -/
+theorem sum_one_div_lcm_image_prod_le (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (ℓ : ℕ) (hσ : ∑ p ∈ Y, (1:ℝ)/p ≤ 1) :
+    ∑ r ∈ (Fintype.piFinset fun _ : Fin ℓ => Y).image (fun v => ∏ i, v i),
+      ∑ r' ∈ (Fintype.piFinset fun _ : Fin ℓ => Y).image (fun v => ∏ i, v i),
+        (1:ℝ)/(Nat.lcm r r')
+      ≤ ((ℓ:ℝ)+1) * (∑ p ∈ Y, (1:ℝ)/p)^ℓ := by
+  classical
+  set D : ℕ → Finset ℕ :=
+    fun k => (Fintype.piFinset fun _ : Fin k => Y).image (fun v => ∏ i, v i)
+    with hD_def
+  set σ : ℝ := ∑ p ∈ Y, (1:ℝ)/p with hσ_def
+  have hσ0 : 0 ≤ σ := by
+    rw [hσ_def]
+    refine Finset.sum_nonneg fun p _ => by positivity
+  have hDmass : ∀ k, ∑ n ∈ D k, (1:ℝ)/n ≤ σ^k := by
+    intro k
+    rw [hD_def, hσ_def]
+    exact sum_one_div_image_prod_le Y k
+  have hDne : ∀ k, ∀ n ∈ D k, n ≠ 0 := by
+    intro k n hn
+    exact ((mem_image_prod_iff Y hY n).mp hn).1
+  -- to a sum over the product finset
+  rw [← Finset.sum_product' (D ℓ) (D ℓ) (fun r r' => (1:ℝ)/(Nat.lcm r r'))]
+  -- partition by `Ω(gcd)`
+  set key : ℕ × ℕ → ℕ := fun x => (Nat.primeFactorsList (Nat.gcd x.1 x.2)).length
+    with hkey_def
+  have hmaps : ∀ x ∈ D ℓ ×ˢ D ℓ, key x ∈ Finset.range (ℓ+1) := by
+    intro x hx
+    rw [Finset.mem_product] at hx
+    have hdvd : Nat.gcd x.1 x.2 ∣ x.1 := Nat.gcd_dvd_left _ _
+    have hle := (dvd_split_image_prod Y hY hx.1 hdvd).1
+    have hkx : key x = (Nat.primeFactorsList (Nat.gcd x.1 x.2)).length := rfl
+    rw [Finset.mem_range, hkx]
+    omega
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  -- bound each fibre
+  have hfibre : ∀ k ∈ Finset.range (ℓ+1),
+      ∑ x ∈ (D ℓ ×ˢ D ℓ).filter (fun x => key x = k),
+          (1:ℝ)/(Nat.lcm x.1 x.2) ≤ σ^ℓ := by
+    intro k hk
+    rw [Finset.mem_range] at hk
+    set φ : ℕ × ℕ → ℕ × ℕ × ℕ :=
+      fun x => (Nat.gcd x.1 x.2, x.1 / Nat.gcd x.1 x.2, x.2 / Nat.gcd x.1 x.2)
+      with hφ_def
+    set h : ℕ × ℕ × ℕ → ℝ := fun y => (1:ℝ)/((y.1 : ℝ) * y.2.1 * y.2.2) with hh_def
+    -- the fibre facts
+    have hfacts : ∀ x ∈ (D ℓ ×ˢ D ℓ).filter (fun x => key x = k),
+        Nat.gcd x.1 x.2 ∈ D k ∧ x.1 / Nat.gcd x.1 x.2 ∈ D (ℓ - k)
+          ∧ x.2 / Nat.gcd x.1 x.2 ∈ D (ℓ - k)
+          ∧ (Nat.lcm x.1 x.2 : ℝ)
+              = (Nat.gcd x.1 x.2 : ℝ) * (x.1 / Nat.gcd x.1 x.2 : ℕ)
+                  * (x.2 / Nat.gcd x.1 x.2 : ℕ) := by
+      intro x hx
+      rw [Finset.mem_filter, Finset.mem_product] at hx
+      obtain ⟨⟨h1, h2⟩, hkk⟩ := hx
+      have hg1 : Nat.gcd x.1 x.2 ∣ x.1 := Nat.gcd_dvd_left _ _
+      have hg2 : Nat.gcd x.1 x.2 ∣ x.2 := Nat.gcd_dvd_right _ _
+      have hs1 := dvd_split_image_prod Y hY h1 hg1
+      have hs2 := dvd_split_image_prod Y hY h2 hg2
+      rw [hkey_def] at hkk
+      simp only at hkk
+      rw [hkk] at hs1 hs2
+      refine ⟨hs1.2.1, hs1.2.2, hs2.2.2, ?_⟩
+      -- `lcm = g * (r/g) * (r'/g)`
+      have hx10 : x.1 ≠ 0 := hDne ℓ x.1 h1
+      have hg0 : Nat.gcd x.1 x.2 ≠ 0 := fun hc => hx10 (Nat.eq_zero_of_gcd_eq_zero_left hc)
+      have hprod : Nat.gcd x.1 x.2 * Nat.lcm x.1 x.2 = x.1 * x.2 :=
+        Nat.gcd_mul_lcm _ _
+      have he1 : Nat.gcd x.1 x.2 * (x.1 / Nat.gcd x.1 x.2) = x.1 :=
+        Nat.mul_div_cancel' hg1
+      have he2 : Nat.gcd x.1 x.2 * (x.2 / Nat.gcd x.1 x.2) = x.2 :=
+        Nat.mul_div_cancel' hg2
+      have hnat : Nat.lcm x.1 x.2
+          = Nat.gcd x.1 x.2 * (x.1 / Nat.gcd x.1 x.2) * (x.2 / Nat.gcd x.1 x.2) := by
+        have : Nat.gcd x.1 x.2 * Nat.lcm x.1 x.2
+            = Nat.gcd x.1 x.2 * (Nat.gcd x.1 x.2 * (x.1 / Nat.gcd x.1 x.2)
+                * (x.2 / Nat.gcd x.1 x.2)) := by
+          rw [hprod]
+          calc x.1 * x.2 = (Nat.gcd x.1 x.2 * (x.1 / Nat.gcd x.1 x.2))
+                * (Nat.gcd x.1 x.2 * (x.2 / Nat.gcd x.1 x.2)) := by rw [he1, he2]
+            _ = Nat.gcd x.1 x.2 * (Nat.gcd x.1 x.2 * (x.1 / Nat.gcd x.1 x.2)
+                * (x.2 / Nat.gcd x.1 x.2)) := by ring
+        exact Nat.eq_of_mul_eq_mul_left (Nat.pos_of_ne_zero hg0) this
+      rw [hnat]
+      push_cast
+      ring
+    -- the map is injective on the fibre
+    have hinj : Set.InjOn φ ((D ℓ ×ˢ D ℓ).filter (fun x => key x = k) : Finset (ℕ×ℕ)) := by
+      intro a ha b hb hab
+      rw [Finset.mem_coe, Finset.mem_filter, Finset.mem_product] at ha hb
+      rw [hφ_def] at hab
+      simp only [Prod.mk.injEq] at hab
+      obtain ⟨hg, h1, h2⟩ := hab
+      have ha1 : Nat.gcd a.1 a.2 * (a.1 / Nat.gcd a.1 a.2) = a.1 :=
+        Nat.mul_div_cancel' (Nat.gcd_dvd_left _ _)
+      have ha2 : Nat.gcd a.1 a.2 * (a.2 / Nat.gcd a.1 a.2) = a.2 :=
+        Nat.mul_div_cancel' (Nat.gcd_dvd_right _ _)
+      have hb1 : Nat.gcd b.1 b.2 * (b.1 / Nat.gcd b.1 b.2) = b.1 :=
+        Nat.mul_div_cancel' (Nat.gcd_dvd_left _ _)
+      have hb2 : Nat.gcd b.1 b.2 * (b.2 / Nat.gcd b.1 b.2) = b.2 :=
+        Nat.mul_div_cancel' (Nat.gcd_dvd_right _ _)
+      refine Prod.ext ?_ ?_
+      · calc a.1 = Nat.gcd a.1 a.2 * (a.1 / Nat.gcd a.1 a.2) := ha1.symm
+          _ = Nat.gcd b.1 b.2 * (b.1 / Nat.gcd b.1 b.2) := by rw [h1, hg]
+          _ = b.1 := hb1
+      · calc a.2 = Nat.gcd a.1 a.2 * (a.2 / Nat.gcd a.1 a.2) := ha2.symm
+          _ = Nat.gcd b.1 b.2 * (b.2 / Nat.gcd b.1 b.2) := by rw [h2, hg]
+          _ = b.2 := hb2
+    -- image lands in the triple product
+    have hsub : ((D ℓ ×ˢ D ℓ).filter (fun x => key x = k)).image φ
+        ⊆ D k ×ˢ D (ℓ - k) ×ˢ D (ℓ - k) := by
+      intro y hy
+      rw [Finset.mem_image] at hy
+      obtain ⟨x, hx, rfl⟩ := hy
+      obtain ⟨hg, hs, hs', -⟩ := hfacts x hx
+      rw [Finset.mem_product, Finset.mem_product]
+      exact ⟨hg, hs, hs'⟩
+    calc ∑ x ∈ (D ℓ ×ˢ D ℓ).filter (fun x => key x = k), (1:ℝ)/(Nat.lcm x.1 x.2)
+        = ∑ x ∈ (D ℓ ×ˢ D ℓ).filter (fun x => key x = k), h (φ x) := by
+          refine Finset.sum_congr rfl fun x hx => ?_
+          obtain ⟨-, -, -, hlcm⟩ := hfacts x hx
+          rw [hh_def, hφ_def]
+          simp only
+          rw [hlcm]
+      _ = ∑ y ∈ ((D ℓ ×ˢ D ℓ).filter (fun x => key x = k)).image φ, h y :=
+          (Finset.sum_image hinj).symm
+      _ ≤ ∑ y ∈ D k ×ˢ D (ℓ - k) ×ˢ D (ℓ - k), h y := by
+          refine Finset.sum_le_sum_of_subset_of_nonneg hsub ?_
+          intro y _ _
+          rw [hh_def]
+          positivity
+      _ = ∑ g ∈ D k, ∑ z ∈ D (ℓ - k) ×ˢ D (ℓ - k), h (g, z) :=
+          Finset.sum_product (D k) (D (ℓ-k) ×ˢ D (ℓ-k)) h
+      _ = ∑ g ∈ D k, ∑ s ∈ D (ℓ - k), ∑ s' ∈ D (ℓ - k),
+            ((1:ℝ)/g) * (((1:ℝ)/s) * ((1:ℝ)/s')) := by
+          refine Finset.sum_congr rfl fun g _ => ?_
+          rw [Finset.sum_product (D (ℓ-k)) (D (ℓ-k)) (fun z => h (g, z))]
+          refine Finset.sum_congr rfl fun s _ =>
+            Finset.sum_congr rfl fun s' _ => ?_
+          rw [hh_def]
+          simp only
+          rw [one_div, one_div, one_div, one_div, mul_inv, mul_inv]
+          ring
+      _ = (∑ g ∈ D k, (1:ℝ)/g) * ((∑ s ∈ D (ℓ-k), (1:ℝ)/s)
+            * (∑ s' ∈ D (ℓ-k), (1:ℝ)/s')) := by
+          rw [Finset.sum_mul]
+          refine Finset.sum_congr rfl fun g _ => ?_
+          rw [Finset.sum_mul_sum, Finset.mul_sum]
+          refine Finset.sum_congr rfl fun s _ => ?_
+          rw [Finset.mul_sum]
+      _ ≤ σ^k * (σ^(ℓ-k) * σ^(ℓ-k)) := by
+          refine mul_le_mul (hDmass k) ?_ ?_ (by positivity)
+          · exact mul_le_mul (hDmass (ℓ-k)) (hDmass (ℓ-k))
+              (Finset.sum_nonneg fun n _ => by positivity) (by positivity)
+          · refine mul_nonneg (Finset.sum_nonneg fun n _ => by positivity)
+              (Finset.sum_nonneg fun n _ => by positivity)
+      _ = σ^(k + (ℓ-k) + (ℓ-k)) := by rw [pow_add, pow_add]; ring
+      _ ≤ σ^ℓ := by
+          refine pow_le_pow_of_le_one hσ0 hσ ?_
+          omega
+  calc ∑ k ∈ Finset.range (ℓ+1),
+        ∑ x ∈ (D ℓ ×ˢ D ℓ).filter (fun x => key x = k), (1:ℝ)/(Nat.lcm x.1 x.2)
+      ≤ ∑ _k ∈ Finset.range (ℓ+1), σ^ℓ := Finset.sum_le_sum hfibre
+    _ = ((ℓ:ℝ)+1) * σ^ℓ := by
+        rw [Finset.sum_const, Finset.card_range]
+        ring
+
 end MoltResearch
