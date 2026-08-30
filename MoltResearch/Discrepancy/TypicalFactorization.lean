@@ -1181,4 +1181,128 @@ theorem sum_one_div_lcm_image_prod_le (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prim
         rw [Finset.sum_const, Finset.card_range]
         ring
 
+
+/-! ## III-2 proper: the mean square of the smooth-divisor count (Track R,
+A2-III, III-2f) -/
+
+open Finset in
+/-- **The mean square of the `Y^ℓ`-divisor count** (Track R, A2-III,
+III-2f — "III-2 proper"): for a `Finset` of primes `Y` of harmonic mass
+`σ = ∑_{p∈Y} 1/p ≤ 1` and a window `W ⊆ (M, RM]` of any ratio `R`,
+
+  `∑_{n ∈ W} g(n)²/n ≤ R(ℓ+1)·σ^ℓ`,  `g(n) = #{r ∈ Y^ℓ : r ∣ n}`.
+
+The weight is `1/n`, not `1/n²`, because that is what the in-tree sharp
+mean value theorem charges: `intervalIntegral_norm_sq_poly_le_sharp_ratio`
+takes a polynomial `∑ (c n/n)·e(−ξ log n)` to `e^π(T/A + 2R)·∑ ‖c n‖²/n`.
+The design note's `sum_smooth_divisor_count_sq_div_sq_le` asks for `1/n²`,
+which predates that normalisation and no consumer takes.
+
+The ratio is left free because the consumer needs it free: `Q^ℓ·R` is
+supported on `(P^ℓA', 2^{ℓ+1}P^ℓA']`, so an `ℓ`-fold prime product spans
+a `2^{ℓ+1}`-fold range and no dyadic statement would reach it — the same
+reason the sharp mean value theorem had to be re-cut at general ratio.
+
+This is the elementary substitute for **Shiu's theorem** in the `[MR]`
+moment estimate, and the last brick the full `III-3` was waiting on: the
+coefficient of `Q^ℓ·R` at `n` is bounded by `ℓ!·g(n)`, so this sum is
+exactly the coefficient mass the sharp mean value theorem charges.
+
+Three steps, each already in the tree.  On `W ⊆ (M, 2M]` the weight
+`1/n` drops to `1/M` (only the lower endpoint is used here; the ratio
+enters solely through the fibre count, and the two `M`s then cancel — which
+is why no scale survives in the bound).  The square is a pair count,
+
+  `g(n)² = #{(r,r') ∈ Y^ℓ × Y^ℓ : r ∣ n ∧ r' ∣ n}
+         = #{(r,r') : [r,r'] ∣ n}`,
+
+so summing over `n` and swapping the order counts, for each pair, the
+multiples of `[r,r']` in the window — at most `RM/[r,r']` by
+`card_filter_dvd_le_div`.  What is left is `∑_{r,r'} 1/[r,r']`, which is
+`sum_one_div_lcm_image_prod_le`.
+
+No Shiu, no Rankin, and no Euler product over the `Y`-smooth numbers. -/
+theorem sum_card_dvd_sq_div_le (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (ℓ : ℕ) (hσ : ∑ p ∈ Y, (1:ℝ)/p ≤ 1)
+    (M R : ℕ) (hM : 1 ≤ M) (W : Finset ℕ) (hW : W ⊆ Finset.Ioc M (R*M)) :
+    ∑ n ∈ W,
+        ((((Fintype.piFinset fun _ : Fin ℓ => Y).image
+              (fun v => ∏ i, v i)).filter (· ∣ n)).card : ℝ)^2 / (n:ℝ)
+      ≤ (R:ℝ) * ((ℓ:ℝ)+1) * (∑ p ∈ Y, (1:ℝ)/p)^ℓ := by
+  classical
+  set D : Finset ℕ :=
+    (Fintype.piFinset fun _ : Fin ℓ => Y).image (fun v => ∏ i, v i) with hD_def
+  set σ : ℝ := ∑ p ∈ Y, (1:ℝ)/p with hσ_def
+  have hM0 : (0:ℝ) < M := by exact_mod_cast hM
+  have hDne : ∀ n ∈ D, n ≠ 0 := fun n hn => ((mem_image_prod_iff Y hY n).mp hn).1
+  -- (1) drop `1/n` to `1/M`
+  have hstep1 : ∑ n ∈ W, ((D.filter (· ∣ n)).card : ℝ)^2 / (n:ℝ)
+      ≤ (1/(M:ℝ)) * ∑ n ∈ W, ((D.filter (· ∣ n)).card : ℝ)^2 := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun n hn => ?_
+    have hn' := Finset.mem_Ioc.mp (hW hn)
+    have hMn : (M:ℝ) < (n:ℝ) := by exact_mod_cast hn'.1
+    have hn0 : (0:ℝ) < (n:ℝ) := lt_trans hM0 hMn
+    have hc : (0:ℝ) ≤ ((D.filter (· ∣ n)).card : ℝ)^2 := sq_nonneg _
+    have ht : (0:ℝ) ≤ (1/(M:ℝ)) * ((D.filter (· ∣ n)).card : ℝ)^2 := by
+      positivity
+    have key : (1/(M:ℝ)) * ((D.filter (· ∣ n)).card : ℝ)^2 * (M:ℝ)
+        = ((D.filter (· ∣ n)).card : ℝ)^2 := by field_simp
+    rw [div_le_iff₀ hn0]
+    nlinarith [hMn, ht, key]
+  -- (2) the square is a pair count, and the pair count is an lcm-fibre count
+  have hsq : ∀ n : ℕ, ((D ×ˢ D).filter (fun x => Nat.lcm x.1 x.2 ∣ n)).card
+      = (D.filter (· ∣ n)).card * (D.filter (· ∣ n)).card := by
+    intro n
+    have hfil : (D ×ˢ D).filter (fun x => Nat.lcm x.1 x.2 ∣ n)
+        = (D.filter (· ∣ n)) ×ˢ (D.filter (· ∣ n)) := by
+      rw [← Finset.filter_product (fun a : ℕ => a ∣ n) (fun b : ℕ => b ∣ n)]
+      refine Finset.filter_congr fun x _ => ?_
+      simp only [Nat.lcm_dvd_iff]
+    rw [hfil, Finset.card_product]
+  -- (3) the double count
+  have hswap : ∑ n ∈ W, ((D.filter (· ∣ n)).card : ℝ)^2
+      = ∑ x ∈ D ×ˢ D, ((W.filter (fun n => Nat.lcm x.1 x.2 ∣ n)).card : ℝ) := by
+    have hL : ∀ n : ℕ, ((D.filter (· ∣ n)).card : ℝ)^2
+        = ((((D ×ˢ D).filter (fun x => Nat.lcm x.1 x.2 ∣ n)).card : ℕ) : ℝ) := by
+      intro n
+      rw [hsq n]
+      push_cast
+      ring
+    simp only [hL]
+    simp only [Finset.card_filter, Nat.cast_sum, Nat.cast_ite, Nat.cast_one,
+      Nat.cast_zero]
+    rw [Finset.sum_comm]
+  -- (4) each lcm fibre by the window fibre count
+  have hfib : ∀ x ∈ D ×ˢ D,
+      ((W.filter (fun n => Nat.lcm x.1 x.2 ∣ n)).card : ℝ)
+        ≤ ((R:ℝ)*(M:ℝ))/(Nat.lcm x.1 x.2 : ℝ) := by
+    intro x hx
+    rw [Finset.mem_product] at hx
+    have h1 : x.1 ≠ 0 := hDne _ hx.1
+    have h2 : x.2 ≠ 0 := hDne _ hx.2
+    have hl : 0 < Nat.lcm x.1 x.2 := Nat.pos_of_ne_zero (Nat.lcm_ne_zero h1 h2)
+    have hcnt := card_filter_dvd_le_div M (R*M) W hW hl
+    calc ((W.filter (fun n => Nat.lcm x.1 x.2 ∣ n)).card : ℝ)
+        ≤ ((R*M : ℕ) : ℝ)/(Nat.lcm x.1 x.2 : ℝ) := hcnt
+      _ = ((R:ℝ)*(M:ℝ))/(Nat.lcm x.1 x.2 : ℝ) := by push_cast; ring
+  -- (5) assemble against the pair-divisor sum
+  have hpair : ∑ x ∈ D ×ˢ D, (1:ℝ)/(Nat.lcm x.1 x.2) ≤ ((ℓ:ℝ)+1) * σ^ℓ := by
+    rw [Finset.sum_product]
+    exact sum_one_div_lcm_image_prod_le Y hY ℓ hσ
+  calc ∑ n ∈ W, ((D.filter (· ∣ n)).card : ℝ)^2 / (n:ℝ)
+      ≤ (1/(M:ℝ)) * ∑ n ∈ W, ((D.filter (· ∣ n)).card : ℝ)^2 := hstep1
+    _ = (1/(M:ℝ)) * ∑ x ∈ D ×ˢ D,
+          ((W.filter (fun n => Nat.lcm x.1 x.2 ∣ n)).card : ℝ) := by rw [hswap]
+    _ ≤ (1/(M:ℝ)) * ∑ x ∈ D ×ˢ D, ((R:ℝ)*(M:ℝ))/(Nat.lcm x.1 x.2 : ℝ) := by
+        refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum hfib) (by positivity)
+    _ = ((R:ℝ)*(M:ℝ)/(M:ℝ)) * ∑ x ∈ D ×ˢ D, (1:ℝ)/(Nat.lcm x.1 x.2) := by
+        rw [Finset.mul_sum, Finset.mul_sum]
+        refine Finset.sum_congr rfl fun x _ => ?_
+        field_simp
+    _ ≤ ((R:ℝ)*(M:ℝ)/(M:ℝ)) * (((ℓ:ℝ)+1) * σ^ℓ) := by
+        refine mul_le_mul_of_nonneg_left hpair (by positivity)
+    _ = (R:ℝ) * ((ℓ:ℝ)+1) * σ^ℓ := by
+        field_simp
+
 end MoltResearch
