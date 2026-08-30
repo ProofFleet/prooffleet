@@ -3981,6 +3981,44 @@ theorem sum_Ioc_eq_sum_Ioc_add_collars {M : Type*} [AddCommGroup M]
   exact hkey
 
 open MeasureTheory in
+/-- **The `L²` triangle inequality, at cost `2`** (Track R, A2-III,
+II-2c-0): for continuous `F, G`,
+
+  `∫_{−T}^{T} ‖F + G‖² ≤ 2∫_{−T}^{T} ‖F‖² + 2∫_{−T}^{T} ‖G‖²`.
+
+The `[MR]` telescoping produces a difference of two collar polynomials
+anchored at *different* scales, so their energies cannot be merged into
+one mean value theorem application; splitting the square is the honest
+price, and the factor `2` is absorbed by the `1/N` the collars carry. -/
+theorem intervalIntegral_norm_add_sq_le (F G : ℝ → ℂ) (hF : Continuous F)
+    (hG : Continuous G) (T : ℝ) (hT : 0 ≤ T) :
+    (∫ ξ in (-T)..T, ‖F ξ + G ξ‖^2)
+      ≤ 2 * (∫ ξ in (-T)..T, ‖F ξ‖^2)
+        + 2 * (∫ ξ in (-T)..T, ‖G ξ‖^2) := by
+  have hTT : -T ≤ T := by linarith
+  have hFi : IntervalIntegrable (fun ξ => ‖F ξ‖^2) volume (-T) T :=
+    (hF.norm.pow 2).intervalIntegrable _ _
+  have hGi : IntervalIntegrable (fun ξ => ‖G ξ‖^2) volume (-T) T :=
+    (hG.norm.pow 2).intervalIntegrable _ _
+  have hsum : IntervalIntegrable (fun ξ => ‖F ξ + G ξ‖^2) volume (-T) T :=
+    (((hF.add hG).norm).pow 2).intervalIntegrable _ _
+  have hbig : IntervalIntegrable
+      (fun ξ => 2 * ‖F ξ‖^2 + 2 * ‖G ξ‖^2) volume (-T) T :=
+    (hFi.const_mul 2).add (hGi.const_mul 2)
+  have hptwise : ∀ ξ : ℝ, ‖F ξ + G ξ‖^2 ≤ 2 * ‖F ξ‖^2 + 2 * ‖G ξ‖^2 := by
+    intro ξ
+    have htri : ‖F ξ + G ξ‖ ≤ ‖F ξ‖ + ‖G ξ‖ := norm_add_le _ _
+    nlinarith [norm_nonneg (F ξ + G ξ), norm_nonneg (F ξ), norm_nonneg (G ξ),
+      sq_nonneg (‖F ξ‖ - ‖G ξ‖)]
+  calc (∫ ξ in (-T)..T, ‖F ξ + G ξ‖^2)
+      ≤ ∫ ξ in (-T)..T, (2 * ‖F ξ‖^2 + 2 * ‖G ξ‖^2) :=
+        intervalIntegral.integral_mono_on hTT hsum hbig (fun ξ _ => hptwise ξ)
+    _ = 2 * (∫ ξ in (-T)..T, ‖F ξ‖^2) + 2 * (∫ ξ in (-T)..T, ‖G ξ‖^2) := by
+        rw [intervalIntegral.integral_add (hFi.const_mul 2) (hGi.const_mul 2),
+          intervalIntegral.integral_const_mul,
+          intervalIntegral.integral_const_mul]
+
+open MeasureTheory in
 /-- **The collar energy at an explicit collar length** (Track R, A2-III,
 II-2b-0): for a collar `C ⊆ (M, M + L]` no longer than its anchor,
 
