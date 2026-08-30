@@ -999,4 +999,177 @@ theorem intervalIntegral_norm_sq_prime_poly_sq_le (Y : Finset ℕ)
         refine mul_le_mul_of_nonneg_left hmass ?_
         positivity
 
+
+/-! ## The telescoping energy (Track R, A2-III, II-2c) -/
+
+open Finset in
+/-- **A difference of disjoint sums is one signed sum** (Track R,
+A2-III, II-2c): for disjoint `S`, `S'`,
+
+  `∑_{S} w − ∑_{S'} w = ∑_{S ∪ S'} (if · ∈ S then w · else −w ·)`.
+
+The point is that a *difference* of two polynomials supported in one
+collar is again a *single* polynomial supported in that collar, with
+coefficients of the same size — so the mean value theorem applies to it
+once, rather than twice through a square-splitting triangle. -/
+theorem sum_sub_sum_eq_sum_union_signed (S S' : Finset ℕ)
+    (hdisj : Disjoint S S') (w : ℕ → ℂ) :
+    (∑ m ∈ S, w m) - (∑ m ∈ S', w m)
+      = ∑ m ∈ S ∪ S', (if m ∈ S then w m else -w m) := by
+  classical
+  rw [Finset.sum_union hdisj]
+  have h1 : ∑ m ∈ S, (if m ∈ S then w m else -w m) = ∑ m ∈ S, w m :=
+    Finset.sum_congr rfl fun m hm => by simp [hm]
+  have h2 : ∑ m ∈ S', (if m ∈ S then w m else -w m) = ∑ m ∈ S', (-(w m)) :=
+    Finset.sum_congr rfl fun m hm => by
+      have hmS : m ∉ S := Finset.disjoint_right.mp hdisj hm
+      simp [hmS]
+  rw [h1, h2, Finset.sum_neg_distrib]
+  ring
+
+open MeasureTheory Finset ExpSums in
+/-- **The telescoping energy** (Track R, A2-III, II-2c): if two windows
+`(a, b]` and `(a', b']` have left endpoints within `L₁` and right
+endpoints within `L₂` of each other, then the two `1/n`-normalised phase
+polynomials they carry differ, in energy, by two collars —
+
+  `∫_{−T}^{T} ‖∑_{(a,b]} − ∑_{(a',b']}‖²
+     ≤ 2e^π(T/a₀ + 4)(L₁/a₀) + 2e^π(T/b₀ + 4)(L₂/b₀)`,
+
+with `a₀ = min a a'` and `b₀ = min b b'`.
+
+This is the analytic half of the `[MR]` decomposition lemma, and it is
+what lets the band assembly replace a `p`-dependent fibre window
+`(A/p, (A+Δ)/p]` by a cell-uniform reference block: on an e-adic cell at
+resolution `2N` the two endpoints move by at most `A/(N·p) + 1` and
+`B/(N·p) + 1` respectively
+(`div_le_div_add_div_add_one`), so the error is `O(1/N)` per prime and
+sums to `O(1/N)` over the cell.
+
+The proof is the identity `sum_Ioc_eq_sum_Ioc_add_collars` followed by
+two applications of `collar_energy_length_le`.  Its one inefficiency is
+the square-splitting `intervalIntegral_norm_add_sq_le`, unavoidable
+because the two collars are anchored at different scales; the four
+collars of the identity are *not* split, since each pair lives in one
+collar interval and `sum_sub_sum_eq_sum_union_signed` merges it. -/
+theorem intervalIntegral_norm_sq_window_sub_le
+    (a b a' b' L₁ L₂ : ℕ) (hab : a ≤ b) (ha'b' : a' ≤ b')
+    (haa' : max a a' ≤ min a a' + L₁) (hbb' : max b b' ≤ min b b' + L₂)
+    (hLa : L₁ ≤ min a a') (hLb : L₂ ≤ min b b')
+    (ha1 : 1 ≤ min a a') (hb1 : 1 ≤ min b b')
+    (c : ℕ → ℂ) (hc : ∀ n, ‖c n‖ ≤ 1) (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T,
+        ‖(∑ m ∈ Finset.Ioc a b, (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          - (∑ m ∈ Finset.Ioc a' b', (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))‖^2)
+      ≤ 2 * (Real.exp Real.pi * (T/((min a a' : ℕ):ℝ) + 4)
+              * ((L₁:ℝ)/((min a a' : ℕ):ℝ)))
+        + 2 * (Real.exp Real.pi * (T/((min b b' : ℕ):ℝ) + 4)
+              * ((L₂:ℝ)/((min b b' : ℕ):ℝ))) := by
+  classical
+  -- the two left collars are disjoint, as are the two right collars
+  have hdisj13 : Disjoint (Finset.Ioc a (min b a')) (Finset.Ioc a' (min b' a)) := by
+    rw [Finset.disjoint_left]
+    intro n hn hn'
+    simp only [Finset.mem_Ioc] at hn hn'
+    omega
+  have hdisj24 :
+      Disjoint (Finset.Ioc (max a b') b) (Finset.Ioc (max a' b) b') := by
+    rw [Finset.disjoint_left]
+    intro n hn hn'
+    simp only [Finset.mem_Ioc] at hn hn'
+    omega
+  -- each pair sits inside a single collar interval
+  have hsubA : (Finset.Ioc a (min b a')) ∪ (Finset.Ioc a' (min b' a))
+      ⊆ Finset.Ioc (min a a') (min a a' + L₁) := by
+    refine Finset.union_subset ?_ ?_ <;>
+      intro n hn <;>
+      simp only [Finset.mem_Ioc] at hn ⊢ <;>
+      omega
+  have hsubB : (Finset.Ioc (max a b') b) ∪ (Finset.Ioc (max a' b) b')
+      ⊆ Finset.Ioc (min b b') (min b b' + L₂) := by
+    refine Finset.union_subset ?_ ?_ <;>
+      intro n hn <;>
+      simp only [Finset.mem_Ioc] at hn ⊢ <;>
+      omega
+  -- the signed coefficients are still `1`-bounded
+  have hd₁ : ∀ n : ℕ,
+      ‖(if n ∈ Finset.Ioc a (min b a') then c n else -c n)‖ ≤ 1 := by
+    intro n
+    split_ifs with h
+    · exact hc n
+    · rw [norm_neg]; exact hc n
+  have hd₂ : ∀ n : ℕ,
+      ‖(if n ∈ Finset.Ioc (max a b') b then c n else -c n)‖ ≤ 1 := by
+    intro n
+    split_ifs with h
+    · exact hc n
+    · rw [norm_neg]; exact hc n
+  -- pointwise, the difference of the two windows is two collar polynomials
+  have hpt : ∀ ξ : ℝ,
+      (∑ m ∈ Finset.Ioc a b, (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          - (∑ m ∈ Finset.Ioc a' b', (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+        = (∑ m ∈ (Finset.Ioc a (min b a')) ∪ (Finset.Ioc a' (min b' a)),
+              ((if m ∈ Finset.Ioc a (min b a') then c m else -c m)/(m:ℂ))
+                * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          + (∑ m ∈ (Finset.Ioc (max a b') b) ∪ (Finset.Ioc (max a' b) b'),
+              ((if m ∈ Finset.Ioc (max a b') b then c m else -c m)/(m:ℂ))
+                * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)) := by
+    intro ξ
+    have hpush : ∀ (S : Finset ℕ) (m : ℕ),
+        (if m ∈ S then (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+          else -((c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)))
+          = ((if m ∈ S then c m else -c m)/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+      intro S m
+      split_ifs with h
+      · rfl
+      · ring
+    have h1 := sum_sub_sum_eq_sum_union_signed (Finset.Ioc a (min b a'))
+      (Finset.Ioc a' (min b' a)) hdisj13
+      (fun m => (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+    have h2 := sum_sub_sum_eq_sum_union_signed (Finset.Ioc (max a b') b)
+      (Finset.Ioc (max a' b) b') hdisj24
+      (fun m => (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+    have h1' : (∑ m ∈ Finset.Ioc a (min b a'), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          - (∑ m ∈ Finset.Ioc a' (min b' a), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+        = ∑ m ∈ (Finset.Ioc a (min b a')) ∪ (Finset.Ioc a' (min b' a)),
+            ((if m ∈ Finset.Ioc a (min b a') then c m else -c m)/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+      rw [h1]
+      exact Finset.sum_congr rfl fun m _ => hpush _ m
+    have h2' : (∑ m ∈ Finset.Ioc (max a b') b, (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          - (∑ m ∈ Finset.Ioc (max a' b) b', (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+        = ∑ m ∈ (Finset.Ioc (max a b') b) ∪ (Finset.Ioc (max a' b) b'),
+            ((if m ∈ Finset.Ioc (max a b') b then c m else -c m)/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+      rw [h2]
+      exact Finset.sum_congr rfl fun m _ => hpush _ m
+    rw [sum_Ioc_eq_sum_Ioc_add_collars a b a' b' hab ha'b'
+      (fun m => (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)), ← h1', ← h2']
+    ring
+  simp only [hpt]
+  -- both collar polynomials are continuous
+  have hchar : ∀ v : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ) := fun v =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  have hXc : Continuous fun ξ : ℝ =>
+      ∑ m ∈ (Finset.Ioc a (min b a')) ∪ (Finset.Ioc a' (min b' a)),
+        ((if m ∈ Finset.Ioc a (min b a') then c m else -c m)/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun m _ =>
+      continuous_const.mul (hchar (Real.log m))
+  have hYc : Continuous fun ξ : ℝ =>
+      ∑ m ∈ (Finset.Ioc (max a b') b) ∪ (Finset.Ioc (max a' b) b'),
+        ((if m ∈ Finset.Ioc (max a b') b then c m else -c m)/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun m _ =>
+      continuous_const.mul (hchar (Real.log m))
+  refine le_trans (intervalIntegral_norm_add_sq_le _ _ hXc hYc T hT.le) ?_
+  have hXe := collar_energy_length_le (min a a') L₁ ha1 hLa
+    ((Finset.Ioc a (min b a')) ∪ (Finset.Ioc a' (min b' a))) hsubA
+    (fun m => if m ∈ Finset.Ioc a (min b a') then c m else -c m) hd₁ T hT
+  have hYe := collar_energy_length_le (min b b') L₂ hb1 hLb
+    ((Finset.Ioc (max a b') b) ∪ (Finset.Ioc (max a' b) b')) hsubB
+    (fun m => if m ∈ Finset.Ioc (max a b') b then c m else -c m) hd₂ T hT
+  linarith
+
 end MoltResearch
