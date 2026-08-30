@@ -3981,6 +3981,92 @@ theorem sum_Ioc_eq_sum_Ioc_add_collars {M : Type*} [AddCommGroup M]
   exact hkey
 
 open MeasureTheory in
+/-- **The Sobolev step of Gallagher's lemma** (Track R, A2-III, V-0a):
+for a `C¹` function on a unit window `[a, a+1]` and any point `t` of it,
+
+  `‖F t‖² ≤ ∫_a^{a+1} ‖F u‖² du + ∫_a^{a+1} 2‖F u‖‖F' u‖ du`.
+
+A pointwise value is controlled by the window's `L²` mass plus its
+`L¹`-derivative cross term.  Gallagher's discretisation follows by
+applying this on the unit window around each point of a `1`-separated
+set: the windows are disjoint, so the right-hand sides sum to a single
+integral over the line.
+
+The proof is the fundamental theorem of calculus for `u ↦ ‖F u‖²`, whose
+derivative is `2⟪F u, F' u⟫` and hence bounded in absolute value by the
+integrand `2‖F u‖‖F' u‖`; averaging the resulting bound over `u` in the
+window — which has length `1`, so the average is the integral —
+exchanges the unknown `‖F u‖²` for the window mass. -/
+theorem norm_sq_le_window_integral (F F' : ℝ → ℂ)
+    (hF : ∀ u, HasDerivAt F (F' u) u) (hFc : Continuous F)
+    (hF'c : Continuous F') (a t : ℝ) (hat : a ≤ t) (hta : t ≤ a + 1) :
+    ‖F t‖^2 ≤ (∫ u in a..(a+1), ‖F u‖^2)
+      + ∫ u in a..(a+1), 2 * ‖F u‖ * ‖F' u‖ := by
+  have ha1 : a ≤ a + 1 := by linarith
+  -- the derivative of the squared norm, and its majorant
+  have hgderiv : ∀ u, HasDerivAt (fun v => ‖F v‖^2)
+      (2 * (inner ℝ (F u) (F' u) : ℝ)) u := fun u => (hF u).norm_sq
+  have hgc : Continuous fun u => ‖F u‖^2 := hFc.norm.pow 2
+  have hhc : Continuous fun u => 2 * ‖F u‖ * ‖F' u‖ :=
+    (continuous_const.mul hFc.norm).mul hF'c.norm
+  have hdc : Continuous fun u => 2 * (inner ℝ (F u) (F' u) : ℝ) := by
+    fun_prop
+  have hbound : ∀ u, |2 * (inner ℝ (F u) (F' u) : ℝ)| ≤ 2 * ‖F u‖ * ‖F' u‖ := by
+    intro u
+    rw [abs_mul, abs_of_nonneg (by norm_num : (0:ℝ) ≤ 2)]
+    have := abs_real_inner_le_norm (F u) (F' u)
+    nlinarith [abs_nonneg (inner ℝ (F u) (F' u) : ℝ)]
+  have hhnn : ∀ u, 0 ≤ 2 * ‖F u‖ * ‖F' u‖ := fun u => by positivity
+  -- the window integral of the majorant dominates every increment
+  have hkey : ∀ u ∈ Set.Icc a (a+1),
+      ‖F t‖^2 - ‖F u‖^2 ≤ ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ := by
+    intro u hu
+    have hInt : ‖F t‖^2 - ‖F u‖^2
+        = ∫ v in u..t, (2 * (inner ℝ (F v) (F' v) : ℝ)) :=
+      (intervalIntegral.integral_eq_sub_of_hasDerivAt (fun v _ => hgderiv v)
+        (hdc.intervalIntegrable _ _)).symm
+    rw [hInt]
+    rcases le_total u t with hut | hut
+    · calc (∫ v in u..t, (2 * (inner ℝ (F v) (F' v) : ℝ)))
+          ≤ ∫ v in u..t, 2 * ‖F v‖ * ‖F' v‖ :=
+            intervalIntegral.integral_mono_on hut (hdc.intervalIntegrable _ _)
+              (hhc.intervalIntegrable _ _)
+              (fun v _ => le_of_abs_le (hbound v))
+        _ ≤ ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ :=
+            intervalIntegral.integral_mono_interval hu.1 hut hta
+              (Filter.Eventually.of_forall (fun v => hhnn v))
+              (hhc.intervalIntegrable _ _)
+    · rw [intervalIntegral.integral_symm]
+      calc -(∫ v in t..u, (2 * (inner ℝ (F v) (F' v) : ℝ)))
+          = ∫ v in t..u, -(2 * (inner ℝ (F v) (F' v) : ℝ)) := by
+            rw [intervalIntegral.integral_neg]
+        _ ≤ ∫ v in t..u, 2 * ‖F v‖ * ‖F' v‖ :=
+            intervalIntegral.integral_mono_on hut (hdc.neg.intervalIntegrable _ _)
+              (hhc.intervalIntegrable _ _)
+              (fun v _ => by have h1 := (abs_le.mp (hbound v)).1; linarith)
+        _ ≤ ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ :=
+            intervalIntegral.integral_mono_interval hat hut (hu.2)
+              (Filter.Eventually.of_forall (fun v => hhnn v))
+              (hhc.intervalIntegrable _ _)
+  -- average the increment bound over the window, which has length `1`
+  have hconst : (∫ _u in a..(a+1), ‖F t‖^2) = ‖F t‖^2 := by
+    rw [intervalIntegral.integral_const]
+    simp
+  calc ‖F t‖^2 = ∫ _u in a..(a+1), ‖F t‖^2 := hconst.symm
+    _ ≤ ∫ u in a..(a+1),
+          (‖F u‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖) := by
+        refine intervalIntegral.integral_mono_on ha1 (_root_.intervalIntegrable_const)
+          ((hgc.intervalIntegrable _ _).add _root_.intervalIntegrable_const)
+          (fun u hu => ?_)
+        have := hkey u hu
+        linarith
+    _ = (∫ u in a..(a+1), ‖F u‖^2)
+          + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ := by
+        rw [intervalIntegral.integral_add (hgc.intervalIntegrable _ _) _root_.intervalIntegrable_const,
+          intervalIntegral.integral_const]
+        simp
+
+open MeasureTheory in
 /-- **The `L²` triangle inequality, at cost `2`** (Track R, A2-III,
 II-2c-0): for continuous `F, G`,
 
