@@ -1363,4 +1363,41 @@ theorem intervalIntegral_norm_sq_prime_poly_pow_le (Y : Finset ℕ)
   have hfac : (0:ℝ) ≤ (Nat.factorial ℓ : ℝ)^2 := by positivity
   exact mul_le_mul_of_nonneg_left hharm hfac
 
+
+/-- **The Euler factor of the pair-divisor sum** (Track R, A2-III,
+III-2b): for `0 < x ≤ 1/2`,
+
+  `(1 + x)/(1 − x)² ≤ exp (4x)`.
+
+`(1+x)/(1−x)² = ∑_{k≥0} (2k+1)x^k = ∑_{i,j≥0} x^{max(i,j)}` is the local
+factor at `x = 1/p` of the pair-divisor sum `∑_{r,r' Y-smooth} 1/[r,r']`,
+because `[r,r'] = ∏_p p^{max(i_p, j_p)}` and `#{(i,j) : max(i,j) = k}
+= 2k+1`.  So this inequality is what turns that double sum into
+`exp (4 ∑_{p∈Y} 1/p)` — the elementary substitute for Shiu's theorem in the
+`[MR]` moment estimates.
+
+⚠️ **The constant is `4`, not `3`.** The A2-III ladder's design note records
+this factor as `1 + 3/p + 4/p² + …` and bounds it by `exp (3/p)`.  Both are
+wrong: the expansion is `1 + 3/p + 5/p² + 7/p³ + …`, and since
+`exp(3x) = 1 + 3x + 4.5x² + …` the difference is `+0.5x² + O(x³) > 0`, so the
+claimed bound fails at **every** prime rather than only at small ones —
+`p = 2` gives `6 > 4.482`, `p = 5` gives `1.875 > 1.822`, and even `p = 101`
+gives `1.03020 > 1.03015`.  With `4` the inequality is true on all of
+`(0, 1/2]`: `f(x) = 4x − log((1+x)/(1−x)²)` satisfies `f(0) = 0`,
+`f'(0) = 1 > 0`, `f'(1/2) = −2/3 < 0` and `f(1/2) ≈ 0.208 > 0`.
+
+Consumers should therefore be stated with `exp (4 ∑ 1/p)`; the constant is
+absolute and no downstream estimate is sensitive to its value. -/
+theorem one_add_div_one_sub_sq_le_exp (x : ℝ) (hx : 0 < x) (hx2 : x ≤ 1/2) :
+    (1 + x)/(1 - x)^2 ≤ Real.exp (4*x) := by
+  have hx1 : x < 1 := by linarith
+  have hden : (0:ℝ) < (1 - x)^2 := pow_pos (by linarith : (0:ℝ) < 1 - x) 2
+  rw [div_le_iff₀ hden]
+  have hexp : 1 + 4*x + (4*x)^2/2 + (4*x)^3/6 ≤ Real.exp (4*x) := by
+    have h0 : (0:ℝ) ≤ 4*x := by linarith
+    have := Real.sum_le_exp_of_nonneg h0 4
+    simpa [Finset.sum_range_succ, Nat.factorial] using this
+  refine le_trans ?_ (mul_le_mul_of_nonneg_right hexp (le_of_lt hden))
+  nlinarith [sq_nonneg x, pow_pos hx 3, pow_pos hx 4, sq_nonneg (1-x), hx, hx2]
+
 end MoltResearch
