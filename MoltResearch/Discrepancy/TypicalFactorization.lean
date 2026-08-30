@@ -484,4 +484,64 @@ theorem norm_sum_fiber_le (s : Finset (ℕ × ℕ)) (a : ℕ × ℕ → ℂ)
     _ = ((s.filter (fun q => q.1 * q.2 = n)).card : ℝ) * B := by
         rw [Finset.sum_const, nsmul_eq_mul]
 
+
+open Finset in
+/-- **A product of two primes has at most two ordered factorisations**
+(Track R, A2-III, III-1c): the fibre of `(p,q) ↦ pq` over any `n`,
+within a product of two prime sets, has at most two elements.
+
+This is the `ℓ = 2` case of the multiplicity bound the moment
+computation needs (`ℓ!` ordered representations of an `ℓ`-fold
+product).  Unique factorisation does the work: if `pq = ab` with all
+four prime then `p ∈ {a, b}`, and the partner is forced by
+cancellation. -/
+theorem card_prime_pair_fiber_le (Y Z : Finset ℕ)
+    (hY : ∀ p ∈ Y, p.Prime) (hZ : ∀ q ∈ Z, q.Prime) (n : ℕ) :
+    (((Y ×ˢ Z).filter (fun q => q.1 * q.2 = n)).card) ≤ 2 := by
+  classical
+  rcases Finset.eq_empty_or_nonempty
+    ((Y ×ˢ Z).filter (fun q => q.1 * q.2 = n)) with hempty | ⟨ab, hab⟩
+  · rw [hempty]
+    simp
+  · -- every member of the fibre is `ab` or its swap
+    have habmem := hab
+    rw [Finset.mem_filter, Finset.mem_product] at habmem
+    obtain ⟨⟨haY, hbZ⟩, hprod⟩ := habmem
+    have ha := hY _ haY
+    have hb := hZ _ hbZ
+    have hsub : (Y ×ˢ Z).filter (fun q => q.1 * q.2 = n)
+        ⊆ {ab, (ab.2, ab.1)} := by
+      intro pq hpq
+      rw [Finset.mem_filter, Finset.mem_product] at hpq
+      obtain ⟨⟨hpY, hqZ⟩, hpqn⟩ := hpq
+      have hp := hY _ hpY
+      have heq : pq.1 * pq.2 = ab.1 * ab.2 := by
+        rw [hpqn, hprod]
+      have hdvd : pq.1 ∣ ab.1 * ab.2 := ⟨pq.2, heq.symm⟩
+      have hcase := (Nat.Prime.dvd_mul hp).mp hdvd
+      rw [Finset.mem_insert, Finset.mem_singleton]
+      rcases hcase with h1 | h2
+      · -- `pq.1 = ab.1`, so the partners agree
+        have h1' : pq.1 = ab.1 := ((Nat.prime_dvd_prime_iff_eq hp ha).mp h1)
+        left
+        have hpos : 0 < ab.1 := ha.pos
+        have : pq.2 = ab.2 := by
+          have := heq
+          rw [h1'] at this
+          exact Nat.eq_of_mul_eq_mul_left hpos this
+        exact Prod.ext h1' this
+      · -- `pq.1 = ab.2`, so `pq.2 = ab.1`
+        have h2' : pq.1 = ab.2 := ((Nat.prime_dvd_prime_iff_eq hp hb).mp h2)
+        right
+        have hpos : 0 < ab.2 := hb.pos
+        have : pq.2 = ab.1 := by
+          have hcomm : ab.2 * pq.2 = ab.2 * ab.1 := by
+            calc ab.2 * pq.2 = pq.1 * pq.2 := by rw [h2']
+              _ = ab.1 * ab.2 := heq
+              _ = ab.2 * ab.1 := by ring
+          exact Nat.eq_of_mul_eq_mul_left hpos hcomm
+        exact Prod.ext h2' this
+    refine le_trans (Finset.card_le_card hsub) ?_
+    exact le_trans (Finset.card_insert_le _ _) (by simp)
+
 end MoltResearch
