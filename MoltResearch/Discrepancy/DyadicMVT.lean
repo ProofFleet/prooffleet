@@ -3981,6 +3981,64 @@ theorem sum_Ioc_eq_sum_Ioc_add_collars {M : Type*} [AddCommGroup M]
   exact hkey
 
 open MeasureTheory in
+/-- **The collar energy at an explicit collar length** (Track R, A2-III,
+II-2b-0): for a collar `C ⊆ (M, M + L]` no longer than its anchor,
+
+  `∫_{−T}^{T} ‖∑_{n∈C} (d n/n)·e(−ξ log n)‖² ≤ e^π·(T/M + 4)·(L/M)`.
+
+This is the form the `[MR]` telescoping actually produces.  The
+collar's length comes out of *natural-number* division bookkeeping —
+`|A/p − A/q|` for two primes of one e-adic cell — and is therefore an
+explicit `ℕ`, not a clean `M/N`; carrying `L` and paying `L/M` avoids
+having to absorb a floor into the resolution parameter.
+`collar_energy_le` is the `L = M/N` case. -/
+theorem collar_energy_length_le (M L : ℕ) (hM : 1 ≤ M) (hLM : L ≤ M)
+    (C : Finset ℕ) (hC : C ⊆ Finset.Ioc M (M + L))
+    (d : ℕ → ℂ) (hd : ∀ n, ‖d n‖ ≤ 1) (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ C, (d n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp Real.pi * (T/(M:ℝ) + 4) * ((L:ℝ)/(M:ℝ)) := by
+  classical
+  have hM0 : (0:ℝ) < M := by exact_mod_cast hM
+  -- the collar sits in a dyadic range
+  have hC2M : C ⊆ Finset.Ioc M (2*M) := by
+    refine hC.trans (Finset.Ioc_subset_Ioc_right ?_)
+    omega
+  have hbase := intervalIntegral_norm_sq_short_poly_le_sharp_of_bound
+    M hM C hC2M d 1 (by norm_num) hd T hT
+  refine le_trans hbase ?_
+  -- the collar's harmonic mass is `L/M`-small: `L` terms, each `≤ 1/M`
+  have hmass : ∑ n ∈ C, (1:ℝ)/(n:ℝ) ≤ (L:ℝ)/(M:ℝ) := by
+    have hterm : ∀ n ∈ C, (1:ℝ)/(n:ℝ) ≤ 1/(M:ℝ) := by
+      intro n hn
+      have hnM : M < n := (Finset.mem_Ioc.mp (hC hn)).1
+      have hn0 : (0:ℝ) < n := by
+        have : (0:ℕ) < n := by omega
+        exact_mod_cast this
+      have hMn : (M:ℝ) ≤ (n:ℝ) := by exact_mod_cast hnM.le
+      rw [div_le_div_iff₀ hn0 hM0]
+      linarith
+    have hcard : (C.card : ℝ) ≤ (L:ℝ) := by
+      have h1 : C.card ≤ L := by
+        have hcc := Finset.card_le_card hC
+        rwa [Nat.card_Ioc, Nat.add_sub_cancel_left] at hcc
+      exact_mod_cast h1
+    calc ∑ n ∈ C, (1:ℝ)/(n:ℝ)
+        ≤ ∑ _n ∈ C, 1/(M:ℝ) := Finset.sum_le_sum hterm
+      _ = (C.card : ℝ) * (1/(M:ℝ)) := by
+          rw [Finset.sum_const, nsmul_eq_mul]
+      _ ≤ (L:ℝ) * (1/(M:ℝ)) :=
+          mul_le_mul_of_nonneg_right hcard (by positivity)
+      _ = (L:ℝ)/(M:ℝ) := by
+          ring
+  have hconst : (0:ℝ) ≤ Real.exp Real.pi * (T/(M:ℝ) + 4) := by positivity
+  calc Real.exp Real.pi * (T/(M:ℝ) + 4) * (1^2 * ∑ n ∈ C, (1:ℝ)/(n:ℝ))
+      = Real.exp Real.pi * (T/(M:ℝ) + 4) * (∑ n ∈ C, (1:ℝ)/(n:ℝ)) := by
+        ring
+    _ ≤ Real.exp Real.pi * (T/(M:ℝ) + 4) * ((L:ℝ)/(M:ℝ)) :=
+        mul_le_mul_of_nonneg_left hmass hconst
+
+open MeasureTheory in
 /-- **The collar energy** (Track R, A2-III, II-3): a collar is a short
 interval `(M, M + M/N]` at the edge of a block, and its energy is
 `1/N`-small —
@@ -3998,51 +4056,19 @@ theorem collar_energy_le (M N : ℕ) (hM : 1 ≤ M) (hN : 0 < N)
     (∫ ξ in (-T)..T, ‖∑ n ∈ C, (d n/(n:ℂ))
         * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
       ≤ Real.exp Real.pi * (T/(M:ℝ) + 4) * (2/(N:ℝ)) := by
-  classical
   have hM0 : (0:ℝ) < M := by exact_mod_cast hM
   have hN0 : (0:ℝ) < N := by exact_mod_cast hN
-  -- the collar sits in a dyadic range
-  have hC2M : C ⊆ Finset.Ioc M (2*M) := by
-    refine hC.trans (Finset.Ioc_subset_Ioc_right ?_)
-    have : M/N ≤ M := Nat.div_le_self M N
-    omega
-  have hbase := intervalIntegral_norm_sq_short_poly_le_sharp_of_bound
-    M hM C hC2M d 1 (by norm_num) hd T hT
-  refine le_trans hbase ?_
-  -- the collar's harmonic mass is `1/N`-small
-  have hmass : ∑ n ∈ C, (1:ℝ)/(n:ℝ) ≤ 2/(N:ℝ) := by
-    have hterm : ∀ n ∈ C, (1:ℝ)/(n:ℝ) ≤ 1/(M:ℝ) := by
-      intro n hn
-      have hnM : M < n := (Finset.mem_Ioc.mp (hC hn)).1
-      have hn0 : (0:ℝ) < n := by
-        have : (0:ℕ) < n := by omega
-        exact_mod_cast this
-      have hMn : (M:ℝ) ≤ (n:ℝ) := by exact_mod_cast hnM.le
-      rw [div_le_div_iff₀ hn0 hM0]
-      linarith
-    have hcard : (C.card : ℝ) ≤ (M:ℝ)/(N:ℝ) := by
-      have h1 : C.card ≤ M/N := by
-        have hcc := Finset.card_le_card hC
-        rwa [Nat.card_Ioc, Nat.add_sub_cancel_left] at hcc
-      have h2 : ((M/N : ℕ):ℝ) ≤ (M:ℝ)/(N:ℝ) := Nat.cast_div_le
-      exact le_trans (by exact_mod_cast h1) h2
-    calc ∑ n ∈ C, (1:ℝ)/(n:ℝ)
-        ≤ ∑ _n ∈ C, 1/(M:ℝ) := Finset.sum_le_sum hterm
-      _ = (C.card : ℝ) * (1/(M:ℝ)) := by
-          rw [Finset.sum_const, nsmul_eq_mul]
-      _ ≤ ((M:ℝ)/(N:ℝ)) * (1/(M:ℝ)) :=
-          mul_le_mul_of_nonneg_right hcard (by positivity)
-      _ = 1/(N:ℝ) := by
-          field_simp
-      _ ≤ 2/(N:ℝ) := by
-          rw [div_le_div_iff₀ hN0 hN0]
-          nlinarith [hN0]
+  refine (collar_energy_length_le M (M/N) hM (Nat.div_le_self M N)
+    C hC d hd T hT).trans ?_
   have hconst : (0:ℝ) ≤ Real.exp Real.pi * (T/(M:ℝ) + 4) := by positivity
-  calc Real.exp Real.pi * (T/(M:ℝ) + 4) * (1^2 * ∑ n ∈ C, (1:ℝ)/(n:ℝ))
-      = Real.exp Real.pi * (T/(M:ℝ) + 4) * (∑ n ∈ C, (1:ℝ)/(n:ℝ)) := by
-        ring
-    _ ≤ Real.exp Real.pi * (T/(M:ℝ) + 4) * (2/(N:ℝ)) :=
-        mul_le_mul_of_nonneg_left hmass hconst
+  refine mul_le_mul_of_nonneg_left ?_ hconst
+  have h2 : ((M/N : ℕ):ℝ) ≤ (M:ℝ)/(N:ℝ) := Nat.cast_div_le
+  calc ((M/N : ℕ):ℝ)/(M:ℝ) ≤ ((M:ℝ)/(N:ℝ))/(M:ℝ) := by
+        gcongr
+    _ = 1/(N:ℝ) := by field_simp
+    _ ≤ 2/(N:ℝ) := by
+        rw [div_le_div_iff₀ hN0 hN0]
+        nlinarith [hN0]
 
 
 open MeasureTheory in
