@@ -745,6 +745,63 @@ theorem card_prime_pair_fiber_le (Y Z : Finset ℕ)
     exact le_trans (Finset.card_insert_le _ _) (by simp)
 
 
+open Finset in
+/-- **An `ℓ`-fold product of primes has at most `ℓ!` ordered
+factorisations** (Track R, A2-III, III-1d): for a `Finset` of primes `Y`,
+
+  `#{v ∈ Y^ℓ : ∏ᵢ vᵢ = n} ≤ ℓ!`.
+
+The `ℓ`-fold generalisation of `card_prime_pair_fiber_le`, and the
+multiplicity input to the `2ℓ`-th moment of a prime polynomial: after
+`phase_poly_fiberwise` collapses `Q^ℓ` to a Dirichlet polynomial, this
+bounds its coefficients.
+
+The proof is the fundamental theorem of arithmetic packaged as
+`Nat.primeFactorsList_unique`: every tuple in the fibre, read as a list,
+is a permutation of `n`'s prime factorisation, `List.ofFn` is injective,
+and a list of length `ℓ` has exactly `ℓ!` permutations. -/
+theorem card_prime_tuple_fiber_le {ℓ : ℕ} (Y : Finset ℕ)
+    (hY : ∀ p ∈ Y, p.Prime) (n : ℕ) :
+    ((Fintype.piFinset fun _ : Fin ℓ => Y).filter
+        (fun v => ∏ i, v i = n)).card ≤ Nat.factorial ℓ := by
+  classical
+  rcases Finset.eq_empty_or_nonempty
+      ((Fintype.piFinset fun _ : Fin ℓ => Y).filter (fun v => ∏ i, v i = n))
+    with hemp | ⟨v₀, hv₀⟩
+  · rw [hemp]
+    exact Nat.zero_le _
+  -- every member of the fibre, read as a list, is prime-valued with product `n`
+  have hprime : ∀ v ∈ (Fintype.piFinset fun _ : Fin ℓ => Y).filter
+      (fun v => ∏ i, v i = n), ∀ p ∈ List.ofFn v, Nat.Prime p := by
+    intro v hv p hp
+    rw [Finset.mem_filter, Fintype.mem_piFinset] at hv
+    rw [List.mem_ofFn] at hp
+    obtain ⟨i, rfl⟩ := hp
+    exact hY _ (hv.1 i)
+  have hperm : ∀ v ∈ (Fintype.piFinset fun _ : Fin ℓ => Y).filter
+      (fun v => ∏ i, v i = n),
+        List.Perm (List.ofFn v) (Nat.primeFactorsList n) := by
+    intro v hv
+    refine Nat.primeFactorsList_unique ?_ (hprime v hv)
+    rw [List.prod_ofFn]
+    exact (Finset.mem_filter.mp hv).2
+  -- the fibre is nonempty, so `n` factors into exactly `ℓ` primes
+  have hlen : (Nat.primeFactorsList n).length = ℓ := by
+    have := (hperm v₀ hv₀).length_eq
+    rw [List.length_ofFn] at this
+    exact this.symm
+  have hcard : ((Fintype.piFinset fun _ : Fin ℓ => Y).filter
+      (fun v => ∏ i, v i = n)).card
+      ≤ ((Nat.primeFactorsList n).permutations.toFinset).card := by
+    refine Finset.card_le_card_of_injOn (fun v => List.ofFn v) ?_
+      (fun v _ w _ h => List.ofFn_injective h)
+    intro v hv
+    simp only [Finset.mem_coe, List.mem_toFinset, List.mem_permutations]
+    rw [Finset.mem_coe] at hv
+    exact hperm v hv
+  refine le_trans hcard (le_trans (List.toFinset_card_le _) ?_)
+  rw [List.length_permutations, hlen]
+
 /-! ## The harmonic mass of a product set (Track R, A2-III, III-2a) -/
 
 open Finset in
