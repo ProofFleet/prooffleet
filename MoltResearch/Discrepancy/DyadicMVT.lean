@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.LargeValues
 import MoltResearch.Discrepancy.TuranKubilius
 import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.Analysis.SpecialFunctions.Gaussian.FourierTransform
 
 /-!
@@ -3325,6 +3326,57 @@ theorem norm_sq_plain_split (A : ℕ) (S : Finset ℕ)
       * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)),
     norm_nonneg (∑ n ∈ S, (((n:ℂ) - (A:ℂ)) * c n/(n:ℂ))
       * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))]
+
+
+open MeasureTheory in
+/-- **The Gaussian tail sum against the integral** (Track R, A2-III,
+I-1a): for `c > 0`, `∑_{k=1}^{M} e^{−ck²} ≤ √(π/c)` — the shifted
+sum-versus-integral comparison against the Gaussian integral.  This is
+the step that makes the short-block mean value theorem log-free; the
+constant is deliberately loose (the sharp value is half this). -/
+theorem sum_exp_neg_mul_sq_le (c : ℝ) (hc : 0 < c) (M : ℕ) :
+    ∑ k ∈ Finset.Icc 1 M, Real.exp (-(c*(k:ℝ)^2))
+      ≤ Real.sqrt (Real.pi/c) := by
+  classical
+  set f : ℝ → ℝ := fun u => Real.exp (-(c*u^2)) with hf_def
+  have hanti : AntitoneOn f (Set.Icc (0:ℝ) (0 + (M:ℝ))) := by
+    intro u hu v hv huv
+    simp only [hf_def]
+    refine Real.exp_le_exp.2 ?_
+    have hu0 : (0:ℝ) ≤ u := hu.1
+    have hsq : u^2 ≤ v^2 := pow_le_pow_left₀ hu0 huv 2
+    have := mul_le_mul_of_nonneg_left hsq hc.le
+    linarith
+  have hcmp := AntitoneOn.sum_le_integral (x₀ := (0:ℝ)) (a := M)
+    (f := f) hanti
+  have hshift : ∑ k ∈ Finset.Icc 1 M, Real.exp (-(c*(k:ℝ)^2))
+      = ∑ i ∈ Finset.range M, f (0 + ((i:ℕ) + 1 : ℕ)) := by
+    rw [show Finset.Icc 1 M = (Finset.range M).image (fun i => i + 1) by
+      ext k
+      simp only [Finset.mem_Icc, Finset.mem_image, Finset.mem_range]
+      constructor
+      · rintro ⟨h1, h2⟩
+        exact ⟨k - 1, by omega, by omega⟩
+      · rintro ⟨i, hi, rfl⟩
+        omega]
+    rw [Finset.sum_image (by intro a _ b _ hab; simpa using hab)]
+    refine Finset.sum_congr rfl fun i _ => ?_
+    simp only [hf_def]
+    push_cast
+    ring_nf
+  rw [hshift]
+  refine le_trans hcmp ?_
+  have hint : Integrable f := by
+    simp only [hf_def]
+    simpa using integrable_exp_neg_mul_sq hc
+  have hnonneg : ∀ u : ℝ, 0 ≤ f u := fun u => (Real.exp_pos _).le
+  have hgauss : ∫ u, f u = Real.sqrt (Real.pi/c) := by
+    simp only [hf_def]
+    simpa using integral_gaussian c
+  rw [← hgauss, zero_add, intervalIntegral.integral_of_le (by positivity)]
+  refine le_trans (setIntegral_le_integral hint
+    (Filter.Eventually.of_forall hnonneg)) ?_
+  exact le_rfl
 
 end ExpSums
 
