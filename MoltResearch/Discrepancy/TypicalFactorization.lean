@@ -640,6 +640,32 @@ theorem phase_poly_fiberwise (s : Finset (ℕ × ℕ)) (T : Finset ℕ)
   rw [hq.2]
 
 open Finset in
+/-- **The fibre collapse, at a general index** (Track R, A2-III,
+III-1e): `phase_poly_fiberwise` with an arbitrary index type and an
+arbitrary map to the support —
+
+  `∑_{q∈s} (a q/φ q)·e(−ξ log φ q)
+     = ∑_{n∈T} ((∑_{q∈s, φ q = n} a q)/n)·e(−ξ log n)`.
+
+The `ℓ`-fold moment needs the index `Fin ℓ → ℕ` and the map
+`v ↦ ∏ᵢ vᵢ`, which the pair version cannot express. -/
+theorem phase_poly_fiberwise' {ι : Type*} [DecidableEq ι] (s : Finset ι)
+    (φ : ι → ℕ) (T : Finset ℕ) (hmaps : ∀ q ∈ s, φ q ∈ T) (a : ι → ℂ)
+    (ξ : ℝ) :
+    ∑ q ∈ s, (a q/((φ q : ℕ):ℂ))
+        * ((Real.fourierChar (-(Real.log (φ q) * ξ)) : Circle) : ℂ)
+      = ∑ n ∈ T, ((∑ q ∈ s.filter (fun q => φ q = n), a q)/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+  classical
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps
+    (fun q => (a q/((φ q : ℕ):ℂ))
+      * ((Real.fourierChar (-(Real.log (φ q) * ξ)) : Circle) : ℂ))]
+  refine Finset.sum_congr rfl fun n _ => ?_
+  rw [Finset.sum_div, Finset.sum_mul]
+  refine Finset.sum_congr rfl fun q hq => ?_
+  rw [(Finset.mem_filter.mp hq).2]
+
+open Finset in
 /-- **The fibre coefficient bound** (Track R, A2-III, III-1b): the
 collapsed coefficient at `n` is at most the fibre cardinality times
 the pointwise weight bound.  The `[MR]` moment computation supplies
