@@ -859,4 +859,127 @@ theorem sum_one_div_image_prod_le (Y : Finset ℕ) (ℓ : ℕ) :
   rw [hpow, Finset.prod_univ_sum]
   refine le_of_eq (Finset.sum_congr rfl fun v _ => hsplit v)
 
+
+/-! ## The `ℓ`-fold product set, graded by `Ω` (Track R, A2-III, III-2d) -/
+
+open Finset in
+/-- **The `ℓ`-fold product set is the `Ω`-graded smooth set** (Track R,
+A2-III, III-2d): for a `Finset` of primes `Y`,
+
+  `n ∈ Y^ℓ  ↔  n ≠ 0 ∧ Ω(n) = ℓ ∧ (prime factors of n) ⊆ Y`,
+
+with `Ω(n)` the length of `n`'s prime factorisation.  The support of
+`Q^ℓ` is described here without reference to tuples, which is what makes
+it closed under taking divisors — see `exists_dvd_split_image_prod`.
+
+The `n ≠ 0` clause is not decoration: `Nat.primeFactorsList 0 = []`, so
+without it `n = 0` would qualify at `ℓ = 0`, where the product set is
+`{1}`.
+
+Both directions are the fundamental theorem of arithmetic as
+`Nat.primeFactorsList_unique`: a tuple read through `List.ofFn` is a
+prime-valued list with product `n`, hence a permutation of `n`'s
+factorisation; conversely that factorisation, read through `List.get`,
+is a tuple. -/
+theorem mem_image_prod_iff {ℓ : ℕ} (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (n : ℕ) :
+    n ∈ (Fintype.piFinset fun _ : Fin ℓ => Y).image (fun v => ∏ i, v i)
+      ↔ n ≠ 0 ∧ (Nat.primeFactorsList n).length = ℓ ∧ n.primeFactors ⊆ Y := by
+  classical
+  constructor
+  · intro hn
+    rw [Finset.mem_image] at hn
+    obtain ⟨v, hv, rfl⟩ := hn
+    rw [Fintype.mem_piFinset] at hv
+    have hvp : ∀ i, Nat.Prime (v i) := fun i => hY _ (hv i)
+    have hne : (∏ i, v i) ≠ 0 :=
+      Finset.prod_ne_zero_iff.mpr fun i _ => (hvp i).pos.ne'
+    have hprime : ∀ p ∈ List.ofFn v, Nat.Prime p := by
+      intro p hp
+      rw [List.mem_ofFn] at hp
+      obtain ⟨i, rfl⟩ := hp
+      exact hvp i
+    have hperm : List.Perm (List.ofFn v)
+        (Nat.primeFactorsList (∏ i, v i)) := by
+      refine Nat.primeFactorsList_unique ?_ hprime
+      rw [List.prod_ofFn]
+    refine ⟨hne, ?_, ?_⟩
+    · have hl := hperm.length_eq
+      rw [List.length_ofFn] at hl
+      exact hl.symm
+    · intro p hp
+      have hpl : p ∈ Nat.primeFactorsList (∏ i, v i) :=
+        Nat.mem_primeFactors_iff_mem_primeFactorsList.mp hp
+      have hpo : p ∈ List.ofFn v := (hperm.mem_iff).mpr hpl
+      rw [List.mem_ofFn] at hpo
+      obtain ⟨i, rfl⟩ := hpo
+      exact hv i
+  · rintro ⟨hne, hlen, hsub⟩
+    rw [Finset.mem_image]
+    subst hlen
+    refine ⟨fun i => (Nat.primeFactorsList n).get i, ?_, ?_⟩
+    · rw [Fintype.mem_piFinset]
+      intro i
+      refine hsub ?_
+      refine Nat.mem_primeFactors_iff_mem_primeFactorsList.mpr ?_
+      exact List.get_mem _ _
+    · rw [← List.prod_ofFn, List.ofFn_get]
+      exact Nat.prod_primeFactorsList hne
+
+open Finset in
+/-- **The `ℓ`-fold product set splits along divisors** (Track R, A2-III,
+III-2d): if `r ∈ Y^ℓ` and `d ∣ r`, then `d ∈ Y^k` and `r/d ∈ Y^{ℓ−k}`
+for `k = Ω(d) ≤ ℓ`.
+
+`k` is named, not existentially quantified.  The consumer partitions
+`Y^ℓ × Y^ℓ` into the fibres of `(r,r') ↦ Ω(gcd r r')` and needs the
+splitting to land in the fibre it is working in, which an existential
+cannot say.
+
+This is the structural fact the `[MR]` moment estimate needs and that a
+tuple-level description cannot supply directly: a divisor of a product
+of `ℓ` primes of `Y` is again such a product, of a shorter length, with
+the lengths adding.  It is what lets `∑_{r,r' ∈ Y^ℓ} 1/[r,r']` be
+summed against the finite ladder `Y^0, …, Y^ℓ` — writing
+`[r,r'] = gcd·(r/gcd)·(r'/gcd)` and pricing each factor by
+`sum_one_div_image_prod_le` — instead of by an Euler product over the
+infinitely many `Y`-smooth numbers, which is the route the A2-III design
+note proposed and where its constant went wrong.
+
+Immediate from `mem_image_prod_iff`: divisibility passes to prime-factor
+sets, and `Ω` is additive along `r = (r/d)·d`. -/
+theorem dvd_split_image_prod {ℓ : ℕ} (Y : Finset ℕ)
+    (hY : ∀ p ∈ Y, p.Prime) {r d : ℕ}
+    (hr : r ∈ (Fintype.piFinset fun _ : Fin ℓ => Y).image (fun v => ∏ i, v i))
+    (hd : d ∣ r) :
+    (Nat.primeFactorsList d).length ≤ ℓ ∧
+      d ∈ (Fintype.piFinset fun _ : Fin (Nat.primeFactorsList d).length => Y).image
+            (fun v => ∏ i, v i) ∧
+      r/d ∈ (Fintype.piFinset
+              fun _ : Fin (ℓ - (Nat.primeFactorsList d).length) => Y).image
+              (fun v => ∏ i, v i) := by
+  classical
+  obtain ⟨hr0, hrlen, hrsub⟩ := (mem_image_prod_iff Y hY r).mp hr
+  have hd0 : d ≠ 0 := by
+    rintro rfl
+    exact hr0 (Nat.eq_zero_of_zero_dvd hd)
+  have hmul : (r/d) * d = r := Nat.div_mul_cancel hd
+  have he0 : r/d ≠ 0 := by
+    intro h
+    rw [← hmul, h, zero_mul] at hr0
+    exact hr0 rfl
+  have hperm := Nat.perm_primeFactorsList_mul he0 hd0
+  rw [hmul] at hperm
+  have hlen : (Nat.primeFactorsList (r/d)).length
+      + (Nat.primeFactorsList d).length = ℓ := by
+    have hl := hperm.length_eq
+    rw [List.length_append] at hl
+    omega
+  refine ⟨by omega, ?_, ?_⟩
+  · refine (mem_image_prod_iff Y hY d).mpr ⟨hd0, rfl, ?_⟩
+    exact fun p hp => hrsub (Nat.primeFactors_mono hd hr0 hp)
+  · refine (mem_image_prod_iff Y hY (r/d)).mpr ⟨he0, by omega, ?_⟩
+    exact fun p hp =>
+      hrsub (Nat.primeFactors_mono (Nat.div_dvd_of_dvd hd) hr0 hp)
+
 end MoltResearch
