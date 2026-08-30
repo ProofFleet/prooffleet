@@ -398,4 +398,42 @@ theorem eadicCell_bounds {P : Finset ℕ} {N v p : ℕ} (hN : 0 < N)
     rw [lt_div_iff₀ hN0]
     linarith [hfl.2]
 
+
+open Finset in
+/-- **The one-step convolution of phase polynomials** (Track R,
+A2-III, III-0): the product of two `1/n`-normalised phase polynomials
+is the phase polynomial of the product support —
+
+  `(∑_{m∈S} (a m/m)·e(−ξ log m))·(∑_{p∈Y} (b p/p)·e(−ξ log p))
+     = ∑_{(m,p) ∈ S ×ˢ Y} (a m·b p/(mp))·e(−ξ log(mp))`.
+
+Iterating this is how the `ℓ`-th power of a prime polynomial becomes a
+Dirichlet polynomial supported on `ℓ`-fold products, which is what the
+`[MR]` moment computation needs.  Stated over `S ×ˢ Y` rather than
+over the image: collapsing the fibres (with their `ℓ!`-multiplicity)
+is a separate, purely combinatorial step. -/
+theorem phase_poly_mul (S Y : Finset ℕ) (a b : ℕ → ℂ)
+    (hS : ∀ m ∈ S, 0 < m) (hY : ∀ p ∈ Y, 0 < p) (ξ : ℝ) :
+    (∑ m ∈ S, (a m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+      * (∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))
+      = ∑ q ∈ S ×ˢ Y, ((a q.1 * b q.2)/(((q.1 * q.2 : ℕ)):ℂ))
+          * ((Real.fourierChar (-(Real.log ((q.1 * q.2 : ℕ)) * ξ)) : Circle) : ℂ) := by
+  classical
+  rw [Finset.sum_mul_sum]
+  rw [← Finset.sum_product']
+  refine Finset.sum_congr rfl fun q hq => ?_
+  rw [Finset.mem_product] at hq
+  have hm0 : 0 < q.1 := hS q.1 hq.1
+  have hp0 : 0 < q.2 := hY q.2 hq.2
+  have hmc : ((q.1 : ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr hm0.ne'
+  have hpc : ((q.2 : ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr hp0.ne'
+  rw [char_mul q.1 q.2 hm0 hp0 ξ]
+  have hcast : (((q.1 * q.2 : ℕ)):ℂ) = ((q.1 : ℕ):ℂ) * ((q.2 : ℕ):ℂ) := by
+    push_cast
+    ring
+  rw [hcast]
+  field_simp
+
 end MoltResearch
