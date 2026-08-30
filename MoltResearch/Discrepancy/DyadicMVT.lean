@@ -4067,6 +4067,79 @@ theorem norm_sq_le_window_integral (F F' : ℝ → ℂ)
         simp
 
 open MeasureTheory in
+/-- **Gallagher's lemma** (Track R, A2-III, V-0b): a `1`-separated set of
+sample points in `[−T, T]` is controlled by one integral —
+
+  `∑_{t∈𝒯} ‖F t‖² ≤ ∫_{−T}^{T+1} (‖F u‖² + 2‖F u‖‖F' u‖) du`.
+
+This is the discretisation the `[MR]` exceptional-frequency treatment
+needs: a sum over frequencies, which carries no analytic structure,
+becomes an integral, which the mean value theorem can see.  The
+hypothesis is only that distinct sample points are at distance `≥ 1`;
+`1`-separation is exactly what makes the unit windows
+`(t, t+1]` pairwise disjoint, so the per-point bounds of
+`norm_sq_le_window_integral` add up to a single integral rather than
+overlapping. -/
+theorem sum_norm_sq_le_integral_of_separated (F F' : ℝ → ℂ)
+    (hF : ∀ u, HasDerivAt F (F' u) u) (hFc : Continuous F)
+    (hF'c : Continuous F') (𝒯 : Finset ℝ) (T : ℝ) (hT : 0 ≤ T)
+    (hmem : ∀ t ∈ 𝒯, t ∈ Set.Icc (-T) T)
+    (hsep : ∀ t ∈ 𝒯, ∀ s ∈ 𝒯, t ≠ s → 1 ≤ |t - s|) :
+    ∑ t ∈ 𝒯, ‖F t‖^2
+      ≤ ∫ u in (-T)..(T+1), (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) := by
+  classical
+  have hGc : Continuous fun u => ‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖ :=
+    (hFc.norm.pow 2).add ((continuous_const.mul hFc.norm).mul hF'c.norm)
+  have hGnn : ∀ u, 0 ≤ ‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖ := fun u => by positivity
+  -- each sample point is controlled by its own unit window
+  have hstep : ∀ t ∈ 𝒯, ‖F t‖^2
+      ≤ ∫ u in Set.Ioc t (t+1), (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) := by
+    intro t _
+    have hbase := norm_sq_le_window_integral F F' hF hFc hF'c t t le_rfl
+      (by linarith)
+    have hsplit : (∫ u in t..(t+1), (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖))
+        = (∫ u in t..(t+1), ‖F u‖^2)
+          + ∫ u in t..(t+1), 2 * ‖F u‖ * ‖F' u‖ :=
+      intervalIntegral.integral_add ((hFc.norm.pow 2).intervalIntegrable _ _)
+        (((continuous_const.mul hFc.norm).mul hF'c.norm).intervalIntegrable _ _)
+    rw [← intervalIntegral.integral_of_le (by linarith : t ≤ t + 1), hsplit]
+    exact hbase
+  -- the unit windows are pairwise disjoint, by `1`-separation
+  have hdisj : Set.Pairwise (↑𝒯 : Set ℝ)
+      (Function.onFun Disjoint (fun t => Set.Ioc t (t+1))) := by
+    intro t ht s hs hts
+    simp only [Function.onFun, Set.disjoint_left]
+    intro x hx hx'
+    rw [Set.mem_Ioc] at hx hx'
+    have := hsep t (by exact_mod_cast ht) s (by exact_mod_cast hs) hts
+    rcases abs_cases (t - s) with ⟨heq, -⟩ | ⟨heq, -⟩ <;> rw [heq] at this <;>
+      linarith [hx.1, hx.2, hx'.1, hx'.2]
+  -- so the per-window integrals add up to one integral over the union
+  have hunion : ∑ t ∈ 𝒯, ∫ u in Set.Ioc t (t+1),
+        (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖)
+      = ∫ u in (⋃ t ∈ 𝒯, Set.Ioc t (t+1)),
+          (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) :=
+    (MeasureTheory.integral_biUnion_finset 𝒯 (fun t _ => measurableSet_Ioc)
+      hdisj (fun t _ => hGc.integrableOn_Ioc)).symm
+  have hsub : (⋃ t ∈ 𝒯, Set.Ioc t (t+1)) ⊆ Set.Ioc (-T) (T+1) := by
+    intro x hx
+    simp only [Set.mem_iUnion, Set.mem_Ioc] at hx ⊢
+    obtain ⟨t, ht, hx1, hx2⟩ := hx
+    have := hmem t ht
+    rw [Set.mem_Icc] at this
+    constructor <;> linarith [this.1, this.2]
+  calc ∑ t ∈ 𝒯, ‖F t‖^2
+      ≤ ∑ t ∈ 𝒯, ∫ u in Set.Ioc t (t+1),
+          (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) := Finset.sum_le_sum hstep
+    _ = ∫ u in (⋃ t ∈ 𝒯, Set.Ioc t (t+1)),
+          (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) := hunion
+    _ ≤ ∫ u in Set.Ioc (-T) (T+1), (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) :=
+        MeasureTheory.setIntegral_mono_set hGc.integrableOn_Ioc
+          (Filter.Eventually.of_forall hGnn) hsub.eventuallyLE
+    _ = ∫ u in (-T)..(T+1), (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) :=
+        (intervalIntegral.integral_of_le (by linarith)).symm
+
+open MeasureTheory in
 /-- **The `L²` triangle inequality, at cost `2`** (Track R, A2-III,
 II-2c-0): for continuous `F, G`,
 
