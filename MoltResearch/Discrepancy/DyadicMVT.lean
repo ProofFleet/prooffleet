@@ -3905,6 +3905,81 @@ theorem intervalIntegral_norm_sq_short_poly_le_sharp_of_bound (A : ℕ)
     _ = B^2 * (1/(n:ℝ)) * (n:ℝ) := by field_simp
 
 
+/-! ## The e-adic telescoping: a window differs from a block by two collars
+(Track R, A2-III, II-2a) -/
+
+/-- **The difference of two windows is two edge pieces** (Track R,
+A2-III, II-2a): as `Finset`s, with no hypotheses at all,
+
+  `Ioc a b \ Ioc a' b' = Ioc a (min b a') ∪ Ioc (max a b') b`.
+
+Whichever endpoint pair happens to be inverted, the corresponding piece
+is empty, so the identity needs no ordering assumption.  This is the
+combinatorial core of the `[MR]` decomposition: replacing a
+`p`-dependent fibre window by a cell-uniform reference block costs
+exactly the two edge pieces, one at each end. -/
+theorem Ioc_sdiff_Ioc_eq_union (a b a' b' : ℕ) :
+    Finset.Ioc a b \ Finset.Ioc a' b'
+      = Finset.Ioc a (min b a') ∪ Finset.Ioc (max a b') b := by
+  ext n
+  simp only [Finset.mem_sdiff, Finset.mem_union, Finset.mem_Ioc]
+  omega
+
+/-- The two edge pieces of `Ioc_sdiff_Ioc_eq_union` are disjoint as soon
+as the *removed* window is nondegenerate: a point of the left piece is
+`≤ a'` and a point of the right piece is `> b'`. -/
+theorem disjoint_Ioc_min_Ioc_max {a b a' b' : ℕ} (h : a' ≤ b') :
+    Disjoint (Finset.Ioc a (min b a')) (Finset.Ioc (max a b') b) := by
+  rw [Finset.disjoint_left]
+  intro n hn hn'
+  simp only [Finset.mem_Ioc] at hn hn'
+  omega
+
+/-- Splitting a sum against a second `Finset`: `∑_s = ∑_t + ∑_{s∖t} −
+∑_{t∖s}`.  Pure bookkeeping, in any additive group. -/
+theorem sum_eq_sum_add_sum_sdiff_sub_sum_sdiff {ι M : Type*} [DecidableEq ι]
+    [AddCommGroup M] (s t : Finset ι) (f : ι → M) :
+    ∑ n ∈ s, f n = ∑ n ∈ t, f n + ∑ n ∈ s \ t, f n - ∑ n ∈ t \ s, f n := by
+  have h1 := Finset.sum_inter_add_sum_diff s t f
+  have h2 := Finset.sum_inter_add_sum_diff t s f
+  rw [Finset.inter_comm] at h2
+  rw [← h1, ← h2]
+  abel
+
+/-- **The e-adic telescoping identity** (Track R, A2-III, II-2a): a sum
+over the window `(a, b]` equals the same sum over any reference window
+`(a', b']` plus four *explicit* collars, two at each end —
+
+  `∑_{(a,b]} f = ∑_{(a',b']} f + (∑_{(a, min b a']} f + ∑_{(max a b', b]} f)
+                             − (∑_{(a', min b' a]} f + ∑_{(max a' b, b']} f)`.
+
+This is an **identity**, not an estimate: nothing is lost, and the four
+collars are `Ioc`s of endpoints built from `a, b, a', b'` alone — in
+particular they do not depend on `f`, so a consumer may keep them under
+an integral sign.  That is what the `[MR]` band assembly needs: on an
+e-adic cell of primes the fibre window `(A/p, (A+Δ)/p]` varies with `p`,
+and this lemma trades it for the cell's fixed reference block, at the
+price of collars that `collar_energy_le` then prices at `1/N` each.
+
+Exactly one collar in each pair is nonempty for a given configuration;
+stating both keeps the lemma free of case hypotheses beyond the two
+windows being nondegenerate. -/
+theorem sum_Ioc_eq_sum_Ioc_add_collars {M : Type*} [AddCommGroup M]
+    (a b a' b' : ℕ) (hab : a ≤ b) (ha'b' : a' ≤ b') (f : ℕ → M) :
+    ∑ n ∈ Finset.Ioc a b, f n
+      = ∑ n ∈ Finset.Ioc a' b', f n
+        + (∑ n ∈ Finset.Ioc a (min b a'), f n
+            + ∑ n ∈ Finset.Ioc (max a b') b, f n)
+        - (∑ n ∈ Finset.Ioc a' (min b' a), f n
+            + ∑ n ∈ Finset.Ioc (max a' b) b', f n) := by
+  classical
+  have hkey := sum_eq_sum_add_sum_sdiff_sub_sum_sdiff
+    (Finset.Ioc a b) (Finset.Ioc a' b') f
+  rw [Ioc_sdiff_Ioc_eq_union, Ioc_sdiff_Ioc_eq_union,
+    Finset.sum_union (disjoint_Ioc_min_Ioc_max ha'b'),
+    Finset.sum_union (disjoint_Ioc_min_Ioc_max hab)] at hkey
+  exact hkey
+
 open MeasureTheory in
 /-- **The collar energy** (Track R, A2-III, II-3): a collar is a short
 interval `(M, M + M/N]` at the edge of a block, and its energy is
