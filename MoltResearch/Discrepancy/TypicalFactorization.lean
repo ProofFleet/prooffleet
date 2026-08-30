@@ -333,4 +333,69 @@ theorem typicalS_filter_card_eq_zero_eq_empty (a b : ℕ) (P : Finset ℕ)
   rintro ⟨-, hpos, -⟩
   omega
 
+
+/-! ## e-adic prime cells (Track R, A2-III) -/
+
+/-- **The e-adic cell** at resolution `N` and index `v`: the primes of
+`P` with `⌊N·log p⌋ = v`, i.e. `e^{v/N} ≤ p < e^{(v+1)/N}`.
+
+The cell is defined by the *natural-number* floor equation rather than
+by the two real inequalities: membership is then decidable by `rfl`,
+distinct cells are disjoint by construction, and the analytic bounds
+are recovered on demand by `eadicCell_bounds`.  `[MR]` splits the
+prime range into exactly these cells before applying the mean value
+theorem, so that every prime in a cell contributes the same scale. -/
+noncomputable def eadicCell (P : Finset ℕ) (N v : ℕ) : Finset ℕ :=
+  P.filter (fun p => ⌊(N:ℝ) * Real.log p⌋₊ = v)
+
+@[simp] theorem mem_eadicCell {P : Finset ℕ} {N v p : ℕ} :
+    p ∈ eadicCell P N v ↔ p ∈ P ∧ ⌊(N:ℝ) * Real.log p⌋₊ = v := by
+  simp [eadicCell, Finset.mem_filter]
+
+/-- Distinct cells are disjoint — immediate from the defining
+equation. -/
+theorem eadicCell_disjoint (P : Finset ℕ) (N : ℕ) {v w : ℕ} (hvw : v ≠ w) :
+    Disjoint (eadicCell P N v) (eadicCell P N w) := by
+  rw [Finset.disjoint_left]
+  intro p hp hp'
+  rw [mem_eadicCell] at hp hp'
+  exact hvw (hp.2.symm.trans hp'.2)
+
+/-- **The cells cover the prime range**: every prime whose index is at
+most `V` lies in one of the cells `0, …, V`. -/
+theorem eadicCell_biUnion (P : Finset ℕ) (N V : ℕ)
+    (hV : ∀ p ∈ P, ⌊(N:ℝ) * Real.log p⌋₊ ≤ V) :
+    (Finset.range (V+1)).biUnion (eadicCell P N) = P := by
+  ext p
+  simp only [Finset.mem_biUnion, Finset.mem_range, mem_eadicCell]
+  constructor
+  · rintro ⟨v, -, hp, -⟩
+    exact hp
+  · intro hp
+    exact ⟨⌊(N:ℝ) * Real.log p⌋₊, Nat.lt_succ_of_le (hV p hp), hp, rfl⟩
+
+/-- **The analytic content of a cell**: its primes lie in the
+multiplicative window `[e^{v/N}, e^{(v+1)/N})`. -/
+theorem eadicCell_bounds {P : Finset ℕ} {N v p : ℕ} (hN : 0 < N)
+    (hp : p ∈ eadicCell P N v) (hp1 : 1 ≤ p) :
+    Real.exp ((v:ℝ)/N) ≤ (p:ℝ) ∧ (p:ℝ) < Real.exp (((v:ℝ)+1)/N) := by
+  rw [mem_eadicCell] at hp
+  have hN0 : (0:ℝ) < N := by exact_mod_cast hN
+  have hp0 : (0:ℝ) < p := by exact_mod_cast hp1
+  have hlog0 : 0 ≤ Real.log p := Real.log_nonneg (by exact_mod_cast hp1)
+  have hfl : ((v:ℝ)) ≤ (N:ℝ) * Real.log p ∧
+      (N:ℝ) * Real.log p < (v:ℝ) + 1 := by
+    have hnn : (0:ℝ) ≤ (N:ℝ) * Real.log p := by positivity
+    have := Nat.floor_eq_iff hnn |>.mp hp.2
+    exact ⟨this.1, this.2⟩
+  constructor
+  · rw [← Real.exp_log hp0]
+    refine Real.exp_le_exp.2 ?_
+    rw [div_le_iff₀ hN0]
+    linarith [hfl.1]
+  · rw [← Real.exp_log hp0]
+    refine Real.exp_lt_exp.2 ?_
+    rw [lt_div_iff₀ hN0]
+    linarith [hfl.2]
+
 end MoltResearch
