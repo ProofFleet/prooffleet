@@ -1515,4 +1515,264 @@ theorem measure_large_prime_poly_le (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (intervalIntegral_norm_sq_prime_poly_pow_le Y hY P hP hlo hhi b hb ℓ hℓ
       T hT)
 
+
+open MeasureTheory Finset ExpSums in
+/-- **The moment of a prime power times a block polynomial** (Track R,
+A2-III, III-3, the full form): for primes `Y ⊆ (P, 2P]`, a block
+`S ⊆ (A', A'+Δ']` with `Δ' ≤ A'`, and `1`-bounded coefficients,
+
+  `∫_{−T}^{T} ‖Q(ξ)^ℓ · R(ξ)‖²
+     ≤ e^π·(T/(P^ℓA') + 2·2^{ℓ+1})·(ℓ!)²·2^{ℓ+1}(ℓ+1)·(∑_{p∈Y} 1/p)^ℓ`,
+
+with `Q = ∑_{p∈Y} (b p/p)·e(−ξ log p)` and `R = ∑_{m∈S} (a m/m)·e(−ξ log m)`.
+
+This is the `[MR]` moment lemma `le:moment`, and the block factor is what
+made it harder than the pure-power case `intervalIntegral_norm_sq_prime_-
+poly_pow_le` (#3528).  There the multiplicity of a support point was a
+clean `ℓ!` and no divisor count entered; here the support is the product
+set `Y^ℓ·S`, a point can be written as `r·m` in several ways, and the
+coefficient bound carries the extra factor
+
+  `g(n) = #{r ∈ Y^ℓ : r ∣ n}`,
+
+whose mean square is exactly `sum_card_dvd_sq_div_le` — the elementary
+substitute for Shiu's theorem, and the reason that lemma is stated with
+weight `1/n` and free ratio.
+
+The assembly.  `phase_poly_pow` and `phase_poly_fiberwise'` collapse `Q^ℓ`
+onto `Y^ℓ` with coefficients bounded by `ℓ!` (`card_prime_tuple_fiber_le`);
+`phase_poly_mul` convolves that with `R`; a second `phase_poly_fiberwise'`
+collapses the product onto `Y^ℓ·S`.  The representation count is bounded by
+the divisor count because `r` determines `m = n/r`, so the coefficient is
+at most `ℓ!·g(n)`.  The support lies in `(P^ℓA', 2^{ℓ+1}P^ℓA']`, so the
+**ratio-general** sharp mean value theorem applies at `R = 2^{ℓ+1}`,
+log-free, and `sum_card_dvd_sq_div_le` prices the coefficient mass.
+
+`∑_{p∈Y} 1/p ≤ 1` is not assumed: `Y ⊆ (P, 2P]` has at most `P` elements,
+each of size more than `P`, so the mass is at most `P/(P+1) < 1`. -/
+theorem intervalIntegral_norm_sq_prime_poly_pow_mul_le (Y : Finset ℕ)
+    (hY : ∀ p ∈ Y, p.Prime) (P : ℕ) (hP : 1 ≤ P)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1) (ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (A' Δ' : ℕ) (hA' : 1 ≤ A') (hΔ' : Δ' ≤ A')
+    (S : Finset ℕ) (hS : S ⊆ Finset.Ioc A' (A'+Δ'))
+    (a : ℕ → ℂ) (ha : ∀ m, ‖a m‖ ≤ 1)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T,
+        ‖(∑ p ∈ Y, (b p/(p:ℂ))
+              * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ
+          * (∑ m ∈ S, (a m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))‖^2)
+      ≤ Real.exp Real.pi * (T/((P^ℓ*A' : ℕ):ℝ) + 2*((2^(ℓ+1) : ℕ):ℝ))
+          * ((Nat.factorial ℓ : ℝ)^2
+              * (((2^(ℓ+1) : ℕ):ℝ) * ((ℓ:ℝ)+1)
+                  * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))^ℓ)) := by
+  classical
+  set V : Finset (Fin ℓ → ℕ) := Fintype.piFinset (fun _ : Fin ℓ => Y) with hV_def
+  set Tgt : Finset ℕ := V.image (fun v => ∏ i, v i) with hTgt_def
+  set c₀ : ℕ → ℂ := fun n =>
+    ∑ v ∈ V.filter (fun v => ∏ i, v i = n), ∏ i, b (v i) with hc₀_def
+  set Tgt2 : Finset ℕ := (Tgt ×ˢ S).image (fun q => q.1 * q.2) with hTgt2_def
+  set c : ℕ → ℂ := fun n =>
+    ∑ q ∈ (Tgt ×ˢ S).filter (fun q => q.1*q.2 = n), c₀ q.1 * a q.2 with hc_def
+  have hppos : ∀ p ∈ Y, 0 < p := fun p hp => (hY p hp).pos
+  have hPl : 1 ≤ P^ℓ := Nat.one_le_pow _ _ (by omega)
+  -- the prime side, collapsed (this is `III-3b`'s first move)
+  have hTgtpos : ∀ n ∈ Tgt, 0 < n := by
+    intro n hn
+    rw [hTgt_def, Finset.mem_image] at hn
+    obtain ⟨v, hv, rfl⟩ := hn
+    rw [hV_def, Fintype.mem_piFinset] at hv
+    exact Finset.prod_pos fun i _ => hppos _ (hv i)
+  have hSpos : ∀ m ∈ S, 0 < m := by
+    intro m hm
+    have := Finset.mem_Ioc.mp (hS hm)
+    omega
+  have hpowξ : ∀ ξ : ℝ,
+      (∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ
+      = ∑ n ∈ Tgt, (c₀ n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+    intro ξ
+    rw [phase_poly_pow Y b hppos ℓ ξ]
+    exact phase_poly_fiberwise' V (fun v => ∏ i, v i) Tgt
+      (fun v hv => by
+        rw [hTgt_def, Finset.mem_image]
+        exact ⟨v, hv, rfl⟩)
+      (fun v => ∏ i, b (v i)) ξ
+  -- the full integrand, collapsed onto `Tgt2`
+  have hshape : ∀ ξ : ℝ,
+      (∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ
+        * (∑ m ∈ S, (a m/(m:ℂ))
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+      = ∑ n ∈ Tgt2, (c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+    intro ξ
+    rw [hpowξ ξ, phase_poly_mul Tgt S c₀ a hTgtpos hSpos ξ]
+    exact phase_poly_fiberwise' (Tgt ×ˢ S) (fun q => q.1 * q.2) Tgt2
+      (fun q hq => by
+        rw [hTgt2_def, Finset.mem_image]
+        exact ⟨q, hq, rfl⟩)
+      (fun q => c₀ q.1 * a q.2) ξ
+  rw [intervalIntegral.integral_congr (fun ξ _ => by
+    rw [hshape ξ] : ∀ ξ ∈ Set.uIcc (-T) T,
+      ‖(∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ
+        * (∑ m ∈ S, (a m/(m:ℂ))
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))‖^2
+      = ‖∑ n ∈ Tgt2, (c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)]
+  -- the prime support spans `2^ℓ`, the block support spans `2`
+  have hTgtsupp : Tgt ⊆ Finset.Ioc (P^ℓ) (2^ℓ*(P^ℓ)) := by
+    intro n hn
+    rw [hTgt_def, Finset.mem_image] at hn
+    obtain ⟨v, hv, rfl⟩ := hn
+    rw [hV_def, Fintype.mem_piFinset] at hv
+    have hcard : (Finset.univ : Finset (Fin ℓ)).card = ℓ := by simp
+    rw [Finset.mem_Ioc]
+    refine ⟨?_, ?_⟩
+    · have hstep : (P+1)^ℓ ≤ ∏ i, v i := by
+        calc (P+1)^ℓ = ∏ _i : Fin ℓ, (P+1) := by
+              rw [Finset.prod_const, hcard]
+          _ ≤ ∏ i, v i := Finset.prod_le_prod' fun i _ => hlo _ (hv i)
+      have : P^ℓ < (P+1)^ℓ := Nat.pow_lt_pow_left (by omega) (by omega)
+      omega
+    · calc ∏ i, v i ≤ ∏ _i : Fin ℓ, (2*P) :=
+            Finset.prod_le_prod' fun i _ => hhi _ (hv i)
+        _ = (2*P)^ℓ := by rw [Finset.prod_const, hcard]
+        _ = 2^ℓ*(P^ℓ) := by rw [mul_pow]
+  have hsupp : Tgt2 ⊆ Finset.Ioc (P^ℓ*A') (2^(ℓ+1)*(P^ℓ*A')) := by
+    intro n hn
+    rw [hTgt2_def, Finset.mem_image] at hn
+    obtain ⟨q, hq, rfl⟩ := hn
+    rw [Finset.mem_product] at hq
+    have hr := Finset.mem_Ioc.mp (hTgtsupp hq.1)
+    have hm := Finset.mem_Ioc.mp (hS hq.2)
+    rw [Finset.mem_Ioc]
+    refine ⟨?_, ?_⟩
+    · calc P^ℓ*A' < (P^ℓ+1)*(A'+1) := by nlinarith [hPl, hA']
+        _ ≤ q.1 * q.2 := Nat.mul_le_mul (by omega) (by omega)
+    · calc q.1 * q.2 ≤ (2^ℓ*(P^ℓ)) * (2*A') := Nat.mul_le_mul hr.2 (by omega)
+        _ = 2^(ℓ+1)*(P^ℓ*A') := by ring
+  -- `III-3b`'s coefficient bound on the prime side
+  have hcb₀ : ∀ n : ℕ, ‖c₀ n‖ ≤ (Nat.factorial ℓ : ℝ) := by
+    intro n
+    have hfib := card_prime_tuple_fiber_le (ℓ := ℓ) Y hY n
+    have h1 : ‖c₀ n‖ ≤ ∑ _v ∈ V.filter (fun v => ∏ i, v i = n), (1:ℝ) := by
+      rw [hc₀_def]
+      refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun v _ => ?_)
+      rw [norm_prod]
+      exact Finset.prod_le_one (fun i _ => norm_nonneg _) (fun i _ => hb _)
+    have h2 : ∑ _v ∈ V.filter (fun v => ∏ i, v i = n), (1:ℝ)
+        = ((V.filter (fun v => ∏ i, v i = n)).card : ℝ) := by
+      rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+    have h3 : ((V.filter (fun v => ∏ i, v i = n)).card : ℝ)
+        ≤ (Nat.factorial ℓ : ℝ) := by exact_mod_cast hfib
+    linarith [h1, h2 ▸ h1]
+  -- the divisor count controls the number of representations
+  have hrep : ∀ n : ℕ, ((Tgt ×ˢ S).filter (fun q => q.1*q.2 = n)).card
+      ≤ (Tgt.filter (· ∣ n)).card := by
+    intro n
+    refine Finset.card_le_card_of_injOn (fun q => q.1) ?_ ?_
+    · intro q hq
+      rw [Finset.mem_coe, Finset.mem_filter, Finset.mem_product] at hq
+      rw [Finset.mem_coe, Finset.mem_filter]
+      exact ⟨hq.1.1, ⟨q.2, hq.2.symm⟩⟩
+    · intro q hq q' hq' hqq
+      rw [Finset.mem_coe, Finset.mem_filter, Finset.mem_product] at hq hq'
+      have h1 : q.1 * q.2 = q'.1 * q'.2 := by rw [hq.2, hq'.2]
+      have hq1 : q.1 = q'.1 := hqq
+      have hpos : 0 < q.1 := hTgtpos _ hq.1.1
+      refine Prod.ext hq1 ?_
+      have h2 : q.1 * q.2 = q.1 * q'.2 := by rw [h1, hq1]
+      exact Nat.eq_of_mul_eq_mul_left hpos h2
+  -- hence the collapsed coefficient bound
+  have hcb : ∀ n : ℕ, ‖c n‖
+      ≤ (Nat.factorial ℓ : ℝ) * ((Tgt.filter (· ∣ n)).card : ℝ) := by
+    intro n
+    have h1 : ‖c n‖
+        ≤ ∑ _q ∈ (Tgt ×ˢ S).filter (fun q => q.1*q.2 = n),
+            (Nat.factorial ℓ : ℝ) := by
+      rw [hc_def]
+      refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun q _ => ?_)
+      rw [norm_mul]
+      have := hcb₀ q.1
+      have h2 := ha q.2
+      nlinarith [norm_nonneg (c₀ q.1), norm_nonneg (a q.2),
+        Nat.cast_nonneg (α := ℝ) (Nat.factorial ℓ)]
+    have h3 : ∑ _q ∈ (Tgt ×ˢ S).filter (fun q => q.1*q.2 = n),
+          (Nat.factorial ℓ : ℝ)
+        = (((Tgt ×ˢ S).filter (fun q => q.1*q.2 = n)).card : ℝ)
+            * (Nat.factorial ℓ : ℝ) := by
+      rw [Finset.sum_const, nsmul_eq_mul]
+    have h4 : (((Tgt ×ˢ S).filter (fun q => q.1*q.2 = n)).card : ℝ)
+        ≤ ((Tgt.filter (· ∣ n)).card : ℝ) := by exact_mod_cast hrep n
+    have hfnn : (0:ℝ) ≤ (Nat.factorial ℓ : ℝ) := by positivity
+    calc ‖c n‖ ≤ (((Tgt ×ˢ S).filter (fun q => q.1*q.2 = n)).card : ℝ)
+          * (Nat.factorial ℓ : ℝ) := by rw [← h3]; exact h1
+      _ ≤ ((Tgt.filter (· ∣ n)).card : ℝ) * (Nat.factorial ℓ : ℝ) :=
+          mul_le_mul_of_nonneg_right h4 hfnn
+      _ = (Nat.factorial ℓ : ℝ) * ((Tgt.filter (· ∣ n)).card : ℝ) := by ring
+  -- the harmonic mass is free: `Y ⊆ (P, 2P]` forces `σ ≤ 1`
+  have hσ : ∑ p ∈ Y, (1:ℝ)/(p:ℝ) ≤ 1 := by
+    have hsub : Y ⊆ Finset.Ioc P (2*P) :=
+      fun p hp => Finset.mem_Ioc.mpr ⟨hlo p hp, hhi p hp⟩
+    have hcard : Y.card ≤ P := by
+      have := Finset.card_le_card hsub
+      rw [Nat.card_Ioc] at this
+      omega
+    have hP0 : (0:ℝ) < (P:ℝ) + 1 := by positivity
+    have hterm : ∀ p ∈ Y, (1:ℝ)/(p:ℝ) ≤ 1/((P:ℝ)+1) := by
+      intro p hp
+      have : (P:ℝ) + 1 ≤ (p:ℝ) := by exact_mod_cast hlo p hp
+      exact one_div_le_one_div_of_le hP0 this
+    calc ∑ p ∈ Y, (1:ℝ)/(p:ℝ) ≤ ∑ _p ∈ Y, 1/((P:ℝ)+1) :=
+          Finset.sum_le_sum hterm
+      _ = (Y.card : ℝ) * (1/((P:ℝ)+1)) := by
+          rw [Finset.sum_const, nsmul_eq_mul]
+      _ ≤ (P:ℝ) * (1/((P:ℝ)+1)) := by
+          refine mul_le_mul_of_nonneg_right ?_ (by positivity)
+          exact_mod_cast hcard
+      _ ≤ 1 := by
+          rw [mul_one_div, div_le_one hP0]
+          linarith
+  -- the ratio-general sharp mean value theorem at `R = 2^{ℓ+1}`
+  have hMpos : 1 ≤ P^ℓ*A' := Nat.one_le_iff_ne_zero.mpr (by positivity)
+  have hmvt := intervalIntegral_norm_sq_poly_le_sharp_ratio (P^ℓ*A') (2^(ℓ+1))
+    hMpos (Nat.one_le_two_pow) Tgt2 hsupp c T hT
+  refine le_trans hmvt ?_
+  have hconst : (0:ℝ)
+      ≤ Real.exp Real.pi * (T/((P^ℓ*A' : ℕ):ℝ) + 2*((2^(ℓ+1) : ℕ):ℝ)) := by
+    positivity
+  refine mul_le_mul_of_nonneg_left ?_ hconst
+  -- the coefficient mass, by `III-2f`
+  have hmass : ∑ n ∈ Tgt2, ‖c n‖^2/(n:ℝ)
+      ≤ (Nat.factorial ℓ : ℝ)^2
+          * ∑ n ∈ Tgt2, ((Tgt.filter (· ∣ n)).card : ℝ)^2/(n:ℝ) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun n hn => ?_
+    have hn0 : (0:ℝ) < n := by
+      have hnIoc := Finset.mem_Ioc.mp (hsupp hn)
+      have : 0 < n := by omega
+      exact_mod_cast this
+    have hsq : ‖c n‖^2
+        ≤ ((Nat.factorial ℓ : ℝ) * ((Tgt.filter (· ∣ n)).card : ℝ))^2 := by
+      have := hcb n
+      nlinarith [norm_nonneg (c n)]
+    rw [div_le_iff₀ hn0]
+    calc ‖c n‖^2 ≤ ((Nat.factorial ℓ : ℝ)
+            * ((Tgt.filter (· ∣ n)).card : ℝ))^2 := hsq
+      _ = (Nat.factorial ℓ : ℝ)^2
+            * (((Tgt.filter (· ∣ n)).card : ℝ)^2/(n:ℝ)) * (n:ℝ) := by
+          field_simp
+  refine le_trans hmass ?_
+  have hdiv : ∑ n ∈ Tgt2, ((Tgt.filter (· ∣ n)).card : ℝ)^2/(n:ℝ)
+      ≤ ((2^(ℓ+1) : ℕ):ℝ) * ((ℓ:ℝ)+1) * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))^ℓ := by
+    have := sum_card_dvd_sq_div_le Y hY ℓ hσ (P^ℓ*A') (2^(ℓ+1)) hMpos Tgt2 hsupp
+    rw [hTgt_def, hV_def]
+    exact this
+  have hfac : (0:ℝ) ≤ (Nat.factorial ℓ : ℝ)^2 := by positivity
+  exact mul_le_mul_of_nonneg_left hdiv hfac
+
 end MoltResearch
