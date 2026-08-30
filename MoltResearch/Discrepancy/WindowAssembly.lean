@@ -2184,6 +2184,95 @@ theorem sum_exp_neg_index_le (α : ℝ) (hα : 0 < α) (N : ℕ) (hN : 0 < N)
         refine mul_le_mul_of_nonneg_left hden ?_
         positivity
 
+
+open Finset in
+/-- **Geometric growth over an e-adic index range** (Track R, A2-III,
+II-5b-0): a sum of `e^{βv/N}` over `v ∈ [v₀, v₁]` is at most
+`e^{β(v₁+1)/N}·(N/β + 1)` — its last term, inflated by one step, times
+the same factor `N/β + 1` that `sum_exp_neg_index_le` pays.
+
+The increasing companion of `sum_exp_neg_index_le`, and the `[MR]`
+level estimates need both at once.  At e-adic index `v` the cell scale
+is `A e^{−v/N}`, so the mean value theorem charges `T e^{v/N}/A`, which
+*grows* in `v`, while the pointwise cell smallness contributes
+`e^{−2αv/N}`, which *decays*.  The product runs at exponent `1 − 2α`:
+one geometric series each way, this lemma for the `1 − 2α > 0` half and
+`sum_exp_neg_index_le` for the `2α > 0` half.
+
+Proved by induction on `v₁` rather than by reindexing, on the one-step
+inequality `N/β + 2 ≤ e^{β/N}(N/β + 1)` — which is just
+`(1+x)² ≥ 1 + 2x` after `1 + x ≤ eˣ`. -/
+theorem sum_exp_index_le (β : ℝ) (hβ : 0 < β) (N : ℕ) (hN : 0 < N)
+    (v₀ v₁ : ℕ) :
+    ∑ v ∈ Finset.Ico v₀ (v₁+1), Real.exp (β*(v:ℝ)/N)
+      ≤ Real.exp (β*((v₁:ℝ)+1)/N) * ((N:ℝ)/β + 1) := by
+  classical
+  have hN0 : (0:ℝ) < N := by exact_mod_cast hN
+  have hc0 : (0:ℝ) < (N:ℝ)/β := by positivity
+  -- the one-step inequality, at an arbitrary base exponent
+  have hstep : ∀ y : ℝ, Real.exp y * ((N:ℝ)/β + 2)
+      ≤ Real.exp (y + β/(N:ℝ)) * ((N:ℝ)/β + 1) := by
+    intro y
+    set x : ℝ := β/(N:ℝ) with hx_def
+    have hx0 : 0 < x := by rw [hx_def]; positivity
+    have hinv : (N:ℝ)/β = 1/x := by
+      rw [hx_def]
+      field_simp
+    have hex : 1 + x ≤ Real.exp x := by
+      have := Real.add_one_le_exp x
+      linarith
+    -- `eˣ(1/x + 1) ≥ (1+x)²/x ≥ 1/x + 2`
+    have hkey : (1:ℝ)/x + 2 ≤ Real.exp x * (1/x + 1) := by
+      have h1 : (1:ℝ)/x + 1 = (1+x)/x := by field_simp
+      have h2 : (1+x)/x * (1+x) ≤ (1+x)/x * Real.exp x := by
+        refine mul_le_mul_of_nonneg_left hex ?_
+        positivity
+      have h3 : (1:ℝ)/x + 2 ≤ (1+x)/x * (1+x) := by
+        rw [div_mul_eq_mul_div, le_div_iff₀ hx0]
+        have hxe : (1/x + 2) * x = 1 + 2*x := by
+          field_simp
+        rw [hxe]
+        nlinarith [sq_nonneg x]
+      rw [h1]
+      nlinarith [h2, h3]
+    rw [Real.exp_add, hinv]
+    calc Real.exp y * (1/x + 2) ≤ Real.exp y * (Real.exp x * (1/x + 1)) := by
+          refine mul_le_mul_of_nonneg_left hkey (Real.exp_pos y).le
+      _ = Real.exp y * Real.exp x * (1/x + 1) := by ring
+  induction v₁ with
+  | zero =>
+      rcases Nat.eq_zero_or_pos v₀ with rfl | hv₀
+      · have hIco : Finset.Ico 0 1 = {0} := rfl
+        rw [hIco, Finset.sum_singleton]
+        have h1 : Real.exp (β*((0:ℕ):ℝ)/N) = 1 := by norm_num
+        have h2 : (1:ℝ) ≤ Real.exp (β*(((0:ℕ):ℝ)+1)/N) := by
+          refine Real.one_le_exp ?_
+          positivity
+        rw [h1]
+        nlinarith [h2, hc0]
+      · rw [Finset.Ico_eq_empty (by omega), Finset.sum_empty]
+        positivity
+  | succ n ih =>
+      rcases Nat.lt_or_ge (n+1) v₀ with hlt | hle
+      · rw [Finset.Ico_eq_empty (by omega), Finset.sum_empty]
+        positivity
+      · rw [Finset.sum_Ico_succ_top (by omega)]
+        have hlast : Real.exp (β*((n+1 : ℕ):ℝ)/N)
+            = Real.exp (β*((n:ℝ)+1)/N) := by
+          push_cast
+          ring_nf
+        have hnext : β*(((n+1 : ℕ):ℝ)+1)/N = β*((n:ℝ)+1)/N + β/(N:ℝ) := by
+          push_cast
+          field_simp
+        rw [hlast, hnext]
+        calc (∑ v ∈ Finset.Ico v₀ (n+1), Real.exp (β*(v:ℝ)/N))
+              + Real.exp (β*((n:ℝ)+1)/N)
+            ≤ Real.exp (β*((n:ℝ)+1)/N) * ((N:ℝ)/β + 1)
+                + Real.exp (β*((n:ℝ)+1)/N) := by linarith [ih]
+          _ = Real.exp (β*((n:ℝ)+1)/N) * ((N:ℝ)/β + 2) := by ring
+          _ ≤ Real.exp (β*((n:ℝ)+1)/N + β/(N:ℝ)) * ((N:ℝ)/β + 1) :=
+                hstep (β*((n:ℝ)+1)/N)
+
 end ExpSums
 
 end MoltResearch
