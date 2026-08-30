@@ -3378,6 +3378,304 @@ theorem sum_exp_neg_mul_sq_le (c : ℝ) (hc : 0 < c) (M : ℕ) :
     (Filter.Eventually.of_forall hnonneg)) ?_
   exact le_rfl
 
+
+/-- **The block theta sum** (Track R, A2-III, I-1b): for a block
+`S ⊆ (A, 2A]` and `m ∈ S`, the Gaussian kernel summed over the block
+is at most `1 + 4A/T` — the diagonal term plus two one-sided tails,
+each priced by `sum_exp_neg_mul_sq_le` after the log-separation
+`|log m − log n| ≥ |m − n|/(2A)`.  This is what makes the short-block
+mean value theorem log-free. -/
+theorem sum_exp_neg_sq_log_diff_le (A : ℕ) (hA : 1 ≤ A) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc A (2*A)) (m : ℕ) (hm : m ∈ S)
+    (T : ℝ) (hT : 0 < T) :
+    ∑ n ∈ S, Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2))
+      ≤ 1 + 4*(A:ℝ)/T := by
+  classical
+  have hA0 : (0:ℝ) < A := by exact_mod_cast hA
+  set c : ℝ := Real.pi*T^2/(4*(A:ℝ)^2) with hc_def
+  have hc0 : 0 < c := by
+    rw [hc_def]
+    positivity
+  -- the tail bound, in the shape both halves need
+  have htail : Real.sqrt (Real.pi/c) = 2*(A:ℝ)/T := by
+    rw [hc_def]
+    rw [show Real.pi/(Real.pi*T^2/(4*(A:ℝ)^2)) = (2*(A:ℝ)/T)^2 by
+      field_simp
+      ring]
+    exact Real.sqrt_sq (by positivity)
+  have hgeom : ∀ M : ℕ, ∑ k ∈ Finset.Icc 1 M, Real.exp (-(c*(k:ℝ)^2))
+      ≤ 2*(A:ℝ)/T := by
+    intro M
+    rw [← htail]
+    exact sum_exp_neg_mul_sq_le c hc0 M
+  -- the per-term comparison
+  have hterm : ∀ n ∈ S, n ≠ m →
+      Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2))
+        ≤ Real.exp (-(c*(((if n < m then m - n else n - m) : ℕ):ℝ)^2)) := by
+    intro n hn hne
+    have hnIoc := Finset.mem_Ioc.mp (hS hn)
+    have hmIoc := Finset.mem_Ioc.mp (hS hm)
+    refine Real.exp_le_exp.2 ?_
+    have hkey : ((((if n < m then m - n else n - m) : ℕ)):ℝ)^2/(4*(A:ℝ)^2)
+        ≤ (Real.log m - Real.log n)^2 := by
+      rcases lt_or_gt_of_ne hne with hlt | hgt
+      · rw [if_pos hlt]
+        have hn1 : 1 ≤ n := by omega
+        have hsep := log_sub_log_ge n m hn1 hlt
+        have hmc : (0:ℝ) < m := by
+          have : (0:ℕ) < m := by omega
+          exact_mod_cast this
+        have hcast : (((m - n : ℕ)):ℝ) = (m:ℝ) - n := by
+          have : n ≤ m := hlt.le
+          push_cast [Nat.cast_sub this]
+          ring
+        have hm2A : (m:ℝ) ≤ 2*(A:ℝ) := by exact_mod_cast hmIoc.2
+        have hstep : (((m - n : ℕ)):ℝ)/(2*(A:ℝ))
+            ≤ Real.log m - Real.log n := by
+          rw [hcast]
+          refine le_trans ?_ hsep
+          rw [div_le_div_iff₀ (by positivity) hmc]
+          nlinarith [hmc, hm2A, (by exact_mod_cast hlt.le : (n:ℝ) ≤ m)]
+        have hpos : (0:ℝ) ≤ (((m - n : ℕ)):ℝ)/(2*(A:ℝ)) := by positivity
+        have hsq := pow_le_pow_left₀ hpos hstep 2
+        calc ((((m - n : ℕ))):ℝ)^2/(4*(A:ℝ)^2)
+            = ((((m - n : ℕ)):ℝ)/(2*(A:ℝ)))^2 := by
+              rw [div_pow]
+              ring_nf
+          _ ≤ (Real.log m - Real.log n)^2 := hsq
+      · rw [if_neg (by omega)]
+        have hm1 : 1 ≤ m := by omega
+        have hsep := log_sub_log_ge m n hm1 hgt
+        have hnc : (0:ℝ) < n := by
+          have : (0:ℕ) < n := by omega
+          exact_mod_cast this
+        have hcast : (((n - m : ℕ)):ℝ) = (n:ℝ) - m := by
+          have : m ≤ n := hgt.le
+          push_cast [Nat.cast_sub this]
+          ring
+        have hn2A : (n:ℝ) ≤ 2*(A:ℝ) := by exact_mod_cast hnIoc.2
+        have hstep : (((n - m : ℕ)):ℝ)/(2*(A:ℝ))
+            ≤ Real.log n - Real.log m := by
+          rw [hcast]
+          refine le_trans ?_ hsep
+          rw [div_le_div_iff₀ (by positivity) hnc]
+          nlinarith [hnc, hn2A, (by exact_mod_cast hgt.le : (m:ℝ) ≤ n)]
+        have hpos : (0:ℝ) ≤ (((n - m : ℕ)):ℝ)/(2*(A:ℝ)) := by positivity
+        have hsq := pow_le_pow_left₀ hpos hstep 2
+        have hflip : (Real.log m - Real.log n)^2
+            = (Real.log n - Real.log m)^2 := by ring
+        rw [hflip]
+        calc ((((n - m : ℕ))):ℝ)^2/(4*(A:ℝ)^2)
+            = ((((n - m : ℕ)):ℝ)/(2*(A:ℝ)))^2 := by
+              rw [div_pow]
+              ring_nf
+          _ ≤ (Real.log n - Real.log m)^2 := hsq
+    rw [hc_def]
+    have hpi : (0:ℝ) < Real.pi := Real.pi_pos
+    have hexp : Real.pi*T^2/(4*(A:ℝ)^2)
+          * ((((if n < m then m - n else n - m) : ℕ)):ℝ)^2
+        ≤ Real.pi*T^2*(Real.log m - Real.log n)^2 := by
+      have := mul_le_mul_of_nonneg_left hkey
+        (by positivity : (0:ℝ) ≤ Real.pi*T^2)
+      calc Real.pi*T^2/(4*(A:ℝ)^2)
+            * ((((if n < m then m - n else n - m) : ℕ)):ℝ)^2
+          = Real.pi*T^2
+              * (((((if n < m then m - n else n - m) : ℕ)):ℝ)^2/(4*(A:ℝ)^2)) := by
+            ring
+        _ ≤ Real.pi*T^2*(Real.log m - Real.log n)^2 := this
+    linarith
+  -- split the block at `m`
+  have hsplit : S = (S.filter (fun n => n < m)) ∪ (S.filter (fun n => ¬ n < m)) :=
+    (Finset.filter_union_filter_not_eq _ _).symm
+  have hlow : ∑ n ∈ S.filter (fun n => n < m),
+      Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2))
+      ≤ 2*(A:ℝ)/T := by
+    have hmap : ∀ n ∈ S.filter (fun n => n < m),
+        Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2))
+          ≤ Real.exp (-(c*(((m - n : ℕ)):ℝ)^2)) := by
+      intro n hn
+      rw [Finset.mem_filter] at hn
+      have := hterm n hn.1 (by omega)
+      rwa [if_pos hn.2] at this
+    refine le_trans (Finset.sum_le_sum hmap) ?_
+    have hinj : Set.InjOn (fun n => m - n) ↑(S.filter (fun n => n < m)) := by
+      intro a ha b hb hab
+      rw [Finset.mem_coe, Finset.mem_filter] at ha hb
+      simp only at hab
+      omega
+    have himg : ∑ n ∈ S.filter (fun n => n < m),
+        Real.exp (-(c*(((m - n : ℕ)):ℝ)^2))
+        = ∑ k ∈ (S.filter (fun n => n < m)).image (fun n => m - n),
+            Real.exp (-(c*(k:ℝ)^2)) :=
+      (Finset.sum_image (f := fun k : ℕ => Real.exp (-(c*(k:ℝ)^2))) hinj).symm
+    rw [himg]
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg ?_
+      (fun k _ _ => (Real.exp_pos _).le)) (hgeom A)
+    intro k hk
+    rw [Finset.mem_image] at hk
+    obtain ⟨n, hn, rfl⟩ := hk
+    rw [Finset.mem_filter] at hn
+    have hnIoc := Finset.mem_Ioc.mp (hS hn.1)
+    have hmIoc := Finset.mem_Ioc.mp (hS hm)
+    rw [Finset.mem_Icc]
+    omega
+  have hhigh : ∑ n ∈ S.filter (fun n => ¬ n < m),
+      Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2))
+      ≤ 1 + 2*(A:ℝ)/T := by
+    have hmem : m ∈ S.filter (fun n => ¬ n < m) := by
+      rw [Finset.mem_filter]
+      exact ⟨hm, by omega⟩
+    rw [← Finset.add_sum_erase _ _ hmem]
+    have hdiag : Real.exp (-(Real.pi*T^2*(Real.log m - Real.log m)^2)) = 1 := by
+      simp
+    rw [hdiag]
+    have hgoal : ∀ x y : ℝ, x ≤ y → (1:ℝ) + x ≤ 1 + y := fun x y h => by linarith
+    refine hgoal _ _ ?_
+    have hmap : ∀ n ∈ (S.filter (fun n => ¬ n < m)).erase m,
+        Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2))
+          ≤ Real.exp (-(c*(((n - m : ℕ)):ℝ)^2)) := by
+      intro n hn
+      rw [Finset.mem_erase, Finset.mem_filter] at hn
+      have := hterm n hn.2.1 hn.1
+      rwa [if_neg (by omega)] at this
+    refine le_trans (Finset.sum_le_sum hmap) ?_
+    have hinj : Set.InjOn (fun n => n - m)
+        ↑((S.filter (fun n => ¬ n < m)).erase m) := by
+      intro a ha b hb hab
+      rw [Finset.mem_coe, Finset.mem_erase, Finset.mem_filter] at ha hb
+      simp only at hab
+      omega
+    have himg : ∑ n ∈ (S.filter (fun n => ¬ n < m)).erase m,
+        Real.exp (-(c*(((n - m : ℕ)):ℝ)^2))
+        = ∑ k ∈ ((S.filter (fun n => ¬ n < m)).erase m).image (fun n => n - m),
+            Real.exp (-(c*(k:ℝ)^2)) :=
+      (Finset.sum_image (f := fun k : ℕ => Real.exp (-(c*(k:ℝ)^2))) hinj).symm
+    rw [himg]
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg ?_
+      (fun k _ _ => (Real.exp_pos _).le)) (hgeom A)
+    intro k hk
+    rw [Finset.mem_image] at hk
+    obtain ⟨n, hn, rfl⟩ := hk
+    rw [Finset.mem_erase, Finset.mem_filter] at hn
+    have hnIoc := Finset.mem_Ioc.mp (hS hn.2.1)
+    have hmIoc := Finset.mem_Ioc.mp (hS hm)
+    rw [Finset.mem_Icc]
+    omega
+  have hdisj : Disjoint (S.filter (fun n => n < m))
+      (S.filter (fun n => ¬ n < m)) := Finset.disjoint_filter_filter_not _ _ _
+  calc ∑ n ∈ S, Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2))
+      = ∑ n ∈ (S.filter (fun n => n < m)) ∪ (S.filter (fun n => ¬ n < m)),
+          Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)) := by
+        rw [← hsplit]
+    _ = (∑ n ∈ S.filter (fun n => n < m),
+            Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)))
+          + ∑ n ∈ S.filter (fun n => ¬ n < m),
+            Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)) :=
+        Finset.sum_union hdisj
+    _ ≤ 2*(A:ℝ)/T + (1 + 2*(A:ℝ)/T) := add_le_add hlow hhigh
+    _ = 1 + 4*(A:ℝ)/T := by ring
+
+
+open MeasureTheory in
+/-- **The sharp short-block mean value theorem** (Track R, A2-III,
+I-2): for a block `S ⊆ (A, 2A]`,
+
+  `∫_{−T}^{T} ‖∑ (c n/n)·e(−ξ log n)‖² ≤ e^π·(T/A + 4)·∑ ‖c n‖²/n`,
+
+the Montgomery–Vaughan large sieve shape for the frequencies `log n`
+— **with no logarithm**.  Compare `intervalIntegral_norm_sq_short_poly_le`,
+which pays `(log Δ + 1)·∑ 1/n` on the off-diagonal: that logarithm is
+an artefact of the pair-by-pair kernel bound, not of the arithmetic.
+The Gaussian kit carries the sharp kernel; `sum_exp_neg_sq_log_diff_le`
+prices it. -/
+theorem intervalIntegral_norm_sq_short_poly_le_sharp (A : ℕ) (hA : 1 ≤ A)
+    (S : Finset ℕ) (hS : S ⊆ Finset.Ioc A (2*A))
+    (c : ℕ → ℂ) (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp Real.pi * (T/(A:ℝ) + 4) * ∑ n ∈ S, ‖c n‖^2/(n:ℝ) := by
+  classical
+  have hA0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hpos : ∀ n ∈ S, 0 < n := by
+    intro n hn
+    have := Finset.mem_Ioc.mp (hS hn)
+    omega
+  -- put the polynomial in the kit's `a · r` shape
+  have hshape : ∀ ξ : ℝ, (∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))
+      = ∑ n ∈ S, (c n * (((1/(n:ℝ) : ℝ)) : ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+    intro ξ
+    refine Finset.sum_congr rfl fun n hn => ?_
+    have hn0 : (n:ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (hpos n hn).ne'
+    congr 1
+    push_cast
+    field_simp
+  have hbase := intervalIntegral_norm_sq_gaussian_diag_le S c
+    (fun n => 1/(n:ℝ)) (fun n => by positivity) T hT
+  rw [intervalIntegral.integral_congr (fun ξ _ => by
+    rw [hshape ξ] : ∀ ξ ∈ Set.uIcc (-T) T,
+      ‖∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2
+      = ‖∑ n ∈ S, (c n * (((1/(n:ℝ) : ℝ)) : ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)]
+  refine le_trans hbase ?_
+  -- price the inner kernel sum by the block theta bound
+  have hinner : ∀ m ∈ S, ∑ n ∈ S, (1/(n:ℝ))
+        * (Real.exp Real.pi * T
+            * Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)))
+      ≤ (1/(A:ℝ)) * (Real.exp Real.pi * T) * (1 + 4*(A:ℝ)/T) := by
+    intro m hm
+    have hstep : ∀ n ∈ S, (1/(n:ℝ))
+          * (Real.exp Real.pi * T
+              * Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)))
+        ≤ (1/(A:ℝ)) * (Real.exp Real.pi * T)
+            * Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)) := by
+      intro n hn
+      have hnA : (A:ℝ) ≤ (n:ℝ) := by
+        have := Finset.mem_Ioc.mp (hS hn)
+        exact_mod_cast this.1.le
+      have hn0 : (0:ℝ) < n := by exact_mod_cast hpos n hn
+      have hrecip : (1/(n:ℝ)) ≤ 1/(A:ℝ) := by
+        rw [div_le_div_iff₀ hn0 hA0]
+        linarith
+      have hK0 : (0:ℝ) ≤ Real.exp Real.pi * T
+          * Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)) := by
+        positivity
+      calc (1/(n:ℝ)) * (Real.exp Real.pi * T
+              * Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)))
+          ≤ (1/(A:ℝ)) * (Real.exp Real.pi * T
+              * Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2))) :=
+            mul_le_mul_of_nonneg_right hrecip hK0
+        _ = (1/(A:ℝ)) * (Real.exp Real.pi * T)
+              * Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)) := by
+            ring
+    refine le_trans (Finset.sum_le_sum hstep) ?_
+    rw [← Finset.mul_sum]
+    refine mul_le_mul_of_nonneg_left
+      (sum_exp_neg_sq_log_diff_le A hA S hS m hm T hT) (by positivity)
+  -- assemble
+  have hcollapse : ∑ m ∈ S, ‖c m‖^2 * (1/(m:ℝ))
+        * ∑ n ∈ S, (1/(n:ℝ))
+            * (Real.exp Real.pi * T
+                * Real.exp (-(Real.pi*T^2*(Real.log m - Real.log n)^2)))
+      ≤ ∑ m ∈ S, ‖c m‖^2 * (1/(m:ℝ))
+          * ((1/(A:ℝ)) * (Real.exp Real.pi * T) * (1 + 4*(A:ℝ)/T)) := by
+    refine Finset.sum_le_sum fun m hm => ?_
+    refine mul_le_mul_of_nonneg_left (hinner m hm) ?_
+    have hm0 : (0:ℝ) < m := by exact_mod_cast hpos m hm
+    positivity
+  refine le_trans hcollapse ?_
+  rw [← Finset.sum_mul]
+  have hfac : (1/(A:ℝ)) * (Real.exp Real.pi * T) * (1 + 4*(A:ℝ)/T)
+      = Real.exp Real.pi * (T/(A:ℝ) + 4) := by
+    field_simp
+  rw [hfac]
+  have hmass : ∑ m ∈ S, ‖c m‖^2 * (1/(m:ℝ)) = ∑ n ∈ S, ‖c n‖^2/(n:ℝ) := by
+    refine Finset.sum_congr rfl fun n _ => ?_
+    ring
+  rw [hmass, mul_comm]
+
 end ExpSums
 
 end MoltResearch
