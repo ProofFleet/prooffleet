@@ -542,6 +542,76 @@ theorem phase_poly_mul (S Y : Finset ℕ) (a b : ℕ → ℂ)
 
 
 open Finset in
+/-- **The log-phase character over a product** (Track R, A2-III,
+III-0b): `∏ᵢ e(−ξ·log vᵢ) = e(−ξ·log ∏ᵢ vᵢ)` — `char_mul` iterated over
+a `Finset`.
+
+Positivity is required of every `v i`, not only of those in `s`, so that
+the induction on `s` needs no side condition; at the call sites `v`
+takes its values in a `Finset` of primes, where this is free. -/
+theorem char_prod {ι : Type*} (v : ι → ℕ) (hv : ∀ i, 0 < v i) (ξ : ℝ)
+    (s : Finset ι) :
+    (∏ i ∈ s, ((Real.fourierChar (-(Real.log (v i) * ξ)) : Circle) : ℂ))
+      = ((Real.fourierChar (-(Real.log ((∏ i ∈ s, v i : ℕ)) * ξ))
+          : Circle) : ℂ) := by
+  classical
+  induction s using Finset.cons_induction with
+  | empty => simp
+  | cons a s ha ih =>
+      rw [Finset.prod_cons, Finset.prod_cons, ih,
+        char_mul (v a) (∏ i ∈ s, v i) (hv a)
+          (Finset.prod_pos fun i _ => hv i) ξ]
+
+open Finset in
+/-- **The `ℓ`-th power of a prime polynomial** (Track R, A2-III,
+III-0b): the `ℓ`-fold iterate of `phase_poly_mul`, in closed form —
+
+  `(∑_{p∈Y} (b p/p)·e(−ξ log p))^ℓ
+     = ∑_{v ∈ Y^ℓ} ((∏ᵢ b vᵢ)/∏ᵢ vᵢ)·e(−ξ log ∏ᵢ vᵢ)`.
+
+No induction is needed: the power is a constant product, and
+`Finset.prod_univ_sum` — the distributive law over a `piFinset` — expands
+it in one step.  `char_prod` then moves the phase onto the product index
+and `Finset.prod_div_distrib` collects the `1/n` normalisation.
+
+With `phase_poly_fiberwise` this is the `2ℓ`-th moment's first half: the
+power is a Dirichlet polynomial supported on `ℓ`-fold products, whose
+coefficients `card_prime_tuple_fiber_le` bounds by `ℓ!` and whose
+harmonic mass `sum_one_div_image_prod_le` bounds by `(∑_{p∈Y} 1/p)^ℓ`. -/
+theorem phase_poly_pow (Y : Finset ℕ) (b : ℕ → ℂ) (hY : ∀ p ∈ Y, 0 < p)
+    (ℓ : ℕ) (ξ : ℝ) :
+    (∑ p ∈ Y, (b p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ
+      = ∑ v ∈ Fintype.piFinset (fun _ : Fin ℓ => Y),
+          ((∏ i, b (v i))/(((∏ i, v i : ℕ)):ℂ))
+            * ((Real.fourierChar (-(Real.log ((∏ i, v i : ℕ)) * ξ))
+                : Circle) : ℂ) := by
+  classical
+  have hpow : (∑ p ∈ Y, (b p/(p:ℂ))
+      * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ
+      = ∏ _i : Fin ℓ, (∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)) := by
+    rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
+  rw [hpow, Finset.prod_univ_sum]
+  refine Finset.sum_congr rfl fun v hv => ?_
+  rw [Fintype.mem_piFinset] at hv
+  -- extend the coordinates to a globally positive function
+  have hvpos : ∀ i, 0 < (if h : v i ∈ Y then v i else 1) := by
+    intro i
+    split_ifs with h
+    · exact hY _ h
+    · exact Nat.one_pos
+  have hveq : ∀ i, (if h : v i ∈ Y then v i else 1) = v i := by
+    intro i
+    rw [dif_pos (hv i)]
+  have hchar := char_prod (fun i => if h : v i ∈ Y then v i else 1) hvpos ξ
+    (Finset.univ : Finset (Fin ℓ))
+  simp only [hveq] at hchar
+  rw [Finset.prod_mul_distrib, hchar, Finset.prod_div_distrib]
+  push_cast
+  ring
+
+open Finset in
 /-- **The fibre collapse** (Track R, A2-III, III-1a): a phase sum
 indexed by pairs is the phase polynomial whose coefficient at `n` is
 the total weight of the fibre over `n` —
