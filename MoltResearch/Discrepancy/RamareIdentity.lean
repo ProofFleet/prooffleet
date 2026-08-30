@@ -845,6 +845,48 @@ theorem image_div_fibre_subset (a b : ℕ) (S : Finset ℕ)
       exact hmem.2)
 
 
+/-- **The fibre count in a window** (Track R, A2-III, III-2c): a set
+inside `(a, b]` has at most `b/d - a/d` elements divisible by `d`.  This
+is the counting half of `sum_filter_dvd_eq_sum_image`: the quotient map
+`n ↦ n/d` is injective on the `d`-fibre (a multiple is recovered from its
+quotient) and lands in `(a/d, b/d]`, so the fibre is no larger than that
+interval.  Exact for `S = Finset.Ioc a b`. -/
+theorem card_filter_dvd_le_sub (a b : ℕ) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc a b) {d : ℕ} (hd : 0 < d) :
+    (S.filter (fun n => d ∣ n)).card ≤ b/d - a/d := by
+  classical
+  have hinj : Set.InjOn (· / d) ↑(S.filter (fun n => d ∣ n)) := by
+    intro n₁ h₁ n₂ h₂ he
+    have hd₁ := (Finset.mem_filter.mp (Finset.mem_coe.mp h₁)).2
+    have hd₂ := (Finset.mem_filter.mp (Finset.mem_coe.mp h₂)).2
+    simp only at he
+    calc n₁ = d * (n₁ / d) := (Nat.mul_div_cancel' hd₁).symm
+      _ = d * (n₂ / d) := by rw [he]
+      _ = n₂ := Nat.mul_div_cancel' hd₂
+  calc (S.filter (fun n => d ∣ n)).card
+      = ((S.filter (fun n => d ∣ n)).image (· / d)).card :=
+        (Finset.card_image_of_injOn hinj).symm
+    _ ≤ (Finset.Ioc (a/d) (b/d)).card :=
+        Finset.card_le_card (image_div_fibre_subset a b S hS hd)
+    _ = b/d - a/d := Nat.card_Ioc _ _
+
+/-- **The fibre count in a window, as a real bound** (Track R, A2-III,
+III-2c): the `d`-multiples of a subset of `(a, b]` number at most
+`b/d` — real division, so no floor survives to be carried around.
+
+This is the step that converts a divisor-pair double count
+`∑_{n} g(n)² ≤ ∑_{r,r'} #{n : [r,r'] ∣ n}` into a harmonic mass
+`∑_{r,r'} 1/[r,r']`, which is what the Euler product
+(`one_add_div_one_sub_sq_le_exp`) then sums. -/
+theorem card_filter_dvd_le_div (a b : ℕ) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc a b) {d : ℕ} (hd : 0 < d) :
+    ((S.filter (fun n => d ∣ n)).card : ℝ) ≤ (b:ℝ)/d := by
+  have h1 : (S.filter (fun n => d ∣ n)).card ≤ b/d :=
+    le_trans (card_filter_dvd_le_sub a b S hS hd) (Nat.sub_le _ _)
+  calc ((S.filter (fun n => d ∣ n)).card : ℝ) ≤ ((b/d : ℕ) : ℝ) := by
+        exact_mod_cast h1
+    _ ≤ (b:ℝ)/d := Nat.cast_div_le
+
 /-- **The subset 𝒰-decomposition** (Track R, W2c-vii-b2a): the C4e-4
 normal form at an arbitrary finset, with the prime fibres given by the
 quotient images — the shape every level of the `J`-recursion produces
