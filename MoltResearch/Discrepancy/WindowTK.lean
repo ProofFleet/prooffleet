@@ -1241,4 +1241,126 @@ theorem intervalIntegral_norm_sq_cell_fibre_sub_le
     c hc T hT
   rwa [hminA, hminB] at hkey
 
+
+open MeasureTheory Finset ExpSums in
+/-- **The `2ℓ`-th moment of a prime polynomial** (Track R, A2-III,
+III-3b): for primes in a dyadic range `(P, 2P]` and `1`-bounded
+coefficients,
+
+  `∫_{−T}^{T} ‖Q(ξ)^ℓ‖² ≤ e^π·(T/P^ℓ + 2·2^ℓ)·(ℓ!)²·(∑_{p∈Y} 1/p)^ℓ`,
+  `Q(ξ) = ∑_{p∈Y} (b p/p)·e(−ξ log p)`.
+
+The general `[MR]` moment input, and the `ℓ`-fold generalisation of
+`intervalIntegral_norm_sq_prime_poly_sq_le` (#3517).  Every ingredient is
+already on main and each was stated without hypotheses it did not need,
+so the assembly is mechanical:
+
+* `phase_poly_pow` expands `Q^ℓ` over `Y^ℓ`;
+* `phase_poly_fiberwise'` collapses it to a Dirichlet polynomial;
+* `card_prime_tuple_fiber_le` bounds the collapsed coefficients by `ℓ!`
+  — the fundamental theorem of arithmetic;
+* the support lies in `(P^ℓ, 2^ℓ·P^ℓ]`, so the **ratio-general** sharp
+  mean value theorem applies at `R = 2^ℓ`, log-free;
+* `sum_one_div_image_prod_le` prices the harmonic mass.
+
+The ratio generalisation of the mean value theorem is exactly what makes
+this reachable: an `ℓ`-fold product of primes from `(P, 2P]` spans a
+`2^ℓ`-fold range, so no dyadic estimate could see it. -/
+theorem intervalIntegral_norm_sq_prime_poly_pow_le (Y : Finset ℕ)
+    (hY : ∀ p ∈ Y, p.Prime) (P : ℕ) (hP : 1 ≤ P)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1) (ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖(∑ p ∈ Y, (b p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ‖^2)
+      ≤ Real.exp Real.pi * (T/((P^ℓ : ℕ):ℝ) + 2*((2^ℓ : ℕ):ℝ))
+          * ((Nat.factorial ℓ : ℝ)^2 * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))^ℓ) := by
+  classical
+  set V : Finset (Fin ℓ → ℕ) := Fintype.piFinset (fun _ : Fin ℓ => Y)
+    with hV_def
+  set Tgt : Finset ℕ := V.image (fun v => ∏ i, v i) with hTgt_def
+  have hppos : ∀ p ∈ Y, 0 < p := fun p hp => (hY p hp).pos
+  -- the collapsed coefficients
+  set c : ℕ → ℂ := fun n =>
+    ∑ v ∈ V.filter (fun v => ∏ i, v i = n), ∏ i, b (v i) with hc_def
+  -- the power is the collapsed Dirichlet polynomial
+  have hpowξ : ∀ ξ : ℝ, (∑ p ∈ Y, (b p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ
+      = ∑ n ∈ Tgt, (c n/(n:ℂ)) * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+    intro ξ
+    rw [phase_poly_pow Y b hppos ℓ ξ]
+    exact phase_poly_fiberwise' V (fun v => ∏ i, v i) Tgt
+      (fun v hv => by
+        rw [hTgt_def, Finset.mem_image]
+        exact ⟨v, hv, rfl⟩)
+      (fun v => ∏ i, b (v i)) ξ
+  rw [intervalIntegral.integral_congr (fun ξ _ => by
+    rw [hpowξ ξ] : ∀ ξ ∈ Set.uIcc (-T) T,
+      ‖(∑ p ∈ Y, (b p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^ℓ‖^2
+      = ‖∑ n ∈ Tgt, (c n/(n:ℂ)) * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)]
+  -- the support spans a `2^ℓ`-fold range
+  have hPl : 1 ≤ P^ℓ := Nat.one_le_pow _ _ (by omega)
+  have hsupp : Tgt ⊆ Finset.Ioc (P^ℓ) (2^ℓ*(P^ℓ)) := by
+    intro n hn
+    rw [hTgt_def, Finset.mem_image] at hn
+    obtain ⟨v, hv, rfl⟩ := hn
+    rw [hV_def, Fintype.mem_piFinset] at hv
+    have hcard : (Finset.univ : Finset (Fin ℓ)).card = ℓ := by simp
+    rw [Finset.mem_Ioc]
+    constructor
+    · have hstep : (P+1)^ℓ ≤ ∏ i, v i := by
+        calc (P+1)^ℓ = ∏ _i : Fin ℓ, (P+1) := by
+              rw [Finset.prod_const, hcard]
+          _ ≤ ∏ i, v i := Finset.prod_le_prod' fun i _ => hlo _ (hv i)
+      have : P^ℓ < (P+1)^ℓ := Nat.pow_lt_pow_left (by omega) (by omega)
+      omega
+    · calc ∏ i, v i ≤ ∏ _i : Fin ℓ, (2*P) :=
+            Finset.prod_le_prod' fun i _ => hhi _ (hv i)
+        _ = (2*P)^ℓ := by rw [Finset.prod_const, hcard]
+        _ = 2^ℓ*(P^ℓ) := by rw [mul_pow]
+  -- the coefficient bound: at most `ℓ!` ordered factorisations
+  have hcb : ∀ n : ℕ, ‖c n‖ ≤ (Nat.factorial ℓ : ℝ) := by
+    intro n
+    have hfib := card_prime_tuple_fiber_le (ℓ := ℓ) Y hY n
+    have h1 : ‖c n‖ ≤ ∑ _v ∈ V.filter (fun v => ∏ i, v i = n), (1:ℝ) := by
+      rw [hc_def]
+      refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun v _ => ?_)
+      rw [norm_prod]
+      exact Finset.prod_le_one (fun i _ => norm_nonneg _) (fun i _ => hb _)
+    have h2 : ∑ _v ∈ V.filter (fun v => ∏ i, v i = n), (1:ℝ)
+        = ((V.filter (fun v => ∏ i, v i = n)).card : ℝ) := by
+      rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+    have h3 : ((V.filter (fun v => ∏ i, v i = n)).card : ℝ)
+        ≤ (Nat.factorial ℓ : ℝ) := by exact_mod_cast hfib
+    linarith [h1, h2 ▸ h1]
+  -- the ratio-general sharp mean value theorem at `R = 2^ℓ`
+  have hmvt := intervalIntegral_norm_sq_poly_le_sharp_ratio (P^ℓ) (2^ℓ)
+    hPl (Nat.one_le_two_pow) Tgt hsupp c T hT
+  refine le_trans hmvt ?_
+  have hconst : (0:ℝ)
+      ≤ Real.exp Real.pi * (T/((P^ℓ : ℕ):ℝ) + 2*((2^ℓ : ℕ):ℝ)) := by
+    positivity
+  refine mul_le_mul_of_nonneg_left ?_ hconst
+  -- the harmonic mass, with the `(ℓ!)²` coefficient bound
+  have hmass : ∑ n ∈ Tgt, ‖c n‖^2/(n:ℝ)
+      ≤ (Nat.factorial ℓ : ℝ)^2 * ∑ n ∈ Tgt, (1:ℝ)/(n:ℝ) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun n hn => ?_
+    have hn0 : (0:ℝ) < n := by
+      have hnIoc := Finset.mem_Ioc.mp (hsupp hn)
+      have : (0:ℕ) < n := by
+        have : 1 ≤ P^ℓ := hPl
+        omega
+      exact_mod_cast this
+    have hsq : ‖c n‖^2 ≤ (Nat.factorial ℓ : ℝ)^2 := by
+      have := hcb n
+      nlinarith [norm_nonneg (c n), Nat.cast_nonneg (α := ℝ) (Nat.factorial ℓ)]
+    rw [div_le_iff₀ hn0]
+    calc ‖c n‖^2 ≤ (Nat.factorial ℓ : ℝ)^2 := hsq
+      _ = (Nat.factorial ℓ : ℝ)^2 * (1/(n:ℝ)) * (n:ℝ) := by field_simp
+  refine le_trans hmass ?_
+  have hharm : ∑ n ∈ Tgt, (1:ℝ)/(n:ℝ) ≤ (∑ p ∈ Y, (1:ℝ)/(p:ℝ))^ℓ := by
+    rw [hTgt_def, hV_def]
+    exact sum_one_div_image_prod_le Y ℓ
+  have hfac : (0:ℝ) ≤ (Nat.factorial ℓ : ℝ)^2 := by positivity
+  exact mul_le_mul_of_nonneg_left hharm hfac
+
 end MoltResearch
