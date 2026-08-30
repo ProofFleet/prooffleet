@@ -648,4 +648,62 @@ theorem card_prime_pair_fiber_le (Y Z : Finset ℕ)
     refine le_trans (Finset.card_le_card hsub) ?_
     exact le_trans (Finset.card_insert_le _ _) (by simp)
 
+
+/-! ## The harmonic mass of a product set (Track R, A2-III, III-2a) -/
+
+open Finset in
+/-- **The harmonic mass of a product set** (Track R, A2-III, III-2a):
+
+  `∑_{n ∈ Y·Z} 1/n ≤ (∑_{p∈Y} 1/p)·(∑_{q∈Z} 1/q)`.
+
+This is the elementary Euler-product substitute for a Shiu-type bound in
+the `[MR]` moment estimates: the support of a product of two Dirichlet
+polynomials is the product set, and its harmonic mass — the quantity the
+sharp mean value theorem charges for — is bounded by the product of the
+two prime masses.  Collisions only help, which is why an inequality
+suffices and no multiplicity count enters here.
+
+No hypotheses: if `0 ∈ Y` the corresponding terms are `1/0 = 0` on both
+sides. -/
+theorem sum_one_div_image_mul_le (Y Z : Finset ℕ) :
+    ∑ n ∈ (Y ×ˢ Z).image (fun q : ℕ × ℕ => q.1 * q.2), (1:ℝ)/n
+      ≤ (∑ p ∈ Y, (1:ℝ)/p) * (∑ q ∈ Z, (1:ℝ)/q) := by
+  classical
+  refine le_trans (Finset.sum_image_le_of_nonneg (fun q _ => by positivity)) ?_
+  rw [Finset.sum_mul_sum, Finset.sum_product]
+  refine Finset.sum_le_sum fun p _ => Finset.sum_le_sum fun q _ => ?_
+  push_cast
+  rw [one_div, one_div, one_div, mul_inv]
+
+open Finset in
+/-- **The harmonic mass of an `ℓ`-fold product set** (Track R, A2-III,
+III-2a): for the image of `Y^ℓ` under the product map,
+
+  `∑_{n ∈ Y^ℓ} 1/n ≤ (∑_{p∈Y} 1/p)^ℓ`.
+
+The `ℓ`-fold version of the same estimate, and the harmonic input to the
+`2ℓ`-th moment of a prime polynomial: `Q^ℓ` is supported on this set, so
+the sharp mean value theorem at ratio `2^ℓ` charges exactly this mass.
+
+The proof is `Finset.prod_univ_sum` — the distributive law for a product
+of sums over a `piFinset` — after inverting the product coordinatewise.
+Again no positivity hypothesis is needed: a zero coordinate makes both
+sides' terms vanish. -/
+theorem sum_one_div_image_prod_le (Y : Finset ℕ) (ℓ : ℕ) :
+    ∑ n ∈ (Fintype.piFinset fun _ : Fin ℓ => Y).image (fun v => ∏ i, v i),
+        (1:ℝ)/n
+      ≤ (∑ p ∈ Y, (1:ℝ)/p)^ℓ := by
+  classical
+  refine le_trans (Finset.sum_image_le_of_nonneg (fun v _ => by positivity)) ?_
+  have hsplit : ∀ v : Fin ℓ → ℕ,
+      (1:ℝ)/((∏ i, v i : ℕ):ℝ) = ∏ i : Fin ℓ, (1:ℝ)/((v i : ℕ):ℝ) := by
+    intro v
+    push_cast
+    simp [one_div, ← Finset.prod_inv_distrib]
+  have hpow : (∑ p ∈ Y, (1:ℝ)/p)^ℓ
+      = ∏ _i : Fin ℓ, (∑ p ∈ Y, (1:ℝ)/p) := by
+    rw [Finset.prod_const, Finset.card_univ, Fintype.card_fin]
+  rw [hpow, Finset.prod_univ_sum]
+  refine le_of_eq (Finset.sum_congr rfl fun v _ => hsplit v)
+
 end MoltResearch
