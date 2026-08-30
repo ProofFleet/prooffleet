@@ -13,9 +13,9 @@
 
 ## Errata — read before building anything from this file
 
-The report has been used to ship eighteen units (#3518–#3535). Four of its claims
-did not survive contact with Lean. The body below is **unedited**; the
-corrections are here.
+The report has been used to ship the whole A2-III ladder. Six of its claims did
+not survive contact with Lean. The body below is **unedited**; the corrections
+are here.
 
 1. **III-2's Euler factor and its constant are wrong — the stated bound is false.**
    The report claims
@@ -49,15 +49,53 @@ corrections are here.
 4. **`quotBlock`, used in the II-5 statement, is not an in-tree definition.** The
    II-5 signature below is therefore a sketch, not a transcribable target.
 
+5. **III-2's whole *route* is unnecessary, not just its constant.** Item 1 above
+   corrects the Euler factor; this item retires the Euler product. The sum the
+   moment estimate actually needs runs over the **finite** set
+   `Y^ℓ = (piFinset fun _ : Fin ℓ => Y).image (∏)` — the support of `Q^ℓ` — not
+   over the infinitely many `Y`-smooth numbers, so no `smoothDivisorCount`
+   definition and no free-commutative-monoid machinery are required. Partition
+   `Y^ℓ × Y^ℓ` into the fibres of `(r,r') ↦ Ω(gcd r r')`; on the fibre over `k`
+   the map `(r,r') ↦ (g, r/g, r'/g)` with `g = gcd(r,r')` is injective, lands in
+   `Y^k × Y^{ℓ−k} × Y^{ℓ−k}`, and carries `1/[r,r']` to `1/(g·(r/g)·(r'/g))`
+   because `g·[r,r'] = r·r'`. Pricing each factor by the already-existing
+   `sum_one_div_image_prod_le` (#3521) gives
+
+     `∑_{r,r' ∈ Y^ℓ} 1/[r,r'] ≤ (ℓ+1)·σ^ℓ`,  `σ = ∑_{p∈Y} 1/p ≤ 1`,
+
+   and `σ ≤ 1` is free, since `Y ⊆ (P, 2P]` has at most `P` elements each larger
+   than `P`. Landed as #3536, #3539, #3541, #3542.
+
+6. **III-2's *statement* is in the wrong normalisation.** The note asks for
+   `∑ g(n)²/n²`. The in-tree sharp mean value theorem
+   `intervalIntegral_norm_sq_poly_le_sharp_ratio` sends a polynomial
+   `∑ (c n/n)·e(−ξ log n)` to `e^π(T/A + 2R)·∑ ‖c n‖²/n` — weight `1/n`. The
+   `1/n²` form predates that normalisation and no consumer takes it. The ratio
+   must also stay free: `Q^ℓ·R` is supported on `(P^ℓA', 2^{ℓ+1}P^ℓA']`, so a
+   dyadic statement would not reach it.
+
 One further note, not an erratum: V-0/V-1 landed at least as sharp as specified —
 `sum_norm_sq_le_integral_of_separated` integrates over `(−T, T+1]` where the
 report's `sum_well_spaced_le_intervalIntegral` uses `(−(T+1), T+1)`.
 
 ## What the ladder still owes
 
-`III-2` proper, `III-3` full, `II-5b` (`E₁`), `III-4` (`E_j`), `IV-0` (which needs
-the M0R `ℝ → ℂ` generalisation first), `IV-3` (the `𝒰` band energy, conditional on
-the two interfaces of item 3), and the `VI-1` capstone.
+**Phase III is closed.** `III-2` and the full `III-3` are on main, by the route of
+errata items 5 and 6 rather than the one described below; the `[MR]` moment lemma
+`le:moment` is now
+
+  `∫_{−T}^{T}‖Q^ℓ·R‖² ≤ e^π(T/(P^ℓA') + 2·2^{ℓ+1})·(ℓ!)²·2^{ℓ+1}(ℓ+1)·σ^ℓ`
+
+(`intervalIntegral_norm_sq_prime_poly_pow_mul_le`), with `σ ≤ 1` derived rather
+than assumed.
+
+Still owed: `II-5b` (`E₁` — but see erratum 4: its signature below is not
+transcribable, `quotBlock` does not exist), `III-4` (`E_j`), `IV-0` (which needs
+the M0R `ℝ → ℂ` generalisation first, and that is a sub-campaign, not a unit:
+`plain_sum_le_halasz_of_nonPretentious` is a thin wrapper over
+`rieszMean_log_halasz_le`, so the `ℝ`-ness runs the whole depth of the Halász
+chain), `IV-3` (the `𝒰` band energy, conditional on the two interfaces of item 3),
+and the `VI-1` capstone.
 
 ---
 
