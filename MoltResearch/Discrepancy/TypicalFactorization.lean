@@ -436,4 +436,52 @@ theorem phase_poly_mul (S Y : Finset ℕ) (a b : ℕ → ℂ)
   rw [hcast]
   field_simp
 
+
+open Finset in
+/-- **The fibre collapse** (Track R, A2-III, III-1a): a phase sum
+indexed by pairs is the phase polynomial whose coefficient at `n` is
+the total weight of the fibre over `n` —
+
+  `∑_{q ∈ s} (a q/(q₁q₂))·e(−ξ log(q₁q₂))
+     = ∑_{n ∈ T} ((∑_{q : q₁q₂ = n} a q)/n)·e(−ξ log n)`.
+
+This is the bridge from the convolution form of `phase_poly_mul`,
+which is indexed by tuples, to the `∑_{n} (c n/n)·e(−ξ log n)` shape
+that the mean value theorem consumes.  All the multiplicity of
+representations is now visible in one place: the fibre cardinality. -/
+theorem phase_poly_fiberwise (s : Finset (ℕ × ℕ)) (T : Finset ℕ)
+    (hmaps : ∀ q ∈ s, q.1 * q.2 ∈ T) (a : ℕ × ℕ → ℂ) (ξ : ℝ) :
+    ∑ q ∈ s, (a q/(((q.1 * q.2 : ℕ)):ℂ))
+        * ((Real.fourierChar (-(Real.log ((q.1 * q.2 : ℕ)) * ξ)) : Circle) : ℂ)
+      = ∑ n ∈ T, ((∑ q ∈ s.filter (fun q => q.1 * q.2 = n), a q)/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+  classical
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps
+    (fun q => (a q/(((q.1 * q.2 : ℕ)):ℂ))
+      * ((Real.fourierChar (-(Real.log ((q.1 * q.2 : ℕ)) * ξ)) : Circle) : ℂ))]
+  refine Finset.sum_congr rfl fun n _ => ?_
+  rw [Finset.sum_div, Finset.sum_mul]
+  refine Finset.sum_congr rfl fun q hq => ?_
+  rw [Finset.mem_filter] at hq
+  rw [hq.2]
+
+open Finset in
+/-- **The fibre coefficient bound** (Track R, A2-III, III-1b): the
+collapsed coefficient at `n` is at most the fibre cardinality times
+the pointwise weight bound.  The `[MR]` moment computation supplies
+`ℓ!` for that cardinality when the fibres are `ℓ`-fold products of
+primes from a dyadic range. -/
+theorem norm_sum_fiber_le (s : Finset (ℕ × ℕ)) (a : ℕ × ℕ → ℂ)
+    (B : ℝ) (hB : 0 ≤ B) (ha : ∀ q, ‖a q‖ ≤ B) (n : ℕ) :
+    ‖∑ q ∈ s.filter (fun q => q.1 * q.2 = n), a q‖
+      ≤ ((s.filter (fun q => q.1 * q.2 = n)).card : ℝ) * B := by
+  classical
+  calc ‖∑ q ∈ s.filter (fun q => q.1 * q.2 = n), a q‖
+      ≤ ∑ q ∈ s.filter (fun q => q.1 * q.2 = n), ‖a q‖ :=
+        norm_sum_le _ _
+    _ ≤ ∑ _q ∈ s.filter (fun q => q.1 * q.2 = n), B :=
+        Finset.sum_le_sum fun q _ => ha q
+    _ = ((s.filter (fun q => q.1 * q.2 = n)).card : ℝ) * B := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+
 end MoltResearch
