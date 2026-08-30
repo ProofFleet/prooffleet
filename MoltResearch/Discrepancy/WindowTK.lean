@@ -1477,4 +1477,42 @@ theorem intervalIntegral_norm_sq_cell_replace_le
       (hqmin p hp) A B hAB (hLA p hp) (hLB p hp) c hc T hT
   · exact Finset.sum_nonneg fun p _ => by positivity
 
+
+open MeasureTheory Finset ExpSums in
+/-- **The large-values estimate for a prime polynomial** (Track R,
+A2-III, V-1b): for primes in `(P, 2P]` and `1`-bounded coefficients, at
+every moment order `ℓ ≥ 1`,
+
+  `|{ξ ∈ (−T,T] : V ≤ ‖Q ξ‖}|·V^{2ℓ}
+     ≤ e^π(T/P^ℓ + 2·2^ℓ)·(ℓ!)²·(∑_{p∈Y} 1/p)^ℓ`.
+
+The composition of the `2ℓ`-th moment
+(`intervalIntegral_norm_sq_prime_poly_pow_le`) with Chebyshev
+(`measure_large_le_of_moment`), and the honest form of the `[MR]`
+large-values input: a bound on the *measure* of the large set, uniform
+in `ℓ`, leaving `ℓ` free to be optimised against `V`.
+
+What it is not: a bound on the *number* of well-separated large
+frequencies.  That is a strictly stronger statement, and for
+prime-supported polynomials it is exactly the point where the
+exceptional-frequency leg leaves elementary territory — the reason the
+endgame quotes the literature rather than proving it here. -/
+theorem measure_large_prime_poly_le (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (P : ℕ) (hP : 1 ≤ P) (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1) (ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (T V : ℝ) (hT : 0 < T) (hV : 0 ≤ V) :
+    (volume {ξ | ξ ∈ Set.Ioc (-T) T
+        ∧ V ≤ ‖∑ p ∈ Y, (b p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖}).toReal * V^(2*ℓ)
+      ≤ Real.exp Real.pi * (T/((P^ℓ : ℕ):ℝ) + 2*((2^ℓ : ℕ):ℝ))
+          * ((Nat.factorial ℓ : ℝ)^2 * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))^ℓ) := by
+  have hchar : ∀ v : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ) := fun v =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  have hQc : Continuous fun ξ : ℝ => ∑ p ∈ Y, (b p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun p _ => continuous_const.mul (hchar (Real.log p))
+  exact measure_large_le_of_moment
+    (fun ξ => ∑ p ∈ Y, (b p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)) hQc T V _ hT hV ℓ
+    (intervalIntegral_norm_sq_prime_poly_pow_le Y hY P hP hlo hhi b hb ℓ hℓ
+      T hT)
+
 end MoltResearch
