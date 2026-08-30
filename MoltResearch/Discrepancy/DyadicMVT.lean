@@ -3676,6 +3676,38 @@ theorem intervalIntegral_norm_sq_short_poly_le_sharp (A : ℕ) (hA : 1 ≤ A)
     ring
   rw [hmass, mul_comm]
 
+
+open MeasureTheory in
+/-- **The sharp short-block mean value theorem, weighted** (Track R,
+A2-III, I-3): the `‖c n‖²`-form of
+`intervalIntegral_norm_sq_short_poly_le_sharp` relaxed to a uniform
+coefficient bound, which the estimate pays for by `B²` — the shape the
+band units consume, still with no logarithm. -/
+theorem intervalIntegral_norm_sq_short_poly_le_sharp_of_bound (A : ℕ)
+    (hA : 1 ≤ A) (S : Finset ℕ) (hS : S ⊆ Finset.Ioc A (2*A))
+    (c : ℕ → ℂ) (B : ℝ) (hB : 0 ≤ B) (hc : ∀ n, ‖c n‖ ≤ B)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp Real.pi * (T/(A:ℝ) + 4) * (B^2 * ∑ n ∈ S, (1:ℝ)/(n:ℝ)) := by
+  classical
+  refine le_trans (intervalIntegral_norm_sq_short_poly_le_sharp A hA S hS
+    c T hT) ?_
+  refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+  rw [Finset.mul_sum]
+  refine Finset.sum_le_sum fun n hn => ?_
+  have hn0 : (0:ℝ) < n := by
+    have := Finset.mem_Ioc.mp (hS hn)
+    have h1 : 0 < n := by omega
+    exact_mod_cast h1
+  have hsq : ‖c n‖^2 ≤ B^2 := by
+    have := hc n
+    nlinarith [norm_nonneg (c n)]
+  rw [div_le_iff₀ hn0]
+  calc ‖c n‖^2 = ‖c n‖^2 := rfl
+    _ ≤ B^2 := hsq
+    _ = B^2 * (1/(n:ℝ)) * (n:ℝ) := by field_simp
+
 end ExpSums
 
 end MoltResearch

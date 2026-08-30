@@ -1616,9 +1616,13 @@ theorem ring_energy_decay_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
             * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
           * (2*B'/(π*|ξ|))^2
       ≤ (2*B'/(π*a))^2 * ((2*(A:ℝ)+1)^2
-          * (2*(2*a)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-            + (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))) := by
+          * (Real.exp Real.pi * (2*a/(A:ℝ) + 4)
+              * (∑ n ∈ S, (1:ℝ)/n))) := by
   classical
+  have hA : 1 ≤ A := le_trans hΔ hΔA
+  have hS2A : S ⊆ Finset.Ioc A (2*A) := by
+    refine hS.trans (Finset.Ioc_subset_Ioc_right ?_)
+    omega
   have hphase_cont : Continuous fun ξ : ℝ =>
       ∑ m ∈ S, h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
     refine continuous_finset_sum _ fun m _ => ?_
@@ -1730,8 +1734,8 @@ theorem ring_energy_decay_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
       ‖∑ m ∈ S, h m
         * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
       ≤ (2*(A:ℝ)+1)^2
-        * (2*(2*a)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-          + (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
+        * (Real.exp Real.pi * (2*a/(A:ℝ) + 4)
+            * (∑ n ∈ S, (1:ℝ)/n)) := by
     set c : ℕ → ℂ := fun m => if m ≤ 2*A+1
         then (m:ℂ) * h m / (2*(A:ℕ)+1 : ℕ) else 0 with hc_def
     have hcb : ∀ m, ‖c m‖ ≤ 1 := by
@@ -1774,10 +1778,9 @@ theorem ring_energy_decay_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
     rw [intervalIntegral.integral_congr
       (fun ξ _ => hpoint ξ), intervalIntegral.integral_const_mul]
     refine mul_le_mul_of_nonneg_left ?_ (by positivity)
-    exact intervalIntegral_norm_sq_short_poly_le A Δ hΔ hΔA S
-      (fun n hn => (Finset.mem_Ioc.mp (hS hn)).1)
-      (fun n hn => (Finset.mem_Ioc.mp (hS hn)).2)
-      c hcb (2*a) (by linarith)
+    have hsharp := intervalIntegral_norm_sq_short_poly_le_sharp_of_bound
+      A hA S hS2A c 1 (by norm_num) hcb (2*a) (by linarith)
+    simpa using hsharp
   calc ∫ ξ in {ξ : ℝ | a ≤ |ξ| ∧ |ξ| ≤ 2*a},
       ‖∑ m ∈ S, h m
         * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
@@ -1785,8 +1788,8 @@ theorem ring_energy_decay_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
       ≤ _ := hstep1
     _ = _ := hstep2
     _ ≤ (2*B'/(π*a))^2 * ((2*(A:ℝ)+1)^2
-        * (2*(2*a)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-          + (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))) := by
+        * (Real.exp Real.pi * (2*a/(A:ℝ) + 4)
+            * (∑ n ∈ S, (1:ℝ)/n))) := by
       refine mul_le_mul_of_nonneg_left (le_trans hstep3 hstep4)
         (by positivity)
 
@@ -1923,8 +1926,8 @@ theorem band_energy_outer_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
             * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
           * (2*B'/(π*|ξ|))^2
       ≤ (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
-          * ((8/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-            + (2/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))) := by
+          * (Real.exp Real.pi * ((4/(K₂*(A:ℝ))) + (6/K₂^2))
+              * (∑ n ∈ S, (1:ℝ)/n))) := by
   classical
   set f : ℝ → ℝ := fun ξ =>
     ‖∑ m ∈ S, h m
@@ -1984,9 +1987,9 @@ theorem band_energy_outer_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
   have hring : ∀ j ∈ Finset.range J,
       ∫ ξ in {ξ : ℝ | 2^j*K₂ ≤ |ξ| ∧ |ξ| ≤ 2^(j+1)*K₂}, f ξ
         ≤ (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
-            * ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-              + (1/(2^j*K₂)^2)
-                  * ((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))) := by
+            * (Real.exp Real.pi
+                * ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2))
+                * (∑ n ∈ S, (1:ℝ)/n))) := by
     intro j _
     have hj0 : (0:ℝ) < 2^j*K₂ := by positivity
     have hpow : (2:ℝ)^(j+1)*K₂ = 2*(2^j*K₂) := by
@@ -2009,19 +2012,16 @@ theorem band_energy_outer_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
     norm_num at this
     linarith
   have hKne : (K₂:ℝ) ≠ 0 := ne_of_gt hK₂
-  have hinner : ∑ j ∈ Finset.range J,
-      ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-        + (1/(2^j*K₂)^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
-      = (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-            * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
-        + (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
-            * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j := by
+  have hA0 : (0:ℝ) < A := by
+    have : 1 ≤ A := le_trans hΔ hΔA
+    exact_mod_cast this
+  -- the dyadic weights sum geometrically
+  have hXsum : ∑ j ∈ Finset.range J,
+      ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2))
+      ≤ (4/(K₂*(A:ℝ))) + (6/K₂^2) := by
     have hterm : ∀ j ∈ Finset.range J,
-        ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-          + (1/(2^j*K₂)^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
-        = ((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)) * ((1:ℝ)/2)^j
-          + ((1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
-              * ((1:ℝ)/4)^j := by
+        ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2))
+        = (2/(K₂*(A:ℝ))) * ((1:ℝ)/2)^j + (4/K₂^2) * ((1:ℝ)/4)^j := by
       intro j _
       have hne : ((2:ℝ)^j) ≠ 0 := by positivity
       have h2 : ((1:ℝ)/2)^j = 1/((2:ℝ)^j) := by
@@ -2031,65 +2031,47 @@ theorem band_energy_outer_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
           ← pow_mul, ← pow_mul, Nat.mul_comm]
       rw [h2, h4]
       field_simp
-    calc ∑ j ∈ Finset.range J,
-        ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-          + (1/(2^j*K₂)^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
+    calc ∑ j ∈ Finset.range J, ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2))
         = ∑ j ∈ Finset.range J,
-            (((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)) * ((1:ℝ)/2)^j
-              + ((1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
-                  * ((1:ℝ)/4)^j) := Finset.sum_congr rfl hterm
-      _ = (∑ j ∈ Finset.range J,
-              ((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)) * ((1:ℝ)/2)^j)
-            + ∑ j ∈ Finset.range J,
-              ((1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))
-                * ((1:ℝ)/4)^j := Finset.sum_add_distrib
-      _ = (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-              * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
-            + (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
-              * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j := by
-          rw [← Finset.mul_sum, ← Finset.mul_sum]
-  have hsplit : ∑ j ∈ Finset.range J,
-      ((4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
-        * ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-          + (1/(2^j*K₂)^2)
-              * ((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))))
-      = (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
-          * ((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-                * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
-            + (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
-                * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j)) := by
-    rw [← Finset.mul_sum, ← Finset.mul_sum, hinner]
+            ((2/(K₂*(A:ℝ))) * ((1:ℝ)/2)^j + (4/K₂^2) * ((1:ℝ)/4)^j) :=
+          Finset.sum_congr rfl hterm
+      _ = (2/(K₂*(A:ℝ))) * (∑ j ∈ Finset.range J, ((1:ℝ)/2)^j)
+            + (4/K₂^2) * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j := by
+          rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+      _ ≤ (4/(K₂*(A:ℝ))) + (6/K₂^2) := by
+          have hc2 : (0:ℝ) ≤ 2/(K₂*(A:ℝ)) := by positivity
+          have hc4 : (0:ℝ) ≤ 4/K₂^2 := by positivity
+          have hb2 : (2/(K₂*(A:ℝ))) * (∑ j ∈ Finset.range J, ((1:ℝ)/2)^j)
+              ≤ 4/(K₂*(A:ℝ)) := by
+            calc (2/(K₂*(A:ℝ))) * (∑ j ∈ Finset.range J, ((1:ℝ)/2)^j)
+                ≤ (2/(K₂*(A:ℝ))) * 2 :=
+                  mul_le_mul_of_nonneg_left hgeo2 hc2
+              _ = 4/(K₂*(A:ℝ)) := by ring
+          have hb4 : (4/K₂^2) * (∑ j ∈ Finset.range J, ((1:ℝ)/4)^j)
+              ≤ 6/K₂^2 := by
+            calc (4/K₂^2) * (∑ j ∈ Finset.range J, ((1:ℝ)/4)^j)
+                ≤ (4/K₂^2) * (4/3) :=
+                  mul_le_mul_of_nonneg_left hgeo4 hc4
+              _ = (16/3)/K₂^2 := by ring
+              _ ≤ 6/K₂^2 :=
+                  div_le_div_of_nonneg_right (by norm_num)
+                    (by positivity)
+          linarith
   -- assemble
-  have hmass2 : (0:ℝ) ≤ ∑ n ∈ S, (1:ℝ)/(n:ℝ)^2 :=
+  have hmass : (0:ℝ) ≤ ∑ n ∈ S, (1:ℝ)/n :=
     Finset.sum_nonneg fun n _ => by positivity
-  have hmass1 : (0:ℝ) ≤ (Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n) := by
-    have h1 : (0:ℝ) ≤ Real.log Δ :=
-      Real.log_nonneg (by exact_mod_cast hΔ)
-    have h2 : (0:ℝ) ≤ ∑ n ∈ S, (1:ℝ)/n :=
-      Finset.sum_nonneg fun n _ => by positivity
-    positivity
-  have hb2 : (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-        * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
-      ≤ (8/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2) := by
-    have hco : (0:ℝ) ≤ (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2) := by positivity
-    calc (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-          * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
-        ≤ (4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2) * 2 :=
-          mul_le_mul_of_nonneg_left hgeo2 hco
-      _ = (8/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2) := by ring
-  have hb4 : (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
-        * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j
-      ≤ (2/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
-    have hco : (0:ℝ)
-        ≤ (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by
-      positivity
-    calc (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
-          * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j
-        ≤ (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) * (4/3) :=
-          mul_le_mul_of_nonneg_left hgeo4 hco
-      _ ≤ (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) * 2 := by
-          nlinarith [hco]
-      _ = (2/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)) := by ring
+  have hconst : (0:ℝ) ≤ (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+      * (Real.exp Real.pi * (∑ n ∈ S, (1:ℝ)/n))) := by positivity
+  have hfactor : ∀ j : ℕ,
+      (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+        * (Real.exp Real.pi
+            * ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2))
+            * (∑ n ∈ S, (1:ℝ)/n)))
+      = ((4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+          * (Real.exp Real.pi * (∑ n ∈ S, (1:ℝ)/n))))
+        * ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2)) := by
+    intro j
+    ring
   calc ∫ ξ in {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| ≤ L}, f ξ
       ≤ ∫ ξ in {ξ : ℝ | K₂ ≤ |ξ| ∧ |ξ| < 2^J*K₂}, f ξ := hstep0
     _ ≤ ∑ j ∈ Finset.range J,
@@ -2097,21 +2079,28 @@ theorem band_energy_outer_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
         hrings
     _ ≤ ∑ j ∈ Finset.range J,
           ((4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
-            * ((4/(2^j*K₂))*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-              + (1/(2^j*K₂)^2)
-                  * ((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))))) :=
+            * (Real.exp Real.pi
+                * ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2))
+                * (∑ n ∈ S, (1:ℝ)/n)))) :=
         Finset.sum_le_sum hring
+    _ = ∑ j ∈ Finset.range J,
+          (((4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+              * (Real.exp Real.pi * (∑ n ∈ S, (1:ℝ)/n))))
+            * ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2))) :=
+        Finset.sum_congr rfl fun j _ => hfactor j
+    _ = ((4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+          * (Real.exp Real.pi * (∑ n ∈ S, (1:ℝ)/n))))
+        * ∑ j ∈ Finset.range J,
+            ((2/(2^j*K₂*(A:ℝ))) + (4/(2^j*K₂)^2)) :=
+        (Finset.mul_sum _ _ _).symm
+    _ ≤ ((4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
+          * (Real.exp Real.pi * (∑ n ∈ S, (1:ℝ)/n))))
+        * ((4/(K₂*(A:ℝ))) + (6/K₂^2)) :=
+        mul_le_mul_of_nonneg_left hXsum hconst
     _ = (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
-          * ((4/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-                * ∑ j ∈ Finset.range J, ((1:ℝ)/2)^j
-            + (1/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n))
-                * ∑ j ∈ Finset.range J, ((1:ℝ)/4)^j)) := hsplit
-    _ ≤ (4*B'^2/π^2) * ((2*(A:ℝ)+1)^2
-          * ((8/K₂)*(∑ n ∈ S, (1:ℝ)/(n:ℝ)^2)
-            + (2/K₂^2)*((Real.log Δ + 1) * (∑ n ∈ S, (1:ℝ)/n)))) := by
-        refine mul_le_mul_of_nonneg_left
-          (mul_le_mul_of_nonneg_left (add_le_add hb2 hb4)
-            (by positivity)) (by positivity)
+          * (Real.exp Real.pi * ((4/(K₂*(A:ℝ))) + (6/K₂^2))
+              * (∑ n ∈ S, (1:ℝ)/n))) := by
+        ring
 
 end ExpSums
 
