@@ -1172,4 +1172,73 @@ theorem intervalIntegral_norm_sq_window_sub_le
     (fun m => if m ∈ Finset.Ioc (max a b') b then c m else -c m) hd₂ T hT
   linarith
 
+
+open MeasureTheory Finset ExpSums in
+/-- **The decomposition lemma on an e-adic cell** (Track R, A2-III,
+II-2d): for two primes `q ≤ p` of the same e-adic cell at resolution
+`2N`, the quotient windows they cut out of `(A, B]` carry phase
+polynomials whose energies differ by two `1/N`-collars —
+
+  `∫_{−T}^{T} ‖∑_{(A/p, B/p]} − ∑_{(A/q, B/q]}‖²
+     ≤ 2e^π(T/(A/p) + 4)·(A/(Np) + 1)/(A/p)
+       + 2e^π(T/(B/p) + 4)·(B/(Np) + 1)/(B/p)`.
+
+This is `[MR]`'s decomposition lemma in the form the band assembly
+consumes: every prime of a cell may be replaced by one fixed reference
+prime of that cell, at a cost of `O(1/N)` per prime.  The main terms
+`(A/(Np))/(A/p) ≈ 1/N` are the genuine collar cost; the `+1`s are the
+`ℕ`-division floors, contributing `p/A` — negligible at the scales the
+assembly runs at, but honestly carried here.
+
+The polynomial runs over the *full* quotient window with a global
+coefficient function `c`.  That is deliberate: in the assembly the
+Ramaré fibre is a proper subset of the window (the typical-set
+quotients), and it is recovered by letting `c` vanish off it — which is
+also why the collars of `sum_Ioc_eq_sum_Ioc_add_collars` had to be
+independent of the coefficients.
+
+`eadicCell_ratio_le` supplies the arithmetic ratio, and
+`div_le_div_add_div_add_one` turns it into the two collar lengths. -/
+theorem intervalIntegral_norm_sq_cell_fibre_sub_le
+    {P : Finset ℕ} {N v : ℕ} (hN : 0 < N) {p q : ℕ}
+    (hp : p ∈ eadicCell P (2*N) v) (hq : q ∈ eadicCell P (2*N) v)
+    (hq1 : 1 ≤ q) (hqp : q ≤ p)
+    (A B : ℕ) (hAB : A ≤ B)
+    (hLA : A/(N*p) + 1 ≤ A/p) (hLB : B/(N*p) + 1 ≤ B/p)
+    (c : ℕ → ℂ) (hc : ∀ n, ‖c n‖ ≤ 1) (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T,
+        ‖(∑ m ∈ Finset.Ioc (A/p) (B/p), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+          - (∑ m ∈ Finset.Ioc (A/q) (B/q), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))‖^2)
+      ≤ 2 * (Real.exp Real.pi * (T/((A/p : ℕ):ℝ) + 4)
+              * (((A/(N*p) + 1 : ℕ):ℝ)/((A/p : ℕ):ℝ)))
+        + 2 * (Real.exp Real.pi * (T/((B/p : ℕ):ℝ) + 4)
+              * (((B/(N*p) + 1 : ℕ):ℝ)/((B/p : ℕ):ℝ))) := by
+  have hp1 : 1 ≤ p := le_trans hq1 hqp
+  have hratio := eadicCell_ratio_le hN hp hq hp1 hq1
+  have hAq := div_le_div_add_div_add_one A N p q hN hq1 hqp hratio
+  have hBq := div_le_div_add_div_add_one B N p q hN hq1 hqp hratio
+  -- the larger prime cuts the smaller window
+  have hdivA : A/p ≤ A/q := Nat.div_le_div_left hqp hq1
+  have hdivB : B/p ≤ B/q := Nat.div_le_div_left hqp hq1
+  -- the side conditions, by hand: `omega` treats `A/(N*p)` (variable divisor)
+  -- as an opaque atom and does not even know it is nonnegative
+  have hcolA : A/q ≤ A/p + (A/(N*p) + 1) := by
+    rw [← Nat.add_assoc]; exact hAq
+  have hcolB : B/q ≤ B/p + (B/(N*p) + 1) := by
+    rw [← Nat.add_assoc]; exact hBq
+  have hA1 : 1 ≤ A/p := le_trans (Nat.le_add_left 1 (A/(N*p))) hLA
+  have hB1 : 1 ≤ B/p := le_trans (Nat.le_add_left 1 (B/(N*p))) hLB
+  have hminA : min (A/p) (A/q) = A/p := min_eq_left hdivA
+  have hminB : min (B/p) (B/q) = B/p := min_eq_left hdivB
+  have hmaxA : max (A/p) (A/q) = A/q := max_eq_right hdivA
+  have hmaxB : max (B/p) (B/q) = B/q := max_eq_right hdivB
+  have hkey := intervalIntegral_norm_sq_window_sub_le
+    (A/p) (B/p) (A/q) (B/q) (A/(N*p) + 1) (B/(N*p) + 1)
+    (Nat.div_le_div_right hAB) (Nat.div_le_div_right hAB)
+    (by rw [hmaxA, hminA]; exact hcolA) (by rw [hmaxB, hminB]; exact hcolB)
+    (by rw [hminA]; exact hLA) (by rw [hminB]; exact hLB)
+    (by rw [hminA]; exact hA1) (by rw [hminB]; exact hB1)
+    c hc T hT
+  rwa [hminA, hminB] at hkey
+
 end MoltResearch
