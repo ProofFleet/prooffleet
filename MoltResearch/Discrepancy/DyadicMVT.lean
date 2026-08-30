@@ -4140,6 +4140,66 @@ theorem sum_norm_sq_le_integral_of_separated (F F' : ℝ → ℂ)
         (intervalIntegral.integral_of_le (by linarith)).symm
 
 open MeasureTheory in
+/-- **The exceptional measure** (Track R, A2-III, V-1): a `2ℓ`-th moment
+bound converts into a bound on the *measure* of the frequencies where a
+polynomial is large —
+
+  `|{ξ ∈ (−T, T] : V ≤ ‖Q ξ‖}| · V^{2ℓ} ≤ ∫_{−T}^{T} ‖Q^ℓ‖²`.
+
+Chebyshev at exponent `2ℓ`.  This is the honest form of the large-values
+step: it bounds a *measure*, not a *count*, and no discretisation is
+smuggled in.  Turning it into a count is exactly where the
+`[MR]` exceptional-frequency leg needs Gallagher
+(`sum_norm_sq_le_integral_of_separated`) or, for prime-supported
+polynomials, an input strictly beyond it.
+
+Paired with `intervalIntegral_norm_sq_prime_poly_pow_le` this gives the
+prime-polynomial large-values estimate at every moment order, and the
+freedom to optimise in `ℓ`. -/
+theorem measure_large_le_of_moment (Q : ℝ → ℂ) (hQ : Continuous Q)
+    (T V M : ℝ) (hT : 0 < T) (hV : 0 ≤ V) (ℓ : ℕ)
+    (hmom : (∫ ξ in (-T)..T, ‖Q ξ ^ ℓ‖^2) ≤ M) :
+    (volume {ξ | ξ ∈ Set.Ioc (-T) T ∧ V ≤ ‖Q ξ‖}).toReal * V^(2*ℓ) ≤ M := by
+  classical
+  set S : Set ℝ := {ξ | ξ ∈ Set.Ioc (-T) T ∧ V ≤ ‖Q ξ‖} with hS_def
+  have hTT : -T ≤ T := by linarith
+  have hmeas : MeasurableSet S := by
+    have h1 : S = Set.Ioc (-T) T ∩ ((fun ξ => ‖Q ξ‖) ⁻¹' (Set.Ici V)) := by
+      ext ξ
+      simp [hS_def, Set.mem_inter_iff, Set.mem_preimage]
+    rw [h1]
+    exact measurableSet_Ioc.inter
+      (hQ.norm.measurable measurableSet_Ici)
+  have hSsub : S ⊆ Set.Ioc (-T) T := fun ξ hξ => hξ.1
+  have hfc : Continuous fun ξ => ‖Q ξ ^ ℓ‖^2 := (hQ.pow ℓ).norm.pow 2
+  have hfnn : ∀ ξ, 0 ≤ ‖Q ξ ^ ℓ‖^2 := fun ξ => by positivity
+  have hfin : IntegrableOn (fun ξ => ‖Q ξ ^ ℓ‖^2) (Set.Ioc (-T) T) :=
+    hfc.integrableOn_Ioc
+  -- on the exceptional set the integrand is at least `V^{2ℓ}`
+  have hptwise : ∀ ξ ∈ S, V^(2*ℓ) ≤ ‖Q ξ ^ ℓ‖^2 := by
+    intro ξ hξ
+    have hnorm : ‖Q ξ ^ ℓ‖^2 = ‖Q ξ‖^(2*ℓ) := by
+      rw [norm_pow, ← pow_mul, mul_comm]
+    rw [hnorm]
+    exact pow_le_pow_left₀ hV hξ.2 (2*ℓ)
+  have hvol : (volume S).toReal * V^(2*ℓ)
+      = ∫ _ξ in S, V^(2*ℓ) := by
+    rw [setIntegral_const, smul_eq_mul]
+    rfl
+  rw [hvol]
+  calc (∫ _ξ in S, V^(2*ℓ))
+      ≤ ∫ ξ in S, ‖Q ξ ^ ℓ‖^2 := by
+        exact setIntegral_mono_on
+          ((continuous_const.integrableOn_Ioc).mono_set hSsub)
+          (hfin.mono_set hSsub) hmeas hptwise
+    _ ≤ ∫ ξ in Set.Ioc (-T) T, ‖Q ξ ^ ℓ‖^2 :=
+        setIntegral_mono_set hfin (Filter.Eventually.of_forall hfnn)
+          hSsub.eventuallyLE
+    _ = ∫ ξ in (-T)..T, ‖Q ξ ^ ℓ‖^2 :=
+        (intervalIntegral.integral_of_le hTT).symm
+    _ ≤ M := hmom
+
+open MeasureTheory in
 /-- **The `L²` triangle inequality, at cost `2`** (Track R, A2-III,
 II-2c-0): for continuous `F, G`,
 
