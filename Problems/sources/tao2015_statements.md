@@ -165,3 +165,43 @@ multiplicative `gᵢ`; `ℕ`-shifts; `o(log ω(x))` encoded in `ε`-form
 `1 ≤ ω(x)` dropped (implied eventually by divergence). The repo's earlier
 `LogElliottAssumption` (pointwise `NonPretentious` hypothesis) is *stronger than this source
 statement* and is demoted to toy-consumer use.
+
+---
+
+## Large values of Dirichlet polynomials (Track R, A2-III IV-1/IV-2)
+
+Provenance and caveat: these two are **not** from the two Tao papers above. They are the
+literature inputs the Matomäki–Radziwiłł leg quotes, recorded here because this file is the
+registry `scripts/check_interfaces.py` diffs interface classes against. Transcribed
+2026-08-30 from the Track R design analysis, **not** from the published texts — verify
+constants and the exact exponent against the sources before relying on fine details. Both
+live in `Conjectures/C0002_erdos_discrepancy/src/Interfaces/LargeValues.lean`; neither has
+an instance, and neither may be given one until formalized.
+
+### Iwaniec–Kowalski, *Analytic Number Theory* (AMS Colloq. Publ. 53, 2004), Theorem 9.6
+
+> For a Dirichlet polynomial of length `N` and points `t₁, …, t_R ∈ [−T, T]` that are
+> pairwise separated by at least `1`,
+> `∑_r |∑_{n≤N} a_n n^{−it_r}|² ≪ (N + R√T)·log(2T)·∑_{n≤N} |a_n|²/n²`.
+
+Lean: `HalaszLargeValuesAssumption`. Deviations, all in the direction of a weaker (easier to
+discharge, still sufficient) statement: the implied constant is fixed at `64`; `log(2T)` is
+written `log(2T) + 1`; coefficients are `1/n`-normalised to match the repo's phase-polynomial
+convention (`a n/n · e(−t log n)`).
+
+### Matomäki–Radziwiłł, *Multiplicative functions in short intervals*, Annals 183 (2016), Lemma 8
+
+> For a Dirichlet polynomial supported on the primes of `[P, 2P]` and `1`-separated points
+> in `[−T, T]`, the same sum is bounded by
+> `(1 + R·exp(−log P/(log 2T)^{2/3+ε})·(log 2T)²)·(∑_p |a_p|²/p²)·P/log P`.
+
+Lean: `PrimeLargeValuesAssumption`. Deviations: constant fixed at `64`; the exponent
+`2/3 + ε` is replaced by the fixed rational `3/4` (any exponent `< 1` carries the consumer,
+and a numeral keeps the class statement free of an extra quantifier).
+
+**This is the irreducible input.** Its only known proof is duality plus a Mellin shift of
+`ζ'/ζ` into the Vinogradov–Korobov zero-free region; there is no elementary argument, and no
+Mathlib substrate at the pinned revision. The in-tree elementary ladder reaches the *measure*
+of the large-frequency set (`measure_large_prime_poly_le`) and the measure-to-count bridge for
+general polynomials (Gallagher, `sum_norm_sq_le_integral_of_separated`); the prime-supported
+*count* is exactly what is missing, and exactly what this class supplies.
