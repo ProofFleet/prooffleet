@@ -879,4 +879,124 @@ theorem collision_fibre_energy_le (A Δ p : ℕ) (hA : 1 ≤ A)
               * ∑ k ∈ Finset.Ioc (A/(p*p)) ((A+Δ)/(p*p)), (1:ℝ)/k) :=
         mul_le_mul_of_nonneg_left hmass hconst
 
+
+open MeasureTheory Finset ExpSums in
+/-- **The fourth moment of a prime polynomial** (Track R, A2-III,
+III-3a): for primes in a dyadic range `(P, 2P]`,
+
+  `∫_{−T}^{T} ‖Q(ξ)²‖² ≤ e^π·(T/P² + 8)·4·∑_{n ∈ Y·Y} 1/n`,
+
+with `Q(ξ) = ∑_{p∈Y} (b p/p)·e(−ξ log p)`.
+
+This is the `k = 2` case of the `[MR]` moment input, and it is pure
+assembly of the pieces already on main: `phase_poly_mul` convolves the
+square onto the product support, `phase_poly_fiberwise` collapses it
+to a Dirichlet polynomial, `card_prime_pair_fiber_le` bounds the
+resulting coefficients by `2` (a product of two primes has at most two
+ordered factorisations), and the support sits in `(P², 4P²]`, so the
+ratio-general sharp mean value theorem applies at `R = 4` — log-free. -/
+theorem intervalIntegral_norm_sq_prime_poly_sq_le (Y : Finset ℕ)
+    (hY : ∀ p ∈ Y, p.Prime) (P : ℕ) (hP : 1 ≤ P)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1) (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖(∑ p ∈ Y, (b p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^2‖^2)
+      ≤ Real.exp Real.pi * (T/((P:ℝ)*(P:ℝ)) + 8)
+          * (4 * ∑ n ∈ (Y ×ˢ Y).image (fun q : ℕ × ℕ => q.1 * q.2),
+                (1:ℝ)/(n:ℝ)) := by
+  classical
+  set Tgt : Finset ℕ := (Y ×ˢ Y).image (fun q : ℕ × ℕ => q.1 * q.2)
+    with hTgt_def
+  have hppos : ∀ p ∈ Y, 0 < p := fun p hp => (hY p hp).pos
+  -- the coefficients of the collapsed polynomial
+  set c : ℕ → ℂ := fun n =>
+    ∑ q ∈ (Y ×ˢ Y).filter (fun q => q.1 * q.2 = n), b q.1 * b q.2
+    with hc_def
+  -- the square is the collapsed Dirichlet polynomial
+  have hsq : ∀ ξ : ℝ, (∑ p ∈ Y, (b p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^2
+      = ∑ n ∈ Tgt, (c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) := by
+    intro ξ
+    rw [pow_two, phase_poly_mul Y Y b b hppos hppos ξ]
+    rw [phase_poly_fiberwise (Y ×ˢ Y) Tgt (fun q hq => by
+      rw [hTgt_def, Finset.mem_image]
+      exact ⟨q, hq, rfl⟩) (fun q => b q.1 * b q.2) ξ]
+  rw [intervalIntegral.integral_congr (fun ξ _ => by
+    rw [hsq ξ] : ∀ ξ ∈ Set.uIcc (-T) T,
+      ‖(∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))^2‖^2
+      = ‖∑ n ∈ Tgt, (c n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)]
+  -- the support sits in `(P², 4P²]`
+  have hPP : 1 ≤ P*P := Nat.one_le_iff_ne_zero.mpr (by positivity)
+  have hsupp : Tgt ⊆ Finset.Ioc (P*P) (4*(P*P)) := by
+    intro n hn
+    rw [hTgt_def, Finset.mem_image] at hn
+    obtain ⟨q, hq, rfl⟩ := hn
+    rw [Finset.mem_product] at hq
+    have h1 := hlo q.1 hq.1
+    have h2 := hlo q.2 hq.2
+    have h3 := hhi q.1 hq.1
+    have h4 := hhi q.2 hq.2
+    rw [Finset.mem_Ioc]
+    constructor
+    · have hq2 : 0 < q.2 := (hY q.2 hq.2).pos
+      calc P*P < q.1 * P := by
+            exact Nat.mul_lt_mul_of_lt_of_le h1 le_rfl (by omega)
+        _ ≤ q.1 * q.2 := Nat.mul_le_mul_left _ h2.le
+    · calc q.1 * q.2 ≤ (2*P) * (2*P) := Nat.mul_le_mul h3 h4
+        _ = 4*(P*P) := by ring
+  -- the coefficient bound: at most two ordered factorisations
+  have hcb : ∀ n : ℕ, ‖c n‖ ≤ 2 := by
+    intro n
+    have hfib := card_prime_pair_fiber_le Y Y hY hY n
+    have hnorm : ‖c n‖
+        ≤ (((Y ×ˢ Y).filter (fun q => q.1 * q.2 = n)).card : ℝ) * 1 := by
+      rw [hc_def]
+      refine norm_sum_fiber_le (Y ×ˢ Y) (fun q => b q.1 * b q.2) 1
+        (by norm_num) (fun q => ?_) n
+      rw [norm_mul]
+      have h1 := hb q.1
+      have h2 := hb q.2
+      nlinarith [norm_nonneg (b q.1), norm_nonneg (b q.2)]
+    have hcard : (((Y ×ˢ Y).filter (fun q => q.1 * q.2 = n)).card : ℝ)
+        ≤ 2 := by exact_mod_cast hfib
+    linarith
+  -- the ratio-general sharp mean value theorem at `R = 4`
+  have hmvt := intervalIntegral_norm_sq_poly_le_sharp_ratio (P*P) 4
+    hPP (by norm_num) Tgt hsupp c T hT
+  refine le_trans hmvt ?_
+  have hcast : ((P*P : ℕ):ℝ) = (P:ℝ)*(P:ℝ) := by
+    push_cast
+    ring
+  rw [hcast]
+  have hconst : (0:ℝ) ≤ Real.exp Real.pi * (T/((P:ℝ)*(P:ℝ)) + 2*(4:ℕ)) := by
+    positivity
+  have hmass : ∑ n ∈ Tgt, ‖c n‖^2/(n:ℝ)
+      ≤ 4 * ∑ n ∈ Tgt, (1:ℝ)/(n:ℝ) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun n hn => ?_
+    have hn0 : (0:ℝ) < n := by
+      have hnIoc := Finset.mem_Ioc.mp (hsupp hn)
+      have : (0:ℕ) < n := by omega
+      exact_mod_cast this
+    have hsq2 : ‖c n‖^2 ≤ 4 := by
+      have := hcb n
+      nlinarith [norm_nonneg (c n)]
+    rw [div_le_iff₀ hn0]
+    calc ‖c n‖^2 ≤ 4 := hsq2
+      _ = 4 * (1/(n:ℝ)) * (n:ℝ) := by field_simp
+  have hnum : ((4:ℕ):ℝ) = (4:ℝ) := by norm_num
+  calc Real.exp Real.pi * (T/((P:ℝ)*(P:ℝ)) + 2*((4:ℕ):ℝ))
+        * ∑ n ∈ Tgt, ‖c n‖^2/(n:ℝ)
+      = Real.exp Real.pi * (T/((P:ℝ)*(P:ℝ)) + 8)
+          * ∑ n ∈ Tgt, ‖c n‖^2/(n:ℝ) := by
+        rw [hnum]
+        ring_nf
+    _ ≤ Real.exp Real.pi * (T/((P:ℝ)*(P:ℝ)) + 8)
+          * (4 * ∑ n ∈ Tgt, (1:ℝ)/(n:ℝ)) := by
+        refine mul_le_mul_of_nonneg_left hmass ?_
+        positivity
+
 end MoltResearch
