@@ -812,4 +812,71 @@ theorem window_typicalS_complement_le (A B : ℕ)
                 / ((∑ p ∈ Q, (1:ℝ)/p))^2)).sum := by
             linarith [hhead, hrest]
 
+
+open MeasureTheory ExpSums in
+/-- **The collision fibre energy** (Track R, A2-III, II-4): the part
+of a block polynomial supported on multiples of `p²` has energy
+`1/p²`-small —
+
+  `∫_{−T}^{T} ‖∑_{n∈S, p²∣n} (b n/n)·e(−ξ log n)‖²
+     ≤ e^π·(T/A + 4)·(1/p²)·∑_{k ∈ (A/p², (A+Δ)/p²]} 1/k`.
+
+In `[MR]`'s Ramaré decomposition the collision term collects the
+fibres where the extracted prime divides the quotient, i.e. exactly
+the `p²`-multiples.  The essential point — and the one an earlier
+design pass got wrong — is that its harmonic mass must be measured at
+the **quotient scale** `A/p²`, via the exact reindex
+`sum_one_div_Ioc_dvd_eq`, not at the block scale: pricing it at the
+block scale gives a bound that is false by a factor `p²` whenever
+`p² ≈ A`. -/
+theorem collision_fibre_energy_le (A Δ p : ℕ) (hA : 1 ≤ A)
+    (hΔA : Δ ≤ A) (hp : 0 < p)
+    (S : Finset ℕ) (hS : S ⊆ Finset.Ioc A (A+Δ))
+    (b : ℕ → ℂ) (hb : ∀ n, ‖b n‖ ≤ 1) (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S.filter (fun n => p*p ∣ n), (b n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp Real.pi * (T/(A:ℝ) + 4)
+          * ((1/((p:ℝ)*(p:ℝ)))
+              * ∑ k ∈ Finset.Ioc (A/(p*p)) ((A+Δ)/(p*p)), (1:ℝ)/k) := by
+  classical
+  have hpp : 0 < p*p := Nat.mul_pos hp hp
+  -- the fibre sits in a dyadic block
+  have hsub : S.filter (fun n => p*p ∣ n) ⊆ Finset.Ioc A (2*A) := by
+    refine (Finset.filter_subset _ _).trans (hS.trans ?_)
+    refine Finset.Ioc_subset_Ioc_right ?_
+    omega
+  have hbase := intervalIntegral_norm_sq_short_poly_le_sharp_of_bound
+    A hA (S.filter (fun n => p*p ∣ n)) hsub b 1 (by norm_num) hb T hT
+  refine le_trans hbase ?_
+  -- the fibre mass, measured at the quotient scale
+  have hmass : ∑ n ∈ S.filter (fun n => p*p ∣ n), (1:ℝ)/(n:ℝ)
+      ≤ (1/((p:ℝ)*(p:ℝ)))
+          * ∑ k ∈ Finset.Ioc (A/(p*p)) ((A+Δ)/(p*p)), (1:ℝ)/k := by
+    have hsub2 : S.filter (fun n => p*p ∣ n)
+        ⊆ (Finset.Ioc A (A+Δ)).filter (fun n => p*p ∣ n) := by
+      intro n hn
+      rw [Finset.mem_filter] at hn ⊢
+      exact ⟨hS hn.1, hn.2⟩
+    have hmono := Finset.sum_le_sum_of_subset_of_nonneg hsub2
+      (fun n _ _ => by positivity :
+        ∀ n ∈ (Finset.Ioc A (A+Δ)).filter (fun n => p*p ∣ n),
+          n ∉ S.filter (fun n => p*p ∣ n) → (0:ℝ) ≤ 1/(n:ℝ))
+    have hexact := sum_one_div_Ioc_dvd_eq A (A+Δ) (p*p) hpp
+    have hcast : ((1:ℝ)/((p*p : ℕ):ℝ))
+        = 1/((p:ℝ)*(p:ℝ)) := by
+      push_cast
+      ring
+    rw [hexact, hcast] at hmono
+    exact hmono
+  have hconst : (0:ℝ) ≤ Real.exp Real.pi * (T/(A:ℝ) + 4) := by positivity
+  calc Real.exp Real.pi * (T/(A:ℝ) + 4)
+        * (1^2 * ∑ n ∈ S.filter (fun n => p*p ∣ n), (1:ℝ)/(n:ℝ))
+      = Real.exp Real.pi * (T/(A:ℝ) + 4)
+          * (∑ n ∈ S.filter (fun n => p*p ∣ n), (1:ℝ)/(n:ℝ)) := by
+        ring
+    _ ≤ Real.exp Real.pi * (T/(A:ℝ) + 4)
+          * ((1/((p:ℝ)*(p:ℝ)))
+              * ∑ k ∈ Finset.Ioc (A/(p*p)) ((A+Δ)/(p*p)), (1:ℝ)/k) :=
+        mul_le_mul_of_nonneg_left hmass hconst
+
 end MoltResearch
