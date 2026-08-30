@@ -2102,6 +2102,88 @@ theorem band_energy_outer_le (A Δ : ℕ) (hΔ : 1 ≤ Δ) (hΔA : Δ ≤ A)
               * (∑ n ∈ S, (1:ℝ)/n))) := by
         ring
 
+
+open Finset in
+/-- **Geometric decay over an e-adic index range** (Track R, A2-III,
+II-5a): a sum of `e^{−αv/N}` over `v ∈ [v₀, v₁]` is at most its first
+term times `N/α + 1`.
+
+The `[MR]` level estimates sum exactly such series over the e-adic
+cell indices — the cell at index `v` contributes `e^{−αv/N}` from the
+pointwise smallness hypothesis, and this is the resulting geometric
+total.  The factor `N/α + 1` comes from `1/(1 − e^{−x}) ≤ 1/x + 1`,
+i.e. from `1 + x ≤ eˣ`. -/
+theorem sum_exp_neg_index_le (α : ℝ) (hα : 0 < α) (N : ℕ) (hN : 0 < N)
+    (v₀ v₁ : ℕ) :
+    ∑ v ∈ Finset.Ico v₀ (v₁+1), Real.exp (-(α*(v:ℝ)/N))
+      ≤ Real.exp (-(α*(v₀:ℝ)/N)) * ((N:ℝ)/α + 1) := by
+  classical
+  have hN0 : (0:ℝ) < N := by exact_mod_cast hN
+  set x : ℝ := α/(N:ℝ) with hx_def
+  have hx0 : 0 < x := by
+    rw [hx_def]
+    positivity
+  set r : ℝ := Real.exp (-x) with hr_def
+  have hr0 : 0 ≤ r := (Real.exp_pos _).le
+  have hr1 : r < 1 := by
+    rw [hr_def]
+    exact Real.exp_lt_one_iff.mpr (by linarith)
+  -- reindex from `v₀` and factor out the first term
+  have hshift : ∑ v ∈ Finset.Ico v₀ (v₁+1), Real.exp (-(α*(v:ℝ)/N))
+      = Real.exp (-(α*(v₀:ℝ)/N))
+          * ∑ j ∈ Finset.range (v₁+1-v₀), r^j := by
+    rw [Finset.mul_sum]
+    rw [show Finset.Ico v₀ (v₁+1)
+        = (Finset.range (v₁+1-v₀)).image (fun j => v₀ + j) by
+      ext v
+      simp only [Finset.mem_Ico, Finset.mem_image, Finset.mem_range]
+      constructor
+      · rintro ⟨h1, h2⟩
+        exact ⟨v - v₀, by omega, by omega⟩
+      · rintro ⟨j, hj, rfl⟩
+        omega]
+    rw [Finset.sum_image (by intro a _ b _ hab; simpa using hab)]
+    refine Finset.sum_congr rfl fun j _ => ?_
+    rw [hr_def, ← Real.exp_nat_mul, ← Real.exp_add]
+    congr 1
+    rw [hx_def]
+    push_cast
+    field_simp
+    ring
+  rw [hshift]
+  refine mul_le_mul_of_nonneg_left ?_ (Real.exp_pos _).le
+  -- the geometric total, and `1/(1 − e^{−x}) ≤ 1/x + 1`
+  refine le_trans (geom_sum_le_one_div' (v₁+1-v₀) hr0 hr1) ?_
+  have hxe : Real.exp (-x) ≤ 1/(1+x) := by
+    have h1 : 1 + x ≤ Real.exp x := by
+      have := Real.add_one_le_exp x
+      linarith
+    have h2 : (0:ℝ) < 1 + x := by linarith
+    rw [Real.exp_neg, inv_eq_one_div]
+    rw [div_le_div_iff₀ (Real.exp_pos x) h2]
+    linarith
+  have hden : x/(1+x) ≤ 1 - r := by
+    have h2 : (0:ℝ) < 1 + x := by linarith
+    have : r ≤ 1/(1+x) := by
+      rw [hr_def]
+      exact hxe
+    have heq : 1 - 1/(1+x) = x/(1+x) := by
+      field_simp
+      ring
+    linarith [this, heq.le, heq.ge]
+  have h1r : (0:ℝ) < 1 - r := by linarith
+  have hxx : (0:ℝ) < x/(1+x) := by positivity
+  rw [div_le_iff₀ h1r]
+  have hgoal : (1:ℝ) ≤ ((N:ℝ)/α + 1) * (x/(1+x)) := by
+    have heq : ((N:ℝ)/α + 1) * (x/(1+x)) = 1 := by
+      rw [hx_def]
+      field_simp
+    linarith [heq.le, heq.ge]
+  calc (1:ℝ) ≤ ((N:ℝ)/α + 1) * (x/(1+x)) := hgoal
+    _ ≤ ((N:ℝ)/α + 1) * (1 - r) := by
+        refine mul_le_mul_of_nonneg_left hden ?_
+        positivity
+
 end ExpSums
 
 end MoltResearch
