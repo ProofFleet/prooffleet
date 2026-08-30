@@ -1400,4 +1400,81 @@ theorem one_add_div_one_sub_sq_le_exp (x : ℝ) (hx : 0 < x) (hx2 : x ≤ 1/2) :
   refine le_trans ?_ (mul_le_mul_of_nonneg_right hexp (le_of_lt hden))
   nlinarith [sq_nonneg x, pow_pos hx 3, pow_pos hx 4, sq_nonneg (1-x), hx, hx2]
 
+
+open MeasureTheory Finset ExpSums in
+/-- **The cell-uniform replacement** (Track R, A2-III, II-2e): over an
+e-adic cell at resolution `2N` with least member `q`, replacing every
+prime's own fibre window by the reference window `(A/q, B/q]` costs
+
+  `∫_{−T}^{T} ‖∑_{p∈𝒞} (g p/p)e(−ξ log p)·(Z_p − Z_q)‖²
+     ≤ (∑_{p∈𝒞} 1/p)·∑_{p∈𝒞} (1/p)·E_p`,
+
+where `E_p` is the two-collar energy of `intervalIntegral_norm_sq_cell_-
+fibre_sub_le`.  This is `[MR]`'s decomposition lemma in force: after it,
+the cell's contribution factors as `(∑_{p∈𝒞} (g p/p)e(−ξ log p))·Z_q` —
+a product of two independent Dirichlet polynomials, each of which the
+mean value theorem can see — plus this error.
+
+Both factors of `(∑_{p∈𝒞} 1/p)` are genuine: one is the Cauchy–Schwarz
+weight, the other the sum being estimated.  Since a cell at resolution
+`2N` has prime mass `O(1/N)` by Mertens, the pair contributes `O(1/N²)`,
+which is what makes the `J`-level ladder converge.
+
+The error `E_p` is left inside the sum rather than maximised over the
+cell: it depends on `p` through `A/p` and `B/p`, and the assembly's
+Mertens step is sharper if that dependence is kept. -/
+theorem intervalIntegral_norm_sq_cell_replace_le
+    {P : Finset ℕ} {N v : ℕ} (hN : 0 < N) {q : ℕ}
+    (hq : q ∈ eadicCell P (2*N) v) (hq1 : 1 ≤ q)
+    (hqmin : ∀ p ∈ eadicCell P (2*N) v, q ≤ p)
+    (A B : ℕ) (hAB : A ≤ B)
+    (hLA : ∀ p ∈ eadicCell P (2*N) v, A/(N*p) + 1 ≤ A/p)
+    (hLB : ∀ p ∈ eadicCell P (2*N) v, B/(N*p) + 1 ≤ B/p)
+    (g c : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1) (hc : ∀ n, ‖c n‖ ≤ 1)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ ξ in (-T)..T, ‖∑ p ∈ eadicCell P (2*N) v,
+        ((g p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))
+          * ((∑ m ∈ Finset.Ioc (A/p) (B/p), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+              - (∑ m ∈ Finset.Ioc (A/q) (B/q), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)))‖^2)
+      ≤ (∑ p ∈ eadicCell P (2*N) v, (1:ℝ)/(p:ℝ))
+          * ∑ p ∈ eadicCell P (2*N) v, ((1:ℝ)/(p:ℝ))
+              * (2 * (Real.exp Real.pi * (T/((A/p : ℕ):ℝ) + 4)
+                      * (((A/(N*p) + 1 : ℕ):ℝ)/((A/p : ℕ):ℝ)))
+                 + 2 * (Real.exp Real.pi * (T/((B/p : ℕ):ℝ) + 4)
+                      * (((B/(N*p) + 1 : ℕ):ℝ)/((B/p : ℕ):ℝ)))) := by
+  classical
+  have hchar : ∀ v : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ) := fun v =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  -- the prime weights are `1/p`-bounded and continuous
+  have hwbd : ∀ p ξ, ‖(g p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖ ≤ (1:ℝ)/(p:ℝ) := by
+    intro p ξ
+    rw [norm_mul, norm_eq_of_mem_sphere, mul_one, norm_div,
+      Complex.norm_natCast]
+    gcongr
+    exact hg p
+  have hwcont : ∀ p : ℕ, Continuous fun ξ : ℝ => (g p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ) :=
+    fun p => continuous_const.mul (hchar (Real.log p))
+  have hzcont : ∀ p : ℕ, Continuous fun ξ : ℝ =>
+      (∑ m ∈ Finset.Ioc (A/p) (B/p), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+        - (∑ m ∈ Finset.Ioc (A/q) (B/q), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)) := by
+    intro p
+    refine Continuous.sub ?_ ?_
+    · exact continuous_finset_sum _ fun m _ =>
+        continuous_const.mul (hchar (Real.log m))
+    · exact continuous_finset_sum _ fun m _ =>
+        continuous_const.mul (hchar (Real.log m))
+  refine le_trans (intervalIntegral_norm_sq_freq_weighted_sum_le
+    (eadicCell P (2*N) v) (fun p ξ => (g p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))
+    (fun p => (1:ℝ)/(p:ℝ)) hwbd hwcont
+    (fun p ξ => (∑ m ∈ Finset.Ioc (A/p) (B/p), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+        - (∑ m ∈ Finset.Ioc (A/q) (B/q), (c m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)))
+    hzcont T hT.le) ?_
+  -- per prime, the two-collar energy of the decomposition lemma
+  refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum fun p hp => ?_) ?_
+  · refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+    exact intervalIntegral_norm_sq_cell_fibre_sub_le hN hp hq hq1
+      (hqmin p hp) A B hAB (hLA p hp) (hLB p hp) c hc T hT
+  · exact Finset.sum_nonneg fun p _ => by positivity
+
 end MoltResearch
