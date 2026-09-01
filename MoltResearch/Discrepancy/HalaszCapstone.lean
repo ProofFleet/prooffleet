@@ -389,6 +389,282 @@ theorem balance_product_le' (L u T b γ S Mp SM HS W : ℝ)
   linarith
 
 
+
+set_option maxHeartbeats 3200000 in
+open Real in
+/-- **The balance, shell form** (Track R, budget repair R-b2-c): with
+`P = u·L` the block scale, `T := L`, the shell `V₃''` and the honest
+small-`S`, the per-block √-argument is bounded, `k`-freely and
+`T`-freely, by
+
+  `(e^π)²·10¹⁵·(b² + 1)`.
+
+Every product is an absolute constant times `b²` or lands in the `+1`:
+the `(1/P)·P` diagonal cancellation handles the two main terms, the
+sharp `S ≤ 32/L²` caps the energy's Gaussian-window term at `≍ 1/L`
+against the `≍ L`-sized `V`-main, and `T = L` caps the completion
+`Mp²/(2π²L)` the same way — the two sources of the old envelope's
+`+T·b²` are gone, and the `64`-split's `SM ≤ 7` turns the old
+`SM²·b²` slot into part of the constant. -/
+theorem balance_product_shell_le (L u b S γ Mp SM HS W : ℝ)
+    (hL : 36 ≤ L) (hu0 : 0 < u) (hu1 : u ≤ 1)
+    (hL2 : Real.log 2 ≤ u * L)
+    (hγ0 : 0 ≤ γ) (hγ1 : γ ≤ 1)
+    (hS0 : 0 ≤ S) (hS2 : S * L^2 ≤ 32)
+    (hMp0 : 0 ≤ Mp) (hMp : Mp ≤ 18)
+    (hSM0 : 0 ≤ SM) (hSM : SM ≤ 7)
+    (hHS0 : 0 ≤ HS) (hW0 : 0 ≤ W) (hW : W * (L^2 * HS^2) ≤ 2000)
+    (hb0 : 0 ≤ b) :
+    (Real.exp π * (12290 * ((1/(u^2*L^2))
+          * (4*(Real.exp 1 - 1)*(u*L) + (4*Real.log 2 + 4*Real.log 4))))
+        + Real.exp π * (L * (6144 + γ) * (16/L^2 + S))
+        + Mp^2 * (1/(2*Real.pi^2*L)))
+    * (5 * (2 * (Real.exp π * 8
+          * (1539 * (Real.exp 1 * (u*L) + Real.log 2 + 2) + 6144*4))
+        + 2*SM^2) * (6*b^2)
+      + (Real.exp 1 * (u*L) + 2)^2 * HS^2 * W)
+    ≤ (Real.exp π)^2 * 10^15 * (b^2 + 1) := by
+  obtain ⟨P, hP_def⟩ : ∃ p : ℝ, p = u * L := ⟨u * L, rfl⟩
+  have hL2P : Real.log 2 ≤ P := by rw [hP_def]; exact hL2
+  have hP0 : (0:ℝ) < P := lt_of_lt_of_le (Real.log_pos (by norm_num)) hL2P
+  have hPL : P ≤ L := by
+    rw [hP_def]
+    nlinarith
+  have hL0 : (0:ℝ) < L := by linarith
+  have hlog2l : (0.693:ℝ) ≤ Real.log 2 := by
+    have := Real.log_two_gt_d9
+    linarith
+  have hlog2u : Real.log 2 ≤ (0.694:ℝ) := by
+    have := Real.log_two_lt_d9
+    linarith
+  have hlog4 : Real.log 4 = 2 * Real.log 2 := by
+    rw [show (4:ℝ) = 2^2 by norm_num, Real.log_pow]
+    push_cast
+    ring
+  have he272 : Real.exp 1 ≤ (2.72:ℝ) := by
+    have := Real.exp_one_lt_d9
+    linarith
+  have he1 : (1:ℝ) ≤ Real.exp 1 := by
+    have := Real.add_one_le_exp (1:ℝ)
+    linarith
+  have heπ : (1:ℝ) ≤ Real.exp π := by
+    have h1 := Real.add_one_le_exp π
+    have h2 := Real.pi_gt_three
+    linarith
+  have heπ0 : (0:ℝ) < Real.exp π := Real.exp_pos _
+  have hπ2 : (9:ℝ) ≤ Real.pi^2 := by
+    have := Real.pi_gt_three
+    nlinarith
+  have hP69 : (0.693:ℝ) ≤ P := le_trans hlog2l hL2P
+  have hPinv : 1/P ≤ 1.4434 := by
+    rw [div_le_iff₀ hP0]
+    nlinarith
+  rw [show u^2*L^2 = (u*L)^2 by ring, ← hP_def]
+  -- ===== the energy factor: three pieces =====
+  have hA12 : Real.exp π * (12290 * ((1/P^2)
+      * (4*(Real.exp 1 - 1)*P + (4*Real.log 2 + 4*Real.log 4))))
+      = Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+        + (12*Real.log 2)/P^2)) := by
+    rw [hlog4]
+    congr 2
+    field_simp
+    ring
+  have hA3 : Real.exp π * (L * (6144 + γ) * (16/L^2 + S))
+      ≤ Real.exp π * (294960 / L) := by
+    refine mul_le_mul_of_nonneg_left ?_ heπ0.le
+    rw [le_div_iff₀ hL0]
+    have hexpand : L * (6144 + γ) * (16/L^2 + S) * L
+        = (6144 + γ) * (16 + S * L^2) := by
+      field_simp
+    rw [hexpand]
+    nlinarith [hS2, hS0, hγ0, hγ1]
+  have hA4 : Mp^2 * (1/(2*Real.pi^2*L)) ≤ 18/L := by
+    have h1 : Mp^2 ≤ 324 := by nlinarith
+    have h2 : (0:ℝ) < 2*Real.pi^2*L := by positivity
+    rw [mul_one_div, div_le_div_iff₀ h2 hL0]
+    nlinarith [hπ2, hL0]
+  -- ===== the V factor: P-part + constant part =====
+  have hVfac : 5 * (2 * (Real.exp π * 8
+      * (1539 * (Real.exp 1 * P + Real.log 2 + 2) + 6144*4))
+      + 2*SM^2) * (6*b^2)
+      + (Real.exp 1 * P + 2)^2 * HS^2 * W
+      ≤ Real.exp π * (2010000 * P) * b^2
+        + Real.exp π * (13900000 * b^2 + 18000) := by
+    have hSM2 : SM^2 ≤ 49 := by nlinarith
+    have h1 : 1539 * (Real.exp 1 * P + Real.log 2 + 2) + 6144*4
+        ≤ 4187 * P + 28723 := by
+      nlinarith [hP0, he272, hlog2u]
+    have hmain : 5 * (2 * (Real.exp π * 8
+        * (1539 * (Real.exp 1 * P + Real.log 2 + 2) + 6144*4))
+        + 2*SM^2) * (6*b^2)
+        ≤ Real.exp π * (480 * (4187 * P + 28723)) * b^2 + 2940 * b^2 := by
+      have hb2 : (0:ℝ) ≤ 6*b^2 := by positivity
+      have hin : Real.exp π * 8 * (1539 * (Real.exp 1 * P + Real.log 2 + 2)
+          + 6144*4) ≤ Real.exp π * 8 * (4187 * P + 28723) :=
+        mul_le_mul_of_nonneg_left h1 (by positivity)
+      have hstep : 5 * (2 * (Real.exp π * 8
+          * (1539 * (Real.exp 1 * P + Real.log 2 + 2) + 6144*4))
+          + 2*SM^2) * (6*b^2)
+          ≤ 5 * (2 * (Real.exp π * 8 * (4187 * P + 28723)) + 98) * (6*b^2) := by
+        refine mul_le_mul_of_nonneg_right ?_ hb2
+        nlinarith [hin, hSM2]
+      refine le_trans hstep (le_of_eq ?_)
+      ring
+    have htail : (Real.exp 1 * P + 2)^2 * HS^2 * W ≤ 18000 := by
+      have h3 : Real.exp 1 * P + 2 ≤ 3 * L := by
+        nlinarith [he272, hPL, hP0, hL]
+      have h4 : (Real.exp 1 * P + 2)^2 ≤ 9 * L^2 := by
+        have h0 : (0:ℝ) ≤ Real.exp 1 * P + 2 := by positivity
+        nlinarith
+      have h5 : (Real.exp 1 * P + 2)^2 * HS^2 * W ≤ 9 * L^2 * HS^2 * W := by
+        have hHW : (0:ℝ) ≤ HS^2 * W := by positivity
+        nlinarith [mul_le_mul_of_nonneg_right h4 hHW]
+      refine le_trans h5 ?_
+      nlinarith [hW]
+    have hcoll : Real.exp π * (480 * (4187 * P + 28723)) * b^2 + 2940 * b^2
+        + 18000
+        ≤ Real.exp π * (2010000 * P) * b^2
+          + Real.exp π * (13900000 * b^2 + 18000) := by
+      have hPb : (0:ℝ) ≤ P * b^2 := by positivity
+      have hb2 : (0:ℝ) ≤ b^2 := sq_nonneg b
+      nlinarith [heπ, hPb, hb2]
+    linarith [hmain, htail, hcoll]
+  -- ===== assemble =====
+  have hE0 : (0:ℝ) ≤ Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+      + (12*Real.log 2)/P^2)) := by
+    have : (0:ℝ) ≤ Real.exp 1 - 1 := by linarith
+    positivity
+  have hV0 : (0:ℝ) ≤ 5 * (2 * (Real.exp π * 8
+      * (1539 * (Real.exp 1 * P + Real.log 2 + 2) + 6144*4))
+      + 2*SM^2) * (6*b^2)
+      + (Real.exp 1 * P + 2)^2 * HS^2 * W := by
+    have h1 : (0:ℝ) ≤ 1539 * (Real.exp 1 * P + Real.log 2 + 2) + 6144*4 := by
+      nlinarith [hP0, he1, hlog2l]
+    positivity
+  have hEfac : Real.exp π * (12290 * ((1/P^2)
+      * (4*(Real.exp 1 - 1)*P + (4*Real.log 2 + 4*Real.log 4))))
+      + Real.exp π * (L * (6144 + γ) * (16/L^2 + S))
+      + Mp^2 * (1/(2*Real.pi^2*L))
+      ≤ Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+          + (12*Real.log 2)/P^2))
+        + Real.exp π * (294960 / L) + 18/L := by
+    rw [hA12]
+    linarith [hA3, hA4]
+  -- the three E-pieces against P and against 1
+  have hEP1 : Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+      + (12*Real.log 2)/P^2)) * P ≤ Real.exp π * 232400 := by
+    have hkey : (12290:ℝ) * ((4*(Real.exp 1 - 1))/P
+        + (12*Real.log 2)/P^2) * P
+        = 12290 * (4*(Real.exp 1 - 1) + (12*Real.log 2)/P) := by
+      field_simp
+    calc Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+          + (12*Real.log 2)/P^2)) * P
+        = Real.exp π * (12290 * (4*(Real.exp 1 - 1)
+            + (12*Real.log 2)/P)) := by rw [mul_assoc, hkey]
+      _ ≤ Real.exp π * 232400 := by
+          refine mul_le_mul_of_nonneg_left ?_ heπ0.le
+          have h1 : (12*Real.log 2)/P ≤ 12*0.694*1.4434 := by
+            rw [div_eq_mul_inv]
+            have hinv : P⁻¹ ≤ 1.4434 := by
+              rw [← one_div]
+              exact hPinv
+            have h0 : (0:ℝ) ≤ 12*Real.log 2 := by linarith
+            nlinarith [hlog2u]
+          nlinarith [he272, he1]
+  have hE1 : Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+      + (12*Real.log 2)/P^2)) ≤ Real.exp π * 335300 := by
+    refine mul_le_mul_of_nonneg_left ?_ heπ0.le
+    have h1 : (4*(Real.exp 1 - 1))/P ≤ 6.88*1.4434 := by
+      rw [div_eq_mul_inv]
+      have hinv : P⁻¹ ≤ 1.4434 := by rw [← one_div]; exact hPinv
+      nlinarith [he272, he1]
+    have h2 : (12*Real.log 2)/P^2 ≤ 12*0.694*1.4434^2 := by
+      rw [div_eq_mul_inv]
+      have hinv2 : (P^2)⁻¹ ≤ 1.4434^2 := by
+        have : (0.693:ℝ)^2 ≤ P^2 := by nlinarith
+        rw [← one_div, div_le_iff₀ (by positivity)]
+        nlinarith
+      have h0 : (0:ℝ) ≤ 12*Real.log 2 := by linarith
+      nlinarith [hlog2u]
+    nlinarith
+  have hEP2 : Real.exp π * (294960 / L) * P ≤ Real.exp π * 294960 := by
+    have : (294960:ℝ)/L * P ≤ 294960 := by
+      rw [div_mul_eq_mul_div, div_le_iff₀ hL0]
+      nlinarith
+    calc Real.exp π * (294960 / L) * P
+        = Real.exp π * (294960/L * P) := by ring
+      _ ≤ Real.exp π * 294960 :=
+          mul_le_mul_of_nonneg_left this heπ0.le
+  have hE2 : Real.exp π * (294960 / L) ≤ Real.exp π * 8194 := by
+    refine mul_le_mul_of_nonneg_left ?_ heπ0.le
+    rw [div_le_iff₀ hL0]
+    nlinarith
+  have hEP3 : (18:ℝ)/L * P ≤ 18 := by
+    rw [div_mul_eq_mul_div, div_le_iff₀ hL0]
+    nlinarith
+  have hE3 : (18:ℝ)/L ≤ 1/2 := by
+    rw [div_le_div_iff₀ hL0 (by norm_num)]
+    linarith
+  -- final: (E-pieces)·(V-pieces)
+  refine le_trans (mul_le_mul hEfac hVfac hV0 (by positivity)) ?_
+  have hExp : (Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+        + (12*Real.log 2)/P^2))
+      + Real.exp π * (294960 / L) + 18/L)
+      * (Real.exp π * (2010000 * P) * b^2
+        + Real.exp π * (13900000 * b^2 + 18000))
+      = (Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+            + (12*Real.log 2)/P^2)) * P
+          + Real.exp π * (294960 / L) * P + 18/L * P)
+          * (Real.exp π * 2010000 * b^2)
+        + (Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+            + (12*Real.log 2)/P^2))
+          + Real.exp π * (294960 / L) + 18/L)
+          * (Real.exp π * (13900000 * b^2 + 18000)) := by
+    ring
+  rw [hExp]
+  have hb2 : (0:ℝ) ≤ b^2 := sq_nonneg b
+  have hsum1 : Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+        + (12*Real.log 2)/P^2)) * P
+      + Real.exp π * (294960 / L) * P + 18/L * P
+      ≤ Real.exp π * 527378 := by
+    have := hEP1
+    have := hEP2
+    have := hEP3
+    nlinarith [heπ]
+  have hsum2 : Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+        + (12*Real.log 2)/P^2))
+      + Real.exp π * (294960 / L) + 18/L
+      ≤ Real.exp π * 343495 := by
+    nlinarith [hE1, hE2, hE3, heπ]
+  have hpos1 : (0:ℝ) ≤ Real.exp π * 2010000 * b^2 := by positivity
+  have hpos2 : (0:ℝ) ≤ Real.exp π * (13900000 * b^2 + 18000) := by positivity
+  have hnn1 : (0:ℝ) ≤ Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+        + (12*Real.log 2)/P^2)) * P
+      + Real.exp π * (294960 / L) * P + 18/L * P := by
+    have h1 : (0:ℝ) ≤ Real.exp 1 - 1 := by linarith
+    positivity
+  have hnn2 : (0:ℝ) ≤ Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+        + (12*Real.log 2)/P^2))
+      + Real.exp π * (294960 / L) + 18/L := by
+    have h1 : (0:ℝ) ≤ Real.exp 1 - 1 := by linarith
+    positivity
+  calc (Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+          + (12*Real.log 2)/P^2)) * P
+        + Real.exp π * (294960 / L) * P + 18/L * P)
+        * (Real.exp π * 2010000 * b^2)
+      + (Real.exp π * (12290 * ((4*(Real.exp 1 - 1))/P
+          + (12*Real.log 2)/P^2))
+        + Real.exp π * (294960 / L) + 18/L)
+        * (Real.exp π * (13900000 * b^2 + 18000))
+      ≤ (Real.exp π * 527378) * (Real.exp π * 2010000 * b^2)
+        + (Real.exp π * 343495)
+          * (Real.exp π * (13900000 * b^2 + 18000)) := by
+        refine add_le_add
+          (mul_le_mul_of_nonneg_right hsum1 hpos1)
+          (mul_le_mul_of_nonneg_right hsum2 hpos2)
+    _ ≤ (Real.exp π)^2 * 10^15 * (b^2 + 1) := by
+        nlinarith [hb2, sq_nonneg (Real.exp π), heπ0.le, heπ]
+
 open Real in
 /-- `e^{2k}/L² = 1/((e^{−k})²·L²)` — N188's bridge, the block index as
 `u = e^{−k}` (restated: the capstone's copy is private). -/
