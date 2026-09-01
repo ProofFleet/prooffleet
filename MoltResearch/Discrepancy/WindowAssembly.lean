@@ -2618,6 +2618,97 @@ theorem quotient_scale_le_cell_scale {P : Finset ℕ} {N v : ℕ} (hN : 0 < N)
     _ ≤ 2*T*Real.exp (((v:ℝ)+1)/(2*(N:ℝ)))/(A:ℝ) := by
         gcongr
 
+open MeasureTheory Finset ExpSums in
+/-- **`E₁`, the level-1 band energy in closed form** (Track R, A2-III,
+II-5b): the whole level-1 leg of `[MR]`'s inner-band estimate, with
+every scale eliminated.  On a measurable `G ⊆ (−T, T]` where the
+level-`v` cell polynomial obeys the `e`-adic smallness
+`e^{−αv/(2N)}`,
+
+  `∫_G ‖∑_v (∑_{p∈𝒞_v} (g p/p)e(−ξ log p))·(∑_{A/q_v<m≤B/q_v} (c m/m)e(−ξ log m))‖²`
+  `  ≤ #I·e^π·C·[ (2Te^{1/(2N)}/A)·e^{(1−2α)(v₁+1)/(2N)}·(2N/(1−2α)+1)`
+  `               + 4R·e^{−2αv₀/(2N)}·(2N/(2α)+1) ]`.
+
+Three units, composed, and no scale survives:
+`setIntegral_norm_sq_cell_block_sum_le` turns the band integral into a
+sum over levels of (smallness)²×(mean value at the quotient scale);
+`quotient_scale_le_cell_scale` rewrites that quotient scale `⌊A/q_v⌋` as
+the cell scale `e^{(v+1)/(2N)}`; and `sum_level_energy_le` sums the
+resulting geometric series.
+
+**Where each constant comes from.**  The `4R` is the doubled block
+ratio of `Ioc_div_subset_Ioc_two_mul_ratio` — `ℕ`-division does not
+preserve ratios — and the `2e^{1/(2N)}` is the doubled scale of
+`quotient_scale_le_cell_scale` times the one ladder step a cell fails to
+pin down.  Both are the same `ℕ`-division friction in its two guises,
+and both are absolutely bounded, so neither enters the schedule.
+
+**`2α < 1` is the only schedule constraint used.**  Smallness decays at
+rate `2α` and the mean value error grows at rate `1`, so the product
+runs at exponent `1 − 2α` and the level sum converges precisely when
+`2α < 1`.  Everything else — `α`, `N`, `R`, the level range, the
+coefficient mass `C` — is free.
+
+The factor `#I` is Cauchy–Schwarz over the levels and is not removable:
+the cell polynomials are not orthogonal on `G`. -/
+theorem band_energy_level_one_le
+    (P : Finset ℕ) (N : ℕ) (hN : 0 < N) (v₀ v₁ : ℕ) (q : ℕ → ℕ)
+    (A B R : ℕ) (hR : 1 ≤ R) (hB : B ≤ R * A)
+    (hq1 : ∀ v, 1 ≤ q v) (hqA : ∀ v, 2 * q v ≤ A)
+    (hqcell : ∀ v ∈ Finset.Ico v₀ (v₁+1), q v ∈ eadicCell P (2*N) v)
+    (g c : ℕ → ℂ) (T : ℝ) (hT : 0 < T)
+    (G : Set ℝ) (hGm : MeasurableSet G) (hGT : G ⊆ Set.Ioc (-T) T)
+    (α : ℝ) (hα : 0 < α) (hα2 : 2*α < 1) (C : ℝ) (hC0 : 0 ≤ C)
+    (hC : ∀ v ∈ Finset.Ico v₀ (v₁+1),
+      ∑ m ∈ Finset.Ioc (A/(q v)) (B/(q v)), ‖c m‖^2/(m:ℝ) ≤ C)
+    (hsmall : ∀ v ∈ Finset.Ico v₀ (v₁+1), ∀ ξ ∈ G,
+      ‖∑ p ∈ eadicCell P (2*N) v, (g p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖
+        ≤ Real.exp (-(α*(v:ℝ)/((2*N : ℕ):ℝ)))) :
+    (∫ ξ in G, ‖∑ v ∈ Finset.Ico v₀ (v₁+1),
+        (∑ p ∈ eadicCell P (2*N) v, (g p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))
+          * (∑ m ∈ Finset.Ioc (A/(q v)) (B/(q v)), (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))‖^2)
+      ≤ ((Finset.Ico v₀ (v₁+1)).card : ℝ)
+          * (Real.exp Real.pi * C
+              * ( (2*T*Real.exp (1/((2*N : ℕ):ℝ))/(A:ℝ))
+                    * Real.exp ((1-2*α)*((v₁:ℝ)+1)/((2*N : ℕ):ℝ))
+                    * (((2*N : ℕ):ℝ)/(1-2*α) + 1)
+                + 4*(R:ℝ) * Real.exp (-(2*α*(v₀:ℝ)/((2*N : ℕ):ℝ)))
+                    * (((2*N : ℕ):ℝ)/(2*α) + 1) )) := by
+  classical
+  have hA2 : 2 ≤ A := le_trans (by have := hq1 v₀; omega) (hqA v₀)
+  have hA0 : (0:ℝ) < A := by exact_mod_cast (by omega : 0 < A)
+  have hN2 : 0 < 2*N := by omega
+  have hcast : ((2*N : ℕ):ℝ) = 2*(N:ℝ) := by push_cast; ring
+  refine le_trans (setIntegral_norm_sq_cell_block_sum_le P N v₀ v₁ q A B R hR hB
+    hq1 (fun v => le_trans (by omega) (hqA v)) g c T hT G hGm hGT _ hsmall) ?_
+  refine mul_le_mul_of_nonneg_left ?_ (Nat.cast_nonneg _)
+  refine le_trans (Finset.sum_le_sum ?_)
+    (sum_level_energy_le α hα hα2 (2*N) hN2 v₀ v₁ (A:ℝ)
+      (2*T*Real.exp (1/((2*N : ℕ):ℝ))) (4*(R:ℝ)) C hA0
+      (by positivity) (by positivity) hC0)
+  intro v hv
+  have hCv0 : (0:ℝ) ≤ ∑ m ∈ Finset.Ioc (A/(q v)) (B/(q v)), ‖c m‖^2/(m:ℝ) :=
+    Finset.sum_nonneg fun m _ => by positivity
+  -- the quotient scale is the cell scale, then split off the ladder step
+  have hscale : T/((A/(q v) : ℕ):ℝ)
+      ≤ (2*T*Real.exp (1/((2*N : ℕ):ℝ)))
+          * Real.exp ((v:ℝ)/((2*N : ℕ):ℝ))/(A:ℝ) := by
+    refine le_trans (quotient_scale_le_cell_scale hN (hqcell v hv) (hq1 v) A
+      (hqA v) T hT.le) (le_of_eq ?_)
+    rw [hcast]
+    have hsplit : Real.exp (((v:ℝ)+1)/(2*(N:ℝ)))
+        = Real.exp (1/(2*(N:ℝ))) * Real.exp ((v:ℝ)/(2*(N:ℝ))) := by
+      rw [← Real.exp_add]
+      congr 1
+      ring
+    rw [div_eq_div_iff (by positivity) (by positivity), hsplit]
+    ring
+  gcongr
+  exact hC v hv
+
 end ExpSums
 
 end MoltResearch
