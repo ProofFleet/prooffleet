@@ -3195,6 +3195,64 @@ theorem rieszMeanC_log_le_halasz_of_nonPretentious (f : ℕ → ℂ)
     (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A)) hb0 hBu
 
 
+
+open Real Finset in
+/-- **The log-free Halász Riesz mean, shell form** (Track R, budget
+repair R-b2-g): the b-instantiation of the shell §3 assembly at
+`b := e⁵(2+log x)e^{−A}` — the quality slot of the repaired budget,
+with no `T` and no window residue against it. -/
+theorem rieszMeanC_log_le_halasz_shell_of_nonPretentious (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (x y K₀ : ℕ) (hx : 10^16 ≤ x) (hy2 : 2 ≤ y) (hyx : 2*y ≤ x)
+    (hy : (Real.log (x:ℝ))^2 ≤ (y:ℝ))
+    (hK₀1 : 1 ≤ K₀)
+    (hK₀low : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+    (hK₀max : Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+      < Real.exp 1 * Real.log 2)
+    (A : ℝ) (hA : NonPretentiousAt f A x)
+    (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ)) :
+    ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) * (12 * Real.log (Real.log (x:ℝ)) + 18)
+        + ((K₀:ℝ) * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+              * ((Real.exp 5 * (2 + Real.log (x:ℝ))
+                  * Real.exp (-A))^2 + 1))
+            + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  have hx3 : (3:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hb0 : (0:ℝ) ≤ Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A) := by
+    have h2L : (0:ℝ) ≤ 2 + Real.log (x:ℝ) := by
+      have := Real.log_natCast_nonneg x
+      linarith
+    exact mul_nonneg (mul_nonneg (Real.exp_pos 5).le h2L)
+      (Real.exp_pos (-A)).le
+  have hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum f x t‖
+        ≤ Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A) := by
+    intro t ht
+    refine ExpSums.norm_smoothPhaseSum_le_of_nonPretentious
+      f hcm h1 hf x hx3 A h1A hA t ?_
+    -- `|2πt| ≤ 7·(M+1) ≤ A·x`, using `2π < 7`
+    have hpi7 : 2 * Real.pi ≤ 7 := by
+      have := Real.pi_lt_d2
+      linarith
+    rw [abs_mul, abs_of_pos Real.two_pi_pos]
+    calc 2 * Real.pi * |t| ≤ 7 * |t| :=
+          mul_le_mul_of_nonneg_right hpi7 (abs_nonneg t)
+      _ ≤ 7 * (((halaszM x : ℕ):ℝ) + 1) :=
+          mul_le_mul_of_nonneg_left ht (by norm_num)
+      _ ≤ A * (x:ℝ) := hband
+  exact rieszMeanC_log_le_shell_of_nonPretentious f hf hcm h1 x y K₀ hx hy2
+    hyx hy hK₀1 hK₀low hK₀max
+    (three_le_div_blockLo x K₀ hx hK₀low)
+    (Real.exp 5 * (2 + Real.log (x:ℝ)) * Real.exp (-A)) hb0 hBu
+
 open Real Finset in
 /-- **Flat differencing** (Track R, M0R-6a): the plain sum at `x'` is
 priced by two Riesz means and the edge mass —
@@ -3522,6 +3580,88 @@ theorem rieszMeanC_log_halasz_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
 
 
 
+
+
+set_option maxHeartbeats 1600000 in
+open Real Finset in
+/-- **The log-free Halász Riesz mean, windowed, shell form** (Track R,
+budget repair R-b2-g): the shell window destructured and every window
+quantity priced in `x` alone —
+
+  `‖R(x)·log x‖ ≤ 35x + x(log(2·log²x)+2) + 2(x+1)·log4
+     + 64x·(12·loglog x + 18)
+     + loglog x·(x·√((e^π)²·10¹⁵·((e⁵(2+logx)e^{−A})²+1)) + 2x·log4)
+     + 2x·(16((e−1)e·log2+log2)+16·log4)`
+
+— the repaired budget `Ĥ′(x,A)`: the Mertens term is
+`loglog`-additive, the quality group carries no window residue, and
+the two-scale differencing glue can now consume it. -/
+theorem rieszMeanC_log_halasz_shell_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (x : ℕ) (hx : 10^16 ≤ x)
+    (A : ℝ) (hA : NonPretentiousAt f A x) (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ)) :
+    ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2)
+        + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) * (12 * Real.log (Real.log (x:ℝ)) + 18)
+        + (Real.log (Real.log (x:ℝ))
+            * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+                * ((Real.exp 5 * (2 + Real.log (x:ℝ))
+                    * Real.exp (-A))^2 + 1))
+              + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  obtain ⟨y, K₀, hy2, hyx, hy, hylog, hK₀1, hK₀low, hK₀max⟩ :=
+    exists_section3_window_shell x hx
+  have hcap := rieszMeanC_log_le_halasz_shell_of_nonPretentious f hf hcm h1
+    x y K₀ hx hy2 hyx hy hK₀1 hK₀low hK₀max A hA h1A hband
+  refine le_trans hcap ?_
+  have hxR0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by
+      have : (2:ℕ) ≤ x := le_trans (by norm_num) hx
+      omega : (1:ℕ) < x))
+  have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+  have hy0 : (0:ℝ) < (y:ℝ) := by exact_mod_cast (by omega : 0 < y)
+  have hylog' : Real.log (y:ℝ) ≤ Real.log (2*(Real.log (x:ℝ))^2) :=
+    Real.log_le_log hy0 hylog
+  have hyterm : (x:ℝ)*(Real.log (y:ℝ) + 2)
+      ≤ (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2) :=
+    mul_le_mul_of_nonneg_left (by linarith) hxR0
+  have he_log2 : (1:ℝ) ≤ Real.exp 1 * Real.log 2 := by
+    nlinarith [Real.exp_one_gt_d9, Real.log_two_gt_d9]
+  have hexpK : Real.exp ((K₀:ℝ)) * (Real.exp 1 * Real.log 2)
+      ≤ Real.log (x:ℝ) := by
+    have h := mul_le_mul_of_nonneg_left hK₀low (Real.exp_pos ((K₀:ℝ))).le
+    have hid : Real.exp ((K₀:ℝ)) * (Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+        = Real.log (x:ℝ) := by
+      rw [← mul_assoc, ← Real.exp_add]
+      simp
+    rw [hid] at h
+    exact h
+  have hexpK' : Real.exp ((K₀:ℝ)) ≤ Real.log (x:ℝ) := by
+    nlinarith [Real.exp_pos ((K₀:ℝ)), he_log2, hexpK]
+  have hK₀le : ((K₀:ℕ):ℝ) ≤ Real.log (Real.log (x:ℝ)) :=
+    calc ((K₀:ℕ):ℝ) = Real.log (Real.exp ((K₀:ℝ))) := (Real.log_exp _).symm
+      _ ≤ Real.log (Real.log (x:ℝ)) :=
+          Real.log_le_log (Real.exp_pos _) hexpK'
+  have hgrp0 : (0:ℝ) ≤ (x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+                * ((Real.exp 5 * (2 + Real.log (x:ℝ))
+                    * Real.exp (-A))^2 + 1))
+              + 2*(x:ℝ)*Real.log 4 := by positivity
+  have hKprod : ((K₀:ℕ):ℝ) * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+                * ((Real.exp 5 * (2 + Real.log (x:ℝ))
+                    * Real.exp (-A))^2 + 1))
+              + 2*(x:ℝ)*Real.log 4)
+      ≤ Real.log (Real.log (x:ℝ)) * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+                * ((Real.exp 5 * (2 + Real.log (x:ℝ))
+                    * Real.exp (-A))^2 + 1))
+              + 2*(x:ℝ)*Real.log 4) :=
+    mul_le_mul_of_nonneg_right hK₀le hgrp0
+  linarith [hyterm, hKprod]
 
 open Real Finset in
 /-- **The plain-sum log-free Halász bound** (Track R, M0R-6e, the M0R

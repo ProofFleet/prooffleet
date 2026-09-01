@@ -3981,6 +3981,97 @@ theorem exists_section3_window (x : ℕ) (hx : 10^16 ≤ x) :
     linarith [hceil, hTL, hL1024]
 
 
+
+open Real Finset in
+/-- **The §3 window at `T := log x`, witnessed** (Track R, budget
+repair R-b2-g): the shell chain's window needs only
+`log²x ≤ y ≤ 2·log²x` and the `K₀`-schedule — no `T`-parameter at all.
+Take `y := ⌈log²x⌉`; the fit `2y ≤ x` is the parent window's
+`log²x ≤ 9·x^{2/3}` argument verbatim. -/
+theorem exists_section3_window_shell (x : ℕ) (hx : 10^16 ≤ x) :
+    ∃ (y K₀ : ℕ),
+      2 ≤ y ∧ 2*y ≤ x
+      ∧ (Real.log (x:ℝ))^2 ≤ (y:ℝ)
+      ∧ (y:ℝ) ≤ 2*(Real.log (x:ℝ))^2
+      ∧ 1 ≤ K₀
+      ∧ Real.exp 1 * Real.log 2
+          ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ)
+      ∧ Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+          < Real.exp 1 * Real.log 2 := by
+  obtain ⟨K₀, hK₀1, hK₀low, hK₀max⟩ := exists_K₀ x hx
+  have hx1 : (1:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+  have hxR : (10:ℝ)^16 ≤ (x:ℝ) := by exact_mod_cast hx
+  have hL0 : (0:ℝ) ≤ Real.log (x:ℝ) := Real.log_natCast_nonneg x
+  have hL32 : (32:ℝ) ≤ Real.log (x:ℝ) := by
+    have he_lt : Real.exp 1 ≤ (2.7182818286:ℝ) := Real.exp_one_lt_d9.le
+    have hlog10 : (2:ℝ) ≤ Real.log 10 := by
+      have h1 : Real.exp 2 ≤ 10 := by
+        have h2 : Real.exp 2 = Real.exp 1 * Real.exp 1 := by
+          rw [← Real.exp_add]
+          norm_num
+        nlinarith [Real.exp_pos 1, he_lt]
+      calc (2:ℝ) = Real.log (Real.exp 2) := (Real.log_exp 2).symm
+        _ ≤ Real.log 10 := Real.log_le_log (Real.exp_pos 2) h1
+    have h1 : Real.log ((10:ℝ)^16) = 16 * Real.log 10 := by
+      rw [Real.log_pow]
+      push_cast
+      ring
+    have h2 : Real.log ((10:ℝ)^16) ≤ Real.log (x:ℝ) :=
+      Real.log_le_log (by positivity) hxR
+    nlinarith [hlog10]
+  have hceil : ((⌈(Real.log (x:ℝ))^2⌉₊ : ℕ):ℝ)
+      ≤ (Real.log (x:ℝ))^2 + 1 := by
+    have := Nat.ceil_lt_add_one
+      (by positivity : (0:ℝ) ≤ (Real.log (x:ℝ))^2)
+    linarith
+  refine ⟨⌈(Real.log (x:ℝ))^2⌉₊, K₀, ?_, ?_, Nat.le_ceil _, ?_,
+    hK₀1, hK₀low, hK₀max⟩
+  · have h2 : (1:ℕ) < ⌈(Real.log (x:ℝ))^2⌉₊ := by
+      rw [Nat.lt_ceil]
+      push_cast
+      nlinarith [hL32]
+    omega
+  · have hLcube : Real.log (x:ℝ) ≤ 3 * (x:ℝ) ^ ((1:ℝ)/3) :=
+      log_le_three_rpow_third (x:ℝ) (by exact_mod_cast hx1)
+    have hx13 : (x:ℝ)^((1:ℝ)/3) * (x:ℝ)^((1:ℝ)/3) = (x:ℝ)^((2:ℝ)/3) := by
+      rw [← Real.rpow_add hx0]
+      norm_num
+    have hL2 : (Real.log (x:ℝ))^2 ≤ 9 * (x:ℝ)^((2:ℝ)/3) := by
+      have h9 := mul_self_le_mul_self hL0 hLcube
+      rw [pow_two]
+      calc Real.log (x:ℝ) * Real.log (x:ℝ)
+          ≤ (3*(x:ℝ)^((1:ℝ)/3)) * (3*(x:ℝ)^((1:ℝ)/3)) := h9
+        _ = 9 * (x:ℝ)^((2:ℝ)/3) := by
+            rw [← hx13]
+            ring
+    have h20 : (20:ℝ) ≤ (x:ℝ)^((1:ℝ)/3) := by
+      have h8000 : (8000:ℝ) ≤ (x:ℝ) := by linarith [hxR]
+      have h1 : (20:ℝ) = (8000:ℝ)^((1:ℝ)/3) := by
+        rw [show (8000:ℝ) = 20^(3:ℕ) by norm_num,
+          ← Real.rpow_natCast (20:ℝ) 3, ← Real.rpow_mul (by norm_num)]
+        norm_num
+      rw [h1]
+      exact Real.rpow_le_rpow (by norm_num) h8000 (by norm_num)
+    have hx23 : 20 * (x:ℝ)^((2:ℝ)/3) ≤ (x:ℝ) := by
+      have hxx : (x:ℝ)^((2:ℝ)/3) * (x:ℝ)^((1:ℝ)/3) = (x:ℝ) := by
+        rw [← Real.rpow_add hx0]
+        norm_num
+      calc 20 * (x:ℝ)^((2:ℝ)/3)
+          ≤ (x:ℝ)^((1:ℝ)/3) * (x:ℝ)^((2:ℝ)/3) := by
+            refine mul_le_mul_of_nonneg_right h20 ?_
+            exact Real.rpow_nonneg hx0.le _
+        _ = (x:ℝ) := by
+            rw [mul_comm]
+            exact hxx
+    have hr : ((2 * ⌈(Real.log (x:ℝ))^2⌉₊ : ℕ):ℝ) < (x:ℝ) := by
+      push_cast
+      linarith [hceil, hL2, hx23, hxR]
+    exact le_of_lt (by exact_mod_cast hr)
+  · have hL1024 : (1024:ℝ) ≤ (Real.log (x:ℝ))^2 := by
+      nlinarith [hL32]
+    linarith [hceil, hL1024]
+
 open Real Finset in
 set_option maxHeartbeats 3200000 in
 /-- **§3, priced** (Track R, N206d): the closed form.  Destructuring
