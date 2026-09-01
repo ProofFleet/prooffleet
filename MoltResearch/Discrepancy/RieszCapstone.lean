@@ -328,6 +328,58 @@ theorem ghsPrimePoly_unit_energy_primesBelow_le (f : ℕ → ℂ)
     N
 
 
+
+open MeasureTheory Real Complex Finset in
+/-- **The unit-interval energy at `Q = primesBelow X`, shell form**
+(Track R, budget repair R-b2-b): for any `X ≥ 2` and frequency `N`,
+
+  `∫_{N−1/2}^{N+1/2}‖P₃(t)‖² ≤ 2·e^π·8·(1539·(log(X+1)+2) + 24576)
+      + 2·(∑_{q<X, q<64} log q/q)²`
+
+— `ghsPrimePoly_unit_energy_split_shell_le` at the concrete inner
+range the per-block instantiation feeds, side inputs discharged as in
+N181, and nothing left that depends on `T` or a mass budget. -/
+theorem ghsPrimePoly_unit_energy_primesBelow_shell_le (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (X : ℕ) (hX : 2 ≤ X) (N : ℝ) :
+    (∫ t in (N - 1/2)..(N + 1/2), ‖ghsPrimePoly f X.primesBelow t‖^2)
+      ≤ 2 * (Real.exp π * 8
+            * (1539 * (Real.log ((X+1 : ℕ):ℝ) + 2) + 6144 * 4))
+        + 2 * (∑ q ∈ X.primesBelow.filter (fun q : ℕ => ¬ 64 ≤ q),
+            Real.log (q:ℝ)/(q:ℝ))^2 := by
+  classical
+  refine ghsPrimePoly_unit_energy_split_shell_le f hf X.primesBelow X hX
+    (fun q hq => (Nat.mem_primesBelow.mp hq).2)
+    (fun q hq => le_of_lt (Nat.mem_primesBelow.mp hq).1)
+    (fun w => ((ExpSums.continuous_char_poly
+      (X.primesBelow.filter (fun q : ℕ => 64 ≤ q)) w
+      (fun q => Real.log (q:ℝ))).norm.pow 2).intervalIntegrable _ _)
+    N
+
+open Real Finset in
+/-- **The sub-64 prime mass is an absolute constant** (Track R, budget
+repair R-b2-b): for any set of primes, `∑_{q < 64} log q/q ≤ 7` —
+the small half of the 64-split enters the balance as `2·7² = 98`, an
+absolute constant, where the `T²`-split's small mass was
+`≍ 2·log T ≍ loglog x` and entered squared against `b²`. -/
+theorem small_prime_mass_64_le (Q : Finset ℕ) (hQp : ∀ q ∈ Q, q.Prime) :
+    ∑ q ∈ Q.filter (fun q : ℕ => ¬ 64 ≤ q), Real.log (q:ℝ)/(q:ℝ) ≤ 7 := by
+  classical
+  obtain ⟨h1, -⟩ := prime_masses_le (Q.filter (fun q : ℕ => ¬ 64 ≤ q)) 63
+    (by norm_num)
+    (fun q hq => hQp q (Finset.mem_filter.mp hq).1)
+    (fun q hq => (hQp q (Finset.mem_filter.mp hq).1).two_le)
+    (fun q hq => by
+      have := (Finset.mem_filter.mp hq).2
+      omega)
+  refine le_trans h1 ?_
+  have h64 : Real.log ((63+1 : ℕ):ℝ) = 6 * Real.log 2 := by
+    have hc : ((63+1 : ℕ):ℝ) = (2:ℝ)^(6:ℕ) := by norm_num
+    rw [hc, Real.log_pow]
+    push_cast
+    ring
+  rw [h64]
+  nlinarith [Real.log_two_lt_d9]
+
 open MeasureTheory Real Complex Finset in
 open scoped FourierTransform in
 /-- **The Riesz block energy on a fitted block, Chebyshev priced**
