@@ -3014,6 +3014,118 @@ theorem rieszMeanC_log_le'_of_nonPretentious (f : ℕ → ℂ)
   linarith [le_trans hchain hsum]
 
 
+
+set_option maxHeartbeats 1600000 in
+open Real Finset ArithmeticFunction in
+/-- **§3, end to end, through the shell chain** (Track R, budget repair
+R-b2-f): the identity/head/tail/bridge/survivor assembly with BOTH
+repairs installed — the sharp survivors bridge prices the iteration at
+`64x·(12·loglog x + 18)` (the `T4` repair), and the shell survivor
+estimate prices the band at `K₀·(x·√((e^π)²·10¹⁵·(b²+1)) + 2x·log4)`
+(the `+T·b²` repair).  Every remaining term is `x·polylog`-free against
+`b²`. -/
+theorem rieszMeanC_log_le_shell_of_nonPretentious (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (x y K₀ : ℕ) (hx : 10^16 ≤ x) (hy2 : 2 ≤ y) (hyx : 2*y ≤ x)
+    (hy : (Real.log (x:ℝ))^2 ≤ (y:ℝ))
+    (hK₀1 : 1 ≤ K₀)
+    (hK₀low : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+    (hK₀max : Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+      < Real.exp 1 * Real.log 2)
+    (hX3 : ∀ k ∈ Finset.Icc 1 K₀, 3 ≤ x / blockLo x k)
+    (b : ℝ) (hb0 : 0 ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum f x t‖ ≤ b) :
+    ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖
+      ≤ 35*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) * (12 * Real.log (Real.log (x:ℝ)) + 18)
+        + ((K₀:ℝ) * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15 * (b^2 + 1))
+            + 2*(x:ℝ)*Real.log 4)
+          + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+              + Real.log 2) + 16 * Real.log 4))) := by
+  classical
+  have hx1 : (1:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hid := rieszMeanC_mul_log_prime_restrict f hf hcm x hx1
+  have hhead := rieszMeanC_prime_head_le f hf x y hy2
+  have htail := rieszMeanC_prime_tail_le f hf x
+  have hbridge := rieszMeanC_survivors_to_tripleConvRC_sharp f hf hcm x y
+    (le_trans (by norm_num) hx)
+  have hconv := tripleConvRC_survivors_balanced_shell_le f hf hcm h1 x y K₀
+    hx hy2 hy hK₀1 hK₀low hK₀max hX3 b hb0 hBu
+  -- the three-way split of the prime sum
+  have hfe : (((Finset.Icc 1 x).filter Nat.Prime).filter
+        (fun p => ¬ p < y)).filter (fun p => x < 2*p)
+      = ((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => x < 2*p) := by
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    constructor
+    · rintro ⟨⟨hS, _⟩, h2⟩
+      exact ⟨hS, h2⟩
+    · rintro ⟨hS, h2⟩
+      exact ⟨⟨hS, by omega⟩, h2⟩
+  have hsplit1 := Finset.sum_filter_add_sum_filter_not
+    ((Finset.Icc 1 x).filter Nat.Prime) (fun p => p < y)
+    (fun p => f p * ((vonMangoldt p : ℝ) : ℂ)
+      * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+          f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ))
+  have hsplit2 := Finset.sum_filter_add_sum_filter_not
+    (((Finset.Icc 1 x).filter Nat.Prime).filter (fun p => ¬ p < y))
+    (fun p => x < 2*p)
+    (fun p => f p * ((vonMangoldt p : ℝ) : ℂ)
+      * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+          f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ))
+  rw [hfe] at hsplit2
+  -- name the five quantities
+  set A := (∑ n ∈ Finset.Icc 1 x,
+      f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ)) * Real.log (x:ℝ) with hA_def
+  set H := ∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => p < y),
+      f p * ((vonMangoldt p : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ) with hH_def
+  set Tl := ∑ p ∈ ((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => x < 2*p),
+      f p * ((vonMangoldt p : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ) with hTl_def
+  set Sv := ∑ p ∈ (((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p),
+      f p * ((vonMangoldt p : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ) with hSv_def
+  set C := tripleConvRC f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+      (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p)) with hC_def
+  set Sp := ∑ p ∈ (Finset.Icc 1 x).filter Nat.Prime,
+      f p * ((vonMangoldt p : ℝ) : ℂ)
+        * ∑ m ∈ Finset.Icc 1 ⌊(x:ℝ)/(p:ℝ)⌋₊,
+            f m * ((Real.log ((x:ℝ)/(p:ℝ)) - Real.log (m:ℝ) : ℝ) : ℂ) with hSp_def
+  -- the split as an equation between the named sums
+  have hSp : Sp = H + (Tl + Sv) := by
+    rw [← hsplit1, ← hsplit2]
+  -- triangle chain
+  have habs1 : ‖A‖ ≤ ‖A - Sp‖ + ‖Sp‖ := by
+    have h : A = (A - Sp) + Sp := by ring
+    calc ‖A‖ = ‖(A - Sp) + Sp‖ := by rw [← h]
+      _ ≤ ‖A - Sp‖ + ‖Sp‖ := norm_add_le _ _
+  have habs2 : ‖Sp‖ ≤ ‖H‖ + (‖Tl‖ + ‖Sv‖) := by
+    rw [hSp]
+    calc ‖H + (Tl + Sv)‖ ≤ ‖H‖ + ‖Tl + Sv‖ := norm_add_le _ _
+      _ ≤ ‖H‖ + (‖Tl‖ + ‖Sv‖) := by
+          have := norm_add_le Tl Sv
+          linarith
+  have habs3 : ‖Sv‖ ≤ ‖Sv - C‖ + ‖C‖ := by
+    have h : Sv = (Sv - C) + C := by ring
+    calc ‖Sv‖ = ‖(Sv - C) + C‖ := by rw [← h]
+      _ ≤ ‖Sv - C‖ + ‖C‖ := norm_add_le _ _
+  have hsum := add_le_add hid (add_le_add hhead (add_le_add htail
+    (add_le_add hbridge hconv)))
+  have hchain : ‖A‖ ≤ ‖A - Sp‖ + (‖H‖ + (‖Tl‖ + (‖Sv - C‖ + ‖C‖))) := by
+    linarith [habs1, habs2, habs3]
+  linarith [le_trans hchain hsum]
+
 open Real Finset in
 /-- **The log-free Halász Riesz mean** (Track R, M0R-5, the campaign
 goal): under `NonPretentiousAt` at strength `A` with the band inside
