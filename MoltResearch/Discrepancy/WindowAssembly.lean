@@ -2561,6 +2561,63 @@ theorem setIntegral_norm_sq_cell_block_sum_le
   refine le_of_eq ?_
   ring
 
+open Finset in
+/-- **The quotient scale is the cell scale** (Track R, A2-III, II-5b-3):
+for `q` in the `e`-adic cell of index `v` at resolution `2N`, with
+`2q ≤ A`,
+
+  `T/⌊A/q⌋ ≤ 2T·e^{(v+1)/(2N)}/A`.
+
+The sharp mean value theorem charges `T/A′` at the scale `A′` it is
+applied at, and `[MR]`'s decomposition applies it at the *quotient*
+scale `A′ = ⌊A/q⌋`.  What the level sum needs is that charge expressed
+in `v`, so that it can be matched against the `e`-adic smallness
+`e^{−αv/N}` and the pair summed as a geometric series
+(`sum_level_energy_le`).  This is that conversion, and it is where the
+two halves of the level estimate are finally put on the same scale.
+
+Two separate losses, both absorbed into the factor `2`.  The floor costs
+a factor `2` — `⌊A/q⌋ > A/q − 1 ≥ A/(2q)` exactly when `2q ≤ A`, which
+is the hypothesis — and the cell costs `e^{1/(2N)}`, since a cell pins
+`q` only to within one step of the ladder.  The second is kept as the
+explicit `e^{(v+1)/(2N)}` rather than folded into a constant, because
+the consumer sums over `v` and needs the exponent, not its bound.
+
+Only the *upper* half of `eadicCell_bounds` is used: a lower bound on
+`q` would bound `T/⌊A/q⌋` from below, which no consumer wants. -/
+theorem quotient_scale_le_cell_scale {P : Finset ℕ} {N v : ℕ} (hN : 0 < N)
+    {q : ℕ} (hq : q ∈ eadicCell P (2*N) v) (hq1 : 1 ≤ q)
+    (A : ℕ) (hqA : 2*q ≤ A) (T : ℝ) (hT : 0 ≤ T) :
+    T/((A/q : ℕ):ℝ) ≤ 2*T*Real.exp (((v:ℝ)+1)/(2*(N:ℝ)))/(A:ℝ) := by
+  have hq0 : (0:ℝ) < q := by exact_mod_cast hq1
+  have hA1 : 2 ≤ A := le_trans (by omega) hqA
+  have hA0 : (0:ℝ) < A := by exact_mod_cast (by omega : 0 < A)
+  have hN0 : (0:ℝ) < N := by exact_mod_cast hN
+  -- the floor loses at most a factor `2`
+  have hmod : ((A % q : ℕ):ℝ) < (q:ℝ) := by
+    exact_mod_cast Nat.mod_lt _ (by omega : 0 < q)
+  have hdm : (q:ℝ) * ((A/q : ℕ):ℝ) + ((A % q : ℕ):ℝ) = (A:ℝ) := by
+    exact_mod_cast Nat.div_add_mod A q
+  have hqhalf : 2*(q:ℝ) ≤ (A:ℝ) := by exact_mod_cast hqA
+  have hfloor : (A:ℝ)/(2*(q:ℝ)) ≤ ((A/q : ℕ):ℝ) := by
+    rw [div_le_iff₀ (by positivity)]
+    nlinarith [hdm, hmod, hqhalf]
+  have hfl0 : (0:ℝ) < ((A/q : ℕ):ℝ) :=
+    lt_of_lt_of_le (by positivity) hfloor
+  -- the cell pins `q` to within one step of the ladder
+  have hcell : (q:ℝ) < Real.exp (((v:ℝ)+1)/((2*N : ℕ):ℝ)) :=
+    (eadicCell_bounds (by omega : 0 < 2*N) hq hq1).2
+  have hcell' : (q:ℝ) ≤ Real.exp (((v:ℝ)+1)/(2*(N:ℝ))) := by
+    refine le_of_lt (lt_of_lt_of_le hcell (le_of_eq ?_))
+    congr 1
+    push_cast
+    ring
+  calc T/((A/q : ℕ):ℝ) ≤ T/((A:ℝ)/(2*(q:ℝ))) := by
+        gcongr
+    _ = 2*T*(q:ℝ)/(A:ℝ) := by field_simp
+    _ ≤ 2*T*Real.exp (((v:ℝ)+1)/(2*(N:ℝ)))/(A:ℝ) := by
+        gcongr
+
 end ExpSums
 
 end MoltResearch
