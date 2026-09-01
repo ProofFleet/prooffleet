@@ -4139,6 +4139,82 @@ theorem sum_norm_sq_le_integral_of_separated (F F' : ℝ → ℂ)
     _ = ∫ u in (-T)..(T+1), (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) :=
         (intervalIntegral.integral_of_le (by linarith)).symm
 
+/-- **The character's derivative** (Track R, A2-III, V-2a): in the
+frequency variable,
+
+  `d/dξ e(−aξ) = −2πa·i·e(−aξ)`.
+
+`Real.fourierChar (-(a*ξ))` is `exp((2π·(−aξ))·i)` by definition, so as
+a function of `ξ` it is `exp(c·ξ)` at the constant `c = −2πa·i` and the
+derivative is `c` times itself. -/
+theorem hasDerivAt_char (a ξ : ℝ) :
+    HasDerivAt (fun ξ : ℝ => ((Real.fourierChar (-(a * ξ)) : Circle) : ℂ))
+      ((-(2*Real.pi*a) * Complex.I)
+        * ((Real.fourierChar (-(a * ξ)) : Circle) : ℂ)) ξ := by
+  have hre : HasDerivAt (fun t : ℝ => (t:ℂ)) 1 ξ := by
+    simpa using (hasDerivAt_id ξ).ofReal_comp
+  have hlin : HasDerivAt (fun ξ : ℝ => (-(2*Real.pi*a) * Complex.I) * (ξ:ℂ))
+      (-(2*Real.pi*a) * Complex.I) ξ := by
+    simpa using hre.const_mul (-(2*Real.pi*a) * Complex.I)
+  have hexp := hlin.cexp
+  have hfun : (fun ξ : ℝ => Complex.exp ((-(2*Real.pi*a) * Complex.I) * (ξ:ℂ)))
+      = fun ξ : ℝ => ((Real.fourierChar (-(a * ξ)) : Circle) : ℂ) := by
+    funext ξ
+    rw [Real.fourierChar_apply]
+    congr 1
+    push_cast
+    ring
+  rw [hfun] at hexp
+  have hval : Complex.exp ((-(2*Real.pi*a) * Complex.I) * (ξ:ℂ))
+      = ((Real.fourierChar (-(a * ξ)) : Circle) : ℂ) := by
+    rw [Real.fourierChar_apply]
+    congr 1
+    push_cast
+    ring
+  rw [hval, mul_comm] at hexp
+  exact hexp
+
+open Finset in
+/-- **The derivative of a Dirichlet polynomial is a Dirichlet
+polynomial** (Track R, A2-III, V-2b): with `F ξ = ∑_{n∈S} (c n/n)e(−ξ log n)`,
+
+  `F′ ξ = ∑_{n∈S} ((−2π log n·i)·c n / n)·e(−ξ log n)`.
+
+This is the fact that makes the exceptional-frequency leg close.
+Gallagher's lemma (`sum_norm_sq_le_integral_of_separated`) and the
+count built on it (`card_large_le_of_separated`) both leave an
+`∫‖F′‖²`, and a mean value theorem can only price the mean square of a
+*Dirichlet polynomial*.  Differentiating `e(−ξ log n)` in `ξ` brings
+down exactly `−2π log n·i`, so `F′` is the same polynomial over the same
+support with coefficients `c n` replaced by `(−2π log n·i)·c n` — and
+the same mean value theorem applies, at coefficient mass
+`(2π)²∑‖c n‖²(log n)²/n`.
+
+The `log n` factors are why the two halves of the Cauchy–Schwarz split
+(`integral_gallagher_le_param`) are *not* the same size, and why `λ`
+there is worth keeping free. -/
+theorem hasDerivAt_dirichlet_poly (S : Finset ℕ) (c : ℕ → ℂ) (ξ : ℝ) :
+    HasDerivAt (fun ξ : ℝ => ∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))
+      (∑ n ∈ S, (((-(2*Real.pi*Real.log n) * Complex.I) * c n)/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)) ξ := by
+  classical
+  have h : ∀ n ∈ S, HasDerivAt (fun t : ℝ => (c n/(n:ℂ))
+      * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ))
+      ((c n/(n:ℂ)) * ((-(2*Real.pi*Real.log n) * Complex.I)
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ))) ξ :=
+    fun n _ => (hasDerivAt_char (Real.log n) ξ).const_mul (c n/(n:ℂ))
+  have hsum := HasDerivAt.sum h
+  have hfun : (∑ i ∈ S, fun t : ℝ => (c i/(i:ℂ))
+        * ((Real.fourierChar (-(Real.log i * t)) : Circle) : ℂ))
+      = fun t : ℝ => ∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ) := by
+    funext t
+    simp [Finset.sum_apply]
+  rw [hfun] at hsum
+  refine hsum.congr_deriv ?_
+  exact Finset.sum_congr rfl fun n _ => by ring
+
 open MeasureTheory in
 /-- **The Gallagher closer, parametrised** (Track R, A2-III, V-0c): for
 `λ > 0`,
