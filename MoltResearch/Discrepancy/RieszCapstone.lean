@@ -2007,6 +2007,128 @@ theorem tailS_mul_log_le_one (x : ℕ) (hx : 10^16 ≤ x) :
   linarith [hlogx, hkey]
 
 
+
+set_option maxHeartbeats 1600000 in
+open Real in
+/-- **The sharp small-`S` bound** (Track R, budget repair R-b2-e): the
+tail scale beats the *square* of the logarithm,
+
+  `4/(√⌊√x⌋·log²2)·(log x)² ≤ 32`
+
+for `x ≥ 10¹⁶` — the hypothesis shape the rebuilt balance's
+`S·L² ≤ 32` slot wants.  Where `tailS_mul_log_le_one` paid one
+logarithm via `log x ≤ 8·x^{1/8}`, here `log x ≤ 16·x^{1/16}` squares
+to `256·x^{1/8}` against the same `√⌊√x⌋·log²2 ≥ 32·x^{1/8}` floor,
+and `4·256 = 32·32` exactly. -/
+theorem tailS_mul_log_sq_le (x : ℕ) (hx : 10^16 ≤ x) :
+    4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)
+      * (Real.log (x:ℝ))^2 ≤ 32 := by
+  have hx2 : (2:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hx0 : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+  have hxR : (10:ℝ)^16 ≤ (x:ℝ) := by exact_mod_cast hx
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have hlog2 : (0.693:ℝ) ≤ Real.log 2 := by
+    have := Real.log_two_gt_d9
+    linarith
+  -- `x^{1/8} ≥ 100`, exactly at the threshold
+  have h8 : (100:ℝ) ≤ (x:ℝ) ^ ((1:ℝ)/8) := by
+    have h1 : ((10:ℝ)^16) ^ ((1:ℝ)/8) ≤ (x:ℝ) ^ ((1:ℝ)/8) :=
+      Real.rpow_le_rpow (by positivity) hxR (by norm_num)
+    have h2 : ((10:ℝ)^16) ^ ((1:ℝ)/8) = 100 := by
+      rw [← Real.rpow_natCast (10:ℝ) 16, ← Real.rpow_mul (by norm_num)]
+      norm_num
+    linarith
+  have h80 : (0:ℝ) < (x:ℝ) ^ ((1:ℝ)/8) := Real.rpow_pos_of_pos hx0 _
+  -- `log x ≤ 8·x^{1/8}`
+  have hlogx : Real.log (x:ℝ) ≤ 8 * (x:ℝ) ^ ((1:ℝ)/8) := by
+    have h1 : Real.log ((x:ℝ) ^ ((1:ℝ)/8)) = (1/8) * Real.log (x:ℝ) :=
+      Real.log_rpow hx0 _
+    have h2 : Real.log ((x:ℝ) ^ ((1:ℝ)/8)) ≤ (x:ℝ) ^ ((1:ℝ)/8) - 1 :=
+      Real.log_le_sub_one_of_pos h80
+    nlinarith [h1, h2, h80]
+  -- the `1/16`-power pieces for the squared logarithm
+  have h16 : (10:ℝ) ≤ (x:ℝ) ^ ((1:ℝ)/16) := by
+    have h1 : ((10:ℝ)^16) ^ ((1:ℝ)/16) ≤ (x:ℝ) ^ ((1:ℝ)/16) :=
+      Real.rpow_le_rpow (by positivity) hxR (by norm_num)
+    have h2 : ((10:ℝ)^16) ^ ((1:ℝ)/16) = 10 := by
+      rw [← Real.rpow_natCast (10:ℝ) 16, ← Real.rpow_mul (by norm_num)]
+      norm_num
+    linarith
+  have h160 : (0:ℝ) < (x:ℝ) ^ ((1:ℝ)/16) := Real.rpow_pos_of_pos hx0 _
+  have hlogx16 : Real.log (x:ℝ) ≤ 16 * (x:ℝ) ^ ((1:ℝ)/16) := by
+    have h1 : Real.log ((x:ℝ) ^ ((1:ℝ)/16)) = (1/16) * Real.log (x:ℝ) :=
+      Real.log_rpow hx0 _
+    have h2 : Real.log ((x:ℝ) ^ ((1:ℝ)/16)) ≤ (x:ℝ) ^ ((1:ℝ)/16) - 1 :=
+      Real.log_le_sub_one_of_pos h160
+    nlinarith [h1, h2, h160]
+  have heighth : (x:ℝ) ^ ((1:ℝ)/8)
+      = (x:ℝ) ^ ((1:ℝ)/16) * (x:ℝ) ^ ((1:ℝ)/16) := by
+    rw [← Real.rpow_add hx0]
+    norm_num
+  have hsq16 : (Real.log (x:ℝ))^2 ≤ 256 * (x:ℝ) ^ ((1:ℝ)/8) := by
+    rw [heighth]
+    nlinarith [hlogx16, hL0.le, h160]
+  -- `⌊√x⌋ ≥ √x/2`
+  have hs2 : (2:ℝ) ≤ Real.sqrt (x:ℝ) := by
+    have h4 : (4:ℝ) ≤ (x:ℝ) := by nlinarith [hxR]
+    have := Real.sqrt_le_sqrt h4
+    rwa [show Real.sqrt 4 = 2 by
+      rw [show (4:ℝ) = 2^2 by norm_num, Real.sqrt_sq (by norm_num)]] at this
+  have hfloor : Real.sqrt (x:ℝ)/2 ≤ ((Nat.sqrt x : ℕ):ℝ) := by
+    have h1 : x < (Nat.sqrt x + 1)^2 := Nat.lt_succ_sqrt' x
+    have h2 : (x:ℝ) < (((Nat.sqrt x + 1):ℕ):ℝ)^2 := by exact_mod_cast h1
+    have h3 : Real.sqrt (x:ℝ) < ((Nat.sqrt x : ℕ):ℝ) + 1 := by
+      have h4 : Real.sqrt (x:ℝ) < Real.sqrt ((((Nat.sqrt x + 1):ℕ):ℝ)^2) :=
+        Real.sqrt_lt_sqrt (Nat.cast_nonneg x) h2
+      rwa [Real.sqrt_sq (by positivity), Nat.cast_add, Nat.cast_one] at h4
+    linarith [hs2]
+  -- `√⌊√x⌋ ≥ x^{1/4}/√2`
+  have hsq2 : Real.sqrt 2 ≤ 1.415 := by
+    have h1 : (Real.sqrt 2)^2 = 2 := Real.sq_sqrt (by norm_num)
+    nlinarith [Real.sqrt_nonneg 2, h1]
+  have hsq20 : (0:ℝ) < Real.sqrt 2 := Real.sqrt_pos.mpr (by norm_num)
+  have hquarter : Real.sqrt (Real.sqrt (x:ℝ)) = (x:ℝ) ^ ((1:ℝ)/4) := by
+    rw [Real.sqrt_eq_rpow, Real.sqrt_eq_rpow, ← Real.rpow_mul hx0.le]
+    norm_num
+  have hroot : (x:ℝ) ^ ((1:ℝ)/4) / Real.sqrt 2
+      ≤ Real.sqrt ((Nat.sqrt x : ℕ):ℝ) := by
+    have h1 : Real.sqrt (Real.sqrt (x:ℝ)/2)
+        ≤ Real.sqrt ((Nat.sqrt x : ℕ):ℝ) := Real.sqrt_le_sqrt hfloor
+    rwa [show Real.sqrt (Real.sqrt (x:ℝ)/2)
+        = Real.sqrt (Real.sqrt (x:ℝ))/Real.sqrt 2 from
+      Real.sqrt_div (Real.sqrt_nonneg _) 2, hquarter] at h1
+  -- assemble: `4·log x ≤ √⌊√x⌋·log²2`
+  have hA0 : (0:ℝ) < Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2 := by
+    have := lt_of_lt_of_le (by positivity : (0:ℝ) < (x:ℝ)^((1:ℝ)/4)/Real.sqrt 2)
+      hroot
+    positivity
+  rw [div_mul_eq_mul_div, div_le_iff₀ hA0]
+  -- `x^{1/4} = x^{1/8}·x^{1/8}`
+  have hquarter8 : (x:ℝ) ^ ((1:ℝ)/4)
+      = (x:ℝ) ^ ((1:ℝ)/8) * (x:ℝ) ^ ((1:ℝ)/8) := by
+    rw [← Real.rpow_add hx0]
+    norm_num
+  have hkey : 32 * (x:ℝ) ^ ((1:ℝ)/8)
+      ≤ Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2 := by
+    have h1 : (x:ℝ) ^ ((1:ℝ)/4) / Real.sqrt 2 * (Real.log 2)^2
+        ≤ Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2 :=
+      mul_le_mul_of_nonneg_right hroot (sq_nonneg _)
+    refine le_trans ?_ h1
+    rw [hquarter8, div_mul_eq_mul_div, le_div_iff₀ hsq20]
+    -- `32·x^{1/8}·√2 ≤ x^{1/8}·x^{1/8}·log²2`, stepwise
+    have hlog2sq : (0.48:ℝ) ≤ (Real.log 2)^2 := by nlinarith [hlog2]
+    calc 32 * (x:ℝ)^((1:ℝ)/8) * Real.sqrt 2
+        ≤ 32 * (x:ℝ)^((1:ℝ)/8) * 1.415 :=
+          mul_le_mul_of_nonneg_left hsq2 (by positivity)
+      _ ≤ 0.48 * (100 * (x:ℝ)^((1:ℝ)/8)) := by nlinarith [h80]
+      _ ≤ 0.48 * ((x:ℝ)^((1:ℝ)/8) * (x:ℝ)^((1:ℝ)/8)) := by
+          have h100 := mul_le_mul_of_nonneg_right h8 h80.le
+          nlinarith [h100]
+      _ ≤ (x:ℝ)^((1:ℝ)/8) * (x:ℝ)^((1:ℝ)/8) * (Real.log 2)^2 := by
+          nlinarith [hlog2sq, mul_nonneg h80.le h80.le]
+  nlinarith [hsq16, hkey, Real.rpow_pos_of_pos hx0 ((1:ℝ)/8)]
+
 open Real in
 /-- **The Gaussian window** (Track R, N195): for `x ≥ 10¹⁶` and any
 `T` in the window `√(21·log x) ≤ T ≤ log x`, the three scalar side

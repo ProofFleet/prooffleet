@@ -2718,6 +2718,190 @@ theorem tripleConvRC_survivors_balanced_le' (f : ℕ → ℂ) (hf : ∀ n, ‖f 
 
 
 
+
+set_option maxHeartbeats 3200000 in
+open Real Finset ArithmeticFunction in
+/-- **The survivor estimate, ℂ shell form** (Track R, budget repair
+R-b2-e): the `k`-split of the survivor triple convolution with every
+block priced by the shell balanced estimate at `T := log x` —
+
+  `‖tripleConvRC f x 𝒮‖ ≤ K₀·(x·√((e^π)²·10¹⁵·(b²+1)) + 2x·log 4)
+     + 2x·(16((e−1)e·log2 + log2) + 16·log4)`
+
+— the envelope is a single absolute constant against `b²`, with no
+`T`, no small-prime mass, and no per-block residue.  The window's only
+remaining duties are `y ≥ log²x` (for the per-block prime floor) and
+the `K₀`-schedule; `hγ1`/`hSL2` close from `x ≥ 10¹⁶` alone. -/
+theorem tripleConvRC_survivors_balanced_shell_le (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (x y K₀ : ℕ) (hx : 10^16 ≤ x) (hy2 : 2 ≤ y)
+    (hy : (Real.log (x:ℝ))^2 ≤ (y:ℝ))
+    (hK₀1 : 1 ≤ K₀)
+    (hK₀low : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+    (hK₀max : Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+      < Real.exp 1 * Real.log 2)
+    (hX3 : ∀ k ∈ Finset.Icc 1 K₀, 3 ≤ x / blockLo x k)
+    (b : ℝ) (hb0 : 0 ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ExpSums.smoothPhaseSum f x t‖ ≤ b) :
+    ‖tripleConvRC f x ((((Finset.Icc 1 x).filter Nat.Prime).filter
+        (fun p => ¬ p < y)).filter (fun p => ¬ x < 2*p))‖
+      ≤ (K₀:ℝ) * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15 * (b^2 + 1))
+          + 2*(x:ℝ)*Real.log 4)
+        + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+            + Real.log 2) + 16 * Real.log 4)) := by
+  classical
+  have hx2 : (2:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hx3' : (3:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hx3000 : (3000:ℕ) ≤ x := le_trans (by norm_num) hx
+  have hx1 : (1:ℕ) ≤ x := by omega
+  have hL0 : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hx0R : (0:ℝ) < (x:ℝ) := by exact_mod_cast (by omega : 0 < x)
+  have hL36 : (36:ℝ) ≤ Real.log (x:ℝ) := by
+    rw [Real.le_log_iff_exp_le hx0R]
+    have he3 : Real.exp (3:ℝ) ≤ 20.1 := by
+      have h3 : Real.exp (3:ℝ) = (Real.exp 1)^(3:ℕ) := by
+        rw [← Real.exp_nat_mul]
+        norm_num
+      rw [h3]
+      have hcube : (Real.exp 1)^(3:ℕ) ≤ (2.7182818286:ℝ)^(3:ℕ) :=
+        pow_le_pow_left₀ (Real.exp_pos 1).le
+          (by linarith [Real.exp_one_lt_d9]) 3
+      have hnum : (2.7182818286:ℝ)^(3:ℕ) ≤ 20.1 := by norm_num
+      linarith
+    have h36 : Real.exp (36:ℝ) = (Real.exp 3)^(12:ℕ) := by
+      rw [← Real.exp_nat_mul]
+      norm_num
+    have hp12 : (Real.exp 3)^(12:ℕ) ≤ (20.1:ℝ)^(12:ℕ) :=
+      pow_le_pow_left₀ (Real.exp_pos 3).le he3 12
+    have hnum12 : (20.1:ℝ)^(12:ℕ) ≤ 10^16 := by norm_num
+    have hxR : (10:ℝ)^16 ≤ (x:ℝ) := by exact_mod_cast hx
+    rw [h36]
+    linarith
+  have hT1L : Real.sqrt (21 * Real.log (x:ℝ)) ≤ Real.log (x:ℝ) := by
+    have h1 : Real.sqrt (21 * Real.log (x:ℝ))
+        ≤ Real.sqrt ((Real.log (x:ℝ))^2) := by
+      refine Real.sqrt_le_sqrt ?_
+      nlinarith [hL36]
+    rwa [Real.sqrt_sq (by linarith)] at h1
+  obtain ⟨h5T, hLT2, hγT⟩ :=
+    T_window_conditions x (Real.log (x:ℝ)) hx hT1L le_rfl
+  -- split validity at `K₀+2`
+  have hK : Real.exp (-((K₀+2:ℕ):ℝ)) * Real.log (x:ℝ) < Real.log 2 := by
+    have hs1 : Real.exp (-((K₀+2:ℕ):ℝ))
+        = Real.exp (-1) * Real.exp (-((K₀:ℝ)+1)) := by
+      rw [← Real.exp_add]
+      congr 1
+      push_cast
+      ring
+    have hs2 : Real.exp (-1) * (Real.exp 1 * Real.log 2) = Real.log 2 := by
+      rw [← mul_assoc, ← Real.exp_add]
+      simp
+    calc Real.exp (-((K₀+2:ℕ):ℝ)) * Real.log (x:ℝ)
+        = Real.exp (-1) * (Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)) := by
+          rw [hs1]; ring
+      _ < Real.exp (-1) * (Real.exp 1 * Real.log 2) := by
+          exact mul_lt_mul_of_pos_left hK₀max (Real.exp_pos _)
+      _ = Real.log 2 := hs2
+  -- split, triangle, k-split
+  rw [tripleConvRC_survivor_split f x y (K₀+2) hx1 hK]
+  refine le_trans (norm_sum_le _ _) ?_
+  refine sum_ksplit_le
+    (fun k => ‖tripleConvRC f x (((Finset.Ico (blockLo x k)
+      (blockHi x k)).filter Nat.Prime).filter
+      (fun p => ¬ p < y ∧ ¬ x < 2*p))‖) K₀ (K₀+2) (by omega) _ _ ?_ ?_
+  · -- the head: the primed N189 per block, then the SM-monotone step
+    intro k hk
+    rw [Finset.mem_Icc] at hk
+    have hk1 : 1 ≤ k := hk.1
+    have hkK : k ≤ K₀ := hk.2
+    -- the block-membership facts
+    have hP : ∀ p ∈ (((Finset.Ico (blockLo x k) (blockHi x k)).filter
+        Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p)),
+        p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k := by
+      intro p hp
+      simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+      exact ⟨hp.1.2, hp.1.1.1, hp.1.1.2⟩
+    have hPT : ∀ p ∈ (((Finset.Ico (blockLo x k) (blockHi x k)).filter
+        Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p)),
+        (Real.log (x:ℝ))^2 ≤ (p:ℝ) := by
+      intro p hp
+      simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+      have hyp : y ≤ p := Nat.le_of_not_lt hp.2.1
+      have : (y:ℝ) ≤ (p:ℝ) := by exact_mod_cast hyp
+      linarith [hy]
+    -- the per-block mass floor
+    have huL : Real.exp 1 * Real.log 2
+        ≤ Real.exp (-(k:ℝ)) * Real.log (x:ℝ) := by
+      have hmono : Real.exp (-(K₀:ℝ)) ≤ Real.exp (-(k:ℝ)) := by
+        refine Real.exp_le_exp.mpr ?_
+        have : (k:ℝ) ≤ (K₀:ℝ) := by exact_mod_cast hkK
+        linarith
+      have := mul_le_mul_of_nonneg_right hmono hL0.le
+      linarith [hK₀low]
+    have hMp := blockMass_le_const x k hx2 hk1 _ hP huL
+    have hγ1 := gamma_le_one_of x (Real.log (x:ℝ)) hx2 hγT
+    have hSL2 := tailS_mul_log_sq_le x hx
+    have hW := bandWeight_smooth_mass_le x hx3000
+    exact tripleConvRC_block_balanced_shell_le f hf hcm h1 x k hx3' hk1 _ hP
+      (fit_of_mass_floor x k (by omega) huL)
+      (hX3 k (by rw [Finset.mem_Icc]; omega)) hL36 hPT
+      b hb0 hBu hγ1 hSL2 hMp hW
+  · -- the tail: two boundary blocks, fit-free
+    have htb : ∀ k ∈ Finset.Icc (K₀+1) (K₀+2),
+        ‖tripleConvRC f x (((Finset.Ico (blockLo x k) (blockHi x k)).filter
+          Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p))‖
+        ≤ (x:ℝ) * (16 * ((Real.exp 1 - 1) * (Real.exp 1 * Real.log 2)
+            + Real.log 2) + 16 * Real.log 4) := by
+      intro k hk
+      rw [Finset.mem_Icc] at hk
+      have hk1 : 1 ≤ k := by omega
+      obtain ⟨hlo1, hlohi⟩ := blockLo_le_blockHi x k hx1
+      have hP' : ∀ p ∈ (((Finset.Ico (blockLo x k) (blockHi x k)).filter
+          Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p)),
+          p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k := by
+        intro p hp
+        simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+        exact ⟨hp.1.2, hp.1.1.1, hp.1.1.2⟩
+      have h2P : ∀ p ∈ (((Finset.Ico (blockLo x k) (blockHi x k)).filter
+          Nat.Prime).filter (fun p => ¬ p < y ∧ ¬ x < 2*p)), 2*p ≤ x := by
+        intro p hp
+        simp only [Finset.mem_filter, Finset.mem_Ico] at hp
+        omega
+      refine le_trans (norm_tripleConvRC_le'' f hf x (blockLo x k)
+        (blockHi x k) hlo1 hlohi _ hP' h2P) ?_
+      have hw := log_blockHi_sub_log_blockLo_le x k hx2 hk1
+      have hmono : Real.exp (-(k:ℝ)) ≤ Real.exp (-((K₀:ℝ)+1)) := by
+        refine Real.exp_le_exp.mpr ?_
+        have hc1 : ((K₀+1:ℕ):ℝ) ≤ (k:ℝ) := by exact_mod_cast hk.1
+        push_cast at hc1
+        linarith
+      have huk : Real.exp (-(k:ℝ)) * Real.log (x:ℝ)
+          ≤ Real.exp 1 * Real.log 2 := by
+        have hc2 := mul_le_mul_of_nonneg_right hmono hL0.le
+        linarith [hK₀max]
+      have he1nn : (0:ℝ) ≤ Real.exp 1 - 1 := by
+        linarith [Real.exp_one_gt_d9.le]
+      have hwidth2 : Real.log ((blockHi x k : ℕ):ℝ)
+          - Real.log ((blockLo x k : ℕ):ℝ)
+          ≤ (Real.exp 1 - 1) * (Real.exp 1 * Real.log 2) + Real.log 2 := by
+        have hc3 : (Real.exp 1 - 1) * (Real.exp (-(k:ℝ)) * Real.log (x:ℝ))
+            ≤ (Real.exp 1 - 1) * (Real.exp 1 * Real.log 2) :=
+          mul_le_mul_of_nonneg_left huk he1nn
+        nlinarith [hw, hc3]
+      have hx0' : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
+      refine mul_le_mul_of_nonneg_left ?_ hx0'
+      linarith [hwidth2]
+    refine le_trans (Finset.sum_le_sum htb) ?_
+    rw [Finset.sum_const, Nat.card_Icc]
+    have h2c : K₀+2+1 - (K₀+1) = 2 := by omega
+    rw [h2c]
+    simp [nsmul_eq_mul]
+
 open Real Finset ArithmeticFunction in
 /-- **§3, end to end, through the smooth tsum** (Track R, M0R-5): the
 `b`-parametric assembly `rieszMean_log_le_of_nonPretentious` with the
