@@ -2906,17 +2906,21 @@ enough, and it avoids evaluating `∫ t^{-2}`.  The dependence on `ξ` is
 **linear**, which is what lets the reduction be used across the whole
 band.
 
-`Sbd ≥ 0` is not assumed: it follows from `hS` at `u = 0`. -/
+`Sbd ≥ 0` is not assumed: it follows from `hS` at `u = 0`.  The sup
+runs over the window only — `u ≤ B'` — because that is all Abel
+summation touches, and it is all a Halász-quality `Sbd` can supply:
+initial segments grow linearly in `u`, so no useful bound holds
+uniformly in *all* `u` (IV-0f). -/
 theorem norm_short_poly_le_sup_partial (c : ℕ → ℂ) (A' B' : ℕ)
     (hA' : 1 ≤ A') (hAB : A' ≤ B') (hB2 : B' ≤ 2*A') (ξ : ℝ) (Sbd : ℝ)
-    (hS : ∀ u : ℕ, ‖∑ k ∈ Finset.Icc 0 u, c k‖ ≤ Sbd) :
+    (hS : ∀ u : ℕ, u ≤ B' → ‖∑ k ∈ Finset.Icc 0 u, c k‖ ≤ Sbd) :
     ‖∑ m ∈ Finset.Ioc A' B', (c m/(m:ℂ))
         * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
       ≤ Sbd * (3 + 2*Real.pi*|ξ|)/(A':ℝ) := by
   classical
   set K : ℝ → ℂ := fun u : ℝ => (1/(u:ℂ))
     * Complex.exp (((-(2*Real.pi*ξ*Real.log u) : ℝ) : ℂ) * Complex.I) with hKdef
-  have hSbd0 : 0 ≤ Sbd := le_trans (norm_nonneg _) (hS 0)
+  have hSbd0 : 0 ≤ Sbd := le_trans (norm_nonneg _) (hS 0 (Nat.zero_le _))
   have hA1 : (1:ℝ) ≤ (A':ℝ) := by exact_mod_cast hA'
   have hA0 : (0:ℝ) < (A':ℝ) := by linarith
   have hAB' : (A':ℝ) ≤ (B':ℝ) := by exact_mod_cast hAB
@@ -2950,14 +2954,14 @@ theorem norm_short_poly_le_sup_partial (c : ℕ → ℂ) (A' B' : ℕ)
     rw [norm_mul, hKnorm _ (by linarith)]
     calc 1/(B':ℝ) * ‖∑ k ∈ Finset.Icc 0 B', c k‖
         ≤ 1/(A':ℝ) * Sbd :=
-          mul_le_mul (one_div_le_one_div_of_le hA0 hAB') (hS B')
+          mul_le_mul (one_div_le_one_div_of_le hA0 hAB') (hS B' le_rfl)
             (norm_nonneg _) (by positivity)
       _ = Sbd/(A':ℝ) := by ring
   have hbA : ‖K (A':ℝ) * (∑ k ∈ Finset.Icc 0 A', c k)‖ ≤ Sbd/(A':ℝ) := by
     rw [norm_mul, hKnorm _ hA0]
     calc 1/(A':ℝ) * ‖∑ k ∈ Finset.Icc 0 A', c k‖
         ≤ 1/(A':ℝ) * Sbd :=
-          mul_le_mul_of_nonneg_left (hS A') (by positivity)
+          mul_le_mul_of_nonneg_left (hS A' hAB) (by positivity)
       _ = Sbd/(A':ℝ) := by ring
   have hint : ‖∫ t in Set.Ioc (A':ℝ) (B':ℝ),
       deriv K t * ∑ k ∈ Finset.Icc 0 ⌊t⌋₊, c k‖
@@ -2977,10 +2981,13 @@ theorem norm_short_poly_le_sup_partial (c : ℕ → ℂ) (A' B' : ℕ)
         have hX : (0:ℝ) ≤ 1 + 2*Real.pi*|ξ| := by positivity
         rw [div_le_div_iff₀ (by positivity) (by positivity)]
         exact mul_le_mul_of_nonneg_left hsq hX
+      have hfloor : ⌊t⌋₊ ≤ B' := by
+        have h1 := Nat.floor_le_floor ht.2
+        rwa [Nat.floor_natCast] at h1
       rw [norm_mul]
       calc ‖deriv K t‖ * ‖∑ k ∈ Finset.Icc 0 ⌊t⌋₊, c k‖
           ≤ ((1 + 2*Real.pi*|ξ|)/(A':ℝ)^2) * Sbd :=
-            mul_le_mul hd' (hS _) (norm_nonneg _) (by positivity)
+            mul_le_mul hd' (hS _ hfloor) (norm_nonneg _) (by positivity)
         _ = Sbd * (1 + 2*Real.pi*|ξ|)/(A':ℝ)^2 := by ring
     refine le_trans (norm_setIntegral_le_of_norm_le_const (by
       rw [Real.volume_Ioc]
@@ -3322,6 +3329,178 @@ theorem sum_pPart_harmonic_le (B y : ℕ) (hy : 4 ≤ y) (P : Finset ℕ)
     exact ⟨Nat.prime_of_mem_primeFactorsList hp,
       Nat.dvd_of_mem_primeFactorsList hp, by omega⟩
   exact hPy p (hsupp hpf)
+
+
+
+/-- **The Halász budget** (Track R, A2-III, IV-0f-1): the per-scale
+numerator `Ĥ(z, A)` of the plain-sum log-free Halász capstone
+`plain_sumC_le_halasz_of_nonPretentious`, as a named function of a
+*real* scale.  The dominant regime is
+`Ĥ(z,A) ≍ z·loglog z·polylog(z)·e^{−A}` — but note the `+ 1` inside
+the square root: the budget never drops below `≍ z·loglog z`, so the
+consumer's scale-ratio choice must balance against it (IV-0f-3). -/
+noncomputable def halaszBudget (A z : ℝ) : ℝ :=
+  35*z + z*(Real.log (2*(Real.log z)^2) + 2)
+    + 2*(z+1)*Real.log 4
+    + 64 * z / Real.log 2 * (Real.log (z+1) + 2)
+    + (Real.log (Real.log z)
+        * (z * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+            * (((Real.log (2*(Real.log z)^2 + 1) + 2)^2
+                + Real.log z + 1)
+              * (Real.exp 5 * (2 + Real.log z)
+                  * Real.exp (-A))^2 + 1)))
+          + 2*z*Real.log 4)
+      + 2 * (z * (16 * ((Real.exp 1 - 1)
+          * (Real.exp 1 * Real.log 2)
+          + Real.log 2) + 16 * Real.log 4)))
+
+/-- **The budget is nonnegative** past `z = e` (Track R, A2-III,
+IV-0f-1): every summand of `Ĥ(z,A)` is nonnegative once `log z ≥ 1`.
+Needed to discard or majorize budget terms freely. -/
+theorem halaszBudget_nonneg (A z : ℝ) (hz : Real.exp 1 ≤ z) :
+    0 ≤ halaszBudget A z := by
+  have hz0 : (0:ℝ) < z := lt_of_lt_of_le (Real.exp_pos 1) hz
+  have hlog1 : (1:ℝ) ≤ Real.log z := by
+    rw [Real.le_log_iff_exp_le hz0]
+    exact hz
+  have hloglog0 : (0:ℝ) ≤ Real.log (Real.log z) :=
+    Real.log_nonneg hlog1
+  have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hT2 : (0:ℝ) ≤ Real.log (2*(Real.log z)^2) :=
+    Real.log_nonneg (by nlinarith)
+  have hTz1 : (0:ℝ) ≤ Real.log (z+1) :=
+    Real.log_nonneg (by linarith)
+  have he1 : (1:ℝ) ≤ Real.exp 1 := Real.one_le_exp (by norm_num)
+  unfold halaszBudget
+  have h1 : (0:ℝ) ≤ 35*z := by linarith
+  have h2 : (0:ℝ) ≤ z*(Real.log (2*(Real.log z)^2) + 2) := by nlinarith
+  have h3 : (0:ℝ) ≤ 2*(z+1)*Real.log 4 := by nlinarith
+  have h4 : (0:ℝ) ≤ 64 * z / Real.log 2 * (Real.log (z+1) + 2) := by
+    have hd : (0:ℝ) ≤ 64 * z / Real.log 2 := by positivity
+    nlinarith
+  have h5 : (0:ℝ) ≤ Real.log (Real.log z)
+      * (z * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+          * (((Real.log (2*(Real.log z)^2 + 1) + 2)^2
+              + Real.log z + 1)
+            * (Real.exp 5 * (2 + Real.log z)
+                * Real.exp (-A))^2 + 1)))
+        + 2*z*Real.log 4) := by
+    have hs : (0:ℝ) ≤ z * Real.sqrt (2000 * ((Real.exp π)^2 * 10^15
+        * (((Real.log (2*(Real.log z)^2 + 1) + 2)^2
+            + Real.log z + 1)
+          * (Real.exp 5 * (2 + Real.log z)
+              * Real.exp (-A))^2 + 1))) :=
+      mul_nonneg (le_of_lt hz0) (Real.sqrt_nonneg _)
+    have h2z : (0:ℝ) ≤ 2*z*Real.log 4 := by nlinarith
+    exact mul_nonneg hloglog0 (by linarith)
+  have h6 : (0:ℝ) ≤ 2 * (z * (16 * ((Real.exp 1 - 1)
+      * (Real.exp 1 * Real.log 2)
+      + Real.log 2) + 16 * Real.log 4)) := by
+    have hee : (0:ℝ) ≤ (Real.exp 1 - 1) * (Real.exp 1 * Real.log 2) := by
+      have : (0:ℝ) ≤ Real.exp 1 - 1 := by linarith
+      have h2' : (0:ℝ) ≤ Real.exp 1 * Real.log 2 := by positivity
+      exact mul_nonneg this h2'
+    nlinarith [hlog2.le, hlog4, hz0.le]
+  exact add_nonneg (add_nonneg (add_nonneg (add_nonneg h1 h2) h3) h4)
+    (add_nonneg h5 h6)
+
+open Real Finset in
+/-- **The capstone, budget-normalized** (Track R, A2-III, IV-0f-1):
+`plain_sumC_le_halasz_of_nonPretentious` with the two per-scale
+numerators named as `halaszBudget` and the stray `((X+1:ℕ):ℝ)` casts
+normalized to `(X:ℝ)+1`. -/
+theorem plain_sumC_le_halaszBudget (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (x X : ℕ) (hx : 10^16 ≤ x) (hxX : x ≤ X)
+    (A : ℝ) (h1A : 1 ≤ A)
+    (hAx : NonPretentiousAt f A x)
+    (hAX : NonPretentiousAt f A X) :
+    ‖∑ n ∈ Finset.Icc 1 x, f n‖ * (Real.log (X:ℝ) - Real.log (x:ℝ))
+      ≤ halaszBudget A (X:ℝ) / Real.log (X:ℝ)
+        + halaszBudget A (x:ℝ) / Real.log (x:ℝ)
+        + ((X:ℝ) - (x:ℝ)) * (Real.log (X:ℝ) - Real.log (x:ℝ)) := by
+  have h := plain_sumC_le_halasz_of_nonPretentious f hf hcm h1 x X hx hxX
+    A h1A hAx hAX
+  have hXc : ((X+1:ℕ):ℝ) = (X:ℝ)+1 := by push_cast; ring
+  have hxc : ((x+1:ℕ):ℝ) = (x:ℝ)+1 := by push_cast; ring
+  rw [hXc, hxc] at h
+  unfold halaszBudget
+  exact h
+
+open Real Finset in
+/-- **The divided capstone** (Track R, A2-III, IV-0f-1): the initial
+segment at scale `x`, bounded with the scale ratio made explicit.  For
+any lower bound `δ₀` on the log-gap to the auxiliary scale `X`,
+
+  `‖∑_{n ≤ x} f n‖ ≤ (Ĥ(X,A)/log X + Ĥ(x,A)/log x)/δ₀ + (X − x)`.
+
+The consumer picks `δ₀` (and `X` realizing it): `δ₀ ≍ e^{−A/2}`
+balances the two error groups in the dominant regime — the √-loss —
+while for very large `A` the `+1` floor inside the budget's square
+root shifts the optimum; keeping `δ₀` free defers that choice to the
+`𝒰`-assembly numerology (IV-0f-3). -/
+theorem plain_sumC_le_halaszBudget_div (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (x X : ℕ) (hx : 10^16 ≤ x) (hxX : x ≤ X)
+    (A : ℝ) (h1A : 1 ≤ A)
+    (hAx : NonPretentiousAt f A x)
+    (hAX : NonPretentiousAt f A X)
+    (δ₀ : ℝ) (hδ₀ : 0 < δ₀)
+    (hδX : δ₀ ≤ Real.log (X:ℝ) - Real.log (x:ℝ)) :
+    ‖∑ n ∈ Finset.Icc 1 x, f n‖
+      ≤ (halaszBudget A (X:ℝ) / Real.log (X:ℝ)
+          + halaszBudget A (x:ℝ) / Real.log (x:ℝ)) / δ₀
+        + ((X:ℝ) - (x:ℝ)) := by
+  have h := plain_sumC_le_halaszBudget f hf hcm h1 x X hx hxX A h1A hAx hAX
+  have hD : (0:ℝ) < Real.log (X:ℝ) - Real.log (x:ℝ) :=
+    lt_of_lt_of_le hδ₀ hδX
+  have hxR : (Real.exp 1) ≤ (x:ℝ) := by
+    have h3 : (3:ℝ) ≤ (x:ℝ) := by
+      have : (3:ℕ) ≤ x := le_trans (by norm_num) hx
+      exact_mod_cast this
+    linarith [Real.exp_one_lt_d9.le]
+  have hXR : (Real.exp 1) ≤ (X:ℝ) := by
+    have : (x:ℝ) ≤ (X:ℝ) := by exact_mod_cast hxX
+    linarith
+  have hlogx : (0:ℝ) < Real.log (x:ℝ) := by
+    have hx1 : (1:ℝ) < (x:ℝ) := by
+      have : (2:ℕ) ≤ x := le_trans (by norm_num) hx
+      exact_mod_cast lt_of_lt_of_le (by norm_num : (1:ℕ) < 2) this
+    exact Real.log_pos hx1
+  have hlogX : (0:ℝ) < Real.log (X:ℝ) := by
+    have : Real.log (x:ℝ) ≤ Real.log (X:ℝ) := by
+      have hxx : (x:ℝ) ≤ (X:ℝ) := by exact_mod_cast hxX
+      exact Real.log_le_log (by positivity) hxx
+    linarith
+  have hE0 : (0:ℝ) ≤ halaszBudget A (X:ℝ) / Real.log (X:ℝ)
+      + halaszBudget A (x:ℝ) / Real.log (x:ℝ) := by
+    have hEX := halaszBudget_nonneg A (X:ℝ) hXR
+    have hEx := halaszBudget_nonneg A (x:ℝ) hxR
+    have d1 : (0:ℝ) ≤ halaszBudget A (X:ℝ) / Real.log (X:ℝ) :=
+      div_nonneg hEX hlogX.le
+    have d2 : (0:ℝ) ≤ halaszBudget A (x:ℝ) / Real.log (x:ℝ) :=
+      div_nonneg hEx hlogx.le
+    linarith
+  have hkey : (‖∑ n ∈ Finset.Icc 1 x, f n‖ - ((X:ℝ) - (x:ℝ)))
+      * (Real.log (X:ℝ) - Real.log (x:ℝ))
+      ≤ halaszBudget A (X:ℝ) / Real.log (X:ℝ)
+        + halaszBudget A (x:ℝ) / Real.log (x:ℝ) := by
+    nlinarith [h]
+  have h2 : ‖∑ n ∈ Finset.Icc 1 x, f n‖ - ((X:ℝ) - (x:ℝ))
+      ≤ (halaszBudget A (X:ℝ) / Real.log (X:ℝ)
+          + halaszBudget A (x:ℝ) / Real.log (x:ℝ))
+        / (Real.log (X:ℝ) - Real.log (x:ℝ)) :=
+    (le_div_iff₀ hD).mpr hkey
+  have h3 : (halaszBudget A (X:ℝ) / Real.log (X:ℝ)
+        + halaszBudget A (x:ℝ) / Real.log (x:ℝ))
+        / (Real.log (X:ℝ) - Real.log (x:ℝ))
+      ≤ (halaszBudget A (X:ℝ) / Real.log (X:ℝ)
+          + halaszBudget A (x:ℝ) / Real.log (x:ℝ)) / δ₀ := by
+    gcongr
+  linarith
 
 
 end ExpSums
