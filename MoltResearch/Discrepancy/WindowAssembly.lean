@@ -2879,6 +2879,129 @@ theorem integrableOn_deriv_dirichlet_kernel (ξ : ℝ) (b : ℝ) :
   exact (deriv_dirichlet_kernel ξ (hpos t ht)).symm
 
 
+open MeasureTheory Finset in
+/-- **The short-sum reduction to initial segments** (Track R, A2-III,
+IV-0c): if every initial-segment sum `S(u) = ∑_{k≤u} c k` is at most
+`Sbd` in modulus, then for a short block `(A, B]` of length at most `A`,
+
+  `‖∑_{A<m≤B} (c m/m)e(−ξ log m)‖ ≤ Sbd·(3 + 2π|ξ|)/A`.
+
+**This is the step that makes short-sum Halász possible.**  Nothing is
+known about a short sum directly; everything is known about *initial
+segments*, because that is what `plain_sumC_le_halasz_of_nonPretentious`
+bounds.  Abel summation converts one into the other, and this is the
+conversion with its cost made explicit.
+
+**Where the three pieces of `3 + 2π|ξ|` come from.**  Abel summation
+(`sum_mul_eq_sub_sub_integral_mul'`) produces two boundary terms and one
+integral.  Each boundary term costs `‖K(·)‖·Sbd ≤ Sbd/A`, since the
+kernel has unit-modulus phase and so `‖K(t)‖ = 1/t`; that is the `2`.
+The integral costs `Sbd·(1+2π|ξ|)/A`, by `norm_deriv_dirichlet_kernel_le`
+and the block being no longer than `A`; that is the `1 + 2π|ξ|`.
+
+**Why `B ≤ 2A` rather than an evaluated integral.**  `[MR]`'s short
+block already satisfies `Δ ≤ A`, so `∫_A^B ‖K′‖ ≤ (B−A)·sup_{t>A}‖K′(t)‖
+≤ A·(1+2π|ξ|)/A² = (1+2π|ξ|)/A` — the crude bound is already sharp
+enough, and it avoids evaluating `∫ t^{-2}`.  The dependence on `ξ` is
+**linear**, which is what lets the reduction be used across the whole
+band.
+
+`Sbd ≥ 0` is not assumed: it follows from `hS` at `u = 0`. -/
+theorem norm_short_poly_le_sup_partial (c : ℕ → ℂ) (A' B' : ℕ)
+    (hA' : 1 ≤ A') (hAB : A' ≤ B') (hB2 : B' ≤ 2*A') (ξ : ℝ) (Sbd : ℝ)
+    (hS : ∀ u : ℕ, ‖∑ k ∈ Finset.Icc 0 u, c k‖ ≤ Sbd) :
+    ‖∑ m ∈ Finset.Ioc A' B', (c m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖
+      ≤ Sbd * (3 + 2*Real.pi*|ξ|)/(A':ℝ) := by
+  classical
+  set K : ℝ → ℂ := fun u : ℝ => (1/(u:ℂ))
+    * Complex.exp (((-(2*Real.pi*ξ*Real.log u) : ℝ) : ℂ) * Complex.I) with hKdef
+  have hSbd0 : 0 ≤ Sbd := le_trans (norm_nonneg _) (hS 0)
+  have hA1 : (1:ℝ) ≤ (A':ℝ) := by exact_mod_cast hA'
+  have hA0 : (0:ℝ) < (A':ℝ) := by linarith
+  have hAB' : (A':ℝ) ≤ (B':ℝ) := by exact_mod_cast hAB
+  have hB2' : (B':ℝ) ≤ 2*(A':ℝ) := by exact_mod_cast hB2
+  -- the kernel at a natural number is the tree's Dirichlet normal form
+  have hbridge : ∀ m : ℕ, K (m:ℝ) * c m = (c m/(m:ℂ))
+      * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+    intro m
+    have hc : ((2*Real.pi*(-(Real.log m * ξ)) : ℝ) : ℂ)
+        = ((-(2*Real.pi*ξ*Real.log m) : ℝ) : ℂ) := by
+      push_cast
+      ring
+    simp only [hKdef]
+    rw [Real.fourierChar_apply, hc]
+    push_cast
+    ring
+  -- the kernel has unit-modulus phase
+  have hKnorm : ∀ u : ℝ, 0 < u → ‖K u‖ = 1/u := by
+    intro u hu
+    simp only [hKdef]
+    rw [norm_mul, Complex.norm_exp_ofReal_mul_I, mul_one, norm_div, norm_one,
+      Complex.norm_real, Real.norm_eq_abs, abs_of_pos hu]
+  -- Abel summation on the block
+  have habel := sum_mul_eq_sub_sub_integral_mul' (f := K) c hAB
+    (fun t ht => differentiableAt_dirichlet_kernel ξ (by linarith [ht.1]))
+    ((integrableOn_deriv_dirichlet_kernel ξ (B':ℝ)).mono_set
+      (Set.Icc_subset_Icc hA1 le_rfl))
+  rw [← Finset.sum_congr rfl (fun m _ => hbridge m), habel]
+  -- three pieces
+  have hbB : ‖K (B':ℝ) * (∑ k ∈ Finset.Icc 0 B', c k)‖ ≤ Sbd/(A':ℝ) := by
+    rw [norm_mul, hKnorm _ (by linarith)]
+    calc 1/(B':ℝ) * ‖∑ k ∈ Finset.Icc 0 B', c k‖
+        ≤ 1/(A':ℝ) * Sbd :=
+          mul_le_mul (one_div_le_one_div_of_le hA0 hAB') (hS B')
+            (norm_nonneg _) (by positivity)
+      _ = Sbd/(A':ℝ) := by ring
+  have hbA : ‖K (A':ℝ) * (∑ k ∈ Finset.Icc 0 A', c k)‖ ≤ Sbd/(A':ℝ) := by
+    rw [norm_mul, hKnorm _ hA0]
+    calc 1/(A':ℝ) * ‖∑ k ∈ Finset.Icc 0 A', c k‖
+        ≤ 1/(A':ℝ) * Sbd :=
+          mul_le_mul_of_nonneg_left (hS A') (by positivity)
+      _ = Sbd/(A':ℝ) := by ring
+  have hint : ‖∫ t in Set.Ioc (A':ℝ) (B':ℝ),
+      deriv K t * ∑ k ∈ Finset.Icc 0 ⌊t⌋₊, c k‖
+      ≤ Sbd * (1 + 2*Real.pi*|ξ|)/(A':ℝ) := by
+    have hptwise : ∀ t ∈ Set.Ioc (A':ℝ) (B':ℝ),
+        ‖deriv K t * ∑ k ∈ Finset.Icc 0 ⌊t⌋₊, c k‖
+          ≤ Sbd * (1 + 2*Real.pi*|ξ|)/(A':ℝ)^2 := by
+      intro t ht
+      have ht0 : (0:ℝ) < t := by linarith [ht.1]
+      have hd : ‖deriv K t‖ ≤ (1 + 2*Real.pi*|ξ|)/t^2 := by
+        simp only [hKdef]
+        rw [deriv_dirichlet_kernel ξ ht0]
+        exact norm_deriv_dirichlet_kernel_le ξ ht0
+      have hd' : ‖deriv K t‖ ≤ (1 + 2*Real.pi*|ξ|)/(A':ℝ)^2 := by
+        refine le_trans hd ?_
+        have hsq : (A':ℝ)^2 ≤ t^2 := by nlinarith [ht.1, hA0]
+        have hX : (0:ℝ) ≤ 1 + 2*Real.pi*|ξ| := by positivity
+        rw [div_le_div_iff₀ (by positivity) (by positivity)]
+        exact mul_le_mul_of_nonneg_left hsq hX
+      rw [norm_mul]
+      calc ‖deriv K t‖ * ‖∑ k ∈ Finset.Icc 0 ⌊t⌋₊, c k‖
+          ≤ ((1 + 2*Real.pi*|ξ|)/(A':ℝ)^2) * Sbd :=
+            mul_le_mul hd' (hS _) (norm_nonneg _) (by positivity)
+        _ = Sbd * (1 + 2*Real.pi*|ξ|)/(A':ℝ)^2 := by ring
+    refine le_trans (norm_setIntegral_le_of_norm_le_const (by
+      rw [Real.volume_Ioc]
+      exact ENNReal.ofReal_lt_top) hptwise) ?_
+    rw [Real.volume_real_Ioc_of_le hAB']
+    rw [div_mul_eq_mul_div, div_le_div_iff₀ (by positivity) hA0]
+    have hfac : (0:ℝ) ≤ Sbd * (1 + 2*Real.pi*|ξ|) :=
+      mul_nonneg hSbd0 (by positivity)
+    have hkey : ((B':ℝ) - (A':ℝ)) * (A':ℝ) ≤ (A':ℝ)^2 := by
+      nlinarith [hB2', hA0]
+    nlinarith [hfac, hkey]
+  calc ‖K (B':ℝ) * (∑ k ∈ Finset.Icc 0 B', c k)
+          - K (A':ℝ) * (∑ k ∈ Finset.Icc 0 A', c k)
+          - ∫ t in Set.Ioc (A':ℝ) (B':ℝ),
+              deriv K t * ∑ k ∈ Finset.Icc 0 ⌊t⌋₊, c k‖
+      ≤ Sbd/(A':ℝ) + Sbd/(A':ℝ) + Sbd * (1 + 2*Real.pi*|ξ|)/(A':ℝ) := by
+        refine le_trans (norm_sub_le _ _) ?_
+        refine add_le_add (le_trans (norm_sub_le _ _) (add_le_add hbB hbA)) hint
+    _ = Sbd * (3 + 2*Real.pi*|ξ|)/(A':ℝ) := by ring
+
+
 end ExpSums
 
 end MoltResearch
