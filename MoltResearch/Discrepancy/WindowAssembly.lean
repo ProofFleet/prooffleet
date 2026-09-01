@@ -2818,6 +2818,67 @@ theorem norm_deriv_dirichlet_kernel_le (ξ : ℝ) {t : ℝ} (ht : 0 < t) :
     _ = (1 + 2*Real.pi*|ξ|)/t^2 := by ring
 
 
+open MeasureTheory in
+/-- **The Dirichlet kernel's Abel hypotheses** (Track R, A2-III, IV-0b):
+on `[1, b]` the kernel `t ↦ t^{-1}e(−ξ log t)` is differentiable and its
+derivative is integrable.
+
+These are exactly the two side conditions of Mathlib's
+`sum_mul_eq_sub_integral_mul₀`, which is the Abel summation `[MR]`'s
+short-sum Halász step runs.  They are stated on `[1, b]` rather than
+`[0, b]` deliberately: the kernel is singular at `0`, so the `₀` variant
+of the summation — the one that assumes `c 0 = 0` and only asks for
+regularity on `[1, b]` — is the one that applies, and the unprimed
+variant does not.
+
+The derivative is integrable because it is *continuous* there:
+`deriv` agrees on `[1, b]` with the explicit formula of
+`hasDerivAt_dirichlet_kernel`, which is continuous away from `0`, and
+`[1, b]` is compact. -/
+theorem differentiableAt_dirichlet_kernel (ξ : ℝ) {t : ℝ} (ht : 0 < t) :
+    DifferentiableAt ℝ (fun u : ℝ => (1/(u:ℂ))
+      * Complex.exp (((-(2*Real.pi*ξ*Real.log u) : ℝ) : ℂ) * Complex.I)) t :=
+  (hasDerivAt_dirichlet_kernel ξ ht).differentiableAt
+
+theorem deriv_dirichlet_kernel (ξ : ℝ) {t : ℝ} (ht : 0 < t) :
+    deriv (fun u : ℝ => (1/(u:ℂ))
+        * Complex.exp (((-(2*Real.pi*ξ*Real.log u) : ℝ) : ℂ) * Complex.I)) t
+      = -(1/(t:ℂ)^2) * (1 + 2*(Real.pi:ℂ)*(ξ:ℂ)*Complex.I)
+        * Complex.exp (((-(2*Real.pi*ξ*Real.log t) : ℝ) : ℂ) * Complex.I) :=
+  (hasDerivAt_dirichlet_kernel ξ ht).deriv
+
+open MeasureTheory in
+theorem integrableOn_deriv_dirichlet_kernel (ξ : ℝ) (b : ℝ) :
+    IntegrableOn (deriv (fun u : ℝ => (1/(u:ℂ))
+        * Complex.exp (((-(2*Real.pi*ξ*Real.log u) : ℝ) : ℂ) * Complex.I)))
+      (Set.Icc 1 b) := by
+  have hpos : ∀ t ∈ Set.Icc (1:ℝ) b, (0:ℝ) < t := fun t ht => by
+    linarith [ht.1]
+  have hne : ∀ t ∈ Set.Icc (1:ℝ) b, (t:ℂ) ≠ 0 := fun t ht =>
+    Complex.ofReal_ne_zero.mpr (hpos t ht).ne'
+  -- the explicit derivative is continuous on `[1, b]`
+  have hinvc : ContinuousOn (fun t : ℝ => (1/(t:ℂ)^2)) (Set.Icc 1 b) := by
+    refine ContinuousOn.div continuousOn_const
+      ((Complex.continuous_ofReal.continuousOn).pow 2) (fun t ht => ?_)
+    exact pow_ne_zero 2 (hne t ht)
+  have hlogc : ContinuousOn (fun t : ℝ => Real.log t) (Set.Icc 1 b) :=
+    Real.continuousOn_log.mono (fun t ht => (hpos t ht).ne')
+  have hexpc : ContinuousOn (fun t : ℝ =>
+      Complex.exp (((-(2*Real.pi*ξ*Real.log t) : ℝ) : ℂ) * Complex.I))
+      (Set.Icc 1 b) := by
+    refine Complex.continuous_exp.comp_continuousOn ?_
+    exact (Complex.continuous_ofReal.comp_continuousOn
+      (((continuousOn_const.mul hlogc)).neg)).mul continuousOn_const
+  have hcont : ContinuousOn (fun t : ℝ => -(1/(t:ℂ)^2)
+      * (1 + 2*(Real.pi:ℂ)*(ξ:ℂ)*Complex.I)
+      * Complex.exp (((-(2*Real.pi*ξ*Real.log t) : ℝ) : ℂ) * Complex.I))
+      (Set.Icc 1 b) :=
+    ((hinvc.neg).mul continuousOn_const).mul hexpc
+  refine (hcont.integrableOn_compact isCompact_Icc).congr_fun ?_ measurableSet_Icc
+  intro t ht
+  exact (deriv_dirichlet_kernel ξ (hpos t ht)).symm
+
+
 end ExpSums
 
 end MoltResearch
