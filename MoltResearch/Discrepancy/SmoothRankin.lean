@@ -5668,7 +5668,138 @@ theorem prime_gaussian_far_shell_le (T : ℝ) (hT : 2 ≤ T) (m : ℕ)
           mul_nonneg hME (Real.exp_pos (1/4:ℝ)).le,
           mul_nonneg (mul_nonneg hlog4 hME) (Real.exp_pos (1/4:ℝ)).le]
 
+
+open Finset Real in
+/-- **The prime Gaussian inner sum with the shell tail** (Track R,
+budget repair R-b1-c): `prime_gaussian_long_le` with the global-mass
+tail `e^{−πT²/64}·B` replaced by the Chebyshev-shell tail
+`32·m·e^{−πT²/64}` — no total-mass hypothesis at all,
+
+  `∑_{p ∈ S, prime} log p·e^{−πT²(log p − log m)²}
+     ≤ 1024·h·L + log m + 32·m·e^{−πT²/64}`
+
+for `T ≥ 2`.  In-reach shells verbatim; the far set goes through
+`prime_gaussian_far_shell_le` with `tail_gap_of_long` supplying the
+`1/8` gap.  This is what lets the per-window energy run at a *fixed*
+window width instead of the forced `T ≍ √(log x)`. -/
+theorem prime_gaussian_long_shell_le (T : ℝ) (hT : 2 ≤ T)
+    (m h J : ℕ) (S : Finset ℕ)
+    (hS1 : ∀ n ∈ S, 1 ≤ n) (hm1 : 1 ≤ m)
+    (hh : 2 ≤ h) (hscale : 2*(m:ℝ) ≤ (h:ℝ)*T)
+    (hfit : (2^J - 1)*h + 1 ≤ m) (hwfit : ∀ j < J, 2^j*h ≤ 2*m)
+    (hreach : m ≤ 4*((2^J - 1)*h))
+    (L : ℝ) (hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ L) :
+    ∑ p ∈ S.filter Nat.Prime,
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ)
+        + 32*(m:ℝ)*Real.exp (-(π*T^2/64)) := by
+  classical
+  rw [← Finset.sum_filter_add_sum_filter_not (S.filter Nat.Prime)
+    (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h) (m + (2^J - 1)*h))]
+  have hnn : ∀ n : ℕ, (0:ℝ)
+      ≤ Real.log (n:ℝ) * Real.exp (-(π*T^2*(Real.log n - Real.log m)^2)) :=
+    fun n => mul_nonneg (Real.log_natCast_nonneg n) (Real.exp_pos _).le
+  have hcov : ∑ p ∈ (S.filter Nat.Prime).filter
+        (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h) (m + (2^J - 1)*h)),
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 1024*(h:ℝ)*L + Real.log (m:ℝ) := by
+    have hsub : (S.filter Nat.Prime).filter
+        (fun n => n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))
+        ⊆ (Finset.Ioc (m - 1 - (2^J - 1)*h)
+            (m + (2^J - 1)*h)).filter Nat.Prime := by
+      intro p hp
+      simp only [Finset.mem_filter] at hp ⊢
+      exact ⟨hp.2, hp.1.2⟩
+    refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+      (fun i _ _ => hnn i)) ?_
+    refine le_trans (inner_sum_two_sided_le T m h J hh hscale hfit hwfit) ?_
+    have hh2 : (2:ℝ) ≤ (h:ℝ) := by exact_mod_cast hh
+    have hstep : 1024*(h:ℝ)*(Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ))
+        ≤ 1024*(h:ℝ)*L := by
+      refine mul_le_mul_of_nonneg_left hL ?_
+      positivity
+    linarith
+  have htail : ∑ p ∈ (S.filter Nat.Prime).filter
+        (fun n => ¬ (n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))),
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 32*(m:ℝ)*Real.exp (-(π*T^2/64)) := by
+    have hgap : ∀ n ∈ (S.filter Nat.Prime).filter
+        (fun n => ¬ (n ∈ Finset.Ioc (m - 1 - (2^J - 1)*h)
+          (m + (2^J - 1)*h))),
+        (1:ℝ)/8 ≤ |Real.log (n:ℝ) - Real.log (m:ℝ)| := by
+      intro n hn
+      simp only [Finset.mem_filter] at hn
+      exact tail_gap_of_long m ((2^J - 1)*h) n hm1 (hS1 n hn.1.1) hreach hn.2
+    refine prime_gaussian_far_shell_le T hT m hm1 _ ?_ hgap
+    intro p hp
+    simp only [Finset.mem_filter] at hp
+    exact hp.1.2
+  linarith
+
 end ExpSums
+
+open ArithmeticFunction Finset Real in
+/-- **The inner sum on prime support, shell-tailed** (Track R, budget
+repair R-b1-d): for a set of primes, the Gaussian inner sum at the
+canonical scale needs no range and no mass hypothesis —
+
+  `∑_{p ∈ S} Λ(p)·e^{−πT²(log m − log p)²}
+     ≤ 6144·⌈2m/T⌉ + log m + 32·m·e^{−πT²/64}`.
+
+Prime support kills the proper-prime-power remainder identically, and
+the shell tail replaces `e^{−πT²/64}·B`: nothing grows with the
+polynomial's range, so the two diseases of `inner_sum_long_le`'s
+bracket — the `√X` remainder and the `B ≈ X` tail that forced
+`T ≍ √(log x)` — are both gone. -/
+theorem inner_sum_long_prime_le (T : ℝ) (m : ℕ) (S : Finset ℕ)
+    (hSp : ∀ n ∈ S, n.Prime)
+    (hT : 2 ≤ T) (hTm : T^2 ≤ (m:ℝ))
+    (hsmall : 2*(⌈2*(m:ℝ)/T⌉₊) ≤ m) :
+    ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      ≤ 6144*((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (m:ℝ)
+        + 32*(m:ℝ)*Real.exp (-(π*T^2/64)) := by
+  classical
+  set h : ℕ := ⌈2*(m:ℝ)/T⌉₊ with hh_def
+  have hT0 : (0:ℝ) < T := by linarith
+  have hm4 : (4:ℝ) ≤ (m:ℝ) := by nlinarith [hTm, hT]
+  have hm1 : 1 ≤ m := by
+    have : (1:ℝ) ≤ (m:ℝ) := by linarith
+    exact_mod_cast this
+  have hh2 : 2 ≤ h := ExpSums.two_le_ceil_scale T m hT hTm
+  have hscale : 2*(m:ℝ) ≤ (h:ℝ)*T := ExpSums.ceil_scale_mul_le T m hT0
+  have hL : Real.log (4*(m:ℝ)+2)/Real.log ((h:ℕ):ℝ) ≤ 6 :=
+    ExpSums.log_ratio_ceil_scale_le T m hT hTm
+  obtain ⟨J, hfit, hmax, hwfit⟩ :=
+    ExpSums.exists_shell_count m h hm1 (by omega)
+  have hsucc : (2^(J+1) - 1)*h = (2^J - 1)*h + 2^J*h :=
+    ExpSums.dyadic_cut_succ h J
+  have hJh : (2:ℕ)^J*h = (2^J - 1)*h + h := by
+    have h1 : (1:ℕ) ≤ 2^J := Nat.one_le_two_pow
+    have h2 : (2:ℕ)^J = (2^J - 1) + 1 := by omega
+    calc (2:ℕ)^J*h = ((2^J - 1) + 1)*h := by rw [← h2]
+      _ = (2^J - 1)*h + h := by ring
+  have hreach : m ≤ 4*((2^J - 1)*h) := by omega
+  have hflip : ∑ n ∈ S, vonMangoldt n
+        * Real.exp (-(π*T^2*(Real.log (m:ℝ) - Real.log (n:ℝ))^2))
+      = ∑ p ∈ S.filter Nat.Prime,
+          Real.log p
+            * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2)) := by
+    rw [Finset.filter_true_of_mem hSp]
+    refine Finset.sum_congr rfl fun n hn => ?_
+    rw [vonMangoldt_apply_prime (hSp n hn)]
+    congr 2
+    ring
+  rw [hflip]
+  refine le_trans (ExpSums.prime_gaussian_long_shell_le T hT m h J S
+    (fun n hn => (hSp n hn).one_lt.le) hm1 hh2 hscale hfit hwfit
+    hreach 6 hL) ?_
+  have hh0 : (0:ℝ) ≤ (h:ℝ) := Nat.cast_nonneg _
+  have hcalc : 1024*(h:ℝ)*6 = 6144*(h:ℝ) := by ring
+  linarith [hcalc]
+
 
 
 open ArithmeticFunction Finset Real in
@@ -6018,6 +6149,138 @@ theorem two_mul_ceil_quarter_le (m : ℕ) (hm : 4 ≤ m) :
     push_cast
     linarith
   exact_mod_cast hreal
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The sharp MVT on prime support, shell-tailed** (Track R, budget
+repair R-b1-e): the mean value theorem over `[−T, T]` for a
+prime-supported `Λ`-polynomial, with the range-free bracket —
+`inner_sum_long_prime_le` fed pointwise. -/
+theorem intervalIntegral_vonMangoldt_mvt_long_prime_le (T : ℝ)
+    (S : Finset ℕ) (a : ℕ → ℂ) (hSp : ∀ n ∈ S, n.Prime)
+    (hT : 2 ≤ T) (hTm : ∀ m ∈ S, T^2 ≤ (m:ℝ))
+    (hsmall : ∀ m ∈ S, 2*(⌈2*(m:ℝ)/T⌉₊) ≤ m) :
+    (∫ ξ in (-T)..T, ‖∑ n ∈ S, (a n * ((vonMangoldt n : ℝ) : ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * T * ∑ m ∈ S,
+          (6144*((⌈2*(m:ℝ)/T⌉₊ : ℕ):ℝ) + Real.log (m:ℝ)
+            + 32*(m:ℝ)*Real.exp (-(π*T^2/64)))
+          * (‖a m‖^2 * vonMangoldt m) := by
+  refine intervalIntegral_vonMangoldt_mvt_pointwise_le T (by linarith) S a _ ?_
+  intro m hm
+  exact inner_sum_long_prime_le T m S hSp hT (hTm m hm) (hsmall m hm)
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The centred energy on prime support, shell-tailed** (Track R,
+budget repair R-b1-f): the width-8 centred energy of a prime
+polynomial with the range-free bracket,
+
+  `∫_{−8}^{8}‖∑_q w(q)·e(−u·log q)‖²
+     ≤ e^π·8·∑_q (6144·⌈q/4⌉ + log q + 32·q·e^{−π})·(log q/q²)`
+
+— no `X`-range, no mass `B` in the signature: the two inputs whose
+pricing forced the free-`T` chain (and its `+T·b²`) no longer exist. -/
+theorem ghsPrime_centred_energy_shell_le (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (Q : Finset ℕ)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQ64 : ∀ q ∈ Q, 64 ≤ q)
+    (w : ℕ → ℂ)
+    (hw : ∀ q ∈ Q, ‖w q‖ = ‖(((Real.log (q:ℝ) : ℝ):ℂ) * f q) / (q:ℂ)‖) :
+    (∫ u in (-(8:ℝ))..(8:ℝ),
+        ‖∑ q ∈ Q, w q
+          * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      ≤ Real.exp π * 8 * ∑ q ∈ Q,
+          (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+            + 32*(q:ℝ)*Real.exp (-(π*(8:ℝ)^2/64)))
+          * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+  classical
+  have hrw : (∫ u in (-(8:ℝ))..(8:ℝ),
+      ‖∑ q ∈ Q, w q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      = ∫ u in (-(8:ℝ))..(8:ℝ),
+        ‖∑ q ∈ Q, ((w q / ((vonMangoldt q : ℝ):ℂ))
+            * ((vonMangoldt q : ℝ):ℂ))
+          * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2 := by
+    refine intervalIntegral.integral_congr fun u _ => ?_
+    rw [prime_poly_as_vonMangoldt Q hQp w u]
+  rw [hrw]
+  have hmvt := intervalIntegral_vonMangoldt_mvt_long_prime_le (8:ℝ) Q
+    (fun q => w q / ((vonMangoldt q : ℝ):ℂ)) hQp
+    (by norm_num)
+    (fun m hm => by
+      have h64 : (64:ℝ) ≤ (m:ℝ) := by exact_mod_cast hQ64 m hm
+      have hsq : ((8:ℝ))^2 = 64 := by norm_num
+      rw [hsq]
+      exact h64)
+    (fun m hm => two_mul_ceil_quarter_le m (by have := hQ64 m hm; omega))
+  refine le_trans hmvt ?_
+  have hcoef : ∀ q ∈ Q,
+      (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + 32*(q:ℝ)*Real.exp (-(π*(8:ℝ)^2/64)))
+      * (‖w q / ((vonMangoldt q : ℝ):ℂ)‖^2 * vonMangoldt q)
+      ≤ (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+          + 32*(q:ℝ)*Real.exp (-(π*(8:ℝ)^2/64)))
+        * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+    intro q hq
+    have hbig : (0:ℝ) ≤ 6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + 32*(q:ℝ)*Real.exp (-(π*(8:ℝ)^2/64)) := by
+      have h1 : (0:ℝ) ≤ Real.log (q:ℝ) := Real.log_natCast_nonneg q
+      positivity
+    refine mul_le_mul_of_nonneg_left ?_ hbig
+    exact recovered_coeff_sq_le f hf q (hQp q hq) (w q) (hw q hq)
+  have hstep := Finset.sum_le_sum hcoef
+  have hexp0 : (0:ℝ) ≤ Real.exp π * 8 := by positivity
+  exact mul_le_mul_of_nonneg_left hstep hexp0
+
+
+open MeasureTheory Real Complex ArithmeticFunction Finset in
+/-- **The per-window energy on prime support, shell-tailed** (Track R,
+budget repair R-b1-g): for every frequency `N`,
+
+  `∫_{N−1/2}^{N+1/2}‖P₃(t)‖²
+     ≤ e^π·8·∑_q (6144·⌈q/4⌉ + log q + 32·q·e^{−π})·(log q/q²)`
+
+— width **fixed at 8**, no range `X`, no mass `B`, hence no `T` anywhere:
+the per-window energy the pairing's `hV` slot wants, without the free-`T`
+chain's `4T·(6144+γ)` term that fed the balance envelope's fatal `+T·b²`. -/
+theorem ghsPrimePoly_unit_energy_shell_le (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (Q : Finset ℕ)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQ64 : ∀ q ∈ Q, 64 ≤ q)
+    (hwide : ∀ w : ℕ → ℂ, IntervalIntegrable
+      (fun u => ‖∑ q ∈ Q, w q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+      volume (-(8:ℝ)) (8:ℝ))
+    (N : ℝ) :
+    (∫ t in (N - 1/2)..(N + 1/2), ‖ghsPrimePoly f Q t‖^2)
+      ≤ Real.exp π * 8 * ∑ q ∈ Q,
+          (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+            + 32*(q:ℝ)*Real.exp (-(π*(8:ℝ)^2/64)))
+          * (Real.log (q:ℝ)/(q:ℝ)^2) := by
+  classical
+  set V : ℝ := Real.exp π * 8 * ∑ q ∈ Q,
+      (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + 32*(q:ℝ)*Real.exp (-(π*(8:ℝ)^2/64)))
+      * (Real.log (q:ℝ)/(q:ℝ)^2) with hV_def
+  -- the coefficients of P₃
+  set c : ℕ → ℂ := fun q =>
+    (((Real.log (q:ℝ) : ℝ):ℂ) * f q) / (q:ℂ) with hc_def
+  have hpoly : ∀ t : ℝ, ghsPrimePoly f Q t
+      = ∑ q ∈ Q, c q
+        * ((Real.fourierChar (-(Real.log (q:ℝ) * t)) : Circle) : ℂ) := by
+    intro t
+    rw [ghsPrimePoly]
+  simp only [hpoly]
+  refine ExpSums.integral_unit_sq_le_of_centred Q c
+    (fun q => Real.log (q:ℝ)) V ?_ N
+  intro w' hw'
+  -- widen the window, then apply the centred estimate
+  have hb : (-(1:ℝ)/2) = -((1:ℝ)/2) := by ring
+  rw [hb]
+  refine le_trans (integral_symm_widen
+    (fun u => ‖∑ q ∈ Q, w' q
+      * ((Real.fourierChar (-(Real.log (q:ℝ) * u)) : Circle) : ℂ)‖^2)
+    (fun t => by positivity) ((1:ℝ)/2) 8 (by norm_num) (by norm_num)
+    (hwide w')) ?_
+  exact ghsPrime_centred_energy_shell_le f hf Q hQp hQ64 w'
+    (fun q _ => hw' q)
 
 open MeasureTheory Real Complex ArithmeticFunction Finset in
 /-- **The centred energy of the `q`-polynomial** (Track R, N65): for any
@@ -9931,6 +10194,85 @@ theorem ghsPrime_energy_sum_free_le (Q : Finset ℕ) (X : ℕ) (hX : 2 ≤ X)
   have h1 := mul_le_mul_of_nonneg_left hmass1 hT0
   have h2 := mul_le_mul_of_nonneg_left hmass2 hR6
   linarith
+
+
+open Real Finset in
+/-- **The `V₃` energy sum, shell form** (Track R, budget repair
+R-b1-h): at the fixed width `T = 8` and with the shell tail, the
+per-window energy bracket sums to
+
+  `∑_q (6144·⌈q/4⌉ + log q + 32·q·e^{−π})·(log q/q²)
+     ≤ 1539·(log(X+1) + 2) + 6144·4`
+
+— `V₃'' ≍ log X` with **no `T` anywhere**: the `q`-linear shell tail
+lands in the Mertens mass (`32·e^{−π} ≤ 2` since `e³ ≥ 20`), the
+`4T·(6144+γ)` of the free-`T` route is gone, and with it the balance
+envelope's fatal `+T·b²`. -/
+theorem ghsPrime_energy_sum_shell_le (Q : Finset ℕ) (X : ℕ) (hX : 2 ≤ X)
+    (hQp : ∀ q ∈ Q, q.Prime) (hQX : ∀ q ∈ Q, q ≤ X)
+    (hQ64 : ∀ q ∈ Q, 64 ≤ q) :
+    ∑ q ∈ Q, (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + 32*(q:ℝ)*Real.exp (-(π*(8:ℝ)^2/64)))
+        * (Real.log (q:ℝ)/(q:ℝ)^2)
+      ≤ 1539 * (Real.log ((X+1 : ℕ):ℝ) + 2) + 6144 * 4 := by
+  classical
+  obtain ⟨hmass1, hmass2⟩ := prime_masses_le Q X hX hQp
+    (fun q hq => (hQp q hq).two_le) hQX
+  have hE : Real.exp (-(π*(8:ℝ)^2/64)) ≤ 1/20 := by
+    have hπ3 : (3:ℝ) ≤ π := by linarith [Real.pi_gt_three]
+    have h1 : Real.exp (-(π*(8:ℝ)^2/64)) ≤ Real.exp (-(3:ℝ)) := by
+      rw [Real.exp_le_exp]
+      nlinarith
+    refine le_trans h1 ?_
+    have he3 : (20:ℝ) ≤ Real.exp 3 := by
+      have he := Real.exp_one_gt_d9
+      have h3 : Real.exp (3:ℝ) = (Real.exp 1)^(3:ℕ) := by
+        rw [← Real.exp_nat_mul]
+        norm_num
+      rw [h3]
+      have hpos : (0:ℝ) ≤ 2.7182818283 := by norm_num
+      have hcube : (2.7182818283:ℝ)^(3:ℕ) ≤ (Real.exp 1)^(3:ℕ) :=
+        pow_le_pow_left₀ hpos he.le 3
+      have h20 : (20:ℝ) ≤ (2.7182818283:ℝ)^(3:ℕ) := by norm_num
+      linarith [hcube, h20]
+    rw [Real.exp_neg, ← one_div]
+    exact one_div_le_one_div_of_le (by norm_num) he3
+  have hsplit : ∀ q ∈ Q,
+      (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ)
+        + 32*(q:ℝ)*Real.exp (-(π*(8:ℝ)^2/64)))
+        * (Real.log (q:ℝ)/(q:ℝ)^2)
+      = (6144*((⌈2*(q:ℝ)/8⌉₊ : ℕ):ℝ) + Real.log (q:ℝ) + 0)
+          * (Real.log (q:ℝ)/(q:ℝ)^2)
+        + Real.exp (-(π*(8:ℝ)^2/64))
+            * (32 * (Real.log (q:ℝ)/(q:ℝ))) := by
+    intro q hq
+    have hq0 : (q:ℝ) ≠ 0 := by
+      have := (hQp q hq).pos
+      exact_mod_cast this.ne'
+    field_simp
+    ring
+  rw [Finset.sum_congr rfl hsplit, Finset.sum_add_distrib]
+  have hfirst := ghsPrime_energy_sum_free_le Q X hX 8 (by norm_num) hQp hQX
+    (fun q hq => by
+      have h64 : (64:ℝ) ≤ (q:ℝ) := by exact_mod_cast hQ64 q hq
+      nlinarith) 0 le_rfl
+  have hL0 : (0:ℝ) ≤ Real.log ((X+1 : ℕ):ℝ) + 2 := by
+    have := Real.log_natCast_nonneg (X+1)
+    linarith
+  have hsecond : ∑ q ∈ Q, Real.exp (-(π*(8:ℝ)^2/64))
+      * (32 * (Real.log (q:ℝ)/(q:ℝ)))
+      ≤ 2 * (Real.log ((X+1 : ℕ):ℝ) + 2) := by
+    rw [← Finset.mul_sum, ← Finset.mul_sum]
+    have hmass0 : (0:ℝ) ≤ ∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ) :=
+      Finset.sum_nonneg fun q _ => div_nonneg
+        (Real.log_natCast_nonneg q) (Nat.cast_nonneg q)
+    calc Real.exp (-(π*(8:ℝ)^2/64))
+          * (32 * ∑ q ∈ Q, Real.log (q:ℝ)/(q:ℝ))
+        ≤ (1/20) * (32 * (Real.log ((X+1 : ℕ):ℝ) + 2)) := by
+          refine mul_le_mul hE ?_ (by positivity) (by norm_num)
+          exact mul_le_mul_of_nonneg_left hmass1 (by norm_num)
+      _ ≤ 2 * (Real.log ((X+1 : ℕ):ℝ) + 2) := by linarith
+  linarith [hfirst, hsecond, hL0]
 
 open Real Finset in
 /-- **The `E₁` energy sum over a block, at free `T`** (Track R, N145):
