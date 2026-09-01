@@ -2440,6 +2440,127 @@ theorem sum_level_energy_le (α : ℝ) (hα : 0 < α) (hα2 : 2*α < 1)
     mul_le_mul_of_nonneg_left hdecay hK
   linarith
 
+
+/-- **The block ratio survives `ℕ`-division** (Track R, A2-III, II-5b-2):
+for `1 ≤ q ≤ A` and a block `(A, B]` of ratio `B ≤ R·A`,
+
+  `(A/q, B/q] ⊆ (A/q, 2R·(A/q)]`.
+
+`[MR]`'s decomposition replaces each prime's own fibre window by the
+reference window at the *quotient* scale `A/q`, and the mean value
+theorem then has to be applied there.  The sharp mean value theorem
+charges `T/A' + 2R'` on a range `(A', R'A']`, so what it needs is the
+ratio of the divided block — and ratios are *not* preserved by
+`ℕ`-division: `A = 3`, `B = 6`, `R = 2`, `q = 2` already gives
+`B/q = 3 > 2 = R·(A/q)`.
+
+Doubling the ratio absorbs the loss exactly.  The floor costs less than
+one unit of `A/q`, and `1 ≤ A/q` — which is where `q ≤ A` is used —
+makes that unit cheaper than the ratio already being paid: `B/q ≤ RA/q
+< R(A/q + 1) ≤ 2R·(A/q)`.  Since the mean value theorem's dependence on
+the ratio is linear and every downstream constant is absolute, paying
+`2R` instead of `R` is free. -/
+theorem Ioc_div_subset_Ioc_two_mul_ratio (A B R q : ℕ) (hq : 1 ≤ q)
+    (hqA : q ≤ A) (hR : 1 ≤ R) (hB : B ≤ R * A) :
+    Finset.Ioc (A/q) (B/q) ⊆ Finset.Ioc (A/q) (2*R*(A/q)) := by
+  intro n hn
+  rw [Finset.mem_Ioc] at hn ⊢
+  refine ⟨hn.1, hn.2.trans ((Nat.div_le_div_right hB).trans ?_)⟩
+  have hq0 : 0 < q := hq
+  have ha : 1 ≤ A/q := (Nat.one_le_div_iff hq0).mpr hqA
+  have hmod : A % q < q := Nat.mod_lt _ hq0
+  have key : R*A < (2*R*(A/q) + 1) * q := by
+    have e1 : R*A = R*q*(A/q) + R*(A%q) := by
+      conv_lhs => rw [← Nat.div_add_mod A q]
+      ring
+    have e2 : R*(A%q) < R*q := by
+      have := Nat.mul_lt_mul_of_lt_of_le hmod (le_refl R) (by omega : 0 < R)
+      calc R*(A%q) = (A%q)*R := by ring
+        _ < q*R := this
+        _ = R*q := by ring
+    have e3 : R*q ≤ R*q*(A/q) := Nat.le_mul_of_pos_right _ ha
+    nlinarith [e1, e2, e3]
+  exact Nat.lt_succ_iff.mp ((Nat.div_lt_iff_lt_mul hq0).mpr key)
+
+
+open MeasureTheory Finset ExpSums in
+/-- **The level-1 band energy at the cell/block shapes** (Track R,
+A2-III, II-5b-3): `setIntegral_norm_sq_sum_mul_le_of_small` instantiated
+at exactly the two polynomials `[MR]`'s decomposition lemma leaves
+behind.  For a measurable `G ⊆ (−T, T]` on which the level-`v` *cell*
+polynomial is `s v`-small,
+
+  `∫_G ‖∑_v (∑_{p∈𝒞_v} (g p/p)e(−ξ log p))·(∑_{A/q_v < m ≤ B/q_v} (c m/m)e(−ξ log m))‖²
+     ≤ #I·∑_v (s v)²·e^π(T/(A/q_v) + 4R)·∑_{A/q_v < m ≤ B/q_v} ‖c m‖²/m`.
+
+**What supplies each factor.**  The cell polynomial is small on `G` by
+hypothesis — that is the *definition* of `[MR]`'s level set `𝒯_v`, and
+nothing about cells is used to prove it here.  The block polynomial is
+priced by the sharp mean value theorem at the quotient scale `A/q_v`,
+which is legitimate because `Ioc (A/q_v) (B/q_v)` has ratio at most
+`2R` by `Ioc_div_subset_Ioc_two_mul_ratio` — the only genuinely new
+content, since `ℕ`-division does not preserve ratios.
+
+**Why `q` is an arbitrary family.**  In the application `q v` is the
+least member of `eadicCell P (2N) v`, which is what makes the reference
+window uniform across the cell (II-2e,
+`intervalIntegral_norm_sq_cell_replace_le`).  But minimality plays no
+part in *this* estimate: all that is needed is `1 ≤ q v ≤ A`, so it is
+left free and the caller supplies whichever representative the
+decomposition produced.
+
+**Why `s` stays free.**  The `e`-adic schedule `s v = e^{−αv/N}` is not
+imposed here; feeding it in and summing the resulting two geometric
+series is `sum_level_energy_le` (II-5b-1), a separate and purely
+real-analytic step.  Keeping them apart means the schedule's constraint
+`2α < 1` never has to be carried through the measure theory. -/
+theorem setIntegral_norm_sq_cell_block_sum_le
+    (P : Finset ℕ) (N v₀ v₁ : ℕ) (q : ℕ → ℕ)
+    (A B R : ℕ) (hR : 1 ≤ R) (hB : B ≤ R * A)
+    (hq1 : ∀ v, 1 ≤ q v) (hqA : ∀ v, q v ≤ A)
+    (g c : ℕ → ℂ) (T : ℝ) (hT : 0 < T)
+    (G : Set ℝ) (hGm : MeasurableSet G) (hGT : G ⊆ Set.Ioc (-T) T)
+    (s : ℕ → ℝ)
+    (hsmall : ∀ v ∈ Finset.Ico v₀ (v₁+1), ∀ ξ ∈ G,
+      ‖∑ p ∈ eadicCell P (2*N) v, (g p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖ ≤ s v) :
+    (∫ ξ in G, ‖∑ v ∈ Finset.Ico v₀ (v₁+1),
+        (∑ p ∈ eadicCell P (2*N) v, (g p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))
+          * (∑ m ∈ Finset.Ioc (A/(q v)) (B/(q v)), (c m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))‖^2)
+      ≤ ((Finset.Ico v₀ (v₁+1)).card : ℝ)
+          * ∑ v ∈ Finset.Ico v₀ (v₁+1), (s v)^2
+              * (Real.exp Real.pi * (T/((A/(q v) : ℕ):ℝ) + 4*(R:ℝ))
+                  * ∑ m ∈ Finset.Ioc (A/(q v)) (B/(q v)), ‖c m‖^2/(m:ℝ)) := by
+  classical
+  have hchar : ∀ w : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(w * ξ)) : Circle) : ℂ) := fun w =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  refine setIntegral_norm_sq_sum_mul_le_of_small
+    (fun v ξ => ∑ p ∈ eadicCell P (2*N) v, (g p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))
+    (fun v ξ => ∑ m ∈ Finset.Ioc (A/(q v)) (B/(q v)), (c m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+    (Finset.Ico v₀ (v₁+1))
+    (fun v _ => continuous_finset_sum _ fun p _ =>
+      continuous_const.mul (hchar (Real.log p)))
+    (fun v _ => continuous_finset_sum _ fun m _ =>
+      continuous_const.mul (hchar (Real.log m)))
+    T hT G hGm hGT s _ hsmall ?_
+  intro v _
+  have hq0 : 0 < q v := hq1 v
+  have ha : 1 ≤ A/(q v) := (Nat.one_le_div_iff hq0).mpr (hqA v)
+  have hsub : Finset.Ioc (A/(q v)) (B/(q v))
+      ⊆ Finset.Ioc (A/(q v)) ((2*R)*(A/(q v))) :=
+    Ioc_div_subset_Ioc_two_mul_ratio A B R (q v) hq0 (hqA v) hR hB
+  refine (intervalIntegral_norm_sq_poly_le_sharp_ratio (A/(q v)) (2*R) ha
+    (by omega) _ hsub c T hT).trans ?_
+  have hcast : ((2*R : ℕ):ℝ) = 2*(R:ℝ) := by push_cast; ring
+  rw [hcast]
+  refine le_of_eq ?_
+  ring
+
 end ExpSums
 
 end MoltResearch
