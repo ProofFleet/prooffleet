@@ -1775,4 +1775,66 @@ theorem intervalIntegral_norm_sq_prime_poly_pow_mul_le (Y : Finset ℕ)
   have hfac : (0:ℝ) ≤ (Nat.factorial ℓ : ℝ)^2 := by positivity
   exact mul_le_mul_of_nonneg_left hdiv hfac
 
+
+open MeasureTheory Finset ExpSums in
+/-- **`E_j`: the level band energy, from the previous level's largeness**
+(Track R, A2-III, III-4): on a frequency set `G ⊆ (−T, T]` where the
+current level's polynomial `Q` is small and the previous level's prime
+polynomial is large,
+
+  `∫_G ‖Q·R‖²
+     ≤ (small²/large^{2ℓ})·e^π(T/(P^ℓA') + 2·2^{ℓ+1})·(ℓ!)²·2^{ℓ+1}(ℓ+1)·σ^ℓ`,
+
+with `R = ∑_{m∈S} (a m/m)e(−ξ log m)` the block polynomial and
+`σ = ∑_{p∈Y} 1/p`.
+
+`setIntegral_norm_sq_le_of_prev_large` composed with the moment
+`intervalIntegral_norm_sq_prime_poly_pow_mul_le`, exactly as
+`measure_large_prime_poly_le` composes `measure_large_le_of_moment` with
+the pure-power moment.  The largeness is what pays for the moment: on
+`𝒯_j` the factor `(‖Q_prev ξ‖/large)^{2ℓ}` is at least `1`, so inserting
+it is free, and the enlarged integrand is a Dirichlet polynomial at the
+scale `P^ℓA'` rather than `A'` — which is the whole point, since the mean
+value theorem's error term is `T` divided by that scale.
+
+Nothing about the `e`-adic schedule appears.  `small`, `large` and `ℓ`
+are free, so the caller supplies `small = e^{−αv/N}`,
+`large = e^{−βr/N_prev}` and whatever `ℓ` its side conditions permit; the
+resulting exponent `2ℓβr/N_prev − 2αv/N` is then pure arithmetic. -/
+theorem band_energy_level_le_of_prev_large (Y : Finset ℕ)
+    (hY : ∀ p ∈ Y, p.Prime) (P : ℕ) (hP : 1 ≤ P)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1) (ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (A' Δ' : ℕ) (hA' : 1 ≤ A') (hΔ' : Δ' ≤ A')
+    (S : Finset ℕ) (hS : S ⊆ Finset.Ioc A' (A'+Δ'))
+    (a : ℕ → ℂ) (ha : ∀ m, ‖a m‖ ≤ 1)
+    (Q : ℝ → ℂ) (hQ : Continuous Q)
+    (T : ℝ) (hT : 0 < T) (G : Set ℝ) (hGm : MeasurableSet G)
+    (hGT : G ⊆ Set.Ioc (-T) T)
+    (small large : ℝ) (hlarge0 : 0 < large)
+    (hsmall : ∀ ξ ∈ G, ‖Q ξ‖ ≤ small)
+    (hlarge : ∀ ξ ∈ G, large ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖) :
+    (∫ ξ in G, ‖Q ξ * (∑ m ∈ S, (a m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))‖^2)
+      ≤ small^2/large^(2*ℓ)
+          * (Real.exp Real.pi * (T/((P^ℓ*A' : ℕ):ℝ) + 2*((2^(ℓ+1) : ℕ):ℝ))
+              * ((Nat.factorial ℓ : ℝ)^2
+                  * (((2^(ℓ+1) : ℕ):ℝ) * ((ℓ:ℝ)+1)
+                      * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))^ℓ))) := by
+  classical
+  have hchar : ∀ v : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ) := fun v =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  have hQpc : Continuous fun ξ : ℝ => ∑ p ∈ Y, (b p/(p:ℂ))
+      * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun p _ => continuous_const.mul (hchar (Real.log p))
+  have hRc : Continuous fun ξ : ℝ => ∑ m ∈ S, (a m/(m:ℂ))
+      * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun m _ => continuous_const.mul (hchar (Real.log m))
+  exact setIntegral_norm_sq_le_of_prev_large Q _ _ hQ hQpc hRc T hT G hGm hGT
+    small large hlarge0 hsmall hlarge ℓ _
+    (intervalIntegral_norm_sq_prime_poly_pow_mul_le Y hY P hP hlo hhi b hb ℓ hℓ
+      A' Δ' hA' hΔ' S hS a ha T hT)
+
 end MoltResearch
