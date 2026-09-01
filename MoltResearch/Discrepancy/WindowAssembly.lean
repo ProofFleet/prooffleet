@@ -3002,6 +3002,328 @@ theorem norm_short_poly_le_sup_partial (c : ℕ → ℂ) (A' B' : ℕ)
     _ = Sbd * (3 + 2*Real.pi*|ξ|)/(A':ℝ) := by ring
 
 
+
+open Finset in
+/-- **The `P`-part reconstruction** (Track R, A2-III, IV-0d-0a): splitting
+the factorization of `m ≠ 0` at a prime set `P`, the `P`-supported prime
+powers times the remaining prime powers recover `m`.  This is the
+`m = n₁·n₂` factorization behind the `le:Halappl` weight removal, in
+exact form; no primality of `P` is needed for the split itself. -/
+theorem pPart_mul_pFreePart (P : Finset ℕ) (m : ℕ) (hm : m ≠ 0) :
+    (m.factorization.filter (· ∈ P)).prod (· ^ ·)
+      * (m.factorization.filter (fun p => ¬ p ∈ P)).prod (· ^ ·) = m := by
+  classical
+  rw [Finsupp.prod_filter_mul_prod_filter_not]
+  exact Nat.factorization_prod_pow_eq_self hm
+
+open Finset in
+/-- IV-0d-0b: the `P`-part divides. -/
+theorem pPart_dvd (P : Finset ℕ) (m : ℕ) (hm : m ≠ 0) :
+    (m.factorization.filter (· ∈ P)).prod (· ^ ·) ∣ m :=
+  ⟨(m.factorization.filter (fun p => ¬ p ∈ P)).prod (· ^ ·),
+    (pPart_mul_pFreePart P m hm).symm⟩
+
+open Finset in
+/-- IV-0d-0c: the prime support of a filtered part of the factorization
+is the correspondingly filtered prime support. -/
+theorem primeFactors_filter_prod (m : ℕ) (q : ℕ → Prop) [DecidablePred q] :
+    ((m.factorization.filter q).prod (· ^ ·)).primeFactors
+      = m.primeFactors.filter q := by
+  classical
+  have hf : ∀ p : ℕ, p ∈ (m.factorization.filter q).support → Nat.Prime p := by
+    intro p hp
+    rw [Finsupp.support_filter, Finset.mem_filter,
+      Nat.support_factorization] at hp
+    exact Nat.prime_of_mem_primeFactors hp.1
+  rw [← Nat.support_factorization, Nat.prod_pow_factorization_eq_self hf,
+    Finsupp.support_filter, Nat.support_factorization]
+
+open Finset in
+/-- IV-0d-0d: the quotient by the `P`-part is `P`-free — no prime of `P`
+divides `m` once its `P`-supported prime powers are removed. -/
+theorem not_dvd_div_pPart (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (m : ℕ) (hm : m ≠ 0) {p : ℕ} (hp : p ∈ P) :
+    ¬ p ∣ m / (m.factorization.filter (· ∈ P)).prod (· ^ ·) := by
+  classical
+  have hsplit := pPart_mul_pFreePart P m hm
+  have hpart0 : (m.factorization.filter (· ∈ P)).prod (· ^ ·) ≠ 0 := by
+    intro h0
+    rw [h0, zero_mul] at hsplit
+    exact hm hsplit.symm
+  have hquot : m / (m.factorization.filter (· ∈ P)).prod (· ^ ·)
+      = (m.factorization.filter (fun p => ¬ p ∈ P)).prod (· ^ ·) :=
+    Nat.div_eq_of_eq_mul_right (Nat.pos_of_ne_zero hpart0) hsplit.symm
+  rw [hquot]
+  intro hdvd
+  have hfree0 : (m.factorization.filter (fun p => ¬ p ∈ P)).prod (· ^ ·) ≠ 0 := by
+    intro h0
+    rw [h0, mul_zero] at hsplit
+    exact hm hsplit.symm
+  have hmem : p ∈ ((m.factorization.filter (fun p => ¬ p ∈ P)).prod
+      (· ^ ·)).primeFactors :=
+    Nat.mem_primeFactors.mpr ⟨hP p hp, hdvd, hfree0⟩
+  rw [primeFactors_filter_prod] at hmem
+  exact (Finset.mem_filter.mp hmem).2 hp
+
+open Finset in
+/-- IV-0d-0e: reconstruction — the `P`-part of `n₁·n₂` is `n₁` whenever
+`n₁` is `P`-supported and `n₂` is `P`-free.  This is the injectivity
+half of the `m ↔ (n₁, n₂)` correspondence. -/
+theorem pPart_mul_eq (P : Finset ℕ) (n₁ n₂ : ℕ)
+    (h₁ : n₁ ≠ 0) (h₂ : n₂ ≠ 0) (hsupp : n₁.primeFactors ⊆ P)
+    (hfree : ∀ p ∈ P, ¬ p ∣ n₂) :
+    (((n₁ * n₂).factorization.filter (· ∈ P)).prod (· ^ ·)) = n₁ := by
+  classical
+  rw [Nat.factorization_mul h₁ h₂, Finsupp.filter_add]
+  have h2z : n₂.factorization.filter (· ∈ P) = 0 := by
+    ext p
+    rw [Finsupp.filter_apply, Finsupp.zero_apply]
+    by_cases hpP : p ∈ P
+    · rw [if_pos hpP]
+      exact Nat.factorization_eq_zero_of_not_dvd (hfree p hpP)
+    · rw [if_neg hpP]
+  have h1f : n₁.factorization.filter (· ∈ P) = n₁.factorization := by
+    ext p
+    rw [Finsupp.filter_apply]
+    by_cases hpP : p ∈ P
+    · rw [if_pos hpP]
+    · rw [if_neg hpP]
+      refine (Finsupp.notMem_support_iff.mp ?_).symm
+      rw [Nat.support_factorization]
+      exact fun hc => hpP (hsupp hc)
+  rw [h2z, h1f, add_zero]
+  exact Nat.factorization_prod_pow_eq_self h₁
+
+open Finset in
+/-- **The Ramaré-weighted window polynomial factors through the `P`-part**
+(Track R, A2-III, IV-0d): the `1/(ω_P+1)`-weighted phase polynomial over
+a window `(A, B]` is exactly the sum, over the `P`-supported integers
+`n₁ ≤ B`, of the weighted coefficient `g(n₁)·e(−ξ log n₁)/(n₁(ω_P(n₁)+1))`
+times the **unweighted** `P`-free phase polynomial over the quotient
+window `(A/n₁, B/n₁]`.
+
+This is the `le:Halappl` weight removal of the `[MR]` `𝒰`-treatment:
+each `m` factors uniquely as `m = n₁·n₂` with `n₁` its `P`-part and
+`n₂` `P`-free, the weight `1/(ω_P(m)+1) = 1/(ω_P(n₁)+1)` rides on the
+`n₁` coordinate only, and complete multiplicativity plus `char_mul`
+factor the summand.  The quotient window is exact in ℕ-division: for
+`0 < n₁`, `A < n₁n₂ ≤ B ↔ A/n₁ < n₂ ≤ B/n₁` — division by a fixed
+divisor of the sample point preserves the window here, in contrast to
+the block-scale pitfalls of II-5b.  After this identity the inner sums
+are plain short polynomials in the sense of
+`norm_short_poly_le_sup_partial` (IV-0c), with coefficient sequence
+`g` restricted to `P`-free integers — still completely multiplicative,
+so the initial-segment reduction and the complex Halász capstone apply
+downstream. -/
+theorem ramare_weighted_poly_eq_sum_pPart (g : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC g) (A B : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) (ξ : ℝ) :
+    ∑ m ∈ Finset.Ioc A B, (g m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+        / (((P.filter (· ∣ m)).card : ℂ) + 1)
+      = ∑ n₁ ∈ (Finset.Icc 1 B).filter (fun n => n.primeFactors ⊆ P),
+          (g n₁ * ((Real.fourierChar (-(Real.log n₁ * ξ)) : Circle) : ℂ))
+            / ((n₁:ℂ) * (((P.filter (· ∣ n₁)).card : ℂ) + 1))
+          * ∑ n₂ ∈ (Finset.Ioc (A/n₁) (B/n₁)).filter
+              (fun n => ∀ p ∈ P, ¬ p ∣ n),
+              (g n₂/(n₂:ℂ))
+                * ((Real.fourierChar (-(Real.log n₂ * ξ)) : Circle) : ℂ) := by
+  classical
+  have hmaps : ∀ m ∈ Finset.Ioc A B,
+      (m.factorization.filter (· ∈ P)).prod (· ^ ·)
+        ∈ (Finset.Icc 1 B).filter (fun n => n.primeFactors ⊆ P) := by
+    intro m hm
+    rw [Finset.mem_Ioc] at hm
+    have hm0 : m ≠ 0 := by omega
+    have hdvd := pPart_dvd P m hm0
+    have hpos : 0 < (m.factorization.filter (· ∈ P)).prod (· ^ ·) :=
+      Nat.pos_of_ne_zero fun h0 =>
+        hm0 (Nat.eq_zero_of_zero_dvd (h0 ▸ hdvd))
+    rw [Finset.mem_filter, Finset.mem_Icc]
+    refine ⟨⟨hpos, le_trans (Nat.le_of_dvd (by omega) hdvd) hm.2⟩, ?_⟩
+    rw [primeFactors_filter_prod]
+    exact fun p hp => (Finset.mem_filter.mp hp).2
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  refine Finset.sum_congr rfl fun n₁ hn₁ => ?_
+  rw [Finset.mem_filter, Finset.mem_Icc] at hn₁
+  obtain ⟨⟨hn₁1, hn₁B⟩, hn₁supp⟩ := hn₁
+  have hn₁pos : 0 < n₁ := hn₁1
+  have hbij : ∑ m ∈ (Finset.Ioc A B).filter
+      (fun m => (m.factorization.filter (· ∈ P)).prod (· ^ ·) = n₁),
+        (g m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+          / (((P.filter (· ∣ m)).card : ℂ) + 1)
+      = ∑ n₂ ∈ (Finset.Ioc (A/n₁) (B/n₁)).filter
+          (fun n => ∀ p ∈ P, ¬ p ∣ n),
+          (g (n₁*n₂)/((n₁*n₂ : ℕ):ℂ))
+            * ((Real.fourierChar (-(Real.log (n₁*n₂ : ℕ) * ξ)) : Circle) : ℂ)
+            / (((P.filter (· ∣ (n₁*n₂))).card : ℂ) + 1) := by
+    refine Finset.sum_nbij' (fun m => m / n₁) (fun n₂ => n₁ * n₂)
+      ?_ ?_ ?_ ?_ ?_
+    · intro m hm
+      beta_reduce
+      rw [Finset.mem_filter, Finset.mem_Ioc] at hm
+      obtain ⟨⟨hmA, hmB⟩, hpart⟩ := hm
+      have hm0 : m ≠ 0 := by omega
+      have hdvd : n₁ ∣ m := hpart ▸ pPart_dvd P m hm0
+      rw [Finset.mem_filter, Finset.mem_Ioc]
+      refine ⟨⟨?_, Nat.div_le_div_right hmB⟩, ?_⟩
+      · rw [Nat.div_lt_iff_lt_mul hn₁pos]
+        calc A < m := hmA
+          _ = m / n₁ * n₁ := (Nat.div_mul_cancel hdvd).symm
+      · intro p hp
+        have := not_dvd_div_pPart P hP m hm0 hp
+        rwa [hpart] at this
+    · intro n₂ hn₂
+      beta_reduce
+      rw [Finset.mem_filter, Finset.mem_Ioc] at hn₂
+      obtain ⟨⟨hlo, hhi⟩, hfree⟩ := hn₂
+      have hn₂pos : 0 < n₂ :=
+        Nat.pos_of_ne_zero fun h0 => Nat.not_lt_zero _ (h0 ▸ hlo)
+      rw [Finset.mem_filter, Finset.mem_Ioc]
+      refine ⟨⟨?_, ?_⟩, ?_⟩
+      · have := (Nat.div_lt_iff_lt_mul hn₁pos).mp hlo
+        calc A < n₂ * n₁ := this
+          _ = n₁ * n₂ := Nat.mul_comm n₂ n₁
+      · have := (Nat.le_div_iff_mul_le hn₁pos).mp hhi
+        calc n₁ * n₂ = n₂ * n₁ := Nat.mul_comm n₁ n₂
+          _ ≤ B := this
+      · exact pPart_mul_eq P n₁ n₂ hn₁pos.ne' hn₂pos.ne' hn₁supp hfree
+    · intro m hm
+      beta_reduce
+      rw [Finset.mem_filter] at hm
+      have hm0 : m ≠ 0 := by
+        rw [Finset.mem_Ioc] at hm
+        omega
+      have hdvd : n₁ ∣ m := hm.2 ▸ pPart_dvd P m hm0
+      exact Nat.mul_div_cancel' hdvd
+    · intro n₂ _
+      beta_reduce
+      exact Nat.mul_div_cancel_left n₂ hn₁pos
+    · intro m hm
+      beta_reduce
+      rw [Finset.mem_filter] at hm
+      have hm0 : m ≠ 0 := by
+        rw [Finset.mem_Ioc] at hm
+        omega
+      have hdvd : n₁ ∣ m := hm.2 ▸ pPart_dvd P m hm0
+      rw [Nat.mul_div_cancel' hdvd]
+  rw [hbij, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun n₂ hn₂ => ?_
+  rw [Finset.mem_filter, Finset.mem_Ioc] at hn₂
+  obtain ⟨⟨hlo, _⟩, hfree⟩ := hn₂
+  have hn₂pos : 0 < n₂ :=
+    Nat.pos_of_ne_zero fun h0 => Nat.not_lt_zero _ (h0 ▸ hlo)
+  have hω : P.filter (· ∣ (n₁*n₂)) = P.filter (· ∣ n₁) := by
+    ext p
+    simp only [Finset.mem_filter, and_congr_right_iff]
+    intro hp
+    constructor
+    · intro hdvd
+      rcases (hP p hp).dvd_mul.mp hdvd with h | h
+      · exact h
+      · exact absurd h (hfree p hp)
+    · exact fun h => h.mul_right n₂
+  have hgm : g (n₁ * n₂) = g n₁ * g n₂ := hcm n₁ n₂ hn₁pos.ne' hn₂pos.ne'
+  have hchar := char_mul n₁ n₂ hn₁pos hn₂pos ξ
+  rw [hω, hgm, hchar]
+  have hn₁C : ((n₁:ℂ)) ≠ 0 := Nat.cast_ne_zero.mpr hn₁pos.ne'
+  have hn₂C : ((n₂:ℂ)) ≠ 0 := Nat.cast_ne_zero.mpr hn₂pos.ne'
+  have hcardC : (((P.filter (· ∣ n₁)).card : ℂ) + 1) ≠ 0 := by
+    exact_mod_cast Nat.succ_ne_zero ((P.filter (· ∣ n₁)).card)
+  push_cast
+  field_simp
+
+open Finset in
+/-- **The weight-removal bound** (Track R, A2-III, IV-0d): if every
+`P`-free quotient polynomial over `(A/n₁, B/n₁]` is bounded by `β`,
+the `1/(ω_P+1)`-weighted polynomial over `(A, B]` is bounded by the
+harmonic mass of the `P`-supported integers up to `B` times `β`.  The
+weighted coefficient contributes `‖g n₁‖·1/(n₁(ω_P(n₁)+1)) ≤ 1/n₁`;
+nothing else is lost. -/
+theorem norm_ramare_weighted_poly_le (g : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC g) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (A B : ℕ) (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) (ξ : ℝ) (β : ℝ)
+    (hβ : ∀ n₁ ∈ (Finset.Icc 1 B).filter (fun n => n.primeFactors ⊆ P),
+      ‖∑ n₂ ∈ (Finset.Ioc (A/n₁) (B/n₁)).filter
+          (fun n => ∀ p ∈ P, ¬ p ∣ n),
+          (g n₂/(n₂:ℂ))
+            * ((Real.fourierChar (-(Real.log n₂ * ξ)) : Circle) : ℂ)‖ ≤ β) :
+    ‖∑ m ∈ Finset.Ioc A B, (g m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+        / (((P.filter (· ∣ m)).card : ℂ) + 1)‖
+      ≤ (∑ n₁ ∈ (Finset.Icc 1 B).filter (fun n => n.primeFactors ⊆ P),
+          (1:ℝ)/n₁) * β := by
+  classical
+  rw [ramare_weighted_poly_eq_sum_pPart g hcm A B P hP ξ, Finset.sum_mul]
+  refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun n₁ hn₁ => ?_)
+  have hn₁pos : 0 < n₁ := by
+    rw [Finset.mem_filter, Finset.mem_Icc] at hn₁
+    exact hn₁.1.1
+  rw [norm_mul]
+  have hcoeff : ‖(g n₁ * ((Real.fourierChar (-(Real.log n₁ * ξ))
+      : Circle) : ℂ)) / ((n₁:ℂ) * (((P.filter (· ∣ n₁)).card : ℂ) + 1))‖
+      ≤ 1/(n₁:ℝ) := by
+    rw [norm_div, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_mul]
+    have hden : ((n₁:ℝ)) * ‖(((P.filter (· ∣ n₁)).card : ℂ) + 1)‖
+        = (n₁:ℝ) * (((P.filter (· ∣ n₁)).card : ℝ) + 1) := by
+      congr 1
+      have : (((P.filter (· ∣ n₁)).card : ℂ) + 1)
+          = (((((P.filter (· ∣ n₁)).card : ℕ) + 1 : ℕ)):ℂ) := by
+        push_cast
+        ring
+      rw [this, Complex.norm_natCast]
+      push_cast
+      ring
+    rw [Complex.norm_natCast, hden]
+    have hcard1 : (1:ℝ) ≤ ((P.filter (· ∣ n₁)).card : ℝ) + 1 := by
+      have : (0:ℝ) ≤ ((P.filter (· ∣ n₁)).card : ℝ) := Nat.cast_nonneg _
+      linarith
+    have hn₁R : (1:ℝ) ≤ (n₁:ℝ) := by exact_mod_cast hn₁pos
+    rw [div_le_div_iff₀ (by positivity) (by positivity)]
+    calc ‖g n₁‖ * (n₁:ℝ) ≤ 1 * (n₁:ℝ) :=
+          mul_le_mul_of_nonneg_right (hg n₁) (by positivity)
+      _ = (n₁:ℝ) := one_mul _
+      _ ≤ (n₁:ℝ) * (((P.filter (· ∣ n₁)).card : ℝ) + 1) := by
+          nlinarith
+      _ = 1 * ((n₁:ℝ) * (((P.filter (· ∣ n₁)).card : ℝ) + 1)) :=
+          (one_mul _).symm
+  calc ‖(g n₁ * ((Real.fourierChar (-(Real.log n₁ * ξ)) : Circle) : ℂ))
+          / ((n₁:ℂ) * (((P.filter (· ∣ n₁)).card : ℂ) + 1))‖
+        * ‖∑ n₂ ∈ (Finset.Ioc (A/n₁) (B/n₁)).filter
+            (fun n => ∀ p ∈ P, ¬ p ∣ n),
+            (g n₂/(n₂:ℂ))
+              * ((Real.fourierChar (-(Real.log n₂ * ξ)) : Circle) : ℂ)‖
+      ≤ (1/(n₁:ℝ)) * β :=
+        mul_le_mul hcoeff (hβ n₁ hn₁) (norm_nonneg _) (by positivity)
+    _ = (1:ℝ)/n₁ * β := rfl
+
+open Finset in
+/-- **The `P`-supported harmonic mass is one power of `log`** (Track R,
+A2-III, IV-0d): the `P`-supported integers up to `B` are `y`-smooth as
+soon as every prime of `P` is below `y`, so their harmonic mass is at
+most the Rankin bound `e^12·log y` of `sum_smooth_one_div_le`.  The
+`log Q/log P`-shaped refinement (the mass of the *rough-supported*
+part) is deferred to the `𝒰`-assembly numerology. -/
+theorem sum_pPart_harmonic_le (B y : ℕ) (hy : 4 ≤ y) (P : Finset ℕ)
+    (hPy : ∀ p ∈ P, p < y) :
+    ∑ n₁ ∈ (Finset.Icc 1 B).filter (fun n => n.primeFactors ⊆ P),
+        (1:ℝ)/n₁
+      ≤ Real.exp 12 * Real.log y := by
+  classical
+  refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg ?_
+    (fun n _ _ => by positivity)) (sum_smooth_one_div_le y B hy)
+  intro n hn
+  rw [Finset.mem_filter, Finset.mem_Icc] at hn
+  obtain ⟨⟨hn1, hnB⟩, hsupp⟩ := hn
+  rw [Nat.mem_smoothNumbersUpTo, Nat.mem_smoothNumbers]
+  refine ⟨hnB, by omega, fun p hp => ?_⟩
+  have hpf : p ∈ n.primeFactors := by
+    rw [Nat.mem_primeFactors]
+    exact ⟨Nat.prime_of_mem_primeFactorsList hp,
+      Nat.dvd_of_mem_primeFactorsList hp, by omega⟩
+  exact hPy p (hsupp hpf)
+
+
 end ExpSums
 
 end MoltResearch
