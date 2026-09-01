@@ -2273,6 +2273,87 @@ theorem sum_exp_index_le (β : ℝ) (hβ : 0 < β) (N : ℕ) (hN : 0 < N)
           _ ≤ Real.exp (β*((n:ℝ)+1)/N + β/(N:ℝ)) * ((N:ℝ)/β + 1) :=
                 hstep (β*((n:ℝ)+1)/N)
 
+
+open MeasureTheory in
+/-- **The level-sum band energy, from per-level smallness** (Track R,
+A2-III, II-5a′): for families `Q v`, `R v` of continuous polynomials and
+a measurable `G ⊆ (−T, T]` on which every `‖Q v‖ ≤ s v`,
+
+  `∫_G ‖∑_{v ∈ I} Q v · R v‖² ≤ #I · ∑_{v ∈ I} (s v)²·M v`
+
+whenever `∫_{−T}^{T} ‖R v‖² ≤ M v` for each `v`.
+
+The two steps of `[MR]`'s level-1 band estimate, and nothing else:
+Cauchy–Schwarz over the levels — which is what the factor `#I` is, and
+it is unavoidable because the `Q v` are not orthogonal on `G` — and then,
+per level, the pointwise trade `‖Q v ξ‖²‖R v ξ‖² ≤ (s v)²‖R v ξ‖²`
+followed by enlarging `G` to the full window so a mean value theorem can
+see `R v`.
+
+Everything schedule-dependent is a parameter.  `s` and `M` are arbitrary
+real families, so the caller supplies the `e`-adic smallness
+`s v = e^{−αv/N}` and the mean value bound `M v` at the cell scale, and
+the two geometric series that then appear are already in tree
+(`sum_exp_neg_index_le` for the decaying half, `sum_exp_index_le` for the
+growing one).  Note that `0 ≤ s v` is *not* assumed: it is only ever used
+squared, and where it is used at all it comes for free from
+`‖Q v ξ‖ ≤ s v`. -/
+theorem setIntegral_norm_sq_sum_mul_le_of_small (Q R : ℕ → ℝ → ℂ) (I : Finset ℕ)
+    (hQ : ∀ v ∈ I, Continuous (Q v)) (hR : ∀ v ∈ I, Continuous (R v))
+    (T : ℝ) (hT : 0 < T) (G : Set ℝ) (hGm : MeasurableSet G)
+    (hGT : G ⊆ Set.Ioc (-T) T) (s M : ℕ → ℝ)
+    (hsmall : ∀ v ∈ I, ∀ ξ ∈ G, ‖Q v ξ‖ ≤ s v)
+    (hmom : ∀ v ∈ I, (∫ ξ in (-T)..T, ‖R v ξ‖^2) ≤ M v) :
+    (∫ ξ in G, ‖∑ v ∈ I, Q v ξ * R v ξ‖^2)
+      ≤ (I.card : ℝ) * ∑ v ∈ I, (s v)^2 * M v := by
+  classical
+  have hTT : -T ≤ T := by linarith
+  have hprodc : ∀ v ∈ I, Continuous fun ξ => ‖Q v ξ * R v ξ‖^2 := fun v hv =>
+    (((hQ v hv).mul (hR v hv)).norm.pow 2)
+  have hprodi : ∀ v ∈ I, IntegrableOn (fun ξ => ‖Q v ξ * R v ξ‖^2) G := fun v hv =>
+    ((hprodc v hv).integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  have hsumc : Continuous fun ξ => ‖∑ v ∈ I, Q v ξ * R v ξ‖^2 :=
+    ((continuous_finset_sum I fun v hv => (hQ v hv).mul (hR v hv)).norm.pow 2)
+  have hsumi : IntegrableOn (fun ξ => ‖∑ v ∈ I, Q v ξ * R v ξ‖^2) G :=
+    (hsumc.integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  -- per level: pointwise smallness on `G`, then enlarge `G` to the window
+  have hlevel : ∀ v ∈ I, (∫ ξ in G, ‖Q v ξ * R v ξ‖^2) ≤ (s v)^2 * M v := by
+    intro v hv
+    have hRc : Continuous fun ξ => ‖R v ξ‖^2 := ((hR v hv).norm.pow 2)
+    have hRi : IntegrableOn (fun ξ => ‖R v ξ‖^2) (Set.Ioc (-T) T) :=
+      hRc.integrableOn_Ioc
+    have hRiG : IntegrableOn (fun ξ => ‖R v ξ‖^2) G := hRi.mono_set hGT
+    have hpt : ∀ ξ ∈ G, ‖Q v ξ * R v ξ‖^2 ≤ (s v)^2 * ‖R v ξ‖^2 := by
+      intro ξ hξ
+      have h1 : ‖Q v ξ * R v ξ‖^2 = ‖Q v ξ‖^2 * ‖R v ξ‖^2 := by
+        rw [norm_mul, mul_pow]
+      have h2 : ‖Q v ξ‖^2 ≤ (s v)^2 :=
+        pow_le_pow_left₀ (norm_nonneg _) (hsmall v hv ξ hξ) 2
+      rw [h1]
+      exact mul_le_mul_of_nonneg_right h2 (by positivity)
+    calc (∫ ξ in G, ‖Q v ξ * R v ξ‖^2)
+        ≤ ∫ ξ in G, (s v)^2 * ‖R v ξ‖^2 :=
+          setIntegral_mono_on (hprodi v hv) (hRiG.const_mul _) hGm hpt
+      _ = (s v)^2 * ∫ ξ in G, ‖R v ξ‖^2 := integral_const_mul _ _
+      _ ≤ (s v)^2 * ∫ ξ in Set.Ioc (-T) T, ‖R v ξ‖^2 := by
+          refine mul_le_mul_of_nonneg_left ?_ (sq_nonneg _)
+          exact setIntegral_mono_set hRi
+            (Filter.Eventually.of_forall fun ξ => by positivity) hGT.eventuallyLE
+      _ = (s v)^2 * ∫ ξ in (-T)..T, ‖R v ξ‖^2 := by
+          rw [intervalIntegral.integral_of_le hTT]
+      _ ≤ (s v)^2 * M v := mul_le_mul_of_nonneg_left (hmom v hv) (sq_nonneg _)
+  -- Cauchy–Schwarz over the levels, then integrate termwise
+  calc (∫ ξ in G, ‖∑ v ∈ I, Q v ξ * R v ξ‖^2)
+      ≤ ∫ ξ in G, (I.card : ℝ) * ∑ v ∈ I, ‖Q v ξ * R v ξ‖^2 := by
+        refine setIntegral_mono_on hsumi
+          ((integrable_finset_sum I fun v hv => hprodi v hv).const_mul _)
+          hGm (fun ξ _ => norm_sum_sq_le_card_mul I (fun v => Q v ξ * R v ξ))
+    _ = (I.card : ℝ) * ∑ v ∈ I, ∫ ξ in G, ‖Q v ξ * R v ξ‖^2 := by
+        rw [integral_const_mul, integral_finset_sum I (fun v hv => hprodi v hv)]
+    _ ≤ (I.card : ℝ) * ∑ v ∈ I, (s v)^2 * M v := by
+        refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum hlevel) ?_
+        positivity
+
 end ExpSums
 
 end MoltResearch
