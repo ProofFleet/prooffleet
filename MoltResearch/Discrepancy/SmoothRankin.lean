@@ -5333,6 +5333,344 @@ theorem vonMangoldt_gaussian_long_le (T : ℝ) (X m h J : ℕ) (S : Finset ℕ)
     exact sum_vonMangoldt_properPrimePow_le X hX
   linarith
 
+
+namespace ExpSums
+
+private theorem shell_geom_sum_le (K : ℕ) :
+    ∑ k ∈ Finset.range K, (7/10:ℝ)^k ≤ 10/3 := by
+  induction K with
+  | zero => norm_num
+  | succ n ih =>
+    rw [Finset.sum_range_succ']
+    have h1 : ∑ i ∈ Finset.range n, (7/10:ℝ)^(i+1)
+        = (7/10) * ∑ i ∈ Finset.range n, (7/10:ℝ)^i := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun i _ => by ring
+    rw [h1, pow_zero]
+    nlinarith [ih]
+
+open Real in
+/-- **The shell ratio** (Track R, budget repair R-b1-a): the `k`-th
+Gaussian shell weight is geometrically dominated,
+
+  `e^{(k+1)/8 − π(k²−1)/16} ≤ e^{1/4}·(7/10)^{k−1}`,
+
+because past `k = 1` the quadratic Gaussian exponent outruns the
+linear shell growth: `1/8 + log(10/7) ≤ π(k+1)/16` already from
+`π > 3` and `log(10/7) ≤ 3/7`. -/
+private theorem shell_ratio_le (k : ℕ) (hk : 1 ≤ k) :
+    Real.exp (((k:ℝ)+1)/8 - π*((k:ℝ)^2-1)/16)
+      ≤ Real.exp (1/4) * (7/10:ℝ)^(k-1) := by
+  have hlog107 : Real.log (10/7) ≤ 3/7 := by
+    have := Real.log_le_sub_one_of_pos (show (0:ℝ) < 10/7 by norm_num)
+    linarith
+  have hlog0 : (0:ℝ) ≤ Real.log (10/7) := Real.log_nonneg (by norm_num)
+  have h1 : Real.log (7/10) = -(Real.log (10/7)) := by
+    rw [← Real.log_inv]
+    norm_num
+  have hpow : (7/10:ℝ)^(k-1)
+      = Real.exp (-(((k:ℝ)-1) * Real.log (10/7))) := by
+    have hbase : (7/10:ℝ) = Real.exp (-(Real.log (10/7))) := by
+      rw [← h1, Real.exp_log (by norm_num)]
+    rw [hbase, ← Real.exp_nat_mul]
+    congr 1
+    have hc : ((k - 1 : ℕ):ℝ) = (k:ℝ) - 1 := by
+      push_cast [Nat.cast_sub hk]
+      ring
+    rw [hc]
+    ring
+  rw [hpow, ← Real.exp_add, Real.exp_le_exp]
+  have hπ : (3:ℝ) ≤ π := by linarith [Real.pi_gt_three]
+  have hk1 : (1:ℝ) ≤ (k:ℝ) := by exact_mod_cast hk
+  have hbr : ((k:ℝ)-1) * (1/8 + Real.log (10/7))
+      ≤ π * (((k:ℝ)-1)*((k:ℝ)+1)) / 16 := by
+    rcases eq_or_lt_of_le hk1 with h | h
+    · rw [← h]
+      ring_nf
+      nlinarith [Real.pi_pos]
+    · have hk2 : (2:ℝ) ≤ (k:ℝ) := by
+        have h2 : (2:ℕ) ≤ k := by
+          rcases Nat.lt_or_ge k 2 with hlt | hge
+          · exfalso
+            have hk1' : k = 1 := by omega
+            rw [hk1'] at h
+            norm_num at h
+          · exact hge
+        exact_mod_cast h2
+      have hkm1 : (0:ℝ) ≤ (k:ℝ) - 1 := by linarith
+      have h3 : (3:ℝ) ≤ (k:ℝ) + 1 := by linarith
+      have hstep1 : ((k:ℝ)-1) * (1/8 + Real.log (10/7))
+          ≤ ((k:ℝ)-1) * (9/16) :=
+        mul_le_mul_of_nonneg_left (by linarith) hkm1
+      have hstep3 : ((k:ℝ)-1) * (9/16) ≤ π * (((k:ℝ)-1)*((k:ℝ)+1))/16 := by
+        have hkey : (0:ℝ) ≤ ((k:ℝ)-1) * (π*((k:ℝ)+1) - 9) := by
+          refine mul_nonneg hkm1 ?_
+          nlinarith [hπ, h3]
+        nlinarith [hkey]
+      linarith
+  nlinarith [hbr]
+
+open Real Finset in
+/-- **The far Gaussian tail by Chebyshev shells** (Track R, budget
+repair R-b1-b): for a set of primes all at log-gap `≥ 1/8` from the
+centre `m`, and `T ≥ 2`,
+
+  `∑_p log p·e^{−πT²(log p − log m)²} ≤ 32·m·e^{−πT²/64}`
+
+— the tail is priced by the **centre**, not by the set's total mass.
+Fibering by `k = ⌊8·|log p − log m|⌋₊ ≥ 1`: on shell `k` the Gaussian
+is `≤ e^{−πT²k²/64}`, and the Chebyshev bound alone prices the shell's
+prime mass at `≤ 4·log4·m·e^{(k+1)/8}` (above-`m` primes lie below
+`m·e^{(k+1)/8}`, below-`m` primes below `m` — the Gaussian, not the
+mass, carries the decay); the shell ratio sums the fibres
+geometrically.  This replaces the `e^{−πT²/64}·B` global-mass tail
+(`B ≈ x`) of `prime_gaussian_long_le`, which forced `T ≍ √(log x)`
+onto the per-window energy and thereby the fatal `+T·b²` into the
+balance envelope. -/
+theorem prime_gaussian_far_shell_le (T : ℝ) (hT : 2 ≤ T) (m : ℕ)
+    (hm1 : 1 ≤ m) (S : Finset ℕ) (hSp : ∀ p ∈ S, p.Prime)
+    (hgap : ∀ p ∈ S, (1:ℝ)/8 ≤ |Real.log (p:ℝ) - Real.log (m:ℝ)|) :
+    ∑ p ∈ S, Real.log p
+        * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ 32 * (m:ℝ) * Real.exp (-(π*T^2/64)) := by
+  classical
+  have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+  have hlog4u : Real.log 4 ≤ 1.4 := by
+    rw [show (4:ℝ) = 2^2 by norm_num, Real.log_pow]
+    have := Real.log_two_lt_d9
+    push_cast
+    linarith
+  have hmR : (1:ℝ) ≤ (m:ℝ) := by exact_mod_cast hm1
+  have hm0 : (0:ℝ) < (m:ℝ) := by linarith
+  have hmaps : ∀ p ∈ S, ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊
+      ∈ Finset.Icc 1 (8 * (S.sup id + m) + 8) := by
+    intro p hp
+    rw [Finset.mem_Icc]
+    constructor
+    · refine Nat.le_floor ?_
+      have := hgap p hp
+      push_cast
+      linarith
+    · have hp1 : (1:ℝ) ≤ (p:ℝ) := by
+        exact_mod_cast (hSp p hp).one_lt.le
+      have habs : |Real.log (p:ℝ) - Real.log (m:ℝ)|
+          ≤ (p:ℝ) + (m:ℝ) := by
+        have hlp : Real.log (p:ℝ) ≤ (p:ℝ) - 1 :=
+          Real.log_le_sub_one_of_pos (by linarith)
+        have hlm : Real.log (m:ℝ) ≤ (m:ℝ) - 1 :=
+          Real.log_le_sub_one_of_pos hm0
+        have hlp0 : (0:ℝ) ≤ Real.log (p:ℝ) := Real.log_natCast_nonneg p
+        have hlm0 : (0:ℝ) ≤ Real.log (m:ℝ) := Real.log_natCast_nonneg m
+        rw [abs_sub_le_iff]
+        constructor <;> linarith
+      have hsup : (p:ℝ) ≤ ((S.sup id : ℕ):ℝ) := by
+        exact_mod_cast Finset.le_sup (f := id) hp
+      have hle : 8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|
+          ≤ ((8 * (S.sup id + m) + 8 : ℕ):ℝ) := by
+        push_cast
+        linarith
+      have h1 := Nat.floor_le_floor hle
+      rwa [Nat.floor_natCast] at h1
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  have hfib : ∀ k ∈ Finset.Icc 1 (8 * (S.sup id + m) + 8),
+      ∑ p ∈ S.filter
+          (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k),
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+      ≤ (4 * Real.log 4 * (m:ℝ) * Real.exp (-(π*T^2/64))
+          * Real.exp (1/4)) * (7/10:ℝ)^(k-1) := by
+    intro k hk
+    rw [Finset.mem_Icc] at hk
+    have hk1 : (1:ℝ) ≤ (k:ℝ) := by exact_mod_cast hk.1
+    have hgauss : ∀ p ∈ S.filter
+        (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k),
+        Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+        ≤ Real.exp (-(π*T^2*(k:ℝ)^2/64)) := by
+      intro p hp
+      rw [Finset.mem_filter] at hp
+      have hfl : (k:ℝ) ≤ 8 * |Real.log (p:ℝ) - Real.log (m:ℝ)| := by
+        rw [← hp.2]
+        exact_mod_cast Nat.floor_le (by positivity)
+      have h8 : (k:ℝ)/8 ≤ |Real.log (p:ℝ) - Real.log (m:ℝ)| := by
+        linarith
+      have hsq : ((k:ℝ)/8)^2 ≤ (Real.log (p:ℝ) - Real.log (m:ℝ))^2 := by
+        rw [← sq_abs (Real.log (p:ℝ) - Real.log (m:ℝ))]
+        exact pow_le_pow_left₀ (by positivity) h8 2
+      rw [Real.exp_le_exp]
+      have hπT : (0:ℝ) ≤ π*T^2 := by positivity
+      nlinarith [hsq, hπT]
+    have hmass : ∑ p ∈ S.filter
+        (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k),
+        Real.log (p:ℝ)
+        ≤ 4 * Real.log 4 * (m:ℝ) * Real.exp (((k:ℝ)+1)/8) := by
+      have he1 : (1:ℝ) ≤ Real.exp (((k:ℝ)+1)/8) := by
+        rw [show (1:ℝ) = Real.exp 0 from (Real.exp_zero).symm]
+        refine Real.exp_le_exp.mpr ?_
+        positivity
+      rw [← Finset.sum_filter_add_sum_filter_not
+        (S.filter (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k))
+        (fun p => m < p)]
+      have habove : ∑ p ∈ (S.filter
+          (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k)).filter
+          (fun p => m < p), Real.log (p:ℝ)
+          ≤ 2 * Real.log 4 * (m:ℝ) * Real.exp (((k:ℝ)+1)/8) := by
+        have hsub : (S.filter
+            (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k)).filter
+            (fun p => m < p)
+            ⊆ (⌊(m:ℝ) * Real.exp (((k:ℝ)+1)/8)⌋₊ + 1).primesBelow := by
+          intro p hp
+          simp only [Finset.mem_filter] at hp
+          obtain ⟨⟨hpS, hpk⟩, hmp⟩ := hp
+          have hp0 : (0:ℝ) < (p:ℝ) := by
+            exact_mod_cast (hSp p hpS).pos
+          have hup : 8 * |Real.log (p:ℝ) - Real.log (m:ℝ)| < (k:ℝ)+1 := by
+            rw [← hpk]
+            push_cast
+            exact Nat.lt_floor_add_one _
+          have hmlt : Real.log (m:ℝ) ≤ Real.log (p:ℝ) :=
+            Real.log_le_log hm0 (by exact_mod_cast hmp.le)
+          have hgapv : Real.log (p:ℝ) - Real.log (m:ℝ) < ((k:ℝ)+1)/8 := by
+            rw [abs_of_nonneg (by linarith)] at hup
+            linarith
+          have hplt : (p:ℝ) < (m:ℝ) * Real.exp (((k:ℝ)+1)/8) := by
+            have h1 : Real.log (p:ℝ) < Real.log (m:ℝ) + ((k:ℝ)+1)/8 := by
+              linarith
+            have h2 := Real.exp_lt_exp.mpr h1
+            rwa [Real.exp_log hp0, Real.exp_add, Real.exp_log hm0] at h2
+          rw [Nat.mem_primesBelow]
+          refine ⟨?_, hSp p hpS⟩
+          have hple : p ≤ ⌊(m:ℝ) * Real.exp (((k:ℝ)+1)/8)⌋₊ :=
+            Nat.le_floor hplt.le
+          omega
+        refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+          (fun i _ _ => Real.log_natCast_nonneg i)) ?_
+        refine le_trans (sum_log_primesBelow_le _) ?_
+        have hfl : ((⌊(m:ℝ) * Real.exp (((k:ℝ)+1)/8)⌋₊ + 1 : ℕ):ℝ)
+            ≤ (m:ℝ) * Real.exp (((k:ℝ)+1)/8) + 1 := by
+          push_cast
+          have := Nat.floor_le (show (0:ℝ)
+            ≤ (m:ℝ) * Real.exp (((k:ℝ)+1)/8) by positivity)
+          linarith
+        have hone : (1:ℝ) ≤ (m:ℝ) * Real.exp (((k:ℝ)+1)/8) := by
+          nlinarith
+        nlinarith [hlog4]
+      have hbelow : ∑ p ∈ (S.filter
+          (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k)).filter
+          (fun p => ¬ m < p), Real.log (p:ℝ)
+          ≤ 2 * Real.log 4 * (m:ℝ) * Real.exp (((k:ℝ)+1)/8) := by
+        have hsub : (S.filter
+            (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k)).filter
+            (fun p => ¬ m < p) ⊆ (m + 1).primesBelow := by
+          intro p hp
+          simp only [Finset.mem_filter, not_lt] at hp
+          rw [Nat.mem_primesBelow]
+          exact ⟨by omega, hSp p hp.1.1⟩
+        refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg hsub
+          (fun i _ _ => Real.log_natCast_nonneg i)) ?_
+        refine le_trans (sum_log_primesBelow_le _) ?_
+        push_cast
+        nlinarith [hlog4, he1, hmR,
+          mul_nonneg (mul_nonneg hlog4 (by linarith : (0:ℝ) ≤ (m:ℝ)))
+            (by linarith : (0:ℝ) ≤ Real.exp (((k:ℝ)+1)/8) - 1)]
+      linarith
+    have hstep : ∑ p ∈ S.filter
+        (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k),
+        Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+        ≤ Real.exp (-(π*T^2*(k:ℝ)^2/64))
+            * (4 * Real.log 4 * (m:ℝ) * Real.exp (((k:ℝ)+1)/8)) := by
+      have h1 : ∑ p ∈ S.filter
+          (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k),
+          Real.log p * Real.exp (-(π*T^2*(Real.log p - Real.log m)^2))
+          ≤ ∑ p ∈ S.filter
+              (fun p : ℕ => ⌊8 * |Real.log (p:ℝ) - Real.log (m:ℝ)|⌋₊ = k),
+              Real.exp (-(π*T^2*(k:ℝ)^2/64)) * Real.log (p:ℝ) := by
+        refine Finset.sum_le_sum fun p hp => ?_
+        rw [mul_comm]
+        exact mul_le_mul_of_nonneg_right (hgauss p hp)
+          (Real.log_natCast_nonneg p)
+      rw [← Finset.mul_sum] at h1
+      exact le_trans h1
+        (mul_le_mul_of_nonneg_left hmass (Real.exp_pos _).le)
+    refine le_trans hstep ?_
+    have hpeel : Real.exp (-(π*T^2*(k:ℝ)^2/64))
+        ≤ Real.exp (-(π*T^2/64)) * Real.exp (-(π*((k:ℝ)^2-1)/16)) := by
+      rw [← Real.exp_add, Real.exp_le_exp]
+      have hT4 : (4:ℝ) ≤ T^2 := by nlinarith
+      have hk21 : (0:ℝ) ≤ (k:ℝ)^2 - 1 := by nlinarith
+      nlinarith [mul_nonneg (sub_nonneg.mpr hT4) hk21, Real.pi_pos.le]
+    have hshell := shell_ratio_le k hk.1
+    calc Real.exp (-(π*T^2*(k:ℝ)^2/64))
+          * (4 * Real.log 4 * (m:ℝ) * Real.exp (((k:ℝ)+1)/8))
+        ≤ (Real.exp (-(π*T^2/64)) * Real.exp (-(π*((k:ℝ)^2-1)/16)))
+            * (4 * Real.log 4 * (m:ℝ) * Real.exp (((k:ℝ)+1)/8)) := by
+          refine mul_le_mul_of_nonneg_right hpeel ?_
+          positivity
+      _ = (4 * Real.log 4 * (m:ℝ) * Real.exp (-(π*T^2/64)))
+            * Real.exp (((k:ℝ)+1)/8 - π*((k:ℝ)^2-1)/16) := by
+          rw [show ((k:ℝ)+1)/8 - π*((k:ℝ)^2-1)/16
+            = (-(π*((k:ℝ)^2-1)/16)) + ((k:ℝ)+1)/8 by ring,
+            Real.exp_add]
+          ring
+      _ ≤ (4 * Real.log 4 * (m:ℝ) * Real.exp (-(π*T^2/64)))
+            * (Real.exp (1/4) * (7/10:ℝ)^(k-1)) := by
+          refine mul_le_mul_of_nonneg_left hshell ?_
+          positivity
+      _ = (4 * Real.log 4 * (m:ℝ) * Real.exp (-(π*T^2/64))
+            * Real.exp (1/4)) * (7/10:ℝ)^(k-1) := by
+          ring
+  refine le_trans (Finset.sum_le_sum hfib) ?_
+  rw [← Finset.mul_sum]
+  have hgeom : ∑ k ∈ Finset.Icc 1 (8 * (S.sup id + m) + 8),
+      (7/10:ℝ)^(k-1) ≤ 10/3 := by
+    have hre : ∑ k ∈ Finset.Icc 1 (8 * (S.sup id + m) + 8),
+        (7/10:ℝ)^(k-1)
+        = ∑ i ∈ Finset.range (8 * (S.sup id + m) + 8), (7/10:ℝ)^i := by
+      refine Finset.sum_nbij' (fun k => k - 1) (fun i => i + 1)
+        ?_ ?_ ?_ ?_ ?_
+      · intro k hk
+        beta_reduce
+        rw [Finset.mem_Icc] at hk
+        rw [Finset.mem_range]
+        omega
+      · intro i hi
+        beta_reduce
+        rw [Finset.mem_range] at hi
+        rw [Finset.mem_Icc]
+        omega
+      · intro k hk
+        beta_reduce
+        rw [Finset.mem_Icc] at hk
+        omega
+      · intro i _
+        beta_reduce
+        omega
+      · intro k _
+        beta_reduce
+        rfl
+    rw [hre]
+    exact shell_geom_sum_le _
+  have hexp14 : Real.exp (1/4:ℝ) ≤ 4/3 := by
+    have h := Real.add_one_le_exp (-(1/4):ℝ)
+    have hpos : (0:ℝ) < Real.exp (-(1/4):ℝ) := Real.exp_pos _
+    have hinv : Real.exp (1/4:ℝ) * Real.exp (-(1/4):ℝ) = 1 := by
+      rw [← Real.exp_add]
+      norm_num
+    nlinarith [h, hpos, hinv]
+  have hME : (0:ℝ) ≤ (m:ℝ) * Real.exp (-(π*T^2/64)) := by positivity
+  calc (4 * Real.log 4 * (m:ℝ) * Real.exp (-(π*T^2/64)) * Real.exp (1/4))
+        * ∑ k ∈ Finset.Icc 1 (8 * (S.sup id + m) + 8), (7/10:ℝ)^(k-1)
+      ≤ (4 * Real.log 4 * (m:ℝ) * Real.exp (-(π*T^2/64)) * Real.exp (1/4))
+          * (10/3) := by
+        refine mul_le_mul_of_nonneg_left hgeom ?_
+        positivity
+    _ ≤ 32 * (m:ℝ) * Real.exp (-(π*T^2/64)) := by
+        nlinarith [hlog4u, hlog4, hexp14, hME,
+          (Real.exp_pos (1/4:ℝ)).le,
+          mul_nonneg hME (Real.exp_pos (1/4:ℝ)).le,
+          mul_nonneg (mul_nonneg hlog4 hME) (Real.exp_pos (1/4:ℝ)).le]
+
+end ExpSums
+
+
 open ArithmeticFunction Finset Real in
 /-- **The inner sum at the canonical scale, over an arbitrary range**
 (Track R, N59): `inner_sum_block_le` with the block replaced by
