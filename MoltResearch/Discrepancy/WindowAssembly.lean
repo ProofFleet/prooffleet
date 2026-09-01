@@ -2709,6 +2709,115 @@ theorem band_energy_level_one_le
   gcongr
   exact hC v hv
 
+/-- **The Dirichlet kernel's derivative in the scale variable** (Track R,
+A2-III, IV-0a): for `t > 0`,
+
+  `d/dt [ t^{-1}e(−ξ log t) ] = −t^{-2}(1 + 2πiξ)·e(−ξ log t)`,
+
+hence `‖·‖ ≤ (1 + 2π|ξ|)/t²`.
+
+**Why the scale variable.**  `V-2` differentiates a Dirichlet polynomial
+in the *frequency* `ξ`, which is what the large-values leg needs.  This
+is the other derivative: `[MR]`'s short-sum Halász step (IV-0) reduces
+`∑_{A<m≤A+Δ} (c m/m)e(−ξ log m)` to initial-segment sums by Abel
+summation, and Abel summation integrates against `d/dt` of the *kernel*.
+Mathlib's `sum_mul_eq_sub_integral_mul₀` supplies the summation; this
+supplies the `hf_diff` and the bound on `deriv f` that it needs.
+
+**The shape of the answer is the whole point.**  The `1` comes from
+differentiating `t^{-1}` and the `2πiξ` from the phase, and they appear
+*added*, not multiplied — so the total variation of the kernel over
+`(A, A+Δ]` is `(1 + 2π|ξ|)(1/A − 1/(A+Δ)) ≤ (1 + 2π|ξ|)/A`.  That is why
+the short-sum reduction costs a factor `(1 + |ξ|)` and no more, and
+therefore why it is usable up to `|ξ| ≍ T` with only a polynomial loss.
+
+Stated at `1/(u:ℂ)` rather than `(u:ℂ)⁻¹` so that it matches the
+Dirichlet-polynomial normal form `c n/n` used throughout the tree. -/
+theorem hasDerivAt_dirichlet_kernel (ξ : ℝ) {t : ℝ} (ht : 0 < t) :
+    HasDerivAt (fun u : ℝ => (1/(u:ℂ))
+        * Complex.exp (((-(2*Real.pi*ξ*Real.log u) : ℝ) : ℂ) * Complex.I))
+      (-(1/(t:ℂ)^2) * (1 + 2*(Real.pi:ℂ)*(ξ:ℂ)*Complex.I)
+        * Complex.exp (((-(2*Real.pi*ξ*Real.log t) : ℝ) : ℂ) * Complex.I)) t := by
+  have ht0 : (t:ℂ) ≠ 0 := by
+    simpa using (Complex.ofReal_ne_zero.mpr ht.ne')
+  -- the reciprocal
+  have hre : HasDerivAt (fun u : ℝ => (u:ℂ)) 1 t := by
+    simpa using (hasDerivAt_id t).ofReal_comp
+  have hinvR : HasDerivAt (fun u : ℝ => u⁻¹) (-(t^2)⁻¹) t := hasDerivAt_inv ht.ne'
+  have hinvC : HasDerivAt (fun u : ℝ => ((u⁻¹ : ℝ) : ℂ)) (((-(t^2)⁻¹ : ℝ) : ℂ)) t :=
+    hinvR.ofReal_comp
+  have hinv : HasDerivAt (fun u : ℝ => 1/(u:ℂ)) (-(1/(t:ℂ)^2)) t := by
+    have hfun : (fun u : ℝ => 1/(u:ℂ)) = (fun u : ℝ => ((u⁻¹ : ℝ) : ℂ)) := by
+      funext u
+      simp [one_div]
+    rw [hfun]
+    convert hinvC using 1
+    push_cast
+    field_simp
+  -- the phase
+  have hlog : HasDerivAt (fun u : ℝ => Real.log u) (1/t) t := by
+    simpa [one_div] using Real.hasDerivAt_log ht.ne'
+  have hph : HasDerivAt
+      (fun u : ℝ => ((-(2*Real.pi*ξ*Real.log u) : ℝ) : ℂ))
+      ((-(2*Real.pi*ξ*(1/t)) : ℝ) : ℂ) t := by
+    have := ((hlog.const_mul (2*Real.pi*ξ)).neg).ofReal_comp
+    simpa using this
+  have hphI : HasDerivAt
+      (fun u : ℝ => ((-(2*Real.pi*ξ*Real.log u) : ℝ) : ℂ) * Complex.I)
+      (((-(2*Real.pi*ξ*(1/t)) : ℝ) : ℂ) * Complex.I) t := hph.mul_const _
+  have hexp := hphI.cexp
+  -- product rule
+  have hprod := hinv.mul hexp
+  refine hprod.congr_deriv ?_
+  have hc : ((-(2*Real.pi*ξ*(1/t)) : ℝ) : ℂ) = -(2*(Real.pi:ℂ)*(ξ:ℂ)*(1/(t:ℂ))) := by
+    push_cast
+    ring
+  rw [hc]
+  field_simp
+  ring
+
+
+/-- **The Dirichlet kernel's total variation weight** (Track R, A2-III,
+IV-0a′): the derivative of `t ↦ t^{-1}e(−ξ log t)` obeys
+
+  `‖f′(t)‖ ≤ (1 + 2π|ξ|)/t²`.
+
+The `1` is the reciprocal's contribution and the `2π|ξ|` the phase's,
+and they are **added**: integrating over `(A, A+Δ]` gives a total
+variation `(1 + 2π|ξ|)(1/A − 1/(A+Δ)) ≤ (1 + 2π|ξ|)/A`.  That linear —
+not exponential — dependence on `ξ` is what makes `[MR]`'s short-sum
+reduction usable across the whole band `|ξ| ≤ T`, at a cost of one
+factor of `T` rather than a factor the schedule could not absorb.
+
+Paired with `hasDerivAt_dirichlet_kernel` this supplies both hypotheses
+of Mathlib's `sum_mul_eq_sub_integral_mul₀` — differentiability on
+`[1, b]` and a dominating function for `deriv f`. -/
+theorem norm_deriv_dirichlet_kernel_le (ξ : ℝ) {t : ℝ} (ht : 0 < t) :
+    ‖-(1/(t:ℂ)^2) * (1 + 2*(Real.pi:ℂ)*(ξ:ℂ)*Complex.I)
+        * Complex.exp (((-(2*Real.pi*ξ*Real.log t) : ℝ) : ℂ) * Complex.I)‖
+      ≤ (1 + 2*Real.pi*|ξ|)/t^2 := by
+  have ht0 : (t:ℂ) ≠ 0 := by
+    simpa using (Complex.ofReal_ne_zero.mpr ht.ne')
+  rw [norm_mul, norm_mul, Complex.norm_exp_ofReal_mul_I, mul_one]
+  have h1 : ‖-(1/(t:ℂ)^2)‖ = 1/t^2 := by
+    rw [norm_neg, norm_div, norm_one, norm_pow, Complex.norm_real,
+      Real.norm_eq_abs, abs_of_pos ht]
+  have h2 : ‖(1 : ℂ) + 2*(Real.pi:ℂ)*(ξ:ℂ)*Complex.I‖ ≤ 1 + 2*Real.pi*|ξ| := by
+    refine le_trans (norm_add_le _ _) ?_
+    rw [norm_one]
+    have : ‖2*(Real.pi:ℂ)*(ξ:ℂ)*Complex.I‖ = 2*Real.pi*|ξ| := by
+      rw [norm_mul, Complex.norm_I, mul_one, norm_mul, norm_mul,
+        Complex.norm_real, Complex.norm_real, Real.norm_eq_abs,
+        Real.norm_eq_abs, abs_of_pos Real.pi_pos]
+      norm_num
+    linarith [this.le, this.ge]
+  rw [h1]
+  calc 1/t^2 * ‖(1 : ℂ) + 2*(Real.pi:ℂ)*(ξ:ℂ)*Complex.I‖
+      ≤ 1/t^2 * (1 + 2*Real.pi*|ξ|) := by
+        refine mul_le_mul_of_nonneg_left h2 (by positivity)
+    _ = (1 + 2*Real.pi*|ξ|)/t^2 := by ring
+
+
 end ExpSums
 
 end MoltResearch
