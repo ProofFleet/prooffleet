@@ -3646,7 +3646,7 @@ balances the two error groups in the dominant regime — the √-loss —
 while for very large `A` the `+1` floor inside the budget's square
 root shifts the optimum; keeping `δ₀` free defers that choice to the
 `𝒰`-assembly numerology (IV-0f-3). -/
-theorem plain_sumC_le_halaszBudgetShellShell_div (f : ℕ → ℂ)
+theorem plain_sumC_le_halaszBudgetShell_div (f : ℕ → ℂ)
     (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
     (h1 : f 1 = 1)
     (x X : ℕ) (hx : 10^16 ≤ x) (hxX : x ≤ X)
@@ -3750,6 +3750,217 @@ theorem halaszBudgetShell_mono (A z Z : ℝ) (hz : Real.exp 1 ≤ z) (hzZ : z �
     | linarith
     | positivity
     | nlinarith
+
+
+set_option maxHeartbeats 3200000 in
+open Real Finset in
+/-- **The window-uniform initial-segment bound** (Track R, A2-III,
+IV-0f-3 — the `Sbd` instantiation): under non-pretentiousness at every
+scale of `[10¹⁶, 3B']`, every initial segment of the window `[0, B']`
+is bounded by the single quantity
+
+  `Sbd := 10¹⁶ + 1 + Ĥ′(A, 3B')/(18·δ₀) + (e·B'·δ₀ + 1)`
+
+— exactly the hypothesis shape of the short-sum reduction
+`norm_short_poly_le_sup_partial` (IV-0c).  Below `10¹⁶` the trivial
+count wins; above it, the divided capstone at the auxiliary scale
+`X_u = ⌈u·e^{δ₀}⌉ ≤ 3B'` prices the segment, the budget's
+monotonicity lifts both scales to `3B'`, and `log ≥ 36` prices the two
+denominators.  The consumer picks `δ₀`: in the dominant regime
+`δ₀ ≍ e⁵(2+log B')e^{−A}·√(10^15-ish)` balances the two `δ₀`-terms and
+yields the `e^{−A/2}`-quality √-loss. -/
+theorem sup_partial_le_halaszBudgetShell (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (B' : ℕ) (hB' : 10^16 ≤ B')
+    (A : ℝ) (h1A : 1 ≤ A)
+    (δ₀ : ℝ) (hδ₀ : 0 < δ₀) (hδ₁ : δ₀ ≤ 1)
+    (hNP : ∀ u : ℕ, 10^16 ≤ u → u ≤ 3*B' → NonPretentiousAt f A u) :
+    ∀ u : ℕ, u ≤ B' →
+      ‖∑ k ∈ Finset.Icc 0 u, f k‖
+        ≤ 10^16 + 1 + halaszBudgetShell A (3*(B':ℝ)) / (18 * δ₀)
+          + (Real.exp 1 * (B':ℝ) * δ₀ + 1) := by
+  intro u hu
+  have hB'R : (10:ℝ)^16 ≤ (B':ℝ) := by exact_mod_cast hB'
+  have he272 : Real.exp 1 ≤ (2.72:ℝ) := by
+    have := Real.exp_one_lt_d9
+    linarith
+  have he1 : (1:ℝ) ≤ Real.exp 1 := by
+    have := Real.add_one_le_exp (1:ℝ)
+    linarith
+  have hbudget0 : (0:ℝ) ≤ halaszBudgetShell A (3*(B':ℝ)) := by
+    refine halaszBudgetShell_nonneg A _ ?_
+    linarith [he272]
+  have hbterm0 : (0:ℝ) ≤ halaszBudgetShell A (3*(B':ℝ)) / (18 * δ₀) := by
+    positivity
+  have hedge0 : (0:ℝ) ≤ Real.exp 1 * (B':ℝ) * δ₀ + 1 := by positivity
+  rcases lt_or_ge u (10^16) with hsmall | hbig
+  · -- the trivial range
+    have htriv : ‖∑ k ∈ Finset.Icc 0 u, f k‖ ≤ (u:ℝ) + 1 := by
+      refine le_trans (norm_sum_le _ _) ?_
+      have hcard : ∑ k ∈ Finset.Icc 0 u, ‖f k‖
+          ≤ ∑ _k ∈ Finset.Icc 0 u, (1:ℝ) :=
+        Finset.sum_le_sum fun k _ => hf k
+      rw [Finset.sum_const, Nat.card_Icc, nsmul_eq_mul, mul_one] at hcard
+      have hc2 : ((u + 1 - 0 : ℕ):ℝ) = (u:ℝ) + 1 := by push_cast; ring
+      rw [hc2] at hcard
+      exact hcard
+    have hult : (u:ℝ) + 1 ≤ 10^16 + 1 := by
+      have : (u:ℝ) ≤ 10^16 := by
+        have : u ≤ 10^16 := by omega
+        exact_mod_cast this
+      linarith
+    linarith [htriv, hult, hbterm0, hedge0]
+  · -- the capstone range
+    have huR : (10:ℝ)^16 ≤ (u:ℝ) := by exact_mod_cast hbig
+    have hu0 : (0:ℝ) < (u:ℝ) := by linarith
+    set X : ℕ := ⌈(u:ℝ) * Real.exp δ₀⌉₊ with hX_def
+    have hXreal : (u:ℝ) * Real.exp δ₀ ≤ (X:ℝ) := Nat.le_ceil _
+    have hexpδ1 : (1:ℝ) ≤ Real.exp δ₀ := by
+      rw [show (1:ℝ) = Real.exp 0 from (Real.exp_zero).symm]
+      exact Real.exp_le_exp.mpr hδ₀.le
+    have hexpδe : Real.exp δ₀ ≤ Real.exp 1 := Real.exp_le_exp.mpr hδ₁
+    have huX : u ≤ X := by
+      have h1' : (u:ℝ) ≤ (X:ℝ) := by nlinarith [hXreal, hu0]
+      exact_mod_cast h1'
+    have hXle : (X:ℝ) ≤ (u:ℝ) * Real.exp δ₀ + 1 := by
+      have := Nat.ceil_lt_add_one
+        (by positivity : (0:ℝ) ≤ (u:ℝ) * Real.exp δ₀)
+      linarith
+    have hX3B : X ≤ 3*B' := by
+      have hc : (X:ℝ) ≤ 3*(B':ℝ) := by
+        have huB : (u:ℝ) ≤ (B':ℝ) := by exact_mod_cast hu
+        nlinarith [hXle, hexpδe, he272, hB'R]
+      exact_mod_cast hc
+    have hX16 : 10^16 ≤ X := le_trans hbig huX
+    -- the two nonpretentiousness instances
+    have hNPu := hNP u hbig (by omega)
+    have hNPX := hNP X hX16 hX3B
+    -- the log-gap
+    have hgap : δ₀ ≤ Real.log (X:ℝ) - Real.log (u:ℝ) := by
+      have h1' : Real.log ((u:ℝ) * Real.exp δ₀) ≤ Real.log (X:ℝ) :=
+        Real.log_le_log (by positivity) hXreal
+      rw [Real.log_mul (ne_of_gt hu0) (ne_of_gt (Real.exp_pos _)),
+        Real.log_exp] at h1'
+      linarith
+    -- the divided capstone
+    have hdiv := plain_sumC_le_halaszBudgetShell_div f hf hcm h1 u X hbig huX
+      A h1A hNPu hNPX δ₀ hδ₀ hgap
+    -- log ≥ 36 at both scales
+    have h36 : ∀ z : ℕ, 10^16 ≤ z → (36:ℝ) ≤ Real.log (z:ℝ) := by
+      intro z hz
+      have hz0 : (0:ℝ) < (z:ℝ) := by
+        have : (0:ℕ) < z := by omega
+        exact_mod_cast this
+      rw [Real.le_log_iff_exp_le hz0]
+      have he3 : Real.exp (3:ℝ) ≤ 20.1 := by
+        have h3 : Real.exp (3:ℝ) = (Real.exp 1)^(3:ℕ) := by
+          rw [← Real.exp_nat_mul]
+          norm_num
+        rw [h3]
+        have hcube : (Real.exp 1)^(3:ℕ) ≤ (2.7182818286:ℝ)^(3:ℕ) :=
+          pow_le_pow_left₀ (Real.exp_pos 1).le
+            (by linarith [Real.exp_one_lt_d9]) 3
+        have hnum : (2.7182818286:ℝ)^(3:ℕ) ≤ 20.1 := by norm_num
+        linarith
+      have h36e : Real.exp (36:ℝ) = (Real.exp 3)^(12:ℕ) := by
+        rw [← Real.exp_nat_mul]
+        norm_num
+      have hp12 : (Real.exp 3)^(12:ℕ) ≤ (20.1:ℝ)^(12:ℕ) :=
+        pow_le_pow_left₀ (Real.exp_pos 3).le he3 12
+      have hnum12 : (20.1:ℝ)^(12:ℕ) ≤ 10^16 := by norm_num
+      have hzR : (10:ℝ)^16 ≤ (z:ℝ) := by exact_mod_cast hz
+      rw [h36e]
+      linarith
+    have h36u := h36 u hbig
+    have h36X := h36 X hX16
+    -- lift both budgets to the top scale over the 36-denominators
+    have hmonoX : halaszBudgetShell A (X:ℝ)
+        ≤ halaszBudgetShell A (3*(B':ℝ)) := by
+      refine halaszBudgetShell_mono A _ _ ?_ ?_
+      · have : (10:ℝ)^16 ≤ (X:ℝ) := by exact_mod_cast hX16
+        linarith [he272]
+      · have := hX3B
+        have hc : (X:ℝ) ≤ ((3*B' : ℕ):ℝ) := by exact_mod_cast this
+        push_cast at hc
+        linarith
+    have hmonou : halaszBudgetShell A (u:ℝ)
+        ≤ halaszBudgetShell A (3*(B':ℝ)) := by
+      refine halaszBudgetShell_mono A _ _ ?_ ?_
+      · linarith [he272]
+      · have huB : (u:ℝ) ≤ (B':ℝ) := by exact_mod_cast hu
+        linarith [hB'R]
+    have hbX0 : (0:ℝ) ≤ halaszBudgetShell A (X:ℝ) := by
+      refine halaszBudgetShell_nonneg A _ ?_
+      have : (10:ℝ)^16 ≤ (X:ℝ) := by exact_mod_cast hX16
+      linarith [he272]
+    have hbu0 : (0:ℝ) ≤ halaszBudgetShell A (u:ℝ) := by
+      refine halaszBudgetShell_nonneg A _ ?_
+      linarith [he272]
+    have hlogX0 : (0:ℝ) < Real.log (X:ℝ) := by linarith
+    have hlogu0 : (0:ℝ) < Real.log (u:ℝ) := by linarith
+    have hquotX : halaszBudgetShell A (X:ℝ) / Real.log (X:ℝ)
+        ≤ halaszBudgetShell A (3*(B':ℝ)) / 36 :=
+      div_le_div₀ hbudget0 hmonoX (by norm_num) h36X
+    have hquotu : halaszBudgetShell A (u:ℝ) / Real.log (u:ℝ)
+        ≤ halaszBudgetShell A (3*(B':ℝ)) / 36 :=
+      div_le_div₀ hbudget0 hmonou (by norm_num) h36u
+    have hsum : halaszBudgetShell A (X:ℝ)/Real.log (X:ℝ)
+        + halaszBudgetShell A (u:ℝ)/Real.log (u:ℝ)
+        ≤ halaszBudgetShell A (3*(B':ℝ)) / 18 := by
+      have h2 : halaszBudgetShell A (3*(B':ℝ)) / 36
+          + halaszBudgetShell A (3*(B':ℝ)) / 36
+          = halaszBudgetShell A (3*(B':ℝ)) / 18 := by ring
+      linarith [hquotX, hquotu]
+    have hsumδ : (halaszBudgetShell A (X:ℝ)/Real.log (X:ℝ)
+        + halaszBudgetShell A (u:ℝ)/Real.log (u:ℝ)) / δ₀
+        ≤ halaszBudgetShell A (3*(B':ℝ)) / (18 * δ₀) := by
+      rw [show halaszBudgetShell A (3*(B':ℝ)) / (18 * δ₀)
+        = (halaszBudgetShell A (3*(B':ℝ)) / 18) / δ₀ from by
+          rw [div_div]]
+      gcongr
+    have hedge : (X:ℝ) - (u:ℝ) ≤ Real.exp 1 * (B':ℝ) * δ₀ + 1 := by
+      have hexp1 : Real.exp δ₀ - 1 ≤ δ₀ * Real.exp δ₀ := by
+        have h := Real.add_one_le_exp (-δ₀)
+        have hprod : Real.exp δ₀ * Real.exp (-δ₀) = 1 := by
+          rw [← Real.exp_add]
+          simp
+        nlinarith [Real.exp_pos δ₀]
+      have huB : (u:ℝ) ≤ (B':ℝ) := by exact_mod_cast hu
+      have hstep : (u:ℝ) * (Real.exp δ₀ - 1)
+          ≤ (B':ℝ) * (δ₀ * Real.exp 1) := by
+        have h1' : (u:ℝ) * (Real.exp δ₀ - 1)
+            ≤ (u:ℝ) * (δ₀ * Real.exp δ₀) := by
+          refine mul_le_mul_of_nonneg_left hexp1 hu0.le
+        have h2' : (u:ℝ) * (δ₀ * Real.exp δ₀)
+            ≤ (B':ℝ) * (δ₀ * Real.exp 1) := by
+          have hδe0 : (0:ℝ) ≤ δ₀ * Real.exp δ₀ := by positivity
+          have hδe : δ₀ * Real.exp δ₀ ≤ δ₀ * Real.exp 1 :=
+            mul_le_mul_of_nonneg_left hexpδe hδ₀.le
+          nlinarith [hu0.le, huB, hδe0]
+        linarith
+      nlinarith [hXle, hstep]
+    have hsplit : ∑ k ∈ Finset.Icc 0 u, f k
+        = f 0 + ∑ k ∈ Finset.Icc 1 u, f k := by
+      rw [show Finset.Icc 0 u = insert 0 (Finset.Icc 1 u) from by
+        ext m
+        simp only [Finset.mem_Icc, Finset.mem_insert]
+        omega]
+      rw [Finset.sum_insert (by simp)]
+    calc ‖∑ k ∈ Finset.Icc 0 u, f k‖
+        ≤ ‖f 0‖ + ‖∑ k ∈ Finset.Icc 1 u, f k‖ := by
+          rw [hsplit]
+          exact norm_add_le _ _
+      _ ≤ 1 + ((halaszBudgetShell A (X:ℝ)/Real.log (X:ℝ)
+            + halaszBudgetShell A (u:ℝ)/Real.log (u:ℝ)) / δ₀
+            + ((X:ℝ) - (u:ℝ))) := by
+          linarith [hf 0, hdiv]
+      _ ≤ 1 + (halaszBudgetShell A (3*(B':ℝ)) / (18 * δ₀)
+            + (Real.exp 1 * (B':ℝ) * δ₀ + 1)) := by
+          linarith [hsumδ, hedge]
+      _ ≤ 10^16 + 1 + halaszBudgetShell A (3*(B':ℝ)) / (18 * δ₀)
+            + (Real.exp 1 * (B':ℝ) * δ₀ + 1) := by
+          linarith [hbterm0, hedge0]
 
 end ExpSums
 
