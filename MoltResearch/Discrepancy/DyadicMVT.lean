@@ -4140,6 +4140,52 @@ theorem sum_norm_sq_le_integral_of_separated (F F' : ℝ → ℂ)
         (intervalIntegral.integral_of_le (by linarith)).symm
 
 open MeasureTheory in
+/-- **The exceptional count** (Track R, A2-III, V-1c): the `Finset`-
+cardinality sibling of `measure_large_le_of_moment` — for a
+`1`-separated set `𝒯 ⊆ [−T, T]` on which `V ≤ ‖F‖`,
+
+  `#𝒯 · V² ≤ ∫_{−T}^{T+1} (‖F u‖² + 2‖F u‖‖F′ u‖) du`.
+
+`[MR]`'s exceptional-frequency treatment needs a bound on the *number*
+of large frequencies, not on their measure, because the large-values
+input it quotes is stated at well-spaced points.  This is the bridge:
+Chebyshev over a finite set, then Gallagher
+(`sum_norm_sq_le_integral_of_separated`) to turn the resulting sum into
+an integral the mean value theorem can price.
+
+**What it does and does not give.**  For an integer-supported polynomial
+the right-hand side is exactly what `HalaszLargeValuesAssumption`
+already delivers, so this route is elementary and complete.  For a
+*prime*-supported polynomial it is not enough — the count it yields is
+larger than the truth by the `exp(−log P/(log 2T)^{3/4})` saving of
+`[MR]` Lemma 8, and recovering that saving is precisely the input the
+endgame quotes rather than proves.  So this lemma marks the elementary
+ceiling: everything up to here is in tree, and the gap above it is one
+named theorem of the literature.
+
+The moment bound and the separation hypothesis are the only inputs;
+`F` needs no Dirichlet-polynomial structure, and the integral is left
+as an arbitrary upper bound `I` so the caller can price it with
+whichever mean value theorem its support range calls for. -/
+theorem card_large_le_of_separated (F F' : ℝ → ℂ)
+    (hF : ∀ u, HasDerivAt F (F' u) u) (hFc : Continuous F)
+    (hF'c : Continuous F') (𝒯 : Finset ℝ) (T V I : ℝ) (hT : 0 ≤ T)
+    (hV : 0 ≤ V)
+    (hmem : ∀ t ∈ 𝒯, t ∈ Set.Icc (-T) T)
+    (hsep : ∀ t ∈ 𝒯, ∀ s ∈ 𝒯, t ≠ s → 1 ≤ |t - s|)
+    (hlarge : ∀ t ∈ 𝒯, V ≤ ‖F t‖)
+    (hI : (∫ u in (-T)..(T+1), (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖)) ≤ I) :
+    (𝒯.card : ℝ) * V^2 ≤ I := by
+  classical
+  calc (𝒯.card : ℝ) * V^2 = ∑ _t ∈ 𝒯, V^2 := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ ∑ t ∈ 𝒯, ‖F t‖^2 :=
+        Finset.sum_le_sum fun t ht => pow_le_pow_left₀ hV (hlarge t ht) 2
+    _ ≤ ∫ u in (-T)..(T+1), (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) :=
+        sum_norm_sq_le_integral_of_separated F F' hF hFc hF'c 𝒯 T hT hmem hsep
+    _ ≤ I := hI
+
+open MeasureTheory in
 /-- **The exceptional measure** (Track R, A2-III, V-1): a `2ℓ`-th moment
 bound converts into a bound on the *measure* of the frequencies where a
 polynomial is large —
