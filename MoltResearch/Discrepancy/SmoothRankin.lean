@@ -2143,6 +2143,61 @@ theorem sum_log_div_mul_log_ratio_le (x : ℕ) :
   refine le_trans (Finset.sum_le_sum hmid) ?_
   rw [Finset.mul_sum]
 
+
+open Finset in
+/-- **The iteration error, closed** (Track R, budget repair R-a1): the
+harmonic sum of `sum_log_div_mul_log_ratio_le` closed at
+`1 + log⌊log₂x⌋`, giving
+
+  `∑_{p ≤ x/2} log p/(p·log(x/p)) ≤ 12·log log x + 18`
+
+— the classical GHS-III loss shape for the survivors bridge, in place
+of the `log 2` scale-floor's full Mertens sum `≈ (log x)/log 2` that
+overprices the budget's `T4` term by one logarithm. -/
+theorem sum_log_div_mul_log_ratio_closed_le (x : ℕ) (hx : 4 ≤ x) :
+    ∑ p ∈ (Finset.Icc 1 (x/2)).filter Nat.Prime,
+        Real.log (p:ℝ) / ((p:ℝ) * Real.log ((x:ℝ)/(p:ℝ)))
+      ≤ 12 * Real.log (Real.log (x:ℝ)) + 18 := by
+  refine le_trans (sum_log_div_mul_log_ratio_le x) ?_
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  set K := Nat.log 2 x with hK_def
+  have hK1 : 1 ≤ K := Nat.log_pos (by norm_num) (by omega)
+  have hharm : ∑ j ∈ Finset.Icc 1 K, (1:ℝ)/(j:ℝ) ≤ Real.log K + 1 :=
+    ExpSums.sum_one_div_Icc_le_log K hK1
+  have hKlog : Real.log K ≤ Real.log (Real.log x) + 0.443 := by
+    have hKle : (K:ℝ) * Real.log 2 ≤ Real.log x := by
+      have hpow : ((2:ℕ)^K : ℕ) ≤ x := Nat.pow_log_le_self 2 (by omega)
+      have hc : ((2:ℕ)^K : ℝ) ≤ (x:ℝ) := by exact_mod_cast hpow
+      have h2j : ((2:ℕ)^K : ℝ) = (2:ℝ)^K := by push_cast; ring
+      calc (K:ℝ) * Real.log 2 = Real.log ((2:ℝ)^K) := by rw [Real.log_pow]
+        _ ≤ Real.log x := Real.log_le_log (by positivity) (by linarith [h2j ▸ hc])
+    have hK0 : (0:ℝ) < (K:ℝ) := by exact_mod_cast hK1
+    have hKle' : (K:ℝ) ≤ Real.log x / Real.log 2 := by
+      rw [le_div_iff₀ hlog2]
+      exact hKle
+    have hlx0 : (0:ℝ) < Real.log x / Real.log 2 := lt_of_lt_of_le hK0 hKle'
+    calc Real.log K ≤ Real.log (Real.log x / Real.log 2) :=
+          Real.log_le_log hK0 hKle'
+      _ = Real.log (Real.log x) - Real.log (Real.log 2) := by
+          rw [Real.log_div (by nlinarith) (ne_of_gt hlog2)]
+      _ ≤ Real.log (Real.log x) + 0.443 := by
+          have h1 : Real.log (Real.log 2) = -Real.log (1/Real.log 2) := by
+            rw [Real.log_div one_ne_zero (ne_of_gt hlog2), Real.log_one]
+            ring
+          have h2 : (1:ℝ)/Real.log 2 ≤ 1.443 := by
+            rw [div_le_iff₀ hlog2]
+            nlinarith [Real.log_two_gt_d9]
+          have h3 : Real.log (1/Real.log 2) ≤ 0.443 := by
+            have h4 := Real.log_le_sub_one_of_pos
+              (show (0:ℝ) < 1/Real.log 2 by positivity)
+            linarith
+          linarith
+  calc 12 * ∑ j ∈ Finset.Icc 1 K, 1/(j:ℝ)
+      ≤ 12 * (Real.log K + 1) := by linarith
+    _ ≤ 12 * (Real.log (Real.log x) + 0.443 + 1) := by linarith [hKlog]
+    _ ≤ 12 * Real.log (Real.log (x:ℝ)) + 18 := by linarith
+
+
 open Finset in
 /-- **The inner Mertens cancellation** (Track R, N10): the inner prime
 sum of the triple convolution cancels the `1/log(x/p)` weight,
