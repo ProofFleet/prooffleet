@@ -3503,6 +3503,49 @@ theorem plain_sumC_le_halaszBudget_div (f : ℕ → ℂ)
   linarith
 
 
+
+open Real in
+/-- **The budget is monotone in the scale** (Track R, A2-III, IV-0f-2):
+for `e ≤ z ≤ Z`, `Ĥ(z,A) ≤ Ĥ(Z,A)` — every summand of the budget is a
+product of nonnegative factors each nondecreasing in the scale.  This
+is what lets a *single* budget at the top scale majorize every initial
+segment of the window (IV-0f-3): the sup over `u ≤ B'` costs only the
+budget at the top auxiliary scale. -/
+theorem halaszBudget_mono (A z Z : ℝ) (hz : Real.exp 1 ≤ z) (hzZ : z ≤ Z) :
+    halaszBudget A z ≤ halaszBudget A Z := by
+  have hz0 : (0:ℝ) < z := lt_of_lt_of_le (Real.exp_pos 1) hz
+  have hZ0 : (0:ℝ) < Z := lt_of_lt_of_le hz0 hzZ
+  have hlog1 : (1:ℝ) ≤ Real.log z := (Real.le_log_iff_exp_le hz0).mpr hz
+  have hlogz0 : (0:ℝ) < Real.log z := lt_of_lt_of_le one_pos hlog1
+  have hlogzZ : Real.log z ≤ Real.log Z := Real.log_le_log hz0 hzZ
+  have hlogZ0 : (0:ℝ) < Real.log Z := lt_of_lt_of_le hlogz0 hlogzZ
+  have hlogsum : (0:ℝ) ≤ 2 + Real.log z := by linarith
+  have hsqz0 : (0:ℝ) < 2*(Real.log z)^2 := by nlinarith
+  have hsqz10 : (0:ℝ) < 2*(Real.log z)^2 + 1 := by nlinarith
+  have hlogsq0 : (0:ℝ) ≤ Real.log (2*(Real.log z)^2) :=
+    Real.log_nonneg (by nlinarith)
+  have hlogsq10 : (0:ℝ) ≤ Real.log (2*(Real.log z)^2 + 1) :=
+    Real.log_nonneg (by nlinarith)
+  have hlogp10 : (0:ℝ) ≤ Real.log (z+1) :=
+    Real.log_nonneg (by linarith)
+  have hloglogZ0 : (0:ℝ) ≤ Real.log (Real.log Z) :=
+    Real.log_nonneg (le_trans hlog1 hlogzZ)
+  have hlog4 : (0:ℝ) ≤ Real.log 4 := Real.log_nonneg (by norm_num)
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hee : (0:ℝ) ≤ (Real.exp 1 - 1) * (Real.exp 1 * Real.log 2) := by
+    have h1 : (1:ℝ) ≤ Real.exp 1 := by
+      have := Real.add_one_le_exp (1:ℝ)
+      linarith
+    have h2 : (0:ℝ) ≤ Real.exp 1 * Real.log 2 := by positivity
+    nlinarith
+  unfold halaszBudget
+  gcongr <;> first
+    | assumption
+    | linarith
+    | positivity
+    | nlinarith
+
+
 end ExpSums
 
 end MoltResearch
