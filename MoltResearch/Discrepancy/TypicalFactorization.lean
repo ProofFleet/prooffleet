@@ -1305,4 +1305,150 @@ theorem sum_card_dvd_sq_div_le (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     _ = (R:ℝ) * ((ℓ:ℝ)+1) * σ^ℓ := by
         field_simp
 
+
+open Finset in
+/-- **The `𝒮`-restriction by inclusion–exclusion** (Track R, A2-III,
+IV-0e): the sum of any `F` over the typical set `𝒮` is the signed sum,
+over the `2^J` sublists `S` of the level family, of plain-window sums
+restricted to the integers **free** of every level in `S`.  This is
+`le:Sinclexcl`: the non-multiplicative "has a factor in every level"
+condition becomes an alternating combination of freeness conditions —
+each of which twists a completely multiplicative coefficient sequence
+into another one (`completelyMultiplicativeC_free_indicator`) — at a
+cost of `2^J` terms, with `2^J ≪ (log A)^{o(1)}` in the
+`𝒰`-treatment's numerology.  Levels are peeled one at a time through
+`typicalS_cons`; each peel splits off the level-free complement and
+re-absorbs the indicator into the summand. -/
+theorem sum_typicalS_eq_inclexcl (a b : ℕ) (F : ℕ → ℂ)
+    (levels : List (Finset ℕ)) :
+    ∑ m ∈ typicalS a b levels, F m
+      = (levels.sublists.map (fun S =>
+          (-1:ℂ)^S.length
+            * ∑ m ∈ (Finset.Ioc a b).filter
+                (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n), F m)).sum := by
+  classical
+  induction levels generalizing F with
+  | nil =>
+    rw [List.sublists_nil]
+    simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil,
+      List.length_nil, pow_zero, one_mul, add_zero]
+    congr 1
+  | cons P rest ih =>
+    have hiff : ∀ n : ℕ, (¬ ∀ p ∈ P, ¬ p ∣ n)
+        ↔ 0 < (P.filter (· ∣ n)).card := by
+      intro n
+      constructor
+      · intro h
+        rw [Finset.card_pos, Finset.filter_nonempty_iff]
+        by_contra hn
+        push_neg at hn
+        exact h hn
+      · intro h hall
+        obtain ⟨p, hpP, hpn⟩ :=
+          Finset.filter_nonempty_iff.mp (Finset.card_pos.mp h)
+        exact hall p hpP hpn
+    have hsplit : ∑ m ∈ typicalS a b (P :: rest), F m
+        = ∑ m ∈ typicalS a b rest, F m
+          - ∑ m ∈ typicalS a b rest,
+              (if ∀ p ∈ P, ¬ p ∣ m then F m else 0) := by
+      rw [typicalS_cons, Finset.sum_filter, eq_sub_iff_add_eq,
+        ← Finset.sum_add_distrib]
+      refine Finset.sum_congr rfl fun n _ => ?_
+      by_cases h : ∀ p ∈ P, ¬ p ∣ n
+      · rw [if_neg (fun hpos => (hiff n).mpr hpos h), if_pos h, zero_add]
+      · rw [if_pos ((hiff n).mp h), if_neg h, add_zero]
+    have hinner : ∀ S : List (Finset ℕ),
+        ∑ m ∈ (Finset.Ioc a b).filter
+            (fun n => ∀ Q ∈ P :: S, ∀ p ∈ Q, ¬ p ∣ n), F m
+          = ∑ m ∈ (Finset.Ioc a b).filter
+              (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n),
+              (if ∀ p ∈ P, ¬ p ∣ m then F m else 0) := by
+      intro S
+      rw [← Finset.sum_filter, Finset.filter_filter]
+      congr 1
+      ext n
+      simp only [Finset.mem_filter, List.forall_mem_cons]
+      tauto
+    have hpermsum : (((P :: rest).sublists).map (fun S =>
+        (-1:ℂ)^S.length * ∑ m ∈ (Finset.Ioc a b).filter
+          (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n), F m)).sum
+        = ((rest.sublists).map (fun S =>
+            (-1:ℂ)^S.length * ∑ m ∈ (Finset.Ioc a b).filter
+              (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n), F m)).sum
+          + ((rest.sublists).map (fun S =>
+              (-1:ℂ)^(P :: S).length * ∑ m ∈ (Finset.Ioc a b).filter
+                (fun n => ∀ Q ∈ P :: S, ∀ p ∈ Q, ¬ p ∣ n), F m)).sum := by
+      rw [((List.sublists_cons_perm_append P rest).map (fun S =>
+        (-1:ℂ)^S.length * ∑ m ∈ (Finset.Ioc a b).filter
+          (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n), F m)).sum_eq,
+        List.map_append, List.sum_append, List.map_map]
+      rfl
+    have hC : (fun S : List (Finset ℕ) =>
+        (-1:ℂ)^(P :: S).length * ∑ m ∈ (Finset.Ioc a b).filter
+          (fun n => ∀ Q ∈ P :: S, ∀ p ∈ Q, ¬ p ∣ n), F m)
+        = fun S => (-1:ℂ) * ((-1:ℂ)^S.length
+            * ∑ m ∈ (Finset.Ioc a b).filter
+              (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n),
+              (if ∀ p ∈ P, ¬ p ∣ m then F m else 0)) := by
+      funext S
+      rw [hinner S, List.length_cons, pow_succ]
+      ring
+    rw [hsplit, ih F, ih (fun m => if ∀ p ∈ P, ¬ p ∣ m then F m else 0),
+      hpermsum, hC, List.sum_map_mul_left, sub_eq_add_neg, neg_one_mul]
+
+open Finset in
+/-- **The `𝒮`-restriction, norm form** (Track R, A2-III, IV-0e): the
+typical-set polynomial is bounded by the sum of the `2^J` plain-window
+level-free polynomial norms.  Triangle inequality over the
+inclusion–exclusion; the unimodular signs disappear. -/
+theorem norm_sum_typicalS_le_inclexcl (a b : ℕ) (F : ℕ → ℂ)
+    (levels : List (Finset ℕ)) :
+    ‖∑ m ∈ typicalS a b levels, F m‖
+      ≤ ((levels.sublists).map (fun S =>
+          ‖∑ m ∈ (Finset.Ioc a b).filter
+              (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n), F m‖)).sum := by
+  classical
+  rw [sum_typicalS_eq_inclexcl a b F levels]
+  have hgen : ∀ l : List (List (Finset ℕ)),
+      ‖(l.map (fun S => (-1:ℂ)^S.length
+          * ∑ m ∈ (Finset.Ioc a b).filter
+            (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n), F m)).sum‖
+        ≤ (l.map (fun S =>
+            ‖∑ m ∈ (Finset.Ioc a b).filter
+              (fun n => ∀ Q ∈ S, ∀ p ∈ Q, ¬ p ∣ n), F m‖)).sum := by
+    intro l
+    induction l with
+    | nil => simp
+    | cons S l ihl =>
+      simp only [List.map_cons, List.sum_cons]
+      refine le_trans (norm_add_le _ _) (add_le_add ?_ ihl)
+      rw [norm_mul, norm_pow, norm_neg, norm_one, one_pow, one_mul]
+  exact hgen levels.sublists
+
+/-- **Freeness twists preserve complete multiplicativity** (Track R,
+A2-III, IV-0e): zeroing a completely multiplicative `g` on the
+integers divisible by some prime of `P` is again completely
+multiplicative — a product is `P`-free iff both factors are, by
+primality.  This is what lets the inclusion–exclusion terms re-enter
+the Halász pipeline. -/
+theorem completelyMultiplicativeC_free_indicator (g : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC g) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) :
+    CompletelyMultiplicativeC
+      (fun n => if ∀ p ∈ P, ¬ p ∣ n then g n else 0) := by
+  intro x y hx hy
+  beta_reduce
+  by_cases hxy : ∀ p ∈ P, ¬ p ∣ (x*y)
+  · have hxf : ∀ p ∈ P, ¬ p ∣ x := fun p hp hd => hxy p hp (hd.mul_right y)
+    have hyf : ∀ p ∈ P, ¬ p ∣ y := fun p hp hd => hxy p hp (hd.mul_left x)
+    simp only [if_pos hxy, if_pos hxf, if_pos hyf]
+    exact hcm x y hx hy
+  · rw [if_neg hxy]
+    push_neg at hxy
+    obtain ⟨p, hpP, hpxy⟩ := hxy
+    rcases (hP p hpP).dvd_mul.mp hpxy with h | h
+    · rw [if_neg (fun hall => hall p hpP h : ¬ ∀ p ∈ P, ¬ p ∣ x), zero_mul]
+    · rw [if_neg (fun hall => hall p hpP h : ¬ ∀ p ∈ P, ¬ p ∣ y), mul_zero]
+
+
 end MoltResearch
