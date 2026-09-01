@@ -4200,6 +4200,85 @@ theorem measure_large_le_of_moment (Q : ℝ → ℂ) (hQ : Continuous Q)
     _ ≤ M := hmom
 
 open MeasureTheory in
+/-- **The borrow-largeness step** (Track R, A2-III, III-4a): on a
+frequency set `G` where one polynomial is *small* and another is
+*large*, the small polynomial's band energy is controlled by the
+`2ℓ`-th moment of the large one —
+
+  `∫_G ‖Q·R‖² ≤ (small²/large^{2ℓ})·∫_{−T}^{T} ‖Qₚ^ℓ·R‖²`.
+
+The `[MR]` level decomposition `𝒯_j` is exactly a set on which the
+level-`j` cell polynomial is small *and* the level-`(j−1)` one is
+large.  Only the second fact makes the moment usable: the energy of
+`R` alone is far too big, but on `𝒯_j` we may insert the factor
+`(‖Qₚ ξ‖/large)^{2ℓ} ≥ 1` for free and then hand the enlarged
+integrand to a mean value theorem, which sees a *longer* Dirichlet
+polynomial and prices it at the correspondingly larger scale.  That
+trade — pay `large^{−2ℓ}`, gain the scale `P^ℓ` — is the whole
+content of the level step, and `ℓ` stays free so the schedule can
+optimise it.
+
+Stated against an abstract moment bound `M`, as with
+`measure_large_le_of_moment`: `Q` needs nothing but continuity and the
+smallness hypothesis, so no cell structure is baked in here.  The
+prime-polynomial instance is `band_energy_level_le_of_prev_large`. -/
+theorem setIntegral_norm_sq_le_of_prev_large (Q Qp R : ℝ → ℂ)
+    (hQ : Continuous Q) (hQp : Continuous Qp) (hR : Continuous R)
+    (T : ℝ) (hT : 0 < T) (G : Set ℝ) (hGm : MeasurableSet G)
+    (hGT : G ⊆ Set.Ioc (-T) T)
+    (small large : ℝ) (hlarge0 : 0 < large)
+    (hsmall : ∀ ξ ∈ G, ‖Q ξ‖ ≤ small)
+    (hlarge : ∀ ξ ∈ G, large ≤ ‖Qp ξ‖)
+    (ℓ : ℕ) (M : ℝ) (hmom : (∫ ξ in (-T)..T, ‖Qp ξ ^ ℓ * R ξ‖^2) ≤ M) :
+    (∫ ξ in G, ‖Q ξ * R ξ‖^2) ≤ small^2/large^(2*ℓ) * M := by
+  classical
+  have hTT : -T ≤ T := by linarith
+  have hlpow : (0:ℝ) < large^(2*ℓ) := pow_pos hlarge0 _
+  have hlne : large^(2*ℓ) ≠ 0 := ne_of_gt hlpow
+  have hcnn : (0:ℝ) ≤ small^2/large^(2*ℓ) := by positivity
+  have hLc : Continuous fun ξ => ‖Q ξ * R ξ‖^2 := ((hQ.mul hR).norm.pow 2)
+  have hMc : Continuous fun ξ => ‖Qp ξ ^ ℓ * R ξ‖^2 :=
+    (((hQp.pow ℓ).mul hR).norm.pow 2)
+  have hMi : IntegrableOn (fun ξ => ‖Qp ξ ^ ℓ * R ξ‖^2) (Set.Ioc (-T) T) :=
+    hMc.integrableOn_Ioc
+  have hLi : IntegrableOn (fun ξ => ‖Q ξ * R ξ‖^2) G :=
+    (hLc.integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  have hMiG : IntegrableOn (fun ξ => ‖Qp ξ ^ ℓ * R ξ‖^2) G := hMi.mono_set hGT
+  -- the pointwise borrow: `1 ≤ (‖Qp ξ‖/large)^{2ℓ}` on `G`
+  have hptwise : ∀ ξ ∈ G, ‖Q ξ * R ξ‖^2
+      ≤ (small^2/large^(2*ℓ)) * ‖Qp ξ ^ ℓ * R ξ‖^2 := by
+    intro ξ hξ
+    have h1 : ‖Q ξ * R ξ‖^2 = ‖Q ξ‖^2 * ‖R ξ‖^2 := by
+      rw [norm_mul, mul_pow]
+    have h2 : ‖Qp ξ ^ ℓ * R ξ‖^2 = ‖Qp ξ‖^(2*ℓ) * ‖R ξ‖^2 := by
+      rw [norm_mul, mul_pow, norm_pow, ← pow_mul, mul_comm ℓ 2]
+    have hsm : ‖Q ξ‖^2 ≤ small^2 :=
+      pow_le_pow_left₀ (norm_nonneg _) (hsmall ξ hξ) 2
+    have hlg : large^(2*ℓ) ≤ ‖Qp ξ‖^(2*ℓ) :=
+      pow_le_pow_left₀ hlarge0.le (hlarge ξ hξ) (2*ℓ)
+    rw [h1, h2]
+    calc ‖Q ξ‖^2 * ‖R ξ‖^2
+        ≤ small^2 * ‖R ξ‖^2 :=
+          mul_le_mul_of_nonneg_right hsm (by positivity)
+      _ = (small^2/large^(2*ℓ)) * (large^(2*ℓ) * ‖R ξ‖^2) := by
+          field_simp
+      _ ≤ (small^2/large^(2*ℓ)) * (‖Qp ξ‖^(2*ℓ) * ‖R ξ‖^2) := by
+          refine mul_le_mul_of_nonneg_left ?_ hcnn
+          exact mul_le_mul_of_nonneg_right hlg (by positivity)
+  calc (∫ ξ in G, ‖Q ξ * R ξ‖^2)
+      ≤ ∫ ξ in G, (small^2/large^(2*ℓ)) * ‖Qp ξ ^ ℓ * R ξ‖^2 :=
+        setIntegral_mono_on hLi (hMiG.const_mul _) hGm hptwise
+    _ = (small^2/large^(2*ℓ)) * ∫ ξ in G, ‖Qp ξ ^ ℓ * R ξ‖^2 :=
+        integral_const_mul _ _
+    _ ≤ (small^2/large^(2*ℓ)) * ∫ ξ in Set.Ioc (-T) T, ‖Qp ξ ^ ℓ * R ξ‖^2 := by
+        refine mul_le_mul_of_nonneg_left ?_ hcnn
+        exact setIntegral_mono_set hMi
+          (Filter.Eventually.of_forall fun ξ => by positivity) hGT.eventuallyLE
+    _ = (small^2/large^(2*ℓ)) * ∫ ξ in (-T)..T, ‖Qp ξ ^ ℓ * R ξ‖^2 := by
+        rw [intervalIntegral.integral_of_le hTT]
+    _ ≤ (small^2/large^(2*ℓ)) * M := mul_le_mul_of_nonneg_left hmom hcnn
+
+open MeasureTheory in
 /-- **The `L²` triangle inequality, at cost `2`** (Track R, A2-III,
 II-2c-0): for continuous `F, G`,
 
