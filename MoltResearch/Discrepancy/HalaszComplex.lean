@@ -3722,4 +3722,61 @@ theorem plain_sumC_le_halasz_of_nonPretentious (f : ℕ → ℂ)
     (halaszM_band_le X hX A h1A)
   exact plain_sumC_le_of_riesz_bounds f hf x X hx2 hxX _ _ hRx hRX
 
+
+open Real Finset in
+/-- **The plain-sum log-free Halász bound, shell form** (Track R,
+budget repair R-b2-h — the repaired capstone): for `10¹⁶ ≤ x ≤ X` and
+`f` completely multiplicative, `1`-bounded, non-pretentious at
+strength `A ≥ 1` at both scales,
+
+  `‖∑_{n≤x} f(n)‖·(log X − log x)
+     ≤ Ĥ′(X,A)/log X + Ĥ′(x,A)/log x + (X−x)·(log X − log x)`,
+
+with `Ĥ′(z,A)` the REPAIRED budget of `rieszMeanC_log_halasz_shell_le`:
+the Mertens term `64z·(12·loglog z+18)` is loglog-additive (the old
+`64z/log2·(log(z+1)+2) ≈ 92·z·log z` was a full-log overpricing that
+made the old capstone vacuous), and the quality group
+`loglog z·z·√((e^π)²·10¹⁵·((e⁵(2+log z)e^{−A})²+1))` carries no window
+residue (the old `(SM²+T+1)`-envelope's `√T`-surcharge is gone).
+`Ĥ′(z,A)/log z ≍ z·(loglog²z·e^{−A}·polylog⁰ + loglog z/log z)` — the
+classical GHS shape, and [mrt]'s `ρ ≈ 0.0606` regime closes. -/
+theorem plain_sumC_le_halasz_shell_of_nonPretentious (f : ℕ → ℂ)
+    (hf : ∀ n, ‖f n‖ ≤ 1) (hcm : CompletelyMultiplicativeC f)
+    (h1 : f 1 = 1)
+    (x X : ℕ) (hx : 10^16 ≤ x) (hxX : x ≤ X)
+    (A : ℝ) (h1A : 1 ≤ A)
+    (hAx : NonPretentiousAt f A x)
+    (hAX : NonPretentiousAt f A X) :
+    ‖∑ n ∈ Finset.Icc 1 x, f n‖ * (Real.log (X:ℝ) - Real.log (x:ℝ))
+      ≤ (35*(X:ℝ) + (X:ℝ)*(Real.log (2*(Real.log (X:ℝ))^2) + 2)
+          + 2*((X:ℝ)+1)*Real.log 4
+          + 64 * (X:ℝ) * (12 * Real.log (Real.log (X:ℝ)) + 18)
+          + (Real.log (Real.log (X:ℝ))
+              * ((X:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+                  * ((Real.exp 5 * (2 + Real.log (X:ℝ))
+                      * Real.exp (-A))^2 + 1))
+                + 2*(X:ℝ)*Real.log 4)
+            + 2 * ((X:ℝ) * (16 * ((Real.exp 1 - 1)
+                * (Real.exp 1 * Real.log 2)
+                + Real.log 2) + 16 * Real.log 4)))) / Real.log (X:ℝ)
+        + (35*(x:ℝ) + (x:ℝ)*(Real.log (2*(Real.log (x:ℝ))^2) + 2)
+          + 2*((x:ℝ)+1)*Real.log 4
+          + 64 * (x:ℝ) * (12 * Real.log (Real.log (x:ℝ)) + 18)
+          + (Real.log (Real.log (x:ℝ))
+              * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+                  * ((Real.exp 5 * (2 + Real.log (x:ℝ))
+                      * Real.exp (-A))^2 + 1))
+                + 2*(x:ℝ)*Real.log 4)
+            + 2 * ((x:ℝ) * (16 * ((Real.exp 1 - 1)
+                * (Real.exp 1 * Real.log 2)
+                + Real.log 2) + 16 * Real.log 4)))) / Real.log (x:ℝ)
+        + ((X:ℝ) - (x:ℝ)) * (Real.log (X:ℝ) - Real.log (x:ℝ)) := by
+  have hX : 10^16 ≤ X := le_trans hx hxX
+  have hx2 : 2 ≤ x := le_trans (by norm_num) hx
+  have hRx := rieszMeanC_log_halasz_shell_le f hf hcm h1 x hx A hAx h1A
+    (halaszM_band_le x hx A h1A)
+  have hRX := rieszMeanC_log_halasz_shell_le f hf hcm h1 X hX A hAX h1A
+    (halaszM_band_le X hX A h1A)
+  exact plain_sumC_le_of_riesz_bounds f hf x X hx2 hxX _ _ hRx hRX
+
 end MoltResearch
