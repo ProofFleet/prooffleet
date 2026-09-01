@@ -4683,6 +4683,107 @@ theorem intervalIntegral_norm_sq_poly_le_sharp_ratio (A R : ℕ)
     ring
   rw [hmass, mul_comm]
 
+open MeasureTheory Finset in
+/-- **The large-values count for a Dirichlet polynomial** (Track R,
+A2-III, V-3): for `S ⊆ (A, RA]` and a `1`-separated `𝒯 ⊆ [−T, T]` on
+which the polynomial is at least `V` in modulus,
+
+  `#𝒯·V² ≤ e^π((T+1)/A + 2R)·[ (1+λ)∑‖c n‖²/n + (4π²/λ)∑(log n)²‖c n‖²/n ]`.
+
+**The elementary large-values theorem, assembled.**  This is the whole
+in-tree exceptional-frequency chain in one statement:
+`card_large_le_of_separated` (Chebyshev over `𝒯`, then Gallagher) turns
+the count into `∫(‖F‖² + 2‖F‖‖F′‖)`;
+`integral_gallagher_le_param` splits the cross term;
+`hasDerivAt_dirichlet_poly` identifies `F′` as the *same* polynomial with
+coefficients `c n ↦ (−2π log n·i)c n`; and the sharp mean value theorem
+then prices both halves at the one scale `A`, ratio `R`.  Nothing here
+is quoted — every step is proved in tree.
+
+**How sharp it is.**  Choosing `λ ≍ 2π log(RA)` balances the two sums
+(since `log n ≤ log(RA)` on the support) and gives a count
+`≪ ((T+1)/A + R)(1 + log RA)·∑‖c n‖²/n / V²`.  That is the right shape:
+`HalaszLargeValuesAssumption` (Iwaniec–Kowalski Thm 9.6) has exactly one
+factor of `log(2T)`, and it arises here for exactly this reason — the
+derivative of a Dirichlet polynomial of length `RA` is larger than the
+polynomial by a factor `log(RA)`.
+
+**What it does not give.**  For a *prime*-supported polynomial the truth
+is smaller by `exp(−log P/(log 2T)^{3/4})` (`[MR]` Lemma 8,
+`PrimeLargeValuesAssumption`).  No amount of Cauchy–Schwarz recovers
+that saving; it needs a zero-free region.  So this lemma is the exact
+elementary ceiling of the leg, and the gap above it is one named
+theorem.
+
+`λ` is free, as in `integral_gallagher_le_param`: the schedule fixes the
+balance in advance, and a concrete `λ` substituted downstream avoids
+carrying a square root through the assembly. -/
+theorem card_large_poly_le (S : Finset ℕ) (A R : ℕ) (hA : 1 ≤ A) (hR : 1 ≤ R)
+    (hS : S ⊆ Finset.Ioc A (R*A)) (c : ℕ → ℂ) (𝒯 : Finset ℝ)
+    (T V lam : ℝ) (hT : 0 ≤ T) (hV : 0 ≤ V) (hlam : 0 < lam)
+    (hmem : ∀ t ∈ 𝒯, t ∈ Set.Icc (-T) T)
+    (hsep : ∀ t ∈ 𝒯, ∀ s ∈ 𝒯, t ≠ s → 1 ≤ |t - s|)
+    (hlarge : ∀ t ∈ 𝒯, V ≤ ‖∑ n ∈ S, (c n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖) :
+    (𝒯.card : ℝ) * V^2
+      ≤ (1+lam) * (Real.exp Real.pi * ((T+1)/(A:ℝ) + 2*(R:ℝ))
+            * ∑ n ∈ S, ‖c n‖^2/(n:ℝ))
+        + (1/lam) * (Real.exp Real.pi * ((T+1)/(A:ℝ) + 2*(R:ℝ))
+            * ∑ n ∈ S, (2*Real.pi*Real.log n)^2*‖c n‖^2/(n:ℝ)) := by
+  classical
+  -- the derivative's coefficient mass, in closed form
+  have hcoef : ∑ n ∈ S, ‖(-(2*Real.pi*Real.log n) * Complex.I) * c n‖^2/(n:ℝ)
+      = ∑ n ∈ S, (2*Real.pi*Real.log n)^2*‖c n‖^2/(n:ℝ) := by
+    refine Finset.sum_congr rfl fun n hn => ?_
+    have hn1 : 1 ≤ n := by
+      have := Finset.mem_Ioc.mp (hS hn)
+      omega
+    have hlog : 0 ≤ Real.log n := Real.log_nonneg (by exact_mod_cast hn1)
+    have hcast : (-(2*(Real.pi:ℂ)*((Real.log n : ℝ):ℂ)) * Complex.I)
+        = ((-(2*Real.pi*Real.log n) : ℝ) : ℂ) * Complex.I := by
+      push_cast
+      ring
+    have hnn : ‖(-(2*Real.pi*Real.log n) * Complex.I) * c n‖
+        = (2*Real.pi*Real.log n) * ‖c n‖ := by
+      rw [norm_mul, hcast, norm_mul, Complex.norm_I, mul_one, Complex.norm_real,
+        Real.norm_eq_abs, abs_neg,
+        abs_of_nonneg (by positivity : (0:ℝ) ≤ 2*Real.pi*Real.log n)]
+    rw [hnn, mul_pow]
+  have hchar : ∀ w : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(w * ξ)) : Circle) : ℂ) := fun w =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  have hFc : Continuous fun ξ : ℝ => ∑ n ∈ S, (c n/(n:ℂ))
+      * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun n _ => continuous_const.mul (hchar (Real.log n))
+  have hF'c : Continuous fun ξ : ℝ => ∑ n ∈ S,
+      (((-(2*Real.pi*Real.log n) * Complex.I) * c n)/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun n _ => continuous_const.mul (hchar (Real.log n))
+  have hT1 : (0:ℝ) < T+1 := by linarith
+  have hTT : -T ≤ T+1 := by linarith
+  -- Chebyshev over `𝒯`, then Gallagher
+  refine le_trans (card_large_le_of_separated _ _
+    (fun u => hasDerivAt_dirichlet_poly S c u) hFc hF'c 𝒯 T V _ hT hV
+    hmem hsep hlarge le_rfl) ?_
+  -- Cauchy–Schwarz separates the cross term
+  refine le_trans (integral_gallagher_le_param _ _ hFc hF'c lam (-T) (T+1)
+    hlam hTT) ?_
+  -- each half is a mean value at the scale `A`, ratio `R`
+  have henlarge : ∀ (H : ℝ → ℂ), Continuous H →
+      (∫ u in (-T)..(T+1), ‖H u‖^2) ≤ ∫ u in (-(T+1))..(T+1), ‖H u‖^2 := by
+    intro H hH
+    refine intervalIntegral.integral_mono_interval (by linarith) hTT le_rfl
+      (Filter.Eventually.of_forall fun u => by positivity)
+      ((hH.norm.pow 2).intervalIntegrable _ _)
+  gcongr
+  · exact le_trans (henlarge _ hFc)
+      (intervalIntegral_norm_sq_poly_le_sharp_ratio A R hA hR S hS c (T+1) hT1)
+  · rw [← hcoef]
+    exact le_trans (henlarge _ hF'c)
+      (intervalIntegral_norm_sq_poly_le_sharp_ratio A R hA hR S hS
+        (fun n => (-(2*Real.pi*Real.log n) * Complex.I) * c n) (T+1) hT1)
+
+
 end ExpSums
 
 end MoltResearch
