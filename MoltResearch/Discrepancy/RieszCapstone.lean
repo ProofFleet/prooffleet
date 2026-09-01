@@ -617,6 +617,174 @@ theorem tripleConvR_block_sharp_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
     _ _ _ b hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV le_rfl
 
 
+
+open MeasureTheory Real Complex Finset in
+open scoped FourierTransform in
+/-- **§3's sharp estimate on a retained block, shell form** (Track R,
+budget repair R-b2-b-ii): N183 with the unit-interval energy supplied
+by the 64-split shell chain —
+
+  `|tripleConvR f x P| ≤ x·√(E₁·(5·V₃''·6b² + Mtail)) + 2x·log 4`,
+
+with `V₃'' = 2·e^π·8·(1539·(log(X+1)+2) + 24576) + 2·(∑_{q<64} log q/q)²`
+at `X = x/blockLo x k` — **no `T` and no block mass anywhere in the
+`b²`-coefficient**.  `T` remains only in `E₁`'s own budget, where the
+balance is free to take it as large as `log x`.  The `T²`-threshold
+small mass (`≍ log log x`, squared, against `b²`) is now the absolute
+constant `2·(∑_{q<64} log q/q)² ≤ 98`. -/
+theorem tripleConvR_block_sharp_shell_le (f : ℕ → ℝ) (hf : ∀ n, |f n| ≤ 1)
+    (x k : ℕ) (hx : 2 ≤ x) (hk : 1 ≤ k) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime ∧ blockLo x k ≤ p ∧ p < blockHi x k)
+    (hfit : 2 * blockHi x k ≤ x)
+    (hX3 : 3 ≤ x / blockLo x k)
+    (T : ℝ) (hT : 5 ≤ T) (hPT : ∀ p ∈ P, T^2 ≤ (p:ℝ))
+    (b : ℝ) (hb0 : 0 ≤ b)
+    (hBu : ∀ t : ℝ, |t| ≤ ((halaszM x : ℕ):ℝ) + 1 →
+      ‖ghsMainPoly (fun n => ((f n : ℝ) : ℂ)) (Finset.Icc 1 x) t‖ ≤ b) :
+    |tripleConvR f x P|
+      ≤ (x:ℝ) * Real.sqrt
+          ((Real.exp π *
+              (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+                  * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ))
+                        * Real.log (x:ℝ) + Real.log 2) + 4 * Real.log 4))
+                + T * (6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))
+                    * (16/(Real.log (x:ℝ))^2
+                        + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)))
+            + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+                * (1/(2*Real.pi^2*T)))
+          * (5 * (2 * (Real.exp π * 8
+                * (1539 * (Real.log ((x / blockLo x k + 1 : ℕ):ℝ) + 2)
+                  + 6144 * 4))
+              + 2 * (∑ q ∈ (x / blockLo x k).primesBelow.filter
+                    (fun q : ℕ => ¬ 64 ≤ q),
+                  Real.log (q:ℝ)/(q:ℝ))^2)
+              * (6*b^2)
+            + (∑ q ∈ (x / blockLo x k).primesBelow,
+                  Real.log (q:ℝ)/(q:ℝ))^2
+                * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2
+                * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2)))))
+        + 2*(x:ℝ)*Real.log 4 := by
+  classical
+  have hx1 : 1 ≤ x := by omega
+  obtain ⟨hlo1, hlohi⟩ := blockLo_le_blockHi x k hx1
+  have hfc : ∀ n, ‖((f n : ℝ) : ℂ)‖ ≤ 1 := by
+    intro n
+    rw [Complex.norm_real, Real.norm_eq_abs]
+    exact hf n
+  have hPp : ∀ p ∈ P, p.Prime := fun p hp => (hP p hp).1
+  have h2p : ∀ p ∈ P, 2*p ≤ x := by
+    intro p hp
+    obtain ⟨-, -, hpB⟩ := hP p hp
+    omega
+  have hX2 : 2 ≤ x / blockLo x k := by omega
+  -- the enlarged inner range
+  have hQp : ∀ q ∈ (x / blockLo x k).primesBelow, q.Prime :=
+    fun q hq => (Nat.mem_primesBelow.mp hq).2
+  have hQpos : ∀ q ∈ (x / blockLo x k).primesBelow, 0 < q :=
+    fun q hq => (hQp q hq).pos
+  have hQsub : ∀ p ∈ P, (x/p).primesBelow ⊆ (x / blockLo x k).primesBelow := by
+    intro p hp q hq
+    obtain ⟨-, hlop, -⟩ := hP p hp
+    rw [Nat.mem_primesBelow] at hq ⊢
+    exact ⟨lt_of_lt_of_le hq.1 (Nat.div_le_div_left hlop (by omega)), hq.2⟩
+  -- positivity of the block energy
+  have hlogx : (0:ℝ) < Real.log (x:ℝ) :=
+    Real.log_pos (by exact_mod_cast (by omega : 2 ≤ x))
+  have he1 : (0:ℝ) < Real.exp 1 - 1 := by
+    have := Real.add_one_le_exp (1:ℝ)
+    linarith
+  have hlog2 : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
+  have hlog4 : (0:ℝ) < Real.log 4 := Real.log_pos (by norm_num)
+  have hT0 : (0:ℝ) < T := by linarith
+  have hsqx : (0:ℝ) < Real.sqrt ((Nat.sqrt x : ℕ):ℝ) := by
+    refine Real.sqrt_pos.mpr ?_
+    have : 1 ≤ Nat.sqrt x := by
+      have := Nat.sqrt_pos.mpr (by omega : 0 < x)
+      omega
+    exact_mod_cast this
+  have hE₁0 : (0:ℝ) < Real.exp π *
+      (12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+          * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ))
+                * Real.log (x:ℝ) + Real.log 2) + 4 * Real.log 4))
+        + T * (6144 + Real.exp (-(π*T^2/64)) * ((x:ℝ) * Real.log 4))
+            * (16/(Real.log (x:ℝ))^2
+                + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)))
+      + (∑ p ∈ P, Real.log (p:ℝ)/((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2
+          * (1/(2*Real.pi^2*T)) := by
+    have hA : (0:ℝ) < 12290 * ((Real.exp (2*(k:ℝ))/(Real.log (x:ℝ))^2)
+        * (4 * ((Real.exp 1 - 1) * Real.exp (-(k:ℝ))
+              * Real.log (x:ℝ) + Real.log 2) + 4 * Real.log 4)) := by
+      have h1 : (0:ℝ) < (Real.exp 1 - 1) * Real.exp (-(k:ℝ))
+          * Real.log (x:ℝ) := by positivity
+      positivity
+    have hB' : (0:ℝ) ≤ T * (6144 + Real.exp (-(π*T^2/64))
+        * ((x:ℝ) * Real.log 4))
+        * (16/(Real.log (x:ℝ))^2
+            + 4/(Real.sqrt ((Nat.sqrt x : ℕ):ℝ) * (Real.log 2)^2)) := by
+      positivity
+    have hC : (0:ℝ) ≤ (∑ p ∈ P, Real.log (p:ℝ)
+        /((p:ℝ) * |Real.log ((x:ℝ)/(p:ℝ))|))^2 * (1/(2*Real.pi^2*T)) := by
+      positivity
+    nlinarith [Real.exp_pos π, mul_pos (Real.exp_pos π) hA,
+      mul_nonneg (Real.exp_pos π).le hB']
+  -- non-negativity of the unit-interval energy
+  have hV₃0 : (0:ℝ) ≤ 2 * (Real.exp π * 8
+        * (1539 * (Real.log ((x / blockLo x k + 1 : ℕ):ℝ) + 2)
+          + 6144 * 4))
+      + 2 * (∑ q ∈ (x / blockLo x k).primesBelow.filter
+            (fun q : ℕ => ¬ 64 ≤ q),
+          Real.log (q:ℝ)/(q:ℝ))^2 := by
+    have hlogX1 : (0:ℝ) ≤ Real.log ((x / blockLo x k + 1 : ℕ):ℝ) :=
+      Real.log_natCast_nonneg _
+    positivity
+  -- strict positivity of the tail mass: `2` is in the inner range
+  have h2mem : 2 ∈ (x / blockLo x k).primesBelow :=
+    Nat.mem_primesBelow.mpr ⟨by omega, Nat.prime_two⟩
+  have hQsum : (0:ℝ) < ∑ q ∈ (x / blockLo x k).primesBelow,
+      Real.log (q:ℝ)/(q:ℝ) := by
+    have hle : Real.log ((2:ℕ):ℝ)/((2:ℕ):ℝ)
+        ≤ ∑ q ∈ (x / blockLo x k).primesBelow, Real.log (q:ℝ)/(q:ℝ) :=
+      Finset.single_le_sum
+        (fun q _ => div_nonneg (Real.log_natCast_nonneg q)
+          (Nat.cast_nonneg q)) h2mem
+    have h2 : (0:ℝ) < Real.log ((2:ℕ):ℝ)/((2:ℕ):ℝ) := by
+      have : ((2:ℕ):ℝ) = (2:ℝ) := by norm_num
+      rw [this]
+      positivity
+    linarith
+  have hnsum : (0:ℝ) < ∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ) := by
+    have h1mem : 1 ∈ Finset.Icc 1 x := Finset.mem_Icc.mpr ⟨le_refl 1, hx1⟩
+    have hle : (1:ℝ)/((1:ℕ):ℝ) ≤ ∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ) :=
+      Finset.single_le_sum (f := fun n : ℕ => (1:ℝ)/(n:ℝ))
+        (fun n _ => div_nonneg zero_le_one (Nat.cast_nonneg n)) h1mem
+    have : (0:ℝ) < (1:ℝ)/((1:ℕ):ℝ) := by norm_num
+    linarith
+  have hMtail0 : (0:ℝ) < (∑ q ∈ (x / blockLo x k).primesBelow,
+        Real.log (q:ℝ)/(q:ℝ))^2
+      * (∑ n ∈ Finset.Icc 1 x, (1:ℝ)/(n:ℝ))^2
+      * (1/(2*Real.pi^2*(((halaszM x : ℕ):ℝ) + 1/2))) := by
+    have hM : (0:ℝ) < ((halaszM x : ℕ):ℝ) + 1/2 := by positivity
+    have hpi := Real.pi_pos
+    positivity
+  -- the suppliers
+  have hE₁ := ghsBlock_E1_riesz_block_le (fun n => ((f n : ℝ) : ℂ)) hfc
+    x k hx hk P T hT hP hfit hPT
+  have hV : ∀ N ∈ halaszRange x,
+      (∫ t in ((N:ℝ) - 1/2)..((N:ℝ) + 1/2),
+        ‖ghsPrimePoly (fun n => ((f n : ℝ) : ℂ))
+          (x / blockLo x k).primesBelow t‖^2)
+      ≤ 2 * (Real.exp π * 8
+            * (1539 * (Real.log ((x / blockLo x k + 1 : ℕ):ℝ) + 2)
+              + 6144 * 4))
+          + 2 * (∑ q ∈ (x / blockLo x k).primesBelow.filter
+                (fun q : ℕ => ¬ 64 ≤ q),
+              Real.log (q:ℝ)/(q:ℝ))^2 :=
+    fun N _ => ghsPrimePoly_unit_energy_primesBelow_shell_le
+      (fun n => ((f n : ℝ) : ℂ)) hfc (x / blockLo x k) hX2 (N:ℝ)
+  exact tripleConvR_le f hf x hx P hPp h2p
+    (x / blockLo x k).primesBelow hQp hQpos hQsub
+    _ _ _ b hE₁0 hb0 hV₃0 hMtail0 hE₁ hBu hV le_rfl
+
 open Real Finset in
 /-- **§3's `k`-split at the Riesz window** (Track R, N184):
 
