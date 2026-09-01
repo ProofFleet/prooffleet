@@ -4140,6 +4140,60 @@ theorem sum_norm_sq_le_integral_of_separated (F F' : ℝ → ℂ)
         (intervalIntegral.integral_of_le (by linarith)).symm
 
 open MeasureTheory in
+/-- **The Gallagher closer, parametrised** (Track R, A2-III, V-0c): for
+`λ > 0`,
+
+  `∫_a^b (‖F‖² + 2‖F‖‖F′‖) ≤ (1+λ)∫_a^b ‖F‖² + (1/λ)∫_a^b ‖F′‖²`.
+
+Gallagher's lemma (`sum_norm_sq_le_integral_of_separated`) leaves a
+cross term `∫‖F‖‖F′‖` that no mean value theorem can price directly:
+the mean value theorems in tree bound `∫‖·‖²` of a Dirichlet
+polynomial, and a product of two different polynomials is not one.
+Cauchy–Schwarz separates them, and after that both integrals are mean
+values — `∫‖F‖²` at the coefficients `c n`, and `∫‖F′‖²` at the
+coefficients `c n·log n`, since differentiating `e(−ξ log n)` in `ξ`
+brings down exactly that factor.
+
+`λ` is kept free rather than optimised at `√(I₂/I₁)`.  The optimal
+choice would make the bound `∫‖F‖² + 2√(I₁I₂)`, but the square root is
+never what a consumer wants: the schedule fixes the ratio of the two
+mean values in advance, so substituting a concrete `λ` downstream does
+the same work with no analysis of `√`.  This is the same trade made by
+`integral_mul_le_param` on the Perron contour.
+
+The pointwise inequality is `(λ‖F‖ − ‖F′‖)²/λ ≥ 0`, so no sign or size
+condition on `F`, `F′` is needed beyond `λ > 0`. -/
+theorem integral_gallagher_le_param (F F' : ℝ → ℂ) (hFc : Continuous F)
+    (hF'c : Continuous F') (lam a b : ℝ) (hlam : 0 < lam) (hab : a ≤ b) :
+    (∫ u in a..b, (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖))
+      ≤ (1 + lam) * (∫ u in a..b, ‖F u‖^2)
+        + (1/lam) * (∫ u in a..b, ‖F' u‖^2) := by
+  have hFsq : Continuous fun u => ‖F u‖^2 := hFc.norm.pow 2
+  have hF'sq : Continuous fun u => ‖F' u‖^2 := hF'c.norm.pow 2
+  have hpt : ∀ u ∈ Set.Icc a b, ‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖
+      ≤ (1 + lam) * ‖F u‖^2 + (1/lam) * ‖F' u‖^2 := by
+    intro u _
+    rw [← sub_nonneg]
+    have hexp : (1 + lam) * ‖F u‖^2 + (1/lam) * ‖F' u‖^2
+          - (‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖)
+        = (lam * ‖F u‖ - ‖F' u‖)^2 / lam := by
+      field_simp
+      ring
+    rw [hexp]
+    positivity
+  have hi1 : IntervalIntegrable
+      (fun u => ‖F u‖^2 + 2 * ‖F u‖ * ‖F' u‖) volume a b :=
+    (hFsq.add ((continuous_const.mul hFc.norm).mul hF'c.norm)).intervalIntegrable _ _
+  have hi2 : IntervalIntegrable
+      (fun u => (1 + lam) * ‖F u‖^2 + (1/lam) * ‖F' u‖^2) volume a b :=
+    ((hFsq.intervalIntegrable _ _).const_mul _).add
+      ((hF'sq.intervalIntegrable _ _).const_mul _)
+  refine le_trans (intervalIntegral.integral_mono_on hab hi1 hi2 hpt) ?_
+  rw [intervalIntegral.integral_add ((hFsq.intervalIntegrable _ _).const_mul _)
+    ((hF'sq.intervalIntegrable _ _).const_mul _),
+    intervalIntegral.integral_const_mul, intervalIntegral.integral_const_mul]
+
+open MeasureTheory in
 /-- **The exceptional count** (Track R, A2-III, V-1c): the `Finset`-
 cardinality sibling of `measure_large_le_of_moment` — for a
 `1`-separated set `𝒯 ⊆ [−T, T]` on which `V ≤ ‖F‖`,
