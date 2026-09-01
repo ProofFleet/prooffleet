@@ -2354,6 +2354,92 @@ theorem setIntegral_norm_sq_sum_mul_le_of_small (Q R : ℕ → ℝ → ℂ) (I :
         refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum hlevel) ?_
         positivity
 
+
+open Finset in
+/-- **The level total** (Track R, A2-III, II-5b-1): the two geometric
+series of the `[MR]` level-1 estimate, summed —
+
+  `∑_{v=v₀}^{v₁} (e^{−αv/N})²·e^π(T e^{v/N}/A + K)·C
+     ≤ e^π·C·[ (T/A)e^{(1−2α)(v₁+1)/N}(N/(1−2α)+1)
+                + K e^{−2αv₀/N}(N/(2α)+1) ]`.
+
+The summand is exactly what `setIntegral_norm_sq_sum_mul_le_of_small`
+leaves behind once the caller supplies the `e`-adic smallness
+`s v = e^{−αv/N}` and the mean value bound at the cell scale
+`A e^{−v/N}`, which charges `T e^{v/N}/A`.  The mean value theorem's
+additive ratio term `K` and its coefficient mass `C` are left free
+rather than fixed at the dyadic `2`: the level-1 block lives at the
+*quotient* scale, and `ℕ`-division does not preserve block ratios, so
+the caller pays a ratio it does not get to choose.  The point is that
+the two
+factors pull in opposite directions: smallness decays at rate `2α`, the
+mean value error grows at rate `1`, so the product runs at exponent
+`1 − 2α` and the sum only converges because `2α < 1`.  That is the one
+place the `[MR]` schedule's constraint on `α` is actually used, and it
+is why the hypothesis is `2α < 1` rather than `α < 1`.
+
+Both halves are already in tree — `sum_exp_index_le` for the growing
+`1 − 2α` half, `sum_exp_neg_index_le` for the decaying `2α` half — so
+this unit is only the algebra that separates them: `(e^{−αv/N})² =
+e^{−2αv/N}` and `e^{−2αv/N}e^{v/N} = e^{(1−2α)v/N}`. -/
+theorem sum_level_energy_le (α : ℝ) (hα : 0 < α) (hα2 : 2*α < 1)
+    (N : ℕ) (hN : 0 < N) (v₀ v₁ : ℕ) (A T K C : ℝ) (hA : 0 < A)
+    (hT : 0 ≤ T) (hK : 0 ≤ K) (hC : 0 ≤ C) :
+    ∑ v ∈ Finset.Ico v₀ (v₁+1),
+        (Real.exp (-(α*(v:ℝ)/N)))^2
+          * (Real.exp Real.pi * (T*Real.exp ((v:ℝ)/N)/A + K) * C)
+      ≤ Real.exp Real.pi * C
+          * ( (T/A) * Real.exp ((1-2*α)*((v₁:ℝ)+1)/N) * ((N:ℝ)/(1-2*α) + 1)
+            + K * Real.exp (-(2*α*(v₀:ℝ)/N)) * ((N:ℝ)/(2*α) + 1) ) := by
+  classical
+  have hN0 : (0:ℝ) < N := by exact_mod_cast hN
+  have hβ : (0:ℝ) < 1 - 2*α := by linarith
+  have hcnn : (0:ℝ) ≤ Real.exp Real.pi * C := by positivity
+  -- rewrite each term into the two pure exponentials
+  have hterm : ∀ v : ℕ,
+      (Real.exp (-(α*(v:ℝ)/N)))^2
+          * (Real.exp Real.pi * (T*Real.exp ((v:ℝ)/N)/A + K) * C)
+        = Real.exp Real.pi * C
+            * ((T/A) * Real.exp ((1-2*α)*(v:ℝ)/N)
+                + K * Real.exp (-(2*α*(v:ℝ)/N))) := by
+    intro v
+    have h1 : (Real.exp (-(α*(v:ℝ)/N)))^2 = Real.exp (-(2*α*(v:ℝ)/N)) := by
+      rw [← Real.exp_nat_mul]
+      congr 1
+      ring
+    have h2 : Real.exp (-(2*α*(v:ℝ)/N)) * Real.exp ((v:ℝ)/N)
+        = Real.exp ((1-2*α)*(v:ℝ)/N) := by
+      rw [← Real.exp_add]
+      congr 1
+      field_simp
+      ring
+    rw [h1]
+    calc Real.exp (-(2*α*(v:ℝ)/N))
+          * (Real.exp Real.pi * (T*Real.exp ((v:ℝ)/N)/A + K) * C)
+        = Real.exp Real.pi * C
+            * ((T/A) * (Real.exp (-(2*α*(v:ℝ)/N)) * Real.exp ((v:ℝ)/N))
+                + K * Real.exp (-(2*α*(v:ℝ)/N))) := by
+          field_simp
+      _ = Real.exp Real.pi * C
+            * ((T/A) * Real.exp ((1-2*α)*(v:ℝ)/N)
+                + K * Real.exp (-(2*α*(v:ℝ)/N))) := by rw [h2]
+  rw [Finset.sum_congr rfl (fun v _ => hterm v), ← Finset.mul_sum]
+  refine mul_le_mul_of_nonneg_left ?_ hcnn
+  rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
+  have hgrow : ∑ v ∈ Finset.Ico v₀ (v₁+1), Real.exp ((1-2*α)*(v:ℝ)/N)
+      ≤ Real.exp ((1-2*α)*((v₁:ℝ)+1)/N) * ((N:ℝ)/(1-2*α) + 1) :=
+    sum_exp_index_le (1-2*α) hβ N hN v₀ v₁
+  have hdecay : ∑ v ∈ Finset.Ico v₀ (v₁+1), Real.exp (-(2*α*(v:ℝ)/N))
+      ≤ Real.exp (-(2*α*(v₀:ℝ)/N)) * ((N:ℝ)/(2*α) + 1) :=
+    sum_exp_neg_index_le (2*α) (by linarith) N hN v₀ v₁
+  have h1 : (T/A) * ∑ v ∈ Finset.Ico v₀ (v₁+1), Real.exp ((1-2*α)*(v:ℝ)/N)
+      ≤ (T/A) * (Real.exp ((1-2*α)*((v₁:ℝ)+1)/N) * ((N:ℝ)/(1-2*α) + 1)) :=
+    mul_le_mul_of_nonneg_left hgrow (by positivity)
+  have h2 : K * ∑ v ∈ Finset.Ico v₀ (v₁+1), Real.exp (-(2*α*(v:ℝ)/N))
+      ≤ K * (Real.exp (-(2*α*(v₀:ℝ)/N)) * ((N:ℝ)/(2*α) + 1)) :=
+    mul_le_mul_of_nonneg_left hdecay hK
+  linarith
+
 end ExpSums
 
 end MoltResearch
