@@ -1837,4 +1837,105 @@ theorem band_energy_level_le_of_prev_large (Y : Finset ℕ)
     (intervalIntegral_norm_sq_prime_poly_pow_mul_le Y hY P hP hlo hhi b hb ℓ hℓ
       A' Δ' hA' hΔ' S hS a ha T hT)
 
+open MeasureTheory Finset ExpSums in
+/-- **The elementary large-values count for a prime polynomial** (Track
+R, A2-III, V-4): for primes in `(P, 2P]`, `1`-bounded coefficients, and
+a `1`-separated `𝒯 ⊆ [−T, T]` on which the polynomial is at least `V`,
+
+  `#𝒯·V² ≤ e^π((T+1)/P + 4)·[(1+λ) + (2π log 2P)²/λ]·∑_{p∈Y} 1/p`.
+
+**This is exactly the statement `PrimeLargeValuesAssumption` improves.**
+`card_large_poly_le` at `A = P`, `R = 2`, with the two coefficient sums
+priced by `‖b p‖ ≤ 1` and `log p ≤ log 2P`.  Everything in it is proved
+in tree — Chebyshev, Gallagher, Cauchy–Schwarz, the derivative
+identification, the sharp mean value theorem — and nothing is quoted.
+
+**The gap, made precise.**  `[MR]` Lemma 8 asserts the same count is
+smaller by `exp(−log P/(log 2T)^{3/4})`.  Nothing above supplies that
+factor, and nothing can: every step here is an equality or a
+Cauchy–Schwarz, and the only place a saving could enter is the mean
+value theorem, which is sharp for *integer*-supported polynomials and
+therefore cannot see that the support is prime.  The saving is a
+statement about the distribution of primes — its known proof is duality
+plus a Mellin shift of `ζ′/ζ` into the Vinogradov–Korobov zero-free
+region — so the boundary between this lemma and
+`PrimeLargeValuesAssumption` is exactly the boundary between the
+elementary ladder and the literature.
+
+**Why `log 2P` and not `log P`.**  The derivative of a Dirichlet
+polynomial supported in `(P, 2P]` picks up `log n ≤ log 2P`
+(`hasDerivAt_dirichlet_poly`), and that is the only place the upper end
+of the dyadic range is used.  Choosing `λ ≍ 2π log 2P` balances the
+bracket at `≍ 1 + 4π log 2P`. -/
+theorem card_large_prime_poly_le (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (P : ℕ) (hP : 1 ≤ P) (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1) (𝒯 : Finset ℝ) (T V lam : ℝ)
+    (hT : 0 ≤ T) (hV : 0 ≤ V) (hlam : 0 < lam)
+    (hmem : ∀ t ∈ 𝒯, t ∈ Set.Icc (-T) T)
+    (hsep : ∀ t ∈ 𝒯, ∀ s ∈ 𝒯, t ≠ s → 1 ≤ |t - s|)
+    (hlarge : ∀ t ∈ 𝒯, V ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖) :
+    (𝒯.card : ℝ) * V^2
+      ≤ Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+          * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
+          * ∑ p ∈ Y, (1:ℝ)/(p:ℝ) := by
+  classical
+  have hP0 : (0:ℝ) < P := by exact_mod_cast hP
+  have hsub : Y ⊆ Finset.Ioc P (2*P) := fun p hp =>
+    Finset.mem_Ioc.mpr ⟨hlo p hp, hhi p hp⟩
+  have hpos : ∀ p ∈ Y, (0:ℝ) < p := fun p hp => by
+    have := hlo p hp
+    exact_mod_cast (by omega : 0 < p)
+  have hb2 : ∀ p : ℕ, ‖b p‖^2 ≤ 1 := fun p => by
+    nlinarith [hb p, norm_nonneg (b p)]
+  -- the plain coefficient mass
+  have hmass : ∑ p ∈ Y, ‖b p‖^2/(p:ℝ) ≤ ∑ p ∈ Y, (1:ℝ)/(p:ℝ) :=
+    Finset.sum_le_sum fun p hp =>
+      div_le_div_of_nonneg_right (hb2 p) (hpos p hp).le
+  -- the derivative's coefficient mass: `log p ≤ log 2P` on the range
+  have hmass' : ∑ p ∈ Y, (2*Real.pi*Real.log p)^2*‖b p‖^2/(p:ℝ)
+      ≤ (2*Real.pi*Real.log (2*(P:ℝ)))^2 * ∑ p ∈ Y, (1:ℝ)/(p:ℝ) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun p hp => ?_
+    have hp2 : (p:ℝ) ≤ 2*(P:ℝ) := by exact_mod_cast hhi p hp
+    have hlogp : 0 ≤ Real.log p := Real.log_nonneg (by
+      have := hlo p hp
+      exact_mod_cast (by omega : 1 ≤ p))
+    have hle : 2*Real.pi*Real.log p ≤ 2*Real.pi*Real.log (2*(P:ℝ)) := by
+      have hpi := Real.pi_pos
+      nlinarith [Real.log_le_log (hpos p hp) hp2]
+    have hsq : (2*Real.pi*Real.log p)^2 ≤ (2*Real.pi*Real.log (2*(P:ℝ)))^2 :=
+      pow_le_pow_left₀ (by positivity) hle 2
+    have hnum : (2*Real.pi*Real.log p)^2*‖b p‖^2
+        ≤ (2*Real.pi*Real.log (2*(P:ℝ)))^2 := by
+      calc (2*Real.pi*Real.log p)^2*‖b p‖^2
+          ≤ (2*Real.pi*Real.log p)^2*1 :=
+            mul_le_mul_of_nonneg_left (hb2 p) (sq_nonneg _)
+        _ = (2*Real.pi*Real.log p)^2 := by ring
+        _ ≤ _ := hsq
+    calc (2*Real.pi*Real.log p)^2*‖b p‖^2/(p:ℝ)
+        ≤ (2*Real.pi*Real.log (2*(P:ℝ)))^2/(p:ℝ) :=
+          div_le_div_of_nonneg_right hnum (hpos p hp).le
+      _ = (2*Real.pi*Real.log (2*(P:ℝ)))^2 * (1/(p:ℝ)) := by ring
+  refine le_trans (card_large_poly_le Y P 2 hP (by norm_num)
+    (by simpa using hsub) b 𝒯 T V lam hT hV hlam hmem hsep hlarge) ?_
+  have hX : Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*((2:ℕ):ℝ))
+      = Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ)) := by norm_num
+  rw [hX]
+  have hcnn : (0:ℝ) ≤ Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ)) := by positivity
+  have hlam0 : (0:ℝ) ≤ 1/lam := by positivity
+  have e1 : (1+lam) * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+        * ∑ p ∈ Y, ‖b p‖^2/(p:ℝ))
+      ≤ (1+lam) * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+        * ∑ p ∈ Y, (1:ℝ)/(p:ℝ)) := by
+    refine mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left hmass hcnn) ?_
+    linarith
+  have e2 : (1/lam) * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+        * ∑ p ∈ Y, (2*Real.pi*Real.log p)^2*‖b p‖^2/(p:ℝ))
+      ≤ (1/lam) * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+        * ((2*Real.pi*Real.log (2*(P:ℝ)))^2 * ∑ p ∈ Y, (1:ℝ)/(p:ℝ))) :=
+    mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left hmass' hcnn) hlam0
+  refine le_trans (add_le_add e1 e2) (le_of_eq ?_)
+  ring
+
 end MoltResearch
