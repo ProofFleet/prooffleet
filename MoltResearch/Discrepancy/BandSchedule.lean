@@ -383,4 +383,93 @@ theorem levelOne_le_budget (N R : ℕ) (V T A C P Q α c₃ ε ρ κ : ℝ)
       _ = _ := by ring
   linarith [hsplit, hfitT, hfitP]
 
+/-! ## The level-`j` leg (§4.3(e)) -/
+
+/-- **When the `ℓ`-th moment is affordable** (Track R, A2-III, S-cal-3).
+
+This is the whole mechanism of the level-`j` estimate, isolated.
+`band_energy_level_le_of_prev_large` pays `1/large^{2ℓ}` for inserting `ℓ` copies
+of the previous level's prime polynomial — a **loss**, since `large < 1` — and
+recovers it from the moment of the `ℓ`-fold prime product, which is
+`ℓ!²·2^{ℓ+1}(ℓ+1)σ^ℓ` rather than the trivial `(2^{ℓ+1})^{2ℓ}`.  Whether the
+level gains or loses is therefore the single question of how
+
+  `ℓ!²·(2σ)^ℓ / large^{2ℓ}`
+
+behaves, and by `ℓ! ≤ ℓ^ℓ` it is at most `(2ℓ²σ/large²)^ℓ`.
+
+Stated with no hypothesis on that ratio, so the gain stays visible: the factor is
+`< 1` and *decreasing in `ℓ`* exactly when `2ℓ²σ < large²`, which is what makes
+"take `ℓ` as large as the previous level's largeness supports" — the `ℓ_{j,r}` of
+schedule constraint `S5` — the right choice rather than a tuning knob.
+
+`σ = ∑_{p ∈ Y} 1/p ≍ 1/log P_j` on a dyadic prime range, so the criterion reads
+`ℓ ≲ large·√(log P_j)`. -/
+theorem levelJ_moment_le (ℓ : ℕ) (σ large : ℝ) (hσ : 0 ≤ σ) (hL : 0 < large) :
+    ((Nat.factorial ℓ : ℝ) ^ 2
+        * (((2 ^ (ℓ + 1) : ℕ) : ℝ) * ((ℓ : ℝ) + 1) * σ ^ ℓ)) / large ^ (2 * ℓ)
+      ≤ 2 * ((ℓ : ℝ) + 1) * (2 * (ℓ : ℝ) ^ 2 * σ / large ^ 2) ^ ℓ := by
+  have hL2 : (0 : ℝ) < large ^ 2 := by positivity
+  have hD : (0 : ℝ) < (large ^ 2) ^ ℓ := by positivity
+  have hfl : ((Nat.factorial ℓ : ℕ) : ℝ) ≤ (ℓ : ℝ) ^ ℓ := by
+    exact_mod_cast Nat.factorial_le_pow ℓ
+  have hfl0 : (0 : ℝ) ≤ ((Nat.factorial ℓ : ℕ) : ℝ) := Nat.cast_nonneg _
+  have hsq : ((Nat.factorial ℓ : ℕ) : ℝ) ^ 2 ≤ ((ℓ : ℝ) ^ 2) ^ ℓ := by
+    have h : ((Nat.factorial ℓ : ℕ) : ℝ) ^ 2 ≤ ((ℓ : ℝ) ^ ℓ) ^ 2 := by gcongr
+    calc ((Nat.factorial ℓ : ℕ) : ℝ) ^ 2 ≤ ((ℓ : ℝ) ^ ℓ) ^ 2 := h
+      _ = ((ℓ : ℝ) ^ 2) ^ ℓ := by rw [← pow_mul, ← pow_mul, Nat.mul_comm]
+  have h2σ : (0 : ℝ) ≤ (2 * σ) ^ ℓ := pow_nonneg (by linarith) ℓ
+  have hcast : (((2 ^ (ℓ + 1) : ℕ)) : ℝ) = 2 * 2 ^ ℓ := by push_cast; ring
+  have hnum : ((Nat.factorial ℓ : ℕ) : ℝ) ^ 2 * (2 * σ) ^ ℓ
+      ≤ ((ℓ : ℝ) ^ 2) ^ ℓ * (2 * σ) ^ ℓ := by gcongr
+  calc ((Nat.factorial ℓ : ℝ) ^ 2
+          * (((2 ^ (ℓ + 1) : ℕ) : ℝ) * ((ℓ : ℝ) + 1) * σ ^ ℓ)) / large ^ (2 * ℓ)
+      = 2 * ((ℓ : ℝ) + 1) * (((Nat.factorial ℓ : ℕ) : ℝ) ^ 2 * (2 * σ) ^ ℓ)
+          / (large ^ 2) ^ ℓ := by
+        rw [pow_mul, hcast, mul_pow]; ring
+    _ ≤ 2 * ((ℓ : ℝ) + 1) * (((ℓ : ℝ) ^ 2) ^ ℓ * (2 * σ) ^ ℓ)
+          / (large ^ 2) ^ ℓ := by gcongr
+    _ = 2 * ((ℓ : ℝ) + 1) * (2 * (ℓ : ℝ) ^ 2 * σ / large ^ 2) ^ ℓ := by
+        rw [div_pow, ← mul_pow]
+        ring_nf
+
+/-- **The level-`j` leg meets its share of the budget** (Track R, A2-III,
+S-cal-3; design report §4.3(e)).
+
+`setIntegral_norm_sq_level_sum_of_prev_large_le` shares `large`, the moment
+factor `M` and the mean value envelope `E` across all cells of the level; only
+`small v` varies.  So the level sum collapses to the total smallness
+`S₁ = ∑_v (small v)²` against one constant, and the schedule condition is a
+single inequality — with `M/large^{2ℓ}` in the shape `levelJ_moment_le` delivers.
+
+§4.3(e) reaches its condition `P₁ ≥ C/ε³` after transferring the short-block
+factorisation count to the dyadic one, at cost `A/Δ = 2/ε`; that transfer is a
+step in the moment leg, not here.  What this lemma fixes is the seam: the
+`ε³` the level must beat, and the exact arrangement of factors the moment bound
+plugs into. -/
+theorem levelJ_le_budget (I : Finset ℕ) (ℓ : ℕ) (small : ℕ → ℝ)
+    (large E M S₁ c₃ ε ρ κ : ℝ) (hlarge : 0 < large) (hE0 : 0 ≤ E) (hM0 : 0 ≤ M)
+    (hS₁ : ∑ v ∈ I, (small v) ^ 2 ≤ S₁)
+    (hfit : (I.card : ℝ) * (S₁ * (E * (M / large ^ (2 * ℓ))))
+      ≤ κ * bandBudget c₃ ε ρ) :
+    (I.card : ℝ) * ∑ v ∈ I, (small v) ^ 2 / large ^ (2 * ℓ) * (E * M)
+      ≤ κ * bandBudget c₃ ε ρ := by
+  have hD : (0 : ℝ) < large ^ (2 * ℓ) := by positivity
+  have hconst : (0 : ℝ) ≤ E * (M / large ^ (2 * ℓ)) :=
+    mul_nonneg hE0 (div_nonneg hM0 hD.le)
+  have hrw : ∑ v ∈ I, (small v) ^ 2 / large ^ (2 * ℓ) * (E * M)
+      = (∑ v ∈ I, (small v) ^ 2) * (E * (M / large ^ (2 * ℓ))) := by
+    rw [Finset.sum_mul]
+    exact Finset.sum_congr rfl fun v _ => by ring
+  have hstep : (∑ v ∈ I, (small v) ^ 2) * (E * (M / large ^ (2 * ℓ)))
+      ≤ S₁ * (E * (M / large ^ (2 * ℓ))) :=
+    mul_le_mul_of_nonneg_right hS₁ hconst
+  have hcard : (0 : ℝ) ≤ (I.card : ℝ) := Nat.cast_nonneg _
+  calc (I.card : ℝ) * ∑ v ∈ I, (small v) ^ 2 / large ^ (2 * ℓ) * (E * M)
+      = (I.card : ℝ) * ((∑ v ∈ I, (small v) ^ 2) * (E * (M / large ^ (2 * ℓ)))) := by
+        rw [hrw]
+    _ ≤ (I.card : ℝ) * (S₁ * (E * (M / large ^ (2 * ℓ)))) :=
+        mul_le_mul_of_nonneg_left hstep hcard
+    _ ≤ κ * bandBudget c₃ ε ρ := hfit
+
 end MoltResearch
