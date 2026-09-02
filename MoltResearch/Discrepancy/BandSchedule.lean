@@ -554,4 +554,80 @@ theorem outer_weight_gamma_eq (A H B' γ : ℝ) (hA : 0 < A) (hH : 0 < H)
   field_simp
   ring
 
+/-! ## The exceptional leg `𝒰` (§4.3(f), constraints `S6`/`S7`) -/
+
+/-- **The `𝒰` leg's budget, with both deviations paid** (Track R, A2-III,
+S-cal-5; design report §4.3(f)).
+
+`[MR]`/`[mrt]` deliver a saving `D` on the exceptional frequencies.  Two of our
+deviations from their argument cost: the Halász-pointwise bound is applied to a
+*short* sum, and partial summation from the in-tree long-sum Halász costs
+`A/Δ = 2/ε`, squared to `4/ε²`; against that, our budget is `ε³` rather than
+`ε²`, since the factor `Δ/A = ε/2` appears on the left as well.  They partly
+cancel, leaving one net factor `2/ε` — which is exactly the statement below with
+the two sides written out. -/
+theorem exceptional_saving_le_budget (ε D κ : ℝ) (hε : 0 < ε)
+    (h : 4 * D ≤ κ * ε ^ 5) : 4 / ε ^ 2 * D ≤ κ * ε ^ 3 := by
+  rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)]
+  have hshape : κ * ε ^ 3 * ε ^ 2 = κ * ε ^ 5 := by ring
+  linarith [h, hshape.ge, hshape.le]
+
+/-- **The `𝒰` leg is what fixes the top of the `W` range** (Track R, A2-III,
+S-cal-5; design report §4.3(f)/§4.2).
+
+With `ε = W^{−5/4}` and the `[MR]` saving `D = (log A)^{−1/50}`, the requirement
+`4D ≤ κε⁵` of `exceptional_saving_le_budget` is `4·L^{−1/50} ≤ κ·W^{−25/4}`, and
+this lemma is the exponent arithmetic that turns a bound on `W` into it.
+
+**This is a calibration, not a margin.**  Every other leg has an inequality with
+room in it; here the two sides meet, and the value `4/1250 = 2/625` of the
+exponent is forced.  That is the origin of the re-tuned `W ≤ (log A)^{1/320}` of
+§4.2, and of `[mrt]` `Theorem second` moving from `(log X)^{1/125}`. -/
+theorem exceptional_W_le (W L κ : ℝ) (hW : 0 < W) (hL : 0 < L) (hκ : 0 < κ)
+    (h : W ≤ (κ / 4) ^ ((4 : ℝ) / 25) * L ^ ((2 : ℝ) / 625)) :
+    W ^ ((25 : ℝ) / 4) ≤ κ / 4 * L ^ ((1 : ℝ) / 50) := by
+  have h1 : W ^ ((25 : ℝ) / 4)
+      ≤ ((κ / 4) ^ ((4 : ℝ) / 25) * L ^ ((2 : ℝ) / 625)) ^ ((25 : ℝ) / 4) :=
+    Real.rpow_le_rpow hW.le h (by norm_num)
+  refine h1.trans (le_of_eq ?_)
+  rw [Real.mul_rpow (by positivity) (by positivity),
+    ← Real.rpow_mul (by positivity : (0 : ℝ) ≤ κ / 4), ← Real.rpow_mul hL.le]
+  norm_num
+
+/-- **The report's `1/320` is exactly the slack that absorbs the constant**
+(Track R, A2-III, S-cal-5).
+
+`exceptional_W_le` admits `W ≤ (κ/4)^{4/25}·L^{2/625}`, and `2/625 = 1/312.5`;
+§4.2 states the schedule with the round exponent `1/320` instead.  The two differ
+by `2/625 − 1/320 = 3/40000`, and that difference is precisely what pays for the
+constant `(4/κ)^{4/25}` — so `W = L^{1/320}` is admissible once `L = log A` is
+past one absolute threshold, and no smaller exponent is needed.
+
+This is the whole content of "`W ≤ (log A)^{1/320}`, re-tuned from `1/125`": not
+an estimate with room, but the nearest round exponent below the forced
+`1/312.5`, with the gap sized to the constant. -/
+theorem exceptional_report_exponent_ok (L κ : ℝ) (hL : 1 ≤ L) (hκ : 0 < κ)
+    (hslack : (4 / κ) ^ ((4 : ℝ) / 25) ≤ L ^ ((3 : ℝ) / 40000)) :
+    L ^ ((1 : ℝ) / 320) ≤ (κ / 4) ^ ((4 : ℝ) / 25) * L ^ ((2 : ℝ) / 625) := by
+  have hL0 : (0 : ℝ) < L := lt_of_lt_of_le one_pos hL
+  have hc0 : (0 : ℝ) < (4 / κ) ^ ((4 : ℝ) / 25) :=
+    Real.rpow_pos_of_pos (by positivity) _
+  have hx0 : (0 : ℝ) ≤ L ^ ((1 : ℝ) / 320) :=
+    (Real.rpow_pos_of_pos hL0 _).le
+  have hkey : L ^ ((2 : ℝ) / 625)
+      = L ^ ((1 : ℝ) / 320) * L ^ ((3 : ℝ) / 40000) := by
+    rw [← Real.rpow_add hL0]
+    norm_num
+  have hinv : (κ / 4) ^ ((4 : ℝ) / 25) = ((4 / κ) ^ ((4 : ℝ) / 25))⁻¹ := by
+    rw [← Real.inv_rpow (by positivity)]
+    congr 1
+    field_simp
+  calc L ^ ((1 : ℝ) / 320)
+      = ((4 / κ) ^ ((4 : ℝ) / 25))⁻¹
+          * (L ^ ((1 : ℝ) / 320) * (4 / κ) ^ ((4 : ℝ) / 25)) := by
+        field_simp
+    _ ≤ ((4 / κ) ^ ((4 : ℝ) / 25))⁻¹
+          * (L ^ ((1 : ℝ) / 320) * L ^ ((3 : ℝ) / 40000)) := by gcongr
+    _ = (κ / 4) ^ ((4 : ℝ) / 25) * L ^ ((2 : ℝ) / 625) := by rw [hinv, hkey]
+
 end MoltResearch
