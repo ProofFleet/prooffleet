@@ -4784,6 +4784,123 @@ theorem card_large_poly_le (S : Finset ℕ) (A R : ℕ) (hA : 1 ≤ A) (hR : 1 �
         (fun n => (-(2*Real.pi*Real.log n) * Complex.I) * c n) (T+1) hT1)
 
 
+
+/-- **A2-III IV-3d-0 — the increment bound on a unit window.**
+
+Two points of the same unit window have squared norms differing by at most the
+window's `2‖F‖‖F'‖` mass.  This is the two-sided form of the increment estimate
+buried in `norm_sq_le_window_integral` (V-0a); pulling it out is what lets the
+*discretisation* run in the opposite direction to Gallagher's lemma — there a
+sum of sampled values was bounded by an integral, here an integral over an
+arbitrary subset of the window is bounded by a single sampled value. -/
+theorem norm_sq_sub_le_window_integral (F F' : ℝ → ℂ)
+    (hF : ∀ u, HasDerivAt F (F' u) u) (hFc : Continuous F)
+    (hF'c : Continuous F') (a s t : ℝ)
+    (hs : s ∈ Set.Icc a (a+1)) (ht : t ∈ Set.Icc a (a+1)) :
+    ‖F s‖^2 - ‖F t‖^2 ≤ ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ := by
+  have hgderiv : ∀ u, HasDerivAt (fun v => ‖F v‖^2)
+      (2 * (inner ℝ (F u) (F' u) : ℝ)) u := fun u => (hF u).norm_sq
+  have hhc : Continuous fun u => 2 * ‖F u‖ * ‖F' u‖ :=
+    (continuous_const.mul hFc.norm).mul hF'c.norm
+  have hdc : Continuous fun u => 2 * (inner ℝ (F u) (F' u) : ℝ) := by fun_prop
+  have hbound : ∀ u, |2 * (inner ℝ (F u) (F' u) : ℝ)| ≤ 2 * ‖F u‖ * ‖F' u‖ := by
+    intro u
+    rw [abs_mul, abs_of_nonneg (by norm_num : (0:ℝ) ≤ 2)]
+    have := abs_real_inner_le_norm (F u) (F' u)
+    nlinarith [abs_nonneg (inner ℝ (F u) (F' u) : ℝ)]
+  have hhnn : ∀ u, 0 ≤ 2 * ‖F u‖ * ‖F' u‖ := fun u => by positivity
+  have hInt : ‖F s‖^2 - ‖F t‖^2
+      = ∫ v in t..s, (2 * (inner ℝ (F v) (F' v) : ℝ)) :=
+    (intervalIntegral.integral_eq_sub_of_hasDerivAt (fun v _ => hgderiv v)
+      (hdc.intervalIntegrable _ _)).symm
+  rw [hInt]
+  rcases le_total t s with hts | hts
+  · calc (∫ v in t..s, (2 * (inner ℝ (F v) (F' v) : ℝ)))
+        ≤ ∫ v in t..s, 2 * ‖F v‖ * ‖F' v‖ :=
+          intervalIntegral.integral_mono_on hts (hdc.intervalIntegrable _ _)
+            (hhc.intervalIntegrable _ _) (fun v _ => le_of_abs_le (hbound v))
+      _ ≤ ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ :=
+          intervalIntegral.integral_mono_interval ht.1 hts hs.2
+            (Filter.Eventually.of_forall (fun v => hhnn v))
+            (hhc.intervalIntegrable _ _)
+  · rw [intervalIntegral.integral_symm]
+    calc -(∫ v in s..t, (2 * (inner ℝ (F v) (F' v) : ℝ)))
+        = ∫ v in s..t, -(2 * (inner ℝ (F v) (F' v) : ℝ)) := by
+          rw [intervalIntegral.integral_neg]
+      _ ≤ ∫ v in s..t, 2 * ‖F v‖ * ‖F' v‖ :=
+          intervalIntegral.integral_mono_on hts (hdc.neg.intervalIntegrable _ _)
+            (hhc.intervalIntegrable _ _)
+            (fun v _ => by have h1 := (abs_le.mp (hbound v)).1; linarith)
+      _ ≤ ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ :=
+          intervalIntegral.integral_mono_interval hs.1 hts ht.2
+            (Filter.Eventually.of_forall (fun v => hhnn v))
+            (hhc.intervalIntegrable _ _)
+
+open MeasureTheory in
+/-- **A2-III IV-3d-1 — the discretisation, one cell.**
+
+For *any* measurable `G` inside a unit window and *any* sample point `t` of that
+window,
+
+  `∫_G ‖F‖² ≤ ‖F t‖² + ∫_window 2‖F‖‖F'‖`.
+
+This is step 1 of the `𝒰` treatment ([MR, Lemma 2]) at the level of a single
+cell, and it is the direction Gallagher's lemma does not give: an integral over
+an unstructured set replaced by one *sampled value*, at the price of the
+window's derivative mass.
+
+Two design points make the assembly (IV-3d-2) cheap.  The window has length `1`,
+so no averaging constant appears — `volume G ≤ 1` is the whole measure-theoretic
+input.  And because the statement is about a single cell, summing it over the
+integer cells `[k, k+1]`, which *partition* the line, needs no bounded-overlap
+argument at all: the usual `∑_t ∫_{[t−1,t+1]}` cover would have cost a factor
+`3` and a counting lemma.  The price is that the sample points of adjacent cells
+need not be `1`-separated, which is repaired downstream by splitting the cells
+into even and odd families — the origin of `[MR]`'s factor `2`. -/
+theorem setIntegral_norm_sq_cell_le (F F' : ℝ → ℂ)
+    (hF : ∀ u, HasDerivAt F (F' u) u) (hFc : Continuous F)
+    (hF'c : Continuous F') (G : Set ℝ) (hGm : MeasurableSet G)
+    (a t : ℝ) (ht : t ∈ Set.Icc a (a+1)) (hG : G ⊆ Set.Icc a (a+1)) :
+    (∫ ξ in G, ‖F ξ‖^2)
+      ≤ ‖F t‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ := by
+  have ha1 : a ≤ a + 1 := by linarith
+  have hhc : Continuous fun u => 2 * ‖F u‖ * ‖F' u‖ :=
+    (continuous_const.mul hFc.norm).mul hF'c.norm
+  have hhnn : ∀ u, 0 ≤ 2 * ‖F u‖ * ‖F' u‖ := fun u => by positivity
+  -- The right-hand side is a nonnegative constant dominating `‖F‖²` on `G`.
+  have hCnn : (0:ℝ) ≤ ‖F t‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ := by
+    have : (0:ℝ) ≤ ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ :=
+      intervalIntegral.integral_nonneg ha1 (fun v _ => hhnn v)
+    positivity
+  have hle : ∀ ξ ∈ G, ‖F ξ‖^2
+      ≤ ‖F t‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ := by
+    intro ξ hξ
+    have := norm_sq_sub_le_window_integral F F' hF hFc hF'c a ξ t (hG hξ) ht
+    linarith
+  -- `G` sits in a window of length one, so its measure is at most one.
+  have hvol : volume G ≤ 1 := by
+    refine (measure_mono hG).trans ?_
+    rw [Real.volume_Icc]
+    simp
+  have hvolt : volume G ≠ ⊤ := by
+    intro h
+    rw [h] at hvol
+    exact absurd hvol (by simp)
+  have hvolR : (volume G).toReal ≤ 1 := by
+    have := ENNReal.toReal_mono (by simp) hvol
+    simpa using this
+  have hint : IntegrableOn (fun ξ => ‖F ξ‖^2) G :=
+    ((hFc.norm.pow 2).integrableOn_Icc).mono_set hG
+  calc (∫ ξ in G, ‖F ξ‖^2)
+      ≤ ∫ _ξ in G, (‖F t‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖) :=
+        setIntegral_mono_on hint
+          (integrableOn_const hvolt) hGm hle
+    _ = (volume G).toReal * (‖F t‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖) := by
+        rw [setIntegral_const, smul_eq_mul, measureReal_def]
+    _ ≤ 1 * (‖F t‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖) := by
+        exact mul_le_mul_of_nonneg_right hvolR hCnn
+    _ = ‖F t‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ := one_mul _
+
 end ExpSums
 
 end MoltResearch
