@@ -4224,6 +4224,55 @@ theorem setIntegral_le_intervalIntegral_of_nonneg (f : ℝ → ℝ)
   exact setIntegral_mono_set hfc.integrableOn_Ioc
     (Filter.Eventually.of_forall hf0) hGT.eventuallyLE
 
+open MeasureTheory in
+/-- **A2-III VI-1c-3 — the level sum of an interval-priced family.**
+
+The error-term analogue of `setIntegral_norm_sq_sum_mul_le_of_small`: a sum over
+levels of *arbitrary* continuous functions, each of whose energies is known only
+through an estimate on the enclosing interval, is bounded on any measurable
+`G ⊆ Ioc (-T) T` by `#I` times the sum of those estimates.
+
+This is the shape the replacement error of `sum_eq_cell_rep_add_cell_error`
+arrives in.  That identity leaves `∑_v ∑_{p ∈ cell v} w_p (Z_p − Z_{q_v})`, whose
+`v`-th term is exactly the integrand of
+`intervalIntegral_norm_sq_cell_replace_le` — an estimate proved on `(-T)..T`.
+Two steps are needed to consume it, and neither is available for the main term's
+route: Cauchy–Schwarz over the levels (`norm_sum_sq_le_card_mul`), because the
+cell errors are no more orthogonal on `G` than the cell polynomials are; and the
+enlargement of `G` to its interval (`setIntegral_le_intervalIntegral_of_nonneg`),
+because the collar cost is an interval statement.
+
+The `#I` here is the same Cauchy–Schwarz factor `band_energy_level_one_le`
+carries on the main term, and for the same reason.  Unlike that lemma this one
+assumes nothing about the shape of `E v` — no smallness, no factorisation into a
+cell polynomial times a block — since the error terms have neither. -/
+theorem setIntegral_norm_sq_sum_le_card_mul (E : ℕ → ℝ → ℂ) (I : Finset ℕ)
+    (hE : ∀ v ∈ I, Continuous (E v)) (T : ℝ) (hT : 0 ≤ T)
+    (G : Set ℝ) (hGm : MeasurableSet G) (hGT : G ⊆ Set.Ioc (-T) T)
+    (M : ℕ → ℝ) (hM : ∀ v ∈ I, (∫ ξ in (-T)..T, ‖E v ξ‖^2) ≤ M v) :
+    (∫ ξ in G, ‖∑ v ∈ I, E v ξ‖^2) ≤ (I.card : ℝ) * ∑ v ∈ I, M v := by
+  classical
+  have hEc : ∀ v ∈ I, Continuous fun ξ => ‖E v ξ‖^2 := fun v hv =>
+    ((hE v hv).norm.pow 2)
+  have hEi : ∀ v ∈ I, IntegrableOn (fun ξ => ‖E v ξ‖^2) G := fun v hv =>
+    ((hEc v hv).integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  have hsumc : Continuous fun ξ => ‖∑ v ∈ I, E v ξ‖^2 :=
+    ((continuous_finset_sum I fun v hv => hE v hv).norm.pow 2)
+  have hsumi : IntegrableOn (fun ξ => ‖∑ v ∈ I, E v ξ‖^2) G :=
+    (hsumc.integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  calc (∫ ξ in G, ‖∑ v ∈ I, E v ξ‖^2)
+      ≤ ∫ ξ in G, (I.card : ℝ) * ∑ v ∈ I, ‖E v ξ‖^2 :=
+        setIntegral_mono_on hsumi
+          ((integrable_finset_sum I fun v hv => hEi v hv).const_mul _)
+          hGm (fun ξ _ => norm_sum_sq_le_card_mul I (fun v => E v ξ))
+    _ = (I.card : ℝ) * ∑ v ∈ I, ∫ ξ in G, ‖E v ξ‖^2 := by
+        rw [integral_const_mul, integral_finset_sum I (fun v hv => hEi v hv)]
+    _ ≤ (I.card : ℝ) * ∑ v ∈ I, M v := by
+        refine mul_le_mul_of_nonneg_left
+          (Finset.sum_le_sum fun v hv => ?_) (by positivity)
+        exact le_trans (setIntegral_le_intervalIntegral_of_nonneg _ (hEc v hv)
+          (fun ξ => by positivity) T hT G hGT) (hM v hv)
+
 end ExpSums
 
 end MoltResearch
