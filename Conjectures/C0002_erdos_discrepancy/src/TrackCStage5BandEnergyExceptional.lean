@@ -20,6 +20,9 @@ Units:
 
 * **IV-3b** (`sum_prime_integer_energy_le`, this file) — the discrete `𝒰`
   energy: [MR, Lemma 2] steps 3–5 with both large-values inputs discharged.
+* **IV-3c** (`sum_prime_integer_energy_card_free_le`, this file) — the same
+  bound with the large set's cardinality eliminated by the *elementary* count
+  `card_large_prime_poly_le` (V-1c), leaving no free set-theoretic quantity.
 -/
 
 namespace MoltResearch
@@ -105,6 +108,91 @@ theorem sum_prime_integer_energy_le [HalaszLargeValuesAssumption]
                   * (Real.log (2*T))^2)
               * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by
         gcongr
+
+
+/-- **A2-III IV-3c — the discrete `𝒰` energy with the large set counted.**
+
+`sum_prime_integer_energy_le` leaves one free set-theoretic quantity, the
+cardinality of the large set `𝒯_L = {t ∈ 𝒯 : V₀ < ‖Q t‖}`.  That quantity is
+*not* an assumption: it is bounded by the in-tree elementary chain
+(Chebyshev on `|Q|^{2ℓ}`, the sharp mean-value theorem, Gallagher), whose
+endpoint is `MoltResearch.card_large_prime_poly_le`.  Feeding it in gives a
+bound with no residual reference to `𝒯_L`:
+
+```
+|𝒯_L| ≤ Cgal / V₀²,   Cgal := e^π·((T+1)/P + 4)·((1+λ) + λ⁻¹(2π log 2P)²)·∑_{p ∈ Y} 1/p.
+```
+
+The `1/V₀²` is the honest price of the count, and it is why the threshold `V₀`
+cannot simply be sent to zero: shrinking `V₀` cheapens the integer side and
+dearens the prime side at exactly the reciprocal rate.  Choosing it is the
+consumer's job — [MR] takes `V₀ = (log X)^{−100}`.
+
+`λ > 0` is the free Cauchy–Schwarz dial inherited from Gallagher's Sobolev step
+(`integral_gallagher_le_param`); any positive value is admissible.
+
+Note the prime range tightens from `P ≤ p` to `P < p`, which is what the
+elementary count requires and what the `𝒰` block `Y ⊆ (P, 2P]` supplies anyway;
+the large-values class's weaker `P ≤ p` follows. -/
+theorem sum_prime_integer_energy_card_free_le [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
+    (N : ℕ) (a : ℕ → ℂ)
+    (T : ℝ) (hT : 0 < T) (𝒯 : Finset ℝ)
+    (hmem : ∀ t ∈ 𝒯, |t| ≤ T)
+    (hsep : ∀ t ∈ 𝒯, ∀ u ∈ 𝒯, t ≠ u → 1 ≤ |t - u|)
+    (V₀ δ lam : ℝ) (hV₀ : 0 < V₀) (hlam : 0 < lam)
+    (hlarge : ∀ t ∈ 𝒯.filter (fun t => V₀ < ‖∑ p ∈ Y, (b p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖),
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+        * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ) :
+    ∑ t ∈ 𝒯, ‖∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖^2
+      ≤ V₀^2 * (64 * ((N:ℝ) + (𝒯.card:ℝ) * Real.sqrt T) * (Real.log (2*T) + 1)
+                  * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+        + δ^2 * (64 * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+                      * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
+                      * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2
+                  * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                  * (Real.log (2*T))^2)
+              * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by
+  set 𝒯L := 𝒯.filter (fun t => V₀ < ‖∑ p ∈ Y, (b p/(p:ℂ))
+      * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖) with h𝒯L
+  have hsub : 𝒯L ⊆ 𝒯 := by rw [h𝒯L]; exact Finset.filter_subset _ _
+  -- IV-3b, with the cardinality still free.
+  have hb3 := sum_prime_integer_energy_le P hP Y hY
+    (fun p hp => ⟨(hlo p hp).le, hhi p hp⟩) b N a T hT 𝒯 hmem hsep V₀ δ hV₀.le hlarge
+  -- V-1c: the elementary count of the large set.
+  have hmemL : ∀ t ∈ 𝒯L, t ∈ Set.Icc (-T) T :=
+    fun t ht => Set.mem_Icc.mpr (abs_le.mp (hmem t (hsub ht)))
+  have hsepL : ∀ t ∈ 𝒯L, ∀ u ∈ 𝒯L, t ≠ u → 1 ≤ |t - u| :=
+    fun t ht u hu => hsep t (hsub ht) u (hsub hu)
+  have hlargeQ : ∀ t ∈ 𝒯L, V₀ ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+      * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖ := by
+    intro t ht
+    rw [h𝒯L] at ht
+    exact (Finset.mem_filter.mp ht).2.le
+  have hcardV := MoltResearch.card_large_prime_poly_le Y hY P (by omega) hlo hhi
+    b hb 𝒯L T V₀ lam hT.le hV₀.le hlam hmemL hsepL hlargeQ
+  have hcard : (𝒯L.card : ℝ)
+      ≤ (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+          * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
+          * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2 := by
+    rw [le_div_iff₀ (by positivity)]
+    exact hcardV
+  -- Substituting the count is monotone: `log P > 0` since `2 ≤ P`.
+  have hlogP : 0 < Real.log (P:ℝ) := by
+    have : (2:ℝ) ≤ (P:ℝ) := by exact_mod_cast hP
+    exact Real.log_pos (by linarith)
+  have hcoef : (0:ℝ) ≤ ∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2 :=
+    Finset.sum_nonneg fun p _ => by positivity
+  refine hb3.trans ?_
+  -- `gcongr` discharges the substitution from `hcard` in context.
+  gcongr
 
 end Tao2015
 
