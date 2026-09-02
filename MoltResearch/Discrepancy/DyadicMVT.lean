@@ -4901,6 +4901,275 @@ theorem setIntegral_norm_sq_cell_le (F F' : ℝ → ℂ)
         exact mul_le_mul_of_nonneg_right hvolR hCnn
     _ = ‖F t‖^2 + ∫ v in a..(a+1), 2 * ‖F v‖ * ‖F' v‖ := one_mul _
 
+
+open MeasureTheory in
+/-- **A2-III IV-3d-2 — the discretisation, assembled over integer cells.**
+
+Summing `setIntegral_norm_sq_cell_le` over a finite family of integer cells
+covering `G`:
+
+  `∫_G ‖F‖² ≤ ∑_{k ∈ K} ‖F (τ k)‖² + ∑_{k ∈ K} ∫_k^{k+1} 2‖F‖‖F'‖`.
+
+The cells `[k, k+1)` are pairwise disjoint, so the left-hand side splits by
+`integral_biUnion_finset` with **equality** — there is no bounded-overlap loss,
+which is the whole reason for cells rather than the textbook cover by intervals
+`[t−1, t+1]` around a maximal `1`-separated set.
+
+The sample points `τ` are a *hypothesis*, not a construction: any choice with
+`τ k ∈ [k, k+1]` works, and leaving it free keeps the set-theoretic question of
+which points are available (in `[MR]`, points of `𝒰` itself) with the consumer,
+where it belongs.  Note the sampled points are not asserted to be `1`-separated
+here, and generically they are not — adjacent cells can supply points at
+distance `ε`.  Recovering separation is a downstream even/odd split of `K`,
+which is where `[MR]`'s factor `2` comes from. -/
+theorem setIntegral_norm_sq_le_sum_cells (F F' : ℝ → ℂ)
+    (hF : ∀ u, HasDerivAt F (F' u) u) (hFc : Continuous F)
+    (hF'c : Continuous F') (G : Set ℝ) (hGm : MeasurableSet G)
+    (K : Finset ℤ) (τ : ℤ → ℝ)
+    (hτ : ∀ k ∈ K, τ k ∈ Set.Icc (k:ℝ) ((k:ℝ)+1))
+    (hcover : G ⊆ ⋃ k ∈ K, Set.Ico (k:ℝ) ((k:ℝ)+1)) :
+    (∫ ξ in G, ‖F ξ‖^2)
+      ≤ ∑ k ∈ K, ‖F (τ k)‖^2
+        + ∑ k ∈ K, ∫ v in (k:ℝ)..((k:ℝ)+1), 2 * ‖F v‖ * ‖F' v‖ := by
+  -- Each piece sits in the closed cell, which is what IV-3d-1 wants.
+  have hsub : ∀ k : ℤ, G ∩ Set.Ico (k:ℝ) ((k:ℝ)+1) ⊆ Set.Icc (k:ℝ) ((k:ℝ)+1) :=
+    fun k x hx => ⟨hx.2.1, le_of_lt hx.2.2⟩
+  have hmeas : ∀ k ∈ K, MeasurableSet (G ∩ Set.Ico (k:ℝ) ((k:ℝ)+1)) :=
+    fun k _ => hGm.inter measurableSet_Ico
+  have hintg : ∀ k ∈ K,
+      IntegrableOn (fun ξ => ‖F ξ‖^2) (G ∩ Set.Ico (k:ℝ) ((k:ℝ)+1)) :=
+    fun k _ => ((hFc.norm.pow 2).integrableOn_Icc).mono_set (hsub k)
+  -- Distinct integer cells are disjoint: `k < l` forces `k + 1 ≤ l`.
+  have hdisj : Set.Pairwise (↑K)
+      (Function.onFun Disjoint fun k : ℤ => G ∩ Set.Ico (k:ℝ) ((k:ℝ)+1)) := by
+    intro k _ l _ hkl
+    show Disjoint (G ∩ Set.Ico (k:ℝ) ((k:ℝ)+1)) (G ∩ Set.Ico (l:ℝ) ((l:ℝ)+1))
+    refine Disjoint.mono Set.inter_subset_right Set.inter_subset_right ?_
+    rw [Set.disjoint_left]
+    intro x hx hx'
+    rcases lt_or_gt_of_ne hkl with h | h
+    · have hc : (k:ℝ) + 1 ≤ (l:ℝ) := by exact_mod_cast (by omega : k + 1 ≤ l)
+      linarith [hx.2, hx'.1]
+    · have hc : (l:ℝ) + 1 ≤ (k:ℝ) := by exact_mod_cast (by omega : l + 1 ≤ k)
+      linarith [hx'.2, hx.1]
+  have hGeq : G = ⋃ k ∈ K, (G ∩ Set.Ico (k:ℝ) ((k:ℝ)+1)) := by
+    rw [← Set.inter_iUnion₂]
+    exact (Set.inter_eq_self_of_subset_left hcover).symm
+  have hsplit : (∫ ξ in G, ‖F ξ‖^2)
+      = ∑ k ∈ K, ∫ ξ in (G ∩ Set.Ico (k:ℝ) ((k:ℝ)+1)), ‖F ξ‖^2 := by
+    conv_lhs => rw [hGeq]
+    exact integral_biUnion_finset K hmeas hdisj hintg
+  rw [hsplit, ← Finset.sum_add_distrib]
+  refine Finset.sum_le_sum fun k hk => ?_
+  exact setIntegral_norm_sq_cell_le F F' hF hFc hF'c
+    (G ∩ Set.Ico (k:ℝ) ((k:ℝ)+1)) (hmeas k hk) (k:ℝ) (τ k) (hτ k hk) (hsub k)
+
+
+/-- **A2-III IV-3d-3a — sampled points of well-gapped cells are `1`-separated.**
+
+If distinct cell indices in `K'` differ by at least `2`, then sample points drawn
+one from each cell `[k, k+1]` are at distance at least `1`: the lower point is at
+most `k+1` and the upper at least `k+2`.  This is the separation hypothesis every
+large-values theorem requires, and gap `2` is the least that supplies it — gap `1`
+does not, since adjacent cells can hand back points an arbitrarily small distance
+apart. -/
+theorem separated_of_sample_gap_two (K' : Finset ℤ) (τ : ℤ → ℝ)
+    (hτ : ∀ k ∈ K', τ k ∈ Set.Icc (k:ℝ) ((k:ℝ)+1))
+    (hgap : ∀ k ∈ K', ∀ l ∈ K', k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k) :
+    ∀ s ∈ K'.image τ, ∀ t ∈ K'.image τ, s ≠ t → 1 ≤ |s - t| := by
+  intro s hs t ht hst
+  obtain ⟨k, hk, rfl⟩ := Finset.mem_image.mp hs
+  obtain ⟨l, hl, rfl⟩ := Finset.mem_image.mp ht
+  have hkl : k ≠ l := by rintro rfl; exact hst rfl
+  have hk' := hτ k hk
+  have hl' := hτ l hl
+  rcases hgap k hk l hl hkl with h | h
+  · have hc : (k:ℝ) + 2 ≤ (l:ℝ) := by exact_mod_cast h
+    rw [abs_sub_comm, abs_of_nonneg (by linarith [hk'.2, hl'.1])]
+    linarith [hk'.2, hl'.1]
+  · have hc : (l:ℝ) + 2 ≤ (k:ℝ) := by exact_mod_cast h
+    rw [abs_of_nonneg (by linarith [hl'.2, hk'.1])]
+    linarith [hl'.2, hk'.1]
+
+/-- **A2-III IV-3d-3b — the sample map is injective on well-gapped cells.**
+
+An immediate consequence of `separated_of_sample_gap_two`: points at distance at
+least `1` are in particular distinct, so a sum over the sampled *set* is a sum
+over the cell indices.  Without this, passing to `Finset.image` would silently
+collapse repeated values and weaken the bound. -/
+theorem sum_image_sample_eq (K' : Finset ℤ) (τ : ℤ → ℝ) (g : ℝ → ℝ)
+    (hτ : ∀ k ∈ K', τ k ∈ Set.Icc (k:ℝ) ((k:ℝ)+1))
+    (hgap : ∀ k ∈ K', ∀ l ∈ K', k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k) :
+    ∑ t ∈ K'.image τ, g t = ∑ k ∈ K', g (τ k) := by
+  refine Finset.sum_image ?_
+  intro k hk l hl hkl
+  by_contra hne
+  have hk' : k ∈ K' := by simpa using hk
+  have hl' : l ∈ K' := by simpa using hl
+  have hk1 := hτ k hk'
+  have hl1 := hτ l hl'
+  rcases hgap k hk' l hl' hne with h | h
+  · have hc : (k:ℝ) + 2 ≤ (l:ℝ) := by exact_mod_cast h
+    exact absurd hkl (ne_of_lt (by linarith [hk1.2, hl1.1]))
+  · have hc : (l:ℝ) + 2 ≤ (k:ℝ) := by exact_mod_cast h
+    exact absurd hkl (ne_of_gt (by linarith [hl1.2, hk1.1]))
+
+open MeasureTheory in
+/-- **A2-III IV-3d-3 — the discretisation, into two `1`-separated families.**
+
+The `𝒰`-treatment's step 1 in the form its consumer wants ([MR, Lemma 2]):
+
+  `∫_G ‖F‖² ≤ ∑_{t ∈ 𝒯even} ‖F t‖² + ∑_{t ∈ 𝒯odd} ‖F t‖² + ∑_{k ∈ K} ∫_k^{k+1} 2‖F‖‖F'‖`,
+
+where `𝒯even`/`𝒯odd` are the points sampled from the even- and odd-indexed cells.
+Each family is `1`-separated (`separated_of_sample_gap_two`, since distinct
+integers of the same parity differ by at least `2`), which is exactly the
+hypothesis `HalaszLargeValuesAssumption`, `PrimeLargeValuesAssumption` and
+`card_large_prime_poly_le` all require — so IV-3c applies to each family
+separately and the two results add.
+
+**This is where `[MR]`'s factor `2` comes from.**  The paper writes
+`∫_𝒰|QR|² ≤ 2∑_{t ∈ 𝒯}|Q|²|R|²`; the `2` is not slack but the two parity
+classes, which is the price of covering the line by cells whose sample points
+carry no separation of their own. -/
+theorem setIntegral_norm_sq_le_two_separated (F F' : ℝ → ℂ)
+    (hF : ∀ u, HasDerivAt F (F' u) u) (hFc : Continuous F)
+    (hF'c : Continuous F') (G : Set ℝ) (hGm : MeasurableSet G)
+    (K : Finset ℤ) (τ : ℤ → ℝ)
+    (hτ : ∀ k ∈ K, τ k ∈ Set.Icc (k:ℝ) ((k:ℝ)+1))
+    (hcover : G ⊆ ⋃ k ∈ K, Set.Ico (k:ℝ) ((k:ℝ)+1)) :
+    (∫ ξ in G, ‖F ξ‖^2)
+      ≤ (∑ t ∈ (K.filter (fun k => Even k)).image τ, ‖F t‖^2)
+        + (∑ t ∈ (K.filter (fun k => ¬ Even k)).image τ, ‖F t‖^2)
+        + ∑ k ∈ K, ∫ v in (k:ℝ)..((k:ℝ)+1), 2 * ‖F v‖ * ‖F' v‖ := by
+  -- Distinct integers of the same parity are at least `2` apart.
+  have hgapE : ∀ k ∈ K.filter (fun k => Even k), ∀ l ∈ K.filter (fun k => Even k),
+      k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k := by
+    intro k hk l hl hkl
+    have hke : Even k := (Finset.mem_filter.mp hk).2
+    have hle : Even l := (Finset.mem_filter.mp hl).2
+    obtain ⟨m, hm⟩ := hke
+    obtain ⟨n, hn⟩ := hle
+    omega
+  have hgapO : ∀ k ∈ K.filter (fun k => ¬ Even k),
+      ∀ l ∈ K.filter (fun k => ¬ Even k), k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k := by
+    intro k hk l hl hkl
+    have hke : ¬ Even k := (Finset.mem_filter.mp hk).2
+    have hle : ¬ Even l := (Finset.mem_filter.mp hl).2
+    rw [Int.not_even_iff_odd] at hke hle
+    obtain ⟨m, hm⟩ := hke
+    obtain ⟨n, hn⟩ := hle
+    omega
+  have hτE : ∀ k ∈ K.filter (fun k => Even k), τ k ∈ Set.Icc (k:ℝ) ((k:ℝ)+1) :=
+    fun k hk => hτ k (Finset.mem_filter.mp hk).1
+  have hτO : ∀ k ∈ K.filter (fun k => ¬ Even k), τ k ∈ Set.Icc (k:ℝ) ((k:ℝ)+1) :=
+    fun k hk => hτ k (Finset.mem_filter.mp hk).1
+  rw [sum_image_sample_eq _ τ (fun t => ‖F t‖^2) hτE hgapE,
+    sum_image_sample_eq _ τ (fun t => ‖F t‖^2) hτO hgapO]
+  -- The two parity classes partition `K`, so the sampled sums recombine.
+  have hpart : (∑ k ∈ K.filter (fun k => Even k), ‖F (τ k)‖^2)
+      + (∑ k ∈ K.filter (fun k => ¬ Even k), ‖F (τ k)‖^2)
+      = ∑ k ∈ K, ‖F (τ k)‖^2 :=
+    Finset.sum_filter_add_sum_filter_not _ _ _
+  rw [hpart]
+  exact setIntegral_norm_sq_le_sum_cells F F' hF hFc hF'c G hGm K τ hτ hcover
+
+
+open MeasureTheory in
+/-- **A2-III IV-3e-1 — the cell correction collapses to one interval integral.**
+
+The discretisation (IV-3d-3) leaves the derivative mass spread over the
+individual cells, `∑_{k ∈ K} ∫_k^{k+1} h`.  Whenever the cells are drawn from a
+contiguous block `[m, M]` and the integrand is nonnegative, that sum is at most
+the single integral `∫_m^{M+1} h`: the half-open cells `(k, k+1]` are pairwise
+disjoint and all sit inside `(m, M+1]`.
+
+Nonnegativity is what makes a *subset* `K ⊆ [m, M]` harmless — the cells not
+drawn simply contribute nothing to the right-hand side.  With this the whole
+correction becomes a pair of mean values (`∫‖F‖²` and `∫‖F'‖²`) that the sharp
+mean-value theorem can price, which is the form the `𝒰` assembly needs. -/
+theorem sum_cell_integrals_le (h : ℝ → ℝ) (hc : Continuous h)
+    (hnn : ∀ v, 0 ≤ h v) (K : Finset ℤ) (m M : ℤ) (hmM : m ≤ M)
+    (hK : ∀ k ∈ K, m ≤ k ∧ k ≤ M) :
+    ∑ k ∈ K, (∫ v in (k:ℝ)..((k:ℝ)+1), h v)
+      ≤ ∫ v in (m:ℝ)..((M:ℝ)+1), h v := by
+  -- Move to set integrals over the half-open cells, which are disjoint.
+  have hcell : ∀ k : ℤ, (∫ v in (k:ℝ)..((k:ℝ)+1), h v)
+      = ∫ v in Set.Ioc (k:ℝ) ((k:ℝ)+1), h v := fun k =>
+    intervalIntegral.integral_of_le (by linarith)
+  have hmeas : ∀ k ∈ K, MeasurableSet (Set.Ioc (k:ℝ) ((k:ℝ)+1)) :=
+    fun k _ => measurableSet_Ioc
+  have hintg : ∀ k ∈ K, IntegrableOn h (Set.Ioc (k:ℝ) ((k:ℝ)+1)) :=
+    fun k _ => (hc.integrableOn_Icc).mono_set Set.Ioc_subset_Icc_self
+  have hdisj : Set.Pairwise (↑K)
+      (Function.onFun Disjoint fun k : ℤ => Set.Ioc (k:ℝ) ((k:ℝ)+1)) := by
+    intro k _ l _ hkl
+    show Disjoint (Set.Ioc (k:ℝ) ((k:ℝ)+1)) (Set.Ioc (l:ℝ) ((l:ℝ)+1))
+    rw [Set.disjoint_left]
+    intro x hx hx'
+    rcases lt_or_gt_of_ne hkl with hlt | hlt
+    · have hcst : (k:ℝ) + 1 ≤ (l:ℝ) := by exact_mod_cast (by omega : k + 1 ≤ l)
+      linarith [hx.2, hx'.1]
+    · have hcst : (l:ℝ) + 1 ≤ (k:ℝ) := by exact_mod_cast (by omega : l + 1 ≤ k)
+      linarith [hx'.2, hx.1]
+  have hsub : (⋃ k ∈ K, Set.Ioc (k:ℝ) ((k:ℝ)+1)) ⊆ Set.Ioc (m:ℝ) ((M:ℝ)+1) := by
+    intro x hx
+    simp only [Set.mem_iUnion, exists_prop] at hx
+    obtain ⟨k, hkK, hxk⟩ := hx
+    obtain ⟨hmk, hkM⟩ := hK k hkK
+    have h1 : (m:ℝ) ≤ (k:ℝ) := by exact_mod_cast hmk
+    have h2 : (k:ℝ) ≤ (M:ℝ) := by exact_mod_cast hkM
+    exact ⟨by linarith [hxk.1], by linarith [hxk.2]⟩
+  have hIbig : IntegrableOn h (Set.Ioc (m:ℝ) ((M:ℝ)+1)) :=
+    (hc.integrableOn_Icc).mono_set Set.Ioc_subset_Icc_self
+  calc ∑ k ∈ K, (∫ v in (k:ℝ)..((k:ℝ)+1), h v)
+      = ∑ k ∈ K, ∫ v in Set.Ioc (k:ℝ) ((k:ℝ)+1), h v := by
+        exact Finset.sum_congr rfl fun k _ => hcell k
+    _ = ∫ v in (⋃ k ∈ K, Set.Ioc (k:ℝ) ((k:ℝ)+1)), h v :=
+        (integral_biUnion_finset K hmeas hdisj hintg).symm
+    _ ≤ ∫ v in Set.Ioc (m:ℝ) ((M:ℝ)+1), h v :=
+        setIntegral_mono_set hIbig
+          (Filter.Eventually.of_forall hnn) (HasSubset.Subset.eventuallyLE hsub)
+    _ = ∫ v in (m:ℝ)..((M:ℝ)+1), h v :=
+        (intervalIntegral.integral_of_le (by
+          have h1 : (m:ℝ) ≤ (M:ℝ) := by exact_mod_cast hmM
+          linarith)).symm
+
+
+open MeasureTheory in
+/-- **A2-III IV-3e-2 — the discretisation of a product energy.**
+
+`setIntegral_norm_sq_le_two_separated` applied to a product `Q·R`, with the norm
+split `‖Q ξ · R ξ‖² = ‖Q ξ‖²‖R ξ‖²` already performed:
+
+  `∫_G ‖Q‖²‖R‖² ≤ ∑_{𝒯even} ‖Q‖²‖R‖² + ∑_{𝒯odd} ‖Q‖²‖R‖² + (cell correction)`.
+
+Both sides are now in exactly the shape the large-values ladder consumes — the
+left is the `𝒰` band energy of the Ramaré factorisation, and each of the two
+sums is the left-hand side of the threshold split (IV-3a) over a `1`-separated
+set.  Keeping `Q` and `R` abstract rather than fixing them to Dirichlet
+polynomials costs nothing and keeps the derivative bookkeeping (`Q'·R + Q·R'`,
+the product rule) out of the statement's hypotheses: a consumer supplies the two
+derivatives from `hasDerivAt_dirichlet_poly` and the continuities from
+`continuous_finset_sum`. -/
+theorem setIntegral_norm_sq_mul_le_two_separated (Q R Q' R' : ℝ → ℂ)
+    (hQ : ∀ u, HasDerivAt Q (Q' u) u) (hR : ∀ u, HasDerivAt R (R' u) u)
+    (hQc : Continuous Q) (hRc : Continuous R)
+    (hQ'c : Continuous Q') (hR'c : Continuous R')
+    (G : Set ℝ) (hGm : MeasurableSet G) (K : Finset ℤ) (τ : ℤ → ℝ)
+    (hτ : ∀ k ∈ K, τ k ∈ Set.Icc (k:ℝ) ((k:ℝ)+1))
+    (hcover : G ⊆ ⋃ k ∈ K, Set.Ico (k:ℝ) ((k:ℝ)+1)) :
+    (∫ ξ in G, ‖Q ξ‖^2 * ‖R ξ‖^2)
+      ≤ (∑ t ∈ (K.filter (fun k => Even k)).image τ, ‖Q t‖^2 * ‖R t‖^2)
+        + (∑ t ∈ (K.filter (fun k => ¬ Even k)).image τ, ‖Q t‖^2 * ‖R t‖^2)
+        + ∑ k ∈ K, ∫ v in (k:ℝ)..((k:ℝ)+1),
+            2 * ‖Q v * R v‖ * ‖Q' v * R v + Q v * R' v‖ := by
+  have hprod := setIntegral_norm_sq_le_two_separated
+    (fun ξ => Q ξ * R ξ) (fun ξ => Q' ξ * R ξ + Q ξ * R' ξ)
+    (fun u => (hQ u).mul (hR u)) (hQc.mul hRc)
+    ((hQ'c.mul hRc).add (hQc.mul hR'c)) G hGm K τ hτ hcover
+  simpa only [norm_mul, mul_pow] using hprod
+
 end ExpSums
 
 end MoltResearch
