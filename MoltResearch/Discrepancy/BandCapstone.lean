@@ -217,4 +217,109 @@ theorem setIntegral_norm_sq_cell_prime_block_le
               (hqcell v hv) (hq1 v) (hqmin v hv) A B hAB (hLA v hv) (hLB v hv)
               g c hg hc T hT)
 
+open MeasureTheory Finset ExpSums in
+/-- **A2-III VI-1c-5 — Cauchy-Schwarz over levels, staying on `G`.**
+
+The frequency-set-native companion of `setIntegral_norm_sq_sum_le_card_mul`.
+That lemma prices each level by an estimate on the enclosing interval, because
+the collar cost it consumes is an interval statement.  The level-`j` leg
+`band_energy_level_le_of_prev_large` is different: it is already proved *on an
+abstract `G`*, since its saving comes from the pointwise largeness of the
+previous level's prime polynomial on `G` and would be destroyed by enlarging to
+`(-T)..T`, where no such largeness holds.
+
+So the level-`j` main term needs the same Cauchy-Schwarz over levels with the
+interval enlargement omitted — the cell contributions are not orthogonal on `G`,
+which is what the factor `#I` pays for, but there is nothing to enlarge.
+
+Stated with `hGT` even though the interval is never used for monotonicity: it is
+what supplies integrability of the summands on `G`, via
+`Continuous.integrableOn_Ioc` and `.mono_set`. -/
+theorem setIntegral_norm_sq_sum_le_card_mul_of_setIntegral (F : ℕ → ℝ → ℂ)
+    (I : Finset ℕ) (hF : ∀ v ∈ I, Continuous (F v)) (T : ℝ)
+    (G : Set ℝ) (hGm : MeasurableSet G) (hGT : G ⊆ Set.Ioc (-T) T)
+    (M : ℕ → ℝ) (hM : ∀ v ∈ I, (∫ ξ in G, ‖F v ξ‖^2) ≤ M v) :
+    (∫ ξ in G, ‖∑ v ∈ I, F v ξ‖^2) ≤ (I.card : ℝ) * ∑ v ∈ I, M v := by
+  classical
+  have hFc : ∀ v ∈ I, Continuous fun ξ => ‖F v ξ‖^2 := fun v hv =>
+    ((hF v hv).norm.pow 2)
+  have hFi : ∀ v ∈ I, IntegrableOn (fun ξ => ‖F v ξ‖^2) G := fun v hv =>
+    ((hFc v hv).integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  have hsumc : Continuous fun ξ => ‖∑ v ∈ I, F v ξ‖^2 :=
+    ((continuous_finset_sum I fun v hv => hF v hv).norm.pow 2)
+  have hsumi : IntegrableOn (fun ξ => ‖∑ v ∈ I, F v ξ‖^2) G :=
+    (hsumc.integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  calc (∫ ξ in G, ‖∑ v ∈ I, F v ξ‖^2)
+      ≤ ∫ ξ in G, (I.card : ℝ) * ∑ v ∈ I, ‖F v ξ‖^2 :=
+        setIntegral_mono_on hsumi
+          ((integrable_finset_sum I fun v hv => hFi v hv).const_mul _)
+          hGm (fun ξ _ => norm_sum_sq_le_card_mul I (fun v => F v ξ))
+    _ = (I.card : ℝ) * ∑ v ∈ I, ∫ ξ in G, ‖F v ξ‖^2 := by
+        rw [integral_const_mul, integral_finset_sum I (fun v hv => hFi v hv)]
+    _ ≤ (I.card : ℝ) * ∑ v ∈ I, M v := by
+        refine mul_le_mul_of_nonneg_left
+          (Finset.sum_le_sum fun v hv => hM v hv) (by positivity)
+
+open MeasureTheory Finset ExpSums in
+/-- **A2-III VI-1c-6 — the level-`j` leg, summed over cells.**
+
+The level-`j` counterpart of `setIntegral_norm_sq_cell_prime_block_le`.  At
+level `j > 1` the `[MR]` estimate is `band_energy_level_le_of_prev_large`, whose
+saving `small²/large^{2ℓ}` comes from the previous level's prime polynomial
+being *large* on `G` while this level's cell polynomial is *small* there.
+
+**Why this leg is shorter than the level-one leg.**  Two of the three steps that
+lemma needed are absent here.  There is no cell-representative split, because
+`band_energy_level_le_of_prev_large` already takes its first factor as an
+abstract continuous `Q` — a cell polynomial goes straight in, and the block `S v`
+is whatever the decomposition produced, with no requirement that it be the
+quotient window of a distinguished prime.  Consequently there is no replacement
+error, and so no `L²` triangle inequality: the whole level is one term, not two.
+
+What does survive is the Cauchy-Schwarz over cells, and it must be the
+`G`-native form `setIntegral_norm_sq_sum_le_card_mul_of_setIntegral`.  Enlarging
+to `(-T)..T`, as the level-one error term does, would discard `hlarge` — the
+previous level's polynomial is large only on `G` — and with it the entire
+saving.  That is the reason the two Cauchy-Schwarz lemmas both exist.
+
+`large` and the moment factor are shared across cells; only `small` varies, so
+the estimate could be presented with the constant pulled out of the sum.  It is
+left inside to match the shape of the level-one leg, which the partition
+assembly consumes uniformly. -/
+theorem setIntegral_norm_sq_level_sum_of_prev_large_le
+    (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime) (P : ℕ) (hP : 1 ≤ P)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1) (ℓ : ℕ) (hℓ : 1 ≤ ℓ)
+    (A' Δ' : ℕ) (hA' : 1 ≤ A') (hΔ' : Δ' ≤ A')
+    (I : Finset ℕ) (S : ℕ → Finset ℕ)
+    (hS : ∀ v ∈ I, S v ⊆ Finset.Ioc A' (A'+Δ'))
+    (a : ℕ → ℂ) (ha : ∀ m, ‖a m‖ ≤ 1)
+    (Q : ℕ → ℝ → ℂ) (hQ : ∀ v ∈ I, Continuous (Q v))
+    (T : ℝ) (hT : 0 < T) (G : Set ℝ) (hGm : MeasurableSet G)
+    (hGT : G ⊆ Set.Ioc (-T) T)
+    (small : ℕ → ℝ) (large : ℝ) (hlarge0 : 0 < large)
+    (hsmall : ∀ v ∈ I, ∀ ξ ∈ G, ‖Q v ξ‖ ≤ small v)
+    (hlarge : ∀ ξ ∈ G, large ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+        * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖) :
+    (∫ ξ in G, ‖∑ v ∈ I, Q v ξ * (∑ m ∈ S v, (a m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))‖^2)
+      ≤ (I.card : ℝ) * ∑ v ∈ I, (small v)^2/large^(2*ℓ)
+          * (Real.exp Real.pi * (T/((P^ℓ*A' : ℕ):ℝ) + 2*((2^(ℓ+1) : ℕ):ℝ))
+              * ((Nat.factorial ℓ : ℝ)^2
+                  * (((2^(ℓ+1) : ℕ):ℝ) * ((ℓ:ℝ)+1)
+                      * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))^ℓ))) := by
+  classical
+  have hchar : ∀ w : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(w * ξ)) : Circle) : ℂ) := fun w =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  have hblk : ∀ v : ℕ, Continuous fun ξ : ℝ =>
+      ∑ m ∈ S v, (a m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := fun v =>
+    continuous_finset_sum _ fun m _ => continuous_const.mul (hchar (Real.log m))
+  exact setIntegral_norm_sq_sum_le_card_mul_of_setIntegral _ I
+    (fun v hv => (hQ v hv).mul (hblk v)) T G hGm hGT _
+    (fun v hv => band_energy_level_le_of_prev_large Y hY P hP hlo hhi b hb ℓ hℓ
+      A' Δ' hA' hΔ' (S v) (hS v hv) a ha (Q v) (hQ v hv) T hT G hGm hGT
+      (small v) large hlarge0 (hsmall v hv) hlarge)
+
 end MoltResearch
