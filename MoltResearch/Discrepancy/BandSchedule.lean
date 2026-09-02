@@ -630,4 +630,62 @@ theorem exceptional_report_exponent_ok (L κ : ℝ) (hL : 1 ≤ L) (hκ : 0 < κ
           * (L ^ ((1 : ℝ) / 320) * L ^ ((3 : ℝ) / 40000)) := by gcongr
     _ = (κ / 4) ^ ((4 : ℝ) / 25) * L ^ ((2 : ℝ) / 625) := by rw [hinv, hkey]
 
+/-! ## The assembly (§4.4) -/
+
+/-- **The shares sum to the budget** (Track R, A2-III, S-cal-6).
+
+The last step of the `[mrt]` A.2 capstone.  `setIntegral_le_sum_of_cover`
+(VI-1a) turns the band integral into a sum over the partition
+`𝒯₁ ⊔ … ⊔ 𝒯_J ⊔ 𝒰`; each part is then priced by its leg at `κᵢ·𝔅`; and this
+lemma closes the argument provided the shares do not exceed one.
+
+Stating the legs at an arbitrary `κ` rather than a fixed fraction is what makes
+this possible with `J` varying: the number of levels is `J = max{j : Q_j ≤
+exp(√log A)}`, not a constant, so the shares cannot be fixed in advance.  The
+report's `c₄, c₅, c₇, c₈` are one admissible choice of `κ`, not the only one. -/
+theorem sum_shares_le_budget {ι : Type*} (𝒮 : Finset ι) (f κ : ι → ℝ)
+    (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hpart : ∀ i ∈ 𝒮, f i ≤ κ i * bandBudget c₃ ε ρ)
+    (hκ : ∑ i ∈ 𝒮, κ i ≤ 1) :
+    ∑ i ∈ 𝒮, f i ≤ bandBudget c₃ ε ρ := by
+  have hB0 : 0 ≤ bandBudget c₃ ε ρ := bandBudget_nonneg c₃ ε ρ hc₃ hρ
+  calc ∑ i ∈ 𝒮, f i ≤ ∑ i ∈ 𝒮, κ i * bandBudget c₃ ε ρ := Finset.sum_le_sum hpart
+    _ = (∑ i ∈ 𝒮, κ i) * bandBudget c₃ ε ρ := by rw [Finset.sum_mul]
+    _ ≤ 1 * bandBudget c₃ ε ρ := mul_le_mul_of_nonneg_right hκ hB0
+    _ = bandBudget c₃ ε ρ := one_mul _
+
+/-- **The collar leg's weight, bounded by the largest cell** (Track R, A2-III,
+S-cal-7).
+
+This is the resolution of the correction logged against §4.3(a) in the module
+docstring.  The report prices one collar at `≈ 3e^π/N_j` and reads off
+`N_j ≥ C/ε³` at absolute `C`; the assembled quantity carries in addition the
+Cauchy–Schwarz factor `#I` and the weight `S₂ = ∑_v σ_v²`, and `#I` grows
+linearly in `N`, cancelling the `1/N` that `collar_ratio_le` buys.
+
+What saves the leg is that `S₂` decays in `N` for a *second* reason.  Each
+`e`-adic cell has multiplicative width `e^{1/(2N)}`, so its prime mass
+`σ_v = ∑_{p ∈ 𝒞_v} 1/p` is itself `O(1/(N log P))`, and `∑_v σ_v² ≤ (max_v σ_v)
+· ∑_v σ_v` converts that into a second factor of `1/N` in `S₂`.  The two `1/N`'s
+against one `#I ≍ N` leave a net `1/N`, which is what the report's estimate
+reports and its derivation does not establish.
+
+Stated with `M` and the total mass abstract, so a consumer supplies `M` from
+Mertens on a cell and the total from Mertens on the level. -/
+theorem collar_weight_le (I : Finset ℕ) (C : ℕ → Finset ℕ) (M Stot : ℝ)
+    (hM0 : 0 ≤ M) (hM : ∀ v ∈ I, ∑ p ∈ C v, (1 : ℝ) / (p : ℝ) ≤ M)
+    (hS : ∑ v ∈ I, ∑ p ∈ C v, (1 : ℝ) / (p : ℝ) ≤ Stot) :
+    ∑ v ∈ I, (∑ p ∈ C v, (1 : ℝ) / (p : ℝ)) ^ 2 ≤ M * Stot := by
+  have hσ0 : ∀ v : ℕ, (0 : ℝ) ≤ ∑ p ∈ C v, (1 : ℝ) / (p : ℝ) :=
+    fun v => Finset.sum_nonneg fun p _ => by positivity
+  calc ∑ v ∈ I, (∑ p ∈ C v, (1 : ℝ) / (p : ℝ)) ^ 2
+      ≤ ∑ v ∈ I, M * ∑ p ∈ C v, (1 : ℝ) / (p : ℝ) := by
+        refine Finset.sum_le_sum fun v hv => ?_
+        have : (∑ p ∈ C v, (1 : ℝ) / (p : ℝ)) ^ 2
+            = (∑ p ∈ C v, (1 : ℝ) / (p : ℝ)) * ∑ p ∈ C v, (1 : ℝ) / (p : ℝ) := sq _
+        rw [this]
+        exact mul_le_mul_of_nonneg_right (hM v hv) (hσ0 v)
+    _ = M * ∑ v ∈ I, ∑ p ∈ C v, (1 : ℝ) / (p : ℝ) := by rw [Finset.mul_sum]
+    _ ≤ M * Stot := mul_le_mul_of_nonneg_left hS hM0
+
 end MoltResearch

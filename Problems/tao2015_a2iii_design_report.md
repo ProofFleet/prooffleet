@@ -13,9 +13,9 @@
 
 ## Errata — read before building anything from this file
 
-The report has been used to ship the whole A2-III ladder. Six of its claims did
-not survive contact with Lean. The body below is **unedited**; the corrections
-are here.
+The report has been used to ship the whole A2-III ladder. Eight of its claims did
+not survive contact with Lean — items 1–6 from building the ladder, items 7–8
+from calibrating it. The body below is **unedited**; the corrections are here.
 
 1. **III-2's Euler factor and its constant are wrong — the stated bound is false.**
    The report claims
@@ -73,6 +73,46 @@ are here.
    `1/n²` form predates that normalisation and no consumer takes it. The ratio
    must also stay free: `Q^ℓ·R` is supported on `(P^ℓA', 2^{ℓ+1}P^ℓA']`, so a
    dyadic statement would not reach it.
+
+7. **§4.3(a) understates the collar condition, and no absolute `C` is
+   available.** The report prices *one* collar at `e^π(T/A+2)·Σ_{collar}1/n
+   ≈ 3e^π/N_j`, compares that to `𝔅`, and reads off `N_j ≥ C/ε³` at **absolute**
+   `C`. The quantity the tree produces — the error half of
+   `setIntegral_norm_sq_cell_prime_block_le` — is the *assembled* one, and it
+   carries two factors the report's estimate does not: the Cauchy–Schwarz factor
+   `#I` over cells (they are not orthogonal on `G`) and the weight
+   `S₂ = ∑_v (∑_{p∈𝒞_v}1/p)²`. Since `#I ≍ 2N log(Q_j/P_j)` grows **linearly in
+   `N`**, it cancels the `1/N` that the collar ratio buys, and `C` cannot be
+   taken absolute. The leg is nonetheless fine, by a second decay the report does
+   not use: an `e`-adic cell has multiplicative width `e^{1/(2N)}`, so
+   `σ_v = O(1/(N log P_j))` and `∑_v σ_v² ≤ (max_v σ_v)·∑_v σ_v` supplies a
+   second `1/N`. Honest condition: `N ≥ 64·#I·X·S₂/(κc₃ε³)`, with `X` the
+   per-prime collar cost. In tree as `collar_ratio_le`, `collar_cost_le`,
+   `collar_error_le`, `collar_error_le_budget` (#3592) and `collar_weight_le`.
+
+8. **The outer band does not force `γ`, and comparing it to `𝔅` rather than
+   `(2A+1)²·𝔅` makes it look impossible.** `band_energy_outer_le` is the one leg
+   stated for the **plain** sum, and its right-hand side already factors out the
+   plain-to-normalised conversion `(2A+1)²` of §4.1's `P_plain ≈ 2A·F`. Its
+   target is therefore `(2A+1)²·𝔅`. Read against `𝔅` instead, it demands
+   `K₂ ≳ B′²A/(c₃ε²) ≫ A`, contradicting `S2`'s own `K₂ ≤ A`. Read correctly, the
+   `(2A+1)²` cancels and the surviving conditions are
+   `γ ≥ 512e^πB′H/(πκc₃ε²A²)` and `γ ≥ H√(1536e^π/(κc₃))/(εA)` — smaller than
+   §4.2's two terms by factors of order `(H/A)²` and `H/A`. So §4.2's `γ` is set
+   by the slice and the `L` cut of `S2`, not by this leg, and the opposite
+   `H`-dependence of the two expressions is not a contradiction. In tree as
+   `outer_le_budget` and `outer_weight_gamma_eq` (#3595).
+
+Three further notes, none an erratum. **§4.3(f) is exact and §4.2's `1/320` is
+the right round number**: the `𝒰` leg forces `W ≤ (κ/4)^{4/25}·(log A)^{2/625}`
+with `2/625 = 1/312.5`, and `2/625 − 1/320 = 3/40000` is *precisely* the slack
+that pays for the constant `(4/κ)^{4/25}` (`exceptional_W_le`,
+`exceptional_report_exponent_ok`). **The two margins of §4.3 check out**:
+`P₁ = W^{200}` against `C/ε³ = C·W^{15/4}` gives `W^{785/4} = W^{196.25}` (stated
+`W^{196}`), and `P₁² ≥ C·E/ε²` gives `W^{795/2} = W^{397.5}` (stated `W^{397}`).
+**`S5` discharges the only constraint the level-one estimate uses**: at
+`η = 1/20`, `2α_j ∈ [7/20, 2/5)` for every `j ≥ 1`, so `2α < 1` holds uniformly
+and `2α₁ = 7/20 = 0.35` is §4.2's `1/2 − 3η`.
 
 One further note, not an erratum: V-0/V-1 landed at least as sharp as specified —
 `sum_norm_sq_le_integral_of_separated` integrates over `(−T, T+1]` where the
