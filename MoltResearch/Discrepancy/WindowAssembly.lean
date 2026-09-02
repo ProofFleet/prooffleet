@@ -4024,6 +4024,82 @@ theorem sum_norm_sq_mul_split_le (𝒯 : Finset ℝ) (Q R : ℝ → ℂ) (V₀ �
         + δ^2 * ∑ t ∈ 𝒯.filter (fun t => V₀ < ‖Q t‖), ‖Q t‖^2 := by
         linarith
 
+
+open MeasureTheory in
+/-- **A2-III VI-1a — band energies add over a covering family.**
+
+A nonnegative integrand over a frequency set `G` is bounded by the sum of its
+integrals over any finite family of pairwise-disjoint measurable sets covering
+`G`.  This is the assembly step the `[mrt]` A.2 capstone needs and the one piece
+of it the tree did not have: the frequency line is partitioned as
+`[T₀, T] = 𝒯₁ ⊔ … ⊔ 𝒯_J ⊔ 𝒰`, each part is priced by its own band estimate, and
+the parts must then be added.
+
+The family is a *cover*, not an exact partition, and `G` need not be measurable:
+both weakenings are free because the integrand is nonnegative, and both matter
+in the consumer, where `𝒯_j` and `𝒰` are only ever available as abstract sets
+carrying pointwise largeness hypotheses rather than as constructed objects.
+
+Disjointness is still required — it is what makes the middle step an equality
+(`integral_biUnion_finset`) rather than a lossy union bound.  In the `[MR]`
+partition it is immediate: `t ∈ 𝒯_j` names the *smallest* index `j` whose cell
+estimate holds, and `t ∈ 𝒰` says none does. -/
+theorem setIntegral_le_sum_of_cover {ι : Type*} (f : ℝ → ℝ)
+    (hf0 : ∀ ξ, 0 ≤ f ξ) (G : Set ℝ) (𝒮 : Finset ι) (part : ι → Set ℝ)
+    (hmeas : ∀ i ∈ 𝒮, MeasurableSet (part i))
+    (hdisj : Set.Pairwise (↑𝒮) (Function.onFun Disjoint part))
+    (hcover : G ⊆ ⋃ i ∈ 𝒮, part i)
+    (hint : ∀ i ∈ 𝒮, IntegrableOn f (part i)) :
+    (∫ ξ in G, f ξ) ≤ ∑ i ∈ 𝒮, ∫ ξ in part i, f ξ := by
+  have hbig : IntegrableOn f (⋃ i ∈ 𝒮, part i) :=
+    integrableOn_finset_iUnion.mpr hint
+  calc (∫ ξ in G, f ξ)
+      ≤ ∫ ξ in (⋃ i ∈ 𝒮, part i), f ξ :=
+        setIntegral_mono_set hbig (Filter.Eventually.of_forall hf0)
+          (HasSubset.Subset.eventuallyLE hcover)
+    _ = ∑ i ∈ 𝒮, ∫ ξ in part i, f ξ :=
+        integral_biUnion_finset 𝒮 hmeas hdisj hint
+
+
+open MeasureTheory in
+/-- **A2-III VI-1b — relaxing the frequency weight.**
+
+A nonnegative integrand may have its frequency weight replaced by any pointwise
+larger one.  Trivial in itself, but it is the join the `[mrt]` A.2 capstone needs
+at every seam: the band estimates in the tree do not agree on a weight.
+`band_energy_outer_le` carries the decay envelope `(2B'/(π|ξ|))²` hard-coded,
+while `band_energy_level_one_le` and `band_energy_level_le_of_prev_large` carry
+no weight at all.  The capstone's abstract `w` reaches the first through
+`hwdecay` and the others through `hwsup`, and both directions are this lemma. -/
+theorem setIntegral_weight_mono (f w₁ w₂ : ℝ → ℝ) (hf0 : ∀ ξ, 0 ≤ f ξ)
+    (G : Set ℝ) (hGm : MeasurableSet G)
+    (hle : ∀ ξ ∈ G, w₁ ξ ≤ w₂ ξ)
+    (hint1 : IntegrableOn (fun ξ => f ξ * w₁ ξ) G)
+    (hint2 : IntegrableOn (fun ξ => f ξ * w₂ ξ) G) :
+    (∫ ξ in G, f ξ * w₁ ξ) ≤ ∫ ξ in G, f ξ * w₂ ξ :=
+  setIntegral_mono_on hint1 hint2 hGm
+    (fun ξ hξ => mul_le_mul_of_nonneg_left (hle ξ hξ) (hf0 ξ))
+
+open MeasureTheory in
+/-- **A2-III VI-1b′ — a bounded weight comes out as a constant.**
+
+The `hwsup` half of the previous lemma, in the form the weight-free band
+estimates consume: with `w ≤ C` on `G`, the weighted energy is at most `C` times
+the bare energy, and the bare energy is exactly what
+`band_energy_level_one_le` and `band_energy_level_le_of_prev_large` bound.  In
+the capstone `C = (4H/A)²`, the sup of the slice-window transform
+(`norm_fourier_slice_window_le`). -/
+theorem setIntegral_weight_le_const (f w : ℝ → ℝ) (hf0 : ∀ ξ, 0 ≤ f ξ)
+    (G : Set ℝ) (hGm : MeasurableSet G) (C : ℝ)
+    (hwC : ∀ ξ ∈ G, w ξ ≤ C)
+    (hintw : IntegrableOn (fun ξ => f ξ * w ξ) G)
+    (hint : IntegrableOn f G) :
+    (∫ ξ in G, f ξ * w ξ) ≤ C * ∫ ξ in G, f ξ := by
+  have h := setIntegral_weight_mono f w (fun _ => C) hf0 G hGm hwC hintw
+    (hint.mul_const C)
+  rw [integral_mul_const] at h
+  linarith
+
 end ExpSums
 
 end MoltResearch
