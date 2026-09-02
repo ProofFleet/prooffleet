@@ -3962,6 +3962,68 @@ theorem sup_partial_le_halaszBudgetShell (f : ℕ → ℂ)
             + (Real.exp 1 * (B':ℝ) * δ₀ + 1) := by
           linarith [hbterm0, hedge0]
 
+
+/-- **A2-III IV-3a — the Halász–Montgomery threshold split.**
+
+The first move of the `𝒰` treatment after discretisation ([MR, Lemma 2],
+step 3): the discrete energy `∑_{t ∈ 𝒯} ‖Q t‖²‖R t‖²` of a product of two
+Dirichlet polynomials is cut at a threshold `V₀` placed on the *prime* factor
+`Q`.  Below the threshold the prime factor is priced by `V₀` and the whole of
+`∑_{t ∈ 𝒯} ‖R t‖²` survives for the integer large-values input; above it, `R`
+is priced by its pointwise Halász bound `δ` and only the *large* set
+`𝒯_L = {t ∈ 𝒯 : V₀ < ‖Q t‖}` survives for the prime large-values input.
+
+No number theory is attached: `Q` and `R` are arbitrary functions and the only
+hypothesis is the pointwise bound `δ` on the large set.  The two sums on the
+right are exactly the left-hand sides of `HalaszLargeValuesAssumption` and
+`PrimeLargeValuesAssumption`.  Note `δ` needs no sign hypothesis — on a
+nonempty large set `hlarge` already forces `0 ≤ δ`, and on an empty one the
+`δ^2` term is nonnegative regardless. -/
+theorem sum_norm_sq_mul_split_le (𝒯 : Finset ℝ) (Q R : ℝ → ℂ) (V₀ δ : ℝ)
+    (hV₀ : 0 ≤ V₀)
+    (hlarge : ∀ t ∈ 𝒯.filter (fun t => V₀ < ‖Q t‖), ‖R t‖ ≤ δ) :
+    ∑ t ∈ 𝒯, ‖Q t‖^2 * ‖R t‖^2
+      ≤ V₀^2 * (∑ t ∈ 𝒯, ‖R t‖^2)
+        + δ^2 * ∑ t ∈ 𝒯.filter (fun t => V₀ < ‖Q t‖), ‖Q t‖^2 := by
+  -- The large half: `‖R t‖ ≤ δ` pointwise, so `‖Q‖²‖R‖² ≤ δ²‖Q‖²`.
+  have hL : ∑ t ∈ 𝒯.filter (fun t => V₀ < ‖Q t‖), ‖Q t‖^2 * ‖R t‖^2
+      ≤ δ^2 * ∑ t ∈ 𝒯.filter (fun t => V₀ < ‖Q t‖), ‖Q t‖^2 := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum ?_
+    intro t ht
+    have hr : ‖R t‖ ≤ δ := hlarge t ht
+    have hr0 : (0:ℝ) ≤ ‖R t‖ := norm_nonneg _
+    have hq0 : (0:ℝ) ≤ ‖Q t‖^2 := sq_nonneg _
+    have hsq : ‖R t‖^2 ≤ δ^2 := by
+      nlinarith [mul_le_mul hr hr hr0 (hr0.trans hr)]
+    nlinarith [hsq, hq0]
+  -- The small half: `‖Q t‖ ≤ V₀` pointwise, then extend back to all of `𝒯`.
+  have hS : ∑ t ∈ 𝒯.filter (fun t => ¬ V₀ < ‖Q t‖), ‖Q t‖^2 * ‖R t‖^2
+      ≤ V₀^2 * ∑ t ∈ 𝒯, ‖R t‖^2 := by
+    have step1 : ∑ t ∈ 𝒯.filter (fun t => ¬ V₀ < ‖Q t‖), ‖Q t‖^2 * ‖R t‖^2
+        ≤ ∑ t ∈ 𝒯.filter (fun t => ¬ V₀ < ‖Q t‖), V₀^2 * ‖R t‖^2 := by
+      refine Finset.sum_le_sum ?_
+      intro t ht
+      simp only [Finset.mem_filter, not_lt] at ht
+      have hq : ‖Q t‖ ≤ V₀ := ht.2
+      have hq0 : (0:ℝ) ≤ ‖Q t‖ := norm_nonneg _
+      have hr0 : (0:ℝ) ≤ ‖R t‖^2 := sq_nonneg _
+      have hsq : ‖Q t‖^2 ≤ V₀^2 := by nlinarith [hq, hq0, hV₀]
+      exact mul_le_mul_of_nonneg_right hsq hr0
+    have step2 : ∑ t ∈ 𝒯.filter (fun t => ¬ V₀ < ‖Q t‖), V₀^2 * ‖R t‖^2
+        ≤ ∑ t ∈ 𝒯, V₀^2 * ‖R t‖^2 :=
+      Finset.sum_le_sum_of_subset_of_nonneg (Finset.filter_subset _ _)
+        (fun t _ _ => by positivity)
+    rw [Finset.mul_sum]
+    linarith
+  calc ∑ t ∈ 𝒯, ‖Q t‖^2 * ‖R t‖^2
+      = (∑ t ∈ 𝒯.filter (fun t => V₀ < ‖Q t‖), ‖Q t‖^2 * ‖R t‖^2)
+        + ∑ t ∈ 𝒯.filter (fun t => ¬ V₀ < ‖Q t‖), ‖Q t‖^2 * ‖R t‖^2 :=
+        (Finset.sum_filter_add_sum_filter_not _ _ _).symm
+    _ ≤ V₀^2 * (∑ t ∈ 𝒯, ‖R t‖^2)
+        + δ^2 * ∑ t ∈ 𝒯.filter (fun t => V₀ < ‖Q t‖), ‖Q t‖^2 := by
+        linarith
+
 end ExpSums
 
 end MoltResearch
