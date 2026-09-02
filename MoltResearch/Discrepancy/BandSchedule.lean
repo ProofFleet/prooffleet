@@ -221,4 +221,166 @@ theorem collar_error_le_budget (I : Finset ℕ) (C : ℕ → Finset ℕ) (cA cB 
   rw [hshape]
   linarith [hred, hfit, hstep]
 
+/-! ## The level-one leg (§4.3(d)) -/
+
+/-- **The top of an `e`-adic level range, in prime terms** (Track R, A2-III,
+S-cal-2).
+
+`band_energy_level_one_le` prices the mean value error by
+`exp((1−2α)(v₁+1)/(2N))`, where `v₁` is the top cell index of the level.  The
+schedule speaks of primes, not indices.  Since `v = ⌊2N log p⌋`, a level topping
+out at primes `≤ Q` has `v₁ ≤ 2N log Q`, and the factor is at most `Q^{1−2α}`
+times one `e`-adic ladder step.
+
+This is the step §4.3(d) takes silently when it writes the error term as
+`Q₁^{1/2+3η}`: with `2α₁ = 1/2 − 3η` the exponent `1 − 2α₁` is exactly
+`1/2 + 3η`. -/
+theorem eadic_level_top_exp_le (N v₁ : ℕ) (Q β : ℝ) (hN : 0 < N) (hβ : 0 ≤ β)
+    (hQ0 : 0 < Q) (htop : (v₁ : ℝ) ≤ 2 * (N : ℝ) * Real.log Q) :
+    Real.exp (β * ((v₁ : ℝ) + 1) / ((2 * N : ℕ) : ℝ))
+      ≤ Q ^ β * Real.exp (β / ((2 * N : ℕ) : ℝ)) := by
+  have hcast : ((2 * N : ℕ) : ℝ) = 2 * (N : ℝ) := by push_cast; ring
+  have hN0 : (0 : ℝ) < (N : ℝ) := by exact_mod_cast hN
+  have hd : (0 : ℝ) < 2 * (N : ℝ) := by linarith
+  rw [Real.rpow_def_of_pos hQ0, ← Real.exp_add, hcast]
+  refine Real.exp_le_exp.mpr ?_
+  have hv : (v₁ : ℝ) / (2 * (N : ℝ)) ≤ Real.log Q := by
+    rw [div_le_iff₀ hd]
+    linarith [htop]
+  have hmul : β * ((v₁ : ℝ) / (2 * (N : ℝ))) ≤ β * Real.log Q :=
+    mul_le_mul_of_nonneg_left hv hβ
+  have hsplit : β * ((v₁ : ℝ) + 1) / (2 * (N : ℝ))
+      = β * ((v₁ : ℝ) / (2 * (N : ℝ))) + β / (2 * (N : ℝ)) := by
+    field_simp
+  rw [hsplit]
+  linarith [hmul]
+
+/-- **The bottom of an `e`-adic level range, in prime terms** (Track R, A2-III,
+S-cal-2).
+
+The companion of `eadic_level_top_exp_le` for the smallness factor
+`exp(−2αv₀/(2N))`.  A level starting at primes `> P` has `v₀ ≥ 2N log P − 1` —
+the `−1` is the one ladder step a floor loses — and the factor is at most
+`P^{−2α}` times that step.
+
+This is §4.3(d)'s `P₁^{−1/2+3η}`: with `2α₁ = 1/2 − 3η`, `−2α₁ = −1/2 + 3η`. -/
+theorem eadic_level_bot_exp_le (N v₀ : ℕ) (P β : ℝ) (hN : 0 < N) (hβ : 0 ≤ β)
+    (hP0 : 0 < P) (hbot : 2 * (N : ℝ) * Real.log P - 1 ≤ (v₀ : ℝ)) :
+    Real.exp (-(β * (v₀ : ℝ) / ((2 * N : ℕ) : ℝ)))
+      ≤ P ^ (-β) * Real.exp (β / ((2 * N : ℕ) : ℝ)) := by
+  have hcast : ((2 * N : ℕ) : ℝ) = 2 * (N : ℝ) := by push_cast; ring
+  have hN0 : (0 : ℝ) < (N : ℝ) := by exact_mod_cast hN
+  have hd : (0 : ℝ) < 2 * (N : ℝ) := by linarith
+  rw [Real.rpow_def_of_pos hP0, ← Real.exp_add, hcast]
+  refine Real.exp_le_exp.mpr ?_
+  have hv : Real.log P - 1 / (2 * (N : ℝ)) ≤ (v₀ : ℝ) / (2 * (N : ℝ)) := by
+    rw [le_div_iff₀ hd]
+    have : (Real.log P - 1 / (2 * (N : ℝ))) * (2 * (N : ℝ))
+        = 2 * (N : ℝ) * Real.log P - 1 := by field_simp
+    rw [this]
+    exact hbot
+  have hmul : β * (Real.log P - 1 / (2 * (N : ℝ)))
+      ≤ β * ((v₀ : ℝ) / (2 * (N : ℝ))) := mul_le_mul_of_nonneg_left hv hβ
+  have hsplitL : -(β * (v₀ : ℝ) / (2 * (N : ℝ)))
+      = -(β * ((v₀ : ℝ) / (2 * (N : ℝ)))) := by ring
+  have hsplitR : Real.log P * -β + β / (2 * (N : ℝ))
+      = -(β * (Real.log P - 1 / (2 * (N : ℝ)))) := by field_simp; ring
+  rw [hsplitL, hsplitR]
+  linarith [hmul]
+
+/-- **The level-one leg meets its share of the budget** (Track R, A2-III,
+S-cal-2; design report §4.3(d)).
+
+The closed form of `band_energy_level_one_le` is a sum of two terms — the mean
+value error, growing at rate `1 − 2α` up the level range, and the smallness
+gain, decaying at rate `2α` from its bottom — and §4.3(d) imposes one condition
+on each.  Both are taken here in the prime form supplied by
+`eadic_level_top_exp_le` and `eadic_level_bot_exp_le`, which is the form the
+schedule states them in (`Q₁^{1/2+3η}` and `P₁^{−1/2+3η}`).
+
+`V` is left as a real rather than `#(Ico v₀ (v₁+1))`: it is the Cauchy–Schwarz
+factor over levels, the consumer already has it as a cardinality, and keeping it
+abstract is what lets one lemma serve both the bare level-one estimate and
+VI-1c-4's main half.
+
+Unlike the collar leg, §4.3(d) needs no correction — the report's `N₁² log Q₁`
+prefactor is exactly `V ≍ 2N log(Q₁/P₁)` against the `2N/(1−2α)` and `2N/(2α)`
+of the geometric sums. -/
+theorem levelOne_le_budget (N R : ℕ) (V T A C P Q α c₃ ε ρ κ : ℝ)
+    (hN : 0 < N) (hV0 : 0 ≤ V) (hC0 : 0 ≤ C) (hT0 : 0 ≤ T) (hA0 : 0 < A)
+    (hα : 0 < α) (hα2 : 2 * α < 1) (hP0 : 0 < P) (hQ0 : 0 < Q)
+    (v₀ v₁ : ℕ)
+    (htop : (v₁ : ℝ) ≤ 2 * (N : ℝ) * Real.log Q)
+    (hbot : 2 * (N : ℝ) * Real.log P - 1 ≤ (v₀ : ℝ))
+    (hfitT : V * (Real.exp Real.pi * C
+        * ((2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / A)
+            * (Q ^ (1 - 2 * α) * Real.exp ((1 - 2 * α) / ((2 * N : ℕ) : ℝ)))
+            * (((2 * N : ℕ) : ℝ) / (1 - 2 * α) + 1)))
+      ≤ κ / 2 * bandBudget c₃ ε ρ)
+    (hfitP : V * (Real.exp Real.pi * C
+        * (4 * (R : ℝ)
+            * (P ^ (-(2 * α)) * Real.exp (2 * α / ((2 * N : ℕ) : ℝ)))
+            * (((2 * N : ℕ) : ℝ) / (2 * α) + 1)))
+      ≤ κ / 2 * bandBudget c₃ ε ρ) :
+    V * (Real.exp Real.pi * C
+        * ((2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / A)
+              * Real.exp ((1 - 2 * α) * ((v₁ : ℝ) + 1) / ((2 * N : ℕ) : ℝ))
+              * (((2 * N : ℕ) : ℝ) / (1 - 2 * α) + 1)
+            + 4 * (R : ℝ) * Real.exp (-(2 * α * (v₀ : ℝ) / ((2 * N : ℕ) : ℝ)))
+              * (((2 * N : ℕ) : ℝ) / (2 * α) + 1)))
+      ≤ κ * bandBudget c₃ ε ρ := by
+  have h2N : (0 : ℝ) < ((2 * N : ℕ) : ℝ) := by
+    have : 0 < 2 * N := by omega
+    exact_mod_cast this
+  have hpre0 : (0 : ℝ) ≤ V * (Real.exp Real.pi * C) :=
+    mul_nonneg hV0 (mul_nonneg (Real.exp_pos _).le hC0)
+  have hlead0 : (0 : ℝ) ≤ 2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / A :=
+    div_nonneg (mul_nonneg (by linarith) (Real.exp_pos _).le) hA0.le
+  have hgeo0 : (0 : ℝ) ≤ ((2 * N : ℕ) : ℝ) / (1 - 2 * α) + 1 := by
+    have : (0 : ℝ) < 1 - 2 * α := by linarith
+    positivity
+  have hgeo0' : (0 : ℝ) ≤ ((2 * N : ℕ) : ℝ) / (2 * α) + 1 := by positivity
+  have hR0 : (0 : ℝ) ≤ 4 * (R : ℝ) := by positivity
+  -- the two `e`-adic factors, priced in prime terms
+  have htopfac := eadic_level_top_exp_le N v₁ Q (1 - 2 * α) hN (by linarith) hQ0 htop
+  have hbotfac := eadic_level_bot_exp_le N v₀ P (2 * α) hN (by linarith) hP0 hbot
+  have hX : (2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / A)
+        * Real.exp ((1 - 2 * α) * ((v₁ : ℝ) + 1) / ((2 * N : ℕ) : ℝ))
+        * (((2 * N : ℕ) : ℝ) / (1 - 2 * α) + 1)
+      ≤ (2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / A)
+        * (Q ^ (1 - 2 * α) * Real.exp ((1 - 2 * α) / ((2 * N : ℕ) : ℝ)))
+        * (((2 * N : ℕ) : ℝ) / (1 - 2 * α) + 1) := by
+    gcongr
+  have hY : 4 * (R : ℝ) * Real.exp (-(2 * α * (v₀ : ℝ) / ((2 * N : ℕ) : ℝ)))
+        * (((2 * N : ℕ) : ℝ) / (2 * α) + 1)
+      ≤ 4 * (R : ℝ) * (P ^ (-(2 * α)) * Real.exp (2 * α / ((2 * N : ℕ) : ℝ)))
+        * (((2 * N : ℕ) : ℝ) / (2 * α) + 1) := by
+    gcongr
+  have hsplit : V * (Real.exp Real.pi * C
+      * ((2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / A)
+            * Real.exp ((1 - 2 * α) * ((v₁ : ℝ) + 1) / ((2 * N : ℕ) : ℝ))
+            * (((2 * N : ℕ) : ℝ) / (1 - 2 * α) + 1)
+          + 4 * (R : ℝ) * Real.exp (-(2 * α * (v₀ : ℝ) / ((2 * N : ℕ) : ℝ)))
+            * (((2 * N : ℕ) : ℝ) / (2 * α) + 1)))
+      ≤ V * (Real.exp Real.pi * C
+          * ((2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / A)
+              * (Q ^ (1 - 2 * α) * Real.exp ((1 - 2 * α) / ((2 * N : ℕ) : ℝ)))
+              * (((2 * N : ℕ) : ℝ) / (1 - 2 * α) + 1)))
+        + V * (Real.exp Real.pi * C
+          * (4 * (R : ℝ)
+              * (P ^ (-(2 * α)) * Real.exp (2 * α / ((2 * N : ℕ) : ℝ)))
+              * (((2 * N : ℕ) : ℝ) / (2 * α) + 1))) := by
+    have := mul_le_mul_of_nonneg_left (add_le_add hX hY) hpre0
+    calc V * (Real.exp Real.pi * C * (_ + _))
+        = V * (Real.exp Real.pi * C) * (_ + _) := by ring
+      _ ≤ V * (Real.exp Real.pi * C)
+            * ((2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / A)
+                * (Q ^ (1 - 2 * α) * Real.exp ((1 - 2 * α) / ((2 * N : ℕ) : ℝ)))
+                * (((2 * N : ℕ) : ℝ) / (1 - 2 * α) + 1)
+              + 4 * (R : ℝ)
+                * (P ^ (-(2 * α)) * Real.exp (2 * α / ((2 * N : ℕ) : ℝ)))
+                * (((2 * N : ℕ) : ℝ) / (2 * α) + 1)) := this
+      _ = _ := by ring
+  linarith [hsplit, hfitT, hfitP]
+
 end MoltResearch
