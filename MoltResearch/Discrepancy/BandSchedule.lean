@@ -688,4 +688,94 @@ theorem collar_weight_le (I : Finset ℕ) (C : ℕ → Finset ℕ) (M Stot : ℝ
     _ = M * ∑ v ∈ I, ∑ p ∈ C v, (1 : ℝ) / (p : ℝ) := by rw [Finset.mul_sum]
     _ ≤ M * Stot := mul_le_mul_of_nonneg_left hS hM0
 
+/-! ## The schedule's margins (§4.2, §4.3, `S4`/`S5`/`S7`) -/
+
+/-- **`S7`'s `ε = W^{−5/4}` in the form the other constraints consume**
+(Track R, A2-III, S-cal-7). -/
+theorem schedule_eps_pow_three (W : ℝ) (hW : 1 ≤ W) :
+    (W ^ (-(5 : ℝ) / 4)) ^ 3 = W ^ (-(15 : ℝ) / 4) := by
+  have hW0 : (0 : ℝ) ≤ W := by linarith
+  rw [← Real.rpow_natCast (W ^ (-(5 : ℝ) / 4)) 3, ← Real.rpow_mul hW0]
+  norm_num
+
+/-- **The level-`j` constraint's margin** (Track R, A2-III, S-cal-7; design
+report §4.3(e)).
+
+`S4` sets `P₁ = W^{200}`, while §4.3(e) needs only `P₁ ≥ C/ε³ = C·W^{15/4}`.
+The gap is `W^{200 − 15/4} = W^{785/4}`, i.e. `W^{196.25}` — the report's stated
+margin `W^{196}` rounded down.  Any absolute constant `C` is therefore absorbed
+once `W` is past `C^{4/785}`. -/
+theorem schedule_levelJ_margin (W C : ℝ) (hW : 1 ≤ W)
+    (hC : C ≤ W ^ ((785 : ℝ) / 4)) :
+    C / (W ^ (-(5 : ℝ) / 4)) ^ 3 ≤ W ^ (200 : ℝ) := by
+  have hW0 : (0 : ℝ) < W := lt_of_lt_of_le one_pos hW
+  have hpow : (0 : ℝ) < W ^ ((15 : ℝ) / 4) := Real.rpow_pos_of_pos hW0 _
+  rw [schedule_eps_pow_three W hW, neg_div, Real.rpow_neg hW0.le,
+    div_eq_mul_inv, inv_inv]
+  calc C * W ^ ((15 : ℝ) / 4)
+      ≤ W ^ ((785 : ℝ) / 4) * W ^ ((15 : ℝ) / 4) := by gcongr
+    _ = W ^ (200 : ℝ) := by rw [← Real.rpow_add hW0]; norm_num
+
+/-- **The collision constraint's margin** (Track R, A2-III, S-cal-7; design
+report §4.3(c)).
+
+§4.3(c)'s second collision condition is `P₁² ≥ C·E/ε²` with
+`E = ∑_{P₁≤p≤Q₁} 1/p ≤ loglog H`.  With `P₁ = W^{200}` and `ε = W^{−5/4}` that
+reads `W^{400} ≥ C·E·W^{5/2}`, so the margin is `W^{795/2} = W^{397.5}` — the
+report's `W^{397}`.  Since `E ≤ loglog H` and `W ≥ (log H)^5`, the product `C·E`
+is smaller than any positive power of `W`, so the condition is never binding. -/
+theorem schedule_collision_margin (W CE : ℝ) (hW : 1 ≤ W)
+    (hCE : CE ≤ W ^ ((795 : ℝ) / 2)) :
+    CE / (W ^ (-(5 : ℝ) / 4)) ^ 2 ≤ (W ^ (200 : ℝ)) ^ 2 := by
+  have hW0 : (0 : ℝ) < W := lt_of_lt_of_le one_pos hW
+  have hsq : (W ^ (-(5 : ℝ) / 4)) ^ 2 = W ^ (-(5 : ℝ) / 2) := by
+    rw [← Real.rpow_natCast (W ^ (-(5 : ℝ) / 4)) 2, ← Real.rpow_mul hW0.le]
+    norm_num
+  have hsq' : (W ^ (200 : ℝ)) ^ 2 = W ^ (400 : ℝ) := by
+    rw [← Real.rpow_natCast (W ^ (200 : ℝ)) 2, ← Real.rpow_mul hW0.le]
+    norm_num
+  rw [hsq, hsq', neg_div, Real.rpow_neg hW0.le, div_eq_mul_inv, inv_inv]
+  calc CE * W ^ ((5 : ℝ) / 2)
+      ≤ W ^ ((795 : ℝ) / 2) * W ^ ((5 : ℝ) / 2) := by gcongr
+    _ = W ^ (400 : ℝ) := by rw [← Real.rpow_add hW0]; norm_num
+
+/-- **The schedule's decay rates** (`S5`): `α_j = 1/4 − η(1 + 1/(2j))`. -/
+noncomputable def scheduleAlpha (η : ℝ) (j : ℕ) : ℝ := 1 / 4 - η * (1 + 1 / (2 * (j : ℝ)))
+
+/-- **`S5` discharges the only schedule constraint the level-one estimate uses**
+(Track R, A2-III, S-cal-7).
+
+`band_energy_level_one_le`'s docstring records that `2α < 1` is the *only*
+schedule constraint entering it: the smallness decays at rate `2α`, the mean
+value error grows at rate `1`, the product runs at `1 − 2α`, and the level sum
+converges exactly when `2α < 1`.  With `S5`'s `α_j` and `S4`'s `η = 1/20` that
+holds at every level, with `2α_j ∈ [7/20, 2/5)` — so the constraint is not merely
+satisfied but bounded away from the boundary uniformly in `j`, which is what lets
+`J` grow with `A`.
+
+The lower end `2α₁ = 7/20 = 0.35` is §4.2's stated `2α₁ = 1/2 − 3η`. -/
+theorem scheduleAlpha_pos (j : ℕ) (hj : 1 ≤ j) : 0 < scheduleAlpha (1 / 20) j := by
+  have hj1 : (1 : ℝ) ≤ (j : ℝ) := by exact_mod_cast hj
+  have h2j : (0 : ℝ) < 2 * (j : ℝ) := by linarith
+  have hinv : 1 / (2 * (j : ℝ)) ≤ 1 / 2 := by
+    rw [div_le_div_iff₀ h2j (by norm_num)]
+    linarith
+  have hinv0 : (0 : ℝ) < 1 / (2 * (j : ℝ)) := by positivity
+  unfold scheduleAlpha
+  linarith
+
+theorem scheduleAlpha_two_lt_one (j : ℕ) (hj : 1 ≤ j) :
+    2 * scheduleAlpha (1 / 20) j < 1 := by
+  have hj1 : (1 : ℝ) ≤ (j : ℝ) := by exact_mod_cast hj
+  have h2j : (0 : ℝ) < 2 * (j : ℝ) := by linarith
+  have hinv0 : (0 : ℝ) < 1 / (2 * (j : ℝ)) := by positivity
+  unfold scheduleAlpha
+  linarith
+
+/-- `2α₁ = 7/20`, which is §4.2's `1/2 − 3η` at `η = 1/20`. -/
+theorem scheduleAlpha_one : 2 * scheduleAlpha (1 / 20) 1 = 7 / 20 := by
+  unfold scheduleAlpha
+  norm_num
+
+
 end MoltResearch
