@@ -4160,6 +4160,70 @@ theorem sum_eq_cell_rep_add_cell_error (P : Finset ℕ) (N V : ℕ)
   refine Finset.sum_congr rfl fun p _ => ?_
   ring
 
+open MeasureTheory in
+/-- **A2-III VI-1c-2 — the `L²` triangle inequality on an abstract frequency set.**
+
+The set-integral counterpart of `intervalIntegral_norm_add_sq_le`.  The interval
+version is what the `[MR]` collar telescoping needed; the capstone needs the same
+inequality over the abstract frequency sets `𝒯_j` and `𝒰`, which are never
+intervals and are only ever available as measurable subsets of `Ioc (-T) T`.
+
+This is the join that lets `sum_eq_cell_rep_add_cell_error` be used: that
+identity writes a level's contribution as a main term plus a replacement error,
+and the two are priced by different lemmas
+(`setIntegral_norm_sq_cell_block_sum_le` and
+`intervalIntegral_norm_sq_cell_replace_le`) at different anchors, so their
+energies cannot be merged into one mean value theorem application.  Splitting
+the square is the honest price, and the factor `2` is absorbed by the `1/N` the
+collars carry — exactly as in the interval version. -/
+theorem setIntegral_norm_add_sq_le (F H : ℝ → ℂ) (hF : Continuous F)
+    (hH : Continuous H) (T : ℝ) (G : Set ℝ) (hGm : MeasurableSet G)
+    (hGT : G ⊆ Set.Ioc (-T) T) :
+    (∫ ξ in G, ‖F ξ + H ξ‖^2)
+      ≤ 2 * (∫ ξ in G, ‖F ξ‖^2) + 2 * (∫ ξ in G, ‖H ξ‖^2) := by
+  have hFi : IntegrableOn (fun ξ => ‖F ξ‖^2) G :=
+    ((hF.norm.pow 2).integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  have hHi : IntegrableOn (fun ξ => ‖H ξ‖^2) G :=
+    ((hH.norm.pow 2).integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  have hsum : IntegrableOn (fun ξ => ‖F ξ + H ξ‖^2) G :=
+    ((((hF.add hH).norm).pow 2).integrableOn_Ioc (a := -T) (b := T)).mono_set hGT
+  have hbig : IntegrableOn (fun ξ => 2 * ‖F ξ‖^2 + 2 * ‖H ξ‖^2) G :=
+    (hFi.const_mul 2).add (hHi.const_mul 2)
+  have hptwise : ∀ ξ : ℝ, ‖F ξ + H ξ‖^2 ≤ 2 * ‖F ξ‖^2 + 2 * ‖H ξ‖^2 := by
+    intro ξ
+    have htri : ‖F ξ + H ξ‖ ≤ ‖F ξ‖ + ‖H ξ‖ := norm_add_le _ _
+    nlinarith [norm_nonneg (F ξ + H ξ), norm_nonneg (F ξ), norm_nonneg (H ξ),
+      sq_nonneg (‖F ξ‖ - ‖H ξ‖)]
+  calc (∫ ξ in G, ‖F ξ + H ξ‖^2)
+      ≤ ∫ ξ in G, (2 * ‖F ξ‖^2 + 2 * ‖H ξ‖^2) :=
+        setIntegral_mono_on hsum hbig hGm (fun ξ _ => hptwise ξ)
+    _ = 2 * (∫ ξ in G, ‖F ξ‖^2) + 2 * (∫ ξ in G, ‖H ξ‖^2) := by
+        rw [integral_add (hFi.const_mul 2) (hHi.const_mul 2),
+          integral_const_mul, integral_const_mul]
+
+open MeasureTheory in
+/-- **A2-III VI-1c-2′ — an abstract frequency set is priced by its interval.**
+
+A nonnegative continuous integrand over any `G ⊆ Ioc (-T) T` is at most its
+integral over `(-T)..T`.  Trivial, and stated only because it is the join that
+lets an *interval* estimate price a *set* integral: the collar cost
+`intervalIntegral_norm_sq_cell_replace_le` and the moment
+`intervalIntegral_norm_sq_prime_poly_pow_mul_le` are both proved on `(-T)..T`,
+while the capstone integrates over `𝒯_j` and `𝒰`.
+
+Nonnegativity is what makes this free — no measurability of `G` is needed, in
+keeping with `setIntegral_le_sum_of_cover`.  The tree's only prior instance of
+this step was `setIntegral_ball_le_intervalIntegral`, which is specific to a
+ball and so cannot serve the band. -/
+theorem setIntegral_le_intervalIntegral_of_nonneg (f : ℝ → ℝ)
+    (hfc : Continuous f) (hf0 : ∀ ξ, 0 ≤ f ξ) (T : ℝ) (hT : 0 ≤ T)
+    (G : Set ℝ) (hGT : G ⊆ Set.Ioc (-T) T) :
+    (∫ ξ in G, f ξ) ≤ ∫ ξ in (-T)..T, f ξ := by
+  have hTT : -T ≤ T := by linarith
+  rw [intervalIntegral.integral_of_le hTT]
+  exact setIntegral_mono_set hfc.integrableOn_Ioc
+    (Filter.Eventually.of_forall hf0) hGT.eventuallyLE
+
 end ExpSums
 
 end MoltResearch
