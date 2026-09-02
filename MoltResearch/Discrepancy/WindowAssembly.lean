@@ -4100,6 +4100,66 @@ theorem setIntegral_weight_le_const (f w : ℝ → ℝ) (hf0 : ∀ ξ, 0 ≤ f �
   rw [integral_mul_const] at h
   linarith
 
+open Finset in
+/-- **A2-III VI-1c-1 — the e-adic regrouping of a prime sum.**
+
+Every prime of `P` whose index `⌊N log p⌋` is at most `V` lies in exactly one of
+the cells `eadicCell P N 0, …, eadicCell P N V`, so a sum over `P` regroups as a
+double sum over cells.  `eadicCell_biUnion` supplies the cover and
+`eadicCell_disjoint` the disjointness; the content is only that the two fit
+together as a `Finset.sum_biUnion`.
+
+This is the first step of the `[MR]` level treatment: the band estimates
+(`setIntegral_norm_sq_cell_block_sum_le`, `band_energy_level_one_le`) are all
+indexed by *cells*, while the decomposition lemma
+(`typicalS_phase_main_add_coll`) produces a sum indexed by *primes*.  Nothing
+analytic happens here — it is the index change that lets the two meet. -/
+theorem sum_eq_sum_eadicCells {M : Type*} [AddCommMonoid M] (P : Finset ℕ)
+    (N V : ℕ) (hV : ∀ p ∈ P, ⌊(N:ℝ) * Real.log p⌋₊ ≤ V) (F : ℕ → M) :
+    ∑ p ∈ P, F p
+      = ∑ v ∈ Finset.range (V+1), ∑ p ∈ eadicCell P N v, F p := by
+  classical
+  have hdisj : Set.PairwiseDisjoint (↑(Finset.range (V+1)) : Set ℕ)
+      (eadicCell P N) := fun v _ w _ hvw => eadicCell_disjoint P N hvw
+  rw [← Finset.sum_biUnion hdisj, eadicCell_biUnion P N V hV]
+
+open Finset in
+/-- **A2-III VI-1c-1′ — the cell-representative split.**
+
+The exact identity that puts the `[MR]` level decomposition into the shape the
+band estimates consume.  A prime-indexed sum of products `∑_{p ∈ P} w_p Z_p`
+equals
+
+* a **main term** `∑_v (∑_{p ∈ cell v} w_p) · Z_{q_v}`, in which the second
+  factor depends on the cell only through its chosen representative `q v` and
+  therefore *factors out of the cell sum* — this is exactly the integrand of
+  `setIntegral_norm_sq_cell_block_sum_le` and hence of
+  `band_energy_level_one_le`; plus
+* an **error term** `∑_v ∑_{p ∈ cell v} w_p (Z_p − Z_{q_v})`, which is exactly
+  the integrand priced by `intervalIntegral_norm_sq_cell_replace_le` — the
+  two-collar cost of replacing each prime's own block by its cell's.
+
+`q` is unconstrained here: no hypothesis relates `q v` to `eadicCell P N v`,
+because the identity is pure algebra (add and subtract `Z (q v)` inside each
+cell).  The consumer supplies `q v ∈ eadicCell P N v` only when it comes to
+*bounding* the error term, which is where the cell's multiplicative width is
+what makes the collar small.  Keeping the two concerns apart is deliberate: the
+shape join must not drag in the analytic hypotheses of the estimate. -/
+theorem sum_eq_cell_rep_add_cell_error (P : Finset ℕ) (N V : ℕ)
+    (hV : ∀ p ∈ P, ⌊(N:ℝ) * Real.log p⌋₊ ≤ V) (w Z : ℕ → ℂ) (q : ℕ → ℕ) :
+    ∑ p ∈ P, w p * Z p
+      = (∑ v ∈ Finset.range (V+1),
+            (∑ p ∈ eadicCell P N v, w p) * Z (q v))
+        + ∑ v ∈ Finset.range (V+1),
+            ∑ p ∈ eadicCell P N v, w p * (Z p - Z (q v)) := by
+  classical
+  rw [sum_eq_sum_eadicCells P N V hV (fun p => w p * Z p),
+    ← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun v _ => ?_
+  rw [Finset.sum_mul, ← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun p _ => ?_
+  ring
+
 end ExpSums
 
 end MoltResearch
