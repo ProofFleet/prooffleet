@@ -472,4 +472,86 @@ theorem levelJ_le_budget (I : Finset ℕ) (ℓ : ℕ) (small : ℕ → ℝ)
         mul_le_mul_of_nonneg_left hstep hcard
     _ ≤ κ * bandBudget c₃ ε ρ := hfit
 
+/-! ## The outer band (§4.2, constraint `S2`) -/
+
+/-- **The outer band meets its share of the budget** (Track R, A2-III, S-cal-4).
+
+`band_energy_outer_le` is the one leg stated for the **plain** sum rather than
+the normalised one, with the window's decay envelope `(2B′/(π|ξ|))²` hard-coded.
+Its right-hand side already carries the plain-to-normalised conversion
+`(2A+1)²` of §4.1's `P_plain ≈ 2A·F` as an explicit factor, so the budget it
+must meet is `(2A+1)²·𝔅` and not `𝔅` — that factor cancels on both sides and
+the surviving condition is `hfit`, an inequality in `K₂`, `B′` and `ε` alone.
+
+Recording the conversion in the statement rather than absorbing it is deliberate:
+the report's VI-1 skeleton states the band integrand plain while every leg in the
+tree is normalised, and `≈ 2A·F` is an approximation, not an identity.  Here the
+two normalisations meet at one visible factor. -/
+theorem outer_le_budget (A : ℕ) (S : Finset ℕ) (B' K₂ c₃ ε ρ κ : ℝ)
+    (hA : 1 ≤ A) (hK₂ : 0 < K₂) (hρ0 : 0 ≤ ρ)
+    (hsum : ∑ n ∈ S, (1 : ℝ) / (n : ℝ) ≤ ρ)
+    (hfit : 4 * B' ^ 2 / Real.pi ^ 2
+        * (Real.exp Real.pi * (4 / (K₂ * (A : ℝ)) + 6 / K₂ ^ 2))
+      ≤ κ * c₃ * ε ^ 2 / 8) :
+    (4 * B' ^ 2 / Real.pi ^ 2) * ((2 * (A : ℝ) + 1) ^ 2
+        * (Real.exp Real.pi * ((4 / (K₂ * (A : ℝ))) + (6 / K₂ ^ 2))
+            * (∑ n ∈ S, (1 : ℝ) / (n : ℝ))))
+      ≤ κ * ((2 * (A : ℝ) + 1) ^ 2 * bandBudget c₃ ε ρ) := by
+  have hA0 : (0 : ℝ) < (A : ℝ) := by exact_mod_cast hA
+  have hKA : (0 : ℝ) < K₂ * (A : ℝ) := mul_pos hK₂ hA0
+  have hd1 : (0 : ℝ) ≤ 4 / (K₂ * (A : ℝ)) := div_nonneg (by norm_num) hKA.le
+  have hd2 : (0 : ℝ) ≤ 6 / K₂ ^ 2 := div_nonneg (by norm_num) (sq_nonneg K₂)
+  have hW0 : (0 : ℝ) ≤ 4 * B' ^ 2 / Real.pi ^ 2
+      * (Real.exp Real.pi * (4 / (K₂ * (A : ℝ)) + 6 / K₂ ^ 2)) :=
+    mul_nonneg (by positivity) (mul_nonneg (Real.exp_pos _).le (by linarith))
+  have hsq0 : (0 : ℝ) ≤ (2 * (A : ℝ) + 1) ^ 2 := sq_nonneg _
+  have hstep : 4 * B' ^ 2 / Real.pi ^ 2
+        * (Real.exp Real.pi * (4 / (K₂ * (A : ℝ)) + 6 / K₂ ^ 2))
+        * (∑ n ∈ S, (1 : ℝ) / (n : ℝ))
+      ≤ κ * c₃ * ε ^ 2 / 8 * ρ := by
+    calc 4 * B' ^ 2 / Real.pi ^ 2
+          * (Real.exp Real.pi * (4 / (K₂ * (A : ℝ)) + 6 / K₂ ^ 2))
+          * (∑ n ∈ S, (1 : ℝ) / (n : ℝ))
+        ≤ 4 * B' ^ 2 / Real.pi ^ 2
+            * (Real.exp Real.pi * (4 / (K₂ * (A : ℝ)) + 6 / K₂ ^ 2)) * ρ :=
+          mul_le_mul_of_nonneg_left hsum hW0
+      _ ≤ κ * c₃ * ε ^ 2 / 8 * ρ := mul_le_mul_of_nonneg_right hfit hρ0
+  unfold bandBudget
+  calc (4 * B' ^ 2 / Real.pi ^ 2) * ((2 * (A : ℝ) + 1) ^ 2
+          * (Real.exp Real.pi * ((4 / (K₂ * (A : ℝ))) + (6 / K₂ ^ 2))
+              * (∑ n ∈ S, (1 : ℝ) / (n : ℝ))))
+      = (2 * (A : ℝ) + 1) ^ 2 * (4 * B' ^ 2 / Real.pi ^ 2
+            * (Real.exp Real.pi * (4 / (K₂ * (A : ℝ)) + 6 / K₂ ^ 2))
+            * (∑ n ∈ S, (1 : ℝ) / (n : ℝ))) := by ring
+    _ ≤ (2 * (A : ℝ) + 1) ^ 2 * (κ * c₃ * ε ^ 2 / 8 * ρ) :=
+        mul_le_mul_of_nonneg_left hstep hsq0
+    _ = κ * ((2 * (A : ℝ) + 1) ^ 2 * (c₃ * ε ^ 2 * ρ / 8)) := by ring
+
+/-- **The outer band's weight at the schedule's cut** (Track R, A2-III, S-cal-4;
+design report §4.2).
+
+Substituting `K₂ = γB′A/(2πH)` into the left-hand side of `outer_le_budget`'s
+`hfit` gives a closed form in the schedule parameters alone.  An identity, not an
+estimate — the two terms of the outer bound go over to the two terms of `γ`.
+
+**The outer band is not what forces `γ`.**  §4.2 takes
+`γ ≥ 34/(√c₃ε) + 3072B′/(πc₃ε²H)`.  Reading `hfit` through this identity instead
+gives `γ ≥ 512e^πB′H/(πκc₃ε²A²)` and `γ ≥ H√(1536e^π/(κc₃))/(εA)` — smaller than
+§4.2's two terms by factors of order `(H/A)²` and `H/A`.  The `A²` is the
+`(2A+1)²` of the plain-to-normalised conversion meeting the `A` inside `K₂`.
+So §4.2's `γ` is set by the slice and the `L` cut of `S2`, not here, and the
+outer band clears it with room — consistent with §4.3's finding that every leg
+but `𝒰` carries a large margin. -/
+theorem outer_weight_gamma_eq (A H B' γ : ℝ) (hA : 0 < A) (hH : 0 < H)
+    (hB' : 0 < B') (hγ : 0 < γ) :
+    4 * B' ^ 2 / Real.pi ^ 2
+        * (Real.exp Real.pi
+            * (4 / ((γ * B' * A / (2 * Real.pi * H)) * A)
+                + 6 / (γ * B' * A / (2 * Real.pi * H)) ^ 2))
+      = Real.exp Real.pi * (32 * B' * H / (Real.pi * γ * A ^ 2)
+          + 96 * H ^ 2 / (γ ^ 2 * A ^ 2)) := by
+  have hπ : (0 : ℝ) < Real.pi := Real.pi_pos
+  field_simp
+  ring
+
 end MoltResearch
