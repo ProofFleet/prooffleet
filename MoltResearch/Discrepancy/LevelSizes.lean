@@ -131,4 +131,59 @@ theorem levelLargeness_ge (N r v₁ : ℕ) (Q β : ℝ) (hN : 0 < N) (hβ : 0 �
   rw [hrw, hrw']
   exact one_div_le_one_div_of_le (Real.exp_pos _) hchain
 
+/-- **The level-`j` leg meets its share, in schedule terms** (Track R, A2-III,
+M-9).
+
+`BandSchedule.levelJ_le_budget` takes the cell count `#I` and the total
+smallness `S₁` abstractly; this is that lemma with both supplied — `#I` by
+`cellCount_le` (M-2) and `S₁` by `levelSmallness_total_le` (M-3).  What is left
+of the leg's condition is `hfit`, an inequality in the level's endpoints `P`,
+`Q`, the `e`-adic resolution `N`, the decay rate `α`, the previous level's
+largeness and the moment factor — schedule parameters only, with nothing about
+the cell decomposition surviving.
+
+This is the level-`j` counterpart of what M-8 did for the `𝒰` leg, and it needs
+no new import: `levelJ_le_budget` and `cellCount_le` are both in `BandSchedule`
+and `levelSmallness_total_le` is local.
+
+**The two hypotheses `htop` and `hbot` are shared between the two inputs, and
+that is why the composition is free.**  `cellCount_le` needs exactly
+`v₁ ≤ 2N log Q` and `2N log P − 1 ≤ v₀`; `levelSmallness_total_le` needs the
+second of them, and `levelOne_le_budget` needs both.  So a schedule that has
+priced *any* of the three legs has already discharged everything this one
+asks about the `e`-adic index range. -/
+theorem levelJ_le_budget_eadic (N v₀ v₁ ℓ : ℕ) (P Q α large E M c₃ ε ρ κ : ℝ)
+    (hN : 0 < N) (hα : 0 < α) (hP0 : 0 < P) (hPQ : P ≤ Q)
+    (hlarge : 0 < large) (hE0 : 0 ≤ E) (hM0 : 0 ≤ M)
+    (htop : (v₁ : ℝ) ≤ 2 * (N : ℝ) * Real.log Q)
+    (hbot : 2 * (N : ℝ) * Real.log P - 1 ≤ (v₀ : ℝ))
+    (hfit : (2 * (N : ℝ) * (Real.log Q - Real.log P) + 2)
+        * ((P ^ (-(2 * α)) * Real.exp (2 * α / ((2 * N : ℕ) : ℝ))
+              * (((2 * N : ℕ) : ℝ) / (2 * α) + 1))
+            * (E * (M / large ^ (2 * ℓ))))
+      ≤ κ * bandBudget c₃ ε ρ) :
+    ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+        * ∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+            (Real.exp (-(α * (v : ℝ) / ((2 * N : ℕ) : ℝ)))) ^ 2 / large ^ (2 * ℓ)
+              * (E * M)
+      ≤ κ * bandBudget c₃ ε ρ := by
+  have hS₁0 : (0 : ℝ) ≤ P ^ (-(2 * α)) * Real.exp (2 * α / ((2 * N : ℕ) : ℝ))
+      * (((2 * N : ℕ) : ℝ) / (2 * α) + 1) := by
+    have h1 : (0 : ℝ) ≤ P ^ (-(2 * α)) := (Real.rpow_pos_of_pos hP0 _).le
+    have h2 : (0 : ℝ) ≤ (((2 * N : ℕ) : ℝ) / (2 * α) + 1) := by positivity
+    have h3 : (0 : ℝ) < Real.exp (2 * α / ((2 * N : ℕ) : ℝ)) := Real.exp_pos _
+    positivity
+  have hX0 : (0 : ℝ) ≤ (P ^ (-(2 * α)) * Real.exp (2 * α / ((2 * N : ℕ) : ℝ))
+        * (((2 * N : ℕ) : ℝ) / (2 * α) + 1)) * (E * (M / large ^ (2 * ℓ))) := by
+    have hlp : (0 : ℝ) < large ^ (2 * ℓ) := by positivity
+    exact mul_nonneg hS₁0 (mul_nonneg hE0 (div_nonneg hM0 hlp.le))
+  refine levelJ_le_budget (Finset.Ico v₀ (v₁ + 1)) ℓ
+    (fun v => Real.exp (-(α * (v : ℝ) / ((2 * N : ℕ) : ℝ)))) large E M
+    (P ^ (-(2 * α)) * Real.exp (2 * α / ((2 * N : ℕ) : ℝ))
+      * (((2 * N : ℕ) : ℝ) / (2 * α) + 1))
+    c₃ ε ρ κ hlarge hE0 hM0 (levelSmallness_total_le N v₀ v₁ P α hN hα hP0 hbot) ?_
+  exact le_trans
+    (mul_le_mul_of_nonneg_right (cellCount_le N v₀ v₁ P Q hP0 hPQ htop hbot) hX0)
+    hfit
+
 end MoltResearch
