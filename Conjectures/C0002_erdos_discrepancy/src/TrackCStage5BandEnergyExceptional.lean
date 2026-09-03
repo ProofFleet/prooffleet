@@ -351,6 +351,148 @@ theorem setIntegral_band_energy_exceptional_le [HalaszLargeValuesAssumption]
   have hO := hfam _ (Finset.filter_subset _ _) hgapO
   linarith [hlad, hE, hO]
 
+open MeasureTheory in
+/-- **A2-III VI-1d-2 — the `𝒰` band energy, tail-free.**
+
+`setIntegral_band_energy_exceptional_le` with its Gallagher remainder removed,
+which is what makes the leg composable with the rest of the A.2 capstone.
+
+**Why the remainder had to go rather than be paid.**  IV-3e-3 discretises the
+band with `setIntegral_norm_sq_mul_le_two_separated`, which prices
+`∫_cell ‖QR‖²` by the value at an arbitrary point of the cell and pays
+`∑_k ∫_k^{k+1} 2‖QR‖‖(QR)′‖` for the privilege.  Neither way of pricing that
+term fits inside this leg's budget.  Against the sharp mean value theorem on the
+full frequency range it is `≍ log(PN)` times the *trivial* energy, while the main
+term is `(log A)^{−1/50}` times the trivial energy.  Priced `𝒰`-aware — running
+the large-values machinery on `Q′` and `R′` too, which are Dirichlet polynomials
+over the same supports with coefficients scaled by `2π log p` and `2π log n`
+(`hasDerivAt_dirichlet_poly`) — it comes out `≍ 4π log(2PN)` times the *main*
+term, so still one factor `log(2PN)` too big.  And `BandSchedule`'s S-cal-5
+group shows this leg has no room for a factor `log`: it is the one leg of the
+band whose two sides meet, with the gap `2/625 − 1/320 = 3/40000` spent exactly
+on its constant.
+
+The repair is `setIntegral_norm_sq_mul_le_two_separated_max`: a cell has length
+one, so a sample point chosen to *maximise* the integrand on its cell prices the
+cell integral outright, with no derivative.  Three hypotheses of IV-3e-3 go with
+the term — the two `HasDerivAt` pairs, the sample family `τ` itself, and the
+measurability of `G` (the cover step never needed it).  What replaces `τ`'s
+frequency bound `hTmem` is `hKT`, the statement that the *cells* lie in
+`[−T, T]`, which is where a consumer's information actually lives.
+
+Everything else is unchanged, including the factor `2`: it is still the two
+parity classes of the cell decomposition, and still `[MR]`'s. -/
+theorem setIntegral_band_energy_exceptional_max_le [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
+    (N : ℕ) (a : ℕ → ℂ) (T : ℝ) (hT1 : 1 ≤ T)
+    (G : Set ℝ) (K : Finset ℤ)
+    (hcover : G ⊆ ⋃ k ∈ K, Set.Ico (k:ℝ) ((k:ℝ)+1))
+    (hKT : ∀ k ∈ K, -T ≤ (k:ℝ) ∧ (k:ℝ) + 1 ≤ T)
+    (V₀ δ lam : ℝ) (hV₀ : 0 < V₀) (hlam : 0 < lam)
+    (hδ : ∀ t : ℝ, |t| ≤ T →
+      V₀ < ‖∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖ →
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ) :
+    (∫ ξ in G, ‖∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+          * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ 2 * (V₀^2 * (64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
+                  * (Real.log (2*T) + 1)
+                  * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+            + δ^2 * (64 * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+                        * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
+                        * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2
+                    * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                    * (Real.log (2*T))^2)
+                * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)) := by
+  classical
+  have hT : (0:ℝ) < T := by linarith
+  -- `1 ≤ T` is what makes the integer large-values weight `log(2T)+1` nonnegative,
+  -- which is the only place the frequency bound's size is used.
+  have hlog2T : (0:ℝ) ≤ Real.log (2*T) + 1 := by
+    have := Real.log_nonneg (by linarith : (1:ℝ) ≤ 2*T)
+    linarith
+  have hchar : ∀ v : ℝ, Continuous fun ξ : ℝ =>
+      ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ) := fun v =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  have hQc : Continuous fun ξ : ℝ => ∑ p ∈ Y, (b p/(p:ℂ))
+      * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun p _ => continuous_const.mul (hchar (Real.log p))
+  have hRc : Continuous fun ξ : ℝ => ∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+      * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ) :=
+    continuous_finset_sum _ fun n _ => continuous_const.mul (hchar (Real.log n))
+  -- The tail-free discretisation supplies the sample family itself.
+  obtain ⟨τ, hτ, hlad⟩ :=
+    MoltResearch.setIntegral_norm_sq_mul_le_two_separated_max _ _ hQc hRc G K hcover
+  -- A cell inside `[−T, T]` has its maximiser inside `[−T, T]`.
+  have hTmem : ∀ k ∈ K, |τ k| ≤ T := by
+    intro k hk
+    obtain ⟨hlo', hhi'⟩ := hKT k hk
+    obtain ⟨h1, h2⟩ := hτ k hk
+    exact abs_le.mpr ⟨by linarith, by linarith⟩
+  -- One family, priced by IV-3c and then card-relaxed to `|K|`.
+  have hfam : ∀ K' : Finset ℤ, K' ⊆ K →
+      (∀ k ∈ K', ∀ l ∈ K', k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k) →
+      ∑ t ∈ K'.image τ, ‖∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖^2
+          * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖^2
+        ≤ V₀^2 * (64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
+                * (Real.log (2*T) + 1)
+                * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+          + δ^2 * (64 * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+                      * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
+                      * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2
+                  * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                  * (Real.log (2*T))^2)
+              * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by
+    intro K' hK'K hgap
+    have hτ' : ∀ k ∈ K', τ k ∈ Set.Icc (k:ℝ) ((k:ℝ)+1) :=
+      fun k hk => hτ k (hK'K hk)
+    have hmem : ∀ t ∈ K'.image τ, |t| ≤ T := by
+      intro t ht
+      obtain ⟨k, hk, rfl⟩ := Finset.mem_image.mp ht
+      exact hTmem k (hK'K hk)
+    have hsep := MoltResearch.ExpSums.separated_of_sample_gap_two K' τ hτ' hgap
+    have hlargeF : ∀ t ∈ (K'.image τ).filter (fun t => V₀ < ‖∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖),
+        ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ := by
+      intro t ht
+      obtain ⟨htm, htl⟩ := Finset.mem_filter.mp ht
+      exact hδ t (hmem t htm) htl
+    have hc3 := sum_prime_integer_energy_card_free_le P hP Y hY hlo hhi b hb N a
+      T hT (K'.image τ) hmem hsep V₀ δ lam hV₀ hlam hlargeF
+    refine hc3.trans ?_
+    have hcard : ((K'.image τ).card : ℝ) ≤ (K.card : ℝ) := by
+      exact_mod_cast (Finset.card_image_le).trans (Finset.card_le_card hK'K)
+    gcongr
+  -- Distinct integers of one parity differ by at least `2`.
+  have hgapE : ∀ k ∈ K.filter (fun k => Even k), ∀ l ∈ K.filter (fun k => Even k),
+      k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k := by
+    intro k hk l hl hkl
+    obtain ⟨m, hm⟩ := (Finset.mem_filter.mp hk).2
+    obtain ⟨n, hn⟩ := (Finset.mem_filter.mp hl).2
+    omega
+  have hgapO : ∀ k ∈ K.filter (fun k => ¬ Even k),
+      ∀ l ∈ K.filter (fun k => ¬ Even k), k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k := by
+    intro k hk l hl hkl
+    have hke := (Finset.mem_filter.mp hk).2
+    have hle := (Finset.mem_filter.mp hl).2
+    rw [Int.not_even_iff_odd] at hke hle
+    obtain ⟨m, hm⟩ := hke
+    obtain ⟨n, hn⟩ := hle
+    omega
+  have hE := hfam _ (Finset.filter_subset _ _) hgapE
+  have hO := hfam _ (Finset.filter_subset _ _) hgapO
+  linarith [hlad, hE, hO]
+
+
 end Tao2015
 
 end MoltResearch
