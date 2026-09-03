@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.BrunTitchmarsh
 import MoltResearch.Discrepancy.BandSchedule
+import MoltResearch.Discrepancy.PrimeMassCell
 
 /-!
 # The `𝒰` leg's integer constants (Track R, A2-III, M-5)
@@ -131,5 +132,132 @@ theorem integer_largeValues_factor_le (N : ℕ) (a : ℕ → ℂ) (ha : ∀ n, �
       ≤ 64 * ((N : ℝ) + 2 * T * Real.sqrt T) * (Real.log (2 * T) + 1) * 2 := by
         gcongr
     _ = 128 * ((N : ℝ) + 2 * T * Real.sqrt T) * (Real.log (2 * T) + 1) := by ring
+
+/-! ## The ratio `Γ` (M-6) -/
+
+/-- **The Ramaré split's parameter has an optimum, and it is attained**
+(Track R, A2-III, M-6).
+
+`setIntegral_band_energy_exceptional_max_le` carries a free positive parameter
+`lam`, entering its prime term as `(1 + lam) + (1/lam)·c²` with
+`c = 2π·log(2P)` — the split between the block's own contribution and the cost
+of its derivative.  The best choice is `lam = c`, where the two halves balance
+and the factor is `1 + 2c`.
+
+Stated as an existential, and for the same reason
+`BandSchedule.exists_threshold_balanced` is: `lam` is the estimate's own
+parameter rather than the consumer's, so what a consumer needs is that *some*
+admissible value makes the leg fit — and it must be able to exhibit one, not
+merely know that a good one exists.  Recorded as an **equality** at the optimum
+for that reason. -/
+theorem exists_lam_balanced (c : ℝ) (hc : 0 < c) :
+    ∃ lam : ℝ, 0 < lam ∧ (1 + lam) + (1 / lam) * c ^ 2 = 1 + 2 * c := by
+  refine ⟨c, hc, ?_⟩
+  field_simp
+  ring
+
+/-- **The `𝒰` leg's ratio `Γ`, instantiated** (Track R, A2-III, M-6).
+
+`Γ ≤ e^π·((T+1)/P + 4)·(256/log P + 2048π)·e^{−log P/(log 2T)^{3/4}}·(log 2T)²`
+at the balanced `lam`.
+
+`Γ` is the group of `BandSchedule.exceptional_threshold_le_budget` measuring how
+much the `V₀`-dependent part of the prime term exceeds the `V₀`-free part.  It
+is the last of that lemma's three groups to be instantiated, after `Bpri`
+(`PrimeMassCell.prime_energy_dyadic_le`) and `Aint`
+(`integer_largeValues_factor_le`).
+
+**The finding: the Ramaré cost and the block's prime mass cancel to an absolute
+constant.**  `exists_lam_balanced` prices the split at `1 + 4π·log(2P)`, which
+*grows* like `log P`; the block's prime mass is `≤ 256/log P`
+(`PrimeMassCell.sum_one_div_prime_dyadic_le`), which decays at exactly the same
+rate.  Their product is `256/log P + 1024π·log(2P)/log P ≤ 256/log P + 2048π`,
+bounded absolutely — so `Γ`'s dependence on the prime scale is carried entirely
+by the exponential saving `e^{−log P/(log 2T)^{3/4}}` and the term `(T+1)/P`,
+and by nothing else.  `log(2P) ≤ 2 log P` is what closes it, and it is sharp at
+`P = 2`.
+
+That matters for the leg's arithmetic: with `Bpri ≲ (log P)^{−2}` and `Γ`'s
+prime dependence reduced to the exponential, the cross term
+`2δ√(Aint·Bpri·Γ)` inherits the *square root* of the zero-free-region saving,
+which is the `[MR]` Lemma 8 input entering at half strength. -/
+theorem exists_lam_exceptional_ratio_le (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ)
+    (hY : ∀ p ∈ Y, p.Prime) (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2 * P)
+    (T : ℝ) (hT : 1 ≤ T) :
+    ∃ lam : ℝ, 0 < lam ∧
+      Real.exp Real.pi * ((T + 1) / (P : ℝ) + 2 * (2 : ℝ))
+            * ((1 + lam) + (1 / lam) * (2 * Real.pi * Real.log (2 * (P : ℝ))) ^ 2)
+            * (∑ p ∈ Y, (1 : ℝ) / (p : ℝ))
+            * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            * (Real.log (2 * T)) ^ 2
+        ≤ Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4)
+            * (256 / Real.log P + 2048 * Real.pi)
+            * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            * (Real.log (2 * T)) ^ 2 := by
+  classical
+  have hP0 : (0 : ℝ) < (P : ℝ) := by
+    have : 0 < P := by omega
+    exact_mod_cast this
+  have hlogP : (0 : ℝ) < Real.log P := Real.log_pos (by exact_mod_cast hP)
+  have hlog2P : (0 : ℝ) < Real.log (2 * (P : ℝ)) := by
+    refine Real.log_pos ?_
+    have : (2 : ℝ) ≤ (P : ℝ) := by exact_mod_cast hP
+    linarith
+  have hc : (0 : ℝ) < 2 * Real.pi * Real.log (2 * (P : ℝ)) := by
+    have := Real.pi_pos
+    positivity
+  obtain ⟨lam, hlam0, hlam⟩ := exists_lam_balanced _ hc
+  refine ⟨lam, hlam0, ?_⟩
+  -- the mass of the block, and the cancellation against the split's cost
+  have hmass := sum_one_div_prime_dyadic_le P hP Y hY hlo hhi
+  have hmass0 : (0 : ℝ) ≤ ∑ p ∈ Y, (1 : ℝ) / (p : ℝ) :=
+    Finset.sum_nonneg fun p _ => by positivity
+  have hsplit0 : (0 : ℝ) ≤ 1 + 2 * (2 * Real.pi * Real.log (2 * (P : ℝ))) := by
+    linarith
+  have hlogle : Real.log (2 * (P : ℝ)) ≤ 2 * Real.log P := by
+    have h2 : Real.log (2 * (P : ℝ)) = Real.log 2 + Real.log P := by
+      rw [Real.log_mul (by norm_num) (ne_of_gt hP0)]
+    have hle : Real.log 2 ≤ Real.log P := by
+      refine Real.log_le_log (by norm_num) ?_
+      exact_mod_cast hP
+    linarith
+  have hkey : ((1 + lam) + (1 / lam) * (2 * Real.pi * Real.log (2 * (P : ℝ))) ^ 2)
+      * (∑ p ∈ Y, (1 : ℝ) / (p : ℝ))
+      ≤ 256 / Real.log P + 2048 * Real.pi := by
+    rw [hlam]
+    refine (mul_le_mul_of_nonneg_left hmass hsplit0).trans ?_
+    have hpi := Real.pi_pos
+    have hL : (1 + 2 * (2 * Real.pi * Real.log (2 * (P : ℝ)))) * (256 / Real.log P)
+        = (256 * (1 + 2 * (2 * Real.pi * Real.log (2 * (P : ℝ))))) / Real.log P := by
+      ring
+    rw [hL, div_add' _ _ _ (ne_of_gt hlogP)]
+    gcongr
+    nlinarith [hpi, hlogle]
+  -- the two flanking groups are nonnegative, so the middle bound propagates
+  have hA0 : (0 : ℝ) ≤ Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4) := by
+    have : (0 : ℝ) ≤ (T + 1) / (P : ℝ) := by positivity
+    have := Real.exp_pos Real.pi
+    nlinarith
+  have hC0 : (0 : ℝ) ≤ Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+      * (Real.log (2 * T)) ^ 2 := by positivity
+  calc Real.exp Real.pi * ((T + 1) / (P : ℝ) + 2 * (2 : ℝ))
+          * ((1 + lam) + (1 / lam) * (2 * Real.pi * Real.log (2 * (P : ℝ))) ^ 2)
+          * (∑ p ∈ Y, (1 : ℝ) / (p : ℝ))
+          * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+          * (Real.log (2 * T)) ^ 2
+      = (Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4))
+          * (((1 + lam) + (1 / lam) * (2 * Real.pi * Real.log (2 * (P : ℝ))) ^ 2)
+              * (∑ p ∈ Y, (1 : ℝ) / (p : ℝ)))
+          * (Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+              * (Real.log (2 * T)) ^ 2) := by ring
+    _ ≤ (Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4))
+          * (256 / Real.log P + 2048 * Real.pi)
+          * (Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+              * (Real.log (2 * T)) ^ 2) :=
+        mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hkey hA0) hC0
+    _ = Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4)
+          * (256 / Real.log P + 2048 * Real.pi)
+          * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+          * (Real.log (2 * T)) ^ 2 := by ring
 
 end MoltResearch
