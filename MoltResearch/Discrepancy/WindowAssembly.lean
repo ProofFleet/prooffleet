@@ -773,19 +773,37 @@ theorem exists_slice_window' (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
 
 
 open MeasureTheory Real in
-/-- **G10a: the per-slice energy, fully composed** (Track R, A2-III):
-the slice mean square priced end-to-end — the exported slice window,
-the explicit derivative slots (`C₀`/`B′`, discharged by
-`exists_bump_deriv_bound` at the schedule's ratio window), the
-collar/Lipschitz/Riemann costs, the regime split (G4) with the
-derivative energy (G3c), and the `𝒰`-band energy (G5).  Only
-`Mmid`/`Mtot` and the ratio-window data remain parametric — the
-schedule's business. -/
-theorem slice_energy_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+/-- **G10a′: the per-slice energy, parametric in the window energy** (Track R,
+A2-III E-5).
+
+`slice_energy_le` with the frequency treatment factored out.  Everything that
+lemma does *other* than split the frequency line — the slice window, the collar
+and Lipschitz costs, the Riemann comparison, the interval-to-line step and the
+final `6·` assembly — is regime-independent, and this is that part, taking a
+bound `R` on the window's line energy as a hypothesis.
+
+**Why `hreg` is quantified over windows rather than stated at one.**  The window
+`f` is produced *inside* the proof by `exists_slice_window'`, so a caller cannot
+name it.  `hreg` therefore ranges over every bump the constructor could return,
+identified by exactly the properties it guarantees — the two radius equations,
+smoothness, the `[0,1]` bound and the support bound.  That is the same shape
+`hC₀` already had, for the same reason.
+
+Three hypotheses of `slice_energy_le` are absent because only the frequency
+treatment used them: `hfit` (which fed `uBound`'s recursion window), the
+`levels` list, and the mid-band sup data.  A caller supplies instead one bound
+on `∫‖G‖²`, obtained however it likes — through `window_energy_regime_le`, as
+`slice_energy_le` now does, or through
+`ExpSums.window_energy_regime_energy_le`, which keeps the mid band as a
+*weighted energy* so that the A.2 band capstone can discharge it.  The second
+route is the point of the refactor: before it, the only way into this lemma
+priced the mid band by its pointwise sup, which is the trivial bound the whole
+A.2 campaign exists to beat. -/
+theorem slice_energy_le_of_window_energy (h : ℕ → ℂ)
+    (hb : ∀ m, ‖h m‖ ≤ 1)
     (A s U H : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s) (hsA : s ≤ A) (hU : 0 < U)
     (hUH : 2*U ≤ H) (h3H : 3*H ≤ A)
     (hplat : ((U:ℝ)+1)*((A:ℝ)+s) ≤ (A:ℝ)*H)
-    (hfit : A + s + 2*H + 4*U ≤ 2*A + 1)
     (C₀ B' : ℝ) (hB'0 : 0 ≤ B')
     (hC₀ : ∀ (c : ℝ) (f : ContDiffBump c),
       f.rIn = ((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
@@ -798,19 +816,23 @@ theorem slice_energy_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
       ∀ u : ℝ, |deriv (⇑f) u| ≤ C₀/f.rIn)
     (hB' : C₀/(((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
         - Real.log (1 + (U:ℝ)/A))/2) ≤ B')
-    (K L Mmid Mtot : ℝ) (hK : 0 ≤ K) (hL : 0 < L) (hMmid0 : 0 ≤ Mmid)
-    (hmid : ∀ ξ : ℝ, K ≤ |ξ| → |ξ| ≤ L →
-      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
-        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mmid)
-    (htot : ∀ ξ : ℝ,
-      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
-        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mtot)
-    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ q ∈ P, q.Prime) :
+    (R : ℝ)
+    (hreg : ∀ (c : ℝ) (f : ContDiffBump c),
+      f.rIn = ((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+          - Real.log (1 + (U:ℝ)/A))/2 →
+      f.rOut - f.rIn = ((A:ℝ)/H)
+          * (min (Real.log (1 + (U:ℝ)/A)
+              - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+            (Real.log (1 + ((H:ℝ)+2*U)/A)
+              - Real.log (1 + (H:ℝ)/((A:ℝ)+s)))) →
+      ContDiff ℝ ∞ (⇑f) → (∀ u, 0 ≤ (⇑f) u ∧ (⇑f) u ≤ 1) →
+      (∀ u, (⇑f) u ≠ 0 → |u| ≤ 2) →
+      ∫ y, ‖(4*(H:ℂ)) * smoothedLogSum ((A:ℝ)/H) (⇑f)
+          (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+            then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+          (Finset.Ioc A (A+s+2*H+4*U)) y‖^2 ≤ R) :
     ∑ n ∈ Finset.Ioc A (A+s), ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n
-      ≤ 6*((4*(H:ℝ)/A)^2*((2*(A:ℝ)+1)^2
-            * uBound K levels A (A+s+2*H+4*U))
-          + Mmid^2*(4*(H:ℝ)/A)
-          + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)))
+      ≤ 6*R
         + (3*(U:ℝ)^2 + 3*(6*(U:ℝ)+(H:ℝ)*s/A+2)^2)
             * (∑ n ∈ Finset.Ioc A (A+s), (1:ℝ)/n)
         + 6*(800*(H:ℝ)*(A:ℝ)*B')/A := by
@@ -939,37 +961,87 @@ theorem slice_energy_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
     exact this.mul_left
   have hG1 := intervalIntegral_norm_sq_le_integral G hGcont hGcs
     (Real.log A) (Real.log (((A+s : ℕ):ℝ)+1))
-  -- the regime split with the derivative energy
+  have hint : ∫ y, ‖G y‖^2 ≤ R := by
+    rw [hG_def]
+    exact hreg c f hrIn hrOutsub hηs hη01 hη2
+  have hstep : ∫ y in (Real.log A)..(Real.log (((A+s : ℕ):ℝ)+1)), ‖G y‖^2 ≤ R :=
+    le_trans hG1 hint
+  have h6 := mul_le_mul_of_nonneg_left hstep (by norm_num : (0:ℝ) ≤ 6)
+  linarith [hmean, h6]
+
+
+open Real Finset in
+/-- **G10a: the per-slice energy, fully composed** (Track R, A2-III):
+the slice mean square priced end-to-end — the exported slice window,
+the explicit derivative slots (`C₀`/`B′`, discharged by
+`exists_bump_deriv_bound` at the schedule's ratio window), the
+collar/Lipschitz/Riemann costs, the regime split (G4) with the
+derivative energy (G3c), and the `𝒰`-band energy (G5).  Only
+`Mmid`/`Mtot` and the ratio-window data remain parametric — the
+schedule's business.
+
+Since E-5 this is a corollary of `slice_energy_le_of_window_energy`.  The
+statement is unchanged; what it adds over the parametric lemma is exactly the
+frequency treatment — `window_energy_regime_le` for the split and
+`intervalIntegral_norm_sq_plain_le` for the low band. -/
+theorem slice_energy_le (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1)
+    (A s U H : ℕ) (hA : 1 ≤ A) (hs : 1 ≤ s) (hsA : s ≤ A) (hU : 0 < U)
+    (hUH : 2*U ≤ H) (h3H : 3*H ≤ A)
+    (hplat : ((U:ℝ)+1)*((A:ℝ)+s) ≤ (A:ℝ)*H)
+    (hfit : A + s + 2*H + 4*U ≤ 2*A + 1)
+    (C₀ B' : ℝ) (hB'0 : 0 ≤ B')
+    (hC₀ : ∀ (c : ℝ) (f : ContDiffBump c),
+      f.rIn = ((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+          - Real.log (1 + (U:ℝ)/A))/2 →
+      f.rOut - f.rIn = ((A:ℝ)/H)
+          * (min (Real.log (1 + (U:ℝ)/A)
+              - Real.log (1 + (U:ℝ)/(4*((A:ℝ)+s))))
+            (Real.log (1 + ((H:ℝ)+2*U)/A)
+              - Real.log (1 + (H:ℝ)/((A:ℝ)+s)))) →
+      ∀ u : ℝ, |deriv (⇑f) u| ≤ C₀/f.rIn)
+    (hB' : C₀/(((A:ℝ)/H)*(Real.log (1 + (H:ℝ)/((A:ℝ)+s))
+        - Real.log (1 + (U:ℝ)/A))/2) ≤ B')
+    (K L Mmid Mtot : ℝ) (hK : 0 ≤ K) (hL : 0 < L) (hMmid0 : 0 ≤ Mmid)
+    (hmid : ∀ ξ : ℝ, K ≤ |ξ| → |ξ| ≤ L →
+      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mmid)
+    (htot : ∀ ξ : ℝ,
+      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mtot)
+    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ q ∈ P, q.Prime) :
+    ∑ n ∈ Finset.Ioc A (A+s), ‖∑ m ∈ Finset.Ioc n (n+H), h m‖^2/n
+      ≤ 6*((4*(H:ℝ)/A)^2*((2*(A:ℝ)+1)^2
+            * uBound K levels A (A+s+2*H+4*U))
+          + Mmid^2*(4*(H:ℝ)/A)
+          + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)))
+        + (3*(U:ℝ)^2 + 3*(6*(U:ℝ)+(H:ℝ)*s/A+2)^2)
+            * (∑ n ∈ Finset.Ioc A (A+s), (1:ℝ)/n)
+        + 6*(800*(H:ℝ)*(A:ℝ)*B')/A := by
+  classical
+  have hH : 0 < H := by omega
+  have hA0 : (0:ℝ) < A := by exact_mod_cast hA
+  have hH0 : (0:ℝ) < H := by exact_mod_cast hH
+  have hT : (0:ℝ) < (A:ℝ)/H := by positivity
+  refine slice_energy_le_of_window_energy h hb A s U H hA hs hsA hU hUH h3H
+    hplat C₀ B' hB'0 hC₀ hB' _ ?_
+  intro c f hrIn hrOutsub hηs hη01 hη2
+  obtain ⟨B₂, hB₂0, hB₂, hd2⟩ := exists_deriv_bound (⇑f) hηs hη2
+  have hderiv : ∀ u : ℝ, |deriv (⇑f) u| ≤ B' := by
+    intro u
+    refine le_trans (hC₀ c f hrIn hrOutsub u) ?_
+    rw [hrIn]
+    exact hB'
   have hG3c := integral_sq_norm_fourier_slice_window_le ((A:ℝ)/H) hT (⇑f)
     hηs hη2 B' hB'0 hderiv hd2
   have hG4 := window_energy_regime_le h A s H U hA hH (⇑f) hηs hη01 hη2
     K L Mmid Mtot ((A:ℝ)/H*B'^2/π^2) hK hL hMmid0 hmid htot hG3c
-  -- the band energy through the 𝒰-recursion
   have hG5 := intervalIntegral_norm_sq_plain_le K hK levels hlv
     A (A+s+2*H+4*U) hfit (Finset.Ioc A (A+s+2*H+4*U))
     (Finset.Subset.refl _) h hb
-  -- assemble
-  have hint : ∫ y, ‖G y‖^2
-      ≤ (4*(H:ℝ)/A)^2*((2*(A:ℝ)+1)^2
-          * uBound K levels A (A+s+2*H+4*U))
-        + Mmid^2*(4*(H:ℝ)/A)
-        + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)) := by
-    have hG4' : ∫ y, ‖G y‖^2
-        ≤ (4*(H:ℝ)/A)^2
-            * (∫ ξ in (-K)..K, ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
-                h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
-          + Mmid^2*(4*(H:ℝ)/A) + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)) := hG4
-    refine le_trans hG4' ?_
-    have := mul_le_mul_of_nonneg_left hG5
-      (by positivity : (0:ℝ) ≤ (4*(H:ℝ)/A)^2)
-    linarith
-  have hstep : ∫ y in (Real.log A)..(Real.log (((A+s : ℕ):ℝ)+1)), ‖G y‖^2
-      ≤ (4*(H:ℝ)/A)^2*((2*(A:ℝ)+1)^2
-          * uBound K levels A (A+s+2*H+4*U))
-        + Mmid^2*(4*(H:ℝ)/A)
-        + Mtot^2*((1/L^2)*((A:ℝ)/H*B'^2/π^2)) := le_trans hG1 hint
-  have h6 := mul_le_mul_of_nonneg_left hstep (by norm_num : (0:ℝ) ≤ 6)
-  linarith [hmean, h6]
+  refine le_trans hG4 ?_
+  have := mul_le_mul_of_nonneg_left hG5
+    (by positivity : (0:ℝ) ≤ (4*(H:ℝ)/A)^2)
+  linarith
 
 
 open Real Finset in
