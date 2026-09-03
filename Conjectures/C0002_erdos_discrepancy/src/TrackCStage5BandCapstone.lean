@@ -1,0 +1,142 @@
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5BandEnergyExceptional
+
+/-!
+# The `[mrt]` A.2 band capstone, conditional half (Track R, A2-III, VI-1d)
+
+The elementary half of the capstone lives in
+`MoltResearch/Discrepancy/BandCapstone.lean`: `band_energy_le_budget` covers the
+inner band by its parts, relaxes the frequency weight on each, and closes the
+argument once every part meets its share of `bandBudget`.  It says nothing about
+*how* a part meets its share — every leg is a hypothesis.
+
+For the levels `𝒯₁, …, 𝒯_J` that is right: their legs
+(`band_energy_level_one_le`, `band_energy_level_le_of_prev_large`, and the
+cell-summed forms `setIntegral_norm_sq_cell_prime_block_le` and
+`setIntegral_norm_sq_level_sum_of_prev_large_le`) are elementary and unconditional,
+and a consumer discharges them in the nucleus.  The exceptional part `𝒰` is not:
+it rests on `HalaszLargeValuesAssumption` (Iwaniec–Kowalski Thm 9.6) and
+`PrimeLargeValuesAssumption` ([MR] Lemma 8), and `scripts/check_layering.sh`
+forbids `MoltResearch/` from importing the tree those classes live in.
+
+**That layering constraint is the whole reason this module exists**, and it is
+the same seam that split IV-3 into an elementary half in the nucleus and a
+conditional half here.  This file is where the two halves finally meet: the
+partition assembly from the nucleus, with the one part it cannot discharge
+discharged.
+-/
+
+namespace MoltResearch
+
+namespace Tao2015
+
+open MeasureTheory in
+/-- **A2-III VI-1d-6 — the band capstone, conditional.**
+
+The endpoint of the `[mrt]` A.2 band estimate: the weighted band energy is at
+most the slice's budget `𝔅 = c₃ε²ρ/8`, conditional on exactly the two
+large-values interfaces.
+
+The partition is `𝒮` with one distinguished member `u`, whose part is the
+exceptional set `𝒰`.  Every other part is a level `𝒯_j` and comes with its leg
+as a hypothesis (`hleg`); the part at `u` has no hypothesis, because it is
+discharged here by `setIntegral_band_energy_exceptional_le_budget`.
+
+**Three seams meet in the statement, and each is a real hypothesis rather than a
+convention.**
+
+* `hfac` is the **factorisation** seam.  On `𝒰` — and only there — the band
+  integrand must be presented as a product of a prime polynomial and an integer
+  polynomial, which is what `[MR]`'s decomposition lemma (II-2) supplies and what
+  the two large-values interfaces consume.  On a level `𝒯_j` the integrand is a
+  cell polynomial against a block, a different factorisation entirely.  It is
+  stated as `≤` rather than `=` so that a consumer may discard a harmless factor
+  when applying II-2.
+* `hfitU` is the **budget** seam, and it carries the weight explicitly: the leg
+  bounds the *bare* energy while the capstone measures the *weighted* one, so the
+  share available to `𝒰` is `κ u · 𝔅 / Cw`.  Dividing rather than multiplying
+  keeps `hfitU` in the exact shape `setIntegral_band_energy_exceptional_le_budget`
+  takes, so a consumer composes with nothing.
+* `hKT` is the **frequency-range** seam.  The `𝒰` leg needs its sample cells
+  inside `[−T, T]`; since VI-1d-2 the cells carry that condition rather than the
+  sample points, so a consumer states where its cells are and never has to
+  construct a sample family at all.
+
+**What this theorem does not do.**  It does not instantiate the schedule: `Aint`,
+`Bpri`, `Γ`, `δ`, the shares `κ`, and the level legs are all supplied.  Binding
+those to `S1`–`S7` needs Mertens-type prime inputs and is a separate campaign —
+the same one `BandSchedule`'s module note sets aside.  What is closed here is the
+*shape*: every part of the band is priced against one budget, in one statement,
+with the conditional part conditional on exactly two quotable hypotheses. -/
+theorem band_energy_le_budget_of_exceptional [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption] {ι : Type*} [DecidableEq ι]
+    (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (G : Set ℝ) (𝒮 : Finset ι) (part : ι → Set ℝ)
+    (hmeas : ∀ i ∈ 𝒮, MeasurableSet (part i))
+    (hdisj : Set.Pairwise (↑𝒮) (Function.onFun Disjoint part))
+    (hcover : G ⊆ ⋃ i ∈ 𝒮, part i)
+    (hint : ∀ i ∈ 𝒮, IntegrableOn (fun ξ => ‖F ξ‖^2) (part i))
+    (hintw : ∀ i ∈ 𝒮, IntegrableOn (fun ξ => ‖F ξ‖^2 * w ξ) (part i))
+    (κ : ι → ℝ) (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hκ : ∑ i ∈ 𝒮, κ i ≤ 1)
+    (u : ι) (hu : u ∈ 𝒮)
+    (hleg : ∀ i ∈ 𝒮, i ≠ u → Cw * ∫ ξ in part i, ‖F ξ‖^2
+      ≤ κ i * bandBudget c₃ ε ρ)
+    (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
+    (N : ℕ) (a : ℕ → ℂ) (T : ℝ) (hT1 : 1 ≤ T)
+    (K : Finset ℤ)
+    (hcoverU : part u ⊆ ⋃ k ∈ K, Set.Ico (k:ℝ) ((k:ℝ)+1))
+    (hKT : ∀ k ∈ K, -T ≤ (k:ℝ) ∧ (k:ℝ) + 1 ≤ T)
+    (δ lam : ℝ) (hδ0 : 0 < δ) (hlam : 0 < lam)
+    (hδ : ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ)
+    (hfac : ∀ ξ ∈ part u, ‖F ξ‖^2
+      ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+    (hintU : IntegrableOn (fun ξ => ‖∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2) (part u))
+    (Aint Bpri Γ : ℝ)
+    (hAint : Aint = 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+    (hBpri : Bpri = 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hΓ : Γ = (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+          * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
+          * (∑ p ∈ Y, (1:ℝ)/(p:ℝ)))
+        * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+        * (Real.log (2*T))^2)
+    (hA0 : 0 < Aint) (hB0 : 0 < Bpri) (hΓ0 : 0 < Γ)
+    (hfitU : 2 * (δ^2 * Bpri + 2 * δ * Real.sqrt (Aint * (Bpri * Γ)))
+      ≤ κ u * bandBudget c₃ ε ρ / Cw) :
+    (∫ ξ in G, ‖F ξ‖^2 * w ξ) ≤ bandBudget c₃ ε ρ := by
+  -- The exceptional part, discharged from the two large-values interfaces.
+  have hU := setIntegral_band_energy_exceptional_le_budget P hP Y hY hlo hhi b hb
+    N a T hT1 (part u) K hcoverU hKT δ lam hδ0 hlam hδ Aint Bpri Γ hAint hBpri hΓ
+    hA0 hB0 hΓ0 c₃ ε ρ (κ u / Cw) (by rw [div_mul_eq_mul_div]; exact hfitU)
+  have hUleg : Cw * ∫ ξ in part u, ‖F ξ‖^2 ≤ κ u * bandBudget c₃ ε ρ := by
+    have hmono : (∫ ξ in part u, ‖F ξ‖^2)
+        ≤ ∫ ξ in part u, ‖∑ p ∈ Y, (b p/(p:ℂ))
+              * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+            * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+                * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 :=
+      setIntegral_mono_on (hint u hu) hintU (hmeas u hu) hfac
+    calc Cw * ∫ ξ in part u, ‖F ξ‖^2
+        ≤ Cw * (κ u / Cw * bandBudget c₃ ε ρ) :=
+          mul_le_mul_of_nonneg_left (hmono.trans hU) hCw.le
+      _ = κ u * bandBudget c₃ ε ρ := by field_simp
+  -- Every part now meets its share, so the nucleus assembly closes it.
+  refine band_energy_le_budget F w hw0 Cw hwC G 𝒮 part hmeas hdisj hcover hint
+    hintw κ c₃ ε ρ hc₃ hρ (fun i hi => ?_) hκ
+  by_cases hiu : i = u
+  · subst hiu; exact hUleg
+  · exact hleg i hi hiu
+
+end Tao2015
+
+end MoltResearch
