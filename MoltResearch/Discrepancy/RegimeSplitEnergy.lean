@@ -1,4 +1,5 @@
 import MoltResearch.Discrepancy.PlancherelHarness
+import MoltResearch.Discrepancy.ParsevalBridge
 
 /-!
 # The regime split with the low band left as an energy (Track R, A2-III)
@@ -167,6 +168,90 @@ theorem integral_norm_sq_sum_translates_energy_split
   have hψ_val : ∫ ξ, ψ ξ = Mtot^2 * ((1/L^2) * ∫ ξ, ξ^2 * ‖𝓕 F ξ‖^2) := by
     rw [hψ_def, integral_const_mul, integral_const_mul]
   linarith [hcompl, hfull, hψ_val.le, hψ_val.ge]
+
+/-- **The window energy, low band left as an energy** (Track R, A2-III E-2).
+
+`window_energy_regime_le` with the sup slot removed: the smoothed-window line
+energy against the *band energy* of the plain phase polynomial below `L`, plus
+the derivative-energy tail.
+
+This is the form the `[mrt]` A.2 capstone can discharge.  Its predecessor prices
+the frequency range below `L` as `(4H/A)²·∫_{−K}^{K}‖P‖² + Mmid²·(4H/A)` — an
+explicit low-band energy plus the *trivial* bound on the mid band — and the
+whole point of the band campaign is that the mid band admits far better than
+trivial.  Here the mid band is not bounded at all: it is left inside the
+integral, weighted by `‖𝓕F‖²`, which is exactly the capstone's abstract `w`.
+
+**Three hypotheses of the predecessor are gone**: `K` and `Mmid` with the sup
+they carried, and `hη01`.  That last one is worth noting — `0 ≤ η ≤ 1` was
+needed only to sup the window transform by `4/T` on the low band
+(`norm_fourier_slice_window_le`), and with the weight kept there is nothing to
+sup.  A consumer that wants the sup back applies
+`ExpSums.setIntegral_weight_le_const` at `Cw = (4H/A)²`, which is where that
+constant belongs.
+
+The `4H·(A/H)·(h·m/(4A))/m = h` weight identity is the same as in the
+predecessor: the translate weights are the raw coefficients. -/
+theorem window_energy_regime_energy_le (h : ℕ → ℂ)
+    (A s H U : ℕ) (hA : 1 ≤ A) (hH : 0 < H)
+    (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η) (hη2 : ∀ u, η u ≠ 0 → |u| ≤ 2)
+    (L Mtot Eder : ℝ) (hL : 0 < L)
+    (htot : ∀ ξ : ℝ,
+      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mtot)
+    (hder : ∫ ξ, ξ^2 * ‖𝓕 (fun v =>
+        ((η (((A:ℝ)/H)*v) : ℝ) : ℂ)) ξ‖^2 ≤ Eder) :
+    ∫ y, ‖(4*(H:ℂ)) * smoothedLogSum ((A:ℝ)/H) η
+        (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+          then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+        (Finset.Ioc A (A+s+2*H+4*U)) y‖^2
+      ≤ (∫ ξ in {ξ : ℝ | |ξ| ≤ L},
+            ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+              h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+              * ‖𝓕 (fun v => ((η (((A:ℝ)/H)*v) : ℝ) : ℂ)) ξ‖^2)
+        + Mtot^2 * ((1/L^2) * Eder) := by
+  classical
+  have hAR : (0:ℝ) < (A:ℝ) := by exact_mod_cast (by omega : 0 < A)
+  have hHR : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+  set T : ℝ := (A:ℝ)/H with hT_def
+  have hT : 0 < T := by positivity
+  set S : Finset ℕ := Finset.Ioc A (A+s+2*H+4*U) with hS_def
+  set F : ℝ → ℂ := fun v => ((η (T*v) : ℝ) : ℂ) with hF_def
+  obtain ⟨hFc, hFs⟩ := window_profile_props T hT η hηs hη2
+  -- the weight identity: the translate weights are the raw `h`
+  have htrans : ∀ y : ℝ, (4*(H:ℂ)) * smoothedLogSum T η
+      (fun m => if m ∈ S then h m * (m:ℂ)/(4*(A:ℂ)) else 0) S y
+      = ∑ m ∈ S, h m * F (y - Real.log m) := by
+    intro y
+    rw [smoothedLogSum_eq_sum_translates, Finset.mul_sum]
+    refine Finset.sum_congr rfl fun m hm => ?_
+    rw [if_pos hm]
+    have hm1 : 1 ≤ m := by
+      rw [hS_def, Finset.mem_Ioc] at hm
+      omega
+    have hmC : (m:ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+    have hAC : ((A:ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+    have hHC : ((H:ℕ):ℂ) ≠ 0 := Nat.cast_ne_zero.mpr (by omega)
+    have hTC : ((T:ℝ):ℂ) = ((A:ℕ):ℂ)/((H:ℕ):ℂ) := by
+      rw [hT_def]
+      push_cast
+      ring
+    rw [hF_def, hTC]
+    field_simp
+  have hcongr : ∫ y, ‖(4*(H:ℂ)) * smoothedLogSum T η
+      (fun m => if m ∈ S then h m * (m:ℂ)/(4*(A:ℂ)) else 0) S y‖^2
+      = ∫ y, ‖∑ m ∈ S, h m * F (y - Real.log m)‖^2 :=
+    integral_congr_ae (Filter.Eventually.of_forall fun y => by
+      simpa using congrArg (fun z : ℂ => ‖z‖^2) (htrans y))
+  rw [hcongr]
+  refine le_trans (integral_norm_sq_sum_translates_energy_split F hFc hFs S h
+    (fun m => Real.log m) L Mtot hL htot) ?_
+  have htail : Mtot^2 * ((1/L^2) * ∫ ξ, ξ^2 * ‖𝓕 F ξ‖^2)
+      ≤ Mtot^2 * ((1/L^2) * Eder) := by
+    refine mul_le_mul_of_nonneg_left ?_ (sq_nonneg Mtot)
+    exact mul_le_mul_of_nonneg_left hder (by positivity)
+  linarith [htail]
+
 
 end ExpSums
 
