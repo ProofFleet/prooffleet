@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.BrunTitchmarsh
 import MoltResearch.Discrepancy.BandSchedule
 import MoltResearch.Discrepancy.PrimeMassCell
+import MoltResearch.Discrepancy.ExpSums
 
 /-!
 # The `𝒰` leg's integer constants (Track R, A2-III, M-5)
@@ -259,5 +260,73 @@ theorem exists_lam_exceptional_ratio_le (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ
           * (256 / Real.log P + 2048 * Real.pi)
           * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
           * (Real.log (2 * T)) ^ 2 := by ring
+
+/-! ## The pointwise input `δ` (M-12) -/
+
+/-- **The normalised polynomial is bounded by its plain partial sums** (Track R,
+A2-III, M-12).
+
+`‖∑_{1 ≤ n ≤ N} (a_n/n)·e(−t log n)‖ ≤ E` whenever every plain partial sum
+`∑_{1 ≤ n < P} a_n·e(−t log n)` is bounded by `E`.
+
+This is the shape of `δ` — the pointwise hypothesis `hδ` of
+`band_energy_le_budget_of_exceptional` and of its instantiated form — expressed
+in terms of a *plain* sum bound, which is what the in-tree Halász chain
+produces (`plain_sumC_le_halasz_shell_of_nonPretentious` bounds `‖∑_{n ≤ x} f n‖`,
+not a normalised polynomial).
+
+**The `1/n` weight costs nothing.**  `ExpSums.abel_weight_bound` prices a
+decreasing nonnegative weight against uniformly bounded partial sums at
+`w(M)·E`, and here `M = 1`, so `w(M) = 1` and `δ = E` exactly.  That is worth
+recording because the `𝒰` leg has no margin: `BandSchedule.exceptional_saving_le_budget`
+already spends a factor `2/ε` on the *other* partial summation in this chain —
+the long-sum-to-short-sum transfer — and a second loss here would not be
+affordable.  There is none.
+
+The twist `e(−t log n)` rides along untouched: it is absorbed into the
+coefficient sequence before the Abel step, so the bound is uniform in `t` as
+soon as the partial-sum hypothesis is. -/
+theorem norm_slice_poly_le_of_partial_sums (a : ℕ → ℂ) (N : ℕ) (t E : ℝ)
+    (hN : 1 ≤ N)
+    (hE : ∀ P, P ≤ N + 1 →
+      ‖∑ n ∈ Finset.Ico 1 P, a n
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ E) :
+    ‖∑ n ∈ Finset.Icc 1 N, (a n / (n : ℂ))
+        * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ E := by
+  classical
+  set A : ℕ → ℂ := fun n => a n
+    * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ) with hA
+  set w : ℕ → ℝ := fun n => 1 / (n : ℝ) with hw
+  have hw0 : ∀ n, 1 ≤ n → n ≤ N → 0 ≤ w n := by
+    intro n _ _
+    have : (0 : ℝ) ≤ (n : ℝ) := Nat.cast_nonneg _
+    positivity
+  have hwd : ∀ n, 1 ≤ n → n < N → w (n + 1) ≤ w n := by
+    intro n hn _
+    have hn0 : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn
+    have hstep : (n : ℝ) ≤ ((n + 1 : ℕ) : ℝ) := by push_cast; linarith
+    exact one_div_le_one_div_of_le hn0 hstep
+  have habel := ExpSums.abel_weight_bound (w := w) (a := A) (M := 1) (N := N)
+    (E := E) hN hw0 hwd (fun P h1 h2 => hE P h2)
+  have hrw : ∑ n ∈ Finset.Ico 1 (N + 1), w n • A n
+      = ∑ n ∈ Finset.Icc 1 N, (a n / (n : ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ) := by
+    have hset : Finset.Ico 1 (N + 1) = Finset.Icc 1 N := by
+      ext m
+      rw [Finset.mem_Ico, Finset.mem_Icc]
+      omega
+    rw [hset]
+    refine Finset.sum_congr rfl fun n hn => ?_
+    rw [Finset.mem_Icc] at hn
+    have hn0 : (n : ℂ) ≠ 0 := by
+      have : 0 < n := hn.1
+      exact_mod_cast Nat.cast_ne_zero.mpr (by omega)
+    rw [hA, hw, Complex.real_smul]
+    push_cast
+    field_simp
+  have hw1 : w 1 = 1 := by rw [hw]; norm_num
+  rw [hrw] at habel
+  rw [hw1, one_mul] at habel
+  exact habel
 
 end MoltResearch
