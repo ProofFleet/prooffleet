@@ -493,6 +493,84 @@ theorem setIntegral_band_energy_exceptional_max_le [HalaszLargeValuesAssumption]
   linarith [hlad, hE, hO]
 
 
+open MeasureTheory in
+/-- **A2-III VI-1d-4 — the `𝒰` leg against its share of the band budget.**
+
+The endpoint of the `𝒰` ladder: the exceptional band's energy is at most its
+share `κ·𝔅` of the slice budget, under one schedule condition that mentions
+neither the threshold nor the frequency set.
+
+Three things are being composed.  `setIntegral_band_energy_exceptional_max_le`
+(VI-1d-2) bounds the energy at *any* threshold `V₀`;
+`BandSchedule.exceptional_threshold_le_budget` (VI-1d-3) says which threshold is
+best and prices the result against the budget; and the two meet here, with the
+right-hand side's three groups named — `Aint` the integer large-values factor,
+`Bpri` the prime one, and `Γ` the ratio by which the `V₀`-dependent part of the
+prime term exceeds the `V₀`-free part.
+
+**The hypothesis `hδ` is ungated, and that is the point.**  IV-3e-3 and VI-1d-2
+take the pointwise Halász input in the form *"where the prime polynomial exceeds
+`V₀`, the integer polynomial is at most `δ`"* — a hypothesis that mentions the
+threshold.  That is fine while `V₀` is a parameter, but it is in direct tension
+with choosing `V₀` optimally: the consumer would have to supply its Halász input
+already knowing which threshold the balancing will select.  Taking the input in
+its ungated form — the integer polynomial is small on the whole frequency range —
+resolves the tension, since it implies the gated form at *every* threshold, and
+it is what the IV-0 short-sum Halász chain actually delivers.  The gate was never
+part of the analytic input; it was bookkeeping for the split.
+
+So the threshold disappears from the interface entirely: it is quantified inside
+the proof, and `hfit` — the condition the schedule must check — is an inequality
+in `Aint`, `Bpri`, `Γ`, `δ` and the budget alone.  That puts this leg in the same
+form as `levelOne_le_budget`, `levelJ_le_budget` and `outer_le_budget`, which is
+what the partition assembly (`sum_shares_le_budget`) consumes. -/
+theorem setIntegral_band_energy_exceptional_le_budget [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
+    (N : ℕ) (a : ℕ → ℂ) (T : ℝ) (hT1 : 1 ≤ T)
+    (G : Set ℝ) (K : Finset ℤ)
+    (hcover : G ⊆ ⋃ k ∈ K, Set.Ico (k:ℝ) ((k:ℝ)+1))
+    (hKT : ∀ k ∈ K, -T ≤ (k:ℝ) ∧ (k:ℝ) + 1 ≤ T)
+    (δ lam : ℝ) (hδ0 : 0 < δ) (hlam : 0 < lam)
+    (hδ : ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ)
+    (Aint Bpri Γ : ℝ)
+    (hAint : Aint = 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+    (hBpri : Bpri = 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hΓ : Γ = (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+          * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
+          * (∑ p ∈ Y, (1:ℝ)/(p:ℝ)))
+        * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+        * (Real.log (2*T))^2)
+    (hA0 : 0 < Aint) (hB0 : 0 < Bpri) (hΓ0 : 0 < Γ)
+    (c₃ ε ρ κ : ℝ)
+    (hfit : 2 * (δ^2 * Bpri + 2 * δ * Real.sqrt (Aint * (Bpri * Γ)))
+      ≤ κ * MoltResearch.bandBudget c₃ ε ρ) :
+    (∫ ξ in G, ‖∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+          * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+      ≤ κ * MoltResearch.bandBudget c₃ ε ρ := by
+  obtain ⟨V₀, hV₀, hbud⟩ := MoltResearch.exceptional_threshold_le_budget
+    Aint Bpri Γ δ c₃ ε ρ κ hA0 hB0 hΓ0 hδ0 hfit
+  have hgate : ∀ t : ℝ, |t| ≤ T →
+      V₀ < ‖∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖ →
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ :=
+    fun t ht _ => hδ t ht
+  have hmain := setIntegral_band_energy_exceptional_max_le P hP Y hY hlo hhi b hb
+    N a T hT1 G K hcover hKT V₀ δ lam hV₀ hlam hgate
+  refine hmain.trans (le_trans (le_of_eq ?_) hbud)
+  have hV2 : (V₀:ℝ) ^ 2 ≠ 0 := by positivity
+  subst hAint hBpri hΓ
+  field_simp
+
+
 end Tao2015
 
 end MoltResearch
