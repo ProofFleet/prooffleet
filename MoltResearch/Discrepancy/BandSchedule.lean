@@ -654,6 +654,63 @@ theorem sum_shares_le_budget {ι : Type*} (𝒮 : Finset ι) (f κ : ι → ℝ)
     _ ≤ 1 * bandBudget c₃ ε ρ := mul_le_mul_of_nonneg_right hκ hB0
     _ = bandBudget c₃ ε ρ := one_mul _
 
+/-- **A share schedule that works for any number of levels** (Track R, A2-III,
+M-11).
+
+`∑_{j < n} 2^{−(j+1)} ≤ 1`, uniformly in `n`.
+
+`sum_shares_le_budget` closes the band once the shares sum to at most one, and
+its docstring records why they cannot be fixed in advance: the number of levels
+is `J = max{j : Q_j ≤ exp(√log A)}`, which varies with `A`, so no finite list of
+constants serves every scale.  A *geometric* schedule does: assign level `j` the
+share `2^{−(j+1)}` and the bound holds for every `J` at once, with room left
+over for the outer band and `𝒰` in the tail.
+
+**The geometric schedule is the one that matches the legs, not merely a
+convenient one.**  The level-`j` estimate's saving is `small²/large^{2ℓ}` with
+`small = e^{−αv/(2N)}` decaying at a fixed rate per `e`-adic step
+(`LevelSizes.levelSmallness_total_le`), so the legs' strengths themselves fall
+off geometrically up the level range.  A schedule whose shares decay at a
+comparable rate therefore costs each level a bounded factor, whereas uniform
+shares `1/#𝒮` would charge every level the *largest* level's price.
+
+What this does not do is show that level `j` affords `2^{−(j+1)}𝔅`; that is
+`levelJ_le_budget_eadic`'s `hfit` at that share, and it depends on the schedule's
+`P_j` and `Q_j`. -/
+theorem geometric_shares_le_one (n : ℕ) :
+    ∑ j ∈ Finset.range n, (1 : ℝ) / 2 ^ (j + 1) ≤ 1 := by
+  -- the partial sums are exactly `1 − 2^{−n}`
+  have hclosed : ∀ k : ℕ, ∑ j ∈ Finset.range k, (1 : ℝ) / 2 ^ (j + 1)
+      = 1 - 1 / 2 ^ k := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ i ih =>
+        rw [Finset.sum_range_succ, ih]
+        have : (0 : ℝ) < 2 ^ i := by positivity
+        field_simp
+        ring
+  rw [hclosed]
+  have hpos : (0 : ℝ) < 1 / 2 ^ n := by positivity
+  linarith
+
+/-- **The band closes at the geometric share schedule** (Track R, A2-III, M-11).
+
+`sum_shares_le_budget` specialised to `κ j = 2^{−(j+1)}` over an index range of
+`n` levels.  A consumer with a varying number of levels composes with this and
+never has to exhibit a share list.
+
+The hypothesis is one inequality per level, each at its own share — which is
+exactly what `levelJ_le_budget_eadic` and `collar_error_le_budget_eadic`
+produce. -/
+theorem sum_geometric_shares_le_budget (n : ℕ) (f : ℕ → ℝ) (c₃ ε ρ : ℝ)
+    (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hpart : ∀ j ∈ Finset.range n, f j ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ ε ρ) :
+    ∑ j ∈ Finset.range n, f j ≤ bandBudget c₃ ε ρ :=
+  sum_shares_le_budget (Finset.range n) f (fun j => 1 / 2 ^ (j + 1)) c₃ ε ρ hc₃ hρ
+    hpart (geometric_shares_le_one n)
+
+
 /-- **The collar leg's weight, bounded by the largest cell** (Track R, A2-III,
 S-cal-7).
 
