@@ -137,6 +137,151 @@ theorem band_energy_le_budget_of_exceptional [HalaszLargeValuesAssumption]
   · subst hiu; exact hUleg
   · exact hleg i hi hiu
 
+open MeasureTheory in
+/-- **A2-III M-8 — the band capstone with the `𝒰` leg's constants instantiated.**
+
+`band_energy_le_budget_of_exceptional` takes the exceptional leg's three groups
+`Aint`, `Bpri`, `Γ` as equations and its fit condition `hfitU` at their *true*
+values.  A consumer does not have those in closed form; what it has is the
+instantiation campaign's upper bounds, one per group.  This corollary is the
+composition, and it removes four arguments (`lam`, `Γ`, and their two side
+conditions) while replacing `hfitU` by a condition in `δ`, `P`, `N`, `T`, `ε`
+and the share alone.
+
+The three bounds it composes:
+
+* `Aint ≤ 128·(N + 2T^{3/2})·(log 2T + 1)`
+  (`integer_largeValues_factor_le`, M-5) — the cover's `#K` is priced by
+  `card_cells_le` and the coefficient energy by `integer_energy_le`;
+* `Bpri ≤ 64·256/(log P)²` (`prime_energy_dyadic_le`, M-4) — the `P` of the
+  prime large-values theorem cancels the block's `1/P` exactly;
+* `Γ ≤ e^π((T+1)/P + 4)(256/log P + 2048π)e^{−log P/(log 2T)^{3/4}}(log 2T)²`
+  (`exists_lam_exceptional_ratio_le`, M-6), at the balanced Ramaré parameter.
+
+**`lam` disappears rather than being passed through, and that is the point.**
+It is the estimate's own parameter, not the consumer's, exactly as `V₀` is; M-6
+exhibits the balanced value and this corollary consumes it internally.  What is
+left of the `𝒰` leg's arithmetic is `hfit`, whose only non-schedule input is
+`δ` — and `δ` comes from the IV-0 Halász chain, not from counting.
+
+`Y.Nonempty` is what makes `Γ` strictly positive (through the block's prime
+mass); `hA0` and `hB0` are stated on the literal group expressions because a
+consumer knows its own coefficients and the tree cannot know that they do not
+all vanish. -/
+theorem band_energy_le_budget_of_exceptional_instantiated
+    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    {ι : Type*} [DecidableEq ι]
+    (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (G : Set ℝ) (𝒮 : Finset ι) (part : ι → Set ℝ)
+    (hmeas : ∀ i ∈ 𝒮, MeasurableSet (part i))
+    (hdisj : Set.Pairwise (↑𝒮) (Function.onFun Disjoint part))
+    (hcover : G ⊆ ⋃ i ∈ 𝒮, part i)
+    (hint : ∀ i ∈ 𝒮, IntegrableOn (fun ξ => ‖F ξ‖^2) (part i))
+    (hintw : ∀ i ∈ 𝒮, IntegrableOn (fun ξ => ‖F ξ‖^2 * w ξ) (part i))
+    (κ : ι → ℝ) (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hκ : ∑ i ∈ 𝒮, κ i ≤ 1)
+    (u : ι) (hu : u ∈ 𝒮)
+    (hleg : ∀ i ∈ 𝒮, i ≠ u → Cw * ∫ ξ in part i, ‖F ξ‖^2
+      ≤ κ i * bandBudget c₃ ε ρ)
+    (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (hYne : Y.Nonempty)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
+    (N : ℕ) (a : ℕ → ℂ) (ha : ∀ n, ‖a n‖ ≤ 1) (T : ℝ) (hT1 : 1 ≤ T)
+    (K : Finset ℤ)
+    (hcoverU : part u ⊆ ⋃ k ∈ K, Set.Ico (k:ℝ) ((k:ℝ)+1))
+    (hKT : ∀ k ∈ K, -T ≤ (k:ℝ) ∧ (k:ℝ) + 1 ≤ T)
+    (δ : ℝ) (hδ0 : 0 < δ)
+    (hδ : ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ)
+    (hfac : ∀ ξ ∈ part u, ‖F ξ‖^2
+      ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+    (hintU : IntegrableOn (fun ξ => ‖∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2) (part u))
+    (hA0 : 0 < 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+        + 2 * δ * Real.sqrt
+            ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log P)^2))
+                  * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
+                      * (256 / Real.log P + 2048 * Real.pi)
+                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ κ u * bandBudget c₃ ε ρ / Cw) :
+    (∫ ξ in G, ‖F ξ‖^2 * w ξ) ≤ bandBudget c₃ ε ρ := by
+  classical
+  have hP0 : (0:ℝ) < (P:ℝ) := by
+    have : 0 < P := by omega
+    exact_mod_cast this
+  have hlogP : (0:ℝ) < Real.log P := Real.log_pos (by exact_mod_cast hP)
+  have hlog2T : (0:ℝ) < Real.log (2*T) := Real.log_pos (by linarith)
+  -- the block's prime mass is strictly positive, which is what makes `Γ` positive
+  obtain ⟨p₀, hp₀⟩ := hYne
+  have hmass0 : (0:ℝ) < ∑ p ∈ Y, (1:ℝ)/(p:ℝ) := by
+    refine Finset.sum_pos' (fun p _ => by positivity) ⟨p₀, hp₀, ?_⟩
+    have : (0:ℝ) < (p₀:ℝ) := by exact_mod_cast (hY p₀ hp₀).pos
+    positivity
+  -- M-6 supplies the balanced Ramaré parameter and the bound on `Γ` at it
+  obtain ⟨lam, hlam0, hΓle⟩ :=
+    exists_lam_exceptional_ratio_le P hP Y hY hlo hhi T hT1
+  set Aint : ℝ := 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2 with hAint
+  set Bpri : ℝ := 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P with hBpri
+  set Γ : ℝ := (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+        * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
+        * (∑ p ∈ Y, (1:ℝ)/(p:ℝ)))
+      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+      * (Real.log (2*T))^2 with hΓ
+  have hΓ0 : 0 < Γ := by
+    rw [hΓ]
+    have hsplit : (0:ℝ) < (1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2 := by
+      have : (0:ℝ) < 1/lam := by positivity
+      nlinarith [sq_nonneg (2*Real.pi*Real.log (2*(P:ℝ)))]
+    have hlead : (0:ℝ) < (T+1)/(P:ℝ) + 2*(2:ℝ) := by
+      have : (0:ℝ) ≤ (T+1)/(P:ℝ) := by positivity
+      linarith
+    have hlogsq : (0:ℝ) < (Real.log (2*T))^2 := by positivity
+    have := Real.exp_pos Real.pi
+    have := Real.exp_pos (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+    positivity
+  -- the three instantiated bounds, and the seam that lets them discharge `hfitU`
+  have hAle : Aint ≤ 128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1) := by
+    rw [hAint]
+    exact integer_largeValues_factor_le N a ha T hT1 K hKT
+  have hBle : Bpri ≤ 64 * (256 / (Real.log P)^2) := by
+    rw [hBpri]
+    have := prime_energy_dyadic_le P hP Y hY hlo hhi b hb
+    calc 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P
+        = 64 * ((∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by ring
+      _ ≤ 64 * (256 / (Real.log P)^2) := by gcongr
+  have hfitU : 2 * (δ^2 * Bpri + 2 * δ * Real.sqrt (Aint * (Bpri * Γ)))
+      ≤ κ u * bandBudget c₃ ε ρ / Cw := by
+    have hrw : κ u * bandBudget c₃ ε ρ / Cw = (κ u / Cw) * bandBudget c₃ ε ρ := by
+      rw [div_mul_eq_mul_div]
+    rw [hrw] at hfit ⊢
+    exact exceptional_fit_of_le Aint Bpri Γ
+      (128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+      (64 * (256 / (Real.log P)^2))
+      (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
+        * (256 / Real.log P + 2048 * Real.pi)
+        * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+        * (Real.log (2*T))^2)
+      δ c₃ ε ρ (κ u / Cw) hA0.le hB0.le hΓ0.le hδ0.le hAle hBle hΓle hfit
+  exact band_energy_le_budget_of_exceptional F w hw0 Cw hCw hwC G 𝒮 part hmeas
+    hdisj hcover hint hintw κ c₃ ε ρ hc₃ hρ hκ u hu hleg P hP Y hY hlo hhi b hb
+    N a T hT1 K hcoverU hKT δ lam hδ0 hlam0 hδ hfac hintU Aint Bpri Γ hAint hBpri
+    hΓ hA0 hB0 hΓ0 hfitU
+
+
 end Tao2015
 
 end MoltResearch
