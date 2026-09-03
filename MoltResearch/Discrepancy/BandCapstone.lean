@@ -809,4 +809,83 @@ theorem band_energy_le_budget_firstIndex (F : ℝ → ℂ) (w : ℝ → ℝ)
     ((Set.subset_univ G).trans (bandPart_cover P J))
     hint hintw κ c₃ ε ρ hc₃ hρ hleg hκ
 
+/-! ## The band-relative partition (Track R, A2-III, VI-1e-2) -/
+
+/-- **The first-index partition, cut down to the band** (Track R, A2-III,
+VI-1e-2).
+
+`bandPart` covers the whole line, which is what makes `bandPart_cover`
+hypothesis-free and lets `band_energy_le_budget_firstIndex` take an arbitrary
+`G`.  For the elementary legs that is strictly the better interface.  The `𝒰`
+leg is different: `setIntegral_band_energy_exceptional_max_le` requires its
+domain to sit inside a finite union of unit cells (`hcoverU`), and
+`bandPart P J J` is a *complement* — unbounded, so no cell family covers it.
+
+Hence this relative form, `G ∩ bandPart P J j`.  Every part now lies inside
+`G`, so a cell cover of the band transfers to the exceptional part for free
+(`bandPartOn_subset`).  The price is exactly one hypothesis: `G` must be
+measurable, which the absolute version did not need.
+
+**That trade is the whole content of this unit.**  Which partition to use is
+decided by whether any leg needs its part bounded, not by taste — the levels do
+not, the exceptional part does, and since they must share one index set the
+relative version is what a full assembly uses. -/
+def bandPartOn (P : ℕ → Set ℝ) (J : ℕ) (G : Set ℝ) (j : ℕ) : Set ℝ :=
+  G ∩ bandPart P J j
+
+/-- Every relative part lies inside the band — the point of the construction. -/
+theorem bandPartOn_subset (P : ℕ → Set ℝ) (J : ℕ) (G : Set ℝ) (j : ℕ) :
+    bandPartOn P J G j ⊆ G := Set.inter_subset_left
+
+/-- Relative parts are measurable once the band is. -/
+theorem bandPartOn_measurableSet (P : ℕ → Set ℝ)
+    (hP : ∀ j, MeasurableSet (P j)) (J : ℕ) (G : Set ℝ)
+    (hG : MeasurableSet G) (j : ℕ) : MeasurableSet (bandPartOn P J G j) :=
+  hG.inter (bandPart_measurableSet P hP J j)
+
+/-- Disjointness is inherited: intersecting a disjoint family with a fixed set
+keeps it disjoint. -/
+theorem bandPartOn_pairwiseDisjoint (P : ℕ → Set ℝ) (J : ℕ) (G : Set ℝ) :
+    Set.Pairwise (↑(Finset.range (J + 1)))
+      (Function.onFun Disjoint (bandPartOn P J G)) := by
+  intro i hi j hj hij
+  show Disjoint (bandPartOn P J G i) (bandPartOn P J G j)
+  exact Disjoint.inter_left' _ (Disjoint.inter_right' _
+    (bandPart_pairwiseDisjoint P J hi hj hij))
+
+/-- The relative parts cover the band exactly. -/
+theorem bandPartOn_cover (P : ℕ → Set ℝ) (J : ℕ) (G : Set ℝ) :
+    G ⊆ ⋃ j ∈ Finset.range (J + 1), bandPartOn P J G j := by
+  intro x hx
+  obtain ⟨j, hj, hxj⟩ := Set.mem_iUnion₂.mp (bandPart_cover P J (Set.mem_univ x))
+  exact Set.mem_iUnion₂.mpr ⟨j, hj, ⟨hx, hxj⟩⟩
+
+open MeasureTheory Finset in
+/-- **The inner band against its budget, on the band-relative partition**
+(Track R, A2-III, VI-1e-2).
+
+`band_energy_le_budget_firstIndex`'s companion for a consumer whose legs need
+their parts bounded.  Identical except that `G` must be measurable and the parts
+are `G ∩ bandPart P J j`; in exchange, `bandPartOn_subset` lets a cell cover of
+the band be reused verbatim for the exceptional leg. -/
+theorem band_energy_le_budget_firstIndexOn (F : ℝ → ℂ) (w : ℝ → ℝ)
+    (hw0 : ∀ ξ, 0 ≤ w ξ) (Cw : ℝ) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (G : Set ℝ) (hG : MeasurableSet G)
+    (J : ℕ) (P : ℕ → Set ℝ) (hP : ∀ j, MeasurableSet (P j))
+    (hint : ∀ j ∈ Finset.range (J + 1),
+      IntegrableOn (fun ξ => ‖F ξ‖ ^ 2) (bandPartOn P J G j))
+    (hintw : ∀ j ∈ Finset.range (J + 1),
+      IntegrableOn (fun ξ => ‖F ξ‖ ^ 2 * w ξ) (bandPartOn P J G j))
+    (κ : ℕ → ℝ) (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hleg : ∀ j ∈ Finset.range (J + 1),
+      Cw * ∫ ξ in bandPartOn P J G j, ‖F ξ‖ ^ 2 ≤ κ j * bandBudget c₃ ε ρ)
+    (hκ : ∑ j ∈ Finset.range (J + 1), κ j ≤ 1) :
+    (∫ ξ in G, ‖F ξ‖ ^ 2 * w ξ) ≤ bandBudget c₃ ε ρ :=
+  band_energy_le_budget F w hw0 Cw hwC G (Finset.range (J + 1))
+    (bandPartOn P J G)
+    (fun j _ => bandPartOn_measurableSet P hP J G hG j)
+    (bandPartOn_pairwiseDisjoint P J G)
+    (bandPartOn_cover P J G)
+    hint hintw κ c₃ ε ρ hc₃ hρ hleg hκ
+
 end MoltResearch
