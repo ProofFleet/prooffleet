@@ -676,4 +676,137 @@ theorem window_energy_le_of_low_mid (h : ℕ → ℂ)
   linarith [hjoin]
 
 
+/-! ## The `[MR]` first-index partition (Track R, A2-III, VI-1e-1) -/
+
+/-- **The `[MR]` decomposition of the frequency line** (Track R, A2-III,
+VI-1e-1).
+
+`band_energy_le_budget` takes its parts abstractly, and its docstring records
+what they are in `[MR]`: `ξ ∈ 𝒯_j` names the *smallest* index whose cell
+estimate holds, and `ξ ∈ 𝒰` says none does.  This is that construction —
+`bandPart P J j = P j \ ⋃_{i < j} P i` for `j < J`, and the complement of the
+whole union at `j = J`.
+
+Two things about the shape.  The index set is `Finset.range (J + 1)` with the
+exceptional part sitting at the *top* index rather than in a separate type: the
+capstone quantifies its legs, its shares and its integrability over one `Finset`,
+so a sum type would have to be pushed through all three.  And `P` is not
+required to be an increasing family or to cover anything — the construction
+partitions the line whatever `P` is, which is why `bandPart_cover` needs no
+hypothesis at all.
+
+The `[MR]` partition is a partition and not merely a cover, and that matters:
+`setIntegral_le_sum_of_cover` is an *equality* on disjoint parts, so nothing is
+paid for the decomposition itself.  A union bound here would cost a factor `J`,
+and `J` grows with `A`. -/
+def bandPart (P : ℕ → Set ℝ) (J : ℕ) (j : ℕ) : Set ℝ :=
+  if j < J then P j \ ⋃ i ∈ Finset.range j, P i
+  else (⋃ i ∈ Finset.range J, P i)ᶜ
+
+/-- Each part is measurable as soon as the family is. -/
+theorem bandPart_measurableSet (P : ℕ → Set ℝ)
+    (hP : ∀ j, MeasurableSet (P j)) (J j : ℕ) :
+    MeasurableSet (bandPart P J j) := by
+  have hbi : ∀ n : ℕ, MeasurableSet (⋃ i ∈ Finset.range n, P i) := by
+    intro n
+    exact MeasurableSet.biUnion (Finset.range n).countable_toSet fun i _ => hP i
+  unfold bandPart
+  split
+  · exact (hP j).diff (hbi j)
+  · exact (hbi J).compl
+
+/-- Parts at distinct indices are disjoint: the lower one lies inside its own
+`P i`, and the higher one has `P i` removed — as a set difference below `J`, as
+a complement at `J`. -/
+theorem bandPart_disjoint_of_lt (P : ℕ → Set ℝ) (J i j : ℕ) (hij : i < j)
+    (hjJ : j ≤ J) : Disjoint (bandPart P J i) (bandPart P J j) := by
+  rw [Set.disjoint_left]
+  intro x hx hx'
+  have hiJ : i < J := lt_of_lt_of_le hij hjJ
+  have hxi : x ∈ P i := by
+    have hrw : bandPart P J i = P i \ ⋃ k ∈ Finset.range i, P k := if_pos hiJ
+    rw [hrw] at hx
+    exact hx.1
+  rcases lt_or_eq_of_le hjJ with hlt | heq
+  · have hrw : bandPart P J j = P j \ ⋃ k ∈ Finset.range j, P k := if_pos hlt
+    rw [hrw] at hx'
+    exact hx'.2 (Set.mem_iUnion₂.mpr ⟨i, Finset.mem_range.mpr hij, hxi⟩)
+  · have hrw : bandPart P J j = (⋃ k ∈ Finset.range J, P k)ᶜ := if_neg (by omega)
+    rw [hrw] at hx'
+    exact hx' (Set.mem_iUnion₂.mpr ⟨i, Finset.mem_range.mpr hiJ, hxi⟩)
+
+/-- The parts are pairwise disjoint over the capstone's index set. -/
+theorem bandPart_pairwiseDisjoint (P : ℕ → Set ℝ) (J : ℕ) :
+    Set.Pairwise (↑(Finset.range (J + 1)))
+      (Function.onFun Disjoint (bandPart P J)) := by
+  intro i hi j hj hij
+  simp only [Finset.coe_range, Set.mem_Iio] at hi hj
+  show Disjoint (bandPart P J i) (bandPart P J j)
+  rcases lt_or_gt_of_ne hij with h | h
+  · exact bandPart_disjoint_of_lt P J i j h (by omega)
+  · exact (bandPart_disjoint_of_lt P J j i h (by omega)).symm
+
+/-- The parts cover **everything**, with no hypothesis on the family: either
+some index below `J` fires, and the least one claims the point, or none does and
+the exceptional part claims it. -/
+theorem bandPart_cover (P : ℕ → Set ℝ) (J : ℕ) :
+    (Set.univ : Set ℝ) ⊆ ⋃ j ∈ Finset.range (J + 1), bandPart P J j := by
+  classical
+  intro x _
+  by_cases hx : ∃ i, i < J ∧ x ∈ P i
+  · obtain ⟨i₀, hi₀, hxi₀⟩ := hx
+    have hex : ∃ i, i < J ∧ x ∈ P i := ⟨i₀, hi₀, hxi₀⟩
+    have hm : Nat.find hex < J ∧ x ∈ P (Nat.find hex) := Nat.find_spec hex
+    have hmin : ∀ k, k < Nat.find hex → ¬ (k < J ∧ x ∈ P k) := fun k hk =>
+      Nat.find_min hex hk
+    refine Set.mem_iUnion₂.mpr ⟨Nat.find hex,
+      Finset.mem_range.mpr (by omega), ?_⟩
+    have hrw : bandPart P J (Nat.find hex)
+        = P (Nat.find hex) \ ⋃ k ∈ Finset.range (Nat.find hex), P k :=
+      if_pos hm.1
+    rw [hrw]
+    refine ⟨hm.2, ?_⟩
+    intro hmem
+    obtain ⟨k, hk, hxk⟩ := Set.mem_iUnion₂.mp hmem
+    have hkm : k < Nat.find hex := Finset.mem_range.mp hk
+    exact hmin k hkm ⟨by omega, hxk⟩
+  · refine Set.mem_iUnion₂.mpr ⟨J, Finset.mem_range.mpr (by omega), ?_⟩
+    have hrw : bandPart P J J = (⋃ k ∈ Finset.range J, P k)ᶜ := if_neg (by omega)
+    rw [hrw]
+    intro hmem
+    obtain ⟨k, hk, hxk⟩ := Set.mem_iUnion₂.mp hmem
+    exact hx ⟨k, Finset.mem_range.mp hk, hxk⟩
+
+open MeasureTheory Finset in
+/-- **The inner band against its budget, on the `[MR]` partition** (Track R,
+A2-III, VI-1e-1).
+
+`band_energy_le_budget` with its three set-theoretic hypotheses discharged by
+the first-index construction.  A consumer supplies the family `P` — in `[MR]`,
+`P j` is the set where level `j`'s cell estimate holds — and its measurability,
+and is left with exactly the analytic content: one leg per part, and shares
+summing to at most one.
+
+`G` is arbitrary and needs no hypothesis, because the parts cover the whole
+line.  That is the practical gain: the band's range `{K ≤ |ξ| ≤ K₂}` never has
+to be shown measurable, and it never has to be shown to be inside the union of
+the levels. -/
+theorem band_energy_le_budget_firstIndex (F : ℝ → ℂ) (w : ℝ → ℝ)
+    (hw0 : ∀ ξ, 0 ≤ w ξ) (Cw : ℝ) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (G : Set ℝ) (J : ℕ) (P : ℕ → Set ℝ) (hP : ∀ j, MeasurableSet (P j))
+    (hint : ∀ j ∈ Finset.range (J + 1),
+      IntegrableOn (fun ξ => ‖F ξ‖ ^ 2) (bandPart P J j))
+    (hintw : ∀ j ∈ Finset.range (J + 1),
+      IntegrableOn (fun ξ => ‖F ξ‖ ^ 2 * w ξ) (bandPart P J j))
+    (κ : ℕ → ℝ) (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hleg : ∀ j ∈ Finset.range (J + 1),
+      Cw * ∫ ξ in bandPart P J j, ‖F ξ‖ ^ 2 ≤ κ j * bandBudget c₃ ε ρ)
+    (hκ : ∑ j ∈ Finset.range (J + 1), κ j ≤ 1) :
+    (∫ ξ in G, ‖F ξ‖ ^ 2 * w ξ) ≤ bandBudget c₃ ε ρ :=
+  band_energy_le_budget F w hw0 Cw hwC G (Finset.range (J + 1)) (bandPart P J)
+    (fun j _ => bandPart_measurableSet P hP J j)
+    (bandPart_pairwiseDisjoint P J)
+    ((Set.subset_univ G).trans (bandPart_cover P J))
+    hint hintw κ c₃ ε ρ hc₃ hρ hleg hκ
+
 end MoltResearch
