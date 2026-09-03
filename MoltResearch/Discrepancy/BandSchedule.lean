@@ -764,6 +764,44 @@ theorem exceptional_threshold_le_budget (Aint Bpri Γ δ c₃ ε ρ κ : ℝ)
   linarith [hfit]
 
 
+/-- **The `𝒰` leg's fit condition is monotone in its three groups** (Track R,
+A2-III, M-7).
+
+`exceptional_threshold_le_budget` takes its condition `hfit` at the *true*
+values of `Aint`, `Bpri` and `Γ`, which a consumer does not have in closed
+form — what it has is upper bounds, one per group, from the instantiation
+(`ExceptionalConstants.integer_largeValues_factor_le`,
+`PrimeMassCell.prime_energy_dyadic_le`,
+`ExceptionalConstants.exists_lam_exceptional_ratio_le`).  This lemma is the seam
+between the two: checking the fit at any upper bounds suffices.
+
+The chain a consumer runs is therefore
+
+  instantiated fit  →  `exceptional_fit_of_le`  →  `hfit`
+                    →  `exceptional_threshold_le_budget`  →  `∃ V₀`.
+
+Note the hypotheses are only `0 ≤` on the true groups, while
+`exceptional_threshold_le_budget` asks for `0 <`.  That is not an oversight:
+strict positivity there is used to *exhibit* the optimal threshold
+(`exists_threshold_balanced` divides by `Aint`), not to make the leg fit, so a
+degenerate group obstructs naming a threshold but never the arithmetic. -/
+theorem exceptional_fit_of_le (Aint Bpri Γ Aint' Bpri' Γ' δ c₃ ε ρ κ : ℝ)
+    (hA0 : 0 ≤ Aint) (hB0 : 0 ≤ Bpri) (hG0 : 0 ≤ Γ) (hδ : 0 ≤ δ)
+    (hA : Aint ≤ Aint') (hB : Bpri ≤ Bpri') (hG : Γ ≤ Γ')
+    (hfit : 2 * (δ ^ 2 * Bpri' + 2 * δ * Real.sqrt (Aint' * (Bpri' * Γ')))
+      ≤ κ * bandBudget c₃ ε ρ) :
+    2 * (δ ^ 2 * Bpri + 2 * δ * Real.sqrt (Aint * (Bpri * Γ)))
+      ≤ κ * bandBudget c₃ ε ρ := by
+  have hB0' : 0 ≤ Bpri' := le_trans hB0 hB
+  have hA0' : 0 ≤ Aint' := le_trans hA0 hA
+  have hprod : Bpri * Γ ≤ Bpri' * Γ' := mul_le_mul hB hG hG0 hB0'
+  have hmul : Aint * (Bpri * Γ) ≤ Aint' * (Bpri' * Γ') :=
+    mul_le_mul hA hprod (mul_nonneg hB0 hG0) hA0'
+  have hsqrt : Real.sqrt (Aint * (Bpri * Γ)) ≤ Real.sqrt (Aint' * (Bpri' * Γ')) :=
+    Real.sqrt_le_sqrt hmul
+  nlinarith [hfit, hsqrt, hB, hδ, sq_nonneg δ]
+
+
 /-- **The cell count of a level** (Track R, A2-III, M-2).
 
 `#I ≤ 2N·log(Q/P) + 2` for the `e`-adic index range `Ico v₀ (v₁+1)` of a level
