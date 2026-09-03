@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.WindowTK
 import MoltResearch.Discrepancy.WindowAssembly
+import MoltResearch.Discrepancy.BandSchedule
 
 /-!
 # The band-energy capstone (Track R, `[mrt]` A.2, Phase VI)
@@ -476,6 +477,69 @@ theorem setIntegral_norm_sq_mul_le_two_separated_max (Q R : ℝ → ℂ)
     (fun ξ => Q ξ * R ξ) (hQc.mul hRc) G K hcover
   refine ⟨τ, hmem, ?_⟩
   simpa only [norm_mul, mul_pow] using hbd
+
+
+open MeasureTheory Finset in
+/-- **A2-III VI-1d-5 — the inner band, assembled against its budget.**
+
+The `[mrt]` A.2 capstone for the inner band: the frequency range is covered by
+the parts `𝒯₁, …, 𝒯_J, 𝒰`, each part is priced by its own leg at a share
+`κᵢ` of the budget, the shares sum to at most one, and the weighted band energy
+is at most the budget.
+
+Three separate things had to meet for this to be one statement, and they are the
+reason it is not simply `setIntegral_le_sum_of_cover` followed by
+`sum_shares_le_budget`.
+
+* **The weight.**  The band integrand of §4.1 is `‖F‖²·w` for the slice window's
+  Fourier transform `w`, but *no* leg in the tree carries a weight:
+  `band_energy_level_one_le`, `band_energy_level_le_of_prev_large` and the `𝒰`
+  leg all bound the bare energy.  The join is `setIntegral_weight_le_const` at
+  `Cw = (4H/A)²` (`norm_fourier_slice_window_le`), and it is applied **per part**
+  rather than once on `G`, which is what removes any need for `G` itself to be
+  measurable.
+* **The shares.**  `κ` is a function on the index rather than a fixed fraction,
+  because `J = max{j : Q_j ≤ exp(√log A)}` varies with `A` and the split cannot
+  be fixed in advance — the reason `BandSchedule` states every leg at arbitrary
+  `κ > 0`.
+* **The parts.**  A *cover*, not a partition, and disjointness is still required:
+  it is what makes the cover step an equality rather than a lossy union bound.
+  In the `[MR]` decomposition it is immediate, since `ξ ∈ 𝒯_j` names the
+  smallest index whose cell estimate holds and `ξ ∈ 𝒰` says none does.
+
+The **outer band is deliberately absent**.  It is a sibling piece, not one of
+these parts: its range `|ξ| ≥ K₂` lies outside `{K ≤ |ξ| ≤ K₂}`, it is stated
+for the *plain* sum rather than the normalised one, and it carries its own decay
+weight `(2B′/(π|ξ|))²` rather than the sup bound `Cw` — which is why
+`outer_le_budget` prices it against `(2A+1)²·𝔅` and not `𝔅`.  Adding it here
+would force all three of those seams into one statement. -/
+theorem band_energy_le_budget {ι : Type*} (F : ℝ → ℂ) (w : ℝ → ℝ)
+    (hw0 : ∀ ξ, 0 ≤ w ξ) (Cw : ℝ) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (G : Set ℝ) (𝒮 : Finset ι) (part : ι → Set ℝ)
+    (hmeas : ∀ i ∈ 𝒮, MeasurableSet (part i))
+    (hdisj : Set.Pairwise (↑𝒮) (Function.onFun Disjoint part))
+    (hcover : G ⊆ ⋃ i ∈ 𝒮, part i)
+    (hint : ∀ i ∈ 𝒮, IntegrableOn (fun ξ => ‖F ξ‖ ^ 2) (part i))
+    (hintw : ∀ i ∈ 𝒮, IntegrableOn (fun ξ => ‖F ξ‖ ^ 2 * w ξ) (part i))
+    (κ : ι → ℝ) (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hleg : ∀ i ∈ 𝒮, Cw * ∫ ξ in part i, ‖F ξ‖ ^ 2
+      ≤ κ i * bandBudget c₃ ε ρ)
+    (hκ : ∑ i ∈ 𝒮, κ i ≤ 1) :
+    (∫ ξ in G, ‖F ξ‖ ^ 2 * w ξ) ≤ bandBudget c₃ ε ρ := by
+  have hf0 : ∀ ξ : ℝ, 0 ≤ ‖F ξ‖ ^ 2 * w ξ := fun ξ =>
+    mul_nonneg (sq_nonneg _) (hw0 ξ)
+  -- Split over the parts.
+  have hsplit := ExpSums.setIntegral_le_sum_of_cover (fun ξ => ‖F ξ‖ ^ 2 * w ξ)
+    hf0 G 𝒮 part hmeas hdisj hcover hintw
+  -- Each part: relax the weight to its sup, then apply that part's leg.
+  have hpart : ∀ i ∈ 𝒮, (∫ ξ in part i, ‖F ξ‖ ^ 2 * w ξ)
+      ≤ κ i * bandBudget c₃ ε ρ := by
+    intro i hi
+    exact (ExpSums.setIntegral_weight_le_const (fun ξ => ‖F ξ‖ ^ 2) w
+      (fun ξ => sq_nonneg _) (part i) (hmeas i hi) Cw (fun ξ _ => hwC ξ)
+      (hintw i hi) (hint i hi)).trans (hleg i hi)
+  exact hsplit.trans (sum_shares_le_budget 𝒮
+    (fun i => ∫ ξ in part i, ‖F ξ‖ ^ 2 * w ξ) κ c₃ ε ρ hc₃ hρ hpart hκ)
 
 
 end MoltResearch
