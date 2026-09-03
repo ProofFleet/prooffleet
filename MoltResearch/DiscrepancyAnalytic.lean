@@ -28,6 +28,7 @@ import MoltResearch.Discrepancy.WindowAssembly
 import MoltResearch.Discrepancy.BandCapstone
 import MoltResearch.Discrepancy.BandSchedule
 import MoltResearch.Discrepancy.ShortIntervalRestriction
+import MoltResearch.Discrepancy.RegimeSplitEnergy
 import MoltResearch.Discrepancy.BumpDeriv
 
 /-!
