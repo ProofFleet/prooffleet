@@ -1,5 +1,6 @@
 import MoltResearch.Discrepancy.BrunTitchmarsh
 import MoltResearch.Discrepancy.MertensFirst
+import MoltResearch.Discrepancy.BandSchedule
 
 /-!
 # Prime mass on a short interval (Track R, A2-III, the instantiation)
@@ -217,5 +218,85 @@ theorem prime_energy_dyadic_le (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ)
         gcongr
     _ = 256 / (Real.log P) ^ 2 := by
         field_simp
+
+/-! ## The collar leg, priced by the two prime inputs (M-10) -/
+
+/-- **The collar leg meets its share, in schedule terms** (Track R, A2-III,
+M-10).
+
+`BandSchedule.collar_error_le_budget` takes the cell count `#I` and the weight
+`S₂ = ∑_v σ_v²` abstractly, and `collar_weight_le` reduces `S₂` to a cell
+maximum `M` and a level total `Stot` which are themselves abstract.  This is
+that chain with every link supplied: `M` by `sum_one_div_prime_Ioc_le`, `Stot`
+by `sum_one_div_prime_Ioc_le_mertens`, and the geometry of the cells by the
+three containment hypotheses.
+
+What is left is `hfit`, which is design report §4.3(a)'s condition with the
+constant made honest:
+
+  `64·#I·X·(256·Kc/(P·log Kc))·(log log(b+1) + 11) ≤ κ c₃ ε³`.
+
+**This is the S-cal-6/7 erratum, closed.**  The report reads off `N_j ≥ C/ε³`
+at absolute `C` from the cost of *one* collar; the assembled quantity carries
+`#I ≍ 2N log(Q/P)`, growing linearly in `N` and cancelling the `1/N` the collar
+ratio buys.  What saves the leg is that a cell of multiplicative width
+`e^{1/(2N)}` above `P` has `Kc ≍ P/N`, so the `M` above carries a *second*
+`1/N`.  Both halves of that are now theorems (M-1, M-2), and this lemma is
+where they meet: the `Kc/P` in `hfit` is the second `1/N`, and it is the only
+thing standing between `#I` and the budget.
+
+The disjointness hypothesis is what lets the level total be a Mertens bound
+rather than a sum of cell bounds — `e`-adic cells partition the level, so the
+double sum collapses to a single sum over the level's primes and pays
+`log log` once instead of `#I` times. -/
+theorem collar_error_le_budget_eadic (I : Finset ℕ) (C : ℕ → Finset ℕ)
+    (cA cB : ℕ → ℝ) (aa : ℕ → ℕ) (Pb Kc bb : ℕ) (X c₃ ε ρ κ : ℝ)
+    (hPb : 1 ≤ Pb) (hKc : 2 ≤ Kc) (hbb : 3 ≤ bb) (hX0 : 0 ≤ X)
+    (hA : ∀ v ∈ I, ∀ p ∈ C v, cA p ≤ X) (hB : ∀ v ∈ I, ∀ p ∈ C v, cB p ≤ X)
+    (haa : ∀ v ∈ I, Pb ≤ aa v)
+    (hcell : ∀ v ∈ I, C v ⊆ (Finset.Ioc (aa v) (aa v + Kc)).filter Nat.Prime)
+    (hlevel : ∀ v ∈ I, C v ⊆ (Finset.Ioc Pb bb).filter Nat.Prime)
+    (hdisj : (I : Set ℕ).PairwiseDisjoint C)
+    (hκc : 0 ≤ κ * c₃) (hρ : ε ≤ ρ)
+    (hfit : 64 * (I.card : ℝ) * X
+        * ((256 * (Kc : ℝ) / ((Pb : ℝ) * Real.log Kc))
+            * (Real.log (Real.log ((bb : ℝ) + 1)) + 11))
+      ≤ κ * c₃ * ε ^ 3) :
+    2 * ((I.card : ℝ)
+          * ∑ v ∈ I, (∑ p ∈ C v, (1 : ℝ) / (p : ℝ))
+              * ∑ p ∈ C v, ((1 : ℝ) / (p : ℝ)) * (2 * cA p + 2 * cB p))
+      ≤ κ * bandBudget c₃ ε ρ := by
+  classical
+  have hPb0 : (0 : ℝ) < (Pb : ℝ) := by exact_mod_cast hPb
+  have hKc1 : (1 : ℝ) < (Kc : ℝ) := by exact_mod_cast hKc
+  have hlogKc : (0 : ℝ) < Real.log Kc := Real.log_pos hKc1
+  -- `M`: the prime mass of one cell, uniformly over the level
+  have hM : ∀ v ∈ I, ∑ p ∈ C v, (1 : ℝ) / (p : ℝ)
+      ≤ 256 * (Kc : ℝ) / ((Pb : ℝ) * Real.log Kc) := by
+    intro v hv
+    have hsub : ∑ p ∈ C v, (1 : ℝ) / (p : ℝ)
+        ≤ ∑ p ∈ (Finset.Ioc (aa v) (aa v + Kc)).filter Nat.Prime, (1 : ℝ) / (p : ℝ) :=
+      Finset.sum_le_sum_of_subset_of_nonneg (hcell v hv) fun p _ _ => by positivity
+    have haav : 1 ≤ aa v := le_trans hPb (haa v hv)
+    refine hsub.trans ((sum_one_div_prime_Ioc_le (aa v) Kc haav hKc).trans ?_)
+    have hle : (Pb : ℝ) ≤ (aa v : ℝ) := by exact_mod_cast haa v hv
+    gcongr
+  have hM0 : (0 : ℝ) ≤ 256 * (Kc : ℝ) / ((Pb : ℝ) * Real.log Kc) := by positivity
+  -- `Stot`: the level total, from Mertens, using that the cells are disjoint
+  have hS : ∑ v ∈ I, ∑ p ∈ C v, (1 : ℝ) / (p : ℝ)
+      ≤ Real.log (Real.log ((bb : ℝ) + 1)) + 11 := by
+    have hbi : ∑ v ∈ I, ∑ p ∈ C v, (1 : ℝ) / (p : ℝ)
+        = ∑ p ∈ I.biUnion C, (1 : ℝ) / (p : ℝ) := (Finset.sum_biUnion hdisj).symm
+    have hsub : I.biUnion C ⊆ (Finset.Ioc Pb bb).filter Nat.Prime := by
+      intro p hp
+      obtain ⟨v, hv, hpv⟩ := Finset.mem_biUnion.mp hp
+      exact hlevel v hv hpv
+    rw [hbi]
+    refine (Finset.sum_le_sum_of_subset_of_nonneg hsub fun p _ _ => by positivity).trans ?_
+    exact sum_one_div_prime_Ioc_le_mertens Pb bb hbb
+  exact collar_error_le_budget I C cA cB X
+    ((256 * (Kc : ℝ) / ((Pb : ℝ) * Real.log Kc))
+      * (Real.log (Real.log ((bb : ℝ) + 1)) + 11))
+    c₃ ε ρ κ hX0 hA hB (collar_weight_le I C _ _ hM0 hM hS) hκc hρ hfit
 
 end MoltResearch
