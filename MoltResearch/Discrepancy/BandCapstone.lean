@@ -542,4 +542,80 @@ theorem band_energy_le_budget {ι : Type*} (F : ℝ → ℂ) (w : ℝ → ℝ)
     (fun i => ∫ ξ in part i, ‖F ξ‖ ^ 2 * w ξ) κ c₃ ε ρ hc₃ hρ hpart hκ)
 
 
+open MeasureTheory Finset in
+/-- **A2-III E-3 — the low/mid join below `L`.**
+
+The join between the regime split and the band capstone.
+`ExpSums.window_energy_regime_energy_le` (E-2) leaves the whole frequency range
+below `L` as one weighted integral; the band estimates price it in two pieces,
+a low band `|ξ| < K` where the `𝒰`-recursion applies and a mid band
+`K ≤ |ξ| ≤ L` which is the A.2 campaign's territory.  This lemma is the split.
+
+**The two pieces are priced differently on purpose.**  The low band's estimate
+(`intervalIntegral_norm_sq_plain_le`, via `uBound`) carries no weight, so the
+weight is supped out there at `Cw` — which for the slice window is `(4H/A)²`,
+`norm_fourier_slice_window_le`.  The mid band's estimate is
+`band_energy_le_budget`, which is *weighted*: it must be, because the whole
+saving the A.2 campaign extracts lives in the interaction between the band
+estimate and the window's decay, and supping the weight there would throw the
+saving away.  So `Elow` is a bare energy and `Emid` a weighted one, and the two
+enter the conclusion differently.
+
+The sets are a genuine partition rather than a cover — `|ξ| < K` and
+`K ≤ |ξ| ≤ L` are disjoint with union `|ξ| ≤ L` exactly when `K ≤ L` — so the
+split is an equality and nothing is lost to a union bound. -/
+theorem setIntegral_le_of_low_mid (P : ℝ → ℂ) (w : ℝ → ℝ)
+    (Cw : ℝ) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (K L : ℝ) (hKL : K ≤ L)
+    (hint : IntegrableOn (fun ξ => ‖P ξ‖ ^ 2 * w ξ) {ξ : ℝ | |ξ| ≤ L})
+    (hintLow : IntegrableOn (fun ξ => ‖P ξ‖ ^ 2) {ξ : ℝ | |ξ| < K})
+    (Elow Emid : ℝ)
+    (hlow : (∫ ξ in {ξ : ℝ | |ξ| < K}, ‖P ξ‖ ^ 2) ≤ Elow)
+    (hmid : (∫ ξ in {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ L}, ‖P ξ‖ ^ 2 * w ξ) ≤ Emid)
+    (hCw0 : 0 ≤ Cw) :
+    (∫ ξ in {ξ : ℝ | |ξ| ≤ L}, ‖P ξ‖ ^ 2 * w ξ) ≤ Cw * Elow + Emid := by
+  classical
+  have hmeasLow : MeasurableSet {ξ : ℝ | |ξ| < K} :=
+    measurableSet_lt continuous_abs.measurable measurable_const
+  have hmeasMid : MeasurableSet {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ L} :=
+    (measurableSet_le measurable_const continuous_abs.measurable).inter
+      (measurableSet_le continuous_abs.measurable measurable_const)
+  have hdisj : Disjoint {ξ : ℝ | |ξ| < K} {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ L} := by
+    rw [Set.disjoint_left]
+    intro ξ h1 h2
+    exact absurd h2.1 (not_le.mpr h1)
+  have hunion : {ξ : ℝ | |ξ| < K} ∪ {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ L}
+      = {ξ : ℝ | |ξ| ≤ L} := by
+    ext ξ
+    simp only [Set.mem_union, Set.mem_setOf_eq]
+    constructor
+    · rintro (h | h)
+      · linarith
+      · exact h.2
+    · intro h
+      rcases lt_or_ge |ξ| K with h' | h'
+      · exact Or.inl h'
+      · exact Or.inr ⟨h', h⟩
+  have hsubLow : {ξ : ℝ | |ξ| < K} ⊆ {ξ : ℝ | |ξ| ≤ L} := by
+    intro ξ hξ; simp only [Set.mem_setOf_eq] at hξ ⊢; linarith
+  have hsubMid : {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ L} ⊆ {ξ : ℝ | |ξ| ≤ L} :=
+    fun ξ hξ => hξ.2
+  have hintLow' : IntegrableOn (fun ξ => ‖P ξ‖ ^ 2 * w ξ) {ξ : ℝ | |ξ| < K} :=
+    hint.mono_set hsubLow
+  have hintMid : IntegrableOn (fun ξ => ‖P ξ‖ ^ 2 * w ξ)
+      {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ L} := hint.mono_set hsubMid
+  have hsplit : (∫ ξ in {ξ : ℝ | |ξ| ≤ L}, ‖P ξ‖ ^ 2 * w ξ)
+      = (∫ ξ in {ξ : ℝ | |ξ| < K}, ‖P ξ‖ ^ 2 * w ξ)
+        + ∫ ξ in {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ L}, ‖P ξ‖ ^ 2 * w ξ := by
+    rw [← hunion, setIntegral_union hdisj hmeasMid hintLow' hintMid]
+  -- the low band: sup the weight out, since its estimate carries none
+  have hlow' : (∫ ξ in {ξ : ℝ | |ξ| < K}, ‖P ξ‖ ^ 2 * w ξ) ≤ Cw * Elow := by
+    refine le_trans (ExpSums.setIntegral_weight_le_const (fun ξ => ‖P ξ‖ ^ 2) w
+      (fun ξ => sq_nonneg _) {ξ : ℝ | |ξ| < K} hmeasLow Cw
+      (fun ξ _ => hwC ξ) hintLow' hintLow) ?_
+    exact mul_le_mul_of_nonneg_left hlow hCw0
+  rw [hsplit]
+  linarith [hlow', hmid]
+
+
 end MoltResearch
