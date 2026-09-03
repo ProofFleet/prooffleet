@@ -322,4 +322,160 @@ theorem setIntegral_norm_sq_level_sum_of_prev_large_le
       A' Δ' hA' hΔ' (S v) (hS v hv) a ha (Q v) (hQ v hv) T hT G hGm hGT
       (small v) large hlarge0 (hsmall v hv) hlarge)
 
+open MeasureTheory Finset ExpSums in
+/-- **A2-III VI-1d-1a — every unit cell has a maximising sample point.**
+
+For a continuous `F` and any finite family of integer cells there is a choice
+function `τ` picking, from each cell `[k, k+1]`, a point at which `‖F‖` attains
+its maximum on that cell.  Compactness of `Icc` and continuity of `‖F‖`; the
+content is only that the choice is made uniformly in `k`, which is what a
+`Finset`-indexed sum downstream needs.
+
+The maximiser is taken over the *closed* cell while the covering family is
+half-open, and that mismatch is deliberate: `Ico` cells tile the line, so the
+integral splits over them with no overlap, while `Icc` is what carries the
+maximum.  `Ico ⊆ Icc` reconciles the two for free. -/
+theorem exists_cell_max_sample (F : ℝ → ℂ) (hFc : Continuous F) :
+    ∃ τ : ℤ → ℝ, (∀ k : ℤ, τ k ∈ Set.Icc (k : ℝ) ((k : ℝ) + 1)) ∧
+      ∀ k : ℤ, ∀ v ∈ Set.Icc (k : ℝ) ((k : ℝ) + 1), ‖F v‖ ≤ ‖F (τ k)‖ := by
+  classical
+  have hchoice : ∀ k : ℤ, ∃ t, t ∈ Set.Icc (k : ℝ) ((k : ℝ) + 1) ∧
+      ∀ v ∈ Set.Icc (k : ℝ) ((k : ℝ) + 1), ‖F v‖ ≤ ‖F t‖ := by
+    intro k
+    obtain ⟨t, ht, hmax⟩ :=
+      (isCompact_Icc (a := (k : ℝ)) (b := (k : ℝ) + 1)).exists_isMaxOn
+        (Set.nonempty_Icc.mpr (by linarith)) hFc.norm.continuousOn
+    exact ⟨t, ht, fun v hv => isMaxOn_iff.mp hmax v hv⟩
+  choose τ hmem hmax using hchoice
+  exact ⟨τ, hmem, hmax⟩
+
+open MeasureTheory Finset ExpSums in
+/-- **A2-III VI-1d-1 — the discretisation, tail-free.**
+
+  `∫_G ‖F‖² ≤ ∑_{t ∈ 𝒯even} ‖F t‖² + ∑_{t ∈ 𝒯odd} ‖F t‖²`
+
+for a family of integer cells covering `G`, with **no derivative correction**.
+
+This is the same statement as `setIntegral_norm_sq_le_two_separated` (IV-3d-3)
+with the term `∑_{k ∈ K} ∫_k^{k+1} 2‖F‖‖F′‖` deleted, and the deletion is not a
+sharpening of that lemma's proof but a change of tool.  IV-3d-3 prices
+`∫_{cell} ‖F‖²` by the value of `F` at an *arbitrary* point of the cell, which
+is Gallagher's Sobolev inequality and costs the derivative.  A cell has length
+**one**, so if the sample point is chosen to *maximise* `‖F‖` on the cell —
+which `exists_cell_max_sample` does — then `∫_{cell} ‖F‖² ≤ max_{cell} ‖F‖²`
+outright and nothing is owed.
+
+**Why this matters rather than merely tidying.**  The `𝒰` leg is the one leg of
+the A.2 band estimate with no margin (`BandSchedule.exceptional_report_exponent_ok`:
+the gap `2/625 − 1/320 = 3/40000` is spent exactly on the leg's constant).  The
+Gallagher remainder is not payable inside it: pricing it by the sharp mean value
+theorem on the full range gives `≍ log(PN)` times the *trivial* energy, against a
+main term that is `(log A)^{−1/50}` times the trivial energy; and pricing it
+`𝒰`-aware — applying the large-values machinery to `F′`, whose coefficients are
+`2π log n` times those of `F` — still loses one factor `log(2PN)`.  Either way the
+correction dominates the saving it was supposed to correct.  So the tail had to
+go, and this is how it goes.
+
+The factor `2` — the two parity classes — is untouched, and is still `[MR]`'s:
+distinct integers of one parity differ by at least `2`, so each family is
+`1`-separated, which is what the large-values interfaces require.  Only the
+third summand disappears.
+
+`τ` is existentially quantified rather than taken as a parameter because its
+defining property (maximality on its cell) is not something a consumer can be
+asked to supply; the consumer needs only membership, which is returned alongside
+and is all the separation and frequency-range hypotheses downstream consume. -/
+theorem setIntegral_norm_sq_le_two_separated_max (F : ℝ → ℂ) (hFc : Continuous F)
+    (G : Set ℝ) (K : Finset ℤ)
+    (hcover : G ⊆ ⋃ k ∈ K, Set.Ico (k : ℝ) ((k : ℝ) + 1)) :
+    ∃ τ : ℤ → ℝ, (∀ k ∈ K, τ k ∈ Set.Icc (k : ℝ) ((k : ℝ) + 1)) ∧
+      (∫ ξ in G, ‖F ξ‖ ^ 2)
+        ≤ (∑ t ∈ (K.filter (fun k => Even k)).image τ, ‖F t‖ ^ 2)
+          + (∑ t ∈ (K.filter (fun k => ¬ Even k)).image τ, ‖F t‖ ^ 2) := by
+  classical
+  obtain ⟨τ, hτmem, hτmax⟩ := exists_cell_max_sample F hFc
+  refine ⟨τ, fun k _ => hτmem k, ?_⟩
+  have hsq : Continuous fun ξ : ℝ => ‖F ξ‖ ^ 2 := hFc.norm.pow 2
+  have hnn : ∀ ξ : ℝ, 0 ≤ ‖F ξ‖ ^ 2 := fun ξ => sq_nonneg _
+  have hint : ∀ k : ℤ, IntegrableOn (fun ξ : ℝ => ‖F ξ‖ ^ 2)
+      (Set.Ico (k : ℝ) ((k : ℝ) + 1)) := fun k =>
+    (hsq.integrableOn_Icc).mono_set Set.Ico_subset_Icc_self
+  -- Distinct integer cells are disjoint.
+  have hdisj : Set.Pairwise (↑K)
+      (Function.onFun Disjoint fun k : ℤ => Set.Ico (k : ℝ) ((k : ℝ) + 1)) := by
+    intro k _ l _ hkl
+    show Disjoint (Set.Ico (k : ℝ) ((k : ℝ) + 1)) (Set.Ico (l : ℝ) ((l : ℝ) + 1))
+    rw [Set.disjoint_left]
+    intro x hx hx'
+    rcases lt_or_gt_of_ne hkl with h | h
+    · have : (k : ℝ) + 1 ≤ (l : ℝ) := by exact_mod_cast (Int.add_one_le_iff.mpr h)
+      linarith [hx.2, hx'.1]
+    · have : (l : ℝ) + 1 ≤ (k : ℝ) := by exact_mod_cast (Int.add_one_le_iff.mpr h)
+      linarith [hx'.2, hx.1]
+  -- Step 1: split the integral over the cells.
+  have hsplit := setIntegral_le_sum_of_cover (fun ξ => ‖F ξ‖ ^ 2) hnn G K
+    (fun k : ℤ => Set.Ico (k : ℝ) ((k : ℝ) + 1))
+    (fun k _ => measurableSet_Ico) hdisj hcover (fun k _ => hint k)
+  -- Step 2: a unit cell's integral is at most its maximum.
+  have hcell : ∀ k : ℤ, (∫ ξ in Set.Ico (k : ℝ) ((k : ℝ) + 1), ‖F ξ‖ ^ 2)
+      ≤ ‖F (τ k)‖ ^ 2 := by
+    intro k
+    have hmono : (∫ ξ in Set.Ico (k : ℝ) ((k : ℝ) + 1), ‖F ξ‖ ^ 2)
+        ≤ ∫ _ξ in Set.Ico (k : ℝ) ((k : ℝ) + 1), ‖F (τ k)‖ ^ 2 := by
+      have hfin : volume (Set.Ico (k : ℝ) ((k : ℝ) + 1)) ≠ ⊤ := by
+        rw [Real.volume_Ico]; exact ENNReal.ofReal_ne_top
+      refine setIntegral_mono_on (hint k) (integrableOn_const hfin) measurableSet_Ico ?_
+      intro v hv
+      have hle := hτmax k v (Set.Ico_subset_Icc_self hv)
+      have h0 : (0 : ℝ) ≤ ‖F v‖ := norm_nonneg _
+      nlinarith [norm_nonneg (F (τ k))]
+    rwa [setIntegral_const, Real.volume_real_Ico_of_le (by linarith),
+      add_sub_cancel_left, one_smul] at hmono
+  -- Step 3: the two parity classes recombine.
+  have hgapE : ∀ k ∈ K.filter (fun k => Even k), ∀ l ∈ K.filter (fun k => Even k),
+      k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k := by
+    intro k hk l hl hkl
+    obtain ⟨m, hm⟩ := (Finset.mem_filter.mp hk).2
+    obtain ⟨n, hn⟩ := (Finset.mem_filter.mp hl).2
+    omega
+  have hgapO : ∀ k ∈ K.filter (fun k => ¬ Even k),
+      ∀ l ∈ K.filter (fun k => ¬ Even k), k ≠ l → k + 2 ≤ l ∨ l + 2 ≤ k := by
+    intro k hk l hl hkl
+    have hke := (Finset.mem_filter.mp hk).2
+    have hle := (Finset.mem_filter.mp hl).2
+    rw [Int.not_even_iff_odd] at hke hle
+    obtain ⟨m, hm⟩ := hke
+    obtain ⟨n, hn⟩ := hle
+    omega
+  rw [sum_image_sample_eq _ τ (fun t => ‖F t‖ ^ 2)
+      (fun k hk => hτmem k) hgapE,
+    sum_image_sample_eq _ τ (fun t => ‖F t‖ ^ 2)
+      (fun k hk => hτmem k) hgapO,
+    Finset.sum_filter_add_sum_filter_not]
+  exact hsplit.trans (Finset.sum_le_sum fun k _ => hcell k)
+
+open MeasureTheory Finset ExpSums in
+/-- **A2-III VI-1d-1′ — the tail-free discretisation for a product.**
+
+The form the `𝒰` leg consumes: the band integrand there is `‖Q‖²‖R‖²` for a
+prime polynomial `Q` and an integer polynomial `R`, and the large-values
+interfaces price the two factors separately at each sample point.  Same
+statement as `setIntegral_norm_sq_mul_le_two_separated` (IV-3d-3′) with the
+derivative correction gone, and with the `HasDerivAt` hypotheses gone with it —
+continuity of the two factors is now the whole input. -/
+theorem setIntegral_norm_sq_mul_le_two_separated_max (Q R : ℝ → ℂ)
+    (hQc : Continuous Q) (hRc : Continuous R)
+    (G : Set ℝ) (K : Finset ℤ)
+    (hcover : G ⊆ ⋃ k ∈ K, Set.Ico (k : ℝ) ((k : ℝ) + 1)) :
+    ∃ τ : ℤ → ℝ, (∀ k ∈ K, τ k ∈ Set.Icc (k : ℝ) ((k : ℝ) + 1)) ∧
+      (∫ ξ in G, ‖Q ξ‖ ^ 2 * ‖R ξ‖ ^ 2)
+        ≤ (∑ t ∈ (K.filter (fun k => Even k)).image τ, ‖Q t‖ ^ 2 * ‖R t‖ ^ 2)
+          + (∑ t ∈ (K.filter (fun k => ¬ Even k)).image τ,
+              ‖Q t‖ ^ 2 * ‖R t‖ ^ 2) := by
+  obtain ⟨τ, hmem, hbd⟩ := setIntegral_norm_sq_le_two_separated_max
+    (fun ξ => Q ξ * R ξ) (hQc.mul hRc) G K hcover
+  refine ⟨τ, hmem, ?_⟩
+  simpa only [norm_mul, mul_pow] using hbd
+
+
 end MoltResearch
