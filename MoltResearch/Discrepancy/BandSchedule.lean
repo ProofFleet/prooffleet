@@ -688,6 +688,82 @@ theorem collar_weight_le (I : Finset ℕ) (C : ℕ → Finset ℕ) (M Stot : ℝ
     _ = M * ∑ v ∈ I, ∑ p ∈ C v, (1 : ℝ) / (p : ℝ) := by rw [Finset.mul_sum]
     _ ≤ M * Stot := mul_le_mul_of_nonneg_left hS hM0
 
+/-! ## The exceptional threshold (§4.3(f), VI-1d) -/
+
+/-- **The exceptional threshold has an optimal value, and it is attained**
+(Track R, A2-III, VI-1d-3).
+
+The `𝒰` leg's bound splits at a threshold `V₀`: frequencies where the prime
+polynomial exceeds `V₀` are counted (the prime large-values term, which *grows*
+with `V₀`), and frequencies where it does not are bounded pointwise (the integer
+large-values term, which carries `1/V₀²` and therefore *shrinks*).  The threshold
+is a free parameter of the estimate and the leg's strength is whatever the best
+choice gives.
+
+Both terms are visible in `setIntegral_band_energy_exceptional_max_le`'s right-hand
+side as `V₀²·A` and `δ²·C/V₀²`, so the question is the elementary one of
+minimising `V₀²A + δ²C/V₀²`.  The minimum is `2δ√(AC)`, at `V₀² = δ√(C/A)`, and
+this lemma records that it is an **equality** at that value rather than merely an
+AM–GM lower bound — which is what a consumer needs, since it must *exhibit* a
+threshold, not merely know one is good.
+
+`A` and `C` are both positive in the consumer: `A` carries the integer
+polynomial's coefficient mass and `C` the prime polynomial's, and a vanishing one
+would mean an empty support. -/
+theorem exists_threshold_balanced (A C δ : ℝ) (hA : 0 < A) (hC : 0 < C)
+    (hδ : 0 < δ) :
+    ∃ V₀ : ℝ, 0 < V₀ ∧
+      V₀ ^ 2 * A + δ ^ 2 * C / V₀ ^ 2 = 2 * δ * Real.sqrt (A * C) := by
+  have hsa : 0 < Real.sqrt A := Real.sqrt_pos.mpr hA
+  have hsc : 0 < Real.sqrt C := Real.sqrt_pos.mpr hC
+  refine ⟨Real.sqrt (δ * Real.sqrt (C / A)), Real.sqrt_pos.mpr (by positivity), ?_⟩
+  have hsq : Real.sqrt (δ * Real.sqrt (C / A)) ^ 2 = δ * Real.sqrt (C / A) :=
+    Real.sq_sqrt (by positivity)
+  have hdiv : Real.sqrt (C / A) = Real.sqrt C / Real.sqrt A := Real.sqrt_div hC.le A
+  have hmul : Real.sqrt (A * C) = Real.sqrt A * Real.sqrt C := Real.sqrt_mul hA.le C
+  have hA' : Real.sqrt A ^ 2 = A := Real.sq_sqrt hA.le
+  have hC' : Real.sqrt C ^ 2 = C := Real.sq_sqrt hC.le
+  rw [hsq, hdiv, hmul]
+  field_simp
+  nlinarith [hA', hC', hsa, hsc, hδ]
+
+/-- **The `𝒰` leg meets its share of the budget** (Track R, A2-III, VI-1d-3).
+
+`setIntegral_band_energy_exceptional_max_le`'s right-hand side, priced against
+`κ·𝔅` at the best threshold.  The left-hand side is the literal right-hand side
+of that lemma with its three groups named: `Aint` the integer large-values
+factor, `Bpri` the prime large-values factor, and `Γ` the ratio by which the
+`V₀`-dependent part of the prime term exceeds the `V₀`-free part.
+
+Stated as an existential in `V₀` for the same reason `exists_threshold_balanced`
+is: the threshold is the estimate's own parameter, not the consumer's, and what
+the consumer needs is that *some* admissible threshold makes the leg fit.  The
+condition it must check, `hfit`, is then free of `V₀` entirely — which is what
+makes it a schedule condition rather than a tuning problem.
+
+Note where `δ` enters `hfit`: linearly in the cross term `2δ√(Aint·BpriΓ)` and
+quadratically in `δ²Bpri`.  The linear term is the binding one at the schedule's
+scales, and it is why the `𝒰` leg's saving is `√` of the pointwise Halász input
+rather than the input itself. -/
+theorem exceptional_threshold_le_budget (Aint Bpri Γ δ c₃ ε ρ κ : ℝ)
+    (hA : 0 < Aint) (hB : 0 < Bpri) (hΓ : 0 < Γ) (hδ : 0 < δ)
+    (hfit : 2 * (δ ^ 2 * Bpri + 2 * δ * Real.sqrt (Aint * (Bpri * Γ)))
+      ≤ κ * bandBudget c₃ ε ρ) :
+    ∃ V₀ : ℝ, 0 < V₀ ∧
+      2 * (V₀ ^ 2 * Aint + δ ^ 2 * (Bpri * (1 + Γ / V₀ ^ 2)))
+        ≤ κ * bandBudget c₃ ε ρ := by
+  obtain ⟨V₀, hV₀, hbal⟩ := exists_threshold_balanced Aint (Bpri * Γ) δ hA
+    (by positivity) hδ
+  refine ⟨V₀, hV₀, ?_⟩
+  have hV2 : (0 : ℝ) < V₀ ^ 2 := by positivity
+  have hrw : 2 * (V₀ ^ 2 * Aint + δ ^ 2 * (Bpri * (1 + Γ / V₀ ^ 2)))
+      = 2 * (δ ^ 2 * Bpri + (V₀ ^ 2 * Aint + δ ^ 2 * (Bpri * Γ) / V₀ ^ 2)) := by
+    field_simp
+    ring
+  rw [hrw, hbal]
+  linarith [hfit]
+
+
 /-! ## The schedule's margins (§4.2, §4.3, `S4`/`S5`/`S7`) -/
 
 /-- **`S7`'s `ε = W^{−5/4}` in the form the other constraints consume**
