@@ -764,6 +764,55 @@ theorem exceptional_threshold_le_budget (Aint Bpri Γ δ c₃ ε ρ κ : ℝ)
   linarith [hfit]
 
 
+/-- **The cell count of a level** (Track R, A2-III, M-2).
+
+`#I ≤ 2N·log(Q/P) + 2` for the `e`-adic index range `Ico v₀ (v₁+1)` of a level
+spanning `[P, Q]`.
+
+This is the third of the schedule's abstract quantities to be instantiated,
+after the cell mass and the level total (`PrimeMassCell`).  It is the factor
+that made the collar correction necessary: `#I` is the Cauchy–Schwarz cost over
+cells in `collar_error_le_budget` and `levelJ_le_budget`, and its **linear
+growth in `N`** is what cancels the `1/N` that `collar_ratio_le` buys — the
+observation behind the S-cal-6/7 erratum on design report §4.3(a).
+
+The hypotheses are exactly the two the schedule already supplies to
+`levelOne_le_budget`: `eadic_level_top_exp_le`'s `v₁ ≤ 2N log Q` and
+`eadic_level_bot_exp_le`'s `2N log P − 1 ≤ v₀`.  So a consumer that has priced
+the level-one leg has already discharged them, and the count costs nothing
+further.
+
+The `+2` is `ℕ`-arithmetic friction — one from the half-open `Ico` and one from
+the `−1` in the bottom bound — and it is harmless: `#I ≍ 2N log(Q/P)` is
+`≫ 1` at every scale of the schedule, since `Q₁/P₁ = H/(W³·W^{200})` is a large
+power of `W`. -/
+theorem cellCount_le (N v₀ v₁ : ℕ) (P Q : ℝ) (hP : 0 < P) (hPQ : P ≤ Q)
+    (htop : (v₁ : ℝ) ≤ 2 * (N : ℝ) * Real.log Q)
+    (hbot : 2 * (N : ℝ) * Real.log P - 1 ≤ (v₀ : ℝ)) :
+    ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+      ≤ 2 * (N : ℝ) * (Real.log Q - Real.log P) + 2 := by
+  have hlog : Real.log P ≤ Real.log Q := Real.log_le_log hP hPQ
+  have hN : (0 : ℝ) ≤ (N : ℝ) := Nat.cast_nonneg _
+  have hRHS : (0 : ℝ) ≤ 2 * (N : ℝ) * (Real.log Q - Real.log P) + 2 := by
+    have : (0 : ℝ) ≤ 2 * (N : ℝ) * (Real.log Q - Real.log P) := by
+      have : (0 : ℝ) ≤ Real.log Q - Real.log P := by linarith
+      positivity
+    linarith
+  rw [Nat.card_Ico]
+  rcases le_or_gt v₀ (v₁ + 1) with h | h
+  · have hcast : (((v₁ + 1 - v₀ : ℕ)) : ℝ) = (v₁ : ℝ) + 1 - (v₀ : ℝ) := by
+      have : ((v₁ + 1 - v₀ : ℕ) : ℝ) = ((v₁ + 1 : ℕ) : ℝ) - (v₀ : ℝ) := by
+        rw [Nat.cast_sub h]
+      rw [this]
+      push_cast
+      ring
+    rw [hcast]
+    linarith
+  · have hzero : v₁ + 1 - v₀ = 0 := Nat.sub_eq_zero_of_le h.le
+    rw [hzero]
+    simpa using hRHS
+
+
 /-! ## The schedule's margins (§4.2, §4.3, `S4`/`S5`/`S7`) -/
 
 /-- **`S7`'s `ε = W^{−5/4}` in the form the other constraints consume**
