@@ -1,6 +1,7 @@
 import MoltResearch.Discrepancy.WindowTK
 import MoltResearch.Discrepancy.WindowAssembly
 import MoltResearch.Discrepancy.BandSchedule
+import MoltResearch.Discrepancy.RegimeSplitEnergy
 
 /-!
 # The band-energy capstone (Track R, `[mrt]` A.2, Phase VI)
@@ -616,6 +617,63 @@ theorem setIntegral_le_of_low_mid (P : ℝ → ℂ) (w : ℝ → ℝ)
     exact mul_le_mul_of_nonneg_left hlow hCw0
   rw [hsplit]
   linarith [hlow', hmid]
+
+
+open MeasureTheory Finset ExpSums in
+open scoped FourierTransform ContDiff in
+/-- **A2-III E-4 — the window energy against the three bands, composed.**
+
+`window_energy_regime_energy_le` (E-2) and `setIntegral_le_of_low_mid` (E-3) in
+one statement: the smoothed-window line energy priced by a low-band energy, a
+mid-band *weighted* energy, and the derivative tail.
+
+This is the shape the `[mrt]` A.2 chain wanted all along, and the point of it is
+what `Emid` is allowed to be.  In `window_energy_regime_le` the mid band enters
+as `Mmid²·(4H/A)` — the sup of the phase polynomial, squared, against the
+window's total mass, which is the trivial bound.  Here `Emid` is any bound on
+the *weighted* mid-band energy, so `band_energy_le_budget` discharges it at
+`κ·𝔅` and the saving the A.2 campaign extracts survives to this level.
+
+The three slots now match their three estimates exactly: `Elow` takes
+`intervalIntegral_norm_sq_plain_le` through `uBound`, `Emid` takes the band
+capstone, and the tail takes the derivative energy.  `Cw` is the window
+transform's sup — `(4H/A)²` by `norm_fourier_slice_window_le` — and it appears
+only against `Elow`, because only the low-band estimate is weight-free. -/
+theorem window_energy_le_of_low_mid (h : ℕ → ℂ)
+    (A s H U : ℕ) (hA : 1 ≤ A) (hH : 0 < H)
+    (η : ℝ → ℝ) (hηs : ContDiff ℝ ∞ η) (hη2 : ∀ u, η u ≠ 0 → |u| ≤ 2)
+    (K L Mtot Eder Cw Elow Emid : ℝ) (hL : 0 < L) (hKL : K ≤ L) (hCw0 : 0 ≤ Cw)
+    (htot : ∀ ξ : ℝ,
+      ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+        h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖ ≤ Mtot)
+    (hder : ∫ ξ, ξ^2 * ‖𝓕 (fun v =>
+        ((η (((A:ℝ)/H)*v) : ℝ) : ℂ)) ξ‖^2 ≤ Eder)
+    (hwC : ∀ ξ : ℝ, ‖𝓕 (fun v => ((η (((A:ℝ)/H)*v) : ℝ) : ℂ)) ξ‖^2 ≤ Cw)
+    (hint : IntegrableOn (fun ξ =>
+        ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+          h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        * ‖𝓕 (fun v => ((η (((A:ℝ)/H)*v) : ℝ) : ℂ)) ξ‖^2) {ξ : ℝ | |ξ| ≤ L})
+    (hintLow : IntegrableOn (fun ξ =>
+        ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+          h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+      {ξ : ℝ | |ξ| < K})
+    (hlow : (∫ ξ in {ξ : ℝ | |ξ| < K},
+        ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+          h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2) ≤ Elow)
+    (hmid : (∫ ξ in {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ L},
+        ‖∑ m ∈ Finset.Ioc A (A+s+2*H+4*U),
+          h m * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        * ‖𝓕 (fun v => ((η (((A:ℝ)/H)*v) : ℝ) : ℂ)) ξ‖^2) ≤ Emid) :
+    ∫ y, ‖(4*(H:ℂ)) * smoothedLogSum ((A:ℝ)/H) η
+        (fun m => if m ∈ Finset.Ioc A (A+s+2*H+4*U)
+          then h m * (m:ℂ)/(4*(A:ℂ)) else 0)
+        (Finset.Ioc A (A+s+2*H+4*U)) y‖^2
+      ≤ (Cw * Elow + Emid) + Mtot^2 * ((1/L^2) * Eder) := by
+  refine le_trans (ExpSums.window_energy_regime_energy_le h A s H U hA hH η hηs
+    hη2 L Mtot Eder hL htot hder) ?_
+  have hjoin := setIntegral_le_of_low_mid _ _ Cw hwC K L hKL hint hintLow
+    Elow Emid hlow hmid hCw0
+  linarith [hjoin]
 
 
 end MoltResearch
