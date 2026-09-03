@@ -205,3 +205,98 @@ Mathlib substrate at the pinned revision. The in-tree elementary ladder reaches 
 of the large-frequency set (`measure_large_prime_poly_le`) and the measure-to-count bridge for
 general polynomials (Gallagher, `sum_norm_sq_le_integral_of_separated`); the prime-supported
 *count* is exactly what is missing, and exactly what this class supplies.
+
+---
+
+## arXiv:1503.05121 — An averaged form of Chowla's conjecture ([mrt])
+
+Provenance and caveat: transcribed 2026-09-03 from the ar5iv HTML rendering of
+arXiv:1503.05121 (Matomäki–Radziwiłł–Tao, *An averaged form of Chowla's conjecture*,
+Algebra & Number Theory 9 (2015)). Same standard as the rest of this file: a faithful
+transcription of rendered text, **not** verified against the published PDF by a human —
+check constant conventions and strictness before relying on fine details.
+
+This is the paper the Track R campaign calls `[mrt]`. The A.2 band campaign
+(`Problems/tao2015_a2iii_design_report.md`) targets the Dirichlet-polynomial `L²`
+bound below; issue #3044's plan reads **A.1 ⟸ A.2 + sieve density** and
+**A.2 ⟸ Parseval + A.3**.
+
+### Equation (1.6) — the pretentious distance functional
+
+> `M(g;X) := inf_{|t| ≤ X} 𝔻(g, n ↦ n^{it}; X)²`
+
+The infimum is over **real `t` with `|t| ≤ X`**. `𝔻` is the Granville–Soundararajan
+distance already fixed in this file's notation preamble. In-tree this is
+`NonPretentiousAt` / `PretentiousDist`.
+
+### The set `𝒮` (Appendix A setup) — "typical factorization"
+
+> `𝒮` is the set of integers `X ≤ n ≤ 2X` having **at least one prime factor in each**
+> interval `[P_j, Q_j]`, `j = 1, …, J`, where the intervals satisfy conditions (A.1)
+> and (A.2), `Q₁ ≤ exp(√(log X))`, and `J` is the largest index `j` with
+> `Q_j ≤ exp((log X)^{1/2})`.
+
+`η ∈ (0, 1/6)` is the parameter entering (A.1)/(A.2). In-tree this is
+`MoltResearch.typicalS` (`MoltResearch/Discrepancy/TypicalFactorization.lean:51`),
+with `HasFactorInAll` as the "one prime factor in each level" predicate; the cells
+`eadicCell` are the `e`-adic refinement of a single `[P_j, Q_j]`.
+
+### Theorem A.1 (unrestricted short-interval mean value)
+
+> Let `f` be a 1-bounded multiplicative function and let `M(f,X)` be as in (1.6). Then,
+> for `X ≥ h ≥ 10`,
+> `(1/X) ∫_X^{2X} |(1/h) ∑_{x ≤ n ≤ x+h} f(n)|² dx`
+> `≪ exp(−M(f,X))·M(f,X) + (log log h)²/(log h)² + 1/(log X)^{1/50}`.
+
+This is the target of the whole Track R leg: it is what discharges
+`MatomakiRadziwillMajorArcAssumption` once composed with the major-arc analysis (R6).
+No Lean statement yet.
+
+### Theorem A.2 (`𝒮`-restricted short-interval mean value)
+
+> Let `f` be 1-bounded multiplicative. Let `𝒮` be as above with `η ∈ (0, 1/6)`. If
+> `[P₁, Q₁] ⊂ [1, h]`, then for `X > X(η)` large and `h ≥ 3`,
+> `(1/X) ∫_X^{2X} |(1/h) ∑_{x ≤ n ≤ x+h, n ∈ 𝒮} f(n)|² dx`
+> `≪ exp(−M(f,X))·M(f,X) + (log h)^{1/3}/P₁^{1/6−η} + 1/(log X)^{1/50}`.
+
+A.1 follows from this plus the density of the complement of `𝒮` — the step the tree
+has the inputs for (`sifted_logavg_le`, `typicalS_complement_logavg_le`) but no bridge.
+
+### Proposition A.3 (the Dirichlet-polynomial `L²` bound)
+
+> Let `f` be 1-bounded multiplicative, `𝒮` as above with `η ∈ (0, 1/6)`, and
+> `F(s) = ∑_{X ≤ n ≤ 2X, n ∈ 𝒮} f(n)/n^s`. Then for any `T ≥ 1`,
+> `∫_{−T}^{T} |F(1+it)|² dt`
+> `≪ (T/(X/Q₁) + 1)·( (log Q₁)^{1/3}/P₁^{1/6−η} + M(f,X)/exp(M(f,X)) + 1/(log X)^{1/50} )`.
+
+**This is what the A2-III band campaign is building.** The correspondence with the
+in-tree objects: `F(1+it)` is the normalised phase polynomial
+`∑ (f n/n)·e(−t log n)`; the prefactor `(T/(X/Q₁) + 1)` is the sharp mean-value
+theorem's `(T/(block length) + 2)`; the three error terms are, in order, the level
+legs, the Halász input, and the exceptional `𝒰` leg.
+
+⚠️ **Two arrangement differences to check before wiring A.3, not errors as far as this
+transcription can tell.**
+
+1. The paper's level saving is `P₁^{−(1/6−η)}` against the design report §4.3(d)'s
+   `P₁^{−(1/2−3η)}`. Note `1/2 − 3η = 3·(1/6 − η)` **identically**, so the in-tree
+   exponent is exactly three times the paper's; at the schedule's `η = 1/20` these are
+   `0.35` and `7/60`. The report's form is the sharper one and is what
+   `levelOne_le_budget` consumes.
+2. The paper's prefactor is `(log Q₁)^{1/3}`; the report's is `log Q₁` (via `N₁² log Q₁`).
+
+⚠️ **`1/(log X)^{1/50}` is the paper's own exceptional-leg term**, and it matches the
+saving `D = (log A)^{−1/50}` that `BandSchedule.exceptional_W_le` is calibrated against.
+That is an independent confirmation of S-cal-5's arithmetic.
+
+### Theorem 2.3 — the parameter range for `W`
+
+> `(log H)^5 ≤ W ≤ min{ H^{1/250}, (log X)^{1/125} }`
+
+The same constraint appears in Proposition 2.4 and Proposition 5.1. This is the
+"`Theorem second`" the design report §4.2 calibrates against, and the **upper end is
+what Track R re-tunes**: `slice_energy_le` forces `Δ/A ≍ ε`, which costs `(A/Δ)²` in
+the `𝒰` Halász step and moves `(log X)^{1/125}` to `(log X)^{1/320}`
+(`BandSchedule.exceptional_report_exponent_ok`). The lower bound `(log H)^5` and the
+other arm `H^{1/250}` of the `min` are untouched. Harmless for EDP, since `H → ∞`
+remains admissible; it must be propagated when R6/R7 are wired.
