@@ -888,4 +888,94 @@ theorem band_energy_le_budget_firstIndexOn (F : ℝ → ℂ) (w : ℝ → ℝ)
     (bandPartOn_cover P J G)
     hint hintw κ c₃ ε ρ hc₃ hρ hleg hκ
 
+/-! ## The inner band, and the integrability the capstone asks for
+(Track R, A2-III, VI-1f-1) -/
+
+/-- The inner band `{K ≤ |ξ| ≤ K₂}` is measurable. -/
+theorem measurableSet_inner_band (K K₂ : ℝ) :
+    MeasurableSet {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ K₂} :=
+  (measurableSet_le measurable_const measurable_abs).inter
+    (measurableSet_le measurable_abs measurable_const)
+
+/-- The inner band is **bounded**, and that — not its measurability — is what
+makes the capstone's integrability hypotheses free: `|ξ| ≤ K₂` alone confines it
+to a compact interval, and the lower cut `K ≤ |ξ|` is not used. -/
+theorem inner_band_subset_Icc (K K₂ : ℝ) :
+    {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ K₂} ⊆ Set.Icc (-K₂) K₂ := by
+  intro ξ hξ
+  exact Set.mem_Icc.mpr (abs_le.mp hξ.2)
+
+open MeasureTheory in
+/-- **The bare energy is integrable on every piece of the inner band** (Track R,
+A2-III, VI-1f-1).
+
+`F` continuous is the only hypothesis, and `S` need not be measurable: the band
+sits inside a compact interval, on which a continuous function is integrable,
+and `IntegrableOn.mono_set` restricts to any subset whatever. -/
+theorem integrableOn_norm_sq_inner_band (F : ℝ → ℂ) (hF : Continuous F)
+    (K K₂ : ℝ) (S : Set ℝ) (hS : S ⊆ {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ K₂}) :
+    IntegrableOn (fun ξ => ‖F ξ‖ ^ 2) S :=
+  ((hF.norm.pow 2).integrableOn_Icc).mono_set
+    (hS.trans (inner_band_subset_Icc K K₂))
+
+open MeasureTheory in
+/-- **The weighted energy is integrable on every piece of the inner band**
+(Track R, A2-III, VI-1f-1).
+
+The weight is only ever measurable and bounded — it is never assumed continuous,
+because the capstone's `w` is `‖𝓕F‖²` for a window whose transform a consumer
+may prefer to keep abstract.  Boundedness is not an extra demand either: the
+capstone already carries `w ≤ Cw`, since `Cw` is what its low-band leg is
+charged. -/
+theorem integrableOn_norm_sq_mul_inner_band (F : ℝ → ℂ) (hF : Continuous F)
+    (w : ℝ → ℝ) (hwm : Measurable w) (Cw : ℝ) (hwC : ∀ ξ, ‖w ξ‖ ≤ Cw)
+    (K K₂ : ℝ) (S : Set ℝ) (hS : S ⊆ {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ K₂}) :
+    IntegrableOn (fun ξ => ‖F ξ‖ ^ 2 * w ξ) S := by
+  have hbase : IntegrableOn (fun ξ => ‖F ξ‖ ^ 2) S :=
+    integrableOn_norm_sq_inner_band F hF K K₂ S hS
+  have hmul : IntegrableOn (fun ξ => w ξ * ‖F ξ‖ ^ 2) S :=
+    hbase.bdd_mul hwm.aestronglyMeasurable
+      (Filter.Eventually.of_forall fun ξ => hwC ξ)
+  exact hmul.congr (Filter.Eventually.of_forall fun ξ => mul_comm _ _)
+
+open MeasureTheory Finset in
+/-- **The inner band against its budget, with nothing left but the legs**
+(Track R, A2-III, VI-1f-1).
+
+`band_energy_le_budget_firstIndexOn` with `G` taken to be the inner band
+`{K ≤ |ξ| ≤ K₂}` itself.  Its measurability and **all `2(J+1)` of its
+integrability hypotheses** are discharged, in exchange for two facts about the
+integrand that any concrete consumer has on hand: `F` is continuous — every
+character polynomial is — and `w` is measurable.
+
+The gain is not cosmetic.  `hint` and `hintw` are quantified over the parts of
+the `[MR]` partition, so a consumer supplying them by hand would have to reason
+about `bandPart` set differences and the top-index complement one part at a
+time, to prove something that depends on the parts only through their being
+inside the band.  Here `bandPartOn_subset` supplies that once.
+
+What survives is exactly the analytic content: one leg per part, and shares
+summing to at most one. -/
+theorem band_energy_le_budget_inner_band (F : ℝ → ℂ) (hF : Continuous F)
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (Cw : ℝ) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (K K₂ : ℝ) (J : ℕ) (P : ℕ → Set ℝ) (hP : ∀ j, MeasurableSet (P j))
+    (κ : ℕ → ℝ) (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hleg : ∀ j ∈ Finset.range (J + 1),
+      Cw * ∫ ξ in bandPartOn P J {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ K₂} j, ‖F ξ‖ ^ 2
+        ≤ κ j * bandBudget c₃ ε ρ)
+    (hκ : ∑ j ∈ Finset.range (J + 1), κ j ≤ 1) :
+    (∫ ξ in {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ K₂}, ‖F ξ‖ ^ 2 * w ξ)
+      ≤ bandBudget c₃ ε ρ := by
+  have hwnorm : ∀ ξ, ‖w ξ‖ ≤ Cw := fun ξ => by
+    rw [Real.norm_of_nonneg (hw0 ξ)]; exact hwC ξ
+  exact band_energy_le_budget_firstIndexOn F w hw0 Cw hwC
+    {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ K₂} (measurableSet_inner_band K K₂) J P hP
+    (fun j _ => integrableOn_norm_sq_inner_band F hF K K₂ _
+      (bandPartOn_subset P J _ j))
+    (fun j _ => integrableOn_norm_sq_mul_inner_band F hF w hwm Cw hwnorm K K₂ _
+      (bandPartOn_subset P J _ j))
+    κ c₃ ε ρ hc₃ hρ hleg hκ
+
+
 end MoltResearch
