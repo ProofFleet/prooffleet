@@ -467,6 +467,91 @@ theorem band_energy_le_budget_of_exceptional_inner_band
     hA0 hB0 hfit
 
 
+open MeasureTheory in
+/-- **A2-III VI-1f-4 — `band_energy_typicalS_le`, the `[mrt]` A.2 inner-band
+estimate.**
+
+The statement A.2 is *about*, named in the design report (§ Phase VI, VI-1) and
+until now absent from the tree: the weighted energy of the **typical-set**
+polynomial over the inner band, against the band's share of the slice budget.
+
+Everything structural is gone.  `F` is the polynomial itself, so its continuity
+is discharged by `ExpSums.continuous_char_poly`; `Cw` is the slice window's
+transform sup `(4H/A)²` (`norm_fourier_slice_window_le`), so `hCw` reduces to
+`0 < A` and `0 < H`; and the budget's ratio is `ρ = Δ/A`, so `hρ` disappears
+outright — a quotient of natural-number casts is nonnegative.
+
+**The window is still only weighted, not fixed**, and that is deliberate.  A.2
+needs from it exactly one thing, `hwsup`, and the outer band's decay hypothesis
+(`hwdecay` in the report) belongs to a different leg, `outer_le_budget`.  Naming
+a bump here would tie the inner band to a construction it never uses.
+
+What a consumer still supplies is exactly `[mrt]` A.2's mathematics: the level
+legs, the shares, the factorisation `hfac` that the `[MR]` decomposition lemma
+(II-2) produces on the exceptional part, and the pointwise Halász input `δ` with
+the instantiated fit. -/
+theorem band_energy_typicalS_le [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (g : ℕ → ℂ) (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
+    (levels : List (Finset ℕ))
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hwsup : ∀ ξ, w ξ ≤ (4*(H:ℝ)/(A:ℝ))^2)
+    (K₁ K₂ : ℝ)
+    (J : ℕ) (Pset : ℕ → Set ℝ) (hPset : ∀ j, MeasurableSet (Pset j))
+    (κ : ℕ → ℝ) (c₃ ε : ℝ) (hc₃ : 0 ≤ c₃)
+    (hκ : ∑ j ∈ Finset.range (J + 1), κ j ≤ 1)
+    (hleg : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      (4*(H:ℝ)/(A:ℝ))^2
+          * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} j,
+            ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ κ j * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (hYne : Y.Nonempty)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
+    (N : ℕ) (a : ℕ → ℂ) (ha : ∀ n, ‖a n‖ ≤ 1) (T : ℝ) (hT1 : 1 ≤ T)
+    (hTK₂ : K₂ + 2 ≤ T)
+    (δ : ℝ) (hδ0 : 0 < δ)
+    (hδ : ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ)
+    (hfac : ∀ ξ ∈ bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+      ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+    (hA0 : 0 < 64 * ((N:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+        + 2 * δ * Real.sqrt
+            ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log P)^2))
+                  * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
+                      * (256 / Real.log P + 2048 * Real.pi)
+                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ κ J * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) / (4*(H:ℝ)/(A:ℝ))^2) :
+    (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂},
+        ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 * w ξ)
+      ≤ bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) := by
+  have hA0' : (0:ℝ) < (A:ℝ) := by exact_mod_cast hA
+  have hH0' : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+  have hCw : (0:ℝ) < (4*(H:ℝ)/(A:ℝ))^2 := by positivity
+  exact band_energy_le_budget_of_exceptional_inner_band
+    (fun ξ => ∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+      * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+    (ExpSums.continuous_char_poly (typicalS A (A+Δ) levels)
+      (fun m => g m/(m:ℂ)) (fun m => Real.log m))
+    w hwm hw0 ((4*(H:ℝ)/(A:ℝ))^2) hCw hwsup K₁ K₂ J Pset hPset κ c₃ ε
+    ((Δ:ℝ)/(A:ℝ)) hc₃ (by positivity) hκ hleg P hP Y hY hYne hlo hhi b hb
+    N a ha T hT1 hTK₂ δ hδ0 hδ hfac hA0 hB0 hfit
+
+
 end Tao2015
 
 end MoltResearch
