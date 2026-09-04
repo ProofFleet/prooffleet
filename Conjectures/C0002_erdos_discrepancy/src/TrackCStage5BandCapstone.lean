@@ -368,6 +368,105 @@ theorem band_energy_le_budget_of_exceptional_partition
     hA0 hB0 hfit
 
 
+open MeasureTheory in
+/-- **A2-III VI-1f-3 — the band capstone on the inner band itself.**
+
+`band_energy_le_budget_of_exceptional_partition` with its remaining structural
+hypotheses discharged by taking the band to be `{K₁ ≤ |ξ| ≤ K₂}`, the range the
+`[mrt]` A.2 estimate is actually stated on.
+
+**Seven hypotheses go, and each was structural rather than analytic.**
+`MeasurableSet G` and the `2(J+1)` integrability facts fall to VI-1f-1
+(`band_energy_le_budget_inner_band`'s ingredients): the band sits in a compact
+interval, so a continuous `F` against a measurable bounded `w` is integrable on
+every part at once.  The cell family `K`, its cover `hGcover` and its range
+`hKT` fall to VI-1f-2: the cells are `bandCells K₂ = [−⌈K₂⌉, ⌈K₂⌉] ∩ ℤ`, and
+nothing in the tree had ever constructed such a family — every consumer of the
+exceptional leg took one as a hypothesis.  `hintU` falls to continuity of the
+two factors of the `[MR]` decomposition.
+
+**What replaces them is a single numerical condition, `hTK₂ : K₂ + 2 ≤ T`**, and
+that is the honest frequency-range seam: the exceptional leg's sample range has
+to clear the band's outer cut by two — one for the ceiling, one for the cell's
+own width.  Besides continuity of `F` and measurability of `w`, it is all that
+is asked in return, and it is a demand on the schedule rather than on the
+consumer's set theory.
+
+What is left is exactly `[mrt]` A.2's analytic content: one elementary leg per
+level, the shares, the factorisation `hfac` supplied by the `[MR]` decomposition
+lemma, and the pointwise Halász input `δ` with the instantiated fit.  `F` and
+`w` are continuous and measurable respectively and otherwise still free; binding
+`F` to the `typicalS` polynomial is the A.2 statement itself. -/
+theorem band_energy_le_budget_of_exceptional_inner_band
+    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    (F : ℝ → ℂ) (hF : Continuous F)
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (K₁ K₂ : ℝ)
+    (J : ℕ) (Pset : ℕ → Set ℝ) (hPset : ∀ j, MeasurableSet (Pset j))
+    (κ : ℕ → ℝ) (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hκ : ∑ j ∈ Finset.range (J + 1), κ j ≤ 1)
+    (hleg : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      Cw * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} j, ‖F ξ‖^2
+        ≤ κ j * bandBudget c₃ ε ρ)
+    (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (hYne : Y.Nonempty)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
+    (N : ℕ) (a : ℕ → ℂ) (ha : ∀ n, ‖a n‖ ≤ 1) (T : ℝ) (hT1 : 1 ≤ T)
+    (hTK₂ : K₂ + 2 ≤ T)
+    (δ : ℝ) (hδ0 : 0 < δ)
+    (hδ : ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ)
+    (hfac : ∀ ξ ∈ bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J, ‖F ξ‖^2
+      ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+    (hA0 : 0 < 64 * ((N:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+        + 2 * δ * Real.sqrt
+            ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log P)^2))
+                  * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
+                      * (256 / Real.log P + 2048 * Real.pi)
+                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ κ J * bandBudget c₃ ε ρ / Cw) :
+    (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂}, ‖F ξ‖^2 * w ξ)
+      ≤ bandBudget c₃ ε ρ := by
+  have hwnorm : ∀ ξ, ‖w ξ‖ ≤ Cw := fun ξ => by
+    rw [Real.norm_of_nonneg (hw0 ξ)]; exact hwC ξ
+  -- the two factors of the `[MR]` decomposition are continuous, hence so is
+  -- their energy product, which is all `hintU` needs on a bounded band
+  have hprod : Continuous fun ξ : ℝ =>
+      ‖∑ p ∈ Y, (b p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2 :=
+    ((ExpSums.continuous_char_poly Y (fun p => b p/(p:ℂ))
+        (fun p => Real.log p)).norm.pow 2).mul
+      ((ExpSums.continuous_char_poly (Finset.Icc 1 N) (fun n => a n/(n:ℂ))
+        (fun n => Real.log n)).norm.pow 2)
+  exact band_energy_le_budget_of_exceptional_partition F w hw0 Cw hCw hwC
+    {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} (measurableSet_inner_band K₁ K₂) J Pset hPset
+    (fun j _ => integrableOn_norm_sq_inner_band F hF K₁ K₂ _
+      (bandPartOn_subset Pset J _ j))
+    (fun j _ => integrableOn_norm_sq_mul_inner_band F hF w hwm Cw hwnorm K₁ K₂ _
+      (bandPartOn_subset Pset J _ j))
+    κ c₃ ε ρ hc₃ hρ hκ hleg P hP Y hY hYne hlo hhi b hb N a ha T hT1
+    (bandCells K₂)
+    (inner_band_subset_bandCells K₁ K₂)
+    (bandCells_mem_Icc K₂ T hTK₂)
+    δ hδ0 hδ hfac
+    ((hprod.integrableOn_Icc).mono_set
+      ((bandPartOn_subset Pset J _ J).trans (inner_band_subset_Icc K₁ K₂)))
+    hA0 hB0 hfit
+
+
 end Tao2015
 
 end MoltResearch
