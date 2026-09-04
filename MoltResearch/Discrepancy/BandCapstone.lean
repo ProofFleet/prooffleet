@@ -977,5 +977,49 @@ theorem band_energy_le_budget_inner_band (F : ℝ → ℂ) (hF : Continuous F)
       (bandPartOn_subset P J _ j))
     κ c₃ ε ρ hc₃ hρ hleg hκ
 
+/-! ## The unit-cell cover of the inner band (Track R, A2-III, VI-1f-2) -/
+
+/-- **The integer cells that meet the inner band** (Track R, A2-III, VI-1f-2).
+
+Every consumer of the exceptional leg — `setIntegral_band_energy_exceptional_le`
+and everything above it — takes its cell family `K` and the cover
+`G ⊆ ⋃ k ∈ K, [k, k+1)` as hypotheses, and **nothing in the tree ever built
+one**.  This is that family for the inner band: the cells are indexed by the
+integers from `-⌈K₂⌉` to `⌈K₂⌉`, and only the outer cut `K₂` enters.  The lower
+cut `K` plays no part, because a cover may be wasteful. -/
+noncomputable def bandCells (K₂ : ℝ) : Finset ℤ := Finset.Icc (-⌈K₂⌉) ⌈K₂⌉
+
+/-- **The cells cover the inner band** (Track R, A2-III, VI-1f-2).
+
+The cell claiming `ξ` is `⌊ξ⌋`, and the two bounds that place it in the family
+are the two directions of `|ξ| ≤ K₂` against `Int.le_ceil`. -/
+theorem inner_band_subset_bandCells (K K₂ : ℝ) :
+    {ξ : ℝ | K ≤ |ξ| ∧ |ξ| ≤ K₂}
+      ⊆ ⋃ k ∈ bandCells K₂, Set.Ico (k : ℝ) ((k : ℝ) + 1) := by
+  intro ξ hξ
+  obtain ⟨hlo, hhi⟩ := abs_le.mp hξ.2
+  have hceil : (K₂ : ℝ) ≤ (⌈K₂⌉ : ℤ) := Int.le_ceil K₂
+  refine Set.mem_iUnion₂.mpr ⟨⌊ξ⌋, ?_, ?_⟩
+  · refine Finset.mem_Icc.mpr ⟨Int.le_floor.mpr ?_, ?_⟩
+    · push_cast
+      linarith
+    · exact le_trans (Int.floor_le_floor (le_trans hhi hceil)) (by simp)
+  · exact ⟨Int.floor_le ξ, Int.lt_floor_add_one ξ⟩
+
+/-- **The cells lie inside `[−T, T]`** (Track R, A2-III, VI-1f-2).
+
+This is the frequency-range seam, and it prices it: the exceptional leg's sample
+range `T` has to clear the band's outer cut by **two**, one for the ceiling and
+one for the cell's own width.  Nothing weaker will do — the cell claiming a
+frequency just below `K₂` ends at `⌈K₂⌉ + 1`, which can exceed `K₂ + 1`. -/
+theorem bandCells_mem_Icc (K₂ T : ℝ) (hT : K₂ + 2 ≤ T) :
+    ∀ k ∈ bandCells K₂, -T ≤ (k : ℝ) ∧ (k : ℝ) + 1 ≤ T := by
+  intro k hk
+  obtain ⟨h1, h2⟩ := Finset.mem_Icc.mp hk
+  have hlt : ((⌈K₂⌉ : ℤ) : ℝ) < K₂ + 1 := Int.ceil_lt_add_one K₂
+  have h1' : -((⌈K₂⌉ : ℤ) : ℝ) ≤ (k : ℝ) := by exact_mod_cast h1
+  have h2' : (k : ℝ) ≤ ((⌈K₂⌉ : ℤ) : ℝ) := by exact_mod_cast h2
+  constructor <;> linarith
+
 
 end MoltResearch
