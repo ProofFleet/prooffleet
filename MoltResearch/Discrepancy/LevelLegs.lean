@@ -83,6 +83,50 @@ theorem typicalS_phase_eq_eadic_main_add_collision
             typicalSMainFibre g A (A + B) P rest p xi :=
       Finset.sum_biUnion hdisj
 
+open Finset in
+/-- **N3-f reaches the prime-block interface once its fibres are identified.**
+
+The exact N3-f quotient support depends on the extracted prime `p`, whereas
+`setIntegral_norm_sq_cell_prime_block_le` consumes a full quotient interval
+with one coefficient function `c`.  This lemma isolates that sole algebraic
+obligation as `hfibre`.  After it is supplied, regrouping by e-adic cells is
+already enough to put the main term into the precise shape of II-2e; the
+repeated-prime collision remains additive.
+-/
+theorem typicalS_phase_eq_eadic_prime_block_add_collision_of_fibres
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g)
+    (A Delta : ℕ) (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (c : ℕ → ℂ)
+    (hfibre : ∀ p ∈ P, ∀ xi : ℝ,
+      (∑ m ∈ (((typicalS A (A + Delta) rest).filter
+            (fun n => p ∣ n)).image (· / p)).filter (fun m => ¬ p ∣ m),
+          ((g m / (m : ℂ))
+              * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+            / (((P.filter (· ∣ m)).card : ℂ) + 1))
+        = ∑ m ∈ Finset.Ioc (A / p) ((A + Delta) / p),
+            (c m / (m : ℂ))
+              * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+    (xi : ℝ) :
+    ∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
+        * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)
+      = (∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+          ∑ p ∈ eadicCell P (2 * N) v,
+            ((g p / (p : ℂ))
+                * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ))
+              * (∑ m ∈ Finset.Ioc (A / p) ((A + Delta) / p),
+                  (c m / (m : ℂ))
+                    * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)))
+        + typicalSCollision g A (A + Delta) P rest xi := by
+  rw [typicalS_phase_eq_eadic_main_add_collision g hcm A Delta P hP rest N v₀ v₁
+    hcov xi]
+  congr 1
+  refine Finset.sum_congr rfl fun v hv => ?_
+  refine Finset.sum_congr rfl fun p hp => ?_
+  unfold typicalSMainFibre
+  rw [hfibre p (mem_eadicCell.mp hp).1 xi]
+
 open MeasureTheory Finset ExpSums in
 /-- **The exact decomposition costs one `L²` triangle.**
 
@@ -197,6 +241,263 @@ theorem typicalSQuotCoeff_mass_le (g : ℕ → ℂ)
   have hsq : ‖typicalSQuotCoeff g P S m‖ ^ 2 ≤ 1 := by
     nlinarith [norm_nonneg (typicalSQuotCoeff g P S m)]
   exact mul_le_mul_of_nonneg_right hsq hm0.le
+
+/-- **A support identity discharges the quotient-fibre identity.**
+
+Once the prime-dependent noncollision support from N3-f is identified with a
+full quotient interval filtered by a fixed support `S`, extending the weighted
+coefficient by zero makes the two Dirichlet polynomials literally equal.  Thus
+the unresolved part of `hfibre` is set-theoretic; the phase and the
+`1/(ω+1)` normalization introduce no further obligation.
+-/
+theorem typicalS_main_fibre_eq_block_of_support_eq
+    (g : ℕ → ℂ) (A Delta : ℕ) (P S : Finset ℕ)
+    (rest : List (Finset ℕ)) (p : ℕ)
+    (hsupport : (((typicalS A (A + Delta) rest).filter
+          (fun n => p ∣ n)).image (· / p)).filter (fun m => ¬ p ∣ m)
+        = (Finset.Ioc (A / p) ((A + Delta) / p)).filter (fun m => m ∈ S))
+    (xi : ℝ) :
+    (∑ m ∈ (((typicalS A (A + Delta) rest).filter
+          (fun n => p ∣ n)).image (· / p)).filter (fun m => ¬ p ∣ m),
+        ((g m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+          / (((P.filter (· ∣ m)).card : ℂ) + 1))
+      = ∑ m ∈ Finset.Ioc (A / p) ((A + Delta) / p),
+          (typicalSQuotCoeff g P S m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ) := by
+  classical
+  rw [hsupport, Finset.sum_filter]
+  refine Finset.sum_congr rfl fun m _ => ?_
+  by_cases hm : m ∈ S
+  · simp only [hm, if_true, typicalSQuotCoeff]
+    ring
+  · simp [hm, typicalSQuotCoeff]
+
+/-- **A stable remaining-level condition identifies the full quotient
+support.**
+
+If multiplication by the extracted prime preserves `HasFactorInAll rest`, the
+quotient image of the `p`-fibre of `typicalS A B rest` is exactly the quotient
+interval filtered by `typicalS 0 B rest`.  This is the set-theoretic bridge
+that permits adding the omitted `p ∣ m` terms to the main fibre while keeping one
+coefficient function independent of `p`.
+-/
+theorem typicalS_fibre_image_eq_quotient_support
+    (A B p : ℕ) (hp : 0 < p) (rest : List (Finset ℕ))
+    (hstable : ∀ m, HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m) :
+    ((typicalS A B rest).filter (fun n => p ∣ n)).image (· / p)
+      = (Finset.Ioc (A / p) (B / p)).filter
+          (fun m => m ∈ typicalS 0 B rest) := by
+  classical
+  ext m
+  constructor
+  · intro hm
+    rw [Finset.mem_image] at hm
+    obtain ⟨n, hn, hnm⟩ := hm
+    rw [Finset.mem_filter] at hn
+    have hnEq : n = p * m := by
+      calc
+        n = p * (n / p) := (Nat.mul_div_cancel' hn.2).symm
+        _ = p * m := by rw [hnm]
+    rw [Finset.mem_filter, Finset.mem_Ioc]
+    rw [mem_typicalS] at hn
+    subst n
+    have hlo : A / p < m := by
+      apply (Nat.div_lt_iff_lt_mul hp).mpr
+      rw [mul_comm]
+      exact hn.1.1.1
+    have hhi : m ≤ B / p := by
+      apply (Nat.le_div_iff_mul_le hp).mpr
+      rw [mul_comm]
+      exact hn.1.1.2
+    exact ⟨⟨hlo, hhi⟩, (mem_typicalS.mpr
+      ⟨⟨lt_of_le_of_lt (Nat.zero_le (A / p)) hlo,
+          le_trans hhi (Nat.div_le_self B p)⟩,
+        (hstable m).mp hn.1.2⟩)⟩
+  · intro hm
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hm
+    rw [mem_typicalS] at hm
+    rw [Finset.mem_image]
+    refine ⟨p * m, ?_, Nat.mul_div_cancel_left m hp⟩
+    rw [Finset.mem_filter, mem_typicalS]
+    have hlo : A < p * m := by
+      have := (Nat.div_lt_iff_lt_mul hp).mp hm.1.1
+      simpa [mul_comm] using this
+    have hhi : p * m ≤ B := by
+      have := (Nat.le_div_iff_mul_le hp).mp hm.1.2
+      simpa [mul_comm] using this
+    exact ⟨⟨⟨hlo, hhi⟩, (hstable m).mpr hm.2.2⟩, dvd_mul_right p m⟩
+
+/-- Under the same stability condition, the full quotient image carries the
+fixed zero-extended Ramaré coefficient. -/
+theorem typicalS_full_fibre_eq_block
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) (p : ℕ) (hp : 0 < p)
+    (hstable : ∀ m, HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (xi : ℝ) :
+    (∑ m ∈ ((typicalS A B rest).filter (fun n => p ∣ n)).image (· / p),
+        ((g m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+          / (((P.filter (· ∣ m)).card : ℂ) + 1))
+      = ∑ m ∈ Finset.Ioc (A / p) (B / p),
+          (typicalSQuotCoeff g P (typicalS 0 B rest) m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ) := by
+  classical
+  rw [typicalS_fibre_image_eq_quotient_support A B p hp rest hstable,
+    Finset.sum_filter]
+  refine Finset.sum_congr rfl fun m _ => ?_
+  by_cases hm : m ∈ typicalS 0 B rest
+  · simp only [hm, if_true, typicalSQuotCoeff]
+    ring
+  · simp [hm, typicalSQuotCoeff]
+
+/-- The `p ∣ m` terms added when a noncollision fibre is enlarged to its full
+quotient support, grouped over the same e-adic cells as the main term. -/
+noncomputable def typicalSAddedTerms (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) (xi : ℝ) : ℂ :=
+  ∑ v ∈ Finset.Ico v₀ (v₁ + 1), ∑ p ∈ eadicCell P (2 * N) v,
+    ((g p / (p : ℂ))
+        * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ))
+      * ∑ m ∈ (((typicalS A B rest).filter
+          (fun n => p ∣ n)).image (· / p)).filter (fun m => p ∣ m),
+        ((g m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+          / (((P.filter (· ∣ m)).card : ℂ) + 1)
+
+open Finset in
+/-- **The N3-f main term in the full block shape consumed by II-2e.**
+
+Enlarge every noncollision quotient fibre by the omitted `p ∣ m` terms.  The
+stability hypothesis identifies the enlarged support with
+`Ioc (A/p) (B/p)` carrying the single coefficient
+`typicalSQuotCoeff g P (typicalS 0 B rest)`.  Subtracting the added terms from
+N3-f's repeated-prime term preserves equality, leaving exactly a full
+prime-block main term plus one adjusted collision error.
+-/
+theorem typicalS_phase_eq_eadic_prime_block_add_adjusted_collision
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g)
+    (A Delta : ℕ) (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (xi : ℝ) :
+    ∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
+        * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)
+      = (∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+          ∑ p ∈ eadicCell P (2 * N) v,
+            ((g p / (p : ℂ))
+                * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ))
+              * (∑ m ∈ Finset.Ioc (A / p) ((A + Delta) / p),
+                  (typicalSQuotCoeff g P (typicalS 0 (A + Delta) rest) m /
+                      (m : ℂ))
+                    * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)))
+        + (typicalSCollision g A (A + Delta) P rest xi
+            - typicalSAddedTerms g A (A + Delta) P rest N v₀ v₁ xi) := by
+  rw [typicalS_phase_eq_eadic_main_add_collision g hcm A Delta P hP rest N v₀ v₁
+    hcov xi]
+  have hfull :
+      (∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+          ∑ p ∈ eadicCell P (2 * N) v,
+            ((g p / (p : ℂ))
+                * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ))
+              * (∑ m ∈ Finset.Ioc (A / p) ((A + Delta) / p),
+                  (typicalSQuotCoeff g P (typicalS 0 (A + Delta) rest) m /
+                      (m : ℂ))
+                    * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)))
+        = (∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+            ∑ p ∈ eadicCell P (2 * N) v,
+              typicalSMainFibre g A (A + Delta) P rest p xi)
+          + typicalSAddedTerms g A (A + Delta) P rest N v₀ v₁ xi := by
+    unfold typicalSAddedTerms
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun v hv => ?_
+    rw [← Finset.sum_add_distrib]
+    refine Finset.sum_congr rfl fun p hp => ?_
+    have hpP := (mem_eadicCell.mp hp).1
+    have hp0 := (hP p hpP).pos
+    rw [← typicalS_full_fibre_eq_block g A (A + Delta) P rest p hp0
+      (hstable p hpP) xi]
+    unfold typicalSMainFibre
+    rw [← mul_add]
+    congr 1
+    have hpart := Finset.sum_filter_add_sum_filter_not
+      (((typicalS A (A + Delta) rest).filter
+        (fun n => p ∣ n)).image (· / p)) (fun m => ¬ p ∣ m)
+      (fun m => ((g m / (m : ℂ))
+          * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+        / (((P.filter (· ∣ m)).card : ℂ) + 1))
+    simpa only [not_not] using hpart.symm
+  rw [hfull]
+  ring
+
+/-- The full prime-indexed quotient-block main term obtained from N3-f. -/
+noncomputable def typicalSPrimeBlock (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) (xi : ℝ) : ℂ :=
+  ∑ v ∈ Finset.Ico v₀ (v₁ + 1), ∑ p ∈ eadicCell P (2 * N) v,
+    ((g p / (p : ℂ))
+        * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ))
+      * (∑ m ∈ Finset.Ioc (A / p) (B / p),
+          (typicalSQuotCoeff g P (typicalS 0 B rest) m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+
+/-- The adjusted collision: N3-f's repeated-prime term minus the terms added
+to make every main fibre a full quotient block. -/
+noncomputable def typicalSAdjustedCollision (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) (xi : ℝ) : ℂ :=
+  typicalSCollision g A B P rest xi - typicalSAddedTerms g A B P rest N v₀ v₁ xi
+
+/-- The full-block decomposition in named-function form, ready for the energy
+lemmas. -/
+theorem typicalS_phase_eq_primeBlock_add_adjustedCollision
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g)
+    (A Delta : ℕ) (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (xi : ℝ) :
+    ∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
+        * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)
+      = typicalSPrimeBlock g A (A + Delta) P rest N v₀ v₁ xi
+        + typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi := by
+  simpa [typicalSPrimeBlock, typicalSAdjustedCollision] using
+    typicalS_phase_eq_eadic_prime_block_add_adjusted_collision
+      g hcm A Delta P hP rest N v₀ v₁ hcov hstable xi
+
+/-- The full prime-block main term is continuous in frequency. -/
+theorem continuous_typicalSPrimeBlock (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) :
+    Continuous (typicalSPrimeBlock g A B P rest N v₀ v₁) := by
+  classical
+  have hchar : ∀ w : ℝ, Continuous fun xi : ℝ =>
+      ((Real.fourierChar (-(w * xi)) : Circle) : ℂ) := fun w =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  unfold typicalSPrimeBlock
+  refine continuous_finset_sum _ fun v _ => ?_
+  refine continuous_finset_sum _ fun p _ => ?_
+  refine (continuous_const.mul (hchar (Real.log p))).mul ?_
+  exact continuous_finset_sum _ fun m _ =>
+    continuous_const.mul (hchar (Real.log m))
+
+/-- The adjusted collision is continuous in frequency. -/
+theorem continuous_typicalSAdjustedCollision (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) :
+    Continuous (typicalSAdjustedCollision g A B P rest N v₀ v₁) := by
+  classical
+  have hchar : ∀ w : ℝ, Continuous fun xi : ℝ =>
+      ((Real.fourierChar (-(w * xi)) : Circle) : ℂ) := fun w =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  unfold typicalSAdjustedCollision typicalSCollision typicalSAddedTerms
+  apply Continuous.sub
+  · refine continuous_finset_sum _ fun p _ => ?_
+    refine continuous_finset_sum _ fun m _ => ?_
+    exact (continuous_const.mul (hchar (Real.log (p * m : ℕ)))).div_const _
+  · refine continuous_finset_sum _ fun v _ => ?_
+    refine continuous_finset_sum _ fun p _ => ?_
+    refine (continuous_const.mul (hchar (Real.log p))).mul ?_
+    refine continuous_finset_sum _ fun m _ => ?_
+    exact (continuous_const.mul (hchar (Real.log m))).div_const _
 
 open MeasureTheory Finset ExpSums in
 /-- **The level-one main term meets its schedule share.**
@@ -739,5 +1040,64 @@ theorem setIntegral_norm_sq_later_le_budget_of_firstPrev
       rw [Finset.sum_mul]
     _ ≤ kappa * bandBudget c₃ eps rho :=
       mul_le_mul_of_nonneg_right hshares hB0
+
+/-! ## The cell-replacement error -/
+
+/-- **M-10 prices the exact e-adic cell-replacement error.**
+
+Specializing `collar_error_le_budget_eadic` to the actual cell family removes
+its abstract pairwise-disjointness hypothesis: distinct `eadicCell`s are
+disjoint by construction.  The two displayed costs are exactly the endpoint
+terms in `setIntegral_norm_sq_cell_prime_block_le`, so the conclusion can be
+fed to `setIntegral_norm_sq_decomp_le_budget` without reshaping.
+
+This theorem does not include `typicalSCollision`; that repeated-prime term is
+separate in N3-f and needs a collision estimate in addition to M-10.
+-/
+theorem eadic_replacement_error_le_budget
+    (P : Finset ℕ) (N v₀ v₁ A B Pb Kc bb : ℕ) (T X c₃ eps rho kappa : ℝ)
+    (aa : ℕ → ℕ)
+    (hPb : 1 ≤ Pb) (hKc : 2 ≤ Kc) (hbb : 3 ≤ bb) (hX0 : 0 ≤ X)
+    (hcostA : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v,
+        Real.exp Real.pi * (T / ((A / p : ℕ) : ℝ) + 4)
+            * (((A / (N * p) + 1 : ℕ) : ℝ) / ((A / p : ℕ) : ℝ)) ≤ X)
+    (hcostB : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v,
+        Real.exp Real.pi * (T / ((B / p : ℕ) : ℝ) + 4)
+            * (((B / (N * p) + 1 : ℕ) : ℝ) / ((B / p : ℕ) : ℝ)) ≤ X)
+    (haa : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), Pb ≤ aa v)
+    (hcell : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      eadicCell P (2 * N) v ⊆
+        (Finset.Ioc (aa v) (aa v + Kc)).filter Nat.Prime)
+    (hlevel : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      eadicCell P (2 * N) v ⊆ (Finset.Ioc Pb bb).filter Nat.Prime)
+    (hkappac : 0 ≤ kappa * c₃) (hrho : eps ≤ rho)
+    (hfit : 64 * ((Finset.Ico v₀ (v₁ + 1)).card : ℝ) * X
+        * ((256 * (Kc : ℝ) / ((Pb : ℝ) * Real.log Kc))
+          * (Real.log (Real.log ((bb : ℝ) + 1)) + 11))
+      ≤ kappa * c₃ * eps ^ 3) :
+    2 * (((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+      * ∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+        (∑ p ∈ eadicCell P (2 * N) v, (1 : ℝ) / (p : ℝ))
+          * ∑ p ∈ eadicCell P (2 * N) v, ((1 : ℝ) / (p : ℝ))
+            * (2 * (Real.exp Real.pi * (T / ((A / p : ℕ) : ℝ) + 4)
+                * (((A / (N * p) + 1 : ℕ) : ℝ) / ((A / p : ℕ) : ℝ)))
+              + 2 * (Real.exp Real.pi * (T / ((B / p : ℕ) : ℝ) + 4)
+                * (((B / (N * p) + 1 : ℕ) : ℝ) / ((B / p : ℕ) : ℝ)))))
+      ≤ kappa * bandBudget c₃ eps rho := by
+  apply collar_error_le_budget_eadic
+    (Finset.Ico v₀ (v₁ + 1)) (eadicCell P (2 * N))
+    (fun p => Real.exp Real.pi * (T / ((A / p : ℕ) : ℝ) + 4)
+      * (((A / (N * p) + 1 : ℕ) : ℝ) / ((A / p : ℕ) : ℝ)))
+    (fun p => Real.exp Real.pi * (T / ((B / p : ℕ) : ℝ) + 4)
+      * (((B / (N * p) + 1 : ℕ) : ℝ) / ((B / p : ℕ) : ℝ)))
+    aa Pb Kc bb X c₃ eps rho kappa hPb hKc hbb hX0
+    hcostA hcostB haa hcell hlevel
+  · intro v _ w _ hvw
+    exact eadicCell_disjoint P (2 * N) hvw
+  · exact hkappac
+  · exact hrho
+  · exact hfit
 
 end MoltResearch
