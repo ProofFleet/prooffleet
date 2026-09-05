@@ -608,6 +608,28 @@ The chain above was built in `MoltResearch/Discrepancy/MajorArcAssembly.lean`,
    is `A₀ := 8(QA₀^{A.2} + 50 + 2log(64/ε)) + exp((6log(2L₀) + 80)/ε)`.  R6-9/R7-7 (A.1 for
    the record) were not cut; §7.3 stands.
 
+### Phase 0 as run — status (2026-09-05, Codex run 5, PRs #3675–#3676; report in `Problems/tao2015_phase0_vi9_report.md`)
+
+Done: **VI-9a** (`band_energy_typicalS_le_of_schedule'`, honest `(4H/A)²` accounting), **VI-9b**
+(`card_large_prime_poly_pow_le`), **VI-9c** (`ExceptionalCellCover`), **VI-9d**
+(`TrackCStage5ExceptionalReCut`: no `T/P`), **VI-9e** (`ExceptionalHalaszTwist`: no `3+2πT`, smooth
+mass `≤ exp(2E_P)`, nonuniform quotient costs), **VI-9f** mid/far split (`PretentiousBandSplit`, the
+`t₁` minimizer, `pretentiousDistSq_archTwist_ge_mid`) with the far regime isolated as the cited
+interface **`FarRegimeRepulsionAssumption`** (`Conjectures/…/Interfaces/FarRegimeRepulsion.lean`;
+arXiv:1503.05121 App. A, proof of Prop A.3; no instance may be declared), **A2-IV-1**
+(`LowBandTypicalS`), **A2-IV-2** (`SliceWeightConversion`).
+
+Not done, with exact blockers: the **central `T₀` window** of VI-9f — wanted
+`|F(1+it)| ≤ C(e^{−M/2}/(1+|t−t₁|) + (log A)^{−1/16})` uniformly for `|t−t₁| ≤ (log A)^{1/16}`,
+free of `loglog A` factors; the tree's best shell is
+`loglog x · x · √((eπ)²·10¹⁵·((e⁵(2+log x)e^{−A})² + 1))`, whose `+1` floor survives as `A → ∞`
+and whose outer `loglog x` breaks the fixed-strength central budget (`rieszMean_log_le_closed` is
+weaker still). This is a second genuine fit failure beyond the far-regime gap (§10) — the
+Finding-C problem in its sharpest form. Consequently **VI-9g, A2-IV-3, A2-V and
+`sliceMeanSquareA2 : SliceMeanSquareA2` were not attempted.** Next: a paper-first design of the
+GHS central window at fixed strength (the `𝒯₀` leg of `[mrt]` A.3, `eq:T0claim`), then the
+Erdős–Turán far-regime lemma; both are analytic-core units, not bookkeeping.
+
 ### Dependency order
 
 ```
