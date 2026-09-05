@@ -12,6 +12,12 @@ composes the already proved level estimates with the schedule arithmetic.
 
 namespace MoltResearch
 
+/-- The prime polynomial carried by one e-adic cell of a level. -/
+noncomputable def levelCellPoly (P : Finset ℕ) (N v : ℕ) (g : ℕ → ℂ)
+    (xi : ℝ) : ℂ :=
+  ∑ p ∈ eadicCell P (2 * N) v, (g p / (p : ℂ))
+    * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ)
+
 /-! ## The exact level decomposition -/
 
 /-- The noncollision fibre in the Ramaré decomposition of the typical-set
@@ -192,11 +198,288 @@ theorem typicalSQuotCoeff_mass_le (g : ℕ → ℂ)
     nlinarith [norm_nonneg (typicalSQuotCoeff g P S m)]
   exact mul_le_mul_of_nonneg_right hsq hm0.le
 
-/-- The prime polynomial carried by one e-adic cell of a level. -/
-noncomputable def levelCellPoly (P : Finset ℕ) (N v : ℕ) (g : ℕ → ℂ)
-    (xi : ℝ) : ℂ :=
-  ∑ p ∈ eadicCell P (2 * N) v, (g p / (p : ℂ))
-    * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ)
+open MeasureTheory Finset ExpSums in
+/-- **The level-one main term meets its schedule share.**
+
+`band_energy_level_one_le` supplies the closed-form energy of the cell-uniform
+main term and `levelOne_le_budget` converts that expression to a band-budget
+share.  For the Ramaré quotient coefficient the former's coefficient-mass
+hypothesis reduces to the displayed harmonic-mass bound: boundedness of `g`
+and `1/(ω+1) ≤ 1` are discharged by `typicalSQuotCoeff_mass_le`.
+-/
+theorem band_energy_level_one_main_le_budget
+    (P : Finset ℕ) (N : ℕ) (hN : 0 < N) (v₀ v₁ : ℕ) (q : ℕ → ℕ)
+    (A B R : ℕ) (hR : 1 ≤ R) (hB : B ≤ R * A)
+    (hq1 : ∀ v, 1 ≤ q v) (hqA : ∀ v, 2 * q v ≤ A)
+    (hqcell : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      q v ∈ eadicCell P (2 * N) v)
+    (g : ℕ → ℂ) (hg : ∀ m, ‖g m‖ ≤ 1) (S : Finset ℕ)
+    (T : ℝ) (hT : 0 < T)
+    (G : Set ℝ) (hGm : MeasurableSet G) (hGT : G ⊆ Set.Ioc (-T) T)
+    (alpha : ℝ) (hAlpha : 0 < alpha) (hAlpha2 : 2 * alpha < 1)
+    (C : ℝ) (hC0 : 0 ≤ C)
+    (hC : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∑ m ∈ Finset.Ioc (A / q v) (B / q v), (1 : ℝ) / (m : ℝ) ≤ C)
+    (hsmall : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ xi ∈ G,
+      ‖levelCellPoly P N v g xi‖
+        ≤ Real.exp (-(alpha * (v : ℝ) / ((2 * N : ℕ) : ℝ))))
+    (Plo Qhi c₃ eps rho kappa : ℝ)
+    (hPlo0 : 0 < Plo) (hQhi0 : 0 < Qhi)
+    (htop : (v₁ : ℝ) ≤ 2 * (N : ℝ) * Real.log Qhi)
+    (hbot : 2 * (N : ℝ) * Real.log Plo - 1 ≤ (v₀ : ℝ))
+    (hfitT : ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+        * (Real.exp Real.pi * C
+          * ((2 * T * Real.exp (1 / ((2 * N : ℕ) : ℝ)) / (A : ℝ))
+            * (Qhi ^ (1 - 2 * alpha)
+                * Real.exp ((1 - 2 * alpha) / ((2 * N : ℕ) : ℝ)))
+            * (((2 * N : ℕ) : ℝ) / (1 - 2 * alpha) + 1)))
+      ≤ kappa / 2 * bandBudget c₃ eps rho)
+    (hfitP : ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+        * (Real.exp Real.pi * C
+          * (4 * (R : ℝ)
+            * (Plo ^ (-(2 * alpha))
+                * Real.exp (2 * alpha / ((2 * N : ℕ) : ℝ)))
+            * (((2 * N : ℕ) : ℝ) / (2 * alpha) + 1)))
+      ≤ kappa / 2 * bandBudget c₃ eps rho) :
+    (∫ xi in G, ‖∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+        levelCellPoly P N v g xi
+          * (∑ m ∈ Finset.Ioc (A / q v) (B / q v),
+              (typicalSQuotCoeff g P S m / (m : ℂ))
+                * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))‖ ^ 2)
+      ≤ kappa * bandBudget c₃ eps rho := by
+  have hraw := band_energy_level_one_le P N hN v₀ v₁ q A B R hR hB hq1 hqA
+    hqcell g (typicalSQuotCoeff g P S) T hT G hGm hGT alpha hAlpha hAlpha2 C hC0
+    (fun v hv => (typicalSQuotCoeff_mass_le g hg P S _ _).trans (hC v hv))
+    (by simpa [levelCellPoly] using hsmall)
+  exact hraw.trans (levelOne_le_budget N R
+    ((Finset.Ico v₀ (v₁ + 1)).card : ℝ) T A C Plo Qhi alpha c₃ eps rho kappa
+    hN (by positivity) hC0 hT.le (by
+      have hqa := hqA v₀
+      have hq := hq1 v₀
+      exact_mod_cast (by omega : 0 < A)) hAlpha hAlpha2 hPlo0 hQhi0 v₀ v₁
+    htop hbot hfitT hfitP)
+
+open MeasureTheory Finset ExpSums in
+/-- **A later-level main term meets its schedule share after fixing the
+previous large cell.**
+
+The three existing layers line up without algebraic slack.  M-3 turns the
+previous cell threshold into the uniform lower bound
+`Qprev⁻ᵝ·exp(-β/(2Nprev))`; III-4 bounds each current cell after borrowing
+`ℓ` copies of that previous polynomial; and M-9 sums the current cells and
+converts their e-adic smallness into the level endpoints `Plo,Qhi`.
+
+The previous cell index `r` is fixed in this statement.  On a whole
+first-index part it is supplied by `exists_prev_cell_large_of_mem_bandPartOn`
+and requires the standard further partition by the first offending cell.
+-/
+theorem band_energy_later_main_le_budget
+    (Pcur Pprev : Finset ℕ) (Ncur Nprev r v₁prev : ℕ)
+    (hNcur : 0 < Ncur) (hNprev : 0 < Nprev)
+    (v₀ v₁ : ℕ) (Sblk : ℕ → Finset ℕ)
+    (A' Delta' : ℕ) (hA' : 1 ≤ A') (hDelta' : Delta' ≤ A')
+    (hSblk : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      Sblk v ⊆ Finset.Ioc A' (A' + Delta'))
+    (g : ℕ → ℂ) (hg : ∀ m, ‖g m‖ ≤ 1) (Sco : Finset ℕ)
+    (Pmom : ℕ) (hPmom : 1 ≤ Pmom)
+    (hPprev : ∀ p ∈ Pprev, p.Prime)
+    (hlo : ∀ p ∈ eadicCell Pprev (2 * Nprev) r, Pmom < p)
+    (hhi : ∀ p ∈ eadicCell Pprev (2 * Nprev) r, p ≤ 2 * Pmom)
+    (ell : ℕ) (hell : 1 ≤ ell)
+    (T : ℝ) (hT : 0 < T)
+    (G : Set ℝ) (hGm : MeasurableSet G) (hGT : G ⊆ Set.Ioc (-T) T)
+    (alpha beta Plo Qhi Qprev : ℝ)
+    (hAlpha : 0 < alpha) (hBeta : 0 ≤ beta)
+    (hPlo0 : 0 < Plo) (hPloQhi : Plo ≤ Qhi) (hQprev0 : 0 < Qprev)
+    (hr : r ≤ v₁prev)
+    (htopPrev : (v₁prev : ℝ) ≤ 2 * (Nprev : ℝ) * Real.log Qprev)
+    (hsmall : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ xi ∈ G,
+      ‖levelCellPoly Pcur Ncur v g xi‖
+        ≤ Real.exp (-(alpha * (v : ℝ) / ((2 * Ncur : ℕ) : ℝ))))
+    (hlargeCell : ∀ xi ∈ G,
+      Real.exp (-(beta * (r : ℝ) / ((2 * Nprev : ℕ) : ℝ)))
+        ≤ ‖levelCellPoly Pprev Nprev r g xi‖)
+    (htop : (v₁ : ℝ) ≤ 2 * (Ncur : ℝ) * Real.log Qhi)
+    (hbot : 2 * (Ncur : ℝ) * Real.log Plo - 1 ≤ (v₀ : ℝ))
+    (c₃ eps rho kappa : ℝ)
+    (hfit : (2 * (Ncur : ℝ) * (Real.log Qhi - Real.log Plo) + 2)
+        * ((Plo ^ (-(2 * alpha))
+              * Real.exp (2 * alpha / ((2 * Ncur : ℕ) : ℝ))
+              * (((2 * Ncur : ℕ) : ℝ) / (2 * alpha) + 1))
+            * ((Real.exp Real.pi
+                  * (T / ((Pmom ^ ell * A' : ℕ) : ℝ)
+                    + 2 * ((2 ^ (ell + 1) : ℕ) : ℝ)))
+              * (((Nat.factorial ell : ℝ) ^ 2
+                * (((2 ^ (ell + 1) : ℕ) : ℝ) * ((ell : ℝ) + 1)
+                  * (∑ p ∈ eadicCell Pprev (2 * Nprev) r,
+                      (1 : ℝ) / (p : ℝ)) ^ ell))
+                / (Qprev ^ (-beta)
+                    * Real.exp (-(beta / ((2 * Nprev : ℕ) : ℝ)))) ^
+                      (2 * ell))))
+      ≤ kappa * bandBudget c₃ eps rho) :
+    (∫ xi in G, ‖∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+        levelCellPoly Pcur Ncur v g xi
+          * (∑ m ∈ Sblk v,
+              (typicalSQuotCoeff g Pcur Sco m / (m : ℂ))
+                * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))‖ ^ 2)
+      ≤ kappa * bandBudget c₃ eps rho := by
+  let large : ℝ := Qprev ^ (-beta)
+    * Real.exp (-(beta / ((2 * Nprev : ℕ) : ℝ)))
+  let E : ℝ := Real.exp Real.pi
+    * (T / ((Pmom ^ ell * A' : ℕ) : ℝ)
+      + 2 * ((2 ^ (ell + 1) : ℕ) : ℝ))
+  let M : ℝ := (Nat.factorial ell : ℝ) ^ 2
+    * (((2 ^ (ell + 1) : ℕ) : ℝ) * ((ell : ℝ) + 1)
+      * (∑ p ∈ eadicCell Pprev (2 * Nprev) r, (1 : ℝ) / (p : ℝ)) ^ ell)
+  have hlarge0 : 0 < large := by
+    dsimp [large]
+    positivity
+  have hprime : ∀ p ∈ eadicCell Pprev (2 * Nprev) r, p.Prime :=
+    fun p hp => hPprev p (mem_eadicCell.mp hp).1
+  have hlarge : ∀ xi ∈ G, large ≤
+      ‖∑ p ∈ eadicCell Pprev (2 * Nprev) r, (g p / (p : ℂ))
+        * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ)‖ := by
+    intro xi hxi
+    change large ≤ ‖levelCellPoly Pprev Nprev r g xi‖
+    exact (levelLargeness_ge Nprev r v₁prev Qprev beta hNprev hBeta hQprev0 hr
+      htopPrev).trans (hlargeCell xi hxi)
+  have hraw := setIntegral_norm_sq_level_sum_of_prev_large_le
+    (eadicCell Pprev (2 * Nprev) r) hprime Pmom hPmom hlo hhi g hg ell hell
+    A' Delta' hA' hDelta' (Finset.Ico v₀ (v₁ + 1)) Sblk hSblk
+    (typicalSQuotCoeff g Pcur Sco)
+    (norm_typicalSQuotCoeff_le_one g hg Pcur Sco)
+    (fun v xi => levelCellPoly Pcur Ncur v g xi)
+    (fun v _ => ExpSums.continuous_char_poly (eadicCell Pcur (2 * Ncur) v)
+      (fun p => g p / (p : ℂ)) (fun p => Real.log p))
+    T hT G hGm hGT
+    (fun v => Real.exp (-(alpha * (v : ℝ) / ((2 * Ncur : ℕ) : ℝ))))
+    large hlarge0 hsmall hlarge
+  have hsched : ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+      * ∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+        (Real.exp (-(alpha * (v : ℝ) / ((2 * Ncur : ℕ) : ℝ)))) ^ 2
+          / large ^ (2 * ell) * (E * M)
+      ≤ kappa * bandBudget c₃ eps rho := by
+    apply levelJ_le_budget_eadic Ncur v₀ v₁ ell Plo Qhi alpha large E M
+      c₃ eps rho kappa hNcur hAlpha hPlo0 hPloQhi hlarge0
+      (by dsimp [E]; positivity) (by dsimp [M]; positivity) htop hbot
+    simpa [large, E, M] using hfit
+  exact hraw.trans (by simpa [E, M] using hsched)
+
+open MeasureTheory in
+/-- **A decomposed level leg meets its weighted budget share.**
+
+If `F = main + error` on the level part, the main energy costs twice its
+declared share and the already square-split error costs its declared share.
+Multiplication by the window supremum `Cw` is postponed to this final join, so
+the unweighted level estimates keep their native statements.  The single
+numerical condition `Cw * (2κ_main + κ_error) ≤ κ` records all bookkeeping.
+
+The `error` slot is intentionally the *combined* replacement and collision
+term.  The collar estimate M-10 can price the replacement component, while the
+repeated-prime component needs its own collision estimate.
+-/
+theorem setIntegral_norm_sq_decomp_le_budget
+    (F main error : ℝ → ℂ) (hmainc : Continuous main)
+    (herrorc : Continuous error) (T : ℝ)
+    (G : Set ℝ) (hGm : MeasurableSet G) (hGT : G ⊆ Set.Ioc (-T) T)
+    (hdecomp : ∀ xi ∈ G, F xi = main xi + error xi)
+    (Cw kappaMain kappaError kappa c₃ eps rho : ℝ)
+    (hCw : 0 ≤ Cw) (hc₃ : 0 ≤ c₃) (hrho : 0 ≤ rho)
+    (hmain : (∫ xi in G, ‖main xi‖ ^ 2)
+      ≤ kappaMain * bandBudget c₃ eps rho)
+    (herror : 2 * (∫ xi in G, ‖error xi‖ ^ 2)
+      ≤ kappaError * bandBudget c₃ eps rho)
+    (hshare : Cw * (2 * kappaMain + kappaError) ≤ kappa) :
+    Cw * (∫ xi in G, ‖F xi‖ ^ 2)
+      ≤ kappa * bandBudget c₃ eps rho := by
+  have hB0 : 0 ≤ bandBudget c₃ eps rho :=
+    bandBudget_nonneg c₃ eps rho hc₃ hrho
+  have hsplit : (∫ xi in G, ‖F xi‖ ^ 2)
+      ≤ 2 * (∫ xi in G, ‖main xi‖ ^ 2)
+        + 2 * (∫ xi in G, ‖error xi‖ ^ 2) := by
+    calc
+      (∫ xi in G, ‖F xi‖ ^ 2) =
+          ∫ xi in G, ‖main xi + error xi‖ ^ 2 := by
+            apply setIntegral_congr_fun hGm
+            intro xi hxi
+            exact congrArg (· ^ 2) (congrArg norm (hdecomp xi hxi))
+      _ ≤ 2 * (∫ xi in G, ‖main xi‖ ^ 2)
+          + 2 * (∫ xi in G, ‖error xi‖ ^ 2) :=
+        ExpSums.setIntegral_norm_add_sq_le main error hmainc herrorc T G hGm hGT
+  have hparts : 2 * (∫ xi in G, ‖main xi‖ ^ 2)
+        + 2 * (∫ xi in G, ‖error xi‖ ^ 2)
+      ≤ (2 * kappaMain + kappaError) * bandBudget c₃ eps rho := by
+    calc
+      2 * (∫ xi in G, ‖main xi‖ ^ 2)
+          + 2 * (∫ xi in G, ‖error xi‖ ^ 2)
+        ≤ 2 * (kappaMain * bandBudget c₃ eps rho)
+            + kappaError * bandBudget c₃ eps rho := by linarith
+      _ = (2 * kappaMain + kappaError) * bandBudget c₃ eps rho := by ring
+  calc
+    Cw * (∫ xi in G, ‖F xi‖ ^ 2)
+      ≤ Cw * (2 * (∫ xi in G, ‖main xi‖ ^ 2)
+          + 2 * (∫ xi in G, ‖error xi‖ ^ 2)) :=
+        mul_le_mul_of_nonneg_left hsplit hCw
+    _ ≤ Cw * ((2 * kappaMain + kappaError)
+          * bandBudget c₃ eps rho) :=
+        mul_le_mul_of_nonneg_left hparts hCw
+    _ = (Cw * (2 * kappaMain + kappaError))
+          * bandBudget c₃ eps rho := by ring
+    _ ≤ kappa * bandBudget c₃ eps rho :=
+      mul_le_mul_of_nonneg_right hshare hB0
+
+open MeasureTheory in
+/-- **The capstone-facing level leg for the typical-set polynomial.**
+
+This is the literal `hleg` shape required by `band_energy_typicalS_le`, at the
+geometric share `2⁻⁽ʲ⁺¹⁾`.  A caller supplies a pointwise decomposition of
+the typical-set polynomial into the cell/block main term and one combined
+error.  The level-one main hypothesis is produced by
+`band_energy_level_one_main_le_budget`; for later levels it is produced by
+`band_energy_later_main_le_budget` after fixing the previous offending cell.
+The error hypothesis is already square-split, matching the conclusion of the
+collar and collision estimates.
+-/
+theorem typicalS_level_leg_le_budget_of_decomposition
+    (g : ℕ → ℂ) (A Delta H : ℕ) (levels : List (Finset ℕ))
+    (K₁ K₂ T : ℝ) (J j : ℕ) (Pset : ℕ → Set ℝ)
+    (hPset : ∀ i, MeasurableSet (Pset i))
+    (hpartT : bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j
+      ⊆ Set.Ioc (-T) T)
+    (main error : ℝ → ℂ) (hmainc : Continuous main)
+    (herrorc : Continuous error)
+    (hdecomp : ∀ xi ∈
+      bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+      (∑ m ∈ typicalS A (A + Delta) levels, (g m / (m : ℂ))
+          * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+        = main xi + error xi)
+    (kappaMain kappaError c₃ eps : ℝ) (hc₃ : 0 ≤ c₃)
+    (hmain : (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j, ‖main xi‖ ^ 2)
+      ≤ kappaMain * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (herror : 2 * (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j, ‖error xi‖ ^ 2)
+      ≤ kappaError * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hshare : (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (2 * kappaMain + kappaError) ≤ (1 : ℝ) / 2 ^ (j + 1)) :
+    (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (∫ xi in bandPartOn Pset J
+            {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖∑ m ∈ typicalS A (A + Delta) levels, (g m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2)
+      ≤ (1 / 2 ^ (j + 1))
+          * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+  let G : Set ℝ :=
+    bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j
+  have hGm : MeasurableSet G :=
+    bandPartOn_measurableSet Pset hPset J _ (measurableSet_inner_band K₁ K₂) j
+  exact setIntegral_norm_sq_decomp_le_budget
+    (fun xi => ∑ m ∈ typicalS A (A + Delta) levels, (g m / (m : ℂ))
+      * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+    main error hmainc herrorc T G hGm hpartT hdecomp
+    ((4 * (H : ℝ) / (A : ℝ)) ^ 2) kappaMain kappaError
+    ((1 : ℝ) / 2 ^ (j + 1)) c₃ eps ((Delta : ℝ) / (A : ℝ))
+    (sq_nonneg _) hc₃ (by positivity) hmain herror hshare
 
 /-- The frequencies where every cell polynomial of level `j` meets its
 schedule threshold. -/
