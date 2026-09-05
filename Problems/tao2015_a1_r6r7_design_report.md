@@ -972,6 +972,14 @@ the `(T+1)/p_r^{ℓ}` term is `≤ 1`, `(ℓ!)² ≤ T^{2·loglog 2T/log P_{J−
    scale bound `q v ≤ e^{(v+1)/(2N)}` (`quotient_scale_le_cell_scale`), so the lemmas are restated with `hqup` and the numerology takes
    `q v := ⌈e^{v/(2N)}⌉₊` on empty cells. Unit **V1** (folded into L4).
 
+7. **The exceptional part's share must not shrink with `J`.** The band partition gives part `j` the share `1/2^{j+1}` with the exceptional
+   part at index `J`; with `J(A₁) → ∞` that share vanishes, while the exceptional leg's total cost is a **fixed** constant: the recut's
+   Cauchy–Schwarz over the `#cells_U ≥ log Q_𝒰` exceptional cells multiplies `∑_v (prime parts) ≥ 64 d² E_𝒰/log Q_𝒰` (`d ≍ ε'`, unit-modulus
+   prime coefficients), giving `≥ 128 d² E_𝒰` however the cell shares are distributed (Codex run 14, `ladderExceptionalAggregate_prime_fit_forces_level_upper`).
+   Repair (bookkeeping only): shares `s j = 1/2^{j+2}` for the ordinary levels and `s J = 1/2` for the exceptional part (`∑ ≤ 1`); the
+   exceptional aggregate then needs the **fixed** condition `C·Nu·N_𝒰·DeltaU² ≤ c₃eps²/48` (Brun–Titchmarsh for `#cell_v`, per-cell shares
+   `kappaU v := cost_v/budget`), i.e. a fixed `ε'`. Unit **L3-0** (run 15).
+
 **What stands.** Level 0's leg (`hscheduleT0/P0` and the S-cal numerics), the recut capstone, the sharp exceptional
 legs at the `[MR]` moment order, R6/R7 up to R9's re-thread, A2-IV-0/1′/2. **Withdrawn:** §7.2's "`J = 1` suffices" and
 the phase-3 amendments' sift device (`N_𝒰 = ⌈exp(64/ε²)⌉₊`); `N_𝒰 := ⌈exp(4/εc)⌉₊` (TK) is enough once `𝒰` is a level.
@@ -1056,6 +1064,13 @@ fact `N·p ≤ (N+1)·q` (`hqratio`, needed by the collars), the level-one chain
 occupied cells, `1` on empty cells — the raw ceiling `⌈e^{v/(2N)}⌉₊ ≤ e^{(v+1)/(2N)}` is false for small `v`); **L4-5** the combined capstone
 `band_energy_typicalS_le_of_schedule_sharp_cells_wide` (ordinary main terms as inputs `hmain j`, wide error legs for all levels and `Pu`, `hqup/hqratio`,
 the exceptional pointwise bound split at `[Pl 0]` with `ladderSiftedLogMass` over the ladder, the raw cover cardinality in `hfitUCell`). Next: L3 (run 14).
+
+### L3 as run — status (2026-09-05, Codex run 14 stopped at L3-5; report in `Problems/tao2015_l3_report.md`)
+
+Run 14 (`TrackCStage5LadderNumerology.lean`) proved the exact contiguous-cell count lower bound (`phase4EadicIndexRange_*`) and the two forms
+of the exceptional-share obstruction (`ladderExceptionalCellShare_prime_fit_forces_log_upper`, `…_fails_of_large_log`,
+`ladderExceptionalAggregate_prime_fit_forces_level_upper`, `…_fixed_floor_forces_level_upper`), then stopped per the stop rule (Finding E.7).
+Run 15 resumes with L3-0 (the fixed exceptional share `1/2` in a `'`-variant of the wide capstone), then L3-1…L3-6, A2-IV-3′, A2-V′.
 
 ### Dependency order
 
