@@ -499,6 +499,409 @@ theorem continuous_typicalSAdjustedCollision (g : ℕ → ℂ) (A B : ℕ)
     refine continuous_finset_sum _ fun m _ => ?_
     exact (continuous_const.mul (hchar (Real.log m))).div_const _
 
+/-- The cell-uniform main envelope appearing in
+`setIntegral_norm_sq_cell_prime_block_le`. -/
+noncomputable def cellUniformEnergyBound (v₀ v₁ : ℕ) (q : ℕ → ℕ)
+    (A B R : ℕ) (c : ℕ → ℂ) (T : ℝ)
+    (small : ℕ → ℝ) : ℝ :=
+  ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+    * ∑ v ∈ Finset.Ico v₀ (v₁ + 1), (small v) ^ 2
+      * (Real.exp Real.pi * (T / ((A / q v : ℕ) : ℝ) + 4 * (R : ℝ))
+        * ∑ m ∈ Finset.Ioc (A / q v) (B / q v), ‖c m‖ ^ 2 / (m : ℝ))
+
+/-- The cell-replacement collar envelope appearing in
+`setIntegral_norm_sq_cell_prime_block_le`. -/
+noncomputable def cellReplacementEnergyBound (P : Finset ℕ)
+    (N v₀ v₁ A B : ℕ) (T : ℝ) : ℝ :=
+  ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+    * ∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+      (∑ p ∈ eadicCell P (2 * N) v, (1 : ℝ) / (p : ℝ))
+        * ∑ p ∈ eadicCell P (2 * N) v, ((1 : ℝ) / (p : ℝ))
+          * (2 * (Real.exp Real.pi * (T / ((A / p : ℕ) : ℝ) + 4)
+              * (((A / (N * p) + 1 : ℕ) : ℝ) / ((A / p : ℕ) : ℝ)))
+            + 2 * (Real.exp Real.pi * (T / ((B / p : ℕ) : ℝ) + 4)
+              * (((B / (N * p) + 1 : ℕ) : ℝ) / ((B / p : ℕ) : ℝ))))
+
+open MeasureTheory Finset ExpSums in
+/-- **The typical-set level energy after cell-uniform replacement.**
+
+The exact full-block N3-f decomposition is followed by the existing II-2e
+cell-uniform estimate.  Two `L²` triangles are paid: the outer split between
+the full main and adjusted collision, and the inner split between the
+cell-uniform main and its endpoint collars.  Hence the final coefficients are
+`4`, `4`, and `2`, with no hidden constants.
+-/
+theorem setIntegral_norm_sq_typicalS_le_cell_uniform_add_errors
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
+    (A Delta R : ℕ) (hR : 1 ≤ R) (hB : A + Delta ≤ R * A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) (hN : 0 < N)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (q : ℕ → ℕ)
+    (hqcell : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), q v ∈ eadicCell P (2 * N) v)
+    (hq1 : ∀ v, 1 ≤ q v) (hqA : ∀ v, q v ≤ A)
+    (hqmin : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v, q v ≤ p)
+    (hLA : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v, A / (N * p) + 1 ≤ A / p)
+    (hLB : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v,
+        (A + Delta) / (N * p) + 1 ≤ (A + Delta) / p)
+    (T : ℝ) (hT : 0 < T) (G : Set ℝ) (hGm : MeasurableSet G)
+    (hGT : G ⊆ Set.Ioc (-T) T) (small : ℕ → ℝ)
+    (hsmall : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ xi ∈ G,
+      ‖levelCellPoly P N v g xi‖ ≤ small v) :
+    (∫ xi in G, ‖∑ m ∈ typicalS A (A + Delta) (P :: rest),
+        (g m / (m : ℂ))
+          * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2)
+      ≤ 4 * cellUniformEnergyBound v₀ v₁ q A (A + Delta) R
+            (typicalSQuotCoeff g P (typicalS 0 (A + Delta) rest)) T small
+        + 4 * cellReplacementEnergyBound P N v₀ v₁ A (A + Delta) T
+        + 2 * (∫ xi in G,
+            ‖typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2) := by
+  let c := typicalSQuotCoeff g P (typicalS 0 (A + Delta) rest)
+  have hblock := setIntegral_norm_sq_cell_prime_block_le P N v₀ v₁ hN q
+    A (A + Delta) R hR (by omega) hB hqcell hq1 hqA hqmin hLA hLB
+    g c hg (norm_typicalSQuotCoeff_le_one g hg P (typicalS 0 (A + Delta) rest))
+    T hT G hGm hGT small (by simpa [levelCellPoly] using hsmall)
+  have hblock' : (∫ xi in G,
+      ‖typicalSPrimeBlock g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+      ≤ 2 * cellUniformEnergyBound v₀ v₁ q A (A + Delta) R c T small
+        + 2 * cellReplacementEnergyBound P N v₀ v₁ A (A + Delta) T := by
+    simpa [typicalSPrimeBlock, cellUniformEnergyBound,
+      cellReplacementEnergyBound, c] using hblock
+  have hsplit : (∫ xi in G, ‖∑ m ∈ typicalS A (A + Delta) (P :: rest),
+        (g m / (m : ℂ))
+          * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2)
+      ≤ 2 * (∫ xi in G,
+          ‖typicalSPrimeBlock g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+        + 2 * (∫ xi in G,
+          ‖typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2) := by
+    calc
+      (∫ xi in G, ‖∑ m ∈ typicalS A (A + Delta) (P :: rest),
+          (g m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2)
+        = ∫ xi in G, ‖typicalSPrimeBlock g A (A + Delta) P rest N v₀ v₁ xi
+            + typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2 := by
+          apply setIntegral_congr_fun hGm
+          intro xi _
+          exact congrArg (· ^ 2) (congrArg norm
+            (typicalS_phase_eq_primeBlock_add_adjustedCollision
+              g hcm A Delta P hP rest N v₀ v₁ hcov hstable xi))
+      _ ≤ _ := setIntegral_norm_add_sq_le _ _
+        (continuous_typicalSPrimeBlock g A (A + Delta) P rest N v₀ v₁)
+        (continuous_typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁)
+        T G hGm hGT
+  calc
+    (∫ xi in G, ‖∑ m ∈ typicalS A (A + Delta) (P :: rest),
+        (g m / (m : ℂ))
+          * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2)
+      ≤ 2 * (∫ xi in G,
+          ‖typicalSPrimeBlock g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+        + 2 * (∫ xi in G,
+          ‖typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2) := hsplit
+    _ ≤ 2 * (2 * cellUniformEnergyBound v₀ v₁ q A (A + Delta) R c T small
+          + 2 * cellReplacementEnergyBound P N v₀ v₁ A (A + Delta) T)
+        + 2 * (∫ xi in G,
+          ‖typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2) := by
+      gcongr
+    _ = _ := by
+      dsimp [c]
+      ring
+
+/-- The cell-uniform main function obtained by replacing every quotient block
+in a cell by the block at its representative `q v`. -/
+noncomputable def typicalSCellUniformMain (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (q : ℕ → ℕ) (xi : ℝ) : ℂ :=
+  ∑ v ∈ Finset.Ico v₀ (v₁ + 1),
+    levelCellPoly P N v g xi
+      * (∑ m ∈ Finset.Ioc (A / q v) (B / q v),
+          (typicalSQuotCoeff g P (typicalS 0 B rest) m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+
+/-- The endpoint-replacement error between every prime's quotient block and
+its cell representative's block. -/
+noncomputable def typicalSCellReplacement (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (q : ℕ → ℕ) (xi : ℝ) : ℂ :=
+  ∑ v ∈ Finset.Ico v₀ (v₁ + 1), ∑ p ∈ eadicCell P (2 * N) v,
+    ((g p / (p : ℂ))
+        * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ))
+      * ((∑ m ∈ Finset.Ioc (A / p) (B / p),
+            (typicalSQuotCoeff g P (typicalS 0 B rest) m / (m : ℂ))
+              * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+        - (∑ m ∈ Finset.Ioc (A / q v) (B / q v),
+            (typicalSQuotCoeff g P (typicalS 0 B rest) m / (m : ℂ))
+              * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)))
+
+/-- The full prime block is exactly its cell-uniform main plus the replacement
+error. -/
+theorem typicalSPrimeBlock_eq_cellUniform_add_replacement
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) (q : ℕ → ℕ) (xi : ℝ) :
+    typicalSPrimeBlock g A B P rest N v₀ v₁ xi
+      = typicalSCellUniformMain g A B P rest N v₀ v₁ q xi
+        + typicalSCellReplacement g A B P rest N v₀ v₁ q xi := by
+  classical
+  unfold typicalSPrimeBlock typicalSCellUniformMain typicalSCellReplacement levelCellPoly
+  rw [← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun v _ => ?_
+  rw [Finset.sum_mul, ← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun p _ => ?_
+  ring
+
+/-- **The final pointwise level decomposition.**
+
+The typical-set polynomial is the cell-uniform main plus a combined error
+consisting of the II-2e endpoint replacement and the adjusted N3-f collision.
+This is the exact two-term shape consumed by
+`typicalS_level_leg_le_budget_of_decomposition`.
+-/
+theorem typicalS_phase_eq_cellUniform_add_errors
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g)
+    (A Delta : ℕ) (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (q : ℕ → ℕ) (xi : ℝ) :
+    ∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
+        * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)
+      = typicalSCellUniformMain g A (A + Delta) P rest N v₀ v₁ q xi
+        + (typicalSCellReplacement g A (A + Delta) P rest N v₀ v₁ q xi
+          + typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi) := by
+  rw [typicalS_phase_eq_primeBlock_add_adjustedCollision
+    g hcm A Delta P hP rest N v₀ v₁ hcov hstable xi,
+    typicalSPrimeBlock_eq_cellUniform_add_replacement]
+  ring
+
+/-- The cell-uniform main is continuous in frequency. -/
+theorem continuous_typicalSCellUniformMain
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ) (rest : List (Finset ℕ))
+    (N v₀ v₁ : ℕ) (q : ℕ → ℕ) :
+    Continuous (typicalSCellUniformMain g A B P rest N v₀ v₁ q) := by
+  classical
+  have hchar : ∀ w : ℝ, Continuous fun xi : ℝ =>
+      ((Real.fourierChar (-(w * xi)) : Circle) : ℂ) := fun w =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  unfold typicalSCellUniformMain levelCellPoly
+  refine continuous_finset_sum _ fun v _ => Continuous.mul ?_ ?_
+  · exact continuous_finset_sum _ fun p _ =>
+      continuous_const.mul (hchar (Real.log p))
+  · exact continuous_finset_sum _ fun m _ =>
+      continuous_const.mul (hchar (Real.log m))
+
+/-- The cell-replacement error is continuous in frequency. -/
+theorem continuous_typicalSCellReplacement
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ) (rest : List (Finset ℕ))
+    (N v₀ v₁ : ℕ) (q : ℕ → ℕ) :
+    Continuous (typicalSCellReplacement g A B P rest N v₀ v₁ q) := by
+  classical
+  have hchar : ∀ w : ℝ, Continuous fun xi : ℝ =>
+      ((Real.fourierChar (-(w * xi)) : Circle) : ℂ) := fun w =>
+    continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+  unfold typicalSCellReplacement
+  refine continuous_finset_sum _ fun v _ => ?_
+  refine continuous_finset_sum _ fun p _ => ?_
+  refine (continuous_const.mul (hchar (Real.log p))).mul ?_
+  apply Continuous.sub
+  · exact continuous_finset_sum _ fun m _ =>
+      continuous_const.mul (hchar (Real.log m))
+  · exact continuous_finset_sum _ fun m _ =>
+      continuous_const.mul (hchar (Real.log m))
+
+open MeasureTheory Finset ExpSums in
+/-- **The standalone II-2e replacement estimate for the typical quotient
+coefficient.**
+
+Each cell is bounded by `intervalIntegral_norm_sq_cell_replace_le`; the cells
+are then reassembled over `G` by Cauchy–Schwarz and monotonicity into the
+enclosing interval.  The right side is exactly `cellReplacementEnergyBound`,
+the expression consumed by `eadic_replacement_error_le_budget`.
+-/
+theorem setIntegral_norm_sq_typicalSCellReplacement_le
+    (g : ℕ → ℂ) (hg : ∀ m, ‖g m‖ ≤ 1) (A B : ℕ) (hAB : A ≤ B)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) (hN : 0 < N)
+    (q : ℕ → ℕ)
+    (hqcell : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), q v ∈ eadicCell P (2 * N) v)
+    (hq1 : ∀ v, 1 ≤ q v)
+    (hqmin : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v, q v ≤ p)
+    (hLA : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v, A / (N * p) + 1 ≤ A / p)
+    (hLB : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v, B / (N * p) + 1 ≤ B / p)
+    (T : ℝ) (hT : 0 < T) (G : Set ℝ) (hGm : MeasurableSet G)
+    (hGT : G ⊆ Set.Ioc (-T) T) :
+    (∫ xi in G, ‖typicalSCellReplacement g A B P rest N v₀ v₁ q xi‖ ^ 2)
+      ≤ cellReplacementEnergyBound P N v₀ v₁ A B T := by
+  let c := typicalSQuotCoeff g P (typicalS 0 B rest)
+  let E : ℕ → ℝ → ℂ := fun v xi =>
+    ∑ p ∈ eadicCell P (2 * N) v,
+      ((g p / (p : ℂ))
+          * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ))
+        * ((∑ m ∈ Finset.Ioc (A / p) (B / p),
+              (c m / (m : ℂ))
+                * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+          - (∑ m ∈ Finset.Ioc (A / q v) (B / q v),
+              (c m / (m : ℂ))
+                * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)))
+  have hEc : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), Continuous (E v) := by
+    intro v _
+    have hchar : ∀ w : ℝ, Continuous fun xi : ℝ =>
+        ((Real.fourierChar (-(w * xi)) : Circle) : ℂ) := fun w =>
+      continuous_subtype_val.comp (Real.continuous_fourierChar.comp (by fun_prop))
+    refine continuous_finset_sum _ fun p _ => ?_
+    refine (continuous_const.mul (hchar (Real.log p))).mul ?_
+    apply Continuous.sub <;>
+      exact continuous_finset_sum _ fun m _ =>
+        continuous_const.mul (hchar (Real.log m))
+  have hraw := setIntegral_norm_sq_sum_le_card_mul E
+    (Finset.Ico v₀ (v₁ + 1)) hEc T hT.le G hGm hGT
+    (fun v => (∑ p ∈ eadicCell P (2 * N) v, (1 : ℝ) / (p : ℝ))
+      * ∑ p ∈ eadicCell P (2 * N) v, ((1 : ℝ) / (p : ℝ))
+        * (2 * (Real.exp Real.pi * (T / ((A / p : ℕ) : ℝ) + 4)
+            * (((A / (N * p) + 1 : ℕ) : ℝ) / ((A / p : ℕ) : ℝ)))
+          + 2 * (Real.exp Real.pi * (T / ((B / p : ℕ) : ℝ) + 4)
+            * (((B / (N * p) + 1 : ℕ) : ℝ) / ((B / p : ℕ) : ℝ)))))
+    (fun v hv => intervalIntegral_norm_sq_cell_replace_le hN
+      (hqcell v hv) (hq1 v) (hqmin v hv) A B hAB (hLA v hv) (hLB v hv)
+      g c hg (norm_typicalSQuotCoeff_le_one g hg P (typicalS 0 B rest)) T hT)
+  simpa [typicalSCellReplacement, cellReplacementEnergyBound, E, c] using hraw
+
+open MeasureTheory in
+/-- **The complete capstone-facing level leg, with the three analytic costs
+separated.**
+
+The exact decomposition supplies a cell-uniform main, the II-2e endpoint
+replacement, and the adjusted repeated-prime collision.  If their square-split
+energies cost shares `κ_main`, `κ_replace`, and `κ_collision`, then the two
+successive `L²` triangles make the total unweighted cost
+`2(κ_main+κ_replace+κ_collision)`.  Multiplying once by `(4H/A)²` and
+checking that against `2⁻⁽ʲ⁺¹⁾` gives exactly the `hleg` shape of
+`band_energy_typicalS_le`.
+
+`band_energy_level_one_main_le_budget` or the later-level ladder supplies
+`hmain`; `setIntegral_norm_sq_typicalSCellReplacement_le` followed by
+`eadic_replacement_error_le_budget` supplies `hreplacement`.  The remaining
+`hcollision` is deliberately separate because M-10 is a collar theorem, not a
+repeated-prime theorem.
+-/
+theorem typicalS_level_leg_le_budget
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g)
+    (A Delta H : ℕ) (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (q : ℕ → ℕ)
+    (K₁ K₂ T : ℝ) (J j : ℕ) (Pset : ℕ → Set ℝ)
+    (hPset : ∀ i, MeasurableSet (Pset i))
+    (hpartT : bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j
+      ⊆ Set.Ioc (-T) T)
+    (kappaMain kappaReplacement kappaCollision c₃ eps : ℝ)
+    (hc₃ : 0 ≤ c₃)
+    (hmain : (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖typicalSCellUniformMain g A (A + Delta) P rest N v₀ v₁ q xi‖ ^ 2)
+      ≤ kappaMain * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hreplacement : 2 * (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖typicalSCellReplacement g A (A + Delta) P rest N v₀ v₁ q xi‖ ^ 2)
+      ≤ kappaReplacement * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hcollision : 2 * (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+      ≤ kappaCollision * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hshare : (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (2 * kappaMain + 2 * kappaReplacement + 2 * kappaCollision)
+      ≤ (1 : ℝ) / 2 ^ (j + 1)) :
+    (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (∫ xi in bandPartOn Pset J
+            {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2)
+      ≤ (1 / 2 ^ (j + 1))
+          * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+  let Gpart := bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j
+  let main := typicalSCellUniformMain g A (A + Delta) P rest N v₀ v₁ q
+  let replacement := typicalSCellReplacement g A (A + Delta) P rest N v₀ v₁ q
+  let collision := typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁
+  have hGpart : MeasurableSet Gpart :=
+    bandPartOn_measurableSet Pset hPset J _ (measurableSet_inner_band K₁ K₂) j
+  have herror : 2 * (∫ xi in Gpart, ‖replacement xi + collision xi‖ ^ 2)
+      ≤ (2 * (kappaReplacement + kappaCollision))
+        * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+    have hsplit := ExpSums.setIntegral_norm_add_sq_le replacement collision
+      (continuous_typicalSCellReplacement g A (A + Delta) P rest N v₀ v₁ q)
+      (continuous_typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁)
+      T Gpart hGpart hpartT
+    change 2 * (∫ xi in Gpart, ‖replacement xi‖ ^ 2)
+      ≤ kappaReplacement * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ))
+      at hreplacement
+    change 2 * (∫ xi in Gpart, ‖collision xi‖ ^ 2)
+      ≤ kappaCollision * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ))
+      at hcollision
+    linarith
+  let F : ℝ → ℂ := fun xi =>
+    ∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
+      * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)
+  let error : ℝ → ℂ := fun xi => replacement xi + collision xi
+  have houter : (∫ xi in Gpart, ‖F xi‖ ^ 2)
+      ≤ 2 * (∫ xi in Gpart, ‖main xi‖ ^ 2)
+        + 2 * (∫ xi in Gpart, ‖error xi‖ ^ 2) := by
+    calc
+      (∫ xi in Gpart, ‖F xi‖ ^ 2) =
+          ∫ xi in Gpart, ‖main xi + error xi‖ ^ 2 := by
+            apply setIntegral_congr_fun hGpart
+            intro xi _
+            exact congrArg (· ^ 2) (congrArg norm
+              (typicalS_phase_eq_cellUniform_add_errors
+                g hcm A Delta P hP rest N v₀ v₁ hcov hstable q xi))
+      _ ≤ _ := ExpSums.setIntegral_norm_add_sq_le main error
+        (continuous_typicalSCellUniformMain g A (A + Delta) P rest N v₀ v₁ q)
+        ((continuous_typicalSCellReplacement g A (A + Delta) P rest N v₀ v₁ q).add
+          (continuous_typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁))
+        T Gpart hGpart hpartT
+  change (∫ xi in Gpart, ‖main xi‖ ^ 2)
+      ≤ kappaMain * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) at hmain
+  change 2 * (∫ xi in Gpart, ‖error xi‖ ^ 2)
+      ≤ 2 * (kappaReplacement + kappaCollision)
+        * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) at herror
+  have hB0 : 0 ≤ bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) :=
+    bandBudget_nonneg c₃ eps _ hc₃ (by positivity)
+  have hparts : 2 * (∫ xi in Gpart, ‖main xi‖ ^ 2)
+        + 2 * (∫ xi in Gpart, ‖error xi‖ ^ 2)
+      ≤ (2 * kappaMain + 2 * kappaReplacement + 2 * kappaCollision)
+          * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+    calc
+      2 * (∫ xi in Gpart, ‖main xi‖ ^ 2)
+          + 2 * (∫ xi in Gpart, ‖error xi‖ ^ 2)
+        ≤ 2 * (kappaMain * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+            + 2 * (kappaReplacement + kappaCollision)
+              * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by linarith
+      _ = _ := by ring
+  change (4 * (H : ℝ) / (A : ℝ)) ^ 2 * (∫ xi in Gpart, ‖F xi‖ ^ 2)
+    ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ))
+  calc
+    (4 * (H : ℝ) / (A : ℝ)) ^ 2 * (∫ xi in Gpart, ‖F xi‖ ^ 2)
+      ≤ (4 * (H : ℝ) / (A : ℝ)) ^ 2
+          * (2 * (∫ xi in Gpart, ‖main xi‖ ^ 2)
+            + 2 * (∫ xi in Gpart, ‖error xi‖ ^ 2)) :=
+        mul_le_mul_of_nonneg_left houter (sq_nonneg _)
+    _ ≤ (4 * (H : ℝ) / (A : ℝ)) ^ 2
+          * ((2 * kappaMain + 2 * kappaReplacement + 2 * kappaCollision)
+            * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ))) :=
+        mul_le_mul_of_nonneg_left hparts (sq_nonneg _)
+    _ = ((4 * (H : ℝ) / (A : ℝ)) ^ 2
+          * (2 * kappaMain + 2 * kappaReplacement + 2 * kappaCollision))
+            * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by ring
+    _ ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) :=
+      mul_le_mul_of_nonneg_right hshare hB0
+
 open MeasureTheory Finset ExpSums in
 /-- **The level-one main term meets its schedule share.**
 
