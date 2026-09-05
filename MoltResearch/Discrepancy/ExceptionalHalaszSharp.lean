@@ -19,8 +19,10 @@ windowed sharp twisted Dirichlet block
 `sharpTwistedDirichletCost D δ₀ a b` carries the sharp budget `Ĥ⁺` with
 `(D+1)·e^{−D}` and no `loglog`, and whose only hypothesis is the Halász
 window of the twisted function on the quotient scales — demanded here **only
-on long quotients** (`(A/q)/n₁ ≥ 10¹⁶`; short quotients are charged their
-harmonic mass and need nothing).  The window is stated on `g·n^{−2πit}` at
+on long quotients** (`(A/q)/n₁ ≥ x₀`, a cutoff parameter `x₀ ≥ 10¹⁶` chosen
+by the consumer — the bridge from the top scale `N` loses
+`2(loglog N − loglog u + 12)`, bounded only for `u ≥ N^{c}`; short quotients
+are charged their harmonic mass and need nothing).  The window is stated on `g·n^{−2πit}` at
 strength `2D` and transferred to every level-free twist at strength `D` by
 Ramaré robustness (`halaszWindowAt_levelFreeTwist_archTwist`); the consumer
 supplies it from the top-scale `NonPretentiousAt` through the bridge
@@ -78,18 +80,19 @@ theorem halaszWindowAt_levelFreeTwist_archTwist (g : ℕ → ℂ)
   linarith
 
 /-- The sharp long/short cost of one Ramaré quotient `(a, b]`: the windowed
-sharp twisted Dirichlet cost at strength `D` when `a ≥ 10¹⁶`, the exact
-harmonic mass otherwise. -/
-noncomputable def sharpQuotientCost (D δ₀ : ℝ) (a b : ℕ) : ℝ :=
-  if cellHalaszThreshold ≤ a then sharpTwistedDirichletCost D δ₀ a b
+sharp twisted Dirichlet cost at strength `D` when `a ≥ x₀` (the consumer's
+cutoff, itself `≥ 10¹⁶`), the exact harmonic mass otherwise. -/
+noncomputable def sharpQuotientCost (x0 : ℕ) (D δ₀ : ℝ) (a b : ℕ) : ℝ :=
+  if x0 ≤ a then sharpTwistedDirichletCost D δ₀ a b
   else cellHalaszTrivialCost a b
 
-theorem sharpQuotientCost_nonneg (D δ₀ : ℝ) (a b : ℕ)
+theorem sharpQuotientCost_nonneg (x0 : ℕ) (hx0 : cellHalaszThreshold ≤ x0)
+    (D δ₀ : ℝ) (a b : ℕ)
     (hD : 0 ≤ D) (hδ₀ : 0 < δ₀) (hab : a ≤ b) :
-    0 ≤ sharpQuotientCost D δ₀ a b := by
+    0 ≤ sharpQuotientCost x0 D δ₀ a b := by
   unfold sharpQuotientCost
   split_ifs with h
-  · have ha3 : 3 ≤ a := le_trans (by norm_num [cellHalaszThreshold]) h
+  · have ha3 : 3 ≤ a := le_trans (by norm_num [cellHalaszThreshold]) (le_trans hx0 h)
     exact sharpTwistedDirichletCost_nonneg D δ₀ a b hD hδ₀ ha3 (le_trans ha3 hab)
   · unfold cellHalaszTrivialCost
     positivity
@@ -105,15 +108,16 @@ theorem norm_filter_levelFreeTwist_quotient_le_sharp
     (hgb : ∀ n, ‖g n‖ ≤ 1)
     (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
     (levels : List (Finset ℕ)) (hlevels : ∀ Q ∈ levels, ∀ p ∈ Q, p.Prime)
+    (x0 : ℕ) (hx0 : cellHalaszThreshold ≤ x0)
     (a b : ℕ) (hab : a ≤ b) (D : ℝ) (hD : 1 ≤ D) (t : ℝ)
-    (hwin : cellHalaszThreshold ≤ a → ∀ u : ℕ, a ≤ u → u ≤ 3 * b →
+    (hwin : x0 ≤ a → ∀ u : ℕ, a ≤ u → u ≤ 3 * b →
       HalaszWindowAt
         (fun n => g n * (n:ℂ)^(Complex.I*((-(2 * Real.pi * t) : ℝ):ℂ))) (2 * D) u)
     (δ₀ : ℝ) (hδ₀ : 0 < δ₀) (hδ₁ : δ₀ ≤ 1) :
     ‖∑ n ∈ (Finset.Ioc a b).filter (fun n => ∀ p ∈ P, ¬ p ∣ n),
         (levelFreeTwist g levels n / (n : ℂ)) *
           ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖
-      ≤ sharpQuotientCost D δ₀ a b := by
+      ≤ sharpQuotientCost x0 D δ₀ a b := by
   rw [sum_filter_levelFreeTwist_eq_cons]
   have hcons : ∀ Q ∈ P :: levels, ∀ p ∈ Q, p.Prime := by
     intro Q hQ p hp
@@ -121,18 +125,19 @@ theorem norm_filter_levelFreeTwist_quotient_le_sharp
     rcases hQ with rfl | hQ
     · exact hP p hp
     · exact hlevels Q hQ p hp
-  by_cases hcut : cellHalaszThreshold ≤ a
+  by_cases hcut : x0 ≤ a
   · rw [sharpQuotientCost, if_pos hcut]
+    have hcut16 : cellHalaszThreshold ≤ a := le_trans hx0 hcut
     rcases eq_or_lt_of_le hab with rfl | hablt
     · simp only [Finset.Ioc_self, sum_empty, norm_zero]
-      have ha3 : 3 ≤ a := le_trans (by norm_num [cellHalaszThreshold]) hcut
+      have ha3 : 3 ≤ a := le_trans (by norm_num [cellHalaszThreshold]) hcut16
       exact sharpTwistedDirichletCost_nonneg D δ₀ a a (by linarith) hδ₀ ha3 ha3
     · exact sharp_halasz_twisted_dirichlet_block_window
         (levelFreeTwist g (P :: levels))
         (completelyMultiplicativeC_levelFreeTwist g hcm (P :: levels) hcons)
         (levelFreeTwist_one g hg1 (P :: levels) hcons)
         (norm_levelFreeTwist_le_one g hgb (P :: levels))
-        a b (show 10^16 ≤ a from hcut) hablt D hD t
+        a b (show 10^16 ≤ a from hcut16) hablt D hD t
         (fun u hau hub => halaszWindowAt_levelFreeTwist_archTwist g hgb
           (P :: levels) D (2 * Real.pi * t) u (hwin hcut u hau hub))
         δ₀ hδ₀ hδ₁
@@ -142,9 +147,9 @@ theorem norm_filter_levelFreeTwist_quotient_le_sharp
       (norm_levelFreeTwist_le_one g hgb (P :: levels)) a b t
 
 /-- The sum of the per-quotient sharp charges after Ramaré weight removal. -/
-noncomputable def sharpRamareCost (D δ₀ : ℝ) (A B : ℕ) (P : Finset ℕ) : ℝ :=
+noncomputable def sharpRamareCost (x0 : ℕ) (D δ₀ : ℝ) (A B : ℕ) (P : Finset ℕ) : ℝ :=
   ∑ n1 ∈ (Finset.Icc 1 B).filter (fun n => n.primeFactors ⊆ P),
-    (1 : ℝ) / n1 * sharpQuotientCost D δ₀ (A / n1) (B / n1)
+    (1 : ℝ) / n1 * sharpQuotientCost x0 D δ₀ (A / n1) (B / n1)
 
 /-- **The Ramaré-weighted level-free twist at the sharp cost** (Track R,
 T0-6b): the accounting seam `norm_ramare_weighted_poly_le_sum_cost` with the
@@ -155,9 +160,10 @@ theorem norm_levelFreeTwist_ramare_poly_le_sharp
     (levels : List (Finset ℕ)) (hlevels : ∀ Q ∈ levels, ∀ p ∈ Q, p.Prime)
     (A B : ℕ) (hAB : A ≤ B)
     (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (x0 : ℕ) (hx0 : cellHalaszThreshold ≤ x0)
     (D : ℝ) (hD : 1 ≤ D) (t : ℝ)
     (hwin : ∀ n1 ∈ (Finset.Icc 1 B).filter (fun n => n.primeFactors ⊆ P),
-      cellHalaszThreshold ≤ A / n1 →
+      x0 ≤ A / n1 →
       ∀ u : ℕ, A / n1 ≤ u → u ≤ 3 * (B / n1) →
         HalaszWindowAt
           (fun n => g n * (n:ℂ)^(Complex.I*((-(2 * Real.pi * t) : ℝ):ℂ))) (2 * D) u)
@@ -166,30 +172,30 @@ theorem norm_levelFreeTwist_ramare_poly_le_sharp
         (levelFreeTwist g levels n / (n : ℂ)) *
           ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ) /
             (((P.filter (· ∣ n)).card : ℂ) + 1)‖
-      ≤ sharpRamareCost D δ₀ A B P := by
+      ≤ sharpRamareCost x0 D δ₀ A B P := by
   unfold sharpRamareCost
   apply norm_ramare_weighted_poly_le_sum_cost
     (levelFreeTwist g levels)
     (completelyMultiplicativeC_levelFreeTwist g hcm levels hlevels)
     (norm_levelFreeTwist_le_one g hgb levels) A B P hP t
-    (fun n1 => sharpQuotientCost D δ₀ (A / n1) (B / n1))
+    (fun n1 => sharpQuotientCost x0 D δ₀ (A / n1) (B / n1))
   intro n1 hn1
   exact norm_filter_levelFreeTwist_quotient_le_sharp g hcm hg1 hgb P hP
-    levels hlevels (A / n1) (B / n1) (Nat.div_le_div_right hAB) D hD t
+    levels hlevels x0 hx0 (A / n1) (B / n1) (Nat.div_le_div_right hAB) D hD t
     (hwin n1 hn1) δ₀ hδ₀ hδ₁
 
 /-- The complete sharp pointwise envelope of a cell representative block
 after inclusion–exclusion: `2^{#rest}` level-free twists, each at the sharp
 Ramaré cost. -/
-noncomputable def cellHalaszSharpBound
+noncomputable def cellHalaszSharpBound (x0 : ℕ)
     (D δ₀ : ℝ) (Aq Bq : ℕ) (P : Finset ℕ) (rest : List (Finset ℕ)) : ℝ :=
-  ((2 ^ rest.length : ℕ) : ℝ) * sharpRamareCost D δ₀ Aq Bq P
+  ((2 ^ rest.length : ℕ) : ℝ) * sharpRamareCost x0 D δ₀ Aq Bq P
 
 /-- **The exceptional-cell pointwise bound at the sharp cost** (Track R,
 T0-6b): `norm_typicalS_quot_block_poly_le_recut` with the windowed sharp
 Halász in place of the cheap one.  For any frequency `t`, under the Halász
 window of `g·n^{−2πit}` at strength `2D` on the long quotient ranges
-`[(A/q)/n₁, 3·((B/q)/n₁)]` (`(A/q)/n₁ ≥ 10¹⁶`) — supplied from the top-scale
+`[(A/q)/n₁, 3·((B/q)/n₁)]` (`(A/q)/n₁ ≥ x₀`) — supplied from the top-scale
 `NonPretentiousAt` by `halaszWindowAt_archTwist_of_nonPretentiousAt` — the
 representative polynomial is at most
 `cellHalaszSharpBound D δ₀ (A/q) (B/q) P rest`. -/
@@ -199,9 +205,10 @@ theorem norm_typicalS_quot_block_poly_le_sharp
     (A B q : ℕ) (hAB : A ≤ B)
     (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
     (rest : List (Finset ℕ)) (hrest : ∀ Q ∈ rest, ∀ p ∈ Q, p.Prime)
+    (x0 : ℕ) (hx0 : cellHalaszThreshold ≤ x0)
     (D : ℝ) (hD : 1 ≤ D) (t : ℝ)
     (hwin : ∀ n1 ∈ (Finset.Icc 1 (B / q)).filter (fun n => n.primeFactors ⊆ P),
-      cellHalaszThreshold ≤ (A / q) / n1 →
+      x0 ≤ (A / q) / n1 →
       ∀ u : ℕ, (A / q) / n1 ≤ u → u ≤ 3 * ((B / q) / n1) →
         HalaszWindowAt
           (fun n => g n * (n:ℂ)^(Complex.I*((-(2 * Real.pi * t) : ℝ):ℂ))) (2 * D) u)
@@ -209,11 +216,11 @@ theorem norm_typicalS_quot_block_poly_le_sharp
     ‖∑ n ∈ Finset.Ioc (A / q) (B / q),
         (typicalSQuotCoeff g P (typicalS 0 B rest) n / (n : ℂ)) *
           ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖
-      ≤ cellHalaszSharpBound D δ₀ (A / q) (B / q) P rest := by
+      ≤ cellHalaszSharpBound x0 D δ₀ (A / q) (B / q) P rest := by
   have hBqB : B / q ≤ B := Nat.div_le_self _ _
   refine (norm_typicalSQuotCoeff_poly_le_inclexcl g P rest
     (A / q) (B / q) B hBqB t).trans ?_
-  let C := sharpRamareCost D δ₀ (A / q) (B / q) P
+  let C := sharpRamareCost x0 D δ₀ (A / q) (B / q) P
   calc
     (rest.sublists.map fun S =>
         ‖∑ n ∈ Finset.Ioc (A / q) (B / q),
@@ -227,8 +234,8 @@ theorem norm_typicalS_quot_block_poly_le_sharp
         (by
           intro Q hQS p hp
           exact hrest Q ((List.mem_sublists.mp hS).mem hQS) p hp)
-        (A / q) (B / q) (Nat.div_le_div_right hAB) P hP D hD t hwin δ₀ hδ₀ hδ₁
-    _ = cellHalaszSharpBound D δ₀ (A / q) (B / q) P rest := by
+        (A / q) (B / q) (Nat.div_le_div_right hAB) P hP x0 hx0 D hD t hwin δ₀ hδ₀ hδ₁
+    _ = cellHalaszSharpBound x0 D δ₀ (A / q) (B / q) P rest := by
       rw [show (rest.sublists.map fun _ => C) =
           List.replicate rest.sublists.length C from List.map_const,
         List.sum_replicate, List.length_sublists, nsmul_eq_mul]

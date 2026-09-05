@@ -736,14 +736,40 @@ shell one on `𝒯₁`. This is the re-plumb T0-6 below.
   demands `|2πt| ≤ (D/2)·((A/q)/n₁)` for *every* `P`-smooth `n₁ ≤ B/q`, which forces `t = 0` whenever
   `B/q > A/q` — a second reason it cannot be consumed). The consumer supplies the window per long
   quotient from the top-scale `NonPretentiousAt` via `halaszWindowAt_archTwist_of_nonPretentiousAt`.
-- **T0-6c** the `ε`-form (`HalaszSharpEps.lean`): `Ĥ⁺(A,z) ≤ z·(log z·e^{−A}((A+1)Q + 16(e−1)) +
+- **T0-6c** (`HalaszSharpEps.lean`, on main) the `ε`-form: `Ĥ⁺(A,z) ≤ z·(log z·e^{−A}((A+1)Q + 16(e−1)) +
   c₂ loglog z + c₃)` for `z ≥ e³⁶`; on `10¹⁶ ≤ a ≤ b ≤ 3a`,
   `sharpTwistedDirichletCost D δ₀ a b ≤ (b/(a+1))(13e^{−D}((D+1)Q+16(e−1))/δ₀ + 12(c₂ loglog 9a + c₃)/(δ₀ log a)
   + 2eδ₀) + 2/(a+1)`; the two thresholds; and `∀ ε, ∃ D₀ x₀, ∀ D ≥ D₀, ∀ x₀ ≤ a ≤ b ≤ 3a,
   sharpTwistedDirichletCost D (ε/(8e)) a b ≤ ε·b/(a+1)` — the fixed-strength saving, uniform in the scale.
-- **T0-7** (Conjectures) the `𝒯₀/𝒯₁` assembly of VI-9f: `𝒯₀ := {|t−t₁| < 6} ∩ band` at the
+**The `t₁`-split is unnecessary at fixed `ε` (2026-09-05, after T0-6c).** §6 recorded that the
+fixed-`ε` S6 needs only a saving `ε⁶` from the exceptional leg's Halász input, and that the
+`𝒯₀/𝒯₁` split was forced solely by the `loglog u` factor of the shell budget at a fixed strength.
+With `halaszBudgetSharp` that factor is gone: `sharpTwistedDirichletCost_le_eps` gives, for every
+`ε`, a fixed strength `D₀(ε)` and scale `x₀(ε)` with the block cost `≤ ε·b/(a+1)` **uniformly in the
+scale**, and the bridge `halaszWindowAt_archTwist_of_nonPretentiousAt` supplies the window at every
+frequency of the band from the interface's single top-scale `NonPretentiousAt g A₀ (2A+1)` (range
+`A₀·(2A+1) ≫ 2πT`). So the exceptional-cell pointwise bound holds at the fixed strength `A₀` for
+**all** `|t| ≤ T`: no minimiser `t₁`, no `𝒯₁` repulsion, and `FarRegimeRepulsionAssumption` is **not
+needed** for the A.2 discharge (it stays in the tree as the cited interface of the `[mrt]`-shaped
+`M(f;X)` statement, unused by the ε-form). The `[mrt]` split exists because their Prop is stated with
+the sharp `e^{−M}` for *all* `M`; the tree's target is the fixed-strength `ε`-form.
+
+What remains for the exceptional leg is bookkeeping, not analysis:
+
+- **T0-7a** the long/short cutoff of `ExceptionalHalaszSharp` as a parameter `x₀ ≥ 10¹⁶` (the bridge
+  loses `2(loglog N − loglog u + 12)`, bounded only for quotient scales `u ≥ N^{c}`; so long
+  quotients are `(A/q)/n₁ ≥ N^{c}` and the rest are short);
+- **T0-7b** the `P`-smooth Rankin tail: `∑_{n₁ P-smooth, n₁ > y} 1/n₁ ≤ y^{−σ}∏_{p∈P}(1−p^{σ−1})^{−1}`
+  (the box-product technique of `pSmoothHarmonicMass_le_exp_primeMass` with the weight
+  `n^{σ−1}`), so that the short quotients' harmonic charges beyond `y = N^{c}/q` are negligible, and
+  the `ε`-form of `sharpRamareCost` / `cellHalaszSharpBound`;
+- **T0-7c** (Conjectures) `hdeltaU` of the inner-band schedule replaced by the sharp bound at the
+  fixed strength for all `|t| ≤ T`, then the fixed-`ε` S6 fits (VI-9g) → A2-IV-3 → A2-V →
+  `sliceMeanSquareA2`.
+
+(Superseded T0-7 entry, kept for the record: **T0-7** (Conjectures) the `𝒯₀/𝒯₁` assembly of VI-9f: `𝒯₀ := {|t−t₁| < 6} ∩ band` at the
   sharp cost, `𝒯₁` at strength `ρ·loglog − 9` from `pretentiousDistSq_archTwist_ge_of_mid_or_far`
-  or from `M` itself, far regime via `FarRegimeRepulsionAssumption`; then VI-9g.
+  or from `M` itself, far regime via `FarRegimeRepulsionAssumption`; then VI-9g.)
 
 ### Dependency order
 
