@@ -3,7 +3,7 @@ import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.CharTwistCompose
 
 /-!
-# Track R: the major-arc assembly — opening lemmas (R6-1, R6-2a, R6-2b, R6-3)
+# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-4)
 
 The major-arc Matomäki–Radziwiłł interface bounds
 `∑_{n} ‖∑_{j=1}^{H} g(n+j)·e(jα)‖/(Hn)` on major arcs `α = a/q + δ`.  The
@@ -50,6 +50,12 @@ first steps rest on.
   non-pretentious at strength `A/q₀` whenever `g` is at strength `A` (the distance to a
   twist mod `q'` is the distance of `g` to the composite twist mod `q'·q₀`, which the
   predicate already covers).
+* `norm_filter_block_twisted_le_subblocks_add` (R6-4) — the phase freeze on a filtered
+  block: at `α = β + δ`, the `δ`-phase is frozen on sub-blocks of length `ℓ`
+  (`norm_sum_mul_exp_freeze_sub_le`), so the twisted `𝒮`-restricted block sum is at most
+  the sum of the `⌊H/ℓ⌋ + 1` sub-block sums at the frequency `β` alone, plus the freeze
+  cost `H·2π|δ|ℓ`.  With `β = a/q`, each sub-block is exactly the object of
+  `norm_restricted_block_ratl_le_char_sum`.
 -/
 
 open Finset
@@ -420,5 +426,157 @@ theorem nonPretentiousAt_charMul (g : ℕ → ℂ) {A A' : ℝ} {x : ℕ} (h : N
     le_trans ht (mul_le_mul_of_nonneg_right hAA' (Nat.cast_nonneg x))
   rw [pretentiousDistSq_charMul_eq]
   exact le_trans hAA' (h (q' * q₀) _ t hqq ht')
+
+/-! ### R6-4: the phase freeze on a filtered block -/
+
+/-- **The phase freeze on a filtered block** (Track R, R6-4).
+
+At `α = β + δ` the twisted sum over `(n, n+H] ∩ {p}` is cut into the sub-blocks
+`(n + kℓ, n + min((k+1)ℓ, H)] ∩ {p}`, `k ≤ ⌊H/ℓ⌋`, on each of which the slowly varying
+phase `e(mδ)` is frozen at the anchor `n + kℓ + 1` at cost `2π|δ|ℓ` per term
+(`norm_sum_mul_exp_freeze_sub_le`).  The frozen phases are unimodular and the
+sub-blocks partition the block, so the total cost is `#(block ∩ {p})·2π|δ|ℓ ≤ H·2π|δ|ℓ`.
+On the major arcs `|δ| ≤ C(log H)^B/(Hq)`, so with `ℓ ≍ εHq/(C(log H)^B)` this is
+`O(εH)` per `n` (report §8 R6-4). -/
+theorem norm_filter_block_twisted_le_subblocks_add (p : ℕ → Prop) [DecidablePred p]
+    (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1) (n H ℓ : ℕ) (hℓ : 0 < ℓ) (β δ : ℝ) :
+    ‖∑ m ∈ (Finset.Ioc n (n + H)).filter p,
+        h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * ((β + δ : ℝ) : ℂ))‖
+      ≤ (∑ k ∈ Finset.range (H / ℓ + 1),
+          ‖∑ m ∈ (Finset.Ioc (n + k * ℓ) (n + min ((k + 1) * ℓ) H)).filter p,
+              h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (β : ℂ))‖)
+        + (H : ℝ) * (2 * Real.pi * |δ| * ℓ) := by
+  classical
+  set S := (Finset.Ioc n (n + H)).filter p with hS
+  set h' : ℕ → ℂ := fun m => h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (β : ℂ))
+    with hh'
+  have hunit : ∀ x : ℝ, ‖Complex.exp (2 * Real.pi * Complex.I * (x : ℂ) * (β : ℂ))‖ = 1 := by
+    intro x
+    rw [Complex.norm_exp]
+    have hre : (2 * Real.pi * Complex.I * (x : ℂ) * (β : ℂ)).re = 0 := by
+      simp [Complex.mul_re, Complex.mul_im]
+    rw [hre, Real.exp_zero]
+  have hb' : ∀ m, ‖h' m‖ ≤ 1 := by
+    intro m
+    simp only [hh']
+    rw [norm_mul]
+    have := hunit (m : ℝ)
+    rw [Complex.ofReal_natCast] at this
+    rw [this, mul_one]
+    exact hb m
+  -- split the phase `e(m(β+δ)) = e(mβ)·e(mδ)`
+  have hsplit : ∀ m : ℕ,
+      h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * ((β + δ : ℝ) : ℂ))
+        = h' m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ)) := by
+    intro m
+    have hexp : Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * ((β + δ : ℝ) : ℂ))
+        = Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (β : ℂ))
+          * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ)) := by
+      rw [← Complex.exp_add]
+      congr 1
+      push_cast
+      ring
+    rw [hexp, hh']
+    ring
+  simp_rw [hsplit]
+  -- the fibre partition by `k = (m − n − 1)/ℓ`
+  have hmaps : ∀ m ∈ S, (m - n - 1) / ℓ ∈ Finset.range (H / ℓ + 1) := by
+    intro m hm
+    have hm' := Finset.mem_Ioc.mp (Finset.mem_filter.mp hm).1
+    rw [Finset.mem_range]
+    have : (m - n - 1) / ℓ ≤ H / ℓ := Nat.div_le_div_right (by omega)
+    omega
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  -- the fibres are the sub-blocks
+  have hfib : ∀ k, S.filter (fun m => (m - n - 1) / ℓ = k)
+      = (Finset.Ioc (n + k * ℓ) (n + min ((k + 1) * ℓ) H)).filter p := by
+    intro k
+    ext m
+    simp only [hS, Finset.mem_filter, Finset.mem_Ioc]
+    have hK1 : (k + 1) * ℓ = k * ℓ + ℓ := Nat.succ_mul k ℓ
+    have hlow : ∀ m, (m - n - 1) / ℓ = k → k * ℓ ≤ m - n - 1 := fun m hd => by
+      rw [← hd]; exact Nat.div_mul_le_self _ _
+    have hhigh : ∀ m, (m - n - 1) / ℓ = k → m - n - 1 < k * ℓ + ℓ := fun m hd => by
+      rw [← hd]; exact Nat.lt_div_mul_add hℓ
+    have hdiv : ∀ m, k * ℓ ≤ m - n - 1 → m - n - 1 < k * ℓ + ℓ → (m - n - 1) / ℓ = k :=
+      fun m h1 h2 => Nat.div_eq_of_lt_le h1 (by rw [Nat.succ_mul]; exact h2)
+    generalize k * ℓ = K at hK1 hlow hhigh hdiv ⊢
+    rw [hK1]
+    constructor
+    · rintro ⟨⟨⟨hn, hH⟩, hp⟩, hd⟩
+      have h1 := hlow m hd
+      have h2 := hhigh m hd
+      exact ⟨⟨by omega, by omega⟩, hp⟩
+    · rintro ⟨⟨hlo, hhi⟩, hp⟩
+      exact ⟨⟨⟨by omega, by omega⟩, hp⟩, hdiv m (by omega) (by omega)⟩
+  -- the per-fibre freeze
+  have hfibbound : ∀ k ∈ Finset.range (H / ℓ + 1),
+      ‖∑ m ∈ S.filter (fun m => (m - n - 1) / ℓ = k),
+          h' m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖
+        ≤ ‖∑ m ∈ (Finset.Ioc (n + k * ℓ) (n + min ((k + 1) * ℓ) H)).filter p, h' m‖
+          + ((S.filter (fun m => (m - n - 1) / ℓ = k)).card : ℝ)
+              * (2 * Real.pi * |δ| * ℓ) := by
+    intro k _
+    have hB : ∀ m ∈ S.filter (fun m => (m - n - 1) / ℓ = k),
+        (n + k * ℓ + 1) ≤ m ∧ m < (n + k * ℓ + 1) + ℓ := by
+      intro m hm
+      rw [hfib k, Finset.mem_filter, Finset.mem_Ioc] at hm
+      have hK1 : (k + 1) * ℓ = k * ℓ + ℓ := Nat.succ_mul k ℓ
+      have hm1 := hm.1
+      generalize k * ℓ = K at hK1 hm1 ⊢
+      rw [hK1] at hm1
+      omega
+    have hfreeze := norm_sum_mul_exp_freeze_sub_le
+      (S.filter (fun m => (m - n - 1) / ℓ = k)) (n + k * ℓ + 1) ℓ hB h' hb' δ
+    have hanchor : ‖Complex.exp (2 * Real.pi * Complex.I * ((n + k * ℓ + 1 : ℕ) : ℂ)
+        * (δ : ℂ))‖ = 1 := by
+      rw [Complex.norm_exp]
+      have hre : (2 * Real.pi * Complex.I * ((n + k * ℓ + 1 : ℕ) : ℂ) * (δ : ℂ)).re = 0 := by
+        simp [Complex.mul_re, Complex.mul_im]
+      rw [hre, Real.exp_zero]
+    calc ‖∑ m ∈ S.filter (fun m => (m - n - 1) / ℓ = k),
+            h' m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖
+        ≤ ‖Complex.exp (2 * Real.pi * Complex.I * ((n + k * ℓ + 1 : ℕ) : ℂ) * (δ : ℂ))
+              * ∑ m ∈ S.filter (fun m => (m - n - 1) / ℓ = k), h' m‖
+          + ‖(∑ m ∈ S.filter (fun m => (m - n - 1) / ℓ = k),
+                h' m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ)))
+              - Complex.exp (2 * Real.pi * Complex.I * ((n + k * ℓ + 1 : ℕ) : ℂ) * (δ : ℂ))
+                * ∑ m ∈ S.filter (fun m => (m - n - 1) / ℓ = k), h' m‖ :=
+          norm_le_norm_add_norm_sub' _ _
+      _ ≤ ‖∑ m ∈ (Finset.Ioc (n + k * ℓ) (n + min ((k + 1) * ℓ) H)).filter p, h' m‖
+          + ((S.filter (fun m => (m - n - 1) / ℓ = k)).card : ℝ)
+              * (2 * Real.pi * |δ| * ℓ) := by
+          rw [norm_mul, hanchor, one_mul, hfib k]
+          rw [hfib k] at hfreeze
+          exact add_le_add le_rfl hfreeze
+  -- the fibre cardinalities sum to `#S ≤ H`
+  have hcount : ∑ k ∈ Finset.range (H / ℓ + 1),
+      ((S.filter (fun m => (m - n - 1) / ℓ = k)).card : ℝ) ≤ H := by
+    have hmapsTo : Set.MapsTo (fun m => (m - n - 1) / ℓ) ↑S ↑(Finset.range (H / ℓ + 1)) :=
+      fun m hm => hmaps m hm
+    have hcard := Finset.card_eq_sum_card_fiberwise hmapsTo
+    have hSH : S.card ≤ H := by
+      calc S.card ≤ (Finset.Ioc n (n + H)).card := Finset.card_filter_le _ _
+        _ = H := by rw [Nat.card_Ioc]; omega
+    rw [hcard] at hSH
+    exact_mod_cast hSH
+  calc ‖∑ k ∈ Finset.range (H / ℓ + 1), ∑ m ∈ S.filter (fun m => (m - n - 1) / ℓ = k),
+          h' m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖
+      ≤ ∑ k ∈ Finset.range (H / ℓ + 1), ‖∑ m ∈ S.filter (fun m => (m - n - 1) / ℓ = k),
+          h' m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖ :=
+        norm_sum_le _ _
+    _ ≤ ∑ k ∈ Finset.range (H / ℓ + 1),
+          (‖∑ m ∈ (Finset.Ioc (n + k * ℓ) (n + min ((k + 1) * ℓ) H)).filter p, h' m‖
+            + ((S.filter (fun m => (m - n - 1) / ℓ = k)).card : ℝ)
+                * (2 * Real.pi * |δ| * ℓ)) := Finset.sum_le_sum hfibbound
+    _ = (∑ k ∈ Finset.range (H / ℓ + 1),
+          ‖∑ m ∈ (Finset.Ioc (n + k * ℓ) (n + min ((k + 1) * ℓ) H)).filter p, h' m‖)
+        + (∑ k ∈ Finset.range (H / ℓ + 1),
+            ((S.filter (fun m => (m - n - 1) / ℓ = k)).card : ℝ)) * (2 * Real.pi * |δ| * ℓ) := by
+        rw [Finset.sum_add_distrib, Finset.sum_mul]
+    _ ≤ (∑ k ∈ Finset.range (H / ℓ + 1),
+          ‖∑ m ∈ (Finset.Ioc (n + k * ℓ) (n + min ((k + 1) * ℓ) H)).filter p, h' m‖)
+        + (H : ℝ) * (2 * Real.pi * |δ| * ℓ) := by
+        gcongr
 
 end MoltResearch
