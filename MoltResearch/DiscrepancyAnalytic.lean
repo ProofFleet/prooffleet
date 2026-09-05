@@ -32,6 +32,7 @@ import MoltResearch.Discrepancy.RegimeSplitEnergy
 import MoltResearch.Discrepancy.PrimeMassCell
 import MoltResearch.Discrepancy.LevelSizes
 import MoltResearch.Discrepancy.LevelLegs
+import MoltResearch.Discrepancy.CellHalasz
 import MoltResearch.Discrepancy.ExceptionalConstants
 import MoltResearch.Discrepancy.BumpDeriv
 
