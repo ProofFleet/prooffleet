@@ -30,6 +30,7 @@ import MoltResearch.Discrepancy.WindowTK
 import MoltResearch.Discrepancy.LargePrimePolynomialCount
 import MoltResearch.Discrepancy.ExceptionalCellCover
 import MoltResearch.Discrepancy.ExceptionalHalaszTwist
+import MoltResearch.Discrepancy.ExceptionalHalaszSharp
 import MoltResearch.Discrepancy.LowBandTypicalS
 import MoltResearch.Discrepancy.PretentiousBandSplit
 import MoltResearch.Discrepancy.WindowAssembly

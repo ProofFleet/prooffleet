@@ -726,11 +726,21 @@ shell one on `𝒯₁`. This is the re-plumb T0-6 below.
   `sharp_halasz_twisted_dirichlet_block_window` (cost `sharpTwistedDirichletCost D δ₀ a b`, no
   frequency condition). The consumer's non-pretentiousness lives at the top scale `N = 2A_scale+1`
   with range `A₀·N ≫ 2πT`, exactly what the bridge needs.
-- **T0-6b** the recut at the windowed sharp cost: `exceptionalTwistedQuotientCost`, the Ramaré sum
-  and `cellHalaszReCutBound` re-instantiated with the T0-6 block, the window hypothesis demanded only
-  on long quotients (VI-9e's recut demands its frequency condition `|2πt| ≤ (D/2)·((A/q)/n₁)` for
-  *every* `P`-smooth `n₁ ≤ B/q`, which forces `t = 0` whenever `B/q > A/q` — a second reason it cannot
-  be consumed); then the `ε`-form (`sharpTwistedDirichletCost ≲ 17(b/a)√E`).
+- **T0-6b** (`ExceptionalHalaszSharp.lean`, on main) the recut at the windowed sharp cost:
+  `halaszWindowAt_levelFreeTwist_archTwist` (Ramaré robustness for the window: `g·n^{−iξ}` at `2D`
+  gives every `levelFreeTwist g S · n^{−iξ}` at `D`), `sharpQuotientCost` (long: the windowed sharp
+  block at strength `D`; short: harmonic mass), `norm_filter_levelFreeTwist_quotient_le_sharp`,
+  `sharpRamareCost`, `norm_levelFreeTwist_ramare_poly_le_sharp`, `cellHalaszSharpBound`,
+  `norm_typicalS_quot_block_poly_le_sharp` — VI-9e's chain with the window hypothesis demanded
+  **only on long quotients** `(A/q)/n₁ ≥ 10¹⁶` and no frequency condition at all (VI-9e's recut
+  demands `|2πt| ≤ (D/2)·((A/q)/n₁)` for *every* `P`-smooth `n₁ ≤ B/q`, which forces `t = 0` whenever
+  `B/q > A/q` — a second reason it cannot be consumed). The consumer supplies the window per long
+  quotient from the top-scale `NonPretentiousAt` via `halaszWindowAt_archTwist_of_nonPretentiousAt`.
+- **T0-6c** the `ε`-form (`HalaszSharpEps.lean`): `Ĥ⁺(A,z) ≤ z·(log z·e^{−A}((A+1)Q + 16(e−1)) +
+  c₂ loglog z + c₃)` for `z ≥ e³⁶`; on `10¹⁶ ≤ a ≤ b ≤ 3a`,
+  `sharpTwistedDirichletCost D δ₀ a b ≤ (b/(a+1))(13e^{−D}((D+1)Q+16(e−1))/δ₀ + 12(c₂ loglog 9a + c₃)/(δ₀ log a)
+  + 2eδ₀) + 2/(a+1)`; the two thresholds; and `∀ ε, ∃ D₀ x₀, ∀ D ≥ D₀, ∀ x₀ ≤ a ≤ b ≤ 3a,
+  sharpTwistedDirichletCost D (ε/(8e)) a b ≤ ε·b/(a+1)` — the fixed-strength saving, uniform in the scale.
 - **T0-7** (Conjectures) the `𝒯₀/𝒯₁` assembly of VI-9f: `𝒯₀ := {|t−t₁| < 6} ∩ band` at the
   sharp cost, `𝒯₁` at strength `ρ·loglog − 9` from `pretentiousDistSq_archTwist_ge_of_mid_or_far`
   or from `M` itself, far regime via `FarRegimeRepulsionAssumption`; then VI-9g.
