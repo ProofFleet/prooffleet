@@ -961,6 +961,12 @@ the `(T+1)/p_r^{ℓ}` term is `≤ 1`, `(ℓ!)² ≤ T^{2·loglog 2T/log P_{J−
    `J(A₁) = min{j : P_j ≥ (log A₁)^{40}} + 1`; the per-cell shares are uniform (`ordinaryLegShare j/#cells_{j−1}`), not
    `geometricCellShare`, whose `2^{−r}` decay is `Q_{j−1}^{−2N log 2}` in the anchor index.
 
+5. **The replacement and collision legs price each prime separately.** `replacementCost A N Q T = e^π(2TQ/A + 4)(2/N)` and
+   `collisionEnergyBound` (`e^π(T/(A/p²) + 8)` per `p`) apply the mean value theorem to polynomials of length `A/p`, `A/p²`, losing
+   `T·Q_j/A ≈ Q_j/h` and `T·Q_j²/A ≈ Q_j²/h` — fine for level 0 (`Q₀ ≲ √h·P₀`), impossible for a ladder level `P_j ≫ h`. `[MR]` prices both
+   errors as one Dirichlet polynomial on `(A, B]` (mean value loss `T/A + O(1) ≤ 5`) with the honest coefficient masses: collars
+   `≍ (log A/log P_j)·E_j/(N_j A)` (replacement), square divisors `≍ 1/(A P_j log P_j)` (collision). Unit **L4** below.
+
 **What stands.** Level 0's leg (`hscheduleT0/P0` and the S-cal numerics), the recut capstone, the sharp exceptional
 legs at the `[MR]` moment order, R6/R7 up to R9's re-thread, A2-IV-0/1′/2. **Withdrawn:** §7.2's "`J = 1` suffices" and
 the phase-3 amendments' sift device (`N_𝒰 = ⌈exp(64/ε²)⌉₊`); `N_𝒰 := ⌈exp(4/εc)⌉₊` (TK) is enough once `𝒰` is a level.
@@ -988,7 +994,10 @@ together `h ≥ (C'/(εc ε²))^{6e^{2/εc}}·(log h)^{…}` — polynomial in `
 - **X** (Conjectures): the exceptional pointwise bound and the low band with inclusion–exclusion over `{level 0}` (`{level 0, 𝒰}`)
   only, the ladder levels removed by S — `norm_typicalS_quot_block_poly_le_sharp` at `rest = [level 0]` plus the sieved
   remainder; `integral_norm_typicalS_dirichlet_poly_sq_le_low_band_eps` for `𝒮₀ ∩ 𝒰` plus the remainder.
-- **L3** (numerology, Conjectures leaf; after L2, S, X): the fixed ladder of Finding E.2 and `J(A₁)`; `hscheduleLater r v` for every
+- **L4** (nucleus leaf + Conjectures wrappers): `typicalSCellReplacement` and `typicalSCollision` as single Dirichlet polynomials on `(A, B]`,
+  the `DyadicMVT` mean value theorem applied once, `collisionEnergyBoundWide`; wide-level replacement/collision legs
+  (`innerBand_replacement_leg_wide`, `innerBand_level_leg_of_main_wide`).
+- **L3** (numerology, Conjectures leaf; after L2, S, X, L4): the fixed ladder of Finding E.2 and `J(A₁)`; `hscheduleLater r v` for every
   `j ≥ 1` (scale-free), `hscheduleT0/P0` for level 0, the cover count at anchor level `J−1` (`ℓ_r = ⌈log 2T/log p_r⌉₊+1`,
   `KcovBound ≤ T^{0.46}`), `hfitInt`/`hfitPri` at the `[MR]` moment order for `𝒰(A₁)` and all `A ∈ [A₁, A₁²]`, the
   range/strength conditions, `hqcell*`/e-adic covers uniformly in `j` — every inequality as an existence statement with
@@ -1007,6 +1016,15 @@ exports per-block data (`∀ A ≥ M, ∃ levels, …`) from the Prop at `A₁ :
 branch (small/bad blocks may lie below `M`); **R9-4** the pins of `edp_of_sliceMeanSquareA2` and `theorem18_of_sliceMeanSquareA2`
 are byte-identical (`[propext, Classical.choice, Quot.sound]`). The conditional EDP is now conditional on the `[mrt]`-shaped
 (`X₀`) Prop. Next: L1/L2 (run 11), S+X (run 12), L3, A2-IV-3′, A2-V′.
+
+### L1/L2 as run — status (2026-09-05, Codex run 11; report in `Problems/tao2015_l1l2_report.md`)
+
+Done per the L1/L2 brief: **L1** `MoltResearch/Discrepancy/LaterLevelCells.lean` — `setIntegral_norm_sq_level_sum_of_prev_large_le_cells`
+(per-cell `ℓ A' Δ'`) and `band_energy_later_main_le_budget_cells` (exact threshold `exp(−βr/(2Nprev))`, no M-3/M-9, explicit `v`-sum
+in `hfit`); **L2** `TrackCStage5InnerBandAssemblyCells.lean` (`innerBand_later_level_main_cells`, `(r, v)`-indexed data) and
+`TrackCStage5InnerBandScheduleSharpCells.lean` (`band_energy_typicalS_le_of_levels_recut_cells`,
+`band_energy_typicalS_le_of_schedule_sharp_cells` with `hscheduleLaterCells` in the compiled shape recorded in the report and free
+shares `kappaCell j r`, `hsharesCells`). No existing theorem changed; pins standard. Next: S+X (run 12), L4 (run 13), L3.
 
 ### Dependency order
 
