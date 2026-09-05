@@ -24,6 +24,7 @@ import MoltResearch.Discrepancy.HalaszCapstone
 import MoltResearch.Discrepancy.HalaszComplex
 import MoltResearch.Discrepancy.HalaszSharpSurvivors
 import MoltResearch.Discrepancy.HalaszSharpWindow
+import MoltResearch.Discrepancy.HalaszSharpTwist
 import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.WindowTK
 import MoltResearch.Discrepancy.LargePrimePolynomialCount

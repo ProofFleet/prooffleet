@@ -413,28 +413,35 @@ noncomputable def halaszBudgetSharp (A z : ℝ) : ℝ :=
 
 set_option maxHeartbeats 1600000 in
 open Real Finset in
-/-- **The sharp Halász Riesz mean, windowed** (Track R, T0-4): the §3
-window destructured (`exists_section3_window_shell`), the split index
-chosen as `K₁ := min(K₀, ⌈A⌉₊)`, and every window quantity priced in
-`x` and `A` alone: `K₁ ≤ A + 1`, `K₁ ≤ K₀ ≤ loglog x`,
+/-- **The pricing of the sharp survivor split** (Track R, T0-4): with the
+§3 window facts `y ≤ 2·log²x`, `e·log 2 ≤ e^{−K₀}·log x < e²·log 2` and the
+split index `K₁ := min(K₀, ⌈A⌉₊)`, the right-hand side of
+`rieszMeanC_log_le_sharp_halasz_of_nonPretentious` is at most
+`halaszBudgetSharp A x`: `K₁ ≤ A + 1`, `K₁ ≤ K₀ ≤ loglog x`,
 `√((e^π)²10¹⁵(b²+1)) ≤ √((e^π)²10¹⁵)·(b+1)`, and
 `e^{−K₁}·log x ≤ e^{−A}·log x + e²·log 2` (the second alternative when
-`⌈A⌉ > K₀`, from the window's `e^{−(K₀+1)}·log x < e·log 2`). -/
-theorem rieszMeanC_log_sharp_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
-    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
-    (x : ℕ) (hx : 10^16 ≤ x)
-    (A : ℝ) (hA : NonPretentiousAt f A x) (h1A : 1 ≤ A)
-    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ)) :
-    ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
-        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖
+`⌈A⌉ > K₀`).  Pure numerics — shared by every `b`-instantiation of the
+sharp assembly (non-pretentiousness on the whole range, or the
+frequency-windowed hypothesis of `HalaszSharpTwist`). -/
+theorem sharp_survivor_price (x y K₀ : ℕ) (hx : 10^16 ≤ x) (hy2 : 2 ≤ y)
+    (hylog : (y:ℝ) ≤ 2*(Real.log (x:ℝ))^2)
+    (hK₀low : Real.exp 1 * Real.log 2
+      ≤ Real.exp (-(K₀:ℝ)) * Real.log (x:ℝ))
+    (hK₀max : Real.exp (-((K₀:ℝ)+1)) * Real.log (x:ℝ)
+      < Real.exp 1 * Real.log 2)
+    (A : ℝ) (h1A : 1 ≤ A) :
+    35*(x:ℝ) + (x:ℝ)*(Real.log (y:ℝ) + 2) + 2*((x:ℝ)+1)*Real.log 4
+        + 64 * (x:ℝ) * (12 * Real.log (Real.log (x:ℝ)) + 18)
+        + (((min K₀ ⌈A⌉₊ : ℕ):ℝ) * ((x:ℝ) * Real.sqrt ((Real.exp π)^2 * 10^15
+              * ((Real.exp 5 * (2 + Real.log (x:ℝ))
+                  * Real.exp (-A))^2 + 1))
+            + 2*(x:ℝ)*Real.log 4)
+          + (16 * (Real.exp 1 - 1) * (x:ℝ) * Real.log (x:ℝ)
+              * Real.exp (-((min K₀ ⌈A⌉₊ : ℕ):ℝ))
+            + ((K₀ + 2 - min K₀ ⌈A⌉₊ : ℕ):ℝ)
+              * ((x:ℝ) * (16 * Real.log 2 + 16 * Real.log 4))))
       ≤ halaszBudgetSharp A (x:ℝ) := by
-  classical
-  obtain ⟨y, K₀, hy2, hyx, hy, hylog, hK₀1, hK₀low, hK₀max⟩ :=
-    exists_section3_window_shell x hx
   have hK₁ : min K₀ ⌈A⌉₊ ≤ K₀ := min_le_left _ _
-  have hcap := rieszMeanC_log_le_sharp_halasz_of_nonPretentious f hf hcm h1
-    x y K₀ (min K₀ ⌈A⌉₊) hx hy2 hyx hy hK₀1 hK₀low hK₀max hK₁ A hA h1A hband
-  refine le_trans hcap ?_
   unfold halaszBudgetSharp
   -- shared numerics
   have hxR0 : (0:ℝ) ≤ (x:ℝ) := Nat.cast_nonneg _
@@ -574,6 +581,31 @@ theorem rieszMeanC_log_sharp_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
     mul_nonneg hxR0 (by linarith)
   have htail2 := mul_le_mul_of_nonneg_right hcardle hfl0
   linarith [hyterm, hhead, htail1, htail2]
+
+set_option maxHeartbeats 1600000 in
+open Real Finset in
+/-- **The sharp Halász Riesz mean, windowed** (Track R, T0-4): the §3
+window destructured (`exists_section3_window_shell`), the split index
+chosen as `K₁ := min(K₀, ⌈A⌉₊)`, and every window quantity priced in
+`x` and `A` alone: `K₁ ≤ A + 1`, `K₁ ≤ K₀ ≤ loglog x`,
+`√((e^π)²10¹⁵(b²+1)) ≤ √((e^π)²10¹⁵)·(b+1)`, and
+`e^{−K₁}·log x ≤ e^{−A}·log x + e²·log 2` (the second alternative when
+`⌈A⌉ > K₀`, from the window's `e^{−(K₀+1)}·log x < e·log 2`). -/
+theorem rieszMeanC_log_sharp_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ ≤ 1)
+    (hcm : CompletelyMultiplicativeC f) (h1 : f 1 = 1)
+    (x : ℕ) (hx : 10^16 ≤ x)
+    (A : ℝ) (hA : NonPretentiousAt f A x) (h1A : 1 ≤ A)
+    (hband : 7 * (((halaszM x : ℕ):ℝ) + 1) ≤ A * (x:ℝ)) :
+    ‖(∑ n ∈ Finset.Icc 1 x, f n * ((Real.log (x:ℝ) - Real.log (n:ℝ) : ℝ) : ℂ))
+        * ((Real.log (x:ℝ) : ℝ) : ℂ)‖
+      ≤ halaszBudgetSharp A (x:ℝ) := by
+  classical
+  obtain ⟨y, K₀, hy2, hyx, hy, hylog, hK₀1, hK₀low, hK₀max⟩ :=
+    exists_section3_window_shell x hx
+  have hK₁ : min K₀ ⌈A⌉₊ ≤ K₀ := min_le_left _ _
+  have hcap := rieszMeanC_log_le_sharp_halasz_of_nonPretentious f hf hcm h1
+    x y K₀ (min K₀ ⌈A⌉₊) hx hy2 hyx hy hK₀1 hK₀low hK₀max hK₁ A hA h1A hband
+  exact le_trans hcap (sharp_survivor_price x y K₀ hx hy2 hylog hK₀low hK₀max A h1A)
 
 open Real Finset in
 /-- **The sharp plain-sum Halász bound** (Track R, T0-4): for

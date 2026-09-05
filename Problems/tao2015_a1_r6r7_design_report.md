@@ -704,10 +704,33 @@ shell one on `𝒯₁`. This is the re-plumb T0-6 below.
   `cheap_halasz_twisted_dirichlet_block` with the sharp budget in place of `W`. Numerics for `b ≤ 3a`,
   `a ≥ 10¹⁶`: `cost ≤ (b/a)·(13E/δ₀ + 5.5δ₀) + 2/a` with `E = Ĥ⁺(D/2,3b)/(3b·log 3b)`, so at
   `δ₀ = 1.5√E` the cost is `≲ 17(b/a)√E ≈ 6·10⁶·(b/a)·√(D/2+1)·e^{−D/4} + o(1)`.
-- **T0-6** the recut at the sharp cost: `exceptionalTwistedQuotientCost`, the Ramaré sum, and
-  `cellHalaszReCutBound` re-instantiated with the T0-5 block (a mechanical mirror of VI-9e), and
-  its `ε`-form: `∀ ε, ∃ D₀ x₀, ∀ D ≥ D₀, ∀ a ≥ x₀, cost ≤ ε·∑_{(a,b]} 1/n`-type at
-  `δ₀ := ε/(6e)` — the fixed-strength pointwise envelope for `𝒯₀`.
+- **T0-6** (`HalaszSharpTwist.lean`, on main) — **the twist-range finding and the windowed chain.**
+  `NonPretentiousAt f A x` bundles the distance floor with the frequency range `|s| ≤ A·x` centred at
+  `0`, so for the twisted `g(n)n^{−iξ}` it holds at scale `x` only when `|ξ| ≤ (A−A')·x`
+  (`nonPretentiousAt_archTwist`). The exceptional cells apply the twisted bound at quotient scales
+  `x = A_scale/(q·n₁)` and frequencies `|t| ≤ T ≍ A_scale/H`: `2π|t| ≫ x` as soon as `q·n₁ ≫ H`, and
+  with `q ≥ P_𝒰 ≈ (log A_scale)^{3/4} → ∞` at fixed `H` **no quotient is in range**. So every twisted
+  block bound stated with `|2πt| ≤ (D/2)·a` — VI-9e's `cheap_halasz_twisted_dirichlet_block`, T0-5's
+  `sharp_halasz_twisted_dirichlet_block` — is inapplicable to the exceptional leg (and VI-6's untwisted
+  route paid the Abel factor `3+2πT ≍ A_scale/H` instead). `[mrt]` has no such constraint: `M(f;X)` is
+  the infimum over all `|t| ≤ X`, and Halász is applied at scale `X/p` with twists up to `X`. The
+  capstone itself needs only the *window* `HalaszWindowAt f A x := ∀ t, |t| ≤ halaszM x + 1 →
+  A ≤ 𝔻(f, n^{2πit}; x)²` (`norm_phase_euler_prod_le_of_nonPretentious` uses one level-one twist per
+  frequency). Built: `norm_phase_euler_prod_le_of_distSq`, `norm_smoothPhaseSum_le_of_distSq`,
+  `rieszMeanC_log_le_sharp_halasz_of_window`, `rieszMeanC_log_sharp_le_window` (via the extracted
+  pricing lemma `sharp_survivor_price`), `plain_sumC_le_halaszBudgetSharp_window(_div)`,
+  `prefix_le_sharpPartialBudget_window`, the **bridge** `halaszWindowAt_archTwist_of_nonPretentiousAt`
+  (from `NonPretentiousAt g A N` at the top scale and `|ξ| + 2π(halaszM u + 1) ≤ A·N`, the twisted
+  window at any `4 ≤ u ≤ N` at strength `A − 2(loglog N − loglog u + 12)`, by
+  `pretentiousDistSq_le_add_mass` + `mertens_mass_diff_le`; `≤ 2 log 2 + 24` lost for `u ≥ √N`), and
+  `sharp_halasz_twisted_dirichlet_block_window` (cost `sharpTwistedDirichletCost D δ₀ a b`, no
+  frequency condition). The consumer's non-pretentiousness lives at the top scale `N = 2A_scale+1`
+  with range `A₀·N ≫ 2πT`, exactly what the bridge needs.
+- **T0-6b** the recut at the windowed sharp cost: `exceptionalTwistedQuotientCost`, the Ramaré sum
+  and `cellHalaszReCutBound` re-instantiated with the T0-6 block, the window hypothesis demanded only
+  on long quotients (VI-9e's recut demands its frequency condition `|2πt| ≤ (D/2)·((A/q)/n₁)` for
+  *every* `P`-smooth `n₁ ≤ B/q`, which forces `t = 0` whenever `B/q > A/q` — a second reason it cannot
+  be consumed); then the `ε`-form (`sharpTwistedDirichletCost ≲ 17(b/a)√E`).
 - **T0-7** (Conjectures) the `𝒯₀/𝒯₁` assembly of VI-9f: `𝒯₀ := {|t−t₁| < 6} ∩ band` at the
   sharp cost, `𝒯₁` at strength `ρ·loglog − 9` from `pretentiousDistSq_archTwist_ge_of_mid_or_far`
   or from `M` itself, far regime via `FarRegimeRepulsionAssumption`; then VI-9g.
