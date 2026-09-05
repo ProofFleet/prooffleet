@@ -3,7 +3,7 @@ import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.CharTwistCompose
 
 /-!
-# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-4)
+# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-5)
 
 The major-arc Matomäki–Radziwiłł interface bounds
 `∑_{n} ‖∑_{j=1}^{H} g(n+j)·e(jα)‖/(Hn)` on major arcs `α = a/q + δ`.  The
@@ -56,6 +56,13 @@ first steps rest on.
   the sum of the `⌊H/ℓ⌋ + 1` sub-block sums at the frequency `β` alone, plus the freeze
   cost `H·2π|δ|ℓ`.  With `β = a/q`, each sub-block is exactly the object of
   `norm_restricted_block_ratl_le_char_sum`.
+* `logavg_le_of_meanSquare_dyadic`, `sum_div_comp_div_le`, `norm_filter_block_le_card`
+  (R6-5) — the three bookkeeping facts that turn A.2 into the per-`(k, b, χ)` average:
+  the mean-square bound on dyadic blocks gives the log-averaged `L¹` bound on blocks of
+  ratio `≤ 3` (Cauchy–Schwarz, one split at `2a`); the `d`-to-one reindexing
+  `n ↦ (n + c)/d` of a log-averaged sum costs the factor `4/3` (each fibre has `≤ d`
+  points and `d·n' ≤ n + c ≤ (4/3)n`); and a `1`-bounded filtered block sum is at most
+  the block length (the partial last sub-block).
 -/
 
 open Finset
@@ -578,5 +585,176 @@ theorem norm_filter_block_twisted_le_subblocks_add (p : ℕ → Prop) [Decidable
           ‖∑ m ∈ (Finset.Ioc (n + k * ℓ) (n + min ((k + 1) * ℓ) H)).filter p, h' m‖)
         + (H : ℝ) * (2 * Real.pi * |δ| * ℓ) := by
         gcongr
+
+/-! ### R6-5: the `L¹` form of A.2 on a block, and the `d`-to-one reindexing -/
+
+/-- **A.2 in log-averaged `L¹` form on blocks of ratio at most `3`** (Track R, R6-5).
+
+If the mean square `∑_{(A, A+J]} W(n)²/n ≤ ε²h²∑_{(A, A+J]} 1/n` holds on every
+dyadic block `A₀ ≤ A`, `J ≤ A` (the shape of `SliceMeanSquareA2` at `s = 1`), then on
+any block `(a, b]` with `A₀ ≤ a` and `b ≤ 3a` the log-averaged `L¹` sum is at most
+`εh·∑ 1/n` — Cauchy–Schwarz (`sum_div_le_sqrt_mul_sqrt`) on each of the at most two
+dyadic pieces `(a, 2a]`, `(2a, b]`.  The reindexed ranges of `sum_div_comp_div_le` have
+ratio just above `2`, which is why the block is allowed ratio `3`. -/
+theorem logavg_le_of_meanSquare_dyadic (W : ℕ → ℝ) (hW : ∀ n, 0 ≤ W n)
+    (ε h : ℝ) (hε : 0 ≤ ε) (hh : 0 ≤ h) (A₀ : ℕ)
+    (hA2 : ∀ A J : ℕ, A₀ ≤ A → J ≤ A →
+      ∑ n ∈ Finset.Ioc A (A + J), (W n)^2 / n
+        ≤ ε^2 * h^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n)
+    (a b : ℕ) (ha : A₀ ≤ a) (hb : b ≤ 3 * a) :
+    ∑ n ∈ Finset.Ioc a b, W n / n ≤ ε * h * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n := by
+  classical
+  -- one dyadic block
+  have hsingle : ∀ a b : ℕ, A₀ ≤ a → a ≤ b → b ≤ 2 * a →
+      ∑ n ∈ Finset.Ioc a b, W n / n ≤ ε * h * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n := by
+    intro a b ha hab hb2
+    have hsq : ∑ n ∈ Finset.Ioc a b, (W n)^2 / n
+        ≤ ε^2 * h^2 * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n := by
+      have := hA2 a (b - a) ha (by omega)
+      rwa [Nat.add_sub_of_le hab] at this
+    have h1 : (0:ℝ) ≤ ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n :=
+      Finset.sum_nonneg fun n _ => by positivity
+    have hL : (0:ℝ) ≤ ∑ n ∈ Finset.Ioc a b, W n / n :=
+      Finset.sum_nonneg fun n _ => div_nonneg (hW n) (Nat.cast_nonneg n)
+    have hεh : (0:ℝ) ≤ ε * h := mul_nonneg hε hh
+    -- Cauchy–Schwarz with the weights `1/√n`, `W n/√n`
+    have hcs : (∑ n ∈ Finset.Ioc a b, W n / n)^2
+        ≤ (∑ n ∈ Finset.Ioc a b, (1:ℝ)/n) * ∑ n ∈ Finset.Ioc a b, (W n)^2 / n := by
+      have hcs0 := Finset.sum_mul_sq_le_sq_mul_sq (Finset.Ioc a b)
+        (fun n => 1 / Real.sqrt n) (fun n => W n / Real.sqrt n)
+      have hn0 : ∀ n ∈ Finset.Ioc a b, (0:ℝ) < n := fun n hn => by
+        have := (Finset.mem_Ioc.mp hn).1
+        exact_mod_cast (by omega : 0 < n)
+      have hprod : ∀ n ∈ Finset.Ioc a b,
+          1 / Real.sqrt n * (W n / Real.sqrt n) = W n / n := fun n hn => by
+        rw [div_mul_div_comm, one_mul, Real.mul_self_sqrt (hn0 n hn).le]
+      have hfsq : ∀ n ∈ Finset.Ioc a b, (1 / Real.sqrt n)^2 = (1:ℝ)/n := fun n hn => by
+        rw [div_pow, one_pow, Real.sq_sqrt (hn0 n hn).le]
+      have hgsq : ∀ n ∈ Finset.Ioc a b, (W n / Real.sqrt n)^2 = (W n)^2 / n := fun n hn => by
+        rw [div_pow, Real.sq_sqrt (hn0 n hn).le]
+      rwa [Finset.sum_congr rfl hprod, Finset.sum_congr rfl hfsq,
+        Finset.sum_congr rfl hgsq] at hcs0
+    have hsq' : (∑ n ∈ Finset.Ioc a b, W n / n)^2
+        ≤ (ε * h * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n)^2 := by
+      calc (∑ n ∈ Finset.Ioc a b, W n / n)^2
+          ≤ (∑ n ∈ Finset.Ioc a b, (1:ℝ)/n) * ∑ n ∈ Finset.Ioc a b, (W n)^2 / n := hcs
+        _ ≤ (∑ n ∈ Finset.Ioc a b, (1:ℝ)/n)
+              * (ε^2 * h^2 * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n) :=
+            mul_le_mul_of_nonneg_left hsq h1
+        _ = (ε * h * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n)^2 := by ring
+    exact (pow_le_pow_iff_left₀ hL (mul_nonneg hεh h1) two_ne_zero).mp hsq'
+  rcases le_or_gt b a with hba | hab
+  · -- empty block
+    rw [Finset.Ioc_eq_empty (not_lt.mpr hba)]
+    simp
+  rcases le_or_gt b (2 * a) with hb2 | hb2
+  · exact hsingle a b ha hab.le hb2
+  · have h1 : a ≤ 2 * a := by omega
+    have h2 : 2 * a ≤ b := hb2.le
+    rw [← Finset.sum_Ioc_consecutive (fun n => W n / (n:ℝ)) h1 h2,
+      ← Finset.sum_Ioc_consecutive (fun n => (1:ℝ) / (n:ℝ)) h1 h2, mul_add]
+    exact add_le_add (hsingle a (2 * a) ha h1 le_rfl)
+      (hsingle (2 * a) b (by omega) h2 (by omega))
+
+/-- **A `1`-bounded filtered block sum is at most the block length** (Track R, R6-5):
+the trivial bound, used for the partial last sub-block of the freeze. -/
+theorem norm_filter_block_le_card (p : ℕ → Prop) [DecidablePred p] (h : ℕ → ℂ)
+    (hb : ∀ m, ‖h m‖ ≤ 1) (lo hi : ℕ) :
+    ‖∑ m ∈ (Finset.Ioc lo hi).filter p, h m‖ ≤ ((hi - lo : ℕ) : ℝ) := by
+  classical
+  refine le_trans (norm_sum_le _ _) ?_
+  calc ∑ m ∈ (Finset.Ioc lo hi).filter p, ‖h m‖
+      ≤ ∑ m ∈ (Finset.Ioc lo hi).filter p, (1:ℝ) := Finset.sum_le_sum fun m _ => hb m
+    _ = (((Finset.Ioc lo hi).filter p).card : ℝ) := by
+        rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+    _ ≤ ((Finset.Ioc lo hi).card : ℝ) := by exact_mod_cast Finset.card_filter_le _ _
+    _ = ((hi - lo : ℕ) : ℝ) := by rw [Nat.card_Ioc]
+
+/-- **The `d`-to-one reindexing of a log-averaged sum** (Track R, R6-5).
+
+Under `n ↦ n' = (n + c)/d` the block `(A, B]` maps into `[⌊(A+c)/d⌋, ⌊(B+c)/d⌋]`, each
+`n'` has at most `d` preimages (they are distinguished by `(n + c) mod d`), and
+`d·n' ≤ n + c ≤ (4/3)·n` once `3c ≤ A`; hence
+
+  `∑_{n ∈ (A, B]} f((n+c)/d)/n ≤ (4/3)·∑_{n' ∈ (⌊(A+c)/d⌋ − 1, ⌊(B+c)/d⌋]} f(n')/n'`
+
+for nonnegative `f`.  In the assembly `c = kℓ ≤ H ≤ A/3`, `d = gcd(b, q) ≤ q ≤ A`, and
+`f(n')` is the `𝒮`-restricted window sum of the twist at `n'`, so the right-hand side
+is the log average A.2 bounds. -/
+theorem sum_div_comp_div_le (f : ℕ → ℝ) (hf : ∀ n, 0 ≤ f n) (A B c d : ℕ) (hd : 0 < d)
+    (hdA : d ≤ A) (hcA : 3 * c ≤ A) :
+    ∑ n ∈ Finset.Ioc A B, f ((n + c) / d) / n
+      ≤ (4/3) * ∑ n' ∈ Finset.Ioc ((A + c) / d - 1) ((B + c) / d), f n' / n' := by
+  classical
+  have hAd1 : 1 ≤ (A + c) / d := by
+    rw [Nat.one_le_div_iff hd]
+    omega
+  have hmaps : ∀ n ∈ Finset.Ioc A B,
+      (n + c) / d ∈ Finset.Ioc ((A + c) / d - 1) ((B + c) / d) := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn ⊢
+    have h1 : (A + c) / d ≤ (n + c) / d := Nat.div_le_div_right (by omega)
+    have h2 : (n + c) / d ≤ (B + c) / d := Nat.div_le_div_right (by omega)
+    omega
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps, Finset.mul_sum]
+  refine Finset.sum_le_sum fun n' hn' => ?_
+  have hn'1 : 1 ≤ n' := by
+    rw [Finset.mem_Ioc] at hn'
+    omega
+  have hn'pos : (0:ℝ) < n' := by exact_mod_cast hn'1
+  -- on the fibre the summand is `f n' / n`, and `1/n ≤ (4/3)/(d n')`
+  have hterm : ∀ n ∈ (Finset.Ioc A B).filter (fun n => (n + c) / d = n'),
+      f ((n + c) / d) / n ≤ f n' * ((4/3) / ((d:ℝ) * n')) := by
+    intro n hn
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hn
+    obtain ⟨⟨hAn, _⟩, hdiv⟩ := hn
+    rw [hdiv]
+    have hdn : d * n' ≤ n + c := by
+      rw [← hdiv, mul_comm]
+      exact Nat.div_mul_le_self _ _
+    have hnpos : (0:ℝ) < n := by
+      have : 0 < n := by omega
+      exact_mod_cast this
+    have hkey : (d:ℝ) * n' ≤ (4/3) * n := by
+      have h1 : ((d * n' : ℕ) : ℝ) ≤ ((n + c : ℕ) : ℝ) := by exact_mod_cast hdn
+      have h2 : ((c : ℕ) : ℝ) * 3 ≤ (n : ℝ) := by
+        have : c * 3 ≤ n := by omega
+        exact_mod_cast this
+      push_cast at h1
+      linarith
+    have hdn'pos : (0:ℝ) < (d:ℝ) * n' := by positivity
+    rw [div_eq_mul_one_div (f n') (n:ℝ)]
+    refine mul_le_mul_of_nonneg_left ?_ (hf n')
+    rw [div_le_div_iff₀ hnpos hdn'pos]
+    linarith
+  have hcard : (((Finset.Ioc A B).filter (fun n => (n + c) / d = n')).card : ℝ) ≤ d := by
+    have hinj : Set.InjOn (fun n => (n + c) % d)
+        ↑((Finset.Ioc A B).filter (fun n => (n + c) / d = n')) := by
+      intro x hx y hy hxy
+      simp only [Finset.coe_filter, Set.mem_setOf_eq] at hx hy
+      have hx' := Nat.div_add_mod (x + c) d
+      have hy' := Nat.div_add_mod (y + c) d
+      simp only at hxy
+      rw [hx.2] at hx'
+      rw [hy.2] at hy'
+      omega
+    have hmaps' : Set.MapsTo (fun n => (n + c) % d)
+        ↑((Finset.Ioc A B).filter (fun n => (n + c) / d = n')) ↑(Finset.range d) :=
+      fun n _ => Finset.mem_coe.mpr (Finset.mem_range.mpr (Nat.mod_lt _ hd))
+    have := Finset.card_le_card_of_injOn _ hmaps' hinj
+    rw [Finset.card_range] at this
+    exact_mod_cast this
+  calc ∑ n ∈ (Finset.Ioc A B).filter (fun n => (n + c) / d = n'), f ((n + c) / d) / n
+      ≤ ∑ n ∈ (Finset.Ioc A B).filter (fun n => (n + c) / d = n'),
+          f n' * ((4/3) / ((d:ℝ) * n')) := Finset.sum_le_sum hterm
+    _ = (((Finset.Ioc A B).filter (fun n => (n + c) / d = n')).card : ℝ)
+          * (f n' * ((4/3) / ((d:ℝ) * n'))) := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ (d : ℝ) * (f n' * ((4/3) / ((d:ℝ) * n'))) := by
+        refine mul_le_mul_of_nonneg_right hcard ?_
+        have := hf n'
+        positivity
+    _ = (4/3) * (f n' / n') := by
+        field_simp
 
 end MoltResearch
