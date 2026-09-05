@@ -35,6 +35,8 @@ import MoltResearch.Discrepancy.ExceptionalHalaszSharp
 import MoltResearch.Discrepancy.SmoothRankinTail
 import MoltResearch.Discrepancy.LowBandTypicalS
 import MoltResearch.Discrepancy.LowBandTypicalSSharp
+import MoltResearch.Discrepancy.BrunIntervalSieve
+import MoltResearch.Discrepancy.TypicalSLadderSplit
 import MoltResearch.Discrepancy.PretentiousBandSplit
 import MoltResearch.Discrepancy.WindowAssembly
 import MoltResearch.Discrepancy.BandCapstone

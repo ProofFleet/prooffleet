@@ -967,6 +967,11 @@ the `(T+1)/p_r^{ℓ}` term is `≤ 1`, `(ℓ!)² ≤ T^{2·loglog 2T/log P_{J−
    errors as one Dirichlet polynomial on `(A, B]` (mean value loss `T/A + O(1) ≤ 5`) with the honest coefficient masses: collars
    `≍ (log A/log P_j)·E_j/(N_j A)` (replacement), square divisors `≍ 1/(A P_j log P_j)` (collision). Unit **L4** below.
 
+6. **Empty e-adic cells.** Every level leg demands a representative in every cell (`hqcell`, the ⚠️ note in `BandCapstone.lean`); at
+   width `e^{1/(2N)} < 2` nothing in Mathlib or the tree excludes empty cells. The proofs use the representative only through the upper
+   scale bound `q v ≤ e^{(v+1)/(2N)}` (`quotient_scale_le_cell_scale`), so the lemmas are restated with `hqup` and the numerology takes
+   `q v := ⌈e^{v/(2N)}⌉₊` on empty cells. Unit **V1** (folded into L4).
+
 **What stands.** Level 0's leg (`hscheduleT0/P0` and the S-cal numerics), the recut capstone, the sharp exceptional
 legs at the `[MR]` moment order, R6/R7 up to R9's re-thread, A2-IV-0/1′/2. **Withdrawn:** §7.2's "`J = 1` suffices" and
 the phase-3 amendments' sift device (`N_𝒰 = ⌈exp(64/ε²)⌉₊`); `N_𝒰 := ⌈exp(4/εc)⌉₊` (TK) is enough once `𝒰` is a level.
@@ -997,7 +1002,10 @@ together `h ≥ (C'/(εc ε²))^{6e^{2/εc}}·(log h)^{…}` — polynomial in `
 - **L4** (nucleus leaf + Conjectures wrappers): `typicalSCellReplacement` and `typicalSCollision` as single Dirichlet polynomials on `(A, B]`,
   the `DyadicMVT` mean value theorem applied once, `collisionEnergyBoundWide`; wide-level replacement/collision legs
   (`innerBand_replacement_leg_wide`, `innerBand_level_leg_of_main_wide`).
-- **L3** (numerology, Conjectures leaf; after L2, S, X, L4): the fixed ladder of Finding E.2 and `J(A₁)`; `hscheduleLater r v` for every
+- **V1** (folded into L4): scale-only cell representatives (`hqup` in place of `hqcell`) through the level-one and recut chains; the
+  combined `band_energy_typicalS_le_of_schedule_sharp_cells_wide` (per-cell later legs, wide error legs, `hqup`, the X-split exceptional
+  pointwise bound) is what L3 instantiates.
+- **L3** (numerology, Conjectures leaf; after L2, S, X, L4/V1): the fixed ladder of Finding E.2 and `J(A₁)`; `hscheduleLater r v` for every
   `j ≥ 1` (scale-free), `hscheduleT0/P0` for level 0, the cover count at anchor level `J−1` (`ℓ_r = ⌈log 2T/log p_r⌉₊+1`,
   `KcovBound ≤ T^{0.46}`), `hfitInt`/`hfitPri` at the `[MR]` moment order for `𝒰(A₁)` and all `A ∈ [A₁, A₁²]`, the
   range/strength conditions, `hqcell*`/e-adic covers uniformly in `j` — every inequality as an existence statement with
@@ -1025,6 +1033,17 @@ in `hfit`); **L2** `TrackCStage5InnerBandAssemblyCells.lean` (`innerBand_later_l
 `TrackCStage5InnerBandScheduleSharpCells.lean` (`band_energy_typicalS_le_of_levels_recut_cells`,
 `band_energy_typicalS_le_of_schedule_sharp_cells` with `hscheduleLaterCells` in the compiled shape recorded in the report and free
 shares `kappaCell j r`, `hsharesCells`). No existing theorem changed; pins standard. Next: S+X (run 12), L4 (run 13), L3.
+
+### S+X as run — status (2026-09-05, Codex run 12; report in `Problems/tao2015_s_report.md`)
+
+Done per the S brief: **S-1..S-3** `BrunIntervalSieve.lean` — `card_no_factor_Ioc_le_brun` (Bonferroni at `2k` prime factors, two-sided
+multiple-count error), `sum_one_div_no_factor_Ioc_le_brun`, `prod_inv_one_sub_le_exp`-type consequences, the tree's lower Mertens bound
+`prime_Ioc_mass_lower_mertens` (`log log(hi+1) − log log(lo+1) − 12 ≤ ∑_{lo<p≤hi} 1/p`, from `MertensFloor` + `MertensFirst`), and
+`no_factor_density_le_of_ratio` (`k = ⌈eE⌉₊`: sifted log-mass on `(a, 2a]` `≤ 2(e^{−E} + 2^{−2k−1})∑1/m + 2(#P+1)^{2k}/a`); **S-4 = X**
+`TypicalSLadderSplit.lean` — `typicalSQuotCoeff_append_sub_support`, `norm_typicalS_quot_block_poly_le_sharp_split` (bound
+`cellHalaszSharpBound … base + ladderSiftedLogMass (A/q) (B/q) ladder`), `_split_brun`, the low-band pointwise split
+(`2^{#base}·sharpTwistedDirichletCost + ladderSiftedLogMass`) and `integral_norm_typicalS_dirichlet_poly_sq_le_low_band_eps_split(_brun)`
+(`2K(2^{#base}·η·b/(a+1) + Rem)²`). Ladder sums run over `ladder.toFinset`. Next: L4/V1 (run 13), then L3.
 
 ### Dependency order
 
