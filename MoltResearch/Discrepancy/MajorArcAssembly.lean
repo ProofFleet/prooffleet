@@ -3,7 +3,7 @@ import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.CharTwistCompose
 
 /-!
-# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-5)
+# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-6a)
 
 The major-arc Matomäki–Radziwiłł interface bounds
 `∑_{n} ‖∑_{j=1}^{H} g(n+j)·e(jα)‖/(Hn)` on major arcs `α = a/q + δ`.  The
@@ -63,6 +63,14 @@ first steps rest on.
   `n ↦ (n + c)/d` of a log-averaged sum costs the factor `4/3` (each fibre has `≤ d`
   points and `d·n' ≤ n + c ≤ (4/3)n`); and a `1`-bounded filtered block sum is at most
   the block length (the partial last sub-block).
+* `norm_twisted_filter_block_le_windows_add`, `sum_restricted_residue_mul_eq_gcd_dilate`
+  (R6-6a) — the two shapes the per-`n` assembly composes: the freeze on a block of
+  length `L` trimmed to `h₀·⌊L/h₀⌋`, so that every sub-block is a **full** window
+  `(n + kh₀, n + kh₀ + h₀]` or empty (cost `h₀` for the trimmed tail, `L·2π|δ|h₀` for the
+  freeze, range extended to any `K > L/h₀`); and the gcd dilation with a phase factor
+  carried along, `∑_{m ≡ b} g(m)F(m) = g(d₀)·∑_{m'} g(m')F(d₀m')` — the residue split is
+  done **before** the freeze, so that one window length `h₀` serves every class and the
+  A.2 input is taken at a single `(ε', h₀)` (one `𝒮` for all twists).
 -/
 
 open Finset
@@ -201,7 +209,7 @@ theorem sum_mul_exp_ratl_eq_sum_residues (S : Finset ℕ) (F : ℕ → ℂ) (a :
   rw [hint, Complex.exp_int_mul_two_pi_mul_I, mul_one]
   ring
 
-/-- **The gcd extraction inside a residue class** (Track R, R6-2b).
+/-- **The gcd extraction inside a residue class** (Track R, R6-2b; phase-carrying form, R6-6a).
 
 In the class `m ≡ b (mod q)` every `m` is a multiple of `d₀ = gcd(b, q)`, and
 `m = d₀·m'` runs over the dilated block `(⌊lo/d₀⌋, ⌊hi/d₀⌋]` in the class
@@ -212,17 +220,19 @@ when no level prime divides `q` (`hasFactorInAll_mul_left_iff`).  The hypothesis
 
 The block bounds are `Nat` floors: `lo < d₀·m' ↔ ⌊lo/d₀⌋ < m'` and
 `d₀·m' ≤ hi ↔ m' ≤ ⌊hi/d₀⌋`, so the dilated block is exactly an `Ioc` again — the
-shape A.2 is stated for. -/
-theorem sum_restricted_residue_eq_gcd_dilate (g : ℕ → ℂ) (hg : CompletelyMultiplicativeC g)
+shape A.2 is stated for.  An arbitrary factor `F` rides along (`F(m) = F(d₀·m')`), so the
+slowly varying arc phase `e(mδ)` can be split into classes **before** it is frozen. -/
+theorem sum_restricted_residue_mul_eq_gcd_dilate (g : ℕ → ℂ)
+    (hg : CompletelyMultiplicativeC g)
     (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
     (q : ℕ) (hq : 0 < q) (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q)
-    (b lo hi : ℕ) :
+    (F : ℕ → ℂ) (b lo hi : ℕ) :
     ∑ m ∈ (Finset.Ioc lo hi).filter
-        (fun m => HasFactorInAll levels m ∧ m % q = b), g m
+        (fun m => HasFactorInAll levels m ∧ m % q = b), g m * F m
       = g (Nat.gcd b q)
         * ∑ m' ∈ (Finset.Ioc (lo / Nat.gcd b q) (hi / Nat.gcd b q)).filter
             (fun m' => HasFactorInAll levels m'
-              ∧ m' % (q / Nat.gcd b q) = b / Nat.gcd b q), g m' := by
+              ∧ m' % (q / Nat.gcd b q) = b / Nat.gcd b q), g m' * F (Nat.gcd b q * m') := by
   classical
   have hdq : Nat.gcd b q ∣ q := Nat.gcd_dvd_right b q
   have hdb : Nat.gcd b q ∣ b := Nat.gcd_dvd_left b q
@@ -237,18 +247,18 @@ theorem sum_restricted_residue_eq_gcd_dilate (g : ℕ → ℂ) (hg : CompletelyM
   rw [hqd, hbd, Finset.mul_sum]
   have hterm : ∀ m' ∈ (Finset.Ioc (lo / d) (hi / d)).filter
       (fun m' => HasFactorInAll levels m' ∧ m' % q₀ = b₀),
-      g d * g m' = g (d * m') := by
+      g d * (g m' * F (d * m')) = g (d * m') * F (d * m') := by
     intro m' hm'
     have hm'0 : m' ≠ 0 :=
       (Nat.zero_lt_of_lt (Finset.mem_Ioc.mp (Finset.mem_filter.mp hm').1).1).ne'
-    rw [hg d m' hd0.ne' hm'0]
+    rw [hg d m' hd0.ne' hm'0, mul_assoc]
   rw [Finset.sum_congr rfl hterm]
   have hinj : Set.InjOn (fun m' : ℕ => d * m')
       ↑((Finset.Ioc (lo / d) (hi / d)).filter
         (fun m' => HasFactorInAll levels m' ∧ m' % q₀ = b₀)) := by
     intro x _ y _ hxy
     exact Nat.eq_of_mul_eq_mul_left hd0 hxy
-  rw [← Finset.sum_image hinj]
+  rw [← Finset.sum_image (f := fun y => g y * F y) hinj]
   congr 1
   ext m
   simp only [Finset.mem_image, Finset.mem_filter, Finset.mem_Ioc]
@@ -281,6 +291,22 @@ theorem sum_restricted_residue_eq_gcd_dilate (g : ℕ → ℂ) (hg : CompletelyM
       exact h
     · exact (hasFactorInAll_mul_left_iff levels hlv d m' hdl).mpr hS
     · rw [hq₀, hb₀, Nat.mul_mod_mul_left, hres]
+
+/-- **The gcd extraction inside a residue class** (Track R, R6-2b), phase-free form:
+the case `F = 1` of `sum_restricted_residue_mul_eq_gcd_dilate`. -/
+theorem sum_restricted_residue_eq_gcd_dilate (g : ℕ → ℂ) (hg : CompletelyMultiplicativeC g)
+    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
+    (q : ℕ) (hq : 0 < q) (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q)
+    (b lo hi : ℕ) :
+    ∑ m ∈ (Finset.Ioc lo hi).filter
+        (fun m => HasFactorInAll levels m ∧ m % q = b), g m
+      = g (Nat.gcd b q)
+        * ∑ m' ∈ (Finset.Ioc (lo / Nat.gcd b q) (hi / Nat.gcd b q)).filter
+            (fun m' => HasFactorInAll levels m'
+              ∧ m' % (q / Nat.gcd b q) = b / Nat.gcd b q), g m' := by
+  have := sum_restricted_residue_mul_eq_gcd_dilate g hg levels hlv q hq hql
+    (fun _ => (1 : ℂ)) b lo hi
+  simpa only [mul_one] using this
 
 /-! ### R6-3: the character expansion of a unit class, and the `χ·g` twist -/
 
@@ -756,5 +782,105 @@ theorem sum_div_comp_div_le (f : ℕ → ℝ) (hf : ∀ n, 0 ≤ f n) (A B c d :
         positivity
     _ = (4/3) * (f n' / n') := by
         field_simp
+
+/-! ### R6-6a: the freeze trimmed to full windows -/
+
+/-- **The freeze, trimmed to full windows** (Track R, R6-6a).
+
+On a filtered block `(n, n+L]` twisted by `e(mδ)`, cut off the tail
+`(n + h₀⌊L/h₀⌋, n + L]` (fewer than `h₀` terms, `norm_filter_block_le_card`), then freeze
+the phase on the remaining block of length `h₀⌊L/h₀⌋` in sub-blocks of length `h₀`
+(`norm_filter_block_twisted_le_subblocks_add`).  Because the trimmed length is a multiple
+of `h₀`, every sub-block is either the **full** window `(n + kh₀, n + kh₀ + h₀]` or
+empty, and the sum may be extended to any range `K > L/h₀`.  The result is the shape the
+A.2 input is stated for: plain filtered sums over windows of one fixed length `h₀`. -/
+theorem norm_twisted_filter_block_le_windows_add (p : ℕ → Prop) [DecidablePred p]
+    (h : ℕ → ℂ) (hb : ∀ m, ‖h m‖ ≤ 1) (n L h₀ K : ℕ) (hh₀ : 0 < h₀) (hK : L / h₀ < K)
+    (δ : ℝ) :
+    ‖∑ m ∈ (Finset.Ioc n (n + L)).filter p,
+        h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖
+      ≤ (∑ k ∈ Finset.range K,
+          ‖∑ m ∈ (Finset.Ioc (n + k * h₀) (n + k * h₀ + h₀)).filter p, h m‖)
+        + (h₀ : ℝ) + (L : ℝ) * (2 * Real.pi * |δ| * h₀) := by
+  classical
+  set H' := h₀ * (L / h₀) with hH'
+  have hH'L : H' ≤ L := Nat.mul_div_le L h₀
+  have hLH' : L - H' < h₀ := by
+    have := Nat.div_add_mod L h₀
+    have := Nat.mod_lt L hh₀
+    omega
+  have hH'div : H' / h₀ = L / h₀ := by
+    rw [hH']; exact Nat.mul_div_cancel_left _ hh₀
+  -- split off the tail
+  have hsplit : ∑ m ∈ (Finset.Ioc n (n + L)).filter p,
+      h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))
+      = (∑ m ∈ (Finset.Ioc n (n + H')).filter p,
+          h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ)))
+        + ∑ m ∈ (Finset.Ioc (n + H') (n + L)).filter p,
+          h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ)) := by
+    rw [Finset.sum_filter, Finset.sum_filter, Finset.sum_filter]
+    exact (Finset.sum_Ioc_consecutive _ (Nat.le_add_right n H') (by omega)).symm
+  rw [hsplit]
+  refine le_trans (norm_add_le _ _) ?_
+  -- the tail, trivially
+  have hb' : ∀ m, ‖h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖ ≤ 1 := by
+    intro m
+    rw [norm_mul, Complex.norm_exp]
+    have hre : (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ)).re = 0 := by
+      simp [Complex.mul_re, Complex.mul_im]
+    rw [hre, Real.exp_zero, mul_one]
+    exact hb m
+  have htail : ‖∑ m ∈ (Finset.Ioc (n + H') (n + L)).filter p,
+      h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖ ≤ (h₀ : ℝ) := by
+    refine le_trans (norm_filter_block_le_card p _ hb' (n + H') (n + L)) ?_
+    have : n + L - (n + H') < h₀ := by omega
+    exact_mod_cast this.le
+  -- the freeze on the trimmed block, at `β = 0`
+  have hfreeze := norm_filter_block_twisted_le_subblocks_add p h hb n H' h₀ hh₀ 0 δ
+  simp only [zero_add, Complex.ofReal_zero, mul_zero, Complex.exp_zero, mul_one] at hfreeze
+  -- every sub-block is a full window or empty
+  have hsub : ∀ k ∈ Finset.range (H' / h₀ + 1),
+      ‖∑ m ∈ (Finset.Ioc (n + k * h₀) (n + min ((k + 1) * h₀) H')).filter p, h m‖
+        ≤ ‖∑ m ∈ (Finset.Ioc (n + k * h₀) (n + k * h₀ + h₀)).filter p, h m‖ := by
+    intro k _
+    rcases le_or_gt ((k + 1) * h₀) H' with hk | hk
+    · rw [min_eq_left hk]
+      have : n + (k + 1) * h₀ = n + k * h₀ + h₀ := by ring
+      rw [this]
+    · rw [min_eq_right hk.le]
+      have hkH' : H' ≤ k * h₀ := by
+        have h1 : L / h₀ < k + 1 := by
+          by_contra hcon
+          push_neg at hcon
+          have : (k + 1) * h₀ ≤ h₀ * (L / h₀) := by
+            rw [mul_comm]
+            exact Nat.mul_le_mul_left h₀ hcon
+          omega
+        rw [hH', mul_comm k h₀]
+        exact Nat.mul_le_mul_left h₀ (by omega : L / h₀ ≤ k)
+      have hempty : Finset.Ioc (n + k * h₀) (n + H') = ∅ :=
+        Finset.Ioc_eq_empty (by omega)
+      rw [hempty, Finset.filter_empty, Finset.sum_empty, norm_zero]
+      exact norm_nonneg _
+  have hrange : Finset.range (H' / h₀ + 1) ⊆ Finset.range K := by
+    intro x hx
+    rw [Finset.mem_range] at hx ⊢
+    omega
+  calc ‖∑ m ∈ (Finset.Ioc n (n + H')).filter p,
+          h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖
+        + ‖∑ m ∈ (Finset.Ioc (n + H') (n + L)).filter p,
+          h m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))‖
+      ≤ ((∑ k ∈ Finset.range (H' / h₀ + 1),
+            ‖∑ m ∈ (Finset.Ioc (n + k * h₀) (n + min ((k + 1) * h₀) H')).filter p, h m‖)
+          + (H' : ℝ) * (2 * Real.pi * |δ| * h₀)) + (h₀ : ℝ) := add_le_add hfreeze htail
+    _ ≤ ((∑ k ∈ Finset.range K,
+            ‖∑ m ∈ (Finset.Ioc (n + k * h₀) (n + k * h₀ + h₀)).filter p, h m‖)
+          + (L : ℝ) * (2 * Real.pi * |δ| * h₀)) + (h₀ : ℝ) := by
+        gcongr ?_ + ?_ + _
+        · refine le_trans (Finset.sum_le_sum hsub) ?_
+          exact Finset.sum_le_sum_of_subset_of_nonneg hrange
+            (fun k _ _ => norm_nonneg _)
+        · exact mul_le_mul_of_nonneg_right (by exact_mod_cast hH'L) (by positivity)
+    _ = _ := by ring
 
 end MoltResearch
