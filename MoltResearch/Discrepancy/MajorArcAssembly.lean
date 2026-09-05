@@ -3,7 +3,7 @@ import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.CharTwistCompose
 
 /-!
-# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-6a)
+# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-6b)
 
 The major-arc Matomäki–Radziwiłł interface bounds
 `∑_{n} ‖∑_{j=1}^{H} g(n+j)·e(jα)‖/(Hn)` on major arcs `α = a/q + δ`.  The
@@ -71,6 +71,11 @@ first steps rest on.
   carried along, `∑_{m ≡ b} g(m)F(m) = g(d₀)·∑_{m'} g(m')F(d₀m')` — the residue split is
   done **before** the freeze, so that one window length `h₀` serves every class and the
   A.2 input is taken at a single `(ε', h₀)` (one `𝒮` for all twists).
+* `norm_restricted_window_le_char_windows` (R6-6b) — the per-`n` composition of all of
+  the above: the `𝒮`-restricted window at `n`, twisted by `e(m(a/q + δ))`, is at most
+  `∑_{b<q} (1/φ(q/d₀)) ∑_{χ} [∑_{k<K} ‖∑_{(⌊n/d₀⌋ + kh₀, ⌊n/d₀⌋ + kh₀ + h₀] ∩ 𝒮} χ·g‖
+  + h₀ + L_b·2π|d₀δ|h₀]`.  Every window on the right has the same length `h₀`; the
+  rational frequency, the classes and the arc phase are all gone.
 -/
 
 open Finset
@@ -882,5 +887,110 @@ theorem norm_twisted_filter_block_le_windows_add (p : ℕ → Prop) [DecidablePr
             (fun k _ _ => norm_nonneg _)
         · exact mul_le_mul_of_nonneg_right (by exact_mod_cast hH'L) (by positivity)
     _ = _ := by ring
+
+/-! ### R6-6b: the window at `n`, in classes, characters and full windows -/
+
+/-- **The `𝒮`-restricted window at `n`, in classes, characters and full `h₀`-windows**
+(Track R, R6-6b).
+
+For a `1`-bounded completely multiplicative `g`, a modulus `q` below every level and
+the arc frequency `a/q + δ`: the window sum over `(n, n+H] ∩ 𝒮` is split into the `q`
+classes (`sum_mul_exp_ratl_eq_sum_residues`, the arc phase riding along), each class
+is dilated by `d₀ = gcd(b, q)` (`sum_restricted_residue_mul_eq_gcd_dilate`, the phase
+becoming `e(m'·d₀δ)`), expanded in characters mod `q/d₀`
+(`norm_sum_restricted_unit_class_le`), and the phase is frozen on the dilated block
+`(⌊n/d₀⌋, ⌊(n+H)/d₀⌋]` in full windows of length `h₀`
+(`norm_twisted_filter_block_le_windows_add`, range `K ≥ ⌊H/h₀⌋ + 2`, uniform in `n`
+and in the class).  What remains is `∑_b (1/φ) ∑_χ` of: the `K` window sums
+`‖∑_{(⌊n/d₀⌋ + kh₀, ⌊n/d₀⌋ + kh₀ + h₀] ∩ 𝒮} χ(m')g(m')‖`, the trimmed tail `h₀`, and the
+freeze cost `L_b·2π|d₀δ|h₀` with `L_b = ⌊(n+H)/d₀⌋ − ⌊n/d₀⌋ ≤ H + 1`. -/
+theorem norm_restricted_window_le_char_windows (g : ℕ → ℂ)
+    (hg : CompletelyMultiplicativeC g) (hb : ∀ m, ‖g m‖ ≤ 1)
+    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
+    (q : ℕ) (hq : 0 < q) (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q) (a : ℤ) (δ : ℝ)
+    (n H h₀ K : ℕ) (hh₀ : 0 < h₀) (hK : H / h₀ + 2 ≤ K) :
+    ‖∑ m ∈ (Finset.Ioc n (n + H)).filter (HasFactorInAll levels),
+        g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ)
+          * (((a : ℝ) / (q : ℝ) + δ : ℝ) : ℂ))‖
+      ≤ ∑ b ∈ Finset.range q, (1 / ((q / Nat.gcd b q).totient : ℝ))
+          * ∑ χ : DirichletCharacter ℂ (q / Nat.gcd b q),
+              ((∑ k ∈ Finset.range K,
+                ‖∑ m' ∈ (Finset.Ioc (n / Nat.gcd b q + k * h₀)
+                    (n / Nat.gcd b q + k * h₀ + h₀)).filter (HasFactorInAll levels),
+                  χ m' * g m'‖)
+              + (h₀ : ℝ)
+              + (((n + H) / Nat.gcd b q - n / Nat.gcd b q : ℕ) : ℝ)
+                  * (2 * Real.pi * |(Nat.gcd b q : ℝ) * δ| * h₀)) := by
+  classical
+  set S := (Finset.Ioc n (n + H)).filter (HasFactorInAll levels) with hS
+  -- split the phase into the rational part and the arc part
+  have hphase : ∀ m : ℕ,
+      g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ)
+          * (((a : ℝ) / (q : ℝ) + δ : ℝ) : ℂ))
+        = (g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ)))
+          * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ)) := by
+    intro m
+    have hexp : Complex.exp (2 * Real.pi * Complex.I * (m : ℂ)
+        * (((a : ℝ) / (q : ℝ) + δ : ℝ) : ℂ))
+        = Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (δ : ℂ))
+          * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ)) := by
+      rw [← Complex.exp_add]
+      congr 1
+      push_cast
+      ring
+    rw [hexp]
+    ring
+  simp_rw [hphase]
+  rw [sum_mul_exp_ratl_eq_sum_residues S _ a q hq]
+  refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun b hbq => ?_)
+  have hbq' : b < q := Finset.mem_range.mp hbq
+  have hunit : ‖Complex.exp (2 * Real.pi * Complex.I * (b : ℂ)
+      * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ))‖ = 1 := by
+    rw [Complex.norm_exp]
+    have hre : (2 * Real.pi * Complex.I * (b : ℂ)
+        * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ)).re = 0 := by
+      simp [Complex.mul_re, Complex.mul_im]
+    rw [hre, Real.exp_zero]
+  rw [norm_mul, hunit, one_mul, hS, Finset.filter_filter,
+    sum_restricted_residue_mul_eq_gcd_dilate g hg levels hlv q hq hql _ b n (n + H), norm_mul]
+  -- the class data
+  set d := Nat.gcd b q with hd
+  have hd0 : 0 < d := Nat.gcd_pos_of_pos_right b hq
+  have hdq : d ∣ q := Nat.gcd_dvd_right b q
+  have hq₀ : 0 < q / d := Nat.div_pos (Nat.le_of_dvd hq hdq) hd0
+  have hb₀ : b / d < q / d := Nat.div_lt_div_of_lt_of_dvd hdq hbq'
+  have hcop : Nat.Coprime (b / d) (q / d) := Nat.coprime_div_gcd_div_gcd hd0
+  refine le_trans (mul_le_of_le_one_left (norm_nonneg _) (hb _)) ?_
+  refine le_trans (norm_sum_restricted_unit_class_le _ levels (q / d) (b / d)
+    (n / d) ((n + H) / d) hq₀ hb₀ hcop) ?_
+  refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum fun χ _ => ?_) (by positivity)
+  -- per character: the dilated phase, then the trimmed freeze
+  have hdil : ∀ m' : ℕ,
+      χ m' * (g m' * Complex.exp (2 * Real.pi * Complex.I * ((d * m' : ℕ) : ℂ) * (δ : ℂ)))
+        = (χ m' * g m')
+          * Complex.exp (2 * Real.pi * Complex.I * (m' : ℂ) * (((d : ℝ) * δ : ℝ) : ℂ)) := by
+    intro m'
+    have hexp : 2 * Real.pi * Complex.I * ((d * m' : ℕ) : ℂ) * (δ : ℂ)
+        = 2 * Real.pi * Complex.I * (m' : ℂ) * (((d : ℝ) * δ : ℝ) : ℂ) := by
+      push_cast
+      ring
+    rw [hexp]
+    ring
+  simp only [hdil]
+  have hL : n / d ≤ (n + H) / d := Nat.div_le_div_right (Nat.le_add_right n H)
+  have hblock : Finset.Ioc (n / d) ((n + H) / d)
+      = Finset.Ioc (n / d) (n / d + ((n + H) / d - n / d)) := by
+    rw [Nat.add_sub_cancel' hL]
+  rw [hblock]
+  refine norm_twisted_filter_block_le_windows_add (HasFactorInAll levels)
+    (fun m' => χ m' * g m') (norm_charMul_le_one g hb χ) (n / d) _ h₀ K hh₀ ?_ ((d : ℝ) * δ)
+  -- `L / h₀ < K` uniformly: `L ≤ H + 1`
+  have hL1 : (n + H) / d - n / d ≤ H + 1 := by
+    have hadd := Nat.add_div (a := n) (b := H) hd0
+    have hHd : H / d ≤ H := Nat.div_le_self H d
+    split_ifs at hadd <;> omega
+  calc ((n + H) / d - n / d) / h₀ ≤ (H + h₀) / h₀ := Nat.div_le_div_right (by omega)
+    _ = H / h₀ + 1 := Nat.add_div_right H hh₀
+    _ < K := by omega
 
 end MoltResearch
