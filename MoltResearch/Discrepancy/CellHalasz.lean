@@ -270,17 +270,16 @@ theorem norm_dirichlet_poly_le_harmonic (c : ℕ → ℂ)
   rw [norm_mul, norm_div, Complex.norm_natCast, norm_eq_of_mem_sphere, mul_one]
   exact div_le_div_of_nonneg_right (hc n) (by positivity)
 
-/-- Dividing a factor-two natural block costs at most one endpoint:
-`B/d ≤ 2(A/d)+1`. -/
+/-- Dividing a factor-two natural block, including one previously
+accumulated floor endpoint, still costs at most one endpoint:
+`B ≤ 2A+1` implies `B/d ≤ 2(A/d)+1`. -/
 theorem div_le_two_mul_div_add_one (A B d : ℕ) (hd : 0 < d)
-    (hB : B ≤ 2 * A) :
+    (hB : B ≤ 2 * A + 1) :
     B / d ≤ 2 * (A / d) + 1 := by
-  calc
-    B / d ≤ (2 * A) / d := Nat.div_le_div_right hB
-    _ = (A + A) / d := by rw [two_mul]
-    _ ≤ 2 * (A / d) + 1 := by
-      rw [Nat.add_div hd]
-      split_ifs <;> omega
+  have hAupper : A < (A / d + 1) * d :=
+    (Nat.div_lt_iff_lt_mul hd).mp (Nat.lt_succ_self (A / d))
+  rw [← Nat.lt_succ_iff, Nat.div_lt_iff_lt_mul hd]
+  nlinarith
 
 /-- The `P`-free restriction of a level-free twist is the unrestricted
 twist for `P :: levels`. -/
@@ -389,5 +388,181 @@ theorem norm_levelFreeTwist_long_block_le
   rw [htailset]
   simpa [cellHalaszLongCost, cellHalaszDivisionTail] using
     add_le_add hmainT htail
+
+/-! ## IV-0d: Ramaré weight removal with an explicit quotient budget -/
+
+/-- The harmonic mass of the `P`-supported factors occurring in the
+Ramaré factorization. -/
+noncomputable def pSmoothHarmonicMass (B : ℕ) (P : Finset ℕ) : ℝ :=
+  ∑ n ∈ (Finset.Icc 1 B).filter (fun n => n.primeFactors ⊆ P),
+    (1 : ℝ) / n
+
+/-- The largest explicit quotient-block cost among the finitely many
+`P`-supported factors.  Inserting `0` makes the maximum total even when
+the factor set is empty and records nonnegativity without a side condition. -/
+noncomputable def cellHalaszQuotientBudget
+    (D δ₀ T : ℝ) (A B : ℕ) (P : Finset ℕ) : ℝ :=
+  let costs := ((Finset.Icc 1 B).filter
+    (fun n => n.primeFactors ⊆ P)).image (fun n =>
+      cellHalaszQuotientCost D δ₀ T (A / n) (B / n))
+  (insert 0 costs).max' (insert_nonempty 0 costs)
+
+theorem cellHalaszQuotientCost_le_budget
+    (D δ₀ T : ℝ) (A B : ℕ) (P : Finset ℕ)
+    (n : ℕ) (hn : n ∈ (Finset.Icc 1 B).filter
+      (fun n => n.primeFactors ⊆ P)) :
+    cellHalaszQuotientCost D δ₀ T (A / n) (B / n)
+      ≤ cellHalaszQuotientBudget D δ₀ T A B P := by
+  classical
+  unfold cellHalaszQuotientBudget
+  apply Finset.le_max'
+  rw [Finset.mem_insert]
+  right
+  exact Finset.mem_image.mpr ⟨n, hn, rfl⟩
+
+/-- One `P`-free quotient polynomial is bounded by its explicit
+long/short cost. -/
+theorem norm_filter_levelFreeTwist_quotient_le_cost
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g)
+    (hg : ∀ n, ‖g n‖ ≤ 1) (h1 : g 1 = 1)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (levels : List (Finset ℕ))
+    (hlevels : ∀ Q ∈ levels, ∀ p ∈ Q, p.Prime)
+    (D : ℝ) (hD : 1 ≤ D) (δ₀ : ℝ) (hδ0 : 0 < δ₀) (hδ1 : δ₀ ≤ 1)
+    (A B n₁ : ℕ) (hn₁ : 0 < n₁) (hAB : A ≤ B) (hB2 : B ≤ 2 * A + 1)
+    (T t : ℝ) (ht : |t| ≤ T)
+    (hNP : ∀ u : ℕ, cellHalaszThreshold ≤ u → u ≤ 3 * (B / n₁) →
+      NonPretentiousAt g (2 * D) u) :
+    ‖∑ n ∈ (Finset.Ioc (A / n₁) (B / n₁)).filter
+          (fun n => ∀ p ∈ P, ¬ p ∣ n),
+        (levelFreeTwist g levels n / (n : ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖
+      ≤ cellHalaszQuotientCost D δ₀ T (A / n₁) (B / n₁) := by
+  rw [sum_filter_levelFreeTwist_eq_cons]
+  by_cases hlong : cellHalaszThreshold ≤ B / n₁
+  · rw [cellHalaszQuotientCost, if_pos hlong]
+    apply norm_levelFreeTwist_long_block_le g hcm hg h1 (P :: levels)
+      (by
+        intro Q hQ p hpQ
+        rw [List.mem_cons] at hQ
+        rcases hQ with rfl | hQ
+        · exact hP p hpQ
+        · exact hlevels Q hQ p hpQ)
+      D hD δ₀ hδ0 hδ1 (A / n₁) (B / n₁)
+      (Nat.div_le_div_right hAB)
+      (div_le_two_mul_div_add_one A B n₁ hn₁ hB2)
+      T t ht hlong hNP
+  · rw [cellHalaszQuotientCost, if_neg hlong]
+    exact norm_dirichlet_poly_le_harmonic
+      (levelFreeTwist g (P :: levels))
+      (norm_levelFreeTwist_le_one g hg (P :: levels)) (A / n₁) (B / n₁) t
+
+/-- Ramaré weight removal followed by the uniform maximum of the
+explicit quotient costs. -/
+theorem norm_levelFreeTwist_ramare_poly_le
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g)
+    (hg : ∀ n, ‖g n‖ ≤ 1) (h1 : g 1 = 1)
+    (levels : List (Finset ℕ))
+    (hlevels : ∀ Q ∈ levels, ∀ p ∈ Q, p.Prime)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (D : ℝ) (hD : 1 ≤ D) (δ₀ : ℝ) (hδ0 : 0 < δ₀) (hδ1 : δ₀ ≤ 1)
+    (A B : ℕ) (hAB : A ≤ B) (hB2 : B ≤ 2 * A + 1)
+    (T t : ℝ) (ht : |t| ≤ T)
+    (hNP : ∀ u : ℕ, cellHalaszThreshold ≤ u → u ≤ 3 * B →
+      NonPretentiousAt g (2 * D) u) :
+    ‖∑ n ∈ Finset.Ioc A B,
+        (levelFreeTwist g levels n / (n : ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)
+          / (((P.filter (· ∣ n)).card : ℂ) + 1)‖
+      ≤ pSmoothHarmonicMass B P *
+          cellHalaszQuotientBudget D δ₀ T A B P := by
+  have htwcm := completelyMultiplicativeC_levelFreeTwist g hcm levels hlevels
+  have htwbd := norm_levelFreeTwist_le_one g hg levels
+  refine (norm_ramare_weighted_poly_le (levelFreeTwist g levels)
+    htwcm htwbd A B P hP t
+    (cellHalaszQuotientBudget D δ₀ T A B P) ?_).trans_eq ?_
+  · intro n₁ hn₁
+    have hn₁pos : 0 < n₁ := by
+      rw [Finset.mem_filter, Finset.mem_Icc] at hn₁
+      exact hn₁.1.1
+    refine (norm_filter_levelFreeTwist_quotient_le_cost g hcm hg h1 P hP
+      levels hlevels D hD δ₀ hδ0 hδ1 A B n₁ hn₁pos hAB hB2 T t ht ?_).trans
+      (cellHalaszQuotientCost_le_budget D δ₀ T A B P n₁ hn₁)
+    intro u hu hub
+    apply hNP u hu
+    have hdiv : B / n₁ ≤ B := Nat.div_le_self _ _
+    omega
+  · rfl
+
+/-! ## VI-6: the per-cell Halász input -/
+
+/-- The complete explicit `δ` for one cell.  Its factors are, in order,
+the `2^J` inclusion–exclusion cost, the `P`-smooth harmonic mass from
+Ramaré weight removal, and the largest fully expanded long/short
+quotient-block cost. -/
+noncomputable def cellHalaszBound
+    (D δ₀ T : ℝ) (Aq Bq : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) : ℝ :=
+  ((2 ^ rest.length : ℕ) : ℝ) * pSmoothHarmonicMass Bq P
+    * cellHalaszQuotientBudget D δ₀ T Aq Bq P
+
+/-- **The per-cell Halász input** (Track R, A2-III, VI-6).
+
+Uniformly for `|t| ≤ T`, the cell representative block is bounded by
+the named quantity `cellHalaszBound`.  Expanding its definitions shows
+all constants: `2^rest.length`, the `P`-smooth harmonic mass up to
+`B/q`, IV-0f-3's `halaszBudgetShell D (3b)`, the free parameter
+`δ₀ ∈ (0,1]`, Abel's `3+2πT` divided by the quotient scale
+`(A/q)/n₁`, the possible one-point division tail, and the exact
+harmonic mass of every block whose top is below `10^16`.
+
+The hypothesis on `g` is at strength `2D`; Ramaré robustness transfers
+it to every inclusion–exclusion and `P`-free twist at strength `D`. -/
+theorem norm_typicalS_quot_block_poly_le
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g)
+    (hg : ∀ n, ‖g n‖ ≤ 1) (h1 : g 1 = 1)
+    (A B q : ℕ) (hq : 1 ≤ q) (hAB : A ≤ B) (hB2 : B ≤ 2 * A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ))
+    (hrest : ∀ Q ∈ rest, ∀ p ∈ Q, p.Prime)
+    (D : ℝ) (hD : 1 ≤ D) (δ₀ : ℝ) (hδ0 : 0 < δ₀) (hδ1 : δ₀ ≤ 1)
+    (T t : ℝ) (ht : |t| ≤ T)
+    (hNP : ∀ u : ℕ, cellHalaszThreshold ≤ u → u ≤ 3 * (B / q) →
+      NonPretentiousAt g (2 * D) u) :
+    ‖∑ n ∈ Finset.Ioc (A / q) (B / q),
+        (typicalSQuotCoeff g P (typicalS 0 B rest) n / (n : ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖
+      ≤ cellHalaszBound D δ₀ T (A / q) (B / q) P rest := by
+  classical
+  have hq0 : 0 < q := hq
+  have hABq : A / q ≤ B / q := Nat.div_le_div_right hAB
+  have hBq2 : B / q ≤ 2 * (A / q) + 1 :=
+    div_le_two_mul_div_add_one A B q hq0 (by omega)
+  have hBqB : B / q ≤ B := Nat.div_le_self _ _
+  refine (norm_typicalSQuotCoeff_poly_le_inclexcl g P rest
+    (A / q) (B / q) B hBqB t).trans ?_
+  let C : ℝ := pSmoothHarmonicMass (B / q) P
+    * cellHalaszQuotientBudget D δ₀ T (A / q) (B / q) P
+  calc
+    (rest.sublists.map fun S =>
+        ‖∑ n ∈ Finset.Ioc (A / q) (B / q),
+            (levelFreeTwist g S n / (n : ℂ))
+              * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)
+              / (((P.filter (· ∣ n)).card : ℂ) + 1)‖).sum
+        ≤ (rest.sublists.map fun _ => C).sum := by
+          apply List.sum_le_sum
+          intro S hS
+          apply norm_levelFreeTwist_ramare_poly_le g hcm hg h1 S
+            (by
+              intro Q hQS p hpQ
+              exact hrest Q ((List.mem_sublists.mp hS).mem hQS) p hpQ)
+            P hP D hD δ₀ hδ0 hδ1 (A / q) (B / q) hABq hBq2 T t ht hNP
+    _ = cellHalaszBound D δ₀ T (A / q) (B / q) P rest := by
+      rw [show (rest.sublists.map fun _ => C) =
+          List.replicate rest.sublists.length C from List.map_const,
+        List.sum_replicate, List.length_sublists, nsmul_eq_mul]
+      simp only [C, cellHalaszBound]
+      push_cast
+      ring
 
 end MoltResearch
