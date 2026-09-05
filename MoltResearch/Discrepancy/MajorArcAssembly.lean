@@ -3,7 +3,7 @@ import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.CharTwistCompose
 
 /-!
-# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-6d)
+# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-7)
 
 The major-arc Matomäki–Radziwiłł interface bounds
 `∑_{n} ‖∑_{j=1}^{H} g(n+j)·e(jα)‖/(Hn)` on major arcs `α = a/q + δ`.  The
@@ -86,6 +86,14 @@ first steps rest on.
   `(A, 2A]` of the `𝒮`-restricted window sums at `a/q + δ` is at most
   `(16qε' + qh₀/H + 4πq²|δ|h₀)·∑_{(A,2A]} 1/n`.  This is R6-6 of the report, with the
   three costs (A.2 main term, trimmed tails, freeze) explicit.
+* `nonPretentiousAt_scale_up`, `sum_card_filter_window_div_le` (R6-7 / R7-3a) — the two
+  facts the wrapper needs around the block bound: non-pretentiousness at scale `x`
+  transfers **up** to any scale `z ≤ c·x` at strength `A/c` (the distance only grows, the
+  frequency range `|t| ≤ (A/c)·z ≤ A·x` is covered), so the twisted block scale `2A'+1`,
+  which may exceed `x` for the top dyadic blocks, is reached without a Mertens cost; and
+  the harmonic-weighted sliding count `∑_{n∈(A,B]} #((n,n+H] ∩ {p})/n ≤ 2H·∑_{m∈(A,B+H]∩{p}} 1/m`
+  (each `m` is met by at most `H` windows, all starting at `n ≥ m − H ≥ m/2`), which prices
+  the once-paid `𝒮ᶜ` removal by the block's `𝒮ᶜ` log-density.
 -/
 
 open Finset
@@ -1333,5 +1341,96 @@ theorem sum_restricted_window_logavg_le_of_meanSquare (g : ℕ → ℂ)
       = 8 * q * ε' + (q * h₀ / H + 4 * Real.pi * q^2 * |δ| * h₀) * S := by ring
   rw [hexp]
   linarith
+
+/-! ### R6-7: the upward scale transfer, and the harmonic sliding count -/
+
+/-- **Non-pretentiousness transfers up in scale at a bounded cost in strength** (Track R,
+R6-7).  If `g` is unimodular and non-pretentious at strength `A` and truncation `x`, then
+for any truncation `z` with `x ≤ z ≤ c·x` it is non-pretentious at strength `A/c` (more
+precisely any `A'` with `A'·c ≤ A`): the distance to every twist only grows with the
+truncation (`pretentiousDistSq_mono_of_norm_le_one`), the moduli `q ≤ A' ≤ A` are covered,
+and the frequency range `|t| ≤ A'·z ≤ A'·c·x ≤ A·x` is covered.  In the wrapper the top
+dyadic blocks of `(x/w, x]` have twisted block scale `2A'+1` up to `≈ 4x`, so the
+interface's `NonPretentiousAt g A ⌈x⌉₊` is first moved up to scale `8⌈x⌉₊` at strength
+`A/8` and only then transferred down (`nonPretentiousAt_scale_transfer`) to each block. -/
+theorem nonPretentiousAt_scale_up {g : ℕ → ℂ} (hg : Unimodular g) {A A' c : ℝ} {x z : ℕ}
+    (h : NonPretentiousAt g A x) (hxz : x ≤ z) (hzc : (z : ℝ) ≤ c * x)
+    (hA'0 : 0 ≤ A') (hc1 : 1 ≤ c) (hA' : A' * c ≤ A) :
+    NonPretentiousAt g A' z := by
+  intro q χ t hq ht
+  have hAA' : A' ≤ A := le_trans (le_mul_of_one_le_right hA'0 hc1) hA'
+  have hq' : (q : ℝ) ≤ A := le_trans hq hAA'
+  have ht' : |t| ≤ A * x := by
+    calc |t| ≤ A' * z := ht
+      _ ≤ A' * (c * x) := mul_le_mul_of_nonneg_left hzc hA'0
+      _ = (A' * c) * x := by ring
+      _ ≤ A * x := mul_le_mul_of_nonneg_right hA' (Nat.cast_nonneg x)
+  calc A' ≤ A := hAA'
+    _ ≤ pretentiousDistSq g (charTwist q χ t) x := h q χ t hq' ht'
+    _ ≤ pretentiousDistSq g (charTwist q χ t) z :=
+        pretentiousDistSq_mono_of_norm_le_one hg (charTwist_norm_le_one q χ t) hxz
+
+/-- **The harmonic-weighted sliding count** (Track R, R7-3a).
+
+Summing over `n ∈ (A, B]` the number of `m ∈ (n, n+H]` with property `p`, weighted by
+`1/n`, costs at most `2H` times the harmonic mass of the `p`-integers in `(A, B+H]`: each
+such `m` is met by the windows with `m − H ≤ n < m`, at most `H` of them, and each has
+`n ≥ m − H ≥ m/2` once `2H ≤ A`.  With `p = 𝒮ᶜ` this is the once-paid `𝒮ᶜ` removal of
+report §7.3, priced by the block's `𝒮ᶜ` log-density. -/
+theorem sum_card_filter_window_div_le (p : ℕ → Prop) [DecidablePred p] (A B H : ℕ)
+    (hHA : 2 * H ≤ A) :
+    ∑ n ∈ Finset.Ioc A B, (((Finset.Ioc n (n + H)).filter p).card : ℝ) / n
+      ≤ 2 * H * ∑ m ∈ (Finset.Ioc A (B + H)).filter p, (1:ℝ) / m := by
+  classical
+  -- the window count as an indicator sum over the enclosing range
+  have hcard : ∀ n ∈ Finset.Ioc A B, (((Finset.Ioc n (n + H)).filter p).card : ℝ) / n
+      = ∑ m ∈ (Finset.Ioc A (B + H)).filter p,
+          if n < m ∧ m ≤ n + H then (1:ℝ) / n else 0 := by
+    intro n hn
+    rw [Finset.mem_Ioc] at hn
+    have hset : (Finset.Ioc n (n + H)).filter p
+        = ((Finset.Ioc A (B + H)).filter p).filter (fun m => n < m ∧ m ≤ n + H) := by
+      ext m
+      simp only [Finset.mem_filter, Finset.mem_Ioc]
+      constructor
+      · rintro ⟨⟨h1, h2⟩, hp⟩
+        exact ⟨⟨⟨by omega, by omega⟩, hp⟩, h1, h2⟩
+      · rintro ⟨⟨_, hp⟩, h1, h2⟩
+        exact ⟨⟨h1, h2⟩, hp⟩
+    rw [hset, Finset.card_filter, Nat.cast_sum, Finset.sum_div]
+    refine Finset.sum_congr rfl fun m _ => ?_
+    split_ifs <;> simp
+  rw [Finset.sum_congr rfl hcard, Finset.sum_comm, Finset.mul_sum]
+  refine Finset.sum_le_sum fun m hm => ?_
+  rw [Finset.mem_filter, Finset.mem_Ioc] at hm
+  obtain ⟨⟨hAm, _⟩, _⟩ := hm
+  have hm0 : (0:ℝ) < m := by exact_mod_cast (by omega : 0 < m)
+  -- the windows meeting `m`
+  rw [← Finset.sum_filter]
+  have hsub : (Finset.Ioc A B).filter (fun n => n < m ∧ m ≤ n + H) ⊆ Finset.Ico (m - H) m := by
+    intro n hn
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hn
+    rw [Finset.mem_Ico]
+    omega
+  have hcardle : (((Finset.Ioc A B).filter (fun n => n < m ∧ m ≤ n + H)).card : ℝ) ≤ H := by
+    have h1 := Finset.card_le_card hsub
+    rw [Nat.card_Ico] at h1
+    have h2 : m - (m - H) ≤ H := by omega
+    exact_mod_cast le_trans h1 h2
+  have hpt : ∀ n ∈ (Finset.Ioc A B).filter (fun n => n < m ∧ m ≤ n + H),
+      (1:ℝ) / n ≤ 2 / m := by
+    intro n hn
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hn
+    have hn0 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
+    rw [div_le_div_iff₀ hn0 hm0]
+    have : (m : ℝ) ≤ 2 * n := by exact_mod_cast (by omega : m ≤ 2 * n)
+    linarith
+  calc ∑ n ∈ (Finset.Ioc A B).filter (fun n => n < m ∧ m ≤ n + H), (1:ℝ) / n
+      ≤ ∑ n ∈ (Finset.Ioc A B).filter (fun n => n < m ∧ m ≤ n + H), (2:ℝ) / m :=
+        Finset.sum_le_sum hpt
+    _ = (((Finset.Ioc A B).filter (fun n => n < m ∧ m ≤ n + H)).card : ℝ) * (2 / m) := by
+        rw [Finset.sum_const, nsmul_eq_mul]
+    _ ≤ (H : ℝ) * (2 / m) := mul_le_mul_of_nonneg_right hcardle (by positivity)
+    _ = 2 * H * (1 / m) := by ring
 
 end MoltResearch
