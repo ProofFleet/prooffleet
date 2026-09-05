@@ -24,6 +24,8 @@ import MoltResearch.Discrepancy.HalaszCapstone
 import MoltResearch.Discrepancy.HalaszComplex
 import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.WindowTK
+import MoltResearch.Discrepancy.LargePrimePolynomialCount
+import MoltResearch.Discrepancy.ExceptionalCellCover
 import MoltResearch.Discrepancy.WindowAssembly
 import MoltResearch.Discrepancy.BandCapstone
 import MoltResearch.Discrepancy.BandSchedule
