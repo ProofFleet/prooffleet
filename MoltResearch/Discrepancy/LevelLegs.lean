@@ -2212,4 +2212,39 @@ theorem eadic_replacement_error_le_budget
   · exact hrho
   · exact hfit
 
+
+/-! ## Rotating a level to the head (Track R, A2-III, VI-4-1) -/
+
+/-- Typicality is a property of the *set* of levels: permuting the list
+changes nothing. -/
+theorem hasFactorInAll_of_perm {levels levels' : List (Finset ℕ)}
+    (h : levels.Perm levels') (n : ℕ) :
+    HasFactorInAll levels n ↔ HasFactorInAll levels' n := by
+  constructor <;> intro hn P hP
+  · exact hn P (h.mem_iff.mpr hP)
+  · exact hn P (h.mem_iff.mp hP)
+
+/-- **The typical set is invariant under permuting the levels.**
+
+`typicalS a b levels` filters `Ioc a b` by `HasFactorInAll levels`, a
+conjunction over the list's members, so it depends on the list only through
+its underlying set. -/
+theorem typicalS_perm (a b : ℕ) {levels levels' : List (Finset ℕ)}
+    (h : levels.Perm levels') :
+    typicalS a b levels = typicalS a b levels' := by
+  ext n
+  simp only [mem_typicalS]
+  rw [hasFactorInAll_of_perm h]
+
+/-- **Any level can be rotated to the head.**
+
+The N3-f decomposition (`typicalS_phase_main_add_coll`) and everything built on
+it in this module peel the *head* of the level list.  A level sitting in the
+middle, `L₁ ++ P :: L₂`, is brought to the head at no cost: the typical set is
+the same as for `P :: (L₁ ++ L₂)`.  This is what lets one polynomial — over the
+full list — carry every level leg and the exceptional leg at once. -/
+theorem typicalS_middle (a b : ℕ) (L₁ L₂ : List (Finset ℕ)) (P : Finset ℕ) :
+    typicalS a b (L₁ ++ P :: L₂) = typicalS a b (P :: (L₁ ++ L₂)) :=
+  typicalS_perm a b List.perm_middle
+
 end MoltResearch
