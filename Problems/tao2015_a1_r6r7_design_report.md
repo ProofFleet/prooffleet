@@ -566,6 +566,48 @@ exceptional-leg re-cut that discharges it (Phase 0, Codex-scale).
 - **R7-7** `ShortIntervalMeanSquareA1` from R6-9 + R7-3 (`[mrt]` A.1 in tree form, the
   paper's statement, for the record).
 
+### R6/R7 as built — errata (2026-09-05, PRs #3658–#3673)
+
+The chain above was built in `MoltResearch/Discrepancy/MajorArcAssembly.lean`,
+`MoltResearch/Discrepancy/MajorArcBlockScale.lean`, and the Conjectures leaves
+`TrackCStage5MajorArcA2.lean` (the Prop + `majorArc_block_bound_restricted`),
+`TrackCStage5MajorArcMR.lean` (the wrapper) and `TrackCStage5MajorArcEDP.lean`
+(`edp_of_sliceMeanSquareA2`, audit-pinned).  Three departures from the plan above:
+
+1. **Classes before the freeze (R6-4/R6-5 order).** Freezing first gives dilated windows
+   of length `ℓ/d₀`, one per divisor `d₀ ∣ q`; but the Prop chooses `levels` (= `𝒮`) as a
+   function of the window length, so the classes would have seen different `𝒮`'s and the
+   once-paid `𝒮ᶜ` removal would not be well defined.  As built: residue split
+   (`sum_mul_exp_ratl_eq_sum_residues`, the arc phase riding along), gcd dilation
+   (`sum_restricted_residue_mul_eq_gcd_dilate`, phase `e(m'·d₀δ)`), characters, and only
+   then the freeze in the dilated variable at **one** window length `h₀`
+   (`norm_twisted_filter_block_le_windows_add`, trimmed so every sub-block is a full window
+   or empty).  Same cost `2πQh₀` per `n`.
+2. **The Prop carries the `𝒮ᶜ` density and the level-prime bound.** §1.2's Prop had only
+   primality of the levels; R7-3 cannot be closed against that (the levels depend on `h`
+   and their masses are not visible to the wrapper).  `SliceMeanSquareA2` as defined
+   quantifies `∀ εc > 0, ∀ B C, ∃ h₁ C₁ k, ∀ ε > 0, ∀ h ≥ h₁ with C₁/ε^k ≤ h, ∃ levels A₀`
+   with: primes, primes `> C(log h)^B`, `𝒮ᶜ` log-density `≤ εc` on dyadic blocks above `A₀`,
+   and the mean square at `s = 1`.  The `h`-threshold is polynomial in `1/ε` (the wrapper
+   takes `ε' = ε/(128Q)`, `Q ≍ (log H)^B`); the density parameter `εc = ε/48` is fixed, so
+   its threshold `h₁` may be anything (`H₀(ε) ≈ exp(exp(16/ε)·125)` of §9.3 lives there).
+   The Prop is invoked at polylog constant `2^B·C`, so that `2^B C(log h₀)^B ≥ C(log H)^B`
+   follows from `H ≤ h₀²`.
+3. **Constants, and the block scale.** Block `(A, 2A]` exactly (the range is *covered* by
+   dyadic blocks, `sum_Ioc_le_sum_dyadic_cover`; short partial blocks break the `∑1/n`
+   comparison).  Good block: `6qH ≤ A`, `7q² ≤ A`, `⌈A₀⌉₊ + 1 ≤ ⌊A/q⌋`, and the A.2 input
+   is demanded only on blocks ending below `3A`, fed for every twist from **one**
+   hypothesis `NonPretentiousAt g (qA₀ + 26) (6A+1)` (`nonPretentiousAt_charMul_of_block`,
+   Mertens cost `≤ 26` since `⌊A/q⌋² ≥ 6A+1`), itself obtained from the interface's
+   `NonPretentiousAt g A ⌈x⌉₊` by going **up** to `8⌈x⌉₊` at strength `A/8`
+   (`nonPretentiousAt_scale_up`; the top blocks' scale exceeds `x`) and down at cost
+   `2log(1/θ) + 24` on the good blocks `log(6A+1) ≥ θ log(8⌈x⌉₊)`, `θ = ε/64`
+   (`nonPretentiousAt_block_of_good`).  Per good block the coefficient is
+   `16qε' + qh₀/H + 4πq²|δ|h₀ + 6εc ≤ (21/64)ε`; small blocks (`A < L₀ = ⌈Q(6H+7Q+A₀+2)⌉₊`)
+   cost `≤ log(2L₀)`, bad blocks `≤ 2 + 15ε/64 + (ε/32)log w`; the interface's threshold
+   is `A₀ := 8(QA₀^{A.2} + 50 + 2log(64/ε)) + exp((6log(2L₀) + 80)/ε)`.  R6-9/R7-7 (A.1 for
+   the record) were not cut; §7.3 stands.
+
 ### Dependency order
 
 ```
