@@ -906,6 +906,73 @@ sifted slice energy is `≤ 4h²(1/E_𝒰 + o(1))∑_{(A,A+J]}1/n ≤ (ε²/4)h�
 `D₀(ε')`, `A₀`). The density clause of the Prop then involves level one only (`E₁ ≥ 8/εc`, the `h₁(εc)` threshold).
 Run 9d (brief = phase-3 brief + resume notes 2–3) executes both repairs, then A2-IV-3 → A2-V → `sliceMeanSquareA2`.
 
+### Finding E — the exceptional cover forces the `[MR]` ladder and a scale-dependent level list (Codex run 9d, 2026-09-05)
+
+Run 9d (`…SharpFit.lean`: `sharpExceptionalCoverBound_fixed_anchor_lower`, `schedule_hfitInt_forces_fixed_anchor_term`,
+`exists_const_mul_log_pow_le_sqrt`; report in `Problems/tao2015_vi9g_phase3_report.md`): `sharpExceptionalCoverBound`
+counts the cells of the exceptional part through the anchors of the **last ordinary level** (`firstPrevLargePart`,
+`le:Rupest` at level `J−1`), and for a nonempty anchored cell at a *fixed* prime scale `P` the count is
+`≥ e^π(T+1)/(2P)^{4P}` for **every** moment order — a fixed Dirichlet polynomial is large on a positive proportion of
+`[−T, T]`. With §7.2's "`J = 1` + `𝒰`" the anchor level is `[P₁, Q₁] ⊂ [1, h]`, so `KcovBound ≍ T` and `hfitInt`'s
+term `V₀²·KcovBound·√T·q_v/A ≍ √A/(log A)^{200}`. This is `[MR]` step 2 (`|𝒯| ≪ T^{1/2−η}X^{o(1)}`) attempted at the
+wrong level. The count works at an anchor level of height `P_{J−1} ≥ (log T)^{40}`: with `ℓ_r = ⌈log 2T/log p_r⌉ + 1`
+the `(T+1)/p_r^{ℓ}` term is `≤ 1`, `(ℓ!)² ≤ T^{2·loglog 2T/log P_{J−1}} ≤ T^{1/20}`, and the per-cell threshold
+`e^{−α r/(2N)} = p_r^{−α_{J−1}}` gives `V^{−2ℓ} ≈ (2T·p_r)^{2α_{J−1}}`; hence `KcovBound ≤ T^{2α_{J−1}+0.06+o(1)} ≤ T^{0.46}`
+(`α_j = scheduleAlpha (1/20) (j+1) < 1/5`) and `hfitInt`'s term is `A^{−0.04+o(1)}`. Three consequences.
+
+1. **The level list must depend on the scale.** An anchor at height `(log A)^{40}` cannot belong to a `levels` fixed
+   before `∀ A`. `[mrt]` A.2 has exactly this: `𝒮 = 𝒮(X₀)`, `√X ≤ X₀ ≤ X` — one level list serves all scales in
+   `[X₀, X₀²]`, the level *sequence* is fixed and only the number `J(X₀)` of levels grows. This is **R9** (below). It also
+   retires the sift device of the phase-3 amendments: `𝒰(A₁)` with `P_𝒰(A₁) = exp((log A₁)^{49/50})` is again a level of
+   `𝒮(A₁)` (its saving at `T ≤ 2A₁²+1` is `≥ exp(−(log A₁)^{49/50}/(log(4A₁²+2))^{3/4}) = exp(−c(log A₁)^{0.23})`), and every
+   level's complement is paid by TK in the Prop's density clause.
+2. **The ladder is needed; one jump does not work.** The later-level moment trick borrows `ℓ = ⌈log(p_v T/A)/log p_r⌉`
+   copies of the previous large cell polynomial and pays `(ℓ!)² ≤ p_v^{2 log L_j/log P_{j−1}}`, `L_j := log Q_j/log P_{j−1}`,
+   against the current cell's smallness `p_v^{−2α_j}` and the previous cell's largeness `p_r^{2α_{j−1}ℓ} ≈ (p_v T/A)^{2α_{j−1}}p_r^{2α_{j−1}}`;
+   the net per-cell factor is `p_v^{−2Δα_j + 2 log L_j/log P_{j−1}}·p_r^{2α_{j−1}}·(T/A)^{2α_{j−1}}`, `Δα_j = α_j − α_{j−1} = 1/(40j(j+1))`,
+   so the level below must satisfy `P_{j−1} ≥ L_j^{2/Δα_j}` — `[MR]`'s "not too far" `loglog Q_j ≤ (η/4j²) log P_{j−1}`. A
+   fixed level 0 below an anchor at `(log A)^{40}` has `L ≈ 40 loglog A/log P₀ → ∞`. The ladder: a **fixed** sequence
+   `P_j = Q_{j−1}^{40j²}` (not too close: the summed loss `Q_{j−1}^{2α_{j−1}}` against `P_j^{−Δα_j}` is `Q_{j−1}^{0.4 − j/(j+1)} ≤ Q_{j−1}^{−0.1}`),
+   `log Q_j = ratio_j·log P_j` with `ratio_j = e^{2^{j+1}/εc}` (TK density `∑_{j≥1} 1/E_j ≤ εc/2`, `E_j = log ratio_j`), which
+   satisfies `P_{j−1} ≥ L_j^{2/Δα_j}` (`L_j = 40j²·ratio_j·ratio_{j−1}`, a condition `log P_{j−1} ≥ 80j(j+1)·log(40j² ratio_j ratio_{j−1})`,
+   linear in `2^j/εc` while `log P_{j−1}` is exponential in it) once `P₀` is large; `J(A₁) := min{j : P_j ≥ (log A₁)^{40}} + 1`,
+   `≍ √logloglog A₁`. All per-level conditions are independent of `A` (only `T/A ≍ γB'/(2πh)` enters).
+3. **The later-level wrapper must be per cell in both indices.** `innerBand_later_level_main` and the nucleus
+   `band_energy_later_main_le_budget` take one `(A', Δ', ℓ)` for all current cells `v` and lower-bound the previous
+   threshold by `Qprev^{−β}` (its M-3 step), so their fit loses `(Q_j/h)^{2β·ratio_{j−1}}` against `P_j^{−2α_j}` — satisfiable
+   only for `ratio ≈ 1`, i.e. never for a level that sifts. The per-`(r, v)` form (`A'_v ≍ A/p_v`, `ℓ_{r,v}`, threshold
+   `e^{−βr/(2N)}`, which `hlargeCell` already supplies) is the nucleus lemma with `large := e^{−βr/(2N)}` (no M-3) applied
+   cell by cell, plus Cauchy–Schwarz over `v` in the wrapper: `∫‖∑_v Q_vR_v‖² ≤ #cells·∑_v ∫‖Q_vR_v‖²`.
+
+**What stands.** Level 0's leg (`hscheduleT0/P0` and the S-cal numerics), the recut capstone, the sharp exceptional
+legs at the `[MR]` moment order, R6/R7 up to R9's re-thread, A2-IV-0/1′/2. **Withdrawn:** §7.2's "`J = 1` suffices" and
+the phase-3 amendments' sift device (`N_𝒰 = ⌈exp(64/ε²)⌉₊`); `N_𝒰 := ⌈exp(4/εc)⌉₊` (TK) is enough once `𝒰` is a level.
+**Numerology of level 0 under R9 (to be re-verified):** `Q₀ ≤ (c ε² h)^{1/(1−2α₀)}` from `hscheduleT0` (`T/A ≍ 1/h`),
+`P₀ ≥ (N₀²E₀/(cε²))^{1/(2α₀)}` from `hscheduleP0`, `log Q₀ ≥ e^{2/εc} log P₀` for the density clause, `P₀ > C(log h)^B`;
+together `h ≥ (C'/(εc ε²))^{6e^{2/εc}}·(log h)^{…}` — polynomial in `1/ε` with `k = k(εc)`, as the Prop allows.
+
+### Phase 4 — the ladder (R9, L1–L3, A2-IV-3′, A2-V′)
+
+- **R9 — the `[mrt]` `X₀`-shape of the Prop** (`Problems/tao2015_r9_brief.md`): `SliceMeanSquareA2`'s last block becomes
+  `∃ A₀ : ℝ, 1 ≤ A₀ ∧ ∀ A₁ : ℕ, A₀ ≤ A₁ → ∃ levels, (primes) ∧ (C(log h)^B < p) ∧ (∀ A, A₁ ≤ A → A ≤ A₁^2 → density on (A, 2A])
+  ∧ (∀ A, A₁ ≤ A → A ≤ A₁^2 → ∀ g …, NonPretentiousAt g A₀ (2A+1) → ∀ J, A/2 ≤ J → J ≤ A → mean square)`. R6-8 keeps its
+  shape (it takes `levels` and the clauses); R7's `exists_wrapper_params` exports per-block data (block `A` uses
+  `A₁ := A/(4⌈Q⌉+4)`, so the class scales `A/q ± O(1)`, `q ≤ Q`, and the density blocks `(A, 2A], (2A, 4A]` lie in
+  `[A₁, A₁²]` for `A ≥ A₀'`); `good_block_total_le`, `block_total_le_trichotomy`, `majorArc_bound_of_A2_of_le_one` re-threaded;
+  `edp_of_sliceMeanSquareA2`/`theorem18_of_sliceMeanSquareA2` and the audit pins byte-identical.
+- **L1** (nucleus leaf): `band_energy_later_main_le_budget_cell` — `band_energy_later_main_le_budget` with
+  `large := exp(−β r/(2Nprev))` in the fit (no M-3), stated for a single current cell `v` (or a cell range with per-`v` data).
+- **L2** (Conjectures): `innerBand_later_level_main_cells` (fits `hfit r v`, Cauchy–Schwarz over `v`) and the schedule
+  theorem `band_energy_typicalS_le_of_schedule_sharp_cells` with `hscheduleLater r v` at `A'_v = A/(2q_v)`-type blocks and
+  `ℓ_{r,v} = ⌈log(2 q_v T/A)/log Pmom_r⌉₊ + 1`.
+- **L3** (numerology, Conjectures leaf): the fixed ladder of Finding E.2 and `J(A₁)`; `hscheduleLater r v` for every
+  `j ≥ 1` (scale-free), `hscheduleT0/P0` for level 0, the cover count at anchor level `J−1` (`ℓ_r = ⌈log 2T/log p_r⌉₊+1`,
+  `KcovBound ≤ T^{0.46}`), `hfitInt`/`hfitPri` at the `[MR]` moment order for `𝒰(A₁)` and all `A ∈ [A₁, A₁²]`, the
+  range/strength conditions, `hqcell*`/e-adic covers uniformly in `j` — every inequality as an existence statement with
+  its margin recorded.
+- **A2-IV-3′ / A2-V′**: `𝒮(A₁) = level 0 ∪ ladder(J(A₁)) ∪ 𝒰(A₁)`, the TK density clause with the `εc`-driven ratios,
+  the level-prime clause, **`theorem sliceMeanSquareA2 : SliceMeanSquareA2`** and its audit pin.
+
 ### Dependency order
 
 ```
