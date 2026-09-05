@@ -3,7 +3,7 @@ import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.CharTwistCompose
 
 /-!
-# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-6b)
+# Track R: the major-arc assembly — opening lemmas (R6-1 … R6-6d)
 
 The major-arc Matomäki–Radziwiłł interface bounds
 `∑_{n} ‖∑_{j=1}^{H} g(n+j)·e(jα)‖/(Hn)` on major arcs `α = a/q + δ`.  The
@@ -76,6 +76,16 @@ first steps rest on.
   `∑_{b<q} (1/φ(q/d₀)) ∑_{χ} [∑_{k<K} ‖∑_{(⌊n/d₀⌋ + kh₀, ⌊n/d₀⌋ + kh₀ + h₀] ∩ 𝒮} χ·g‖
   + h₀ + L_b·2π|d₀δ|h₀]`.  Every window on the right has the same length `h₀`; the
   rational frequency, the classes and the arc phase are all gone.
+* `sum_div_comp_div_le_of_meanSquare` (R6-6c) — the reindexed A.2 average over one
+  dyadic block, in absolute form: `∑_{n∈(A,2A]} W((n+c)/d)/n ≤ 4·εh` from the mean-square
+  input on dyadic blocks above `A₁`, once `4d ≤ A`, `3c ≤ A`, `A₁ + 1 ≤ ⌊(A+c)/d⌋`.  The
+  reindexed range has ratio just above `2` and harmonic mass at most `3`.
+* `sum_restricted_window_logavg_le_of_meanSquare` (R6-6d) — **the restricted major-arc
+  bound on one dyadic block**: given the mean-square input for every twist `χ·g`
+  (`χ` mod `q/d₀`, `d₀ ∣ q`) at the one window length `h₀`, the log average over
+  `(A, 2A]` of the `𝒮`-restricted window sums at `a/q + δ` is at most
+  `(16qε' + qh₀/H + 4πq²|δ|h₀)·∑_{(A,2A]} 1/n`.  This is R6-6 of the report, with the
+  three costs (A.2 main term, trimmed tails, freeze) explicit.
 -/
 
 open Finset
@@ -992,5 +1002,336 @@ theorem norm_restricted_window_le_char_windows (g : ℕ → ℂ)
   calc ((n + H) / d - n / d) / h₀ ≤ (H + h₀) / h₀ := Nat.div_le_div_right (by omega)
     _ = H / h₀ + 1 := Nat.add_div_right H hh₀
     _ < K := by omega
+
+/-! ### R6-6c: the reindexed A.2 average over a dyadic block -/
+
+/-- **The reindexed A.2 average over one dyadic block** (Track R, R6-6c).
+
+For a nonnegative window function `W` obeying the mean-square bound on every dyadic
+block above `A₁` (the shape of `SliceMeanSquareA2` at `s = 1`, `εh` its per-window
+scale), the log average of `W((n+c)/d)` over `(A, 2A]` is at most `4·εh`: the
+`d`-to-one reindexing (`sum_div_comp_div_le`, factor `4/3`) lands in the block
+`(⌊(A+c)/d⌋ − 1, ⌊(2A+c)/d⌋]`, which has ratio at most `3` once `⌊(A+c)/d⌋ ≥ 4`
+(`logavg_le_of_meanSquare_dyadic`) and harmonic mass at most `3`.  In the assembly `W`
+is the `𝒮`-restricted `h₀`-window sum of a twist `χ·g`, `d = gcd(b, q)` and `c = d·kh₀`;
+the hypotheses `4d ≤ A`, `3c ≤ A` hold for `A ≥ 6qH`, and `A₁ + 1 ≤ ⌊A/q⌋` gives the
+last one. -/
+theorem sum_div_comp_div_le_of_meanSquare (W : ℕ → ℝ) (hW : ∀ n, 0 ≤ W n)
+    (ε h : ℝ) (hε : 0 ≤ ε) (hh : 0 ≤ h) (A₁ : ℕ)
+    (hA2 : ∀ A' J : ℕ, A₁ ≤ A' → J ≤ A' →
+      ∑ n ∈ Finset.Ioc A' (A' + J), (W n)^2 / n
+        ≤ ε^2 * h^2 * ∑ n ∈ Finset.Ioc A' (A' + J), (1:ℝ)/n)
+    (A c d : ℕ) (hd : 0 < d) (h4dA : 4 * d ≤ A) (hcA : 3 * c ≤ A)
+    (hA₁ : A₁ + 1 ≤ (A + c) / d) :
+    ∑ n ∈ Finset.Ioc A (2 * A), W ((n + c) / d) / n ≤ 4 * (ε * h) := by
+  classical
+  have hdA : d ≤ A := by omega
+  have hre := sum_div_comp_div_le W hW A (2 * A) c d hd hdA hcA
+  -- the reindexed block has ratio at most `3`
+  have hu4 : 4 ≤ (A + c) / d := by
+    calc 4 ≤ A / d := (Nat.le_div_iff_mul_le hd).mpr (by omega)
+      _ ≤ (A + c) / d := Nat.div_le_div_right (Nat.le_add_right A c)
+  have hb3 : (2 * A + c) / d ≤ 3 * ((A + c) / d - 1) := by
+    have h2 : 2 * A + c = A + (A + c) := by ring
+    have hadd := Nat.add_div (a := A) (b := A + c) hd
+    have hAd : A / d ≤ (A + c) / d := Nat.div_le_div_right (Nat.le_add_right A c)
+    rw [h2]
+    split_ifs at hadd <;> omega
+  have ha : A₁ ≤ (A + c) / d - 1 := by omega
+  have hlog := logavg_le_of_meanSquare_dyadic W hW ε h hε hh A₁ hA2
+    ((A + c) / d - 1) ((2 * A + c) / d) ha hb3
+  -- harmonic mass of the reindexed block
+  have hharm : ∑ n' ∈ Finset.Ioc ((A + c) / d - 1) ((2 * A + c) / d), (1:ℝ) / n' ≤ 3 := by
+    have hpt : ∀ n' ∈ Finset.Ioc ((A + c) / d - 1) ((2 * A + c) / d),
+        (1:ℝ) / n' ≤ 1 / (((A + c) / d : ℕ) : ℝ) := by
+      intro n' hn'
+      rw [Finset.mem_Ioc] at hn'
+      have h1 : ((A + c) / d : ℕ) ≤ n' := by omega
+      have hpos : (0:ℝ) < (((A + c) / d : ℕ) : ℝ) := by exact_mod_cast (by omega : 0 < (A + c) / d)
+      exact one_div_le_one_div_of_le hpos (by exact_mod_cast h1)
+    refine le_trans (Finset.sum_le_sum hpt) ?_
+    rw [Finset.sum_const, nsmul_eq_mul, Nat.card_Ioc]
+    have hcard : (2 * A + c) / d - ((A + c) / d - 1) ≤ 3 * ((A + c) / d) := by omega
+    have hpos : (0:ℝ) < (((A + c) / d : ℕ) : ℝ) := by exact_mod_cast (by omega : 0 < (A + c) / d)
+    calc (((2 * A + c) / d - ((A + c) / d - 1) : ℕ) : ℝ) * (1 / (((A + c) / d : ℕ) : ℝ))
+        ≤ ((3 * ((A + c) / d) : ℕ) : ℝ) * (1 / (((A + c) / d : ℕ) : ℝ)) := by
+          gcongr
+      _ = 3 := by
+          push_cast
+          field_simp
+  have hεh : (0:ℝ) ≤ ε * h := mul_nonneg hε hh
+  calc ∑ n ∈ Finset.Ioc A (2 * A), W ((n + c) / d) / n
+      ≤ (4/3) * ∑ n' ∈ Finset.Ioc ((A + c) / d - 1) ((2 * A + c) / d), W n' / n' := hre
+    _ ≤ (4/3) * (ε * h * ∑ n' ∈ Finset.Ioc ((A + c) / d - 1) ((2 * A + c) / d), (1:ℝ) / n') :=
+        mul_le_mul_of_nonneg_left hlog (by norm_num)
+    _ ≤ (4/3) * (ε * h * 3) := by gcongr
+    _ = 4 * (ε * h) := by ring
+
+/-! ### R6-6d: the restricted major-arc bound on one dyadic block -/
+
+/-- **The `𝒮`-restricted major-arc bound on one dyadic block** (Track R, R6-6d).
+
+Assume `g` is `1`-bounded and completely multiplicative, `q ≥ 1` lies below every level,
+`2h₀ ≤ H`, `6qH ≤ A`, and the mean-square input holds for every twist `χ·g` (`χ` mod
+`q/d`, `d ∣ q`) at the window length `h₀` on all dyadic blocks above `A₁` with
+`A₁ + 1 ≤ ⌊A/q⌋`.  Then
+
+  `∑_{n∈(A,2A]} ‖∑_{(n,n+H]∩𝒮} g(m)e(m(a/q+δ))‖/(Hn)
+      ≤ (16qε' + qh₀/H + 4πq²|δ|h₀)·∑_{(A,2A]} 1/n`.
+
+Per `n` the window is expanded by `norm_restricted_window_le_char_windows` (range
+`K = ⌊H/h₀⌋ + 2`); the `n`-average is swapped inside the `∑_b (1/φ) ∑_χ`, and for each
+class and character the `K` window terms are averaged by
+`sum_div_comp_div_le_of_meanSquare` (`≤ 4ε'h₀/H` each, `K·h₀ ≤ 2H`), the tails give
+`(h₀/H)·∑1/n`, and the freeze costs give `4πq|δ|h₀·∑1/n` (`L_b ≤ 2H`, `d ≤ q`).  The
+`φ(q/d)` characters cancel the `1/φ(q/d)`, the `q` classes contribute the factor `q`, and
+`∑_{(A,2A]} 1/n ≥ 1/2` absorbs the absolute main term. -/
+theorem sum_restricted_window_logavg_le_of_meanSquare (g : ℕ → ℂ)
+    (hg : CompletelyMultiplicativeC g) (hb : ∀ m, ‖g m‖ ≤ 1)
+    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
+    (q : ℕ) (hq : 0 < q) (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q) (a : ℤ) (δ : ℝ)
+    (A H h₀ : ℕ) (hh₀ : 0 < h₀) (h2h₀ : 2 * h₀ ≤ H) (hA : 6 * q * H ≤ A)
+    (ε' : ℝ) (hε' : 0 ≤ ε') (A₁ : ℕ) (hA₁ : A₁ + 1 ≤ A / q)
+    (hA2 : ∀ d : ℕ, 0 < d → d ∣ q → ∀ χ : DirichletCharacter ℂ (q / d),
+      ∀ A' J : ℕ, A₁ ≤ A' → J ≤ A' →
+        ∑ n' ∈ Finset.Ioc A' (A' + J),
+          ‖∑ m' ∈ (Finset.Ioc n' (n' + h₀)).filter (HasFactorInAll levels),
+            χ m' * g m'‖^2 / n'
+          ≤ ε'^2 * (h₀ : ℝ)^2 * ∑ n' ∈ Finset.Ioc A' (A' + J), (1:ℝ)/n') :
+    ∑ n ∈ Finset.Ioc A (2 * A),
+        ‖∑ m ∈ (Finset.Ioc n (n + H)).filter (HasFactorInAll levels),
+          g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ)
+            * (((a : ℝ) / (q : ℝ) + δ : ℝ) : ℂ))‖ / ((H : ℝ) * n)
+      ≤ (16 * q * ε' + q * h₀ / H + 4 * Real.pi * q^2 * |δ| * h₀)
+          * ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n := by
+  classical
+  have hH1 : 1 ≤ H := by omega
+  have hA1 : 1 ≤ A := by nlinarith
+  have hqA : q ≤ A := by nlinarith
+  have hH0 : (0:ℝ) < H := by exact_mod_cast hH1
+  have hh₀R : (0:ℝ) < h₀ := by exact_mod_cast hh₀
+  set K := H / h₀ + 2 with hK
+  set S := ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n with hSdef
+  have hS0 : 0 ≤ S := Finset.sum_nonneg fun n _ => by positivity
+  -- the harmonic mass of a dyadic block is at least `1/2`
+  have hShalf : (1:ℝ)/2 ≤ S := by
+    have hpt : ∀ n ∈ Finset.Ioc A (2 * A), (1:ℝ) / ((2 * A : ℕ) : ℝ) ≤ (1:ℝ)/n := by
+      intro n hn
+      rw [Finset.mem_Ioc] at hn
+      have hn0 : (0:ℝ) < n := by exact_mod_cast (by omega : 0 < n)
+      exact one_div_le_one_div_of_le hn0 (by exact_mod_cast hn.2)
+    have := Finset.card_nsmul_le_sum _ _ _ hpt
+    rw [Nat.card_Ioc, nsmul_eq_mul] at this
+    have hA0 : (0:ℝ) < A := by exact_mod_cast hA1
+    calc (1:ℝ)/2 = ((2 * A - A : ℕ) : ℝ) * (1 / ((2 * A : ℕ) : ℝ)) := by
+          have : (2 * A - A : ℕ) = A := by omega
+          rw [this]
+          push_cast
+          field_simp
+      _ ≤ S := this
+  -- the window function of a twist
+  set W : ∀ d : ℕ, DirichletCharacter ℂ (q / d) → ℕ → ℝ := fun d χ n' =>
+    ‖∑ m' ∈ (Finset.Ioc n' (n' + h₀)).filter (HasFactorInAll levels), χ m' * g m'‖ with hW
+  -- per class and character: the `n`-average of the expanded window is at most `M`
+  set M : ℝ := 8 * ε' + (h₀ / H) * S + 4 * Real.pi * q * |δ| * h₀ * S with hM
+  have hclass : ∀ b ∈ Finset.range q, ∀ χ : DirichletCharacter ℂ (q / Nat.gcd b q),
+      ∑ n ∈ Finset.Ioc A (2 * A),
+        ((∑ k ∈ Finset.range K, W (Nat.gcd b q) χ (n / Nat.gcd b q + k * h₀))
+          + (h₀ : ℝ)
+          + (((n + H) / Nat.gcd b q - n / Nat.gcd b q : ℕ) : ℝ)
+              * (2 * Real.pi * |(Nat.gcd b q : ℝ) * δ| * h₀)) / ((H : ℝ) * n) ≤ M := by
+    intro b _
+    have hd0 : 0 < Nat.gcd b q := Nat.gcd_pos_of_pos_right b hq
+    have hdq : Nat.gcd b q ∣ q := Nat.gcd_dvd_right b q
+    generalize hd : Nat.gcd b q = d at hd0 hdq ⊢
+    intro χ
+    have hdle : d ≤ q := Nat.le_of_dvd hq hdq
+    have hdR : (d : ℝ) ≤ q := by exact_mod_cast hdle
+    -- (I) the window terms
+    have hI : ∑ n ∈ Finset.Ioc A (2 * A),
+        (∑ k ∈ Finset.range K, W d χ (n / d + k * h₀)) / ((H : ℝ) * n) ≤ 8 * ε' := by
+      simp_rw [Finset.sum_div]
+      rw [Finset.sum_comm]
+      have hk : ∀ k ∈ Finset.range K,
+          ∑ n ∈ Finset.Ioc A (2 * A), W d χ (n / d + k * h₀) / ((H : ℝ) * n)
+            ≤ (1 / (H : ℝ)) * (4 * (ε' * h₀)) := by
+        intro k hk
+        have hkK : k < K := Finset.mem_range.mp hk
+        have hkh : k * h₀ ≤ 2 * H := by
+          have h1 : k ≤ H / h₀ + 1 := by omega
+          have h2 : (H / h₀ + 1) * h₀ ≤ H + h₀ := by
+            rw [Nat.add_mul, one_mul]
+            exact Nat.add_le_add_right (Nat.div_mul_le_self H h₀) h₀
+          calc k * h₀ ≤ (H / h₀ + 1) * h₀ := Nat.mul_le_mul_right h₀ h1
+            _ ≤ H + h₀ := h2
+            _ ≤ 2 * H := by omega
+        have hc : 3 * (d * (k * h₀)) ≤ A := by
+          calc 3 * (d * (k * h₀)) ≤ 3 * (d * (2 * H)) :=
+                Nat.mul_le_mul_left 3 (Nat.mul_le_mul_left d hkh)
+            _ = 6 * d * H := by ring
+            _ ≤ 6 * q * H := by
+                exact Nat.mul_le_mul_right H (Nat.mul_le_mul_left 6 hdle)
+            _ ≤ A := hA
+        have h4d : 4 * d ≤ A := by nlinarith
+        have hA₁' : A₁ + 1 ≤ (A + d * (k * h₀)) / d := by
+          calc A₁ + 1 ≤ A / q := hA₁
+            _ ≤ A / d := Nat.div_le_div_left hdle hd0
+            _ ≤ (A + d * (k * h₀)) / d := Nat.div_le_div_right (Nat.le_add_right _ _)
+        have hre := sum_div_comp_div_le_of_meanSquare (W d χ) (fun _ => norm_nonneg _) ε' h₀
+          hε' hh₀R.le A₁ (hA2 d hd0 hdq χ) A (d * (k * h₀)) d hd0 h4d hc hA₁'
+        have hshift : ∀ n : ℕ, n / d + k * h₀ = (n + d * (k * h₀)) / d := fun n =>
+          (Nat.add_mul_div_left n (k * h₀) hd0).symm
+        simp_rw [hshift]
+        calc ∑ n ∈ Finset.Ioc A (2 * A), W d χ ((n + d * (k * h₀)) / d) / ((H : ℝ) * n)
+            = (1 / (H : ℝ)) * ∑ n ∈ Finset.Ioc A (2 * A), W d χ ((n + d * (k * h₀)) / d) / n := by
+              rw [Finset.mul_sum]
+              refine Finset.sum_congr rfl fun n _ => ?_
+              rw [div_mul_eq_div_div_swap, one_div_mul_eq_div]
+          _ ≤ (1 / (H : ℝ)) * (4 * (ε' * h₀)) :=
+              mul_le_mul_of_nonneg_left hre (by positivity)
+      refine le_trans (Finset.sum_le_sum hk) ?_
+      rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+      -- `K·h₀ ≤ 2H`
+      have hKh : ((K : ℕ) : ℝ) * h₀ ≤ 2 * H := by
+        have : K * h₀ ≤ 2 * H := by
+          rw [hK, Nat.add_mul]
+          have := Nat.div_mul_le_self H h₀
+          omega
+        exact_mod_cast this
+      calc ((K : ℕ) : ℝ) * (1 / (H : ℝ) * (4 * (ε' * h₀)))
+          = 4 * ε' * (((K : ℕ) : ℝ) * h₀) / H := by
+            field_simp
+        _ ≤ 4 * ε' * (2 * H) / H := by gcongr
+        _ = 8 * ε' := by
+            field_simp
+            ring
+    -- (II) the trimmed tails
+    have hII : ∑ n ∈ Finset.Ioc A (2 * A), (h₀ : ℝ) / ((H : ℝ) * n) = (h₀ / H) * S := by
+      rw [hSdef, Finset.mul_sum]
+      refine Finset.sum_congr rfl fun n _ => ?_
+      rw [div_mul_div_comm, mul_one]
+    -- (III) the freeze costs
+    have hIII : ∑ n ∈ Finset.Ioc A (2 * A),
+        (((n + H) / d - n / d : ℕ) : ℝ) * (2 * Real.pi * |(d : ℝ) * δ| * h₀) / ((H : ℝ) * n)
+          ≤ 4 * Real.pi * q * |δ| * h₀ * S := by
+      rw [hSdef, Finset.mul_sum]
+      refine Finset.sum_le_sum fun n hn => ?_
+      have hn0 : (0:ℝ) < n := by
+        rw [Finset.mem_Ioc] at hn
+        exact_mod_cast (by omega : 0 < n)
+      have hL : (((n + H) / d - n / d : ℕ) : ℝ) ≤ 2 * H := by
+        have hadd := Nat.add_div (a := n) (b := H) hd0
+        have hHd : H / d ≤ H := Nat.div_le_self H d
+        have : (n + H) / d - n / d ≤ 2 * H := by split_ifs at hadd <;> omega
+        exact_mod_cast this
+      have habs : |(d : ℝ) * δ| ≤ q * |δ| := by
+        rw [abs_mul, Nat.abs_cast]
+        exact mul_le_mul_of_nonneg_right hdR (abs_nonneg δ)
+      have hnum : (((n + H) / d - n / d : ℕ) : ℝ) * (2 * Real.pi * |(d : ℝ) * δ| * h₀)
+          ≤ (H : ℝ) * (4 * Real.pi * q * |δ| * h₀) := by
+        calc (((n + H) / d - n / d : ℕ) : ℝ) * (2 * Real.pi * |(d : ℝ) * δ| * h₀)
+            ≤ (2 * H) * (2 * Real.pi * (q * |δ|) * h₀) := by
+              gcongr
+            _ = (H : ℝ) * (4 * Real.pi * q * |δ| * h₀) := by ring
+      calc (((n + H) / d - n / d : ℕ) : ℝ) * (2 * Real.pi * |(d : ℝ) * δ| * h₀) / ((H : ℝ) * n)
+          ≤ (H : ℝ) * (4 * Real.pi * q * |δ| * h₀) / ((H : ℝ) * n) :=
+            div_le_div_of_nonneg_right hnum (by positivity)
+        _ = (4 * Real.pi * q * |δ| * h₀) / n := mul_div_mul_left _ _ hH0.ne'
+        _ = 4 * Real.pi * q * |δ| * h₀ * (1 / n) := by rw [mul_one_div]
+    -- assemble the three
+    calc ∑ n ∈ Finset.Ioc A (2 * A),
+          ((∑ k ∈ Finset.range K, W d χ (n / d + k * h₀)) + (h₀ : ℝ)
+            + (((n + H) / d - n / d : ℕ) : ℝ) * (2 * Real.pi * |(d : ℝ) * δ| * h₀))
+            / ((H : ℝ) * n)
+        = (∑ n ∈ Finset.Ioc A (2 * A),
+            (∑ k ∈ Finset.range K, W d χ (n / d + k * h₀)) / ((H : ℝ) * n))
+          + (∑ n ∈ Finset.Ioc A (2 * A), (h₀ : ℝ) / ((H : ℝ) * n))
+          + ∑ n ∈ Finset.Ioc A (2 * A),
+            (((n + H) / d - n / d : ℕ) : ℝ) * (2 * Real.pi * |(d : ℝ) * δ| * h₀)
+              / ((H : ℝ) * n) := by
+          rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib]
+          refine Finset.sum_congr rfl fun n _ => ?_
+          rw [add_div, add_div]
+      _ ≤ 8 * ε' + (h₀ / H) * S + 4 * Real.pi * q * |δ| * h₀ * S := by
+          rw [hII]
+          exact add_le_add (add_le_add hI le_rfl) hIII
+  -- the per-`n` expansion, summed
+  have hpern : ∀ n ∈ Finset.Ioc A (2 * A),
+      ‖∑ m ∈ (Finset.Ioc n (n + H)).filter (HasFactorInAll levels),
+          g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ)
+            * (((a : ℝ) / (q : ℝ) + δ : ℝ) : ℂ))‖ / ((H : ℝ) * n)
+        ≤ ∑ b ∈ Finset.range q, (1 / ((q / Nat.gcd b q).totient : ℝ))
+            * ∑ χ : DirichletCharacter ℂ (q / Nat.gcd b q),
+              ((∑ k ∈ Finset.range K, W (Nat.gcd b q) χ (n / Nat.gcd b q + k * h₀))
+                + (h₀ : ℝ)
+                + (((n + H) / Nat.gcd b q - n / Nat.gcd b q : ℕ) : ℝ)
+                    * (2 * Real.pi * |(Nat.gcd b q : ℝ) * δ| * h₀)) / ((H : ℝ) * n) := by
+    intro n hn
+    have hn0 : (0:ℝ) < n := by
+      rw [Finset.mem_Ioc] at hn
+      exact_mod_cast (by omega : 0 < n)
+    have h := norm_restricted_window_le_char_windows g hg hb levels hlv q hq hql a δ n H h₀ K
+      hh₀ le_rfl
+    calc ‖∑ m ∈ (Finset.Ioc n (n + H)).filter (HasFactorInAll levels),
+            g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ)
+              * (((a : ℝ) / (q : ℝ) + δ : ℝ) : ℂ))‖ / ((H : ℝ) * n)
+        ≤ (∑ b ∈ Finset.range q, (1 / ((q / Nat.gcd b q).totient : ℝ))
+            * ∑ χ : DirichletCharacter ℂ (q / Nat.gcd b q),
+              ((∑ k ∈ Finset.range K,
+                ‖∑ m' ∈ (Finset.Ioc (n / Nat.gcd b q + k * h₀)
+                    (n / Nat.gcd b q + k * h₀ + h₀)).filter (HasFactorInAll levels),
+                  χ m' * g m'‖)
+              + (h₀ : ℝ)
+              + (((n + H) / Nat.gcd b q - n / Nat.gcd b q : ℕ) : ℝ)
+                  * (2 * Real.pi * |(Nat.gcd b q : ℝ) * δ| * h₀))) / ((H : ℝ) * n) :=
+          div_le_div_of_nonneg_right h (by positivity)
+      _ = _ := by
+          simp only [Finset.sum_div, mul_div_assoc, hW]
+  refine le_trans (Finset.sum_le_sum hpern) ?_
+  -- swap the `n`-sum inside, use `hclass`, count the characters
+  rw [Finset.sum_comm]
+  have hb : ∀ b ∈ Finset.range q,
+      ∑ n ∈ Finset.Ioc A (2 * A), (1 / ((q / Nat.gcd b q).totient : ℝ))
+          * ∑ χ : DirichletCharacter ℂ (q / Nat.gcd b q),
+            ((∑ k ∈ Finset.range K, W (Nat.gcd b q) χ (n / Nat.gcd b q + k * h₀))
+              + (h₀ : ℝ)
+              + (((n + H) / Nat.gcd b q - n / Nat.gcd b q : ℕ) : ℝ)
+                  * (2 * Real.pi * |(Nat.gcd b q : ℝ) * δ| * h₀)) / ((H : ℝ) * n)
+        ≤ M := by
+    intro b hbq
+    have hd0 : 0 < Nat.gcd b q := Nat.gcd_pos_of_pos_right b hq
+    have hq₀ : 0 < q / Nat.gcd b q :=
+      Nat.div_pos (Nat.le_of_dvd hq (Nat.gcd_dvd_right b q)) hd0
+    haveI : NeZero (q / Nat.gcd b q) := ⟨hq₀.ne'⟩
+    have hφ : (0:ℝ) < ((q / Nat.gcd b q).totient : ℝ) := by
+      exact_mod_cast Nat.totient_pos.mpr hq₀
+    have hcard : (Fintype.card (DirichletCharacter ℂ (q / Nat.gcd b q)) : ℝ)
+        = ((q / Nat.gcd b q).totient : ℝ) := by
+      rw [← Nat.card_eq_fintype_card]
+      exact_mod_cast DirichletCharacter.card_eq_totient_of_hasEnoughRootsOfUnity ℂ _
+    rw [← Finset.mul_sum, Finset.sum_comm]
+    calc (1 / ((q / Nat.gcd b q).totient : ℝ))
+          * ∑ χ : DirichletCharacter ℂ (q / Nat.gcd b q), ∑ n ∈ Finset.Ioc A (2 * A),
+            ((∑ k ∈ Finset.range K, W (Nat.gcd b q) χ (n / Nat.gcd b q + k * h₀))
+              + (h₀ : ℝ)
+              + (((n + H) / Nat.gcd b q - n / Nat.gcd b q : ℕ) : ℝ)
+                  * (2 * Real.pi * |(Nat.gcd b q : ℝ) * δ| * h₀)) / ((H : ℝ) * n)
+        ≤ (1 / ((q / Nat.gcd b q).totient : ℝ))
+          * ∑ _χ : DirichletCharacter ℂ (q / Nat.gcd b q), M := by
+          refine mul_le_mul_of_nonneg_left (Finset.sum_le_sum fun χ _ => ?_) (by positivity)
+          exact hclass b hbq χ
+      _ = M := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, hcard]
+          field_simp
+  refine le_trans (Finset.sum_le_sum hb) ?_
+  rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul, hM]
+  -- absorb the absolute main term with `S ≥ 1/2`
+  have h8 : 8 * (q : ℝ) * ε' ≤ 16 * q * ε' * S := by
+    have := mul_le_mul_of_nonneg_left hShalf (by positivity : (0:ℝ) ≤ 16 * q * ε')
+    linarith
+  have hexp : (q : ℝ) * (8 * ε' + (h₀ / H) * S + 4 * Real.pi * q * |δ| * h₀ * S)
+      = 8 * q * ε' + (q * h₀ / H + 4 * Real.pi * q^2 * |δ| * h₀) * S := by ring
+  rw [hexp]
+  linarith
 
 end MoltResearch
