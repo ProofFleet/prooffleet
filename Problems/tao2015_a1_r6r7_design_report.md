@@ -759,7 +759,8 @@ What remains for the exceptional leg is bookkeeping, not analysis:
 - **T0-7a** the long/short cutoff of `ExceptionalHalaszSharp` as a parameter `x₀ ≥ 10¹⁶` (the bridge
   loses `2(loglog N − loglog u + 12)`, bounded only for quotient scales `u ≥ N^{c}`; so long
   quotients are `(A/q)/n₁ ≥ N^{c}` and the rest are short);
-- **T0-7b** the `P`-smooth Rankin tail: `∑_{n₁ P-smooth, n₁ > y} 1/n₁ ≤ y^{−σ}∏_{p∈P}(1−p^{σ−1})^{−1}`
+- **T0-7b** (`SmoothRankinTail.lean`, on main: `sum_pSmooth_rpow_le_prod`, `pSmooth_harmonic_tail_le`,
+  `prod_inv_one_sub_le_exp`, `sharpRamareCost_le_split`, `sharpRamareCost_le_eps`) the `P`-smooth Rankin tail: `∑_{n₁ P-smooth, n₁ > y} 1/n₁ ≤ y^{−σ}∏_{p∈P}(1−p^{σ−1})^{−1}`
   (the box-product technique of `pSmoothHarmonicMass_le_exp_primeMass` with the weight
   `n^{σ−1}`), so that the short quotients' harmonic charges beyond `y = N^{c}/q` are negligible, and
   the `ε`-form of `sharpRamareCost` / `cellHalaszSharpBound`;
