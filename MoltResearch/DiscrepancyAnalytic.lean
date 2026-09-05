@@ -43,6 +43,7 @@ import MoltResearch.Discrepancy.CellHalasz
 import MoltResearch.Discrepancy.ExceptionalConstants
 import MoltResearch.Discrepancy.BumpDeriv
 import MoltResearch.Discrepancy.MajorArcAssembly
+import MoltResearch.Discrepancy.MajorArcBlockScale
 import MoltResearch.Discrepancy.SliceA2
 
 /-!

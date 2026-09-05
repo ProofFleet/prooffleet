@@ -644,22 +644,24 @@ dyadic block `A₀ ≤ A`, `J ≤ A` (the shape of `SliceMeanSquareA2` at `s = 1
 any block `(a, b]` with `A₀ ≤ a` and `b ≤ 3a` the log-averaged `L¹` sum is at most
 `εh·∑ 1/n` — Cauchy–Schwarz (`sum_div_le_sqrt_mul_sqrt`) on each of the at most two
 dyadic pieces `(a, 2a]`, `(2a, b]`.  The reindexed ranges of `sum_div_comp_div_le` have
-ratio just above `2`, which is why the block is allowed ratio `3`. -/
+ratio just above `2`, which is why the block is allowed ratio `3`.  The input is only
+required on blocks ending below `N` (`b ≤ N`), because non-pretentiousness is available
+at bounded scales only. -/
 theorem logavg_le_of_meanSquare_dyadic (W : ℕ → ℝ) (hW : ∀ n, 0 ≤ W n)
-    (ε h : ℝ) (hε : 0 ≤ ε) (hh : 0 ≤ h) (A₀ : ℕ)
-    (hA2 : ∀ A J : ℕ, A₀ ≤ A → J ≤ A →
+    (ε h : ℝ) (hε : 0 ≤ ε) (hh : 0 ≤ h) (A₀ N : ℕ)
+    (hA2 : ∀ A J : ℕ, A₀ ≤ A → J ≤ A → A + J ≤ N →
       ∑ n ∈ Finset.Ioc A (A + J), (W n)^2 / n
         ≤ ε^2 * h^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n)
-    (a b : ℕ) (ha : A₀ ≤ a) (hb : b ≤ 3 * a) :
+    (a b : ℕ) (ha : A₀ ≤ a) (hb : b ≤ 3 * a) (hbN : b ≤ N) :
     ∑ n ∈ Finset.Ioc a b, W n / n ≤ ε * h * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n := by
   classical
   -- one dyadic block
-  have hsingle : ∀ a b : ℕ, A₀ ≤ a → a ≤ b → b ≤ 2 * a →
+  have hsingle : ∀ a b : ℕ, A₀ ≤ a → a ≤ b → b ≤ 2 * a → b ≤ N →
       ∑ n ∈ Finset.Ioc a b, W n / n ≤ ε * h * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n := by
-    intro a b ha hab hb2
+    intro a b ha hab hb2 hbN
     have hsq : ∑ n ∈ Finset.Ioc a b, (W n)^2 / n
         ≤ ε^2 * h^2 * ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n := by
-      have := hA2 a (b - a) ha (by omega)
+      have := hA2 a (b - a) ha (by omega) (by omega)
       rwa [Nat.add_sub_of_le hab] at this
     have h1 : (0:ℝ) ≤ ∑ n ∈ Finset.Ioc a b, (1:ℝ)/n :=
       Finset.sum_nonneg fun n _ => by positivity
@@ -697,13 +699,13 @@ theorem logavg_le_of_meanSquare_dyadic (W : ℕ → ℝ) (hW : ∀ n, 0 ≤ W n)
     rw [Finset.Ioc_eq_empty (not_lt.mpr hba)]
     simp
   rcases le_or_gt b (2 * a) with hb2 | hb2
-  · exact hsingle a b ha hab.le hb2
+  · exact hsingle a b ha hab.le hb2 hbN
   · have h1 : a ≤ 2 * a := by omega
     have h2 : 2 * a ≤ b := hb2.le
     rw [← Finset.sum_Ioc_consecutive (fun n => W n / (n:ℝ)) h1 h2,
       ← Finset.sum_Ioc_consecutive (fun n => (1:ℝ) / (n:ℝ)) h1 h2, mul_add]
-    exact add_le_add (hsingle a (2 * a) ha h1 le_rfl)
-      (hsingle (2 * a) b (by omega) h2 (by omega))
+    exact add_le_add (hsingle a (2 * a) ha h1 le_rfl (by omega))
+      (hsingle (2 * a) b (by omega) h2 (by omega) hbN)
 
 /-- **A `1`-bounded filtered block sum is at most the block length** (Track R, R6-5):
 the trivial bound, used for the partial last sub-block of the freeze. -/
@@ -1025,12 +1027,12 @@ is the `𝒮`-restricted `h₀`-window sum of a twist `χ·g`, `d = gcd(b, q)` a
 the hypotheses `4d ≤ A`, `3c ≤ A` hold for `A ≥ 6qH`, and `A₁ + 1 ≤ ⌊A/q⌋` gives the
 last one. -/
 theorem sum_div_comp_div_le_of_meanSquare (W : ℕ → ℝ) (hW : ∀ n, 0 ≤ W n)
-    (ε h : ℝ) (hε : 0 ≤ ε) (hh : 0 ≤ h) (A₁ : ℕ)
-    (hA2 : ∀ A' J : ℕ, A₁ ≤ A' → J ≤ A' →
+    (ε h : ℝ) (hε : 0 ≤ ε) (hh : 0 ≤ h) (A₁ N : ℕ)
+    (hA2 : ∀ A' J : ℕ, A₁ ≤ A' → J ≤ A' → A' + J ≤ N →
       ∑ n ∈ Finset.Ioc A' (A' + J), (W n)^2 / n
         ≤ ε^2 * h^2 * ∑ n ∈ Finset.Ioc A' (A' + J), (1:ℝ)/n)
     (A c d : ℕ) (hd : 0 < d) (h4dA : 4 * d ≤ A) (hcA : 3 * c ≤ A)
-    (hA₁ : A₁ + 1 ≤ (A + c) / d) :
+    (hA₁ : A₁ + 1 ≤ (A + c) / d) (hN : (2 * A + c) / d ≤ N) :
     ∑ n ∈ Finset.Ioc A (2 * A), W ((n + c) / d) / n ≤ 4 * (ε * h) := by
   classical
   have hdA : d ≤ A := by omega
@@ -1046,8 +1048,8 @@ theorem sum_div_comp_div_le_of_meanSquare (W : ℕ → ℝ) (hW : ∀ n, 0 ≤ W
     rw [h2]
     split_ifs at hadd <;> omega
   have ha : A₁ ≤ (A + c) / d - 1 := by omega
-  have hlog := logavg_le_of_meanSquare_dyadic W hW ε h hε hh A₁ hA2
-    ((A + c) / d - 1) ((2 * A + c) / d) ha hb3
+  have hlog := logavg_le_of_meanSquare_dyadic W hW ε h hε hh A₁ N hA2
+    ((A + c) / d - 1) ((2 * A + c) / d) ha hb3 hN
   -- harmonic mass of the reindexed block
   have hharm : ∑ n' ∈ Finset.Ioc ((A + c) / d - 1) ((2 * A + c) / d), (1:ℝ) / n' ≤ 3 := by
     have hpt : ∀ n' ∈ Finset.Ioc ((A + c) / d - 1) ((2 * A + c) / d),
@@ -1081,8 +1083,8 @@ theorem sum_div_comp_div_le_of_meanSquare (W : ℕ → ℝ) (hW : ∀ n, 0 ≤ W
 
 Assume `g` is `1`-bounded and completely multiplicative, `q ≥ 1` lies below every level,
 `2h₀ ≤ H`, `6qH ≤ A`, and the mean-square input holds for every twist `χ·g` (`χ` mod
-`q/d`, `d ∣ q`) at the window length `h₀` on all dyadic blocks above `A₁` with
-`A₁ + 1 ≤ ⌊A/q⌋`.  Then
+`q/d`, `d ∣ q`) at the window length `h₀` on all dyadic blocks `(A', A'+J]` with
+`A₁ ≤ A'`, `J ≤ A'`, `A' + J ≤ 3A`, where `A₁ + 1 ≤ ⌊A/q⌋`.  Then
 
   `∑_{n∈(A,2A]} ‖∑_{(n,n+H]∩𝒮} g(m)e(m(a/q+δ))‖/(Hn)
       ≤ (16qε' + qh₀/H + 4πq²|δ|h₀)·∑_{(A,2A]} 1/n`.
@@ -1101,7 +1103,7 @@ theorem sum_restricted_window_logavg_le_of_meanSquare (g : ℕ → ℂ)
     (A H h₀ : ℕ) (hh₀ : 0 < h₀) (h2h₀ : 2 * h₀ ≤ H) (hA : 6 * q * H ≤ A)
     (ε' : ℝ) (hε' : 0 ≤ ε') (A₁ : ℕ) (hA₁ : A₁ + 1 ≤ A / q)
     (hA2 : ∀ d : ℕ, 0 < d → d ∣ q → ∀ χ : DirichletCharacter ℂ (q / d),
-      ∀ A' J : ℕ, A₁ ≤ A' → J ≤ A' →
+      ∀ A' J : ℕ, A₁ ≤ A' → J ≤ A' → A' + J ≤ 3 * A →
         ∑ n' ∈ Finset.Ioc A' (A' + J),
           ‖∑ m' ∈ (Finset.Ioc n' (n' + h₀)).filter (HasFactorInAll levels),
             χ m' * g m'‖^2 / n'
@@ -1185,8 +1187,10 @@ theorem sum_restricted_window_logavg_le_of_meanSquare (g : ℕ → ℂ)
           calc A₁ + 1 ≤ A / q := hA₁
             _ ≤ A / d := Nat.div_le_div_left hdle hd0
             _ ≤ (A + d * (k * h₀)) / d := Nat.div_le_div_right (Nat.le_add_right _ _)
+        have hN : (2 * A + d * (k * h₀)) / d ≤ 3 * A :=
+          le_trans (Nat.div_le_self _ _) (by omega)
         have hre := sum_div_comp_div_le_of_meanSquare (W d χ) (fun _ => norm_nonneg _) ε' h₀
-          hε' hh₀R.le A₁ (hA2 d hd0 hdq χ) A (d * (k * h₀)) d hd0 h4d hc hA₁'
+          hε' hh₀R.le A₁ (3 * A) (hA2 d hd0 hdq χ) A (d * (k * h₀)) d hd0 h4d hc hA₁' hN
         have hshift : ∀ n : ℕ, n / d + k * h₀ = (n + d * (k * h₀)) / d := fun n =>
           (Nat.add_mul_div_left n (k * h₀) hd0).symm
         simp_rw [hshift]
