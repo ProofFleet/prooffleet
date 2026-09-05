@@ -2247,4 +2247,56 @@ theorem typicalS_middle (a b : ℕ) (L₁ L₂ : List (Finset ℕ)) (P : Finset 
     typicalS a b (L₁ ++ P :: L₂) = typicalS a b (P :: (L₁ ++ L₂)) :=
   typicalS_perm a b List.perm_middle
 
+
+open MeasureTheory in
+/-- **A2-III VI-4-2 — the capstone level leg for a level anywhere in the list.**
+
+`typicalS_level_leg_le_budget_of_collision_fit` for the level `P` sitting at
+`L₁ ++ P :: L₂`: rotate it to the head with `typicalS_middle`, peel, and the
+conclusion is the literal `hleg` of `band_energy_typicalS_le_of_cellUniform_fit`
+for the polynomial over the *full* list.  The stability hypothesis is on the
+remaining levels `L₁ ++ L₂`, which is where `hasFactorInAll_mul_iff_of_disjoint`
+supplies it. -/
+theorem typicalS_level_leg_le_budget_of_collision_fit_middle
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
+    (A Delta H : ℕ) (hDeltaA : Delta ≤ A)
+    (L₁ L₂ : List (Finset ℕ)) (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (hPA : ∀ p ∈ P, p * p ≤ A)
+    (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll (L₁ ++ L₂) (p * m) ↔ HasFactorInAll (L₁ ++ L₂) m)
+    (q : ℕ → ℕ)
+    (K₁ K₂ T : ℝ) (hT : 0 < T) (J j : ℕ) (Pset : ℕ → Set ℝ)
+    (hPset : ∀ i, MeasurableSet (Pset i))
+    (hpartT : bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j
+      ⊆ Set.Ioc (-T) T)
+    (kappaMain kappaReplacement kappaCollision c₃ eps : ℝ)
+    (hc₃ : 0 ≤ c₃)
+    (hmain : (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖typicalSCellUniformMain g A (A + Delta) P (L₁ ++ L₂) N v₀ v₁ q xi‖ ^ 2)
+      ≤ kappaMain * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hreplacement : 2 * (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖typicalSCellReplacement g A (A + Delta) P (L₁ ++ L₂) N v₀ v₁ q xi‖ ^ 2)
+      ≤ kappaReplacement * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hcollisionFit : 8 * collisionEnergyBound A (A + Delta) P (L₁ ++ L₂) T
+      ≤ kappaCollision * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hshare : (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (2 * kappaMain + 2 * kappaReplacement + 2 * kappaCollision)
+      ≤ (1 : ℝ) / 2 ^ (j + 1)) :
+    (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (∫ xi in bandPartOn Pset J
+            {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖∑ m ∈ typicalS A (A + Delta) (L₁ ++ P :: L₂), (g m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2)
+      ≤ (1 / 2 ^ (j + 1))
+          * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+  rw [typicalS_middle A (A + Delta) L₁ L₂ P]
+  exact typicalS_level_leg_le_budget_of_collision_fit g hcm hg A Delta H hDeltaA
+    P hP hPA (L₁ ++ L₂) N v₀ v₁ hcov hstable q K₁ K₂ T hT J j Pset hPset hpartT
+    kappaMain kappaReplacement kappaCollision c₃ eps hc₃ hmain hreplacement
+    hcollisionFit hshare
+
 end MoltResearch
