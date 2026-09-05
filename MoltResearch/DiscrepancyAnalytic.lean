@@ -22,6 +22,7 @@ import MoltResearch.Discrepancy.HalaszTriple
 import MoltResearch.Discrepancy.HalaszTripleG
 import MoltResearch.Discrepancy.HalaszCapstone
 import MoltResearch.Discrepancy.HalaszComplex
+import MoltResearch.Discrepancy.HalaszSharpSurvivors
 import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.WindowTK
 import MoltResearch.Discrepancy.LargePrimePolynomialCount

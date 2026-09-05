@@ -630,6 +630,81 @@ Finding-C problem in its sharpest form. Consequently **VI-9g, A2-IV-3, A2-V and
 GHS central window at fixed strength (the `𝒯₀` leg of `[mrt]` A.3, `eq:T0claim`), then the
 Erdős–Turán far-regime lemma; both are analytic-core units, not bookkeeping.
 
+### The `𝒯₀` leg — paper-first design and the Finding-C fix (2026-09-05, T0-1…T0-4 on main)
+
+**Where the `loglog` came from.** `tripleConvRC_survivors_balanced_shell_le` prices every one of
+the `K₀ ≈ loglog x` prime blocks `p ∈ [x^{1−e^{1−k}}, x^{1−e^{−k}})` of §3's survivor set by the
+*same* band-sup shell `x·√((e^π)²10¹⁵(b²+1)) + 2x·log 4`, `b = e⁵(2+log x)e^{−A}`. That is the
+classical Halász–Montgomery `∫ dσ/σ` loss, and it is an artefact of the accounting: block `k` also
+has the fit-free trivial bound `x·(16(log blockHi − log blockLo) + 16 log 4) ≤ 16(e−1)e^{−k}·x·log x
++ 48 log 2·x` (`norm_tripleConvRC_le''` + `log_blockHi_sub_log_blockLo_le`), geometric in `k`.
+Pricing only `K₁ := min(K₀, ⌈A⌉)` blocks by the shell and the rest trivially
+(`tripleConvRC_survivors_sharp_le`, new leaf `MoltResearch/Discrepancy/HalaszSharpSurvivors.lean`)
+gives, after the same identity/head/tail/bridge assembly and the §3 window, the **sharp budget**
+
+```
+Ĥ⁺(A,z) = 35z + z(log(2log²z)+2) + 2(z+1)log 4 + 64z(12 loglog z + 18)
+        + (A+1)·z·√((e^π)²10¹⁵)·e⁵(2+log z)·e^{−A}
+        + loglog z·z·(√((e^π)²10¹⁵) + 2 log 4)
+        + 16(e−1)·z·(e^{−A}·log z + e²·log 2)
+        + (loglog z + 2)·z·48 log 2
+```
+
+(`halaszBudgetSharp`, `rieszMeanC_log_sharp_le`), i.e.
+
+```
+Ĥ⁺(A,z)/(z·log z) ≤ (A+1)·1.2·10¹¹·e^{−A} + 28·e^{−A} + 7.4·10⁸·loglog z/log z + 1400/log z
+```
+
+— **no `loglog z` against `e^{−A}`**; the shell's `+1` floor and the trivial tail sit in the
+`loglog z/log z` group. The plain-sum wrappers `plain_sumC_le_halaszBudgetSharp(_div)`,
+`halaszBudgetSharp_nonneg`, `halaszBudgetSharp_mono` are the exact mirrors of the shell's. At a
+fixed strength `A` the two-scale differencing at `log(X/x) = δ₀ ≍ √((A+1)e^{−A})` now yields
+`‖∑_{n≤x} f‖/x ≲ √(A+1)·e^{−A/2} + o_x(1)` **uniformly in the scale** — the `(1+M)e^{−M}` shape of
+GHS Cor. 1.2, obtained inside the existing §3 machinery. This removes the blocker recorded in the
+Phase 0 report ("VI-9f central window").
+
+**The window itself is `|t − t₁| < 6`, not `(log A)^{1/16}`.** `[mrt]` needs the wide window
+because its `𝒯₁` repulsion is the GS Lemma 2.3 cosine argument, which requires
+`|t − t₁| ≥ (log X)^{1/16}/2`, and then needs the shift lemma (GS Lemma 7.1, `le:renorm`) to buy
+the `1/(1+|t−t₁|)` decay across the window, plus the Euler-product `≤ 1` trick for the `2^J`
+inclusion–exclusion. The tree's mid-regime repulsion is the ζ-based
+`pretentiousDistSq_archTwist_ge_mid`, valid already for `6 ≤ |t − t₁|`, with the exact fit
+`ρ·loglog y ≤ ((1−3ρ)·loglog y − loglog(|t−t₁|+2) − 24)/3 − M` exposed. Whenever that fit fails
+for `|t − t₁| ≤ (log y)^{20}` one has `M ≥ 0.27·loglog y − 9 ≥ ρ·loglog y − 9` outright, so
+**every `t` with `6 ≤ |t − t₁|` (below the far regime) carries strength `≥ ρ·loglog y − 9`** and
+the shell budget (with its `√(loglog)` factor) suffices there. On `|t − t₁| < 6` — a window of
+measure `12` — one applies the sharp plain-sum bound pointwise at the interface's fixed strength
+(`𝔻(g, n^{it}; ·)² ≥ A₀` for every `t` in the band, so `t₁` plays no role) and pays
+`∫_{𝒯₀}|F|² ≤ 12·sup² ≲ (A₀+1)e^{−A₀}`. No shift lemma, no `(log A)^{1/16}` measure factor, and
+since the tree's instantiation has a bounded number of levels (`J = 1` plus the fixed-`ε` 𝒰),
+the `2^J` inclusion–exclusion costs a constant and the Euler-product trick is unnecessary.
+
+**Erratum on VI-9e (recorded, not yet fixed).** `cheap_halasz_eps` fixes `W ≥ 8B + 22 ≥ 22`, so
+`cheapTwistedDirichletCost eps W D a b = 2b(eps + e^{W loglog b + W − D/2})/(a+1)` is a **loss** of
+`(log b)^{22}` against `e^{−D/2}` — vacuous at the fixed strength of `𝒯₀` *and* at the
+`ρ·loglog` strength of `𝒯₁` (`ρ/2 ≈ 0.03 ≪ 22`). VI-9e's `norm_typicalS_quot_block_poly_le_recut`
+therefore cannot be the Halász input of either leg; its accounting seams (no `3+2πT`, nonuniform
+Ramaré) are right, but the block bound must come from the GHS budgets: the sharp one on `𝒯₀`, the
+shell one on `𝒯₁`. This is the re-plumb T0-6 below.
+
+**Ladder (replaces the "central `T₀` window" blocker):**
+
+- **T0-1…T0-4** (`HalaszSharpSurvivors.lean`, this PR): the sharp survivor split, the §3 assembly
+  at a free split index, the `b`-instantiation, the windowed `halaszBudgetSharp` and its wrappers.
+- **T0-5** `sup_partial_le_halaszBudgetSharp` (mirror of the shell plumbing at `X_u = ⌈u·e^{δ₀}⌉`)
+  and the **sharp twisted Dirichlet block**: for `|2πt| ≤ (D/2)·a` and non-pretentiousness at
+  strength `D` on `[a, 3b]`, `‖∑_{(a,b]} g(n)n^{−1}e(−t log n)‖ ≤ 2·(10¹⁶+1 + Ĥ⁺(D/2, 3b)/(18δ₀) +
+  (e·b·δ₀+1))/(a+1)` via `nonPretentiousAt_archTwist` + `norm_sum_div_le_of_partial` — the shape
+  `cheap_halasz_twisted_dirichlet_block` has, with the sharp budget in place of `W`.
+- **T0-6** the recut at the sharp cost: `exceptionalTwistedQuotientCost`, the Ramaré sum, and
+  `cellHalaszReCutBound` re-instantiated with the T0-5 block (a mechanical mirror of VI-9e), and
+  its `ε`-form: `∀ ε, ∃ D₀ x₀, ∀ D ≥ D₀, ∀ a ≥ x₀, cost ≤ ε·∑_{(a,b]} 1/n`-type at
+  `δ₀ := ε/(6e)` — the fixed-strength pointwise envelope for `𝒯₀`.
+- **T0-7** (Conjectures) the `𝒯₀/𝒯₁` assembly of VI-9f: `𝒯₀ := {|t−t₁| < 6} ∩ band` at the
+  sharp cost, `𝒯₁` at strength `ρ·loglog − 9` from `pretentiousDistSq_archTwist_ge_of_mid_or_far`
+  or from `M` itself, far regime via `FarRegimeRepulsionAssumption`; then VI-9g.
+
 ### Dependency order
 
 ```
