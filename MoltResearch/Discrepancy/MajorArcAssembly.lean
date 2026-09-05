@@ -2,7 +2,7 @@ import MoltResearch.Discrepancy.MajorArcFreeze
 import MoltResearch.Discrepancy.TypicalFactorization
 
 /-!
-# Track R: the major-arc assembly — opening lemmas (R6-1, R6-2a)
+# Track R: the major-arc assembly — opening lemmas (R6-1, R6-2a, R6-2b)
 
 The major-arc Matomäki–Radziwiłł interface bounds
 `∑_{n} ‖∑_{j=1}^{H} g(n+j)·e(jα)‖/(Hn)` on major arcs `α = a/q + δ`.  The
@@ -29,6 +29,14 @@ first steps rest on.
   residue-class extraction `m = d₀·m'` (with `d₀ ∣ q ≤ (log H)^{20} < P₁`) stay
   inside the restricted sums, so that A.2 is applied to the same `𝒮` at every
   class.
+* `sum_mul_exp_ratl_eq_sum_residues` / `sum_restricted_residue_eq_gcd_dilate`
+  (R6-2b) — the residue split.  The rational phase `e(m·a/q)` depends only on
+  `m mod q`, so the restricted block sum is a sum over the `q` classes; inside
+  the class `m ≡ b`, every `m` is a multiple of `d₀ = gcd(b, q)`, and writing
+  `m = d₀·m'` (complete multiplicativity, `𝒮`-invariance of the dilation) turns
+  the class sum into `g(d₀)` times a sum over the dilated block
+  `(⌊lo/d₀⌋, ⌊hi/d₀⌋]` in the **unit** class `m' ≡ b/d₀ (mod q/d₀)` — the shape the
+  character expansion (`sum_filter_residue_eq_char_avg`) consumes.
 -/
 
 open Finset
@@ -126,5 +134,126 @@ theorem norm_block_le_restricted_add_card (g : ℕ → ℂ) (hg : ∀ m, ‖g m�
         rw [norm_mul]
         exact mul_le_one₀ (hg m) (norm_nonneg _) (hφ m)
     _ = _ := by rw [Finset.sum_const, nsmul_eq_mul, mul_one]
+
+/-- **The residue split of a rational phase sum** (Track R, R6-2b).
+
+The phase `e(m·a/q)` depends only on `m mod q` (`m = q·⌊m/q⌋ + (m mod q)` and
+`e(integer) = 1`), so a phase sum over any finite set of integers is the sum over
+the `q` residue classes of the class phase times the untwisted class sum.  This is
+the step that removes the rational part of the major-arc frequency: what is left
+in each class is a plain (frozen) sum of `g`. -/
+theorem sum_mul_exp_ratl_eq_sum_residues (S : Finset ℕ) (F : ℕ → ℂ) (a : ℤ) (q : ℕ)
+    (hq : 0 < q) :
+    ∑ m ∈ S, F m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ)
+        * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ))
+      = ∑ b ∈ Finset.range q,
+          Complex.exp (2 * Real.pi * Complex.I * (b : ℂ) * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ))
+            * ∑ m ∈ S.filter (fun m => m % q = b), F m := by
+  classical
+  have hmaps : ∀ m ∈ S, m % q ∈ Finset.range q := fun m _ =>
+    Finset.mem_range.mpr (Nat.mod_lt m hq)
+  rw [← Finset.sum_fiberwise_of_maps_to hmaps]
+  refine Finset.sum_congr rfl fun b _ => ?_
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl fun m hm => ?_
+  have hmb : m % q = b := (Finset.mem_filter.mp hm).2
+  subst hmb
+  have hq0 : (q : ℂ) ≠ 0 := by exact_mod_cast hq.ne'
+  have hsplit : (m : ℂ) = (q : ℂ) * ((m / q : ℕ) : ℂ) + ((m % q : ℕ) : ℂ) := by
+    exact_mod_cast (Nat.div_add_mod m q).symm
+  have hint : Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ))
+      = Complex.exp (2 * Real.pi * Complex.I * ((m % q : ℕ) : ℂ)
+            * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ))
+        * Complex.exp ((((m / q : ℕ) : ℤ) * a : ℤ) * (2 * Real.pi * Complex.I)) := by
+    rw [← Complex.exp_add]
+    congr 1
+    rw [hsplit]
+    simp only [Int.cast_mul, Int.cast_natCast, Complex.ofReal_div, Complex.ofReal_intCast,
+      Complex.ofReal_natCast]
+    field_simp
+    ring
+  rw [hint, Complex.exp_int_mul_two_pi_mul_I, mul_one]
+  ring
+
+/-- **The gcd extraction inside a residue class** (Track R, R6-2b).
+
+In the class `m ≡ b (mod q)` every `m` is a multiple of `d₀ = gcd(b, q)`, and
+`m = d₀·m'` runs over the dilated block `(⌊lo/d₀⌋, ⌊hi/d₀⌋]` in the class
+`m' ≡ b/d₀ (mod q/d₀)`, which is a **unit** class.  Complete multiplicativity
+factors `g(m) = g(d₀)·g(m')`, and `𝒮`-membership is unchanged by the dilation
+when no level prime divides `q` (`hasFactorInAll_mul_left_iff`).  The hypothesis
+`hql` is the one the arcs supply: `q ≤ (log H)^{20}` lies below every level.
+
+The block bounds are `Nat` floors: `lo < d₀·m' ↔ ⌊lo/d₀⌋ < m'` and
+`d₀·m' ≤ hi ↔ m' ≤ ⌊hi/d₀⌋`, so the dilated block is exactly an `Ioc` again — the
+shape A.2 is stated for. -/
+theorem sum_restricted_residue_eq_gcd_dilate (g : ℕ → ℂ) (hg : CompletelyMultiplicativeC g)
+    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
+    (q : ℕ) (hq : 0 < q) (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q)
+    (b lo hi : ℕ) :
+    ∑ m ∈ (Finset.Ioc lo hi).filter
+        (fun m => HasFactorInAll levels m ∧ m % q = b), g m
+      = g (Nat.gcd b q)
+        * ∑ m' ∈ (Finset.Ioc (lo / Nat.gcd b q) (hi / Nat.gcd b q)).filter
+            (fun m' => HasFactorInAll levels m'
+              ∧ m' % (q / Nat.gcd b q) = b / Nat.gcd b q), g m' := by
+  classical
+  have hdq : Nat.gcd b q ∣ q := Nat.gcd_dvd_right b q
+  have hdb : Nat.gcd b q ∣ b := Nat.gcd_dvd_left b q
+  have hd0 : 0 < Nat.gcd b q := Nat.gcd_pos_of_pos_right b hq
+  generalize hd : Nat.gcd b q = d at hdq hdb hd0 ⊢
+  obtain ⟨q₀, hq₀⟩ := hdq
+  obtain ⟨b₀, hb₀⟩ := hdb
+  have hqd : q / d = q₀ := by rw [hq₀]; exact Nat.mul_div_cancel_left q₀ hd0
+  have hbd : b / d = b₀ := by rw [hb₀]; exact Nat.mul_div_cancel_left b₀ hd0
+  have hdl : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ d := fun P hP p hp hpd =>
+    hql P hP p hp (dvd_trans hpd ⟨q₀, hq₀⟩)
+  rw [hqd, hbd, Finset.mul_sum]
+  have hterm : ∀ m' ∈ (Finset.Ioc (lo / d) (hi / d)).filter
+      (fun m' => HasFactorInAll levels m' ∧ m' % q₀ = b₀),
+      g d * g m' = g (d * m') := by
+    intro m' hm'
+    have hm'0 : m' ≠ 0 :=
+      (Nat.zero_lt_of_lt (Finset.mem_Ioc.mp (Finset.mem_filter.mp hm').1).1).ne'
+    rw [hg d m' hd0.ne' hm'0]
+  rw [Finset.sum_congr rfl hterm]
+  have hinj : Set.InjOn (fun m' : ℕ => d * m')
+      ↑((Finset.Ioc (lo / d) (hi / d)).filter
+        (fun m' => HasFactorInAll levels m' ∧ m' % q₀ = b₀)) := by
+    intro x _ y _ hxy
+    exact Nat.eq_of_mul_eq_mul_left hd0 hxy
+  rw [← Finset.sum_image hinj]
+  congr 1
+  ext m
+  simp only [Finset.mem_image, Finset.mem_filter, Finset.mem_Ioc]
+  constructor
+  · rintro ⟨⟨hlo, hhi⟩, hS, hres⟩
+    have hdm : d ∣ m := by
+      have h := Nat.div_add_mod m q
+      rw [← h]
+      refine dvd_add (dvd_mul_of_dvd_left ⟨q₀, hq₀⟩ _) ?_
+      rw [hres, hb₀]
+      exact dvd_mul_right d b₀
+    obtain ⟨m', rfl⟩ := hdm
+    refine ⟨m', ⟨⟨?_, ?_⟩, ?_, ?_⟩, rfl⟩
+    · refine (Nat.div_lt_iff_lt_mul hd0).mpr ?_
+      rw [mul_comm]
+      exact hlo
+    · refine (Nat.le_div_iff_mul_le hd0).mpr ?_
+      rw [mul_comm]
+      exact hhi
+    · exact (hasFactorInAll_mul_left_iff levels hlv d m' hdl).mp hS
+    · rw [hq₀, hb₀, Nat.mul_mod_mul_left] at hres
+      exact Nat.eq_of_mul_eq_mul_left hd0 hres
+  · rintro ⟨m', ⟨⟨hlo, hhi⟩, hS, hres⟩, rfl⟩
+    refine ⟨⟨?_, ?_⟩, ?_, ?_⟩
+    · have h := (Nat.div_lt_iff_lt_mul hd0).mp hlo
+      rw [mul_comm] at h
+      exact h
+    · have h := (Nat.le_div_iff_mul_le hd0).mp hhi
+      rw [mul_comm] at h
+      exact h
+    · exact (hasFactorInAll_mul_left_iff levels hlv d m' hdl).mpr hS
+    · rw [hq₀, hb₀, Nat.mul_mod_mul_left, hres]
 
 end MoltResearch
