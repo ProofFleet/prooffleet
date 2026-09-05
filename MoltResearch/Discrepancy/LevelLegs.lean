@@ -41,6 +41,447 @@ noncomputable def typicalSCollision (g : ℕ → ℂ) (A B : ℕ)
         * ((Real.fourierChar (-(Real.log (p * m : ℕ) * xi)) : Circle) : ℂ))
       / (((P.filter (· ∣ (p * m))).card : ℂ))
 
+/-- The quotient support after extracting both copies of a repeated prime. -/
+def collisionQuotSupport (S : Finset ℕ) (p : ℕ) : Finset ℕ :=
+  ((((S.filter (fun n => p ∣ n)).image (· / p)).filter
+      (fun m => p ∣ m)).image (· / p))
+
+/-- The Ramaré coefficient on a twice-extracted collision fibre. -/
+noncomputable def collisionQuotCoeff (g : ℕ → ℂ) (P : Finset ℕ)
+    (p k : ℕ) : ℂ :=
+  g (p * (p * k)) / (((P.filter (· ∣ (p * (p * k)))).card : ℂ))
+
+/-- Double extraction puts every collision fibre at the scale `A / p²`. -/
+theorem collisionQuotSupport_subset (A B : ℕ) (S : Finset ℕ)
+    (hS : S ⊆ Finset.Ioc A B) {p : ℕ} (hp : 0 < p) :
+    collisionQuotSupport S p ⊆ Finset.Ioc (A / (p * p)) (B / (p * p)) := by
+  intro k hk
+  have hfirst : ((S.filter (fun n => p ∣ n)).image (· / p)) ⊆
+      Finset.Ioc (A / p) (B / p) :=
+    image_div_fibre_subset A B S hS hp
+  have hsecond := image_div_fibre_subset (A / p) (B / p)
+    ((S.filter (fun n => p ∣ n)).image (· / p)) hfirst hp hk
+  simpa only [collisionQuotSupport, Nat.div_div_eq_div_mul] using hsecond
+
+/-- The collision divisor count never enlarges a `1`-bounded coefficient. -/
+theorem norm_collisionQuotCoeff_le_one (g : ℕ → ℂ)
+    (hg : ∀ n, ‖g n‖ ≤ 1) (P : Finset ℕ) (p k : ℕ) :
+    ‖collisionQuotCoeff g P p k‖ ≤ 1 := by
+  classical
+  unfold collisionQuotCoeff
+  by_cases hzero : (P.filter (· ∣ (p * (p * k)))).card = 0
+  · simp [hzero]
+  · rw [norm_div, Complex.norm_natCast, div_le_one (by positivity)]
+    exact (hg _).trans (by
+      exact_mod_cast (Nat.one_le_iff_ne_zero.mpr hzero))
+
+/-- **A repeated-prime fibre is a quotient-scale polynomial.**
+
+The second exact divisibility reindex writes `m = p*k`.  The two factors
+`1/p` are deliberately separated: one is the harmonic weight used by the
+outer weighted Cauchy–Schwarz inequality, and the other remains on the
+quotient polynomial.  This is what retains the second-order `p` saving.
+-/
+theorem typicalSCollision_fibre_eq_factored
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) {p : ℕ} (hp : 0 < p) (xi : ℝ) :
+    (∑ m ∈ (((typicalS A B rest).filter (fun n => p ∣ n)).image
+          (· / p)).filter (fun m => p ∣ m),
+        ((g (p * m) / ((p * m : ℕ) : ℂ))
+            * ((Real.fourierChar (-(Real.log (p * m : ℕ) * xi)) : Circle) : ℂ))
+          / (((P.filter (· ∣ (p * m))).card : ℂ)))
+      = (((1 : ℂ) / (p : ℂ))
+          * ((Real.fourierChar (-(Real.log (p * p : ℕ) * xi)) : Circle) : ℂ))
+        * (((1 : ℂ) / (p : ℂ))
+          * ∑ k ∈ collisionQuotSupport (typicalS A B rest) p,
+            (collisionQuotCoeff g P p k / (k : ℂ))
+              * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ)) := by
+  classical
+  let S := ((typicalS A B rest).filter (fun n => p ∣ n)).image (· / p)
+  rw [sum_filter_dvd_eq_sum_image S hp]
+  change (∑ k ∈ collisionQuotSupport (typicalS A B rest) p,
+      ((g (p * (p * k)) / ((p * (p * k) : ℕ) : ℂ))
+          * ((Real.fourierChar
+            (-(Real.log (p * (p * k) : ℕ) * xi)) : Circle) : ℂ))
+        / (((P.filter (· ∣ (p * (p * k)))).card : ℂ))) = _
+  rw [Finset.mul_sum, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun k hk => ?_
+  have hksub := collisionQuotSupport_subset A B (typicalS A B rest)
+    (typicalS_subset_Ioc A B rest) hp hk
+  have hk0 : k ≠ 0 := by
+    exact Nat.ne_of_gt (lt_of_le_of_lt (Nat.zero_le _) (Finset.mem_Ioc.mp hksub).1)
+  rw [show p * (p * k) = (p * p) * k by ring,
+    char_log_mul (p * p) k (by positivity) hk0 xi]
+  unfold collisionQuotCoeff
+  push_cast
+  field_simp
+  ring
+
+/-- The harmonic outer weight of a twice-extracted collision fibre. -/
+noncomputable def collisionPrimeWeight (p : ℕ) (xi : ℝ) : ℂ :=
+  ((1 : ℂ) / (p : ℂ))
+    * ((Real.fourierChar (-(Real.log (p * p : ℕ) * xi)) : Circle) : ℂ)
+
+/-- The remaining quotient polynomial, including the second factor `1/p`. -/
+noncomputable def collisionQuotPoly (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (p : ℕ) (xi : ℝ) : ℂ :=
+  ((1 : ℂ) / (p : ℂ))
+    * ∑ k ∈ collisionQuotSupport (typicalS A B rest) p,
+      (collisionQuotCoeff g P p k / (k : ℂ))
+        * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ)
+
+/-- **The whole repeated-prime term is a harmonically weighted quotient sum.** -/
+theorem typicalSCollision_eq_weighted_quotient_sum
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) (rest : List (Finset ℕ)) (xi : ℝ) :
+    typicalSCollision g A B P rest xi
+      = ∑ p ∈ P, collisionPrimeWeight p xi
+          * collisionQuotPoly g A B P rest p xi := by
+  classical
+  unfold typicalSCollision
+  refine Finset.sum_congr rfl fun p hpP => ?_
+  exact typicalSCollision_fibre_eq_factored g A B P rest (hP p hpP).pos xi
+
+/-- Collision prime weights are continuous in frequency. -/
+theorem continuous_collisionPrimeWeight (p : ℕ) :
+    Continuous (collisionPrimeWeight p) := by
+  unfold collisionPrimeWeight
+  exact continuous_const.mul (continuous_subtype_val.comp
+    (Real.continuous_fourierChar.comp (by fun_prop)))
+
+/-- Collision quotient polynomials are continuous in frequency. -/
+theorem continuous_collisionQuotPoly
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) (p : ℕ) :
+    Continuous (collisionQuotPoly g A B P rest p) := by
+  unfold collisionQuotPoly
+  refine continuous_const.mul (continuous_finset_sum _ fun k _ => ?_)
+  exact continuous_const.mul (continuous_subtype_val.comp
+    (Real.continuous_fourierChar.comp (by fun_prop)))
+
+/-- The outer collision weight has exactly the harmonic norm `1/p`. -/
+theorem norm_collisionPrimeWeight (p : ℕ) (xi : ℝ) :
+    ‖collisionPrimeWeight p xi‖ = (1 : ℝ) / (p : ℝ) := by
+  unfold collisionPrimeWeight
+  rw [norm_mul, norm_div, norm_one, Complex.norm_natCast,
+    norm_eq_of_mem_sphere, mul_one]
+
+open MeasureTheory Finset ExpSums in
+/-- **One collision quotient polynomial retains a second `1/p`.**
+
+The sharp mean-value theorem is applied after both copies of `p` have been
+extracted, at base `A / p²`.  Natural-number division can double the block
+ratio, so the harmless absolute term is `8`; the leading factor `1/p²` is
+kept outside and is the saving needed by the collision schedule.
+-/
+theorem intervalIntegral_norm_sq_collisionQuotPoly_le
+    (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (A Delta : ℕ) (hDeltaA : Delta ≤ A)
+    (P : Finset ℕ) (rest : List (Finset ℕ))
+    {p : ℕ} (hp : p.Prime) (hppA : p * p ≤ A)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ xi in (-T)..T, ‖collisionQuotPoly g A (A + Delta) P rest p xi‖ ^ 2)
+      ≤ ((1 : ℝ) / (p : ℝ)) ^ 2
+          * (Real.exp Real.pi
+            * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+            * ∑ k ∈ collisionQuotSupport (typicalS A (A + Delta) rest) p,
+                (1 : ℝ) / (k : ℝ)) := by
+  classical
+  let K := collisionQuotSupport (typicalS A (A + Delta) rest) p
+  let c : ℕ → ℂ := fun k => ((1 : ℂ) / (p : ℂ)) * collisionQuotCoeff g P p k
+  have hp0 : 0 < p := hp.pos
+  have hpp0 : 0 < p * p := Nat.mul_pos hp0 hp0
+  have hbase : 1 ≤ A / (p * p) := (Nat.one_le_div_iff hpp0).mpr hppA
+  have hKraw : K ⊆ Finset.Ioc (A / (p * p)) ((A + Delta) / (p * p)) :=
+    collisionQuotSupport_subset A (A + Delta) (typicalS A (A + Delta) rest)
+      (typicalS_subset_Ioc A (A + Delta) rest) hp0
+  have hwindow : Finset.Ioc (A / (p * p)) ((A + Delta) / (p * p)) ⊆
+      Finset.Ioc (A / (p * p)) (4 * (A / (p * p))) := by
+    have hratio := Ioc_div_subset_Ioc_two_mul_ratio A (A + Delta) 2 (p * p)
+      (by omega) hppA (by norm_num) (by omega)
+    simpa only [Nat.reduceMul] using hratio
+  have hK : K ⊆ Finset.Ioc (A / (p * p)) (4 * (A / (p * p))) :=
+    hKraw.trans hwindow
+  have hshape : ∀ xi : ℝ, collisionQuotPoly g A (A + Delta) P rest p xi
+      = ∑ k ∈ K, (c k / (k : ℂ))
+          * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ) := by
+    intro xi
+    unfold collisionQuotPoly
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun k _ => ?_
+    dsimp only [c]
+    ring
+  have hMVT := intervalIntegral_norm_sq_poly_le_sharp_ratio
+    (A / (p * p)) 4 hbase (by norm_num) K hK c T hT
+  have hmass : ∑ k ∈ K, ‖c k‖ ^ 2 / (k : ℝ)
+      ≤ ((1 : ℝ) / (p : ℝ)) ^ 2 * ∑ k ∈ K, (1 : ℝ) / (k : ℝ) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun k hk => ?_
+    have hk0 : (0 : ℝ) < (k : ℝ) := by
+      exact_mod_cast (lt_of_le_of_lt (Nat.zero_le _) (Finset.mem_Ioc.mp (hK hk)).1)
+    have hcp : ‖c k‖ ≤ (1 : ℝ) / (p : ℝ) := by
+      dsimp only [c]
+      rw [norm_mul, norm_div, norm_one, Complex.norm_natCast]
+      exact mul_le_of_le_one_right (by positivity) (norm_collisionQuotCoeff_le_one g hg P p k)
+    have hsq : ‖c k‖ ^ 2 ≤ ((1 : ℝ) / (p : ℝ)) ^ 2 := by
+      nlinarith [norm_nonneg (c k)]
+    calc
+      ‖c k‖ ^ 2 / (k : ℝ) ≤ ((1 : ℝ) / (p : ℝ)) ^ 2 / (k : ℝ) := by
+        exact div_le_div_of_nonneg_right hsq hk0.le
+      _ = ((1 : ℝ) / (p : ℝ)) ^ 2 * (1 / (k : ℝ)) := by ring
+  calc
+    (∫ xi in (-T)..T, ‖collisionQuotPoly g A (A + Delta) P rest p xi‖ ^ 2)
+        = ∫ xi in (-T)..T, ‖∑ k ∈ K, (c k / (k : ℂ))
+            * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ)‖ ^ 2 := by
+          apply intervalIntegral.integral_congr
+          intro xi _
+          exact congrArg (fun z : ℂ => ‖z‖ ^ 2) (hshape xi)
+    _
+        ≤ Real.exp Real.pi
+            * (T / ((A / (p * p) : ℕ) : ℝ) + 2 * (4 : ℝ))
+            * ∑ k ∈ K, ‖c k‖ ^ 2 / (k : ℝ) := hMVT
+    _ ≤ Real.exp Real.pi
+            * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+            * (((1 : ℝ) / (p : ℝ)) ^ 2
+              * ∑ k ∈ K, (1 : ℝ) / (k : ℝ)) := by
+          gcongr
+          norm_num
+    _ = ((1 : ℝ) / (p : ℝ)) ^ 2
+          * (Real.exp Real.pi
+            * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+            * ∑ k ∈ K, (1 : ℝ) / (k : ℝ)) := by ring
+
+/-- The explicit weighted mean-value envelope for the repeated-prime term. -/
+noncomputable def collisionEnergyBound (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (T : ℝ) : ℝ :=
+  (∑ p ∈ P, (1 : ℝ) / (p : ℝ))
+    * ∑ p ∈ P, ((1 : ℝ) / (p : ℝ))
+      * (((1 : ℝ) / (p : ℝ)) ^ 2
+        * (Real.exp Real.pi * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+          * ∑ k ∈ collisionQuotSupport (typicalS A B rest) p,
+              (1 : ℝ) / (k : ℝ)))
+
+open MeasureTheory Finset ExpSums in
+/-- **Weighted Cauchy–Schwarz assembles the repeated-prime collision.**
+
+The outer factors have norm `1/p`, so weighted Cauchy–Schwarz costs the
+prime harmonic mass rather than the number of primes.  Each quotient energy
+then retains `1/p²`; together the non-window part is cubic in `1/p`, exactly
+the corrected collision scaling.
+-/
+theorem intervalIntegral_norm_sq_typicalSCollision_le
+    (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (A Delta : ℕ) (hDeltaA : Delta ≤ A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (hPA : ∀ p ∈ P, p * p ≤ A)
+    (rest : List (Finset ℕ)) (T : ℝ) (hT : 0 < T) :
+    (∫ xi in (-T)..T, ‖typicalSCollision g A (A + Delta) P rest xi‖ ^ 2)
+      ≤ collisionEnergyBound A (A + Delta) P rest T := by
+  have hweighted := intervalIntegral_norm_sq_freq_weighted_sum_le P
+    collisionPrimeWeight (fun p => (1 : ℝ) / (p : ℝ))
+    (fun p xi => (norm_collisionPrimeWeight p xi).le)
+    continuous_collisionPrimeWeight
+    (collisionQuotPoly g A (A + Delta) P rest)
+    (continuous_collisionQuotPoly g A (A + Delta) P rest)
+    T hT.le
+  calc
+    (∫ xi in (-T)..T, ‖typicalSCollision g A (A + Delta) P rest xi‖ ^ 2)
+        = ∫ xi in (-T)..T, ‖∑ p ∈ P, collisionPrimeWeight p xi
+            * collisionQuotPoly g A (A + Delta) P rest p xi‖ ^ 2 := by
+          apply intervalIntegral.integral_congr
+          intro xi _
+          exact congrArg (fun z : ℂ => ‖z‖ ^ 2)
+            (typicalSCollision_eq_weighted_quotient_sum
+              g A (A + Delta) P hP rest xi)
+    _ ≤ (∑ p ∈ P, (1 : ℝ) / (p : ℝ))
+          * ∑ p ∈ P, ((1 : ℝ) / (p : ℝ))
+            * ∫ xi in (-T)..T,
+                ‖collisionQuotPoly g A (A + Delta) P rest p xi‖ ^ 2 := hweighted
+    _ ≤ (∑ p ∈ P, (1 : ℝ) / (p : ℝ))
+          * ∑ p ∈ P, ((1 : ℝ) / (p : ℝ))
+            * (((1 : ℝ) / (p : ℝ)) ^ 2
+              * (Real.exp Real.pi
+                * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+                * ∑ k ∈ collisionQuotSupport
+                    (typicalS A (A + Delta) rest) p,
+                    (1 : ℝ) / (k : ℝ))) := by
+          gcongr with p hpP
+          exact intervalIntegral_norm_sq_collisionQuotPoly_le g hg A Delta
+            hDeltaA P rest (hP p hpP) (hPA p hpP) T hT
+    _ = collisionEnergyBound A (A + Delta) P rest T := rfl
+
+/-- The quotient coefficient of the terms added to complete a full block. -/
+noncomputable def addedCollisionQuotCoeff (g : ℕ → ℂ) (P : Finset ℕ)
+    (p k : ℕ) : ℂ :=
+  (g p * g (p * k)) / ((((P.filter (· ∣ (p * k))).card : ℂ) + 1))
+
+/-- The full-block correction coefficient is still `1`-bounded. -/
+theorem norm_addedCollisionQuotCoeff_le_one (g : ℕ → ℂ)
+    (hg : ∀ n, ‖g n‖ ≤ 1) (P : Finset ℕ) (p k : ℕ) :
+    ‖addedCollisionQuotCoeff g P p k‖ ≤ 1 := by
+  classical
+  unfold addedCollisionQuotCoeff
+  rw [norm_div, norm_mul]
+  have hnum : ‖g p‖ * ‖g (p * k)‖ ≤ 1 := by
+    nlinarith [hg p, hg (p * k), norm_nonneg (g p), norm_nonneg (g (p * k))]
+  have hden : ‖((P.filter (· ∣ (p * k))).card : ℂ) + 1‖
+      = ((P.filter (· ∣ (p * k))).card : ℝ) + 1 := by
+    rw [show ((P.filter (· ∣ (p * k))).card : ℂ) + 1 =
+        (((P.filter (· ∣ (p * k))).card + 1 : ℕ) : ℂ) by push_cast; ring,
+      Complex.norm_natCast]
+    push_cast
+    ring
+  rw [hden, div_le_one (by positivity)]
+  exact hnum.trans (by
+    have hcard : (0 : ℝ) ≤ ((P.filter (· ∣ (p * k))).card : ℝ) := by positivity
+    linarith)
+
+/-- The quotient polynomial formed by the compensating full-block terms. -/
+noncomputable def addedCollisionQuotPoly (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (p : ℕ) (xi : ℝ) : ℂ :=
+  ((1 : ℂ) / (p : ℂ))
+    * ∑ k ∈ collisionQuotSupport (typicalS A B rest) p,
+      (addedCollisionQuotCoeff g P p k / (k : ℂ))
+        * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ)
+
+/-- One compensating fibre has the same quotient-scale shape as a collision. -/
+theorem typicalSAddedTerms_fibre_eq_factored
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) {p : ℕ} (hp : 0 < p) (xi : ℝ) :
+    ((g p / (p : ℂ))
+          * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ))
+        * ∑ m ∈ (((typicalS A B rest).filter
+            (fun n => p ∣ n)).image (· / p)).filter (fun m => p ∣ m),
+          ((g m / (m : ℂ))
+              * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
+            / (((P.filter (· ∣ m)).card : ℂ) + 1)
+      = collisionPrimeWeight p xi * addedCollisionQuotPoly g A B P rest p xi := by
+  classical
+  let S := ((typicalS A B rest).filter (fun n => p ∣ n)).image (· / p)
+  rw [sum_filter_dvd_eq_sum_image S hp]
+  unfold addedCollisionQuotPoly collisionPrimeWeight
+  rw [Finset.mul_sum, Finset.mul_sum, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun k hk => ?_
+  have hksub := collisionQuotSupport_subset A B (typicalS A B rest)
+    (typicalS_subset_Ioc A B rest) hp hk
+  have hk0 : k ≠ 0 :=
+    Nat.ne_of_gt (lt_of_le_of_lt (Nat.zero_le _) (Finset.mem_Ioc.mp hksub).1)
+  rw [char_log_mul p k hp.ne' hk0 xi, char_log_mul p p hp.ne' hp.ne' xi]
+  unfold addedCollisionQuotCoeff
+  push_cast
+  field_simp
+
+/-- The compensating quotient polynomials are continuous in frequency. -/
+theorem continuous_addedCollisionQuotPoly
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) (p : ℕ) :
+    Continuous (addedCollisionQuotPoly g A B P rest p) := by
+  unfold addedCollisionQuotPoly
+  refine continuous_const.mul (continuous_finset_sum _ fun k _ => ?_)
+  exact continuous_const.mul (continuous_subtype_val.comp
+    (Real.continuous_fourierChar.comp (by fun_prop)))
+
+open MeasureTheory Finset ExpSums in
+/-- The quotient-scale mean-value estimate depends only on support and a
+`1`-bounded coefficient. -/
+theorem intervalIntegral_norm_sq_scaled_quotient_le
+    (A Delta : ℕ) (hDeltaA : Delta ≤ A)
+    {p : ℕ} (hp : p.Prime) (hppA : p * p ≤ A)
+    (K : Finset ℕ)
+    (hKraw : K ⊆ Finset.Ioc (A / (p * p)) ((A + Delta) / (p * p)))
+    (c : ℕ → ℂ) (hc : ∀ k, ‖c k‖ ≤ 1)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ xi in (-T)..T, ‖((1 : ℂ) / (p : ℂ))
+        * ∑ k ∈ K, (c k / (k : ℂ))
+          * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ)‖ ^ 2)
+      ≤ ((1 : ℝ) / (p : ℝ)) ^ 2
+          * (Real.exp Real.pi
+            * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+            * ∑ k ∈ K, (1 : ℝ) / (k : ℝ)) := by
+  classical
+  let cp : ℕ → ℂ := fun k => ((1 : ℂ) / (p : ℂ)) * c k
+  have hp0 : 0 < p := hp.pos
+  have hpp0 : 0 < p * p := Nat.mul_pos hp0 hp0
+  have hbase : 1 ≤ A / (p * p) := (Nat.one_le_div_iff hpp0).mpr hppA
+  have hwindow : Finset.Ioc (A / (p * p)) ((A + Delta) / (p * p)) ⊆
+      Finset.Ioc (A / (p * p)) (4 * (A / (p * p))) := by
+    have hratio := Ioc_div_subset_Ioc_two_mul_ratio A (A + Delta) 2 (p * p)
+      (by omega) hppA (by norm_num) (by omega)
+    simpa only [Nat.reduceMul] using hratio
+  have hK : K ⊆ Finset.Ioc (A / (p * p)) (4 * (A / (p * p))) :=
+    hKraw.trans hwindow
+  have hshape : ∀ xi : ℝ,
+      ((1 : ℂ) / (p : ℂ)) * ∑ k ∈ K, (c k / (k : ℂ))
+          * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ)
+        = ∑ k ∈ K, (cp k / (k : ℂ))
+          * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ) := by
+    intro xi
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl fun k _ => ?_
+    dsimp only [cp]
+    ring
+  have hMVT := intervalIntegral_norm_sq_poly_le_sharp_ratio
+    (A / (p * p)) 4 hbase (by norm_num) K hK cp T hT
+  have hmass : ∑ k ∈ K, ‖cp k‖ ^ 2 / (k : ℝ)
+      ≤ ((1 : ℝ) / (p : ℝ)) ^ 2 * ∑ k ∈ K, (1 : ℝ) / (k : ℝ) := by
+    rw [Finset.mul_sum]
+    refine Finset.sum_le_sum fun k hk => ?_
+    have hk0 : (0 : ℝ) < (k : ℝ) := by
+      exact_mod_cast (lt_of_le_of_lt (Nat.zero_le _) (Finset.mem_Ioc.mp (hK hk)).1)
+    have hcp : ‖cp k‖ ≤ (1 : ℝ) / (p : ℝ) := by
+      dsimp only [cp]
+      rw [norm_mul, norm_div, norm_one, Complex.norm_natCast]
+      exact mul_le_of_le_one_right (by positivity) (hc k)
+    have hsq : ‖cp k‖ ^ 2 ≤ ((1 : ℝ) / (p : ℝ)) ^ 2 := by
+      nlinarith [norm_nonneg (cp k)]
+    calc
+      ‖cp k‖ ^ 2 / (k : ℝ) ≤ ((1 : ℝ) / (p : ℝ)) ^ 2 / (k : ℝ) := by
+        exact div_le_div_of_nonneg_right hsq hk0.le
+      _ = ((1 : ℝ) / (p : ℝ)) ^ 2 * (1 / (k : ℝ)) := by ring
+  calc
+    (∫ xi in (-T)..T, ‖((1 : ℂ) / (p : ℂ))
+        * ∑ k ∈ K, (c k / (k : ℂ))
+          * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ)‖ ^ 2)
+        = ∫ xi in (-T)..T, ‖∑ k ∈ K, (cp k / (k : ℂ))
+            * ((Real.fourierChar (-(Real.log k * xi)) : Circle) : ℂ)‖ ^ 2 := by
+          apply intervalIntegral.integral_congr
+          intro xi _
+          exact congrArg (fun z : ℂ => ‖z‖ ^ 2) (hshape xi)
+    _ ≤ Real.exp Real.pi
+          * (T / ((A / (p * p) : ℕ) : ℝ) + 2 * (4 : ℝ))
+          * ∑ k ∈ K, ‖cp k‖ ^ 2 / (k : ℝ) := hMVT
+    _ ≤ Real.exp Real.pi
+          * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+          * (((1 : ℝ) / (p : ℝ)) ^ 2
+            * ∑ k ∈ K, (1 : ℝ) / (k : ℝ)) := by
+        gcongr
+        norm_num
+    _ = ((1 : ℝ) / (p : ℝ)) ^ 2
+          * (Real.exp Real.pi
+            * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+            * ∑ k ∈ K, (1 : ℝ) / (k : ℝ)) := by ring
+
+/-- The compensating quotient has the same energy envelope as the original
+collision quotient. -/
+theorem intervalIntegral_norm_sq_addedCollisionQuotPoly_le
+    (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (A Delta : ℕ) (hDeltaA : Delta ≤ A)
+    (P : Finset ℕ) (rest : List (Finset ℕ))
+    {p : ℕ} (hp : p.Prime) (hppA : p * p ≤ A)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ xi in (-T)..T, ‖addedCollisionQuotPoly g A (A + Delta) P rest p xi‖ ^ 2)
+      ≤ ((1 : ℝ) / (p : ℝ)) ^ 2
+          * (Real.exp Real.pi
+            * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+            * ∑ k ∈ collisionQuotSupport (typicalS A (A + Delta) rest) p,
+                (1 : ℝ) / (k : ℝ)) := by
+  exact intervalIntegral_norm_sq_scaled_quotient_le A Delta hDeltaA hp hppA
+    (collisionQuotSupport (typicalS A (A + Delta) rest) p)
+    (collisionQuotSupport_subset A (A + Delta) (typicalS A (A + Delta) rest)
+      (typicalS_subset_Ioc A (A + Delta) rest) hp.pos)
+    (addedCollisionQuotCoeff g P p)
+    (norm_addedCollisionQuotCoeff_le_one g hg P p) T hT
+
 open Finset in
 /-- **The exact typical-set decomposition, grouped by e-adic cells.**
 
@@ -273,6 +714,38 @@ theorem typicalS_main_fibre_eq_block_of_support_eq
     ring
   · simp [hm, typicalSQuotCoeff]
 
+/-- **Disjoint prime levels give the quotient-support stability condition.**
+
+Multiplying by a prime from the extracted level cannot create a factor in any
+remaining level when those levels are disjoint.  The reverse implication is
+immediate from divisibility.  Thus the support-stability hypothesis used by
+the full-block replacement is a consequence of the usual disjoint-level
+schedule, rather than an additional analytic input.
+-/
+theorem hasFactorInAll_mul_iff_of_disjoint
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ))
+    (hrest : ∀ Q ∈ rest, ∀ q ∈ Q, q.Prime)
+    (hdisj : ∀ Q ∈ rest, Disjoint P Q)
+    {p : ℕ} (hpP : p ∈ P) (m : ℕ) :
+    HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m := by
+  constructor
+  · intro h Q hQ
+    obtain ⟨q, hq⟩ := Finset.card_pos.mp (h Q hQ)
+    rw [Finset.mem_filter] at hq
+    obtain ⟨hqQ, hqpm⟩ := hq
+    rcases (hrest Q hQ q hqQ).dvd_mul.mp hqpm with hqp | hqm
+    · have hqpEq : q = p :=
+        (Nat.prime_dvd_prime_iff_eq (hrest Q hQ q hqQ) (hP p hpP)).mp hqp
+      exact (Finset.disjoint_left.mp (hdisj Q hQ) hpP (hqpEq ▸ hqQ)).elim
+    · exact Finset.card_pos.mpr ⟨q, Finset.mem_filter.mpr ⟨hqQ, hqm⟩⟩
+  · intro h Q hQ
+    obtain ⟨q, hq⟩ := Finset.card_pos.mp (h Q hQ)
+    rw [Finset.mem_filter] at hq
+    obtain ⟨hqQ, hqm⟩ := hq
+    exact Finset.card_pos.mpr
+      ⟨q, Finset.mem_filter.mpr ⟨hqQ, dvd_mul_of_dvd_right hqm p⟩⟩
+
 /-- **A stable remaining-level condition identifies the full quotient
 support.**
 
@@ -363,6 +836,90 @@ noncomputable def typicalSAddedTerms (g : ℕ → ℂ) (A B : ℕ)
         ((g m / (m : ℂ))
             * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
           / (((P.filter (· ∣ m)).card : ℂ) + 1)
+
+open Finset in
+/-- **The full-block correction is a weighted collision family.**
+
+The e-adic cover is used only to flatten the cell indexing back to `P`.
+After that, every compensating fibre has the same outer harmonic weight and
+twice-extracted support as the original repeated-prime term.
+-/
+theorem typicalSAddedTerms_eq_weighted_quotient_sum
+    (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (hP : ∀ p ∈ P, p.Prime) (rest : List (Finset ℕ))
+    (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (xi : ℝ) :
+    typicalSAddedTerms g A B P rest N v₀ v₁ xi
+      = ∑ p ∈ P, collisionPrimeWeight p xi
+          * addedCollisionQuotPoly g A B P rest p xi := by
+  classical
+  have hdisj : Set.PairwiseDisjoint
+      (↑(Finset.Ico v₀ (v₁ + 1)) : Set ℕ) (eadicCell P (2 * N)) :=
+    fun v _ w _ hvw => eadicCell_disjoint P (2 * N) hvw
+  calc
+    typicalSAddedTerms g A B P rest N v₀ v₁ xi
+        = ∑ v ∈ Finset.Ico v₀ (v₁ + 1), ∑ p ∈ eadicCell P (2 * N) v,
+            collisionPrimeWeight p xi
+              * addedCollisionQuotPoly g A B P rest p xi := by
+          unfold typicalSAddedTerms
+          refine Finset.sum_congr rfl fun v _ => ?_
+          refine Finset.sum_congr rfl fun p hp => ?_
+          exact typicalSAddedTerms_fibre_eq_factored g A B P rest
+            (hP p (mem_eadicCell.mp hp).1).pos xi
+    _ = ∑ p ∈ (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)),
+          collisionPrimeWeight p xi
+            * addedCollisionQuotPoly g A B P rest p xi :=
+      (Finset.sum_biUnion hdisj).symm
+    _ = ∑ p ∈ P, collisionPrimeWeight p xi
+          * addedCollisionQuotPoly g A B P rest p xi := by rw [hcov]
+
+open MeasureTheory Finset ExpSums in
+/-- **The full-block correction costs the same collision envelope.** -/
+theorem intervalIntegral_norm_sq_typicalSAddedTerms_le
+    (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (A Delta : ℕ) (hDeltaA : Delta ≤ A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (hPA : ∀ p ∈ P, p * p ≤ A)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ xi in (-T)..T,
+      ‖typicalSAddedTerms g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+      ≤ collisionEnergyBound A (A + Delta) P rest T := by
+  have hweighted := intervalIntegral_norm_sq_freq_weighted_sum_le P
+    collisionPrimeWeight (fun p => (1 : ℝ) / (p : ℝ))
+    (fun p xi => (norm_collisionPrimeWeight p xi).le)
+    continuous_collisionPrimeWeight
+    (addedCollisionQuotPoly g A (A + Delta) P rest)
+    (continuous_addedCollisionQuotPoly g A (A + Delta) P rest)
+    T hT.le
+  calc
+    (∫ xi in (-T)..T,
+      ‖typicalSAddedTerms g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+        = ∫ xi in (-T)..T, ‖∑ p ∈ P, collisionPrimeWeight p xi
+            * addedCollisionQuotPoly g A (A + Delta) P rest p xi‖ ^ 2 := by
+          apply intervalIntegral.integral_congr
+          intro xi _
+          exact congrArg (fun z : ℂ => ‖z‖ ^ 2)
+            (typicalSAddedTerms_eq_weighted_quotient_sum
+              g A (A + Delta) P hP rest N v₀ v₁ hcov xi)
+    _ ≤ (∑ p ∈ P, (1 : ℝ) / (p : ℝ))
+          * ∑ p ∈ P, ((1 : ℝ) / (p : ℝ))
+            * ∫ xi in (-T)..T,
+                ‖addedCollisionQuotPoly g A (A + Delta) P rest p xi‖ ^ 2 := hweighted
+    _ ≤ (∑ p ∈ P, (1 : ℝ) / (p : ℝ))
+          * ∑ p ∈ P, ((1 : ℝ) / (p : ℝ))
+            * (((1 : ℝ) / (p : ℝ)) ^ 2
+              * (Real.exp Real.pi
+                * (T / ((A / (p * p) : ℕ) : ℝ) + 8)
+                * ∑ k ∈ collisionQuotSupport
+                    (typicalS A (A + Delta) rest) p,
+                    (1 : ℝ) / (k : ℝ))) := by
+          gcongr with p hpP
+          exact intervalIntegral_norm_sq_addedCollisionQuotPoly_le g hg A Delta
+            hDeltaA P rest (hP p hpP) (hPA p hpP) T hT
+    _ = collisionEnergyBound A (A + Delta) P rest T := rfl
 
 open Finset in
 /-- **The N3-f main term in the full block shape consumed by II-2e.**
@@ -498,6 +1055,105 @@ theorem continuous_typicalSAdjustedCollision (g : ℕ → ℂ) (A B : ℕ)
     refine (continuous_const.mul (hchar (Real.log p))).mul ?_
     refine continuous_finset_sum _ fun m _ => ?_
     exact (continuous_const.mul (hchar (Real.log m))).div_const _
+
+/-- The original repeated-prime term is continuous in frequency. -/
+theorem continuous_typicalSCollision (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) :
+    Continuous (typicalSCollision g A B P rest) := by
+  classical
+  unfold typicalSCollision
+  refine continuous_finset_sum _ fun p _ => ?_
+  refine continuous_finset_sum _ fun m _ => ?_
+  exact (continuous_const.mul (continuous_subtype_val.comp
+    (Real.continuous_fourierChar.comp (by fun_prop)))).div_const _
+
+/-- The compensating full-block terms are continuous in frequency. -/
+theorem continuous_typicalSAddedTerms (g : ℕ → ℂ) (A B : ℕ)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ) :
+    Continuous (typicalSAddedTerms g A B P rest N v₀ v₁) := by
+  classical
+  unfold typicalSAddedTerms
+  refine continuous_finset_sum _ fun v _ => ?_
+  refine continuous_finset_sum _ fun p _ => ?_
+  refine (continuous_const.mul (continuous_subtype_val.comp
+    (Real.continuous_fourierChar.comp (by fun_prop)))).mul ?_
+  refine continuous_finset_sum _ fun m _ => ?_
+  exact (continuous_const.mul (continuous_subtype_val.comp
+    (Real.continuous_fourierChar.comp (by fun_prop)))).div_const _
+
+open MeasureTheory ExpSums in
+/-- **The adjusted collision has four times the explicit collision envelope.**
+
+Completing the quotient blocks replaces the original repeated-prime term by
+its difference with the compensating family.  Both halves have the same
+weighted quotient-scale bound, so one `L²` triangle costs exactly four copies
+of `collisionEnergyBound`.
+-/
+theorem intervalIntegral_norm_sq_typicalSAdjustedCollision_le
+    (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (A Delta : ℕ) (hDeltaA : Delta ≤ A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (hPA : ∀ p ∈ P, p * p ≤ A)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (T : ℝ) (hT : 0 < T) :
+    (∫ xi in (-T)..T,
+      ‖typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+      ≤ 4 * collisionEnergyBound A (A + Delta) P rest T := by
+  let F := typicalSCollision g A (A + Delta) P rest
+  let E := typicalSAddedTerms g A (A + Delta) P rest N v₀ v₁
+  have hsplit := intervalIntegral_norm_add_sq_le F (fun xi => -E xi)
+    (continuous_typicalSCollision g A (A + Delta) P rest)
+    (continuous_typicalSAddedTerms g A (A + Delta) P rest N v₀ v₁).neg
+    T hT.le
+  have hcoll := intervalIntegral_norm_sq_typicalSCollision_le g hg A Delta
+    hDeltaA P hP hPA rest T hT
+  have hadd := intervalIntegral_norm_sq_typicalSAddedTerms_le g hg A Delta
+    hDeltaA P hP hPA rest N v₀ v₁ hcov T hT
+  change (∫ xi in (-T)..T, ‖F xi - E xi‖ ^ 2)
+      ≤ 4 * collisionEnergyBound A (A + Delta) P rest T
+  have hsplit' : (∫ xi in (-T)..T, ‖F xi - E xi‖ ^ 2)
+      ≤ 2 * (∫ xi in (-T)..T, ‖F xi‖ ^ 2)
+        + 2 * (∫ xi in (-T)..T, ‖E xi‖ ^ 2) := by
+    simpa only [sub_eq_add_neg, norm_neg] using hsplit
+  change (∫ xi in (-T)..T, ‖F xi‖ ^ 2)
+      ≤ collisionEnergyBound A (A + Delta) P rest T at hcoll
+  change (∫ xi in (-T)..T, ‖E xi‖ ^ 2)
+      ≤ collisionEnergyBound A (A + Delta) P rest T at hadd
+  exact hsplit'.trans (by linarith)
+
+open MeasureTheory in
+/-- **An explicit collision fit supplies the capstone collision share.**
+
+The level part may be any subset of the enclosing frequency interval.  Thus
+the schedule only has to compare eight copies of the weighted collision
+envelope with its declared band-budget share: four from completing the block,
+and two from the final square split.
+-/
+theorem typicalSAdjustedCollision_le_budget
+    (g : ℕ → ℂ) (hg : ∀ n, ‖g n‖ ≤ 1)
+    (A Delta : ℕ) (hDeltaA : Delta ≤ A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (hPA : ∀ p ∈ P, p * p ≤ A)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (T : ℝ) (hT : 0 < T) (G : Set ℝ) (hGT : G ⊆ Set.Ioc (-T) T)
+    (kappa c₃ eps rho : ℝ)
+    (hfit : 8 * collisionEnergyBound A (A + Delta) P rest T
+      ≤ kappa * bandBudget c₃ eps rho) :
+    2 * (∫ xi in G,
+      ‖typicalSAdjustedCollision g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+      ≤ kappa * bandBudget c₃ eps rho := by
+  have hset := ExpSums.setIntegral_le_intervalIntegral_of_nonneg
+    (fun xi => ‖typicalSAdjustedCollision
+      g A (A + Delta) P rest N v₀ v₁ xi‖ ^ 2)
+    ((continuous_typicalSAdjustedCollision
+      g A (A + Delta) P rest N v₀ v₁).norm.pow 2)
+    (fun xi => sq_nonneg _)
+    T hT.le G hGT
+  have hint := intervalIntegral_norm_sq_typicalSAdjustedCollision_le g hg
+    A Delta hDeltaA P hP hPA rest N v₀ v₁ hcov T hT
+  linarith
 
 /-- The cell-uniform main envelope appearing in
 `setIntegral_norm_sq_cell_prime_block_le`. -/
@@ -901,6 +1557,59 @@ theorem typicalS_level_leg_le_budget
             * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by ring
     _ ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) :=
       mul_le_mul_of_nonneg_right hshare hB0
+
+open MeasureTheory in
+/-- **The capstone level leg with the collision reduced to an explicit fit.**
+
+This is the literal `hleg` conclusion with no collision integral left as a
+hypothesis.  The new schedule obligation is numerical:
+`8 * collisionEnergyBound ≤ κ_collision * bandBudget`; the factor eight
+records the full-block correction and the final error split exactly once.
+-/
+theorem typicalS_level_leg_le_budget_of_collision_fit
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
+    (A Delta H : ℕ) (hDeltaA : Delta ≤ A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (hPA : ∀ p ∈ P, p * p ≤ A)
+    (rest : List (Finset ℕ)) (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (q : ℕ → ℕ)
+    (K₁ K₂ T : ℝ) (hT : 0 < T) (J j : ℕ) (Pset : ℕ → Set ℝ)
+    (hPset : ∀ i, MeasurableSet (Pset i))
+    (hpartT : bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j
+      ⊆ Set.Ioc (-T) T)
+    (kappaMain kappaReplacement kappaCollision c₃ eps : ℝ)
+    (hc₃ : 0 ≤ c₃)
+    (hmain : (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖typicalSCellUniformMain g A (A + Delta) P rest N v₀ v₁ q xi‖ ^ 2)
+      ≤ kappaMain * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hreplacement : 2 * (∫ xi in bandPartOn Pset J
+        {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖typicalSCellReplacement g A (A + Delta) P rest N v₀ v₁ q xi‖ ^ 2)
+      ≤ kappaReplacement * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hcollisionFit : 8 * collisionEnergyBound A (A + Delta) P rest T
+      ≤ kappaCollision * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hshare : (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (2 * kappaMain + 2 * kappaReplacement + 2 * kappaCollision)
+      ≤ (1 : ℝ) / 2 ^ (j + 1)) :
+    (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (∫ xi in bandPartOn Pset J
+            {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+          ‖∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
+            * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2)
+      ≤ (1 / 2 ^ (j + 1))
+          * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+  apply typicalS_level_leg_le_budget g hcm A Delta H P hP rest N v₀ v₁
+    hcov hstable q K₁ K₂ T J j Pset hPset hpartT
+    kappaMain kappaReplacement kappaCollision c₃ eps hc₃ hmain hreplacement
+  · exact typicalSAdjustedCollision_le_budget g hg A Delta hDeltaA P hP hPA
+      rest N v₀ v₁ hcov T hT
+      (bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j)
+      hpartT kappaCollision c₃ eps ((Delta : ℝ) / (A : ℝ)) hcollisionFit
+  · exact hshare
 
 open MeasureTheory Finset ExpSums in
 /-- **The level-one main term meets its schedule share.**
