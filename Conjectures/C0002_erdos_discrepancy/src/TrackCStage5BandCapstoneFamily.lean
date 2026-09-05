@@ -296,6 +296,112 @@ theorem band_energy_le_budget_of_exceptional_family_instantiated
     (δ v) c₃ ε ρ (κ' v) (hA0 v hv).le (hB0 v hv).le (hΓ0 v hv).le (hδ0 v hv).le
     hAle hBle (hΓle v hv) (hfit v hv)
 
+
+open MeasureTheory in
+/-- **A2-III VI-1h-3 — the `[mrt]` A.2 inner-band estimate with the factorisation
+seam over a cell family.**
+
+`band_energy_typicalS_le_geometric` (VI-1g-1) re-based on the family seam: the
+weighted energy of the typical-set polynomial over the inner band, against the
+band's share of the slice budget, with the exceptional part presented as
+`[MR]`'s decomposition actually presents it.  Everything VI-1e/VI-1f bound stays
+bound — `F` is the polynomial (continuity from `ExpSums.continuous_char_poly`),
+`Cw = (4H/A)²`, `ρ = Δ/A`, the partition is `bandPartOn Pset J` on the band,
+the cells are `bandCells K₂` with `K₂ + 2 ≤ T` the frequency-range seam — and the
+shares are geometric, so `hκ` is gone.
+
+**What a consumer now supplies is, for the first time, exactly what the tree
+can produce.**  The level legs `hleg` (VI-2, the `LevelLegs` ladder), the
+family factorisation `hfac` on the exceptional part with its constant `C` and
+error `E` (N3-f → II-1 → II-2e → collars → collision), the per-cell Halász
+inputs `δ v`, and the per-cell fits — the last being schedule arithmetic in
+`P v`, `N v`, `T`, `ε` and the shares alone. -/
+theorem band_energy_typicalS_le_family [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption] {ι' : Type*}
+    (g : ℕ → ℂ) (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
+    (levels : List (Finset ℕ))
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hwsup : ∀ ξ, w ξ ≤ (4*(H:ℝ)/(A:ℝ))^2)
+    (K₁ K₂ : ℝ)
+    (J : ℕ) (Pset : ℕ → Set ℝ) (hPset : ∀ j, MeasurableSet (Pset j))
+    (c₃ ε : ℝ) (hc₃ : 0 ≤ c₃)
+    (hleg : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      (4*(H:ℝ)/(A:ℝ))^2
+          * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} j,
+            ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (I : Finset ι') (P : ι' → ℕ) (hP : ∀ v ∈ I, 2 ≤ P v)
+    (Y : ι' → Finset ℕ) (hY : ∀ v ∈ I, ∀ p ∈ Y v, p.Prime)
+    (hYne : ∀ v ∈ I, (Y v).Nonempty)
+    (hlo : ∀ v ∈ I, ∀ p ∈ Y v, P v < p) (hhi : ∀ v ∈ I, ∀ p ∈ Y v, p ≤ 2 * P v)
+    (b : ι' → ℕ → ℂ) (hb : ∀ v ∈ I, ∀ p, ‖b v p‖ ≤ 1)
+    (N : ι' → ℕ) (a : ι' → ℕ → ℂ) (ha : ∀ v ∈ I, ∀ n, ‖a v n‖ ≤ 1)
+    (T : ℝ) (hT1 : 1 ≤ T) (hTK₂ : K₂ + 2 ≤ T)
+    (δ : ι' → ℝ) (hδ0 : ∀ v ∈ I, 0 < δ v)
+    (hδ : ∀ v ∈ I, ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 (N v), (a v n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ v)
+    (C E : ℝ) (hC0 : 0 ≤ C)
+    (hfac : (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+        ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+      ≤ C * ∑ v ∈ I, (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+            ‖∑ p ∈ Y v, (b v p/(p:ℂ))
+              * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+          * ‖∑ n ∈ Finset.Icc 1 (N v), (a v n/(n:ℂ))
+              * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2) + E)
+    (hA0 : ∀ v ∈ I, 0 < 64 * ((N v:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
+    (hB0 : ∀ v ∈ I, 0 < 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
+      * (P v:ℝ) / Real.log (P v))
+    (κ' : ι' → ℝ)
+    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (64 * (256 / (Real.log (P v))^2))
+        + 2 * δ v * Real.sqrt
+            ((128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log (P v))^2))
+                  * (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
+                      * (256 / Real.log (P v) + 2048 * Real.pi)
+                      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ κ' v * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (hfitU : C * (∑ v ∈ I, κ' v) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) + E
+      ≤ (1 / 2 ^ (J + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) / (4*(H:ℝ)/(A:ℝ))^2) :
+    (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂},
+        ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 * w ξ)
+      ≤ bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) := by
+  have hA0' : (0:ℝ) < (A:ℝ) := by exact_mod_cast hA
+  have hH0' : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
+  have hCw : (0:ℝ) < (4*(H:ℝ)/(A:ℝ))^2 := by positivity
+  have hFc : Continuous fun ξ : ℝ => ∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+      * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) :=
+    ExpSums.continuous_char_poly (typicalS A (A+Δ) levels)
+      (fun m => g m/(m:ℂ)) (fun m => Real.log m)
+  have hwnorm : ∀ ξ, ‖w ξ‖ ≤ (4*(H:ℝ)/(A:ℝ))^2 := fun ξ => by
+    rw [Real.norm_of_nonneg (hw0 ξ)]; exact hwsup ξ
+  exact band_energy_le_budget_of_exceptional_family_instantiated
+    (fun ξ => ∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+      * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
+    w hw0 ((4*(H:ℝ)/(A:ℝ))^2) hCw hwsup
+    {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} (Finset.range (J + 1))
+    (bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂})
+    (fun j _ => bandPartOn_measurableSet Pset hPset J _
+      (measurableSet_inner_band K₁ K₂) j)
+    (bandPartOn_pairwiseDisjoint Pset J _)
+    (bandPartOn_cover Pset J _)
+    (fun j _ => integrableOn_norm_sq_inner_band _ hFc K₁ K₂ _
+      (bandPartOn_subset Pset J _ j))
+    (fun j _ => integrableOn_norm_sq_mul_inner_band _ hFc w hwm _ hwnorm K₁ K₂ _
+      (bandPartOn_subset Pset J _ j))
+    (fun j => 1 / 2 ^ (j + 1)) c₃ ε ((Δ:ℝ)/(A:ℝ)) hc₃ (by positivity)
+    (geometric_shares_le_one (J + 1))
+    J (Finset.mem_range.mpr (Nat.lt_succ_self J)) hleg
+    I P hP Y hY hYne hlo hhi b hb N a ha T hT1 (bandCells K₂)
+    ((bandPartOn_subset Pset J _ J).trans (inner_band_subset_bandCells K₁ K₂))
+    (bandCells_mem_Icc K₂ T hTK₂)
+    δ hδ0 hδ C E hC0 hfac hA0 hB0 κ' hfit hfitU
+
 end Tao2015
 
 end MoltResearch
