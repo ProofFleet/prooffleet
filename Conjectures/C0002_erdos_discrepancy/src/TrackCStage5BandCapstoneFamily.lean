@@ -402,6 +402,151 @@ theorem band_energy_typicalS_le_family [HalaszLargeValuesAssumption]
     (bandCells_mem_Icc K₂ T hTK₂)
     δ hδ0 hδ C E hC0 hfac hA0 hB0 κ' hfit hfitU
 
+
+/-! ## From a decomposition to the family seam (Track R, A2-III, VI-3-1) -/
+
+open MeasureTheory in
+/-- **A2-III VI-3-1 — the family seam from a pointwise decomposition.**
+
+If on a measurable `G ⊆ (−T, T]` the integrand is `F = ∑_{v∈I} X_v + error`,
+then its energy is at most `2·#I·∑_v ∫_G ‖X_v‖² + 2∫_G ‖error‖²`: one `L²`
+triangle (`ExpSums.setIntegral_norm_add_sq_le`) and one Cauchy–Schwarz over the
+family (`setIntegral_norm_sq_sum_le_card_mul_of_setIntegral`).  Nothing about
+the shape of the `X_v` is used, so a consumer that has *exhibited* the `[MR]`
+decomposition — cell products plus a combined replacement-and-collision error —
+has discharged the seam of `band_energy_le_budget_of_exceptional_family` with
+`C = 2·#I` and `E = 2∫_G ‖error‖²`.
+
+The Cauchy–Schwarz is taken on `G` itself and not on the enclosing interval,
+because on the exceptional part the cell products are estimated on `G` by the
+large-values machinery, and enlarging to `(−T, T)` would discard exactly the
+frequency information that machinery uses. -/
+theorem setIntegral_norm_sq_le_family_of_decomp (F : ℝ → ℂ) (I : Finset ℕ)
+    (X : ℕ → ℝ → ℂ) (error : ℝ → ℂ)
+    (hX : ∀ v ∈ I, Continuous (X v)) (herr : Continuous error)
+    (T : ℝ) (G : Set ℝ) (hGm : MeasurableSet G) (hGT : G ⊆ Set.Ioc (-T) T)
+    (hdecomp : ∀ ξ ∈ G, F ξ = (∑ v ∈ I, X v ξ) + error ξ) :
+    (∫ ξ in G, ‖F ξ‖^2)
+      ≤ 2 * (I.card : ℝ) * ∑ v ∈ I, (∫ ξ in G, ‖X v ξ‖^2)
+        + 2 * ∫ ξ in G, ‖error ξ‖^2 := by
+  have hsum : Continuous fun ξ => ∑ v ∈ I, X v ξ := continuous_finset_sum I hX
+  have hcs := setIntegral_norm_sq_sum_le_card_mul_of_setIntegral X I hX T G hGm hGT
+    (fun v => ∫ ξ in G, ‖X v ξ‖^2) (fun v _ => le_rfl)
+  calc (∫ ξ in G, ‖F ξ‖^2)
+      = ∫ ξ in G, ‖(∑ v ∈ I, X v ξ) + error ξ‖^2 := by
+        refine setIntegral_congr_fun hGm fun ξ hξ => ?_
+        rw [hdecomp ξ hξ]
+    _ ≤ 2 * (∫ ξ in G, ‖∑ v ∈ I, X v ξ‖^2) + 2 * (∫ ξ in G, ‖error ξ‖^2) :=
+        ExpSums.setIntegral_norm_add_sq_le _ _ hsum herr T G hGm hGT
+    _ ≤ 2 * ((I.card : ℝ) * ∑ v ∈ I, (∫ ξ in G, ‖X v ξ‖^2))
+          + 2 * (∫ ξ in G, ‖error ξ‖^2) :=
+        add_le_add (mul_le_mul_of_nonneg_left hcs (by norm_num)) le_rfl
+    _ = 2 * (I.card : ℝ) * ∑ v ∈ I, (∫ ξ in G, ‖X v ξ‖^2)
+          + 2 * ∫ ξ in G, ‖error ξ‖^2 := by ring
+
+open MeasureTheory in
+/-- **A2-III VI-3-1 — the A.2 inner-band estimate from an exhibited
+decomposition of the exceptional part.**
+
+`band_energy_typicalS_le_family` with its factorisation seam discharged by
+`setIntegral_norm_sq_le_family_of_decomp`: instead of the energy inequality
+`hfac`, a consumer supplies the decomposition itself — on the exceptional part,
+the typical-set polynomial equals a sum over cells `v ∈ I` of (prime polynomial
+over `Y v`) × (integer polynomial with coefficients `a v`), plus a continuous
+`error` — and pays `C = 2·#I` and `E = 2∫ ‖error‖²` in the fit.
+
+**This is the statement the discharge ladder has to hit**, and it is what the
+tree produces: N3-f gives the polynomial as prime fibres plus a collision term,
+II-1 groups the fibres by `e`-adic cells, II-2e replaces each cell's fibres by
+the cell-uniform block at the cost of the telescoping energy, and the `error`
+slot collects the replacement and collision terms together.  The frequency
+range hypothesis `K₂ + 2 ≤ T` already forces the exceptional part inside
+`(−T, T]`, which is all the `L²` split needs. -/
+theorem band_energy_typicalS_le_of_decomp [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (g : ℕ → ℂ) (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
+    (levels : List (Finset ℕ))
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hwsup : ∀ ξ, w ξ ≤ (4*(H:ℝ)/(A:ℝ))^2)
+    (K₁ K₂ : ℝ)
+    (J : ℕ) (Pset : ℕ → Set ℝ) (hPset : ∀ j, MeasurableSet (Pset j))
+    (c₃ ε : ℝ) (hc₃ : 0 ≤ c₃)
+    (hleg : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      (4*(H:ℝ)/(A:ℝ))^2
+          * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} j,
+            ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (I : Finset ℕ) (P : ℕ → ℕ) (hP : ∀ v ∈ I, 2 ≤ P v)
+    (Y : ℕ → Finset ℕ) (hY : ∀ v ∈ I, ∀ p ∈ Y v, p.Prime)
+    (hYne : ∀ v ∈ I, (Y v).Nonempty)
+    (hlo : ∀ v ∈ I, ∀ p ∈ Y v, P v < p) (hhi : ∀ v ∈ I, ∀ p ∈ Y v, p ≤ 2 * P v)
+    (b : ℕ → ℕ → ℂ) (hb : ∀ v ∈ I, ∀ p, ‖b v p‖ ≤ 1)
+    (N : ℕ → ℕ) (a : ℕ → ℕ → ℂ) (ha : ∀ v ∈ I, ∀ n, ‖a v n‖ ≤ 1)
+    (T : ℝ) (hT1 : 1 ≤ T) (hTK₂ : K₂ + 2 ≤ T)
+    (δ : ℕ → ℝ) (hδ0 : ∀ v ∈ I, 0 < δ v)
+    (hδ : ∀ v ∈ I, ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 (N v), (a v n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ v)
+    (error : ℝ → ℂ) (herrc : Continuous error)
+    (hdecomp : ∀ ξ ∈ bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+      ∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+        = (∑ v ∈ I, (∑ p ∈ Y v, (b v p/(p:ℂ))
+              * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))
+            * (∑ n ∈ Finset.Icc 1 (N v), (a v n/(n:ℂ))
+              * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)))
+          + error ξ)
+    (hA0 : ∀ v ∈ I, 0 < 64 * ((N v:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
+    (hB0 : ∀ v ∈ I, 0 < 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
+      * (P v:ℝ) / Real.log (P v))
+    (κ' : ℕ → ℝ)
+    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (64 * (256 / (Real.log (P v))^2))
+        + 2 * δ v * Real.sqrt
+            ((128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log (P v))^2))
+                  * (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
+                      * (256 / Real.log (P v) + 2048 * Real.pi)
+                      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ κ' v * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (hfitU : 2 * (I.card : ℝ) * (∑ v ∈ I, κ' v) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ))
+        + 2 * (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+            ‖error ξ‖^2)
+      ≤ (1 / 2 ^ (J + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) / (4*(H:ℝ)/(A:ℝ))^2) :
+    (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂},
+        ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 * w ξ)
+      ≤ bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) := by
+  -- the exceptional part sits inside `(−T, T]`, through the band's range
+  have hGT : bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J
+      ⊆ Set.Ioc (-T) T := by
+    intro ξ hξ
+    have h := inner_band_subset_Icc K₁ K₂ (bandPartOn_subset Pset J _ J hξ)
+    rw [Set.mem_Icc] at h
+    exact ⟨by linarith [h.1], by linarith [h.2]⟩
+  have hGm : MeasurableSet (bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J) :=
+    bandPartOn_measurableSet Pset hPset J _ (measurableSet_inner_band K₁ K₂) J
+  -- each cell product is continuous
+  have hX : ∀ v ∈ I, Continuous fun ξ : ℝ =>
+      (∑ p ∈ Y v, (b v p/(p:ℂ))
+          * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ))
+        * (∑ n ∈ Finset.Icc 1 (N v), (a v n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)) := fun v _ =>
+    (ExpSums.continuous_char_poly (Y v) (fun p => b v p/(p:ℂ))
+        (fun p => Real.log p)).mul
+      (ExpSums.continuous_char_poly (Finset.Icc 1 (N v)) (fun n => a v n/(n:ℂ))
+        (fun n => Real.log n))
+  have hfac := setIntegral_norm_sq_le_family_of_decomp _ I _ error hX herrc T _
+    hGm hGT hdecomp
+  simp_rw [norm_mul, mul_pow] at hfac
+  exact band_energy_typicalS_le_family g A Δ H hA hH levels w hwm hw0 hwsup K₁ K₂
+    J Pset hPset c₃ ε hc₃ hleg I P hP Y hY hYne hlo hhi b hb N a ha T hT1 hTK₂
+    δ hδ0 hδ (2 * (I.card : ℝ))
+    (2 * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J, ‖error ξ‖^2)
+    (by positivity) hfac hA0 hB0 κ' hfit hfitU
+
 end Tao2015
 
 end MoltResearch
