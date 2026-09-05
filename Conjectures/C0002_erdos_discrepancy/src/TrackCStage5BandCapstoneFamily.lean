@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5BandCapstone
+import MoltResearch.Discrepancy.LevelLegs
 
 /-!
 # The band capstone with the factorisation seam in energy form (Track R, A2-III, VI-1h)
@@ -546,6 +547,158 @@ theorem band_energy_typicalS_le_of_decomp [HalaszLargeValuesAssumption]
     δ hδ0 hδ (2 * (I.card : ℝ))
     (2 * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J, ‖error ξ‖^2)
     (by positivity) hfac hA0 hB0 κ' hfit hfitU
+
+
+/-! ## The exceptional part from the cell-uniform decomposition
+(Track R, A2-III, VI-3-2) -/
+
+/-- The cell's block coefficient, zero-extended to `[1, B/q]`: the `𝒰` leg
+consumes integer polynomials over `Icc 1 N`, while the cell-uniform block of
+`LevelLegs` lives on `Ioc (A/q) (B/q)`. -/
+noncomputable def cellBlockCoeff (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) (q m : ℕ) : ℂ :=
+  if m ∈ Finset.Ioc (A / q) (B / q) then typicalSQuotCoeff g P (typicalS 0 B rest) m
+  else 0
+
+/-- The zero-extended coefficient is still `1`-bounded. -/
+theorem norm_cellBlockCoeff_le_one (g : ℕ → ℂ) (hg : ∀ m, ‖g m‖ ≤ 1)
+    (A B : ℕ) (P : Finset ℕ) (rest : List (Finset ℕ)) (q m : ℕ) :
+    ‖cellBlockCoeff g A B P rest q m‖ ≤ 1 := by
+  unfold cellBlockCoeff
+  split_ifs
+  · exact norm_typicalSQuotCoeff_le_one g hg P _ m
+  · simp
+
+/-- The block polynomial over `Icc 1 (B/q)` with the zero-extended coefficient
+is the cell-uniform block of `LevelLegs`. -/
+theorem sum_cellBlockCoeff_Icc_eq (g : ℕ → ℂ) (A B : ℕ) (P : Finset ℕ)
+    (rest : List (Finset ℕ)) (q : ℕ) (ξ : ℝ) :
+    ∑ m ∈ Finset.Icc 1 (B / q), (cellBlockCoeff g A B P rest q m/(m:ℂ))
+        * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)
+      = ∑ m ∈ Finset.Ioc (A / q) (B / q),
+          (typicalSQuotCoeff g P (typicalS 0 B rest) m/(m:ℂ))
+            * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ) := by
+  classical
+  have hsub : Finset.Ioc (A / q) (B / q) ⊆ Finset.Icc 1 (B / q) := by
+    intro m hm
+    rw [Finset.mem_Ioc] at hm
+    rw [Finset.mem_Icc]
+    exact ⟨Nat.succ_le_of_lt (lt_of_le_of_lt (Nat.zero_le (A / q)) hm.1), hm.2⟩
+  rw [← Finset.sum_subset hsub (fun m _ hm => by simp [cellBlockCoeff, hm])]
+  refine Finset.sum_congr rfl fun m hm => ?_
+  simp [cellBlockCoeff, hm]
+
+open MeasureTheory in
+/-- **A2-III VI-3-2 — the A.2 inner-band estimate with the exceptional part
+decomposed by the `LevelLegs` ladder.**
+
+`band_energy_typicalS_le_of_decomp` with the decomposition exhibited: on the
+exceptional part the typical-set polynomial for `P :: rest` is
+`typicalSCellUniformMain` — a sum over the `e`-adic cells `v ∈ [v₀, v₁]` of
+`levelCellPoly` (the prime polynomial over the cell) times the cell-uniform
+block at the representative `q v` — plus the II-2e replacement and the
+adjusted collision (`typicalS_phase_eq_cellUniform_add_errors`, VI-2s).  The
+cell family is therefore `Y v = eadicCell P (2N) v`, the prime coefficients are
+`g`, the integer polynomials carry `cellBlockCoeff` over `Icc 1 ((A+Δ)/q v)`,
+and the error is `typicalSCellReplacement + typicalSAdjustedCollision`.
+
+**What the exceptional part now asks for is exactly what the level legs ask
+for.**  The same three energies — cell-uniform main, replacement, adjusted
+collision — appear on `𝒯_j` in `typicalS_level_leg_le_budget`; here the main
+term is not priced by smallness but handed, cell by cell, to the two
+large-values interfaces through the family seam, at `C = 2·#I` with
+`#I = v₁ − v₀ + 1`.  The replacement and collision energies on the exceptional
+part are the same quantities VI-2t and VI-2ae price, so their fits are shared.
+
+The per-cell dyadic anchor `Pc v` is left to the consumer, as in the capstone:
+a cell at resolution `2N` sits in `(q v, q v·e^{1/(2N)})`, so `Pc v = q v − 1`
+serves once `q v ≥ 6`, and the first cells of a level are the consumer's to
+anchor.  `(Y v).Nonempty` is discharged by the representative itself. -/
+theorem band_energy_typicalS_le_of_cellUniform [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
+    (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) (rest : List (Finset ℕ))
+    (N v₀ v₁ : ℕ)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (q : ℕ → ℕ)
+    (hqcell : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), q v ∈ eadicCell P (2 * N) v)
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hwsup : ∀ ξ, w ξ ≤ (4*(H:ℝ)/(A:ℝ))^2)
+    (K₁ K₂ : ℝ)
+    (J : ℕ) (Pset : ℕ → Set ℝ) (hPset : ∀ j, MeasurableSet (Pset j))
+    (c₃ ε : ℝ) (hc₃ : 0 ≤ c₃)
+    (hleg : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      (4*(H:ℝ)/(A:ℝ))^2
+          * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} j,
+            ‖∑ m ∈ typicalS A (A+Δ) (P :: rest), (g m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (Pc : ℕ → ℕ) (hPc : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), 2 ≤ Pc v)
+    (hlo : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ p ∈ eadicCell P (2 * N) v, Pc v < p)
+    (hhi : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ p ∈ eadicCell P (2 * N) v,
+      p ≤ 2 * Pc v)
+    (T : ℝ) (hT1 : 1 ≤ T) (hTK₂ : K₂ + 2 ≤ T)
+    (δ : ℕ → ℝ) (hδ0 : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), 0 < δ v)
+    (hδ : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 ((A + Δ) / q v),
+          (cellBlockCoeff g A (A + Δ) P rest (q v) n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ v)
+    (hA0 : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      0 < 64 * ((((A + Δ) / q v : ℕ):ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
+        * (Real.log (2*T) + 1)
+        * ∑ n ∈ Finset.Icc 1 ((A + Δ) / q v),
+            ‖cellBlockCoeff g A (A + Δ) P rest (q v) n‖^2/(n:ℝ)^2)
+    (hB0 : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      0 < 64 * (∑ p ∈ eadicCell P (2 * N) v, ‖g p‖^2/(p:ℝ)^2)
+        * (Pc v:ℝ) / Real.log (Pc v))
+    (κ' : ℕ → ℝ)
+    (hfit : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      2 * ((δ v)^2 * (64 * (256 / (Real.log (Pc v))^2))
+        + 2 * δ v * Real.sqrt
+            ((128 * ((((A + Δ) / q v : ℕ):ℝ) + 2*T*Real.sqrt T)
+                * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log (Pc v))^2))
+                  * (Real.exp Real.pi * ((T+1)/(Pc v:ℝ) + 4)
+                      * (256 / Real.log (Pc v) + 2048 * Real.pi)
+                      * Real.exp (-(Real.log (Pc v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ κ' v * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (hfitU : 2 * ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+          * (∑ v ∈ Finset.Ico v₀ (v₁ + 1), κ' v) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ))
+        + 2 * (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+            ‖typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q ξ
+              + typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁ ξ‖^2)
+      ≤ (1 / 2 ^ (J + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) / (4*(H:ℝ)/(A:ℝ))^2) :
+    (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂},
+        ‖∑ m ∈ typicalS A (A+Δ) (P :: rest), (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 * w ξ)
+      ≤ bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) := by
+  refine band_energy_typicalS_le_of_decomp g A Δ H hA hH (P :: rest) w hwm hw0
+    hwsup K₁ K₂ J Pset hPset c₃ ε hc₃ hleg (Finset.Ico v₀ (v₁ + 1)) Pc hPc
+    (fun v => eadicCell P (2 * N) v)
+    (fun v _ p hp => hP p (mem_eadicCell.mp hp).1)
+    (fun v hv => ⟨q v, hqcell v hv⟩) hlo hhi
+    (fun _ => g) (fun _ _ p => hg p)
+    (fun v => (A + Δ) / q v)
+    (fun v => cellBlockCoeff g A (A + Δ) P rest (q v))
+    (fun v _ n => norm_cellBlockCoeff_le_one g hg A (A + Δ) P rest (q v) n)
+    T hT1 hTK₂ δ hδ0 hδ
+    (fun ξ => typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q ξ
+      + typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁ ξ)
+    ((continuous_typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q).add
+      (continuous_typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁))
+    ?_ hA0 hB0 κ' hfit hfitU
+  -- the decomposition, from VI-2s, with each block reindexed to `Icc 1 (B/q)`
+  intro ξ _
+  rw [typicalS_phase_eq_cellUniform_add_errors g hcm A Δ P hP rest N v₀ v₁ hcov
+    hstable q ξ]
+  congr 1
+  unfold typicalSCellUniformMain levelCellPoly
+  refine Finset.sum_congr rfl fun v _ => ?_
+  rw [sum_cellBlockCoeff_Icc_eq g A (A + Δ) P rest (q v) ξ]
 
 end Tao2015
 
