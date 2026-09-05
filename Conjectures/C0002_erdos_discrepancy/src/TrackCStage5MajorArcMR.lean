@@ -520,6 +520,194 @@ theorem bad_blocks_sum_le (lo hi x' : ℕ) (x w θ : ℝ) (hθ0 : 0 < θ)
     rw [hempty, Finset.sum_empty]
     positivity
 
+/-- **The wrapper's final numerics** (Track R, R7-6): with `ε ≤ 1`, `log 8 ≤ 3` and
+`6·log(2L₀) + 80 ≤ ε·log w`, the small, bad and good costs sum to at most `ε·log w`. -/
+theorem wrapper_numerics (ε L₀R lw l8 : ℝ) (hε : 0 < ε) (hε1 : ε ≤ 1)
+    (hl8 : l8 ≤ 3) (hL : 0 ≤ L₀R) (hεlw : 6 * L₀R + 80 ≤ ε * lw) :
+    L₀R + (2 + 15 * (ε / 64) + 2 * (ε / 64) * lw) + (21 / 64) * ε * (l8 + lw) ≤ ε * lw := by
+  have h1 : ε * l8 ≤ 3 * ε := by nlinarith
+  nlinarith
+
+set_option maxHeartbeats 800000 in
+/-- **The major-arc bound from `SliceMeanSquareA2`, for `ε ≤ 1`** (Track R, R7-6).
+
+The statement of `MatomakiRadziwillMajorArcAssumption.bound` for one `ε ∈ (0, 1]`.  With
+the parameters of `exists_wrapper_params`, the interface's threshold is
+`A₀ := 8(QM + 50 + 2log(64/ε)) + exp((6log(2L₀) + 80)/ε)`, `L₀ := ⌈Q(6H + 7Q + M + 2)⌉₊`:
+the first summand makes every good block non-pretentious at the strength the block bound
+needs, the second makes `ε·log w ≥ 6log(2L₀) + 80` so that the trivial costs of the small
+blocks (`≤ log(2L₀)`) and the bad blocks (`≤ 2 + 15ε/64 + (ε/32)log w`) and the good
+blocks' `(21/64)ε(3 + log w)` sum to at most `ε·log w`.  The range `(⌊x/w⌋₊, ⌊x⌋₊]` is
+covered by dyadic blocks (`sum_Ioc_le_sum_dyadic_cover`, harmonic mass `≤ log(8w)`), each
+priced by `block_total_le_trichotomy`. -/
+theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B : ℕ)
+    (hε : 0 < ε) (hε1 : ε ≤ 1) (hC : 0 < C) :
+    ∃ H₀ : ℕ, ∀ H : ℕ, H₀ ≤ H →
+      ∃ A₀ : ℝ, ∀ A : ℝ, A₀ ≤ A → 1 ≤ A →
+        ∀ x w : ℝ, A ≤ w → w ≤ x →
+          ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → Unimodular g →
+            NonPretentiousAt g A ⌈x⌉₊ →
+            ∀ α : ℝ, ∀ a : ℤ, ∀ q : ℕ, 1 ≤ q →
+              (q : ℝ) ≤ C * Real.log H ^ B →
+              |α - (a : ℝ) / (q : ℝ)| ≤ C * Real.log H ^ B / ((H : ℝ) * (q : ℝ)) →
+              ∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
+                  ‖∑ j ∈ Finset.Icc 1 H,
+                      g (n + j) * Complex.exp (2 * Real.pi * Complex.I * (j : ℂ) * (α : ℂ))‖
+                    / ((H : ℝ) * (n : ℝ))
+                ≤ ε * Real.log w := by
+  classical
+  obtain ⟨H₀, hH₀⟩ := exists_wrapper_params hA2 ε C B hε hε1 hC
+  refine ⟨H₀, fun H hH => ?_⟩
+  obtain ⟨Q, h₀, levels, M, hQ1, hQQ, hM1, hh₀, h2h₀, hh₀Q, hlv, hbig, hdens, hms⟩ := hH₀ H hH
+  have hH : 0 < H := by omega
+  have hQ0 : 0 < Q := by linarith
+  have hM0 : 0 ≤ M := by linarith
+  have hH0R : (0:ℝ) ≤ H := Nat.cast_nonneg H
+  -- the low threshold and the interface's `A₀`
+  set L₀ : ℕ := ⌈Q * (6 * H + 7 * Q + M + 2)⌉₊ with hL₀def
+  have hL₀ : Q * (6 * H + 7 * Q + M + 2) ≤ L₀ := Nat.le_ceil _
+  have hL₀1 : 1 ≤ L₀ := by
+    have h1 : (1:ℝ) ≤ Q * (6 * H + 7 * Q + M + 2) := by nlinarith
+    exact_mod_cast le_trans h1 hL₀
+  have hlog64 : 0 ≤ Real.log (64 / ε) := Real.log_nonneg (by rw [le_div_iff₀ hε]; linarith)
+  have hL₀R : (1:ℝ) ≤ L₀ := by exact_mod_cast hL₀1
+  have hlog2L₀ : 0 ≤ Real.log (2 * (L₀ : ℝ)) := Real.log_nonneg (by linarith)
+  set K : ℝ := (6 * Real.log (2 * (L₀ : ℝ)) + 80) / ε with hKdef
+  set A₀ : ℝ := 8 * (Q * M + 50 + 2 * Real.log (64 / ε)) + Real.exp K with hA₀def
+  refine ⟨A₀, fun A hA hA1 x w hAw hwx g hg hgu hnp α a q hq hqQ harc => ?_⟩
+  -- basic facts about the range
+  have hw1 : 1 ≤ w := le_trans hA1 hAw
+  have hx1 : 1 ≤ x := le_trans hw1 hwx
+  have hw0 : 0 < w := by linarith
+  have hx0 : 0 < x := by linarith
+  have hxw1 : 1 ≤ x / w := by rw [le_div_iff₀ hw0]; linarith
+  have hxwx : x / w ≤ x := div_le_self hx0.le hw1
+  have hlo1 : 1 ≤ ⌊x / w⌋₊ := Nat.le_floor (by exact_mod_cast hxw1)
+  have hlohi : ⌊x / w⌋₊ ≤ ⌊x⌋₊ := Nat.floor_le_floor hxwx
+  have hx'1 : 1 ≤ ⌈x⌉₊ := Nat.one_le_ceil_iff.mpr hx0
+  have hhix' : ⌊x⌋₊ ≤ ⌈x⌉₊ := Nat.floor_le_ceil x
+  have hx'x : ((⌈x⌉₊ : ℕ) : ℝ) ≤ 2 * x := by
+    have := Nat.ceil_lt_add_one hx0.le
+    linarith
+  have hlo_half : x / w / 2 ≤ (⌊x / w⌋₊ : ℝ) := half_le_floor (x / w) hxw1
+  have hlogw0 : 0 ≤ Real.log w := Real.log_nonneg hw1
+  -- `ε·log w ≥ 6 log(2L₀) + 80` and `A/8 ≥ QM + 50 + 2 log(64/ε)`
+  have hexpK : Real.exp K ≤ A₀ := by
+    rw [hA₀def]
+    have : 0 ≤ 8 * (Q * M + 50 + 2 * Real.log (64 / ε)) := by positivity
+    linarith
+  have hlogwK : K ≤ Real.log w := by
+    calc K = Real.log (Real.exp K) := (Real.log_exp K).symm
+      _ ≤ Real.log w := Real.log_le_log (Real.exp_pos K) (by linarith)
+  have hεlogw : 6 * Real.log (2 * (L₀ : ℝ)) + 80 ≤ ε * Real.log w := by
+    rw [hKdef, div_le_iff₀ hε] at hlogwK
+    linarith
+  have hA8 : Q * M + 50 + 2 * Real.log (64 / ε) ≤ A / 8 := by
+    have := Real.exp_pos K
+    rw [hA₀def] at hA
+    linarith
+  -- the modulus
+  have hqQ' : (q : ℝ) ≤ Q := le_trans hqQ hQQ
+  have harc' : |α - (a : ℝ) / q| ≤ Q / ((H : ℝ) * q) :=
+    le_trans harc (div_le_div_of_nonneg_right hQQ (by positivity))
+  have hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q := by
+    intro P hP p hp
+    have hpQ := hbig P hP p hp
+    have hqp : q < p := by exact_mod_cast lt_of_le_of_lt hqQ' hpQ
+    exact Nat.not_dvd_of_pos_of_lt hq hqp
+  -- the bad threshold `X = ⌈(8x')^{ε/64}⌉₊`
+  have h8x' : (1:ℝ) ≤ 8 * ((⌈x⌉₊ : ℕ) : ℝ) := by
+    have : (1:ℝ) ≤ (⌈x⌉₊ : ℕ) := by exact_mod_cast hx'1
+    linarith
+  have hr1 : (1:ℝ) ≤ (8 * ((⌈x⌉₊ : ℕ) : ℝ)) ^ (ε / 64) := Real.one_le_rpow h8x' (by positivity)
+  set X : ℕ := ⌈(8 * ((⌈x⌉₊ : ℕ) : ℝ)) ^ (ε / 64)⌉₊ with hXdef
+  have hX1 : 1 ≤ X := Nat.one_le_ceil_iff.mpr (Real.rpow_pos_of_pos (by linarith) _)
+  have hXge : (8 * ((⌈x⌉₊ : ℕ) : ℝ)) ^ (ε / 64) ≤ X := Nat.le_ceil _
+  have hXle : (X : ℝ) ≤ (8 * ((⌈x⌉₊ : ℕ) : ℝ)) ^ (ε / 64) + 1 :=
+    (Nat.ceil_lt_add_one (by positivity)).le
+  -- windows to blocks, then the dyadic cover
+  simp_rw [norm_window_twisted_sum_eq]
+  have hcover := sum_Ioc_le_sum_dyadic_cover
+    (fun n => ‖∑ m ∈ Finset.Ioc n (n + H),
+      g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (α : ℂ))‖ / ((H : ℝ) * n))
+    (fun n => by positivity) ⌊x / w⌋₊ ⌊x⌋₊ hlo1
+  -- the per-block trichotomy
+  have hblock : ∀ k ∈ Finset.Icc (Nat.log 2 ⌊x / w⌋₊) (Nat.log 2 ⌊x⌋₊),
+      ∑ n ∈ Finset.Ioc (2 ^ k : ℕ) (2 ^ (k + 1)),
+        ‖∑ m ∈ Finset.Ioc n (n + H),
+          g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (α : ℂ))‖ / ((H : ℝ) * n)
+        ≤ (if 2 ^ k < L₀ then ∑ n ∈ Finset.Ioc (2 ^ k : ℕ) (2 ^ (k + 1)), (1:ℝ)/n else 0)
+          + (if 2 ^ k < X then ∑ n ∈ Finset.Ioc (2 ^ k : ℕ) (2 ^ (k + 1)), (1:ℝ)/n else 0)
+          + (21 / 64) * ε * ∑ n ∈ Finset.Ioc (2 ^ k : ℕ) (2 ^ (k + 1)), (1:ℝ)/n := by
+    intro k hk
+    rw [Finset.mem_Icc] at hk
+    have hAb1 : 1 ≤ 2 ^ k := Nat.one_le_two_pow
+    have hAbx : 2 ^ k ≤ ⌈x⌉₊ :=
+      le_trans (Nat.pow_le_of_le_log (by omega) hk.2) hhix'
+    have h2k : (2 ^ (k + 1) : ℕ) = 2 * 2 ^ k := by rw [pow_succ]; ring
+    rw [h2k]
+    exact block_total_le_trichotomy levels hlv M hM1 h₀ H Q ε hε hε1 hQ1 hh₀ h2h₀ hh₀Q hdens hms
+      g hg hgu q hq hqQ' hql a α harc' ⌈x⌉₊ hx'1 A hnp hA8 L₀ X hL₀ hXge (2 ^ k) hAb1 hAbx
+  have hsum := Finset.sum_le_sum hblock
+  rw [Finset.sum_add_distrib, Finset.sum_add_distrib, ← Finset.sum_filter, ← Finset.sum_filter,
+    ← Finset.mul_sum] at hsum
+  -- the three parts
+  have hP1 := sum_filter_pow_lt_one_div_le (Nat.log 2 ⌊x / w⌋₊) (Nat.log 2 ⌊x⌋₊) L₀ hL₀1
+  have hP2 := bad_blocks_sum_le ⌊x / w⌋₊ ⌊x⌋₊ ⌈x⌉₊ x w (ε / 64) (by positivity)
+    (by linarith) hx1 hw1 hlo_half hx'1 hx'x X hX1 hXle
+  have hP3 := sum_dyadic_cover_one_div_le ⌊x / w⌋₊ ⌊x⌋₊ hlo1 hlohi
+  have hP3' : Real.log (4 * ((⌊x⌋₊ : ℕ) : ℝ) / (⌊x / w⌋₊ : ℕ)) ≤ Real.log 8 + Real.log w := by
+    have hhix : ((⌊x⌋₊ : ℕ) : ℝ) ≤ x := Nat.floor_le hx0.le
+    have hlo0 : (0:ℝ) < (⌊x / w⌋₊ : ℕ) := by exact_mod_cast hlo1
+    have hhi0 : (0:ℝ) < (⌊x⌋₊ : ℕ) := by exact_mod_cast (le_trans hlo1 hlohi)
+    have h1 : 4 * ((⌊x⌋₊ : ℕ) : ℝ) / (⌊x / w⌋₊ : ℕ) ≤ 8 * w := by
+      rw [div_le_iff₀ hlo0]
+      have h2 : x / w / 2 * w = x / 2 := by field_simp
+      have h3 : x / w / 2 * w ≤ (⌊x / w⌋₊ : ℕ) * w :=
+        mul_le_mul_of_nonneg_right hlo_half hw0.le
+      nlinarith
+    calc Real.log (4 * ((⌊x⌋₊ : ℕ) : ℝ) / (⌊x / w⌋₊ : ℕ))
+        ≤ Real.log (8 * w) := Real.log_le_log (by positivity) h1
+      _ = Real.log 8 + Real.log w := Real.log_mul (by norm_num) hw0.ne'
+  have hl8 : Real.log 8 ≤ 3 := by
+    rw [show (8:ℝ) = 2 ^ 3 by norm_num, Real.log_pow]
+    push_cast
+    linarith [Real.log_two_lt_d9]
+  have hP3'' := le_trans hP3 hP3'
+  have hnum := wrapper_numerics ε (Real.log (2 * (L₀ : ℝ))) (Real.log w) (Real.log 8) hε hε1
+    hl8 hlog2L₀ hεlogw
+  have hε21 : (0:ℝ) ≤ (21 / 64) * ε := by positivity
+  -- assemble
+  calc ∑ n ∈ Finset.Ioc ⌊x / w⌋₊ ⌊x⌋₊,
+        ‖∑ m ∈ Finset.Ioc n (n + H),
+          g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (α : ℂ))‖ / ((H : ℝ) * n)
+      ≤ _ := hcover
+    _ ≤ _ := hsum
+    _ ≤ Real.log (2 * (L₀ : ℝ)) + (2 + 15 * (ε / 64) + 2 * (ε / 64) * Real.log w)
+          + (21 / 64) * ε * (Real.log 8 + Real.log w) :=
+        add_le_add (add_le_add hP1 hP2) (mul_le_mul_of_nonneg_left hP3'' hε21)
+    _ ≤ ε * Real.log w := hnum
+
+/-- **The major-arc Matomäki–Radziwiłł interface from `[mrt]` A.2** (Track R, R7-6): the
+`𝒮`-restricted mean-square Prop `SliceMeanSquareA2` implies
+`MatomakiRadziwillMajorArcAssumption`.  For general `ε` the bound at `min ε 1` is used
+(`log w ≥ 0`).  A theorem producing the class, not an instance: the content is the
+hypothesis `hA2`, which the A.2 campaign discharges. -/
+theorem matomakiRadziwillMajorArc_of_A2 (hA2 : SliceMeanSquareA2) :
+    MatomakiRadziwillMajorArcAssumption where
+  bound := by
+    intro ε C B hε hC
+    obtain ⟨H₀, hH₀⟩ := majorArc_bound_of_A2_of_le_one hA2 (min ε 1) C B
+      (lt_min hε one_pos) (min_le_right _ _) hC
+    refine ⟨H₀, fun H hH => ?_⟩
+    obtain ⟨A₀, hA₀⟩ := hH₀ H hH
+    refine ⟨A₀, fun A hA hA1 x w hAw hwx g hg hgu hnp α a q hq hqQ harc => ?_⟩
+    have h := hA₀ A hA hA1 x w hAw hwx g hg hgu hnp α a q hq hqQ harc
+    have hw1 : 1 ≤ w := le_trans hA1 hAw
+    calc _ ≤ min ε 1 * Real.log w := h
+      _ ≤ ε * Real.log w :=
+          mul_le_mul_of_nonneg_right (min_le_left _ _) (Real.log_nonneg hw1)
+
 end Tao2015
 
 end MoltResearch
