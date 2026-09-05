@@ -142,6 +142,160 @@ theorem band_energy_le_budget_of_exceptional_family [HalaszLargeValuesAssumption
   · subst hiu; exact hUleg
   · exact hleg i hi hiu
 
+
+open MeasureTheory in
+/-- **A2-III VI-1h-2 — the family seam with every cell's constants instantiated.**
+
+`band_energy_le_budget_of_exceptional_family` composed, cell by cell, with the
+instantiation campaign's three bounds — `integer_largeValues_factor_le` (M-5),
+`prime_energy_dyadic_le` (M-4) and `exists_lam_exceptional_ratio_le` (M-6) —
+exactly as M-8 did for one prime set.  The per-cell Ramaré parameter `lam v`
+disappears from the interface; it is exhibited inside, and since M-6's
+existence statement is per cell, the family of balanced parameters is built by
+choice with a dummy value off the family.
+
+What remains of each cell's `𝒰`-leg arithmetic is `hfit v`: an inequality in
+`δ v`, `P v`, `N v`, `T`, `ε` and the cell's share `κ' v` alone.  The family's
+total is then priced by `hfitU` as before.  `(Y v).Nonempty` is what makes each
+`Γ v` strictly positive, and `hA0`/`hB0` are stated on the literal group
+expressions for the reason M-8 gives: a consumer knows its own coefficients and
+the tree cannot know that they do not all vanish. -/
+theorem band_energy_le_budget_of_exceptional_family_instantiated
+    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    {ι : Type*} [DecidableEq ι] {ι' : Type*}
+    (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
+    (G : Set ℝ) (𝒮 : Finset ι) (part : ι → Set ℝ)
+    (hmeas : ∀ i ∈ 𝒮, MeasurableSet (part i))
+    (hdisj : Set.Pairwise (↑𝒮) (Function.onFun Disjoint part))
+    (hcover : G ⊆ ⋃ i ∈ 𝒮, part i)
+    (hint : ∀ i ∈ 𝒮, IntegrableOn (fun ξ => ‖F ξ‖^2) (part i))
+    (hintw : ∀ i ∈ 𝒮, IntegrableOn (fun ξ => ‖F ξ‖^2 * w ξ) (part i))
+    (κ : ι → ℝ) (c₃ ε ρ : ℝ) (hc₃ : 0 ≤ c₃) (hρ : 0 ≤ ρ)
+    (hκ : ∑ i ∈ 𝒮, κ i ≤ 1)
+    (u : ι) (hu : u ∈ 𝒮)
+    (hleg : ∀ i ∈ 𝒮, i ≠ u → Cw * ∫ ξ in part i, ‖F ξ‖^2
+      ≤ κ i * bandBudget c₃ ε ρ)
+    (I : Finset ι') (P : ι' → ℕ) (hP : ∀ v ∈ I, 2 ≤ P v)
+    (Y : ι' → Finset ℕ) (hY : ∀ v ∈ I, ∀ p ∈ Y v, p.Prime)
+    (hYne : ∀ v ∈ I, (Y v).Nonempty)
+    (hlo : ∀ v ∈ I, ∀ p ∈ Y v, P v < p) (hhi : ∀ v ∈ I, ∀ p ∈ Y v, p ≤ 2 * P v)
+    (b : ι' → ℕ → ℂ) (hb : ∀ v ∈ I, ∀ p, ‖b v p‖ ≤ 1)
+    (N : ι' → ℕ) (a : ι' → ℕ → ℂ) (ha : ∀ v ∈ I, ∀ n, ‖a v n‖ ≤ 1)
+    (T : ℝ) (hT1 : 1 ≤ T)
+    (K : Finset ℤ)
+    (hcoverU : part u ⊆ ⋃ k ∈ K, Set.Ico (k:ℝ) ((k:ℝ)+1))
+    (hKT : ∀ k ∈ K, -T ≤ (k:ℝ) ∧ (k:ℝ) + 1 ≤ T)
+    (δ : ι' → ℝ) (hδ0 : ∀ v ∈ I, 0 < δ v)
+    (hδ : ∀ v ∈ I, ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 (N v), (a v n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ v)
+    (C E : ℝ) (hC0 : 0 ≤ C)
+    (hfac : (∫ ξ in part u, ‖F ξ‖^2)
+      ≤ C * ∑ v ∈ I, (∫ ξ in part u, ‖∑ p ∈ Y v, (b v p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+          * ‖∑ n ∈ Finset.Icc 1 (N v), (a v n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2) + E)
+    (hA0 : ∀ v ∈ I, 0 < 64 * ((N v:ℝ) + (K.card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
+    (hB0 : ∀ v ∈ I, 0 < 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
+      * (P v:ℝ) / Real.log (P v))
+    (κ' : ι' → ℝ)
+    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (64 * (256 / (Real.log (P v))^2))
+        + 2 * δ v * Real.sqrt
+            ((128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log (P v))^2))
+                  * (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
+                      * (256 / Real.log (P v) + 2048 * Real.pi)
+                      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ κ' v * bandBudget c₃ ε ρ)
+    (hfitU : C * (∑ v ∈ I, κ' v) * bandBudget c₃ ε ρ + E
+      ≤ κ u * bandBudget c₃ ε ρ / Cw) :
+    (∫ ξ in G, ‖F ξ‖^2 * w ξ) ≤ bandBudget c₃ ε ρ := by
+  classical
+  have hlog2T : (0:ℝ) < Real.log (2*T) := Real.log_pos (by linarith)
+  -- M-6's balanced Ramaré parameter, one per cell (a dummy value off the family)
+  have hlamex : ∀ v : ι', ∃ lam : ℝ, 0 < lam ∧ (v ∈ I →
+      Real.exp Real.pi * ((T+1)/(P v:ℝ) + 2*(2:ℝ))
+          * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P v:ℝ)))^2)
+          * (∑ p ∈ Y v, (1:ℝ)/(p:ℝ))
+          * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+          * (Real.log (2*T))^2
+        ≤ Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
+          * (256 / Real.log (P v) + 2048 * Real.pi)
+          * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+          * (Real.log (2*T))^2) := by
+    intro v
+    by_cases hv : v ∈ I
+    · obtain ⟨lam, hlam0, hΓle⟩ := exists_lam_exceptional_ratio_le (P v) (hP v hv)
+        (Y v) (hY v hv) (hlo v hv) (hhi v hv) T hT1
+      exact ⟨lam, hlam0, fun _ => hΓle⟩
+    · exact ⟨1, one_pos, fun h => absurd h hv⟩
+  choose lam hlam0 hΓle using hlamex
+  -- each cell's `Γ` is strictly positive, through the block's prime mass
+  have hΓ0 : ∀ v ∈ I, 0 < (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 2*(2:ℝ))
+        * ((1+lam v) + (1/lam v)*(2*Real.pi*Real.log (2*(P v:ℝ)))^2)
+        * (∑ p ∈ Y v, (1:ℝ)/(p:ℝ)))
+      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+      * (Real.log (2*T))^2 := by
+    intro v hv
+    have hP0 : (0:ℝ) < (P v:ℝ) := by
+      have : 0 < P v := by have := hP v hv; omega
+      exact_mod_cast this
+    obtain ⟨p₀, hp₀⟩ := hYne v hv
+    have hmass0 : (0:ℝ) < ∑ p ∈ Y v, (1:ℝ)/(p:ℝ) := by
+      refine Finset.sum_pos' (fun p _ => by positivity) ⟨p₀, hp₀, ?_⟩
+      have : (0:ℝ) < (p₀:ℝ) := by exact_mod_cast (hY v hv p₀ hp₀).pos
+      positivity
+    have hl := hlam0 v
+    have hsplit : (0:ℝ) < (1+lam v) + (1/lam v)*(2*Real.pi*Real.log (2*(P v:ℝ)))^2 := by
+      have : (0:ℝ) < 1/lam v := by positivity
+      nlinarith [sq_nonneg (2*Real.pi*Real.log (2*(P v:ℝ)))]
+    have hlead : (0:ℝ) < (T+1)/(P v:ℝ) + 2*(2:ℝ) := by
+      have : (0:ℝ) ≤ (T+1)/(P v:ℝ) := by positivity
+      linarith
+    have hlogsq : (0:ℝ) < (Real.log (2*T))^2 := by positivity
+    have := Real.exp_pos Real.pi
+    have := Real.exp_pos (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+    positivity
+  refine band_energy_le_budget_of_exceptional_family F w hw0 Cw hCw hwC G 𝒮 part
+    hmeas hdisj hcover hint hintw κ c₃ ε ρ hc₃ hρ hκ u hu hleg I P hP Y hY hlo hhi
+    b hb N a T hT1 K hcoverU hKT δ lam hδ0 (fun v _ => hlam0 v) hδ C E hC0 hfac
+    (fun v => 64 * ((N v:ℝ) + (K.card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
+    (fun v => 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v))
+    (fun v => (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 2*(2:ℝ))
+        * ((1+lam v) + (1/lam v)*(2*Real.pi*Real.log (2*(P v:ℝ)))^2)
+        * (∑ p ∈ Y v, (1:ℝ)/(p:ℝ)))
+      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+      * (Real.log (2*T))^2)
+    (fun v _ => rfl) (fun v _ => rfl) (fun v _ => rfl) hA0 hB0 hΓ0 κ' ?_ hfitU
+  -- the three instantiated bounds, cell by cell, then the seam M-7 provides
+  intro v hv
+  have hlogP : (0:ℝ) < Real.log (P v) := Real.log_pos (by exact_mod_cast hP v hv)
+  have hAle : 64 * ((N v:ℝ) + (K.card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2
+      ≤ 128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1) :=
+    integer_largeValues_factor_le (N v) (a v) (ha v hv) T hT1 K hKT
+  have hBle : 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)
+      ≤ 64 * (256 / (Real.log (P v))^2) := by
+    have := prime_energy_dyadic_le (P v) (hP v hv) (Y v) (hY v hv) (hlo v hv)
+      (hhi v hv) (b v) (hb v hv)
+    calc 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)
+        = 64 * ((∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)) := by
+          ring
+      _ ≤ 64 * (256 / (Real.log (P v))^2) := by gcongr
+  exact exceptional_fit_of_le _ _ _
+    (128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+    (64 * (256 / (Real.log (P v))^2))
+    (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
+      * (256 / Real.log (P v) + 2048 * Real.pi)
+      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+      * (Real.log (2*T))^2)
+    (δ v) c₃ ε ρ (κ' v) (hA0 v hv).le (hB0 v hv).le (hΓ0 v hv).le (hδ0 v hv).le
+    hAle hBle (hΓle v hv) (hfit v hv)
+
 end Tao2015
 
 end MoltResearch
