@@ -36,6 +36,8 @@ import MoltResearch.Discrepancy.LevelOneSchedule
 import MoltResearch.Discrepancy.CollisionSchedule
 import MoltResearch.Discrepancy.LaterLevelSchedule
 import MoltResearch.Discrepancy.ReplacementSchedule
+import MoltResearch.Discrepancy.CellHalaszSchedule
+import MoltResearch.Discrepancy.CellHalaszQuotientSchedule
 import MoltResearch.Discrepancy.LevelLegs
 import MoltResearch.Discrepancy.CellHalasz
 import MoltResearch.Discrepancy.ExceptionalConstants
