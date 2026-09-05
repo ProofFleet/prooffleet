@@ -764,9 +764,16 @@ What remains for the exceptional leg is bookkeeping, not analysis:
   (the box-product technique of `pSmoothHarmonicMass_le_exp_primeMass` with the weight
   `n^{σ−1}`), so that the short quotients' harmonic charges beyond `y = N^{c}/q` are negligible, and
   the `ε`-form of `sharpRamareCost` / `cellHalaszSharpBound`;
-- **T0-7c** (Conjectures) `hdeltaU` of the inner-band schedule replaced by the sharp bound at the
-  fixed strength for all `|t| ≤ T`, then the fixed-`ε` S6 fits (VI-9g) → A2-IV-3 → A2-V →
-  `sliceMeanSquareA2`.
+- **T0-7c** (`Conjectures/…/TrackCStage5ExceptionalSharp.lean`, on main): `halaszM_mono`,
+  `halaszWindowAt_twist_of_top` (from the top-scale `NonPretentiousAt g A₀ N` with
+  `2πT + 2π(halaszM N + 1) ≤ A₀·N` and `2D ≤ A₀ − 2(loglog N − loglog x₀ + 12)`: the window of
+  `g·n^{−2πit}` at strength `2D` at every scale `u ∈ [x₀, N]`, for **every** `|t| ≤ T`),
+  `norm_cellBlock_poly_le_cellHalaszSharpBound(_of_top)` (the capstone's `hδ` at the sharp cost),
+  `cellHalaszSharpBound_pos` (its `hδ0`), `cellHalaszSharpBound_le_explicit` (`≤ 2^{#rest}(2ε·e^{2E_P} +
+  (log Bq + 1)(Aq/x₀)^{−s}·exp(2∑_{p∈P} p^{−(1−s)}))` at `D ≥ D₀(ε)`, `x₀ ≥ x₀(ε)`). What remains is
+  **VI-9g**: the fixed-`ε` S6 schedule with this `δ` — `hfitUCell` from `exceptionalCell_fit_of_schedule`
+  with `Delta := 2^{J}(2ε e^{2E_𝒰} + tail)`, the parameters `log Q_𝒰/log P_𝒰 = C/ε³`, `N_𝒰 ≍ C/ε³`,
+  `x₀ = N^{1/2}`, `s = 1/log Q_𝒰`, `A₀ ≥ 2D₀(ε) + 2(log 2 + 12)` — then A2-IV-3 → A2-V → `sliceMeanSquareA2`.
 
 (Superseded T0-7 entry, kept for the record: **T0-7** (Conjectures) the `𝒯₀/𝒯₁` assembly of VI-9f: `𝒯₀ := {|t−t₁| < 6} ∩ band` at the
   sharp cost, `𝒯₁` at strength `ρ·loglog − 9` from `pretentiousDistSq_archTwist_ge_of_mid_or_far`
