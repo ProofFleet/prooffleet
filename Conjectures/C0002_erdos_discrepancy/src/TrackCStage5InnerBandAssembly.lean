@@ -465,6 +465,307 @@ theorem innerBand_level_leg_of_main
     kappaMain kappaReplacement kappaCollision c₃ eps hc₃ hmain hreplacement
     hcollisionFit hshare
 
+/-- Disjointness from every ordinary level supplies the exceptional level's
+quotient-support stability after it is rotated to the head. -/
+theorem innerBandExceptional_stable_of_disjoint
+    (Pl : ℕ → Finset ℕ) (Pu : Finset ℕ) (J : ℕ)
+    (hPl : ∀ i < J, ∀ p ∈ Pl i, p.Prime)
+    (hPu : ∀ p ∈ Pu, p.Prime)
+    (hdisjU : ∀ i < J, Disjoint (Pl i) Pu) :
+    ∀ p ∈ Pu, ∀ m,
+      HasFactorInAll ((List.range J).map Pl) (p * m) ↔
+        HasFactorInAll ((List.range J).map Pl) m := by
+  intro p hp m
+  apply hasFactorInAll_mul_iff_of_disjoint Pu hPu
+  · intro Q hQ q hq
+    rw [List.mem_map] at hQ
+    obtain ⟨i, hi, rfl⟩ := hQ
+    rw [List.mem_range] at hi
+    exact hPl i hi q hq
+  · intro Q hQ
+    rw [List.mem_map] at hQ
+    obtain ⟨i, hi, rfl⟩ := hQ
+    rw [List.mem_range] at hi
+    exact (hdisjU i hi).symm
+  · exact hp
+
+open MeasureTheory in
+/-- **A2-III VI-5 — the inner-band estimate assembled from all scheduled
+levels.**
+
+The first-index partition is the smallness partition of the ordinary levels.
+Level zero is priced by the level-one estimate; every later level is refined by
+its first large previous cell and priced by the moment estimate.  The final
+prime set `Pu` is rotated to the head and supplied to the exceptional
+cell-uniform capstone. -/
+theorem band_energy_typicalS_le_of_levels [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
+    (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
+    (Pl : ℕ → Finset ℕ) (Pu : Finset ℕ) (J : ℕ)
+    (hPl : ∀ i < J, ∀ p ∈ Pl i, p.Prime)
+    (hPu : ∀ p ∈ Pu, p.Prime)
+    (hPAl : ∀ i < J, ∀ p ∈ Pl i, p * p ≤ A)
+    (hPAu : ∀ p ∈ Pu, p * p ≤ A)
+    (hdisj : ∀ i < J, ∀ k < J, i ≠ k → Disjoint (Pl i) (Pl k))
+    (hdisjU : ∀ i < J, Disjoint (Pl i) Pu)
+    (Nl v₀l v₁l : ℕ → ℕ) (ql : ℕ → ℕ → ℕ) (alpha : ℕ → ℝ)
+    (hNl : ∀ j < J, 0 < Nl j)
+    (hcovl : ∀ j < J, (Finset.Ico (v₀l j) (v₁l j + 1)).biUnion
+      (eadicCell (Pl j) (2 * Nl j)) = Pl j)
+    (hqcelll : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+      ql j v ∈ eadicCell (Pl j) (2 * Nl j) v)
+    (hq1l : ∀ j < J, ∀ v, 1 ≤ ql j v)
+    (hqAl : ∀ j < J, ∀ v, 2 * ql j v ≤ A)
+    (hqminl : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+      ∀ p ∈ eadicCell (Pl j) (2 * Nl j) v, ql j v ≤ p)
+    (hLAl : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+      ∀ p ∈ eadicCell (Pl j) (2 * Nl j) v,
+        A / (Nl j * p) + 1 ≤ A / p)
+    (hLBl : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+      ∀ p ∈ eadicCell (Pl j) (2 * Nl j) v,
+        (A + Delta) / (Nl j * p) + 1 ≤ (A + Delta) / p)
+    (Plo Qhi : ℕ → ℝ)
+    (hAlpha : ∀ j < J, 0 < alpha j)
+    (hAlpha2_0 : 0 < J → 2 * alpha 0 < 1)
+    (hPlo0 : ∀ j < J, 0 < Plo j) (hQhi0 : ∀ j < J, 0 < Qhi j)
+    (hPloQhi : ∀ j < J, Plo j ≤ Qhi j)
+    (htop : ∀ j < J,
+      (v₁l j : ℝ) ≤ 2 * (Nl j : ℝ) * Real.log (Qhi j))
+    (hbot : ∀ j < J,
+      2 * (Nl j : ℝ) * Real.log (Plo j) - 1 ≤ (v₀l j : ℝ))
+    (R : ℕ) (hR : 1 ≤ R) (hB : A + Delta ≤ R * A)
+    (Clevel : ℕ → ℝ) (hClevel0 : 0 ≤ Clevel 0)
+    (hClevel : 0 < J → ∀ v ∈ Finset.Ico (v₀l 0) (v₁l 0 + 1),
+      ∑ m ∈ Finset.Ioc (A / ql 0 v) ((A + Delta) / ql 0 v),
+        (1 : ℝ) / (m : ℝ) ≤ Clevel 0)
+    (K₁ K₂ T : ℝ) (hT1 : 1 ≤ T) (hTK₂ : K₂ + 2 ≤ T)
+    (c₃ eps : ℝ) (hc₃ : 0 ≤ c₃)
+    (kappaMain kappaReplacement kappaCollision : ℕ → ℝ)
+    (hfitT0 : 0 < J →
+      ((Finset.Ico (v₀l 0) (v₁l 0 + 1)).card : ℝ)
+        * (Real.exp Real.pi * Clevel 0
+          * ((2 * T * Real.exp (1 / ((2 * Nl 0 : ℕ) : ℝ)) / (A : ℝ))
+            * ((Qhi 0) ^ (1 - 2 * alpha 0)
+                * Real.exp ((1 - 2 * alpha 0) / ((2 * Nl 0 : ℕ) : ℝ)))
+            * (((2 * Nl 0 : ℕ) : ℝ) / (1 - 2 * alpha 0) + 1)))
+      ≤ kappaMain 0 / 2 * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hfitP0 : 0 < J →
+      ((Finset.Ico (v₀l 0) (v₁l 0 + 1)).card : ℝ)
+        * (Real.exp Real.pi * Clevel 0
+          * (4 * (R : ℝ)
+            * ((Plo 0) ^ (-(2 * alpha 0))
+                * Real.exp (2 * alpha 0 / ((2 * Nl 0 : ℕ) : ℝ)))
+            * (((2 * Nl 0 : ℕ) : ℝ) / (2 * alpha 0) + 1)))
+      ≤ kappaMain 0 / 2 * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (A' Delta' Pmom ell : ℕ → ℕ → ℕ)
+    (hA' : ∀ j, 0 < j → j < J →
+      ∀ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1), 1 ≤ A' j r)
+    (hDelta' : ∀ j, 0 < j → j < J →
+      ∀ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1),
+        Delta' j r ≤ A' j r)
+    (hSblk : ∀ j, 0 < j → j < J →
+      ∀ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1),
+      ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+        Finset.Ioc (A / ql j v) ((A + Delta) / ql j v) ⊆
+          Finset.Ioc (A' j r) (A' j r + Delta' j r))
+    (hPmom : ∀ j, 0 < j → j < J →
+      ∀ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1), 1 ≤ Pmom j r)
+    (hlomom : ∀ j, 0 < j → j < J →
+      ∀ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1),
+      ∀ p ∈ eadicCell (Pl (j - 1)) (2 * Nl (j - 1)) r, Pmom j r < p)
+    (hhimom : ∀ j, 0 < j → j < J →
+      ∀ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1),
+      ∀ p ∈ eadicCell (Pl (j - 1)) (2 * Nl (j - 1)) r, p ≤ 2 * Pmom j r)
+    (hell : ∀ j, 0 < j → j < J →
+      ∀ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1), 1 ≤ ell j r)
+    (kappaCell : ℕ → ℕ → ℝ)
+    (hfitLater : ∀ j, 0 < j → j < J →
+      ∀ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1),
+      (2 * (Nl j : ℝ) * (Real.log (Qhi j) - Real.log (Plo j)) + 2)
+        * (((Plo j) ^ (-(2 * alpha j))
+              * Real.exp (2 * alpha j / ((2 * Nl j : ℕ) : ℝ))
+              * (((2 * Nl j : ℕ) : ℝ) / (2 * alpha j) + 1))
+            * ((Real.exp Real.pi
+                  * (T / (((Pmom j r) ^ (ell j r) * A' j r : ℕ) : ℝ)
+                    + 2 * ((2 ^ (ell j r + 1) : ℕ) : ℝ)))
+              * (((Nat.factorial (ell j r) : ℝ) ^ 2
+                * (((2 ^ (ell j r + 1) : ℕ) : ℝ) * ((ell j r : ℝ) + 1)
+                  * (∑ p ∈ eadicCell (Pl (j - 1)) (2 * Nl (j - 1)) r,
+                      (1 : ℝ) / (p : ℝ)) ^ (ell j r)))
+                / ((Qhi (j - 1)) ^ (-(alpha (j - 1)))
+                    * Real.exp (-(alpha (j - 1) /
+                      ((2 * Nl (j - 1) : ℕ) : ℝ)))) ^ (2 * ell j r))))
+      ≤ kappaCell j r * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hsharesLater : ∀ j, 0 < j → j < J →
+      ∑ r ∈ Finset.Ico (v₀l (j - 1)) (v₁l (j - 1) + 1),
+        kappaCell j r ≤ kappaMain j)
+    (Pb Kc bb : ℕ → ℕ) (aa : ℕ → ℕ → ℕ) (X : ℕ → ℝ)
+    (hPb : ∀ j < J, 1 ≤ Pb j) (hKc : ∀ j < J, 2 ≤ Kc j)
+    (hbb : ∀ j < J, 3 ≤ bb j) (hX0 : ∀ j < J, 0 ≤ X j)
+    (hcostA : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+      ∀ p ∈ eadicCell (Pl j) (2 * Nl j) v,
+        Real.exp Real.pi * (T / ((A / p : ℕ) : ℝ) + 4)
+            * (((A / (Nl j * p) + 1 : ℕ) : ℝ) / ((A / p : ℕ) : ℝ)) ≤ X j)
+    (hcostB : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+      ∀ p ∈ eadicCell (Pl j) (2 * Nl j) v,
+        Real.exp Real.pi * (T / (((A + Delta) / p : ℕ) : ℝ) + 4)
+            * (((((A + Delta) / (Nl j * p)) + 1 : ℕ) : ℝ) /
+              (((A + Delta) / p : ℕ) : ℝ)) ≤ X j)
+    (haa : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1), Pb j ≤ aa j v)
+    (hcell : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+      eadicCell (Pl j) (2 * Nl j) v ⊆
+        (Finset.Ioc (aa j v) (aa j v + Kc j)).filter Nat.Prime)
+    (hlevel : ∀ j < J, ∀ v ∈ Finset.Ico (v₀l j) (v₁l j + 1),
+      eadicCell (Pl j) (2 * Nl j) v ⊆
+        (Finset.Ioc (Pb j) (bb j)).filter Nat.Prime)
+    (hkappac : ∀ j < J, 0 ≤ kappaReplacement j * c₃)
+    (hrho : eps ≤ (Delta : ℝ) / (A : ℝ))
+    (hfitReplacement : ∀ j < J,
+      64 * ((Finset.Ico (v₀l j) (v₁l j + 1)).card : ℝ) * X j
+          * ((256 * (Kc j : ℝ) / ((Pb j : ℝ) * Real.log (Kc j)))
+            * (Real.log (Real.log ((bb j : ℝ) + 1)) + 11))
+        ≤ kappaReplacement j * c₃ * eps ^ 3)
+    (hcollisionFit : ∀ j < J,
+      8 * collisionEnergyBound A (A + Delta) (Pl j)
+          (innerBandLevelsBefore Pl J j ++ innerBandLevelsAfter Pl Pu J j) T
+        ≤ kappaCollision j * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hshare : ∀ j < J, (4 * (H : ℝ) / (A : ℝ)) ^ 2
+        * (2 * kappaMain j + 2 * kappaReplacement j + 2 * kappaCollision j)
+      ≤ (1 : ℝ) / 2 ^ (j + 1))
+    (Nu v₀u v₁u : ℕ) (hNu : 0 < Nu)
+    (hcovU : (Finset.Ico v₀u (v₁u + 1)).biUnion
+      (eadicCell Pu (2 * Nu)) = Pu)
+    (qu : ℕ → ℕ)
+    (hqcellU : ∀ v ∈ Finset.Ico v₀u (v₁u + 1), qu v ∈ eadicCell Pu (2 * Nu) v)
+    (hq1U : ∀ v, 1 ≤ qu v)
+    (hqminU : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
+      ∀ p ∈ eadicCell Pu (2 * Nu) v, qu v ≤ p)
+    (hLAU : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
+      ∀ p ∈ eadicCell Pu (2 * Nu) v, A / (Nu * p) + 1 ≤ A / p)
+    (hLBU : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
+      ∀ p ∈ eadicCell Pu (2 * Nu) v,
+        (A + Delta) / (Nu * p) + 1 ≤ (A + Delta) / p)
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ xi, 0 ≤ w xi)
+    (hwsup : ∀ xi, w xi ≤ (4 * (H : ℝ) / (A : ℝ)) ^ 2)
+    (PcU : ℕ → ℕ) (hPcU : ∀ v ∈ Finset.Ico v₀u (v₁u + 1), 2 ≤ PcU v)
+    (hloU : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
+      ∀ p ∈ eadicCell Pu (2 * Nu) v, PcU v < p)
+    (hhiU : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
+      ∀ p ∈ eadicCell Pu (2 * Nu) v, p ≤ 2 * PcU v)
+    (deltaU : ℕ → ℝ) (hdeltaU0 : ∀ v ∈ Finset.Ico v₀u (v₁u + 1), 0 < deltaU v)
+    (hdeltaU : ∀ v ∈ Finset.Ico v₀u (v₁u + 1), ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 ((A + Delta) / qu v),
+          (cellBlockCoeff g A (A + Delta) Pu ((List.range J).map Pl) (qu v) n /
+              (n : ℂ))
+            * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ deltaU v)
+    (hA0 : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
+      0 < 64 * ((((A + Delta) / qu v : ℕ) : ℝ)
+          + ((bandCells K₂).card : ℝ) * Real.sqrt T)
+        * (Real.log (2 * T) + 1)
+        * ∑ n ∈ Finset.Icc 1 ((A + Delta) / qu v),
+            ‖cellBlockCoeff g A (A + Delta) Pu ((List.range J).map Pl) (qu v) n‖ ^ 2 /
+              (n : ℝ) ^ 2)
+    (hB0 : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
+      0 < 64 * (∑ p ∈ eadicCell Pu (2 * Nu) v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
+        * (PcU v : ℝ) / Real.log (PcU v))
+    (kappaU : ℕ → ℝ)
+    (hfitUCell : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
+      2 * ((deltaU v) ^ 2 * (64 * (256 / (Real.log (PcU v)) ^ 2))
+        + 2 * deltaU v * Real.sqrt
+            ((128 * ((((A + Delta) / qu v : ℕ) : ℝ) + 2 * T * Real.sqrt T)
+                * (Real.log (2 * T) + 1))
+              * ((64 * (256 / (Real.log (PcU v)) ^ 2))
+                  * (Real.exp Real.pi * ((T + 1) / (PcU v : ℝ) + 4)
+                    * (256 / Real.log (PcU v) + 2048 * Real.pi)
+                    * Real.exp (-(Real.log (PcU v) /
+                      (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                    * (Real.log (2 * T)) ^ 2))))
+        ≤ kappaU v * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
+    (hfitU : 2 * ((Finset.Ico v₀u (v₁u + 1)).card : ℝ)
+          * (∑ v ∈ Finset.Ico v₀u (v₁u + 1), kappaU v)
+          * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ))
+        + 2 * (2 * cellReplacementEnergyBound Pu Nu v₀u v₁u A (A + Delta) T
+            + 2 * (4 * collisionEnergyBound A (A + Delta) Pu
+              ((List.range J).map Pl) T))
+      ≤ (1 / 2 ^ (J + 1)) * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) /
+          (4 * (H : ℝ) / (A : ℝ)) ^ 2) :
+    (∫ xi in {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂},
+        ‖∑ m ∈ typicalS A (A + Delta) (innerBandLevels Pl Pu J),
+            (g m / (m : ℂ))
+              * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2 * w xi)
+      ≤ bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+  have hT : 0 < T := lt_of_lt_of_le zero_lt_one hT1
+  let Pset := levelSmallSet Pl Nl v₀l v₁l g alpha
+  have hPset : ∀ j, MeasurableSet (Pset j) :=
+    levelSmallSet_measurableSet Pl Nl v₀l v₁l g alpha
+  have hlevelLeg : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      (4 * (H : ℝ) / (A : ℝ)) ^ 2
+          * ∫ xi in bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+            ‖∑ m ∈ typicalS A (A + Delta) (innerBandLevels Pl Pu J),
+                (g m / (m : ℂ))
+                  * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2
+        ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+    intro j hj hne
+    have hjJ : j < J := by
+      rw [Finset.mem_range] at hj
+      omega
+    have hrepl := innerBand_replacement_leg g hg A Delta Pl Pu Nl v₀l v₁l ql alpha
+      J j (hNl j hjJ) (hqcelll j hjJ) (hq1l j hjJ) (hqminl j hjJ)
+      (hLAl j hjJ) (hLBl j hjJ) K₁ K₂ T hT hTK₂
+      (Pb j) (Kc j) (bb j) (aa j) (X j) c₃ eps (kappaReplacement j)
+      (hPb j hjJ) (hKc j hjJ) (hbb j hjJ) (hX0 j hjJ)
+      (hcostA j hjJ) (hcostB j hjJ) (haa j hjJ) (hcell j hjJ)
+      (hlevel j hjJ) (hkappac j hjJ) hrho (hfitReplacement j hjJ)
+    by_cases hj0 : j = 0
+    · subst j
+      exact innerBand_first_level_leg g hcm hg A Delta H hDeltaA Pl Pu J hjJ
+        hPl hPu hPAl hdisj hdisjU Nl v₀l v₁l (hNl 0 hjJ) (hcovl 0 hjJ)
+        ql (hqcelll 0 hjJ) (hq1l 0 hjJ) (hqAl 0 hjJ) alpha (hAlpha 0 hjJ)
+        (hAlpha2_0 hjJ) R hR hB (Clevel 0) hClevel0 (hClevel hjJ)
+        Plo Qhi (hPlo0 0 hjJ) (hQhi0 0 hjJ) (htop 0 hjJ) (hbot 0 hjJ)
+        K₁ K₂ T hT hTK₂ (kappaMain 0) (kappaReplacement 0) (kappaCollision 0)
+        c₃ eps hc₃ (hfitT0 hjJ) (hfitP0 hjJ) hrepl (hcollisionFit 0 hjJ)
+        (hshare 0 hjJ)
+    · have hjpos : 0 < j := Nat.pos_of_ne_zero hj0
+      have hjprevJ : j - 1 < J := by omega
+      have hmain := innerBand_later_level_main g hg A Delta Pl Pu Nl v₀l v₁l ql
+        alpha J j hjpos hjJ (hNl j hjJ) (hNl (j - 1) hjprevJ)
+        (hPl (j - 1) hjprevJ) (A' j) (Delta' j) (Pmom j) (ell j)
+        (hA' j hjpos hjJ) (hDelta' j hjpos hjJ) (hSblk j hjpos hjJ)
+        (hPmom j hjpos hjJ) (hlomom j hjpos hjJ) (hhimom j hjpos hjJ)
+        (hell j hjpos hjJ) Plo Qhi (hAlpha j hjJ) (hAlpha (j - 1) hjprevJ).le
+        (hPlo0 j hjJ) (hPloQhi j hjJ) (hQhi0 (j - 1) hjprevJ)
+        (htop (j - 1) hjprevJ) (htop j hjJ) (hbot j hjJ) K₁ K₂ T hT hTK₂
+        (kappaCell j) (kappaMain j) c₃ eps hc₃ (hfitLater j hjpos hjJ)
+        (hsharesLater j hjpos hjJ)
+      exact innerBand_level_leg_of_main g hcm hg A Delta H hDeltaA Pl Pu J j hjJ
+        hPl hPu hPAl hdisj hdisjU Nl v₀l v₁l (hcovl j hjJ) ql alpha
+        K₁ K₂ T hT hTK₂ (kappaMain j) (kappaReplacement j) (kappaCollision j)
+        c₃ eps hc₃ hmain hrepl (hcollisionFit j hjJ) (hshare j hjJ)
+  let restU := (List.range J).map Pl
+  have hstableU := innerBandExceptional_stable_of_disjoint Pl Pu J hPl hPu hdisjU
+  have htyp : typicalS A (A + Delta) (innerBandLevels Pl Pu J) =
+      typicalS A (A + Delta) (Pu :: restU) := by
+    simpa [innerBandLevels, restU] using
+      typicalS_middle A (A + Delta) ((List.range J).map Pl) [] Pu
+  have hlegU : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      (4 * (H : ℝ) / (A : ℝ)) ^ 2
+          * ∫ xi in bandPartOn Pset J {xi : ℝ | K₁ ≤ |xi| ∧ |xi| ≤ K₂} j,
+            ‖∑ m ∈ typicalS A (A + Delta) (Pu :: restU),
+                (g m / (m : ℂ))
+                  * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2
+        ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
+    intro j hj hne
+    rw [← htyp]
+    exact hlevelLeg j hj hne
+  rw [htyp]
+  exact band_energy_typicalS_le_of_cellUniform_fit g hcm hg A Delta H hA hH hDeltaA
+    Pu hPu hPAu restU Nu v₀u v₁u hNu hcovU hstableU qu hqcellU hq1U hqminU
+    hLAU hLBU w hwm hw0 hwsup K₁ K₂ J Pset hPset c₃ eps hc₃ hlegU
+    PcU hPcU hloU hhiU T hT1 hTK₂ deltaU hdeltaU0 hdeltaU hA0 hB0
+    kappaU hfitUCell hfitU
+
 end Tao2015
 
 end MoltResearch
