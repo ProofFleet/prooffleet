@@ -16,10 +16,11 @@ covered by dyadic blocks, on each **good** block the once-paid `𝒮ᶜ` removal
   constant explicit: `(16qε' + qh₀/H + 4πq²|α − a/q|h₀ + 6εc)·∑_{(A,2A]} 1/n`.
 * `exists_wrapper_params` (R7-5) — the parameter choice: for `ε ≤ 1` and the arc data
   `(C, B)`, an `H₀` such that every `H ≥ H₀` admits `Q ≥ max(C(log H)^B, 1)`, a window
-  `h₀ ≤ εH/(64πQ²)` with `2h₀ ≤ H`, and A.2 data `(levels, A₀)` at `ε' = ε/(128Q)`,
-  `εc = ε/48`, with all level primes above `Q`.  The Prop is invoked with the polylog
-  constant `2^B·C`, so that `2^B C(log h₀)^B ≥ C(log H)^B` follows from `H ≤ h₀²`; every
-  size condition is one instance of `exists_forall_polylog_le`.
+  `h₀ ≤ εH/(64πQ²)` with `2h₀ ≤ H`, and a global threshold `A₀`; every dyadic
+  block `A ≥ A₀` then gets its own A.2 level list at `ε' = ε/(128Q)`, `εc = ε/48`.
+  The one list serves exactly `S(A,Q) = [A/⌈Q⌉₊-1,3A]`, including density starts
+  `A,2A`.  The Prop is invoked with the polylog constant `2^B·C`, so that
+  `2^B C(log h₀)^B ≥ C(log H)^B` follows from `H ≤ h₀²`.
 -/
 
 namespace MoltResearch
@@ -37,10 +38,74 @@ theorem nonPretentiousAt_of_le_strength {g : ℕ → ℂ} {A A' : ℝ} {x : ℕ}
   exact hAA'.trans (h q χ t (hq.trans hAA')
     (ht.trans (mul_le_mul_of_nonneg_right hAA' hx0)))
 
+/-- The density starts `A` and `2A` belong to the common consumer scale set
+`S(A,Q) = [A / ⌈Q⌉₊ - 1, 3A] ∩ ℕ`. -/
+theorem density_scales_mem_majorArcScaleSet (A : ℕ) (Q : ℝ) :
+    A ∈ majorArcScaleSet A Q ∧ 2 * A ∈ majorArcScaleSet A Q := by
+  rw [majorArcScaleSet, Finset.mem_Icc, Finset.mem_Icc]
+  have hlo : A / ⌈Q⌉₊ - 1 ≤ A := (Nat.sub_le _ _).trans (Nat.div_le_self _ _)
+  omega
+
+/-- The scale set used by one major-arc block fits inside the A.2 window based at
+`A₁ := A / D`, where `D := 4⌈Q⌉₊ + 4`, once `16D² ≤ A`.
+
+Thus every class scale in `[A / ⌈Q⌉₊ - 1, 3A]`, as well as the density starts
+`A` and `2A`, is supplied by the one level list selected at `A₁`. -/
+theorem majorArcScaleSet_subset_A2_window (A : ℕ) (Q : ℝ) (hQ1 : 1 ≤ Q)
+    (hA : 16 * (4 * ⌈Q⌉₊ + 4) ^ 2 ≤ A) :
+    ∀ A' ∈ majorArcScaleSet A Q,
+      A / (4 * ⌈Q⌉₊ + 4) ≤ A' ∧ A' ≤ (A / (4 * ⌈Q⌉₊ + 4)) ^ 2 := by
+  intro A' hA'
+  rw [majorArcScaleSet, Finset.mem_Icc] at hA'
+  set c : ℕ := ⌈Q⌉₊ with hc
+  set D : ℕ := 4 * c + 4 with hD
+  have hc1 : 1 ≤ c := by
+    rw [hc]
+    exact_mod_cast hQ1.trans (Nat.le_ceil Q)
+  have hD1 : 1 ≤ D := by omega
+  have hcD : c ≤ D := by omega
+  have hDD : D ≤ D ^ 2 := by
+    rw [pow_two]
+    exact Nat.le_mul_of_pos_right D hD1
+  have hA_D : 16 * D ^ 2 ≤ A := by simpa [D, c] using hA
+  have h2cA : 2 * c ≤ A := by
+    calc 2 * c ≤ 2 * D := Nat.mul_le_mul_left 2 hcD
+      _ ≤ 2 * D ^ 2 := Nat.mul_le_mul_left 2 hDD
+      _ ≤ 16 * D ^ 2 := by omega
+      _ ≤ A := hA_D
+  have hAc2 : 2 ≤ A / c := (Nat.le_div_iff_mul_le (by omega)).2 (by simpa [mul_comm] using h2cA)
+  have h2cD : 2 * c ≤ D := by omega
+  have hlo : A / D ≤ A / c - 1 := by
+    calc A / D ≤ A / (2 * c) := Nat.div_le_div_left h2cD (by omega)
+      _ = A / c / 2 := by rw [Nat.div_div_eq_div_mul, Nat.mul_comm]
+      _ ≤ A / c - 1 := by omega
+  have h16D : 16 * D ≤ A / D := by
+    rw [Nat.le_div_iff_mul_le (by omega)]
+    have heq : (16 * D) * D = 16 * D ^ 2 := by ring
+    rwa [heq]
+  set n : ℕ := A / D with hn
+  have hn3 : 3 ≤ n := by omega
+  have h4Dn : 4 * D ≤ n := by omega
+  have h3Dn : 3 * D ≤ D * n := by
+    simpa [mul_comm] using Nat.mul_le_mul_left D hn3
+  have hAup : A ≤ D * (n + 1) := by
+    exact (Nat.lt_mul_div_succ A (by omega : 0 < D)).le
+  have h3A : 3 * A ≤ n ^ 2 := by
+    calc 3 * A ≤ 3 * (D * (n + 1)) := Nat.mul_le_mul_left 3 hAup
+      _ = 3 * D * n + 3 * D := by ring
+      _ ≤ 3 * D * n + D * n := Nat.add_le_add_left h3Dn _
+      _ = (4 * D) * n := by ring
+      _ ≤ n * n := Nat.mul_le_mul_right n h4Dn
+      _ = n ^ 2 := by ring
+  refine ⟨?_, ?_⟩
+  · exact hlo.trans (by simpa [c] using hA'.1)
+  · exact hA'.2.trans (by simpa [n, D, c] using h3A)
+
 /-- **The total on a good dyadic block** (Track R, R7-4).
 
-Given the two clauses of `SliceMeanSquareA2` for one `(levels, A₀, h₀, ε', εc)` — the
-`𝒮ᶜ` log-density `≤ εc` on dyadic blocks above `A₀`, and the mean square — and a good
+Given the two clauses of `SliceMeanSquareA2` for one `(levels, A₀, h₀, ε', εc)`, restricted
+to `S(A,Q) = [A / ⌈Q⌉₊ - 1, 3A] ∩ ℕ` — the
+`𝒮ᶜ` log-density `≤ εc` and the mean square on those scales — and a good
 block `(A, 2A]` (`6qH ≤ A`, `7q² ≤ A`, `⌈A₀⌉₊ + 1 ≤ ⌊A/q⌋`, `g` non-pretentious at
 strength `q·A₀ + 26` and truncation `6A+1`), the log-averaged window sums at any `α`
 with rational part `a/q` are at most
@@ -55,19 +120,24 @@ theorem good_block_total_le
     (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
     (A₀ : ℝ) (hA₀1 : 1 ≤ A₀) (h₀ : ℕ) (ε' εc : ℝ) (hε' : 0 ≤ ε') (hεc : 0 ≤ εc)
     (hε'A₀ : 2 ≤ ε' * A₀)
-    (hdens : ∀ A : ℕ, A₀ ≤ A →
-      ∑ n ∈ (Finset.Ioc A (2 * A)).filter (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
-        ≤ εc * ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n)
-    (hms : ∀ A : ℕ, A₀ ≤ A →
+    (Q : ℝ) (A : ℕ)
+    (hdensA : ∑ n ∈ (Finset.Ioc A (2 * A)).filter
+        (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
+      ≤ εc * ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n)
+    (hdens2A : ∑ n ∈ (Finset.Ioc (2 * A) (2 * (2 * A))).filter
+        (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
+      ≤ εc * ∑ n ∈ Finset.Ioc (2 * A) (2 * (2 * A)), (1:ℝ)/n)
+    (hms : ∀ A' : ℕ, A' ∈ majorArcScaleSet A Q →
       ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
-        NonPretentiousAt g A₀ (2 * A + 1) →
-        ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
-          ∑ n ∈ Finset.Ioc A (A + J),
+        NonPretentiousAt g A₀ (2 * A' + 1) →
+        ∀ J : ℕ, A' / 2 ≤ J → J ≤ A' →
+          ∑ n ∈ Finset.Ioc A' (A' + J),
             ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
-            ≤ ε'^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n)
+            ≤ ε'^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A' (A' + J), (1:ℝ)/n)
     (g : ℕ → ℂ) (hg : CompletelyMultiplicativeC g) (hgu : Unimodular g)
-    (q : ℕ) (hq : 0 < q) (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q) (a : ℤ) (α : ℝ)
-    (A H : ℕ) (hh₀ : 0 < h₀) (h2h₀ : 2 * h₀ ≤ H) (hA : 6 * q * H ≤ A)
+    (q : ℕ) (hq : 0 < q) (hqQ : (q : ℝ) ≤ Q)
+    (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q) (a : ℤ) (α : ℝ)
+    (H : ℕ) (hh₀ : 0 < h₀) (h2h₀ : 2 * h₀ ≤ H) (hA : 6 * q * H ≤ A)
     (hA7 : 7 * q ^ 2 ≤ A) (hA₀q : ⌈A₀⌉₊ + 1 ≤ A / q)
     (hnp : NonPretentiousAt g (q * A₀ + 26) (6 * A + 1)) :
     ∑ n ∈ Finset.Ioc A (2 * A),
@@ -80,16 +150,11 @@ theorem good_block_total_le
   have h2H : 2 * H ≤ A := by nlinarith
   have hA1 : 1 ≤ A := by omega
   have hHA : H ≤ 2 * A := by omega
-  -- `A₀ ≤ A` and `A₀ ≤ 2A` from `⌈A₀⌉₊ + 1 ≤ ⌊A/q⌋ ≤ A`
-  have hA₀A : A₀ ≤ A := by
-    have h1 : ⌈A₀⌉₊ ≤ A := le_trans (by omega) (Nat.div_le_self A q)
-    exact le_trans (Nat.le_ceil A₀) (by exact_mod_cast h1)
-  have hA₀2A : A₀ ≤ ((2 * A : ℕ) : ℝ) := le_trans hA₀A (by exact_mod_cast (by omega : A ≤ 2 * A))
   -- the once-paid removal
   have hsplit := sum_window_div_le_restricted_add_complement g hb levels α A H hH h2H
   -- the complement mass
   have hcompl := sum_complement_Ioc_le_of_density levels εc hεc A H hA1 hHA
-    (hdens A hA₀A) (hdens (2 * A) hA₀2A)
+    hdensA hdens2A
   -- the restricted part at `α = a/q + (α − a/q)`
   have hα : ∀ m : ℕ,
       g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (α : ℂ))
@@ -99,8 +164,8 @@ theorem good_block_total_le
     congr 3
     push_cast
     ring
-  have hres := majorArc_block_bound_restricted levels hlv A₀ hA₀1 h₀ ε' hε' hε'A₀ hms
-    g hg hgu q hq hql a (α - (a : ℝ) / (q : ℝ)) A H hh₀ h2h₀ hA hA7 hA₀q hnp
+  have hres := majorArc_block_bound_restricted levels hlv A₀ hA₀1 h₀ ε' hε' hε'A₀ Q A hms
+    g hg hgu q hq hqQ hql a (α - (a : ℝ) / (q : ℝ)) H hh₀ h2h₀ hA hA7 hA₀q hnp
   simp_rw [← hα] at hres
   have hS0 : 0 ≤ ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n :=
     Finset.sum_nonneg fun n _ => by positivity
@@ -122,33 +187,42 @@ theorem good_block_total_le
 
 For `0 < ε ≤ 1`, `C > 0` and `B`, there is `H₀` such that every `H ≥ H₀` admits: a real
 `Q ≥ 1` with `C(log H)^B ≤ Q`; a window length `h₀` with `0 < h₀`, `2h₀ ≤ H` and
-`h₀ ≤ εH/(64πQ²)`; and a level list with threshold `A₀ ≥ 1` and
-`2 ≤ (ε/(128Q))A₀` such that the levels are
-primes above `Q`, the `𝒮ᶜ` log-density of dyadic blocks above `A₀` is at most `ε/48`, and
-the mean-square clause of `SliceMeanSquareA2` holds at `ε' = ε/(128Q)` and window `h₀`.
+`h₀ ≤ εH/(64πQ²)`; and a threshold `A₀ ≥ 1` with `2 ≤ (ε/(128Q))A₀`.
+For every block start `A ≥ A₀`, it exports a level list whose primes exceed `Q`,
+whose density clause holds at `A` and `2A`, and whose mean-square clause holds at every
+scale in `S(A,Q) = [A / ⌈Q⌉₊ - 1, 3A] ∩ ℕ`.
 
 `Q := max(C(log H)^B, 1)`, `h₀ := ⌊εH/(64πQ²)⌋₊`, and the Prop is invoked at
 `(εc, B, 2^B C)`; the requirements `h₁ ≤ h₀`, `C₁/ε'^k ≤ h₀`, `H ≤ h₀²` are all of the
-form `T·Q^{2k+4} ≤ H` for one explicit `T`, supplied by `exists_forall_polylog_le`. -/
+form `T·Q^{2k+4} ≤ H`, supplied by `exists_forall_polylog_le`.  If `Aprop` is the
+Prop's threshold, put `D := 4⌈Q⌉₊+4`, `N := max ⌈Aprop⌉₊ ⌈256Q/ε⌉₊`, and
+`A₀ := ↑(D·N+16D²)`.  A block `A ≥ A₀` uses the Prop at base `A/D`;
+`majorArcScaleSet_subset_A2_window` proves `S(A,Q) ⊆ [A/D,(A/D)²]`. -/
 theorem exists_wrapper_params (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B : ℕ)
     (hε : 0 < ε) (hε1 : ε ≤ 1) (hC : 0 < C) :
     ∃ H₀ : ℕ, ∀ H : ℕ, H₀ ≤ H →
-      ∃ (Q : ℝ) (h₀ : ℕ) (levels : List (Finset ℕ)) (A₀ : ℝ),
+      ∃ (Q : ℝ) (h₀ : ℕ) (A₀ : ℝ),
         1 ≤ Q ∧ C * Real.log H ^ B ≤ Q ∧ 1 ≤ A₀ ∧
         2 ≤ (ε / (128 * Q)) * A₀ ∧ 0 < h₀ ∧ 2 * h₀ ≤ H ∧
         (h₀ : ℝ) ≤ ε * H / (64 * Real.pi * Q ^ 2) ∧
-        (∀ P ∈ levels, ∀ p ∈ P, p.Prime) ∧
-        (∀ P ∈ levels, ∀ p ∈ P, Q < p) ∧
         (∀ A : ℕ, A₀ ≤ A →
-          ∑ n ∈ (Finset.Ioc A (2 * A)).filter (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
-            ≤ (ε / 48) * ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n) ∧
-        (∀ A : ℕ, A₀ ≤ A →
-          ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
-            NonPretentiousAt g A₀ (2 * A + 1) →
-            ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
-              ∑ n ∈ Finset.Ioc A (A + J),
-                ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
-                ≤ (ε / (128 * Q))^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n) := by
+          ∃ levels : List (Finset ℕ),
+            (∀ P ∈ levels, ∀ p ∈ P, p.Prime) ∧
+            (∀ P ∈ levels, ∀ p ∈ P, Q < p) ∧
+            (∑ n ∈ (Finset.Ioc A (2 * A)).filter
+                (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
+              ≤ (ε / 48) * ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n) ∧
+            (∑ n ∈ (Finset.Ioc (2 * A) (2 * (2 * A))).filter
+                (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
+              ≤ (ε / 48) * ∑ n ∈ Finset.Ioc (2 * A) (2 * (2 * A)), (1:ℝ)/n) ∧
+            (∀ A' : ℕ, A' ∈ majorArcScaleSet A Q →
+              ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
+                NonPretentiousAt g A₀ (2 * A' + 1) →
+                ∀ J : ℕ, A' / 2 ≤ J → J ≤ A' →
+                  ∑ n ∈ Finset.Ioc A' (A' + J),
+                    ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
+                    ≤ (ε / (128 * Q))^2 * (h₀ : ℝ)^2
+                        * ∑ n ∈ Finset.Ioc A' (A' + J), (1:ℝ)/n)) := by
   obtain ⟨h₁, C₁, k, hC₁, hProp⟩ :=
     hA2 (ε / 48) (by positivity) B (2 ^ B * C) (by positivity)
   have hπ : (1:ℝ) < Real.pi := by linarith [Real.pi_gt_three]
@@ -266,53 +340,77 @@ theorem exists_wrapper_params (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B : ℕ)
     calc (H : ℝ) ≤ t ^ 2 / 4 := by linarith
       _ = (t / 2) ^ 2 := by ring
       _ ≤ (h₀ : ℝ) ^ 2 := pow_le_pow_left₀ (by positivity) hth 2
-  -- invoke the Prop at `(ε', h₀)`
-  obtain ⟨levels, A₀, hA₀1, hlv, hbig, hdens, hms⟩ :=
+  -- invoke the Prop at `(ε', h₀)` and enlarge its strength to a block threshold
+  obtain ⟨Aprop, hAprop1, hPropWindow⟩ :=
     hProp (ε / (128 * Q)) hε'0 h₀ hh₁ hCε'
-  set A₀' : ℝ := max A₀ (256 * Q / ε) with hA₀'def
-  have hA₀le : A₀ ≤ A₀' := by rw [hA₀'def]; exact le_max_left _ _
-  have hbasele : 256 * Q / ε ≤ A₀' := by rw [hA₀'def]; exact le_max_right _ _
-  have hA₀'1 : 1 ≤ A₀' := hA₀1.trans hA₀le
-  have hscale : 2 ≤ (ε / (128 * Q)) * A₀' := by
+  set D : ℕ := 4 * ⌈Q⌉₊ + 4 with hDdef
+  set N : ℕ := max ⌈Aprop⌉₊ ⌈256 * Q / ε⌉₊ with hNdef
+  set Mnat : ℕ := D * N + 16 * D ^ 2 with hMnatdef
+  set M : ℝ := (Mnat : ℝ) with hMdef
+  have hDpos : 0 < D := by omega
+  have hceilPropN : ⌈Aprop⌉₊ ≤ N := by rw [hNdef]; exact le_max_left _ _
+  have hceilBaseN : ⌈256 * Q / ε⌉₊ ≤ N := by rw [hNdef]; exact le_max_right _ _
+  have hNMnat : N ≤ Mnat := by
+    rw [hMnatdef]
+    have : N ≤ D * N := by simpa using Nat.mul_le_mul_right N (Nat.succ_le_iff.mp hDpos)
+    omega
+  have hApropM : Aprop ≤ M := by
+    calc Aprop ≤ (⌈Aprop⌉₊ : ℕ) := Nat.le_ceil Aprop
+      _ ≤ N := by exact_mod_cast hceilPropN
+      _ ≤ Mnat := by exact_mod_cast hNMnat
+      _ = M := hMdef.symm
+  have hM1 : 1 ≤ M := hAprop1.trans hApropM
+  have hbaseM : 256 * Q / ε ≤ M := by
+    calc 256 * Q / ε ≤ (⌈256 * Q / ε⌉₊ : ℕ) := Nat.le_ceil _
+      _ ≤ N := by exact_mod_cast hceilBaseN
+      _ ≤ Mnat := by exact_mod_cast hNMnat
+      _ = M := hMdef.symm
+  have hscale : 2 ≤ (ε / (128 * Q)) * M := by
     calc 2 = (ε / (128 * Q)) * (256 * Q / ε) := by field_simp; ring
-      _ ≤ (ε / (128 * Q)) * A₀' :=
-        mul_le_mul_of_nonneg_left hbasele hε'0.le
-  have hdens' : ∀ A : ℕ, A₀' ≤ A →
-      ∑ n ∈ (Finset.Ioc A (2 * A)).filter (fun n => ¬ HasFactorInAll levels n), (1 : ℝ) / n
-        ≤ (ε / 48) * ∑ n ∈ Finset.Ioc A (2 * A), (1 : ℝ) / n := by
-    intro A hA
-    exact hdens A (hA₀le.trans hA)
-  have hms' : ∀ A : ℕ, A₀' ≤ A →
-      ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
-        NonPretentiousAt g A₀' (2 * A + 1) →
-        ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
-          ∑ n ∈ Finset.Ioc A (A + J),
-            ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖ ^ 2 / n
-              ≤ (ε / (128 * Q)) ^ 2 * (h₀ : ℝ) ^ 2
-                * ∑ n ∈ Finset.Ioc A (A + J), (1 : ℝ) / n := by
-    intro A hA g hg hgb hg1 hnp J hJ2 hJ
-    exact hms A (hA₀le.trans hA) g hg hgb hg1
-      (nonPretentiousAt_of_le_strength hA₀le hnp) J hJ2 hJ
-  refine ⟨Q, h₀, levels, A₀', hQ1, hQQ, hA₀'1, hscale, hh₀pos, h2h₀, hh₀t,
-    hlv, ?_, hdens', hms'⟩
-  -- level primes exceed `Q`: `2^B C (log h₀)^B = C (log h₀²)^B ≥ C (log H)^B`, and `p ≥ 2 > 1`
-  intro P hP p hp
-  have hpQ := hbig P hP p hp
-  have hp2 : (2:ℝ) ≤ p := by exact_mod_cast (hlv P hP p hp).two_le
-  have hh₀R : (1:ℝ) ≤ h₀ := by exact_mod_cast hh₀pos
-  have hlogH : Real.log H ≤ 2 * Real.log h₀ := by
-    have hsq : Real.log ((h₀ : ℝ) ^ 2) = 2 * Real.log h₀ := by
-      rw [Real.log_pow]
-      norm_num
-    rw [← hsq]
-    exact Real.log_le_log hHpos hHh₀
-  have hlog0 : 0 ≤ Real.log H := Real.log_nonneg (by exact_mod_cast (by omega : 1 ≤ H))
-  have hCB : C * Real.log H ^ B ≤ 2 ^ B * C * Real.log h₀ ^ B := by
-    calc C * Real.log H ^ B ≤ C * (2 * Real.log h₀) ^ B :=
-          mul_le_mul_of_nonneg_left (pow_le_pow_left₀ hlog0 hlogH B) hC.le
-      _ = 2 ^ B * C * Real.log h₀ ^ B := by rw [mul_pow]; ring
-  rw [hQdef, max_lt_iff]
-  exact ⟨lt_of_le_of_lt hCB hpQ, by linarith⟩
+      _ ≤ (ε / (128 * Q)) * M := mul_le_mul_of_nonneg_left hbaseM hε'0.le
+  refine ⟨Q, h₀, M, hQ1, hQQ, hM1, hscale, hh₀pos, h2h₀, hh₀t, fun A hMA => ?_⟩
+  have hMnatA : Mnat ≤ A := by
+    rw [hMdef] at hMA
+    exact_mod_cast hMA
+  have hDNA : D * N ≤ A := by rw [hMnatdef] at hMnatA; omega
+  have h16DA : 16 * D ^ 2 ≤ A := by rw [hMnatdef] at hMnatA; omega
+  have hNbase : N ≤ A / D := (Nat.le_div_iff_mul_le hDpos).2 (by simpa [mul_comm] using hDNA)
+  have hApropBase : Aprop ≤ ((A / D : ℕ) : ℝ) := by
+    calc Aprop ≤ (⌈Aprop⌉₊ : ℕ) := Nat.le_ceil Aprop
+      _ ≤ N := by exact_mod_cast hceilPropN
+      _ ≤ ((A / D : ℕ) : ℝ) := by exact_mod_cast hNbase
+  obtain ⟨levels, hlv, hbig, hdens, hms⟩ := hPropWindow (A / D) hApropBase
+  have hcontain : ∀ A' ∈ majorArcScaleSet A Q, A / D ≤ A' ∧ A' ≤ (A / D) ^ 2 := by
+    simpa [D] using majorArcScaleSet_subset_A2_window A Q hQ1 (by simpa [D] using h16DA)
+  refine ⟨levels, hlv, ?_, ?_, ?_, ?_⟩
+  · -- level primes exceed `Q`: compare `H` with `h₀²`
+    intro P hP p hp
+    have hpQ := hbig P hP p hp
+    have hp2 : (2:ℝ) ≤ p := by exact_mod_cast (hlv P hP p hp).two_le
+    have hh₀R : (1:ℝ) ≤ h₀ := by exact_mod_cast hh₀pos
+    have hlogH : Real.log H ≤ 2 * Real.log h₀ := by
+      have hsq : Real.log ((h₀ : ℝ) ^ 2) = 2 * Real.log h₀ := by
+        rw [Real.log_pow]
+        norm_num
+      rw [← hsq]
+      exact Real.log_le_log hHpos hHh₀
+    have hlog0 : 0 ≤ Real.log H := Real.log_nonneg (by exact_mod_cast (by omega : 1 ≤ H))
+    have hCB : C * Real.log H ^ B ≤ 2 ^ B * C * Real.log h₀ ^ B := by
+      calc C * Real.log H ^ B ≤ C * (2 * Real.log h₀) ^ B :=
+            mul_le_mul_of_nonneg_left (pow_le_pow_left₀ hlog0 hlogH B) hC.le
+        _ = 2 ^ B * C * Real.log h₀ ^ B := by rw [mul_pow]; ring
+    rw [hQdef, max_lt_iff]
+    exact ⟨lt_of_le_of_lt hCB hpQ, by linarith⟩
+  · obtain ⟨hscaleA, _⟩ := density_scales_mem_majorArcScaleSet A Q
+    obtain ⟨hlo, hhi⟩ := hcontain A hscaleA
+    exact hdens A hlo hhi
+  · obtain ⟨_, hscale2A⟩ := density_scales_mem_majorArcScaleSet A Q
+    obtain ⟨hlo, hhi⟩ := hcontain (2 * A) hscale2A
+    exact hdens (2 * A) hlo hhi
+  · intro A' hA' g hg hgb hg1 hnp J hJ2 hJ
+    obtain ⟨hlo, hhi⟩ := hcontain A' hA'
+    exact hms A' hlo hhi g hg hgb hg1
+      (nonPretentiousAt_of_le_strength hApropM hnp) J hJ2 hJ
 
 /-- **The good-block coefficient** (Track R, R7-4): with `q ≤ Q`, `h₀ ≤ εH/(64πQ²)` and
 `|δ| ≤ Q/(Hq)`, the four terms of `good_block_total_le`'s coefficient at `ε' = ε/(128Q)`,
@@ -394,7 +492,8 @@ theorem good_block_sizes (Q A₀ : ℝ) (q H Ab : ℕ) (hQ1 : 1 ≤ Q) (hA₀0 :
 
 /-- **The per-block trichotomy** (Track R, R7-2 / R7-4).
 
-For a dyadic block `(Ab, 2Ab]` of the cover, `1 ≤ Ab ≤ x'`, with the wrapper's data:
+For a dyadic block `(Ab, 2Ab]` of the cover, `1 ≤ Ab ≤ x'`, with that block's own
+level list and its clauses on `S(Ab,Q)`, the wrapper's trichotomy is:
 either `Ab < L₀` (a **small** block, priced trivially by its harmonic mass), or `Ab < X`
 (a **bad** block, `X ≥ (8x')^{ε/64}`, priced trivially), or the block is **good** —
 `Ab ≥ L₀ ≥ Q(6H + 7Q + A₀ + 2)` gives the size conditions of the block bound and
@@ -405,16 +504,6 @@ theorem block_total_le_trichotomy
     (A₀ : ℝ) (hA₀1 : 1 ≤ A₀) (h₀ H : ℕ) (Q ε : ℝ) (hε : 0 < ε) (hε1 : ε ≤ 1) (hQ1 : 1 ≤ Q)
     (hεA₀ : 2 ≤ (ε / (128 * Q)) * A₀)
     (hh₀ : 0 < h₀) (h2h₀ : 2 * h₀ ≤ H) (hh₀Q : (h₀ : ℝ) ≤ ε * H / (64 * Real.pi * Q ^ 2))
-    (hdens : ∀ A : ℕ, A₀ ≤ A →
-      ∑ n ∈ (Finset.Ioc A (2 * A)).filter (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
-        ≤ (ε / 48) * ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n)
-    (hms : ∀ A : ℕ, A₀ ≤ A →
-      ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
-        NonPretentiousAt g A₀ (2 * A + 1) →
-        ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
-          ∑ n ∈ Finset.Ioc A (A + J),
-            ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
-            ≤ (ε / (128 * Q))^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n)
     (g : ℕ → ℂ) (hg : CompletelyMultiplicativeC g) (hgu : Unimodular g)
     (q : ℕ) (hq : 0 < q) (hqQ : (q : ℝ) ≤ Q) (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q)
     (a : ℤ) (α : ℝ) (harc : |α - (a : ℝ) / q| ≤ Q / ((H : ℝ) * q))
@@ -422,7 +511,20 @@ theorem block_total_le_trichotomy
     (hA8 : Q * A₀ + 50 + 2 * Real.log (64 / ε) ≤ A / 8)
     (L₀ X : ℕ) (hL₀ : Q * (6 * H + 7 * Q + A₀ + 2) ≤ L₀)
     (hX : (8 * (x' : ℝ)) ^ (ε / 64) ≤ X)
-    (Ab : ℕ) (hAb1 : 1 ≤ Ab) (hAbx : Ab ≤ x') :
+    (Ab : ℕ) (hAb1 : 1 ≤ Ab) (hAbx : Ab ≤ x')
+    (hdensAb : ∑ n ∈ (Finset.Ioc Ab (2 * Ab)).filter
+        (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
+      ≤ (ε / 48) * ∑ n ∈ Finset.Ioc Ab (2 * Ab), (1:ℝ)/n)
+    (hdens2Ab : ∑ n ∈ (Finset.Ioc (2 * Ab) (2 * (2 * Ab))).filter
+        (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
+      ≤ (ε / 48) * ∑ n ∈ Finset.Ioc (2 * Ab) (2 * (2 * Ab)), (1:ℝ)/n)
+    (hms : ∀ A' : ℕ, A' ∈ majorArcScaleSet Ab Q →
+      ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
+        NonPretentiousAt g A₀ (2 * A' + 1) →
+        ∀ J : ℕ, A' / 2 ≤ J → J ≤ A' →
+          ∑ n ∈ Finset.Ioc A' (A' + J),
+            ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
+            ≤ (ε / (128 * Q))^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A' (A' + J), (1:ℝ)/n) :
     ∑ n ∈ Finset.Ioc Ab (2 * Ab),
         ‖∑ m ∈ Finset.Ioc n (n + H),
           g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (α : ℂ))‖ / ((H : ℝ) * n)
@@ -472,7 +574,8 @@ theorem block_total_le_trichotomy
     have : (q : ℝ) * A₀ ≤ Q * A₀ := mul_le_mul_of_nonneg_right hqQ hA₀0
     linarith
   have hmain := good_block_total_le levels hlv A₀ hA₀1 h₀ (ε / (128 * Q)) (ε / 48)
-    (by positivity) (by positivity) hεA₀ hdens hms g hg hgu q hq hql a α Ab H hh₀ h2h₀ h6 h7 hA₀q hnp'
+    (by positivity) (by positivity) hεA₀ Q Ab hdensAb hdens2Ab hms g hg hgu q hq hqQ hql a α H
+    hh₀ h2h₀ h6 h7 hA₀q hnp'
   have hcoef := good_block_coef_le Q ε q h₀ H (α - (a : ℝ) / q) hε hQ1 hq hH hqQ hh₀Q harc
   exact le_trans hmain (mul_le_mul_of_nonneg_right hcoef hS0)
 
@@ -572,8 +675,13 @@ set_option maxHeartbeats 800000 in
 The statement of `MatomakiRadziwillMajorArcAssumption.bound` for one `ε ∈ (0, 1]`.  With
 the parameters of `exists_wrapper_params`, the interface's threshold is
 `A₀ := 8(QM + 50 + 2log(64/ε)) + exp((6log(2L₀) + 80)/ε) + 256Q/ε`,
-`L₀ := ⌈Q(6H + 7Q + M + 2)⌉₊`:
-the first summand makes every good block non-pretentious at the strength the block bound
+`L₀ := ⌈Q(6H + 7Q + M + 2)⌉₊`.  Here the wrapper's exact per-block threshold is
+`M := ↑(D·N+16D²)`, `D := 4⌈Q⌉₊+4`,
+`N := max ⌈Aprop⌉₊ ⌈256Q/ε⌉₊`, with `Aprop` the threshold returned by A.2.  Each good
+dyadic block chooses its own level list from the base scale `Ab/D`; the list supplies
+all scales `S(Ab,Q) = [Ab/⌈Q⌉₊-1,3Ab]`.
+
+The first summand makes every good block non-pretentious at the strength the block bound
 needs, the second makes `ε·log w ≥ 6log(2L₀) + 80` so that the trivial costs of the small
 blocks (`≤ log(2L₀)`) and the bad blocks (`≤ 2 + 15ε/64 + (ε/32)log w`) and the good
 blocks' `(21/64)ε(3 + log w)` sum to at most `ε·log w`.  The range `(⌊x/w⌋₊, ⌊x⌋₊]` is
@@ -597,7 +705,7 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
   classical
   obtain ⟨H₀, hH₀⟩ := exists_wrapper_params hA2 ε C B hε hε1 hC
   refine ⟨H₀, fun H hH => ?_⟩
-  obtain ⟨Q, h₀, levels, M, hQ1, hQQ, hM1, hεM, hh₀, h2h₀, hh₀Q, hlv, hbig, hdens, hms⟩ :=
+  obtain ⟨Q, h₀, M, hQ1, hQQ, hM1, hεM, hh₀, h2h₀, hh₀Q, hblockData⟩ :=
     hH₀ H hH
   have hH : 0 < H := by omega
   have hQ0 : 0 < Q := by linarith
@@ -653,11 +761,6 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
   have hqQ' : (q : ℝ) ≤ Q := le_trans hqQ hQQ
   have harc' : |α - (a : ℝ) / q| ≤ Q / ((H : ℝ) * q) :=
     le_trans harc (div_le_div_of_nonneg_right hQQ (by positivity))
-  have hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q := by
-    intro P hP p hp
-    have hpQ := hbig P hP p hp
-    have hqp : q < p := by exact_mod_cast lt_of_le_of_lt hqQ' hpQ
-    exact Nat.not_dvd_of_pos_of_lt hq hqp
   -- the bad threshold `X = ⌈(8x')^{ε/64}⌉₊`
   have h8x' : (1:ℝ) ≤ 8 * ((⌈x⌉₊ : ℕ) : ℝ) := by
     have : (1:ℝ) ≤ (⌈x⌉₊ : ℕ) := by exact_mod_cast hx'1
@@ -674,6 +777,7 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
     (fun n => ‖∑ m ∈ Finset.Ioc n (n + H),
       g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ) * (α : ℂ))‖ / ((H : ℝ) * n))
     (fun n => by positivity) ⌊x / w⌋₊ ⌊x⌋₊ hlo1
+  have hb : ∀ n, ‖g n‖ ≤ 1 := fun n => (hgu n).le
   -- the per-block trichotomy
   have hblock : ∀ k ∈ Finset.Icc (Nat.log 2 ⌊x / w⌋₊) (Nat.log 2 ⌊x⌋₊),
       ∑ n ∈ Finset.Ioc (2 ^ k : ℕ) (2 ^ (k + 1)),
@@ -689,9 +793,36 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
       le_trans (Nat.pow_le_of_le_log (by omega) hk.2) hhix'
     have h2k : (2 ^ (k + 1) : ℕ) = 2 * 2 ^ k := by rw [pow_succ]; ring
     rw [h2k]
+    have htriv := sum_window_div_le_sum_one_div g hb α (2 ^ k) H hH
+    by_cases hsmall : 2 ^ k < L₀
+    · rw [if_pos hsmall]
+      have hrest : 0 ≤ (if 2 ^ k < X then
+          ∑ n ∈ Finset.Ioc (2 ^ k : ℕ) (2 * 2 ^ k), (1:ℝ)/n else 0) := by
+        split_ifs <;> positivity
+      have hgoodcost : 0 ≤ (21 / 64) * ε *
+          ∑ n ∈ Finset.Ioc (2 ^ k : ℕ) (2 * 2 ^ k), (1:ℝ)/n := by positivity
+      linarith
+    by_cases hbad : 2 ^ k < X
+    · rw [if_neg hsmall, if_pos hbad]
+      have hgoodcost : 0 ≤ (21 / 64) * ε *
+          ∑ n ∈ Finset.Ioc (2 ^ k : ℕ) (2 * 2 ^ k), (1:ℝ)/n := by positivity
+      linarith
+    push_neg at hsmall hbad
+    have hMblock : M ≤ ((2 ^ k : ℕ) : ℝ) := by
+      have hML₀ : M ≤ (L₀ : ℝ) := by
+        have hbase0 : 0 ≤ 6 * (H : ℝ) + 7 * Q + 2 := by positivity
+        have hQM : M ≤ Q * (6 * H + 7 * Q + M + 2) := by nlinarith
+        exact hQM.trans hL₀
+      exact hML₀.trans (by exact_mod_cast hsmall)
+    obtain ⟨levels, hlv, hbig, hdensAb, hdens2Ab, hms⟩ := hblockData (2 ^ k) hMblock
+    have hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q := by
+      intro P hP p hp
+      have hpQ := hbig P hP p hp
+      have hqp : q < p := by exact_mod_cast lt_of_le_of_lt hqQ' hpQ
+      exact Nat.not_dvd_of_pos_of_lt hq hqp
     exact block_total_le_trichotomy levels hlv M hM1 h₀ H Q ε hε hε1 hQ1 hεM
-      hh₀ h2h₀ hh₀Q hdens hms
-      g hg hgu q hq hqQ' hql a α harc' ⌈x⌉₊ hx'1 A hnp hA8 L₀ X hL₀ hXge (2 ^ k) hAb1 hAbx
+      hh₀ h2h₀ hh₀Q g hg hgu q hq hqQ' hql a α harc' ⌈x⌉₊ hx'1 A hnp hA8
+      L₀ X hL₀ hXge (2 ^ k) hAb1 hAbx hdensAb hdens2Ab hms
   have hsum := Finset.sum_le_sum hblock
   rw [Finset.sum_add_distrib, Finset.sum_add_distrib, ← Finset.sum_filter, ← Finset.sum_filter,
     ← Finset.mul_sum] at hsum

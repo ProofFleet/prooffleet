@@ -944,6 +944,23 @@ the `(T+1)/p_r^{ℓ}` term is `≤ 1`, `(ℓ!)² ≤ T^{2·loglog 2T/log P_{J−
    `e^{−βr/(2N)}`, which `hlargeCell` already supplies) is the nucleus lemma with `large := e^{−βr/(2N)}` (no M-3) applied
    cell by cell, plus Cauchy–Schwarz over `v` in the wrapper: `∫‖∑_v Q_vR_v‖² ≤ #cells·∑_v ∫‖Q_vR_v‖²`.
 
+4. **Every `2^{#levels}` factor must go.** `J(A₁) → ∞` (however slowly), so the inclusion–exclusion over levels in the
+   pointwise bounds — `cellHalaszSharpBound_le_explicit`'s `2^{J}`, the low band's `2^{#levels}`
+   (`integral_norm_typicalS_dirichlet_poly_sq_le_low_band_eps`) — cannot be paid by a saving of *fixed* strength `ε'`
+   (`[mrt]` pays its `2^J (log X)^{−1/10}` with a saving that grows with `X`). Device: in those two pointwise bounds keep the
+   inclusion–exclusion over `{level 0}` (and `𝒰` where it applies) only, and remove the ladder levels by **density**:
+   `∑_{m∈𝒮₀∩block} … = ∑_{m∈𝒮∩block} … + O(∑_{j≥1} #{m ∈ block : no factor in [P_j, Q_j]}/m)`, the count by an upper-bound
+   sieve at strength `log P_j/log Q_j = 1/ratio_j` (Brun's pure sieve suffices: block length `≥ A^{1−o(1)}`,
+   `Q_j ≤ polylog A`), so the loss is `∑_j 1/ratio_j ≤ 2ε'/C'` once `ratio_j ≥ 2^j C'/ε'` — a **polynomial** condition on the
+   ratios, compatible with the not-too-far condition (`log P_{j−1} ≥ 160j(j+1)(log L_j + c)` is then logarithmic in `1/ε'`),
+   whereas TK (`1/E_j = 1/log ratio_j`) would need `ratio_j ≥ e^{2^j/ε'}`. Level 0 stays in the inclusion–exclusion (its
+   sieve density `1/ratio₀` would force `h ≥ P₀^{C/ε'}`). The same sieve serves the Prop's density clause (TK's `∑_j 1/E_j`
+   diverges with `J`), with the ratios taken `≥ 2^j C'/min(ε', εc)` (the levels may depend on both). Level 0's complement
+   stays TK (`1/E₀ ≤ εc/2`, the `h₁(εc)` threshold). **Corrected ladder:** `P_j = Q_{j−1}^{100j²}` (the per-cell loss carries
+   `Pmom_r^{4α_{j−1}} ≤ Q_{j−1}^{0.8}`, so the not-too-close exponent must exceed `0.8·40j(j+1)/j² ≥ 64`), `ratio_j = 2^j C'/min(ε', εc)`,
+   `J(A₁) = min{j : P_j ≥ (log A₁)^{40}} + 1`; the per-cell shares are uniform (`ordinaryLegShare j/#cells_{j−1}`), not
+   `geometricCellShare`, whose `2^{−r}` decay is `Q_{j−1}^{−2N log 2}` in the anchor index.
+
 **What stands.** Level 0's leg (`hscheduleT0/P0` and the S-cal numerics), the recut capstone, the sharp exceptional
 legs at the `[MR]` moment order, R6/R7 up to R9's re-thread, A2-IV-0/1′/2. **Withdrawn:** §7.2's "`J = 1` suffices" and
 the phase-3 amendments' sift device (`N_𝒰 = ⌈exp(64/ε²)⌉₊`); `N_𝒰 := ⌈exp(4/εc)⌉₊` (TK) is enough once `𝒰` is a level.
@@ -965,13 +982,31 @@ together `h ≥ (C'/(εc ε²))^{6e^{2/εc}}·(log h)^{…}` — polynomial in `
 - **L2** (Conjectures): `innerBand_later_level_main_cells` (fits `hfit r v`, Cauchy–Schwarz over `v`) and the schedule
   theorem `band_energy_typicalS_le_of_schedule_sharp_cells` with `hscheduleLater r v` at `A'_v = A/(2q_v)`-type blocks and
   `ℓ_{r,v} = ⌈log(2 q_v T/A)/log Pmom_r⌉₊ + 1`.
-- **L3** (numerology, Conjectures leaf): the fixed ladder of Finding E.2 and `J(A₁)`; `hscheduleLater r v` for every
+- **S** (nucleus leaf): Brun's pure sieve on a block — `#{m ∈ Ioc a b : ∀ p ∈ [P, Q] prime, ¬ p ∣ m} ≤ (b − a)·(∏_{P≤p≤Q}(1 − 1/p) + E^{2k+1}/(2k+1)!) + (#primes in [P,Q])^{2k}`
+  (Bonferroni truncation of inclusion–exclusion at `2k` prime factors, `E = ∑_{P≤p≤Q} 1/p`), with the log-mass corollary on
+  `Ioc a b` and `∏(1 − 1/p) ≤ e^{−E}`; `E ≥ log(log Q/log P) − c` from the tree's Mertens bounds.
+- **X** (Conjectures): the exceptional pointwise bound and the low band with inclusion–exclusion over `{level 0}` (`{level 0, 𝒰}`)
+  only, the ladder levels removed by S — `norm_typicalS_quot_block_poly_le_sharp` at `rest = [level 0]` plus the sieved
+  remainder; `integral_norm_typicalS_dirichlet_poly_sq_le_low_band_eps` for `𝒮₀ ∩ 𝒰` plus the remainder.
+- **L3** (numerology, Conjectures leaf; after L2, S, X): the fixed ladder of Finding E.2 and `J(A₁)`; `hscheduleLater r v` for every
   `j ≥ 1` (scale-free), `hscheduleT0/P0` for level 0, the cover count at anchor level `J−1` (`ℓ_r = ⌈log 2T/log p_r⌉₊+1`,
   `KcovBound ≤ T^{0.46}`), `hfitInt`/`hfitPri` at the `[MR]` moment order for `𝒰(A₁)` and all `A ∈ [A₁, A₁²]`, the
   range/strength conditions, `hqcell*`/e-adic covers uniformly in `j` — every inequality as an existence statement with
   its margin recorded.
-- **A2-IV-3′ / A2-V′**: `𝒮(A₁) = level 0 ∪ ladder(J(A₁)) ∪ 𝒰(A₁)`, the TK density clause with the `εc`-driven ratios,
+- **A2-IV-3′ / A2-V′**: `𝒮(A₁) = level 0 ∪ ladder(J(A₁)) ∪ 𝒰(A₁)`, the density clause by TK for level 0 and by S for the ladder and `𝒰`,
   the level-prime clause, **`theorem sliceMeanSquareA2 : SliceMeanSquareA2`** and its audit pin.
+
+### R9 as run — status (2026-09-05, Codex run 10; report in `Problems/tao2015_r9_report.md`)
+
+Done per the R9 brief: **R9-1** the Prop's last block is `∃ A₀, 1 ≤ A₀ ∧ ∀ A₁ : ℕ, A₀ ≤ A₁ → ∃ levels, (primes) ∧
+(C(log h)^B < p) ∧ (∀ A ∈ [A₁, A₁²], density) ∧ (∀ A ∈ [A₁, A₁²], mean square)`; **R9-2** `majorArcScaleSet A Q =
+Icc (A/⌈Q⌉₊ − 1) (3A)` is the exact set of scales R6-8 invokes the mean-square clause at (calls at
+`(A + d·k·h₀)/d − 1`, `d | q ≤ Q`), and the density clause is used only at `A` and `2A`; **R9-3** `exists_wrapper_params`
+exports per-block data (`∀ A ≥ M, ∃ levels, …`) from the Prop at `A₁ := A/(4⌈Q⌉₊+4)`, with `M = D·N + 16D²`,
+`D = 4⌈Q⌉₊+4`, `N = max ⌈A₀^{Prop}⌉ ⌈256Q/ε⌉`, and `majorArc_bound_of_A2_of_le_one` selects `levels` inside the good-block
+branch (small/bad blocks may lie below `M`); **R9-4** the pins of `edp_of_sliceMeanSquareA2` and `theorem18_of_sliceMeanSquareA2`
+are byte-identical (`[propext, Classical.choice, Quot.sound]`). The conditional EDP is now conditional on the `[mrt]`-shaped
+(`X₀`) Prop. Next: L1/L2 (run 11), S+X (run 12), L3, A2-IV-3′, A2-V′.
 
 ### Dependency order
 
