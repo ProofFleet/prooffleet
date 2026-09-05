@@ -808,6 +808,51 @@ fixed-`ε` S6 becomes `Q_𝒰 = exp((C/ε³)(log A)^{49/50})` — admissible (`N
 `2δ²Bpri·2 ≤ κ_U·budget`. This is VI-9g-2′/3′: a schedule theorem on `band_energy_typicalS_le_of_cellUniform_fit_recut`
 with the sharp `δ` and these two explicit fits; then A2-IV-3, A2-V.
 
+### The slice quantifier of `SliceMeanSquareA2` is over-strong (R8) — found by Codex run 7 (2026-09-05, PR #3688)
+
+**Phase VI-9g-2 as run.** Codex run 7 shipped **VI-9g-2′** (`TrackCStage5InnerBandScheduleSharp.lean`:
+`band_energy_typicalS_le_of_schedule_sharp` on the recut capstone, exceptional block `δ_v = cellHalaszSharpBound`,
+`V₀ = exceptionalSplitThreshold A`, the two half-budget fits `hfitInt`/`hfitPri`, the covered-cell bound
+`sharpExceptionalCoverBound`, and `nonPretentiousAt_scale_up_of_norm_le_one` — the Prop's `g` is only 1-bounded,
+the old scale-up wrapper needed `Unimodular`) and **VI-9g-3′** (`…SharpNumerology.lean`): a machine-checked
+**obstruction**. `cellHalaszSharpBound ≥ ε'/8` on a long quotient (the two-scale differencing's edge term
+`e·b·δ₀` at `δ₀ = ε'/(8e)` — a *fixed* saving is the design), so `hfitPri` with a nonempty cell forces
+`A ≤ κ·c₃·ε²·Δ·Pc·log Pc/(32ε'²)`, i.e. `Δ/A ≳ ε'²/(ε²·Pc log Pc)`: **the budget `bandBudget c₃ ε (Δ/A) ∝ Δ/A` vanishes
+as `A → ∞` at fixed slice length `Δ`.** The run stopped per the stop rule; A2-IV-3, A2-V not entered.
+
+**Diagnosis.** The slice length is the Prop's `J`: `SliceMeanSquareA2` demands, for every `A ≥ A₀` and **every
+`J ≤ A`**, `∑_{n∈(A,A+J]} ‖∑_{(n,n+h]∩𝒮} g‖²/n ≤ ε²h²∑_{(A,A+J]} 1/n`. At `J = 1` that is a *pointwise* bound
+`‖∑_{(n,n+h]∩𝒮} g‖ ≤ εh` at every single `n ≥ A₀` — a uniform short-interval statement, which is false in
+general (in the random model the largest of `X` window sums of length `h` is `≍ √(h log X)`, unbounded in `X` for
+fixed `h`, hence `> εh` eventually). `[mrt]` A.2 is the mean square over a **dyadic** block, `J = A`. The
+over-strong quantifier entered with R6-8 (#3667). Since the R6/R7 chain is *conditional* on the Prop, the
+theorems are correct, but `edp_of_sliceMeanSquareA2` is conditional on a hypothesis stronger than `[mrt]` proves
+and very likely false — the discharge campaign would have hit this wall at A2-IV-3 in any case; the run's
+obstruction is its exact numerical form.
+
+**What the chain actually uses.** The only instantiation of the mean-square clause is R6-5
+(`logavg_le_of_meanSquare_dyadic`) inside R6-6c (`sum_div_comp_div_le_of_meanSquare`): the reindexed block
+`(a, b]`, `a = ⌊(A+c)/d⌋ − 1`, `b = ⌊(2A+c)/d⌋`, with `4d ≤ A`, `3c ≤ A`. Arithmetic: `b − a ≥ A/d ≥ (3/4)(a+1)`
+and `b ≤ 2a + 4`. R6-5 splits `(a, b]` into `(a, min(b,2a)]` — a block with `J ≥ (3/4)a ≥ a/2` — and the leftover
+`(2a, b]` of **at most 4 points**, which R6-5 currently also feeds to the Prop (this is the pointwise use).
+
+**Repair (R8, decision).**
+1. Weaken the Prop's clause to `∀ J, A/2 ≤ J → J ≤ A → …` (the honest dyadic-type average; `[mrt]`'s `J = A` is
+   the special case). Its consumers in `SliceA2`/VI-9g then have `Δ/A ≥ 1/2`, so `bandBudget ≥ c₃ε²/16` is
+   **fixed** and `hfitPri` closes (`ε'² ≲ κc₃ε² log Pc/64`) — the run's obstruction disappears.
+2. R6-5′: from the weakened clause plus the trivial bound `W ≤ h` (`norm_filter_block_le_card`), on `(a, b]` with
+   `3a ≤ 2b`, `b ≤ 2a + 4`, `b ≤ N`: `∑_{(a,b]} W/n ≤ εh·∑_{(a,b]} 1/n + 4h/(2a+1)` (main block by the clause and
+   Cauchy–Schwarz as now; leftover trivially).
+3. R6-6c′: the harmonic mass of the reindexed block is `≤ 2` (not `3`: `b ≤ 2a + 4`), so
+   `(4/3)(2εh + 4h/(2a+1)) ≤ (8/3)εh + (8/3)h/a ≤ 4εh` once `2 ≤ ε·a` — the conclusion `≤ 4(εh)` is **unchanged**;
+   new hypothesis `2 ≤ ε·A₁` (threaded up: R6-6d, R6-8 `majorArc_block_bound_restricted`, R7-C1/C2/C3/6 — the
+   wrapper's `A₀_int` is `≥ exp(…)`, so it is trivially available), plus the floor facts `3a ≤ 2b`,
+   `b ≤ 2a+4` from `Nat.add_div`/`Nat.add_div_le_add_div`.
+4. The Prop's shape changes in `TrackCStage5MajorArcA2.lean` (`def`, R6-8's `hA2`), `MajorArcMR.lean` (:54, :136,
+   :376), and every `hA2 : ∀ A' J, A₁ ≤ A' → J ≤ A' → …` in `MajorArcAssembly.lean` (:652, :1031, :1106) gains
+   `A'/2 ≤ J →`. `MajorArcEDP.lean` and the audit pins are unchanged in shape (they name the Prop). Re-run the audit.
+5. VI-9g-3′ then proceeds with `Δ ≥ A/2`; the obstruction file stays as the record (its theorems are true).
+
 ### Dependency order
 
 ```
