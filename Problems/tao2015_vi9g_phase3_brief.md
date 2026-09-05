@@ -65,3 +65,19 @@ large-values interfaces' constants, i.e. the theorem is stated under `[HalaszLar
 
 Commits per unit (`Track R: <one line> (#3044, VI-9g-3′)`, `(A2-IV-3)`, `(A2-V-<n>)`), findings in bodies;
 `CODEX_REPORT.md` as before; never push/merge/rebase.
+
+## Amendments after runs 9a/9b (2026-09-05; design report §"Two calibration errors of the phase-3 brief")
+
+1. **Budget floor.** `A / 2 ≤ Δ` in ℕ gives `Δ/A ≥ 1/3`, so the fixed floor is `bandBudget ≥ c₃ε²/24` (each half-fit
+   at `/48`), not `/16` (`bandBudget_one_twenty_four_le_of_nat_half_le`, `half_bandBudget_fit_of_nat_half_le`).
+2. **Moment order.** Not `ℓ := 1`: use `[MR]`'s `ℓ := ⌈log(2T)/log Pc⌉₊ + 1`, so `(T+1)/Pc^ℓ ≤ 1`; then
+   `log Γ_v ≤ π + (ℓ+1)log 2 + 2ℓ log ℓ + ℓ log(3/2) + log(2 + 40ℓ²(log 2Pc)²) + 200ℓ·loglog A + 2 loglog 2T
+   − log Pc/(log 2T)^{3/4}` (`λ := 1`, `∑_{Pc≤p≤2Pc}1/p ≤ 3/2`), and `Γ_v ≤ 1` for `A ≥ A₀` because
+   `ℓ ≤ 2(log A)^{1/50} + 2` while the saving exponent is `≥ (log A)^{0.23}`. At `ℓ = 1` the fit is impossible
+   (`time_scale_bound_of_fixed_split_moment_one_Gamma_le_one`).
+3. **`𝒰` is not a level of the Prop's `levels`.** `levels := (List.range J).map Pl` (level one only). In A2-IV-3 split
+   `𝒮 = 𝒮'(A) ⊔ (𝒮 ∖ 𝒮'(A))`, `𝒮'(A) = typicalS … (innerBandLevels Pl (Pu A) J)`: the `𝒮'` part by §1–§2 at
+   accuracy `ε/2`; the sifted part by `‖∑ g‖² ≤ h·#((n,n+h]∩¬Pu)`, the sum swap (`2h ≤ A`) and
+   `window_typicalS_complement_le … [Pu A]`, which needs `E_𝒰 ≥ 32/ε²`: hence `N_𝒰 := ⌈exp(64/ε²)⌉₊` in place of
+   `⌈C/ε³⌉₊` throughout §1 (fixed constants only). A2-V-4 builds `Pu(A)` per block scale; the Prop's density and
+   level-prime clauses involve level one only.

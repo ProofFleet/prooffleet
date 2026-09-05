@@ -867,6 +867,45 @@ to the wrapper's `A₀`" was not enough, since the Prop chooses its own threshol
 conditional on the honest `[mrt]`-shaped Prop.** Next: VI-9g-3′ with `Δ/A ≥ 1/2` (the fixed prime fit), then
 A2-IV-3 → A2-V → `sliceMeanSquareA2`.
 
+### Two calibration errors of the phase-3 brief (runs 9a/9b, 2026-09-05; report in `Problems/tao2015_vi9g_phase3_report.md`)
+
+Codex run 9a stopped on a constant (`/16 → /24`: the ℕ-floor guard `A / 2 ≤ Δ` gives `Δ/A ≥ 1/3`, not `1/2`; the
+half-budget fit now runs at `/48`), run 9b on a genuine unbounded obstruction, and its report re-raised a quantifier
+conflict first flagged by run 7. Both are errors of the brief's parameters, not of the design; `…SharpFit.lean`
+(phase-3a PR) keeps the `ℓ = 1` branch as a record (`time_scale_bound_of_fixed_split_moment_one_Gamma_le_one`).
+
+**(i) The moment order.** The brief prescribed `ℓ := 1` in `primeHighMomentCountCost P ℓ Y T V λ =
+e^π((T+1)/P^ℓ + 2·2^ℓ)(ℓ!)²(∑_{p∈Y}1/p)^ℓ((1+λ) + (2π log(2P)^ℓ)²/λ)/V^{2ℓ}` and claimed the count polylogarithmic.
+At `ℓ = 1` the `(T+1)/P` summand survives, so `Γ ≤ 1` on a nonempty cell forces
+`e^π(T+1)e^{−log P/(log 2T)^{3/4}}(log 2T)² ≤ 2P²/(log A)^{200}`, i.e. `log A − 2N_𝒰(log A)^{49/50} − (log A)^{0.23}
++ 202 loglog A → ∞`: no `A₀` helps. The count exists precisely so that `ℓ` can grow: `[MR]`'s `le:Rupest`
+calibration is `ℓ := ⌈log(2T)/log Pc⌉ + 1`, so `Pc^ℓ ≥ 2T` and `(T+1)/Pc^ℓ ≤ 1`. With `Pc ≥ P_𝒰 =
+exp((log A)^{49/50})`, `T ≤ A` this is `ℓ ≍ (log A)^{1/50}`, every `ℓ`-factor (`2^{ℓ+1}`, `(ℓ!)²`, `(3/2)^ℓ`,
+`(2πℓ log 2Pc)²`, `V₀^{−2ℓ} = (log A)^{200ℓ}`) has logarithm `O((log A)^{1/50}·loglog A)`, and the saving
+`e^{−log Pc/(log 2T)^{3/4}}` has exponent `≥ (log A)^{49/50 − 3/4} = (log A)^{0.23}`. So `Γ_v ≤ 1` holds for
+`A ≥ A₀` — as an *eventual* inequality (`C(log A)^{1/50} loglog A ≤ (log A)^{0.23}`; the crossover is
+astronomically late, `log A ≳ 10²⁰`, which is irrelevant for a `∀ε ∃A₀` Prop). The same `ℓ` serves the level-`J−1`
+cover anchors of `sharpExceptionalCoverBound` (their `V = e^{−αr/(2N)}` is a fixed constant, `V^{−2ℓ} = e^{O(ℓ)}`).
+
+**(ii) The level status of `𝒰`.** §7.2 above and the brief make the exceptional block `Pu = 𝒰(A)` a **level of `𝒮`**
+(`innerBandLevels Pl Pu J = … ++ [Pu]`) and pay its complement in the Prop's density clause. But `P_𝒰(A), Q_𝒰(A)`
+depend on the block scale (`log P_𝒰 ≥ C(log T)^{3/4}` is what buys the Vinogradov saving at `T ≍ A`), while
+`SliceMeanSquareA2` fixes `levels` before `∀ A ≥ A₀`; a fixed exceptional level has no saving as `T → ∞`. The source
+settles it: `[mrt]` A.2's `𝒮` depends on the scale only through the number `J(X₀)` of levels from one fixed
+sequence, and the Vinogradov interval is `[MR]` §8.3's **auxiliary** `[P, Q]`, `P = exp((log X)^{1−1/48})`, which is
+not a level — the integers without a prime factor in `[P, Q]` are paid by a sift term `≍ log P/log Q` *inside* the
+mean-square bound (the origin of `(log X)^{−1/50}`; §5 "On S6 at fixed ε" already carries it as `ε³/C`; §7.2 misrouted
+it). Repair, with **no change to the Prop or to R6/R7**: the Prop's `levels` are the ordinary levels only
+(`J = 1`: `[P₁, Q₁]`, a function of `(h, ε)`); in A2-IV-3 split each window sum over `𝒮` into the part over
+`𝒮'(A) := typicalS … (innerBandLevels Pl (Pu A) J)` — bounded by the existing per-scale band machinery at accuracy
+`ε/2` (`slice_energy_le_of_bands` is generic in the 1-bounded coefficients) — and the sifted part, which is elementary:
+`‖∑_{(n,n+h]∩¬Pu} g‖² ≤ h·#((n,n+h]∩¬Pu)`, swapping the sums gives `≤ 2h·∑_{m∈(A,A+J+h], ¬Pu} 1/m` for `2h ≤ A`, and
+`window_typicalS_complement_le … [Pu]` prices that by `(1/E_𝒰 + O_A(1/A))·∑1/m`, `E_𝒰 = ∑_{p∈Pu}1/p ≈ log N_𝒰`. The
+sifted slice energy is `≤ 4h²(1/E_𝒰 + o(1))∑_{(A,A+J]}1/n ≤ (ε²/4)h²∑1/n` once `E_𝒰 ≥ 32/ε²`, so `N_𝒰 :=
+⌈exp(64/ε²)⌉₊` replaces `⌈C/ε³⌉₊` (only fixed constants move: `e^{2E_𝒰}` in `ε'`, the prime-fit prefactor `≍ N_𝒰³`,
+`D₀(ε')`, `A₀`). The density clause of the Prop then involves level one only (`E₁ ≥ 8/εc`, the `h₁(εc)` threshold).
+Run 9d (brief = phase-3 brief + resume notes 2–3) executes both repairs, then A2-IV-3 → A2-V → `sliceMeanSquareA2`.
+
 ### Dependency order
 
 ```
