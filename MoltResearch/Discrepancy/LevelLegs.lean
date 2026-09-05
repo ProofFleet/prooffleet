@@ -548,4 +548,196 @@ theorem exists_prev_cell_large_of_mem_bandPartOn
   push_neg at hprev
   exact hprev
 
+/-! ## Refining a later level by its first large previous cell -/
+
+/-- The frequencies where one specified e-adic cell polynomial exceeds its
+schedule threshold. -/
+noncomputable def levelLargeSet (P : Finset ℕ) (N v : ℕ) (g : ℕ → ℂ)
+    (beta : ℝ) : Set ℝ :=
+  {xi | Real.exp (-(beta * (v : ℝ) / ((2 * N : ℕ) : ℝ)))
+    < ‖levelCellPoly P N v g xi‖}
+
+/-- A one-cell large-value set is measurable. -/
+theorem levelLargeSet_measurableSet (P : Finset ℕ) (N v : ℕ)
+    (g : ℕ → ℂ) (beta : ℝ) :
+    MeasurableSet (levelLargeSet P N v g beta) := by
+  exact measurableSet_lt measurable_const
+    (ExpSums.continuous_char_poly (eadicCell P (2 * N) v)
+      (fun p => g p / (p : ℂ)) (fun p => Real.log p)).norm.measurable
+
+/-- The part of level `j` assigned to the least previous cell whose estimate
+fails.  The `if` makes indices outside the previous level empty. -/
+noncomputable def firstPrevLargePart
+    (P : ℕ → Finset ℕ) (N v₀ v₁ : ℕ → ℕ) (g : ℕ → ℂ)
+    (alpha : ℕ → ℝ) (J : ℕ) (G : Set ℝ) (j r : ℕ) : Set ℝ :=
+  if _hr : r ∈ Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1) then
+    (bandPartOn (levelSmallSet P N v₀ v₁ g alpha) J G j
+        ∩ levelLargeSet (P (j - 1)) (N (j - 1)) r g (alpha (j - 1)))
+      \ ⋃ s ∈ (Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1)).filter
+          (fun s => s < r),
+        levelLargeSet (P (j - 1)) (N (j - 1)) s g (alpha (j - 1))
+  else ∅
+
+/-- The least-large-cell refinement is measurable whenever the ambient band
+is measurable. -/
+theorem firstPrevLargePart_measurableSet
+    (P : ℕ → Finset ℕ) (N v₀ v₁ : ℕ → ℕ) (g : ℕ → ℂ)
+    (alpha : ℕ → ℝ) (J : ℕ) (G : Set ℝ) (hG : MeasurableSet G)
+    (j r : ℕ) : MeasurableSet (firstPrevLargePart P N v₀ v₁ g alpha J G j r) := by
+  classical
+  unfold firstPrevLargePart
+  split
+  · refine ((bandPartOn_measurableSet _
+        (levelSmallSet_measurableSet P N v₀ v₁ g alpha) J G hG j).inter
+        (levelLargeSet_measurableSet _ _ _ _ _)).diff ?_
+    exact MeasurableSet.biUnion
+      ((Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1)).filter
+        (fun s => s < r)).countable_toSet
+      (fun s _ => levelLargeSet_measurableSet _ _ _ _ _)
+  · exact MeasurableSet.empty
+
+/-- Each refined part stays inside its original first-index level. -/
+theorem firstPrevLargePart_subset_bandPartOn
+    (P : ℕ → Finset ℕ) (N v₀ v₁ : ℕ → ℕ) (g : ℕ → ℂ)
+    (alpha : ℕ → ℝ) (J : ℕ) (G : Set ℝ) (j r : ℕ) :
+    firstPrevLargePart P N v₀ v₁ g alpha J G j r ⊆
+      bandPartOn (levelSmallSet P N v₀ v₁ g alpha) J G j := by
+  classical
+  unfold firstPrevLargePart
+  split
+  · exact fun _ h => h.1.1
+  · exact Set.empty_subset _
+
+/-- On the part indexed by `r`, that fixed previous cell is large. -/
+theorem firstPrevLargePart_large
+    (P : ℕ → Finset ℕ) (N v₀ v₁ : ℕ → ℕ) (g : ℕ → ℂ)
+    (alpha : ℕ → ℝ) (J : ℕ) (G : Set ℝ) (j r : ℕ)
+    (hr : r ∈ Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1))
+    {xi : ℝ} (hxi : xi ∈ firstPrevLargePart P N v₀ v₁ g alpha J G j r) :
+    Real.exp (-(alpha (j - 1) * (r : ℝ) /
+        ((2 * N (j - 1) : ℕ) : ℝ)))
+      < ‖levelCellPoly (P (j - 1)) (N (j - 1)) r g xi‖ := by
+  rw [firstPrevLargePart, dif_pos hr] at hxi
+  exact hxi.1.2
+
+/-- Distinct least-large-cell parts are disjoint. -/
+theorem firstPrevLargePart_pairwiseDisjoint
+    (P : ℕ → Finset ℕ) (N v₀ v₁ : ℕ → ℕ) (g : ℕ → ℂ)
+    (alpha : ℕ → ℝ) (J : ℕ) (G : Set ℝ) (j : ℕ) :
+    Set.Pairwise
+      (↑(Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1)) : Set ℕ)
+      (Function.onFun Disjoint (firstPrevLargePart P N v₀ v₁ g alpha J G j)) := by
+  classical
+  intro r hr s hs hrs
+  have hrF : r ∈ Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1) := by
+    simpa using hr
+  have hsF : s ∈ Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1) := by
+    simpa using hs
+  change Disjoint
+    (firstPrevLargePart P N v₀ v₁ g alpha J G j r)
+    (firstPrevLargePart P N v₀ v₁ g alpha J G j s)
+  rw [Set.disjoint_left]
+  intro xi hxr hxs
+  rcases lt_or_gt_of_ne hrs with hrs' | hsr'
+  · rw [firstPrevLargePart, dif_pos hsF] at hxs
+    exact hxs.2 (Set.mem_iUnion₂.mpr ⟨r,
+      Finset.mem_filter.mpr ⟨hrF, hrs'⟩,
+      firstPrevLargePart_large P N v₀ v₁ g alpha J G j r hrF hxr⟩)
+  · rw [firstPrevLargePart, dif_pos hrF] at hxr
+    exact hxr.2 (Set.mem_iUnion₂.mpr ⟨s,
+      Finset.mem_filter.mpr ⟨hsF, hsr'⟩,
+      firstPrevLargePart_large P N v₀ v₁ g alpha J G j s hsF hxs⟩)
+
+/-- At every later nonexceptional level, the least-large-cell parts cover the
+whole first-index part. -/
+theorem firstPrevLargePart_cover
+    (P : ℕ → Finset ℕ) (N v₀ v₁ : ℕ → ℕ) (g : ℕ → ℂ)
+    (alpha : ℕ → ℝ) (J : ℕ) (G : Set ℝ) (j : ℕ)
+    (hj0 : 0 < j) (hjJ : j < J) :
+    bandPartOn (levelSmallSet P N v₀ v₁ g alpha) J G j ⊆
+      ⋃ r ∈ Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1),
+        firstPrevLargePart P N v₀ v₁ g alpha J G j r := by
+  classical
+  intro xi hxi
+  obtain ⟨r, hr, hlarge⟩ :=
+    exists_prev_cell_large_of_mem_bandPartOn P N v₀ v₁ g alpha J j G xi
+      hj0 hjJ hxi
+  let W := (Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1)).filter
+    (fun s => xi ∈ levelLargeSet (P (j - 1)) (N (j - 1)) s g (alpha (j - 1)))
+  have hW : W.Nonempty := by
+    refine ⟨r, Finset.mem_filter.mpr ⟨hr, ?_⟩⟩
+    exact hlarge
+  let r₀ := W.min' hW
+  have hr₀W : r₀ ∈ W := Finset.min'_mem W hW
+  have hr₀ := (Finset.mem_filter.mp hr₀W).1
+  have hr₀large := (Finset.mem_filter.mp hr₀W).2
+  refine Set.mem_iUnion₂.mpr ⟨r₀, hr₀, ?_⟩
+  rw [firstPrevLargePart, dif_pos hr₀]
+  refine ⟨⟨hxi, hr₀large⟩, ?_⟩
+  intro hsmaller
+  obtain ⟨s, hs, hslarge⟩ := Set.mem_iUnion₂.mp hsmaller
+  have hsW : s ∈ W := Finset.mem_filter.mpr ⟨(Finset.mem_filter.mp hs).1, hslarge⟩
+  have hr₀s : r₀ ≤ s := Finset.min'_le W s hsW
+  exact (Nat.not_lt_of_ge hr₀s) (Finset.mem_filter.mp hs).2
+
+open MeasureTheory in
+/-- **Per-previous-cell bounds assemble to a later-level main bound.**
+
+The least-offending-cell refinement is a measurable disjoint cover, so a
+continuous nonnegative energy on the full later first-index part is at most the
+sum of its energies on the refined parts.  Consequently per-cell shares
+`κ_r` cost only `∑_r κ_r`; no cardinality factor is introduced by this
+refinement.
+-/
+theorem setIntegral_norm_sq_later_le_budget_of_firstPrev
+    (P : ℕ → Finset ℕ) (N v₀ v₁ : ℕ → ℕ) (g : ℕ → ℂ)
+    (alpha : ℕ → ℝ) (J : ℕ) (G : Set ℝ) (hG : MeasurableSet G)
+    (j : ℕ) (hj0 : 0 < j) (hjJ : j < J)
+    (F : ℝ → ℂ) (hF : Continuous F) (T : ℝ)
+    (hpartT : bandPartOn (levelSmallSet P N v₀ v₁ g alpha) J G j
+      ⊆ Set.Ioc (-T) T)
+    (kappaCell : ℕ → ℝ) (kappa c₃ eps rho : ℝ)
+    (hc₃ : 0 ≤ c₃) (hrho : 0 ≤ rho)
+    (hcell : ∀ r ∈ Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1),
+      (∫ xi in firstPrevLargePart P N v₀ v₁ g alpha J G j r, ‖F xi‖ ^ 2)
+        ≤ kappaCell r * bandBudget c₃ eps rho)
+    (hshares : ∑ r ∈ Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1),
+      kappaCell r ≤ kappa) :
+    (∫ xi in bandPartOn (levelSmallSet P N v₀ v₁ g alpha) J G j,
+        ‖F xi‖ ^ 2)
+      ≤ kappa * bandBudget c₃ eps rho := by
+  let I := Finset.Ico (v₀ (j - 1)) (v₁ (j - 1) + 1)
+  let part := firstPrevLargePart P N v₀ v₁ g alpha J G j
+  have hpartT' : ∀ r ∈ I, part r ⊆ Set.Ioc (-T) T := by
+    intro r _
+    exact (firstPrevLargePart_subset_bandPartOn P N v₀ v₁ g alpha J G j r).trans
+      hpartT
+  have hint : ∀ r ∈ I, IntegrableOn (fun xi => ‖F xi‖ ^ 2) (part r) := by
+    intro r hr
+    exact ((hF.norm.pow 2).integrableOn_Ioc (a := -T) (b := T)).mono_set
+      (hpartT' r hr)
+  have hcover := firstPrevLargePart_cover P N v₀ v₁ g alpha J G j hj0 hjJ
+  have hsplit : (∫ xi in bandPartOn
+      (levelSmallSet P N v₀ v₁ g alpha) J G j, ‖F xi‖ ^ 2)
+      ≤ ∑ r ∈ I, ∫ xi in part r, ‖F xi‖ ^ 2 := by
+    exact ExpSums.setIntegral_le_sum_of_cover (fun xi => ‖F xi‖ ^ 2)
+      (fun xi => sq_nonneg ‖F xi‖)
+      (bandPartOn (levelSmallSet P N v₀ v₁ g alpha) J G j)
+      I part
+      (fun r _ => firstPrevLargePart_measurableSet P N v₀ v₁ g alpha J G hG j r)
+      (firstPrevLargePart_pairwiseDisjoint P N v₀ v₁ g alpha J G j)
+      hcover hint
+  have hB0 : 0 ≤ bandBudget c₃ eps rho :=
+    bandBudget_nonneg c₃ eps rho hc₃ hrho
+  calc
+    (∫ xi in bandPartOn (levelSmallSet P N v₀ v₁ g alpha) J G j,
+        ‖F xi‖ ^ 2)
+      ≤ ∑ r ∈ I, ∫ xi in part r, ‖F xi‖ ^ 2 := hsplit
+    _ ≤ ∑ r ∈ I, kappaCell r * bandBudget c₃ eps rho := by
+      exact Finset.sum_le_sum fun r hr => hcell r hr
+    _ = (∑ r ∈ I, kappaCell r) * bandBudget c₃ eps rho := by
+      rw [Finset.sum_mul]
+    _ ≤ kappa * bandBudget c₃ eps rho :=
+      mul_le_mul_of_nonneg_right hshares hB0
+
 end MoltResearch
