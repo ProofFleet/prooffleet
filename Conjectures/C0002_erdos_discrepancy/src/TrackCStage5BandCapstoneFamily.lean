@@ -700,6 +700,147 @@ theorem band_energy_typicalS_le_of_cellUniform [HalaszLargeValuesAssumption]
   refine Finset.sum_congr rfl fun v _ => ?_
   rw [sum_cellBlockCoeff_Icc_eq g A (A + Δ) P rest (q v) ξ]
 
+
+open MeasureTheory in
+/-- **A2-III VI-3-3 — the exceptional part's errors priced by the ladder's
+envelopes.**
+
+`band_energy_typicalS_le_of_cellUniform` with the error energy in its fit
+replaced by the two named quantities the `LevelLegs` ladder prices: the
+replacement energy on the exceptional part is at most
+`cellReplacementEnergyBound` (`setIntegral_norm_sq_typicalSCellReplacement_le`,
+VI-2t), and the adjusted collision's is at most `4·collisionEnergyBound`
+(`intervalIntegral_norm_sq_typicalSAdjustedCollision_le`, VI-2ab, after
+enlarging the part to `(−T, T)`).  One `L²` triangle separates the two, so the
+fit charges `2·(2·replacement + 2·4·collision)`.
+
+**Nothing on the exceptional part is left as an integral.**  After this the
+`𝒰` leg's obligations are the per-cell Halász inputs `δ v`, the per-cell fits,
+and one numerical inequality in the two envelopes — the same envelopes the
+level legs' fits use (`eadic_replacement_error_le_budget`, VI-2k, and the
+collision fit of VI-2ae), so the schedule prices them once for both legs.
+
+The hypotheses `hqmin`, `hLA`, `hLB` are II-2e's: the representative is the
+cell's least member and every prime's block is wide enough for the collar
+argument.  `hPA : p² ≤ A` is the collision estimate's: the repeated prime is
+extracted at the quotient scale `A/p²`. -/
+theorem band_energy_typicalS_le_of_cellUniform_fit [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
+    (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H) (hΔA : Δ ≤ A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) (hPA : ∀ p ∈ P, p * p ≤ A)
+    (rest : List (Finset ℕ))
+    (N v₀ v₁ : ℕ) (hN : 0 < N)
+    (hcov : (Finset.Ico v₀ (v₁ + 1)).biUnion (eadicCell P (2 * N)) = P)
+    (hstable : ∀ p ∈ P, ∀ m,
+      HasFactorInAll rest (p * m) ↔ HasFactorInAll rest m)
+    (q : ℕ → ℕ)
+    (hqcell : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), q v ∈ eadicCell P (2 * N) v)
+    (hq1 : ∀ v, 1 ≤ q v)
+    (hqmin : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v, q v ≤ p)
+    (hLA : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v, A / (N * p) + 1 ≤ A / p)
+    (hLB : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      ∀ p ∈ eadicCell P (2 * N) v, (A + Δ) / (N * p) + 1 ≤ (A + Δ) / p)
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hwsup : ∀ ξ, w ξ ≤ (4*(H:ℝ)/(A:ℝ))^2)
+    (K₁ K₂ : ℝ)
+    (J : ℕ) (Pset : ℕ → Set ℝ) (hPset : ∀ j, MeasurableSet (Pset j))
+    (c₃ ε : ℝ) (hc₃ : 0 ≤ c₃)
+    (hleg : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      (4*(H:ℝ)/(A:ℝ))^2
+          * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} j,
+            ‖∑ m ∈ typicalS A (A+Δ) (P :: rest), (g m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (Pc : ℕ → ℕ) (hPc : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), 2 ≤ Pc v)
+    (hlo : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ p ∈ eadicCell P (2 * N) v, Pc v < p)
+    (hhi : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ p ∈ eadicCell P (2 * N) v,
+      p ≤ 2 * Pc v)
+    (T : ℝ) (hT1 : 1 ≤ T) (hTK₂ : K₂ + 2 ≤ T)
+    (δ : ℕ → ℝ) (hδ0 : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), 0 < δ v)
+    (hδ : ∀ v ∈ Finset.Ico v₀ (v₁ + 1), ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 ((A + Δ) / q v),
+          (cellBlockCoeff g A (A + Δ) P rest (q v) n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ v)
+    (hA0 : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      0 < 64 * ((((A + Δ) / q v : ℕ):ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
+        * (Real.log (2*T) + 1)
+        * ∑ n ∈ Finset.Icc 1 ((A + Δ) / q v),
+            ‖cellBlockCoeff g A (A + Δ) P rest (q v) n‖^2/(n:ℝ)^2)
+    (hB0 : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      0 < 64 * (∑ p ∈ eadicCell P (2 * N) v, ‖g p‖^2/(p:ℝ)^2)
+        * (Pc v:ℝ) / Real.log (Pc v))
+    (κ' : ℕ → ℝ)
+    (hfit : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
+      2 * ((δ v)^2 * (64 * (256 / (Real.log (Pc v))^2))
+        + 2 * δ v * Real.sqrt
+            ((128 * ((((A + Δ) / q v : ℕ):ℝ) + 2*T*Real.sqrt T)
+                * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log (Pc v))^2))
+                  * (Real.exp Real.pi * ((T+1)/(Pc v:ℝ) + 4)
+                      * (256 / Real.log (Pc v) + 2048 * Real.pi)
+                      * Real.exp (-(Real.log (Pc v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ κ' v * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (hfitU : 2 * ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
+          * (∑ v ∈ Finset.Ico v₀ (v₁ + 1), κ' v) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ))
+        + 2 * (2 * cellReplacementEnergyBound P N v₀ v₁ A (A + Δ) T
+            + 2 * (4 * collisionEnergyBound A (A + Δ) P rest T))
+      ≤ (1 / 2 ^ (J + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) / (4*(H:ℝ)/(A:ℝ))^2) :
+    (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂},
+        ‖∑ m ∈ typicalS A (A+Δ) (P :: rest), (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 * w ξ)
+      ≤ bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) := by
+  have hT : (0:ℝ) < T := by linarith
+  have hGT : bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J
+      ⊆ Set.Ioc (-T) T := by
+    intro ξ hξ
+    have h := inner_band_subset_Icc K₁ K₂ (bandPartOn_subset Pset J _ J hξ)
+    rw [Set.mem_Icc] at h
+    exact ⟨by linarith [h.1], by linarith [h.2]⟩
+  have hGm : MeasurableSet (bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J) :=
+    bandPartOn_measurableSet Pset hPset J _ (measurableSet_inner_band K₁ K₂) J
+  -- the replacement energy on the exceptional part, by II-2e (VI-2t)
+  have hrepl : (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+        ‖typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q ξ‖^2)
+      ≤ cellReplacementEnergyBound P N v₀ v₁ A (A + Δ) T :=
+    setIntegral_norm_sq_typicalSCellReplacement_le g hg A (A + Δ)
+      (Nat.le_add_right A Δ) P rest N v₀ v₁ hN q hqcell hq1 hqmin hLA hLB T hT _
+      hGm hGT
+  -- the adjusted collision, through the enclosing interval (VI-2ab)
+  have hcoll : (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+        ‖typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁ ξ‖^2)
+      ≤ 4 * collisionEnergyBound A (A + Δ) P rest T :=
+    (ExpSums.setIntegral_le_intervalIntegral_of_nonneg
+      (fun ξ => ‖typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁ ξ‖^2)
+      ((continuous_typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁).norm.pow 2)
+      (fun ξ => sq_nonneg _) T hT.le _ hGT).trans
+      (intervalIntegral_norm_sq_typicalSAdjustedCollision_le g hg A Δ hΔA P hP hPA
+        rest N v₀ v₁ hcov T hT)
+  -- one `L²` triangle between the two
+  have hsplit : (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+        ‖typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q ξ
+          + typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁ ξ‖^2)
+      ≤ 2 * (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+            ‖typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q ξ‖^2)
+        + 2 * (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+            ‖typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁ ξ‖^2) :=
+    ExpSums.setIntegral_norm_add_sq_le _ _
+      (continuous_typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q)
+      (continuous_typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁) T _ hGm hGT
+  refine band_energy_typicalS_le_of_cellUniform g hcm hg A Δ H hA hH P hP rest N
+    v₀ v₁ hcov hstable q hqcell w hwm hw0 hwsup K₁ K₂ J Pset hPset c₃ ε hc₃ hleg
+    Pc hPc hlo hhi T hT1 hTK₂ δ hδ0 hδ hA0 hB0 κ' hfit ?_
+  have hE : (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+        ‖typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q ξ
+          + typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁ ξ‖^2)
+      ≤ 2 * cellReplacementEnergyBound P N v₀ v₁ A (A + Δ) T
+        + 2 * (4 * collisionEnergyBound A (A + Δ) P rest T) := by
+    linarith [hsplit, hrepl, hcoll]
+  linarith [hE, hfitU]
+
 end Tao2015
 
 end MoltResearch
