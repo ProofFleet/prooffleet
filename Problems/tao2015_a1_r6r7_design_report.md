@@ -1045,6 +1045,18 @@ multiple-count error), `sum_one_div_no_factor_Ioc_le_brun`, `prod_inv_one_sub_le
 (`2^{#base}·sharpTwistedDirichletCost + ladderSiftedLogMass`) and `integral_norm_typicalS_dirichlet_poly_sq_le_low_band_eps_split(_brun)`
 (`2K(2^{#base}·η·b/(a+1) + Rem)²`). Ladder sums run over `ladder.toFinset`. Next: L4/V1 (run 13), then L3.
 
+### L4/V1 as run — status (2026-09-05, Codex run 13; report in `Problems/tao2015_l4_report.md`)
+
+Done per the L4 brief: **L4-1/L4-2** `WideLevelErrorLegs.lean` — `typicalSCellReplacement_eq_dirichlet` (collected on `(A, 2B]`),
+`norm_wideReplacementCoeff_le_one` (the Ramaré weight; no `log A/log P` loss), `replacement_coeff_mass_le`, and the single-MVT bounds
+`replacementEnergyBoundWide A P N T = e^π(T/A + 8)·32(E_P/N + #P/A)`, `collisionEnergyBoundWide A P T = e^π(T/A + 4)(2∑1/p² + #P/A)` — the
+tree's MVT (`intervalIntegral_norm_sq_poly_le_sharp_ratio`) is normalised by `∑‖c_n‖²/n`, hence these shapes; **L4-3** the wide wrappers
+(`innerBand_replacement_leg_wide`, `innerBand_level_leg_of_main_wide`); **L4-4 = V1** `ScaleOnlyCellRepresentatives.lean` — `hqup` plus the ratio
+fact `N·p ≤ (N+1)·q` (`hqratio`, needed by the collars), the level-one chain `_of_qup`, and `scaleCellRepresentative` (lower-endpoint ceiling on
+occupied cells, `1` on empty cells — the raw ceiling `⌈e^{v/(2N)}⌉₊ ≤ e^{(v+1)/(2N)}` is false for small `v`); **L4-5** the combined capstone
+`band_energy_typicalS_le_of_schedule_sharp_cells_wide` (ordinary main terms as inputs `hmain j`, wide error legs for all levels and `Pu`, `hqup/hqratio`,
+the exceptional pointwise bound split at `[Pl 0]` with `ladderSiftedLogMass` over the ladder, the raw cover cardinality in `hfitUCell`). Next: L3 (run 14).
+
 ### Dependency order
 
 ```

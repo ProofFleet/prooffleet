@@ -53,6 +53,8 @@ import MoltResearch.Discrepancy.ReplacementSchedule
 import MoltResearch.Discrepancy.CellHalaszSchedule
 import MoltResearch.Discrepancy.CellHalaszQuotientSchedule
 import MoltResearch.Discrepancy.LevelLegs
+import MoltResearch.Discrepancy.WideLevelErrorLegs
+import MoltResearch.Discrepancy.ScaleOnlyCellRepresentatives
 import MoltResearch.Discrepancy.LaterLevelCells
 import MoltResearch.Discrepancy.CellHalasz
 import MoltResearch.Discrepancy.ExceptionalConstants
