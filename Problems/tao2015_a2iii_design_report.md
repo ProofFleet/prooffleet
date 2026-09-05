@@ -13,9 +13,10 @@
 
 ## Errata — read before building anything from this file
 
-The report has been used to ship the whole A2-III ladder. Eight of its claims did
+The report has been used to ship the whole A2-III ladder. Eleven of its claims did
 not survive contact with Lean — items 1–6 from building the ladder, items 7–8
-from calibrating it. The body below is **unedited**; the corrections are here.
+from calibrating it, and items 9–11 from closing the S1–S7 schedule. The body
+below is **unedited**; the corrections are here.
 
 1. **III-2's Euler factor and its constant are wrong — the stated bound is false.**
    The report claims
@@ -102,6 +103,33 @@ from calibrating it. The body below is **unedited**; the corrections are here.
    by the slice and the `L` cut of `S2`, not by this leg, and the opposite
    `H`-dependence of the two expressions is not a contradiction. In tree as
    `outer_le_budget` and `outer_weight_gamma_eq` (#3595).
+
+9. **The later-level moment route needs the explicit endpoint `2 ≤ Pmom`, not
+   merely `1 ≤ Pmom`.** The assembled VI-5 interface retained only
+   `1 ≤ Pmom j r`, but the Mertens/e-adic estimate used to eliminate the cell
+   prime sum has the honest domain `2 ≤ P`. This is not derivable from
+   `Pmom < p ≤ 2Pmom`: the cell may begin at `Pmom = 1` and contain `p = 2`.
+   The scheduled VI-8 capstone therefore carries `2 ≤ Pmom j r` for every later
+   cell. It is a harmless endpoint condition for S5, but it must be named.
+
+10. **`N_j ≥ C/ε³` alone does not discharge replacement: an upper-size
+    condition is also required.** Converting
+    `(A/(N_jp)+1)/(A/p)` into an explicit `O(1/N_j)` cost uses
+    `N_j p ≤ A`; the structural floor inequalities `hLA`/`hLB` only compare the
+    quotient intervals and do not imply it. With a common level endpoint
+    `p ≤ Q_j`, the honest condition is `N_j Q_j ≤ A` (and analogously
+    `N_𝒰 Q_𝒰 ≤ A`). VI-8 states these as `hNbb` and `hNuQ`. Thus S3 must be read
+    together with this upper compatibility; choosing `N_j` arbitrarily large
+    is not valid.
+
+11. **The exceptional Halász schedule needs a numerical long-quotient cutoff.**
+    The in-tree explicit Halász shell is available for
+    `(A+Δ)/q_v ≥ 10^16`. S6–S7 as written contain no standalone base-size
+    hypothesis from which Lean can derive that inequality for every selected
+    representative. VI-8 therefore names
+    `10^16 ≤ (A+Δ)/q_v` cell by cell (`hBqCutoff`). A downstream instantiation
+    may derive it from the concrete S6 endpoints and a sufficiently large
+    `A`, but that largeness condition must be stated rather than hidden.
 
 Three further notes, none an erratum. **§4.3(f) is exact and §4.2's `1/320` is
 the right round number**: the `𝒰` leg forces `W ≤ (κ/4)^{4/25}·(log A)^{2/625}`
