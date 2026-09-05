@@ -50,7 +50,7 @@ length `h ≥ h₁` with `C₁/ε^k ≤ h` there are a level list `levels` and a
 of every dyadic block `(A, 2A]`, `A ≥ A₀`, is at most `εc`; and for every `1`-bounded
 completely multiplicative `g` with `g(1) = 1`, non-pretentious at strength `A₀` and
 truncation `2A+1`, the mean square of the `𝒮`-restricted `h`-window sums over any block
-`(A, A+J]`, `J ≤ A`, is at most `ε²h²·∑_{(A,A+J]} 1/n`. -/
+`(A, A+J]`, `A/2 ≤ J ≤ A`, is at most `ε²h²·∑_{(A,A+J]} 1/n`. -/
 def SliceMeanSquareA2 : Prop :=
   ∀ (εc : ℝ), 0 < εc → ∀ (B : ℕ) (C : ℝ), 0 < C →
     ∃ (h₁ : ℕ) (C₁ : ℝ) (k : ℕ), 0 < C₁ ∧
@@ -64,17 +64,26 @@ def SliceMeanSquareA2 : Prop :=
         (∀ A : ℕ, A₀ ≤ A →
           ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
             NonPretentiousAt g A₀ (2 * A + 1) →
-            ∀ J : ℕ, J ≤ A →
+            ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
               ∑ n ∈ Finset.Ioc A (A + J),
                 ‖∑ m ∈ (Finset.Ioc n (n + h)).filter (HasFactorInAll levels), g m‖^2 / n
                 ≤ ε^2 * (h : ℝ)^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n)
+
+/-- The integer block threshold inherited from `⌈A₀⌉₊ + 1 ≤ A/q` preserves the
+scale condition `2 ≤ ε'A₀`. -/
+theorem two_le_mul_nat_sub_one_of_ceil_add_one_le (ε' A₀ : ℝ) (A q : ℕ)
+    (hε' : 0 ≤ ε') (hε'A₀ : 2 ≤ ε' * A₀) (hA₀q : ⌈A₀⌉₊ + 1 ≤ A / q) :
+    2 ≤ ε' * ((A / q - 1 : ℕ) : ℝ) := by
+  have hA₀le : A₀ ≤ ((A / q - 1 : ℕ) : ℝ) :=
+    le_trans (Nat.le_ceil A₀) (by exact_mod_cast (by omega : ⌈A₀⌉₊ ≤ A / q - 1))
+  exact hε'A₀.trans (mul_le_mul_of_nonneg_left hA₀le hε')
 
 /-- **R6-8: the `𝒮`-restricted major-arc bound on a dyadic block, from the A.2 data.**
 
 Given the mean-square clause of `SliceMeanSquareA2` for one `(levels, A₀, h₀, ε')`, a
 unimodular completely multiplicative `g` that is non-pretentious at strength `q·A₀ + 26`
 and truncation `6A+1`, a modulus `q` below every level, and the size conditions
-`2h₀ ≤ H`, `6qH ≤ A`, `7q² ≤ A`, `⌈A₀⌉₊ + 1 ≤ ⌊A/q⌋`:
+`2 ≤ ε'A₀`, `2h₀ ≤ H`, `6qH ≤ A`, `7q² ≤ A`, `⌈A₀⌉₊ + 1 ≤ ⌊A/q⌋`:
 
   `∑_{n∈(A,2A]} ‖∑_{(n,n+H]∩𝒮} g(m)e(m(a/q+δ))‖/(Hn)
       ≤ (16qε' + qh₀/H + 4πq²|δ|h₀)·∑_{(A,2A]} 1/n`.
@@ -86,10 +95,11 @@ multiplicative (`completelyMultiplicativeC_charMul`), `1`-bounded (`norm_charMul
 theorem majorArc_block_bound_restricted
     (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
     (A₀ : ℝ) (hA₀1 : 1 ≤ A₀) (h₀ : ℕ) (ε' : ℝ) (hε' : 0 ≤ ε')
+    (hε'A₀ : 2 ≤ ε' * A₀)
     (hA2 : ∀ A : ℕ, A₀ ≤ A →
       ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
         NonPretentiousAt g A₀ (2 * A + 1) →
-        ∀ J : ℕ, J ≤ A →
+        ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
           ∑ n ∈ Finset.Ioc A (A + J),
             ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
             ≤ ε'^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n)
@@ -109,14 +119,15 @@ theorem majorArc_block_bound_restricted
   have hA₀0 : 0 ≤ A₀ := by linarith
   -- the A.2 input is fed on blocks starting within one of `⌊A/q⌋`
   refine sum_restricted_window_logavg_le_of_meanSquare g hg hb levels hlv q hq hql a δ A H h₀
-    hh₀ h2h₀ hA ε' hε' (A / q - 1) (by omega) ?_
-  intro d hd0 hdq χ A' J hA'1 hJ hA'J
+    hh₀ h2h₀ hA ε' hε' (A / q - 1) (by omega)
+      (two_le_mul_nat_sub_one_of_ceil_add_one_le ε' A₀ A q hε' hε'A₀ hA₀q) ?_
+  intro d hd0 hdq χ A' J hA'1 hJ2 hJ hA'J
   have hA₀A' : A₀ ≤ A' :=
     le_trans (Nat.le_ceil A₀) (by exact_mod_cast (by omega : ⌈A₀⌉₊ ≤ A'))
   have hnp' : NonPretentiousAt (fun n => χ n * g n) A₀ (2 * A' + 1) :=
     nonPretentiousAt_charMul_of_block g hgu hA₀0 hq hd0 hdq χ A A' hA7 (by omega) (by omega) hnp
   exact hA2 A' hA₀A' (fun n => χ n * g n) (completelyMultiplicativeC_charMul g hg χ)
-    (norm_charMul_le_one g hb χ) (charMul_one g hg1 χ) hnp' J hJ
+    (norm_charMul_le_one g hb χ) (charMul_one g hg1 χ) hnp' J hJ2 hJ
 
 end Tao2015
 

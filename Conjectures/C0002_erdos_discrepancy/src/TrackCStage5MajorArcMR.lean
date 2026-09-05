@@ -28,6 +28,15 @@ namespace Tao2015
 
 open ExpSums
 
+/-- Non-pretentiousness at a larger strength implies it at a smaller strength at the
+same truncation. -/
+theorem nonPretentiousAt_of_le_strength {g : ℕ → ℂ} {A A' : ℝ} {x : ℕ}
+    (hAA' : A ≤ A') (h : NonPretentiousAt g A' x) : NonPretentiousAt g A x := by
+  intro q χ t hq ht
+  have hx0 : (0 : ℝ) ≤ x := Nat.cast_nonneg x
+  exact hAA'.trans (h q χ t (hq.trans hAA')
+    (ht.trans (mul_le_mul_of_nonneg_right hAA' hx0)))
+
 /-- **The total on a good dyadic block** (Track R, R7-4).
 
 Given the two clauses of `SliceMeanSquareA2` for one `(levels, A₀, h₀, ε', εc)` — the
@@ -45,13 +54,14 @@ clause on `(A, 2A]` and `(2A, 4A]` (`sum_complement_Ioc_le_of_density`); the `�
 theorem good_block_total_le
     (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
     (A₀ : ℝ) (hA₀1 : 1 ≤ A₀) (h₀ : ℕ) (ε' εc : ℝ) (hε' : 0 ≤ ε') (hεc : 0 ≤ εc)
+    (hε'A₀ : 2 ≤ ε' * A₀)
     (hdens : ∀ A : ℕ, A₀ ≤ A →
       ∑ n ∈ (Finset.Ioc A (2 * A)).filter (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
         ≤ εc * ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n)
     (hms : ∀ A : ℕ, A₀ ≤ A →
       ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
         NonPretentiousAt g A₀ (2 * A + 1) →
-        ∀ J : ℕ, J ≤ A →
+        ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
           ∑ n ∈ Finset.Ioc A (A + J),
             ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
             ≤ ε'^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n)
@@ -89,8 +99,8 @@ theorem good_block_total_le
     congr 3
     push_cast
     ring
-  have hres := majorArc_block_bound_restricted levels hlv A₀ hA₀1 h₀ ε' hε' hms g hg hgu q hq hql
-    a (α - (a : ℝ) / (q : ℝ)) A H hh₀ h2h₀ hA hA7 hA₀q hnp
+  have hres := majorArc_block_bound_restricted levels hlv A₀ hA₀1 h₀ ε' hε' hε'A₀ hms
+    g hg hgu q hq hql a (α - (a : ℝ) / (q : ℝ)) A H hh₀ h2h₀ hA hA7 hA₀q hnp
   simp_rw [← hα] at hres
   have hS0 : 0 ≤ ∑ n ∈ Finset.Ioc A (2 * A), (1:ℝ)/n :=
     Finset.sum_nonneg fun n _ => by positivity
@@ -112,7 +122,8 @@ theorem good_block_total_le
 
 For `0 < ε ≤ 1`, `C > 0` and `B`, there is `H₀` such that every `H ≥ H₀` admits: a real
 `Q ≥ 1` with `C(log H)^B ≤ Q`; a window length `h₀` with `0 < h₀`, `2h₀ ≤ H` and
-`h₀ ≤ εH/(64πQ²)`; and a level list with threshold `A₀ ≥ 1` such that the levels are
+`h₀ ≤ εH/(64πQ²)`; and a level list with threshold `A₀ ≥ 1` and
+`2 ≤ (ε/(128Q))A₀` such that the levels are
 primes above `Q`, the `𝒮ᶜ` log-density of dyadic blocks above `A₀` is at most `ε/48`, and
 the mean-square clause of `SliceMeanSquareA2` holds at `ε' = ε/(128Q)` and window `h₀`.
 
@@ -123,7 +134,8 @@ theorem exists_wrapper_params (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B : ℕ)
     (hε : 0 < ε) (hε1 : ε ≤ 1) (hC : 0 < C) :
     ∃ H₀ : ℕ, ∀ H : ℕ, H₀ ≤ H →
       ∃ (Q : ℝ) (h₀ : ℕ) (levels : List (Finset ℕ)) (A₀ : ℝ),
-        1 ≤ Q ∧ C * Real.log H ^ B ≤ Q ∧ 1 ≤ A₀ ∧ 0 < h₀ ∧ 2 * h₀ ≤ H ∧
+        1 ≤ Q ∧ C * Real.log H ^ B ≤ Q ∧ 1 ≤ A₀ ∧
+        2 ≤ (ε / (128 * Q)) * A₀ ∧ 0 < h₀ ∧ 2 * h₀ ≤ H ∧
         (h₀ : ℝ) ≤ ε * H / (64 * Real.pi * Q ^ 2) ∧
         (∀ P ∈ levels, ∀ p ∈ P, p.Prime) ∧
         (∀ P ∈ levels, ∀ p ∈ P, Q < p) ∧
@@ -133,7 +145,7 @@ theorem exists_wrapper_params (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B : ℕ)
         (∀ A : ℕ, A₀ ≤ A →
           ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
             NonPretentiousAt g A₀ (2 * A + 1) →
-            ∀ J : ℕ, J ≤ A →
+            ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
               ∑ n ∈ Finset.Ioc A (A + J),
                 ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
                 ≤ (ε / (128 * Q))^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n) := by
@@ -257,7 +269,32 @@ theorem exists_wrapper_params (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B : ℕ)
   -- invoke the Prop at `(ε', h₀)`
   obtain ⟨levels, A₀, hA₀1, hlv, hbig, hdens, hms⟩ :=
     hProp (ε / (128 * Q)) hε'0 h₀ hh₁ hCε'
-  refine ⟨Q, h₀, levels, A₀, hQ1, hQQ, hA₀1, hh₀pos, h2h₀, hh₀t, hlv, ?_, hdens, hms⟩
+  set A₀' : ℝ := max A₀ (256 * Q / ε) with hA₀'def
+  have hA₀le : A₀ ≤ A₀' := by rw [hA₀'def]; exact le_max_left _ _
+  have hbasele : 256 * Q / ε ≤ A₀' := by rw [hA₀'def]; exact le_max_right _ _
+  have hA₀'1 : 1 ≤ A₀' := hA₀1.trans hA₀le
+  have hscale : 2 ≤ (ε / (128 * Q)) * A₀' := by
+    calc 2 = (ε / (128 * Q)) * (256 * Q / ε) := by field_simp; ring
+      _ ≤ (ε / (128 * Q)) * A₀' :=
+        mul_le_mul_of_nonneg_left hbasele hε'0.le
+  have hdens' : ∀ A : ℕ, A₀' ≤ A →
+      ∑ n ∈ (Finset.Ioc A (2 * A)).filter (fun n => ¬ HasFactorInAll levels n), (1 : ℝ) / n
+        ≤ (ε / 48) * ∑ n ∈ Finset.Ioc A (2 * A), (1 : ℝ) / n := by
+    intro A hA
+    exact hdens A (hA₀le.trans hA)
+  have hms' : ∀ A : ℕ, A₀' ≤ A →
+      ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
+        NonPretentiousAt g A₀' (2 * A + 1) →
+        ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
+          ∑ n ∈ Finset.Ioc A (A + J),
+            ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖ ^ 2 / n
+              ≤ (ε / (128 * Q)) ^ 2 * (h₀ : ℝ) ^ 2
+                * ∑ n ∈ Finset.Ioc A (A + J), (1 : ℝ) / n := by
+    intro A hA g hg hgb hg1 hnp J hJ2 hJ
+    exact hms A (hA₀le.trans hA) g hg hgb hg1
+      (nonPretentiousAt_of_le_strength hA₀le hnp) J hJ2 hJ
+  refine ⟨Q, h₀, levels, A₀', hQ1, hQQ, hA₀'1, hscale, hh₀pos, h2h₀, hh₀t,
+    hlv, ?_, hdens', hms'⟩
   -- level primes exceed `Q`: `2^B C (log h₀)^B = C (log h₀²)^B ≥ C (log H)^B`, and `p ≥ 2 > 1`
   intro P hP p hp
   have hpQ := hbig P hP p hp
@@ -366,6 +403,7 @@ either `Ab < L₀` (a **small** block, priced trivially by its harmonic mass), o
 theorem block_total_le_trichotomy
     (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
     (A₀ : ℝ) (hA₀1 : 1 ≤ A₀) (h₀ H : ℕ) (Q ε : ℝ) (hε : 0 < ε) (hε1 : ε ≤ 1) (hQ1 : 1 ≤ Q)
+    (hεA₀ : 2 ≤ (ε / (128 * Q)) * A₀)
     (hh₀ : 0 < h₀) (h2h₀ : 2 * h₀ ≤ H) (hh₀Q : (h₀ : ℝ) ≤ ε * H / (64 * Real.pi * Q ^ 2))
     (hdens : ∀ A : ℕ, A₀ ≤ A →
       ∑ n ∈ (Finset.Ioc A (2 * A)).filter (fun n => ¬ HasFactorInAll levels n), (1:ℝ)/n
@@ -373,7 +411,7 @@ theorem block_total_le_trichotomy
     (hms : ∀ A : ℕ, A₀ ≤ A →
       ∀ g : ℕ → ℂ, CompletelyMultiplicativeC g → (∀ n, ‖g n‖ ≤ 1) → g 1 = 1 →
         NonPretentiousAt g A₀ (2 * A + 1) →
-        ∀ J : ℕ, J ≤ A →
+        ∀ J : ℕ, A / 2 ≤ J → J ≤ A →
           ∑ n ∈ Finset.Ioc A (A + J),
             ‖∑ m ∈ (Finset.Ioc n (n + h₀)).filter (HasFactorInAll levels), g m‖^2 / n
             ≤ (ε / (128 * Q))^2 * (h₀ : ℝ)^2 * ∑ n ∈ Finset.Ioc A (A + J), (1:ℝ)/n)
@@ -434,7 +472,7 @@ theorem block_total_le_trichotomy
     have : (q : ℝ) * A₀ ≤ Q * A₀ := mul_le_mul_of_nonneg_right hqQ hA₀0
     linarith
   have hmain := good_block_total_le levels hlv A₀ hA₀1 h₀ (ε / (128 * Q)) (ε / 48)
-    (by positivity) (by positivity) hdens hms g hg hgu q hq hql a α Ab H hh₀ h2h₀ h6 h7 hA₀q hnp'
+    (by positivity) (by positivity) hεA₀ hdens hms g hg hgu q hq hql a α Ab H hh₀ h2h₀ h6 h7 hA₀q hnp'
   have hcoef := good_block_coef_le Q ε q h₀ H (α - (a : ℝ) / q) hε hQ1 hq hH hqQ hh₀Q harc
   exact le_trans hmain (mul_le_mul_of_nonneg_right hcoef hS0)
 
@@ -533,7 +571,8 @@ set_option maxHeartbeats 800000 in
 
 The statement of `MatomakiRadziwillMajorArcAssumption.bound` for one `ε ∈ (0, 1]`.  With
 the parameters of `exists_wrapper_params`, the interface's threshold is
-`A₀ := 8(QM + 50 + 2log(64/ε)) + exp((6log(2L₀) + 80)/ε)`, `L₀ := ⌈Q(6H + 7Q + M + 2)⌉₊`:
+`A₀ := 8(QM + 50 + 2log(64/ε)) + exp((6log(2L₀) + 80)/ε) + 256Q/ε`,
+`L₀ := ⌈Q(6H + 7Q + M + 2)⌉₊`:
 the first summand makes every good block non-pretentious at the strength the block bound
 needs, the second makes `ε·log w ≥ 6log(2L₀) + 80` so that the trivial costs of the small
 blocks (`≤ log(2L₀)`) and the bad blocks (`≤ 2 + 15ε/64 + (ε/32)log w`) and the good
@@ -558,7 +597,8 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
   classical
   obtain ⟨H₀, hH₀⟩ := exists_wrapper_params hA2 ε C B hε hε1 hC
   refine ⟨H₀, fun H hH => ?_⟩
-  obtain ⟨Q, h₀, levels, M, hQ1, hQQ, hM1, hh₀, h2h₀, hh₀Q, hlv, hbig, hdens, hms⟩ := hH₀ H hH
+  obtain ⟨Q, h₀, levels, M, hQ1, hQQ, hM1, hεM, hh₀, h2h₀, hh₀Q, hlv, hbig, hdens, hms⟩ :=
+    hH₀ H hH
   have hH : 0 < H := by omega
   have hQ0 : 0 < Q := by linarith
   have hM0 : 0 ≤ M := by linarith
@@ -573,7 +613,8 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
   have hL₀R : (1:ℝ) ≤ L₀ := by exact_mod_cast hL₀1
   have hlog2L₀ : 0 ≤ Real.log (2 * (L₀ : ℝ)) := Real.log_nonneg (by linarith)
   set K : ℝ := (6 * Real.log (2 * (L₀ : ℝ)) + 80) / ε with hKdef
-  set A₀ : ℝ := 8 * (Q * M + 50 + 2 * Real.log (64 / ε)) + Real.exp K with hA₀def
+  set A₀ : ℝ := 8 * (Q * M + 50 + 2 * Real.log (64 / ε)) + Real.exp K
+    + 256 * Q / ε with hA₀def
   refine ⟨A₀, fun A hA hA1 x w hAw hwx g hg hgu hnp α a q hq hqQ harc => ?_⟩
   -- basic facts about the range
   have hw1 : 1 ≤ w := le_trans hA1 hAw
@@ -594,7 +635,8 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
   -- `ε·log w ≥ 6 log(2L₀) + 80` and `A/8 ≥ QM + 50 + 2 log(64/ε)`
   have hexpK : Real.exp K ≤ A₀ := by
     rw [hA₀def]
-    have : 0 ≤ 8 * (Q * M + 50 + 2 * Real.log (64 / ε)) := by positivity
+    have hmain0 : 0 ≤ 8 * (Q * M + 50 + 2 * Real.log (64 / ε)) := by positivity
+    have hscale0 : 0 ≤ 256 * Q / ε := by positivity
     linarith
   have hlogwK : K ≤ Real.log w := by
     calc K = Real.log (Real.exp K) := (Real.log_exp K).symm
@@ -604,6 +646,7 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
     linarith
   have hA8 : Q * M + 50 + 2 * Real.log (64 / ε) ≤ A / 8 := by
     have := Real.exp_pos K
+    have hscale0 : 0 ≤ 256 * Q / ε := by positivity
     rw [hA₀def] at hA
     linarith
   -- the modulus
@@ -646,7 +689,8 @@ theorem majorArc_bound_of_A2_of_le_one (hA2 : SliceMeanSquareA2) (ε C : ℝ) (B
       le_trans (Nat.pow_le_of_le_log (by omega) hk.2) hhix'
     have h2k : (2 ^ (k + 1) : ℕ) = 2 * 2 ^ k := by rw [pow_succ]; ring
     rw [h2k]
-    exact block_total_le_trichotomy levels hlv M hM1 h₀ H Q ε hε hε1 hQ1 hh₀ h2h₀ hh₀Q hdens hms
+    exact block_total_le_trichotomy levels hlv M hM1 h₀ H Q ε hε hε1 hQ1 hεM
+      hh₀ h2h₀ hh₀Q hdens hms
       g hg hgu q hq hqQ' hql a α harc' ⌈x⌉₊ hx'1 A hnp hA8 L₀ X hL₀ hXge (2 ^ k) hAb1 hAbx
   have hsum := Finset.sum_le_sum hblock
   rw [Finset.sum_add_distrib, Finset.sum_add_distrib, ← Finset.sum_filter, ← Finset.sum_filter,

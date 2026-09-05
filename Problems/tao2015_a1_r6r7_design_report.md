@@ -853,6 +853,20 @@ and `b ≤ 2a + 4`. R6-5 splits `(a, b]` into `(a, min(b,2a)]` — a block with 
    `A'/2 ≤ J →`. `MajorArcEDP.lean` and the audit pins are unchanged in shape (they name the Prop). Re-run the audit.
 5. VI-9g-3′ then proceeds with `Δ ≥ A/2`; the obstruction file stays as the record (its theorems are true).
 
+### R8 as run — status (2026-09-05, Codex run 8, PR #3690; report in `Problems/tao2015_r8_report.md`)
+
+Done, exactly per the R8 brief: **R8-1** the Prop's clause is `∀ J, A / 2 ≤ J → J ≤ A → …`; **R8-2**
+`logavg_le_of_meanSquare_dyadic` (main block `(a, min b (2a)]` by Cauchy–Schwarz, leftover `≤ 4` points priced by
+`W ≤ h`: `+ 4h/(2a+1)`); **R8-3** `sum_div_comp_div_le_of_meanSquare` (harmonic mass `≤ 2`, `2 ≤ ε·A₁`, conclusion
+`4(εh)` unchanged); **R8-4** `sum_restricted_window_logavg_le_of_meanSquare`; **R8-5** `majorArc_block_bound_restricted`
+(`hε'A₀ : 2 ≤ ε'·A₀`); **R8-6** R7 (`good_block_total_le`, `block_total_le_trichotomy`, `exists_wrapper_params` now
+exports `2 ≤ (ε/(128Q))·A₀` by taking `max A₀ (256Q/ε)` and transporting both clauses — the brief's "add `256Q/ε`
+to the wrapper's `A₀`" was not enough, since the Prop chooses its own threshold); **R8-7** the docstring note in
+`…SharpNumerology.lean`: with `J ≥ A/2` the forced condition is the fixed `ε'² ≤ κc₃ε²·Pc·log Pc/64`.
+`edp_of_sliceMeanSquareA2` and the audit pins compile with identical axiom sets. **The conditional EDP is now
+conditional on the honest `[mrt]`-shaped Prop.** Next: VI-9g-3′ with `Δ/A ≥ 1/2` (the fixed prime fit), then
+A2-IV-3 → A2-V → `sliceMeanSquareA2`.
+
 ### Dependency order
 
 ```

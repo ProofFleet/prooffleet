@@ -23,6 +23,8 @@ for every `A >= A0` required by `SliceMeanSquareA2`.  A valid repair needs an
 envelope with a `Delta/A` fallback (or strength depending on `A`); the fixed
 top-scale strength in the target Prop permits neither the latter nor the
 advertised fixed positive `epsilon'` floor.
+
+With `J ≥ A/2` the forced bound is `A ≤ … · (A/2) · …`, i.e. the fixed condition `ε'² ≤ κc₃ε²·Pc·log Pc/64`.
 -/
 
 namespace MoltResearch
