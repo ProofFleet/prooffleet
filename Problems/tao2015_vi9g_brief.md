@@ -124,6 +124,12 @@ A2-V-3 → A2-V-4 → sliceMeanSquareA2`.
   `card_largeValueCells_prime_poly_pow_le` at level `J−1`), replacing `#K ≤ 2T`. Then
   `band_energy_typicalS_le_of_cellUniform_fit_recut` (BandCapstoneFamily mirror, `hfit` in the recut
   shapes). Keep `hδ` ungated (the design of `_le_budget`'s docstring). Record the exact new fit.
+- **ERRATUM (Codex run 6, `Problems/tao2015_vi9g_report.md`).** VI-9g-2/3 below presuppose the `√`-optimised fit
+  `exceptionalCell_fit_of_schedule`; with the high-moment count `Γ(V) ∝ V^{−2ℓ}` that shape is not an upper
+  bound. Use the **fixed-threshold** fit of `band_energy_typicalS_le_of_cellUniform_fit_recut`,
+  `2(V₀²·Aint + δ²·Bpri(1+Γ(V₀))) ≤ κ·budget` at `V₀ = exceptionalSplitThreshold A`, and fit the two terms
+  separately (design report, "Phase VI-9g as run", for the numerology). A2-IV-1′ is done
+  (`LowBandTypicalSSharp.lean`).
 - **VI-9g-2 (the sharp exceptional block).** In a new Conjectures leaf: the exceptional block of
   the schedule at `deltaU v := cellHalaszSharpBound x0 D δ₀ (A/qu v) ((A+Δ)/qu v) Pu restU` —
   `hdeltaU` from `norm_cellBlock_poly_le_cellHalaszSharpBound_of_top` at the top scale

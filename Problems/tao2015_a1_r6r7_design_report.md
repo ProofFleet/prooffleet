@@ -779,6 +779,35 @@ What remains for the exceptional leg is bookkeeping, not analysis:
   sharp cost, `𝒯₁` at strength `ρ·loglog − 9` from `pretentiousDistSq_archTwist_ge_of_mid_or_far`
   or from `M` itself, far regime via `FarRegimeRepulsionAssumption`; then VI-9g.)
 
+### Phase VI-9g as run — status (2026-09-05, Codex run 6, PR #3686; report in `Problems/tao2015_vi9g_report.md`)
+
+Done: **VI-9g-1** (`TrackCStage5BandEnergyExceptionalReCut.lean`: `setIntegral_band_energy_exceptional_max_le_recut`,
+`_le_budget_recut`, `band_energy_le_budget_of_exceptional_family_recut`,
+`card_cellsMeeting_exceptional_le_highMomentCost`, **`band_energy_typicalS_le_of_cellUniform_fit_recut`** —
+the capstone with `Aint` on the **covered** cells `Kcov = cellsMeetingSet (bandCells K₂) (bandPartOn … J)`
+and the prime term `Γ = primeHighMomentCountCost·e^{−log P/(log 2T)^{3/4}}(log 2T)²`; no `#bandCells`, no
+`T/P` — Finding B rows 1–2 closed), **A2-IV-1′** (`LowBandTypicalSSharp.lean`:
+`norm_typicalS_dirichlet_poly_le_low_band_sharp`, `integral_…_le_low_band_sharp`,
+`integral_norm_typicalS_dirichlet_poly_sq_le_low_band_eps` — the low band at the sharp cost, `2^{#levels}·η·b/(a+1)`,
+no `W`).
+
+**Brief erratum (found by the run).** VI-9g-2 presupposed the `√`-optimised fit
+`exceptionalCell_fit_of_schedule` (`2δ²Bpri + 4δ√(Aint·Bpri·Γ)`), which was derived for `Γ` independent of the
+threshold `V`. With the high-moment count `Γ(V) ∝ V^{−2ℓ}` it is **not** an upper bound (report: `ℓ = 2, V = 1/2,
+Aint = Bpri = δ = 1, C·saving = 1` gives exact cost `34.5` against the advertised `18`). The recut capstone's
+fit is the exact fixed-threshold one, `2(V₀²·Aint + δ²·Bpri(1+Γ(V₀))) ≤ κ·budget`.
+
+**Repair (decision).** Retain `exceptionalSplitThreshold A = (log A)^{−100}` (VI-9d's choice) and fit the two
+terms separately. Numerology: `∑‖cellBlockCoeff‖²/n² ≤ ∑_{n∈(A/q,B/q]} 1/n² ≲ Δq/A²`, so
+`V₀²·Aint ≲ (log A)^{−200}·64(log 2T + 1)·(ρ + #Kcov·√T·q/A)` — negligible against `c₃ε²ρ/8` once
+`log A ≫ 1` and `#Kcov ≤ ∑_r 2·primeHighMomentCountCost(…)` is polylog (level `J−1` anchors);
+`δ²·Bpri(1+Γ)` needs `Γ(V₀) ≲ 1`, i.e. `e^{−log P_𝒰/(log 2T)^{3/4}} ≤ (log A)^{−200ℓ−2}·(…)`: with
+`P_𝒰 = exp((log A)^{49/50})` (MR's choice) the saving `exp(−(log A)^{49/50−3/4})` kills every polylog, and the
+fixed-`ε` S6 becomes `Q_𝒰 = exp((C/ε³)(log A)^{49/50})` — admissible (`N_𝒰·Q_𝒰 ≤ A`) for `A ≥ A₀(ε)`. Then
+`δ ≲ ε⁶`-type from `cellHalaszSharpBound_le_explicit` and `Bpri ≲ 64/(N_𝒰 log² P_𝒰)` fit
+`2δ²Bpri·2 ≤ κ_U·budget`. This is VI-9g-2′/3′: a schedule theorem on `band_energy_typicalS_le_of_cellUniform_fit_recut`
+with the sharp `δ` and these two explicit fits; then A2-IV-3, A2-V.
+
 ### Dependency order
 
 ```
