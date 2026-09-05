@@ -552,6 +552,73 @@ theorem band_energy_typicalS_le [HalaszLargeValuesAssumption]
     N a ha T hT1 hTK₂ δ hδ0 hδ hfac hA0 hB0 hfit
 
 
+
+open MeasureTheory in
+/-- **A2-III VI-1g-1 — the inner band at the geometric share schedule.**
+
+`band_energy_typicalS_le` with the shares fixed to `κ_j = 2^{−(j+1)}`.  The
+hypothesis `hκ` is discharged by `geometric_shares_le_one` (M-11), so a consumer
+whose number of levels `J` varies with the scale never exhibits a share list —
+the design note that the shares cannot be fixed in advance is answered by one
+schedule serving every `J` at once.
+
+Each level leg and the exceptional fit are now asked at their own geometric
+share, which is exactly the shape `levelJ_le_budget_eadic` (M-9) and
+`collar_error_le_budget_eadic` (M-10) produce.  Nothing else changes: `w` stays
+abstract with `hwsup` its only constraint, and `hfac` and `δ` are still the
+consumer's. -/
+theorem band_energy_typicalS_le_geometric [HalaszLargeValuesAssumption]
+    [PrimeLargeValuesAssumption]
+    (g : ℕ → ℂ) (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
+    (levels : List (Finset ℕ))
+    (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
+    (hwsup : ∀ ξ, w ξ ≤ (4*(H:ℝ)/(A:ℝ))^2)
+    (K₁ K₂ : ℝ)
+    (J : ℕ) (Pset : ℕ → Set ℝ) (hPset : ∀ j, MeasurableSet (Pset j))
+    (c₃ ε : ℝ) (hc₃ : 0 ≤ c₃)
+    (hleg : ∀ j ∈ Finset.range (J + 1), j ≠ J →
+      (4*(H:ℝ)/(A:ℝ))^2
+          * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} j,
+            ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+              * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+        ≤ (1 / 2 ^ (j + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
+    (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
+    (hYne : Y.Nonempty)
+    (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
+    (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
+    (N : ℕ) (a : ℕ → ℂ) (ha : ∀ n, ‖a n‖ ≤ 1) (T : ℝ) (hT1 : 1 ≤ T)
+    (hTK₂ : K₂ + 2 ≤ T)
+    (δ : ℝ) (hδ0 : 0 < δ)
+    (hδ : ∀ t : ℝ, |t| ≤ T →
+      ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ)
+    (hfac : ∀ ξ ∈ bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,
+      ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2
+      ≤ ‖∑ p ∈ Y, (b p/(p:ℂ))
+            * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖^2
+        * ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
+            * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
+    (hA0 : 0 < 64 * ((N:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
+      * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
+    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+        + 2 * δ * Real.sqrt
+            ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
+              * ((64 * (256 / (Real.log P)^2))
+                  * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
+                      * (256 / Real.log P + 2048 * Real.pi)
+                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * (Real.log (2*T))^2))))
+      ≤ (1 / 2 ^ (J + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) / (4*(H:ℝ)/(A:ℝ))^2) :
+    (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂},
+        ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 * w ξ)
+      ≤ bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) :=
+  band_energy_typicalS_le g A Δ H hA hH levels w hwm hw0 hwsup K₁ K₂ J Pset hPset
+    (fun j => 1 / 2 ^ (j + 1)) c₃ ε hc₃ (geometric_shares_le_one (J + 1)) hleg
+    P hP Y hY hYne hlo hhi b hb N a ha T hT1 hTK₂ δ hδ0 hδ hfac hA0 hB0 hfit
+
 end Tao2015
 
 end MoltResearch
