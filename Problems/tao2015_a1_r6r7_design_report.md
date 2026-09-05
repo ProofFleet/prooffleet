@@ -657,8 +657,9 @@ gives, after the same identity/head/tail/bridge assembly and the §3 window, the
 ```
 
 — **no `loglog z` against `e^{−A}`**; the shell's `+1` floor and the trivial tail sit in the
-`loglog z/log z` group. The plain-sum wrappers `plain_sumC_le_halaszBudgetSharp(_div)`,
-`halaszBudgetSharp_nonneg`, `halaszBudgetSharp_mono` are the exact mirrors of the shell's. At a
+`loglog z/log z` group. The plain-sum wrapper `plain_sumC_le_halaszBudgetSharp`,
+`halaszBudgetSharp_nonneg`, `halaszBudgetSharp_mono` are the exact mirrors of the shell's (the divided
+form `plain_sumC_le_halaszBudgetSharp_div` is in `HalaszSharpWindow.lean`, T0-5). At a
 fixed strength `A` the two-scale differencing at `log(X/x) = δ₀ ≍ √((A+1)e^{−A})` now yields
 `‖∑_{n≤x} f‖/x ≲ √(A+1)·e^{−A/2} + o_x(1)` **uniformly in the scale** — the `(1+M)e^{−M}` shape of
 GHS Cor. 1.2, obtained inside the existing §3 machinery. This removes the blocker recorded in the
@@ -692,11 +693,17 @@ shell one on `𝒯₁`. This is the re-plumb T0-6 below.
 
 - **T0-1…T0-4** (`HalaszSharpSurvivors.lean`, this PR): the sharp survivor split, the §3 assembly
   at a free split index, the `b`-instantiation, the windowed `halaszBudgetSharp` and its wrappers.
-- **T0-5** `sup_partial_le_halaszBudgetSharp` (mirror of the shell plumbing at `X_u = ⌈u·e^{δ₀}⌉`)
-  and the **sharp twisted Dirichlet block**: for `|2πt| ≤ (D/2)·a` and non-pretentiousness at
-  strength `D` on `[a, 3b]`, `‖∑_{(a,b]} g(n)n^{−1}e(−t log n)‖ ≤ 2·(10¹⁶+1 + Ĥ⁺(D/2, 3b)/(18δ₀) +
-  (e·b·δ₀+1))/(a+1)` via `nonPretentiousAt_archTwist` + `norm_sum_div_le_of_partial` — the shape
-  `cheap_halasz_twisted_dirichlet_block` has, with the sharp budget in place of `W`.
+- **T0-5** (`HalaszSharpWindow.lean`, on main): `prefix_le_sharpPartialBudget` — for `10¹⁶ ≤ a ≤ u ≤ B'`
+  and non-pretentiousness at strength `A` on `[a, 3B']`, `‖∑_{n≤u} f‖ ≤ sharpPartialBudget A δ₀ a B' :=
+  2Ĥ⁺(A,3B')/(δ₀·log a) + (e·B'·δ₀+1)` (auxiliary scale `X_u = ⌈u·e^{δ₀}⌉ ≤ 3B'`; **both denominators kept
+  as `log a`** — the shell plumbing `sup_partial_le_halaszBudgetShell` prices them by `36`, a `log B'/36`
+  loss that this mirror does not repeat); and the **sharp twisted Dirichlet block**
+  `sharp_halasz_twisted_dirichlet_block`: for `|2πt| ≤ (D/2)·a`, strength `D ≥ 2` on `[a, 3b]`,
+  `‖∑_{(a,b]} g(n)n⁻¹e(−t log n)‖ ≤ sharpTwistedDirichletCost (D/2) δ₀ a b := 2·sharpPartialBudget (D/2) δ₀ a b/(a+1)`
+  via `nonPretentiousAt_archTwist` + `norm_sum_div_le_of_partial` — the shape of
+  `cheap_halasz_twisted_dirichlet_block` with the sharp budget in place of `W`. Numerics for `b ≤ 3a`,
+  `a ≥ 10¹⁶`: `cost ≤ (b/a)·(13E/δ₀ + 5.5δ₀) + 2/a` with `E = Ĥ⁺(D/2,3b)/(3b·log 3b)`, so at
+  `δ₀ = 1.5√E` the cost is `≲ 17(b/a)√E ≈ 6·10⁶·(b/a)·√(D/2+1)·e^{−D/4} + o(1)`.
 - **T0-6** the recut at the sharp cost: `exceptionalTwistedQuotientCost`, the Ramaré sum, and
   `cellHalaszReCutBound` re-instantiated with the T0-5 block (a mechanical mirror of VI-9e), and
   its `ε`-form: `∀ ε, ∃ D₀ x₀, ∀ D ≥ D₀, ∀ a ≥ x₀, cost ≤ ε·∑_{(a,b]} 1/n`-type at
