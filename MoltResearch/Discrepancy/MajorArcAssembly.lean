@@ -1,8 +1,9 @@
 import MoltResearch.Discrepancy.MajorArcFreeze
 import MoltResearch.Discrepancy.TypicalFactorization
+import MoltResearch.Discrepancy.CharTwistCompose
 
 /-!
-# Track R: the major-arc assembly — opening lemmas (R6-1, R6-2a, R6-2b)
+# Track R: the major-arc assembly — opening lemmas (R6-1, R6-2a, R6-2b, R6-3)
 
 The major-arc Matomäki–Radziwiłł interface bounds
 `∑_{n} ‖∑_{j=1}^{H} g(n+j)·e(jα)‖/(Hn)` on major arcs `α = a/q + δ`.  The
@@ -37,6 +38,18 @@ first steps rest on.
   the class sum into `g(d₀)` times a sum over the dilated block
   `(⌊lo/d₀⌋, ⌊hi/d₀⌋]` in the **unit** class `m' ≡ b/d₀ (mod q/d₀)` — the shape the
   character expansion (`sum_filter_residue_eq_char_avg`) consumes.
+* `sum_restricted_unit_class_eq_char_avg` / `norm_restricted_block_ratl_le_char_sum`
+  (R6-3) — the character expansion of the unit class, and the per-block capstone: the
+  `𝒮`-restricted block sum at the rational frequency `a/q` is at most the sum over the
+  `q` classes of the `1/φ(q₀)`-weighted character sums of `‖∑_{dilated block ∩ 𝒮} χ·g‖`.
+  The rational frequency is gone; each term is a plain `𝒮`-restricted block sum of the
+  twist `χ·g`, which is what A.2 bounds.
+* `completelyMultiplicativeC_charMul`, `norm_charMul_le_one`, `charMul_one`,
+  `nonPretentiousAt_charMul` (R6-3) — the twist `χ·g` satisfies every hypothesis A.2
+  places on its function: completely multiplicative, `1`-bounded, `1` at `1`, and
+  non-pretentious at strength `A/q₀` whenever `g` is at strength `A` (the distance to a
+  twist mod `q'` is the distance of `g` to the composite twist mod `q'·q₀`, which the
+  predicate already covers).
 -/
 
 open Finset
@@ -255,5 +268,157 @@ theorem sum_restricted_residue_eq_gcd_dilate (g : ℕ → ℂ) (hg : CompletelyM
       exact h
     · exact (hasFactorInAll_mul_left_iff levels hlv d m' hdl).mpr hS
     · rw [hq₀, hb₀, Nat.mul_mod_mul_left, hres]
+
+/-! ### R6-3: the character expansion of a unit class, and the `χ·g` twist -/
+
+/-- **The unit class in characters** (Track R, R6-3): the `𝒮`-restricted sum over
+the class `m ≡ b₀ (mod q₀)`, `gcd(b₀, q₀) = 1`, is the `1/φ(q₀)`-weighted character
+average of the twisted `𝒮`-restricted block sums — `sum_filter_residue_eq_char_avg`
+on the block `(lo, hi] ∩ 𝒮`, with the residue predicate read in `ZMod q₀`. -/
+theorem sum_restricted_unit_class_eq_char_avg (g : ℕ → ℂ) (levels : List (Finset ℕ))
+    (q₀ b₀ lo hi : ℕ) (hq₀ : 0 < q₀) (hb₀ : b₀ < q₀) (hcop : Nat.Coprime b₀ q₀) :
+    ∑ m ∈ (Finset.Ioc lo hi).filter
+        (fun m => HasFactorInAll levels m ∧ m % q₀ = b₀), g m
+      = (1 / (q₀.totient : ℂ)) * ∑ χ : DirichletCharacter ℂ q₀,
+          χ ((b₀ : ZMod q₀))⁻¹
+            * ∑ m ∈ (Finset.Ioc lo hi).filter (HasFactorInAll levels), χ m * g m := by
+  classical
+  haveI : NeZero q₀ := ⟨hq₀.ne'⟩
+  have hunit : IsUnit ((b₀ : ℕ) : ZMod q₀) := (ZMod.isUnit_iff_coprime b₀ q₀).mpr hcop
+  have hfilter : (Finset.Ioc lo hi).filter
+      (fun m => HasFactorInAll levels m ∧ m % q₀ = b₀)
+      = ((Finset.Ioc lo hi).filter (HasFactorInAll levels)).filter
+          (fun m : ℕ => ((m : ZMod q₀)) = ((b₀ : ℕ) : ZMod q₀)) := by
+    rw [Finset.filter_filter]
+    refine Finset.filter_congr fun m _ => ?_
+    rw [ZMod.natCast_eq_natCast_iff', Nat.mod_eq_of_lt hb₀]
+  rw [hfilter]
+  exact sum_filter_residue_eq_char_avg q₀ _ g ((b₀ : ℕ) : ZMod q₀) hunit
+
+/-- **The unit class, bounded by the twisted block sums** (Track R, R6-3): the
+character values at the unit `b₀⁻¹` have norm at most one. -/
+theorem norm_sum_restricted_unit_class_le (g : ℕ → ℂ) (levels : List (Finset ℕ))
+    (q₀ b₀ lo hi : ℕ) (hq₀ : 0 < q₀) (hb₀ : b₀ < q₀) (hcop : Nat.Coprime b₀ q₀) :
+    ‖∑ m ∈ (Finset.Ioc lo hi).filter
+        (fun m => HasFactorInAll levels m ∧ m % q₀ = b₀), g m‖
+      ≤ (1 / (q₀.totient : ℝ)) * ∑ χ : DirichletCharacter ℂ q₀,
+          ‖∑ m ∈ (Finset.Ioc lo hi).filter (HasFactorInAll levels), χ m * g m‖ := by
+  classical
+  rw [sum_restricted_unit_class_eq_char_avg g levels q₀ b₀ lo hi hq₀ hb₀ hcop, norm_mul]
+  have hφ : ‖(1 / (q₀.totient : ℂ))‖ = 1 / (q₀.totient : ℝ) := by
+    rw [norm_div, norm_one, Complex.norm_natCast]
+  rw [hφ]
+  refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+  refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun χ _ => ?_)
+  rw [norm_mul]
+  exact mul_le_of_le_one_left (norm_nonneg _) (DirichletCharacter.norm_le_one χ _)
+
+/-- **The `𝒮`-restricted block at a rational frequency, in classes and characters**
+(Track R, R6-3; the composite of R6-2b and the unit-class expansion).
+
+For a `1`-bounded completely multiplicative `g` and a modulus `q` below every level,
+the restricted block sum twisted by `e(m·a/q)` is at most the sum over the `q`
+residue classes `b` of the `1/φ(q/d₀)`-weighted character sums of the twisted
+restricted sums over the dilated block `(⌊lo/d₀⌋, ⌊hi/d₀⌋]`, `d₀ = gcd(b, q)`.  The
+factor `g(d₀)` has been bounded by `1` and the class phases by `1`.  Nothing on the
+right-hand side remembers `a`: each term is the plain `𝒮`-restricted block sum of the
+twist `χ·g`, the object A.2 bounds in mean square. -/
+theorem norm_restricted_block_ratl_le_char_sum (g : ℕ → ℂ)
+    (hg : CompletelyMultiplicativeC g) (hb : ∀ m, ‖g m‖ ≤ 1)
+    (levels : List (Finset ℕ)) (hlv : ∀ P ∈ levels, ∀ p ∈ P, p.Prime)
+    (q : ℕ) (hq : 0 < q) (hql : ∀ P ∈ levels, ∀ p ∈ P, ¬ p ∣ q) (a : ℤ) (lo hi : ℕ) :
+    ‖∑ m ∈ (Finset.Ioc lo hi).filter (HasFactorInAll levels),
+        g m * Complex.exp (2 * Real.pi * Complex.I * (m : ℂ)
+          * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ))‖
+      ≤ ∑ b ∈ Finset.range q, (1 / ((q / Nat.gcd b q).totient : ℝ))
+          * ∑ χ : DirichletCharacter ℂ (q / Nat.gcd b q),
+              ‖∑ m' ∈ (Finset.Ioc (lo / Nat.gcd b q) (hi / Nat.gcd b q)).filter
+                  (HasFactorInAll levels), χ m' * g m'‖ := by
+  classical
+  rw [sum_mul_exp_ratl_eq_sum_residues _ _ a q hq]
+  refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun b hbq => ?_)
+  have hbq' : b < q := Finset.mem_range.mp hbq
+  have hunit : ‖Complex.exp (2 * Real.pi * Complex.I * (b : ℂ)
+      * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ))‖ = 1 := by
+    rw [Complex.norm_exp]
+    have hre : (2 * Real.pi * Complex.I * (b : ℂ)
+        * (((a : ℝ) / (q : ℝ) : ℝ) : ℂ)).re = 0 := by
+      simp [Complex.mul_re, Complex.mul_im]
+    rw [hre, Real.exp_zero]
+  rw [norm_mul, hunit, one_mul, Finset.filter_filter,
+    sum_restricted_residue_eq_gcd_dilate g hg levels hlv q hq hql b lo hi, norm_mul]
+  have hd0 : 0 < Nat.gcd b q := Nat.gcd_pos_of_pos_right b hq
+  have hq₀ : 0 < q / Nat.gcd b q :=
+    Nat.div_pos (Nat.le_of_dvd hq (Nat.gcd_dvd_right b q)) hd0
+  have hb₀ : b / Nat.gcd b q < q / Nat.gcd b q :=
+    Nat.div_lt_div_of_lt_of_dvd (Nat.gcd_dvd_right b q) hbq'
+  have hcop : Nat.Coprime (b / Nat.gcd b q) (q / Nat.gcd b q) :=
+    Nat.coprime_div_gcd_div_gcd hd0
+  refine le_trans (mul_le_of_le_one_left (norm_nonneg _) (hb _)) ?_
+  exact norm_sum_restricted_unit_class_le g levels _ _ _ _ hq₀ hb₀ hcop
+
+/-- The character twist `n ↦ χ(n)·g(n)` of a completely multiplicative function is
+completely multiplicative (Track R, R6-3). -/
+theorem completelyMultiplicativeC_charMul (g : ℕ → ℂ) (hg : CompletelyMultiplicativeC g)
+    {q : ℕ} (χ : DirichletCharacter ℂ q) :
+    CompletelyMultiplicativeC (fun n => χ n * g n) := by
+  intro a b ha hb
+  dsimp only
+  rw [hg a b ha hb, Nat.cast_mul, map_mul]
+  ring
+
+/-- The character twist of a `1`-bounded function is `1`-bounded (Track R, R6-3). -/
+theorem norm_charMul_le_one (g : ℕ → ℂ) (hb : ∀ m, ‖g m‖ ≤ 1) {q : ℕ}
+    (χ : DirichletCharacter ℂ q) (m : ℕ) : ‖χ m * g m‖ ≤ 1 := by
+  rw [norm_mul]
+  exact mul_le_one₀ (DirichletCharacter.norm_le_one χ _) (norm_nonneg _) (hb m)
+
+/-- The character twist takes the value `1` at `1` (Track R, R6-3). -/
+theorem charMul_one (g : ℕ → ℂ) (hg1 : g 1 = 1) {q : ℕ} (χ : DirichletCharacter ℂ q) :
+    χ ((1 : ℕ) : ZMod q) * g 1 = 1 := by
+  rw [hg1, Nat.cast_one, map_one, one_mul]
+
+/-- **The twisted distance is a distance of `g`** (Track R, R6-3): the pretentious
+distance from `χ·g` to the twist `ψ(n)·n^{it}` mod `q'` equals the distance from `g`
+to the composite twist `(ψ·χ̄)(n)·n^{it}` mod `q'·q₀`, prime by prime
+(`changeLevel_mul_changeLevel_inv_apply_natCast`). -/
+theorem pretentiousDistSq_charMul_eq (g : ℕ → ℂ) {q₀ q' : ℕ}
+    (χ : DirichletCharacter ℂ q₀) (ψ : DirichletCharacter ℂ q') (t : ℝ) (N : ℕ) :
+    pretentiousDistSq (fun n : ℕ => χ n * g n) (charTwist q' ψ t) N
+      = pretentiousDistSq g (charTwist (q' * q₀)
+          (DirichletCharacter.changeLevel (dvd_mul_right q' q₀) ψ
+            * (DirichletCharacter.changeLevel (dvd_mul_left q₀ q') χ)⁻¹) t) N := by
+  unfold pretentiousDistSq
+  refine Finset.sum_congr rfl fun p _ => ?_
+  have hkey : (fun n : ℕ => χ n * g n) p * (starRingEnd ℂ) (charTwist q' ψ t p)
+      = g p * (starRingEnd ℂ) (charTwist (q' * q₀)
+          (DirichletCharacter.changeLevel (dvd_mul_right q' q₀) ψ
+            * (DirichletCharacter.changeLevel (dvd_mul_left q₀ q') χ)⁻¹) t p) := by
+    simp only [charTwist]
+    rw [changeLevel_mul_changeLevel_inv_apply_natCast]
+    simp only [map_mul, Complex.conj_conj]
+    ring
+  rw [hkey]
+
+/-- **Non-pretentiousness passes to the twist `χ·g`** (Track R, R6-3): if `g` is
+non-pretentious at strength `A`, then `χ·g` (for `χ` mod `q₀`) is non-pretentious at
+any strength `A'` with `A'·q₀ ≤ A` — a twist mod `q' ≤ A'` of `χ·g` is a twist mod
+`q'·q₀ ≤ A` of `g`, and the frequency range `|t| ≤ A'x ≤ Ax` shrinks.  In the assembly
+`q₀ ∣ q ≤ C(log H)^B` and `A₀` is chosen after `H`, so the loss is absorbed. -/
+theorem nonPretentiousAt_charMul (g : ℕ → ℂ) {A A' : ℝ} {x : ℕ} (h : NonPretentiousAt g A x)
+    {q₀ : ℕ} (hq₀ : 0 < q₀) (χ : DirichletCharacter ℂ q₀) (hA'0 : 0 ≤ A')
+    (hA' : A' * q₀ ≤ A) :
+    NonPretentiousAt (fun n => χ n * g n) A' x := by
+  intro q' ψ t hq' ht
+  have hq₀1 : (1 : ℝ) ≤ q₀ := by exact_mod_cast hq₀
+  have hAA' : A' ≤ A := le_trans (le_mul_of_one_le_right hA'0 hq₀1) hA'
+  have hqq : ((q' * q₀ : ℕ) : ℝ) ≤ A := by
+    push_cast
+    calc (q' : ℝ) * q₀ ≤ A' * q₀ := mul_le_mul_of_nonneg_right hq' (by positivity)
+      _ ≤ A := hA'
+  have ht' : |t| ≤ A * x :=
+    le_trans ht (mul_le_mul_of_nonneg_right hAA' (Nat.cast_nonneg x))
+  rw [pretentiousDistSq_charMul_eq]
+  exact le_trans hAA' (h (q' * q₀) _ t hqq ht')
 
 end MoltResearch
