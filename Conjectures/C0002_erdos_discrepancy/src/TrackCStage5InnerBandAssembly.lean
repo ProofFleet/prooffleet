@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5BandCapstoneFamily
+import MoltResearch.Discrepancy.CellHalasz
 
 /-!
 # The `[mrt]` A.2 inner band from its level legs (Track R, A2-III, VI-5)
@@ -765,6 +766,115 @@ theorem band_energy_typicalS_le_of_levels [HalaszLargeValuesAssumption]
     hLAU hLBU w hwm hw0 hwsup K₁ K₂ J Pset hPset c₃ eps hc₃ hlegU
     PcU hPcU hloU hhiU T hT1 hTK₂ deltaU hdeltaU0 hdeltaU hA0 hB0
     kappaU hfitUCell hfitU
+
+
+/-! ## The per-cell Halász input, plugged in (Track R, A2-III, VI-7-1) -/
+
+/-- **A2-III VI-7-1 — the exceptional level's `hδ`, discharged by VI-6.**
+
+The assembly's per-cell Halász hypothesis is a bound on the block polynomial
+over `Icc 1 ((A+Δ)/q)` with the zero-extended `cellBlockCoeff`; by
+`sum_cellBlockCoeff_Icc_eq` that polynomial is the cell-representative block of
+`LevelLegs`, and `norm_typicalS_quot_block_poly_le` (VI-6f) bounds it uniformly on
+`|t| ≤ T` by the closed form `cellHalaszBound`.  `A + Δ ≤ 2A` is `Δ ≤ A`. -/
+theorem norm_cellBlock_poly_le_cellHalaszBound (g : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC g) (hg : ∀ n, ‖g n‖ ≤ 1) (h1 : g 1 = 1)
+    (A Δ q : ℕ) (hq : 1 ≤ q) (hΔA : Δ ≤ A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ)) (hrest : ∀ Q ∈ rest, ∀ p ∈ Q, p.Prime)
+    (D : ℝ) (hD : 1 ≤ D) (δ₀ : ℝ) (hδ0 : 0 < δ₀) (hδ1 : δ₀ ≤ 1)
+    (T t : ℝ) (ht : |t| ≤ T)
+    (hNP : ∀ u : ℕ, cellHalaszThreshold ≤ u → u ≤ 3 * ((A + Δ) / q) →
+      NonPretentiousAt g (2 * D) u) :
+    ‖∑ n ∈ Finset.Icc 1 ((A + Δ) / q),
+        (cellBlockCoeff g A (A + Δ) P rest q n / (n : ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖
+      ≤ cellHalaszBound D δ₀ T (A / q) ((A + Δ) / q) P rest := by
+  rw [sum_cellBlockCoeff_Icc_eq]
+  exact norm_typicalS_quot_block_poly_le g hcm hg h1 A (A + Δ) q hq
+    (Nat.le_add_right A Δ) (by omega) P hP rest hrest D hD δ₀ hδ0 hδ1 T t ht hNP
+
+/-- The same, under non-pretentiousness on one range of scales shared by every
+cell: `(A+Δ)/q ≤ A+Δ`, so a bound for `u ≤ 3(A+Δ)` serves each cell at once. -/
+theorem norm_cellBlock_poly_le_cellHalaszBound_of_uniform (g : ℕ → ℂ)
+    (hcm : CompletelyMultiplicativeC g) (hg : ∀ n, ‖g n‖ ≤ 1) (h1 : g 1 = 1)
+    (A Δ q : ℕ) (hq : 1 ≤ q) (hΔA : Δ ≤ A)
+    (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime)
+    (rest : List (Finset ℕ)) (hrest : ∀ Q ∈ rest, ∀ p ∈ Q, p.Prime)
+    (D : ℝ) (hD : 1 ≤ D) (δ₀ : ℝ) (hδ0 : 0 < δ₀) (hδ1 : δ₀ ≤ 1)
+    (T t : ℝ) (ht : |t| ≤ T)
+    (hNP : ∀ u : ℕ, cellHalaszThreshold ≤ u → u ≤ 3 * (A + Δ) →
+      NonPretentiousAt g (2 * D) u) :
+    ‖∑ n ∈ Finset.Icc 1 ((A + Δ) / q),
+        (cellBlockCoeff g A (A + Δ) P rest q n / (n : ℂ))
+          * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖
+      ≤ cellHalaszBound D δ₀ T (A / q) ((A + Δ) / q) P rest :=
+  norm_cellBlock_poly_le_cellHalaszBound g hcm hg h1 A Δ q hq hΔA P hP rest hrest
+    D hD δ₀ hδ0 hδ1 T t ht (fun u hu hu' => hNP u hu
+      (le_trans hu' (Nat.mul_le_mul_left 3 (Nat.div_le_self _ _))))
+
+/-- **The per-cell Halász bound is strictly positive** on a nonempty block.
+
+`cellHalaszBound = 2^{|rest|} · (P-smooth harmonic mass up to B) · (max cost)`.
+The mass contains the factor `n₁ = 1`, and the maximum dominates the cost of
+that factor: on a long block the Abel term is a positive budget over a positive
+scale, on a short block it is the harmonic mass of a nonempty block.  This is
+what the capstone's `hδ0 : 0 < δ v` asks for. -/
+theorem cellHalaszBound_pos (D δ₀ T : ℝ) (hδ0 : 0 < δ₀) (hT : 0 ≤ T)
+    (Aq Bq : ℕ) (hAq : 1 ≤ Aq) (hAB : Aq < Bq)
+    (P : Finset ℕ) (rest : List (Finset ℕ)) :
+    0 < cellHalaszBound D δ₀ T Aq Bq P rest := by
+  classical
+  unfold cellHalaszBound
+  have hpow : (0:ℝ) < ((2 ^ rest.length : ℕ) : ℝ) := by positivity
+  -- the smooth mass contains `n₁ = 1`
+  have hone : 1 ∈ (Finset.Icc 1 Bq).filter (fun n => n.primeFactors ⊆ P) := by
+    rw [Finset.mem_filter, Finset.mem_Icc]
+    exact ⟨⟨le_refl 1, by omega⟩, by simp⟩
+  have hmass : 0 < pSmoothHarmonicMass Bq P := by
+    unfold pSmoothHarmonicMass
+    refine Finset.sum_pos' (fun n _ => by positivity) ⟨1, hone, by norm_num⟩
+  -- the maximum dominates the cost at `n₁ = 1`, which is positive
+  have hcost1 : 0 < cellHalaszQuotientCost D δ₀ T (Aq / 1) (Bq / 1) := by
+    rw [Nat.div_one, Nat.div_one]
+    unfold cellHalaszQuotientCost
+    split_ifs with hlong
+    · unfold cellHalaszLongCost
+      have hAq' : (0:ℝ) < (Aq:ℝ) := by exact_mod_cast (by omega : 0 < Aq)
+      have hbud : 0 < cellHalaszPartialBudget D δ₀ Bq := by
+        unfold cellHalaszPartialBudget
+        have hBq : Real.exp 1 ≤ 3 * (Bq:ℝ) := by
+          have h1 : (cellHalaszThreshold:ℝ) ≤ (Bq:ℝ) := by exact_mod_cast hlong
+          have h2 : (cellHalaszThreshold:ℝ) = 10^16 := by
+            unfold cellHalaszThreshold; norm_num
+          have he : Real.exp 1 ≤ 2.72 := by
+            have := Real.exp_one_lt_d9; linarith
+          nlinarith
+        have := ExpSums.halaszBudgetShell_nonneg D _ hBq
+        have hthr : (0:ℝ) ≤ (cellHalaszThreshold:ℝ) := by positivity
+        have : (0:ℝ) ≤ ExpSums.halaszBudgetShell D (3 * (Bq:ℝ)) / (18 * δ₀) := by positivity
+        have : (0:ℝ) ≤ Real.exp 1 * (Bq:ℝ) * δ₀ := by positivity
+        linarith
+      have habel : 0 < cellHalaszAbelFactor T := by
+        unfold cellHalaszAbelFactor
+        have := Real.pi_pos
+        nlinarith
+      have htail : 0 ≤ cellHalaszDivisionTail Aq Bq := by
+        unfold cellHalaszDivisionTail
+        exact Finset.sum_nonneg fun n _ => by positivity
+      have : 0 < cellHalaszPartialBudget D δ₀ Bq * cellHalaszAbelFactor T / (Aq:ℝ) := by
+        positivity
+      linarith
+    · unfold cellHalaszTrivialCost
+      refine Finset.sum_pos' (fun n _ => by positivity) ⟨Bq, ?_, ?_⟩
+      · rw [Finset.mem_Ioc]; exact ⟨hAB, le_refl _⟩
+      · have : (0:ℝ) < (Bq:ℝ) := by exact_mod_cast (by omega : 0 < Bq)
+        positivity
+  have hbudget : 0 < cellHalaszQuotientBudget D δ₀ T Aq Bq P := by
+    unfold cellHalaszQuotientBudget
+    refine lt_of_lt_of_le hcost1 (Finset.le_max' _ _ ?_)
+    exact Finset.mem_insert_of_mem (Finset.mem_image_of_mem _ hone)
+  positivity
 
 end Tao2015
 
