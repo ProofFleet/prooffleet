@@ -206,6 +206,20 @@ of the large-frequency set (`measure_large_prime_poly_le`) and the measure-to-co
 general polynomials (Gallagher, `sum_norm_sq_le_integral_of_separated`); the prime-supported
 *count* is exactly what is missing, and exactly what this class supplies.
 
+### Matomäki--Radziwiłł--Tao, *An averaged form of Chowla's conjecture*, Appendix A
+
+In the proof of Proposition A.3, let `t₁` attain the minimum of the pretentious
+distance on `|t| ≤ X`.  The argument preceding Lemma A.4 uses the standard
+archimedean-twist repulsion estimate, uniformly for `|t| ≤ X`, to obtain a fixed
+positive multiple of `log log X` outside the small window around `t₁`.
+
+Lean: `FarRegimeRepulsionAssumption`.  The class records only the far subrange
+`(log y)^20 < |t-t₁|`, assumes both frequencies lie in `[-y,y]` and that `t₁`
+is a minimizer, and concludes the weaker fixed floor
+`(1/6 - 1/(3π)) log log y`.  An explicit existential lower threshold replaces the
+paper's asymptotic qualification.  No instance may be declared until the
+Erdős--Turán/equidistribution proof is formalized.
+
 ---
 
 ## arXiv:1503.05121 — An averaged form of Chowla's conjecture ([mrt])

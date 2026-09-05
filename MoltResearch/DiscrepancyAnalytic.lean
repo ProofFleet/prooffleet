@@ -26,6 +26,9 @@ import MoltResearch.Discrepancy.TypicalFactorization
 import MoltResearch.Discrepancy.WindowTK
 import MoltResearch.Discrepancy.LargePrimePolynomialCount
 import MoltResearch.Discrepancy.ExceptionalCellCover
+import MoltResearch.Discrepancy.ExceptionalHalaszTwist
+import MoltResearch.Discrepancy.LowBandTypicalS
+import MoltResearch.Discrepancy.PretentiousBandSplit
 import MoltResearch.Discrepancy.WindowAssembly
 import MoltResearch.Discrepancy.BandCapstone
 import MoltResearch.Discrepancy.BandSchedule
@@ -47,6 +50,7 @@ import MoltResearch.Discrepancy.BumpDeriv
 import MoltResearch.Discrepancy.MajorArcAssembly
 import MoltResearch.Discrepancy.MajorArcBlockScale
 import MoltResearch.Discrepancy.SliceA2
+import MoltResearch.Discrepancy.SliceWeightConversion
 
 /-!
 # DiscrepancyAnalytic (analytic-layer aggregator)
