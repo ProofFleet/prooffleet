@@ -1178,6 +1178,16 @@ transcription updated. **V-0-2** the witness `Cp` chosen once in `sliceMeanSquar
 constant; three transitive-import leaks repaired with narrow imports. **V-0-3** the five pins byte-identical (no audit edit needed). Statements of
 `sliceMeanSquareA2`, `trackR_edp`, `trackR_edp_halasz` unchanged. Next: V-A/V-B (run 19; brief `Problems/tao2015_va_brief.md`).
 
+### V-A as run — status (2026-09-06, Codex runs 19–20; report in `Problems/tao2015_va_report.md`)
+
+**V-A complete** in `MoltResearch/Discrepancy/PrimeSumZeroFree.lean`: the plateau Mellin window (`ψ ≡ 1` on `[0,1]`, support `[−1/2, 3/2]`, vertical
+decay `‖w̃(σ+iτ)‖ ≤ 60000(C+1)²·P^σ/(1+τ²)`), the Mellin representation of `∑ Λ(n) w(n) n^{−iu}` on `Re s = 1 + 1/log(2P)` (`mellinInv_mellin_eq`
+termwise, interchange by summability, `−ζ'/ζ` identification), the right-line truncation (`O(P^c log(2P)/H)`), the asymmetric rectangle shift with
+the pole's residue `w̃(1−iu)` extracted by Cauchy's formula for the rational part, the three regular sides bounded by the regular-part hypothesis
+`hreg : ‖−ζ'/ζ(z) − 1/(z−1)‖ ≤ M` on the closed rectangle (the brief's `hlog`, punctured at `‖z−1‖ < 1/4`, was unusable: the shifted line passes
+within `η/2` of the pole), and the prime-power removal. **V-B interrupted** by the Codex usage limit (retry from 19:26); its file is saved and the
+run resumes on the same branch. V-C4's output must be the `hreg` form.
+
 ### Dependency order
 
 ```
