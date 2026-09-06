@@ -1070,7 +1070,27 @@ the exceptional pointwise bound split at `[Pl 0]` with `ladderSiftedLogMass` ove
 Run 14 (`TrackCStage5LadderNumerology.lean`) proved the exact contiguous-cell count lower bound (`phase4EadicIndexRange_*`) and the two forms
 of the exceptional-share obstruction (`ladderExceptionalCellShare_prime_fit_forces_log_upper`, `…_fails_of_large_log`,
 `ladderExceptionalAggregate_prime_fit_forces_level_upper`, `…_fixed_floor_forces_level_upper`), then stopped per the stop rule (Finding E.7).
-Run 15 resumes with L3-0 (the fixed exceptional share `1/2` in a `'`-variant of the wide capstone), then L3-1…L3-6, A2-IV-3′, A2-V′.
+Run 15 (148 commits, report appended to `Problems/tao2015_l3_report.md`) did L3-0 (`shifted_shares_le_one`,
+`band_energy_typicalS_le_of_schedule_sharp_cells_wide'`: exceptional share `1/2`, ordinary `1/2^{j+2}`), L3-1…L3-6 (the fixed ladder
+`P_j = Q_{j−1}^{100j²}`-type with polynomially bounded ratios, `J(A₁)`, the per-cell later-level fits, the exceptional integer/prime
+aggregates with Brun–Titchmarsh cell counts — the prime part is the fixed `Nu·N_𝒰·DeltaU²` cost, the `V₀` part vanishes in the window),
+A2-IV-3′ (explicit `ContDiffBump` slice windows, `ExplicitSliceWindow/Energy/Bands.lean`), A2-V′-1…138 (the level list
+`sliceA2FinalLevels`, the density clause by TK at level 0 and `𝒰` and by Brun's sieve on the ladder, the polynomial `h`-threshold
+`k = 4R·1200000 + 100` with `R = exceptionalIntervalRatio εc`, `P₀ = max 21 ⌈h^{1/(4R)}⌉`), and
+
+**`theorem sliceMeanSquareA2 [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption] : SliceMeanSquareA2`**
+(`Conjectures/…/TrackCStage5SliceA2Final.lean`) with **`trackR_edp : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f`** under the same two
+classes, both pinned in `TrackCAxiomAudit.lean` to `[propext, Classical.choice, Quot.sound]`; `FarRegimeRepulsionAssumption` does not occur.
+
+### Track R status after Phase 4 (2026-09-06)
+
+`[mrt]` Theorem A.2 (the `X₀`-shaped `SliceMeanSquareA2`) is a theorem of the tree conditional on exactly the two cited large-values
+interfaces — `HalaszLargeValuesAssumption` (the Halász–Montgomery large-values inequality, IK 9.6 form) and `PrimeLargeValuesAssumption`
+(the prime-polynomial large-values bound with the Vinogradov saving) — and so is the Erdős discrepancy theorem (`trackR_edp`). The
+`MatomakiRadziwillAssumption` leg of the card is discharged **modulo those two interfaces**; the card's "unconditional
+`erdos_discrepancy`" needs them discharged next (both are classical mean-value/large-values statements for Dirichlet polynomials; the
+tree already has `DyadicMVT` and the Vinogradov classification machinery). The checkbox stays open until then.
+
 
 ### Dependency order
 

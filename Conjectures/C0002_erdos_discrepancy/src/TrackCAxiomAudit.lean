@@ -8,6 +8,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LittlewoodWrapper
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5EDPMilestone
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5PrimeBlockMajorArcProof
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5MajorArcEDP
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5SliceA2Final
 -- For the anti-vacuity witnesses (issue #2879) only.
 import Mathlib.NumberTheory.ArithmeticFunction
 
@@ -248,3 +249,15 @@ info: 'MoltResearch.Tao2015.theorem18_of_sliceMeanSquareA2' depends on axioms: [
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.theorem18_of_sliceMeanSquareA2
+
+/--
+info: 'MoltResearch.Tao2015.sliceMeanSquareA2' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.sliceMeanSquareA2
+
+/--
+info: 'MoltResearch.Tao2015.trackR_edp' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.trackR_edp

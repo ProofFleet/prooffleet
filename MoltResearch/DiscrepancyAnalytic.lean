@@ -36,9 +36,15 @@ import MoltResearch.Discrepancy.SmoothRankinTail
 import MoltResearch.Discrepancy.LowBandTypicalS
 import MoltResearch.Discrepancy.LowBandTypicalSSharp
 import MoltResearch.Discrepancy.BrunIntervalSieve
+import MoltResearch.Discrepancy.EadicCellBrunTitchmarsh
+import MoltResearch.Discrepancy.EulerProductSharp
 import MoltResearch.Discrepancy.TypicalSLadderSplit
 import MoltResearch.Discrepancy.PretentiousBandSplit
 import MoltResearch.Discrepancy.WindowAssembly
+import MoltResearch.Discrepancy.ExplicitBumpWindow
+import MoltResearch.Discrepancy.ExplicitSliceWindow
+import MoltResearch.Discrepancy.ExplicitSliceEnergy
+import MoltResearch.Discrepancy.ExplicitSliceBands
 import MoltResearch.Discrepancy.BandCapstone
 import MoltResearch.Discrepancy.BandSchedule
 import MoltResearch.Discrepancy.BandScheduleShares

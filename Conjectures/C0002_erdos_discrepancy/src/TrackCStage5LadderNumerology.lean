@@ -1,7 +1,9 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5InnerBandScheduleSharpNumerology
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5InnerBandScheduleSharpCellsWideShifted
+import MoltResearch.Discrepancy.EadicCellBrunTitchmarsh
 
 /-!
-# Track R L3: the exceptional-cell share margin
+# Track R L3: exceptional-cell aggregation
 
 The Phase-4 exceptional fit proposes the uniform per-cell share
 
@@ -12,9 +14,11 @@ Its stated prime-term reduction would require
 `DeltaU^2 <= share * c3 * eps^2 * logP / (24*1024)`.
 
 For the exceptional power interval the e-adic cover has at least a constant
-multiple of `logP` cells.  The following algebraic lemmas record the resulting
-necessary upper bound on `logP`.  In particular increasing the exceptional
-prime scale makes this margin worse, not better.
+multiple of `logP` cells.  The first algebraic lemmas record the resulting
+necessary upper bound on `logP`.  The final section implements the repaired
+accounting: reserve half the band for the exceptional level and define every
+cell share to be its actual cost divided by the common band budget.  The cell
+costs can then be summed before the outer Cauchy factor is paid.
 -/
 
 namespace MoltResearch
@@ -192,6 +196,202 @@ theorem ladderExceptionalAggregate_fixed_floor_forces_level_upper
     J cellCount logQ totalShareCost budget (epsilon' / 8) E c3 eps
     hlogQ hcellCount (by positivity) hE hprime haggregate hbudget
   nlinarith
+
+/-! ## The repaired exceptional aggregate -/
+
+/-- The exceptional cell share is its exact cost divided by the common band
+budget.  This makes the pointwise fit an identity; only the sum of the actual
+cell costs remains to be estimated. -/
+noncomputable def exceptionalCellKappa (cost budget : ℝ) : ℝ := cost / budget
+
+theorem exceptionalCellKappa_mul_budget (cost budget : ℝ) (hbudget : budget ≠ 0) :
+    exceptionalCellKappa cost budget * budget = cost := by
+  unfold exceptionalCellKappa
+  field_simp
+
+theorem sum_exceptionalCellKappa_mul_budget
+    (I : Finset ℕ) (cost : ℕ → ℝ) (budget : ℝ) (hbudget : budget ≠ 0) :
+    (∑ v ∈ I, exceptionalCellKappa (cost v) budget) * budget =
+      ∑ v ∈ I, cost v := by
+  rw [Finset.sum_mul]
+  apply Finset.sum_congr rfl
+  intro v hv
+  exact exceptionalCellKappa_mul_budget (cost v) budget hbudget
+
+/-- With actual-cost shares, every pointwise fit is an equality and the
+schedule aggregate is exactly the aggregate inequality for the costs. -/
+theorem exceptional_actual_cost_schedule
+    (I : Finset ℕ) (cost : ℕ → ℝ) (budget wide : ℝ)
+    (hbudget : budget ≠ 0)
+    (haggregate :
+      2 * (I.card : ℝ) * (∑ v ∈ I, cost v) + wide ≤ budget / 2) :
+    (∀ v, cost v ≤ exceptionalCellKappa (cost v) budget * budget) ∧
+      2 * (I.card : ℝ) *
+          (∑ v ∈ I, exceptionalCellKappa (cost v) budget) * budget + wide ≤
+        budget / 2 := by
+  constructor
+  · intro v
+    exact (exceptionalCellKappa_mul_budget (cost v) budget hbudget).ge
+  · calc
+      2 * (I.card : ℝ) *
+            (∑ v ∈ I, exceptionalCellKappa (cost v) budget) * budget + wide =
+          2 * (I.card : ℝ) *
+            ((∑ v ∈ I, exceptionalCellKappa (cost v) budget) * budget) + wide := by
+              ring
+      _ = 2 * (I.card : ℝ) * (∑ v ∈ I, cost v) + wide := by
+            rw [sum_exceptionalCellKappa_mul_budget I cost budget hbudget]
+      _ ≤ budget / 2 := haggregate
+
+/-- The prime large-values coefficient of one cell is controlled by its
+harmonic prime mass.  This retains one factor of `1/log P` while allowing the
+cell masses to be summed before the outer Cauchy factor is applied. -/
+theorem exceptional_prime_factor_le_harmonic
+    (Y : Finset ℕ) (Pc : ℕ) (hPc : 2 ≤ Pc)
+    (hlo : ∀ p ∈ Y, Pc < p) (g : ℕ → ℂ) (hg : ∀ p, ‖g p‖ ≤ 1)
+    (L : ℝ) (hL : 0 < L) (hlog : L ≤ Real.log (Pc : ℝ)) :
+    64 * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) /
+        Real.log (Pc : ℝ) ≤
+      64 / L * ∑ p ∈ Y, (1 : ℝ) / p := by
+  have hPc0 : (0 : ℝ) < Pc := by positivity
+  have hlogPc : 0 < Real.log (Pc : ℝ) :=
+    Real.log_pos (by exact_mod_cast (show 1 < Pc by omega))
+  have hsum :
+      (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) ≤
+        ∑ p ∈ Y, (1 : ℝ) / p := by
+    rw [Finset.sum_mul]
+    apply Finset.sum_le_sum
+    intro p hp
+    have hp0 : (0 : ℝ) < p := by
+      exact_mod_cast (lt_trans (by omega : 0 < Pc) (hlo p hp))
+    have hnorm : ‖g p‖ ^ 2 ≤ 1 := by
+      nlinarith [norm_nonneg (g p), hg p]
+    have hPcp : (Pc : ℝ) ≤ p := by exact_mod_cast (hlo p hp).le
+    have hnum : ‖g p‖ ^ 2 * (Pc : ℝ) ≤ 1 * (p : ℝ) :=
+      mul_le_mul hnorm hPcp (by positivity) (by norm_num)
+    calc
+      ‖g p‖ ^ 2 / (p : ℝ) ^ 2 * (Pc : ℝ) =
+          (‖g p‖ ^ 2 * (Pc : ℝ)) / (p : ℝ) ^ 2 := by ring
+      _ ≤ (p : ℝ) / (p : ℝ) ^ 2 :=
+        div_le_div_of_nonneg_right (by simpa using hnum) (by positivity)
+      _ = (1 : ℝ) / p := by field_simp
+  have hmass0 : 0 ≤ ∑ p ∈ Y, (1 : ℝ) / p :=
+    Finset.sum_nonneg fun p hp => by positivity
+  have hnum :
+      64 * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) ≤
+        64 * (∑ p ∈ Y, (1 : ℝ) / p) := by
+    nlinarith
+  calc
+    64 * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) /
+          Real.log (Pc : ℝ)
+        ≤ 64 * (∑ p ∈ Y, (1 : ℝ) / p) / Real.log (Pc : ℝ) := by
+          exact div_le_div_of_nonneg_right hnum hlogPc.le
+    _ ≤ 64 * (∑ p ∈ Y, (1 : ℝ) / p) / L := by
+          exact div_le_div_of_nonneg_left (by positivity) hL hlog
+    _ = 64 / L * ∑ p ∈ Y, (1 : ℝ) / p := by ring
+
+/-- The e-adic cells are disjoint, so their harmonic masses sum to the mass
+of the covered prime level exactly. -/
+theorem sum_eadicCell_harmonic_eq
+    (I P : Finset ℕ) (N : ℕ)
+    (hcov : I.biUnion (eadicCell P (2 * N)) = P) :
+    ∑ v ∈ I, ∑ p ∈ eadicCell P (2 * N) v, (1 : ℝ) / p =
+      ∑ p ∈ P, (1 : ℝ) / p := by
+  have hdisj : (I : Set ℕ).PairwiseDisjoint (eadicCell P (2 * N)) := by
+    intro v hv r hr hvr
+    exact eadicCell_disjoint P (2 * N) hvr
+  calc
+    ∑ v ∈ I, ∑ p ∈ eadicCell P (2 * N) v, (1 : ℝ) / p =
+        ∑ p ∈ I.biUnion (eadicCell P (2 * N)), (1 : ℝ) / p :=
+      (Finset.sum_biUnion hdisj).symm
+    _ = ∑ p ∈ P, (1 : ℝ) / p := by rw [hcov]
+
+/-- Aggregate prime-part bound after summing the actual cell costs.  If the
+number of cells is at most `Ccells*N*R*L`, the outer Cauchy factor costs only
+the fixed quantity `512*Ccells*N*R*d²*E`; no geometric factor in the number of
+ordinary ladder levels remains. -/
+theorem exceptional_prime_aggregate_le
+    (I : Finset ℕ) (Y : ℕ → Finset ℕ) (Pc : ℕ → ℕ)
+    (hPc : ∀ v ∈ I, 2 ≤ Pc v) (hlo : ∀ v ∈ I, ∀ p ∈ Y v, Pc v < p)
+    (g : ℕ → ℂ) (hg : ∀ p, ‖g p‖ ≤ 1)
+    (Delta Gamma : ℕ → ℝ) (d L E N R Ccells : ℝ)
+    (hL : 0 < L) (hE : 0 ≤ E)
+    (hDelta0 : ∀ v ∈ I, 0 ≤ Delta v)
+    (hDelta : ∀ v ∈ I, Delta v ≤ d)
+    (hGamma0 : ∀ v ∈ I, 0 ≤ Gamma v)
+    (hGamma : ∀ v ∈ I, Gamma v ≤ 1)
+    (hlog : ∀ v ∈ I, L ≤ Real.log (Pc v : ℝ))
+    (hmass : ∑ v ∈ I, ∑ p ∈ Y v, (1 : ℝ) / p ≤ E)
+    (hcard : (I.card : ℝ) ≤ Ccells * N * R * L) :
+    2 * (I.card : ℝ) *
+        (∑ v ∈ I, 2 * Delta v ^ 2 *
+          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+              (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v))) ≤
+      512 * Ccells * N * R * d ^ 2 * E := by
+  have hcell : ∀ v ∈ I,
+      2 * Delta v ^ 2 *
+          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+              (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v)) ≤
+        256 * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := by
+    intro v hv
+    have hDeltaSq : Delta v ^ 2 ≤ d ^ 2 :=
+      pow_le_pow_left₀ (hDelta0 v hv) (hDelta v hv) 2
+    have hfactor := exceptional_prime_factor_le_harmonic
+      (Y v) (Pc v) (hPc v hv) (hlo v hv) g hg L hL (hlog v hv)
+    have hmassv0 : 0 ≤ ∑ p ∈ Y v, (1 : ℝ) / p :=
+      Finset.sum_nonneg fun p hp => by positivity
+    have hfactor0 : 0 ≤ 64 *
+        (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+          (Pc v : ℝ) / Real.log (Pc v : ℝ) := by
+      have := hPc v hv
+      positivity
+    have hGamma1 : 0 ≤ 1 + Gamma v := by linarith [hGamma0 v hv]
+    have hGamma2 : 1 + Gamma v ≤ 2 := by linarith [hGamma v hv]
+    have hrhs0 : 0 ≤ 64 / L * ∑ p ∈ Y v, (1 : ℝ) / p := by
+      positivity
+    have hproduct :
+        (64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+              (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v) ≤
+          (64 / L * ∑ p ∈ Y v, (1 : ℝ) / p) * 2 :=
+      mul_le_mul hfactor hGamma2 hGamma1 hrhs0
+    have hproduct0 : 0 ≤
+        (64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+              (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v) :=
+      mul_nonneg hfactor0 hGamma1
+    calc
+      2 * Delta v ^ 2 *
+          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+              (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v))
+          ≤ 2 * d ^ 2 *
+              ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+                (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v)) := by
+            exact mul_le_mul_of_nonneg_right
+              (mul_le_mul_of_nonneg_left hDeltaSq (by norm_num)) hproduct0
+      _ ≤ 2 * d ^ 2 * ((64 / L * ∑ p ∈ Y v, (1 : ℝ) / p) * 2) := by
+            exact mul_le_mul_of_nonneg_left hproduct (by positivity)
+      _ = 256 * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := by ring
+  have hsum := Finset.sum_le_sum hcell
+  have hsum' :
+      ∑ v ∈ I, 2 * Delta v ^ 2 *
+          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+              (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v)) ≤
+        256 * d ^ 2 / L * E := by
+    calc
+      _ ≤ ∑ v ∈ I, 256 * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := hsum
+      _ = 256 * d ^ 2 / L *
+          (∑ v ∈ I, ∑ p ∈ Y v, (1 : ℝ) / p) := by
+            rw [Finset.mul_sum]
+      _ ≤ 256 * d ^ 2 / L * E := by gcongr
+  have hsum0 : 0 ≤ 256 * d ^ 2 / L * E := by positivity
+  calc
+    2 * (I.card : ℝ) *
+        (∑ v ∈ I, 2 * Delta v ^ 2 *
+          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+              (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v)))
+        ≤ 2 * (I.card : ℝ) * (256 * d ^ 2 / L * E) := by gcongr
+    _ ≤ 2 * (Ccells * N * R * L) * (256 * d ^ 2 / L * E) := by gcongr
+    _ = 512 * Ccells * N * R * d ^ 2 * E := by
+      field_simp [ne_of_gt hL]
+      ring
 
 end Tao2015
 

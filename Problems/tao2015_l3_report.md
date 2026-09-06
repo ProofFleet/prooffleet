@@ -151,3 +151,136 @@ the two repository-allowlisted example modules outside the compiled graph.
 No forbidden nucleus file, `TrackCAxiomAudit.lean`, or A2 file was edited.  No
 assumption-class instance was added.  No push, merge, or rebase was performed.
 This report is intentionally uncommitted.
+
+
+---
+
+# Run 15 (L3 resumed with the fixed exceptional share): completion
+
+Verbatim final report of Codex run 15 (same branch, resumed from `342d74f7` with the run-15 resume note), whose 148 commits
+shipped as the L3b PR: L3-0 (the exceptional part's share `1/2`, `band_energy_typicalS_le_of_schedule_sharp_cells_wide'`),
+L3-1…L3-6, A2-IV-3′, A2-V′-1…138, **`theorem sliceMeanSquareA2 [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption] :
+SliceMeanSquareA2`**, the endpoint **`trackR_edp`** (`¬ BoundedDiscrepancy f` for every sign sequence under exactly the two
+large-values interfaces), and their audit pins (`[propext, Classical.choice, Quot.sound]`).
+
+---
+
+# Track R L3 / A2 completion report
+
+Date: 2026-09-06
+
+Branch: `vex/track-r-l3`
+
+Resume point: `342d74f7` (`Track R: isolate the exceptional cell-share obstruction`)
+
+Final commit: `e25dfc37` (`Track R: pin the completed A2 axiom footprint`)
+
+## Outcome
+
+Run 15 repairs the bookkeeping artifact identified in run 14 and completes
+L3, A2-IV-3', A2-V', `sliceMeanSquareA2`, and the discrepancy endpoint. No
+stop-rule obstruction remains.
+
+The exceptional band now receives the fixed share `1/2`, while ordinary
+level `j` receives `1/2^(j+2)`. The theorem `shifted_shares_le_one` proves
+that the resulting partition has total share at most one, and
+`band_energy_typicalS_le_of_schedule_sharp_cells_wide'` is the requested
+capstone with the revised ordinary and exceptional hypotheses. None of the
+old schedule theorems was modified.
+
+The exceptional prime contribution is summed before the outer Cauchy factor.
+Brun--Titchmarsh cell cardinality cancels the cell width in the aggregate, so
+the prime part is a fixed `Nu * N_U * DeltaU^2` cost instead of the invalid
+`2^J`-shrinking pointwise allocation. The `V0` contribution retains its
+negative logarithmic power and vanishes uniformly in the quadratic window.
+
+## Recorded final choices
+
+The final construction uses
+
+```text
+e       = min eps 1
+rho     = 1 / (4 * sliceA2Parts eps)
+eb      = e / 100
+R       = exceptionalIntervalRatio epsc
+eta     = sliceA2ExceptionalLadderEta e epsc eb rho
+P0      = max 21 ceil(h^(1/(4R)))
+k       = 4 * R * 1200000 + 100
+```
+
+The fixed bottom exponent is `1200000`; its dominant explicitly recorded
+loss is `2 * 14 * 40960 = 1146880`. The height constant is
+
+```text
+max 1 (
+  max ((sliceA2BottomPowerConstant epsc Qlog0)^(4R))
+      (max sliceA2WindowPowerConstant
+           (sliceA2FrequencyPowerConstant epsc)^2))
+```
+
+where `sliceA2WindowPowerConstant` contains the geometric, rounding,
+Lipschitz, and outer-band constants, and the frequency target is
+`sliceA2KappaMain 0 / (32 * 163880000)`.
+
+The exceptional fixed-parameter ledger records
+
+```text
+N_U coefficient       = 3 + 73728*163880000*exp(pi)*exceptionalMass
+prime coefficient     = 1 + 196608*Ncoef*R*exceptionalMass
+epsilon denominator   = 800*16388*exp(13)*R*primeCoefficient
+eta coefficient       = 64*exp(12)*max(epsilonDenominator,1/epsc) + 2
+```
+
+Thus the chosen exceptional accuracy is bounded below by a fixed multiple of
+`e^7`, and `eta` is bounded above by a fixed multiple of `e^(-7)`. The
+ordinary ledgers record `e^(-4)` cell and resolution costs, `e^(-14)` far
+costs, `e^(-128)` close costs, and `e^(-8)` zero-prime and zero-frequency
+coefficients. Every constant depends only on the already-fixed outer density
+parameter (and `Qlog0` where displayed), never on `A1`.
+
+The analytic witness now accepts a caller-supplied minimum scale. The final
+proof puts both the density threshold and the eventual inequality
+`P0 <= exceptionalPrimeLower A1` into that minimum before selecting `A0`.
+Consequently the prime, polylog cutoff, density, and mean-square clauses all
+use exactly the same `sliceA2FinalLevels` witness and the same
+`NonPretentiousAt` strength.
+
+## Final theorems and audit
+
+`TrackCStage5SliceA2Final.lean` adds:
+
+- `exists_sliceA2HeightP0_above_polylog`;
+- `sliceMeanSquareA2 [HalaszLargeValuesAssumption]
+  [PrimeLargeValuesAssumption] : SliceMeanSquareA2`;
+- `trackR_edp`, the endpoint `edp_of_sliceMeanSquareA2 sliceMeanSquareA2`
+  with no separate A.2 hypothesis at its call site.
+
+`TrackCAxiomAudit.lean` pins both new theorem footprints to exactly
+
+```text
+[propext, Classical.choice, Quot.sound]
+```
+
+The two large-values interfaces remain theorem parameters. No
+`FarRegimeRepulsionAssumption` occurs in either footprint, and no new
+assumption-class instance was added.
+
+## Verification
+
+Passed:
+
+```text
+lake env lean TrackCStage5SliceA2HeightChoice.lean
+lake env lean TrackCStage5SliceA2Final.lean
+lake env lean TrackCAxiomAudit.lean
+./scripts/forbid_sorry.sh
+./scripts/forbid_axiom_unsafe.sh
+./scripts/check_layering.sh
+python3 scripts/check_aggregator_coverage.py
+lake build MoltResearch.DiscrepancyAnalytic Conjectures
+```
+
+The final aggregate build completed 8336 jobs. Aggregator coverage reports
+191 modules, 189 reachable, with only the two repository-allowlisted example
+modules outside the compiled graph. No push, merge, or rebase was performed.
+This report is intentionally uncommitted.
