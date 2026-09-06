@@ -27,13 +27,15 @@ Sources:
 
 - Iwaniec–Kowalski, *Analytic Number Theory*, AMS Colloquium Publications 53 (2004),
   Theorem 9.6 (the mean-value/large-sieve inequality for Dirichlet polynomials at
-  well-spaced points).
+  well-spaced points, in its stated range `T ≥ 1`).
 - Matomäki–Radziwiłł, *Multiplicative functions in short intervals*, Annals of
   Mathematics 183 (2016), Lemma 8 (arXiv:1501.04585).
 
-**No instance of either class is (or may be) declared here**: both stand in for
-theorems of the literature that are not formalized at the pinned Mathlib revision,
-and consumers must carry them as hypotheses.  Both are transcribed in
+The integer-supported class is now discharged in
+`TrackCStage5LargeValuesDischarge.lean` by the in-tree theorem
+`MoltResearch.halaszMontgomery_large_values`.  No instance of the prime-supported
+class is declared here: consumers must continue to carry that theorem of the
+literature as a hypothesis.  Both statements are transcribed in
 `Problems/sources/tao2015_statements.md` and should be diffed against that file,
 not against this docstring.
 -/
@@ -49,14 +51,18 @@ Theory*, Theorem 9.6): at points of `[-T, T]` that are pairwise `1`-separated, t
 squared values of an integer-supported Dirichlet polynomial of length `N` sum to at
 most `(N + |𝒯|√T)·log(2T)` times the polynomial's coefficient mass.
 
+The source theorem is stated for `T ≥ 1`; that range is explicit here so the
+logarithmic factor is positive even for a singleton set of sample points.
+
 The `64` and the `+1` are slack: any absolute constant serves the consumer, and the
 statement is deliberately written with explicit numerals rather than `O(·)` so that
 it is checkable against the source.
 
-No instance may be declared — see the module docstring. -/
+It is discharged by the in-tree theorem `MoltResearch.halaszMontgomery_large_values`
+in `TrackCStage5LargeValuesDischarge.lean`. -/
 class HalaszLargeValuesAssumption : Prop where
   bound : ∀ (N : ℕ) (a : ℕ → ℂ) (T : ℝ) (𝒯 : Finset ℝ),
-    0 < T → (∀ t ∈ 𝒯, |t| ≤ T) →
+    1 ≤ T → (∀ t ∈ 𝒯, |t| ≤ T) →
     (∀ t ∈ 𝒯, ∀ u ∈ 𝒯, t ≠ u → 1 ≤ |t - u|) →
     ∑ t ∈ 𝒯, ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
         * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖^2
@@ -71,6 +77,9 @@ integer-support bound by a factor `exp(−log P/(log 2T)^{3/4})`.
 This saving is the whole content, and it is not elementary: the known proof is
 duality plus a Mellin shift of `ζ'/ζ` into the Vinogradov–Korobov zero-free region.
 
+The source lemma is used only in its stated large-height range; we record that
+range as `T ≥ 1`, which also makes every real power of `log (2*T)` unambiguous.
+
 The exponent is stated as `3/4` where `[MR]` has `2/3 + ε`; any exponent `< 1`
 carries the consumer, and a fixed rational keeps the statement clean.
 
@@ -78,7 +87,7 @@ No instance may be declared — see the module docstring. -/
 class PrimeLargeValuesAssumption : Prop where
   bound : ∀ (P : ℕ) (Y : Finset ℕ), (∀ p ∈ Y, p.Prime) →
     (∀ p ∈ Y, P ≤ p ∧ p ≤ 2*P) → ∀ (a : ℕ → ℂ) (T : ℝ) (𝒯 : Finset ℝ),
-    2 ≤ P → 0 < T → (∀ t ∈ 𝒯, |t| ≤ T) →
+    2 ≤ P → 1 ≤ T → (∀ t ∈ 𝒯, |t| ≤ T) →
     (∀ t ∈ 𝒯, ∀ u ∈ 𝒯, t ≠ u → 1 ≤ |t - u|) →
     ∑ t ∈ 𝒯, ‖∑ p ∈ Y, (a p/(p:ℂ))
         * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖^2

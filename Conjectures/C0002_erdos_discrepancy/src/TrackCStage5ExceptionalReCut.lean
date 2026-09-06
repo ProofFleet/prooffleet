@@ -47,7 +47,7 @@ theorem sum_prime_integer_energy_large_card_le [HalaszLargeValuesAssumption]
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hYP : ∀ p ∈ Y, P ≤ p ∧ p ≤ 2 * P) (b : ℕ → ℂ)
     (N : ℕ) (a : ℕ → ℂ)
-    (T : ℝ) (hT : 0 < T) (points : Finset ℝ)
+    (T : ℝ) (hT : 1 ≤ T) (points : Finset ℝ)
     (hmem : ∀ t ∈ points, |t| ≤ T)
     (hsep : ∀ t ∈ points, ∀ u ∈ points, t ≠ u → 1 ≤ |t - u|)
     (V₀ delta CL : ℝ) (hV₀ : 0 ≤ V₀)
@@ -96,7 +96,7 @@ theorem sum_prime_integer_energy_high_moment_le [HalaszLargeValuesAssumption]
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
     (ell : ℕ) (hell : 1 ≤ ell)
     (N : ℕ) (a : ℕ → ℂ)
-    (T : ℝ) (hT : 0 < T) (points : Finset ℝ)
+    (T : ℝ) (hT : 1 ≤ T) (points : Finset ℝ)
     (hmem : ∀ t ∈ points, |t| ≤ T)
     (hsep : ∀ t ∈ points, ∀ u ∈ points, t ≠ u → 1 ≤ |t - u|)
     (V₀ delta lam : ℝ) (hV₀ : 0 < V₀) (hlam : 0 < lam)
@@ -133,7 +133,7 @@ theorem sum_prime_integer_energy_high_moment_le [HalaszLargeValuesAssumption]
     intro t ht
     exact (Finset.mem_filter.mp ht).2.le
   have hmoment := card_large_prime_poly_pow_le Y hY P (by omega) hlo hhi b hb
-    ell hell pointsL T V₀ lam hT.le hV₀.le hlam hmemL hsepL hlargeL
+    ell hell pointsL T V₀ lam (zero_le_one.trans hT) hV₀.le hlam hmemL hsepL hlargeL
   have hpowV : 0 < V₀ ^ (2 * ell) := pow_pos hV₀ _
   have hcardL : (pointsL.card : ℝ) ≤ primeHighMomentCountCost P ell Y T V₀ lam := by
     unfold primeHighMomentCountCost

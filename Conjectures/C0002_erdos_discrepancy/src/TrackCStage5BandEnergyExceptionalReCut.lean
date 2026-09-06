@@ -108,7 +108,7 @@ theorem setIntegral_band_energy_exceptional_max_le_recut
       obtain ⟨htm, htl⟩ := Finset.mem_filter.mp ht
       exact hdelta t (hmem t htm) htl
     have hmain := sum_prime_integer_energy_high_moment_le P hP Y hY hlo hhi b hb
-      ell hell N a T hT (K'.image tau) hmem hsep V₀ delta lam hV₀ hlam hlargeF
+      ell hell N a T hT1 (K'.image tau) hmem hsep V₀ delta lam hV₀ hlam hlargeF
     refine hmain.trans ?_
     have hcard : ((K'.image tau).card : ℝ) ≤ (K.card : ℝ) := by
       exact_mod_cast (Finset.card_image_le).trans (Finset.card_le_card hK'K)

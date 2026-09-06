@@ -1092,6 +1092,83 @@ interfaces — `HalaszLargeValuesAssumption` (the Halász–Montgomery large-val
 tree already has `DyadicMVT` and the Vinogradov classification machinery). The checkbox stays open until then.
 
 
+### Phase 5 — the two large-values interfaces (2026-09-06)
+
+After Phase 4 the whole Track R chain rests on `HalaszLargeValuesAssumption` (IK 9.6) and `PrimeLargeValuesAssumption` (`[MR]` Lemma 8).
+
+- **H — `HalaszLargeValuesAssumption` is dischargeable now.** Its proof is duality (Schur's test on the kernel `K(u) = ∑_{n≤N} n^{−2πiu}`)
+  plus the kernel bound `‖K(u)‖ ≪ N/|u| + √|u|·log 2N` from Kusmin–Landau (`kusmin_landau`, `norm_sum_e_linear_le`) on the blocks where the
+  phase's first differences are small and the discrete second-derivative test (`vdc2`) elsewhere, then the well-spaced sums
+  `∑_{s≠t} 1/|t−s| ≤ 2(log 2T + 1)`, `∑_{s≠t} √|t−s| ≤ #𝒯·√(2T)`. Brief: `Problems/tao2015_h_brief.md` (run 16). The only delicate point is
+  the class's exact constant `64` when `log 2N ≫ log 2T` (tail blocks by Kusmin–Landau only). **Run 16 found the interface fields false for
+  `0 < T < 1/(2e)`** (`log(2T) + 1 < 0` with a singleton `𝒯`; the prime field has `(log 2T)^{3/4}` with a negative base): a transcription bug —
+  IK 9.6 and `[MR]` Lemma 8 are stated for `T ≥ 1`. Unit **I-1** adds `1 ≤ T` to both fields and threads it through the two call sites in
+  `TrackCStage5BandEnergyExceptional.lean` and their callers; pins unchanged. Run 17 = I-1 then H.
+- **P — `PrimeLargeValuesAssumption` is the frontier.** Its saving `exp(−log P/(log 2T)^{3/4})` is what makes the exceptional count `Γ ≤ 1`
+  (Finding E.1/L3-5: the count loses `(log A)^{200ℓ}` with `ℓ ≍ log T/log P`, so the saving must be super-polylogarithmic; a saving of
+  de la Vallée Poussin strength `exp(−c log P/log T)` or Littlewood strength `exp(−c log P·loglog T/log T)` — which is what the tree's
+  `zeta_zero_free_region` (`σ ≤ 1 − c₀/log|t|`) and the Track L van der Corput theory (`zeta_head_bound`, `≍ log t/loglog t`) reach — gives
+  only `(log A)^{−cθ}` at `P = A^θ`, and no choice of `V₀` or `θ` closes `Γ ≤ 1` against that). A zero-free region of width `(log t)^{−(1−η)}`,
+  `η > 0` (Chudakov `3/4+ε`, Vinogradov–Korobov `2/3`), needs a Vinogradov mean value theorem in at least its classical weak form, absent from
+  Mathlib and from the tree. Options, in order: (a) formalize Titchmarsh Ch. 6 (Vinogradov's method for `∑ n^{−it}` near `σ = 1`, Chudakov's
+  region, the `ζ'/ζ` Mellin shift of `[MR]` Lemma 2, then Lemma 8's duality) — a campaign of its own; (b) look for a consumer redesign of the
+  exceptional leg that does not count the large set through prime polynomials (none is known: `[MR]`'s `𝒰` treatment is the only route and
+  `[mrt]` App. A cites Vinogradov–Korobov explicitly). Until (a) lands, `trackR_edp` (after H: `trackR_edp_halasz`) is the honest endpoint:
+  EDP conditional on exactly `PrimeLargeValuesAssumption`.
+
+### Phase 6 — the Vinogradov campaign: discharging `PrimeLargeValuesAssumption` (2026-09-06, design)
+
+**The source.** `[MR]` Lemma 8 (ar5iv 1501.04585): for `P(s) = ∑_{P≤p≤2P} a_p p^{−s}`, `|a_p| ≤ 1`, and `𝒯 ⊂ [−T, T]` well-spaced,
+`∑_{t∈𝒯}|P(it)|² ≪ [P + |𝒯|·P·exp(−log P/(log T)^{2/3+ε})(log T)²]·∑_p |a_p|²/log P`. Proof: the duality principle (their Lemma 10) on the
+matrix `(p^{it})_{p,t}` reduces it to `∑_p log p·|∑_t η_t p^{it}|²`; the prime sum with a smooth weight is a Mellin integral of `−ζ'/ζ`, the
+contour is shifted to `Re s = 1 − c(log T)^{−2/3+ε}` inside the Vinogradov–Korobov zero-free region, where `ζ'/ζ ≪ (log T)^{5/3+ε}`; the pole
+at `s = 1` gives the diagonal `P` because the Mellin transform of the smooth weight decays and `∑_t |ŵ(1 + i(t − t'))| = O(1)` over well-spaced
+points (no Hilbert inequality needed); cross terms by `|η_tη_{t'}| ≤ |η_t|² + |η_{t'}|²`.
+
+**What the consumer needs, exactly.** L3-5's `Γ ≤ 1` uses the saving against the count loss `(log A)^{200ℓ}`, `ℓ ≍ log T/log P_𝒰`, with
+`P_𝒰 = exp((log A)^{1−κ})`: a zero-free region of width `η(t) ≥ (log t)^{−(1−δ)}` gives saving exponent `(log A)^{δ−κ}` against loss
+`(log A)^{κ}·loglog A`, so **any fixed `δ > 0` works** (take `κ := δ/3`); the tree's regions — de la Vallée Poussin (`zeta_zero_free_region`,
+width `c₀/log t`) and the Littlewood strength reachable by Weyl differencing (`zeta_head_bound`, `log t/loglog t`) — are `δ = 0` and provably
+insufficient (Phase 5). The interface's literal `exp(−log P/(log 2T)^{3/4})` with constant `64` and no `ε` is **not** what the literature gives
+(the VK width `c/((log t)^{2/3}(loglog t)^{1/3})` beats `(log t)^{−3/4}` only for `log t ≳ e^{72}`; for smaller `T` an `ε`-dependent constant absorbs
+the small-`T` range as in `[MR]`'s `≪_ε`). Hence unit V-0 below.
+
+**Units.**
+- **V-0 — the honest interface.** `PrimeLargeValuesAssumption.bound` becomes `∃ C, 1 ≤ C ∧ ∀ P Y a T 𝒯, 2 ≤ P → 1 ≤ T → … ≤ C·(1 + #𝒯·exp(−log P/(log 2T)^{θ})·(log 2T)²)·(∑‖a_p‖²/p²)·P/log P`
+  with a named exponent `primeLargeValuesExponent : ℝ := 4/5` (Chudakov's region `1 − c/((log t)^{3/4}(loglog t)^{3/4})`, Titchmarsh Thm 6.15,
+  beats `(log t)^{−4/5}` for large `t`; VK beats it sooner). Consumers: `sum_prime_integer_energy_large_card_le` and the recut/L3 files
+  replace the literal `64` by the class's `C` (a fixed constant in the numerology) and the literal `3/4` by the named exponent; L3-5's margin becomes
+  `49/50 − 4/5 = 0.18` (against `(log A)^{1/50} loglog A`, still fine). Pins of `sliceMeanSquareA2`, `trackR_edp` (and `trackR_edp_halasz`) unchanged.
+- **V-A — prime sums from a zero-free region** (nucleus): a class-free theorem parametrized by a region: if `ζ(s) ≠ 0` for `Re s > 1 − η`,
+  `|Im s| ≤ 2T + 2`, and `‖ζ'/ζ(s)‖ ≤ M` on `Re s = 1 − η/2` there (both to be supplied by V-C, with `M = (log 2T)^{c}`), then for a smooth
+  `w` supported on `[P, 2P]` (a fixed `ContDiffBump`-type profile) and `1 ≤ |u| ≤ 2T`:
+  `‖∑_n Λ(n) w(n) n^{−iu}‖ ≤ ‖ŵ(1 − iu)‖ + C·M·P^{1−η/2}·(polylog)` — Mellin inversion (Mathlib `MellinInversion`), `−ζ'/ζ = ∑ Λ(n)n^{−s}`
+  (Mathlib `LSeries_vonMangoldt_eq_deriv_riemannZeta_div`), the residue at `s = 1`, the shifted contour, and the decay `‖ŵ(σ + iu)‖ ≪ P^{σ}/|u|²`.
+  The sum over primes `p ∈ [P, 2P]` with weight `log p` differs from the `Λ`-sum by prime powers, `O(√P)`.
+- **V-B — Lemma 8 from V-A** (nucleus): duality (H-1's `sum_norm_sq_le_norm_sq_mul_sup_kernel`, or `[MR]` Lemma 10's form), the weight
+  `log p ≥ log P` absorbed, the pole terms summed over well-spaced points by the `1/|t−t'|²` decay, the cross terms by
+  `|η_tη_{t'}| ≤ |η_t|² + |η_{t'}|²`; conclusion in V-0's shape with `θ` any exponent for which `η(T) ≥ (log 2T)^{−θ}` — stated with `η, M` as
+  parameters, so that V-A/V-B compose with **any** region. As an intermediate milestone this replaces `PrimeLargeValuesAssumption` by the canonical
+  `ZeroFreeRegionAssumption θ` (a zero-free region of width `(log t)^{−θ}` with the `ζ'/ζ` bound), a far more standard citation.
+- **V-C — the region** (the long pole; Karatsuba, *Basic Analytic Number Theory*, Ch. VI, or Ford, arXiv:1910.08209 for explicit constants):
+  **V-C1** Vinogradov's mean value theorem in a weak explicit form (`J_{s,k}(P) ≤ C P^{2s − k(k+1)/2 + Δ_{s,k}}`, `Δ → 0` as `s/k² → ∞`; the
+  elementary `p`-adic (Linnik–Karatsuba) proof); **V-C2** the exponential-sum bound for `∑_{N<n≤2N} n^{−it}` via Vinogradov's method (Hölder + the
+  counting argument); **V-C3** `‖ζ(σ + it)‖ ≤ A t^{B(1−σ)^{a}}(log t)^{b}` near `σ = 1` (any `a > 5/4` suffices for `θ = 4/5`; Ford: `a = 3/2`,
+  `A = 76.2`, `B = 4.45`, `b = 2/3`); **V-C4** the region from V-C3 through the tree's Landau/3-4-1 assembly (`zeta_landau_core`,
+  `zeta_norm_lower_341`, `landau_inequality`) with the ζ-bound as a parameter, plus the `ζ'/ζ` bound in the region (Borel–Carathéodory,
+  `norm_logDeriv_le_of_ratio_le`). V-C4 first against `zeta_norm_upper` (reproducing de la Vallée Poussin) validates the parametrization.
+- **Order.** V-0 → H (running) → V-A → V-B → V-C4 (parametrized) → V-C1 → V-C2 → V-C3 → the instance → the unconditional `erdos_discrepancy` and the
+  card checkbox. Everything downstream of V-B is a statement about `ζ` alone.
+
+### I-1 + H as run — status (2026-09-06, Codex runs 16–17; report in `Problems/tao2015_h_report.md`)
+
+**I-1** both large-values fields require `1 ≤ T` (run 16's counterexample; consumers threaded; pins identical). **H** `MoltResearch/Discrepancy/HalaszMontgomeryLargeValues.lean`:
+`sum_norm_sq_le_norm_sq_mul_sup_kernel` (duality/Schur), `norm_halaszKernel_le` (`C₁ = 40`, `vdc2` + `kusmin_landau`), the well-spaced packing
+lemmas (`∑_{s≠t} 1/|t−s| ≤ 2(log 2T + 1)`, `∑_{s≠t} √|t−s| ≤ #𝒯·√(2T)`), `sum_norm_halaszKernel_sub_le_sixty_four`, and
+**`halaszMontgomery_large_values`** = IK 9.6 with the class's exact constant `64`; `TrackCStage5LargeValuesDischarge.lean` declares
+`instance : HalaszLargeValuesAssumption` and **`trackR_edp_halasz [PrimeLargeValuesAssumption]`** (EDP for every sign sequence conditional on the
+prime large-values interface alone), pinned. **The whole Track R chain now rests on `PrimeLargeValuesAssumption` only.** Next: Phase 6 (V-0 …).
+
 ### Dependency order
 
 ```

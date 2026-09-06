@@ -180,24 +180,25 @@ an instance, and neither may be given one until formalized.
 
 ### Iwaniec–Kowalski, *Analytic Number Theory* (AMS Colloq. Publ. 53, 2004), Theorem 9.6
 
-> For a Dirichlet polynomial of length `N` and points `t₁, …, t_R ∈ [−T, T]` that are
+> For `T ≥ 1`, a Dirichlet polynomial of length `N`, and points `t₁, …, t_R ∈ [−T, T]` that are
 > pairwise separated by at least `1`,
 > `∑_r |∑_{n≤N} a_n n^{−it_r}|² ≪ (N + R√T)·log(2T)·∑_{n≤N} |a_n|²/n²`.
 
 Lean: `HalaszLargeValuesAssumption`. Deviations, all in the direction of a weaker (easier to
 discharge, still sufficient) statement: the implied constant is fixed at `64`; `log(2T)` is
 written `log(2T) + 1`; coefficients are `1/n`-normalised to match the repo's phase-polynomial
-convention (`a n/n · e(−t log n)`).
+convention (`a n/n · e(−t log n)`).  The source range `T ≥ 1` is an explicit hypothesis.
 
 ### Matomäki–Radziwiłł, *Multiplicative functions in short intervals*, Annals 183 (2016), Lemma 8
 
-> For a Dirichlet polynomial supported on the primes of `[P, 2P]` and `1`-separated points
+> For `T ≥ 1`, a Dirichlet polynomial supported on the primes of `[P, 2P]` and `1`-separated points
 > in `[−T, T]`, the same sum is bounded by
 > `(1 + R·exp(−log P/(log 2T)^{2/3+ε})·(log 2T)²)·(∑_p |a_p|²/p²)·P/log P`.
 
 Lean: `PrimeLargeValuesAssumption`. Deviations: constant fixed at `64`; the exponent
 `2/3 + ε` is replaced by the fixed rational `3/4` (any exponent `< 1` carries the consumer,
-and a numeral keeps the class statement free of an extra quantifier).
+and a numeral keeps the class statement free of an extra quantifier).  The source range
+`T ≥ 1` is an explicit hypothesis.
 
 **This is the irreducible input.** Its only known proof is duality plus a Mellin shift of
 `ζ'/ζ` into the Vinogradov–Korobov zero-free region; there is no elementary argument, and no

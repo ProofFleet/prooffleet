@@ -59,7 +59,7 @@ theorem sum_prime_integer_energy_le [HalaszLargeValuesAssumption]
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hYP : ∀ p ∈ Y, P ≤ p ∧ p ≤ 2*P) (b : ℕ → ℂ)
     (N : ℕ) (a : ℕ → ℂ)
-    (T : ℝ) (hT : 0 < T) (𝒯 : Finset ℝ)
+    (T : ℝ) (hT : 1 ≤ T) (𝒯 : Finset ℝ)
     (hmem : ∀ t ∈ 𝒯, |t| ≤ T)
     (hsep : ∀ t ∈ 𝒯, ∀ u ∈ 𝒯, t ≠ u → 1 ≤ |t - u|)
     (V₀ δ : ℝ) (hV₀ : 0 ≤ V₀)
@@ -143,7 +143,7 @@ theorem sum_prime_integer_energy_card_free_le [HalaszLargeValuesAssumption]
     (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
     (N : ℕ) (a : ℕ → ℂ)
-    (T : ℝ) (hT : 0 < T) (𝒯 : Finset ℝ)
+    (T : ℝ) (hT : 1 ≤ T) (𝒯 : Finset ℝ)
     (hmem : ∀ t ∈ 𝒯, |t| ≤ T)
     (hsep : ∀ t ∈ 𝒯, ∀ u ∈ 𝒯, t ≠ u → 1 ≤ |t - u|)
     (V₀ δ lam : ℝ) (hV₀ : 0 < V₀) (hlam : 0 < lam)
@@ -180,7 +180,7 @@ theorem sum_prime_integer_energy_card_free_le [HalaszLargeValuesAssumption]
     rw [h𝒯L] at ht
     exact (Finset.mem_filter.mp ht).2.le
   have hcardV := MoltResearch.card_large_prime_poly_le Y hY P (by omega) hlo hhi
-    b hb 𝒯L T V₀ lam hT.le hV₀.le hlam hmemL hsepL hlargeQ
+    b hb 𝒯L T V₀ lam (zero_le_one.trans hT) hV₀.le hlam hmemL hsepL hlargeQ
   have hcard : (𝒯L.card : ℝ)
       ≤ (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
           * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
@@ -326,7 +326,7 @@ theorem setIntegral_band_energy_exceptional_le [HalaszLargeValuesAssumption]
       obtain ⟨htm, htl⟩ := Finset.mem_filter.mp ht
       exact hδ t (hmem t htm) htl
     have hc3 := sum_prime_integer_energy_card_free_le P hP Y hY hlo hhi b hb N a
-      T hT (K'.image τ) hmem hsep V₀ δ lam hV₀ hlam hlargeF
+      T hT1 (K'.image τ) hmem hsep V₀ δ lam hV₀ hlam hlargeF
     refine hc3.trans ?_
     have hcard : ((K'.image τ).card : ℝ) ≤ (K.card : ℝ) := by
       exact_mod_cast (Finset.card_image_le).trans (Finset.card_le_card hK'K)
@@ -467,7 +467,7 @@ theorem setIntegral_band_energy_exceptional_max_le [HalaszLargeValuesAssumption]
       obtain ⟨htm, htl⟩ := Finset.mem_filter.mp ht
       exact hδ t (hmem t htm) htl
     have hc3 := sum_prime_integer_energy_card_free_le P hP Y hY hlo hhi b hb N a
-      T hT (K'.image τ) hmem hsep V₀ δ lam hV₀ hlam hlargeF
+      T hT1 (K'.image τ) hmem hsep V₀ δ lam hV₀ hlam hlargeF
     refine hc3.trans ?_
     have hcard : ((K'.image τ).card : ℝ) ≤ (K.card : ℝ) := by
       exact_mod_cast (Finset.card_image_le).trans (Finset.card_le_card hK'K)
