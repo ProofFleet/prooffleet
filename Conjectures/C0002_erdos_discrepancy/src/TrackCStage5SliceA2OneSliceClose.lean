@@ -18,10 +18,10 @@ open Real Finset MeasureTheory ExpSums
 /-- At the final parameters the exceptional sharpness is automatically in
 the unit range required by the inner capstone. -/
 theorem sliceA2ExceptionalEpsilonPrime_le_eight_exp
-    (A1 : ℕ) (epsc eps rho0 : ℝ)
+    (Cp : ℝ) (A1 : ℕ) (epsc eps rho0 : ℝ)
     (heps0 : 0 ≤ eps) (heps1 : eps ≤ 1)
     (hrho0 : 0 ≤ rho0) (hrho1 : rho0 ≤ 1) :
-    sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 ≤ 8 * Real.exp 1 := by
+    sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 ≤ 8 * Real.exp 1 := by
   have hsqrtRho : Real.sqrt rho0 ≤ 1 := by
     rw [← Real.sqrt_one]
     exact Real.sqrt_le_sqrt hrho1
@@ -35,32 +35,32 @@ theorem sliceA2ExceptionalEpsilonPrime_le_eight_exp
       have := exceptionalIntervalRatio_three_le epsc
       omega)
   have hM : (1 : ℝ) ≤
-      sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0 := by
+      sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0 := by
     unfold sliceA2ExceptionalPrimeCoefficient
     exact le_max_left _ _
   have hsqrtM : 1 ≤ Real.sqrt
-      (sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0) := by
+      (sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0) := by
     rw [← Real.sqrt_one]
     exact Real.sqrt_le_sqrt hM
   have hexp : (1 : ℝ) ≤ Real.exp 13 := Real.one_le_exp (by norm_num)
   have hden : (1 : ℝ) ≤
       8 * Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) *
-        Real.sqrt (sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0) := by
+        Real.sqrt (sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0) := by
     calc
       (1 : ℝ) ≤ 8 := by norm_num
       _ ≤ 8 * Real.exp 13 := by nlinarith
       _ ≤ 8 * Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) :=
         le_mul_of_one_le_right (by positivity) hR
       _ ≤ 8 * Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) *
-          Real.sqrt (sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0) :=
+          Real.sqrt (sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0) :=
         le_mul_of_one_le_right (by positivity) hsqrtM
   have hdenPos : 0 <
       8 * Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) *
-        Real.sqrt (sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0) :=
+        Real.sqrt (sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0) :=
     zero_lt_one.trans_le hden
   have hquot : eps * Real.sqrt rho0 /
       (8 * Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) *
-        Real.sqrt (sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0)) ≤ 1 := by
+        Real.sqrt (sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0)) ≤ 1 := by
     rw [div_le_one hdenPos]
     exact hnum.trans hden
   unfold sliceA2ExceptionalEpsilonPrime exceptionalEpsilonPrime
@@ -73,7 +73,8 @@ set_option maxHeartbeats 4000000 in
 canonical final level list obeys the explicit one-slice mean-square bound
 uniformly in a quadratic scale window. -/
 theorem exists_sliceA2_one_slice_closed
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprimeBound : PrimeLargeValuesBound Cp)
     (epsc eps : ℝ) (H P0 Qlog0 : ℕ) (Amin : ℝ)
     (hepsc : 0 < epsc) (heps : 0 < eps) (hP0 : 21 ≤ P0)
     (hgeom : 100 ≤ sliceA2GeomEps eps * H)
@@ -88,7 +89,7 @@ theorem exists_sliceA2_one_slice_closed
         sliceA2EffectiveEps eps * H)
     (hbottom :
       SliceA2OrdinaryBottomClosed P0 (exceptionalIntervalRatio epsc)
-        (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+        (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100)
           (1 / (4 * sliceA2Parts eps))) Qlog0
         (sliceA2EffectiveEps eps / 100)
@@ -99,7 +100,7 @@ theorem exists_sliceA2_one_slice_closed
       (T / (A : ℝ)) *
           sliceA2OrdinaryZeroFrequencyCoefficient P0
             (exceptionalIntervalRatio epsc)
-            (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+            (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
               (sliceA2EffectiveEps eps / 100)
               (1 / (4 * sliceA2Parts eps)))
             (sliceA2EffectiveEps eps / 100)
@@ -108,14 +109,14 @@ theorem exists_sliceA2_one_slice_closed
           ((sliceA2EffectiveEps eps / 100) ^ 2 *
             (1 / (4 * sliceA2Parts eps)) / 8) →
       SliceA2OrdinaryZeroFits P0 (exceptionalIntervalRatio epsc)
-        (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+        (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100)
           (1 / (4 * sliceA2Parts eps))) A
         (sliceA2EffectiveEps eps / 100)
         (1 / (4 * sliceA2Parts eps)) T)
     (hfirst : 1 ≤
       (sliceA2LadderP P0 (exceptionalIntervalRatio epsc)
-        (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+        (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100)
           (1 / (4 * sliceA2Parts eps))) 1 : ℝ) *
         (2 * sliceA2OuterConstant *
@@ -127,7 +128,7 @@ theorem exists_sliceA2_one_slice_closed
             (sliceA2EffectiveEps eps * H)) *
         sliceA2OrdinaryZeroFrequencyCoefficient P0
           (exceptionalIntervalRatio epsc)
-          (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+          (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
             (sliceA2EffectiveEps eps / 100)
             (1 / (4 * sliceA2Parts eps)))
           (sliceA2EffectiveEps eps / 100)
@@ -145,7 +146,7 @@ theorem exists_sliceA2_one_slice_closed
             ‖∑ m ∈ (Finset.Ioc n (n + H)).filter
                 (HasFactorInAll
                   (sliceA2FinalLevels P0 (exceptionalIntervalRatio epsc)
-                    (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+                    (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
                       (sliceA2EffectiveEps eps / 100)
                       (1 / (4 * sliceA2Parts eps))) A1 epsc (by omega))),
               g m‖ ^ 2 / n ≤
@@ -157,7 +158,7 @@ theorem exists_sliceA2_one_slice_closed
   let M := sliceA2Parts eps
   let rho0 : ℝ := 1 / (4 * M)
   let ratio0 := exceptionalIntervalRatio epsc
-  let eta := sliceA2ExceptionalLadderEta e epsc eb rho0
+  let eta := sliceA2ExceptionalLadderEta Cp e epsc eb rho0
   let c := sliceA2OuterConstant *
     explicitSliceWindowDerivBound (sliceA2GeomEps eps) / (e * H)
   let coeff := sliceA2OrdinaryZeroFrequencyCoefficient
@@ -169,18 +170,18 @@ theorem exists_sliceA2_one_slice_closed
   have hrho : 0 < rho0 := by dsimp [rho0]; positivity
   have heta : 1 ≤ eta := by
     dsimp [eta]
-    exact sliceA2ExceptionalLadderEta_one_le e epsc eb rho0
+    exact sliceA2ExceptionalLadderEta_one_le Cp e epsc eb rho0
   have hlow : 0 < e := he
   obtain ⟨AW, hAW⟩ := exists_sliceA2WindowClosed eps H heps
     hgeom hround hlipschitz houter
   obtain ⟨AG, hAG⟩ := exists_sliceA2Exceptional_aggregate_closed_uniform_two
-    P0 ratio0 e epsc eb rho0 (by omega) hlow heb hrho
+    Cp hCp1 P0 ratio0 e epsc eb rho0 (by omega) hlow heb hrho
   obtain ⟨D, AD, hD, hDeltaClose⟩ := exists_sliceA2Exceptional_delta_bound_two
-    P0 ratio0 e epsc eb rho0 (by omega) hlow hepsc heb hrho
+    Cp P0 ratio0 e epsc eb rho0 (by omega) hlow hepsc heb hrho
   obtain ⟨AS, hAS⟩ := exists_sliceA2Ordinary_scale_margins
     P0 ratio0 eta epsc eb rho0 (by omega) heta heb hrho
   obtain ⟨AR, hAR⟩ := exists_sliceA2ExceptionalLadder_low_remainder
-    P0 ratio0 e epsc eb rho0 (by omega) hlow hepsc heb hrho
+    Cp P0 ratio0 e epsc eb rho0 (by omega) hlow hepsc heb hrho
   obtain ⟨AH, hAH⟩ := exists_sliceA2Exceptional_anchor_margins epsc eb rho0
   obtain ⟨AU, hAU⟩ := exists_sliceA2Exceptional_wide_margins
     epsc eb rho0 heb hrho
@@ -377,9 +378,9 @@ theorem exists_sliceA2_one_slice_closed
       apply (Real.le_sqrt (by positivity) (by positivity)).2
       simpa using hrad
     exact_mod_cast hsqrt.trans (exceptionalSharpCutoff_real_lower X)
-  have hdeltaOne : sliceA2ExceptionalEpsilonPrime A1 epsc eb rho0 ≤
+  have hdeltaOne : sliceA2ExceptionalEpsilonPrime Cp A1 epsc eb rho0 ≤
       8 * Real.exp 1 := by
-    apply sliceA2ExceptionalEpsilonPrime_le_eight_exp
+    apply sliceA2ExceptionalEpsilonPrime_le_eight_exp Cp
     · exact heb.le
     · dsimp [eb, e]
       linarith
@@ -404,7 +405,7 @@ theorem exists_sliceA2_one_slice_closed
       Real.log (Real.log (exceptionalSharpCutoff X : ℝ)) + 12)
     (sliceA2Exceptional_sharp_logLoss_le X (by omega))
     (by simpa [logMargin] using hstrengthD)
-  have hinner := sliceA2_inner_band_closed g hcm hg X Delta H P0 ratio0 A1
+  have hinner := sliceA2_inner_band_closed Cp hCp1 hprimeBound g hcm hg X Delta H P0 ratio0 A1
     e epsc eb rho0 K1 K2 T hP0 hX hH hDelta hlow heb hrho hT1 hTK2
     (by
       have hM30 := (sliceA2Parts_bounds eps heps).2.1

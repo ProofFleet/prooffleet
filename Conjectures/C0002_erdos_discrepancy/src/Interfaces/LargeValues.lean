@@ -34,8 +34,8 @@ Sources:
 The integer-supported class is now discharged in
 `TrackCStage5LargeValuesDischarge.lean` by the in-tree theorem
 `MoltResearch.halaszMontgomery_large_values`.  No instance of the prime-supported
-class is declared here: consumers must continue to carry that theorem of the
-literature as a hypothesis.  Both statements are transcribed in
+class is declared here until Phase 6 lands: consumers must continue to carry that
+theorem of the literature as a hypothesis.  Both statements are transcribed in
 `Problems/sources/tao2015_statements.md` and should be diffed against that file,
 not against this docstring.
 -/
@@ -69,10 +69,15 @@ class HalaszLargeValuesAssumption : Prop where
       ≤ 64 * ((N:ℝ) + (𝒯.card:ℝ) * Real.sqrt T) * (Real.log (2*T) + 1)
           * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2
 
+/-- The exponent of the prime large-values saving: Chudakov's region
+`1 − c/((log t)^{3/4}(loglog t)^{3/4})` beats `(log t)^{−4/5}`. -/
+noncomputable def primeLargeValuesExponent : ℝ := 4 / 5
+
 /-- **Halász large values, prime support** (Matomäki–Radziwiłł, Annals 183 (2016),
 Lemma 8): for a Dirichlet polynomial supported on primes of a dyadic range
 `[P, 2P]`, the count of `1`-separated large points is smaller than the
-integer-support bound by a factor `exp(−log P/(log 2T)^{3/4})`.
+integer-support bound by a factor
+`exp(−log P/(log 2T)^primeLargeValuesExponent)`.
 
 This saving is the whole content, and it is not elementary: the known proof is
 duality plus a Mellin shift of `ζ'/ζ` into the Vinogradov–Korobov zero-free region.
@@ -80,19 +85,22 @@ duality plus a Mellin shift of `ζ'/ζ` into the Vinogradov–Korobov zero-free 
 The source lemma is used only in its stated large-height range; we record that
 range as `T ≥ 1`, which also makes every real power of `log (2*T)` unambiguous.
 
-The exponent is stated as `3/4` where `[MR]` has `2/3 + ε`; any exponent `< 1`
-carries the consumer, and a fixed rational keeps the statement clean.
+The source has an `ε`-dependent implied constant and exponent `2/3 + ε`.
+Here that constant is recorded honestly by `∃ C`, so it can absorb the
+small-height range, and the named exponent is the fixed choice `4/5 < 1` needed
+by the consumer.
 
-No instance may be declared — see the module docstring. -/
+No instance may be declared until Phase 6 lands — see the module docstring. -/
 class PrimeLargeValuesAssumption : Prop where
-  bound : ∀ (P : ℕ) (Y : Finset ℕ), (∀ p ∈ Y, p.Prime) →
+  bound : ∃ C : ℝ, 1 ≤ C ∧ ∀ (P : ℕ) (Y : Finset ℕ), (∀ p ∈ Y, p.Prime) →
     (∀ p ∈ Y, P ≤ p ∧ p ≤ 2*P) → ∀ (a : ℕ → ℂ) (T : ℝ) (𝒯 : Finset ℝ),
     2 ≤ P → 1 ≤ T → (∀ t ∈ 𝒯, |t| ≤ T) →
     (∀ t ∈ 𝒯, ∀ u ∈ 𝒯, t ≠ u → 1 ≤ |t - u|) →
     ∑ t ∈ 𝒯, ‖∑ p ∈ Y, (a p/(p:ℂ))
         * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖^2
-      ≤ 64 * (1 + (𝒯.card:ℝ)
-              * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+      ≤ C * (1 + (𝒯.card:ℝ)
+              * Real.exp (-(Real.log P /
+                (Real.log (2*T))^primeLargeValuesExponent))
               * (Real.log (2*T))^2)
           * (∑ p ∈ Y, ‖a p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P
 

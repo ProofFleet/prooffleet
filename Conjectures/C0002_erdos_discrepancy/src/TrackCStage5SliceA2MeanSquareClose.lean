@@ -17,7 +17,7 @@ open Finset ExpSums
 
 /-- All data fixed at the short-interval height before the base scale is
 chosen. -/
-def SliceA2HeightClosed (epsc eps : ℝ) (H P0 : ℕ) : Prop :=
+def SliceA2HeightClosed (Cp epsc eps : ℝ) (H P0 : ℕ) : Prop :=
   ∃ Qlog0 : ℕ,
     21 ≤ P0 ∧
     100 ≤ sliceA2GeomEps eps * H ∧
@@ -29,7 +29,7 @@ def SliceA2HeightClosed (epsc eps : ℝ) (H P0 : ℕ) : Prop :=
         explicitSliceWindowDerivBound (sliceA2GeomEps eps) ≤
       sliceA2EffectiveEps eps * H ∧
     SliceA2OrdinaryBottomClosed P0 (exceptionalIntervalRatio epsc)
-      (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+      (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
         (sliceA2EffectiveEps eps / 100)
         (1 / (4 * sliceA2Parts eps))) Qlog0
       (sliceA2EffectiveEps eps / 100)
@@ -40,7 +40,7 @@ def SliceA2HeightClosed (epsc eps : ℝ) (H P0 : ℕ) : Prop :=
       (T / (A : ℝ)) *
           sliceA2OrdinaryZeroFrequencyCoefficient P0
             (exceptionalIntervalRatio epsc)
-            (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+            (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
               (sliceA2EffectiveEps eps / 100)
               (1 / (4 * sliceA2Parts eps)))
             (sliceA2EffectiveEps eps / 100)
@@ -49,14 +49,14 @@ def SliceA2HeightClosed (epsc eps : ℝ) (H P0 : ℕ) : Prop :=
           ((sliceA2EffectiveEps eps / 100) ^ 2 *
             (1 / (4 * sliceA2Parts eps)) / 8) →
       SliceA2OrdinaryZeroFits P0 (exceptionalIntervalRatio epsc)
-        (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+        (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100)
           (1 / (4 * sliceA2Parts eps))) A
         (sliceA2EffectiveEps eps / 100)
         (1 / (4 * sliceA2Parts eps)) T) ∧
     1 ≤
       (sliceA2LadderP P0 (exceptionalIntervalRatio epsc)
-        (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+        (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100)
           (1 / (4 * sliceA2Parts eps))) 1 : ℝ) *
         (2 * sliceA2OuterConstant *
@@ -67,7 +67,7 @@ def SliceA2HeightClosed (epsc eps : ℝ) (H P0 : ℕ) : Prop :=
             (sliceA2EffectiveEps eps * H)) *
         sliceA2OrdinaryZeroFrequencyCoefficient P0
           (exceptionalIntervalRatio epsc)
-          (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+          (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
             (sliceA2EffectiveEps eps / 100)
             (1 / (4 * sliceA2Parts eps)))
           (sliceA2EffectiveEps eps / 100)
@@ -80,14 +80,15 @@ set_option maxHeartbeats 5000000 in
 /-- A closed fixed-height ledger gives the full dyadic-slice mean-square
 clause for the canonical levels. -/
 theorem exists_sliceA2_meanSquare_closed
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprimeBound : PrimeLargeValuesBound Cp)
     (epsc eps : ℝ) (H P0 : ℕ) (Amin : ℝ)
     (hepsc : 0 < epsc) (heps : 0 < eps)
-    (hheight : SliceA2HeightClosed epsc eps H P0) :
+    (hheight : SliceA2HeightClosed Cp epsc eps H P0) :
     ∃ A0 : ℝ, 1 ≤ A0 ∧ Amin ≤ A0 ∧
       ∀ A1 : ℕ, A0 ≤ A1 →
         let levels := sliceA2FinalLevels P0 (exceptionalIntervalRatio epsc)
-          (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+          (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
             (sliceA2EffectiveEps eps / 100)
             (1 / (4 * sliceA2Parts eps))) A1 epsc (by
               rcases hheight with ⟨_, hP0, _⟩
@@ -105,11 +106,11 @@ theorem exists_sliceA2_meanSquare_closed
   rcases hheight with ⟨Qlog0, hP0, hgeom, hround, hlipschitz, houter,
     hbottom, hlogFit, hzeroClose, hfirst, hfrequency⟩
   obtain ⟨A0, hA0, hM0, hAmin, hlocal⟩ := exists_sliceA2_one_slice_closed
-    epsc eps H P0 Qlog0 Amin hepsc heps hP0 hgeom hround hlipschitz houter
+    Cp hCp1 hprimeBound epsc eps H P0 Qlog0 Amin hepsc heps hP0 hgeom hround hlipschitz houter
     hbottom hlogFit hzeroClose hfirst hfrequency
   refine ⟨A0, hA0, hAmin, fun A1 hA1 => ?_⟩
   let levels := sliceA2FinalLevels P0 (exceptionalIntervalRatio epsc)
-    (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+    (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
       (sliceA2EffectiveEps eps / 100)
       (1 / (4 * sliceA2Parts eps))) A1 epsc (by omega)
   dsimp only

@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5BandEnergyExceptional
+import MoltResearch.Discrepancy.ExceptionalConstants
 
 /-!
 # The `[mrt]` A.2 band capstone, conditional half (Track R, A2-III, VI-1d)
@@ -68,7 +69,8 @@ the same one `BandSchedule`'s module note sets aside.  What is closed here is th
 *shape*: every part of the band is priced against one budget, in one statement,
 with the conditional part conditional on exactly two quotable hypotheses. -/
 theorem band_energy_le_budget_of_exceptional [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption] {ι : Type*} [DecidableEq ι]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
+    {ι : Type*} [DecidableEq ι]
     (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ ξ, 0 ≤ w ξ)
     (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
     (G : Set ℝ) (𝒮 : Finset ι) (part : ι → Set ℝ)
@@ -105,18 +107,20 @@ theorem band_energy_le_budget_of_exceptional [HalaszLargeValuesAssumption]
     (Aint Bpri Γ : ℝ)
     (hAint : Aint = 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-    (hBpri : Bpri = 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hBpri : Bpri = Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
     (hΓ : Γ = (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
           * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
           * (∑ p ∈ Y, (1:ℝ)/(p:ℝ)))
-        * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+        * Real.exp (-(Real.log P /
+          (Real.log (2*T)) ^ primeLargeValuesExponent))
         * (Real.log (2*T))^2)
     (hA0 : 0 < Aint) (hB0 : 0 < Bpri) (hΓ0 : 0 < Γ)
     (hfitU : 2 * (δ^2 * Bpri + 2 * δ * Real.sqrt (Aint * (Bpri * Γ)))
       ≤ κ u * bandBudget c₃ ε ρ / Cw) :
     (∫ ξ in G, ‖F ξ‖^2 * w ξ) ≤ bandBudget c₃ ε ρ := by
   -- The exceptional part, discharged from the two large-values interfaces.
-  have hU := setIntegral_band_energy_exceptional_le_budget P hP Y hY hlo hhi b hb
+  have hU := setIntegral_band_energy_exceptional_le_budget Cp hCp1 hprime
+    P hP Y hY hlo hhi b hb
     N a T hT1 (part u) K hcoverU hKT δ lam hδ0 hlam hδ Aint Bpri Γ hAint hBpri hΓ
     hA0 hB0 hΓ0 c₃ ε ρ (κ u / Cw) (by rw [div_mul_eq_mul_div]; exact hfitU)
   have hUleg : Cw * ∫ ξ in part u, ‖F ξ‖^2 ≤ κ u * bandBudget c₃ ε ρ := by
@@ -153,9 +157,10 @@ The three bounds it composes:
 * `Aint ≤ 128·(N + 2T^{3/2})·(log 2T + 1)`
   (`integer_largeValues_factor_le`, M-5) — the cover's `#K` is priced by
   `card_cells_le` and the coefficient energy by `integer_energy_le`;
-* `Bpri ≤ 64·256/(log P)²` (`prime_energy_dyadic_le`, M-4) — the `P` of the
+* `Bpri ≤ Cp·256/(log P)²` (`prime_energy_dyadic_le`, M-4) — the `P` of the
   prime large-values theorem cancels the block's `1/P` exactly;
-* `Γ ≤ e^π((T+1)/P + 4)(256/log P + 2048π)e^{−log P/(log 2T)^{3/4}}(log 2T)²`
+* `Γ ≤ e^π((T+1)/P + 4)(256/log P + 2048π)
+    e^{−log P/(log 2T)^primeLargeValuesExponent}(log 2T)²`
   (`exists_lam_exceptional_ratio_le`, M-6), at the balanced Ramaré parameter.
 
 **`lam` disappears rather than being passed through, and that is the point.**
@@ -169,7 +174,8 @@ mass); `hA0` and `hB0` are stated on the literal group expressions because a
 consumer knows its own coefficients and the tree cannot know that they do not
 all vanish. -/
 theorem band_energy_le_budget_of_exceptional_instantiated
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     {ι : Type*} [DecidableEq ι]
     (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ ξ, 0 ≤ w ξ)
     (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
@@ -207,14 +213,15 @@ theorem band_energy_le_budget_of_exceptional_instantiated
             * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2) (part u))
     (hA0 : 0 < 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
-    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+    (hB0 : 0 < Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (Cp * (256 / (Real.log P)^2))
         + 2 * δ * Real.sqrt
             ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log P)^2))
+              * ((Cp * (256 / (Real.log P)^2))
                   * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
                       * (256 / Real.log P + 2048 * Real.pi)
-                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log P /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ u * bandBudget c₃ ε ρ / Cw) :
     (∫ ξ in G, ‖F ξ‖^2 * w ξ) ≤ bandBudget c₃ ε ρ := by
@@ -232,14 +239,16 @@ theorem band_energy_le_budget_of_exceptional_instantiated
     positivity
   -- M-6 supplies the balanced Ramaré parameter and the bound on `Γ` at it
   obtain ⟨lam, hlam0, hΓle⟩ :=
-    exists_lam_exceptional_ratio_le P hP Y hY hlo hhi T hT1
+    exists_lam_exceptional_ratio_le primeLargeValuesExponent
+      P hP Y hY hlo hhi T hT1
   set Aint : ℝ := 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2 with hAint
-  set Bpri : ℝ := 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P with hBpri
+  set Bpri : ℝ := Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P with hBpri
   set Γ : ℝ := (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
         * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
         * (∑ p ∈ Y, (1:ℝ)/(p:ℝ)))
-      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+      * Real.exp (-(Real.log P /
+        (Real.log (2*T)) ^ primeLargeValuesExponent))
       * (Real.log (2*T))^2 with hΓ
   have hΓ0 : 0 < Γ := by
     rw [hΓ]
@@ -251,18 +260,19 @@ theorem band_energy_le_budget_of_exceptional_instantiated
       linarith
     have hlogsq : (0:ℝ) < (Real.log (2*T))^2 := by positivity
     have := Real.exp_pos Real.pi
-    have := Real.exp_pos (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+    have := Real.exp_pos (-(Real.log P /
+      (Real.log (2*T)) ^ primeLargeValuesExponent))
     positivity
   -- the three instantiated bounds, and the seam that lets them discharge `hfitU`
   have hAle : Aint ≤ 128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1) := by
     rw [hAint]
     exact integer_largeValues_factor_le N a ha T hT1 K hKT
-  have hBle : Bpri ≤ 64 * (256 / (Real.log P)^2) := by
+  have hBle : Bpri ≤ Cp * (256 / (Real.log P)^2) := by
     rw [hBpri]
     have := prime_energy_dyadic_le P hP Y hY hlo hhi b hb
-    calc 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P
-        = 64 * ((∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by ring
-      _ ≤ 64 * (256 / (Real.log P)^2) := by gcongr
+    calc Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P
+        = Cp * ((∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by ring
+      _ ≤ Cp * (256 / (Real.log P)^2) := by gcongr
   have hfitU : 2 * (δ^2 * Bpri + 2 * δ * Real.sqrt (Aint * (Bpri * Γ)))
       ≤ κ u * bandBudget c₃ ε ρ / Cw := by
     have hrw : κ u * bandBudget c₃ ε ρ / Cw = (κ u / Cw) * bandBudget c₃ ε ρ := by
@@ -270,13 +280,15 @@ theorem band_energy_le_budget_of_exceptional_instantiated
     rw [hrw] at hfit ⊢
     exact exceptional_fit_of_le Aint Bpri Γ
       (128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-      (64 * (256 / (Real.log P)^2))
+      (Cp * (256 / (Real.log P)^2))
       (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
         * (256 / Real.log P + 2048 * Real.pi)
-        * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+        * Real.exp (-(Real.log P /
+          (Real.log (2*T)) ^ primeLargeValuesExponent))
         * (Real.log (2*T))^2)
       δ c₃ ε ρ (κ u / Cw) hA0.le hB0.le hΓ0.le hδ0.le hAle hBle hΓle hfit
-  exact band_energy_le_budget_of_exceptional F w hw0 Cw hCw hwC G 𝒮 part hmeas
+  exact band_energy_le_budget_of_exceptional Cp hCp1 hprime
+    F w hw0 Cw hCw hwC G 𝒮 part hmeas
     hdisj hcover hint hintw κ c₃ ε ρ hc₃ hρ hκ u hu hleg P hP Y hY hlo hhi b hb
     N a T hT1 K hcoverU hKT δ lam hδ0 hlam0 hδ hfac hintU Aint Bpri Γ hAint hBpri
     hΓ hA0 hB0 hΓ0 hfitU
@@ -308,7 +320,8 @@ The index `u` is `J` rather than an abstract element because the construction
 puts the exceptional part at the top index; `hleg` is correspondingly stated for
 `j ≠ J`. -/
 theorem band_energy_le_budget_of_exceptional_partition
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ ξ, 0 ≤ w ξ)
     (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
     (G : Set ℝ) (hG : MeasurableSet G)
@@ -345,18 +358,20 @@ theorem band_energy_le_budget_of_exceptional_partition
         (bandPartOn Pset J G J))
     (hA0 : 0 < 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
-    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+    (hB0 : 0 < Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (Cp * (256 / (Real.log P)^2))
         + 2 * δ * Real.sqrt
             ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log P)^2))
+              * ((Cp * (256 / (Real.log P)^2))
                   * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
                       * (256 / Real.log P + 2048 * Real.pi)
-                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log P /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ J * bandBudget c₃ ε ρ / Cw) :
     (∫ ξ in G, ‖F ξ‖^2 * w ξ) ≤ bandBudget c₃ ε ρ :=
-  band_energy_le_budget_of_exceptional_instantiated F w hw0 Cw hCw hwC G
+  band_energy_le_budget_of_exceptional_instantiated Cp hCp1 hprime
+    F w hw0 Cw hCw hwC G
     (Finset.range (J + 1)) (bandPartOn Pset J G)
     (fun j _ => bandPartOn_measurableSet Pset hPset J G hG j)
     (bandPartOn_pairwiseDisjoint Pset J G)
@@ -398,7 +413,8 @@ lemma, and the pointwise Halász input `δ` with the instantiated fit.  `F` and
 `w` are continuous and measurable respectively and otherwise still free; binding
 `F` to the `typicalS` polynomial is the A.2 statement itself. -/
 theorem band_energy_le_budget_of_exceptional_inner_band
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (F : ℝ → ℂ) (hF : Continuous F)
     (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
     (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
@@ -426,14 +442,15 @@ theorem band_energy_le_budget_of_exceptional_inner_band
             * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
     (hA0 : 0 < 64 * ((N:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
-    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+    (hB0 : 0 < Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (Cp * (256 / (Real.log P)^2))
         + 2 * δ * Real.sqrt
             ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log P)^2))
+              * ((Cp * (256 / (Real.log P)^2))
                   * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
                       * (256 / Real.log P + 2048 * Real.pi)
-                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log P /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ J * bandBudget c₃ ε ρ / Cw) :
     (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂}, ‖F ξ‖^2 * w ξ)
@@ -451,7 +468,7 @@ theorem band_energy_le_budget_of_exceptional_inner_band
         (fun p => Real.log p)).norm.pow 2).mul
       ((ExpSums.continuous_char_poly (Finset.Icc 1 N) (fun n => a n/(n:ℂ))
         (fun n => Real.log n)).norm.pow 2)
-  exact band_energy_le_budget_of_exceptional_partition F w hw0 Cw hCw hwC
+  exact band_energy_le_budget_of_exceptional_partition Cp hCp1 hprime F w hw0 Cw hCw hwC
     {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} (measurableSet_inner_band K₁ K₂) J Pset hPset
     (fun j _ => integrableOn_norm_sq_inner_band F hF K₁ K₂ _
       (bandPartOn_subset Pset J _ j))
@@ -491,7 +508,7 @@ legs, the shares, the factorisation `hfac` that the `[MR]` decomposition lemma
 (II-2) produces on the exceptional part, and the pointwise Halász input `δ` with
 the instantiated fit. -/
 theorem band_energy_typicalS_le [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
     (levels : List (Finset ℕ))
     (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
@@ -525,14 +542,15 @@ theorem band_energy_typicalS_le [HalaszLargeValuesAssumption]
             * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
     (hA0 : 0 < 64 * ((N:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
-    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+    (hB0 : 0 < Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (Cp * (256 / (Real.log P)^2))
         + 2 * δ * Real.sqrt
             ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log P)^2))
+              * ((Cp * (256 / (Real.log P)^2))
                   * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
                       * (256 / Real.log P + 2048 * Real.pi)
-                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log P /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ J * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) / (4*(H:ℝ)/(A:ℝ))^2) :
     (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂},
@@ -542,7 +560,7 @@ theorem band_energy_typicalS_le [HalaszLargeValuesAssumption]
   have hA0' : (0:ℝ) < (A:ℝ) := by exact_mod_cast hA
   have hH0' : (0:ℝ) < (H:ℝ) := by exact_mod_cast hH
   have hCw : (0:ℝ) < (4*(H:ℝ)/(A:ℝ))^2 := by positivity
-  exact band_energy_le_budget_of_exceptional_inner_band
+  exact band_energy_le_budget_of_exceptional_inner_band Cp hCp1 hprime
     (fun ξ => ∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
       * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
     (ExpSums.continuous_char_poly (typicalS A (A+Δ) levels)
@@ -568,7 +586,7 @@ share, which is exactly the shape `levelJ_le_budget_eadic` (M-9) and
 abstract with `hwsup` its only constraint, and `hfac` and `δ` are still the
 consumer's. -/
 theorem band_energy_typicalS_le_geometric [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
     (levels : List (Finset ℕ))
     (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
@@ -601,21 +619,23 @@ theorem band_energy_typicalS_le_geometric [HalaszLargeValuesAssumption]
             * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
     (hA0 : 0 < 64 * ((N:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-    (hB0 : 0 < 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
-    (hfit : 2 * (δ^2 * (64 * (256 / (Real.log P)^2))
+    (hB0 : 0 < Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hfit : 2 * (δ^2 * (Cp * (256 / (Real.log P)^2))
         + 2 * δ * Real.sqrt
             ((128 * ((N:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log P)^2))
+              * ((Cp * (256 / (Real.log P)^2))
                   * (Real.exp Real.pi * ((T+1)/(P:ℝ) + 4)
                       * (256 / Real.log P + 2048 * Real.pi)
-                      * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log P /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ (1 / 2 ^ (J + 1)) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) / (4*(H:ℝ)/(A:ℝ))^2) :
     (∫ ξ in {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂},
         ‖∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
           * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 * w ξ)
       ≤ bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) :=
-  band_energy_typicalS_le g A Δ H hA hH levels w hwm hw0 hwsup K₁ K₂ J Pset hPset
+  band_energy_typicalS_le Cp hCp1 hprime g A Δ H hA hH levels w hwm hw0 hwsup
+    K₁ K₂ J Pset hPset
     (fun j => 1 / 2 ^ (j + 1)) c₃ ε hc₃ (geometric_shares_le_one (J + 1)) hleg
     P hP Y hY hYne hlo hhi b hb N a ha T hT1 hTK₂ δ hδ0 hδ hfac hA0 hB0 hfit
 

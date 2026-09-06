@@ -500,7 +500,7 @@ its first large previous cell and priced by the moment estimate.  The final
 prime set `Pu` is rotated to the head and supplied to the exceptional
 cell-uniform capstone. -/
 theorem band_energy_typicalS_le_of_levels [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (Pl : ℕ → Finset ℕ) (Pu : Finset ℕ) (J : ℕ)
@@ -668,19 +668,19 @@ theorem band_energy_typicalS_le_of_levels [HalaszLargeValuesAssumption]
             ‖cellBlockCoeff g A (A + Delta) Pu ((List.range J).map Pl) (qu v) n‖ ^ 2 /
               (n : ℝ) ^ 2)
     (hB0 : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
-      0 < 64 * (∑ p ∈ eadicCell Pu (2 * Nu) v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
+      0 < Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
         * (PcU v : ℝ) / Real.log (PcU v))
     (kappaU : ℕ → ℝ)
     (hfitUCell : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
-      2 * ((deltaU v) ^ 2 * (64 * (256 / (Real.log (PcU v)) ^ 2))
+      2 * ((deltaU v) ^ 2 * (Cp * (256 / (Real.log (PcU v)) ^ 2))
         + 2 * deltaU v * Real.sqrt
             ((128 * ((((A + Delta) / qu v : ℕ) : ℝ) + 2 * T * Real.sqrt T)
                 * (Real.log (2 * T) + 1))
-              * ((64 * (256 / (Real.log (PcU v)) ^ 2))
+              * ((Cp * (256 / (Real.log (PcU v)) ^ 2))
                   * (Real.exp Real.pi * ((T + 1) / (PcU v : ℝ) + 4)
                     * (256 / Real.log (PcU v) + 2048 * Real.pi)
                     * Real.exp (-(Real.log (PcU v) /
-                      (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                      (Real.log (2 * T)) ^ primeLargeValuesExponent))
                     * (Real.log (2 * T)) ^ 2))))
         ≤ kappaU v * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
     (hfitU : 2 * ((Finset.Ico v₀u (v₁u + 1)).card : ℝ)
@@ -761,7 +761,8 @@ theorem band_energy_typicalS_le_of_levels [HalaszLargeValuesAssumption]
     rw [← htyp]
     exact hlevelLeg j hj hne
   rw [htyp]
-  exact band_energy_typicalS_le_of_cellUniform_fit g hcm hg A Delta H hA hH hDeltaA
+  exact band_energy_typicalS_le_of_cellUniform_fit Cp hCp1 hprime
+    g hcm hg A Delta H hA hH hDeltaA
     Pu hPu hPAu restU Nu v₀u v₁u hNu hcovU hstableU qu hqcellU hq1U hqminU
     hLAU hLBU w hwm hw0 hwsup K₁ K₂ J Pset hPset c₃ eps hc₃ hlegU
     PcU hPcU hloU hhiU T hT1 hTK₂ deltaU hdeltaU0 hdeltaU hA0 hB0

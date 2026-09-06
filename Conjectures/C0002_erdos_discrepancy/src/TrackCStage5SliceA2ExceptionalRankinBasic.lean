@@ -17,21 +17,21 @@ noncomputable def sliceA2ExceptionalRankinS (A1 : ℕ) (epsc : ℝ) : ℝ :=
   1 / Real.log (exceptionalPrimeUpper A1 epsc : ℝ)
 
 noncomputable def sliceA2ExceptionalTailBudget
-    (epsc eps rho0 : ℝ) : ℝ :=
-  sliceA2ExceptionalEpsilonPrime 0 epsc eps rho0 * Real.exp 13 *
+    (Cp epsc eps rho0 : ℝ) : ℝ :=
+  sliceA2ExceptionalEpsilonPrime Cp 0 epsc eps rho0 * Real.exp 13 *
     (exceptionalIntervalRatio epsc : ℝ)
 
 theorem sliceA2ExceptionalEpsilonPrime_eq_zero
-    (A1 : ℕ) (epsc eps rho0 : ℝ) :
-    sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 =
-      sliceA2ExceptionalEpsilonPrime 0 epsc eps rho0 := by
+    (Cp : ℝ) (A1 : ℕ) (epsc eps rho0 : ℝ) :
+    sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 =
+      sliceA2ExceptionalEpsilonPrime Cp 0 epsc eps rho0 := by
   rfl
 
 theorem sliceA2ExceptionalTailBudget_pos
-    (epsc eps rho0 : ℝ) (heps : 0 < eps) (hrho0 : 0 < rho0) :
-    0 < sliceA2ExceptionalTailBudget epsc eps rho0 := by
+    (Cp epsc eps rho0 : ℝ) (heps : 0 < eps) (hrho0 : 0 < rho0) :
+    0 < sliceA2ExceptionalTailBudget Cp epsc eps rho0 := by
   unfold sliceA2ExceptionalTailBudget
-  have hp := sliceA2ExceptionalEpsilonPrime_pos 0 epsc eps rho0 heps hrho0
+  have hp := sliceA2ExceptionalEpsilonPrime_pos Cp 0 epsc eps rho0 heps hrho0
   have hR : (0 : ℝ) < exceptionalIntervalRatio epsc := by
     exact_mod_cast (show 0 < exceptionalIntervalRatio epsc by
       have := exceptionalIntervalRatio_three_le epsc

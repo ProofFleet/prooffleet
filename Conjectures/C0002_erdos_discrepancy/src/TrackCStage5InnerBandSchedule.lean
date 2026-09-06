@@ -47,8 +47,8 @@ noncomputable def exceptionalIntegerSchedule (A Delta : ℕ)
 
 /-- The schedule upper bound for the prime large-values group of one
 exceptional cell. -/
-noncomputable def exceptionalPrimeSchedule (PcU : ℕ → ℕ) (v : ℕ) : ℝ :=
-  64 * (256 / (Real.log (PcU v)) ^ 2)
+noncomputable def exceptionalPrimeSchedule (Cp : ℝ) (PcU : ℕ → ℕ) (v : ℕ) : ℝ :=
+  Cp * (256 / (Real.log (PcU v)) ^ 2)
 
 /-- The schedule upper bound for the Ramaré ratio group of one exceptional
 cell. -/
@@ -56,7 +56,8 @@ noncomputable def exceptionalRatioSchedule (PcU : ℕ → ℕ)
     (T : ℝ) (v : ℕ) : ℝ :=
   Real.exp Real.pi * ((T + 1) / (PcU v : ℝ) + 4)
     * (256 / Real.log (PcU v) + 2048 * Real.pi)
-    * Real.exp (-(Real.log (PcU v) / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+    * Real.exp (-(Real.log (PcU v) /
+      (Real.log (2 * T)) ^ primeLargeValuesExponent))
     * (Real.log (2 * T)) ^ 2
 
 /-- A covered e-adic level inherits the common prime interval of its cells. -/
@@ -108,7 +109,7 @@ named schedule parameters.  In particular there is no occurrence of
 `collisionEnergyBound`, `cellReplacementEnergyBound`, a cell prime sum, or a
 finite Halász maximum in those hypotheses. -/
 theorem band_energy_typicalS_le_of_schedule [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (h3HA : 3 * H ≤ A)
@@ -258,13 +259,13 @@ theorem band_energy_typicalS_le_of_schedule [HalaszLargeValuesAssumption]
             ‖cellBlockCoeff g A (A + Delta) Pu ((List.range J).map Pl) (qu v) n‖ ^ 2 /
               (n : ℝ) ^ 2)
     (hB0 : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
-      0 < 64 * (∑ p ∈ eadicCell Pu (2 * Nu) v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
+      0 < Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
         * (PcU v : ℝ) / Real.log (PcU v))
     (kappaU : ℕ → ℝ)
     (hscheduleUCell : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
       exceptionalCellScheduleCost
           (exceptionalIntegerSchedule A Delta qu T v)
-          (exceptionalPrimeSchedule PcU v)
+          (exceptionalPrimeSchedule Cp PcU v)
           (exceptionalRatioSchedule PcU T v)
           (exceptionalDeltaSchedule D delta₀ T A Delta ((List.range J).map Pl) qu yU v)
         ≤ kappaU v * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
@@ -477,15 +478,15 @@ theorem band_energy_typicalS_le_of_schedule [HalaszLargeValuesAssumption]
     · exact hyU
     · exact hPuy
   have hfitUCell : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
-      2 * ((deltaU v) ^ 2 * (64 * (256 / (Real.log (PcU v)) ^ 2))
+      2 * ((deltaU v) ^ 2 * (Cp * (256 / (Real.log (PcU v)) ^ 2))
         + 2 * deltaU v * Real.sqrt
             ((128 * ((((A + Delta) / qu v : ℕ) : ℝ) + 2 * T * Real.sqrt T)
                 * (Real.log (2 * T) + 1))
-              * ((64 * (256 / (Real.log (PcU v)) ^ 2))
+              * ((Cp * (256 / (Real.log (PcU v)) ^ 2))
                   * (Real.exp Real.pi * ((T + 1) / (PcU v : ℝ) + 4)
                     * (256 / Real.log (PcU v) + 2048 * Real.pi)
                     * Real.exp (-(Real.log (PcU v) /
-                      (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                      (Real.log (2 * T)) ^ primeLargeValuesExponent))
                     * (Real.log (2 * T)) ^ 2))))
         ≤ kappaU v * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
     intro v hv
@@ -546,7 +547,7 @@ theorem band_energy_typicalS_le_of_schedule [HalaszLargeValuesAssumption]
             * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := hshare
       _ = (1 / 2 ^ (J + 1)) * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) /
             (4 * (H : ℝ) / (A : ℝ)) ^ 2 := by ring
-  apply band_energy_typicalS_le_of_levels
+  apply band_energy_typicalS_le_of_levels Cp hCp1 hprime
     (X := fun j => replacementCost A (Nl j) (bb j) T)
     g hcm hg A Delta H hA hH hDeltaA
     Pl Pu J hPl hPu hPAl hPAu hdisj hdisjU Nl v₀l v₁l ql innerBandScheduleAlpha
@@ -610,7 +611,7 @@ actual dyadic allocation, with no division by the Fourier-weight supremum.  The
 factor `(4H/A)²` consequently remains on the final budget, which is the form
 consumed by `slice_energy_le_of_bands`. -/
 theorem band_energy_typicalS_le_of_schedule' [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (h3HA : 3 * H ≤ A)
@@ -760,13 +761,13 @@ theorem band_energy_typicalS_le_of_schedule' [HalaszLargeValuesAssumption]
             ‖cellBlockCoeff g A (A + Delta) Pu ((List.range J).map Pl) (qu v) n‖ ^ 2 /
               (n : ℝ) ^ 2)
     (hB0 : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
-      0 < 64 * (∑ p ∈ eadicCell Pu (2 * Nu) v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
+      0 < Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
         * (PcU v : ℝ) / Real.log (PcU v))
     (kappaU : ℕ → ℝ)
     (hscheduleUCell : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
       exceptionalCellScheduleCost
           (exceptionalIntegerSchedule A Delta qu T v)
-          (exceptionalPrimeSchedule PcU v)
+          (exceptionalPrimeSchedule Cp PcU v)
           (exceptionalRatioSchedule PcU T v)
           (exceptionalDeltaSchedule D delta₀ T A Delta ((List.range J).map Pl) qu yU v)
         ≤ kappaU v * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
@@ -981,15 +982,15 @@ theorem band_energy_typicalS_le_of_schedule' [HalaszLargeValuesAssumption]
     · exact hyU
     · exact hPuy
   have hfitUCell : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
-      2 * ((deltaU v) ^ 2 * (64 * (256 / (Real.log (PcU v)) ^ 2))
+      2 * ((deltaU v) ^ 2 * (Cp * (256 / (Real.log (PcU v)) ^ 2))
         + 2 * deltaU v * Real.sqrt
             ((128 * ((((A + Delta) / qu v : ℕ) : ℝ) + 2 * T * Real.sqrt T)
                 * (Real.log (2 * T) + 1))
-              * ((64 * (256 / (Real.log (PcU v)) ^ 2))
+              * ((Cp * (256 / (Real.log (PcU v)) ^ 2))
                   * (Real.exp Real.pi * ((T + 1) / (PcU v : ℝ) + 4)
                     * (256 / Real.log (PcU v) + 2048 * Real.pi)
                     * Real.exp (-(Real.log (PcU v) /
-                      (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                      (Real.log (2 * T)) ^ primeLargeValuesExponent))
                     * (Real.log (2 * T)) ^ 2))))
         ≤ kappaU v * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
     intro v hv
@@ -1081,7 +1082,7 @@ theorem band_energy_typicalS_le_of_schedule' [HalaszLargeValuesAssumption]
             * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2 * w xi)
     ≤ Cw * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ))
   rw [← hbudgetScale]
-  apply band_energy_typicalS_le_of_levels
+  apply band_energy_typicalS_le_of_levels Cp hCp1 hprime
     (X := fun j => replacementCost A (Nl j) (bb j) T)
     g hcm hg A Delta H hA hH hDeltaA
     Pl Pu J hPl hPu hPAl hPAu hdisj hdisjU Nl v₀l v₁l ql innerBandScheduleAlpha

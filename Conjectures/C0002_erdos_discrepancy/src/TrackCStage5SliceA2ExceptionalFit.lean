@@ -39,8 +39,9 @@ theorem exceptional_integer_aggregate_fit_ratio
     hA hK hL hq hqQ h2qA hBq hcoeff0 hcoeff).trans hfit
 
 /-- The Brun--Titchmarsh prime-cell aggregate fits its `1/64` allocation.
-The coefficient `32768 = 64 * 512` is independent of the ladder height. -/
+The coefficient `512 * Cp` is independent of the ladder height. -/
 theorem exceptional_prime_aggregate_fit_ratio
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp)
     (I : Finset ℕ) (Y : ℕ → Finset ℕ) (Pc : ℕ → ℕ)
     (hPc : ∀ v ∈ I, 2 ≤ Pc v) (hlo : ∀ v ∈ I, ∀ p ∈ Y v, Pc v < p)
     (g : ℕ → ℂ) (hg : ∀ p, ‖g p‖ ≤ 1)
@@ -53,19 +54,19 @@ theorem exceptional_prime_aggregate_fit_ratio
     (hlog : ∀ v ∈ I, L ≤ Real.log (Pc v : ℝ))
     (hmass : ∑ v ∈ I, ∑ p ∈ Y v, (1 : ℝ) / p ≤ E)
     (hcard : (I.card : ℝ) ≤ Ccells * N * R * L)
-    (hfixed : 32768 * Ccells * N * R * d ^ 2 * E ≤
+    (hfixed : 512 * Cp * Ccells * N * R * d ^ 2 * E ≤
       c3 * eps ^ 2 * rho0) :
     2 * (I.card : ℝ) *
-        (∑ v ∈ I, exceptionalPrimeCellCost Y Pc g Delta Gamma v) ≤
+        (∑ v ∈ I, exceptionalPrimeCellCost Cp Y Pc g Delta Gamma v) ≤
       c3 * eps ^ 2 * rho0 / 64 := by
-  have hagg := exceptional_prime_aggregate_le I Y Pc hPc hlo g hg Delta Gamma
+  have hagg := exceptional_prime_aggregate_le Cp (by linarith) I Y Pc hPc hlo g hg Delta Gamma
     d L E N R Ccells hL hE hDelta0 hDelta hGamma0 hGamma hlog hmass hcard
   calc
     2 * (I.card : ℝ) *
-        (∑ v ∈ I, exceptionalPrimeCellCost Y Pc g Delta Gamma v) ≤
-      512 * Ccells * N * R * d ^ 2 * E := by
+        (∑ v ∈ I, exceptionalPrimeCellCost Cp Y Pc g Delta Gamma v) ≤
+      8 * Cp * Ccells * N * R * d ^ 2 * E := by
         simpa [exceptionalPrimeCellCost] using hagg
-    _ = (32768 * Ccells * N * R * d ^ 2 * E) / 64 := by ring
+    _ = (512 * Cp * Ccells * N * R * d ^ 2 * E) / 64 := by ring
     _ ≤ c3 * eps ^ 2 * rho0 / 64 := by gcongr
 
 /-- The combined wide exceptional error fits its `1/32` allocation. -/
@@ -86,6 +87,7 @@ theorem exceptional_wide_cost_fit_ratio
 /-- Expanding the actual-cost construction supplies both the capstone's
 pointwise cell fit and its exceptional half-band aggregate. -/
 theorem exceptional_exact_cell_schedule_of_ratio_fits
+    (Cp : ℝ)
     (I : Finset ℕ) (Bq coeffMass : ℕ → ℝ)
     (Y : ℕ → Finset ℕ) (Pc : ℕ → ℕ) (g : ℕ → ℂ)
     (Delta Gamma : ℕ → ℝ) (V0 Kcov T L wide c3 eps rho0 rho : ℝ)
@@ -96,18 +98,18 @@ theorem exceptional_exact_cell_schedule_of_ratio_fits
           exceptionalIntegerCellCost V0 (Bq v) Kcov T L (coeffMass v)) ≤
       c3 * eps ^ 2 * rho0 / 64)
     (hprime : 2 * (I.card : ℝ) *
-        (∑ v ∈ I, exceptionalPrimeCellCost Y Pc g Delta Gamma v) ≤
+        (∑ v ∈ I, exceptionalPrimeCellCost Cp Y Pc g Delta Gamma v) ≤
       c3 * eps ^ 2 * rho0 / 64)
     (hwide : wide ≤ c3 * eps ^ 2 * rho0 / 32) :
     let cost := fun v =>
-      exceptionalIntegerCellCost V0 (Bq v) Kcov T L (coeffMass v) +
-        exceptionalPrimeCellCost Y Pc g Delta Gamma v
+        exceptionalIntegerCellCost V0 (Bq v) Kcov T L (coeffMass v) +
+        exceptionalPrimeCellCost Cp Y Pc g Delta Gamma v
     let kappa := fun v =>
       exceptionalCellKappa (cost v) (bandBudget c3 eps rho)
     (∀ v ∈ I,
       2 * (V0 ^ 2 * (64 * (Bq v + Kcov * Real.sqrt T) * L * coeffMass v) +
           Delta v ^ 2 *
-            ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+            ((Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
               (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v))) ≤
         kappa v * bandBudget c3 eps rho) ∧
       2 * (I.card : ℝ) * (∑ v ∈ I, kappa v) * bandBudget c3 eps rho + wide ≤
@@ -115,7 +117,7 @@ theorem exceptional_exact_cell_schedule_of_ratio_fits
   dsimp only
   have hs := exceptional_actual_cost_schedule_of_ratio_fits I
     (fun v => exceptionalIntegerCellCost V0 (Bq v) Kcov T L (coeffMass v))
-    (fun v => exceptionalPrimeCellCost Y Pc g Delta Gamma v)
+    (fun v => exceptionalPrimeCellCost Cp Y Pc g Delta Gamma v)
     wide c3 eps rho0 rho hc3 heps hrho0 hratio hint hprime hwide
   constructor
   · intro v hv

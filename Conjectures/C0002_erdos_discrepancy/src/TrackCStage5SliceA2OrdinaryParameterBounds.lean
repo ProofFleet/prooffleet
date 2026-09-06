@@ -23,13 +23,13 @@ noncomputable def sliceA2ZeroNPowerConstant (epsc : ℝ) : ℝ :=
   3 + sliceA2CoverPowerConstant *
     sliceA2OrdinaryZeroMassBound (exceptionalIntervalRatio epsc)
 
-noncomputable def sliceA2FarPowerConstant (epsc : ℝ) : ℝ :=
+noncomputable def sliceA2FarPowerConstant (Cp epsc : ℝ) : ℝ :=
   204 * (2 + (exceptionalIntervalRatio epsc : ℝ) +
-    sliceA2EtaPowerConstant epsc) ^ 2
+    sliceA2EtaPowerConstant Cp epsc) ^ 2
 
-noncomputable def sliceA2ClosePowerConstant (epsc : ℝ) : ℝ :=
+noncomputable def sliceA2ClosePowerConstant (Cp epsc : ℝ) : ℝ :=
   1 + 1024 * sliceA2CellPowerConstant ^ 3 * Real.exp 17 *
-    sliceA2FarPowerConstant epsc ^ 8 * 163880000 / 3
+    sliceA2FarPowerConstant Cp epsc ^ 8 * 163880000 / 3
 
 noncomputable def sliceA2ZeroPrimePowerConstant (epsc : ℝ) : ℝ :=
   (2 * sliceA2ZeroNPowerConstant epsc *
@@ -63,16 +63,17 @@ theorem sliceA2ZeroNPowerConstant_pos (epsc : ℝ) :
     positivity [Real.log_nonneg hR]
   positivity [sliceA2CoverPowerConstant_pos]
 
-theorem sliceA2FarPowerConstant_pos (epsc : ℝ) :
-    0 < sliceA2FarPowerConstant epsc := by
+theorem sliceA2FarPowerConstant_pos (Cp epsc : ℝ) (hCp1 : 1 ≤ Cp) :
+    0 < sliceA2FarPowerConstant Cp epsc := by
   unfold sliceA2FarPowerConstant
-  positivity [sliceA2EtaPowerConstant_pos epsc]
+  positivity [sliceA2EtaPowerConstant_pos Cp epsc hCp1]
 
-theorem sliceA2ClosePowerConstant_one_le (epsc : ℝ) :
-    1 ≤ sliceA2ClosePowerConstant epsc := by
+theorem sliceA2ClosePowerConstant_one_le
+    (Cp epsc : ℝ) (hCp1 : 1 ≤ Cp) :
+    1 ≤ sliceA2ClosePowerConstant Cp epsc := by
   unfold sliceA2ClosePowerConstant
   have hcell := (sliceA2CellPowerConstant_pos).le
-  have hfar := (sliceA2FarPowerConstant_pos epsc).le
+  have hfar := (sliceA2FarPowerConstant_pos Cp epsc hCp1).le
   exact le_add_of_nonneg_right (by positivity)
 
 theorem sliceA2ZeroPrimePowerConstant_pos (epsc : ℝ) :
@@ -172,24 +173,24 @@ theorem sliceA2OrdinaryZeroNBound_le_power
 
 /-- The all-level moment coefficient costs fourteen inverse powers. -/
 theorem sliceA2OrdinaryFarCoefficient_le_power
-    (epsc eps : ℝ) (hepsc : 0 < epsc) (heps : 0 < eps) :
+    (Cp epsc eps : ℝ) (hCp1 : 1 ≤ Cp) (hepsc : 0 < epsc) (heps : 0 < eps) :
     sliceA2OrdinaryFarCoefficient (exceptionalIntervalRatio epsc)
-        (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+        (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps)) ≤
-      sliceA2FarPowerConstant epsc / sliceA2EffectiveEps eps ^ 14 := by
+      sliceA2FarPowerConstant Cp epsc / sliceA2EffectiveEps eps ^ 14 := by
   let e := sliceA2EffectiveEps eps
   let R : ℝ := exceptionalIntervalRatio epsc
-  let eta := sliceA2ExceptionalLadderEta e epsc (e / 100)
+  let eta := sliceA2ExceptionalLadderEta Cp e epsc (e / 100)
     (sliceA2CanonicalRho eps)
-  let K := sliceA2EtaPowerConstant epsc
+  let K := sliceA2EtaPowerConstant Cp epsc
   have he : 0 < e := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).1
   have he1 : e ≤ 1 := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).2.1
   have heta : (eta : ℝ) ≤ K / e ^ 7 := by
     simpa [eta, K, e] using
-      sliceA2ExceptionalLadderEta_le_power epsc eps hepsc heps
+      sliceA2ExceptionalLadderEta_le_power Cp epsc eps hCp1 hepsc heps
   have he7 : e ^ 7 ≤ 1 := pow_le_one₀ he.le he1
   have hR0 : 0 ≤ R := by dsimp [R]; positivity
-  have hK0 : 0 ≤ K := (sliceA2EtaPowerConstant_pos epsc).le
+  have hK0 : 0 ≤ K := (sliceA2EtaPowerConstant_pos Cp epsc hCp1).le
   have hsum : 2 + R + (eta : ℝ) ≤ (2 + R + K) / e ^ 7 := by
     calc
       2 + R + (eta : ℝ) ≤ 2 + R + K / e ^ 7 := by gcongr
@@ -213,15 +214,15 @@ theorem sliceA2OrdinaryFarCoefficient_le_power
 /-- The close-scale coefficient costs one hundred twenty-eight inverse
 powers before its twentieth-power bottom margin is imposed. -/
 theorem sliceA2OrdinaryCloseCoefficient_le_power
-    (epsc eps : ℝ) (hepsc : 0 < epsc) (heps : 0 < eps) :
+    (Cp epsc eps : ℝ) (hCp1 : 1 ≤ Cp) (hepsc : 0 < epsc) (heps : 0 < eps) :
     sliceA2OrdinaryCloseCoefficient (exceptionalIntervalRatio epsc)
-        (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+        (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps))
         (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps) ≤
-      sliceA2ClosePowerConstant epsc / sliceA2EffectiveEps eps ^ 128 := by
+      sliceA2ClosePowerConstant Cp epsc / sliceA2EffectiveEps eps ^ 128 := by
   let e := sliceA2EffectiveEps eps
   let rho := sliceA2CanonicalRho eps
-  let eta := sliceA2ExceptionalLadderEta e epsc (e / 100) rho
+  let eta := sliceA2ExceptionalLadderEta Cp e epsc (e / 100) rho
   let C := sliceA2OrdinaryCellCountCoefficient (e / 100) rho
   let F := sliceA2OrdinaryFarCoefficient (exceptionalIntervalRatio epsc) eta
   let raw := 1024 * C ^ 3 * Real.exp 17 * F ^ 8 /
@@ -235,9 +236,9 @@ theorem sliceA2OrdinaryCloseCoefficient_le_power
     dsimp [C]
     exact (sliceA2OrdinaryCellCountCoefficient_pos (e / 100) rho
       (by positivity) hrho).le
-  have hF : F ≤ sliceA2FarPowerConstant epsc / e ^ 14 := by
+  have hF : F ≤ sliceA2FarPowerConstant Cp epsc / e ^ 14 := by
     simpa [F, eta, e, rho] using
-      sliceA2OrdinaryFarCoefficient_le_power epsc eps hepsc heps
+      sliceA2OrdinaryFarCoefficient_le_power Cp epsc eps hCp1 hepsc heps
   have hF0 : 0 ≤ F := by
     dsimp [F, sliceA2OrdinaryFarCoefficient]
     positivity
@@ -249,34 +250,34 @@ theorem sliceA2OrdinaryCloseCoefficient_le_power
         simpa [e, rho] using sliceA2EffectiveEps_sq_le_rho eps heps
   have hraw : raw ≤
       (1024 * sliceA2CellPowerConstant ^ 3 * Real.exp 17 *
-        sliceA2FarPowerConstant epsc ^ 8 * 163880000 / 3) / e ^ 128 := by
+        sliceA2FarPowerConstant Cp epsc ^ 8 * 163880000 / 3) / e ^ 128 := by
     dsimp [raw]
     have hnum : 0 ≤ 1024 * C ^ 3 * Real.exp 17 * F ^ 8 := by positivity
     calc
       1024 * C ^ 3 * Real.exp 17 * F ^ 8 /
           (3 * (e / 100) ^ 2 * rho) ≤
         1024 * (sliceA2CellPowerConstant / e ^ 4) ^ 3 * Real.exp 17 *
-            (sliceA2FarPowerConstant epsc / e ^ 14) ^ 8 /
+            (sliceA2FarPowerConstant Cp epsc / e ^ 14) ^ 8 /
           (3 * (e ^ 4 / 163880000)) := by
             apply div_le_div₀
             · positivity [sliceA2CellPowerConstant_pos,
-                sliceA2FarPowerConstant_pos epsc]
+                sliceA2FarPowerConstant_pos Cp epsc hCp1]
             · gcongr <;> positivity [sliceA2CellPowerConstant_pos,
-                sliceA2FarPowerConstant_pos epsc]
+                sliceA2FarPowerConstant_pos Cp epsc hCp1]
             · positivity
             · simpa [mul_assoc] using
                 mul_le_mul_of_nonneg_left hden (by norm_num : (0 : ℝ) ≤ 3)
       _ = (1024 * sliceA2CellPowerConstant ^ 3 * Real.exp 17 *
-          sliceA2FarPowerConstant epsc ^ 8 * 163880000 / 3) /
+          sliceA2FarPowerConstant Cp epsc ^ 8 * 163880000 / 3) /
             e ^ 128 := by
         field_simp
   have he128 : e ^ 128 ≤ 1 := pow_le_one₀ he.le he1
   have he128pos : 0 < e ^ 128 := by positivity
   unfold sliceA2OrdinaryCloseCoefficient
-  change max 1 raw ≤ sliceA2ClosePowerConstant epsc / e ^ 128
+  change max 1 raw ≤ sliceA2ClosePowerConstant Cp epsc / e ^ 128
   apply max_le
   · rw [le_div_iff₀ he128pos]
-    simpa using he128.trans (sliceA2ClosePowerConstant_one_le epsc)
+    simpa using he128.trans (sliceA2ClosePowerConstant_one_le Cp epsc hCp1)
   · exact hraw.trans (by
       rw [div_le_div_iff_of_pos_right he128pos]
       unfold sliceA2ClosePowerConstant
@@ -341,8 +342,8 @@ theorem sliceA2OrdinaryZeroPrimeCoefficient_le_power
 /-- The bottom frequency coefficient is its explicit `log P0` and
 `Q0^(13/20)` growth times an eight-power fixed envelope. -/
 theorem sliceA2OrdinaryZeroFrequencyCoefficient_le_power
-    (P0 : ℕ) (epsc eps : ℝ) (heps : 0 < eps) :
-    let eta := sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+    (Cp : ℝ) (P0 : ℕ) (epsc eps : ℝ) (heps : 0 < eps) :
+    let eta := sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
       (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps)
     sliceA2OrdinaryZeroFrequencyCoefficient P0
         (exceptionalIntervalRatio epsc) eta
@@ -353,7 +354,7 @@ theorem sliceA2OrdinaryZeroFrequencyCoefficient_le_power
           (13 / 20 : ℝ) := by
   dsimp only
   let e := sliceA2EffectiveEps eps
-  let eta := sliceA2ExceptionalLadderEta e epsc (e / 100)
+  let eta := sliceA2ExceptionalLadderEta Cp e epsc (e / 100)
     (sliceA2CanonicalRho eps)
   let N := sliceA2OrdinaryZeroNBound (exceptionalIntervalRatio epsc)
     (e / 100) (sliceA2CanonicalRho eps)

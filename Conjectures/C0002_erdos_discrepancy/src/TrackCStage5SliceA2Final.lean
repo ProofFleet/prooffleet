@@ -74,19 +74,20 @@ large-values interfaces. -/
 theorem sliceMeanSquareA2
     [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption] :
     SliceMeanSquareA2 := by
+  obtain ⟨Cp, hCp1, hprimeBound⟩ := PrimeLargeValuesAssumption.bound
   intro epsc hepsc B C hC
   obtain ⟨Qlog0, hQlog0, hlogFit⟩ := exists_log_six_le_twentieth_rpow
-  let HC := sliceA2HeightPowerConstant epsc Qlog0
+  let HC := sliceA2HeightPowerConstant Cp epsc Qlog0
   let K := sliceA2HeightPower epsc
   obtain ⟨hcut, hhcut⟩ := exists_sliceA2HeightP0_above_polylog epsc C B hC
   let hconst := ⌈HC⌉₊ + 1
   let h1 := max hcut hconst
   refine ⟨h1, HC, K, ?_, ?_⟩
-  · simpa [HC] using sliceA2HeightPowerConstant_pos epsc Qlog0
+  · simpa [HC] using sliceA2HeightPowerConstant_pos Cp epsc Qlog0
   intro eps heps h hh1 hpower
   let e := sliceA2EffectiveEps eps
   let rho := sliceA2CanonicalRho eps
-  let eta := sliceA2ExceptionalLadderEta e epsc (e / 100) rho
+  let eta := sliceA2ExceptionalLadderEta Cp e epsc (e / 100) rho
   let P0 := sliceA2HeightP0 epsc h
   have he : 0 < e := by
     simpa [e] using (sliceA2EffectiveEps_bounds eps heps).1
@@ -106,23 +107,25 @@ theorem sliceMeanSquareA2
         exact le_of_not_ge heps1
       simpa [hmine] using hHCH
   have hclosed := sliceA2HeightClosed_of_power
-    epsc eps h Qlog0 hepsc heps hlogFit (by simpa [HC, K, e] using hheight)
-  change SliceA2HeightClosed epsc eps h P0 at hclosed
+    Cp epsc eps h Qlog0 hCp1 hepsc heps hlogFit
+      (by simpa [HC, K, e] using hheight)
+  change SliceA2HeightClosed Cp epsc eps h P0 at hclosed
   rcases hclosed with ⟨Qlog0', hP021, hclosedTail⟩
-  have hclosed : SliceA2HeightClosed epsc eps h P0 :=
+  have hclosed : SliceA2HeightClosed Cp epsc eps h P0 :=
     ⟨Qlog0', hP021, hclosedTail⟩
   have hP03 : 3 ≤ P0 := by omega
   have heta1 : 1 ≤ eta := by
-    simpa [eta] using sliceA2ExceptionalLadderEta_one_le e epsc (e / 100) rho
+    simpa [eta] using
+      sliceA2ExceptionalLadderEta_one_le Cp e epsc (e / 100) rho
   have hetaBudget : 64 * Real.exp 12 ≤ epsc * eta := by
     simpa [eta] using sliceA2ExceptionalLadderEta_density_budget
-      e epsc (e / 100) rho he hepsc (by positivity) hrho
+      Cp e epsc (e / 100) rho he hepsc (by positivity) hrho
   obtain ⟨AD, hAD⟩ := exists_sliceA2FinalLevels_density
     P0 eta epsc hP03 hepsc heta1 hetaBudget
   obtain ⟨AR, hAR⟩ := exists_exceptionalPrimeLower_ge (P0 : ℝ)
   let Amin : ℝ := max (AD : ℝ) (AR : ℝ)
   obtain ⟨A0, hA0, hAmin, hmean⟩ := exists_sliceA2_meanSquare_closed
-    epsc eps h P0 Amin hepsc heps hclosed
+    Cp hCp1 hprimeBound epsc eps h P0 Amin hepsc heps hclosed
   refine ⟨A0, hA0, fun A1 hA01 => ?_⟩
   have hAD1R : (AD : ℝ) ≤ A1 :=
     (le_max_left _ _).trans (hAmin.trans hA01)

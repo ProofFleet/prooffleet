@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5InnerBandScheduleSharpNumerology
+import MoltResearch.Discrepancy.MajorArcBlockScale
 
 /-!
 # Track R VI-9g-3': the floored half-dyadic margin
@@ -244,7 +245,7 @@ theorem primeHighMomentCountCost_one_lower
 /-- Consequently, `Gamma ≤ 1` at moment one forces an explicit upper bound
 on the time scale.  For the phase-3 choices this reads
 
-`exp(pi) * (T+1) * exp(-log P/log(2T)^(3/4)) * log(2T)^2
+`exp(pi) * (T+1) * exp(-log P/log(2T)^primeLargeValuesExponent) * log(2T)^2
   ≤ 2 * P^2 * V^2`.
 
 Thus the factor `(T+1)/P` has not become polylogarithmic: it survives with a
@@ -252,7 +253,7 @@ second factor `1/P` coming only from the weakest possible nonempty-cell mass
 bound.  At the phase-3 scales `T ≍ A`, `P ≍ exp((log A)^(49/50))`, and
 `V = (log A)^(-100)`, the ratio of the two sides has logarithm
 
-`log A - 2*(log A)^(49/50) - (log A)^(23/100) + 202*loglog A + O(1)`,
+`log A - 2*(log A)^(49/50) - (log A)^(9/50) + 202*loglog A + O(1)`,
 
 which tends to infinity.  This is an unbounded-in-`A` failure, rather than a
 constant-factor discrepancy. -/
@@ -262,23 +263,23 @@ theorem time_scale_bound_of_moment_one_Gamma_le_one
     (T V lam : ℝ) (hT : 0 ≤ T) (hV : 0 < V) (hlam : 0 < lam)
     (hGamma : primeHighMomentCountCost P 1 Y T V lam
           * Real.exp (-(Real.log (P : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            (Real.log (2 * T)) ^ primeLargeValuesExponent))
           * (Real.log (2 * T)) ^ 2 ≤ 1) :
     Real.exp Real.pi * (T + 1)
           * Real.exp (-(Real.log (P : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            (Real.log (2 * T)) ^ primeLargeValuesExponent))
           * (Real.log (2 * T)) ^ 2
       ≤ 2 * (P : ℝ) ^ 2 * V ^ 2 := by
   have hcost := primeHighMomentCountCost_one_lower
     P hP Y p hp0 hpY hpHi T V lam hT hV hlam
   have hsave0 : 0 ≤ Real.exp (-(Real.log (P : ℝ) /
-      (Real.log (2 * T)) ^ (3 / 4 : ℝ))) := (Real.exp_pos _).le
+      (Real.log (2 * T)) ^ primeLargeValuesExponent)) := (Real.exp_pos _).le
   have hlog0 : 0 ≤ (Real.log (2 * T)) ^ 2 := sq_nonneg _
   have hlower :
       (Real.exp Real.pi * ((T + 1) / (P : ℝ))
             * ((1 : ℝ) / (2 * (P : ℝ))) / V ^ 2)
           * Real.exp (-(Real.log (P : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            (Real.log (2 * T)) ^ primeLargeValuesExponent))
           * (Real.log (2 * T)) ^ 2 ≤ 1 := by
     exact (mul_le_mul_of_nonneg_right
       (mul_le_mul_of_nonneg_right hcost hsave0) hlog0).trans hGamma
@@ -288,11 +289,11 @@ theorem time_scale_bound_of_moment_one_Gamma_le_one
       (Real.exp Real.pi * ((T + 1) / (P : ℝ))
             * ((1 : ℝ) / (2 * (P : ℝ))) / V ^ 2)
           * Real.exp (-(Real.log (P : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            (Real.log (2 * T)) ^ primeLargeValuesExponent))
           * (Real.log (2 * T)) ^ 2 =
         (Real.exp Real.pi * (T + 1)
             * Real.exp (-(Real.log (P : ℝ) /
-              (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+              (Real.log (2 * T)) ^ primeLargeValuesExponent))
             * (Real.log (2 * T)) ^ 2) / (2 * (P : ℝ) ^ 2 * V ^ 2) := by
     field_simp
   rw [heq] at hlower
@@ -308,11 +309,11 @@ theorem time_scale_bound_of_fixed_split_moment_one_Gamma_le_one
     (T lam : ℝ) (hT : 0 ≤ T) (hlam : 0 < lam)
     (hGamma : primeHighMomentCountCost P 1 Y T (exceptionalSplitThreshold A) lam
           * Real.exp (-(Real.log (P : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            (Real.log (2 * T)) ^ primeLargeValuesExponent))
           * (Real.log (2 * T)) ^ 2 ≤ 1) :
     Real.exp Real.pi * (T + 1)
           * Real.exp (-(Real.log (P : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            (Real.log (2 * T)) ^ primeLargeValuesExponent))
           * (Real.log (2 * T)) ^ 2
       ≤ 2 * (P : ℝ) ^ 2 / Real.log (A : ℝ) ^ 200 := by
   have hV := exceptionalSplitThreshold_pos A hA

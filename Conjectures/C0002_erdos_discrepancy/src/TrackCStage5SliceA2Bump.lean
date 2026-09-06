@@ -1,4 +1,5 @@
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5SliceA2Density
+import MoltResearch.Discrepancy.BumpDeriv
 
 /-!
 # Track R A2-V'-7: uniform bump constants for the short slices

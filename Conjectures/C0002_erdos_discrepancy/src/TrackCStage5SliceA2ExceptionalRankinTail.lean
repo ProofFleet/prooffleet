@@ -52,6 +52,7 @@ theorem sliceA2Exceptional_quotient_log_factor_le
 fits inside its fixed exceptional allocation, uniformly over all cells and
 all slices in the quadratic scale window. -/
 theorem exists_sliceA2Exceptional_rankin_tail_le
+    (Cp : ℝ)
     (epsc eps rho0 : ℝ) (heps : 0 < eps) (hrho0 : 0 < rho0) :
     ∃ A0 : ℕ, ∀ A1 A Delta : ℕ,
       A0 ≤ A1 → A1 ≤ A → A ≤ A1 ^ 2 → Delta ≤ A →
@@ -65,9 +66,9 @@ theorem exists_sliceA2Exceptional_rankin_tail_le
             ∏ p ∈ exceptionalPrimes A1 epsc,
               (1 - (p : ℝ) ^
                 (-(1 - sliceA2ExceptionalRankinS A1 epsc)))⁻¹) ≤
-          sliceA2ExceptionalTailBudget epsc eps rho0 := by
+          sliceA2ExceptionalTailBudget Cp epsc eps rho0 := by
   obtain ⟨AS, hAS⟩ :=
-    exists_sliceA2Exceptional_rankin_scalar_margin epsc eps rho0 heps hrho0
+    exists_sliceA2Exceptional_rankin_scalar_margin Cp epsc eps rho0 heps hrho0
   obtain ⟨AQ, hAQ⟩ := exists_const_mul_exceptionalPrimeUpper_pow_le
     1 4 epsc (by norm_num) (by norm_num)
   obtain ⟨AL, hAL⟩ := exists_sliceA2_log_ge (8 * Real.log 8)

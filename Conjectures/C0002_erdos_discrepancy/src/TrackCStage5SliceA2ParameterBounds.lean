@@ -21,19 +21,19 @@ noncomputable def sliceA2ExceptionalNPowerConstant (epsc : ℝ) : ℝ :=
   3 + 73728 * 163880000 * Real.exp Real.pi *
     sliceA2ExceptionalMass 0 epsc
 
-noncomputable def sliceA2ExceptionalPrimePowerConstant (epsc : ℝ) : ℝ :=
-  1 + 196608 * sliceA2ExceptionalNPowerConstant epsc *
+noncomputable def sliceA2ExceptionalPrimePowerConstant (Cp epsc : ℝ) : ℝ :=
+  1 + 3072 * Cp * sliceA2ExceptionalNPowerConstant epsc *
     (exceptionalIntervalRatio epsc : ℝ) * sliceA2ExceptionalMass 0 epsc
 
-noncomputable def sliceA2ExceptionalEpsilonDenominator (epsc : ℝ) : ℝ :=
+noncomputable def sliceA2ExceptionalEpsilonDenominator (Cp epsc : ℝ) : ℝ :=
   800 * 16388 * Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) *
-    sliceA2ExceptionalPrimePowerConstant epsc
+    sliceA2ExceptionalPrimePowerConstant Cp epsc
 
-noncomputable def sliceA2ExceptionalBudgetDenominator (epsc : ℝ) : ℝ :=
-  max (sliceA2ExceptionalEpsilonDenominator epsc) (1 / epsc)
+noncomputable def sliceA2ExceptionalBudgetDenominator (Cp epsc : ℝ) : ℝ :=
+  max (sliceA2ExceptionalEpsilonDenominator Cp epsc) (1 / epsc)
 
-noncomputable def sliceA2EtaPowerConstant (epsc : ℝ) : ℝ :=
-  64 * Real.exp 12 * sliceA2ExceptionalBudgetDenominator epsc + 2
+noncomputable def sliceA2EtaPowerConstant (Cp epsc : ℝ) : ℝ :=
+  64 * Real.exp 12 * sliceA2ExceptionalBudgetDenominator Cp epsc + 2
 
 theorem sliceA2CanonicalRho_pos (eps : ℝ) (heps : 0 < eps) :
     0 < sliceA2CanonicalRho eps := by
@@ -78,39 +78,42 @@ theorem sliceA2ExceptionalNPowerConstant_pos (epsc : ℝ) :
   have hmass := sliceA2ExceptionalMass_nonneg 0 epsc
   positivity
 
-theorem sliceA2ExceptionalPrimePowerConstant_one_le (epsc : ℝ) :
-    1 ≤ sliceA2ExceptionalPrimePowerConstant epsc := by
+theorem sliceA2ExceptionalPrimePowerConstant_one_le
+    (Cp epsc : ℝ) (hCp1 : 1 ≤ Cp) :
+    1 ≤ sliceA2ExceptionalPrimePowerConstant Cp epsc := by
   unfold sliceA2ExceptionalPrimePowerConstant
   have hN := (sliceA2ExceptionalNPowerConstant_pos epsc).le
   have hmass := sliceA2ExceptionalMass_nonneg 0 epsc
   have hR : (0 : ℝ) ≤ exceptionalIntervalRatio epsc := by positivity
   exact le_add_of_nonneg_right (mul_nonneg (mul_nonneg (mul_nonneg
-    (by norm_num) hN) hR) hmass)
+    (mul_nonneg (by norm_num) (zero_le_one.trans hCp1)) hN) hR) hmass)
 
-theorem sliceA2ExceptionalEpsilonDenominator_one_le (epsc : ℝ) :
-    1 ≤ sliceA2ExceptionalEpsilonDenominator epsc := by
+theorem sliceA2ExceptionalEpsilonDenominator_one_le
+    (Cp epsc : ℝ) (hCp1 : 1 ≤ Cp) :
+    1 ≤ sliceA2ExceptionalEpsilonDenominator Cp epsc := by
   unfold sliceA2ExceptionalEpsilonDenominator
   have hR : (3 : ℝ) ≤ exceptionalIntervalRatio epsc := by
     exact_mod_cast exceptionalIntervalRatio_three_le epsc
-  have hM := sliceA2ExceptionalPrimePowerConstant_one_le epsc
+  have hM := sliceA2ExceptionalPrimePowerConstant_one_le Cp epsc hCp1
   have hexp : 1 ≤ Real.exp 13 := by
     simpa using Real.exp_one_le_exp.mpr (by norm_num : (0 : ℝ) ≤ 13)
   calc
     (1 : ℝ) ≤ 800 * 16388 * 1 * 3 * 1 := by norm_num
     _ ≤ 800 * 16388 * Real.exp 13 *
         (exceptionalIntervalRatio epsc : ℝ) *
-          sliceA2ExceptionalPrimePowerConstant epsc := by gcongr
+          sliceA2ExceptionalPrimePowerConstant Cp epsc := by gcongr
 
 theorem sliceA2ExceptionalBudgetDenominator_one_le
-    (epsc : ℝ) : 1 ≤ sliceA2ExceptionalBudgetDenominator epsc := by
+    (Cp epsc : ℝ) (hCp1 : 1 ≤ Cp) :
+    1 ≤ sliceA2ExceptionalBudgetDenominator Cp epsc := by
   unfold sliceA2ExceptionalBudgetDenominator
-  exact (sliceA2ExceptionalEpsilonDenominator_one_le epsc).trans
+  exact (sliceA2ExceptionalEpsilonDenominator_one_le Cp epsc hCp1).trans
     (le_max_left _ _)
 
-theorem sliceA2EtaPowerConstant_pos (epsc : ℝ) :
-    0 < sliceA2EtaPowerConstant epsc := by
+theorem sliceA2EtaPowerConstant_pos (Cp epsc : ℝ) (hCp1 : 1 ≤ Cp) :
+    0 < sliceA2EtaPowerConstant Cp epsc := by
   unfold sliceA2EtaPowerConstant
-  have hD := sliceA2ExceptionalBudgetDenominator_one_le epsc
+  have hD := sliceA2ExceptionalBudgetDenominator_one_le Cp epsc hCp1
   positivity
 
 /-- The exceptional resolution costs at most four inverse powers of the
@@ -175,10 +178,10 @@ theorem sliceA2ExceptionalN_zero_le_power
 /-- The coefficient under the sharp square root has the same four-power
 envelope. -/
 theorem sliceA2ExceptionalPrimeCoefficient_zero_le_power
-    (epsc eps : ℝ) (heps : 0 < eps) :
-    sliceA2ExceptionalPrimeCoefficient 0 epsc
+    (Cp epsc eps : ℝ) (hCp1 : 1 ≤ Cp) (heps : 0 < eps) :
+    sliceA2ExceptionalPrimeCoefficient Cp 0 epsc
         (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps) ≤
-      sliceA2ExceptionalPrimePowerConstant epsc /
+      sliceA2ExceptionalPrimePowerConstant Cp epsc /
         sliceA2EffectiveEps eps ^ 4 := by
   let e := sliceA2EffectiveEps eps
   let N := sliceA2ExceptionalN 0 epsc (e / 100) (sliceA2CanonicalRho eps)
@@ -190,28 +193,28 @@ theorem sliceA2ExceptionalPrimeCoefficient_zero_le_power
     simpa [N, e] using sliceA2ExceptionalN_zero_le_power epsc eps heps
   have hR0 : 0 ≤ R := by dsimp [R]; positivity
   have hS0 : 0 ≤ S := by dsimp [S]; exact sliceA2ExceptionalMass_nonneg 0 epsc
-  have hraw : 196608 * (N : ℝ) * R * S ≤
-      196608 * (sliceA2ExceptionalNPowerConstant epsc / e ^ 4) * R * S := by
+  have hraw : 3072 * Cp * (N : ℝ) * R * S ≤
+      3072 * Cp * (sliceA2ExceptionalNPowerConstant epsc / e ^ 4) * R * S := by
     gcongr
   have he4 : e ^ 4 ≤ 1 := pow_le_one₀ he.le he1
   have he40 : 0 < e ^ 4 := by positivity
   unfold sliceA2ExceptionalPrimeCoefficient
-  change max 1 (196608 * (N : ℝ) * R * S) ≤ _
+  change max 1 (3072 * Cp * (N : ℝ) * R * S) ≤ _
   apply max_le
   · rw [le_div_iff₀ he40]
-    have hC := sliceA2ExceptionalPrimePowerConstant_one_le epsc
+    have hC := sliceA2ExceptionalPrimePowerConstant_one_le Cp epsc hCp1
     simpa using (mul_le_mul_of_nonneg_left he4 zero_le_one).trans (by simpa using hC)
   · calc
-      196608 * (N : ℝ) * R * S ≤
-          196608 * (sliceA2ExceptionalNPowerConstant epsc / e ^ 4) * R * S :=
+      3072 * Cp * (N : ℝ) * R * S ≤
+          3072 * Cp * (sliceA2ExceptionalNPowerConstant epsc / e ^ 4) * R * S :=
         hraw
-      _ = (196608 * sliceA2ExceptionalNPowerConstant epsc * R * S) /
+      _ = (3072 * Cp * sliceA2ExceptionalNPowerConstant epsc * R * S) /
           e ^ 4 := by ring
-      _ ≤ (1 + 196608 * sliceA2ExceptionalNPowerConstant epsc * R * S) /
+      _ ≤ (1 + 3072 * Cp * sliceA2ExceptionalNPowerConstant epsc * R * S) /
           e ^ 4 := by
         rw [div_le_div_iff_of_pos_right he40]
         norm_num
-      _ = sliceA2ExceptionalPrimePowerConstant epsc / e ^ 4 := by
+      _ = sliceA2ExceptionalPrimePowerConstant Cp epsc / e ^ 4 := by
         simp only [sliceA2ExceptionalPrimePowerConstant]
         dsimp [R, S]
 
@@ -224,12 +227,12 @@ theorem sliceA2CanonicalRho_le_sqrt
   nlinarith [sq_nonneg (sliceA2CanonicalRho eps)]
 
 theorem sqrt_sliceA2ExceptionalPrimeCoefficient_le_self
-    (epsc eps : ℝ) :
-    Real.sqrt (sliceA2ExceptionalPrimeCoefficient 0 epsc
+    (Cp epsc eps : ℝ) :
+    Real.sqrt (sliceA2ExceptionalPrimeCoefficient Cp 0 epsc
         (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps)) ≤
-      sliceA2ExceptionalPrimeCoefficient 0 epsc
+      sliceA2ExceptionalPrimeCoefficient Cp 0 epsc
         (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps) := by
-  let M := sliceA2ExceptionalPrimeCoefficient 0 epsc
+  let M := sliceA2ExceptionalPrimeCoefficient Cp 0 epsc
     (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps)
   have hM : 1 ≤ M := by
     dsimp [M, sliceA2ExceptionalPrimeCoefficient]
@@ -240,17 +243,17 @@ theorem sqrt_sliceA2ExceptionalPrimeCoefficient_le_self
 /-- At the canonical floor-slice budget, epsilon-prime loses at most seven
 powers of the effective accuracy. -/
 theorem sliceA2ExceptionalEpsilonPrime_zero_lower
-    (epsc eps : ℝ) (heps : 0 < eps) :
+    (Cp epsc eps : ℝ) (hCp1 : 1 ≤ Cp) (heps : 0 < eps) :
     sliceA2EffectiveEps eps ^ 7 /
-        sliceA2ExceptionalEpsilonDenominator epsc ≤
-      sliceA2ExceptionalEpsilonPrime 0 epsc
+        sliceA2ExceptionalEpsilonDenominator Cp epsc ≤
+      sliceA2ExceptionalEpsilonPrime Cp 0 epsc
         (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps) := by
   let e := sliceA2EffectiveEps eps
   let rho := sliceA2CanonicalRho eps
   let R : ℝ := exceptionalIntervalRatio epsc
-  let M := sliceA2ExceptionalPrimeCoefficient 0 epsc (e / 100) rho
-  let CP := sliceA2ExceptionalPrimePowerConstant epsc
-  let DE := sliceA2ExceptionalEpsilonDenominator epsc
+  let M := sliceA2ExceptionalPrimeCoefficient Cp 0 epsc (e / 100) rho
+  let CP := sliceA2ExceptionalPrimePowerConstant Cp epsc
+  let DE := sliceA2ExceptionalEpsilonDenominator Cp epsc
   have he : 0 < e := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).1
   have hrho : 0 < rho := by simpa [rho] using sliceA2CanonicalRho_pos eps heps
   have hR : 0 < R := by
@@ -260,13 +263,14 @@ theorem sliceA2ExceptionalEpsilonPrime_zero_lower
       omega)
   have hM : 0 < M := by
     dsimp [M]
-    exact sliceA2ExceptionalPrimeCoefficient_pos 0 epsc (e / 100) rho
+    exact sliceA2ExceptionalPrimeCoefficient_pos Cp 0 epsc (e / 100) rho
   have hCP : 0 < CP :=
-    lt_of_lt_of_le zero_lt_one (sliceA2ExceptionalPrimePowerConstant_one_le epsc)
+    lt_of_lt_of_le zero_lt_one
+      (sliceA2ExceptionalPrimePowerConstant_one_le Cp epsc hCp1)
   have hDE : 0 < DE := by
     dsimp [DE]
     exact lt_of_lt_of_le zero_lt_one
-      (sliceA2ExceptionalEpsilonDenominator_one_le epsc)
+      (sliceA2ExceptionalEpsilonDenominator_one_le Cp epsc hCp1)
   have hrhoRoot : rho ≤ Real.sqrt rho := by
     simpa [rho] using sliceA2CanonicalRho_le_sqrt eps heps
   have hrhoLower : e ^ 2 / 16388 ≤ rho := by
@@ -274,10 +278,10 @@ theorem sliceA2ExceptionalEpsilonPrime_zero_lower
   have hrootLower : e ^ 2 / 16388 ≤ Real.sqrt rho :=
     hrhoLower.trans hrhoRoot
   have hrootM : Real.sqrt M ≤ M := by
-    simpa [M] using sqrt_sliceA2ExceptionalPrimeCoefficient_le_self epsc eps
+    simpa [M] using sqrt_sliceA2ExceptionalPrimeCoefficient_le_self Cp epsc eps
   have hMpower : M ≤ CP / e ^ 4 := by
     simpa [M, CP, e, rho] using
-      sliceA2ExceptionalPrimeCoefficient_zero_le_power epsc eps heps
+      sliceA2ExceptionalPrimeCoefficient_zero_le_power Cp epsc eps hCp1 heps
   have hrootMpower : Real.sqrt M ≤ CP / e ^ 4 := hrootM.trans hMpower
   have hden : 0 < 8 * Real.exp 13 * R * Real.sqrt M := by
     have hsqrtM : 0 < Real.sqrt M := Real.sqrt_pos.2 hM
@@ -310,24 +314,24 @@ theorem sliceA2ExceptionalEpsilonPrime_zero_lower
 /-- The minimum shared by the exceptional and density budgets still
 retains seven powers of accuracy. -/
 theorem sliceA2ExceptionalLadderDenominator_lower
-    (epsc eps : ℝ) (hepsc : 0 < epsc) (heps : 0 < eps) :
+    (Cp epsc eps : ℝ) (hCp1 : 1 ≤ Cp) (hepsc : 0 < epsc) (heps : 0 < eps) :
     sliceA2EffectiveEps eps ^ 7 /
-        sliceA2ExceptionalBudgetDenominator epsc ≤
-      min (sliceA2ExceptionalLadderBudget (sliceA2EffectiveEps eps) epsc
+        sliceA2ExceptionalBudgetDenominator Cp epsc ≤
+      min (sliceA2ExceptionalLadderBudget Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps)) epsc := by
   let e := sliceA2EffectiveEps eps
-  let DE := sliceA2ExceptionalEpsilonDenominator epsc
-  let D := sliceA2ExceptionalBudgetDenominator epsc
-  let ep := sliceA2ExceptionalEpsilonPrime 0 epsc (e / 100)
+  let DE := sliceA2ExceptionalEpsilonDenominator Cp epsc
+  let D := sliceA2ExceptionalBudgetDenominator Cp epsc
+  let ep := sliceA2ExceptionalEpsilonPrime Cp 0 epsc (e / 100)
     (sliceA2CanonicalRho eps)
   let R : ℝ := exceptionalIntervalRatio epsc
   have he : 0 < e := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).1
   have he1 : e ≤ 1 := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).2.1
   have hD1 : 1 ≤ D := by
-    simpa [D] using sliceA2ExceptionalBudgetDenominator_one_le epsc
+    simpa [D] using sliceA2ExceptionalBudgetDenominator_one_le Cp epsc hCp1
   have hD : 0 < D := zero_lt_one.trans_le hD1
   have hDE1 : 1 ≤ DE := by
-    simpa [DE] using sliceA2ExceptionalEpsilonDenominator_one_le epsc
+    simpa [DE] using sliceA2ExceptionalEpsilonDenominator_one_le Cp epsc hCp1
   have hDED : DE ≤ D := by
     dsimp [D, sliceA2ExceptionalBudgetDenominator]
     exact le_max_left _ _
@@ -342,7 +346,7 @@ theorem sliceA2ExceptionalLadderDenominator_lower
         _ ≤ e * D := by gcongr)
   have hep : e ^ 7 / DE ≤ ep := by
     simpa [e, DE, ep] using
-      sliceA2ExceptionalEpsilonPrime_zero_lower epsc eps heps
+      sliceA2ExceptionalEpsilonPrime_zero_lower Cp epsc eps hCp1 heps
   have hsmallEp : e ^ 7 / D ≤
       8 * ep * Real.exp 13 * R := by
     have hsmallDE : e ^ 7 / D ≤ e ^ 7 / DE := by
@@ -362,11 +366,11 @@ theorem sliceA2ExceptionalLadderDenominator_lower
         _ ≤ ep * (8 * Real.exp 13 * R) := by
           gcongr
           dsimp [ep]
-          exact (sliceA2ExceptionalEpsilonPrime_pos 0 epsc (e / 100)
+          exact (sliceA2ExceptionalEpsilonPrime_pos Cp 0 epsc (e / 100)
             (sliceA2CanonicalRho eps) (by positivity) (sliceA2CanonicalRho_pos eps heps)).le
         _ = 8 * ep * Real.exp 13 * R := by ring))
   have hsmallBudget : e ^ 7 / D ≤
-      sliceA2ExceptionalLadderBudget e epsc (e / 100)
+      sliceA2ExceptionalLadderBudget Cp e epsc (e / 100)
         (sliceA2CanonicalRho eps) := by
     unfold sliceA2ExceptionalLadderBudget
     apply le_min hsmallE
@@ -388,13 +392,13 @@ theorem sliceA2ExceptionalLadderDenominator_lower
 /-- Explicit polynomial bound for the common exceptional/ordinary ladder
 ratio. -/
 theorem sliceA2ExceptionalLadderEta_le_power
-    (epsc eps : ℝ) (hepsc : 0 < epsc) (heps : 0 < eps) :
-    (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+    (Cp epsc eps : ℝ) (hCp1 : 1 ≤ Cp) (hepsc : 0 < epsc) (heps : 0 < eps) :
+    (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
         (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps) : ℝ) ≤
-      sliceA2EtaPowerConstant epsc / sliceA2EffectiveEps eps ^ 7 := by
+      sliceA2EtaPowerConstant Cp epsc / sliceA2EffectiveEps eps ^ 7 := by
   let e := sliceA2EffectiveEps eps
-  let D := sliceA2ExceptionalBudgetDenominator epsc
-  let b := sliceA2ExceptionalLadderBudget e epsc (e / 100)
+  let D := sliceA2ExceptionalBudgetDenominator Cp epsc
+  let b := sliceA2ExceptionalLadderBudget Cp e epsc (e / 100)
     (sliceA2CanonicalRho eps)
   let d := min b epsc
   let x := 64 * Real.exp 12 / d
@@ -402,10 +406,10 @@ theorem sliceA2ExceptionalLadderEta_le_power
   have he1 : e ≤ 1 := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).2.1
   have hD : 0 < D := by
     exact zero_lt_one.trans_le (by simpa [D] using
-      sliceA2ExceptionalBudgetDenominator_one_le epsc)
+      sliceA2ExceptionalBudgetDenominator_one_le Cp epsc hCp1)
   have hdLower : e ^ 7 / D ≤ d := by
     simpa [e, D, b, d] using
-      sliceA2ExceptionalLadderDenominator_lower epsc eps hepsc heps
+      sliceA2ExceptionalLadderDenominator_lower Cp epsc eps hCp1 hepsc heps
   have hd : 0 < d := lt_of_lt_of_le (by positivity : 0 < e ^ 7 / D) hdLower
   have hx0 : 0 ≤ x := by dsimp [x]; positivity
   have hx : x ≤ 64 * Real.exp 12 * D / e ^ 7 := by
@@ -431,7 +435,7 @@ theorem sliceA2ExceptionalLadderEta_le_power
       have := mul_le_mul_of_nonneg_left he7 (by norm_num : (0 : ℝ) ≤ 2)
       field_simp
       nlinarith
-    _ = sliceA2EtaPowerConstant epsc /
+    _ = sliceA2EtaPowerConstant Cp epsc /
         sliceA2EffectiveEps eps ^ 7 := by
       simp only [sliceA2EtaPowerConstant]
       dsimp [D, e]

@@ -114,7 +114,7 @@ theorem sliceA2ExceptionalGamma_fit_of_log
             Real.log (Real.log (A : ℝ)) +
           2 * Real.log (Real.log (2 * T)) ≤
         Real.log (sliceA2ExceptionalAnchor A1 v epsc eps rho0 : ℝ) /
-          (Real.log (2 * T)) ^ (3 / 4 : ℝ)) :
+          (Real.log (2 * T)) ^ primeLargeValuesExponent) :
     primeHighMomentCountCost
           (sliceA2ExceptionalAnchor A1 v epsc eps rho0)
           (sliceA2ExceptionalMoment A1 v epsc eps rho0 T)
@@ -124,7 +124,7 @@ theorem sliceA2ExceptionalGamma_fit_of_log
           (Real.log (2 * T)) ^ 2 ≤
         Real.exp (Real.log
           (sliceA2ExceptionalAnchor A1 v epsc eps rho0 : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)) := by
+            (Real.log (2 * T)) ^ primeLargeValuesExponent) := by
   let P := sliceA2ExceptionalAnchor A1 v epsc eps rho0
   let ell := sliceA2ExceptionalMoment A1 v epsc eps rho0 T
   let Y := eadicCell (exceptionalPrimes A1 epsc)
@@ -158,7 +158,7 @@ theorem sliceA2ExceptionalGamma_fit_of_log
           simpa [P, sliceA2ExceptionalAnchor] using hPtwo) hT
   apply primeHighMomentCountCost_damped_fit_of_log P ell Y T
     (exceptionalSplitThreshold A)
-    (Real.log (P : ℝ) / (Real.log (2 * T)) ^ (3 / 4 : ℝ))
+    (Real.log (P : ℝ) / (Real.log (2 * T)) ^ primeLargeValuesExponent)
   · omega
   · exact hT
   · exact exceptionalSplitThreshold_pos A (by omega)
@@ -177,7 +177,7 @@ theorem sliceA2ExceptionalGamma_fit_of_log
           have henv := sliceA2MomentLogEnvelope_exceptional_le A P ell hA
             (by omega) (sliceA2ExceptionalMoment_one_le A1 v epsc eps rho0 T)
           linarith
-      _ ≤ Real.log (P : ℝ) / (Real.log (2 * T)) ^ (3 / 4 : ℝ) := by
+      _ ≤ Real.log (P : ℝ) / (Real.log (2 * T)) ^ primeLargeValuesExponent := by
         simpa [P, ell] using hlog
 
 end Tao2015

@@ -18,7 +18,8 @@ set_option maxHeartbeats 1200000 in
 /-- The closed ordinary and exceptional schedules imply the complete inner
 Fourier-band estimate for the final level list. -/
 theorem sliceA2_inner_band_closed
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprimeBound : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H P0 ratio0 A1 : ℕ)
     (lowBudget epsc eps rho0 K1 K2 T : ℝ)
@@ -28,12 +29,12 @@ theorem sliceA2_inner_band_closed
     (hratio : rho0 ≤ (Delta : ℝ) / A)
     (hordinary :
       SliceA2OrdinaryScheduleClosed g A Delta (exceptionalPrimes A1 epsc)
-        P0 ratio0 (sliceA2ExceptionalLadderEta lowBudget epsc eps rho0)
+        P0 ratio0 (sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0)
         (sliceA2LadderJ P0 ratio0
-          (sliceA2ExceptionalLadderEta lowBudget epsc eps rho0) A1 (by omega))
+          (sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0) A1 (by omega))
         eps rho0 T K1 K2)
     (haggregate :
-      SliceA2ExceptionalAggregateClosed g A Delta P0 ratio0 A1
+      SliceA2ExceptionalAggregateClosed Cp g A Delta P0 ratio0 A1
         lowBudget epsc eps rho0 K1 K2 T (by omega))
     (D Apret : ℝ) (hD : 1 ≤ D) (hApret : 3 ≤ Apret)
     (hNP : NonPretentiousAt g Apret (2 * A + 1))
@@ -48,26 +49,26 @@ theorem sliceA2_inner_band_closed
           Real.log (Real.log (exceptionalSharpCutoff A : ℝ)) + 12))
     (hx0 : cellHalaszThreshold ≤ exceptionalSharpCutoff A)
     (hdeltaOne :
-      sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 ≤ 8 * Real.exp 1)
+      sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 ≤ 8 * Real.exp 1)
     (hQsq : exceptionalPrimeUpper A1 epsc ^ 2 ≤ A)
     (hNuQ : sliceA2ExceptionalN A1 epsc eps rho0 *
       exceptionalPrimeUpper A1 epsc ≤ A)
     (hsep : sliceA2LadderQ P0 ratio0
-        (sliceA2ExceptionalLadderEta lowBudget epsc eps rho0)
+        (sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0)
         (sliceA2LadderJ P0 ratio0
-          (sliceA2ExceptionalLadderEta lowBudget epsc eps rho0) A1 (by omega) - 1) ≤
+          (sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0) A1 (by omega) - 1) ≤
       exceptionalPrimeLower A1)
     (hanchor : ∀ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
       6 ≤ sliceA2ExceptionalAnchor A1 v epsc eps rho0)
     (hDeltaBound : ∀ v : ℕ,
-      let eta := sliceA2ExceptionalLadderEta lowBudget epsc eps rho0
+      let eta := sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0
       let J := sliceA2LadderJ P0 ratio0 eta A1 (by omega)
-      let tail := sliceA2ExceptionalTailBudget epsc eps rho0
-      let rem := sliceA2ExceptionalLadderBudget lowBudget epsc eps rho0 / 4
+      let tail := sliceA2ExceptionalTailBudget Cp epsc eps rho0
+      let rem := sliceA2ExceptionalLadderBudget Cp lowBudget epsc eps rho0 / 4
       cellHalaszSharpBound
             (exceptionalSharpCutoff A) D
             (exceptionalDelta0
-              (sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0))
+              (sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0))
             (A / sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
             ((A + Delta) /
               sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
@@ -79,13 +80,13 @@ theorem sliceA2_inner_band_closed
               sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
             ((List.range (J - 1)).map
               (fun i => sliceA2LadderPrimes P0 ratio0 eta (i + 1))) ≤
-        sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem) :
+        sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem) :
     ∀ w : ℝ → ℝ, Measurable w → (∀ xi, 0 ≤ w xi) →
       (∀ xi, w xi ≤ (4 * (H : ℝ) / A) ^ 2) →
       (∫ xi in {xi : ℝ | K1 ≤ |xi| ∧ |xi| ≤ K2},
           ‖∑ m ∈ typicalS A (A + Delta)
               (sliceA2FinalLevels P0 ratio0
-                (sliceA2ExceptionalLadderEta lowBudget epsc eps rho0)
+                (sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0)
                 A1 epsc (by omega)),
               (g m / (m : ℂ)) *
                 ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2 *
@@ -93,7 +94,7 @@ theorem sliceA2_inner_band_closed
         (4 * (H : ℝ) / A) ^ 2 *
           bandBudget 1 eps ((Delta : ℝ) / A) := by
   intro w hwm hw0 hwsup
-  let eta := sliceA2ExceptionalLadderEta lowBudget epsc eps rho0
+  let eta := sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0
   let J := sliceA2LadderJ P0 ratio0 eta A1 (by omega)
   let Pl := sliceA2LadderPrimes P0 ratio0 eta
   let Pu := exceptionalPrimes A1 epsc
@@ -107,9 +108,9 @@ theorem sliceA2_inner_band_closed
   let qu := fun v => sliceA2ExceptionalRepresentative A1 v epsc eps rho0
   let PcU := fun v => sliceA2ExceptionalAnchor A1 v epsc eps rho0
   let ellU := fun v => sliceA2ExceptionalMoment A1 v epsc eps rho0 T
-  let tail := sliceA2ExceptionalTailBudget epsc eps rho0
-  let rem := sliceA2ExceptionalLadderBudget lowBudget epsc eps rho0 / 4
-  let d := sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem
+  let tail := sliceA2ExceptionalTailBudget Cp epsc eps rho0
+  let rem := sliceA2ExceptionalLadderBudget Cp lowBudget epsc eps rho0 / 4
+  let d := sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem
   let Bq := fun v => sliceA2ExceptionalBq A Delta A1 v epsc eps rho0
   let coeffMass := fun v =>
     sliceA2ExceptionalCoeffMass g A Delta P0 ratio0 eta J A1 v epsc eps rho0
@@ -174,15 +175,15 @@ theorem sliceA2_inner_band_closed
   have hUcells := sliceA2Exceptional_cell_data A1 epsc eps rho0
   have hcollars := sliceA2Exceptional_collar_data A1 A Delta epsc eps rho0 hNuQ
   have hanchors := sliceA2Exceptional_anchor_data A1 epsc eps rho0 hanchor
-  have hep : 0 < sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 :=
-    sliceA2ExceptionalEpsilonPrime_pos A1 epsc eps rho0 heps hrho0
+  have hep : 0 < sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 :=
+    sliceA2ExceptionalEpsilonPrime_pos Cp A1 epsc eps rho0 heps hrho0
   have htail0 : 0 ≤ tail := by
     dsimp [tail]
-    exact (sliceA2ExceptionalTailBudget_pos epsc eps rho0 heps hrho0).le
+    exact (sliceA2ExceptionalTailBudget_pos Cp epsc eps rho0 heps hrho0).le
   have hrem0 : 0 ≤ rem := by
     dsimp [rem]
     exact div_nonneg
-      (sliceA2ExceptionalLadderBudget_pos lowBudget epsc eps rho0
+      (sliceA2ExceptionalLadderBudget_pos Cp lowBudget epsc eps rho0
         hlow heps hrho0).le (by norm_num)
   have hd0 : 0 ≤ d := by
     dsimp [d, sliceA2ExceptionalDeltaEnvelope]
@@ -192,7 +193,7 @@ theorem sliceA2_inner_band_closed
   dsimp only [SliceA2ExceptionalAggregateClosed] at hagg
   rcases hagg with ⟨hint, hprime, hwide⟩
   have hresult := sliceA2_inner_band_of_aggregate_fits
-    g hcm hg A Delta H hA hH hDelta Pl Pu J hJ hPl hPu hPAu hdisj hdisjU
+    Cp hCp1 hprimeBound g hcm hg A Delta H hA hH hDelta Pl Pu J hJ hPl hPu hPAu hdisj hdisjU
     Nl v0l v1l ql hNl hcovl hqupl hq1l hqminl hqratiol
     K1 K2 T eps hT1 hTK2 heps
     (by simpa [Pl, Pu, Nl, v0l, v1l, ql, eta, J] using
@@ -220,7 +221,7 @@ theorem sliceA2_inner_band_closed
       exact sliceA2ExceptionalMoment_one_le A1 v epsc eps rho0 T)
     (exceptionalSplitThreshold A) (exceptionalSplitThreshold_pos A (by omega))
     (exceptionalSharpCutoff A) hx0 D
-    (exceptionalDelta0 (sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0))
+    (exceptionalDelta0 (sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0))
     Apret hD (exceptionalDelta0_pos _ hep)
     (exceptionalDelta0_le_one _ hdeltaOne) hApret hNP hrange hstrength
     (fun _ => d) (by intro v hv; exact hd0)

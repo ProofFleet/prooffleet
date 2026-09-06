@@ -34,84 +34,84 @@ noncomputable def sliceA2ExceptionalGamma
 
 /-- Coefficient of the fixed squared sharp envelope. -/
 noncomputable def sliceA2ExceptionalPrimeCoefficient
-    (A1 : ℕ) (epsc eps rho0 : ℝ) : ℝ :=
+    (Cp : ℝ) (A1 : ℕ) (epsc eps rho0 : ℝ) : ℝ :=
   max 1
-    (196608 * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
+    (3072 * Cp * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
       (exceptionalIntervalRatio epsc : ℝ) *
         sliceA2ExceptionalMass A1 epsc)
 
 theorem sliceA2ExceptionalPrimeCoefficient_pos
-    (A1 : ℕ) (epsc eps rho0 : ℝ) :
-    0 < sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0 := by
+    (Cp : ℝ) (A1 : ℕ) (epsc eps rho0 : ℝ) :
+    0 < sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0 := by
   unfold sliceA2ExceptionalPrimeCoefficient
   exact lt_of_lt_of_le zero_lt_one (le_max_left _ _)
 
 /-- Fixed sharpness choice at the short-slice budget floor. -/
 noncomputable def sliceA2ExceptionalEpsilonPrime
-    (A1 : ℕ) (epsc eps rho0 : ℝ) : ℝ :=
+    (Cp : ℝ) (A1 : ℕ) (epsc eps rho0 : ℝ) : ℝ :=
   exceptionalEpsilonPrime (eps * Real.sqrt rho0) 1
     (exceptionalIntervalRatio epsc : ℝ)
-    (sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0)
+    (sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0)
 
 noncomputable def sliceA2ExceptionalDeltaEnvelope
-    (A1 : ℕ) (epsc eps rho0 tail rem : ℝ) : ℝ :=
+    (Cp : ℝ) (A1 : ℕ) (epsc eps rho0 tail rem : ℝ) : ℝ :=
   exceptionalDeltaEnvelope
-    (sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0)
+    (sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0)
     (exceptionalIntervalRatio epsc : ℝ) tail rem
 
 theorem sliceA2ExceptionalEpsilonPrime_pos
-    (A1 : ℕ) (epsc eps rho0 : ℝ)
+    (Cp : ℝ) (A1 : ℕ) (epsc eps rho0 : ℝ)
     (heps : 0 < eps) (hrho0 : 0 < rho0) :
-    0 < sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 := by
+    0 < sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 := by
   unfold sliceA2ExceptionalEpsilonPrime exceptionalEpsilonPrime
   have hR : (0 : ℝ) < exceptionalIntervalRatio epsc := by
     exact_mod_cast (show 0 < exceptionalIntervalRatio epsc by
       have := exceptionalIntervalRatio_three_le epsc
       omega)
-  have hM := sliceA2ExceptionalPrimeCoefficient_pos A1 epsc eps rho0
+  have hM := sliceA2ExceptionalPrimeCoefficient_pos Cp A1 epsc eps rho0
   positivity
 
 /-- The chosen epsilon-prime turns a small tail and Brun remainder into the
 fixed aggregate inequality required by the prime cells. -/
 theorem sliceA2Exceptional_delta_fixed_condition
-    (A1 : ℕ) (epsc eps rho0 tail rem : ℝ)
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (A1 : ℕ) (epsc eps rho0 tail rem : ℝ)
     (heps : 0 ≤ eps) (hrho0 : 0 ≤ rho0)
     (htail0 : 0 ≤ tail) (hrem0 : 0 ≤ rem)
     (htail : 2 * tail + rem ≤
-      4 * sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 *
+      4 * sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 *
         Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ)) :
-    196608 * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
+    3072 * Cp * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
         (exceptionalIntervalRatio epsc : ℝ) *
         sliceA2ExceptionalMass A1 epsc *
-        sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem ^ 2 ≤
+        sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem ^ 2 ≤
       eps ^ 2 * rho0 := by
   let R : ℝ := exceptionalIntervalRatio epsc
-  let M := sliceA2ExceptionalPrimeCoefficient A1 epsc eps rho0
+  let M := sliceA2ExceptionalPrimeCoefficient Cp A1 epsc eps rho0
   let e := eps * Real.sqrt rho0
-  let d := sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem
+  let d := sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem
   have hR : 0 < R := by
     dsimp [R]
     exact_mod_cast (show 0 < exceptionalIntervalRatio epsc by
       have := exceptionalIntervalRatio_three_le epsc
       omega)
   have hM : 0 < M := by
-    simpa [M] using sliceA2ExceptionalPrimeCoefficient_pos A1 epsc eps rho0
+    simpa [M] using sliceA2ExceptionalPrimeCoefficient_pos Cp A1 epsc eps rho0
   have he : 0 ≤ e := by dsimp [e]; positivity
   have hcore := exceptional_delta_fixed_condition e 1 R M tail rem
     he (by norm_num) hR hM htail0 hrem0 (by
       simpa [e, R, M, sliceA2ExceptionalEpsilonPrime] using htail)
   have hcoefficient :
-      196608 * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
+      3072 * Cp * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
           (exceptionalIntervalRatio epsc : ℝ) *
             sliceA2ExceptionalMass A1 epsc ≤ M := by
     dsimp [M, sliceA2ExceptionalPrimeCoefficient]
     exact le_max_right _ _
   have hd2 : 0 ≤ d ^ 2 := sq_nonneg d
   calc
-    196608 * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
+    3072 * Cp * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
           (exceptionalIntervalRatio epsc : ℝ) *
           sliceA2ExceptionalMass A1 epsc *
-          sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem ^ 2 ≤
+          sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem ^ 2 ≤
         M * d ^ 2 := by
       dsimp [d]
       exact mul_le_mul_of_nonneg_right hcoefficient hd2
@@ -259,13 +259,14 @@ theorem sliceA2ExceptionalGamma_le_one
           (Real.log (2 * T)) ^ 2 ≤
         Real.exp (Real.log
           (sliceA2ExceptionalAnchor A1 v epsc eps rho0 : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ))) :
+            (Real.log (2 * T)) ^ primeLargeValuesExponent)) :
     sliceA2ExceptionalGamma A A1 v epsc eps rho0 T ≤ 1 := by
   exact exceptionalPrimeGamma_le_one _ _ _ hfit
 
 /-- All structural prime-cell inputs reduce the literal aggregate to its
 single fixed squared-envelope condition. -/
 theorem sliceA2Exceptional_prime_fit
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp)
     (g : ℕ → ℂ) (hg : ∀ p, ‖g p‖ ≤ 1)
     (A A1 : ℕ) (epsc eps rho0 T : ℝ) (DeltaU : ℕ → ℝ) (d : ℝ)
     (hA : 2 ≤ A) (hT : 0 ≤ T)
@@ -278,12 +279,12 @@ theorem sliceA2Exceptional_prime_fit
     (hGamma : ∀ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
       sliceA2ExceptionalGamma A A1 v epsc eps rho0 T ≤ 1)
     (hfixed :
-      196608 * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
+      3072 * Cp * (sliceA2ExceptionalN A1 epsc eps rho0 : ℝ) *
         (exceptionalIntervalRatio epsc : ℝ) *
         d ^ 2 * sliceA2ExceptionalMass A1 epsc ≤ eps ^ 2 * rho0) :
     2 * ((sliceA2ExceptionalI A1 epsc eps rho0).card : ℝ) *
         (∑ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
-          exceptionalPrimeCellCost
+          exceptionalPrimeCellCost Cp
             (fun u => eadicCell (exceptionalPrimes A1 epsc)
               (2 * sliceA2ExceptionalN A1 epsc eps rho0) u)
             (sliceA2ExceptionalAnchor A1 · epsc eps rho0) g DeltaU
@@ -300,7 +301,7 @@ theorem sliceA2Exceptional_prime_fit
           (1 : ℝ) / p ≤ sliceA2ExceptionalMass A1 epsc := by
     rw [hmassEq]
     exact exceptionalPrimes_mass_le_sliceA2ExceptionalMass A1 epsc
-  have hresult := exceptional_prime_aggregate_fit_ratio I
+  have hresult := exceptional_prime_aggregate_fit_ratio Cp hCp1 I
     (fun v => eadicCell (exceptionalPrimes A1 epsc)
       (2 * sliceA2ExceptionalN A1 epsc eps rho0) v)
     (sliceA2ExceptionalAnchor A1 · epsc eps rho0)

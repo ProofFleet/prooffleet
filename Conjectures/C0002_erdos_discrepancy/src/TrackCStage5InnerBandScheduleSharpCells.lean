@@ -26,7 +26,7 @@ level, the explicit `v`-sum is retained and the previous cell's actual
 threshold is used before the same replacement, collision, and exceptional
 legs are attached. -/
 theorem band_energy_typicalS_le_of_levels_recut_cells [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprimeBound : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (Pl : ℕ → Finset ℕ) (Pu : Finset ℕ) (J : ℕ)
@@ -199,13 +199,13 @@ theorem band_energy_typicalS_le_of_levels_recut_cells [HalaszLargeValuesAssumpti
                   ‖cellBlockCoeff g A (A + Delta) Pu ((List.range J).map Pl) (qu v) n‖ ^ 2 /
                     (n : ℝ) ^ 2)
           + (deltaU v) ^ 2
-            * ((64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+            * ((Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                 * (PcU v : ℝ) / Real.log (PcU v))
               * (1 + primeHighMomentCountCost (PcU v) (ellU v)
                   (eadicCell Pu (2 * Nu) v) T (Vsplit v) (lamU v)
                 * Real.exp (-(Real.log (PcU v) /
-                  (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                  (Real.log (2 * T)) ^ primeLargeValuesExponent))
                 * (Real.log (2 * T)) ^ 2)))
         ≤ kappaU v * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
     (hfitU : 2 * ((Finset.Ico v₀u (v₁u + 1)).card : ℝ)
@@ -283,7 +283,8 @@ theorem band_energy_typicalS_le_of_levels_recut_cells [HalaszLargeValuesAssumpti
     rw [← htyp]
     exact hlevelLeg j hj hne
   rw [htyp]
-  exact band_energy_typicalS_le_of_cellUniform_fit_recut g hcm hg A Delta H hA hH hDeltaA
+  exact band_energy_typicalS_le_of_cellUniform_fit_recut Cp hCp1 hprimeBound
+    g hcm hg A Delta H hA hH hDeltaA
     Pu hPu hPAu restU Nu v₀u v₁u hNu hcovU hstableU qu hqcellU hq1U hqminU
     hLAU hLBU w hwm hw0 hwsup K₁ K₂ J Pset hPset c₃ eps hc₃ hlegU
     PcU hPcU hloU hhiU T hT1 hTK₂ ellU hellU Vsplit deltaU lamU
@@ -315,9 +316,9 @@ The two exceptional schedule hypotheses are exactly
 
 and
 
-`2 * DeltaU v^2 * (64 * card(cell v)/PcU v^2 * PcU v/log(PcU v))
+`2 * DeltaU v^2 * (Cp * card(cell v)/PcU v^2 * PcU v/log(PcU v))
     * (1 + primeHighMomentCountCost ... T V0 (lamU v)
-      * exp(-log(PcU v)/log(2*T)^(3/4)) * log(2*T)^2)
+      * exp(-log(PcU v)/log(2*T)^primeLargeValuesExponent) * log(2*T)^2)
   <= (kappaU v/2) * bandBudget c3 eps (Delta/A)`.
 
 The coefficient harmonic mass, covered-cell cardinality, and prime square-mass
@@ -326,7 +327,7 @@ fixed-threshold fit required by
 `band_energy_typicalS_le_of_cellUniform_fit_recut`.  The conclusion retains
 the honest Fourier-weight factor `(4H/A)^2`. -/
 theorem band_energy_typicalS_le_of_schedule_sharp_cells [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprimeBound : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (h3HA : 3 * H ≤ A)
@@ -506,12 +507,12 @@ theorem band_energy_typicalS_le_of_schedule_sharp_cells [HalaszLargeValuesAssump
         ≤ kappaU v / 2 * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
     (hfitPri : ∀ v ∈ Finset.Ico v₀u (v₁u + 1),
       2 * (DeltaU v) ^ 2
-          * ((64 * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2
+          * ((Cp * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2
                 * (PcU v : ℝ) / Real.log (PcU v))
             * (1 + primeHighMomentCountCost (PcU v) (ellU v)
                 (eadicCell Pu (2 * Nu) v) T (exceptionalSplitThreshold A) (lamU v)
               * Real.exp (-(Real.log (PcU v) /
-                (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                (Real.log (2 * T)) ^ primeLargeValuesExponent))
               * (Real.log (2 * T)) ^ 2))
         ≤ kappaU v / 2 * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)))
     (PminU QmaxU : ℕ) (hPminU : 1 ≤ PminU) (hQmaxU : 3 ≤ QmaxU)
@@ -711,13 +712,13 @@ theorem band_energy_typicalS_le_of_schedule_sharp_cells [HalaszLargeValuesAssump
                   ‖cellBlockCoeff g A (A + Delta) Pu restU (qu v) n‖ ^ 2 /
                     (n : ℝ) ^ 2)
           + (deltaU v) ^ 2
-            * ((64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+            * ((Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                 * (PcU v : ℝ) / Real.log (PcU v))
               * (1 + primeHighMomentCountCost (PcU v) (ellU v)
                   (eadicCell Pu (2 * Nu) v) T (Vsplit v) (lamU v)
                 * Real.exp (-(Real.log (PcU v) /
-                  (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                  (Real.log (2 * T)) ^ primeLargeValuesExponent))
                 * (Real.log (2 * T)) ^ 2)))
         ≤ kappaU v * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
     intro v hv
@@ -784,7 +785,8 @@ theorem band_energy_typicalS_le_of_schedule_sharp_cells [HalaszLargeValuesAssump
       (le_trans (by norm_num) (hPcU v hv)) (hloU v hv)
     let Gamma : ℝ := primeHighMomentCountCost (PcU v) (ellU v)
         (eadicCell Pu (2 * Nu) v) T (Vsplit v) (lamU v)
-      * Real.exp (-(Real.log (PcU v) / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+      * Real.exp (-(Real.log (PcU v) /
+        (Real.log (2 * T)) ^ primeLargeValuesExponent))
       * (Real.log (2 * T)) ^ 2
     have hGamma0 : 0 ≤ Gamma := by
       dsimp [Gamma]
@@ -806,54 +808,54 @@ theorem band_energy_typicalS_le_of_schedule_sharp_cells [HalaszLargeValuesAssump
       pow_le_pow_left₀ (hdeltaU0 v hv) (by simpa [deltaU] using hDeltaU v hv) 2
     have hPriActual :
         2 * (deltaU v) ^ 2
-            * ((64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+            * ((Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                 * (PcU v : ℝ) / Real.log (PcU v)) * (1 + Gamma))
           ≤ kappaU v / 2 * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ)) := by
       calc
         2 * (deltaU v) ^ 2
-              * ((64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+              * ((Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                       ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                   * (PcU v : ℝ) / Real.log (PcU v)) * (1 + Gamma))
             ≤ 2 * (DeltaU v) ^ 2
-              * ((64 * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2
+              * ((Cp * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2
                   * (PcU v : ℝ) / Real.log (PcU v)) * (1 + Gamma)) := by
           have hlogPc : 0 < Real.log (PcU v : ℝ) :=
             Real.log_pos (by
               exact_mod_cast (lt_of_lt_of_le (by norm_num : 1 < 2) (hPcU v hv)))
-          have h64 :
-              64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+          have hCp :
+              Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                   ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
-                ≤ 64 * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2 := by
+                ≤ Cp * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2 := by
             calc
-              64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+              Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
-                  ≤ 64 * (((eadicCell Pu (2 * Nu) v).card : ℝ) /
+                  ≤ Cp * (((eadicCell Pu (2 * Nu) v).card : ℝ) /
                     (PcU v : ℝ) ^ 2) :=
-                      mul_le_mul_of_nonneg_left hprime (by norm_num)
-              _ = 64 * ((eadicCell Pu (2 * Nu) v).card : ℝ) /
+                      mul_le_mul_of_nonneg_left hprime (by linarith)
+              _ = Cp * ((eadicCell Pu (2 * Nu) v).card : ℝ) /
                     (PcU v : ℝ) ^ 2 := by ring
           have hBpri :
-              64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+              Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                   * (PcU v : ℝ) / Real.log (PcU v)
-                ≤ 64 * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2
+                ≤ Cp * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2
                   * (PcU v : ℝ) / Real.log (PcU v) := by
             exact div_le_div_of_nonneg_right
-              (mul_le_mul_of_nonneg_right h64 (Nat.cast_nonneg _)) hlogPc.le
+              (mul_le_mul_of_nonneg_right hCp (Nat.cast_nonneg _)) hlogPc.le
           have hfactor0 : 0 ≤ 1 + Gamma := by linarith
           have hinner := mul_le_mul_of_nonneg_right hBpri hfactor0
           have hinnerActual0 :
-              0 ≤ (64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+              0 ≤ (Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                   * (PcU v : ℝ) / Real.log (PcU v)) * (1 + Gamma) := by positivity
           have hprod :
               (deltaU v) ^ 2 *
-                  ((64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+                  ((Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                         ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                     * (PcU v : ℝ) / Real.log (PcU v)) * (1 + Gamma))
                 ≤ (DeltaU v) ^ 2 *
-                  ((64 * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2
+                  ((Cp * ((eadicCell Pu (2 * Nu) v).card : ℝ) / (PcU v : ℝ) ^ 2
                     * (PcU v : ℝ) / Real.log (PcU v)) * (1 + Gamma)) :=
             mul_le_mul hdeltaSq hinner hinnerActual0 (sq_nonneg _)
           calc
@@ -956,7 +958,7 @@ theorem band_energy_typicalS_le_of_schedule_sharp_cells [HalaszLargeValuesAssump
             * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ)‖ ^ 2 * w xi)
     ≤ Cw * bandBudget c₃ eps ((Delta : ℝ) / (A : ℝ))
   rw [← hbudgetScale]
-  apply band_energy_typicalS_le_of_levels_recut_cells
+  apply band_energy_typicalS_le_of_levels_recut_cells Cp hCp1 hprimeBound
     (X := fun j => replacementCost A (Nl j) (bb j) T)
     g hcm hg A Delta H hA hH hDeltaA
     Pl Pu J hPl hPu hPAl hPAu hdisj hdisjU Nl v₀l v₁l ql innerBandScheduleAlpha

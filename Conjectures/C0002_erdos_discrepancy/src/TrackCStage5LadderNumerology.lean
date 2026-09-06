@@ -145,34 +145,35 @@ theorem ladderExceptionalCellShare_prime_fit_fails_of_large_log
 
 /-- **Share-independent form of the L3-5 obstruction.**  Suppose the summed
 prime parts of the exceptional cell fits cost at least
-`64*d^2*E/logQ`, as they do for unit-modulus prime coefficients, and the
+`Cp*d^2*E/logQ`, as they do for unit-modulus prime coefficients, and the
 e-adic cover has at least `logQ` cells.  The aggregate exceptional share then
-forces `1024*2^(J+1)*d^2*E <= c3*eps^2`.
+forces `16*Cp*2^(J+1)*d^2*E <= c3*eps^2`.
 
 Thus redistributing the cell shares cannot repair the geometric loss. -/
 theorem ladderExceptionalAggregate_prime_fit_forces_level_upper
-    (J : ℕ) (cellCount logQ totalShareCost budget d E c3 eps : ℝ)
+    (J : ℕ) (Cp cellCount logQ totalShareCost budget d E c3 eps : ℝ)
+    (hCp0 : 0 ≤ Cp)
     (hlogQ : 0 < logQ) (hcellCount : logQ ≤ cellCount)
     (hd : 0 < d) (hE : 0 < E)
-    (hprime : 64 * d ^ 2 * E / logQ ≤ totalShareCost)
+    (hprime : Cp * d ^ 2 * E / logQ ≤ totalShareCost)
     (haggregate : 2 * cellCount * totalShareCost ≤
       (1 / (2 : ℝ) ^ (J + 1)) * budget)
     (hbudget : budget ≤ c3 * eps ^ 2 / 8) :
-    1024 * (2 : ℝ) ^ (J + 1) * d ^ 2 * E ≤ c3 * eps ^ 2 := by
+    16 * Cp * (2 : ℝ) ^ (J + 1) * d ^ 2 * E ≤ c3 * eps ^ 2 := by
   have htotal0 : 0 ≤ totalShareCost := by
-    exact le_trans (by positivity : 0 ≤ 64 * d ^ 2 * E / logQ) hprime
-  have hcost : 128 * d ^ 2 * E ≤ 2 * cellCount * totalShareCost := by
+    exact le_trans (by positivity : 0 ≤ Cp * d ^ 2 * E / logQ) hprime
+  have hcost : 2 * Cp * d ^ 2 * E ≤ 2 * cellCount * totalShareCost := by
     calc
-      128 * d ^ 2 * E =
-          2 * logQ * (64 * d ^ 2 * E / logQ) := by field_simp; ring
+      2 * Cp * d ^ 2 * E =
+          2 * logQ * (Cp * d ^ 2 * E / logQ) := by field_simp
       _ ≤ 2 * logQ * totalShareCost :=
         mul_le_mul_of_nonneg_left hprime (by positivity)
       _ ≤ 2 * cellCount * totalShareCost := by gcongr
   have hpow0 : 0 < (2 : ℝ) ^ (J + 1) := by positivity
-  have hscaled : 128 * d ^ 2 * E ≤
+  have hscaled : 2 * Cp * d ^ 2 * E ≤
       c3 * eps ^ 2 / (8 * (2 : ℝ) ^ (J + 1)) := by
     calc
-      128 * d ^ 2 * E ≤ 2 * cellCount * totalShareCost := hcost
+      2 * Cp * d ^ 2 * E ≤ 2 * cellCount * totalShareCost := hcost
       _ ≤ (1 / (2 : ℝ) ^ (J + 1)) * budget := haggregate
       _ ≤ (1 / (2 : ℝ) ^ (J + 1)) * (c3 * eps ^ 2 / 8) := by
         gcongr
@@ -184,16 +185,17 @@ theorem ladderExceptionalAggregate_prime_fit_forces_level_upper
 /-- With the sharp envelope's fixed floor `d = epsilon'/8`, the preceding
 necessary condition has the simpler exact coefficient `16`. -/
 theorem ladderExceptionalAggregate_fixed_floor_forces_level_upper
-    (J : ℕ) (cellCount logQ totalShareCost budget E c3 eps epsilon' : ℝ)
+    (J : ℕ) (Cp cellCount logQ totalShareCost budget E c3 eps epsilon' : ℝ)
+    (hCp0 : 0 ≤ Cp)
     (hlogQ : 0 < logQ) (hcellCount : logQ ≤ cellCount)
     (hE : 0 < E) (hepsilon' : 0 < epsilon')
-    (hprime : 64 * (epsilon' / 8) ^ 2 * E / logQ ≤ totalShareCost)
+    (hprime : Cp * (epsilon' / 8) ^ 2 * E / logQ ≤ totalShareCost)
     (haggregate : 2 * cellCount * totalShareCost ≤
       (1 / (2 : ℝ) ^ (J + 1)) * budget)
     (hbudget : budget ≤ c3 * eps ^ 2 / 8) :
-    16 * (2 : ℝ) ^ (J + 1) * epsilon' ^ 2 * E ≤ c3 * eps ^ 2 := by
+    Cp / 4 * (2 : ℝ) ^ (J + 1) * epsilon' ^ 2 * E ≤ c3 * eps ^ 2 := by
   have hraw := ladderExceptionalAggregate_prime_fit_forces_level_upper
-    J cellCount logQ totalShareCost budget (epsilon' / 8) E c3 eps
+    J Cp cellCount logQ totalShareCost budget (epsilon' / 8) E c3 eps hCp0
     hlogQ hcellCount (by positivity) hE hprime haggregate hbudget
   nlinarith
 
@@ -246,12 +248,12 @@ theorem exceptional_actual_cost_schedule
 harmonic prime mass.  This retains one factor of `1/log P` while allowing the
 cell masses to be summed before the outer Cauchy factor is applied. -/
 theorem exceptional_prime_factor_le_harmonic
-    (Y : Finset ℕ) (Pc : ℕ) (hPc : 2 ≤ Pc)
+    (Cp : ℝ) (hCp0 : 0 ≤ Cp) (Y : Finset ℕ) (Pc : ℕ) (hPc : 2 ≤ Pc)
     (hlo : ∀ p ∈ Y, Pc < p) (g : ℕ → ℂ) (hg : ∀ p, ‖g p‖ ≤ 1)
     (L : ℝ) (hL : 0 < L) (hlog : L ≤ Real.log (Pc : ℝ)) :
-    64 * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) /
+    Cp * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) /
         Real.log (Pc : ℝ) ≤
-      64 / L * ∑ p ∈ Y, (1 : ℝ) / p := by
+      Cp / L * ∑ p ∈ Y, (1 : ℝ) / p := by
   have hPc0 : (0 : ℝ) < Pc := by positivity
   have hlogPc : 0 < Real.log (Pc : ℝ) :=
     Real.log_pos (by exact_mod_cast (show 1 < Pc by omega))
@@ -277,17 +279,17 @@ theorem exceptional_prime_factor_le_harmonic
   have hmass0 : 0 ≤ ∑ p ∈ Y, (1 : ℝ) / p :=
     Finset.sum_nonneg fun p hp => by positivity
   have hnum :
-      64 * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) ≤
-        64 * (∑ p ∈ Y, (1 : ℝ) / p) := by
-    nlinarith
+      Cp * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) ≤
+        Cp * (∑ p ∈ Y, (1 : ℝ) / p) := by
+    simpa [mul_assoc] using mul_le_mul_of_nonneg_left hsum hCp0
   calc
-    64 * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) /
+    Cp * (∑ p ∈ Y, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc : ℝ) /
           Real.log (Pc : ℝ)
-        ≤ 64 * (∑ p ∈ Y, (1 : ℝ) / p) / Real.log (Pc : ℝ) := by
+        ≤ Cp * (∑ p ∈ Y, (1 : ℝ) / p) / Real.log (Pc : ℝ) := by
           exact div_le_div_of_nonneg_right hnum hlogPc.le
-    _ ≤ 64 * (∑ p ∈ Y, (1 : ℝ) / p) / L := by
+    _ ≤ Cp * (∑ p ∈ Y, (1 : ℝ) / p) / L := by
           exact div_le_div_of_nonneg_left (by positivity) hL hlog
-    _ = 64 / L * ∑ p ∈ Y, (1 : ℝ) / p := by ring
+    _ = Cp / L * ∑ p ∈ Y, (1 : ℝ) / p := by ring
 
 /-- The e-adic cells are disjoint, so their harmonic masses sum to the mass
 of the covered prime level exactly. -/
@@ -307,10 +309,10 @@ theorem sum_eadicCell_harmonic_eq
 
 /-- Aggregate prime-part bound after summing the actual cell costs.  If the
 number of cells is at most `Ccells*N*R*L`, the outer Cauchy factor costs only
-the fixed quantity `512*Ccells*N*R*d²*E`; no geometric factor in the number of
+the fixed quantity `8*Cp*Ccells*N*R*d²*E`; no geometric factor in the number of
 ordinary ladder levels remains. -/
 theorem exceptional_prime_aggregate_le
-    (I : Finset ℕ) (Y : ℕ → Finset ℕ) (Pc : ℕ → ℕ)
+    (Cp : ℝ) (hCp0 : 0 ≤ Cp) (I : Finset ℕ) (Y : ℕ → Finset ℕ) (Pc : ℕ → ℕ)
     (hPc : ∀ v ∈ I, 2 ≤ Pc v) (hlo : ∀ v ∈ I, ∀ p ∈ Y v, Pc v < p)
     (g : ℕ → ℂ) (hg : ∀ p, ‖g p‖ ≤ 1)
     (Delta Gamma : ℕ → ℝ) (d L E N R Ccells : ℝ)
@@ -324,72 +326,72 @@ theorem exceptional_prime_aggregate_le
     (hcard : (I.card : ℝ) ≤ Ccells * N * R * L) :
     2 * (I.card : ℝ) *
         (∑ v ∈ I, 2 * Delta v ^ 2 *
-          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+          ((Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
               (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v))) ≤
-      512 * Ccells * N * R * d ^ 2 * E := by
+      8 * Cp * Ccells * N * R * d ^ 2 * E := by
   have hcell : ∀ v ∈ I,
       2 * Delta v ^ 2 *
-          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+          ((Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
               (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v)) ≤
-        256 * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := by
+        4 * Cp * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := by
     intro v hv
     have hDeltaSq : Delta v ^ 2 ≤ d ^ 2 :=
       pow_le_pow_left₀ (hDelta0 v hv) (hDelta v hv) 2
     have hfactor := exceptional_prime_factor_le_harmonic
-      (Y v) (Pc v) (hPc v hv) (hlo v hv) g hg L hL (hlog v hv)
+      Cp hCp0 (Y v) (Pc v) (hPc v hv) (hlo v hv) g hg L hL (hlog v hv)
     have hmassv0 : 0 ≤ ∑ p ∈ Y v, (1 : ℝ) / p :=
       Finset.sum_nonneg fun p hp => by positivity
-    have hfactor0 : 0 ≤ 64 *
+    have hfactor0 : 0 ≤ Cp *
         (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
           (Pc v : ℝ) / Real.log (Pc v : ℝ) := by
       have := hPc v hv
       positivity
     have hGamma1 : 0 ≤ 1 + Gamma v := by linarith [hGamma0 v hv]
     have hGamma2 : 1 + Gamma v ≤ 2 := by linarith [hGamma v hv]
-    have hrhs0 : 0 ≤ 64 / L * ∑ p ∈ Y v, (1 : ℝ) / p := by
+    have hrhs0 : 0 ≤ Cp / L * ∑ p ∈ Y v, (1 : ℝ) / p := by
       positivity
     have hproduct :
-        (64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+        (Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
               (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v) ≤
-          (64 / L * ∑ p ∈ Y v, (1 : ℝ) / p) * 2 :=
+          (Cp / L * ∑ p ∈ Y v, (1 : ℝ) / p) * 2 :=
       mul_le_mul hfactor hGamma2 hGamma1 hrhs0
     have hproduct0 : 0 ≤
-        (64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+        (Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
               (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v) :=
       mul_nonneg hfactor0 hGamma1
     calc
       2 * Delta v ^ 2 *
-          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+          ((Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
               (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v))
           ≤ 2 * d ^ 2 *
-              ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+              ((Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
                 (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v)) := by
             exact mul_le_mul_of_nonneg_right
               (mul_le_mul_of_nonneg_left hDeltaSq (by norm_num)) hproduct0
-      _ ≤ 2 * d ^ 2 * ((64 / L * ∑ p ∈ Y v, (1 : ℝ) / p) * 2) := by
+      _ ≤ 2 * d ^ 2 * ((Cp / L * ∑ p ∈ Y v, (1 : ℝ) / p) * 2) := by
             exact mul_le_mul_of_nonneg_left hproduct (by positivity)
-      _ = 256 * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := by ring
+      _ = 4 * Cp * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := by ring
   have hsum := Finset.sum_le_sum hcell
   have hsum' :
       ∑ v ∈ I, 2 * Delta v ^ 2 *
-          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+          ((Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
               (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v)) ≤
-        256 * d ^ 2 / L * E := by
+        4 * Cp * d ^ 2 / L * E := by
     calc
-      _ ≤ ∑ v ∈ I, 256 * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := hsum
-      _ = 256 * d ^ 2 / L *
+      _ ≤ ∑ v ∈ I, 4 * Cp * d ^ 2 / L * ∑ p ∈ Y v, (1 : ℝ) / p := hsum
+      _ = 4 * Cp * d ^ 2 / L *
           (∑ v ∈ I, ∑ p ∈ Y v, (1 : ℝ) / p) := by
             rw [Finset.mul_sum]
-      _ ≤ 256 * d ^ 2 / L * E := by gcongr
-  have hsum0 : 0 ≤ 256 * d ^ 2 / L * E := by positivity
+      _ ≤ 4 * Cp * d ^ 2 / L * E := by gcongr
+  have hsum0 : 0 ≤ 4 * Cp * d ^ 2 / L * E := by positivity
   calc
     2 * (I.card : ℝ) *
         (∑ v ∈ I, 2 * Delta v ^ 2 *
-          ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+          ((Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
               (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v)))
-        ≤ 2 * (I.card : ℝ) * (256 * d ^ 2 / L * E) := by gcongr
-    _ ≤ 2 * (Ccells * N * R * L) * (256 * d ^ 2 / L * E) := by gcongr
-    _ = 512 * Ccells * N * R * d ^ 2 * E := by
+        ≤ 2 * (I.card : ℝ) * (4 * Cp * d ^ 2 / L * E) := by gcongr
+    _ ≤ 2 * (Ccells * N * R * L) * (4 * Cp * d ^ 2 / L * E) := by gcongr
+    _ = 8 * Cp * Ccells * N * R * d ^ 2 * E := by
       field_simp [ne_of_gt hL]
       ring
 

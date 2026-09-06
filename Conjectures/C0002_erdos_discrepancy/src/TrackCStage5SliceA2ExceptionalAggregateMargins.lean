@@ -20,6 +20,7 @@ set_option maxHeartbeats 800000 in
 /-- Beyond one base threshold, every exceptional aggregate fit follows from
 the single fixed smallness condition on the sharp tail and Brun remainder. -/
 theorem exists_sliceA2Exceptional_aggregate_fits
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp)
     (g : ℕ → ℂ) (hg : ∀ m, ‖g m‖ ≤ 1)
     (P0 ratio0 eta : ℕ) (epsc eps rho0 : ℝ)
     (hP0 : 2 ≤ P0) (heta : 1 ≤ eta) (heps : 0 < eps)
@@ -32,10 +33,10 @@ theorem exists_sliceA2Exceptional_aggregate_fits
         Real.log (2 * T) ≤ 3 * Real.log (A1 : ℝ) →
         0 ≤ tail → 0 ≤ rem →
         2 * tail + rem ≤
-          4 * sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 *
+          4 * sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 *
             Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) →
         let J := sliceA2LadderJ P0 ratio0 eta A1 hP0
-        let d := sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem
+        let d := sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem
         (2 * ((sliceA2ExceptionalI A1 epsc eps rho0).card : ℝ) *
             (∑ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
               exceptionalIntegerCellCost (exceptionalSplitThreshold A)
@@ -47,7 +48,7 @@ theorem exists_sliceA2Exceptional_aggregate_fits
                   epsc eps rho0)) ≤ eps ^ 2 * rho0 / 64) ∧
         (2 * ((sliceA2ExceptionalI A1 epsc eps rho0).card : ℝ) *
             (∑ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
-              exceptionalPrimeCellCost
+              exceptionalPrimeCellCost Cp
                 (fun u => eadicCell (exceptionalPrimes A1 epsc)
                   (2 * sliceA2ExceptionalN A1 epsc eps rho0) u)
                 (sliceA2ExceptionalAnchor A1 · epsc eps rho0) g (fun _ => d)
@@ -84,7 +85,7 @@ theorem exists_sliceA2Exceptional_aggregate_fits
   have hinteger := sliceA2Exceptional_integer_scale_fit
     g P0 ratio0 eta (sliceA2LadderJ P0 ratio0 eta A1 hP0) A1 A
     epsc eps rho0 K1 K2 T hA3 hT hTA hQsq hlog1 hcover hpoly
-  apply sliceA2Exceptional_aggregate_fits g hg A Delta P0 ratio0 eta
+  apply sliceA2Exceptional_aggregate_fits Cp hCp1 g hg A Delta P0 ratio0 eta
     (sliceA2LadderJ P0 ratio0 eta A1 hP0) A1 epsc eps rho0 K1 K2 T tail rem
     (by omega) hDelta hQsq hT hTA heps hrho0 htail0 hrem0 hanchor hlog1 hlog6
     hinteger

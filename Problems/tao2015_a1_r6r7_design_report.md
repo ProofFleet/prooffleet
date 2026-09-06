@@ -1169,6 +1169,15 @@ lemmas (`∑_{s≠t} 1/|t−s| ≤ 2(log 2T + 1)`, `∑_{s≠t} √|t−s| ≤ #
 `instance : HalaszLargeValuesAssumption` and **`trackR_edp_halasz [PrimeLargeValuesAssumption]`** (EDP for every sign sequence conditional on the
 prime large-values interface alone), pinned. **The whole Track R chain now rests on `PrimeLargeValuesAssumption` only.** Next: Phase 6 (V-0 …).
 
+### V-0 as run — status (2026-09-06, Codex run 18; report in `Problems/tao2015_v0_report.md`)
+
+**V-0-1** `Interfaces/LargeValues.lean`: `primeLargeValuesExponent := 4/5` and the field `∃ C, 1 ≤ C ∧ ∀ …, 2 ≤ P → 1 ≤ T → … ≤ C·(1 + #𝒯·exp(−log P/(log 2T)^{θ})(log 2T)²)·(∑‖a_p‖²/p²)·P/log P`;
+transcription updated. **V-0-2** the witness `Cp` chosen once in `sliceMeanSquareA2` and threaded through the band/schedule/exceptional/L3 chain
+(46 files; literal `64` → `Cp`, literal `3/4` → the named exponent); the L3-5 margin at exponent `4/5` is `X^{9/50}/6` against the moment loss
+`X^{1/50}` (`X = log A₁`), i.e. `4/25` positive; the exceptional prime coefficients (`512Cp`, `1536Cp`, `3072Cp`) absorbed into `ε'` and the height
+constant; three transitive-import leaks repaired with narrow imports. **V-0-3** the five pins byte-identical (no audit edit needed). Statements of
+`sliceMeanSquareA2`, `trackR_edp`, `trackR_edp_halasz` unchanged. Next: V-A/V-B (run 19; brief `Problems/tao2015_va_brief.md`).
+
 ### Dependency order
 
 ```

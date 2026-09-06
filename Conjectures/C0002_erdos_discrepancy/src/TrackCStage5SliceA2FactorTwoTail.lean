@@ -53,6 +53,7 @@ theorem sliceA2Exceptional_quotient_log_factor_le_two
 /-- The exponential Rankin tail keeps its fixed allocation throughout the
 doubled quadratic window. -/
 theorem exists_sliceA2Exceptional_rankin_exp_tail_le_two
+    (Cp : ℝ)
     (epsc eps rho0 : ℝ) (heps : 0 < eps) (hrho0 : 0 < rho0) :
     ∃ A0 : ℕ, ∀ A1 A Delta : ℕ,
       A0 ≤ A1 → A1 ≤ A → A ≤ 2 * A1 ^ 2 → Delta ≤ A →
@@ -66,9 +67,9 @@ theorem exists_sliceA2Exceptional_rankin_exp_tail_le_two
             Real.exp (2 * ∑ p ∈ exceptionalPrimes A1 epsc,
               (p : ℝ) ^
                 (-(1 - sliceA2ExceptionalRankinS A1 epsc)))) ≤
-          sliceA2ExceptionalTailBudget epsc eps rho0 := by
+          sliceA2ExceptionalTailBudget Cp epsc eps rho0 := by
   obtain ⟨AS, hAS⟩ :=
-    exists_sliceA2Exceptional_rankin_scalar_margin epsc eps rho0 heps hrho0
+    exists_sliceA2Exceptional_rankin_scalar_margin Cp epsc eps rho0 heps hrho0
   obtain ⟨AQ, hAQ⟩ := exists_const_mul_exceptionalPrimeUpper_pow_le
     1 4 epsc (by norm_num) (by norm_num)
   obtain ⟨AL, hAL⟩ := exists_sliceA2_log_ge (8 * Real.log 8)
@@ -163,6 +164,7 @@ theorem exists_sliceA2Exceptional_rankin_exp_tail_le_two
 
 /-- The fixed sharp-cell envelope is unchanged on the doubled window. -/
 theorem exists_sliceA2Exceptional_sharp_bound_two
+    (Cp : ℝ)
     (epsc eps rho0 : ℝ) (heps : 0 < eps) (hrho0 : 0 < rho0) :
     ∃ (D : ℝ) (A0 : ℕ), 1 ≤ D ∧
       ∀ A1 A Delta : ℕ,
@@ -171,22 +173,22 @@ theorem exists_sliceA2Exceptional_sharp_bound_two
           cellHalaszSharpBound
               (exceptionalSharpCutoff A) D
               (exceptionalDelta0
-                (sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0))
+                (sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0))
               (A / sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
               ((A + Delta) /
                 sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
               (exceptionalPrimes A1 epsc) [base] ≤
-            2 * (2 * sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 *
+            2 * (2 * sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 *
               Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) +
-                sliceA2ExceptionalTailBudget epsc eps rho0) := by
-  let ep := sliceA2ExceptionalEpsilonPrime 0 epsc eps rho0
+                sliceA2ExceptionalTailBudget Cp epsc eps rho0) := by
+  let ep := sliceA2ExceptionalEpsilonPrime Cp 0 epsc eps rho0
   have hep : 0 < ep := by
     dsimp [ep]
-    exact sliceA2ExceptionalEpsilonPrime_pos 0 epsc eps rho0 heps hrho0
+    exact sliceA2ExceptionalEpsilonPrime_pos Cp 0 epsc eps rho0 heps hrho0
   obtain ⟨D0, xMin, hD0, hxMin, hsharp⟩ :=
     cellHalaszSharpBound_le_fixedEnvelope ep hep
   obtain ⟨AT, hAT⟩ :=
-    exists_sliceA2Exceptional_rankin_exp_tail_le_two epsc eps rho0 heps hrho0
+    exists_sliceA2Exceptional_rankin_exp_tail_le_two Cp epsc eps rho0 heps hrho0
   obtain ⟨AP, hAP⟩ := exists_exceptionalPrimeLower_ge 6
   obtain ⟨AQ, hAQ⟩ := exists_const_mul_exceptionalPrimeUpper_pow_le
     1 4 epsc (by norm_num) (by norm_num)
@@ -272,13 +274,14 @@ theorem exists_sliceA2Exceptional_sharp_bound_two
   have hresult := hsharp D0 le_rfl (exceptionalSharpCutoff A) hxMinCutoff
     Aq Bq hAq hAB hB (exceptionalPrimes A1 epsc)
     (fun p hp => exceptionalPrimes_prime A1 epsc p hp)
-    s hs.1 hs.2 hhalf base R (sliceA2ExceptionalTailBudget epsc eps rho0)
+    s hs.1 hs.2 hhalf base R (sliceA2ExceptionalTailBudget Cp epsc eps rho0)
     hR hmass hsq (by simpa [Aq, Bq, q, s] using htail)
   simpa [ep, exceptionalDelta0, Aq, Bq, q, s, R,
-    sliceA2ExceptionalEpsilonPrime_eq_zero A1 epsc eps rho0] using hresult
+    sliceA2ExceptionalEpsilonPrime_eq_zero Cp A1 epsc eps rho0] using hresult
 
 /-- The exceptional Delta envelope is uniform on the doubled window. -/
 theorem exists_sliceA2Exceptional_delta_bound_two
+    (Cp : ℝ)
     (P0 ratio0 : ℕ) (lowBudget epsc eps rho0 : ℝ)
     (hP0 : 3 ≤ P0) (hlow : 0 < lowBudget) (hepsc : 0 < epsc)
     (heps : 0 < eps) (hrho0 : 0 < rho0) :
@@ -286,14 +289,14 @@ theorem exists_sliceA2Exceptional_delta_bound_two
       ∀ A1 A Delta : ℕ,
         A0 ≤ A1 → A1 ≤ A → A ≤ 2 * A1 ^ 2 → Delta ≤ A →
         ∀ v : ℕ,
-          let eta := sliceA2ExceptionalLadderEta lowBudget epsc eps rho0
+          let eta := sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0
           let J := sliceA2LadderJ P0 ratio0 eta A1 (by omega)
-          let tail := sliceA2ExceptionalTailBudget epsc eps rho0
-          let rem := sliceA2ExceptionalLadderBudget lowBudget epsc eps rho0 / 4
+          let tail := sliceA2ExceptionalTailBudget Cp epsc eps rho0
+          let rem := sliceA2ExceptionalLadderBudget Cp lowBudget epsc eps rho0 / 4
           cellHalaszSharpBound
                 (exceptionalSharpCutoff A) D
                 (exceptionalDelta0
-                  (sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0))
+                  (sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0))
                 (A / sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
                 ((A + Delta) /
                   sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
@@ -305,20 +308,20 @@ theorem exists_sliceA2Exceptional_delta_bound_two
                   sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
                 ((List.range (J - 1)).map
                   (fun i => sliceA2LadderPrimes P0 ratio0 eta (i + 1))) ≤
-            sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem := by
-  let budget := sliceA2ExceptionalLadderBudget lowBudget epsc eps rho0
-  let eta := sliceA2ExceptionalLadderEta lowBudget epsc eps rho0
+            sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem := by
+  let budget := sliceA2ExceptionalLadderBudget Cp lowBudget epsc eps rho0
+  let eta := sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0
   have hbudget : 0 < budget := by
     simpa [budget] using sliceA2ExceptionalLadderBudget_pos
-      lowBudget epsc eps rho0 hlow heps hrho0
+      Cp lowBudget epsc eps rho0 hlow heps hrho0
   have heta : 1 ≤ eta := by
     simpa [eta] using sliceA2ExceptionalLadderEta_one_le
-      lowBudget epsc eps rho0
+      Cp lowBudget epsc eps rho0
   have hetaBrun : 64 * Real.exp 12 ≤ budget * eta := by
     simpa [budget, eta] using sliceA2ExceptionalLadderEta_brun_budget
-      lowBudget epsc eps rho0 hlow hepsc heps hrho0
+      Cp lowBudget epsc eps rho0 hlow hepsc heps hrho0
   obtain ⟨D, AS, hD, hsharp⟩ :=
-    exists_sliceA2Exceptional_sharp_bound_two epsc eps rho0 heps hrho0
+    exists_sliceA2Exceptional_sharp_bound_two Cp epsc eps rho0 heps hrho0
   obtain ⟨AB, hbrun⟩ :=
     exists_sliceA2PositiveLadder_exceptional_remainder_le_quarter
       P0 ratio0 eta epsc eps rho0 budget hP0 heta hbudget hetaBrun
@@ -327,17 +330,17 @@ theorem exists_sliceA2Exceptional_delta_bound_two
   have hAS1 : AS ≤ A1 := by omega
   have hAB1 : AB ≤ A1 := by omega
   let J := sliceA2LadderJ P0 ratio0 eta A1 (by omega)
-  let tail := sliceA2ExceptionalTailBudget epsc eps rho0
+  let tail := sliceA2ExceptionalTailBudget Cp epsc eps rho0
   let rem := budget / 4
   have hs := hsharp A1 A Delta hAS1 hA hAupper hDelta v
     (sliceA2LadderPrimes P0 ratio0 eta 0)
   have hb := hbrun A1 A Delta hAB1 hA hDelta v
   have hdelta := sliceA2Exceptional_delta_bound_of_sharp_remainder
-    A1 epsc eps rho0 tail rem
+    Cp A1 epsc eps rho0 tail rem
     (cellHalaszSharpBound
       (exceptionalSharpCutoff A) D
       (exceptionalDelta0
-        (sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0))
+        (sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0))
       (A / sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
       ((A + Delta) / sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
       (exceptionalPrimes A1 epsc)

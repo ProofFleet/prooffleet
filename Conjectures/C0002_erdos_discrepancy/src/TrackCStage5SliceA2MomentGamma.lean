@@ -30,7 +30,7 @@ theorem sliceA2ExceptionalGamma_fit_of_scalar_margin
       let X := Real.log (A1 : ℝ)
       let C := sliceA2MomentLogConstant epsc
       220 * (6 * X ^ (1 / 50 : ℝ) + 3) *
-          (Real.log X + C + 1) ≤ X ^ (23 / 100 : ℝ) / 6) :
+          (Real.log X + C + 1) ≤ X ^ (9 / 50 : ℝ) / 6) :
     primeHighMomentCountCost
           (sliceA2ExceptionalAnchor A1 v epsc eps rho0)
           (sliceA2ExceptionalMoment A1 v epsc eps rho0 T)
@@ -40,7 +40,7 @@ theorem sliceA2ExceptionalGamma_fit_of_scalar_margin
           (Real.log (2 * T)) ^ 2 ≤
         Real.exp (Real.log
           (sliceA2ExceptionalAnchor A1 v epsc eps rho0 : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)) := by
+            (Real.log (2 * T)) ^ primeLargeValuesExponent) := by
   let X := Real.log (A1 : ℝ)
   let C := sliceA2MomentLogConstant epsc
   let Z := Real.log X + C
@@ -53,8 +53,8 @@ theorem sliceA2ExceptionalGamma_fit_of_scalar_margin
   have hlogTpos : 0 < Real.log (2 * T) := Real.log_pos (by linarith)
   have hhalf := sliceA2Exceptional_halfScaleLog_le_anchor_log
     A1 v epsc eps rho0 hv hanchor hlog6
-  have hdamp : X ^ (23 / 100 : ℝ) / 6 ≤
-      Real.log (P : ℝ) / (Real.log (2 * T)) ^ (3 / 4 : ℝ) := by
+  have hdamp : X ^ (9 / 50 : ℝ) / 6 ≤
+      Real.log (P : ℝ) / (Real.log (2 * T)) ^ primeLargeValuesExponent := by
     apply exceptionalDamping_rpow_lower X (Real.log (P : ℝ))
       (Real.log (2 * T)) hX
     · simpa [X, P] using hhalf
@@ -68,7 +68,7 @@ theorem sliceA2ExceptionalGamma_fit_of_scalar_margin
             200 * (ell : ℝ) * Real.log (Real.log (A : ℝ)) +
             2 * Real.log (Real.log (2 * T)) ≤
           Real.log (P : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ) := by
+            (Real.log (2 * T)) ^ primeLargeValuesExponent := by
     apply sliceA2ExceptionalMoment_logCertificate_of_bounds
       A P ell T M Z
     · simpa [M, X, ell] using hell
@@ -78,7 +78,7 @@ theorem sliceA2ExceptionalGamma_fit_of_scalar_margin
     · simpa [Z, X, C] using hlogA
     · simpa [Z, X, C] using hloglogT
     · have hs : 220 * (M + 1) * (Z + 1) ≤
-      X ^ (23 / 100 : ℝ) / 6 := by
+      X ^ (9 / 50 : ℝ) / 6 := by
         dsimp [M, Z, X, C]
         convert hscalar using 1 <;> ring
       exact hs.trans hdamp
@@ -118,7 +118,7 @@ theorem exists_sliceA2ExceptionalGamma_fit
                   (Real.log (2 * T)) ^ 2 ≤
                 Real.exp (Real.log
                   (sliceA2ExceptionalAnchor A1 v epsc eps rho0 : ℝ) /
-                    (Real.log (2 * T)) ^ (3 / 4 : ℝ)) := by
+                    (Real.log (2 * T)) ^ primeLargeValuesExponent) := by
   let C := sliceA2MomentLogConstant epsc
   obtain ⟨AS, hAS⟩ := exists_sliceA2ExceptionalMoment_scalar_margin C
     (by

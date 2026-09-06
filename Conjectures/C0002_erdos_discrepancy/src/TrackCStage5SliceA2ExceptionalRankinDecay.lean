@@ -16,16 +16,17 @@ open Filter
 /-- The scalar envelope for the sharp Rankin tail eventually enters its
 fixed exceptional allocation. -/
 theorem exists_sliceA2Exceptional_rankin_scalar_margin
+    (Cp : ℝ)
     (epsc eps rho0 : ℝ) (heps : 0 < eps) (hrho0 : 0 < rho0) :
     ∃ A0 : ℕ, ∀ A1 : ℕ, A0 ≤ A1 →
       let X := Real.log (A1 : ℝ)
       (3 * X + 2) * Real.exp (6 * sliceA2ExceptionalMass 0 epsc) *
           Real.exp (-(X ^ (1 / 50 : ℝ) /
             (16 * (exceptionalIntervalRatio epsc : ℝ)))) ≤
-        sliceA2ExceptionalTailBudget epsc eps rho0 := by
+        sliceA2ExceptionalTailBudget Cp epsc eps rho0 := by
   let R : ℝ := exceptionalIntervalRatio epsc
   let C : ℝ := Real.exp (6 * sliceA2ExceptionalMass 0 epsc)
-  let target := sliceA2ExceptionalTailBudget epsc eps rho0
+  let target := sliceA2ExceptionalTailBudget Cp epsc eps rho0
   let b : ℝ := 1 / (16 * R)
   have hR : 0 < R := by
     dsimp [R]
@@ -34,7 +35,7 @@ theorem exists_sliceA2Exceptional_rankin_scalar_margin
       omega)
   have hC : 0 < C := by dsimp [C]; positivity
   have htarget : 0 < target := by
-    simpa [target] using sliceA2ExceptionalTailBudget_pos epsc eps rho0 heps hrho0
+    simpa [target] using sliceA2ExceptionalTailBudget_pos Cp epsc eps rho0 heps hrho0
   have hb : 0 < b := by dsimp [b]; positivity
   have hconst : Tendsto (fun _ : ℝ => 5 * C) atTop (nhds (5 * C)) :=
     tendsto_const_nhds

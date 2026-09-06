@@ -36,9 +36,9 @@ noncomputable def sliceA2FrequencyPowerConstant (epsc : ℝ) : ℝ :=
       (22 : ℝ) ^ sliceA2HeightRatio epsc /
         sliceA2FrequencyTargetConstant
 
-noncomputable def sliceA2HeightPowerConstant (epsc : ℝ) (Qlog0 : ℕ) : ℝ :=
+noncomputable def sliceA2HeightPowerConstant (Cp epsc : ℝ) (Qlog0 : ℕ) : ℝ :=
   max 1 (max
-    (sliceA2BottomPowerConstant epsc Qlog0 ^
+    (sliceA2BottomPowerConstant Cp epsc Qlog0 ^
       (4 * sliceA2HeightRatio epsc))
     (max sliceA2WindowPowerConstant
       (sliceA2FrequencyPowerConstant epsc ^ 2)))
@@ -73,8 +73,8 @@ theorem sliceA2FrequencyPowerConstant_pos (epsc : ℝ) :
     sliceA2ZeroFrequencyPowerConstant_pos epsc,
     sliceA2FrequencyTargetConstant_pos]
 
-theorem sliceA2HeightPowerConstant_pos (epsc : ℝ) (Qlog0 : ℕ) :
-    0 < sliceA2HeightPowerConstant epsc Qlog0 := by
+theorem sliceA2HeightPowerConstant_pos (Cp epsc : ℝ) (Qlog0 : ℕ) :
+    0 < sliceA2HeightPowerConstant Cp epsc Qlog0 := by
   unfold sliceA2HeightPowerConstant
   exact lt_of_lt_of_le zero_lt_one (le_max_left _ _)
 
@@ -138,25 +138,26 @@ set_option maxHeartbeats 2000000 in
 /-- The one polynomial height inequality produces a concrete bottom scale
 and discharges the complete fixed-height ledger. -/
 theorem sliceA2HeightClosed_of_power
-    (epsc eps : ℝ) (H Qlog0 : ℕ)
+    (Cp epsc eps : ℝ) (H Qlog0 : ℕ) (hCp1 : 1 ≤ Cp)
     (hepsc : 0 < epsc) (heps : 0 < eps)
     (hlogFit : ∀ Q : ℕ, Qlog0 ≤ Q →
       Real.log (Q : ℝ) ^ 6 ≤ (Q : ℝ) ^ (1 / 20 : ℝ))
-    (hheight : sliceA2HeightPowerConstant epsc Qlog0 /
+    (hheight : sliceA2HeightPowerConstant Cp epsc Qlog0 /
         sliceA2EffectiveEps eps ^ sliceA2HeightPower epsc ≤ H) :
-    SliceA2HeightClosed epsc eps H (sliceA2HeightP0 epsc H) := by
+    SliceA2HeightClosed Cp epsc eps H (sliceA2HeightP0 epsc H) := by
   let e := sliceA2EffectiveEps eps
   let rho := sliceA2CanonicalRho eps
   let R := exceptionalIntervalRatio epsc
   let R0 := sliceA2HeightRatio epsc
-  let eta := sliceA2ExceptionalLadderEta e epsc (e / 100) rho
+  let eta := sliceA2ExceptionalLadderEta Cp e epsc (e / 100) rho
   let P0 := sliceA2HeightP0 epsc H
-  let HC := sliceA2HeightPowerConstant epsc Qlog0
+  let HC := sliceA2HeightPowerConstant Cp epsc Qlog0
   let KH := sliceA2HeightPower epsc
   have he : 0 < e := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).1
   have he1 : e ≤ 1 := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).2.1
   have hrho : 0 < rho := by simpa [rho] using sliceA2CanonicalRho_pos eps heps
-  have hHC : 0 < HC := by simpa [HC] using sliceA2HeightPowerConstant_pos epsc Qlog0
+  have hHC : 0 < HC := by
+    simpa [HC] using sliceA2HeightPowerConstant_pos Cp epsc Qlog0
   have heKH : 0 < e ^ KH := by positivity
   have hheight' : HC / e ^ KH ≤ (H : ℝ) := by
     simpa [HC, KH, e] using hheight
@@ -173,18 +174,18 @@ theorem sliceA2HeightClosed_of_power
     simpa using hone
   have hH1 : 1 ≤ H := by exact_mod_cast hH1R
   have hbottomHC :
-      sliceA2BottomPowerConstant epsc Qlog0 ^ (4 * R0) ≤ HC := by
+      sliceA2BottomPowerConstant Cp epsc Qlog0 ^ (4 * R0) ≤ HC := by
     dsimp [HC, sliceA2HeightPowerConstant]
     exact (le_max_left _ _).trans (le_max_right 1 _)
   have hbottomExp : 4 * R0 * sliceA2BottomPower ≤ KH := by
     simpa [R0, KH] using sliceA2HeightPower_bottom_exponent epsc
   have hbottomHeight :
-      sliceA2BottomPowerConstant epsc Qlog0 ^ (4 * R0) /
+      sliceA2BottomPowerConstant Cp epsc Qlog0 ^ (4 * R0) /
           e ^ (4 * R0 * sliceA2BottomPower) ≤ (H : ℝ) :=
-    hcomponent _ _ (by positivity [sliceA2BottomPowerConstant_pos epsc Qlog0])
+    hcomponent _ _ (by positivity [sliceA2BottomPowerConstant_pos Cp epsc Qlog0])
       hbottomHC hbottomExp
   have hbottomHeight' :
-      (sliceA2BottomPowerConstant epsc Qlog0 /
+      (sliceA2BottomPowerConstant Cp epsc Qlog0 /
           e ^ sliceA2BottomPower) ^ (4 * R0) ≤ (H : ℝ) := by
     convert hbottomHeight using 1
     rw [div_pow, ← pow_mul]
@@ -195,12 +196,14 @@ theorem sliceA2HeightClosed_of_power
     have := sliceA2HeightRatio_three_le epsc
     positivity
   have hbottomRoot :
-      sliceA2BottomPowerConstant epsc Qlog0 /
+      sliceA2BottomPowerConstant Cp epsc Qlog0 /
           e ^ sliceA2BottomPower ≤
         (H : ℝ) ^ (1 / (4 * R0) : ℝ) := by
-    let z := sliceA2BottomPowerConstant epsc Qlog0 /
+    let z := sliceA2BottomPowerConstant Cp epsc Qlog0 /
       e ^ sliceA2BottomPower
-    have hz0 : 0 ≤ z := by dsimp [z]; positivity [sliceA2BottomPowerConstant_pos epsc Qlog0]
+    have hz0 : 0 ≤ z := by
+      dsimp [z]
+      positivity [sliceA2BottomPowerConstant_pos Cp epsc Qlog0]
     have hr := Real.rpow_le_rpow (pow_nonneg hz0 (4 * R0)) hbottomHeight'
       (by positivity : (0 : ℝ) ≤ ((4 * R0 : ℕ) : ℝ)⁻¹)
     calc
@@ -208,11 +211,12 @@ theorem sliceA2HeightClosed_of_power
         (Real.pow_rpow_inv_natCast hz0 hn.ne').symm
       _ ≤ (H : ℝ) ^ (((4 * R0 : ℕ) : ℝ)⁻¹) := hr
       _ = (H : ℝ) ^ (1 / (4 * R0) : ℝ) := by norm_num
-  have hbottomP : sliceA2BottomPowerConstant epsc Qlog0 /
+  have hbottomP : sliceA2BottomPowerConstant Cp epsc Qlog0 /
       e ^ sliceA2BottomPower ≤ (P0 : ℝ) :=
     hbottomRoot.trans (by simpa [P0, R0] using sliceA2HeightP0_root_le epsc H)
   obtain ⟨hbottom, hzeroClose⟩ := sliceA2_bottom_closed_of_power
-    epsc eps P0 Qlog0 hepsc heps hlogFit (by simpa [P0, e] using hbottomP)
+    Cp epsc eps P0 Qlog0 hCp1 hepsc heps hlogFit
+      (by simpa [P0, e] using hbottomP)
   have hwindowHC : sliceA2WindowPowerConstant ≤ HC := by
     dsimp [HC, sliceA2HeightPowerConstant]
     exact (le_max_left _ _).trans ((le_max_right _ _).trans (le_max_right 1 _))
@@ -419,7 +423,7 @@ theorem sliceA2HeightClosed_of_power
             ← Real.rpow_mul (by positivity : (0 : ℝ) ≤ H), hexponent]
         rw [hxpow]
   have hfrequencyCoeff := sliceA2OrdinaryZeroFrequencyCoefficient_le_power
-    P0 epsc eps heps
+    Cp P0 epsc eps heps
   have hfrequencyRaw :
       (sliceA2OuterConstant * 360000 * explicitSliceWindowConstant /
           (e ^ 2 * H)) *
@@ -525,7 +529,7 @@ theorem sliceA2HeightClosed_of_power
         unfold sliceA2KappaMain ordinaryLegShare
         positivity : 0 ≤ sliceA2KappaMain 0 / 32)
     convert hprod using 1 <;> ring
-  change SliceA2HeightClosed epsc eps H P0
+  change SliceA2HeightClosed Cp epsc eps H P0
   refine ⟨Qlog0, hP021, ?_, ?_, ?_, ?_, ?_, hlogFit, ?_, ?_, ?_⟩
   · simpa [sliceA2GeomEps, e] using hgeom
   · simpa [e] using hround

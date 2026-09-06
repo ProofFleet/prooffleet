@@ -53,7 +53,8 @@ The per-cell data (`P v`, `Y v`, `b v`, `N v`, `a v`, `δ v`, `lam v`, the three
 groups) are quantified over `v ∈ I` only; the frequency cover `K` and the range
 `T` are shared, since the cells partition the primes, not the frequencies. -/
 theorem band_energy_le_budget_of_exceptional_family [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption] {ι : Type*} [DecidableEq ι] {ι' : Type*}
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
+    {ι : Type*} [DecidableEq ι] {ι' : Type*}
     (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ ξ, 0 ≤ w ξ)
     (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
     (G : Set ℝ) (𝒮 : Finset ι) (part : ι → Set ℝ)
@@ -88,12 +89,13 @@ theorem band_energy_le_budget_of_exceptional_family [HalaszLargeValuesAssumption
     (Aint Bpri Γ : ι' → ℝ)
     (hAint : ∀ v ∈ I, Aint v = 64 * ((N v:ℝ) + (K.card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
-    (hBpri : ∀ v ∈ I, Bpri v = 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
+    (hBpri : ∀ v ∈ I, Bpri v = Cp * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
       * (P v:ℝ) / Real.log (P v))
     (hΓ : ∀ v ∈ I, Γ v = (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 2*(2:ℝ))
           * ((1+lam v) + (1/lam v)*(2*Real.pi*Real.log (2*(P v:ℝ)))^2)
           * (∑ p ∈ Y v, (1:ℝ)/(p:ℝ)))
-        * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+        * Real.exp (-(Real.log (P v) /
+          (Real.log (2*T)) ^ primeLargeValuesExponent))
         * (Real.log (2*T))^2)
     (hA0 : ∀ v ∈ I, 0 < Aint v) (hB0 : ∀ v ∈ I, 0 < Bpri v)
     (hΓ0 : ∀ v ∈ I, 0 < Γ v)
@@ -112,7 +114,8 @@ theorem band_energy_le_budget_of_exceptional_family [HalaszLargeValuesAssumption
           * ‖∑ n ∈ Finset.Icc 1 (N v), (a v n/(n:ℂ))
             * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2)
         ≤ κ' v * bandBudget c₃ ε ρ := fun v hv =>
-    setIntegral_band_energy_exceptional_le_budget (P v) (hP v hv) (Y v) (hY v hv)
+    setIntegral_band_energy_exceptional_le_budget Cp hCp1 hprime
+      (P v) (hP v hv) (Y v) (hY v hv)
       (hlo v hv) (hhi v hv) (b v) (hb v hv) (N v) (a v) T hT1 (part u) K hcoverU
       hKT (δ v) (lam v) (hδ0 v hv) (hlam v hv) (hδ v hv) (Aint v) (Bpri v) (Γ v)
       (hAint v hv) (hBpri v hv) (hΓ v hv) (hA0 v hv) (hB0 v hv) (hΓ0 v hv)
@@ -162,7 +165,8 @@ total is then priced by `hfitU` as before.  `(Y v).Nonempty` is what makes each
 expressions for the reason M-8 gives: a consumer knows its own coefficients and
 the tree cannot know that they do not all vanish. -/
 theorem band_energy_le_budget_of_exceptional_family_instantiated
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     {ι : Type*} [DecidableEq ι] {ι' : Type*}
     (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ ξ, 0 ≤ w ξ)
     (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ ξ, w ξ ≤ Cw)
@@ -199,16 +203,17 @@ theorem band_energy_le_budget_of_exceptional_family_instantiated
             * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2) + E)
     (hA0 : ∀ v ∈ I, 0 < 64 * ((N v:ℝ) + (K.card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
-    (hB0 : ∀ v ∈ I, 0 < 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
+    (hB0 : ∀ v ∈ I, 0 < Cp * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
       * (P v:ℝ) / Real.log (P v))
     (κ' : ι' → ℝ)
-    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (64 * (256 / (Real.log (P v))^2))
+    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (Cp * (256 / (Real.log (P v))^2))
         + 2 * δ v * Real.sqrt
             ((128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log (P v))^2))
+              * ((Cp * (256 / (Real.log (P v))^2))
                   * (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
                       * (256 / Real.log (P v) + 2048 * Real.pi)
-                      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log (P v) /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ' v * bandBudget c₃ ε ρ)
     (hfitU : C * (∑ v ∈ I, κ' v) * bandBudget c₃ ε ρ + E
@@ -221,15 +226,18 @@ theorem band_energy_le_budget_of_exceptional_family_instantiated
       Real.exp Real.pi * ((T+1)/(P v:ℝ) + 2*(2:ℝ))
           * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P v:ℝ)))^2)
           * (∑ p ∈ Y v, (1:ℝ)/(p:ℝ))
-          * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+          * Real.exp (-(Real.log (P v) /
+            (Real.log (2*T)) ^ primeLargeValuesExponent))
           * (Real.log (2*T))^2
         ≤ Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
           * (256 / Real.log (P v) + 2048 * Real.pi)
-          * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+          * Real.exp (-(Real.log (P v) /
+            (Real.log (2*T)) ^ primeLargeValuesExponent))
           * (Real.log (2*T))^2) := by
     intro v
     by_cases hv : v ∈ I
-    · obtain ⟨lam, hlam0, hΓle⟩ := exists_lam_exceptional_ratio_le (P v) (hP v hv)
+    · obtain ⟨lam, hlam0, hΓle⟩ := exists_lam_exceptional_ratio_le
+        primeLargeValuesExponent (P v) (hP v hv)
         (Y v) (hY v hv) (hlo v hv) (hhi v hv) T hT1
       exact ⟨lam, hlam0, fun _ => hΓle⟩
     · exact ⟨1, one_pos, fun h => absurd h hv⟩
@@ -238,7 +246,8 @@ theorem band_energy_le_budget_of_exceptional_family_instantiated
   have hΓ0 : ∀ v ∈ I, 0 < (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 2*(2:ℝ))
         * ((1+lam v) + (1/lam v)*(2*Real.pi*Real.log (2*(P v:ℝ)))^2)
         * (∑ p ∈ Y v, (1:ℝ)/(p:ℝ)))
-      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+      * Real.exp (-(Real.log (P v) /
+        (Real.log (2*T)) ^ primeLargeValuesExponent))
       * (Real.log (2*T))^2 := by
     intro v hv
     have hP0 : (0:ℝ) < (P v:ℝ) := by
@@ -258,18 +267,21 @@ theorem band_energy_le_budget_of_exceptional_family_instantiated
       linarith
     have hlogsq : (0:ℝ) < (Real.log (2*T))^2 := by positivity
     have := Real.exp_pos Real.pi
-    have := Real.exp_pos (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+    have := Real.exp_pos (-(Real.log (P v) /
+      (Real.log (2*T)) ^ primeLargeValuesExponent))
     positivity
-  refine band_energy_le_budget_of_exceptional_family F w hw0 Cw hCw hwC G 𝒮 part
+  refine band_energy_le_budget_of_exceptional_family Cp hCp1 hprime
+    F w hw0 Cw hCw hwC G 𝒮 part
     hmeas hdisj hcover hint hintw κ c₃ ε ρ hc₃ hρ hκ u hu hleg I P hP Y hY hlo hhi
     b hb N a T hT1 K hcoverU hKT δ lam hδ0 (fun v _ => hlam0 v) hδ C E hC0 hfac
     (fun v => 64 * ((N v:ℝ) + (K.card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
-    (fun v => 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v))
+    (fun v => Cp * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v))
     (fun v => (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 2*(2:ℝ))
         * ((1+lam v) + (1/lam v)*(2*Real.pi*Real.log (2*(P v:ℝ)))^2)
         * (∑ p ∈ Y v, (1:ℝ)/(p:ℝ)))
-      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+      * Real.exp (-(Real.log (P v) /
+        (Real.log (2*T)) ^ primeLargeValuesExponent))
       * (Real.log (2*T))^2)
     (fun v _ => rfl) (fun v _ => rfl) (fun v _ => rfl) hA0 hB0 hΓ0 κ' ?_ hfitU
   -- the three instantiated bounds, cell by cell, then the seam M-7 provides
@@ -279,20 +291,21 @@ theorem band_energy_le_budget_of_exceptional_family_instantiated
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2
       ≤ 128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1) :=
     integer_largeValues_factor_le (N v) (a v) (ha v hv) T hT1 K hKT
-  have hBle : 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)
-      ≤ 64 * (256 / (Real.log (P v))^2) := by
+  have hBle : Cp * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)
+      ≤ Cp * (256 / (Real.log (P v))^2) := by
     have := prime_energy_dyadic_le (P v) (hP v hv) (Y v) (hY v hv) (hlo v hv)
       (hhi v hv) (b v) (hb v hv)
-    calc 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)
-        = 64 * ((∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)) := by
+    calc Cp * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)
+        = Cp * ((∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2) * (P v:ℝ) / Real.log (P v)) := by
           ring
-      _ ≤ 64 * (256 / (Real.log (P v))^2) := by gcongr
+      _ ≤ Cp * (256 / (Real.log (P v))^2) := by gcongr
   exact exceptional_fit_of_le _ _ _
     (128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-    (64 * (256 / (Real.log (P v))^2))
+    (Cp * (256 / (Real.log (P v))^2))
     (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
       * (256 / Real.log (P v) + 2048 * Real.pi)
-      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+      * Real.exp (-(Real.log (P v) /
+        (Real.log (2*T)) ^ primeLargeValuesExponent))
       * (Real.log (2*T))^2)
     (δ v) c₃ ε ρ (κ' v) (hA0 v hv).le (hB0 v hv).le (hΓ0 v hv).le (hδ0 v hv).le
     hAle hBle (hΓle v hv) (hfit v hv)
@@ -318,7 +331,7 @@ error `E` (N3-f → II-1 → II-2e → collars → collision), the per-cell Hal�
 inputs `δ v`, and the per-cell fits — the last being schedule arithmetic in
 `P v`, `N v`, `T`, `ε` and the shares alone. -/
 theorem band_energy_typicalS_le_family [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption] {ι' : Type*}
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp) {ι' : Type*}
     (g : ℕ → ℂ) (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
     (levels : List (Finset ℕ))
     (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
@@ -354,16 +367,17 @@ theorem band_energy_typicalS_le_family [HalaszLargeValuesAssumption]
               * ((Real.fourierChar (-(Real.log n * ξ)) : Circle) : ℂ)‖^2) + E)
     (hA0 : ∀ v ∈ I, 0 < 64 * ((N v:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
-    (hB0 : ∀ v ∈ I, 0 < 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
+    (hB0 : ∀ v ∈ I, 0 < Cp * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
       * (P v:ℝ) / Real.log (P v))
     (κ' : ι' → ℝ)
-    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (64 * (256 / (Real.log (P v))^2))
+    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (Cp * (256 / (Real.log (P v))^2))
         + 2 * δ v * Real.sqrt
             ((128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log (P v))^2))
+              * ((Cp * (256 / (Real.log (P v))^2))
                   * (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
                       * (256 / Real.log (P v) + 2048 * Real.pi)
-                      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log (P v) /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ' v * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
     (hfitU : C * (∑ v ∈ I, κ' v) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) + E
@@ -381,7 +395,7 @@ theorem band_energy_typicalS_le_family [HalaszLargeValuesAssumption]
       (fun m => g m/(m:ℂ)) (fun m => Real.log m)
   have hwnorm : ∀ ξ, ‖w ξ‖ ≤ (4*(H:ℝ)/(A:ℝ))^2 := fun ξ => by
     rw [Real.norm_of_nonneg (hw0 ξ)]; exact hwsup ξ
-  exact band_energy_le_budget_of_exceptional_family_instantiated
+  exact band_energy_le_budget_of_exceptional_family_instantiated Cp hCp1 hprime
     (fun ξ => ∑ m ∈ typicalS A (A+Δ) levels, (g m/(m:ℂ))
       * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ))
     w hw0 ((4*(H:ℝ)/(A:ℝ))^2) hCw hwsup
@@ -464,7 +478,7 @@ slot collects the replacement and collision terms together.  The frequency
 range hypothesis `K₂ + 2 ≤ T` already forces the exceptional part inside
 `(−T, T]`, which is all the `L²` split needs. -/
 theorem band_energy_typicalS_le_of_decomp [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
     (levels : List (Finset ℕ))
     (w : ℝ → ℝ) (hwm : Measurable w) (hw0 : ∀ ξ, 0 ≤ w ξ)
@@ -500,16 +514,17 @@ theorem band_energy_typicalS_le_of_decomp [HalaszLargeValuesAssumption]
           + error ξ)
     (hA0 : ∀ v ∈ I, 0 < 64 * ((N v:ℝ) + ((bandCells K₂).card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖^2/(n:ℝ)^2)
-    (hB0 : ∀ v ∈ I, 0 < 64 * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
+    (hB0 : ∀ v ∈ I, 0 < Cp * (∑ p ∈ Y v, ‖b v p‖^2/(p:ℝ)^2)
       * (P v:ℝ) / Real.log (P v))
     (κ' : ℕ → ℝ)
-    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (64 * (256 / (Real.log (P v))^2))
+    (hfit : ∀ v ∈ I, 2 * ((δ v)^2 * (Cp * (256 / (Real.log (P v))^2))
         + 2 * δ v * Real.sqrt
             ((128 * ((N v:ℝ) + 2*T*Real.sqrt T) * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log (P v))^2))
+              * ((Cp * (256 / (Real.log (P v))^2))
                   * (Real.exp Real.pi * ((T+1)/(P v:ℝ) + 4)
                       * (256 / Real.log (P v) + 2048 * Real.pi)
-                      * Real.exp (-(Real.log (P v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log (P v) /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ' v * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
     (hfitU : 2 * (I.card : ℝ) * (∑ v ∈ I, κ' v) * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ))
@@ -542,7 +557,8 @@ theorem band_energy_typicalS_le_of_decomp [HalaszLargeValuesAssumption]
   have hfac := setIntegral_norm_sq_le_family_of_decomp _ I _ error hX herrc T _
     hGm hGT hdecomp
   simp_rw [norm_mul, mul_pow] at hfac
-  exact band_energy_typicalS_le_family g A Δ H hA hH levels w hwm hw0 hwsup K₁ K₂
+  exact band_energy_typicalS_le_family Cp hCp1 hprime
+    g A Δ H hA hH levels w hwm hw0 hwsup K₁ K₂
     J Pset hPset c₃ ε hc₃ hleg I P hP Y hY hYne hlo hhi b hb N a ha T hT1 hTK₂
     δ hδ0 hδ (2 * (I.card : ℝ))
     (2 * ∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J, ‖error ξ‖^2)
@@ -615,7 +631,7 @@ a cell at resolution `2N` sits in `(q v, q v·e^{1/(2N)})`, so `Pc v = q v − 1
 serves once `q v ≥ 6`, and the first cells of a level are the consumer's to
 anchor.  `(Y v).Nonempty` is discharged by the representative itself. -/
 theorem band_energy_typicalS_le_of_cellUniform [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H)
     (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) (rest : List (Finset ℕ))
@@ -652,18 +668,19 @@ theorem band_energy_typicalS_le_of_cellUniform [HalaszLargeValuesAssumption]
         * ∑ n ∈ Finset.Icc 1 ((A + Δ) / q v),
             ‖cellBlockCoeff g A (A + Δ) P rest (q v) n‖^2/(n:ℝ)^2)
     (hB0 : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
-      0 < 64 * (∑ p ∈ eadicCell P (2 * N) v, ‖g p‖^2/(p:ℝ)^2)
+      0 < Cp * (∑ p ∈ eadicCell P (2 * N) v, ‖g p‖^2/(p:ℝ)^2)
         * (Pc v:ℝ) / Real.log (Pc v))
     (κ' : ℕ → ℝ)
     (hfit : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
-      2 * ((δ v)^2 * (64 * (256 / (Real.log (Pc v))^2))
+      2 * ((δ v)^2 * (Cp * (256 / (Real.log (Pc v))^2))
         + 2 * δ v * Real.sqrt
             ((128 * ((((A + Δ) / q v : ℕ):ℝ) + 2*T*Real.sqrt T)
                 * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log (Pc v))^2))
+              * ((Cp * (256 / (Real.log (Pc v))^2))
                   * (Real.exp Real.pi * ((T+1)/(Pc v:ℝ) + 4)
                       * (256 / Real.log (Pc v) + 2048 * Real.pi)
-                      * Real.exp (-(Real.log (Pc v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log (Pc v) /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ' v * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
     (hfitU : 2 * ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
@@ -676,7 +693,8 @@ theorem band_energy_typicalS_le_of_cellUniform [HalaszLargeValuesAssumption]
         ‖∑ m ∈ typicalS A (A+Δ) (P :: rest), (g m/(m:ℂ))
           * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2 * w ξ)
       ≤ bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)) := by
-  refine band_energy_typicalS_le_of_decomp g A Δ H hA hH (P :: rest) w hwm hw0
+  refine band_energy_typicalS_le_of_decomp Cp hCp1 hprime
+    g A Δ H hA hH (P :: rest) w hwm hw0
     hwsup K₁ K₂ J Pset hPset c₃ ε hc₃ hleg (Finset.Ico v₀ (v₁ + 1)) Pc hPc
     (fun v => eadicCell P (2 * N) v)
     (fun v _ p hp => hP p (mem_eadicCell.mp hp).1)
@@ -725,7 +743,7 @@ cell's least member and every prime's block is wide enough for the collar
 argument.  `hPA : p² ≤ A` is the collision estimate's: the repeated prime is
 extracted at the quotient scale `A/p²`. -/
 theorem band_energy_typicalS_le_of_cellUniform_fit [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Δ H : ℕ) (hA : 0 < A) (hH : 0 < H) (hΔA : Δ ≤ A)
     (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) (hPA : ∀ p ∈ P, p * p ≤ A)
@@ -770,18 +788,19 @@ theorem band_energy_typicalS_le_of_cellUniform_fit [HalaszLargeValuesAssumption]
         * ∑ n ∈ Finset.Icc 1 ((A + Δ) / q v),
             ‖cellBlockCoeff g A (A + Δ) P rest (q v) n‖^2/(n:ℝ)^2)
     (hB0 : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
-      0 < 64 * (∑ p ∈ eadicCell P (2 * N) v, ‖g p‖^2/(p:ℝ)^2)
+      0 < Cp * (∑ p ∈ eadicCell P (2 * N) v, ‖g p‖^2/(p:ℝ)^2)
         * (Pc v:ℝ) / Real.log (Pc v))
     (κ' : ℕ → ℝ)
     (hfit : ∀ v ∈ Finset.Ico v₀ (v₁ + 1),
-      2 * ((δ v)^2 * (64 * (256 / (Real.log (Pc v))^2))
+      2 * ((δ v)^2 * (Cp * (256 / (Real.log (Pc v))^2))
         + 2 * δ v * Real.sqrt
             ((128 * ((((A + Δ) / q v : ℕ):ℝ) + 2*T*Real.sqrt T)
                 * (Real.log (2*T) + 1))
-              * ((64 * (256 / (Real.log (Pc v))^2))
+              * ((Cp * (256 / (Real.log (Pc v))^2))
                   * (Real.exp Real.pi * ((T+1)/(Pc v:ℝ) + 4)
                       * (256 / Real.log (Pc v) + 2048 * Real.pi)
-                      * Real.exp (-(Real.log (Pc v) / (Real.log (2*T))^(3/4:ℝ)))
+                      * Real.exp (-(Real.log (Pc v) /
+                        (Real.log (2*T)) ^ primeLargeValuesExponent))
                       * (Real.log (2*T))^2))))
       ≤ κ' v * bandBudget c₃ ε ((Δ:ℝ)/(A:ℝ)))
     (hfitU : 2 * ((Finset.Ico v₀ (v₁ + 1)).card : ℝ)
@@ -830,7 +849,8 @@ theorem band_energy_typicalS_le_of_cellUniform_fit [HalaszLargeValuesAssumption]
     ExpSums.setIntegral_norm_add_sq_le _ _
       (continuous_typicalSCellReplacement g A (A + Δ) P rest N v₀ v₁ q)
       (continuous_typicalSAdjustedCollision g A (A + Δ) P rest N v₀ v₁) T _ hGm hGT
-  refine band_energy_typicalS_le_of_cellUniform g hcm hg A Δ H hA hH P hP rest N
+  refine band_energy_typicalS_le_of_cellUniform Cp hCp1 hprime
+    g hcm hg A Δ H hA hH P hP rest N
     v₀ v₁ hcov hstable q hqcell w hwm hw0 hwsup K₁ K₂ J Pset hPset c₃ ε hc₃ hleg
     Pc hPc hlo hhi T hT1 hTK₂ δ hδ0 hδ hA0 hB0 κ' hfit ?_
   have hE : (∫ ξ in bandPartOn Pset J {ξ : ℝ | K₁ ≤ |ξ| ∧ |ξ| ≤ K₂} J,

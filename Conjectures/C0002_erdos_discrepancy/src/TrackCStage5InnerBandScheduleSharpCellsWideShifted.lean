@@ -127,7 +127,8 @@ theorem innerBand_level_leg_of_main_wide_shifted
       ring
 
 theorem band_energy_typicalS_le_of_cellUniform_fit_recut_wide_shifted
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) (hPA : ∀ p ∈ P, p * p ≤ A)
@@ -186,13 +187,13 @@ theorem band_energy_typicalS_le_of_cellUniform_fit_recut_wide_shifted
                   ‖cellBlockCoeff g A (A + Delta) P rest (q v) n‖ ^ 2 /
                     (n : ℝ) ^ 2)
           + (delta v) ^ 2
-            * ((64 * (∑ p ∈ eadicCell P (2 * N) v,
+            * ((Cp * (∑ p ∈ eadicCell P (2 * N) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                 * (Pc v : ℝ) / Real.log (Pc v))
               * (1 + primeHighMomentCountCost (Pc v) (ell v)
                   (eadicCell P (2 * N) v) T (Vsplit v) (lam v)
                 * Real.exp (-(Real.log (Pc v) /
-                  (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                  (Real.log (2 * T)) ^ primeLargeValuesExponent))
                 * (Real.log (2 * T)) ^ 2)))
         ≤ kappa' v * bandBudget c3 eps ((Delta : ℝ) / (A : ℝ)))
     (hfitU : 2 * ((Finset.Ico v0 (v1 + 1)).card : ℝ)
@@ -323,7 +324,7 @@ theorem band_energy_typicalS_le_of_cellUniform_fit_recut_wide_shifted
         + 2 * (2 * replacementEnergyBoundWide A P N T
             + 2 * (4 * collisionEnergyBoundWide A P T)) := by
     linarith [hfac0, hsplit]
-  exact band_energy_le_budget_of_exceptional_family_recut
+  exact band_energy_le_budget_of_exceptional_family_recut Cp hCp1 hprime
     (fun xi => ∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
       * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
     w hw0 ((4 * (H : ℝ) / (A : ℝ)) ^ 2) hCw hwsup
@@ -356,11 +357,12 @@ theorem band_energy_typicalS_le_of_cellUniform_fit_recut_wide_shifted
         + (Kcov.card : ℝ) * Real.sqrt T) * (Real.log (2 * T) + 1)
       * ∑ n ∈ Finset.Icc 1 ((A + Delta) / q v),
           ‖cellBlockCoeff g A (A + Delta) P rest (q v) n‖ ^ 2 / (n : ℝ) ^ 2)
-    (fun v => 64 * (∑ p ∈ eadicCell P (2 * N) v,
+    (fun v => Cp * (∑ p ∈ eadicCell P (2 * N) v,
         ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc v : ℝ) / Real.log (Pc v))
     (fun v => primeHighMomentCountCost (Pc v) (ell v) (eadicCell P (2 * N) v)
         T (Vsplit v) (lam v)
-      * Real.exp (-(Real.log (Pc v) / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+      * Real.exp (-(Real.log (Pc v) /
+        (Real.log (2 * T)) ^ primeLargeValuesExponent))
       * (Real.log (2 * T)) ^ 2)
     (fun v _ => rfl) (fun v _ => rfl) (fun v _ => rfl) kappa' (by
       intro v hv
@@ -372,7 +374,8 @@ inputs, while both error legs are the single-polynomial estimates, cell
 representatives use only their upper scale, and the exceptional quotient
 keeps only level zero inside the sharp inclusion--exclusion bound. -/
 theorem band_energy_typicalS_le_of_schedule_sharp_cells_wide'
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (Pl : ℕ → Finset ℕ) (Pu : Finset ℕ) (J : ℕ) (hJ : 0 < J)
@@ -471,13 +474,13 @@ theorem band_energy_typicalS_le_of_schedule_sharp_cells_wide'
                   ‖cellBlockCoeff g A (A + Delta) Pu ((List.range J).map Pl)
                     (qu v) n‖ ^ 2 / (n : ℝ) ^ 2)
           + (DeltaU v) ^ 2
-            * ((64 * (∑ p ∈ eadicCell Pu (2 * Nu) v,
+            * ((Cp * (∑ p ∈ eadicCell Pu (2 * Nu) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                 * (PcU v : ℝ) / Real.log (PcU v))
               * (1 + primeHighMomentCountCost (PcU v) (ellU v)
                   (eadicCell Pu (2 * Nu) v) T (Vsplit v) (lamU v)
                 * Real.exp (-(Real.log (PcU v) /
-                  (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                  (Real.log (2 * T)) ^ primeLargeValuesExponent))
                 * (Real.log (2 * T)) ^ 2)))
         ≤ kappaU v * bandBudget c3 eps ((Delta : ℝ) / (A : ℝ)))
     (hfitU : 2 * ((Finset.Ico v0u (v1u + 1)).card : ℝ)
@@ -631,7 +634,8 @@ theorem band_energy_typicalS_le_of_schedule_sharp_cells_wide'
     rw [← Finset.sum_div]
     convert hfitU using 1 <;> field_simp
   rw [htyp, ← hbudgetScale]
-  exact band_energy_typicalS_le_of_cellUniform_fit_recut_wide_shifted g hcm hg
+  exact band_energy_typicalS_le_of_cellUniform_fit_recut_wide_shifted
+    Cp hCp1 hprime g hcm hg
     A Delta H hA hH hDeltaA Pu hPu hPAu restU Nu v0u v1u hNu hcovU hstableU
     qu hqupU hq1U hqminU hqratioU hLAU hLBU w hwm hw0 hwsup K1 K2 J Pset
     hPset (Cw * c3) eps (mul_nonneg hCw.le hc3) hlegU PcU hPcU hloU hhiU

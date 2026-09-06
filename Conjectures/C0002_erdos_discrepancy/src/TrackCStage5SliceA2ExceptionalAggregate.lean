@@ -16,6 +16,7 @@ namespace Tao2015
 open Finset MeasureTheory ExpSums
 
 theorem sliceA2Exceptional_aggregate_fits
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp)
     (g : ℕ → ℂ) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta P0 ratio0 eta J A1 : ℕ)
     (epsc eps rho0 K1 K2 T tail rem : ℝ)
@@ -46,9 +47,9 @@ theorem sliceA2Exceptional_aggregate_fits
           (Real.log (2 * T)) ^ 2 ≤
         Real.exp (Real.log
           (sliceA2ExceptionalAnchor A1 v epsc eps rho0 : ℝ) /
-            (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            (Real.log (2 * T)) ^ primeLargeValuesExponent))
     (htail : 2 * tail + rem ≤
-      4 * sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 *
+      4 * sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 *
         Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ))
     (hreplacementCard : 1152 * Real.exp Real.pi *
         (((exceptionalPrimes A1 epsc).card : ℝ) / A) ≤
@@ -58,7 +59,7 @@ theorem sliceA2Exceptional_aggregate_fits
     (hcollisionCard : 80 * Real.exp Real.pi *
         (((exceptionalPrimes A1 epsc).card : ℝ) / A) ≤
       eps ^ 2 * rho0 / 192) :
-    let d := sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem
+    let d := sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem
     (2 * ((sliceA2ExceptionalI A1 epsc eps rho0).card : ℝ) *
         (∑ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
           exceptionalIntegerCellCost (exceptionalSplitThreshold A)
@@ -70,7 +71,7 @@ theorem sliceA2Exceptional_aggregate_fits
               epsc eps rho0)) ≤ eps ^ 2 * rho0 / 64) ∧
     (2 * ((sliceA2ExceptionalI A1 epsc eps rho0).card : ℝ) *
         (∑ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
-          exceptionalPrimeCellCost
+          exceptionalPrimeCellCost Cp
             (fun u => eadicCell (exceptionalPrimes A1 epsc)
               (2 * sliceA2ExceptionalN A1 epsc eps rho0) u)
             (sliceA2ExceptionalAnchor A1 · epsc eps rho0) g (fun _ => d)
@@ -85,7 +86,7 @@ theorem sliceA2Exceptional_aggregate_fits
   · exact sliceA2Exceptional_integer_fit g hg A Delta P0 ratio0 eta J A1
       epsc eps rho0 K1 K2 T (by omega) hDelta hQsq hT hinteger
   constructor
-  · exact sliceA2Exceptional_prime_fit_of_envelopes g hg A A1 epsc eps rho0
+  · exact sliceA2Exceptional_prime_fit_of_envelopes Cp hCp1 g hg A A1 epsc eps rho0
       T tail rem hA (by linarith) heps.le hrho0.le htail0 hrem0 hanchor
       hlog1 hlog6 hGammaFit htail
   · exact sliceA2Exceptional_wide_fit A1 A epsc eps rho0 T hA hTA heps

@@ -1,5 +1,6 @@
 import Conjectures.C0002_erdos_discrepancy.src.Interfaces.LargeValues
-import MoltResearch.DiscrepancyAnalytic
+import MoltResearch.Discrepancy.DyadicMVT
+import MoltResearch.Discrepancy.BandCapstone
 
 /-!
 # Track C: Stage 5 — the `𝒰` band energy (issue #3044, Track R, A2-III IV-3)
@@ -34,6 +35,21 @@ namespace Tao2015
 
 open Finset
 
+/-- The class-independent large-values statement carried with a chosen
+existential constant through the conditional consumer chain. -/
+abbrev PrimeLargeValuesBound (Cp : ℝ) : Prop :=
+  ∀ (P : ℕ) (Y : Finset ℕ), (∀ p ∈ Y, p.Prime) →
+    (∀ p ∈ Y, P ≤ p ∧ p ≤ 2 * P) → ∀ (a : ℕ → ℂ) (T : ℝ) (𝒯 : Finset ℝ),
+    2 ≤ P → 1 ≤ T → (∀ t ∈ 𝒯, |t| ≤ T) →
+    (∀ t ∈ 𝒯, ∀ u ∈ 𝒯, t ≠ u → 1 ≤ |t - u|) →
+    ∑ t ∈ 𝒯, ‖∑ p ∈ Y, (a p / (p : ℂ))
+        * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖ ^ 2
+      ≤ Cp * (1 + (𝒯.card : ℝ)
+              * Real.exp (-(Real.log P /
+                (Real.log (2 * T)) ^ primeLargeValuesExponent))
+              * (Real.log (2 * T)) ^ 2)
+          * (∑ p ∈ Y, ‖a p‖ ^ 2 / (p : ℝ) ^ 2) * (P : ℝ) / Real.log P
+
 /-- **A2-III IV-3b — the discrete `𝒰` energy, conditional.**
 
 Steps 3–5 of the `𝒰` treatment ([MR, Lemma 2]).  At `1`-separated points of
@@ -52,10 +68,11 @@ then priced by the large-values theorem that matches its support:
 The asymmetry is the whole point of the split: the integer theorem is applied on
 *all* of `𝒯`, the prime theorem only on the large set `𝒯_L`, whose cardinality
 the caller controls by the elementary `card_large_prime_poly_le` (V-1c).  It is
-the prime theorem's off-diagonal `|𝒯_L|·P·exp(−log P/(log 2T)^{3/4})` — rather
+the prime theorem's off-diagonal
+`|𝒯_L|·P·exp(−log P/(log 2T)^primeLargeValuesExponent)` — rather
 than `|𝒯_L|·√T` — that makes the assembly close; see the design report §5. -/
 theorem sum_prime_integer_energy_le [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hYP : ∀ p ∈ Y, P ≤ p ∧ p ≤ 2*P) (b : ℕ → ℂ)
     (N : ℕ) (a : ℕ → ℂ)
@@ -73,9 +90,10 @@ theorem sum_prime_integer_energy_le [HalaszLargeValuesAssumption]
           * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖^2
       ≤ V₀^2 * (64 * ((N:ℝ) + (𝒯.card:ℝ) * Real.sqrt T) * (Real.log (2*T) + 1)
                   * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-        + δ^2 * (64 * (1 + ((𝒯.filter (fun t => V₀ < ‖∑ p ∈ Y, (b p/(p:ℂ))
+        + δ^2 * (Cp * (1 + ((𝒯.filter (fun t => V₀ < ‖∑ p ∈ Y, (b p/(p:ℂ))
                     * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖)).card : ℝ)
-                  * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                  * Real.exp (-(Real.log P /
+                    (Real.log (2*T)) ^ primeLargeValuesExponent))
                   * (Real.log (2*T))^2)
               * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by
   -- The large set inherits both `𝒯`-side hypotheses by restriction.
@@ -93,7 +111,7 @@ theorem sum_prime_integer_energy_le [HalaszLargeValuesAssumption]
       * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)) V₀ δ hV₀ hlarge
   -- IK Thm 9.6 on all of `𝒯`; [MR] Lemma 8 on the large set only.
   have hint := HalaszLargeValuesAssumption.bound N a T 𝒯 hT hmem hsep
-  have hpri := PrimeLargeValuesAssumption.bound P Y hY hYP b T 𝒯L hP hT hmemL hsepL
+  have hpri := hprime P Y hY hYP b T 𝒯L hP hT hmemL hsepL
   have hV₀sq : (0:ℝ) ≤ V₀^2 := sq_nonneg _
   have hδsq : (0:ℝ) ≤ δ^2 := sq_nonneg _
   calc ∑ t ∈ 𝒯, ‖∑ p ∈ Y, (b p/(p:ℂ))
@@ -106,8 +124,9 @@ theorem sum_prime_integer_energy_le [HalaszLargeValuesAssumption]
             * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖^2 := hsplit
     _ ≤ V₀^2 * (64 * ((N:ℝ) + (𝒯.card:ℝ) * Real.sqrt T) * (Real.log (2*T) + 1)
                   * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-        + δ^2 * (64 * (1 + (𝒯L.card : ℝ)
-                  * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+        + δ^2 * (Cp * (1 + (𝒯L.card : ℝ)
+                  * Real.exp (-(Real.log P /
+                    (Real.log (2*T)) ^ primeLargeValuesExponent))
                   * (Real.log (2*T))^2)
               * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by
         gcongr
@@ -138,7 +157,7 @@ Note the prime range tightens from `P ≤ p` to `P < p`, which is what the
 elementary count requires and what the `𝒰` block `Y ⊆ (P, 2P]` supplies anyway;
 the large-values class's weaker `P ≤ p` follows. -/
 theorem sum_prime_integer_energy_card_free_le [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
@@ -157,17 +176,18 @@ theorem sum_prime_integer_energy_card_free_le [HalaszLargeValuesAssumption]
           * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖^2
       ≤ V₀^2 * (64 * ((N:ℝ) + (𝒯.card:ℝ) * Real.sqrt T) * (Real.log (2*T) + 1)
                   * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-        + δ^2 * (64 * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+        + δ^2 * (Cp * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
                       * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
                       * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2
-                  * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                  * Real.exp (-(Real.log P /
+                    (Real.log (2*T)) ^ primeLargeValuesExponent))
                   * (Real.log (2*T))^2)
               * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by
   set 𝒯L := 𝒯.filter (fun t => V₀ < ‖∑ p ∈ Y, (b p/(p:ℂ))
       * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ)‖) with h𝒯L
   have hsub : 𝒯L ⊆ 𝒯 := by rw [h𝒯L]; exact Finset.filter_subset _ _
   -- IV-3b, with the cardinality still free.
-  have hb3 := sum_prime_integer_energy_le P hP Y hY
+  have hb3 := sum_prime_integer_energy_le Cp hCp1 hprime P hP Y hY
     (fun p hp => ⟨(hlo p hp).le, hhi p hp⟩) b N a T hT 𝒯 hmem hsep V₀ δ hV₀.le hlarge
   -- V-1c: the elementary count of the large set.
   have hmemL : ∀ t ∈ 𝒯L, t ∈ Set.Icc (-T) T :=
@@ -232,7 +252,7 @@ hypotheses so that a consumer supplies them from `hasDerivAt_dirichlet_poly`;
 this keeps the correction term readable rather than spelling out two more
 Dirichlet polynomials in the statement. -/
 theorem setIntegral_band_energy_exceptional_le [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
@@ -260,10 +280,11 @@ theorem setIntegral_band_energy_exceptional_le [HalaszLargeValuesAssumption]
       ≤ 2 * (V₀^2 * (64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
                   * (Real.log (2*T) + 1)
                   * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-            + δ^2 * (64 * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+            + δ^2 * (Cp * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
                         * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
                         * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2
-                    * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                    * Real.exp (-(Real.log P /
+                      (Real.log (2*T)) ^ primeLargeValuesExponent))
                     * (Real.log (2*T))^2)
                 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P))
         + ∑ k ∈ K, ∫ v in (k:ℝ)..((k:ℝ)+1),
@@ -304,10 +325,11 @@ theorem setIntegral_band_energy_exceptional_le [HalaszLargeValuesAssumption]
         ≤ V₀^2 * (64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
                 * (Real.log (2*T) + 1)
                 * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-          + δ^2 * (64 * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+          + δ^2 * (Cp * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
                       * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
                       * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2
-                  * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                  * Real.exp (-(Real.log P /
+                    (Real.log (2*T)) ^ primeLargeValuesExponent))
                   * (Real.log (2*T))^2)
               * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by
     intro K' hK'K hgap
@@ -325,7 +347,8 @@ theorem setIntegral_band_energy_exceptional_le [HalaszLargeValuesAssumption]
       intro t ht
       obtain ⟨htm, htl⟩ := Finset.mem_filter.mp ht
       exact hδ t (hmem t htm) htl
-    have hc3 := sum_prime_integer_energy_card_free_le P hP Y hY hlo hhi b hb N a
+    have hc3 := sum_prime_integer_energy_card_free_le Cp hCp1 hprime
+      P hP Y hY hlo hhi b hb N a
       T hT1 (K'.image τ) hmem hsep V₀ δ lam hV₀ hlam hlargeF
     refine hc3.trans ?_
     have hcard : ((K'.image τ).card : ℝ) ≤ (K.card : ℝ) := by
@@ -383,7 +406,7 @@ frequency bound `hTmem` is `hKT`, the statement that the *cells* lie in
 Everything else is unchanged, including the factor `2`: it is still the two
 parity classes of the cell decomposition, and still `[MR]`'s. -/
 theorem setIntegral_band_energy_exceptional_max_le [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
@@ -404,10 +427,11 @@ theorem setIntegral_band_energy_exceptional_max_le [HalaszLargeValuesAssumption]
       ≤ 2 * (V₀^2 * (64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
                   * (Real.log (2*T) + 1)
                   * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-            + δ^2 * (64 * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+            + δ^2 * (Cp * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
                         * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
                         * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2
-                    * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                    * Real.exp (-(Real.log P /
+                      (Real.log (2*T)) ^ primeLargeValuesExponent))
                     * (Real.log (2*T))^2)
                 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)) := by
   classical
@@ -445,10 +469,11 @@ theorem setIntegral_band_energy_exceptional_max_le [HalaszLargeValuesAssumption]
         ≤ V₀^2 * (64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
                 * (Real.log (2*T) + 1)
                 * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-          + δ^2 * (64 * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
+          + δ^2 * (Cp * (1 + (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
                       * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
                       * (∑ p ∈ Y, (1:ℝ)/(p:ℝ))) / V₀^2
-                  * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+                  * Real.exp (-(Real.log P /
+                    (Real.log (2*T)) ^ primeLargeValuesExponent))
                   * (Real.log (2*T))^2)
               * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P) := by
     intro K' hK'K hgap
@@ -466,7 +491,8 @@ theorem setIntegral_band_energy_exceptional_max_le [HalaszLargeValuesAssumption]
       intro t ht
       obtain ⟨htm, htl⟩ := Finset.mem_filter.mp ht
       exact hδ t (hmem t htm) htl
-    have hc3 := sum_prime_integer_energy_card_free_le P hP Y hY hlo hhi b hb N a
+    have hc3 := sum_prime_integer_energy_card_free_le Cp hCp1 hprime
+      P hP Y hY hlo hhi b hb N a
       T hT1 (K'.image τ) hmem hsep V₀ δ lam hV₀ hlam hlargeF
     refine hc3.trans ?_
     have hcard : ((K'.image τ).card : ℝ) ≤ (K.card : ℝ) := by
@@ -525,7 +551,7 @@ in `Aint`, `Bpri`, `Γ`, `δ` and the budget alone.  That puts this leg in the s
 form as `levelOne_le_budget`, `levelJ_le_budget` and `outer_le_budget`, which is
 what the partition assembly (`sum_shares_le_budget`) consumes. -/
 theorem setIntegral_band_energy_exceptional_le_budget [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2*P)
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
@@ -540,11 +566,12 @@ theorem setIntegral_band_energy_exceptional_le_budget [HalaszLargeValuesAssumpti
     (Aint Bpri Γ : ℝ)
     (hAint : Aint = 64 * ((N:ℝ) + (K.card:ℝ) * Real.sqrt T)
       * (Real.log (2*T) + 1) * ∑ n ∈ Finset.Icc 1 N, ‖a n‖^2/(n:ℝ)^2)
-    (hBpri : Bpri = 64 * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
+    (hBpri : Bpri = Cp * (∑ p ∈ Y, ‖b p‖^2/(p:ℝ)^2) * (P:ℝ) / Real.log P)
     (hΓ : Γ = (Real.exp Real.pi * ((T+1)/(P:ℝ) + 2*(2:ℝ))
           * ((1+lam) + (1/lam)*(2*Real.pi*Real.log (2*(P:ℝ)))^2)
           * (∑ p ∈ Y, (1:ℝ)/(p:ℝ)))
-        * Real.exp (-(Real.log P / (Real.log (2*T))^(3/4:ℝ)))
+        * Real.exp (-(Real.log P /
+          (Real.log (2*T)) ^ primeLargeValuesExponent))
         * (Real.log (2*T))^2)
     (hA0 : 0 < Aint) (hB0 : 0 < Bpri) (hΓ0 : 0 < Γ)
     (c₃ ε ρ κ : ℝ)
@@ -563,7 +590,8 @@ theorem setIntegral_band_energy_exceptional_le_budget [HalaszLargeValuesAssumpti
       ‖∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
           * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖ ≤ δ :=
     fun t ht _ => hδ t ht
-  have hmain := setIntegral_band_energy_exceptional_max_le P hP Y hY hlo hhi b hb
+  have hmain := setIntegral_band_energy_exceptional_max_le Cp hCp1 hprime
+    P hP Y hY hlo hhi b hb
     N a T hT1 G K hcover hKT V₀ δ lam hV₀ hlam hgate
   refine hmain.trans (le_trans (le_of_eq ?_) hbud)
   have hV2 : (V₀:ℝ) ^ 2 ≠ 0 := by positivity

@@ -65,31 +65,32 @@ theorem exists_sliceA2PositiveLadder_low_remainder_of_budget
 /-- The concrete exceptional ladder pays the low-band remainder at the
 first argument of its joint budget. -/
 theorem exists_sliceA2ExceptionalLadder_low_remainder
+    (Cp : ℝ)
     (P0 ratio0 : ℕ) (lowBudget epsc eps rho0 : ℝ)
     (hP0 : 3 ≤ P0) (hlow : 0 < lowBudget) (hepsc : 0 < epsc)
     (heps : 0 < eps) (hrho0 : 0 < rho0) :
     ∃ A0 : ℕ, ∀ A1 : ℕ, A0 ≤ A1 → ∀ X Delta : ℕ, A1 ≤ X →
       Delta ≤ X →
-      let eta := sliceA2ExceptionalLadderEta lowBudget epsc eps rho0
+      let eta := sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0
       ladderSiftedLogMass X (X + Delta)
           ((List.range
             (sliceA2LadderJ P0 ratio0 eta A1 (by omega) - 1)).map
             (fun i ↦ sliceA2LadderPrimes P0 ratio0 eta (i + 1))) ≤
         lowBudget / 4 := by
-  let eta := sliceA2ExceptionalLadderEta lowBudget epsc eps rho0
-  let budget := sliceA2ExceptionalLadderBudget lowBudget epsc eps rho0
+  let eta := sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0
+  let budget := sliceA2ExceptionalLadderBudget Cp lowBudget epsc eps rho0
   have hbudget : 0 < budget := by
     simpa [budget] using sliceA2ExceptionalLadderBudget_pos
-      lowBudget epsc eps rho0 hlow heps hrho0
+      Cp lowBudget epsc eps rho0 hlow heps hrho0
   have heta1 : 1 ≤ eta := by
     simpa [eta] using sliceA2ExceptionalLadderEta_one_le
-      lowBudget epsc eps rho0
+      Cp lowBudget epsc eps rho0
   have hetaJoint : 64 * Real.exp 12 ≤ budget * eta := by
     simpa [budget, eta] using sliceA2ExceptionalLadderEta_brun_budget
-      lowBudget epsc eps rho0 hlow hepsc heps hrho0
+      Cp lowBudget epsc eps rho0 hlow hepsc heps hrho0
   have hetaLow : 64 * Real.exp 12 ≤ lowBudget * eta :=
     hetaJoint.trans (mul_le_mul_of_nonneg_right
-      (sliceA2ExceptionalLadderBudget_le_low lowBudget epsc eps rho0)
+      (sliceA2ExceptionalLadderBudget_le_low Cp lowBudget epsc eps rho0)
       (by positivity))
   simpa [eta] using
     exists_sliceA2PositiveLadder_low_remainder_of_budget

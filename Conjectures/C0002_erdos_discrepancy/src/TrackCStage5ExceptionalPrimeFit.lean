@@ -9,10 +9,10 @@ The exceptional cell shares are their actual costs divided by the band
 budget.  Brun--Titchmarsh then lets the prime-cell masses be summed before
 the outer Cauchy factor is paid.  The resulting fit is the fixed condition
 
-`98304 * Ccells * Nu * ratio * d^2 * E ≤ c3 * eps^2`,
+`1536 * Cp * Ccells * Nu * ratio * d^2 * E ≤ c3 * eps^2`,
 
-with no dependence on the number of ordinary ladder levels.  The constant
-`98304 = 192 * 512` reserves `1/192` of `c3*eps^2` for this leg.
+with no dependence on the number of ordinary ladder levels.  The coefficient
+`1536 = 192 * 8` reserves `1/192` of `c3*eps^2` for this leg.
 -/
 
 namespace MoltResearch
@@ -147,7 +147,7 @@ theorem cellHalaszSharpBound_le_fixedEnvelope (epsilon : ℝ)
 exceptional cell capstone. -/
 noncomputable def exceptionalPrimeGamma (cost Pc T : ℝ) : ℝ :=
   cost * Real.exp (-(Real.log Pc /
-    (Real.log (2 * T)) ^ (3 / 4 : ℝ))) * (Real.log (2 * T)) ^ 2
+    (Real.log (2 * T)) ^ primeLargeValuesExponent)) * (Real.log (2 * T)) ^ 2
 
 theorem exceptionalPrimeGamma_nonneg
     (cost Pc T : ℝ) (hcost : 0 ≤ cost) :
@@ -160,9 +160,9 @@ the reciprocal damping exponential. -/
 theorem exceptionalPrimeGamma_le_one
     (cost Pc T : ℝ)
     (hfit : cost * (Real.log (2 * T)) ^ 2 ≤
-      Real.exp (Real.log Pc / (Real.log (2 * T)) ^ (3 / 4 : ℝ))) :
+      Real.exp (Real.log Pc / (Real.log (2 * T)) ^ primeLargeValuesExponent)) :
     exceptionalPrimeGamma cost Pc T ≤ 1 := by
-  let x := Real.log Pc / (Real.log (2 * T)) ^ (3 / 4 : ℝ)
+  let x := Real.log Pc / (Real.log (2 * T)) ^ primeLargeValuesExponent
   calc
     exceptionalPrimeGamma cost Pc T = Real.exp (-x) *
         (cost * (Real.log (2 * T)) ^ 2) := by
@@ -176,15 +176,16 @@ theorem exceptionalPrimeGamma_le_one
 
 /-- The prime-dependent part of one exceptional cell cost. -/
 noncomputable def exceptionalPrimeCellCost
-    (Y : ℕ → Finset ℕ) (Pc : ℕ → ℕ) (g : ℕ → ℂ)
+    (Cp : ℝ) (Y : ℕ → Finset ℕ) (Pc : ℕ → ℕ) (g : ℕ → ℂ)
     (Delta Gamma : ℕ → ℝ) (v : ℕ) : ℝ :=
   2 * Delta v ^ 2 *
-    ((64 * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
+    ((Cp * (∑ p ∈ Y v, ‖g p‖ ^ 2 / (p : ℝ) ^ 2) *
         (Pc v : ℝ) / Real.log (Pc v : ℝ)) * (1 + Gamma v))
 
 /-- The aggregate prime fit consumes `c3*eps^2/192` under one fixed
 inequality.  In particular, it is independent of the ladder height `J`. -/
 theorem exceptional_prime_aggregate_fit_fixed
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp)
     (I : Finset ℕ) (Y : ℕ → Finset ℕ) (Pc : ℕ → ℕ)
     (hPc : ∀ v ∈ I, 2 ≤ Pc v) (hlo : ∀ v ∈ I, ∀ p ∈ Y v, Pc v < p)
     (g : ℕ → ℂ) (hg : ∀ p, ‖g p‖ ≤ 1)
@@ -197,24 +198,24 @@ theorem exceptional_prime_aggregate_fit_fixed
     (hlog : ∀ v ∈ I, L ≤ Real.log (Pc v : ℝ))
     (hmass : ∑ v ∈ I, ∑ p ∈ Y v, (1 : ℝ) / p ≤ E)
     (hcard : (I.card : ℝ) ≤ Ccells * N * R * L)
-    (hfixed : 98304 * Ccells * N * R * d ^ 2 * E ≤ c3 * eps ^ 2) :
+    (hfixed : 1536 * Cp * Ccells * N * R * d ^ 2 * E ≤ c3 * eps ^ 2) :
     2 * (I.card : ℝ) *
-        (∑ v ∈ I, exceptionalPrimeCellCost Y Pc g Delta Gamma v) ≤
+        (∑ v ∈ I, exceptionalPrimeCellCost Cp Y Pc g Delta Gamma v) ≤
       c3 * eps ^ 2 / 192 := by
-  have hagg := exceptional_prime_aggregate_le I Y Pc hPc hlo g hg Delta Gamma
+  have hagg := exceptional_prime_aggregate_le Cp (by linarith) I Y Pc hPc hlo g hg Delta Gamma
     d L E N R Ccells hL hE hDelta0 hDelta hGamma0 hGamma hlog hmass hcard
   calc
     2 * (I.card : ℝ) *
-        (∑ v ∈ I, exceptionalPrimeCellCost Y Pc g Delta Gamma v) ≤
-      512 * Ccells * N * R * d ^ 2 * E := by
+        (∑ v ∈ I, exceptionalPrimeCellCost Cp Y Pc g Delta Gamma v) ≤
+      8 * Cp * Ccells * N * R * d ^ 2 * E := by
         simpa [exceptionalPrimeCellCost] using hagg
-    _ = (98304 * Ccells * N * R * d ^ 2 * E) / 192 := by ring
+    _ = (1536 * Cp * Ccells * N * R * d ^ 2 * E) / 192 := by ring
     _ ≤ c3 * eps ^ 2 / 192 := by gcongr
 
 /-! ## The explicit choice of epsilon prime -/
 
 /-- The fixed sharpness parameter.  In applications
-`M = 98304*Ccells*Nu*ratio*E`. -/
+`M = 1536*Cp*Ccells*Nu*ratio*E`. -/
 noncomputable def exceptionalEpsilonPrime
     (eps c3 NU M : ℝ) : ℝ :=
   eps * Real.sqrt c3 /

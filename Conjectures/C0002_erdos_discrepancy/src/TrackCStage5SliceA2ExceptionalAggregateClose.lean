@@ -16,13 +16,14 @@ open Finset MeasureTheory ExpSums
 /-- The three literal aggregate inequalities consumed by the shifted inner
 capstone, specialized to the final exceptional choices. -/
 def SliceA2ExceptionalAggregateClosed
+    (Cp : ℝ)
     (g : ℕ → ℂ) (A Delta P0 ratio0 A1 : ℕ)
     (lowBudget epsc eps rho0 K1 K2 T : ℝ) (hP0 : 2 ≤ P0) : Prop :=
-  let eta := sliceA2ExceptionalLadderEta lowBudget epsc eps rho0
+  let eta := sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0
   let J := sliceA2LadderJ P0 ratio0 eta A1 hP0
-  let tail := sliceA2ExceptionalTailBudget epsc eps rho0
-  let rem := sliceA2ExceptionalLadderBudget lowBudget epsc eps rho0 / 4
-  let d := sliceA2ExceptionalDeltaEnvelope A1 epsc eps rho0 tail rem
+  let tail := sliceA2ExceptionalTailBudget Cp epsc eps rho0
+  let rem := sliceA2ExceptionalLadderBudget Cp lowBudget epsc eps rho0 / 4
+  let d := sliceA2ExceptionalDeltaEnvelope Cp A1 epsc eps rho0 tail rem
   (2 * ((sliceA2ExceptionalI A1 epsc eps rho0).card : ℝ) *
       (∑ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
         exceptionalIntegerCellCost (exceptionalSplitThreshold A)
@@ -34,7 +35,7 @@ def SliceA2ExceptionalAggregateClosed
             epsc eps rho0)) ≤ eps ^ 2 * rho0 / 64) ∧
   (2 * ((sliceA2ExceptionalI A1 epsc eps rho0).card : ℝ) *
       (∑ v ∈ sliceA2ExceptionalI A1 epsc eps rho0,
-        exceptionalPrimeCellCost
+        exceptionalPrimeCellCost Cp
           (fun u => eadicCell (exceptionalPrimes A1 epsc)
             (2 * sliceA2ExceptionalN A1 epsc eps rho0) u)
           (sliceA2ExceptionalAnchor A1 · epsc eps rho0) g (fun _ => d)
@@ -48,6 +49,7 @@ def SliceA2ExceptionalAggregateClosed
 /-- The exceptional aggregate is closed uniformly throughout every
 quadratic scale window once the two elementary band-log bounds hold. -/
 theorem exists_sliceA2Exceptional_aggregate_closed
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp)
     (g : ℕ → ℂ) (hg : ∀ m, ‖g m‖ ≤ 1)
     (P0 ratio0 : ℕ) (lowBudget epsc eps rho0 : ℝ)
     (hP0 : 3 ≤ P0) (hlow : 0 < lowBudget)
@@ -58,27 +60,27 @@ theorem exists_sliceA2Exceptional_aggregate_closed
         1 ≤ T → K2 + 2 ≤ T → T ≤ A →
         Real.log (A1 : ℝ) / 2 ≤ Real.log (2 * T) →
         Real.log (2 * T) ≤ 3 * Real.log (A1 : ℝ) →
-        SliceA2ExceptionalAggregateClosed g A Delta P0 ratio0 A1
+        SliceA2ExceptionalAggregateClosed Cp g A Delta P0 ratio0 A1
           lowBudget epsc eps rho0 K1 K2 T (by omega) := by
-  let eta := sliceA2ExceptionalLadderEta lowBudget epsc eps rho0
+  let eta := sliceA2ExceptionalLadderEta Cp lowBudget epsc eps rho0
   have heta : 1 ≤ eta := by
     simpa [eta] using sliceA2ExceptionalLadderEta_one_le
-      lowBudget epsc eps rho0
+      Cp lowBudget epsc eps rho0
   obtain ⟨A0, hA0⟩ := exists_sliceA2Exceptional_aggregate_fits
-    g hg P0 ratio0 eta epsc eps rho0 (by omega) heta heps hrho0
+    Cp hCp1 g hg P0 ratio0 eta epsc eps rho0 (by omega) heta heps hrho0
   refine ⟨A0, fun A1 A Delta hA1 hA hAupper hDelta
     K1 K2 T hT hTK2 hTA hLlower hLupper => ?_⟩
-  let tail := sliceA2ExceptionalTailBudget epsc eps rho0
-  let rem := sliceA2ExceptionalLadderBudget lowBudget epsc eps rho0 / 4
+  let tail := sliceA2ExceptionalTailBudget Cp epsc eps rho0
+  let rem := sliceA2ExceptionalLadderBudget Cp lowBudget epsc eps rho0 / 4
   have htail0 : 0 ≤ tail := by
-    exact (sliceA2ExceptionalTailBudget_pos epsc eps rho0 heps hrho0).le
+    exact (sliceA2ExceptionalTailBudget_pos Cp epsc eps rho0 heps hrho0).le
   have hrem0 : 0 ≤ rem := by
     dsimp [rem]
     exact div_nonneg
       (sliceA2ExceptionalLadderBudget_pos
-        lowBudget epsc eps rho0 hlow heps hrho0).le (by norm_num)
+        Cp lowBudget epsc eps rho0 hlow heps hrho0).le (by norm_num)
   have hsmall := sliceA2Exceptional_tail_remainder_small
-    lowBudget epsc eps rho0 A1
+    Cp lowBudget epsc eps rho0 A1
   have hfits := hA0 A1 A Delta hA1 hA hAupper hDelta
     K1 K2 T tail rem hT hTK2 hTA hLlower hLupper htail0 hrem0
     (by simpa [tail, rem] using hsmall)

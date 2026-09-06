@@ -27,7 +27,8 @@ subfamily of unit cells which actually meets the exceptional part.  The
 prime off-diagonal factor is the high-moment cardinality cost, with no
 first-moment `T / P` term. -/
 theorem setIntegral_band_energy_exceptional_max_le_recut
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2 * P)
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
@@ -49,9 +50,9 @@ theorem setIntegral_band_energy_exceptional_max_le_recut
       ≤ 2 * (V₀ ^ 2 * (64 * ((N : ℝ) + (K.card : ℝ) * Real.sqrt T)
                   * (Real.log (2 * T) + 1)
                   * ∑ n ∈ Finset.Icc 1 N, ‖a n‖ ^ 2 / (n : ℝ) ^ 2)
-            + delta ^ 2 * (64 * (1 + primeHighMomentCountCost P ell Y T V₀ lam
+            + delta ^ 2 * (Cp * (1 + primeHighMomentCountCost P ell Y T V₀ lam
                     * Real.exp (-(Real.log P /
-                      (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                      (Real.log (2 * T)) ^ primeLargeValuesExponent))
                     * (Real.log (2 * T)) ^ 2)
                 * (∑ p ∈ Y, ‖b p‖ ^ 2 / (p : ℝ) ^ 2)
                 * (P : ℝ) / Real.log P)) := by
@@ -85,9 +86,9 @@ theorem setIntegral_band_energy_exceptional_max_le_recut
         ≤ V₀ ^ 2 * (64 * ((N : ℝ) + (K.card : ℝ) * Real.sqrt T)
                 * (Real.log (2 * T) + 1)
                 * ∑ n ∈ Finset.Icc 1 N, ‖a n‖ ^ 2 / (n : ℝ) ^ 2)
-          + delta ^ 2 * (64 * (1 + primeHighMomentCountCost P ell Y T V₀ lam
+          + delta ^ 2 * (Cp * (1 + primeHighMomentCountCost P ell Y T V₀ lam
                   * Real.exp (-(Real.log P /
-                    (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                    (Real.log (2 * T)) ^ primeLargeValuesExponent))
                   * (Real.log (2 * T)) ^ 2)
               * (∑ p ∈ Y, ‖b p‖ ^ 2 / (p : ℝ) ^ 2)
               * (P : ℝ) / Real.log P) := by
@@ -107,7 +108,8 @@ theorem setIntegral_band_energy_exceptional_max_le_recut
       intro t ht
       obtain ⟨htm, htl⟩ := Finset.mem_filter.mp ht
       exact hdelta t (hmem t htm) htl
-    have hmain := sum_prime_integer_energy_high_moment_le P hP Y hY hlo hhi b hb
+    have hmain := sum_prime_integer_energy_high_moment_le Cp hCp1 hprime
+      P hP Y hY hlo hhi b hb
       ell hell N a T hT1 (K'.image tau) hmem hsep V₀ delta lam hV₀ hlam hlargeF
     refine hmain.trans ?_
     have hcard : ((K'.image tau).card : ℝ) ≤ (K.card : ℝ) := by
@@ -141,7 +143,8 @@ the exact fit.  In particular it cannot be passed through the quadratic
 threshold optimiser, whose input has threshold dependence `V0^(-2)`.
 -/
 theorem setIntegral_band_energy_exceptional_le_budget_recut
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2 * P)
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
@@ -158,10 +161,11 @@ theorem setIntegral_band_energy_exceptional_le_budget_recut
     (hAint : Aint = 64 * ((N : ℝ) + (K.card : ℝ) * Real.sqrt T)
       * (Real.log (2 * T) + 1)
       * ∑ n ∈ Finset.Icc 1 N, ‖a n‖ ^ 2 / (n : ℝ) ^ 2)
-    (hBpri : Bpri = 64 * (∑ p ∈ Y, ‖b p‖ ^ 2 / (p : ℝ) ^ 2)
+    (hBpri : Bpri = Cp * (∑ p ∈ Y, ‖b p‖ ^ 2 / (p : ℝ) ^ 2)
       * (P : ℝ) / Real.log P)
     (hGamma : Gamma = primeHighMomentCountCost P ell Y T Vsplit lam
-      * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+      * Real.exp (-(Real.log P /
+        (Real.log (2 * T)) ^ primeLargeValuesExponent))
       * (Real.log (2 * T)) ^ 2)
     (c3 eps rho kappa : ℝ)
     (hfit : 2 * (Vsplit ^ 2 * Aint
@@ -172,7 +176,8 @@ theorem setIntegral_band_energy_exceptional_le_budget_recut
           * ‖∑ n ∈ Finset.Icc 1 N, (a n / (n : ℂ))
             * ((Real.fourierChar (-(Real.log n * xi)) : Circle) : ℂ)‖ ^ 2)
       ≤ kappa * bandBudget c3 eps rho := by
-  have hmain := setIntegral_band_energy_exceptional_max_le_recut P hP Y hY hlo hhi
+  have hmain := setIntegral_band_energy_exceptional_max_le_recut Cp hCp1 hprime
+    P hP Y hY hlo hhi
     b hb ell hell N a T hT1 G K hcover hKT Vsplit delta lam hVsplit hlam
     (fun t ht _ => hdelta t ht)
   refine hmain.trans (le_trans (le_of_eq ?_) hfit)
@@ -188,7 +193,8 @@ threshold, and Gallagher parameter.  The common frequency cover is supplied
 by the caller; the cell-uniform capstone chooses only cells meeting the
 exceptional part. -/
 theorem band_energy_le_budget_of_exceptional_family_recut
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     {ι : Type*} [DecidableEq ι] {ι' : Type*}
     (F : ℝ → ℂ) (w : ℝ → ℝ) (hw0 : ∀ xi, 0 ≤ w xi)
     (Cw : ℝ) (hCw : 0 < Cw) (hwC : ∀ xi, w xi ≤ Cw)
@@ -230,12 +236,13 @@ theorem band_energy_le_budget_of_exceptional_family_recut
     (hAint : ∀ v ∈ I, Aint v = 64 * ((N v : ℝ) + (K.card : ℝ) * Real.sqrt T)
       * (Real.log (2 * T) + 1)
       * ∑ n ∈ Finset.Icc 1 (N v), ‖a v n‖ ^ 2 / (n : ℝ) ^ 2)
-    (hBpri : ∀ v ∈ I, Bpri v = 64
+    (hBpri : ∀ v ∈ I, Bpri v = Cp
       * (∑ p ∈ Y v, ‖b v p‖ ^ 2 / (p : ℝ) ^ 2)
       * (P v : ℝ) / Real.log (P v))
     (hGamma : ∀ v ∈ I, Gamma v =
       primeHighMomentCountCost (P v) (ell v) (Y v) T (Vsplit v) (lam v)
-        * Real.exp (-(Real.log (P v) / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+        * Real.exp (-(Real.log (P v) /
+          (Real.log (2 * T)) ^ primeLargeValuesExponent))
         * (Real.log (2 * T)) ^ 2)
     (kappa' : ι' → ℝ)
     (hfit : ∀ v ∈ I, 2 * ((Vsplit v) ^ 2 * Aint v
@@ -250,7 +257,7 @@ theorem band_energy_le_budget_of_exceptional_family_recut
           * ‖∑ n ∈ Finset.Icc 1 (N v), (a v n / (n : ℂ))
             * ((Real.fourierChar (-(Real.log n * xi)) : Circle) : ℂ)‖ ^ 2)
         ≤ kappa' v * bandBudget c3 eps rho := fun v hv =>
-    setIntegral_band_energy_exceptional_le_budget_recut
+    setIntegral_band_energy_exceptional_le_budget_recut Cp hCp1 hprime
       (P v) (hP v hv) (Y v) (hY v hv) (hlo v hv) (hhi v hv)
       (b v) (hb v hv) (ell v) (hell v hv) (N v) (a v) T hT1
       (part u) K hcoverU hKT (Vsplit v) (delta v) (lam v)
@@ -377,7 +384,8 @@ The displayed fit is the exact fixed-threshold consequence of VI-9d.  Its
 prime term contains `primeHighMomentCountCost`, and therefore has no separate
 `T / P` summand. -/
 theorem band_energy_typicalS_le_of_cellUniform_fit_recut
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (P : Finset ℕ) (hP : ∀ p ∈ P, p.Prime) (hPA : ∀ p ∈ P, p * p ≤ A)
@@ -433,13 +441,13 @@ theorem band_energy_typicalS_le_of_cellUniform_fit_recut
                   ‖cellBlockCoeff g A (A + Delta) P rest (q v) n‖ ^ 2 /
                     (n : ℝ) ^ 2)
           + (delta v) ^ 2
-            * ((64 * (∑ p ∈ eadicCell P (2 * N) v,
+            * ((Cp * (∑ p ∈ eadicCell P (2 * N) v,
                     ‖g p‖ ^ 2 / (p : ℝ) ^ 2)
                 * (Pc v : ℝ) / Real.log (Pc v))
               * (1 + primeHighMomentCountCost (Pc v) (ell v)
                   (eadicCell P (2 * N) v) T (Vsplit v) (lam v)
                 * Real.exp (-(Real.log (Pc v) /
-                  (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+                  (Real.log (2 * T)) ^ primeLargeValuesExponent))
                 * (Real.log (2 * T)) ^ 2)))
         ≤ kappa' v * bandBudget c3 eps ((Delta : ℝ) / (A : ℝ)))
     (hfitU : 2 * ((Finset.Ico v0 (v1 + 1)).card : ℝ)
@@ -568,7 +576,7 @@ theorem band_energy_typicalS_le_of_cellUniform_fit_recut
         + 2 * (2 * cellReplacementEnergyBound P N v0 v1 A (A + Delta) T
             + 2 * (4 * collisionEnergyBound A (A + Delta) P rest T)) := by
     linarith [hfac0, hsplit]
-  exact band_energy_le_budget_of_exceptional_family_recut
+  exact band_energy_le_budget_of_exceptional_family_recut Cp hCp1 hprime
     (fun xi => ∑ m ∈ typicalS A (A + Delta) (P :: rest), (g m / (m : ℂ))
       * ((Real.fourierChar (-(Real.log m * xi)) : Circle) : ℂ))
     w hw0 ((4 * (H : ℝ) / (A : ℝ)) ^ 2) hCw hwsup
@@ -599,11 +607,12 @@ theorem band_energy_typicalS_le_of_cellUniform_fit_recut
         + (Kcov.card : ℝ) * Real.sqrt T) * (Real.log (2 * T) + 1)
       * ∑ n ∈ Finset.Icc 1 ((A + Delta) / q v),
           ‖cellBlockCoeff g A (A + Delta) P rest (q v) n‖ ^ 2 / (n : ℝ) ^ 2)
-    (fun v => 64 * (∑ p ∈ eadicCell P (2 * N) v,
+    (fun v => Cp * (∑ p ∈ eadicCell P (2 * N) v,
         ‖g p‖ ^ 2 / (p : ℝ) ^ 2) * (Pc v : ℝ) / Real.log (Pc v))
     (fun v => primeHighMomentCountCost (Pc v) (ell v) (eadicCell P (2 * N) v)
         T (Vsplit v) (lam v)
-      * Real.exp (-(Real.log (Pc v) / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+      * Real.exp (-(Real.log (Pc v) /
+        (Real.log (2 * T)) ^ primeLargeValuesExponent))
       * (Real.log (2 * T)) ^ 2)
     (fun v _ => rfl) (fun v _ => rfl) (fun v _ => rfl) kappa' (by
       intro v hv

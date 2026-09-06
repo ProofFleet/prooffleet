@@ -193,12 +193,20 @@ convention (`a n/n · e(−t log n)`).  The source range `T ≥ 1` is an explici
 
 > For `T ≥ 1`, a Dirichlet polynomial supported on the primes of `[P, 2P]` and `1`-separated points
 > in `[−T, T]`, the same sum is bounded by
-> `(1 + R·exp(−log P/(log 2T)^{2/3+ε})·(log 2T)²)·(∑_p |a_p|²/p²)·P/log P`.
+> `C_ε·(1 + R·exp(−log P/(log 2T)^{2/3+ε})·(log 2T)²)·(∑_p |a_p|²/p²)·P/log P`,
+> where the implied constant `C_ε` depends on `ε`.
 
-Lean: `PrimeLargeValuesAssumption`. Deviations: constant fixed at `64`; the exponent
-`2/3 + ε` is replaced by the fixed rational `3/4` (any exponent `< 1` carries the consumer,
-and a numeral keeps the class statement free of an extra quantifier).  The source range
-`T ≥ 1` is an explicit hypothesis.
+The Lean interface fixes the exponent at the named value
+`primeLargeValuesExponent = 4/5` and records the source's implied constant as
+an existential `C ≥ 1`.  The exponent `4/5` is strictly above `2/3`; Chudakov's
+zero-free region supplies its saving at large height, while `C` absorbs the
+remaining bounded-height range.  No `PrimeLargeValuesAssumption` instance is
+declared until the Phase 6 proof lands.
+
+Lean: `PrimeLargeValuesAssumption`. Deviations: the exponent `2/3 + ε` is replaced by the
+named fixed rational `primeLargeValuesExponent = 4/5` (any exponent `< 1` carries the
+consumer).  The source's `ε`-dependent implied constant is represented by an existential
+constant `C ≥ 1`.  The source range `T ≥ 1` is an explicit hypothesis.
 
 **This is the irreducible input.** Its only known proof is duality plus a Mellin shift of
 `ζ'/ζ` into the Vinogradov–Korobov zero-free region; there is no elementary argument, and no

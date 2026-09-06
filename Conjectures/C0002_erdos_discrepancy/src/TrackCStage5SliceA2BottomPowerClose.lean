@@ -18,12 +18,12 @@ def sliceA2BottomPower : ℕ := 1200000
 noncomputable def sliceA2ZeroPrimeTargetConstant : ℝ :=
   sliceA2KappaMain 0 / (16 * 163880000)
 
-noncomputable def sliceA2BottomPowerConstant (epsc : ℝ) (Qlog0 : ℕ) : ℝ :=
+noncomputable def sliceA2BottomPowerConstant (Cp epsc : ℝ) (Qlog0 : ℕ) : ℝ :=
   max 21 (max Qlog0
     (max (Real.exp (Real.log 6 + 256))
       (max (Real.exp
-        (40960 * (2 * Real.log (sliceA2FarPowerConstant epsc) + 11)))
-        (max (sliceA2ClosePowerConstant epsc ^ 20 * (2 : ℝ) ^ 720)
+        (40960 * (2 * Real.log (sliceA2FarPowerConstant Cp epsc) + 11)))
+        (max (sliceA2ClosePowerConstant Cp epsc ^ 20 * (2 : ℝ) ^ 720)
           (max ((160 * 2048 : ℝ) * Real.exp Real.pi * 163880000 / 3)
             ((sliceA2ZeroPrimePowerConstant epsc /
               sliceA2ZeroPrimeTargetConstant) ^ 4))))))
@@ -33,8 +33,8 @@ theorem sliceA2ZeroPrimeTargetConstant_pos :
   unfold sliceA2ZeroPrimeTargetConstant sliceA2KappaMain ordinaryLegShare
   positivity
 
-theorem sliceA2BottomPowerConstant_pos (epsc : ℝ) (Qlog0 : ℕ) :
-    0 < sliceA2BottomPowerConstant epsc Qlog0 := by
+theorem sliceA2BottomPowerConstant_pos (Cp epsc : ℝ) (Qlog0 : ℕ) :
+    0 < sliceA2BottomPowerConstant Cp epsc Qlog0 := by
   unfold sliceA2BottomPowerConstant
   exact lt_of_lt_of_le (by norm_num) (le_max_left _ _)
 
@@ -54,42 +54,42 @@ set_option maxHeartbeats 1000000 in
 /-- One lower bound of size `C(epsc,Qlog0) / e^1200000` supplies the fixed
 bottom package and the exact zero-level schedule callback. -/
 theorem sliceA2_bottom_closed_of_power
-    (epsc eps : ℝ) (P0 Qlog0 : ℕ)
+    (Cp epsc eps : ℝ) (P0 Qlog0 : ℕ) (hCp1 : 1 ≤ Cp)
     (hepsc : 0 < epsc) (heps : 0 < eps)
     (hlogFit : ∀ Q : ℕ, Qlog0 ≤ Q →
       Real.log (Q : ℝ) ^ 6 ≤ (Q : ℝ) ^ (1 / 20 : ℝ))
-    (hP0 : sliceA2BottomPowerConstant epsc Qlog0 /
+    (hP0 : sliceA2BottomPowerConstant Cp epsc Qlog0 /
         sliceA2EffectiveEps eps ^ sliceA2BottomPower ≤ P0) :
     SliceA2OrdinaryBottomClosed P0 (exceptionalIntervalRatio epsc)
-        (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+        (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
           (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps)) Qlog0
         (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps) ∧
       ∀ A : ℕ, ∀ T : ℝ, 1 ≤ A → 0 ≤ T →
         (T / (A : ℝ)) *
             sliceA2OrdinaryZeroFrequencyCoefficient P0
               (exceptionalIntervalRatio epsc)
-              (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+              (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
                 (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps))
               (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps) ≤
           sliceA2KappaMain 0 / 2 *
             ((sliceA2EffectiveEps eps / 100) ^ 2 *
               sliceA2CanonicalRho eps / 8) →
         SliceA2OrdinaryZeroFits P0 (exceptionalIntervalRatio epsc)
-          (sliceA2ExceptionalLadderEta (sliceA2EffectiveEps eps) epsc
+          (sliceA2ExceptionalLadderEta Cp (sliceA2EffectiveEps eps) epsc
             (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps)) A
           (sliceA2EffectiveEps eps / 100) (sliceA2CanonicalRho eps) T := by
   let e := sliceA2EffectiveEps eps
   let rho := sliceA2CanonicalRho eps
-  let eta := sliceA2ExceptionalLadderEta e epsc (e / 100) rho
+  let eta := sliceA2ExceptionalLadderEta Cp e epsc (e / 100) rho
   let R := exceptionalIntervalRatio epsc
   let K := sliceA2BottomPower
-  let C := sliceA2BottomPowerConstant epsc Qlog0
+  let C := sliceA2BottomPowerConstant Cp epsc Qlog0
   let F := sliceA2OrdinaryFarCoefficient R eta
   let D := sliceA2OrdinaryCloseCoefficient R eta (e / 100) rho
   have he : 0 < e := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).1
   have he1 : e ≤ 1 := by simpa [e] using (sliceA2EffectiveEps_bounds eps heps).2.1
   have hrho : 0 < rho := by simpa [rho] using sliceA2CanonicalRho_pos eps heps
-  have hC : 0 < C := by simpa [C] using sliceA2BottomPowerConstant_pos epsc Qlog0
+  have hC : 0 < C := by simpa [C] using sliceA2BottomPowerConstant_pos Cp epsc Qlog0
   have heK : e ^ K ≤ 1 := pow_le_one₀ he.le he1
   have heK0 : 0 < e ^ K := by positivity
   have hP : C / e ^ K ≤ (P0 : ℝ) := by simpa [C, K, e] using hP0
@@ -125,21 +125,21 @@ theorem sliceA2_bottom_closed_of_power
       Real.log 6 + 256 = Real.log (Real.exp (Real.log 6 + 256)) :=
         (Real.log_exp _).symm
       _ ≤ Real.log (P0 : ℝ) := Real.log_le_log (Real.exp_pos _) hbaseP
-  have hF : F ≤ sliceA2FarPowerConstant epsc / e ^ 14 := by
+  have hF : F ≤ sliceA2FarPowerConstant Cp epsc / e ^ 14 := by
     simpa [F, R, eta, e, rho] using
-      sliceA2OrdinaryFarCoefficient_le_power epsc eps hepsc heps
+      sliceA2OrdinaryFarCoefficient_le_power Cp epsc eps hCp1 hepsc heps
   have hFpos : 0 < F := by
     dsimp [F, sliceA2OrdinaryFarCoefficient]
     positivity
-  have hKFpos : 0 < sliceA2FarPowerConstant epsc :=
-    sliceA2FarPowerConstant_pos epsc
+  have hKFpos : 0 < sliceA2FarPowerConstant Cp epsc :=
+    sliceA2FarPowerConstant_pos Cp epsc hCp1
   have hlogF : Real.log F ≤
-      Real.log (sliceA2FarPowerConstant epsc) - 14 * Real.log e := by
+      Real.log (sliceA2FarPowerConstant Cp epsc) - 14 * Real.log e := by
     have hlog := Real.log_le_log hFpos hF
     rw [Real.log_div (ne_of_gt hKFpos) (ne_of_gt (by positivity : 0 < e ^ 14)),
       Real.log_pow] at hlog
     exact hlog
-  let LF := 40960 * (2 * Real.log (sliceA2FarPowerConstant epsc) + 11)
+  let LF := 40960 * (2 * Real.log (sliceA2FarPowerConstant Cp epsc) + 11)
   have hfarC : Real.exp LF ≤ C := by
     dsimp [C, LF, sliceA2BottomPowerConstant]
     exact (le_max_left _ _).trans ((le_max_right _ _).trans
@@ -164,19 +164,19 @@ theorem sliceA2_bottom_closed_of_power
         have hkR : (2 * 14 * 40960 : ℝ) ≤ K := by exact_mod_cast hk
         nlinarith
       _ ≤ Real.log (P0 : ℝ) := hfarLogP
-  have hD : D ≤ sliceA2ClosePowerConstant epsc / e ^ 128 := by
+  have hD : D ≤ sliceA2ClosePowerConstant Cp epsc / e ^ 128 := by
     simpa [D, R, eta, e, rho] using
-      sliceA2OrdinaryCloseCoefficient_le_power epsc eps hepsc heps
+      sliceA2OrdinaryCloseCoefficient_le_power Cp epsc eps hCp1 hepsc heps
   have hD0 : 0 ≤ D := zero_le_one.trans
     (sliceA2OrdinaryCloseCoefficient_one_le R eta (e / 100) rho)
   have hDpow : D ^ 20 ≤
-      sliceA2ClosePowerConstant epsc ^ 20 / e ^ (128 * 20) := by
+      sliceA2ClosePowerConstant Cp epsc ^ 20 / e ^ (128 * 20) := by
     have hp := pow_le_pow_left₀ hD0 hD 20
     calc
-      D ^ 20 ≤ (sliceA2ClosePowerConstant epsc / e ^ 128) ^ 20 := hp
-      _ = sliceA2ClosePowerConstant epsc ^ 20 / e ^ (128 * 20) := by
+      D ^ 20 ≤ (sliceA2ClosePowerConstant Cp epsc / e ^ 128) ^ 20 := hp
+      _ = sliceA2ClosePowerConstant Cp epsc ^ 20 / e ^ (128 * 20) := by
         field_simp
-  have hcloseC : sliceA2ClosePowerConstant epsc ^ 20 * (2 : ℝ) ^ 720 ≤ C := by
+  have hcloseC : sliceA2ClosePowerConstant Cp epsc ^ 20 * (2 : ℝ) ^ 720 ≤ C := by
     dsimp [C, sliceA2BottomPowerConstant]
     exact (le_max_left _ _).trans ((le_max_right _ _).trans
       ((le_max_right _ _).trans ((le_max_right (Qlog0 : ℝ) _).trans
@@ -187,9 +187,9 @@ theorem sliceA2_bottom_closed_of_power
       pow_le_pow_of_le_one he.le he1 hexp
     calc
       D ^ 20 * (2 : ℝ) ^ 720 ≤
-          (sliceA2ClosePowerConstant epsc ^ 20 / e ^ (128 * 20)) *
+          (sliceA2ClosePowerConstant Cp epsc ^ 20 / e ^ (128 * 20)) *
             (2 : ℝ) ^ 720 := by gcongr
-      _ = (sliceA2ClosePowerConstant epsc ^ 20 * (2 : ℝ) ^ 720) /
+      _ = (sliceA2ClosePowerConstant Cp epsc ^ 20 * (2 : ℝ) ^ 720) /
             e ^ (128 * 20) := by ring
       _ ≤ C / e ^ K := by
         exact div_le_div₀ hC.le hcloseC (by positivity) hePow

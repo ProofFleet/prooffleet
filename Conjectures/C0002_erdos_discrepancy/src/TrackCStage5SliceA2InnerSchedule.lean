@@ -20,7 +20,8 @@ set_option maxHeartbeats 1000000 in
 /-- Ordinary level bounds and the three exceptional aggregate fits imply the
 exact shifted-capstone inner-band estimate. -/
 theorem sliceA2_inner_band_of_aggregate_fits
-    [HalaszLargeValuesAssumption] [PrimeLargeValuesAssumption]
+    [HalaszLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprimeBound : PrimeLargeValuesBound Cp)
     (g : ℕ → ℂ) (hcm : CompletelyMultiplicativeC g) (hg : ∀ m, ‖g m‖ ≤ 1)
     (A Delta H : ℕ) (hA : 0 < A) (hH : 0 < H) (hDeltaA : Delta ≤ A)
     (Pl : ℕ → Finset ℕ) (Pu : Finset ℕ) (J : ℕ) (hJ : 0 < J)
@@ -129,7 +130,8 @@ theorem sliceA2_inner_band_of_aggregate_fits
     (hGamma : ∀ v ∈ Finset.Ico v0u (v1u + 1),
       Gamma v = primeHighMomentCountCost (PcU v) (ellU v)
           (eadicCell Pu (2 * Nu) v) T V0 1 *
-        Real.exp (-(Real.log (PcU v) / (Real.log (2 * T)) ^ (3 / 4 : ℝ))) *
+        Real.exp (-(Real.log (PcU v) /
+          (Real.log (2 * T)) ^ primeLargeValuesExponent)) *
         (Real.log (2 * T)) ^ 2)
     (hrho0 : 0 < rho0) (hratio : rho0 ≤ (Delta : ℝ) / A)
     (hint : 2 * ((Finset.Ico v0u (v1u + 1)).card : ℝ) *
@@ -138,7 +140,7 @@ theorem sliceA2_inner_band_of_aggregate_fits
       eps ^ 2 * rho0 / 64)
     (hprime : 2 * ((Finset.Ico v0u (v1u + 1)).card : ℝ) *
         (∑ v ∈ Finset.Ico v0u (v1u + 1),
-          exceptionalPrimeCellCost (fun v => eadicCell Pu (2 * Nu) v)
+          exceptionalPrimeCellCost Cp (fun v => eadicCell Pu (2 * Nu) v)
             PcU g DeltaU Gamma v) ≤ eps ^ 2 * rho0 / 64)
     (hwide : 2 * (2 * replacementEnergyBoundWide A Pu Nu T +
         2 * (4 * collisionEnergyBoundWide A Pu T)) ≤ eps ^ 2 * rho0 / 32) :
@@ -154,7 +156,7 @@ theorem sliceA2_inner_band_of_aggregate_fits
     2 * (4 * collisionEnergyBoundWide A Pu T))
   let cost := fun v =>
     exceptionalIntegerCellCost V0 (Bq v) Kcov T L (coeffMass v) +
-      exceptionalPrimeCellCost (fun u => eadicCell Pu (2 * Nu) u)
+      exceptionalPrimeCellCost Cp (fun u => eadicCell Pu (2 * Nu) u)
         PcU g DeltaU Gamma v
   let kappaU := fun v =>
     exceptionalCellKappa (cost v)
@@ -163,13 +165,13 @@ theorem sliceA2_inner_band_of_aggregate_fits
     g A Delta Pl Pu J Nl v0l v1l ql K1 K2 T 1 eps
     hzero hlater hreplacement hcollision
   obtain ⟨hcell, haggregate⟩ := exceptional_exact_cell_schedule_of_ratio_fits
-    I Bq coeffMass (fun v => eadicCell Pu (2 * Nu) v) PcU g DeltaU Gamma
+    Cp I Bq coeffMass (fun v => eadicCell Pu (2 * Nu) v) PcU g DeltaU Gamma
     V0 Kcov T L wide 1 eps rho0 ((Delta : ℝ) / A)
     (by norm_num) heps hrho0 hratio
     (by simpa [I] using hint) (by simpa [I] using hprime)
     (by simpa [wide] using hwide)
   apply band_energy_typicalS_le_of_schedule_sharp_cells_wide'
-    g hcm hg A Delta H hA hH hDeltaA Pl Pu J hJ hPl hPu hPAu hdisj hdisjU
+    Cp hCp1 hprimeBound g hcm hg A Delta H hA hH hDeltaA Pl Pu J hJ hPl hPu hPAu hdisj hdisjU
     Nl v0l v1l ql innerBandScheduleAlpha hNl hcovl hqupl hq1l hqminl
     hqratiol K1 K2 T hT1 hTK2 1 eps (by norm_num)
     sliceA2KappaMain sliceA2KappaReplacement sliceA2KappaCollision

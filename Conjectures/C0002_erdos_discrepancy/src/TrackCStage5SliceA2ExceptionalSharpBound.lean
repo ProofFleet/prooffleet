@@ -65,6 +65,7 @@ theorem exceptionalPrimes_mass_le_log_ratio
 /-- At all sufficiently large base scales, every exceptional quotient obeys
 the fixed sharp-cell envelope at the canonical cutoff and sharpness. -/
 theorem exists_sliceA2Exceptional_sharp_bound
+    (Cp : ℝ)
     (epsc eps rho0 : ℝ) (heps : 0 < eps) (hrho0 : 0 < rho0) :
     ∃ (D : ℝ) (A0 : ℕ), 1 ≤ D ∧
       ∀ A1 A Delta : ℕ,
@@ -73,22 +74,22 @@ theorem exists_sliceA2Exceptional_sharp_bound
           cellHalaszSharpBound
               (exceptionalSharpCutoff A) D
               (exceptionalDelta0
-                (sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0))
+                (sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0))
               (A / sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
               ((A + Delta) /
                 sliceA2ExceptionalRepresentative A1 v epsc eps rho0)
               (exceptionalPrimes A1 epsc) [base] ≤
-            2 * (2 * sliceA2ExceptionalEpsilonPrime A1 epsc eps rho0 *
+            2 * (2 * sliceA2ExceptionalEpsilonPrime Cp A1 epsc eps rho0 *
               Real.exp 13 * (exceptionalIntervalRatio epsc : ℝ) +
-                sliceA2ExceptionalTailBudget epsc eps rho0) := by
-  let ep := sliceA2ExceptionalEpsilonPrime 0 epsc eps rho0
+                sliceA2ExceptionalTailBudget Cp epsc eps rho0) := by
+  let ep := sliceA2ExceptionalEpsilonPrime Cp 0 epsc eps rho0
   have hep : 0 < ep := by
     dsimp [ep]
-    exact sliceA2ExceptionalEpsilonPrime_pos 0 epsc eps rho0 heps hrho0
+    exact sliceA2ExceptionalEpsilonPrime_pos Cp 0 epsc eps rho0 heps hrho0
   obtain ⟨D0, xMin, hD0, hxMin, hsharp⟩ :=
     cellHalaszSharpBound_le_fixedEnvelope ep hep
   obtain ⟨AT, hAT⟩ :=
-    exists_sliceA2Exceptional_rankin_exp_tail_le epsc eps rho0 heps hrho0
+    exists_sliceA2Exceptional_rankin_exp_tail_le Cp epsc eps rho0 heps hrho0
   obtain ⟨AP, hAP⟩ := exists_exceptionalPrimeLower_ge 6
   obtain ⟨AQ, hAQ⟩ := exists_const_mul_exceptionalPrimeUpper_pow_le
     1 4 epsc (by norm_num) (by norm_num)
@@ -179,10 +180,10 @@ theorem exists_sliceA2Exceptional_sharp_bound
   have hresult := hsharp D0 le_rfl (exceptionalSharpCutoff A) hxMinCutoff
     Aq Bq hAq hAB hB (exceptionalPrimes A1 epsc)
     (fun p hp => exceptionalPrimes_prime A1 epsc p hp)
-    s hs.1 hs.2 hhalf base R (sliceA2ExceptionalTailBudget epsc eps rho0)
+    s hs.1 hs.2 hhalf base R (sliceA2ExceptionalTailBudget Cp epsc eps rho0)
     hR hmass hsq (by simpa [Aq, Bq, q, s] using htail)
   simpa [ep, exceptionalDelta0, Aq, Bq, q, s, R,
-    sliceA2ExceptionalEpsilonPrime_eq_zero A1 epsc eps rho0] using hresult
+    sliceA2ExceptionalEpsilonPrime_eq_zero Cp A1 epsc eps rho0] using hresult
 
 end Tao2015
 

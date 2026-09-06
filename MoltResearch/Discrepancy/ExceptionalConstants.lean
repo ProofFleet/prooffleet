@@ -159,7 +159,7 @@ theorem exists_lam_balanced (c : ℝ) (hc : 0 < c) :
 
 /-- **The `𝒰` leg's ratio `Γ`, instantiated** (Track R, A2-III, M-6).
 
-`Γ ≤ e^π·((T+1)/P + 4)·(256/log P + 2048π)·e^{−log P/(log 2T)^{3/4}}·(log 2T)²`
+`Γ ≤ e^π·((T+1)/P + 4)·(256/log P + 2048π)·e^{−log P/(log 2T)^θ}·(log 2T)²`
 at the balanced `lam`.
 
 `Γ` is the group of `BandSchedule.exceptional_threshold_le_budget` measuring how
@@ -174,7 +174,7 @@ constant.**  `exists_lam_balanced` prices the split at `1 + 4π·log(2P)`, which
 (`PrimeMassCell.sum_one_div_prime_dyadic_le`), which decays at exactly the same
 rate.  Their product is `256/log P + 1024π·log(2P)/log P ≤ 256/log P + 2048π`,
 bounded absolutely — so `Γ`'s dependence on the prime scale is carried entirely
-by the exponential saving `e^{−log P/(log 2T)^{3/4}}` and the term `(T+1)/P`,
+by the exponential saving `e^{−log P/(log 2T)^θ}` and the term `(T+1)/P`,
 and by nothing else.  `log(2P) ≤ 2 log P` is what closes it, and it is sharp at
 `P = 2`.
 
@@ -182,18 +182,18 @@ That matters for the leg's arithmetic: with `Bpri ≲ (log P)^{−2}` and `Γ`'s
 prime dependence reduced to the exponential, the cross term
 `2δ√(Aint·Bpri·Γ)` inherits the *square root* of the zero-free-region saving,
 which is the `[MR]` Lemma 8 input entering at half strength. -/
-theorem exists_lam_exceptional_ratio_le (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ)
+theorem exists_lam_exceptional_ratio_le (θ : ℝ) (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ)
     (hY : ∀ p ∈ Y, p.Prime) (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2 * P)
     (T : ℝ) (hT : 1 ≤ T) :
     ∃ lam : ℝ, 0 < lam ∧
       Real.exp Real.pi * ((T + 1) / (P : ℝ) + 2 * (2 : ℝ))
             * ((1 + lam) + (1 / lam) * (2 * Real.pi * Real.log (2 * (P : ℝ))) ^ 2)
             * (∑ p ∈ Y, (1 : ℝ) / (p : ℝ))
-            * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ θ))
             * (Real.log (2 * T)) ^ 2
         ≤ Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4)
             * (256 / Real.log P + 2048 * Real.pi)
-            * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+            * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ θ))
             * (Real.log (2 * T)) ^ 2 := by
   classical
   have hP0 : (0 : ℝ) < (P : ℝ) := by
@@ -239,26 +239,26 @@ theorem exists_lam_exceptional_ratio_le (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ
     have : (0 : ℝ) ≤ (T + 1) / (P : ℝ) := by positivity
     have := Real.exp_pos Real.pi
     nlinarith
-  have hC0 : (0 : ℝ) ≤ Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+  have hC0 : (0 : ℝ) ≤ Real.exp (-(Real.log P / (Real.log (2 * T)) ^ θ))
       * (Real.log (2 * T)) ^ 2 := by positivity
   calc Real.exp Real.pi * ((T + 1) / (P : ℝ) + 2 * (2 : ℝ))
           * ((1 + lam) + (1 / lam) * (2 * Real.pi * Real.log (2 * (P : ℝ))) ^ 2)
           * (∑ p ∈ Y, (1 : ℝ) / (p : ℝ))
-          * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+          * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ θ))
           * (Real.log (2 * T)) ^ 2
       = (Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4))
           * (((1 + lam) + (1 / lam) * (2 * Real.pi * Real.log (2 * (P : ℝ))) ^ 2)
               * (∑ p ∈ Y, (1 : ℝ) / (p : ℝ)))
-          * (Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+          * (Real.exp (-(Real.log P / (Real.log (2 * T)) ^ θ))
               * (Real.log (2 * T)) ^ 2) := by ring
     _ ≤ (Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4))
           * (256 / Real.log P + 2048 * Real.pi)
-          * (Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+          * (Real.exp (-(Real.log P / (Real.log (2 * T)) ^ θ))
               * (Real.log (2 * T)) ^ 2) :=
         mul_le_mul_of_nonneg_right (mul_le_mul_of_nonneg_left hkey hA0) hC0
     _ = Real.exp Real.pi * ((T + 1) / (P : ℝ) + 4)
           * (256 / Real.log P + 2048 * Real.pi)
-          * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+          * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ θ))
           * (Real.log (2 * T)) ^ 2 := by ring
 
 /-! ## The pointwise input `δ` (M-12) -/

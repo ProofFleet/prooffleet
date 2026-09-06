@@ -3,9 +3,9 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5SliceA2MomentLoss
 /-!
 # Track R A2-V': scalar exceptional damping margin
 
-The damping gain has exponent `49/50 - 3/4 = 23/100`, whereas the adaptive
+The damping gain has exponent `49/50 - 4/5 = 9/50`, whereas the adaptive
 moment has exponent only `1/50`.  This leaf proves an explicit threshold at
-which the remaining logarithm is absorbed by the positive `21/100` gap.
+which the remaining logarithm is absorbed by the positive `4/25` gap.
 -/
 
 namespace MoltResearch
@@ -13,50 +13,51 @@ namespace MoltResearch
 namespace Tao2015
 
 /-- Lower bounds for the anchor logarithm and upper bounds for the time
-logarithm leave a `23/100`-power damping gain. -/
+logarithm leave a `9/50`-power damping gain. -/
 theorem exceptionalDamping_rpow_lower
     (X logP logT : ℝ) (hX : 1 ≤ X)
     (hP : X ^ (49 / 50 : ℝ) / 2 ≤ logP)
     (hT0 : 0 < logT) (hT : logT ≤ 3 * X) :
-    X ^ (23 / 100 : ℝ) / 6 ≤ logP / logT ^ (3 / 4 : ℝ) := by
+    X ^ (9 / 50 : ℝ) / 6 ≤ logP / logT ^ primeLargeValuesExponent := by
   have hXpos : 0 < X := zero_lt_one.trans_le hX
   have h3X0 : 0 ≤ 3 * X := by positivity
-  have hpowT : logT ^ (3 / 4 : ℝ) ≤
-      (3 * X) ^ (3 / 4 : ℝ) :=
-    Real.rpow_le_rpow hT0.le hT (by norm_num)
-  have hthree : (3 : ℝ) ^ (3 / 4 : ℝ) ≤ 3 := by
+  have hpowT : logT ^ primeLargeValuesExponent ≤
+      (3 * X) ^ primeLargeValuesExponent :=
+    Real.rpow_le_rpow hT0.le hT (by norm_num [primeLargeValuesExponent])
+  have hthree : (3 : ℝ) ^ primeLargeValuesExponent ≤ 3 := by
     calc
-      (3 : ℝ) ^ (3 / 4 : ℝ) ≤ 3 ^ (1 : ℝ) :=
-        Real.rpow_le_rpow_of_exponent_le (by norm_num) (by norm_num)
+      (3 : ℝ) ^ primeLargeValuesExponent ≤ 3 ^ (1 : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le (by norm_num)
+          (by norm_num [primeLargeValuesExponent])
       _ = 3 := by simp
-  have hden : logT ^ (3 / 4 : ℝ) ≤
-      3 * X ^ (3 / 4 : ℝ) := by
+  have hden : logT ^ primeLargeValuesExponent ≤
+      3 * X ^ primeLargeValuesExponent := by
     calc
-      logT ^ (3 / 4 : ℝ) ≤ (3 * X) ^ (3 / 4 : ℝ) := hpowT
-      _ = 3 ^ (3 / 4 : ℝ) * X ^ (3 / 4 : ℝ) := by
+      logT ^ primeLargeValuesExponent ≤ (3 * X) ^ primeLargeValuesExponent := hpowT
+      _ = 3 ^ primeLargeValuesExponent * X ^ primeLargeValuesExponent := by
         rw [Real.mul_rpow (by norm_num) hXpos.le]
-      _ ≤ 3 * X ^ (3 / 4 : ℝ) := by gcongr
-  have hprod : X ^ (23 / 100 : ℝ) * X ^ (3 / 4 : ℝ) =
+      _ ≤ 3 * X ^ primeLargeValuesExponent := by gcongr
+  have hprod : X ^ (9 / 50 : ℝ) * X ^ primeLargeValuesExponent =
       X ^ (49 / 50 : ℝ) := by
     rw [← Real.rpow_add hXpos]
-    norm_num
-  have hcross : X ^ (23 / 100 : ℝ) / 6 *
-      logT ^ (3 / 4 : ℝ) ≤ logP := by
+    norm_num [primeLargeValuesExponent]
+  have hcross : X ^ (9 / 50 : ℝ) / 6 *
+      logT ^ primeLargeValuesExponent ≤ logP := by
     calc
-      X ^ (23 / 100 : ℝ) / 6 * logT ^ (3 / 4 : ℝ) ≤
-          X ^ (23 / 100 : ℝ) / 6 *
-            (3 * X ^ (3 / 4 : ℝ)) := by gcongr
+      X ^ (9 / 50 : ℝ) / 6 * logT ^ primeLargeValuesExponent ≤
+          X ^ (9 / 50 : ℝ) / 6 *
+            (3 * X ^ primeLargeValuesExponent) := by gcongr
       _ = X ^ (49 / 50 : ℝ) / 2 := by rw [← hprod]; ring
       _ ≤ logP := hP
   exact (le_div_iff₀ (Real.rpow_pos_of_pos hT0 _)).2 hcross
 
 /-- A concrete logarithmic threshold absorbs the complete coarse moment
-loss into the `23/100` damping power. -/
+loss into the `9/50` damping power. -/
 theorem sliceA2ExceptionalMoment_scalar_margin
     (C X : ℝ) (hC : 0 ≤ C) (hX : 1 ≤ X)
     (hlarge : 100 * (11880 * (C + 2)) ≤ Real.log X) :
     220 * (6 * X ^ (1 / 50 : ℝ) + 3) *
-        (Real.log X + C + 1) ≤ X ^ (23 / 100 : ℝ) / 6 := by
+        (Real.log X + C + 1) ≤ X ^ (9 / 50 : ℝ) / 6 := by
   let W := Real.log X
   let K := 11880 * (C + 2)
   have hXpos : 0 < X := zero_lt_one.trans_le hX
@@ -76,22 +77,22 @@ theorem sliceA2ExceptionalMoment_scalar_margin
     have hlarge' : 100 * K ≤ W := by simpa [W, K] using hlarge
     nlinarith [mul_nonneg hK0 (zero_le_one.trans hW1)]
   have hexpLower := Real.pow_div_factorial_le_exp
-    ((21 / 100 : ℝ) * W) (by positivity) 2
+    ((4 / 25 : ℝ) * W) (by positivity) 2
   norm_num at hexpLower
   have hWsq : W ^ 2 / 100 ≤
-      Real.exp ((21 / 100 : ℝ) * W) := by
+      Real.exp ((4 / 25 : ℝ) * W) := by
     nlinarith [sq_nonneg W]
-  have hx21 : Real.exp ((21 / 100 : ℝ) * W) =
-      X ^ (21 / 100 : ℝ) := by
+  have hx16 : Real.exp ((4 / 25 : ℝ) * W) =
+      X ^ (4 / 25 : ℝ) := by
     dsimp [W]
     rw [Real.rpow_def_of_pos hXpos]
     congr 1
     ring
-  have hgap : K * W ≤ X ^ (21 / 100 : ℝ) := by
-    rw [← hx21]
+  have hgap : K * W ≤ X ^ (4 / 25 : ℝ) := by
+    rw [← hx16]
     exact hKW.trans hWsq
-  have hpowers : X ^ (1 / 50 : ℝ) * X ^ (21 / 100 : ℝ) =
-      X ^ (23 / 100 : ℝ) := by
+  have hpowers : X ^ (1 / 50 : ℝ) * X ^ (4 / 25 : ℝ) =
+      X ^ (9 / 50 : ℝ) := by
     rw [← Real.rpow_add hXpos]
     norm_num
   calc
@@ -102,9 +103,9 @@ theorem sliceA2ExceptionalMoment_scalar_margin
     _ = (K * W * X ^ (1 / 50 : ℝ)) / 6 := by
       dsimp [K]
       ring
-    _ ≤ (X ^ (21 / 100 : ℝ) * X ^ (1 / 50 : ℝ)) / 6 := by
+    _ ≤ (X ^ (4 / 25 : ℝ) * X ^ (1 / 50 : ℝ)) / 6 := by
       gcongr
-    _ = X ^ (23 / 100 : ℝ) / 6 := by rw [mul_comm, hpowers]
+    _ = X ^ (9 / 50 : ℝ) / 6 := by rw [mul_comm, hpowers]
 
 /-- The scalar exceptional moment margin holds uniformly beyond a recorded
 double-exponential base threshold. -/
@@ -114,7 +115,7 @@ theorem exists_sliceA2ExceptionalMoment_scalar_margin
       let X := Real.log (A1 : ℝ)
       1 ≤ X ∧
         220 * (6 * X ^ (1 / 50 : ℝ) + 3) *
-          (Real.log X + C + 1) ≤ X ^ (23 / 100 : ℝ) / 6 := by
+          (Real.log X + C + 1) ≤ X ^ (9 / 50 : ℝ) / 6 := by
   let K := 11880 * (C + 2)
   let M := max 1 (100 * K)
   let A0 : ℕ := ⌈Real.exp (Real.exp M)⌉₊ + 1

@@ -43,7 +43,7 @@ counted large set.**
 Unlike the old cardinality-free wrapper, the prime term contains `CL` directly;
 there is no mean-value term `T/P`. -/
 theorem sum_prime_integer_energy_large_card_le [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hYP : ∀ p ∈ Y, P ≤ p ∧ p ≤ 2 * P) (b : ℕ → ℂ)
     (N : ℕ) (a : ℕ → ℂ)
@@ -66,12 +66,14 @@ theorem sum_prime_integer_energy_large_card_le [HalaszLargeValuesAssumption]
       ≤ V₀ ^ 2 * (64 * ((N : ℝ) + (points.card : ℝ) * Real.sqrt T)
             * (Real.log (2 * T) + 1)
             * ∑ n ∈ Finset.Icc 1 N, ‖a n‖ ^ 2 / (n : ℝ) ^ 2)
-        + delta ^ 2 * (64 * (1 + CL
-              * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+        + delta ^ 2 * (Cp * (1 + CL
+              * Real.exp (-(Real.log P /
+                (Real.log (2 * T)) ^ primeLargeValuesExponent))
               * (Real.log (2 * T)) ^ 2)
             * (∑ p ∈ Y, ‖b p‖ ^ 2 / (p : ℝ) ^ 2)
             * (P : ℝ) / Real.log P) := by
-  have hbase := sum_prime_integer_energy_le P hP Y hY hYP b N a T hT
+  have hbase := sum_prime_integer_energy_le Cp hCp1 hprime
+    P hP Y hY hYP b N a T hT
     points hmem hsep V₀ delta hV₀ hlarge
   have hlogP : 0 < Real.log (P : ℝ) := by
     exact Real.log_pos (by exact_mod_cast (lt_of_lt_of_le (by omega : 1 < 2) hP))
@@ -90,7 +92,7 @@ The only occurrence of the prime scale outside the prime large-values saving is
 inside `primeHighMomentCountCost`; in particular the prime term has no `T/P`
 summand forced by a first-moment count. -/
 theorem sum_prime_integer_energy_high_moment_le [HalaszLargeValuesAssumption]
-    [PrimeLargeValuesAssumption]
+    (Cp : ℝ) (hCp1 : 1 ≤ Cp) (hprime : PrimeLargeValuesBound Cp)
     (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ) (hY : ∀ p ∈ Y, p.Prime)
     (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2 * P)
     (b : ℕ → ℂ) (hb : ∀ p, ‖b p‖ ≤ 1)
@@ -112,8 +114,9 @@ theorem sum_prime_integer_energy_high_moment_le [HalaszLargeValuesAssumption]
       ≤ V₀ ^ 2 * (64 * ((N : ℝ) + (points.card : ℝ) * Real.sqrt T)
             * (Real.log (2 * T) + 1)
             * ∑ n ∈ Finset.Icc 1 N, ‖a n‖ ^ 2 / (n : ℝ) ^ 2)
-        + delta ^ 2 * (64 * (1 + primeHighMomentCountCost P ell Y T V₀ lam
-              * Real.exp (-(Real.log P / (Real.log (2 * T)) ^ (3 / 4 : ℝ)))
+        + delta ^ 2 * (Cp * (1 + primeHighMomentCountCost P ell Y T V₀ lam
+              * Real.exp (-(Real.log P /
+                (Real.log (2 * T)) ^ primeLargeValuesExponent))
               * (Real.log (2 * T)) ^ 2)
             * (∑ p ∈ Y, ‖b p‖ ^ 2 / (p : ℝ) ^ 2)
             * (P : ℝ) / Real.log P) := by
@@ -139,7 +142,7 @@ theorem sum_prime_integer_energy_high_moment_le [HalaszLargeValuesAssumption]
     unfold primeHighMomentCountCost
     rw [le_div_iff₀ hpowV]
     exact hmoment
-  apply sum_prime_integer_energy_large_card_le P hP Y hY
+  apply sum_prime_integer_energy_large_card_le Cp hCp1 hprime P hP Y hY
     (fun p hp => ⟨(hlo p hp).le, hhi p hp⟩) b N a T hT points hmem hsep
     V₀ delta (primeHighMomentCountCost P ell Y T V₀ lam) hV₀.le hlarge
   simpa [pointsL] using hcardL
