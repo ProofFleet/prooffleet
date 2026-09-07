@@ -1188,6 +1188,20 @@ the pole's residue `w̃(1−iu)` extracted by Cauchy's formula for the rational 
 within `η/2` of the pole), and the prime-power removal. **V-B interrupted** by the Codex usage limit (retry from 19:26); its file is saved and the
 run resumes on the same branch. V-C4's output must be the `hreg` form.
 
+### V-B as run — status (2026-09-06, Codex run 21; report appended to `Problems/tao2015_va_report.md`)
+
+**V-B complete** (`MoltResearch/Discrepancy/PrimeLargeValuesFromRegion.lean` + the Conjectures bridge): the square-reciprocal packing
+`∑_{t'≠t} 1/|t−t'|² ≤ 4`-type, the weighted adjoint duality (`[MR]` Lemma 10), the plateau specialisation (`log p·w(p) ≥ log P` on `(P, 2P]`,
+so no partition of unity), the V-A kernel capstones (`exists_primeMellin_kernel_bound`), and
+`prime_large_values_bound_of_zeroFreeRegionData` — `[MR]` Lemma 8 from region data. `ZeroFreeRegionData θ m` packages, for every `T ≥ 1`,
+non-vanishing and the regular-part bound `‖−ζ'/ζ(z) − 1/(z−1)‖ ≤ M` on the rectangle `1 − η ≤ Re z ≤ 2`, `|Im z| ≤ Z` with
+`η = min(1/2, (log 2T)^{−θ})`, `M = (log 2T)^m`, `Z = 8πT + P²` (Mathlib's `fourierChar` puts the interface phase at Mellin frequency `−2πt`), plus an
+explicit `envelope` field for the two-region scalar absorption. **`primeLargeValues_of_zeroFreeRegion : ZeroFreeRegionData (31/40) m →
+PrimeLargeValuesAssumption`** (a theorem producing the class; no global instance) and **`trackR_edp_of_zeroFreeRegion`** — the Erdős discrepancy
+theorem conditional on a zero-free region of width `(log t)^{−31/40}` with a polylog regular-part bound — pinned to the standard three axioms.
+**The whole Track R chain now rests on a zero-free region for `ζ` alone.** Next: V-C4 (the region from a growth bound), V-C1 (done, run 22),
+V-C2, V-C3.
+
 ### Dependency order
 
 ```

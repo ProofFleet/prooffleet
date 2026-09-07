@@ -94,3 +94,126 @@ All final checks passed:
   `primeMellin_vonMangoldt_zeta_representation`, and
   `exists_primeMellin_right_tail_bound`: each depends only on `propext`,
   `Classical.choice`, and `Quot.sound`.
+
+
+---
+
+# Run 21 (V-B resume): completion
+
+Verbatim final report of Codex run 21 (same branch, the brief with its resume note), whose three new commits shipped as the V-B PR:
+V-B-1 (square-reciprocal packing, weighted adjoint duality, the plateau large-values specialisation), the V-A assembly (the rational-pole
+extraction, the asymmetric-tail composition, the von Mangoldt/prime/positive-phase kernel capstones), and V-B-2 (`ZeroFreeRegionData`, the
+Fourier/Mellin phase bridge, **`primeLargeValues_of_zeroFreeRegion`** producing `PrimeLargeValuesAssumption` from region data, and
+**`trackR_edp_of_zeroFreeRegion`** with its audit pin). Finding: Mathlib's `Real.fourierChar x = exp(2πix)` makes the interface phase at `t`
+the Mellin phase at `−2πt`, so the safe rectangle height is `Z = 8πT + P²`, not the brief's `2T + P²`.
+
+---
+
+# Track R V-A / V-B run report
+
+## Outcome
+
+Run 20 completes the plateau-window Mellin shift, the weighted-duality proof
+of `[MR]` Lemma 8, the theorem producing `PrimeLargeValuesAssumption`, and the
+conditional EDP endpoint
+`MoltResearch.Tao2015.trackR_edp_of_zeroFreeRegion`.
+
+No global `PrimeLargeValuesAssumption` instance is declared. The instance is
+local to the endpoint proof.
+
+## Completed units
+
+- `abe654a8` — original Mellin window and vertical decay (V-A-1).
+- `bedbad1f` — plateau window: one on `[P,2P]`, supported in
+  `[P/sqrt 2,2*sqrt 2*P]` (V-A-1).
+- `1e3440e1` — Mellin inversion, sum/integral interchange, and the
+  `-zeta'/zeta` Dirichlet-series representation (V-A-2).
+- `fb43e70b` — explicit quadratic-decay right-line tail (V-A-3).
+- `0af4bd2c` — regular-part identity on the asymmetric rectangle (V-A-4).
+- `44af54f3` — full-rectangle `hreg` side bounds, with no `1/eta` loss
+  (V-A-5).
+- `ad68c614` — prime-power remainder at most
+  `6*sqrt(P)*log(4P)` (V-A-6).
+- `9aa551bb` — square-reciprocal packing, weighted adjoint duality, and the
+  plateau large-values specialization (V-B-1).
+- `2aed81f8` — rational-pole extraction, asymmetric-tail composition, and the
+  von Mangoldt, prime, and positive-phase kernel capstones (V-A-4).
+- `512fd11f` — `ZeroFreeRegionData`, the Fourier/Mellin phase bridge,
+  `primeLargeValues_of_zeroFreeRegion`, `trackR_edp_of_zeroFreeRegion`, and
+  its audit pin (V-B-2).
+
+## Findings
+
+### Corrected regular-part hypothesis
+
+The run-19 obstruction disappears with the resume note's full-rectangle
+regular-part hypothesis
+
+```text
+norm (-zeta'/zeta(z) - 1/(z-1)) <= M.
+```
+
+The regular part is shifted directly. The rational part is handled by the
+rectangle identity for `(W(s)-W(1-iu))/(s+iu-1)`, so the shifted-line term has
+no `1/eta` loss.
+
+### Fourier normalisation changes the required height
+
+Mathlib defines `Real.fourierChar x = exp(2*pi*i*x)`. Therefore the interface
+phase at `t` is the Mellin phase at `-2*pi*t`, and two points in `[-T,T]` can
+have Mellin-frequency difference `4*pi*T`. Since V-A requires
+`|u| <= Z/2`, the safe height is
+
+```text
+Z = 8*pi*T + P^2.
+```
+
+The brief's `2*T + P^2` is insufficient for its stated Fourier character.
+The formal data structure and theorem use the normalization-safe height.
+
+### Two-region scalar strength is explicit
+
+`ZeroFreeRegionData.region` contains the nonvanishing and `hreg` rectangle
+hypotheses at
+
+```text
+eta = min (1/2) (log(2T))^(-theta),
+M   = (log(2T))^m,
+Z   = 8*pi*T + P^2.
+```
+
+Its `envelope` field makes the elementary two-region scalar absorption
+explicit. It combines the bounded-height allowance `1/(2T+1)` with the
+`4/5` decay required by the interface. The proved packing bound
+`#T <= 2T+1` absorbs the former. Thus the quantitative fit is a visible field
+rather than a hidden typeclass or axiom.
+
+The public Conjectures bridge fixes
+`theta = 31/40 = 3/4 + 1/40 < 4/5` and permits every fixed real logarithmic
+exponent `m`.
+
+## New public endpoints
+
+- `MoltResearch.exists_primeMellin_prime_shift_bound`
+- `MoltResearch.exists_primeMellin_kernel_bound`
+- `MoltResearch.prime_large_values_bound_of_zeroFreeRegionData`
+- `MoltResearch.Tao2015.primeLargeValues_of_zeroFreeRegion`
+- `MoltResearch.Tao2015.trackR_edp_of_zeroFreeRegion`
+
+## Verification
+
+- Direct typechecks passed for both new nucleus leaves and the Conjectures
+  bridge.
+- The `trackR_edp_of_zeroFreeRegion` audit pin reports only `propext`,
+  `Classical.choice`, and `Quot.sound`.
+- Forbidden-token scan over `MoltResearch/` and `Solutions/`: passed.
+- `./scripts/check_layering.sh`: `OK`.
+- `python3 scripts/check_aggregator_coverage.py`: 195 modules, 193 reachable;
+  only the two allowlisted example modules are uncompiled.
+- `lake build MoltResearch.DiscrepancyAnalytic Conjectures`: 8342 jobs,
+  completed successfully after the final theorem-signature narrowing.
+
+## Repository state
+
+No push, merge, rebase, or dependency update was performed. This report is
+left uncommitted as required.

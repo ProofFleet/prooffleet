@@ -9,6 +9,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5EDPMilestone
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5PrimeBlockMajorArcProof
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5MajorArcEDP
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LargeValuesDischarge
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5ZeroFreeRegion
 -- For the anti-vacuity witnesses (issue #2879) only.
 import Mathlib.NumberTheory.ArithmeticFunction
 
@@ -267,3 +268,9 @@ info: 'MoltResearch.Tao2015.trackR_edp_halasz' depends on axioms: [propext, Clas
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.trackR_edp_halasz
+
+/--
+info: 'MoltResearch.Tao2015.trackR_edp_of_zeroFreeRegion' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.Tao2015.trackR_edp_of_zeroFreeRegion

@@ -15,6 +15,8 @@ import MoltResearch.Discrepancy.SelbergLinear
 import MoltResearch.Discrepancy.ThreeScale
 import MoltResearch.Discrepancy.PerronWindow
 import MoltResearch.Discrepancy.PrimeSumZeroFree
+import MoltResearch.Discrepancy.PrimeLargeValuesFromRegion
+import MoltResearch.Discrepancy.ZeroFreeRegionData
 import MoltResearch.Discrepancy.MajorArcFreeze
 import MoltResearch.Discrepancy.ParsevalBridge
 import MoltResearch.Discrepancy.HalaszAssembly
