@@ -22,6 +22,7 @@ import MoltResearch.Discrepancy.ParsevalBridge
 import MoltResearch.Discrepancy.HalaszAssembly
 import MoltResearch.Discrepancy.RieszCapstone
 import MoltResearch.Discrepancy.VinogradovTypeI
+import MoltResearch.Discrepancy.VinogradovMeanValue
 import MoltResearch.Discrepancy.HalaszTriple
 import MoltResearch.Discrepancy.HalaszTripleG
 import MoltResearch.Discrepancy.HalaszCapstone

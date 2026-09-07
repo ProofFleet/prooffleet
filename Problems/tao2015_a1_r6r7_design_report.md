@@ -1202,6 +1202,16 @@ theorem conditional on a zero-free region of width `(log t)^{−31/40}` with a p
 **The whole Track R chain now rests on a zero-free region for `ζ` alone.** Next: V-C4 (the region from a growth bound), V-C1 (done, run 22),
 V-C2, V-C3.
 
+### V-C1 as run — status (2026-09-07, Codex run 22; report in `Problems/tao2015_vc1_report.md`)
+
+**V-C1 complete**: `MoltResearch/Discrepancy/VinogradovMeanValue.lean` — `vinogradovJ s k P` (the counting form of Vinogradov's integral), the
+counting structure (monotonicity, translation invariance, representation fibres, Cauchy–Schwarz), well-conditioned tuples and the ill-conditioned
+split, Newton identities/Vandermonde fibres and **Linnik's lemma** (constant `k!`, needs `k < p`), the **fundamental lemma**
+`J_{r+k,k}(P) ≤ 2((r+k)!²M) L^{2r}(2r) P^k k! L^D J_{r,k}(P/q+1) + 2(kP^{k−1}k^{r+k})²` (`M = 2C(k,2)k + 1`, `L = 2^M q`, `D = k(k−1)/2`; `P < q^k`,
+a bounded chain of Bertrand primes above `q` with the discriminant product), and the iteration `Δ_{τ+1} = Δ_τ(1 − 1/k)` giving
+**`vinogradov_mean_value : ∀ k ≥ 2, τ ≥ 1, ∃ C > 0, ∀ P ≥ 1, J_{kτ,k}(P) ≤ C·P^{2kτ − k(k+1)/2 + (k²/2)(1−1/k)^τ}`** with the named constant
+`vinogradovMeanValueConstant k τ`. Next: V-C2 (Weyl sums `∑ n^{−it}` by Vinogradov's method, brief `Problems/tao2015_vc2_brief.md`), V-C3.
+
 ### Dependency order
 
 ```
