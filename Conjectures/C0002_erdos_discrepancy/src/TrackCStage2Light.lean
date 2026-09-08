@@ -4,7 +4,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofCore
 # Track C: Stage 2 (lightweight import)
 
 This file is intentionally thin: it re-exports
-- the Stage-2 entry point (the conjecture stub `stage2` and deterministic name `stage2Out`),
+- the conditional Stage-2 entry point `stage2` and deterministic name `stage2Out`,
 - the Stage-2 boundary interface, and
 - the tiny convenience projections/wrapper lemmas about `stage2Out` (from `TrackCStage2ProofCore`),
 

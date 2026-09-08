@@ -224,6 +224,8 @@ theorem forall_exists_sum_Icc_d_ge_one_witness_pos (out : Stage4Output f) :
 
 end Stage4Output
 
+variable [Stage2Assumption]
+
 -- Note: `stage4_unboundedDiscOffset` is defined in `TrackCStage4Core.lean`.
 
 

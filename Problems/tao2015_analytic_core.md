@@ -126,35 +126,33 @@ beyond the named assumption):
   The paper's asymptotic corollary (Cor 1.5) needs *uniform* (inf-form) non-pretentiousness;
   this class's pointwise hypothesis makes it stronger than the literature. Demoted to
   toy-consumer convenience; derivation work consumes `LogElliottNonasymptoticAssumption`.)
-- [x] Stage-5 skeleton: `TrackCStage5Core.lean` packaging (A)+(B) as inputs and exposing the conditional target `stage5_notBounded [FourierReductionAssumption] [LogElliottAssumption] : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f` — initially proved from the *existing* Stage-2 stub axiom, then re-proved from (A)+(C) when (C) lands, retiring the stub.
+- [x] Stage-5 skeleton: `TrackCStage5Core.lean` packaging (A)+(B) as inputs and exposing the conditional target `stage5_notBounded [FourierReductionAssumption] [LogElliottAssumption] : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f`.
   (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Core.lean`:
-  `stage5_notBounded` and `stage5_forall_hasDiscrepancyAtLeast`, wired through the Stage-4
-  boundary (hence the Stage-2 stub) with the analytic-core instances carried in the signature
-  as the stable contract; compile-only consumer example. The proof-body switch to (A)+(C) is
-  documented in the module docstring.
+  `stage5_notBounded` and `stage5_forall_hasDiscrepancyAtLeast`, with the analytic-core
+  instances carried in the signature as the stable conditional contract. The unconditional
+  public path is now `Tao2015.erdos_discrepancy_unconditional`.
   **Signature migration (2026-07-10):** after both first-cut classes were found stronger than
   the literature, the Stage-5 contract was moved to the faithful pair
   `[FourierReductionStochasticAssumption] [LogElliottNonasymptoticAssumption]` — done while
   nothing downstream consumed Stage 5, so no migration debt.)
-- [x] Replace the Stage-2 stub axiom's role: derive `stage2Stub_exists_params_one_le_unboundedDiscOffset`'s content from `FourierReductionAssumption` + the multiplicative constructors on the reduced class (this is the first piece of (C)).
+- [x] Replace the Stage-2 stub axiom's role: derive its fixed-offset content from `FourierReductionAssumption` + the multiplicative constructors on the reduced class (this is the first piece of (C)).
   (Implemented in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5Reduction.lean`
   (no new axioms): `stage2StubContent_of_univ_multiplicative` derives the stub's statement on
   the completely multiplicative subclass from the universal-multiplicative hypothesis (the
   antecedent of `FourierReductionAssumption.reduce`) via the coercion bridges, the new
   norm-level cast bridge `norm_sum_Icc_intCast_eq_natAbs_apSum_one`
   (`MoltResearch/Discrepancy/MultiplicativeC.lean`), and
-  `Stage2Output.ofUnboundedDiscrepancyOne`. Remaining for actual stub retirement: (C) must
-  discharge the universal-multiplicative hypothesis itself, and general `f` must route through
-  (A)'s reduction.)
+  `Stage2Output.ofUnboundedDiscrepancyOne`. The later unconditional proof bypassed the legacy
+  Stage-2/3 route; its assumption class is now an explicit, axiom-free compatibility interface.)
 
 Discharge milestones (long-horizon; each becomes its own card when opened):
 
-- [ ] (C) first: conditional EDP from (A)+(B) — the van der Corput expansion + pretentious-branch argument (§3 of the paper). Most self-contained; needs only Mathlib probability + the language layer.
+- [x] (C) first: conditional EDP from (A)+(B) — the van der Corput expansion + pretentious-branch argument (§3 of the paper). Most self-contained; needs only Mathlib probability + the language layer.
   (**Opened** as its own card: `Problems/tao2015_derivation_c.md`, with the faithful §3/§4
   dependency graph (Thm 1.8 ⟸ Prop 1.11 + generalized Borwein–Choi–Coons) and a PR-sized
   decomposition — including the required stochastic upgrade of (A) and nonasymptotic upgrade of
-  (B). Tick here only when `stage5_notBounded` is re-proved from the interfaces and the Stage-2
-  stub axiom is retired.)
+  (B). Completed by the unconditional, audit-pinned
+  `Tao2015.erdos_discrepancy_unconditional`; the Stage-2 axiom and default instance are retired.)
 - [ ] (A): the Fourier reduction — Hilbert-space valued sequences, Plancherel, the Polymath5 argument. Medium-hard; opens after (C).
 - [ ] (B): entropy decrement + Matomäki–Radziwiłł. Do not open until (A) and (C) are done; expected to remain an interface for a long time.
 

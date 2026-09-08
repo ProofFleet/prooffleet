@@ -14,19 +14,23 @@ It contains only:
 The reduced-sequence rewrite lemmas (`stage2_hg`, `stage2_g_eq`, `stage2_g_eq_fun`) are also
 provided here (as tiny wrappers over the Stage-1 reduction fields bundled in `stage2Out`).
 
-The conjecture stub itself (`stage2` and the deterministic name `stage2Out`) lives in
+The conditional entry point (`stage2` and the deterministic name `stage2Out`) lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
 
 All other proved convenience lemmas about `stage2Out` live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Proof`.
 
-Design goal: keep the Track-C hard-gate build (which imports Stage 3) from compiling additional
-wrapper lemmas when it only needs the Stage-2 stub.
+Design goal: keep conditional Stage-2 consumers from compiling additional wrapper lemmas when they
+only need the assumption interface.
 -/
 
 namespace MoltResearch
 
 namespace Tao2015
+
+section Conditional
+
+variable [Stage2Assumption]
 
 /-- Convenience projection: the reduced step size produced by Stage 2. -/
 noncomputable abbrev stage2_d (f : ℕ → ℤ) (hf : IsSignSequence f) : ℕ :=
@@ -165,6 +169,8 @@ theorem stage2_g_eq_fun (f : ℕ → ℤ) (hf : IsSignSequence f) :
       fun k => f (k + stage2_start (f := f) (hf := hf)) := by
   funext k
   simpa using stage2_g_eq (f := f) (hf := hf) k
+
+end Conditional
 
 /-!
 ## Explicit-assumption variants

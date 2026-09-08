@@ -11,6 +11,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5MajorArcEDP
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5LargeValuesDischarge
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5ZeroFreeRegion
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5PrimeLargeValuesDischarge
+import Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy
 -- For the anti-vacuity witnesses (issue #2879) only.
 import Mathlib.NumberTheory.ArithmeticFunction
 
@@ -19,8 +20,7 @@ import Mathlib.NumberTheory.ArithmeticFunction
 
 This file turns the repo's central honesty claims from docstring assertions into build
 failures. Each `#guard_msgs` below pins the exact `#print axioms` output of a flagship
-theorem; if anyone's change alters an axiom footprint — e.g. accidentally routing new work
-through the Stage-2 stub, or (the good case) retiring the stub — this file stops compiling
+theorem; if anyone's change alters an axiom footprint, this file stops compiling
 and must be updated *consciously*, with the diff visible in review.
 
 Expected footprints (all also include Lean's three standard axioms
@@ -34,9 +34,8 @@ Expected footprints (all also include Lean's three standard axioms
   **standard axioms only** — discharging the van der Corput leg introduced no axiom;
   in particular the Elliott input stays a hypothesis class.
 - `stage5_notBounded`: **standard axioms only** (endgame flipped 2026-07-17) — the body
-  is now `notBounded_of_derivation` through the honest §2/§3/§4 instances; the Stage-2
-  stub no longer feeds Stage 5. (The demoted Stage-2/3/4 stub plane still exists and
-  keeps its own footprints until its scheduled deletion.)
+  is now `notBounded_of_derivation` through the honest §2/§3/§4 instances. The legacy
+  Stage-2/3/4 plane is now conditional on an explicit `Stage2Assumption` and contains no axiom.
 - `elliott_master`, `logElliottNonasymptotic_of_matomakiRadziwill_quadrupleSieve`, and
   the milestone `edp_of_matomakiRadziwill_quadrupleSieve_littlewood` (the Elliott
   campaign, issue #2946): **standard axioms only** — the entropy-decrement proof of the
@@ -281,3 +280,15 @@ info: 'MoltResearch.Tao2015.erdos_discrepancy_unconditional' depends on axioms: 
 -/
 #guard_msgs in
 #print axioms MoltResearch.Tao2015.erdos_discrepancy_unconditional
+
+/--
+info: 'MoltResearch.erdos_discrepancy_notBounded' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.erdos_discrepancy_notBounded
+
+/--
+info: 'MoltResearch.erdos_discrepancy' depends on axioms: [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs in
+#print axioms MoltResearch.erdos_discrepancy

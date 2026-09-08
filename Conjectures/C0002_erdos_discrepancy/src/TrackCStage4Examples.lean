@@ -21,6 +21,8 @@ namespace Tao2015
 
 namespace Stage4Examples
 
+variable [Stage2Assumption]
+
 variable {f : ℕ → ℤ}
 
 /-!

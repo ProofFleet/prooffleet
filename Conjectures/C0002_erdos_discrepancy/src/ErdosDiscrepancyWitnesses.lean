@@ -13,6 +13,10 @@ Track-C hard-gate build compiles quickly.
 
 namespace MoltResearch
 
+section ConditionalStage2
+
+variable [Tao2015.Stage2Assumption]
+
 /-!
 ## Witness-form wrappers (Stage 3 → common surface normal forms)
 
@@ -516,6 +520,8 @@ theorem erdos_discrepancy_exists_params_one_le_forall_exists_natAbs_apSumFrom_mu
   simpa using
     (Tao2015.Stage3Output.exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos
       (f := f) (Tao2015.stage3Out (f := f) (hf := hf)))
+
+end ConditionalStage2
 
 /-- Paper-notation surface form of `erdos_discrepancy`, matching `∑_{i=1}^n f (i*d)`.
 

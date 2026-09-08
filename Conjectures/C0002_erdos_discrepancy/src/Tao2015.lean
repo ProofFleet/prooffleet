@@ -4,10 +4,9 @@ import MoltResearch.Discrepancy.Offset
 /-!
 # Tao 2015: Erdős discrepancy theorem (Track C skeleton)
 
-This module is **Conjectures-only**: it may contain axiom stubs and temporary placeholders.
-
-At present, the only non-verified assumption is the Stage-2 axiom in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
+This module is **Conjectures-only**: it contains the typed interfaces and temporary packaging used
+to organize the proof development. The legacy Stage-2 plane is conditional on an explicit
+`Stage2Assumption`; it no longer provides an axiom or default instance.
 
 Hard goal for Track C automation: make
 

@@ -22,6 +22,8 @@ namespace MoltResearch
 
 namespace Tao2015
 
+variable [Stage2Assumption]
+
 /-!
 ## Core Stage-3 pipeline witnesses
 

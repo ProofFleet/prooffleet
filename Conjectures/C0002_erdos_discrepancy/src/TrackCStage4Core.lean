@@ -153,6 +153,8 @@ theorem unboundedDiscOffset (out : Stage4Output f) :
 
 end Stage4Output
 
+variable [Stage2Assumption]
+
 /-- Stage 4 main constructor (stub).
 
 Implementation idea:

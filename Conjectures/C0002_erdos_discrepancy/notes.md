@@ -8,13 +8,20 @@ Hard-gate build target:
 Key stage boundary modules:
 - Stage 2 boundary record: Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Boundary
   (defines Tao2015.Stage2Output)
-- Stage 2 conjecture stub (the only non-verified assumption):
+- Stage 2 conditional compatibility interface:
   Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub
-  (axiom stage2, abbrev stage2Out)
+  (`Stage2Assumption`, explicit `stage2Of`/`stage2OutOf`, and conditional
+  `stage2`/`stage2Out`; there is no axiom or default instance)
 - Stage 3 boundary record: Conjectures.C0002_erdos_discrepancy.src.TrackCStage3
   (defines Tao2015.Stage3Output and derives notBounded)
 - Stage 3 minimal entry point: Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal
-  (defines stage3 and proves stage3_notBounded and stage3_forall_hasDiscrepancyAtLeast)
+  (defines the conditional `stage3` and proves `stage3_notBounded` and
+  `stage3_forall_hasDiscrepancyAtLeast` under `[Stage2Assumption]`)
+
+The public theorem bypasses that legacy conditional path:
+- `Tao2015.erdos_discrepancy_unconditional` proves unbounded discrepancy directly.
+- `MoltResearch.erdos_discrepancy_notBounded` and `MoltResearch.erdos_discrepancy` are
+  audit-pinned to the standard three axioms only.
 
 ## Surface forms / equivalences (proved)
 

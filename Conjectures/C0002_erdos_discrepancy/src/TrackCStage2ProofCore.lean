@@ -2,7 +2,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Core
 
 /-!
-# Track C: Stage 2 proof stub core (Tao 2015 plane)
+# Track C: Stage 2 conditional proof core (Tao 2015 plane)
 
 This file is **Conjectures-only** glue.
 
@@ -12,7 +12,7 @@ It contains the minimal proved wrapper lemmas specialized to the deterministic S
 The larger collection of witness-form wrappers lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2ProofWitnesses`.
 
-The Stage-2 conjecture stub (axiom) itself lives in
+The axiom-free `Stage2Assumption` interface lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
 -/
 
@@ -20,9 +20,14 @@ namespace MoltResearch
 
 namespace Tao2015
 
+section Conditional
+
+variable [Stage2Assumption]
+
 /-!
-The Stage-2 conjecture stub (axiom) and the deterministic name `stage2Out` live in
-`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`.
+The conditional entry point and deterministic name `stage2Out` live in
+`Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub`; callers provide
+`[Stage2Assumption]`.
 
 This file keeps only the core convenience wrappers.
 -/
@@ -32,6 +37,8 @@ This file keeps only the core convenience wrappers.
 theorem stage2_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f := by
   simpa using
     (Stage2Output.notBoundedOriginal (f := f) (stage2Out (f := f) (hf := hf)))
+
+end Conditional
 
 /-!
 ## Explicit-assumption variants
@@ -95,6 +102,10 @@ theorem stage2OutOf_not_exists_boundedDiscOffset (inst : Stage2Assumption) (f : 
         (stage2OutOf inst (f := f) (hf := hf)).m B := by
   simpa using
     (Stage2Output.not_exists_boundedDiscOffset (f := f) (stage2OutOf inst (f := f) (hf := hf)))
+
+section Conditional
+
+variable [Stage2Assumption]
 
 /-- Consumer-facing shortcut: Stage 2 yields the usual surface statement
 `∀ C, HasDiscrepancyAtLeast f C`.
@@ -229,6 +240,8 @@ theorem stage2_exists_params_one_le_not_exists_boundedDiscOffset (f : ℕ → �
     ⟨stage2_d (f := f) (hf := hf), stage2_m (f := f) (hf := hf),
       stage2_one_le_d (f := f) (hf := hf), ?_⟩
   exact stage2_not_exists_boundedDiscOffset (f := f) (hf := hf)
+
+end Conditional
 
 end Tao2015
 

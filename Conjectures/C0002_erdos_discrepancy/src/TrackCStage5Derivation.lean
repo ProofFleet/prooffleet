@@ -41,7 +41,7 @@ This is the contrapositive of §4's growth statement ("a stochastic completely m
 function that pretends to be `χ(n)·nⁱᵗ` with non-trivial probability has unbounded second
 moment"), packaged in exactly the shape the Theorem-1.8 glue consumes. To be proved by the
 derivation card's §4 boxes; until then consumers carry it as a hypothesis (no instance, no
-axiom).
+nonstandard axiom).
 -/
 class BorweinChoiCoonsAssumption : Prop where
   not_persistently_pretentious :

@@ -43,10 +43,13 @@ namespace MoltResearch
 
 namespace Tao2015
 
+variable [Stage2Assumption]
+
 /-- Conjectures-only Stage 3 entry point: run Stage 2, then close the global goal via the proved
 Stage-3 boundary lemma `Stage3Output.ofStage2Output`.
 
-This is a definition (not an axiom): Stage 3 is non-stub glue on top of the Stage-2 axiom.
+This is a definition (not an axiom): Stage 3 is glue on top of a caller-supplied
+`Stage2Assumption`.
 -/
 noncomputable def stage3 (f : ℕ → ℤ) (hf : IsSignSequence f) [Stage2Assumption] :
     Stage3Output f :=
@@ -84,6 +87,7 @@ noncomputable abbrev stage3OutWith (inst : Stage2Assumption) (f : ℕ → ℤ) (
     letI : Stage2Assumption := inst
     exact stage3Out (f := f) (hf := hf))
 
+omit [Stage2Assumption] in
 /-- `stage3OutOf` agrees definitionally with `stage3OutWith`. -/
 theorem stage3OutOf_eq_stage3OutWith (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     stage3OutOf inst (f := f) (hf := hf) = stage3OutWith inst (f := f) (hf := hf) := by
@@ -99,6 +103,7 @@ These simp lemmas reduce rewriting noise when shuttling statements between Stage
 They are intentionally kept in the minimal entry-point module.
 -/
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-2 output stored inside `stage3OutWith inst` is the Stage-2 output
 produced by Stage 2 with the instance `inst` installed locally.
 
@@ -110,6 +115,7 @@ This is the explicit-assumption analogue of `stage3OutWith` itself: it lets cons
   classical
   simp [stage3OutWith, stage2OutWith, stage3Out, stage3]
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-1 reduction output stored inside `stage3OutWith inst` is the
 Stage-1 reduction output stored inside `stage2OutWith inst`.
 
@@ -122,6 +128,7 @@ using the typeclass-based `stage3Out` API.
   classical
   simp [stage3OutWith, stage2OutWith, stage3Out, stage3]
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the reduced step size stored inside `stage3OutWith inst` is the
 Stage-2 reduced step size produced under the same explicit assumption.
 
@@ -133,6 +140,7 @@ This is the explicit-assumption analogue of the simp lemma `stage3Out_d`.
   -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
   simp [Stage3Output.d]
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the bundled offset parameter stored inside `stage3OutWith inst` is the
 Stage-2 parameter produced under the same explicit assumption.
 
@@ -144,6 +152,7 @@ This is the explicit-assumption analogue of the simp lemma `stage3Out_m`.
   -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
   simp [Stage3Output.m]
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-3 reduced sequence stored inside `stage3OutWith inst` is the
 Stage-2 reduced sequence produced under the same explicit assumption.
 
@@ -155,6 +164,7 @@ This is the explicit-assumption analogue of the simp lemma `stage3Out_g`.
   -- Reduce to the Stage-2 projection via the definitional rewrite on `.out2`.
   simp [Stage3Output.g]
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-3 affine-tail start index stored inside `stage3OutWith inst` is
 the Stage-2 start index produced under the same explicit assumption.
 
@@ -166,6 +176,7 @@ This lets consumer code rewrite `.start` without reaching through `.out2`.
   classical
   simp [Stage3Output.start]
 
+omit [Stage2Assumption] in
 /-- `stage3OutWith` agrees definitionally with the explicit-assumption Stage-3 output `stage3OutOf`.
 
 We register this as a simp lemma so downstream developments can rewrite away `stage3OutWith`
@@ -177,6 +188,7 @@ without importing any additional Stage-3 convenience layers.
   classical
   rfl
 
+omit [Stage2Assumption] in
 /-- The Stage-2 output stored inside `stage3OutOf inst` is definitionally the Stage-2 output
 produced by Stage 2 using the explicit assumption `inst`.
 
@@ -186,6 +198,7 @@ This is the explicit-assumption analogue of `stage3Out_out2`.
     (stage3OutOf inst (f := f) (hf := hf)).out2 = stage2OutOf inst (f := f) (hf := hf) := by
   rfl
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-1 reduction output stored inside `stage3OutOf inst` is the
 Stage-1 reduction output stored inside `stage2OutOf inst`.
 
@@ -195,6 +208,7 @@ This is the explicit-assumption analogue of `stage3Out_out1`.
     (stage3OutOf inst (f := f) (hf := hf)).out1 = (stage2OutOf inst (f := f) (hf := hf)).out1 := by
   rfl
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-3 reduced step size stored inside `stage3OutOf inst` is the
 Stage-2 reduced step size stored inside `stage2OutOf inst`.
 -/
@@ -202,6 +216,7 @@ Stage-2 reduced step size stored inside `stage2OutOf inst`.
     (stage3OutOf inst (f := f) (hf := hf)).d = (stage2OutOf inst (f := f) (hf := hf)).d := by
   rfl
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-3 bundled offset parameter stored inside `stage3OutOf inst` is
 the Stage-2 parameter stored inside `stage2OutOf inst`.
 -/
@@ -209,6 +224,7 @@ the Stage-2 parameter stored inside `stage2OutOf inst`.
     (stage3OutOf inst (f := f) (hf := hf)).m = (stage2OutOf inst (f := f) (hf := hf)).m := by
   rfl
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-3 reduced sequence stored inside `stage3OutOf inst` is the
 Stage-2 reduced sequence stored inside `stage2OutOf inst`.
 -/
@@ -216,6 +232,7 @@ Stage-2 reduced sequence stored inside `stage2OutOf inst`.
     (stage3OutOf inst (f := f) (hf := hf)).g = (stage2OutOf inst (f := f) (hf := hf)).g := by
   rfl
 
+omit [Stage2Assumption] in
 /-- Definitional rewrite: the Stage-3 start index stored inside `stage3OutOf inst` is the
 Stage-2 start index stored inside `stage2OutOf inst`.
 -/
@@ -223,6 +240,7 @@ Stage-2 start index stored inside `stage2OutOf inst`.
     (stage3OutOf inst (f := f) (hf := hf)).start = (stage2OutOf inst (f := f) (hf := hf)).start := by
   rfl
 
+omit [Stage2Assumption] in
 /-- If we register an explicit assumption `inst` as the local typeclass instance, then the
 explicit Stage-3 output `stage3OutOf inst` agrees definitionally with the typeclass-based output
 `stage3Out`.
@@ -285,6 +303,7 @@ theorem stage3Out_start_eq_m_mul_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).m * (stage3Out (f := f) (hf := hf)).d := by
   rfl
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption analogue of `stage3Out_start_eq_m_mul_d`. -/
 theorem stage3OutOf_start_eq_m_mul_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3OutOf inst (f := f) (hf := hf)).start =
@@ -300,12 +319,14 @@ theorem stage3Out_start_div_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
       (stage3Out (f := f) (hf := hf)).m := by
   exact Stage3Output.start_div_d (f := f) (out := stage3Out (f := f) (hf := hf))
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption-with-local-instance analogue of `stage3Out_start_div_d`. -/
 theorem stage3OutWith_start_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3OutWith inst (f := f) (hf := hf)).start / (stage3OutWith inst (f := f) (hf := hf)).d =
       (stage3OutWith inst (f := f) (hf := hf)).m := by
   exact Stage3Output.start_div_d (f := f) (out := stage3OutWith inst (f := f) (hf := hf))
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption analogue of `stage3Out_start_div_d`. -/
 theorem stage3OutOf_start_div_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3OutOf inst (f := f) (hf := hf)).start / (stage3OutOf inst (f := f) (hf := hf)).d =
@@ -317,6 +338,7 @@ theorem stage3Out_d_dvd_start (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).d ∣ (stage3Out (f := f) (hf := hf)).start := by
   exact Stage3Output.d_dvd_start (f := f) (out := stage3Out (f := f) (hf := hf))
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption analogue of `stage3Out_d_dvd_start`. -/
 theorem stage3OutOf_d_dvd_start (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3OutOf inst (f := f) (hf := hf)).d ∣ (stage3OutOf inst (f := f) (hf := hf)).start := by
@@ -328,6 +350,7 @@ theorem stage3Out_start_mod_d (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3Out (f := f) (hf := hf)).start % (stage3Out (f := f) (hf := hf)).d = 0 := by
   exact Stage3Output.start_mod_d (f := f) (out := stage3Out (f := f) (hf := hf))
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption analogue of `stage3Out_start_mod_d`. -/
 theorem stage3OutOf_start_mod_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     (stage3OutOf inst (f := f) (hf := hf)).start % (stage3OutOf inst (f := f) (hf := hf)).d = 0 := by
@@ -375,6 +398,7 @@ theorem stage3Out_hg (f : ℕ → ℤ) (hf : IsSignSequence f) :
   simpa [Stage3Output.g] using
     (Stage2Output.hg (f := f) (out := (stage3Out (f := f) (hf := hf)).out2))
 
+omit [Stage2Assumption] in
 /-- Convenience lemma: the explicit-assumption-with-local-instance Stage-3 reduced sequence is a
 sign sequence.
 
@@ -386,6 +410,7 @@ theorem stage3OutWith_hg (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSig
   simpa [Stage3Output.g] using
     (Stage2Output.hg (f := f) (out := (stage3OutWith inst (f := f) (hf := hf)).out2))
 
+omit [Stage2Assumption] in
 /-- Convenience lemma: the explicit-assumption-with-local-instance Stage-3 reduced step size is at
 least `1`.
 
@@ -395,6 +420,7 @@ theorem stage3OutWith_one_le_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf :
     1 ≤ (stage3OutWith inst (f := f) (hf := hf)).d := by
   simpa using (Stage2Output.one_le_d (out := stage2OutWith inst (f := f) (hf := hf)))
 
+omit [Stage2Assumption] in
 /-- Convenience lemma: the explicit-assumption-with-local-instance Stage-3 reduced step size is
 positive.
 
@@ -406,6 +432,7 @@ theorem stage3OutWith_d_pos (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : Is
     stage3OutWith_one_le_d (inst := inst) (f := f) (hf := hf)
   exact lt_of_lt_of_le Nat.zero_lt_one h1
 
+omit [Stage2Assumption] in
 /-- Convenience lemma: the explicit-assumption-with-local-instance Stage-3 reduced step size is
 nonzero.
 
@@ -415,6 +442,7 @@ theorem stage3OutWith_d_ne_zero (inst : Stage2Assumption) (f : ℕ → ℤ) (hf 
     (stage3OutWith inst (f := f) (hf := hf)).d ≠ 0 := by
   exact Nat.ne_of_gt (stage3OutWith_d_pos (inst := inst) (f := f) (hf := hf))
 
+omit [Stage2Assumption] in
 /-- Convenience lemma: the explicit-assumption Stage-3 reduced step size is at least `1`.
 
 This is the explicit-assumption analogue of `stage3_one_le_d`.
@@ -423,6 +451,7 @@ theorem stage3OutOf_one_le_d (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : I
     1 ≤ (stage3OutOf inst (f := f) (hf := hf)).d := by
   simpa using (Stage2Output.one_le_d (out := (stage3OutOf inst (f := f) (hf := hf)).out2))
 
+omit [Stage2Assumption] in
 /-- Convenience lemma: the explicit-assumption Stage-3 reduced step size is positive.
 
 This is the explicit-assumption analogue of `stage3Out_d_pos`.
@@ -433,6 +462,7 @@ theorem stage3OutOf_d_pos (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSi
     stage3OutOf_one_le_d (inst := inst) (f := f) (hf := hf)
   exact lt_of_lt_of_le Nat.zero_lt_one h1
 
+omit [Stage2Assumption] in
 /-- Convenience lemma: the explicit-assumption Stage-3 reduced step size is nonzero.
 
 This is the explicit-assumption analogue of `stage3Out_d_ne_zero`.
@@ -453,6 +483,7 @@ theorem stage3_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ Bounded
   let out := stage3Out (f := f) (hf := hf)
   exact out.notBounded
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption variant of `stage3_notBounded`. -/
 theorem stage3OutOf_notBounded (inst : Stage2Assumption) (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
@@ -474,6 +505,7 @@ theorem stage3_not_exists_boundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequen
   let out := stage3Out (f := f) (hf := hf)
   exact Stage3Output.not_exists_boundedDiscOffset (f := f) out
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption variant of `stage3_not_exists_boundedDiscOffset`. -/
 theorem stage3OutOf_not_exists_boundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
@@ -498,6 +530,7 @@ theorem stage3_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignSequence f) :
   let out := stage3Out (f := f) (hf := hf)
   exact out.unboundedDiscOffset (f := f)
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption variant of `stage3_unboundedDiscOffset`. -/
 theorem stage3OutOf_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
@@ -628,6 +661,7 @@ theorem stage3_exists_params_unboundedDiscOffset (f : ℕ → ℤ) (hf : IsSignS
   · exact stage3Out_d_pos (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption variant of `stage3_exists_params_unboundedDiscOffset`. -/
 theorem stage3OutOf_exists_params_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
@@ -650,6 +684,7 @@ theorem stage3_exists_params_one_le_unboundedDiscOffset (f : ℕ → ℤ) (hf : 
   · exact stage3_one_le_d (f := f) (hf := hf)
   · exact stage3_unboundedDiscOffset (f := f) (hf := hf)
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption variant of `stage3_exists_params_one_le_unboundedDiscOffset`. -/
 theorem stage3OutOf_exists_params_one_le_unboundedDiscOffset (inst : Stage2Assumption) (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
@@ -735,6 +770,7 @@ theorem stage3_forall_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequen
   let out := stage3Out (f := f) (hf := hf)
   exact Stage3Output.forall_hasDiscrepancyAtLeast (f := f) out
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption variant of `stage3_forall_hasDiscrepancyAtLeast`. -/
 theorem stage3OutOf_forall_hasDiscrepancyAtLeast (inst : Stage2Assumption) (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
@@ -767,6 +803,7 @@ theorem stage3_forall_exists_discrepancy_gt (f : ℕ → ℤ) (hf : IsSignSequen
   let out := stage3Out (f := f) (hf := hf)
   exact out.forall_exists_discrepancy_gt (f := f)
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption variant of `stage3_forall_exists_discrepancy_gt`. -/
 theorem stage3OutOf_forall_exists_discrepancy_gt (inst : Stage2Assumption) (f : ℕ → ℤ)
     (hf : IsSignSequence f) :
@@ -795,6 +832,7 @@ theorem stage3_hasDiscrepancyAtLeast (f : ℕ → ℤ) (hf : IsSignSequence f) (
     HasDiscrepancyAtLeast f C := by
   exact (stage3_forall_hasDiscrepancyAtLeast (f := f) (hf := hf)) C
 
+omit [Stage2Assumption] in
 /-- Explicit-assumption specialization of `stage3OutOf_forall_hasDiscrepancyAtLeast` at `C`. -/
 theorem stage3OutOf_hasDiscrepancyAtLeast (inst : Stage2Assumption) (f : ℕ → ℤ)
     (hf : IsSignSequence f) (C : ℕ) :

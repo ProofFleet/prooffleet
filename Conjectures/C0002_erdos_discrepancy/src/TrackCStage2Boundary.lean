@@ -101,11 +101,11 @@ The `Stage2Output` record is defined in this file. The bulk of the convenience l
 -/
 
 /-!
-## Stage 2 conjecture stub
+## Stage 2 assumption interface
 
-The Stage-2 conjecture/axiom stub lives in
+The axiom-free conditional interface lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub` so that this file remains mostly
-“API + wiring”.
+“API + wiring”. There is no default `Stage2Assumption`; conditional consumers provide one.
 -/
 
 end Tao2015

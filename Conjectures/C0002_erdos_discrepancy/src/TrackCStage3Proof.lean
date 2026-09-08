@@ -2,14 +2,12 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Entry
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3Output
 
 /-!
-# Track C: Stage 3 conjecture stub (Tao 2015 plane)
+# Track C: Stage 3 conditional proof wrappers (Tao 2015 plane)
 
 This file is **Conjectures-only** glue.
 
-It provides the "single entry point" version of Stage 3: from a sign sequence, produce a Stage-3
-output.
-
-It is still a conjecture stub only because Stage 2 is a conjecture stub.
+It provides the conditional "single entry point" version of Stage 3: from a sign sequence and a
+caller-supplied `Stage2Assumption`, produce a Stage-3 output.
 
 The Stage-3 record interface and its proved boundary lemmas live in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage3`.
@@ -18,6 +16,8 @@ The Stage-3 record interface and its proved boundary lemmas live in
 namespace MoltResearch
 
 namespace Tao2015
+
+variable [Stage2Assumption]
 
 -- Projections `stage3_d`, `stage3_g`, `stage3_m` live in `TrackCStage3Entry.lean`.
 

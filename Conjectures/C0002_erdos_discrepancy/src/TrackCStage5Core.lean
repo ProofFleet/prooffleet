@@ -25,13 +25,13 @@ was incurred. From here on the signature is stable.
 (`TrackCStage5FourierProof`, `FourierReductionStochasticAssumption` now unconditional),
 §3 (`vanDerCorputAssumption_of_logElliottNonasymptotic`), §4 (`BorweinChoiCoonsAssumption`
 from `VinogradovKorobovAssumption`, itself reduced to `LittlewoodLBoundAssumption`). The
-body is now `notBounded_of_derivation` — **no Stage-2 stub anywhere on this path** (the
-axiom audit pins the footprint to standard axioms). One deliberate signature amendment:
+body is now `notBounded_of_derivation` — **no Stage-2 assumption anywhere on this path** (the
+the axiom audit pins the footprint to standard axioms). One deliberate signature amendment:
 the honest §4 leg needs `VinogradovKorobovAssumption`, which the original contract did
 not carry (its strength was clarified only when §4 was formalized); the redundant-but-
 compatible `FourierReductionStochasticAssumption` argument is retained so existing call
-shapes still elaborate. The demoted Stage-2/3/4 stub plane no longer feeds this theorem
-and is scheduled for deletion.
+shapes still elaborate. The legacy Stage-2/3/4 plane no longer feeds this theorem and is
+conditional on an explicit assumption.
 -/
 
 namespace MoltResearch

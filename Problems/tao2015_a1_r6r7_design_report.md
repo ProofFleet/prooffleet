@@ -1296,8 +1296,16 @@ bound from Weyl sums (V-C3) ← Vinogradov's method (V-C2) ← the mean value th
 Vinogradov's mean value theorem and a Chudakov-strength zero-free region, is now formal.
 
 **Ledger.** Campaign #3044, Track R: runs 5–29 (25 Codex runs), PRs #3673–#3710 (this PR), ten structural findings repaired (E.1–E.7, V-1–V-4) — each an
-honest stop by Codex on a design or bookkeeping error of the briefs, each recorded above with its repair. Remaining card item: the endgame
-(re-prove `stage5_notBounded` from the unconditional theorem and retire the Stage-2 stub).
+honest stop by Codex on a design or bookkeeping error of the briefs, each recorded above with its repair.
+
+### Endgame as run — no axiom anywhere (2026-09-08, Codex run 30; report in `Problems/tao2015_endgame_report.md`)
+
+END-1/2/3: `MoltResearch.erdos_discrepancy_notBounded` and `erdos_discrepancy` are proved by `erdos_discrepancy_unconditional` and audit-pinned;
+the Stage-2 stub axiom (the only `axiom` declaration in the tree, in the `Conjectures/` backlog) and its default instance are deleted, the legacy
+Stage-2/3 path is an explicitly conditional `[Stage2Assumption]` interface that nothing public uses; the card's last checkbox is ticked and blueprint
+milestone (C) flipped. **Finding E.8** (the worker's): `Stage2Output f` demands one fixed step `d` with unbounded offsets, which `¬ BoundedDiscrepancy f`
+does not give (the step may vary with the bound), so the brief's preferred "verified instance" option was rightly declined. `git grep '^axiom' -- '*.lean'`
+on `main` is now empty. Final ledger: runs 5–30 (26 Codex runs), PRs #3673–#3710 plus the endgame PR, eleven findings (E.1–E.8, V-1–V-4).
 
 ### Dependency order
 

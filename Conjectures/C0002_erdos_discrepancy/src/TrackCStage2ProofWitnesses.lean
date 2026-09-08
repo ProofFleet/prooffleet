@@ -16,6 +16,8 @@ namespace MoltResearch
 
 namespace Tao2015
 
+variable [Stage2Assumption]
+
 /-!
 ## Additional witness-form wrappers
 -/
@@ -124,7 +126,7 @@ theorem stage2_forall_exists_reduced_discrepancy_gt'_witness_pos (f : ℕ → �
       (g := stage2_g (f := f) (hf := hf)) (d := stage2_d (f := f) (hf := hf)) hunb
 
 /-- Consumer-facing tail-nucleus witness form: Stage 2 yields arbitrarily large affine-tail nuclei
-`apSumFrom f (m*d) d n` at the concrete parameters produced by the conjecture stub `stage2Out`.
+`apSumFrom f (m*d) d n` at the concrete parameters produced by conditional `stage2Out`.
 
 We derive this directly from the Stage-1 transport equivalence
 `ReductionOutput.unboundedDiscrepancyAlong_iff_forall_exists_natAbs_apSumFrom_mul_gt`.
@@ -216,7 +218,7 @@ theorem stage2_exists_params_one_le_forall_exists_natAbs_apSumFrom_mul_gt_witnes
     stage2_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f) (hf := hf) C
 
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
-parameters produced by the conjecture stub `stage2Out`.
+parameters produced by conditional `stage2Out`.
 
 Normal form:
 `∀ B, ∃ n, B < discOffset f d m n`,
@@ -231,7 +233,7 @@ theorem stage2_forall_exists_discOffset_gt (f : ℕ → ℤ) (hf : IsSignSequenc
   exact stage2_unboundedDiscOffset (f := f) (hf := hf)
 
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
-parameters produced by the conjecture stub `stage2Out`.
+parameters produced by conditional `stage2Out`.
 
 Normal form:
 `∀ B, ∃ n, discOffset f d m n > B`,
@@ -246,7 +248,7 @@ theorem stage2_forall_exists_discOffset_gt' (f : ℕ → ℤ) (hf : IsSignSequen
   exact ⟨n, (gt_iff_lt).2 hn⟩
 
 /-- Negation-normal form: Stage 2 yields no uniform bound on the offset-nucleus `discOffset` at the
-concrete parameters produced by the conjecture stub `stage2Out`.
+concrete parameters produced by conditional `stage2Out`.
 -/
 theorem stage2_not_exists_forall_discOffset_le (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ ∃ B : ℕ,
@@ -279,7 +281,7 @@ theorem stage2_forall_exists_discOffset_gt'_witness_pos (f : ℕ → ℤ) (hf : 
       hunb
 
 /-- Consumer-facing shortcut: Stage 2 yields raw offset-nucleus witnesses at the concrete
-parameters produced by the conjecture stub `stage2Out`, stated using the bundled offset nucleus.
+parameters produced by conditional `stage2Out`, stated using the bundled offset nucleus.
 
 Normal form:
 `∀ B, ∃ n, Int.natAbs (apSumOffset f d m n) > B`,
@@ -320,7 +322,7 @@ theorem stage2_forall_exists_natAbs_apSumOffset_gt'_witness_pos (f : ℕ → ℤ
 
 /-- Paper-notation witness form: Stage 2 yields arbitrarily large shifted progression sums
 `∑ i ∈ Icc (m+1) (m+n), f (i*d)` at the concrete parameters produced by the conjecture stub
-`stage2Out`.
+conditional `stage2Out`.
 
 Normal form:
 `∀ B, ∃ n, Int.natAbs (∑ i ∈ Icc (m+1) (m+n), f (i*d)) > B`,

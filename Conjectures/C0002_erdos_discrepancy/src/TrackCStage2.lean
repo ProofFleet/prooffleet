@@ -10,9 +10,9 @@ This file is intentionally thin: it re-exports
 
 keeping `TrackCStage2.lean` as “API + wiring”.
 
-The conjecture stub itself lives in
+The axiom-free conditional Stage-2 interface lives in
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Stub` (imported via
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Entry` and re-exported by
 `Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Light`) so consumers can just
-`import ...TrackCStage2`.
+`import ...TrackCStage2`. Consumers supply `[Tao2015.Stage2Assumption]`.
 -/

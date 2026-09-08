@@ -23,6 +23,8 @@ namespace Tao2015
 
 namespace StageSignatureExamples
 
+variable [Stage2Assumption]
+
 variable {f : ℕ → ℤ}
 
 /-!

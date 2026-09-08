@@ -1,9 +1,9 @@
-import Conjectures.C0002_erdos_discrepancy.src.TrackCStage3EntryMinimal
+import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5PrimeLargeValuesDischarge
 
 /-!
-A conjecture-style stub for the Erdős discrepancy theorem (Tao 2015).
+The Erdős discrepancy theorem (Tao 2015).
 
-This file is **Conjectures-only**: it may rely on axiom stubs (notably the Stage-2 stub). Verified,
+This file is **Conjectures-only** packaging around the unconditional Track-R proof. Verified,
 reusable definitions belong in `MoltResearch/`.
 
 Design goal: keep this module as small as possible so the Track‑C hard‑gate build compiles quickly.
@@ -27,8 +27,7 @@ follow.
 -/
 theorem erdos_discrepancy_notBounded (f : ℕ → ℤ) (hf : IsSignSequence f) :
     ¬ BoundedDiscrepancy f := by
-  -- Delegate to the minimal Stage-3 entry-point API.
-  exact Tao2015.stage3_notBounded (f := f) (hf := hf)
+  exact Tao2015.erdos_discrepancy_unconditional f hf
 
 /-- Bridge lemma: the usual “unbounded discrepancy” surface statement is equivalent to negating the
 boundedness predicate `BoundedDiscrepancy`.

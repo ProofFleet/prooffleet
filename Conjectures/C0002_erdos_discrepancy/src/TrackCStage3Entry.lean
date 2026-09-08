@@ -23,6 +23,8 @@ namespace MoltResearch
 
 namespace Tao2015
 
+variable [Stage2Assumption]
+
 /-!
 ## Basic Stage-3 projections and rewrites
 

@@ -3,11 +3,11 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage2Output
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5Fourier
 
 /-!
-# Track C: Stage 5 reduction — the Stage-2 stub's content on the reduced class
+# Track C: Stage 5 reduction — fixed-step content on the reduced class
 
 This file is **Conjectures-only** glue: the first piece of derivation (C) of the analytic-core
-card (`Problems/tao2015_analytic_core.md`) — the content of the Stage-2 stub axiom
-`stage2Stub_exists_params_one_le_unboundedDiscOffset`, derived (no new axioms) on the
+card (`Problems/tao2015_analytic_core.md`) — the fixed-step statement formerly isolated by the
+Stage-2 stub, derived (with no nonstandard axioms) on the
 **completely multiplicative subclass** from the universal-multiplicative hypothesis of the
 Fourier-reduction interface (A) plus the verified multiplicative Stage-2 constructors.
 
@@ -21,10 +21,9 @@ Shape of the derivation:
 3. which flows through the verified constructor `Stage2Output.ofUnboundedDiscrepancyOne` and
    the boundary packaging `Stage2Output.exists_params_one_le_unboundedDiscOffset`.
 
-This makes precise what remains for retiring the stub: derivation (C) must discharge the
-universal-multiplicative hypothesis itself (from `LogElliottAssumption` via the van der Corput
-expansion and the pretentious branch), and the general-`f` case must route through (A)'s
-reduction rather than the subclass constructors.
+Historically, this made precise what remained for retiring the stub: discharge the
+universal-multiplicative hypothesis and route the general-`f` case through the Fourier reduction.
+The unconditional Track-R proof now completes that route independently of the legacy Stage-2 plane.
 -/
 
 namespace MoltResearch
@@ -50,10 +49,9 @@ theorem unboundedDiscrepancy_one_of_univ_multiplicative
   rw [discrepancy_eq_natAbs_apSum]
   exact_mod_cast hn'
 
-/-- **The Stage-2 stub's content on the reduced class** (first piece of derivation (C); no new
-axioms): for a completely multiplicative sign sequence, the universal-multiplicative hypothesis
-yields exactly the statement of the stub axiom
-`stage2Stub_exists_params_one_le_unboundedDiscOffset`:
+/-- **Fixed-step content on the reduced class** (first piece of derivation (C); standard axioms
+only): for a completely multiplicative sign sequence, the universal-multiplicative hypothesis
+yields
 
 `∃ d m, 1 ≤ d ∧ UnboundedDiscOffset f d m`.
 -/
