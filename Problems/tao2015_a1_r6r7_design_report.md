@@ -1265,6 +1265,15 @@ theorem (Taylor phase, shift averaging, Hölder, orthogonality, the frequency-bo
 constant envelope of V-C1′, the fixed ledger with `k = ⌈λ⌉`, `τ = ⌈2k log k⌉ + 2`, `M = ⌊N/t^{1/(k+1)}⌋`; degree `2` with six rounds for `λ ≤ 2`).
 Next: V-C3 (the growth bound at `a' = 33/25`) and the unconditional endpoint.
 
+### V-B″ + V-C4-4 as run — status (2026-09-07/08, Codex runs 25–26; report in `Problems/tao2015_vbpp_report.md`)
+
+**Complete.** `ZeroFreeRegionDataH θ m` (height-indexed record), the balanced Mellin height `max(8πT, exp((log P)^{1/(1+θ)}))`, the sharpened
+regular-part exponent `m = 1/a + 1/10`, the three-regime envelope with all thresholds recorded, `prime_large_values_bound_of_zeroFreeRegionDataH'`,
+`primeLargeValues_of_zeroFreeRegionH`, `trackR_edp_of_zeroFreeRegionH`; **V-C4-4** `zeroFreeRegionDataH_of_growth` (compactness at small heights,
+the width comparison above), and the compositions **`primeLargeValues_of_zetaGrowth`**, **`trackR_edp_of_zetaGrowth`** (EDP for every sign sequence
+conditional only on a `ZetaGrowthBound`), pinned to the standard three axioms. **The whole Track R chain now rests on a growth bound for `ζ` near
+the 1-line alone**, which V-C3 derives from `vinogradov_weyl_sum`.
+
 ### Dependency order
 
 ```

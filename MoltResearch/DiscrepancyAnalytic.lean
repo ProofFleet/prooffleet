@@ -6,6 +6,8 @@ import MoltResearch.Discrepancy.ZeroFreeRegion
 import MoltResearch.Discrepancy.ZetaLandauRadius
 import MoltResearch.Discrepancy.ZetaGrowthRegion
 import MoltResearch.Discrepancy.ZetaGrowthLogDeriv
+import MoltResearch.Discrepancy.ZetaGrowthLogDerivSharp
+import MoltResearch.Discrepancy.ZetaGrowthDataH
 import MoltResearch.Discrepancy.ZetaGrowthValidation
 import MoltResearch.Discrepancy.PlancherelHarness
 import MoltResearch.Discrepancy.LargeValues
@@ -20,6 +22,10 @@ import MoltResearch.Discrepancy.ThreeScale
 import MoltResearch.Discrepancy.PerronWindow
 import MoltResearch.Discrepancy.PrimeSumZeroFree
 import MoltResearch.Discrepancy.PrimeLargeValuesFromRegion
+import MoltResearch.Discrepancy.PrimeLargeValuesFromRegionH
+import MoltResearch.Discrepancy.PrimeLargeValuesFromRegionHMax
+import MoltResearch.Discrepancy.ThreeRegimeEnvelope
+import MoltResearch.Discrepancy.PrimeLargeValuesThreeRegime
 import MoltResearch.Discrepancy.ZeroFreeRegionData
 import MoltResearch.Discrepancy.MajorArcFreeze
 import MoltResearch.Discrepancy.ParsevalBridge
