@@ -62,7 +62,7 @@ renamed A4–A10 here (card B's identifiers are taken).
 
 - [ ] A7: Finite van der Corput package (after: A5, A6) — fit `H`, the shift maximum, the Elliott window and `X₀` below the common cutoff and instantiate `FiniteVanDerCorputRateAssumption`. Deliverables: `Conjectures/C0003_edp_rate/src/FiniteVanDerCorput.lean`.
 
-- [ ] A8: Structured-branch threshold extraction (after: A3) — audit the Mertens / repulsion / zero-free / Euler-product chain into a function-form finite statement with truncation error and an explicit terminal scale. Deliverables: `Conjectures/C0003_edp_rate/src/StructuredThresholds.lean`, `Problems/edp_rate_structured_thresholds.md`.
+- [x] A8: Structured-branch threshold extraction (after: A3) — audit the Mertens / repulsion / zero-free / Euler-product chain into a function-form finite statement with truncation error and an explicit terminal scale. Deliverables: `Conjectures/C0003_edp_rate/src/StructuredThresholds.lean`, `Problems/edp_rate_structured_thresholds.md`.
 
 - [ ] A9: Finite structured package (after: A5, A8) — show the terminal scale fits below the common cutoff and instantiate `FiniteBorweinChoiCoonsRateAssumption`. Deliverables: `Conjectures/C0003_edp_rate/src/FiniteStructured.lean`.
 
