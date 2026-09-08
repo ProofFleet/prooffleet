@@ -82,3 +82,16 @@ to be unsupported in the literature.
   file to formal-conjectures (both require the public snapshot repository for stable links).
 - Beck's chapter for #177 (unblocks C1 and the exponent ledger).
 - Whether to continue the EDP-rate card to A10 (the first machine-checked rate) after A7′/A9′.
+
+## 6. Addendum (16:10Z): the EDP-rate card is parked
+
+After the report above was written, the EDP-rate card ran its budgeted final round. A3″ repaired the interface a second time
+(pointwise schedule for the start scale; caps on every scale witness of the structured route; the terminal maximum named and proved
+to fit for admissible packages; the rate theorem re-proved for `edpBudgetedTripleLogRate`; the earlier counterexamples proved
+inadmissible). Both packages then blocked once more, each with an exact missing inequality rather than a design defect:
+Finding A-4 (A7″), the Elliott strength from the A6 ledger has no proved upper bound against the distance cap; Finding A-5 (A9″),
+the finite character sweep yields only an existential window, so the joint terminal inequality has no theorem. Per the stop rule
+written on the card, it is parked with its ledger: one interface discharged, a conditional rate theorem over three policy-indexed
+interfaces, and five kernel-checked or exactly stated findings. Resuming means proving A-4 and A-5 as theorems of the A6/A8
+ledgers, not another interface round. Two conductor errors occurred on this card and are recorded: a PR merged behind an
+interface change broke `main` for ~25 minutes (reverted), which produced the merge-base rule now in force.
