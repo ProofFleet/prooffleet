@@ -1,6 +1,6 @@
 # Problem Card: Erdős #461 — distinct smooth components in a short interval — OPEN
 
-Status: active (opened 2026-09-08). Research card: the target is an **open problem**; see §1 for what a PR may and may not claim.
+Status: Phase 2 complete 2026-09-08 (B1 blocked: no source for the `t / log t` claim). Outcome: two exact reductions, both audit-pinned — `Erdos461` from uniform quarter component matching (equivalent to the refined expansion interface), and the reported `t / log t` bound equivalent to a simultaneous fibre-loss inequality; neither bound proved; obstructions (highly divisible centres, essential high-degree components, pointwise joint incidence) machine-checked or recorded. Research card: the target is an **open problem**; see §1 for what a PR may and may not claim.
 
 ## 0. One-line pitch
 
@@ -55,7 +55,7 @@ dyadic-divisor matching). Phase 2 attacks the interface honestly: obstructions f
 
 - [x] B8: Delta/sieve attack (after: B7; **merged as a rigorous no-route outcome: Δ bounds are mean-value estimates, not pointwise-simultaneous; pruning high-degree components breaks expansion at `t = 38` (at most 9 matchable vs target 10, full graph 18) — machine-checked;** B1 is a blocked draft and no longer gates this item — read its memo from PR #3730 and `Problems/erdos461_known_bound.md` instead) — whether divisor-window bounds (Erdős–Hooley `Δ`, Ford–Green–Koukoulopoulos) plus the interval sieve control the total defect after exceptional high-divisor components are removed; a rigorous no-route memo is an acceptable outcome. Any proved lemma goes in `Conjectures/C0004_erdos461_smooth/src/DeltaSieve.lean`. Deliverables: `Problems/erdos461_delta_sieve.md`, `Conjectures/C0004_erdos461_smooth/src/DeltaSieve.lean`.
 
-- [ ] B9: Milestone decision (after: B5, B8) — either discharge the refined matching assumption (instance + audit pin in `Conjectures/C0004_erdos461_smooth/src/Discharge.lean`), or land the machine-checked `t / log t` theorem and a precise statement of the remaining uniform obstruction in `Problems/erdos461_status.md`. Deliverables: `Conjectures/C0004_erdos461_smooth/src/Discharge.lean`, `Problems/erdos461_status.md`.
+- [x] B9: Milestone decision (after: B5, B8) **(merged #3796 → 428af9d3: M1–M3 not reached; sharpest statements landed and audit-pinned — B7's multiscale interface is *equivalent* to uniform divisor-compatible matching of ⌈t/4⌉ components (`UniformQuarterComponentMatching`), which implies `Erdos461`; and the reported `t / log t` bound is *equivalent* to B5's `SimultaneousFiberLossAssumption`, i.e. the missing sieve input is the theorem itself; remaining obstruction (pointwise joint incidence) recorded in `Problems/erdos461_status.md`)** — either discharge the refined matching assumption (instance + audit pin in `Conjectures/C0004_erdos461_smooth/src/Discharge.lean`), or land the machine-checked `t / log t` theorem and a precise statement of the remaining uniform obstruction in `Problems/erdos461_status.md`. Deliverables: `Conjectures/C0004_erdos461_smooth/src/Discharge.lean`, `Problems/erdos461_status.md`.
 
 ## 4. Milestones beyond Phase 1
 
