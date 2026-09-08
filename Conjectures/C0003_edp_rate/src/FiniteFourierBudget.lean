@@ -6,7 +6,9 @@ import Conjectures.C0003_edp_rate.src.FiniteFourier
 The A5 exponent-box construction was conditional on its exact terminal source budget fitting
 below the outer product horizon.  The revised analysis cutoff is the greatest scale for which
 that inequality holds.  This file proves the cutoff invariant and installs the resulting
-budgeted `FiniteFourierReductionAssumption` instance.
+budgeted `FiniteFourierReductionAssumption` instance.  The A3'' endpoint repair changes only
+the analytic branch condition; the theorem at the end checks that the same Fourier instance
+is available whenever that stronger branch opens.
 
 This is only the Fourier leg of the conditional reduction.  It does not supply either analytic
 assumption and therefore does not prove an Erdős-discrepancy rate.  See
@@ -80,5 +82,21 @@ noncomputable instance finiteFourierReductionAssumption_budgetSafe :
         unfold edpRateStart
         positivity) hx))
   exact ⟨hhistorical.reduce⟩
+
+/-- The source-budget-safe Fourier instance remains usable on every scale admitted by the
+second-repair schedule.  The Fourier class retains the historical positivity threshold
+because its payload does not inspect endpoint data; `edpBudgetedRateStart` dominates that
+threshold. -/
+theorem finiteFourierReduction_budgetSafe_at_activeScale
+    (f : ℕ → ℤ) (hf : IsSignSequence f) (x : ℝ)
+    (hx : edpBudgetedRateStart x < x)
+    (hsmall : ∀ d m : ℕ, 0 < d → (m * d : ℝ) ≤ x →
+      |(apSum f d m : ℝ)| < edpTripleLogRate x) :
+    ∃ (Ω : Type) (mΩ : MeasurableSpace Ω) (μ : @MeasureTheory.Measure Ω mΩ)
+      (_ : @MeasureTheory.IsProbabilityMeasure Ω mΩ μ)
+      (G : @StochasticMultiplicative Ω mΩ μ),
+      @FiniteSecondMomentBound Ω mΩ μ G x :=
+  finiteFourierReduction_budgeted f hf x
+    ((edpRateStart_le_budgetedRateStart x).trans_lt hx) hsmall
 
 end MoltResearch
