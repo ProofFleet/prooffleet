@@ -2,7 +2,7 @@ import Conjectures.C0003_edp_rate.src.FiniteFourierBudget
 import Conjectures.C0003_edp_rate.src.StructuredThresholds
 
 /-!
-# Finite structured package: the finite-interval obstruction
+# Finite structured package: finite-interval obstructions
 
 ## Known
 
@@ -36,6 +36,22 @@ repair this quantifier-order obstruction: increasing `B` at the sole finite endp
 makes its dependent terminal scale exceed the available interval.  The interface must keep a
 tail cofinal after `(Q,T,B,X₀)` are fixed, or otherwise require the terminal scale itself to
 fit before the package is accepted.
+
+## Revised A9′ finding
+
+The `.budgeted` A3′ interface blocks that historical one-point construction, but its caps
+control only `(Q,T,B)`.  The A8 terminal constructor still takes the per-character thresholds
+`Xpair` and `Xzero` as uncapped inputs, and its choice-based `structuredTCutThreshold` has no
+proved upper bound.  The two-event BCC call needs the exact comparison
+
+`structuredTerminalScaleOfTCut ... + 1 + edpPersistentWindowLength x ε ≤
+  edpAnalysisCutoff x`.
+
+**Blocked:** the current cap inequalities do not imply this comparison.  The checked theorem
+`budgetedCaps_do_not_force_structuredTerminalFit` uses the admissible values `(Q,T,B)=(1,1,0)`
+and the still-unconstrained input `Xpair=L+1` to make the terminal scale exceed `L`.  A future
+interface must expose function-form bounds for `Xpair`, `Xzero`, and the `t`-cut threshold and
+calibrate all three below the reserved endpoint; this file does not weaken the active class.
 -/
 
 namespace MoltResearch
@@ -119,5 +135,74 @@ theorem finiteStructured_target_contradiction
     (hG : FiniteSecondMomentBound μ G x) : False := by
   apply finiteBorweinChoiCoonsRate (μ := μ) G x hx hG
   exact finitePersistentPretentious_of_rateStart_lt (μ := μ) G hx
+
+/-! ## The revised A9' terminal-fit obligation -/
+
+/-- The exact scale comparison needed to run the structured two-event argument inside the
+repaired finite endpoint.  The first event is used at `X + 1`, so its reserved A6 window
+requires `(X + 1) + edpPersistentWindowLength x ε ≤ edpAnalysisCutoff x`.
+
+This proposition is deliberately only a name for the missing comparison.  It is not an
+additional assumption installed in `Reduction.lean`. -/
+noncomputable def FiniteStructuredTerminalFits
+    (x ε Q T B : ℝ) (hQ : 1 ≤ Q) (hT : 1 ≤ T) (hB : 0 ≤ B)
+    (δ : ℝ) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (Xstart Xpair Xzero H : ℕ) (Twindow : ℝ) : Prop :=
+  Tao2015.structuredTerminalScaleOfTCut Q T B hQ hT hB δ hδ0 hδ1
+      Xstart Xpair Xzero H Twindow
+    + 1 + edpPersistentWindowLength x ε ≤ edpAnalysisCutoff x
+
+/-- Terminal fit forces the choice-based `t`-cut threshold itself below the finite cutoff.
+The A8 specification only says what happens *after* this threshold; it supplies no upper
+bound comparing the chosen threshold with `edpAnalysisCutoff x`. -/
+theorem structuredTCutThreshold_le_cutoff_of_terminalFits
+    {x ε Q T B : ℝ} (hQ : 1 ≤ Q) (hT : 1 ≤ T) (hB : 0 ≤ B)
+    {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (Xstart Xpair Xzero H : ℕ) (Twindow : ℝ)
+    (hfit : FiniteStructuredTerminalFits x ε Q T B hQ hT hB δ hδ0 hδ1
+      Xstart Xpair Xzero H Twindow) :
+    Tao2015.structuredTCutThreshold Q T B hQ hT hB δ hδ0 hδ1 ≤
+      edpAnalysisCutoff x := by
+  let X := Tao2015.structuredTerminalScaleOfTCut Q T B hQ hT hB δ hδ0 hδ1
+    Xstart Xpair Xzero H Twindow
+  have hscale := Tao2015.structuredTerminalScaleOfTCut_spec
+    Q T B hQ hT hB δ hδ0 hδ1 Xstart Xpair Xzero H Twindow (X := X) le_rfl
+  rcases hscale with ⟨_, _, _, _, _, _, _, _, _, htwist⟩
+  have hXL : X ≤ edpAnalysisCutoff x := by
+    unfold FiniteStructuredTerminalFits at hfit
+    dsimp only [X]
+    omega
+  exact le_trans htwist (by exact_mod_cast hXL)
+
+/-- The repaired caps constrain `(Q,T,B)`, but do not constrain the per-character
+refutation threshold `Xpair` which A8 still accepts as a free terminal-scale input.
+
+Even the admissible package `(Q,T,B) = (1,1,0)` therefore permits `Xpair = L+1`, where
+`L = edpAnalysisCutoff x`; the resulting terminal scale is already above `L`, before the
+positive persistent window and the extra two-event step are charged.  This is the checked
+API obstruction to proving the A9' fit uniformly from the current cap inequalities. -/
+theorem budgetedCaps_do_not_force_structuredTerminalFit (x ε : ℝ) :
+    ∃ (Q T B : ℝ) (hQ : 1 ≤ Q) (hT : 1 ≤ T) (hB : 0 ≤ B),
+      Q ≤ edpPretentiousModulusCap (edpAnalysisCutoff x) ∧
+      T ≤ edpPretentiousFrequencyCap (edpAnalysisCutoff x) ∧
+      B ≤ edpPretentiousDistanceCap (edpAnalysisCutoff x) ∧
+      ∀ (δ : ℝ) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+        (Xstart Xzero H : ℕ) (Twindow : ℝ),
+        ¬ FiniteStructuredTerminalFits x ε Q T B hQ hT hB δ hδ0 hδ1
+          Xstart (edpAnalysisCutoff x + 1) Xzero H Twindow := by
+  refine ⟨1, 1, 0, le_rfl, le_rfl, le_rfl,
+    le_max_left _ _, le_max_left _ _, le_max_left _ _, ?_⟩
+  intro δ hδ0 hδ1 Xstart Xzero H Twindow hfit
+  let X := Tao2015.structuredTerminalScaleOfTCut (1 : ℝ) 1 0 le_rfl le_rfl le_rfl
+    δ hδ0 hδ1 Xstart (edpAnalysisCutoff x + 1) Xzero H Twindow
+  have hpair : edpAnalysisCutoff x + 1 ≤ X := by
+    dsimp only [X, Tao2015.structuredTerminalScaleOfTCut,
+      Tao2015.structuredTerminalScale]
+    omega
+  have hXL : X ≤ edpAnalysisCutoff x := by
+    unfold FiniteStructuredTerminalFits at hfit
+    dsimp only [X]
+    omega
+  omega
 
 end MoltResearch
