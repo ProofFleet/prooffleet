@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Produce (or refresh) the public, licensed snapshot of this repository.
+#
+# The working repository stays where it is; the snapshot is a separate public repository whose
+# history is this repository's history passed through a redaction filter (git-filter-repo
+# --replace-text), so that anything that must not be published (an old ops note with a phone
+# number, say) is replaced in every commit rather than only in the current tree. Only `main` and
+# the release tags are pushed: no PR refs, no work branches.
+#
+# Usage:
+#   PUBLIC_REPO=OWNER/NAME scripts/publish_snapshot.sh [--create] [--dry-run]
+#
+#   --create    create $PUBLIC_REPO as a public GitHub repository first (gh repo create)
+#   --dry-run   build the filtered mirror and report, but push nothing
+#
+# Redactions are read from $SNAPSHOT_REPLACEMENTS (default ~/.config/moltresearch/snapshot_replacements.txt),
+# one `literal==>replacement` per line in git-filter-repo's --replace-text format. The file is
+# deliberately NOT part of the repository: it contains the very strings that must not be published.
+# Requires: git, gh (authenticated), git-filter-repo (pip install --user git-filter-repo).
+set -euo pipefail
+
+SOURCE_REPO="${SOURCE_REPO:-https://github.com/ProofFleet/moltresearch.git}"
+PUBLIC_REPO="${PUBLIC_REPO:-}"
+REPLACEMENTS="${SNAPSHOT_REPLACEMENTS:-$HOME/.config/moltresearch/snapshot_replacements.txt}"
+CREATE=0; DRY=0
+for a in "$@"; do case "$a" in --create) CREATE=1;; --dry-run) DRY=1;; *) echo "unknown flag $a" >&2; exit 2;; esac; done
+
+command -v git-filter-repo >/dev/null || { echo "git-filter-repo not found (pip install --user git-filter-repo; ensure ~/.local/bin is on PATH)" >&2; exit 1; }
+[[ -f "$REPLACEMENTS" ]] || { echo "redaction file not found: $REPLACEMENTS" >&2; exit 1; }
+if [[ "$DRY" == 0 && -z "$PUBLIC_REPO" ]]; then echo "PUBLIC_REPO=OWNER/NAME is required unless --dry-run" >&2; exit 2; fi
+
+WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
+echo "== cloning $SOURCE_REPO (bare: branches and tags only, no PR refs)"
+git clone -q --bare "$SOURCE_REPO" "$WORK/mirror.git"
+cd "$WORK/mirror.git"
+echo "== filtering history with $(wc -l < "$REPLACEMENTS") redaction rule(s)"
+git filter-repo --replace-text "$REPLACEMENTS" --force >/dev/null
+echo "== verifying every redacted literal is gone from every commit"
+while IFS= read -r rule; do
+  [[ -z "$rule" || "$rule" == \#* ]] && continue
+  lit="${rule%%==>*}"; lit="${lit#literal:}"
+  n="$(git log --all --oneline -S"$lit" | wc -l)"
+  if [[ "$n" != 0 ]]; then echo "REDACTION FAILED: '$lit' still in $n commit(s)" >&2; exit 1; fi
+done < "$REPLACEMENTS"
+echo "   ok: $(git rev-list --all | wc -l) commits, $(git tag | wc -l) tags, main at $(git rev-parse --short main)"
+if [[ "$DRY" == 1 ]]; then echo "== dry run: nothing pushed"; exit 0; fi
+
+if [[ "$CREATE" == 1 ]]; then
+  echo "== creating public repository $PUBLIC_REPO"
+  gh repo create "$PUBLIC_REPO" --public --description "MoltResearch public snapshot: Lean 4 substrate for agent collaboration; machine-verified Erdős discrepancy theorem" >/dev/null
+fi
+echo "== pushing main and tags to $PUBLIC_REPO"
+git push -q "https://github.com/$PUBLIC_REPO.git" "+refs/heads/main:refs/heads/main"
+git push -q "https://github.com/$PUBLIC_REPO.git" --tags --force
+echo "== done: https://github.com/$PUBLIC_REPO"
