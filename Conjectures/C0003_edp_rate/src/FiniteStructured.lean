@@ -52,6 +52,22 @@ proved upper bound.  The two-event BCC call needs the exact comparison
 and the still-unconstrained input `Xpair=L+1` to make the terminal scale exceed `L`.  A future
 interface must expose function-form bounds for `Xpair`, `Xzero`, and the `t`-cut threshold and
 calibrate all three below the reserved endpoint; this file does not weaken the active class.
+
+## Second-revision A9″ finding
+
+A3″ now exposes those three individual caps and separately asks for the exact joint terminal
+comparison.  The comparison really is an additional obligation: the terminal maximum contains
+`structuredLogThreshold (4 * (H + 1)^2)`, while the finite character sweep still produces `H`
+with no cutoff comparison.  For any fixed individually capped data, choosing `H` to be the
+terminal cap makes that logarithmic threshold strictly larger than the cap.
+
+**Blocked:** the current BCC wrapper's private finite sweep produces a finite `H`, while A8's
+public API accepts that value as an input but exposes no bound relating it to
+`edpStructuredTerminalCap x ε`.  The theorem
+`budgetedStructuredIndividualCaps_do_not_force_jointTerminalCap` checks that all three A3″
+individual caps can hold while the joint conjunct fails for this exact reason.  Thus A9″ cannot
+instantiate `FiniteBorweinChoiCoonsRateAssumption .budgeted` from the current public API.  The
+interface is not weakened here.
 -/
 
 namespace MoltResearch
@@ -204,5 +220,104 @@ theorem budgetedCaps_do_not_force_structuredTerminalFit (x ε : ℝ) :
     dsimp only [X]
     omega
   omega
+
+/-! ## The second-revision A9″ joint-cap obligation -/
+
+/-- A3″'s terminal-cap conjunct is exactly the old `FiniteStructuredTerminalFits`
+comparison, including both the structured `+1` event and the reserved A6 window. -/
+theorem finiteStructuredTerminalFits_of_admissible
+    {x ε Q T B : ℝ} (hx : edpBudgetedRateStart x < x)
+    (hε : EDPBudgetedAccuracy x ε)
+    (hQ : 1 ≤ Q) (hT : 1 ≤ T) (hB : 0 ≤ B)
+    {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (Xstart Xpair Xzero H : ℕ) (Twindow : ℝ)
+    (hadmissible : BudgetedStructuredThresholdsAdmissible
+      x ε Q T B hQ hT hB δ hδ0 hδ1 Xstart Xpair Xzero H Twindow) :
+    FiniteStructuredTerminalFits x ε Q T B hQ hT hB δ hδ0 hδ1
+      Xstart Xpair Xzero H Twindow := by
+  exact edpStructuredTerminalMaximum_le_cutoff_of_admissible hx hε hQ hT hB
+    hδ0 hδ1 Xstart Xpair Xzero H Twindow hadmissible
+
+/-- The nonlinear logarithmic threshold in A8's terminal maximum is strictly beyond its
+window parameter.  This lower bound is independent of the three individual A3″ caps. -/
+theorem windowParameter_lt_structuredTerminalScaleOfTCut
+    (Q T B : ℝ) (hQ : 1 ≤ Q) (hT : 1 ≤ T) (hB : 0 ≤ B)
+    (δ : ℝ) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (Xstart Xpair Xzero H : ℕ) (Twindow : ℝ) :
+    H < Tao2015.structuredTerminalScaleOfTCut Q T B hQ hT hB δ hδ0 hδ1
+      Xstart Xpair Xzero H Twindow := by
+  let y : ℝ := (H : ℝ) + 1
+  have hy : 1 ≤ y := by
+    dsimp only [y]
+    linarith [Nat.cast_nonneg (α := ℝ) H]
+  have hysq : y ≤ y ^ 2 := by
+    nlinarith [mul_nonneg (sub_nonneg.mpr hy) (by positivity : 0 ≤ y)]
+  have hexp : y ≤ Real.exp (4 * y ^ 2) := by
+    calc
+      y ≤ 1 + 4 * y ^ 2 := by nlinarith
+      _ ≤ Real.exp (4 * y ^ 2) := by
+        simpa only [add_comm] using Real.add_one_le_exp (4 * y ^ 2)
+  have hceilReal :
+      ((H + 1 : ℕ) : ℝ) ≤ (⌈Real.exp (4 * y ^ 2)⌉₊ : ℝ) := by
+    push_cast
+    exact hexp.trans (Nat.le_ceil _)
+  have hceil : H + 1 ≤ ⌈Real.exp (4 * y ^ 2)⌉₊ := by
+    exact_mod_cast hceilReal
+  have hlogThreshold :
+      H + 1 ≤ Tao2015.structuredLogThreshold (4 * ((H : ℝ) + 1) ^ 2) := by
+    unfold Tao2015.structuredLogThreshold
+    dsimp only [y] at hceil
+    exact hceil.trans (le_max_right _ _)
+  dsimp only [Tao2015.structuredTerminalScaleOfTCut,
+    Tao2015.structuredTerminalScale]
+  omega
+
+/-- Full A3″ admissibility therefore requires this concrete nonlinear inequality for the
+window selected by the finite character sweep.  No current public constructor proves it. -/
+theorem structuredLogThreshold_le_terminalCap_of_admissible
+    {x ε Q T B : ℝ} (hQ : 1 ≤ Q) (hT : 1 ≤ T) (hB : 0 ≤ B)
+    {δ : ℝ} (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (Xstart Xpair Xzero H : ℕ) (Twindow : ℝ)
+    (hadmissible : BudgetedStructuredThresholdsAdmissible
+      x ε Q T B hQ hT hB δ hδ0 hδ1 Xstart Xpair Xzero H Twindow) :
+    Tao2015.structuredLogThreshold (4 * ((H : ℝ) + 1) ^ 2) ≤
+      edpStructuredTerminalCap x ε := by
+  have hterminal := hadmissible.2.2.2
+  dsimp only [Tao2015.structuredTerminalScaleOfTCut,
+    Tao2015.structuredTerminalScale] at hterminal
+  omega
+
+/-- The three individual A3″ caps, even when all hold simultaneously, do not imply the
+joint terminal cap.  Set the still-unbounded finite-sweep window `H` equal to the available
+terminal cap; A8's logarithmic threshold is then already strictly larger than that cap.
+
+This is the exact remaining A9″ obstruction: the current finite character sweep supplies
+only existence of `H`, not a comparison bounding it in terms of the outer cutoff. -/
+theorem budgetedStructuredIndividualCaps_do_not_force_jointTerminalCap
+    (x ε Q T B : ℝ) (hQ : 1 ≤ Q) (hT : 1 ≤ T) (hB : 0 ≤ B)
+    (δ : ℝ) (hδ0 : 0 < δ) (hδ1 : δ < 1)
+    (Xstart Xpair Xzero : ℕ) (Twindow : ℝ)
+    (hpair : Xpair ≤ edpStructuredPairThresholdCap (edpAnalysisCutoff x))
+    (hzero : Xzero ≤ edpStructuredZeroThresholdCap (edpAnalysisCutoff x))
+    (htcut : Tao2015.structuredTCutThreshold Q T B hQ hT hB δ hδ0 hδ1 ≤
+      edpStructuredTCutThresholdCap (edpAnalysisCutoff x)) :
+    ∃ H : ℕ,
+      Xpair ≤ edpStructuredPairThresholdCap (edpAnalysisCutoff x) ∧
+      Xzero ≤ edpStructuredZeroThresholdCap (edpAnalysisCutoff x) ∧
+      Tao2015.structuredTCutThreshold Q T B hQ hT hB δ hδ0 hδ1 ≤
+        edpStructuredTCutThresholdCap (edpAnalysisCutoff x) ∧
+      ¬ BudgetedStructuredThresholdsAdmissible
+        x ε Q T B hQ hT hB δ hδ0 hδ1 Xstart Xpair Xzero H Twindow := by
+  refine ⟨edpStructuredTerminalCap x ε, hpair, hzero, htcut, ?_⟩
+  intro hadmissible
+  have hterminal :
+      Tao2015.structuredTerminalScaleOfTCut Q T B hQ hT hB δ hδ0 hδ1
+          Xstart Xpair Xzero (edpStructuredTerminalCap x ε) Twindow ≤
+        edpStructuredTerminalCap x ε :=
+    hadmissible.2.2.2
+  exact (not_lt_of_ge hterminal)
+    (windowParameter_lt_structuredTerminalScaleOfTCut
+      Q T B hQ hT hB δ hδ0 hδ1 Xstart Xpair Xzero
+        (edpStructuredTerminalCap x ε) Twindow)
 
 end MoltResearch
