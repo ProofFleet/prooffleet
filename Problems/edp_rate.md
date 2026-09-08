@@ -54,7 +54,7 @@ A3 isolated three interfaces — `FiniteFourierReductionAssumption`, `FiniteVanD
 the missing Track-Q repair; the gap is the **source budget** (keeping every invoked product `d·m ≤ x`). The memo's items B0–B6 are
 renamed A4–A10 here (card B's identifiers are taken).
 
-- [ ] A4: Source-budget audit (after: A3) — a theorem recording, for every invocation inside `SpectralWindowBound`, the largest source product `d·m` in terms of the spectral parameters, usable without a global discrepancy hypothesis. Deliverables: `Conjectures/C0003_edp_rate/src/SourceBudget.lean`, `Problems/edp_rate_source_budget.md`.
+- [x] A4: Source-budget audit (after: A3) — a theorem recording, for every invocation inside `SpectralWindowBound`, the largest source product `d·m` in terms of the spectral parameters, usable without a global discrepancy hypothesis. Deliverables: `Conjectures/C0003_edp_rate/src/SourceBudget.lean`, `Problems/edp_rate_source_budget.md`.
 
 - [ ] A5: Finite Fourier package (after: A4) — choose the spectral scale and modulus as functions of the outer `x`, prove every requested product is `≤ x`, and instantiate `FiniteFourierReductionAssumption` (or record the exact schedule obstruction as a `Blocked:` finding). Deliverables: `Conjectures/C0003_edp_rate/src/FiniteFourier.lean`.
 
