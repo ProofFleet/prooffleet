@@ -2482,6 +2482,949 @@ theorem norm_log_sum_le_vinogradovMainTerm
       rw [hmoment, shiftHolder_scale_identity hA hMR hNR' hs]
     _ = _ := by rfl
 
+/-! ## The fixed parameter ledger -/
+
+/-- The degree used on the logarithmic-height band.  Degree two handles the
+bounded band `1 ≤ λ ≤ 2`; above it we use the unique integer band
+`k - 1 < λ ≤ k`. -/
+noncomputable def vinogradovDegree (lam : ℝ) : ℕ :=
+  if lam ≤ 2 then 2 else ⌈lam⌉₊
+
+/-- Iteration depth for the weak mean-value theorem.  The fixed degree-two
+band gets six rounds; all other bands use `⌈2k log k⌉ + 2`. -/
+noncomputable def vinogradovIterations (k : ℕ) : ℕ :=
+  if k = 2 then 6 else ⌈2 * (k : ℝ) * Real.log k⌉₊ + 2
+
+/-- The maximal integral short length below the Taylor scale
+`N / t^(1/(k+1))`. -/
+noncomputable def vinogradovShortLength (N : ℕ) (t : ℝ) (k : ℕ) : ℕ :=
+  ⌊(N : ℝ) / t ^ (1 / (k + 1 : ℝ))⌋₊
+
+/-- The logarithmic size budget for the reduced explicit prefactor. -/
+noncomputable def vinogradovPrefactorLogBudget (k τ : ℕ) : ℝ :=
+  8192 * (k : ℝ) * τ * (k + τ + 1) * Real.log (2 * (k + τ + 1))
+
+/-- The absolute saving recorded by the fixed Weyl-sum theorem. -/
+noncomputable def vinogradovWeylSaving : ℝ := (134217728 : ℝ)⁻¹
+
+theorem vinogradovWeylSaving_pos : 0 < vinogradovWeylSaving := by
+  norm_num [vinogradovWeylSaving]
+
+private theorem vinogradovDegree_bounds {lam : ℝ} (hlam : 1 ≤ lam) :
+    let k := vinogradovDegree lam
+    2 ≤ k ∧ lam ≤ (k : ℝ) ∧ (k : ℝ) ≤ 2 * lam := by
+  dsimp only [vinogradovDegree]
+  by_cases hsmall : lam ≤ 2
+  · simp only [if_pos hsmall, Nat.cast_ofNat]
+    constructor
+    · omega
+    · constructor <;> linarith
+  · simp only [if_neg hsmall]
+    have hlam0 : 0 ≤ lam := le_trans (by norm_num) hlam
+    have hlo : lam ≤ (⌈lam⌉₊ : ℕ) := Nat.le_ceil lam
+    have hhi : ((⌈lam⌉₊ : ℕ) : ℝ) < lam + 1 := Nat.ceil_lt_add_one hlam0
+    have hk2R : (2 : ℝ) < (⌈lam⌉₊ : ℕ) := lt_of_not_ge hsmall |>.trans_le hlo
+    have hk2 : 2 ≤ ⌈lam⌉₊ := by exact_mod_cast hk2R.le
+    exact ⟨hk2, hlo, by linarith⟩
+
+private theorem log_two_mul_nat_gt_one {k : ℕ} (hk : 2 ≤ k) :
+    1 < Real.log (2 * (k : ℝ)) := by
+  have hkR : (2 : ℝ) ≤ k := by exact_mod_cast hk
+  have hfour : (4 : ℝ) ≤ 2 * k := by linarith
+  have hlog := Real.log_le_log (by norm_num : (0 : ℝ) < 4) hfour
+  rw [show (4 : ℝ) = 2 * 2 by norm_num, Real.log_mul (by norm_num) (by norm_num)] at hlog
+  nlinarith [Real.log_two_gt_d9]
+
+private theorem vinogradovIterations_le {k : ℕ} (hk : 2 ≤ k) :
+    (vinogradovIterations k : ℝ) ≤
+      4 * (k : ℝ) * Real.log (2 * k) := by
+  have hkR : (2 : ℝ) ≤ k := by exact_mod_cast hk
+  have hL : 1 < Real.log (2 * (k : ℝ)) := log_two_mul_nat_gt_one hk
+  by_cases hk2 : k = 2
+  · subst k
+    norm_num [vinogradovIterations]
+    norm_num at hL ⊢
+    nlinarith
+  · rw [vinogradovIterations, if_neg hk2]
+    have ha0 : 0 ≤ 2 * (k : ℝ) * Real.log k := by
+      have : 0 ≤ Real.log (k : ℝ) := Real.log_nonneg (by
+        exact_mod_cast (show 1 ≤ k by omega))
+      positivity
+    have hceil := Nat.ceil_lt_add_one ha0
+    have hlog : Real.log (k : ℝ) ≤ Real.log (2 * k) := by
+      apply Real.log_le_log (by positivity)
+      nlinarith
+    push_cast at hceil ⊢
+    nlinarith
+
+private theorem vinogradovIterations_one_le (k : ℕ) :
+    1 ≤ vinogradovIterations k := by
+  rw [vinogradovIterations]
+  split_ifs <;> omega
+
+private theorem vinogradovDelta_le_half_of_iterations {k : ℕ}
+    (hk : 2 ≤ k) :
+    vinogradovDelta k (vinogradovIterations k) ≤ 1 / 2 := by
+  have hkR : (2 : ℝ) ≤ k := by exact_mod_cast hk
+  have hk0 : (0 : ℝ) < k := lt_of_lt_of_le (by norm_num) hkR
+  by_cases hk2 : k = 2
+  · subst k
+    norm_num [vinogradovDelta, vinogradovIterations]
+  · let τ := vinogradovIterations k
+    have hτ : 2 * (k : ℝ) * Real.log k ≤ (τ : ℕ) := by
+      dsimp only [τ, vinogradovIterations]
+      rw [if_neg hk2]
+      have hceil := Nat.le_ceil (2 * (k : ℝ) * Real.log k)
+      push_cast
+      linarith
+    have hbase0 : 0 ≤ (1 : ℝ) - 1 / k := by
+      field_simp
+      linarith
+    have hbaseExp : (1 : ℝ) - 1 / k ≤ Real.exp (-(1 / k)) :=
+      Real.one_sub_le_exp_neg _
+    have hpow : ((1 : ℝ) - 1 / k) ^ τ ≤
+        Real.exp (-(1 / k)) ^ τ :=
+      pow_le_pow_left₀ hbase0 hbaseExp τ
+    have harg : (τ : ℝ) * (-(1 / k)) ≤ -2 * Real.log k := by
+      calc
+        (τ : ℝ) * (-(1 / k)) ≤
+            (2 * (k : ℝ) * Real.log k) * (-(1 / k)) :=
+          mul_le_mul_of_nonpos_right hτ (neg_nonpos.mpr (by positivity))
+        _ = -2 * Real.log k := by field_simp
+    have hexp : Real.exp (-(1 / k)) ^ τ ≤
+        Real.exp (-2 * Real.log k) := by
+      rw [← Real.exp_nat_mul]
+      exact Real.exp_monotone harg
+    have heq : Real.exp (-2 * Real.log k) = 1 / (k : ℝ) ^ 2 := by
+      rw [show -2 * Real.log (k : ℝ) = -Real.log ((k : ℝ) ^ 2) by
+        rw [Real.log_pow]; norm_num]
+      rw [Real.exp_neg, Real.exp_log (by positivity)]
+      simp only [one_div]
+    rw [heq] at hexp
+    have := hpow.trans hexp
+    have hk2ne : (k : ℝ) ^ 2 ≠ 0 := pow_ne_zero _ hk0.ne'
+    dsimp only [vinogradovDelta]
+    calc
+      (k : ℝ) ^ 2 / 2 * (1 - 1 / (k : ℝ)) ^ vinogradovIterations k ≤
+          (k : ℝ) ^ 2 / 2 * (1 / (k : ℝ) ^ 2) :=
+        mul_le_mul_of_nonneg_left this (by positivity)
+      _ = 1 / 2 := by field_simp
+
+private theorem taylorScale_eq_rpow {N : ℕ} {t : ℝ} {k : ℕ}
+    (hN : 2 ≤ N) (ht : 0 < t) :
+    (N : ℝ) / t ^ (1 / (k + 1 : ℝ)) =
+      (N : ℝ) ^
+        (1 - (Real.log t / Real.log N) / (k + 1 : ℝ)) := by
+  have hNR : (0 : ℝ) < N := by positivity
+  have hlogN : Real.log (N : ℝ) ≠ 0 := (Real.log_pos (by
+    exact_mod_cast hN)).ne'
+  have hk1 : (k + 1 : ℝ) ≠ 0 := by positivity
+  rw [Real.rpow_def_of_pos ht, Real.rpow_def_of_pos hNR]
+  have hexp : Real.log (N : ℝ) *
+        (1 - Real.log t / Real.log (N : ℝ) / (k + 1 : ℝ)) =
+      Real.log (N : ℝ) - Real.log t * (1 / (k + 1 : ℝ)) := by
+    field_simp
+  rw [hexp]
+  rw [Real.exp_sub, Real.exp_log hNR]
+
+private theorem vinogradovShortLength_spec {N : ℕ} {t : ℝ} {k : ℕ}
+    (hN : 2 ≤ N) (ht1 : 1 ≤ t) (htNk : t ≤ (N : ℝ) ^ k) :
+    let M := vinogradovShortLength N t k
+    1 ≤ M ∧ M ≤ N ∧
+      t * (M : ℝ) ^ (k + 1) ≤ (N : ℝ) ^ (k + 1) ∧
+      (N : ℝ) ^ (k + 1) ≤
+        (2 : ℝ) ^ (k + 1) * t * (M : ℝ) ^ (k + 1) ∧
+      (M : ℝ) ≤ (N : ℝ) ^
+        (1 - (Real.log t / Real.log N) / (k + 1 : ℝ)) := by
+  let a : ℝ := 1 / (k + 1 : ℝ)
+  let root : ℝ := t ^ a
+  let x : ℝ := (N : ℝ) / root
+  let M := vinogradovShortLength N t k
+  have hNR : (0 : ℝ) < N := by positivity
+  have hN1R : (1 : ℝ) ≤ N := by exact_mod_cast (show 1 ≤ N by omega)
+  have ht0 : 0 < t := lt_of_lt_of_le zero_lt_one ht1
+  have ha : 0 < a := by dsimp [a]; positivity
+  have hroot0 : 0 < root := by dsimp [root]; positivity
+  have hroot1 : 1 ≤ root := by
+    dsimp [root]
+    exact Real.one_le_rpow ht1 ha.le
+  have hrootPow : root ^ (k + 1) = t := by
+    dsimp [root, a]
+    rw [← Real.rpow_natCast]
+    push_cast
+    rw [← Real.rpow_mul ht0.le]
+    convert Real.rpow_one t using 2
+    field_simp
+  have htNk' : t ≤ (N : ℝ) ^ (k : ℝ) := by
+    simpa only [Real.rpow_natCast] using htNk
+  have hroot_le_pow : root ≤ (N : ℝ) ^ ((k : ℝ) / (k + 1 : ℝ)) := by
+    have h := Real.rpow_le_rpow ht0.le htNk' ha.le
+    dsimp only [root, a]
+    dsimp only [a] at h
+    rw [← Real.rpow_mul hNR.le] at h
+    convert h using 1
+    field_simp
+  have hexp_le : (k : ℝ) / (k + 1 : ℝ) ≤ 1 := by
+    apply (div_le_one (by positivity)).mpr
+    linarith
+  have hrootN : root ≤ (N : ℝ) := hroot_le_pow.trans (by
+    simpa using Real.rpow_le_rpow_of_exponent_le hN1R hexp_le)
+  have hx1 : 1 ≤ x := by
+    dsimp [x]
+    exact (le_div_iff₀ hroot0).mpr (by simpa using hrootN)
+  have hMdef : M = ⌊x⌋₊ := by rfl
+  have hM1 : 1 ≤ M := by
+    rw [hMdef]
+    exact Nat.le_floor (by simpa using hx1)
+  have hfloor : (M : ℝ) ≤ x := by
+    rw [hMdef]
+    exact Nat.floor_le (by positivity)
+  have hxN : x ≤ N := by
+    dsimp [x]
+    exact (div_le_iff₀ hroot0).mpr (by nlinarith)
+  have hMN : M ≤ N := by exact_mod_cast hfloor.trans hxN
+  have hxM : x ≤ 2 * (M : ℝ) := by
+    have hlt := Nat.lt_floor_add_one x
+    rw [← hMdef] at hlt
+    have hM1R : (1 : ℝ) ≤ M := by exact_mod_cast hM1
+    linarith
+  have hMroot : (M : ℝ) * root ≤ N := by
+    apply (le_div_iff₀ hroot0).mp
+    simpa only [x] using hfloor
+  have hNrootM : (N : ℝ) ≤ 2 * (M : ℝ) * root := by
+    apply (div_le_iff₀ hroot0).mp
+    simpa only [x, mul_assoc] using hxM
+  have hscalePow := pow_le_pow_left₀ (mul_nonneg (Nat.cast_nonneg M) hroot0.le)
+    hMroot (k + 1)
+  have hlowerPow := pow_le_pow_left₀ hNR.le hNrootM (k + 1)
+  have hscale : t * (M : ℝ) ^ (k + 1) ≤ (N : ℝ) ^ (k + 1) := by
+    rw [mul_pow, hrootPow] at hscalePow
+    nlinarith
+  have hlower : (N : ℝ) ^ (k + 1) ≤
+      (2 : ℝ) ^ (k + 1) * t * (M : ℝ) ^ (k + 1) := by
+    rw [mul_pow, mul_pow, hrootPow] at hlowerPow
+    nlinarith
+  have hMrpow : (M : ℝ) ≤ (N : ℝ) ^
+      (1 - (Real.log t / Real.log N) / (k + 1 : ℝ)) := by
+    rw [← taylorScale_eq_rpow hN ht0]
+    exact hfloor
+  exact ⟨hM1, hMN, hscale, hlower, hMrpow⟩
+
+/-- The portion of the Weyl prefactor which remains after its one factor of
+the short length has been exposed. -/
+noncomputable def vinogradovReducedPrefactor (k τ : ℕ) : ℝ :=
+  (6 : ℝ) ^ (k + 2) * (3 : ℝ) ^ k * (2 : ℝ) ^ (4 * (k * τ)) *
+    vinogradovMeanValueEnvelope k τ * (Real.pi * (k : ℝ) ^ 2) ^ k
+
+private theorem vinogradovWeylPrefactor_le_reduced
+    {k τ M N : ℕ} {t : ℝ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) (hM : 1 ≤ M) (hN : 1 ≤ N) (ht : 0 < t)
+    (hlower : (N : ℝ) ^ (k + 1) ≤
+      (2 : ℝ) ^ (k + 1) * t * (M : ℝ) ^ (k + 1)) :
+    vinogradovWeylPrefactor k τ M N t ≤
+      vinogradovReducedPrefactor k τ * M := by
+  have hkR : (1 : ℝ) ≤ k := by exact_mod_cast (show 1 ≤ k by omega)
+  have hMR : (0 : ℝ) < M := by exact_mod_cast (show 0 < M by omega)
+  have hNR : (0 : ℝ) < N := by exact_mod_cast (show 0 < N by omega)
+  have hN1R : (1 : ℝ) ≤ N := by exact_mod_cast hN
+  have hthreeN : (2 * N + 1 : ℝ) ≤ 3 * N := by
+    nlinarith
+  have hnum := pow_le_pow_left₀ (by positivity : (0 : ℝ) ≤ 2 * N + 1)
+    hthreeN (k + 1)
+  have hratio : (2 * N + 1 : ℝ) ^ (k + 1) /
+        ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) ≤
+      (6 : ℝ) ^ (k + 1) * M := by
+    apply (div_le_iff₀ (by positivity)).mpr
+    calc
+      (2 * N + 1 : ℝ) ^ (k + 1) ≤
+          (3 * (N : ℝ)) ^ (k + 1) := hnum
+      _ = (3 : ℝ) ^ (k + 1) * (N : ℝ) ^ (k + 1) := by rw [mul_pow]
+      _ ≤ (3 : ℝ) ^ (k + 1) *
+          ((2 : ℝ) ^ (k + 1) * t * (M : ℝ) ^ (k + 1)) :=
+        mul_le_mul_of_nonneg_left hlower (by positivity)
+      _ ≤ (6 : ℝ) ^ (k + 1) * M *
+          ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) := by
+        rw [show (6 : ℝ) ^ (k + 1) =
+          (3 : ℝ) ^ (k + 1) * 2 ^ (k + 1) by
+            rw [← mul_pow]; norm_num]
+        rw [show (M : ℝ) ^ (k + 1) = (M : ℝ) ^ k * M by rw [pow_succ]]
+        have hkSq : (1 : ℝ) ≤ (k : ℝ) ^ 2 := by nlinarith [sq_nonneg (k : ℝ)]
+        have hfac0 : 0 ≤ (3 : ℝ) ^ (k + 1) * 2 ^ (k + 1) * t *
+            (M : ℝ) ^ k * M := by positivity
+        calc
+          (3 : ℝ) ^ (k + 1) * (2 ^ (k + 1) * t * ((M : ℝ) ^ k * M)) =
+              (3 : ℝ) ^ (k + 1) * 2 ^ (k + 1) * t *
+                (M : ℝ) ^ k * M := by ring
+          _ ≤ ((3 : ℝ) ^ (k + 1) * 2 ^ (k + 1) * t *
+                (M : ℝ) ^ k * M) * (k : ℝ) ^ 2 :=
+            le_mul_of_one_le_right hfac0 hkSq
+          _ = (3 : ℝ) ^ (k + 1) * 2 ^ (k + 1) * M *
+                ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) := by ring
+  have hmult : 2 * (2 * ((2 * N + 1 : ℝ) ^ (k + 1) /
+          ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k)) + 1) ≤
+      (6 : ℝ) ^ (k + 2) * M := by
+    have hpow6 : (1 : ℝ) ≤ (6 : ℝ) ^ (k + 1) := one_le_pow₀ (by norm_num)
+    have heq : (6 : ℝ) ^ (k + 2) * M =
+        6 * ((6 : ℝ) ^ (k + 1) * M) := by
+      rw [show k + 2 = (k + 1) + 1 by omega, pow_succ]
+      ring
+    rw [heq]
+    have hBM1 : (1 : ℝ) ≤ (6 : ℝ) ^ (k + 1) * M := by
+      have hM1R : (1 : ℝ) ≤ M := by exact_mod_cast hM
+      simpa only [one_mul] using mul_le_mul hpow6 hM1R (by positivity) (by norm_num)
+    nlinarith
+  have hmult' : 2 * (2 * (2 * N + 1 : ℝ) ^ (k + 1) /
+          ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) + 1) ≤
+      (6 : ℝ) ^ (k + 2) * M := by
+    convert hmult using 1
+    ring
+  have hC := vinogradovMeanValueConstant_le hk hτ
+  have hcore :
+      2 * (2 * (2 * N + 1 : ℝ) ^ (k + 1) /
+            ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) + 1) *
+          vinogradovMeanValueConstant k τ ≤
+        ((6 : ℝ) ^ (k + 2) * M) * vinogradovMeanValueEnvelope k τ := by
+    calc
+      2 * (2 * (2 * N + 1 : ℝ) ^ (k + 1) /
+            ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) + 1) *
+          vinogradovMeanValueConstant k τ ≤
+        ((6 : ℝ) ^ (k + 2) * M) * vinogradovMeanValueConstant k τ :=
+          mul_le_mul_of_nonneg_right hmult' (vinogradovMeanValueConstant_spec hk hτ).1.le
+      _ ≤ ((6 : ℝ) ^ (k + 2) * M) * vinogradovMeanValueEnvelope k τ :=
+        mul_le_mul_of_nonneg_left hC (by positivity)
+  unfold vinogradovWeylPrefactor vinogradovReducedPrefactor
+  calc
+    2 * (2 * (2 * N + 1 : ℝ) ^ (k + 1) /
+          ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) + 1) *
+        3 ^ k * 2 ^ (4 * (k * τ)) * vinogradovMeanValueConstant k τ *
+          (Real.pi * (k : ℝ) ^ 2) ^ k =
+      (2 * (2 * (2 * N + 1 : ℝ) ^ (k + 1) /
+          ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) + 1) *
+        vinogradovMeanValueConstant k τ) *
+          (3 ^ k * 2 ^ (4 * (k * τ)) * (Real.pi * (k : ℝ) ^ 2) ^ k) := by ring
+    _ ≤ (((6 : ℝ) ^ (k + 2) * M) * vinogradovMeanValueEnvelope k τ) *
+          (3 ^ k * 2 ^ (4 * (k * τ)) * (Real.pi * (k : ℝ) ^ 2) ^ k) :=
+      mul_le_mul_of_nonneg_right hcore (by positivity)
+    _ = (6 : ℝ) ^ (k + 2) * 3 ^ k * 2 ^ (4 * (k * τ)) *
+          vinogradovMeanValueEnvelope k τ * (Real.pi * (k : ℝ) ^ 2) ^ k * M := by ring
+
+private theorem log_vinogradovReducedPrefactor_le {k τ : ℕ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) :
+    Real.log (vinogradovReducedPrefactor k τ) ≤
+      vinogradovPrefactorLogBudget k τ := by
+  let m : ℕ := k + τ + 1
+  let L : ℝ := Real.log (2 * (m : ℝ))
+  have hm : 4 ≤ m := by dsimp [m]; omega
+  have hm0 : (0 : ℝ) < m := by positivity
+  have hkR : (0 : ℝ) < k := by positivity
+  have hL0 : 0 < L := by
+    dsimp [L]
+    exact Real.log_pos (by nlinarith [show (4 : ℝ) ≤ m by exact_mod_cast hm])
+  have hlog2 : Real.log 2 ≤ L := by
+    dsimp [L]
+    exact Real.log_le_log (by norm_num) (by
+      have hmR : (4 : ℝ) ≤ m := by exact_mod_cast hm
+      nlinarith)
+  have hlog3 : Real.log 3 ≤ L := by
+    dsimp [L]
+    exact Real.log_le_log (by norm_num) (by nlinarith [show (4 : ℝ) ≤ m by exact_mod_cast hm])
+  have hlog6 : Real.log 6 ≤ L := by
+    dsimp [L]
+    exact Real.log_le_log (by norm_num) (by nlinarith [show (4 : ℝ) ≤ m by exact_mod_cast hm])
+  have hk_m : (k : ℝ) ≤ m := by exact_mod_cast (show k ≤ m by dsimp [m]; omega)
+  have hpi : Real.pi * (k : ℝ) ^ 2 ≤ (2 * (m : ℝ)) ^ 3 := by
+    have hp : Real.pi ≤ 4 := Real.pi_lt_four.le
+    have hkSq := pow_le_pow_left₀ hkR.le hk_m 2
+    have hm1 : (1 : ℝ) ≤ m := by exact_mod_cast (show 1 ≤ m by omega)
+    calc
+      Real.pi * (k : ℝ) ^ 2 ≤ 4 * (m : ℝ) ^ 2 :=
+        mul_le_mul hp hkSq (sq_nonneg _) (by positivity)
+      _ ≤ (2 * (m : ℝ)) ^ 3 := by
+        rw [mul_pow]
+        nlinarith [sq_nonneg ((m : ℝ) - 1)]
+  have hlogpi : Real.log (Real.pi * (k : ℝ) ^ 2) ≤ 3 * L := by
+    calc
+      Real.log (Real.pi * (k : ℝ) ^ 2) ≤ Real.log ((2 * (m : ℝ)) ^ 3) :=
+        Real.log_le_log (by positivity) hpi
+      _ = 3 * L := by rw [Real.log_pow]; rfl
+  have henv := log_vinogradovMeanValueEnvelope_le hk hτ
+  have henv' : Real.log (vinogradovMeanValueEnvelope k τ) ≤
+      6144 * (k : ℝ) * τ * m * L := by
+    dsimp only [m, L]
+    push_cast
+    exact henv
+  have hcoeff : ((k + 2 : ℕ) : ℝ) + k + 4 * (k * τ) + 3 * k +
+      6144 * (k : ℝ) * τ * m ≤ 8192 * (k : ℝ) * τ * m := by
+    have hk_le : k ≤ k * τ * m := by
+      calc
+        k = k * 1 * 1 := by omega
+        _ ≤ k * τ * m := Nat.mul_le_mul (Nat.mul_le_mul le_rfl hτ) (by
+          dsimp [m]; omega)
+    have hkτ_le : k * τ ≤ k * τ * m := by
+      calc
+        k * τ = k * τ * 1 := by omega
+        _ ≤ k * τ * m := Nat.mul_le_mul_left _ (by dsimp [m]; omega)
+    have hcoeffNat : (k + 2) + k + 4 * (k * τ) + 3 * k +
+        6144 * (k * τ * m) ≤ 8192 * (k * τ * m) := by omega
+    have hcoeffR : (((k + 2) + k + 4 * (k * τ) + 3 * k +
+        6144 * (k * τ * m) : ℕ) : ℝ) ≤ (8192 * (k * τ * m) : ℕ) := by
+      exact_mod_cast hcoeffNat
+    norm_num [Nat.cast_add, Nat.cast_mul] at hcoeffR ⊢
+    simpa only [mul_assoc] using hcoeffR
+  have henv0 : 0 < vinogradovMeanValueEnvelope k τ := by
+    unfold vinogradovMeanValueEnvelope vinogradovMeanValueEnvelopeBase
+    positivity
+  have hbudget : vinogradovPrefactorLogBudget k τ =
+      8192 * (k : ℝ) * τ * (m : ℝ) * L := by
+    dsimp [vinogradovPrefactorLogBudget, m, L]
+    push_cast
+    ring
+  unfold vinogradovReducedPrefactor
+  rw [Real.log_mul (by positivity) (by positivity),
+    Real.log_mul (by positivity) henv0.ne',
+    Real.log_mul (by positivity) (by positivity),
+    Real.log_mul (by positivity) (by positivity),
+    Real.log_pow, Real.log_pow, Real.log_pow, Real.log_pow]
+  push_cast
+  rw [hbudget]
+  change ((k : ℝ) + 2) * Real.log 6 + (k : ℝ) * Real.log 3 +
+      (4 * ((k : ℝ) * τ)) * Real.log 2 +
+      Real.log (vinogradovMeanValueEnvelope k τ) +
+      (k : ℝ) * Real.log (Real.pi * (k : ℝ) ^ 2) ≤
+    8192 * (k : ℝ) * τ * (m : ℝ) * L
+  have h6 := mul_le_mul_of_nonneg_left hlog6 (by positivity : 0 ≤ (k : ℝ) + 2)
+  have h3 := mul_le_mul_of_nonneg_left hlog3 (by positivity : 0 ≤ (k : ℝ))
+  have h2 := mul_le_mul_of_nonneg_left hlog2 (by positivity : 0 ≤ 4 * (k : ℝ) * τ)
+  have hp := mul_le_mul_of_nonneg_left hlogpi (by positivity : 0 ≤ (k : ℝ))
+  have hcoeff' : ((k : ℝ) + 2) + k + 4 * (k * τ) + 3 * k +
+      6144 * (k : ℝ) * τ * m ≤ 8192 * (k : ℝ) * τ * m := by
+    norm_num [Nat.cast_add] at hcoeff
+    exact hcoeff
+  calc
+    ((k : ℝ) + 2) * Real.log 6 + (k : ℝ) * Real.log 3 +
+          (4 * ((k : ℝ) * τ)) * Real.log 2 +
+          Real.log (vinogradovMeanValueEnvelope k τ) +
+          (k : ℝ) * Real.log (Real.pi * (k : ℝ) ^ 2) ≤
+      ((k : ℝ) + 2) * L + (k : ℝ) * L +
+          (4 * ((k : ℝ) * τ)) * L +
+          6144 * (k : ℝ) * τ * m * L + (k : ℝ) * (3 * L) := by
+        nlinarith
+    _ =
+      (((k : ℝ) + 2) + k + 4 * (k * τ) + 3 * k +
+          6144 * (k : ℝ) * τ * m) * L := by ring
+    _ ≤ 8192 * (k : ℝ) * τ * m * L :=
+      mul_le_mul_of_nonneg_right hcoeff' hL0.le
+
+private theorem vinogradovReducedPrefactor_le_exp {k τ : ℕ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) :
+    vinogradovReducedPrefactor k τ ≤
+      Real.exp (vinogradovPrefactorLogBudget k τ) := by
+  have henv0 : 0 < vinogradovMeanValueEnvelope k τ := by
+    unfold vinogradovMeanValueEnvelope vinogradovMeanValueEnvelopeBase
+    positivity
+  rw [← Real.log_le_iff_le_exp (by
+    unfold vinogradovReducedPrefactor
+    positivity : 0 < vinogradovReducedPrefactor k τ)]
+  exact log_vinogradovReducedPrefactor_le hk hτ
+
+private theorem vinogradovScaleExponent_le_three_quarters {lam : ℝ}
+    (hlam : 1 ≤ lam) :
+    let k := vinogradovDegree lam
+    let τ := vinogradovIterations k
+    (1 + vinogradovDelta k τ) * (1 - lam / (k + 1 : ℝ)) ≤ 3 / 4 := by
+  dsimp only
+  by_cases hsmall : lam ≤ 2
+  · rw [vinogradovDegree, if_pos hsmall]
+    norm_num [vinogradovIterations, vinogradovDelta]
+    nlinarith
+  · have hlam2 : 2 < lam := lt_of_not_ge hsmall
+    have hlam0 : 0 ≤ lam := by linarith
+    rw [vinogradovDegree, if_neg hsmall]
+    let k : ℕ := ⌈lam⌉₊
+    let τ : ℕ := vinogradovIterations k
+    have hklo : lam ≤ (k : ℝ) := by
+      dsimp [k]
+      exact Nat.le_ceil lam
+    have hkhi : (k : ℝ) < lam + 1 := by
+      dsimp [k]
+      exact Nat.ceil_lt_add_one hlam0
+    have hk : 2 ≤ k := by
+      have : (2 : ℝ) < k := hlam2.trans_le hklo
+      exact_mod_cast this.le
+    have hk10 : (0 : ℝ) < k + 1 := by positivity
+    have hratio0 : 0 ≤ lam / (k + 1 : ℝ) := div_nonneg hlam0 hk10.le
+    have hratio1 : lam / (k + 1 : ℝ) ≤ 1 := by
+      apply (div_le_one hk10).mpr
+      linarith
+    have hratioHalf : (1 / 2 : ℝ) ≤ lam / (k + 1 : ℝ) := by
+      apply (le_div_iff₀ hk10).mpr
+      linarith
+    have hdelta := vinogradovDelta_le_half_of_iterations hk
+    have hdelta0 : 0 ≤ vinogradovDelta k τ := by
+      dsimp [vinogradovDelta]
+      have hbase : 0 ≤ (1 : ℝ) - 1 / k := by
+        have hkR : (2 : ℝ) ≤ k := by exact_mod_cast hk
+        field_simp
+        linarith
+      positivity
+    have hleft : 0 ≤ 1 + vinogradovDelta k τ := by positivity
+    have hright : 0 ≤ 1 - lam / (k + 1 : ℝ) := by linarith
+    have hmul := mul_le_mul (by linarith : 1 + vinogradovDelta k τ ≤ 3 / 2)
+      (by linarith : 1 - lam / (k + 1 : ℝ) ≤ 1 / 2)
+      hright (by norm_num : (0 : ℝ) ≤ 3 / 2)
+    norm_num at hmul ⊢
+    simpa only [k, τ] using hmul
+
+private theorem vinogradovParameterLogBudget_le {lam : ℝ} (hlam : 1 ≤ lam) :
+    let k := vinogradovDegree lam
+    let τ := vinogradovIterations k
+    vinogradovPrefactorLogBudget k τ ≤
+      46137344 * lam ^ 3 * Real.log (2 * lam) ^ 3 := by
+  let k := vinogradovDegree lam
+  let τ := vinogradovIterations k
+  let m : ℕ := k + τ + 1
+  let L : ℝ := Real.log (2 * lam)
+  let Lk : ℝ := Real.log (2 * (k : ℝ))
+  have hb := vinogradovDegree_bounds hlam
+  change 2 ≤ k ∧ lam ≤ (k : ℝ) ∧ (k : ℝ) ≤ 2 * lam at hb
+  rcases hb with ⟨hk, hlamk, hklam⟩
+  have hlam0 : 0 ≤ lam := le_trans (by norm_num) hlam
+  have hk0 : (0 : ℝ) ≤ k := by positivity
+  have hLhalf : (1 / 2 : ℝ) ≤ L := by
+    have hlog2lam : Real.log 2 ≤ L := by
+      dsimp [L]
+      exact Real.log_le_log (by norm_num) (by nlinarith)
+    nlinarith [Real.log_two_gt_d9]
+  have hL0 : 0 < L := lt_of_lt_of_le (by norm_num) hLhalf
+  have hLupper : L ≤ 2 * lam := by
+    dsimp [L]
+    exact (Real.log_le_sub_one_of_pos (by positivity : 0 < 2 * lam)).trans (by linarith)
+  have hLk : Lk ≤ 2 * L := by
+    have harg : (2 : ℝ) * k ≤ 4 * lam := by nlinarith
+    have hlog := Real.log_le_log (by positivity : 0 < 2 * (k : ℝ)) harg
+    have hsplit : Real.log (4 * lam) = Real.log 2 + L := by
+      rw [show 4 * lam = 2 * (2 * lam) by ring,
+        Real.log_mul (by norm_num) (by positivity)]
+    rw [hsplit] at hlog
+    have hlog2L : Real.log 2 ≤ L := by
+      dsimp [L]
+      exact Real.log_le_log (by norm_num) (by nlinarith)
+    exact hlog.trans (by linarith)
+  have hτk := vinogradovIterations_le hk
+  change (τ : ℝ) ≤ 4 * (k : ℝ) * Lk at hτk
+  have hτlam : (τ : ℝ) ≤ 16 * lam * L := by
+    have hLk0 : 0 ≤ Lk := le_trans zero_le_one (log_two_mul_nat_gt_one hk).le
+    calc
+      (τ : ℝ) ≤ 4 * (k : ℝ) * Lk := hτk
+      _ ≤ 4 * (2 * lam) * (2 * L) := by gcongr
+      _ = 16 * lam * L := by ring
+  have hm : (m : ℝ) ≤ 22 * lam * L := by
+    have hkL : (k : ℝ) ≤ 4 * lam * L := by
+      calc
+        (k : ℝ) ≤ 2 * lam := hklam
+        _ ≤ 4 * lam * L := by nlinarith [mul_nonneg hlam0 hL0.le]
+    have hone : (1 : ℝ) ≤ 2 * lam * L := by
+      nlinarith [mul_nonneg hlam0 hL0.le]
+    dsimp [m]
+    push_cast
+    linarith
+  have hm0 : (0 : ℝ) ≤ m := by positivity
+  have hlogm : Real.log (2 * (m : ℝ)) ≤ 8 * L := by
+    have hmrough : (2 : ℝ) * m ≤ 88 * lam ^ 2 := by
+      calc
+        (2 : ℝ) * m ≤ 2 * (22 * lam * L) := mul_le_mul_of_nonneg_left hm (by norm_num)
+        _ = 44 * lam * L := by ring
+        _ ≤ 44 * lam * (2 * lam) :=
+          mul_le_mul_of_nonneg_left hLupper (mul_nonneg (by norm_num) hlam0)
+        _ = 88 * lam ^ 2 := by ring
+    have hlam2 : (1 : ℝ) ≤ lam ^ 2 := one_le_pow₀ hlam
+    have hlam4 : lam ^ 2 ≤ lam ^ 4 := by
+      calc
+        lam ^ 2 = lam ^ 2 * 1 := by ring
+        _ ≤ lam ^ 2 * lam ^ 2 := mul_le_mul_of_nonneg_left hlam2 (sq_nonneg lam)
+        _ = lam ^ 4 := by ring
+    have hlam8 : lam ^ 4 ≤ lam ^ 8 := by
+      have hlam4one : (1 : ℝ) ≤ lam ^ 4 := hlam2.trans hlam4
+      calc
+        lam ^ 4 = lam ^ 4 * 1 := by ring
+        _ ≤ lam ^ 4 * lam ^ 4 := mul_le_mul_of_nonneg_left hlam4one (by positivity)
+        _ = lam ^ 8 := by ring
+    have hpow : (2 : ℝ) * m ≤ (2 * lam) ^ 8 := by
+      calc
+        (2 : ℝ) * m ≤ 88 * lam ^ 2 := hmrough
+        _ ≤ 256 * lam ^ 8 := by nlinarith [hlam4.trans hlam8]
+        _ = (2 * lam) ^ 8 := by ring
+    calc
+      Real.log (2 * (m : ℝ)) ≤ Real.log ((2 * lam) ^ 8) :=
+        Real.log_le_log (by positivity) hpow
+      _ = 8 * L := by rw [Real.log_pow]; rfl
+  have hbudget : vinogradovPrefactorLogBudget k τ =
+      8192 * (k : ℝ) * τ * (m : ℝ) * Real.log (2 * (m : ℝ)) := by
+    dsimp [vinogradovPrefactorLogBudget, m]
+    push_cast
+    ring
+  change vinogradovPrefactorLogBudget k τ ≤ 46137344 * lam ^ 3 * L ^ 3
+  rw [hbudget]
+  have hlogm0 : 0 ≤ Real.log (2 * (m : ℝ)) := by
+    apply Real.log_nonneg
+    have hmNat : 1 ≤ m := by dsimp [m]; omega
+    exact_mod_cast (show 1 ≤ 2 * m by omega)
+  calc
+    8192 * (k : ℝ) * τ * (m : ℝ) * Real.log (2 * (m : ℝ)) ≤
+        8192 * (2 * lam) * (16 * lam * L) * (22 * lam * L) * (8 * L) := by
+      gcongr
+    _ = 46137344 * lam ^ 3 * L ^ 3 := by ring
+
+private theorem vinogradovTargetSaving_le_natural {lam : ℝ} (hlam : 1 ≤ lam) :
+    let k := vinogradovDegree lam
+    let τ := vinogradovIterations k
+    vinogradovWeylSaving / (lam ^ 3 * Real.log (2 * lam) ^ 3) ≤
+      1 / (16 * (k : ℝ) * τ) := by
+  let k := vinogradovDegree lam
+  let τ := vinogradovIterations k
+  let L : ℝ := Real.log (2 * lam)
+  have hb := vinogradovDegree_bounds hlam
+  change 2 ≤ k ∧ lam ≤ (k : ℝ) ∧ (k : ℝ) ≤ 2 * lam at hb
+  rcases hb with ⟨hk, _hlamk, hklam⟩
+  have hLhalf : (1 / 2 : ℝ) ≤ L := by
+    have hlog2lam : Real.log 2 ≤ L := by
+      dsimp [L]
+      exact Real.log_le_log (by norm_num) (by nlinarith)
+    nlinarith [Real.log_two_gt_d9]
+  have hL0 : 0 < L := lt_of_lt_of_le (by norm_num) hLhalf
+  have hLk : Real.log (2 * (k : ℝ)) ≤ 2 * L := by
+    have hlam0 : 0 ≤ lam := by linarith
+    have harg : (2 : ℝ) * k ≤ 4 * lam := by nlinarith
+    have hlog := Real.log_le_log (by positivity : 0 < 2 * (k : ℝ)) harg
+    have hsplit : Real.log (4 * lam) = Real.log 2 + L := by
+      rw [show 4 * lam = 2 * (2 * lam) by ring,
+        Real.log_mul (by norm_num) (by positivity)]
+    have hlog2L : Real.log 2 ≤ L := by
+      dsimp [L]
+      exact Real.log_le_log (by norm_num) (by nlinarith)
+    rw [hsplit] at hlog
+    exact hlog.trans (by linarith)
+  have hτk := vinogradovIterations_le hk
+  change (τ : ℝ) ≤ 4 * (k : ℝ) * Real.log (2 * k) at hτk
+  have hkτ : (k : ℝ) * τ ≤ 32 * lam ^ 2 * L := by
+    have hLk0 : 0 ≤ Real.log (2 * (k : ℝ)) :=
+      le_trans zero_le_one (log_two_mul_nat_gt_one hk).le
+    calc
+      (k : ℝ) * τ ≤ (k : ℝ) * (4 * k * Real.log (2 * k)) :=
+        mul_le_mul_of_nonneg_left hτk (by positivity)
+      _ ≤ (2 * lam) * (4 * (2 * lam) * (2 * L)) := by gcongr
+      _ = 32 * lam ^ 2 * L := by ring
+  have hden0 : 0 < lam ^ 3 * L ^ 3 := by positivity
+  have hnatDen0 : 0 < 16 * (k : ℝ) * τ := by
+    have hτ := vinogradovIterations_one_le k
+    positivity
+  change vinogradovWeylSaving / (lam ^ 3 * L ^ 3) ≤
+    1 / (16 * (k : ℝ) * τ)
+  apply (div_le_div_iff₀ hden0 hnatDen0).mpr
+  have hsmall : 512 * vinogradovWeylSaving ≤ lam * L ^ 2 := by
+    have : (512 : ℝ) * vinogradovWeylSaving ≤ 1 / 4 := by
+      norm_num [vinogradovWeylSaving]
+    have hlam0 : (0 : ℝ) ≤ lam := by linarith
+    have hprod : (1 / 4 : ℝ) ≤ lam * L ^ 2 := by
+      have hs : (1 / 4 : ℝ) ≤ L ^ 2 := by nlinarith [sq_nonneg (L - 1 / 2)]
+      have hp := mul_le_mul hlam hs (by norm_num : (0 : ℝ) ≤ 1 / 4) hlam0
+      simpa only [one_mul] using hp
+    exact this.trans hprod
+  have hc0 : 0 ≤ vinogradovWeylSaving := vinogradovWeylSaving_pos.le
+  have hden : 16 * (k : ℝ) * τ ≤ 512 * lam ^ 2 * L := by
+    nlinarith
+  calc
+    vinogradovWeylSaving * (16 * (k : ℝ) * τ) ≤
+        vinogradovWeylSaving * (512 * lam ^ 2 * L) := by
+      exact mul_le_mul_of_nonneg_left hden hc0
+    _ ≤ lam ^ 3 * L ^ 3 := by
+      calc
+        vinogradovWeylSaving * (512 * lam ^ 2 * L) =
+            (512 * vinogradovWeylSaving) * (lam ^ 2 * L) := by ring
+        _ ≤ (lam * L ^ 2) * (lam ^ 2 * L) :=
+          mul_le_mul_of_nonneg_right hsmall (mul_nonneg (sq_nonneg lam) hL0.le)
+        _ = lam ^ 3 * L ^ 3 := by ring
+    _ = 1 * (lam ^ 3 * L ^ 3) := by ring
+
+private theorem rpow_prefactor_absorb {N Q B r : ℝ}
+    (hN : 1 ≤ N) (hQ : 0 ≤ Q) (hr : 0 ≤ r)
+    (hQexp : Q ≤ Real.exp B) (hlarge : 8 * B ≤ Real.log N) :
+    (Q * N ^ (-(1 / 4 : ℝ))) ^ r ≤ N ^ (-(r / 8)) := by
+  have hN0 : 0 < N := lt_of_lt_of_le zero_lt_one hN
+  have hNpow0 : 0 ≤ N ^ (-(1 / 4 : ℝ)) := Real.rpow_nonneg hN0.le _
+  have hQpow : Q ^ r ≤ N ^ (r / 8) := by
+    have hfirst := Real.rpow_le_rpow hQ hQexp hr
+    calc
+      Q ^ r ≤ (Real.exp B) ^ r := hfirst
+      _ = Real.exp (B * r) := by rw [Real.rpow_def_of_pos (Real.exp_pos B), Real.log_exp]
+      _ ≤ Real.exp (Real.log N * (r / 8)) := by
+        apply Real.exp_monotone
+        have := mul_le_mul_of_nonneg_right hlarge hr
+        nlinarith
+      _ = N ^ (r / 8) := by rw [Real.rpow_def_of_pos hN0]
+  rw [Real.mul_rpow hQ hNpow0]
+  calc
+    Q ^ r * (N ^ (-(1 / 4 : ℝ))) ^ r ≤
+        N ^ (r / 8) * (N ^ (-(1 / 4 : ℝ))) ^ r :=
+      mul_le_mul_of_nonneg_right hQpow (Real.rpow_nonneg hNpow0 _)
+    _ = N ^ (r / 8) * N ^ (-(r / 4)) := by
+      rw [← Real.rpow_mul hN0.le]
+      congr 2
+      ring
+    _ = N ^ (-(r / 8)) := by
+      rw [← Real.rpow_add hN0]
+      congr 1
+      ring
+
+set_option maxHeartbeats 1000000 in
+/-- V-C2-10'.  The fixed Vinogradov parameter choice, including the
+degree-two bounded band, the large-`N` prefactor absorption, and the
+trivial complementary branch.  The constants recorded here are
+`c = 2⁻²⁷`, `C = 100`, and `K = 8 · 46137344 = 369098752`. -/
+theorem norm_log_sum_le_vinogradovFixed
+    (N : ℕ) (t : ℝ) (hN : 2 ≤ N) (htN : (N : ℝ) ≤ t)
+    (u : ℝ) (R : ℕ) (hu0 : 0 ≤ u) (hu1 : u ≤ 1)
+    (hNR : N < R) (hR : R ≤ 2 * N) :
+    ‖∑ n ∈ Finset.Ioc N R,
+        ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u))‖ ≤
+      100 * (N : ℝ) ^
+        (1 - vinogradovWeylSaving /
+          ((Real.log t / Real.log N) ^ 3 *
+            Real.log (2 * (Real.log t / Real.log N)) ^ 3)) := by
+  let lam : ℝ := Real.log t / Real.log N
+  let k : ℕ := vinogradovDegree lam
+  let τ : ℕ := vinogradovIterations k
+  let M : ℕ := vinogradovShortLength N t k
+  let B : ℝ := vinogradovPrefactorLogBudget k τ
+  let eps : ℝ := vinogradovWeylSaving / (lam ^ 3 * Real.log (2 * lam) ^ 3)
+  let r : ℝ := (((2 * (k * τ) : ℕ) : ℝ))⁻¹
+  have hNR0 : (0 : ℝ) < N := by positivity
+  have hN1R : (1 : ℝ) ≤ N := by exact_mod_cast (show 1 ≤ N by omega)
+  have hlogN : 0 < Real.log (N : ℝ) := Real.log_pos (by exact_mod_cast hN)
+  have ht0 : 0 < t := lt_of_lt_of_le hNR0 htN
+  have ht1 : 1 ≤ t := le_trans hN1R htN
+  have hlogNt : Real.log (N : ℝ) ≤ Real.log t :=
+    Real.log_le_log hNR0 htN
+  have hlam : 1 ≤ lam := by
+    dsimp [lam]
+    exact (le_div_iff₀ hlogN).mpr (by simpa using hlogNt)
+  have hb := vinogradovDegree_bounds hlam
+  change 2 ≤ k ∧ lam ≤ (k : ℝ) ∧ (k : ℝ) ≤ 2 * lam at hb
+  rcases hb with ⟨hk, hlamk, hklam⟩
+  have hτ : 1 ≤ τ := vinogradovIterations_one_le k
+  have htNk : t ≤ (N : ℝ) ^ k := by
+    have hlogtk : Real.log t ≤ (k : ℝ) * Real.log N := by
+      have := (mul_le_mul_of_nonneg_right hlamk hlogN.le)
+      dsimp [lam] at this
+      field_simp [hlogN.ne'] at this
+      nlinarith
+    calc
+      t = Real.exp (Real.log t) := (Real.exp_log ht0).symm
+      _ ≤ Real.exp ((k : ℝ) * Real.log N) := Real.exp_monotone hlogtk
+      _ = (N : ℝ) ^ k := by rw [Real.exp_nat_mul, Real.exp_log hNR0]
+  have hMspec := vinogradovShortLength_spec hN ht1 htNk
+  change 1 ≤ M ∧ M ≤ N ∧
+      t * (M : ℝ) ^ (k + 1) ≤ (N : ℝ) ^ (k + 1) ∧
+      (N : ℝ) ^ (k + 1) ≤
+        (2 : ℝ) ^ (k + 1) * t * (M : ℝ) ^ (k + 1) ∧
+      (M : ℝ) ≤ (N : ℝ) ^ (1 - lam / (k + 1 : ℝ)) at hMspec
+  rcases hMspec with ⟨hM, hMN, hscale, hlower, hMpow⟩
+  have hdelta := vinogradovDelta_le_half_of_iterations hk
+  have hdelta0 : 0 ≤ vinogradovDelta k τ := by
+    dsimp [vinogradovDelta]
+    have hbase : 0 ≤ (1 : ℝ) - 1 / k := by
+      have hkR : (2 : ℝ) ≤ k := by exact_mod_cast hk
+      field_simp
+      linarith
+    positivity
+  have halpha0 : 0 ≤ 1 - lam / (k + 1 : ℝ) := by
+    have hk10 : (0 : ℝ) < k + 1 := by positivity
+    have : lam / (k + 1 : ℝ) ≤ 1 := (div_le_one hk10).mpr (by linarith)
+    linarith
+  have hscaleExp := vinogradovScaleExponent_le_three_quarters hlam
+  change (1 + vinogradovDelta k τ) * (1 - lam / (k + 1 : ℝ)) ≤ 3 / 4 at hscaleExp
+  have hMthree : (M : ℝ) ^ (1 + vinogradovDelta k τ) ≤
+      (N : ℝ) ^ (3 / 4 : ℝ) := by
+    have hp := Real.rpow_le_rpow (Nat.cast_nonneg M) hMpow (by positivity :
+      0 ≤ 1 + vinogradovDelta k τ)
+    rw [← Real.rpow_mul hNR0.le] at hp
+    exact hp.trans (Real.rpow_le_rpow_of_exponent_le hN1R (by
+      simpa only [mul_comm] using hscaleExp))
+  have hQ := vinogradovWeylPrefactor_le_reduced hk hτ hM (show 1 ≤ N by omega) ht0 hlower
+  have henv0 : 0 < vinogradovMeanValueEnvelope k τ := by
+    unfold vinogradovMeanValueEnvelope vinogradovMeanValueEnvelopeBase
+    positivity
+  have hred0 : 0 ≤ vinogradovReducedPrefactor k τ := by
+    unfold vinogradovReducedPrefactor
+    positivity
+  have hpref0 : 0 ≤ vinogradovWeylPrefactor k τ M N t := by
+    have hC0 := (vinogradovMeanValueConstant_spec hk hτ).1.le
+    unfold vinogradovWeylPrefactor
+    positivity
+  have hbase : vinogradovWeylPrefactor k τ M N t *
+        (M : ℝ) ^ vinogradovDelta k τ / (N : ℝ) ≤
+      vinogradovReducedPrefactor k τ * (N : ℝ) ^ (-(1 / 4 : ℝ)) := by
+    have hM0 : (0 : ℝ) ≤ M := Nat.cast_nonneg M
+    have hleft := mul_le_mul_of_nonneg_right hQ
+      (Real.rpow_nonneg hM0 (vinogradovDelta k τ))
+    have hprod : (M : ℝ) * (M : ℝ) ^ vinogradovDelta k τ =
+        (M : ℝ) ^ (1 + vinogradovDelta k τ) := by
+      rw [Real.rpow_add (by positivity : (0 : ℝ) < M), Real.rpow_one]
+    calc
+      vinogradovWeylPrefactor k τ M N t *
+          (M : ℝ) ^ vinogradovDelta k τ / (N : ℝ) ≤
+        (vinogradovReducedPrefactor k τ * M) *
+          (M : ℝ) ^ vinogradovDelta k τ / (N : ℝ) := by gcongr
+      _ = vinogradovReducedPrefactor k τ *
+          ((M : ℝ) ^ (1 + vinogradovDelta k τ) / (N : ℝ)) := by
+        rw [← hprod]
+        ring
+      _ ≤ vinogradovReducedPrefactor k τ *
+          ((N : ℝ) ^ (3 / 4 : ℝ) / (N : ℝ)) := by
+        exact mul_le_mul_of_nonneg_left
+          (div_le_div_of_nonneg_right hMthree hNR0.le) hred0
+      _ = vinogradovReducedPrefactor k τ * (N : ℝ) ^ (-(1 / 4 : ℝ)) := by
+        congr 1
+        calc
+          (N : ℝ) ^ (3 / 4 : ℝ) / (N : ℝ) =
+              (N : ℝ) ^ (3 / 4 : ℝ) / (N : ℝ) ^ (1 : ℝ) := by
+            rw [Real.rpow_one]
+          _ = (N : ℝ) ^ ((3 / 4 : ℝ) - 1) :=
+            (Real.rpow_sub hNR0 (3 / 4 : ℝ) 1).symm
+          _ = (N : ℝ) ^ (-(1 / 4 : ℝ)) := by norm_num
+  have hB := vinogradovParameterLogBudget_le hlam
+  change B ≤ 46137344 * lam ^ 3 * Real.log (2 * lam) ^ 3 at hB
+  have hepsNatural := vinogradovTargetSaving_le_natural hlam
+  change eps ≤ 1 / (16 * (k : ℝ) * τ) at hepsNatural
+  have heps0 : 0 < eps := by
+    dsimp [eps]
+    have hL : 0 < Real.log (2 * lam) := Real.log_pos (by nlinarith)
+    exact div_pos vinogradovWeylSaving_pos (mul_pos (pow_pos (by linarith) 3) (pow_pos hL 3))
+  have hrEq : r / 8 = 1 / (16 * (k : ℝ) * τ) := by
+    dsimp [r]
+    push_cast
+    have hk0 : (k : ℝ) ≠ 0 := by positivity
+    have hτ0 : (τ : ℝ) ≠ 0 := by exact_mod_cast (show τ ≠ 0 by omega)
+    field_simp
+    ring
+  have hepsr : eps ≤ r / 8 := by rw [hrEq]; exact hepsNatural
+  have hr0 : 0 ≤ r := by dsimp [r]; positivity
+  have hrSmall : r / 8 ≤ 1 / 16 := by
+    rw [hrEq]
+    apply (div_le_div_iff₀ (by positivity : (0 : ℝ) < 16 * (k : ℝ) * τ)
+      (by norm_num : (0 : ℝ) < 16)).mpr
+    nlinarith [show (2 : ℝ) ≤ k by exact_mod_cast hk,
+      show (1 : ℝ) ≤ τ by exact_mod_cast hτ]
+  have htargetExp : (3 / 4 : ℝ) ≤ 1 - eps := by linarith
+  have hMtarget : (M : ℝ) ≤ (N : ℝ) ^ (1 - eps) :=
+    hMpow.trans (Real.rpow_le_rpow_of_exponent_le hN1R (by
+      have halpha : 1 - lam / (k + 1 : ℝ) ≤ 3 / 4 := by
+        have hmulLower : 1 - lam / (k + 1 : ℝ) ≤
+            (1 + vinogradovDelta k τ) * (1 - lam / (k + 1 : ℝ)) := by
+          nlinarith [mul_nonneg hdelta0 halpha0]
+        exact hmulLower.trans hscaleExp
+      exact halpha.trans htargetExp))
+  by_cases hlarge : 8 * B ≤ Real.log N
+  · have hmain := norm_log_sum_le_vinogradovMainTerm hk hτ hM hMN hNR hR
+      ht0 htNk hu0 hu1 hscale
+    have hredExp := vinogradovReducedPrefactor_le_exp hk hτ
+    have habsorb := rpow_prefactor_absorb hN1R
+      hred0 hr0 hredExp hlarge
+    have hroot := Real.rpow_le_rpow (by
+      exact div_nonneg (mul_nonneg hpref0 (Real.rpow_nonneg (Nat.cast_nonneg M) _)) hNR0.le : 0 ≤
+        vinogradovWeylPrefactor k τ M N t * (M : ℝ) ^ vinogradovDelta k τ / N)
+      hbase hr0
+    have hmainTerm : (N : ℝ) *
+        (vinogradovWeylPrefactor k τ M N t *
+          (M : ℝ) ^ vinogradovDelta k τ / (N : ℝ)) ^ r ≤
+        (N : ℝ) ^ (1 - eps) := by
+      calc
+        (N : ℝ) * (vinogradovWeylPrefactor k τ M N t *
+            (M : ℝ) ^ vinogradovDelta k τ / (N : ℝ)) ^ r ≤
+          (N : ℝ) * (vinogradovReducedPrefactor k τ *
+            (N : ℝ) ^ (-(1 / 4 : ℝ))) ^ r :=
+          mul_le_mul_of_nonneg_left hroot hNR0.le
+        _ ≤ (N : ℝ) * (N : ℝ) ^ (-(r / 8)) :=
+          mul_le_mul_of_nonneg_left habsorb hNR0.le
+        _ = (N : ℝ) ^ (1 - r / 8) := by
+          calc
+            (N : ℝ) * (N : ℝ) ^ (-(r / 8)) =
+                (N : ℝ) ^ (1 : ℝ) * (N : ℝ) ^ (-(r / 8)) := by
+              rw [Real.rpow_one]
+            _ = (N : ℝ) ^ ((1 : ℝ) + -(r / 8)) :=
+              (Real.rpow_add hNR0 (1 : ℝ) (-(r / 8))).symm
+            _ = (N : ℝ) ^ (1 - r / 8) := by ring
+        _ ≤ (N : ℝ) ^ (1 - eps) :=
+          Real.rpow_le_rpow_of_exponent_le hN1R (by linarith)
+    change _ ≤ 100 * (N : ℝ) ^ (1 - eps)
+    calc
+      ‖∑ n ∈ Finset.Ioc N R,
+          ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u))‖ ≤
+        (N : ℝ) *
+          (vinogradovWeylPrefactor k τ M N t *
+              (M : ℝ) ^ vinogradovDelta k τ / (N : ℝ)) ^ r +
+            2 * M := by simpa only [r] using hmain
+      _ ≤ (N : ℝ) ^ (1 - eps) + 2 * (N : ℝ) ^ (1 - eps) := by
+        exact add_le_add hmainTerm (mul_le_mul_of_nonneg_left hMtarget (by norm_num))
+      _ ≤ 100 * (N : ℝ) ^ (1 - eps) := by
+        have := Real.rpow_nonneg hNR0.le (1 - eps)
+        nlinarith
+  · have hsmall : Real.log N < 8 * B := lt_of_not_ge hlarge
+    have hlogeps : eps * Real.log N < 3 := by
+      have hden0 : 0 < lam ^ 3 * Real.log (2 * lam) ^ 3 := by
+        have : 0 < Real.log (2 * lam) := Real.log_pos (by nlinarith)
+        positivity
+      have hsmall' : Real.log N <
+          8 * (46137344 * lam ^ 3 * Real.log (2 * lam) ^ 3) :=
+        hsmall.trans_le (mul_le_mul_of_nonneg_left hB (by norm_num))
+      dsimp [eps]
+      have hc := vinogradovWeylSaving_pos
+      rw [show vinogradovWeylSaving /
+          (lam ^ 3 * Real.log (2 * lam) ^ 3) * Real.log N =
+        (vinogradovWeylSaving * Real.log N) /
+          (lam ^ 3 * Real.log (2 * lam) ^ 3) by ring]
+      apply (div_lt_iff₀ hden0).mpr
+      calc
+        vinogradovWeylSaving * Real.log N <
+            vinogradovWeylSaving *
+              (8 * (46137344 * lam ^ 3 * Real.log (2 * lam) ^ 3)) :=
+          mul_lt_mul_of_pos_left hsmall' hc
+        _ = (11 / 4 : ℝ) * (lam ^ 3 * Real.log (2 * lam) ^ 3) := by
+          norm_num [vinogradovWeylSaving]
+          ring
+        _ < 3 * (lam ^ 3 * Real.log (2 * lam) ^ 3) := by
+          nlinarith
+    have hNeps : (N : ℝ) ^ eps ≤ 100 := by
+      rw [Real.rpow_def_of_pos hNR0]
+      have hexp : Real.exp (Real.log N * eps) ≤ Real.exp 3 := by
+        apply Real.exp_monotone
+        nlinarith
+      calc
+        Real.exp (Real.log N * eps) ≤ Real.exp 3 := hexp
+        _ = Real.exp 1 ^ (3 : ℕ) := by
+          rw [show (3 : ℝ) = (3 : ℕ) * 1 by norm_num, Real.exp_nat_mul]
+        _ ≤ (3 : ℝ) ^ (3 : ℕ) :=
+          pow_le_pow_left₀ (Real.exp_pos 1).le Real.exp_one_lt_three.le 3
+        _ ≤ 100 := by norm_num
+    have htriv : ‖∑ n ∈ Finset.Ioc N R,
+        ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u))‖ ≤
+        ((Finset.Ioc N R).card : ℝ) := by
+      refine (norm_sum_le _ _).trans ?_
+      simp only [ExpSums.norm_e, Finset.sum_const, nsmul_eq_mul, mul_one]
+      exact le_rfl
+    have hcard : ((Finset.Ioc N R).card : ℝ) ≤ N := by
+      rw [Nat.card_Ioc]
+      exact_mod_cast (show R - N ≤ N by omega)
+    have hNfactor : (N : ℝ) ≤ 100 * (N : ℝ) ^ (1 - eps) := by
+      calc
+        (N : ℝ) = (N : ℝ) ^ eps * (N : ℝ) ^ (1 - eps) := by
+          rw [← Real.rpow_add hNR0]
+          norm_num
+        _ ≤ 100 * (N : ℝ) ^ (1 - eps) :=
+          mul_le_mul_of_nonneg_right hNeps (Real.rpow_nonneg hNR0.le _)
+    change _ ≤ 100 * (N : ℝ) ^ (1 - eps)
+    exact htriv.trans (hcard.trans hNfactor)
+
 /-! ## Conversion to complex powers -/
 
 /-- The normalized logarithmic character used above is exactly the complex
@@ -2497,6 +3440,36 @@ theorem cpow_neg_mul_I_eq_e_log {y t : ℝ} (hy : 0 < y) :
   congr 1
   push_cast
   field_simp
+
+/-- V-C2-11.  Vinogradov's logarithmic Weyl-sum estimate in the requested
+complex-power form.  One admissible explicit pair is
+`c = 2⁻²⁷`, `C = 100`. -/
+theorem vinogradov_weyl_sum :
+    ∃ c C : ℝ, 0 < c ∧ 0 < C ∧
+      ∀ (N : ℕ) (t : ℝ), 2 ≤ N → (N : ℝ) ≤ t →
+        ∀ (u : ℝ) (R : ℕ), 0 ≤ u → u ≤ 1 → N < R → R ≤ 2 * N →
+          ‖∑ n ∈ Finset.Ioc N R,
+              ((n : ℝ) + u : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤
+            C * (N : ℝ) ^
+              (1 - c / ((Real.log t / Real.log N) ^ 3 *
+                Real.log (2 * (Real.log t / Real.log N)) ^ 3)) := by
+  refine ⟨vinogradovWeylSaving, 100, vinogradovWeylSaving_pos, by norm_num, ?_⟩
+  intro N t hN htN u R hu0 hu1 hNR hR
+  have hconvert :
+      ∑ n ∈ Finset.Ioc N R,
+          ((n : ℝ) + u : ℂ) ^ (-(t : ℂ) * Complex.I) =
+        ∑ n ∈ Finset.Ioc N R,
+          ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u)) := by
+    apply Finset.sum_congr rfl
+    intro n hn
+    rw [Finset.mem_Ioc] at hn
+    have hy : (0 : ℝ) < (n : ℝ) + u := by
+      have hnR : (0 : ℝ) < n := by exact_mod_cast (show 0 < n by omega)
+      exact add_pos_of_pos_of_nonneg hnR hu0
+    simpa only [Complex.ofReal_add] using
+      (cpow_neg_mul_I_eq_e_log (t := t) hy)
+  rw [hconvert]
+  exact norm_log_sum_le_vinogradovFixed N t hN htN u R hu0 hu1 hNR hR
 
 end VinogradovWeylSum
 

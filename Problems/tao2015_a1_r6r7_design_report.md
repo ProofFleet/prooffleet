@@ -1257,6 +1257,14 @@ bound is stated at `a' = 33/25` and V-C4-4 gives `θ = 1/a' + 1/100 ≈ 0.768 < 
 factorials), so the absorbable fixed form is `1 − c/(λ³ log³(2λ))` (`b = 3`), still enough for V-C3 at `a' = 33/25` since `E(σ) ≍ (1−σ)^{4/3} log(2/(1−σ))`
 and `4/3 > 33/25`. Run 28 executes V-C2-10′/11 at that target.
 
+### V-C2 as run — status (2026-09-07, Codex runs 24/27/28; report in `Problems/tao2015_vc2_report.md`)
+
+**V-C2 complete** (`MoltResearch/Discrepancy/VinogradovWeylSum.lean`): **`vinogradov_weyl_sum : ∃ c C > 0, ∀ N ≥ 2, ∀ t ≥ N, ∀ u ∈ [0,1], ∀ R ∈ (N, 2N],
+‖∑_{N<n≤R} (n+u)^{−it}‖ ≤ C·N^{1 − c/(λ³ (log 2λ)³)}`**, `λ = log t/log N`, with `c = 2^{−27}`, `C = 100` — Vinogradov's method from the weak mean value
+theorem (Taylor phase, shift averaging, Hölder, orthogonality, the frequency-box multiplicity `ν ≤ 2(2(2N+1)^{k+1}/(k²tM^k) + 1)`, the fold, the
+constant envelope of V-C1′, the fixed ledger with `k = ⌈λ⌉`, `τ = ⌈2k log k⌉ + 2`, `M = ⌊N/t^{1/(k+1)}⌋`; degree `2` with six rounds for `λ ≤ 2`).
+Next: V-C3 (the growth bound at `a' = 33/25`) and the unconditional endpoint.
+
 ### Dependency order
 
 ```

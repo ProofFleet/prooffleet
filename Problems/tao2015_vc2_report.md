@@ -259,3 +259,113 @@ obstruction above.
 - `#print axioms` for the exported constant theorems, folded VMVT moment,
   normalized main term, and complex-power conversion reports only
   `propext`, `Classical.choice`, and `Quot.sound`.
+
+
+---
+
+# Run 28 (V-C2-10′/11): the fixed-form theorem
+
+Verbatim final report of Codex run 28 (the V-C2 brief with resume note 2), whose two commits shipped as the V-C2c PR: the fixed parameter ledger
+(`norm_log_sum_le_vinogradovFixed`: degree `k = 2` with six rounds for `1 ≤ λ ≤ 2`, `k = ⌈λ⌉`, `τ = ⌈2k log k⌉ + 2` for `λ > 2`, `M = ⌊N/t^{1/(k+1)}⌋`,
+the large/small-`N` branches) and **`vinogradov_weyl_sum`** with `c = 2^{−27}`, `C = 100`, `K = 369098752`.
+
+---
+
+# Track R / V-C2 — run 28 report
+
+## Outcome
+
+V-C2 is complete.  The requested complex-power Weyl-sum theorem is now
+compiled with the accepted fixed exponent
+
+```text
+1 - c / (lambda^3 * log(2*lambda)^3),
+lambda = log(t) / log(N).
+```
+
+The explicit constants recorded by the proof are
+
+```text
+c = 2^(-27) = 1 / 134217728,
+C = 100,
+K = 369098752.
+```
+
+Here `K = 8 * 46137344`; the large branch is reached once the explicit
+prefactor log budget is at most `log N / 8`.  The proof also shows that this
+budget is at most
+
+```text
+46137344 * lambda^3 * log(2*lambda)^3.
+```
+
+Since `lambda <= k` and `log(2*lambda) <= log(2*k)`, the prescribed
+condition `log N >= K*k^3*log(2*k)^3` implies this large branch (the proved
+lambda-form threshold is slightly sharper).
+
+## V-C2-10' — fixed parameter ledger
+
+The committed entry point is
+`MoltResearch.VinogradovWeylSum.norm_log_sum_le_vinogradovFixed`.
+
+- For `1 <= lambda <= 2`, it uses degree `k = 2` and six rounds of the weak
+  VMVT.  Thus the bounded band is handled by the same Vinogradov method and
+  does not use the unusable `vdc2` endpoint.
+- For `lambda > 2`, it uses `k = ceil(lambda)` (the admissible band
+  `k - 1 < lambda <= k`) and
+  `tau = ceil(2*k*log k) + 2`.
+- The short length is
+  `M = floor(N / t^(1/(k+1)))`.  It is proved to be nonzero, to satisfy
+  `M <= N`, and to satisfy the exact Taylor admissibility
+  `t*M^(k+1) <= N^(k+1)`.
+- The reverse floor comparison exposes one factor of `M` from the exact
+  multiplicity.  After the VMVT excess is bounded, the normalized scale is
+  at most `N^(-1/4)` before taking the `2*k*tau` root.
+- The named recursive VMVT constant and all elementary factors are bounded
+  by the exported envelope from V-C1'.  In the large branch the prefactor
+  consumes half of the `N^(-1/4)` saving.  In the complementary branch,
+  `N^eps < exp(3) < 100`, so the trivial length estimate closes uniformly.
+
+## V-C2-11 — public theorem
+
+The compiled theorem is
+`MoltResearch.VinogradovWeylSum.vinogradov_weyl_sum`:
+
+```text
+theorem vinogradov_weyl_sum :
+    ∃ c C : ℝ, 0 < c ∧ 0 < C ∧
+      ∀ (N : ℕ) (t : ℝ), 2 ≤ N → (N : ℝ) ≤ t →
+        ∀ (u : ℝ) (R : ℕ), 0 ≤ u → u ≤ 1 → N < R → R ≤ 2 * N →
+          ‖∑ n ∈ Finset.Ioc N R,
+              ((n : ℝ) + u : ℂ) ^ (-(t : ℂ) * Complex.I)‖ ≤
+            C * (N : ℝ) ^
+              (1 - c / ((Real.log t / Real.log N)^3 *
+                Real.log (2 * (Real.log t / Real.log N))^3))
+```
+
+The termwise phase conversion uses the already compiled identity
+`cpow_neg_mul_I_eq_e_log`; positivity of `n+u` follows from `N < n` and
+`0 <= u`.
+
+## Commits
+
+- `b5f63294` — `Track R: close the fixed Weyl parameter ledger (#3044, V-C2-10')`
+- `ecfb5518` — `Track R: expose the Vinogradov Weyl sum theorem (#3044, V-C2-11)`
+
+No push, merge, or rebase was performed.
+
+## Verification
+
+- `lake env lean MoltResearch/Discrepancy/VinogradovWeylSum.lean` — passed.
+- `lake build MoltResearch.Discrepancy.VinogradovWeylSum` — passed (7,964 jobs).
+- `lake build MoltResearch.DiscrepancyAnalytic` — passed (8,124 jobs).
+- Forbidden declaration scan of `VinogradovWeylSum.lean` — passed.
+- `scripts/check_layering.sh` — passed.
+- `python3 scripts/check_aggregator_coverage.py` — passed (197 modules, 195
+  reachable; the two missing modules are the repository's existing
+  allowlisted examples).
+- `#print axioms` for both `norm_log_sum_le_vinogradovFixed` and
+  `vinogradov_weyl_sum` reports only `propext`, `Classical.choice`, and
+  `Quot.sound`.
+
+`CODEX_REPORT.md` is intentionally uncommitted.
