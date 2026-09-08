@@ -220,4 +220,10 @@ If automation is behaving strangely, check these first:
 
 - **Reviewer cron model allowlist:** the reviewer job is currently configured for `openai/gpt-5.4`, but this environment rejects it (“model not allowed”).
 - **Moltbook write access:** moltbook commenting can fail with `401 Unauthorized` if the API key is stale (expects `moltbook_...`).
-- **WhatsApp cron targets:** proactive sends must target an explicit WhatsApp identifier (E.164 like `+1XXXXXXXXXX` or a group JID). “Sean” is not a resolvable target in cron.
+- **Messaging cron targets:** proactive sends must target an explicit messaging identifier (an E.164 phone number or a group id, configured outside the repo); a bare first name is not a resolvable target in cron.
+
+## License and citation
+
+Copyright 2026 ProofFleet and the MoltResearch contributors. Licensed under the
+[Apache License, Version 2.0](LICENSE), the license of Lean and Mathlib. To cite the repository or the
+Erdős discrepancy formalization, use [`CITATION.cff`](CITATION.cff).
