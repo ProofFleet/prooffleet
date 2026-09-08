@@ -1,0 +1,96 @@
+/-
+Copyright 2026 The Formal Conjectures Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-/
+
+import FormalConjecturesUtil
+
+/-!
+# Erdős Problem 1144
+
+*References:*
+- [erdosproblems.com/1144](https://www.erdosproblems.com/1144)
+- [A public Lean proof claim, release v1.0.0](https://github.com/saasom/Erdos1144/tree/v1.0.0)
+
+The problem page still records this problem as open.  The second reference is
+a formal proof claim, not a claim that the solution has been accepted by the
+mathematical community.
+-/
+
+open MeasureTheory Filter
+
+namespace Erdos1144
+
+/-- Prime-indexed Boolean samples for the random completely multiplicative model. -/
+abbrev Omega : Type := Nat.Primes → Bool
+
+/-- One fair coin, represented by the uniform probability measure on `Bool`. -/
+noncomputable def fairCoin : Measure Bool :=
+  (PMF.uniformOfFintype Bool).toMeasure
+
+instance fairCoin_isProbabilityMeasure : IsProbabilityMeasure fairCoin := by
+  unfold fairCoin
+  infer_instance
+
+/-- The product law of independent fair signs, with one coordinate for each prime. -/
+noncomputable def randomCMMeasure : Measure Omega :=
+  Measure.infinitePi fun _ : Nat.Primes ↦ fairCoin
+
+instance randomCMMeasure_isProbabilityMeasure : IsProbabilityMeasure randomCMMeasure := by
+  unfold randomCMMeasure
+  infer_instance
+
+/-- Decode a sampled prime coordinate as an integer sign. -/
+def primeSign (omega : Omega) (p : ℕ) : ℤ :=
+  if hp : p.Prime then if omega ⟨p, hp⟩ then 1 else -1 else 1
+
+/-- The completely multiplicative extension of the sampled prime signs.
+
+Only the values on positive integers enter the problem.  The empty
+factorization convention assigns the harmless value `1` at `0`.
+-/
+noncomputable def randomCM (omega : Omega) (n : ℕ) : ℤ :=
+  n.factorization.prod fun p k ↦ primeSign omega p ^ k
+
+/-- The partial sum $S_\omega(N)=\sum_{1\leq m\leq N}f_\omega(m)$. -/
+noncomputable def partialSum (omega : Omega) (N : ℕ) : ℤ :=
+  ∑ m ∈ Finset.Icc 1 N, randomCM omega m
+
+/--
+Let $f$ be a random completely multiplicative function obtained by choosing
+$f(p)\in\{-1,1\}$ independently and uniformly for every prime $p$.  Is it
+true that, with probability one,
+$$
+  \limsup_{N\to\infty}\frac{\sum_{m\leq N}f(m)}{\sqrt N}=+\infty?
+$$
+
+The frequent-exceedance formulation below says that every real height is
+exceeded at arbitrarily large indices.  This is a one-sided assertion.
+
+This model is not the squarefree-supported Rademacher multiplicative model of
+Erdős Problem 520: here complete multiplicativity retains all prime-power
+contributions and the function never vanishes on a positive integer.  It is
+also not the Steinhaus model, whose prime values are uniform on the complex
+unit circle.
+
+This repository-safe proposal records an open statement as a `def : Prop`.
+An external contribution would use the open-problem declaration wrapper
+required by Formal Conjectures after the operator authorizes submission.
+-/
+@[category research open, AMS 11 60]
+def erdos_1144 : Prop :=
+  ∀ᵐ omega ∂randomCMMeasure, ∀ M : ℝ, ∃ᶠ N : ℕ in atTop,
+    M ≤ (partialSum omega N : ℝ) / Real.sqrt N
+
+end Erdos1144
