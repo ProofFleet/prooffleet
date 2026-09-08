@@ -1,4 +1,5 @@
 import Conjectures.C0003_edp_rate.src.Statement
+import Conjectures.C0003_edp_rate.src.SourceBudget
 import MoltResearch.Discrepancy.PretentiousDist
 import MoltResearch.Discrepancy.StochasticMultiplicative
 
@@ -13,8 +14,9 @@ claim an unconditional discrepancy rate.
 
 The rate is a conservative, concrete version of the triple-logarithmic product-scale rate
 obtained by reparameterizing McNamara's quantitative rectangle.  The exponent `1/500` stays
-strictly below the published `1/484-o(1)` exponent, while the numerical coefficient is only a
-placeholder for future constant extraction.
+strictly below the published `1/484-o(1)` exponent.  The analysis cutoff is calibrated to the
+exact source budget of the finite exponent-box construction; see
+`Problems/edp_rate_fourier_redesign.md`.
 -/
 
 namespace MoltResearch
@@ -25,26 +27,36 @@ open MeasureTheory
 noncomputable def edpRateStart : ℝ :=
   Real.exp (Real.exp (Real.exp 1))
 
+/-- The exact terminal source budget of the exponent-box construction at analysis scale `X`,
+using the least positive modulus that pays for the wraparound error. -/
+def edpScheduledSourceBudget (X : ℕ) : ℕ :=
+  spectralSourceBudget X
+    (max 1 (Fintype.card (PrimeIdx X) * Nat.log 2 X * X ^ 2)) X
+
+/-- The finite analytic window available at product scale `x`: the greatest `X ≤ ⌊x⌋₊`
+whose exact scheduled source budget fits below `⌊x⌋₊`.
+
+This replaces the overlarge A3 schedule.  It makes the Fourier source-budget inequality true
+by construction, while every fixed `X` is eventually admitted once the outer budget exceeds
+the fixed natural number `max X (edpScheduledSourceBudget X)`.
+-/
+noncomputable def edpAnalysisCutoff (x : ℝ) : ℕ :=
+  Nat.findGreatest
+    (fun X => edpScheduledSourceBudget X ≤ ⌊x⌋₊) ⌊x⌋₊
+
 /-- A concrete first-rate target.  Past `edpRateStart` it is a fixed positive multiple of
 `(log log log x)^(1/500)`; before that scale it is `1`, so the progression `(d,m) = (1,1)`
 suffices.
 
 The triple logarithm comes from converting McNamara's rectangular range to the product budget;
-`1/500 < 1/484` leaves room for his lower-order iterated-log losses.  See
-`Problems/edp_rate_approach.md`, Section 2.
+`1/500 < 1/484` leaves room for his lower-order iterated-log losses.  The coefficient `10^-7`
+is the A5' recalibration after replacing the A3 cutoff by the source-budget-safe schedule.  See
+`Problems/edp_rate_fourier_redesign.md`.
 -/
 noncomputable def edpTripleLogRate (x : ℝ) : ℝ :=
   if x ≤ edpRateStart then 1
-  else (1 / 10 ^ 6 : ℝ) *
+  else (1 / 10 ^ 7 : ℝ) *
     Real.rpow (Real.log (Real.log (Real.log x))) ((1 : ℝ) / 500)
-
-/-- The finite analytic window available at product scale `x`.  The schedule mirrors the
-reparameterization
-`N ≍ log x * (log log log x)^(1/242)` of McNamara's dilation range, with slack `1/3`.
--/
-noncomputable def edpAnalysisCutoff (x : ℝ) : ℕ :=
-  ⌊Real.log x *
-    Real.rpow (Real.log (Real.log (Real.log x))) ((1 : ℝ) / 242) / 3⌋₊
 
 /-- A law has the finite second-moment bound needed by the effective analytic stages at
 product scale `x`.  Unlike `exists_limit_law`, this asks for bounds only through the explicit
