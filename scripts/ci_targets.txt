@@ -28,3 +28,5 @@ MoltResearch.Discrepancy.AffineEndpointSimp
 Solutions
 Tasks
 Conjectures
+# Added 2026-09-08: the upstreaming-pilot aggregator (Problems/nucleus_upstreaming.md).
+MoltResearch.DiscrepancyUpstream
