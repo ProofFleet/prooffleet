@@ -304,11 +304,11 @@ theorem zeta_regular_logDeriv_bound_of_growth_unit
 set_option maxHeartbeats 1600000
 
 /-- **V-C4-4, existence form.** A power-type zeta growth estimate with
-`a ≥ 7/5` supplies a height-indexed zero-free record at the exact exponents
+`a ≥ 33/25` supplies a height-indexed zero-free record at the exact exponents
 needed by the three-regime argument. -/
 theorem nonempty_zeroFreeRegionDataH_of_growth
     {t₀ a B b B₀ : ℝ} (h : ZetaGrowthBound t₀ a B b B₀)
-    (ha : 7 / 5 ≤ a) :
+    (ha : 33 / 25 ≤ a) :
     Nonempty (ZeroFreeRegionDataH (1 / a + 1 / 100) (1 / a + 1 / 10)) := by
   have ha1 : 1 < a := by linarith
   have ha0 : 0 < a := by linarith
@@ -497,7 +497,7 @@ theorem nonempty_zeroFreeRegionDataH_of_growth
 above. -/
 noncomputable def zeroFreeRegionDataH_of_growth
     {t₀ a B b B₀ : ℝ} (h : ZetaGrowthBound t₀ a B b B₀)
-    (ha : 7 / 5 ≤ a) :
+    (ha : 33 / 25 ≤ a) :
     ZeroFreeRegionDataH (1 / a + 1 / 100) (1 / a + 1 / 10) :=
   Classical.choice (nonempty_zeroFreeRegionDataH_of_growth h ha)
 

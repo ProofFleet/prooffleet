@@ -34,6 +34,7 @@ import MoltResearch.Discrepancy.RieszCapstone
 import MoltResearch.Discrepancy.VinogradovTypeI
 import MoltResearch.Discrepancy.VinogradovMeanValue
 import MoltResearch.Discrepancy.VinogradovWeylSum
+import MoltResearch.Discrepancy.ZetaGrowthVinogradov
 import MoltResearch.Discrepancy.HalaszTriple
 import MoltResearch.Discrepancy.HalaszTripleG
 import MoltResearch.Discrepancy.HalaszCapstone

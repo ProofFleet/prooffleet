@@ -1274,6 +1274,31 @@ the width comparison above), and the compositions **`primeLargeValues_of_zetaGro
 conditional only on a `ZetaGrowthBound`), pinned to the standard three axioms. **The whole Track R chain now rests on a growth bound for `ζ` near
 the 1-line alone**, which V-C3 derives from `vinogradov_weyl_sum`.
 
+### Track R — campaign closed (2026-09-08, Codex run 29; report in `Problems/tao2015_vc3_report.md`)
+
+**V-C3 complete**: `MoltResearch/Discrepancy/ZetaGrowthVinogradov.lean` — the Weyl saving transferred to the dyadic ζ blocks by partial summation,
+the assembled Vinogradov ζ bound through the tree's truncated identity `zeta_afe_strip`, the optimisation of the logarithmic saving
+(`E(σ) ≲ (1−σ)^{4/3} log(2/(1−σ))`, absorbed at `a' = 33/25`), the join with `zeta_LSeries_bound` for `σ > 1`, and
+**`zeta_growth_vinogradov` / `exists_zetaGrowthBound_vinogradov`** (`ZetaGrowthBound t₀ (33/25) B 1 B₀`). The composition's threshold was lowered to
+accept `a = 33/25` (V-C3-5: margin `31/40 − (25/33 + 1/100) = 47/6600`). Then `Conjectures/…/TrackCStage5PrimeLargeValuesDischarge.lean`:
+`zeroFreeRegionData_from_vinogradov`, **`instance primeLargeValuesAssumption_vinogradov : PrimeLargeValuesAssumption`**, and
+
+**`theorem erdos_discrepancy_unconditional (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f`**
+
+with the audit pin `[propext, Classical.choice, Quot.sound]` and no hypothesis classes. **The Erdős discrepancy theorem is proved in the tree
+from the standard axioms alone.**
+
+**The chain, from the top.** `erdos_discrepancy_unconditional` ← `trackR_edp_halasz` ← `trackR_edp` ← `edp_of_sliceMeanSquareA2 sliceMeanSquareA2`
+(the `[mrt]` A.2 theorem, Phase 4) ← the major-arc assembly R6/R7 ← `edp_of_matomakiRadziwill` (Track L) ← the Elliott entropy-decrement proof
+(campaign #2946) ← the Fourier reduction (#2920); with `HalaszLargeValuesAssumption` discharged by `halaszMontgomery_large_values` (IK 9.6, run 17),
+and `PrimeLargeValuesAssumption` by `[MR]` Lemma 8 from a zero-free region (V-A/V-B/V-B″) ← the region from a growth bound (V-C4) ← the growth
+bound from Weyl sums (V-C3) ← Vinogradov's method (V-C2) ← the mean value theorem (V-C1). Every analytic input of Tao's proof, including
+Vinogradov's mean value theorem and a Chudakov-strength zero-free region, is now formal.
+
+**Ledger.** Campaign #3044, Track R: runs 5–29 (25 Codex runs), PRs #3673–#3710 (this PR), ten structural findings repaired (E.1–E.7, V-1–V-4) — each an
+honest stop by Codex on a design or bookkeeping error of the briefs, each recorded above with its repair. Remaining card item: the endgame
+(re-prove `stage5_notBounded` from the unconditional theorem and retire the Stage-2 stub).
+
 ### Dependency order
 
 ```
