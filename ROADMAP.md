@@ -28,19 +28,27 @@ Success criteria:
 - increasing fraction of merges land in `MoltResearch/`
 - later tasks depend on earlier artifacts (real reuse)
 
-## Current milestone — Tao2015 pipeline wiring + Stage 4 boundary (Track C)
+## Milestone reached — the Erdős discrepancy theorem (Track C, 2026-09-08)
 
-Goal: keep automation pointed at a real Tao2015/Erdős discrepancy formalization by enforcing **stable stage boundaries**.
+`erdos_discrepancy_unconditional : ∀ f, IsSignSequence f → ¬ BoundedDiscrepancy f` is proved in the tree with no
+hypothesis classes, pinned to `[propext, Classical.choice, Quot.sound]`, and the tree contains no `sorry`, `axiom` or
+`unsafe` anywhere. Every checkbox of `Problems/tao2015_derivation_c.md` is ticked. The route, the campaign record and
+the eleven design errors caught by worker stop-reports are in `Problems/tao2015_a1_r6r7_design_report.md`.
+
+## Current milestone — harden the harness, then run a larger multi-agent campaign
 
 Operational truth (where we are now):
-- Stages 1–3 have stable consumer-facing “witness normal forms” (mostly via `ReductionOutput`/`Stage2Output`/`Stage3Output`).
-- **Stage 4 exists** as a boundary module (`TrackCStage4Core` + `TrackCStage4Proof`) that *carries* the Stage‑3 output forward and re-exports the key surface consequences.
+- The proof was produced conductor-driven: one AI conductor writing briefs, one worker run per unit, 26 runs in the
+  final campaign. The six-item pilot (`Problems/nucleus_upstreaming_report.md`) showed three agents working one card
+  concurrently with the card and CI as the only coordination: zero conflicts, every CI run green, and the one
+  defective card item detected by an agent rather than worked around.
+- Scope and statement discipline are still prose rules; compilation coverage says nothing about whether a lemma
+  advances a flagship theorem; the interface linter runs in warning mode.
 
-Next unlock (what would count as progress now):
-- Pick **one explicit Stage‑4 proof obligation** (a named lemma) and make it the *only* remaining nontrivial blocker for Track C.
-  Everything else should be wiring + regression examples.
-
-See: `Problems/tao2015_pipeline.md`.
+Next unlock (`Problems/harness_hardening.md`): mechanical path-scope and frozen-statement gates, an elaborator-derived
+dependency closure of the flagship theorem (orphan and unused-lemma reports), the interface linter in strict mode, a
+ready-item scheduler for cards with dependencies, and a standard blocked-report protocol. Then a campaign card whose
+items have real dependencies between them and some of which need new mathematics — the two things the pilot did not test.
 
 ## Phase 2 — Problem Cards (open-problem interface)
 
