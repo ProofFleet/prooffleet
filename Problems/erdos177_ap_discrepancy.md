@@ -1,6 +1,6 @@
 # Problem Card: Erdős #177 — balancing every arithmetic progression with a step-dependent bound — OPEN
 
-Status: active (opened 2026-09-08). Research card: the target is an **open problem**; §1 rules apply. Main project of the four.
+Status: Phase 2 complete 2026-09-08 (C1 blocked on Beck's source). Outcome: the problem is reduced, both ways, to a single finite balancing statement (`erdos177Exponent_iff_finiteResiduePrefixBalancing`); compactness discharged; the balancing lemma is the open research core with its obstruction recorded in `Problems/erdos177_status.md`. No exponent below 8 is claimed. Research card: the target is an **open problem**; §1 rules apply. Main project of the four.
 
 ## 0. One-line pitch
 
@@ -51,7 +51,7 @@ slow, fails the length-uniform quantifier.
 
 - [x] C6: Barrier-preserving balancing lemma (after: C4, C5) **(merged: the card-authorized rigorous no-route outcome — `BarrierPreservingPartialColoringAssumption α` isolated with a checked finite descent to the balancing interface; obstruction: the Lovett–Meka entropy test fails on the `d = 1` prefix rows under a fixed barrier, and polytope edge-walks give fractional coordinates; no exponent improvement claimed)** — the research item: a partial-colouring / vector-balancing lemma for residue-prefix coordinates that keeps the barrier uniform in the horizon at some `α < 8`, stated in Lean as a sharpening of `FiniteResiduePrefixBalancingAssumption`, with either a proof or a precise memo of where Beck's `K^(4+ε)` countable-family bound and the modern partial-colouring theorems (Lovett–Meka, Bansal, Banaszczyk) stop. A rigorous no-route memo is an acceptable outcome. Deliverables: `Conjectures/C0005_erdos177_ap/src/Balancing.lean`, `Problems/erdos177_balancing.md`.
 
-- [ ] C7: Milestone decision (after: C6) — either instantiate `FiniteResiduePrefixBalancingAssumption α` for some `α < 8` and land `Erdos177Exponent α` unconditionally with an audit pin (M2), or land the sharpest conditional statement with the exact remaining obstruction in `Problems/erdos177_status.md`. Deliverables: `Conjectures/C0005_erdos177_ap/src/Discharge.lean`, `Problems/erdos177_status.md`.
+- [x] C7: Milestone decision (after: C6) **(merged: M2 not reached; the sharpest statement landed — `erdos177Exponent_iff_finiteResiduePrefixBalancing`: uniform finite residue-prefix balancing at exponent α is *equivalent* to `Erdos177Exponent α`, audit-pinned, exponent-7 specialization; the exact remaining obstruction (`Problems/erdos177_status.md`) is weaker than C6's ternary extension class, so a reachability-indexed or fractional-state invariant could still suffice)** — either instantiate `FiniteResiduePrefixBalancingAssumption α` for some `α < 8` and land `Erdos177Exponent α` unconditionally with an audit pin (M2), or land the sharpest conditional statement with the exact remaining obstruction in `Problems/erdos177_status.md`. Deliverables: `Conjectures/C0005_erdos177_ap/src/Discharge.lean`, `Problems/erdos177_status.md`.
 
 ## 4. Milestones beyond Phase 1
 
