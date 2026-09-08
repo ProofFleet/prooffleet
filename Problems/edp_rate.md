@@ -44,7 +44,29 @@ about the special case of multiplicative `f`.
 
 - [x] A2: Numerics — `scripts/research/edp_rate_numerics.py` + `Problems/edp_rate_numerics.md`: for the modified-character sequences (period-3 and other small moduli) and for the best known low-discrepancy sequences, compute `D(x) = max_{md ≤ x} |∑_{k ≤ m} f(kd)|` for `x` up to `10^6`–`10^7` and report `D(x)/log x`; report the empirical constant and which `(d, m)` attain the max; anything that bears on the conjectured constant `c`. Reproducible from the script. Deliverables: `scripts/research/edp_rate_numerics.py`, `Problems/edp_rate_numerics.md`.
 
-- [ ] A3: Approach memo and reduction (after: A0) — `Problems/edp_rate_approach.md` + `Conjectures/C0003_edp_rate/src/Reduction.lean`: the finite-scale replacement of `exists_limit_law` (Q2 of #3019): state precisely, as `*Assumption` classes with docstrings citing the memo, the lemmas that would give `HasDiscrepancyRateBy g` for an explicit `g` from the tree's effective layers; prove in Lean the conditional theorem `discrepancyRate_of_assumptions : [classes] → HasDiscrepancyRateBy g` for a concrete `g` (iterated logs are acceptable for a first rate); list the lemma DAG with `after:` edges as the Phase-2 items. The memo says what is known, what is conjectured, and what is our idea. Deliverables: `Problems/edp_rate_approach.md`, `Conjectures/C0003_edp_rate/src/Reduction.lean`.
+- [x] A3: Approach memo and reduction (after: A0) — `Problems/edp_rate_approach.md` + `Conjectures/C0003_edp_rate/src/Reduction.lean`: the finite-scale replacement of `exists_limit_law` (Q2 of #3019): state precisely, as `*Assumption` classes with docstrings citing the memo, the lemmas that would give `HasDiscrepancyRateBy g` for an explicit `g` from the tree's effective layers; prove in Lean the conditional theorem `discrepancyRate_of_assumptions : [classes] → HasDiscrepancyRateBy g` for a concrete `g` (iterated logs are acceptable for a first rate); list the lemma DAG with `after:` edges as the Phase-2 items. The memo says what is known, what is conjectured, and what is our idea. Deliverables: `Problems/edp_rate_approach.md`, `Conjectures/C0003_edp_rate/src/Reduction.lean`.
+
+## 3b. Decomposition — Phase 2 (written 2026-09-08 from the A3 memo `Problems/edp_rate_approach.md`; same rules)
+
+A3 isolated three interfaces — `FiniteFourierReductionAssumption`, `FiniteVanDerCorputRateAssumption`,
+`FiniteBorweinChoiCoonsRateAssumption` — and proved `discrepancyRate_of_assumptions` giving the concrete piecewise rate
+`10^-6 · (log log log x)^(1/500)` from them (deliberately below McNamara's endpoint). Its finding: approximate multiplicativity is not
+the missing Track-Q repair; the gap is the **source budget** (keeping every invoked product `d·m ≤ x`). The memo's items B0–B6 are
+renamed A4–A10 here (card B's identifiers are taken).
+
+- [ ] A4: Source-budget audit (after: A3) — a theorem recording, for every invocation inside `SpectralWindowBound`, the largest source product `d·m` in terms of the spectral parameters, usable without a global discrepancy hypothesis. Deliverables: `Conjectures/C0003_edp_rate/src/SourceBudget.lean`, `Problems/edp_rate_source_budget.md`.
+
+- [ ] A5: Finite Fourier package (after: A4) — choose the spectral scale and modulus as functions of the outer `x`, prove every requested product is `≤ x`, and instantiate `FiniteFourierReductionAssumption` (or record the exact schedule obstruction as a `Blocked:` finding). Deliverables: `Conjectures/C0003_edp_rate/src/FiniteFourier.lean`.
+
+- [ ] A6: Function-form Elliott thresholds (after: A3) — replace the existential threshold of the nonasymptotic Elliott consumer by explicit threshold data and prove the finite van der Corput estimates with every touched moment index recorded. Deliverables: `Conjectures/C0003_edp_rate/src/ElliottThresholds.lean`, `Problems/edp_rate_elliott_thresholds.md`.
+
+- [ ] A7: Finite van der Corput package (after: A5, A6) — fit `H`, the shift maximum, the Elliott window and `X₀` below the common cutoff and instantiate `FiniteVanDerCorputRateAssumption`. Deliverables: `Conjectures/C0003_edp_rate/src/FiniteVanDerCorput.lean`.
+
+- [ ] A8: Structured-branch threshold extraction (after: A3) — audit the Mertens / repulsion / zero-free / Euler-product chain into a function-form finite statement with truncation error and an explicit terminal scale. Deliverables: `Conjectures/C0003_edp_rate/src/StructuredThresholds.lean`, `Problems/edp_rate_structured_thresholds.md`.
+
+- [ ] A9: Finite structured package (after: A5, A8) — show the terminal scale fits below the common cutoff and instantiate `FiniteBorweinChoiCoonsRateAssumption`. Deliverables: `Conjectures/C0003_edp_rate/src/FiniteStructured.lean`.
+
+- [ ] A10: Rate calibration and audit (after: A7, A9) — reconcile all threshold inequalities, lower the exponent or coefficient if the proved schedules require it, prove divergence of the final concrete rate, and pin the unconditional rate theorem (`#guard_msgs` on `#print axioms`); write the result section. Deliverables: `Conjectures/C0003_edp_rate/src/RateTheorem.lean`, `Problems/edp_rate_result.md`.
 
 ## 4. Milestones beyond Phase 1 (for orientation; items are written after A3)
 
