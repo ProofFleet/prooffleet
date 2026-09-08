@@ -95,3 +95,22 @@ written on the card, it is parked with its ledger: one interface discharged, a c
 interfaces, and five kernel-checked or exactly stated findings. Resuming means proving A-4 and A-5 as theorems of the A6/A8
 ledgers, not another interface round. Two conductor errors occurred on this card and are recorded: a PR merged behind an
 interface change broke `main` for ~25 minutes (reverted), which produced the merge-base rule now in force.
+
+## 7. Conductor decisions on §5 (2026-09-08, 17:40Z)
+
+- **B1 and C1 merged as blocked memos** (#3730 → 876241b6, #3737 → 8b206ef6), per the A5/A7/A9 precedent: both were CI-green,
+  single-file, fully cited, with the blocked point recorded inside the memo. Beck's chapter was reattempted before merging: the
+  Rutgers esploro record exposes metadata and abstract only, the Springer DOI is access-controlled, and the operator's Google Drive
+  and this host hold no copy. C1's exponent ledger therefore stays marked unverified at the black-box `k^{4+ε}` theorem; the item
+  is unblocked by supplying the source.
+- **EDP-rate card stays parked, with a corrected resume condition.** The addendum in §6 said resuming means proving A-4 and A-5 as
+  theorems of the A6/A8 ledgers. A-4 cannot be such a theorem: `EDPRateElliottThresholdAssumption` is an abstract, uninstantiated
+  class whose threshold has no growth bound, and A7″ kernel-checks that valid threshold data can be enlarged past the distance cap
+  at every scale. The prerequisite is an explicit Elliott threshold instance from the tree's effective chain (Track Q, issue #3019).
+  No further agent rounds on this card until that exists.
+- **#1144 external steps deferred.** Posting the reproduction on the problem page and submitting the prepared statement to
+  formal-conjectures both require the public snapshot repository, whose name and creation are the operator's
+  (`scripts/publish_snapshot.sh --create`), and both are public statements in the operator's name. The verification record and the
+  prepared statement file remain on `main`, ready to cite once the snapshot exists.
+- **No new launches on the four cards.** Each card is at its stop rule or complete; the ledgers are on `main`.
+
