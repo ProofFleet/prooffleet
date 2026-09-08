@@ -45,7 +45,7 @@ horizon) and `ResiduePrefixCompactnessAssumption α` (the finite-to-infinite pas
 `erdos177Exponent_of_assumptions` and its exponent-7 specialization. Its warning: any estimate carrying a `log N` factor, however
 slow, fails the length-uniform quantifier.
 
-- [ ] C4: Compactness discharge (after: C3) — prove `ResiduePrefixCompactnessAssumption α` for every `α` (a diagonal / König-type argument over finite horizons with the uniform bound; no `log N` leakage possible here) and register the instance with an audit pin. Deliverables: `Conjectures/C0005_erdos177_ap/src/Compactness.lean`.
+- [x] C4: Compactness discharge (after: C3) — prove `ResiduePrefixCompactnessAssumption α` for every `α` (a diagonal / König-type argument over finite horizons with the uniform bound; no `log N` leakage possible here) and register the instance with an audit pin. Deliverables: `Conjectures/C0005_erdos177_ap/src/Compactness.lean`.
 
 - [ ] C5: Finite balancing experiment (after: C2, C3) — extend `scripts/research/erdos177_numerics.py` to search finite witnesses of `FiniteResiduePrefixWitness f α C N` for `α ∈ {1/2, 1, 2, 4, 7}`, tracking the barrier (the largest residue-prefix sum normalised by `d^α`) after each partial-colouring round, on horizons `N` up to the largest feasible; report whether the barrier stays bounded as `N` grows for each `α`, which is the empirical content of C3-BAL. Deliverables: `scripts/research/erdos177_numerics.py`, `Problems/erdos177_balancing_experiment.md`.
 
