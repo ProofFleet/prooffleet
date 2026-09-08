@@ -6,7 +6,7 @@ import Conjectures.C0003_edp_rate.src.FiniteFourier
 The A5 exponent-box construction was conditional on its exact terminal source budget fitting
 below the outer product horizon.  The revised analysis cutoff is the greatest scale for which
 that inequality holds.  This file proves the cutoff invariant and installs the resulting
-`FiniteFourierReductionAssumption` instance.
+budgeted `FiniteFourierReductionAssumption` instance.
 
 This is only the Fourier leg of the conditional reduction.  It does not supply either analytic
 assumption and therefore does not prove an Erdős-discrepancy rate.  See
@@ -73,10 +73,12 @@ theorem spectralSourceBudget_at_cutoff_le_outer {x : ℝ} {n : ℕ} (hx : 0 ≤ 
 /-- Route (a) discharges the finite Fourier interface: the source-budget-aware cutoff turns
 the sole premise isolated in A5 into a theorem. -/
 noncomputable instance finiteFourierReductionAssumption_budgetSafe :
-    FiniteFourierReductionAssumption :=
-  finiteFourierReduction_of_schedule fun _ hx =>
-    edpFourierSourceBudget_le_outer (le_of_lt (lt_trans (by
-      unfold edpRateStart
-      positivity) hx))
+    FiniteFourierReductionAssumption .budgeted := by
+  let hhistorical : FiniteFourierReductionAssumption .historical :=
+    finiteFourierReduction_of_schedule fun _ hx =>
+      edpFourierSourceBudget_le_outer (le_of_lt (lt_trans (by
+        unfold edpRateStart
+        positivity) hx))
+  exact ⟨hhistorical.reduce⟩
 
 end MoltResearch
