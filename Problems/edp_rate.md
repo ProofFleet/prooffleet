@@ -58,7 +58,7 @@ renamed A4–A10 here (card B's identifiers are taken).
 
 - [ ] A5: Finite Fourier package (after: A4) — choose the spectral scale and modulus as functions of the outer `x`, prove every requested product is `≤ x`, and instantiate `FiniteFourierReductionAssumption` (or record the exact schedule obstruction as a `Blocked:` finding). Deliverables: `Conjectures/C0003_edp_rate/src/FiniteFourier.lean`.
 
-- [ ] A6: Function-form Elliott thresholds (after: A3) — replace the existential threshold of the nonasymptotic Elliott consumer by explicit threshold data and prove the finite van der Corput estimates with every touched moment index recorded. Deliverables: `Conjectures/C0003_edp_rate/src/ElliottThresholds.lean`, `Problems/edp_rate_elliott_thresholds.md`.
+- [x] A6: Function-form Elliott thresholds (after: A3) — replace the existential threshold of the nonasymptotic Elliott consumer by explicit threshold data and prove the finite van der Corput estimates with every touched moment index recorded. Deliverables: `Conjectures/C0003_edp_rate/src/ElliottThresholds.lean`, `Problems/edp_rate_elliott_thresholds.md`.
 
 - [ ] A7: Finite van der Corput package (after: A5, A6) — fit `H`, the shift maximum, the Elliott window and `X₀` below the common cutoff and instantiate `FiniteVanDerCorputRateAssumption`. Deliverables: `Conjectures/C0003_edp_rate/src/FiniteVanDerCorput.lean`.
 
