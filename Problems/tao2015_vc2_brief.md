@@ -1,3 +1,27 @@
+## RESUME NOTE (run 27) — read before anything else
+Run 24 committed V-C2-1…V-C2-7 (`VinogradovWeylSum.lean`: Taylor phase, shift averaging + Hölder, orthogonality, block control by polynomial moments,
+coefficient boxes + top-frequency spacing, the exact multiplicity `ν(β) ≤ 2(2(2N+1)^{k+1}/(k²tM^k) + 1)`, the aggregate box reduction on `[−1,2]^k`,
+and the phase conversion) and stopped because `vinogradov_mean_value` hides its constant `C_{k,τ}` behind `∃ C` with no public growth bound. **Your
+corrected bookkeeping is accepted** (Ford Lemma 6.3: short length `M` at scale `N^{1−λ/(k+1)}`, multiplicity `O(M)`, `τ ≍ k log k`, `s = kτ`, `δ_τ ≤ 1/2`), and the
+**target is now the weakened fixed form** `1 − c/(λ³·log²(2λ))` (`a = 3`, `b = 2`), which V-C3 can use. Do:
+
+- **V-C1′ (export the constant envelope).** In a new leaf importing `VinogradovMeanValue.lean` (or by adding a public theorem there — the file is a leaf you own; do
+  not change existing statements), prove `vinogradovMeanValueConstant_le : vinogradovMeanValueConstant k τ ≤ D k τ` for an explicit closed form `D` obtained
+  by unwinding your own recursion (the construction starts at `k! + 1` and each of the `τ` steps multiplies/adds explicit factors — bound each step by
+  `(2k(k+τ))^{c₁ k (k+τ)}`-type and iterate, or prove directly `Real.log (vinogradovMeanValueConstant k τ) ≤ c₂ · k·τ·(k + τ)·Real.log (2k(k+τ))` — any bound with
+  `log D_{k,τ}/(2kτ) = O(k log k + τ log τ)`-type growth suffices; record it). If the spec theorem for the named constant is private, add a public one.
+- **V-C2-8 (fold the cube).** `[−1, 2]^k` → three unit periods per coordinate (integer-shift periodicity of the majorant, already proved), factor `3^k`.
+- **V-C2-9 (assembly).** The long-interval shift assembly with `M` at scale `N^{1−λ/(k+1)}` for `k − 1 ≤ λ ≤ k` (`k := ⌈λ⌉`), `τ := ⌈k log k⌉ + 1`, `s := kτ`; the main
+  term `N·(M^{1+δ_τ}·3^k·2^{4s}·2(…)·C_{k,τ}/N)^{1/(2s)}`-type; then the **large-`N`/small-`N` split**: if `log N ≥ K·k³ log²(2k)` (`K` explicit) the prefactor
+  `(3^k 2^{4s} C_{k,τ} ν …)^{1/(2s)}` is `≤ N^{c/(2λ³ log²(2λ))}` and the saving `(M/N)^{1/(2s)}·…` gives `N^{1 − c/(λ³ log²(2λ))}`; otherwise the trivial bound `N`
+  already is `≤ C·N^{1 − c/(λ³ log²(2λ))}` (since then `N^{c/(λ³ log² 2λ)} ≤ e^{cK}`). Record `c, C, K`.
+- **V-C2-10 (small `λ`).** For `λ ≤ 2` (i.e. `t ≤ N²`) use the tree's van der Corput bound (`vdc2` as in `norm_halaszKernel_le`: `|∑_{N<n≤2N} e(f(n))| ≪ N^{1/2}·(t/N)^{1/2}+ N/(t/N)^{1/2}`…
+  for `N ≤ t ≤ N²` this is `≪ N^{3/4}`-type) to get a fixed power saving, which is `≤ C N^{1−c/(λ³log²2λ)}` for `λ ≤ 2`. (If `norm_halaszKernel_le`'s form is
+  inconvenient, prove the needed block bound directly from `vdc2`.)
+- **V-C2-11.** `theorem vinogradov_weyl_sum` in the brief's shape with exponent `1 − c/((log t/log N)^3 · (Real.log (2·log t/log N))^2)`; record the compiled form.
+
+Stop rule unchanged: only an unbounded failure for every admissible parameter choice.
+
 # Track R — V-C2 brief: Weyl sums `∑ n^{−it}` by Vinogradov's method, from `vinogradov_mean_value`
 
 **Ground rules:** `Problems/tao2015_vi9g_brief.md` §0 verbatim (no `sorry`/`axiom`/`unsafe` under `MoltResearch/`, `Solutions/`, not even in comments;

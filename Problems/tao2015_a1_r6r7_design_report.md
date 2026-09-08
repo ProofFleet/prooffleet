@@ -1234,6 +1234,27 @@ target `P^{1−η/2}`), with the envelope in two regimes: (I) `log P ≤ (log 2T
 V-C4's `θ = 1/a + ε₀ = 5/7 + ε₀` and `θ' = 31/40`, `κ = 1/20` works. Small heights `Z ≤ t₁`: no zeros on `Re z = 1` (Mathlib) plus compactness
 give a fixed positive width and a bound on the regular part. Then **V-C4-4** = `zeroFreeRegionDataH_of_growth`, and V-C3 closes the campaign.
 
+### V-B′ and V-C2 as run — Findings V-2 and V-3 (2026-09-07, Codex runs 25 and 24)
+
+**Finding V-2 (V-B′, run 25; report `CODEX_REPORT_vbprime` in `Problems/tao2015_vbpp_brief.md`'s context).** With the rectangle at height
+`Z = 8πT + √P` the region width collapses to `≈ 2^θ(log P)^{−θ}` whenever `√P > 8πT`, and the two-regime envelope of Finding V-1 fails by an unbounded
+factor for `log 2T = (log P)^q`, `1 − θ < q < θ/θ'` (Codex's counterexample; the brief's Regime II had a sign error). The correct height is the
+**balance point** of the right-line truncation tail (`≲ eP log(2P)/H` for the `1/(1+τ²)` window) against the shifted-line size `P^{1−η(H)/2}`:
+`Z := max(8πT, exp((log P)^{1/(1+θ)}))`. Then the envelope closes in **three regimes** with no `κ`: (0) `log P ≤ (log 2T)^{θ'}` by the trivial
+Cauchy–Schwarz bound; (I) `8πT ≥ H`: the saving `exp(−log P/(2(log 16πT)^θ))(log 16πT)^m` is below `exp(−log P/(log 2T)^{θ'})(log 2T)²` for `T ≥ T₁`
+provided **`m ≤ 2`**, and bounded `T` is absorbed into the diagonal; (II) `H > 8πT`: `η(Z) ≈ (log P)^{−θ/(1+θ)}`, saving `exp(−(log P)^{1/(1+θ)}/2)`, which beats
+the demanded `exp(−log P/(log 2T)^{θ'}) ≤ exp(−(log P)^{1−θ'/(1+θ)})` when `log 2T ≥ (log P)^{1/(1+θ)}/3` (as `θ < θ'`), and otherwise `#𝒯·E ≤ CP` is absorbed.
+The condition `m ≤ 2` requires sharpening V-C4-3's `m = 2 + 1/a` (crude) to `m = 1/a + 1/10`: Borel–Carathéodory on the disc of radius `2η` about
+`1 + η/2 + it` with the growth bound `B(3η/2)^a log t + b loglog t = O(loglog t)` inside the region and the 3-4-1 lower bound gives
+`‖ζ'/ζ‖ ≪ (log t)^{1/a}(loglog t)²`. Run 26 executes this (`Problems/tao2015_vbpp_brief.md`).
+
+**Finding V-3 (V-C2, run 24; report `Problems/tao2015_vc2_report.md`).** The V-C2 brief's parameter sketch treated the frequency-box multiplicity as
+`O(1)`; Ford's Lemma 6.3 uses a short length `M ≍ N^{1−λ/(k+1)}` with multiplicity `O(M)`, `τ ≍ k log k`, `s = kτ`, `δ_τ ≤ 1/2`, and the main term
+`N(M^{1+δ_τ}/N)^{1/(2s)}` — the natural saving `1/(k² log k)`. And `vinogradov_mean_value` exports only `∃ C_{k,τ}`; absorbing `C_{k,τ}^{1/(2s)}` needs a
+public growth bound (`log C_{k,τ}/(2kτ) = O(k log k + τ log τ)`), after which the large-`N`/small-`N` split gives the fixed form
+**`|∑_{N<n≤R}(n+u)^{−it}| ≤ C N^{1 − c/(λ³ log²(2λ))}`** (`a = 3`, `b = 2`) — enough for V-C3: `E(σ) ≍ (1−σ)^{4/3}(log(2/(1−σ)))^{2/3} ≤ C(1−σ)^{33/25}`, so the growth
+bound is stated at `a' = 33/25` and V-C4-4 gives `θ = 1/a' + 1/100 ≈ 0.768 < 31/40`. Run 27 executes V-C1′ (the export) and V-C2-8…11.
+
 ### Dependency order
 
 ```
