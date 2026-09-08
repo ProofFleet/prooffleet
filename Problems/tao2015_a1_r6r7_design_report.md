@@ -1212,6 +1212,28 @@ a bounded chain of Bertrand primes above `q` with the discriminant product), and
 **`vinogradov_mean_value : ∀ k ≥ 2, τ ≥ 1, ∃ C > 0, ∀ P ≥ 1, J_{kτ,k}(P) ≤ C·P^{2kτ − k(k+1)/2 + (k²/2)(1−1/k)^τ}`** with the named constant
 `vinogradovMeanValueConstant k τ`. Next: V-C2 (Weyl sums `∑ n^{−it}` by Vinogradov's method, brief `Problems/tao2015_vc2_brief.md`), V-C3.
 
+### V-C4 as run — status and Finding V-1 (2026-09-07, Codex run 23; report in `Problems/tao2015_vc4_report.md`)
+
+**Done**: `zeta_landau_core_at_radius` (constant `16(K+1)/R`), **`zeta_zero_free_of_growth`** — from `ZetaGrowthBound t₀ a B b B₀`
+(`log‖ζ(σ+it)‖ ≤ B(1−σ)^a log|t| + b loglog|t| + B₀`) the region `β ≤ 1 − c(loglog|t|)^{1/a−1}/(log|t|)^{1/a}` (radius
+`R = (ℓ/(B L))^{1/a}`, offset `δ = R/(Vℓ)`, `c = B^{−1/a}/(9V)`), **`zeta_regular_logDeriv_bound_of_growth`** — `‖−ζ'/ζ(z) − 1/(z−1)‖ ≤ C(log|Im z|)^{2+1/a}`
+on `Re z ≥ 1 − η(|Im z|)/2` (Borel–Carathéodory on the disc of radius `2η` about `1 + η/2 + it`), and the validation of the parametrization
+against `zeta_norm_upper` (recovering de la Vallée Poussin).
+
+**Finding V-1 — V-B's region record is height-inconsistent.** `ZeroFreeRegionData.region` quantifies over `P ≥ 2` and `T ≥ 1` and demands
+non-vanishing and the regular-part bound up to height `Z = 8πT + P²` with `η = min(1/2, (log 2T)^{−θ})`, `M = (log 2T)^m` — at fixed `T` and
+`P → ∞` this asks for a fixed width and bound through arbitrarily large heights, which no zero-free region (nor the de la Vallée Poussin one)
+gives. Repair (unit **V-B′**, run 25): a **height-indexed** record `ZeroFreeRegionDataH θ m` — for every real `Z ≥ 2`, non-vanishing and
+`‖−ζ'/ζ(z) − 1/(z−1)‖ ≤ (log 2Z)^m` on `1 − min(1/2, (log 2Z)^{−θ}) ≤ Re z ≤ 2`, `|Im z| ≤ Z` (exactly the pointwise-in-height form V-C4-3 proves,
+since the width decreases with the height) — and the V-A/V-B rectangle at height `Z := 8πT + √P` (the right-line tail `≲ e√P log 2P` is below the
+target `P^{1−η/2}`), with the envelope in two regimes: (I) `log P ≤ (log 2T)^{1+κ}`: `log 2Z ≤ (log 2T)^{1+κ}`, so the saving is
+`exp(−log P/(2(log 2T)^{θ(1+κ)}))(log 2T)^{m(1+κ)} ≤ exp(−log P/(log 2T)^{θ'})(log 2T)²` for `T ≥ T₀` once `θ(1+κ) < θ' = 31/40`;
+(II) `log P > (log 2T)^{1+κ}`: `Z ≤ 2√P`, `η(Z) ≥ (log P)^{−θ}`, and the off-diagonal `|𝒯|P^{1−η}M ≤ 3T·P·e^{−(log P)^{1−θ}}(log P)^m` is
+`≤ |𝒯|·P·e^{−log P/(log 2T)^{θ'}}(log 2T)²` under the **same** condition `θ(1+κ) ≤ θ'` (since `log P > (log 2T)^{1+κ}` gives
+`(log P)^{1−θ} ≥ (log 2T)^{(1−θ)(1+κ)}` and `log P/(log 2T)^{θ'} ≤ (log P)^{1 − θ'/(1+κ)}`); small `T` (finitely many points) is trivial. With
+V-C4's `θ = 1/a + ε₀ = 5/7 + ε₀` and `θ' = 31/40`, `κ = 1/20` works. Small heights `Z ≤ t₁`: no zeros on `Re z = 1` (Mathlib) plus compactness
+give a fixed positive width and a bound on the regular part. Then **V-C4-4** = `zeroFreeRegionDataH_of_growth`, and V-C3 closes the campaign.
+
 ### Dependency order
 
 ```
