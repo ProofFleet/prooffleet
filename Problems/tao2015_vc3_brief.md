@@ -11,7 +11,7 @@ never push/merge/rebase; `CODEX_REPORT.md` uncommitted). Read: the design report
 `ZetaGrowthBound t₀ a B b B₀` (from `Problems/tao2015_vc4_brief.md`, or the compiled structure if V-C4 has landed in the tree — match it exactly).
 
 
-**Exponent update (after run 24).** V-C2 delivers the weakened saving `1 − c/(λ³ log²(2λ))` (`a = 3`, `b = 2`). Then `E(σ) ≍ (1−σ)^{4/3}(log(2/(1−σ)))^{2/3}`, and the growth bound must be stated with `a' := 33/25 = 1.32` (absorb `(1−σ)^{4/3 − 1.32}(log(2/(1−σ)))^{2/3} ≤ C` on `1−σ ≤ 1/4`): `ZetaGrowthBound t₀ (33/25) B 1 B₀`. V-C4-4 then gives `θ = 1/a' + 1/100 = 0.7676 < 31/40` ✓ (record the margin). Replace `7/5` by `33/25` throughout below.
+**Exponent update (after run 24).** V-C2 delivers the weakened saving `1 − c/(λ³ log³(2λ))` (`a = 3`, `b = 3`; run 27's constant ledger). Then `E(σ) ≍ (1−σ)^{4/3}·log(2/(1−σ))`, and the growth bound must be stated with `a' := 33/25 = 1.32` (absorb `(1−σ)^{4/3 − 1.32}·log(2/(1−σ)) ≤ C` on `0 < 1−σ ≤ 1/4`): `ZetaGrowthBound t₀ (33/25) B 1 B₀`. V-C4-4 then gives `θ = 1/a' + 1/100 = 0.7676 < 31/40` ✓ (record the margin). Replace `7/5` by `33/25` throughout below.
 
 ## Target
 

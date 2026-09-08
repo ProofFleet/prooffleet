@@ -1,4 +1,5 @@
 import Mathlib
+import MoltResearch.Discrepancy.ChebyshevBlock
 
 /-!
 # Vinogradov's mean value theorem
@@ -3233,6 +3234,249 @@ private theorem discriminant_le_pow {k P : ℕ} (u : Fin k → ℕ)
     _ = P ^ k.choose 2 := by
       rw [Finset.prod_const, Finset.card_univ, card_vinogradovIndexPair]
 
+/-! ### A polynomial-cost separating-prime family -/
+
+/-- The primes in the dyadic interval `(q,2q]`. -/
+private def vinogradovShortPrimes (q : ℕ) : Finset ℕ :=
+  (Finset.Ioc q (2 * q)).filter Nat.Prime
+
+private theorem blockLog_eq_sum_vinogradovShortPrimes (q : ℕ) :
+    blockLog q = ∑ p ∈ vinogradovShortPrimes q, Real.log p := by
+  unfold blockLog vinogradovShortPrimes
+  apply Finset.sum_congr
+  · ext p
+    simp only [Finset.mem_filter, Nat.mem_primesBelow, Finset.mem_Ioc]
+    constructor
+    · rintro ⟨⟨hp, hprime⟩, hq⟩
+      exact ⟨⟨hq, by omega⟩, hprime⟩
+    · rintro ⟨⟨hq, hp⟩, hprime⟩
+      exact ⟨⟨by omega, hprime⟩, hq⟩
+  · intro p hp
+    rfl
+
+/-- The elementary Chebyshev block estimate supplies any prescribed number
+of primes in `(q,2q]` once `q` is a quadratic function of that number. -/
+private theorem card_vinogradovShortPrimes_ge (q L : ℕ)
+    (hq28 : 2 ^ 28 ≤ q) (hqL : 288 * L ^ 2 ≤ q) :
+    L ≤ (vinogradovShortPrimes q).card := by
+  have hq0 : 0 < q := by omega
+  have hlogupper : blockLog q ≤
+      ((vinogradovShortPrimes q).card : ℝ) * Real.log (2 * q) := by
+    rw [blockLog_eq_sum_vinogradovShortPrimes]
+    calc
+      (∑ p ∈ vinogradovShortPrimes q, Real.log p) ≤
+          (vinogradovShortPrimes q).card • Real.log (2 * (q : ℝ)) := by
+        apply Finset.sum_le_card_nsmul
+        intro p hp
+        unfold vinogradovShortPrimes at hp
+        rw [Finset.mem_filter, Finset.mem_Ioc] at hp
+        exact Real.log_le_log (by exact_mod_cast hq0.trans hp.1.1)
+          (by exact_mod_cast hp.1.2)
+      _ = ((vinogradovShortPrimes q).card : ℝ) * Real.log (2 * q) := by
+        rw [nsmul_eq_mul]
+  have hloglower := blockLog_ge hq28
+  have hlogsqrt : Real.log (2 * (q : ℝ)) ≤ 2 * Real.sqrt (2 * q) := by
+    have h := Real.log_le_rpow_div (x := 2 * (q : ℝ)) (by positivity)
+      (by norm_num : (0 : ℝ) < 1 / 2)
+    rw [show (2 * (q : ℝ)) ^ (1 / 2 : ℝ) = Real.sqrt (2 * q) by
+      rw [Real.sqrt_eq_rpow]] at h
+    nlinarith
+  have hsqrt0 : 0 ≤ Real.sqrt (2 * (q : ℝ)) := Real.sqrt_nonneg _
+  have hsqrtSq : Real.sqrt (2 * (q : ℝ)) ^ 2 = 2 * q := by
+    rw [Real.sq_sqrt]
+    positivity
+  have h24 : (24 * (L : ℝ)) ^ 2 ≤ 2 * q := by
+    have hnat : 576 * L ^ 2 ≤ 2 * q := by
+      calc
+        576 * L ^ 2 = 2 * (288 * L ^ 2) := by ring
+        _ ≤ 2 * q := Nat.mul_le_mul_left 2 hqL
+    have hnatR : (576 : ℝ) * (L : ℝ) ^ 2 ≤ 2 * (q : ℝ) := by
+      exact_mod_cast hnat
+    calc
+      (24 * (L : ℝ)) ^ 2 = (576 : ℝ) * (L : ℝ) ^ 2 := by ring
+      _ ≤ (2 : ℝ) * (q : ℝ) := hnatR
+  have h24sqrt : 24 * (L : ℝ) ≤ Real.sqrt (2 * q) := by
+    apply (sq_le_sq₀ (by positivity) hsqrt0).mp
+    rw [hsqrtSq]
+    exact h24
+  have hbudget : 6 * (L : ℝ) * Real.log (2 * q) ≤ q := by
+    calc
+      6 * (L : ℝ) * Real.log (2 * q) ≤
+          12 * L * Real.sqrt (2 * q) := by
+        nlinarith [hlogsqrt]
+      _ ≤ q := by nlinarith
+  have hlog4 : (1 : ℝ) ≤ Real.log 4 := by
+    have h := Real.log_two_gt_d9
+    rw [show (4 : ℝ) = 2 * 2 by norm_num,
+      Real.log_mul (by norm_num) (by norm_num)]
+    nlinarith
+  by_contra hcard
+  have hcardlt : (vinogradovShortPrimes q).card < L :=
+    Nat.lt_of_not_ge hcard
+  have hcardR : ((vinogradovShortPrimes q).card : ℝ) < L := by
+    exact_mod_cast hcardlt
+  have hlogpos : 0 < Real.log (2 * (q : ℝ)) := Real.log_pos (by
+    exact_mod_cast (show 1 < 2 * q by omega))
+  have hstrict : ((vinogradovShortPrimes q).card : ℝ) * Real.log (2 * q) <
+      (L : ℝ) * Real.log (2 * q) :=
+    mul_lt_mul_of_pos_right hcardR hlogpos
+  have hmain : (q : ℝ) * Real.log 4 / 6 <
+      (L : ℝ) * Real.log (2 * q) := lt_of_le_of_lt
+        (hloglower.trans hlogupper) hstrict
+  have hsmall : (L : ℝ) * Real.log (2 * q) ≤ (q : ℝ) / 6 := by
+    nlinarith [hbudget]
+  nlinarith [mul_le_mul_of_nonneg_left hlog4
+    (show (0 : ℝ) ≤ q by positivity)]
+
+private def vinogradovSeparatingFamilySize (k : ℕ) : ℕ :=
+  (2 * k.choose 2) * k + 1
+
+/-- A threshold at which one dyadic prime interval contains the complete
+separating family.  Its growth is polynomial in `k`. -/
+def vinogradovPrimeThreshold (k : ℕ) : ℕ :=
+  max (2 ^ 28) (max k (288 * vinogradovSeparatingFamilySize k ^ 2))
+
+private theorem vinogradovPrimeThreshold_ge_twoPow (k : ℕ) :
+    2 ^ 28 ≤ vinogradovPrimeThreshold k := le_max_left _ _
+
+private theorem vinogradovPrimeThreshold_ge_self (k : ℕ) :
+    k ≤ vinogradovPrimeThreshold k :=
+  (le_max_left _ _).trans (le_max_right _ _)
+
+private theorem vinogradovPrimeThreshold_ge_family (k : ℕ) :
+    288 * vinogradovSeparatingFamilySize k ^ 2 ≤
+      vinogradovPrimeThreshold k :=
+  (le_max_right _ _).trans (le_max_right _ _)
+
+/-- A fixed family of the required cardinality selected from `(q,2q]`.
+Outside its intended range it is defined to be empty. -/
+private noncomputable def vinogradovSeparatingPrimeFamily (k q : ℕ) : Finset ℕ :=
+  if h : vinogradovSeparatingFamilySize k ≤ (vinogradovShortPrimes q).card then
+    Classical.choose (Finset.exists_subset_card_eq h)
+  else ∅
+
+private theorem vinogradovSeparatingPrimeFamily_spec {k q : ℕ}
+    (hq : vinogradovPrimeThreshold k ≤ q) :
+    vinogradovSeparatingPrimeFamily k q ⊆ vinogradovShortPrimes q ∧
+      (vinogradovSeparatingPrimeFamily k q).card =
+        vinogradovSeparatingFamilySize k := by
+  have hcard : vinogradovSeparatingFamilySize k ≤
+      (vinogradovShortPrimes q).card :=
+    card_vinogradovShortPrimes_ge q (vinogradovSeparatingFamilySize k)
+      ((vinogradovPrimeThreshold_ge_twoPow k).trans hq)
+      ((vinogradovPrimeThreshold_ge_family k).trans hq)
+  rw [vinogradovSeparatingPrimeFamily, dif_pos hcard]
+  exact Classical.choose_spec (Finset.exists_subset_card_eq hcard)
+
+/-- A separating prime can be chosen in the single dyadic interval
+`(q,2q]`; unlike the older Bertrand-chain construction, this costs only a
+factor `2` in the mean-value recursion. -/
+private theorem exists_short_separating_prime {k P q : ℕ}
+    (hk : 2 ≤ k) (hq : vinogradovPrimeThreshold k ≤ q)
+    (hPq : P < q ^ k)
+    (u v : Fin k → ℕ) (huP : ∀ i, u i ≤ P) (hvP : ∀ i, v i ≤ P)
+    (hu : Function.Injective u) (hv : Function.Injective v) :
+    ∃ p ∈ vinogradovSeparatingPrimeFamily k q,
+      p.Prime ∧ k < p ∧ p ≤ 2 * q ∧
+        VinogradovWellConditioned p u ∧ VinogradovWellConditioned p v := by
+  classical
+  let E := 2 * k.choose 2
+  let M := E * k + 1
+  let T := vinogradovSeparatingPrimeFamily k q
+  have hspec := vinogradovSeparatingPrimeFamily_spec hq
+  have hTcard : T.card = M := by
+    simpa only [T, M, E, vinogradovSeparatingFamilySize] using hspec.2
+  have hkq : k ≤ q := (vinogradovPrimeThreshold_ge_self k).trans hq
+  have hq0 : 0 < q := lt_of_lt_of_le (by omega : 0 < k) hkq
+  by_contra hnone
+  push_neg at hnone
+  have hdata : ∀ p ∈ T, p.Prime ∧ q < p ∧ p ≤ 2 * q := by
+    intro p hp
+    have hpS := hspec.1 hp
+    unfold vinogradovShortPrimes at hpS
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hpS
+    exact ⟨hpS.2, hpS.1.1, hpS.1.2⟩
+  have hdvd : ∀ p ∈ T,
+      p ∣ vinogradovDiscriminant u * vinogradovDiscriminant v := by
+    intro p hp
+    have hs := hnone p hp
+    have hd := hdata p hp
+    have hkp : k < p := lt_of_le_of_lt hkq hd.2.1
+    specialize hs hd.1 hkp hd.2.2
+    by_cases hwu : VinogradovWellConditioned p u
+    · exact dvd_mul_of_dvd_right
+        (prime_dvd_discriminant_of_not_well v (hs hwu)) _
+    · exact dvd_mul_of_dvd_left
+        (prime_dvd_discriminant_of_not_well u hwu) _
+  have hpairwise : (T : Set ℕ).Pairwise Nat.Coprime := by
+    intro p hp r hr hpr
+    exact (Nat.coprime_primes (hdata p hp).1 (hdata r hr).1).mpr hpr
+  have hprodDaux : ∀ s : Finset ℕ, s ⊆ T →
+      (∀ p ∈ s, p ∣ vinogradovDiscriminant u * vinogradovDiscriminant v) →
+      (∏ p ∈ s, p) ∣ vinogradovDiscriminant u * vinogradovDiscriminant v := by
+    intro s hsT
+    induction s using Finset.induction with
+    | empty => simp
+    | @insert p s hps ih =>
+        intro hall
+        rw [Finset.prod_insert hps]
+        apply Nat.Coprime.mul_dvd_of_dvd_of_dvd
+        · apply Nat.Coprime.prod_right
+          intro r hr
+          exact hpairwise (hsT (Finset.mem_insert_self p s))
+            (hsT (Finset.mem_insert_of_mem hr)) (by
+              intro h
+              exact hps (h ▸ hr))
+        · exact hall p (Finset.mem_insert_self p s)
+        · exact ih (fun r hr => hsT (Finset.mem_insert_of_mem hr))
+            (fun r hr => hall r (Finset.mem_insert_of_mem hr))
+  have hprodD : (∏ p ∈ T, p) ∣
+      vinogradovDiscriminant u * vinogradovDiscriminant v :=
+    hprodDaux T (fun _ hp => hp) hdvd
+  have hDpos : 0 < vinogradovDiscriminant u * vinogradovDiscriminant v :=
+    Nat.mul_pos (discriminant_pos_of_injective u hu)
+      (discriminant_pos_of_injective v hv)
+  have hprodLeD := Nat.le_of_dvd hDpos hprodD
+  have hDle : vinogradovDiscriminant u * vinogradovDiscriminant v ≤ P ^ E := by
+    calc
+      vinogradovDiscriminant u * vinogradovDiscriminant v ≤
+          P ^ k.choose 2 * P ^ k.choose 2 :=
+        Nat.mul_le_mul (discriminant_le_pow u huP)
+          (discriminant_le_pow v hvP)
+      _ = P ^ (2 * k.choose 2) := by rw [← pow_add]; congr 1; omega
+      _ = P ^ E := rfl
+  have hE0 : 0 < E := by
+    dsimp [E]
+    exact Nat.mul_pos (by omega) (Nat.choose_pos hk)
+  have hPE : P ^ E < (q ^ k) ^ E := Nat.pow_lt_pow_left hPq hE0.ne'
+  have hqexp : (q ^ k) ^ E ≤ q ^ M := by
+    calc
+      (q ^ k) ^ E = q ^ (k * E) := (pow_mul q k E).symm
+      _ ≤ q ^ M := by
+        apply Nat.pow_le_pow_right hq0
+        dsimp [M]
+        rw [mul_comm k E]
+        exact Nat.le_succ _
+  have hqprod : q ^ M < ∏ p ∈ T, p := by
+    calc
+      q ^ M = ∏ _p ∈ T, q := by simp [hTcard]
+      _ < ∏ p ∈ T, p := by
+        apply Finset.prod_lt_prod (fun _ _ => hq0)
+        · intro p hp
+          exact (hdata p hp).2.1.le
+        · have hTne : T.Nonempty := by
+            rw [Finset.nonempty_iff_ne_empty]
+            intro hTempty
+            rw [hTempty] at hTcard
+            simp only [Finset.card_empty] at hTcard
+            dsimp [M, E, vinogradovSeparatingFamilySize] at hTcard
+            omega
+          obtain ⟨p, hp⟩ := hTne
+          exact ⟨p, hp, (hdata p hp).2.1⟩
+  have hcontra : P ^ E < P ^ E :=
+    (((hPE.trans_le hqexp).trans hqprod).trans_le hprodLeD).trans_le hDle
+  exact (lt_irrefl _ hcontra)
+
 /-- Among a fixed number of consecutive Bertrand primes, one separates two
 ordered `k`-blocks whose coordinates are individually distinct. -/
 private theorem exists_separating_prime {k P q : ℕ}
@@ -3625,6 +3869,51 @@ private theorem firstWell_pairCount_le_fundamentalTerm {r k P q p : ℕ}
           exact Nat.add_le_add_right (Nat.div_le_div_left hqp.le
             (lt_of_lt_of_le (by omega : 0 < k) hkq)) 1
 
+/-- The fundamental nonsingular term when the separating prime lies in the
+single dyadic interval `(q,2q]`. -/
+private def vinogradovFundamentalTermShort (r k P q : ℕ) : ℕ :=
+  let L := 2 * q
+  L ^ (2 * r) *
+    (2 * r * (P ^ k * (k.factorial * L ^ (k * (k - 1) / 2)) *
+      vinogradovJ r k (P / q + 1)))
+
+private theorem firstWell_pairCount_le_fundamentalTermShort {r k P q p : ℕ}
+    (hr : 0 < r) (hk : 2 ≤ k) (hkq : k ≤ q)
+    (hp : p.Prime) (hqp : q < p) (hpL : p ≤ 2 * q)
+    (hP : P < p ^ k) :
+    vinogradovPairCount k
+        ((vinogradovTuples (r + k) P).filter
+          (VinogradovFirstWellConditioned p))
+        ((vinogradovTuples (r + k) P).filter
+          (VinogradovFirstWellConditioned p)) ≤
+      vinogradovFundamentalTermShort r k P q := by
+  let L := 2 * q
+  have hbase := vinogradov_firstWell_pairCount_le hp hr (by omega)
+    (lt_of_le_of_lt hkq hqp) hP
+  dsimp [vinogradovFundamentalTermShort, L]
+  calc
+    vinogradovPairCount k
+        ((vinogradovTuples (r + k) P).filter
+          (VinogradovFirstWellConditioned p))
+        ((vinogradovTuples (r + k) P).filter
+          (VinogradovFirstWellConditioned p)) ≤
+      p ^ (2 * r) *
+        (2 * r * (P ^ k * (k.factorial * p ^ (k * (k - 1) / 2)) *
+          vinogradovJ r k (P / p + 1))) := hbase
+    _ ≤ (2 * q) ^ (2 * r) *
+        (2 * r * (P ^ k *
+          (k.factorial * (2 * q) ^ (k * (k - 1) / 2)) *
+            vinogradovJ r k (P / q + 1))) := by
+      apply Nat.mul_le_mul
+      · exact Nat.pow_le_pow_left hpL _
+      · apply Nat.mul_le_mul_left
+        apply Nat.mul_le_mul
+        · exact Nat.mul_le_mul_left _
+            (Nat.mul_le_mul_left _ (Nat.pow_le_pow_left hpL _))
+        · apply vinogradovJ_mono
+          exact Nat.add_le_add_right (Nat.div_le_div_left hqp.le
+            (lt_of_lt_of_le (by omega : 0 < k) hkq)) 1
+
 /-- The nonsingular--nonsingular part is covered by two coordinate
 permutations and one of the bounded Bertrand primes. -/
 private theorem manyValues_pairCount_le {r k P q : ℕ}
@@ -3720,6 +4009,101 @@ private theorem manyValues_pairCount_le {r k P q : ℕ}
     _ = ((r + k).factorial ^ 2 * ((2 * k.choose 2) * k + 1)) *
         vinogradovFundamentalTerm r k P q := rfl
 
+/-- Polynomial-cost version of `manyValues_pairCount_le`, using a fixed
+family of primes from the single dyadic block `(q,2q]`. -/
+private theorem manyValues_pairCount_le_short {r k P q : ℕ}
+    (hr : 0 < r) (hk : 2 ≤ k)
+    (hq : vinogradovPrimeThreshold k ≤ q) (hPq : P < q ^ k) :
+    vinogradovPairCount k (vinogradovManyValues (r + k) k P)
+        (vinogradovManyValues (r + k) k P) ≤
+      ((r + k).factorial ^ 2 * vinogradovSeparatingFamilySize k) *
+        vinogradovFundamentalTermShort r k P q := by
+  classical
+  let T := vinogradovSeparatingPrimeFamily k q
+  let G := vinogradovManyValues (r + k) k P
+  let Sol := ((G ×ˢ G).filter fun xy =>
+    vinogradovMomentVector k xy.1 = vinogradovMomentVector k xy.2)
+  let piece (σ τ : Equiv.Perm (Fin (r + k))) (p : ℕ) :=
+    ((((vinogradovTuples (r + k) P).filter
+        (vinogradovPermutedFirstWell p σ)) ×ˢ
+      ((vinogradovTuples (r + k) P).filter
+        (vinogradovPermutedFirstWell p τ))).filter
+      fun xy => vinogradovMomentVector k xy.1 = vinogradovMomentVector k xy.2)
+  have hcover : Sol ⊆
+      (Finset.univ : Finset (Equiv.Perm (Fin (r + k)))).biUnion fun σ =>
+        (Finset.univ : Finset (Equiv.Perm (Fin (r + k)))).biUnion fun τ =>
+          T.biUnion fun p => piece σ τ p := by
+    intro xy hxy
+    dsimp [Sol, G] at hxy
+    rw [Finset.mem_filter, Finset.mem_product] at hxy
+    have hxG := Finset.mem_filter.mp hxy.1.1
+    have hyG := Finset.mem_filter.mp hxy.1.2
+    obtain ⟨σ, hσ⟩ := exists_perm_first_injective xy.1 hxG.2
+    obtain ⟨τ, hτ⟩ := exists_perm_first_injective xy.2 hyG.2
+    let u : Fin k → ℕ := fun i => xy.1 (σ (vinogradovFirstIndex r i))
+    let v : Fin k → ℕ := fun i => xy.2 (τ (vinogradovFirstIndex r i))
+    obtain ⟨p, hpT, hp, hkp, hpL, hwu, hwv⟩ := exists_short_separating_prime
+      hk hq hPq u v
+      (fun i => (mem_vinogradovTuples.mp hxG.1 _).2)
+      (fun i => (mem_vinogradovTuples.mp hyG.1 _).2) hσ hτ
+    simp only [Finset.mem_biUnion]
+    refine ⟨σ, Finset.mem_univ _, τ, Finset.mem_univ _, p, hpT, ?_⟩
+    dsimp [piece]
+    rw [Finset.mem_filter, Finset.mem_product]
+    exact ⟨⟨Finset.mem_filter.mpr ⟨hxG.1, hwu⟩,
+      Finset.mem_filter.mpr ⟨hyG.1, hwv⟩⟩, hxy.2⟩
+  have hpiece : ∀ σ τ : Equiv.Perm (Fin (r + k)), ∀ p ∈ T,
+      (piece σ τ p).card ≤ vinogradovFundamentalTermShort r k P q := by
+    intro σ τ p hpT
+    let Aσ := (vinogradovTuples (r + k) P).filter
+      (vinogradovPermutedFirstWell p σ)
+    let Aτ := (vinogradovTuples (r + k) P).filter
+      (vinogradovPermutedFirstWell p τ)
+    have hspec := vinogradovSeparatingPrimeFamily_spec hq
+    have hpS := hspec.1 hpT
+    unfold vinogradovShortPrimes at hpS
+    rw [Finset.mem_filter, Finset.mem_Ioc] at hpS
+    have hp : p.Prime := hpS.2
+    have hqp : q < p := hpS.1.1
+    have hpL : p ≤ 2 * q := hpS.1.2
+    have hkq : k ≤ q := (vinogradovPrimeThreshold_ge_self k).trans hq
+    have hPp : P < p ^ k := hPq.trans_le (Nat.pow_le_pow_left hqp.le k)
+    have hdiagσ : vinogradovPairCount k Aσ Aσ ≤
+        vinogradovFundamentalTermShort r k P q := by
+      rw [permutedFirst_pairCount_eq]
+      exact firstWell_pairCount_le_fundamentalTermShort hr hk hkq hp hqp hpL hPp
+    have hdiagτ : vinogradovPairCount k Aτ Aτ ≤
+        vinogradovFundamentalTermShort r k P q := by
+      rw [permutedFirst_pairCount_eq]
+      exact firstWell_pairCount_le_fundamentalTermShort hr hk hkq hp hqp hpL hPp
+    have hsq := vinogradovPairCount_sq_le (k := k) Aσ Aτ
+    have hsq' : vinogradovPairCount k Aσ Aτ ^ 2 ≤
+        vinogradovFundamentalTermShort r k P q ^ 2 := by
+      exact hsq.trans (Nat.mul_le_mul hdiagσ hdiagτ) |>.trans_eq (pow_two _).symm
+    change vinogradovPairCount k Aσ Aτ ≤ _
+    exact (Nat.pow_le_pow_iff_left (by omega : 2 ≠ 0)).mp hsq'
+  calc
+    vinogradovPairCount k G G = Sol.card := rfl
+    _ ≤ ((Finset.univ : Finset (Equiv.Perm (Fin (r + k)))).biUnion fun σ =>
+        (Finset.univ : Finset (Equiv.Perm (Fin (r + k)))).biUnion fun τ =>
+          T.biUnion fun p => piece σ τ p).card := Finset.card_le_card hcover
+    _ ≤ ∑ _σ : Equiv.Perm (Fin (r + k)),
+        ∑ _τ : Equiv.Perm (Fin (r + k)),
+          ∑ _p ∈ T, vinogradovFundamentalTermShort r k P q := by
+      refine Finset.card_biUnion_le.trans (Finset.sum_le_sum fun σ hσ => ?_)
+      refine Finset.card_biUnion_le.trans (Finset.sum_le_sum fun τ hτ => ?_)
+      exact Finset.card_biUnion_le.trans
+        (Finset.sum_le_sum fun p hp => hpiece σ τ p hp)
+    _ = ((r + k).factorial ^ 2 * T.card) *
+        vinogradovFundamentalTermShort r k P q := by
+      simp [pow_two]
+      rw [Fintype.card_perm]
+      simp only [Fintype.card_fin]
+      ring
+    _ = ((r + k).factorial ^ 2 * vinogradovSeparatingFamilySize k) *
+        vinogradovFundamentalTermShort r k P q := by
+      rw [(vinogradovSeparatingPrimeFamily_spec hq).2]
+
 /-- Fundamental Linnik--Karatsuba recursion, with all constants explicit.
 The second summand is the singular contribution (tuples taking fewer than
 `k` distinct values); the first is the nonsingular `p`-adic term. -/
@@ -3768,6 +4152,104 @@ theorem vinogradov_fundamental_lemma {r k P q : ℕ}
         Nat.mul_le_mul_right _ (manyValues_pairCount_le hr hk hq hPq)
       _ = (((r + k).factorial ^ 2 * ((2 * k.choose 2) * k + 1)) *
           vinogradovFundamentalTerm r k P q) *
+          vinogradovJ (r + k) k P := by rw [vinogradovJ_eq_pairCount]
+  have hAsq : vinogradovPairCount k A A ≤ A₀ ^ 2 := by
+    dsimp [A, A₀]
+    calc
+      vinogradovPairCount k (vinogradovFewValues (r + k) k P)
+          (vinogradovFewValues (r + k) k P) ≤
+        (vinogradovFewValues (r + k) k P).card ^ 2 := by
+          rw [vinogradovPairCount]
+          calc
+            (((vinogradovFewValues (r + k) k P) ×ˢ
+                (vinogradovFewValues (r + k) k P)).filter fun xy =>
+                vinogradovMomentVector k xy.1 =
+                  vinogradovMomentVector k xy.2).card ≤
+              ((vinogradovFewValues (r + k) k P) ×ˢ
+                (vinogradovFewValues (r + k) k P)).card :=
+              Finset.card_filter_le _ _
+            _ = (vinogradovFewValues (r + k) k P).card ^ 2 := by
+              simp [pow_two]
+      _ ≤ (k * (P ^ (k - 1) * k ^ (r + k))) ^ 2 :=
+        Nat.pow_le_pow_left (card_vinogradovFewValues_le hP) 2
+  have hBsq : B ^ 2 ≤ A₀ ^ 2 * J := by
+    dsimp [B, J, T]
+    calc
+      vinogradovPairCount k A (vinogradovTuples (r + k) P) ^ 2 ≤
+          vinogradovPairCount k A A *
+            vinogradovPairCount k (vinogradovTuples (r + k) P)
+              (vinogradovTuples (r + k) P) :=
+        vinogradovPairCount_sq_le _ _
+      _ ≤ A₀ ^ 2 *
+          vinogradovPairCount k (vinogradovTuples (r + k) P)
+            (vinogradovTuples (r + k) P) := Nat.mul_le_mul_right _ hAsq
+      _ = A₀ ^ 2 * vinogradovJ (r + k) k P := by
+        rw [vinogradovJ_eq_pairCount]
+  by_cases hJ0 : J = 0
+  · dsimp [J] at hJ0 ⊢
+    omega
+  have hsqsum : (H + B) ^ 2 ≤ 2 * (H ^ 2 + B ^ 2) := by
+    nlinarith [sq_nonneg (H - B : ℤ)]
+  have hJJ : J * J ≤ (2 * (G₀ + A₀ ^ 2)) * J := by
+    calc
+      J * J = J ^ 2 := by ring
+      _ ≤ (H + B) ^ 2 := Nat.pow_le_pow_left hsplit 2
+      _ ≤ 2 * (H ^ 2 + B ^ 2) := hsqsum
+      _ ≤ 2 * (G₀ * J + A₀ ^ 2 * J) :=
+        Nat.mul_le_mul_left 2 (Nat.add_le_add hHsq hBsq)
+      _ = (2 * (G₀ + A₀ ^ 2)) * J := by ring
+  have hfinal := Nat.le_of_mul_le_mul_right hJJ (Nat.pos_of_ne_zero hJ0)
+  dsimp [J, G₀, A₀] at hfinal ⊢
+  exact hfinal.trans_eq (by ring)
+
+/-- Fundamental Linnik--Karatsuba recursion using a separating family from
+one dyadic prime block.  In particular, every prime factor in the
+nonsingular term is at most `2q`. -/
+theorem vinogradov_fundamental_lemma_short {r k P q : ℕ}
+    (hr : 0 < r) (hk : 2 ≤ k) (hP : 1 ≤ P)
+    (hq : vinogradovPrimeThreshold k ≤ q) (hPq : P < q ^ k) :
+    vinogradovJ (r + k) k P ≤
+      2 * (((r + k).factorial ^ 2 * vinogradovSeparatingFamilySize k) *
+        vinogradovFundamentalTermShort r k P q) +
+      2 * (k * (P ^ (k - 1) * k ^ (r + k))) ^ 2 := by
+  classical
+  let A := vinogradovFewValues (r + k) k P
+  let G := vinogradovManyValues (r + k) k P
+  let T := vinogradovTuples (r + k) P
+  let J := vinogradovJ (r + k) k P
+  let H := vinogradovPairCount k G T
+  let B := vinogradovPairCount k A T
+  let G₀ := ((r + k).factorial ^ 2 * vinogradovSeparatingFamilySize k) *
+    vinogradovFundamentalTermShort r k P q
+  let A₀ := k * (P ^ (k - 1) * k ^ (r + k))
+  have hsplit : J ≤ H + B := by
+    have hcover := vinogradovTuples_eq_few_union_many (r + k) k P
+    change vinogradovJ (r + k) k P ≤ H + B
+    rw [vinogradovJ_eq_pairCount]
+    change vinogradovPairCount k T T ≤ H + B
+    calc
+      vinogradovPairCount k T T = vinogradovPairCount k (A ∪ G) T := by
+        congr 2
+      _ ≤ vinogradovPairCount k A T + vinogradovPairCount k G T :=
+        vinogradovPairCount_union_le A G T
+      _ = H + B := by simp only [H, B, add_comm]
+  have hHsq : H ^ 2 ≤ G₀ * J := by
+    dsimp [H, G₀, J, G, T]
+    calc
+      vinogradovPairCount k (vinogradovManyValues (r + k) k P)
+          (vinogradovTuples (r + k) P) ^ 2 ≤
+        vinogradovPairCount k (vinogradovManyValues (r + k) k P)
+            (vinogradovManyValues (r + k) k P) *
+          vinogradovPairCount k (vinogradovTuples (r + k) P)
+            (vinogradovTuples (r + k) P) :=
+        vinogradovPairCount_sq_le _ _
+      _ ≤ (((r + k).factorial ^ 2 * vinogradovSeparatingFamilySize k) *
+          vinogradovFundamentalTermShort r k P q) *
+          vinogradovPairCount k (vinogradovTuples (r + k) P)
+            (vinogradovTuples (r + k) P) :=
+        Nat.mul_le_mul_right _ (manyValues_pairCount_le_short hr hk hq hPq)
+      _ = (((r + k).factorial ^ 2 * vinogradovSeparatingFamilySize k) *
+          vinogradovFundamentalTermShort r k P q) *
           vinogradovJ (r + k) k P := by rw [vinogradovJ_eq_pairCount]
   have hAsq : vinogradovPairCount k A A ≤ A₀ ^ 2 := by
     dsimp [A, A₀]
@@ -4119,6 +4601,73 @@ private theorem vinogradovFundamentalTerm_le_power {k τ P q : ℕ} {C : ℝ}
       dsimp [A, N]
       rw [vinogradovSuccessorExponentIdentity hk]
 
+private theorem cast_vinogradovFundamentalTermShort (r k P q : ℕ) :
+    (vinogradovFundamentalTermShort r k P q : ℝ) =
+      (((2 * r) * k.factorial *
+          2 ^ (2 * r + k * (k - 1) / 2) : ℕ) : ℝ) *
+        (P : ℝ) ^ k * (q : ℝ) ^ (2 * r + k * (k - 1) / 2) *
+          (vinogradovJ r k (P / q + 1) : ℝ) := by
+  norm_cast
+  simp only [vinogradovFundamentalTermShort]
+  rw [mul_pow]
+  conv_rhs =>
+    rw [pow_add, pow_add]
+  ring
+
+private theorem vinogradovFundamentalTermShort_le_power {k τ P q : ℕ} {C : ℝ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) (hP : 1 ≤ P)
+    (hqk : k ≤ q) (hqp : q ≤ P)
+    (hqR : (q : ℝ) ≤ 2 * (P : ℝ) ^ ((k : ℝ)⁻¹))
+    (hC : 0 ≤ C)
+    (hbound : ∀ Q : ℕ, 1 ≤ Q →
+      (vinogradovJ (k * τ) k Q : ℝ) ≤
+        C * (Q : ℝ) ^ vinogradovExponent k τ) :
+    (vinogradovFundamentalTermShort (k * τ) k P q : ℝ) ≤
+      ((((2 * (k * τ)) * k.factorial *
+          2 ^ (2 * (k * τ) + k * (k - 1) / 2) : ℕ) : ℝ) * C *
+        (2 ^ vinogradovExponent k τ *
+          2 ^ (((2 * (k * τ) + k * (k - 1) / 2 : ℕ) : ℝ) -
+            vinogradovExponent k τ))) *
+        (P : ℝ) ^ vinogradovExponent k (τ + 1) := by
+  let Q := P / q + 1
+  let N := 2 * (k * τ) + k * (k - 1) / 2
+  let A := (2 * (k * τ)) * k.factorial * 2 ^ N
+  have hk0 : 0 < k := by omega
+  have hq0 : 0 < q := lt_of_lt_of_le hk0 hqk
+  have hP0 : (0 : ℝ) < P := by exact_mod_cast hP
+  have hQ1 : 1 ≤ Q := by
+    dsimp [Q]
+    exact Nat.succ_le_succ (Nat.zero_le _)
+  have hJR := hbound Q hQ1
+  have hscaled := vinogradovScaledRpowProductBound
+    (A := (A : ℝ)) (P := (P : ℝ)) (q := (q : ℝ)) (Q := (Q : ℝ))
+    (J := (vinogradovJ (k * τ) k Q : ℝ)) (C := C)
+    (E := vinogradovExponent k τ) (N := (N : ℝ)) (κ := (k : ℝ))
+    (d := k) (by positivity) hP0 (by exact_mod_cast hq0) (by positivity)
+    hC (vinogradovExponent_nonneg hk hτ) (by
+      dsimp [N]
+      exact vinogradovGapNonneg hk)
+    (by
+      dsimp [Q]
+      exact vinogradovCastDivAddOneLe hq0 hqp)
+    hqR hJR
+  rw [cast_vinogradovFundamentalTermShort]
+  change (A : ℝ) * (P : ℝ) ^ k * (q : ℝ) ^ N *
+      (vinogradovJ (k * τ) k Q : ℝ) ≤ _
+  rw [show (q : ℝ) ^ N = (q : ℝ) ^ (N : ℝ) by
+    rw [Real.rpow_natCast]]
+  calc
+    (A : ℝ) * (P : ℝ) ^ k * (q : ℝ) ^ (N : ℝ) *
+        (vinogradovJ (k * τ) k Q : ℝ) ≤
+      (A : ℝ) * C *
+          (2 ^ vinogradovExponent k τ *
+            2 ^ ((N : ℝ) - vinogradovExponent k τ)) *
+        (P : ℝ) ^ ((k : ℝ) + vinogradovExponent k τ +
+          ((N : ℝ) - vinogradovExponent k τ) * (k : ℝ)⁻¹) := hscaled
+    _ = _ := by
+      dsimp [A, N]
+      rw [vinogradovSuccessorExponentIdentity hk]
+
 private theorem vinogradovSingularExponentLe {k τ : ℕ} (hk : 2 ≤ k)
     (hτ : 1 ≤ τ) :
     ((2 * (k - 1) : ℕ) : ℝ) ≤ vinogradovExponent k (τ + 1) := by
@@ -4173,6 +4722,187 @@ private theorem vinogradovSingularTerm_le_power {k τ P : ℕ}
     _ ≤ ((2 * (k * k ^ (k * τ + k)) ^ 2 : ℕ) : ℝ) *
         (P : ℝ) ^ vinogradovExponent k (τ + 1) :=
       mul_le_mul_of_nonneg_left hpow' (by positivity)
+
+private theorem vinogradovTwoRpowProduct (E : ℝ) (N : ℕ) :
+    (2 : ℝ) ^ E * 2 ^ ((N : ℝ) - E) = 2 ^ N := by
+  rw [← Real.rpow_add (by norm_num : (0 : ℝ) < 2)]
+  norm_num
+
+/-- One explicit constant update in the polynomial-cost mean-value
+iteration. -/
+private noncomputable def vinogradovMeanValueStepConstant
+    (k τ : ℕ) (C : ℝ) : ℝ :=
+  let N := 2 * (k * τ) + k * (k - 1) / 2
+  let A := (2 * (k * τ)) * k.factorial * 2 ^ N
+  let B : ℝ := (A : ℝ) * C * (2 : ℝ) ^ N
+  let F := ((k * τ + k).factorial ^ 2 * vinogradovSeparatingFamilySize k)
+  let D : ℕ := 2 * (k * k ^ (k * τ + k)) ^ 2
+  let T := vinogradovPrimeThreshold k ^ k
+  2 * (F : ℝ) * B + (D : ℝ) +
+    (T : ℝ) ^ (2 * (k * (τ + 1))) + 1
+
+/-- The constant obtained by starting at `k!+1` and performing exactly `n`
+explicit Linnik--Karatsuba updates. -/
+private noncomputable def vinogradovMeanValueConstantAux
+    (k : ℕ) : ℕ → ℝ
+  | 0 => (k.factorial : ℝ) + 1
+  | n + 1 => vinogradovMeanValueStepConstant k (n + 1)
+      (vinogradovMeanValueConstantAux k n)
+
+private theorem vinogradovMeanValueConstantAux_pos (k n : ℕ) :
+    0 < vinogradovMeanValueConstantAux k n := by
+  induction n with
+  | zero =>
+      rw [vinogradovMeanValueConstantAux]
+      exact add_pos_of_pos_of_nonneg (by exact_mod_cast Nat.factorial_pos k) (by norm_num)
+  | succ n ih =>
+      rw [vinogradovMeanValueConstantAux]
+      unfold vinogradovMeanValueStepConstant
+      positivity
+
+private theorem vinogradovMeanValuePowerBoundExplicit (k : ℕ) (hk : 2 ≤ k) :
+    ∀ n P : ℕ, 1 ≤ P →
+      (vinogradovJ (k * (n + 1)) k P : ℝ) ≤
+        vinogradovMeanValueConstantAux k n *
+          (P : ℝ) ^ vinogradovExponent k (n + 1) := by
+  intro n
+  induction n with
+  | zero =>
+      intro P hP
+      have hdiag := vinogradovJ_diagonal k P
+      calc
+        (vinogradovJ (k * (0 + 1)) k P : ℝ) =
+            (vinogradovJ k k P : ℝ) := by simp
+        _ ≤ (k.factorial : ℝ) * (P : ℝ) ^ k := by exact_mod_cast hdiag
+        _ ≤ ((k.factorial : ℝ) + 1) * (P : ℝ) ^ k := by
+          gcongr
+          norm_num
+        _ = vinogradovMeanValueConstantAux k 0 *
+            (P : ℝ) ^ vinogradovExponent k (0 + 1) := by
+          rw [vinogradovExponent_one hk, Real.rpow_natCast]
+          rfl
+  | succ n ih =>
+      intro P hP
+      let τ := n + 1
+      let C := vinogradovMeanValueConstantAux k n
+      let T := vinogradovPrimeThreshold k ^ k
+      let N := 2 * (k * τ) + k * (k - 1) / 2
+      let A := (2 * (k * τ)) * k.factorial * 2 ^ N
+      let B : ℝ := (A : ℝ) * C * (2 : ℝ) ^ N
+      let F := ((k * τ + k).factorial ^ 2 * vinogradovSeparatingFamilySize k)
+      let D := 2 * (k * k ^ (k * τ + k)) ^ 2
+      let CL : ℝ := 2 * (F : ℝ) * B + D
+      let CS : ℝ := (T : ℝ) ^ (2 * (k * (τ + 1)) : ℕ)
+      have hC : 0 < C := vinogradovMeanValueConstantAux_pos k n
+      have hCL : 0 ≤ CL := by
+        dsimp [CL, B, A, D, F, C]
+        positivity
+      have hCS : 0 ≤ CS := by
+        dsimp [CS]
+        positivity
+      have hbound : ∀ Q : ℕ, 1 ≤ Q →
+          (vinogradovJ (k * τ) k Q : ℝ) ≤
+            C * (Q : ℝ) ^ vinogradovExponent k τ := by
+        simpa only [τ, C] using ih
+      have hPE : (1 : ℝ) ≤ (P : ℝ) ^ vinogradovExponent k (τ + 1) :=
+        Real.one_le_rpow (by exact_mod_cast hP)
+          (vinogradovExponent_nonneg hk (by omega))
+      by_cases hlarge : T ≤ P
+      · have hkT : k ≤ vinogradovPrimeThreshold k :=
+          vinogradovPrimeThreshold_ge_self k
+        have h2T : 2 ≤ vinogradovPrimeThreshold k := by
+          exact (show 2 ≤ 2 ^ 28 by norm_num).trans
+            (vinogradovPrimeThreshold_ge_twoPow k)
+        have hkpow : k ^ k ≤ P :=
+          (Nat.pow_le_pow_left hkT k).trans hlarge
+        have h2pow : 2 ^ k ≤ P :=
+          (Nat.pow_le_pow_left h2T k).trans hlarge
+        let q := max k (Nat.nthRoot k P + 1)
+        obtain ⟨hPq, hkq, hqR, hqP⟩ := vinogradovQBounds hk hkpow h2pow
+        have hthresholdRoot : vinogradovPrimeThreshold k ≤ Nat.nthRoot k P := by
+          rw [Nat.le_nthRoot_iff (show k ≠ 0 by omega)]
+          exact hlarge
+        have hthresholdQ : vinogradovPrimeThreshold k ≤ q := by
+          exact hthresholdRoot.trans (Nat.le_add_right _ _ |>.trans (le_max_right _ _))
+        have hfund := vinogradov_fundamental_lemma_short
+          (r := k * τ) (q := q) (by positivity) hk hP hthresholdQ hPq
+        have hterm := vinogradovFundamentalTermShort_le_power hk (by omega)
+          hP hkq hqP hqR hC.le hbound
+        rw [vinogradovTwoRpowProduct] at hterm
+        have hterm' : (vinogradovFundamentalTermShort (k * τ) k P q : ℝ) ≤
+            B * (P : ℝ) ^ vinogradovExponent k (τ + 1) := by
+          simpa [B, A, N] using hterm
+        have hsing := vinogradovSingularTerm_le_power hk (show 1 ≤ τ by omega) hP
+        have hsing' :
+            2 * ((k : ℝ) * ((P : ℝ) ^ (k - 1) *
+                (k : ℝ) ^ (k * τ + k))) ^ 2 ≤
+              (D : ℝ) * (P : ℝ) ^ vinogradovExponent k (τ + 1) := by
+          simpa [D] using hsing
+        have hmain : (vinogradovJ (k * (τ + 1)) k P : ℝ) ≤
+            CL * (P : ℝ) ^ vinogradovExponent k (τ + 1) := by
+          calc
+            (vinogradovJ (k * (τ + 1)) k P : ℝ) =
+                (vinogradovJ (k * τ + k) k P : ℝ) := by
+              congr 1
+            _ ≤ (2 * (F * vinogradovFundamentalTermShort (k * τ) k P q) +
+                2 * (k * (P ^ (k - 1) * k ^ (k * τ + k))) ^ 2 : ℕ) := by
+              exact_mod_cast hfund
+            _ ≤ 2 * (F : ℝ) *
+                  (B * (P : ℝ) ^ vinogradovExponent k (τ + 1)) +
+                (D : ℝ) * (P : ℝ) ^ vinogradovExponent k (τ + 1) := by
+              have hterm'' : 2 * (F : ℝ) *
+                    (vinogradovFundamentalTermShort (k * τ) k P q : ℝ) ≤
+                  2 * (F : ℝ) *
+                    (B * (P : ℝ) ^ vinogradovExponent k (τ + 1)) :=
+                mul_le_mul_of_nonneg_left hterm'
+                  (mul_nonneg (by norm_num) (Nat.cast_nonneg F))
+              have hsing'' :
+                  2 * ((k : ℝ) * ((P : ℝ) ^ (k - 1) *
+                      (k : ℝ) ^ (k * τ + k))) ^ 2 ≤
+                    2 * ((k : ℝ) * (k : ℝ) ^ (k * τ + k)) ^ 2 *
+                      (P : ℝ) ^ vinogradovExponent k (τ + 1) := by
+                simpa [D] using hsing'
+              dsimp only [D]
+              push_cast
+              simpa only [mul_assoc] using add_le_add hterm'' hsing''
+            _ = CL * (P : ℝ) ^ vinogradovExponent k (τ + 1) := by
+              dsimp [CL]
+              ring
+        calc
+          (vinogradovJ (k * (n + 1 + 1)) k P : ℝ) =
+              (vinogradovJ (k * (τ + 1)) k P : ℝ) := by rfl
+          _ ≤ CL * (P : ℝ) ^ vinogradovExponent k (τ + 1) := hmain
+          _ ≤ vinogradovMeanValueConstantAux k (n + 1) *
+              (P : ℝ) ^ vinogradovExponent k (n + 1 + 1) := by
+            apply mul_le_mul_of_nonneg_right _ (by positivity)
+            have hconst : vinogradovMeanValueConstantAux k (n + 1) =
+                CL + CS + 1 := by
+              rw [vinogradovMeanValueConstantAux]
+              rfl
+            rw [hconst]
+            linarith
+      · have hPT : P ≤ T := by omega
+        have htriv := vinogradovJ_le_trivial (k * (τ + 1)) k P
+        have hpowPT : P ^ (2 * (k * (τ + 1))) ≤
+            T ^ (2 * (k * (τ + 1))) := Nat.pow_le_pow_left hPT _
+        have hsmall : (vinogradovJ (k * (τ + 1)) k P : ℝ) ≤ CS := by
+          dsimp [CS]
+          exact_mod_cast htriv.trans hpowPT
+        calc
+          (vinogradovJ (k * (n + 1 + 1)) k P : ℝ) =
+              (vinogradovJ (k * (τ + 1)) k P : ℝ) := by rfl
+          _ ≤ CS := hsmall
+          _ ≤ CS * (P : ℝ) ^ vinogradovExponent k (τ + 1) := by
+            nlinarith
+          _ ≤ vinogradovMeanValueConstantAux k (n + 1) *
+              (P : ℝ) ^ vinogradovExponent k (n + 1 + 1) := by
+            apply mul_le_mul_of_nonneg_right _ (by positivity)
+            have hconst : vinogradovMeanValueConstantAux k (n + 1) =
+                CL + CS + 1 := by
+              rw [vinogradovMeanValueConstantAux]
+              rfl
+            rw [hconst]
+            linarith
 
 private theorem vinogradovMeanValuePowerBound (k : ℕ) (hk : 2 ≤ k)
     (τ : ℕ) (hτ : 1 ≤ τ) :
@@ -4300,16 +5030,383 @@ private theorem vinogradovMeanValuePowerBound (k : ℕ) (hk : 2 ≤ k)
             dsimp [C']
             linarith
 
+/-- Polynomial base used by the closed constant envelope. -/
+def vinogradovMeanValueEnvelopeBase (k τ : ℕ) : ℕ :=
+  2 ^ 32 * (k + τ + 1) ^ 16
+
+/-- A closed envelope for the constant produced by the explicit recursion. -/
+noncomputable def vinogradovMeanValueEnvelope (k τ : ℕ) : ℝ :=
+  (vinogradovMeanValueEnvelopeBase k τ : ℝ) ^
+    (128 * k * τ * (k + τ + 1))
+
+private theorem vinogradovSeparatingFamilySize_le_pow_four {k m : ℕ}
+    (hk : k ≤ m) (hm : 3 ≤ m) :
+    vinogradovSeparatingFamilySize k ≤ m ^ 4 := by
+  have hchoose : k.choose 2 ≤ k ^ 2 := Nat.choose_le_pow k 2
+  have hkpow : k ^ 3 ≤ m ^ 3 := Nat.pow_le_pow_left hk 3
+  have hmpos : 0 < m ^ 3 := by positivity
+  calc
+    vinogradovSeparatingFamilySize k ≤ 2 * k ^ 3 + 1 := by
+      dsimp [vinogradovSeparatingFamilySize]
+      calc
+        2 * k.choose 2 * k + 1 ≤ 2 * k ^ 2 * k + 1 := by gcongr
+        _ = 2 * k ^ 3 + 1 := by ring
+    _ ≤ 2 * m ^ 3 + m ^ 3 :=
+      Nat.add_le_add (Nat.mul_le_mul_left 2 hkpow) hmpos
+    _ = 3 * m ^ 3 := by ring
+    _ ≤ m ^ 4 := by
+      rw [show m ^ 4 = m * m ^ 3 by ring]
+      exact Nat.mul_le_mul_right (m ^ 3) hm
+
+private theorem vinogradovPrimeThreshold_le_envelopeBase {k τ : ℕ}
+    (hk : 2 ≤ k) :
+    vinogradovPrimeThreshold k ≤ vinogradovMeanValueEnvelopeBase k τ := by
+  let m := k + τ + 1
+  have hm : 3 ≤ m := by dsimp [m]; omega
+  have hkm : k ≤ m := by dsimp [m]; omega
+  have hfamily := vinogradovSeparatingFamilySize_le_pow_four hkm hm
+  have hm8 : vinogradovSeparatingFamilySize k ^ 2 ≤ m ^ 8 := by
+    calc
+      vinogradovSeparatingFamilySize k ^ 2 ≤ (m ^ 4) ^ 2 :=
+        Nat.pow_le_pow_left hfamily 2
+      _ = m ^ 8 := by rw [← pow_mul]
+  have hm8m16 : m ^ 8 ≤ m ^ 16 :=
+    Nat.pow_le_pow_right (by omega : 1 ≤ m) (by norm_num)
+  dsimp [vinogradovPrimeThreshold, vinogradovMeanValueEnvelopeBase]
+  apply max_le
+  · exact calc
+      2 ^ 28 ≤ 2 ^ 32 := Nat.pow_le_pow_right (by norm_num) (by norm_num)
+      _ ≤ 2 ^ 32 * m ^ 16 := by
+        exact le_mul_of_one_le_right' (Nat.one_le_pow 16 m (by omega))
+  · apply max_le
+    · calc
+        k ≤ m := hkm
+        _ ≤ 2 ^ 32 * m ^ 16 := by
+          calc
+            m = 1 * m ^ 1 := by simp
+            _ ≤ 2 ^ 32 * m ^ 16 := Nat.mul_le_mul (by norm_num)
+              (Nat.pow_le_pow_right (by omega : 1 ≤ m) (by norm_num))
+    · exact calc
+        288 * vinogradovSeparatingFamilySize k ^ 2 ≤ 288 * m ^ 8 :=
+          Nat.mul_le_mul_left 288 hm8
+        _ ≤ 2 ^ 32 * m ^ 16 := Nat.mul_le_mul
+          (by norm_num) hm8m16
+
+private theorem vinogradovMeanValueEnvelopeBase_mono (k : ℕ) :
+    Monotone (vinogradovMeanValueEnvelopeBase k) := by
+  intro a b hab
+  dsimp [vinogradovMeanValueEnvelopeBase]
+  gcongr
+
+set_option maxHeartbeats 1000000 in
+private theorem vinogradovMeanValueStepConstant_le_envelope
+    {k τ : ℕ} {C : ℝ} (hk : 2 ≤ k) (hτ : 1 ≤ τ)
+    (hC0 : 0 ≤ C)
+    (hC : C ≤ vinogradovMeanValueEnvelope k τ) :
+    vinogradovMeanValueStepConstant k τ C ≤
+      vinogradovMeanValueEnvelope k (τ + 1) := by
+  let m := k + τ + 2
+  let b := vinogradovMeanValueEnvelopeBase k (τ + 1)
+  let L := k * τ + k
+  let N := 2 * (k * τ) + k * (k - 1) / 2
+  let A := (2 * (k * τ)) * k.factorial * 2 ^ N
+  let F := L.factorial ^ 2 * vinogradovSeparatingFamilySize k
+  let D := 2 * (k * k ^ L) ^ 2
+  let T := vinogradovPrimeThreshold k ^ k
+  let E₀ := 128 * k * τ * (k + τ + 1)
+  let E₁ := 128 * k * (τ + 1) * m
+  let e := 2 * L + k + 2 * N + 5
+  have hm : 5 ≤ m := by dsimp [m]; omega
+  have hkm : k ≤ m := by dsimp [m]; omega
+  have hτm : τ ≤ m := by dsimp [m]; omega
+  have hτone : τ + 1 ≤ m := by dsimp [m]; omega
+  have hmb : m ≤ b := by
+    dsimp [b, vinogradovMeanValueEnvelopeBase, m]
+    calc
+      k + τ + 2 = 1 * (k + (τ + 1) + 1) ^ 1 := by ring
+      _ ≤ 2 ^ 32 * (k + (τ + 1) + 1) ^ 16 := Nat.mul_le_mul
+        (by norm_num) (Nat.pow_le_pow_right (by omega) (by norm_num))
+  have hb1 : 1 ≤ b := by omega
+  have h2b : 2 ≤ b := (by omega : 2 ≤ m).trans hmb
+  have hkb : k ≤ b := hkm.trans hmb
+  have hτb : τ ≤ b := hτm.trans hmb
+  have hfamilym := vinogradovSeparatingFamilySize_le_pow_four hkm (by omega)
+  have hm4b : m ^ 4 ≤ b := by
+    dsimp [b, vinogradovMeanValueEnvelopeBase, m]
+    calc
+      (k + τ + 2) ^ 4 = 1 * (k + (τ + 1) + 1) ^ 4 := by ring
+      _ ≤ 2 ^ 32 * (k + (τ + 1) + 1) ^ 16 := Nat.mul_le_mul
+        (by norm_num) (Nat.pow_le_pow_right (by omega) (by norm_num))
+  have hfamilyb : vinogradovSeparatingFamilySize k ≤ b :=
+    hfamilym.trans hm4b
+  have hthresholdb : vinogradovPrimeThreshold k ≤ b := by
+    simpa only [b] using vinogradovPrimeThreshold_le_envelopeBase
+      (k := k) (τ := τ + 1) hk
+  have hLb : L ≤ b := by
+    calc
+      L = k * (τ + 1) := by dsimp [L]; ring
+      _ ≤ m * m := Nat.mul_le_mul hkm hτone
+      _ ≤ b := by
+        calc
+          m * m = m ^ 2 := by ring
+          _ ≤ m ^ 4 := Nat.pow_le_pow_right (by omega) (by norm_num)
+          _ ≤ b := hm4b
+  have hN : N ≤ 3 * k * m := by
+    have hdiv : k * (k - 1) / 2 ≤ k * k := by
+      exact (Nat.div_le_self _ _).trans (Nat.mul_le_mul_left k (Nat.sub_le k 1))
+    calc
+      N ≤ 2 * (k * τ) + k * k := Nat.add_le_add_left hdiv _
+      _ ≤ 2 * (k * m) + k * m := Nat.add_le_add
+        (Nat.mul_le_mul_left 2 (Nat.mul_le_mul_left k hτm))
+        (Nat.mul_le_mul_left k hkm)
+      _ = 3 * k * m := by ring
+  have hfac : L.factorial ≤ b ^ L := by
+    exact Nat.factorial_le_pow L |>.trans (Nat.pow_le_pow_left hLb L)
+  have hF : F ≤ b ^ (2 * L + 1) := by
+    calc
+      F ≤ (b ^ L) ^ 2 * b := Nat.mul_le_mul
+        (Nat.pow_le_pow_left hfac 2) hfamilyb
+      _ = b ^ (2 * L + 1) := by
+        calc
+          (b ^ L) ^ 2 * b = b ^ (L * 2) * b := by rw [pow_mul]
+          _ = b ^ (L * 2 + 1) := by rw [← pow_succ]
+          _ = b ^ (2 * L + 1) := by congr 1; omega
+  have hsmallProduct : 2 * (k * τ) ≤ b ^ 3 := by
+    calc
+      2 * (k * τ) ≤ b * (b * b) := Nat.mul_le_mul h2b
+        (Nat.mul_le_mul hkb hτb)
+      _ = b ^ 3 := by ring
+  have hkfac : k.factorial ≤ b ^ k := by
+    exact Nat.factorial_le_pow k |>.trans (Nat.pow_le_pow_left hkb k)
+  have htwoN : 2 ^ N ≤ b ^ N := Nat.pow_le_pow_left h2b N
+  have hA : A ≤ b ^ (3 + k + N) := by
+    calc
+      A ≤ b ^ 3 * b ^ k * b ^ N := Nat.mul_le_mul
+        (Nat.mul_le_mul hsmallProduct hkfac) htwoN
+      _ = b ^ (3 + k + N) := by rw [← pow_add, ← pow_add]
+  have hcoeff : 2 * F * A * 2 ^ N ≤ b ^ e := by
+    calc
+      2 * F * A * 2 ^ N ≤
+          b * b ^ (2 * L + 1) * b ^ (3 + k + N) * b ^ N :=
+        Nat.mul_le_mul (Nat.mul_le_mul
+          (Nat.mul_le_mul h2b hF) hA) htwoN
+      _ = b ^ e := by
+        dsimp [e]
+        rw [← pow_succ', ← pow_add, ← pow_add]
+        congr 1
+        omega
+  have he : e ≤ 16 * k * m := by
+    have hL : L ≤ k * m := by
+      rw [show L = k * (τ + 1) by dsimp [L]; ring]
+      exact Nat.mul_le_mul_left k hτone
+    have h2L := Nat.mul_le_mul_left 2 hL
+    have h2N := Nat.mul_le_mul_left 2 hN
+    have h5 : 5 ≤ 7 * (k * m) := by
+      have hkmpos : 0 < k * m := Nat.mul_pos (by omega) (by omega)
+      omega
+    calc
+      e ≤ 2 * (k * m) + k * m + 2 * (3 * k * m) + 7 * (k * m) := by
+        dsimp [e]
+        omega
+      _ = 16 * k * m := by ring
+  have hD : D ≤ b ^ (2 * L + 3) := by
+    calc
+      D = 2 * k ^ 2 * k ^ (2 * L) := by
+        dsimp [D]
+        simp only [mul_pow]
+        rw [← pow_mul]
+        ring
+      _ ≤ b * b ^ 2 * b ^ (2 * L) := Nat.mul_le_mul
+        (Nat.mul_le_mul h2b (Nat.pow_le_pow_left hkb 2))
+        (Nat.pow_le_pow_left hkb (2 * L))
+      _ = b ^ (2 * L + 3) := by
+        rw [← pow_succ', ← pow_add]
+        congr 1
+        omega
+  have hTpow : T ^ (2 * (k * (τ + 1))) ≤
+      b ^ (2 * k * k * (τ + 1)) := by
+    calc
+      T ^ (2 * (k * (τ + 1))) =
+          vinogradovPrimeThreshold k ^ (2 * k * k * (τ + 1)) := by
+        dsimp [T]
+        rw [← pow_mul]
+        congr 1
+        ring
+      _ ≤ b ^ (2 * k * k * (τ + 1)) :=
+        Nat.pow_le_pow_left hthresholdb _
+  have hbmono : vinogradovMeanValueEnvelopeBase k τ ≤ b := by
+    exact vinogradovMeanValueEnvelopeBase_mono k (Nat.le_succ τ)
+  have henvold : vinogradovMeanValueEnvelope k τ ≤ (b : ℝ) ^ E₀ := by
+    rw [vinogradovMeanValueEnvelope]
+    have hbaseR : (vinogradovMeanValueEnvelopeBase k τ : ℝ) ≤ b := by
+      exact_mod_cast hbmono
+    have hexp : 128 * k * τ * (k + τ + 1) = E₀ := by
+      rfl
+    rw [hexp]
+    exact_mod_cast Nat.pow_le_pow_left hbmono E₀
+  have hC' : C ≤ (b : ℝ) ^ E₀ := hC.trans henvold
+  have hE₁ : 2 ≤ E₁ := by
+    dsimp [E₁]
+    calc
+      2 ≤ 128 * 1 * 1 * 1 := by norm_num
+      _ ≤ 128 * k * (τ + 1) * m := Nat.mul_le_mul
+        (Nat.mul_le_mul (Nat.mul_le_mul (le_refl 128) (by omega)) (by omega)) (by omega)
+  have hmainExp : e + E₀ + 2 ≤ E₁ := by
+    have hkmpos : 0 < k * m := Nat.mul_pos (by omega) (by omega)
+    have h16 : 16 * k * m ≤ 128 * k * m := by
+      gcongr
+      norm_num
+    have h2 : 2 ≤ 128 * k * τ := by
+      calc
+        2 ≤ 128 * 1 * 1 := by norm_num
+        _ ≤ 128 * k * τ := Nat.mul_le_mul
+          (Nat.mul_le_mul (le_refl 128) (by omega)) (by omega)
+    calc
+      e + E₀ + 2 ≤ 16 * k * m + E₀ + 2 := by omega
+      _ ≤ E₀ + (128 * k * m + 128 * k * τ) := by omega
+      _ = E₁ := by dsimp [E₀, E₁, m]; ring
+  have hDExp : 2 * L + 3 + 2 ≤ E₁ := by
+    have hL : L ≤ k * m := by
+      rw [show L = k * (τ + 1) by dsimp [L]; ring]
+      exact Nat.mul_le_mul_left k hτone
+    have hx : 0 < k * m := Nat.mul_pos (by omega) (by omega)
+    have hsmall : 2 * (k * m) + 5 ≤ 128 * (k * m) := by omega
+    have hlarge : 128 * k * m ≤ E₁ := by
+      dsimp [E₁]
+      calc
+        128 * k * m = (128 * k * m) * 1 := by ring
+        _ ≤ (128 * k * m) * (τ + 1) := Nat.mul_le_mul_left _ (by omega)
+        _ = 128 * k * (τ + 1) * m := by ring
+    omega
+  have hCSExp : 2 * k * k * (τ + 1) + 2 ≤ E₁ := by
+    have hfirst : 2 * k * k * (τ + 1) ≤ 2 * k * m * (τ + 1) := by
+      gcongr
+    have hx : 0 < k * m * (τ + 1) :=
+      Nat.mul_pos (Nat.mul_pos (by omega) (by omega)) (by omega)
+    have hsmall : 2 * (k * m * (τ + 1)) + 2 ≤
+        128 * (k * m * (τ + 1)) := by omega
+    dsimp [E₁]
+    calc
+      2 * k * k * (τ + 1) + 2 ≤
+          2 * (k * m * (τ + 1)) + 2 := by
+            simpa only [mul_assoc] using Nat.add_le_add_right hfirst 2
+      _ ≤ 128 * (k * m * (τ + 1)) := hsmall
+      _ = 128 * k * (τ + 1) * m := by ring
+  have hmain : (2 * F * A * 2 ^ N : ℝ) * C ≤
+      (b : ℝ) ^ (E₁ - 2) := by
+    have hcoeffR : (2 * F * A * 2 ^ N : ℝ) ≤ (b : ℝ) ^ e := by
+      exact_mod_cast hcoeff
+    have hmul : (2 * F * A * 2 ^ N : ℝ) * C ≤
+        (b : ℝ) ^ e * (b : ℝ) ^ E₀ := by
+      calc
+        (2 * F * A * 2 ^ N : ℝ) * C ≤ (b : ℝ) ^ e * C :=
+          mul_le_mul_of_nonneg_right hcoeffR hC0
+        _ ≤ (b : ℝ) ^ e * (b : ℝ) ^ E₀ :=
+          mul_le_mul_of_nonneg_left hC' (pow_nonneg (Nat.cast_nonneg b) _)
+    have hexp : e + E₀ ≤ E₁ - 2 := by omega
+    have hpow : (b : ℝ) ^ (e + E₀) ≤ (b : ℝ) ^ (E₁ - 2) := by
+      exact_mod_cast Nat.pow_le_pow_right hb1 hexp
+    calc
+      (2 * F * A * 2 ^ N : ℝ) * C ≤
+          (b : ℝ) ^ e * (b : ℝ) ^ E₀ := hmul
+      _ = (b : ℝ) ^ (e + E₀) := (pow_add (b : ℝ) e E₀).symm
+      _ ≤ (b : ℝ) ^ (E₁ - 2) := hpow
+  have hD' : (D : ℝ) ≤ (b : ℝ) ^ (E₁ - 2) := by
+    have hexp : 2 * L + 3 ≤ E₁ - 2 := by omega
+    calc
+      (D : ℝ) ≤ (b : ℝ) ^ (2 * L + 3) := by exact_mod_cast hD
+      _ ≤ (b : ℝ) ^ (E₁ - 2) := by
+        exact_mod_cast Nat.pow_le_pow_right hb1 hexp
+  have hCS' : (T : ℝ) ^ (2 * (k * (τ + 1))) ≤
+      (b : ℝ) ^ (E₁ - 2) := by
+    have hexp : 2 * k * k * (τ + 1) ≤ E₁ - 2 := by omega
+    calc
+      (T : ℝ) ^ (2 * (k * (τ + 1))) ≤
+          (b : ℝ) ^ (2 * k * k * (τ + 1)) := by exact_mod_cast hTpow
+      _ ≤ (b : ℝ) ^ (E₁ - 2) := by
+        exact_mod_cast Nat.pow_le_pow_right hb1 hexp
+  have hone : (1 : ℝ) ≤ (b : ℝ) ^ (E₁ - 2) := by
+    exact_mod_cast Nat.one_le_pow (E₁ - 2) b (by omega)
+  have hfour : (4 : ℝ) ≤ (b : ℝ) ^ 2 := by
+    exact_mod_cast Nat.pow_le_pow_left h2b 2
+  rw [show vinogradovMeanValueEnvelope k (τ + 1) = (b : ℝ) ^ E₁ by
+    rfl]
+  unfold vinogradovMeanValueStepConstant
+  change 2 * (F : ℝ) * ((A : ℝ) * C * (2 : ℝ) ^ N) +
+      (D : ℝ) + (T : ℝ) ^ (2 * (k * (τ + 1))) + 1 ≤ _
+  calc
+    2 * (F : ℝ) * ((A : ℝ) * C * (2 : ℝ) ^ N) +
+        (D : ℝ) + (T : ℝ) ^ (2 * (k * (τ + 1))) + 1 ≤
+      4 * (b : ℝ) ^ (E₁ - 2) := by
+        have hmain' : 2 * (F : ℝ) * ((A : ℝ) * C * (2 : ℝ) ^ N) ≤
+            (b : ℝ) ^ (E₁ - 2) := by
+          convert hmain using 1 <;> push_cast <;> ring
+        linarith
+    _ ≤ (b : ℝ) ^ 2 * (b : ℝ) ^ (E₁ - 2) :=
+      mul_le_mul_of_nonneg_right hfour (pow_nonneg (Nat.cast_nonneg b) _)
+    _ = (b : ℝ) ^ E₁ := by
+      calc
+        (b : ℝ) ^ 2 * (b : ℝ) ^ (E₁ - 2) =
+            (b : ℝ) ^ (2 + (E₁ - 2)) :=
+          (pow_add (b : ℝ) 2 (E₁ - 2)).symm
+        _ = (b : ℝ) ^ E₁ := by congr 1; omega
+
+set_option maxHeartbeats 1000000 in
+private theorem vinogradovMeanValueConstantAux_le_envelope
+    {k : ℕ} (hk : 2 ≤ k) (n : ℕ) :
+    vinogradovMeanValueConstantAux k n ≤
+      vinogradovMeanValueEnvelope k (n + 1) := by
+  induction n with
+  | zero =>
+      let b := vinogradovMeanValueEnvelopeBase k 1
+      let E := 128 * k * (k + 2)
+      have hm : k ≤ k + 2 := by omega
+      have hmb : k + 2 ≤ b := by
+        dsimp [b, vinogradovMeanValueEnvelopeBase]
+        calc
+          k + 2 = 1 * (k + 1 + 1) ^ 1 := by ring
+          _ ≤ 2 ^ 32 * (k + 1 + 1) ^ 16 := Nat.mul_le_mul
+            (by norm_num) (Nat.pow_le_pow_right (by omega) (by norm_num))
+      have hkb : k ≤ b := hm.trans hmb
+      have h2b : 2 ≤ b := (by omega : 2 ≤ k + 2).trans hmb
+      have hfac : k.factorial ≤ b ^ k :=
+        Nat.factorial_le_pow k |>.trans (Nat.pow_le_pow_left hkb k)
+      have hone : 1 ≤ b ^ k := Nat.one_le_pow k b (by omega)
+      have hsum : k.factorial + 1 ≤ b ^ (k + 1) := by
+        calc
+          k.factorial + 1 ≤ b ^ k + b ^ k := Nat.add_le_add hfac hone
+          _ = 2 * b ^ k := by ring
+          _ ≤ b * b ^ k := Nat.mul_le_mul_right (b ^ k) h2b
+          _ = b ^ (k + 1) := by rw [pow_succ']
+      have hkE : k + 1 ≤ E := by
+        dsimp [E]
+        have hkpos : 0 < k := by omega
+        nlinarith
+      have hpow : b ^ (k + 1) ≤ b ^ E := Nat.pow_le_pow_right (by omega) hkE
+      rw [vinogradovMeanValueConstantAux]
+      unfold vinogradovMeanValueEnvelope
+      rw [show 128 * k * (0 + 1) * (k + (0 + 1) + 1) = E by
+        dsimp [E]; ring]
+      simpa only [b] using
+        (show (k.factorial : ℝ) + 1 ≤ (b : ℝ) ^ E by
+          exact_mod_cast hsum.trans hpow)
+  | succ n ih =>
+      rw [vinogradovMeanValueConstantAux]
+      exact vinogradovMeanValueStepConstant_le_envelope hk (by omega)
+        (vinogradovMeanValueConstantAux_pos k n).le ih
+
 /-- A fixed witness for the constant produced by the Linnik--Karatsuba
 iteration.  The construction starts with `k! + 1`; at each round the proof
 above adds its explicit nonsingular, singular, and finite-range constants. -/
 noncomputable def vinogradovMeanValueConstant (k τ : ℕ) : ℝ :=
-  if hk : 2 ≤ k then
-    if hτ : 1 ≤ τ then Classical.choose (vinogradovMeanValuePowerBound k hk τ hτ)
+  if _hk : 2 ≤ k then
+    if _hτ : 1 ≤ τ then vinogradovMeanValueConstantAux k (τ - 1)
     else 1
   else 1
 
-private theorem vinogradovMeanValueConstant_spec {k τ : ℕ}
+/-- Positivity and the defining mean-value estimate for the named explicit
+constant. -/
+theorem vinogradovMeanValueConstant_spec {k τ : ℕ}
     (hk : 2 ≤ k) (hτ : 1 ≤ τ) :
     0 < vinogradovMeanValueConstant k τ ∧
       ∀ P : ℕ, 1 ≤ P →
@@ -4317,7 +5414,58 @@ private theorem vinogradovMeanValueConstant_spec {k τ : ℕ}
           vinogradovMeanValueConstant k τ *
             (P : ℝ) ^ vinogradovExponent k τ := by
   rw [vinogradovMeanValueConstant, dif_pos hk, dif_pos hτ]
-  exact Classical.choose_spec (vinogradovMeanValuePowerBound k hk τ hτ)
+  refine ⟨vinogradovMeanValueConstantAux_pos k (τ - 1), ?_⟩
+  intro P hP
+  have hbound := vinogradovMeanValuePowerBoundExplicit k hk (τ - 1) P hP
+  simpa only [Nat.sub_add_cancel hτ] using hbound
+
+/-- The named mean-value constant is bounded by a closed expression whose
+logarithm has polynomial-logarithmic growth in `k` and `τ`. -/
+theorem vinogradovMeanValueConstant_le {k τ : ℕ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) :
+    vinogradovMeanValueConstant k τ ≤
+      vinogradovMeanValueEnvelope k τ := by
+  rw [vinogradovMeanValueConstant, dif_pos hk, dif_pos hτ]
+  simpa only [Nat.sub_add_cancel hτ] using
+    vinogradovMeanValueConstantAux_le_envelope hk (τ - 1)
+
+/-- Quantitative growth of the closed envelope.  Dividing the right-hand
+side by `2*k*τ` gives at most
+`3072 * (k+τ+1) * log (2*(k+τ+1))`. -/
+theorem log_vinogradovMeanValueEnvelope_le {k τ : ℕ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) :
+    Real.log (vinogradovMeanValueEnvelope k τ) ≤
+      6144 * (k : ℝ) * τ * (k + τ + 1) *
+        Real.log (2 * (k + τ + 1)) := by
+  let m : ℕ := k + τ + 1
+  let B : ℕ := vinogradovMeanValueEnvelopeBase k τ
+  let E : ℕ := 128 * k * τ * m
+  have hm : 1 ≤ m := by dsimp [m]; omega
+  have hmR : (1 : ℝ) ≤ m := by exact_mod_cast hm
+  have htwo : (2 : ℝ) ≤ 2 * m := by nlinarith
+  have hmmul : (m : ℝ) ≤ 2 * m := by nlinarith
+  have hlogtwo : Real.log 2 ≤ Real.log (2 * m) :=
+    Real.log_le_log (by norm_num) htwo
+  have hlogm : Real.log m ≤ Real.log (2 * m) :=
+    Real.log_le_log (by positivity) hmmul
+  have hB : (B : ℝ) = (2 : ℝ) ^ 32 * (m : ℝ) ^ 16 := by
+    norm_cast
+  have hlogB : Real.log B ≤ 48 * Real.log (2 * m) := by
+    rw [hB, Real.log_mul (by positivity) (by positivity),
+      Real.log_pow, Real.log_pow]
+    push_cast
+    nlinarith
+  rw [vinogradovMeanValueEnvelope, Real.log_pow]
+  change (E : ℝ) * Real.log B ≤ _
+  calc
+    (E : ℝ) * Real.log B ≤ (E : ℝ) *
+        (48 * Real.log (2 * m)) :=
+      mul_le_mul_of_nonneg_left hlogB (by positivity)
+    _ = 6144 * (k : ℝ) * τ * (k + τ + 1) *
+        Real.log (2 * (k + τ + 1)) := by
+      dsimp [E, m]
+      push_cast
+      ring
 
 /-- Vinogradov's mean value theorem in the weak explicit
 Linnik--Karatsuba form.  The excess is

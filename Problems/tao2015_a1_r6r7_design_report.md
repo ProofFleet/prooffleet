@@ -1253,7 +1253,9 @@ The condition `m ≤ 2` requires sharpening V-C4-3's `m = 2 + 1/a` (crude) to `m
 `N(M^{1+δ_τ}/N)^{1/(2s)}` — the natural saving `1/(k² log k)`. And `vinogradov_mean_value` exports only `∃ C_{k,τ}`; absorbing `C_{k,τ}^{1/(2s)}` needs a
 public growth bound (`log C_{k,τ}/(2kτ) = O(k log k + τ log τ)`), after which the large-`N`/small-`N` split gives the fixed form
 **`|∑_{N<n≤R}(n+u)^{−it}| ≤ C N^{1 − c/(λ³ log²(2λ))}`** (`a = 3`, `b = 2`) — enough for V-C3: `E(σ) ≍ (1−σ)^{4/3}(log(2/(1−σ)))^{2/3} ≤ C(1−σ)^{33/25}`, so the growth
-bound is stated at `a' = 33/25` and V-C4-4 gives `θ = 1/a' + 1/100 ≈ 0.768 < 31/40`. Run 27 executes V-C1′ (the export) and V-C2-8…11.
+bound is stated at `a' = 33/25` and V-C4-4 gives `θ = 1/a' + 1/100 ≈ 0.768 < 31/40`. Run 27 did V-C1′ and V-C2-8/9 and found **Finding V-4**: the honest constant envelope has `log D_{k,τ}/(2kτ) = O(k log² k)` (the recursion's
+factorials), so the absorbable fixed form is `1 − c/(λ³ log³(2λ))` (`b = 3`), still enough for V-C3 at `a' = 33/25` since `E(σ) ≍ (1−σ)^{4/3} log(2/(1−σ))`
+and `4/3 > 33/25`. Run 28 executes V-C2-10′/11 at that target.
 
 ### Dependency order
 

@@ -1,3 +1,20 @@
+## RESUME NOTE 2 (run 28) — read first
+Run 27 committed V-C2-8 (fold), V-C1′ (the public envelope `(2^32(k+τ+1)^16)^{128kτ(k+τ+1)}` with its log bound) and V-C2-9 (the normalised main
+term `N·(vinogradovWeylPrefactor·M^{vinogradovDelta}/N)^{1/(2kτ)} + 2M`), and stopped because the prescribed target `1 − c/(λ³ log²(2λ))` is not
+absorbable: `δ_τ ≤ 1/2` needs `τ ≈ 2k log k`, the recursion's `((kτ+k)!)²` factors make `log D/(2kτ) = O(k log² k)`, and the prefactor is absorbed only
+for `log N ≥ C k³ log³ k`. **Accepted.** The target is now **`1 − c/(λ³·(log(2λ))³)`** (`a = 3`, `b = 3`), which your report says the method supports;
+V-C3 still closes at `a' = 33/25` (the extra logarithm is absorbed by `4/3 > 33/25`). Do:
+
+- **V-C2-10′ (the fixed form).** With `k := ⌈λ⌉ + 1` (or your admissible degree for the band `k−1 ≤ λ ≤ k`), `τ := ⌈2k log k⌉ + 2` (so `δ_τ ≤ 1/2`), the large-`N`
+  branch `log N ≥ K k³ log³(2k)` absorbing the prefactor into `N^{c/(2λ³ log³ 2λ)}`, and the small-`N` branch trivial (`N^{c/(λ³ log³ 2λ)} ≤ e^{cK}` there). No
+  separate small-`λ` unit: the same argument at `k = 2, 3` covers `λ ≤ 2` (check that the Taylor admissibility `t ≤ N^{k}`-type holds with `k ≥ ⌈λ⌉ + 1`);
+  if a band needs a different device, use a degree-two VMVT argument as you suggested — **not** the `vdc2` route (its endpoint estimate at `t = N²` is
+  useless, as you found).
+- **V-C2-11.** `theorem vinogradov_weyl_sum : ∃ c C, 0 < c ∧ 0 < C ∧ ∀ N t u R, 2 ≤ N → N ≤ t → 0 ≤ u → u ≤ 1 → N < R → R ≤ 2N →
+  ‖∑_{n∈Ioc N R} ((n:ℝ)+u : ℂ)^(−(t:ℂ)·I)‖ ≤ C·N^{1 − c/((log t/log N)^3·(log(2 log t/log N))^3)}` (or the `e(·)` form plus the conversion). Record `c, C, K`.
+
+Stop rule: unbounded failure only.
+
 ## RESUME NOTE (run 27) — read before anything else
 Run 24 committed V-C2-1…V-C2-7 (`VinogradovWeylSum.lean`: Taylor phase, shift averaging + Hölder, orthogonality, block control by polynomial moments,
 coefficient boxes + top-frequency spacing, the exact multiplicity `ν(β) ≤ 2(2(2N+1)^{k+1}/(k²tM^k) + 1)`, the aggregate box reduction on `[−1,2]^k`,

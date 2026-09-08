@@ -164,3 +164,98 @@ rebase was performed.
   reports only `propext`, `Classical.choice`, and `Quot.sound`.
 
 `CODEX_REPORT.md` is intentionally uncommitted.
+
+
+---
+
+# Run 27 (V-C1′ + V-C2-8/9): the constant export and the main-term assembly
+
+Verbatim final report of Codex run 27 (the V-C2 brief with its resume note), whose three commits shipped as the V-C2b PR: the fold of the
+coefficient cube (`3^k`), **V-C1′** (the public specification of `vinogradovMeanValueConstant`, its envelope `(2^{32}(k+τ+1)^{16})^{128kτ(k+τ+1)}`
+and the logarithmic bound), and the normalised Weyl main term `N·(prefactor·M^{δ}/N)^{1/(2kτ)} + 2M`. Finding V-4: `δ_τ ≤ 1/2` needs
+`τ ≈ 2k log k`, and the recursion's `((kτ+k)!)²` factors make `log D_{k,τ}/(2kτ) = O(k log² k)`, so the absorbable fixed form is
+`1 − c/(λ³ log³(2λ))` (run 28's target; V-C3 still closes at `a' = 33/25`); the `vdc2` route for small `λ` is void at `t = N²`.
+
+---
+
+# Track R / V-C2 — run 27 report
+
+## Completed and committed
+
+- `978eddad` — V-C2-8: folds the enlarged coefficient cube `[-1,2]^k`
+  into three unit periods per coordinate, with the exact factor `3^k`.
+- `84bd3499` — V-C1': exports the named VMVT constant specification,
+  positivity, the closed envelope
+  `(2^32 (k+τ+1)^16)^(128 k τ (k+τ+1))`, and its logarithmic bound.
+- `1cd4da24` — V-C2-9 analytic core: inserts the named VMVT constant into
+  the folded moment, computes the exact common coefficient-box volume,
+  cancels the triangular degree loss, and assembles shift averaging and
+  Holder into
+  `N * (vinogradovWeylPrefactor * M^vinogradovDelta / N)^(1/(2*k*τ)) + 2*M`.
+
+The compiled entry points are:
+
+- `vinogradovMeanValueConstant_spec`
+- `vinogradovMeanValueConstant_le`
+- `log_vinogradovMeanValueEnvelope_le`
+- `sum_log_blocks_pow_mul_volume_le_meanValue`
+- `vinogradovWeylMomentFactor_div_volume`
+- `norm_log_sum_le_vinogradovAssembly`
+- `norm_log_sum_le_vinogradovMainTerm`
+- `cpow_neg_mul_I_eq_e_log`
+
+## Blocking bookkeeping contradiction
+
+The requested fixed exponent `1-c/(lambda^3 log^2(2 lambda))` cannot be
+closed by the named recursive constant and the prescribed trivial
+small-`N` branch.
+
+There are two separate discrepancies in the resume bookkeeping.
+
+1. With
+   `delta = (k^2/2) * (1-1/k)^τ`, the choice
+   `τ = ceil(k log k)+1` gives only `delta = O(k)`, not `delta <= 1/2`.
+   Reaching `delta <= 1/2` requires `τ` of size `2*k*log k`.
+
+2. More decisively, the explicit recursion itself contains the multiplier
+   `((k*τ+k)!)^2` at step `τ`.  Consequently, after the required
+   `τ = Theta(k log k)` steps, its logarithm has unavoidable size
+
+       sum_{j <= τ} log((k*j)!^2) = Omega(k^3 log^3 k).
+
+   This is also reflected by the proved public upper envelope: after the
+   `2*k*τ` root its logarithmic cost is `O(k log^2 k)`, not `O(k log k)`.
+
+For the worst integer bands `lambda = k-1`, every Taylor-admissible degree
+is at least `k-1`, and obtaining any saving forces `τ = Omega(k log k)`.
+Thus the prefactor can only be absorbed once
+`log N = Omega(k^3 log^3 k)`.  On the complementary range, the proposed
+trivial estimate would require an absolute constant at least
+
+    N^(c/(k^3 log^2(2*k))) = k^(Omega(c)),
+
+which is unbounded in `k`.  Enlarging the degree worsens this ledger, so no
+admissible parameter choice for this recursive VMVT constant removes the
+failure.  The same method naturally supports an additional logarithm in
+the denominator (for example `lambda^3 log^3(2 lambda)`), or a larger power
+of `lambda`; the fixed `(a,b)=(3,2)` form needs a genuinely sharper VMVT
+constant construction.
+
+The V-C2-10 route in the resume has a separate endpoint error: at `t=N^2`
+the displayed second-derivative estimate has a first term of size `N`, not
+`N^(3/4)`.  A degree-two VMVT argument or rational approximation can supply
+the small-lambda regime, but it cannot repair the high-lambda constant
+obstruction above.
+
+## Verification
+
+- `lake env lean MoltResearch/Discrepancy/VinogradovWeylSum.lean` — passed.
+- `lake build MoltResearch.Discrepancy.VinogradovWeylSum` — passed.
+- `scripts/check_layering.sh` — passed.
+- `scripts/check_aggregator_coverage.py` — passed (the two reported modules
+  are the repository's known allowlisted examples).
+- `lake build MoltResearch.DiscrepancyAnalytic` — passed (8124 jobs).
+- Forbidden-declaration scan of both touched source files — passed.
+- `#print axioms` for the exported constant theorems, folded VMVT moment,
+  normalized main term, and complex-power conversion reports only
+  `propext`, `Classical.choice`, and `Quot.sound`.

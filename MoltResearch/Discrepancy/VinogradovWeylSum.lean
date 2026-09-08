@@ -1,6 +1,8 @@
 import MoltResearch.Discrepancy.VinogradovMeanValue
 import MoltResearch.Discrepancy.ExpSums
 import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
+import Mathlib.MeasureTheory.Group.Measure
+import Mathlib.MeasureTheory.Integral.Bochner.Set
 
 /-!
 # Weyl sums from Vinogradov's mean value theorem
@@ -246,6 +248,16 @@ noncomputable def polynomialSum (k M : ℕ) (β : Fin k → ℝ) : ℂ :=
 noncomputable def unitCubeMeasure (k : ℕ) : MeasureTheory.Measure (Fin k → ℝ) :=
   MeasureTheory.Measure.pi fun _ =>
     MeasureTheory.volume.restrict (Set.Ioc (0 : ℝ) 1)
+
+theorem unitCubeMeasure_eq_restrict_Icc (k : ℕ) :
+    unitCubeMeasure k = MeasureTheory.volume.restrict
+      (Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1)) := by
+  rw [unitCubeMeasure]
+  simp_rw [MeasureTheory.restrict_Ioc_eq_restrict_Icc]
+  rw [← MeasureTheory.Measure.restrict_pi_pi, ← MeasureTheory.volume_pi]
+  congr 1
+  ext β
+  simp
 
 theorem e_finset_sum {ι : Type*} (A : Finset ι) (f : ι → ℝ) :
     ExpSums.e (∑ i ∈ A, f i) = ∏ i ∈ A, ExpSums.e (f i) := by
@@ -1269,6 +1281,66 @@ theorem coefficientBox_volume_pos {k M n : ℕ} {t u : ℝ}
   exact Finset.prod_pos fun j _ => mul_pos zero_lt_two
     (coefficientRadius_pos hk hM j)
 
+/-- The common volume of every coefficient box at fixed `k,M`. -/
+noncomputable def coefficientBoxVolume (k M : ℕ) : ℝ :=
+  ∏ j : Fin k, 2 * coefficientRadius k M j
+
+theorem coefficientBox_volume_eq_common {k M n : ℕ} {t u : ℝ}
+    (hk : 1 ≤ k) (hM : 1 ≤ M) :
+    (MeasureTheory.volume (coefficientBox k M n t u)).toReal =
+      coefficientBoxVolume k M := by
+  exact coefficientBox_volume_toReal hk hM
+
+theorem coefficientBoxVolume_pos {k M : ℕ} (hk : 1 ≤ k) (hM : 1 ≤ M) :
+    0 < coefficientBoxVolume k M := by
+  unfold coefficientBoxVolume
+  exact Finset.prod_pos fun j _ => mul_pos zero_lt_two
+    (coefficientRadius_pos hk hM j)
+
+private theorem sum_fin_val_add_one (k : ℕ) :
+    ∑ j : Fin k, ((j : ℕ) + 1) = k * (k + 1) / 2 := by
+  rw [Finset.sum_fin_eq_sum_range]
+  have hclean : Finset.sum (Finset.range k)
+      (fun i => if h : i < k then i + 1 else 0) =
+      Finset.sum (Finset.range k) (fun i => i + 1) := by
+    apply Finset.sum_congr rfl
+    intro i hi
+    simp [Finset.mem_range.mp hi]
+  rw [hclean]
+  have hsplit := Finset.sum_add_distrib (s := Finset.range k)
+    (f := fun i => i) (g := fun _ => 1)
+  rw [hsplit]
+  simp only [Finset.sum_range_id, Finset.sum_const, Finset.card_range,
+    smul_eq_mul, mul_one]
+  calc
+    k * (k - 1) / 2 + k = (k + 1) * (k + 1 - 1) / 2 :=
+      (Nat.triangle_succ k).symm
+    _ = k * (k + 1) / 2 := by
+      rw [Nat.add_sub_cancel]
+      congr 1
+      exact Nat.mul_comm _ _
+
+/-- Closed form for the common coefficient-box volume. -/
+theorem coefficientBoxVolume_eq {k M : ℕ} (hk : 1 ≤ k) (hM : 1 ≤ M) :
+    coefficientBoxVolume k M =
+      (1 / (Real.pi * (k : ℝ) ^ 2)) ^ k *
+        (1 / (M : ℝ)) ^ (k * (k + 1) / 2) := by
+  have hk0 : (k : ℝ) ≠ 0 := by exact_mod_cast (show k ≠ 0 by omega)
+  have hM0 : (M : ℝ) ≠ 0 := by exact_mod_cast (show M ≠ 0 by omega)
+  have hterm : ∀ j : Fin k,
+      2 * coefficientRadius k M j =
+        (1 / (Real.pi * (k : ℝ) ^ 2)) *
+          (1 / (M : ℝ)) ^ ((j : ℕ) + 1) := by
+    intro j
+    unfold coefficientRadius
+    rw [one_div_pow]
+    field_simp [Real.pi_ne_zero, hk0, hM0]
+  unfold coefficientBoxVolume
+  simp_rw [hterm]
+  rw [Finset.prod_mul_distrib, Finset.prod_const,
+    Finset.prod_pow_eq_pow_sum, sum_fin_val_add_one]
+  simp only [Finset.card_univ, Fintype.card_fin]
+
 /-- Adding integral coefficients does not change a normalized polynomial
 character at integer arguments. -/
 theorem e_polynomialPhase_add_int {k : ℕ} (β : Fin k → ℝ)
@@ -1302,6 +1374,180 @@ theorem polynomialPartialMajorant_add_int {k M : ℕ} (β : Fin k → ℝ)
   apply Finset.sum_congr rfl
   intro m hm
   rw [polynomialSum_add_int β z]
+
+/-! ## Folding coefficient space -/
+
+/-- The three integral shifts `-1, 0, 1` used to cover each coordinate of
+the enlarged coefficient cube. -/
+def foldShift {k : ℕ} (z : Fin k → Fin 3) : Fin k → ℤ :=
+  fun j => (z j : ℤ) - 1
+
+/-- The unit coefficient cube translated by one of the folding shifts. -/
+def shiftedUnitCube {k : ℕ} (z : Fin k → Fin 3) : Set (Fin k → ℝ) :=
+  Set.Icc (fun j => (foldShift z j : ℝ))
+    (fun j => (foldShift z j : ℝ) + 1)
+
+theorem image_unitCube_add_foldShift {k : ℕ} (z : Fin k → Fin 3) :
+    (fun β : Fin k → ℝ => (fun j => (foldShift z j : ℝ)) + β) ''
+        Set.Icc (fun _ => (0 : ℝ)) (fun _ => 1) = shiftedUnitCube z := by
+  ext β
+  constructor
+  · rintro ⟨α, hα, rfl⟩
+    constructor <;> intro j
+    · exact le_add_of_nonneg_right (hα.1 j)
+    · simpa only [Pi.add_apply, add_comm] using add_le_add_left (hα.2 j)
+        (foldShift z j : ℝ)
+  · intro hβ
+    refine ⟨β - fun j => (foldShift z j : ℝ), ?_, ?_⟩
+    · constructor <;> intro j
+      · simpa only [Pi.sub_apply] using sub_nonneg.mpr (hβ.1 j)
+      · simpa only [Pi.sub_apply, sub_le_iff_le_add, add_comm] using hβ.2 j
+    · funext j
+      simp
+
+theorem enlargedCube_subset_iUnion_shiftedUnitCube (k : ℕ) :
+    Set.Icc (fun _ : Fin k => (-1 : ℝ)) (fun _ => 2) ⊆
+      ⋃ z : Fin k → Fin 3, shiftedUnitCube z := by
+  intro β hβ
+  let z : Fin k → Fin 3 := fun j =>
+    if h₀ : β j ≤ 0 then ⟨0, by omega⟩
+    else if h₁ : β j ≤ 1 then ⟨1, by omega⟩ else ⟨2, by omega⟩
+  rw [Set.mem_iUnion]
+  refine ⟨z, ?_⟩
+  constructor <;> intro j
+  · dsimp [z, shiftedUnitCube, foldShift]
+    split_ifs with h₀ h₁
+    · norm_num
+      exact (hβ.1 j)
+    · norm_num
+      exact le_of_not_ge h₀
+    · norm_num
+      exact le_of_not_ge h₁
+  · dsimp [z, shiftedUnitCube, foldShift]
+    split_ifs with h₀ h₁
+    · norm_num
+      exact h₀
+    · norm_num
+      exact h₁
+    · norm_num
+      exact hβ.2 j
+
+/-- Translation by an integral coefficient vector leaves the majorant's
+unit-cube moment unchanged. -/
+theorem integral_shiftedUnitCube_majorant_pow {s k M : ℕ}
+    (z : Fin k → Fin 3) :
+    ∫ β in shiftedUnitCube z, polynomialPartialMajorant k M β ^ (2 * s) =
+      ∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1),
+        polynomialPartialMajorant k M β ^ (2 * s) := by
+  let a : Fin k → ℝ := fun j => (foldShift z j : ℝ)
+  let f : (Fin k → ℝ) → (Fin k → ℝ) := fun β => a + β
+  have hpres : MeasureTheory.MeasurePreserving f := by
+    exact MeasureTheory.measurePreserving_add_left MeasureTheory.volume a
+  have hemb : MeasurableEmbedding f := by
+    exact (Homeomorph.addLeft a).isClosedEmbedding.measurableEmbedding
+  have himage : f '' Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1) =
+      shiftedUnitCube z := by
+    simpa only [f, a] using image_unitCube_add_foldShift z
+  rw [← himage, hpres.setIntegral_image_emb hemb]
+  apply MeasureTheory.setIntegral_congr_fun measurableSet_Icc
+  intro β hβ
+  have hperiod := polynomialPartialMajorant_add_int (M := M) β (foldShift z)
+  change polynomialPartialMajorant k M (f β) ^ (2 * s) =
+    polynomialPartialMajorant k M β ^ (2 * s)
+  rw [show f β = fun j => β j + (foldShift z j : ℝ) by
+    funext j
+    simp only [f, a, Pi.add_apply, add_comm]]
+  exact congrArg (fun x : ℝ => x ^ (2 * s)) hperiod
+
+/-- Fold `[-1,2]^k` into three unit periods in each coordinate.  Endpoint
+overlap is harmless because the integrand is nonnegative. -/
+theorem integral_enlargedCube_majorant_pow_le {s k M : ℕ} :
+    ∫ β in Set.Icc (fun _ : Fin k => (-1 : ℝ)) (fun _ => 2),
+        polynomialPartialMajorant k M β ^ (2 * s) ≤
+      (3 : ℝ) ^ k *
+        ∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1),
+          polynomialPartialMajorant k M β ^ (2 * s) := by
+  classical
+  let g : (Fin k → ℝ) → ℝ := fun β =>
+    polynomialPartialMajorant k M β ^ (2 * s)
+  let E : Set (Fin k → ℝ) :=
+    Set.Icc (fun _ => (-1 : ℝ)) (fun _ => 2)
+  let B : (Fin k → Fin 3) → Set (Fin k → ℝ) := shiftedUnitCube
+  have hgcont : Continuous g := by
+    dsimp [g]
+    unfold polynomialPartialMajorant
+    exact ((continuous_polynomialSum k M).norm.add
+      (continuous_const.mul (continuous_finset_sum _ fun m _ =>
+        (continuous_polynomialSum k m).norm))).pow (2 * s)
+  have hg0 : ∀ β, 0 ≤ g β := fun β => by
+    exact pow_nonneg (polynomialPartialMajorant_nonneg k M β) _
+  have hBcompact : ∀ z, IsCompact (B z) := fun z => by
+    dsimp [B, shiftedUnitCube]
+    exact isCompact_Icc
+  have hBint : ∀ z, MeasureTheory.Integrable ((B z).indicator g) := fun z =>
+    (hgcont.continuousOn.integrableOn_compact (hBcompact z)).integrable_indicator
+      measurableSet_Icc
+  have hEcompact : IsCompact E := by
+    dsimp [E]
+    exact isCompact_Icc
+  have hleft : MeasureTheory.Integrable (E.indicator g) :=
+    (hgcont.continuousOn.integrableOn_compact hEcompact).integrable_indicator
+      measurableSet_Icc
+  have hright : MeasureTheory.Integrable
+      (fun β => ∑ z : Fin k → Fin 3, (B z).indicator g β) :=
+    MeasureTheory.integrable_finset_sum _ fun z _ => hBint z
+  have hpoint : ∀ β, E.indicator g β ≤
+      ∑ z : Fin k → Fin 3, (B z).indicator g β := by
+    intro β
+    by_cases hβE : β ∈ E
+    · rw [Set.indicator_of_mem hβE]
+      obtain ⟨z, hβz⟩ := Set.mem_iUnion.mp
+        (enlargedCube_subset_iUnion_shiftedUnitCube k hβE)
+      calc
+        g β = (B z).indicator g β := by
+          exact (Set.indicator_of_mem hβz g).symm
+        _ ≤ ∑ w : Fin k → Fin 3, (B w).indicator g β := by
+          apply Finset.single_le_sum (s := Finset.univ)
+            (f := fun w => (B w).indicator g β)
+          · intro w hw
+            by_cases hβw : β ∈ B w
+            · rw [Set.indicator_of_mem hβw]
+              exact hg0 β
+            · rw [Set.indicator_of_notMem hβw]
+          · exact Finset.mem_univ z
+    · simp only [Set.indicator_apply, hβE, if_false]
+      apply Finset.sum_nonneg
+      intro z hz
+      change 0 ≤ (B z).indicator g β
+      by_cases hβz : β ∈ B z
+      · rw [Set.indicator_of_mem hβz]
+        exact hg0 β
+      · rw [Set.indicator_of_notMem hβz]
+  have hint := MeasureTheory.integral_mono hleft hright hpoint
+  rw [MeasureTheory.integral_finset_sum _ (fun z _ => hBint z)] at hint
+  have hfold : ∀ z : Fin k → Fin 3,
+      ∫ β, (B z).indicator g β =
+        ∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1), g β := by
+    intro z
+    change (∫ β, (shiftedUnitCube z).indicator g β) = _
+    calc
+      (∫ β, (shiftedUnitCube z).indicator g β) =
+          ∫ β in shiftedUnitCube z, g β :=
+        MeasureTheory.integral_indicator measurableSet_Icc
+      _ = _ := integral_shiftedUnitCube_majorant_pow z
+  calc
+    (∫ β in E, g β) = ∫ β, E.indicator g β := by
+      rw [MeasureTheory.integral_indicator measurableSet_Icc]
+    _ ≤ ∑ z : Fin k → Fin 3, ∫ β, (B z).indicator g β := hint
+    _ = (Fintype.card (Fin k → Fin 3) : ℝ) *
+        ∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1), g β := by
+      simp_rw [hfold]
+      rw [Finset.sum_const, nsmul_eq_mul]
+      simp
+    _ = (3 : ℝ) ^ k *
+        ∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1), g β := by
+      rw [Fintype.card_fun, Fintype.card_fin, Fintype.card_fin]
+      norm_cast
 
 /-- Every point of the centered fractional box gives the same logarithmic
 block majorant after restoring the integer parts. -/
@@ -1422,6 +1668,17 @@ def topIndex (k : ℕ) (hk : 1 ≤ k) : Fin k := ⟨k - 1, by omega⟩
 @[simp] theorem topIndex_val_add_one (k : ℕ) (hk : 1 ≤ k) :
     (topIndex k hk : ℕ) + 1 = k := by
   simp [topIndex, Nat.sub_add_cancel hk]
+
+/-- The highest-degree coefficient radius in closed form. -/
+theorem two_mul_coefficientRadius_top_eq {k M : ℕ}
+    (hk : 1 ≤ k) (hM : 1 ≤ M) :
+    2 * coefficientRadius k M (topIndex k hk) =
+      1 / (Real.pi * (k : ℝ) ^ 2 * (M : ℝ) ^ k) := by
+  have hk0 : (k : ℝ) ≠ 0 := by exact_mod_cast (show k ≠ 0 by omega)
+  have hM0 : (M : ℝ) ≠ 0 := by exact_mod_cast (show M ≠ 0 by omega)
+  unfold coefficientRadius
+  rw [topIndex_val_add_one]
+  field_simp [Real.pi_ne_zero, hk0, hM0]
 
 /-- Distinct base points in `[N,2N]` have separated top coefficients. -/
 theorem abs_topCoefficient_sub_ge {k N n₁ n₂ : ℕ} {t u : ℝ}
@@ -1877,6 +2134,353 @@ theorem sum_log_blocks_pow_mul_volume_le {s k M N : ℕ} {t u : ℝ}
       have hn' : N ≤ n := by simpa using (Finset.mem_Icc.mp hn).1
       exact log_block_pow_mul_volume_le_box_integral hk hM hN hn' ht.le hu0 hscale
     _ ≤ _ := sum_box_integrals_le_multiplicity hk hM hN ht htN hu0 hu1
+
+/-- Ford's frequency-box reduction on the unit coefficient torus.  The
+centered cube has exactly three possible unit periods in every coordinate,
+so folding costs `3^k`. -/
+theorem sum_log_blocks_pow_mul_volume_le_unitCube
+    {s k M N : ℕ} {t u : ℝ}
+    (hk : 1 ≤ k) (hM : 1 ≤ M) (hN : 1 ≤ N) (ht : 0 < t)
+    (htN : t ≤ (N : ℝ) ^ k) (hu0 : 0 ≤ u) (hu1 : u ≤ 1)
+    (hscale : t * (M : ℝ) ^ (k + 1) ≤ (N : ℝ) ^ (k + 1)) :
+    (∑ n ∈ Finset.Icc N (2 * N),
+        ‖∑ m ∈ Finset.Icc 1 M,
+          ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u + m))‖ ^
+            (2 * s) *
+          (MeasureTheory.volume (coefficientBox k M n t u)).toReal) ≤
+      2 * (2 * coefficientRadius k M (topIndex k hk) /
+          (t / (2 * Real.pi * (2 * N + 1 : ℝ) ^ (k + 1))) + 1) *
+        (3 : ℝ) ^ k *
+          ∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1),
+            polynomialPartialMajorant k M β ^ (2 * s) := by
+  have hfold := integral_enlargedCube_majorant_pow_le (s := s) (k := k) (M := M)
+  calc
+    (∑ n ∈ Finset.Icc N (2 * N),
+        ‖∑ m ∈ Finset.Icc 1 M,
+          ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u + m))‖ ^
+            (2 * s) *
+          (MeasureTheory.volume (coefficientBox k M n t u)).toReal) ≤
+      2 * (2 * coefficientRadius k M (topIndex k hk) /
+          (t / (2 * Real.pi * (2 * N + 1 : ℝ) ^ (k + 1))) + 1) *
+        ∫ β in Set.Icc (fun _ : Fin k => (-1 : ℝ)) (fun _ => 2),
+          polynomialPartialMajorant k M β ^ (2 * s) :=
+      sum_log_blocks_pow_mul_volume_le hk hM hN ht htN hu0 hu1 hscale
+    _ ≤ 2 * (2 * coefficientRadius k M (topIndex k hk) /
+          (t / (2 * Real.pi * (2 * N + 1 : ℝ) ^ (k + 1))) + 1) *
+        ((3 : ℝ) ^ k *
+          ∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1),
+            polynomialPartialMajorant k M β ^ (2 * s)) := by
+      apply mul_le_mul_of_nonneg_left hfold
+      have hrpos := coefficientRadius_pos hk hM (topIndex k hk)
+      positivity
+    _ = _ := by ring
+
+/-! ## Long-interval assembly -/
+
+/-- The folded box estimate after inserting the explicit weak VMVT
+constant.  This is the moment input for the shift/Hölder assembly. -/
+theorem sum_log_blocks_pow_mul_volume_le_meanValue
+    {k τ M N : ℕ} {t u : ℝ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) (hM : 1 ≤ M) (hN : 1 ≤ N)
+    (ht : 0 < t) (htN : t ≤ (N : ℝ) ^ k)
+    (hu0 : 0 ≤ u) (hu1 : u ≤ 1)
+    (hscale : t * (M : ℝ) ^ (k + 1) ≤ (N : ℝ) ^ (k + 1)) :
+    (∑ n ∈ Finset.Icc N (2 * N),
+        ‖∑ m ∈ Finset.Icc 1 M,
+          ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u + m))‖ ^
+            (2 * (k * τ)) *
+          (MeasureTheory.volume (coefficientBox k M n t u)).toReal) ≤
+      2 * (2 * coefficientRadius k M (topIndex k (by omega)) /
+          (t / (2 * Real.pi * (2 * N + 1 : ℝ) ^ (k + 1))) + 1) *
+        (3 : ℝ) ^ k * (2 : ℝ) ^ (4 * (k * τ)) *
+          vinogradovMeanValueConstant k τ *
+            (M : ℝ) ^ vinogradovExponent k τ := by
+  let W : ℝ := 2 * (2 * coefficientRadius k M (topIndex k (by omega)) /
+    (t / (2 * Real.pi * (2 * N + 1 : ℝ) ^ (k + 1))) + 1)
+  have hW0 : 0 ≤ W := by
+    dsimp [W]
+    have hr := coefficientRadius_pos (by omega : 1 ≤ k) hM
+      (topIndex k (by omega))
+    positivity
+  have hfold := sum_log_blocks_pow_mul_volume_le_unitCube
+    (s := k * τ) (k := k) (M := M) (N := N) (t := t) (u := u)
+    (by omega) hM hN ht htN hu0 hu1 hscale
+  have hint := integral_polynomialPartialMajorant_pow_le
+    (k * τ) k M hM (by
+      have : 0 < k * τ := Nat.mul_pos (by omega) (by omega)
+      omega)
+  have hint' :
+      (∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1),
+          polynomialPartialMajorant k M β ^ (2 * (k * τ))) ≤
+        (2 : ℝ) ^ (4 * (k * τ)) * (vinogradovJ (k * τ) k M : ℝ) := by
+    rw [unitCubeMeasure_eq_restrict_Icc] at hint
+    exact hint
+  have hvmv := (vinogradovMeanValueConstant_spec hk hτ).2 M hM
+  calc
+    (∑ n ∈ Finset.Icc N (2 * N),
+        ‖∑ m ∈ Finset.Icc 1 M,
+          ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u + m))‖ ^
+            (2 * (k * τ)) *
+          (MeasureTheory.volume (coefficientBox k M n t u)).toReal) ≤
+      W * (3 : ℝ) ^ k *
+        ∫ β in Set.Icc (fun _ : Fin k => (0 : ℝ)) (fun _ => 1),
+          polynomialPartialMajorant k M β ^ (2 * (k * τ)) := by
+        simpa only [W] using hfold
+    _ ≤ W * (3 : ℝ) ^ k *
+        ((2 : ℝ) ^ (4 * (k * τ)) * (vinogradovJ (k * τ) k M : ℝ)) := by
+      apply mul_le_mul_of_nonneg_left hint'
+      exact mul_nonneg hW0 (by positivity)
+    _ ≤ W * (3 : ℝ) ^ k *
+        ((2 : ℝ) ^ (4 * (k * τ)) *
+          (vinogradovMeanValueConstant k τ *
+            (M : ℝ) ^ vinogradovExponent k τ)) := by
+      apply mul_le_mul_of_nonneg_left _ (mul_nonneg hW0 (by positivity))
+      exact mul_le_mul_of_nonneg_left hvmv (by positivity)
+    _ = _ := by
+      dsimp [W]
+      ring
+
+/-- The explicit moment factor in the long-interval assembly. -/
+noncomputable def vinogradovWeylMomentFactor
+    (k τ M N : ℕ) (t : ℝ) (hk : 1 ≤ k) : ℝ :=
+  2 * (2 * coefficientRadius k M (topIndex k hk) /
+      (t / (2 * Real.pi * (2 * N + 1 : ℝ) ^ (k + 1))) + 1) *
+    (3 : ℝ) ^ k * (2 : ℝ) ^ (4 * (k * τ)) *
+      vinogradovMeanValueConstant k τ *
+        (M : ℝ) ^ vinogradovExponent k τ
+
+/-- All dimensionless constants in the assembled Vinogradov moment.  The
+remaining scale factor is `M^(2*k*τ+δ)/N`. -/
+noncomputable def vinogradovWeylPrefactor
+    (k τ M N : ℕ) (t : ℝ) : ℝ :=
+  2 * (2 * (2 * N + 1 : ℝ) ^ (k + 1) /
+        ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) + 1) *
+    (3 : ℝ) ^ k * (2 : ℝ) ^ (4 * (k * τ)) *
+      vinogradovMeanValueConstant k τ *
+        (Real.pi * (k : ℝ) ^ 2) ^ k
+
+private theorem vinogradovMultiplicityFactor_eq
+    {k M N : ℕ} {t : ℝ} (hk : 1 ≤ k) (hM : 1 ≤ M) (ht : 0 < t) :
+    2 * (2 * coefficientRadius k M (topIndex k hk) /
+          (t / (2 * Real.pi * (2 * N + 1 : ℝ) ^ (k + 1))) + 1) =
+      2 * (2 * (2 * N + 1 : ℝ) ^ (k + 1) /
+          ((k : ℝ) ^ 2 * t * (M : ℝ) ^ k) + 1) := by
+  rw [two_mul_coefficientRadius_top_eq hk hM]
+  have hk0 : (k : ℝ) ≠ 0 := by exact_mod_cast (show k ≠ 0 by omega)
+  have hM0 : (M : ℝ) ≠ 0 := by exact_mod_cast (show M ≠ 0 by omega)
+  have hX0 : (2 * N + 1 : ℝ) ≠ 0 := by positivity
+  field_simp [Real.pi_ne_zero, hk0, hM0, ht.ne']
+
+/-- Dividing by the coefficient-box volume cancels the triangular VMVT
+degree loss.  This is the exact algebra behind the main term in V-C2-9. -/
+theorem vinogradovWeylMomentFactor_div_volume
+    {k τ M N : ℕ} {t : ℝ}
+    (hk : 2 ≤ k) (hM : 1 ≤ M) (ht : 0 < t) :
+    vinogradovWeylMomentFactor k τ M N t (by omega) /
+        coefficientBoxVolume k M =
+      vinogradovWeylPrefactor k τ M N t *
+        (M : ℝ) ^ (2 * (k : ℝ) * τ + vinogradovDelta k τ) := by
+  have hMR : (0 : ℝ) < M := by exact_mod_cast (show 0 < M by omega)
+  have hB : 0 < Real.pi * (k : ℝ) ^ 2 := by positivity
+  rw [vinogradovWeylMomentFactor, coefficientBoxVolume_eq (by omega) hM,
+    vinogradovMultiplicityFactor_eq (by omega) hM ht]
+  unfold vinogradovWeylPrefactor vinogradovExponent
+  rw [one_div_pow, one_div_pow]
+  field_simp
+  rw [mul_assoc]
+  rw [← Real.rpow_natCast (M : ℝ) (k * (k + 1) / 2),
+    ← Real.rpow_add hMR]
+  congr 1
+  rw [Nat.cast_div (even_iff_two_dvd.mp (Nat.even_mul_succ_self k))
+    (by norm_num)]
+  push_cast
+  ring_nf
+
+private theorem shiftHolder_scale_identity {A M N : ℝ} {s : ℕ}
+    (hA : 0 ≤ A) (hM : 0 < M) (hN : 0 < N) (hs : 1 ≤ s) :
+    (1 / M) * N ^ (1 - ((2 * s : ℕ) : ℝ)⁻¹) *
+        (A * M ^ ((2 * s : ℕ) : ℝ)) ^ (((2 * s : ℕ) : ℝ)⁻¹) =
+      N * (A / N) ^ (((2 * s : ℕ) : ℝ)⁻¹) := by
+  let r : ℝ := ((2 * s : ℕ) : ℝ)⁻¹
+  have h2s : (((2 * s : ℕ) : ℝ)) ≠ 0 := by
+    exact_mod_cast (show 2 * s ≠ 0 by omega)
+  have hr : ((2 * s : ℕ) : ℝ) * r = 1 := by
+    dsimp [r]
+    field_simp
+  rw [Real.mul_rpow hA (Real.rpow_nonneg hM.le _)]
+  rw [← Real.rpow_mul hM.le, hr, Real.rpow_one]
+  rw [Real.div_rpow hA hN.le]
+  rw [Real.rpow_sub hN, Real.rpow_one]
+  field_simp
+
+/-- Shift averaging, Hölder, the folded coefficient boxes, and the weak
+VMVT assembled on one dyadic interval.  The sole remaining operation for a
+parameter choice is to bound the displayed explicit factor. -/
+theorem norm_log_sum_le_vinogradovAssembly
+    {k τ M N R : ℕ} {t u : ℝ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) (hM : 1 ≤ M) (hMN : M ≤ N)
+    (hNR : N < R) (hR : R ≤ 2 * N)
+    (ht : 0 < t) (htN : t ≤ (N : ℝ) ^ k)
+    (hu0 : 0 ≤ u) (hu1 : u ≤ 1)
+    (hscale : t * (M : ℝ) ^ (k + 1) ≤ (N : ℝ) ^ (k + 1)) :
+    ‖∑ q ∈ Finset.Ioc N R,
+        ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((q : ℝ) + u))‖ ≤
+      (1 / (M : ℝ)) *
+        ((Finset.Ioc N (R - 1)).card : ℝ) ^
+          (1 - ((2 * (k * τ) : ℕ) : ℝ)⁻¹) *
+        (vinogradovWeylMomentFactor k τ M N t (by omega) /
+          coefficientBoxVolume k M) ^
+            (((2 * (k * τ) : ℕ) : ℝ)⁻¹) +
+      2 * M := by
+  let s := k * τ
+  let A := Finset.Ioc N (R - 1)
+  let F : ℕ → ℂ := fun n =>
+    ∑ m ∈ Finset.Icc 1 M,
+      ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((n : ℝ) + u + m))
+  let V := coefficientBoxVolume k M
+  let K := vinogradovWeylMomentFactor k τ M N t (by omega)
+  have hN : 1 ≤ N := hM.trans hMN
+  have hV : 0 < V := coefficientBoxVolume_pos (by omega) hM
+  have hmean := sum_log_blocks_pow_mul_volume_le_meanValue
+    hk hτ hM hN ht htN hu0 hu1 hscale
+  have hmean' :
+      (∑ n ∈ Finset.Icc N (2 * N), ‖F n‖ ^ (2 * s)) * V ≤ K := by
+    dsimp only [F, V, K, s]
+    simp_rw [coefficientBox_volume_eq_common (by omega : 1 ≤ k) hM] at hmean
+    rw [Finset.sum_mul]
+    simpa only [vinogradovWeylMomentFactor] using hmean
+  have hfull : (∑ n ∈ Finset.Icc N (2 * N), ‖F n‖ ^ (2 * s)) ≤ K / V := by
+    rw [le_div_iff₀ hV]
+    simpa [mul_comm] using hmean'
+  have hsubset : A ⊆ Finset.Icc N (2 * N) := by
+    intro n hn
+    change n ∈ Finset.Ioc N (R - 1) at hn
+    rw [Finset.mem_Ioc] at hn
+    rw [Finset.mem_Icc]
+    omega
+  have hmoment : (∑ n ∈ A, ‖F n‖ ^ (2 * s)) ≤ K / V := by
+    exact (Finset.sum_le_sum_of_subset_of_nonneg hsubset
+      (fun _ _ _ => pow_nonneg (norm_nonneg _) _)).trans hfull
+  have hs : 1 ≤ s := by
+    have : 0 < k * τ := Nat.mul_pos (by omega) (by omega)
+    simpa only [s] using this
+  have hholder := sum_norm_le_holder A F s hs
+  have hroot : (∑ n ∈ A, ‖F n‖ ^ (2 * s)) ^ (((2 * s : ℕ) : ℝ)⁻¹) ≤
+      (K / V) ^ (((2 * s : ℕ) : ℝ)⁻¹) := by
+    apply Real.rpow_le_rpow (Finset.sum_nonneg fun _ _ => pow_nonneg (norm_nonneg _) _)
+      hmoment
+    positivity
+  have hsumNorm : (∑ n ∈ A, ‖F n‖) ≤
+      (A.card : ℝ) ^ (1 - ((2 * s : ℕ) : ℝ)⁻¹) *
+        (K / V) ^ (((2 * s : ℕ) : ℝ)⁻¹) :=
+    hholder.trans (mul_le_mul_of_nonneg_left hroot (by positivity))
+  let f : ℕ → ℂ := fun q =>
+    ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((q : ℝ) + u))
+  have hf : ∀ q, ‖f q‖ ≤ 1 := by
+    intro q
+    dsimp [f]
+    rw [ExpSums.norm_e]
+  have hshift := norm_sum_le_shift_average f hNR hM hMN hf
+  have houter :
+      ‖∑ n ∈ A, F n‖ ≤ ∑ n ∈ A, ‖F n‖ := norm_sum_le _ _
+  calc
+    ‖∑ q ∈ Finset.Ioc N R,
+        ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((q : ℝ) + u))‖ =
+      ‖∑ q ∈ Finset.Ioc N R, f q‖ := rfl
+    _ ≤ (1 / (M : ℝ)) * ‖∑ n ∈ A, F n‖ + 2 * M := by
+      simpa only [f, F, A, Nat.cast_ofNat, Nat.cast_add, add_assoc,
+        add_left_comm, add_comm] using hshift
+    _ ≤ (1 / (M : ℝ)) * (∑ n ∈ A, ‖F n‖) + 2 * M := by
+      gcongr
+    _ ≤ (1 / (M : ℝ)) *
+        ((A.card : ℝ) ^ (1 - ((2 * s : ℕ) : ℝ)⁻¹) *
+          (K / V) ^ (((2 * s : ℕ) : ℝ)⁻¹)) + 2 * M := by
+      gcongr
+    _ = _ := by
+      dsimp only [A, s, K, V]
+      ring
+
+/-- V-C2-9 in normalized main-term form.  The first summand is `N` times
+the `2kτ`-th root of the explicit dimensionless factor; the second is the
+endpoint-collar cost from shift averaging. -/
+theorem norm_log_sum_le_vinogradovMainTerm
+    {k τ M N R : ℕ} {t u : ℝ}
+    (hk : 2 ≤ k) (hτ : 1 ≤ τ) (hM : 1 ≤ M) (hMN : M ≤ N)
+    (hNR : N < R) (hR : R ≤ 2 * N)
+    (ht : 0 < t) (htN : t ≤ (N : ℝ) ^ k)
+    (hu0 : 0 ≤ u) (hu1 : u ≤ 1)
+    (hscale : t * (M : ℝ) ^ (k + 1) ≤ (N : ℝ) ^ (k + 1)) :
+    ‖∑ q ∈ Finset.Ioc N R,
+        ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((q : ℝ) + u))‖ ≤
+      (N : ℝ) *
+        (vinogradovWeylPrefactor k τ M N t *
+            (M : ℝ) ^ vinogradovDelta k τ / (N : ℝ)) ^
+          (((2 * (k * τ) : ℕ) : ℝ)⁻¹) +
+      2 * M := by
+  let s := k * τ
+  let A : ℝ := vinogradovWeylPrefactor k τ M N t *
+    (M : ℝ) ^ vinogradovDelta k τ
+  have hs : 1 ≤ s := by
+    dsimp [s]
+    exact Nat.one_le_iff_ne_zero.mpr (Nat.mul_ne_zero (by omega) (by omega))
+  have hNnat : 1 ≤ N := hM.trans hMN
+  have hNR' : 0 < (N : ℝ) := by exact_mod_cast (show 0 < N by omega)
+  have hMR : 0 < (M : ℝ) := by exact_mod_cast (show 0 < M by omega)
+  have hC := (vinogradovMeanValueConstant_spec hk hτ).1
+  have hA : 0 ≤ A := by
+    dsimp [A, vinogradovWeylPrefactor]
+    positivity
+  have hr0 : 0 ≤ (((2 * s : ℕ) : ℝ)⁻¹) := by positivity
+  have hr1 : (((2 * s : ℕ) : ℝ)⁻¹) ≤ 1 := by
+    rw [inv_le_one₀]
+    exact_mod_cast (show 1 ≤ 2 * s by omega)
+    exact_mod_cast (show 0 < 2 * s by omega)
+  have hp : 0 ≤ 1 - (((2 * s : ℕ) : ℝ)⁻¹) := sub_nonneg.mpr hr1
+  have hcardNat : (Finset.Ioc N (R - 1)).card ≤ N := by
+    simp only [Nat.card_Ioc]
+    omega
+  have hcard : ((Finset.Ioc N (R - 1)).card : ℝ) ≤ N := by
+    exact_mod_cast hcardNat
+  have hbase := norm_log_sum_le_vinogradovAssembly hk hτ hM hMN hNR hR
+    ht htN hu0 hu1 hscale
+  have hmoment :
+      vinogradovWeylMomentFactor k τ M N t (by omega) /
+          coefficientBoxVolume k M =
+        A * (M : ℝ) ^ ((2 * s : ℕ) : ℝ) := by
+    rw [vinogradovWeylMomentFactor_div_volume hk hM ht]
+    dsimp only [A, s]
+    have hexp : 2 * (k : ℝ) * τ + vinogradovDelta k τ =
+        vinogradovDelta k τ + ((2 * (k * τ) : ℕ) : ℝ) := by
+      push_cast
+      ring
+    rw [hexp, Real.rpow_add hMR]
+    ring
+  calc
+    ‖∑ q ∈ Finset.Ioc N R,
+        ExpSums.e (-(t / (2 * Real.pi)) * Real.log ((q : ℝ) + u))‖ ≤
+      (1 / (M : ℝ)) *
+        ((Finset.Ioc N (R - 1)).card : ℝ) ^
+          (1 - ((2 * s : ℕ) : ℝ)⁻¹) *
+        (vinogradovWeylMomentFactor k τ M N t (by omega) /
+          coefficientBoxVolume k M) ^ (((2 * s : ℕ) : ℝ)⁻¹) +
+        2 * M := by simpa only [s] using hbase
+    _ ≤ (1 / (M : ℝ)) *
+        (N : ℝ) ^ (1 - ((2 * s : ℕ) : ℝ)⁻¹) *
+        (vinogradovWeylMomentFactor k τ M N t (by omega) /
+          coefficientBoxVolume k M) ^ (((2 * s : ℕ) : ℝ)⁻¹) +
+        2 * M := by
+      have hpow := Real.rpow_le_rpow (Nat.cast_nonneg _) hcard hp
+      have hleft := mul_le_mul_of_nonneg_left hpow (by positivity : 0 ≤ 1 / (M : ℝ))
+      have hroot : 0 ≤
+          (vinogradovWeylMomentFactor k τ M N t (by omega) /
+            coefficientBoxVolume k M) ^ (((2 * s : ℕ) : ℝ)⁻¹) := by
+        rw [hmoment]
+        exact Real.rpow_nonneg (mul_nonneg hA (Real.rpow_nonneg hMR.le _)) _
+      exact add_le_add (mul_le_mul_of_nonneg_right hleft hroot) le_rfl
+    _ = (N : ℝ) * (A / (N : ℝ)) ^ (((2 * s : ℕ) : ℝ)⁻¹) +
+        2 * M := by
+      rw [hmoment, shiftHolder_scale_identity hA hMR hNR' hs]
+    _ = _ := by rfl
 
 /-! ## Conversion to complex powers -/
 
