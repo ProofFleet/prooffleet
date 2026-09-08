@@ -829,7 +829,9 @@ theorem primeMellin_rational_half_line_bound
     apply Continuous.intervalIntegrable
     exact continuous_const.mul
       ((continuous_const.add ((continuous_id.sub continuous_const).pow 2)).inv₀
-        fun y => by positivity)
+        fun y => by
+          change 1 + (y - u) ^ 2 ≠ 0
+          nlinarith [sq_nonneg (y - u)])
   have hpoint : ∀ y ∈ Set.Ioc (-Z) Z,
       ‖primeMellinTransform S P
             ((1 - (u : ℂ) * I) +

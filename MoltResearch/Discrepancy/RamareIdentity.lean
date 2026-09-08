@@ -676,6 +676,8 @@ theorem intervalIntegral_norm_sq_usum_le (a b : ℕ) (ha1 : 1 ≤ a)
           pow_le_pow_left₀ (norm_nonneg _) h1 2
         nlinarith [h4, sq_nonneg (‖main ξ‖ - ‖coll ξ‖)]
     rw [intervalIntegral.integral_add
+      (f := fun ξ => 2 * ‖main ξ‖^2)
+      (g := fun ξ => 2 * ‖coll ξ‖^2)
       ((continuous_const.mul (hcont_main.norm.pow 2)).intervalIntegrable _ _)
       ((continuous_const.mul (hcont_coll.norm.pow 2)).intervalIntegrable _ _),
       intervalIntegral.integral_const_mul, intervalIntegral.integral_const_mul]
@@ -1098,6 +1100,10 @@ theorem intervalIntegral_norm_sq_subset_le (K : ℝ) (hK : 0 ≤ K)
             - ‖∑ m ∈ S₁, (c m/(m:ℂ))
               * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖)]
       rw [intervalIntegral.integral_add
+        (f := fun ξ => 2*‖∑ m ∈ S₀, (c m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+        (g := fun ξ => 2*‖∑ m ∈ S₁, (c m/(m:ℂ))
+          * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
         ((continuous_const.mul ((hcont S₀).norm.pow 2)).intervalIntegrable _ _)
         ((continuous_const.mul ((hcont S₁).norm.pow 2)).intervalIntegrable _ _),
         intervalIntegral.integral_const_mul,
@@ -1262,6 +1268,8 @@ theorem intervalIntegral_norm_sq_subset_le (K : ℝ) (hK : 0 ≤ K)
             pow_le_pow_left₀ (norm_nonneg _) h1 2
           nlinarith [h4, sq_nonneg (‖f ξ‖ - ‖g ξ‖)]
       rw [intervalIntegral.integral_add
+        (f := fun ξ => 2 * ‖f ξ‖^2)
+        (g := fun ξ => 2 * ‖g ξ‖^2)
         ((continuous_const.mul (hf.norm.pow 2)).intervalIntegrable _ _)
         ((continuous_const.mul (hg.norm.pow 2)).intervalIntegrable _ _),
         intervalIntegral.integral_const_mul,

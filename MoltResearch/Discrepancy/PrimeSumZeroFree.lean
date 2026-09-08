@@ -2078,7 +2078,8 @@ theorem primeMellin_shifted_side_bound
     apply Continuous.intervalIntegrable
     exact continuous_const.mul
       ((continuous_const.add ((continuous_id.sub continuous_const).pow 2)).inv₀ fun y => by
-        positivity)
+        change 1 + (y - u) ^ 2 ≠ 0
+        nlinarith [sq_nonneg (y - u)])
   have hpoint : ∀ y ∈ Set.Ioc (-Y) Y,
       ‖primeMellinTransform S P
             (((1 - η / 2 : ℝ) : ℂ) + ((y - u : ℝ) : ℂ) * I) *

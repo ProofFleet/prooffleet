@@ -434,8 +434,11 @@ theorem intervalIntegral_norm_sq_weighted_blocks_le (P : Finset ℕ) (w : ℕ �
   have hsum_nonneg : (0:ℝ) ≤ ∑ p ∈ P, ‖w p‖ :=
     Finset.sum_nonneg fun p _ => norm_nonneg _
   refine mul_le_mul_of_nonneg_left ?_ hsum_nonneg
-  rw [intervalIntegral.integral_finset_sum (fun p _ =>
-    (continuous_const.mul ((hcontG p).norm.pow 2)).intervalIntegrable _ _)]
+  rw [intervalIntegral.integral_finset_sum
+    (f := fun p ξ => ‖w p‖ * ‖∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+    (fun p _ =>
+      (continuous_const.mul ((hcontG p).norm.pow 2)).intervalIntegrable _ _)]
   refine Finset.sum_le_sum fun p hp => ?_
   rw [intervalIntegral.integral_const_mul]
   refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
@@ -530,8 +533,11 @@ theorem intervalIntegral_norm_sq_freq_weighted_blocks_le (P : Finset ℕ)
   have hsum_nonneg : (0:ℝ) ≤ ∑ p ∈ P, v p :=
     Finset.sum_nonneg fun p _ => hv0 p
   refine mul_le_mul_of_nonneg_left ?_ hsum_nonneg
-  rw [intervalIntegral.integral_finset_sum (fun p _ =>
-    (continuous_const.mul ((hcontG p).norm.pow 2)).intervalIntegrable _ _)]
+  rw [intervalIntegral.integral_finset_sum
+    (f := fun p ξ => v p * ‖∑ m ∈ S p,
+      (a p m/(m:ℂ)) * ((Real.fourierChar (-(Real.log m * ξ)) : Circle) : ℂ)‖^2)
+    (fun p _ =>
+      (continuous_const.mul ((hcontG p).norm.pow 2)).intervalIntegrable _ _)]
   refine Finset.sum_le_sum fun p hp => ?_
   rw [intervalIntegral.integral_const_mul]
   refine mul_le_mul_of_nonneg_left ?_ (hv0 p)
@@ -584,8 +590,10 @@ theorem intervalIntegral_norm_sq_freq_weighted_sum_le (P : Finset ℕ)
   have hsum_nonneg : (0:ℝ) ≤ ∑ p ∈ P, v p :=
     Finset.sum_nonneg fun p _ => hv0 p
   refine mul_le_mul_of_nonneg_left ?_ hsum_nonneg
-  rw [intervalIntegral.integral_finset_sum (fun p _ =>
-    (continuous_const.mul ((hzcont p).norm.pow 2)).intervalIntegrable _ _)]
+  rw [intervalIntegral.integral_finset_sum
+    (f := fun p ξ => v p * ‖z p ξ‖^2)
+    (fun p _ =>
+      (continuous_const.mul ((hzcont p).norm.pow 2)).intervalIntegrable _ _)]
   refine Finset.sum_le_sum fun p _ => ?_
   rw [intervalIntegral.integral_const_mul]
 

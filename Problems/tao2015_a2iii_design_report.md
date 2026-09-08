@@ -223,7 +223,7 @@ statements of `WindowTK.lean`, `DyadicMVT.lean`, `WindowAssembly.lean`,
    discretisation to a well-spaced set plus **two large-value theorems**, one of which
    (**Halász's inequality for prime-supported Dirichlet polynomials**, MR
    Lemma 8) is proved only via a **Vinogradov–Korobov-type zero-free region for `ζ`**
-   and a Mellin contour shift. Mathlib at the pinned revision (`v4.28.0-rc1`) has
+   and a Mellin contour shift. Mathlib at the pinned revision (`v4.28.0`) has
    **no zero-free region, no PNT, no large sieve, no Halász–Montgomery**
    (`LSeries/Nonvanishing.lean` is qualitative `ζ(1+it) ≠ 0` only). §5 proves that
    every attempt to replace it by continuous integration + the in-tree Halász

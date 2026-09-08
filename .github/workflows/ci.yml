@@ -17,7 +17,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    # a toolchain bump is a cold build: ~20 min on 14 cores locally
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
         with:

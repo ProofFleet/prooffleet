@@ -183,6 +183,7 @@ theorem good_block_total_le
         add_le_add hres (mul_le_mul_of_nonneg_left hcompl (by norm_num))
     _ = _ := by ring
 
+set_option maxHeartbeats 800000 in
 /-- **The parameter choice** (Track R, R7-5).
 
 For `0 < ε ≤ 1`, `C > 0` and `B`, there is `H₀` such that every `H ≥ H₀` admits: a real
