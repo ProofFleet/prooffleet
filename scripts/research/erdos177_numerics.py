@@ -7,6 +7,12 @@ absolute sum is therefore the range (maximum minus minimum) of the prefix sums
 on that residue class.  This script uses that identity for exact O(ND) profile
 evaluation and for an incremental simulated-annealing search.
 
+The ``balance`` commands implement the Phase-2 finite residue-prefix experiment.
+They freeze half of the remaining prefix in each round, never revisit earlier
+signs, and report the exact normalized anchored-prefix barrier after every
+round.  Search decisions may use a smaller step cutoff, but the selected final
+witness is always evaluated at every step through N.
+
 The search output is an achieved upper bound for the finite instance, not a
 certificate of optimality.  The ``exact`` command does certify the optimum for
 small N by exhaustive enumeration (fixing the first sign by global symmetry).
@@ -17,6 +23,7 @@ Only the Python standard library is required.
 from __future__ import annotations
 
 import argparse
+import bisect
 import hashlib
 import itertools
 import json
@@ -91,6 +98,253 @@ def objective_key(profile: Sequence[int], alpha: float) -> tuple[float, float]:
     return (max(normalized, default=0.0), sum(normalized))
 
 
+@dataclass(frozen=True)
+class ResiduePrefixTrace:
+    """Exact finite-witness profile and barrier checkpoints."""
+
+    profile: tuple[int, ...]
+    barrier: float
+    worst_d: int
+    worst_r: int
+    worst_m: int
+    worst_sum: int
+    round_barriers: tuple[float, ...]
+
+
+def residue_prefix_trace(
+    signs: Sequence[int], alpha: float, round_counts: Sequence[int] = ()
+) -> ResiduePrefixTrace:
+    """Evaluate the exact ``FiniteResiduePrefixWitness`` constraints.
+
+    For each ``d``, the formal endpoint condition ``r + M*d <= N`` means that
+    the last sampled index is at most ``N-d``.  The optional checkpoints treat
+    positions at or beyond the colored count as zero, as in a partial coloring.
+    Because earlier residue prefixes remain among the constraints, their
+    barrier is monotone as more positions are frozen.
+    """
+    n = len(signs)
+    if n < 1:
+        raise ValueError("N must be positive")
+    if any(value not in (-1, 0, 1) for value in signs):
+        raise ValueError("partial-color values must be -1, 0, or +1")
+    if any(left >= right for left, right in zip(round_counts, round_counts[1:])):
+        raise ValueError("round counts must be strictly increasing")
+    if round_counts and (round_counts[0] < 1 or round_counts[-1] > n):
+        raise ValueError("round counts must lie in [1, N]")
+
+    profile: list[int] = []
+    barrier = -1.0
+    worst = (1, 0, 1, signs[0])
+    new_by_round = [0.0] * len(round_counts)
+    for d in range(1, n + 1):
+        h_d = 0
+        # Only residues at most N-d can begin a nonempty constrained prefix.
+        for residue in range(min(d, n - d + 1)):
+            total = 0
+            for index in range(residue, n - d + 1, d):
+                total += signs[index]
+                magnitude = abs(total)
+                h_d = max(h_d, magnitude)
+                normalized = magnitude / (d**alpha)
+                if normalized > barrier:
+                    barrier = normalized
+                    worst = (d, residue, index // d + 1, total)
+                if round_counts:
+                    round_index = bisect.bisect_right(round_counts, index)
+                    if round_index < len(round_counts):
+                        new_by_round[round_index] = max(
+                            new_by_round[round_index], normalized
+                        )
+        profile.append(h_d)
+
+    round_barriers: list[float] = []
+    running = 0.0
+    for new_value in new_by_round:
+        running = max(running, new_value)
+        round_barriers.append(running)
+    worst_d, worst_r, worst_m, worst_sum = worst
+    return ResiduePrefixTrace(
+        profile=tuple(profile),
+        barrier=max(0.0, barrier),
+        worst_d=worst_d,
+        worst_r=worst_r,
+        worst_m=worst_m,
+        worst_sum=worst_sum,
+        round_barriers=tuple(round_barriers),
+    )
+
+
+def brute_residue_prefix_profile(signs: Sequence[int]) -> list[int]:
+    """Definition-level finite-witness evaluator used by the self-test."""
+    n = len(signs)
+    if n < 1:
+        raise ValueError("N must be positive")
+    result: list[int] = []
+    for d in range(1, n + 1):
+        h_d = 0
+        for residue in range(d):
+            total = 0
+            m = 0
+            while residue + (m + 1) * d <= n:
+                total += signs[residue + m * d]
+                h_d = max(h_d, abs(total))
+                m += 1
+        result.append(h_d)
+    return result
+
+
+def partial_round_counts(n: int, freeze_fraction: float) -> list[int]:
+    """Freeze a fixed fraction of the remaining positions in every round."""
+    if n < 1:
+        raise ValueError("N must be positive")
+    if not 0.0 < freeze_fraction <= 1.0:
+        raise ValueError("freeze fraction must lie in (0, 1]")
+    result: list[int] = []
+    colored = 0
+    while colored < n:
+        newly_colored = max(1, math.ceil((n - colored) * freeze_fraction))
+        colored = min(n, colored + newly_colored)
+        result.append(colored)
+    return result
+
+
+class PrefixGreedyState:
+    """A prefix-frozen, barrier-aware partial-coloring search state.
+
+    Search decisions use steps through ``search_d_max``.  The returned witness
+    is separately checked against every step through ``N``.
+    """
+
+    def __init__(self, n: int, search_d_max: int, alpha: float):
+        validate_instance(n, search_d_max)
+        self.n = n
+        self.search_d_max = search_d_max
+        self.alpha = alpha
+        self.signs: list[int] = []
+        self.totals = [[0] * d for d in range(1, search_d_max + 1)]
+        self.profile = [0] * search_d_max
+        self.barrier = 0.0
+
+    def clone(self) -> PrefixGreedyState:
+        result = object.__new__(PrefixGreedyState)
+        result.n = self.n
+        result.search_d_max = self.search_d_max
+        result.alpha = self.alpha
+        result.signs = list(self.signs)
+        result.totals = [list(row) for row in self.totals]
+        result.profile = list(self.profile)
+        result.barrier = self.barrier
+        return result
+
+    def _choice(self, rng: random.Random) -> int:
+        index = len(self.signs)
+        active_d_max = min(self.search_d_max, self.n - index)
+        plus_peak = self.barrier
+        minus_peak = self.barrier
+        plus_energy = 0.0
+        minus_energy = 0.0
+        for d in range(1, active_d_max + 1):
+            current = self.totals[d - 1][index % d]
+            plus_peak = max(plus_peak, abs(current + 1) / (d**self.alpha))
+            minus_peak = max(minus_peak, abs(current - 1) / (d**self.alpha))
+            weight = math.exp(rng.uniform(-0.35, 0.35)) / (d ** (2 * self.alpha))
+            plus_energy += (2 * current + 1) * weight
+            minus_energy += (-2 * current + 1) * weight
+        plus_key = (plus_peak, plus_energy)
+        minus_key = (minus_peak, minus_energy)
+        if plus_key < minus_key:
+            return 1
+        if minus_key < plus_key:
+            return -1
+        return rng.choice((-1, 1))
+
+    def extend_one(self, rng: random.Random) -> None:
+        if len(self.signs) >= self.n:
+            raise ValueError("the partial coloring is already complete")
+        value = self._choice(rng)
+        index = len(self.signs)
+        self.signs.append(value)
+        active_d_max = min(self.search_d_max, self.n - index)
+        for d in range(1, active_d_max + 1):
+            residue = index % d
+            self.totals[d - 1][residue] += value
+            magnitude = abs(self.totals[d - 1][residue])
+            self.profile[d - 1] = max(self.profile[d - 1], magnitude)
+            self.barrier = max(self.barrier, magnitude / (d**self.alpha))
+
+    def key(self) -> tuple[float, float]:
+        return objective_key(self.profile, self.alpha)
+
+
+def finite_balancing_record(
+    n: int,
+    search_d_max: int,
+    alpha: float,
+    trials_per_round: int,
+    seed: int,
+    freeze_fraction: float,
+    emit_signs: bool = False,
+) -> dict[str, object]:
+    """Search and exactly evaluate one finite residue-prefix witness."""
+    validate_instance(n, search_d_max)
+    if trials_per_round < 1:
+        raise ValueError("trials per round must be positive")
+    counts = partial_round_counts(n, freeze_fraction)
+    state = PrefixGreedyState(n, search_d_max, alpha)
+    search_rounds: list[dict[str, object]] = []
+    for round_index, target in enumerate(counts, start=1):
+        candidates: list[PrefixGreedyState] = []
+        for trial in range(trials_per_round):
+            candidate = state.clone()
+            trial_seed = seed + round_index * 1_000_003 + trial * 104_729
+            rng = random.Random(trial_seed)
+            while len(candidate.signs) < target:
+                candidate.extend_one(rng)
+            candidates.append(candidate)
+        state = min(candidates, key=lambda candidate: candidate.key())
+        candidate_barriers = [candidate.barrier for candidate in candidates]
+        search_rounds.append(
+            {
+                "round": round_index,
+                "colored": target,
+                "colored_fraction": target / n,
+                "selected_search_barrier": state.barrier,
+                "candidate_search_barrier_min": min(candidate_barriers),
+                "candidate_search_barrier_max": max(candidate_barriers),
+            }
+        )
+
+    trace = residue_prefix_trace(state.signs, alpha, counts)
+    for record, full_barrier in zip(search_rounds, trace.round_barriers):
+        record["full_barrier"] = full_barrier
+    result: dict[str, object] = {
+        "N": n,
+        "alpha": alpha,
+        "search_D": search_d_max,
+        "trials_per_round": trials_per_round,
+        "freeze_fraction": freeze_fraction,
+        "seed": seed,
+        "rounds": search_rounds,
+        "best": {
+            "barrier": trace.barrier,
+            "search_barrier": state.barrier,
+            "worst": {
+                "d": trace.worst_d,
+                "r": trace.worst_r,
+                "M": trace.worst_m,
+                "sum": trace.worst_sum,
+            },
+            "profile_d_1_through_16": list(trace.profile[:16]),
+            "signs_sha256_16": signs_hash(state.signs),
+        },
+    }
+    if emit_signs:
+        best = result["best"]
+        assert isinstance(best, dict)
+        best["signs"] = "".join("+" if value > 0 else "-" for value in state.signs)
+    return result
+
+
 def signs_hash(signs: Sequence[int]) -> str:
     packed = bytes(1 if value > 0 else 0 for value in signs)
     return hashlib.sha256(packed).hexdigest()[:16]
@@ -108,8 +362,7 @@ def thue_morse(n: int) -> list[int]:
 def rudin_shapiro(n: int) -> list[int]:
     """Rudin--Shapiro signs from the parity of adjacent ``11`` bit pairs."""
     return [
-        1 if (index & (index >> 1)).bit_count() % 2 == 0 else -1
-        for index in range(n)
+        1 if (index & (index >> 1)).bit_count() % 2 == 0 else -1 for index in range(n)
     ]
 
 
@@ -333,7 +586,9 @@ def local_search(
     return best_signs, best_profile, accepted
 
 
-def standard_candidates(n: int, d_max: int, alpha: float, seed: int) -> dict[str, list[int]]:
+def standard_candidates(
+    n: int, d_max: int, alpha: float, seed: int
+) -> dict[str, list[int]]:
     candidates = {
         "alternating": alternating(n),
         "thue-morse": thue_morse(n),
@@ -463,7 +718,9 @@ def parse_float_list(raw: str) -> list[float]:
 
 
 def print_suite_markdown(records: Sequence[dict[str, object]]) -> None:
-    print("| N | D | alpha | best structured | structured score | local-search score | hash |")
+    print(
+        "| N | D | alpha | best structured | structured score | local-search score | hash |"
+    )
     print("|---:|---:|---:|:---|---:|---:|:---|")
     for record in records:
         structured = record["structured_candidates"]
@@ -484,6 +741,24 @@ def print_suite_markdown(records: Sequence[dict[str, object]]) -> None:
         assert isinstance(profile, list)
         rendered = ", ".join(f"{d}:{value}" for d, value in enumerate(profile, start=1))
         print(f"- N={record['N']}, alpha={record['alpha']}: {rendered}")
+
+
+def print_balancing_markdown(records: Sequence[dict[str, object]]) -> None:
+    print(
+        "| N | alpha | search D | full barrier | search barrier | worst (d,r,M,sum) | hash |"
+    )
+    print("|---:|---:|---:|---:|---:|:---|:---|")
+    for record in records:
+        best = record["best"]
+        assert isinstance(best, dict)
+        worst = best["worst"]
+        assert isinstance(worst, dict)
+        coordinate = f"({worst['d']},{worst['r']},{worst['M']},{worst['sum']})"
+        print(
+            f"| {record['N']} | {float(record['alpha']):g} | {record['search_D']} "
+            f"| {float(best['barrier']):.6f} | {float(best['search_barrier']):.6f} "
+            f"| `{coordinate}` | `{best['signs_sha256_16']}` |"
+        )
 
 
 def run_self_tests() -> None:
@@ -511,6 +786,32 @@ def run_self_tests() -> None:
     initial_key = objective_key(ap_profile(initial, 10), 0.5)
     _, found_profile, _ = local_search(initial, 10, 0.5, 200, 9)
     assert objective_key(found_profile, 0.5) <= initial_key
+
+    for n in range(1, 14):
+        signs = random_sequence(n, rng)
+        counts = partial_round_counts(n, 0.5)
+        trace = residue_prefix_trace(signs, 0.5, counts)
+        expected_profile = brute_residue_prefix_profile(signs)
+        assert list(trace.profile) == expected_profile
+        assert math.isclose(trace.barrier, objective(expected_profile, 0.5))
+        for count, barrier in zip(counts, trace.round_barriers):
+            partial = [*signs[:count], *([0] * (n - count))]
+            expected = objective(brute_residue_prefix_profile(partial), 0.5)
+            assert math.isclose(barrier, expected)
+
+    balancing = finite_balancing_record(40, 12, 0.5, 2, 177, 0.5, True)
+    best = balancing["best"]
+    rounds = balancing["rounds"]
+    assert isinstance(best, dict) and isinstance(rounds, list)
+    assert rounds[-1]["colored"] == 40
+    barriers = [float(record["full_barrier"]) for record in rounds]
+    assert barriers == sorted(barriers)
+    rendered_signs = str(best["signs"])
+    recovered = [1 if value == "+" else -1 for value in rendered_signs]
+    assert math.isclose(
+        float(best["barrier"]),
+        objective(brute_residue_prefix_profile(recovered), 0.5),
+    )
     print("self-test: OK")
 
 
@@ -518,7 +819,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    profile_parser = subparsers.add_parser("profile", help="evaluate one named candidate")
+    profile_parser = subparsers.add_parser(
+        "profile", help="evaluate one named candidate"
+    )
     profile_parser.add_argument("--N", dest="n", type=int, required=True)
     profile_parser.add_argument("--D", dest="d_max", type=int, required=True)
     profile_parser.add_argument("--alpha", type=float, default=0.5)
@@ -538,7 +841,9 @@ def build_parser() -> argparse.ArgumentParser:
     profile_parser.add_argument("--seed", type=int, default=177)
     profile_parser.add_argument("--emit-signs", action="store_true")
 
-    search_parser = subparsers.add_parser("search", help="compare candidates and run local search")
+    search_parser = subparsers.add_parser(
+        "search", help="compare candidates and run local search"
+    )
     search_parser.add_argument("--N", dest="n", type=int, required=True)
     search_parser.add_argument("--D", dest="d_max", type=int, required=True)
     search_parser.add_argument("--alpha", type=float, default=0.5)
@@ -547,7 +852,9 @@ def build_parser() -> argparse.ArgumentParser:
     search_parser.add_argument("--seed", type=int, default=177)
     search_parser.add_argument("--emit-signs", action="store_true")
 
-    suite_parser = subparsers.add_parser("suite", help="run the same search over several N, alpha")
+    suite_parser = subparsers.add_parser(
+        "suite", help="run the same search over several N, alpha"
+    )
     suite_parser.add_argument("--Ns", default="256,1024,4096")
     suite_parser.add_argument("--D", dest="d_max", type=int, default=16)
     suite_parser.add_argument("--alphas", default="0.5")
@@ -556,13 +863,45 @@ def build_parser() -> argparse.ArgumentParser:
     suite_parser.add_argument("--seed", type=int, default=177)
     suite_parser.add_argument("--format", choices=("json", "markdown"), default="json")
 
-    exact_parser = subparsers.add_parser("exact", help="certify a small optimum exhaustively")
+    exact_parser = subparsers.add_parser(
+        "exact", help="certify a small optimum exhaustively"
+    )
     exact_parser.add_argument("--N", dest="n", type=int, required=True)
     exact_parser.add_argument("--D", dest="d_max", type=int, required=True)
     exact_parser.add_argument("--alpha", type=float, default=0.5)
     exact_parser.add_argument("--max-N", dest="max_n", type=int, default=20)
 
-    subparsers.add_parser("self-test", help="cross-check optimized and incremental evaluators")
+    balance_parser = subparsers.add_parser(
+        "balance", help="search one finite residue-prefix witness in freezing rounds"
+    )
+    balance_parser.add_argument("--N", dest="n", type=int, required=True)
+    balance_parser.add_argument("--alpha", type=float, required=True)
+    balance_parser.add_argument(
+        "--search-D", dest="search_d_max", type=int, default=128
+    )
+    balance_parser.add_argument("--trials-per-round", type=int, default=4)
+    balance_parser.add_argument("--freeze-fraction", type=float, default=0.5)
+    balance_parser.add_argument("--seed", type=int, default=177)
+    balance_parser.add_argument("--emit-signs", action="store_true")
+
+    balance_suite_parser = subparsers.add_parser(
+        "balance-suite", help="run finite residue-prefix searches over several N, alpha"
+    )
+    balance_suite_parser.add_argument("--Ns", default="256,1024,4096")
+    balance_suite_parser.add_argument("--alphas", default="0.5,1,2,4,7")
+    balance_suite_parser.add_argument(
+        "--search-D", dest="search_d_max", type=int, default=128
+    )
+    balance_suite_parser.add_argument("--trials-per-round", type=int, default=4)
+    balance_suite_parser.add_argument("--freeze-fraction", type=float, default=0.5)
+    balance_suite_parser.add_argument("--seed", type=int, default=177)
+    balance_suite_parser.add_argument(
+        "--format", choices=("json", "markdown"), default="json"
+    )
+
+    subparsers.add_parser(
+        "self-test", help="cross-check optimized and incremental evaluators"
+    )
     return parser
 
 
@@ -610,7 +949,9 @@ def main(argv: Iterable[str] | None = None) -> int:
             ns = parse_int_list(args.Ns)
             alphas = parse_float_list(args.alphas)
             if not ns or not alphas:
-                raise ValueError("--Ns and --alphas must be nonempty comma-separated lists")
+                raise ValueError(
+                    "--Ns and --alphas must be nonempty comma-separated lists"
+                )
             records = []
             for alpha in alphas:
                 for n in ns:
@@ -635,7 +976,46 @@ def main(argv: Iterable[str] | None = None) -> int:
                 raise ValueError(
                     f"refusing exhaustive search at N={args.n}; raise --max-N (current {args.max_n})"
                 )
-            print(json.dumps(exhaustive_search(args.n, args.d_max, args.alpha), indent=2))
+            print(
+                json.dumps(exhaustive_search(args.n, args.d_max, args.alpha), indent=2)
+            )
+            return 0
+        if args.command == "balance":
+            result = finite_balancing_record(
+                args.n,
+                min(args.search_d_max, args.n),
+                args.alpha,
+                args.trials_per_round,
+                args.seed,
+                args.freeze_fraction,
+                args.emit_signs,
+            )
+            print(json.dumps(result, indent=2, sort_keys=True))
+            return 0
+        if args.command == "balance-suite":
+            ns = parse_int_list(args.Ns)
+            alphas = parse_float_list(args.alphas)
+            if not ns or not alphas:
+                raise ValueError(
+                    "--Ns and --alphas must be nonempty comma-separated lists"
+                )
+            records = []
+            for alpha in alphas:
+                for n in ns:
+                    records.append(
+                        finite_balancing_record(
+                            n,
+                            min(args.search_d_max, n),
+                            alpha,
+                            args.trials_per_round,
+                            args.seed,
+                            args.freeze_fraction,
+                        )
+                    )
+            if args.format == "markdown":
+                print_balancing_markdown(records)
+            else:
+                print(json.dumps(records, indent=2, sort_keys=True))
             return 0
     except ValueError as error:
         print(f"error: {error}", file=sys.stderr)
