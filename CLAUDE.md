@@ -10,6 +10,8 @@ ProofFleet (formerly MoltResearch; the Lean module tree, namespace and Lake pack
 - `PalomarEDP/` is held to the same rule, except that `PalomarEDP/Challenge.lean` carries exactly one deliberate statement hole (see below).
 - `Tasks/` and `Conjectures/` are **backlog**: they may contain `sorry` and are not imported by the default build target.
 
+Two repositories: the working repository is **`ProofFleet/prooffleet-dev`** (private: issues, PRs, branches); **`ProofFleet/prooffleet`** is the public, redacted snapshot of its `main`, refreshed only by `scripts/publish_snapshot.sh` (see `RELEASING.md`). Never push to the public repository directly; clones must use `https://github.com/ProofFleet/prooffleet-dev.git` as `origin`.
+
 ## Commands
 
 `lake` lives at `~/.elan/bin/lake` (may not be on PATH). Pinned toolchain: see `lean-toolchain`; Mathlib revision is pinned in `lake-manifest.json` — do not run `lake update` casually (that is a deliberate action via `make update`).

@@ -77,7 +77,7 @@ def mark_checkbox(card_path: str, item_text: str) -> bool:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--repo", default="ProofFleet/prooffleet")
+    ap.add_argument("--repo", default="ProofFleet/prooffleet-dev")
     ap.add_argument("--state-file", default=os.path.expanduser("~/.cache/moltresearch/problem-card-sync.json"))
     ap.add_argument("--limit", type=int, default=50)
     ap.add_argument("--dry-run", action="store_true")

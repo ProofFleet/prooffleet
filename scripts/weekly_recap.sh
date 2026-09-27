@@ -7,14 +7,14 @@ set -euo pipefail
 # Example:
 #   scripts/weekly_recap.sh 2026-02-01
 
-REPO="${REPO:-ProofFleet/prooffleet}"
+REPO="${REPO:-ProofFleet/prooffleet-dev}"
 SINCE="${1:-7 days ago}"
 
 # Requires gh auth.
 
 python3 - <<PY
 import datetime, subprocess, json, os
-repo=os.environ.get('REPO','ProofFleet/prooffleet')
+repo=os.environ.get('REPO','ProofFleet/prooffleet-dev')
 since=os.environ.get('SINCE', '7 days ago')
 
 # gh search with merged: and merged:> is annoying; use API with pulls? easiest: list PRs and filter.

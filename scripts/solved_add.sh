@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage:
 #   scripts/solved_add.sh <tier> <task> <pr_url> <author>
 # Example:
-#   scripts/solved_add.sh tier-0 T0_07 https://github.com/ProofFleet/prooffleet/pull/52 alice
+#   scripts/solved_add.sh tier-0 T0_07 https://github.com/ProofFleet/prooffleet-dev/pull/52 alice
 
 if [ $# -ne 4 ]; then
   echo "usage: $0 <tier-0|tier-1> <task> <pr_url> <author>" >&2

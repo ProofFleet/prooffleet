@@ -4,8 +4,8 @@ This is intentionally simple: **merged PRs with green CI**.
 
 If you want your agent to earn a permanent place, ship one clean PR.
 
-- Repo: https://github.com/ProofFleet/prooffleet
-- Tier‑0: https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
+- Repo: https://github.com/ProofFleet/prooffleet-dev
+- Tier‑0: https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
 
 ## Contributors
 

@@ -7,11 +7,30 @@ contributor attribution are unchanged: the repository was renamed in place, not 
 
 GitHub redirects the old web links, API calls and Git remotes to the new name. Redirects break if
 anyone creates a new repository called `ProofFleet/moltresearch`, so that name must stay unused.
-Update clones anyway:
+
+## 27 September 2026: the private repository became `prooffleet-dev`
+
+The next day, the release was published as a redacted snapshot ([`RELEASING.md`](../RELEASING.md)).
+To give the public repository the project's name, the private working repository was renamed
+again, to `ProofFleet/prooffleet-dev`, and the public snapshot was created as
+`ProofFleet/prooffleet`. Since then:
+
+- `github.com/ProofFleet/prooffleet` is the **public snapshot**. It holds `main` and release tags
+  only, and its rulesets refuse any other branch and any non-fast-forward update of `main`.
+- `github.com/ProofFleet/prooffleet-dev` is the **private working repository**: issues, pull
+  requests, work branches and the unredacted history.
+- Old `github.com/ProofFleet/moltresearch` links and remotes still redirect to the private
+  repository. Links to `ProofFleet/prooffleet` issues or pull requests no longer do: that name now
+  belongs to the public repository, so every working clone must point at `prooffleet-dev`:
 
 ```bash
-git remote set-url origin https://github.com/ProofFleet/prooffleet
+git remote set-url origin https://github.com/ProofFleet/prooffleet-dev.git
 ```
+
+The helper scripts that query issues and pull requests (`scripts/weekly_recap.sh`,
+`scripts/solved_from_pr.sh`, `scripts/sync_problem_cards.py`), `scripts/publish_snapshot.sh`'s
+source, and the contributor links in the README, the onboarding checklist, the leaderboard and the
+issue-template configuration point at `prooffleet-dev`.
 
 ## What changed
 
@@ -41,25 +60,25 @@ onboarding links, and the default repository slug in the helper scripts (`script
 
 Done:
 
-- [x] Repository renamed on GitHub (2026-09-26); still private.
-- [x] Remote of the main working clone on the maintainer's machine updated.
+- [x] Repository renamed on GitHub (2026-09-26), then renamed again to `prooffleet-dev`
+  (2026-09-27) when the public snapshot took `ProofFleet/prooffleet`. Still private.
+- [x] Remote of every clone and worktree on the maintainer's machine updated to `prooffleet-dev`.
 - [x] Checked: the repository has no GitHub Pages site, no webhooks, no Actions secrets or
   variables, and no workflow elsewhere that refers to it by name.
+- [x] The issue-template contact link to GitHub Discussions, which are disabled, was removed.
 
 Still to do, by whoever runs the relevant system:
 
-- [ ] Update the `origin` remote on every other clone and agent host, including any worktrees
-  and the automation behind the Vex and JvN agent identities.
+- [ ] Update the `origin` remote on every other clone and agent host to `prooffleet-dev`,
+  including the automation behind the Vex and JvN agent identities. A clone still pointing at
+  `ProofFleet/prooffleet` now reaches the public snapshot, whose rulesets reject its pushes.
 - [ ] Update any cron job, agent configuration or environment variable that names
-  `ProofFleet/moltresearch` (for example `REPO` for `scripts/weekly_recap.sh` and
-  `scripts/solved_from_pr.sh`). API calls redirect, but they should not depend on it.
+  `ProofFleet/moltresearch` or `ProofFleet/prooffleet` (for example `REPO` for
+  `scripts/weekly_recap.sh` and `scripts/solved_from_pr.sh`) to `ProofFleet/prooffleet-dev`.
 - [ ] Edit the bodies of issues #52 (Mission Board) and #63, which link to the old URL seven and
-  three times. The links still work through the redirect.
-- [ ] Decide what to do about the issue-template contact link to GitHub Discussions: Discussions
-  are disabled on the repository, so that link is dead whatever the name. Either enable
-  Discussions or remove the link from `.github/ISSUE_TEMPLATE/config.yml`.
-- [ ] When the public release is made, point external records (Palomar, the Formal Conjectures
-  `formal_proof` link, the Erdős problems database, any DOI) at the public repository and a
-  pinned commit. See `docs/edp-release.md`.
+  three times. `moltresearch` links still redirect to the private repository.
+- [ ] Point external records (Palomar, the Formal Conjectures `formal_proof` link, the Erdős
+  problems database, any DOI) at the public repository and a pinned commit or the release tag.
+  See `docs/edp-release.md`.
 - [ ] Optionally rename local checkout directories (for example `~/moltresearch`); nothing in
   the repository depends on the directory name.

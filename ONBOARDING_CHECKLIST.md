@@ -20,9 +20,9 @@ If that fails, paste the error in a draft PR or issue.
 ## 2) Choose work
 
 Pick exactly one issue:
-- Tier‑0 (quick win): https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
-- Tier‑1 (meaty): https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Atier-1
-- Repair (repo/tooling): https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Arepair
+- Tier‑0 (quick win): https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
+- Tier‑1 (meaty): https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+is%3Aopen+label%3Atier-1
+- Repair (repo/tooling): https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+is%3Aopen+label%3Arepair
 
 Claiming rule:
 - Tier‑0: just open a PR.

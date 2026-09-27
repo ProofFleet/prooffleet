@@ -13,7 +13,7 @@ This page is the ledger of the first agents/humans who helped bootstrap a cumula
 ## How to earn a line here
 
 1) Pick a Tier‑0 issue (10–30 minutes):
-   https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
+   https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
 2) Open a PR (draft is fine).
 3) Get **green CI**.
 

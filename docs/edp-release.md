@@ -6,9 +6,16 @@ left to decide before publication. The structured provenance record is
 [`formalization.yaml`](../formalization.yaml); the statement of record is
 [`PalomarEDP/Challenge.lean`](../PalomarEDP/Challenge.lean).
 
-Status on 27 September 2026: **release candidate prepared; not published; not submitted to
-Palomar.** The repository is private. Section 7 records the maintainer's decisions so far and lists
-those that remain.
+Status on 27 September 2026: **published; Palomar submission in preparation.** The release is the
+tag `v1.0.0-edp` of the public repository
+[`ProofFleet/prooffleet`](https://github.com/ProofFleet/prooffleet), a redacted snapshot of the
+private working repository `ProofFleet/prooffleet-dev` ([`RELEASING.md`](../RELEASING.md)).
+Section 7 records the maintainer's decisions.
+
+Commit hashes and run links in this document are those of the private working repository unless
+marked public. The snapshot rewrites history, so public hashes differ, but each public commit has
+the same tree as its private counterpart: the release merge, private `cdc57010`, is public
+`d9b87e95`.
 
 ## 1. The claim
 
@@ -64,7 +71,7 @@ checks:
 
 **Baseline.** `main` at `f4aacd377a5e88678cd8188f8232fcba7dfb459b` (8 September 2026), Lean
 `v4.28.0`, Mathlib `v4.28.0` (`8f9d9cff6bd728b17a24e163c9402775d9e6a365`). CI run
-[34258675841](https://github.com/ProofFleet/prooffleet/actions/runs/34258675841) on that commit was
+[34258675841](https://github.com/ProofFleet/prooffleet-dev/actions/runs/34258675841) on that commit was
 green: it builds every target in `scripts/ci_targets.txt`, and `TrackCAxiomAudit.lean` pins the
 axiom footprint of the flagship theorems. Measured before any change:
 
@@ -137,7 +144,7 @@ else also runs on macOS.
 
 ```bash
 git clone https://github.com/ProofFleet/prooffleet && cd prooffleet
-git checkout <candidate SHA>
+git checkout v1.0.0-edp
 curl -sSfL https://elan.lean-lang.org/elan-init.sh | sh -s -- -y --default-toolchain none
 ~/.elan/bin/lake exe cache get          # Mathlib's official prebuilt cache; the project builds from source
 make ci                                 # source gates + every CI target (includes the audit pins and PalomarEDP)
@@ -193,8 +200,20 @@ Palomar file. Later commits touch only CI and documentation.
 | `scripts/check_palomar_submission.py` with Palomar's validator and the upstream schema | same | 0 failures, 0 warnings |
 | Six source gates | same | pass |
 | `lake comparator --inadvisably-no-sandbox` (development check) | same | accepted: Lean kernel, NanoDa, con-ron (79,620 declarations) |
-| `Palomar` workflow, run [36288498533](https://github.com/ProofFleet/prooffleet/actions/runs/36288498533) on the PR merge ref (same tree) | Ubuntu 24.04 x86_64, bubblewrap 0.9.0, Lean v4.35.0-rc2 | intake and Licensee (Apache-2.0) pass; sandboxed `lake comparator`, cold build: **accepted** by Lean's kernel, NanoDa and con-ron (79,620 declarations), exit 0, 101 min |
-| `CI` workflow, run [36288498532](https://github.com/ProofFleet/prooffleet/actions/runs/36288498532) | GitHub-hosted ubuntu-latest | infrastructure failure: `no space left on device` at module 9341 of 9483; no compile error. Fixed by reclaiming disk before `.lake` is populated (`.github/workflows/ci.yml`) |
+| `Palomar` workflow, run [36288498533](https://github.com/ProofFleet/prooffleet-dev/actions/runs/36288498533) on the PR merge ref (same tree) | Ubuntu 24.04 x86_64, bubblewrap 0.9.0, Lean v4.35.0-rc2 | intake and Licensee (Apache-2.0) pass; sandboxed `lake comparator`, cold build: **accepted** by Lean's kernel, NanoDa and con-ron (79,620 declarations), exit 0, 101 min |
+| `CI` workflow, run [36288498532](https://github.com/ProofFleet/prooffleet-dev/actions/runs/36288498532) | GitHub-hosted ubuntu-latest | infrastructure failure: `no space left on device` at module 9341 of 9483; no compile error. Fixed by reclaiming disk before `.lake` is populated (`.github/workflows/ci.yml`) |
+
+### Results for the release
+
+The release merge (private `cdc57010`, public `d9b87e95`) has the same tree as `ed5643b5`, the
+pull request's last commit, which recorded the statement review in `formalization.yaml` and
+changed no Lean file.
+
+| Check | Environment | Result |
+| --- | --- | --- |
+| `CI` workflow on `ed5643b5`, run [36305120834](https://github.com/ProofFleet/prooffleet-dev/actions/runs/36305120834) | GitHub-hosted ubuntu-latest | success: source gates and every CI target |
+| `Palomar` workflow on `ed5643b5`, run [36305120804](https://github.com/ProofFleet/prooffleet-dev/actions/runs/36305120804) | Ubuntu 24.04, bubblewrap | intake and Licensee pass; sandboxed `lake comparator` **accepted** by Lean's kernel, NanoDa and con-ron (79,620 declarations), exit 0 |
+| Redaction, checked on an anonymous clone of the public repository | macOS, local | only `main` is published; no object in its history contains the redacted number in any formatting; the head tree equals private `cdc57010` |
 
 Checks for any later candidate SHA, reported with it:
 
@@ -202,18 +221,24 @@ Checks for any later candidate SHA, reported with it:
 2. `make ci` and the metadata check in that clone;
 3. the `CI` and `Palomar` workflows on GitHub. `Palomar` runs the sandboxed `lake comparator` with
    the NanoDa and con-ron kernels on Linux and keeps the log as an artifact;
-4. once the repository is public, the `Palomar preflight` workflow.
+4. the `Palomar preflight` workflow in the public repository, on the public SHA.
 
 A local `lake comparator --inadvisably-no-sandbox` run on macOS is a development check only; the
 sandboxed Linux run is the one that counts.
 
-## 7. Decisions before publication
+## 7. Maintainer decisions
 
 These belong to the maintainer. Decided on 27 September 2026:
 
-- **Name.** ProofFleet, with the repository slug `prooffleet` in lower case. The private repository
-  has been `ProofFleet/prooffleet` since 26 September 2026 (see [`rename.md`](rename.md)); which
-  repository becomes the public one depends on item 1 below.
+- **Name.** ProofFleet, with the repository slug `prooffleet` in lower case. The public repository
+  is `ProofFleet/prooffleet`; the private working repository was renamed `ProofFleet/prooffleet-dev`
+  to make room for it (see [`rename.md`](rename.md)).
+- **Publication.** The repository's history contained a personal phone number, in an April 2026
+  ops note that an agent wrote into the README; it was removed from the files on 8 September 2026
+  but stayed in every earlier version. Rather than rewrite the private repository in place, the
+  release was published on 27 September 2026 as a redacted snapshot of its `main`
+  ([`RELEASING.md`](../RELEASING.md)), in which the number is replaced in every historical version
+  of the README. Issues and pull-request discussions stay in the private repository.
 - **Statement review.** Sean Huver reviewed `PalomarEDP/Challenge.lean` (section 2); recorded in
   `formalization.yaml` under `review`.
 - **Authorship.** Sean Huver is the only author and responsible maintainer in
@@ -221,34 +246,11 @@ These belong to the maintainer. Decided on 27 September 2026:
   `automation`, where `Vex` and `JvN` are described as agent identities whose models are not
   recorded. An ORCID can still be added.
 
-Still open; nothing below has been done:
+Still open:
 
-1. **How to publish.** The repository's history contains a personal phone number, in an April 2026
-   ops note that an agent wrote into the README: it was there from commit `94d46b9b` (17 April
-   2026) until `2f8c666d` (8 September 2026) removed it, and it stays in every commit in between.
-   The same day, the squash of #3732 briefly restored the old README and #3739 removed the number
-   again. A scan of every object on all 215 branches found it in no other file and in no commit
-   message; pull-request refs and issue or pull-request text were not searched. Making this
-   repository public as it is would publish the number. There are two routes:
-   - **Redacted snapshot (recommended; the documented route in [`RELEASING.md`](../RELEASING.md)).**
-     `scripts/publish_snapshot.sh` pushes a copy of `main` and the tags, with the history passed
-     through `git filter-repo --replace-text`, to a separate public repository. The redaction file
-     `~/.config/moltresearch/snapshot_replacements.txt` is not on the machine that prepared this
-     release, so the maintainer must supply it. Consequences: the public commit SHAs differ from
-     the private ones, so Palomar is given the snapshot's SHA; issues and pull-request discussions
-     stay private; and a name must be chosen for the public repository. If it should be
-     `ProofFleet/prooffleet`, first rename the private one (for example to `prooffleet-dev`). The
-     old `moltresearch` redirect keeps following the private repository, but links to
-     `ProofFleet/prooffleet` would then open the public one.
-   - **Rewrite in place.** Remove the number from this repository's history
-     (`git filter-repo --replace-text`, then force-push every branch), ask GitHub Support to purge
-     cached views and pull-request refs, which a rewrite cannot reach, then make the repository
-     public. This keeps issues, pull requests and one repository identity. It invalidates every
-     clone and every pinned SHA, and the number may also appear in issue or pull-request text.
-2. **Submitting to Palomar** (section 8), after publication and a passing preflight on the exact
-   commit.
-3. **Registering** after reading Palomar's review. Registration is permanent public record.
-4. **Announcing** to colleagues. Nothing has been sent.
+1. **Submitting to Palomar** (section 8), after a passing preflight on the exact public commit.
+2. **Registering** after reading Palomar's review. Registration is permanent public record.
+3. **Announcing** to colleagues. Nothing has been sent.
 
 ## 8. Submitting to Palomar
 
@@ -258,8 +260,8 @@ Recheck the live requirements first: [Palomar's policy](https://github.com/Palom
 This release was prepared against PalomarPolicy `792c7c0b` (17 September 2026), PalomarSubmission
 `a59f25bd` (25 September 2026) and PalomarTemplate `cb5c79b6` (23 September 2026).
 
-1. Publish the candidate (section 7, item 1) and confirm that the exact commit and every pinned
-   dependency can be fetched without credentials.
+1. Publish the candidate (done on 27 September 2026; section 7) and confirm that the exact commit
+   and every pinned dependency can be fetched without credentials.
 2. Run the `Palomar preflight` workflow on that commit (Actions → Palomar preflight → Run
    workflow). It runs Palomar's own verifier at PalomarSubmission `a59f25bd` with
    `mode: full` and `execution_profile: palomar-standard-v1`. Submit only after its report says

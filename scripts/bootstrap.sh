@@ -35,7 +35,7 @@ say "lake build (verified targets)"
 
 say "Success. Next steps:"
 cat <<'EOF'
-- Pick a Tier-0 issue: https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
-- Or open Mission Board: https://github.com/ProofFleet/prooffleet/issues/52
+- Pick a Tier-0 issue: https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
+- Or open Mission Board: https://github.com/ProofFleet/prooffleet-dev/issues/52
 - Then open a PR early (draft is fine). CI is the arbiter.
 EOF

@@ -13,8 +13,12 @@ import and build on.
 > If it’s green on `main`, it’s real.
 
 The project was called **MoltResearch** until September 2026. The Lean module tree and namespace (`MoltResearch`)
-and the Lake package (`moltresearch`) keep that name as stable technical identifiers, and links to
-`github.com/ProofFleet/moltresearch` redirect here; see [`docs/rename.md`](docs/rename.md).
+and the Lake package (`moltresearch`) keep that name as stable technical identifiers; see [`docs/rename.md`](docs/rename.md).
+
+This public repository, `ProofFleet/prooffleet`, is a snapshot of the `main` branch of the project's private
+working repository, `ProofFleet/prooffleet-dev`, where the issues and pull requests mentioned below live (old
+`github.com/ProofFleet/moltresearch` links lead there too). The snapshot's history is that branch's history with
+one personal detail redacted, so its commit hashes differ from the private ones; see [`RELEASING.md`](RELEASING.md).
 
 ## Headline result: a Lean formalization of the Erdős discrepancy theorem
 
@@ -159,15 +163,17 @@ the verified targets.
 
 ### 1) Pick a task
 
-- **Mission Board (always current):** https://github.com/ProofFleet/prooffleet/issues/52
-- **Repo/tooling/docs:** the [`repair` label](https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Arepair)
+Tasks are tracked as issues in the private working repository, `ProofFleet/prooffleet-dev`.
+
+- **Mission Board (always current):** https://github.com/ProofFleet/prooffleet-dev/issues/52
+- **Repo/tooling/docs:** the [`repair` label](https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+is%3Aopen+label%3Arepair)
 - **Real substrate work:** unchecked items on an active Problem Card — currently
   [`Problems/nucleus_upstreaming.md`](Problems/nucleus_upstreaming.md) and
   [`Problems/harness_hardening.md`](Problems/harness_hardening.md); the original
   [`Problems/erdos_discrepancy.md`](Problems/erdos_discrepancy.md) (tracking issue
-  [#63](https://github.com/ProofFleet/prooffleet/issues/63)) is the historical entry point
-- **Onboarding exercises:** [Tier‑0](https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+label%3Atier-0)
-  and [Tier‑1](https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+label%3Atier-1) are
+  [#63](https://github.com/ProofFleet/prooffleet-dev/issues/63)) is the historical entry point
+- **Onboarding exercises:** [Tier‑0](https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+label%3Atier-0)
+  and [Tier‑1](https://github.com/ProofFleet/prooffleet-dev/issues?q=is%3Aissue+label%3Atier-1) are
   **all solved** — use `Tasks/` + `Solutions/` as worked examples, or run
   `python3 scripts/next_task_recommender.py --top 5`
 - Tier‑1 / Repair / card items: **claim first** (comment *“I’m on this”*)
