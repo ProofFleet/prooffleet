@@ -76,7 +76,7 @@ averaged two-point Elliott estimate; the entropy-decrement proof of that estimat
 2016); the Matomäki–Radziwiłł short-interval theorem on the major-arc frequencies, via the Dirichlet-polynomial
 mean-value route of Matomäki–Radziwiłł–Tao (Appendix A); the Halász–Montgomery large-values inequality
 (Iwaniec–Kowalski 9.6); a large-values bound for Dirichlet polynomials over primes from a zero-free region
-(Matomäki–Radziwiłł, Lemma 8); a Chudakov-strength zero-free region from a growth bound on `ζ`; that growth bound
+(Matomäki–Radziwiłł, Lemma 11); a Chudakov-strength zero-free region from a growth bound on `ζ`; that growth bound
 from Weyl sums; and a weak form of Vinogradov's mean value theorem. All of it is proved in the tree: every
 hypothesis class used along the way has a proved instance. Some constants are explicit; others are existential
 or come from compactness, so the proof yields no explicit bound. Where the formal route departs from the papers
@@ -94,6 +94,9 @@ python3 scripts/check_palomar_submission.py     # Palomar's intake rules: metada
 ```
 
 [`docs/edp-release.md`](docs/edp-release.md) has the verification record and the release process.
+[`docs/edp-formalization-notes.md`](docs/edp-formalization-notes.md) explains, for readers of the papers, where the
+formal proof follows them, where it proves a weaker but sufficient form of a cited result, and where it takes a
+different route.
 
 How it was made: the mathematics was written by AI agents. From February to April 2026, agent identities built
 the discrepancy definitions and a stage-interface scaffolding. From July to September 2026 the proof was completed

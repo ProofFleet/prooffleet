@@ -4292,7 +4292,7 @@ the right-hand side is exactly what `HalaszLargeValuesAssumption`
 already delivers, so this route is elementary and complete.  For a
 *prime*-supported polynomial it is not enough — the count it yields is
 larger than the truth by the `exp(−log P/(log 2T)^{3/4})` saving of
-`[MR]` Lemma 8, and recovering that saving is precisely the input the
+`[MR]` Lemma 11, and recovering that saving is precisely the input the
 endgame quotes rather than proves.  So this lemma marks the elementary
 ceiling: everything up to here is in tree, and the gap above it is one
 named theorem of the literature.
@@ -4713,7 +4713,7 @@ derivative of a Dirichlet polynomial of length `RA` is larger than the
 polynomial by a factor `log(RA)`.
 
 **What it does not give.**  For a *prime*-supported polynomial the truth
-is smaller by `exp(−log P/(log 2T)^{3/4})` (`[MR]` Lemma 8,
+is smaller by `exp(−log P/(log 2T)^{3/4})` (`[MR]` Lemma 11,
 `PrimeLargeValuesAssumption`).  No amount of Cauchy–Schwarz recovers
 that saving; it needs a zero-free region.  So this lemma is the exact
 elementary ceiling of the leg, and the gap above it is one named

@@ -189,7 +189,11 @@ discharge, still sufficient) statement: the implied constant is fixed at `64`; `
 written `log(2T) + 1`; coefficients are `1/n`-normalised to match the repo's phase-polynomial
 convention (`a n/n · e(−t log n)`).  The source range `T ≥ 1` is an explicit hypothesis.
 
-### Matomäki–Radziwiłł, *Multiplicative functions in short intervals*, Annals 183 (2016), Lemma 8
+### Matomäki–Radziwiłł, *Multiplicative functions in short intervals*, Annals 183 (2016), Lemma 11
+
+Their "Halász inequality for primes": Lemma 11 in every arXiv version (v1–v4). This file and the
+repository's other records cited it as Lemma 8 until 27 September 2026; Lemma 8 of the paper is a
+different estimate.
 
 > For `T ≥ 1`, a Dirichlet polynomial supported on the primes of `[P, 2P]` and `1`-separated points
 > in `[−T, T]`, the same sum is bounded by

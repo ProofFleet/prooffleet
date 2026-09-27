@@ -16,7 +16,7 @@ cell-summed forms `setIntegral_norm_sq_cell_prime_block_le` and
 `setIntegral_norm_sq_level_sum_of_prev_large_le`) are elementary and unconditional,
 and a consumer discharges them in the nucleus.  The exceptional part `𝒰` is not:
 it rests on `HalaszLargeValuesAssumption` (Iwaniec–Kowalski Thm 9.6) and
-`PrimeLargeValuesAssumption` ([MR] Lemma 8), and `scripts/check_layering.sh`
+`PrimeLargeValuesAssumption` ([MR] Lemma 11), and `scripts/check_layering.sh`
 forbids `MoltResearch/` from importing the tree those classes live in.
 
 **That layering constraint is the whole reason this module exists**, and it is

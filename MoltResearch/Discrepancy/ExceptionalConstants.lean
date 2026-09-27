@@ -181,7 +181,7 @@ and by nothing else.  `log(2P) ≤ 2 log P` is what closes it, and it is sharp a
 That matters for the leg's arithmetic: with `Bpri ≲ (log P)^{−2}` and `Γ`'s
 prime dependence reduced to the exponential, the cross term
 `2δ√(Aint·Bpri·Γ)` inherits the *square root* of the zero-free-region saving,
-which is the `[MR]` Lemma 8 input entering at half strength. -/
+which is the `[MR]` Lemma 11 input entering at half strength. -/
 theorem exists_lam_exceptional_ratio_le (θ : ℝ) (P : ℕ) (hP : 2 ≤ P) (Y : Finset ℕ)
     (hY : ∀ p ∈ Y, p.Prime) (hlo : ∀ p ∈ Y, P < p) (hhi : ∀ p ∈ Y, p ≤ 2 * P)
     (T : ℝ) (hT : 1 ≤ T) :

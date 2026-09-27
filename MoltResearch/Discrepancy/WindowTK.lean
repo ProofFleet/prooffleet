@@ -1850,7 +1850,7 @@ priced by `‖b p‖ ≤ 1` and `log p ≤ log 2P`.  Everything in it is proved
 in tree — Chebyshev, Gallagher, Cauchy–Schwarz, the derivative
 identification, the sharp mean value theorem — and nothing is quoted.
 
-**The gap, made precise.**  `[MR]` Lemma 8 asserts the same count is
+**The gap, made precise.**  `[MR]` Lemma 11 asserts the same count is
 smaller by `exp(−log P/(log 2T)^{3/4})`.  Nothing above supplies that
 factor, and nothing can: every step here is an equality or a
 Cauchy–Schwarz, and the only place a saving could enter is the mean

@@ -93,7 +93,7 @@ sources:
     location: "Annals of Mathematics 183 (2016), no. 3, 1015–1056, https://doi.org/10.4007/annals.2016.183.3.6"
     relationship: "adapts"
     note: >-
-      Lemma 8 (a large-values bound for Dirichlet polynomials over primes, from a zero-free
+      Lemma 11 (a large-values bound for Dirichlet polynomials over primes, from a zero-free
       region), Lemma 10 and parts of Section 8.3 are formalized with a fixed exponent and an
       existential constant in place of the paper's 2/3 + ε.
     author_endorsement: "not-contacted"
@@ -272,7 +272,7 @@ fidelity:
     instead from an elementary van der Corput bound for zeta and a character-removing argument
     (the interface keeps the name VinogradovKorobovAssumption); a zero-free region of Chudakov
     strength, reached through a weak form of Vinogradov's mean value theorem, in place of the
-    Vinogradov–Korobov region used by Matomäki and Radziwiłł, with Lemma 8's exponent 2/3 + ε
+    Vinogradov–Korobov region used by Matomäki and Radziwiłł, with Lemma 11's exponent 2/3 + ε
     replaced by a fixed exponent and an existential constant; on the major arcs, a fixed-strength
     form of Theorem A.2 of Matomäki–Radziwiłł–Tao applied to each twist instead of the c_p = 1
     shortcut, which presumes bounded denominators, with a restructured exceptional-set estimate.

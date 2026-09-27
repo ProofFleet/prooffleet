@@ -4,7 +4,8 @@ This document records the release of the repository's formalization of the Erdő
 theorem: what is claimed, how the claim was checked, how anyone can check it again, and what is
 left to decide before publication. The structured provenance record is
 [`formalization.yaml`](../formalization.yaml); the statement of record is
-[`PalomarEDP/Challenge.lean`](../PalomarEDP/Challenge.lean).
+[`PalomarEDP/Challenge.lean`](../PalomarEDP/Challenge.lean). How the formal route differs from the papers is described in
+[`edp-formalization-notes.md`](edp-formalization-notes.md).
 
 Status on 27 September 2026: **published; Palomar submission in preparation.** The release is the
 tag `v1.0.1-edp` of the public repository

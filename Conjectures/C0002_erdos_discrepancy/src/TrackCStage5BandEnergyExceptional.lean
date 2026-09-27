@@ -63,7 +63,7 @@ then priced by the large-values theorem that matches its support:
 * above it `R` is worth its pointwise Halász bound `δ` — supplied by the caller
   as `hlarge`, and discharged in the consumer by the in-tree short-sum Halász
   chain (IV-0) — and the surviving `∑_{t ∈ 𝒯_L} ‖Q t‖²` goes to
-  `PrimeLargeValuesAssumption` ([MR] Lemma 8).
+  `PrimeLargeValuesAssumption` ([MR] Lemma 11).
 
 The asymmetry is the whole point of the split: the integer theorem is applied on
 *all* of `𝒯`, the prime theorem only on the large set `𝒯_L`, whose cardinality
@@ -109,7 +109,7 @@ theorem sum_prime_integer_energy_le [HalaszLargeValuesAssumption]
       * ((Real.fourierChar (-(Real.log p * t)) : Circle) : ℂ))
     (fun t => ∑ n ∈ Finset.Icc 1 N, (a n/(n:ℂ))
       * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)) V₀ δ hV₀ hlarge
-  -- IK Thm 9.6 on all of `𝒯`; [MR] Lemma 8 on the large set only.
+  -- IK Thm 9.6 on all of `𝒯`; [MR] Lemma 11 on the large set only.
   have hint := HalaszLargeValuesAssumption.bound N a T 𝒯 hT hmem hsep
   have hpri := hprime P Y hY hYP b T 𝒯L hP hT hmemL hsepL
   have hV₀sq : (0:ℝ) ≤ V₀^2 := sq_nonneg _

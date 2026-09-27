@@ -29,7 +29,7 @@ Sources:
   Theorem 9.6 (the mean-value/large-sieve inequality for Dirichlet polynomials at
   well-spaced points, in its stated range `T ≥ 1`).
 - Matomäki–Radziwiłł, *Multiplicative functions in short intervals*, Annals of
-  Mathematics 183 (2016), Lemma 8 (arXiv:1501.04585).
+  Mathematics 183 (2016), Lemma 11 (arXiv:1501.04585).
 
 The integer-supported class is now discharged in
 `TrackCStage5LargeValuesDischarge.lean` by the in-tree theorem
@@ -74,7 +74,7 @@ class HalaszLargeValuesAssumption : Prop where
 noncomputable def primeLargeValuesExponent : ℝ := 4 / 5
 
 /-- **Halász large values, prime support** (Matomäki–Radziwiłł, Annals 183 (2016),
-Lemma 8): for a Dirichlet polynomial supported on primes of a dyadic range
+Lemma 11): for a Dirichlet polynomial supported on primes of a dyadic range
 `[P, 2P]`, the count of `1`-separated large points is smaller than the
 integer-support bound by a factor
 `exp(−log P/(log 2T)^primeLargeValuesExponent)`.
