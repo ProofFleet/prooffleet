@@ -267,13 +267,13 @@ theorem dIter_log_sandwich (k n : ℕ) (hn : 1 ≤ n) :
           = ∏ _i ∈ Finset.range (k + 1), (n : ℝ) := by
             rw [Finset.prod_const, Finset.card_range]
         _ ≤ ∏ i ∈ Finset.range (k + 1), ((n : ℝ) + i + x) := by
-            refine Finset.prod_le_prod (fun i _ => by positivity)
+            refine Finset.prod_le_prod₀ (fun i _ => by positivity)
               (fun i _ => ?_)
             have h2 : (0 : ℝ) ≤ (i : ℝ) := Nat.cast_nonneg _
             linarith
     · calc ∏ i ∈ Finset.range (k + 1), ((n : ℝ) + i + x)
           ≤ ∏ _i ∈ Finset.range (k + 1), ((n : ℝ) + k + 1) := by
-            refine Finset.prod_le_prod (fun i _ => by positivity)
+            refine Finset.prod_le_prod₀ (fun i _ => by positivity)
               (fun i hi => ?_)
             rw [Finset.mem_range] at hi
             have h2 : (i : ℝ) ≤ (k : ℝ) := by
@@ -284,7 +284,7 @@ theorem dIter_log_sandwich (k n : ℕ) (hn : 1 ≤ n) :
   constructor
   · rw [← hconstL]
     refine intervalIntegral.integral_mono_on (by norm_num)
-      (by apply intervalIntegral.intervalIntegrable_const) hint ?_
+      (by apply intervalIntegrable_const) hint ?_
     intro x hx
     rw [hpt x hx]
     obtain ⟨hP0, hPl, hPu⟩ := hPbounds x hx
@@ -294,7 +294,7 @@ theorem dIter_log_sandwich (k n : ℕ) (hn : 1 ≤ n) :
     exact mul_le_mul_of_nonneg_left hPu hfac0
   · rw [← hconstU]
     refine intervalIntegral.integral_mono_on (by norm_num) hint
-      (by apply intervalIntegral.intervalIntegrable_const) ?_
+      (by apply intervalIntegrable_const) ?_
     intro x hx
     rw [hpt x hx]
     obtain ⟨hP0, hPl, hPu⟩ := hPbounds x hx

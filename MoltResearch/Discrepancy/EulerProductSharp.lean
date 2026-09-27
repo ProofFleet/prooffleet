@@ -42,7 +42,7 @@ theorem prod_inv_one_sub_le_exp_linear_quadratic
   calc
     ∏ p ∈ P, (1 - r p)⁻¹ ≤
         ∏ p ∈ P, Real.exp (r p + 2 * (r p) ^ 2) := by
-      apply Finset.prod_le_prod
+      apply Finset.prod_le_prod₀
       · intro p hp
         have hden : 0 < 1 - r p := by linarith [hr p hp]
         positivity

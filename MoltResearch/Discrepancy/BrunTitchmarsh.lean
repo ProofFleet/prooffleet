@@ -224,7 +224,7 @@ theorem le_selbergG_zero (z : ℕ) (hz : 1 ≤ z) :
       rfl
     rw [show (1:ℝ)/k = ∏ p ∈ k.primeFactors, (1:ℝ)/p from by
         rw [Finset.prod_div_distrib, Finset.prod_const_one, ← hk_eq]]
-    refine Finset.prod_le_prod ?_ ?_
+    refine Finset.prod_le_prod₀ ?_ ?_
     · intro p hp
       have := (Nat.prime_of_mem_primeFactors hp).two_le
       have h1 : (0:ℝ) < p := by exact_mod_cast Nat.lt_of_lt_of_le Nat.zero_lt_two this

@@ -30,3 +30,9 @@ Tasks
 Conjectures
 # Added 2026-09-08: the upstreaming-pilot aggregator (Problems/nucleus_upstreaming.md).
 MoltResearch.DiscrepancyUpstream
+# Added 2026-09-26: the Palomar statement surface for the Erdős discrepancy theorem
+# (docs/edp-release.md). Two separate targets, never imported together: the Challenge (imports
+# Mathlib only; states the theorem with its one deliberate hole) and the Solution (proves it
+# from the development). Nothing imports either, so both must be named here.
+PalomarEDP.Challenge
+PalomarEDP.Solution

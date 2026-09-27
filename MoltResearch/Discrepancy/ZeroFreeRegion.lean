@@ -604,7 +604,7 @@ theorem zeta_norm_upper (σ t : ℝ) (hσl : 1/2 ≤ σ) (hσu : σ ≤ 5/2)
         · have hsplit : ∑ n ∈ Finset.range K, (n:ℝ) ^ (-(2:ℝ))
               = ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-(2:ℝ))
                 + ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-(2:ℝ)) := by
-            rw [Finset.range_eq_Ico,
+            rw [Finset.range_eq_Ico, Finset.range_eq_Ico,
               ← Finset.sum_Ico_consecutive _ (by omega : 0 ≤ 2)
                 (by omega : 2 ≤ K)]
           rw [hsplit]
@@ -702,7 +702,7 @@ theorem zeta_real_upper (σ : ℝ) (hσ : 1 < σ) :
   · have hsplit : ∑ n ∈ Finset.range K, (n:ℝ) ^ (-σ)
         = ∑ n ∈ Finset.range 2, (n:ℝ) ^ (-σ)
           + ∑ n ∈ Finset.Ico 2 K, (n:ℝ) ^ (-σ) := by
-      rw [Finset.range_eq_Ico,
+      rw [Finset.range_eq_Ico, Finset.range_eq_Ico,
         ← Finset.sum_Ico_consecutive _ (by omega : 0 ≤ 2)
           (by omega : 2 ≤ K)]
     rw [hsplit]

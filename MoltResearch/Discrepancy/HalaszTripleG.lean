@@ -444,7 +444,7 @@ theorem continuous_smoothPhaseSum (f : ℕ → ℂ)
             * ((𝐞 (-(Real.log ↑m * t)) : Circle) : ℂ)‖
           = ‖f ↑m * (((m : ℕ) : ℕ) : ℂ)⁻¹‖ := by
       intro t
-      rw [norm_mul, norm_eq_of_mem_sphere, mul_one]
+      rw [norm_mul, Circle.norm_coe, mul_one]
     exact le_of_eq ((hphase ξ).trans (hphase 0).symm)
 
 /-- **The global sup of the smooth phase sum is the smooth mass**
@@ -467,14 +467,14 @@ theorem norm_smoothPhaseSum_le (f : ℕ → ℂ)
       fun a b _ _ => by simp
     refine (summable_norm_smooth_phase (fun _ => 1) hone rfl
       (fun n => by simp) x 0).congr fun m => ?_
-    rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_one,
+    rw [norm_mul, norm_mul, Circle.norm_coe, mul_one, norm_one,
       one_mul, norm_inv, Complex.norm_natCast]
   unfold smoothPhaseSum
   refine le_trans (norm_tsum_le_tsum_norm
     (summable_norm_smooth_phase f hcm h1 hb x ξ)) ?_
   refine Summable.tsum_le_tsum (fun m => ?_)
     (summable_norm_smooth_phase f hcm h1 hb x ξ) hsummass
-  rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_inv,
+  rw [norm_mul, norm_mul, Circle.norm_coe, mul_one, norm_inv,
     Complex.norm_natCast]
   calc ‖f ↑m‖ * (((m : ℕ) : ℝ))⁻¹
       ≤ 1 * (((m : ℕ) : ℝ))⁻¹ :=
@@ -501,7 +501,7 @@ theorem summable_norm_smoothWeight (f : ℕ → ℂ)
   have hsub : Summable
       (fun m : (Nat.smoothNumbers x) => ‖f m * ((m : ℕ) : ℂ)⁻¹‖) := by
     refine (summable_norm_smooth_phase f hcm h1 hb x 0).congr fun m => ?_
-    rw [norm_mul, norm_eq_of_mem_sphere, mul_one]
+    rw [norm_mul, Circle.norm_coe, mul_one]
   have hind := (summable_subtype_iff_indicator
     (f := fun n : ℕ => ‖f n * ((n : ℕ) : ℂ)⁻¹‖)
     (s := Nat.smoothNumbers x)).mp hsub
@@ -720,7 +720,7 @@ theorem ghs_riesz_triple_tsum_eq (f : ℕ → ℂ)
           ≤ ‖c * d * s‖
             * (∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹) := by
       refine Eventually.of_forall fun ξ => ?_
-      rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one]
+      rw [norm_mul, norm_mul, Circle.norm_coe, mul_one]
       exact mul_le_mul_of_nonneg_left
         (norm_smoothPhaseSum_le f hcm h1 hf x ξ) (norm_nonneg _)
     exact Integrable.congr
@@ -871,7 +871,7 @@ theorem ghs_riesz_triple_tsum_le (f : ℕ → ℂ)
         * ‖𝓕 (fun v => ((rieszWindow v : ℝ) : ℂ)) ξ‖) := by
     refine integral_congr_ae (Filter.Eventually.of_forall fun ξ => ?_)
     dsimp only
-    rw [norm_mul, norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one,
+    rw [norm_mul, norm_mul, norm_mul, Circle.norm_coe, mul_one,
       Complex.norm_natCast]
   rw [hcongr, MeasureTheory.integral_const_mul]
   refine mul_le_mul_of_nonneg_left ?_ hxR

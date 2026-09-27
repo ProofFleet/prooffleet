@@ -758,9 +758,8 @@ theorem card_deviation_decObs_le (K H J h : ℕ) (hK : 0 < K) (a : ι → ℕ)
     (fun i r => by
       have := hbound i r
       rw [Set.mem_Icc] at this ⊢
-      constructor <;> simp only [] <;> linarith [this.1, this.2])
+      constructor <;> linarith [this.1, this.2])
     (fun i => by
-      simp only []
       rw [Finset.sum_neg_distrib, hmean i, neg_zero])
     ht
   have hcard := Finset.card_le_card hsub

@@ -73,7 +73,7 @@ theorem tsum_translates_eq_integral_char (F : ℝ → ℂ)
     refine Summable.of_norm ?_
     refine Summable.of_nonneg_of_le (fun n => norm_nonneg _)
       (fun n => ?_) hw
-    rw [norm_mul, norm_eq_of_mem_sphere]
+    rw [norm_mul, Circle.norm_coe]
     simp
   -- the transform is continuous, being the transform of an `L¹` window
   have hcontF : Continuous (𝓕 F) :=
@@ -95,7 +95,7 @@ theorem tsum_translates_eq_integral_char (F : ℝ → ℂ)
     refine le_trans (norm_sum_le _ _) ?_
     refine le_trans (Finset.sum_le_sum fun n _ => ?_)
       (hw.sum_le_tsum (Finset.range k) fun n _ => norm_nonneg _)
-    rw [norm_mul, norm_eq_of_mem_sphere]
+    rw [norm_mul, Circle.norm_coe]
     simp
   -- the left side is the limit of the partial translate sums
   have hL : Tendsto (fun k => ∑ n ∈ Finset.range k, w n * F (y - s n))
@@ -119,7 +119,7 @@ theorem tsum_translates_eq_integral_char (F : ℝ → ℂ)
         (Real.continuous_fourierChar.comp (by fun_prop))
     · -- the uniform domination
       refine Eventually.of_forall fun ξ => ?_
-      rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, one_mul]
+      rw [norm_mul, norm_mul, Circle.norm_coe, one_mul]
       exact mul_le_mul_of_nonneg_right (hpoly k ξ) (norm_nonneg _)
     · -- pointwise convergence of the integrands
       refine Eventually.of_forall fun ξ => ?_
@@ -204,7 +204,7 @@ theorem norm_phaseHom_prime_lt_one (f : ℕ → ℂ)
       = ‖f p‖ * ((p : ℝ))⁻¹ := by
     show ‖f p * ((p : ℕ) : ℂ)⁻¹ * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ)‖
       = ‖f p‖ * ((p : ℝ))⁻¹
-    rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_inv,
+    rw [norm_mul, norm_mul, Circle.norm_coe, mul_one, norm_inv,
       Complex.norm_natCast]
   rw [hval]
   calc ‖f p‖ * ((p : ℝ))⁻¹ ≤ 1 * ((p : ℝ))⁻¹ :=
@@ -358,7 +358,7 @@ theorem norm_phase_euler_prod_le (f : ℕ → ℂ) (hb : ∀ n, ‖f n‖ ≤ 1)
     set z : ℂ := f p * ((p : ℕ) : ℂ)⁻¹
         * ((𝐞 (-(Real.log p * ξ)) : Circle) : ℂ) with hz_def
     have hznorm : ‖z‖ ≤ 1/(p : ℝ) := by
-      rw [hz_def, norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one,
+      rw [hz_def, norm_mul, norm_mul, Circle.norm_coe, mul_one,
         norm_inv, Complex.norm_natCast, ← one_div]
       calc ‖f p‖ * (1/(p : ℝ))
           ≤ 1 * (1/(p : ℝ)) :=
@@ -382,7 +382,7 @@ theorem norm_phase_euler_prod_le (f : ℕ → ℂ) (hb : ∀ n, ‖f n‖ ≤ 1)
       calc ‖z‖^2 ≤ (1/(p : ℝ))^2 := h1
         _ = 1/((p : ℝ))^2 := by ring
     linarith [hre.le, hre.ge]
-  refine le_trans (Finset.prod_le_prod (fun p _ => norm_nonneg _) hfac) ?_
+  refine le_trans (Finset.prod_le_prod₀ (fun p _ => norm_nonneg _) hfac) ?_
   rw [← Real.exp_sum]
   refine Real.exp_le_exp.mpr ?_
   rw [Finset.sum_add_distrib]
@@ -609,7 +609,7 @@ theorem sum_rpow_primesBelow_le_log (x : ℕ) (hx : 3 ≤ x) :
       (p : ℝ) ^ (-(1 + 1/Real.log x))) ≤ 2 + Real.log x := by
     rw [Real.exp_sum]
     exact le_trans
-      (Finset.prod_le_prod (fun p _ => (Real.exp_pos _).le) hfac)
+      (Finset.prod_le_prod₀ (fun p _ => (Real.exp_pos _).le) hfac)
       (prod_one_sub_rpow_inv_le x hx)
   have hlog := Real.log_le_log (Real.exp_pos _) hexp
   rwa [Real.log_exp] at hlog

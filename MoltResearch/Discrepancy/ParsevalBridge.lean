@@ -377,23 +377,18 @@ theorem sum_log_div_le_two_mul_integral_add (a b : ℕ) (ha : 1 ≤ a)
       · intro n hn
         rw [Finset.mem_Ioc] at hn
         rw [Finset.mem_range]
-        dsimp only
         omega
       · intro k hk
         rw [Finset.mem_range] at hk
         rw [Finset.mem_Ioc]
-        dsimp only
         omega
       · intro n hn
         rw [Finset.mem_Ioc] at hn
-        dsimp only
         omega
       · intro k _
-        dsimp only
         omega
       · intro n hn
         rw [Finset.mem_Ioc] at hn
-        dsimp only
         have e1 : d (n - (a+1)) = Real.log n := by
           rw [hd_def]
           dsimp only
@@ -1892,7 +1887,7 @@ theorem integral_band_norm_sq_le_close_pairs {ι : Type*} (S : Finset ι)
     intro ξ
     rw [hP_def, hB_def]
     refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
-    rw [norm_mul, norm_eq_of_mem_sphere, mul_one]
+    rw [norm_mul, Circle.norm_coe, mul_one]
   have hPcont : Continuous P := by
     rw [hP_def]
     refine continuous_finset_sum _ fun i _ => ?_
@@ -1904,7 +1899,7 @@ theorem integral_band_norm_sq_le_close_pairs {ι : Type*} (S : Finset ι)
   obtain ⟨C, hC⟩ := (𝓕 G).decay' 0 0
   have hC' : ∀ ξ : ℝ, ‖(𝓕 G) ξ‖ ≤ C := fun ξ => by
     have := hC ξ
-    simpa using this
+    simpa using! this
   have hFhat_sq_int : Integrable (fun ξ : ℝ => ‖𝓕 F ξ‖^2) := by
     simp only [hFhat_eq]
     refine ((𝓕 G).integrable.norm.const_mul C).mono' ?_ ?_

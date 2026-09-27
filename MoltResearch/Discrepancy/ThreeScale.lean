@@ -661,7 +661,7 @@ theorem sum_main_eq_sum_box (f : ℕ → ℂ)
       Nat.Coprime.coprime_dvd_right
         (primorial_dvd_primorial (by omega : y₂-1 ≤ y₁-1)) hccop
     have hbccop : Nat.Coprime (t.2.1 * t.2.2) (primorial (y₂-1)) :=
-      Nat.Coprime.mul hbcop hccop₂
+      Nat.Coprime.mul_left hbcop hccop₂
     have hr2 : roughPart y₂ (t.1 * (t.2.1 * t.2.2)) = t.2.1 * t.2.2 :=
       roughPart_mul_eq_right y₂ hy₂ _ _ hasm hbc0 hbccop
     have habsm : t.1 * t.2.1 ∈ Nat.smoothNumbers y₁ :=
@@ -712,7 +712,7 @@ theorem sum_main_eq_sum_box (f : ℕ → ℂ)
       Nat.Coprime.coprime_dvd_right
         (primorial_dvd_primorial (by omega : y₂-1 ≤ y₁-1)) hccop
     have hbccop : Nat.Coprime (t.2.1 * t.2.2) (primorial (y₂-1)) :=
-      Nat.Coprime.mul hbcop hccop₂
+      Nat.Coprime.mul_left hbcop hccop₂
     have h1 : smoothPart y₂ (t.1 * (t.2.1 * t.2.2)) = t.1 :=
       smoothPart_mul_eq_left y₂ hy₂ _ _ hasm hbc0 hbccop
     have hr2 : roughPart y₂ (t.1 * (t.2.1 * t.2.2)) = t.2.1 * t.2.2 :=
@@ -726,7 +726,6 @@ theorem sum_main_eq_sum_box (f : ℕ → ℂ)
     have h3 : roughPart y₁ (t.1 * (t.2.1 * t.2.2)) = t.2.2 := by
       rw [← mul_assoc]
       exact roughPart_mul_eq_right y₁ hy₁ _ _ habsm hc0 hccop
-    dsimp only
     exact Prod.ext_iff.mpr ⟨h1, Prod.ext_iff.mpr ⟨h2, h3⟩⟩
   · -- the summands agree
     intro n hn

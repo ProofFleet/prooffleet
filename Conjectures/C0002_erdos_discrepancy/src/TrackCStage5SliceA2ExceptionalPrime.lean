@@ -186,7 +186,7 @@ theorem exceptionalPrimeLower_le_six_mul_sliceA2ExceptionalAnchor
     ring
   have hPcExp : Real.exp ((v : ℝ) / (2 * (N : ℝ))) ≤ 2 * Pc := by
     simpa [N, Pc, sliceA2ExceptionalAnchor, exceptionalCellAnchor] using
-      exp_cell_lower_le_two_anchor N v (by simpa [Pc] using hanchor)
+      exp_cell_lower_le_two_anchor N v (by simpa [Pc] using! hanchor)
   calc
     (P : ℝ) ≤ Real.exp (((v : ℝ) + 1) / (2 * (N : ℝ))) := hPexp
     _ = Real.exp ((v : ℝ) / (2 * (N : ℝ))) *
@@ -294,7 +294,7 @@ theorem sliceA2Exceptional_prime_fit
   have hadata := sliceA2Exceptional_anchor_data A1 epsc eps rho0 hanchor
   have hcov := (sliceA2Exceptional_cell_data A1 epsc eps rho0).1
   have hmassEq := sum_eadicCell_harmonic_eq I (exceptionalPrimes A1 epsc)
-    (sliceA2ExceptionalN A1 epsc eps rho0) (by simpa [I] using hcov)
+    (sliceA2ExceptionalN A1 epsc eps rho0) (by simpa [I] using! hcov)
   have hmass :
       ∑ v ∈ I, ∑ p ∈ eadicCell (exceptionalPrimes A1 epsc)
           (2 * sliceA2ExceptionalN A1 epsc eps rho0) v,

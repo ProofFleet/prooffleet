@@ -113,7 +113,7 @@ theorem intervalIntegral_norm_sq_cell_replace_le_of_ratio
       * ((Real.fourierChar (-(Real.log p * xi)) : Circle) : ℂ)‖
       ≤ (1 : ℝ) / (p : ℝ) := by
     intro p xi
-    rw [norm_mul, norm_eq_of_mem_sphere, mul_one, norm_div, Complex.norm_natCast]
+    rw [norm_mul, Circle.norm_coe, mul_one, norm_div, Complex.norm_natCast]
     gcongr
     exact hg p
   have hwcont : ∀ p : ℕ, Continuous fun xi : ℝ =>

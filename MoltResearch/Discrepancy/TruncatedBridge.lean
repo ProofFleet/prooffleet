@@ -188,12 +188,12 @@ theorem sum_re_twist_div_le_log_norm_LSeries (χ : DirichletCharacter ℂ N)
     intro P
     constructor
     · intro hP
-      rw [hSy, Finset.mem_image] at hP
-      obtain ⟨q, -, rfl⟩ := hP
+      rw [hSy] at hP
+      obtain ⟨q, -, rfl⟩ := Finset.mem_image.mp hP
       exact Nat.lt_of_mem_primesBelow q.2
     · intro hP
-      rw [hSy, Finset.mem_image]
-      exact ⟨⟨(P : ℕ), Nat.mem_primesBelow.mpr ⟨hP, P.prop⟩⟩,
+      rw [hSy]
+      exact Finset.mem_image.mpr ⟨⟨(P : ℕ), Nat.mem_primesBelow.mpr ⟨hP, P.prop⟩⟩,
         Finset.mem_attach _ _, Subtype.ext rfl⟩
   have hsum_eq : ∑ p ∈ y.primesBelow, (χ p * (p : ℂ) ^ (-s)).re
       = ∑ P ∈ Sy, (w P).re := by

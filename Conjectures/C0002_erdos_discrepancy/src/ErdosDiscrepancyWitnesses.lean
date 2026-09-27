@@ -68,7 +68,7 @@ theorem erdos_discrepancy_sum_Icc_offset_stage3 (f : ℕ → ℤ) (hf : IsSignSe
                 ((Tao2015.stage3_m (f := f) (hf := hf)) + n)).sum
               (fun i => f (i * (Tao2015.stage3_d (f := f) (hf := hf))))) > B := by
   set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
-  simpa [Tao2015.stage3_m, Tao2015.stage3_d, hout.symm] using
+  simpa [Tao2015.stage3_m, Tao2015.stage3_d, hout.symm] using!
     (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) out)
 
 /-- Negation-normal-form corollary for the concrete Stage-3 offset parameters.
@@ -87,7 +87,7 @@ theorem erdos_discrepancy_not_exists_forall_natAbs_sum_Icc_offset_le_stage3 (f :
             ((Finset.Icc ((Tao2015.stage3_m (f := f) (hf := hf)) + 1)
                   ((Tao2015.stage3_m (f := f) (hf := hf)) + n)).sum
                 (fun i => f (i * (Tao2015.stage3_d (f := f) (hf := hf))))) ≤ B := by
-  simpa [Tao2015.stage3_m, Tao2015.stage3_d] using
+  simpa [Tao2015.stage3_m, Tao2015.stage3_d] using!
     (Tao2015.stage3_not_exists_forall_natAbs_sum_Icc_offset_le (f := f) (hf := hf))
 
 /-- Positive-length witness form of `erdos_discrepancy_sum_Icc_offset_stage3`.
@@ -101,7 +101,7 @@ theorem erdos_discrepancy_sum_Icc_offset_stage3_witness_pos (f : ℕ → ℤ) (h
                 ((Tao2015.stage3_m (f := f) (hf := hf)) + n)).sum
               (fun i => f (i * (Tao2015.stage3_d (f := f) (hf := hf))))) > B := by
   set out := Tao2015.stage3Out (f := f) (hf := hf) with hout
-  simpa [Tao2015.stage3_m, Tao2015.stage3_d, hout.symm] using
+  simpa [Tao2015.stage3_m, Tao2015.stage3_d, hout.symm] using!
     (Tao2015.Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f) out)
 
 /-- Tail-nucleus witness form at the deterministic Stage-3 parameters `start` and `d`.

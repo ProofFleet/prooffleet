@@ -3358,7 +3358,7 @@ This is the homogeneous analogue of `discOffset_add_le`.
 -/
 lemma disc_add_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
     disc f d (n₁ + n₂) ≤ disc f d n₁ + discOffset f d n₁ n₂ := by
-  simpa using (natAbs_apSum_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+  simpa using! (natAbs_apSum_add_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
 
 /-! ### Basic inequalities for sign sequences -/
 
@@ -3419,7 +3419,7 @@ lemma natAbs_apSum_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
 lemma disc_le_mul_of_natAbs_le {f : ℕ → ℤ} {B : ℕ}
     (hf : ∀ k, Int.natAbs (f k) ≤ B) (d n : ℕ) :
     disc f d n ≤ n * B := by
-  simpa using
+  simpa using!
     (natAbs_apSum_le_mul_of_natAbs_le (f := f) (B := B) (hf := hf) (d := d) (n := n))
 
 /-- If the terms of `f` are uniformly bounded by `1` in `Int.natAbs`, then any offset AP sum has
@@ -3478,7 +3478,7 @@ lemma natAbs_apSum_le_of_natAbs_le_one {f : ℕ → ℤ}
 lemma disc_le_of_natAbs_le_one {f : ℕ → ℤ}
     (hf : ∀ k, Int.natAbs (f k) ≤ 1) (d n : ℕ) :
     disc f d n ≤ n := by
-  simpa using (natAbs_apSum_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (n := n))
+  simpa using! (natAbs_apSum_le_of_natAbs_le_one (f := f) (hf := hf) (d := d) (n := n))
 
 /-- A sign sequence has `Int.natAbs` bounded by length on any AP sum. -/
 lemma natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
@@ -3489,7 +3489,7 @@ lemma natAbs_apSum_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
 /-- A sign sequence has discrepancy (at the `disc` level) bounded by length. -/
 lemma disc_le {f : ℕ → ℤ} (hf : IsSignSequence f) (d n : ℕ) :
     disc f d n ≤ n := by
-  simpa using (natAbs_apSum_le (hf := hf) (d := d) (n := n))
+  simpa using! (natAbs_apSum_le (hf := hf) (d := d) (n := n))
 
 /-!
 ### Size bound for sign sequences (`discOffset` / `discAlong`)
@@ -3742,7 +3742,7 @@ lemma HasDiscrepancyAtLeast_iff_exists_discOffset_zero_start {f : ℕ → ℤ} {
     HasDiscrepancyAtLeast f C ↔
       ∃ d n : ℕ, d > 0 ∧ discOffset f d 0 n > C := by
   -- Reduce to the existing offset-sum normal form and rewrite the absolute-value wrapper.
-  simpa using (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C))
+  simpa using! (HasDiscrepancyAtLeast_iff_exists_apSumOffset_zero_start (f := f) (C := C))
 
 /-- Normal form: rewrite `HasDiscrepancyAtLeast` into the `discOffset` wrapper using `Nat.lt`.
 
@@ -4657,7 +4657,7 @@ lemma disc_cut_le (f : ℕ → ℤ) (d n k : ℕ) (hk : k ≤ n) :
     disc f d n ≤ disc f d k + discOffset f d k (n - k) := by
   -- rewrite the LHS into a single `Int.natAbs (x + y)` and apply `|x+y| ≤ |x|+|y|`.
   have hEq := disc_eq_natAbs_apSum_cut (f := f) (d := d) (n := n) (k := k) hk
-  simpa [hEq] using (Int.natAbs_add_le (apSum f d k) (apSumOffset f d k (n - k)))
+  simpa [hEq] using! (Int.natAbs_add_le (apSum f d k) (apSumOffset f d k (n - k)))
 
 /-- `simp`-friendly corollary of `apSum_add_len` for `n₁ = 0`. -/
 @[simp] lemma apSum_add_len_zero_left (f : ℕ → ℤ) (d n : ℕ) :
@@ -4821,7 +4821,7 @@ lemma discOffsetUpTo_add_le_add_discOffsetUpTo {f : ℕ → ℤ} (d m N K : ℕ)
     have hNt : discOffset f d m (N + t) ≤
         discOffsetUpTo f d m N + discOffsetUpTo f d (m + N) K := by
       exact le_trans hsplit (Nat.add_le_add h1 h2)
-    simpa [Nat.add_assoc] using hNt
+    simpa [Nat.add_assoc] using! hNt
 
 
 /-- Tail concatenation inequality for `discOffsetUpTo` (bookkeeping-friendly wrapper).
@@ -4852,7 +4852,7 @@ This is the homogeneous analogue of `discOffset_add_length_le`.
 -/
 lemma disc_add_length_le (f : ℕ → ℤ) (d n₁ n₂ : ℕ) :
     disc f d (n₁ + n₂) ≤ disc f d n₁ + discOffset f d n₁ n₂ := by
-  simpa using (natAbs_apSum_add_length_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
+  simpa using! (natAbs_apSum_add_length_le (f := f) (d := d) (n₁ := n₁) (n₂ := n₂))
 
 -- Algebraic properties of `apSum`
 lemma apSum_add (f g : ℕ → ℤ) (d n : ℕ) :

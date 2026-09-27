@@ -80,7 +80,7 @@ theorem stage3_forall_exists_natAbs_apSumOffset_gt' (f : ℕ → ℤ) (hf : IsSi
     ∀ B : ℕ, ∃ n : ℕ,
       Int.natAbs
           (apSumOffset f (stage3_d (f := f) (hf := hf)) (stage3_m (f := f) (hf := hf)) n) > B := by
-  simpa [stage3_d, stage3_m] using
+  simpa [stage3_d, stage3_m] using!
     (Stage3Output.forall_exists_natAbs_apSumOffset_gt' (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Positive-length witness form of `stage3_forall_exists_natAbs_apSumOffset_gt'`.
@@ -111,7 +111,7 @@ theorem stage3_forall_exists_natAbs_sum_Icc_offset_gt (f : ℕ → ℤ) (hf : Is
           ((Finset.Icc ((stage3_m (f := f) (hf := hf)) + 1)
               ((stage3_m (f := f) (hf := hf)) + n)).sum
             (fun i => f (i * (stage3_d (f := f) (hf := hf))))) > B := by
-  simpa [stage3_d, stage3_m] using
+  simpa [stage3_d, stage3_m] using!
     (Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Positive-length witness form of `stage3_forall_exists_natAbs_sum_Icc_offset_gt`.
@@ -124,7 +124,7 @@ theorem stage3_forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f : ℕ → �
           ((Finset.Icc ((stage3_m (f := f) (hf := hf)) + 1)
               ((stage3_m (f := f) (hf := hf)) + n)).sum
             (fun i => f (i * (stage3_d (f := f) (hf := hf))))) > B := by
-  simpa [stage3_d, stage3_m] using
+  simpa [stage3_d, stage3_m] using!
     (Stage3Output.forall_exists_natAbs_sum_Icc_offset_gt_witness_pos (f := f)
       (stage3Out (f := f) (hf := hf)))
 
@@ -142,7 +142,7 @@ theorem stage3_forall_exists_natAbs_apSumFrom_mul_gt (f : ℕ → ℤ) (hf : IsS
       Int.natAbs
           (apSumFrom f ((stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf)))
             (stage3_d (f := f) (hf := hf)) n) > C := by
-  simpa [stage3_d, stage3_m] using
+  simpa [stage3_d, stage3_m] using!
     (Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt (f := f) (stage3Out (f := f) (hf := hf)))
 
 /-- Positive-length witness form of `stage3_forall_exists_natAbs_apSumFrom_mul_gt`.
@@ -158,7 +158,7 @@ theorem stage3_forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f : ℕ → �
         Int.natAbs
             (apSumFrom f ((stage3_m (f := f) (hf := hf)) * (stage3_d (f := f) (hf := hf)))
               (stage3_d (f := f) (hf := hf)) n) > C := by
-  simpa [stage3_d, stage3_m] using
+  simpa [stage3_d, stage3_m] using!
     (Stage3Output.forall_exists_natAbs_apSumFrom_mul_gt_witness_pos (f := f)
       (stage3Out (f := f) (hf := hf)))
 

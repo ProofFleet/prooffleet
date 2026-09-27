@@ -518,7 +518,7 @@ theorem norm_sum_e_neg_log_Ioc_le_kusmin (v : ℝ) (M P : ℕ)
     (θ := θ) (M := M + 1) (N := P) (-1) hθ hAP
       (by simpa only [Nat.cast_add, Nat.cast_one] using hlo)
       (by simpa only [Nat.cast_add, Nat.cast_one] using hhi)
-      (by simpa only [Nat.cast_add, Nat.cast_one] using hmono)
+      (by simpa only [Nat.cast_add, Nat.cast_one] using! hmono)
   refine hkl.trans_eq ?_
   simp only [θ]
   field_simp

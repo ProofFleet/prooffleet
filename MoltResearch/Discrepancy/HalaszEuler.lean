@@ -427,12 +427,12 @@ theorem log_norm_LSeries_le_sum_re_twist_add (f : ℕ → ℂ)
     intro P
     constructor
     · intro hP
-      rw [hSy, Finset.mem_image] at hP
-      obtain ⟨q, -, rfl⟩ := hP
+      rw [hSy] at hP
+      obtain ⟨q, -, rfl⟩ := Finset.mem_image.mp hP
       exact Nat.lt_of_mem_primesBelow q.2
     · intro hP
-      rw [hSy, Finset.mem_image]
-      exact ⟨⟨(P : ℕ), Nat.mem_primesBelow.mpr ⟨hP, P.prop⟩⟩,
+      rw [hSy]
+      exact Finset.mem_image.mpr ⟨⟨(P : ℕ), Nat.mem_primesBelow.mpr ⟨hP, P.prop⟩⟩,
         Finset.mem_attach _ _, Subtype.ext rfl⟩
   have hsum_eq : ∑ p ∈ y.primesBelow, (f p * (p : ℂ) ^ (-s)).re
       = ∑ P ∈ Sy, (w P).re := by
@@ -1051,7 +1051,7 @@ theorem norm_smooth_finprod_le (f : ℕ → ℂ) (hb : ∀ n, ‖f n‖ ≤ 1)
   calc ‖∏ p ∈ y.primesBelow, (1 - w p)⁻¹‖
       = ∏ p ∈ y.primesBelow, ‖(1 - w p)⁻¹‖ := norm_prod _ _
     _ ≤ ∏ p ∈ y.primesBelow, Real.exp ((w p).re + ‖w p‖^2) := by
-        refine Finset.prod_le_prod (fun p _ => norm_nonneg _) hfac
+        refine Finset.prod_le_prod₀ (fun p _ => norm_nonneg _) hfac
     _ = Real.exp (∑ p ∈ y.primesBelow, ((w p).re + ‖w p‖^2)) := by
         rw [Real.exp_sum]
     _ ≤ Real.exp ((∑ p ∈ y.primesBelow, (1:ℝ)/p)

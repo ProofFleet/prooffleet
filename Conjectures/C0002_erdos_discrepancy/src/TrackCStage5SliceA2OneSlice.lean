@@ -148,7 +148,7 @@ theorem slice_meanSquare_typicalS_le_of_explicit_schedule
       (by simpa [e, M] using hparts1000)
   have hUsmall : (U : ℝ) ≤ e * H / 1000 := by
     have hraw : 50 * (U : ℝ) ≤ (e / 100) * H := by
-      simpa [eg, sliceA2GeomEps, e] using hU50
+      simpa [eg, sliceA2GeomEps, e] using! hU50
     have hnonneg : 0 ≤ e * H := by positivity
     nlinarith
   have hround' : (2 : ℝ) ≤ e * H / 1000 := by linarith

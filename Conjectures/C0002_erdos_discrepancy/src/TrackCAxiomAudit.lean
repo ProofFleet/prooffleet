@@ -13,7 +13,7 @@ import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5ZeroFreeRegion
 import Conjectures.C0002_erdos_discrepancy.src.TrackCStage5PrimeLargeValuesDischarge
 import Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy
 -- For the anti-vacuity witnesses (issue #2879) only.
-import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.NumberTheory.ArithmeticFunction.Misc
 
 /-!
 # Track C: axiom-footprint audit (machine-checked honesty claims)

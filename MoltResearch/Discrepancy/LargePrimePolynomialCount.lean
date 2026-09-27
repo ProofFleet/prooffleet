@@ -88,7 +88,7 @@ theorem card_large_prime_poly_pow_le (Y : Finset ℕ)
         rw [hc]
         refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun v _ => ?_)
         rw [norm_prod]
-        exact Finset.prod_le_one (fun i _ => norm_nonneg _) (fun i _ => hb _)
+        exact Finset.prod_le_one₀ (fun i _ => norm_nonneg _) (fun i _ => hb _)
       _ = ((tuples.filter (fun v => ∏ i, v i = n)).card : ℝ) := by simp
       _ ≤ (Nat.factorial ell : ℝ) := by exact_mod_cast hfiber
   have hmass : ∑ n ∈ support, ‖c n‖ ^ 2 / (n : ℝ)

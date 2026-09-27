@@ -105,7 +105,7 @@ theorem sum_pSmooth_rpow_le_prod (B : ℕ) (P : Finset ℕ) (hP : ∀ p ∈ P, p
             show P.attach = Finset.univ from (Finset.univ_eq_attach P).symm,
             Finset.prod_univ_sum]
   refine hbox.trans ?_
-  apply Finset.prod_le_prod
+  apply Finset.prod_le_prod₀
   · intro p hp
     exact Finset.sum_nonneg fun e he => by positivity
   · intro p hp
@@ -156,7 +156,7 @@ theorem prod_inv_one_sub_le_exp (P : Finset ℕ) (r : ℕ → ℝ)
     (hr0 : ∀ p ∈ P, 0 ≤ r p) (hr : ∀ p ∈ P, r p ≤ 1 / 2) :
     ∏ p ∈ P, (1 - r p)⁻¹ ≤ Real.exp (2 * ∑ p ∈ P, r p) := by
   rw [Finset.mul_sum, Real.exp_sum]
-  apply Finset.prod_le_prod
+  apply Finset.prod_le_prod₀
   · intro p hp
     have := hr p hp
     have : 0 < 1 - r p := by linarith

@@ -1188,10 +1188,10 @@ lemma HasAffineDiscrepancyAtLeast_iff_exists_affineDiscrepancy_ge_one (f : ℕ �
     HasAffineDiscrepancyAtLeast f C ↔ ∃ a d n, d ≥ 1 ∧ affineDiscrepancy f a d n > C := by
   constructor
   · rintro ⟨a, d, n, hd, hgt⟩
-    exact ⟨a, d, n, Nat.succ_le_of_lt hd, by simpa using hgt⟩
+    exact ⟨a, d, n, Nat.succ_le_of_lt hd, by simpa using! hgt⟩
   · rintro ⟨a, d, n, hd, hgt⟩
     refine ⟨a, d, n, (Nat.succ_le_iff).1 hd, ?_⟩
-    simpa using hgt
+    simpa using! hgt
 
 /-- Normal form: rewrite `HasAffineDiscrepancyAtLeast f C` into an offset-sum witness on the
 shifted sequence `k ↦ f (k + a)`.

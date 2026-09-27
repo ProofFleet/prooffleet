@@ -77,15 +77,15 @@ theorem hasDerivAt_primeMellinProfile (S : ℝ → ℝ)
     (hSs.differentiable (by simp) x).hasDerivAt
   have hleft : HasDerivAt (fun x : ℝ => S (2 * x + 1))
       (2 * deriv S (2 * v + 1)) v := by
-    convert (hSd (2 * v + 1)).comp v
+    convert! (hSd (2 * v + 1)).comp v
       ((hasDerivAt_const v 2).mul (hasDerivAt_id v) |>.add_const 1) using 1 <;>
       ring
   have hright : HasDerivAt (fun x : ℝ => S (3 - 2 * x))
       (-2 * deriv S (3 - 2 * v)) v := by
-    convert (hSd (3 - 2 * v)).comp v
+    convert! (hSd (3 - 2 * v)).comp v
       ((hasDerivAt_const v 3).sub ((hasDerivAt_const v 2).mul (hasDerivAt_id v))) using 1 <;>
       ring
-  convert hleft.mul hright using 1
+  convert! hleft.mul hright using 1
   · ring
 
 /-- The second derivative of the fixed profile. -/
@@ -113,22 +113,22 @@ theorem iteratedDeriv_two_primeMellinProfile (S : ℝ → ℝ)
   funext v
   have hA : HasDerivAt (fun x : ℝ => deriv S (2 * x + 1))
       (2 * deriv (deriv S) (2 * v + 1)) v := by
-    convert (hSdd (2 * v + 1)).comp v
+    convert! (hSdd (2 * v + 1)).comp v
       ((hasDerivAt_const v 2).mul (hasDerivAt_id v) |>.add_const 1) using 1 <;>
       ring
   have hB : HasDerivAt (fun x : ℝ => S (3 - 2 * x))
       (-2 * deriv S (3 - 2 * v)) v := by
-    convert (hSd (3 - 2 * v)).comp v
+    convert! (hSd (3 - 2 * v)).comp v
       ((hasDerivAt_const v 3).sub ((hasDerivAt_const v 2).mul (hasDerivAt_id v))) using 1 <;>
       ring
   have hC : HasDerivAt (fun x : ℝ => S (2 * x + 1))
       (2 * deriv S (2 * v + 1)) v := by
-    convert (hSd (2 * v + 1)).comp v
+    convert! (hSd (2 * v + 1)).comp v
       ((hasDerivAt_const v 2).mul (hasDerivAt_id v) |>.add_const 1) using 1 <;>
       ring
   have hD : HasDerivAt (fun x : ℝ => deriv S (3 - 2 * x))
       (-2 * deriv (deriv S) (3 - 2 * v)) v := by
-    convert (hSdd (3 - 2 * v)).comp v
+    convert! (hSdd (3 - 2 * v)).comp v
       ((hasDerivAt_const v 3).sub ((hasDerivAt_const v 2).mul (hasDerivAt_id v))) using 1 <;>
       ring
   have hterm1 := ((hA.const_mul 2).mul hB)
@@ -201,7 +201,7 @@ theorem primeMellinVerticalWindow_smooth_support (S : ℝ → ℝ) (P α : ℝ)
     have hq : ContDiff ℝ ∞
         (fun u : ℝ => (-u - Real.log P) / Real.log 2) := by fun_prop
     have hprof := hp.1.comp hq
-    simpa only [primeMellinVerticalWindow, Function.comp_apply] using he.mul hprof
+    simpa only [primeMellinVerticalWindow, Function.comp_apply] using! he.mul hprof
   refine ⟨hsmooth, ?_⟩
   refine HasCompactSupport.intro
     (isCompact_Icc (a := -Real.log P - (3 / 2) * Real.log 2)
@@ -242,11 +242,11 @@ theorem iteratedDeriv_two_primeMellinVerticalWindow (S : ℝ → ℝ) (P α : �
     iteratedDeriv 2 (primeMellinProfile S) (q u) / (Real.log 2) ^ 2
   have hq (u : ℝ) : HasDerivAt q (-(1 / Real.log 2)) u := by
     dsimp [q]
-    convert ((hasDerivAt_id u).neg.sub_const (Real.log P)).div_const (Real.log 2) using 1
+    convert! ((hasDerivAt_id u).neg.sub_const (Real.log P)).div_const (Real.log 2) using 1
     field_simp
   have hA (u : ℝ) : HasDerivAt A (A₁ u) u := by
     have hφ := (hφs.differentiable (by simp) (q u)).hasDerivAt
-    convert hφ.comp u (hq u) using 1 <;> dsimp [A, A₁] <;> field_simp
+    convert! hφ.comp u (hq u) using 1 <;> dsimp [A, A₁] <;> field_simp
   have hφ1s : ContDiff ℝ ∞ (deriv (primeMellinProfile S)) := by
     simpa using hφs.iterate_deriv 1
   have hA₁ (u : ℝ) : HasDerivAt A₁ (A₂ u) u := by
@@ -256,19 +256,19 @@ theorem iteratedDeriv_two_primeMellinVerticalWindow (S : ℝ → ℝ) (P α : �
     have htwoφ : iteratedDeriv 2 (primeMellinProfile S) =
         deriv (deriv (primeMellinProfile S)) := by
       rw [show (2 : ℕ) = 1 + 1 from rfl, iteratedDeriv_succ, iteratedDeriv_one]
-    convert hn using 1
+    convert! hn using 1
     · dsimp [A₂]
       rw [htwoφ]
       field_simp
   let E : ℝ → ℝ := fun u => Real.exp (-α * u)
   have hE (u : ℝ) : HasDerivAt E (-α * E u) u := by
     dsimp [E]
-    convert (Real.hasDerivAt_exp (-α * u)).comp u
+    convert! (Real.hasDerivAt_exp (-α * u)).comp u
       ((hasDerivAt_const u (-α)).mul (hasDerivAt_id u)) using 1 <;> ring
   let F₁ : ℝ → ℝ := fun u => E u * (A₁ u - α * A u)
   have hF (u : ℝ) : HasDerivAt (primeMellinVerticalWindow S P α) (F₁ u) u := by
     have hp := (hE u).mul (hA u)
-    convert hp using 1 <;> dsimp [primeMellinVerticalWindow, E, A, A₁, F₁, q] <;> ring
+    convert! hp using 1 <;> dsimp [primeMellinVerticalWindow, E, A, A₁, F₁, q] <;> ring
   let F₂ : ℝ → ℝ := fun u =>
     E u * (A₂ u - 2 * α * A₁ u + α ^ 2 * A u)
   have hF₁ (u : ℝ) : HasDerivAt F₁ (F₂ u) u := by
@@ -691,7 +691,7 @@ theorem primeMellinTransform_differentiable (S : ℝ → ℝ) (P : ℝ)
   have hbot : (fun x : ℝ => (primeMellinWindow S P x : ℂ)) =O[𝓝[>] 0]
       (fun x : ℝ => x ^ (-b)) :=
     hbotEq.trans_isBigO (isBigO_zero _ _)
-  simpa only [primeMellinTransform] using
+  simpa only [primeMellinTransform] using!
     mellin_differentiableAt_of_isBigO_rpow hloc htop (by dsimp [a]; linarith)
       hbot (by dsimp [b]; linarith)
 
@@ -1566,7 +1566,7 @@ theorem zetaLogDerivRegular_eq (G : ℂ → ℂ)
     exact zetaPoleRemoved_eq G hGval w hw
   have hprod : HasDerivAt (fun w : ℂ => (w - 1) * riemannZeta w)
       (riemannZeta z + (z - 1) * deriv riemannZeta z) z := by
-    convert ((hasDerivAt_id z).sub_const 1).mul
+    convert! ((hasDerivAt_id z).sub_const 1).mul
       (differentiableAt_riemannZeta hz).hasDerivAt using 1 <;> simp [id_eq] <;> ring
   rw [zetaLogDerivRegular, hev.deriv_eq, hprod.deriv,
     zetaPoleRemoved_eq G hGval z hz]
@@ -1604,7 +1604,7 @@ theorem primeMellin_pole_rectangle (W : ℂ → ℂ)
         (∫ x : ℝ in -B..A, d ((x : ℂ) + (Y : ℂ) * I)) +
         I * (∫ y : ℝ in -Y..Y, d ((A : ℂ) + (y : ℂ) * I)) -
         I * (∫ y : ℝ in -Y..Y, d (-(B : ℂ) + (y : ℂ) * I)) = 0 := by
-    simpa [smul_eq_mul] using hdrect
+    simpa [smul_eq_mul] using! hdrect
   have hpoint (z : ℂ) (hz : z ≠ 0) : U z / z = d z + r z := by
     dsimp [d, r]
     rw [dslope_of_ne U hz, slope]
@@ -1897,7 +1897,7 @@ theorem primeMellin_zeta_rectangle (W : ℂ → ℂ)
       have hcont := ContinuousAt.comp_continuousWithinAt
         (f := fun x : ℝ => (x : ℂ) - (Y : ℂ) * I) (g := q)
         (hqAt ((x : ℂ) - (Y : ℂ) * I) (hbotMem x hx)).continuousAt hpath
-      simpa [q, sub_eq_add_neg, add_assoc] using hcont
+      simpa [q, sub_eq_add_neg, add_assoc] using! hcont
     · apply hpoleInt
       apply Continuous.div (hW.continuous.comp (by fun_prop)) (by fun_prop)
       intro x
@@ -1928,7 +1928,7 @@ theorem primeMellin_zeta_rectangle (W : ℂ → ℂ)
       have hcont := ContinuousAt.comp_continuousWithinAt
         (f := fun x : ℝ => (x : ℂ) + (Y : ℂ) * I) (g := q)
         (hqAt ((x : ℂ) + (Y : ℂ) * I) (htopMem x hx)).continuousAt hpath
-      simpa [q, sub_eq_add_neg, add_assoc] using hcont
+      simpa [q, sub_eq_add_neg, add_assoc] using! hcont
     · apply hpoleInt
       apply Continuous.div (hW.continuous.comp (by fun_prop)) (by fun_prop)
       intro x
@@ -1959,7 +1959,7 @@ theorem primeMellin_zeta_rectangle (W : ℂ → ℂ)
       have hcont := ContinuousAt.comp_continuousWithinAt
         (f := fun y : ℝ => (A : ℂ) + (y : ℂ) * I) (g := q)
         (hqAt ((A : ℂ) + (y : ℂ) * I) (hrightMem y hy)).continuousAt hpath
-      simpa [q, sub_eq_add_neg, add_assoc] using hcont
+      simpa [q, sub_eq_add_neg, add_assoc] using! hcont
     · apply hpoleInt
       apply Continuous.div (hW.continuous.comp (by fun_prop)) (by fun_prop)
       intro y
@@ -1990,7 +1990,7 @@ theorem primeMellin_zeta_rectangle (W : ℂ → ℂ)
       have hcont := ContinuousAt.comp_continuousWithinAt
         (f := fun y : ℝ => -(B : ℂ) + (y : ℂ) * I) (g := q)
         (hqAt (-(B : ℂ) + (y : ℂ) * I) (hleftMem y hy)).continuousAt hpath
-      simpa [q, sub_eq_add_neg, add_assoc] using hcont
+      simpa [q, sub_eq_add_neg, add_assoc] using! hcont
     · apply hpoleInt
       apply Continuous.div (hW.continuous.comp (by fun_prop)) (by fun_prop)
       intro y

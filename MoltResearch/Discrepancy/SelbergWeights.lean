@@ -437,7 +437,7 @@ theorem abs_selbergLambda_le {s P R : ℕ} (hP : Squarefree P)
     linarith
   calc ∏ p ∈ d.primeFactors, ((p : ℝ) / ((p : ℝ) - sieveRootCard s p))
       ≤ ∏ _p ∈ d.primeFactors, (3 : ℝ) := by
-        refine Finset.prod_le_prod (fun p hp => ?_) hper3
+        refine Finset.prod_le_prod₀ (fun p hp => ?_) hper3
         have hpP : p ∈ P.primeFactors :=
           Nat.primeFactors_mono (Nat.dvd_of_mem_divisors hd) hP.ne_zero hp
         have hpp := Nat.prime_of_mem_primeFactors hpP

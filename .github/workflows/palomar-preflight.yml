@@ -1,0 +1,40 @@
+name: Palomar preflight
+
+# Palomar's own mechanical verifier, run as a reusable workflow at a pinned PalomarSubmission
+# commit: the closest available predictor of Palomar's mechanical verdict on the Erdős
+# discrepancy entry (docs/edp-release.md). It fetches the repository anonymously, so it only
+# works once the repository is public. It is predictive only: it is not a submission, it runs no
+# editorial review, and a later Palomar run can still differ. Run it by hand on the exact commit
+# to be submitted, and submit only after its report says `status: pass`.
+#
+# When bumping the pin, keep the `uses` reference and `pipeline_commit` equal, and reread
+# PalomarRegistry/PalomarPolicy CONTRIBUTING.md and https://submit.palomar-registry.org/llms.txt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "Full 40-character commit SHA to check (blank: the dispatched ref)"
+        required: false
+        default: ""
+        type: string
+      request_id:
+        description: "Report identifier: exactly 12 lowercase letters or digits"
+        required: false
+        default: "edpreflight1"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  palomar-preflight:
+    uses: PalomarRegistry/PalomarSubmission/.github/workflows/submission.yml@a59f25bd8a66bf6faf3a4f4260d412989c0185ea
+    with:
+      repository: ${{ github.repository }}
+      commit: ${{ inputs.commit != '' && inputs.commit || github.sha }}
+      pipeline_commit: a59f25bd8a66bf6faf3a4f4260d412989c0185ea
+      request_id: ${{ inputs.request_id }}
+      mode: full
+      execution_profile: palomar-standard-v1
+      options: '{"comparator_config_path":"comparator.json","authorization_relationship":"I am a responsible author or maintainer"}'

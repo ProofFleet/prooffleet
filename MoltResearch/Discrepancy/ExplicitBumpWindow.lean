@@ -146,7 +146,7 @@ theorem exists_explicitBumpWindow_deriv_bound :
   have hleft : HasDerivAt left
       (deriv Real.smoothTransition ((u - (c - rOut)) / gap) / gap) u := by
     have hinner := ((hasDerivAt_id u).sub_const (c - rOut)).div_const gap
-    simpa [left, Function.comp_def] using
+    simpa [left, Function.comp_def] using!
       (hsmooth ((u - (c - rOut)) / gap)).comp u hinner
   have hright : HasDerivAt right
       (deriv Real.smoothTransition (((c + rOut) - u) / gap) *

@@ -1,0 +1,7 @@
+{
+  "challenge_module": "PalomarEDP.Challenge",
+  "solution_module": "PalomarEDP.Solution",
+  "theorem_names": ["EDP.erdos_discrepancy"],
+  "definition_names": [],
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"]
+}

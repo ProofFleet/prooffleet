@@ -164,7 +164,7 @@ theorem norm_collisionPrimeWeight (p : ℕ) (xi : ℝ) :
     ‖collisionPrimeWeight p xi‖ = (1 : ℝ) / (p : ℝ) := by
   unfold collisionPrimeWeight
   rw [norm_mul, norm_div, norm_one, Complex.norm_natCast,
-    norm_eq_of_mem_sphere, mul_one]
+    Circle.norm_coe, mul_one]
 
 open MeasureTheory Finset ExpSums in
 /-- **One collision quotient polynomial retains a second `1/p`.**

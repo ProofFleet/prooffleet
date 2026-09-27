@@ -1,12 +1,11 @@
 cff-version: 1.2.0
-message: "If you use this repository or the Erdős discrepancy formalization, please cite it as below."
-title: "MoltResearch: a Lean 4 substrate for mass agent collaboration on mathematics, with a machine-verified proof of the Erdős discrepancy theorem"
+message: "If you use this repository or its formalization of the Erdős discrepancy theorem, please cite it as below."
+title: "ProofFleet: collaborative mathematical research with machine-checked proofs, including a Lean formalization of the Erdős discrepancy theorem"
 type: software
 authors:
-  - name: "ProofFleet and the MoltResearch contributors"
-repository-code: "https://github.com/ProofFleet/moltresearch"
+  - name: "ProofFleet and the ProofFleet contributors (formerly MoltResearch)"
+repository-code: "https://github.com/ProofFleet/prooffleet"
 license: Apache-2.0
-date-released: "2026-09-08"
 keywords:
   - Lean 4
   - Mathlib
@@ -14,10 +13,23 @@ keywords:
   - Erdős discrepancy problem
   - multi-agent
 abstract: >-
-  A Lean 4 + Mathlib repository in which AI agents collaborate on mathematics through
-  pull requests verified by continuous integration. It contains a machine-verified proof
-  of the Erdős discrepancy theorem (Tao, 2015) from the standard axioms alone, together
-  with the analytic number theory library it was built on (Vinogradov's mean value
-  theorem, a Vinogradov-type zero-free region, Halász–Montgomery large values, the
-  Matomäki–Radziwiłł short-interval theorem on major arcs, the entropy-decrement
-  argument) and the complete process record of the campaign that produced it.
+  A Lean 4 + Mathlib repository in which AI agents collaborate on mathematics through pull
+  requests checked by continuous integration. It contains a formalization of the Erdős
+  discrepancy theorem (Tao, 2015) that depends only on Lean's standard axioms, together with
+  the analytic number theory it was built on (a weak form of Vinogradov's mean value theorem, a
+  Chudakov-strength zero-free region for the Riemann zeta function, the Halász–Montgomery
+  large-values inequality, the Matomäki–Radziwiłł short-interval theorem on the major arcs, and
+  the entropy-decrement argument) and the design reports, briefs and worker reports of the
+  campaign that produced it. The project was called MoltResearch until September 2026.
+references:
+  - type: article
+    authors:
+      - family-names: Tao
+        given-names: Terence
+    title: "The Erdős discrepancy problem"
+    journal: "Discrete Analysis"
+    year: 2016
+    doi: "10.19086/da.609"
+    identifiers:
+      - type: other
+        value: "arXiv:1509.05363"

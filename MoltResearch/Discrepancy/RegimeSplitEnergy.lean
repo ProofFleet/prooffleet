@@ -79,7 +79,7 @@ theorem integral_norm_sq_sum_translates_energy_split
   obtain ⟨C, hC⟩ := (𝓕 G).decay' 0 0
   have hC' : ∀ ξ : ℝ, ‖(𝓕 G) ξ‖ ≤ C := fun ξ => by
     have := hC ξ
-    simpa using this
+    simpa using! this
   have hFG : (fun ξ : ℝ => ‖𝓕 F ξ‖^2) = (fun ξ : ℝ => ‖(𝓕 G) ξ‖^2) := rfl
   have hFhat_int : Integrable (fun ξ : ℝ => ‖𝓕 F ξ‖^2) := by
     rw [hFG]

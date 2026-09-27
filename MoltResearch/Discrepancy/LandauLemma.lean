@@ -283,7 +283,7 @@ theorem exists_log_branch {g : ℂ → ℂ} {U : Set ℂ} (hU : IsOpen U)
         (Complex.exp (-φ z) * (-(deriv g z / g z))) z := by
       have h2 : HasDerivAt (fun w => -φ w) (-(deriv g z / g z)) z :=
         (hφd z hz).neg
-      simpa using (Complex.hasDerivAt_exp (-φ z)).comp z h2
+      simpa using! (Complex.hasDerivAt_exp (-φ z)).comp z h2
     have h3 : HasDerivAt g (deriv g z) z :=
       ((hg z (hball hz)).differentiableAt).hasDerivAt
     have h4 := h1.mul h3
@@ -372,7 +372,7 @@ theorem norm_logDeriv_le_of_ratio_le {g : ℂ → ℂ} {U : Set ℂ} (hU : IsOpe
     have h1 := hφd (c + w) (htrans w hw)
     have h2 : HasDerivAt (fun v : ℂ => c + v) 1 w :=
       (hasDerivAt_id w).const_add c
-    simpa [hψ_def] using (h1.comp w h2)
+    simpa [hψ_def] using! (h1.comp w h2)
   have hψdiff : DifferentiableOn ℂ ψ (Metric.ball (0:ℂ) R) := fun w hw =>
     ((hψd w hw).differentiableAt).differentiableWithinAt
   have hψ0 : ψ 0 = 0 := by
@@ -391,8 +391,11 @@ theorem norm_logDeriv_le_of_ratio_le {g : ℂ → ℂ} {U : Set ℂ} (hU : IsOpe
       simp only [Set.mem_setOf_eq]
       linarith
     have hball0 : Metric.ball (0:ℂ) R = Metric.ball 0 R := rfl
+    -- Mathlib's Borel–Carathéodory now asks for `re ≤ M` rather than `re < M`.
+    have hmaps' : Set.MapsTo ψ (Metric.ball (0:ℂ) R) {w : ℂ | w.re ≤ M + 1} :=
+      fun w hw => show (ψ w).re ≤ M + 1 from le_of_lt (show (ψ w).re < M + 1 from hmaps hw)
     have h2 := Complex.borelCaratheodory (M := M + 1) (by linarith) hψdiff
-      hmaps hR hz'
+      hmaps' hR hz'
     rw [hψ0] at h2
     simp only [norm_zero, zero_mul, zero_div, add_zero] at h2
     have hznorm : ‖z‖ = R/2 := by

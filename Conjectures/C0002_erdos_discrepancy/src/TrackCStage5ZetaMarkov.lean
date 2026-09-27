@@ -197,7 +197,7 @@ theorem exists_measurable_zeta_window_event {Ω : Type} [MeasurableSpace Ω]
       rw [hZω]
       exact Finset.single_le_sum (f := fun H'' => ∑' n : ℕ,
         ENNReal.ofReal (‖windowSumC (G.g ω) n H''‖ ^ 2 / (n : ℝ) ^ σ))
-        (fun _ _ => zero_le _) hH'
+        (fun _ _ => zero_le) hH'
     -- each real tsum sits below its `ℝ≥0∞` twin's `toReal` (junk `0` if not summable)
     have hS_le : ∀ H' ∈ Finset.Ioc H (2 * H),
         (∑' n : ℕ, ‖windowSumC (G.g ω) n H'‖ ^ 2 / (n : ℝ) ^ σ)

@@ -120,7 +120,7 @@ theorem sliceA2PositiveLadder_brunErrors_le
     have hraw := brunPowerIntervalFiniteError_le a Pi Ri ha hPi hRi
     have hQ : Qi ≤ Qn := by
       dsimp [Qi, Qn]
-      simpa only [Nat.add_sub_cancel] using
+      simpa only [Nat.add_sub_cancel] using!
         sliceA2LadderQ_le_last P0 ratio0 eta (n + 1) (i + 1)
           (by omega) (by omega) (by omega)
     have hR : Ri ≤ sliceA2LadderRatio ratio0 eta n := by

@@ -25,7 +25,7 @@ variable {α : Type*} [Fintype α] [Nonempty α] [MeasurableSpace α]
 theorem integral_uniform (f : α → ℝ) :
     ∫ x, f x ∂((PMF.uniformOfFintype α).toMeasure)
       = (∑ x, f x) / Fintype.card α := by
-  rw [integral_fintype _ (Integrable.of_finite)]
+  rw [integral_fintype (Integrable.of_finite)]
   simp_rw [uniform_real_singleton, smul_eq_mul, one_div_mul_eq_div]
   rw [← Finset.sum_div]
 

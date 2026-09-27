@@ -100,7 +100,7 @@ private lemma prod_one_add_log_div_le_exp {r' : ℕ} (hr' : 1 ≤ r') {L : ℝ} 
     ∏ p ∈ r'.primeFactors, (1 + Real.log p / L) ≤ Real.exp (Real.log r' / L) := by
   have h1 : ∏ p ∈ r'.primeFactors, (1 + Real.log p / L)
       ≤ ∏ p ∈ r'.primeFactors, Real.exp (Real.log p / L) := by
-    refine Finset.prod_le_prod (fun p hp => ?_) (fun p hp => ?_)
+    refine Finset.prod_le_prod₀ (fun p hp => ?_) (fun p hp => ?_)
     · have h0 : (0 : ℝ) ≤ Real.log p := Real.log_nonneg
         (by exact_mod_cast (Nat.prime_of_mem_primeFactors hp).one_lt.le)
       positivity
@@ -198,7 +198,7 @@ theorem abs_scaled_euler_prod_sub_one_le {d r' : ℕ} (hd : 1 ≤ d) (hr' : 1 �
       ((1 - 1 / (p : ℝ) ^ (1 + 1 / L)) / (1 - 1 / (p : ℝ))) := by
     calc (1 : ℝ) = ∏ _p ∈ r'.primeFactors, (1 : ℝ) := by rw [Finset.prod_const_one]
       _ ≤ _ := by
-          refine Finset.prod_le_prod (fun p hp => zero_le_one) fun p hp => ?_
+          refine Finset.prod_le_prod₀ (fun p hp => zero_le_one) fun p hp => ?_
           rw [one_le_div (hfac0 p hp)]
           exact one_sub_inv_le_one_sub_inv_rpow (hprime p hp) hσ1
   have hRup : ∏ p ∈ r'.primeFactors,
@@ -207,7 +207,7 @@ theorem abs_scaled_euler_prod_sub_one_le {d r' : ℕ} (hd : 1 ≤ d) (hr' : 1 �
     have hstep : ∏ p ∈ r'.primeFactors,
           ((1 - 1 / (p : ℝ) ^ (1 + 1 / L)) / (1 - 1 / (p : ℝ)))
         ≤ ∏ p ∈ r'.primeFactors, (1 + Real.log p / L) := by
-      refine Finset.prod_le_prod (fun p hp => ?_) (fun p hp => ?_)
+      refine Finset.prod_le_prod₀ (fun p hp => ?_) (fun p hp => ?_)
       · refine div_nonneg ?_ (hfac0 p hp).le
         have h := (half_le_one_sub_inv (hprime p hp)).trans
           (one_sub_inv_le_one_sub_inv_rpow (hprime p hp) hσ1)

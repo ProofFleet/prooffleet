@@ -180,7 +180,7 @@ theorem tsum_one_div_rpow_le_two_add_log {X : ℝ} (hX : 3 ≤ X) :
   · -- main case: split off n = 0, 1 and telescope the rest
     push_neg at hB2
     have hsplit : range B = range 2 ∪ Ico 2 B := by
-      rw [range_eq_Ico, Finset.Ico_union_Ico_eq_Ico (by omega) (by omega)]
+      rw [range_eq_Ico, range_eq_Ico, Finset.Ico_union_Ico_eq_Ico (by omega) (by omega)]
     rw [hsplit, sum_union (by
       rw [range_eq_Ico]
       exact Finset.Ico_disjoint_Ico_consecutive 0 2 B)]

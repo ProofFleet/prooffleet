@@ -5,7 +5,7 @@ import MoltResearch.Discrepancy.DiscSimp
 import MoltResearch.Discrepancy.PaperSimp
 -- For the anti-vacuity witness only (issue #2879): the Liouville-style inhabitant of
 -- {completely multiplicative, unimodular}. Regression-module import, not on the surface.
-import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.NumberTheory.ArithmeticFunction.Misc
 
 -- (CI) Touch this file to retrigger PR metadata validation after PR-body edits.
 

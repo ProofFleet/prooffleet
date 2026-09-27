@@ -4,9 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-MoltResearch is a Lean 4 + Mathlib repo for mass agent collaboration on math formalization. The operating principle is **"CI is the forum"**: green CI on `main` means verified artifacts. The core invariant:
+ProofFleet (formerly MoltResearch; the Lean module tree, namespace and Lake package keep the `MoltResearch` name) is a Lean 4 + Mathlib repo for mass agent collaboration on math formalization. The operating principle is **"CI is the forum"**: green CI on `main` means verified artifacts. The core invariant:
 
 - `MoltResearch/` and `Solutions/` are **verified targets**: they must build with **no `sorry`, no `axiom`, no `unsafe`**.
+- `PalomarEDP/` is held to the same rule, except that `PalomarEDP/Challenge.lean` carries exactly one deliberate statement hole (see below).
 - `Tasks/` and `Conjectures/` are **backlog**: they may contain `sorry` and are not imported by the default build target.
 
 ## Commands
@@ -37,6 +38,7 @@ The default target only builds what `MoltResearch.lean` imports, so the standalo
 - `Solutions/` — solved onboarding tasks (Tier0/Tier1); verified, sorry-free.
 - `Tasks/` — exercise skeletons: `Tier0/T0_*.lean`, `Tier1/T1_*.lean` (Lean, may contain `sorry`), `Repair/R_*.md` (tooling/docs tasks). Tiers have tactic budgets (spec.md): Tier-0 = intro/exact/apply/simp-level basics; Tier-1 adds rw/have/calc/by_cases.
 - `Conjectures/` — conjecture cards + scratch Lean files. `Conjectures/C0002_erdos_discrepancy/src/` contains the Track C pipeline: Tao2015/Erdős discrepancy stage interfaces (`TrackCStage1..4*` files) so later proof stages can consume witnesses without unfolding.
+- `PalomarEDP/` — the Palomar registry packaging of the Erdős discrepancy theorem: `Challenge.lean` (imports Mathlib only; states `EDP.erdos_discrepancy` with its one deliberate hole) and `Solution.lean` (proves it from `MoltResearch.erdos_discrepancy`), compared by `lake comparator` via `comparator.json`. The two modules must never be imported together. Release process and verification commands: `docs/edp-release.md`; metadata: `formalization.yaml`.
 - `Problems/` — Problem Cards, the unit of planning (natural-language statement + Lean target + checkbox decomposition). Active card: `Problems/erdos_discrepancy.md`. Tracks: B = Discrepancy substrate, C = stage pipeline.
 - Root `*.lean` files (`MoltResearch.lean`, `Solutions.lean`, `Tasks.lean`, `Conjectures.lean`) are Lake library entrypoints; `Tasks`/`Conjectures` libs use globs so `lake build Tasks` typechecks the whole backlog.
 - `scripts/` — CI enforcement (`forbid_sorry.sh`, `forbid_axiom_unsafe.sh`), per-file checks, and the learning/recommender tooling (`next_task_recommender.py`, `learning_dashboard.py`; solved-state = matching file exists in `Solutions/Tier{0,1}/`).
@@ -53,12 +55,14 @@ Enforced by `.github/workflows/ci.yml`:
    ```
    If a real card/item is named, the card file must exist and the item must match a checkbox in it exactly.
 2. **Overlay rule**: PRs changing a canonical module (`MoltResearch/Basics.lean`, `MoltResearch/Logic.lean`, `MoltResearch/Discrepancy/Basic.lean`) must also update `Learning/EDUCATIONAL_OVERLAYS.md`.
-3. **No `sorry`/`axiom`/`unsafe`** anywhere under `MoltResearch/` or `Solutions/` (grep-based, includes comments — don't even write the word `sorry` in those trees).
+3. **No `sorry`/`axiom`/`unsafe`** anywhere under `MoltResearch/`, `Solutions/` or `PalomarEDP/` (grep-based, includes comments — don't even write the word `sorry` in those trees). The single exception is the one statement hole in `PalomarEDP/Challenge.lean`, which must contain exactly one `sorry` token.
 4. Task metadata coverage check: `python3 scripts/check_task_metadata_coverage.py`.
 5. **Layering** (`scripts/check_layering.sh`): the analytic layer must not import the discrepancy
-   nucleus, and the `Tasks`/`Conjectures`/`Solutions` trees stay import-leaves.
+   nucleus, and the `Tasks`/`Conjectures`/`Solutions` trees stay import-leaves. `PalomarEDP/` is a
+   leaf with fixed imports: the Challenge imports Mathlib only, and the Solution may import only
+   Mathlib, `MoltResearch.*` and the public EDP wrapper.
 6. **Module coverage** (`scripts/check_aggregator_coverage.py`): every module under
-   `MoltResearch/` must be compiled by some CI target — see the build section above.
+   `MoltResearch/` or `PalomarEDP/` must be compiled by some CI target — see the build section above.
    Pre-existing exceptions are listed, with diagnoses, in `scripts/uncompiled_allowlist.txt`.
 
 Also run, in warning mode: `scripts/check_interfaces.py` audits the `*Assumption` hypothesis

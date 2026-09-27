@@ -267,7 +267,7 @@ theorem norm_dirichlet_poly_le_harmonic (c : ℕ → ℂ)
         * ((Real.fourierChar (-(Real.log n * t)) : Circle) : ℂ)‖
       ≤ ∑ n ∈ Finset.Ioc a b, (1 : ℝ) / n := by
   refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun n hn => ?_)
-  rw [norm_mul, norm_div, Complex.norm_natCast, norm_eq_of_mem_sphere, mul_one]
+  rw [norm_mul, norm_div, Complex.norm_natCast, Circle.norm_coe, mul_one]
   exact div_le_div_of_nonneg_right (hc n) (by positivity)
 
 /-- Dividing a factor-two natural block, including one previously

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Preflight checks for MoltResearch contributors.
+# Preflight checks for ProofFleet contributors.
 # Fast by default. Run with --ci to also run `make ci`.
 
 DO_CI=0

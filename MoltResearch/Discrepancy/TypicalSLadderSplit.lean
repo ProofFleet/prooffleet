@@ -182,7 +182,6 @@ theorem norm_typicalSQuotCoeff_append_poly_sub_le
           (s := ladder.toFinset)
           (f := fun L => if (∀ p ∈ L, ¬ p ∣ n) then (1 : ℝ) / n else 0)
           (fun L _ => by positivity) (by simpa using hL)
-        dsimp only at hsingle
         rw [if_pos hno] at hsingle
         exact hsingle
       · have heq :

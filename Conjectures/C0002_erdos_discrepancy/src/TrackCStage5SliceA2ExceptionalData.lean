@@ -203,7 +203,7 @@ theorem sliceA2Exceptional_anchor_data
       exceptionalCellAnchor_data A1
         (sliceA2ExceptionalN A1 epsc eps rho0) epsc
         (sliceA2ExceptionalN_two_le A1 epsc eps rho0)
-        (by simpa [sliceA2ExceptionalAnchor] using hanchor)
+        (by simpa [sliceA2ExceptionalAnchor] using! hanchor)
 
 theorem sliceA2ExceptionalMoment_one_le
     (A1 v : ℕ) (epsc eps rho0 T : ℝ) :

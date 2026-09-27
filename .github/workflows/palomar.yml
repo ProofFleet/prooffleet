@@ -1,0 +1,171 @@
+name: Palomar
+
+# Rehearses Palomar's mechanical checks for the Erdős discrepancy entry (docs/edp-release.md):
+#
+# - intake: the toolchain-free rules (scripts/check_palomar_submission.py, run with Palomar's own
+#   formalization.yaml validator and taxonomies and the upstream v0.4 schema, both at pinned
+#   commits) and licence detection with Licensee 10.0.0, as Palomar runs it;
+# - comparator: `lake comparator` from the project's own toolchain judging PalomarEDP.Solution
+#   against PalomarEDP.Challenge inside bubblewrap, replaying the proof through Lean's kernel and
+#   the toolchain's bundled NanoDa and con-ron kernels (scripts/verify-comparator.sh).
+#
+# It runs only when the Palomar surface, the toolchain or this workflow changes, on release tags,
+# and on demand. Ordinary proof changes are already covered by CI's axiom audit, and the kernel
+# replay is too expensive to pay on every push. `fresh` (manual runs only) discards the build
+# cache so that the project is built from source, as Palomar builds it; Mathlib still comes from
+# its official cache, as it does for Palomar.
+#
+# This is a rehearsal, not Palomar's verdict. The closest predictor is Palomar's reusable
+# preflight workflow (see docs/edp-release.md), which requires the repository to be public.
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "PalomarEDP/**"
+      - "comparator.json"
+      - "formalization.yaml"
+      - "LICENSE"
+      - "lean-toolchain"
+      - "lake-manifest.json"
+      - "lakefile.lean"
+      - "scripts/verify-comparator.sh"
+      - "scripts/check_palomar_submission.py"
+      - ".github/workflows/palomar.yml"
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+    paths:
+      - "PalomarEDP/**"
+      - "comparator.json"
+      - "formalization.yaml"
+      - "LICENSE"
+      - "lean-toolchain"
+      - "lake-manifest.json"
+      - "lakefile.lean"
+      - "scripts/verify-comparator.sh"
+      - "scripts/check_palomar_submission.py"
+      - ".github/workflows/palomar.yml"
+  workflow_dispatch:
+    inputs:
+      fresh:
+        description: "Discard the build cache and build the project from source (Mathlib from its cache)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: palomar-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  # The validators this workflow borrows, pinned. Bump deliberately, after rereading
+  # PalomarRegistry/PalomarPolicy CONTRIBUTING.md.
+  PALOMAR_SUBMISSION_REV: a59f25bd8a66bf6faf3a4f4260d412989c0185ea
+  FORMALIZATION_YAML_REV: 99c678e569c7c4c0772db297c5ddd5e4c9b6322e
+
+jobs:
+  intake:
+    name: Intake rules, metadata and licence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the pinned validators
+        run: |
+          fetch() {
+            git init -q "$2"
+            git -C "$2" fetch -q --depth 1 "$1" "$3"
+            git -C "$2" checkout -q FETCH_HEAD
+          }
+          fetch https://github.com/PalomarRegistry/PalomarSubmission "$RUNNER_TEMP/PalomarSubmission" "$PALOMAR_SUBMISSION_REV"
+          fetch https://github.com/mathlib-initiative/formalization.yaml "$RUNNER_TEMP/formalization-yaml" "$FORMALIZATION_YAML_REV"
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyyaml==6.0.3 jsonschema==4.23.0
+
+      - name: Check intake rules and metadata
+        run: |
+          "$RUNNER_TEMP/venv/bin/python" scripts/check_palomar_submission.py \
+            --palomar-submission "$RUNNER_TEMP/PalomarSubmission" \
+            --formalization-schema "$RUNNER_TEMP/formalization-yaml"
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Detect the licence with Licensee 10.0.0, as Palomar does
+        run: |
+          gem install --no-document licensee -v 10.0.0
+          licensee detect LICENSE --json --no-packages --no-readme > "$RUNNER_TEMP/license.json"
+          ruby -rjson -e '
+            ids = JSON.parse(File.read(ARGV.fetch(0))).fetch("licenses").map { |l| l.fetch("spdx_id") }
+            abort "LICENSE is detected as #{ids.inspect}, not exactly Apache-2.0" unless ids == ["Apache-2.0"]
+            puts "LICENSE detected as Apache-2.0"
+          ' "$RUNNER_TEMP/license.json"
+
+  comparator:
+    name: lake comparator (bubblewrap; Lean, NanoDa and con-ron kernels)
+    runs-on: ubuntu-latest
+    # A cold build of the Solution's closure takes about two hours on a hosted runner.
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://elan.lean-lang.org/elan-init.sh \
+            | sh -s -- -y --default-toolchain "$(cat lean-toolchain)"
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      # The same keys as ci.yml, restored only: CI owns saving them.
+      - name: Restore Mathlib/deps cache
+        uses: actions/cache/restore@v5
+        with:
+          path: ./.lake/packages
+          key: lake-deps-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}
+
+      - name: Restore Lake build cache
+        if: ${{ !inputs.fresh }}
+        uses: actions/cache/restore@v5
+        with:
+          path: ./.lake/build
+          key: lake-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: |
+            lake-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
+
+      # See ci.yml: the hosted image leaves too little disk once .lake is populated.
+      - name: Reclaim runner disk
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/share/swift \
+                      /opt/hostedtoolcache/CodeQL 2>/dev/null || true
+          docker image prune -af >/dev/null 2>&1 || true
+          df -h /
+
+      - name: Install bubblewrap for lake comparator's sandbox
+        # Ubuntu 24.04 restricts unprivileged user namespaces through AppArmor, which `bwrap`
+        # needs for the sandbox; the runner is disposable.
+        run: |
+          sudo apt-get update -qq >/dev/null
+          sudo apt-get install -y -qq bubblewrap >/dev/null
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Judge the Solution against the Challenge
+        run: |
+          set -o pipefail
+          start=$(date +%s)
+          ./scripts/verify-comparator.sh 2>&1 | tee "$RUNNER_TEMP/comparator.log"
+          echo "elapsed: $(( $(date +%s) - start )) s" | tee -a "$RUNNER_TEMP/comparator.log"
+
+      - name: Keep the verification record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comparator-report
+          path: ${{ runner.temp }}/comparator.log
+          if-no-files-found: ignore

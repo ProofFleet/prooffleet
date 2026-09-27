@@ -128,8 +128,11 @@ theorem norm_logDeriv_le_on_half_closedBall
       have := hφre (c + v) (htrans v hv)
       simp only [Set.mem_setOf_eq, ψ]
       linarith
+    -- Mathlib's Borel–Carathéodory now asks for `re ≤ M` rather than `re < M`.
+    have hmaps' : Set.MapsTo ψ (Metric.ball (0 : ℂ) R) {v : ℂ | v.re ≤ M + 1} :=
+      fun v hv => show (ψ v).re ≤ M + 1 from le_of_lt (show (ψ v).re < M + 1 from hmaps hv)
     have hbc := Complex.borelCaratheodory (M := M + 1) (by linarith)
-      hψdiff hmaps hR hqball
+      hψdiff hmaps' hR hqball
     rw [hψzero, norm_zero, zero_mul, zero_div, add_zero] at hbc
     have hden : R / 4 ≤ R - ‖q‖ := by linarith
     have hden0 : 0 < R - ‖q‖ := by linarith

@@ -14,7 +14,7 @@ set -uo pipefail
 
 trees=("$@")
 if [ "${#trees[@]}" -eq 0 ]; then
-  trees=(MoltResearch Solutions)
+  trees=(MoltResearch Solutions PalomarEDP)
 fi
 
 allowlist="scripts/axiom_allowlist.txt"

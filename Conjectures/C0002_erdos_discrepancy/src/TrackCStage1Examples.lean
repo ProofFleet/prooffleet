@@ -60,7 +60,7 @@ This is the canonical Stage-1 consumption pattern:
 theorem boundedDiscrepancyAlong_ofShift_of_boundedDiscrepancy
     (hf : IsSignSequence f) (hb : BoundedDiscrepancy f) (d m : ℕ) (hd : d > 0) :
     BoundedDiscrepancyAlong (ReductionOutput.ofShift f hf d m hd).g d := by
-  simpa using
+  simpa using!
     (boundedDiscrepancyAlong_ofReductionOutput_of_boundedDiscrepancy (f := f) (hb := hb)
       (out := ReductionOutput.ofShift f hf d m hd))
 
@@ -77,7 +77,7 @@ theorem exists_natAbs_apSumFrom_mul_gt_of_hasDiscrepancyAtLeastAlong_ofShift
     (h : HasDiscrepancyAtLeastAlong (ReductionOutput.ofShift f hf d m hd).g d C) :
     ∃ n : ℕ, Int.natAbs (apSumFrom f (m * d) d n) > C := by
   -- This is exactly the consumer-facing lemma on `ReductionOutput`.
-  simpa using
+  simpa using!
     ((ReductionOutput.ofShift f hf d m hd).hasDiscrepancyAtLeastAlong_iff_exists_natAbs_apSumFrom_mul_gt
       (f := f) (C := C)).1 h
 
@@ -90,7 +90,7 @@ theorem unboundedDiscrepancyAlong_ofShift_iff_forall_exists_discOffset_gt
     (hf : IsSignSequence f) (d m : ℕ) (hd : d > 0) :
     Tao2015.UnboundedDiscrepancyAlong (ReductionOutput.ofShift f hf d m hd).g d ↔
       (∀ B : ℕ, ∃ n : ℕ, B < discOffset f d m n) := by
-  simpa using
+  simpa using!
     (ReductionOutput.ofShift f hf d m hd).unboundedDiscrepancyAlong_iff_forall_exists_discOffset_gt (f := f)
 
 /-- Backwards-compatible alias for `unboundedDiscrepancyAlong_ofShift_iff_forall_exists_discOffset_gt`.

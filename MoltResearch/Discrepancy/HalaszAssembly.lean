@@ -396,7 +396,6 @@ theorem cheap_halasz_pairing (f : ℕ → ℂ)
         then f n else 0) hg V ρ x hx hρ0 hρ1 hVplat hV0 hVle hVnn
     (Finset.Icc 1 x) (subset_refl _)
     (fun n hn => (Finset.mem_Icc.mp hn).1)
-  dsimp only at hsand
   -- collapse the indicator sums to the main set
   have hgV : ∑ n ∈ Finset.Icc 1 x,
       ((if roughPart y₁ n ≠ 1
@@ -718,7 +717,7 @@ theorem rankin_prod_le_exp_sqrt (y : ℕ) :
     nlinarith [hsq]
   calc ∏ p ∈ y.primesBelow, (1 - (p:ℝ)^(-(1/2:ℝ)))⁻¹
       ≤ ∏ p ∈ y.primesBelow, Real.exp (4*(p:ℝ)^(-(1/2:ℝ))) := by
-        refine Finset.prod_le_prod ?_ hfac
+        refine Finset.prod_le_prod₀ ?_ hfac
         intro p hp
         obtain ⟨hv0, hv2⟩ := hv p hp
         have h1v : (0:ℝ) < 1 - (p:ℝ)^(-(1/2:ℝ)) := by nlinarith

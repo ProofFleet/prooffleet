@@ -29,8 +29,9 @@ supported profile). -/
 theorem intervalIntegral_norm_sq_le_integral (G : ℝ → ℂ)
     (hGc : Continuous G) (hGs : HasCompactSupport G) (a b : ℝ) :
     ∫ y in a..b, ‖G y‖^2 ≤ ∫ y, ‖G y‖^2 := by
+  -- `Continuous.pow` now produces the Pi power `(fun y => ‖G y‖) ^ 2`; state the pointwise form.
   have hint : Integrable (fun y => ‖G y‖^2) :=
-    ((hGc.norm.pow 2)).integrable_of_hasCompactSupport
+    (show Continuous (fun y => ‖G y‖^2) by fun_prop).integrable_of_hasCompactSupport
       (hGs.comp_left (g := fun z : ℂ => ‖z‖^2) (by simp))
   rcases le_total a b with hab | hab
   · rw [intervalIntegral.integral_of_le hab]
@@ -519,7 +520,7 @@ theorem integral_sq_norm_fourier_slice_window_le (T : ℝ) (hT : 0 < T)
         (deriv η (T*y) * T) y := hηd.comp y hTd
     have hC : HasDerivAt (fun v : ℝ => ((η (T*v) : ℝ) : ℂ))
         ((deriv η (T*y) * T : ℝ) : ℂ) y := hcomp.ofReal_comp
-    have hfd : fderiv ℝ (⇑G) y 1 = deriv (⇑G) y := fderiv_deriv
+    have hfd : fderiv ℝ (⇑G) y 1 = deriv (⇑G) y := fderiv_apply_one_eq_deriv
     rw [hfd]
     have hdG : deriv (⇑G) y = ((deriv η (T*y) * T : ℝ) : ℂ) := by
       rw [← hfun]
@@ -1587,7 +1588,7 @@ theorem norm_fourier_slice_window_decay (T : ℝ) (hT : 0 < T)
         (deriv η (T*y) * T) y := hηd.comp y hTd
     have hC : HasDerivAt (fun v : ℝ => ((η (T*v) : ℝ) : ℂ))
         ((deriv η (T*y) * T : ℝ) : ℂ) y := hcomp.ofReal_comp
-    have hfd : fderiv ℝ (⇑G) y 1 = deriv (⇑G) y := fderiv_deriv
+    have hfd : fderiv ℝ (⇑G) y 1 = deriv (⇑G) y := fderiv_apply_one_eq_deriv
     rw [hfd]
     have hdG : deriv (⇑G) y = ((deriv η (T*y) * T : ℝ) : ℂ) := by
       rw [← hfun]
@@ -3342,7 +3343,7 @@ theorem norm_ramare_weighted_poly_le (g : ℕ → ℂ)
   have hcoeff : ‖(g n₁ * ((Real.fourierChar (-(Real.log n₁ * ξ))
       : Circle) : ℂ)) / ((n₁:ℂ) * (((P.filter (· ∣ n₁)).card : ℂ) + 1))‖
       ≤ 1/(n₁:ℝ) := by
-    rw [norm_div, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_mul]
+    rw [norm_div, norm_mul, Circle.norm_coe, mul_one, norm_mul]
     have hden : ((n₁:ℝ)) * ‖(((P.filter (· ∣ n₁)).card : ℂ) + 1)‖
         = (n₁:ℝ) * (((P.filter (· ∣ n₁)).card : ℝ) + 1) := by
       congr 1

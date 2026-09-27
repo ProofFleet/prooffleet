@@ -102,8 +102,7 @@ theorem indicator_coprime_le_truncated_inclexcl
   by_cases hS : S.card = 0
   · simp only [omegaFinset, S] at hS ⊢
     simp [hS, sum_range_succ']
-  · simp only [omegaFinset, S] at hS ⊢
-    simp only [if_neg hS]
+  · rw [if_neg (show ¬ omegaFinset P m = 0 from hS)]
     exact bonferroni_even_nonneg S.card k
 
 /-- Exact count of multiples in a natural interval. -/
@@ -857,7 +856,7 @@ theorem prod_one_sub_inv_le_exp_neg_sum (P : Finset ℕ) :
   calc
     (∏ p ∈ P, (1 - 1 / (p : ℝ))) ≤
         ∏ p ∈ P, Real.exp (-(1 / (p : ℝ))) := by
-          exact prod_le_prod hfac0 fun p hp => Real.one_sub_le_exp_neg _
+          exact prod_le_prod₀ hfac0 fun p hp => Real.one_sub_le_exp_neg _
     _ = Real.exp (∑ p ∈ P, -(1 / (p : ℝ))) := by
           rw [← Real.exp_sum]
     _ = Real.exp (-(∑ p ∈ P, (1 : ℝ) / p)) := by

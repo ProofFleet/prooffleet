@@ -214,7 +214,7 @@ theorem log_le_two_mul_selbergG_zero (z R : ℕ) (hz : 1 ≤ z)
       push_cast
       rfl
     rw [one_div, hk_cast, ← Finset.prod_inv_distrib]
-    refine Finset.prod_le_prod (fun p _ => by positivity) fun p hp => ?_
+    refine Finset.prod_le_prod₀ (fun p _ => by positivity) fun p hp => ?_
     rw [Nat.mem_primeFactors] at hp
     have hp2 : (2:ℝ) ≤ p := by exact_mod_cast hp.1.two_le
     simp only [inv_eq_one_div]

@@ -66,7 +66,7 @@ def main() -> int:
     # the backlog libs import MoltResearch modules, so a module reachable only from a
     # Conjectures stage file is still compiled by CI and must not be reported as an orphan.
     imports: dict[str, set[str]] = {}
-    for tree in ("MoltResearch", "Solutions", "Tasks", "Conjectures"):
+    for tree in ("MoltResearch", "Solutions", "Tasks", "Conjectures", "PalomarEDP"):
         for path in sorted((REPO / tree).rglob("*.lean")):
             imports[module_name(path)] = set(IMPORT_RE.findall(path.read_text(encoding="utf-8")))
     # Root entrypoints (MoltResearch.lean, Solutions.lean, …) sit at the repo root.
@@ -95,10 +95,12 @@ def main() -> int:
             visit(target)
 
     # The reachability graph spans every tree (so a Conjectures -> MoltResearch import counts),
-    # but the invariant being enforced is about the verified nucleus: every module under
-    # MoltResearch/. The backlog trees are compiled wholesale by their globs, and their root
-    # entrypoints are docstring-only, so neither needs accounting for here.
-    modules = {m for m in imports if m.startswith("MoltResearch.")}
+    # but the invariant being enforced is about the verified trees: every module under
+    # MoltResearch/ and under PalomarEDP/ (the Palomar statement surface, whose two modules
+    # nothing imports, so each must be a CI target itself). The backlog trees are compiled
+    # wholesale by their globs, and their root entrypoints are docstring-only, so neither needs
+    # accounting for here.
+    modules = {m for m in imports if m.startswith(("MoltResearch.", "PalomarEDP."))}
     orphans = sorted(modules - reachable)
 
     print(

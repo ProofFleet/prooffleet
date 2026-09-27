@@ -56,7 +56,7 @@ lemma hasDiscrepancyAtLeast_const_of_ne_zero (c : ℤ) (hc : c ≠ 0) (C : ℕ) 
   -- compute the absolute value of the sum
   have hnatAbs :
       Int.natAbs (apSum (fun _ => c) 1 (C + 1)) = (C + 1) * Int.natAbs c := by
-    simpa [apSum_const, nsmul_eq_mul] using
+    simpa [apSum_const, nsmul_eq_mul] using!
       (Int.natAbs_mul (a := (C + 1 : ℤ)) (b := c))
   -- `Int.natAbs c` is at least `1`
   have hpos : 1 ≤ Int.natAbs c := one_le_natAbs_of_ne_zero (c := c) hc
@@ -110,7 +110,7 @@ lemma hasAffineDiscrepancyAtLeast_const_of_ne_zero (c : ℤ) (hc : c ≠ 0) (C :
   refine ⟨0, 1, C + 1, by decide, ?_⟩
   have hnatAbs :
       Int.natAbs (apSumFrom (fun _ => c) 0 1 (C + 1)) = (C + 1) * Int.natAbs c := by
-    simpa [apSumFrom_const, nsmul_eq_mul] using
+    simpa [apSumFrom_const, nsmul_eq_mul] using!
       (Int.natAbs_mul (a := (C + 1 : ℤ)) (b := c))
   have hpos : 1 ≤ Int.natAbs c := one_le_natAbs_of_ne_zero (c := c) hc
   have hgt : (C + 1) * Int.natAbs c > C := by

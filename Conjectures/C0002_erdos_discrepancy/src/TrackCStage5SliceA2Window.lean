@@ -179,7 +179,7 @@ theorem norm_sum_sliceWeightedTypicalCoeff_le_length
           norm_sum_le _ _
     _ ≤ ∑ _m ∈ Finset.Ioc A (A + R), (1 : ℝ) := by
       refine Finset.sum_le_sum fun m hm => ?_
-      rw [norm_mul, norm_eq_of_mem_sphere]
+      rw [norm_mul, Circle.norm_coe]
       simpa using norm_sliceWeightedTypicalCoeff_le_one A hA levels g hg m
     _ = R := by
       rw [Finset.sum_const, Nat.card_Ioc, Nat.add_sub_cancel_left,

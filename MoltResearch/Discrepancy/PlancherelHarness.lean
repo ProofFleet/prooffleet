@@ -32,7 +32,7 @@ theorem hasCompactSupport_finset_sum {ι : Type*} {S : Finset ι}
     HasCompactSupport (fun y => ∑ i ∈ S, f i y) := by
   classical
   induction S using Finset.cons_induction with
-  | empty => simpa using HasCompactSupport.zero
+  | empty => simpa using! HasCompactSupport.zero
   | cons a T ha ih =>
     have h1 : (fun y => ∑ i ∈ Finset.cons a T ha, f i y)
         = (fun y => f a y + ∑ i ∈ T, f i y) := by
@@ -237,7 +237,7 @@ theorem setIntegral_norm_fourier_sq_le (f : 𝓢(ℝ, ℂ)) (K : ℝ) (hK : 0 < 
     obtain ⟨C, hC⟩ := g.decay' 0 0
     exact ⟨C, fun ξ => by
       have := hC ξ
-      simpa using this⟩
+      simpa using! this⟩
   obtain ⟨C, hC⟩ := hgbd
   have hC0 : 0 ≤ C := le_trans (norm_nonneg _) (hC 0)
   have hint1 : Integrable (fun ξ : ℝ => ‖g ξ‖^2) := by
@@ -478,7 +478,7 @@ theorem smoothedLogSum_hasCompactSupport (T : ℝ) (hT : 0 < T)
           = η ∘ ((Homeomorph.mulLeft₀ T (ne_of_gt hT)).trans
               (Homeomorph.subRight (T * Real.log m))) := by
         funext y
-        simp [Homeomorph.mulLeft₀, Homeomorph.subRight, mul_sub]
+        simp [Homeomorph.subRight, mul_sub]
       rw [h3]
       exact hηc.comp_homeomorph _
     have h4 : HasCompactSupport (fun y : ℝ =>
@@ -532,7 +532,7 @@ theorem integral_norm_sq_sum_translates_regime_split
   obtain ⟨C, hC⟩ := (𝓕 G).decay' 0 0
   have hC' : ∀ ξ : ℝ, ‖(𝓕 G) ξ‖ ≤ C := fun ξ => by
     have := hC ξ
-    simpa using this
+    simpa using! this
   -- integrability of `‖𝓕F‖²`
   have hFG : (fun ξ : ℝ => ‖𝓕 F ξ‖^2) = (fun ξ : ℝ => ‖(𝓕 G) ξ‖^2) := rfl
   have hFhat_int : Integrable (fun ξ : ℝ => ‖𝓕 F ξ‖^2) := by
@@ -789,7 +789,7 @@ theorem sum_translates_eq_integral_char' (F : ℝ → ℂ)
       ‖∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)‖ ≤ ∑ i ∈ S, ‖w i‖ := by
     intro ξ
     refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
-    rw [norm_mul, norm_eq_of_mem_sphere]
+    rw [norm_mul, Circle.norm_coe]
     simp
   have hGF : ∀ ξ, 𝓕 G ξ
       = (∑ i ∈ S, w i * ((𝐞 (-(s i * ξ)) : Circle) : ℂ)) * 𝓕 F ξ :=
@@ -858,7 +858,7 @@ theorem norm_sum_translates_le_integral_char' (F : ℝ → ℂ)
           ≤ ∑ i ∈ S, ‖w i‖ := by
       intro ξ
       refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun i _ => ?_)
-      rw [norm_mul, norm_eq_of_mem_sphere]
+      rw [norm_mul, Circle.norm_coe]
       simp
     have hcontF : Continuous (𝓕 F) :=
       VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar
@@ -920,7 +920,7 @@ theorem integral_norm_sq_sum_translates_regime_split_pow
   obtain ⟨C, hC⟩ := (𝓕 G).decay' 0 0
   have hC' : ∀ ξ : ℝ, ‖(𝓕 G) ξ‖ ≤ C := fun ξ => by
     have := hC ξ
-    simpa using this
+    simpa using! this
   have hFG : (fun ξ : ℝ => ‖𝓕 F ξ‖^2) = (fun ξ : ℝ => ‖(𝓕 G) ξ‖^2) := rfl
   have hFhat_int : Integrable (fun ξ : ℝ => ‖𝓕 F ξ‖^2) := by
     rw [hFG]
@@ -1069,7 +1069,7 @@ theorem integral_norm_sq_sum_translates_band_split
   obtain ⟨C, hC⟩ := (𝓕 G).decay' 0 0
   have hC' : ∀ ξ : ℝ, ‖(𝓕 G) ξ‖ ≤ C := fun ξ => by
     have := hC ξ
-    simpa using this
+    simpa using! this
   -- integrability of `‖𝓕F‖²`
   have hFG : (fun ξ : ℝ => ‖𝓕 F ξ‖^2) = (fun ξ : ℝ => ‖(𝓕 G) ξ‖^2) := rfl
   have hFhat_int : Integrable (fun ξ : ℝ => ‖𝓕 F ξ‖^2) := by

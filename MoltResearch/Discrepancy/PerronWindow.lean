@@ -235,20 +235,20 @@ theorem exists_perron_window (σ : ℝ → ℝ) (C : ℝ)
     have hout : HasDerivAt g (deriv g (v/ρ)) (v/ρ) :=
       (hg (v/ρ)).hasDerivAt
     have := hout.comp v (hcomp_div v)
-    simpa [div_eq_mul_inv] using this
+    simpa [div_eq_mul_inv] using! this
   have hσ_at2 : ∀ (g : ℝ → ℝ), Differentiable ℝ g → ∀ v : ℝ,
       HasDerivAt (fun v : ℝ => g (v - a)) (deriv g (v - a)) v := by
     intro g hg v
     have hout : HasDerivAt g (deriv g (v - a)) (v - a) :=
       (hg (v - a)).hasDerivAt
     have := hout.comp v (hcomp_sub v)
-    simpa using this
+    simpa using! this
   have hS'at : ∀ v, HasDerivAt S (S₁ v) v := by
     intro v
     have h1 := hσ_at σ hσdiff v
     have h3 : HasDerivAt (fun v : ℝ => 1 - σ (v - a))
         (-(deriv σ (v - a))) v := by
-      simpa using (hasDerivAt_const v (1:ℝ)).sub (hσ_at2 σ hσdiff v)
+      simpa using! (hasDerivAt_const v (1:ℝ)).sub (hσ_at2 σ hσdiff v)
     have := h1.mul h3
     rw [hS_def, hS₁_def]
     convert this using 1
@@ -261,7 +261,7 @@ theorem exists_perron_window (σ : ℝ → ℝ) (C : ℝ)
       (hσ_at (deriv σ) hσ'diff v).div_const ρ
     have h3 : HasDerivAt (fun v : ℝ => 1 - σ (v - a))
         (-(deriv σ (v - a))) v := by
-      simpa using (hasDerivAt_const v (1:ℝ)).sub (hσ_at2 σ hσdiff v)
+      simpa using! (hasDerivAt_const v (1:ℝ)).sub (hσ_at2 σ hσdiff v)
     have hA := h1'.mul h3
     have hB := (hσ_at σ hσdiff v).mul (hσ_at2 (deriv σ) hσ'diff v)
     have := hA.sub hB
@@ -273,7 +273,7 @@ theorem exists_perron_window (σ : ℝ → ℝ) (C : ℝ)
       (-(Real.exp (-v))) v := by
     intro v
     have := (Real.hasDerivAt_exp (-v)).comp v ((hasDerivAt_id v).neg)
-    simpa using this
+    simpa using! this
   have hV'at : ∀ v, HasDerivAt V (Real.exp (-v) * (S₁ v - S v)) v := by
     intro v
     have := (hexp_at v).mul (hS'at v)
@@ -529,7 +529,7 @@ theorem exists_perron_window (σ : ℝ → ℝ) (C : ℝ)
     rw [integrableOn_Ici_iff_integrableOn_Ioi]
     refine Integrable.const_mul ?_ K
     have := exp_neg_integrableOn_Ioi (0:ℝ) (one_pos)
-    simpa [neg_mul, one_mul] using this
+    simpa [neg_mul, one_mul] using! this
   refine le_trans (integral_mono hint2 hind_int hpt) ?_
   rw [integral_indicator measurableSet_Ici]
   rw [integral_Ici_eq_integral_Ioi]
@@ -2622,7 +2622,7 @@ theorem iteratedDeriv_three_exp_neg_mul (g g₁ g₂ g₃ : ℝ → ℝ)
       (-(Real.exp (-v))) v := by
     intro v
     have := (Real.hasDerivAt_exp (-v)).comp v ((hasDerivAt_id v).neg)
-    simpa using this
+    simpa using! this
   -- first derivative
   have hd1 : ∀ v, HasDerivAt (fun v => Real.exp (-v) * g v)
       (Real.exp (-v) * (g₁ v - g v)) v := by
@@ -2858,6 +2858,7 @@ theorem hasDerivAt_comp_div_const (g : ℝ → ℝ) (hg : Differentiable ℝ g)
   have hin : HasDerivAt (fun v : ℝ => v/ρ) (1/ρ) v := by
     simpa using (hasDerivAt_id v).div_const ρ
   have := hout.comp v hin
+  rw [show (fun v : ℝ => g (v / ρ)) = g ∘ (fun v : ℝ => v / ρ) from rfl]
   convert this using 1
   ring
 
@@ -2868,7 +2869,7 @@ theorem hasDerivAt_comp_sub_const (g : ℝ → ℝ) (hg : Differentiable ℝ g)
   have hout : HasDerivAt g (deriv g (v - a)) (v - a) := (hg (v - a)).hasDerivAt
   have hin : HasDerivAt (fun v : ℝ => v - a) 1 v := (hasDerivAt_id v).sub_const a
   have := hout.comp v hin
-  simpa using this
+  simpa using! this
 
 /-- **The window cutoff's third derivative** (Track R, N127): for
 `ρ ≠ 0` and `σ` three times differentiable, the second derivative of
@@ -2923,7 +2924,7 @@ theorem hasDerivAt_S_three (σ : ℝ → ℝ) (hσd : Differentiable ℝ σ)
   -- the complement factor
   have kc : HasDerivAt (fun v : ℝ => 1 - σ (v - a))
       (-(deriv σ (v - a))) v := by
-    simpa using (hasDerivAt_const v (1:ℝ)).sub k0
+    simpa using! (hasDerivAt_const v (1:ℝ)).sub k0
   -- differentiate the three products of `S₂`
   have hA : HasDerivAt
       (fun v : ℝ => deriv (deriv σ) (v/ρ) / ρ^2 * (1 - σ (v - a)))
@@ -3184,11 +3185,11 @@ theorem integral_Ioi_mul_cexp_neg (a : ℂ) (ha : 0 < a.re) :
   have hderiv : ∀ v : ℝ, HasDerivAt F ((v:ℂ) * Complex.exp (-(a*(v:ℂ)))) v := by
     intro v
     have hre : HasDerivAt (fun t : ℝ => (t:ℂ)) 1 v := by
-      simpa using (Complex.ofRealCLM.hasDerivAt (x := v))
+      simpa using! (Complex.ofRealCLM.hasDerivAt (x := v))
     have h1 : HasDerivAt (fun t : ℝ => a*(t:ℂ) + 1) a v := by
       simpa using (hre.const_mul a).add_const 1
     have h2 : HasDerivAt (fun t : ℝ => -(a*(t:ℂ))) (-a) v := by
-      simpa using (hre.const_mul a).neg
+      simpa using! (hre.const_mul a).neg
     have h3 : HasDerivAt (fun t : ℝ => Complex.exp (-(a*(t:ℂ))))
         (Complex.exp (-(a*(v:ℂ))) * (-a)) v := h2.cexp
     have h5 := ((h1.mul h3).neg).div_const (a^2)

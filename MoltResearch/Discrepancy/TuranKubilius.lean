@@ -70,8 +70,7 @@ theorem sum_one_div_filter_dvd_eq (k N : ℕ) (hk : 1 ≤ k) :
       = (1 / k) * ∑ m ∈ Finset.Ico 1 ((N - 1) / k + 1), (1 : ℝ) / m := by
   rw [Finset.mul_sum]
   refine Finset.sum_nbij' (fun n => n / k) (fun m => k * m) ?_ ?_ ?_ ?_ ?_
-  · dsimp only
-    intro n hn
+  · intro n hn
     rw [Finset.mem_filter, Finset.mem_Ico] at hn
     obtain ⟨⟨hn1, hn2⟩, c, hc⟩ := hn
     have hc1 : 1 ≤ c := by
@@ -86,8 +85,7 @@ theorem sum_one_div_filter_dvd_eq (k N : ℕ) (hk : 1 ≤ k) :
       refine (Nat.le_div_iff_mul_le (by omega)).mpr ?_
       omega
     omega
-  · dsimp only
-    intro m hm
+  · intro m hm
     rw [Finset.mem_Ico] at hm
     obtain ⟨hm1, hm2⟩ := hm
     have h1 : k * m ≤ N - 1 := by
@@ -97,16 +95,13 @@ theorem sum_one_div_filter_dvd_eq (k N : ℕ) (hk : 1 ≤ k) :
     have h2 : 0 < k * m := Nat.mul_pos (by omega) (by omega)
     rw [Finset.mem_filter, Finset.mem_Ico]
     exact ⟨⟨by omega, by omega⟩, ⟨m, rfl⟩⟩
-  · dsimp only
-    intro n hn
+  · intro n hn
     rw [Finset.mem_filter] at hn
     obtain ⟨_, c, hc⟩ := hn
     rw [hc, Nat.mul_div_cancel_left c (by omega)]
-  · dsimp only
-    intro m _
+  · intro m _
     rw [Nat.mul_div_cancel_left m (by omega)]
-  · dsimp only
-    intro n hn
+  · intro n hn
     rw [Finset.mem_filter] at hn
     obtain ⟨_, c, hc⟩ := hn
     rw [hc, Nat.mul_div_cancel_left c (by omega)]

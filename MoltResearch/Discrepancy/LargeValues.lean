@@ -327,7 +327,6 @@ theorem intervalIntegral_norm_sq_phase_sum_le (P : Finset ℕ)
     rw [← intervalIntegral_re _ ((hcont p q).intervalIntegrable _ _),
       ← intervalIntegral_re _ ((hcont q p).intervalIntegrable _ _)]
     refine intervalIntegral.integral_congr (fun ξ _ => ?_)
-    dsimp only
     have h1 : (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
         * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
           : ℂ))

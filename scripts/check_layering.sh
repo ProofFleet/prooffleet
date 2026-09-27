@@ -46,6 +46,44 @@ if hits=$(grep -RIn --include='*.lean' -E '^import Solutions\.' \
   fail=1
 fi
 
+# 3. The Palomar statement surface (PalomarEDP/, see docs/edp-release.md) is a leaf with fixed
+#    imports.
+#    - PalomarEDP/Challenge.lean is the statement a reader audits, and Palomar rejects any
+#      project file in its import closure: it may import Mathlib only.
+#    - PalomarEDP/Solution.lean may import Mathlib, the nucleus and the public EDP wrapper, and
+#      never the Challenge: both declare `EDP.erdos_discrepancy`.
+#    - PalomarEDP/ holds exactly those two modules, and nothing imports either of them.
+#    Solution.lean is the one file outside the backlog trees that imports one of them (rule 2a).
+#    That stays sound because it is itself named in scripts/ci_targets.txt: a Conjectures change
+#    that breaks it fails CI directly.
+if [ -d PalomarEDP ]; then
+  if hits=$(grep -n -E '^import ' PalomarEDP/Challenge.lean |
+      grep -v -E '^[0-9]+:import Mathlib(\.[A-Za-z0-9_.]+)?[[:space:]]*$'); then
+    echo "ERROR: PalomarEDP/Challenge.lean may import Mathlib only" >&2
+    echo "$hits" >&2
+    fail=1
+  fi
+  if hits=$(grep -n -E '^import ' PalomarEDP/Solution.lean |
+      grep -v -E '^[0-9]+:import (Mathlib(\.[A-Za-z0-9_.]+)?|MoltResearch(\.[A-Za-z0-9_.]+)?|Conjectures\.C0002_erdos_discrepancy\.src\.ErdosDiscrepancy)[[:space:]]*$'); then
+    echo "ERROR: PalomarEDP/Solution.lean may import Mathlib, MoltResearch.* and" \
+      "Conjectures.C0002_erdos_discrepancy.src.ErdosDiscrepancy only" >&2
+    echo "$hits" >&2
+    fail=1
+  fi
+  if extra=$(find PalomarEDP -type f ! -path PalomarEDP/Challenge.lean ! -path PalomarEDP/Solution.lean |
+      grep .); then
+    echo "ERROR: PalomarEDP/ must contain only Challenge.lean and Solution.lean" >&2
+    echo "$extra" >&2
+    fail=1
+  fi
+  if hits=$(grep -RIn --include='*.lean' -E '^import PalomarEDP' \
+      MoltResearch Solutions Tasks Conjectures PalomarEDP ./*.lean 2>/dev/null); then
+    echo "ERROR: nothing may import PalomarEDP.*" >&2
+    echo "$hits" >&2
+    fail=1
+  fi
+fi
+
 if [ "$fail" -eq 0 ]; then
   echo "check_layering: OK"
 fi

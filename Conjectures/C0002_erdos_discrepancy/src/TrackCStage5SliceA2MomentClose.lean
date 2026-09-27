@@ -152,7 +152,7 @@ theorem sliceA2ExceptionalGamma_fit_of_log
     have hPtwo : 2 ≤ P := by
       dsimp [P]
       omega
-    simpa [P, ell, sliceA2ExceptionalMoment] using
+    simpa [P, ell, sliceA2ExceptionalMoment] using!
       exceptionalCellMoment_time_term_le_one
         (sliceA2ExceptionalN A1 epsc eps rho0) v T (by
           simpa [P, sliceA2ExceptionalAnchor] using hPtwo) hT

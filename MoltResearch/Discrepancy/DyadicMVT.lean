@@ -187,7 +187,6 @@ theorem intervalIntegral_norm_sq_dyadic_poly_le (N : ℕ) (hN : 1 ≤ N)
     rw [← intervalIntegral_re _ ((hcont p q).intervalIntegrable _ _),
       ← intervalIntegral_re _ ((hcont q p).intervalIntegrable _ _)]
     refine intervalIntegral.integral_congr (fun ξ _ => ?_)
-    dsimp only
     have h1 : (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
         * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
           : ℂ))
@@ -676,7 +675,6 @@ theorem intervalIntegral_norm_sq_poly_pairs_le
     rw [← intervalIntegral_re _ ((hcont p q).intervalIntegrable _ _),
       ← intervalIntegral_re _ ((hcont q p).intervalIntegrable _ _)]
     refine intervalIntegral.integral_congr (fun ξ _ => ?_)
-    dsimp only
     have h1 : (((a p/(p:ℂ)) * (starRingEnd ℂ) (a q/(q:ℂ)))
         * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
           : ℂ))
@@ -1170,7 +1168,7 @@ theorem integral_norm_sq_poly_weight_eq (S : Finset ℕ) (c : ℕ → ℂ)
         with hz_def
       have h1 : |z.re| ≤ ‖c m‖ * ‖c n‖ := by
         refine le_trans (Complex.abs_re_le_norm _) ?_
-        rw [hz_def, norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one,
+        rw [hz_def, norm_mul, norm_mul, Circle.norm_coe, mul_one,
           RCLike.norm_conj]
       rw [Real.norm_eq_abs, abs_mul]
       calc |z.re| * |W ξ| ≤ (‖c m‖ * ‖c n‖) * |W ξ| :=
@@ -1214,7 +1212,7 @@ theorem integral_re_char_mul_weight (z : ℂ) (v : ℝ) (W : ℝ → ℝ)
     refine ((hWi.abs).const_mul 1).mono' ?_ ?_
     · exact ((Complex.continuous_ofReal.comp hWc).mul hchar).aestronglyMeasurable
     · refine Filter.Eventually.of_forall fun ξ => ?_
-      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, norm_eq_of_mem_sphere,
+      rw [norm_mul, Complex.norm_real, Real.norm_eq_abs, Circle.norm_coe,
         mul_one, one_mul]
   have hintz : Integrable fun ξ : ℝ => z * (((W ξ : ℝ) : ℂ)
       * ((Real.fourierChar (-(v * ξ)) : Circle) : ℂ)) := hint.const_mul z
@@ -1685,7 +1683,7 @@ theorem inner_sum_le (T : ℝ) (m h J : ℕ) (hm : 1 ≤ m) (hh : 2 ≤ h)
   -- the shell sum, at the dyadic cut points
   have hstep := shell_sum_le T m J (fun j => (2^j - 1)*h) (fun j => 2^j*h)
     hm (dyadic_cut_zero h) (dyadic_cut_monotone h)
-    (fun j => dyadic_cut_succ h j) (by simp only; omega)
+    (fun j => dyadic_cut_succ h j) (by omega)
     (fun j _ => by
       have h1 : (1:ℕ) ≤ 2^j := Nat.one_le_two_pow
       calc (2:ℕ) ≤ h := hh
@@ -1793,7 +1791,7 @@ theorem intervalIntegral_norm_sq_gaussian_pairs_le (S : Finset ℕ) (c : ℕ →
         ≤ ∑ n ∈ S, ‖c n‖ := by
     intro ξ
     refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun n _ => ?_)
-    rw [norm_mul, norm_eq_of_mem_sphere, mul_one]
+    rw [norm_mul, Circle.norm_coe, mul_one]
   -- the transform of the weight, at the log-difference
   have hFourier : ∀ v : ℝ,
       (∫ ξ : ℝ, ((Real.exp π * Real.exp (-(π*(ξ/T)^2)) : ℝ) : ℂ)
@@ -2220,9 +2218,8 @@ theorem inner_sum_le_left (T : ℝ) (m h J : ℕ) (hh : 2 ≤ h)
       omega
   have hstep := shell_sum_le_left T m J (fun j : ℕ => m - 1 - (2^j - 1)*h)
     hanti hc0 hwN L hLb
-  rw [hc0v] at hstep
+  rw [show m - 1 - (2 ^ 0 - 1) * h = m - 1 from hc0v] at hstep
   refine le_trans hstep ?_
-  simp only
   -- collapse the shells: `j = 0` is trivial, `j ≥ 1` is the series
   have hterm : ∀ j ∈ Finset.range J,
       Real.exp (-(π*T^2*((m:ℝ) - ((m - 1 - (2^j - 1)*h : ℕ):ℝ))^2
@@ -3077,7 +3074,6 @@ theorem intervalIntegral_norm_sq_short_poly_le (A Δ : ℕ)
     rw [← intervalIntegral_re _ ((hcont p q).intervalIntegrable _ _),
       ← intervalIntegral_re _ ((hcont q p).intervalIntegrable _ _)]
     refine intervalIntegral.integral_congr (fun ξ _ => ?_)
-    dsimp only
     have h1 : (((c p/(p:ℂ)) * (starRingEnd ℂ) (c q/(q:ℂ)))
         * ((Real.fourierChar (-((Real.log p - Real.log q) * ξ)) : Circle)
           : ℂ))
@@ -3948,8 +3944,8 @@ theorem disjoint_Ioc_min_Ioc_max {a b a' b' : ℕ} (h : a' ≤ b') :
 theorem sum_eq_sum_add_sum_sdiff_sub_sum_sdiff {ι M : Type*} [DecidableEq ι]
     [AddCommGroup M] (s t : Finset ι) (f : ι → M) :
     ∑ n ∈ s, f n = ∑ n ∈ t, f n + ∑ n ∈ s \ t, f n - ∑ n ∈ t \ s, f n := by
-  have h1 := Finset.sum_inter_add_sum_diff s t f
-  have h2 := Finset.sum_inter_add_sum_diff t s f
+  have h1 := Finset.sum_inter_add_sum_sdiff s t f
+  have h2 := Finset.sum_inter_add_sum_sdiff t s f
   rw [Finset.inter_comm] at h2
   rw [← h1, ← h2]
   abel

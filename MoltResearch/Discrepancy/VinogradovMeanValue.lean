@@ -207,7 +207,7 @@ theorem vinogradovPairCount_eq_sum_representation {s k : ℕ}
       ↑((A ×ˢ B).filter fun xy =>
         vinogradovMomentVector k xy.1 = vinogradovMomentVector k xy.2) ↑C := by
     intro xy hxy
-    change xy ∈ ((A ×ˢ B).filter fun xy =>
+    change xy ∈ ((A ×ˢ B).filter fun xy : (Fin s → ℕ) × (Fin s → ℕ) =>
       vinogradovMomentVector k xy.1 = vinogradovMomentVector k xy.2) at hxy
     rw [Finset.mem_filter, Finset.mem_product] at hxy
     exact Finset.mem_union_left _ (Finset.mem_image.mpr ⟨xy.1, hxy.1.1, rfl⟩)
@@ -579,28 +579,28 @@ private theorem multiset_esymm_eq_of_powerSums_eq
         have hnx' :
             (m : R) * (Finset.univ.val.map x).esymm m =
               (-1 : R) ^ (m + 1) *
-                ∑ a ∈ Finset.antidiagonal m with a.1 < m,
+                ∑ a ∈ Finset.HasAntidiagonal.antidiagonal m with a.1 < m,
                   (-1 : R) ^ a.1 * (Finset.univ.val.map x).esymm a.1 *
                     ∑ i, x i ^ a.2 := by
           simpa [MvPolynomial.psum, hevalx] using hnx
         have hny' :
             (m : R) * (Finset.univ.val.map y).esymm m =
               (-1 : R) ^ (m + 1) *
-                ∑ a ∈ Finset.antidiagonal m with a.1 < m,
+                ∑ a ∈ Finset.HasAntidiagonal.antidiagonal m with a.1 < m,
                   (-1 : R) ^ a.1 * (Finset.univ.val.map y).esymm a.1 *
                     ∑ i, y i ^ a.2 := by
           simpa [MvPolynomial.psum, hevaly] using hny
         have hrs :
-            (∑ a ∈ Finset.antidiagonal m with a.1 < m,
+            (∑ a ∈ Finset.HasAntidiagonal.antidiagonal m with a.1 < m,
                 (-1 : R) ^ a.1 * (Finset.univ.val.map x).esymm a.1 *
                   ∑ i, x i ^ a.2) =
-              ∑ a ∈ Finset.antidiagonal m with a.1 < m,
+              ∑ a ∈ Finset.HasAntidiagonal.antidiagonal m with a.1 < m,
                 (-1 : R) ^ a.1 * (Finset.univ.val.map y).esymm a.1 *
                   ∑ i, y i ^ a.2 := by
           refine Finset.sum_congr rfl fun a ha => ?_
           rw [Finset.mem_filter] at ha
           have ha2 : a.2 ≤ m := by
-            have := (Finset.mem_antidiagonal.mp ha.1).symm
+            have := (Finset.HasAntidiagonal.mem_antidiagonal.mp ha.1).symm
             omega
           rw [ih a.1 ha.2 (le_trans (Nat.le_of_lt ha.2) hm)]
           by_cases ha20 : a.2 = 0
@@ -678,7 +678,6 @@ private theorem fullMoment_injective_of_same_residues {p k : ℕ}
     (hres : ∀ i, (x i : ZMod p) = (y i : ZMod p)) :
     ∀ i, (x i : ZMod (p ^ k)) = (y i : ZMod (p ^ k)) := by
   classical
-  letI : Fact p.Prime := ⟨hp⟩
   letI : NeZero (p ^ k) := ⟨pow_ne_zero _ hp.ne_zero⟩
   have hpow : ∀ m ∈ Finset.Icc 1 k,
       ∑ i, (x i : ZMod (p ^ k)) ^ m =
@@ -1171,7 +1170,7 @@ private theorem tupleLists_perm_of_moments_eq {k : ℕ} {x y : Fin k → ℕ}
       simpa [List.ofFn_eq_map, Finset.val_univ_fin] using hroots)
   exact (List.map_perm_map_iff
     (Nat.cast_injective : Function.Injective (fun n : ℕ => (n : ℚ)))).mp (by
-    simpa [List.ofFn_eq_map] using hcast)
+    simpa [List.ofFn_eq_map] using! hcast)
 
 /-- The diagonal starting point of the iteration: a solution with exactly
 `k` variables on each side differs only by a permutation. -/
@@ -1380,7 +1379,7 @@ private theorem prod_le_sum_pow_card {ι : Type*} [Fintype ι] [Nonempty ι]
     Finset.exists_max_image (Finset.univ : Finset ι) f Finset.univ_nonempty
   calc
     (∏ i, f i) ≤ ∏ _i : ι, f i₀ := by
-      apply Finset.prod_le_prod
+      apply Finset.prod_le_prod₀
       · exact fun i hi => hf i
       · intro i hi
         exact hmax i (Finset.mem_univ i)
@@ -3461,7 +3460,7 @@ private theorem exists_short_separating_prime {k P q : ℕ}
     calc
       q ^ M = ∏ _p ∈ T, q := by simp [hTcard]
       _ < ∏ p ∈ T, p := by
-        apply Finset.prod_lt_prod (fun _ _ => hq0)
+        apply Finset.prod_lt_prod₀ (fun _ _ => hq0)
         · intro p hp
           exact (hdata p hp).2.1.le
         · have hTne : T.Nonempty := by
@@ -3575,7 +3574,7 @@ private theorem exists_separating_prime {k P q : ℕ}
     calc
       q ^ M = ∏ _t : Fin M, q := by simp
       _ < ∏ t : Fin M, vinogradovPrimeChain q (t + 1) := by
-        apply Finset.prod_lt_prod (fun _ _ => hq0)
+        apply Finset.prod_lt_prod₀ (fun _ _ => hq0)
         · intro t ht
           exact ((primeChain_strictMono hq0) (Nat.zero_lt_succ t)).le
         · exact ⟨⟨0, by dsimp [M, E]; omega⟩, Finset.mem_univ _,
@@ -3696,7 +3695,7 @@ private theorem exists_perm_first_injective {r k : ℕ} (x : Fin (r + k) → ℕ
     calc
       values i = x (e i) := (hsel i).symm
       _ = x (σ (f i)) := by rw [hsigma i]
-      _ = x (σ (f j)) := by simpa [f, vinogradovFirstEmbedding] using hij
+      _ = x (σ (f j)) := by simpa [f, vinogradovFirstEmbedding] using! hij
       _ = x (e j) := by rw [hsigma j]
       _ = values j := hsel j
   exact values.injective hvaluesEq
@@ -3757,8 +3756,9 @@ private theorem permutedFirst_pairCount_eq {r k P p : ℕ}
       ((((vinogradovTuples (r + k) P).filter
         (VinogradovFirstWellConditioned p)) ×ˢ
       ((vinogradovTuples (r + k) P).filter
-        (VinogradovFirstWellConditioned p))).filter fun zw =>
-          vinogradovMomentVector k zw.1 = vinogradovMomentVector k zw.2)
+        (VinogradovFirstWellConditioned p))).filter
+          fun zw : (Fin (r + k) → ℕ) × (Fin (r + k) → ℕ) =>
+            vinogradovMomentVector k zw.1 = vinogradovMomentVector k zw.2)
     rw [Finset.mem_filter, Finset.mem_product]
     refine ⟨⟨Finset.mem_filter.mpr ⟨(permute_mem_tuples σ xy.1).mpr
         (Finset.mem_filter.mp hxy.1.1).1, ?_⟩,

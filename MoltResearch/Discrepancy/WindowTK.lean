@@ -1324,7 +1324,7 @@ theorem intervalIntegral_norm_sq_prime_poly_pow_le (Y : Finset ℕ)
       rw [hc_def]
       refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun v _ => ?_)
       rw [norm_prod]
-      exact Finset.prod_le_one (fun i _ => norm_nonneg _) (fun i _ => hb _)
+      exact Finset.prod_le_one₀ (fun i _ => norm_nonneg _) (fun i _ => hb _)
     have h2 : ∑ _v ∈ V.filter (fun v => ∏ i, v i = n), (1:ℝ)
         = ((V.filter (fun v => ∏ i, v i = n)).card : ℝ) := by
       rw [Finset.sum_const, nsmul_eq_mul, mul_one]
@@ -1449,7 +1449,7 @@ theorem intervalIntegral_norm_sq_cell_replace_le
   -- the prime weights are `1/p`-bounded and continuous
   have hwbd : ∀ p ξ, ‖(g p/(p:ℂ)) * ((Real.fourierChar (-(Real.log p * ξ)) : Circle) : ℂ)‖ ≤ (1:ℝ)/(p:ℝ) := by
     intro p ξ
-    rw [norm_mul, norm_eq_of_mem_sphere, mul_one, norm_div,
+    rw [norm_mul, Circle.norm_coe, mul_one, norm_div,
       Complex.norm_natCast]
     gcongr
     exact hg p
@@ -1663,7 +1663,7 @@ theorem intervalIntegral_norm_sq_prime_poly_pow_mul_le (Y : Finset ℕ)
       rw [hc₀_def]
       refine le_trans (norm_sum_le _ _) (Finset.sum_le_sum fun v _ => ?_)
       rw [norm_prod]
-      exact Finset.prod_le_one (fun i _ => norm_nonneg _) (fun i _ => hb _)
+      exact Finset.prod_le_one₀ (fun i _ => norm_nonneg _) (fun i _ => hb _)
     have h2 : ∑ _v ∈ V.filter (fun v => ∏ i, v i = n), (1:ℝ)
         = ((V.filter (fun v => ∏ i, v i = n)).card : ℝ) := by
       rw [Finset.sum_const, nsmul_eq_mul, mul_one]

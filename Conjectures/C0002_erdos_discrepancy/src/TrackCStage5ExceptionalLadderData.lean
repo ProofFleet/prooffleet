@@ -198,7 +198,7 @@ theorem exceptionalLevel_cell_card_le
       2 * (Nu : ℝ) *
         (Real.log (exceptionalPrimeUpper A1 epsc) -
           Real.log (exceptionalPrimeLower A1)) + 2 := by
-  simpa [exceptionalV0, exceptionalV1] using
+  simpa [exceptionalV0, exceptionalV1] using!
     ordinaryLevel_cell_card_le (exceptionalPrimeLower A1)
       (exceptionalPrimeUpper A1 epsc) Nu
       (by

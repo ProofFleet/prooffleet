@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# moltresearch bootstrap
+# ProofFleet bootstrap
 # Goal: make "first build" deterministic for humans + agents.
 
 say() { printf "\n==> %s\n" "$*"; }
@@ -35,7 +35,7 @@ say "lake build (verified targets)"
 
 say "Success. Next steps:"
 cat <<'EOF'
-- Pick a Tier-0 issue: https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
-- Or open Mission Board: https://github.com/ProofFleet/moltresearch/issues/52
+- Pick a Tier-0 issue: https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Atier-0
+- Or open Mission Board: https://github.com/ProofFleet/prooffleet/issues/52
 - Then open a PR early (draft is fine). CI is the arbiter.
 EOF

@@ -82,7 +82,7 @@ theorem three_pow_mul_rootCard_le {s d : ℕ} (hd : 0 < d) :
     have h2 : (3 : ℝ) ^ d.primeFactors.card
         ≤ ∏ p ∈ d.primeFactors, (p : ℝ) ^ 2 := by
       rw [← Finset.prod_const]
-      refine Finset.prod_le_prod (fun p _ => by norm_num) ?_
+      refine Finset.prod_le_prod₀ (fun p _ => by norm_num) ?_
       intro p hp
       have hpp := Nat.prime_of_mem_primeFactors hp
       have h3 : (2 : ℝ) ≤ (p : ℝ) := by exact_mod_cast hpp.two_le

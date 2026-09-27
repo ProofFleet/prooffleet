@@ -1,0 +1,332 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml (v0.4) for the Palomar registry entry "A Lean formalization of the Erdős
+# discrepancy theorem". The statement of record is PalomarEDP/Challenge.lean, compared with
+# PalomarEDP/Solution.lean through comparator.json. Checked by scripts/check_palomar_submission.py;
+# the release process and the evidence behind every count below are in docs/edp-release.md.
+version: "v0.4"
+
+project:
+  name: "A Lean formalization of the Erdős discrepancy theorem"
+  description: >-
+    A formalization in Lean 4 and Mathlib of the Erdős discrepancy theorem, proved by Terence
+    Tao in 2015: for every sequence f(1), f(2), … of signs ±1 and every C there are d ≥ 1 and
+    n with |f(d) + f(2d) + ⋯ + f(nd)| > C, so every ±1 sequence has unbounded discrepancy along
+    homogeneous arithmetic progressions. This is the original ±1 formulation, Corollary 1.2 of
+    Tao's paper; its Hilbert-space-valued Theorem 1.1 is not formalized. The proof follows the
+    architecture of Tao's argument: a Fourier-analytic reduction from a sequence of bounded
+    discrepancy to a stochastic completely multiplicative function with bounded mean-square
+    partial sums; a van der Corput argument, driven by the logarithmically averaged two-point
+    Elliott estimate, forcing such a function to pretend to be a twisted Dirichlet character;
+    and a generalized Borwein–Choi–Coons argument excluding that case. The analytic number
+    theory these steps use is proved in the same development rather than assumed: the
+    entropy-decrement proof of the two-point Elliott estimate from Tao's companion paper, the
+    Matomäki–Radziwiłł short-interval estimate on the major arcs via the Dirichlet-polynomial
+    route of Matomäki, Radziwiłł and Tao, the Halász–Montgomery large-values inequality, a
+    large-values bound for Dirichlet polynomials over primes from a zero-free region of the
+    Riemann zeta function, that zero-free region from Weyl-sum bounds on zeta, and a form of
+    Vinogradov's mean value theorem. Where a published route did not fit, the development
+    adapts it; the adaptations are documented. The theorem depends only on Lean's three
+    standard axioms. This is a formalization of a published result, not a new proof; it was
+    produced by AI agents working through pull requests checked by continuous integration in
+    the ProofFleet repository (formerly MoltResearch).
+  authors:
+    - "Sean Huver"
+  license: "Apache-2.0"
+  responsible_maintainers:
+    - "Sean Huver"
+
+classification:
+  arxiv: ["math.NT", "math.CO"]
+  msc2020: ["11K38", "11N37", "11M26", "11L15"]
+
+sources:
+  - title: "The Erdős discrepancy problem"
+    authors:
+      - "Terence Tao"
+    id: "arXiv:1509.05363"
+    type: "paper"
+    location: "Discrete Analysis 2016:1, https://doi.org/10.19086/da.609"
+    relationship: "formalizes"
+    note: >-
+      The statement of record is the paper's Corollary 1.2 (the ±1 case); Theorem 1.1, for
+      functions into the unit sphere of a Hilbert space, is not formalized. The formal proof
+      follows the paper's architecture (the Fourier reduction of Section 2, Proposition 1.11,
+      Theorem 1.8 and the Borwein–Choi–Coons argument of Section 4) with the adaptations listed
+      under fidelity.divergences. The paper's statements were transcribed from the ar5iv
+      rendering into Problems/sources/tao2015_statements.md; that transcription has not been
+      checked against the published PDF by a person.
+    author_endorsement: "not-contacted"
+  - title: "The logarithmically averaged Chowla and Elliott conjectures for two-point correlations"
+    authors:
+      - "Terence Tao"
+    id: "arXiv:1509.05422"
+    type: "paper"
+    location: "Forum of Mathematics, Pi 4 (2016), e8, https://doi.org/10.1017/fmp.2016.6"
+    relationship: "adapts"
+    note: >-
+      Theorem 1.3, the two-point logarithmically averaged Elliott estimate that Tao's EDP proof
+      imports, is proved by this paper's entropy-decrement argument in the restricted form that
+      proof needs: completely multiplicative functions, conjugate pairs and natural-number shifts.
+      The general-c_p machinery is not formalized.
+    author_endorsement: "not-contacted"
+  - title: "An averaged form of Chowla's conjecture"
+    authors:
+      - "Kaisa Matomäki"
+      - "Maksym Radziwiłł"
+      - "Terence Tao"
+    id: "arXiv:1503.05121"
+    type: "paper"
+    location: "Algebra & Number Theory 9 (2015), no. 9, 2167–2196, https://doi.org/10.2140/ant.2015.9.2167"
+    relationship: "adapts"
+    note: >-
+      Appendix A (Theorem A.2 and Proposition A.3) supplies the major-arc Matomäki–Radziwiłł
+      estimate used inside the Elliott argument. It is formalized in a fixed-strength form of
+      Theorem A.2 applied to each twist, with the exceptional-set estimate restructured; see
+      fidelity.divergences.
+    author_endorsement: "not-contacted"
+  - title: "Multiplicative functions in short intervals"
+    authors:
+      - "Kaisa Matomäki"
+      - "Maksym Radziwiłł"
+    id: "arXiv:1501.04585"
+    type: "paper"
+    location: "Annals of Mathematics 183 (2016), no. 3, 1015–1056, https://doi.org/10.4007/annals.2016.183.3.6"
+    relationship: "adapts"
+    note: >-
+      Lemma 8 (a large-values bound for Dirichlet polynomials over primes, from a zero-free
+      region), Lemma 10 and parts of Section 8.3 are formalized with a fixed exponent and an
+      existential constant in place of the paper's 2/3 + ε.
+    author_endorsement: "not-contacted"
+  - title: "Analytic Number Theory"
+    authors:
+      - "Henryk Iwaniec"
+      - "Emmanuel Kowalski"
+    id: "doi:10.1090/coll/053"
+    type: "book"
+    location: "American Mathematical Society Colloquium Publications 53, 2004"
+    relationship: "adapts"
+    note: >-
+      Theorem 9.6 (the Halász–Montgomery large-values inequality) is formalized with explicit
+      constants; Section 13.5 (Vinogradov's method and Vaughan's identity for sums over primes)
+      guides the prime-block estimate. The repository's statement of Theorem 9.6 was not
+      transcribed from the printed text.
+  - title: "Vinogradov's integral and bounds for the Riemann zeta function"
+    authors:
+      - "Kevin Ford"
+    id: "arXiv:1910.08209"
+    type: "paper"
+    location: "Proceedings of the London Mathematical Society 85 (2002), no. 3, 565–633, https://doi.org/10.1112/S0024611502013655"
+    relationship: "adapts"
+    note: >-
+      Guides the formalized weak (Linnik–Karatsuba) form of Vinogradov's mean value theorem,
+      the Weyl-sum bound of Lemma 6.3 and the growth bound for zeta near the line Re s = 1, which
+      is proved with exponent 33/25 rather than 3/2. The design briefs also cite Karatsuba,
+      Basic Analytic Number Theory (1993), Chapter VI, and Vaughan, The Hardy–Littlewood Method
+      (1997), Theorem 5.2, for Vinogradov's mean value theorem.
+  - title: "The Theory of the Riemann Zeta-Function"
+    authors:
+      - "E. C. Titchmarsh"
+    type: "book"
+    location: "Oxford University Press; edition not recorded in the repository"
+    relationship: "background"
+    note: >-
+      Cited (Sections 5.17–5.18 and Theorem 6.15) for the growth of zeta near the line Re s = 1
+      and the Chudakov-type zero-free region derived from it.
+  - title: "A more intuitive proof of a sharp version of Halász's theorem"
+    authors:
+      - "Andrew Granville"
+      - "Adam J. Harper"
+      - "Kannan Soundararajan"
+    id: "doi:10.1090/proc/14095"
+    type: "paper"
+    location: "Proceedings of the American Mathematical Society 146 (2018), no. 10, 4099–4104"
+    relationship: "background"
+    note: "Cited by the Halász modules of the development; the exact correspondence is not documented."
+  - title: "Completely multiplicative functions taking values in {-1, 1}"
+    authors:
+      - "Peter Borwein"
+      - "Stephen K. K. Choi"
+      - "Michael Coons"
+    id: "doi:10.1090/S0002-9947-2010-05235-3"
+    type: "paper"
+    location: "Transactions of the American Mathematical Society 362 (2010), no. 12, 6279–6291"
+    relationship: "background"
+    note: "Only the generalized form proved in Section 4 of Tao's paper is formalized."
+  - title: "Polymath5: Erdős's discrepancy problem"
+    authors:
+      - "D. H. J. Polymath"
+    type: "web discussion"
+    location: "https://polymathprojects.org/2010/01/09/polymath5-erdos%E2%80%99s-discrepancy-problem/ (2010); reference [19] of Tao's paper"
+    relationship: "background"
+    note: "Tao's Fourier reduction in Section 2 builds on Polymath5."
+  - title: "Some unsolved problems"
+    authors:
+      - "Paul Erdős"
+    type: "paper"
+    location: "Michigan Mathematical Journal 4 (1957); reference [9] of Tao's paper"
+    relationship: "background"
+    note: >-
+      Poses the problem; it is Erdős Problem #67 at https://www.erdosproblems.com/67. The
+      repository does not independently document when Erdős first raised it.
+
+related_formalizations:
+  - id: "https://github.com/google-deepmind/formal-conjectures/blob/2424bb480c590237ffbb2cc831ae4cb8977e045a/FormalConjectures/ErdosProblems/67.lean"
+    relationship: "other"
+    note: >-
+      The Formal Conjectures project states Erdős Problem 67 without proof. This development
+      proves that statement verbatim (MoltResearch.Erdos67.erdos_67 in
+      Conjectures/C0002_erdos_discrepancy/src/Erdos67.lean), a machine-checked cross-check of the
+      statement of record against a formulation written independently of this project. The
+      complex-valued variant stated there is not proved. No complete formalization of the Erdős
+      discrepancy theorem earlier than this one is known to the maintainers; no systematic
+      search was made, and no priority is claimed.
+
+status:
+  scope: >-
+    Formalized: the Erdős discrepancy theorem for ±1-valued sequences (Corollary 1.2 of Tao's
+    paper), stated in PalomarEDP/Challenge.lean with Mathlib notions only, together with the
+    analytic number theory its proof uses (see project.description). Not formalized: Tao's
+    Theorem 1.1 for sequences in a Hilbert space, the complex (unit-circle) variant, and any
+    quantitative bound on the growth of the discrepancy. The proof is a subset of this
+    repository, measured with scripts/edp_dependency_closure.lean and reported in
+    docs/edp-release.md; the repository also holds material that the proof does not use and this
+    entry does not claim: onboarding exercises (Tasks/, Solutions/), a superseded conditional
+    stage pipeline, and research on other Erdős problems (Conjectures/C0003–C0006). Outside the
+    proof, two modules listed in scripts/uncompiled_allowlist.txt do not compile, some files in
+    Conjectures/C0004_erdos461_smooth use native_decide, and several theorems remain stated
+    under hypothesis classes; none of these is imported by the statement of record's proof.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: []
+
+automation:
+  methods:
+    - method: "agent"
+      models:
+        - "Claude Fable 5"
+        - "Claude Opus 5"
+        - "Claude Fable 5.1"
+      framework: "Claude Code"
+      tool_setup: >-
+        From July to early September 2026, Claude Code sessions acted as the conductor, writing
+        Problem Cards, design reports and worker briefs, and as workers writing Lean, each unit
+        landing as a squash-merged pull request once CI passed. CI builds every CI target, runs
+        grep gates against sorry, axiom and unsafe in the verified trees, and checks #guard_msgs
+        pins on the #print axioms output of the flagship theorems.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "not tracked"
+      prompting_notes: >-
+        Briefs and worker reports are in Problems/tao2015_*_brief.md and
+        Problems/tao2015_*_report.md; session transcripts are not part of the repository.
+    - method: "agent"
+      models:
+        - "gpt-5.6-sol"
+      framework: "OpenAI Codex"
+      tool_setup: >-
+        Twenty-six Codex worker runs between 4 and 8 September 2026 (reasoning effort xhigh),
+        each executing one brief written by the conductor on a vex/ branch, recorded in
+        Problems/tao2015_a1_r6r7_design_report.md.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "not tracked"
+      prompting_notes: "The briefs are the prompts; they are kept with the reports in Problems/."
+    - method: "agent"
+      models: []
+      framework: "not recorded"
+      tool_setup: >-
+        From February to April 2026, commits under the agent identities Vex and JvN built the
+        discrepancy definitions and the stage-interface scaffolding that the later campaign
+        completed. The models behind these identities are not recorded in the repository.
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "not tracked"
+  spend_usd: "not tracked"
+  notes: >-
+    The mathematics was written by AI agents. Sean Huver set up the repository and its
+    continuous integration, chose the campaigns and merged pull requests on green CI; no human
+    mathematical review of the proof is recorded. The records of the July–September campaign
+    that produced the proof (cards, design reports, briefs, worker reports, including the
+    design errors that workers' stop-reports caught) are in Problems/. They are the authors'
+    own account; transcripts and costs were not kept. Two other experiments in the same
+    repository are not part of this result: a three-agent pilot on another card
+    (Problems/nucleus_upstreaming_report.md) and a multi-agent research run on other Erdős
+    problems (Problems/erdos_research_report.md). The Palomar packaging (PalomarEDP/, this file,
+    comparator.json) and the move to Lean v4.35.0-rc2 were prepared with Claude Code (Claude
+    Opus 5.5) in September 2026.
+
+fidelity:
+  divergences: >-
+    Scope: only ±1 sequences valued in ℤ; Tao's Theorem 1.1 is not formalized. Encoding: the
+    stochastic multiplicative functions of Theorem 1.8 take values in ℂ with almost-sure
+    unimodularity rather than in the unit circle; complete multiplicativity is guarded at 0; the
+    limit in the Fourier reduction is taken through an ultrafilter and Prokhorov's theorem.
+    Intermediate statements that differ from the sources, each recorded as weaker than or
+    different from its source in the repository: Proposition 1.11 with a per-sample existential
+    rather than a measurable selection and its constant fixed before ε; Tao's Theorem 1.3
+    (companion paper) for completely multiplicative functions, conjugate pairs and natural shifts
+    only; in Section 4, a weaker conclusion than the Vinogradov–Korobov input Tao uses, proved
+    instead from an elementary van der Corput bound for zeta and a character-removing argument
+    (the interface keeps the name VinogradovKorobovAssumption); a zero-free region of Chudakov
+    strength, reached through a weak form of Vinogradov's mean value theorem, in place of the
+    Vinogradov–Korobov region used by Matomäki and Radziwiłł, with Lemma 8's exponent 2/3 + ε
+    replaced by a fixed exponent and an existential constant; on the major arcs, a fixed-strength
+    form of Theorem A.2 of Matomäki–Radziwiłł–Tao applied to each twist instead of the c_p = 1
+    shortcut, which presumes bounded denominators, with a restructured exceptional-set estimate.
+    Some constants are explicit (for example 64 in the Halász–Montgomery inequality); others are
+    existential or obtained by compactness or choice, so the proof yields no explicit bound.
+    The conclusion is unaffected: the statement of record is exactly the source's Corollary 1.2.
+
+review:
+  status: "self-assessed"
+  reviewers: []
+  notes: >-
+    On 27 September 2026 Sean Huver, the listed author and responsible maintainer, reviewed the
+    statement of record, PalomarEDP/Challenge.lean. That is the author's own check, not an
+    independent review. The Challenge was written and checked against Tao's Corollary 1.2 by the
+    agent that prepared this packaging (docs/edp-release.md, "Statement review"). No human
+    mathematical review of the proof is recorded. The checks of the proof are mechanical or were
+    carried out by AI agents: Lean's kernel accepts the proof; Comparator (in the toolchain's lake
+    comparator) checks that PalomarEDP/Solution.lean proves exactly the statement of
+    PalomarEDP/Challenge.lean using only propext, Quot.sound and Classical.choice, with the proof
+    replayed by the NanoDa and con-ron kernels; CI pins the axiom footprint of the flagship
+    theorems and requires anti-vacuity witnesses for the hypothesis classes used along the way;
+    the development also proves the Formal Conjectures statement of Erdős Problem 67 verbatim.
+    Design errors found during the campaign were caught by AI workers' stop-reports.
+
+alignment:
+  namespace: "EDP"
+  statements:
+    - source: "Tao, The Erdős discrepancy problem (arXiv:1509.05363), Corollary 1.2"
+      lean: "EDP.erdos_discrepancy"
+      module: "PalomarEDP.Challenge"
+      status: "proved"
+      note: >-
+        Proved in PalomarEDP.Solution from MoltResearch.erdos_discrepancy by unfolding three
+        two-line definitions. The sequence is indexed by ℕ and the hypothesis also constrains
+        f 0, which the progressions d, 2d, … with d ≥ 1 never use, so the statement is
+        equivalent to the paper's for sequences on the positive integers.
+    - source: "Tao, The Erdős discrepancy problem (arXiv:1509.05363), Corollary 1.2"
+      lean: "MoltResearch.Tao2015.erdos_discrepancy_unconditional"
+      module: "Conjectures.C0002_erdos_discrepancy.src.TrackCStage5PrimeLargeValuesDischarge"
+      status: "proved"
+      note: "The development's own form, ¬ BoundedDiscrepancy f for every f with IsSignSequence f."
+    - source: "Erdős Problem 67 as stated by the Formal Conjectures project"
+      lean: "MoltResearch.Erdos67.erdos_67"
+      module: "Conjectures.C0002_erdos_discrepancy.src.Erdos67"
+      status: "proved"
+      note: "The Formal Conjectures statement, copied verbatim; real-valued ±1 sequences and a real threshold C > 0."
+    - source: "Tao, The Erdős discrepancy problem (arXiv:1509.05363), Theorem 1.1"
+      lean: "none"
+      module: "none"
+      status: "not formalized"
+      note: "The Hilbert-space-valued version."
+
+acknowledgements: >-
+  Lean 4, Mathlib, and the Comparator, NanoDa and con-ron checkers bundled with the Lean toolchain; Terence Tao and the
+  other authors cited above, whose papers the formalization follows; the Formal Conjectures
+  project for its independently written statement of Erdős Problem 67; and Palomar's template and
+  policy, from which this packaging is adapted.

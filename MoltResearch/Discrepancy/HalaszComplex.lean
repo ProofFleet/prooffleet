@@ -1758,7 +1758,7 @@ theorem tripleConvRC_block_sharp_le' (f : ℕ → ℂ) (hf : ∀ n, ‖f n‖ �
       fun a b _ _ => by simp
     refine (ExpSums.summable_norm_smooth_phase (fun _ => 1) hone rfl
       (fun n => by simp) x 0).congr fun m => ?_
-    rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_one,
+    rw [norm_mul, norm_mul, Circle.norm_coe, mul_one, norm_one,
       one_mul, norm_inv, Complex.norm_natCast]
   have hnsum : (0:ℝ) < ∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹ := by
     have h1mem : (1:ℕ) ∈ Nat.smoothNumbers x :=
@@ -1930,7 +1930,7 @@ theorem tripleConvRC_block_sharp_shell_le (f : ℕ → ℂ) (hf : ∀ n, ‖f n�
       fun a b _ _ => by simp
     refine (ExpSums.summable_norm_smooth_phase (fun _ => 1) hone rfl
       (fun n => by simp) x 0).congr fun m => ?_
-    rw [norm_mul, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_one,
+    rw [norm_mul, norm_mul, Circle.norm_coe, mul_one, norm_one,
       one_mul, norm_inv, Complex.norm_natCast]
   have hnsum : (0:ℝ) < ∑' m : (Nat.smoothNumbers x), (((m : ℕ) : ℝ))⁻¹ := by
     have h1mem : (1:ℕ) ∈ Nat.smoothNumbers x :=

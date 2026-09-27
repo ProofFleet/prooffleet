@@ -105,7 +105,7 @@ theorem sliceA2ExceptionalMoment_cast_le_six_rpow_add_two
   have hell := adaptivePrimeMoment_cast_lt_log_ratio_add_two P T (by
     dsimp [P]
     omega) hT
-  simpa [sliceA2ExceptionalMoment, exceptionalCellMoment, P, X] using
+  simpa [sliceA2ExceptionalMoment, exceptionalCellMoment, P, X] using!
     hell.le.trans (add_le_add_left hratio 2)
 
 end Tao2015

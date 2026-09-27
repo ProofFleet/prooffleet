@@ -379,7 +379,7 @@ theorem sum_one_div_primesBelow_le_sharp (y : ℕ) (hy : 4 ≤ y) :
   set J : ℕ := Nat.log 2 y with hJ_def
   have hJ2 : 2 ≤ J := by
     rw [hJ_def]
-    have := (Nat.pow_le_iff_le_log (by norm_num) (by omega : y ≠ 0)).mp
+    have := (Nat.le_log_iff_pow_le (by norm_num) (by omega : y ≠ 0)).mpr
       (by omega : 2^2 ≤ y)
     omega
   have hlog2pos : (0:ℝ) < Real.log 2 := Real.log_pos (by norm_num)
@@ -480,7 +480,7 @@ theorem sum_one_div_primesBelow_le_sharp (y : ℕ) (hy : 4 ≤ y) :
             calc 2^(Nat.log 2 (y/4) + 2) = 4 * 2^(Nat.log 2 (y/4)) := by ring
               _ ≤ 4 * (y/4) := Nat.mul_le_mul_left 4 h4
               _ ≤ y := Nat.mul_div_le y 4
-          exact (Nat.pow_le_iff_le_log (by norm_num) (by omega)).mp h3
+          exact (Nat.le_log_iff_pow_le (by norm_num) (by omega)).mpr h3
         omega
       rw [Finset.mem_biUnion]
       refine ⟨j, Finset.mem_range.mpr hjJ, ?_⟩

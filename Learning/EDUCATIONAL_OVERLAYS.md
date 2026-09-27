@@ -27,6 +27,14 @@ The goal is to pair verified artifacts with learning scaffolding.
   - `disc f d n` (matches the `discOffset` / `discOffsetUpTo` family).
   They are definitionally equal; use `discrepancy_eq_disc` / `disc_eq_discrepancy` when you want to normalize one spelling to the other without unfolding.
 
+- **Common pitfall (Lean v4.35 `simpa`):** since Lean v4.35, `simpa … using e` closes the goal only up to
+  *reducible* unfolding. `disc` and `discrepancy` are ordinary definitions, and `simp` rewrites
+  `Int.natAbs (apSum …)` to one of the two spellings, so a `simpa` whose simplified hypothesis says `discrepancy`
+  while the simplified goal says `disc` (or the reverse) now fails with "Type mismatch: After simplification".
+  The Lean v4.35 migration kept those proofs with `simpa … using! e`, which restores the old
+  default-transparency check. In new proofs, state the goal in the spelling your lemma produces, or rewrite with
+  `discrepancy_eq_disc` first.
+
 - **API note (`discAlong` ↔ `discOffset` bridge):** `discAlong f d n` is the “no-offset” specialization
   `discOffset f d 0 n`. Use the stable-name wrapper-level bridge lemmas to rewrite between these normal
   forms **without unfolding**:

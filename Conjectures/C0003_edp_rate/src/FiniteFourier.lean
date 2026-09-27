@@ -109,7 +109,7 @@ theorem integral_windowFunctional_spectralLaw_le_of_sourceBudget
       = ((spectralPMF f X M hs).toMeasure).map (liftFreq X M) := rfl
   rw [hmap, integral_map Measurable.of_discrete.aemeasurable
     (windowFunctional n).continuous.aestronglyMeasurable]
-  rw [MeasureTheory.integral_fintype _ (Integrable.of_finite)]
+  rw [MeasureTheory.integral_fintype (Integrable.of_finite)]
   have hterm : ∀ ξ : PrimeIdx X → ZMod M,
       ((spectralPMF f X M hs).toMeasure).real {ξ}
           • windowFunctional n (liftFreq X M ξ)

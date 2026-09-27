@@ -742,7 +742,7 @@ theorem primeMellin_regular_rectangle (W : ℂ → ℂ)
     apply intervalIntegral.integral_congr
     intro x hx
     have hmem : (x : ℂ) - (Z : ℂ) * I ∈ R := by
-      simpa [mul_comm] using hmemH x hx (-Z) (by simp [abs_of_pos hZ])
+      simpa [mul_comm] using! hmemH x hx (-Z) (by simp [abs_of_pos hZ])
     have heq := hregEq ((x : ℂ) - (Z : ℂ) * I)
       hmem (by
         intro h; have := congrArg Complex.im h; simp [hZ.ne'] at this)
@@ -1379,7 +1379,7 @@ theorem primeMellin_right_line_decomposition
     have hc := ContinuousAt.comp
       (f := fun y : ℝ ↦ (A : ℂ) + (y : ℂ) * I) (g := q)
       (hqAt y).continuousAt hp
-    simpa only [Function.comp_apply] using hc
+    simpa only [Function.comp_apply] using! hc
   have hpoleInt : IntervalIntegrable
       (fun y : ℝ ↦ W (s₀ + ((A : ℂ) + (y : ℂ) * I)) /
         ((A : ℂ) + (y : ℂ) * I)) volume (-Z) Z := by
@@ -1589,7 +1589,7 @@ theorem primeMellin_right_line_integrable
     have hc := ContinuousAt.comp
       (f := fun y : ℝ ↦ (A : ℂ) + (y : ℂ) * I) (g := q)
       hqAt.continuousAt hp
-    simpa only [Function.comp_apply] using hc
+    simpa only [Function.comp_apply] using! hc
   have hpCont : Continuous p := by
     apply Continuous.div
     · exact (primeMellinTransform_differentiable S P hSs hS0

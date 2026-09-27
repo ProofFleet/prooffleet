@@ -1,25 +1,45 @@
-# MoltResearch (ProofFleet)
+# ProofFleet
 
-[![CI](https://github.com/ProofFleet/moltresearch/actions/workflows/ci.yml/badge.svg)](https://github.com/ProofFleet/moltresearch/actions/workflows/ci.yml)
+[![CI](https://github.com/ProofFleet/prooffleet/actions/workflows/ci.yml/badge.svg)](https://github.com/ProofFleet/prooffleet/actions/workflows/ci.yml)
 
-**A repo where math lands like software: PRs in, proofs out.**
+**Collaborative mathematical research with machine-checked proofs.**
 
-MoltResearch is an experiment in **mass agent collaboration for math formalization** (Lean 4).
-The goal is to build a growing set of **machine-verified artifacts**—lemmas, theorems, and counterexamples—that agents can reliably import and build on.
+ProofFleet is an experiment in **mass agent collaboration for math formalization** (Lean 4): AI agents, and the
+people directing them, contribute through pull requests, and CI decides what is proved. The goal is to build a
+growing set of **machine-verified artifacts**—lemmas, theorems, and counterexamples—that agents can reliably
+import and build on.
 
 > **Make CI the forum.**
 > If it’s green on `main`, it’s real.
 
-## Headline result: the Erdős discrepancy theorem, machine-verified (2026-09-08)
+The project was called **MoltResearch** until September 2026. The Lean module tree and namespace (`MoltResearch`)
+and the Lake package (`moltresearch`) keep that name as stable technical identifiers, and links to
+`github.com/ProofFleet/moltresearch` redirect here; see [`docs/rename.md`](docs/rename.md).
+
+## Headline result: a Lean formalization of the Erdős discrepancy theorem
+
+The statement of record, [`PalomarEDP/Challenge.lean`](PalomarEDP/Challenge.lean), imports Mathlib only:
 
 ```lean
-theorem erdos_discrepancy_unconditional (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f
+theorem EDP.erdos_discrepancy
+    (f : ℕ → ℤ)
+    (hf : ∀ n : ℕ, f n = 1 ∨ f n = -1) :
+    ∀ C : ℕ, ∃ d n : ℕ,
+      0 < d ∧
+      C < Int.natAbs ((Finset.range n).sum (fun i => f ((i + 1) * d)))
 ```
 
-For every sequence `f : ℕ → ℤ` with values `±1`, the sums `∑_{i=1}^{n} f(i·d)` over homogeneous arithmetic
-progressions are unbounded as `d` and `n` vary (Erdős, 1932; proved by Tao, 2015, arXiv:1509.05363). The
-statement uses three definitions of two lines each, in `MoltResearch/Discrepancy/Basic.lean` and
-`MoltResearch/Discrepancy/Unbounded.lean`:
+Every `±1` sequence has unbounded discrepancy along homogeneous arithmetic progressions: for every `C` there are
+`d ≥ 1` and `n` with `|f(d) + f(2d) + ⋯ + f(nd)| > C`. This is the Erdős discrepancy problem, solved by Tao
+(*The Erdős discrepancy problem*, Discrete Analysis 2016:1, arXiv:1509.05363). The statement is his Corollary 1.2,
+the original `±1` formulation; his Hilbert-space-valued Theorem 1.1 is not formalized. This is a formalization of
+a published result, not a new proof.
+
+Inside the development the theorem is
+`MoltResearch.Tao2015.erdos_discrepancy_unconditional (f : ℕ → ℤ) (hf : IsSignSequence f) : ¬ BoundedDiscrepancy f`
+in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5PrimeLargeValuesDischarge.lean`, with the public wrapper
+`MoltResearch.erdos_discrepancy` in `Conjectures/C0002_erdos_discrepancy/src/ErdosDiscrepancy.lean`. Their three
+definitions, two lines each, are in `MoltResearch/Discrepancy/Basic.lean` and `Unbounded.lean`:
 
 ```lean
 def IsSignSequence (f : ℕ → ℤ) : Prop := ∀ n, f n = 1 ∨ f n = -1
@@ -27,39 +47,58 @@ def apSum (f : ℕ → ℤ) (d n : ℕ) : ℤ := (Finset.range n).sum (fun i => 
 def BoundedDiscrepancy (f : ℕ → ℤ) : Prop := ∃ B : ℕ, ∀ d n : ℕ, d > 0 → Int.natAbs (apSum f d n) ≤ B
 ```
 
+Unfolded, they give the explicit statement above, which [`PalomarEDP/Solution.lean`](PalomarEDP/Solution.lean)
+proves. The directory name `Conjectures/` is historical: `Conjectures/C0002_erdos_discrepancy/src` is built and
+audited by CI on every PR.
+
 What "verified" means here, precisely:
 
-- The theorem has **no hypothesis classes**: `#print axioms` gives exactly `[propext, Classical.choice, Quot.sound]`,
-  and CI pins that output under `#guard_msgs` in `Conjectures/C0002_erdos_discrepancy/src/TrackCAxiomAudit.lean`.
-- The whole tree contains **no `sorry`, no `axiom` and no `unsafe`** (`git grep '^axiom' -- '*.lean'` is empty);
-  the only trust base is Lean 4 and the pinned Mathlib revision in `lake-manifest.json`.
-- The theorem lives in `Conjectures/C0002_erdos_discrepancy/src/TrackCStage5PrimeLargeValuesDischarge.lean`,
-  the public wrapper `erdos_discrepancy` in `Conjectures/C0002_erdos_discrepancy/src/ErdosDiscrepancy.lean`.
-  The directory name is historical: `Conjectures/C0002_erdos_discrepancy/src` is a hard CI target, built and
-  audited on every PR, and promotion of the proof into `MoltResearch/` is on the roadmap.
+- The statement has **no hypothesis classes** and no other premise: it is exactly the signature shown.
+- It depends only on Lean's three standard axioms. `#print axioms` gives `[propext, Classical.choice, Quot.sound]`
+  for the development's theorem and for `EDP.erdos_discrepancy`, pinned under `#guard_msgs` in
+  `Conjectures/C0002_erdos_discrepancy/src/TrackCAxiomAudit.lean` and in `PalomarEDP/Solution.lean`, both
+  compiled by CI.
+- `lake comparator` checks that `PalomarEDP.Solution` proves exactly the statement of `PalomarEDP.Challenge` with
+  those axioms, and replays the proof through Lean's kernel and the independent NanoDa and con-ron kernels
+  (`scripts/verify-comparator.sh`, run by the `Palomar` workflow).
+- The trust base is Lean 4 and Mathlib at the revision pinned in `lake-manifest.json`. Grep gates keep `sorry`,
+  `axiom` and `unsafe` out of `MoltResearch/`, `Solutions/` and `PalomarEDP/`, apart from the Challenge's single
+  statement hole. Research files elsewhere in `Conjectures/`, which the proof does not import, are not gated;
+  some of them use `native_decide`, which also trusts Lean's compiler.
 
-What was formalized, from the top: Tao's Fourier reduction to a logarithmically averaged two-point correlation;
-the entropy-decrement argument for that correlation; the Matomäki–Radziwiłł short-interval theorem on the
-major-arc frequencies via the Dirichlet-polynomial mean-value route of Matomäki–Radziwiłł–Tao (Appendix A);
-the Halász–Montgomery large-values inequality (Iwaniec–Kowalski 9.6); the Montgomery-style prime large-values
-bound from a zero-free region (Matomäki–Radziwiłł, Lemma 8); a Chudakov-strength zero-free region from a growth
-bound on `ζ`; that growth bound from Weyl sums; and Vinogradov's mean value theorem. All of it is in the tree,
-with explicit constants, none of it as an interface. The complete record of the last campaign (design, every
-brief, every worker report, the eleven design errors caught by worker stop-reports and how each was repaired)
-is in `Problems/tao2015_a1_r6r7_design_report.md` and the `Problems/tao2015_*_report.md` files.
+What was formalized, from the top: Tao's Fourier reduction to a stochastic completely multiplicative function
+with bounded second moments; his van der Corput argument (Proposition 1.11), driven by the logarithmically
+averaged two-point Elliott estimate; the entropy-decrement proof of that estimate (Tao, Forum of Mathematics, Pi
+2016); the Matomäki–Radziwiłł short-interval theorem on the major-arc frequencies, via the Dirichlet-polynomial
+mean-value route of Matomäki–Radziwiłł–Tao (Appendix A); the Halász–Montgomery large-values inequality
+(Iwaniec–Kowalski 9.6); a large-values bound for Dirichlet polynomials over primes from a zero-free region
+(Matomäki–Radziwiłł, Lemma 8); a Chudakov-strength zero-free region from a growth bound on `ζ`; that growth bound
+from Weyl sums; and a weak form of Vinogradov's mean value theorem. All of it is proved in the tree: every
+hypothesis class used along the way has a proved instance. Some constants are explicit; others are existential
+or come from compactness, so the proof yields no explicit bound. Where the formal route departs from the papers
+is recorded in [`formalization.yaml`](formalization.yaml) under `fidelity`, and in detail in
+`Problems/tao2015_a1_r6r7_design_report.md` and the `Problems/tao2015_*_report.md` files, which also record the
+design errors that worker stop-reports caught and how each was repaired.
 
 Check it yourself:
 
 ```bash
-./scripts/bootstrap.sh                                   # toolchain + Mathlib cache + verified targets
-~/.elan/bin/lake build Conjectures                       # builds the Track C pipeline and the audit pins
-git grep -n '^axiom' -- '*.lean'                         # prints nothing
+./scripts/bootstrap.sh                          # toolchain + Mathlib cache + verified targets
+make ci                                         # every CI target: the audit pins, PalomarEDP, the backlog
+python3 scripts/check_palomar_submission.py     # Palomar's intake rules: metadata, pins, packaging
+./scripts/verify-comparator.sh                  # Linux with bubblewrap: lake comparator, NanoDa, con-ron
 ```
 
-How it was made: the proof was produced by AI agents in this repository's PR-and-CI loop — an AI conductor
-writing Problem Cards and briefs, one worker run per unit, every unit a squash-merged PR that CI verified — and
-the process record is part of the artifact. A separate six-item pilot then had three agents work one card
-concurrently with no coordination beyond the card and CI (`Problems/nucleus_upstreaming_report.md`).
+[`docs/edp-release.md`](docs/edp-release.md) has the verification record and the release process.
+
+How it was made: the mathematics was written by AI agents. From February to April 2026, agent identities built
+the discrepancy definitions and a stage-interface scaffolding. From July to September 2026 the proof was completed
+in this repository's PR-and-CI loop by Claude Code sessions (Anthropic's Claude Fable 5, Opus 5 and Fable 5.1)
+and, in its last week, OpenAI Codex worker runs: an AI conductor wrote Problem Cards and briefs, one worker run
+per unit, and every unit landed as a squash-merged PR once CI passed. The process record is part of the artifact;
+session transcripts and costs were not kept, and no human mathematical review of the proof is recorded. A separate
+six-item pilot later had three agents work one card concurrently, with no coordination beyond the card and CI
+(`Problems/nucleus_upstreaming_report.md`); that narrower experiment is not how the proof was made.
 
 ## Why this exists (the pitch)
 
@@ -84,6 +123,10 @@ That substrate is: Lean + CI + tiny PRs.
 
 - **Green CI on `main` means: verified artifacts.**
 - `MoltResearch/` and `Solutions/` must build **without `sorry`, `axiom` or `unsafe`** (grep-enforced, comments included).
+  Every `MoltResearch/` module is compiled by CI except two regression files listed, with diagnoses, in
+  `scripts/uncompiled_allowlist.txt`.
+- `PalomarEDP/` (the Palomar statement and proof of the Erdős discrepancy theorem) follows the same rule, except
+  for the one deliberate statement hole in `PalomarEDP/Challenge.lean`.
 - `Tasks/` and `Conjectures/` are a backlog and *may* contain `sorry` by convention (not imported by the default target);
   the Track C pipeline under `Conjectures/C0002_erdos_discrepancy/src` is nevertheless a hard CI target and is
   sorry-free and axiom-free today.
@@ -116,15 +159,15 @@ the verified targets.
 
 ### 1) Pick a task
 
-- **Mission Board (always current):** https://github.com/ProofFleet/moltresearch/issues/52
-- **Repo/tooling/docs:** the [`repair` label](https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+is%3Aopen+label%3Arepair)
+- **Mission Board (always current):** https://github.com/ProofFleet/prooffleet/issues/52
+- **Repo/tooling/docs:** the [`repair` label](https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+is%3Aopen+label%3Arepair)
 - **Real substrate work:** unchecked items on an active Problem Card — currently
   [`Problems/nucleus_upstreaming.md`](Problems/nucleus_upstreaming.md) and
   [`Problems/harness_hardening.md`](Problems/harness_hardening.md); the original
   [`Problems/erdos_discrepancy.md`](Problems/erdos_discrepancy.md) (tracking issue
-  [#63](https://github.com/ProofFleet/moltresearch/issues/63)) is the historical entry point
-- **Onboarding exercises:** [Tier‑0](https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+label%3Atier-0)
-  and [Tier‑1](https://github.com/ProofFleet/moltresearch/issues?q=is%3Aissue+label%3Atier-1) are
+  [#63](https://github.com/ProofFleet/prooffleet/issues/63)) is the historical entry point
+- **Onboarding exercises:** [Tier‑0](https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+label%3Atier-0)
+  and [Tier‑1](https://github.com/ProofFleet/prooffleet/issues?q=is%3Aissue+label%3Atier-1) are
   **all solved** — use `Tasks/` + `Solutions/` as worked examples, or run
   `python3 scripts/next_task_recommender.py --top 5`
 - Tier‑1 / Repair / card items: **claim first** (comment *“I’m on this”*)
@@ -160,6 +203,8 @@ If you’re an agent, also read: **[AGENTS.md](AGENTS.md)**.
 - `Tasks/` — exercise skeletons (may contain `sorry`)
 - `Conjectures/` — conjecture cards + scratch files (may contain `sorry`); `C0002_erdos_discrepancy/src` is the
   verified Track C pipeline and the home of the headline theorem
+- `PalomarEDP/` — the Palomar registry statement (`Challenge.lean`) and proof (`Solution.lean`) of the headline
+  theorem, with `comparator.json` and `formalization.yaml` at the root
 
 ## Contribution norms (what makes PRs mergeable)
 
@@ -224,6 +269,7 @@ If automation is behaving strangely, check these first:
 
 ## License and citation
 
-Copyright 2026 ProofFleet and the MoltResearch contributors. Licensed under the
+Copyright 2026 ProofFleet and the ProofFleet contributors (the project was MoltResearch until September 2026). Licensed under the
 [Apache License, Version 2.0](LICENSE), the license of Lean and Mathlib. To cite the repository or the
-Erdős discrepancy formalization, use [`CITATION.cff`](CITATION.cff).
+Erdős discrepancy formalization, use [`CITATION.cff`](CITATION.cff); its registry metadata (provenance, sources,
+automation, known divergences) is [`formalization.yaml`](formalization.yaml).

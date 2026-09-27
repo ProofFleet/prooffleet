@@ -159,6 +159,6 @@ principal character — in that case the primitive core lives at level `1`, wher
 Mathlib's `eq_one_iff_conductor_eq_one` in the `NeZero` idiom of this file. -/
 theorem conductor_eq_one_iff {N : ℕ} [NeZero N] (χ : DirichletCharacter ℂ N) :
     χ.conductor = 1 ↔ χ = 1 :=
-  (DirichletCharacter.eq_one_iff_conductor_eq_one (NeZero.ne N)).symm
+  DirichletCharacter.eq_one_iff_conductor_eq_one.symm
 
 end MoltResearch

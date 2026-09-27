@@ -74,7 +74,6 @@ theorem sum_Ioc_filter_dvd_eq_sum_Ioc_div {M : Type*} [AddCommMonoid M]
     obtain ⟨⟨han, hnb⟩, hdvd⟩ := hn
     obtain ⟨m, rfl⟩ := hdvd
     rw [Finset.mem_Ioc]
-    dsimp only
     rw [Nat.mul_div_cancel_left m hp]
     constructor
     · exact (Nat.div_lt_iff_lt_mul hp).mpr (by rw [mul_comm]; exact han)
@@ -594,9 +593,12 @@ theorem usum_phase_eq_main_add_coll (a b : ℕ) (P : Finset ℕ)
     have hm'0 : m' ≠ 0 := fun h => hm'.2 (h ▸ dvd_zero p)
     rw [char_log_mul p m' (by omega) hm'0 ξ]
     have hpm'c : ((p*m' : ℕ) : ℂ) = (p:ℂ)*(m':ℂ) := by push_cast; ring
+    -- Lean v4.35's `field_simp` leaves the `↑m' * (↑m')⁻¹` that `push_cast` exposes; clear it with
+    -- the cast nonvanishing fact.
+    have hm'c : (m' : ℂ) ≠ 0 := Nat.cast_ne_zero.mpr hm'0
     field_simp
     push_cast
-    ring
+    field_simp
 
 
 open ExpSums in
@@ -722,7 +724,6 @@ theorem intervalIntegral_norm_sq_usum_le (a b : ℕ) (ha1 : 1 ≤ a)
             have h4 := Nat.mod_lt a hp0
             nlinarith [h3, h4]
           omega
-        dsimp only
         omega)
       (by
         intro p m'

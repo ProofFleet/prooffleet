@@ -212,7 +212,7 @@ theorem norm_ramare_weighted_poly_le_sum_cost
   have hcoeff : ‖(g n1 * ((Real.fourierChar (-(Real.log n1 * t))
       : Circle) : ℂ)) / ((n1 : ℂ) * (((P.filter (· ∣ n1)).card : ℂ) + 1))‖
       ≤ 1 / (n1 : ℝ) := by
-    rw [norm_div, norm_mul, norm_eq_of_mem_sphere, mul_one, norm_mul]
+    rw [norm_div, norm_mul, Circle.norm_coe, mul_one, norm_mul]
     have hden : (n1 : ℝ) * ‖(((P.filter (· ∣ n1)).card : ℂ) + 1)‖ =
         (n1 : ℝ) * (((P.filter (· ∣ n1)).card : ℝ) + 1) := by
       congr 1
@@ -391,7 +391,7 @@ theorem pSmoothHarmonicMass_le_exp_primeMass
   calc
     ∏ p ∈ P, ∑ e ∈ Finset.range E, ((1 : ℝ) / p) ^ e
         ≤ ∏ p ∈ P, Real.exp (2 * ((1 : ℝ) / p)) := by
-      apply Finset.prod_le_prod
+      apply Finset.prod_le_prod₀
       · intro p hp
         exact Finset.sum_nonneg fun e he => by positivity
       · intro p hp

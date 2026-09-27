@@ -67,7 +67,7 @@ noncomputable def spectralPMF (f : ℕ → ℤ) (X M : ℕ) [NeZero M]
 noncomputable def spectralLaw (f : ℕ → ℤ) (X M : ℕ) [NeZero M]
     (hs : IsSignSequence f) : ProbabilityMeasure PrimeData :=
   ⟨((spectralPMF f X M hs).toMeasure).map (liftFreq X M),
-    Measure.isProbabilityMeasure_map Measurable.of_discrete.aemeasurable⟩
+    inferInstance⟩
 
 /-- **The per-scale second-moment bound, transported**: against `ν_X`, the window
 functionals integrate to at most `B² + 1` up to scale `X`. -/
@@ -81,7 +81,7 @@ theorem integral_windowFunctional_spectralLaw_le {f : ℕ → ℤ} (hs : IsSignS
       = ((spectralPMF f X M hs).toMeasure).map (liftFreq X M) := rfl
   rw [hmap, integral_map Measurable.of_discrete.aemeasurable
     (windowFunctional n).continuous.aestronglyMeasurable]
-  rw [MeasureTheory.integral_fintype _ (Integrable.of_finite)]
+  rw [MeasureTheory.integral_fintype (Integrable.of_finite)]
   have hterm : ∀ ξ : PrimeIdx X → ZMod M,
       ((spectralPMF f X M hs).toMeasure).real {ξ}
           • windowFunctional n (liftFreq X M ξ)

@@ -1,4 +1,4 @@
-# MoltResearch Roadmap: from onboarding → SOTA open-problem throughput
+# ProofFleet Roadmap: from onboarding → SOTA open-problem throughput
 
 This repo is optimized for **mass agent collaboration** with an objective arbiter:
 

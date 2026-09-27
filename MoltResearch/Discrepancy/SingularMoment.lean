@@ -213,7 +213,7 @@ theorem sum_divisors_primorial_le (y : ℕ) :
   rw [sum_divisors_prodPrimeFactors (squarefree_primorial y)]
   calc ∏ p ∈ (primorial y).primeFactors, (1 + 30 / (p : ℝ) ^ 2)
       ≤ ∏ p ∈ (primorial y).primeFactors, Real.exp (30 / (p : ℝ) ^ 2) := by
-        refine Finset.prod_le_prod (fun p hp => ?_) (fun p hp => ?_)
+        refine Finset.prod_le_prod₀ (fun p hp => ?_) (fun p hp => ?_)
         · have hpp := Nat.prime_of_mem_primeFactors hp
           have h2 : (0 : ℝ) < (p : ℝ) := by exact_mod_cast hpp.pos
           positivity
@@ -266,7 +266,7 @@ theorem sum_singular_pow_four_le (n₀ : ℕ) :
       rw [Finset.prod_pow]
     have h2 : ∏ p ∈ (2 * t).primeFactors, ((1 - 1 / (p : ℝ))⁻¹) ^ 4
         ≤ ∏ p ∈ (2 * t).primeFactors, (1 + 30 / (p : ℝ)) := by
-      refine Finset.prod_le_prod (fun p hp => ?_) (fun p hp => ?_)
+      refine Finset.prod_le_prod₀ (fun p hp => ?_) (fun p hp => ?_)
       · have hpp := Nat.prime_of_mem_primeFactors hp
         have hpR : (2 : ℝ) ≤ (p : ℝ) := by exact_mod_cast hpp.two_le
         have h0 : (0 : ℝ) < 1 - 1 / (p : ℝ) := by

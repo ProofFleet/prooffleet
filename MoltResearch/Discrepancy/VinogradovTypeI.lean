@@ -881,7 +881,7 @@ theorem sum_block_g_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
           linarith
         · have h2 := Nat.lt_floor_add_one
             (16*(q:ℝ) * nint ((d:ℝ) * ((a:ℝ)/(q:ℝ) + δ)))
-          rw [div_add_div_same, lt_div_iff₀ hpos16]
+          rw [← add_div, lt_div_iff₀ hpos16]
           push_cast
           linarith
     have hdisj : (↑(Finset.Icc 1 (8*q)) : Set ℕ).PairwiseDisjoint
@@ -899,13 +899,13 @@ theorem sum_block_g_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
       rcases Nat.lt_or_ge k k' with hlt | hge
       · have hstep : (k:ℝ) + 1 ≤ (k':ℝ) := by exact_mod_cast hlt
         have : (k:ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)) ≤ (k':ℝ)/(16*(q:ℝ)) := by
-          rw [div_add_div_same, div_le_div_iff₀ hpos16 hpos16]
+          rw [← add_div, div_le_div_iff₀ hpos16 hpos16]
           nlinarith [hstep, hpos16]
         linarith
       · have hne' : k' < k := by omega
         have hstep : (k':ℝ) + 1 ≤ (k:ℝ) := by exact_mod_cast hne'
         have : (k':ℝ)/(16*(q:ℝ)) + 1/(16*(q:ℝ)) ≤ (k:ℝ)/(16*(q:ℝ)) := by
-          rw [div_add_div_same, div_le_div_iff₀ hpos16 hpos16]
+          rw [← add_div, div_le_div_iff₀ hpos16 hpos16]
           nlinarith [hstep, hpos16]
         linarith
     have hstep1 : ∑ d ∈ (Finset.Ioc (j*q) (j*q + q)).filter
@@ -1443,9 +1443,9 @@ theorem sum_pairs_gap_le (K : Finset ℕ) (KM : ℕ)
     rw [Finset.mem_Icc] at hnKM
     have hsplit : K = (K.filter (fun n' => n' = n))
         ∪ (K.filter (fun n' => n' ≠ n)) :=
-      (Finset.filter_union_filter_neg_eq _ K).symm
+      (Finset.filter_union_filter_not_eq _ K).symm
     nth_rewrite 1 [hsplit]
-    rw [Finset.sum_union (Finset.disjoint_filter_filter_neg K K _)]
+    rw [Finset.sum_union (Finset.disjoint_filter_filter_not K K _)]
     have hdiag : ∑ n' ∈ K.filter (fun n' => n' = n),
         F (max n n' - min n n') ≤ F 0 := by
       have hsub : K.filter (fun n' => n' = n) ⊆ {n} := by
@@ -1775,7 +1775,6 @@ theorem typeII_sum_sq_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
   refine mul_le_mul_of_nonneg_left ?_ hMc0
   refine le_trans hgap ?_
   refine mul_le_mul_of_nonneg_left ?_ hKc0
-  simp only []
   rw [hF0]
   have h2S : 2 * (∑ h ∈ Finset.Icc 1 KM,
       ‖∑ m ∈ Finset.Ico M₁ M₂,
@@ -1901,7 +1900,6 @@ theorem sum_inner_sq_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
   refine le_trans hstep3 ?_
   refine le_trans hgap ?_
   refine mul_le_mul_of_nonneg_left ?_ hKc0
-  simp only []
   rw [hF0]
   linarith [hFsum]
 
@@ -2869,7 +2867,7 @@ theorem vaughan_typeI'_regroup (U V n₀ N : ℕ) (hU : 1 ≤ U) (hV : 1 ≤ V)
   classical
   have hUN : U ≤ N := by
     calc U = U * 1 := (mul_one U).symm
-      _ ≤ U * V := mul_le_mul_left' hV U
+      _ ≤ U * V := mul_le_mul_right hV U
       _ ≤ N := hUV
   have hfil : (Finset.Icc 1 N).filter (· ≤ U) = Finset.Icc 1 U := by
     ext b
@@ -2894,7 +2892,7 @@ theorem vaughan_typeI'_regroup (U V n₀ N : ℕ) (hU : 1 ≤ U) (hV : 1 ≤ V)
     obtain ⟨hb1, hbU⟩ := hb
     have hVNb : V ≤ N/b := by
       rw [Nat.le_div_iff_mul_le (show 0 < b by omega)]
-      calc V * b ≤ V * U := mul_le_mul_left' hbU V
+      calc V * b ≤ V * U := mul_le_mul_right hbU V
         _ = U * V := Nat.mul_comm V U
         _ ≤ N := hUV
     have hinner : ∑ m ∈ Finset.Ioc (n₀/b) (N/b),
@@ -3225,7 +3223,6 @@ theorem sum_inner_sq_le_hyperbola (a q : ℕ) (hq : 1 ≤ q)
         then 1 / nint ((h:ℝ)*((a:ℝ)/(q:ℝ) + δ))
         else ((M₂ - M₁ : ℕ):ℝ))) hFnn) ?_
   refine mul_le_mul_of_nonneg_left ?_ (Nat.cast_nonneg _)
-  simp only []
   have hdiag : min (((M₂ - M₁ : ℕ):ℝ))
       (if 0 < nint (((0:ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ))
         then 1 / nint (((0:ℕ):ℝ)*((a:ℝ)/(q:ℝ) + δ))
@@ -4233,7 +4230,7 @@ theorem sum_typeII_swap {M : Type*} [AddCommMonoid M] (V n₀ N : ℕ)
       rw [hz, Nat.mul_zero] at ha
       omega
     · rw [Nat.le_div_iff_mul_le (by omega : 0 < V+1)]
-      calc m * (V+1) ≤ m * c := mul_le_mul_left' (by omega) m
+      calc m * (V+1) ≤ m * c := mul_le_mul_right (by omega) m
         _ = c * m := Nat.mul_comm m c
         _ ≤ N := hb
     · omega
@@ -4269,11 +4266,11 @@ theorem sum_dyadic_tiling {M : Type*} [AddCommMonoid M] (V N J : ℕ)
     have h1 : min V N ≤ min (2^J * V) N := by
       have hVp : V ≤ 2^J * V := by
         calc V = 1 * V := (one_mul V).symm
-          _ ≤ 2^J * V := mul_le_mul_right' Nat.one_le_two_pow V
+          _ ≤ 2^J * V := mul_le_mul_left Nat.one_le_two_pow V
       exact min_le_min hVp le_rfl
     have h2 : min (2^J * V) N ≤ min (2^(J+1) * V) N := by
       have hpow : 2^J * V ≤ 2^(J+1) * V :=
-        mul_le_mul_right'
+        mul_le_mul_left
           (Nat.pow_le_pow_right (by norm_num) (Nat.le_succ J)) V
       exact min_le_min hpow le_rfl
     exact Finset.sum_Ioc_consecutive f h1 h2
@@ -4338,7 +4335,7 @@ theorem typeII_block_outer_restrict (U V n₀ N j : ℕ) (F : ℕ → ℕ → �
     refine le_trans h1 (Nat.div_le_div_left ?_ (by omega))
     have hV : V ≤ 2^j * V := by
       calc V = 1 * V := (one_mul V).symm
-        _ ≤ 2^j * V := mul_le_mul_right' Nat.one_le_two_pow V
+        _ ≤ 2^j * V := mul_le_mul_left Nat.one_le_two_pow V
     omega
   have hzero : ∀ m ∈ Finset.Icc 1 (N/(V+1)),
       m ∉ Finset.Ico (U+1) (N/(2^j * V + 1) + 1) →
@@ -4375,7 +4372,7 @@ theorem typeII_block_outer_restrict (U V n₀ N j : ℕ) (F : ℕ → ℕ → �
             rw [min_eq_left hAN] at h
             omega
           exact absurd (calc N < m * (2^j * V + 1) := hNlt
-            _ ≤ m * c := mul_le_mul_left' hc1 m
+            _ ≤ m * c := mul_le_mul_right hc1 m
             _ = c * m := Nat.mul_comm m c
             _ ≤ N := hcmN) (lt_irrefl N)
         · have hcN : N < c := by
@@ -4384,7 +4381,7 @@ theorem typeII_block_outer_restrict (U V n₀ N j : ℕ) (F : ℕ → ℕ → �
             exact h
           exact absurd (calc N < c := hcN
             _ = c * 1 := (mul_one c).symm
-            _ ≤ c * m := mul_le_mul_left' (by omega) c
+            _ ≤ c * m := mul_le_mul_right (by omega) c
             _ ≤ N := hcmN) (lt_irrefl N)
       rw [hemp, Finset.sum_empty, mul_zero]
   exact (Finset.sum_subset hsub hzero).symm
@@ -4687,7 +4684,7 @@ theorem typeII_block_le_sqrt (a q : ℕ) (hq : 1 ≤ q)
     have hf2n : 2^j * V * (N/(2^j * V + 1)) ≤ N := by
       calc 2^j * V * (N/(2^j * V + 1))
           ≤ (2^j * V + 1) * (N/(2^j * V + 1)) :=
-            mul_le_mul_right' (Nat.le_succ _) _
+            mul_le_mul_left (Nat.le_succ _) _
         _ = (N/(2^j * V + 1)) * (2^j * V + 1) := Nat.mul_comm _ _
         _ ≤ N := Nat.div_mul_le_self N (2^j * V + 1)
     have hf2 : ((2^j * V : ℕ):ℝ) * ((N/(2^j * V + 1) : ℕ):ℝ) ≤ (N:ℝ) := by
@@ -4696,7 +4693,7 @@ theorem typeII_block_le_sqrt (a q : ℕ) (hq : 1 ≤ q)
       refine Nat.div_le_div_left ?_ (by omega)
       have hVC : V ≤ 2^j * V := by
         calc V = 1 * V := (one_mul V).symm
-          _ ≤ 2^j * V := mul_le_mul_right' Nat.one_le_two_pow V
+          _ ≤ 2^j * V := mul_le_mul_left Nat.one_le_two_pow V
       exact le_trans hVC (Nat.le_succ _)
     have hf3 : ((N/(2^j * V + 1) : ℕ):ℝ) ≤ (N:ℝ)/(V:ℝ) := by
       refine le_trans ?_ Nat.cast_div_le
@@ -4896,7 +4893,7 @@ theorem typeII_total_le (a q : ℕ) (hq : 1 ≤ q) (hcop : Nat.Coprime a q)
     have h1 : N < 2^(N.log2 + 1) := lt_two_pow_log2_succ N (by omega)
     calc N ≤ 2^(N.log2 + 1) := h1.le
       _ = 2^(N.log2 + 1) * 1 := (mul_one _).symm
-      _ ≤ 2^(N.log2 + 1) * V := mul_le_mul_left' hV _
+      _ ≤ 2^(N.log2 + 1) * V := mul_le_mul_right hV _
   have htile : ∀ m : ℕ,
       ∑ c ∈ (Finset.Ioc V N).filter
           (fun c => n₀ < c*m ∧ c*m ≤ N),
@@ -5053,7 +5050,7 @@ theorem vaughan_minor_arc_le (a q : ℕ) (hq : 1 ≤ q)
     Real.log_pos (by exact_mod_cast hN)
   have hUN : U ≤ N := by
     calc U = U*1 := (mul_one U).symm
-      _ ≤ U*V := mul_le_mul_left' hV U
+      _ ≤ U*V := mul_le_mul_right hV U
       _ ≤ N := hUV
   have hvw := vaughan_weighted U V n₀ N hVn₀
     (fun n => e ((n:ℝ)*((a:ℝ)/(q:ℝ) + δ)))
@@ -5578,7 +5575,7 @@ theorem dirichlet_frequency_split (β : ℝ) (n : ℕ) (hn : 0 < n) :
     exact_mod_cast Rat.den_ne_zero r
   have h0 : (0:ℤ) ≤ r.num % (r.den:ℤ) := Int.emod_nonneg r.num hdenz
   have hmod : (r.den:ℤ) * (r.num / (r.den:ℤ)) + r.num % (r.den:ℤ)
-      = r.num := Int.ediv_add_emod r.num (r.den:ℤ)
+      = r.num := Int.mul_ediv_add_emod r.num (r.den:ℤ)
   refine ⟨(r.num % (r.den:ℤ)).toNat, r.den, r.num / (r.den:ℤ),
     Rat.den_pos r, hr2, ?_, ?_⟩
   · -- coprimality survives the shift
@@ -6345,7 +6342,7 @@ theorem primeBlock_classification (c : ℝ) (hc : 0 < c) :
       have h2 : 4*2^(n₀.log2/3) ≤ n₀ := by
         calc 4*2^(n₀.log2/3) = (2*2)*2^(n₀.log2/3) := by norm_num
           _ ≤ (2^(n₀.log2/3)*2^(n₀.log2/3))*2^(n₀.log2/3) :=
-              mul_le_mul_right' h1 _
+              mul_le_mul_left h1 _
           _ ≤ n₀ := hU3n
       have h3 : 2^(n₀.log2/3) < 4*2^(n₀.log2/3) := by
         calc 2^(n₀.log2/3) = 1*2^(n₀.log2/3) := (one_mul _).symm

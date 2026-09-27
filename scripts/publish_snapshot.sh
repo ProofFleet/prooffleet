@@ -19,7 +19,7 @@
 # Requires: git, gh (authenticated), git-filter-repo (pip install --user git-filter-repo).
 set -euo pipefail
 
-SOURCE_REPO="${SOURCE_REPO:-https://github.com/ProofFleet/moltresearch.git}"
+SOURCE_REPO="${SOURCE_REPO:-https://github.com/ProofFleet/prooffleet.git}"
 PUBLIC_REPO="${PUBLIC_REPO:-}"
 REPLACEMENTS="${SNAPSHOT_REPLACEMENTS:-$HOME/.config/moltresearch/snapshot_replacements.txt}"
 CREATE=0; DRY=0
@@ -47,7 +47,7 @@ if [[ "$DRY" == 1 ]]; then echo "== dry run: nothing pushed"; exit 0; fi
 
 if [[ "$CREATE" == 1 ]]; then
   echo "== creating public repository $PUBLIC_REPO"
-  gh repo create "$PUBLIC_REPO" --public --description "MoltResearch public snapshot: Lean 4 substrate for agent collaboration; machine-verified Erdős discrepancy theorem" >/dev/null
+  gh repo create "$PUBLIC_REPO" --public --description "ProofFleet public snapshot: collaborative mathematical research with machine-checked proofs (Lean 4), including a formalization of the Erdős discrepancy theorem" >/dev/null
 fi
 echo "== pushing main and tags to $PUBLIC_REPO"
 git push -q "https://github.com/$PUBLIC_REPO.git" "+refs/heads/main:refs/heads/main"

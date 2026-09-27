@@ -444,7 +444,7 @@ theorem integrable_ofReal_norm_polynomialSum_pow_even (s k M : ℕ) :
     ((M : ℝ) ^ (2 * s))
   filter_upwards [] with β
   ·
-    rw [Function.comp_apply, Complex.norm_real, Real.norm_eq_abs,
+    rw [Function.comp_apply, Pi.pow_apply, Complex.norm_real, Real.norm_eq_abs,
       abs_of_nonneg (pow_nonneg (norm_nonneg _) _)]
     exact pow_le_pow_left₀ (norm_nonneg _) (norm_polynomialSum_le k M β) _
 
@@ -669,7 +669,7 @@ theorem integrable_norm_polynomialSum_pow_even_real (s k M : ℕ) :
     (((continuous_polynomialSum k M).norm.pow (2 * s)).aestronglyMeasurable)
     ((M : ℝ) ^ (2 * s))
   filter_upwards [] with β
-  rw [Real.norm_eq_abs, abs_of_nonneg (pow_nonneg (norm_nonneg _) _)]
+  rw [Pi.pow_apply, Real.norm_eq_abs, abs_of_nonneg (pow_nonneg (norm_nonneg _) _)]
   exact pow_le_pow_left₀ (norm_nonneg _) (norm_polynomialSum_le k M β) _
 
 theorem integrable_polynomialPartialMajorant_pow (s k M : ℕ) (hM : 1 ≤ M) :
@@ -1610,7 +1610,7 @@ theorem log_block_pow_mul_volume_le_box_integral
       (norm_log_block_le_majorant_of_mem_box hk hM hN hn ht0 hu0 hscale hβ)
       (2 * s))
   rw [MeasureTheory.setIntegral_const, smul_eq_mul] at hint
-  simpa [L, mul_comm] using hint
+  simpa [L, mul_comm] using! hint
 
 /-! ## Top-coefficient separation -/
 
@@ -1848,8 +1848,7 @@ theorem abs_topCoefficient_lt_one {k N n : ℕ} {t u : ℝ}
       abs_of_nonneg ht0]
     rw [Nat.cast_sub hk]
     norm_num
-    rw [abs_of_pos Real.pi_pos,
-      abs_of_pos (show (0 : ℝ) < (n : ℝ) + u by simpa [y] using hy)]
+    rw [abs_of_pos (show (0 : ℝ) < (n : ℝ) + u by simpa [y] using hy)]
   rw [hform]
   exact (div_lt_one hden).2 htden
 
@@ -2363,7 +2362,7 @@ theorem norm_log_sum_le_vinogradovAssembly
       (fun _ _ _ => pow_nonneg (norm_nonneg _) _)).trans hfull
   have hs : 1 ≤ s := by
     have : 0 < k * τ := Nat.mul_pos (by omega) (by omega)
-    simpa only [s] using this
+    simpa only [s] using! this
   have hholder := sum_norm_le_holder A F s hs
   have hroot : (∑ n ∈ A, ‖F n‖ ^ (2 * s)) ^ (((2 * s : ℕ) : ℝ)⁻¹) ≤
       (K / V) ^ (((2 * s : ℕ) : ℝ)⁻¹) := by

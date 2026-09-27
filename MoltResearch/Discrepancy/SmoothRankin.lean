@@ -94,7 +94,7 @@ theorem sum_rpow_smoothNumbersUpTo_le (δ : ℝ) (hδ : 0 < δ) :
             calc k^e ≤ k^e * m := Nat.le_mul_of_pos_right _ (by omega)
               _ = n := hval
               _ ≤ N := hnN
-          have := (Nat.pow_le_iff_le_log hk1 (by omega : N ≠ 0)).mp hke
+          have := (Nat.le_log_iff_pow_le hk1 (by omega : N ≠ 0)).mpr hke
           omega
         · calc (m:ℕ) ≤ k^e * m := Nat.le_mul_of_pos_left _ (pow_pos hk.pos e)
             _ = n := hval
@@ -212,8 +212,8 @@ theorem sum_vonMangoldt_div_smooth_le (y x : ℕ) (hy : 2 ≤ y) :
       have hpk_le : p^k ≤ x := hpk ▸ hdx
       have h2k : 2^k ≤ x := le_trans
         (Nat.pow_le_pow_left hp.two_le k) hpk_le
-      have := (Nat.pow_le_iff_le_log (by norm_num)
-        (by omega : x ≠ 0)).mp h2k
+      have := (Nat.le_log_iff_pow_le (by norm_num)
+        (by omega : x ≠ 0)).mpr h2k
       omega
     exact ⟨⟨hpy, hp⟩, by omega, hkK⟩
   have hinj : Set.InjOn (fun pk : ℕ × ℕ => pk.1 ^ pk.2)
@@ -258,7 +258,7 @@ theorem sum_vonMangoldt_div_smooth_le (y x : ℕ) (hy : 2 ≤ y) :
             = (1/(p:ℝ)) * ∑ j ∈ Finset.range K, (1/(p:ℝ))^j := by
           rw [Finset.mul_sum]
           rw [show Finset.Icc 1 K = Finset.map
-            ⟨fun j => j + 1, fun a b h => by simpa using h⟩ (Finset.range K) from ?_]
+            ⟨fun j => j + 1, add_left_injective 1⟩ (Finset.range K) from ?_]
           · rw [Finset.sum_map]
             refine Finset.sum_congr rfl fun j _ => ?_
             simp only [Function.Embedding.coeFn_mk]

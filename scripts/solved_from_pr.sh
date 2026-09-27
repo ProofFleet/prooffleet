@@ -13,7 +13,7 @@ if [ $# -ne 1 ]; then
 fi
 
 PR="$1"
-REPO="${REPO:-ProofFleet/moltresearch}"
+REPO="${REPO:-ProofFleet/prooffleet}"
 
 # Pull PR info via gh api (avoid gh pr edit quirks).
 json=$(gh api repos/$REPO/pulls/$PR)

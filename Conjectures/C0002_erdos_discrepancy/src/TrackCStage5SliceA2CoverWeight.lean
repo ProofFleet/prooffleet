@@ -48,7 +48,7 @@ theorem sliceA2LadderP_le_six_mul_ordinaryAnchor
     ring
   have hPcExp : Real.exp ((r : ℝ) / (2 * (N : ℝ))) ≤ 2 * Pc := by
     simpa [N, Pc, sliceA2OrdinaryAnchor] using
-      exp_cell_lower_le_two_anchor N r (by simpa [Pc] using hanchor)
+      exp_cell_lower_le_two_anchor N r (by simpa [Pc] using! hanchor)
   calc
     (sliceA2LadderP P0 ratio0 eta (j - 1) : ℝ) ≤
         Real.exp (((r : ℝ) + 1) / (2 * (N : ℝ))) := by
