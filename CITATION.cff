@@ -5,7 +5,7 @@ type: software
 authors:
   - name: "ProofFleet and the ProofFleet contributors (formerly MoltResearch)"
 repository-code: "https://github.com/ProofFleet/prooffleet"
-version: "1.0.0-edp"
+version: "1.0.1-edp"
 date-released: "2026-09-27"
 license: Apache-2.0
 keywords:

@@ -20,7 +20,8 @@ new commits.
    license section.
 2. Tag the release here: `git tag -a vX.Y.Z -m "..." && git push origin vX.Y.Z`, with `version`
    and `date-released` set in `CITATION.cff` in the tagged commit. The Erdős discrepancy release
-   is `v1.0.0-edp` (27 September 2026).
+   is `v1.0.1-edp` (27 September 2026); `v1.0.0-edp`, tagged earlier the same day, differs from it
+   only in documentation.
 3. Redaction rules live outside the repository, in
    `~/.config/moltresearch/snapshot_replacements.txt` (git-filter-repo `--replace-text` format, one
    `literal==>replacement` per line). Never commit that file.

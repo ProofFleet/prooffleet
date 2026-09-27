@@ -1,4 +1,4 @@
-# The Erdős discrepancy theorem: release candidate and Palomar submission
+# The Erdős discrepancy theorem: release and Palomar submission
 
 This document records the release of the repository's formalization of the Erdős discrepancy
 theorem: what is claimed, how the claim was checked, how anyone can check it again, and what is
@@ -7,9 +7,11 @@ left to decide before publication. The structured provenance record is
 [`PalomarEDP/Challenge.lean`](../PalomarEDP/Challenge.lean).
 
 Status on 27 September 2026: **published; Palomar submission in preparation.** The release is the
-tag `v1.0.0-edp` of the public repository
+tag `v1.0.1-edp` of the public repository
 [`ProofFleet/prooffleet`](https://github.com/ProofFleet/prooffleet), a redacted snapshot of the
-private working repository `ProofFleet/prooffleet-dev` ([`RELEASING.md`](../RELEASING.md)).
+private working repository `ProofFleet/prooffleet-dev` ([`RELEASING.md`](../RELEASING.md)). The
+earlier tag `v1.0.0-edp` (public `64c93946`) differs from it only in this document and
+`CITATION.cff`.
 Section 7 records the maintainer's decisions.
 
 Commit hashes and run links in this document are those of the private working repository unless
@@ -144,7 +146,7 @@ else also runs on macOS.
 
 ```bash
 git clone https://github.com/ProofFleet/prooffleet && cd prooffleet
-git checkout v1.0.0-edp
+git checkout v1.0.1-edp
 curl -sSfL https://elan.lean-lang.org/elan-init.sh | sh -s -- -y --default-toolchain none
 ~/.elan/bin/lake exe cache get          # Mathlib's official prebuilt cache; the project builds from source
 make ci                                 # source gates + every CI target (includes the audit pins and PalomarEDP)
@@ -162,8 +164,8 @@ python3 scripts/check_palomar_submission.py --palomar-submission /tmp/ps --forma
 
 The `Palomar` workflow (`.github/workflows/palomar.yml`) runs the intake checks and the sandboxed
 Comparator on GitHub's Linux runners; dispatch it with `fresh: true` to build the project from
-source. Once the repository is public, the `Palomar preflight` workflow runs Palomar's own verifier
-at a pinned commit: that is the closest predictor of Palomar's mechanical verdict.
+source. In the public repository, the `Palomar preflight` workflow runs Palomar's own verifier at a
+pinned commit: that is the closest predictor of Palomar's mechanical verdict.
 
 These steps use Mathlib's official olean cache, as Palomar does; none of them rebuilds Mathlib
 from source.
@@ -214,6 +216,7 @@ changed no Lean file.
 | `CI` workflow on `ed5643b5`, run [36305120834](https://github.com/ProofFleet/prooffleet-dev/actions/runs/36305120834) | GitHub-hosted ubuntu-latest | success: source gates and every CI target |
 | `Palomar` workflow on `ed5643b5`, run [36305120804](https://github.com/ProofFleet/prooffleet-dev/actions/runs/36305120804) | Ubuntu 24.04, bubblewrap | intake and Licensee pass; sandboxed `lake comparator` **accepted** by Lean's kernel, NanoDa and con-ron (79,620 declarations), exit 0 |
 | Redaction, checked on an anonymous clone of the public repository | macOS, local | only `main` is published; no object in its history contains the redacted number in any formatting; the head tree equals private `cdc57010` |
+| `Palomar preflight` (PalomarSubmission `a59f25bd`, profile `palomar-standard-v1`), public runs [36307171984](https://github.com/ProofFleet/prooffleet/actions/runs/36307171984) on `d9b87e95` and [36316910460](https://github.com/ProofFleet/prooffleet/actions/runs/36316910460) on `64c93946` (`v1.0.0-edp`), both with the Lean content of `v1.0.1-edp` | GitHub-hosted ubuntu-24.04 | report `status: pass`, no errors or warnings; accepted by Lean's kernel, NanoDa and con-ron (79,620 declarations) |
 
 Checks for any later candidate SHA, reported with it:
 
@@ -342,10 +345,13 @@ they do not affect correctness, and removing them is a separate cleanup.
 
 ### Known limitations
 
-- The Palomar preflight (Palomar's own verifier) cannot run until the repository is public; the
-  local and CI Comparator runs are rehearsals of it, not substitutes.
-- No person has reviewed the statement of record (section 2) or the proof; `formalization.yaml`
-  says so.
+- No independent human review is recorded. Sean Huver, the listed author and maintainer, reviewed
+  the statement of record on 27 September 2026 (section 2); `formalization.yaml` records that as the
+  author's own check (`review.status: self-assessed`). No human mathematical review of the proof
+  is recorded; its checks are mechanical (section 6) or were carried out by AI agents.
+- The Palomar preflight is advisory. It passed on the public commits (section 6), but Palomar's own
+  run on a submission can still differ, and the preflight does not include Palomar's editorial
+  review.
 - The Hilbert-space version of the theorem (Tao's Theorem 1.1) and any explicit discrepancy bound
   are not formalized. Some constants in the proof are existential.
 - Outside the proof: two regression modules do not compile (`scripts/uncompiled_allowlist.txt`),
